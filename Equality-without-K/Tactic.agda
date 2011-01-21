@@ -106,9 +106,9 @@ private
 -- Equality expressions.
 --
 -- Note that the code below pattern matches on expressions of this
--- type, and that this may involve uses of the K rule. However, this
--- should be fine, because the trusted kernel which defines _≡_ does
--- not include the K rule.
+-- type, and that this may (implicitly) involve uses of the K rule.
+-- However, if the trusted kernel is correct then this should not
+-- matter.
 
 data Eq {A : Set} : A → A → Set₁ where
   Lift  : ∀ {x y} (x≡y : x ≡ y) → Eq x y
