@@ -55,14 +55,16 @@ trans {z = z} = elim (λ {x} {y} _ → y ≡ z → x ≡ z) (λ x x≡z → x≡
 
 -- Equational reasoning combinators.
 
-infix  2 _∎
+infix  2 finally
 infixr 2 _≡⟨_⟩_
 
 _≡⟨_⟩_ : ∀ {A} x {y z : A} → x ≡ y → y ≡ z → x ≡ z
 _ ≡⟨ x≡y ⟩ y≡z = trans x≡y y≡z
 
-_∎ : ∀ {A} (x : A) → x ≡ x
-_∎ = refl
+finally : ∀ {A} (x y : A) → x ≡ y → x ≡ y
+finally _ _ x≡y = x≡y
+
+syntax finally x y x≡y = x ≡⟨ x≡y ⟩∎ y ∎
 
 -- Substitutivity.
 
@@ -166,7 +168,7 @@ right⇔irrelevance = equivalent ⇒ ⇐
     from ⟨$⟩ (to ⟨$⟩ p) ≡⟨ cong (_⟨$⟩_ from) $
                                 from ⟨$⟩ P.proof-irrelevance
                                            (to ⟨$⟩ p) (to ⟨$⟩ q) ⟩
-    from ⟨$⟩ (to ⟨$⟩ q) ≡⟨ left-inverse-of q ⟩
+    from ⟨$⟩ (to ⟨$⟩ q) ≡⟨ left-inverse-of q ⟩∎
     q                   ∎
     where
     open module LI {A : Set} {x y : A} = LeftInverse (right {A} {x} {y})
