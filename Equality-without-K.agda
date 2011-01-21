@@ -38,6 +38,11 @@ abstract
 ------------------------------------------------------------------------
 -- Some simple properties
 
+open import Function.Equality using (_⟶_; _⟨$⟩_)
+open import Function.LeftInverse
+  using (LeftInverse; RightInverse; module LeftInverse)
+open import Relation.Binary using (Setoid)
+
 -- Symmetry.
 
 sym : {A : Set} {x y : A} → x ≡ y → y ≡ x
@@ -47,21 +52,6 @@ sym = elim (λ {x} {y} _ → y ≡ x) refl
 
 trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
 trans {z = z} = elim (λ {x} {y} _ → y ≡ z → x ≡ z) (λ x x≡z → x≡z)
-
--- Congruence.
-
-cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
-cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
-
-cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
-        x ≡ y → u ≡ v → f x u ≡ f y v
-cong₂ f {x} {y} x≡y =
-  elim (λ {u v} _ → f x u ≡ f y v) (λ x → cong (λ u → f u x) x≡y)
-
--- Substitutivity.
-
-subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
-subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
 
 -- Equational reasoning combinators.
 
@@ -73,6 +63,46 @@ _ ≡⟨ x≡y ⟩ y≡z = trans x≡y y≡z
 
 _∎ : ∀ {A} (x : A) → x ≡ x
 _∎ = refl
+
+-- Substitutivity.
+
+subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
+subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
+
+-- Congruence.
+
+cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
+
+cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
+        x ≡ y → u ≡ v → f x u ≡ f y v
+cong₂ f {x} {y} x≡y =
+  elim (λ {u v} _ → f x u ≡ f y v) (λ x → cong (λ u → f u x) x≡y)
+
+-- Setoid.
+
+setoid : Set → Setoid _ _
+setoid A = record
+  { Carrier       = A
+  ; _≈_           = _≡_
+  ; isEquivalence = record
+    { refl  = refl _
+    ; sym   = sym
+    ; trans = trans
+    }
+  }
+
+-- Lifts ordinary functions to equality-preserving functions.
+
+→-to-⟶ : {A B : Set} → (A → B) → setoid A ⟶ setoid B
+→-to-⟶ f = record { _⟨$⟩_ = f; cong = cong f }
+
+-- An abbreviation.
+
+infix 4 _⇾_
+
+_⇾_ : Set → Set → Set
+A ⇾ B = LeftInverse (setoid A) (setoid B)
 
 ------------------------------------------------------------------------
 -- The K rule and proof irrelevance
@@ -106,55 +136,49 @@ k⇔irrelevance =
 -- Relation to ordinary propositional equality with the K rule
 
 open import Function using (_$_)
-open import Function.Equality using (_⟨$⟩_)
-open import Function.LeftInverse
-  using (LeftInverse; RightInverse; module LeftInverse)
 import Relation.Binary.PropositionalEquality as P
 
 -- The two equalities are equivalent. In fact, there exists a left
 -- inverse from P._≡_ to _≡_.
 
-≡⇔≡ : ∀ {A} {x y : A} →
-      LeftInverse (P.setoid (P._≡_ x y)) (P.setoid (x ≡ y))
+≡⇔≡ : ∀ {A} {x y : A} → P._≡_ x y ⇾ (x ≡ y)
 ≡⇔≡ {x = x} = record
-  { to              = P.→-to-⟶ λ x≡y → P.subst   (_≡_ x) x≡y  (refl x)
-  ; from            = P.→-to-⟶ λ x≡y →   subst (P._≡_ x) x≡y P.refl
-  ; left-inverse-of = λ _ → P.proof-irrelevance _ _
+  { to              = →-to-⟶ to
+  ; from            = →-to-⟶ λ x≡y → subst (P._≡_ x) x≡y P.refl
+  ; left-inverse-of = λ _ → to $ P.proof-irrelevance _ _
   }
+  where
+  to : ∀ {A} {x y : A} → P._≡_ x y → x ≡ y
+  to {x = x} x≡y = P.subst (_≡_ x) x≡y (refl x)
 
 -- However, I suspect that there is no right inverse. Existence of a
 -- right inverse (for any set and elements in this set) is equivalent
 -- to (general) proof irrelevance, and hence also to the K rule.
 
 right⇔irrelevance :
-  (∀ {A} {x y : A} →
-   RightInverse (P.setoid (P._≡_ x y)) (P.setoid (x ≡ y))) ⇔
+  (∀ {A} {x y : A} → (x ≡ y) ⇾ P._≡_ x y) ⇔
   (∀ {A} → Proof-irrelevance A)
 right⇔irrelevance = equivalent ⇒ ⇐
   where
   ⇒ : _ → (∀ {A} → Proof-irrelevance A)
   ⇒ right p q =
-    p                   ≡⟨ sym $ from ⟨$⟩ left-inverse-of p ⟩
+    p                   ≡⟨ sym $ left-inverse-of p ⟩
     from ⟨$⟩ (to ⟨$⟩ p) ≡⟨ cong (_⟨$⟩_ from) $
                                 from ⟨$⟩ P.proof-irrelevance
                                            (to ⟨$⟩ p) (to ⟨$⟩ q) ⟩
-    from ⟨$⟩ (to ⟨$⟩ q) ≡⟨ from ⟨$⟩ left-inverse-of q ⟩
+    from ⟨$⟩ (to ⟨$⟩ q) ≡⟨ left-inverse-of q ⟩
     q                   ∎
     where
     open module LI {A : Set} {x y : A} = LeftInverse (right {A} {x} {y})
 
-  ⇐ : _ →
-      (∀ {A} {x y : A} →
-         RightInverse (P.setoid (P._≡_ x y)) (P.setoid (x ≡ y)))
+  ⇐ : _ → (∀ {A} {x y : A} → (x ≡ y) ⇾ P._≡_ x y)
   ⇐ irr {x = x} {y} = record
     { to              = from
     ; from            = to
-    ; left-inverse-of = λ x≡y → from ⟨$⟩ irr (to ⟨$⟩ (from ⟨$⟩ x≡y)) x≡y
+    ; left-inverse-of = λ x≡y → irr (to ⟨$⟩ (from ⟨$⟩ x≡y)) x≡y
     }
     where
     open module LI {A : Set} {x y : A} = LeftInverse (≡⇔≡ {A} {x} {y})
 
-right⇔K : (∀ {A} {x y : A} →
-           RightInverse (P.setoid (P._≡_ x y)) (P.setoid (x ≡ y))) ⇔
-          K-rule
+right⇔K : (∀ {A} {x y : A} → (x ≡ y) ⇾ P._≡_ x y) ⇔ K-rule
 right⇔K = Eq._∘_ (Eq.sym k⇔irrelevance) right⇔irrelevance
