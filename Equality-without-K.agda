@@ -66,11 +66,6 @@ finally _ _ x≡y = x≡y
 
 syntax finally x y x≡y = x ≡⟨ x≡y ⟩∎ y ∎
 
--- Substitutivity.
-
-subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
-subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
-
 -- Congruence.
 
 cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
@@ -82,6 +77,16 @@ cong₂ f {x} {y} {u} {v} x≡y u≡v =
   f x u  ≡⟨ cong (λ g → g u) (cong f x≡y) ⟩
   f y u  ≡⟨ cong (f y) u≡v ⟩∎
   f y v  ∎
+
+-- Substitutivity.
+
+subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
+subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
+
+subst-refl : {A : Set} (P : A → Set) {x : A} (p : P x) →
+             subst P (refl x) p ≡ p
+subst-refl P p =
+  cong (λ f → f p) (elim-refl (λ {u v} _ → P u → P v) (λ x p → p))
 
 -- Setoid.
 
