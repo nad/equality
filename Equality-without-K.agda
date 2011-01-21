@@ -78,8 +78,10 @@ cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
 
 cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
         x ≡ y → u ≡ v → f x u ≡ f y v
-cong₂ f {x} {y} x≡y =
-  elim (λ {u v} _ → f x u ≡ f y v) (λ x → cong (λ u → f u x) x≡y)
+cong₂ f {x} {y} {u} {v} x≡y u≡v =
+  f x u  ≡⟨ cong (λ g → g u) (cong f x≡y) ⟩
+  f y u  ≡⟨ cong (f y) u≡v ⟩∎
+  f y v  ∎
 
 -- Setoid.
 

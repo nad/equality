@@ -113,18 +113,33 @@ private
 data Eq {A : Set} : A → A → Set₁ where
   Lift  : ∀ {x y} (x≡y : x ≡ y) → Eq x y
   Refl  : ∀ {x} → Eq x x
-  Sym   : ∀ {x y} (x≡y : Eq x y) → Eq y x
-  Trans : ∀ {x y z} (x≡y : Eq x y) (y≡z : Eq y z) → Eq x z
-  Cong  : ∀ {B x y} (f : B → A) (x≡y : Eq x y) → Eq (f x) (f y)
+  Sym   : ∀ {x y} (x≈y : Eq x y) → Eq y x
+  Trans : ∀ {x y z} (x≈y : Eq x y) (y≈z : Eq y z) → Eq x z
+  Cong  : ∀ {B x y} (f : B → A) (x≈y : Eq x y) → Eq (f x) (f y)
 
 -- Semantics.
 
 ⟦_⟧ : ∀ {A} {x y : A} → Eq x y → x ≡ y
 ⟦ Lift x≡y      ⟧ = x≡y
 ⟦ Refl          ⟧ = refl _
-⟦ Sym x≡y       ⟧ = sym ⟦ x≡y ⟧
-⟦ Trans x≡y y≡z ⟧ = trans ⟦ x≡y ⟧ ⟦ y≡z ⟧
-⟦ Cong f x≡y    ⟧ = cong f ⟦ x≡y ⟧
+⟦ Sym x≈y       ⟧ = sym ⟦ x≈y ⟧
+⟦ Trans x≈y y≈z ⟧ = trans ⟦ x≈y ⟧ ⟦ y≈z ⟧
+⟦ Cong f x≈y    ⟧ = cong f ⟦ x≈y ⟧
+
+-- A derived combinator.
+
+Cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
+        Eq x y → Eq u v → Eq (f x u) (f y v)
+Cong₂ f {y = y} {u} x≈y u≈v =
+  Trans (Cong (λ g → g u) (Cong f x≈y)) (Cong (f y) u≈v)
+
+private
+
+  Cong₂-correct :
+    {A B C : Set} (f : A → B → C) {x y : A} {u v : B}
+    (x≈y : Eq x y) (u≈v : Eq u v) →
+    ⟦ Cong₂ f x≈y u≈v ⟧ ≡ cong₂ f ⟦ x≈y ⟧ ⟦ u≈v ⟧
+  Cong₂-correct f x≈y u≈v = refl _
 
 ------------------------------------------------------------------------
 -- Simplified expressions
