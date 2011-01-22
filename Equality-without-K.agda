@@ -162,7 +162,7 @@ open import Function using (_$_)
 import Relation.Binary.PropositionalEquality as P
 
 -- The two equalities are equivalent. In fact, there exists a left
--- inverse from P._≡_ to _≡_.
+-- invertible function from P._≡_ to _≡_.
 
 ≡⇔≡ : ∀ {A} {x y : A} → P._≡_ x y ⇾ (x ≡ y)
 ≡⇔≡ {x = x} = record
@@ -174,7 +174,7 @@ import Relation.Binary.PropositionalEquality as P
   to : ∀ {A} {x y : A} → P._≡_ x y → x ≡ y
   to {x = x} x≡y = P.subst (_≡_ x) x≡y (refl x)
 
--- However, I suspect that there is no right inverse. Existence of a
+-- However, I don't know if there is a right inverse. Existence of a
 -- right inverse (for any set and elements in this set) is equivalent
 -- to (general) proof irrelevance, and hence also to the K rule.
 
