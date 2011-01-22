@@ -126,10 +126,15 @@ K-rule = {A : Set} (P : {x : A} → x ≡ x → Set) →
          (∀ x → P (refl x)) →
          ∀ {x} (x≡x : x ≡ x) → P x≡x
 
+-- Sets for which _≡_ is a trivial relation.
+
+Trivial-≡ : Set → Set
+Trivial-≡ A = (x y : A) → x ≡ y
+
 -- Proof irrelevance.
 
 Proof-irrelevance : Set → Set
-Proof-irrelevance A = ∀ {x y : A} (x≡y x≡y′ : x ≡ y) → x≡y ≡ x≡y′
+Proof-irrelevance A = {x y : A} → Trivial-≡ (x ≡ y)
 
 -- The K rule is equivalent to (general) proof irrelevance.
 
