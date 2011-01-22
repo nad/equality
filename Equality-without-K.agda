@@ -38,10 +38,14 @@ abstract
 ------------------------------------------------------------------------
 -- Some simple properties
 
+open import Data.Bool using (true; false; if_then_else_)
+open import Data.Empty using (⊥)
+open import Data.Unit using (⊤)
 open import Function.Equality using (_⟶_; _⟨$⟩_)
 open import Function.LeftInverse
   using (LeftInverse; RightInverse; module LeftInverse)
 open import Relation.Binary using (Setoid)
+open import Relation.Nullary using (¬_)
 
 -- Symmetry.
 
@@ -87,6 +91,11 @@ subst-refl : {A : Set} (P : A → Set) {x : A} (p : P x) →
              subst P (refl x) p ≡ p
 subst-refl P p =
   cong (λ f → f p) (elim-refl (λ {u v} _ → P u → P v) (λ x p → p))
+
+-- The boolean true is not equal to false.
+
+true≢false : ¬ true ≡ false
+true≢false true≡false = subst (λ b → if b then ⊤ else ⊥) true≡false _
 
 -- Setoid.
 
