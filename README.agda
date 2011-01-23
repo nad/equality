@@ -21,3 +21,11 @@ import Equality-without-K.Decidable-Irrelevant
 -- W-types.
 
 import W-type
+
+-- H-levels, along with some general properties.
+
+import H-level
+
+-- Closure properties for H-levels.
+
+import H-level.Closure
