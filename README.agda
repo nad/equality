@@ -17,3 +17,7 @@ import Equality-without-K.Tactic
 -- A proof which shows that decidable equalities are proof irrelevant.
 
 import Equality-without-K.Decidable-Irrelevant
+
+-- W-types.
+
+import W-type
