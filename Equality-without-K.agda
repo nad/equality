@@ -42,8 +42,7 @@ open import Data.Bool using (true; false; if_then_else_)
 open import Data.Empty using (⊥)
 open import Data.Unit using (⊤)
 open import Function.Equality using (_⟶_; _⟨$⟩_)
-open import Function.LeftInverse
-  using (LeftInverse; RightInverse; module LeftInverse)
+open import Function.Surjection using (Surjection; module Surjection)
 open import Relation.Binary using (Setoid)
 open import Relation.Nullary using (¬_)
 
@@ -117,10 +116,10 @@ setoid A = record
 
 -- An abbreviation.
 
-infix 4 _⇾_
+infix 4 _↠_
 
-_⇾_ : Set → Set → Set
-A ⇾ B = LeftInverse (setoid A) (setoid B)
+_↠_ : Set → Set → Set
+A ↠ B = Surjection (setoid A) (setoid B)
 
 ------------------------------------------------------------------------
 -- The K rule and proof irrelevance
@@ -161,47 +160,55 @@ k⇔irrelevance =
 open import Function using (_$_)
 import Relation.Binary.PropositionalEquality as P
 
--- The two equalities are equivalent. In fact, there exists a left
--- invertible function from P._≡_ to _≡_.
+-- The two equalities are equivalent. In fact, there is a surjection
+-- from _≡_ (and any other relation which is reflexive and
+-- substitutive) to P._≡_.
 
-≡⇔≡ : ∀ {A} {x y : A} → P._≡_ x y ⇾ (x ≡ y)
+≡⇔≡ : ∀ {A} {x y : A} → (x ≡ y) ↠ P._≡_ x y
 ≡⇔≡ {x = x} = record
-  { to              = →-to-⟶ to
-  ; from            = →-to-⟶ λ x≡y → subst (P._≡_ x) x≡y P.refl
-  ; left-inverse-of = λ _ → to $ P.proof-irrelevance _ _
+  { to         = →-to-⟶ λ x≡y → subst (P._≡_ x) x≡y P.refl
+  ; surjective = record
+    { from             = →-to-⟶ to
+    ; right-inverse-of = λ _ → to $ P.proof-irrelevance _ _
+    }
   }
   where
   to : ∀ {A} {x y : A} → P._≡_ x y → x ≡ y
   to {x = x} x≡y = P.subst (_≡_ x) x≡y (refl x)
 
--- However, I don't know if there is a right inverse. Existence of a
--- right inverse (for any set and elements in this set) is equivalent
--- to (general) proof irrelevance, and hence also to the K rule.
+-- However, I don't know if the surjection is a bijection. Existence
+-- of surjections in the other direction (for any set and elements in
+-- this set) is equivalent to (general) proof irrelevance, and hence
+-- also to the K rule.
 
-right⇔irrelevance :
-  (∀ {A} {x y : A} → (x ≡ y) ⇾ P._≡_ x y) ⇔
+bijection⇔irrelevance :
+  (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y)) ⇔
   (∀ {A} → Proof-irrelevance A)
-right⇔irrelevance = equivalent ⇒ ⇐
+bijection⇔irrelevance = equivalent ⇒ ⇐
   where
-  ⇒ : _ → (∀ {A} → Proof-irrelevance A)
-  ⇒ right p q =
-    p                   ≡⟨ sym $ left-inverse-of p ⟩
-    from ⟨$⟩ (to ⟨$⟩ p) ≡⟨ cong (_⟨$⟩_ from) $
-                                from ⟨$⟩ P.proof-irrelevance
-                                           (to ⟨$⟩ p) (to ⟨$⟩ q) ⟩
-    from ⟨$⟩ (to ⟨$⟩ q) ≡⟨ left-inverse-of q ⟩∎
+  ⇒ : (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y)) →
+      (∀ {A} → Proof-irrelevance A)
+  ⇒ left p q =
+    p                   ≡⟨ sym $ right-inverse-of p ⟩
+    to ⟨$⟩ (from ⟨$⟩ p) ≡⟨ cong (_⟨$⟩_ to) $
+                                to ⟨$⟩ P.proof-irrelevance
+                                         (from ⟨$⟩ p) (from ⟨$⟩ q) ⟩
+    to ⟨$⟩ (from ⟨$⟩ q) ≡⟨ right-inverse-of q ⟩∎
     q                   ∎
     where
-    open module LI {A : Set} {x y : A} = LeftInverse (right {A} {x} {y})
+    open module S {A : Set} {x y : A} = Surjection (left {A} {x} {y})
 
-  ⇐ : _ → (∀ {A} {x y : A} → (x ≡ y) ⇾ P._≡_ x y)
+  ⇐ : (∀ {A} → Proof-irrelevance A) →
+      (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y))
   ⇐ irr {x = x} {y} = record
-    { to              = from
-    ; from            = to
-    ; left-inverse-of = λ x≡y → irr (to ⟨$⟩ (from ⟨$⟩ x≡y)) x≡y
+    { to         = from
+    ; surjective = record
+      { from             = to
+      ; right-inverse-of = λ x≡y → irr (from ⟨$⟩ (to ⟨$⟩ x≡y)) x≡y
+      }
     }
     where
-    open module LI {A : Set} {x y : A} = LeftInverse (≡⇔≡ {A} {x} {y})
+    open module S {A : Set} {x y : A} = Surjection (≡⇔≡ {A} {x} {y})
 
-right⇔K : (∀ {A} {x y : A} → (x ≡ y) ⇾ P._≡_ x y) ⇔ K-rule
-right⇔K = Eq._∘_ (Eq.sym k⇔irrelevance) right⇔irrelevance
+bijection⇔K : (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y)) ⇔ K-rule
+bijection⇔K = Eq._∘_ (Eq.sym k⇔irrelevance) bijection⇔irrelevance
