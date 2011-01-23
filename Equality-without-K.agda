@@ -42,6 +42,7 @@ open import Data.Bool using (true; false; if_then_else_)
 open import Data.Empty using (⊥)
 open import Data.Unit using (⊤)
 open import Function.Equality using (_⟶_; _⟨$⟩_)
+open import Function.Inverse using (Inverse)
 open import Function.Surjection using (Surjection; module Surjection)
 open import Relation.Binary using (Setoid)
 open import Relation.Nullary using (¬_)
@@ -114,12 +115,15 @@ setoid A = record
 →-to-⟶ : {A B : Set} → (A → B) → setoid A ⟶ setoid B
 →-to-⟶ f = record { _⟨$⟩_ = f; cong = cong f }
 
--- An abbreviation.
+-- Some abbreviations: surjections and bijections.
 
-infix 4 _↠_
+infix 4 _↠_ _↔_
 
 _↠_ : Set → Set → Set
 A ↠ B = Surjection (setoid A) (setoid B)
+
+_↔_ : Set → Set → Set
+A ↔ B = Inverse (setoid A) (setoid B)
 
 ------------------------------------------------------------------------
 -- The K rule and proof irrelevance
