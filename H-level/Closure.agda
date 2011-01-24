@@ -73,6 +73,21 @@ singleton-contractible x =
 ⊥-propositional =
   Equivalent.from propositional⇔trivial ⟨$⟩ (λ x → ⊥-elim x)
 
+-- Thus any uninhabited type is also propositional.
+
+⊥↠uninhabited : ∀ {A} → ¬ A → ⊥ ↠ A
+⊥↠uninhabited ¬A = record
+  { to         = Eq.→-to-⟶ ⊥-elim
+  ; surjective = record
+    { from             = Eq.→-to-⟶ ¬A
+    ; right-inverse-of = ⊥-elim ∘ ¬A
+    }
+  }
+
+uninhabited-propositional : ∀ {A} → ¬ A → Propositional A
+uninhabited-propositional ¬A =
+  respects-surjection (⊥↠uninhabited ¬A) 1 ⊥-propositional
+
 ------------------------------------------------------------------------
 -- Booleans
 
