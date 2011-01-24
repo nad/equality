@@ -318,20 +318,5 @@ private
                 (Sym (Lift x≡y))
                 (refl _)
 
-------------------------------------------------------------------------
--- Some non-examples
-
--- Note that the tactic does not handle equalities such as the
--- following ones.
-
-trans-symˡ : ∀ {A} {x y : A} (x≡y : x ≡ y) →
-             trans (sym x≡y) x≡y ≡ refl y
-trans-symˡ =
-  elim (λ {x y} x≡y → trans (sym x≡y) x≡y ≡ refl y)
-       (λ _ → prove (Trans (Sym Refl) Refl) Refl (refl _))
-
-trans-symʳ : ∀ {A} {x y : A} (x≡y : x ≡ y) →
-             trans x≡y (sym x≡y) ≡ refl x
-trans-symʳ =
-  elim (λ {x} x≡y → trans x≡y (sym x≡y) ≡ refl x)
-       (λ _ → prove (Trans Refl (Sym Refl)) Refl (refl _))
+-- For some non-examples, see Equality-without-K.Groupoid: the tactic
+-- cannot prove the left-inverse and right-inverse laws.

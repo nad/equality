@@ -14,6 +14,7 @@ open import Relation.Binary using (Decidable)
 open import Relation.Nullary
 
 open import Equality-without-K
+open import Equality-without-K.Groupoid
 open import Equality-without-K.Tactic
 
 -- Constant functions.
@@ -50,7 +51,7 @@ left-inverse f {x} {y} =
      y  ≡⟨ sym (f y y (refl y)) ⟩∎
      y  ∎) ,
   elim (λ {x y} x≡y → trans (f x y x≡y) (sym (f y y (refl y))) ≡ x≡y)
-       (λ _ → trans-symʳ _)
+       (λ _ → Groupoid.left-inverse groupoid _)
 
 -- A set A has proof irrelevance if there is a family of constant
 -- endofunctions on _≡_ {A = A}.

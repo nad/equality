@@ -19,6 +19,8 @@ import Relation.Binary.PropositionalEquality as P
 
 open import Equality-without-K as Eq
 import Equality-without-K.Decidable-Irrelevant as DI
+import Equality-without-K.Groupoid as EG
+private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
 import Equality-without-K.Tactic as Tactic; open Tactic.Eq
 
 ------------------------------------------------------------------------
@@ -63,7 +65,7 @@ mono₁ zero    h x y = (trivial x y , irr)
   irr =
     Eq.elim
       (λ {x y} x≡y → trivial x y ≡ x≡y)
-      (λ x → Tactic.trans-symˡ (proj₂ h x))
+      (λ x → G.right-inverse (proj₂ h x))
 
 mono : ∀ {A m n} → m ≤′ n → H-level m A → H-level n A
 mono ≤′-refl               = id
@@ -139,7 +141,7 @@ respects-surjection A↠B (suc n) h = λ x y →
                                                                                       (Lift riox)))
                                                                         (Trans (Sym (Lift riox)) (Lift riox))
                                                                         (refl _) ⟩
-              trans (sym riox) riox                     ≡⟨ Tactic.trans-symˡ _ ⟩∎
+              trans (sym riox) riox                     ≡⟨ G.right-inverse _ ⟩∎
               refl x                                    ∎)
           }
         }

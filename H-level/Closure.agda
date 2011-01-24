@@ -23,6 +23,8 @@ open import Relation.Nullary
 
 open import Equality-without-K as Eq
 import Equality-without-K.Decidable-Irrelevant as DI
+import Equality-without-K.Groupoid as EG
+private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
 import Equality-without-K.Tactic as Tactic; open Tactic.Eq
 open import H-level
 open import W-type as W
@@ -222,7 +224,7 @@ Well-behaved-extensionality A B =
                                                                      (Trans (Sym (Cong (_,_ (proj₁ x)) (Lift lem)))
                                                                             (Cong (_,_ (proj₁ x)) (Lift lem)))
                                                                      (refl _) ⟩
-          trans (sym _) _                            ≡⟨ Tactic.trans-symˡ _ ⟩∎
+          trans (sym _) _                            ≡⟨ G.right-inverse _ ⟩∎
           refl x                                     ∎)
       }
     }
@@ -368,7 +370,7 @@ W-closure {A} {B} ext (suc n) h = closure
         Eq.cong (sup x) (proj₁ ext λ i →
           Eq.trans (sym $ Eq.cong f $ lem i)
                    (Eq.cong f $ lem i))                          ≡⟨ Eq.cong (Eq.cong (sup x) ∘ proj₁ ext) (proj₁ ext λ i →
-                                                                      Tactic.trans-symˡ _) ⟩
+                                                                      G.right-inverse _) ⟩
         Eq.cong (sup x) (proj₁ ext (refl ∘ f))                   ≡⟨ Eq.cong (Eq.cong (sup x)) $ proj₂ ext f ⟩
         Eq.cong (sup x) (refl f)                                 ≡⟨ Tactic.prove (Cong (sup x) Refl) Refl (refl _) ⟩∎
         refl (sup x f)                                           ∎
@@ -572,7 +574,7 @@ module Alternative-proof where
         helper x false px _ f≡id = ⊥-elim px
         helper x true  _  _ f≡id =
           Eq.cong f (refl x)                                       ≡⟨ Tactic.prove (Cong f Refl) Refl (refl _) ⟩
-          refl (f x)                                               ≡⟨ Eq.sym $ Tactic.trans-symʳ _ ⟩
+          refl (f x)                                               ≡⟨ Eq.sym $ G.left-inverse _ ⟩
           Eq.trans (f≡id _) (Eq.sym (f≡id _))                      ≡⟨ Tactic.prove (Trans fx≡x (Sym fx≡x))
                                                                                    (Trans fx≡x (Trans Refl (Sym fx≡x)))
                                                                                    (refl _) ⟩∎

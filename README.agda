@@ -14,6 +14,10 @@ import Equality-without-K
 
 import Equality-without-K.Tactic
 
+-- The equality can be turned into a groupoid.
+
+import Equality-without-K.Groupoid
+
 -- A proof which shows that decidable equalities are proof irrelevant.
 
 import Equality-without-K.Decidable-Irrelevant
