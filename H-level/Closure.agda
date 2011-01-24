@@ -35,6 +35,30 @@ open import W-type as W
 ⊤-contractible : Contractible ⊤
 ⊤-contractible = (_ , λ _ → refl _)
 
+-- Thus any singleton type is contractible.
+
+Singleton : {A : Set} → A → Set
+Singleton x = ∃ λ y → x ≡ y
+
+⊤↠Singleton : ∀ {A} (x : A) → ⊤ ↠ Singleton x
+⊤↠Singleton x = record
+  { to         = Eq.→-to-⟶ (λ _ → (x , refl x))
+  ; surjective = record
+    { from             = Eq.→-to-⟶ _
+    ; right-inverse-of = λ s →
+        (x , refl x)  ≡⟨ Eq.elim (λ {u v} u≡v →
+                                    _≡_ {A = Singleton u}
+                                        (u , refl u) (v , u≡v))
+                                  (λ _ → refl _)
+                                  (proj₂ s) ⟩∎
+        s             ∎
+    }
+  }
+
+singleton-contractible : ∀ {A} (x : A) → Contractible (Singleton x)
+singleton-contractible x =
+  respects-surjection (⊤↠Singleton x) 0 ⊤-contractible
+
 ------------------------------------------------------------------------
 -- The empty type
 
@@ -111,14 +135,8 @@ Well-behaved-extensionality A B =
                                                proj₂ contractible (λ x → (g x , f≡g x)) ⟩∎
     g                                     ∎
     where
-    contractible : Contractible ((x : A) → ∃ λ (y : B x) → f x ≡ y)
-    contractible = closure λ x →
-      (f x , refl (f x)) , λ p →
-        (f x , refl (f x))  ≡⟨ Eq.elim (λ {u v} u≡v → _≡_ {A = ∃ λ (w : B x) → u ≡ w}
-                                                          (u , refl u) (v , u≡v))
-                                       (λ _ → refl _)
-                                       (proj₂ p) ⟩∎
-        p                   ∎
+    contractible : Contractible ((x : A) → Singleton (f x))
+    contractible = closure (singleton-contractible ∘ f)
 
 -- H-level is closed under Π A, assuming well-behaved extensionality
 -- for functions from A.
