@@ -96,14 +96,6 @@ Extensionality : (A : Set) → (B : A → Set) → Set
 Extensionality A B =
   {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
 
--- Proofs of extensionality which behave well when applied to
--- reflexivity.
-
-Well-behaved-extensionality : (A : Set) → (B : A → Set) → Set
-Well-behaved-extensionality A B =
-  ∃ λ (ext : Extensionality A B) →
-    ∀ f → ext (refl ∘ f) ≡ refl f
-
 -- Closure of contractibility under Π A is equivalent to having
 -- extensional equality for functions from A.
 
@@ -131,35 +123,69 @@ Well-behaved-extensionality A B =
     contractible : Contractible ((x : A) → Singleton (f x))
     contractible = closure (singleton-contractible ∘ f)
 
--- H-level is closed under Π A, assuming well-behaved extensionality
--- for functions from A.
+-- Proofs of extensionality which behave well when applied to
+-- reflexivity.
+
+Well-behaved-extensionality : (A : Set) → (B : A → Set) → Set
+Well-behaved-extensionality A B =
+  ∃ λ (ext : Extensionality A B) →
+    ∀ f → ext (refl ∘ f) ≡ refl f
+
+-- Given (generalised) extensionality one can define an extensionality
+-- proof which is well-behaved.
+
+extensionality⇒well-behaved-extensionality :
+  ∀ {A} → (∀ {B} → Extensionality A B) →
+  ∀ {B} → Well-behaved-extensionality A B
+extensionality⇒well-behaved-extensionality {A} ext {B} =
+  (λ {_} → ext′) , λ f →
+    ext′ (refl ∘ f)  ≡⟨ G.right-inverse _ ⟩∎
+    refl f           ∎
+  where
+  ext′ : Extensionality A B
+  ext′ = to ⟨$⟩ (from ⟨$⟩ ext)
+    where open Equivalent Π-closure-contractible⇔extensionality
+
+-- Given extensionality there is a surjection from ∀ x → f x ≡ g x to
+-- f ≡ g.
+
+ext-surj : ∀ {A} → (∀ {B} → Extensionality A B) →
+           ∀ {B : A → Set} {f g : (x : A) → B x} →
+           (∀ x → f x ≡ g x) ↠ (f ≡ g)
+ext-surj {A} ext {f} {g} = record
+  { to         = Eq.→-to-⟶ to
+  ; surjective = record
+    { from             = Eq.→-to-⟶ from
+    ; right-inverse-of =
+        Eq.elim (λ {f g} f≡g → to (from f≡g) ≡ f≡g) λ h →
+          proj₁ ext′ (from (refl h))  ≡⟨ Eq.cong (proj₁ ext′) (proj₁ ext′ λ x →
+                                           Tactic.prove (Cong (λ h → h x) (Refl {x = h})) Refl (refl _)) ⟩
+          proj₁ ext′ (refl ∘ h)       ≡⟨ proj₂ ext′ h ⟩∎
+          refl h                      ∎
+    }
+  }
+  where
+  ext′ : ∀ {B} → Well-behaved-extensionality A B
+  ext′ = extensionality⇒well-behaved-extensionality ext
+
+  to : ∀ {f g} → (∀ x → f x ≡ g x) → f ≡ g
+  to = proj₁ ext′
+
+  from : ∀ {f g} → f ≡ g → (∀ x → f x ≡ g x)
+  from f≡g x = Eq.cong (λ h → h x) f≡g
+
+-- H-level is closed under Π A, assuming extensionality for functions
+-- from A.
 
 Π-closure : ∀ {A} →
-            (∀ {B} → Well-behaved-extensionality A B) →
+            (∀ {B} → Extensionality A B) →
             ∀ {B : A → Set} n →
             (∀ x → H-level n (B x)) → H-level n ((x : A) → B x)
 Π-closure ext zero =
-  Equivalent.from Π-closure-contractible⇔extensionality ⟨$⟩ proj₁ ext
-Π-closure {A} ext {B} (suc n) = λ hB f g →
-  respects-surjection surj n $
-    Π-closure ext n (λ x → hB x (f x) (g x))
-  where
-  surj : {f g : (x : A) → B x} → ((x : A) → f x ≡ g x) ↠ (f ≡ g)
-  surj {f} {g} = record
-    { to         = Eq.→-to-⟶ $ proj₁ ext
-    ; surjective = record
-      { from             = Eq.→-to-⟶ from
-      ; right-inverse-of =
-          Eq.elim (λ {f g} f≡g → proj₁ ext (from f≡g) ≡ f≡g) λ h →
-            proj₁ ext (from (refl h))  ≡⟨ Eq.cong (proj₁ ext) (proj₁ ext λ x →
-                                            Tactic.prove (Cong (λ h → h x) (Refl {x = h})) Refl (refl _)) ⟩
-            proj₁ ext (refl ∘ h)       ≡⟨ proj₂ ext h ⟩∎
-            refl h                     ∎
-      }
-    }
-    where
-    from : ∀ {f g} → f ≡ g → ((x : A) → f x ≡ g x)
-    from f≡g x = Eq.cong (λ h → h x) f≡g
+  Equivalent.from Π-closure-contractible⇔extensionality ⟨$⟩ ext
+Π-closure ext (suc n) = λ h f g →
+  respects-surjection (ext-surj ext) n $
+    Π-closure ext n (λ x → h x (f x) (g x))
 
 ------------------------------------------------------------------------
 -- Σ-types
@@ -275,13 +301,13 @@ W-closure-propositional {A} {B} ext pA =
     sup y g                                  ∎
 
 -- H-level is closed under W for other levels greater than or equal to
--- 1 as well (assuming well-behaved extensionality).
+-- 1 as well (assuming extensionality).
 
 W-closure :
   ∀ {A} {B : A → Set} →
-  (∀ {x C} → Well-behaved-extensionality (B x) C) →
+  (∀ {x C} → Extensionality (B x) C) →
   ∀ n → H-level (1 + n) A → H-level (1 + n) (W A B)
-W-closure         ext zero    h = W-closure-propositional (proj₁ ext) h
+W-closure         ext zero    h = W-closure-propositional ext h
 W-closure {A} {B} ext (suc n) h = closure
   where
   closure : (x y : W A B) → H-level (1 + n) (x ≡ y)
@@ -290,6 +316,9 @@ W-closure {A} {B} ext (suc n) h = closure
       Σ-closure (1 + n) (h x y) (λ _ →
         Π-closure ext (1 + n) (λ i → closure (f _) (g _)))
     where
+    ext′ : ∀ {x C} → Well-behaved-extensionality (B x) C
+    ext′ = extensionality⇒well-behaved-extensionality ext
+
     surj : (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (Eq.subst B p i)) ↠
            (sup x f ≡ sup y g)
     surj = record
@@ -311,7 +340,7 @@ W-closure {A} {B} ext (suc n) h = closure
            w ≡ w′
       to (sup x f) (sup y g) (x≡y , f≡g) = Eq.elim to-P
         (λ x f g f≡g →
-           sup x f ≡⟨ Eq.cong (sup x) (proj₁ ext λ i →
+           sup x f ≡⟨ Eq.cong (sup x) (proj₁ ext′ λ i →
                         f i                        ≡⟨ f≡g i ⟩
                         g (Eq.subst B (refl x) i)  ≡⟨ Eq.cong g (subst-refl B i) ⟩∎
                         g i                        ∎) ⟩∎
@@ -336,18 +365,18 @@ W-closure {A} {B} ext (suc n) h = closure
         to (sup x f) (sup x f) (from (refl (sup x f)))           ≡⟨ Eq.cong (to _ _) (Eq.elim-refl from-P _ {x = sup x f}) ⟩
         to (sup x f) (sup x f) (refl x , Eq.cong f ∘ sym ∘ lem)  ≡⟨ Eq.cong (λ h → h _ _ (Eq.cong f ∘ sym ∘ lem)) $
                                                                       Eq.elim-refl to-P _ ⟩
-        Eq.cong (sup x) (proj₁ ext λ i →
+        Eq.cong (sup x) (proj₁ ext′ λ i →
           Eq.trans (Eq.cong f (sym $ lem i))
-                   (Eq.cong f (lem i)))                          ≡⟨ Eq.cong (Eq.cong (sup x) ∘ proj₁ ext) (proj₁ ext λ i →
+                   (Eq.cong f (lem i)))                          ≡⟨ Eq.cong (Eq.cong (sup x) ∘ proj₁ ext′) (proj₁ ext′ λ i →
                                                                       Tactic.prove
                                                                         (Trans (Cong f (Sym (Lift $ lem i))) (Cong f (Lift $ lem i)))
                                                                         (Trans (Sym (Cong f (Lift $ lem i))) (Cong f (Lift $ lem i)))
                                                                         (refl _)) ⟩
-        Eq.cong (sup x) (proj₁ ext λ i →
+        Eq.cong (sup x) (proj₁ ext′ λ i →
           Eq.trans (sym $ Eq.cong f $ lem i)
-                   (Eq.cong f $ lem i))                          ≡⟨ Eq.cong (Eq.cong (sup x) ∘ proj₁ ext) (proj₁ ext λ i →
+                   (Eq.cong f $ lem i))                          ≡⟨ Eq.cong (Eq.cong (sup x) ∘ proj₁ ext′) (proj₁ ext′ λ i →
                                                                       G.right-inverse _) ⟩
-        Eq.cong (sup x) (proj₁ ext (refl ∘ f))                   ≡⟨ Eq.cong (Eq.cong (sup x)) $ proj₂ ext f ⟩
+        Eq.cong (sup x) (proj₁ ext′ (refl ∘ f))                  ≡⟨ Eq.cong (Eq.cong (sup x)) $ proj₂ ext′ f ⟩
         Eq.cong (sup x) (refl f)                                 ≡⟨ Tactic.prove (Cong (sup x) Refl) Refl (refl _) ⟩∎
         refl (sup x f)                                           ∎
         where lem = subst-refl B
