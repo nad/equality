@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- Closure properties for H-levels
+-- Closure properties for h-levels
 ------------------------------------------------------------------------
 
 -- Partly based on Voevodsky's work on so-called univalent

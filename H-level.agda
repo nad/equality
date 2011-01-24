@@ -72,8 +72,8 @@ mono (≤′-step {n = n} m≤n) = mono₁ n ∘ mono m≤n
   {A : Set} → (A → Contractible A) → Propositional A
 [inhabited⇒contractible]⇒propositional h x = mono₁ 0 (h x) x
 
--- If something has H-level (1 + n) given the assumption that it is
--- inhabited, then it has H-level (1 + n)
+-- If something has h-level (1 + n) given the assumption that it is
+-- inhabited, then it has h-level (1 + n)
 
 [inhabited⇒+]⇒+ : ∀ {A n} → (A → H-level (1 + n) A) → H-level (1 + n) A
 [inhabited⇒+]⇒+ h x = h x x

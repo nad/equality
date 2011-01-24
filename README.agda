@@ -30,6 +30,6 @@ import W-type
 
 import H-level
 
--- Closure properties for H-levels.
+-- Closure properties for h-levels.
 
 import H-level.Closure
