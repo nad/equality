@@ -14,31 +14,17 @@ open import Equality-without-K
 
 private
 
-  sym-refl : {A : Set} {x : A} → sym (refl x) ≡ refl x
-  sym-refl = elim-refl (λ {z y} _ → y ≡ z) refl
-
-  cong-refl : {A B : Set} (f : A → B) {x : A} →
-              cong f (refl x) ≡ refl (f x)
-  cong-refl f = elim-refl (λ {u v} _ → f u ≡ f v) (refl ∘ f)
-
-  trans-refl-refl : {A : Set} (x : A) →
-                    trans (refl x) (refl x) ≡ refl x
-  trans-refl-refl x =
-    cong (λ f → f (refl x))
-         (trans (refl x)  ≡⟨ elim-refl (λ {u v} _ → v ≡ x → u ≡ x) (λ y y≡x → y≡x) ⟩∎
-          id              ∎)
-
   trans-reflʳ : {A : Set} {x y : A} (x≡y : x ≡ y) →
                 trans x≡y (refl y) ≡ x≡y
   trans-reflʳ =
     elim (λ {u v} u≡v → trans u≡v (refl v) ≡ u≡v)
-         trans-refl-refl
+         (λ _ → trans-refl-refl)
 
   trans-reflˡ : {A : Set} {x y : A} (x≡y : x ≡ y) →
                 trans (refl x) x≡y ≡ x≡y
   trans-reflˡ =
     elim (λ {u v} u≡v → trans (refl u) u≡v ≡ u≡v)
-         trans-refl-refl
+         (λ _ → trans-refl-refl)
 
   sym-sym : {A : Set} {x y : A} (x≡y : x ≡ y) → sym (sym x≡y) ≡ x≡y
   sym-sym = elim (λ {u v} u≡v → sym (sym u≡v) ≡ u≡v)
@@ -107,7 +93,7 @@ private
 --
 -- Note that the code below pattern matches on expressions of this
 -- type, and that this may (implicitly) involve uses of the K rule.
--- However, if the trusted kernel is correct then this should not
+-- However, if the K rule is not provable for _≡_ then this does not
 -- matter.
 
 data Eq {A : Set} : A → A → Set₁ where

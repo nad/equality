@@ -26,12 +26,6 @@ import Equality-without-K.Tactic as Tactic; open Tactic.Eq
 ------------------------------------------------------------------------
 -- H-levels
 
--- A type is contractible if it is inhabited and all elements are
--- equal.
-
-Contractible : Set → Set
-Contractible A = ∃ λ (x : A) → ∀ y → x ≡ y
-
 -- H-levels ("homotopy levels").
 
 H-level : ℕ → Set → Set
