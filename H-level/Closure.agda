@@ -382,6 +382,55 @@ W-closure {A} {B} ext (suc n) h = closure
         where lem = subst-refl B
 
 ------------------------------------------------------------------------
+-- H-levels
+
+-- Contractible is a comonad (assuming extensionality).
+
+counit : ∀ {A} → Contractible A → A
+counit = proj₁
+
+cojoin : ∀ {A} → (∀ {B} → Extensionality A B) →
+         Contractible A → Contractible (Contractible A)
+cojoin ext contr = contr₃
+  where
+  x = proj₁ contr
+
+  contr₁ : Contractible (∀ y → x ≡ y)
+  contr₁ = Π-closure ext 0 (mono₁ 0 contr x)
+
+  contr₂ : ∀ x → Contractible (∀ y → x ≡ y)
+  contr₂ x =
+    Eq.subst (λ x → Contractible (∀ y → x ≡ y)) (proj₂ contr x) contr₁
+
+  contr₃ : Contractible (∃ λ x → ∀ y → x ≡ y)
+  contr₃ = Σ-closure 0 contr contr₂
+
+-- Contractible is not necessarily contractible.
+
+¬-Contractible-contractible :
+  ¬ (∀ {A} → Contractible (Contractible A))
+¬-Contractible-contractible contr = proj₁ $ proj₁ $ contr {A = ⊥}
+
+-- Contractible is propositional (assuming extensionality).
+
+Contractible-propositional :
+  ∀ {A} → (∀ {B} → Extensionality A B) →
+  Propositional (Contractible A)
+Contractible-propositional ext =
+  [inhabited⇒contractible]⇒propositional (cojoin ext)
+
+-- All h-levels are propositional (assuming extensionality).
+
+H-level-propositional :
+  ∀ {A} → (∀ {A B} → Extensionality A B) →
+  ∀ n → Propositional (H-level n A)
+H-level-propositional     ext zero    = Contractible-propositional ext
+H-level-propositional {A} ext (suc n) =
+  Π-closure ext 1 λ x →
+  Π-closure ext 1 λ y →
+  H-level-propositional {x ≡ y} ext n
+
+------------------------------------------------------------------------
 -- Binary sums
 
 -- Binary sums can be expressed using Σ and Bool (with large
