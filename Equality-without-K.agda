@@ -349,7 +349,7 @@ _↔_ : Set → Set → Set
 A ↔ B = Inverse (setoid A) (setoid B)
 
 ------------------------------------------------------------------------
--- The K rule and proof irrelevance
+-- The K rule and uniqueness of identity proofs
 
 -- The K rule (without computational content).
 
@@ -363,20 +363,20 @@ K-rule = {A : Set} (P : {x : A} → x ≡ x → Set) →
 Trivial-≡ : Set → Set
 Trivial-≡ A = (x y : A) → x ≡ y
 
--- Proof irrelevance.
+-- Uniqueness of identity proofs (for a particular type).
 
-Proof-irrelevance : Set → Set
-Proof-irrelevance A = {x y : A} → Trivial-≡ (x ≡ y)
+Uniqueness-of-identity-proofs : Set → Set
+Uniqueness-of-identity-proofs A = {x y : A} → Trivial-≡ (x ≡ y)
 
--- The K rule is equivalent to (general) proof irrelevance.
+-- The K rule is equivalent to uniqueness of identity proofs.
 
-k⇔irrelevance : K-rule ⇔ (∀ {A} → Proof-irrelevance A)
-k⇔irrelevance =
+K⇔UIP : K-rule ⇔ (∀ {A} → Uniqueness-of-identity-proofs A)
+K⇔UIP =
   equivalent
     (λ K {_} →
        elim (λ p → ∀ q → p ≡ q)
             (λ x → K (λ {x} p → refl x ≡ p) (λ x → refl (refl x))))
-    (λ irr P r {x} x≡x → subst P (irr (refl x) x≡x) (r x))
+    (λ UIP P r {x} x≡x → subst P (UIP (refl x) x≡x) (r x))
 
 ------------------------------------------------------------------------
 -- Relation to ordinary propositional equality with the K rule
@@ -399,17 +399,17 @@ k⇔irrelevance =
 
 -- However, I don't know if the surjection is a bijection. Existence
 -- of surjections in the other direction (for any set and elements in
--- this set) is equivalent to (general) proof irrelevance, and hence
+-- this set) is equivalent to uniqueness of identity proofs, and hence
 -- also to the K rule.
 
-bijection⇔irrelevance :
+bijection⇔UIP :
   (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y)) ⇔
-  (∀ {A} → Proof-irrelevance A)
-bijection⇔irrelevance = equivalent ⇒ ⇐
+  (∀ {A} → Uniqueness-of-identity-proofs A)
+bijection⇔UIP = equivalent ⇒ ⇐
   where
   ⇒ : (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y)) →
-      (∀ {A} → Proof-irrelevance A)
-  ⇒ left p q =
+      (∀ {A} → Uniqueness-of-identity-proofs A)
+  ⇒ surj p q =
     p                   ≡⟨ sym $ right-inverse-of p ⟩
     to ⟨$⟩ (from ⟨$⟩ p) ≡⟨ cong (_⟨$⟩_ to) $
                                 to ⟨$⟩ P.proof-irrelevance
@@ -417,19 +417,19 @@ bijection⇔irrelevance = equivalent ⇒ ⇐
     to ⟨$⟩ (from ⟨$⟩ q) ≡⟨ right-inverse-of q ⟩∎
     q                   ∎
     where
-    open module S {A : Set} {x y : A} = Surjection (left {A} {x} {y})
+    open module S {A : Set} {x y : A} = Surjection (surj {A} {x} {y})
 
-  ⇐ : (∀ {A} → Proof-irrelevance A) →
+  ⇐ : (∀ {A} → Uniqueness-of-identity-proofs A) →
       (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y))
-  ⇐ irr {x = x} {y} = record
+  ⇐ UIP {x = x} {y} = record
     { to         = from
     ; surjective = record
       { from             = to
-      ; right-inverse-of = λ x≡y → irr (from ⟨$⟩ (to ⟨$⟩ x≡y)) x≡y
+      ; right-inverse-of = λ x≡y → UIP (from ⟨$⟩ (to ⟨$⟩ x≡y)) x≡y
       }
     }
     where
     open module S {A : Set} {x y : A} = Surjection (≡⇔≡ {A} {x} {y})
 
 bijection⇔K : (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y)) ⇔ K-rule
-bijection⇔K = Eq._∘_ (Eq.sym k⇔irrelevance) bijection⇔irrelevance
+bijection⇔K = Eq._∘_ (Eq.sym K⇔UIP) bijection⇔UIP

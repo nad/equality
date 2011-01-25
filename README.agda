@@ -18,9 +18,10 @@ import Equality-without-K.Tactic
 
 import Equality-without-K.Groupoid
 
--- A proof which shows that decidable equalities are proof irrelevant.
+-- A proof which shows that sets with decidable equality have unique
+-- identity proofs.
 
-import Equality-without-K.Decidable-Irrelevant
+import Equality-without-K.Decidable-UIP
 
 -- W-types.
 

@@ -22,7 +22,7 @@ open import Function.Inverse as Inv using (module Inverse)
 open import Relation.Nullary
 
 open import Equality-without-K as Eq
-import Equality-without-K.Decidable-Irrelevant as DI
+import Equality-without-K.Decidable-UIP as DUIP
 import Equality-without-K.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
 import Equality-without-K.Tactic as Tactic; open Tactic.Eq
@@ -522,8 +522,8 @@ Dec-closure-propositional {A} ext p =
 module Alternative-proof where
 
   -- Is-set is closed under _⊎_, by an argument similar to the one
-  -- Hedberg used to prove that decidable equality implies proof
-  -- irrelevance.
+  -- Hedberg used to prove that decidable equality implies uniqueness
+  -- of identity proofs.
 
   private
 
@@ -535,10 +535,9 @@ module Alternative-proof where
 
   ⊎-closure-set : ∀ {A B} → Is-set A → Is-set B → Is-set (A ⊎ B)
   ⊎-closure-set {A} {B} A-set B-set =
-    Equivalent.from set⇔proof-irrelevance ⟨$⟩
-      DI.constant⇒irrelevant c
+    Equivalent.from set⇔UIP ⟨$⟩ DUIP.constant⇒UIP c
     where
-    c : (x y : A ⊎ B) → ∃ λ (f : x ≡ y → x ≡ y) → DI.Constant f
+    c : (x y : A ⊎ B) → ∃ λ (f : x ≡ y → x ≡ y) → DUIP.Constant f
     c (inj₁ x) (inj₁ y) = (Eq.cong inj₁ ∘ drop-inj₁ , λ p q → Eq.cong (Eq.cong inj₁) $ proj₁ $ A-set x y (drop-inj₁ p) (drop-inj₁ q))
     c (inj₂ x) (inj₂ y) = (Eq.cong inj₂ ∘ drop-inj₂ , λ p q → Eq.cong (Eq.cong inj₂) $ proj₁ $ B-set x y (drop-inj₂ p) (drop-inj₂ q))
     c (inj₁ x) (inj₂ y) = (⊥-elim ∘ inj₁≢inj₂       , λ _ → ⊥-elim ∘ inj₁≢inj₂)

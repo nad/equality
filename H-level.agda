@@ -18,7 +18,7 @@ open import Relation.Binary using (Decidable)
 import Relation.Binary.PropositionalEquality as P
 
 open import Equality-without-K as Eq
-import Equality-without-K.Decidable-Irrelevant as DI
+import Equality-without-K.Decidable-UIP as DUIP
 import Equality-without-K.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
 import Equality-without-K.Tactic as Tactic; open Tactic.Eq
@@ -89,23 +89,22 @@ propositional⇔trivial {A} = equivalent ⇒ ⇐
   ⇐ : Trivial-≡ A → Propositional A
   ⇐ t = [inhabited⇒contractible]⇒propositional (λ x → (x , t x))
 
--- Being a set is equivalent to having proof irrelevance.
+-- Being a set is equivalent to having unique identity proofs.
 
-set⇔proof-irrelevance : {A : Set} → Is-set A ⇔ Proof-irrelevance A
-set⇔proof-irrelevance {A} = equivalent ⇒ ⇐
+set⇔UIP : {A : Set} → Is-set A ⇔ Uniqueness-of-identity-proofs A
+set⇔UIP {A} = equivalent ⇒ ⇐
   where
-  ⇒ : Is-set A → Proof-irrelevance A
+  ⇒ : Is-set A → Uniqueness-of-identity-proofs A
   ⇒ h {x} {y} x≡y x≡y′ = proj₁ (h x y x≡y x≡y′)
 
-  ⇐ : Proof-irrelevance A → Is-set A
-  ⇐ irr x y =
-    [inhabited⇒contractible]⇒propositional (λ x≡y → (x≡y , irr x≡y))
+  ⇐ : Uniqueness-of-identity-proofs A → Is-set A
+  ⇐ UIP x y =
+    [inhabited⇒contractible]⇒propositional (λ x≡y → (x≡y , UIP x≡y))
 
 -- Types with decidable equality are sets.
 
 decidable⇒set : {A : Set} → Decidable (_≡_ {A = A}) → Is-set A
-decidable⇒set dec =
-  Equivalent.from set⇔proof-irrelevance ⟨$⟩ DI.decidable⇒irrelevant dec
+decidable⇒set dec = Equivalent.from set⇔UIP ⟨$⟩ DUIP.decidable⇒UIP dec
 
 -- H-level n respects surjections.
 

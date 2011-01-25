@@ -1,11 +1,11 @@
 ------------------------------------------------------------------------
--- Decidable equalities are proof irrelevant
+-- Sets with decidable equality have unique identity proofs
 ------------------------------------------------------------------------
 
 -- Following a proof by Michael Hedberg ("A coherence theorem for
 -- Martin-Löf's type theory", JFP 1998).
 
-module Equality-without-K.Decidable-Irrelevant where
+module Equality-without-K.Decidable-UIP where
 
 open import Data.Empty
 open import Data.Product as Prod
@@ -53,14 +53,14 @@ left-inverse f {x} {y} =
   elim (λ {x y} x≡y → trans (f x y x≡y) (sym (f y y (refl y))) ≡ x≡y)
        (λ _ → Groupoid.left-inverse groupoid _)
 
--- A set A has proof irrelevance if there is a family of constant
+-- A set A has unique identity proofs if there is a family of constant
 -- endofunctions on _≡_ {A = A}.
 
-constant⇒irrelevant :
+constant⇒UIP :
   {A : Set} →
   (f : ∀ x y → ∃ λ (f : x ≡ y → x ≡ y) → Constant f) →
-  Proof-irrelevance A
-constant⇒irrelevant constant {x} {y} =
+  Uniqueness-of-identity-proofs A
+constant⇒UIP constant {x} {y} =
   trivial-≡ (constant x y)
             (left-inverse (λ x y → proj₁ $ constant x y))
 
@@ -71,9 +71,8 @@ constant : {A : Set} → Dec A →
 constant (yes x) = (const x , λ _ _ → refl x)
 constant (no ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
 
--- Sets with decidable equality have proof irrelevance.
+-- Sets with decidable equality have unique identity proofs.
 
-decidable⇒irrelevant :
-  {A : Set} → Decidable (_≡_ {A = A}) → Proof-irrelevance A
-decidable⇒irrelevant dec =
-  constant⇒irrelevant (λ x y → constant (dec x y))
+decidable⇒UIP :
+  {A : Set} → Decidable (_≡_ {A = A}) → Uniqueness-of-identity-proofs A
+decidable⇒UIP dec = constant⇒UIP (λ x y → constant (dec x y))
