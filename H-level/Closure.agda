@@ -82,8 +82,8 @@ Bool-set : Is-set Bool
 Bool-set = decidable⇒set dec
   where
   dec : (x y : Bool) → Dec (x ≡ y)
-  dec true true   = yes (refl true)
-  dec true false  = no  true≢false
+  dec true  true  = yes (refl true)
+  dec true  false = no  true≢false
   dec false true  = no  (true≢false ∘ sym)
   dec false false = yes (refl false)
 
