@@ -23,10 +23,6 @@ import Equality-without-K.Groupoid
 
 import Equality-without-K.Decidable-UIP
 
--- W-types.
-
-import W-type
-
 -- H-levels, along with some general properties.
 
 import H-level

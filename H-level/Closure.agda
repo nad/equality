@@ -27,7 +27,7 @@ import Equality-without-K.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
 import Equality-without-K.Tactic as Tactic; open Tactic.Eq
 open import H-level
-open import W-type as W
+open import Data.W as W
 
 ------------------------------------------------------------------------
 -- The unit type
@@ -278,7 +278,7 @@ ext-surj {A} ext {f} {g} = record
      Contractible A → (∀ x → Contractible (B x)) →
      Contractible (W A B))
 ¬-W-closure-contractible closure =
-  W.empty (const tt) $
+  W.inhabited⇒empty (const tt) $
   proj₁ $
   closure ⊤-contractible (const ⊤-contractible)
 
