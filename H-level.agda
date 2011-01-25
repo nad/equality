@@ -75,8 +75,8 @@ mono (≤′-step {n = n} m≤n) = mono₁ n ∘ mono m≤n
 -- If something has h-level (1 + n) given the assumption that it is
 -- inhabited, then it has h-level (1 + n)
 
-[inhabited⇒+]⇒+ : ∀ {A n} → (A → H-level (1 + n) A) → H-level (1 + n) A
-[inhabited⇒+]⇒+ h x = h x x
+[inhabited⇒+]⇒+ : ∀ {A} n → (A → H-level (1 + n) A) → H-level (1 + n) A
+[inhabited⇒+]⇒+ n h x = h x x
 
 -- Being propositional is equivalent to having at most one element.
 
