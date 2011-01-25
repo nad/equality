@@ -187,6 +187,12 @@ ext-surj {A} ext {f} {g} = record
   respects-surjection (ext-surj ext) n $
     Π-closure ext n (λ x → h x (f x) (g x))
 
+-- Negated types are propositional, assuming extensionality.
+
+¬-propositional :
+  ∀ {A} → (∀ {B} → Extensionality A B) → Propositional (¬ A)
+¬-propositional ext = Π-closure ext 1 (λ _ → ⊥-propositional)
+
 ------------------------------------------------------------------------
 -- Σ-types
 
