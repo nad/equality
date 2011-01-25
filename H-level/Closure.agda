@@ -501,7 +501,23 @@ private
   if-2+n true  = hA
   if-2+n false = hB
 
--- Alternative proof of the statement above.
+-- Furthermore Propositional is closed under Dec (assuming
+-- extensionality).
+
+Dec-closure-propositional :
+  ∀ {A} → (∀ {B} → Extensionality A B) →
+  Propositional A → Propositional (Dec A)
+Dec-closure-propositional {A} ext p =
+  Equivalent.from propositional⇔trivial ⟨$⟩ trivial
+  where
+  trivial : Trivial-≡ (Dec A)
+  trivial (yes a) (yes a′) = Eq.cong yes $ proj₁ $ p a a′
+  trivial (yes a) (no ¬a)  = ⊥-elim (¬a a)
+  trivial (no ¬a) (yes a)  = ⊥-elim (¬a a)
+  trivial (no ¬a) (no ¬a′) =
+    Eq.cong no $ proj₁ $ ¬-propositional ext ¬a ¬a′
+
+-- Alternative definition of ⊎-closure.
 
 module Alternative-proof where
 
