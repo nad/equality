@@ -6,6 +6,10 @@
 
 module README where
 
+-- Two equivalent axiomatisations of equality.
+
+import Equality-without-K.Axiomatisations
+
 -- An equality which I pretend does not come with the K rule.
 
 import Equality-without-K
