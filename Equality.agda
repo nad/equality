@@ -1,18 +1,15 @@
 ------------------------------------------------------------------------
--- An equality which I pretend does not come with the K rule
+-- Propositional equality, defined with an abstract (non-computing)
+-- eliminator
 ------------------------------------------------------------------------
 
--- As shown below this equality is isomorphic to Agda's ordinary
--- propositional equality. I don't think I have made use of Agda's K
--- rule in this development, but Agda does not enforce this, so it is
--- possible that the rule is used accidentally.
+{-# OPTIONS --without-K #-}
 
 module Equality where
 
 open import Data.Bool using (true; false; if_then_else_)
 open import Data.Empty using (⊥)
 open import Data.Unit using (⊤)
-open import Function using (_$_)
 open import Function.Equality using (_⟶_; _⟨$⟩_)
 open import Function.Equivalence
   using (_⇔_; equivalent; module Equivalent)
@@ -20,7 +17,6 @@ open import Function.Inverse using (Inverse)
 open import Function.Surjection using (Surjection)
 open import Relation.Binary using (Setoid)
 open import Relation.Nullary using (¬_)
-import Relation.Binary.PropositionalEquality as P
 
 open import Equality.Axiomatisations
 
@@ -151,48 +147,3 @@ K⇔UIP =
        elim (λ p → ∀ q → p ≡ q)
             (λ x → K (λ {x} p → refl x ≡ p) (λ x → refl (refl x))))
     (λ UIP P r {x} x≡x → subst P (UIP (refl x) x≡x) (r x))
-
-------------------------------------------------------------------------
--- Relation to ordinary propositional equality with the K rule
-
--- I have marked the results below as private to ensure that I don't
--- use them in other parts of the development.
-
-private
-
-  -- As pointed out by Hofmann and Streicher in "The groupoid
-  -- interpretation of type theory" the two equalities are isomorphic.
-
-  ≡↔≡ : ∀ {A} {x y : A} → (x ≡ y) ↔ P._≡_ x y
-  ≡↔≡ = record
-    { to         = →-to-⟶ to
-    ; from       = →-to-⟶ from
-    ; inverse-of = record
-      { right-inverse-of = λ _ → from $ P.proof-irrelevance _ _
-      ; left-inverse-of  =
-          elim (λ x≡y → from (to x≡y) ≡ x≡y)
-               (λ x → from (to (refl x))  ≡⟨ cong from (subst-refl (P._≡_ x) P.refl) ⟩
-                      from P.refl         ≡⟨ refl _ ⟩∎
-                      refl x              ∎)
-      }
-    }
-    where
-    from : ∀ {A} {x y : A} → P._≡_ x y → x ≡ y
-    from {x = x} x≡y = P.subst (_≡_ x) x≡y (refl x)
-
-    to : ∀ {A} {x y : A} → x ≡ y → P._≡_ x y
-    to {x = x} x≡y = subst (P._≡_ x) x≡y P.refl
-
-  -- As a corollary _≡_ satisfies the K rule.
-
-  K : K-rule
-  K P p x≡x = subst P (Inverse.left-inverse-of ≡↔≡ x≡x) p′
-    where
-    P-K : {A : Set} (P : {x : A} → P._≡_ x x → Set) →
-          (∀ x → P (P.refl {x = x})) →
-          ∀ {x} (x≡x : P._≡_ x x) → P x≡x
-    P-K P p P.refl = p _
-
-    p′ : P (Inverse.from ≡↔≡ ⟨$⟩ (Inverse.to ≡↔≡ ⟨$⟩ x≡x))
-    p′ = P-K (λ x≡x → P (Inverse.from ≡↔≡ ⟨$⟩ x≡x)) p
-             (Inverse.to ≡↔≡ ⟨$⟩ x≡x)

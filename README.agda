@@ -4,13 +4,20 @@
 -- Nils Anders Danielsson
 ------------------------------------------------------------------------
 
+{-# OPTIONS --without-K #-}
+
+-- One should really check all dependencies of this library using
+-- --without-K, but at the moment this is not possible: another
+-- standard library would have to be used.
+
 module README where
 
 -- Two equivalent axiomatisations of equality.
 
 import Equality.Axiomatisations
 
--- An equality which I pretend does not come with the K rule.
+-- Propositional equality, defined with an abstract (non-computing)
+-- eliminator.
 
 import Equality
 

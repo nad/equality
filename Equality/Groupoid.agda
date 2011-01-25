@@ -2,6 +2,8 @@
 -- The equality can be turned into a groupoid
 ------------------------------------------------------------------------
 
+{-# OPTIONS --without-K #-}
+
 module Equality.Groupoid where
 
 ------------------------------------------------------------------------

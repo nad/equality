@@ -2,6 +2,8 @@
 -- A simple tactic for proving equality of equality proofs
 ------------------------------------------------------------------------
 
+{-# OPTIONS --without-K #-}
+
 module Equality.Tactic where
 
 open import Data.Product as Prod
@@ -135,35 +137,42 @@ private
   data Level : Set where
     upper middle lower : Level
 
+  -- Bottom layer: a single use of congruence applied to an actual
+  -- equality.
+
+  data EqS-lower {A : Set} : A → A → Set₁ where
+    Cong : {B : Set} {x y : B} (f : B → A) (x≡y : x ≡ y) →
+           EqS-lower (f x) (f y)
+
+  -- Middle layer: at most one use of symmetry.
+
+  data EqS-middle {A : Set} : A → A → Set₁ where
+    No-Sym : ∀ {x y} (x≈y : EqS-lower x y) → EqS-middle x y
+    Sym    : ∀ {x y} (x≈y : EqS-lower x y) → EqS-middle y x
+
+  -- Uppermost layer: a sequence of equalities, combined using
+  -- transitivity and a single use of reflexivity.
+
+  data EqS-upper {A : Set} : A → A → Set₁ where
+    Refl : ∀ {x} → EqS-upper x x
+    Cons : ∀ {x y z} (x≈y : EqS-middle x y) (y≈z : EqS-upper y z) →
+           EqS-upper x z
+
   -- Simplified expressions.
 
-  data EqS {A : Set} : Level → A → A → Set₁ where
-    -- Bottom layer: a single use of congruence applied to an actual
-    -- equality.
-
-    Cong   : {B : Set} {x y : B} (f : B → A) (x≡y : x ≡ y) →
-             EqS lower (f x) (f y)
-
-    -- Middle layer: at most one use of symmetry.
-
-    No-Sym : ∀ {x y} (x≈y : EqS lower x y) → EqS middle x y
-    Sym    : ∀ {x y} (x≈y : EqS lower x y) → EqS middle y x
-
-    -- Uppermost layer: a sequence of equalities, combined using
-    -- transitivity and a single use of reflexivity.
-
-    Refl   : ∀ {x} → EqS upper x x
-    Cons   : ∀ {x y z} (x≈y : EqS middle x y) (y≈z : EqS upper y z) →
-             EqS upper x z
+  EqS : {A : Set} → Level → A → A → Set₁
+  EqS lower  = EqS-lower
+  EqS middle = EqS-middle
+  EqS upper  = EqS-upper
 
   -- Semantics of simplified expressions.
 
-  ⟦_⟧S : ∀ {A ℓ} {x y : A} → EqS ℓ x y → x ≡ y
-  ⟦ Cong f x≡y   ⟧S = cong f x≡y
-  ⟦ No-Sym x≈y   ⟧S =     ⟦ x≈y ⟧S
-  ⟦ Sym  y≈x     ⟧S = sym ⟦ y≈x ⟧S
-  ⟦ Refl         ⟧S = refl _
-  ⟦ Cons x≈y y≈z ⟧S = trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S
+  ⟦_⟧S : ∀ {ℓ A} {x y : A} → EqS ℓ x y → x ≡ y
+  ⟦_⟧S {lower}  (Cong f x≡y)   = cong f x≡y
+  ⟦_⟧S {middle} (No-Sym x≈y)   =     ⟦ x≈y ⟧S
+  ⟦_⟧S {middle} (Sym    x≈y)   = sym ⟦ x≈y ⟧S
+  ⟦_⟧S {upper}  Refl           = refl _
+  ⟦_⟧S {upper}  (Cons x≈y y≈z) = trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S
 
   -- Simplified expressions which are equivalent to a given proof.
 
@@ -182,9 +191,9 @@ private
     trans (cong id x≡y) (refl _)  ∎)
 
   snoc : ∀ {A} {x y z : A} {x≡y : x ≡ y} {y≡z : y ≡ z} →
-         EqS upper ⟨ sym y≡z ⟩ →
-         EqS middle ⟨ sym x≡y ⟩        →
-         EqS upper ⟨ sym (trans x≡y y≡z) ⟩
+         EqS upper  ⟨ sym            y≡z  ⟩ →
+         EqS middle ⟨ sym        x≡y      ⟩ →
+         EqS upper  ⟨ sym (trans x≡y y≡z) ⟩
   snoc {x≡y = x≡y} {y≡z} (Refl , h₁) (y≈z , h₂) = Cons y≈z Refl , (
     sym (trans x≡y y≡z)        ≡⟨ sym-trans _ _ ⟩
     trans (sym y≡z) (sym x≡y)  ≡⟨ cong₂ trans h₁ h₂ ⟩
@@ -203,8 +212,8 @@ private
     trans ⟦ x≈y ⟧S ⟦ y≈u ⟧S                                ∎)
 
   append : ∀ {A} {x y z : A} {x≡y : x ≡ y} {y≡z : y ≡ z} →
-           EqS upper ⟨ x≡y ⟩ →
-           EqS upper ⟨ y≡z ⟩ →
+           EqS upper ⟨       x≡y     ⟩ →
+           EqS upper ⟨           y≡z ⟩ →
            EqS upper ⟨ trans x≡y y≡z ⟩
   append {x≡y = x≡y} {y≡z} (Refl , h) x≈y =
     Prod.map id
@@ -231,7 +240,7 @@ private
                                                        ⟦ x≈y ⟧S            ∎)
 
   reverse : ∀ {A} {x y : A} {x≡y : x ≡ y} →
-            EqS upper ⟨ x≡y ⟩ →
+            EqS upper ⟨     x≡y ⟩ →
             EqS upper ⟨ sym x≡y ⟩
   reverse {x≡y = x≡y} (Refl         , h) = Refl , (sym x≡y       ≡⟨ cong sym h ⟩
                                                    sym (refl _)  ≡⟨ sym-refl ⟩∎
@@ -244,20 +253,20 @@ private
 
   map-cong : ∀ {ℓ A B} {x y : A} (f : A → B) {x≡y : x ≡ y} →
              EqS ℓ ⟨ x≡y ⟩ → EqS ℓ ⟨ cong f x≡y ⟩
-  map-cong f {gx≡gy} (Cong g x≡y   , h) = Cong (f ∘ g) x≡y , (cong f gx≡gy         ≡⟨ cong (cong f) h ⟩
-                                                              cong f (cong g x≡y)  ≡⟨ cong-∘ f g _ ⟩∎
-                                                              cong (f ∘ g) x≡y     ∎)
-  map-cong f {x≡y}   (No-Sym x≈y   , h) = Prod.map No-Sym id (map-cong f (x≈y , h))
-  map-cong f {x≡y}   (Sym    x≈y   , h) = Prod.map Sym (λ {fy≈fx} cong-f-⟦x≈y⟧≡⟦fy≈fx⟧ →
-                                                          cong f x≡y             ≡⟨ cong (cong f) h ⟩
-                                                          cong f (sym ⟦ x≈y ⟧S)  ≡⟨ cong-sym f _ ⟩
-                                                          sym (cong f ⟦ x≈y ⟧S)  ≡⟨ cong sym cong-f-⟦x≈y⟧≡⟦fy≈fx⟧ ⟩∎
-                                                          sym ⟦ fy≈fx ⟧S         ∎)
-                                                   (map-cong f (x≈y , refl _))
-  map-cong f {x≡y}   (Refl         , h) = Refl , (cong f x≡y       ≡⟨ cong (cong f) h ⟩
-                                                  cong f (refl _)  ≡⟨ cong-refl f ⟩∎
-                                                  refl _           ∎)
-  map-cong f {x≡y}   (Cons x≈y y≈z , h)
+  map-cong {lower}  f {gx≡gy} (Cong g x≡y   , h) = Cong (f ∘ g) x≡y , (cong f gx≡gy         ≡⟨ cong (cong f) h ⟩
+                                                                       cong f (cong g x≡y)  ≡⟨ cong-∘ f g _ ⟩∎
+                                                                       cong (f ∘ g) x≡y     ∎)
+  map-cong {middle} f {x≡y}   (No-Sym x≈y   , h) = Prod.map No-Sym id (map-cong f (x≈y , h))
+  map-cong {middle} f {x≡y}   (Sym    x≈y   , h) = Prod.map Sym (λ {fy≈fx} cong-f-⟦x≈y⟧≡⟦fy≈fx⟧ →
+                                                                   cong f x≡y             ≡⟨ cong (cong f) h ⟩
+                                                                   cong f (sym ⟦ x≈y ⟧S)  ≡⟨ cong-sym f _ ⟩
+                                                                   sym (cong f ⟦ x≈y ⟧S)  ≡⟨ cong sym cong-f-⟦x≈y⟧≡⟦fy≈fx⟧ ⟩∎
+                                                                   sym ⟦ fy≈fx ⟧S         ∎)
+                                                            (map-cong f (x≈y , refl _))
+  map-cong {upper}  f {x≡y}   (Refl         , h) = Refl , (cong f x≡y       ≡⟨ cong (cong f) h ⟩
+                                                           cong f (refl _)  ≡⟨ cong-refl f ⟩∎
+                                                           refl _           ∎)
+  map-cong {upper}  f {x≡y}   (Cons x≈y y≈z , h)
     with map-cong f (x≈y , refl _) | map-cong f (y≈z , refl _)
   ... | (fx≈fy , h₁) | (fy≈fz , h₂) = Cons fx≈fy fy≈fz , (
     cong f x≡y                                 ≡⟨ cong (cong f) h ⟩
