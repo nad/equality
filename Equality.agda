@@ -7,7 +7,7 @@
 -- rule in this development, but Agda does not enforce this, so it is
 -- possible that the rule is used accidentally.
 
-module Equality-without-K where
+module Equality where
 
 open import Data.Bool using (true; false; if_then_else_)
 open import Data.Empty using (⊥)
@@ -22,7 +22,7 @@ open import Relation.Binary using (Setoid)
 open import Relation.Nullary using (¬_)
 import Relation.Binary.PropositionalEquality as P
 
-open import Equality-without-K.Axiomatisations
+open import Equality.Axiomatisations
 
 ------------------------------------------------------------------------
 -- Concrete definition of equality

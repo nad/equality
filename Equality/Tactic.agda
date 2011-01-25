@@ -2,12 +2,12 @@
 -- A simple tactic for proving equality of equality proofs
 ------------------------------------------------------------------------
 
-module Equality-without-K.Tactic where
+module Equality.Tactic where
 
 open import Data.Product as Prod
 open import Function
 
-open import Equality-without-K
+open import Equality
 
 ------------------------------------------------------------------------
 -- Boring lemmas
@@ -302,5 +302,5 @@ private
                 (Sym (Lift x≡y))
                 (refl _)
 
--- For some non-examples, see Equality-without-K.Groupoid: the tactic
+-- For some non-examples, see Equality.Groupoid: the tactic
 -- cannot prove the left-inverse and right-inverse laws.

@@ -16,11 +16,11 @@ open import Function.Equivalence
 open import Function.Surjection using (module Surjection)
 open import Relation.Binary using (Decidable)
 
-open import Equality-without-K as Eq
-import Equality-without-K.Decidable-UIP as DUIP
-import Equality-without-K.Groupoid as EG
+open import Equality as Eq
+import Equality.Decidable-UIP as DUIP
+import Equality.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
-import Equality-without-K.Tactic as Tactic; open Tactic.Eq
+import Equality.Tactic as Tactic; open Tactic.Eq
 
 ------------------------------------------------------------------------
 -- H-levels

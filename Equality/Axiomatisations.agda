@@ -2,7 +2,7 @@
 -- Two equivalent axiomatisations of equality
 ------------------------------------------------------------------------
 
-module Equality-without-K.Axiomatisations where
+module Equality.Axiomatisations where
 
 open import Data.Product using (∃; _,_; proj₁; proj₂)
 open import Function using (_$_; _∘_; id; flip)

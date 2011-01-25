@@ -5,7 +5,7 @@
 -- Following a proof by Michael Hedberg ("A coherence theorem for
 -- Martin-Löf's type theory", JFP 1998).
 
-module Equality-without-K.Decidable-UIP where
+module Equality.Decidable-UIP where
 
 open import Data.Empty
 open import Data.Product as Prod
@@ -13,9 +13,9 @@ open import Function
 open import Relation.Binary using (Decidable)
 open import Relation.Nullary
 
-open import Equality-without-K
-open import Equality-without-K.Groupoid
-open import Equality-without-K.Tactic
+open import Equality
+open import Equality.Groupoid
+open import Equality.Tactic
 
 -- Constant functions.
 

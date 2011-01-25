@@ -2,7 +2,7 @@
 -- The equality can be turned into a groupoid
 ------------------------------------------------------------------------
 
-module Equality-without-K.Groupoid where
+module Equality.Groupoid where
 
 ------------------------------------------------------------------------
 -- Groupoids
@@ -32,8 +32,8 @@ record Groupoid : Set₁ where
 
 open import Function
 
-open import Equality-without-K
-open import Equality-without-K.Tactic
+open import Equality
+open import Equality.Tactic
 
 groupoid : {A : Set} → Groupoid
 groupoid {A} = record
