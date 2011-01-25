@@ -358,15 +358,17 @@ K-rule = {A : Set} (P : {x : A} → x ≡ x → Set) →
          (∀ x → P (refl x)) →
          ∀ {x} (x≡x : x ≡ x) → P x≡x
 
--- Sets for which _≡_ is a trivial relation.
+-- Proof irrelevance (or maybe "data irrelevance", depending on what
+-- the set is used for).
 
-Trivial-≡ : Set → Set
-Trivial-≡ A = (x y : A) → x ≡ y
+Proof-irrelevant : Set → Set
+Proof-irrelevant A = (x y : A) → x ≡ y
 
 -- Uniqueness of identity proofs (for a particular type).
 
 Uniqueness-of-identity-proofs : Set → Set
-Uniqueness-of-identity-proofs A = {x y : A} → Trivial-≡ (x ≡ y)
+Uniqueness-of-identity-proofs A =
+  {x y : A} → Proof-irrelevant (x ≡ y)
 
 -- The K rule is equivalent to uniqueness of identity proofs.
 

@@ -80,14 +80,15 @@ mono (≤′-step {n = n} m≤n) = mono₁ n ∘ mono m≤n
 
 -- Being propositional is equivalent to having at most one element.
 
-propositional⇔trivial : {A : Set} → Propositional A ⇔ Trivial-≡ A
-propositional⇔trivial {A} = equivalent ⇒ ⇐
+propositional⇔irrelevant :
+  {A : Set} → Propositional A ⇔ Proof-irrelevant A
+propositional⇔irrelevant {A} = equivalent ⇒ ⇐
   where
-  ⇒ : Propositional A → Trivial-≡ A
+  ⇒ : Propositional A → Proof-irrelevant A
   ⇒ h x y = proj₁ (h x y)
 
-  ⇐ : Trivial-≡ A → Propositional A
-  ⇐ t = [inhabited⇒contractible]⇒propositional (λ x → (x , t x))
+  ⇐ : Proof-irrelevant A → Propositional A
+  ⇐ irr = [inhabited⇒contractible]⇒propositional (λ x → (x , irr x))
 
 -- Being a set is equivalent to having unique identity proofs.
 

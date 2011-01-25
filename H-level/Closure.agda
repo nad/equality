@@ -49,7 +49,7 @@ open import W-type as W
 
 ⊥-propositional : Propositional ⊥
 ⊥-propositional =
-  Equivalent.from propositional⇔trivial ⟨$⟩ (λ x → ⊥-elim x)
+  Equivalent.from propositional⇔irrelevant ⟨$⟩ (λ x → ⊥-elim x)
 
 -- Thus any uninhabited type is also propositional.
 
@@ -74,7 +74,7 @@ uninhabited-propositional ¬A =
 ¬-Bool-propositional : ¬ Propositional Bool
 ¬-Bool-propositional propositional =
   true≢false $
-  (Equivalent.to propositional⇔trivial ⟨$⟩ propositional) true false
+  (Equivalent.to propositional⇔irrelevant ⟨$⟩ propositional) true false
 
 -- The booleans form a set.
 
@@ -294,16 +294,16 @@ W-closure-propositional :
   ∀ {A B} → (∀ {x} → Extensionality (B x) (λ _ → W A B)) →
   Propositional A → Propositional (W A B)
 W-closure-propositional {A} {B} ext pA =
-  Equivalent.from propositional⇔trivial ⟨$⟩ trivial
+  Equivalent.from propositional⇔irrelevant ⟨$⟩ irrelevant
   where
-  trivial : Trivial-≡ (W A B)
-  trivial (sup x f) (sup y g) =
+  irrelevant : Proof-irrelevant (W A B)
+  irrelevant (sup x f) (sup y g) =
     sup x f                                  ≡⟨ Eq.elim (λ {y x} y≡x → (f : B x → W A B) →
                                                            sup x f ≡ sup y (f ∘ Eq.subst B y≡x))
                                                         (λ z h → Eq.cong (sup z) (ext λ i →
                                                                    Eq.cong h (sym $ subst-refl B i)))
                                                         (proj₁ $ pA y x) f ⟩
-    sup y (f ∘ Eq.subst B (proj₁ $ pA y x))  ≡⟨ Eq.cong (sup y) (ext λ i → trivial (f _) (g i)) ⟩∎
+    sup y (f ∘ Eq.subst B (proj₁ $ pA y x))  ≡⟨ Eq.cong (sup y) (ext λ i → irrelevant (f _) (g i)) ⟩∎
     sup y g                                  ∎
 
 -- H-level is closed under W for other levels greater than or equal to
@@ -508,13 +508,13 @@ Dec-closure-propositional :
   ∀ {A} → (∀ {B} → Extensionality A B) →
   Propositional A → Propositional (Dec A)
 Dec-closure-propositional {A} ext p =
-  Equivalent.from propositional⇔trivial ⟨$⟩ trivial
+  Equivalent.from propositional⇔irrelevant ⟨$⟩ irrelevant
   where
-  trivial : Trivial-≡ (Dec A)
-  trivial (yes a) (yes a′) = Eq.cong yes $ proj₁ $ p a a′
-  trivial (yes a) (no ¬a)  = ⊥-elim (¬a a)
-  trivial (no ¬a) (yes a)  = ⊥-elim (¬a a)
-  trivial (no ¬a) (no ¬a′) =
+  irrelevant : Proof-irrelevant (Dec A)
+  irrelevant (yes a) (yes a′) = Eq.cong yes $ proj₁ $ p a a′
+  irrelevant (yes a) (no ¬a)  = ⊥-elim (¬a a)
+  irrelevant (no ¬a) (yes a)  = ⊥-elim (¬a a)
+  irrelevant (no ¬a) (no ¬a′) =
     Eq.cong no $ proj₁ $ ¬-propositional ext ¬a ¬a′
 
 -- Alternative definition of ⊎-closure.

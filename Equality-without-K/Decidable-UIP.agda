@@ -27,14 +27,14 @@ Constant f = ∀ x y → f x ≡ f y
 _Left-inverse-of_ : {A B : Set} → (B → A) → (A → B) → Set
 g Left-inverse-of f = ∀ x → g (f x) ≡ x
 
--- A set with a constant endofunction with a left inverse has a
--- trivial equality.
+-- A set with a constant endofunction with a left inverse is proof
+-- irrelevant.
 
-trivial-≡ : {A : Set} →
-            (f : ∃ λ (f : A → A) → Constant f) →
-            (∃ λ g → g Left-inverse-of (proj₁ f)) →
-            Trivial-≡ A
-trivial-≡ (f , constant) (g , left-inverse) x y =
+irrelevant : {A : Set} →
+             (f : ∃ λ (f : A → A) → Constant f) →
+             (∃ λ g → g Left-inverse-of (proj₁ f)) →
+             Proof-irrelevant A
+irrelevant (f , constant) (g , left-inverse) x y =
   x        ≡⟨ sym (left-inverse x) ⟩
   g (f x)  ≡⟨ cong g (constant x y) ⟩
   g (f y)  ≡⟨ left-inverse y ⟩∎
@@ -61,8 +61,8 @@ constant⇒UIP :
   (f : ∀ x y → ∃ λ (f : x ≡ y → x ≡ y) → Constant f) →
   Uniqueness-of-identity-proofs A
 constant⇒UIP constant {x} {y} =
-  trivial-≡ (constant x y)
-            (left-inverse (λ x y → proj₁ $ constant x y))
+  irrelevant (constant x y)
+             (left-inverse (λ x y → proj₁ $ constant x y))
 
 -- Sets which are decidable come with constant endofunctions.
 
