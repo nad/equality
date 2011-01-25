@@ -6,7 +6,7 @@
 
 module README where
 
--- An equality without the K rule.
+-- An equality which I pretend does not come with the K rule.
 
 import Equality-without-K
 

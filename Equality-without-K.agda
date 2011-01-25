@@ -1,6 +1,11 @@
 ------------------------------------------------------------------------
--- An equality without the K rule
+-- An equality which I pretend does not come with the K rule
 ------------------------------------------------------------------------
+
+-- As shown below this equality is isomorphic to Agda's ordinary
+-- propositional equality. I don't think I have made use of Agda's K
+-- rule in this development, but Agda does not enforce this, so it is
+-- possible that the rule is used accidentally.
 
 module Equality-without-K where
 
@@ -10,10 +15,10 @@ open import Data.Product using (∃; _,_; proj₁; proj₂)
 open import Data.Unit using (⊤)
 open import Function using (_$_; _∘_; id; flip)
 open import Function.Equality using (_⟶_; _⟨$⟩_)
-open import Function.Equivalence as Eq
+open import Function.Equivalence
   using (_⇔_; equivalent; module Equivalent)
 open import Function.Inverse using (Inverse)
-open import Function.Surjection using (Surjection; module Surjection)
+open import Function.Surjection using (Surjection)
 open import Relation.Binary using (Setoid)
 import Relation.Binary.PropositionalEquality as P
 open import Relation.Nullary using (¬_)
@@ -383,55 +388,44 @@ K⇔UIP =
 ------------------------------------------------------------------------
 -- Relation to ordinary propositional equality with the K rule
 
--- The two equalities are equivalent. In fact, there is a surjection
--- from _≡_ (and any other relation which is reflexive and
--- substitutive) to P._≡_.
+-- I have marked the results below as private to ensure that I don't
+-- use them in other parts of the development.
 
-≡⇔≡ : ∀ {A} {x y : A} → (x ≡ y) ↠ P._≡_ x y
-≡⇔≡ {x = x} = record
-  { to         = →-to-⟶ λ x≡y → subst (P._≡_ x) x≡y P.refl
-  ; surjective = record
-    { from             = →-to-⟶ to
-    ; right-inverse-of = λ _ → to $ P.proof-irrelevance _ _
-    }
-  }
-  where
-  to : ∀ {A} {x y : A} → P._≡_ x y → x ≡ y
-  to {x = x} x≡y = P.subst (_≡_ x) x≡y (refl x)
+private
 
--- However, I don't know if the surjection is a bijection. Existence
--- of surjections in the other direction (for any set and elements in
--- this set) is equivalent to uniqueness of identity proofs, and hence
--- also to the K rule.
+  -- As pointed out by Hofmann and Streicher in "The groupoid
+  -- interpretation of type theory" the two equalities are isomorphic.
 
-bijection⇔UIP :
-  (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y)) ⇔
-  (∀ {A} → Uniqueness-of-identity-proofs A)
-bijection⇔UIP = equivalent ⇒ ⇐
-  where
-  ⇒ : (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y)) →
-      (∀ {A} → Uniqueness-of-identity-proofs A)
-  ⇒ surj p q =
-    p                   ≡⟨ sym $ right-inverse-of p ⟩
-    to ⟨$⟩ (from ⟨$⟩ p) ≡⟨ cong (_⟨$⟩_ to) $
-                                to ⟨$⟩ P.proof-irrelevance
-                                         (from ⟨$⟩ p) (from ⟨$⟩ q) ⟩
-    to ⟨$⟩ (from ⟨$⟩ q) ≡⟨ right-inverse-of q ⟩∎
-    q                   ∎
-    where
-    open module S {A : Set} {x y : A} = Surjection (surj {A} {x} {y})
-
-  ⇐ : (∀ {A} → Uniqueness-of-identity-proofs A) →
-      (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y))
-  ⇐ UIP {x = x} {y} = record
-    { to         = from
-    ; surjective = record
-      { from             = to
-      ; right-inverse-of = λ x≡y → UIP (from ⟨$⟩ (to ⟨$⟩ x≡y)) x≡y
+  ≡↔≡ : ∀ {A} {x y : A} → (x ≡ y) ↔ P._≡_ x y
+  ≡↔≡ = record
+    { to         = →-to-⟶ to
+    ; from       = →-to-⟶ from
+    ; inverse-of = record
+      { right-inverse-of = λ _ → from $ P.proof-irrelevance _ _
+      ; left-inverse-of  =
+          elim (λ x≡y → from (to x≡y) ≡ x≡y)
+               (λ x → from (to (refl x))  ≡⟨ cong from (subst-refl (P._≡_ x) P.refl) ⟩
+                      from P.refl         ≡⟨ refl _ ⟩∎
+                      refl x              ∎)
       }
     }
     where
-    open module S {A : Set} {x y : A} = Surjection (≡⇔≡ {A} {x} {y})
+    from : ∀ {A} {x y : A} → P._≡_ x y → x ≡ y
+    from {x = x} x≡y = P.subst (_≡_ x) x≡y (refl x)
 
-bijection⇔K : (∀ {A} {x y : A} → P._≡_ x y ↠ (x ≡ y)) ⇔ K-rule
-bijection⇔K = Eq._∘_ (Eq.sym K⇔UIP) bijection⇔UIP
+    to : ∀ {A} {x y : A} → x ≡ y → P._≡_ x y
+    to {x = x} x≡y = subst (P._≡_ x) x≡y P.refl
+
+  -- As a corollary _≡_ satisfies the K rule.
+
+  K : K-rule
+  K P p x≡x = subst P (Inverse.left-inverse-of ≡↔≡ x≡x) p′
+    where
+    P-K : {A : Set} (P : {x : A} → P._≡_ x x → Set) →
+          (∀ x → P (P.refl {x = x})) →
+          ∀ {x} (x≡x : P._≡_ x x) → P x≡x
+    P-K P p P.refl = p _
+
+    p′ : P (Inverse.from ≡↔≡ ⟨$⟩ (Inverse.to ≡↔≡ ⟨$⟩ x≡x))
+    p′ = P-K (λ x≡x → P (Inverse.from ≡↔≡ ⟨$⟩ x≡x)) p
+             (Inverse.to ≡↔≡ ⟨$⟩ x≡x)

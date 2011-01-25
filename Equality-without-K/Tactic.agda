@@ -92,9 +92,7 @@ private
 -- Equality expressions.
 --
 -- Note that the code below pattern matches on expressions of this
--- type, and that this may (implicitly) involve uses of the K rule.
--- However, if the K rule is not provable for _≡_ then this does not
--- matter.
+-- type, and that this could in principle involve uses of the K rule.
 
 data Eq {A : Set} : A → A → Set₁ where
   Lift  : ∀ {x y} (x≡y : x ≡ y) → Eq x y

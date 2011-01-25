@@ -13,9 +13,8 @@ open import Function
 open import Function.Equality using (_⟨$⟩_)
 open import Function.Equivalence
   using (_⇔_; equivalent; module Equivalent)
-open import Function.Surjection using (Surjection; module Surjection)
+open import Function.Surjection using (module Surjection)
 open import Relation.Binary using (Decidable)
-import Relation.Binary.PropositionalEquality as P
 
 open import Equality-without-K as Eq
 import Equality-without-K.Decidable-UIP as DUIP
@@ -90,7 +89,10 @@ propositional⇔irrelevant {A} = equivalent ⇒ ⇐
   ⇐ : Proof-irrelevant A → Propositional A
   ⇐ irr = [inhabited⇒contractible]⇒propositional (λ x → (x , irr x))
 
--- Being a set is equivalent to having unique identity proofs.
+-- Being a set is equivalent to having unique identity proofs. Note
+-- that this means that, assuming that Agda is consistent, I cannot
+-- prove (inside Agda) that there is any type whose minimal h-level is
+-- at least three.
 
 set⇔UIP : {A : Set} → Is-set A ⇔ Uniqueness-of-identity-proofs A
 set⇔UIP {A} = equivalent ⇒ ⇐
@@ -154,22 +156,3 @@ respects-surjection A↠B (suc n) h = λ x y →
   from′ {x} {y} = λ x≡y →
     from ⟨$⟩ x  ≡⟨ Eq.cong (_⟨$⟩_ from) x≡y ⟩∎
     from ⟨$⟩ y  ∎
-
-private
-
-  -- Thus H-level also respects surjections defined using P._≡_. I
-  -- have marked this result as private to ensure that I don't use it
-  -- in other parts of the development.
-
-  respects-surjection′ :
-    ∀ {A B} → Surjection (P.setoid A) (P.setoid B) →
-    ∀ n → H-level n A → H-level n B
-  respects-surjection′ A↠B =
-    respects-surjection (record
-      { to         = Eq.→-to-⟶ (_⟨$⟩_ (Surjection.to A↠B))
-      ; surjective = record
-        { from             = Eq.→-to-⟶ (_⟨$⟩_ (Surjection.from A↠B))
-        ; right-inverse-of = λ x →
-            Surjection.from Eq.≡⇔≡ ⟨$⟩ Surjection.right-inverse-of A↠B x
-        }
-      })
