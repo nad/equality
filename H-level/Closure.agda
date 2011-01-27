@@ -9,7 +9,7 @@
 
 module H-level.Closure where
 
-open import Equality as Eq
+open import Equality
 import Equality.Decidable-UIP as DUIP
 import Equality.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
@@ -100,9 +100,9 @@ Extensionality A B =
        (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)) →
       (∀ {B} → Extensionality A B)
   ⇒ closure {B} {f} {g} f≡g =
-    f                                     ≡⟨ sym $ Eq.cong (λ c → λ x → proj₁ (c x)) $
+    f                                     ≡⟨ sym $ cong (λ c → λ x → proj₁ (c x)) $
                                                proj₂ contractible (λ x → (f x , refl (f x))) ⟩
-    (λ x → proj₁ (proj₁ contractible x))  ≡⟨ Eq.cong (λ c → λ x → proj₁ (c x)) $
+    (λ x → proj₁ (proj₁ contractible x))  ≡⟨ cong (λ c → λ x → proj₁ (c x)) $
                                                proj₂ contractible (λ x → (g x , f≡g x)) ⟩∎
     g                                     ∎
     where
@@ -142,8 +142,8 @@ ext-surj {A} ext {f} {g} = record
   { to               = to
   ; from             = from
   ; right-inverse-of =
-      Eq.elim (λ {f g} f≡g → to (from f≡g) ≡ f≡g) λ h →
-        proj₁ ext′ (from (refl h))  ≡⟨ Eq.cong (proj₁ ext′) (proj₁ ext′ λ x →
+      elim (λ {f g} f≡g → to (from f≡g) ≡ f≡g) λ h →
+        proj₁ ext′ (from (refl h))  ≡⟨ cong (proj₁ ext′) (proj₁ ext′ λ x →
                                          Tactic.prove (Cong (λ h → h x) (Refl {x = h})) Refl (refl _)) ⟩
         proj₁ ext′ (refl ∘ h)       ≡⟨ proj₂ ext′ h ⟩∎
         refl h                      ∎
@@ -156,7 +156,7 @@ ext-surj {A} ext {f} {g} = record
   to = proj₁ ext′
 
   from : ∀ {f g} → f ≡ g → (∀ x → f x ≡ g x)
-  from f≡g x = Eq.cong (λ h → h x) f≡g
+  from f≡g x = cong (λ h → h x) f≡g
 
 -- H-level is closed under Π A, assuming extensionality for functions
 -- from A.
@@ -186,63 +186,63 @@ ext-surj {A} ext {f} {g} = record
             H-level n A → (∀ x → H-level n (B x)) → H-level n (Σ A B)
 Σ-closure {A} {B} zero (x , irrA) hB =
   ((x , proj₁ (hB x)) , λ p →
-     (x       , proj₁ (hB x))          ≡⟨ Eq.elim (λ {x y} _ → _≡_ {A = Σ A B} (x , proj₁ (hB x))
-                                                                               (y , proj₁ (hB y)))
-                                                  (λ _ → refl _)
-                                                  (irrA (proj₁ p)) ⟩
-     (proj₁ p , proj₁ (hB (proj₁ p)))  ≡⟨ Eq.cong (_,_ (proj₁ p)) (proj₂ (hB (proj₁ p)) (proj₂ p)) ⟩∎
+     (x       , proj₁ (hB x))          ≡⟨ elim (λ {x y} _ → _≡_ {A = Σ A B} (x , proj₁ (hB x))
+                                                                            (y , proj₁ (hB y)))
+                                               (λ _ → refl _)
+                                               (irrA (proj₁ p)) ⟩
+     (proj₁ p , proj₁ (hB (proj₁ p)))  ≡⟨ cong (_,_ (proj₁ p)) (proj₂ (hB (proj₁ p)) (proj₂ p)) ⟩∎
      p                                 ∎)
 Σ-closure {A} {B} (suc n) hA hB = λ p₁ p₂ →
   respects-surjection surj n $
     Σ-closure n (hA (proj₁ p₁) (proj₁ p₂))
       (λ pr₁p₁≡pr₁p₂ →
-         hB (proj₁ p₂) (Eq.subst B pr₁p₁≡pr₁p₂ (proj₂ p₁)) (proj₂ p₂))
+         hB (proj₁ p₂) (subst B pr₁p₁≡pr₁p₂ (proj₂ p₁)) (proj₂ p₂))
   where
   surj : {p₁ p₂ : Σ A B} →
          (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-            Eq.subst B p (proj₂ p₁) ≡ proj₂ p₂) ↠
+            subst B p (proj₂ p₁) ≡ proj₂ p₂) ↠
          (p₁ ≡ p₂)
   surj = record
     { to               = to
     ; from             = from
-    ; right-inverse-of = Eq.elim (λ p≡q → to (from p≡q) ≡ p≡q) (λ x →
+    ; right-inverse-of = elim (λ p≡q → to (from p≡q) ≡ p≡q) (λ x →
         let lem = subst-refl B _ in
-        to (from (refl x))                         ≡⟨ Eq.cong to (Eq.elim-refl from-P _) ⟩
-        to (refl (proj₁ x) , subst-refl B _)       ≡⟨ Eq.cong (λ f → f (subst-refl B _)) (Eq.elim-refl to-P _) ⟩
-        trans (Eq.cong (_,_ (proj₁ x)) $ sym lem)
-              (Eq.cong (_,_ (proj₁ x)) lem)        ≡⟨ Tactic.prove (Trans (Cong (_,_ (proj₁ x)) (Sym (Lift lem)))
-                                                                          (Cong (_,_ (proj₁ x)) (Lift lem)))
-                                                                   (Trans (Sym (Cong (_,_ (proj₁ x)) (Lift lem)))
-                                                                          (Cong (_,_ (proj₁ x)) (Lift lem)))
-                                                                   (refl _) ⟩
-        trans (sym _) _                            ≡⟨ G.right-inverse _ ⟩∎
-        refl x                                     ∎)
+        to (from (refl x))                      ≡⟨ cong to (elim-refl from-P _) ⟩
+        to (refl (proj₁ x) , subst-refl B _)    ≡⟨ cong (λ f → f (subst-refl B _)) (elim-refl to-P _) ⟩
+        trans (cong (_,_ (proj₁ x)) $ sym lem)
+              (cong (_,_ (proj₁ x)) lem)        ≡⟨ Tactic.prove (Trans (Cong (_,_ (proj₁ x)) (Sym (Lift lem)))
+                                                                       (Cong (_,_ (proj₁ x)) (Lift lem)))
+                                                                (Trans (Sym (Cong (_,_ (proj₁ x)) (Lift lem)))
+                                                                       (Cong (_,_ (proj₁ x)) (Lift lem)))
+                                                                (refl _) ⟩
+        trans (sym _) _                         ≡⟨ G.right-inverse _ ⟩∎
+        refl x                                  ∎)
     }
     where
     from-P = λ {p₁ p₂ : Σ A B} (_ : p₁ ≡ p₂) →
                ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-                 Eq.subst B p (proj₂ p₁) ≡ proj₂ p₂
+                 subst B p (proj₂ p₁) ≡ proj₂ p₂
 
     from : {p₁ p₂ : Σ A B} →
            p₁ ≡ p₂ →
            ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-             Eq.subst B p (proj₂ p₁) ≡ proj₂ p₂
-    from = Eq.elim from-P (λ p → refl _ , subst-refl B _)
+             subst B p (proj₂ p₁) ≡ proj₂ p₂
+    from = elim from-P (λ p → refl _ , subst-refl B _)
 
     to-P = λ {x₁ y₁ : A} (p : x₁ ≡ y₁) → {x₂ : B x₁} {y₂ : B y₁} →
-             Eq.subst B p x₂ ≡ y₂ →
+             subst B p x₂ ≡ y₂ →
              _≡_ {A = Σ A B} (x₁ , x₂) (y₁ , y₂)
 
     to : {p₁ p₂ : Σ A B} →
          (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-            Eq.subst B p (proj₂ p₁) ≡ proj₂ p₂) →
+            subst B p (proj₂ p₁) ≡ proj₂ p₂) →
          p₁ ≡ p₂
-    to (p , q) = Eq.elim
+    to (p , q) = elim
       to-P
       (λ z₁ {x₂} {y₂} x₂≡y₂ →
-         (z₁ , x₂)                       ≡⟨ Eq.cong (_,_ z₁) $ sym $ subst-refl B x₂ ⟩
-         (z₁ , Eq.subst B (refl z₁) x₂)  ≡⟨ Eq.cong (_,_ z₁) x₂≡y₂ ⟩∎
-         (z₁ , y₂)                       ∎)
+         (z₁ , x₂)                    ≡⟨ cong (_,_ z₁) $ sym $ subst-refl B x₂ ⟩
+         (z₁ , subst B (refl z₁) x₂)  ≡⟨ cong (_,_ z₁) x₂≡y₂ ⟩∎
+         (z₁ , y₂)                    ∎)
       p q
 
 -- H-level is closed under _×_.
@@ -280,13 +280,13 @@ W-closure-propositional {A} {B} ext pA =
   where
   irrelevant : Proof-irrelevant (W A B)
   irrelevant (sup x f) (sup y g) =
-    sup x f                                  ≡⟨ Eq.elim (λ {y x} y≡x → (f : B x → W A B) →
-                                                           sup x f ≡ sup y (f ∘ Eq.subst B y≡x))
-                                                        (λ z h → Eq.cong (sup z) (ext λ i →
-                                                                   Eq.cong h (sym $ subst-refl B i)))
-                                                        (proj₁ $ pA y x) f ⟩
-    sup y (f ∘ Eq.subst B (proj₁ $ pA y x))  ≡⟨ Eq.cong (sup y) (ext λ i → irrelevant (f _) (g i)) ⟩∎
-    sup y g                                  ∎
+    sup x f                               ≡⟨ elim (λ {y x} y≡x → (f : B x → W A B) →
+                                                     sup x f ≡ sup y (f ∘ subst B y≡x))
+                                                  (λ z h → cong (sup z) (ext λ i →
+                                                             cong h (sym $ subst-refl B i)))
+                                                  (proj₁ $ pA y x) f ⟩
+    sup y (f ∘ subst B (proj₁ $ pA y x))  ≡⟨ cong (sup y) (ext λ i → irrelevant (f _) (g i)) ⟩∎
+    sup y g                               ∎
 
 -- H-level is closed under W for other levels greater than or equal to
 -- 1 as well (assuming extensionality).
@@ -307,64 +307,62 @@ W-closure {A} {B} ext (suc n) h = closure
     ext′ : ∀ {x C} → Well-behaved-extensionality (B x) C
     ext′ = extensionality⇒well-behaved-extensionality ext
 
-    surj : (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (Eq.subst B p i)) ↠
+    surj : (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
            (sup x f ≡ sup y g)
     surj = record
       { to               = to (sup x f) (sup y g)
       ; from             = from
-      ; right-inverse-of = Eq.elim (λ p → to _ _ (from p) ≡ p) to∘from
+      ; right-inverse-of = elim (λ p → to _ _ (from p) ≡ p) to∘from
       }
       where
       to-P = λ {x y : A} (p : x ≡ y) →
                (f : B x → W A B) (g : B y → W A B) →
-               (∀ i → f i ≡ g (Eq.subst B p i)) →
+               (∀ i → f i ≡ g (subst B p i)) →
                sup x f ≡ sup y g
 
       to : (w w′ : W A B) →
            (∃ λ (p : head w ≡ head w′) →
-              ∀ i → tail w i ≡ tail w′ (Eq.subst B p i)) →
+              ∀ i → tail w i ≡ tail w′ (subst B p i)) →
            w ≡ w′
-      to (sup x f) (sup y g) (x≡y , f≡g) = Eq.elim to-P
+      to (sup x f) (sup y g) (x≡y , f≡g) = elim to-P
         (λ x f g f≡g →
-           sup x f ≡⟨ Eq.cong (sup x) (proj₁ ext′ λ i →
-                        f i                        ≡⟨ f≡g i ⟩
-                        g (Eq.subst B (refl x) i)  ≡⟨ Eq.cong g (subst-refl B i) ⟩∎
-                        g i                        ∎) ⟩∎
+           sup x f ≡⟨ cong (sup x) (proj₁ ext′ λ i →
+                        f i                     ≡⟨ f≡g i ⟩
+                        g (subst B (refl x) i)  ≡⟨ cong g (subst-refl B i) ⟩∎
+                        g i                     ∎) ⟩∎
            sup x g ∎)
         x≡y _ _ f≡g
 
       from-P = λ {w w′ : W A B} (_ : w ≡ w′) →
                  ∃ λ (p : head w ≡ head w′) →
-                   ∀ i → tail w i ≡ tail w′ (Eq.subst B p i)
+                   ∀ i → tail w i ≡ tail w′ (subst B p i)
 
       from : {w w′ : W A B} →
              w ≡ w′ →
              ∃ λ (p : head w ≡ head w′) →
-               ∀ i → tail w i ≡ tail w′ (Eq.subst B p i)
-      from = Eq.elim from-P
+               ∀ i → tail w i ≡ tail w′ (subst B p i)
+      from = elim from-P
         (λ w → refl (head w) , λ i →
-           tail w i                               ≡⟨ Eq.cong (tail w) $ sym $ subst-refl B i ⟩∎
-           tail w (Eq.subst B (refl (head w)) i)  ∎)
+           tail w i                               ≡⟨ cong (tail w) $ sym $ subst-refl B i ⟩∎
+           tail w (subst B (refl (head w)) i)  ∎)
 
       to∘from : (w : W A B) → to w w (from (refl w)) ≡ refl w
       to∘from (sup x f) =
-        to (sup x f) (sup x f) (from (refl (sup x f)))           ≡⟨ Eq.cong (to _ _) (Eq.elim-refl from-P _ {x = sup x f}) ⟩
-        to (sup x f) (sup x f) (refl x , Eq.cong f ∘ sym ∘ lem)  ≡⟨ Eq.cong (λ h → h _ _ (Eq.cong f ∘ sym ∘ lem)) $
-                                                                      Eq.elim-refl to-P _ ⟩
-        Eq.cong (sup x) (proj₁ ext′ λ i →
-          Eq.trans (Eq.cong f (sym $ lem i))
-                   (Eq.cong f (lem i)))                          ≡⟨ Eq.cong (Eq.cong (sup x) ∘ proj₁ ext′) (proj₁ ext′ λ i →
-                                                                      Tactic.prove
-                                                                        (Trans (Cong f (Sym (Lift $ lem i))) (Cong f (Lift $ lem i)))
-                                                                        (Trans (Sym (Cong f (Lift $ lem i))) (Cong f (Lift $ lem i)))
-                                                                        (refl _)) ⟩
-        Eq.cong (sup x) (proj₁ ext′ λ i →
-          Eq.trans (sym $ Eq.cong f $ lem i)
-                   (Eq.cong f $ lem i))                          ≡⟨ Eq.cong (Eq.cong (sup x) ∘ proj₁ ext′) (proj₁ ext′ λ i →
-                                                                      G.right-inverse _) ⟩
-        Eq.cong (sup x) (proj₁ ext′ (refl ∘ f))                  ≡⟨ Eq.cong (Eq.cong (sup x)) $ proj₂ ext′ f ⟩
-        Eq.cong (sup x) (refl f)                                 ≡⟨ Tactic.prove (Cong (sup x) Refl) Refl (refl _) ⟩∎
-        refl (sup x f)                                           ∎
+        to (sup x f) (sup x f) (from (refl (sup x f)))        ≡⟨ cong (to _ _) (elim-refl from-P _ {x = sup x f}) ⟩
+        to (sup x f) (sup x f) (refl x , cong f ∘ sym ∘ lem)  ≡⟨ cong (λ h → h _ _ (cong f ∘ sym ∘ lem)) $
+                                                                   elim-refl to-P _ ⟩
+        cong (sup x) (proj₁ ext′ λ i →
+          trans (cong f (sym $ lem i)) (cong f (lem i)))      ≡⟨ cong (cong (sup x) ∘ proj₁ ext′) (proj₁ ext′ λ i →
+                                                                   Tactic.prove
+                                                                     (Trans (Cong f (Sym (Lift $ lem i))) (Cong f (Lift $ lem i)))
+                                                                     (Trans (Sym (Cong f (Lift $ lem i))) (Cong f (Lift $ lem i)))
+                                                                     (refl _)) ⟩
+        cong (sup x) (proj₁ ext′ λ i →
+          trans (sym $ cong f $ lem i) (cong f $ lem i))      ≡⟨ cong (cong (sup x) ∘ proj₁ ext′) (proj₁ ext′ λ i →
+                                                                   G.right-inverse _) ⟩
+        cong (sup x) (proj₁ ext′ (refl ∘ f))                  ≡⟨ cong (cong (sup x)) $ proj₂ ext′ f ⟩
+        cong (sup x) (refl f)                                 ≡⟨ Tactic.prove (Cong (sup x) Refl) Refl (refl _) ⟩∎
+        refl (sup x f)                                        ∎
         where lem = subst-refl B
 
 ------------------------------------------------------------------------
@@ -386,7 +384,7 @@ cojoin ext contr = contr₃
 
   contr₂ : ∀ x → Contractible (∀ y → x ≡ y)
   contr₂ x =
-    Eq.subst (λ x → Contractible (∀ y → x ≡ y)) (proj₂ contr x) contr₁
+    subst (λ x → Contractible (∀ y → x ≡ y)) (proj₂ contr x) contr₁
 
   contr₃ : Contractible (∃ λ x → ∀ y → x ≡ y)
   contr₃ = Σ-closure 0 contr contr₂
@@ -445,7 +443,7 @@ sum-as-pair {A} {B} = record
 private
 
   inj₁≢inj₂ : ∀ {A B} {x : A} {y : B} → ¬ inj₁ x ≡ inj₂ y
-  inj₁≢inj₂ = Eq.true≢false ∘ Eq.cong [ const true , const false ]
+  inj₁≢inj₂ = true≢false ∘ cong [ const true , const false ]
 
 ¬-⊎-propositional : ∀ {A B} → A → B → ¬ Propositional (A ⊎ B)
 ¬-⊎-propositional x y hA⊎B = inj₁≢inj₂ $ proj₁ $ hA⊎B (inj₁ x) (inj₂ y)
@@ -486,11 +484,11 @@ Dec-closure-propositional {A} ext p =
   _⇔_.from propositional⇔irrelevant irrelevant
   where
   irrelevant : Proof-irrelevant (Dec A)
-  irrelevant (yes a) (yes a′) = Eq.cong yes $ proj₁ $ p a a′
+  irrelevant (yes a) (yes a′) = cong yes $ proj₁ $ p a a′
   irrelevant (yes a) (no ¬a)  = ⊥-elim (¬a a)
   irrelevant (no ¬a) (yes a)  = ⊥-elim (¬a a)
   irrelevant (no ¬a) (no ¬a′) =
-    Eq.cong no $ proj₁ $ ¬-propositional ext ¬a ¬a′
+    cong no $ proj₁ $ ¬-propositional ext ¬a ¬a′
 
 -- Alternative definition of ⊎-closure.
 
@@ -503,18 +501,18 @@ module Alternative-proof where
   private
 
     drop-inj₁ : ∀ {A B x y} → _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y) → x ≡ y
-    drop-inj₁ {x = x} = Eq.cong [ id , const x ]
+    drop-inj₁ {x = x} = cong [ id , const x ]
 
     drop-inj₂ : ∀ {A B x y} → _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y) → x ≡ y
-    drop-inj₂ {x = x} = Eq.cong [ const x , id ]
+    drop-inj₂ {x = x} = cong [ const x , id ]
 
   ⊎-closure-set : ∀ {A B} → Is-set A → Is-set B → Is-set (A ⊎ B)
   ⊎-closure-set {A} {B} A-set B-set =
     _⇔_.from set⇔UIP (DUIP.constant⇒UIP c)
     where
     c : (x y : A ⊎ B) → ∃ λ (f : x ≡ y → x ≡ y) → DUIP.Constant f
-    c (inj₁ x) (inj₁ y) = (Eq.cong inj₁ ∘ drop-inj₁ , λ p q → Eq.cong (Eq.cong inj₁) $ proj₁ $ A-set x y (drop-inj₁ p) (drop-inj₁ q))
-    c (inj₂ x) (inj₂ y) = (Eq.cong inj₂ ∘ drop-inj₂ , λ p q → Eq.cong (Eq.cong inj₂) $ proj₁ $ B-set x y (drop-inj₂ p) (drop-inj₂ q))
+    c (inj₁ x) (inj₁ y) = (cong inj₁ ∘ drop-inj₁ , λ p q → cong (cong inj₁) $ proj₁ $ A-set x y (drop-inj₁ p) (drop-inj₁ q))
+    c (inj₂ x) (inj₂ y) = (cong inj₂ ∘ drop-inj₂ , λ p q → cong (cong inj₂) $ proj₁ $ B-set x y (drop-inj₂ p) (drop-inj₂ q))
     c (inj₁ x) (inj₂ y) = (⊥-elim ∘ inj₁≢inj₂       , λ _ → ⊥-elim ∘ inj₁≢inj₂)
     c (inj₂ x) (inj₁ y) = (⊥-elim ∘ inj₁≢inj₂ ∘ sym , λ _ → ⊥-elim ∘ inj₁≢inj₂ ∘ sym)
 
@@ -536,17 +534,17 @@ module Alternative-proof where
 
       surj₁ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
       surj₁ {x} {y} = record
-        { to               = Eq.cong inj₁
+        { to               = cong inj₁
         ; from             = drop-inj₁
         ; right-inverse-of = λ ix≡iy →
-            Eq.cong inj₁ (drop-inj₁ ix≡iy)                        ≡⟨ Tactic.prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
-                                                                                  (Cong f (Lift ix≡iy))
-                                                                                  (refl _) ⟩
-            Eq.cong f ix≡iy                                       ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
-            Eq.trans (refl _) (Eq.trans ix≡iy $ Eq.sym (refl _))  ≡⟨ Tactic.prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
-                                                                                  (Lift ix≡iy)
-                                                                                  (refl _) ⟩∎
-            ix≡iy                                                 ∎
+            cong inj₁ (drop-inj₁ ix≡iy)                  ≡⟨ Tactic.prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
+                                                                         (Cong f (Lift ix≡iy))
+                                                                         (refl _) ⟩
+            cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
+            trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ Tactic.prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
+                                                                         (Lift ix≡iy)
+                                                                         (refl _) ⟩∎
+            ix≡iy                                        ∎
         }
         where
         f : A ⊎ B → A ⊎ B
@@ -561,17 +559,17 @@ module Alternative-proof where
 
       surj₂ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
       surj₂ {x} {y} = record
-        { to               = Eq.cong inj₂
+        { to               = cong inj₂
         ; from             = drop-inj₂
         ; right-inverse-of = λ ix≡iy →
-            Eq.cong inj₂ (drop-inj₂ ix≡iy)                        ≡⟨ Tactic.prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
-                                                                                  (Cong f (Lift ix≡iy))
-                                                                                  (refl _) ⟩
-            Eq.cong f ix≡iy                                       ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
-            Eq.trans (refl _) (Eq.trans ix≡iy $ Eq.sym (refl _))  ≡⟨ Tactic.prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
-                                                                                  (Lift ix≡iy)
-                                                                                  (refl _) ⟩∎
-            ix≡iy                                                 ∎
+            cong inj₂ (drop-inj₂ ix≡iy)                  ≡⟨ Tactic.prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
+                                                                         (Cong f (Lift ix≡iy))
+                                                                         (refl _) ⟩
+            cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
+            trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ Tactic.prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
+                                                                         (Lift ix≡iy)
+                                                                         (refl _) ⟩∎
+            ix≡iy                                        ∎
         }
         where
         f : A ⊎ B → A ⊎ B
@@ -587,7 +585,7 @@ module Alternative-proof where
       -- If f z evaluates to z for a decidable set of values which
       -- includes x and y, do we have
       --
-      --   Eq.cong f x≡y ≡ x≡y
+      --   cong f x≡y ≡ x≡y
       --
       -- for any x≡y : x ≡ y? The answer is yes, but cong-lemma only
       -- captures this statement indirectly. (Note that the equation above
@@ -595,34 +593,34 @@ module Alternative-proof where
       -- instantiated properly with the various components above, then we
       -- get
       --
-      --   Eq.cong f x≡y ≡ Eq.trans … (Eq.trans x≡y (Eq.sym …)),
+      --   cong f x≡y ≡ trans … (trans x≡y (sym …)),
       --
       -- where the two occurrences of … evaluate to reflexivity proofs.
 
       cong-lemma : ∀ {A} (f : A → A) (p : A → Bool)
                    {x y : A} (x≡y : x ≡ y) (px : T (p x)) (py : T (p y))
                    (f≡id : ∀ z → T (p z) → f z ≡ z) →
-                   Eq.cong f x≡y ≡
-                   Eq.trans (f≡id x px) (Eq.trans x≡y $ Eq.sym (f≡id y py))
+                   cong f x≡y ≡
+                   trans (f≡id x px) (trans x≡y $ sym (f≡id y py))
       cong-lemma {A} f p =
-        Eq.elim (λ {x y} x≡y →
-                   (px : T (p x)) (py : T (p y))
-                   (f≡id : ∀ z → T (p z) → f z ≡ z) →
-                   Eq.cong f x≡y ≡
-                   Eq.trans (f≡id x px) (Eq.trans x≡y $ Eq.sym (f≡id y py)))
-                (λ x px px′ f≡id → helper x (p x) px px′ (f≡id x))
+        elim (λ {x y} x≡y →
+                (px : T (p x)) (py : T (p y))
+                (f≡id : ∀ z → T (p z) → f z ≡ z) →
+                cong f x≡y ≡
+                trans (f≡id x px) (trans x≡y $ sym (f≡id y py)))
+             (λ x px px′ f≡id → helper x (p x) px px′ (f≡id x))
         where
         helper :
           (x : A) (b : Bool) (px px′ : T b)
           (f≡id : T b → f x ≡ x) →
-          Eq.cong f (refl x) ≡
-          Eq.trans (f≡id px) (Eq.trans (refl x) $ Eq.sym (f≡id px′))
+          cong f (refl x) ≡
+          trans (f≡id px) (trans (refl x) $ sym (f≡id px′))
         helper x false px _ f≡id = ⊥-elim px
         helper x true  _  _ f≡id =
-          Eq.cong f (refl x)                                       ≡⟨ Tactic.prove (Cong f Refl) Refl (refl _) ⟩
-          refl (f x)                                               ≡⟨ Eq.sym $ G.left-inverse _ ⟩
-          Eq.trans (f≡id _) (Eq.sym (f≡id _))                      ≡⟨ Tactic.prove (Trans fx≡x (Sym fx≡x))
-                                                                                   (Trans fx≡x (Trans Refl (Sym fx≡x)))
-                                                                                   (refl _) ⟩∎
-          Eq.trans (f≡id _) (Eq.trans (refl x) $ Eq.sym (f≡id _))  ∎
+          cong f (refl x)                                 ≡⟨ Tactic.prove (Cong f Refl) Refl (refl _) ⟩
+          refl (f x)                                      ≡⟨ sym $ G.left-inverse _ ⟩
+          trans (f≡id _) (sym (f≡id _))                   ≡⟨ Tactic.prove (Trans fx≡x (Sym fx≡x))
+                                                                          (Trans fx≡x (Trans Refl (Sym fx≡x)))
+                                                                          (refl _) ⟩∎
+          trans (f≡id _) (trans (refl x) $ sym (f≡id _))  ∎
           where fx≡x = Lift (f≡id _)

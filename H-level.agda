@@ -9,7 +9,7 @@
 
 module H-level where
 
-open import Equality as Eq
+open import Equality
 import Equality.Decidable-UIP as DUIP
 import Equality.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
@@ -49,10 +49,8 @@ mono₁ zero    h x y = (trivial x y , irr)
     y        ∎
 
   irr : ∀ {x y} (x≡y : x ≡ y) → trivial x y ≡ x≡y
-  irr =
-    Eq.elim
-      (λ {x y} x≡y → trivial x y ≡ x≡y)
-      (λ x → G.right-inverse (proj₂ h x))
+  irr = elim (λ {x y} x≡y → trivial x y ≡ x≡y)
+             (λ x → G.right-inverse (proj₂ h x))
 
 mono : ∀ {A m n} → m ≤ n → H-level m A → H-level n A
 mono ≤-refl               = id
@@ -110,7 +108,7 @@ respects-surjection :
 respects-surjection A↠B zero h =
   Σ-map to
         (λ {x} triv y →
-           to x         ≡⟨ Eq.cong to (triv (from y)) ⟩
+           to x         ≡⟨ cong to (triv (from y)) ⟩
            to (from y)  ≡⟨ right-inverse-of y ⟩∎
            y            ∎)
         h
@@ -120,17 +118,17 @@ respects-surjection A↠B (suc n) h = λ x y →
       surj = record
         { to               = to′
         ; from             = from′
-        ; right-inverse-of = Eq.elim (λ x≡y → to′ (from′ x≡y) ≡ x≡y) (λ x →
+        ; right-inverse-of = elim (λ x≡y → to′ (from′ x≡y) ≡ x≡y) (λ x →
             let riox = right-inverse-of x in
             (trans (sym riox) $
-             trans (Eq.cong to $ Eq.cong from $ refl x) $
-             riox)                                         ≡⟨ Tactic.prove (Trans (Sym (Lift riox)) $
-                                                                            Trans (Cong to (Cong from Refl))
-                                                                                  (Lift riox))
-                                                                           (Trans (Sym (Lift riox)) (Lift riox))
-                                                                           (refl _) ⟩
-            trans (sym riox) riox                          ≡⟨ G.right-inverse _ ⟩∎
-            refl x                                         ∎)
+             trans (cong to $ cong from $ refl x) $
+             riox)                                   ≡⟨ Tactic.prove (Trans (Sym (Lift riox)) $
+                                                                      Trans (Cong to (Cong from Refl))
+                                                                            (Lift riox))
+                                                                     (Trans (Sym (Lift riox)) (Lift riox))
+                                                                     (refl _) ⟩
+            trans (sym riox) riox                    ≡⟨ G.right-inverse _ ⟩∎
+            refl x                                   ∎)
         }
   in respects-surjection surj n (h (from x) (from y))
   where
@@ -139,11 +137,11 @@ respects-surjection A↠B (suc n) h = λ x y →
   to′ : ∀ {x y} → from x ≡ from y → x ≡ y
   to′ {x} {y} = λ from-x≡from-y →
     x            ≡⟨ sym $ right-inverse-of x ⟩
-    to (from x)  ≡⟨ Eq.cong to from-x≡from-y ⟩
+    to (from x)  ≡⟨ cong to from-x≡from-y ⟩
     to (from y)  ≡⟨ right-inverse-of y ⟩∎
     y            ∎
 
   from′ : ∀ {x y} → x ≡ y → from x ≡ from y
   from′ {x} {y} = λ x≡y →
-    from x  ≡⟨ Eq.cong from x≡y ⟩∎
+    from x  ≡⟨ cong from x≡y ⟩∎
     from y  ∎
