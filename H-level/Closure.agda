@@ -101,13 +101,13 @@ Extensionality A B =
       (∀ {B} → Extensionality A B)
   ⇒ closure {B} {f} {g} f≡g =
     f                                     ≡⟨ sym $ cong (λ c → λ x → proj₁ (c x)) $
-                                               proj₂ contractible (λ x → (f x , refl (f x))) ⟩
+                                               proj₂ contractible (λ x → (f x , f≡g x)) ⟩
     (λ x → proj₁ (proj₁ contractible x))  ≡⟨ cong (λ c → λ x → proj₁ (c x)) $
-                                               proj₂ contractible (λ x → (g x , f≡g x)) ⟩∎
+                                               proj₂ contractible (λ x → (g x , refl (g x))) ⟩∎
     g                                     ∎
     where
-    contractible : Contractible ((x : A) → Singleton (f x))
-    contractible = closure (singleton-contractible ∘ f)
+    contractible : Contractible ((x : A) → Singleton (g x))
+    contractible = closure (singleton-contractible ∘ g)
 
 -- Proofs of extensionality which behave well when applied to
 -- reflexivity.

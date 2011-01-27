@@ -23,7 +23,7 @@ module Auxiliary (_≡_ : {A : Set} → A → A → Set) where
   -- to x.
 
   Singleton : {A : Set} → A → Set
-  Singleton x = ∃ λ y → x ≡ y
+  Singleton x = ∃ λ y → y ≡ x
 
 ------------------------------------------------------------------------
 -- Abstract definition of equality based on the J rule
@@ -91,7 +91,7 @@ record Equality-with-J : Set₁ where
     ∀ {A} (x : A) → Contractible (Singleton x)
   singleton-contractible x =
     (x , refl x) , λ p →
-      elim (λ {u v} u≡v → _≡_ {A = Singleton u} (u , refl u) (v , u≡v))
+      elim (λ {u v} u≡v → _≡_ {A = Singleton v} (v , refl v) (u , u≡v))
            (λ _ → refl _)
            (proj₂ p)
 
@@ -184,13 +184,13 @@ record Equality-with-substitutivity-and-contractibility : Set₁ where
          (∀ x → P (refl x)) →
          ∀ {x y} (x≡y : x ≡ y) → P x≡y
   elim P p {x} {y} x≡y =
-    subst {A = Singleton x}
+    subst {A = Singleton y}
           (P ∘ proj₂)
-          ((x , refl x)                      ≡⟨ sym (lemma (x , refl x)) ⟩
-           proj₁ (singleton-contractible x)  ≡⟨ lemma (y , x≡y) ⟩∎
-           (y , x≡y)                         ∎)
-          (p x)
-    where lemma = proj₂ (singleton-contractible x)
+          ((y , refl y)                      ≡⟨ sym (lemma (y , refl y)) ⟩
+           proj₁ (singleton-contractible y)  ≡⟨ lemma (x , x≡y) ⟩∎
+           (x , x≡y)                         ∎)
+          (p y)
+    where lemma = proj₂ (singleton-contractible y)
 
   -- Transitivity and symmetry sometimes cancel each other out.
 
