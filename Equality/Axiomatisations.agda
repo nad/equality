@@ -6,9 +6,7 @@
 
 module Equality.Axiomatisations where
 
-open import Data.Product using (∃; _,_; proj₁; proj₂)
-open import Function using (_$_; _∘_; id; flip)
-open import Function.Equivalence using (_⇔_; equivalent)
+open import Prelude
 
 ------------------------------------------------------------------------
 -- Some auxiliary definitions, parametrised on an equality relation

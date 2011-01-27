@@ -6,10 +6,8 @@
 
 module Equality.Tactic where
 
-open import Data.Product as Prod
-open import Function
-
 open import Equality
+open import Prelude hiding (Level; module Level)
 
 ------------------------------------------------------------------------
 -- Boring lemmas
@@ -216,20 +214,20 @@ private
            EqS upper ⟨           y≡z ⟩ →
            EqS upper ⟨ trans x≡y y≡z ⟩
   append {x≡y = x≡y} {y≡z} (Refl , h) x≈y =
-    Prod.map id
-             (λ {y≈z} y≡z≡⟦y≈z⟧ →
-                trans x≡y y≡z            ≡⟨ cong₂ trans h y≡z≡⟦y≈z⟧ ⟩
-                trans (refl _) ⟦ y≈z ⟧S  ≡⟨ trans-reflˡ _ ⟩∎
-                ⟦ y≈z ⟧S                 ∎)
-             x≈y
+    Σ-map id
+          (λ {y≈z} y≡z≡⟦y≈z⟧ →
+             trans x≡y y≡z            ≡⟨ cong₂ trans h y≡z≡⟦y≈z⟧ ⟩
+             trans (refl _) ⟦ y≈z ⟧S  ≡⟨ trans-reflˡ _ ⟩∎
+             ⟦ y≈z ⟧S                 ∎)
+          x≈y
   append {x≡y = x≡z} {z≡u} (Cons x≈y y≈z , h) z≈u =
-    Prod.map (Cons x≈y)
-             (λ {y≈u} trans⟦y≈z⟧z≡u≡⟦y≈u⟧ →
-                trans x≡z z≡u                        ≡⟨ cong₂ trans h (refl _) ⟩
-                trans (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S) z≡u  ≡⟨ trans-assoc _ _ _ ⟩
-                trans ⟦ x≈y ⟧S (trans ⟦ y≈z ⟧S z≡u)  ≡⟨ cong (trans _) trans⟦y≈z⟧z≡u≡⟦y≈u⟧ ⟩∎
-                trans ⟦ x≈y ⟧S ⟦ y≈u ⟧S              ∎)
-             (append (y≈z , refl _) z≈u)
+    Σ-map (Cons x≈y)
+          (λ {y≈u} trans⟦y≈z⟧z≡u≡⟦y≈u⟧ →
+             trans x≡z z≡u                        ≡⟨ cong₂ trans h (refl _) ⟩
+             trans (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S) z≡u  ≡⟨ trans-assoc _ _ _ ⟩
+             trans ⟦ x≈y ⟧S (trans ⟦ y≈z ⟧S z≡u)  ≡⟨ cong (trans _) trans⟦y≈z⟧z≡u≡⟦y≈u⟧ ⟩∎
+             trans ⟦ x≈y ⟧S ⟦ y≈u ⟧S              ∎)
+          (append (y≈z , refl _) z≈u)
 
   map-sym : ∀ {A} {x y : A} {x≡y : x ≡ y} →
             EqS middle ⟨ x≡y ⟩ → EqS middle ⟨ sym x≡y ⟩
@@ -256,13 +254,13 @@ private
   map-cong {lower}  f {gx≡gy} (Cong g x≡y   , h) = Cong (f ∘ g) x≡y , (cong f gx≡gy         ≡⟨ cong (cong f) h ⟩
                                                                        cong f (cong g x≡y)  ≡⟨ cong-∘ f g _ ⟩∎
                                                                        cong (f ∘ g) x≡y     ∎)
-  map-cong {middle} f {x≡y}   (No-Sym x≈y   , h) = Prod.map No-Sym id (map-cong f (x≈y , h))
-  map-cong {middle} f {x≡y}   (Sym    x≈y   , h) = Prod.map Sym (λ {fy≈fx} cong-f-⟦x≈y⟧≡⟦fy≈fx⟧ →
-                                                                   cong f x≡y             ≡⟨ cong (cong f) h ⟩
-                                                                   cong f (sym ⟦ x≈y ⟧S)  ≡⟨ cong-sym f _ ⟩
-                                                                   sym (cong f ⟦ x≈y ⟧S)  ≡⟨ cong sym cong-f-⟦x≈y⟧≡⟦fy≈fx⟧ ⟩∎
-                                                                   sym ⟦ fy≈fx ⟧S         ∎)
-                                                            (map-cong f (x≈y , refl _))
+  map-cong {middle} f {x≡y}   (No-Sym x≈y   , h) = Σ-map No-Sym id (map-cong f (x≈y , h))
+  map-cong {middle} f {x≡y}   (Sym    x≈y   , h) = Σ-map Sym (λ {fy≈fx} cong-f-⟦x≈y⟧≡⟦fy≈fx⟧ →
+                                                                cong f x≡y             ≡⟨ cong (cong f) h ⟩
+                                                                cong f (sym ⟦ x≈y ⟧S)  ≡⟨ cong-sym f _ ⟩
+                                                                sym (cong f ⟦ x≈y ⟧S)  ≡⟨ cong sym cong-f-⟦x≈y⟧≡⟦fy≈fx⟧ ⟩∎
+                                                                sym ⟦ fy≈fx ⟧S         ∎)
+                                                         (map-cong f (x≈y , refl _))
   map-cong {upper}  f {x≡y}   (Refl         , h) = Refl , (cong f x≡y       ≡⟨ cong (cong f) h ⟩
                                                            cong f (refl _)  ≡⟨ cong-refl f ⟩∎
                                                            refl _           ∎)

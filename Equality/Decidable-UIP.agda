@@ -9,15 +9,10 @@
 
 module Equality.Decidable-UIP where
 
-open import Data.Empty
-open import Data.Product as Prod
-open import Function
-open import Relation.Binary using (Decidable)
-open import Relation.Nullary
-
 open import Equality
 open import Equality.Groupoid
 open import Equality.Tactic
+open import Prelude
 
 -- Constant functions.
 

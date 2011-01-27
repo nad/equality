@@ -9,20 +9,12 @@
 
 module H-level where
 
-open import Data.Nat
-open import Data.Product as Prod
-open import Function
-open import Function.Equality using (_⟨$⟩_)
-open import Function.Equivalence
-  using (_⇔_; equivalent; module Equivalent)
-open import Function.Surjection using (module Surjection)
-open import Relation.Binary using (Decidable)
-
 open import Equality as Eq
 import Equality.Decidable-UIP as DUIP
 import Equality.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
 import Equality.Tactic as Tactic; open Tactic.Eq
+open import Prelude
 
 ------------------------------------------------------------------------
 -- H-levels
@@ -62,9 +54,9 @@ mono₁ zero    h x y = (trivial x y , irr)
       (λ {x y} x≡y → trivial x y ≡ x≡y)
       (λ x → G.right-inverse (proj₂ h x))
 
-mono : ∀ {A m n} → m ≤′ n → H-level m A → H-level n A
-mono ≤′-refl               = id
-mono (≤′-step {n = n} m≤n) = mono₁ n ∘ mono m≤n
+mono : ∀ {A m n} → m ≤ n → H-level m A → H-level n A
+mono ≤-refl               = id
+mono (≤-step {n = n} m≤n) = mono₁ n ∘ mono m≤n
 
 -- If something is contractible given the assumption that it is
 -- inhabited, then it is propositional.
@@ -109,52 +101,49 @@ set⇔UIP {A} = equivalent ⇒ ⇐
 -- Types with decidable equality are sets.
 
 decidable⇒set : {A : Set} → Decidable (_≡_ {A = A}) → Is-set A
-decidable⇒set dec = Equivalent.from set⇔UIP ⟨$⟩ DUIP.decidable⇒UIP dec
+decidable⇒set dec = _⇔_.from set⇔UIP (DUIP.decidable⇒UIP dec)
 
 -- H-level n respects surjections.
 
 respects-surjection :
   ∀ {A B} → A ↠ B → ∀ n → H-level n A → H-level n B
 respects-surjection A↠B zero h =
-  Prod.map (_⟨$⟩_ to)
-           (λ {x} triv y →
-              to ⟨$⟩ x             ≡⟨ Eq.cong (_⟨$⟩_ to) (triv (from ⟨$⟩ y)) ⟩
-              to ⟨$⟩ (from ⟨$⟩ y)  ≡⟨ right-inverse-of y ⟩∎
-              y                    ∎)
-           h
-  where open Surjection A↠B
+  Σ-map to
+        (λ {x} triv y →
+           to x         ≡⟨ Eq.cong to (triv (from y)) ⟩
+           to (from y)  ≡⟨ right-inverse-of y ⟩∎
+           y            ∎)
+        h
+  where open _↠_ A↠B
 respects-surjection A↠B (suc n) h = λ x y →
-  let surj : (from ⟨$⟩ x ≡ from ⟨$⟩ y) ↠ (x ≡ y)
+  let surj : (from x ≡ from y) ↠ (x ≡ y)
       surj = record
-        { to         = Eq.→-to-⟶ to′
-        ; surjective = record
-          { from             = Eq.→-to-⟶ from′
-          ; right-inverse-of = Eq.elim (λ x≡y → to′ (from′ x≡y) ≡ x≡y) (λ x →
-              let riox = right-inverse-of x in
-              (trans (sym riox) $
-               trans (Eq.cong (_⟨$⟩_ to)   $
-                      Eq.cong (_⟨$⟩_ from) $ refl x) $
-               riox)                                    ≡⟨ Tactic.prove (Trans (Sym (Lift riox))
-                                                                               (Trans (Cong (_⟨$⟩_ to) (Cong (_⟨$⟩_ from) Refl))
-                                                                                      (Lift riox)))
-                                                                        (Trans (Sym (Lift riox)) (Lift riox))
-                                                                        (refl _) ⟩
-              trans (sym riox) riox                     ≡⟨ G.right-inverse _ ⟩∎
-              refl x                                    ∎)
-          }
+        { to               = to′
+        ; from             = from′
+        ; right-inverse-of = Eq.elim (λ x≡y → to′ (from′ x≡y) ≡ x≡y) (λ x →
+            let riox = right-inverse-of x in
+            (trans (sym riox) $
+             trans (Eq.cong to $ Eq.cong from $ refl x) $
+             riox)                                         ≡⟨ Tactic.prove (Trans (Sym (Lift riox)) $
+                                                                            Trans (Cong to (Cong from Refl))
+                                                                                  (Lift riox))
+                                                                           (Trans (Sym (Lift riox)) (Lift riox))
+                                                                           (refl _) ⟩
+            trans (sym riox) riox                          ≡⟨ G.right-inverse _ ⟩∎
+            refl x                                         ∎)
         }
-  in respects-surjection surj n (h (from ⟨$⟩ x) (from ⟨$⟩ y))
+  in respects-surjection surj n (h (from x) (from y))
   where
-  open Surjection A↠B
+  open _↠_ A↠B
 
-  to′ : ∀ {x y} → from ⟨$⟩ x ≡ from ⟨$⟩ y → x ≡ y
+  to′ : ∀ {x y} → from x ≡ from y → x ≡ y
   to′ {x} {y} = λ from-x≡from-y →
-    x                    ≡⟨ sym $ right-inverse-of x ⟩
-    to ⟨$⟩ (from ⟨$⟩ x)  ≡⟨ Eq.cong (_⟨$⟩_ to) from-x≡from-y ⟩
-    to ⟨$⟩ (from ⟨$⟩ y)  ≡⟨ right-inverse-of y ⟩∎
-    y                    ∎
+    x            ≡⟨ sym $ right-inverse-of x ⟩
+    to (from x)  ≡⟨ Eq.cong to from-x≡from-y ⟩
+    to (from y)  ≡⟨ right-inverse-of y ⟩∎
+    y            ∎
 
-  from′ : ∀ {x y} → x ≡ y → from ⟨$⟩ x ≡ from ⟨$⟩ y
+  from′ : ∀ {x y} → x ≡ y → from x ≡ from y
   from′ {x} {y} = λ x≡y →
-    from ⟨$⟩ x  ≡⟨ Eq.cong (_⟨$⟩_ from) x≡y ⟩∎
-    from ⟨$⟩ y  ∎
+    from x  ≡⟨ Eq.cong from x≡y ⟩∎
+    from y  ∎

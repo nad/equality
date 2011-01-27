@@ -6,11 +6,11 @@
 
 {-# OPTIONS --without-K #-}
 
--- One should really check all dependencies of this library using
--- --without-K, but at the moment this is not possible: another
--- standard library would have to be used.
-
 module README where
+
+-- Definitions of some basic types and some related functions.
+
+import Prelude
 
 -- Two equivalent axiomatisations of equality.
 

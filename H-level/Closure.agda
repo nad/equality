@@ -9,27 +9,13 @@
 
 module H-level.Closure where
 
-open import Data.Bool
-open import Data.Empty
-open import Data.Nat
-import Data.Nat.Properties as NatProp
-open import Data.Product
-open import Data.Sum
-open import Data.Unit
-open import Function
-open import Function.Equality using (_⟨$⟩_)
-open import Function.Equivalence
-  using (_⇔_; equivalent; module Equivalent)
-open import Function.Inverse as Inv using (module Inverse)
-open import Relation.Nullary
-
 open import Equality as Eq
 import Equality.Decidable-UIP as DUIP
 import Equality.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
 import Equality.Tactic as Tactic; open Tactic.Eq
 open import H-level
-open import Data.W as W
+open import Prelude
 
 ------------------------------------------------------------------------
 -- The unit type
@@ -51,17 +37,15 @@ open import Data.W as W
 
 ⊥-propositional : Propositional ⊥
 ⊥-propositional =
-  Equivalent.from propositional⇔irrelevant ⟨$⟩ (λ x → ⊥-elim x)
+  _⇔_.from propositional⇔irrelevant (λ x → ⊥-elim x)
 
 -- Thus any uninhabited type is also propositional.
 
 ⊥↠uninhabited : ∀ {A} → ¬ A → ⊥ ↠ A
 ⊥↠uninhabited ¬A = record
-  { to         = Eq.→-to-⟶ ⊥-elim
-  ; surjective = record
-    { from             = Eq.→-to-⟶ ¬A
-    ; right-inverse-of = ⊥-elim ∘ ¬A
-    }
+  { to               = ⊥-elim
+  ; from             = ¬A
+  ; right-inverse-of = ⊥-elim ∘ ¬A
   }
 
 uninhabited-propositional : ∀ {A} → ¬ A → Propositional A
@@ -76,7 +60,7 @@ uninhabited-propositional ¬A =
 ¬-Bool-propositional : ¬ Propositional Bool
 ¬-Bool-propositional propositional =
   true≢false $
-  (Equivalent.to propositional⇔irrelevant ⟨$⟩ propositional) true false
+  (_⇔_.to propositional⇔irrelevant propositional) true false
 
 -- The booleans form a set.
 
@@ -145,8 +129,8 @@ extensionality⇒well-behaved-extensionality {A} ext {B} =
     refl f           ∎
   where
   ext′ : Extensionality A B
-  ext′ = to ⟨$⟩ (from ⟨$⟩ ext)
-    where open Equivalent Π-closure-contractible⇔extensionality
+  ext′ = to (from ext)
+    where open _⇔_ Π-closure-contractible⇔extensionality
 
 -- Given extensionality there is a surjection from ∀ x → f x ≡ g x to
 -- f ≡ g.
@@ -155,16 +139,14 @@ ext-surj : ∀ {A} → (∀ {B} → Extensionality A B) →
            ∀ {B : A → Set} {f g : (x : A) → B x} →
            (∀ x → f x ≡ g x) ↠ (f ≡ g)
 ext-surj {A} ext {f} {g} = record
-  { to         = Eq.→-to-⟶ to
-  ; surjective = record
-    { from             = Eq.→-to-⟶ from
-    ; right-inverse-of =
-        Eq.elim (λ {f g} f≡g → to (from f≡g) ≡ f≡g) λ h →
-          proj₁ ext′ (from (refl h))  ≡⟨ Eq.cong (proj₁ ext′) (proj₁ ext′ λ x →
-                                           Tactic.prove (Cong (λ h → h x) (Refl {x = h})) Refl (refl _)) ⟩
-          proj₁ ext′ (refl ∘ h)       ≡⟨ proj₂ ext′ h ⟩∎
-          refl h                      ∎
-    }
+  { to               = to
+  ; from             = from
+  ; right-inverse-of =
+      Eq.elim (λ {f g} f≡g → to (from f≡g) ≡ f≡g) λ h →
+        proj₁ ext′ (from (refl h))  ≡⟨ Eq.cong (proj₁ ext′) (proj₁ ext′ λ x →
+                                         Tactic.prove (Cong (λ h → h x) (Refl {x = h})) Refl (refl _)) ⟩
+        proj₁ ext′ (refl ∘ h)       ≡⟨ proj₂ ext′ h ⟩∎
+        refl h                      ∎
   }
   where
   ext′ : ∀ {B} → Well-behaved-extensionality A B
@@ -184,7 +166,7 @@ ext-surj {A} ext {f} {g} = record
             ∀ {B : A → Set} n →
             (∀ x → H-level n (B x)) → H-level n ((x : A) → B x)
 Π-closure ext zero =
-  Equivalent.from Π-closure-contractible⇔extensionality ⟨$⟩ ext
+  _⇔_.from Π-closure-contractible⇔extensionality ext
 Π-closure ext (suc n) = λ h f g →
   respects-surjection (ext-surj ext) n $
     Π-closure ext n (λ x → h x (f x) (g x))
@@ -221,22 +203,20 @@ ext-surj {A} ext {f} {g} = record
             Eq.subst B p (proj₂ p₁) ≡ proj₂ p₂) ↠
          (p₁ ≡ p₂)
   surj = record
-    { to         = Eq.→-to-⟶ to
-    ; surjective = record
-      { from             = Eq.→-to-⟶ from
-      ; right-inverse-of = Eq.elim (λ p≡q → to (from p≡q) ≡ p≡q) (λ x →
-          let lem = subst-refl B _ in
-          to (from (refl x))                         ≡⟨ Eq.cong to (Eq.elim-refl from-P _) ⟩
-          to (refl (proj₁ x) , subst-refl B _)       ≡⟨ Eq.cong (λ f → f (subst-refl B _)) (Eq.elim-refl to-P _) ⟩
-          trans (Eq.cong (_,_ (proj₁ x)) $ sym lem)
-                (Eq.cong (_,_ (proj₁ x)) lem)        ≡⟨ Tactic.prove (Trans (Cong (_,_ (proj₁ x)) (Sym (Lift lem)))
-                                                                            (Cong (_,_ (proj₁ x)) (Lift lem)))
-                                                                     (Trans (Sym (Cong (_,_ (proj₁ x)) (Lift lem)))
-                                                                            (Cong (_,_ (proj₁ x)) (Lift lem)))
-                                                                     (refl _) ⟩
-          trans (sym _) _                            ≡⟨ G.right-inverse _ ⟩∎
-          refl x                                     ∎)
-      }
+    { to               = to
+    ; from             = from
+    ; right-inverse-of = Eq.elim (λ p≡q → to (from p≡q) ≡ p≡q) (λ x →
+        let lem = subst-refl B _ in
+        to (from (refl x))                         ≡⟨ Eq.cong to (Eq.elim-refl from-P _) ⟩
+        to (refl (proj₁ x) , subst-refl B _)       ≡⟨ Eq.cong (λ f → f (subst-refl B _)) (Eq.elim-refl to-P _) ⟩
+        trans (Eq.cong (_,_ (proj₁ x)) $ sym lem)
+              (Eq.cong (_,_ (proj₁ x)) lem)        ≡⟨ Tactic.prove (Trans (Cong (_,_ (proj₁ x)) (Sym (Lift lem)))
+                                                                          (Cong (_,_ (proj₁ x)) (Lift lem)))
+                                                                   (Trans (Sym (Cong (_,_ (proj₁ x)) (Lift lem)))
+                                                                          (Cong (_,_ (proj₁ x)) (Lift lem)))
+                                                                   (refl _) ⟩
+        trans (sym _) _                            ≡⟨ G.right-inverse _ ⟩∎
+        refl x                                     ∎)
     }
     where
     from-P = λ {p₁ p₂ : Σ A B} (_ : p₁ ≡ p₂) →
@@ -280,7 +260,7 @@ ext-surj {A} ext {f} {g} = record
      Contractible A → (∀ x → Contractible (B x)) →
      Contractible (W A B))
 ¬-W-closure-contractible closure =
-  W.inhabited⇒empty (const tt) $
+  inhabited⇒W-empty (const tt) $
   proj₁ $
   closure ⊤-contractible (const ⊤-contractible)
 
@@ -296,7 +276,7 @@ W-closure-propositional :
   ∀ {A B} → (∀ {x} → Extensionality (B x) (λ _ → W A B)) →
   Propositional A → Propositional (W A B)
 W-closure-propositional {A} {B} ext pA =
-  Equivalent.from propositional⇔irrelevant ⟨$⟩ irrelevant
+  _⇔_.from propositional⇔irrelevant irrelevant
   where
   irrelevant : Proof-irrelevant (W A B)
   irrelevant (sup x f) (sup y g) =
@@ -330,11 +310,9 @@ W-closure {A} {B} ext (suc n) h = closure
     surj : (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (Eq.subst B p i)) ↠
            (sup x f ≡ sup y g)
     surj = record
-      { to         = Eq.→-to-⟶ (to (sup x f) (sup y g))
-      ; surjective = record
-        { from             = Eq.→-to-⟶ from
-        ; right-inverse-of = Eq.elim (λ p → to _ _ (from p) ≡ p) to∘from
-        }
+      { to               = to (sup x f) (sup y g)
+      ; from             = from
+      ; right-inverse-of = Eq.elim (λ p → to _ _ (from p) ≡ p) to∘from
       }
       where
       to-P = λ {x y : A} (p : x ≡ y) →
@@ -446,12 +424,10 @@ H-level-propositional {A} ext (suc n) =
 
 sum-as-pair : ∀ {A B} → (A ⊎ B) ↔ (∃ λ b → if b then A else B)
 sum-as-pair {A} {B} = record
-  { to         = Eq.→-to-⟶ to
-  ; from       = Eq.→-to-⟶ from
-  ; inverse-of = record
-    { left-inverse-of  = [ refl ∘ inj₁ , refl ∘ inj₂ ]
-    ; right-inverse-of = to∘from
-    }
+  { to               = to
+  ; from             = from
+  ; left-inverse-of  = [ refl ∘ inj₁ , refl ∘ inj₂ ]
+  ; right-inverse-of = to∘from
   }
   where
   to = [ _,_ true , _,_ false ]
@@ -489,15 +465,12 @@ private
   H-level (2 + n) A → H-level (2 + n) B → H-level (2 + n) (A ⊎ B)
 ⊎-closure {A} {B} n hA hB =
   respects-surjection
-    (Inverse.surjection $ Inv.sym sum-as-pair)
-    (2 + n) $
-    Σ-closure (2 + n) Bool-2+n if-2+n
+    (_↔_.surjection $ _↔_.inverse sum-as-pair)
+    (2 + n)
+    (Σ-closure (2 + n) Bool-2+n if-2+n)
   where
-  2≤2+n : 2 ≤′ 2 + n
-  2≤2+n = NatProp.≤⇒≤′ (s≤s (s≤s z≤n))
-
   Bool-2+n : H-level (2 + n) Bool
-  Bool-2+n = mono 2≤2+n Bool-set
+  Bool-2+n = mono (m≤m+n 2 n) Bool-set
 
   if-2+n : ∀ b → H-level (2 + n) (if b then A else B)
   if-2+n true  = hA
@@ -510,7 +483,7 @@ Dec-closure-propositional :
   ∀ {A} → (∀ {B} → Extensionality A B) →
   Propositional A → Propositional (Dec A)
 Dec-closure-propositional {A} ext p =
-  Equivalent.from propositional⇔irrelevant ⟨$⟩ irrelevant
+  _⇔_.from propositional⇔irrelevant irrelevant
   where
   irrelevant : Proof-irrelevant (Dec A)
   irrelevant (yes a) (yes a′) = Eq.cong yes $ proj₁ $ p a a′
@@ -537,7 +510,7 @@ module Alternative-proof where
 
   ⊎-closure-set : ∀ {A B} → Is-set A → Is-set B → Is-set (A ⊎ B)
   ⊎-closure-set {A} {B} A-set B-set =
-    Equivalent.from set⇔UIP ⟨$⟩ DUIP.constant⇒UIP c
+    _⇔_.from set⇔UIP (DUIP.constant⇒UIP c)
     where
     c : (x y : A ⊎ B) → ∃ λ (f : x ≡ y → x ≡ y) → DUIP.Constant f
     c (inj₁ x) (inj₁ y) = (Eq.cong inj₁ ∘ drop-inj₁ , λ p q → Eq.cong (Eq.cong inj₁) $ proj₁ $ A-set x y (drop-inj₁ p) (drop-inj₁ q))
@@ -563,19 +536,17 @@ module Alternative-proof where
 
       surj₁ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
       surj₁ {x} {y} = record
-        { to         = Eq.→-to-⟶ (Eq.cong inj₁)
-        ; surjective = record
-          { from             = Eq.→-to-⟶ drop-inj₁
-          ; right-inverse-of = λ ix≡iy →
-              Eq.cong inj₁ (drop-inj₁ ix≡iy)                        ≡⟨ Tactic.prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
-                                                                                    (Cong f (Lift ix≡iy))
-                                                                                    (refl _) ⟩
-              Eq.cong f ix≡iy                                       ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
-              Eq.trans (refl _) (Eq.trans ix≡iy $ Eq.sym (refl _))  ≡⟨ Tactic.prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
-                                                                                    (Lift ix≡iy)
-                                                                                    (refl _) ⟩∎
-              ix≡iy                                                 ∎
-          }
+        { to               = Eq.cong inj₁
+        ; from             = drop-inj₁
+        ; right-inverse-of = λ ix≡iy →
+            Eq.cong inj₁ (drop-inj₁ ix≡iy)                        ≡⟨ Tactic.prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
+                                                                                  (Cong f (Lift ix≡iy))
+                                                                                  (refl _) ⟩
+            Eq.cong f ix≡iy                                       ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
+            Eq.trans (refl _) (Eq.trans ix≡iy $ Eq.sym (refl _))  ≡⟨ Tactic.prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
+                                                                                  (Lift ix≡iy)
+                                                                                  (refl _) ⟩∎
+            ix≡iy                                                 ∎
         }
         where
         f : A ⊎ B → A ⊎ B
@@ -590,19 +561,17 @@ module Alternative-proof where
 
       surj₂ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
       surj₂ {x} {y} = record
-        { to         = Eq.→-to-⟶ (Eq.cong inj₂)
-        ; surjective = record
-          { from             = Eq.→-to-⟶ drop-inj₂
-          ; right-inverse-of = λ ix≡iy →
-              Eq.cong inj₂ (drop-inj₂ ix≡iy)                        ≡⟨ Tactic.prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
-                                                                                    (Cong f (Lift ix≡iy))
-                                                                                    (refl _) ⟩
-              Eq.cong f ix≡iy                                       ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
-              Eq.trans (refl _) (Eq.trans ix≡iy $ Eq.sym (refl _))  ≡⟨ Tactic.prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
-                                                                                    (Lift ix≡iy)
-                                                                                    (refl _) ⟩∎
-              ix≡iy                                                 ∎
-          }
+        { to               = Eq.cong inj₂
+        ; from             = drop-inj₂
+        ; right-inverse-of = λ ix≡iy →
+            Eq.cong inj₂ (drop-inj₂ ix≡iy)                        ≡⟨ Tactic.prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
+                                                                                  (Cong f (Lift ix≡iy))
+                                                                                  (refl _) ⟩
+            Eq.cong f ix≡iy                                       ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
+            Eq.trans (refl _) (Eq.trans ix≡iy $ Eq.sym (refl _))  ≡⟨ Tactic.prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
+                                                                                  (Lift ix≡iy)
+                                                                                  (refl _) ⟩∎
+            ix≡iy                                                 ∎
         }
         where
         f : A ⊎ B → A ⊎ B

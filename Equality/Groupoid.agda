@@ -32,10 +32,9 @@ record Groupoid : Set₁ where
 ------------------------------------------------------------------------
 -- _≡_ comes with a groupoid structure
 
-open import Function
-
 open import Equality
 open import Equality.Tactic
+open import Prelude
 
 groupoid : {A : Set} → Groupoid
 groupoid {A} = record

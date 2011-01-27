@@ -7,18 +7,8 @@
 
 module Equality where
 
-open import Data.Bool using (true; false; if_then_else_)
-open import Data.Empty using (⊥)
-open import Data.Unit using (⊤)
-open import Function.Equality using (_⟶_; _⟨$⟩_)
-open import Function.Equivalence
-  using (_⇔_; equivalent; module Equivalent)
-open import Function.Inverse using (Inverse)
-open import Function.Surjection using (Surjection)
-open import Relation.Binary using (Setoid)
-open import Relation.Nullary using (¬_)
-
 open import Equality.Axiomatisations
+open import Prelude
 
 ------------------------------------------------------------------------
 -- Concrete definition of equality
@@ -62,7 +52,7 @@ open Equality-with-J equality-with-J public
         ; singleton-contractible
         )
 open Equality-with-substitutivity-and-contractibility
-       (Equivalent.to J⇔subst+contr ⟨$⟩ equality-with-J) public
+       (_⇔_.to J⇔subst+contr equality-with-J) public
   using ( sym; sym-refl
         ; trans; trans-refl-refl
         ; _≡⟨_⟩_; finally
@@ -83,38 +73,44 @@ cong₂ f {x} {y} {u} {v} x≡y u≡v =
 -- The boolean true is not equal to false.
 
 true≢false : ¬ true ≡ false
-true≢false true≡false = subst (λ b → if b then ⊤ else ⊥) true≡false _
+true≢false true≡false = subst T true≡false _
 
 ------------------------------------------------------------------------
--- Definitions related to the setoid machinery
-
--- The equality can be turned into a setoid.
-
-setoid : Set → Setoid _ _
-setoid A = record
-  { Carrier       = A
-  ; _≈_           = _≡_
-  ; isEquivalence = record
-    { refl  = refl _
-    ; sym   = sym
-    ; trans = trans
-    }
-  }
-
--- Lifts ordinary functions to equality-preserving functions.
-
-→-to-⟶ : {A B : Set} → (A → B) → setoid A ⟶ setoid B
-→-to-⟶ f = record { _⟨$⟩_ = f; cong = cong f }
-
--- Some abbreviations: surjections and bijections.
+-- Surjections and bijections
 
 infix 4 _↠_ _↔_
 
-_↠_ : Set → Set → Set
-A ↠ B = Surjection (setoid A) (setoid B)
+-- Surjections.
 
-_↔_ : Set → Set → Set
-A ↔ B = Inverse (setoid A) (setoid B)
+record _↠_ (From To : Set) : Set where
+  field
+    to               : From → To
+    from             : To → From
+    right-inverse-of : ∀ x → to (from x) ≡ x
+
+-- Bijections.
+
+record _↔_ (From To : Set) : Set where
+  field
+    to               : From → To
+    from             : To → From
+    left-inverse-of  : ∀ x → from (to x) ≡ x
+    right-inverse-of : ∀ x → to (from x) ≡ x
+
+  surjection : From ↠ To
+  surjection = record
+    { to               = to
+    ; from             = from
+    ; right-inverse-of = right-inverse-of
+    }
+
+  inverse : To ↔ From
+  inverse = record
+    { to               = from
+    ; from             = to
+    ; left-inverse-of  = right-inverse-of
+    ; right-inverse-of = left-inverse-of
+    }
 
 ------------------------------------------------------------------------
 -- The K rule and uniqueness of identity proofs
