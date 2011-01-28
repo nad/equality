@@ -53,3 +53,11 @@ import H-level
 -- Closure properties for h-levels.
 
 import H-level.Closure
+
+-- Preimages.
+
+import Preimage
+
+-- Weak equivalences.
+
+import Weak-equivalence
