@@ -12,6 +12,7 @@ module Weak-equivalence where
 open import Bijection hiding (id; _∘_; inverse)
 open import Equality
 import Equality.Tactic as Tactic; open Tactic.Eq
+open import Equivalence hiding (id; _∘_; inverse)
 open import H-level as H
 open import H-level.Closure
 open import Preimage
@@ -37,6 +38,7 @@ propositional ext f =
 infix 4 _≈_
 
 record _≈_ (A B : Set) : Set where
+  constructor weq
   field
     to                  : A → B
     is-weak-equivalence : Is-weak-equivalence to
@@ -141,3 +143,21 @@ _∘_ : ∀ {A B C} → B ≈ C → A ≈ B → A ≈ C
 f ∘ g =
   bijection⇒weak-equivalence $
     Bijection._∘_ (_≈_.bijection f) (_≈_.bijection g)
+
+-- Two proofs of weak equality are equal if the function components
+-- are equal (assuming extensionality).
+
+lift-equality : (∀ {A B} → Extensionality A B) →
+                ∀ {A B} {p q : A ≈ B} →
+                (∀ x → _≈_.to p x ≡ _≈_.to q x) → p ≡ q
+lift-equality ext {p = weq f f-weq} {q = weq g g-weq} f≡g =
+  elim (λ {f g} f≡g → ∀ f-weq g-weq → weq f f-weq ≡ weq g g-weq)
+       (λ f f-weq g-weq →
+          cong (weq f)
+            (_⇔_.to propositional⇔irrelevant
+               (propositional ext f) f-weq g-weq))
+       (ext f≡g) f-weq g-weq
+
+-- It should be easy to prove that weak equivalence and the operations
+-- above form a groupoid (assuming extensionality), but my attempt to
+-- do so encountered problems in the form of long type-checking times.
