@@ -12,6 +12,10 @@ module README where
 
 import Prelude
 
+-- Equivalences.
+
+import Equivalence
+
 -- Two equivalent axiomatisations of equality.
 
 import Equality.Axiomatisations
@@ -33,6 +37,14 @@ import Equality.Groupoid
 -- identity proofs.
 
 import Equality.Decidable-UIP
+
+-- Surjections.
+
+import Surjection
+
+-- Bijections.
+
+import Bijection
 
 -- H-levels, along with some general properties.
 

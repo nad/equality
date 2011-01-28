@@ -9,13 +9,16 @@
 
 module H-level.Closure where
 
+open import Bijection hiding (id; _∘_)
 open import Equality
 import Equality.Decidable-UIP as DUIP
 import Equality.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
 import Equality.Tactic as Tactic; open Tactic.Eq
+open import Equivalence hiding (id; _∘_)
 open import H-level
 open import Prelude
+open import Surjection hiding (id; _∘_)
 
 ------------------------------------------------------------------------
 -- The unit type
@@ -43,8 +46,10 @@ open import Prelude
 
 ⊥↠uninhabited : ∀ {A} → ¬ A → ⊥ ↠ A
 ⊥↠uninhabited ¬A = record
-  { to               = ⊥-elim
-  ; from             = ¬A
+  { equivalence = record
+    { to   = ⊥-elim
+    ; from = ¬A
+    }
   ; right-inverse-of = ⊥-elim ∘ ¬A
   }
 
@@ -139,8 +144,10 @@ ext-surj : ∀ {A} → (∀ {B} → Extensionality A B) →
            ∀ {B : A → Set} {f g : (x : A) → B x} →
            (∀ x → f x ≡ g x) ↠ (f ≡ g)
 ext-surj {A} ext {f} {g} = record
-  { to               = to
-  ; from             = from
+  { equivalence = record
+    { to   = to
+    ; from = from
+    }
   ; right-inverse-of =
       elim (λ {f g} f≡g → to (from f≡g) ≡ f≡g) λ h →
         proj₁ ext′ (from (refl h))  ≡⟨ cong (proj₁ ext′) (proj₁ ext′ λ x →
@@ -203,8 +210,10 @@ ext-surj {A} ext {f} {g} = record
             subst B p (proj₂ p₁) ≡ proj₂ p₂) ↠
          (p₁ ≡ p₂)
   surj = record
-    { to               = to
-    ; from             = from
+    { equivalence = record
+      { to   = to
+      ; from = from
+      }
     ; right-inverse-of = elim (λ p≡q → to (from p≡q) ≡ p≡q) (λ x →
         let lem = subst-refl B _ in
         to (from (refl x))                      ≡⟨ cong to (elim-refl from-P _) ⟩
@@ -310,8 +319,10 @@ W-closure {A} {B} ext (suc n) h = closure
     surj : (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
            (sup x f ≡ sup y g)
     surj = record
-      { to               = to (sup x f) (sup y g)
-      ; from             = from
+      { equivalence = record
+        { to   = to (sup x f) (sup y g)
+        ; from = from
+        }
       ; right-inverse-of = elim (λ p → to _ _ (from p) ≡ p) to∘from
       }
       where
@@ -422,10 +433,14 @@ H-level-propositional {A} ext (suc n) =
 
 sum-as-pair : ∀ {A B} → (A ⊎ B) ↔ (∃ λ b → if b then A else B)
 sum-as-pair {A} {B} = record
-  { to               = to
-  ; from             = from
+  { surjection = record
+    { equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
   ; left-inverse-of  = [ refl ∘ inj₁ , refl ∘ inj₂ ]
-  ; right-inverse-of = to∘from
   }
   where
   to = [ _,_ true , _,_ false ]
@@ -463,7 +478,7 @@ private
   H-level (2 + n) A → H-level (2 + n) B → H-level (2 + n) (A ⊎ B)
 ⊎-closure {A} {B} n hA hB =
   respects-surjection
-    (_↔_.surjection $ _↔_.inverse sum-as-pair)
+    (_↔_.surjection $ Bijection.inverse sum-as-pair)
     (2 + n)
     (Σ-closure (2 + n) Bool-2+n if-2+n)
   where
@@ -534,8 +549,10 @@ module Alternative-proof where
 
       surj₁ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
       surj₁ {x} {y} = record
-        { to               = cong inj₁
-        ; from             = drop-inj₁
+        { equivalence = record
+          { to   = cong inj₁
+          ; from = drop-inj₁
+          }
         ; right-inverse-of = λ ix≡iy →
             cong inj₁ (drop-inj₁ ix≡iy)                  ≡⟨ Tactic.prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
                                                                          (Cong f (Lift ix≡iy))
@@ -559,8 +576,10 @@ module Alternative-proof where
 
       surj₂ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
       surj₂ {x} {y} = record
-        { to               = cong inj₂
-        ; from             = drop-inj₂
+        { equivalence = record
+          { to   = cong inj₂
+          ; from = drop-inj₂
+          }
         ; right-inverse-of = λ ix≡iy →
             cong inj₂ (drop-inj₂ ix≡iy)                  ≡⟨ Tactic.prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
                                                                          (Cong f (Lift ix≡iy))

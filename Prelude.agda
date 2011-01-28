@@ -229,14 +229,3 @@ data Dec {p} (P : Set p) : Set p where
 Decidable : ∀ {a b ℓ} {A : Set a} {B : Set b} →
             (A → B → Set ℓ) → Set (a ⊔ b ⊔ ℓ)
 Decidable _∼_ = ∀ x y → Dec (x ∼ y)
-
-------------------------------------------------------------------------
--- Equivalences
-
--- A ⇔ B means that A and B are equivalent.
-
-record _⇔_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
-  constructor equivalent
-  field
-    to   : From → To
-    from : To → From

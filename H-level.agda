@@ -14,7 +14,9 @@ import Equality.Decidable-UIP as DUIP
 import Equality.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
 import Equality.Tactic as Tactic; open Tactic.Eq
+open import Equivalence hiding (id; _∘_)
 open import Prelude
+open import Surjection hiding (id; _∘_)
 
 ------------------------------------------------------------------------
 -- H-levels
@@ -116,8 +118,10 @@ respects-surjection A↠B zero h =
 respects-surjection A↠B (suc n) h = λ x y →
   let surj : (from x ≡ from y) ↠ (x ≡ y)
       surj = record
-        { to               = to′
-        ; from             = from′
+        { equivalence = record
+          { to   = to′
+          ; from = from′
+          }
         ; right-inverse-of = elim (λ x≡y → to′ (from′ x≡y) ≡ x≡y) (λ x →
             let riox = right-inverse-of x in
             (trans (sym riox) $

@@ -6,6 +6,7 @@
 
 module Equality.Axiomatisations where
 
+open import Equivalence hiding (id; _∘_)
 open import Prelude
 
 ------------------------------------------------------------------------

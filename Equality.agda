@@ -8,6 +8,7 @@
 module Equality where
 
 open import Equality.Axiomatisations
+open import Equivalence
 open import Prelude
 
 ------------------------------------------------------------------------
@@ -37,6 +38,14 @@ abstract
               elim P r (refl x) ≡ r x
   elim-refl P r = refl _
 
+------------------------------------------------------------------------
+-- Some definitions
+
+open Auxiliary _≡_ public
+
+------------------------------------------------------------------------
+-- Various derived properties
+
 private
 
   equality-with-J : Equality-with-J
@@ -47,7 +56,6 @@ private
     ; elim-refl = elim-refl
     }
 
-open Auxiliary _≡_ public
 open Equality-with-J equality-with-J public
   using ( cong; cong-refl
         ; subst; subst-refl
@@ -59,9 +67,6 @@ open Equality-with-substitutivity-and-contractibility
         ; trans; trans-refl-refl
         ; _≡⟨_⟩_; finally
         )
-
-------------------------------------------------------------------------
--- More derived properties
 
 -- Binary congruence.
 
@@ -76,43 +81,6 @@ cong₂ f {x} {y} {u} {v} x≡y u≡v =
 
 true≢false : ¬ true ≡ false
 true≢false true≡false = subst T true≡false _
-
-------------------------------------------------------------------------
--- Surjections and bijections
-
-infix 4 _↠_ _↔_
-
--- Surjections.
-
-record _↠_ (From To : Set) : Set where
-  field
-    to               : From → To
-    from             : To → From
-    right-inverse-of : ∀ x → to (from x) ≡ x
-
--- Bijections.
-
-record _↔_ (From To : Set) : Set where
-  field
-    to               : From → To
-    from             : To → From
-    left-inverse-of  : ∀ x → from (to x) ≡ x
-    right-inverse-of : ∀ x → to (from x) ≡ x
-
-  surjection : From ↠ To
-  surjection = record
-    { to               = to
-    ; from             = from
-    ; right-inverse-of = right-inverse-of
-    }
-
-  inverse : To ↔ From
-  inverse = record
-    { to               = from
-    ; from             = to
-    ; left-inverse-of  = right-inverse-of
-    ; right-inverse-of = left-inverse-of
-    }
 
 ------------------------------------------------------------------------
 -- The K rule and uniqueness of identity proofs
