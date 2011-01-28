@@ -39,23 +39,26 @@ abstract
   elim-refl P r = refl _
 
 ------------------------------------------------------------------------
--- Some definitions
-
-open Auxiliary _≡_ public
-
-------------------------------------------------------------------------
--- Various derived properties
+-- Various derived definitions and properties
 
 private
 
-  equality-with-J : Equality-with-J
+  reflexive : Reflexive
+  reflexive = record
+    { _≡_  = _≡_
+    ; refl = refl
+    }
+
+  equality-with-J : Equality-with-J reflexive
   equality-with-J = record
-    { _≡_       = _≡_
-    ; refl      = refl
-    ; elim      = elim
+    { elim      = elim
     ; elim-refl = elim-refl
     }
 
+open Reflexive reflexive public
+  using ( Contractible; Singleton
+        ; Extensionality; Well-behaved-extensionality
+        )
 open Equality-with-J equality-with-J public
   using ( cong; cong-refl
         ; subst; subst-refl
@@ -76,11 +79,6 @@ cong₂ f {x} {y} {u} {v} x≡y u≡v =
   f x u  ≡⟨ cong (λ g → g u) (cong f x≡y) ⟩
   f y u  ≡⟨ cong (f y) u≡v ⟩∎
   f y v  ∎
-
--- The boolean true is not equal to false.
-
-true≢false : ¬ true ≡ false
-true≢false true≡false = subst T true≡false _
 
 ------------------------------------------------------------------------
 -- The K rule and uniqueness of identity proofs

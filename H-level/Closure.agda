@@ -60,6 +60,11 @@ uninhabited-propositional ¬A =
 ------------------------------------------------------------------------
 -- Booleans
 
+-- The values true and false are distinct.
+
+true≢false : ¬ true ≡ false
+true≢false true≡false = subst T true≡false _
+
 -- The booleans are not propositional.
 
 ¬-Bool-propositional : ¬ Propositional Bool
@@ -80,12 +85,6 @@ Bool-set = decidable⇒set dec
 
 ------------------------------------------------------------------------
 -- Π-types
-
--- Extensionality for functions of a certain type.
-
-Extensionality : (A : Set) → (B : A → Set) → Set
-Extensionality A B =
-  {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
 
 -- Closure of contractibility under Π A is equivalent to having
 -- extensional equality for functions from A.
@@ -113,14 +112,6 @@ Extensionality A B =
     where
     contractible : Contractible ((x : A) → Singleton (g x))
     contractible = closure (singleton-contractible ∘ g)
-
--- Proofs of extensionality which behave well when applied to
--- reflexivity.
-
-Well-behaved-extensionality : (A : Set) → (B : A → Set) → Set
-Well-behaved-extensionality A B =
-  ∃ λ (ext : Extensionality A B) →
-    ∀ f → ext (refl ∘ f) ≡ refl f
 
 -- Given (generalised) extensionality one can define an extensionality
 -- proof which is well-behaved.

@@ -10,9 +10,22 @@ open import Equivalence hiding (id; _∘_)
 open import Prelude
 
 ------------------------------------------------------------------------
--- Some auxiliary definitions, parametrised on an equality relation
+-- Reflexive relations
 
-module Auxiliary (_≡_ : {A : Set} → A → A → Set) where
+record Reflexive : Set₁ where
+  infix 4 _≡_
+  field
+
+    -- "Equality".
+
+    _≡_ : {A : Set} → A → A → Set
+
+    -- Reflexivity.
+
+    refl : {A : Set} (x : A) → x ≡ x
+
+  ----------------------------------------------------------------------
+  -- Some definitions
 
   -- A type is contractible if it is inhabited and all elements are
   -- equal.
@@ -26,24 +39,30 @@ module Auxiliary (_≡_ : {A : Set} → A → A → Set) where
   Singleton : {A : Set} → A → Set
   Singleton x = ∃ λ y → y ≡ x
 
+  -- Extensionality for functions of a certain type.
+
+  Extensionality : (A : Set) → (B : A → Set) → Set
+  Extensionality A B =
+    {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
+
+  -- Proofs of extensionality which behave well when applied to
+  -- reflexivity.
+
+  Well-behaved-extensionality : (A : Set) → (B : A → Set) → Set
+  Well-behaved-extensionality A B =
+    ∃ λ (ext : Extensionality A B) →
+      ∀ f → ext (refl ∘ f) ≡ refl f
+
 ------------------------------------------------------------------------
 -- Abstract definition of equality based on the J rule
 
-record Equality-with-J : Set₁ where
+-- Parametrised on a reflexive relation.
 
-  ----------------------------------------------------------------------
-  -- Definition
+record Equality-with-J (reflexive : Reflexive) : Set₁ where
 
-  infix 4 _≡_
+  open Reflexive reflexive
+
   field
-
-    -- Equality.
-
-    _≡_ : {A : Set} → A → A → Set
-
-    -- Reflexivity.
-
-    refl : {A : Set} (x : A) → x ≡ x
 
     -- The J rule.
 
@@ -84,8 +103,6 @@ record Equality-with-J : Set₁ where
     cong (λ h → h p) $
       elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
 
-  open Auxiliary _≡_
-
   -- Singleton types are contractible.
 
   singleton-contractible :
@@ -100,21 +117,12 @@ record Equality-with-J : Set₁ where
 -- Abstract definition of equality based on substitutivity and
 -- contractibility of singleton types
 
-record Equality-with-substitutivity-and-contractibility : Set₁ where
+record Equality-with-substitutivity-and-contractibility
+         (reflexive : Reflexive) : Set₁ where
 
-  ----------------------------------------------------------------------
-  -- Definition
+  open Reflexive reflexive
 
-  infix 4 _≡_
   field
-
-    -- Equality.
-
-    _≡_ : {A : Set} → A → A → Set
-
-    -- Reflexivity.
-
-    refl : {A : Set} (x : A) → x ≡ x
 
     -- Substitutivity.
 
@@ -124,10 +132,6 @@ record Equality-with-substitutivity-and-contractibility : Set₁ where
 
     subst-refl : {A : Set} (P : A → Set) {x : A} (p : P x) →
                  subst P (refl x) p ≡ p
-
-  open Auxiliary _≡_
-
-  field
 
     -- Singleton types are contractible.
 
@@ -217,28 +221,25 @@ record Equality-with-substitutivity-and-contractibility : Set₁ where
 ------------------------------------------------------------------------
 -- The two abstract definitions are equivalent
 
-J⇔subst+contr : Equality-with-J ⇔
-                Equality-with-substitutivity-and-contractibility
-J⇔subst+contr = equivalent ⇒ ⇐
+J⇔subst+contr :
+  ∀ {reflexive} →
+  Equality-with-J reflexive ⇔
+  Equality-with-substitutivity-and-contractibility reflexive
+J⇔subst+contr {reflexive} = equivalent ⇒ ⇐
   where
-  ⇒ : Equality-with-J →
-      Equality-with-substitutivity-and-contractibility
+  ⇒ : Equality-with-J reflexive →
+      Equality-with-substitutivity-and-contractibility reflexive
   ⇒ EJ = record
-    { _≡_                    = _≡_
-    ; refl                   = refl
-    ; subst                  = subst
+    { subst                  = subst
     ; subst-refl             = subst-refl
     ; singleton-contractible = singleton-contractible
     }
     where open Equality-with-J EJ
 
-  ⇐ : Equality-with-substitutivity-and-contractibility →
-      Equality-with-J
+  ⇐ : Equality-with-substitutivity-and-contractibility reflexive →
+      Equality-with-J reflexive
   ⇐ ESC = record
-    { _≡_       = _≡_
-    ; refl      = refl
-    ; elim      = elim
+    { elim      = elim
     ; elim-refl = elim-refl
     }
-    where
-    open Equality-with-substitutivity-and-contractibility ESC
+    where open Equality-with-substitutivity-and-contractibility ESC
