@@ -13,11 +13,13 @@ open import Prelude
 ------------------------------------------------------------------------
 -- Concrete definition of equality
 
+-- This definition is kept abstract because I might later want to
+-- replace it with a definition where elim P r (refl x) does not
+-- compute to r x.
+
 abstract
 
   infix 4 _≡_
-
-  -- Note that the implementation of _≡_ is kept abstract.
 
   data _≡_ {A : Set} : A → A → Set where
     refl′ : ∀ x → x ≡ x
