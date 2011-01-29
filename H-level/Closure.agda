@@ -370,7 +370,9 @@ W-closure {A} {B} ext (suc n) h = closure
 ------------------------------------------------------------------------
 -- H-levels
 
--- Contractible is a comonad (assuming extensionality).
+-- Contractible is /not/ a comonad in the category of types and
+-- functions, because map cannot be defined, but we can at least
+-- define the following functions.
 
 counit : ∀ {A} → Contractible A → A
 counit = proj₁
