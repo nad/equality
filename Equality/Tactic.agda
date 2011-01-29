@@ -2,9 +2,9 @@
 -- A simple tactic for proving equality of equality proofs
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
-module Equality.Tactic {ℓ} where
+module Equality.Tactic where
 
 open import Equality
 open import Prelude hiding (Level; module Level)
@@ -14,25 +14,25 @@ open import Prelude hiding (Level; module Level)
 
 private
 
-  trans-reflʳ : ∀ {A : Set ℓ} {x y : A} (x≡y : x ≡ y) →
+  trans-reflʳ : {A : Set} {x y : A} (x≡y : x ≡ y) →
                 trans x≡y (refl y) ≡ x≡y
   trans-reflʳ =
     elim (λ {u v} u≡v → trans u≡v (refl v) ≡ u≡v)
          (λ _ → trans-refl-refl)
 
-  trans-reflˡ : {A : Set ℓ} {x y : A} (x≡y : x ≡ y) →
+  trans-reflˡ : {A : Set} {x y : A} (x≡y : x ≡ y) →
                 trans (refl x) x≡y ≡ x≡y
   trans-reflˡ =
     elim (λ {u v} u≡v → trans (refl u) u≡v ≡ u≡v)
          (λ _ → trans-refl-refl)
 
-  sym-sym : {A : Set ℓ} {x y : A} (x≡y : x ≡ y) → sym (sym x≡y) ≡ x≡y
+  sym-sym : {A : Set} {x y : A} (x≡y : x ≡ y) → sym (sym x≡y) ≡ x≡y
   sym-sym = elim (λ {u v} u≡v → sym (sym u≡v) ≡ u≡v)
                  (λ x → sym (sym (refl x))  ≡⟨ cong sym (sym-refl) ⟩
                         sym (refl x)        ≡⟨ sym-refl ⟩∎
                         refl x              ∎)
 
-  sym-trans : {A : Set ℓ} {x y z : A} (x≡y : x ≡ y) (y≡z : y ≡ z) →
+  sym-trans : {A : Set} {x y z : A} (x≡y : x ≡ y) (y≡z : y ≡ z) →
               sym (trans x≡y y≡z) ≡ trans (sym y≡z) (sym x≡y)
   sym-trans =
     elim (λ x≡y → ∀ y≡z → sym (trans x≡y y≡z) ≡ trans (sym y≡z) (sym x≡y))
@@ -41,12 +41,12 @@ private
                     trans (sym y≡z) (refl y)        ≡⟨ cong (trans _) (sym sym-refl)  ⟩∎
                     trans (sym y≡z) (sym (refl y))  ∎)
 
-  cong-id : {A : Set ℓ} {x y : A} (x≡y : x ≡ y) → x≡y ≡ cong id x≡y
+  cong-id : {A : Set} {x y : A} (x≡y : x ≡ y) → x≡y ≡ cong id x≡y
   cong-id = elim (λ u≡v → u≡v ≡ cong id u≡v)
                  (λ x → refl x            ≡⟨ sym (cong-refl id) ⟩∎
                         cong id (refl x)  ∎)
 
-  cong-∘ : {A B C : Set ℓ} {x y : A}
+  cong-∘ : {A B C : Set} {x y : A}
               (f : B → C) (g : A → B) (x≡y : x ≡ y) →
               cong f (cong g x≡y) ≡ cong (f ∘ g) x≡y
   cong-∘ f g = elim (λ x≡y → cong f (cong g x≡y) ≡ cong (f ∘ g) x≡y)
@@ -55,16 +55,16 @@ private
                            refl (f (g x))            ≡⟨ sym (cong-refl (f ∘ g)) ⟩∎
                            cong (f ∘ g) (refl x)     ∎)
 
-  cong-sym : {A B : Set ℓ} {x y : A} (f : A → B) (x≡y : x ≡ y) →
+  cong-sym : {A B : Set} {x y : A} (f : A → B) (x≡y : x ≡ y) →
              cong f (sym x≡y) ≡ sym (cong f x≡y)
   cong-sym f = elim (λ x≡y → cong f (sym x≡y) ≡ sym (cong f x≡y))
                     (λ x → cong f (sym (refl x))  ≡⟨ cong (cong f) sym-refl ⟩
                            cong f (refl x)        ≡⟨ cong-refl f ⟩
-                           refl (f x)             ≡⟨ sym sym-refl ⟩
-                           sym (refl (f x))       ≡⟨ cong sym $ sym (cong-refl f) ⟩∎
+                           refl (f x)             ≡⟨ sym $ sym-refl ⟩
+                           sym (refl (f x))       ≡⟨ cong sym $ sym $ cong-refl f ⟩∎
                            sym (cong f (refl x))  ∎)
 
-  cong-trans : {A B : Set ℓ} {x y z : A}
+  cong-trans : {A B : Set} {x y z : A}
                (f : A → B) (x≡y : x ≡ y) (y≡z : y ≡ z) →
                cong f (trans x≡y y≡z) ≡ trans (cong f x≡y) (cong f y≡z)
   cong-trans f =
@@ -75,7 +75,7 @@ private
                     trans (refl (f y)) (cong f y≡z)       ≡⟨ cong₂ trans (sym $ cong-refl f) (refl _) ⟩∎
                     trans (cong f (refl y)) (cong f y≡z)  ∎)
 
-  trans-assoc : {A : Set ℓ} {x y z u : A}
+  trans-assoc : {A : Set} {x y z u : A}
                 (x≡y : x ≡ y) (y≡z : y ≡ z) (z≡u : z ≡ u) →
                 trans (trans x≡y y≡z) z≡u ≡ trans x≡y (trans y≡z z≡u)
   trans-assoc =
@@ -94,7 +94,7 @@ private
 -- Note that the code below pattern matches on expressions of this
 -- type, and that this could in principle involve uses of the K rule.
 
-data Eq {A : Set ℓ} : A → A → Set (suc ℓ) where
+data Eq {A : Set} : A → A → Set₁ where
   Lift  : ∀ {x y} (x≡y : x ≡ y) → Eq x y
   Refl  : ∀ {x} → Eq x x
   Sym   : ∀ {x y} (x≈y : Eq x y) → Eq y x
@@ -112,7 +112,7 @@ data Eq {A : Set ℓ} : A → A → Set (suc ℓ) where
 
 -- A derived combinator.
 
-Cong₂ : {A B C : Set ℓ} (f : A → B → C) {x y : A} {u v : B} →
+Cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
         Eq x y → Eq u v → Eq (f x u) (f y v)
 Cong₂ f {y = y} {u} x≈y u≈v =
   Trans (Cong (λ g → g u) (Cong f x≈y)) (Cong (f y) u≈v)
@@ -120,7 +120,7 @@ Cong₂ f {y = y} {u} x≈y u≈v =
 private
 
   Cong₂-correct :
-    {A B C : Set ℓ} (f : A → B → C) {x y : A} {u v : B}
+    {A B C : Set} (f : A → B → C) {x y : A} {u v : B}
     (x≈y : Eq x y) (u≈v : Eq u v) →
     ⟦ Cong₂ f x≈y u≈v ⟧ ≡ cong₂ f ⟦ x≈y ⟧ ⟦ u≈v ⟧
   Cong₂-correct f x≈y u≈v = refl _
@@ -138,27 +138,27 @@ private
   -- Bottom layer: a single use of congruence applied to an actual
   -- equality.
 
-  data EqS-lower {A : Set ℓ} : A → A → Set (suc ℓ) where
-    Cong : {B : Set ℓ} {x y : B} (f : B → A) (x≡y : x ≡ y) →
+  data EqS-lower {A : Set} : A → A → Set₁ where
+    Cong : {B : Set} {x y : B} (f : B → A) (x≡y : x ≡ y) →
            EqS-lower (f x) (f y)
 
   -- Middle layer: at most one use of symmetry.
 
-  data EqS-middle {A : Set ℓ} : A → A → Set (suc ℓ) where
+  data EqS-middle {A : Set} : A → A → Set₁ where
     No-Sym : ∀ {x y} (x≈y : EqS-lower x y) → EqS-middle x y
     Sym    : ∀ {x y} (x≈y : EqS-lower x y) → EqS-middle y x
 
   -- Uppermost layer: a sequence of equalities, combined using
   -- transitivity and a single use of reflexivity.
 
-  data EqS-upper {A : Set ℓ} : A → A → Set (suc ℓ) where
+  data EqS-upper {A : Set} : A → A → Set₁ where
     Refl : ∀ {x} → EqS-upper x x
     Cons : ∀ {x y z} (x≈y : EqS-middle x y) (y≈z : EqS-upper y z) →
            EqS-upper x z
 
   -- Simplified expressions.
 
-  EqS : {A : Set ℓ} → Level → A → A → Set (suc ℓ)
+  EqS : {A : Set} → Level → A → A → Set₁
   EqS lower  = EqS-lower
   EqS middle = EqS-middle
   EqS upper  = EqS-upper
@@ -174,7 +174,7 @@ private
 
   -- Simplified expressions which are equivalent to a given proof.
 
-  EqS_⟨_⟩ : Level → ∀ {A} {x y : A} → x ≡ y → Set (suc ℓ)
+  EqS_⟨_⟩ : Level → ∀ {A} {x y : A} → x ≡ y → Set₁
   EqS ℓ ⟨ x≡y ⟩ = ∃ λ (x≈y : EqS ℓ _ _) → x≡y ≡ ⟦ x≈y ⟧S
 
 ------------------------------------------------------------------------
@@ -204,8 +204,8 @@ private
     sym (trans x≡y y≡z)                                    ≡⟨ sym-trans _ _ ⟩
     trans (sym y≡z) (sym x≡y)                              ≡⟨ cong₂ trans h₁ (refl _) ⟩
     trans (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S) (sym x≡y)              ≡⟨ trans-assoc _ _ _ ⟩
-    trans ⟦ x≈y ⟧S (trans ⟦ y≈z ⟧S (sym x≡y))              ≡⟨ cong (trans _) $ cong₂ trans (sym (sym-sym _)) (refl _) ⟩
-    trans ⟦ x≈y ⟧S (trans (sym (sym ⟦ y≈z ⟧S)) (sym x≡y))  ≡⟨ cong (trans _) $ sym (sym-trans _ _) ⟩
+    trans ⟦ x≈y ⟧S (trans ⟦ y≈z ⟧S (sym x≡y))              ≡⟨ cong (trans _) $ cong₂ trans (sym $ sym-sym _) (refl _) ⟩
+    trans ⟦ x≈y ⟧S (trans (sym (sym ⟦ y≈z ⟧S)) (sym x≡y))  ≡⟨ cong (trans _) $ sym $ sym-trans _ _ ⟩
     trans ⟦ x≈y ⟧S (sym (trans x≡y (sym ⟦ y≈z ⟧S)))        ≡⟨ cong (trans _) h₃ ⟩∎
     trans ⟦ x≈y ⟧S ⟦ y≈u ⟧S                                ∎)
 
@@ -299,13 +299,12 @@ prove x≡y x≡y′ hyp =
 -- Some examples
 
 private
-  module Examples {A : Set ℓ} {x y : A} (x≡y : x ≡ y) where
+  module Examples {A : Set} {x y : A} (x≡y : x ≡ y) where
 
     ex₁ : trans (refl x) (sym (sym x≡y)) ≡ x≡y
     ex₁ = prove (Trans Refl (Sym (Sym (Lift x≡y)))) (Lift x≡y) (refl _)
 
-    ex₂ : cong (proj₂ {a = ℓ} {b = ℓ}) (sym (cong (_,_ x) x≡y)) ≡
-          sym x≡y
+    ex₂ : cong proj₂ (sym (cong (_,_ x) x≡y)) ≡ sym x≡y
     ex₂ = prove (Cong proj₂ (Sym (Cong (_,_ x) (Lift x≡y))))
                 (Sym (Lift x≡y))
                 (refl _)

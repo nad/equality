@@ -2,23 +2,21 @@
 -- The equality can be turned into a groupoid
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
-module Equality.Groupoid {ℓ} where
-
-open import Prelude hiding (id; _∘_)
+module Equality.Groupoid where
 
 ------------------------------------------------------------------------
 -- Groupoids
 
-record Groupoid : Set (suc ℓ) where
+record Groupoid : Set₁ where
   infix  8 _⁻¹
   infixr 7 _∘_
   infix  4 _∼_ _≡_
   field
-    Object : Set ℓ
-    _∼_    : Object → Object → Set ℓ
-    _≡_    : ∀ {x y} → x ∼ y → x ∼ y → Set ℓ
+    Object : Set
+    _∼_    : Object → Object → Set
+    _≡_    : ∀ {x y} → x ∼ y → x ∼ y → Set
 
     id  : ∀ {x} → x ∼ x
     _∘_ : ∀ {x y z} → y ∼ z → x ∼ y → x ∼ z
@@ -36,8 +34,9 @@ record Groupoid : Set (suc ℓ) where
 
 open import Equality
 open import Equality.Tactic
+open import Prelude
 
-groupoid : {A : Set ℓ} → Groupoid
+groupoid : {A : Set} → Groupoid
 groupoid {A} = record
   { Object = A
   ; _∼_    = _≡_

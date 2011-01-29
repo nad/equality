@@ -3,9 +3,9 @@
 -- eliminator
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
-module Equality {ℓ} where
+module Equality where
 
 open import Equality.Axiomatisations
 open import Equivalence
@@ -22,18 +22,18 @@ abstract
 
   infix 4 _≡_
 
-  data _≡_ {A : Set ℓ} : A → A → Set ℓ where
+  data _≡_ {A : Set} : A → A → Set where
     refl′ : ∀ x → x ≡ x
 
-  refl : {A : Set ℓ} (x : A) → x ≡ x
+  refl : {A : Set} (x : A) → x ≡ x
   refl = refl′
 
-  elim : {A : Set ℓ} (P : {x y : A} → x ≡ y → Set ℓ) →
+  elim : {A : Set} (P : {x y : A} → x ≡ y → Set) →
          (∀ x → P (refl x)) →
          ∀ {x y} (x≡y : x ≡ y) → P x≡y
   elim P r (refl′ x) = r x
 
-  elim-refl : ∀ {A : Set ℓ} (P : {x y : A} → x ≡ y → Set ℓ)
+  elim-refl : ∀ {A : Set} (P : {x y : A} → x ≡ y → Set)
               (r : ∀ x → P (refl x)) {x} →
               elim P r (refl x) ≡ r x
   elim-refl P r = refl _
@@ -73,7 +73,7 @@ open Equality-with-substitutivity-and-contractibility
 
 -- Binary congruence.
 
-cong₂ : {A B C : Set ℓ} (f : A → B → C) {x y : A} {u v : B} →
+cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
         x ≡ y → u ≡ v → f x u ≡ f y v
 cong₂ f {x} {y} {u} {v} x≡y u≡v =
   f x u  ≡⟨ cong (λ g → g u) (cong f x≡y) ⟩
@@ -85,20 +85,20 @@ cong₂ f {x} {y} {u} {v} x≡y u≡v =
 
 -- The K rule (without computational content).
 
-K-rule : Set (suc ℓ)
-K-rule = {A : Set ℓ} (P : {x : A} → x ≡ x → Set ℓ) →
+K-rule : Set₁
+K-rule = {A : Set} (P : {x : A} → x ≡ x → Set) →
          (∀ x → P (refl x)) →
          ∀ {x} (x≡x : x ≡ x) → P x≡x
 
 -- Proof irrelevance (or maybe "data irrelevance", depending on what
 -- the set is used for).
 
-Proof-irrelevant : Set ℓ → Set ℓ
+Proof-irrelevant : Set → Set
 Proof-irrelevant A = (x y : A) → x ≡ y
 
 -- Uniqueness of identity proofs (for a particular type).
 
-Uniqueness-of-identity-proofs : Set ℓ → Set ℓ
+Uniqueness-of-identity-proofs : Set → Set
 Uniqueness-of-identity-proofs A =
   {x y : A} → Proof-irrelevant (x ≡ y)
 

@@ -2,9 +2,9 @@
 -- Bijections
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
-module Bijection {ℓ} where
+module Bijection where
 
 open import Equality
 import Equivalence
@@ -14,7 +14,7 @@ infix 4 _↔_
 
 -- Bijections.
 
-record _↔_ (From To : Set ℓ) : Set ℓ where
+record _↔_ (From To : Set) : Set where
   field
     surjection : From ↠ To
 
