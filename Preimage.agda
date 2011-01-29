@@ -2,24 +2,24 @@
 -- Preimages
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
 
-module Preimage where
+module Preimage {ℓ} where
 
 open import Bijection hiding (id; _∘_)
 open import Equality
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
+private module G {A : Set ℓ} = EG.Groupoid (EG.groupoid {A = A})
 import Equality.Tactic as Tactic; open Tactic.Eq
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection hiding (id; _∘_)
 
 -- The preimage of y under f is denoted by f ⁻¹ y.
 
-_⁻¹_ : {A B : Set} → (A → B) → B → Set
+_⁻¹_ : {A B : Set ℓ} → (A → B) → B → Set ℓ
 f ⁻¹ y = ∃ λ x → f x ≡ y
 
 -- Preimages under the identity function are contractible. (Note that

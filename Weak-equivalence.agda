@@ -2,12 +2,12 @@
 -- Weak equivalences
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
 
-module Weak-equivalence where
+module Weak-equivalence {ℓ} where
 
 open import Bijection hiding (id; _∘_; inverse)
 open import Equality
@@ -21,7 +21,7 @@ open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 -- A function f is a weak equivalence if all preimages under f are
 -- contractible.
 
-Is-weak-equivalence : {A B : Set} → (A → B) → Set
+Is-weak-equivalence : {A B : Set ℓ} → (A → B) → Set ℓ
 Is-weak-equivalence f = ∀ y → Contractible (f ⁻¹ y)
 
 -- Is-weak-equivalence f is a proposition, assuming extensional
@@ -37,7 +37,7 @@ propositional ext f =
 
 infix 4 _≈_
 
-record _≈_ (A B : Set) : Set where
+record _≈_ (A B : Set ℓ) : Set ℓ where
   constructor weq
   field
     to                  : A → B
@@ -73,7 +73,7 @@ record _≈_ (A B : Set) : Set where
   left-right-lemma x =
     lemma₁ to _ _ (lemma₂ (irrelevance (to x) (x , refl (to x))))
     where
-    lemma₁ : ∀ {A} {x y : A}
+    lemma₁ : {A : Set ℓ} {x y : A}
              (f : A → B) (p : x ≡ y) (q : f x ≡ f y) →
              refl (f y) ≡ trans (cong f (sym p)) q →
              cong f p ≡ q
@@ -97,12 +97,13 @@ record _≈_ (A B : Set) : Set where
       (λ f⁻¹y →
          Tactic.prove
            (Lift (proj₂ f⁻¹y))
-           (Trans (Cong f (Sym (Cong proj₁ Refl))) (Lift (proj₂ f⁻¹y)))
+           (Trans (Cong f (Sym (Cong (proj₁ {a = ℓ} {b = ℓ}) Refl)))
+                  (Lift (proj₂ f⁻¹y)))
            (refl _))
 
 -- Bijections are weak equivalences.
 
-bijection⇒weak-equivalence : ∀ {A B} → A ↔ B → A ≈ B
+bijection⇒weak-equivalence : {A B : Set ℓ} → A ↔ B → A ≈ B
 bijection⇒weak-equivalence A↔B = record
   { to                  = to
   ; is-weak-equivalence = λ y →
@@ -110,7 +111,7 @@ bijection⇒weak-equivalence A↔B = record
           lemma₁ = H.respects-surjection
                      (_↔_.surjection $
                         Preimage.respects-extensional-equality
-                          (sym ⊚ right-inverse-of))
+                          (λ x → sym (right-inverse-of x)))
                      0
                      (id⁻¹-contractible y)
 
@@ -147,14 +148,14 @@ f ∘ g =
 -- Two proofs of weak equality are equal if the function components
 -- are equal (assuming extensionality).
 
-lift-equality : (∀ {A B} → Extensionality A B) →
+lift-equality : (∀ {A : Set ℓ} {B} → Extensionality A B) →
                 ∀ {A B} {p q : A ≈ B} →
                 (∀ x → _≈_.to p x ≡ _≈_.to q x) → p ≡ q
 lift-equality ext {p = weq f f-weq} {q = weq g g-weq} f≡g =
   elim (λ {f g} f≡g → ∀ f-weq g-weq → weq f f-weq ≡ weq g g-weq)
        (λ f f-weq g-weq →
           cong (weq f)
-            (_⇔_.to propositional⇔irrelevant
+            (_⇔_.to {t = ℓ} propositional⇔irrelevant
                (propositional ext f) f-weq g-weq))
        (ext f≡g) f-weq g-weq
 

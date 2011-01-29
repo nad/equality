@@ -35,38 +35,44 @@ suc i ⊔ suc j = suc (i ⊔ j)
 ------------------------------------------------------------------------
 -- Some finite types
 
--- The empty type.
+-- Parametrised on a universe level.
 
-data ⊥ : Set where
+module Finite {ℓ} where
 
-⊥-elim : ∀ {w} {Whatever : Set w} → ⊥ → Whatever
-⊥-elim ()
+  -- The empty type.
 
--- Negation.
+  data ⊥ : Set ℓ where
 
-infix 3 ¬_
+  ⊥-elim : ∀ {w} {Whatever : Set w} → ⊥ → Whatever
+  ⊥-elim ()
 
-¬_ : ∀ {ℓ} → Set ℓ → Set ℓ
-¬ P = P → ⊥
+  -- Negation.
 
--- The unit type.
+  infix 3 ¬_
 
-record ⊤ : Set where
-  constructor tt
+  ¬_ : Set ℓ → Set ℓ
+  ¬ P = P → ⊥
 
--- Booleans.
+  -- The unit type.
 
-data Bool : Set where
-  true false : Bool
+  record ⊤ : Set ℓ where
+    constructor tt
 
-if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A
-if true  then t else f = t
-if false then t else f = f
+  -- Booleans.
 
--- The truth predicate T is only inhabited when its argument is true.
+  data Bool : Set ℓ where
+    true false : Bool
 
-T : Bool → Set
-T b = if b then ⊤ else ⊥
+  if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A
+  if true  then t else f = t
+  if false then t else f = f
+
+  -- The truth predicate T is only inhabited when its argument is true.
+
+  T : Bool → Set ℓ
+  T b = if b then ⊤ else ⊥
+
+open Finite
 
 ------------------------------------------------------------------------
 -- Natural numbers

@@ -2,17 +2,17 @@
 -- H-levels
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
 
-module H-level where
+module H-level {ℓ} where
 
 open import Equality
 import Equality.Decidable-UIP as DUIP
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
+private module G {A : Set ℓ} = EG.Groupoid (EG.groupoid {A = A})
 import Equality.Tactic as Tactic; open Tactic.Eq
 open import Equivalence hiding (id; _∘_)
 open import Prelude
@@ -23,16 +23,16 @@ open import Surjection hiding (id; _∘_)
 
 -- H-levels ("homotopy levels").
 
-H-level : ℕ → Set → Set
+H-level : ℕ → Set ℓ → Set ℓ
 H-level zero    A = Contractible A
 H-level (suc n) A = (x y : A) → H-level n (x ≡ y)
 
 -- Some named levels.
 
-Propositional : Set → Set
+Propositional : Set ℓ → Set ℓ
 Propositional = H-level 1
 
-Is-set : Set → Set
+Is-set : Set ℓ → Set ℓ
 Is-set = H-level 2
 
 ------------------------------------------------------------------------
@@ -62,7 +62,7 @@ mono (≤-step {n = n} m≤n) = mono₁ n ∘ mono m≤n
 -- inhabited, then it is propositional.
 
 [inhabited⇒contractible]⇒propositional :
-  {A : Set} → (A → Contractible A) → Propositional A
+  ∀ {A} → (A → Contractible A) → Propositional A
 [inhabited⇒contractible]⇒propositional h x = mono₁ 0 (h x) x
 
 -- If something has h-level (1 + n) given the assumption that it is
@@ -74,7 +74,7 @@ mono (≤-step {n = n} m≤n) = mono₁ n ∘ mono m≤n
 -- Being propositional is equivalent to having at most one element.
 
 propositional⇔irrelevant :
-  {A : Set} → Propositional A ⇔ Proof-irrelevant A
+  ∀ {A} → Propositional A ⇔ Proof-irrelevant A
 propositional⇔irrelevant {A} = equivalent ⇒ ⇐
   where
   ⇒ : Propositional A → Proof-irrelevant A
@@ -88,7 +88,7 @@ propositional⇔irrelevant {A} = equivalent ⇒ ⇐
 -- prove (inside Agda) that there is any type whose minimal h-level is
 -- at least three.
 
-set⇔UIP : {A : Set} → Is-set A ⇔ Uniqueness-of-identity-proofs A
+set⇔UIP : ∀ {A} → Is-set A ⇔ Uniqueness-of-identity-proofs A
 set⇔UIP {A} = equivalent ⇒ ⇐
   where
   ⇒ : Is-set A → Uniqueness-of-identity-proofs A
@@ -100,7 +100,7 @@ set⇔UIP {A} = equivalent ⇒ ⇐
 
 -- Types with decidable equality are sets.
 
-decidable⇒set : {A : Set} → Decidable (_≡_ {A = A}) → Is-set A
+decidable⇒set : ∀ {A} → Decidable (_≡_ {A = A}) → Is-set A
 decidable⇒set dec = _⇔_.from set⇔UIP (DUIP.decidable⇒UIP dec)
 
 -- H-level n respects surjections.

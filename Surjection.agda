@@ -2,9 +2,9 @@
 -- Surjections
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
-module Surjection where
+module Surjection {ℓ} where
 
 open import Equality
 open import Equivalence
@@ -14,7 +14,7 @@ infix 4 _↠_
 
 -- Surjections.
 
-record _↠_ (From To : Set) : Set where
+record _↠_ (From To : Set ℓ) : Set ℓ where
   field
     equivalence : From ⇔ To
 
