@@ -49,12 +49,11 @@ record _≈_ (A B : Set) : Set where
 
   -- Weakly equivalent sets are isomorphic.
 
-  private
-    abstract
-      to∘from = proj₂ ⊚ proj₁ ⊚ is-weak-equivalence
-      from∘to = λ x →
-        cong proj₁ $
-          proj₂ (is-weak-equivalence (to x)) (x , refl (to x))
+  abstract
+    right-inverse-of = proj₂ ⊚ proj₁ ⊚ is-weak-equivalence
+    left-inverse-of  = λ x →
+      cong proj₁ $
+        proj₂ (is-weak-equivalence (to x)) (x , refl (to x))
 
   bijection : A ↔ B
   bijection = record
@@ -63,12 +62,13 @@ record _≈_ (A B : Set) : Set where
         { to   = to
         ; from = proj₁ ⊚ proj₁ ⊚ is-weak-equivalence
         }
-      ; right-inverse-of = to∘from
+      ; right-inverse-of = right-inverse-of
       }
-    ; left-inverse-of = from∘to
+    ; left-inverse-of = left-inverse-of
     }
 
-  open _↔_ bijection public hiding (to)
+  open _↔_ bijection public
+    hiding (to; right-inverse-of; left-inverse-of)
 
   abstract
 

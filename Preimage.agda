@@ -39,9 +39,9 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
       { to   = Σ-map P.id to₂
       ; from = Σ-map P.id from₂
       }
-    ; right-inverse-of = to∘from
+    ; right-inverse-of = right-inverse-of
     }
-  ; left-inverse-of = from∘to
+  ; left-inverse-of = left-inverse-of
   }
   where
   abstract
@@ -55,7 +55,7 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
                      g x  ≡⟨ gx≡y ⟩∎
                      y    ∎
 
-    to∘from = λ g⁻¹y → cong (_,_ (proj₁ g⁻¹y)) (
+    right-inverse-of = λ g⁻¹y → cong (_,_ (proj₁ g⁻¹y)) (
       let p = f≡g (proj₁ g⁻¹y); q = proj₂ g⁻¹y in
       trans (sym p) (trans p q)  ≡⟨ Tactic.prove (Trans (Sym (Lift p)) (Trans (Lift p) (Lift q)))
                                                  (Trans (Trans (Sym (Lift p)) (Lift p)) (Lift q))
@@ -64,7 +64,7 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
       trans (refl _) q           ≡⟨ Tactic.prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
       q                          ∎)
 
-    from∘to = λ f⁻¹y → cong (_,_ (proj₁ f⁻¹y))
+    left-inverse-of = λ f⁻¹y → cong (_,_ (proj₁ f⁻¹y))
       let p = f≡g (proj₁ f⁻¹y); q = proj₂ f⁻¹y in
       trans p (trans (sym p) q)  ≡⟨ Tactic.prove (Trans (Lift p) (Trans (Sym (Lift p)) (Lift q)))
                                                  (Trans (Trans (Lift p) (Sym (Lift p))) (Lift q))
