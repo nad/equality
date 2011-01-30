@@ -128,7 +128,7 @@ bijection⇒weak-equivalence A↔B = record
 id : ∀ {A} → A ≈ A
 id = record
   { to                  = P.id
-  ; is-weak-equivalence = singleton-contractible
+  ; is-weak-equivalence = id⁻¹-contractible
   }
 
 inverse : ∀ {A B} → A ≈ B → B ≈ A
