@@ -2,21 +2,26 @@
 -- The equality can be turned into a groupoid
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 module Equality.Groupoid where
+
+open import Equality
+open import Equality.Tactic
+open import Prelude hiding (id; _∘_)
 
 ------------------------------------------------------------------------
 -- Groupoids
 
-record Groupoid : Set₁ where
+-- Using _≡_ as the underlying equality.
+
+record Groupoid ℓ : Set (suc ℓ) where
   infix  8 _⁻¹
   infixr 7 _∘_
-  infix  4 _∼_ _≡_
+  infix  4 _∼_
   field
-    Object : Set
+    Object : Set ℓ
     _∼_    : Object → Object → Set
-    _≡_    : ∀ {x y} → x ∼ y → x ∼ y → Set
 
     id  : ∀ {x} → x ∼ x
     _∘_ : ∀ {x y z} → y ∼ z → x ∼ y → x ∼ z
@@ -29,18 +34,36 @@ record Groupoid : Set₁ where
     left-inverse   : ∀ {x y} (p : x ∼ y) → p ⁻¹ ∘ p ≡ id
     right-inverse  : ∀ {x y} (p : x ∼ y) → p ∘ p ⁻¹ ≡ id
 
+  -- Some derived properties.
+
+  abstract
+
+    -- The identity is an identity for the inverse operator as well.
+
+    identity : ∀ {x} → id {x = x} ⁻¹ ≡ id
+    identity =
+      id ⁻¹       ≡⟨ sym $ right-identity (id ⁻¹) ⟩
+      id ⁻¹ ∘ id  ≡⟨ left-inverse id ⟩∎
+      id          ∎
+
+    -- The inverse operator is idempotent.
+
+    idempotent : ∀ {x y} (p : x ∼ y) → p ⁻¹ ⁻¹ ≡ p
+    idempotent p =
+      p ⁻¹ ⁻¹               ≡⟨ sym $ right-identity (p ⁻¹ ⁻¹) ⟩
+      p ⁻¹ ⁻¹ ∘ id          ≡⟨ sym $ cong (_∘_ (p ⁻¹ ⁻¹)) (left-inverse p) ⟩
+      p ⁻¹ ⁻¹ ∘ (p ⁻¹ ∘ p)  ≡⟨ assoc _ _ _ ⟩
+      (p ⁻¹ ⁻¹ ∘ p ⁻¹) ∘ p  ≡⟨ cong (λ q → q ∘ p) (left-inverse (p ⁻¹)) ⟩
+      id ∘ p                ≡⟨ left-identity p ⟩∎
+      p                     ∎
+
 ------------------------------------------------------------------------
 -- _≡_ comes with a groupoid structure
 
-open import Equality
-open import Equality.Tactic
-open import Prelude
-
-groupoid : {A : Set} → Groupoid
+groupoid : {A : Set} → Groupoid zero
 groupoid {A} = record
   { Object = A
   ; _∼_    = _≡_
-  ; _≡_    = _≡_
 
   ; id  = refl _
   ; _∘_ = flip trans
