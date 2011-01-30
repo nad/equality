@@ -76,8 +76,8 @@ open Equality-with-substitutivity-and-contractibility
 cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
         x ≡ y → u ≡ v → f x u ≡ f y v
 cong₂ f {x} {y} {u} {v} x≡y u≡v =
-  f x u  ≡⟨ cong (λ g → g u) (cong f x≡y) ⟩
-  f y u  ≡⟨ cong (f y) u≡v ⟩∎
+  f x u  ≡⟨ cong (flip f u) x≡y ⟩
+  f y u  ≡⟨ cong (f y)      u≡v ⟩∎
   f y v  ∎
 
 ------------------------------------------------------------------------

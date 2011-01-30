@@ -112,7 +112,7 @@ data Eq {A : Set} : A → A → Set₁ where
 Cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
         Eq x y → Eq u v → Eq (f x u) (f y v)
 Cong₂ f {y = y} {u} x≈y u≈v =
-  Trans (Cong (λ g → g u) (Cong f x≈y)) (Cong (f y) u≈v)
+  Trans (Cong (flip f u) x≈y) (Cong (f y) u≈v)
 
 private
 
