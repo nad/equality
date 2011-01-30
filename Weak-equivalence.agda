@@ -193,8 +193,8 @@ f ∘ g =
 
 abstract
 
-  -- Two proofs of weak equality are equal if the function components
-  -- are equal (assuming extensionality).
+  -- Two proofs of weak equivalence are equal if the function
+  -- components are equal (assuming extensionality).
 
   lift-equality : (∀ {A B} → Extensionality A B) →
                   ∀ {A B} {p q : A ≈ B} →
