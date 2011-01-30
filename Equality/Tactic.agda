@@ -90,9 +90,6 @@ private
 -- Equality expressions
 
 -- Equality expressions.
---
--- Note that the code below pattern matches on expressions of this
--- type, and that this could in principle involve uses of the K rule.
 
 data Eq {A : Set} : A → A → Set₁ where
   Lift  : ∀ {x y} (x≡y : x ≡ y) → Eq x y
