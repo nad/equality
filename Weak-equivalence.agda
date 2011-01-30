@@ -11,6 +11,7 @@ module Weak-equivalence where
 
 open import Bijection hiding (id; _∘_; inverse)
 open import Equality
+open import Equality.Groupoid hiding (groupoid)
 import Equality.Tactic as Tactic; open Tactic.Eq
 open import Equivalence hiding (id; _∘_; inverse)
 open import H-level as H
@@ -206,3 +207,40 @@ abstract
                  (propositional ext f) f-weq g-weq))
          (ext f≡g) f-weq g-weq
 
+-- _≈_ comes with a groupoid structure (assuming extensionality).
+--
+-- Note that, at the time of writing (and on a particular system), the
+-- following proof takes about three times as long to type-check as
+-- the rest of the development.
+
+groupoid : (∀ {A B} → Extensionality A B) →
+           Groupoid (suc zero)
+groupoid ext = record
+  { Object         = Set
+  ; _∼_            = _≈_
+  ; id             = id
+  ; _∘_            = _∘_
+  ; _⁻¹            = inverse
+  ; left-identity  = left-identity
+  ; right-identity = right-identity
+  ; assoc          = assoc
+  ; left-inverse   = left-inverse
+  ; right-inverse  = right-inverse
+  }
+  where
+  abstract
+    left-identity : ∀ {X Y} (p : X ≈ Y) → id ∘ p ≡ p
+    left-identity _ = lift-equality ext (λ _ → refl _)
+
+    right-identity : ∀ {X Y} (p : X ≈ Y) → p ∘ id ≡ p
+    right-identity _ = lift-equality ext (λ _ → refl _)
+
+    assoc : ∀ {W X Y Z} (p : Y ≈ Z) (q : X ≈ Y) (r : W ≈ X) →
+            p ∘ (q ∘ r) ≡ (p ∘ q) ∘ r
+    assoc _ _ _ = lift-equality ext (λ _ → refl _)
+
+    left-inverse : ∀ {X Y} (p : X ≈ Y) → inverse p ∘ p ≡ id
+    left-inverse p = lift-equality ext (_≈_.left-inverse-of p)
+
+    right-inverse : ∀ {X Y} (p : X ≈ Y) → p ∘ inverse p ≡ id
+    right-inverse p = lift-equality ext (_≈_.right-inverse-of p)
