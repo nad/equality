@@ -36,31 +36,42 @@ respects-extensional-equality :
 respects-extensional-equality {f = f} {g} {y} f≡g = record
   { surjection = record
     { equivalence = record
-      { to   = Σ-map P.id (λ {x} fx≡y → g x  ≡⟨ sym $ f≡g x ⟩
-                                        f x  ≡⟨ fx≡y ⟩∎
-                                        y    ∎)
-      ; from = Σ-map P.id (λ {x} gx≡y → f x  ≡⟨ f≡g x ⟩
-                                        g x  ≡⟨ gx≡y ⟩∎
-                                        y    ∎)
+      { to   = Σ-map P.id to₂
+      ; from = Σ-map P.id from₂
       }
-    ; right-inverse-of = λ g⁻¹y → cong (_,_ (proj₁ g⁻¹y)) (
-        let p = f≡g (proj₁ g⁻¹y); q = proj₂ g⁻¹y in
-        trans (sym p) (trans p q)  ≡⟨ Tactic.prove (Trans (Sym (Lift p)) (Trans (Lift p) (Lift q)))
-                                                   (Trans (Trans (Sym (Lift p)) (Lift p)) (Lift q))
-                                                   (refl _) ⟩
-        trans (trans (sym p) p) q  ≡⟨ cong (λ p → trans p q) (G.right-inverse _) ⟩
-        trans (refl _) q           ≡⟨ Tactic.prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
-        q                          ∎)
+    ; right-inverse-of = to∘from
     }
-  ; left-inverse-of = λ f⁻¹y → cong (_,_ (proj₁ f⁻¹y))
-        let p = f≡g (proj₁ f⁻¹y); q = proj₂ f⁻¹y in
-        trans p (trans (sym p) q)  ≡⟨ Tactic.prove (Trans (Lift p) (Trans (Sym (Lift p)) (Lift q)))
-                                                   (Trans (Trans (Lift p) (Sym (Lift p))) (Lift q))
-                                                   (refl _) ⟩
-        trans (trans p (sym p)) q  ≡⟨ cong (λ p → trans p q) (G.left-inverse _) ⟩
-        trans (refl _) q           ≡⟨ Tactic.prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
-        q                          ∎
+  ; left-inverse-of = from∘to
   }
+  where
+  abstract
+    to₂ : ∀ {x} → f x ≡ y → g x ≡ y
+    to₂ {x} fx≡y = g x  ≡⟨ sym $ f≡g x ⟩
+                   f x  ≡⟨ fx≡y ⟩∎
+                   y    ∎
+
+    from₂ : ∀ {x} → g x ≡ y → f x ≡ y
+    from₂ {x} gx≡y = f x  ≡⟨ f≡g x ⟩
+                     g x  ≡⟨ gx≡y ⟩∎
+                     y    ∎
+
+    to∘from = λ g⁻¹y → cong (_,_ (proj₁ g⁻¹y)) (
+      let p = f≡g (proj₁ g⁻¹y); q = proj₂ g⁻¹y in
+      trans (sym p) (trans p q)  ≡⟨ Tactic.prove (Trans (Sym (Lift p)) (Trans (Lift p) (Lift q)))
+                                                 (Trans (Trans (Sym (Lift p)) (Lift p)) (Lift q))
+                                                 (refl _) ⟩
+      trans (trans (sym p) p) q  ≡⟨ cong (λ p → trans p q) (G.right-inverse _) ⟩
+      trans (refl _) q           ≡⟨ Tactic.prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
+      q                          ∎)
+
+    from∘to = λ f⁻¹y → cong (_,_ (proj₁ f⁻¹y))
+      let p = f≡g (proj₁ f⁻¹y); q = proj₂ f⁻¹y in
+      trans p (trans (sym p) q)  ≡⟨ Tactic.prove (Trans (Lift p) (Trans (Sym (Lift p)) (Lift q)))
+                                                 (Trans (Trans (Lift p) (Sym (Lift p))) (Lift q))
+                                                 (refl _) ⟩
+      trans (trans p (sym p)) q  ≡⟨ cong (λ p → trans p q) (G.left-inverse _) ⟩
+      trans (refl _) q           ≡⟨ Tactic.prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
+      q                          ∎
 
 -- Surjections can be lifted to preimages.
 
@@ -83,27 +94,34 @@ lift-surjection A↠B {y} = record
   drop-∘ : (from ⊚ to) ⁻¹ y → from ⁻¹ y
   drop-∘ = Σ-map to P.id
 
-  -- If f is a left inverse of g then the other direction also holds.
+  -- If f is a left inverse of g then the other direction also
+  -- holds.
+
+  abstract
+    add-∘-lemma : ∀ {x} → from x ≡ y → from (to (from x)) ≡ y
+    add-∘-lemma {x} from-x≡y =
+      from (to (from x))  ≡⟨ cong from (right-inverse-of x) ⟩
+      from x              ≡⟨ from-x≡y ⟩∎
+      y                   ∎
 
   add-∘ : from ⁻¹ y → (from ⊚ to) ⁻¹ y
-  add-∘ (x , from-x≡y) =
-    (from x , (from (to (from x))  ≡⟨ cong from (right-inverse-of x) ⟩
-               from x              ≡⟨ from-x≡y ⟩∎
-               y                   ∎))
+  add-∘ (x , from-x≡y) = (from x , add-∘-lemma from-x≡y)
 
-  -- add-∘ is a right inverse of drop-∘.
+  abstract
 
-  right-inv : (from⁻¹y : from ⁻¹ y) → drop-∘ (add-∘ from⁻¹y) ≡ from⁻¹y
-  right-inv (x , from-x≡y) =
-      (to (from x) , trans (cong from (right-inverse-of x)) from-x≡y)  ≡⟨ sym $ lemma (right-inverse-of x) from-x≡y ⟩∎
-      (x           , from-x≡y)                                         ∎
-    where
-    lemma : ∀ {A B} {x y z} {f : A → B}
-            (y≡x : y ≡ x) (p : f x ≡ z) →
-            _≡_ {A = f ⁻¹ z} (x , p) (y , trans (cong f y≡x) p)
-    lemma {z = z} {f} = elim
-      (λ {y x} y≡x → (p : f x ≡ z) →
-         _≡_ {A = f ⁻¹ z} (x , p) (y , trans (cong f y≡x) p))
-      (λ x p → cong (_,_ x) (Tactic.prove (Lift p)
-                                          (Trans (Cong f Refl) (Lift p))
-                                          (refl _)))
+    -- add-∘ is a right inverse of drop-∘.
+
+    right-inv : (from⁻¹y : from ⁻¹ y) → drop-∘ (add-∘ from⁻¹y) ≡ from⁻¹y
+    right-inv (x , from-x≡y) =
+        (to (from x) , trans (cong from (right-inverse-of x)) from-x≡y)  ≡⟨ sym $ lemma (right-inverse-of x) from-x≡y ⟩∎
+        (x           , from-x≡y)                                         ∎
+      where
+      lemma : ∀ {A B} {x y z} {f : A → B}
+              (y≡x : y ≡ x) (p : f x ≡ z) →
+              _≡_ {A = f ⁻¹ z} (x , p) (y , trans (cong f y≡x) p)
+      lemma {z = z} {f} = elim
+        (λ {y x} y≡x → (p : f x ≡ z) →
+           _≡_ {A = f ⁻¹ z} (x , p) (y , trans (cong f y≡x) p))
+        (λ x p → cong (_,_ x) (Tactic.prove (Lift p)
+                                            (Trans (Cong f Refl) (Lift p))
+                                            (refl _)))

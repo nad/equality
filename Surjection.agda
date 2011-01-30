@@ -38,8 +38,13 @@ infixr 9 _∘_
 _∘_ : ∀ {A B C} → B ↠ C → A ↠ B → A ↠ C
 f ∘ g = record
   { equivalence      = equivalence f ⊚ equivalence g
-  ; right-inverse-of = λ x →
+  ; right-inverse-of = to∘from
+  }
+  where
+  open _↠_
+
+  abstract
+    to∘from = λ x →
       to f (to g (from g (from f x)))  ≡⟨ cong (to f) (right-inverse-of g (from f x)) ⟩
       to f (from f x)                  ≡⟨ right-inverse-of f x ⟩∎
       x                                ∎
-  } where open _↠_

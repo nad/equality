@@ -46,16 +46,34 @@ groupoid {A} = record
   ; _∘_ = flip trans
   ; _⁻¹ = sym
 
-  ; left-identity  = λ p → prove (Trans (Lift p) Refl) (Lift p) (refl _)
-  ; right-identity = λ p → prove (Trans Refl (Lift p)) (Lift p) (refl _)
-  ; assoc          = λ p q r →
-                       prove (Trans (Trans (Lift r) (Lift q)) (Lift p))
-                             (Trans (Lift r) (Trans (Lift q) (Lift p)))
-                             (refl _)
-  ; left-inverse   = elim (λ p → trans p (sym p) ≡ refl _)
-                          (λ _ → prove (Trans Refl (Sym Refl)) Refl
-                                       (refl _))
-  ; right-inverse  = elim (λ p → trans (sym p) p ≡ refl _)
-                          (λ _ → prove (Trans (Sym Refl) Refl) Refl
-                                       (refl _))
+  ; left-identity  = left-identity
+  ; right-identity = right-identity
+  ; assoc          = assoc
+  ; left-inverse   = left-inverse
+  ; right-inverse  = right-inverse
   }
+  where
+  abstract
+    left-identity : ∀ {x y} (p : x ≡ y) → trans p (refl _) ≡ p
+    left-identity p = prove (Trans (Lift p) Refl) (Lift p) (refl _)
+
+    right-identity : ∀ {x y} (p : x ≡ y) → trans (refl _) p ≡ p
+    right-identity = λ p →
+      prove (Trans Refl (Lift p)) (Lift p) (refl _)
+
+    assoc : ∀ {w x y z} (p : y ≡ z) (q : x ≡ y) (r : w ≡ x) →
+            trans (trans r q) p ≡ trans r (trans q p)
+    assoc = λ p q r →
+      prove (Trans (Trans (Lift r) (Lift q)) (Lift p))
+            (Trans (Lift r) (Trans (Lift q) (Lift p)))
+            (refl _)
+
+    left-inverse : ∀ {x y} (p : x ≡ y) → trans p (sym p) ≡ refl _
+    left-inverse =
+      elim (λ p → trans p (sym p) ≡ refl _)
+           (λ _ → prove (Trans Refl (Sym Refl)) Refl (refl _))
+
+    right-inverse : ∀ {x y} (p : x ≡ y) → trans (sym p) p ≡ refl _
+    right-inverse =
+      elim (λ p → trans (sym p) p ≡ refl _)
+           (λ _ → prove (Trans (Sym Refl) Refl) Refl (refl _))

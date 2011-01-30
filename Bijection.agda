@@ -47,8 +47,13 @@ infixr 9 _∘_
 _∘_ : ∀ {A B C} → B ↔ C → A ↔ B → A ↔ C
 f ∘ g = record
   { surjection      = Surjection._∘_ (surjection f) (surjection g)
-  ; left-inverse-of = λ x →
+  ; left-inverse-of = from∘to
+  }
+  where
+  open _↔_
+
+  abstract
+    from∘to = λ x →
       from g (from f (to f (to g x)))  ≡⟨ cong (from g) (left-inverse-of f (to g x)) ⟩
       from g (to g x)                  ≡⟨ left-inverse-of g x ⟩∎
       x                                ∎
-  } where open _↔_

@@ -79,39 +79,44 @@ record Equality-with-J (reflexive : Reflexive) : Set₁ where
   ----------------------------------------------------------------------
   -- Some derived properties
 
+  abstract
+
   -- Congruence.
 
-  cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
-  cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
+    cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+    cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
 
   -- "Evaluation rule" for cong.
 
-  cong-refl : {A B : Set} (f : A → B) {x : A} →
-              cong f (refl x) ≡ refl (f x)
-  cong-refl f = elim-refl (λ {u v} _ → f u ≡ f v) (refl ∘ f)
+    cong-refl : {A B : Set} (f : A → B) {x : A} →
+                cong f (refl x) ≡ refl (f x)
+    cong-refl f = elim-refl (λ {u v} _ → f u ≡ f v) (refl ∘ f)
 
   -- Substitutivity.
 
-  subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
-  subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
+    subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
+    subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
 
   -- "Evaluation rule" for subst.
 
-  subst-refl : ∀ {A} (P : A → Set) {x} (p : P x) →
-               subst P (refl x) p ≡ p
-  subst-refl P p =
-    cong (λ h → h p) $
-      elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
+    subst-refl : ∀ {A} (P : A → Set) {x} (p : P x) →
+                 subst P (refl x) p ≡ p
+    subst-refl P p =
+      cong (λ h → h p) $
+        elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
 
   -- Singleton types are contractible.
 
   singleton-contractible :
     ∀ {A} (x : A) → Contractible (Singleton x)
-  singleton-contractible x =
-    (x , refl x) , λ p →
-      elim (λ {u v} u≡v → _≡_ {A = Singleton v} (v , refl v) (u , u≡v))
-           (λ _ → refl _)
-           (proj₂ p)
+  singleton-contractible x = ((x , refl x) , irr)
+    where
+    abstract
+      irr = λ p →
+        elim (λ {u v} u≡v → _≡_ {A = Singleton v}
+                                (v , refl v) (u , u≡v))
+             (λ _ → refl _)
+             (proj₂ p)
 
 ------------------------------------------------------------------------
 -- Abstract definition of equality based on substitutivity and
@@ -141,34 +146,36 @@ record Equality-with-substitutivity-and-contractibility
   ----------------------------------------------------------------------
   -- Some derived properties
 
-  -- Congruence.
+  abstract
 
-  cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
-  cong f {x} x≡y =
-    subst (λ y → x ≡ y → f x ≡ f y) x≡y (λ _ → refl (f x)) x≡y
+    -- Congruence.
 
-  -- Symmetry.
+    cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+    cong f {x} x≡y =
+      subst (λ y → x ≡ y → f x ≡ f y) x≡y (λ _ → refl (f x)) x≡y
 
-  sym : {A : Set} {x y : A} → x ≡ y → y ≡ x
-  sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
+    -- Symmetry.
 
-  -- "Evaluation rule" for sym.
+    sym : {A : Set} {x y : A} → x ≡ y → y ≡ x
+    sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
 
-  sym-refl : {A : Set} {x : A} → sym (refl x) ≡ refl x
-  sym-refl {x = x} =
-    cong (λ f → f (refl x)) $
-      subst-refl (λ z → x ≡ z → z ≡ x) id
+    -- "Evaluation rule" for sym.
 
-  -- Transitivity.
+    sym-refl : {A : Set} {x : A} → sym (refl x) ≡ refl x
+    sym-refl {x = x} =
+      cong (λ f → f (refl x)) $
+        subst-refl (λ z → x ≡ z → z ≡ x) id
 
-  trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-  trans {x = x} = flip (subst (_≡_ x))
+    -- Transitivity.
 
-  -- "Evaluation rule" for trans.
+    trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+    trans {x = x} = flip (subst (_≡_ x))
 
-  trans-refl-refl : {A : Set} {x : A} →
-                    trans (refl x) (refl x) ≡ refl x
-  trans-refl-refl {x = x} = subst-refl (_≡_ x) (refl x)
+    -- "Evaluation rule" for trans.
+
+    trans-refl-refl : {A : Set} {x : A} →
+                      trans (refl x) (refl x) ≡ refl x
+    trans-refl-refl {x = x} = subst-refl (_≡_ x) (refl x)
 
   -- Equational reasoning combinators.
 
@@ -183,40 +190,42 @@ record Equality-with-substitutivity-and-contractibility
 
   syntax finally x y x≡y = x ≡⟨ x≡y ⟩∎ y ∎
 
-  -- The J rule.
+  abstract
 
-  elim : {A : Set} (P : {x y : A} → x ≡ y → Set) →
-         (∀ x → P (refl x)) →
-         ∀ {x y} (x≡y : x ≡ y) → P x≡y
-  elim P p {x} {y} x≡y =
-    subst {A = Singleton y}
-          (P ∘ proj₂)
-          ((y , refl y)                      ≡⟨ sym (lemma (y , refl y)) ⟩
-           proj₁ (singleton-contractible y)  ≡⟨ lemma (x , x≡y) ⟩∎
-           (x , x≡y)                         ∎)
-          (p y)
-    where lemma = proj₂ (singleton-contractible y)
+    -- The J rule.
 
-  -- Transitivity and symmetry sometimes cancel each other out.
+    elim : {A : Set} (P : {x y : A} → x ≡ y → Set) →
+           (∀ x → P (refl x)) →
+           ∀ {x y} (x≡y : x ≡ y) → P x≡y
+    elim P p {x} {y} x≡y =
+      let lemma = proj₂ (singleton-contractible y) in
+      subst {A = Singleton y}
+            (P ∘ proj₂)
+            ((y , refl y)                      ≡⟨ sym (lemma (y , refl y)) ⟩
+             proj₁ (singleton-contractible y)  ≡⟨ lemma (x , x≡y) ⟩∎
+             (x , x≡y)                         ∎)
+            (p y)
 
-  trans-sym : {A : Set} {x y : A} (x≡y : x ≡ y) →
-              trans (sym x≡y) x≡y ≡ refl y
-  trans-sym =
-    elim (λ {x y} (x≡y : x ≡ y) → trans (sym x≡y) x≡y ≡ refl y)
-         (λ x → trans (sym (refl x)) (refl x)  ≡⟨ cong (λ p → trans p (refl x)) sym-refl ⟩
-                trans (refl x) (refl x)        ≡⟨ trans-refl-refl ⟩∎
-                refl x                         ∎)
+    -- Transitivity and symmetry sometimes cancel each other out.
 
-  -- "Evaluation rule" for elim.
+    trans-sym : {A : Set} {x y : A} (x≡y : x ≡ y) →
+                trans (sym x≡y) x≡y ≡ refl y
+    trans-sym =
+      elim (λ {x y} (x≡y : x ≡ y) → trans (sym x≡y) x≡y ≡ refl y)
+           (λ x → trans (sym (refl x)) (refl x)  ≡⟨ cong (λ p → trans p (refl x)) sym-refl ⟩
+                  trans (refl x) (refl x)        ≡⟨ trans-refl-refl ⟩∎
+                  refl x                         ∎)
 
-  elim-refl : ∀ {A : Set} (P : {x y : A} → x ≡ y → Set)
-              (p : ∀ x → P (refl x)) {x} →
-              elim P p (refl x) ≡ p x
-  elim-refl {A} P p {x} =
-    subst {A = Singleton x} (P ∘ proj₂) (trans (sym lemma) lemma) (p x)  ≡⟨ cong (λ q → subst (P ∘ proj₂) q (p x)) (trans-sym lemma) ⟩
-    subst {A = Singleton x} (P ∘ proj₂) (refl (x , refl x))       (p x)  ≡⟨ subst-refl {A = Singleton x} (P ∘ proj₂) (p x) ⟩∎
-    p x                                                                  ∎
-    where lemma = proj₂ (singleton-contractible x) (x , refl x)
+    -- "Evaluation rule" for elim.
+
+    elim-refl : ∀ {A : Set} (P : {x y : A} → x ≡ y → Set)
+                (p : ∀ x → P (refl x)) {x} →
+                elim P p (refl x) ≡ p x
+    elim-refl {A} P p {x} =
+      subst {A = Singleton x} (P ∘ proj₂) (trans (sym lemma) lemma) (p x)  ≡⟨ cong (λ q → subst (P ∘ proj₂) q (p x)) (trans-sym lemma) ⟩
+      subst {A = Singleton x} (P ∘ proj₂) (refl (x , refl x))       (p x)  ≡⟨ subst-refl {A = Singleton x} (P ∘ proj₂) (p x) ⟩∎
+      p x                                                                  ∎
+      where lemma = proj₂ (singleton-contractible x) (x , refl x)
 
 ------------------------------------------------------------------------
 -- The two abstract definitions are equivalent
