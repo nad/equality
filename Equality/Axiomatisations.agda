@@ -107,16 +107,30 @@ record Equality-with-J (reflexive : Reflexive) : Set₁ where
 
   -- Singleton types are contractible.
 
-  singleton-contractible :
-    ∀ {A} (x : A) → Contractible (Singleton x)
-  singleton-contractible x = ((x , refl x) , irr)
-    where
+  private
     abstract
-      irr = λ p →
+
+      irr : ∀ {A} {x : A} (p : Singleton x) → (x , refl x) ≡ p
+      irr p =
         elim (λ {u v} u≡v → _≡_ {A = Singleton v}
                                 (v , refl v) (u , u≡v))
              (λ _ → refl _)
              (proj₂ p)
+
+  singleton-contractible : ∀ {A} (x : A) → Contractible (Singleton x)
+  singleton-contractible x = ((x , refl x) , irr)
+
+  abstract
+
+    -- "Evaluation rule" for singleton-contractible.
+
+    singleton-contractible-refl :
+      ∀ {A} (x : A) →
+      proj₂ (singleton-contractible x) (x , refl x) ≡ refl (x , refl x)
+    singleton-contractible-refl x =
+      elim-refl (λ {u v} u≡v → _≡_ {A = Singleton v}
+                                   (v , refl v) (u , u≡v))
+                _
 
 ------------------------------------------------------------------------
 -- Abstract definition of equality based on substitutivity and
@@ -272,6 +286,37 @@ module Derived-definitions-and-properties
           ; trans; trans-refl-refl
           ; _≡⟨_⟩_; finally
           )
+
+  abstract
+
+    -- A minor variant of Christine Paulin-Mohring's version of the J
+    -- rule.
+    --
+    -- This definition is based on Martin Hofmann's (see the addendum
+    -- of Thomas Streicher's Habilitation thesis). Note that it is
+    -- also very similar to the definition of
+    -- Equality-with-substitutivity-and-contractibility.elim.
+
+    elim₁ : {A : Set} {y : A} (P : ∀ {x} → x ≡ y → Set) →
+            P (refl y) →
+            ∀ {x} (x≡y : x ≡ y) → P x≡y
+    elim₁ {y = y} P p {x} x≡y =
+      subst {A = Singleton y}
+            (P ∘ proj₂)
+            (proj₂ (singleton-contractible y) (x , x≡y))
+            p
+
+    -- "Evaluation rule" for elim₁.
+
+    elim₁-refl : {A : Set} {y : A} (P : ∀ {x} → x ≡ y → Set)
+                 (p : P (refl y)) →
+                 elim₁ P p (refl y) ≡ p
+    elim₁-refl {y = y} P p =
+      subst {A = Singleton y} (P ∘ proj₂)
+            (proj₂ (singleton-contractible y) (y , refl y)) p    ≡⟨ cong (λ q → subst (P ∘ proj₂) q p)
+                                                                         (singleton-contractible-refl y) ⟩
+      subst {A = Singleton y} (P ∘ proj₂) (refl (y , refl y)) p  ≡⟨ subst-refl {A = Singleton y} (P ∘ proj₂) p ⟩∎
+      p                                                          ∎
 
   -- Binary congruence.
 
