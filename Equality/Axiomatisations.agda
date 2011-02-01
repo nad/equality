@@ -81,23 +81,23 @@ record Equality-with-J (reflexive : Reflexive) : Set₁ where
 
   abstract
 
-  -- Congruence.
+    -- Congruence.
 
     cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
     cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
 
-  -- "Evaluation rule" for cong.
+    -- "Evaluation rule" for cong.
 
     cong-refl : {A B : Set} (f : A → B) {x : A} →
                 cong f (refl x) ≡ refl (f x)
     cong-refl f = elim-refl (λ {u v} _ → f u ≡ f v) (refl ∘ f)
 
-  -- Substitutivity.
+    -- Substitutivity.
 
     subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
     subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
 
-  -- "Evaluation rule" for subst.
+    -- "Evaluation rule" for subst.
 
     subst-refl : ∀ {A} (P : A → Set) {x} (p : P x) →
                  subst P (refl x) p ≡ p
@@ -221,7 +221,7 @@ record Equality-with-substitutivity-and-contractibility
     elim-refl : ∀ {A : Set} (P : {x y : A} → x ≡ y → Set)
                 (p : ∀ x → P (refl x)) {x} →
                 elim P p (refl x) ≡ p x
-    elim-refl {A} P p {x} =
+    elim-refl P p {x} =
       subst {A = Singleton x} (P ∘ proj₂) (trans (sym lemma) lemma) (p x)  ≡⟨ cong (λ q → subst (P ∘ proj₂) q (p x)) (trans-sym lemma) ⟩
       subst {A = Singleton x} (P ∘ proj₂) (refl (x , refl x))       (p x)  ≡⟨ subst-refl {A = Singleton x} (P ∘ proj₂) (p x) ⟩∎
       p x                                                                  ∎
@@ -252,3 +252,61 @@ J⇔subst+contr {reflexive} = equivalent ⇒ ⇐
     ; elim-refl = elim-refl
     }
     where open Equality-with-substitutivity-and-contractibility ESC
+
+------------------------------------------------------------------------
+-- Some derived definitions and properties
+
+module Derived-definitions-and-properties
+  {reflexive}
+  (Eq : Equality-with-J reflexive)
+  where
+
+  -- This module reexports most of the definitions and properties
+  -- introduced above.
+
+  open Reflexive reflexive public
+  open Equality-with-J Eq public
+  open Equality-with-substitutivity-and-contractibility
+         (_⇔_.to J⇔subst+contr Eq) public
+    using ( sym; sym-refl
+          ; trans; trans-refl-refl
+          ; _≡⟨_⟩_; finally
+          )
+
+  -- Binary congruence.
+
+  cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
+          x ≡ y → u ≡ v → f x u ≡ f y v
+  cong₂ f {x} {y} {u} {v} x≡y u≡v =
+    f x u  ≡⟨ cong (flip f u) x≡y ⟩
+    f y u  ≡⟨ cong (f y)      u≡v ⟩∎
+    f y v  ∎
+
+  -- The K rule (without computational content).
+
+  K-rule : Set₁
+  K-rule = {A : Set} (P : {x : A} → x ≡ x → Set) →
+           (∀ x → P (refl x)) →
+           ∀ {x} (x≡x : x ≡ x) → P x≡x
+
+  -- Proof irrelevance (or maybe "data irrelevance", depending on what
+  -- the set is used for).
+
+  Proof-irrelevant : Set → Set
+  Proof-irrelevant A = (x y : A) → x ≡ y
+
+  -- Uniqueness of identity proofs (for a particular type).
+
+  Uniqueness-of-identity-proofs : Set → Set
+  Uniqueness-of-identity-proofs A =
+    {x y : A} → Proof-irrelevant (x ≡ y)
+
+  -- The K rule is equivalent to uniqueness of identity proofs.
+
+  K⇔UIP : K-rule ⇔ (∀ {A} → Uniqueness-of-identity-proofs A)
+  K⇔UIP =
+    equivalent
+      (λ K {_} →
+         elim (λ p → ∀ q → p ≡ q)
+              (λ x → K (λ {x} p → refl x ≡ p) (λ x → refl (refl x))))
+      (λ UIP P r {x} x≡x → subst P (UIP (refl x) x≡x) (r x))

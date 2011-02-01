@@ -8,7 +8,7 @@
 module Equality where
 
 open import Equality.Axiomatisations
-open import Equivalence
+open import Equivalence hiding (_∘_)
 open import Prelude
 
 ------------------------------------------------------------------------
@@ -55,59 +55,5 @@ private
     ; elim-refl = elim-refl
     }
 
-open Reflexive reflexive public
-  using ( Contractible; Singleton
-        ; Extensionality; Well-behaved-extensionality
-        )
-open Equality-with-J equality-with-J public
-  using ( cong; cong-refl
-        ; subst; subst-refl
-        ; singleton-contractible
-        )
-open Equality-with-substitutivity-and-contractibility
-       (_⇔_.to J⇔subst+contr equality-with-J) public
-  using ( sym; sym-refl
-        ; trans; trans-refl-refl
-        ; _≡⟨_⟩_; finally
-        )
-
--- Binary congruence.
-
-cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
-        x ≡ y → u ≡ v → f x u ≡ f y v
-cong₂ f {x} {y} {u} {v} x≡y u≡v =
-  f x u  ≡⟨ cong (flip f u) x≡y ⟩
-  f y u  ≡⟨ cong (f y)      u≡v ⟩∎
-  f y v  ∎
-
-------------------------------------------------------------------------
--- The K rule and uniqueness of identity proofs
-
--- The K rule (without computational content).
-
-K-rule : Set₁
-K-rule = {A : Set} (P : {x : A} → x ≡ x → Set) →
-         (∀ x → P (refl x)) →
-         ∀ {x} (x≡x : x ≡ x) → P x≡x
-
--- Proof irrelevance (or maybe "data irrelevance", depending on what
--- the set is used for).
-
-Proof-irrelevant : Set → Set
-Proof-irrelevant A = (x y : A) → x ≡ y
-
--- Uniqueness of identity proofs (for a particular type).
-
-Uniqueness-of-identity-proofs : Set → Set
-Uniqueness-of-identity-proofs A =
-  {x y : A} → Proof-irrelevant (x ≡ y)
-
--- The K rule is equivalent to uniqueness of identity proofs.
-
-K⇔UIP : K-rule ⇔ (∀ {A} → Uniqueness-of-identity-proofs A)
-K⇔UIP =
-  equivalent
-    (λ K {_} →
-       elim (λ p → ∀ q → p ≡ q)
-            (λ x → K (λ {x} p → refl x ≡ p) (λ x → refl (refl x))))
-    (λ UIP P r {x} x≡x → subst P (UIP (refl x) x≡x) (r x))
+open Derived-definitions-and-properties equality-with-J public
+  hiding (_≡_; refl; elim; elim-refl)

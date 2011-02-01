@@ -137,39 +137,6 @@ bijection⇒weak-equivalence A↔B = record
       in lemma₂
   } where open _↔_ A↔B
 
-abstract
-
-  -- Positive h-levels are closed under the weak equivalence operator
-  -- (assuming extensionality).
-
-  right-closure :
-    (∀ {A B} → Extensionality A B) →
-    ∀ {A B} n → H-level (1 + n) B → H-level (1 + n) (A ≈ B)
-  right-closure ext {A} {B} n h =
-    H.respects-surjection surj (1 + n) lemma
-    where
-    lemma : H-level (1 + n) (∃ λ (to : A → B) → Is-weak-equivalence to)
-    lemma = Σ-closure (1 + n)
-              (Π-closure ext (1 + n) (const h))
-              (mono (m≤m+n 1 n) ⊚ propositional ext)
-
-    surj : (∃ λ (to : A → B) → Is-weak-equivalence to) ↠ (A ≈ B)
-    surj = record
-      { equivalence = record
-          { to   = λ A≈B → weq (proj₁ A≈B) (proj₂ A≈B)
-          ; from = λ A≈B → (_≈_.to A≈B , _≈_.is-weak-equivalence A≈B)
-          }
-      ; right-inverse-of = λ _ → refl _
-      }
-
-  left-closure :
-    (∀ {A B} → Extensionality A B) →
-    ∀ {A B} n → H-level (1 + n) A → H-level (1 + n) (A ≈ B)
-  left-closure ext {A} {B} n h =
-    H.[inhabited⇒+]⇒+ n λ (A≈B : A ≈ B) →
-      right-closure ext n $
-        H.respects-surjection (_≈_.surjection A≈B) (1 + n) h
-
 -- Weak equivalences are equivalence relations.
 
 id : ∀ {A} → A ≈ A
@@ -244,3 +211,36 @@ groupoid ext = record
 
     right-inverse : ∀ {X Y} (p : X ≈ Y) → p ∘ inverse p ≡ id
     right-inverse p = lift-equality ext (_≈_.right-inverse-of p)
+
+abstract
+
+  -- Positive h-levels are closed under the weak equivalence operator
+  -- (assuming extensionality).
+
+  right-closure :
+    (∀ {A B} → Extensionality A B) →
+    ∀ {A B} n → H-level (1 + n) B → H-level (1 + n) (A ≈ B)
+  right-closure ext {A} {B} n h =
+    H.respects-surjection surj (1 + n) lemma
+    where
+    lemma : H-level (1 + n) (∃ λ (to : A → B) → Is-weak-equivalence to)
+    lemma = Σ-closure (1 + n)
+              (Π-closure ext (1 + n) (const h))
+              (mono (m≤m+n 1 n) ⊚ propositional ext)
+
+    surj : (∃ λ (to : A → B) → Is-weak-equivalence to) ↠ (A ≈ B)
+    surj = record
+      { equivalence = record
+          { to   = λ A≈B → weq (proj₁ A≈B) (proj₂ A≈B)
+          ; from = λ A≈B → (_≈_.to A≈B , _≈_.is-weak-equivalence A≈B)
+          }
+      ; right-inverse-of = λ _ → refl _
+      }
+
+  left-closure :
+    (∀ {A B} → Extensionality A B) →
+    ∀ {A B} n → H-level (1 + n) A → H-level (1 + n) (A ≈ B)
+  left-closure ext {A} {B} n h =
+    H.[inhabited⇒+]⇒+ n λ (A≈B : A ≈ B) →
+      right-closure ext n $
+        H.respects-surjection (_≈_.surjection A≈B) (1 + n) h
