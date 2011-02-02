@@ -51,7 +51,7 @@ infix 3 ¬_
 
 -- The unit type.
 
-record ⊤ : Set where
+record ⊤ {ℓ} : Set ℓ where
   constructor tt
 
 -- Booleans.
