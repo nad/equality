@@ -12,6 +12,7 @@ module H-level.Closure where
 open import Bijection hiding (id; _∘_)
 open import Equality
 import Equality.Decidable-UIP as DUIP
+open import Equality.Decision-procedures
 import Equality.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
 import Equality.Tactic as Tactic; open Tactic.Eq
@@ -64,11 +65,6 @@ abstract
 
 abstract
 
-  -- The values true and false are distinct.
-
-  true≢false : ¬ true ≡ false
-  true≢false true≡false = subst T true≡false _
-
   -- The booleans are not propositional.
 
   ¬-Bool-propositional : ¬ Propositional Bool
@@ -79,13 +75,7 @@ abstract
   -- The booleans form a set.
 
   Bool-set : Is-set Bool
-  Bool-set = decidable⇒set dec
-    where
-    dec : (x y : Bool) → Dec (x ≡ y)
-    dec true  true  = yes (refl true)
-    dec true  false = no  true≢false
-    dec false true  = no  (true≢false ∘ sym)
-    dec false false = yes (refl false)
+  Bool-set = decidable⇒set _≟-Bool_
 
 ------------------------------------------------------------------------
 -- Π-types

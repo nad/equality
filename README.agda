@@ -25,6 +25,10 @@ import Equality.Axiomatisations
 
 import Equality
 
+-- Some decision procedures for equality.
+
+import Equality.Decision-procedures
+
 -- A simple tactic for proving equality of equality proofs.
 
 import Equality.Tactic
