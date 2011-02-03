@@ -29,6 +29,11 @@ import Equality
 
 import Equality.Decision-procedures
 
+-- Support for reflection (there is little need to read this boring
+-- module).
+
+import Reflection
+
 -- A simple tactic for proving equality of equality proofs.
 
 import Equality.Tactic

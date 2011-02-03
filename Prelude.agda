@@ -59,9 +59,25 @@ record ⊤ {ℓ} : Set ℓ where
 data Bool : Set where
   true false : Bool
 
+-- Part of the support for reflection (see the module Reflection).
+
+{-# BUILTIN BOOL  Bool  #-}
+{-# BUILTIN TRUE  true  #-}
+{-# BUILTIN FALSE false #-}
+
+-- If-then-else.
+
 if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A
 if true  then t else f = t
 if false then t else f = f
+
+-- And.
+
+infixr 6 _∧_
+
+_∧_ : Bool → Bool → Bool
+true  ∧ b = b
+false ∧ b = false
 
 -- The truth predicate T is only inhabited when its argument is true.
 
@@ -233,3 +249,24 @@ data Dec {p} (P : Set p) : Set p where
 Decidable : ∀ {a b ℓ} {A : Set a} {B : Set b} →
             (A → B → Set ℓ) → Set (a ⊔ b ⊔ ℓ)
 Decidable _∼_ = ∀ x y → Dec (x ∼ y)
+
+-- Forgets the proofs.
+
+⌊_⌋ : ∀ {p} {P : Set p} → Dec P → Bool
+⌊ yes _ ⌋ = true
+⌊ no  _ ⌋ = false
+
+------------------------------------------------------------------------
+-- Lists
+
+infixr 5 _∷_
+
+data List {a} (A : Set a) : Set a where
+  []  : List A
+  _∷_ : (x : A) (xs : List A) → List A
+
+-- Part of the support for reflection (see the module Reflection).
+
+{-# BUILTIN LIST List #-}
+{-# BUILTIN NIL  []   #-}
+{-# BUILTIN CONS _∷_  #-}
