@@ -12,6 +12,10 @@ module README where
 
 import Prelude
 
+-- Contexts, variables, environments, etc.
+
+import Variable
+
 -- Equivalences.
 
 import Equivalence
@@ -29,7 +33,7 @@ import Equality
 
 import Equality.Decision-procedures
 
--- A simple tactic for proving equality of equality proofs.
+-- A tactic for proving equality of equality proofs.
 
 import Equality.Tactic
 

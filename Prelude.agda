@@ -173,6 +173,11 @@ open Σ public
 _×_ : ∀ {a b} (A : Set a) (B : Set b) → Set (a ⊔ b)
 A × B = Σ A (const B)
 
+infix 8 _²
+
+_² : ∀ {a} → Set a → Set a
+A ² = A × A
+
 -- A map function.
 
 Σ-map : ∀ {a b p q}
