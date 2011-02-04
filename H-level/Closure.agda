@@ -368,6 +368,62 @@ abstract
           where lem = subst-refl B
 
 ------------------------------------------------------------------------
+-- M-types
+
+-- Bisimilarity for M-types.
+
+infix 4 _≡M_
+
+data _≡M_ {A B} : M A B → M A B → Set where
+  dns : ∀ {x x′ f f′}
+        (x≡x′ : x ≡ x′)
+        (f≡f′ : ∀ b → ∞ (♭ (f b) ≡M ♭ (f′ (subst B x≡x′ b)))) →
+        dns x f ≡M dns x′ f′
+
+-- Equality implies bisimilarity.
+
+≡⇒≡M : ∀ {A B} {x y : M A B} → x ≡ y → x ≡M y
+≡⇒≡M {B = B} {dns x f} {dns y g} p =
+  dns (proj₁ q) (λ b → ♯ ≡⇒≡M (proj₂ q b))
+  where
+  q = elim (λ {m m′} m≡m′ →
+              ∃ λ (x≡y : pɐǝɥ m ≡ pɐǝɥ m′) →
+                  ∀ b → lıɐʇ m b ≡ lıɐʇ m′ (subst B x≡y b))
+           (λ m → refl (pɐǝɥ m) , λ b →
+              lıɐʇ m b                            ≡⟨ cong (lıɐʇ m) (sym $ subst-refl B _) ⟩∎
+              lıɐʇ m (subst B (refl (pɐǝɥ m)) b)  ∎)
+           p
+
+abstract
+
+  -- If we assume a notion of extensionality (bisimilarity implies
+  -- equality) then Contractible is closed under M.
+
+  M-closure-contractible :
+    ∀ {A B} → ({m m′ : M A B} → m ≡M m′ → m ≡ m′) →
+    Contractible A → Contractible (M A B)
+  M-closure-contractible {A} {B} ext (x , irrA) = (m , ext ∘ irr)
+    where
+    m : M A B
+    m = dns x (λ _ → ♯ m)
+
+    irr : ∀ m′ → m ≡M m′
+    irr (dns x′ f) = dns (irrA x′) (λ _ → ♯ irr _)
+
+  -- The same applies to Propositional.
+
+  M-closure-propositional :
+    ∀ {A B} →
+    ({m m′ : M A B} → m ≡M m′ → m ≡ m′) →
+    Propositional A → Propositional (M A B)
+  M-closure-propositional {A} {B} ext p =
+    _⇔_.from propositional⇔irrelevant (λ x y → ext $ irrelevant x y)
+    where
+    irrelevant : (x y : M A B) → x ≡M y
+    irrelevant (dns x f) (dns y g) =
+      dns (proj₁ $ p x y) (λ _ → ♯ irrelevant _ _)
+
+------------------------------------------------------------------------
 -- H-levels
 
 abstract
