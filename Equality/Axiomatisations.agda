@@ -222,19 +222,11 @@ record Equality-with-substitutivity-and-contractibility
 
     -- Transitivity and symmetry sometimes cancel each other out.
 
-    trans-symˡ : {A : Set} {x y : A} (x≡y : x ≡ y) →
-                 trans (sym x≡y) x≡y ≡ refl y
-    trans-symˡ =
+    trans-sym : {A : Set} {x y : A} (x≡y : x ≡ y) →
+                trans (sym x≡y) x≡y ≡ refl y
+    trans-sym =
       elim (λ {x y} (x≡y : x ≡ y) → trans (sym x≡y) x≡y ≡ refl y)
            (λ x → trans (sym (refl x)) (refl x)  ≡⟨ cong (λ p → trans p (refl x)) sym-refl ⟩
-                  trans (refl x) (refl x)        ≡⟨ trans-refl-refl ⟩∎
-                  refl x                         ∎)
-
-    trans-symʳ : {A : Set} {x y : A} (x≡y : x ≡ y) →
-                 trans x≡y (sym x≡y) ≡ refl x
-    trans-symʳ =
-      elim (λ {x y} (x≡y : x ≡ y) → trans x≡y (sym x≡y) ≡ refl x)
-           (λ x → trans (refl x) (sym (refl x))  ≡⟨ cong (trans (refl x)) sym-refl ⟩
                   trans (refl x) (refl x)        ≡⟨ trans-refl-refl ⟩∎
                   refl x                         ∎)
 
@@ -244,7 +236,7 @@ record Equality-with-substitutivity-and-contractibility
                 (p : ∀ x → P (refl x)) {x} →
                 elim P p (refl x) ≡ p x
     elim-refl P p {x} =
-      subst {A = Singleton x} (P ∘ proj₂) (trans (sym lemma) lemma) (p x)  ≡⟨ cong (λ q → subst (P ∘ proj₂) q (p x)) (trans-symˡ lemma) ⟩
+      subst {A = Singleton x} (P ∘ proj₂) (trans (sym lemma) lemma) (p x)  ≡⟨ cong (λ q → subst (P ∘ proj₂) q (p x)) (trans-sym lemma) ⟩
       subst {A = Singleton x} (P ∘ proj₂) (refl (x , refl x))       (p x)  ≡⟨ subst-refl {A = Singleton x} (P ∘ proj₂) (p x) ⟩∎
       p x                                                                  ∎
       where lemma = proj₂ (singleton-contractible x) (x , refl x)
@@ -293,7 +285,6 @@ module Derived-definitions-and-properties
     using ( sym; sym-refl
           ; trans; trans-refl-refl
           ; _≡⟨_⟩_; finally
-          ; trans-symˡ; trans-symʳ
           )
 
   abstract

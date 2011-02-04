@@ -78,22 +78,25 @@ groupoid {A} = record
   where
   abstract
     left-identity : ∀ {x y} (p : x ≡ y) → trans p (refl _) ≡ p
-    left-identity p =
-      prove 1 tt (λ p → Trans p Refl , p) (refl _)
+    left-identity p = prove (Trans (Lift p) Refl) (Lift p) (refl _)
 
     right-identity : ∀ {x y} (p : x ≡ y) → trans (refl _) p ≡ p
-    right-identity p =
-      prove 1 tt (λ p → Trans Refl p , p) (refl _)
+    right-identity = λ p →
+      prove (Trans Refl (Lift p)) (Lift p) (refl _)
 
     assoc : ∀ {w x y z} (p : y ≡ z) (q : x ≡ y) (r : w ≡ x) →
             trans (trans r q) p ≡ trans r (trans q p)
-    assoc _ _ _ =
-      prove 3 tt
-        (λ p q r → Trans (Trans r q) p , Trans r (Trans q p))
-        (refl _)
+    assoc = λ p q r →
+      prove (Trans (Trans (Lift r) (Lift q)) (Lift p))
+            (Trans (Lift r) (Trans (Lift q) (Lift p)))
+            (refl _)
 
     left-inverse : ∀ {x y} (p : x ≡ y) → trans p (sym p) ≡ refl _
-    left-inverse = trans-symʳ
+    left-inverse =
+      elim (λ p → trans p (sym p) ≡ refl _)
+           (λ _ → prove (Trans Refl (Sym Refl)) Refl (refl _))
 
     right-inverse : ∀ {x y} (p : x ≡ y) → trans (sym p) p ≡ refl _
-    right-inverse = trans-symˡ
+    right-inverse =
+      elim (λ p → trans (sym p) p ≡ refl _)
+           (λ _ → prove (Trans (Sym Refl) Refl) Refl (refl _))
