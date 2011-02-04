@@ -2,7 +2,10 @@
 -- A tactic for proving equality of equality proofs
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+-- I use --type-in-type temporarily while experimenting, because _≡_
+-- is not universe-polymorphic.
+
+{-# OPTIONS --without-K --type-in-type #-}
 
 module Equality.Tactic where
 
@@ -204,6 +207,82 @@ private
 
   ⊢⟨_⟩[_] : ∀ {A} {x y : A} → x ≡ y → Level → Set₁
   ⊢⟨ x≡y ⟩[ ℓ ] = ∃ λ (x≈y : ⊢ _ ≡ _ [ ℓ ]) → x≡y ≡ ⟦ x≈y ⟧R
+
+------------------------------------------------------------------------
+-- Removal of trans p (sym p) and trans (sym p) p
+
+  -- The following two functions appear to be very hard to define.
+
+  _≟-Exprˡ_ : ∀ {A} {x x′ y : A}
+              (e : ⊢ x ≡ y [lower]) (e′ : ⊢ x′ ≡ y [lower]) →
+              Maybe (∃ λ (x≡x′ : x ≡ x′) →
+                       ⟦ e ⟧R ≡ trans x≡x′ ⟦ e′ ⟧R)
+  _≟-Exprˡ_ = {!!}
+
+  _≟-Exprʳ_ : ∀ {A} {x y y′ : A}
+              (e : ⊢ x ≡ y [lower]) (e′ : ⊢ x ≡ y′ [lower]) →
+              Maybe (∃ λ (y≡y′ : y ≡ y′) →
+                       sym ⟦ e ⟧R ≡ trans y≡y′ (sym ⟦ e′ ⟧R))
+  _≟-Exprʳ_ = {!!}
+
+  -- Note: The uses of elim below will get in the way of the tactic,
+  -- because they do not compute.
+
+  drop-adjacent-inverses :
+    ∀ {A} {x y : A} {x≡y : x ≡ y} →
+    ⊢⟨ x≡y ⟩[ upper ] → ⊢⟨ x≡y ⟩[ upper ]
+  drop-adjacent-inverses (Refl          , h) = (Refl , h)
+  drop-adjacent-inverses (Trans x≈y y≈z , h)
+    with drop-adjacent-inverses (y≈z , refl _)
+  drop-adjacent-inverses {y = z} {x≡y = x≡z}
+    (Trans (No-sym x≈y) y≈z , h) | (Trans (Sym u≈y) u≈z , h′)
+    with x≈y ≟-Exprˡ u≈y
+  ... | just (x≡u , h″) =
+    elim (λ {x u} x≡u → {x≡z : x ≡ z} (u≈z : ⊢ u ≡ z [upper]) →
+            x≡z ≡ trans x≡u ⟦ u≈z ⟧R → ⊢⟨ x≡z ⟩[ upper ])
+         (λ x {x≡z} x≈z hyp → x≈z , (
+            x≡z                      ≡⟨ hyp ⟩
+            trans (refl x) ⟦ x≈z ⟧R  ≡⟨ trans-reflˡ _ ⟩∎
+            ⟦ x≈z ⟧R                 ∎))
+         x≡u u≈z
+         (x≡z                                                         ≡⟨ h ⟩
+          trans ⟦ x≈y ⟧R ⟦ y≈z ⟧R                                     ≡⟨ cong₂ trans h″ h′ ⟩
+          trans (trans x≡u ⟦ u≈y ⟧R) (trans (sym ⟦ u≈y ⟧R) ⟦ u≈z ⟧R)  ≡⟨ trans-assoc _ _ _ ⟩
+          trans x≡u (trans ⟦ u≈y ⟧R (trans (sym ⟦ u≈y ⟧R) ⟦ u≈z ⟧R))  ≡⟨ cong (trans x≡u) (sym $ trans-assoc _ _ _) ⟩
+          trans x≡u (trans (trans ⟦ u≈y ⟧R (sym ⟦ u≈y ⟧R)) ⟦ u≈z ⟧R)  ≡⟨ cong (λ p → trans x≡u (trans p ⟦ u≈z ⟧R)) (trans-symʳ _) ⟩
+          trans x≡u (trans (refl _) ⟦ u≈z ⟧R)                         ≡⟨ cong (trans x≡u) (trans-reflˡ _) ⟩∎
+          trans x≡u ⟦ u≈z ⟧R                                          ∎)
+  ... | nothing = Trans (No-sym x≈y) (Trans (Sym u≈y) u≈z) , (
+    x≡z                                             ≡⟨ h ⟩
+    trans ⟦ x≈y ⟧R ⟦ y≈z ⟧R                         ≡⟨ cong (trans ⟦ x≈y ⟧R) h′ ⟩∎
+    trans ⟦ x≈y ⟧R (trans (sym ⟦ u≈y ⟧R) ⟦ u≈z ⟧R)  ∎)
+  drop-adjacent-inverses {y = z} {x≡y = x≡z}
+    (Trans (Sym y≈x) y≈z , h) | (Trans (No-sym y≈u) u≈z , h′)
+    with y≈x ≟-Exprʳ y≈u
+  ... | just (x≡u , h″) =
+    elim (λ {x u} x≡u → {x≡z : x ≡ z} (u≈z : ⊢ u ≡ z [upper]) →
+            x≡z ≡ trans x≡u ⟦ u≈z ⟧R → ⊢⟨ x≡z ⟩[ upper ])
+         (λ x {x≡z} x≈z hyp → x≈z , (
+            x≡z                      ≡⟨ hyp ⟩
+            trans (refl x) ⟦ x≈z ⟧R  ≡⟨ trans-reflˡ _ ⟩∎
+            ⟦ x≈z ⟧R                 ∎))
+         x≡u u≈z
+         (x≡z                                                         ≡⟨ h ⟩
+          trans (sym ⟦ y≈x ⟧R) ⟦ y≈z ⟧R                               ≡⟨ cong₂ trans h″ h′ ⟩
+          trans (trans x≡u (sym ⟦ y≈u ⟧R)) (trans ⟦ y≈u ⟧R ⟦ u≈z ⟧R)  ≡⟨ trans-assoc _ _ _ ⟩
+          trans x≡u (trans (sym ⟦ y≈u ⟧R) (trans ⟦ y≈u ⟧R ⟦ u≈z ⟧R))  ≡⟨ cong (trans x≡u) (sym $ trans-assoc _ _ _) ⟩
+          trans x≡u (trans (trans (sym ⟦ y≈u ⟧R) ⟦ y≈u ⟧R) ⟦ u≈z ⟧R)  ≡⟨ cong (λ p → trans x≡u (trans p ⟦ u≈z ⟧R)) (trans-symˡ _) ⟩
+          trans x≡u (trans (refl _) ⟦ u≈z ⟧R)                         ≡⟨ cong (trans x≡u) (trans-reflˡ _) ⟩∎
+          trans x≡u ⟦ u≈z ⟧R                                          ∎)
+  ... | nothing = Trans (Sym y≈x) (Trans (No-sym y≈u) u≈z) , (
+    x≡z                                             ≡⟨ h ⟩
+    trans (sym ⟦ y≈x ⟧R) ⟦ y≈z ⟧R                   ≡⟨ cong (trans (sym ⟦ y≈x ⟧R)) h′ ⟩∎
+    trans (sym ⟦ y≈x ⟧R) (trans ⟦ y≈u ⟧R ⟦ u≈z ⟧R)  ∎)
+  drop-adjacent-inverses {x≡y = x≡z} (Trans x≈y y≈z , h) | (y≈z′ , h′) =
+    Trans x≈y y≈z′ , (
+      x≡z                       ≡⟨ h ⟩
+      trans ⟦ x≈y ⟧R ⟦ y≈z  ⟧R  ≡⟨ cong (trans ⟦ x≈y ⟧R) h′ ⟩∎
+      trans ⟦ x≈y ⟧R ⟦ y≈z′ ⟧R  ∎)
 
 ------------------------------------------------------------------------
 -- Manipulation of restricted expressions

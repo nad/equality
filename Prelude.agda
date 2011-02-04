@@ -238,3 +238,25 @@ data Dec {p} (P : Set p) : Set p where
 Decidable : ∀ {a b ℓ} {A : Set a} {B : Set b} →
             (A → B → Set ℓ) → Set (a ⊔ b ⊔ ℓ)
 Decidable _∼_ = ∀ x y → Dec (x ∼ y)
+
+------------------------------------------------------------------------
+-- Maybe
+
+data Maybe {a} (A : Set a) : Set a where
+  just    : (x : A) → Maybe A
+  nothing : Maybe A
+
+-- Bind.
+
+infixr 1 _=<<_
+
+_=<<_ : ∀ {a b} {A : Set a} {B : Set b} →
+        (A → Maybe B) → Maybe A → Maybe B
+f =<< just x  = f x
+f =<< nothing = nothing
+
+-- Map.
+
+Maybe-map : ∀ {a b} {A : Set a} {B : Set b} →
+            (A → B) → Maybe A → Maybe B
+Maybe-map f x = just ∘ f =<< x

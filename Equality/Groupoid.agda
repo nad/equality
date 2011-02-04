@@ -93,11 +93,7 @@ groupoid {A} = record
         (refl _)
 
     left-inverse : ∀ {x y} (p : x ≡ y) → trans p (sym p) ≡ refl _
-    left-inverse =
-      elim (λ p → trans p (sym p) ≡ refl _)
-           (λ _ → prove 0 tt (Trans Refl (Sym Refl) , Refl) (refl _))
+    left-inverse = trans-symʳ
 
     right-inverse : ∀ {x y} (p : x ≡ y) → trans (sym p) p ≡ refl _
-    right-inverse =
-      elim (λ p → trans (sym p) p ≡ refl _)
-           (λ _ → prove 0 tt (Trans (Sym Refl) Refl , Refl) (refl _))
+    right-inverse = trans-symˡ

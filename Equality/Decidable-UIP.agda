@@ -10,7 +10,6 @@
 module Equality.Decidable-UIP where
 
 open import Equality
-open import Equality.Groupoid
 open import Prelude
 
 -- Constant functions.
@@ -49,7 +48,7 @@ abstract
        y  ≡⟨ sym (f y y (refl y)) ⟩∎
        y  ∎) ,
     elim (λ {x y} x≡y → trans (f x y x≡y) (sym (f y y (refl y))) ≡ x≡y)
-         (λ _ → Groupoid.left-inverse groupoid _)
+         (λ _ → trans-symʳ _)
 
   -- A set A has unique identity proofs if there is a family of
   -- constant endofunctions on _≡_ {A = A}.
