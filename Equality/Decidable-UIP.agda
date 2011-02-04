@@ -11,7 +11,6 @@ module Equality.Decidable-UIP where
 
 open import Equality
 open import Equality.Groupoid
-open import Equality.Tactic
 open import Prelude
 
 -- Constant functions.
