@@ -100,3 +100,122 @@ groupoid {A} = record
     right-inverse =
       elim (λ p → trans (sym p) p ≡ refl _)
            (λ _ → prove (Trans (Sym Refl) Refl) Refl (refl _))
+
+------------------------------------------------------------------------
+-- In some cases transitivity is commutative
+
+module Transitivity-commutative
+  {A : Set} (e : A) (_∙_ : A → A → A)
+  (left-identity  : ∀ x → e ∙ x ≡ x)
+  (right-identity : ∀ x → x ∙ e ≡ x)
+  where
+
+  open Groupoid groupoid
+
+  abstract
+
+    commutative : (p q : e ≡ e) → p ∘ q ≡ q ∘ p
+    commutative p q =
+      p ∘ q                                 ≡⟨ cong (_∘_ p) (lem₁ _) ⟩
+      p ∘ (ri ∘ li ⁻¹ ∘ q′ ∘ li ∘ ri ⁻¹)    ≡⟨ prove (Trans (Trans (Trans (Trans (Trans (Sym (Lift ri)) (Lift li)) (Lift q′))
+                                                                          (Sym (Lift li))) (Lift ri)) (Lift p))
+                                                     (Trans (Trans (Sym (Lift ri))
+                                                                              (Trans (Trans (Lift li) (Lift q′)) (Sym (Lift li))))
+                                                            (Trans (Lift ri) (Lift p)))
+                                                     (refl _) ⟩
+      (p ∘ ri) ∘ (li ⁻¹ ∘ q′ ∘ li) ∘ ri ⁻¹  ≡⟨ cong₂ (λ p q → p ∘ q ∘ ri ⁻¹) (lem₂ _) (lem₃ _) ⟩
+      (ri ∘ lc p) ∘ rc q′ ∘ ri ⁻¹           ≡⟨ prove (Trans (Trans (Sym (Lift ri)) (Lift (rc q′))) (Trans (Lift (lc p)) (Lift ri)))
+                                                     (Trans (Trans (Sym (Lift ri)) (Trans (Lift (rc q′)) (Lift (lc p)))) (Lift ri))
+                                                     (refl _) ⟩
+      ri ∘ (lc p ∘ rc q′) ∘ ri ⁻¹           ≡⟨ cong (λ p → ri ∘ p ∘ ri ⁻¹) (lem₄ _ _) ⟩
+      ri ∘ (rc q′ ∘ lc p) ∘ ri ⁻¹           ≡⟨ prove (Trans (Trans (Sym (Lift ri)) (Trans (Lift (lc p)) (Lift (rc q′)))) (Lift ri))
+                                                     (Trans (Trans (Trans (Sym (Lift ri)) (Lift (lc p))) (Lift (rc q′))) (Lift ri))
+                                                     (refl _) ⟩
+      ri ∘ rc q′ ∘ (lc p ∘ ri ⁻¹)           ≡⟨ cong₂ (λ p q → ri ∘ p ∘ q) (sym (lem₃ _)) (lem₅ _) ⟩
+      ri ∘ (li ⁻¹ ∘ q′ ∘ li) ∘ (ri ⁻¹ ∘ p)  ≡⟨ prove (Trans (Trans (Trans (Lift p) (Sym (Lift ri)))
+                                                                   (Trans (Trans (Lift li) (Lift q′)) (Sym (Lift li))))
+                                                            (Lift ri))
+                                                     (Trans (Lift p) (Trans (Trans (Trans (Trans (Sym (Lift ri)) (Lift li)) (Lift q′))
+                                                                                   (Sym (Lift li)))
+                                                                            (Lift ri)))
+                                                     (refl _) ⟩
+      (ri ∘ li ⁻¹ ∘ q′ ∘ li ∘ ri ⁻¹) ∘ p    ≡⟨ cong (λ q → q ∘ p) (sym (lem₁ _)) ⟩∎
+      q ∘ p                                 ∎
+      where
+
+      -- Abbreviations.
+
+      li : ∀ {x} → e ∙ x ≡ x
+      li = left-identity _
+
+      ri : ∀ {x} → x ∙ e ≡ x
+      ri = right-identity _
+
+      q′ : e ≡ e
+      q′ = li ∘ ri ⁻¹ ∘ q ∘ ri ∘ li ⁻¹
+
+      lc : ∀ {x y} → x ≡ y → (x ∙ e) ≡ (y ∙ e)
+      lc = cong (λ x → (x ∙ e))
+
+      rc : ∀ {x y} → x ≡ y → (e ∙ x) ≡ (e ∙ y)
+      rc = cong (λ y → (e ∙ y))
+
+      -- Lemmas.
+
+      lem₁ : (p : e ≡ e) →
+             p ≡ ri ∘ li ⁻¹ ∘ (li ∘ ri ⁻¹ ∘ p ∘ ri ∘ li ⁻¹) ∘ li ∘ ri ⁻¹
+      lem₁ p =
+        p                                                          ≡⟨ prove (Lift p) (Trans (Trans Refl (Lift p)) Refl) (refl _) ⟩
+        refl _ ∘ p ∘ refl _                                        ≡⟨ sym (cong₂ (λ q r → q ∘ p ∘ r)
+                                                                                 (right-inverse _) (right-inverse _)) ⟩
+        (ri ∘ ri ⁻¹) ∘ p ∘ (ri ∘ ri ⁻¹)                            ≡⟨ prove (Trans (Trans (Trans (Sym (Lift ri)) (Lift ri)) (Lift p))
+                                                                                   (Trans (Sym (Lift ri)) (Lift ri)))
+                                                                            (Trans (Trans (Trans (Trans (Trans (Trans
+                                                                               (Sym (Lift ri)) Refl) (Lift ri)) (Lift p))
+                                                                               (Sym (Lift ri))) Refl) (Lift ri))
+                                                                            (refl _) ⟩
+        ri ∘ refl _ ∘ ri ⁻¹ ∘ p ∘ ri ∘ refl _ ∘ ri ⁻¹              ≡⟨ sym (cong₂ (λ q r → ri ∘ q ∘ ri ⁻¹ ∘ p ∘ ri ∘ r ∘ ri ⁻¹)
+                                                                                 (left-inverse _) (left-inverse _)) ⟩
+        ri ∘ (li ⁻¹ ∘ li) ∘ ri ⁻¹ ∘ p ∘ ri ∘ (li ⁻¹ ∘ li) ∘ ri ⁻¹  ≡⟨ prove (Trans (Trans (Trans (Trans (Trans (Trans
+                                                                               (Sym (Lift ri)) (Trans (Lift li) (Sym (Lift li))))
+                                                                               (Lift ri)) (Lift p)) (Sym (Lift ri)))
+                                                                               (Trans (Lift li) (Sym (Lift li)))) (Lift ri))
+                                                                            (Trans (Trans (Trans (Trans
+                                                                               (Sym (Lift ri)) (Lift li))
+                                                                               (Trans (Trans (Trans (Trans
+                                                                                  (Sym (Lift li)) (Lift ri)) (Lift p)) (Sym (Lift ri)))
+                                                                                  (Lift li))) (Sym (Lift li))) (Lift ri))
+                                                                            (refl _) ⟩∎
+        ri ∘ li ⁻¹ ∘ (li ∘ ri ⁻¹ ∘ p ∘ ri ∘ li ⁻¹) ∘ li ∘ ri ⁻¹    ∎
+
+      lem₂ : ∀ {x y} (p : x ≡ y) → p ∘ ri ≡ ri ∘ lc p
+      lem₂ = elim (λ p → p ∘ ri ≡ ri ∘ lc p) λ _ →
+        prove (Trans (Lift ri) Refl)
+              (Trans (Cong (λ x → (x ∙ e)) Refl) (Lift ri))
+              (refl _)
+
+      lem₃ : ∀ {x y} (p : x ≡ y) → li ⁻¹ ∘ p ∘ li ≡ rc p
+      lem₃ = elim (λ p → li ⁻¹ ∘ p ∘ li ≡ rc p) λ x →
+        li ⁻¹ ∘ refl x ∘ li  ≡⟨ prove (Trans (Trans (Lift li) Refl) (Sym (Lift li)))
+                                      (Trans (Lift li) (Sym (Lift li)))
+                                      (refl _) ⟩
+        li ⁻¹ ∘ li           ≡⟨ left-inverse _ ⟩
+        refl (e ∙ x)         ≡⟨ prove Refl (Cong (λ y → (e ∙ y)) Refl) (refl _) ⟩∎
+        rc (refl x)          ∎
+
+      lem₄ : (p q : e ≡ e) → lc p ∘ rc q ≡ rc q ∘ lc p
+      lem₄ p q = elim
+        (λ {x y} x≡y → lc x≡y ∘ cong (λ z → (x ∙ z)) q ≡
+                       cong (λ z → (y ∙ z)) q ∘ lc x≡y)
+        (λ x → prove (Trans (Cong (λ z → x ∙ z) (Lift q))
+                            (Cong (λ x → x ∙ e) Refl))
+                     (Trans (Cong (λ x → x ∙ e) Refl)
+                            (Cong (λ z → x ∙ z) (Lift q)))
+                     (refl _))
+        p
+
+      lem₅ : ∀ {x y} (p : x ≡ y) → lc p ∘ ri ⁻¹ ≡ ri ⁻¹ ∘ p
+      lem₅ = elim (λ p → lc p ∘ ri ⁻¹ ≡ ri ⁻¹ ∘ p) λ _ →
+        prove (Trans (Sym (Lift ri)) (Cong (λ x → (x ∙ e)) Refl))
+              (Trans Refl (Sym (Lift ri)))
+              (refl _)
