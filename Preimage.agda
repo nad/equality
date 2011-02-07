@@ -12,7 +12,7 @@ module Preimage where
 open import Bijection hiding (id; _∘_)
 open import Equality
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
+private module G {A : Set} = EG.Groupoid (EG.groupoid A)
 import Equality.Tactic as Tactic; open Tactic.Eq
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection hiding (id; _∘_)

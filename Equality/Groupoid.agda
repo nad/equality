@@ -1,5 +1,6 @@
 ------------------------------------------------------------------------
--- The equality can be turned into a groupoid
+-- The equality can be turned into a groupoid which is sometimes
+-- transitive
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K --universe-polymorphism #-}
@@ -60,8 +61,8 @@ record Groupoid ℓ : Set (suc ℓ) where
 ------------------------------------------------------------------------
 -- _≡_ comes with a groupoid structure
 
-groupoid : {A : Set} → Groupoid zero
-groupoid {A} = record
+groupoid : (A : Set) → Groupoid zero
+groupoid A = record
   { Object = A
   ; _∼_    = _≡_
 
@@ -110,7 +111,7 @@ module Transitivity-commutative
   (right-identity : ∀ x → x ∙ e ≡ x)
   where
 
-  open Groupoid groupoid
+  open Groupoid (groupoid A)
 
   abstract
 
@@ -219,3 +220,24 @@ module Transitivity-commutative
         prove (Trans (Sym (Lift ri)) (Cong (λ x → (x ∙ e)) Refl))
               (Trans Refl (Sym (Lift ri)))
               (refl _)
+
+-- In particular, groupoid (π n X x) is commutative for n greater than
+-- or equal to 2.
+
+mutual
+
+  π : ℕ → (X : Set) → X → Set
+  π zero    X x = X
+  π (suc n) X x = π-elem n x ≡ π-elem n x
+
+  π-elem : ∀ n {X} (x : X) → π n X x
+  π-elem zero    x = x
+  π-elem (suc n) x = refl (π-elem n x)
+
+π[2+n]-commutative : ∀ {X} {x : X} {n} →
+  let open Groupoid (groupoid (π (2 + n) X x)) in
+  ∀ p q → p ∘ q ≡ q ∘ p
+π[2+n]-commutative p q =
+  Transitivity-commutative.commutative
+    id _∘_ left-identity right-identity p q
+  where open Groupoid (groupoid _)

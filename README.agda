@@ -33,7 +33,8 @@ import Equality.Decision-procedures
 
 import Equality.Tactic
 
--- The equality can be turned into a groupoid.
+-- The equality can be turned into a groupoid which is sometimes
+-- transitive.
 
 import Equality.Groupoid
 

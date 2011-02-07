@@ -14,7 +14,7 @@ open import Equality
 import Equality.Decidable-UIP as DUIP
 open import Equality.Decision-procedures
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid (EG.groupoid {A = A})
+private module G {A : Set} = EG.Groupoid (EG.groupoid A)
 import Equality.Tactic as Tactic; open Tactic.Eq
 open import Equivalence hiding (id; _∘_)
 open import H-level

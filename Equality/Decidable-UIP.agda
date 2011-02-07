@@ -49,7 +49,7 @@ abstract
        y  ≡⟨ sym (f y y (refl y)) ⟩∎
        y  ∎) ,
     elim (λ {x y} x≡y → trans (f x y x≡y) (sym (f y y (refl y))) ≡ x≡y)
-         (λ _ → Groupoid.left-inverse groupoid _)
+         (λ _ → Groupoid.left-inverse (groupoid _) _)
 
   -- A set A has unique identity proofs if there is a family of
   -- constant endofunctions on _≡_ {A = A}.
