@@ -105,6 +105,9 @@ groupoid A = record
 ------------------------------------------------------------------------
 -- In some cases transitivity is commutative
 
+-- This proof is based on an informal proof due to Thierry Coquand,
+-- based on a result from homotopy theory.
+
 module Transitivity-commutative
   {A : Set} (e : A) (_∙_ : A → A → A)
   (left-identity  : ∀ x → e ∙ x ≡ x)
