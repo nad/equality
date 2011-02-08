@@ -16,7 +16,7 @@ import Equality.Tactic as Tactic; open Tactic.Eq
 open import Equivalence hiding (id; _∘_; inverse)
 open import H-level as H
 open import H-level.Closure
-open import Preimage
+open import Preimage using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection hiding (id; _∘_)
 
@@ -36,6 +36,18 @@ abstract
     ∀ {A B} (f : A → B) → Propositional (Is-weak-equivalence f)
   propositional ext f =
     Π-closure ext 1 λ _ → Contractible-propositional ext
+
+-- Is-weak-equivalence respects extensional equality.
+
+respects-extensional-equality :
+  ∀ {A B} {f g : A → B} →
+  (∀ x → f x ≡ g x) →
+  Is-weak-equivalence f → Is-weak-equivalence g
+respects-extensional-equality f≡g f-weq = λ b →
+  H.respects-surjection
+    (_↔_.surjection (Preimage.respects-extensional-equality f≡g))
+    0
+    (f-weq b)
 
 -- Weak equivalences.
 
@@ -119,30 +131,29 @@ record _≈_ (A B : Set) : Set where
 bijection⇒weak-equivalence : ∀ {A B} → A ↔ B → A ≈ B
 bijection⇒weak-equivalence A↔B = record
   { to                  = to
-  ; is-weak-equivalence = λ y →
-      let lemma₁ : Contractible ((to ⊚ from) ⁻¹ y)
-          lemma₁ = H.respects-surjection
-                     (_↔_.surjection $
-                        Preimage.respects-extensional-equality
-                          (sym ⊚ right-inverse-of))
-                     0
-                     (id⁻¹-contractible y)
+  ; is-weak-equivalence = to-weq
+  }
+  where
+  open _↔_ A↔B
 
-          lemma₂ : Contractible (to ⁻¹ y)
-          lemma₂ = H.respects-surjection
-                     (Preimage.lift-surjection
-                        (_↔_.surjection (Bijection.inverse A↔B)))
-                     0
-                     lemma₁
-      in lemma₂
-  } where open _↔_ A↔B
+  to∘from-weq : Is-weak-equivalence (to ⊚ from)
+  to∘from-weq = respects-extensional-equality
+                  (sym ⊚ right-inverse-of)
+                  Preimage.id⁻¹-contractible
+
+  to-weq : Is-weak-equivalence to
+  to-weq y = H.respects-surjection
+               (Preimage.lift-surjection
+                  (_↔_.surjection (Bijection.inverse A↔B)))
+               0
+               (to∘from-weq y)
 
 -- Weak equivalences are equivalence relations.
 
 id : ∀ {A} → A ≈ A
 id = record
   { to                  = P.id
-  ; is-weak-equivalence = id⁻¹-contractible
+  ; is-weak-equivalence = Preimage.id⁻¹-contractible
   }
 
 inverse : ∀ {A B} → A ≈ B → B ≈ A
