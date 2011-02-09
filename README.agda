@@ -34,7 +34,7 @@ import Equality.Decision-procedures
 import Equality.Tactic
 
 -- The equality can be turned into a groupoid which is sometimes
--- transitive.
+-- commutative.
 
 import Equality.Groupoid
 

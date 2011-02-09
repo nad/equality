@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
 -- The equality can be turned into a groupoid which is sometimes
--- transitive
+-- commutative
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K --universe-polymorphism #-}
