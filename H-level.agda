@@ -9,6 +9,7 @@
 
 module H-level where
 
+open import Bijection hiding (id; _∘_)
 open import Equality
 import Equality.Decidable-UIP as DUIP
 import Equality.Groupoid as EG
@@ -157,3 +158,18 @@ respects-surjection A↠B (suc n) h = rs
       }
 
     rs = λ x y → respects-surjection surj n (h (from x) (from y))
+
+-- All contractible types are isomorphic.
+
+contractible-isomorphic :
+  ∀ {A B} → Contractible A → Contractible B → A ↔ B
+contractible-isomorphic {A} {B} cA cB = record
+  { surjection = record
+    { equivalence = record
+      { to   = const (proj₁ cB)
+      ; from = const (proj₁ cA)
+      }
+    ; right-inverse-of = proj₂ cB
+    }
+  ; left-inverse-of = proj₂ cA
+  }
