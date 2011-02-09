@@ -66,3 +66,7 @@ import Preimage
 -- Weak equivalences.
 
 import Weak-equivalence
+
+-- The univalence axiom. (Currently this module uses --type-in-type.)
+
+import Univalence-axiom
