@@ -16,7 +16,8 @@ open import Prelude
 
 -- This definition is kept abstract because I might later want to
 -- replace it with a definition where elim P r (refl x) does not
--- compute to r x.
+-- compute to r x. (Note, however, that Equality.Tactic contains a
+-- concrete definition of equality.)
 
 abstract
 

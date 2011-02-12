@@ -90,6 +90,9 @@ private
 -- Equality expressions
 
 -- Equality expressions.
+--
+-- Note that the presence of the Refl constructor means that Eq is a
+-- definition of equality with a concrete, evaluating eliminator.
 
 data Eq {A : Set} : A → A → Set₁ where
   Lift  : ∀ {x y} (x≡y : x ≡ y) → Eq x y
