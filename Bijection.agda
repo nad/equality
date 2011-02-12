@@ -57,3 +57,16 @@ f ∘ g = record
       from g (from f (to f (to g x)))  ≡⟨ cong (from g) (left-inverse-of f (to g x)) ⟩
       from g (to g x)                  ≡⟨ left-inverse-of g x ⟩∎
       x                                ∎
+
+-- "Equational" reasoning combinators.
+
+infix  2 finally-↔
+infixr 2 _↔⟨_⟩_
+
+_↔⟨_⟩_ : ∀ A {B C} → A ↔ B → B ↔ C → A ↔ C
+_ ↔⟨ A↔B ⟩ B↔C = B↔C ∘ A↔B
+
+finally-↔ : ∀ A B → A ↔ B → A ↔ B
+finally-↔ _ _ A↔B = A↔B
+
+syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩∎ B ∎

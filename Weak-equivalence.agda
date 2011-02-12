@@ -169,6 +169,19 @@ f ∘ g =
   bijection⇒weak-equivalence $
     Bijection._∘_ (_≈_.bijection f) (_≈_.bijection g)
 
+-- Equational reasoning combinators.
+
+infix  2 finally-≈
+infixr 2 _≈⟨_⟩_
+
+_≈⟨_⟩_ : ∀ A {B C} → A ≈ B → B ≈ C → A ≈ C
+_ ≈⟨ A≈B ⟩ B≈C = B≈C ∘ A≈B
+
+finally-≈ : ∀ A B → A ≈ B → A ≈ B
+finally-≈ _ _ A≈B = A≈B
+
+syntax finally-≈ A B A≈B = A ≈⟨ A≈B ⟩∎ B ∎
+
 abstract
 
   -- Two proofs of weak equivalence are equal if the function

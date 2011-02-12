@@ -38,3 +38,17 @@ f ∘ g = record
   { to   = to   f ⊚ to   g
   ; from = from g ⊚ from f
   } where open _⇔_
+
+-- "Equational" reasoning combinators.
+
+infix  2 finally-⇔
+infixr 2 _⇔⟨_⟩_
+
+_⇔⟨_⟩_ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
+         A ⇔ B → B ⇔ C → A ⇔ C
+_ ⇔⟨ A⇔B ⟩ B⇔C = B⇔C ∘ A⇔B
+
+finally-⇔ : ∀ {a b} (A : Set a) (B : Set b) → A ⇔ B → A ⇔ B
+finally-⇔ _ _ A⇔B = A⇔B
+
+syntax finally-⇔ A B A⇔B = A ⇔⟨ A⇔B ⟩∎ B ∎
