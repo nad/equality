@@ -293,7 +293,7 @@ module Derived-definitions-and-properties
     -- rule.
     --
     -- This definition is based on Martin Hofmann's (see the addendum
-    -- of Thomas Streicher's Habilitation thesis). Note that it is
+    -- to Thomas Streicher's Habilitation thesis). Note that it is
     -- also very similar to the definition of
     -- Equality-with-substitutivity-and-contractibility.elim.
 
