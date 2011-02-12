@@ -130,31 +130,14 @@ record _≈_ (A B : Set) : Set where
 
 bijection⇒weak-equivalence : ∀ {A B} → A ↔ B → A ≈ B
 bijection⇒weak-equivalence A↔B = record
-  { to                  = to
-  ; is-weak-equivalence = to-weq
+  { to                  = _↔_.to A↔B
+  ; is-weak-equivalence = Preimage.bijection⁻¹-contractible A↔B
   }
-  where
-  open _↔_ A↔B
-
-  to∘from-weq : Is-weak-equivalence (to ⊚ from)
-  to∘from-weq = respects-extensional-equality
-                  (sym ⊚ right-inverse-of)
-                  Preimage.id⁻¹-contractible
-
-  to-weq : Is-weak-equivalence to
-  to-weq y = H.respects-surjection
-               (Preimage.lift-surjection
-                  (_↔_.surjection (Bijection.inverse A↔B)))
-               0
-               (to∘from-weq y)
 
 -- Weak equivalences are equivalence relations.
 
 id : ∀ {A} → A ≈ A
-id = record
-  { to                  = P.id
-  ; is-weak-equivalence = Preimage.id⁻¹-contractible
-  }
+id = bijection⇒weak-equivalence Bijection.id
 
 inverse : ∀ {A B} → A ≈ B → B ≈ A
 inverse =

@@ -14,18 +14,21 @@ open import Equality
 import Equality.Groupoid as EG
 private module G {A : Set} = EG.Groupoid (EG.groupoid A)
 import Equality.Tactic as Tactic; open Tactic.Eq
-open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
+open import H-level
+open import Prelude
 open import Surjection hiding (id; _∘_)
 
 -- The preimage of y under f is denoted by f ⁻¹ y.
+
+infix 5 _⁻¹_
 
 _⁻¹_ : {A B : Set} → (A → B) → B → Set
 f ⁻¹ y = ∃ λ x → f x ≡ y
 
 -- Preimages under the identity function are contractible. (Note that
--- Singleton x is equal to P.id ⁻¹ x.)
+-- Singleton x is equal to id ⁻¹ x.)
 
-id⁻¹-contractible : ∀ {A} (y : A) → Contractible (P.id ⁻¹ y)
+id⁻¹-contractible : ∀ {A} (y : A) → Contractible (id ⁻¹ y)
 id⁻¹-contractible = singleton-contractible
 
 -- _⁻¹_ respects extensional equality of functions.
@@ -36,8 +39,8 @@ respects-extensional-equality :
 respects-extensional-equality {f = f} {g} {y} f≡g = record
   { surjection = record
     { equivalence = record
-      { to   = Σ-map P.id to₂
-      ; from = Σ-map P.id from₂
+      { to   = Σ-map id to₂
+      ; from = Σ-map id from₂
       }
     ; right-inverse-of = right-inverse-of
     }
@@ -77,7 +80,7 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
 
 lift-surjection :
   ∀ {A B} (A↠B : A ↠ B) → let open _↠_ A↠B in
-  ∀ {y} → ((from ⊚ to) ⁻¹ y) ↠ (from ⁻¹ y)
+  ∀ {y} → (from ∘ to ⁻¹ y) ↠ (from ⁻¹ y)
 lift-surjection A↠B {y} = record
   { equivalence = record
     { to   = drop-∘
@@ -91,8 +94,8 @@ lift-surjection A↠B {y} = record
   -- Given a preimage under (f ∘ g) a preimage under f can be
   -- constructed.
 
-  drop-∘ : (from ⊚ to) ⁻¹ y → from ⁻¹ y
-  drop-∘ = Σ-map to P.id
+  drop-∘ : (from ∘ to) ⁻¹ y → from ⁻¹ y
+  drop-∘ = Σ-map to id
 
   -- If f is a left inverse of g then the other direction also
   -- holds.
@@ -104,7 +107,7 @@ lift-surjection A↠B {y} = record
       from x              ≡⟨ from-x≡y ⟩∎
       y                   ∎
 
-  add-∘ : from ⁻¹ y → (from ⊚ to) ⁻¹ y
+  add-∘ : from ⁻¹ y → (from ∘ to) ⁻¹ y
   add-∘ (x , from-x≡y) = (from x , add-∘-lemma from-x≡y)
 
   abstract
@@ -125,3 +128,21 @@ lift-surjection A↠B {y} = record
         (λ x p → cong (_,_ x) (Tactic.prove (Lift p)
                                             (Trans (Cong f Refl) (Lift p))
                                             (refl _)))
+
+-- A consequence of the lemmas above is that preimages under a
+-- bijection are contractible.
+
+bijection⁻¹-contractible :
+  ∀ {A B} (A↔B : A ↔ B) → let open _↔_ A↔B in
+  ∀ y → Contractible (to ⁻¹ y)
+bijection⁻¹-contractible A↔B =
+  H-level.respects-surjection surj 0 ∘ id⁻¹-contractible
+  where
+  open _↔_ (Bijection.inverse A↔B)
+
+  surj : ∀ {y} → id ⁻¹ y ↠ from ⁻¹ y
+  surj {y} =
+    id ⁻¹ y         ↠⟨ _↔_.surjection $
+                         respects-extensional-equality (sym ∘ left-inverse-of) ⟩
+    from ∘ to ⁻¹ y  ↠⟨ lift-surjection surjection ⟩∎
+    from ⁻¹ y       ∎
