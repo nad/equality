@@ -165,6 +165,22 @@ abstract
     respects-surjection (ext-surj ext) n $
       Π-closure ext n (λ x → h x (f x) (g x))
 
+  -- This also applies to the implicit function space.
+
+  implicit-Π-closure :
+    ∀ {A} →
+    (∀ {B} → Extensionality A B) →
+    ∀ {B : A → Set} n →
+    (∀ x → H-level n (B x)) → H-level n ({x : A} → B x)
+  implicit-Π-closure {A} ext {B} n =
+    respects-surjection surj n ∘ Π-closure ext n
+    where
+    surj : ((x : A) → B x) ↠ ({x : A} → B x)
+    surj = record
+      { equivalence      = equivalent (λ f {x} → f x) (λ f x → f {x})
+      ; right-inverse-of = refl
+      }
+
   -- Negated types are propositional, assuming extensionality.
 
   ¬-propositional :
