@@ -22,6 +22,9 @@ import Preimage
 open import Prelude
 open import Weak-equivalence as Weak hiding (_∘_; id)
 
+------------------------------------------------------------------------
+-- The univalence axiom
+
 -- If two sets are equal, then they are weakly equivalent.
 
 ≡⇒≈ : ∀ {A B} → A ≡ B → A ≈ B
@@ -40,6 +43,9 @@ Univalence-axiom = ∀ {A B} → Univalence-axiom′ A B
 
 ≡≈≈ : ∀ {A B} → Univalence-axiom′ A B → (A ≡ B) ≈ (A ≈ B)
 ≡≈≈ univ = weq ≡⇒≈ univ
+
+------------------------------------------------------------------------
+-- A consequence: Set is not a set
 
 abstract
 
@@ -77,6 +83,11 @@ abstract
       _≈_.to Bool≈Bool              ≡⟨ refl not ⟩∎
       not                           ∎
       where open _≈_ (≡≈≈ univ)
+
+------------------------------------------------------------------------
+-- A consequence: extensionality for functions
+
+abstract
 
   -- If the univalence axiom holds, then "subst P ∘ from" is unique
   -- (up to extensional equality).
