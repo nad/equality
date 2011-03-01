@@ -282,6 +282,8 @@ abstract
 ------------------------------------------------------------------------
 -- An example: if two magmas are isomorphic, then they are equal
 
+-- This example is (mostly) due to Thierry Coquand.
+
 private
 
   -- This example makes use of dependent-extensionality.
