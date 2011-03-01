@@ -318,6 +318,61 @@ module Derived-definitions-and-properties
       subst {A = Singleton y} (P ∘ proj₂) (refl (y , refl y)) p  ≡⟨ subst-refl {A = Singleton y} (P ∘ proj₂) p ⟩∎
       p                                                          ∎
 
+  -- A variant of singleton-contractible.
+
+  Other-singleton : {A : Set} → A → Set
+  Other-singleton x = ∃ λ y → x ≡ y
+
+  private
+    abstract
+
+      irr : ∀ {A} {x : A} (p : Other-singleton x) → (x , refl x) ≡ p
+      irr p =
+        elim (λ {u v} u≡v → _≡_ {A = Other-singleton u}
+                                (u , refl u) (v , u≡v))
+             (λ _ → refl _)
+             (proj₂ p)
+
+  other-singleton-contractible :
+    ∀ {A} (x : A) → Contractible (Other-singleton x)
+  other-singleton-contractible x = ((x , refl x) , irr)
+
+  abstract
+
+    -- "Evaluation rule" for other-singleton-contractible.
+
+    other-singleton-contractible-refl :
+      ∀ {A} (x : A) →
+      proj₂ (other-singleton-contractible x) (x , refl x) ≡
+      refl (x , refl x)
+    other-singleton-contractible-refl x =
+      elim-refl (λ {u v} u≡v → _≡_ {A = Other-singleton u}
+                                   (u , refl u) (v , u≡v))
+                _
+
+    -- Christine Paulin-Mohring's version of the J rule.
+
+    elim¹ : {A : Set} {x : A} (P : ∀ {y} → x ≡ y → Set) →
+            P (refl x) →
+            ∀ {y} (x≡y : x ≡ y) → P x≡y
+    elim¹ {x = x} P p {y} x≡y =
+      subst {A = Other-singleton x}
+            (P ∘ proj₂)
+            (proj₂ (other-singleton-contractible x) (y , x≡y))
+            p
+
+    -- "Evaluation rule" for elim¹.
+
+    elim¹-refl : {A : Set} {x : A} (P : ∀ {y} → x ≡ y → Set)
+                 (p : P (refl x)) →
+                 elim¹ P p (refl x) ≡ p
+    elim¹-refl {x = x} P p =
+      subst {A = Other-singleton x} (P ∘ proj₂)
+            (proj₂ (other-singleton-contractible x) (x , refl x)) p    ≡⟨ cong (λ q → subst (P ∘ proj₂) q p)
+                                                                               (other-singleton-contractible-refl x) ⟩
+      subst {A = Other-singleton x} (P ∘ proj₂) (refl (x , refl x)) p  ≡⟨ subst-refl {A = Other-singleton x} (P ∘ proj₂) p ⟩∎
+      p                                                                ∎
+
   -- Binary congruence.
 
   cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
