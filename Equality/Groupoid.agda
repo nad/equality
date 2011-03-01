@@ -244,3 +244,38 @@ mutual
   Transitivity-commutative.commutative
     id _∘_ left-identity right-identity p q
   where open Groupoid (groupoid _)
+
+------------------------------------------------------------------------
+-- More lemmas
+
+abstract
+
+  -- A fusion law for subst.
+
+  subst-subst :
+    {A : Set} (P : A → Set)
+    {x y z : A} (x≡y : x ≡ y) (y≡z : y ≡ z) (p : P x) →
+    subst P y≡z (subst P x≡y p) ≡ subst P (trans x≡y y≡z) p
+  subst-subst P x≡y y≡z p =
+    elim (λ {x y} x≡y → ∀ {z} (y≡z : y ≡ z) p →
+            subst P y≡z (subst P x≡y p) ≡ subst P (trans x≡y y≡z) p)
+         (λ x y≡z p →
+            subst P y≡z (subst P (refl x) p)  ≡⟨ cong (subst P y≡z) $ subst-refl P p ⟩
+            subst P y≡z p                     ≡⟨ cong (λ q → subst P q p) $
+                                                      (prove (Lift y≡z)
+                                                             (Trans Refl (Lift y≡z))
+                                                             (refl _)) ⟩∎
+            subst P (trans (refl x) y≡z) p    ∎)
+         x≡y y≡z p
+
+  -- Substitutivity and symmetry sometimes cancel each other out.
+
+  subst-subst-sym :
+    {A : Set} (P : A → Set) {x y : A} (x≡y : x ≡ y) (p : P y) →
+    subst P x≡y (subst P (sym x≡y) p) ≡ p
+  subst-subst-sym P {y = y} x≡y p =
+    subst P x≡y (subst P (sym x≡y) p)  ≡⟨ subst-subst P _ _ _ ⟩
+    subst P (trans (sym x≡y) x≡y) p    ≡⟨ cong (λ q → subst P q p) $
+                                               Groupoid.right-inverse (groupoid _) x≡y ⟩
+    subst P (refl y) p                 ≡⟨ subst-refl P p ⟩∎
+    p                                  ∎
