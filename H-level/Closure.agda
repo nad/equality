@@ -190,6 +190,83 @@ abstract
 ------------------------------------------------------------------------
 -- Σ-types
 
+-- Equality between pairs can be expressed as a pair of equalities.
+
+≡,≡↔≡ : ∀ {A B} {p₁ p₂ : Σ A B} →
+        (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+           subst B p (proj₂ p₁) ≡ proj₂ p₂) ↔
+        (p₁ ≡ p₂)
+≡,≡↔≡ {A} {B} = record
+  { surjection = record
+    { equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = elim (λ p≡q → to (from p≡q) ≡ p≡q) λ x →
+        let lem = subst-refl B (proj₂ x) in
+        to (from (refl x))                          ≡⟨ cong to (elim-refl from-P _) ⟩
+        to (refl (proj₁ x) , lem)                   ≡⟨ cong (λ f → f lem) (elim-refl to-P _) ⟩
+        cong (_,_ (proj₁ x)) (trans (sym lem) lem)  ≡⟨ cong (cong (_,_ (proj₁ x))) $ G.right-inverse lem ⟩
+        cong (_,_ (proj₁ x)) (refl (proj₂ x))       ≡⟨ cong-refl (_,_ (proj₁ x)) ⟩∎
+        refl x                                      ∎
+    }
+  ; left-inverse-of = λ p → elim
+      (λ {x₁ x₂} x₁≡x₂ →
+         ∀ {y₁ y₂} (y₁′≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂) →
+         from (to (x₁≡x₂ , y₁′≡y₂)) ≡ (x₁≡x₂ , y₁′≡y₂))
+      (λ x {y₁} y₁′≡y₂ → elim
+         (λ {y₁ y₂} (y₁≡y₂ : y₁ ≡ y₂) →
+            (y₁′≡y₂ : subst B (refl x) y₁ ≡ y₂) →
+            y₁≡y₂ ≡ trans (sym $ subst-refl B y₁) y₁′≡y₂ →
+            from (to (refl x , y₁′≡y₂)) ≡ (refl x , y₁′≡y₂))
+         (λ y y′≡y eq →
+          let lem = subst-refl B y in
+          from (to (refl x , y′≡y))                   ≡⟨ cong (λ f → from (f y′≡y)) $ elim-refl to-P _ ⟩
+          from (cong (_,_ x) (trans (sym lem) y′≡y))  ≡⟨ cong (from ∘ cong (_,_ x)) $ sym eq ⟩
+          from (cong (_,_ x) (refl y))                ≡⟨ cong from $ cong-refl (_,_ x) ⟩
+          from (refl (x , y))                         ≡⟨ elim-refl from-P _ ⟩
+          (refl x , lem)                              ≡⟨ cong (_,_ (refl x)) (
+             lem                                           ≡⟨ Tactic.prove (Lift lem) (Trans (Lift lem) Refl) (refl _) ⟩
+             trans lem (refl _)                            ≡⟨ cong (trans lem) eq ⟩
+             trans lem (trans (sym lem) y′≡y)              ≡⟨ Tactic.prove (Trans (Lift lem) (Trans (Sym (Lift lem)) (Lift y′≡y)))
+                                                                           (Trans (Trans (Lift lem) (Sym (Lift lem))) (Lift y′≡y))
+                                                                           (refl _) ⟩
+             trans (trans lem (sym lem)) y′≡y              ≡⟨ cong (λ p → trans p y′≡y) $ G.left-inverse lem ⟩
+             trans (refl _) y′≡y                           ≡⟨ Tactic.prove (Trans Refl (Lift y′≡y)) (Lift y′≡y) (refl _) ⟩∎
+             y′≡y                                          ∎) ⟩∎
+          (refl x , y′≡y)                             ∎)
+         (trans (sym $ subst-refl B y₁) y₁′≡y₂)
+         y₁′≡y₂
+         (refl _))
+      (proj₁ p) (proj₂ p)
+  }
+  where
+  from-P = λ {p₁ p₂ : Σ A B} (_ : p₁ ≡ p₂) →
+             ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+               subst B p (proj₂ p₁) ≡ proj₂ p₂
+
+  from : {p₁ p₂ : Σ A B} →
+         p₁ ≡ p₂ →
+         ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+           subst B p (proj₂ p₁) ≡ proj₂ p₂
+  from = elim from-P (λ p → refl _ , subst-refl B _)
+
+  to-P = λ {x₁ y₁ : A} (p : x₁ ≡ y₁) → {x₂ : B x₁} {y₂ : B y₁} →
+           subst B p x₂ ≡ y₂ →
+           _≡_ {A = Σ A B} (x₁ , x₂) (y₁ , y₂)
+
+  to : {p₁ p₂ : Σ A B} →
+       (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+          subst B p (proj₂ p₁) ≡ proj₂ p₂) →
+       p₁ ≡ p₂
+  to (p , q) = elim
+    to-P
+    (λ z₁ {x₂} {y₂} x₂≡y₂ → cong (_,_ z₁) (
+       x₂                    ≡⟨ sym $ subst-refl B x₂ ⟩
+       subst B (refl z₁) x₂  ≡⟨ x₂≡y₂ ⟩∎
+       y₂                    ∎))
+    p q
+
 abstract
 
   -- H-level is closed under Σ.
@@ -205,59 +282,10 @@ abstract
        (proj₁ p , proj₁ (hB (proj₁ p)))  ≡⟨ cong (_,_ (proj₁ p)) (proj₂ (hB (proj₁ p)) (proj₂ p)) ⟩∎
        p                                 ∎)
   Σ-closure {A} {B} (suc n) hA hB = λ p₁ p₂ →
-    respects-surjection surj n $
+    respects-surjection (_↔_.surjection ≡,≡↔≡) n $
       Σ-closure n (hA (proj₁ p₁) (proj₁ p₂))
         (λ pr₁p₁≡pr₁p₂ →
            hB (proj₁ p₂) (subst B pr₁p₁≡pr₁p₂ (proj₂ p₁)) (proj₂ p₂))
-    where
-    surj : {p₁ p₂ : Σ A B} →
-           (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-              subst B p (proj₂ p₁) ≡ proj₂ p₂) ↠
-           (p₁ ≡ p₂)
-    surj = record
-      { equivalence = record
-        { to   = to
-        ; from = from
-        }
-      ; right-inverse-of = elim (λ p≡q → to (from p≡q) ≡ p≡q) (λ x →
-          let lem = subst-refl B _ in
-          to (from (refl x))                      ≡⟨ cong to (elim-refl from-P _) ⟩
-          to (refl (proj₁ x) , subst-refl B _)    ≡⟨ cong (λ f → f (subst-refl B _)) (elim-refl to-P _) ⟩
-          trans (cong (_,_ (proj₁ x)) $ sym lem)
-                (cong (_,_ (proj₁ x)) lem)        ≡⟨ Tactic.prove (Trans (Cong (_,_ (proj₁ x)) (Sym (Lift lem)))
-                                                                         (Cong (_,_ (proj₁ x)) (Lift lem)))
-                                                                  (Trans (Sym (Cong (_,_ (proj₁ x)) (Lift lem)))
-                                                                         (Cong (_,_ (proj₁ x)) (Lift lem)))
-                                                                  (refl _) ⟩
-          trans (sym _) _                         ≡⟨ G.right-inverse _ ⟩∎
-          refl x                                  ∎)
-      }
-      where
-      from-P = λ {p₁ p₂ : Σ A B} (_ : p₁ ≡ p₂) →
-                 ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-                   subst B p (proj₂ p₁) ≡ proj₂ p₂
-
-      from : {p₁ p₂ : Σ A B} →
-             p₁ ≡ p₂ →
-             ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-               subst B p (proj₂ p₁) ≡ proj₂ p₂
-      from = elim from-P (λ p → refl _ , subst-refl B _)
-
-      to-P = λ {x₁ y₁ : A} (p : x₁ ≡ y₁) → {x₂ : B x₁} {y₂ : B y₁} →
-               subst B p x₂ ≡ y₂ →
-               _≡_ {A = Σ A B} (x₁ , x₂) (y₁ , y₂)
-
-      to : {p₁ p₂ : Σ A B} →
-           (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-              subst B p (proj₂ p₁) ≡ proj₂ p₂) →
-           p₁ ≡ p₂
-      to (p , q) = elim
-        to-P
-        (λ z₁ {x₂} {y₂} x₂≡y₂ →
-           (z₁ , x₂)                    ≡⟨ cong (_,_ z₁) $ sym $ subst-refl B x₂ ⟩
-           (z₁ , subst B (refl z₁) x₂)  ≡⟨ cong (_,_ z₁) x₂≡y₂ ⟩∎
-           (z₁ , y₂)                    ∎)
-        p q
 
   -- H-level is closed under _×_.
 
