@@ -11,7 +11,8 @@ module Weak-equivalence where
 
 open import Bijection hiding (id; _∘_; inverse)
 open import Equality
-open import Equality.Groupoid hiding (groupoid)
+open import Equality.Groupoid as EG hiding (groupoid)
+private module G {A : Set} = EG.Groupoid (EG.groupoid A)
 import Equality.Tactic as Tactic; open Tactic.Eq
 open import Equivalence hiding (id; _∘_; inverse)
 open import H-level as H
@@ -251,3 +252,39 @@ abstract
     H.[inhabited⇒+]⇒+ n λ (A≈B : A ≈ B) →
       right-closure ext n $
         H.respects-surjection (_≈_.surjection A≈B) (1 + n) h
+
+  -- The function subst is a weak equivalence family.
+  --
+  -- Note that this proof would be easier if subst P (refl x) p
+  -- reduced to p.
+
+  subst-is-weak-equivalence :
+    {A : Set} (P : A → Set) {x y : A} (x≡y : x ≡ y) →
+    Is-weak-equivalence (subst P x≡y)
+  subst-is-weak-equivalence P = elim
+    (λ {x y} x≡y → Is-weak-equivalence (subst P x≡y))
+    (λ x p → _ , λ q →
+       let srq = Lift (subst-refl P (proj₁ q))
+           q₂  = Lift (proj₂ q)
+       in
+       (p , subst-refl P p)                                     ≡⟨ elim
+                                                                     (λ {u v : P x} u≡v →
+                                                                        _≡_ {A = ∃ λ (w : P x) → subst P (refl x) w ≡ v}
+                                                                            (v , subst-refl P v)
+                                                                            (u , trans (subst-refl P u) u≡v))
+                                                                     (λ p → cong (_,_ p) (let srp = Lift (subst-refl P p) in
+                                                                              Tactic.prove srp (Trans srp Refl) (refl _)))
+                                                                     (proj₁ q                     ≡⟨ sym $ subst-refl P (proj₁ q) ⟩
+                                                                      subst P (refl x) (proj₁ q)  ≡⟨ proj₂ q ⟩∎
+                                                                      p                           ∎) ⟩
+       (proj₁ q , (trans      (subst-refl P (proj₁ q))  $
+                   trans (sym (subst-refl P (proj₁ q))) $
+                         proj₂ q))                              ≡⟨ cong (_,_ (proj₁ q)) $
+                                                                     Tactic.prove (Trans srq (Trans (Sym srq) q₂))
+                                                                                  (Trans (Trans srq (Sym srq)) q₂)
+                                                                                  (refl _) ⟩
+       (proj₁ q , trans (trans      (subst-refl P (proj₁ q))
+                               (sym (subst-refl P (proj₁ q))))
+                        (proj₂ q))                              ≡⟨ cong (λ eq → proj₁ q , trans eq (proj₂ q)) $ G.left-inverse _ ⟩
+       (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ Tactic.prove (Trans Refl q₂) q₂ (refl _) ⟩∎
+       q                                                        ∎)

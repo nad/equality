@@ -111,42 +111,6 @@ abstract
     subst P (from A≈B) p    ∎
     where open _≈_ (≡≈≈ univ)
 
-  -- The function subst is a weak equivalence family.
-  --
-  -- Note that this proof would be easier if subst P (refl x) p
-  -- reduced to p.
-
-  subst-is-weak-equivalence :
-    ∀ (P : Set → Set) {A B} (A≡B : A ≡ B) →
-    Is-weak-equivalence (subst P A≡B)
-  subst-is-weak-equivalence P = elim
-    (λ {A B} A≡B → Is-weak-equivalence (subst P A≡B))
-    (λ A p → _ , λ q →
-       let srq = Lift (subst-refl P (proj₁ q))
-           q₂  = Lift (proj₂ q)
-       in
-       (p , subst-refl P p)                                     ≡⟨ elim
-                                                                     (λ {u v : P A} u≡v →
-                                                                        _≡_ {A = ∃ λ (x : P A) → subst P (refl A) x ≡ v}
-                                                                            (v , subst-refl P v)
-                                                                            (u , trans (subst-refl P u) u≡v))
-                                                                     (λ p → cong (_,_ p) (let srp = Lift (subst-refl P p) in
-                                                                              Tactic.prove srp (Trans srp Refl) (refl _)))
-                                                                     (proj₁ q                     ≡⟨ sym $ subst-refl P (proj₁ q) ⟩
-                                                                      subst P (refl A) (proj₁ q)  ≡⟨ proj₂ q ⟩∎
-                                                                      p                           ∎) ⟩
-       (proj₁ q , (trans      (subst-refl P (proj₁ q))  $
-                   trans (sym (subst-refl P (proj₁ q))) $
-                         proj₂ q))                              ≡⟨ cong (_,_ (proj₁ q)) $
-                                                                     Tactic.prove (Trans srq (Trans (Sym srq) q₂))
-                                                                                  (Trans (Trans srq (Sym srq)) q₂)
-                                                                                  (refl _) ⟩
-       (proj₁ q , trans (trans      (subst-refl P (proj₁ q))
-                               (sym (subst-refl P (proj₁ q))))
-                        (proj₂ q))                              ≡⟨ cong (λ eq → proj₁ q , trans eq (proj₂ q)) $ G.left-inverse _ ⟩
-       (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ Tactic.prove (Trans Refl q₂) q₂ (refl _) ⟩∎
-       q                                                        ∎)
-
   -- If the univalence axiom holds, then any "resp" function
   -- satisfying resp Weak.id p ≡ p is a weak equivalence family.
 
