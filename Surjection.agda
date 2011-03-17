@@ -7,8 +7,12 @@
 module Surjection where
 
 open import Equality
+import Equality.Groupoid as EG
+private module G {A : Set} = EG.Groupoid (EG.groupoid A)
+open import Equality.Tactic as Tactic
 open import Equivalence
   using (_⇔_; module _⇔_) renaming (_∘_ to _⊚_)
+open import Prelude using (_$_)
 
 infix 4 _↠_
 
@@ -61,3 +65,37 @@ finally-↠ : ∀ A B → A ↠ B → A ↠ B
 finally-↠ _ _ A↠B = A↠B
 
 syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩∎ B ∎
+
+-- A lemma relating surjections and equality.
+
+↠-≡ : ∀ {A B} (A↠B : A ↠ B) {x y : B} →
+      (_↠_.from A↠B x ≡ _↠_.from A↠B y) ↠ (x ≡ y)
+↠-≡ A↠B {x} {y} = record
+  { equivalence = record
+    { from = cong from
+    ; to   = λ from-x≡from-y →
+               x            ≡⟨ sym $ right-inverse-of _ ⟩
+               to (from x)  ≡⟨ cong to from-x≡from-y ⟩
+               to (from y)  ≡⟨ right-inverse-of _ ⟩∎
+               y            ∎
+    }
+  ; right-inverse-of = right-inverse-of′
+  }
+  where
+  open _↠_ A↠B
+
+  abstract
+    right-inverse-of′ = elim
+      (λ {x y} x≡y → trans (sym (right-inverse-of x)) (
+                       trans (cong to (cong from x≡y)) (
+                       right-inverse-of y)) ≡
+                     x≡y)
+      (λ x → trans (sym (right-inverse-of x)) (
+               trans (cong to (cong from (refl x))) (
+               right-inverse-of x))                                 ≡⟨ (let eq = Lift (right-inverse-of x) in
+                                                                        Tactic.prove (Trans (Sym eq)
+                                                                                            (Trans (Cong to (Cong from Refl)) eq))
+                                                                                     (Trans (Sym eq) eq)
+                                                                                     (refl _)) ⟩
+             trans (sym (right-inverse-of x)) (right-inverse-of x)  ≡⟨ G.right-inverse _ ⟩∎
+             refl x                                                 ∎)

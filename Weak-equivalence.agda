@@ -18,7 +18,7 @@ open import Equivalence hiding (id; _∘_; inverse)
 open import H-level as H
 open import H-level.Closure
 open import Preimage using (_⁻¹_)
-open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
+open import Prelude hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection hiding (id; _∘_)
 
 -- A function f is a weak equivalence if all preimages under f are
@@ -288,3 +288,44 @@ abstract
                         (proj₂ q))                              ≡⟨ cong (λ eq → proj₁ q , trans eq (proj₂ q)) $ G.left-inverse _ ⟩
        (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ Tactic.prove (Trans Refl q₂) q₂ (refl _) ⟩∎
        q                                                        ∎)
+
+-- Equalities are closed, in a strong sense, under applications of
+-- weak equivalences.
+
+≈-≡ : ∀ {A B} (A≈B : A ≈ B) {x y : A} →
+      let open _≈_ A≈B in
+      (to x ≡ to y) ≈ (x ≡ y)
+≈-≡ A≈B {x} {y} =
+  bijection⇒weak-equivalence record
+    { surjection      = Surjection.↠-≡ $
+                        _↔_.surjection $
+                        Bijection.inverse $
+                        _≈_.bijection A≈B
+    ; left-inverse-of = left-inverse-of′
+    }
+    where
+    open _≈_ A≈B
+
+    abstract
+      left-inverse-of′ = λ to-x≡to-y →
+        cong to (
+          trans (sym (left-inverse-of x)) $
+          trans (cong from to-x≡to-y) $
+          left-inverse-of y)                         ≡⟨ Tactic.prove (Cong to (Trans (Sym (Lift (left-inverse-of x)))
+                                                                               (Trans (Cong from (Lift to-x≡to-y))
+                                                                               (Lift (left-inverse-of y)))))
+                                                                     (Trans (Sym (Cong to (Lift (left-inverse-of x))))
+                                                                      (Trans (Cong to (Cong from (Lift to-x≡to-y)))
+                                                                      (Cong to (Lift (left-inverse-of y)))))
+                                                                     (refl _) ⟩
+        trans (sym (cong to (left-inverse-of x))) (
+          trans (cong to (cong from to-x≡to-y)) (
+          cong to (left-inverse-of y)))              ≡⟨ cong₂ (λ eq₁ eq₂ → trans (sym eq₁) $
+                                                                           trans (cong to (cong from to-x≡to-y)) $
+                                                                           eq₂)
+                                                             (left-right-lemma x)
+                                                             (left-right-lemma y) ⟩
+        trans (sym (right-inverse-of (to x))) (
+          trans (cong to (cong from to-x≡to-y)) (
+          right-inverse-of (to y)))                  ≡⟨ _↠_.right-inverse-of (Surjection.↠-≡ $ _≈_.surjection A≈B) to-x≡to-y ⟩∎
+        to-x≡to-y                                    ∎
