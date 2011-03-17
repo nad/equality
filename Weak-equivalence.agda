@@ -155,16 +155,30 @@ f ∘ g =
 
 -- Equational reasoning combinators.
 
-infix  2 finally-≈
-infixr 2 _≈⟨_⟩_
+infix  2 finally-≈ finally-≈↔ finally-↔≈
+infixr 2 _≈⟨_⟩_ _≈↔⟨_⟩_ _↔≈⟨_⟩_
 
 _≈⟨_⟩_ : ∀ A {B C} → A ≈ B → B ≈ C → A ≈ C
 _ ≈⟨ A≈B ⟩ B≈C = B≈C ∘ A≈B
 
+_≈↔⟨_⟩_ : ∀ A {B C} → A ↔ B → B ≈ C → A ≈ C
+A ≈↔⟨ A↔B ⟩ B≈C = A ≈⟨ bijection⇒weak-equivalence A↔B ⟩ B≈C
+
+_↔≈⟨_⟩_ : ∀ A {B C} → A ≈ B → B ↔ C → A ↔ C
+A ↔≈⟨ A≈B ⟩ B↔C = A ↔⟨ _≈_.bijection A≈B ⟩ B↔C
+
 finally-≈ : ∀ A B → A ≈ B → A ≈ B
 finally-≈ _ _ A≈B = A≈B
 
-syntax finally-≈ A B A≈B = A ≈⟨ A≈B ⟩∎ B ∎
+finally-≈↔ : ∀ A B → A ↔ B → A ≈ B
+finally-≈↔ _ _ A↔B = bijection⇒weak-equivalence A↔B
+
+finally-↔≈ : ∀ A B → A ≈ B → A ↔ B
+finally-↔≈ _ _ A≈B = _≈_.bijection A≈B
+
+syntax finally-≈  A B A≈B = A  ≈⟨ A≈B ⟩∎ B ∎
+syntax finally-≈↔ A B A≈B = A ≈↔⟨ A≈B ⟩∎ B ∎
+syntax finally-↔≈ A B A≈B = A ↔≈⟨ A≈B ⟩∎ B ∎
 
 abstract
 
