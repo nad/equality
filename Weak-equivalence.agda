@@ -441,3 +441,63 @@ abstract
          from (B₁≈B₂ _) (to (B₁≈B₂ _) (proj₂ p))                    ≡⟨ left-inverse-of (B₁≈B₂ _) _ ⟩∎
          proj₂ p ∎)
       )
+
+-- Π preserves weak equivalence (assuming extensionality).
+
+Π-preserves : (∀ {A B} → Extensionality A B) →
+              ∀ {A₁ A₂} {B₁ : A₁ → Set} {B₂ : A₂ → Set} →
+              (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
+              ((x : A₁) → B₁ x) ≈ ((x : A₂) → B₂ x)
+Π-preserves ext {B₁ = B₁} {B₂} A₁≈A₂ B₁≈B₂ =
+  bijection⇒weak-equivalence record
+    { surjection = record
+      { equivalence = record
+        { to   = λ f x → subst B₂ (right-inverse-of A₁≈A₂ x)
+                               (to (B₁≈B₂ (from A₁≈A₂ x))
+                                   (f (from A₁≈A₂ x)))
+        ; from = λ f x → from (B₁≈B₂ x) (f (to A₁≈A₂ x))
+        }
+      ; right-inverse-of = right-inverse-of′
+      }
+    ; left-inverse-of = left-inverse-of′
+    }
+  where
+  open _≈_
+
+  abstract
+    right-inverse-of′ = λ f → ext λ x →
+      subst B₂ (right-inverse-of A₁≈A₂ x)
+            (to (B₁≈B₂ (from A₁≈A₂ x))
+                (from (B₁≈B₂ (from A₁≈A₂ x))
+                      (f (to A₁≈A₂ (from A₁≈A₂ x)))))  ≡⟨ cong (subst B₂ (right-inverse-of A₁≈A₂ x)) $
+                                                               right-inverse-of (B₁≈B₂ _) _ ⟩
+      subst B₂ (right-inverse-of A₁≈A₂ x)
+            (f (to A₁≈A₂ (from A₁≈A₂ x)))              ≡⟨ elim (λ {x y} x≡y → subst B₂ x≡y (f x) ≡ f y)
+                                                               (λ x → subst-refl B₂ (f x))
+                                                               (right-inverse-of A₁≈A₂ x) ⟩∎
+      f x                                              ∎
+
+    left-inverse-of′ = λ f → ext λ x →
+      from (B₁≈B₂ x)
+           (subst B₂ (right-inverse-of A₁≈A₂ (to A₁≈A₂ x))
+                  (to (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))
+                      (f (from A₁≈A₂ (to A₁≈A₂ x)))))             ≡⟨ cong (λ eq → from (B₁≈B₂ x)
+                                                                                    (subst B₂ eq
+                                                                                       (to (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))
+                                                                                          (f (from A₁≈A₂ (to A₁≈A₂ x))))))
+                                                                          (sym $ left-right-lemma A₁≈A₂ x) ⟩
+      from (B₁≈B₂ x)
+           (subst B₂ (cong (to A₁≈A₂) (left-inverse-of A₁≈A₂ x))
+                  (to (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))
+                      (f (from A₁≈A₂ (to A₁≈A₂ x)))))             ≡⟨ sym $ push-subst B₂ (λ x y → from (B₁≈B₂ x) y)
+                                                                                      (left-inverse-of A₁≈A₂ x) ⟩
+      subst B₁ (left-inverse-of A₁≈A₂ x)
+            (from (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))
+                  (to (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))
+                      (f (from A₁≈A₂ (to A₁≈A₂ x)))))             ≡⟨ cong (subst B₁ (left-inverse-of A₁≈A₂ x)) $
+                                                                       left-inverse-of (B₁≈B₂ _) _ ⟩
+      subst B₁ (left-inverse-of A₁≈A₂ x)
+            (f (from A₁≈A₂ (to A₁≈A₂ x)))                         ≡⟨ elim (λ {x y} x≡y → subst B₁ x≡y (f x) ≡ f y)
+                                                                          (λ x → subst-refl B₁ (f x))
+                                                                          (left-inverse-of A₁≈A₂ x) ⟩∎
+      f x                                                         ∎
