@@ -179,7 +179,19 @@ A × B = Σ A (const B)
           {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q} →
         (f : A → B) → (∀ {x} → P x → Q (f x)) →
         Σ A P → Σ B Q
-Σ-map f g (x , y) = (f x , g y)
+Σ-map f g = λ p → (f (proj₁ p) , g (proj₂ p))
+
+-- Curry and uncurry.
+
+curry : ∀ {a b c} {A : Set a} {B : A → Set b} {C : Σ A B → Set c} →
+        ((p : Σ A B) → C p) →
+        ((x : A) (y : B x) → C (x , y))
+curry f x y = f (x , y)
+
+uncurry : ∀ {a b c} {A : Set a} {B : A → Set b} {C : Σ A B → Set c} →
+          ((x : A) (y : B x) → C (x , y)) →
+          ((p : Σ A B) → C p)
+uncurry f (x , y) = f x y
 
 ------------------------------------------------------------------------
 -- W-types
