@@ -7,10 +7,13 @@
 -- Following a proof by Michael Hedberg ("A coherence theorem for
 -- Martin-Löf's type theory", JFP 1998).
 
-module Equality.Decidable-UIP where
-
 open import Equality
-open import Equality.Groupoid
+
+module Equality.Decidable-UIP
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+open Derived-definitions-and-properties eq
+import Equality.Groupoid as Groupoid; open Groupoid eq
 open import Prelude
 
 -- Constant functions.

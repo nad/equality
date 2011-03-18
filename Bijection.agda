@@ -4,11 +4,17 @@
 
 {-# OPTIONS --without-K #-}
 
-module Bijection where
-
 open import Equality
+
+module Bijection
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+open Derived-definitions-and-properties eq
 import Equivalence
-open import Surjection using (_↠_; module _↠_)
+private
+  module Surjection where
+    import Surjection; open Surjection eq public
+open Surjection using (_↠_; module _↠_)
 
 infix 4 _↔_
 

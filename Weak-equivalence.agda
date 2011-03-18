@@ -7,19 +7,34 @@
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
 
-module Weak-equivalence where
-
-open import Bijection hiding (id; _∘_; inverse)
 open import Equality
-open import Equality.Groupoid as EG hiding (groupoid)
-private module G {A : Set} = EG.Groupoid (EG.groupoid A)
-import Equality.Tactic as Tactic; open Tactic.Eq
+
+module Weak-equivalence
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+private
+  module Bijection where
+    import Bijection; open Bijection eq public
+open Bijection hiding (id; _∘_; inverse)
+open Derived-definitions-and-properties eq
+import Equality.Groupoid as EG; open EG eq hiding (groupoid)
+private module G {A : Set} = Groupoid (EG.groupoid eq A)
+import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence hiding (id; _∘_; inverse)
-open import H-level as H
-open import H-level.Closure
-open import Preimage using (_⁻¹_)
+private
+  module H-level where
+    import H-level; open H-level eq public
+open H-level
+import H-level.Closure; open H-level.Closure eq
+private
+  module Preimage where
+    import Preimage; open Preimage eq public
+open Preimage using (_⁻¹_)
 open import Prelude hiding (id) renaming (_∘_ to _⊚_)
-open import Surjection using (_↠_)
+private
+  module Surjection where
+    import Surjection; open Surjection eq public
+open Surjection using (_↠_; module _↠_)
 
 ------------------------------------------------------------------------
 -- Is-weak-equivalence
@@ -48,7 +63,7 @@ respects-extensional-equality :
   (∀ x → f x ≡ g x) →
   Is-weak-equivalence f → Is-weak-equivalence g
 respects-extensional-equality f≡g f-weq = λ b →
-  H.respects-surjection
+  H-level.respects-surjection
     (_↔_.surjection (Preimage.respects-extensional-equality f≡g))
     0
     (f-weq b)
@@ -75,20 +90,20 @@ abstract
                                                                             (v , subst-refl P v)
                                                                             (u , trans (subst-refl P u) u≡v))
                                                                      (λ p → cong (_,_ p) (let srp = Lift (subst-refl P p) in
-                                                                              Tactic.prove srp (Trans srp Refl) (refl _)))
+                                                                              prove srp (Trans srp Refl) (refl _)))
                                                                      (proj₁ q                     ≡⟨ sym $ subst-refl P (proj₁ q) ⟩
                                                                       subst P (refl x) (proj₁ q)  ≡⟨ proj₂ q ⟩∎
                                                                       p                           ∎) ⟩
        (proj₁ q , (trans      (subst-refl P (proj₁ q))  $
                    trans (sym (subst-refl P (proj₁ q))) $
                          proj₂ q))                              ≡⟨ cong (_,_ (proj₁ q)) $
-                                                                     Tactic.prove (Trans srq (Trans (Sym srq) q₂))
-                                                                                  (Trans (Trans srq (Sym srq)) q₂)
-                                                                                  (refl _) ⟩
+                                                                     prove (Trans srq (Trans (Sym srq) q₂))
+                                                                           (Trans (Trans srq (Sym srq)) q₂)
+                                                                           (refl _) ⟩
        (proj₁ q , trans (trans      (subst-refl P (proj₁ q))
                                (sym (subst-refl P (proj₁ q))))
                         (proj₂ q))                              ≡⟨ cong (λ eq → proj₁ q , trans eq (proj₂ q)) $ G.left-inverse _ ⟩
-       (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ Tactic.prove (Trans Refl q₂) q₂ (refl _) ⟩∎
+       (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ prove (Trans Refl q₂) q₂ (refl _) ⟩∎
        q                                                        ∎)
 
 ------------------------------------------------------------------------
@@ -151,9 +166,9 @@ record _≈_ (A B : Set) : Set where
         (λ {x y} p → ∀ q → refl (f y) ≡ trans (cong f (sym p)) q →
                            cong f p ≡ q)
         (λ x q hyp →
-           cong f (refl x)                  ≡⟨ Tactic.prove (Cong f Refl) Refl (refl _) ⟩
+           cong f (refl x)                  ≡⟨ prove (Cong f Refl) Refl (refl _) ⟩
            refl (f x)                       ≡⟨ hyp ⟩
-           trans (cong f (sym (refl x))) q  ≡⟨ Tactic.prove (Trans (Cong f (Sym Refl)) (Lift q)) (Lift q) (refl _) ⟩∎
+           trans (cong f (sym (refl x))) q  ≡⟨ prove (Trans (Cong f (Sym Refl)) (Lift q)) (Lift q) (refl _) ⟩∎
            q                                ∎)
 
       lemma₂ : ∀ {A B} {f : A → B} {y} {f⁻¹y₁ f⁻¹y₂ : f ⁻¹ y}
@@ -165,7 +180,7 @@ record _≈_ (A B : Set) : Set where
            proj₂ f⁻¹y₂ ≡
            trans (cong f (sym (cong proj₁ p))) (proj₂ f⁻¹y₁))
         (λ f⁻¹y →
-           Tactic.prove
+           prove
              (Lift (proj₂ f⁻¹y))
              (Trans (Cong f (Sym (Cong proj₁ Refl)))
                     (Lift (proj₂ f⁻¹y)))
@@ -296,7 +311,7 @@ abstract
     (∀ {A B} → Extensionality A B) →
     ∀ {A B} n → H-level (1 + n) B → H-level (1 + n) (A ≈ B)
   right-closure ext {A} {B} n h =
-    H.respects-surjection surj (1 + n) lemma
+    H-level.respects-surjection surj (1 + n) lemma
     where
     lemma : H-level (1 + n) (∃ λ (to : A → B) → Is-weak-equivalence to)
     lemma = Σ-closure (1 + n)
@@ -316,9 +331,9 @@ abstract
     (∀ {A B} → Extensionality A B) →
     ∀ {A B} n → H-level (1 + n) A → H-level (1 + n) (A ≈ B)
   left-closure ext {A} {B} n h =
-    H.[inhabited⇒+]⇒+ n λ (A≈B : A ≈ B) →
+    H-level.[inhabited⇒+]⇒+ n λ (A≈B : A ≈ B) →
       right-closure ext n $
-        H.respects-surjection (_≈_.surjection A≈B) (1 + n) h
+        H-level.respects-surjection (_≈_.surjection A≈B) (1 + n) h
 
 -- Equalities are closed, in a strong sense, under applications of
 -- weak equivalences.
@@ -342,13 +357,13 @@ abstract
       cong to (
         trans (sym (left-inverse-of x)) $
         trans (cong from to-x≡to-y) $
-        left-inverse-of y)                         ≡⟨ Tactic.prove (Cong to (Trans (Sym (Lift (left-inverse-of x)))
-                                                                             (Trans (Cong from (Lift to-x≡to-y))
-                                                                             (Lift (left-inverse-of y)))))
-                                                                   (Trans (Sym (Cong to (Lift (left-inverse-of x))))
-                                                                    (Trans (Cong to (Cong from (Lift to-x≡to-y)))
-                                                                    (Cong to (Lift (left-inverse-of y)))))
-                                                                   (refl _) ⟩
+        left-inverse-of y)                         ≡⟨ prove (Cong to (Trans (Sym (Lift (left-inverse-of x)))
+                                                                      (Trans (Cong from (Lift to-x≡to-y))
+                                                                      (Lift (left-inverse-of y)))))
+                                                            (Trans (Sym (Cong to (Lift (left-inverse-of x))))
+                                                             (Trans (Cong to (Cong from (Lift to-x≡to-y)))
+                                                             (Cong to (Lift (left-inverse-of y)))))
+                                                            (refl _) ⟩
       trans (sym (cong to (left-inverse-of x))) (
         trans (cong to (cong from to-x≡to-y)) (
         cong to (left-inverse-of y)))              ≡⟨ cong₂ (λ eq₁ eq₂ → trans (sym eq₁) $

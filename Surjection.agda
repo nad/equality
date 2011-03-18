@@ -4,12 +4,15 @@
 
 {-# OPTIONS --without-K #-}
 
-module Surjection where
-
 open import Equality
+
+module Surjection
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+open Derived-definitions-and-properties eq
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid (EG.groupoid A)
-open import Equality.Tactic as Tactic
+private module G {A : Set} = EG.Groupoid eq (EG.groupoid eq A)
+import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence
   using (_⇔_; module _⇔_) renaming (_∘_ to _⊚_)
 open import Prelude as P hiding (id; _∘_)
@@ -110,9 +113,8 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩∎ B ∎
       (λ x → trans (sym (right-inverse-of x)) (
                trans (cong to (cong from (refl x))) (
                right-inverse-of x))                                 ≡⟨ (let eq = Lift (right-inverse-of x) in
-                                                                        Tactic.prove (Trans (Sym eq)
-                                                                                            (Trans (Cong to (Cong from Refl)) eq))
-                                                                                     (Trans (Sym eq) eq)
-                                                                                     (refl _)) ⟩
+                                                                        prove (Trans (Sym eq) (Trans (Cong to (Cong from Refl)) eq))
+                                                                              (Trans (Sym eq) eq)
+                                                                              (refl _)) ⟩
              trans (sym (right-inverse-of x)) (right-inverse-of x)  ≡⟨ G.right-inverse _ ⟩∎
              refl x                                                 ∎)

@@ -7,17 +7,22 @@
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
 
-module H-level where
-
-open import Bijection hiding (id; _∘_)
 open import Equality
-import Equality.Decidable-UIP as DUIP
+
+module H-level
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+import Bijection; open Bijection eq hiding (id; _∘_)
+open Derived-definitions-and-properties eq
+private
+  module DUIP where
+    import Equality.Decidable-UIP as DUIP; open DUIP eq public
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid (EG.groupoid A)
-import Equality.Tactic as Tactic; open Tactic.Eq
+private module G {A : Set} = EG.Groupoid eq (EG.groupoid eq A)
+import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence hiding (id; _∘_)
 open import Prelude
-open import Surjection hiding (id; _∘_)
+import Surjection; open Surjection eq hiding (id; _∘_)
 
 ------------------------------------------------------------------------
 -- H-levels
@@ -148,11 +153,11 @@ respects-surjection A↠B (suc n) h = rs
           let riox = right-inverse-of x in
           (trans (sym riox) $
            trans (cong to $ cong from $ refl x) $
-           riox)                                   ≡⟨ Tactic.prove (Trans (Sym (Lift riox)) $
-                                                                    Trans (Cong to (Cong from Refl))
-                                                                          (Lift riox))
-                                                                   (Trans (Sym (Lift riox)) (Lift riox))
-                                                                   (refl _) ⟩
+           riox)                                   ≡⟨ prove (Trans (Sym (Lift riox)) $
+                                                             Trans (Cong to (Cong from Refl))
+                                                                   (Lift riox))
+                                                            (Trans (Sym (Lift riox)) (Lift riox))
+                                                            (refl _) ⟩
           trans (sym riox) riox                    ≡⟨ G.right-inverse _ ⟩∎
           refl x                                   ∎)
       }

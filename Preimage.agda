@@ -7,16 +7,25 @@
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
 
-module Preimage where
-
-open import Bijection hiding (id; _∘_)
 open import Equality
+
+module Preimage
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+private
+  module Bijection where
+    import Bijection; open Bijection eq public
+open Bijection hiding (id; _∘_)
+open Derived-definitions-and-properties eq
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid (EG.groupoid A)
-import Equality.Tactic as Tactic; open Tactic.Eq
-open import H-level
+private module G {A : Set} = EG.Groupoid eq (EG.groupoid eq A)
+import Equality.Tactic as Tactic; open Tactic eq
+private
+  module H-level where
+    import H-level; open H-level eq public
+open H-level
 open import Prelude
-open import Surjection hiding (id; _∘_)
+import Surjection; open Surjection eq hiding (id; _∘_)
 
 -- The preimage of y under f is denoted by f ⁻¹ y.
 
@@ -60,20 +69,20 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
 
     right-inverse-of = λ g⁻¹y → cong (_,_ (proj₁ g⁻¹y)) (
       let p = f≡g (proj₁ g⁻¹y); q = proj₂ g⁻¹y in
-      trans (sym p) (trans p q)  ≡⟨ Tactic.prove (Trans (Sym (Lift p)) (Trans (Lift p) (Lift q)))
-                                                 (Trans (Trans (Sym (Lift p)) (Lift p)) (Lift q))
-                                                 (refl _) ⟩
+      trans (sym p) (trans p q)  ≡⟨ prove (Trans (Sym (Lift p)) (Trans (Lift p) (Lift q)))
+                                          (Trans (Trans (Sym (Lift p)) (Lift p)) (Lift q))
+                                          (refl _) ⟩
       trans (trans (sym p) p) q  ≡⟨ cong (λ p → trans p q) (G.right-inverse _) ⟩
-      trans (refl _) q           ≡⟨ Tactic.prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
+      trans (refl _) q           ≡⟨ prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
       q                          ∎)
 
     left-inverse-of = λ f⁻¹y → cong (_,_ (proj₁ f⁻¹y))
       let p = f≡g (proj₁ f⁻¹y); q = proj₂ f⁻¹y in
-      trans p (trans (sym p) q)  ≡⟨ Tactic.prove (Trans (Lift p) (Trans (Sym (Lift p)) (Lift q)))
-                                                 (Trans (Trans (Lift p) (Sym (Lift p))) (Lift q))
-                                                 (refl _) ⟩
+      trans p (trans (sym p) q)  ≡⟨ prove (Trans (Lift p) (Trans (Sym (Lift p)) (Lift q)))
+                                          (Trans (Trans (Lift p) (Sym (Lift p))) (Lift q))
+                                          (refl _) ⟩
       trans (trans p (sym p)) q  ≡⟨ cong (λ p → trans p q) (G.left-inverse _) ⟩
-      trans (refl _) q           ≡⟨ Tactic.prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
+      trans (refl _) q           ≡⟨ prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
       q                          ∎
 
 -- Surjections can be lifted to preimages.
@@ -125,9 +134,9 @@ lift-surjection A↠B {y} = record
       lemma {z = z} {f} = elim
         (λ {y x} y≡x → (p : f x ≡ z) →
            _≡_ {A = f ⁻¹ z} (x , p) (y , trans (cong f y≡x) p))
-        (λ x p → cong (_,_ x) (Tactic.prove (Lift p)
-                                            (Trans (Cong f Refl) (Lift p))
-                                            (refl _)))
+        (λ x p → cong (_,_ x) (prove (Lift p)
+                                     (Trans (Cong f Refl) (Lift p))
+                                     (refl _)))
 
 -- A consequence of the lemmas above is that preimages under a
 -- bijection are contractible.

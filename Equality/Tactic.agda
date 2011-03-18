@@ -4,9 +4,12 @@
 
 {-# OPTIONS --without-K #-}
 
-module Equality.Tactic where
-
 open import Equality
+
+module Equality.Tactic
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+open Derived-definitions-and-properties eq
 open import Prelude hiding (Level; module Level)
 
 ------------------------------------------------------------------------

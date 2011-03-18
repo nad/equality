@@ -16,14 +16,19 @@ import Prelude
 
 import Equivalence
 
--- Two equivalent axiomatisations of equality.
-
-import Equality.Axiomatisations
-
--- Propositional equality, defined with an abstract (non-computing)
--- eliminator.
+-- Two equivalent axiomatisations of equality. Most of the modules
+-- below are parametrised by a definition of equality which satisfies
+-- these axioms. The reason for this parametrisation is that I might
+-- later want to use a definition of equality where the application
+-- elim P r (refl x) does not compute to r x, unlike the equality in
+-- Equality.Propositional. (Equality.Tactic also contains a definition
+-- of equality which, roughly speaking, computes in this way.)
 
 import Equality
+
+-- One model of the axioms: propositional equality.
+
+import Equality.Propositional
 
 -- Some decision procedures for equality.
 
@@ -33,7 +38,7 @@ import Equality.Decision-procedures
 
 import Equality.Tactic
 
--- The equality can be turned into a groupoid which is sometimes
+-- Equalities can be turned into groupoids which are sometimes
 -- commutative.
 
 import Equality.Groupoid

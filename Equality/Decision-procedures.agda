@@ -4,10 +4,13 @@
 
 {-# OPTIONS --without-K #-}
 
-module Equality.Decision-procedures where
-
-open import Prelude
 open import Equality
+
+module Equality.Decision-procedures
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+open Derived-definitions-and-properties eq
+open import Prelude
 
 -- The values true and false are distinct.
 

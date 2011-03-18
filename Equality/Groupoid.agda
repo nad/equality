@@ -5,10 +5,13 @@
 
 {-# OPTIONS --without-K --universe-polymorphism #-}
 
-module Equality.Groupoid where
-
 open import Equality
-open import Equality.Tactic
+
+module Equality.Groupoid
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+open Derived-definitions-and-properties eq
+import Equality.Tactic as Tactic; open Tactic eq
 open import Prelude hiding (id; _∘_)
 
 ------------------------------------------------------------------------

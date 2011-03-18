@@ -7,19 +7,30 @@
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
 
-module H-level.Closure where
-
-open import Bijection hiding (id; _∘_)
 open import Equality
-import Equality.Decidable-UIP as DUIP
-open import Equality.Decision-procedures
+
+module H-level.Closure
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+private
+  module Bijection where
+    import Bijection; open Bijection eq public
+open Bijection hiding (id; _∘_)
+open Derived-definitions-and-properties eq
+private
+  module DUIP where
+    import Equality.Decidable-UIP as DUIP; open DUIP eq public
+import Equality.Decision-procedures as ED; open ED eq
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid (EG.groupoid A)
-import Equality.Tactic as Tactic; open Tactic.Eq
+private module G {A : Set} = EG.Groupoid eq (EG.groupoid eq A)
+import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence hiding (id; _∘_)
-open import H-level
+import H-level; open H-level eq
 open import Prelude
-open import Surjection hiding (id; _∘_)
+private
+  module Surjection where
+    import Surjection; open Surjection eq public
+open Surjection hiding (id; _∘_)
 
 ------------------------------------------------------------------------
 -- The unit type
@@ -138,7 +149,7 @@ abstract
     ; right-inverse-of =
         elim (λ {f g} f≡g → to (from f≡g) ≡ f≡g) λ h →
           proj₁ ext′ (from (refl h))  ≡⟨ cong (proj₁ ext′) (proj₁ ext′ λ x →
-                                           Tactic.prove (Cong (λ h → h x) (Refl {x = h})) Refl (refl _)) ⟩
+                                           prove (Cong (λ h → h x) (Refl {x = h})) Refl (refl _)) ⟩
           proj₁ ext′ (refl ∘ h)       ≡⟨ proj₂ ext′ h ⟩∎
           refl h                      ∎
     }
@@ -226,13 +237,13 @@ abstract
           from (cong (_,_ x) (refl y))                ≡⟨ cong from $ cong-refl (_,_ x) ⟩
           from (refl (x , y))                         ≡⟨ elim-refl from-P _ ⟩
           (refl x , lem)                              ≡⟨ cong (_,_ (refl x)) (
-             lem                                           ≡⟨ Tactic.prove (Lift lem) (Trans (Lift lem) Refl) (refl _) ⟩
+             lem                                           ≡⟨ prove (Lift lem) (Trans (Lift lem) Refl) (refl _) ⟩
              trans lem (refl _)                            ≡⟨ cong (trans lem) eq ⟩
-             trans lem (trans (sym lem) y′≡y)              ≡⟨ Tactic.prove (Trans (Lift lem) (Trans (Sym (Lift lem)) (Lift y′≡y)))
-                                                                           (Trans (Trans (Lift lem) (Sym (Lift lem))) (Lift y′≡y))
-                                                                           (refl _) ⟩
+             trans lem (trans (sym lem) y′≡y)              ≡⟨ prove (Trans (Lift lem) (Trans (Sym (Lift lem)) (Lift y′≡y)))
+                                                                    (Trans (Trans (Lift lem) (Sym (Lift lem))) (Lift y′≡y))
+                                                                    (refl _) ⟩
              trans (trans lem (sym lem)) y′≡y              ≡⟨ cong (λ p → trans p y′≡y) $ G.left-inverse lem ⟩
-             trans (refl _) y′≡y                           ≡⟨ Tactic.prove (Trans Refl (Lift y′≡y)) (Lift y′≡y) (refl _) ⟩∎
+             trans (refl _) y′≡y                           ≡⟨ prove (Trans Refl (Lift y′≡y)) (Lift y′≡y) (refl _) ⟩∎
              y′≡y                                          ∎) ⟩∎
           (refl x , y′≡y)                             ∎)
          (trans (sym $ subst-refl B y₁) y₁′≡y₂)
@@ -617,13 +628,13 @@ abstract
             ; from = drop-inj₁
             }
           ; right-inverse-of = λ ix≡iy →
-              cong inj₁ (drop-inj₁ ix≡iy)                  ≡⟨ Tactic.prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
-                                                                           (Cong f (Lift ix≡iy))
-                                                                           (refl _) ⟩
+              cong inj₁ (drop-inj₁ ix≡iy)                  ≡⟨ prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
+                                                                    (Cong f (Lift ix≡iy))
+                                                                    (refl _) ⟩
               cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
-              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ Tactic.prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
-                                                                           (Lift ix≡iy)
-                                                                           (refl _) ⟩∎
+              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
+                                                                    (Lift ix≡iy)
+                                                                    (refl _) ⟩∎
               ix≡iy                                        ∎
           }
           where
@@ -644,13 +655,13 @@ abstract
             ; from = drop-inj₂
             }
           ; right-inverse-of = λ ix≡iy →
-              cong inj₂ (drop-inj₂ ix≡iy)                  ≡⟨ Tactic.prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
-                                                                           (Cong f (Lift ix≡iy))
-                                                                           (refl _) ⟩
+              cong inj₂ (drop-inj₂ ix≡iy)                  ≡⟨ prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
+                                                                    (Cong f (Lift ix≡iy))
+                                                                    (refl _) ⟩
               cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
-              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ Tactic.prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
-                                                                           (Lift ix≡iy)
-                                                                           (refl _) ⟩∎
+              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
+                                                                    (Lift ix≡iy)
+                                                                    (refl _) ⟩∎
               ix≡iy                                        ∎
           }
           where
@@ -700,10 +711,10 @@ abstract
             trans (f≡id px) (trans (refl x) $ sym (f≡id px′))
           helper x false px _ f≡id = ⊥-elim px
           helper x true  _  _ f≡id =
-            cong f (refl x)                                 ≡⟨ Tactic.prove (Cong f Refl) Refl (refl _) ⟩
+            cong f (refl x)                                 ≡⟨ prove (Cong f Refl) Refl (refl _) ⟩
             refl (f x)                                      ≡⟨ sym $ G.left-inverse _ ⟩
-            trans (f≡id _) (sym (f≡id _))                   ≡⟨ Tactic.prove (Trans fx≡x (Sym fx≡x))
-                                                                            (Trans fx≡x (Trans Refl (Sym fx≡x)))
-                                                                            (refl _) ⟩∎
+            trans (f≡id _) (sym (f≡id _))                   ≡⟨ prove (Trans fx≡x (Sym fx≡x))
+                                                                     (Trans fx≡x (Trans Refl (Sym fx≡x)))
+                                                                     (refl _) ⟩∎
             trans (f≡id _) (trans (refl x) $ sym (f≡id _))  ∎
             where fx≡x = Lift (f≡id _)

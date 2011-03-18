@@ -7,20 +7,24 @@
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
 
-module Univalence-axiom where
-
-open import Bijection hiding (_∘_; id)
 open import Equality
-open import Equality.Decision-procedures
-import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid (EG.groupoid A)
-import Equality.Tactic as Tactic; open Tactic.Eq
-open import Equivalence using (module _⇔_)
-open import H-level
-open import H-level.Closure
-import Preimage
+
+module Univalence-axiom
+  {reflexive} (eq : Equality-with-J reflexive) where
+
+private
+  module Bijection where
+    import Bijection; open Bijection eq public
+open Bijection hiding (id; _∘_)
+open Derived-definitions-and-properties eq
+import Equality.Decision-procedures as ED; open ED eq
+import H-level; open H-level eq
+import H-level.Closure; open H-level.Closure eq
 open import Prelude
-open import Weak-equivalence as Weak hiding (_∘_; id)
+private
+  module Weak where
+    import Weak-equivalence; open Weak-equivalence eq public
+open Weak hiding (_∘_; id)
 
 ------------------------------------------------------------------------
 -- The univalence axiom
