@@ -19,7 +19,7 @@ open import H-level as H
 open import H-level.Closure
 open import Preimage using (_⁻¹_)
 open import Prelude hiding (id) renaming (_∘_ to _⊚_)
-open import Surjection hiding (id; _∘_)
+open import Surjection using (_↠_)
 
 ------------------------------------------------------------------------
 -- Is-weak-equivalence
@@ -285,7 +285,7 @@ groupoid ext = record
     right-inverse p = lift-equality ext (_≈_.right-inverse-of p)
 
 ------------------------------------------------------------------------
--- Closure
+-- Closure, preservation
 
 abstract
 
@@ -360,3 +360,84 @@ abstract
         trans (cong to (cong from to-x≡to-y)) (
         right-inverse-of (to y)))                  ≡⟨ _↠_.right-inverse-of (Surjection.↠-≡ $ _≈_.surjection A≈B) to-x≡to-y ⟩∎
       to-x≡to-y                                    ∎
+
+abstract
+  private
+
+    -- We can push subst through certain function applications.
+
+    push-subst :
+      ∀ {A₁ A₂} (B₁ : A₁ → Set) {B₂ : A₂ → Set}
+        {f : A₂ → A₁} {x₁ x₂ : A₂} {y : B₁ (f x₁)}
+      (g : ∀ x → B₁ (f x) → B₂ x) (eq : x₁ ≡ x₂) →
+      subst B₂ eq (g x₁ y) ≡ g x₂ (subst B₁ (cong f eq) y)
+    push-subst B₁ {B₂} {f} g eq = elim
+      (λ {x₁ x₂} eq → ∀ y → subst B₂ eq (g x₁ y) ≡
+                            g x₂ (subst B₁ (cong f eq) y))
+      (λ x y → subst B₂ (refl x) (g x y)           ≡⟨ subst-refl B₂ _ ⟩
+               g x y                               ≡⟨ sym $ cong (g x) $ subst-refl B₁ _ ⟩
+               g x (subst B₁ (refl (f x)) y)       ≡⟨ cong (λ eq → g x (subst B₁ eq y)) (sym $ cong-refl f) ⟩∎
+               g x (subst B₁ (cong f (refl x)) y)  ∎)
+      eq _
+
+-- Σ preserves weak equivalence.
+
+Σ-preserves : ∀ {A₁ A₂ B₁ B₂}
+              (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
+              Σ A₁ B₁ ≈ Σ A₂ B₂
+Σ-preserves {B₁ = B₁} {B₂} A₁≈A₂ B₁≈B₂ =
+  bijection⇒weak-equivalence record
+    { surjection = record
+      { equivalence = record
+        { to   = Σ-map (to A₁≈A₂) (to (B₁≈B₂ _))
+        ; from =
+            Σ-map (from A₁≈A₂)
+                  (from (B₁≈B₂ (from A₁≈A₂ _)) ⊚
+                   subst B₂ (sym (right-inverse-of A₁≈A₂ _)))
+        }
+      ; right-inverse-of = right-inverse-of′
+      }
+    ; left-inverse-of = left-inverse-of′
+    }
+  where
+  open _≈_
+
+  abstract
+    right-inverse-of′ = λ p → _↔_.to Σ-≡,≡↔≡
+      ( right-inverse-of A₁≈A₂ (proj₁ p)
+      , (subst B₂ (right-inverse-of A₁≈A₂ (proj₁ p))
+           (to (B₁≈B₂ _) (from (B₁≈B₂ _)
+              (subst B₂ (sym (right-inverse-of A₁≈A₂ (proj₁ p)))
+                 (proj₂ p))))                                     ≡⟨ cong (subst B₂ _) $ right-inverse-of (B₁≈B₂ _) _ ⟩
+         subst B₂ (right-inverse-of A₁≈A₂ (proj₁ p))
+           (subst B₂ (sym (right-inverse-of A₁≈A₂ (proj₁ p)))
+              (proj₂ p))                                          ≡⟨ subst-subst-sym B₂ _ _ ⟩∎
+         proj₂ p ∎)
+      )
+
+    left-inverse-of′ = λ p → _↔_.to Σ-≡,≡↔≡
+      ( left-inverse-of A₁≈A₂ (proj₁ p)
+      , (subst B₁ (left-inverse-of A₁≈A₂ (proj₁ p))
+           (from (B₁≈B₂ _)
+              (subst B₂ (sym (right-inverse-of A₁≈A₂
+                                (to A₁≈A₂ (proj₁ p))))
+                 (to (B₁≈B₂ _) (proj₂ p))))                         ≡⟨ push-subst B₂ (λ x → from (B₁≈B₂ x))
+                                                                         (left-inverse-of A₁≈A₂ (proj₁ p)) ⟩
+         from (B₁≈B₂ _)
+           (subst B₂ (cong (to A₁≈A₂)
+                           (left-inverse-of A₁≈A₂ (proj₁ p)))
+              (subst B₂ (sym (right-inverse-of A₁≈A₂
+                                (to A₁≈A₂ (proj₁ p))))
+                 (to (B₁≈B₂ _) (proj₂ p))))                         ≡⟨ cong (λ eq → from (B₁≈B₂ _)
+                                                                                      (subst B₂ eq
+                                                                                         (subst B₂ (sym (right-inverse-of A₁≈A₂ _))
+                                                                                            (to (B₁≈B₂ _) (proj₂ p))))) $
+                                                                            left-right-lemma A₁≈A₂ _ ⟩
+         from (B₁≈B₂ _)
+           (subst B₂ (right-inverse-of A₁≈A₂ (to A₁≈A₂ (proj₁ p)))
+              (subst B₂ (sym (right-inverse-of A₁≈A₂
+                                (to A₁≈A₂ (proj₁ p))))
+                 (to (B₁≈B₂ _) (proj₂ p))))                         ≡⟨ cong (from (B₁≈B₂ _)) $ subst-subst-sym B₂ _ _ ⟩
+         from (B₁≈B₂ _) (to (B₁≈B₂ _) (proj₂ p))                    ≡⟨ left-inverse-of (B₁≈B₂ _) _ ⟩∎
+         proj₂ p ∎)
+      )
