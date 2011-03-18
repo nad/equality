@@ -56,6 +56,10 @@ import Surjection
 
 import Bijection
 
+-- All instances of the equality axioms are isomorphic.
+
+import Equality.Instances-isomorphic
+
 -- H-levels, along with some general properties.
 
 import H-level
