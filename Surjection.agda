@@ -12,7 +12,7 @@ private module G {A : Set} = EG.Groupoid (EG.groupoid A)
 open import Equality.Tactic as Tactic
 open import Equivalence
   using (_⇔_; module _⇔_) renaming (_∘_ to _⊚_)
-open import Prelude using (_$_)
+open import Prelude as P hiding (id; _∘_)
 
 infix 4 _↠_
 
@@ -65,6 +65,23 @@ finally-↠ : ∀ A B → A ↠ B → A ↠ B
 finally-↠ _ _ A↠B = A↠B
 
 syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩∎ B ∎
+
+-- Σ A preserves surjections.
+
+Σ-preserves : ∀ {A B₁ B₂} → (∀ x → B₁ x ↠ B₂ x) → Σ A B₁ ↠ Σ A B₂
+Σ-preserves {B₁ = B₁} {B₂} B₁↠B₂ = record
+  { equivalence = record
+    { to   = Σ-map P.id (to (B₁↠B₂ _))
+    ; from = Σ-map P.id (from (B₁↠B₂ _))
+    }
+  ; right-inverse-of = right-inverse-of′
+  }
+  where
+  open _↠_
+
+  abstract
+    right-inverse-of′ = λ p →
+      cong (_,_ _) (right-inverse-of (B₁↠B₂ _) _)
 
 -- A lemma relating surjections and equality.
 

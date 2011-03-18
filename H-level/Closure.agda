@@ -192,11 +192,11 @@ abstract
 
 -- Equality between pairs can be expressed as a pair of equalities.
 
-≡,≡↔≡ : ∀ {A B} {p₁ p₂ : Σ A B} →
-        (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-           subst B p (proj₂ p₁) ≡ proj₂ p₂) ↔
-        (p₁ ≡ p₂)
-≡,≡↔≡ {A} {B} = record
+Σ-≡,≡↔≡ : ∀ {A B} {p₁ p₂ : Σ A B} →
+          (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+             subst B p (proj₂ p₁) ≡ proj₂ p₂) ↔
+          (p₁ ≡ p₂)
+Σ-≡,≡↔≡ {A} {B} = record
   { surjection = record
     { equivalence = record
       { to   = to
@@ -282,7 +282,7 @@ abstract
        (proj₁ p , proj₁ (hB (proj₁ p)))  ≡⟨ cong (_,_ (proj₁ p)) (proj₂ (hB (proj₁ p)) (proj₂ p)) ⟩∎
        p                                 ∎)
   Σ-closure {A} {B} (suc n) hA hB = λ p₁ p₂ →
-    respects-surjection (_↔_.surjection ≡,≡↔≡) n $
+    respects-surjection (_↔_.surjection Σ-≡,≡↔≡) n $
       Σ-closure n (hA (proj₁ p₁) (proj₁ p₂))
         (λ pr₁p₁≡pr₁p₂ →
            hB (proj₁ p₂) (subst B pr₁p₁≡pr₁p₂ (proj₂ p₁)) (proj₂ p₂))
@@ -295,7 +295,56 @@ abstract
 ------------------------------------------------------------------------
 -- W-types
 
+-- W-types are isomorphic to Σ-types containing W-types.
+
+W-unfolding : ∀ {A B} → W A B ↔ ∃ λ (x : A) → B x → W A B
+W-unfolding = record
+  { surjection = record
+    { equivalence = record
+      { to   = λ w → head w , tail w
+      ; from = uncurry sup
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = left-inverse-of
+  }
+  where
+  left-inverse-of : (w : W _ _) → sup (head w) (tail w) ≡ w
+  left-inverse-of (sup x f) = refl (sup x f)
+
 abstract
+
+  -- Equality between elements of a W-type can be proved using a pair
+  -- of equalities (assuming extensionality).
+
+  W-≡,≡↠≡ : ∀ {A} {B : A → Set} →
+            (∀ {x C} → Extensionality (B x) C) →
+            ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
+            (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
+            (sup x f ≡ sup y g)
+  W-≡,≡↠≡ {A} {B} ext {x} {y} {f} {g} =
+    (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i))        ↠⟨ Surjection.Σ-preserves lemma ⟩
+    (∃ λ (p : x ≡ y) → subst (λ x → B x → W A B) p f ≡ g)  ↠⟨ _↔_.surjection Σ-≡,≡↔≡ ⟩
+    (_≡_ {A = ∃ λ (x : A) → B x → W A B} (x , f) (y , g))  ↠⟨ ↠-≡ $ _↔_.surjection $ Bijection.inverse W-unfolding ⟩∎
+    (sup x f ≡ sup y g)                                    ∎
+    where
+    lemma : (p : x ≡ y) →
+            (∀ i → f i ≡ g (subst B p i)) ↠
+            (subst (λ x → B x → W A B) p f ≡ g)
+    lemma p = elim
+      (λ {x y} p → (f : B x → W A B) (g : B y → W A B) →
+                   (∀ i → f i ≡ g (subst B p i)) ↠
+                   (subst (λ x → B x → W A B) p f ≡ g))
+      (λ x f g →
+         (∀ i → f i ≡ g (subst B (refl x) i))        ↠⟨ subst (λ h → (∀ i → f i ≡ g (h i)) ↠ (∀ i → f i ≡ g i))
+                                                              (sym $ ext $ subst-refl B)
+                                                              Surjection.id ⟩
+         (∀ i → f i ≡ g i)                           ↠⟨ ext-surj ext ⟩
+         (f ≡ g)                                     ↠⟨ subst (λ h → (f ≡ g) ↠ (h ≡ g))
+                                                              (sym $ subst-refl (λ x' → B x' → W A B) f)
+                                                              Surjection.id ⟩∎
+         (subst (λ x → B x → W A B) (refl x) f ≡ g)  ∎)
+      p f g
 
   -- H-level is not closed under W.
 
@@ -313,103 +362,20 @@ abstract
        H-level n A → (∀ x → H-level n (B x)) → H-level n (W A B))
   ¬-W-closure closure = ¬-W-closure-contractible (closure 0)
 
-  -- However, Propositional is closed under W, assuming that equality
-  -- is sufficiently extensional.
-
-  W-closure-propositional :
-    ∀ {A B} → (∀ {x} → Extensionality (B x) (λ _ → W A B)) →
-    Propositional A → Propositional (W A B)
-  W-closure-propositional {A} {B} ext pA =
-    _⇔_.from propositional⇔irrelevant irrelevant
-    where
-    irrelevant : Proof-irrelevant (W A B)
-    irrelevant (sup x f) (sup y g) =
-      sup x f                               ≡⟨ elim (λ {y x} y≡x → (f : B x → W A B) →
-                                                       sup x f ≡ sup y (f ∘ subst B y≡x))
-                                                    (λ z h → cong (sup z) (ext λ i →
-                                                               cong h (sym $ subst-refl B i)))
-                                                    (proj₁ $ pA y x) f ⟩
-      sup y (f ∘ subst B (proj₁ $ pA y x))  ≡⟨ cong (sup y) (ext λ i → irrelevant (f _) (g i)) ⟩∎
-      sup y g                               ∎
-
-  -- H-level is closed under W for other levels greater than or equal
-  -- to 1 as well (assuming extensionality).
+  -- However, all positive h-levels are closed under W, assuming that
+  -- equality is sufficiently extensional.
 
   W-closure :
     ∀ {A} {B : A → Set} →
     (∀ {x C} → Extensionality (B x) C) →
     ∀ n → H-level (1 + n) A → H-level (1 + n) (W A B)
-  W-closure         ext zero    h = W-closure-propositional ext h
-  W-closure {A} {B} ext (suc n) h = closure
+  W-closure {A} {B} ext n h = closure
     where
-    closure : (x y : W A B) → H-level (1 + n) (x ≡ y)
+    closure : (x y : W A B) → H-level n (x ≡ y)
     closure (sup x f) (sup y g) =
-      respects-surjection surj (1 + n) $
-        Σ-closure (1 + n) (h x y) (λ _ →
-          Π-closure ext (1 + n) (λ i → closure (f _) (g _)))
-      where
-      ext′ : ∀ {x C} → Well-behaved-extensionality (B x) C
-      ext′ = extensionality⇒well-behaved-extensionality ext
-
-      surj : (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
-             (sup x f ≡ sup y g)
-      surj = record
-        { equivalence = record
-          { to   = to (sup x f) (sup y g)
-          ; from = from
-          }
-        ; right-inverse-of = elim (λ p → to _ _ (from p) ≡ p) to∘from
-        }
-        where
-        to-P = λ {x y : A} (p : x ≡ y) →
-                 (f : B x → W A B) (g : B y → W A B) →
-                 (∀ i → f i ≡ g (subst B p i)) →
-                 sup x f ≡ sup y g
-
-        to : (w w′ : W A B) →
-             (∃ λ (p : head w ≡ head w′) →
-                ∀ i → tail w i ≡ tail w′ (subst B p i)) →
-             w ≡ w′
-        to (sup x f) (sup y g) (x≡y , f≡g) = elim to-P
-          (λ x f g f≡g →
-             sup x f ≡⟨ cong (sup x) (proj₁ ext′ λ i →
-                          f i                     ≡⟨ f≡g i ⟩
-                          g (subst B (refl x) i)  ≡⟨ cong g (subst-refl B i) ⟩∎
-                          g i                     ∎) ⟩∎
-             sup x g ∎)
-          x≡y _ _ f≡g
-
-        from-P = λ {w w′ : W A B} (_ : w ≡ w′) →
-                   ∃ λ (p : head w ≡ head w′) →
-                     ∀ i → tail w i ≡ tail w′ (subst B p i)
-
-        from : {w w′ : W A B} →
-               w ≡ w′ →
-               ∃ λ (p : head w ≡ head w′) →
-                 ∀ i → tail w i ≡ tail w′ (subst B p i)
-        from = elim from-P
-          (λ w → refl (head w) , λ i →
-             tail w i                               ≡⟨ cong (tail w) $ sym $ subst-refl B i ⟩∎
-             tail w (subst B (refl (head w)) i)  ∎)
-
-        to∘from : (w : W A B) → to w w (from (refl w)) ≡ refl w
-        to∘from (sup x f) =
-          to (sup x f) (sup x f) (from (refl (sup x f)))        ≡⟨ cong (to _ _) (elim-refl from-P _ {x = sup x f}) ⟩
-          to (sup x f) (sup x f) (refl x , cong f ∘ sym ∘ lem)  ≡⟨ cong (λ h → h _ _ (cong f ∘ sym ∘ lem)) $
-                                                                     elim-refl to-P _ ⟩
-          cong (sup x) (proj₁ ext′ λ i →
-            trans (cong f (sym $ lem i)) (cong f (lem i)))      ≡⟨ cong (cong (sup x) ∘ proj₁ ext′) (proj₁ ext′ λ i →
-                                                                     Tactic.prove
-                                                                       (Trans (Cong f (Sym (Lift $ lem i))) (Cong f (Lift $ lem i)))
-                                                                       (Trans (Sym (Cong f (Lift $ lem i))) (Cong f (Lift $ lem i)))
-                                                                       (refl _)) ⟩
-          cong (sup x) (proj₁ ext′ λ i →
-            trans (sym $ cong f $ lem i) (cong f $ lem i))      ≡⟨ cong (cong (sup x) ∘ proj₁ ext′) (proj₁ ext′ λ i →
-                                                                     G.right-inverse _) ⟩
-          cong (sup x) (proj₁ ext′ (refl ∘ f))                  ≡⟨ cong (cong (sup x)) $ proj₂ ext′ f ⟩
-          cong (sup x) (refl f)                                 ≡⟨ Tactic.prove (Cong (sup x) Refl) Refl (refl _) ⟩∎
-          refl (sup x f)                                        ∎
-          where lem = subst-refl B
+      respects-surjection (W-≡,≡↠≡ ext) n $
+        Σ-closure n (h x y) (λ _ →
+          Π-closure ext n (λ i → closure (f _) (g _)))
 
 ------------------------------------------------------------------------
 -- M-types
