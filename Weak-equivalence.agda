@@ -21,6 +21,9 @@ open import Preimage using (_⁻¹_)
 open import Prelude hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection hiding (id; _∘_)
 
+------------------------------------------------------------------------
+-- Is-weak-equivalence
+
 -- A function f is a weak equivalence if all preimages under f are
 -- contractible.
 
@@ -49,6 +52,47 @@ respects-extensional-equality f≡g f-weq = λ b →
     (_↔_.surjection (Preimage.respects-extensional-equality f≡g))
     0
     (f-weq b)
+
+abstract
+
+  -- The function subst is a weak equivalence family.
+  --
+  -- Note that this proof would be easier if subst P (refl x) p
+  -- reduced to p.
+
+  subst-is-weak-equivalence :
+    {A : Set} (P : A → Set) {x y : A} (x≡y : x ≡ y) →
+    Is-weak-equivalence (subst P x≡y)
+  subst-is-weak-equivalence P = elim
+    (λ {x y} x≡y → Is-weak-equivalence (subst P x≡y))
+    (λ x p → _ , λ q →
+       let srq = Lift (subst-refl P (proj₁ q))
+           q₂  = Lift (proj₂ q)
+       in
+       (p , subst-refl P p)                                     ≡⟨ elim
+                                                                     (λ {u v : P x} u≡v →
+                                                                        _≡_ {A = ∃ λ (w : P x) → subst P (refl x) w ≡ v}
+                                                                            (v , subst-refl P v)
+                                                                            (u , trans (subst-refl P u) u≡v))
+                                                                     (λ p → cong (_,_ p) (let srp = Lift (subst-refl P p) in
+                                                                              Tactic.prove srp (Trans srp Refl) (refl _)))
+                                                                     (proj₁ q                     ≡⟨ sym $ subst-refl P (proj₁ q) ⟩
+                                                                      subst P (refl x) (proj₁ q)  ≡⟨ proj₂ q ⟩∎
+                                                                      p                           ∎) ⟩
+       (proj₁ q , (trans      (subst-refl P (proj₁ q))  $
+                   trans (sym (subst-refl P (proj₁ q))) $
+                         proj₂ q))                              ≡⟨ cong (_,_ (proj₁ q)) $
+                                                                     Tactic.prove (Trans srq (Trans (Sym srq) q₂))
+                                                                                  (Trans (Trans srq (Sym srq)) q₂)
+                                                                                  (refl _) ⟩
+       (proj₁ q , trans (trans      (subst-refl P (proj₁ q))
+                               (sym (subst-refl P (proj₁ q))))
+                        (proj₂ q))                              ≡⟨ cong (λ eq → proj₁ q , trans eq (proj₂ q)) $ G.left-inverse _ ⟩
+       (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ Tactic.prove (Trans Refl q₂) q₂ (refl _) ⟩∎
+       q                                                        ∎)
+
+------------------------------------------------------------------------
+-- _≈_
 
 -- Weak equivalences.
 
@@ -135,6 +179,9 @@ bijection⇒weak-equivalence A↔B = record
   ; is-weak-equivalence = Preimage.bijection⁻¹-contractible A↔B
   }
 
+------------------------------------------------------------------------
+-- Equivalence
+
 -- Weak equivalences are equivalence relations.
 
 id : ∀ {A} → A ≈ A
@@ -179,6 +226,9 @@ finally-↔≈ _ _ A≈B = _≈_.bijection A≈B
 syntax finally-≈  A B A≈B = A  ≈⟨ A≈B ⟩∎ B ∎
 syntax finally-≈↔ A B A≈B = A ≈↔⟨ A≈B ⟩∎ B ∎
 syntax finally-↔≈ A B A≈B = A ↔≈⟨ A≈B ⟩∎ B ∎
+
+------------------------------------------------------------------------
+-- Groupoid
 
 abstract
 
@@ -234,6 +284,9 @@ groupoid ext = record
     right-inverse : ∀ {X Y} (p : X ≈ Y) → p ∘ inverse p ≡ id
     right-inverse p = lift-equality ext (_≈_.right-inverse-of p)
 
+------------------------------------------------------------------------
+-- Closure
+
 abstract
 
   -- Positive h-levels are closed under the weak equivalence operator
@@ -267,42 +320,6 @@ abstract
       right-closure ext n $
         H.respects-surjection (_≈_.surjection A≈B) (1 + n) h
 
-  -- The function subst is a weak equivalence family.
-  --
-  -- Note that this proof would be easier if subst P (refl x) p
-  -- reduced to p.
-
-  subst-is-weak-equivalence :
-    {A : Set} (P : A → Set) {x y : A} (x≡y : x ≡ y) →
-    Is-weak-equivalence (subst P x≡y)
-  subst-is-weak-equivalence P = elim
-    (λ {x y} x≡y → Is-weak-equivalence (subst P x≡y))
-    (λ x p → _ , λ q →
-       let srq = Lift (subst-refl P (proj₁ q))
-           q₂  = Lift (proj₂ q)
-       in
-       (p , subst-refl P p)                                     ≡⟨ elim
-                                                                     (λ {u v : P x} u≡v →
-                                                                        _≡_ {A = ∃ λ (w : P x) → subst P (refl x) w ≡ v}
-                                                                            (v , subst-refl P v)
-                                                                            (u , trans (subst-refl P u) u≡v))
-                                                                     (λ p → cong (_,_ p) (let srp = Lift (subst-refl P p) in
-                                                                              Tactic.prove srp (Trans srp Refl) (refl _)))
-                                                                     (proj₁ q                     ≡⟨ sym $ subst-refl P (proj₁ q) ⟩
-                                                                      subst P (refl x) (proj₁ q)  ≡⟨ proj₂ q ⟩∎
-                                                                      p                           ∎) ⟩
-       (proj₁ q , (trans      (subst-refl P (proj₁ q))  $
-                   trans (sym (subst-refl P (proj₁ q))) $
-                         proj₂ q))                              ≡⟨ cong (_,_ (proj₁ q)) $
-                                                                     Tactic.prove (Trans srq (Trans (Sym srq) q₂))
-                                                                                  (Trans (Trans srq (Sym srq)) q₂)
-                                                                                  (refl _) ⟩
-       (proj₁ q , trans (trans      (subst-refl P (proj₁ q))
-                               (sym (subst-refl P (proj₁ q))))
-                        (proj₂ q))                              ≡⟨ cong (λ eq → proj₁ q , trans eq (proj₂ q)) $ G.left-inverse _ ⟩
-       (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ Tactic.prove (Trans Refl q₂) q₂ (refl _) ⟩∎
-       q                                                        ∎)
-
 -- Equalities are closed, in a strong sense, under applications of
 -- weak equivalences.
 
@@ -317,29 +334,29 @@ abstract
                         _≈_.bijection A≈B
     ; left-inverse-of = left-inverse-of′
     }
-    where
-    open _≈_ A≈B
+  where
+  open _≈_ A≈B
 
-    abstract
-      left-inverse-of′ = λ to-x≡to-y →
-        cong to (
-          trans (sym (left-inverse-of x)) $
-          trans (cong from to-x≡to-y) $
-          left-inverse-of y)                         ≡⟨ Tactic.prove (Cong to (Trans (Sym (Lift (left-inverse-of x)))
-                                                                               (Trans (Cong from (Lift to-x≡to-y))
-                                                                               (Lift (left-inverse-of y)))))
-                                                                     (Trans (Sym (Cong to (Lift (left-inverse-of x))))
-                                                                      (Trans (Cong to (Cong from (Lift to-x≡to-y)))
-                                                                      (Cong to (Lift (left-inverse-of y)))))
-                                                                     (refl _) ⟩
-        trans (sym (cong to (left-inverse-of x))) (
-          trans (cong to (cong from to-x≡to-y)) (
-          cong to (left-inverse-of y)))              ≡⟨ cong₂ (λ eq₁ eq₂ → trans (sym eq₁) $
-                                                                           trans (cong to (cong from to-x≡to-y)) $
-                                                                           eq₂)
-                                                             (left-right-lemma x)
-                                                             (left-right-lemma y) ⟩
-        trans (sym (right-inverse-of (to x))) (
-          trans (cong to (cong from to-x≡to-y)) (
-          right-inverse-of (to y)))                  ≡⟨ _↠_.right-inverse-of (Surjection.↠-≡ $ _≈_.surjection A≈B) to-x≡to-y ⟩∎
-        to-x≡to-y                                    ∎
+  abstract
+    left-inverse-of′ = λ to-x≡to-y →
+      cong to (
+        trans (sym (left-inverse-of x)) $
+        trans (cong from to-x≡to-y) $
+        left-inverse-of y)                         ≡⟨ Tactic.prove (Cong to (Trans (Sym (Lift (left-inverse-of x)))
+                                                                             (Trans (Cong from (Lift to-x≡to-y))
+                                                                             (Lift (left-inverse-of y)))))
+                                                                   (Trans (Sym (Cong to (Lift (left-inverse-of x))))
+                                                                    (Trans (Cong to (Cong from (Lift to-x≡to-y)))
+                                                                    (Cong to (Lift (left-inverse-of y)))))
+                                                                   (refl _) ⟩
+      trans (sym (cong to (left-inverse-of x))) (
+        trans (cong to (cong from to-x≡to-y)) (
+        cong to (left-inverse-of y)))              ≡⟨ cong₂ (λ eq₁ eq₂ → trans (sym eq₁) $
+                                                                         trans (cong to (cong from to-x≡to-y)) $
+                                                                         eq₂)
+                                                           (left-right-lemma x)
+                                                           (left-right-lemma y) ⟩
+      trans (sym (right-inverse-of (to x))) (
+        trans (cong to (cong from to-x≡to-y)) (
+        right-inverse-of (to y)))                  ≡⟨ _↠_.right-inverse-of (Surjection.↠-≡ $ _≈_.surjection A≈B) to-x≡to-y ⟩∎
+      to-x≡to-y                                    ∎
