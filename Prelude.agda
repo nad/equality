@@ -121,6 +121,13 @@ abstract
   m≤m+n (suc m) n = suc≤suc (m≤m+n m n)
 
 ------------------------------------------------------------------------
+-- Finite sets
+
+data Fin : ℕ → Set where
+  zero : {n : ℕ} → Fin (1 + n)
+  suc  : {n : ℕ} (i : Fin n) → Fin (1 + n)
+
+------------------------------------------------------------------------
 -- Simple combinators working solely on and with functions
 
 infixr 9 _∘_
@@ -282,3 +289,18 @@ data Dec {p} (P : Set p) : Set p where
 Decidable : ∀ {a b ℓ} {A : Set a} {B : Set b} →
             (A → B → Set ℓ) → Set (a ⊔ b ⊔ ℓ)
 Decidable _∼_ = ∀ x y → Dec (x ∼ y)
+
+------------------------------------------------------------------------
+-- Lists
+
+infixr 5 _∷_
+
+data List (A : Set) : Set where
+  []  : List A
+  _∷_ : (x : A) (xs : List A) → List A
+
+-- The length of a list.
+
+length : {A : Set} → List A → ℕ
+length []        = 0
+length (x ∷ xs)  = 1 + length xs
