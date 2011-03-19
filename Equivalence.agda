@@ -11,7 +11,6 @@ open import Prelude as P using (_⊔_) renaming (_∘_ to _⊚_)
 -- A ⇔ B means that A and B are equivalent.
 
 record _⇔_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
-  constructor equivalent
   field
     to   : From → To
     from : To → From

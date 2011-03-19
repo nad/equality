@@ -84,13 +84,11 @@ abstract
 
   propositional⇔irrelevant :
     {A : Set} → Propositional A ⇔ Proof-irrelevant A
-  propositional⇔irrelevant {A} = equivalent ⇒ ⇐
-    where
-    ⇒ : Propositional A → Proof-irrelevant A
-    ⇒ h x y = proj₁ (h x y)
-
-    ⇐ : Proof-irrelevant A → Propositional A
-    ⇐ irr = [inhabited⇒contractible]⇒propositional (λ x → (x , irr x))
+  propositional⇔irrelevant {A} = record
+    { to   = λ h x y → proj₁ (h x y)
+    ; from = λ irr →
+        [inhabited⇒contractible]⇒propositional (λ x → (x , irr x))
+    }
 
   -- Being a set is equivalent to having unique identity proofs. Note
   -- that this means that, assuming that Agda is consistent, I cannot
@@ -98,14 +96,11 @@ abstract
   -- is at least three.
 
   set⇔UIP : {A : Set} → Is-set A ⇔ Uniqueness-of-identity-proofs A
-  set⇔UIP {A} = equivalent ⇒ ⇐
-    where
-    ⇒ : Is-set A → Uniqueness-of-identity-proofs A
-    ⇒ h {x} {y} x≡y x≡y′ = proj₁ (h x y x≡y x≡y′)
-
-    ⇐ : Uniqueness-of-identity-proofs A → Is-set A
-    ⇐ UIP x y =
-      [inhabited⇒contractible]⇒propositional (λ x≡y → (x≡y , UIP x≡y))
+  set⇔UIP {A} = record
+    { to   = λ h {x} {y} x≡y x≡y′ → proj₁ (h x y x≡y x≡y′)
+    ; from = λ UIP x y →
+        [inhabited⇒contractible]⇒propositional (λ x≡y → (x≡y , UIP x≡y))
+    }
 
   -- Types with decidable equality are sets.
 

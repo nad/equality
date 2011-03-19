@@ -248,7 +248,7 @@ J⇔subst+contr :
   ∀ {reflexive} →
   Equality-with-J reflexive ⇔
   Equality-with-substitutivity-and-contractibility reflexive
-J⇔subst+contr {reflexive} = equivalent ⇒ ⇐
+J⇔subst+contr {reflexive} = record { to = ⇒; from = ⇐ }
   where
   ⇒ : Equality-with-J reflexive →
       Equality-with-substitutivity-and-contractibility reflexive
@@ -404,9 +404,9 @@ module Derived-definitions-and-properties
   -- The K rule is equivalent to uniqueness of identity proofs.
 
   K⇔UIP : K-rule ⇔ (∀ {A} → Uniqueness-of-identity-proofs A)
-  K⇔UIP =
-    equivalent
-      (λ K {_} →
-         elim (λ p → ∀ q → p ≡ q)
-              (λ x → K (λ {x} p → refl x ≡ p) (λ x → refl (refl x))))
-      (λ UIP P r {x} x≡x → subst P (UIP (refl x) x≡x) (r x))
+  K⇔UIP = record
+    { from = λ UIP P r {x} x≡x → subst P (UIP (refl x) x≡x) (r x)
+    ; to   = λ K {_} →
+        elim (λ p → ∀ q → p ≡ q)
+             (λ x → K (λ {x} p → refl x ≡ p) (λ x → refl (refl x)))
+    }

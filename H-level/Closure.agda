@@ -99,11 +99,11 @@ abstract
   ({B : A → Set} →
    (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)) ⇔
   (∀ {B} → Extensionality A B)
-Π-closure-contractible⇔extensionality {A} =
-  equivalent
-    ⇒
-    (λ ext cB →
-       ((λ x → proj₁ (cB x)) , λ f → ext λ x → proj₂ (cB x) (f x)))
+Π-closure-contractible⇔extensionality {A} = record
+  { to   = ⇒
+  ; from = λ ext cB →
+      ((λ x → proj₁ (cB x)) , λ f → ext λ x → proj₂ (cB x) (f x))
+  }
   where
   ⇒ : ({B : A → Set} →
        (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)) →
@@ -188,7 +188,10 @@ abstract
     where
     surj : ((x : A) → B x) ↠ ({x : A} → B x)
     surj = record
-      { equivalence      = equivalent (λ f {x} → f x) (λ f x → f {x})
+      { equivalence = record
+        { to   = λ f {x} → f x
+        ; from = λ f x → f {x}
+        }
       ; right-inverse-of = refl
       }
 
