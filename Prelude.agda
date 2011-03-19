@@ -81,13 +81,12 @@ data ℕ : Set where
 {-# BUILTIN ZERO    zero #-}
 {-# BUILTIN SUC     suc  #-}
 
--- The usual ordering of the natural numbers.
+-- Dependent eliminator.
 
-infix 4 _≤_
-
-data _≤_ (m : ℕ) : ℕ → Set where
-  ≤-refl :                       m ≤ m
-  ≤-step : ∀ {n} (m≤n : m ≤ n) → m ≤ suc n
+ℕ-rec : ∀ {p} {P : ℕ → Set p} →
+        P 0 → (∀ n → P n → P (suc n)) → ∀ n → P n
+ℕ-rec z s zero    = z
+ℕ-rec z s (suc n) = s n (ℕ-rec z s n)
 
 -- Addition.
 
@@ -97,9 +96,17 @@ _+_ : ℕ → ℕ → ℕ
 zero  + n = n
 suc m + n = suc (m + n)
 
--- Some lemmas.
+-- The usual ordering of the natural numbers.
+
+infix 4 _≤_
+
+data _≤_ (m : ℕ) : ℕ → Set where
+  ≤-refl :                       m ≤ m
+  ≤-step : ∀ {n} (m≤n : m ≤ n) → m ≤ suc n
 
 abstract
+
+  -- Some lemmas.
 
   zero≤ : ∀ n → zero ≤ n
   zero≤ zero    = ≤-refl
