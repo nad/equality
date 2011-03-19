@@ -6,7 +6,10 @@
 
 module Equivalence where
 
-open import Prelude as P using (_⊔_) renaming (_∘_ to _⊚_)
+open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
+
+------------------------------------------------------------------------
+-- Equivalence
 
 -- A ⇔ B means that A and B are equivalent.
 
@@ -14,6 +17,9 @@ record _⇔_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
   field
     to   : From → To
     from : To → From
+
+------------------------------------------------------------------------
+-- Equivalence relation
 
 -- _⇔_ is an equivalence relation.
 
@@ -51,3 +57,18 @@ finally-⇔ : ∀ {a b} (A : Set a) (B : Set b) → A ⇔ B → A ⇔ B
 finally-⇔ _ _ A⇔B = A⇔B
 
 syntax finally-⇔ A B A⇔B = A ⇔⟨ A⇔B ⟩∎ B ∎
+
+------------------------------------------------------------------------
+-- A lemma
+
+-- Dec preserves equivalences.
+
+Dec-preserves : {A B : Set} → A ⇔ B → Dec A ⇔ Dec B
+Dec-preserves A⇔B = record
+  { to   = lemma A⇔B
+  ; from = lemma (inverse A⇔B)
+  }
+  where
+  lemma : {A B : Set} → A ⇔ B → Dec A → Dec B
+  lemma A⇔B = ⊎-map to (λ ¬A → ¬A ⊚ from)
+    where open _⇔_ A⇔B

@@ -14,8 +14,11 @@ import Equality.Groupoid as EG
 private module G {A : Set} = EG.Groupoid eq (EG.groupoid eq A)
 import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence
-  using (_⇔_; module _⇔_) renaming (_∘_ to _⊚_)
-open import Prelude as P hiding (id; _∘_)
+  using (_⇔_; module _⇔_) renaming (_∘_ to _⊙_)
+open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
+
+------------------------------------------------------------------------
+-- Surjections
 
 infix 4 _↠_
 
@@ -32,6 +35,9 @@ record _↠_ (From To : Set) : Set where
 
   open _⇔_ equivalence public
 
+------------------------------------------------------------------------
+-- Preorder
+
 -- _↠_ is a preorder.
 
 id : ∀ {A} → A ↠ A
@@ -44,7 +50,7 @@ infixr 9 _∘_
 
 _∘_ : ∀ {A B C} → B ↠ C → A ↠ B → A ↠ C
 f ∘ g = record
-  { equivalence      = equivalence f ⊚ equivalence g
+  { equivalence      = equivalence f ⊙ equivalence g
   ; right-inverse-of = to∘from
   }
   where
@@ -68,6 +74,9 @@ finally-↠ : ∀ A B → A ↠ B → A ↠ B
 finally-↠ _ _ A↠B = A↠B
 
 syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩∎ B ∎
+
+------------------------------------------------------------------------
+-- Some preservation/respectfulness lemmas
 
 -- Σ A preserves surjections.
 
@@ -118,3 +127,13 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩∎ B ∎
                                                                               (refl _)) ⟩
              trans (sym (right-inverse-of x)) (right-inverse-of x)  ≡⟨ G.right-inverse _ ⟩∎
              refl x                                                 ∎)
+
+-- Decidable-equality respects surjections.
+
+Decidable-equality-respects :
+  {A B : Set} → A ↠ B → Decidable-equality A → Decidable-equality B
+Decidable-equality-respects A↠B _≟A_ x y =
+  ⊎-map (to (↠-≡ A↠B))
+        (λ from-x≢from-y → from-x≢from-y ⊚ from (↠-≡ A↠B))
+        (from A↠B x ≟A from A↠B y)
+  where open _↠_
