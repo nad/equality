@@ -2,6 +2,8 @@
 -- All instances of the equality axioms are isomorphic
 ------------------------------------------------------------------------
 
+{-# OPTIONS --without-K #-}
+
 module Equality.Instances-isomorphic where
 
 import Bijection
