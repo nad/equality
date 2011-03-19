@@ -27,6 +27,18 @@ record Reflexive : Set₁ where
   ----------------------------------------------------------------------
   -- Some definitions
 
+  -- Non-equality.
+
+  infix 4 _≢_
+
+  _≢_ : {A : Set} → A → A → Set
+  x ≢ y = ¬ (x ≡ y)
+
+  -- The property of having decidable equality.
+
+  Decidable-equality : Set → Set
+  Decidable-equality A = Decidable (_≡_ {A = A})
+
   -- A type is contractible if it is inhabited and all elements are
   -- equal.
 

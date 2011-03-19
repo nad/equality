@@ -69,11 +69,11 @@ abstract
 
   constant : {A : Set} → Dec A →
              ∃ λ (f : A → A) → Constant f
-  constant (yes x) = (const x , λ _ _ → refl x)
-  constant (no ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
+  constant (inj₁  x) = (const x , λ _ _ → refl x)
+  constant (inj₂ ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
 
   -- Sets with decidable equality have unique identity proofs.
 
   decidable⇒UIP : {A : Set} →
-    Decidable (_≡_ {A = A}) → Uniqueness-of-identity-proofs A
+    Decidable-equality A → Uniqueness-of-identity-proofs A
   decidable⇒UIP dec = constant⇒UIP (λ x y → constant (dec x y))

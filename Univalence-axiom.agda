@@ -57,7 +57,7 @@ abstract
   -- pointed out to me by Thierry Coquand.)
 
   ¬-Set-set : Univalence-axiom′ Bool Bool → ¬ Is-set Set
-  ¬-Set-set univ is-set = true≢false $ cong (λ f → f true) id≡not
+  ¬-Set-set univ is-set = Bool.true≢false $ cong (λ f → f true) id≡not
     where
     not : Bool → Bool
     not b = if b then false else true

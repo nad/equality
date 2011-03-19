@@ -80,13 +80,13 @@ abstract
 
   ¬-Bool-propositional : ¬ Propositional Bool
   ¬-Bool-propositional propositional =
-    true≢false $
+    Bool.true≢false $
     (_⇔_.to propositional⇔irrelevant propositional) true false
 
   -- The booleans form a set.
 
   Bool-set : Is-set Bool
-  Bool-set = decidable⇒set _≟-Bool_
+  Bool-set = decidable⇒set Bool._≟_
 
 ------------------------------------------------------------------------
 -- Π-types
@@ -532,13 +532,9 @@ abstract
 
   -- H-level is not closed under _⊎_.
 
-  private
-
-    inj₁≢inj₂ : ∀ {A B} {x : A} {y : B} → ¬ inj₁ x ≡ inj₂ y
-    inj₁≢inj₂ = true≢false ∘ cong [ const true , const false ]
-
   ¬-⊎-propositional : ∀ {A B} → A → B → ¬ Propositional (A ⊎ B)
-  ¬-⊎-propositional x y hA⊎B = inj₁≢inj₂ $ proj₁ $ hA⊎B (inj₁ x) (inj₂ y)
+  ¬-⊎-propositional x y hA⊎B =
+    ⊎.inj₁≢inj₂ $ proj₁ $ hA⊎B (inj₁ x) (inj₂ y)
 
   ¬-⊎-closure :
     ¬ (∀ {A B} n → H-level n A → H-level n B → H-level n (A ⊎ B))
@@ -576,11 +572,11 @@ abstract
     _⇔_.from propositional⇔irrelevant irrelevant
     where
     irrelevant : Proof-irrelevant (Dec A)
-    irrelevant (yes a) (yes a′) = cong yes $ proj₁ $ p a a′
-    irrelevant (yes a) (no ¬a)  = ⊥-elim (¬a a)
-    irrelevant (no ¬a) (yes a)  = ⊥-elim (¬a a)
-    irrelevant (no ¬a) (no ¬a′) =
-      cong no $ proj₁ $ ¬-propositional ext ¬a ¬a′
+    irrelevant (inj₁  a) (inj₁  a′) = cong inj₁ $ proj₁ $ p a a′
+    irrelevant (inj₁  a) (inj₂ ¬a)  = ⊥-elim (¬a a)
+    irrelevant (inj₂ ¬a) (inj₁  a)  = ⊥-elim (¬a a)
+    irrelevant (inj₂ ¬a) (inj₂ ¬a′) =
+      cong inj₂ $ proj₁ $ ¬-propositional ext ¬a ¬a′
 
   -- Alternative definition of ⊎-closure.
 
@@ -590,23 +586,15 @@ abstract
     -- Hedberg used to prove that decidable equality implies
     -- uniqueness of identity proofs.
 
-    private
-
-      drop-inj₁ : ∀ {A B x y} → _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y) → x ≡ y
-      drop-inj₁ {x = x} = cong [ id , const x ]
-
-      drop-inj₂ : ∀ {A B x y} → _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y) → x ≡ y
-      drop-inj₂ {x = x} = cong [ const x , id ]
-
     ⊎-closure-set : ∀ {A B} → Is-set A → Is-set B → Is-set (A ⊎ B)
     ⊎-closure-set {A} {B} A-set B-set =
       _⇔_.from set⇔UIP (DUIP.constant⇒UIP c)
       where
       c : (x y : A ⊎ B) → ∃ λ (f : x ≡ y → x ≡ y) → DUIP.Constant f
-      c (inj₁ x) (inj₁ y) = (cong inj₁ ∘ drop-inj₁ , λ p q → cong (cong inj₁) $ proj₁ $ A-set x y (drop-inj₁ p) (drop-inj₁ q))
-      c (inj₂ x) (inj₂ y) = (cong inj₂ ∘ drop-inj₂ , λ p q → cong (cong inj₂) $ proj₁ $ B-set x y (drop-inj₂ p) (drop-inj₂ q))
-      c (inj₁ x) (inj₂ y) = (⊥-elim ∘ inj₁≢inj₂       , λ _ → ⊥-elim ∘ inj₁≢inj₂)
-      c (inj₂ x) (inj₁ y) = (⊥-elim ∘ inj₁≢inj₂ ∘ sym , λ _ → ⊥-elim ∘ inj₁≢inj₂ ∘ sym)
+      c (inj₁ x) (inj₁ y) = (cong inj₁ ∘ ⊎.cancel-inj₁ , λ p q → cong (cong inj₁) $ proj₁ $ A-set x y (⊎.cancel-inj₁ p) (⊎.cancel-inj₁ q))
+      c (inj₂ x) (inj₂ y) = (cong inj₂ ∘ ⊎.cancel-inj₂ , λ p q → cong (cong inj₂) $ proj₁ $ B-set x y (⊎.cancel-inj₂ p) (⊎.cancel-inj₂ q))
+      c (inj₁ x) (inj₂ y) = (⊥-elim ∘ ⊎.inj₁≢inj₂       , λ _ → ⊥-elim ∘ ⊎.inj₁≢inj₂)
+      c (inj₂ x) (inj₁ y) = (⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym , λ _ → ⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym)
 
     -- H-level is closed under _⊎_ for other levels greater than or equal
     -- to 2 too.
@@ -621,17 +609,17 @@ abstract
         clos : H-level (3 + n) A → H-level (3 + n) B → H-level (3 + n) (A ⊎ B)
         clos hA hB (inj₁ x) (inj₁ y) = respects-surjection surj₁ (2 + n) (hA x y)
         clos hA hB (inj₂ x) (inj₂ y) = respects-surjection surj₂ (2 + n) (hB x y)
-        clos hA hB (inj₁ x) (inj₂ y) = ⊥-elim ∘ inj₁≢inj₂
-        clos hA hB (inj₂ x) (inj₁ y) = ⊥-elim ∘ inj₁≢inj₂ ∘ sym
+        clos hA hB (inj₁ x) (inj₂ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂
+        clos hA hB (inj₂ x) (inj₁ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym
 
         surj₁ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
         surj₁ {x} {y} = record
           { equivalence = record
             { to   = cong inj₁
-            ; from = drop-inj₁
+            ; from = ⊎.cancel-inj₁
             }
           ; right-inverse-of = λ ix≡iy →
-              cong inj₁ (drop-inj₁ ix≡iy)                  ≡⟨ prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
+              cong inj₁ (⊎.cancel-inj₁ ix≡iy)              ≡⟨ prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
                                                                     (Cong f (Lift ix≡iy))
                                                                     (refl _) ⟩
               cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
@@ -655,10 +643,10 @@ abstract
         surj₂ {x} {y} = record
           { equivalence = record
             { to   = cong inj₂
-            ; from = drop-inj₂
+            ; from = ⊎.cancel-inj₂
             }
           ; right-inverse-of = λ ix≡iy →
-              cong inj₂ (drop-inj₂ ix≡iy)                  ≡⟨ prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
+              cong inj₂ (⊎.cancel-inj₂ ix≡iy)              ≡⟨ prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
                                                                     (Cong f (Lift ix≡iy))
                                                                     (refl _) ⟩
               cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩

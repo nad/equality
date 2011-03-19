@@ -278,11 +278,17 @@ data _⊎_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 [ f , g ] (inj₁ x) = f x
 [ f , g ] (inj₂ y) = g y
 
+-- A map function.
+
+⊎-map : ∀ {a₁ a₂ b₁ b₂}
+          {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
+        (A₁ → A₂) → (B₁ → B₂) → A₁ ⊎ B₁ → A₂ ⊎ B₂
+⊎-map f g = [ inj₁ ∘ f , inj₂ ∘ g ]
+
 -- A special case of binary sums: decided predicates.
 
-data Dec {p} (P : Set p) : Set p where
-  yes : ( p :   P) → Dec P
-  no  : (¬p : ¬ P) → Dec P
+Dec : ∀ {p} → Set p → Set p
+Dec P = P ⊎ ¬ P
 
 -- Decidable relations.
 
