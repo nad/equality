@@ -17,7 +17,7 @@ private
     import Surjection; open Surjection eq public
 open Surjection using (_↠_; module _↠_)
 
-infix 4 _↔_
+infix 0 _↔_
 
 ------------------------------------------------------------------------
 -- Bijections
@@ -71,8 +71,8 @@ f ∘ g = record
 
 -- "Equational" reasoning combinators.
 
-infix  2 finally-↔
-infixr 2 _↔⟨_⟩_
+infix  0 finally-↔
+infixr 0 _↔⟨_⟩_
 
 _↔⟨_⟩_ : ∀ A {B C} → A ↔ B → B ↔ C → A ↔ C
 _ ↔⟨ A↔B ⟩ B↔C = B↔C ∘ A↔B

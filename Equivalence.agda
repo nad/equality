@@ -13,6 +13,8 @@ open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 
 -- A ⇔ B means that A and B are equivalent.
 
+infix 0 _⇔_
+
 record _⇔_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
   field
     to   : From → To
@@ -46,8 +48,8 @@ f ∘ g = record
 
 -- "Equational" reasoning combinators.
 
-infix  2 finally-⇔
-infixr 2 _⇔⟨_⟩_
+infix  0 finally-⇔
+infixr 0 _⇔⟨_⟩_
 
 _⇔⟨_⟩_ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
          A ⇔ B → B ⇔ C → A ⇔ C

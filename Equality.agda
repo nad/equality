@@ -193,8 +193,8 @@ record Equality-with-substitutivity-and-contractibility
 
   -- Equational reasoning combinators.
 
-  infix  2 finally
-  infixr 2 _≡⟨_⟩_
+  infix  0 finally
+  infixr 0 _≡⟨_⟩_
 
   _≡⟨_⟩_ : ∀ {A} x {y z : A} → x ≡ y → y ≡ z → x ≡ z
   _ ≡⟨ x≡y ⟩ y≡z = trans x≡y y≡z
