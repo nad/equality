@@ -99,14 +99,76 @@ Any↔Any′ {P = P} {x ∷ xs} =
   Any′ P (x ∷ xs)  ∎
 
 ------------------------------------------------------------------------
--- Bag equality
+-- Lemmas relating Any to some basic list functions
 
--- List membership.
+Any-++ : ∀ {A} (P : A → Set) (xs ys : List A) →
+         Any P (xs ++ ys) ↔ Any P xs ⊎ Any P ys
+Any-++ P [] ys =
+  Any P ys      ↔⟨ Bijection.inverse ⊎-left-identity ⟩∎
+  ⊥ ⊎ Any P ys  ∎
+Any-++ P (x ∷ xs) ys =
+  P x ⊎ Any P (xs ++ ys)       ↔⟨ Bijection.id ⊎-cong Any-++ P xs ys ⟩
+  P x ⊎ (Any P xs ⊎ Any P ys)  ↔⟨ ⊎-assoc ⟩∎
+  (P x ⊎ Any P xs) ⊎ Any P ys  ∎
+
+Any-concat : ∀ {A} (P : A → Set) (xss : List (List A)) →
+             Any P (concat xss) ↔ Any (Any P) xss
+Any-concat P []         = Bijection.id
+Any-concat P (xs ∷ xss) =
+  Any P (xs ++ concat xss)       ↔⟨ Any-++ P xs (concat xss) ⟩
+  Any P xs ⊎ Any P (concat xss)  ↔⟨ Bijection.id ⊎-cong Any-concat P xss ⟩∎
+  Any P xs ⊎ Any (Any P) xss     ∎
+
+Any-map : ∀ {A B} (P : B → Set) (f : A → B) (xs : List A) →
+          Any P (map f xs) ↔ Any (P ∘ f) xs
+Any-map P f []       = Bijection.id
+Any-map P f (x ∷ xs) =
+  P (f x) ⊎ Any P (map f xs)  ↔⟨ Bijection.id ⊎-cong Any-map P f xs ⟩∎
+  P (f x) ⊎ Any (P ∘ f) xs    ∎
+
+Any->>= : ∀ {A B} (P : B → Set) (xs : List A) (f : A → List B) →
+          Any P (xs >>= f) ↔ Any (Any P ∘ f) xs
+Any->>= P xs f =
+  Any P (concat (map f xs))  ↔⟨ Any-concat P (map f xs) ⟩
+  Any (Any P) (map f xs)     ↔⟨ Any-map (Any P) f xs ⟩∎
+  Any (Any P ∘ f) xs         ∎
+
+------------------------------------------------------------------------
+-- List membership
 
 infix 4 _∈_
 
 _∈_ : {A : Set} → A → List A → Set
 x ∈ xs = Any (λ y → x ≡ y) xs
+
+-- Any can be expressed using _∈_.
+
+Any-∈ : ∀ {A} (P : A → Set) (xs : List A) →
+        Any P xs ↔ ∃ λ x → P x × x ∈ xs
+Any-∈ P [] =
+  ⊥                  ↔⟨ Bijection.inverse ×-right-zero ⟩
+  (∃ λ x → ⊥)        ↔⟨ ∃-cong (λ x → Bijection.inverse ×-right-zero) ⟩∎
+  (∃ λ x → P x × ⊥)  ∎
+Any-∈ P (x ∷ xs) =
+  P x ⊎ Any P xs                                  ↔⟨ Bijection.id ⊎-cong Any-∈ P xs ⟩
+  P x ⊎ (∃ λ y → P y × y ∈ xs)                    ↔⟨ ∃-intro P x ⊎-cong Bijection.id ⟩
+  (∃ λ y → P y × y ≡ x) ⊎ (∃ λ y → P y × y ∈ xs)  ↔⟨ Bijection.inverse ∃-⊎-distrib-left ⟩
+  (∃ λ y → P y × y ≡ x ⊎ P y × y ∈ xs)            ↔⟨ ∃-cong (λ y → Bijection.inverse ×-⊎-distrib-left) ⟩∎
+  (∃ λ y → P y × (y ≡ x ⊎ y ∈ xs))                ∎
+
+-- Using this property we can prove that Any and _⊎_ commute.
+
+Any-⊎ : ∀ {A} (P Q : A → Set) (xs : List A) →
+        Any (λ x → P x ⊎ Q x) xs ↔ Any P xs ⊎ Any Q xs
+Any-⊎ P Q xs =
+  Any (λ x → P x ⊎ Q x) xs                         ↔⟨ Any-∈ (λ x → P x ⊎ Q x) xs ⟩
+  (∃ λ x → (P x ⊎ Q x) × x ∈ xs)                   ↔⟨ ∃-cong (λ x → ×-⊎-distrib-right) ⟩
+  (∃ λ x → P x × x ∈ xs ⊎ Q x × x ∈ xs)            ↔⟨ ∃-⊎-distrib-left ⟩
+  (∃ λ x → P x × x ∈ xs) ⊎ (∃ λ x → Q x × x ∈ xs)  ↔⟨ Bijection.inverse $ Any-∈ P xs ⊎-cong Any-∈ Q xs ⟩∎
+  Any P xs ⊎ Any Q xs                              ∎
+
+------------------------------------------------------------------------
+-- Bag equality
 
 -- Bag equality.
 
@@ -136,6 +198,33 @@ data _≈-bag″_ {A : Set} : List A → List A → Set where
   swap  : ∀ {x y xs} → x ∷ y ∷ xs ≈-bag″ y ∷ x ∷ xs
   trans : ∀ {xs ys zs}
           (xs≈ys : xs ≈-bag″ ys) (ys≈zs : ys ≈-bag″ zs) → xs ≈-bag″ zs
+
+------------------------------------------------------------------------
+-- More properties
+
+-- Any respects bag equality
+
+Any-cong : ∀ {A} {P Q : A → Set} {xs ys : List A} →
+           (∀ x → P x ↔ Q x) → xs ≈-bag ys → Any P xs ↔ Any Q ys
+Any-cong {P = P} {Q} {xs} {ys} P↔Q xs≈ys =
+  Any P xs                ↔⟨ Any-∈ P xs ⟩
+  (∃ λ z → P z × z ∈ xs)  ↔⟨ ∃-cong (λ z → P↔Q z ×-cong xs≈ys z) ⟩
+  (∃ λ z → Q z × z ∈ ys)  ↔⟨ Bijection.inverse (Any-∈ Q ys) ⟩∎
+  Any Q ys                ∎
+
+-- Bind distributes from the left over append.
+
+bind-left-distributive :
+  ∀ {A B} (xs : List A) (f g : A → List B) →
+  xs >>= (λ x → f x ++ g x)  ≈-bag  (xs >>= f) ++ (xs >>= g)
+bind-left-distributive xs f g = λ z →
+  z ∈ xs >>= (λ x → f x ++ g x)                    ↔⟨ Any->>= (_≡_ z) xs (λ x → f x ++ g x) ⟩
+  Any (λ x → z ∈ f x ++ g x) xs                    ↔⟨ Any-cong (λ x → Any-++ (_≡_ z) (f x) (g x)) (λ _ → Bijection.id) ⟩
+  Any (λ x → z ∈ f x ⊎ z ∈ g x) xs                 ↔⟨ Any-⊎ (λ x → z ∈ f x) (λ x → z ∈ g x) xs ⟩
+  Any (λ x → z ∈ f x) xs ⊎ Any (λ x → z ∈ g x) xs  ↔⟨ Bijection.inverse (Any->>= (_≡_ z) xs f) ⊎-cong
+                                                      Bijection.inverse (Any->>= (_≡_ z) xs g) ⟩
+  z ∈ (xs >>= f) ⊎ z ∈ (xs >>= g)                  ↔⟨ Bijection.inverse (Any-++ (_≡_ z) (xs >>= f) (xs >>= g)) ⟩∎
+  z ∈ (xs >>= f) ++ (xs >>= g)                     ∎
 
 ------------------------------------------------------------------------
 -- The first two definitions of bag equality above are equivalent
