@@ -10,7 +10,7 @@ module Equality.Decision-procedures
   {reflexive} (eq : Equality-with-J reflexive) where
 
 open Derived-definitions-and-properties eq
-open import Prelude hiding (module Bool; module ℕ; module Fin)
+open import Prelude hiding (module Bool; module ℕ)
 
 ------------------------------------------------------------------------
 -- Booleans
@@ -70,41 +70,6 @@ module ℕ where
   suc m ≟ zero  = inj₂ (0≢+ ∘ sym)
 
 ------------------------------------------------------------------------
--- Finite sets
-
-module Fin where
-
-  -- Inhabited only for zero.
-
-  Zero : ∀ {n} → Fin n → Set
-  Zero zero    = ⊤
-  Zero (suc i) = ⊥
-
-  abstract
-
-    -- Zero is not equal to the successor of any number.
-
-    0≢+ : ∀ {n} {i : Fin n} → Fin.zero ≢ suc i
-    0≢+ 0≡+ = subst Zero 0≡+ tt
-
-  -- The suc constructor is cancellative.
-
-  cancel-suc : ∀ {n} {i j : Fin n} → suc i ≡ suc j → i ≡ j
-  cancel-suc {n} {i} = cong pred
-    where
-    pred : Fin (suc n) → Fin n
-    pred zero    = i
-    pred (suc j) = j
-
-  -- Equality of finite numbers is decidable.
-
-  _≟_ : ∀ {n} → Decidable-equality (Fin n)
-  zero  ≟ zero  = inj₁ (refl _)
-  suc i ≟ suc j = ⊎-map (cong suc) (λ i≢j → i≢j ∘ cancel-suc) (i ≟ j)
-  zero  ≟ suc j = inj₂ 0≢+
-  suc i ≟ zero  = inj₂ (0≢+ ∘ sym)
-
-------------------------------------------------------------------------
 -- Binary sums
 
 module ⊎ where
@@ -137,3 +102,14 @@ module ⊎ where
     inj₂ x ≟ inj₂ y = ⊎-map (cong inj₂) (λ x≢y → x≢y ∘ cancel-inj₂) (x ≟B y)
     inj₁ x ≟ inj₂ y = inj₂ inj₁≢inj₂
     inj₂ x ≟ inj₁ y = inj₂ (inj₁≢inj₂ ∘ sym)
+
+------------------------------------------------------------------------
+-- Finite sets
+
+module Fin where
+
+  -- Equality of finite numbers is decidable.
+
+  _≟_ : ∀ {n} → Decidable-equality (Fin n)
+  _≟_ {zero}  = λ ()
+  _≟_ {suc n} = ⊎.Dec._≟_ (λ _ _ → inj₁ (refl tt)) (_≟_ {n})

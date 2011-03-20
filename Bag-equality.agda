@@ -21,8 +21,7 @@ private
   open Bijection hiding (id; _∘_)
 
   import Equality.Decision-procedures
-  open Equality.Decision-procedures.Fin equality-with-J
-    using (_≟_; 0≢+)
+  open Equality.Decision-procedures equality-with-J
 
   module Weak where
     import Weak-equivalence
@@ -238,8 +237,8 @@ bind-left-distributive xs f g = λ z →
 
 ∈-lookup : ∀ {A z} (xs : List A) → z ∈ xs ↔ ∃ λ i → z ≡ lookup xs i
 ∈-lookup {z = z} [] =
-  ⊥                                    ↔⟨ Bijection.inverse $ ∃-Fin-zero _ ⟩∎
-  (∃ λ (i : Fin 0) → z ≡ lookup [] i)  ∎
+  ⊥                                ↔⟨ Bijection.inverse $ ∃-Fin-zero _ ⟩∎
+  (∃ λ (i : ⊥) → z ≡ lookup [] i)  ∎
 ∈-lookup {z = z} (x ∷ xs) =
   z ≡ x ⊎ z ∈ xs                     ↔⟨ Bijection.id ⊎-cong ∈-lookup xs ⟩
   z ≡ x ⊎ (∃ λ i → z ≡ lookup xs i)  ↔⟨ Bijection.inverse $ ∃-Fin-suc _ ⟩∎
@@ -417,13 +416,13 @@ drop-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z = record
             inj₁ p ≡ from (inv z) (inj₁ q) →
             inj₂ z∈xs ≡ from (inv z) (inj₁ p) →
             ⊥
-    lemma {xs} inv {p} {q} {z∈xs} hyp₁ hyp₂ = 0≢+ (
-      zero                            ≡⟨ refl ⟩
+    lemma {xs} inv {p} {q} {z∈xs} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
+      inj₁ tt                         ≡⟨ refl ⟩
       index {xs = _ ∷ xs} (inj₁ p)    ≡⟨ cong index hyp₁ ⟩
       index (from (inv z) (inj₁ q))   ≡⟨ index-equality-preserved (Bijection.inverse ∘ inv) refl ⟩
       index (from (inv z) (inj₁ p))   ≡⟨ cong index (sym hyp₂) ⟩
       index {xs = x ∷ _} (inj₂ z∈xs)  ≡⟨ refl ⟩∎
-      suc (index z∈xs)                ∎)
+      inj₂ (index z∈xs)               ∎)
 
   f : ∀ {xs ys} → x ∷ xs ≈-bag x ∷ ys → z ∈ xs → z ∈ ys
   f inv z∈xs with to (inv z) (inj₂ z∈xs) | sym (left-inverse-of (inv z) (inj₂ z∈xs))

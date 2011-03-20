@@ -121,13 +121,6 @@ abstract
   m≤m+n (suc m) n = suc≤suc (m≤m+n m n)
 
 ------------------------------------------------------------------------
--- Finite sets
-
-data Fin : ℕ → Set where
-  zero : {n : ℕ} → Fin (1 + n)
-  suc  : {n : ℕ} (i : Fin n) → Fin (1 + n)
-
-------------------------------------------------------------------------
 -- Simple combinators working solely on and with functions
 
 infixr 9 _∘_
@@ -339,3 +332,17 @@ infixl 5 _>>=_
 
 _>>=_ : {A B : Set} → List A → (A → List B) → List B
 xs >>= f = concat (map f xs)
+
+------------------------------------------------------------------------
+-- Finite sets
+
+Fin : ℕ → Set
+Fin zero    = ⊥
+Fin (suc n) = ⊤ ⊎ Fin n
+
+-- A lookup function.
+
+lookup : {A : Set} (xs : List A) → Fin (length xs) → A
+lookup []       ()
+lookup (x ∷ xs) (inj₁ tt) = x
+lookup (x ∷ xs) (inj₂ i)  = lookup xs i
