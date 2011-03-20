@@ -81,3 +81,11 @@ import Weak-equivalence
 -- proved if the development was more universe-polymorphic.)
 
 import Univalence-axiom
+
+-- Some definitions related to and properties of finite sets.
+
+import Fin
+
+-- Bag equality.
+
+import Bag-equality
