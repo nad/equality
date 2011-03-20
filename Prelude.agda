@@ -305,8 +305,37 @@ data List (A : Set) : Set where
   []  : List A
   _∷_ : (x : A) (xs : List A) → List A
 
+-- Right fold.
+
+foldr : ∀ {A B : Set} → (A → B → B) → B → List A → B
+foldr _⊕_ ε []       = ε
+foldr _⊕_ ε (x ∷ xs) = x ⊕ foldr _⊕_ ε xs
+
 -- The length of a list.
 
 length : {A : Set} → List A → ℕ
-length []        = 0
-length (x ∷ xs)  = 1 + length xs
+length = foldr (const suc) 0
+
+-- Appends two lists.
+
+infixr 5 _++_
+
+_++_ : {A : Set} → List A → List A → List A
+xs ++ ys = foldr _∷_ ys xs
+
+-- Maps a function over a list.
+
+map : ∀ {A B : Set} → (A → B) → List A → List B
+map f = foldr (λ x ys → f x ∷ ys) []
+
+-- Concatenates a list of lists.
+
+concat : {A : Set} → List (List A) → List A
+concat = foldr _++_ []
+
+-- The list monad's bind operation.
+
+infixl 5 _>>=_
+
+_>>=_ : {A B : Set} → List A → (A → List B) → List B
+xs >>= f = concat (map f xs)
