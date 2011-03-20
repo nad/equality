@@ -83,6 +83,23 @@ finally-↔ _ _ A↔B = A↔B
 syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩∎ B ∎
 
 ------------------------------------------------------------------------
+-- A lemma related to ⊤
+
+-- Contractible sets are isomorphic to ⊤.
+
+contractible↔⊤ : {A : Set} → Contractible A → A ↔ ⊤
+contractible↔⊤ c = record
+  { surjection = record
+    { equivalence = record
+      { to   = const tt
+      ; from = const $ proj₁ c
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = proj₂ c
+  }
+
+------------------------------------------------------------------------
 -- _⊎_ is a commutative monoid
 
 -- _⊎_ preserves bijections.
@@ -249,12 +266,31 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
   ⊥      ∎
 
 ------------------------------------------------------------------------
--- _⊎_ and _×_ form a commutative semiring
+-- Some lemmas related to ∃
 
--- _×_ distributes from the left over _⊎_.
+-- ∃ preserves surjections.
+--
+-- For a more general property, see Weak-equivalence.Σ-preserves.
 
-×-⊎-distrib-left : {A B C : Set} → A × (B ⊎ C) ↔ (A × B) ⊎ (A × C)
-×-⊎-distrib-left = record
+∃-cong : ∀ {A : Set} {B₁ B₂ : A → Set} →
+         (∀ x → B₁ x ↔ B₂ x) → ∃ B₁ ↔ ∃ B₂
+∃-cong B₁↔B₂ = record
+  { surjection      = Surjection.∃-cong (surjection ⊚ B₁↔B₂)
+  ; left-inverse-of = left-inverse-of′
+  }
+  where
+  open _↔_
+
+  abstract
+    left-inverse-of′ = λ p →
+      cong (_,_ (proj₁ p)) $
+           left-inverse-of (B₁↔B₂ (proj₁ p)) (proj₂ p)
+
+-- ∃ distributes from the left over _⊎_.
+
+∃-⊎-distrib-left : ∀ {A : Set} {B C : A → Set} →
+                   (∃ λ x → B x ⊎ C x) ↔ ∃ B ⊎ ∃ C
+∃-⊎-distrib-left = record
   { surjection = record
     { equivalence = record
       { to   = uncurry λ x → [ inj₁ ⊚ _,_ x , inj₂ ⊚ _,_ x ]
@@ -265,6 +301,42 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
   ; left-inverse-of =
       uncurry λ x → [ refl ⊚ _,_ x ⊚ inj₁ , refl ⊚ _,_ x ⊚ inj₂ ]
   }
+
+-- ∃ is "commutative".
+
+∃-comm : ∀ {A B : Set} {C : A → B → Set} →
+         (∃ λ x → ∃ λ y → C x y) ↔ (∃ λ y → ∃ λ x → C x y)
+∃-comm = record
+  { surjection = record
+    { equivalence = record
+      { to   = uncurry λ x → uncurry λ y z → (y , (x , z))
+      ; from = uncurry λ x → uncurry λ y z → (y , (x , z))
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
+-- One can introduce an existential by also introducing an equality.
+
+∃-intro : ∀ {A : Set} (B : A → Set) (x : A) →
+          B x ↔ ∃ λ y → B y × y ≡ x
+∃-intro B x =
+  B x                    ↔⟨ inverse ×-right-identity ⟩
+  B x × ⊤                ↔⟨ id ×-cong inverse (contractible↔⊤ (singleton-contractible x)) ⟩
+  B x × (∃ λ y → y ≡ x)  ↔⟨ ∃-comm ⟩
+  (∃ λ y → B x × y ≡ x)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩
+  (∃ λ y → y ≡ x × B x)  ↔⟨ ∃-cong (λ y → ∃-cong (λ y≡x → subst (λ x → B x ↔ B y) y≡x id)) ⟩
+  (∃ λ y → y ≡ x × B y)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩∎
+  (∃ λ y → B y × y ≡ x)  ∎
+
+------------------------------------------------------------------------
+-- _⊎_ and _×_ form a commutative semiring
+
+-- _×_ distributes from the left over _⊎_.
+
+×-⊎-distrib-left : {A B C : Set} → A × (B ⊎ C) ↔ (A × B) ⊎ (A × C)
+×-⊎-distrib-left = ∃-⊎-distrib-left
 
 -- _×_ distributes from the right over _⊎_.
 

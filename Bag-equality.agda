@@ -364,7 +364,7 @@ Fin-length-cong : ∀ {A} {xs ys : List A} →
                   xs ≈-bag ys → Fin (length xs) ↔ Fin (length ys)
 Fin-length-cong {xs = xs} {ys} xs≈ys =
   Fin (length xs)   ↔⟨ Fin-length xs ⟩
-  ∃ (λ z → z ∈ xs)  ↔≈⟨ Weak.Σ-preserves Weak.id (bijection⇒weak-equivalence ∘ xs≈ys) ⟩
+  ∃ (λ z → z ∈ xs)  ↔⟨ ∃-cong xs≈ys ⟩
   ∃ (λ z → z ∈ ys)  ↔⟨ Bijection.inverse (Fin-length ys) ⟩∎
   Fin (length ys)   ∎
 
