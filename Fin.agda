@@ -10,14 +10,55 @@
 module Fin where
 
 open import Equality.Propositional as P
-open import Equivalence hiding (_∘_)
+open import Equivalence hiding (id; _∘_)
 open import Prelude
 
 private
   module Bijection where
     import Bijection; open Bijection P.equality-with-J public
-open Bijection hiding (_∘_)
+open Bijection hiding (id; _∘_)
 import Equality.Decision-procedures as ED; open ED P.equality-with-J
+
+------------------------------------------------------------------------
+-- Some bijections related to Fin
+
+∃-Fin-zero : (P : Fin zero → Set) → ∃ P ↔ ⊥
+∃-Fin-zero P = record
+  { surjection = record
+    { equivalence = record
+      { to   = absurd ∘ proj₁
+      ; from = ⊥-elim
+      }
+    ; right-inverse-of = λ x → ⊥-elim x
+    }
+  ; left-inverse-of = absurd ∘ proj₁
+  }
+  where
+  absurd : {A : Set} → Fin 0 → A
+  absurd ()
+
+∃-Fin-suc : ∀ {n} (P : Fin (suc n) → Set) →
+            ∃ P ↔ P zero ⊎ ∃ (P ∘ suc)
+∃-Fin-suc P = record
+  { surjection = record
+    { equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = [ (λ _ → refl) , (λ _ → refl) ]
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  to : ∃ P → P zero ⊎ ∃ (P ∘ suc)
+  to (zero  , p) = inj₁ p
+  to (suc i , p) = inj₂ (i , p)
+
+  from = [ _,_ zero , Σ-map suc id ]
+
+  from∘to : ∀ p → from (to p) ≡ p
+  from∘to (zero  , p) = refl
+  from∘to (suc i , p) = refl
 
 ------------------------------------------------------------------------
 -- A lookup function

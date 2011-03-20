@@ -232,69 +232,23 @@ bind-left-distributive xs f g = λ z →
 -- One direction follows from the following lemma, which states that
 -- list membership can be expressed as "there is an index which points
 -- to the element".
+--
+-- As an aside, note that the right-hand side is almost
+-- lookup xs ⁻¹ z.
 
-private
- module ∈-lookup {A : Set} {z : A} where
+∈-lookup : ∀ {A z} (xs : List A) → z ∈ xs ↔ ∃ λ i → z ≡ lookup xs i
+∈-lookup {z = z} [] =
+  ⊥                                    ↔⟨ Bijection.inverse $ ∃-Fin-zero _ ⟩∎
+  (∃ λ (i : Fin 0) → z ≡ lookup [] i)  ∎
+∈-lookup {z = z} (x ∷ xs) =
+  z ≡ x ⊎ z ∈ xs                     ↔⟨ Bijection.id ⊎-cong ∈-lookup xs ⟩
+  z ≡ x ⊎ (∃ λ i → z ≡ lookup xs i)  ↔⟨ Bijection.inverse $ ∃-Fin-suc _ ⟩∎
+  (∃ λ i → z ≡ lookup (x ∷ xs) i)    ∎
 
-  to : ∀ xs → z ∈ xs → ∃ λ i → z ≡ lookup xs i
-  to []       ()
-  to (x ∷ xs) (inj₁ z≡x)  = (zero , z≡x)
-  to (x ∷ xs) (inj₂ z∈xs) = Σ-map suc id (to xs z∈xs)
-
-  mutual
-
-    from : ∀ xs → (∃ λ i → z ≡ lookup xs i) → z ∈ xs
-    from xs (i , eq) = from′ xs i refl eq
-
-    from′ : ∀ {n} xs (i : Fin n) (eq : length xs ≡ n) →
-            z ≡ lookup′ xs i eq → z ∈ xs
-    from′ []       ()      refl _
-    from′ (x ∷ xs) zero    _    z≡x     = inj₁ z≡x
-    from′ (x ∷ xs) (suc i) refl z≡xs[i] = inj₂ (from xs (i , z≡xs[i]))
-
-  abstract
-
-    from∘to : ∀ xs (z∈xs : z ∈ xs) → from xs (to xs z∈xs) ≡ z∈xs
-    from∘to []       ()
-    from∘to (x ∷ xs) (inj₁ z≡x)  = refl
-    from∘to (x ∷ xs) (inj₂ z∈xs) = cong inj₂ (from∘to xs z∈xs)
-
-    lemma : ∀ {n z} (xs : List A) (i : Fin n) (eq : length xs ≡ n) →
-            z ≡ lookup′ xs i eq →
-            z ≡ lookup′ xs (subst Fin (sym eq) i) refl
-    lemma xs i refl eq = eq
-
-    mutual
-
-      to∘from : ∀ xs (p : ∃ λ i → z ≡ lookup xs i) →
-                to xs (from xs p) ≡ p
-      to∘from xs (i , eq) = to∘from′ xs i refl eq
-
-      to∘from′ : ∀ {n} xs (i : Fin n) eq′ (eq : z ≡ lookup′ xs i eq′) →
-                 to xs (from′ xs i eq′ eq) ≡
-                 (subst Fin (sym eq′) i , lemma xs i eq′ eq)
-      to∘from′ []       ()      refl _
-      to∘from′ (x ∷ xs) zero    refl z≡x     = refl
-      to∘from′ (x ∷ xs) (suc i) refl z≡xs[i] =
-        cong (Σ-map suc id) (to∘from xs (i , z≡xs[i]))
-
-∈-lookup : ∀ {A z} {xs : List A} → z ∈ xs ↔ ∃ λ i → z ≡ lookup xs i
-∈-lookup {A} {z} {xs} = record
-  { surjection = record
-    { equivalence = record
-      { to   = to xs
-      ; from = from xs
-      }
-    ; right-inverse-of = to∘from xs
-    }
-  ; left-inverse-of = from∘to xs
-  }
-  where open ∈-lookup
-
--- The index.
+-- The index which points to the element.
 
 index : ∀ {A z} {xs : List A} → z ∈ xs → Fin (length xs)
-index = proj₁ ∘ _↔_.to ∈-lookup
+index = proj₁ ∘ _↔_.to (∈-lookup _)
 
 -- For the other direction a sequence of lemmas is used.
 
@@ -304,7 +258,7 @@ index = proj₁ ∘ _↔_.to ∈-lookup
 
 Fin-length : ∀ {A} (xs : List A) → (∃ λ z → z ∈ xs) ↔ Fin (length xs)
 Fin-length xs =
-  (∃ λ z → z ∈ xs)                   ↔⟨ ∃-cong (λ _ → ∈-lookup) ⟩
+  (∃ λ z → z ∈ xs)                   ↔⟨ ∃-cong (λ _ → ∈-lookup xs) ⟩
   (∃ λ z → ∃ λ i → z ≡ lookup xs i)  ↔⟨ ∃-comm ⟩
   (∃ λ i → ∃ λ z → z ≡ lookup xs i)  ↔⟨ Bijection.id ⟩
   (∃ λ i → Singleton (lookup xs i))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ (singleton-contractible _)) ⟩
@@ -341,12 +295,12 @@ abstract
     lookup xs i                                 ≡⟨ cong (lookup xs) $ sym $ right-inverse-of (Fin-length xs) i ⟩
     lookup xs (to (Fin-length xs) $
                from (Fin-length xs) i)          ≡⟨ refl ⟩
-    lookup xs (proj₁ $ to ∈-lookup $
-               proj₂ $ from (Fin-length xs) i)  ≡⟨ sym $ proj₂ $ to ∈-lookup $ proj₂ $ from (Fin-length xs) i ⟩
-    proj₁ (from (Fin-length xs) i)              ≡⟨ proj₂ $ to ∈-lookup $ to (xs≈ys _) (from ∈-lookup (i , refl)) ⟩
-    lookup ys (proj₁ $ to ∈-lookup $
+    lookup xs (proj₁ $ to (∈-lookup _) $
+               proj₂ $ from (Fin-length xs) i)  ≡⟨ sym $ proj₂ $ to (∈-lookup _) $ proj₂ $ from (Fin-length xs) i ⟩
+    proj₁ (from (Fin-length xs) i)              ≡⟨ proj₂ $ to (∈-lookup _) $ to (xs≈ys _) (from (∈-lookup _) (i , refl)) ⟩
+    lookup ys (proj₁ $ to (∈-lookup _) $
                to (xs≈ys _) $
-               from ∈-lookup (i , refl))        ≡⟨ refl ⟩∎
+               from (∈-lookup _) (i , refl))    ≡⟨ refl ⟩∎
     lookup ys (to (Fin-length-cong xs≈ys) i)    ∎
     where open _↔_
 
@@ -365,10 +319,10 @@ abstract
 
   from : ∀ {xs ys} → xs ≈-bag′ ys → xs ≈-bag ys
   from {xs} {ys} (f , related) z =
-    z ∈ xs                     ↔⟨ ∈-lookup ⟩
+    z ∈ xs                     ↔⟨ ∈-lookup xs ⟩
     ∃ (λ i → z ≡ lookup xs i)  ↔≈⟨ Weak.Σ-preserves (bijection⇒weak-equivalence f)
                                                     (λ i → equality-lemma (related i)) ⟩
-    ∃ (λ i → z ≡ lookup ys i)  ↔⟨ Bijection.inverse ∈-lookup ⟩∎
+    ∃ (λ i → z ≡ lookup ys i)  ↔⟨ Bijection.inverse (∈-lookup ys) ⟩∎
     z ∈ ys                     ∎
 
 ------------------------------------------------------------------------
@@ -417,7 +371,7 @@ abstract
     lemma with z | p
              | to (Fin-length xs) (z , p)
              | left-inverse-of (Fin-length xs) (z , p)
-    ... | .(lookup xs i) | .(from ∈-lookup (i , refl)) | i | refl =
+    ... | .(lookup xs i) | .(from (∈-lookup xs) (i , refl)) | i | refl =
       refl
 
   -- Bag equality isomorphisms preserve index equality. Note that this
