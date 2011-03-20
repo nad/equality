@@ -296,66 +296,20 @@ private
 index : ∀ {A z} {xs : List A} → z ∈ xs → Fin (length xs)
 index = proj₁ ∘ _↔_.to ∈-lookup
 
-abstract
-
-  -- The index points to the element.
-
-  index-lookup : ∀ {A z} {xs : List A} (z∈xs : z ∈ xs) →
-                 lookup xs (index z∈xs) ≡ z
-  index-lookup = sym ∘ proj₂ ∘ _↔_.to ∈-lookup
-
 -- For the other direction a sequence of lemmas is used.
 
 -- The first lemma states that ∃ λ z → z ∈ xs is isomorphic to Fin n,
 -- where n is the length of xs. Thierry Coquand pointed out that this
 -- is a generalisation of singleton-contractible.
 
-Fin-length : ∀ {A} (xs : List A) → Fin (length xs) ↔ ∃ λ z → z ∈ xs
-Fin-length {A} = λ xs → record
-  { surjection = record
-    { equivalence = record
-      { to   = to xs
-      ; from = from
-      }
-    ; right-inverse-of = to∘from xs
-    }
-  ; left-inverse-of = from∘to xs
-  }
-  where
-
-  -- An enhanced lookup function.
-
-  mutual
-
-    to : (xs : List A) → Fin (length xs) → ∃ λ z → z ∈ xs
-    to xs i = to′ xs i refl
-
-    to′ : ∀ {n} (xs : List A) → Fin n → length xs ≡ n → ∃ λ z → z ∈ xs
-    to′ []       ()      refl
-    to′ (x ∷ xs) zero    _    = (x , inj₁ refl)
-    to′ (x ∷ xs) (suc i) refl = Σ-map id inj₂ (to xs i)
-
-  from : ∀ {xs : List A} → (∃ λ z → z ∈ xs) → Fin (length xs)
-  from = index ∘ proj₂
-
-  abstract
-
-    mutual
-
-      from∘to : ∀ xs i → from (to xs i) ≡ i
-      from∘to xs i = from∘to′ xs i refl
-
-      from∘to′ : ∀ {n} xs (i : Fin n) eq →
-                 from (to′ xs i eq) ≡ subst Fin (sym eq) i
-      from∘to′ []       ()      refl
-      from∘to′ (x ∷ xs) zero    refl = refl
-      from∘to′ (x ∷ xs) (suc i) refl = cong suc (from∘to xs i)
-
-    to∘from : ∀ xs p → to xs (from p) ≡ p
-    to∘from []       (z  , ())
-    to∘from (x ∷ xs) (.x , inj₁ refl) = refl
-    to∘from (x ∷ xs) (z  , inj₂ z∈xs) =
-      cong (Σ-map id inj₂) (to∘from xs (z , z∈xs))
+Fin-length : ∀ {A} (xs : List A) → (∃ λ z → z ∈ xs) ↔ Fin (length xs)
+Fin-length xs =
+  (∃ λ z → z ∈ xs)                   ↔⟨ ∃-cong (λ _ → ∈-lookup) ⟩
+  (∃ λ z → ∃ λ i → z ≡ lookup xs i)  ↔⟨ ∃-comm ⟩
+  (∃ λ i → ∃ λ z → z ≡ lookup xs i)  ↔⟨ Bijection.id ⟩
+  (∃ λ i → Singleton (lookup xs i))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ (singleton-contractible _)) ⟩
+  Fin (length xs) × ⊤                ↔⟨ ×-right-identity ⟩∎
+  Fin (length xs)                    ∎
 
 -- From this lemma we get that lists which are bag equal have related
 -- lengths.
@@ -363,9 +317,9 @@ Fin-length {A} = λ xs → record
 Fin-length-cong : ∀ {A} {xs ys : List A} →
                   xs ≈-bag ys → Fin (length xs) ↔ Fin (length ys)
 Fin-length-cong {xs = xs} {ys} xs≈ys =
-  Fin (length xs)   ↔⟨ Fin-length xs ⟩
+  Fin (length xs)   ↔⟨ Bijection.inverse $ Fin-length xs ⟩
   ∃ (λ z → z ∈ xs)  ↔⟨ ∃-cong xs≈ys ⟩
-  ∃ (λ z → z ∈ ys)  ↔⟨ Bijection.inverse (Fin-length ys) ⟩∎
+  ∃ (λ z → z ∈ ys)  ↔⟨ Fin-length ys ⟩∎
   Fin (length ys)   ∎
 
 abstract
@@ -384,16 +338,16 @@ abstract
     ∀ {A} {xs ys : List A} (xs≈ys : xs ≈-bag ys) →
     xs And ys Are-related-by Fin-length-cong xs≈ys
   Fin-length-cong-relates {xs = xs} {ys} xs≈ys i =
-    lookup xs i                               ≡⟨ cong (lookup xs) $ sym $ left-inverse-of (Fin-length xs) i ⟩
-    lookup xs (from (Fin-length xs) $
-               to (Fin-length xs) i)          ≡⟨ refl ⟩
-    lookup xs (index $ proj₂ $
-               to (Fin-length xs) i)          ≡⟨ index-lookup $ proj₂ $ to (Fin-length xs) i ⟩
-    proj₁ (to (Fin-length xs) i)              ≡⟨ sym $ index-lookup $ to (xs≈ys _) (proj₂ (to (Fin-length xs) i)) ⟩
-    lookup ys (index $ proj₂ $
-               Σ-map id (to (xs≈ys _)) $
-               to (Fin-length xs) i)          ≡⟨ refl ⟩∎
-    lookup ys (to (Fin-length-cong xs≈ys) i)  ∎
+    lookup xs i                                 ≡⟨ cong (lookup xs) $ sym $ right-inverse-of (Fin-length xs) i ⟩
+    lookup xs (to (Fin-length xs) $
+               from (Fin-length xs) i)          ≡⟨ refl ⟩
+    lookup xs (proj₁ $ to ∈-lookup $
+               proj₂ $ from (Fin-length xs) i)  ≡⟨ sym $ proj₂ $ to ∈-lookup $ proj₂ $ from (Fin-length xs) i ⟩
+    proj₁ (from (Fin-length xs) i)              ≡⟨ proj₂ $ to ∈-lookup $ to (xs≈ys _) (from ∈-lookup (i , refl)) ⟩
+    lookup ys (proj₁ $ to ∈-lookup $
+               to (xs≈ys _) $
+               from ∈-lookup (i , refl))        ≡⟨ refl ⟩∎
+    lookup ys (to (Fin-length-cong xs≈ys) i)    ∎
     where open _↔_
 
 -- We get that the two definitions of bag equality are equivalent.
@@ -446,22 +400,25 @@ abstract
   index-commutes {z = z} {xs} {ys} xs≈ys p =
     (index $ to (xs≈ys z) p)                             ≡⟨ lemma ⟩
     (index $ to (xs≈ys _) $ proj₂ $
-     to (Fin-length xs) $ from (Fin-length xs) (z , p))  ≡⟨ refl ⟩
+     from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
     (index $ proj₂ $ Σ-map id (to (xs≈ys _)) $
-     to (Fin-length xs) $ from (Fin-length xs) (z , p))  ≡⟨ refl ⟩
-    (from (Fin-length ys) $ Σ-map id (to (xs≈ys _)) $
-     to (Fin-length xs) $ index p)                       ≡⟨ refl ⟩∎
+     from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
+    (to (Fin-length ys) $ Σ-map id (to (xs≈ys _)) $
+     from (Fin-length xs) $ index p)                     ≡⟨ refl ⟩∎
     (to (Fin-length-cong xs≈ys) $ index p)               ∎
     where
     open _↔_
 
     lemma : (index $ to (xs≈ys z) p) ≡
-            (index $ to (xs≈ys _) $
-             proj₂ $ to (Fin-length xs) $
-             from (Fin-length xs) (z , p))
-    lemma with to (Fin-length xs) (from (Fin-length xs) (z , p))
-             | right-inverse-of (Fin-length xs) (z , p)
-    ... | .(z , p) | refl = refl
+            (index $
+             to (xs≈ys (lookup xs (to (Fin-length xs) (z , p)))) $
+             proj₂ $ from (Fin-length xs) $
+             to (Fin-length xs) (z , p))
+    lemma with z | p
+             | to (Fin-length xs) (z , p)
+             | left-inverse-of (Fin-length xs) (z , p)
+    ... | .(lookup xs i) | .(from ∈-lookup (i , refl)) | i | refl =
+      refl
 
   -- Bag equality isomorphisms preserve index equality. Note that this
   -- means that, even if the underlying equality is proof relevant, a
