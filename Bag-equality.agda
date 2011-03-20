@@ -368,7 +368,10 @@ abstract
              | right-inverse-of (Fin-length xs) (z , p)
     ... | .(z , p) | refl = refl
 
-  -- Bag equality isomorphisms preserve index equality.
+  -- Bag equality isomorphisms preserve index equality. Note that this
+  -- means that, even if the underlying equality is proof relevant, a
+  -- bag equality isomorphism cannot map two distinct proofs of z ∈ xs
+  -- (say) to different positions.
 
   index-equality-preserved :
     ∀ {A : Set} {z : A} {xs ys} {p q : z ∈ xs}
