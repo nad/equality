@@ -337,7 +337,7 @@ abstract
             (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
             (sup x f ≡ sup y g)
   W-≡,≡↠≡ {A} {B} ext {x} {y} {f} {g} =
-    (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i))        ↠⟨ Surjection.Σ-preserves lemma ⟩
+    (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i))        ↠⟨ Surjection.∃-cong lemma ⟩
     (∃ λ (p : x ≡ y) → subst (λ x → B x → W A B) p f ≡ g)  ↠⟨ _↔_.surjection Σ-≡,≡↔≡ ⟩
     (_≡_ {A = ∃ λ (x : A) → B x → W A B} (x , f) (y , g))  ↠⟨ ↠-≡ $ _↔_.surjection $ Bijection.inverse W-unfolding ⟩∎
     (sup x f ≡ sup y g)                                    ∎

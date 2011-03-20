@@ -78,10 +78,11 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩∎ B ∎
 ------------------------------------------------------------------------
 -- Some preservation/respectfulness lemmas
 
--- Σ A preserves surjections.
+-- ∃ preserves surjections.
 
-Σ-preserves : ∀ {A B₁ B₂} → (∀ x → B₁ x ↠ B₂ x) → Σ A B₁ ↠ Σ A B₂
-Σ-preserves {B₁ = B₁} {B₂} B₁↠B₂ = record
+∃-cong : ∀ {A : Set} {B₁ B₂ : A → Set} →
+         (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
+∃-cong {B₁ = B₁} {B₂} B₁↠B₂ = record
   { equivalence = record
     { to   = Σ-map P.id (to (B₁↠B₂ _))
     ; from = Σ-map P.id (from (B₁↠B₂ _))
