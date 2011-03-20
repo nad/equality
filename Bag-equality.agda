@@ -180,10 +180,10 @@ xs ≈-bag ys = ∀ z → z ∈ xs ↔ z ∈ ys
 
 infix 4 _≈-bag′_
 
-_≈-bag′_ : {A : Set} → List A → List A → Set
-xs ≈-bag′ ys =
-  ∃ λ (f : Fin (length xs) ↔ Fin (length ys)) →
-      xs And ys Are-related-by f
+record _≈-bag′_ {A : Set} (xs ys : List A) : Set where
+  field
+    bijection : Fin (length xs) ↔ Fin (length ys)
+    related   : xs And ys Are-related-by bijection
 
 -- Yet another definition of bag equality. This definition is taken
 -- from Coq's standard library.
@@ -307,9 +307,10 @@ abstract
 
 ≈⇔≈′ : ∀ {A : Set} {xs ys : List A} → xs ≈-bag ys ⇔ xs ≈-bag′ ys
 ≈⇔≈′ = record
-  { to   = λ xs≈ys → ( Fin-length-cong xs≈ys
-                     , Fin-length-cong-relates xs≈ys
-                     )
+  { to   = λ xs≈ys → record
+             { bijection = Fin-length-cong xs≈ys
+             ; related   = Fin-length-cong-relates xs≈ys
+             }
   ; from = from
   }
   where
@@ -317,10 +318,13 @@ abstract
   equality-lemma refl = Weak.id
 
   from : ∀ {xs ys} → xs ≈-bag′ ys → xs ≈-bag ys
-  from {xs} {ys} (f , related) z =
+  from {xs} {ys} xs≈ys z =
     z ∈ xs                     ↔⟨ ∈-lookup xs ⟩
-    ∃ (λ i → z ≡ lookup xs i)  ↔≈⟨ Weak.Σ-preserves (bijection⇒weak-equivalence f)
-                                                    (λ i → equality-lemma (related i)) ⟩
+    ∃ (λ i → z ≡ lookup xs i)  ↔≈⟨ Weak.Σ-preserves
+                                     (bijection⇒weak-equivalence $
+                                        _≈-bag′_.bijection xs≈ys)
+                                     (λ i → equality-lemma $
+                                              _≈-bag′_.related xs≈ys i) ⟩
     ∃ (λ i → z ≡ lookup ys i)  ↔⟨ Bijection.inverse (∈-lookup ys) ⟩∎
     z ∈ ys                     ∎
 
@@ -332,10 +336,12 @@ abstract
 
 drop-cons′ : ∀ {A : Set} {x : A} xs ys →
              x ∷ xs ≈-bag′ x ∷ ys → xs ≈-bag′ ys
-drop-cons′ {x = x} xs ys (f , related) =
-  ( Fin.cancel-suc f
-  , Fin.cancel-suc-preserves-relatedness x xs ys f related
-  )
+drop-cons′ {x = x} xs ys x∷xs≈x∷ys = record
+  { bijection = Fin.cancel-suc (_≈-bag′_.bijection x∷xs≈x∷ys)
+  ; related   = Fin.cancel-suc-preserves-relatedness x xs ys
+                  (_≈-bag′_.bijection x∷xs≈x∷ys)
+                  (_≈-bag′_.related x∷xs≈x∷ys)
+  }
 
 -- By the equivalence above we get the result also for the first
 -- definition of bag equality, but we can show this directly, with the
