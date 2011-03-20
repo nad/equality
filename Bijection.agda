@@ -225,10 +225,10 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
   ; left-inverse-of = refl
   }
 
--- ⊤ is a left and right identity of _×_.
+-- ⊤ is a left and right identity of _×_ and Σ.
 
-×-left-identity : {A : Set} → ⊤ × A ↔ A
-×-left-identity = record
+Σ-left-identity : {A : ⊤ → Set} → Σ ⊤ A ↔ A tt
+Σ-left-identity = record
   { surjection = record
     { equivalence = record
       { to   = proj₂
@@ -239,16 +239,19 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
   ; left-inverse-of = refl
   }
 
+×-left-identity : {A : Set} → ⊤ × A ↔ A
+×-left-identity = Σ-left-identity
+
 ×-right-identity : {A : Set} → A × ⊤ ↔ A
 ×-right-identity {A} =
   A × ⊤  ↔⟨ ×-comm ⟩
   ⊤ × A  ↔⟨ ×-left-identity ⟩∎
   A      ∎
 
--- ⊥ is a left and right zero of _×_.
+-- ⊥ is a left and right zero of _×_ and Σ.
 
-×-left-zero : {A : Set} → ⊥ × A ↔ ⊥
-×-left-zero = record
+Σ-left-zero : {A : ⊥ → Set} → Σ ⊥ A ↔ ⊥
+Σ-left-zero = record
   { surjection = record
     { equivalence = record
       { to   = proj₁
@@ -259,6 +262,9 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
   ; left-inverse-of = ⊥-elim ⊚ proj₁
   }
 
+×-left-zero : {A : Set} → ⊥ × A ↔ ⊥
+×-left-zero = Σ-left-zero
+
 ×-right-zero : {A : Set} → A × ⊥ ↔ ⊥
 ×-right-zero {A} =
   A × ⊥  ↔⟨ ×-comm ⟩
@@ -267,6 +273,8 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
 
 ------------------------------------------------------------------------
 -- Some lemmas related to ∃
+
+-- See also Σ-left-zero and Σ-right-zero above.
 
 -- ∃ preserves surjections.
 --
@@ -286,7 +294,7 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
       cong (_,_ (proj₁ p)) $
            left-inverse-of (B₁↔B₂ (proj₁ p)) (proj₂ p)
 
--- ∃ distributes from the left over _⊎_.
+-- ∃ distributes "from the left" over _⊎_.
 
 ∃-⊎-distrib-left : ∀ {A : Set} {B C : A → Set} →
                    (∃ λ x → B x ⊎ C x) ↔ ∃ B ⊎ ∃ C
@@ -301,6 +309,31 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
   ; left-inverse-of =
       uncurry λ x → [ refl ⊚ _,_ x ⊚ inj₁ , refl ⊚ _,_ x ⊚ inj₂ ]
   }
+
+-- ∃ also distributes "from the right" over _⊎_.
+
+∃-⊎-distrib-right : ∀ {A B : Set} {C : A ⊎ B → Set} →
+                    Σ (A ⊎ B) C ↔ Σ A (C ⊚ inj₁) ⊎ Σ B (C ⊚ inj₂)
+∃-⊎-distrib-right {A} {B} {C} = record
+  { surjection = record
+    { equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = [ refl ⊚ inj₁ , refl ⊚ inj₂ ]
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  to : Σ (A ⊎ B) C → Σ A (C ⊚ inj₁) ⊎ Σ B (C ⊚ inj₂)
+  to (inj₁ x , y) = inj₁ (x , y)
+  to (inj₂ x , y) = inj₂ (x , y)
+
+  from = [ Σ-map inj₁ P.id , Σ-map inj₂ P.id ]
+
+  from∘to : ∀ p → from (to p) ≡ p
+  from∘to (inj₁ x , y) = refl _
+  from∘to (inj₂ x , y) = refl _
 
 -- ∃ is "commutative".
 
@@ -341,8 +374,4 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
 -- _×_ distributes from the right over _⊎_.
 
 ×-⊎-distrib-right : {A B C : Set} → (A ⊎ B) × C ↔ (A × C) ⊎ (B × C)
-×-⊎-distrib-right {A} {B} {C} =
-  (A ⊎ B) × C        ↔⟨ ×-comm ⟩
-  C × (A ⊎ B)        ↔⟨ ×-⊎-distrib-left ⟩
-  (C × A) ⊎ (C × B)  ↔⟨ ×-comm ⊎-cong ×-comm ⟩∎
-  (A × C) ⊎ (B × C)  ∎
+×-⊎-distrib-right = ∃-⊎-distrib-right
