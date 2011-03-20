@@ -261,6 +261,11 @@ abstract
                  (propositional ext f) f-weq g-weq))
          (ext f≡g) f-weq g-weq
 
+{- The definition below is commented out because it takes too long to
+   type check (on my current machine). It checked a lot faster when
+   some key definitions in Equality were abstract, but I want these
+   definitions to unfold automatically.
+
 -- _≈_ comes with a groupoid structure (assuming extensionality).
 --
 -- Note that, at the time of writing (and on a particular system), the
@@ -298,6 +303,8 @@ groupoid ext = record
 
     right-inverse : ∀ {X Y} (p : X ≈ Y) → p ∘ inverse p ≡ id
     right-inverse p = lift-equality ext (_≈_.right-inverse-of p)
+
+-}
 
 ------------------------------------------------------------------------
 -- Closure, preservation

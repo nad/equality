@@ -79,12 +79,12 @@ record Equality-with-J (reflexive : Reflexive) : Set₁ where
   ----------------------------------------------------------------------
   -- Some derived properties
 
+  -- Congruence.
+
+  cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+  cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
+
   abstract
-
-    -- Congruence.
-
-    cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
-    cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
 
     -- "Evaluation rule" for cong.
 
@@ -92,10 +92,12 @@ record Equality-with-J (reflexive : Reflexive) : Set₁ where
                 cong f (refl x) ≡ refl (f x)
     cong-refl f = elim-refl (λ {u v} _ → f u ≡ f v) (refl ∘ f)
 
-    -- Substitutivity.
+  -- Substitutivity.
 
-    subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
-    subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
+  subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
+  subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
+
+  abstract
 
     -- "Evaluation rule" for subst.
 
@@ -168,10 +170,12 @@ record Equality-with-substitutivity-and-contractibility
     cong f {x} x≡y =
       subst (λ y → x ≡ y → f x ≡ f y) x≡y (λ _ → refl (f x)) x≡y
 
-    -- Symmetry.
+  -- Symmetry.
 
-    sym : {A : Set} {x y : A} → x ≡ y → y ≡ x
-    sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
+  sym : {A : Set} {x y : A} → x ≡ y → y ≡ x
+  sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
+
+  abstract
 
     -- "Evaluation rule" for sym.
 
@@ -180,10 +184,12 @@ record Equality-with-substitutivity-and-contractibility
       cong (λ f → f (refl x)) $
         subst-refl (λ z → x ≡ z → z ≡ x) id
 
-    -- Transitivity.
+  -- Transitivity.
 
-    trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
-    trans {x = x} = flip (subst (_≡_ x))
+  trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  trans {x = x} = flip (subst (_≡_ x))
+
+  abstract
 
     -- "Evaluation rule" for trans.
 
