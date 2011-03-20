@@ -34,20 +34,20 @@ private
 
 -- Any.
 
-data Any {A : Set} (P : A → Set) : List A → Set where
-  here  : ∀ {x xs} → P x      → Any P (x ∷ xs)
-  there : ∀ {x xs} → Any P xs → Any P (x ∷ xs)
+Any : {A : Set} (P : A → Set) → List A → Set
+Any P []       = ⊥
+Any P (x ∷ xs) = P x ⊎ Any P xs
 
 -- Alternative definition of Any.
 
-Any′ : {A : Set} (P : A → Set) → List A → Set
-Any′ P []       = ⊥
-Any′ P (x ∷ xs) = P x ⊎ Any′ P xs
+data Any′ {A : Set} (P : A → Set) : List A → Set where
+  here  : ∀ {x xs} → P x      → Any′ P (x ∷ xs)
+  there : ∀ {x xs} → Any′ P xs → Any′ P (x ∷ xs)
 
 -- The two definitions of Any are isomorphic.
 
-Any-[] : ∀ {A : Set} {P : A → Set} → Any P [] ↔ ⊥
-Any-[] {P = P} = record
+Any′-[] : ∀ {A : Set} {P : A → Set} → Any′ P [] ↔ ⊥
+Any′-[] {P = P} = record
   { surjection = record
     { equivalence = record
       { to   = to
@@ -58,7 +58,7 @@ Any-[] {P = P} = record
   ; left-inverse-of = from∘to
   }
   where
-  to : Any P [] → ⊥
+  to : Any′ P [] → ⊥
   to ()
 
   from = ⊥-elim
@@ -66,9 +66,9 @@ Any-[] {P = P} = record
   from∘to : ∀ p → from (to p) ≡ p
   from∘to ()
 
-Any-∷ : ∀ {A : Set} {P : A → Set} {x xs} →
-        Any P (x ∷ xs) ↔ P x ⊎ Any P xs
-Any-∷ {P = P} {x} {xs} = record
+Any′-∷ : ∀ {A : Set} {P : A → Set} {x xs} →
+        Any′ P (x ∷ xs) ↔ P x ⊎ Any′ P xs
+Any′-∷ {P = P} {x} {xs} = record
   { surjection = record
     { equivalence = record
       { to   = to
@@ -79,7 +79,7 @@ Any-∷ {P = P} {x} {xs} = record
   ; left-inverse-of = from∘to
   }
   where
-  to : Any P (x ∷ xs) → P x ⊎ Any P xs
+  to : Any′ P (x ∷ xs) → P x ⊎ Any′ P xs
   to (here  p) = inj₁ p
   to (there p) = inj₂ p
 
@@ -90,11 +90,13 @@ Any-∷ {P = P} {x} {xs} = record
   from∘to (there p) = refl
 
 Any↔Any′ : ∀ {A} {P : A → Set} {xs} → Any P xs ↔ Any′ P xs
-Any↔Any′ {P = P} {[]}     = Any-[]
+Any↔Any′ {P = P} {[]}     =
+  ⊥          ↔⟨ Bijection.inverse Any′-[] ⟩∎
+  Any′ P []  ∎
 Any↔Any′ {P = P} {x ∷ xs} =
-  Any P (x ∷ xs)   ↔⟨ Any-∷ ⟩
-  P x ⊎ Any P xs   ↔⟨ Bijection.id ⊎-cong Any↔Any′ ⟩∎
-  P x ⊎ Any′ P xs  ∎
+  P x ⊎ Any P xs   ↔⟨ Bijection.id ⊎-cong Any↔Any′ ⟩
+  P x ⊎ Any′ P xs  ↔⟨ Bijection.inverse Any′-∷ ⟩∎
+  Any′ P (x ∷ xs)  ∎
 
 ------------------------------------------------------------------------
 -- Bag equality
@@ -145,9 +147,10 @@ data _≈-bag″_ {A : Set} : List A → List A → Set where
 private
  module ∈-lookup {A : Set} {z : A} where
 
-  to : ∀ {xs} → z ∈ xs → ∃ λ i → z ≡ lookup xs i
-  to (here z≡x)   = (zero , z≡x)
-  to (there z∈xs) = Σ-map suc id (to z∈xs)
+  to : ∀ xs → z ∈ xs → ∃ λ i → z ≡ lookup xs i
+  to []       ()
+  to (x ∷ xs) (inj₁ z≡x)  = (zero , z≡x)
+  to (x ∷ xs) (inj₂ z∈xs) = Σ-map suc id (to xs z∈xs)
 
   mutual
 
@@ -157,14 +160,15 @@ private
     from′ : ∀ {n} xs (i : Fin n) (eq : length xs ≡ n) →
             z ≡ lookup′ xs i eq → z ∈ xs
     from′ []       ()      refl _
-    from′ (x ∷ xs) zero    _    z≡x     = here z≡x
-    from′ (x ∷ xs) (suc i) refl z≡xs[i] = there (from xs (i , z≡xs[i]))
+    from′ (x ∷ xs) zero    _    z≡x     = inj₁ z≡x
+    from′ (x ∷ xs) (suc i) refl z≡xs[i] = inj₂ (from xs (i , z≡xs[i]))
 
   abstract
 
-    from∘to : ∀ {xs} (z∈xs : z ∈ xs) → from xs (to z∈xs) ≡ z∈xs
-    from∘to (here z≡x)   = refl
-    from∘to (there z∈xs) = cong there (from∘to z∈xs)
+    from∘to : ∀ xs (z∈xs : z ∈ xs) → from xs (to xs z∈xs) ≡ z∈xs
+    from∘to []       ()
+    from∘to (x ∷ xs) (inj₁ z≡x)  = refl
+    from∘to (x ∷ xs) (inj₂ z∈xs) = cong inj₂ (from∘to xs z∈xs)
 
     lemma : ∀ {n z} (xs : List A) (i : Fin n) (eq : length xs ≡ n) →
             z ≡ lookup′ xs i eq →
@@ -173,11 +177,12 @@ private
 
     mutual
 
-      to∘from : ∀ xs (p : ∃ λ i → z ≡ lookup xs i) → to (from xs p) ≡ p
+      to∘from : ∀ xs (p : ∃ λ i → z ≡ lookup xs i) →
+                to xs (from xs p) ≡ p
       to∘from xs (i , eq) = to∘from′ xs i refl eq
 
       to∘from′ : ∀ {n} xs (i : Fin n) eq′ (eq : z ≡ lookup′ xs i eq′) →
-                 to (from′ xs i eq′ eq) ≡
+                 to xs (from′ xs i eq′ eq) ≡
                  (subst Fin (sym eq′) i , lemma xs i eq′ eq)
       to∘from′ []       ()      refl _
       to∘from′ (x ∷ xs) zero    refl z≡x     = refl
@@ -188,12 +193,12 @@ private
 ∈-lookup {A} {z} {xs} = record
   { surjection = record
     { equivalence = record
-      { to   = to
+      { to   = to xs
       ; from = from xs
       }
     ; right-inverse-of = to∘from xs
     }
-  ; left-inverse-of = from∘to
+  ; left-inverse-of = from∘to xs
   }
   where open ∈-lookup
 
@@ -223,7 +228,7 @@ Fin-length {A} = λ xs → record
       { to   = to xs
       ; from = from
       }
-    ; right-inverse-of = to∘from
+    ; right-inverse-of = to∘from xs
     }
   ; left-inverse-of = from∘to xs
   }
@@ -238,8 +243,8 @@ Fin-length {A} = λ xs → record
 
     to′ : ∀ {n} (xs : List A) → Fin n → length xs ≡ n → ∃ λ z → z ∈ xs
     to′ []       ()      refl
-    to′ (x ∷ xs) zero    _    = (x , here refl)
-    to′ (x ∷ xs) (suc i) refl = Σ-map id there (to xs i)
+    to′ (x ∷ xs) zero    _    = (x , inj₁ refl)
+    to′ (x ∷ xs) (suc i) refl = Σ-map id inj₂ (to xs i)
 
   from : ∀ {xs : List A} → (∃ λ z → z ∈ xs) → Fin (length xs)
   from = index ∘ proj₂
@@ -257,10 +262,11 @@ Fin-length {A} = λ xs → record
       from∘to′ (x ∷ xs) zero    refl = refl
       from∘to′ (x ∷ xs) (suc i) refl = cong suc (from∘to xs i)
 
-    to∘from : ∀ {xs} p → to xs (from p) ≡ p
-    to∘from (z , here refl)  = refl
-    to∘from (z , there z∈xs) =
-      cong (Σ-map id there) (to∘from (z , z∈xs))
+    to∘from : ∀ xs p → to xs (from p) ≡ p
+    to∘from []       (z  , ())
+    to∘from (x ∷ xs) (.x , inj₁ refl) = refl
+    to∘from (x ∷ xs) (z  , inj₂ z∈xs) =
+      cong (Σ-map id inj₂) (to∘from xs (z , z∈xs))
 
 -- From this lemma we get that lists which are bag equal have related
 -- lengths.
@@ -408,37 +414,37 @@ drop-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z = record
     -- index-equality-preserved.
 
     lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) {p q z∈xs} →
-            here p ≡ from (inv z) (here q) →
-            there z∈xs ≡ from (inv z) (here p) →
+            inj₁ p ≡ from (inv z) (inj₁ q) →
+            inj₂ z∈xs ≡ from (inv z) (inj₁ p) →
             ⊥
     lemma {xs} inv {p} {q} {z∈xs} hyp₁ hyp₂ = 0≢+ (
-      zero                           ≡⟨ refl ⟩
-      index (here {xs = xs} p)       ≡⟨ cong index hyp₁ ⟩
-      index (from (inv z) (here q))  ≡⟨ index-equality-preserved (Bijection.inverse ∘ inv) refl ⟩
-      index (from (inv z) (here p))  ≡⟨ cong index (sym hyp₂) ⟩
-      index (there {x = x} z∈xs)     ≡⟨ refl ⟩∎
-      suc (index z∈xs)               ∎)
+      zero                            ≡⟨ refl ⟩
+      index {xs = _ ∷ xs} (inj₁ p)    ≡⟨ cong index hyp₁ ⟩
+      index (from (inv z) (inj₁ q))   ≡⟨ index-equality-preserved (Bijection.inverse ∘ inv) refl ⟩
+      index (from (inv z) (inj₁ p))   ≡⟨ cong index (sym hyp₂) ⟩
+      index {xs = x ∷ _} (inj₂ z∈xs)  ≡⟨ refl ⟩∎
+      suc (index z∈xs)                ∎)
 
   f : ∀ {xs ys} → x ∷ xs ≈-bag x ∷ ys → z ∈ xs → z ∈ ys
-  f inv z∈xs with to (inv z) (there z∈xs) | sym (left-inverse-of (inv z) (there z∈xs))
-  f inv z∈xs | there z∈ys | left⁺ = z∈ys
-  f inv z∈xs | here  z≡x  | left⁺ with to (inv z) (here z≡x) | sym (left-inverse-of (inv z) (here z≡x))
-  f inv z∈xs | here  z≡x  | left⁺ | there z∈ys | left⁰ = z∈ys
-  f inv z∈xs | here  z≡x  | left⁺ | here  z≡x′ | left⁰ = ⊥-elim $ lemma inv left⁰ left⁺
+  f inv z∈xs with to (inv z) (inj₂ z∈xs) | sym (left-inverse-of (inv z) (inj₂ z∈xs))
+  f inv z∈xs | inj₂ z∈ys | left⁺ = z∈ys
+  f inv z∈xs | inj₁ z≡x  | left⁺ with to (inv z) (inj₁ z≡x) | sym (left-inverse-of (inv z) (inj₁ z≡x))
+  f inv z∈xs | inj₁ z≡x  | left⁺ | inj₂ z∈ys | left⁰ = z∈ys
+  f inv z∈xs | inj₁ z≡x  | left⁺ | inj₁ z≡x′ | left⁰ = ⊥-elim $ lemma inv left⁰ left⁺
 
   abstract
 
     f∘f : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) (p : z ∈ xs) →
           f (Bijection.inverse ∘ inv) (f inv p) ≡ p
-    f∘f inv z∈xs with to (inv z) (there z∈xs) | sym (left-inverse-of (inv z) (there z∈xs))
-    f∘f inv z∈xs | there z∈ys | left⁺ with from (inv z) (there z∈ys) | sym (right-inverse-of (inv z) (there z∈ys))
-    f∘f inv z∈xs | there z∈ys | refl  | .(there z∈xs) | _ = refl
-    f∘f inv z∈xs | here  z≡x  | left⁺ with to (inv z) (here z≡x) | sym (left-inverse-of (inv z) (here z≡x))
-    f∘f inv z∈xs | here  z≡x  | left⁺ | there z∈ys | left⁰ with from (inv z) (there z∈ys) | sym (right-inverse-of (inv z) (there z∈ys))
-    f∘f inv z∈xs | here  z≡x  | left⁺ | there z∈ys | refl  | .(here z≡x) | _ with from (inv z) (here z≡x)
-                                                                                | sym (right-inverse-of (inv z) (here z≡x))
-    f∘f inv z∈xs | here  z≡x  | refl  | there z∈ys | refl  | .(here z≡x) | _ | .(there z∈xs) | _ = refl
-    f∘f inv z∈xs | here  z≡x  | left⁺ | here  z≡x′ | left⁰ = ⊥-elim $ lemma inv left⁰ left⁺
+    f∘f inv z∈xs with to (inv z) (inj₂ z∈xs) | sym (left-inverse-of (inv z) (inj₂ z∈xs))
+    f∘f inv z∈xs | inj₂ z∈ys | left⁺ with from (inv z) (inj₂ z∈ys) | sym (right-inverse-of (inv z) (inj₂ z∈ys))
+    f∘f inv z∈xs | inj₂ z∈ys | refl  | .(inj₂ z∈xs) | _ = refl
+    f∘f inv z∈xs | inj₁ z≡x  | left⁺ with to (inv z) (inj₁ z≡x) | sym (left-inverse-of (inv z) (inj₁ z≡x))
+    f∘f inv z∈xs | inj₁ z≡x  | left⁺ | inj₂ z∈ys | left⁰ with from (inv z) (inj₂ z∈ys) | sym (right-inverse-of (inv z) (inj₂ z∈ys))
+    f∘f inv z∈xs | inj₁ z≡x  | left⁺ | inj₂ z∈ys | refl  | .(inj₁ z≡x) | _ with from (inv z) (inj₁ z≡x)
+                                                                                | sym (right-inverse-of (inv z) (inj₁ z≡x))
+    f∘f inv z∈xs | inj₁ z≡x  | refl  | inj₂ z∈ys | refl  | .(inj₁ z≡x) | _ | .(inj₂ z∈xs) | _ = refl
+    f∘f inv z∈xs | inj₁ z≡x  | left⁺ | inj₁ z≡x′ | left⁰ = ⊥-elim $ lemma inv left⁰ left⁺
 
 ------------------------------------------------------------------------
 -- The third definition of bag equality is sound with respect to the
@@ -451,22 +457,18 @@ infixr 5 _∷-cong_
 _∷-cong_ : ∀ {A : Set} {x y : A} {xs ys} →
            x ≡ y → xs ≈-bag ys → x ∷ xs ≈-bag y ∷ ys
 _∷-cong_ {x = x} {xs = xs} {ys} refl xs≈ys z =
-  z ∈ x ∷ xs        ↔⟨ Any-∷ ⟩
-  (z ≡ x ⊎ z ∈ xs)  ↔⟨ Bijection.id ⊎-cong xs≈ys z ⟩
-  (z ≡ x ⊎ z ∈ ys)  ↔⟨ Bijection.inverse Any-∷ ⟩∎
-  z ∈ x ∷ ys        ∎
+  z ≡ x ⊎ z ∈ xs  ↔⟨ Bijection.id ⊎-cong xs≈ys z ⟩∎
+  z ≡ x ⊎ z ∈ ys  ∎
 
 -- We can swap the first two elements of a list.
 
 swap-first-two : ∀ {A : Set} {x y : A} {xs} →
                  x ∷ y ∷ xs ≈-bag y ∷ x ∷ xs
 swap-first-two {x = x} {y} {xs} z =
-  z ∈ x ∷ y ∷ xs                       ↔⟨ Any↔Any′ ⟩
-  (z ≡ x ⊎ z ≡ y ⊎ Any′ (_≡_ z) xs)    ↔⟨ ⊎-assoc ⟩
-  ((z ≡ x ⊎ z ≡ y) ⊎ Any′ (_≡_ z) xs)  ↔⟨ ⊎-comm ⊎-cong Bijection.id ⟩
-  ((z ≡ y ⊎ z ≡ x) ⊎ Any′ (_≡_ z) xs)  ↔⟨ Bijection.inverse ⊎-assoc ⟩
-  (z ≡ y ⊎ z ≡ x ⊎ Any′ (_≡_ z) xs)    ↔⟨ Bijection.inverse Any↔Any′ ⟩∎
-  z ∈ y ∷ x ∷ xs                       ∎
+  z ≡ x ⊎ z ≡ y ⊎ Any (_≡_ z) xs    ↔⟨ ⊎-assoc ⟩
+  (z ≡ x ⊎ z ≡ y) ⊎ Any (_≡_ z) xs  ↔⟨ ⊎-comm ⊎-cong Bijection.id ⟩
+  (z ≡ y ⊎ z ≡ x) ⊎ Any (_≡_ z) xs  ↔⟨ Bijection.inverse ⊎-assoc ⟩∎
+  z ≡ y ⊎ z ≡ x ⊎ Any (_≡_ z) xs    ∎
 
 -- The third definition of bag equality is sound with respect to the
 -- first one.
