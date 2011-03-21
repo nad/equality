@@ -17,10 +17,10 @@ private
     import Surjection; open Surjection eq public
 open Surjection using (_↠_; module _↠_)
 
-infix 0 _↔_
-
 ------------------------------------------------------------------------
 -- Bijections
+
+infix 0 _↔_
 
 record _↔_ (From To : Set) : Set where
   field
@@ -107,7 +107,7 @@ contractible↔⊤ c = record
 infixr 1 _⊎-cong_
 
 _⊎-cong_ : {A₁ A₂ B₁ B₂ : Set} →
-           A₁ ↔ A₂ → B₁ ↔ B₂ → (A₁ ⊎ B₁) ↔ (A₂ ⊎ B₂)
+           A₁ ↔ A₂ → B₁ ↔ B₂ → A₁ ⊎ B₁ ↔ A₂ ⊎ B₂
 A₁↔A₂ ⊎-cong B₁↔B₂ = record
   { surjection = record
     { equivalence = record
@@ -127,7 +127,7 @@ A₁↔A₂ ⊎-cong B₁↔B₂ = record
 
 -- _⊎_ is commutative.
 
-⊎-comm : {A B : Set} → (A ⊎ B) ↔ (B ⊎ A)
+⊎-comm : {A B : Set} → A ⊎ B ↔ B ⊎ A
 ⊎-comm = record
   { surjection = record
     { equivalence = record
@@ -141,7 +141,7 @@ A₁↔A₂ ⊎-cong B₁↔B₂ = record
 
 -- _⊎_ is associative.
 
-⊎-assoc : {A B C : Set} → (A ⊎ (B ⊎ C)) ↔ ((A ⊎ B) ⊎ C)
+⊎-assoc : {A B C : Set} → A ⊎ (B ⊎ C) ↔ (A ⊎ B) ⊎ C
 ⊎-assoc = record
   { surjection = record
     { equivalence = record
@@ -183,7 +183,7 @@ A₁↔A₂ ⊎-cong B₁↔B₂ = record
 infixr 1 _×-cong_
 
 _×-cong_ : {A₁ A₂ B₁ B₂ : Set} →
-           A₁ ↔ A₂ → B₁ ↔ B₂ → (A₁ × B₁) ↔ (A₂ × B₂)
+           A₁ ↔ A₂ → B₁ ↔ B₂ → A₁ × B₁ ↔ A₂ × B₂
 A₁↔A₂ ×-cong B₁↔B₂ = record
   { surjection = record
     { equivalence = record
@@ -199,7 +199,7 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
 
 -- _×_ is commutative.
 
-×-comm : {A B : Set} → (A × B) ↔ (B × A)
+×-comm : {A B : Set} → A × B ↔ B × A
 ×-comm = record
   { surjection = record
     { equivalence = record
@@ -213,7 +213,7 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
 
 -- _×_ is associative.
 
-×-assoc : {A B C : Set} → (A × (B × C)) ↔ ((A × B) × C)
+×-assoc : {A B C : Set} → A × (B × C) ↔ (A × B) × C
 ×-assoc = record
   { surjection = record
     { equivalence = record
@@ -280,7 +280,7 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
 --
 -- For a more general property, see Weak-equivalence.Σ-preserves.
 
-∃-cong : ∀ {A : Set} {B₁ B₂ : A → Set} →
+∃-cong : {A : Set} {B₁ B₂ : A → Set} →
          (∀ x → B₁ x ↔ B₂ x) → ∃ B₁ ↔ ∃ B₂
 ∃-cong B₁↔B₂ = record
   { surjection      = Surjection.∃-cong (surjection ⊚ B₁↔B₂)
@@ -296,7 +296,7 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
 
 -- ∃ distributes "from the left" over _⊎_.
 
-∃-⊎-distrib-left : ∀ {A : Set} {B C : A → Set} →
+∃-⊎-distrib-left : {A : Set} {B C : A → Set} →
                    (∃ λ x → B x ⊎ C x) ↔ ∃ B ⊎ ∃ C
 ∃-⊎-distrib-left = record
   { surjection = record
@@ -312,7 +312,7 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
 
 -- ∃ also distributes "from the right" over _⊎_.
 
-∃-⊎-distrib-right : ∀ {A B : Set} {C : A ⊎ B → Set} →
+∃-⊎-distrib-right : {A B : Set} {C : A ⊎ B → Set} →
                     Σ (A ⊎ B) C ↔ Σ A (C ⊚ inj₁) ⊎ Σ B (C ⊚ inj₂)
 ∃-⊎-distrib-right {A} {B} {C} = record
   { surjection = record
@@ -337,7 +337,7 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
 
 -- ∃ is "commutative".
 
-∃-comm : ∀ {A B : Set} {C : A → B → Set} →
+∃-comm : {A B : Set} {C : A → B → Set} →
          (∃ λ x → ∃ λ y → C x y) ↔ (∃ λ y → ∃ λ x → C x y)
 ∃-comm = record
   { surjection = record
@@ -352,7 +352,7 @@ A₁↔A₂ ×-cong B₁↔B₂ = record
 
 -- One can introduce an existential by also introducing an equality.
 
-∃-intro : ∀ {A : Set} (B : A → Set) (x : A) →
+∃-intro : {A : Set} (B : A → Set) (x : A) →
           B x ↔ ∃ λ y → B y × y ≡ x
 ∃-intro B x =
   B x                    ↔⟨ inverse ×-right-identity ⟩

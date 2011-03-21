@@ -149,8 +149,7 @@ Any-∈ P [] =
   (∃ λ x → ⊥)        ↔⟨ ∃-cong (λ x → Bijection.inverse ×-right-zero) ⟩∎
   (∃ λ x → P x × ⊥)  ∎
 Any-∈ P (x ∷ xs) =
-  P x ⊎ Any P xs                                  ↔⟨ Bijection.id ⊎-cong Any-∈ P xs ⟩
-  P x ⊎ (∃ λ y → P y × y ∈ xs)                    ↔⟨ ∃-intro P x ⊎-cong Bijection.id ⟩
+  P x                   ⊎ Any P xs                ↔⟨ ∃-intro P x ⊎-cong Any-∈ P xs ⟩
   (∃ λ y → P y × y ≡ x) ⊎ (∃ λ y → P y × y ∈ xs)  ↔⟨ Bijection.inverse ∃-⊎-distrib-left ⟩
   (∃ λ y → P y × y ≡ x ⊎ P y × y ∈ xs)            ↔⟨ ∃-cong (λ y → Bijection.inverse ×-⊎-distrib-left) ⟩∎
   (∃ λ y → P y × (y ≡ x ⊎ y ∈ xs))                ∎
@@ -220,9 +219,8 @@ bind-left-distributive xs f g = λ z →
   z ∈ xs >>= (λ x → f x ++ g x)                    ↔⟨ Any->>= (_≡_ z) xs (λ x → f x ++ g x) ⟩
   Any (λ x → z ∈ f x ++ g x) xs                    ↔⟨ Any-cong (λ x → Any-++ (_≡_ z) (f x) (g x)) (λ _ → Bijection.id) ⟩
   Any (λ x → z ∈ f x ⊎ z ∈ g x) xs                 ↔⟨ Any-⊎ (λ x → z ∈ f x) (λ x → z ∈ g x) xs ⟩
-  Any (λ x → z ∈ f x) xs ⊎ Any (λ x → z ∈ g x) xs  ↔⟨ Bijection.inverse (Any->>= (_≡_ z) xs f) ⊎-cong
-                                                      Bijection.inverse (Any->>= (_≡_ z) xs g) ⟩
-  z ∈ (xs >>= f) ⊎ z ∈ (xs >>= g)                  ↔⟨ Bijection.inverse (Any-++ (_≡_ z) (xs >>= f) (xs >>= g)) ⟩∎
+  Any (λ x → z ∈ f x) xs ⊎ Any (λ x → z ∈ g x) xs  ↔⟨ Bijection.inverse (Any->>= (_≡_ z) xs f ⊎-cong Any->>= (_≡_ z) xs g) ⟩
+  z ∈ xs >>= f ⊎ z ∈ xs >>= g                      ↔⟨ Bijection.inverse (Any-++ (_≡_ z) (xs >>= f) (xs >>= g)) ⟩∎
   z ∈ (xs >>= f) ++ (xs >>= g)                     ∎
 
 ------------------------------------------------------------------------
@@ -329,14 +327,14 @@ abstract
     z ∈ ys                     ∎
 
 ------------------------------------------------------------------------
--- If x ∷ xs is bag equal to x ∷ ys, then xs and ys are bag equal
+-- _∷_ x is cancellative
 
 -- We have basically already showed this for the (first) alternative
 -- definition of bag equality.
 
-drop-cons′ : ∀ {A : Set} {x : A} xs ys →
-             x ∷ xs ≈-bag′ x ∷ ys → xs ≈-bag′ ys
-drop-cons′ {x = x} xs ys x∷xs≈x∷ys = record
+cancel-cons′ : ∀ {A : Set} {x : A} xs ys →
+               x ∷ xs ≈-bag′ x ∷ ys → xs ≈-bag′ ys
+cancel-cons′ {x = x} xs ys x∷xs≈x∷ys = record
   { bijection = Fin.cancel-suc (_≈-bag′_.bijection x∷xs≈x∷ys)
   ; related   = Fin.cancel-suc-preserves-relatedness x xs ys
                   (_≈-bag′_.bijection x∷xs≈x∷ys)
@@ -397,9 +395,9 @@ abstract
 
 -- If x ∷ xs is bag equal to x ∷ ys, then xs and ys are bag equal.
 
-drop-cons : ∀ {A : Set} {x : A} {xs ys} →
-            x ∷ xs ≈-bag x ∷ ys → xs ≈-bag ys
-drop-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z = record
+cancel-cons : ∀ {A : Set} {x : A} {xs ys} →
+              x ∷ xs ≈-bag x ∷ ys → xs ≈-bag ys
+cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z = record
   { surjection = record
     { equivalence = record
       { to   = f                       x∷xs≈x∷ys
