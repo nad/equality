@@ -10,14 +10,13 @@
 module Fin where
 
 open import Equality.Propositional as P
-open import Equivalence hiding (id; _∘_)
-open import Prelude
+open import Equivalence hiding (id; _∘_; inverse)
+open import Prelude hiding (id)
 
-private
-  module Bijection where
-    import Bijection; open Bijection P.equality-with-J public
-open Bijection hiding (id; _∘_)
+import Bijection
+open Bijection P.equality-with-J using (_↔_; module _↔_)
 import Equality.Decision-procedures as ED; open ED P.equality-with-J
+import Function-universe as FU; open FU P.equality-with-J hiding (_∘_)
 
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃
@@ -29,7 +28,7 @@ import Equality.Decision-procedures as ED; open ED P.equality-with-J
             ∃ P ↔ P (inj₁ tt) ⊎ ∃ (P ∘ inj₂)
 ∃-Fin-suc P =
   ∃ P                          ↔⟨ ∃-⊎-distrib-right ⟩
-  ∃ (P ∘ inj₁) ⊎ ∃ (P ∘ inj₂)  ↔⟨ Σ-left-identity ⊎-cong Bijection.id ⟩∎
+  ∃ (P ∘ inj₁) ⊎ ∃ (P ∘ inj₂)  ↔⟨ Σ-left-identity ⊎-cong id ⟩∎
   P (inj₁ tt) ⊎ ∃ (P ∘ inj₂)   ∎
 
 ------------------------------------------------------------------------
@@ -40,12 +39,12 @@ cancel-suc : ∀ {m n} → Fin (1 + m) ↔ Fin (1 + n) → Fin m ↔ Fin n
 cancel-suc = λ f → record
   { surjection = record
     { equivalence = record
-      { to   = to                     f
-      ; from = to $ Bijection.inverse f
+      { to   = to           f
+      ; from = to $ inverse f
       }
-    ; right-inverse-of = to∘to $ Bijection.inverse f
+    ; right-inverse-of = to∘to $ inverse f
     }
-  ; left-inverse-of    = to∘to                     f
+  ; left-inverse-of    = to∘to           f
   }
   where
   to : ∀ {m n} → Fin (1 + m) ↔ Fin (1 + n) → Fin m → Fin n
@@ -62,7 +61,7 @@ cancel-suc = λ f → record
   abstract
 
     to∘to : ∀ {m n} (f : Fin (1 + m) ↔ Fin (1 + n)) (i : Fin m) →
-            to (Bijection.inverse f) (to f i) ≡ i
+            to (inverse f) (to f i) ≡ i
     to∘to f i with _↔_.to f (inj₂ i) | sym (_↔_.left-inverse-of f (inj₂ i))
     to∘to f i | inj₂ j  | left⁺ with _↔_.from f (inj₂ j) | sym (_↔_.right-inverse-of f (inj₂ j))
     to∘to f i | inj₂ j  | refl  | .(inj₂ i) | right⁺ = refl
@@ -127,7 +126,7 @@ abstract
 isomorphic-same-size : ∀ {m n} → (Fin m ↔ Fin n) ⇔ m ≡ n
 isomorphic-same-size {m} {n} = record
   { to   = to m n
-  ; from = λ m≡n → subst (λ n → Fin m ↔ Fin n) m≡n Bijection.id
+  ; from = λ m≡n → subst (λ n → Fin m ↔ Fin n) m≡n id
   }
   where
   abstract

@@ -86,6 +86,12 @@ import Weak-equivalence
 
 import Univalence-axiom
 
+-- A universe which includes several kinds of functions (ordinary
+-- functions, equivalences, injections, surjections, bijections and
+-- weak equivalences).
+
+import Function-universe
+
 -- Some definitions related to and properties of finite sets.
 
 import Fin

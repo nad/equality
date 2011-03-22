@@ -10,23 +10,21 @@
 module Bag-equality where
 
 open import Equality.Propositional hiding (trans)
-open import Equivalence hiding (id; _∘_)
+open import Equivalence hiding (id; _∘_; inverse)
 open import Fin
-open import Prelude
+open import Prelude as P hiding (id)
+
+import Bijection
+open Bijection equality-with-J using (_↔_; module _↔_)
+
+import Equality.Decision-procedures
+open Equality.Decision-procedures equality-with-J
 
 private
-  module Bijection where
-    import Bijection
-    open Bijection equality-with-J public
-  open Bijection hiding (id; _∘_)
-
-  import Equality.Decision-procedures
-  open Equality.Decision-procedures equality-with-J
-
-  module Weak where
-    import Weak-equivalence
-    open Weak-equivalence equality-with-J public
-  open Weak hiding (id; _∘_)
+  module Function-universe where
+    import Function-universe
+    open Function-universe equality-with-J public
+open Function-universe hiding (_∘_; Kind; bijection)
 
 ------------------------------------------------------------------------
 -- Any
@@ -90,11 +88,11 @@ Any′-∷ {P = P} {x} {xs} = record
 
 Any↔Any′ : ∀ {A} {P : A → Set} {xs} → Any P xs ↔ Any′ P xs
 Any↔Any′ {P = P} {[]}     =
-  ⊥          ↔⟨ Bijection.inverse Any′-[] ⟩∎
+  ⊥          ↔⟨ inverse Any′-[] ⟩∎
   Any′ P []  ∎
 Any↔Any′ {P = P} {x ∷ xs} =
-  P x ⊎ Any P xs   ↔⟨ Bijection.id ⊎-cong Any↔Any′ ⟩
-  P x ⊎ Any′ P xs  ↔⟨ Bijection.inverse Any′-∷ ⟩∎
+  P x ⊎ Any P xs   ↔⟨ id ⊎-cong Any↔Any′ ⟩
+  P x ⊎ Any′ P xs  ↔⟨ inverse Any′-∷ ⟩∎
   Any′ P (x ∷ xs)  ∎
 
 ------------------------------------------------------------------------
@@ -103,26 +101,26 @@ Any↔Any′ {P = P} {x ∷ xs} =
 Any-++ : ∀ {A} (P : A → Set) (xs ys : List A) →
          Any P (xs ++ ys) ↔ Any P xs ⊎ Any P ys
 Any-++ P [] ys =
-  Any P ys      ↔⟨ Bijection.inverse ⊎-left-identity ⟩∎
+  Any P ys      ↔⟨ inverse ⊎-left-identity ⟩∎
   ⊥ ⊎ Any P ys  ∎
 Any-++ P (x ∷ xs) ys =
-  P x ⊎ Any P (xs ++ ys)       ↔⟨ Bijection.id ⊎-cong Any-++ P xs ys ⟩
+  P x ⊎ Any P (xs ++ ys)       ↔⟨ id ⊎-cong Any-++ P xs ys ⟩
   P x ⊎ (Any P xs ⊎ Any P ys)  ↔⟨ ⊎-assoc ⟩∎
   (P x ⊎ Any P xs) ⊎ Any P ys  ∎
 
 Any-concat : ∀ {A} (P : A → Set) (xss : List (List A)) →
              Any P (concat xss) ↔ Any (Any P) xss
-Any-concat P []         = Bijection.id
+Any-concat P []         = id
 Any-concat P (xs ∷ xss) =
   Any P (xs ++ concat xss)       ↔⟨ Any-++ P xs (concat xss) ⟩
-  Any P xs ⊎ Any P (concat xss)  ↔⟨ Bijection.id ⊎-cong Any-concat P xss ⟩∎
+  Any P xs ⊎ Any P (concat xss)  ↔⟨ id ⊎-cong Any-concat P xss ⟩∎
   Any P xs ⊎ Any (Any P) xss     ∎
 
 Any-map : ∀ {A B} (P : B → Set) (f : A → B) (xs : List A) →
           Any P (map f xs) ↔ Any (P ∘ f) xs
-Any-map P f []       = Bijection.id
+Any-map P f []       = id
 Any-map P f (x ∷ xs) =
-  P (f x) ⊎ Any P (map f xs)  ↔⟨ Bijection.id ⊎-cong Any-map P f xs ⟩∎
+  P (f x) ⊎ Any P (map f xs)  ↔⟨ id ⊎-cong Any-map P f xs ⟩∎
   P (f x) ⊎ Any (P ∘ f) xs    ∎
 
 Any->>= : ∀ {A B} (P : B → Set) (xs : List A) (f : A → List B) →
@@ -145,13 +143,13 @@ x ∈ xs = Any (λ y → x ≡ y) xs
 Any-∈ : ∀ {A} (P : A → Set) (xs : List A) →
         Any P xs ↔ ∃ λ x → P x × x ∈ xs
 Any-∈ P [] =
-  ⊥                  ↔⟨ Bijection.inverse ×-right-zero ⟩
-  (∃ λ x → ⊥)        ↔⟨ ∃-cong (λ x → Bijection.inverse ×-right-zero) ⟩∎
+  ⊥                  ↔⟨ inverse ×-right-zero ⟩
+  (∃ λ x → ⊥)        ↔⟨ ∃-cong (λ x → inverse ×-right-zero) ⟩∎
   (∃ λ x → P x × ⊥)  ∎
 Any-∈ P (x ∷ xs) =
   P x                   ⊎ Any P xs                ↔⟨ ∃-intro P x ⊎-cong Any-∈ P xs ⟩
-  (∃ λ y → P y × y ≡ x) ⊎ (∃ λ y → P y × y ∈ xs)  ↔⟨ Bijection.inverse ∃-⊎-distrib-left ⟩
-  (∃ λ y → P y × y ≡ x ⊎ P y × y ∈ xs)            ↔⟨ ∃-cong (λ y → Bijection.inverse ×-⊎-distrib-left) ⟩∎
+  (∃ λ y → P y × y ≡ x) ⊎ (∃ λ y → P y × y ∈ xs)  ↔⟨ inverse ∃-⊎-distrib-left ⟩
+  (∃ λ y → P y × y ≡ x ⊎ P y × y ∈ xs)            ↔⟨ ∃-cong (λ y → inverse ×-⊎-distrib-left) ⟩∎
   (∃ λ y → P y × (y ≡ x ⊎ y ∈ xs))                ∎
 
 -- Using this property we can prove that Any and _⊎_ commute.
@@ -162,18 +160,35 @@ Any-⊎ P Q xs =
   Any (λ x → P x ⊎ Q x) xs                         ↔⟨ Any-∈ (λ x → P x ⊎ Q x) xs ⟩
   (∃ λ x → (P x ⊎ Q x) × x ∈ xs)                   ↔⟨ ∃-cong (λ x → ×-⊎-distrib-right) ⟩
   (∃ λ x → P x × x ∈ xs ⊎ Q x × x ∈ xs)            ↔⟨ ∃-⊎-distrib-left ⟩
-  (∃ λ x → P x × x ∈ xs) ⊎ (∃ λ x → Q x × x ∈ xs)  ↔⟨ Bijection.inverse $ Any-∈ P xs ⊎-cong Any-∈ Q xs ⟩∎
+  (∃ λ x → P x × x ∈ xs) ⊎ (∃ λ x → Q x × x ∈ xs)  ↔⟨ inverse $ Any-∈ P xs ⊎-cong Any-∈ Q xs ⟩∎
   Any P xs ⊎ Any Q xs                              ∎
 
 ------------------------------------------------------------------------
--- Bag equality
+-- Bag and set equality and the subset and subbag orders
+
+-- Various kinds of relatedness.
+
+open Function-universe public
+  using (Kind)
+  renaming ( implication to subset
+           ; equivalence to set
+           ; injection   to subbag
+           ; bijection   to bag
+           )
+
+-- A general definition of "relatedness" for lists.
+
+infix 4 _∼[_]_
+
+_∼[_]_ : {A : Set} → List A → Kind → List A → Set
+xs ∼[ k ] ys = ∀ z → z ∈ xs ↝[ k ] z ∈ ys
 
 -- Bag equality.
 
 infix 4 _≈-bag_
 
 _≈-bag_ : {A : Set} → List A → List A → Set
-xs ≈-bag ys = ∀ z → z ∈ xs ↔ z ∈ ys
+xs ≈-bag ys = xs ∼[ bag ] ys
 
 -- Alternative definition of bag equality.
 
@@ -200,27 +215,28 @@ data _≈-bag″_ {A : Set} : List A → List A → Set where
 ------------------------------------------------------------------------
 -- More properties
 
--- Any respects bag equality
+-- Any respects the various forms of relatedness.
 
-Any-cong : ∀ {A} {P Q : A → Set} {xs ys : List A} →
-           (∀ x → P x ↔ Q x) → xs ≈-bag ys → Any P xs ↔ Any Q ys
+Any-cong : ∀ {k A} {P Q : A → Set} {xs ys : List A} →
+           (∀ x → P x ↝[ k ] Q x) → xs ∼[ k ] ys →
+           Any P xs ↝[ k ] Any Q ys
 Any-cong {P = P} {Q} {xs} {ys} P↔Q xs≈ys =
   Any P xs                ↔⟨ Any-∈ P xs ⟩
-  (∃ λ z → P z × z ∈ xs)  ↔⟨ ∃-cong (λ z → P↔Q z ×-cong xs≈ys z) ⟩
-  (∃ λ z → Q z × z ∈ ys)  ↔⟨ Bijection.inverse (Any-∈ Q ys) ⟩∎
+  (∃ λ z → P z × z ∈ xs)  ↝⟨ ∃-cong (λ z → P↔Q z ×-cong xs≈ys z) ⟩
+  (∃ λ z → Q z × z ∈ ys)  ↔⟨ inverse (Any-∈ Q ys) ⟩∎
   Any Q ys                ∎
 
 -- Bind distributes from the left over append.
 
 bind-left-distributive :
   ∀ {A B} (xs : List A) (f g : A → List B) →
-  xs >>= (λ x → f x ++ g x)  ≈-bag  (xs >>= f) ++ (xs >>= g)
+  xs >>= (λ x → f x ++ g x) ≈-bag (xs >>= f) ++ (xs >>= g)
 bind-left-distributive xs f g = λ z →
   z ∈ xs >>= (λ x → f x ++ g x)                    ↔⟨ Any->>= (_≡_ z) xs (λ x → f x ++ g x) ⟩
-  Any (λ x → z ∈ f x ++ g x) xs                    ↔⟨ Any-cong (λ x → Any-++ (_≡_ z) (f x) (g x)) (λ _ → Bijection.id) ⟩
+  Any (λ x → z ∈ f x ++ g x) xs                    ↔⟨ Any-cong (λ x → Any-++ (_≡_ z) (f x) (g x)) (λ _ → id) ⟩
   Any (λ x → z ∈ f x ⊎ z ∈ g x) xs                 ↔⟨ Any-⊎ (λ x → z ∈ f x) (λ x → z ∈ g x) xs ⟩
-  Any (λ x → z ∈ f x) xs ⊎ Any (λ x → z ∈ g x) xs  ↔⟨ Bijection.inverse (Any->>= (_≡_ z) xs f ⊎-cong Any->>= (_≡_ z) xs g) ⟩
-  z ∈ xs >>= f ⊎ z ∈ xs >>= g                      ↔⟨ Bijection.inverse (Any-++ (_≡_ z) (xs >>= f) (xs >>= g)) ⟩∎
+  Any (λ x → z ∈ f x) xs ⊎ Any (λ x → z ∈ g x) xs  ↔⟨ inverse (Any->>= (_≡_ z) xs f ⊎-cong Any->>= (_≡_ z) xs g) ⟩
+  z ∈ xs >>= f ⊎ z ∈ xs >>= g                      ↔⟨ inverse (Any-++ (_≡_ z) (xs >>= f) (xs >>= g)) ⟩∎
   z ∈ (xs >>= f) ++ (xs >>= g)                     ∎
 
 ------------------------------------------------------------------------
@@ -235,11 +251,11 @@ bind-left-distributive xs f g = λ z →
 
 ∈-lookup : ∀ {A z} (xs : List A) → z ∈ xs ↔ ∃ λ i → z ≡ lookup xs i
 ∈-lookup {z = z} [] =
-  ⊥                                ↔⟨ Bijection.inverse $ ∃-Fin-zero _ ⟩∎
+  ⊥                                ↔⟨ inverse $ ∃-Fin-zero _ ⟩∎
   (∃ λ (i : ⊥) → z ≡ lookup [] i)  ∎
 ∈-lookup {z = z} (x ∷ xs) =
-  z ≡ x ⊎ z ∈ xs                     ↔⟨ Bijection.id ⊎-cong ∈-lookup xs ⟩
-  z ≡ x ⊎ (∃ λ i → z ≡ lookup xs i)  ↔⟨ Bijection.inverse $ ∃-Fin-suc _ ⟩∎
+  z ≡ x ⊎ z ∈ xs                     ↔⟨ id ⊎-cong ∈-lookup xs ⟩
+  z ≡ x ⊎ (∃ λ i → z ≡ lookup xs i)  ↔⟨ inverse $ ∃-Fin-suc _ ⟩∎
   (∃ λ i → z ≡ lookup (x ∷ xs) i)    ∎
 
 -- The index which points to the element.
@@ -257,7 +273,7 @@ Fin-length : ∀ {A} (xs : List A) → (∃ λ z → z ∈ xs) ↔ Fin (length x
 Fin-length xs =
   (∃ λ z → z ∈ xs)                   ↔⟨ ∃-cong (λ _ → ∈-lookup xs) ⟩
   (∃ λ z → ∃ λ i → z ≡ lookup xs i)  ↔⟨ ∃-comm ⟩
-  (∃ λ i → ∃ λ z → z ≡ lookup xs i)  ↔⟨ Bijection.id ⟩
+  (∃ λ i → ∃ λ z → z ≡ lookup xs i)  ↔⟨ id ⟩
   (∃ λ i → Singleton (lookup xs i))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ (singleton-contractible _)) ⟩
   Fin (length xs) × ⊤                ↔⟨ ×-right-identity ⟩∎
   Fin (length xs)                    ∎
@@ -268,7 +284,7 @@ Fin-length xs =
 Fin-length-cong : ∀ {A} {xs ys : List A} →
                   xs ≈-bag ys → Fin (length xs) ↔ Fin (length ys)
 Fin-length-cong {xs = xs} {ys} xs≈ys =
-  Fin (length xs)   ↔⟨ Bijection.inverse $ Fin-length xs ⟩
+  Fin (length xs)   ↔⟨ inverse $ Fin-length xs ⟩
   ∃ (λ z → z ∈ xs)  ↔⟨ ∃-cong xs≈ys ⟩
   ∃ (λ z → z ∈ ys)  ↔⟨ Fin-length ys ⟩∎
   Fin (length ys)   ∎
@@ -312,18 +328,16 @@ abstract
   ; from = from
   }
   where
-  equality-lemma : ∀ {A} {x y z : A} → y ≡ z → (x ≡ y) ≈ (x ≡ z)
-  equality-lemma refl = Weak.id
+  equality-lemma : ∀ {A} {x y z : A} → y ≡ z → (x ≡ y) ↔ (x ≡ z)
+  equality-lemma refl = id
 
   from : ∀ {xs ys} → xs ≈-bag′ ys → xs ≈-bag ys
   from {xs} {ys} xs≈ys z =
     z ∈ xs                     ↔⟨ ∈-lookup xs ⟩
-    ∃ (λ i → z ≡ lookup xs i)  ↔≈⟨ Weak.Σ-preserves
-                                     (bijection⇒weak-equivalence $
-                                        _≈-bag′_.bijection xs≈ys)
-                                     (λ i → equality-lemma $
-                                              _≈-bag′_.related xs≈ys i) ⟩
-    ∃ (λ i → z ≡ lookup ys i)  ↔⟨ Bijection.inverse (∈-lookup ys) ⟩∎
+    ∃ (λ i → z ≡ lookup xs i)  ↔⟨ Σ-cong (_≈-bag′_.bijection xs≈ys)
+                                         (λ i → equality-lemma $
+                                                  _≈-bag′_.related xs≈ys i) ⟩
+    ∃ (λ i → z ≡ lookup ys i)  ↔⟨ inverse (∈-lookup ys) ⟩∎
     z ∈ ys                     ∎
 
 ------------------------------------------------------------------------
@@ -358,9 +372,9 @@ abstract
     (index $ to (xs≈ys z) p)                             ≡⟨ lemma ⟩
     (index $ to (xs≈ys _) $ proj₂ $
      from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
-    (index $ proj₂ $ Σ-map id (to (xs≈ys _)) $
+    (index $ proj₂ $ Σ-map P.id (to (xs≈ys _)) $
      from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
-    (to (Fin-length ys) $ Σ-map id (to (xs≈ys _)) $
+    (to (Fin-length ys) $ Σ-map P.id (to (xs≈ys _)) $
      from (Fin-length xs) $ index p)                     ≡⟨ refl ⟩∎
     (to (Fin-length-cong xs≈ys) $ index p)               ∎
     where
@@ -400,12 +414,12 @@ cancel-cons : ∀ {A : Set} {x : A} {xs ys} →
 cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z = record
   { surjection = record
     { equivalence = record
-      { to   = f                       x∷xs≈x∷ys
-      ; from = f $ Bijection.inverse ∘ x∷xs≈x∷ys
+      { to   = f             x∷xs≈x∷ys
+      ; from = f $ inverse ∘ x∷xs≈x∷ys
       }
-    ; right-inverse-of = f∘f $ Bijection.inverse ∘ x∷xs≈x∷ys
+    ; right-inverse-of = f∘f $ inverse ∘ x∷xs≈x∷ys
     }
-  ; left-inverse-of    = f∘f                       x∷xs≈x∷ys
+  ; left-inverse-of    = f∘f             x∷xs≈x∷ys
   }
   where
   open _↔_
@@ -423,7 +437,7 @@ cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z = record
     lemma {xs} inv {p} {q} {z∈xs} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
       inj₁ tt                         ≡⟨ refl ⟩
       index {xs = _ ∷ xs} (inj₁ p)    ≡⟨ cong index hyp₁ ⟩
-      index (from (inv z) (inj₁ q))   ≡⟨ index-equality-preserved (Bijection.inverse ∘ inv) refl ⟩
+      index (from (inv z) (inj₁ q))   ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
       index (from (inv z) (inj₁ p))   ≡⟨ cong index (sym hyp₂) ⟩
       index {xs = x ∷ _} (inj₂ z∈xs)  ≡⟨ refl ⟩∎
       inj₂ (index z∈xs)               ∎)
@@ -438,7 +452,7 @@ cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z = record
   abstract
 
     f∘f : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) (p : z ∈ xs) →
-          f (Bijection.inverse ∘ inv) (f inv p) ≡ p
+          f (inverse ∘ inv) (f inv p) ≡ p
     f∘f inv z∈xs with to (inv z) (inj₂ z∈xs) | sym (left-inverse-of (inv z) (inj₂ z∈xs))
     f∘f inv z∈xs | inj₂ z∈ys | left⁺ with from (inv z) (inj₂ z∈ys) | sym (right-inverse-of (inv z) (inj₂ z∈ys))
     f∘f inv z∈xs | inj₂ z∈ys | refl  | .(inj₂ z∈xs) | _ = refl
@@ -460,7 +474,7 @@ infixr 5 _∷-cong_
 _∷-cong_ : ∀ {A : Set} {x y : A} {xs ys} →
            x ≡ y → xs ≈-bag ys → x ∷ xs ≈-bag y ∷ ys
 _∷-cong_ {x = x} {xs = xs} {ys} refl xs≈ys z =
-  z ≡ x ⊎ z ∈ xs  ↔⟨ Bijection.id ⊎-cong xs≈ys z ⟩∎
+  z ≡ x ⊎ z ∈ xs  ↔⟨ id ⊎-cong xs≈ys z ⟩∎
   z ≡ x ⊎ z ∈ ys  ∎
 
 -- We can swap the first two elements of a list.
@@ -469,15 +483,15 @@ swap-first-two : ∀ {A : Set} {x y : A} {xs} →
                  x ∷ y ∷ xs ≈-bag y ∷ x ∷ xs
 swap-first-two {x = x} {y} {xs} z =
   z ≡ x ⊎ z ≡ y ⊎ Any (_≡_ z) xs    ↔⟨ ⊎-assoc ⟩
-  (z ≡ x ⊎ z ≡ y) ⊎ Any (_≡_ z) xs  ↔⟨ ⊎-comm ⊎-cong Bijection.id ⟩
-  (z ≡ y ⊎ z ≡ x) ⊎ Any (_≡_ z) xs  ↔⟨ Bijection.inverse ⊎-assoc ⟩∎
+  (z ≡ x ⊎ z ≡ y) ⊎ Any (_≡_ z) xs  ↔⟨ ⊎-comm ⊎-cong id ⟩
+  (z ≡ y ⊎ z ≡ x) ⊎ Any (_≡_ z) xs  ↔⟨ inverse ⊎-assoc ⟩∎
   z ≡ y ⊎ z ≡ x ⊎ Any (_≡_ z) xs    ∎
 
 -- The third definition of bag equality is sound with respect to the
 -- first one.
 
 ≈″⇒≈ : ∀ {A : Set} {xs ys : List A} → xs ≈-bag″ ys → xs ≈-bag ys
-≈″⇒≈ []                  = λ _ → Bijection.id
+≈″⇒≈ []                  = λ _ → id
 ≈″⇒≈ (x ∷ xs≈ys)         = refl ∷-cong ≈″⇒≈ xs≈ys
 ≈″⇒≈ swap                = swap-first-two
 ≈″⇒≈ (trans xs≈ys ys≈zs) = λ z → _ ↔⟨ ≈″⇒≈ xs≈ys z ⟩ ≈″⇒≈ ys≈zs z
