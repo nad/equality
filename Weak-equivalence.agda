@@ -17,8 +17,11 @@ private
     import Bijection; open Bijection eq public
 open Bijection hiding (id; _∘_; inverse)
 open Derived-definitions-and-properties eq
-import Equality.Groupoid as EG; open EG eq hiding (groupoid)
-private module G {A : Set} = Groupoid (EG.groupoid eq A)
+private
+  module Groupoid where
+    import Equality.Groupoid as EG; open EG eq public
+  open Groupoid using (Groupoid)
+  module G {A : Set} = Groupoid.Groupoid (Groupoid.groupoid A)
 import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence hiding (id; _∘_; inverse)
 private
@@ -26,6 +29,10 @@ private
     import H-level; open H-level eq public
 open H-level
 import H-level.Closure; open H-level.Closure eq
+private
+  module Injection where
+    import Injection; open Injection eq public
+open Injection using (_↣_; module _↣_; Injective)
 private
   module Preimage where
     import Preimage; open Preimage eq public
@@ -402,67 +409,210 @@ abstract
                g x (subst B₁ (cong f (refl x)) y)  ∎)
       eq _
 
+    push-subst′ :
+      ∀ {A₁ A₂} (A₁≈A₂ : A₁ ≈ A₂) (B₁ : A₁ → Set) (B₂ : A₂ → Set) →
+      let open _≈_ A₁≈A₂ in {x₁ x₂ : A₁} {y : B₁ (from (to x₁))}
+      (g : ∀ x → B₁ (from (to x)) → B₂ (to x)) (eq : to x₁ ≡ to x₂) →
+      subst B₂ eq (g x₁ y) ≡ g x₂ (subst B₁ (cong from eq) y)
+    push-subst′ A₁≈A₂ B₁ B₂ {x₁} {x₂} {y} g eq =
+      subst B₂ eq (g x₁ y)                    ≡⟨ cong (subst B₂ eq) $ sym $ g′-lemma _ _ ⟩
+      subst B₂ eq (g′ (to x₁) y)              ≡⟨ push-subst B₁ g′ eq ⟩
+      g′ (to x₂) (subst B₁ (cong from eq) y)  ≡⟨ g′-lemma _ _ ⟩∎
+      g x₂ (subst B₁ (cong from eq) y)        ∎
+      where
+      open _≈_ A₁≈A₂
+
+      g′ : ∀ x′ → B₁ (from x′) → B₂ x′
+      g′ x′ y = subst B₂ (right-inverse-of x′) $
+                g (from x′) $
+                subst B₁ (sym $ cong from $ right-inverse-of x′) y
+
+      g′-lemma : ∀ x y → g′ (to x) y ≡ g x y
+      g′-lemma x y =
+        subst B₂ (right-inverse-of (to x))
+          (g (from (to x)) $
+           subst B₁ (sym $ cong from $
+                       right-inverse-of (to x)) y)  ≡⟨ cong (λ p → subst B₂ p (g (from (to x)) $ subst B₁ (sym $ cong from p) y)) $
+                                                         sym $ left-right-lemma x ⟩
+        subst B₂ (cong to $ left-inverse-of x)
+          (g (from (to x)) $
+           subst B₁ (sym $ cong from $ cong to $
+                       left-inverse-of x) y)        ≡⟨ elim¹
+                                                         (λ {x′} eq →
+                                                            (y : B₁ (from (to x′))) →
+                                                            subst B₂ (cong to eq)
+                                                              (g (from (to x)) $ subst B₁ (sym $ cong from $ cong to eq) y) ≡
+                                                            g x′ y)
+                                                         lemma
+                                                         (left-inverse-of x) y ⟩∎
+        g x y                                       ∎
+        where
+        lemma = λ y →
+          let gy = g (from (to x)) $
+                     subst B₁ (sym $ cong from $ cong to (refl _)) y in
+          subst B₂ (cong to (refl _)) gy         ≡⟨ cong (λ p → subst B₂ p gy) $
+                                                      prove (Cong to Refl) Refl (refl _) ⟩
+          subst B₂ (refl _) gy                   ≡⟨ subst-refl B₂ gy ⟩
+          gy                                     ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ p y) $
+                                                      prove (Sym (Cong from (Cong to Refl))) Refl (refl _) ⟩
+          g (from (to x)) (subst B₁ (refl _) y)  ≡⟨ cong (g (from (to x))) $ subst-refl B₁ y ⟩∎
+          g (from (to x)) y                      ∎
+
+-- If the first component is instantiated to id, then the following
+-- lemmas state that ∃ preserves functions, equivalences, injections,
+-- surjections and bijections.
+
+∃-preserves-functions :
+  ∀ {A₁ A₂ B₁ B₂}
+  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x → B₂ (_≈_.to A₁≈A₂ x)) →
+  Σ A₁ B₁ → Σ A₂ B₂
+∃-preserves-functions A₁≈A₂ B₁→B₂ = Σ-map (_≈_.to A₁≈A₂) (B₁→B₂ _)
+
+∃-preserves-equivalences :
+  ∀ {A₁ A₂ B₁ B₂}
+  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ⇔ B₂ (_≈_.to A₁≈A₂ x)) →
+  Σ A₁ B₁ ⇔ Σ A₂ B₂
+∃-preserves-equivalences {B₂ = B₂} A₁≈A₂ B₁⇔B₂ = record
+  { to   = ∃-preserves-functions A₁≈A₂ (_⇔_.to ⊚ B₁⇔B₂)
+  ; from =
+     ∃-preserves-functions
+       (inverse A₁≈A₂)
+       (λ x y → _⇔_.from
+                  (B₁⇔B₂ (_≈_.from A₁≈A₂ x))
+                  (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ x)) y))
+  }
+
+∃-preserves-injections :
+  ∀ {A₁ A₂ B₁ B₂}
+  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ↣ B₂ (_≈_.to A₁≈A₂ x)) →
+  Σ A₁ B₁ ↣ Σ A₂ B₂
+∃-preserves-injections {B₁ = B₁} {B₂ = B₂} A₁≈A₂ B₁↣B₂ = record
+  { to        = to′
+  ; injective = injective′
+  }
+  where
+  open _↣_
+
+  to′ = ∃-preserves-functions A₁≈A₂ (_↣_.to ⊚ B₁↣B₂)
+
+  abstract
+    injective′ : Injective to′
+    injective′ {x = (x₁ , x₂)} {y = (y₁ , y₂)} =
+      _↔_.to Σ-≡,≡↔≡ ⊚
+      Σ-map (_≈_.injective A₁≈A₂) (λ {eq₁} eq₂ →
+        let lemma =
+              to (B₁↣B₂ y₁) (subst B₁ (_≈_.injective A₁≈A₂ eq₁) x₂)      ≡⟨ refl _ ⟩
+              to (B₁↣B₂ y₁)
+                (subst B₁ (trans (sym (_≈_.left-inverse-of A₁≈A₂ x₁)) $
+                           trans (cong (_≈_.from A₁≈A₂) eq₁)
+                                 (_≈_.left-inverse-of A₁≈A₂ y₁))
+                          x₂)                                            ≡⟨ cong (to (B₁↣B₂ y₁)) $ sym $
+                                                                              Groupoid.subst-subst B₁ _ _ _ ⟩
+              to (B₁↣B₂ y₁)
+                 (subst B₁ (trans (cong (_≈_.from A₁≈A₂) eq₁)
+                                  (_≈_.left-inverse-of A₁≈A₂ y₁)) $
+                  subst B₁ (sym (_≈_.left-inverse-of A₁≈A₂ x₁))
+                           x₂)                                           ≡⟨ cong (to (B₁↣B₂ y₁)) $ sym $
+                                                                              Groupoid.subst-subst B₁ _ _ _ ⟩
+              to (B₁↣B₂ y₁)
+                 (subst B₁ (_≈_.left-inverse-of A₁≈A₂ y₁) $
+                  subst B₁ (cong (_≈_.from A₁≈A₂) eq₁) $
+                  subst B₁ (sym (_≈_.left-inverse-of A₁≈A₂ x₁)) x₂)      ≡⟨ sym $ push-subst′ A₁≈A₂ B₁ B₂
+                                                                              (λ x y → to (B₁↣B₂ x)
+                                                                                          (subst B₁ (_≈_.left-inverse-of A₁≈A₂ x) y))
+                                                                              eq₁ ⟩
+              subst B₂ eq₁
+                (to (B₁↣B₂ x₁) $
+                 subst B₁ (_≈_.left-inverse-of A₁≈A₂ x₁) $
+                 subst B₁ (sym (_≈_.left-inverse-of A₁≈A₂ x₁)) x₂)       ≡⟨ cong (subst B₂ eq₁ ⊚ to (B₁↣B₂ x₁)) $
+                                                                              Groupoid.subst-subst B₁ _ _ _ ⟩
+              subst B₂ eq₁
+                (to (B₁↣B₂ x₁) $
+                 subst B₁ (trans (sym (_≈_.left-inverse-of A₁≈A₂ x₁))
+                                 (_≈_.left-inverse-of A₁≈A₂ x₁))
+                          x₂)                                            ≡⟨ cong (λ p → subst B₂ eq₁ (to (B₁↣B₂ x₁) (subst B₁ p x₂))) $
+                                                                                 G.right-inverse _ ⟩
+              subst B₂ eq₁ (to (B₁↣B₂ x₁) $ subst B₁ (refl _) x₂)        ≡⟨ cong (subst B₂ eq₁ ⊚ to (B₁↣B₂ x₁)) $
+                                                                                 subst-refl B₁ x₂ ⟩
+              subst B₂ eq₁ (to (B₁↣B₂ x₁) x₂)                            ≡⟨ eq₂ ⟩∎
+              to (B₁↣B₂ y₁) y₂                                           ∎
+        in
+        subst B₁ (_≈_.injective A₁≈A₂ eq₁) x₂  ≡⟨ _↣_.injective (B₁↣B₂ y₁) lemma ⟩∎
+        y₂                                     ∎) ⊚
+      _↔_.from Σ-≡,≡↔≡
+
+∃-preserves-surjections :
+  ∀ {A₁ A₂ B₁ B₂}
+  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ↠ B₂ (_≈_.to A₁≈A₂ x)) →
+  Σ A₁ B₁ ↠ Σ A₂ B₂
+∃-preserves-surjections {B₂ = B₂} A₁≈A₂ B₁↠B₂ = record
+  { equivalence      = ∃-preserves-equivalences
+                         A₁≈A₂ (equivalence ⊚ B₁↠B₂)
+  ; right-inverse-of = right-inverse-of′
+  }
+  where
+  open _↠_
+
+  abstract
+    right-inverse-of′ = λ p → _↔_.to Σ-≡,≡↔≡
+      ( _≈_.right-inverse-of A₁≈A₂ (proj₁ p)
+      , (subst B₂ (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
+           (to (B₁↠B₂ _) (from (B₁↠B₂ _)
+              (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ (proj₁ p)))
+                 (proj₂ p))))                                         ≡⟨ cong (subst B₂ _) $ right-inverse-of (B₁↠B₂ _) _ ⟩
+         subst B₂ (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
+           (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ (proj₁ p)))
+              (proj₂ p))                                              ≡⟨ Groupoid.subst-subst-sym B₂ _ _ ⟩∎
+         proj₂ p ∎)
+      )
+
+∃-preserves-bijections :
+  ∀ {A₁ A₂ B₁ B₂}
+  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ↔ B₂ (_≈_.to A₁≈A₂ x)) →
+  Σ A₁ B₁ ↔ Σ A₂ B₂
+∃-preserves-bijections {B₁ = B₁} {B₂} A₁≈A₂ B₁↔B₂ = record
+  { surjection      = ∃-preserves-surjections A₁≈A₂ (surjection ⊚ B₁↔B₂)
+  ; left-inverse-of = left-inverse-of′
+  }
+  where
+  open _↔_
+
+  abstract
+    left-inverse-of′ = λ p → _↔_.to Σ-≡,≡↔≡
+      ( _≈_.left-inverse-of A₁≈A₂ (proj₁ p)
+      , (subst B₁ (_≈_.left-inverse-of A₁≈A₂ (proj₁ p))
+           (from (B₁↔B₂ _)
+              (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
+                                (_≈_.to A₁≈A₂ (proj₁ p))))
+                 (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ push-subst B₂ (λ x → from (B₁↔B₂ x))
+                                                                        (_≈_.left-inverse-of A₁≈A₂ (proj₁ p)) ⟩
+         from (B₁↔B₂ _)
+           (subst B₂ (cong (_≈_.to A₁≈A₂)
+                           (_≈_.left-inverse-of A₁≈A₂ (proj₁ p)))
+              (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
+                                (_≈_.to A₁≈A₂ (proj₁ p))))
+                 (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ cong (λ eq → from (B₁↔B₂ _)
+                                                                                     (subst B₂ eq
+                                                                                        (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ _))
+                                                                                           (to (B₁↔B₂ _) (proj₂ p))))) $
+                                                                           _≈_.left-right-lemma A₁≈A₂ _ ⟩
+         from (B₁↔B₂ _)
+           (subst B₂ (_≈_.right-inverse-of A₁≈A₂
+                        (_≈_.to A₁≈A₂ (proj₁ p)))
+              (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
+                                (_≈_.to A₁≈A₂ (proj₁ p))))
+                 (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ cong (from (B₁↔B₂ _)) $ Groupoid.subst-subst-sym B₂ _ _ ⟩
+         from (B₁↔B₂ _) (to (B₁↔B₂ _) (proj₂ p))                   ≡⟨ left-inverse-of (B₁↔B₂ _) _ ⟩∎
+         proj₂ p                                                   ∎)
+      )
+
 -- Σ preserves weak equivalence.
 
 Σ-preserves : ∀ {A₁ A₂ B₁ B₂}
               (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
               Σ A₁ B₁ ≈ Σ A₂ B₂
-Σ-preserves {B₁ = B₁} {B₂} A₁≈A₂ B₁≈B₂ =
-  bijection⇒weak-equivalence record
-    { surjection = record
-      { equivalence = record
-        { to   = Σ-map (to A₁≈A₂) (to (B₁≈B₂ _))
-        ; from =
-            Σ-map (from A₁≈A₂)
-                  (from (B₁≈B₂ (from A₁≈A₂ _)) ⊚
-                   subst B₂ (sym (right-inverse-of A₁≈A₂ _)))
-        }
-      ; right-inverse-of = right-inverse-of′
-      }
-    ; left-inverse-of = left-inverse-of′
-    }
-  where
-  open _≈_
-
-  abstract
-    right-inverse-of′ = λ p → _↔_.to Σ-≡,≡↔≡
-      ( right-inverse-of A₁≈A₂ (proj₁ p)
-      , (subst B₂ (right-inverse-of A₁≈A₂ (proj₁ p))
-           (to (B₁≈B₂ _) (from (B₁≈B₂ _)
-              (subst B₂ (sym (right-inverse-of A₁≈A₂ (proj₁ p)))
-                 (proj₂ p))))                                     ≡⟨ cong (subst B₂ _) $ right-inverse-of (B₁≈B₂ _) _ ⟩
-         subst B₂ (right-inverse-of A₁≈A₂ (proj₁ p))
-           (subst B₂ (sym (right-inverse-of A₁≈A₂ (proj₁ p)))
-              (proj₂ p))                                          ≡⟨ subst-subst-sym B₂ _ _ ⟩∎
-         proj₂ p ∎)
-      )
-
-    left-inverse-of′ = λ p → _↔_.to Σ-≡,≡↔≡
-      ( left-inverse-of A₁≈A₂ (proj₁ p)
-      , (subst B₁ (left-inverse-of A₁≈A₂ (proj₁ p))
-           (from (B₁≈B₂ _)
-              (subst B₂ (sym (right-inverse-of A₁≈A₂
-                                (to A₁≈A₂ (proj₁ p))))
-                 (to (B₁≈B₂ _) (proj₂ p))))                         ≡⟨ push-subst B₂ (λ x → from (B₁≈B₂ x))
-                                                                         (left-inverse-of A₁≈A₂ (proj₁ p)) ⟩
-         from (B₁≈B₂ _)
-           (subst B₂ (cong (to A₁≈A₂)
-                           (left-inverse-of A₁≈A₂ (proj₁ p)))
-              (subst B₂ (sym (right-inverse-of A₁≈A₂
-                                (to A₁≈A₂ (proj₁ p))))
-                 (to (B₁≈B₂ _) (proj₂ p))))                         ≡⟨ cong (λ eq → from (B₁≈B₂ _)
-                                                                                      (subst B₂ eq
-                                                                                         (subst B₂ (sym (right-inverse-of A₁≈A₂ _))
-                                                                                            (to (B₁≈B₂ _) (proj₂ p))))) $
-                                                                            left-right-lemma A₁≈A₂ _ ⟩
-         from (B₁≈B₂ _)
-           (subst B₂ (right-inverse-of A₁≈A₂ (to A₁≈A₂ (proj₁ p)))
-              (subst B₂ (sym (right-inverse-of A₁≈A₂
-                                (to A₁≈A₂ (proj₁ p))))
-                 (to (B₁≈B₂ _) (proj₂ p))))                         ≡⟨ cong (from (B₁≈B₂ _)) $ subst-subst-sym B₂ _ _ ⟩
-         from (B₁≈B₂ _) (to (B₁≈B₂ _) (proj₂ p))                    ≡⟨ left-inverse-of (B₁≈B₂ _) _ ⟩∎
-         proj₂ p ∎)
-      )
+Σ-preserves A₁≈A₂ B₁≈B₂ = bijection⇒weak-equivalence $
+  ∃-preserves-bijections A₁≈A₂ (_≈_.bijection ⊚ B₁≈B₂)
 
 -- Π preserves weak equivalence (assuming extensionality).
 
