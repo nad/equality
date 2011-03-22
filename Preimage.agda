@@ -153,5 +153,5 @@ bijection⁻¹-contractible A↔B =
   surj {y} =
     id ⁻¹ y         ↠⟨ _↔_.surjection $
                          respects-extensional-equality (sym ∘ left-inverse-of) ⟩
-    from ∘ to ⁻¹ y  ↠⟨ lift-surjection surjection ⟩∎
-    from ⁻¹ y       ∎
+    from ∘ to ⁻¹ y  ↠⟨ lift-surjection surjection ⟩□
+    from ⁻¹ y       □

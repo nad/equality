@@ -339,8 +339,8 @@ abstract
   W-≡,≡↠≡ {A} {B} ext {x} {y} {f} {g} =
     (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i))        ↠⟨ Surjection.∃-cong lemma ⟩
     (∃ λ (p : x ≡ y) → subst (λ x → B x → W A B) p f ≡ g)  ↠⟨ _↔_.surjection Σ-≡,≡↔≡ ⟩
-    (_≡_ {A = ∃ λ (x : A) → B x → W A B} (x , f) (y , g))  ↠⟨ ↠-≡ $ _↔_.surjection $ Bijection.inverse W-unfolding ⟩∎
-    (sup x f ≡ sup y g)                                    ∎
+    (_≡_ {A = ∃ λ (x : A) → B x → W A B} (x , f) (y , g))  ↠⟨ ↠-≡ $ _↔_.surjection $ Bijection.inverse W-unfolding ⟩□
+    (sup x f ≡ sup y g)                                    □
     where
     lemma : (p : x ≡ y) →
             (∀ i → f i ≡ g (subst B p i)) ↠
@@ -356,8 +356,8 @@ abstract
          (∀ i → f i ≡ g i)                           ↠⟨ ext-surj ext ⟩
          (f ≡ g)                                     ↠⟨ subst (λ h → (f ≡ g) ↠ (h ≡ g))
                                                               (sym $ subst-refl (λ x' → B x' → W A B) f)
-                                                              Surjection.id ⟩∎
-         (subst (λ x → B x → W A B) (refl x) f ≡ g)  ∎)
+                                                              Surjection.id ⟩□
+         (subst (λ x → B x → W A B) (refl x) f ≡ g)  □)
       p f g
 
   -- H-level is not closed under W.

@@ -58,7 +58,7 @@ _ ⇔⟨ A⇔B ⟩ B⇔C = B⇔C ∘ A⇔B
 finally-⇔ : ∀ {a b} (A : Set a) (B : Set b) → A ⇔ B → A ⇔ B
 finally-⇔ _ _ A⇔B = A⇔B
 
-syntax finally-⇔ A B A⇔B = A ⇔⟨ A⇔B ⟩∎ B ∎
+syntax finally-⇔ A B A⇔B = A ⇔⟨ A⇔B ⟩□ B □
 
 ------------------------------------------------------------------------
 -- A lemma

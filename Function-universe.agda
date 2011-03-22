@@ -114,7 +114,7 @@ id = from-bijection Bijection.id
 
 infixr 0 _↝⟨_⟩_ _↔⟨_⟩_ _≈⟨_⟩_
 infix  0 finally-↝ finally-↔ finally-≈
-infix  0 _∎
+infix  0 _□
 
 _↝⟨_⟩_ : {k : Kind} (A : Set) {B C : Set} →
          A ↝[ k ] B → B ↝[ k ] C → A ↝[ k ] C
@@ -128,8 +128,8 @@ _≈⟨_⟩_ : {k : Kind} (A : Set) {B C : Set} →
          A ≈ B → B ↝[ k ] C → A ↝[ k ] C
 _ ≈⟨ A≈B ⟩ B↝C = _ ↝⟨ from-weak-equivalence A≈B ⟩ B↝C
 
-_∎ : ∀ {k} (A : Set) → A ↝[ k ] A
-A ∎ = id
+_□ : ∀ {k} (A : Set) → A ↝[ k ] A
+A □ = id
 
 finally-↝ : {k : Kind} (A : Set) (B : Set) →
             A ↝[ k ] B → A ↝[ k ] B
@@ -143,9 +143,9 @@ finally-≈ : {k : Kind} (A : Set) (B : Set) →
             A ≈ B → A ↝[ k ] B
 finally-≈ _ _ A≈B = from-weak-equivalence A≈B
 
-syntax finally-↝ A B A↝B = A ↝⟨ A↝B ⟩∎ B ∎
-syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩∎ B ∎
-syntax finally-≈ A B A≈B = A ≈⟨ A≈B ⟩∎ B ∎
+syntax finally-↝ A B A↝B = A ↝⟨ A↝B ⟩□ B □
+syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
+syntax finally-≈ A B A≈B = A ≈⟨ A≈B ⟩□ B □
 
 ------------------------------------------------------------------------
 -- A sub-universe of symmetric kinds of functions
@@ -302,8 +302,8 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 ⊎-right-identity : {A : Set} → A ⊎ ⊥ ↔ A
 ⊎-right-identity {A} =
   A ⊎ ⊥  ↔⟨ ⊎-comm ⟩
-  ⊥ ⊎ A  ↔⟨ ⊎-left-identity ⟩∎
-  A      ∎
+  ⊥ ⊎ A  ↔⟨ ⊎-left-identity ⟩□
+  A      □
 
 -- For equivalences _⊎_ is also idempotent. (This lemma could be
 -- generalised to cover surjections and implications.)
@@ -426,8 +426,8 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 ×-right-identity : {A : Set} → A × ⊤ ↔ A
 ×-right-identity {A} =
   A × ⊤  ↔⟨ ×-comm ⟩
-  ⊤ × A  ↔⟨ ×-left-identity ⟩∎
-  A      ∎
+  ⊤ × A  ↔⟨ ×-left-identity ⟩□
+  A      □
 
 -- ⊥ is a left and right zero of _×_ and Σ.
 
@@ -449,8 +449,8 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 ×-right-zero : {A : Set} → A × ⊥ ↔ ⊥
 ×-right-zero {A} =
   A × ⊥  ↔⟨ ×-comm ⟩
-  ⊥ × A  ↔⟨ ×-left-zero ⟩∎
-  ⊥      ∎
+  ⊥ × A  ↔⟨ ×-left-zero ⟩□
+  ⊥      □
 
 ------------------------------------------------------------------------
 -- Some lemmas related to Σ/∃
@@ -587,8 +587,8 @@ private
   B x × (∃ λ y → y ≡ x)  ↔⟨ ∃-comm ⟩
   (∃ λ y → B x × y ≡ x)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩
   (∃ λ y → y ≡ x × B x)  ↔⟨ ∃-cong (λ y → ∃-cong (λ y≡x → subst (λ x → B x ↔ B y) y≡x id)) ⟩
-  (∃ λ y → y ≡ x × B y)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩∎
-  (∃ λ y → B y × y ≡ x)  ∎
+  (∃ λ y → y ≡ x × B y)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩□
+  (∃ λ y → B y × y ≡ x)  □
 
 ------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring

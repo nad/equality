@@ -28,8 +28,8 @@ import Function-universe as FU; open FU P.equality-with-J hiding (_∘_)
             ∃ P ↔ P (inj₁ tt) ⊎ ∃ (P ∘ inj₂)
 ∃-Fin-suc P =
   ∃ P                          ↔⟨ ∃-⊎-distrib-right ⟩
-  ∃ (P ∘ inj₁) ⊎ ∃ (P ∘ inj₂)  ↔⟨ Σ-left-identity ⊎-cong id ⟩∎
-  P (inj₁ tt) ⊎ ∃ (P ∘ inj₂)   ∎
+  ∃ (P ∘ inj₁) ⊎ ∃ (P ∘ inj₂)  ↔⟨ Σ-left-identity ⊎-cong id ⟩□
+  P (inj₁ tt) ⊎ ∃ (P ∘ inj₂)   □
 
 ------------------------------------------------------------------------
 -- If two nonempty finite sets are isomorphic, then we can remove one
