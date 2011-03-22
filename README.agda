@@ -48,6 +48,10 @@ import Equality.Groupoid
 
 import Equality.Decidable-UIP
 
+-- Injections.
+
+import Injection
+
 -- Surjections.
 
 import Surjection

@@ -11,6 +11,7 @@ module Bijection
 
 open Derived-definitions-and-properties eq
 import Equivalence
+import Injection; open Injection eq using (Injective; _↣_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 private
   module Surjection where
@@ -30,6 +31,19 @@ record _↔_ (From To : Set) : Set where
 
   field
     left-inverse-of : ∀ x → from (to x) ≡ x
+
+  injective : Injective to
+  injective {x = x} {y = y} to-x≡to-y =
+    x            ≡⟨ sym (left-inverse-of x) ⟩
+    from (to x)  ≡⟨ cong from to-x≡to-y ⟩
+    from (to y)  ≡⟨ left-inverse-of y ⟩∎
+    y            ∎
+
+  injection : From ↣ To
+  injection = record
+    { to        = to
+    ; injective = injective
+    }
 
   open _↠_ surjection public
 
