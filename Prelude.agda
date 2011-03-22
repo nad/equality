@@ -333,6 +333,11 @@ infixl 5 _>>=_
 _>>=_ : {A B : Set} → List A → (A → List B) → List B
 xs >>= f = concat (map f xs)
 
+-- A filter function.
+
+filter : {A : Set} → (A → Bool) → List A → List A
+filter p = foldr (λ x xs → if p x then x ∷ xs else xs) []
+
 ------------------------------------------------------------------------
 -- Finite sets
 

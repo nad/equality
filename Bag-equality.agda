@@ -130,6 +130,19 @@ Any->>= P xs f =
   Any (Any P) (map f xs)     ↔⟨ Any-map (Any P) f xs ⟩∎
   Any (Any P ∘ f) xs         ∎
 
+Any-filter : {A : Set} (P : A → Set) (p : A → Bool) (xs : List A) →
+             Any P (filter p xs) ↔ Any (λ x → P x × T (p x)) xs
+Any-filter P p []       = ⊥ ∎
+Any-filter P p (x ∷ xs) with p x
+... | true  =
+   P x      ⊎ Any P (filter p xs)           ↔⟨ inverse ×-right-identity ⊎-cong Any-filter P p xs ⟩∎
+  (P x × ⊤) ⊎ Any (λ x → P x × T (p x)) xs  ∎
+... | false =
+  Any P (filter p xs)                       ↔⟨ Any-filter P p xs ⟩
+              Any (λ x → P x × T (p x)) xs  ↔⟨ inverse ⊎-left-identity ⟩
+  ⊥         ⊎ Any (λ x → P x × T (p x)) xs  ↔⟨ inverse ×-right-zero ⊎-cong (_ ∎) ⟩∎
+  (P x × ⊥) ⊎ Any (λ x → P x × T (p x)) xs  ∎
+
 ------------------------------------------------------------------------
 -- List membership
 
@@ -258,6 +271,14 @@ concat-cong {xss = xss} {yss} xss∼yss = λ z →
   Any (λ x → z ∈ f x) xs  ↝⟨ Any-cong (λ x → f∼g x z) xs∼ys ⟩
   Any (λ x → z ∈ g x) ys  ↔⟨ inverse (Any->>= _ ys g) ⟩∎
   z ∈ ys >>= g            ∎
+
+filter-cong : ∀ {k} {A : Set} (p : A → Bool) (xs ys : List A) →
+              xs ∼[ k ] ys → filter p xs ∼[ k ] filter p ys
+filter-cong p xs ys xs∼ys = λ z →
+  z ∈ filter p xs                 ↔⟨ Any-filter _ p xs ⟩
+  Any (λ x → z ≡ x × T (p x)) xs  ↝⟨ Any-cong (λ _ → _ ∎) xs∼ys ⟩
+  Any (λ x → z ≡ x × T (p x)) ys  ↔⟨ inverse (Any-filter _ p ys) ⟩∎
+  z ∈ filter p ys                 ∎
 
 ------------------------------------------------------------------------
 -- More properties
