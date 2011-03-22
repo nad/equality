@@ -213,9 +213,7 @@ data _≈-bag″_ {A : Set} : List A → List A → Set where
           (xs≈ys : xs ≈-bag″ ys) (ys≈zs : ys ≈-bag″ zs) → xs ≈-bag″ zs
 
 ------------------------------------------------------------------------
--- More properties
-
--- Any respects the various forms of relatedness.
+-- Some congruence lemmas
 
 Any-cong : ∀ {k A} {P Q : A → Set} {xs ys : List A} →
            (∀ x → P x ↝[ k ] Q x) → xs ∼[ k ] ys →
@@ -225,6 +223,44 @@ Any-cong {P = P} {Q} {xs} {ys} P↔Q xs≈ys =
   (∃ λ z → P z × z ∈ xs)  ↝⟨ ∃-cong (λ z → P↔Q z ×-cong xs≈ys z) ⟩
   (∃ λ z → Q z × z ∈ ys)  ↔⟨ inverse (Any-∈ Q ys) ⟩∎
   Any Q ys                ∎
+
+++-cong : ∀ {k} {A : Set} {xs₁ xs₂ ys₁ ys₂ : List A} →
+          xs₁ ∼[ k ] ys₁ → xs₂ ∼[ k ] ys₂ →
+          xs₁ ++ xs₂ ∼[ k ] ys₁ ++ ys₂
+++-cong {xs₁ = xs₁} {xs₂} {ys₁} {ys₂} xs₁∼ys₁ xs₂∼ys₂ = λ z →
+  z ∈ xs₁ ++ xs₂          ↔⟨ Any-++ _ xs₁ xs₂ ⟩
+  z ∈ xs₁ ⊎ z ∈ xs₂       ↝⟨ xs₁∼ys₁ z ⊎-cong xs₂∼ys₂ z ⟩
+  z ∈ ys₁ ⊎ z ∈ ys₂       ↔⟨ inverse (Any-++ _ ys₁ ys₂) ⟩∎
+  z ∈ ys₁ ++ ys₂          ∎
+
+map-cong : ∀ {k} {A B : Set} (f : A → B) {xs ys : List A} →
+           xs ∼[ k ] ys → map f xs ∼[ k ] map f ys
+map-cong f {xs} {ys} xs∼ys = λ z →
+  z ∈ map f xs            ↔⟨ Any-map _ f xs ⟩
+  Any (λ x → z ≡ f x) xs  ↝⟨ Any-cong (λ x → z ≡ f x ∎) xs∼ys ⟩
+  Any (λ x → z ≡ f x) ys  ↔⟨ inverse (Any-map _ f ys) ⟩∎
+  z ∈ map f ys            ∎
+
+concat-cong : ∀ {k} {A : Set} {xss yss : List (List A)} →
+              xss ∼[ k ] yss → concat xss ∼[ k ] concat yss
+concat-cong {xss = xss} {yss} xss∼yss = λ z →
+  z ∈ concat xss           ↔⟨ Any-concat _ xss ⟩
+  Any (λ zs → z ∈ zs) xss  ↝⟨ Any-cong (λ zs → z ∈ zs ∎) xss∼yss ⟩
+  Any (λ zs → z ∈ zs) yss  ↔⟨ inverse (Any-concat _ yss) ⟩∎
+  z ∈ concat yss           ∎
+
+>>=-cong : ∀ {k} {A B : Set}
+           {xs ys : List A} {f g : A → List B} →
+           xs ∼[ k ] ys → (∀ x → f x ∼[ k ] g x) →
+           (xs >>= f) ∼[ k ] (ys >>= g)
+>>=-cong {xs = xs} {ys} {f} {g} xs∼ys f∼g = λ z →
+  z ∈ xs >>= f            ↔⟨ Any->>= _ xs f ⟩
+  Any (λ x → z ∈ f x) xs  ↝⟨ Any-cong (λ x → f∼g x z) xs∼ys ⟩
+  Any (λ x → z ∈ g x) ys  ↔⟨ inverse (Any->>= _ ys g) ⟩∎
+  z ∈ ys >>= g            ∎
+
+------------------------------------------------------------------------
+-- More properties
 
 -- Bind distributes from the left over append.
 
@@ -238,6 +274,14 @@ bind-left-distributive xs f g = λ z →
   Any (λ x → z ∈ f x) xs ⊎ Any (λ x → z ∈ g x) xs  ↔⟨ inverse (Any->>= (_≡_ z) xs f ⊎-cong Any->>= (_≡_ z) xs g) ⟩
   z ∈ xs >>= f ⊎ z ∈ xs >>= g                      ↔⟨ inverse (Any-++ (_≡_ z) (xs >>= f) (xs >>= g)) ⟩∎
   z ∈ (xs >>= f) ++ (xs >>= g)                     ∎
+
+-- _++_ is idempotent (when set equality is used).
+
+++-idempotent : {A : Set} (xs : List A) → xs ++ xs ∼[ set ] xs
+++-idempotent xs = λ z →
+  z ∈ xs ++ xs     ↔⟨ Any-++ (_≡_ z) xs xs ⟩
+  z ∈ xs ⊎ z ∈ xs  ↝⟨ ⊎-idempotent ⟩∎
+  z ∈ xs           ∎
 
 ------------------------------------------------------------------------
 -- The first two definitions of bag equality above are equivalent
