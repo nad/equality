@@ -476,16 +476,11 @@ abstract
 
 cancel-cons : ∀ {A : Set} {x : A} {xs ys} →
               x ∷ xs ≈-bag x ∷ ys → xs ≈-bag ys
-cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z = record
-  { surjection = record
-    { equivalence = record
-      { to   = f             x∷xs≈x∷ys
-      ; from = f $ inverse ∘ x∷xs≈x∷ys
-      }
-    ; right-inverse-of = f∘f $ inverse ∘ x∷xs≈x∷ys
-    }
-  ; left-inverse-of    = f∘f             x∷xs≈x∷ys
-  }
+cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z =
+  ⊎-left-cancellative
+    (x∷xs≈x∷ys z)
+    (lemma (inverse ∘ x∷xs≈x∷ys))
+    (lemma x∷xs≈x∷ys)
   where
   open _↔_
 
@@ -496,37 +491,16 @@ cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z = record
     -- index-equality-preserved.
 
     lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) {p q z∈xs} →
-            inj₁ p ≡ from (inv z) (inj₁ q) →
-            inj₂ z∈xs ≡ from (inv z) (inj₁ p) →
+            from (inv z) (inj₁ q) ≡ inj₁ p →
+            from (inv z) (inj₁ p) ≡ inj₂ z∈xs →
             ⊥
     lemma {xs} inv {p} {q} {z∈xs} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
       inj₁ tt                         ≡⟨ refl ⟩
-      index {xs = _ ∷ xs} (inj₁ p)    ≡⟨ cong index hyp₁ ⟩
+      index {xs = _ ∷ xs} (inj₁ p)    ≡⟨ cong index (sym hyp₁) ⟩
       index (from (inv z) (inj₁ q))   ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
-      index (from (inv z) (inj₁ p))   ≡⟨ cong index (sym hyp₂) ⟩
+      index (from (inv z) (inj₁ p))   ≡⟨ cong index hyp₂ ⟩
       index {xs = x ∷ _} (inj₂ z∈xs)  ≡⟨ refl ⟩∎
       inj₂ (index z∈xs)               ∎)
-
-  f : ∀ {xs ys} → x ∷ xs ≈-bag x ∷ ys → z ∈ xs → z ∈ ys
-  f inv z∈xs with to (inv z) (inj₂ z∈xs) | sym (left-inverse-of (inv z) (inj₂ z∈xs))
-  f inv z∈xs | inj₂ z∈ys | left⁺ = z∈ys
-  f inv z∈xs | inj₁ z≡x  | left⁺ with to (inv z) (inj₁ z≡x) | sym (left-inverse-of (inv z) (inj₁ z≡x))
-  f inv z∈xs | inj₁ z≡x  | left⁺ | inj₂ z∈ys | left⁰ = z∈ys
-  f inv z∈xs | inj₁ z≡x  | left⁺ | inj₁ z≡x′ | left⁰ = ⊥-elim $ lemma inv left⁰ left⁺
-
-  abstract
-
-    f∘f : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) (p : z ∈ xs) →
-          f (inverse ∘ inv) (f inv p) ≡ p
-    f∘f inv z∈xs with to (inv z) (inj₂ z∈xs) | sym (left-inverse-of (inv z) (inj₂ z∈xs))
-    f∘f inv z∈xs | inj₂ z∈ys | left⁺ with from (inv z) (inj₂ z∈ys) | sym (right-inverse-of (inv z) (inj₂ z∈ys))
-    f∘f inv z∈xs | inj₂ z∈ys | refl  | .(inj₂ z∈xs) | _ = refl
-    f∘f inv z∈xs | inj₁ z≡x  | left⁺ with to (inv z) (inj₁ z≡x) | sym (left-inverse-of (inv z) (inj₁ z≡x))
-    f∘f inv z∈xs | inj₁ z≡x  | left⁺ | inj₂ z∈ys | left⁰ with from (inv z) (inj₂ z∈ys) | sym (right-inverse-of (inv z) (inj₂ z∈ys))
-    f∘f inv z∈xs | inj₁ z≡x  | left⁺ | inj₂ z∈ys | refl  | .(inj₁ z≡x) | _ with from (inv z) (inj₁ z≡x)
-                                                                                | sym (right-inverse-of (inv z) (inj₁ z≡x))
-    f∘f inv z∈xs | inj₁ z≡x  | refl  | inj₂ z∈ys | refl  | .(inj₁ z≡x) | _ | .(inj₂ z∈xs) | _ = refl
-    f∘f inv z∈xs | inj₁ z≡x  | left⁺ | inj₁ z≡x′ | left⁰ = ⊥-elim $ lemma inv left⁰ left⁺
 
 ------------------------------------------------------------------------
 -- The third definition of bag equality is sound with respect to the

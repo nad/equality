@@ -602,3 +602,147 @@ private
 
 ×-⊎-distrib-right : {A B C : Set} → (A ⊎ B) × C ↔ (A × C) ⊎ (B × C)
 ×-⊎-distrib-right = ∃-⊎-distrib-right
+
+------------------------------------------------------------------------
+-- A property related to ℕ
+
+-- The natural numbers are isomorphic to the natural numbers extended
+-- with another element.
+
+ℕ↔ℕ⊎⊤ : ℕ ↔ ℕ ⊎ ⊤
+ℕ↔ℕ⊎⊤ = record
+  { surjection = record
+    { equivalence = record
+      { to   = ℕ-rec (inj₂ tt) (λ n _ → inj₁ n)
+      ; from = [ suc , const zero ]
+      }
+    ; right-inverse-of = [ refl ⊚ inj₁ , refl ⊚ inj₂ ]
+    }
+  ; left-inverse-of = ℕ-rec (refl 0) (λ n _ → refl (suc n))
+  }
+
+------------------------------------------------------------------------
+-- Left cancellation for _⊎_
+
+-- In general _⊎_ is not left cancellative.
+
+¬-⊎-left-cancellative :
+  ∀ k → ¬ ((A B C : Set) → A ⊎ B ↝[ k ] A ⊎ C → B ↝[ k ] C)
+¬-⊎-left-cancellative k cancel =
+  ¬B→C $ to-implication $ cancel A B C (from-bijection A⊎B↔A⊎C)
+  where
+  A = ℕ
+  B = ⊤
+  C = ⊥
+
+  A⊎B↔A⊎C : A ⊎ B ↔ A ⊎ C
+  A⊎B↔A⊎C =
+    ℕ ⊎ ⊤  ↔⟨ inverse ℕ↔ℕ⊎⊤ ⟩
+    ℕ      ↔⟨ inverse ⊎-right-identity ⟩
+    ℕ ⊎ ⊥  □
+
+  ¬B→C : ¬ (B → C)
+  ¬B→C B→C = B→C tt
+
+-- However, it is left cancellative for certain well-behaved
+-- bijections:
+
+⊎-left-cancellative :
+  {A B C : Set} →
+  (inv : A ⊎ B ↔ A ⊎ C) →
+  (∀ {a a′ c} →
+   _↔_.to inv (inj₁ a)  ≡ inj₁ a′ →
+   _↔_.to inv (inj₁ a′) ≡ inj₂ c → ⊥) →
+  (∀ {a a′ b} →
+   _↔_.from inv (inj₁ a)  ≡ inj₁ a′ →
+   _↔_.from inv (inj₁ a′) ≡ inj₂ b → ⊥) →
+  B ↔ C
+⊎-left-cancellative inv to-hyp from-hyp = record
+  { surjection = record
+    { equivalence = record
+      { to   = f          inv  from-hyp
+      ; from = f (inverse inv) to-hyp
+      }
+    ; right-inverse-of = f∘f (inverse inv) from-hyp to-hyp
+    }
+  ; left-inverse-of    = f∘f          inv  to-hyp from-hyp
+  }
+  where
+  open _↔_
+
+  f : ∀ {A B C : Set} →
+      (inv : A ⊎ B ↔ A ⊎ C) →
+      (∀ {a a′ b} →
+       from inv (inj₁ a)  ≡ inj₁ a′ →
+       from inv (inj₁ a′) ≡ inj₂ b → ⊥) →
+      B → C
+  f inv hyp b with to inv (inj₂ b) | left-inverse-of inv (inj₂ b)
+  f inv hyp b | inj₂ b′ | _     = b′
+  f inv hyp b | inj₁ a  | ₁→₂ with to inv (inj₁ a) | left-inverse-of inv (inj₁ a)
+  f inv hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ = b′
+  f inv hyp b | inj₁ a  | ₁→₂ | inj₁ a′ | ₁→₁ = ⊥-elim $ hyp ₁→₁ ₁→₂
+
+  abstract
+
+    f∘f : ∀ {A B C : Set} →
+          (inv : A ⊎ B ↔ A ⊎ C) →
+          (to-hyp :
+             ∀ {a a′ c} →
+             to inv (inj₁ a)  ≡ inj₁ a′ →
+             to inv (inj₁ a′) ≡ inj₂ c → ⊥) →
+          (from-hyp :
+             ∀ {a a′ b} →
+             from inv (inj₁ a)  ≡ inj₁ a′ →
+             from inv (inj₁ a′) ≡ inj₂ b → ⊥) →
+          ∀ b → f (inverse inv) to-hyp (f inv from-hyp b) ≡ b
+    f∘f inv to-hyp from-hyp b with to inv (inj₂ b) | left-inverse-of inv (inj₂ b)
+    f∘f inv to-hyp from-hyp b | inj₂ b′ | ₁→₂ with from inv (inj₂ b′) | right-inverse-of inv (inj₂ b′)
+    f∘f inv to-hyp from-hyp b | inj₂ b′ | ₁→₂ | inj₂ b″ | _ = ⊎.cancel-inj₂ ₁→₂
+    f∘f inv to-hyp from-hyp b | inj₂ b′ | ₁→₂ | inj₁ a  | _ = ⊥-elim $ ⊎.inj₁≢inj₂ ₁→₂
+    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ with to inv (inj₁ a) | left-inverse-of inv (inj₁ a)
+    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₁ a′ | ₁→₁ = ⊥-elim $ from-hyp ₁→₁ ₁→₂
+    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ with from inv (inj₂ b′) | right-inverse-of inv (inj₂ b′)
+    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ | inj₂ b″ | _    = ⊥-elim $ ⊎.inj₁≢inj₂ $ sym ₁→₁
+    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ | inj₁ a′ | ₁→₂′ with from inv (inj₁ a′) | right-inverse-of inv (inj₁ a′)
+    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ | inj₁ a′ | ₁→₂′ | inj₁ a″ | ₁→₁′ = ⊥-elim $ to-hyp ₁→₁′ ₁→₂′
+    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ | inj₁ a′ | ₁→₂′ | inj₂ b″ | ₂→₁  = ⊎.cancel-inj₂ (
+      inj₂ b″                      ≡⟨ sym $ left-inverse-of inv _ ⟩
+      from inv (to inv (inj₂ b″))  ≡⟨ cong (from inv) ₂→₁ ⟩
+      from inv (inj₁ a′)           ≡⟨ cong (from inv ⊚ inj₁) $ ⊎.cancel-inj₁ ₁→₁ ⟩
+      from inv (inj₁ a)            ≡⟨ ₁→₂ ⟩∎
+      inj₂ b                       ∎)
+
+-- This property does not generalise to equivalences.
+
+¬-⊎-left-cancellative′ :
+  ¬ ({A B C : Set} →
+     (eq : A ⊎ B ⇔ A ⊎ C) →
+     (∀ {a a′ c} →
+      _⇔_.to eq (inj₁ a)  ≡ inj₁ a′ →
+      _⇔_.to eq (inj₁ a′) ≡ inj₂ c → ⊥) →
+     (∀ {a a′ b} →
+      _⇔_.from eq (inj₁ a)  ≡ inj₁ a′ →
+      _⇔_.from eq (inj₁ a′) ≡ inj₂ b → ⊥) →
+     B ⇔ C)
+¬-⊎-left-cancellative′ cancel =
+  _⇔_.to (cancel equiv to-hyp from-hyp) tt
+  where
+  A = ⊤
+  B = ⊤
+  C = ⊥
+
+  equiv : A ⊎ B ⇔ A ⊎ C
+  equiv =
+    ⊤ ⊎ ⊤  ↝⟨ ⊎-idempotent ⟩
+    ⊤      ↔⟨ inverse ⊎-right-identity ⟩
+    ⊤ ⊎ ⊥  □
+
+  to-hyp : ∀ {a a′ c} →
+           _⇔_.to equiv (inj₁ a)  ≡ inj₁ a′ →
+           _⇔_.to equiv (inj₁ a′) ≡ inj₂ c → ⊥
+  to-hyp {c = ()} _ _
+
+  from-hyp : ∀ {a a′ b} →
+             _⇔_.from equiv (inj₁ a)  ≡ inj₁ a′ →
+             _⇔_.from equiv (inj₁ a′) ≡ inj₂ b → ⊥
+  from-hyp ₁→₁ ₁→₂ = ⊎.inj₁≢inj₂ ₁→₂
