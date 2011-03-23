@@ -33,6 +33,14 @@ record _↠_ (From To : Set) : Set where
   field
     right-inverse-of : ∀ x → to (from x) ≡ x
 
+  -- A lemma.
+
+  from-to : ∀ {x y} → from x ≡ y → to y ≡ x
+  from-to {x} {y} from-x≡y =
+    to y         ≡⟨ cong to $ sym from-x≡y ⟩
+    to (from x)  ≡⟨ right-inverse-of x ⟩∎
+    x            ∎
+
   open _⇔_ equivalence public
 
 ------------------------------------------------------------------------

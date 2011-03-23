@@ -45,6 +45,14 @@ record _↔_ (From To : Set) : Set where
     ; injective = injective
     }
 
+  -- A lemma.
+
+  to-from : ∀ {x y} → to x ≡ y → from y ≡ x
+  to-from {x} {y} to-x≡y =
+    from y       ≡⟨ cong from $ sym to-x≡y ⟩
+    from (to x)  ≡⟨ left-inverse-of x ⟩∎
+    x            ∎
+
   open _↠_ surjection public
 
 ------------------------------------------------------------------------
