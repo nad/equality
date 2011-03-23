@@ -400,6 +400,14 @@ module Derived-definitions-and-properties
     f y u  ≡⟨ cong (f y)      u≡v ⟩∎
     f y v  ∎
 
+  -- The inspect idiom.
+
+  data Inspect {A : Set} (x : A) : Set where
+    _with-≡_ : (y : A) (eq : x ≡ y) → Inspect x
+
+  inspect : {A : Set} (x : A) → Inspect x
+  inspect x = x with-≡ refl x
+
   -- The K rule (without computational content).
 
   K-rule : Set₁
