@@ -296,6 +296,15 @@ bind-left-distributive xs f g = λ z →
   z ∈ xs >>= f ⊎ z ∈ xs >>= g                      ↔⟨ inverse (Any-++ (_≡_ z) (xs >>= f) (xs >>= g)) ⟩
   z ∈ (xs >>= f) ++ (xs >>= g)                     □
 
+-- _++_ is commutative.
+
+++-comm : ∀ {A} (xs ys : List A) → xs ++ ys ≈-bag ys ++ xs
+++-comm xs ys = λ z →
+  z ∈ xs ++ ys     ↔⟨ Any-++ (_≡_ z) xs ys ⟩
+  z ∈ xs ⊎ z ∈ ys  ↔⟨ ⊎-comm ⟩
+  z ∈ ys ⊎ z ∈ xs  ↔⟨ inverse (Any-++ (_≡_ z) ys xs) ⟩
+  z ∈ ys ++ xs     □
+
 -- _++_ is idempotent (when set equality is used).
 
 ++-idempotent : {A : Set} (xs : List A) → xs ++ xs ∼[ set ] xs
@@ -406,14 +415,14 @@ abstract
     z ∈ ys                     □
 
 ------------------------------------------------------------------------
--- _∷_ x is cancellative
+-- Left cancellation
 
--- We have basically already showed this for the (first) alternative
--- definition of bag equality.
+-- We have basically already showed that cons is left cancellative for
+-- the (first) alternative definition of bag equality.
 
-cancel-cons′ : ∀ {A : Set} {x : A} xs ys →
-               x ∷ xs ≈-bag′ x ∷ ys → xs ≈-bag′ ys
-cancel-cons′ {x = x} xs ys x∷xs≈x∷ys = record
+∷-left-cancellative′ : ∀ {A : Set} {x : A} xs ys →
+                       x ∷ xs ≈-bag′ x ∷ ys → xs ≈-bag′ ys
+∷-left-cancellative′ {x = x} xs ys x∷xs≈x∷ys = record
   { bijection = Fin.cancel-suc (_≈-bag′_.bijection x∷xs≈x∷ys)
   ; related   = Fin.cancel-suc-preserves-relatedness x xs ys
                   (_≈-bag′_.bijection x∷xs≈x∷ys)
@@ -427,7 +436,9 @@ cancel-cons′ {x = x} xs ys x∷xs≈x∷ys = record
 abstract
 
   -- The index function commutes with applications of certain
-  -- inverses.
+  -- inverses. Note that the last three equational reasoning steps do
+  -- not need to be written out; I included them in an attempt to make
+  -- it easier to understand why the lemma holds.
 
   index-commutes : ∀ {A : Set} {z : A} {xs ys} →
                    (xs≈ys : xs ≈-bag ys) (p : z ∈ xs) →
@@ -474,9 +485,9 @@ abstract
 
 -- If x ∷ xs is bag equal to x ∷ ys, then xs and ys are bag equal.
 
-cancel-cons : ∀ {A : Set} {x : A} {xs ys} →
-              x ∷ xs ≈-bag x ∷ ys → xs ≈-bag ys
-cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z =
+∷-left-cancellative : ∀ {A : Set} {x : A} {xs ys} →
+                      x ∷ xs ≈-bag x ∷ ys → xs ≈-bag ys
+∷-left-cancellative {A = A} {x} {xs} {ys} x∷xs≈x∷ys z =
   ⊎-left-cancellative
     (x∷xs≈x∷ys z)
     (lemma x∷xs≈x∷ys)
@@ -491,13 +502,38 @@ cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z =
     lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) →
             Well-behaved (_↔_.to (inv z))
     lemma {xs} inv {b = z∈xs} {a = p} {a′ = q} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
-      inj₁ tt                         ≡⟨ refl ⟩
-      index {xs = _ ∷ xs} (inj₁ p)    ≡⟨ cong index $ sym $ to-from hyp₂ ⟩
-      index (from (inj₁ q))           ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
-      index (from (inj₁ p))           ≡⟨ cong index $ to-from hyp₁ ⟩
-      index {xs = x ∷ _} (inj₂ z∈xs)  ≡⟨ refl ⟩∎
-      inj₂ (index z∈xs)               ∎)
+      inj₁ tt                              ≡⟨ refl ⟩
+      index {xs = x ∷ xs} (inj₁ p)         ≡⟨ cong index $ sym $ to-from hyp₂ ⟩
+      index {xs = x ∷ xs} (from (inj₁ q))  ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
+      index {xs = x ∷ xs} (from (inj₁ p))  ≡⟨ cong index $ to-from hyp₁ ⟩
+      index {xs = x ∷ xs} (inj₂ z∈xs)      ≡⟨ refl ⟩∎
+      inj₂ (index {xs = xs} z∈xs)          ∎)
       where open _↔_ (inv z)
+
+-- Cons is not left cancellative for set equality.
+
+∷-not-left-cancellative :
+  ¬ (∀ {A : Set} {x : A} {xs ys} →
+     x ∷ xs ∼[ set ] x ∷ ys → xs ∼[ set ] ys)
+∷-not-left-cancellative cancel =
+  _⇔_.to (cancel (++-idempotent (tt ∷ [])) tt) (inj₁ refl)
+
+-- _++_ is left and right cancellative (for bag equality).
+
+++-left-cancellative : ∀ {A : Set} (xs : List A) {ys zs} →
+                       xs ++ ys ≈-bag xs ++ zs → ys ≈-bag zs
+++-left-cancellative []       eq = eq
+++-left-cancellative (x ∷ xs) eq =
+  ++-left-cancellative xs (∷-left-cancellative eq)
+
+++-right-cancellative : ∀ {A : Set} {xs ys zs : List A} →
+                        xs ++ zs ≈-bag ys ++ zs → xs ≈-bag ys
+++-right-cancellative {xs = xs} {ys} {zs} eq =
+  ++-left-cancellative zs (λ z →
+    z ∈ zs ++ xs  ↔⟨ ++-comm zs xs z ⟩
+    z ∈ xs ++ zs  ↔⟨ eq z ⟩
+    z ∈ ys ++ zs  ↔⟨ ++-comm ys zs z ⟩
+    z ∈ zs ++ ys  □)
 
 ------------------------------------------------------------------------
 -- The third definition of bag equality is sound with respect to the
