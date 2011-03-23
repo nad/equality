@@ -538,7 +538,7 @@ infixr 5 _∷-cong_
 
 _∷-cong_ : ∀ {A : Set} {x y : A} {xs ys} →
            x ≡ y → xs ≈-bag ys → x ∷ xs ≈-bag y ∷ ys
-_∷-cong_ {x = x} {xs = xs} {ys} refl xs≈ys z =
+_∷-cong_ {x = x} {xs = xs} {ys} refl xs≈ys = λ z →
   z ≡ x ⊎ z ∈ xs  ↔⟨ id ⊎-cong xs≈ys z ⟩
   z ≡ x ⊎ z ∈ ys  □
 
@@ -546,11 +546,11 @@ _∷-cong_ {x = x} {xs = xs} {ys} refl xs≈ys z =
 
 swap-first-two : ∀ {A : Set} {x y : A} {xs} →
                  x ∷ y ∷ xs ≈-bag y ∷ x ∷ xs
-swap-first-two {x = x} {y} {xs} z =
-  z ≡ x ⊎ z ≡ y ⊎ Any (_≡_ z) xs    ↔⟨ ⊎-assoc ⟩
-  (z ≡ x ⊎ z ≡ y) ⊎ Any (_≡_ z) xs  ↔⟨ ⊎-comm ⊎-cong id ⟩
-  (z ≡ y ⊎ z ≡ x) ⊎ Any (_≡_ z) xs  ↔⟨ inverse ⊎-assoc ⟩
-  z ≡ y ⊎ z ≡ x ⊎ Any (_≡_ z) xs    □
+swap-first-two {x = x} {y} {xs} = λ z →
+   z ≡ x ⊎ z ≡ y  ⊎ z ∈ xs  ↔⟨ ⊎-assoc ⟩
+  (z ≡ x ⊎ z ≡ y) ⊎ z ∈ xs  ↔⟨ ⊎-comm ⊎-cong id ⟩
+  (z ≡ y ⊎ z ≡ x) ⊎ z ∈ xs  ↔⟨ inverse ⊎-assoc ⟩
+   z ≡ y ⊎ z ≡ x  ⊎ z ∈ xs  □
 
 -- The third definition of bag equality is sound with respect to the
 -- first one.
