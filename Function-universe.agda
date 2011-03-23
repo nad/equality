@@ -647,89 +647,79 @@ private
 -- However, it is left cancellative for certain well-behaved
 -- bijections.
 
--- A function is "left-persistent" if all "left" results of the
--- function are mapped to new "left" results.
+-- A function is "well-behaved" if any "left" element which is the
+-- image of a "right" element is in turn not mapped to another "left"
+-- element.
 
-Left-persistent : {A B C : Set} → (A ⊎ B → A ⊎ C) → Set
-Left-persistent f =
-  ∀ {a a′ c} → f (inj₁ a) ≡ inj₁ a′ → f (inj₁ a′) ≢ inj₂ c
+Well-behaved : {A B C : Set} → (A ⊎ B → A ⊎ C) → Set
+Well-behaved f =
+  ∀ {b a a′} → f (inj₂ b) ≡ inj₁ a → f (inj₁ a) ≢ inj₁ a′
+
+-- TODO: Make this property more general.
 
 ⊎-left-cancellative :
   {A B C : Set} →
-  (inv : A ⊎ B ↔ A ⊎ C) →
-  Left-persistent (_↔_.to   inv) →
-  Left-persistent (_↔_.from inv) →
+  (f : A ⊎ B ↔ A ⊎ C) →
+  Well-behaved (_↔_.to   f) →
+  Well-behaved (_↔_.from f) →
   B ↔ C
 ⊎-left-cancellative inv to-hyp from-hyp = record
   { surjection = record
     { equivalence = record
-      { to   = f          inv  from-hyp
-      ; from = f (inverse inv) to-hyp
+      { to   = g (to   inv) to-hyp
+      ; from = g (from inv) from-hyp
       }
-    ; right-inverse-of = f∘f (inverse inv) from-hyp to-hyp
+    ; right-inverse-of = g∘g (inverse inv) from-hyp to-hyp
     }
-  ; left-inverse-of    = f∘f          inv  to-hyp from-hyp
+  ; left-inverse-of    = g∘g          inv  to-hyp from-hyp
   }
   where
   open _↔_
 
-  f : ∀ {A B C : Set} →
-      (inv : A ⊎ B ↔ A ⊎ C) →
-      Left-persistent (_↔_.from inv) →
-      B → C
-  f inv hyp b with to inv (inj₂ b) | left-inverse-of inv (inj₂ b)
-  f inv hyp b | inj₂ c | _     = c
-  f inv hyp b | inj₁ a | ₁→₂ with to inv (inj₁ a) | left-inverse-of inv (inj₁ a)
-  f inv hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ = c
-  f inv hyp b | inj₁ a | ₁→₂ | inj₁ a′ | ₁→₁ = ⊥-elim $ hyp ₁→₁ ₁→₂
+  g : {A B C : Set} (f : A ⊎ B → A ⊎ C) → Well-behaved f → (B → C)
+  g f hyp b with inspect (f (inj₂ b))
+  g f hyp b | inj₂ c with-≡ eq₁ = c
+  g f hyp b | inj₁ a with-≡ eq₁ with inspect (f (inj₁ a))
+  g f hyp b | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ = c
+  g f hyp b | inj₁ a with-≡ eq₁ | inj₁ a′ with-≡ eq₂ =
+    ⊥-elim $ hyp eq₁ eq₂
 
   abstract
 
-    f∘f : ∀ {A B C : Set} →
-          (inv : A ⊎ B ↔ A ⊎ C) →
-          (to-hyp   : Left-persistent (_↔_.to   inv)) →
-          (from-hyp : Left-persistent (_↔_.from inv)) →
-          ∀ b → f (inverse inv) to-hyp (f inv from-hyp b) ≡ b
-    f∘f inv to-hyp from-hyp b with to inv (inj₂ b) | left-inverse-of inv (inj₂ b)
-    f∘f inv to-hyp from-hyp b | inj₂ c | ₁→₂ with from inv (inj₂ c) | right-inverse-of inv (inj₂ c)
-    f∘f inv to-hyp from-hyp b | inj₂ c | ₁→₂ | inj₂ b′ | _ = ⊎.cancel-inj₂ ₁→₂
-    f∘f inv to-hyp from-hyp b | inj₂ c | ₁→₂ | inj₁ a  | _ = ⊥-elim $ ⊎.inj₁≢inj₂ ₁→₂
-    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ with to inv (inj₁ a) | left-inverse-of inv (inj₁ a)
-    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₁ a′ | ₁→₁ = ⊥-elim $ from-hyp ₁→₁ ₁→₂
-    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ with from inv (inj₂ c) | right-inverse-of inv (inj₂ c)
-    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ | inj₂ b′ | _    = ⊥-elim $ ⊎.inj₁≢inj₂ $ sym ₁→₁
-    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ | inj₁ a′ | ₁→₂′ with from inv (inj₁ a′) | right-inverse-of inv (inj₁ a′)
-    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ | inj₁ a′ | ₁→₂′ | inj₁ a″ | ₁→₁′ = ⊥-elim $ to-hyp ₁→₁′ ₁→₂′
-    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ | inj₁ a′ | ₁→₂′ | inj₂ b′ | ₂→₁  = ⊎.cancel-inj₂ (
-      inj₂ b′                      ≡⟨ sym $ left-inverse-of inv _ ⟩
-      from inv (to inv (inj₂ b′))  ≡⟨ cong (from inv) ₂→₁ ⟩
-      from inv (inj₁ a′)           ≡⟨ cong (from inv ⊚ inj₁) $ ⊎.cancel-inj₁ ₁→₁ ⟩
-      from inv (inj₁ a)            ≡⟨ ₁→₂ ⟩∎
-      inj₂ b                       ∎)
-
--- This property does not generalise to equivalences.
-
-¬-⊎-left-cancellative′ :
-  ¬ ({A B C : Set} →
-     (eq : A ⊎ B ⇔ A ⊎ C) →
-     Left-persistent (_⇔_.to   eq) →
-     Left-persistent (_⇔_.from eq) →
-     B ⇔ C)
-¬-⊎-left-cancellative′ cancel =
-  _⇔_.to (cancel equiv to-hyp from-hyp) tt
-  where
-  A = ⊤
-  B = ⊤
-  C = ⊥
-
-  equiv : A ⊎ B ⇔ A ⊎ C
-  equiv =
-    ⊤ ⊎ ⊤  ↝⟨ ⊎-idempotent ⟩
-    ⊤      ↔⟨ inverse ⊎-right-identity ⟩
-    ⊤ ⊎ ⊥  □
-
-  to-hyp : Left-persistent (_⇔_.to equiv)
-  to-hyp {c = ()} _ _
-
-  from-hyp : Left-persistent (_⇔_.from equiv)
-  from-hyp _ ₁→₂ = ⊎.inj₁≢inj₂ ₁→₂
+    g∘g : ∀ {A B C : Set} →
+          (f : A ⊎ B ↔ A ⊎ C) →
+          (to-hyp   : Well-behaved (to   f)) →
+          (from-hyp : Well-behaved (from f)) →
+          ∀ b → g (from f) from-hyp (g (to f) to-hyp b) ≡ b
+    g∘g f to-hyp from-hyp b = g∘g′
+      where
+      g∘g′ : g (from f) from-hyp (g (to f) to-hyp b) ≡ b
+      g∘g′ with inspect (to f (inj₂ b))
+      g∘g′ | inj₂ c with-≡ eq₁ with inspect (from f (inj₂ c))
+      g∘g′ | inj₂ c with-≡ eq₁ | inj₂ b′ with-≡ eq₂ = ⊎.cancel-inj₂ (
+                                                        inj₂ b′          ≡⟨ sym eq₂ ⟩
+                                                        from f (inj₂ c)  ≡⟨ to-from f eq₁ ⟩∎
+                                                        inj₂ b           ∎)
+      g∘g′ | inj₂ c with-≡ eq₁ | inj₁ a  with-≡ eq₂ = ⊥-elim $ ⊎.inj₁≢inj₂ (
+                                                        inj₁ a           ≡⟨ sym eq₂ ⟩
+                                                        from f (inj₂ c)  ≡⟨ to-from f eq₁ ⟩∎
+                                                        inj₂ b           ∎)
+      g∘g′ | inj₁ a with-≡ eq₁ with inspect (to f (inj₁ a))
+      g∘g′ | inj₁ a with-≡ eq₁ | inj₁ a′ with-≡ eq₂ = ⊥-elim $ to-hyp eq₁ eq₂
+      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ with inspect (from f (inj₂ c))
+      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₂ b′ with-≡ eq₃ = ⊥-elim $ ⊎.inj₁≢inj₂ (
+                                                                             inj₁ a           ≡⟨ sym $ to-from f eq₂ ⟩
+                                                                             from f (inj₂ c)  ≡⟨ eq₃ ⟩∎
+                                                                             inj₂ b′          ∎)
+      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ with inspect (from f (inj₁ a′))
+      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ | inj₁ a″ with-≡ eq₄ = ⊥-elim $ from-hyp eq₃ eq₄
+      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ | inj₂ b′ with-≡ eq₄ = ⊎.cancel-inj₂ (
+        inj₂ b′           ≡⟨ sym eq₄ ⟩
+        from f (inj₁ a′)  ≡⟨ cong (from f ⊚ inj₁) $ ⊎.cancel-inj₁ lemma ⟩
+        from f (inj₁ a)   ≡⟨ to-from f eq₁ ⟩∎
+        inj₂ b            ∎)
+        where
+        lemma =
+          inj₁ a′          ≡⟨ sym eq₃ ⟩
+          from f (inj₂ c)  ≡⟨ to-from f eq₂ ⟩∎
+          inj₁ a           ∎

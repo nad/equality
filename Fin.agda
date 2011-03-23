@@ -35,17 +35,19 @@ import Function-universe as FU; open FU P.equality-with-J hiding (_∘_)
 -- If two nonempty finite sets are isomorphic, then we can remove one
 -- element from each and get new isomorphic finite sets
 
-cancel-suc : ∀ {m n} → Fin (1 + m) ↔ Fin (1 + n) → Fin m ↔ Fin n
-cancel-suc f = ⊎-left-cancellative f (hyp f) (hyp $ inverse f)
-  where
-  open _↔_
+private
 
-  hyp : ∀ {m n} (f : Fin (1 + m) ↔ Fin (1 + n)) →
-        Left-persistent (to f)
-  hyp f {c = i} eq₁ eq₂ = ⊎.inj₁≢inj₂ (
-    inj₁ tt         ≡⟨ sym eq₁ ⟩
-    to f (inj₁ tt)  ≡⟨ eq₂ ⟩∎
-    inj₂ i          ∎)
+  well-behaved : ∀ {m n} (f : Fin (1 + m) ↔ Fin (1 + n)) →
+                 Well-behaved (_↔_.to f)
+  well-behaved f {b = i} eq₁ eq₂ =  ⊎.inj₁≢inj₂ (
+    inj₁ tt           ≡⟨ sym $ to-from f eq₂ ⟩
+    from f (inj₁ tt)  ≡⟨ to-from f eq₁ ⟩∎
+    inj₂ i            ∎)
+    where open _↔_
+
+cancel-suc : ∀ {m n} → Fin (1 + m) ↔ Fin (1 + n) → Fin m ↔ Fin n
+cancel-suc f =
+  ⊎-left-cancellative f (well-behaved f) (well-behaved $ inverse f)
 
 -- In fact, we can do it in such a way that, if the input bijection
 -- relates elements of two lists with equal heads, then the output
@@ -70,27 +72,29 @@ abstract
     (f : Fin (length (x ∷ xs)) ↔ Fin (length (x ∷ ys))) →
     x ∷ xs And x ∷ ys Are-related-by f →
     xs And ys Are-related-by cancel-suc f
-  cancel-suc-preserves-relatedness x xs ys f related i
-    with _↔_.to f (inj₂ i)
-       | _↔_.left-inverse-of f (inj₂ i)
-       | related (inj₂ i)
-  cancel-suc-preserves-relatedness x xs ys f related i | inj₂ k  | _ | hyp₁ = hyp₁
-  cancel-suc-preserves-relatedness x xs ys f related i | inj₁ tt | _ | hyp₁
-    with _↔_.to f (inj₁ tt)
-       | _↔_.left-inverse-of f (inj₁ tt)
-       | related (inj₁ tt)
-  cancel-suc-preserves-relatedness x xs ys f related i
-    | inj₁ tt | _ | hyp₁ | inj₂ j | _ | hyp₂ =
-    lookup xs i  ≡⟨ hyp₁ ⟩
-    x            ≡⟨ hyp₂ ⟩∎
-    lookup ys j  ∎
-  cancel-suc-preserves-relatedness x xs ys f related i
-    | inj₁ tt | left⁺ | hyp₁ | inj₁ tt | left⁰ | hyp₂ =
-    ⊥-elim (⊎.inj₁≢inj₂ 0≡+)
+  cancel-suc-preserves-relatedness x xs ys f related = helper
     where
-    0≡+ = inj₁ tt               ≡⟨ sym left⁰ ⟩
-          _↔_.from f (inj₁ tt)  ≡⟨ left⁺ ⟩∎
-          inj₂ i                ∎
+    open _↔_ f
+
+    helper : xs And ys Are-related-by cancel-suc f
+    helper i with inspect (to (inj₂ i)) | related (inj₂ i)
+    helper i | inj₂ k with-≡ eq₁ | hyp₁ =
+      lookup xs i                    ≡⟨ hyp₁ ⟩
+      lookup (x ∷ ys) (to (inj₂ i))  ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
+      lookup (x ∷ ys) (inj₂ k)       ≡⟨ refl ⟩∎
+      lookup ys k                    ∎
+    helper i | inj₁ tt with-≡ eq₁ | hyp₁
+      with inspect (to (inj₁ tt)) | related (inj₁ tt)
+    helper i | inj₁ tt with-≡ eq₁ | hyp₁ | inj₂ j with-≡ eq₂ | hyp₂ =
+      lookup xs i                     ≡⟨ hyp₁ ⟩
+      lookup (x ∷ ys) (to (inj₂ i))   ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
+      lookup (x ∷ ys) (inj₁ tt)       ≡⟨ refl ⟩
+      x                               ≡⟨ hyp₂ ⟩
+      lookup (x ∷ ys) (to (inj₁ tt))  ≡⟨ cong (lookup (x ∷ ys)) eq₂ ⟩
+      lookup (x ∷ ys) (inj₂ j)        ≡⟨ refl ⟩∎
+      lookup ys j                     ∎
+    helper i | inj₁ tt with-≡ eq₁ | hyp₁ | inj₁ tt with-≡ eq₂ | hyp₂ =
+      ⊥-elim $ well-behaved f eq₁ eq₂
 
 -- By using cancel-suc we can show that finite sets are isomorphic iff
 -- they have equal size.

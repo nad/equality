@@ -479,11 +479,9 @@ cancel-cons : ∀ {A : Set} {x : A} {xs ys} →
 cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z =
   ⊎-left-cancellative
     (x∷xs≈x∷ys z)
-    (lemma (inverse ∘ x∷xs≈x∷ys))
     (lemma x∷xs≈x∷ys)
+    (lemma (inverse ∘ x∷xs≈x∷ys))
   where
-  open _↔_
-
   abstract
 
     -- If the equality type is proof irrelevant (so that p and q are
@@ -491,15 +489,15 @@ cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z =
     -- index-equality-preserved.
 
     lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) →
-            Left-persistent (_↔_.from (inv z))
-    lemma {xs} inv {a = p} {a′ = q} {c = z∈xs} hyp₁ hyp₂ =
-      ⊎.inj₁≢inj₂ (
-        inj₁ tt                         ≡⟨ refl ⟩
-        index {xs = _ ∷ xs} (inj₁ q)    ≡⟨ cong index (sym hyp₁) ⟩
-        index (from (inv z) (inj₁ p))   ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
-        index (from (inv z) (inj₁ q))   ≡⟨ cong index hyp₂ ⟩
-        index {xs = x ∷ _} (inj₂ z∈xs)  ≡⟨ refl ⟩∎
-        inj₂ (index z∈xs)               ∎)
+            Well-behaved (_↔_.to (inv z))
+    lemma {xs} inv {b = z∈xs} {a = p} {a′ = q} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
+      inj₁ tt                         ≡⟨ refl ⟩
+      index {xs = _ ∷ xs} (inj₁ p)    ≡⟨ cong index $ sym $ to-from hyp₂ ⟩
+      index (from (inj₁ q))           ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
+      index (from (inj₁ p))           ≡⟨ cong index $ to-from hyp₁ ⟩
+      index {xs = x ∷ _} (inj₂ z∈xs)  ≡⟨ refl ⟩∎
+      inj₂ (index z∈xs)               ∎)
+      where open _↔_ (inv z)
 
 ------------------------------------------------------------------------
 -- The third definition of bag equality is sound with respect to the
