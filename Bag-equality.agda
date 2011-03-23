@@ -24,7 +24,7 @@ private
   module Function-universe where
     import Function-universe
     open Function-universe equality-with-J public
-open Function-universe hiding (_∘_; Kind; bijection)
+open Function-universe hiding (_∘_; Kind; module Kind; bijection)
 
 ------------------------------------------------------------------------
 -- Any
@@ -181,13 +181,19 @@ Any-⊎ P Q xs =
 
 -- Various kinds of relatedness.
 
-open Function-universe public
-  using (Kind)
-  renaming ( implication to subset
-           ; equivalence to set
-           ; injection   to subbag
-           ; bijection   to bag
-           )
+open Function-universe public using (Kind)
+
+module Kind where
+
+  open Function-universe public
+    using ()
+    renaming ( implication to subset
+             ; equivalence to set
+             ; injection   to subbag
+             ; bijection   to bag
+             )
+
+open Kind public
 
 -- A general definition of "relatedness" for lists.
 
