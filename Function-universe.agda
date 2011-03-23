@@ -678,10 +678,10 @@ Left-persistent f =
       Left-persistent (_↔_.from inv) →
       B → C
   f inv hyp b with to inv (inj₂ b) | left-inverse-of inv (inj₂ b)
-  f inv hyp b | inj₂ b′ | _     = b′
-  f inv hyp b | inj₁ a  | ₁→₂ with to inv (inj₁ a) | left-inverse-of inv (inj₁ a)
-  f inv hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ = b′
-  f inv hyp b | inj₁ a  | ₁→₂ | inj₁ a′ | ₁→₁ = ⊥-elim $ hyp ₁→₁ ₁→₂
+  f inv hyp b | inj₂ c | _     = c
+  f inv hyp b | inj₁ a | ₁→₂ with to inv (inj₁ a) | left-inverse-of inv (inj₁ a)
+  f inv hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ = c
+  f inv hyp b | inj₁ a | ₁→₂ | inj₁ a′ | ₁→₁ = ⊥-elim $ hyp ₁→₁ ₁→₂
 
   abstract
 
@@ -691,18 +691,18 @@ Left-persistent f =
           (from-hyp : Left-persistent (_↔_.from inv)) →
           ∀ b → f (inverse inv) to-hyp (f inv from-hyp b) ≡ b
     f∘f inv to-hyp from-hyp b with to inv (inj₂ b) | left-inverse-of inv (inj₂ b)
-    f∘f inv to-hyp from-hyp b | inj₂ b′ | ₁→₂ with from inv (inj₂ b′) | right-inverse-of inv (inj₂ b′)
-    f∘f inv to-hyp from-hyp b | inj₂ b′ | ₁→₂ | inj₂ b″ | _ = ⊎.cancel-inj₂ ₁→₂
-    f∘f inv to-hyp from-hyp b | inj₂ b′ | ₁→₂ | inj₁ a  | _ = ⊥-elim $ ⊎.inj₁≢inj₂ ₁→₂
-    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ with to inv (inj₁ a) | left-inverse-of inv (inj₁ a)
-    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₁ a′ | ₁→₁ = ⊥-elim $ from-hyp ₁→₁ ₁→₂
-    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ with from inv (inj₂ b′) | right-inverse-of inv (inj₂ b′)
-    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ | inj₂ b″ | _    = ⊥-elim $ ⊎.inj₁≢inj₂ $ sym ₁→₁
-    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ | inj₁ a′ | ₁→₂′ with from inv (inj₁ a′) | right-inverse-of inv (inj₁ a′)
-    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ | inj₁ a′ | ₁→₂′ | inj₁ a″ | ₁→₁′ = ⊥-elim $ to-hyp ₁→₁′ ₁→₂′
-    f∘f inv to-hyp from-hyp b | inj₁ a  | ₁→₂ | inj₂ b′ | ₁→₁ | inj₁ a′ | ₁→₂′ | inj₂ b″ | ₂→₁  = ⊎.cancel-inj₂ (
-      inj₂ b″                      ≡⟨ sym $ left-inverse-of inv _ ⟩
-      from inv (to inv (inj₂ b″))  ≡⟨ cong (from inv) ₂→₁ ⟩
+    f∘f inv to-hyp from-hyp b | inj₂ c | ₁→₂ with from inv (inj₂ c) | right-inverse-of inv (inj₂ c)
+    f∘f inv to-hyp from-hyp b | inj₂ c | ₁→₂ | inj₂ b′ | _ = ⊎.cancel-inj₂ ₁→₂
+    f∘f inv to-hyp from-hyp b | inj₂ c | ₁→₂ | inj₁ a  | _ = ⊥-elim $ ⊎.inj₁≢inj₂ ₁→₂
+    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ with to inv (inj₁ a) | left-inverse-of inv (inj₁ a)
+    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₁ a′ | ₁→₁ = ⊥-elim $ from-hyp ₁→₁ ₁→₂
+    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ with from inv (inj₂ c) | right-inverse-of inv (inj₂ c)
+    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ | inj₂ b′ | _    = ⊥-elim $ ⊎.inj₁≢inj₂ $ sym ₁→₁
+    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ | inj₁ a′ | ₁→₂′ with from inv (inj₁ a′) | right-inverse-of inv (inj₁ a′)
+    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ | inj₁ a′ | ₁→₂′ | inj₁ a″ | ₁→₁′ = ⊥-elim $ to-hyp ₁→₁′ ₁→₂′
+    f∘f inv to-hyp from-hyp b | inj₁ a | ₁→₂ | inj₂ c  | ₁→₁ | inj₁ a′ | ₁→₂′ | inj₂ b′ | ₂→₁  = ⊎.cancel-inj₂ (
+      inj₂ b′                      ≡⟨ sym $ left-inverse-of inv _ ⟩
+      from inv (to inv (inj₂ b′))  ≡⟨ cong (from inv) ₂→₁ ⟩
       from inv (inj₁ a′)           ≡⟨ cong (from inv ⊚ inj₁) $ ⊎.cancel-inj₁ ₁→₁ ⟩
       from inv (inj₁ a)            ≡⟨ ₁→₂ ⟩∎
       inj₂ b                       ∎)
