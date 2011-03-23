@@ -490,17 +490,16 @@ cancel-cons {A = A} {x} {xs} {ys} x∷xs≈x∷ys z =
     -- equal), then this lemma can be proved without the help of
     -- index-equality-preserved.
 
-    lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) {p q z∈xs} →
-            from (inv z) (inj₁ q) ≡ inj₁ p →
-            from (inv z) (inj₁ p) ≡ inj₂ z∈xs →
-            ⊥
-    lemma {xs} inv {p} {q} {z∈xs} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
-      inj₁ tt                         ≡⟨ refl ⟩
-      index {xs = _ ∷ xs} (inj₁ p)    ≡⟨ cong index (sym hyp₁) ⟩
-      index (from (inv z) (inj₁ q))   ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
-      index (from (inv z) (inj₁ p))   ≡⟨ cong index hyp₂ ⟩
-      index {xs = x ∷ _} (inj₂ z∈xs)  ≡⟨ refl ⟩∎
-      inj₂ (index z∈xs)               ∎)
+    lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) →
+            Left-persistent (_↔_.from (inv z))
+    lemma {xs} inv {a = p} {a′ = q} {c = z∈xs} hyp₁ hyp₂ =
+      ⊎.inj₁≢inj₂ (
+        inj₁ tt                         ≡⟨ refl ⟩
+        index {xs = _ ∷ xs} (inj₁ q)    ≡⟨ cong index (sym hyp₁) ⟩
+        index (from (inv z) (inj₁ p))   ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
+        index (from (inv z) (inj₁ q))   ≡⟨ cong index hyp₂ ⟩
+        index {xs = x ∷ _} (inj₂ z∈xs)  ≡⟨ refl ⟩∎
+        inj₂ (index z∈xs)               ∎)
 
 ------------------------------------------------------------------------
 -- The third definition of bag equality is sound with respect to the

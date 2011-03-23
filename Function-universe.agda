@@ -645,17 +645,20 @@ private
   ¬B→C B→C = B→C tt
 
 -- However, it is left cancellative for certain well-behaved
--- bijections:
+-- bijections.
+
+-- A function is "left-persistent" if all "left" results of the
+-- function are mapped to new "left" results.
+
+Left-persistent : {A B C : Set} → (A ⊎ B → A ⊎ C) → Set
+Left-persistent f =
+  ∀ {a a′ c} → f (inj₁ a) ≡ inj₁ a′ → f (inj₁ a′) ≢ inj₂ c
 
 ⊎-left-cancellative :
   {A B C : Set} →
   (inv : A ⊎ B ↔ A ⊎ C) →
-  (∀ {a a′ c} →
-   _↔_.to inv (inj₁ a)  ≡ inj₁ a′ →
-   _↔_.to inv (inj₁ a′) ≡ inj₂ c → ⊥) →
-  (∀ {a a′ b} →
-   _↔_.from inv (inj₁ a)  ≡ inj₁ a′ →
-   _↔_.from inv (inj₁ a′) ≡ inj₂ b → ⊥) →
+  Left-persistent (_↔_.to   inv) →
+  Left-persistent (_↔_.from inv) →
   B ↔ C
 ⊎-left-cancellative inv to-hyp from-hyp = record
   { surjection = record
@@ -672,9 +675,7 @@ private
 
   f : ∀ {A B C : Set} →
       (inv : A ⊎ B ↔ A ⊎ C) →
-      (∀ {a a′ b} →
-       from inv (inj₁ a)  ≡ inj₁ a′ →
-       from inv (inj₁ a′) ≡ inj₂ b → ⊥) →
+      Left-persistent (_↔_.from inv) →
       B → C
   f inv hyp b with to inv (inj₂ b) | left-inverse-of inv (inj₂ b)
   f inv hyp b | inj₂ b′ | _     = b′
@@ -686,14 +687,8 @@ private
 
     f∘f : ∀ {A B C : Set} →
           (inv : A ⊎ B ↔ A ⊎ C) →
-          (to-hyp :
-             ∀ {a a′ c} →
-             to inv (inj₁ a)  ≡ inj₁ a′ →
-             to inv (inj₁ a′) ≡ inj₂ c → ⊥) →
-          (from-hyp :
-             ∀ {a a′ b} →
-             from inv (inj₁ a)  ≡ inj₁ a′ →
-             from inv (inj₁ a′) ≡ inj₂ b → ⊥) →
+          (to-hyp   : Left-persistent (_↔_.to   inv)) →
+          (from-hyp : Left-persistent (_↔_.from inv)) →
           ∀ b → f (inverse inv) to-hyp (f inv from-hyp b) ≡ b
     f∘f inv to-hyp from-hyp b with to inv (inj₂ b) | left-inverse-of inv (inj₂ b)
     f∘f inv to-hyp from-hyp b | inj₂ b′ | ₁→₂ with from inv (inj₂ b′) | right-inverse-of inv (inj₂ b′)
@@ -717,12 +712,8 @@ private
 ¬-⊎-left-cancellative′ :
   ¬ ({A B C : Set} →
      (eq : A ⊎ B ⇔ A ⊎ C) →
-     (∀ {a a′ c} →
-      _⇔_.to eq (inj₁ a)  ≡ inj₁ a′ →
-      _⇔_.to eq (inj₁ a′) ≡ inj₂ c → ⊥) →
-     (∀ {a a′ b} →
-      _⇔_.from eq (inj₁ a)  ≡ inj₁ a′ →
-      _⇔_.from eq (inj₁ a′) ≡ inj₂ b → ⊥) →
+     Left-persistent (_⇔_.to   eq) →
+     Left-persistent (_⇔_.from eq) →
      B ⇔ C)
 ¬-⊎-left-cancellative′ cancel =
   _⇔_.to (cancel equiv to-hyp from-hyp) tt
@@ -737,12 +728,8 @@ private
     ⊤      ↔⟨ inverse ⊎-right-identity ⟩
     ⊤ ⊎ ⊥  □
 
-  to-hyp : ∀ {a a′ c} →
-           _⇔_.to equiv (inj₁ a)  ≡ inj₁ a′ →
-           _⇔_.to equiv (inj₁ a′) ≡ inj₂ c → ⊥
+  to-hyp : Left-persistent (_⇔_.to equiv)
   to-hyp {c = ()} _ _
 
-  from-hyp : ∀ {a a′ b} →
-             _⇔_.from equiv (inj₁ a)  ≡ inj₁ a′ →
-             _⇔_.from equiv (inj₁ a′) ≡ inj₂ b → ⊥
-  from-hyp ₁→₁ ₁→₂ = ⊎.inj₁≢inj₂ ₁→₂
+  from-hyp : Left-persistent (_⇔_.from equiv)
+  from-hyp _ ₁→₂ = ⊎.inj₁≢inj₂ ₁→₂

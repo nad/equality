@@ -40,9 +40,9 @@ cancel-suc f = ⊎-left-cancellative f (hyp f) (hyp $ inverse f)
   where
   open _↔_
 
-  hyp : ∀ {m n} (f : Fin (1 + m) ↔ Fin (1 + n)) {i : Fin n} →
-        to f (inj₁ tt) ≡ inj₁ tt → to f (inj₁ tt) ≡ inj₂ i → ⊥
-  hyp f {i} eq₁ eq₂ = ⊎.inj₁≢inj₂ (
+  hyp : ∀ {m n} (f : Fin (1 + m) ↔ Fin (1 + n)) →
+        Left-persistent (to f)
+  hyp f {c = i} eq₁ eq₂ = ⊎.inj₁≢inj₂ (
     inj₁ tt         ≡⟨ sym eq₁ ⟩
     to f (inj₁ tt)  ≡⟨ eq₂ ⟩∎
     inj₂ i          ∎)
