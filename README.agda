@@ -99,3 +99,7 @@ import Fin
 -- Bag equality.
 
 import Bag-equality
+
+-- Containers, including a definition of bag equality.
+
+import Container
