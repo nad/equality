@@ -302,6 +302,22 @@ bind-left-distributive xs f g = λ z →
   z ∈ xs >>= f ⊎ z ∈ xs >>= g                      ↔⟨ inverse (Any-++ (_≡_ z) (xs >>= f) (xs >>= g)) ⟩
   z ∈ (xs >>= f) ++ (xs >>= g)                     □
 
+-- This property does not hold for ordinary list equality.
+
+¬-bind-left-distributive :
+  ¬ (∀ {A B} (xs : List A) (f g : A → List B) →
+     xs >>= (λ x → f x ++ g x) ≡ (xs >>= f) ++ (xs >>= g))
+¬-bind-left-distributive distrib with eq
+  where
+  xs = true ∷ false ∷ []
+  f  = λ x → x ∷ []
+  g  = f
+
+  eq : true ∷ true ∷ false ∷ false ∷ [] ≡
+       true ∷ false ∷ true ∷ false ∷ []
+  eq = distrib xs f g
+... | ()
+
 -- _++_ is commutative.
 
 ++-comm : ∀ {A} (xs ys : List A) → xs ++ ys ≈-bag ys ++ xs
