@@ -120,8 +120,8 @@ Any-map : ∀ {A B} (P : B → Set) (f : A → B) (xs : List A) →
           Any P (map f xs) ↔ Any (P ∘ f) xs
 Any-map P f []       = id
 Any-map P f (x ∷ xs) =
-  P (f x) ⊎ Any P (map f xs)  ↔⟨ id ⊎-cong Any-map P f xs ⟩
-  P (f x) ⊎ Any (P ∘ f) xs    □
+  P (f x)   ⊎ Any P (map f xs)  ↔⟨ id ⊎-cong Any-map P f xs ⟩
+  (P ∘ f) x ⊎ Any (P ∘ f) xs    □
 
 Any->>= : ∀ {A B} (P : B → Set) (xs : List A) (f : A → List B) →
           Any P (xs >>= f) ↔ Any (Any P ∘ f) xs
