@@ -227,23 +227,23 @@ module Transitivity-commutative
               (Trans Refl (Sym (Lift ri)))
               (refl _)
 
--- In particular, groupoid (π n X x) is commutative for n greater than
+-- In particular, groupoid (Ω n X x) is commutative for n greater than
 -- or equal to 2.
 
 mutual
 
-  π : ℕ → (X : Set) → X → Set
-  π zero    X x = X
-  π (suc n) X x = π-elem n x ≡ π-elem n x
+  Ω : ℕ → (X : Set) → X → Set
+  Ω zero    X x = X
+  Ω (suc n) X x = Ω-elem n x ≡ Ω-elem n x
 
-  π-elem : ∀ n {X} (x : X) → π n X x
-  π-elem zero    x = x
-  π-elem (suc n) x = refl (π-elem n x)
+  Ω-elem : ∀ n {X} (x : X) → Ω n X x
+  Ω-elem zero    x = x
+  Ω-elem (suc n) x = refl (Ω-elem n x)
 
-π[2+n]-commutative : ∀ {X} {x : X} {n} →
-  let open Groupoid (groupoid (π (2 + n) X x)) in
+Ω[2+n]-commutative : ∀ {X} {x : X} {n} →
+  let open Groupoid (groupoid (Ω (2 + n) X x)) in
   ∀ p q → p ∘ q ≡ q ∘ p
-π[2+n]-commutative p q =
+Ω[2+n]-commutative p q =
   Transitivity-commutative.commutative
     id _∘_ left-identity right-identity p q
   where open Groupoid (groupoid _)
