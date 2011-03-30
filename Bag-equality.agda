@@ -401,12 +401,7 @@ abstract
     ∀ {A} {xs ys : List A} (xs≈ys : xs ≈-bag ys) →
     xs And ys Are-related-by Fin-length-cong xs≈ys
   Fin-length-cong-relates {xs = xs} {ys} xs≈ys i =
-    lookup xs i                                 ≡⟨ cong (lookup xs) $ sym $ right-inverse-of (Fin-length xs) i ⟩
-    lookup xs (to (Fin-length xs) $
-               from (Fin-length xs) i)          ≡⟨ refl ⟩
-    lookup xs (proj₁ $ to (∈-lookup _) $
-               proj₂ $ from (Fin-length xs) i)  ≡⟨ sym $ proj₂ $ to (∈-lookup _) $ proj₂ $ from (Fin-length xs) i ⟩
-    proj₁ (from (Fin-length xs) i)              ≡⟨ proj₂ $ to (∈-lookup _) $ to (xs≈ys _) (from (∈-lookup _) (i , refl)) ⟩
+    lookup xs i                                 ≡⟨ proj₂ $ to (∈-lookup _) $ to (xs≈ys _) (from (∈-lookup _) (i , refl)) ⟩
     lookup ys (proj₁ $ to (∈-lookup _) $
                to (xs≈ys _) $
                from (∈-lookup _) (i , refl))    ≡⟨ refl ⟩∎
