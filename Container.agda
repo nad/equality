@@ -174,3 +174,100 @@ map-cong f xs ys xs∼ys = λ z →
   Any (λ x → z ≡ f x) xs  ↝⟨ Any-cong xs ys (λ x → z ≡ f x □) xs∼ys ⟩
   Any (λ x → z ≡ f x) ys  ↔⟨ inverse (Any-map (_≡_ z) f ys) ⟩
   z ∈ map f ys            □
+
+------------------------------------------------------------------------
+-- Alternative definition of bag equality
+
+-- Two things are bag equal if there is a bijection between their
+-- positions which relates equal things.
+
+infix 4 _≈-bag′_
+
+_≈-bag′_ : ∀ {C D A} → ⟦ C ⟧ A → ⟦ D ⟧ A → Set
+_≈-bag′_ {C} {D} (s , f) (s′ , f′) =
+  ∃ λ (P↔P : Position C s ↔ Position D s′) →
+      (∀ p → f p ≡ f′ (to-implication P↔P p))
+
+-- The definition is equivalent to the one given above. The proof is
+-- very similar to the one given in Bag-equality.
+
+-- Membership can be expressed as "there is an index which points to
+-- the element". In fact, membership /is/ expressed in this way, so
+-- this proof is unnecessary.
+
+∈-lookup : ∀ {C A z} (xs : ⟦ C ⟧ A) → z ∈ xs ↔ ∃ λ p → z ≡ lookup xs p
+∈-lookup {z = z} xs = z ∈ xs □
+
+-- The index which points to the element (not used below).
+
+index : ∀ {C A z} (xs : ⟦ C ⟧ A) → z ∈ xs → Position C (shape xs)
+index xs = proj₁ ∘ to-implication (∈-lookup xs)
+
+-- The positions for a given shape can be expressed in terms of the
+-- membership predicate.
+
+Position-shape : ∀ {C A} (xs : ⟦ C ⟧ A) →
+                 (∃ λ z → z ∈ xs) ↔ Position C (shape xs)
+Position-shape {C} (s , f) =
+  (∃ λ z → ∃ λ p → z ≡ f p)  ↔⟨ ∃-comm ⟩
+  (∃ λ p → ∃ λ z → z ≡ f p)  ↔⟨ _ □ ⟩
+  (∃ λ p → Singleton (f p))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ (singleton-contractible _)) ⟩
+  Position C s × ⊤           ↔⟨ ×-right-identity ⟩
+  Position C s               □
+
+-- Position _ ∘ shape respects the various relations.
+
+Position-shape-cong :
+  ∀ {k C D A} (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
+  xs ∼[ k ] ys → Position C (shape xs) ↝[ k ] Position D (shape ys)
+Position-shape-cong {C = C} {D} xs ys xs∼ys =
+  Position C (shape xs)  ↔⟨ inverse $ Position-shape xs ⟩
+  ∃ (λ z → z ∈ xs)       ↝⟨ ∃-cong xs∼ys ⟩
+  ∃ (λ z → z ∈ ys)       ↔⟨ Position-shape ys ⟩
+  Position D (shape ys)  □
+
+-- Furthermore Position-shape-cong relates equal elements.
+
+Position-shape-cong-relates :
+  ∀ {C D A}
+  (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) (xs≈ys : xs ≈-bag ys) p →
+  lookup xs p ≡
+    lookup ys (to-implication (Position-shape-cong xs ys xs≈ys) p)
+Position-shape-cong-relates xs ys xs≈ys p =
+  lookup xs p                                                     ≡⟨ proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl) ⟩
+  lookup ys (proj₁ $ to-implication (xs≈ys (lookup xs p))
+                                    (p , refl))                   ≡⟨ refl ⟩
+  lookup ys (_↔_.to (Position-shape ys) $
+             Σ-map id (λ {z} → to-implication (xs≈ys z)) $
+             _↔_.from (Position-shape xs) $ p)                    ≡⟨ refl ⟩
+  lookup ys (_↔_.to (Position-shape ys) $
+             to-implication (∃-cong xs≈ys) $
+             _↔_.from (Position-shape xs) $ p)                    ≡⟨ refl ⟩
+  lookup ys (to-implication
+               ((from-bijection (Position-shape ys) ⟨∘⟩
+                 ∃-cong xs≈ys) ⟨∘⟩
+                from-bijection (inverse $ Position-shape xs))
+               p)                                                 ≡⟨ refl ⟩∎
+  lookup ys (to-implication (Position-shape-cong xs ys xs≈ys) p)  ∎
+
+-- We get that the two definitions of bag equality are equivalent.
+
+≈⇔≈′ : ∀ {C D A} (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
+       xs ≈-bag ys ⇔ xs ≈-bag′ ys
+≈⇔≈′ {k} xs ys = record
+  { to   = λ xs≈ys → ( Position-shape-cong xs ys xs≈ys
+                     , Position-shape-cong-relates xs ys xs≈ys
+                     )
+  ; from = from
+  }
+  where
+  equality-lemma : ∀ {k A} {x y z : A} →
+                   x ≡ y → (z ≡ x) ↝[ k ] (z ≡ y)
+  equality-lemma {y = y} {z} refl = z ≡ y □
+
+  from : xs ≈-bag′ ys → xs ≈-bag ys
+  from (P↔P , related) = λ z →
+    z ∈ xs                     ↔⟨ z ∈ xs □ ⟩
+    ∃ (λ p → z ≡ lookup xs p)  ↝⟨ Σ-cong P↔P (λ p → equality-lemma (related p)) ⟩
+    ∃ (λ p → z ≡ lookup ys p)  ↔⟨ z ∈ ys □ ⟩
+    z ∈ ys                     □
