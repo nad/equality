@@ -121,43 +121,9 @@ respects-surjection A↠B zero (x , irr) = (to x , irr′)
       to (from y)  ≡⟨ right-inverse-of y ⟩∎
       y            ∎
 
-respects-surjection A↠B (suc n) h = rs
-  where
-  abstract
-    open _↠_ A↠B
-
-    to′ : ∀ {x y} → from x ≡ from y → x ≡ y
-    to′ {x} {y} = λ from-x≡from-y →
-      x            ≡⟨ sym $ right-inverse-of x ⟩
-      to (from x)  ≡⟨ cong to from-x≡from-y ⟩
-      to (from y)  ≡⟨ right-inverse-of y ⟩∎
-      y            ∎
-
-    from′ : ∀ {x y} → x ≡ y → from x ≡ from y
-    from′ {x} {y} = λ x≡y →
-      from x  ≡⟨ cong from x≡y ⟩∎
-      from y  ∎
-
-    surj : ∀ {x y} → (from x ≡ from y) ↠ (x ≡ y)
-    surj = record
-      { equivalence = record
-        { to   = to′
-        ; from = from′
-        }
-      ; right-inverse-of = elim (λ x≡y → to′ (from′ x≡y) ≡ x≡y) (λ x →
-          let riox = right-inverse-of x in
-          (trans (sym riox) $
-           trans (cong to $ cong from $ refl x) $
-           riox)                                   ≡⟨ prove (Trans (Sym (Lift riox)) $
-                                                             Trans (Cong to (Cong from Refl))
-                                                                   (Lift riox))
-                                                            (Trans (Sym (Lift riox)) (Lift riox))
-                                                            (refl _) ⟩
-          trans (sym riox) riox                    ≡⟨ G.right-inverse _ ⟩∎
-          refl x                                   ∎)
-      }
-
-    rs = λ x y → respects-surjection surj n (h (from x) (from y))
+respects-surjection A↠B (suc n) h = λ x y →
+  respects-surjection (↠-≡ A↠B) n (h (from x) (from y))
+  where open _↠_ A↠B
 
 -- All contractible types are isomorphic.
 
