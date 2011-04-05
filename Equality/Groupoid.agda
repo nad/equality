@@ -38,8 +38,8 @@ record Groupoid ℓ : Set (suc ℓ) where
     left-inverse   : ∀ {x y} (p : x ∼ y) → p ⁻¹ ∘ p ≡ id
     right-inverse  : ∀ {x y} (p : x ∼ y) → p ∘ p ⁻¹ ≡ id
 
-  -- Note that this definition does not include any coherence
-  -- properties.
+  -- Note that this definition should perhaps contain more coherence
+  -- properties: we have not assumed that _≡_ is proof-irrelevant.
 
   -- Some derived properties.
 
