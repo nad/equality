@@ -80,9 +80,7 @@ import Preimage
 
 import Weak-equivalence
 
--- The univalence axiom. (Currently this module uses --type-in-type,
--- and one example is based on a postulate which could probably be
--- proved if the development was more universe-polymorphic.)
+-- The univalence axiom.
 
 import Univalence-axiom
 

@@ -32,6 +32,14 @@ suc i ⊔ suc j = suc (i ⊔ j)
 
 {-# BUILTIN LEVELMAX _⊔_ #-}
 
+-- Lifting.
+
+record ↑ {a} ℓ (A : Set a) : Set (a ⊔ ℓ) where
+  constructor lift
+  field lower : A
+
+open ↑ public
+
 ------------------------------------------------------------------------
 -- Some finite types
 

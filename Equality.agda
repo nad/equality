@@ -2,7 +2,7 @@
 -- Two equivalent axiomatisations of equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 module Equality where
 
@@ -12,108 +12,125 @@ open import Prelude
 ------------------------------------------------------------------------
 -- Reflexive relations
 
-record Reflexive : Set₁ where
+record Reflexive a : Set (suc a) where
   infix 4 _≡_
   field
 
     -- "Equality".
 
-    _≡_ : {A : Set} → A → A → Set
+    _≡_ : {A : Set a} → A → A → Set a
 
     -- Reflexivity.
 
-    refl : {A : Set} (x : A) → x ≡ x
+    refl : ∀ {A} (x : A) → x ≡ x
 
-  ----------------------------------------------------------------------
-  -- Some definitions
+-- Some definitions.
+
+module Reflexive′ (reflexive : ∀ ℓ → Reflexive ℓ) where
+
+  private
+    open module R {ℓ} = Reflexive (reflexive ℓ) public
 
   -- Non-equality.
 
   infix 4 _≢_
 
-  _≢_ : {A : Set} → A → A → Set
+  _≢_ : ∀ {a} {A : Set a} → A → A → Set a
   x ≢ y = ¬ (x ≡ y)
 
   -- The property of having decidable equality.
 
-  Decidable-equality : Set → Set
+  Decidable-equality : ∀ {ℓ} → Set ℓ → Set ℓ
   Decidable-equality A = Decidable (_≡_ {A = A})
 
   -- A type is contractible if it is inhabited and all elements are
   -- equal.
 
-  Contractible : Set → Set
+  Contractible : ∀ {ℓ} → Set ℓ → Set ℓ
   Contractible A = ∃ λ (x : A) → ∀ y → x ≡ y
 
   -- Singleton x is a set which contains all elements which are equal
   -- to x.
 
-  Singleton : {A : Set} → A → Set
+  Singleton : ∀ {a} → {A : Set a} → A → Set a
   Singleton x = ∃ λ y → y ≡ x
 
   -- Extensionality for functions of a certain type.
 
-  Extensionality : (A : Set) → (B : A → Set) → Set
+  Extensionality : ∀ {a b} (A : Set a) → (A → Set b) → Set (a ⊔ b)
   Extensionality A B =
     {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
 
   -- Proofs of extensionality which behave well when applied to
   -- reflexivity.
 
-  Well-behaved-extensionality : (A : Set) → (B : A → Set) → Set
+  Well-behaved-extensionality :
+    ∀ {a b} (A : Set a) → (A → Set b) → Set (a ⊔ b)
   Well-behaved-extensionality A B =
     ∃ λ (ext : Extensionality A B) →
-      ∀ f → ext (refl ∘ f) ≡ refl f
+      ∀ f → ext (λ x → refl (f x)) ≡ refl f
 
 ------------------------------------------------------------------------
 -- Abstract definition of equality based on the J rule
 
--- Parametrised on a reflexive relation.
+-- Parametrised by a reflexive relation.
 
-record Equality-with-J (reflexive : Reflexive) : Set₁ where
+record Equality-with-J
+         a p (reflexive : ∀ ℓ → Reflexive ℓ) :
+         Set (suc (a ⊔ p)) where
 
-  open Reflexive reflexive
+  open Reflexive′ reflexive
 
   field
 
     -- The J rule.
 
-    elim : {A : Set} (P : {x y : A} → x ≡ y → Set) →
+    elim : {A : Set a} (P : {x y : A} → x ≡ y → Set p) →
            (∀ x → P (refl x)) →
            ∀ {x y} (x≡y : x ≡ y) → P x≡y
 
     -- The usual computational behaviour of the J rule.
 
-    elim-refl : ∀ {A : Set} (P : {x y : A} → x ≡ y → Set)
+    elim-refl : ∀ {A : Set a} (P : {x y : A} → x ≡ y → Set p)
                 (r : ∀ x → P (refl x)) {x} →
                 elim P r (refl x) ≡ r x
 
-  ----------------------------------------------------------------------
-  -- Some derived properties
+-- Some derived properties.
+
+module Equality-with-J′
+  {reflexive : ∀ ℓ → Reflexive ℓ}
+  (eq : ∀ {a p} → Equality-with-J a p reflexive)
+  where
+
+  private
+    open Reflexive′ reflexive public
+    open module E {a p} = Equality-with-J (eq {a} {p}) public
 
   -- Congruence.
 
-  cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+  cong : ∀ {a b} {A : Set a} {B : Set b}
+         (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
   cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
 
   abstract
 
     -- "Evaluation rule" for cong.
 
-    cong-refl : {A B : Set} (f : A → B) {x : A} →
+    cong-refl : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) {x : A} →
                 cong f (refl x) ≡ refl (f x)
     cong-refl f = elim-refl (λ {u v} _ → f u ≡ f v) (refl ∘ f)
 
   -- Substitutivity.
 
-  subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
+  subst : ∀ {a p} {A : Set a} (P : A → Set p) {x y : A} →
+          x ≡ y → P x → P y
   subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
 
   abstract
 
     -- "Evaluation rule" for subst.
 
-    subst-refl : ∀ {A} (P : A → Set) {x} (p : P x) →
+    subst-refl : ∀ {a p} {A : Set a} (P : A → Set p) {x} (p : P x) →
                  subst P (refl x) p ≡ p
     subst-refl P p =
       cong (λ h → h p) $
@@ -124,14 +141,16 @@ record Equality-with-J (reflexive : Reflexive) : Set₁ where
   private
     abstract
 
-      irr : ∀ {A} {x : A} (p : Singleton x) → (x , refl x) ≡ p
+      irr : ∀ {a} {A : Set a} {x : A}
+            (p : Singleton x) → (x , refl x) ≡ p
       irr p =
         elim (λ {u v} u≡v → _≡_ {A = Singleton v}
                                 (v , refl v) (u , u≡v))
              (λ _ → refl _)
              (proj₂ p)
 
-  singleton-contractible : ∀ {A} (x : A) → Contractible (Singleton x)
+  singleton-contractible :
+    ∀ {a} {A : Set a} (x : A) → Contractible (Singleton x)
   singleton-contractible x = ((x , refl x) , irr)
 
   abstract
@@ -139,7 +158,7 @@ record Equality-with-J (reflexive : Reflexive) : Set₁ where
     -- "Evaluation rule" for singleton-contractible.
 
     singleton-contractible-refl :
-      ∀ {A} (x : A) →
+      ∀ {a} {A : Set a} (x : A) →
       proj₂ (singleton-contractible x) (x , refl x) ≡ refl (x , refl x)
     singleton-contractible-refl x =
       elim-refl (λ {u v} u≡v → _≡_ {A = Singleton v}
@@ -151,61 +170,77 @@ record Equality-with-J (reflexive : Reflexive) : Set₁ where
 -- contractibility of singleton types
 
 record Equality-with-substitutivity-and-contractibility
-         (reflexive : Reflexive) : Set₁ where
+         a p (reflexive : ∀ ℓ → Reflexive ℓ) :
+         Set (suc (a ⊔ p)) where
 
-  open Reflexive reflexive
+  open Reflexive′ reflexive
 
   field
 
     -- Substitutivity.
 
-    subst : {A : Set} (P : A → Set) {x y : A} → x ≡ y → P x → P y
+    subst : {A : Set a} (P : A → Set p) {x y : A} → x ≡ y → P x → P y
 
     -- The usual computational behaviour of substitutivity.
 
-    subst-refl : {A : Set} (P : A → Set) {x : A} (p : P x) →
+    subst-refl : {A : Set a} (P : A → Set p) {x : A} (p : P x) →
                  subst P (refl x) p ≡ p
 
     -- Singleton types are contractible.
 
     singleton-contractible :
-      ∀ {A} (x : A) → Contractible (Singleton x)
+      {A : Set a} (x : A) → Contractible (Singleton x)
 
-  ----------------------------------------------------------------------
-  -- Some derived properties
+-- Some derived properties.
+
+module Equality-with-substitutivity-and-contractibility′
+  {reflexive : ∀ ℓ → Reflexive ℓ}
+  (eq :  ∀ {a p} → Equality-with-substitutivity-and-contractibility
+                     a p reflexive)
+  where
+
+  private
+    open Reflexive′ reflexive public
+    open module E {a p} =
+      Equality-with-substitutivity-and-contractibility (eq {a} {p}) public
+      hiding (singleton-contractible)
+    open module E′ {a} =
+      Equality-with-substitutivity-and-contractibility (eq {a} {a}) public
+      using (singleton-contractible)
 
   abstract
 
     -- Congruence.
 
-    cong : {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+    cong : ∀ {a b} {A : Set a} {B : Set b}
+           (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
     cong f {x} x≡y =
       subst (λ y → x ≡ y → f x ≡ f y) x≡y (λ _ → refl (f x)) x≡y
 
   -- Symmetry.
 
-  sym : {A : Set} {x y : A} → x ≡ y → y ≡ x
+  sym : ∀ {a} {A : Set a} {x y : A} → x ≡ y → y ≡ x
   sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
 
   abstract
 
     -- "Evaluation rule" for sym.
 
-    sym-refl : {A : Set} {x : A} → sym (refl x) ≡ refl x
+    sym-refl : ∀ {a} {A : Set a} {x : A} → sym (refl x) ≡ refl x
     sym-refl {x = x} =
       cong (λ f → f (refl x)) $
         subst-refl (λ z → x ≡ z → z ≡ x) id
 
   -- Transitivity.
 
-  trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  trans : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
   trans {x = x} = flip (subst (_≡_ x))
 
   abstract
 
     -- "Evaluation rule" for trans.
 
-    trans-refl-refl : {A : Set} {x : A} →
+    trans-refl-refl : ∀ {a} {A : Set a} {x : A} →
                       trans (refl x) (refl x) ≡ refl x
     trans-refl-refl {x = x} = subst-refl (_≡_ x) (refl x)
 
@@ -214,10 +249,10 @@ record Equality-with-substitutivity-and-contractibility
   infix  0 finally
   infixr 0 _≡⟨_⟩_
 
-  _≡⟨_⟩_ : ∀ {A} x {y z : A} → x ≡ y → y ≡ z → x ≡ z
+  _≡⟨_⟩_ : ∀ {a} {A : Set a} x {y z : A} → x ≡ y → y ≡ z → x ≡ z
   _ ≡⟨ x≡y ⟩ y≡z = trans x≡y y≡z
 
-  finally : ∀ {A} (x y : A) → x ≡ y → x ≡ y
+  finally : ∀ {a} {A : Set a} (x y : A) → x ≡ y → x ≡ y
   finally _ _ x≡y = x≡y
 
   syntax finally x y x≡y = x ≡⟨ x≡y ⟩∎ y ∎
@@ -226,7 +261,7 @@ record Equality-with-substitutivity-and-contractibility
 
     -- The J rule.
 
-    elim : {A : Set} (P : {x y : A} → x ≡ y → Set) →
+    elim : ∀ {a p} {A : Set a} (P : {x y : A} → x ≡ y → Set p) →
            (∀ x → P (refl x)) →
            ∀ {x y} (x≡y : x ≡ y) → P x≡y
     elim P p {x} {y} x≡y =
@@ -240,7 +275,7 @@ record Equality-with-substitutivity-and-contractibility
 
     -- Transitivity and symmetry sometimes cancel each other out.
 
-    trans-sym : {A : Set} {x y : A} (x≡y : x ≡ y) →
+    trans-sym : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
                 trans (sym x≡y) x≡y ≡ refl y
     trans-sym =
       elim (λ {x y} (x≡y : x ≡ y) → trans (sym x≡y) x≡y ≡ refl y)
@@ -250,11 +285,12 @@ record Equality-with-substitutivity-and-contractibility
 
     -- "Evaluation rule" for elim.
 
-    elim-refl : ∀ {A : Set} (P : {x y : A} → x ≡ y → Set)
+    elim-refl : ∀ {a p} {A : Set a} (P : {x y : A} → x ≡ y → Set p)
                 (p : ∀ x → P (refl x)) {x} →
                 elim P p (refl x) ≡ p x
     elim-refl P p {x} =
-      subst {A = Singleton x} (P ∘ proj₂) (trans (sym lemma) lemma) (p x)  ≡⟨ cong (λ q → subst (P ∘ proj₂) q (p x)) (trans-sym lemma) ⟩
+      subst {A = Singleton x} (P ∘ proj₂) (trans (sym lemma) lemma) (p x)  ≡⟨ cong (λ q → subst {A = Singleton x} (P ∘ proj₂) q (p x))
+                                                                                   (trans-sym lemma) ⟩
       subst {A = Singleton x} (P ∘ proj₂) (refl (x , refl x))       (p x)  ≡⟨ subst-refl {A = Singleton x} (P ∘ proj₂) (p x) ⟩∎
       p x                                                                  ∎
       where lemma = proj₂ (singleton-contractible x) (x , refl x)
@@ -262,48 +298,48 @@ record Equality-with-substitutivity-and-contractibility
 ------------------------------------------------------------------------
 -- The two abstract definitions are equivalent
 
-J⇔subst+contr :
+J⇒subst+contr :
   ∀ {reflexive} →
-  Equality-with-J reflexive ⇔
-  Equality-with-substitutivity-and-contractibility reflexive
-J⇔subst+contr {reflexive} = record { to = ⇒; from = ⇐ }
-  where
-  ⇒ : Equality-with-J reflexive →
-      Equality-with-substitutivity-and-contractibility reflexive
-  ⇒ EJ = record
-    { subst                  = subst
-    ; subst-refl             = subst-refl
-    ; singleton-contractible = singleton-contractible
-    }
-    where open Equality-with-J EJ
+  (∀ {a p} → Equality-with-J a p reflexive) →
+  ∀ {a p} → Equality-with-substitutivity-and-contractibility
+              a p reflexive
+J⇒subst+contr eq = record
+  { subst                  = subst
+  ; subst-refl             = subst-refl
+  ; singleton-contractible = singleton-contractible
+  }
+  where open Equality-with-J′ eq
 
-  ⇐ : Equality-with-substitutivity-and-contractibility reflexive →
-      Equality-with-J reflexive
-  ⇐ ESC = record
-    { elim      = elim
-    ; elim-refl = elim-refl
-    }
-    where open Equality-with-substitutivity-and-contractibility ESC
+subst+contr⇒J :
+  ∀ {reflexive} →
+  (∀ {a p} → Equality-with-substitutivity-and-contractibility
+               a p reflexive) →
+  ∀ {a p} → Equality-with-J a p reflexive
+subst+contr⇒J eq = record
+  { elim      = elim
+  ; elim-refl = elim-refl
+  }
+  where open Equality-with-substitutivity-and-contractibility′ eq
 
 ------------------------------------------------------------------------
 -- Some derived definitions and properties
 
 module Derived-definitions-and-properties
   {reflexive}
-  (Eq : Equality-with-J reflexive)
+  (eq : ∀ {a p} → Equality-with-J a p reflexive)
   where
 
   -- This module reexports most of the definitions and properties
   -- introduced above.
 
-  open Reflexive reflexive public
-  open Equality-with-J Eq public
-  open Equality-with-substitutivity-and-contractibility
-         (_⇔_.to J⇔subst+contr Eq) public
-    using ( sym; sym-refl
-          ; trans; trans-refl-refl
-          ; _≡⟨_⟩_; finally
-          )
+  private
+    open Equality-with-J′ eq public
+    open Equality-with-substitutivity-and-contractibility′
+           (J⇒subst+contr eq) public
+      using ( sym; sym-refl
+            ; trans; trans-refl-refl
+            ; _≡⟨_⟩_; finally
+            )
 
   abstract
 
@@ -315,7 +351,7 @@ module Derived-definitions-and-properties
     -- also very similar to the definition of
     -- Equality-with-substitutivity-and-contractibility.elim.
 
-    elim₁ : {A : Set} {y : A} (P : ∀ {x} → x ≡ y → Set) →
+    elim₁ : ∀ {a p} {A : Set a} {y : A} (P : ∀ {x} → x ≡ y → Set p) →
             P (refl y) →
             ∀ {x} (x≡y : x ≡ y) → P x≡y
     elim₁ {y = y} P p {x} x≡y =
@@ -326,25 +362,26 @@ module Derived-definitions-and-properties
 
     -- "Evaluation rule" for elim₁.
 
-    elim₁-refl : {A : Set} {y : A} (P : ∀ {x} → x ≡ y → Set)
-                 (p : P (refl y)) →
+    elim₁-refl : ∀ {a p} {A : Set a} {y : A}
+                 (P : ∀ {x} → x ≡ y → Set p) (p : P (refl y)) →
                  elim₁ P p (refl y) ≡ p
     elim₁-refl {y = y} P p =
       subst {A = Singleton y} (P ∘ proj₂)
-            (proj₂ (singleton-contractible y) (y , refl y)) p    ≡⟨ cong (λ q → subst (P ∘ proj₂) q p)
+            (proj₂ (singleton-contractible y) (y , refl y)) p    ≡⟨ cong (λ q → subst {A = Singleton y} (P ∘ proj₂) q p)
                                                                          (singleton-contractible-refl y) ⟩
       subst {A = Singleton y} (P ∘ proj₂) (refl (y , refl y)) p  ≡⟨ subst-refl {A = Singleton y} (P ∘ proj₂) p ⟩∎
       p                                                          ∎
 
   -- A variant of singleton-contractible.
 
-  Other-singleton : {A : Set} → A → Set
+  Other-singleton : ∀ {a} {A : Set a} → A → Set a
   Other-singleton x = ∃ λ y → x ≡ y
 
   private
     abstract
 
-      irr : ∀ {A} {x : A} (p : Other-singleton x) → (x , refl x) ≡ p
+      irr : ∀ {a} {A : Set a} {x : A}
+            (p : Other-singleton x) → (x , refl x) ≡ p
       irr p =
         elim (λ {u v} u≡v → _≡_ {A = Other-singleton u}
                                 (u , refl u) (v , u≡v))
@@ -352,7 +389,7 @@ module Derived-definitions-and-properties
              (proj₂ p)
 
   other-singleton-contractible :
-    ∀ {A} (x : A) → Contractible (Other-singleton x)
+    ∀ {a} {A : Set a} (x : A) → Contractible (Other-singleton x)
   other-singleton-contractible x = ((x , refl x) , irr)
 
   abstract
@@ -360,7 +397,7 @@ module Derived-definitions-and-properties
     -- "Evaluation rule" for other-singleton-contractible.
 
     other-singleton-contractible-refl :
-      ∀ {A} (x : A) →
+      ∀ {a} {A : Set a} (x : A) →
       proj₂ (other-singleton-contractible x) (x , refl x) ≡
       refl (x , refl x)
     other-singleton-contractible-refl x =
@@ -370,7 +407,7 @@ module Derived-definitions-and-properties
 
     -- Christine Paulin-Mohring's version of the J rule.
 
-    elim¹ : {A : Set} {x : A} (P : ∀ {y} → x ≡ y → Set) →
+    elim¹ : ∀ {a p} {A : Set a} {x : A} (P : ∀ {y} → x ≡ y → Set p) →
             P (refl x) →
             ∀ {y} (x≡y : x ≡ y) → P x≡y
     elim¹ {x = x} P p {y} x≡y =
@@ -381,19 +418,20 @@ module Derived-definitions-and-properties
 
     -- "Evaluation rule" for elim¹.
 
-    elim¹-refl : {A : Set} {x : A} (P : ∀ {y} → x ≡ y → Set)
-                 (p : P (refl x)) →
+    elim¹-refl : ∀ {a p} {A : Set a} {x : A}
+                 (P : ∀ {y} → x ≡ y → Set p) (p : P (refl x)) →
                  elim¹ P p (refl x) ≡ p
     elim¹-refl {x = x} P p =
       subst {A = Other-singleton x} (P ∘ proj₂)
-            (proj₂ (other-singleton-contractible x) (x , refl x)) p    ≡⟨ cong (λ q → subst (P ∘ proj₂) q p)
+            (proj₂ (other-singleton-contractible x) (x , refl x)) p    ≡⟨ cong (λ q → subst {A = Other-singleton x} (P ∘ proj₂) q p)
                                                                                (other-singleton-contractible-refl x) ⟩
       subst {A = Other-singleton x} (P ∘ proj₂) (refl (x , refl x)) p  ≡⟨ subst-refl {A = Other-singleton x} (P ∘ proj₂) p ⟩∎
       p                                                                ∎
 
   -- Binary congruence.
 
-  cong₂ : {A B C : Set} (f : A → B → C) {x y : A} {u v : B} →
+  cong₂ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+          (f : A → B → C) {x y : A} {u v : B} →
           x ≡ y → u ≡ v → f x u ≡ f y v
   cong₂ f {x} {y} {u} {v} x≡y u≡v =
     f x u  ≡⟨ cong (flip f u) x≡y ⟩
@@ -402,34 +440,36 @@ module Derived-definitions-and-properties
 
   -- The inspect idiom.
 
-  data Inspect {A : Set} (x : A) : Set where
+  data Inspect {a} {A : Set a} (x : A) : Set a where
     _with-≡_ : (y : A) (eq : x ≡ y) → Inspect x
 
-  inspect : {A : Set} (x : A) → Inspect x
+  inspect : ∀ {a} {A : Set a} (x : A) → Inspect x
   inspect x = x with-≡ refl x
 
   -- The K rule (without computational content).
 
-  K-rule : Set₁
-  K-rule = {A : Set} (P : {x : A} → x ≡ x → Set) →
-           (∀ x → P (refl x)) →
-           ∀ {x} (x≡x : x ≡ x) → P x≡x
+  K-rule : ∀ a p → Set (suc (a ⊔ p))
+  K-rule a p = {A : Set a} (P : {x : A} → x ≡ x → Set p) →
+               (∀ x → P (refl x)) →
+               ∀ {x} (x≡x : x ≡ x) → P x≡x
 
   -- Proof irrelevance (or maybe "data irrelevance", depending on what
   -- the set is used for).
 
-  Proof-irrelevant : Set → Set
+  Proof-irrelevant : ∀ {ℓ} → Set ℓ → Set ℓ
   Proof-irrelevant A = (x y : A) → x ≡ y
 
   -- Uniqueness of identity proofs (for a particular type).
 
-  Uniqueness-of-identity-proofs : Set → Set
+  Uniqueness-of-identity-proofs : ∀ {ℓ} → Set ℓ → Set ℓ
   Uniqueness-of-identity-proofs A =
     {x y : A} → Proof-irrelevant (x ≡ y)
 
-  -- The K rule is equivalent to uniqueness of identity proofs.
+  -- The K rule is equivalent to uniqueness of identity proofs (at
+  -- least for certain combinations of levels).
 
-  K⇔UIP : K-rule ⇔ (∀ {A} → Uniqueness-of-identity-proofs A)
+  K⇔UIP : ∀ {ℓ} →
+          K-rule ℓ ℓ ⇔ ({A : Set ℓ} → Uniqueness-of-identity-proofs A)
   K⇔UIP = record
     { from = λ UIP P r {x} x≡x → subst P (UIP (refl x) x≡x) (r x)
     ; to   = λ K {_} →

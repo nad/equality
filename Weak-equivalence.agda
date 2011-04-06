@@ -2,7 +2,7 @@
 -- Weak equivalences
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
@@ -10,7 +10,7 @@
 open import Equality
 
 module Weak-equivalence
-  {reflexive} (eq : Equality-with-J reflexive) where
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 private
   module Bijection where
@@ -21,7 +21,7 @@ private
   module Groupoid where
     import Equality.Groupoid as EG; open EG eq public
   open Groupoid using (Groupoid)
-  module G {A : Set} = Groupoid.Groupoid (Groupoid.groupoid A)
+  module G {a} {A : Set a} = Groupoid.Groupoid (Groupoid.groupoid A)
 import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence hiding (id; _∘_; inverse)
 private
@@ -49,7 +49,8 @@ open Surjection using (_↠_; module _↠_)
 -- A function f is a weak equivalence if all preimages under f are
 -- contractible.
 
-Is-weak-equivalence : {A B : Set} → (A → B) → Set
+Is-weak-equivalence : ∀ {a b} {A : Set a} {B : Set b} →
+                      (A → B) → Set (a ⊔ b)
 Is-weak-equivalence f = ∀ y → Contractible (f ⁻¹ y)
 
 abstract
@@ -58,15 +59,16 @@ abstract
   -- equality.
 
   propositional :
-    (∀ {A B} → Extensionality A B) →
-    ∀ {A B} (f : A → B) → Propositional (Is-weak-equivalence f)
+    (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
+    ∀ {a b} {A : Set a} {B : Set b} (f : A → B) →
+    Propositional (Is-weak-equivalence f)
   propositional ext f =
     Π-closure ext 1 λ _ → Contractible-propositional ext
 
 -- Is-weak-equivalence respects extensional equality.
 
 respects-extensional-equality :
-  ∀ {A B} {f g : A → B} →
+  ∀ {a b} {A : Set a} {B : Set b} {f g : A → B} →
   (∀ x → f x ≡ g x) →
   Is-weak-equivalence f → Is-weak-equivalence g
 respects-extensional-equality f≡g f-weq = λ b →
@@ -83,7 +85,7 @@ abstract
   -- reduced to p.
 
   subst-is-weak-equivalence :
-    {A : Set} (P : A → Set) {x y : A} (x≡y : x ≡ y) →
+    ∀ {a p} {A : Set a} (P : A → Set p) {x y : A} (x≡y : x ≡ y) →
     Is-weak-equivalence (subst P x≡y)
   subst-is-weak-equivalence P = elim
     (λ {x y} x≡y → Is-weak-equivalence (subst P x≡y))
@@ -120,7 +122,7 @@ abstract
 
 infix 4 _≈_
 
-record _≈_ (A B : Set) : Set where
+record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   constructor weq
   field
     to                  : A → B
@@ -131,7 +133,7 @@ record _≈_ (A B : Set) : Set where
   abstract
     right-inverse-of = proj₂ ⊚ proj₁ ⊚ is-weak-equivalence
     left-inverse-of  = λ x →
-      cong proj₁ $
+      cong (proj₁ {B = λ x′ → to x′ ≡ to x}) $
         proj₂ (is-weak-equivalence (to x)) (x , refl (to x))
 
   bijection : A ↔ B
@@ -165,37 +167,43 @@ record _≈_ (A B : Set) : Set where
     left-right-lemma x =
       lemma₁ to _ _ (lemma₂ (irrelevance (to x) (x , refl (to x))))
       where
-      lemma₁ : ∀ {A} {x y : A}
-               (f : A → B) (p : x ≡ y) (q : f x ≡ f y) →
+      lemma₁ : {x y : A} (f : A → B) (p : x ≡ y) (q : f x ≡ f y) →
                refl (f y) ≡ trans (cong f (sym p)) q →
                cong f p ≡ q
       lemma₁ f = elim
         (λ {x y} p → ∀ q → refl (f y) ≡ trans (cong f (sym p)) q →
                            cong f p ≡ q)
         (λ x q hyp →
-           cong f (refl x)                  ≡⟨ prove (Cong f Refl) Refl (refl _) ⟩
+           cong f (refl x)                  ≡⟨ cong-refl f ⟩
            refl (f x)                       ≡⟨ hyp ⟩
-           trans (cong f (sym (refl x))) q  ≡⟨ prove (Trans (Cong f (Sym Refl)) (Lift q)) (Lift q) (refl _) ⟩∎
+           trans (cong f (sym (refl x))) q  ≡⟨ cong (λ p → trans (cong f p) q) sym-refl ⟩
+           trans (cong f (refl x)) q        ≡⟨ cong (λ p → trans p q) (cong-refl f) ⟩
+           trans (refl (f x)) q             ≡⟨ prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
            q                                ∎)
 
-      lemma₂ : ∀ {A B} {f : A → B} {y} {f⁻¹y₁ f⁻¹y₂ : f ⁻¹ y}
+      lemma₂ : ∀ {f : A → B} {y} {f⁻¹y₁ f⁻¹y₂ : f ⁻¹ y}
                (p : f⁻¹y₁ ≡ f⁻¹y₂) →
                proj₂ f⁻¹y₂ ≡
-               trans (cong f (sym (cong proj₁ p))) (proj₂ f⁻¹y₁)
-      lemma₂ {f = f} = elim
+               trans (cong f (sym (cong (proj₁ {B = λ x → f x ≡ y}) p)))
+                     (proj₂ f⁻¹y₁)
+      lemma₂ {f} {y} = elim {A = f ⁻¹ y}
         (λ {f⁻¹y₁ f⁻¹y₂} p →
-           proj₂ f⁻¹y₂ ≡
-           trans (cong f (sym (cong proj₁ p))) (proj₂ f⁻¹y₁))
+           proj₂ f⁻¹y₂ ≡ trans (cong f (sym (cong pr p))) (proj₂ f⁻¹y₁))
         (λ f⁻¹y →
-           prove
-             (Lift (proj₂ f⁻¹y))
-             (Trans (Cong f (Sym (Cong proj₁ Refl)))
-                    (Lift (proj₂ f⁻¹y)))
-             (refl _))
+           proj₂ f⁻¹y                                               ≡⟨ prove (Lift (proj₂ f⁻¹y))
+                                                                             (Trans Refl (Lift (proj₂ f⁻¹y)))
+                                                                             (refl _) ⟩
+           trans (refl (f (proj₁ f⁻¹y))) (proj₂ f⁻¹y)               ≡⟨ cong (λ p → trans p (proj₂ f⁻¹y)) (sym (cong-refl f)) ⟩
+           trans (cong f (refl (proj₁ f⁻¹y))) (proj₂ f⁻¹y)          ≡⟨ cong (λ p → trans (cong f p) (proj₂ f⁻¹y)) (sym sym-refl) ⟩
+           trans (cong f (sym (refl (proj₁ f⁻¹y)))) (proj₂ f⁻¹y)    ≡⟨ cong (λ p → trans (cong f (sym p)) (proj₂ f⁻¹y))
+                                                                            (sym (cong-refl pr)) ⟩∎
+           trans (cong f (sym (cong pr (refl f⁻¹y)))) (proj₂ f⁻¹y)  ∎)
+        where pr = proj₁ {B = λ x → f x ≡ y}
 
 -- Bijections are weak equivalences.
 
-bijection⇒weak-equivalence : ∀ {A B} → A ↔ B → A ≈ B
+bijection⇒weak-equivalence : ∀ {a b} {A : Set a} {B : Set b} →
+                             A ↔ B → A ≈ B
 bijection⇒weak-equivalence A↔B = record
   { to                  = _↔_.to A↔B
   ; is-weak-equivalence = Preimage.bijection⁻¹-contractible A↔B
@@ -206,10 +214,10 @@ bijection⇒weak-equivalence A↔B = record
 
 -- Weak equivalences are equivalence relations.
 
-id : ∀ {A} → A ≈ A
+id : ∀ {a} {A : Set a} → A ≈ A
 id = bijection⇒weak-equivalence Bijection.id
 
-inverse : ∀ {A B} → A ≈ B → B ≈ A
+inverse : ∀ {a b} {A : Set a} {B : Set b} → A ≈ B → B ≈ A
 inverse =
   bijection⇒weak-equivalence ⊚
   Bijection.inverse ⊚
@@ -217,7 +225,8 @@ inverse =
 
 infixr 9 _∘_
 
-_∘_ : ∀ {A B C} → B ≈ C → A ≈ B → A ≈ C
+_∘_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+      B ≈ C → A ≈ B → A ≈ C
 f ∘ g =
   bijection⇒weak-equivalence $
     Bijection._∘_ (_≈_.bijection f) (_≈_.bijection g)
@@ -227,10 +236,11 @@ f ∘ g =
 infixr 0 _≈⟨_⟩_
 infix  0 finally-≈
 
-_≈⟨_⟩_ : ∀ A {B C} → A ≈ B → B ≈ C → A ≈ C
+_≈⟨_⟩_ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
+         A ≈ B → B ≈ C → A ≈ C
 _ ≈⟨ A≈B ⟩ B≈C = B≈C ∘ A≈B
 
-finally-≈ : ∀ A B → A ≈ B → A ≈ B
+finally-≈ : ∀ {a b} (A : Set a) (B : Set b) → A ≈ B → A ≈ B
 finally-≈ _ _ A≈B = A≈B
 
 syntax finally-≈ A B A≈B = A ≈⟨ A≈B ⟩□ B □
@@ -243,15 +253,17 @@ abstract
   -- Two proofs of weak equivalence are equal if the function
   -- components are equal (assuming extensionality).
 
-  lift-equality : (∀ {A B} → Extensionality A B) →
-                  ∀ {A B} {p q : A ≈ B} →
-                  (∀ x → _≈_.to p x ≡ _≈_.to q x) → p ≡ q
+  lift-equality :
+    (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
+    ∀ {a b} {A : Set a} {B : Set b} {p q : A ≈ B} →
+    (∀ x → _≈_.to p x ≡ _≈_.to q x) → p ≡ q
   lift-equality ext {p = weq f f-weq} {q = weq g g-weq} f≡g =
     elim (λ {f g} f≡g → ∀ f-weq g-weq → weq f f-weq ≡ weq g g-weq)
          (λ f f-weq g-weq →
             cong (weq f)
-              (_⇔_.to propositional⇔irrelevant
-                 (propositional ext f) f-weq g-weq))
+              (_⇔_.to {To = Proof-irrelevant _}
+                      propositional⇔irrelevant
+                      (propositional ext f) f-weq g-weq))
          (ext f≡g) f-weq g-weq
 
 {- The definition below is commented out because it takes too long to
@@ -259,13 +271,14 @@ abstract
    some key definitions in Equality were abstract, but I want these
    definitions to unfold automatically.
 
--- _≈_ comes with a groupoid structure (assuming extensionality).
+-- _≈_ comes with a groupoid structure (for Set₀ and assuming
+-- extensionality).
 --
 -- Note that, at the time of writing (and on a particular system), the
 -- following proof takes about three times as long to type-check as
 -- the rest of the development.
 
-groupoid : (∀ {A B} → Extensionality A B) →
+groupoid : ({A : Set} {B : A → Set} → Extensionality A B) →
            Groupoid (suc zero)
 groupoid ext = record
   { Object         = Set
@@ -308,9 +321,10 @@ abstract
   -- (assuming extensionality).
 
   right-closure :
-    (∀ {A B} → Extensionality A B) →
-    ∀ {A B} n → H-level (1 + n) B → H-level (1 + n) (A ≈ B)
-  right-closure ext {A} {B} n h =
+    (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
+    ∀ {a b} {A : Set a} {B : Set b} n →
+    H-level (1 + n) B → H-level (1 + n) (A ≈ B)
+  right-closure ext {A = A} {B} n h =
     H-level.respects-surjection surj (1 + n) lemma
     where
     lemma : H-level (1 + n) (∃ λ (to : A → B) → Is-weak-equivalence to)
@@ -328,9 +342,10 @@ abstract
       }
 
   left-closure :
-    (∀ {A B} → Extensionality A B) →
-    ∀ {A B} n → H-level (1 + n) A → H-level (1 + n) (A ≈ B)
-  left-closure ext {A} {B} n h =
+    (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
+    ∀ {a b} {A : Set a} {B : Set b} n →
+    H-level (1 + n) A → H-level (1 + n) (A ≈ B)
+  left-closure ext {A = A} {B} n h =
     H-level.[inhabited⇒+]⇒+ n λ (A≈B : A ≈ B) →
       right-closure ext n $
         H-level.respects-surjection (_≈_.surjection A≈B) (1 + n) h
@@ -338,7 +353,7 @@ abstract
 -- Equalities are closed, in a strong sense, under applications of
 -- weak equivalences.
 
-≈-≡ : ∀ {A B} (A≈B : A ≈ B) {x y : A} →
+≈-≡ : ∀ {a b} {A : Set a} {B : Set b} (A≈B : A ≈ B) {x y : A} →
       let open _≈_ A≈B in
       (to x ≡ to y) ≈ (x ≡ y)
 ≈-≡ A≈B {x} {y} =
@@ -357,13 +372,10 @@ abstract
       cong to (
         trans (sym (left-inverse-of x)) $
         trans (cong from to-x≡to-y) $
-        left-inverse-of y)                         ≡⟨ prove (Cong to (Trans (Sym (Lift (left-inverse-of x)))
-                                                                      (Trans (Cong from (Lift to-x≡to-y))
-                                                                      (Lift (left-inverse-of y)))))
-                                                            (Trans (Sym (Cong to (Lift (left-inverse-of x))))
-                                                             (Trans (Cong to (Cong from (Lift to-x≡to-y)))
-                                                             (Cong to (Lift (left-inverse-of y)))))
-                                                            (refl _) ⟩
+        left-inverse-of y)                         ≡⟨ cong-trans to _ _ ⟩
+      trans (cong to (sym (left-inverse-of x))) (
+        cong to (trans (cong from to-x≡to-y) (
+                 left-inverse-of y)))              ≡⟨ cong₂ trans (cong-sym to _) (cong-trans to _ _) ⟩
       trans (sym (cong to (left-inverse-of x))) (
         trans (cong to (cong from to-x≡to-y)) (
         cong to (left-inverse-of y)))              ≡⟨ cong₂ (λ eq₁ eq₂ → trans (sym eq₁) $
@@ -382,7 +394,8 @@ abstract
     -- We can push subst through certain function applications.
 
     push-subst :
-      ∀ {A₁ A₂} (B₁ : A₁ → Set) {B₂ : A₂ → Set}
+      ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+        (B₁ : A₁ → Set b₁) {B₂ : A₂ → Set b₂}
         {f : A₂ → A₁} {x₁ x₂ : A₂} {y : B₁ (f x₁)}
       (g : ∀ x → B₁ (f x) → B₂ x) (eq : x₁ ≡ x₂) →
       subst B₂ eq (g x₁ y) ≡ g x₂ (subst B₁ (cong f eq) y)
@@ -396,7 +409,8 @@ abstract
       eq _
 
     push-subst′ :
-      ∀ {A₁ A₂} (A₁≈A₂ : A₁ ≈ A₂) (B₁ : A₁ → Set) (B₂ : A₂ → Set) →
+      ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+      (A₁≈A₂ : A₁ ≈ A₂) (B₁ : A₁ → Set b₁) (B₂ : A₂ → Set b₂) →
       let open _≈_ A₁≈A₂ in {x₁ x₂ : A₁} {y : B₁ (from (to x₁))}
       (g : ∀ x → B₁ (from (to x)) → B₂ (to x)) (eq : to x₁ ≡ to x₂) →
       subst B₂ eq (g x₁ y) ≡ g x₂ (subst B₁ (cong from eq) y)
@@ -436,26 +450,30 @@ abstract
         lemma = λ y →
           let gy = g (from (to x)) $
                      subst B₁ (sym $ cong from $ cong to (refl _)) y in
-          subst B₂ (cong to (refl _)) gy         ≡⟨ cong (λ p → subst B₂ p gy) $
-                                                      prove (Cong to Refl) Refl (refl _) ⟩
-          subst B₂ (refl _) gy                   ≡⟨ subst-refl B₂ gy ⟩
-          gy                                     ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ p y) $
-                                                      prove (Sym (Cong from (Cong to Refl))) Refl (refl _) ⟩
-          g (from (to x)) (subst B₁ (refl _) y)  ≡⟨ cong (g (from (to x))) $ subst-refl B₁ y ⟩∎
-          g (from (to x)) y                      ∎
+          subst B₂ (cong to (refl _)) gy             ≡⟨ cong (λ p → subst B₂ p gy) $ cong-refl to ⟩
+          subst B₂ (refl _) gy                       ≡⟨ subst-refl B₂ gy ⟩
+          gy                                         ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ (sym $ cong from p) y) $ cong-refl to ⟩
+          g (from (to x))
+            (subst B₁ (sym $ cong from (refl _)) y)  ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ (sym p) y) $ cong-refl from ⟩
+          g (from (to x))
+            (subst B₁ (sym (refl _)) y)              ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ p y) sym-refl ⟩
+          g (from (to x)) (subst B₁ (refl _) y)      ≡⟨ cong (g (from (to x))) $ subst-refl B₁ y ⟩∎
+          g (from (to x)) y                          ∎
 
 -- If the first component is instantiated to id, then the following
 -- lemmas state that ∃ preserves functions, equivalences, injections,
 -- surjections and bijections.
 
 ∃-preserves-functions :
-  ∀ {A₁ A₂ B₁ B₂}
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
   (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x → B₂ (_≈_.to A₁≈A₂ x)) →
   Σ A₁ B₁ → Σ A₂ B₂
 ∃-preserves-functions A₁≈A₂ B₁→B₂ = Σ-map (_≈_.to A₁≈A₂) (B₁→B₂ _)
 
 ∃-preserves-equivalences :
-  ∀ {A₁ A₂ B₁ B₂}
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
   (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ⇔ B₂ (_≈_.to A₁≈A₂ x)) →
   Σ A₁ B₁ ⇔ Σ A₂ B₂
 ∃-preserves-equivalences {B₂ = B₂} A₁≈A₂ B₁⇔B₂ = record
@@ -469,7 +487,8 @@ abstract
   }
 
 ∃-preserves-injections :
-  ∀ {A₁ A₂ B₁ B₂}
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
   (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ↣ B₂ (_≈_.to A₁≈A₂ x)) →
   Σ A₁ B₁ ↣ Σ A₂ B₂
 ∃-preserves-injections {B₁ = B₁} {B₂ = B₂} A₁≈A₂ B₁↣B₂ = record
@@ -528,7 +547,8 @@ abstract
       _↔_.from Σ-≡,≡↔≡
 
 ∃-preserves-surjections :
-  ∀ {A₁ A₂ B₁ B₂}
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
   (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ↠ B₂ (_≈_.to A₁≈A₂ x)) →
   Σ A₁ B₁ ↠ Σ A₂ B₂
 ∃-preserves-surjections {B₂ = B₂} A₁≈A₂ B₁↠B₂ = record
@@ -553,7 +573,8 @@ abstract
       )
 
 ∃-preserves-bijections :
-  ∀ {A₁ A₂ B₁ B₂}
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
   (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ↔ B₂ (_≈_.to A₁≈A₂ x)) →
   Σ A₁ B₁ ↔ Σ A₂ B₂
 ∃-preserves-bijections {B₁ = B₁} {B₂} A₁≈A₂ B₁↔B₂ = record
@@ -594,7 +615,8 @@ abstract
 
 -- Σ preserves weak equivalence.
 
-Σ-preserves : ∀ {A₁ A₂ B₁ B₂}
+Σ-preserves : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+                {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
               (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
               Σ A₁ B₁ ≈ Σ A₂ B₂
 Σ-preserves A₁≈A₂ B₁≈B₂ = bijection⇒weak-equivalence $
@@ -602,10 +624,12 @@ abstract
 
 -- Π preserves weak equivalence (assuming extensionality).
 
-Π-preserves : (∀ {A B} → Extensionality A B) →
-              ∀ {A₁ A₂} {B₁ : A₁ → Set} {B₂ : A₂ → Set} →
-              (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
-              ((x : A₁) → B₁ x) ≈ ((x : A₂) → B₂ x)
+Π-preserves :
+  (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
+  ((x : A₁) → B₁ x) ≈ ((x : A₂) → B₂ x)
 Π-preserves ext {B₁ = B₁} {B₂} A₁≈A₂ B₁≈B₂ =
   bijection⇒weak-equivalence record
     { surjection = record

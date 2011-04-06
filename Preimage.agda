@@ -2,7 +2,7 @@
 -- Preimages
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
@@ -10,7 +10,7 @@
 open import Equality
 
 module Preimage
-  {reflexive} (eq : Equality-with-J reflexive) where
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 private
   module Bijection where
@@ -18,7 +18,7 @@ private
 open Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid eq (EG.groupoid eq A)
+private module G {a} {A : Set a} = EG.Groupoid eq (EG.groupoid eq A)
 import Equality.Tactic as Tactic; open Tactic eq
 private
   module H-level where
@@ -31,19 +31,20 @@ import Surjection; open Surjection eq hiding (id; _∘_)
 
 infix 5 _⁻¹_
 
-_⁻¹_ : {A B : Set} → (A → B) → B → Set
+_⁻¹_ : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → B → Set (a ⊔ b)
 f ⁻¹ y = ∃ λ x → f x ≡ y
 
 -- Preimages under the identity function are contractible. (Note that
 -- Singleton x is equal to id ⁻¹ x.)
 
-id⁻¹-contractible : ∀ {A} (y : A) → Contractible (id ⁻¹ y)
+id⁻¹-contractible : ∀ {a} {A : Set a} (y : A) →
+                    Contractible (id ⁻¹ y)
 id⁻¹-contractible = singleton-contractible
 
 -- _⁻¹_ respects extensional equality of functions.
 
 respects-extensional-equality :
-  ∀ {A B} {f g : A → B} {y} →
+  ∀ {a b} {A : Set a} {B : Set b} {f g : A → B} {y} →
   (∀ x → f x ≡ g x) → (f ⁻¹ y) ↔ (g ⁻¹ y)
 respects-extensional-equality {f = f} {g} {y} f≡g = record
   { surjection = record
@@ -88,7 +89,7 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
 -- Surjections can be lifted to preimages.
 
 lift-surjection :
-  ∀ {A B} (A↠B : A ↠ B) → let open _↠_ A↠B in
+  ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) → let open _↠_ A↠B in
   ∀ {y} → (from ∘ to ⁻¹ y) ↠ (from ⁻¹ y)
 lift-surjection A↠B {y} = record
   { equivalence = record
@@ -134,15 +135,16 @@ lift-surjection A↠B {y} = record
       lemma {z = z} {f} = elim
         (λ {y x} y≡x → (p : f x ≡ z) →
            _≡_ {A = f ⁻¹ z} (x , p) (y , trans (cong f y≡x) p))
-        (λ x p → cong (_,_ x) (prove (Lift p)
-                                     (Trans (Cong f Refl) (Lift p))
-                                     (refl _)))
+        (λ x p → cong (_,_ x) (
+           p                          ≡⟨ prove (Lift p) (Trans Refl (Lift p)) (refl _) ⟩
+           trans (refl (f x)) p       ≡⟨ cong (λ q → trans q p) (sym (cong-refl f)) ⟩∎
+           trans (cong f (refl x)) p  ∎))
 
 -- A consequence of the lemmas above is that preimages under a
 -- bijection are contractible.
 
 bijection⁻¹-contractible :
-  ∀ {A B} (A↔B : A ↔ B) → let open _↔_ A↔B in
+  ∀ {a b} {A : Set a} {B : Set b} (A↔B : A ↔ B) → let open _↔_ A↔B in
   ∀ y → Contractible (to ⁻¹ y)
 bijection⁻¹-contractible A↔B =
   H-level.respects-surjection surj 0 ∘ id⁻¹-contractible

@@ -2,16 +2,16 @@
 -- Surjections
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 open import Equality
 
 module Surjection
-  {reflexive} (eq : Equality-with-J reflexive) where
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid eq (EG.groupoid eq A)
+private module G {a} {A : Set a} = EG.Groupoid eq (EG.groupoid eq A)
 import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence
   using (_⇔_; module _⇔_) renaming (_∘_ to _⊙_)
@@ -24,7 +24,7 @@ infix 0 _↠_
 
 -- Surjections.
 
-record _↠_ (From To : Set) : Set where
+record _↠_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
   field
     equivalence : From ⇔ To
 
@@ -48,7 +48,7 @@ record _↠_ (From To : Set) : Set where
 
 -- _↠_ is a preorder.
 
-id : ∀ {A} → A ↠ A
+id : ∀ {a} {A : Set a} → A ↠ A
 id = record
   { equivalence      = Equivalence.id
   ; right-inverse-of = refl
@@ -56,7 +56,8 @@ id = record
 
 infixr 9 _∘_
 
-_∘_ : ∀ {A B C} → B ↠ C → A ↠ B → A ↠ C
+_∘_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+      B ↠ C → A ↠ B → A ↠ C
 f ∘ g = record
   { equivalence      = equivalence f ⊙ equivalence g
   ; right-inverse-of = to∘from
@@ -75,10 +76,11 @@ f ∘ g = record
 infix  0 finally-↠
 infixr 0 _↠⟨_⟩_
 
-_↠⟨_⟩_ : ∀ A {B C} → A ↠ B → B ↠ C → A ↠ C
+_↠⟨_⟩_ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
+         A ↠ B → B ↠ C → A ↠ C
 _ ↠⟨ A↠B ⟩ B↠C = B↠C ∘ A↠B
 
-finally-↠ : ∀ A B → A ↠ B → A ↠ B
+finally-↠ : ∀ {a b} (A : Set a) (B : Set b) → A ↠ B → A ↠ B
 finally-↠ _ _ A↠B = A↠B
 
 syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
@@ -88,7 +90,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 
 -- ∃ preserves surjections.
 
-∃-cong : ∀ {A : Set} {B₁ B₂ : A → Set} →
+∃-cong : ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
          (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
 ∃-cong {B₁ = B₁} {B₂} B₁↠B₂ = record
   { equivalence = record
@@ -102,11 +104,11 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 
   abstract
     right-inverse-of′ = λ p →
-      cong (_,_ _) (right-inverse-of (B₁↠B₂ _) _)
+      cong (_,_ (proj₁ p)) (right-inverse-of (B₁↠B₂ (proj₁ p)) _)
 
 -- A lemma relating surjections and equality.
 
-↠-≡ : ∀ {A B} (A↠B : A ↠ B) {x y : B} →
+↠-≡ : ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) {x y : B} →
       (_↠_.from A↠B x ≡ _↠_.from A↠B y) ↠ (x ≡ y)
 ↠-≡ A↠B {x} {y} = record
   { equivalence = record
@@ -130,8 +132,18 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
                      x≡y)
       (λ x → trans (sym (right-inverse-of x)) (
                trans (cong to (cong from (refl x))) (
+               right-inverse-of x))                                 ≡⟨ cong (λ p → trans (sym (right-inverse-of x))
+                                                                                         (trans (cong to p) (right-inverse-of x)))
+                                                                            (cong-refl from) ⟩
+             trans (sym (right-inverse-of x)) (
+               trans (cong to (refl (from x))) (
+               right-inverse-of x))                                 ≡⟨ cong (λ p → trans (sym (right-inverse-of x))
+                                                                                         (trans p (right-inverse-of x)))
+                                                                            (cong-refl to) ⟩
+             trans (sym (right-inverse-of x)) (
+               trans (refl (to (from x))) (
                right-inverse-of x))                                 ≡⟨ (let eq = Lift (right-inverse-of x) in
-                                                                        prove (Trans (Sym eq) (Trans (Cong to (Cong from Refl)) eq))
+                                                                        prove (Trans (Sym eq) (Trans Refl eq))
                                                                               (Trans (Sym eq) eq)
                                                                               (refl _)) ⟩
              trans (sym (right-inverse-of x)) (right-inverse-of x)  ≡⟨ G.right-inverse _ ⟩∎
@@ -140,7 +152,8 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 -- Decidable-equality respects surjections.
 
 Decidable-equality-respects :
-  {A B : Set} → A ↠ B → Decidable-equality A → Decidable-equality B
+  ∀ {a b} {A : Set a} {B : Set b} →
+  A ↠ B → Decidable-equality A → Decidable-equality B
 Decidable-equality-respects A↠B _≟A_ x y =
   ⊎-map (to (↠-≡ A↠B))
         (λ from-x≢from-y → from-x≢from-y ⊚ from (↠-≡ A↠B))

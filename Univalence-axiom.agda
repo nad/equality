@@ -2,7 +2,7 @@
 -- The univalence axiom
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --type-in-type #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
@@ -10,7 +10,7 @@
 open import Equality
 
 module Univalence-axiom
-  {reflexive} (eq : Equality-with-J reflexive) where
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 private
   module Bijection where
@@ -18,6 +18,7 @@ private
 open Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
 import Equality.Decision-procedures as ED; open ED eq
+open import Equivalence hiding (id; _∘_)
 import H-level; open H-level eq
 import H-level.Closure; open H-level.Closure eq
 open import Prelude
@@ -31,21 +32,21 @@ open Weak hiding (_∘_; id)
 
 -- If two sets are equal, then they are weakly equivalent.
 
-≡⇒≈ : ∀ {A B} → A ≡ B → A ≈ B
+≡⇒≈ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A ≈ B
 ≡⇒≈ = elim (λ {A B} _ → A ≈ B) (λ _ → Weak.id)
 
 -- The univalence axiom states that ≡⇒≈ is a weak equivalence.
 
-Univalence-axiom′ : Set → Set → Set
-Univalence-axiom′ A B = Is-weak-equivalence (≡⇒≈ {A} {B})
+Univalence-axiom′ : ∀ {ℓ} → Set ℓ → Set ℓ → Set (suc ℓ)
+Univalence-axiom′ A B = Is-weak-equivalence (≡⇒≈ {A = A} {B = B})
 
-Univalence-axiom : Set₁
-Univalence-axiom = ∀ {A B} → Univalence-axiom′ A B
+Univalence-axiom : ∀ ℓ → Set (suc ℓ)
+Univalence-axiom ℓ = {A B : Set ℓ} → Univalence-axiom′ A B
 
 -- An immediate consequence is that equalities are weakly equivalent
 -- to weak equivalences.
 
-≡≈≈ : ∀ {A B} → Univalence-axiom′ A B → (A ≡ B) ≈ (A ≈ B)
+≡≈≈ : ∀ {ℓ} {A B : Set ℓ} → Univalence-axiom′ A B → (A ≡ B) ≈ (A ≈ B)
 ≡≈≈ univ = weq ≡⇒≈ univ
 
 ------------------------------------------------------------------------
@@ -97,7 +98,7 @@ abstract
   -- (up to extensional equality).
 
   subst-unique :
-    (P : Set → Set) →
+    ∀ {p} (P : Set p → Set p) →
     (resp : ∀ {A B} → A ≈ B → P A → P B) →
     (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
     ∀ {A B} (univ : Univalence-axiom′ A B) →
@@ -119,7 +120,7 @@ abstract
   -- satisfying resp Weak.id p ≡ p is a weak equivalence family.
 
   resp-is-weak-equivalence :
-    (P : Set → Set) →
+    ∀ {p} (P : Set p → Set p) →
     (resp : ∀ {A B} → A ≈ B → P A → P B) →
     (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
     ∀ {A B} (univ : Univalence-axiom′ A B) →
@@ -133,13 +134,13 @@ abstract
   -- with f is also a weak equivalence (assuming univalence).
 
   precomposition-is-weak-equivalence :
-    ∀ {A B C} → Univalence-axiom′ B A →
+    ∀ {ℓ} {A B C : Set ℓ} → Univalence-axiom′ B A →
     (A≈B : A ≈ B) →
     Is-weak-equivalence (λ (g : B → C) → g ∘ _≈_.to A≈B)
-  precomposition-is-weak-equivalence {C = C} univ A≈B =
+  precomposition-is-weak-equivalence {ℓ} {C = C} univ A≈B =
     resp-is-weak-equivalence P resp refl univ (Weak.inverse A≈B)
     where
-    P : Set → Set
+    P : Set ℓ → Set ℓ
     P X = X → C
 
     resp : ∀ {A B} → A ≈ B → P A → P B
@@ -149,7 +150,7 @@ abstract
 -- precompositions with h (assuming univalence).
 
 precompositions-cancel :
-  ∀ {A B C} → Univalence-axiom′ B A →
+  ∀ {ℓ} {A B C : Set ℓ} → Univalence-axiom′ B A →
   (A≈B : A ≈ B) {f g : B → C} →
   let open _≈_ A≈B in
   f ∘ to ≡ g ∘ to → f ≡ g
@@ -162,12 +163,12 @@ precompositions-cancel univ A≈B {f} {g} f∘to≡g∘to =
 
 -- Pairs of equal elements.
 
-_²/≡ : Set → Set
+_²/≡ : ∀ {ℓ} → Set ℓ → Set ℓ
 A ²/≡ = ∃ λ (x : A) → ∃ λ (y : A) → y ≡ x
 
 -- The set of such pairs is isomorphic to the underlying type.
 
--²/≡↔- : ∀ {A} → (A ²/≡) ↔ A
+-²/≡↔- : ∀ {a} {A : Set a} → (A ²/≡) ↔ A
 -²/≡↔- = record
   { surjection = record
     { equivalence = record
@@ -188,11 +189,12 @@ abstract
   -- extensionality.
 
   extensionality :
-    ∀ {A B} → Univalence-axiom′ (B ²/≡) B →
+    ∀ {a b} {A : Set a} {B : Set b} →
+    Univalence-axiom′ (B ²/≡) B →
     {f g : A → B} → (∀ x → f x ≡ g x) → f ≡ g
-  extensionality {A} {B} univ {f} {g} f≡g =
+  extensionality {A = A} {B} univ {f} {g} f≡g =
     f          ≡⟨ refl f ⟩
-    f′ ∘ pair  ≡⟨ cong (λ h → h ∘ pair) f′≡g′ ⟩
+    f′ ∘ pair  ≡⟨ cong (λ (h : B ²/≡ → B) → h ∘ pair) f′≡g′ ⟩
     g′ ∘ pair  ≡⟨ refl g ⟩∎
     g          ∎
     where
@@ -215,11 +217,11 @@ abstract
   -- Π A.
 
   Π-closure-contractible :
-    Univalence-axiom′ (Set ²/≡) Set →
-    {A : Set} {B : A → Set} →
+    ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
+    ∀ {a} {A : Set a} {B : A → Set b} →
     (∀ x → Univalence-axiom′ ⊤ (B x)) →
     (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)
-  Π-closure-contractible univ₁ {A} {B} univ₂ contr =
+  Π-closure-contractible {b} univ₁ {A = A} {B} univ₂ contr =
     subst Contractible A→⊤≡[x:A]→Bx →⊤-contractible
     where
     const-⊤≡B : const ⊤ ≡ B
@@ -228,24 +230,22 @@ abstract
         bijection⇒weak-equivalence $
           contractible-isomorphic ⊤-contractible (contr x)
 
-    A→⊤≡[x:A]→Bx : (A → ⊤) ≡ ((x : A) → B x)
+    A→⊤≡[x:A]→Bx : (A → ⊤ {ℓ = b}) ≡ ((x : A) → B x)
     A→⊤≡[x:A]→Bx = cong (λ X → (x : A) → X x) const-⊤≡B
 
     →⊤-contractible : Contractible (A → ⊤)
     →⊤-contractible = (_ , λ _ → refl _)
 
   -- Thus we also get extensionality for dependent functions.
-  --
-  -- (This code doesn't type check, probably due to mixing of
-  -- --type-in-type and --universe-polymorphism.)
 
-  -- dependent-extensionality :
-  --   Univalence-axiom′ (Set ²/≡) Set →
-  --   Univalence-axiom →
-  --   ∀ {A B} → Extensionality A B
-  -- dependent-extensionality univ₁ univ₂ =
-  --   _⇔_.to Π-closure-contractible⇔extensionality
-  --     (Π-closure-contractible univ₁ univ₂)
+  dependent-extensionality :
+    ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
+    ∀ {a} {A : Set a} →
+    (∀ {B : A → Set b} x → Univalence-axiom′ ⊤ (B x)) →
+    {B : A → Set b} → Extensionality A B
+  dependent-extensionality univ₁ univ₂ =
+    _⇔_.to Π-closure-contractible⇔extensionality
+      (Π-closure-contractible univ₁ univ₂)
 
 ------------------------------------------------------------------------
 -- An example: if two magmas are isomorphic, then they are equal
@@ -253,14 +253,6 @@ abstract
 -- This example is (mostly) due to Thierry Coquand.
 
 private
-
-  -- This example makes use of dependent-extensionality.
-
-  postulate
-    dependent-extensionality :
-      Univalence-axiom′ (Set ²/≡) Set →
-      Univalence-axiom →
-      ∀ {A B} → Extensionality A B
 
   -- Magmas.
 
@@ -295,7 +287,7 @@ private
 
   isomorphic-equal :
     Univalence-axiom′ (Set ²/≡) Set →
-    Univalence-axiom →
+    Univalence-axiom zero →
     ∀ {M₁ M₂} → Magma-isomorphism M₁ M₂ → M₁ ≡ M₂
   isomorphic-equal univ₁ univ₂ {magma A₁ _∙₁_} {magma A₂ _∙₂_} iso =
     magma A₁ _∙₁_                                  ≡⟨ elim (λ {A₁ A₂} A₁≡A₂ → (f : A₁ → A₁ → A₁) →
@@ -327,8 +319,8 @@ private
 
     lemma : subst (λ A → A → A → A) A₁≡A₂ _∙₁_ ≡ _∙₂_
     lemma =
-      dependent-extensionality univ₁ univ₂ $ λ x →
-      dependent-extensionality univ₁ univ₂ $ λ y →
+      dependent-extensionality univ₁ (λ _ → univ₂) $ λ x →
+      dependent-extensionality univ₁ (λ _ → univ₂) $ λ y →
         subst (λ A → A → A → A) A₁≡A₂ _∙₁_ x y  ≡⟨ cong (λ f → f x y) $ cast-lemma _∙₁_ ⟩
         to (from x ∙₁ from y)                   ≡⟨ cong to $ sym $ from-homomorphic x y ⟩
         to (from (x ∙₂ y))                      ≡⟨ right-inverse-of (x ∙₂ y) ⟩∎

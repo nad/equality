@@ -2,12 +2,12 @@
 -- A universe which includes several kinds of functions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 open import Equality
 
 module Function-universe
-  {reflexive} (eq : Equality-with-J reflexive) where
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
 open import Equivalence using (_⇔_; module _⇔_)
@@ -176,7 +176,7 @@ inverse {weak-equivalence} = Weak.inverse
 
 -- Contractible sets are isomorphic to ⊤.
 
-contractible↔⊤ : {A : Set} → Contractible A → A ↔ ⊤
+contractible↔⊤ : {A : Set} → Contractible A → A ↔ ⊤ {ℓ = zero}
 contractible↔⊤ c = record
   { surjection = record
     { equivalence = record

@@ -8,7 +8,7 @@
 open import Equality
 
 module Equality.Groupoid
-  {reflexive} (eq : Equality-with-J reflexive) where
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
 import Equality.Tactic as Tactic; open Tactic eq
@@ -19,13 +19,13 @@ open import Prelude hiding (id; _∘_)
 
 -- Using _≡_ as the underlying equality.
 
-record Groupoid ℓ : Set (suc ℓ) where
+record Groupoid o p : Set (suc (o ⊔ p)) where
   infix  8 _⁻¹
   infixr 7 _∘_
   infix  4 _∼_
   field
-    Object : Set ℓ
-    _∼_    : Object → Object → Set
+    Object : Set o
+    _∼_    : Object → Object → Set p
 
     id  : ∀ {x} → x ∼ x
     _∘_ : ∀ {x y z} → y ∼ z → x ∼ y → x ∼ z
@@ -67,7 +67,7 @@ record Groupoid ℓ : Set (suc ℓ) where
 ------------------------------------------------------------------------
 -- _≡_ comes with a groupoid structure
 
-groupoid : (A : Set) → Groupoid zero
+groupoid : ∀ {a} (A : Set a) → Groupoid a a
 groupoid A = record
   { Object = A
   ; _∼_    = _≡_
@@ -115,7 +115,7 @@ groupoid A = record
 -- based on a result from homotopy theory.
 
 module Transitivity-commutative
-  {A : Set} (e : A) (_∙_ : A → A → A)
+  {a} {A : Set a} (e : A) (_∙_ : A → A → A)
   (left-identity  : ∀ x → e ∙ x ≡ x)
   (right-identity : ∀ x → x ∙ e ≡ x)
   where
@@ -235,21 +235,21 @@ module Transitivity-commutative
 
 mutual
 
-  Ω : ℕ → (X : Set) → X → Set
+  Ω : ℕ → ∀ {x} (X : Set x) → X → Set x
   Ω zero    X x = X
   Ω (suc n) X x = Ω-elem n x ≡ Ω-elem n x
 
-  Ω-elem : ∀ n {X} (x : X) → Ω n X x
+  Ω-elem : ∀ n {x} {X : Set x} (x : X) → Ω n X x
   Ω-elem zero    x = x
   Ω-elem (suc n) x = refl (Ω-elem n x)
 
-Ω[2+n]-commutative : ∀ {X} {x : X} {n} →
+Ω[2+n]-commutative : ∀ {ℓ} {X : Set ℓ} {x : X} {n} →
   let open Groupoid (groupoid (Ω (2 + n) X x)) in
-  ∀ p q → p ∘ q ≡ q ∘ p
-Ω[2+n]-commutative p q =
+  (p q : Ω (3 + n) X x) → p ∘ q ≡ q ∘ p
+Ω[2+n]-commutative {X = X} {x} {n} p q =
   Transitivity-commutative.commutative
     id _∘_ left-identity right-identity p q
-  where open Groupoid (groupoid _)
+  where open Groupoid (groupoid (Ω (1 + n) X x))
 
 ------------------------------------------------------------------------
 -- More lemmas
@@ -259,7 +259,7 @@ abstract
   -- A fusion law for subst.
 
   subst-subst :
-    {A : Set} (P : A → Set)
+    ∀ {a p} {A : Set a} (P : A → Set p)
     {x y z : A} (x≡y : x ≡ y) (y≡z : y ≡ z) (p : P x) →
     subst P y≡z (subst P x≡y p) ≡ subst P (trans x≡y y≡z) p
   subst-subst P x≡y y≡z p =
@@ -277,11 +277,12 @@ abstract
   -- Substitutivity and symmetry sometimes cancel each other out.
 
   subst-subst-sym :
-    {A : Set} (P : A → Set) {x y : A} (x≡y : x ≡ y) (p : P y) →
+    ∀ {a p} {A : Set a} (P : A → Set p) {x y : A}
+    (x≡y : x ≡ y) (p : P y) →
     subst P x≡y (subst P (sym x≡y) p) ≡ p
-  subst-subst-sym P {y = y} x≡y p =
+  subst-subst-sym {A = A} P {y = y} x≡y p =
     subst P x≡y (subst P (sym x≡y) p)  ≡⟨ subst-subst P _ _ _ ⟩
     subst P (trans (sym x≡y) x≡y) p    ≡⟨ cong (λ q → subst P q p) $
-                                               Groupoid.right-inverse (groupoid _) x≡y ⟩
+                                               Groupoid.right-inverse (groupoid A) x≡y ⟩
     subst P (refl y) p                 ≡⟨ subst-refl P p ⟩∎
     p                                  ∎

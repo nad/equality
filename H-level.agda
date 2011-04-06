@@ -2,7 +2,7 @@
 -- H-levels
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.
@@ -10,7 +10,7 @@
 open import Equality
 
 module H-level
-  {reflexive} (eq : Equality-with-J reflexive) where
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 import Bijection; open Bijection eq hiding (id; _∘_)
 open Derived-definitions-and-properties eq
@@ -18,7 +18,7 @@ private
   module DUIP where
     import Equality.Decidable-UIP as DUIP; open DUIP eq public
 import Equality.Groupoid as EG
-private module G {A : Set} = EG.Groupoid eq (EG.groupoid eq A)
+private module G {a} {A : Set a} = EG.Groupoid eq (EG.groupoid eq A)
 import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence hiding (id; _∘_)
 open import Prelude
@@ -29,16 +29,16 @@ import Surjection; open Surjection eq hiding (id; _∘_)
 
 -- H-levels ("homotopy levels").
 
-H-level : ℕ → Set → Set
+H-level : ℕ → ∀ {ℓ} → Set ℓ → Set ℓ
 H-level zero    A = Contractible A
 H-level (suc n) A = (x y : A) → H-level n (x ≡ y)
 
 -- Some named levels.
 
-Propositional : Set → Set
+Propositional : ∀ {ℓ} → Set ℓ → Set ℓ
 Propositional = H-level 1
 
-Is-set : Set → Set
+Is-set : ∀ {ℓ} → Set ℓ → Set ℓ
 Is-set = H-level 2
 
 ------------------------------------------------------------------------
@@ -48,7 +48,7 @@ abstract
 
   -- H-level is upwards closed in its first argument.
 
-  mono₁ : ∀ {A} n → H-level n A → H-level (1 + n) A
+  mono₁ : ∀ {a} {A : Set a} n → H-level n A → H-level (1 + n) A
   mono₁ (suc n) h x y = mono₁ n (h x y)
   mono₁ zero    h x y = (trivial x y , irr)
     where
@@ -62,28 +62,28 @@ abstract
     irr = elim (λ {x y} x≡y → trivial x y ≡ x≡y)
                (λ x → G.right-inverse (proj₂ h x))
 
-  mono : ∀ {A m n} → m ≤ n → H-level m A → H-level n A
+  mono : ∀ {a m n} {A : Set a} → m ≤ n → H-level m A → H-level n A
   mono ≤-refl               = id
-  mono (≤-step {n = n} m≤n) = mono₁ n ∘ mono m≤n
+  mono (≤-step {n = n} m≤n) = λ h → mono₁ n (mono m≤n h)
 
   -- If something is contractible given the assumption that it is
   -- inhabited, then it is propositional.
 
   [inhabited⇒contractible]⇒propositional :
-    {A : Set} → (A → Contractible A) → Propositional A
+    ∀ {a} {A : Set a} → (A → Contractible A) → Propositional A
   [inhabited⇒contractible]⇒propositional h x = mono₁ 0 (h x) x
 
   -- If something has h-level (1 + n) given the assumption that it is
   -- inhabited, then it has h-level (1 + n)
 
   [inhabited⇒+]⇒+ :
-    ∀ {A} n → (A → H-level (1 + n) A) → H-level (1 + n) A
+    ∀ {a} {A : Set a} n → (A → H-level (1 + n) A) → H-level (1 + n) A
   [inhabited⇒+]⇒+ n h x = h x x
 
   -- Being propositional is equivalent to having at most one element.
 
   propositional⇔irrelevant :
-    {A : Set} → Propositional A ⇔ Proof-irrelevant A
+    ∀ {a} {A : Set a} → Propositional A ⇔ Proof-irrelevant A
   propositional⇔irrelevant {A} = record
     { to   = λ h x y → proj₁ (h x y)
     ; from = λ irr →
@@ -95,8 +95,9 @@ abstract
   -- prove (inside Agda) that there is any type whose minimal h-level
   -- is at least three.
 
-  set⇔UIP : {A : Set} → Is-set A ⇔ Uniqueness-of-identity-proofs A
-  set⇔UIP {A} = record
+  set⇔UIP : ∀ {a} {A : Set a} →
+            Is-set A ⇔ Uniqueness-of-identity-proofs A
+  set⇔UIP {A = A} = record
     { to   = λ h {x} {y} x≡y x≡y′ → proj₁ (h x y x≡y x≡y′)
     ; from = λ UIP x y →
         [inhabited⇒contractible]⇒propositional (λ x≡y → (x≡y , UIP x≡y))
@@ -104,13 +105,16 @@ abstract
 
   -- Types with decidable equality are sets.
 
-  decidable⇒set : {A : Set} → Decidable (_≡_ {A = A}) → Is-set A
-  decidable⇒set dec = _⇔_.from set⇔UIP (DUIP.decidable⇒UIP dec)
+  decidable⇒set : ∀ {a} {A : Set a} → Decidable-equality A → Is-set A
+  decidable⇒set {A = A} dec =
+    _⇔_.from {To = Uniqueness-of-identity-proofs A}
+             set⇔UIP (DUIP.decidable⇒UIP dec)
 
 -- H-level n respects surjections.
 
 respects-surjection :
-  ∀ {A B} → A ↠ B → ∀ n → H-level n A → H-level n B
+  ∀ {a b} {A : Set a} {B : Set b} →
+  A ↠ B → ∀ n → H-level n A → H-level n B
 respects-surjection A↠B zero (x , irr) = (to x , irr′)
   where
   open _↠_ A↠B
@@ -128,7 +132,8 @@ respects-surjection A↠B (suc n) h = λ x y →
 -- All contractible types are isomorphic.
 
 contractible-isomorphic :
-  ∀ {A B} → Contractible A → Contractible B → A ↔ B
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Contractible A → Contractible B → A ↔ B
 contractible-isomorphic {A} {B} cA cB = record
   { surjection = record
     { equivalence = record

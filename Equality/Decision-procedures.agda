@@ -2,12 +2,12 @@
 -- Some decision procedures for equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 open import Equality
 
 module Equality.Decision-procedures
-  {reflexive} (eq : Equality-with-J reflexive) where
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
 open import Prelude hiding (module Bool; module ℕ)
@@ -72,34 +72,32 @@ module ℕ where
 ------------------------------------------------------------------------
 -- Binary sums
 
-module ⊎ where
+module ⊎ {a b} {A : Set a} {B : Set b} where
 
   abstract
 
     -- The values inj₁ x and inj₂ y are never equal.
 
-    inj₁≢inj₂ : {A B : Set} {x : A} {y : B} → inj₁ x ≢ inj₂ y
-    inj₁≢inj₂ = Bool.true≢false ∘ cong [ const true , const false ]
+    inj₁≢inj₂ : {x : A} {y : B} → inj₁ x ≢ inj₂ y
+    inj₁≢inj₂ = Bool.true≢false ∘
+                cong {A = A ⊎ B} {B = Bool} [ const true , const false ]
 
   -- The inj₁ and inj₂ constructors are cancellative.
 
-  cancel-inj₁ : {A B : Set} {x y : A} →
-                _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y) → x ≡ y
-  cancel-inj₁ {x = x} = cong [ id , const x ]
+  cancel-inj₁ : {x y : A} → _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y) → x ≡ y
+  cancel-inj₁ {x = x} = cong {A = A ⊎ B} {B = A} [ id , const x ]
 
-  cancel-inj₂ : {A B : Set} {x y : B} →
-                _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y) → x ≡ y
-  cancel-inj₂ {x = x} = cong [ const x , id ]
+  cancel-inj₂ : {x y : B} → _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y) → x ≡ y
+  cancel-inj₂ {x = x} = cong {A = A ⊎ B} {B = B} [ const x , id ]
 
   -- _⊎_ preserves decidability of equality.
 
-  module Dec {A B : Set}
-             (_≟A_ : Decidable-equality A)
+  module Dec (_≟A_ : Decidable-equality A)
              (_≟B_ : Decidable-equality B) where
 
     _≟_ : Decidable-equality (A ⊎ B)
-    inj₁ x ≟ inj₁ y = ⊎-map (cong inj₁) (λ x≢y → x≢y ∘ cancel-inj₁) (x ≟A y)
-    inj₂ x ≟ inj₂ y = ⊎-map (cong inj₂) (λ x≢y → x≢y ∘ cancel-inj₂) (x ≟B y)
+    inj₁ x ≟ inj₁ y = ⊎-map (cong (inj₁ {B = B})) (λ x≢y → x≢y ∘ cancel-inj₁) (x ≟A y)
+    inj₂ x ≟ inj₂ y = ⊎-map (cong (inj₂ {A = A})) (λ x≢y → x≢y ∘ cancel-inj₂) (x ≟B y)
     inj₁ x ≟ inj₂ y = inj₂ inj₁≢inj₂
     inj₂ x ≟ inj₁ y = inj₂ (inj₁≢inj₂ ∘ sym)
 

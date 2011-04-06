@@ -2,12 +2,12 @@
 -- Bijections
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --universe-polymorphism #-}
 
 open import Equality
 
 module Bijection
-  {reflexive} (eq : Equality-with-J reflexive) where
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
 import Equivalence
@@ -23,7 +23,7 @@ open Surjection using (_↠_; module _↠_)
 
 infix 0 _↔_
 
-record _↔_ (From To : Set) : Set where
+record _↔_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
   field
     surjection : From ↠ To
 
@@ -60,13 +60,13 @@ record _↔_ (From To : Set) : Set where
 
 -- _↔_ is an equivalence relation.
 
-id : ∀ {A} → A ↔ A
+id : ∀ {a} {A : Set a} → A ↔ A
 id = record
   { surjection      = Surjection.id
   ; left-inverse-of = refl
   }
 
-inverse : ∀ {A B} → A ↔ B → B ↔ A
+inverse : ∀ {a b} {A : Set a} {B : Set b} → A ↔ B → B ↔ A
 inverse A↔B = record
   { surjection = record
     { equivalence      = Equivalence.inverse equivalence
@@ -77,7 +77,8 @@ inverse A↔B = record
 
 infixr 9 _∘_
 
-_∘_ : ∀ {A B C} → B ↔ C → A ↔ B → A ↔ C
+_∘_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+      B ↔ C → A ↔ B → A ↔ C
 f ∘ g = record
   { surjection      = Surjection._∘_ (surjection f) (surjection g)
   ; left-inverse-of = from∘to
@@ -96,10 +97,11 @@ f ∘ g = record
 infix  0 finally-↔
 infixr 0 _↔⟨_⟩_
 
-_↔⟨_⟩_ : ∀ A {B C} → A ↔ B → B ↔ C → A ↔ C
+_↔⟨_⟩_ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
+         A ↔ B → B ↔ C → A ↔ C
 _ ↔⟨ A↔B ⟩ B↔C = B↔C ∘ A↔B
 
-finally-↔ : ∀ A B → A ↔ B → A ↔ B
+finally-↔ : ∀ {a b} (A : Set a) (B : Set b) → A ↔ B → A ↔ B
 finally-↔ _ _ A↔B = A↔B
 
 syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
