@@ -37,7 +37,7 @@ private
   module Preimage where
     import Preimage; open Preimage eq public
 open Preimage using (_⁻¹_)
-open import Prelude hiding (id) renaming (_∘_ to _⊚_)
+open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 private
   module Surjection where
     import Surjection; open Surjection eq public
@@ -114,6 +114,43 @@ abstract
                         (proj₂ q))                              ≡⟨ cong (λ eq → proj₁ q , trans eq (proj₂ q)) $ G.left-inverse _ ⟩
        (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ prove (Trans Refl q₂) q₂ (refl _) ⟩∎
        q                                                        ∎)
+
+  -- If Σ-map id f is a weak equivalence, then f is also a weak
+  -- equivalence.
+
+  drop-Σ-map-id :
+    ∀ {a b} {A : Set a} {B C : A → Set b} (f : ∀ {x} → B x → C x) →
+    Is-weak-equivalence (Σ-map P.id f) →
+    ∀ x → Is-weak-equivalence (f {x = x})
+  drop-Σ-map-id {B = B} {C} f weq x z =
+    H-level.respects-surjection surj 0 (weq (x , z))
+    where
+    to-P : ∀ {x y} {p : ∃ C} → (x , f y) ≡ p → Set _
+    to-P {y = y} {p} _ = ∃ λ y′ → f y′ ≡ proj₂ p
+
+    to : Σ-map P.id f ⁻¹ (x , z) → f ⁻¹ z
+    to ((x′ , y) , eq) = elim¹ to-P (y , refl (f y)) eq
+
+    from : f ⁻¹ z → Σ-map P.id f ⁻¹ (x , z)
+    from (y , eq) = (x , y) , cong (_,_ x) eq
+
+    to∘from : ∀ p → to (from p) ≡ p
+    to∘from (y , eq) = elim¹
+      (λ {z′} (eq : f y ≡ z′) →
+         _≡_ {A = ∃ λ (y : B x) → f y ≡ z′}
+             (elim¹ to-P (y , refl (f y)) (cong (_,_ x) eq))
+             (y , eq))
+      (elim¹ to-P (y , refl (f y)) (cong (_,_ x) (refl (f y)))  ≡⟨ cong (elim¹ to-P (y , refl (f y))) $
+                                                                        cong-refl (_,_ x) {x = f y} ⟩
+       elim¹ to-P (y , refl (f y)) (refl (x , f y))             ≡⟨ elim¹-refl to-P _ ⟩∎
+       (y , refl (f y))                                         ∎)
+      eq
+
+    surj : Σ-map P.id f ⁻¹ (x , z) ↠ f ⁻¹ z
+    surj = record
+      { equivalence      = record { to = to; from = from }
+      ; right-inverse-of = to∘from
+      }
 
 ------------------------------------------------------------------------
 -- _≈_
@@ -244,6 +281,115 @@ finally-≈ : ∀ {a b} (A : Set a) (B : Set b) → A ≈ B → A ≈ B
 finally-≈ _ _ A≈B = A≈B
 
 syntax finally-≈ A B A≈B = A ≈⟨ A≈B ⟩□ B □
+
+------------------------------------------------------------------------
+-- The two-out-of-three property
+
+-- If two out of three of f, g and g ∘ f are weak equivalences, then
+-- the third is.
+
+record Two-out-of-three
+         {a b c} {A : Set a} {B : Set b} {C : Set c}
+         (f : A → B) (g : B → C) : Set (a ⊔ b ⊔ c) where
+  field
+    f-g   : Is-weak-equivalence f → Is-weak-equivalence g →
+            Is-weak-equivalence (g ⊚ f)
+    g-g∘f : Is-weak-equivalence g → Is-weak-equivalence (g ⊚ f) →
+            Is-weak-equivalence f
+    g∘f-f : Is-weak-equivalence (g ⊚ f) → Is-weak-equivalence f →
+            Is-weak-equivalence g
+
+two-out-of-three :
+  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+  (f : A → B) (g : B → C) → Two-out-of-three f g
+two-out-of-three f g = record
+  { f-g   = λ f-weq g-weq →
+              _≈_.is-weak-equivalence (weq g g-weq ∘ weq f f-weq)
+  ; g-g∘f = λ g-weq g∘f-weq →
+              respects-extensional-equality
+                (λ x → let g⁻¹ = _≈_.from (weq g g-weq) in
+                   g⁻¹ (g (f x))  ≡⟨ _≈_.left-inverse-of (weq g g-weq) (f x) ⟩∎
+                   f x            ∎)
+                (_≈_.is-weak-equivalence
+                   (inverse (weq g g-weq) ∘ weq _ g∘f-weq))
+  ; g∘f-f = λ g∘f-weq f-weq →
+              respects-extensional-equality
+                (λ x → let f⁻¹ = _≈_.from (weq f f-weq) in
+                   g (f (f⁻¹ x))  ≡⟨ cong g (_≈_.right-inverse-of (weq f f-weq) x) ⟩∎
+                   g x            ∎)
+                (_≈_.is-weak-equivalence
+                   (weq _ g∘f-weq ∘ inverse (weq f f-weq)))
+  }
+
+------------------------------------------------------------------------
+-- f ≡ g and ∀ x → f x ≡ g x are isomorphic (assuming extensionality)
+
+abstract
+
+  -- Functions between contractible types are weak equivalences.
+
+  function-between-contractible-types-is-weak-equivalence :
+    ∀ {a b} {A : Set a} {B : Set b} (f : A → B) →
+    Contractible A → Contractible B → Is-weak-equivalence f
+  function-between-contractible-types-is-weak-equivalence f cA cB =
+    Two-out-of-three.g-g∘f
+      (two-out-of-three f (const (tt {ℓ = zero})))
+      (lemma cB)
+      (lemma cA)
+    where
+    -- Functions from a contractible type to the unit type are
+    -- contractible.
+
+    lemma : ∀ {b} {C : Set b} → Contractible C →
+            Is-weak-equivalence (λ (_ : C) → tt)
+    lemma (x , irr) _ = (x , refl tt) , λ p →
+      (x , refl tt)  ≡⟨ _↔_.to Σ-≡,≡↔≡ (irr (proj₁ p) ,
+                          (subst (λ _ → tt ≡ tt)
+                             (irr (proj₁ p)) (refl tt)  ≡⟨ elim (λ eq → subst (λ _ → tt ≡ tt) eq (refl tt) ≡ refl tt)
+                                                                (λ _ → subst-refl (λ _ → tt ≡ tt) (refl tt))
+                                                                (irr (proj₁ p)) ⟩
+                           refl tt                      ≡⟨ elim (λ eq → refl tt ≡ eq) (refl ⊚ refl) (proj₂ p) ⟩∎
+                           proj₂ p                      ∎)) ⟩∎
+      p              ∎
+
+  -- ext⁻¹ is a weak equivalence (assuming extensionality).
+
+  ext⁻¹-is-weak-equivalence :
+    ∀ {a b} {A : Set a} →
+    ({B : A → Set b} → Extensionality A B) →
+    {B : A → Set b} {f g : (x : A) → B x} →
+    Is-weak-equivalence (ext⁻¹ {f = f} {g = g})
+  ext⁻¹-is-weak-equivalence ext {f = f} {g} =
+    drop-Σ-map-id ext⁻¹ lemma₂ f
+    where
+    surj : (∀ x → Singleton (g x)) ↠ (∃ λ f → ∀ x → f x ≡ g x)
+    surj = record
+      { equivalence = record
+        { to   = λ f → proj₁ ⊚ f , proj₂ ⊚ f
+        ; from = λ p x → proj₁ p x , proj₂ p x
+        }
+      ; right-inverse-of = refl
+      }
+
+    lemma₁ : Contractible (∃ λ f → ∀ x → f x ≡ g x)
+    lemma₁ =
+      H-level.respects-surjection surj 0 $
+        _⇔_.from Π-closure-contractible⇔extensionality
+          ext (singleton-contractible ⊚ g)
+
+    lemma₂ : Is-weak-equivalence (Σ-map P.id ext⁻¹)
+    lemma₂ = function-between-contractible-types-is-weak-equivalence _
+               (singleton-contractible g) lemma₁
+
+-- f ≡ g and ∀ x → f x ≡ g x are isomorphic (assuming extensionality).
+
+extensionality-isomorphism :
+  ∀ {a b} {A : Set a} →
+  ({B : A → Set b} → Extensionality A B) →
+  {B : A → Set b} {f g : (x : A) → B x} →
+  (∀ x → f x ≡ g x) ≈ (f ≡ g)
+extensionality-isomorphism ext =
+  inverse (weq _ (ext⁻¹-is-weak-equivalence ext))
 
 ------------------------------------------------------------------------
 -- Groupoid

@@ -137,6 +137,16 @@ abstract
     ext′ = to (from ext)
       where open _⇔_ Π-closure-contractible⇔extensionality
 
+-- A potential inverse of extensionality. (See Weak-equivalence for a
+-- proof which shows that this function has an inverse, assuming
+-- extensionality.)
+
+ext⁻¹ : ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
+        f ≡ g → (∀ x → f x ≡ g x)
+ext⁻¹ f≡g = λ x → cong (λ h → h x) f≡g
+
+abstract
+
   -- Given extensionality there is a surjection from ∀ x → f x ≡ g x
   -- to f ≡ g.
 
@@ -147,14 +157,14 @@ abstract
   ext-surj {b = b} {A} ext {f} {g} = record
     { equivalence = record
       { to   = to
-      ; from = from
+      ; from = ext⁻¹
       }
     ; right-inverse-of =
-        elim (λ {f g} f≡g → to (from f≡g) ≡ f≡g) λ h →
-          proj₁ ext′ (from (refl h))  ≡⟨ cong (proj₁ ext′) (proj₁ ext′ λ x →
-                                           cong-refl (λ h → h x) {x = h}) ⟩
-          proj₁ ext′ (refl ∘ h)       ≡⟨ proj₂ ext′ h ⟩∎
-          refl h                      ∎
+        elim (λ {f g} f≡g → to (ext⁻¹ f≡g) ≡ f≡g) λ h →
+          proj₁ ext′ (ext⁻¹ (refl h))  ≡⟨ cong (proj₁ ext′) (proj₁ ext′ λ x →
+                                            cong-refl (λ h → h x) {x = h}) ⟩
+          proj₁ ext′ (refl ∘ h)        ≡⟨ proj₂ ext′ h ⟩∎
+          refl h                       ∎
     }
     where
     ext′ : {B : A → Set b} → Well-behaved-extensionality A B
@@ -162,9 +172,6 @@ abstract
 
     to : ∀ {f g} → (∀ x → f x ≡ g x) → f ≡ g
     to = proj₁ ext′
-
-    from : ∀ {f g} → f ≡ g → (∀ x → f x ≡ g x)
-    from f≡g x = cong (λ h → h x) f≡g
 
   -- H-level is closed under Π A, assuming extensionality for
   -- functions from A.
