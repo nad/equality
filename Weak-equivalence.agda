@@ -286,7 +286,7 @@ syntax finally-≈ A B A≈B = A ≈⟨ A≈B ⟩□ B □
 -- The two-out-of-three property
 
 -- If two out of three of f, g and g ∘ f are weak equivalences, then
--- the third is.
+-- the third one is also a weak equivalence.
 
 record Two-out-of-three
          {a b c} {A : Set a} {B : Set b} {C : Set c}
