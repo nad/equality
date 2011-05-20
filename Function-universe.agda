@@ -408,7 +408,7 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- ⊤ is a left and right identity of _×_ and Σ.
 
-Σ-left-identity : {A : ⊤ → Set} → Σ ⊤ A ↔ A tt
+Σ-left-identity : {A : ⊤ {ℓ = zero} → Set} → Σ ⊤ A ↔ A tt
 Σ-left-identity = record
   { surjection = record
     { equivalence = record
@@ -609,7 +609,7 @@ private
 -- The natural numbers are isomorphic to the natural numbers extended
 -- with another element.
 
-ℕ↔ℕ⊎⊤ : ℕ ↔ ℕ ⊎ ⊤
+ℕ↔ℕ⊎⊤ : ℕ ↔ ℕ ⊎ ⊤ {ℓ = zero}
 ℕ↔ℕ⊎⊤ = record
   { surjection = record
     { equivalence = record
