@@ -52,14 +52,27 @@ Univalence-axiom ℓ = {A B : Set ℓ} → Univalence-axiom′ A B
 ------------------------------------------------------------------------
 -- A consequence: Set is not a set
 
+-- The univalence axiom implies that Set is not a set. (This was
+-- pointed out to me by Thierry Coquand.)
+
 abstract
 
-  -- The univalence axiom implies that Set is not a set. (This was
-  -- pointed out to me by Thierry Coquand.)
+  -- First a lemma: Some equality types have more than one inhabitant
+  -- (assuming univalence).
 
-  ¬-Set-set : Univalence-axiom′ Bool Bool → ¬ Is-set Set
-  ¬-Set-set univ is-set = Bool.true≢false $ cong (λ f → f true) id≡not
+  equality-can-have-more-than-one-inhabitant :
+    Univalence-axiom′ Bool Bool →
+    ∃ λ (A : Set) → ∃ λ (B : Set) →
+    ∃ λ (p₁ : A ≡ B) → ∃ λ (p₂ : A ≡ B) → p₁ ≢ p₂
+  equality-can-have-more-than-one-inhabitant univ =
+    (Bool , Bool , cast p₁ , cast p₂ , cast-p₁≢cast-p₂)
     where
+    cast : Bool ≈ Bool → Bool ≡ Bool
+    cast = _≈_.from (≡≈≈ univ)
+
+    p₁ : Bool ≈ Bool
+    p₁ = Weak.id
+
     not : Bool → Bool
     not b = if b then false else true
 
@@ -76,18 +89,28 @@ abstract
       ; left-inverse-of = not∘not
       }
 
-    Bool≈Bool : Bool ≈ Bool
-    Bool≈Bool = bijection⇒weak-equivalence Bool↔Bool
+    p₂ : Bool ≈ Bool
+    p₂ = bijection⇒weak-equivalence Bool↔Bool
 
-    id≡not : id ≡ not
-    id≡not =
-      id                            ≡⟨ cong _≈_.to $ sym $ elim-refl (λ {A B} _ → A ≈ B) _ ⟩
-      _≈_.to (≡⇒≈ (refl Bool))      ≡⟨ refl _ ⟩
-      _≈_.to (to (refl Bool))       ≡⟨ cong (_≈_.to ∘ to) $ proj₁ $ is-set _ _ _ _ ⟩
-      _≈_.to (to (from Bool≈Bool))  ≡⟨ cong _≈_.to $ right-inverse-of Bool≈Bool ⟩
-      _≈_.to Bool≈Bool              ≡⟨ refl not ⟩∎
-      not                           ∎
-      where open _≈_ (≡≈≈ univ)
+    p₁≢p₂ : p₁ ≢ p₂
+    p₁≢p₂ p₁≡p₂ =
+      Bool.true≢false $
+      cong (λ f → f true) $
+      cong _≈_.to p₁≡p₂
+
+    cast-p₁≢cast-p₂ : cast p₁ ≢ cast p₂
+    cast-p₁≢cast-p₂ cast-p₁≡cast-p₂ = p₁≢p₂ $
+      p₁             ≡⟨ sym $ _≈_.right-inverse-of (≡≈≈ univ) p₁ ⟩
+      ≡⇒≈ (cast p₁)  ≡⟨ cong ≡⇒≈ cast-p₁≡cast-p₂ ⟩
+      ≡⇒≈ (cast p₂)  ≡⟨ _≈_.right-inverse-of (≡≈≈ univ) p₂ ⟩∎
+      p₂             ∎
+
+  -- Set is not a set.
+
+  ¬-Set-set : Univalence-axiom′ Bool Bool → ¬ Is-set Set
+  ¬-Set-set univ is-set
+    with equality-can-have-more-than-one-inhabitant univ
+  ... | (A , B , p₁ , p₂ , p₁≢p₂) = p₁≢p₂ $ proj₁ $ is-set A B p₁ p₂
 
 ------------------------------------------------------------------------
 -- A consequence: extensionality for functions
