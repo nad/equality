@@ -155,7 +155,7 @@ f $ x = f x
 
 -- Constant functions.
 
-const : ∀ {a b} {A : Set a} {B : Set b} → A → B → A
+const : ∀ {a b} {A : Set a} {B : Set b} → A → (B → A)
 const x = λ _ → x
 
 -- Flips the first two arguments.
