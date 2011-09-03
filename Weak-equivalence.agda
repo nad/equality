@@ -424,22 +424,12 @@ abstract
                       (propositional ext f) f-weq g-weq))
          (ext f≡g) f-weq g-weq
 
-{- The definition below is commented out because it takes too long to
-   type check (on my current machine). It checked a lot faster when
-   some key definitions in Equality were abstract, but I want these
-   definitions to unfold automatically.
+-- _≈_ comes with a groupoid structure (assuming extensionality).
 
--- _≈_ comes with a groupoid structure (for Set₀ and assuming
--- extensionality).
---
--- Note that, at the time of writing (and on a particular system), the
--- following proof takes about three times as long to type-check as
--- the rest of the development.
-
-groupoid : ({A : Set} {B : A → Set} → Extensionality A B) →
-           Groupoid (suc zero)
-groupoid ext = record
-  { Object         = Set
+groupoid : (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
+           ∀ {ℓ} → Groupoid (lsuc ℓ) ℓ
+groupoid ext {ℓ} = record
+  { Object         = Set ℓ
   ; _∼_            = _≈_
   ; id             = id
   ; _∘_            = _∘_
@@ -452,23 +442,21 @@ groupoid ext = record
   }
   where
   abstract
-    left-identity : ∀ {X Y} (p : X ≈ Y) → id ∘ p ≡ p
+    left-identity : {X Y : Set ℓ} (p : X ≈ Y) → id ∘ p ≡ p
     left-identity _ = lift-equality ext (λ _ → refl _)
 
-    right-identity : ∀ {X Y} (p : X ≈ Y) → p ∘ id ≡ p
+    right-identity : {X Y : Set ℓ} (p : X ≈ Y) → p ∘ id ≡ p
     right-identity _ = lift-equality ext (λ _ → refl _)
 
-    assoc : ∀ {W X Y Z} (p : Y ≈ Z) (q : X ≈ Y) (r : W ≈ X) →
+    assoc : {W X Y Z : Set ℓ} (p : Y ≈ Z) (q : X ≈ Y) (r : W ≈ X) →
             p ∘ (q ∘ r) ≡ (p ∘ q) ∘ r
     assoc _ _ _ = lift-equality ext (λ _ → refl _)
 
-    left-inverse : ∀ {X Y} (p : X ≈ Y) → inverse p ∘ p ≡ id
+    left-inverse : {X Y : Set ℓ} (p : X ≈ Y) → inverse p ∘ p ≡ id
     left-inverse p = lift-equality ext (_≈_.left-inverse-of p)
 
-    right-inverse : ∀ {X Y} (p : X ≈ Y) → p ∘ inverse p ≡ id
+    right-inverse : {X Y : Set ℓ} (p : X ≈ Y) → p ∘ inverse p ≡ id
     right-inverse p = lift-equality ext (_≈_.right-inverse-of p)
-
--}
 
 ------------------------------------------------------------------------
 -- Closure, preservation
