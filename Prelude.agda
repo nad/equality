@@ -13,24 +13,18 @@ module Prelude where
 
 -- Universe levels.
 
-data Level : Set where
-  zero : Level
-  suc  : (i : Level) → Level
-
-{-# BUILTIN LEVEL     Level #-}
-{-# BUILTIN LEVELZERO zero  #-}
-{-# BUILTIN LEVELSUC  suc   #-}
-
--- Maximum.
-
 infixl 6 _⊔_
 
-_⊔_ : Level → Level → Level
-zero  ⊔ j     = j
-suc i ⊔ zero  = suc i
-suc i ⊔ suc j = suc (i ⊔ j)
+postulate
+  Level : Set
+  lzero : Level
+  lsuc  : Level → Level
+  _⊔_   : Level → Level → Level
 
-{-# BUILTIN LEVELMAX _⊔_ #-}
+{-# BUILTIN LEVEL     Level #-}
+{-# BUILTIN LEVELZERO lzero #-}
+{-# BUILTIN LEVELSUC  lsuc  #-}
+{-# BUILTIN LEVELMAX  _⊔_   #-}
 
 -- Lifting.
 

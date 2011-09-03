@@ -49,10 +49,10 @@ abstract
   -- H-level is upwards closed in its first argument.
 
   mono₁ : ∀ {a} {A : Set a} n → H-level n A → H-level (1 + n) A
-  mono₁ (suc n) h x y = mono₁ n (h x y)
-  mono₁ zero    h x y = (trivial x y , irr)
+  mono₁         (suc n) h x y = mono₁ n (h x y)
+  mono₁ {A = A} zero    h x y = (trivial x y , irr)
     where
-    trivial : ∀ x y → x ≡ y
+    trivial : (x y : A) → x ≡ y
     trivial x y =
       x        ≡⟨ sym $ proj₂ h x ⟩
       proj₁ h  ≡⟨ proj₂ h y ⟩∎
@@ -120,6 +120,7 @@ respects-surjection A↠B zero (x , irr) = (to x , irr′)
   open _↠_ A↠B
 
   abstract
+    irr′ : ∀ y → to x ≡ y
     irr′ = λ y →
       to x         ≡⟨ cong to (irr (from y)) ⟩
       to (from y)  ≡⟨ right-inverse-of y ⟩∎

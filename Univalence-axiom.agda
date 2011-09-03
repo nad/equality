@@ -37,10 +37,10 @@ open Weak hiding (_∘_; id)
 
 -- The univalence axiom states that ≡⇒≈ is a weak equivalence.
 
-Univalence-axiom′ : ∀ {ℓ} → Set ℓ → Set ℓ → Set (suc ℓ)
+Univalence-axiom′ : ∀ {ℓ} → Set ℓ → Set ℓ → Set (lsuc ℓ)
 Univalence-axiom′ A B = Is-weak-equivalence (≡⇒≈ {A = A} {B = B})
 
-Univalence-axiom : ∀ ℓ → Set (suc ℓ)
+Univalence-axiom : ∀ ℓ → Set (lsuc ℓ)
 Univalence-axiom ℓ = {A B : Set ℓ} → Univalence-axiom′ A B
 
 -- An immediate consequence is that equalities are weakly equivalent
@@ -256,7 +256,7 @@ abstract
     A→⊤≡[x:A]→Bx : (A → ⊤ {ℓ = b}) ≡ ((x : A) → B x)
     A→⊤≡[x:A]→Bx = cong (λ X → (x : A) → X x) const-⊤≡B
 
-    →⊤-contractible : Contractible (A → ⊤)
+    →⊤-contractible : Contractible (A → ⊤ {ℓ = b})
     →⊤-contractible = (_ , λ _ → refl _)
 
   -- Thus we also get extensionality for dependent functions.
@@ -310,7 +310,7 @@ private
 
   isomorphic-equal :
     Univalence-axiom′ (Set ²/≡) Set →
-    Univalence-axiom zero →
+    Univalence-axiom lzero →
     ∀ {M₁ M₂} → Magma-isomorphism M₁ M₂ → M₁ ≡ M₂
   isomorphic-equal univ₁ univ₂ {magma A₁ _∙₁_} {magma A₂ _∙₂_} iso =
     magma A₁ _∙₁_                                  ≡⟨ elim (λ {A₁ A₂} A₁≡A₂ → (f : A₁ → A₁ → A₁) →

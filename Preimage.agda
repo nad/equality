@@ -49,25 +49,28 @@ respects-extensional-equality :
 respects-extensional-equality {f = f} {g} {y} f≡g = record
   { surjection = record
     { equivalence = record
-      { to   = Σ-map id to₂
-      ; from = Σ-map id from₂
+      { to   = to′
+      ; from = from′
       }
     ; right-inverse-of = right-inverse-of
     }
   ; left-inverse-of = left-inverse-of
   }
   where
+  to′ : f ⁻¹ y → g ⁻¹ y
+  to′ (x , fx≡y) = x , (
+    g x  ≡⟨ sym $ f≡g x ⟩
+    f x  ≡⟨ fx≡y ⟩∎
+    y    ∎)
+
+  from′ : g ⁻¹ y → f ⁻¹ y
+  from′ (x , gx≡y) = x , (
+    f x  ≡⟨ f≡g x ⟩
+    g x  ≡⟨ gx≡y ⟩∎
+    y    ∎)
+
   abstract
-    to₂ : ∀ {x} → f x ≡ y → g x ≡ y
-    to₂ {x} fx≡y = g x  ≡⟨ sym $ f≡g x ⟩
-                   f x  ≡⟨ fx≡y ⟩∎
-                   y    ∎
-
-    from₂ : ∀ {x} → g x ≡ y → f x ≡ y
-    from₂ {x} gx≡y = f x  ≡⟨ f≡g x ⟩
-                     g x  ≡⟨ gx≡y ⟩∎
-                     y    ∎
-
+    right-inverse-of : ∀ p → to′ (from′ p) ≡ p
     right-inverse-of = λ g⁻¹y → cong (_,_ (proj₁ g⁻¹y)) (
       let p = f≡g (proj₁ g⁻¹y); q = proj₂ g⁻¹y in
       trans (sym p) (trans p q)  ≡⟨ prove (Trans (Sym (Lift p)) (Trans (Lift p) (Lift q)))
@@ -77,6 +80,7 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
       trans (refl _) q           ≡⟨ prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
       q                          ∎)
 
+    left-inverse-of : ∀ p → from′ (to′ p) ≡ p
     left-inverse-of = λ f⁻¹y → cong (_,_ (proj₁ f⁻¹y))
       let p = f≡g (proj₁ f⁻¹y); q = proj₂ f⁻¹y in
       trans p (trans (sym p) q)  ≡⟨ prove (Trans (Lift p) (Trans (Sym (Lift p)) (Lift q)))
@@ -91,7 +95,7 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
 lift-surjection :
   ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) → let open _↠_ A↠B in
   ∀ {y} → (from ∘ to ⁻¹ y) ↠ (from ⁻¹ y)
-lift-surjection A↠B {y} = record
+lift-surjection {A = A} {B} A↠B {y} = record
   { equivalence = record
     { to   = drop-∘
     ; from = add-∘
@@ -129,7 +133,7 @@ lift-surjection A↠B {y} = record
         (to (from x) , trans (cong from (right-inverse-of x)) from-x≡y)  ≡⟨ sym $ lemma (right-inverse-of x) from-x≡y ⟩∎
         (x           , from-x≡y)                                         ∎
       where
-      lemma : ∀ {A B} {x y z} {f : A → B}
+      lemma : ∀ {x y z} {f : B → A}
               (y≡x : y ≡ x) (p : f x ≡ z) →
               _≡_ {A = f ⁻¹ z} (x , p) (y , trans (cong f y≡x) p)
       lemma {z = z} {f} = elim

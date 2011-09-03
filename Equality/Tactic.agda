@@ -10,7 +10,7 @@ module Equality.Tactic
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
-open import Prelude hiding (Level; module Level; lift; lower)
+open import Prelude hiding (Level; lift; lower)
 
 ------------------------------------------------------------------------
 -- Boring lemmas
@@ -37,11 +37,11 @@ sym-sym = elim (λ {u v} u≡v → sym (sym u≡v) ≡ u≡v)
 sym-trans : ∀ {a} {A : Set a} {x y z : A}
             (x≡y : x ≡ y) (y≡z : y ≡ z) →
             sym (trans x≡y y≡z) ≡ trans (sym y≡z) (sym x≡y)
-sym-trans =
+sym-trans {a} =
   elim (λ x≡y → ∀ y≡z → sym (trans x≡y y≡z) ≡ trans (sym y≡z) (sym x≡y))
        (λ y y≡z → sym (trans (refl y) y≡z)        ≡⟨ cong sym (trans-reflˡ y≡z) ⟩
                   sym y≡z                         ≡⟨ sym $ trans-reflʳ (sym y≡z) ⟩
-                  trans (sym y≡z) (refl y)        ≡⟨ cong (trans (sym y≡z)) (sym sym-refl)  ⟩∎
+                  trans (sym y≡z) (refl y)        ≡⟨ cong {a = a} {b = a} (trans (sym y≡z)) (sym sym-refl)  ⟩∎
                   trans (sym y≡z) (sym (refl y))  ∎)
 
 cong-id : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
@@ -99,7 +99,7 @@ trans-assoc =
 -- Note that the presence of the Refl constructor means that Eq is a
 -- definition of equality with a concrete, evaluating eliminator.
 
-data Eq {a} {A : Set a} : A → A → Set (suc a) where
+data Eq {a} {A : Set a} : A → A → Set (lsuc a) where
   Lift  : ∀ {x y} (x≡y : x ≡ y) → Eq x y
   Refl  : ∀ {x} → Eq x x
   Sym   : ∀ {x y} (x≈y : Eq x y) → Eq y x
@@ -144,27 +144,27 @@ private
   -- Bottom layer: a single use of congruence applied to an actual
   -- equality.
 
-  data EqS-lower {a} {A : Set a} : A → A → Set (suc a) where
+  data EqS-lower {a} {A : Set a} : A → A → Set (lsuc a) where
     Cong : {B : Set a} {x y : B} (f : B → A) (x≡y : x ≡ y) →
            EqS-lower (f x) (f y)
 
   -- Middle layer: at most one use of symmetry.
 
-  data EqS-middle {a} {A : Set a} : A → A → Set (suc a) where
+  data EqS-middle {a} {A : Set a} : A → A → Set (lsuc a) where
     No-Sym : ∀ {x y} (x≈y : EqS-lower x y) → EqS-middle x y
     Sym    : ∀ {x y} (x≈y : EqS-lower x y) → EqS-middle y x
 
   -- Uppermost layer: a sequence of equalities, combined using
   -- transitivity and a single use of reflexivity.
 
-  data EqS-upper {a} {A : Set a} : A → A → Set (suc a) where
+  data EqS-upper {a} {A : Set a} : A → A → Set (lsuc a) where
     Refl : ∀ {x} → EqS-upper x x
     Cons : ∀ {x y z} (x≈y : EqS-middle x y) (y≈z : EqS-upper y z) →
            EqS-upper x z
 
   -- Simplified expressions.
 
-  EqS : ∀ {a} {A : Set a} → Level → A → A → Set (suc a)
+  EqS : ∀ {a} {A : Set a} → Level → A → A → Set (lsuc a)
   EqS lower  = EqS-lower
   EqS middle = EqS-middle
   EqS upper  = EqS-upper
@@ -180,7 +180,7 @@ private
 
   -- Simplified expressions which are equivalent to a given proof.
 
-  EqS_⟨_⟩ : Level → ∀ {a} {A : Set a} {x y : A} → x ≡ y → Set (suc a)
+  EqS_⟨_⟩ : Level → ∀ {a} {A : Set a} {x y : A} → x ≡ y → Set (lsuc a)
   EqS ℓ ⟨ x≡y ⟩ = ∃ λ (x≈y : EqS ℓ _ _) → x≡y ≡ ⟦ x≈y ⟧S
 
 ------------------------------------------------------------------------

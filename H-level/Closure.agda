@@ -154,7 +154,7 @@ abstract
              ({B : A → Set b} → Extensionality A B) →
              {B : A → Set b} {f g : (x : A) → B x} →
              (∀ x → f x ≡ g x) ↠ (f ≡ g)
-  ext-surj {b = b} {A} ext {f} {g} = record
+  ext-surj {b = b} {A} ext {B} = record
     { equivalence = record
       { to   = to
       ; from = ext⁻¹
@@ -170,7 +170,7 @@ abstract
     ext′ : {B : A → Set b} → Well-behaved-extensionality A B
     ext′ = extensionality⇒well-behaved-extensionality ext
 
-    to : ∀ {f g} → (∀ x → f x ≡ g x) → f ≡ g
+    to : {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
     to = proj₁ ext′
 
   -- H-level is closed under Π A, assuming extensionality for
@@ -481,18 +481,19 @@ abstract
   cojoin : ∀ {a} {A : Set a} →
            ({B : A → Set a} → Extensionality A B) →
            Contractible A → Contractible (Contractible A)
-  cojoin ext contr = contr₃
+  cojoin {A = A} ext contr = contr₃
     where
+    x : A
     x = proj₁ contr
 
     contr₁ : Contractible (∀ y → x ≡ y)
     contr₁ = Π-closure ext 0 (mono₁ 0 contr x)
 
-    contr₂ : ∀ x → Contractible (∀ y → x ≡ y)
+    contr₂ : (x : A) → Contractible (∀ y → x ≡ y)
     contr₂ x =
       subst (λ x → Contractible (∀ y → x ≡ y)) (proj₂ contr x) contr₁
 
-    contr₃ : Contractible (∃ λ x → ∀ y → x ≡ y)
+    contr₃ : Contractible (∃ λ (x : A) → ∀ y → x ≡ y)
     contr₃ = Σ-closure 0 contr contr₂
 
   -- Contractible is not necessarily contractible.
@@ -557,6 +558,7 @@ abstract
     ; left-inverse-of = [ refl ∘ inj₁ {B = B} , refl ∘ inj₂ {A = A} ]
     }
     where
+    to : A ⊎ B → (∃ λ x → if x then ↑ b A else ↑ a B)
     to = [ _,_ true ∘ lift , _,_ false ∘ lift ]
 
     from : (∃ λ x → if x then ↑ b A else ↑ a B) → A ⊎ B
@@ -750,8 +752,8 @@ abstract
           helper x true  _  _ f≡id =
             cong f (refl x)                                 ≡⟨ prove (Cong f Refl) Refl (refl _) ⟩
             refl (f x)                                      ≡⟨ sym $ G.left-inverse _ ⟩
-            trans (f≡id _) (sym (f≡id _))                   ≡⟨ prove (Trans fx≡x (Sym fx≡x))
-                                                                     (Trans fx≡x (Trans Refl (Sym fx≡x)))
-                                                                     (refl _) ⟩∎
+            trans (f≡id _) (sym (f≡id _))                   ≡⟨ (let fx≡x = Lift (f≡id _) in
+                                                                prove (Trans fx≡x (Sym fx≡x))
+                                                                      (Trans fx≡x (Trans Refl (Sym fx≡x)))
+                                                                      (refl _)) ⟩∎
             trans (f≡id _) (trans (refl x) $ sym (f≡id _))  ∎
-            where fx≡x = Lift (f≡id _)

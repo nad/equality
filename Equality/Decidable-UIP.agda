@@ -60,7 +60,7 @@ abstract
 
   constant⇒UIP :
     ∀ {a} {A : Set a} →
-    (f : ∀ x y → ∃ λ (f : x ≡ y → x ≡ y) → Constant f) →
+    (f : (x y : A) → ∃ λ (f : x ≡ y → x ≡ y) → Constant f) →
     Uniqueness-of-identity-proofs A
   constant⇒UIP constant {x} {y} =
     irrelevant (constant x y)

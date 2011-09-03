@@ -12,7 +12,7 @@ open import Prelude
 ------------------------------------------------------------------------
 -- Reflexive relations
 
-record Reflexive a : Set (suc a) where
+record Reflexive a : Set (lsuc a) where
   infix 4 _≡_
   field
 
@@ -77,7 +77,7 @@ module Reflexive′ (reflexive : ∀ ℓ → Reflexive ℓ) where
 
 record Equality-with-J
          a p (reflexive : ∀ ℓ → Reflexive ℓ) :
-         Set (suc (a ⊔ p)) where
+         Set (lsuc (a ⊔ p)) where
 
   open Reflexive′ reflexive
 
@@ -171,7 +171,7 @@ module Equality-with-J′
 
 record Equality-with-substitutivity-and-contractibility
          a p (reflexive : ∀ ℓ → Reflexive ℓ) :
-         Set (suc (a ⊔ p)) where
+         Set (lsuc (a ⊔ p)) where
 
   open Reflexive′ reflexive
 
@@ -289,11 +289,11 @@ module Equality-with-substitutivity-and-contractibility′
                 (p : ∀ x → P (refl x)) {x} →
                 elim P p (refl x) ≡ p x
     elim-refl P p {x} =
+      let lemma = proj₂ (singleton-contractible x) (x , refl x) in
       subst {A = Singleton x} (P ∘ proj₂) (trans (sym lemma) lemma) (p x)  ≡⟨ cong (λ q → subst {A = Singleton x} (P ∘ proj₂) q (p x))
                                                                                    (trans-sym lemma) ⟩
       subst {A = Singleton x} (P ∘ proj₂) (refl (x , refl x))       (p x)  ≡⟨ subst-refl {A = Singleton x} (P ∘ proj₂) (p x) ⟩∎
       p x                                                                  ∎
-      where lemma = proj₂ (singleton-contractible x) (x , refl x)
 
 ------------------------------------------------------------------------
 -- The two abstract definitions are equivalent
@@ -448,7 +448,7 @@ module Derived-definitions-and-properties
 
   -- The K rule (without computational content).
 
-  K-rule : ∀ a p → Set (suc (a ⊔ p))
+  K-rule : ∀ a p → Set (lsuc (a ⊔ p))
   K-rule a p = {A : Set a} (P : {x : A} → x ≡ x → Set p) →
                (∀ x → P (refl x)) →
                ∀ {x} (x≡x : x ≡ x) → P x≡x

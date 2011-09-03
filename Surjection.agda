@@ -66,6 +66,7 @@ f ∘ g = record
   open _↠_
 
   abstract
+    to∘from : ∀ x → to f (to g (from g (from f x))) ≡ x
     to∘from = λ x →
       to f (to g (from g (from f x)))  ≡⟨ cong (to f) (right-inverse-of g (from f x)) ⟩
       to f (from f x)                  ≡⟨ right-inverse-of f x ⟩∎
@@ -94,15 +95,22 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
          (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
 ∃-cong {B₁ = B₁} {B₂} B₁↠B₂ = record
   { equivalence = record
-    { to   = Σ-map P.id (to (B₁↠B₂ _))
-    ; from = Σ-map P.id (from (B₁↠B₂ _))
+    { to   = to′
+    ; from = from′
     }
   ; right-inverse-of = right-inverse-of′
   }
   where
   open _↠_
 
+  to′ : ∃ B₁ → ∃ B₂
+  to′ = Σ-map P.id (to (B₁↠B₂ _))
+
+  from′ : ∃ B₂ → ∃ B₁
+  from′ = Σ-map P.id (from (B₁↠B₂ _))
+
   abstract
+    right-inverse-of′ : ∀ p → to′ (from′ p) ≡ p
     right-inverse-of′ = λ p →
       cong (_,_ (proj₁ p)) (right-inverse-of (B₁↠B₂ (proj₁ p)) _)
 
@@ -113,18 +121,22 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 ↠-≡ A↠B {x} {y} = record
   { equivalence = record
     { from = cong from
-    ; to   = λ from-x≡from-y →
-               x            ≡⟨ sym $ right-inverse-of _ ⟩
-               to (from x)  ≡⟨ cong to from-x≡from-y ⟩
-               to (from y)  ≡⟨ right-inverse-of _ ⟩∎
-               y            ∎
+    ; to   = to′
     }
   ; right-inverse-of = right-inverse-of′
   }
   where
   open _↠_ A↠B
 
+  to′ : from x ≡ from y → x ≡ y
+  to′ = λ from-x≡from-y →
+    x            ≡⟨ sym $ right-inverse-of _ ⟩
+    to (from x)  ≡⟨ cong to from-x≡from-y ⟩
+    to (from y)  ≡⟨ right-inverse-of _ ⟩∎
+    y            ∎
+
   abstract
+    right-inverse-of′ : ∀ p → to′ (cong from p) ≡ p
     right-inverse-of′ = elim
       (λ {x y} x≡y → trans (sym (right-inverse-of x)) (
                        trans (cong to (cong from x≡y)) (

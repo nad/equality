@@ -176,7 +176,7 @@ inverse {weak-equivalence} = Weak.inverse
 
 -- Contractible sets are isomorphic to ⊤.
 
-contractible↔⊤ : {A : Set} → Contractible A → A ↔ ⊤ {ℓ = zero}
+contractible↔⊤ : {A : Set} → Contractible A → A ↔ ⊤ {ℓ = lzero}
 contractible↔⊤ c = record
   { surjection = record
     { equivalence = record
@@ -330,13 +330,14 @@ private
 
   ×-cong-inj : {A₁ A₂ B₁ B₂ : Set} →
                A₁ ↣ A₂ → B₁ ↣ B₂ → A₁ × B₁ ↣ A₂ × B₂
-  ×-cong-inj A₁↣A₂ B₁↣B₂ = record
+  ×-cong-inj {A₁} {A₂} {B₁} {B₂} A₁↣A₂ B₁↣B₂ = record
     { to        = to′
     ; injective = injective′
     }
     where
     open _↣_
 
+    to′ : A₁ × B₁ → A₂ × B₂
     to′ = Σ-map (to A₁↣A₂) (to B₁↣B₂)
 
     abstract
@@ -408,7 +409,7 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- ⊤ is a left and right identity of _×_ and Σ.
 
-Σ-left-identity : {A : ⊤ {ℓ = zero} → Set} → Σ ⊤ A ↔ A tt
+Σ-left-identity : {A : ⊤ {ℓ = lzero} → Set} → Σ ⊤ A ↔ A tt
 Σ-left-identity = record
   { surjection = record
     { equivalence = record
@@ -609,7 +610,7 @@ private
 -- The natural numbers are isomorphic to the natural numbers extended
 -- with another element.
 
-ℕ↔ℕ⊎⊤ : ℕ ↔ ℕ ⊎ ⊤ {ℓ = zero}
+ℕ↔ℕ⊎⊤ : ℕ ↔ ℕ ⊎ ⊤ {ℓ = lzero}
 ℕ↔ℕ⊎⊤ = record
   { surjection = record
     { equivalence = record
@@ -714,12 +715,12 @@ Well-behaved f =
       g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ with inspect (from f (inj₁ a′))
       g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ | inj₁ a″ with-≡ eq₄ = ⊥-elim $ from-hyp eq₃ eq₄
       g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ | inj₂ b′ with-≡ eq₄ = ⊎.cancel-inj₂ (
+        let lemma =
+              inj₁ a′          ≡⟨ sym eq₃ ⟩
+              from f (inj₂ c)  ≡⟨ to-from f eq₂ ⟩∎
+              inj₁ a           ∎
+        in
         inj₂ b′           ≡⟨ sym eq₄ ⟩
         from f (inj₁ a′)  ≡⟨ cong (from f ⊚ inj₁) $ ⊎.cancel-inj₁ lemma ⟩
         from f (inj₁ a)   ≡⟨ to-from f eq₁ ⟩∎
         inj₂ b            ∎)
-        where
-        lemma =
-          inj₁ a′          ≡⟨ sym eq₃ ⟩
-          from f (inj₂ c)  ≡⟨ to-from f eq₂ ⟩∎
-          inj₁ a           ∎
