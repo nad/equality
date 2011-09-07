@@ -106,19 +106,21 @@ data _≤_ (m : ℕ) : ℕ → Set where
   ≤-refl :                       m ≤ m
   ≤-step : ∀ {n} (m≤n : m ≤ n) → m ≤ suc n
 
--- Some lemmas.
+abstract
 
-zero≤ : ∀ n → zero ≤ n
-zero≤ zero    = ≤-refl
-zero≤ (suc n) = ≤-step (zero≤ n)
+  -- Some lemmas.
 
-suc≤suc : ∀ {m n} → m ≤ n → suc m ≤ suc n
-suc≤suc ≤-refl       = ≤-refl
-suc≤suc (≤-step m≤n) = ≤-step (suc≤suc m≤n)
+  zero≤ : ∀ n → zero ≤ n
+  zero≤ zero    = ≤-refl
+  zero≤ (suc n) = ≤-step (zero≤ n)
 
-m≤m+n : ∀ m n → m ≤ m + n
-m≤m+n zero    n = zero≤ n
-m≤m+n (suc m) n = suc≤suc (m≤m+n m n)
+  suc≤suc : ∀ {m n} → m ≤ n → suc m ≤ suc n
+  suc≤suc ≤-refl       = ≤-refl
+  suc≤suc (≤-step m≤n) = ≤-step (suc≤suc m≤n)
+
+  m≤m+n : ∀ m n → m ≤ m + n
+  m≤m+n zero    n = zero≤ n
+  m≤m+n (suc m) n = suc≤suc (m≤m+n m n)
 
 ------------------------------------------------------------------------
 -- Simple combinators working solely on and with functions
@@ -218,9 +220,11 @@ tail (sup x f) = f
 
 -- If B is always inhabited, then W A B is empty.
 
-inhabited⇒W-empty : ∀ {a b} {A : Set a} {B : A → Set b} →
-                    (∀ x → B x) → ¬ W A B
-inhabited⇒W-empty b (sup x f) = inhabited⇒W-empty b (f (b x))
+abstract
+
+  inhabited⇒W-empty : ∀ {a b} {A : Set a} {B : A → Set b} →
+                      (∀ x → B x) → ¬ W A B
+  inhabited⇒W-empty b (sup x f) = inhabited⇒W-empty b (f (b x))
 
 ------------------------------------------------------------------------
 -- Support for coinduction

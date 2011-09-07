@@ -43,47 +43,51 @@ open Surjection hiding (id; _∘_)
 ------------------------------------------------------------------------
 -- The empty type
 
--- The empty type is not contractible.
+abstract
 
-¬-⊥-contractible : ¬ Contractible ⊥
-¬-⊥-contractible = ⊥-elim ∘ proj₁
+  -- The empty type is not contractible.
 
--- The empty type is propositional.
+  ¬-⊥-contractible : ¬ Contractible ⊥
+  ¬-⊥-contractible = ⊥-elim ∘ proj₁
 
-⊥-propositional : Propositional ⊥
-⊥-propositional =
-  _⇔_.from propositional⇔irrelevant (λ x → ⊥-elim x)
+  -- The empty type is propositional.
 
--- Thus any uninhabited type is also propositional.
+  ⊥-propositional : Propositional ⊥
+  ⊥-propositional =
+    _⇔_.from propositional⇔irrelevant (λ x → ⊥-elim x)
 
-⊥↠uninhabited : ∀ {a} {A : Set a} → ¬ A → ⊥ ↠ A
-⊥↠uninhabited ¬A = record
-  { equivalence = record
-    { to   = ⊥-elim
-    ; from = ¬A
+  -- Thus any uninhabited type is also propositional.
+
+  ⊥↠uninhabited : ∀ {a} {A : Set a} → ¬ A → ⊥ ↠ A
+  ⊥↠uninhabited ¬A = record
+    { equivalence = record
+      { to   = ⊥-elim
+      ; from = ¬A
+      }
+    ; right-inverse-of = ⊥-elim ∘ ¬A
     }
-  ; right-inverse-of = ⊥-elim ∘ ¬A
-  }
 
-uninhabited-propositional : ∀ {a} {A : Set a} →
-                            ¬ A → Propositional A
-uninhabited-propositional ¬A =
-  respects-surjection (⊥↠uninhabited ¬A) 1 ⊥-propositional
+  uninhabited-propositional : ∀ {a} {A : Set a} →
+                              ¬ A → Propositional A
+  uninhabited-propositional ¬A =
+    respects-surjection (⊥↠uninhabited ¬A) 1 ⊥-propositional
 
 ------------------------------------------------------------------------
 -- Booleans
 
--- The booleans are not propositional.
+abstract
 
-¬-Bool-propositional : ¬ Propositional Bool
-¬-Bool-propositional propositional =
-  Bool.true≢false $
-  (_⇔_.to propositional⇔irrelevant propositional) true false
+  -- The booleans are not propositional.
 
--- The booleans form a set.
+  ¬-Bool-propositional : ¬ Propositional Bool
+  ¬-Bool-propositional propositional =
+    Bool.true≢false $
+    (_⇔_.to propositional⇔irrelevant propositional) true false
 
-Bool-set : Is-set Bool
-Bool-set = decidable⇒set Bool._≟_
+  -- The booleans form a set.
+
+  Bool-set : Is-set Bool
+  Bool-set = decidable⇒set Bool._≟_
 
 ------------------------------------------------------------------------
 -- Π-types
@@ -115,21 +119,23 @@ Bool-set = decidable⇒set Bool._≟_
     contractible : Contractible ((x : A) → Singleton (g x))
     contractible = closure (singleton-contractible ∘ g)
 
--- Given (generalised) extensionality one can define an
--- extensionality proof which is well-behaved.
+abstract
 
-extensionality⇒well-behaved-extensionality :
-  ∀ {a b} {A : Set a} →
-  ({B : A → Set b} → Extensionality A B) →
-  {B : A → Set b} → Well-behaved-extensionality A B
-extensionality⇒well-behaved-extensionality {A = A} ext {B} =
-  (λ {_} → ext′) , λ f →
-    ext′ (refl ∘ f)  ≡⟨ G.right-inverse _ ⟩∎
-    refl f           ∎
-  where
-  ext′ : Extensionality A B
-  ext′ = to (from ext)
-    where open _⇔_ Π-closure-contractible⇔extensionality
+  -- Given (generalised) extensionality one can define an
+  -- extensionality proof which is well-behaved.
+
+  extensionality⇒well-behaved-extensionality :
+    ∀ {a b} {A : Set a} →
+    ({B : A → Set b} → Extensionality A B) →
+    {B : A → Set b} → Well-behaved-extensionality A B
+  extensionality⇒well-behaved-extensionality {A = A} ext {B} =
+    (λ {_} → ext′) , λ f →
+      ext′ (refl ∘ f)  ≡⟨ G.right-inverse _ ⟩∎
+      refl f           ∎
+    where
+    ext′ : Extensionality A B
+    ext′ = to (from ext)
+      where open _⇔_ Π-closure-contractible⇔extensionality
 
 -- A potential inverse of extensionality. (See Weak-equivalence for a
 -- proof which shows that this function has an inverse, assuming
@@ -139,71 +145,73 @@ ext⁻¹ : ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
         f ≡ g → (∀ x → f x ≡ g x)
 ext⁻¹ f≡g = λ x → cong (λ h → h x) f≡g
 
--- Given extensionality there is a surjection from ∀ x → f x ≡ g x
--- to f ≡ g.
+abstract
 
-ext-surj : ∀ {a b} {A : Set a} →
-           ({B : A → Set b} → Extensionality A B) →
-           {B : A → Set b} {f g : (x : A) → B x} →
-           (∀ x → f x ≡ g x) ↠ (f ≡ g)
-ext-surj {b = b} {A} ext {B} = record
-  { equivalence = record
-    { to   = to
-    ; from = ext⁻¹
-    }
-  ; right-inverse-of =
-      elim (λ {f g} f≡g → to (ext⁻¹ f≡g) ≡ f≡g) λ h →
-        proj₁ ext′ (ext⁻¹ (refl h))  ≡⟨ cong (proj₁ ext′) (proj₁ ext′ λ x →
-                                          cong-refl (λ h → h x) {x = h}) ⟩
-        proj₁ ext′ (refl ∘ h)        ≡⟨ proj₂ ext′ h ⟩∎
-        refl h                       ∎
-  }
-  where
-  ext′ : {B : A → Set b} → Well-behaved-extensionality A B
-  ext′ = extensionality⇒well-behaved-extensionality ext
+  -- Given extensionality there is a surjection from ∀ x → f x ≡ g x
+  -- to f ≡ g.
 
-  to : {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
-  to = proj₁ ext′
-
--- H-level is closed under Π A, assuming extensionality for
--- functions from A.
-
-Π-closure : ∀ {a b} {A : Set a} →
-            ({B : A → Set b} → Extensionality A B) →
-            ∀ {B : A → Set b} n →
-            (∀ x → H-level n (B x)) → H-level n ((x : A) → B x)
-Π-closure ext zero =
-  _⇔_.from Π-closure-contractible⇔extensionality ext
-Π-closure ext (suc n) = λ h f g →
-  respects-surjection (ext-surj ext) n $
-    Π-closure ext n (λ x → h x (f x) (g x))
-
--- This also applies to the implicit function space.
-
-implicit-Π-closure :
-  ∀ {a b} {A : Set a} →
-  ({B : A → Set b} → Extensionality A B) →
-  ∀ {B : A → Set b} n →
-  (∀ x → H-level n (B x)) → H-level n ({x : A} → B x)
-implicit-Π-closure {A = A} ext {B} n =
-  respects-surjection surj n ∘ Π-closure ext n
-  where
-  surj : ((x : A) → B x) ↠ ({x : A} → B x)
-  surj = record
+  ext-surj : ∀ {a b} {A : Set a} →
+             ({B : A → Set b} → Extensionality A B) →
+             {B : A → Set b} {f g : (x : A) → B x} →
+             (∀ x → f x ≡ g x) ↠ (f ≡ g)
+  ext-surj {b = b} {A} ext {B} = record
     { equivalence = record
-      { to   = λ f {x} → f x
-      ; from = λ f x → f {x}
+      { to   = to
+      ; from = ext⁻¹
       }
-    ; right-inverse-of = refl
+    ; right-inverse-of =
+        elim (λ {f g} f≡g → to (ext⁻¹ f≡g) ≡ f≡g) λ h →
+          proj₁ ext′ (ext⁻¹ (refl h))  ≡⟨ cong (proj₁ ext′) (proj₁ ext′ λ x →
+                                            cong-refl (λ h → h x) {x = h}) ⟩
+          proj₁ ext′ (refl ∘ h)        ≡⟨ proj₂ ext′ h ⟩∎
+          refl h                       ∎
     }
+    where
+    ext′ : {B : A → Set b} → Well-behaved-extensionality A B
+    ext′ = extensionality⇒well-behaved-extensionality ext
 
--- Negated types are propositional, assuming extensionality.
+    to : {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
+    to = proj₁ ext′
 
-¬-propositional :
-  ∀ {a} {A : Set a} →
-  ({B : A → Set} → Extensionality A B) →
-  Propositional (¬ A)
-¬-propositional ext = Π-closure ext 1 (λ _ → ⊥-propositional)
+  -- H-level is closed under Π A, assuming extensionality for
+  -- functions from A.
+
+  Π-closure : ∀ {a b} {A : Set a} →
+              ({B : A → Set b} → Extensionality A B) →
+              ∀ {B : A → Set b} n →
+              (∀ x → H-level n (B x)) → H-level n ((x : A) → B x)
+  Π-closure ext zero =
+    _⇔_.from Π-closure-contractible⇔extensionality ext
+  Π-closure ext (suc n) = λ h f g →
+    respects-surjection (ext-surj ext) n $
+      Π-closure ext n (λ x → h x (f x) (g x))
+
+  -- This also applies to the implicit function space.
+
+  implicit-Π-closure :
+    ∀ {a b} {A : Set a} →
+    ({B : A → Set b} → Extensionality A B) →
+    ∀ {B : A → Set b} n →
+    (∀ x → H-level n (B x)) → H-level n ({x : A} → B x)
+  implicit-Π-closure {A = A} ext {B} n =
+    respects-surjection surj n ∘ Π-closure ext n
+    where
+    surj : ((x : A) → B x) ↠ ({x : A} → B x)
+    surj = record
+      { equivalence = record
+        { to   = λ f {x} → f x
+        ; from = λ f x → f {x}
+        }
+      ; right-inverse-of = refl
+      }
+
+  -- Negated types are propositional, assuming extensionality.
+
+  ¬-propositional :
+    ∀ {a} {A : Set a} →
+    ({B : A → Set} → Extensionality A B) →
+    Propositional (¬ A)
+  ¬-propositional ext = Π-closure ext 1 (λ _ → ⊥-propositional)
 
 ------------------------------------------------------------------------
 -- Σ-types
@@ -285,29 +293,31 @@ implicit-Π-closure {A = A} ext {B} n =
        y₂                    ∎))
     p q
 
--- H-level is closed under Σ.
+abstract
 
-Σ-closure : ∀ {a b} {A : Set a} {B : A → Set b} n →
-            H-level n A → (∀ x → H-level n (B x)) → H-level n (Σ A B)
-Σ-closure {A = A} {B} zero (x , irrA) hB =
-  ((x , proj₁ (hB x)) , λ p →
-     (x       , proj₁ (hB x))          ≡⟨ elim (λ {x y} _ → _≡_ {A = Σ A B} (x , proj₁ (hB x))
-                                                                            (y , proj₁ (hB y)))
-                                               (λ _ → refl _)
-                                               (irrA (proj₁ p)) ⟩
-     (proj₁ p , proj₁ (hB (proj₁ p)))  ≡⟨ cong (_,_ (proj₁ p)) (proj₂ (hB (proj₁ p)) (proj₂ p)) ⟩∎
-     p                                 ∎)
-Σ-closure {B = B} (suc n) hA hB = λ p₁ p₂ →
-  respects-surjection (_↔_.surjection Σ-≡,≡↔≡) n $
-    Σ-closure n (hA (proj₁ p₁) (proj₁ p₂))
-      (λ pr₁p₁≡pr₁p₂ →
-         hB (proj₁ p₂) (subst B pr₁p₁≡pr₁p₂ (proj₂ p₁)) (proj₂ p₂))
+  -- H-level is closed under Σ.
 
--- H-level is closed under _×_.
+  Σ-closure : ∀ {a b} {A : Set a} {B : A → Set b} n →
+              H-level n A → (∀ x → H-level n (B x)) → H-level n (Σ A B)
+  Σ-closure {A = A} {B} zero (x , irrA) hB =
+    ((x , proj₁ (hB x)) , λ p →
+       (x       , proj₁ (hB x))          ≡⟨ elim (λ {x y} _ → _≡_ {A = Σ A B} (x , proj₁ (hB x))
+                                                                              (y , proj₁ (hB y)))
+                                                 (λ _ → refl _)
+                                                 (irrA (proj₁ p)) ⟩
+       (proj₁ p , proj₁ (hB (proj₁ p)))  ≡⟨ cong (_,_ (proj₁ p)) (proj₂ (hB (proj₁ p)) (proj₂ p)) ⟩∎
+       p                                 ∎)
+  Σ-closure {B = B} (suc n) hA hB = λ p₁ p₂ →
+    respects-surjection (_↔_.surjection Σ-≡,≡↔≡) n $
+      Σ-closure n (hA (proj₁ p₁) (proj₁ p₂))
+        (λ pr₁p₁≡pr₁p₂ →
+           hB (proj₁ p₂) (subst B pr₁p₁≡pr₁p₂ (proj₂ p₁)) (proj₂ p₂))
 
-×-closure : ∀ {a b} {A : Set a} {B : Set b} n →
-            H-level n A → H-level n B → H-level n (A × B)
-×-closure n hA hB = Σ-closure n hA (const hB)
+  -- H-level is closed under _×_.
+
+  ×-closure : ∀ {a b} {A : Set a} {B : Set b} n →
+              H-level n A → H-level n B → H-level n (A × B)
+  ×-closure n hA hB = Σ-closure n hA (const hB)
 
 ------------------------------------------------------------------------
 -- W-types
@@ -330,68 +340,70 @@ W-unfolding = record
   left-inverse-of : (w : W _ _) → sup (head w) (tail w) ≡ w
   left-inverse-of (sup x f) = refl (sup x f)
 
--- Equality between elements of a W-type can be proved using a pair
--- of equalities (assuming extensionality).
+abstract
 
-W-≡,≡↠≡ : ∀ {a b} {A : Set a} {B : A → Set b} →
-          (∀ {x c} {C : B x → Set c} → Extensionality (B x) C) →
-          ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
-          (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
-          (sup x f ≡ sup y g)
-W-≡,≡↠≡ {A = A} {B} ext {x} {y} {f} {g} =
-  (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i))        ↠⟨ Surjection.∃-cong lemma ⟩
-  (∃ λ (p : x ≡ y) → subst (λ x → B x → W A B) p f ≡ g)  ↠⟨ _↔_.surjection Σ-≡,≡↔≡ ⟩
-  (_≡_ {A = ∃ λ (x : A) → B x → W A B} (x , f) (y , g))  ↠⟨ ↠-≡ (_↔_.surjection (Bijection.inverse (W-unfolding {A = A} {B = B}))) ⟩□
-  (sup x f ≡ sup y g)                                    □
-  where
-  lemma : (p : x ≡ y) →
-          (∀ i → f i ≡ g (subst B p i)) ↠
-          (subst (λ x → B x → W A B) p f ≡ g)
-  lemma p = elim
-    (λ {x y} p → (f : B x → W A B) (g : B y → W A B) →
-                 (∀ i → f i ≡ g (subst B p i)) ↠
-                 (subst (λ x → B x → W A B) p f ≡ g))
-    (λ x f g →
-       (∀ i → f i ≡ g (subst B (refl x) i))        ↠⟨ subst (λ h → (∀ i → f i ≡ g (h i)) ↠ (∀ i → f i ≡ g i))
-                                                            (sym (ext (subst-refl B)))
-                                                            Surjection.id ⟩
-       (∀ i → f i ≡ g i)                           ↠⟨ ext-surj ext ⟩
-       (f ≡ g)                                     ↠⟨ subst (λ h → (f ≡ g) ↠ (h ≡ g))
-                                                            (sym $ subst-refl (λ x' → B x' → W A B) f)
-                                                            Surjection.id ⟩□
-       (subst (λ x → B x → W A B) (refl x) f ≡ g)  □)
-    p f g
+  -- Equality between elements of a W-type can be proved using a pair
+  -- of equalities (assuming extensionality).
 
--- H-level is not closed under W.
+  W-≡,≡↠≡ : ∀ {a b} {A : Set a} {B : A → Set b} →
+            (∀ {x c} {C : B x → Set c} → Extensionality (B x) C) →
+            ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
+            (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
+            (sup x f ≡ sup y g)
+  W-≡,≡↠≡ {A = A} {B} ext {x} {y} {f} {g} =
+    (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i))        ↠⟨ Surjection.∃-cong lemma ⟩
+    (∃ λ (p : x ≡ y) → subst (λ x → B x → W A B) p f ≡ g)  ↠⟨ _↔_.surjection Σ-≡,≡↔≡ ⟩
+    (_≡_ {A = ∃ λ (x : A) → B x → W A B} (x , f) (y , g))  ↠⟨ ↠-≡ (_↔_.surjection (Bijection.inverse (W-unfolding {A = A} {B = B}))) ⟩□
+    (sup x f ≡ sup y g)                                    □
+    where
+    lemma : (p : x ≡ y) →
+            (∀ i → f i ≡ g (subst B p i)) ↠
+            (subst (λ x → B x → W A B) p f ≡ g)
+    lemma p = elim
+      (λ {x y} p → (f : B x → W A B) (g : B y → W A B) →
+                   (∀ i → f i ≡ g (subst B p i)) ↠
+                   (subst (λ x → B x → W A B) p f ≡ g))
+      (λ x f g →
+         (∀ i → f i ≡ g (subst B (refl x) i))        ↠⟨ subst (λ h → (∀ i → f i ≡ g (h i)) ↠ (∀ i → f i ≡ g i))
+                                                              (sym (ext (subst-refl B)))
+                                                              Surjection.id ⟩
+         (∀ i → f i ≡ g i)                           ↠⟨ ext-surj ext ⟩
+         (f ≡ g)                                     ↠⟨ subst (λ h → (f ≡ g) ↠ (h ≡ g))
+                                                              (sym $ subst-refl (λ x' → B x' → W A B) f)
+                                                              Surjection.id ⟩□
+         (subst (λ x → B x → W A B) (refl x) f ≡ g)  □)
+      p f g
 
-¬-W-closure-contractible : ∀ {a b} →
-  ¬ (∀ {A : Set a} {B : A → Set b} →
-     Contractible A → (∀ x → Contractible (B x)) →
-     Contractible (W A B))
-¬-W-closure-contractible closure =
-  inhabited⇒W-empty (const tt) $
-  proj₁ $
-  closure ⊤-contractible (const ⊤-contractible)
+  -- H-level is not closed under W.
 
-¬-W-closure : ∀ {a b} →
-  ¬ (∀ {A : Set a} {B : A → Set b} n →
-     H-level n A → (∀ x → H-level n (B x)) → H-level n (W A B))
-¬-W-closure closure = ¬-W-closure-contractible (closure 0)
+  ¬-W-closure-contractible : ∀ {a b} →
+    ¬ (∀ {A : Set a} {B : A → Set b} →
+       Contractible A → (∀ x → Contractible (B x)) →
+       Contractible (W A B))
+  ¬-W-closure-contractible closure =
+    inhabited⇒W-empty (const tt) $
+    proj₁ $
+    closure ⊤-contractible (const ⊤-contractible)
 
--- However, all positive h-levels are closed under W, assuming that
--- equality is sufficiently extensional.
+  ¬-W-closure : ∀ {a b} →
+    ¬ (∀ {A : Set a} {B : A → Set b} n →
+       H-level n A → (∀ x → H-level n (B x)) → H-level n (W A B))
+  ¬-W-closure closure = ¬-W-closure-contractible (closure 0)
 
-W-closure :
-  ∀ {a b} {A : Set a} {B : A → Set b} →
-  (∀ {x c} {C : B x → Set c} → Extensionality (B x) C) →
-  ∀ n → H-level (1 + n) A → H-level (1 + n) (W A B)
-W-closure {A = A} {B} ext n h = closure
-  where
-  closure : (x y : W A B) → H-level n (x ≡ y)
-  closure (sup x f) (sup y g) =
-    respects-surjection (W-≡,≡↠≡ ext) n $
-      Σ-closure n (h x y) (λ _ →
-        Π-closure ext n (λ i → closure (f _) (g _)))
+  -- However, all positive h-levels are closed under W, assuming that
+  -- equality is sufficiently extensional.
+
+  W-closure :
+    ∀ {a b} {A : Set a} {B : A → Set b} →
+    (∀ {x c} {C : B x → Set c} → Extensionality (B x) C) →
+    ∀ n → H-level (1 + n) A → H-level (1 + n) (W A B)
+  W-closure {A = A} {B} ext n h = closure
+    where
+    closure : (x y : W A B) → H-level n (x ≡ y)
+    closure (sup x f) (sup y g) =
+      respects-surjection (W-≡,≡↠≡ ext) n $
+        Σ-closure n (h x y) (λ _ →
+          Π-closure ext n (λ i → closure (f _) (g _)))
 
 ------------------------------------------------------------------------
 -- M-types
@@ -422,320 +434,326 @@ data _≡M_ {a b} {A : Set a} {B : A → Set b} :
               lıɐʇ m (subst B (refl (pɐǝɥ m)) b)  ∎)
            p
 
--- If we assume a notion of extensionality (bisimilarity implies
--- equality) then Contractible is closed under M.
+abstract
 
-M-closure-contractible :
-  ∀ {a b} {A : Set a} {B : A → Set b} →
-  ({m m′ : M A B} → m ≡M m′ → m ≡ m′) →
-  Contractible A → Contractible (M A B)
-M-closure-contractible {A = A} {B} ext (x , irrA) = (m , ext ∘ irr)
-  where
-  m : M A B
-  m = dns x (λ _ → ♯ m)
+  -- If we assume a notion of extensionality (bisimilarity implies
+  -- equality) then Contractible is closed under M.
 
-  irr : ∀ m′ → m ≡M m′
-  irr (dns x′ f) = dns (irrA x′) (λ _ → ♯ irr _)
+  M-closure-contractible :
+    ∀ {a b} {A : Set a} {B : A → Set b} →
+    ({m m′ : M A B} → m ≡M m′ → m ≡ m′) →
+    Contractible A → Contractible (M A B)
+  M-closure-contractible {A = A} {B} ext (x , irrA) = (m , ext ∘ irr)
+    where
+    m : M A B
+    m = dns x (λ _ → ♯ m)
 
--- The same applies to Propositional.
+    irr : ∀ m′ → m ≡M m′
+    irr (dns x′ f) = dns (irrA x′) (λ _ → ♯ irr _)
 
-M-closure-propositional :
-  ∀ {a b} {A : Set a} {B : A → Set b} →
-  ({m m′ : M A B} → m ≡M m′ → m ≡ m′) →
-  Propositional A → Propositional (M A B)
-M-closure-propositional {A = A} {B} ext p =
-  _⇔_.from {To = Proof-irrelevant (M A B)}
-           propositional⇔irrelevant
-           (λ x y → ext $ irrelevant x y)
-  where
-  irrelevant : (x y : M A B) → x ≡M y
-  irrelevant (dns x f) (dns y g) =
-    dns (proj₁ $ p x y) (λ _ → ♯ irrelevant _ _)
+  -- The same applies to Propositional.
+
+  M-closure-propositional :
+    ∀ {a b} {A : Set a} {B : A → Set b} →
+    ({m m′ : M A B} → m ≡M m′ → m ≡ m′) →
+    Propositional A → Propositional (M A B)
+  M-closure-propositional {A = A} {B} ext p =
+    _⇔_.from {To = Proof-irrelevant (M A B)}
+             propositional⇔irrelevant
+             (λ x y → ext $ irrelevant x y)
+    where
+    irrelevant : (x y : M A B) → x ≡M y
+    irrelevant (dns x f) (dns y g) =
+      dns (proj₁ $ p x y) (λ _ → ♯ irrelevant _ _)
 
 ------------------------------------------------------------------------
 -- H-levels
 
--- Contractible is /not/ a comonad in the category of types and
--- functions, because map cannot be defined, but we can at least
--- define the following functions.
+abstract
 
-counit : ∀ {a} {A : Set a} → Contractible A → A
-counit = proj₁
+  -- Contractible is /not/ a comonad in the category of types and
+  -- functions, because map cannot be defined, but we can at least
+  -- define the following functions.
 
-cojoin : ∀ {a} {A : Set a} →
-         ({B : A → Set a} → Extensionality A B) →
-         Contractible A → Contractible (Contractible A)
-cojoin {A = A} ext contr = contr₃
-  where
-  x : A
-  x = proj₁ contr
+  counit : ∀ {a} {A : Set a} → Contractible A → A
+  counit = proj₁
 
-  contr₁ : Contractible (∀ y → x ≡ y)
-  contr₁ = Π-closure ext 0 (mono₁ 0 contr x)
+  cojoin : ∀ {a} {A : Set a} →
+           ({B : A → Set a} → Extensionality A B) →
+           Contractible A → Contractible (Contractible A)
+  cojoin {A = A} ext contr = contr₃
+    where
+    x : A
+    x = proj₁ contr
 
-  contr₂ : (x : A) → Contractible (∀ y → x ≡ y)
-  contr₂ x =
-    subst (λ x → Contractible (∀ y → x ≡ y)) (proj₂ contr x) contr₁
+    contr₁ : Contractible (∀ y → x ≡ y)
+    contr₁ = Π-closure ext 0 (mono₁ 0 contr x)
 
-  contr₃ : Contractible (∃ λ (x : A) → ∀ y → x ≡ y)
-  contr₃ = Σ-closure 0 contr contr₂
+    contr₂ : (x : A) → Contractible (∀ y → x ≡ y)
+    contr₂ x =
+      subst (λ x → Contractible (∀ y → x ≡ y)) (proj₂ contr x) contr₁
 
--- Contractible is not necessarily contractible.
+    contr₃ : Contractible (∃ λ (x : A) → ∀ y → x ≡ y)
+    contr₃ = Σ-closure 0 contr contr₂
 
-¬-Contractible-contractible :
-  ¬ ({A : Set} → Contractible (Contractible A))
-¬-Contractible-contractible contr = proj₁ $ proj₁ $ contr {A = ⊥}
+  -- Contractible is not necessarily contractible.
 
--- Contractible is propositional (assuming extensionality).
+  ¬-Contractible-contractible :
+    ¬ ({A : Set} → Contractible (Contractible A))
+  ¬-Contractible-contractible contr = proj₁ $ proj₁ $ contr {A = ⊥}
 
-Contractible-propositional :
-  ∀ {a} {A : Set a} →
-  ({B : A → Set a} → Extensionality A B) →
-  Propositional (Contractible A)
-Contractible-propositional ext =
-  [inhabited⇒contractible]⇒propositional (cojoin ext)
+  -- Contractible is propositional (assuming extensionality).
 
--- All h-levels are propositional (assuming extensionality).
+  Contractible-propositional :
+    ∀ {a} {A : Set a} →
+    ({B : A → Set a} → Extensionality A B) →
+    Propositional (Contractible A)
+  Contractible-propositional ext =
+    [inhabited⇒contractible]⇒propositional (cojoin ext)
 
-H-level-propositional :
-  ∀ {a} →
-  ({A : Set a} {B : A → Set a} → Extensionality A B) →
-  ∀ {A : Set a} n → Propositional (H-level n A)
-H-level-propositional     ext zero    = Contractible-propositional ext
-H-level-propositional {A} ext (suc n) =
-  Π-closure ext 1 λ x →
-  Π-closure ext 1 λ y →
-  H-level-propositional ext {A = x ≡ y} n
+  -- All h-levels are propositional (assuming extensionality).
+
+  H-level-propositional :
+    ∀ {a} →
+    ({A : Set a} {B : A → Set a} → Extensionality A B) →
+    ∀ {A : Set a} n → Propositional (H-level n A)
+  H-level-propositional     ext zero    = Contractible-propositional ext
+  H-level-propositional {A} ext (suc n) =
+    Π-closure ext 1 λ x →
+    Π-closure ext 1 λ y →
+    H-level-propositional ext {A = x ≡ y} n
 
 ------------------------------------------------------------------------
 -- Binary sums
 
--- A lifted set is isomorphic to the underlying one.
+abstract
 
-↑↔ : ∀ {a b} {A : Set a} → ↑ b A ↔ A
-↑↔ {b = b} {A} = record
-  { surjection = record
-    { equivalence = record
-      { to   = lower
-      ; from = lift
+  -- A lifted set is isomorphic to the underlying one.
+
+  ↑↔ : ∀ {a b} {A : Set a} → ↑ b A ↔ A
+  ↑↔ {b = b} {A} = record
+    { surjection = record
+      { equivalence = record
+        { to   = lower
+        ; from = lift
+        }
+      ; right-inverse-of = refl
       }
-    ; right-inverse-of = refl
+    ; left-inverse-of = refl
     }
-  ; left-inverse-of = refl
-  }
 
--- Binary sums can be expressed using Σ and Bool (with large
--- elimination).
+  -- Binary sums can be expressed using Σ and Bool (with large
+  -- elimination).
 
-sum-as-pair : ∀ {a b} {A : Set a} {B : Set b} →
-              (A ⊎ B) ↔ (∃ λ x → if x then ↑ b A else ↑ a B)
-sum-as-pair {a} {b} {A} {B} = record
-  { surjection = record
-    { equivalence = record
-      { to   = to
-      ; from = from
+  sum-as-pair : ∀ {a b} {A : Set a} {B : Set b} →
+                (A ⊎ B) ↔ (∃ λ x → if x then ↑ b A else ↑ a B)
+  sum-as-pair {a} {b} {A} {B} = record
+    { surjection = record
+      { equivalence = record
+        { to   = to
+        ; from = from
+        }
+      ; right-inverse-of = to∘from
       }
-    ; right-inverse-of = to∘from
+    ; left-inverse-of = [ refl ∘ inj₁ {B = B} , refl ∘ inj₂ {A = A} ]
     }
-  ; left-inverse-of = [ refl ∘ inj₁ {B = B} , refl ∘ inj₂ {A = A} ]
-  }
-  where
-  to : A ⊎ B → (∃ λ x → if x then ↑ b A else ↑ a B)
-  to = [ _,_ true ∘ lift , _,_ false ∘ lift ]
-
-  from : (∃ λ x → if x then ↑ b A else ↑ a B) → A ⊎ B
-  from (true  , x) = inj₁ $ lower x
-  from (false , y) = inj₂ $ lower y
-
-  to∘from : (y : ∃ λ x → if x then ↑ b A else ↑ a B) →
-            to (from y) ≡ y
-  to∘from (true  , x) = refl _
-  to∘from (false , y) = refl _
-
--- H-level is not closed under _⊎_.
-
-¬-⊎-propositional : ∀ {a b} {A : Set a} {B : Set b} →
-                    A → B → ¬ Propositional (A ⊎ B)
-¬-⊎-propositional {A = A} {B} x y hA⊎B =
-  ⊎.inj₁≢inj₂ {A = A} {B = B} $ proj₁ $ hA⊎B (inj₁ x) (inj₂ y)
-
-¬-⊎-closure : ∀ {a b} →
-  ¬ (∀ {A : Set a} {B : Set b} n →
-     H-level n A → H-level n B → H-level n (A ⊎ B))
-¬-⊎-closure {a} {b} ⊎-closure =
-  ¬-⊎-propositional (tt {ℓ = a}) (tt {ℓ = b}) $
-  mono₁ 0 $
-  ⊎-closure 0 ⊤-contractible ⊤-contractible
-
--- However, all levels greater than or equal to 2 are closed under
--- _⊎_.
-
-⊎-closure :
-  ∀ {a b} {A : Set a} {B : Set b} n →
-  H-level (2 + n) A → H-level (2 + n) B → H-level (2 + n) (A ⊎ B)
-⊎-closure {a} {b} {A} {B} n hA hB =
-  respects-surjection
-    (_↔_.surjection $ Bijection.inverse sum-as-pair)
-    (2 + n)
-    (Σ-closure (2 + n) Bool-2+n if-2+n)
-  where
-  Bool-2+n : H-level (2 + n) Bool
-  Bool-2+n = mono (m≤m+n 2 n) Bool-set
-
-  if-2+n : ∀ x → H-level (2 + n) (if x then ↑ b A else ↑ a B)
-  if-2+n true  = respects-surjection
-                   (_↔_.surjection $ Bijection.inverse ↑↔)
-                   (2 + n) hA
-  if-2+n false = respects-surjection
-                   (_↔_.surjection $ Bijection.inverse ↑↔)
-                   (2 + n) hB
-
--- Furthermore Propositional is closed under Dec (assuming
--- extensionality).
-
-Dec-closure-propositional :
-  ∀ {a} {A : Set a} →
-  ({B : A → Set} → Extensionality A B) →
-  Propositional A → Propositional (Dec A)
-Dec-closure-propositional {A = A} ext p =
-  _⇔_.from propositional⇔irrelevant irrelevant
-  where
-  irrelevant : Proof-irrelevant (Dec A)
-  irrelevant (inj₁  a) (inj₁  a′) = cong (inj₁ {B = ¬ A}) $ proj₁ $ p a a′
-  irrelevant (inj₁  a) (inj₂ ¬a)  = ⊥-elim (¬a a)
-  irrelevant (inj₂ ¬a) (inj₁  a)  = ⊥-elim (¬a a)
-  irrelevant (inj₂ ¬a) (inj₂ ¬a′) =
-    cong (inj₂ {A = A}) $ proj₁ $ ¬-propositional ext ¬a ¬a′
-
--- Alternative definition of ⊎-closure (for Set₀).
-
-module Alternative-proof where
-
-  -- Is-set is closed under _⊎_, by an argument similar to the one
-  -- Hedberg used to prove that decidable equality implies
-  -- uniqueness of identity proofs.
-
-  ⊎-closure-set : {A B : Set} →
-                  Is-set A → Is-set B → Is-set (A ⊎ B)
-  ⊎-closure-set {A} {B} A-set B-set =
-    _⇔_.from set⇔UIP (DUIP.constant⇒UIP c)
     where
-    c : (x y : A ⊎ B) → ∃ λ (f : x ≡ y → x ≡ y) → DUIP.Constant f
-    c (inj₁ x) (inj₁ y) = (cong inj₁ ∘ ⊎.cancel-inj₁ , λ p q → cong (cong inj₁) $ proj₁ $ A-set x y (⊎.cancel-inj₁ p) (⊎.cancel-inj₁ q))
-    c (inj₂ x) (inj₂ y) = (cong inj₂ ∘ ⊎.cancel-inj₂ , λ p q → cong (cong inj₂) $ proj₁ $ B-set x y (⊎.cancel-inj₂ p) (⊎.cancel-inj₂ q))
-    c (inj₁ x) (inj₂ y) = (⊥-elim ∘ ⊎.inj₁≢inj₂       , λ _ → ⊥-elim ∘ ⊎.inj₁≢inj₂)
-    c (inj₂ x) (inj₁ y) = (⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym , λ _ → ⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym)
+    to : A ⊎ B → (∃ λ x → if x then ↑ b A else ↑ a B)
+    to = [ _,_ true ∘ lift , _,_ false ∘ lift ]
 
-  -- H-level is closed under _⊎_ for other levels greater than or equal
-  -- to 2 too.
+    from : (∃ λ x → if x then ↑ b A else ↑ a B) → A ⊎ B
+    from (true  , x) = inj₁ $ lower x
+    from (false , y) = inj₂ $ lower y
 
-  ⊎-closure′ :
-    ∀ {A B : Set} n →
+    to∘from : (y : ∃ λ x → if x then ↑ b A else ↑ a B) →
+              to (from y) ≡ y
+    to∘from (true  , x) = refl _
+    to∘from (false , y) = refl _
+
+  -- H-level is not closed under _⊎_.
+
+  ¬-⊎-propositional : ∀ {a b} {A : Set a} {B : Set b} →
+                      A → B → ¬ Propositional (A ⊎ B)
+  ¬-⊎-propositional {A = A} {B} x y hA⊎B =
+    ⊎.inj₁≢inj₂ {A = A} {B = B} $ proj₁ $ hA⊎B (inj₁ x) (inj₂ y)
+
+  ¬-⊎-closure : ∀ {a b} →
+    ¬ (∀ {A : Set a} {B : Set b} n →
+       H-level n A → H-level n B → H-level n (A ⊎ B))
+  ¬-⊎-closure {a} {b} ⊎-closure =
+    ¬-⊎-propositional (tt {ℓ = a}) (tt {ℓ = b}) $
+    mono₁ 0 $
+    ⊎-closure 0 ⊤-contractible ⊤-contractible
+
+  -- However, all levels greater than or equal to 2 are closed under
+  -- _⊎_.
+
+  ⊎-closure :
+    ∀ {a b} {A : Set a} {B : Set b} n →
     H-level (2 + n) A → H-level (2 + n) B → H-level (2 + n) (A ⊎ B)
-  ⊎-closure′         zero    = ⊎-closure-set
-  ⊎-closure′ {A} {B} (suc n) = clos
+  ⊎-closure {a} {b} {A} {B} n hA hB =
+    respects-surjection
+      (_↔_.surjection $ Bijection.inverse sum-as-pair)
+      (2 + n)
+      (Σ-closure (2 + n) Bool-2+n if-2+n)
     where
-    mutual
-      clos : H-level (3 + n) A → H-level (3 + n) B → H-level (3 + n) (A ⊎ B)
-      clos hA hB (inj₁ x) (inj₁ y) = respects-surjection surj₁ (2 + n) (hA x y)
-      clos hA hB (inj₂ x) (inj₂ y) = respects-surjection surj₂ (2 + n) (hB x y)
-      clos hA hB (inj₁ x) (inj₂ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂
-      clos hA hB (inj₂ x) (inj₁ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym
+    Bool-2+n : H-level (2 + n) Bool
+    Bool-2+n = mono (m≤m+n 2 n) Bool-set
 
-      surj₁ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
-      surj₁ {x} {y} = record
-        { equivalence = record
-          { to   = cong inj₁
-          ; from = ⊎.cancel-inj₁
+    if-2+n : ∀ x → H-level (2 + n) (if x then ↑ b A else ↑ a B)
+    if-2+n true  = respects-surjection
+                     (_↔_.surjection $ Bijection.inverse ↑↔)
+                     (2 + n) hA
+    if-2+n false = respects-surjection
+                     (_↔_.surjection $ Bijection.inverse ↑↔)
+                     (2 + n) hB
+
+  -- Furthermore Propositional is closed under Dec (assuming
+  -- extensionality).
+
+  Dec-closure-propositional :
+    ∀ {a} {A : Set a} →
+    ({B : A → Set} → Extensionality A B) →
+    Propositional A → Propositional (Dec A)
+  Dec-closure-propositional {A = A} ext p =
+    _⇔_.from propositional⇔irrelevant irrelevant
+    where
+    irrelevant : Proof-irrelevant (Dec A)
+    irrelevant (inj₁  a) (inj₁  a′) = cong (inj₁ {B = ¬ A}) $ proj₁ $ p a a′
+    irrelevant (inj₁  a) (inj₂ ¬a)  = ⊥-elim (¬a a)
+    irrelevant (inj₂ ¬a) (inj₁  a)  = ⊥-elim (¬a a)
+    irrelevant (inj₂ ¬a) (inj₂ ¬a′) =
+      cong (inj₂ {A = A}) $ proj₁ $ ¬-propositional ext ¬a ¬a′
+
+  -- Alternative definition of ⊎-closure (for Set₀).
+
+  module Alternative-proof where
+
+    -- Is-set is closed under _⊎_, by an argument similar to the one
+    -- Hedberg used to prove that decidable equality implies
+    -- uniqueness of identity proofs.
+
+    ⊎-closure-set : {A B : Set} →
+                    Is-set A → Is-set B → Is-set (A ⊎ B)
+    ⊎-closure-set {A} {B} A-set B-set =
+      _⇔_.from set⇔UIP (DUIP.constant⇒UIP c)
+      where
+      c : (x y : A ⊎ B) → ∃ λ (f : x ≡ y → x ≡ y) → DUIP.Constant f
+      c (inj₁ x) (inj₁ y) = (cong inj₁ ∘ ⊎.cancel-inj₁ , λ p q → cong (cong inj₁) $ proj₁ $ A-set x y (⊎.cancel-inj₁ p) (⊎.cancel-inj₁ q))
+      c (inj₂ x) (inj₂ y) = (cong inj₂ ∘ ⊎.cancel-inj₂ , λ p q → cong (cong inj₂) $ proj₁ $ B-set x y (⊎.cancel-inj₂ p) (⊎.cancel-inj₂ q))
+      c (inj₁ x) (inj₂ y) = (⊥-elim ∘ ⊎.inj₁≢inj₂       , λ _ → ⊥-elim ∘ ⊎.inj₁≢inj₂)
+      c (inj₂ x) (inj₁ y) = (⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym , λ _ → ⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym)
+
+    -- H-level is closed under _⊎_ for other levels greater than or equal
+    -- to 2 too.
+
+    ⊎-closure′ :
+      ∀ {A B : Set} n →
+      H-level (2 + n) A → H-level (2 + n) B → H-level (2 + n) (A ⊎ B)
+    ⊎-closure′         zero    = ⊎-closure-set
+    ⊎-closure′ {A} {B} (suc n) = clos
+      where
+      mutual
+        clos : H-level (3 + n) A → H-level (3 + n) B → H-level (3 + n) (A ⊎ B)
+        clos hA hB (inj₁ x) (inj₁ y) = respects-surjection surj₁ (2 + n) (hA x y)
+        clos hA hB (inj₂ x) (inj₂ y) = respects-surjection surj₂ (2 + n) (hB x y)
+        clos hA hB (inj₁ x) (inj₂ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂
+        clos hA hB (inj₂ x) (inj₁ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym
+
+        surj₁ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
+        surj₁ {x} {y} = record
+          { equivalence = record
+            { to   = cong inj₁
+            ; from = ⊎.cancel-inj₁
+            }
+          ; right-inverse-of = λ ix≡iy →
+              cong inj₁ (⊎.cancel-inj₁ ix≡iy)              ≡⟨ prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
+                                                                    (Cong f (Lift ix≡iy))
+                                                                    (refl _) ⟩
+              cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
+              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
+                                                                    (Lift ix≡iy)
+                                                                    (refl _) ⟩∎
+              ix≡iy                                        ∎
           }
-        ; right-inverse-of = λ ix≡iy →
-            cong inj₁ (⊎.cancel-inj₁ ix≡iy)              ≡⟨ prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
-                                                                  (Cong f (Lift ix≡iy))
-                                                                  (refl _) ⟩
-            cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
-            trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
-                                                                  (Lift ix≡iy)
-                                                                  (refl _) ⟩∎
-            ix≡iy                                        ∎
-        }
-        where
-        f : A ⊎ B → A ⊎ B
-        f = inj₁ ∘ [ id , const x ]
+          where
+          f : A ⊎ B → A ⊎ B
+          f = inj₁ ∘ [ id , const x ]
 
-        p : A ⊎ B → Bool
-        p = [ const true , const false ]
+          p : A ⊎ B → Bool
+          p = [ const true , const false ]
 
-        f≡id : ∀ z → T (p z) → f z ≡ z
-        f≡id (inj₁ x) = const (refl (inj₁ x))
-        f≡id (inj₂ y) = ⊥-elim
+          f≡id : ∀ z → T (p z) → f z ≡ z
+          f≡id (inj₁ x) = const (refl (inj₁ x))
+          f≡id (inj₂ y) = ⊥-elim
 
-      surj₂ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
-      surj₂ {x} {y} = record
-        { equivalence = record
-          { to   = cong inj₂
-          ; from = ⊎.cancel-inj₂
+        surj₂ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
+        surj₂ {x} {y} = record
+          { equivalence = record
+            { to   = cong inj₂
+            ; from = ⊎.cancel-inj₂
+            }
+          ; right-inverse-of = λ ix≡iy →
+              cong inj₂ (⊎.cancel-inj₂ ix≡iy)              ≡⟨ prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
+                                                                    (Cong f (Lift ix≡iy))
+                                                                    (refl _) ⟩
+              cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
+              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
+                                                                    (Lift ix≡iy)
+                                                                    (refl _) ⟩∎
+              ix≡iy                                        ∎
           }
-        ; right-inverse-of = λ ix≡iy →
-            cong inj₂ (⊎.cancel-inj₂ ix≡iy)              ≡⟨ prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
-                                                                  (Cong f (Lift ix≡iy))
-                                                                  (refl _) ⟩
-            cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
-            trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
-                                                                  (Lift ix≡iy)
-                                                                  (refl _) ⟩∎
-            ix≡iy                                        ∎
-        }
-        where
-        f : A ⊎ B → A ⊎ B
-        f = inj₂ ∘ [ const x , id ]
+          where
+          f : A ⊎ B → A ⊎ B
+          f = inj₂ ∘ [ const x , id ]
 
-        p : A ⊎ B → Bool
-        p = [ const false , const true ]
+          p : A ⊎ B → Bool
+          p = [ const false , const true ]
 
-        f≡id : ∀ z → T (p z) → f z ≡ z
-        f≡id (inj₁ x) = ⊥-elim
-        f≡id (inj₂ y) = const (refl (inj₂ y))
+          f≡id : ∀ z → T (p z) → f z ≡ z
+          f≡id (inj₁ x) = ⊥-elim
+          f≡id (inj₂ y) = const (refl (inj₂ y))
 
-      -- If f z evaluates to z for a decidable set of values which
-      -- includes x and y, do we have
-      --
-      --   cong f x≡y ≡ x≡y
-      --
-      -- for any x≡y : x ≡ y? The answer is yes, but cong-lemma only
-      -- captures this statement indirectly. (Note that the equation
-      -- above is not well-typed if f is a variable.) If cong-lemma
-      -- is instantiated properly with the various components above,
-      -- then we get
-      --
-      --   cong f x≡y ≡ trans … (trans x≡y (sym …)),
-      --
-      -- where the two occurrences of … evaluate to reflexivity
-      -- proofs.
+        -- If f z evaluates to z for a decidable set of values which
+        -- includes x and y, do we have
+        --
+        --   cong f x≡y ≡ x≡y
+        --
+        -- for any x≡y : x ≡ y? The answer is yes, but cong-lemma only
+        -- captures this statement indirectly. (Note that the equation
+        -- above is not well-typed if f is a variable.) If cong-lemma
+        -- is instantiated properly with the various components above,
+        -- then we get
+        --
+        --   cong f x≡y ≡ trans … (trans x≡y (sym …)),
+        --
+        -- where the two occurrences of … evaluate to reflexivity
+        -- proofs.
 
-      cong-lemma : {A : Set} (f : A → A) (p : A → Bool) {x y : A}
-                   (x≡y : x ≡ y) (px : T (p x)) (py : T (p y))
-                   (f≡id : ∀ z → T (p z) → f z ≡ z) →
-                   cong f x≡y ≡
-                   trans (f≡id x px) (trans x≡y $ sym (f≡id y py))
-      cong-lemma {A} f p =
-        elim (λ {x y} x≡y →
-                (px : T (p x)) (py : T (p y))
-                (f≡id : ∀ z → T (p z) → f z ≡ z) →
-                cong f x≡y ≡
-                trans (f≡id x px) (trans x≡y $ sym (f≡id y py)))
-             (λ x px px′ f≡id → helper x (p x) px px′ (f≡id x))
-        where
-        helper :
-          (x : A) (b : Bool) (px px′ : T b)
-          (f≡id : T b → f x ≡ x) →
-          cong f (refl x) ≡
-          trans (f≡id px) (trans (refl x) $ sym (f≡id px′))
-        helper x false px _ f≡id = ⊥-elim px
-        helper x true  _  _ f≡id =
-          cong f (refl x)                                 ≡⟨ prove (Cong f Refl) Refl (refl _) ⟩
-          refl (f x)                                      ≡⟨ sym $ G.left-inverse _ ⟩
-          trans (f≡id _) (sym (f≡id _))                   ≡⟨ (let fx≡x = Lift (f≡id _) in
-                                                              prove (Trans fx≡x (Sym fx≡x))
-                                                                    (Trans fx≡x (Trans Refl (Sym fx≡x)))
-                                                                    (refl _)) ⟩∎
-          trans (f≡id _) (trans (refl x) $ sym (f≡id _))  ∎
+        cong-lemma : {A : Set} (f : A → A) (p : A → Bool) {x y : A}
+                     (x≡y : x ≡ y) (px : T (p x)) (py : T (p y))
+                     (f≡id : ∀ z → T (p z) → f z ≡ z) →
+                     cong f x≡y ≡
+                     trans (f≡id x px) (trans x≡y $ sym (f≡id y py))
+        cong-lemma {A} f p =
+          elim (λ {x y} x≡y →
+                  (px : T (p x)) (py : T (p y))
+                  (f≡id : ∀ z → T (p z) → f z ≡ z) →
+                  cong f x≡y ≡
+                  trans (f≡id x px) (trans x≡y $ sym (f≡id y py)))
+               (λ x px px′ f≡id → helper x (p x) px px′ (f≡id x))
+          where
+          helper :
+            (x : A) (b : Bool) (px px′ : T b)
+            (f≡id : T b → f x ≡ x) →
+            cong f (refl x) ≡
+            trans (f≡id px) (trans (refl x) $ sym (f≡id px′))
+          helper x false px _ f≡id = ⊥-elim px
+          helper x true  _  _ f≡id =
+            cong f (refl x)                                 ≡⟨ prove (Cong f Refl) Refl (refl _) ⟩
+            refl (f x)                                      ≡⟨ sym $ G.left-inverse _ ⟩
+            trans (f≡id _) (sym (f≡id _))                   ≡⟨ (let fx≡x = Lift (f≡id _) in
+                                                                prove (Trans fx≡x (Sym fx≡x))
+                                                                      (Trans fx≡x (Trans Refl (Sym fx≡x)))
+                                                                      (refl _)) ⟩∎
+            trans (f≡id _) (trans (refl x) $ sym (f≡id _))  ∎

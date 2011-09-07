@@ -385,25 +385,28 @@ Fin-length-cong {xs = xs} {ys} xs≈ys =
   ∃ (λ z → z ∈ ys)  ↔⟨ Fin-length ys ⟩
   Fin (length ys)   □
 
--- In fact, they have equal lengths.
+abstract
 
-length-cong : ∀ {A} {xs ys : List A} →
-              xs ≈-bag ys → length xs ≡ length ys
-length-cong = _⇔_.to Fin.isomorphic-same-size ∘ Fin-length-cong
+  -- In fact, they have equal lengths.
 
--- All that remains (except for some bookkeeping) is to show that the
--- isomorphism which Fin-length-cong returns relates the two lists.
+  length-cong : ∀ {A} {xs ys : List A} →
+                xs ≈-bag ys → length xs ≡ length ys
+  length-cong = _⇔_.to Fin.isomorphic-same-size ∘ Fin-length-cong
 
-Fin-length-cong-relates :
-  ∀ {A} {xs ys : List A} (xs≈ys : xs ≈-bag ys) →
-  xs And ys Are-related-by Fin-length-cong xs≈ys
-Fin-length-cong-relates {xs = xs} {ys} xs≈ys i =
-  lookup xs i                                 ≡⟨ proj₂ $ to (∈-lookup _) $ to (xs≈ys _) (from (∈-lookup _) (i , refl)) ⟩
-  lookup ys (proj₁ $ to (∈-lookup _) $
-             to (xs≈ys _) $
-             from (∈-lookup _) (i , refl))    ≡⟨ refl ⟩∎
-  lookup ys (to (Fin-length-cong xs≈ys) i)    ∎
-  where open _↔_
+  -- All that remains (except for some bookkeeping) is to show that
+  -- the isomorphism which Fin-length-cong returns relates the two
+  -- lists.
+
+  Fin-length-cong-relates :
+    ∀ {A} {xs ys : List A} (xs≈ys : xs ≈-bag ys) →
+    xs And ys Are-related-by Fin-length-cong xs≈ys
+  Fin-length-cong-relates {xs = xs} {ys} xs≈ys i =
+    lookup xs i                                 ≡⟨ proj₂ $ to (∈-lookup _) $ to (xs≈ys _) (from (∈-lookup _) (i , refl)) ⟩
+    lookup ys (proj₁ $ to (∈-lookup _) $
+               to (xs≈ys _) $
+               from (∈-lookup _) (i , refl))    ≡⟨ refl ⟩∎
+    lookup ys (to (Fin-length-cong xs≈ys) i)    ∎
+    where open _↔_
 
 -- We get that the two definitions of bag equality are equivalent.
 
@@ -447,53 +450,55 @@ Fin-length-cong-relates {xs = xs} {ys} xs≈ys i =
 -- definition of bag equality, but we can show this directly, with the
 -- help of some lemmas.
 
--- The index function commutes with applications of certain inverses.
--- Note that the last three equational reasoning steps do not need to
--- be written out; I included them in an attempt to make it easier to
--- understand why the lemma holds.
+abstract
 
-index-commutes : ∀ {A : Set} {z : A} {xs ys} →
-                 (xs≈ys : xs ≈-bag ys) (p : z ∈ xs) →
-                 index (_↔_.to (xs≈ys z) p) ≡
-                 _↔_.to (Fin-length-cong xs≈ys) (index p)
-index-commutes {z = z} {xs} {ys} xs≈ys p =
-  (index $ to (xs≈ys z) p)                             ≡⟨ lemma ⟩
-  (index $ to (xs≈ys _) $ proj₂ $
-   from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
-  (index $ proj₂ $ Σ-map P.id (to (xs≈ys _)) $
-   from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
-  (to (Fin-length ys) $ Σ-map P.id (to (xs≈ys _)) $
-   from (Fin-length xs) $ index p)                     ≡⟨ refl ⟩∎
-  (to (Fin-length-cong xs≈ys) $ index p)               ∎
-  where
-  open _↔_
+  -- The index function commutes with applications of certain
+  -- inverses. Note that the last three equational reasoning steps do
+  -- not need to be written out; I included them in an attempt to make
+  -- it easier to understand why the lemma holds.
 
-  lemma : (index $ to (xs≈ys z) p) ≡
-          (index $
-           to (xs≈ys (lookup xs (to (Fin-length xs) (z , p)))) $
-           proj₂ $ from (Fin-length xs) $
-           to (Fin-length xs) (z , p))
-  lemma with z | p
-           | to (Fin-length xs) (z , p)
-           | left-inverse-of (Fin-length xs) (z , p)
-  ... | .(lookup xs i) | .(from (∈-lookup xs) (i , refl)) | i | refl =
-    refl
+  index-commutes : ∀ {A : Set} {z : A} {xs ys} →
+                   (xs≈ys : xs ≈-bag ys) (p : z ∈ xs) →
+                   index (_↔_.to (xs≈ys z) p) ≡
+                   _↔_.to (Fin-length-cong xs≈ys) (index p)
+  index-commutes {z = z} {xs} {ys} xs≈ys p =
+    (index $ to (xs≈ys z) p)                             ≡⟨ lemma ⟩
+    (index $ to (xs≈ys _) $ proj₂ $
+     from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
+    (index $ proj₂ $ Σ-map P.id (to (xs≈ys _)) $
+     from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
+    (to (Fin-length ys) $ Σ-map P.id (to (xs≈ys _)) $
+     from (Fin-length xs) $ index p)                     ≡⟨ refl ⟩∎
+    (to (Fin-length-cong xs≈ys) $ index p)               ∎
+    where
+    open _↔_
 
--- Bag equality isomorphisms preserve index equality. Note that this
--- means that, even if the underlying equality is proof relevant, a
--- bag equality isomorphism cannot map two distinct proofs of z ∈ xs
--- (say) to different positions.
+    lemma : (index $ to (xs≈ys z) p) ≡
+            (index $
+             to (xs≈ys (lookup xs (to (Fin-length xs) (z , p)))) $
+             proj₂ $ from (Fin-length xs) $
+             to (Fin-length xs) (z , p))
+    lemma with z | p
+             | to (Fin-length xs) (z , p)
+             | left-inverse-of (Fin-length xs) (z , p)
+    ... | .(lookup xs i) | .(from (∈-lookup xs) (i , refl)) | i | refl =
+      refl
 
-index-equality-preserved :
-  ∀ {A : Set} {z : A} {xs ys} {p q : z ∈ xs}
-  (xs≈ys : xs ≈-bag ys) →
-  index p ≡ index q →
-  index (_↔_.to (xs≈ys z) p) ≡ index (_↔_.to (xs≈ys z) q)
-index-equality-preserved {z = z} {p = p} {q} xs≈ys eq =
-  index (_↔_.to (xs≈ys z) p)                ≡⟨ index-commutes xs≈ys p ⟩
-  _↔_.to (Fin-length-cong xs≈ys) (index p)  ≡⟨ cong (_↔_.to (Fin-length-cong xs≈ys)) eq ⟩
-  _↔_.to (Fin-length-cong xs≈ys) (index q)  ≡⟨ sym $ index-commutes xs≈ys q ⟩∎
-  index (_↔_.to (xs≈ys z) q)                ∎
+  -- Bag equality isomorphisms preserve index equality. Note that this
+  -- means that, even if the underlying equality is proof relevant, a
+  -- bag equality isomorphism cannot map two distinct proofs of z ∈ xs
+  -- (say) to different positions.
+
+  index-equality-preserved :
+    ∀ {A : Set} {z : A} {xs ys} {p q : z ∈ xs}
+    (xs≈ys : xs ≈-bag ys) →
+    index p ≡ index q →
+    index (_↔_.to (xs≈ys z) p) ≡ index (_↔_.to (xs≈ys z) q)
+  index-equality-preserved {z = z} {p = p} {q} xs≈ys eq =
+    index (_↔_.to (xs≈ys z) p)                ≡⟨ index-commutes xs≈ys p ⟩
+    _↔_.to (Fin-length-cong xs≈ys) (index p)  ≡⟨ cong (_↔_.to (Fin-length-cong xs≈ys)) eq ⟩
+    _↔_.to (Fin-length-cong xs≈ys) (index q)  ≡⟨ sym $ index-commutes xs≈ys q ⟩∎
+    index (_↔_.to (xs≈ys z) q)                ∎
 
 -- If x ∷ xs is bag equal to x ∷ ys, then xs and ys are bag equal.
 
@@ -505,20 +510,22 @@ index-equality-preserved {z = z} {p = p} {q} xs≈ys eq =
     (lemma x∷xs≈x∷ys)
     (lemma (inverse ∘ x∷xs≈x∷ys))
   where
-  -- If the equality type is proof irrelevant (so that p and q are
-  -- equal), then this lemma can be proved without the help of
-  -- index-equality-preserved.
+  abstract
 
-  lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) →
-          Well-behaved (_↔_.to (inv z))
-  lemma {xs} inv {b = z∈xs} {a = p} {a′ = q} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
-    inj₁ tt                              ≡⟨ refl ⟩
-    index {xs = x ∷ xs} (inj₁ p)         ≡⟨ cong index $ sym $ to-from hyp₂ ⟩
-    index {xs = x ∷ xs} (from (inj₁ q))  ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
-    index {xs = x ∷ xs} (from (inj₁ p))  ≡⟨ cong index $ to-from hyp₁ ⟩
-    index {xs = x ∷ xs} (inj₂ z∈xs)      ≡⟨ refl ⟩∎
-    inj₂ (index {xs = xs} z∈xs)          ∎)
-    where open _↔_ (inv z)
+    -- If the equality type is proof irrelevant (so that p and q are
+    -- equal), then this lemma can be proved without the help of
+    -- index-equality-preserved.
+
+    lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) →
+            Well-behaved (_↔_.to (inv z))
+    lemma {xs} inv {b = z∈xs} {a = p} {a′ = q} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
+      inj₁ tt                              ≡⟨ refl ⟩
+      index {xs = x ∷ xs} (inj₁ p)         ≡⟨ cong index $ sym $ to-from hyp₂ ⟩
+      index {xs = x ∷ xs} (from (inj₁ q))  ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
+      index {xs = x ∷ xs} (from (inj₁ p))  ≡⟨ cong index $ to-from hyp₁ ⟩
+      index {xs = x ∷ xs} (inj₂ z∈xs)      ≡⟨ refl ⟩∎
+      inj₂ (index {xs = xs} z∈xs)          ∎)
+      where open _↔_ (inv z)
 
 -- Cons is not left cancellative for set equality.
 

@@ -27,52 +27,54 @@ _Left-inverse-of_ : ∀ {a b} {A : Set a} {B : Set b} →
                     (B → A) → (A → B) → Set a
 g Left-inverse-of f = ∀ x → g (f x) ≡ x
 
--- A set with a constant endofunction with a left inverse is proof
--- irrelevant.
+abstract
 
-irrelevant : ∀ {a} {A : Set a} →
-             (f : ∃ λ (f : A → A) → Constant f) →
-             (∃ λ g → g Left-inverse-of (proj₁ f)) →
-             Proof-irrelevant A
-irrelevant (f , constant) (g , left-inverse) x y =
-  x        ≡⟨ sym (left-inverse x) ⟩
-  g (f x)  ≡⟨ cong g (constant x y) ⟩
-  g (f y)  ≡⟨ left-inverse y ⟩∎
-  y        ∎
+  -- A set with a constant endofunction with a left inverse is proof
+  -- irrelevant.
 
--- Endofunction families on _≡_ always have left inverses.
+  irrelevant : ∀ {a} {A : Set a} →
+               (f : ∃ λ (f : A → A) → Constant f) →
+               (∃ λ g → g Left-inverse-of (proj₁ f)) →
+               Proof-irrelevant A
+  irrelevant (f , constant) (g , left-inverse) x y =
+    x        ≡⟨ sym (left-inverse x) ⟩
+    g (f x)  ≡⟨ cong g (constant x y) ⟩
+    g (f y)  ≡⟨ left-inverse y ⟩∎
+    y        ∎
 
-left-inverse :
-  ∀ {a} {A : Set a} (f : (x y : A) → x ≡ y → x ≡ y) →
-  ∀ {x y} → ∃ λ g → g Left-inverse-of f x y
-left-inverse {A = A} f {x} {y} =
-  (λ x≡y →
-     x  ≡⟨ x≡y ⟩
-     y  ≡⟨ sym (f y y (refl y)) ⟩∎
-     y  ∎) ,
-  elim (λ {x y} x≡y → trans (f x y x≡y) (sym (f y y (refl y))) ≡ x≡y)
-       (λ _ → Groupoid.left-inverse (groupoid A) _)
+  -- Endofunction families on _≡_ always have left inverses.
 
--- A set A has unique identity proofs if there is a family of constant
--- endofunctions on _≡_ {A = A}.
+  left-inverse :
+    ∀ {a} {A : Set a} (f : (x y : A) → x ≡ y → x ≡ y) →
+    ∀ {x y} → ∃ λ g → g Left-inverse-of f x y
+  left-inverse {A = A} f {x} {y} =
+    (λ x≡y →
+       x  ≡⟨ x≡y ⟩
+       y  ≡⟨ sym (f y y (refl y)) ⟩∎
+       y  ∎) ,
+    elim (λ {x y} x≡y → trans (f x y x≡y) (sym (f y y (refl y))) ≡ x≡y)
+         (λ _ → Groupoid.left-inverse (groupoid A) _)
 
-constant⇒UIP :
-  ∀ {a} {A : Set a} →
-  (f : (x y : A) → ∃ λ (f : x ≡ y → x ≡ y) → Constant f) →
-  Uniqueness-of-identity-proofs A
-constant⇒UIP constant {x} {y} =
-  irrelevant (constant x y)
-             (left-inverse (λ x y → proj₁ $ constant x y))
+  -- A set A has unique identity proofs if there is a family of
+  -- constant endofunctions on _≡_ {A = A}.
 
--- Sets which are decidable come with constant endofunctions.
+  constant⇒UIP :
+    ∀ {a} {A : Set a} →
+    (f : (x y : A) → ∃ λ (f : x ≡ y → x ≡ y) → Constant f) →
+    Uniqueness-of-identity-proofs A
+  constant⇒UIP constant {x} {y} =
+    irrelevant (constant x y)
+               (left-inverse (λ x y → proj₁ $ constant x y))
 
-constant : ∀ {a} {A : Set a} → Dec A →
-           ∃ λ (f : A → A) → Constant f
-constant (inj₁  x) = (const x , λ _ _ → refl x)
-constant (inj₂ ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
+  -- Sets which are decidable come with constant endofunctions.
 
--- Sets with decidable equality have unique identity proofs.
+  constant : ∀ {a} {A : Set a} → Dec A →
+             ∃ λ (f : A → A) → Constant f
+  constant (inj₁  x) = (const x , λ _ _ → refl x)
+  constant (inj₂ ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
 
-decidable⇒UIP : ∀ {a} {A : Set a} →
-  Decidable-equality A → Uniqueness-of-identity-proofs A
-decidable⇒UIP dec = constant⇒UIP (λ x y → constant (dec x y))
+  -- Sets with decidable equality have unique identity proofs.
+
+  decidable⇒UIP : ∀ {a} {A : Set a} →
+    Decidable-equality A → Uniqueness-of-identity-proofs A
+  decidable⇒UIP dec = constant⇒UIP (λ x y → constant (dec x y))

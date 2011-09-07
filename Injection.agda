@@ -45,9 +45,17 @@ infixr 9 _∘_
 _∘_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
       B ↣ C → A ↣ B → A ↣ C
 f ∘ g = record
-  { to        = to f ⊚ to g
-  ; injective = injective g ⊚ injective f
-  } where open _↣_
+  { to        = to′
+  ; injective = injective′
+  }
+  where
+  open _↣_
+
+  to′ = to f ⊚ to g
+
+  abstract
+    injective′ : Injective to′
+    injective′ = injective g ⊚ injective f
 
 -- "Equational" reasoning combinators.
 
