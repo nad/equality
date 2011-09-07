@@ -74,7 +74,7 @@ abstract
   [inhabited⇒contractible]⇒propositional h x = mono₁ 0 (h x) x
 
   -- If something has h-level (1 + n) given the assumption that it is
-  -- inhabited, then it has h-level (1 + n)
+  -- inhabited, then it has h-level (1 + n).
 
   [inhabited⇒+]⇒+ :
     ∀ {a} {A : Set a} n → (A → H-level (1 + n) A) → H-level (1 + n) A
