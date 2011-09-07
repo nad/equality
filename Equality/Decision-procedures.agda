@@ -19,10 +19,8 @@ module Bool where
 
   -- The values true and false are distinct.
 
-  abstract
-
-    true≢false : true ≢ false
-    true≢false true≡false = subst T true≡false _
+  true≢false : true ≢ false
+  true≢false true≡false = subst T true≡false _
 
   -- Equality of booleans is decidable.
 
@@ -49,12 +47,10 @@ module ℕ where
   pred zero    = zero
   pred (suc n) = n
 
-  abstract
+  -- Zero is not equal to the successor of any number.
 
-    -- Zero is not equal to the successor of any number.
-
-    0≢+ : {n : ℕ} → zero ≢ suc n
-    0≢+ 0≡+ = subst Zero 0≡+ tt
+  0≢+ : {n : ℕ} → zero ≢ suc n
+  0≢+ 0≡+ = subst Zero 0≡+ tt
 
   -- The suc constructor is cancellative.
 
@@ -74,13 +70,11 @@ module ℕ where
 
 module ⊎ {a b} {A : Set a} {B : Set b} where
 
-  abstract
+  -- The values inj₁ x and inj₂ y are never equal.
 
-    -- The values inj₁ x and inj₂ y are never equal.
-
-    inj₁≢inj₂ : {x : A} {y : B} → inj₁ x ≢ inj₂ y
-    inj₁≢inj₂ = Bool.true≢false ∘
-                cong {A = A ⊎ B} {B = Bool} [ const true , const false ]
+  inj₁≢inj₂ : {x : A} {y : B} → inj₁ x ≢ inj₂ y
+  inj₁≢inj₂ = Bool.true≢false ∘
+              cong {A = A ⊎ B} {B = Bool} [ const true , const false ]
 
   -- The inj₁ and inj₂ constructors are cancellative.
 

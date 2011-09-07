@@ -55,119 +55,115 @@ Univalence-axiom ℓ = {A B : Set ℓ} → Univalence-axiom′ A B
 -- The univalence axiom implies that Set is not a set. (This was
 -- pointed out to me by Thierry Coquand.)
 
-abstract
+-- First a lemma: Some equality types have more than one inhabitant
+-- (assuming univalence).
 
-  -- First a lemma: Some equality types have more than one inhabitant
-  -- (assuming univalence).
+equality-can-have-more-than-one-inhabitant :
+  Univalence-axiom′ Bool Bool →
+  ∃ λ (A : Set) → ∃ λ (B : Set) →
+  ∃ λ (p₁ : A ≡ B) → ∃ λ (p₂ : A ≡ B) → p₁ ≢ p₂
+equality-can-have-more-than-one-inhabitant univ =
+  (Bool , Bool , cast p₁ , cast p₂ , cast-p₁≢cast-p₂)
+  where
+  cast : Bool ≈ Bool → Bool ≡ Bool
+  cast = _≈_.from (≡≈≈ univ)
 
-  equality-can-have-more-than-one-inhabitant :
-    Univalence-axiom′ Bool Bool →
-    ∃ λ (A : Set) → ∃ λ (B : Set) →
-    ∃ λ (p₁ : A ≡ B) → ∃ λ (p₂ : A ≡ B) → p₁ ≢ p₂
-  equality-can-have-more-than-one-inhabitant univ =
-    (Bool , Bool , cast p₁ , cast p₂ , cast-p₁≢cast-p₂)
-    where
-    cast : Bool ≈ Bool → Bool ≡ Bool
-    cast = _≈_.from (≡≈≈ univ)
+  p₁ : Bool ≈ Bool
+  p₁ = Weak.id
 
-    p₁ : Bool ≈ Bool
-    p₁ = Weak.id
+  not : Bool → Bool
+  not b = if b then false else true
 
-    not : Bool → Bool
-    not b = if b then false else true
+  not∘not : ∀ b → not (not b) ≡ b
+  not∘not true  = refl _
+  not∘not false = refl _
 
-    not∘not : ∀ b → not (not b) ≡ b
-    not∘not true  = refl _
-    not∘not false = refl _
-
-    Bool↔Bool : Bool ↔ Bool
-    Bool↔Bool = record
-      { surjection = record
-        { equivalence      = record { from = not; to = not }
-        ; right-inverse-of = not∘not
-        }
-      ; left-inverse-of = not∘not
+  Bool↔Bool : Bool ↔ Bool
+  Bool↔Bool = record
+    { surjection = record
+      { equivalence      = record { from = not; to = not }
+      ; right-inverse-of = not∘not
       }
+    ; left-inverse-of = not∘not
+    }
 
-    p₂ : Bool ≈ Bool
-    p₂ = bijection⇒weak-equivalence Bool↔Bool
+  p₂ : Bool ≈ Bool
+  p₂ = bijection⇒weak-equivalence Bool↔Bool
 
-    p₁≢p₂ : p₁ ≢ p₂
-    p₁≢p₂ p₁≡p₂ =
-      Bool.true≢false $
-      cong (λ f → f true) $
-      cong _≈_.to p₁≡p₂
+  p₁≢p₂ : p₁ ≢ p₂
+  p₁≢p₂ p₁≡p₂ =
+    Bool.true≢false $
+    cong (λ f → f true) $
+    cong _≈_.to p₁≡p₂
 
-    cast-p₁≢cast-p₂ : cast p₁ ≢ cast p₂
-    cast-p₁≢cast-p₂ cast-p₁≡cast-p₂ = p₁≢p₂ $
-      p₁             ≡⟨ sym $ _≈_.right-inverse-of (≡≈≈ univ) p₁ ⟩
-      ≡⇒≈ (cast p₁)  ≡⟨ cong ≡⇒≈ cast-p₁≡cast-p₂ ⟩
-      ≡⇒≈ (cast p₂)  ≡⟨ _≈_.right-inverse-of (≡≈≈ univ) p₂ ⟩∎
-      p₂             ∎
+  cast-p₁≢cast-p₂ : cast p₁ ≢ cast p₂
+  cast-p₁≢cast-p₂ cast-p₁≡cast-p₂ = p₁≢p₂ $
+    p₁             ≡⟨ sym $ _≈_.right-inverse-of (≡≈≈ univ) p₁ ⟩
+    ≡⇒≈ (cast p₁)  ≡⟨ cong ≡⇒≈ cast-p₁≡cast-p₂ ⟩
+    ≡⇒≈ (cast p₂)  ≡⟨ _≈_.right-inverse-of (≡≈≈ univ) p₂ ⟩∎
+    p₂             ∎
 
-  -- Set is not a set.
+-- Set is not a set.
 
-  ¬-Set-set : Univalence-axiom′ Bool Bool → ¬ Is-set Set
-  ¬-Set-set univ is-set
-    with equality-can-have-more-than-one-inhabitant univ
-  ... | (A , B , p₁ , p₂ , p₁≢p₂) = p₁≢p₂ $ proj₁ $ is-set A B p₁ p₂
+¬-Set-set : Univalence-axiom′ Bool Bool → ¬ Is-set Set
+¬-Set-set univ is-set
+  with equality-can-have-more-than-one-inhabitant univ
+... | (A , B , p₁ , p₂ , p₁≢p₂) = p₁≢p₂ $ proj₁ $ is-set A B p₁ p₂
 
 ------------------------------------------------------------------------
 -- A consequence: extensionality for functions
 
-abstract
+-- If the univalence axiom holds, then "subst P ∘ from" is unique (up
+-- to extensional equality).
 
-  -- If the univalence axiom holds, then "subst P ∘ from" is unique
-  -- (up to extensional equality).
+subst-unique :
+  ∀ {p} (P : Set p → Set p) →
+  (resp : ∀ {A B} → A ≈ B → P A → P B) →
+  (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
+  ∀ {A B} (univ : Univalence-axiom′ A B) →
+  (A≈B : A ≈ B) (p : P A) →
+  resp A≈B p ≡ subst P (_≈_.from (≡≈≈ univ) A≈B) p
+subst-unique P resp resp-id univ A≈B p =
+  resp A≈B p              ≡⟨ sym $ cong (λ q → resp q p) (right-inverse-of A≈B) ⟩
+  resp (to (from A≈B)) p  ≡⟨ elim (λ {A B} A≡B → ∀ p →
+                                     resp (≡⇒≈ A≡B) p ≡ subst P A≡B p)
+                                  (λ A p →
+                                     resp (≡⇒≈ (refl A)) p  ≡⟨ cong (λ q → resp q p) (elim-refl (λ {A B} _ → A ≈ B) _) ⟩
+                                     resp Weak.id p         ≡⟨ resp-id p ⟩
+                                     p                      ≡⟨ sym $ subst-refl P p ⟩∎
+                                     subst P (refl A) p     ∎) _ _ ⟩∎
+  subst P (from A≈B) p    ∎
+  where open _≈_ (≡≈≈ univ)
 
-  subst-unique :
-    ∀ {p} (P : Set p → Set p) →
-    (resp : ∀ {A B} → A ≈ B → P A → P B) →
-    (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
-    ∀ {A B} (univ : Univalence-axiom′ A B) →
-    (A≈B : A ≈ B) (p : P A) →
-    resp A≈B p ≡ subst P (_≈_.from (≡≈≈ univ) A≈B) p
-  subst-unique P resp resp-id univ A≈B p =
-    resp A≈B p              ≡⟨ sym $ cong (λ q → resp q p) (right-inverse-of A≈B) ⟩
-    resp (to (from A≈B)) p  ≡⟨ elim (λ {A B} A≡B → ∀ p →
-                                       resp (≡⇒≈ A≡B) p ≡ subst P A≡B p)
-                                    (λ A p →
-                                       resp (≡⇒≈ (refl A)) p  ≡⟨ cong (λ q → resp q p) (elim-refl (λ {A B} _ → A ≈ B) _) ⟩
-                                       resp Weak.id p         ≡⟨ resp-id p ⟩
-                                       p                      ≡⟨ sym $ subst-refl P p ⟩∎
-                                       subst P (refl A) p     ∎) _ _ ⟩∎
-    subst P (from A≈B) p    ∎
-    where open _≈_ (≡≈≈ univ)
+-- If the univalence axiom holds, then any "resp" function satisfying
+-- resp Weak.id p ≡ p is a weak equivalence family.
 
-  -- If the univalence axiom holds, then any "resp" function
-  -- satisfying resp Weak.id p ≡ p is a weak equivalence family.
+resp-is-weak-equivalence :
+  ∀ {p} (P : Set p → Set p) →
+  (resp : ∀ {A B} → A ≈ B → P A → P B) →
+  (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
+  ∀ {A B} (univ : Univalence-axiom′ A B) →
+  (A≈B : A ≈ B) → Is-weak-equivalence (resp A≈B)
+resp-is-weak-equivalence P resp resp-id univ A≈B =
+  Weak.respects-extensional-equality
+    (λ p → sym $ subst-unique P resp resp-id univ A≈B p)
+    (subst-is-weak-equivalence P (_≈_.from (≡≈≈ univ) A≈B))
 
-  resp-is-weak-equivalence :
-    ∀ {p} (P : Set p → Set p) →
-    (resp : ∀ {A B} → A ≈ B → P A → P B) →
-    (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
-    ∀ {A B} (univ : Univalence-axiom′ A B) →
-    (A≈B : A ≈ B) → Is-weak-equivalence (resp A≈B)
-  resp-is-weak-equivalence P resp resp-id univ A≈B =
-    Weak.respects-extensional-equality
-      (λ p → sym $ subst-unique P resp resp-id univ A≈B p)
-      (subst-is-weak-equivalence P (_≈_.from (≡≈≈ univ) A≈B))
+-- If f is a weak equivalence, then (non-dependent) precomposition
+-- with f is also a weak equivalence (assuming univalence).
 
-  -- If f is a weak equivalence, then (non-dependent) precomposition
-  -- with f is also a weak equivalence (assuming univalence).
+precomposition-is-weak-equivalence :
+  ∀ {ℓ} {A B C : Set ℓ} → Univalence-axiom′ B A →
+  (A≈B : A ≈ B) →
+  Is-weak-equivalence (λ (g : B → C) → g ∘ _≈_.to A≈B)
+precomposition-is-weak-equivalence {ℓ} {C = C} univ A≈B =
+  resp-is-weak-equivalence P resp refl univ (Weak.inverse A≈B)
+  where
+  P : Set ℓ → Set ℓ
+  P X = X → C
 
-  precomposition-is-weak-equivalence :
-    ∀ {ℓ} {A B C : Set ℓ} → Univalence-axiom′ B A →
-    (A≈B : A ≈ B) →
-    Is-weak-equivalence (λ (g : B → C) → g ∘ _≈_.to A≈B)
-  precomposition-is-weak-equivalence {ℓ} {C = C} univ A≈B =
-    resp-is-weak-equivalence P resp refl univ (Weak.inverse A≈B)
-    where
-    P : Set ℓ → Set ℓ
-    P X = X → C
-
-    resp : ∀ {A B} → A ≈ B → P A → P B
-    resp A≈B p = p ∘ _≈_.from A≈B
+  resp : ∀ {A B} → A ≈ B → P A → P B
+  resp A≈B p = p ∘ _≈_.from A≈B
 
 -- If h is a weak equivalence, then one can cancel (non-dependent)
 -- precompositions with h (assuming univalence).
@@ -206,69 +202,67 @@ A ²/≡ = ∃ λ (x : A) → ∃ λ (y : A) → y ≡ x
       p                                     ∎
   }
 
-abstract
+-- The univalence axiom implies non-dependent functional
+-- extensionality.
 
-  -- The univalence axiom implies non-dependent functional
-  -- extensionality.
+extensionality :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Univalence-axiom′ (B ²/≡) B →
+  {f g : A → B} → (∀ x → f x ≡ g x) → f ≡ g
+extensionality {A = A} {B} univ {f} {g} f≡g =
+  f          ≡⟨ refl f ⟩
+  f′ ∘ pair  ≡⟨ cong (λ (h : B ²/≡ → B) → h ∘ pair) f′≡g′ ⟩
+  g′ ∘ pair  ≡⟨ refl g ⟩∎
+  g          ∎
+  where
+  f′ : B ²/≡ → B
+  f′ = proj₁ ∘ proj₂
 
-  extensionality :
-    ∀ {a b} {A : Set a} {B : Set b} →
-    Univalence-axiom′ (B ²/≡) B →
-    {f g : A → B} → (∀ x → f x ≡ g x) → f ≡ g
-  extensionality {A = A} {B} univ {f} {g} f≡g =
-    f          ≡⟨ refl f ⟩
-    f′ ∘ pair  ≡⟨ cong (λ (h : B ²/≡ → B) → h ∘ pair) f′≡g′ ⟩
-    g′ ∘ pair  ≡⟨ refl g ⟩∎
-    g          ∎
-    where
-    f′ : B ²/≡ → B
-    f′ = proj₁ ∘ proj₂
+  g′ : B ²/≡ → B
+  g′ = proj₁
 
-    g′ : B ²/≡ → B
-    g′ = proj₁
+  f′≡g′ : f′ ≡ g′
+  f′≡g′ = precompositions-cancel
+            univ
+            (bijection⇒weak-equivalence $ Bijection.inverse -²/≡↔-)
+            (refl id)
 
-    f′≡g′ : f′ ≡ g′
-    f′≡g′ = precompositions-cancel
-              univ
-              (bijection⇒weak-equivalence $ Bijection.inverse -²/≡↔-)
-              (refl id)
+  pair : A → B ²/≡
+  pair x = (g x , f x , f≡g x)
 
-    pair : A → B ²/≡
-    pair x = (g x , f x , f≡g x)
+-- The univalence axiom implies that contractibility is closed under
+-- Π A.
 
-  -- The univalence axiom implies that contractibility is closed under
-  -- Π A.
+Π-closure-contractible :
+  ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
+  ∀ {a} {A : Set a} {B : A → Set b} →
+  (∀ x → Univalence-axiom′ ⊤ (B x)) →
+  (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)
+Π-closure-contractible {b} univ₁ {A = A} {B} univ₂ contr =
+  subst Contractible A→⊤≡[x:A]→Bx →⊤-contractible
+  where
+  const-⊤≡B : const ⊤ ≡ B
+  const-⊤≡B = extensionality univ₁ λ x →
+    _≈_.from (≡≈≈ (univ₂ x)) $
+      bijection⇒weak-equivalence $
+        contractible-isomorphic ⊤-contractible (contr x)
 
-  Π-closure-contractible :
-    ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
-    ∀ {a} {A : Set a} {B : A → Set b} →
-    (∀ x → Univalence-axiom′ ⊤ (B x)) →
-    (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)
-  Π-closure-contractible {b} univ₁ {A = A} {B} univ₂ contr =
-    subst Contractible A→⊤≡[x:A]→Bx →⊤-contractible
-    where
-    const-⊤≡B : const ⊤ ≡ B
-    const-⊤≡B = extensionality univ₁ λ x →
-      _≈_.from (≡≈≈ (univ₂ x)) $
-        bijection⇒weak-equivalence $
-          contractible-isomorphic ⊤-contractible (contr x)
+  A→⊤≡[x:A]→Bx : (A → ⊤ {ℓ = b}) ≡ ((x : A) → B x)
+  A→⊤≡[x:A]→Bx = cong (λ X → (x : A) → X x) const-⊤≡B
 
-    A→⊤≡[x:A]→Bx : (A → ⊤ {ℓ = b}) ≡ ((x : A) → B x)
-    A→⊤≡[x:A]→Bx = cong (λ X → (x : A) → X x) const-⊤≡B
+  →⊤-contractible : Contractible (A → ⊤ {ℓ = b})
+  →⊤-contractible = (_ , λ _ → refl _)
 
-    →⊤-contractible : Contractible (A → ⊤ {ℓ = b})
-    →⊤-contractible = (_ , λ _ → refl _)
+-- Thus we also get extensionality for dependent functions.
 
-  -- Thus we also get extensionality for dependent functions.
-
-  dependent-extensionality :
-    ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
-    ∀ {a} {A : Set a} →
-    (∀ {B : A → Set b} x → Univalence-axiom′ ⊤ (B x)) →
-    {B : A → Set b} → Extensionality A B
-  dependent-extensionality univ₁ univ₂ =
-    _⇔_.to Π-closure-contractible⇔extensionality
-      (Π-closure-contractible univ₁ univ₂)
+dependent-extensionality :
+  ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
+  ∀ {a} {A : Set a} →
+  (∀ {B : A → Set b} x → Univalence-axiom′ ⊤ (B x)) →
+  {B : A → Set b} → Extensionality A B
+dependent-extensionality univ₁ univ₂ =
+  _⇔_.to Π-closure-contractible⇔extensionality
+    (Π-closure-contractible univ₁ univ₂)
 
 ------------------------------------------------------------------------
 -- An example: if two magmas are isomorphic, then they are equal

@@ -213,12 +213,11 @@ private
 
     to′ = ⊎-map (to A₁↣A₂) (to B₁↣B₂)
 
-    abstract
-      injective′ : Injective to′
-      injective′ {x = inj₁ x} {y = inj₁ y} = cong inj₁ ⊚ injective A₁↣A₂ ⊚ ⊎.cancel-inj₁
-      injective′ {x = inj₂ x} {y = inj₂ y} = cong inj₂ ⊚ injective B₁↣B₂ ⊚ ⊎.cancel-inj₂
-      injective′ {x = inj₁ x} {y = inj₂ y} = ⊥-elim ⊚ ⊎.inj₁≢inj₂
-      injective′ {x = inj₂ x} {y = inj₁ y} = ⊥-elim ⊚ ⊎.inj₁≢inj₂ ⊚ sym
+    injective′ : Injective to′
+    injective′ {x = inj₁ x} {y = inj₁ y} = cong inj₁ ⊚ injective A₁↣A₂ ⊚ ⊎.cancel-inj₁
+    injective′ {x = inj₂ x} {y = inj₂ y} = cong inj₂ ⊚ injective B₁↣B₂ ⊚ ⊎.cancel-inj₂
+    injective′ {x = inj₁ x} {y = inj₂ y} = ⊥-elim ⊚ ⊎.inj₁≢inj₂
+    injective′ {x = inj₂ x} {y = inj₁ y} = ⊥-elim ⊚ ⊎.inj₁≢inj₂ ⊚ sym
 
   ⊎-cong-surj : {A₁ A₂ B₁ B₂ : Set} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ ⊎ B₁ ↠ A₂ ⊎ B₂
@@ -340,11 +339,10 @@ private
     to′ : A₁ × B₁ → A₂ × B₂
     to′ = Σ-map (to A₁↣A₂) (to B₁↣B₂)
 
-    abstract
-      injective′ : Injective to′
-      injective′ to′-x≡to′-y =
-        cong₂ _,_ (injective A₁↣A₂ (cong proj₁ to′-x≡to′-y))
-                  (injective B₁↣B₂ (cong proj₂ to′-x≡to′-y))
+    injective′ : Injective to′
+    injective′ to′-x≡to′-y =
+      cong₂ _,_ (injective A₁↣A₂ (cong proj₁ to′-x≡to′-y))
+                (injective B₁↣B₂ (cong proj₂ to′-x≡to′-y))
 
   ×-cong-surj : {A₁ A₂ B₁ B₂ : Set} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ × B₁ ↠ A₂ × B₂
@@ -685,42 +683,40 @@ Well-behaved f =
   g f hyp b | inj₁ a with-≡ eq₁ | inj₁ a′ with-≡ eq₂ =
     ⊥-elim $ hyp eq₁ eq₂
 
-  abstract
-
-    g∘g : ∀ {A B C : Set} →
-          (f : A ⊎ B ↔ A ⊎ C) →
-          (to-hyp   : Well-behaved (to   f)) →
-          (from-hyp : Well-behaved (from f)) →
-          ∀ b → g (from f) from-hyp (g (to f) to-hyp b) ≡ b
-    g∘g f to-hyp from-hyp b = g∘g′
-      where
-      g∘g′ : g (from f) from-hyp (g (to f) to-hyp b) ≡ b
-      g∘g′ with inspect (to f (inj₂ b))
-      g∘g′ | inj₂ c with-≡ eq₁ with inspect (from f (inj₂ c))
-      g∘g′ | inj₂ c with-≡ eq₁ | inj₂ b′ with-≡ eq₂ = ⊎.cancel-inj₂ (
-                                                        inj₂ b′          ≡⟨ sym eq₂ ⟩
-                                                        from f (inj₂ c)  ≡⟨ to-from f eq₁ ⟩∎
-                                                        inj₂ b           ∎)
-      g∘g′ | inj₂ c with-≡ eq₁ | inj₁ a  with-≡ eq₂ = ⊥-elim $ ⊎.inj₁≢inj₂ (
-                                                        inj₁ a           ≡⟨ sym eq₂ ⟩
-                                                        from f (inj₂ c)  ≡⟨ to-from f eq₁ ⟩∎
-                                                        inj₂ b           ∎)
-      g∘g′ | inj₁ a with-≡ eq₁ with inspect (to f (inj₁ a))
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₁ a′ with-≡ eq₂ = ⊥-elim $ to-hyp eq₁ eq₂
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ with inspect (from f (inj₂ c))
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₂ b′ with-≡ eq₃ = ⊥-elim $ ⊎.inj₁≢inj₂ (
-                                                                             inj₁ a           ≡⟨ sym $ to-from f eq₂ ⟩
-                                                                             from f (inj₂ c)  ≡⟨ eq₃ ⟩∎
-                                                                             inj₂ b′          ∎)
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ with inspect (from f (inj₁ a′))
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ | inj₁ a″ with-≡ eq₄ = ⊥-elim $ from-hyp eq₃ eq₄
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ | inj₂ b′ with-≡ eq₄ = ⊎.cancel-inj₂ (
-        let lemma =
-              inj₁ a′          ≡⟨ sym eq₃ ⟩
-              from f (inj₂ c)  ≡⟨ to-from f eq₂ ⟩∎
-              inj₁ a           ∎
-        in
-        inj₂ b′           ≡⟨ sym eq₄ ⟩
-        from f (inj₁ a′)  ≡⟨ cong (from f ⊚ inj₁) $ ⊎.cancel-inj₁ lemma ⟩
-        from f (inj₁ a)   ≡⟨ to-from f eq₁ ⟩∎
-        inj₂ b            ∎)
+  g∘g : ∀ {A B C : Set} →
+        (f : A ⊎ B ↔ A ⊎ C) →
+        (to-hyp   : Well-behaved (to   f)) →
+        (from-hyp : Well-behaved (from f)) →
+        ∀ b → g (from f) from-hyp (g (to f) to-hyp b) ≡ b
+  g∘g f to-hyp from-hyp b = g∘g′
+    where
+    g∘g′ : g (from f) from-hyp (g (to f) to-hyp b) ≡ b
+    g∘g′ with inspect (to f (inj₂ b))
+    g∘g′ | inj₂ c with-≡ eq₁ with inspect (from f (inj₂ c))
+    g∘g′ | inj₂ c with-≡ eq₁ | inj₂ b′ with-≡ eq₂ = ⊎.cancel-inj₂ (
+                                                      inj₂ b′          ≡⟨ sym eq₂ ⟩
+                                                      from f (inj₂ c)  ≡⟨ to-from f eq₁ ⟩∎
+                                                      inj₂ b           ∎)
+    g∘g′ | inj₂ c with-≡ eq₁ | inj₁ a  with-≡ eq₂ = ⊥-elim $ ⊎.inj₁≢inj₂ (
+                                                      inj₁ a           ≡⟨ sym eq₂ ⟩
+                                                      from f (inj₂ c)  ≡⟨ to-from f eq₁ ⟩∎
+                                                      inj₂ b           ∎)
+    g∘g′ | inj₁ a with-≡ eq₁ with inspect (to f (inj₁ a))
+    g∘g′ | inj₁ a with-≡ eq₁ | inj₁ a′ with-≡ eq₂ = ⊥-elim $ to-hyp eq₁ eq₂
+    g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ with inspect (from f (inj₂ c))
+    g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₂ b′ with-≡ eq₃ = ⊥-elim $ ⊎.inj₁≢inj₂ (
+                                                                           inj₁ a           ≡⟨ sym $ to-from f eq₂ ⟩
+                                                                           from f (inj₂ c)  ≡⟨ eq₃ ⟩∎
+                                                                           inj₂ b′          ∎)
+    g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ with inspect (from f (inj₁ a′))
+    g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ | inj₁ a″ with-≡ eq₄ = ⊥-elim $ from-hyp eq₃ eq₄
+    g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ | inj₂ b′ with-≡ eq₄ = ⊎.cancel-inj₂ (
+      let lemma =
+            inj₁ a′          ≡⟨ sym eq₃ ⟩
+            from f (inj₂ c)  ≡⟨ to-from f eq₂ ⟩∎
+            inj₁ a           ∎
+      in
+      inj₂ b′           ≡⟨ sym eq₄ ⟩
+      from f (inj₁ a′)  ≡⟨ cong (from f ⊚ inj₁) $ ⊎.cancel-inj₁ lemma ⟩
+      from f (inj₁ a)   ≡⟨ to-from f eq₁ ⟩∎
+      inj₂ b            ∎)

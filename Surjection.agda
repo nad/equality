@@ -65,12 +65,10 @@ f ∘ g = record
   where
   open _↠_
 
-  abstract
-    to∘from : ∀ x → to f (to g (from g (from f x))) ≡ x
-    to∘from = λ x →
-      to f (to g (from g (from f x)))  ≡⟨ cong (to f) (right-inverse-of g (from f x)) ⟩
-      to f (from f x)                  ≡⟨ right-inverse-of f x ⟩∎
-      x                                ∎
+  to∘from = λ x →
+    to f (to g (from g (from f x)))  ≡⟨ cong (to f) (right-inverse-of g (from f x)) ⟩
+    to f (from f x)                  ≡⟨ right-inverse-of f x ⟩∎
+    x                                ∎
 
 -- "Equational" reasoning combinators.
 
@@ -109,10 +107,9 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
   from′ : ∃ B₂ → ∃ B₁
   from′ = Σ-map P.id (from (B₁↠B₂ _))
 
-  abstract
-    right-inverse-of′ : ∀ p → to′ (from′ p) ≡ p
-    right-inverse-of′ = λ p →
-      cong (_,_ (proj₁ p)) (right-inverse-of (B₁↠B₂ (proj₁ p)) _)
+  right-inverse-of′ : ∀ p → to′ (from′ p) ≡ p
+  right-inverse-of′ = λ p →
+    cong (_,_ (proj₁ p)) (right-inverse-of (B₁↠B₂ (proj₁ p)) _)
 
 -- A lemma relating surjections and equality.
 
@@ -135,31 +132,30 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
     to (from y)  ≡⟨ right-inverse-of _ ⟩∎
     y            ∎
 
-  abstract
-    right-inverse-of′ : ∀ p → to′ (cong from p) ≡ p
-    right-inverse-of′ = elim
-      (λ {x y} x≡y → trans (sym (right-inverse-of x)) (
-                       trans (cong to (cong from x≡y)) (
-                       right-inverse-of y)) ≡
-                     x≡y)
-      (λ x → trans (sym (right-inverse-of x)) (
-               trans (cong to (cong from (refl x))) (
-               right-inverse-of x))                                 ≡⟨ cong (λ p → trans (sym (right-inverse-of x))
-                                                                                         (trans (cong to p) (right-inverse-of x)))
-                                                                            (cong-refl from) ⟩
-             trans (sym (right-inverse-of x)) (
-               trans (cong to (refl (from x))) (
-               right-inverse-of x))                                 ≡⟨ cong (λ p → trans (sym (right-inverse-of x))
-                                                                                         (trans p (right-inverse-of x)))
-                                                                            (cong-refl to) ⟩
-             trans (sym (right-inverse-of x)) (
-               trans (refl (to (from x))) (
-               right-inverse-of x))                                 ≡⟨ (let eq = Lift (right-inverse-of x) in
-                                                                        prove (Trans (Sym eq) (Trans Refl eq))
-                                                                              (Trans (Sym eq) eq)
-                                                                              (refl _)) ⟩
-             trans (sym (right-inverse-of x)) (right-inverse-of x)  ≡⟨ G.right-inverse _ ⟩∎
-             refl x                                                 ∎)
+  right-inverse-of′ : ∀ p → to′ (cong from p) ≡ p
+  right-inverse-of′ = elim
+    (λ {x y} x≡y → trans (sym (right-inverse-of x)) (
+                     trans (cong to (cong from x≡y)) (
+                     right-inverse-of y)) ≡
+                   x≡y)
+    (λ x → trans (sym (right-inverse-of x)) (
+             trans (cong to (cong from (refl x))) (
+             right-inverse-of x))                                 ≡⟨ cong (λ p → trans (sym (right-inverse-of x))
+                                                                                       (trans (cong to p) (right-inverse-of x)))
+                                                                          (cong-refl from) ⟩
+           trans (sym (right-inverse-of x)) (
+             trans (cong to (refl (from x))) (
+             right-inverse-of x))                                 ≡⟨ cong (λ p → trans (sym (right-inverse-of x))
+                                                                                       (trans p (right-inverse-of x)))
+                                                                          (cong-refl to) ⟩
+           trans (sym (right-inverse-of x)) (
+             trans (refl (to (from x))) (
+             right-inverse-of x))                                 ≡⟨ (let eq = Lift (right-inverse-of x) in
+                                                                      prove (Trans (Sym eq) (Trans Refl eq))
+                                                                            (Trans (Sym eq) eq)
+                                                                            (refl _)) ⟩
+           trans (sym (right-inverse-of x)) (right-inverse-of x)  ≡⟨ G.right-inverse _ ⟩∎
+           refl x                                                 ∎)
 
 -- Decidable-equality respects surjections.
 

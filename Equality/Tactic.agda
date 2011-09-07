@@ -294,18 +294,16 @@ simplify (Cong f x≡y)    = map-cong f (simplify x≡y)
 ------------------------------------------------------------------------
 -- Tactic
 
-abstract
+-- Simple tactic for proving equality of equality proofs.
 
-  -- Simple tactic for proving equality of equality proofs.
-
-  prove : ∀ {a} {A : Set a} {x y : A} (x≡y x≡y′ : Eq x y) →
-          ⟦ proj₁ (simplify x≡y) ⟧S ≡ ⟦ proj₁ (simplify x≡y′) ⟧S →
-          ⟦ x≡y ⟧ ≡ ⟦ x≡y′ ⟧
-  prove x≡y x≡y′ hyp =
-    ⟦ x≡y ⟧                     ≡⟨ proj₂ (simplify x≡y) ⟩
-    ⟦ proj₁ (simplify x≡y ) ⟧S  ≡⟨ hyp ⟩
-    ⟦ proj₁ (simplify x≡y′) ⟧S  ≡⟨ sym (proj₂ (simplify x≡y′)) ⟩∎
-    ⟦ x≡y′ ⟧                    ∎
+prove : ∀ {a} {A : Set a} {x y : A} (x≡y x≡y′ : Eq x y) →
+        ⟦ proj₁ (simplify x≡y) ⟧S ≡ ⟦ proj₁ (simplify x≡y′) ⟧S →
+        ⟦ x≡y ⟧ ≡ ⟦ x≡y′ ⟧
+prove x≡y x≡y′ hyp =
+  ⟦ x≡y ⟧                     ≡⟨ proj₂ (simplify x≡y) ⟩
+  ⟦ proj₁ (simplify x≡y ) ⟧S  ≡⟨ hyp ⟩
+  ⟦ proj₁ (simplify x≡y′) ⟧S  ≡⟨ sym (proj₂ (simplify x≡y′)) ⟩∎
+  ⟦ x≡y′ ⟧                    ∎
 
 ------------------------------------------------------------------------
 -- Some examples
