@@ -38,7 +38,7 @@ Any P (x ∷ xs) = P x ⊎ Any P xs
 -- Alternative definition of Any.
 
 data Any′ {A : Set} (P : A → Set) : List A → Set where
-  here  : ∀ {x xs} → P x      → Any′ P (x ∷ xs)
+  here  : ∀ {x xs} → P x       → Any′ P (x ∷ xs)
   there : ∀ {x xs} → Any′ P xs → Any′ P (x ∷ xs)
 
 -- The two definitions of Any are isomorphic.
