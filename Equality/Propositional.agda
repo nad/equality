@@ -2,7 +2,7 @@
 -- Propositional equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
 module Equality.Propositional where
 

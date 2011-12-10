@@ -2,7 +2,7 @@
 -- A simple tactic for proving equality of equality proofs
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
 open import Equality
 

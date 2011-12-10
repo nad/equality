@@ -2,7 +2,7 @@
 -- Some definitions related to and properties of finite sets
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
 -- Note that this module is not parametrised by a definition of
 -- equality; it uses ordinary propositional equality.

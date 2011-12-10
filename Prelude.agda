@@ -2,7 +2,7 @@
 -- A small prelude
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
 -- Note that parts of Agda's standard library make use of the K rule.
 

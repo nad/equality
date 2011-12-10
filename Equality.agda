@@ -2,7 +2,7 @@
 -- Two equivalent axiomatisations of equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
 module Equality where
 

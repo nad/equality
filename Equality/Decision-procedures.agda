@@ -2,7 +2,7 @@
 -- Some decision procedures for equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
 open import Equality
 

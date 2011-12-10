@@ -2,7 +2,7 @@
 -- Weak equivalences
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.

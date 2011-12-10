@@ -2,7 +2,7 @@
 -- Bijections
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
 open import Equality
 

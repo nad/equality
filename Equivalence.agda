@@ -2,7 +2,7 @@
 -- Equivalences
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --universe-polymorphism #-}
+{-# OPTIONS --without-K #-}
 
 module Equivalence where
 
