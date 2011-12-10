@@ -26,7 +26,7 @@ record Container : Set₁ where
     Shape    : Set
     Position : Shape → Set
 
-open Container
+open Container public
 
 -- Interpretation of containers.
 
