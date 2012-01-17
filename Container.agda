@@ -20,17 +20,17 @@ open Function-universe equality-with-J
 ------------------------------------------------------------------------
 -- Containers
 
-record Container : Set₁ where
+record Container c : Set (lsuc c) where
   constructor _▷_
   field
-    Shape    : Set
-    Position : Shape → Set
+    Shape    : Set c
+    Position : Shape → Set c
 
 open Container public
 
 -- Interpretation of containers.
 
-⟦_⟧ : Container → Set → Set
+⟦_⟧ : ∀ {c} → Container c → Set c → Set c
 ⟦ S ▷ P ⟧ A = ∃ λ (s : S) → (P s → A)
 
 -- Some examples.
@@ -39,12 +39,12 @@ module Examples where
 
   -- Lists.
 
-  List : Container
+  List : Container lzero
   List = ℕ ▷ Fin
 
   -- Streams.
 
-  Stream : Container
+  Stream : Container lzero
   Stream = ⊤ ▷ const ℕ
 
   -- Finite binary trees with information in the internal nodes.
@@ -57,7 +57,7 @@ module Examples where
   P leaf       = ⊥
   P (node l r) = P l ⊎ ⊤ ⊎ P r
 
-  Tree : Container
+  Tree : Container lzero
   Tree = S ▷ P
 
 ------------------------------------------------------------------------
@@ -65,12 +65,13 @@ module Examples where
 
 -- The shape of something.
 
-shape : ∀ {C A} → ⟦ C ⟧ A → Shape C
+shape : ∀ {c} {C : Container c} {A} → ⟦ C ⟧ A → Shape C
 shape = proj₁
 
 -- A lookup function.
 
-lookup : ∀ {C A} (xs : ⟦ C ⟧ A) → Position C (shape xs) → A
+lookup : ∀ {c} {C : Container c} {A}
+         (xs : ⟦ C ⟧ A) → Position C (shape xs) → A
 lookup = proj₂
 
 ------------------------------------------------------------------------
@@ -78,15 +79,17 @@ lookup = proj₂
 
 -- Containers are functors.
 
-map : ∀ {C X Y} → (X → Y) → ⟦ C ⟧ X → ⟦ C ⟧ Y
+map : ∀ {c} {C : Container c} {X Y} → (X → Y) → ⟦ C ⟧ X → ⟦ C ⟧ Y
 map f = Σ-map id (λ g → f ∘ g)
 
 module Map where
 
-  identity : ∀ {C X} (xs : ⟦ C ⟧ X) → map id xs ≡ xs
+  identity : ∀ {c} {C : Container c} {X}
+             (xs : ⟦ C ⟧ X) → map id xs ≡ xs
   identity xs = refl
 
-  composition : ∀ {C X Y Z} (f : Y → Z) (g : X → Y) (xs : ⟦ C ⟧ X) →
+  composition : ∀ {c} {C : Container c} {X Y Z}
+                (f : Y → Z) (g : X → Y) (xs : ⟦ C ⟧ X) →
                 map f (map g xs) ≡ map (f ∘ g) xs
   composition f g xs = refl
 
@@ -95,15 +98,15 @@ module Map where
 
 -- Definition of Any for containers.
 
-Any :  {C : Container} {A : Set} →
-       (A → Set) → (⟦ C ⟧ A → Set)
-Any {S ▷ P} Q (s , f) = ∃ λ (p : P s) → Q (f p)
+Any : ∀ {c} {C : Container c} {A : Set c} →
+      (A → Set c) → (⟦ C ⟧ A → Set c)
+Any {C = S ▷ P} Q (s , f) = ∃ λ (p : P s) → Q (f p)
 
 -- Membership predicate.
 
 infix 4 _∈_
 
-_∈_ : {C : Container} {A : Set} → A → ⟦ C ⟧ A → Set
+_∈_ : ∀ {c} {C : Container c} {A : Set c} → A → ⟦ C ⟧ A → Set c
 x ∈ xs = Any (λ y → x ≡ y) xs
 
 -- Bag equality etc. Note that the containers can be different as long
@@ -111,14 +114,16 @@ x ∈ xs = Any (λ y → x ≡ y) xs
 
 infix 4 _∼[_]_
 
-_∼[_]_ : ∀ {C₁ C₂ A} → ⟦ C₁ ⟧ A → Kind → ⟦ C₂ ⟧ A → Set
+_∼[_]_ : ∀ {c} {C₁ C₂ : Container c} {A} →
+         ⟦ C₁ ⟧ A → Kind → ⟦ C₂ ⟧ A → Set c
 xs ∼[ k ] ys = ∀ z → z ∈ xs ↝[ k ] z ∈ ys
 
 -- Bag equality.
 
 infix 4 _≈-bag_
 
-_≈-bag_ : {C₁ C₂ : Container} {A : Set} → ⟦ C₁ ⟧ A → ⟦ C₂ ⟧ A → Set
+_≈-bag_ : ∀ {c} {C₁ C₂ : Container c} {A : Set c} →
+          ⟦ C₁ ⟧ A → ⟦ C₂ ⟧ A → Set c
 xs ≈-bag ys = xs ∼[ bag ] ys
 
 ------------------------------------------------------------------------
@@ -126,13 +131,15 @@ xs ≈-bag ys = xs ∼[ bag ] ys
 
 -- Lemma relating Any to map.
 
-Any-map : ∀ {C A B} (P : B → Set) (f : A → B) (xs : ⟦ C ⟧ A) →
+Any-map : ∀ {c} {C : Container c} {A B}
+          (P : B → Set c) (f : A → B) (xs : ⟦ C ⟧ A) →
           Any P (map f xs) ↔ Any (P ∘ f) xs
 Any-map P f xs = Any P (map f xs) □
 
 -- Any can be expressed using _∈_.
 
-Any-∈ : ∀ {C A} (P : A → Set) (xs : ⟦ C ⟧ A) →
+Any-∈ : ∀ {c} {C : Container c} {A}
+        (P : A → Set c) (xs : ⟦ C ⟧ A) →
         Any P xs ↔ ∃ λ x → P x × x ∈ xs
 Any-∈ P (s , f) =
   (∃ λ p → P (f p))                ↔⟨ ∃-cong (λ p → ∃-intro P (f p)) ⟩
@@ -142,7 +149,8 @@ Any-∈ P (s , f) =
 
 -- Using this property we can prove that Any and _⊎_ commute.
 
-Any-⊎ : ∀ {C A} (P Q : A → Set) (xs : ⟦ C ⟧ A) →
+Any-⊎ : ∀ {c} {C : Container c} {A}
+        (P Q : A → Set c) (xs : ⟦ C ⟧ A) →
         Any (λ x → P x ⊎ Q x) xs ↔ Any P xs ⊎ Any Q xs
 Any-⊎ P Q xs =
   Any (λ x → P x ⊎ Q x) xs                         ↔⟨ Any-∈ (λ x → P x ⊎ Q x) xs ⟩
@@ -154,7 +162,7 @@ Any-⊎ P Q xs =
 -- Any preserves functions of various kinds and respects bag equality
 -- and similar relations.
 
-Any-cong : ∀ {k C D A} {P Q : A → Set}
+Any-cong : ∀ {k c} {C D : Container c} {A} {P Q : A → Set c}
            (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
            (∀ x → P x ↝[ k ] Q x) → xs ∼[ k ] ys →
            Any P xs ↝[ k ] Any Q ys
@@ -166,7 +174,7 @@ Any-cong {P = P} {Q} xs ys P↔Q xs∼ys =
 
 -- Map preserves the relations.
 
-map-cong : ∀ {k C D} {A B : Set} (f : A → B)
+map-cong : ∀ {k c} {C D : Container c} {A B : Set c} (f : A → B)
            (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
            xs ∼[ k ] ys → map f xs ∼[ k ] map f ys
 map-cong f xs ys xs∼ys = λ z →
@@ -183,8 +191,8 @@ map-cong f xs ys xs∼ys = λ z →
 
 infix 4 _≈-bag′_
 
-_≈-bag′_ : ∀ {C D A} → ⟦ C ⟧ A → ⟦ D ⟧ A → Set
-_≈-bag′_ {C} {D} (s , f) (s′ , f′) =
+_≈-bag′_ : ∀ {c} {C D : Container c} {A} → ⟦ C ⟧ A → ⟦ D ⟧ A → Set c
+_≈-bag′_ {C = C} {D} (s , f) (s′ , f′) =
   ∃ λ (P↔P : Position C s ↔ Position D s′) →
       (∀ p → f p ≡ f′ (to-implication P↔P p))
 
@@ -195,20 +203,22 @@ _≈-bag′_ {C} {D} (s , f) (s′ , f′) =
 -- the element". In fact, membership /is/ expressed in this way, so
 -- this proof is unnecessary.
 
-∈-lookup : ∀ {C A z} (xs : ⟦ C ⟧ A) → z ∈ xs ↔ ∃ λ p → z ≡ lookup xs p
+∈-lookup : ∀ {c} {C : Container c} {A z}
+           (xs : ⟦ C ⟧ A) → z ∈ xs ↔ ∃ λ p → z ≡ lookup xs p
 ∈-lookup {z = z} xs = z ∈ xs □
 
 -- The index which points to the element (not used below).
 
-index : ∀ {C A z} (xs : ⟦ C ⟧ A) → z ∈ xs → Position C (shape xs)
+index : ∀ {c} {C : Container c} {A z}
+        (xs : ⟦ C ⟧ A) → z ∈ xs → Position C (shape xs)
 index xs = proj₁ ∘ to-implication (∈-lookup xs)
 
 -- The positions for a given shape can be expressed in terms of the
 -- membership predicate.
 
-Position-shape : ∀ {C A} (xs : ⟦ C ⟧ A) →
+Position-shape : ∀ {c} {C : Container c} {A} (xs : ⟦ C ⟧ A) →
                  (∃ λ z → z ∈ xs) ↔ Position C (shape xs)
-Position-shape {C} (s , f) =
+Position-shape {C = C} (s , f) =
   (∃ λ z → ∃ λ p → z ≡ f p)  ↔⟨ ∃-comm ⟩
   (∃ λ p → ∃ λ z → z ≡ f p)  ↔⟨ _ □ ⟩
   (∃ λ p → Singleton (f p))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ (singleton-contractible _)) ⟩
@@ -218,7 +228,7 @@ Position-shape {C} (s , f) =
 -- Position _ ∘ shape respects the various relations.
 
 Position-shape-cong :
-  ∀ {k C D A} (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
+  ∀ {k c} {C D : Container c} {A} (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
   xs ∼[ k ] ys → Position C (shape xs) ↝[ k ] Position D (shape ys)
 Position-shape-cong {C = C} {D} xs ys xs∼ys =
   Position C (shape xs)  ↔⟨ inverse $ Position-shape xs ⟩
@@ -229,7 +239,7 @@ Position-shape-cong {C = C} {D} xs ys xs∼ys =
 -- Furthermore Position-shape-cong relates equal elements.
 
 Position-shape-cong-relates :
-  ∀ {C D A}
+  ∀ {c} {C D : Container c} {A}
   (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) (xs≈ys : xs ≈-bag ys) p →
   lookup xs p ≡
     lookup ys (to-implication (Position-shape-cong xs ys xs≈ys) p)
@@ -252,16 +262,16 @@ Position-shape-cong-relates xs ys xs≈ys p =
 
 -- We get that the two definitions of bag equality are equivalent.
 
-≈⇔≈′ : ∀ {C D A} (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
-       xs ≈-bag ys ⇔ xs ≈-bag′ ys
-≈⇔≈′ {k} xs ys = record
+≈⇔≈′ : ∀ {c} {C D : Container c} {A}
+       (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) → xs ≈-bag ys ⇔ xs ≈-bag′ ys
+≈⇔≈′ xs ys = record
   { to   = λ xs≈ys → ( Position-shape-cong xs ys xs≈ys
                      , Position-shape-cong-relates xs ys xs≈ys
                      )
   ; from = from
   }
   where
-  equality-lemma : ∀ {k A} {x y z : A} →
+  equality-lemma : ∀ {k c} {A : Set c} {x y z : A} →
                    x ≡ y → (z ≡ x) ↝[ k ] (z ≡ y)
   equality-lemma {y = y} {z} refl = z ≡ y □
 

@@ -43,7 +43,7 @@ data Any′ {A : Set} (P : A → Set) : List A → Set where
 
 -- The two definitions of Any are isomorphic.
 
-Any′-[] : ∀ {A : Set} {P : A → Set} → Any′ P [] ↔ ⊥
+Any′-[] : ∀ {A : Set} {P : A → Set} → Any′ P [] ↔ ⊥ {ℓ = lzero}
 Any′-[] {P = P} = record
   { surjection = record
     { equivalence = record

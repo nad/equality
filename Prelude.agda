@@ -39,9 +39,9 @@ open ↑ public
 
 -- The empty type.
 
-data ⊥ : Set where
+data ⊥ {ℓ} : Set ℓ where
 
-⊥-elim : ∀ {w} {Whatever : Set w} → ⊥ → Whatever
+⊥-elim : ∀ {ℓ w} {Whatever : Set w} → ⊥ {ℓ = ℓ} → Whatever
 ⊥-elim ()
 
 -- Negation.
@@ -49,7 +49,7 @@ data ⊥ : Set where
 infix 3 ¬_
 
 ¬_ : ∀ {ℓ} → Set ℓ → Set ℓ
-¬ P = P → ⊥
+¬ P = P → ⊥ {ℓ = lzero}
 
 -- The unit type.
 
