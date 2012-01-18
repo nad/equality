@@ -162,11 +162,11 @@ Any-⊎ P Q xs =
 -- Any preserves functions of various kinds and respects bag equality
 -- and similar relations.
 
-Any-cong : ∀ {k c} {C D : Container c} {A} {P Q : A → Set c}
+Any-cong : ∀ {k c} {C D : Container c} {A} (P Q : A → Set c)
            (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
            (∀ x → P x ↝[ k ] Q x) → xs ∼[ k ] ys →
            Any P xs ↝[ k ] Any Q ys
-Any-cong {P = P} {Q} xs ys P↔Q xs∼ys =
+Any-cong P Q xs ys P↔Q xs∼ys =
   Any P xs                ↔⟨ Any-∈ P xs ⟩
   (∃ λ z → P z × z ∈ xs)  ↝⟨ ∃-cong (λ z → P↔Q z ×-cong xs∼ys z) ⟩
   (∃ λ z → Q z × z ∈ ys)  ↔⟨ inverse (Any-∈ Q ys) ⟩
@@ -179,7 +179,7 @@ map-cong : ∀ {k c} {C D : Container c} {A B : Set c} (f : A → B)
            xs ∼[ k ] ys → map f xs ∼[ k ] map f ys
 map-cong f xs ys xs∼ys = λ z →
   z ∈ map f xs            ↔⟨ Any-map (_≡_ z) f xs ⟩
-  Any (λ x → z ≡ f x) xs  ↝⟨ Any-cong xs ys (λ x → z ≡ f x □) xs∼ys ⟩
+  Any (λ x → z ≡ f x) xs  ↝⟨ Any-cong _ _ xs ys (λ x → z ≡ f x □) xs∼ys ⟩
   Any (λ x → z ≡ f x) ys  ↔⟨ inverse (Any-map (_≡_ z) f ys) ⟩
   z ∈ map f ys            □
 
