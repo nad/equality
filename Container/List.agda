@@ -16,14 +16,15 @@ import Function-universe
 open Function-universe equality-with-J
 
 ------------------------------------------------------------------------
--- The type and some functions
+-- The type
 
 -- Lists.
 
 List : Container lzero
 List = ℕ ▷ Fin
 
--- Constructors.
+------------------------------------------------------------------------
+-- Constructors
 
 [] : {A : Set} → ⟦ List ⟧ A
 [] = (zero , λ ())
@@ -33,24 +34,9 @@ infixr 5 _∷_
 _∷_ : {A : Set} → A → ⟦ List ⟧ A → ⟦ List ⟧ A
 x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
 
--- Fold.
-
-foldr : {A B : Set} → (A → B → B) → B → ⟦ List ⟧ A → B
-foldr f x (zero  , lkup) = x
-foldr f x (suc n , lkup) =
-  f (lkup (inj₁ _)) (foldr f x (n , lkup ∘ inj₂))
-
--- Append.
-
-infixr 5 _++_
-
-_++_ : {A : Set} → ⟦ List ⟧ A → ⟦ List ⟧ A → ⟦ List ⟧ A
-xs ++ ys = foldr _∷_ ys xs
-
-------------------------------------------------------------------------
 -- Even if we don't assume extensionality we can prove that
 -- intensionally distinct implementations of the constructors are bag
--- equal
+-- equal.
 
 []≈ : {A : Set} {lkup : _ → A} →
       _≈-bag_ {C₂ = List} [] (zero , lkup)
@@ -88,8 +74,7 @@ xs ++ ys = foldr _∷_ ys xs
                         }
   }
 
-------------------------------------------------------------------------
--- Lemmas relating Any to some of the functions above
+-- Any lemmas for the constructors.
 
 Any-[] : {A : Set} (P : A → Set) →
          Any P [] ↔ ⊥ {ℓ = lzero}
@@ -125,24 +110,55 @@ Any-∷ _ = record
                         }
   }
 
+------------------------------------------------------------------------
+-- More functions
+
+-- A variant of the dependent eliminator for lists.
+--
+-- The "respect bag equality" argument could be omitted if equality of
+-- functions were extensional.
+
+fold : ∀ {A : Set} {p}
+       (P : ⟦ List ⟧ A → Set p) →
+       (∀ xs ys → xs ≈-bag ys → P xs → P ys) →
+       P [] →
+       (∀ x xs → P xs → P (x ∷ xs)) →
+       ∀ xs → P xs
+fold P resp nl cns (zero  , lkup) = resp _ _ []≈ nl
+fold P resp nl cns (suc n , lkup) = resp _ _ ∷≈ $
+  cns (lkup (inj₁ tt)) _ (fold P resp nl cns (n , lkup ∘ inj₂))
+
+-- Append.
+
+infixr 5 _++_ _++′_
+
+abstract
+
+  _++′_ : ∀ {A : Set} (xs ys : ⟦ List ⟧ A) →
+          ∃ λ (zs : ⟦ List ⟧ A) →
+              (P : A → Set) → Any P zs ↔ Any P xs ⊎ Any P ys
+  xs ++′ ys = fold
+    (λ xs → ∃ λ zs → ∀ P → Any P zs ↔ Any P xs ⊎ Any P ys)
+    (λ us vs us≈vs → ∃-cong (λ zs hyp P →
+       Any P zs             ↔⟨ hyp P ⟩
+       Any P us ⊎ Any P ys  ↔⟨ Any-cong P P us vs (λ _ → id) us≈vs ⊎-cong id ⟩
+       Any P vs ⊎ Any P ys  □))
+    (ys , λ P → Any P ys             ↔⟨ inverse ⊎-left-identity ⟩
+                ⊥ ⊎ Any P ys         ↔⟨ inverse (Any-[] P) ⊎-cong id ⟩
+                Any P [] ⊎ Any P ys  □)
+    (λ { x xs (zs , ih) → (x ∷ zs , λ P →
+         Any P (x ∷ zs)               ↔⟨ Any-∷ P ⟩
+         P x ⊎ Any P zs               ↔⟨ id ⊎-cong ih P ⟩
+         P x ⊎ Any P xs ⊎ Any P ys    ↔⟨ ⊎-assoc ⟩
+         (P x ⊎ Any P xs) ⊎ Any P ys  ↔⟨ inverse (Any-∷ P) ⊎-cong id ⟩
+         (Any P (x ∷ xs)) ⊎ Any P ys  □) })
+    xs
+
+_++_ : {A : Set} → ⟦ List ⟧ A → ⟦ List ⟧ A → ⟦ List ⟧ A
+xs ++ ys = proj₁ (xs ++′ ys)
+
+-- An Any lemma for append.
+
 Any-++ : ∀ {A : Set} (P : A → Set) xs ys →
          Any P (xs ++ ys) ↔ Any P xs ⊎ Any P ys
-Any-++ P (zero , lkup) ys =
-  Any P ((zero , lkup) ++ ys)                ↔⟨ id ⟩
-  Any P ys                                   ↔⟨ inverse ⊎-left-identity ⟩
-  ⊥ ⊎ Any P ys                               ↔⟨ inverse (Any-[] P) ⊎-cong id ⟩
-  Any P [] ⊎ Any P ys                        ↔⟨ Any-cong {D = List} P P [] (zero , lkup) (λ _ → id) []≈ ⊎-cong id ⟩
-  Any {C = List} P (zero , lkup) ⊎ Any P ys  □
-Any-++ P (suc n , lkup) ys =
-  Any P ((suc n , lkup) ++ ys)                ↔⟨ id ⟩
-  Any P (x ∷ xs ++ ys)                        ↔⟨ Any-∷ P ⟩
-  P (x) ⊎ Any P (xs ++ ys)                    ↔⟨ id ⊎-cong Any-++ P (n , lkup ∘ inj₂) ys ⟩
-  P (x) ⊎ Any P xs ⊎ Any P ys                 ↔⟨ ⊎-assoc ⟩
-  (P (x) ⊎ Any P xs) ⊎ Any P ys               ↔⟨ inverse (Any-∷ P) ⊎-cong id ⟩
-  (Any P (x ∷ xs)) ⊎ Any P ys                 ↔⟨ Any-cong {D = List} P P (x ∷ xs) (suc n , lkup) (λ _ → id) ∷≈ ⊎-cong id ⟩
-  Any {C = List} P (suc n , lkup) ⊎ Any P ys  □
-  where
-  x = lkup (inj₁ tt)
-
-  xs : ⟦ List ⟧ _
-  xs = (n , lkup ∘ inj₂)
+Any-++ P xs ys = proj₂ (xs ++′ ys) P

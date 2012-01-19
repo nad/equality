@@ -21,6 +21,9 @@ suc m ≤ suc n = m ≤ n
 
 open Tree-sort _≤_
 
+{- The code below no longer type-checks, because some definitions were
+   made abstract.
+
 -- The sort function seems to return an ordered list.
 
 ordered : sort (3 ∷ 1 ∷ 2 ∷ []) ≡ 1 ∷ 2 ∷ 3 ∷ []
@@ -32,3 +35,5 @@ ordered = refl
 
 a-bag-equality : 1 ∷ 2 ∷ 3 ∷ [] ≈-bag 3 ∷ 1 ∷ 2 ∷ []
 a-bag-equality = sort≈ (3 ∷ 1 ∷ 2 ∷ [])
+
+-}

@@ -8,7 +8,7 @@
 module Container.Tree where
 
 open import Container hiding (Shape; Position)
-open import Container.List
+open import Container.List hiding (fold)
 open import Equality.Propositional
 open import Prelude hiding (id; _∘_; List; []; _∷_; _++_; lookup)
 
@@ -18,7 +18,7 @@ import Function-universe
 open Function-universe equality-with-J
 
 ------------------------------------------------------------------------
--- The type and some functions
+-- The type
 
 -- Shapes.
 
@@ -38,10 +38,15 @@ data Position : Shape → Set where
 Tree : Container lzero
 Tree = Shape ▷ Position
 
--- Constructors.
+------------------------------------------------------------------------
+-- Constructors
+
+-- Leaves.
 
 leaf : {A : Set} → ⟦ Tree ⟧ A
 leaf = (lf , λ ())
+
+-- Internal nodes.
 
 node : {A : Set} → ⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → ⟦ Tree ⟧ A
 node (l , lkup-l) x (r , lkup-r) =
@@ -52,24 +57,9 @@ node (l , lkup-l) x (r , lkup-r) =
       }
   )
 
--- Singleton trees.
-
-singleton : {A : Set} → A → ⟦ Tree ⟧ A
-singleton x = node leaf x leaf
-
--- Inorder flattening of a tree.
-
-flatten : {A : Set} → ⟦ Tree ⟧ A → ⟦ List ⟧ A
-flatten (lf     , lkup) = []
-flatten (nd l r , lkup) =
-  flatten (l , lkup ∘ left) ++
-  lkup root ∷
-  flatten (r , lkup ∘ right)
-
-------------------------------------------------------------------------
 -- Even if we don't assume extensionality we can prove that
 -- intensionally distinct implementations of the constructors are bag
--- equal
+-- equal.
 
 leaf≈ : {A : Set} {lkup : _ → A} →
         _≈-bag_ {C₂ = Tree} leaf (lf , lkup)
@@ -111,8 +101,7 @@ node≈ _ = record
                         }
   }
 
-------------------------------------------------------------------------
--- Lemmas relating Any to some of the functions above
+-- Any lemmas for the constructors.
 
 Any-leaf : ∀ {A : Set} (P : A → Set) →
            Any P leaf ↔ ⊥ {ℓ = lzero}
@@ -152,6 +141,32 @@ Any-node _ {l = _ , _} {r = _ , _} = record
                         }
   }
 
+------------------------------------------------------------------------
+-- More functions
+
+-- A variant of the dependent eliminator for trees.
+--
+-- The "respect bag equality" argument could be omitted if equality of
+-- functions were extensional.
+
+fold : ∀ {A : Set} {p}
+       (P : ⟦ Tree ⟧ A → Set p) →
+       (∀ t₁ t₂ → t₁ ≈-bag t₂ → P t₁ → P t₂) →
+       P leaf →
+       (∀ l x r → P l → P r → P (node l x r)) →
+       ∀ t → P t
+fold P resp le no (lf     , lkup) = resp _ _ leaf≈ le
+fold P resp le no (nd l r , lkup) = resp _ _ node≈ $
+  no _ _ _ (fold P resp le no (l , lkup ∘ left ))
+           (fold P resp le no (r , lkup ∘ right))
+
+-- Singleton trees.
+
+singleton : {A : Set} → A → ⟦ Tree ⟧ A
+singleton x = node leaf x leaf
+
+-- Any lemma for singleton.
+
 Any-singleton : ∀ {A : Set} (P : A → Set) {x} →
                 Any P (singleton x) ↔ P x
 Any-singleton P {x} =
@@ -162,26 +177,34 @@ Any-singleton P {x} =
   P x ⊎ ⊥                        ↔⟨ ⊎-right-identity ⟩
   P x                            □
 
-------------------------------------------------------------------------
--- Flatten does not add or remove any elements
+-- Inorder flattening of a tree.
+
+abstract
+
+  flatten′ : {A : Set} (t : ⟦ Tree ⟧ A) →
+             ∃ λ (xs : ⟦ List ⟧ A) → xs ≈-bag t
+  flatten′ = fold
+    (λ t → ∃ λ xs → xs ≈-bag t)
+    (λ t₁ t₂ t₁≈t₂ → ∃-cong (λ xs xs≈t₁ z →
+       z ∈ xs  ↔⟨ xs≈t₁ z ⟩
+       z ∈ t₁  ↔⟨ t₁≈t₂ z ⟩
+       z ∈ t₂  □))
+    ([] , λ z →
+     z ∈ []    ↔⟨ Any-[] (λ x → z ≡ x) ⟩
+     ⊥         ↔⟨ inverse $ Any-leaf (λ x → z ≡ x) ⟩
+     z ∈ leaf  □)
+    (λ { l x r (xs , xs≈l) (ys , ys≈r) → (xs ++ x ∷ ys , λ z →
+         z ∈ xs ++ x ∷ ys         ↔⟨ Any-++ (λ x → z ≡ x) _ _ ⟩
+         z ∈ xs ⊎ z ∈ x ∷ ys      ↔⟨ id ⊎-cong Any-∷ (λ x → z ≡ x) ⟩
+         z ∈ xs ⊎ z ≡ x ⊎ z ∈ ys  ↔⟨ xs≈l z ⊎-cong id ⊎-cong ys≈r z ⟩
+         z ∈ l ⊎ z ≡ x ⊎ z ∈ r    ↔⟨ inverse $ Any-node (λ x → z ≡ x) ⟩
+         z ∈ node l x r           □) })
+
+flatten : {A : Set} → ⟦ Tree ⟧ A → ⟦ List ⟧ A
+flatten t = proj₁ (flatten′ t)
+
+-- Flatten does not add or remove any elements.
 
 flatten≈ : ∀ {A : Set} (t : ⟦ Tree ⟧ A) →
            flatten t ≈-bag t
-flatten≈ (lf , lkup) = λ z →
-  z ∈ []                        ↔⟨ Any-[] (λ x → z ≡ x) ⟩
-  ⊥                             ↔⟨ inverse $ Any-leaf (λ x → z ≡ x) ⟩
-  z ∈ leaf                      ↔⟨ leaf≈ _ ⟩
-  _∈_ {C = Tree} z (lf , lkup)  □
-flatten≈ (nd l r , lkup) = λ z →
-  z ∈ flatten l′ ++ lkup root ∷ flatten r′         ↔⟨ Any-++ (λ x → z ≡ x) _ _ ⟩
-  z ∈ flatten l′ ⊎ z ∈ lkup root ∷ flatten r′      ↔⟨ id ⊎-cong Any-∷ (λ x → z ≡ x) ⟩
-  z ∈ flatten l′ ⊎ z ≡ lkup root ⊎ z ∈ flatten r′  ↔⟨ flatten≈ (l , lkup ∘ left) z ⊎-cong id ⊎-cong flatten≈ (r , lkup ∘ right) z ⟩
-  z ∈ l′ ⊎ z ≡ lkup root ⊎ z ∈ r′                  ↔⟨ inverse $ Any-node (λ x → z ≡ x) ⟩
-  z ∈ node l′ (lkup root) r′                       ↔⟨ node≈ _ ⟩
-  _∈_ {C = Tree} z (nd l r , lkup)                 □
-  where
-  l′ : ⟦ Tree ⟧ _
-  l′ = (l , lkup ∘ left)
-
-  r′ : ⟦ Tree ⟧ _
-  r′ = (r , lkup ∘ right)
+flatten≈ t = proj₂ (flatten′ t)
