@@ -300,12 +300,12 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 ⊎-left-identity = record
   { surjection = record
     { equivalence = record
-      { to   = [ (λ ()) , id ]
+      { to   = λ { (inj₁ ()); (inj₂ x) → x }
       ; from = inj₂
       }
     ; right-inverse-of = refl
     }
-  ; left-inverse-of = [ (λ ()) , refl ⊚ inj₂ ]
+  ; left-inverse-of = λ { (inj₁ ()); (inj₂ x) → refl (inj₂ x) }
   }
 
 ⊎-right-identity : ∀ {a ℓ} {A : Set a} → A ⊎ ⊥ {ℓ = ℓ} ↔ A
