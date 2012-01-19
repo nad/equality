@@ -49,7 +49,7 @@ data Kind : Set where
 
 infix 0 _↝[_]_
 
-_↝[_]_ : ∀ {ℓ} → Set ℓ → Kind → Set ℓ → Set ℓ
+_↝[_]_ : ∀ {ℓ₁ ℓ₂} → Set ℓ₁ → Kind → Set ℓ₂ → Set _
 A ↝[ implication      ] B = A → B
 A ↝[ equivalence      ] B = A ⇔ B
 A ↝[ injection        ] B = A ↣ B
@@ -59,7 +59,8 @@ A ↝[ weak-equivalence ] B = A ≈ B
 
 -- Bijections can be converted to all kinds of functions.
 
-from-bijection : ∀ {k ℓ} {A B : Set ℓ} → A ↔ B → A ↝[ k ] B
+from-bijection : ∀ {k a b} {A : Set a} {B : Set b} →
+                 A ↔ B → A ↝[ k ] B
 from-bijection {implication}      = _↔_.to
 from-bijection {equivalence}      = _↔_.equivalence
 from-bijection {injection}        = _↔_.injection
@@ -69,7 +70,8 @@ from-bijection {weak-equivalence} = Weak.bijection⇒weak-equivalence
 
 -- Weak equivalences can be converted to all kinds of functions.
 
-from-weak-equivalence : ∀ {k ℓ} {A B : Set ℓ} → A ≈ B → A ↝[ k ] B
+from-weak-equivalence : ∀ {k a b} {A : Set a} {B : Set b} →
+                        A ≈ B → A ↝[ k ] B
 from-weak-equivalence {implication}      = _≈_.to
 from-weak-equivalence {equivalence}      = _≈_.equivalence
 from-weak-equivalence {injection}        = _≈_.injection
@@ -79,7 +81,8 @@ from-weak-equivalence {weak-equivalence} = P.id
 
 -- All kinds of functions can be converted to implications.
 
-to-implication : ∀ {k ℓ} {A B : Set ℓ} → A ↝[ k ] B → A → B
+to-implication : ∀ {k a b} {A : Set a} {B : Set b} →
+                 A ↝[ k ] B → A → B
 to-implication {implication}      = P.id
 to-implication {equivalence}      = _⇔_.to
 to-implication {injection}        = _↣_.to
@@ -96,7 +99,7 @@ to-implication {weak-equivalence} = _≈_.to
 
 infixr 9 _∘_
 
-_∘_ : ∀ {k ℓ} {A B C : Set ℓ} →
+_∘_ : ∀ {k a b c} {A : Set a} {B : Set b} {C : Set c} →
       B ↝[ k ] C → A ↝[ k ] B → A ↝[ k ] C
 _∘_ {implication}      = λ f g → f ⊚ g
 _∘_ {equivalence}      = Equivalence._∘_
@@ -107,7 +110,7 @@ _∘_ {weak-equivalence} = Weak._∘_
 
 -- Identity.
 
-id : ∀ {k ℓ} {A : Set ℓ} → A ↝[ k ] A
+id : ∀ {k a} {A : Set a} → A ↝[ k ] A
 id = from-bijection Bijection.id
 
 -- "Equational" reasoning combinators.
@@ -116,30 +119,30 @@ infixr 0 _↝⟨_⟩_ _↔⟨_⟩_ _≈⟨_⟩_
 infix  0 finally-↝ finally-↔ finally-≈
 infix  0 _□
 
-_↝⟨_⟩_ : ∀ {k ℓ} (A : Set ℓ) {B C : Set ℓ} →
+_↝⟨_⟩_ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
          A ↝[ k ] B → B ↝[ k ] C → A ↝[ k ] C
 _ ↝⟨ A↝B ⟩ B↝C = B↝C ∘ A↝B
 
-_↔⟨_⟩_ : ∀ {k ℓ} (A : Set ℓ) {B C : Set ℓ} →
+_↔⟨_⟩_ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
          A ↔ B → B ↝[ k ] C → A ↝[ k ] C
 _ ↔⟨ A↔B ⟩ B↝C = _ ↝⟨ from-bijection A↔B ⟩ B↝C
 
-_≈⟨_⟩_ : ∀ {k ℓ} (A : Set ℓ) {B C : Set ℓ} →
+_≈⟨_⟩_ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
          A ≈ B → B ↝[ k ] C → A ↝[ k ] C
 _ ≈⟨ A≈B ⟩ B↝C = _ ↝⟨ from-weak-equivalence A≈B ⟩ B↝C
 
-_□ : ∀ {k ℓ} (A : Set ℓ) → A ↝[ k ] A
+_□ : ∀ {k a} (A : Set a) → A ↝[ k ] A
 A □ = id
 
-finally-↝ : ∀ {k ℓ} (A B : Set ℓ) →
+finally-↝ : ∀ {k a b} (A : Set a) (B : Set b) →
             A ↝[ k ] B → A ↝[ k ] B
 finally-↝ _ _ A↝B = A↝B
 
-finally-↔ : ∀ {k ℓ} (A B : Set ℓ) →
+finally-↔ : ∀ {k a b} (A : Set a) (B : Set b) →
             A ↔ B → A ↝[ k ] B
 finally-↔ _ _ A↔B = from-bijection A↔B
 
-finally-≈ : ∀ {k ℓ} (A B : Set ℓ) →
+finally-≈ : ∀ {k a b} (A : Set a) (B : Set b) →
             A ≈ B → A ↝[ k ] B
 finally-≈ _ _ A≈B = from-weak-equivalence A≈B
 
@@ -158,7 +161,7 @@ data Symmetric-kind : Set where
 ⌊ bijection        ⌋ = bijection
 ⌊ weak-equivalence ⌋ = weak-equivalence
 
-inverse : ∀ {k ℓ} {A B : Set ℓ} →
+inverse : ∀ {k a b} {A : Set a} {B : Set b} →
           A ↝[ ⌊ k ⌋ ] B → B ↝[ ⌊ k ⌋ ] A
 inverse {equivalence}      = Equivalence.inverse
 inverse {bijection}        = Bijection.inverse
@@ -176,7 +179,7 @@ inverse {weak-equivalence} = Weak.inverse
 
 -- Contractible sets are isomorphic to ⊤.
 
-contractible↔⊤ : ∀ {ℓ} {A : Set ℓ} → Contractible A → A ↔ ⊤ {ℓ = ℓ}
+contractible↔⊤ : ∀ {a ℓ} {A : Set a} → Contractible A → A ↔ ⊤ {ℓ = ℓ}
 contractible↔⊤ c = record
   { surjection = record
     { equivalence = record
@@ -195,14 +198,16 @@ contractible↔⊤ c = record
 
 private
 
-  ⊎-cong-eq : ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ} →
+  ⊎-cong-eq : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+                {B₁ : Set b₁} {B₂ : Set b₂} →
               A₁ ⇔ A₂ → B₁ ⇔ B₂ → A₁ ⊎ B₁ ⇔ A₂ ⊎ B₂
   ⊎-cong-eq A₁⇔A₂ B₁⇔B₂ = record
     { to   = ⊎-map (to   A₁⇔A₂) (to   B₁⇔B₂)
     ; from = ⊎-map (from A₁⇔A₂) (from B₁⇔B₂)
     } where open _⇔_
 
-  ⊎-cong-inj : ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ} →
+  ⊎-cong-inj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+                 {B₁ : Set b₁} {B₂ : Set b₂} →
                A₁ ↣ A₂ → B₁ ↣ B₂ → A₁ ⊎ B₁ ↣ A₂ ⊎ B₂
   ⊎-cong-inj A₁↣A₂ B₁↣B₂ = record
     { to        = to′
@@ -220,7 +225,8 @@ private
       injective′ {x = inj₁ x} {y = inj₂ y} = ⊥-elim ⊚ ⊎.inj₁≢inj₂
       injective′ {x = inj₂ x} {y = inj₁ y} = ⊥-elim ⊚ ⊎.inj₁≢inj₂ ⊚ sym
 
-  ⊎-cong-surj : ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ} →
+  ⊎-cong-surj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+                  {B₁ : Set b₁} {B₂ : Set b₂} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ ⊎ B₁ ↠ A₂ ⊎ B₂
   ⊎-cong-surj A₁↠A₂ B₁↠B₂ = record
     { equivalence      = ⊎-cong-eq (_↠_.equivalence A₁↠A₂)
@@ -231,7 +237,8 @@ private
         ]
     }
 
-  ⊎-cong-bij : ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ} →
+  ⊎-cong-bij : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+                 {B₁ : Set b₁} {B₂ : Set b₂} →
                A₁ ↔ A₂ → B₁ ↔ B₂ → A₁ ⊎ B₁ ↔ A₂ ⊎ B₂
   ⊎-cong-bij A₁↔A₂ B₁↔B₂ = record
     { surjection      = ⊎-cong-surj (_↔_.surjection A₁↔A₂)
@@ -244,7 +251,8 @@ private
 
 infixr 1 _⊎-cong_
 
-_⊎-cong_ : ∀ {k ℓ} {A₁ A₂ B₁ B₂ : Set ℓ} →
+_⊎-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+             {B₁ : Set b₁} {B₂ : Set b₂} →
            A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ ⊎ B₁ ↝[ k ] A₂ ⊎ B₂
 _⊎-cong_ {implication}      = ⊎-map
 _⊎-cong_ {equivalence}      = ⊎-cong-eq
@@ -257,7 +265,7 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- _⊎_ is commutative.
 
-⊎-comm : ∀ {ℓ} {A B : Set ℓ} → A ⊎ B ↔ B ⊎ A
+⊎-comm : ∀ {a b} {A : Set a} {B : Set b} → A ⊎ B ↔ B ⊎ A
 ⊎-comm = record
   { surjection = record
     { equivalence = record
@@ -271,7 +279,8 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- _⊎_ is associative.
 
-⊎-assoc : ∀ {ℓ} {A B C : Set ℓ} → A ⊎ (B ⊎ C) ↔ (A ⊎ B) ⊎ C
+⊎-assoc : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+          A ⊎ (B ⊎ C) ↔ (A ⊎ B) ⊎ C
 ⊎-assoc = record
   { surjection = record
     { equivalence = record
@@ -287,7 +296,7 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- ⊥ is a left and right identity of _⊎_.
 
-⊎-left-identity : ∀ {ℓ} {A : Set ℓ} → ⊥ {ℓ = ℓ} ⊎ A ↔ A
+⊎-left-identity : ∀ {a ℓ} {A : Set a} → ⊥ {ℓ = ℓ} ⊎ A ↔ A
 ⊎-left-identity = record
   { surjection = record
     { equivalence = record
@@ -299,7 +308,7 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
   ; left-inverse-of = [ (λ ()) , refl ⊚ inj₂ ]
   }
 
-⊎-right-identity : ∀ {ℓ} {A : Set ℓ} → A ⊎ ⊥ ↔ A
+⊎-right-identity : ∀ {a ℓ} {A : Set a} → A ⊎ ⊥ {ℓ = ℓ} ↔ A
 ⊎-right-identity {A = A} =
   A ⊎ ⊥  ↔⟨ ⊎-comm ⟩
   ⊥ ⊎ A  ↔⟨ ⊎-left-identity ⟩□
@@ -308,7 +317,7 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 -- For equivalences _⊎_ is also idempotent. (This lemma could be
 -- generalised to cover surjections and implications.)
 
-⊎-idempotent : ∀ {ℓ} {A : Set ℓ} → A ⊎ A ⇔ A
+⊎-idempotent : ∀ {a} {A : Set a} → A ⊎ A ⇔ A
 ⊎-idempotent = record
   { to   = [ id , id ]
   ; from = inj₁
@@ -321,14 +330,16 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 private
 
-  ×-cong-eq : ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ} →
+  ×-cong-eq : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+                {B₁ : Set b₁} {B₂ : Set b₂} →
               A₁ ⇔ A₂ → B₁ ⇔ B₂ → A₁ × B₁ ⇔ A₂ × B₂
   ×-cong-eq A₁⇔A₂ B₁⇔B₂ = record
     { to   = Σ-map (to   A₁⇔A₂) (to   B₁⇔B₂)
     ; from = Σ-map (from A₁⇔A₂) (from B₁⇔B₂)
     } where open _⇔_
 
-  ×-cong-inj : ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ} →
+  ×-cong-inj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+                 {B₁ : Set b₁} {B₂ : Set b₂} →
                A₁ ↣ A₂ → B₁ ↣ B₂ → A₁ × B₁ ↣ A₂ × B₂
   ×-cong-inj {A₁ = A₁} {A₂} {B₁} {B₂} A₁↣A₂ B₁↣B₂ = record
     { to        = to′
@@ -346,7 +357,8 @@ private
         cong₂ _,_ (injective A₁↣A₂ (cong proj₁ to′-x≡to′-y))
                   (injective B₁↣B₂ (cong proj₂ to′-x≡to′-y))
 
-  ×-cong-surj : ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ} →
+  ×-cong-surj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+                  {B₁ : Set b₁} {B₂ : Set b₂} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ × B₁ ↠ A₂ × B₂
   ×-cong-surj A₁↠A₂ B₁↠B₂ = record
     { equivalence      = ×-cong-eq (_↠_.equivalence A₁↠A₂)
@@ -356,7 +368,8 @@ private
                   (_↠_.right-inverse-of B₁↠B₂ y)
     }
 
-  ×-cong-bij : ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ} →
+  ×-cong-bij : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+                 {B₁ : Set b₁} {B₂ : Set b₂} →
                A₁ ↔ A₂ → B₁ ↔ B₂ → A₁ × B₁ ↔ A₂ × B₂
   ×-cong-bij A₁↔A₂ B₁↔B₂ = record
     { surjection      = ×-cong-surj (_↔_.surjection A₁↔A₂)
@@ -368,7 +381,8 @@ private
 
 infixr 2 _×-cong_
 
-_×-cong_ : ∀ {k ℓ} {A₁ A₂ B₁ B₂ : Set ℓ} →
+_×-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+             {B₁ : Set b₁} {B₂ : Set b₂} →
            A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ × B₁ ↝[ k ] A₂ × B₂
 _×-cong_ {implication}      = λ f g → Σ-map f g
 _×-cong_ {equivalence}      = ×-cong-eq
@@ -381,7 +395,7 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- _×_ is commutative.
 
-×-comm : ∀ {ℓ} {A B : Set ℓ} → A × B ↔ B × A
+×-comm : ∀ {a b} {A : Set a} {B : Set b} → A × B ↔ B × A
 ×-comm = record
   { surjection = record
     { equivalence = record
@@ -395,7 +409,8 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- _×_ is associative.
 
-×-assoc : ∀ {ℓ} {A B C : Set ℓ} → A × (B × C) ↔ (A × B) × C
+×-assoc : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+          A × (B × C) ↔ (A × B) × C
 ×-assoc = record
   { surjection = record
     { equivalence = record
@@ -409,7 +424,7 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- ⊤ is a left and right identity of _×_ and Σ.
 
-Σ-left-identity : ∀ {ℓ} {A : ⊤ {ℓ = ℓ} → Set ℓ} → Σ ⊤ A ↔ A tt
+Σ-left-identity : ∀ {a ℓ} {A : ⊤ {ℓ = ℓ} → Set a} → Σ ⊤ A ↔ A tt
 Σ-left-identity = record
   { surjection = record
     { equivalence = record
@@ -421,10 +436,10 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
   ; left-inverse-of = refl
   }
 
-×-left-identity : ∀ {ℓ} {A : Set ℓ} → ⊤ × A ↔ A
+×-left-identity : ∀ {a ℓ} {A : Set a} → ⊤ {ℓ = ℓ} × A ↔ A
 ×-left-identity = Σ-left-identity
 
-×-right-identity : ∀ {ℓ} {A : Set ℓ} → A × ⊤ ↔ A
+×-right-identity : ∀ {a ℓ} {A : Set a} → A × ⊤ {ℓ = ℓ} ↔ A
 ×-right-identity {A = A} =
   A × ⊤  ↔⟨ ×-comm ⟩
   ⊤ × A  ↔⟨ ×-left-identity ⟩□
@@ -432,22 +447,23 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- ⊥ is a left and right zero of _×_ and Σ.
 
-Σ-left-zero : ∀ {ℓ} {A : ⊥ {ℓ = ℓ} → Set ℓ} → Σ ⊥ A ↔ ⊥
+Σ-left-zero : ∀ {a ℓ₁ ℓ₂} {A : ⊥ {ℓ = ℓ₁} → Set a} →
+              Σ ⊥ A ↔ ⊥ {ℓ = ℓ₂}
 Σ-left-zero = record
   { surjection = record
     { equivalence = record
-      { to   = proj₁
+      { to   = λ { (() , _) }
       ; from = λ ()
       }
     ; right-inverse-of = λ ()
     }
-  ; left-inverse-of = ⊥-elim ⊚ proj₁
+  ; left-inverse-of = λ { (() , _) }
   }
 
-×-left-zero : ∀ {ℓ} {A : Set ℓ} → ⊥ × A ↔ ⊥ {ℓ = ℓ}
+×-left-zero : ∀ {a ℓ₁ ℓ₂} {A : Set a} → ⊥ {ℓ = ℓ₁} × A ↔ ⊥ {ℓ = ℓ₂}
 ×-left-zero = Σ-left-zero
 
-×-right-zero : ∀ {ℓ} {A : Set ℓ} → A × ⊥ ↔ ⊥
+×-right-zero : ∀ {a ℓ₁ ℓ₂} {A : Set a} → A × ⊥ {ℓ = ℓ₁} ↔ ⊥ {ℓ = ℓ₂}
 ×-right-zero {A = A} =
   A × ⊥  ↔⟨ ×-comm ⟩
   ⊥ × A  ↔⟨ ×-left-zero ⟩□
@@ -461,7 +477,8 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 -- Σ preserves bijections in its first argument and all kinds of
 -- functions in its second argument.
 
-Σ-cong : ∀ {k ℓ} {A₁ A₂ : Set ℓ} {B₁ : A₁ → Set ℓ} {B₂ : A₂ → Set ℓ} →
+Σ-cong : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+           {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
          (A₁↔A₂ : A₁ ↔ A₂) →
          (∀ x → B₁ x ↝[ k ] B₂ (_↔_.to A₁↔A₂ x)) →
          Σ A₁ B₁ ↝[ k ] Σ A₂ B₂
@@ -485,18 +502,21 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 private
 
-  ∃-cong-impl : ∀ {ℓ} {A : Set ℓ} {B₁ B₂ : A → Set ℓ} →
+  ∃-cong-impl : ∀ {a b₁ b₂}
+                  {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
                 (∀ x → B₁ x → B₂ x) → ∃ B₁ → ∃ B₂
   ∃-cong-impl B₁→B₂ = Σ-map id (λ {x} → B₁→B₂ x)
 
-  ∃-cong-eq : ∀ {ℓ} {A : Set ℓ} {B₁ B₂ : A → Set ℓ} →
+  ∃-cong-eq : ∀ {a b₁ b₂}
+                {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
               (∀ x → B₁ x ⇔ B₂ x) → ∃ B₁ ⇔ ∃ B₂
   ∃-cong-eq B₁⇔B₂ = record
     { to   = ∃-cong-impl (to   ⊚ B₁⇔B₂)
     ; from = ∃-cong-impl (from ⊚ B₁⇔B₂)
     } where open _⇔_
 
-  ∃-cong-surj : ∀ {ℓ} {A : Set ℓ} {B₁ B₂ : A → Set ℓ} →
+  ∃-cong-surj : ∀ {a b₁ b₂}
+                  {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
                 (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
   ∃-cong-surj B₁↠B₂ = record
     { equivalence      = ∃-cong-eq (_↠_.equivalence ⊚ B₁↠B₂)
@@ -504,7 +524,8 @@ private
         cong (_,_ x) (_↠_.right-inverse-of (B₁↠B₂ x) y)
     }
 
-  ∃-cong-bij : ∀ {ℓ} {A : Set ℓ} {B₁ B₂ : A → Set ℓ} →
+  ∃-cong-bij : ∀ {a b₁ b₂}
+                 {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
                (∀ x → B₁ x ↔ B₂ x) → ∃ B₁ ↔ ∃ B₂
   ∃-cong-bij B₁↔B₂ = record
     { surjection      = ∃-cong-surj (_↔_.surjection ⊚ B₁↔B₂)
@@ -512,7 +533,8 @@ private
         cong (_,_ x) (_↔_.left-inverse-of (B₁↔B₂ x) y)
     }
 
-∃-cong : ∀ {k ℓ} {A : Set ℓ} {B₁ B₂ : A → Set ℓ} →
+∃-cong : ∀ {k a b₁ b₂}
+           {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
          (∀ x → B₁ x ↝[ k ] B₂ x) → ∃ B₁ ↝[ k ] ∃ B₂
 ∃-cong {implication}      = ∃-cong-impl
 ∃-cong {equivalence}      = ∃-cong-eq
@@ -524,8 +546,9 @@ private
 
 -- ∃ distributes "from the left" over _⊎_.
 
-∃-⊎-distrib-left : ∀ {ℓ} {A : Set ℓ} {B C : A → Set ℓ} →
-                   (∃ λ x → B x ⊎ C x) ↔ ∃ B ⊎ ∃ C
+∃-⊎-distrib-left :
+  ∀ {a b c} {A : Set a} {B : A → Set b} {C : A → Set c} →
+  (∃ λ x → B x ⊎ C x) ↔ ∃ B ⊎ ∃ C
 ∃-⊎-distrib-left = record
   { surjection = record
     { equivalence = record
@@ -540,8 +563,9 @@ private
 
 -- ∃ also distributes "from the right" over _⊎_.
 
-∃-⊎-distrib-right : ∀ {ℓ} {A B : Set ℓ} {C : A ⊎ B → Set ℓ} →
-                    Σ (A ⊎ B) C ↔ Σ A (C ⊚ inj₁) ⊎ Σ B (C ⊚ inj₂)
+∃-⊎-distrib-right :
+  ∀ {a b c} {A : Set a} {B : Set b} {C : A ⊎ B → Set c} →
+  Σ (A ⊎ B) C ↔ Σ A (C ⊚ inj₁) ⊎ Σ B (C ⊚ inj₂)
 ∃-⊎-distrib-right {A = A} {B} {C} = record
   { surjection = record
     { equivalence = record
@@ -565,7 +589,7 @@ private
 
 -- ∃ is "commutative".
 
-∃-comm : ∀ {ℓ} {A B : Set ℓ} {C : A → B → Set ℓ} →
+∃-comm : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
          (∃ λ x → ∃ λ y → C x y) ↔ (∃ λ y → ∃ λ x → C x y)
 ∃-comm = record
   { surjection = record
@@ -580,10 +604,10 @@ private
 
 -- One can introduce an existential by also introducing an equality.
 
-∃-intro : ∀ {ℓ} {A : Set ℓ} (B : A → Set ℓ) (x : A) →
+∃-intro : ∀ {a b} {A : Set a} (B : A → Set b) (x : A) →
           B x ↔ ∃ λ y → B y × y ≡ x
 ∃-intro B x =
-  B x                    ↔⟨ inverse ×-right-identity ⟩
+  B x                    ↔⟨ inverse (×-right-identity {ℓ = lzero}) ⟩
   B x × ⊤                ↔⟨ id ×-cong inverse (contractible↔⊤ (singleton-contractible x)) ⟩
   B x × (∃ λ y → y ≡ x)  ↔⟨ ∃-comm ⟩
   (∃ λ y → B x × y ≡ x)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩
@@ -596,13 +620,13 @@ private
 
 -- _×_ distributes from the left over _⊎_.
 
-×-⊎-distrib-left : ∀ {ℓ} {A B C : Set ℓ} →
+×-⊎-distrib-left : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
                    A × (B ⊎ C) ↔ (A × B) ⊎ (A × C)
 ×-⊎-distrib-left = ∃-⊎-distrib-left
 
 -- _×_ distributes from the right over _⊎_.
 
-×-⊎-distrib-right : ∀ {ℓ} {A B C : Set ℓ} →
+×-⊎-distrib-right : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
                     (A ⊎ B) × C ↔ (A × C) ⊎ (B × C)
 ×-⊎-distrib-right = ∃-⊎-distrib-right
 
@@ -654,14 +678,15 @@ private
 -- image of a "right" element is in turn not mapped to another "left"
 -- element.
 
-Well-behaved : ∀ {ℓ} {A B C : Set ℓ} → (A ⊎ B → A ⊎ C) → Set ℓ
+Well-behaved : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+               (A ⊎ B → A ⊎ C) → Set _
 Well-behaved f =
   ∀ {b a a′} → f (inj₂ b) ≡ inj₁ a → f (inj₁ a) ≢ inj₁ a′
 
 -- TODO: Make this property more general.
 
 ⊎-left-cancellative :
-  ∀ {ℓ} {A B C : Set ℓ} →
+  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
   (f : A ⊎ B ↔ A ⊎ C) →
   Well-behaved (_↔_.to   f) →
   Well-behaved (_↔_.from f) →
@@ -679,7 +704,7 @@ Well-behaved f =
   where
   open _↔_
 
-  g : ∀ {ℓ} {A B C : Set ℓ}
+  g : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
       (f : A ⊎ B → A ⊎ C) → Well-behaved f → (B → C)
   g f hyp b with inspect (f (inj₂ b))
   g f hyp b | inj₂ c with-≡ eq₁ = c
@@ -690,7 +715,7 @@ Well-behaved f =
 
   abstract
 
-    g∘g : ∀ {ℓ} {A B C : Set ℓ} →
+    g∘g : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
           (f : A ⊎ B ↔ A ⊎ C) →
           (to-hyp   : Well-behaved (to   f)) →
           (from-hyp : Well-behaved (from f)) →

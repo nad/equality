@@ -139,7 +139,7 @@ Any-filter P p (x ∷ xs) with p x
   (P x × ⊤) ⊎ Any (λ x → P x × T (p x)) xs  □
 ... | false =
   Any P (filter p xs)                       ↔⟨ Any-filter P p xs ⟩
-              Any (λ x → P x × T (p x)) xs  ↔⟨ inverse ⊎-left-identity ⟩
+              Any (λ x → P x × T (p x)) xs  ↔⟨ inverse (⊎-left-identity {ℓ = lzero}) ⟩
   ⊥         ⊎ Any (λ x → P x × T (p x)) xs  ↔⟨ inverse ×-right-zero ⊎-cong (_ □) ⟩
   (P x × ⊥) ⊎ Any (λ x → P x × T (p x)) xs  □
 
@@ -156,7 +156,7 @@ x ∈ xs = Any (λ y → x ≡ y) xs
 Any-∈ : ∀ {A} (P : A → Set) (xs : List A) →
         Any P xs ↔ ∃ λ x → P x × x ∈ xs
 Any-∈ P [] =
-  ⊥                  ↔⟨ inverse ×-right-zero ⟩
+  ⊥                  ↔⟨ inverse (×-right-zero {ℓ₁ = lzero}) ⟩
   (∃ λ x → ⊥)        ↔⟨ ∃-cong (λ x → inverse ×-right-zero) ⟩
   (∃ λ x → P x × ⊥)  □
 Any-∈ P (x ∷ xs) =
@@ -370,7 +370,7 @@ Fin-length xs =
   (∃ λ z → z ∈ xs)                   ↔⟨ ∃-cong (λ _ → ∈-lookup xs) ⟩
   (∃ λ z → ∃ λ i → z ≡ lookup xs i)  ↔⟨ ∃-comm ⟩
   (∃ λ i → ∃ λ z → z ≡ lookup xs i)  ↔⟨ id ⟩
-  (∃ λ i → Singleton (lookup xs i))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ (singleton-contractible _)) ⟩
+  (∃ λ i → Singleton (lookup xs i))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ {ℓ = lzero} (singleton-contractible _)) ⟩
   Fin (length xs) × ⊤                ↔⟨ ×-right-identity ⟩
   Fin (length xs)                    □
 
