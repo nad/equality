@@ -9,13 +9,13 @@ module Container where
 open import Bag-equality using (Kind; bag)
 open import Equivalence hiding (id; _∘_; inverse)
 open import Equality.Propositional
-open import Prelude hiding (List; map; lookup)
+open import Prelude hiding (id; List; map; lookup)
 
 import Bijection
 open Bijection equality-with-J using (_↔_; module _↔_)
 import Function-universe
 open Function-universe equality-with-J
-  hiding (id; Kind) renaming (_∘_ to _⟨∘⟩_)
+  hiding (Kind) renaming (_∘_ to _⟨∘⟩_)
 
 ------------------------------------------------------------------------
 -- Containers
@@ -163,6 +163,15 @@ map-cong f xs ys xs∼ys = λ z →
   Any (λ x → z ≡ f x) xs  ↝⟨ Any-cong _ _ xs ys (λ x → z ≡ f x □) xs∼ys ⟩
   Any (λ x → z ≡ f x) ys  ↔⟨ inverse (Any-map (_≡_ z) f ys) ⟩
   z ∈ map f ys            □
+
+-- Lemma relating Any to if_then_else_.
+
+Any-if : ∀ {a c p} {A : Set a} {C : Container c}
+         (P : A → Set p) (xs ys : ⟦ C ⟧ A) b →
+         Any P (if b then xs else ys) ↔
+         T b × Any P xs ⊎ T (not b) × Any P ys
+Any-if P xs ys =
+  inverse ∘ if-lemma (λ b → Any P (if b then xs else ys)) id id
 
 ------------------------------------------------------------------------
 -- Alternative definition of bag equality

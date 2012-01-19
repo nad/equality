@@ -631,6 +631,32 @@ private
 ×-⊎-distrib-right = ∃-⊎-distrib-right
 
 ------------------------------------------------------------------------
+-- Lemmas related to if
+
+-- A generalisation of if-encoding (which is defined below).
+
+if-lemma : ∀ {a b p} {A : Set a} {B : Set b} (P : Bool → Set p) →
+           A ↔ P true → B ↔ P false →
+           ∀ b → T b × A ⊎ T (not b) × B ↔ P b
+if-lemma {A = A} {B} P A↔ B↔ true =
+  ⊤ × A ⊎ ⊥ × B  ↔⟨ ×-left-identity ⊎-cong ×-left-zero ⟩
+  A ⊎ ⊥          ↔⟨ ⊎-right-identity {ℓ = lzero} ⟩
+  A              ↔⟨ A↔ ⟩
+  P true         □
+if-lemma {A = A} {B} P A↔ B↔ false =
+  ⊥ × A ⊎ ⊤ × B  ↔⟨ ×-left-zero ⊎-cong ×-left-identity ⟩
+  ⊥ ⊎ B          ↔⟨ ⊎-left-identity {ℓ = lzero} ⟩
+  B              ↔⟨ B↔ ⟩
+  P false        □
+
+-- An encoding of if_then_else_ in terms of _⊎_, _×_, T and not.
+
+if-encoding : ∀ {ℓ} {A B : Set ℓ} →
+              ∀ b → if b then A else B ↔ T b × A ⊎ T (not b) × B
+if-encoding {A = A} {B} =
+  inverse ⊚ if-lemma (λ b → if b then A else B) id id
+
+------------------------------------------------------------------------
 -- A property related to ℕ
 
 -- The natural numbers are isomorphic to the natural numbers extended

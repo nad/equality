@@ -65,6 +65,9 @@ if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A
 if true  then t else f = t
 if false then t else f = f
 
+not : Bool → Bool
+not b = if b then false else true
+
 -- The truth predicate T is only inhabited when its argument is true.
 
 T : Bool → Set

@@ -73,9 +73,6 @@ abstract
     p₁ : Bool ≈ Bool
     p₁ = Weak.id
 
-    not : Bool → Bool
-    not b = if b then false else true
-
     not∘not : ∀ b → not (not b) ≡ b
     not∘not true  = refl _
     not∘not false = refl _
