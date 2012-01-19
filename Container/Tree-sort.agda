@@ -16,6 +16,7 @@ open import Container
 open import Container.List as List
 open import Container.Tree as Tree
 open import Equality.Propositional
+open import Equivalence using (module _⇔_)
 
 import Bijection
 open Bijection equality-with-J using (_↔_; module _↔_)
@@ -23,7 +24,7 @@ import Function-universe
 open Function-universe equality-with-J
 
 ------------------------------------------------------------------------
--- Insertion into trees
+-- Boring lemmas
 
 private
 
@@ -47,79 +48,80 @@ private
            A ⊎ B ⊎ C ⊎ D
   lemma₂ = if-lemma (λ _ → _) (inverse ⊎-assoc) (lemma₁ _ _ _ _)
 
+------------------------------------------------------------------------
+-- Insertion into trees
+
 -- Inserts an element into the tree.
 
-abstract
-
-  insert′ : ∀ (x : A) (t : ⟦ Tree ⟧ A) →
-            ∃ λ (t′ : ⟦ Tree ⟧ A) →
-                (P : A → Set) → Any P t′ ↔ P x ⊎ Any P t
-  insert′ x = Tree.fold
-    (λ t → ∃ λ t′ → ∀ P → Any P t′ ↔ P x ⊎ Any P t)
-    (λ t₁ t₂ t₁≈t₂ → ∃-cong (λ xs hyp P →
-       Any P xs        ↔⟨ hyp P ⟩
-       P x ⊎ Any P t₁  ↔⟨ id ⊎-cong Any-cong P P t₁ t₂ (λ _ → id) t₁≈t₂ ⟩
-       P x ⊎ Any P t₂  □))
-    (singleton x , (λ P →
-     Any P (singleton x)  ↔⟨ Any-singleton P ⟩
-     P x                  ↔⟨ inverse ⊎-right-identity ⟩
-     P x ⊎ ⊥              ↔⟨ id ⊎-cong inverse (Any-leaf P) ⟩
-     P x ⊎ Any P leaf     □))
-    (λ { l y r (l′ , ih-l) (r′ , ih-r) →
-         ( if x ≤ y then node l′ y r else node l y r′ , λ P →
-           Any P (if x ≤ y then node l′ y r else node l y r′)   ↔⟨ Any-if P (node l′ y r) (node l y r′) (x ≤ y) ⟩
-           T (x ≤ y) × Any P (node l′ y r) ⊎
-             T (not (x ≤ y)) × Any P (node l y r′)              ↔⟨ id ×-cong Any-node P ⊎-cong id ×-cong Any-node P ⟩
-           T (x ≤ y) × (Any P l′ ⊎ P y ⊎ Any P r) ⊎
-             T (not (x ≤ y)) × (Any P l ⊎ P y ⊎ Any P r′)       ↔⟨ id ×-cong (ih-l P ⊎-cong id) ⊎-cong
-                                                                   id ×-cong (id ⊎-cong id ⊎-cong ih-r P) ⟩
-           T (x ≤ y) × ((P x ⊎ Any P l) ⊎ P y ⊎ Any P r) ⊎
-             T (not (x ≤ y)) × (Any P l ⊎ P y ⊎ P x ⊎ Any P r)  ↔⟨ lemma₂ (x ≤ y) ⟩
-           P x ⊎ Any P l ⊎ P y ⊎ Any P r                        ↔⟨ id ⊎-cong inverse (Any-node P) ⟩
-           P x ⊎ Any P (node l y r)                             □
-         ) })
-
 insert : A → ⟦ Tree ⟧ A → ⟦ Tree ⟧ A
-insert x t = proj₁ (insert′ x t)
+insert x = Tree.fold
+  (singleton x)
+  (λ l y r x+l x+r →
+     if x ≤ y then node x+l y r
+              else node l y x+r)
 
 -- The insert function inserts.
 
 Any-insert : ∀ (P : A → Set) x t →
              Any P (insert x t) ↔ P x ⊎ Any P t
-Any-insert P x t = proj₂ (insert′ x t) P
+Any-insert P x = Tree.fold-lemma
+  (λ t t′ → Any P t′ ↔ P x ⊎ Any P t)
+
+  (λ t₁ t₂ t₁≈t₂ t hyp →
+     Any P t         ↔⟨ hyp ⟩
+     P x ⊎ Any P t₁  ↔⟨ id ⊎-cong _⇔_.to (∼⇔∼″ t₁ t₂) t₁≈t₂ P ⟩
+     P x ⊎ Any P t₂  □)
+
+  (Any P (singleton x)  ↔⟨ Any-singleton P ⟩
+   P x                  ↔⟨ inverse ⊎-right-identity ⟩
+   P x ⊎ ⊥              ↔⟨ id ⊎-cong inverse (Any-leaf P) ⟩
+   P x ⊎ Any P leaf     □)
+
+  (λ l y r l′ r′ ih-l ih-r →
+     Any P (if x ≤ y then node l′ y r else node l y r′)   ↔⟨ Any-if P (node l′ y r) (node l y r′) (x ≤ y) ⟩
+
+     T (x ≤ y) × Any P (node l′ y r) ⊎
+       T (not (x ≤ y)) × Any P (node l y r′)              ↔⟨ id ×-cong Any-node P ⊎-cong
+                                                             id ×-cong Any-node P ⟩
+     T (x ≤ y) × (Any P l′ ⊎ P y ⊎ Any P r) ⊎
+       T (not (x ≤ y)) × (Any P l ⊎ P y ⊎ Any P r′)       ↔⟨ id ×-cong (ih-l ⊎-cong id) ⊎-cong
+                                                             id ×-cong (id ⊎-cong id ⊎-cong ih-r) ⟩
+     T (x ≤ y) × ((P x ⊎ Any P l) ⊎ P y ⊎ Any P r) ⊎
+       T (not (x ≤ y)) × (Any P l ⊎ P y ⊎ P x ⊎ Any P r)  ↔⟨ lemma₂ (x ≤ y) ⟩
+
+     P x ⊎ Any P l ⊎ P y ⊎ Any P r                        ↔⟨ id ⊎-cong inverse (Any-node P) ⟩
+
+     P x ⊎ Any P (node l y r)                             □)
 
 ------------------------------------------------------------------------
 -- Turning a list into a search tree
 
 -- Converts the list to a search tree.
 
-abstract
-
-  to-search-tree′ :
-    (xs : ⟦ List ⟧ A) → ∃ λ (t : ⟦ Tree ⟧ A) → t ≈-bag xs
-  to-search-tree′ = List.fold
-    (λ xs → ∃ λ t → t ≈-bag xs)
-    (λ xs ys xs≈ys → ∃-cong (λ t t≈xs z →
-       z ∈ t   ↔⟨ t≈xs z ⟩
-       z ∈ xs  ↔⟨ xs≈ys z ⟩
-       z ∈ ys  □))
-    (leaf , λ z →
-     z ∈ leaf  ↔⟨ Any-leaf (λ x → z ≡ x) ⟩
-     ⊥         ↔⟨ inverse $ Any-[] (λ x → z ≡ x) ⟩
-     z ∈ []    □)
-    (λ { x xs (t , t≈xs) → (insert x t , λ z →
-     z ∈ insert x t  ↔⟨ Any-insert (λ x → z ≡ x) _ _ ⟩
-     z ≡ x ⊎ z ∈ t   ↔⟨ id ⊎-cong t≈xs z ⟩
-     z ≡ x ⊎ z ∈ xs  ↔⟨ inverse $ Any-∷ (λ x → z ≡ x) ⟩
-     z ∈ x ∷ xs      □) })
-
 to-search-tree : ⟦ List ⟧ A → ⟦ Tree ⟧ A
-to-search-tree xs = proj₁ (to-search-tree′ xs)
+to-search-tree = List.fold leaf (λ x _ t → insert x t)
 
 -- No elements are added or removed.
 
 to-search-tree≈ : ∀ xs → to-search-tree xs ≈-bag xs
-to-search-tree≈ xs = proj₂ (to-search-tree′ xs)
+to-search-tree≈ = List.fold-lemma
+  (λ xs t → t ≈-bag xs)
+
+  (λ xs ys xs≈ys t t≈xs z →
+     z ∈ t   ↔⟨ t≈xs z ⟩
+     z ∈ xs  ↔⟨ xs≈ys z ⟩
+     z ∈ ys  □)
+
+  (λ z →
+     z ∈ leaf  ↔⟨ Any-leaf (λ x → z ≡ x) ⟩
+     ⊥         ↔⟨ inverse $ Any-[] (λ x → z ≡ x) ⟩
+     z ∈ []    □)
+
+  (λ x xs t t≈xs z →
+     z ∈ insert x t  ↔⟨ Any-insert (λ x → z ≡ x) _ _ ⟩
+     z ≡ x ⊎ z ∈ t   ↔⟨ id ⊎-cong t≈xs z ⟩
+     z ≡ x ⊎ z ∈ xs  ↔⟨ inverse $ Any-∷ (λ x → z ≡ x) ⟩
+     z ∈ x ∷ xs      □)
 
 ------------------------------------------------------------------------
 -- Sorting

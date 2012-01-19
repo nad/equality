@@ -8,7 +8,7 @@
 module Container.Tree where
 
 open import Container hiding (Shape; Position)
-open import Container.List hiding (fold)
+open import Container.List hiding (fold; fold-lemma)
 open import Equality.Propositional
 open import Prelude hiding (id; _∘_; List; []; _∷_; _++_; lookup)
 
@@ -144,22 +144,6 @@ Any-node _ {l = _ , _} {r = _ , _} = record
 ------------------------------------------------------------------------
 -- More functions
 
--- A variant of the dependent eliminator for trees.
---
--- The "respect bag equality" argument could be omitted if equality of
--- functions were extensional.
-
-fold : ∀ {A : Set} {p}
-       (P : ⟦ Tree ⟧ A → Set p) →
-       (∀ t₁ t₂ → t₁ ≈-bag t₂ → P t₁ → P t₂) →
-       P leaf →
-       (∀ l x r → P l → P r → P (node l x r)) →
-       ∀ t → P t
-fold P resp le no (lf     , lkup) = resp _ _ leaf≈ le
-fold P resp le no (nd l r , lkup) = resp _ _ node≈ $
-  no _ _ _ (fold P resp le no (l , lkup ∘ left ))
-           (fold P resp le no (r , lkup ∘ right))
-
 -- Singleton trees.
 
 singleton : {A : Set} → A → ⟦ Tree ⟧ A
@@ -177,34 +161,65 @@ Any-singleton P {x} =
   P x ⊎ ⊥                        ↔⟨ ⊎-right-identity ⟩
   P x                            □
 
+-- For the design considerations underlying the inclusion of fold and
+-- fold-lemma, see Container.List.fold/fold-lemma.
+
+-- A fold for trees. (Well, this is not a catamorphism, it is a
+-- paramorphism.)
+
+fold : {A B : Set} →
+       B → (⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → B → B → B) → ⟦ Tree ⟧ A → B
+fold le no (lf     , lkup) = le
+fold le no (nd l r , lkup) =
+  no (l , lkup ∘ left )
+     (lkup root)
+     (r , lkup ∘ right)
+     (fold le no (l , lkup ∘ left ))
+     (fold le no (r , lkup ∘ right))
+
+-- A lemma which can be used to prove properties about fold.
+--
+-- The "respect bag equality" argument could be omitted if equality of
+-- functions were extensional.
+
+fold-lemma : ∀ {A B : Set}
+               {le : B} {no : ⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → B → B → B}
+             (P : ⟦ Tree ⟧ A → B → Set) →
+             (∀ t₁ t₂ → t₁ ≈-bag t₂ → ∀ b → P t₁ b → P t₂ b) →
+             P leaf le →
+             (∀ l x r b₁ b₂ →
+                P l b₁ → P r b₂ → P (node l x r) (no l x r b₁ b₂)) →
+             ∀ t → P t (fold le no t)
+fold-lemma P resp le no (lf     , lkup) = resp _ _ leaf≈ _ le
+fold-lemma P resp le no (nd l r , lkup) = resp _ _ node≈ _ $
+  no _ _ _ _ _
+     (fold-lemma P resp le no (l , lkup ∘ left ))
+     (fold-lemma P resp le no (r , lkup ∘ right))
+
 -- Inorder flattening of a tree.
 
-abstract
-
-  flatten′ : {A : Set} (t : ⟦ Tree ⟧ A) →
-             ∃ λ (xs : ⟦ List ⟧ A) → xs ≈-bag t
-  flatten′ = fold
-    (λ t → ∃ λ xs → xs ≈-bag t)
-    (λ t₁ t₂ t₁≈t₂ → ∃-cong (λ xs xs≈t₁ z →
-       z ∈ xs  ↔⟨ xs≈t₁ z ⟩
-       z ∈ t₁  ↔⟨ t₁≈t₂ z ⟩
-       z ∈ t₂  □))
-    ([] , λ z →
-     z ∈ []    ↔⟨ Any-[] (λ x → z ≡ x) ⟩
-     ⊥         ↔⟨ inverse $ Any-leaf (λ x → z ≡ x) ⟩
-     z ∈ leaf  □)
-    (λ { l x r (xs , xs≈l) (ys , ys≈r) → (xs ++ x ∷ ys , λ z →
-         z ∈ xs ++ x ∷ ys         ↔⟨ Any-++ (λ x → z ≡ x) _ _ ⟩
-         z ∈ xs ⊎ z ∈ x ∷ ys      ↔⟨ id ⊎-cong Any-∷ (λ x → z ≡ x) ⟩
-         z ∈ xs ⊎ z ≡ x ⊎ z ∈ ys  ↔⟨ xs≈l z ⊎-cong id ⊎-cong ys≈r z ⟩
-         z ∈ l ⊎ z ≡ x ⊎ z ∈ r    ↔⟨ inverse $ Any-node (λ x → z ≡ x) ⟩
-         z ∈ node l x r           □) })
-
 flatten : {A : Set} → ⟦ Tree ⟧ A → ⟦ List ⟧ A
-flatten t = proj₁ (flatten′ t)
+flatten = fold [] (λ _ x _ xs ys → xs ++ x ∷ ys)
 
 -- Flatten does not add or remove any elements.
 
-flatten≈ : ∀ {A : Set} (t : ⟦ Tree ⟧ A) →
-           flatten t ≈-bag t
-flatten≈ t = proj₂ (flatten′ t)
+flatten≈ : {A : Set} (t : ⟦ Tree ⟧ A) → flatten t ≈-bag t
+flatten≈ = fold-lemma
+  (λ t xs → xs ≈-bag t)
+
+  (λ t₁ t₂ t₁≈t₂ xs xs≈t₁ z →
+     z ∈ xs  ↔⟨ xs≈t₁ z ⟩
+     z ∈ t₁  ↔⟨ t₁≈t₂ z ⟩
+     z ∈ t₂  □)
+
+  (λ z →
+   z ∈ []    ↔⟨ Any-[] (λ x → z ≡ x) ⟩
+   ⊥         ↔⟨ inverse $ Any-leaf (λ x → z ≡ x) ⟩
+   z ∈ leaf  □)
+
+  (λ l x r xs ys xs≈l ys≈r z →
+     z ∈ xs ++ x ∷ ys         ↔⟨ Any-++ (λ x → z ≡ x) _ _ ⟩
+     z ∈ xs ⊎ z ∈ x ∷ ys      ↔⟨ id ⊎-cong Any-∷ (λ x → z ≡ x) ⟩
+     z ∈ xs ⊎ z ≡ x ⊎ z ∈ ys  ↔⟨ xs≈l z ⊎-cong id ⊎-cong ys≈r z ⟩
+     z ∈ l ⊎ z ≡ x ⊎ z ∈ r    ↔⟨ inverse $ Any-node (λ x → z ≡ x) ⟩
+     z ∈ node l x r           □)
