@@ -273,3 +273,26 @@ Position-shape-cong-relates xs ys xs≈ys p =
     ∃ (λ p → z ≡ lookup xs p)  ↝⟨ Σ-cong P↔P (λ p → equality-lemma (related p)) ⟩
     ∃ (λ p → z ≡ lookup ys p)  ↔⟨ z ∈ ys □ ⟩
     z ∈ ys                     □
+
+------------------------------------------------------------------------
+-- Another alternative definition of bag equality
+
+-- A higher-order variant of _∼[_]_. Note that this definition is
+-- large (due to the quantification over predicates).
+
+infix 4 _∼[_]″_
+
+_∼[_]″_ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
+          ⟦ C ⟧ A → Kind → ⟦ D ⟧ A → Set (lsuc a ⊔ c ⊔ d)
+_∼[_]″_ {a} {A = A} xs k ys =
+  (P : A → Set a) → Any P xs ↝[ k ] Any P ys
+
+-- This definition is equivalent to _∼[_]_.
+
+∼⇔∼″ : ∀ {k a c d} {A : Set a} {C : Container c} {D : Container d}
+       (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
+       xs ∼[ k ] ys ⇔ xs ∼[ k ]″ ys
+∼⇔∼″ xs ys = record
+  { to   = λ xs∼ys P → Any-cong P P xs ys (λ _ → id) xs∼ys
+  ; from = λ Any-xs↝Any-ys z → Any-xs↝Any-ys (λ x → z ≡ x)
+  }
