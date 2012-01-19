@@ -33,33 +33,6 @@ open Container public
 ⟦_⟧ : ∀ {c ℓ} → Container c → Set ℓ → Set _
 ⟦ S ▷ P ⟧ A = ∃ λ (s : S) → (P s → A)
 
--- Some examples.
-
-module Examples where
-
-  -- Lists.
-
-  List : Container lzero
-  List = ℕ ▷ Fin
-
-  -- Streams.
-
-  Stream : Container lzero
-  Stream = ⊤ ▷ const ℕ
-
-  -- Finite binary trees with information in the internal nodes.
-
-  data S : Set where
-    leaf  : S
-    node  : S → S → S
-
-  P : S → Set
-  P leaf       = ⊥
-  P (node l r) = P l ⊎ ⊤ ⊎ P r
-
-  Tree : Container lzero
-  Tree = S ▷ P
-
 ------------------------------------------------------------------------
 -- Some projections
 

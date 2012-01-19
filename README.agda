@@ -101,3 +101,15 @@ import Bag-equality
 -- Containers, including a definition of bag equality.
 
 import Container
+
+-- An implementation of tree sort, formally proved to return a
+-- permutation of the input.
+
+import Container.List
+import Container.Tree
+import Container.Tree-sort
+import Container.Tree-sort.Example
+
+-- The stream container.
+
+import Container.Stream
