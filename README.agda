@@ -94,7 +94,7 @@ import Function-universe
 
 import Fin
 
--- Bag equality.
+-- Bag equality for lists.
 
 import Bag-equality
 
@@ -102,8 +102,15 @@ import Bag-equality
 
 import Container
 
--- An implementation of tree sort, formally proved to return a
--- permutation of the input.
+-- Implementations of tree sort, formally proved to return
+-- permutations of the input. The implementation using containers has
+-- the advantage of uniform definitions of Any/membership/bag
+-- equality, but the other implementation uses more direct definitions
+-- and is perhaps a bit "leaner".
+
+import Tree
+import Tree-sort
+import Tree-sort.Example
 
 import Container.List
 import Container.Tree
