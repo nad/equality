@@ -39,6 +39,12 @@ import Bag-equality
 
 import Function-universe
 
+-- An implementation of tree sort, formally proved to return a sorted
+-- permutation of the input.
+
+import Tree-sort
+import Tree-sort.Example
+
 -- Some definitions related to and properties of finite sets.
 
 import Fin
@@ -47,15 +53,17 @@ import Fin
 
 import Container
 
--- Implementations of tree sort, formally proved to return
--- permutations of the input. The implementation using containers has
--- the advantage of uniform definitions of Any/membership/bag
--- equality, but the other implementation uses more direct definitions
--- and is perhaps a bit "leaner".
-
-import Tree
-import Tree-sort
-import Tree-sort.Example
+-- An implementation of tree sort which uses containers to represent
+-- trees and lists.
+--
+-- In Tree-sort.Correct indexed types are used to enforce sortedness,
+-- but Containers contains a definition of non-indexed containers, so
+-- sortedness is not enforced in this development.
+--
+-- The implementation using containers has the advantage of uniform
+-- definitions of Any/membership/bag equality, but the other
+-- implementation uses more direct definitions and is perhaps a bit
+-- "leaner".
 
 import Container.List
 import Container.Tree

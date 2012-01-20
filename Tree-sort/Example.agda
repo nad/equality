@@ -1,33 +1,35 @@
 ------------------------------------------------------------------------
--- An example showing how Tree-sort can be used
+-- Examples showing how Tree-sort can be used
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
 
 module Tree-sort.Example where
 
-open import Bag-equality
 open import Equality.Propositional
-open import Prelude hiding (_≤_)
+open import Prelude
 import Tree-sort
 
 -- Comparison function for natural numbers.
 
-_≤_ : ℕ → ℕ → Bool
-zero  ≤ _     = true
-suc _ ≤ zero  = false
-suc m ≤ suc n = m ≤ n
+compare : (m n : ℕ) → m ≤ n ⊎ n ≤ m
+compare zero    _       = inj₁ (zero≤ _)
+compare _       zero    = inj₂ (zero≤ _)
+compare (suc m) (suc n) with compare m n
+... | inj₁ m≤n = inj₁ (suc≤suc m≤n)
+... | inj₂ n≤m = inj₂ (suc≤suc n≤m)
 
-open Tree-sort _≤_
+open Tree-sort _≤_ compare
 
--- The sort function seems to return an ordered list.
+-- The sort function returns ordered lists.
 
-ordered : sort (3 ∷ 1 ∷ 2 ∷ []) ≡ 1 ∷ 2 ∷ 3 ∷ []
+ordered : sort (3 ∷ 1 ∷ 2 ∷ []) ≡
+          cons 1 (cons 2 (cons 3 (nil _) _) _) _
 ordered = refl
 
--- The sort function definitely returns a list which is bag equal to
--- the input. This property can be used to establish bag equalities
--- between concrete lists.
+-- The sort function returns a list which is bag equal to the input.
+-- This property can be used to establish bag equalities between
+-- concrete lists.
 
 a-bag-equality : 1 ∷ 2 ∷ 3 ∷ [] ≈-bag 3 ∷ 1 ∷ 2 ∷ []
 a-bag-equality = sort≈ (3 ∷ 1 ∷ 2 ∷ [])
