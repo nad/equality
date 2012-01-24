@@ -173,6 +173,22 @@ Any-if : ∀ {a c p} {A : Set a} {C : Container c}
 Any-if P xs ys =
   inverse ∘ if-lemma (λ b → Any P (if b then xs else ys)) id id
 
+-- Any is defined using the position predicate. We can also define a
+-- position predicate by using Any.
+--
+-- (This lemma was suggested by an anonymous reviewer.)
+
+Position′ : ∀ {a c} (C : Container c) →
+            ({A : Set a} → (A → Set c) → (⟦ C ⟧ A → Set c)) →
+            Shape C → Set c
+Position′ _ Any s = Any (λ (_ : ⊤) → ⊤) (s , λ _ → tt)
+
+Position-Any : ∀ {a c} {C : Container c} (s : Shape C) →
+               Position C s ↔ Position′ {a = a} C Any s
+Position-Any {C = C} s =
+  Position C s      ↔⟨ inverse ×-right-identity ⟩
+  Position C s × ⊤  □
+
 ------------------------------------------------------------------------
 -- Alternative definition of bag equality
 
