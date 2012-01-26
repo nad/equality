@@ -104,7 +104,7 @@ node≈ _ = record
 -- Any lemmas for the constructors.
 
 Any-leaf : ∀ {A : Set} (P : A → Set) →
-           Any P leaf ↔ ⊥ {ℓ = lzero}
+           Any P leaf ↔ ⊥
 Any-leaf _ = record
   { surjection = record
     { equivalence = record

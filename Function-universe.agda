@@ -179,7 +179,7 @@ inverse {weak-equivalence} = Weak.inverse
 
 -- Contractible sets are isomorphic to ⊤.
 
-contractible↔⊤ : ∀ {a ℓ} {A : Set a} → Contractible A → A ↔ ⊤ {ℓ = ℓ}
+contractible↔⊤ : ∀ {a} {A : Set a} → Contractible A → A ↔ ⊤
 contractible↔⊤ c = record
   { surjection = record
     { equivalence = record
@@ -296,7 +296,7 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- ⊥ is a left and right identity of _⊎_.
 
-⊎-left-identity : ∀ {a ℓ} {A : Set a} → ⊥ {ℓ = ℓ} ⊎ A ↔ A
+⊎-left-identity : ∀ {a} {A : Set a} → ⊥ ⊎ A ↔ A
 ⊎-left-identity = record
   { surjection = record
     { equivalence = record
@@ -308,7 +308,7 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
   ; left-inverse-of = λ { (inj₁ ()); (inj₂ x) → refl (inj₂ x) }
   }
 
-⊎-right-identity : ∀ {a ℓ} {A : Set a} → A ⊎ ⊥ {ℓ = ℓ} ↔ A
+⊎-right-identity : ∀ {a} {A : Set a} → A ⊎ ⊥ ↔ A
 ⊎-right-identity {A = A} =
   A ⊎ ⊥  ↔⟨ ⊎-comm ⟩
   ⊥ ⊎ A  ↔⟨ ⊎-left-identity ⟩□
@@ -424,7 +424,7 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- ⊤ is a left and right identity of _×_ and Σ.
 
-Σ-left-identity : ∀ {a ℓ} {A : ⊤ {ℓ = ℓ} → Set a} → Σ ⊤ A ↔ A tt
+Σ-left-identity : ∀ {a} {A : ⊤ → Set a} → Σ ⊤ A ↔ A tt
 Σ-left-identity = record
   { surjection = record
     { equivalence = record
@@ -436,10 +436,10 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
   ; left-inverse-of = refl
   }
 
-×-left-identity : ∀ {a ℓ} {A : Set a} → ⊤ {ℓ = ℓ} × A ↔ A
+×-left-identity : ∀ {a} {A : Set a} → ⊤ × A ↔ A
 ×-left-identity = Σ-left-identity
 
-×-right-identity : ∀ {a ℓ} {A : Set a} → A × ⊤ {ℓ = ℓ} ↔ A
+×-right-identity : ∀ {a} {A : Set a} → A × ⊤ ↔ A
 ×-right-identity {A = A} =
   A × ⊤  ↔⟨ ×-comm ⟩
   ⊤ × A  ↔⟨ ×-left-identity ⟩□
@@ -447,8 +447,7 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- ⊥ is a left and right zero of _×_ and Σ.
 
-Σ-left-zero : ∀ {a ℓ₁ ℓ₂} {A : ⊥ {ℓ = ℓ₁} → Set a} →
-              Σ ⊥ A ↔ ⊥ {ℓ = ℓ₂}
+Σ-left-zero : ∀ {a} {A : ⊥ → Set a} → Σ ⊥ A ↔ ⊥
 Σ-left-zero = record
   { surjection = record
     { equivalence = record
@@ -460,10 +459,10 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
   ; left-inverse-of = λ { (() , _) }
   }
 
-×-left-zero : ∀ {a ℓ₁ ℓ₂} {A : Set a} → ⊥ {ℓ = ℓ₁} × A ↔ ⊥ {ℓ = ℓ₂}
+×-left-zero : ∀ {a} {A : Set a} → ⊥ × A ↔ ⊥
 ×-left-zero = Σ-left-zero
 
-×-right-zero : ∀ {a ℓ₁ ℓ₂} {A : Set a} → A × ⊥ {ℓ = ℓ₁} ↔ ⊥ {ℓ = ℓ₂}
+×-right-zero : ∀ {a} {A : Set a} → A × ⊥ ↔ ⊥
 ×-right-zero {A = A} =
   A × ⊥  ↔⟨ ×-comm ⟩
   ⊥ × A  ↔⟨ ×-left-zero ⟩□
@@ -607,7 +606,7 @@ private
 ∃-intro : ∀ {a b} {A : Set a} (B : A → Set b) (x : A) →
           B x ↔ ∃ λ y → B y × y ≡ x
 ∃-intro B x =
-  B x                    ↔⟨ inverse (×-right-identity {ℓ = lzero}) ⟩
+  B x                    ↔⟨ inverse ×-right-identity ⟩
   B x × ⊤                ↔⟨ id ×-cong inverse (contractible↔⊤ (singleton-contractible x)) ⟩
   B x × (∃ λ y → y ≡ x)  ↔⟨ ∃-comm ⟩
   (∃ λ y → B x × y ≡ x)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩
@@ -640,12 +639,12 @@ if-lemma : ∀ {a b p} {A : Set a} {B : Set b} (P : Bool → Set p) →
            ∀ b → T b × A ⊎ T (not b) × B ↔ P b
 if-lemma {A = A} {B} P A↔ B↔ true =
   ⊤ × A ⊎ ⊥ × B  ↔⟨ ×-left-identity ⊎-cong ×-left-zero ⟩
-  A ⊎ ⊥          ↔⟨ ⊎-right-identity {ℓ = lzero} ⟩
+  A ⊎ ⊥          ↔⟨ ⊎-right-identity ⟩
   A              ↔⟨ A↔ ⟩
   P true         □
 if-lemma {A = A} {B} P A↔ B↔ false =
   ⊥ × A ⊎ ⊤ × B  ↔⟨ ×-left-zero ⊎-cong ×-left-identity ⟩
-  ⊥ ⊎ B          ↔⟨ ⊎-left-identity {ℓ = lzero} ⟩
+  ⊥ ⊎ B          ↔⟨ ⊎-left-identity ⟩
   B              ↔⟨ B↔ ⟩
   P false        □
 
@@ -662,7 +661,7 @@ if-encoding {A = A} {B} =
 -- The natural numbers are isomorphic to the natural numbers extended
 -- with another element.
 
-ℕ↔ℕ⊎⊤ : ℕ ↔ ℕ ⊎ ⊤ {ℓ = lzero}
+ℕ↔ℕ⊎⊤ : ℕ ↔ ℕ ⊎ ⊤
 ℕ↔ℕ⊎⊤ = record
   { surjection = record
     { equivalence = record

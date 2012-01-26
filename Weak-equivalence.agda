@@ -345,7 +345,7 @@ abstract
     Contractible A → Contractible B → Is-weak-equivalence f
   function-between-contractible-types-is-weak-equivalence f cA cB =
     Two-out-of-three.g-g∘f
-      (two-out-of-three f (const (tt {ℓ = lzero})))
+      (two-out-of-three f (const tt))
       (lemma cB)
       (lemma cA)
     where
@@ -353,7 +353,7 @@ abstract
     -- contractible.
 
     lemma : ∀ {b} {C : Set b} → Contractible C →
-            Is-weak-equivalence (λ (_ : C) → tt {ℓ = lzero})
+            Is-weak-equivalence (λ (_ : C) → tt)
     lemma (x , irr) _ = (x , refl tt) , λ p →
       (x , refl tt)  ≡⟨ _↔_.to Σ-≡,≡↔≡ (irr (proj₁ p) ,
                           (subst (λ _ → tt ≡ tt)

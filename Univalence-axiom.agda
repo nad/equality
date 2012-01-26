@@ -239,21 +239,21 @@ abstract
   Π-closure-contractible :
     ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
     ∀ {a} {A : Set a} {B : A → Set b} →
-    (∀ x → Univalence-axiom′ ⊤ (B x)) →
+    (∀ x → Univalence-axiom′ (↑ b ⊤) (B x)) →
     (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)
   Π-closure-contractible {b} univ₁ {A = A} {B} univ₂ contr =
     subst Contractible A→⊤≡[x:A]→Bx →⊤-contractible
     where
-    const-⊤≡B : const ⊤ ≡ B
+    const-⊤≡B : const (↑ b ⊤) ≡ B
     const-⊤≡B = extensionality univ₁ λ x →
       _≈_.from (≡≈≈ (univ₂ x)) $
         bijection⇒weak-equivalence $
-          contractible-isomorphic ⊤-contractible (contr x)
+          contractible-isomorphic (↑-closure 0 ⊤-contractible) (contr x)
 
-    A→⊤≡[x:A]→Bx : (A → ⊤ {ℓ = b}) ≡ ((x : A) → B x)
+    A→⊤≡[x:A]→Bx : (A → ↑ b ⊤) ≡ ((x : A) → B x)
     A→⊤≡[x:A]→Bx = cong (λ X → (x : A) → X x) const-⊤≡B
 
-    →⊤-contractible : Contractible (A → ⊤ {ℓ = b})
+    →⊤-contractible : Contractible (A → ↑ b ⊤)
     →⊤-contractible = (_ , λ _ → refl _)
 
   -- Thus we also get extensionality for dependent functions.
@@ -261,7 +261,7 @@ abstract
   dependent-extensionality :
     ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
     ∀ {a} {A : Set a} →
-    (∀ {B : A → Set b} x → Univalence-axiom′ ⊤ (B x)) →
+    (∀ {B : A → Set b} x → Univalence-axiom′ (↑ b ⊤) (B x)) →
     {B : A → Set b} → Extensionality A B
   dependent-extensionality univ₁ univ₂ =
     _⇔_.to Π-closure-contractible⇔extensionality

@@ -202,7 +202,7 @@ x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
 -- Any lemmas for the constructors.
 
 Any-[] : {A : Set} (P : A → Set) →
-         Any P [] ↔ ⊥ {ℓ = lzero}
+         Any P [] ↔ ⊥
 Any-[] _ = record
   { surjection = record
     { equivalence = record

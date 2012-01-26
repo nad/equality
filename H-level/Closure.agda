@@ -37,7 +37,7 @@ open Surjection hiding (id; _∘_)
 
 -- The unit type is contractible.
 
-⊤-contractible : ∀ {ℓ} → Contractible (⊤ {ℓ = ℓ})
+⊤-contractible : Contractible ⊤
 ⊤-contractible = (_ , λ _ → refl _)
 
 ------------------------------------------------------------------------
@@ -47,18 +47,18 @@ abstract
 
   -- The empty type is not contractible.
 
-  ¬-⊥-contractible : ∀ {ℓ} → ¬ Contractible (⊥ {ℓ = ℓ})
+  ¬-⊥-contractible : ¬ Contractible ⊥
   ¬-⊥-contractible = ⊥-elim ∘ proj₁
 
   -- The empty type is propositional.
 
-  ⊥-propositional : ∀ {ℓ} → Propositional (⊥ {ℓ = ℓ})
+  ⊥-propositional : Propositional ⊥
   ⊥-propositional =
     _⇔_.from propositional⇔irrelevant (λ x → ⊥-elim x)
 
   -- Thus any uninhabited type is also propositional.
 
-  ⊥↠uninhabited : ∀ {a} {A : Set a} → ¬ A → ⊥ {ℓ = lzero} ↠ A
+  ⊥↠uninhabited : ∀ {a} {A : Set a} → ¬ A → ⊥ ↠ A
   ⊥↠uninhabited ¬A = record
     { equivalence = record
       { to   = ⊥-elim
@@ -406,9 +406,10 @@ abstract
        Contractible A → (∀ x → Contractible (B x)) →
        Contractible (W A B))
   ¬-W-closure-contractible closure =
-    inhabited⇒W-empty (const tt) $
+    inhabited⇒W-empty (const (lift tt)) $
     proj₁ $
-    closure ⊤-contractible (const ⊤-contractible)
+    closure (↑-closure 0 ⊤-contractible)
+            (const (↑-closure 0 ⊤-contractible))
 
   ¬-W-closure : ∀ {a b} →
     ¬ (∀ {A : Set a} {B : A → Set b} n →
@@ -591,10 +592,11 @@ abstract
   ¬-⊎-closure : ∀ {a b} →
     ¬ (∀ {A : Set a} {B : Set b} n →
        H-level n A → H-level n B → H-level n (A ⊎ B))
-  ¬-⊎-closure {a} {b} ⊎-closure =
-    ¬-⊎-propositional (tt {ℓ = a}) (tt {ℓ = b}) $
+  ¬-⊎-closure ⊎-closure =
+    ¬-⊎-propositional (lift tt) (lift tt) $
     mono₁ 0 $
-    ⊎-closure 0 ⊤-contractible ⊤-contractible
+    ⊎-closure 0 (↑-closure 0 ⊤-contractible)
+                (↑-closure 0 ⊤-contractible)
 
   -- However, all levels greater than or equal to 2 are closed under
   -- _⊎_.

@@ -16,6 +16,8 @@ open Bijection equality-with-J using (_↔_; module _↔_)
 import Function-universe
 open Function-universe equality-with-J
   hiding (Kind) renaming (_∘_ to _⟨∘⟩_)
+import H-level.Closure
+open H-level.Closure equality-with-J
 
 ------------------------------------------------------------------------
 -- Containers
@@ -181,13 +183,14 @@ Any-if P xs ys =
 Position′ : ∀ {a c} (C : Container c) →
             ({A : Set a} → (A → Set c) → (⟦ C ⟧ A → Set c)) →
             Shape C → Set c
-Position′ _ Any s = Any (λ (_ : ⊤) → ⊤) (s , λ _ → tt)
+Position′ _ Any s = Any (λ (_ : ↑ _ ⊤) → ↑ _ ⊤) (s , λ _ → lift tt)
 
 Position-Any : ∀ {a c} {C : Container c} (s : Shape C) →
                Position C s ↔ Position′ {a = a} C Any s
 Position-Any {C = C} s =
-  Position C s      ↔⟨ inverse ×-right-identity ⟩
-  Position C s × ⊤  □
+  Position C s          ↔⟨ inverse ×-right-identity ⟩
+  Position C s × ⊤      ↔⟨ id ×-cong inverse ↑↔ ⟩
+  Position C s × ↑ _ ⊤  □
 
 ------------------------------------------------------------------------
 -- Alternative definition of bag equality
@@ -229,7 +232,7 @@ Position-shape {C = C} (s , f) =
   (∃ λ z → ∃ λ p → z ≡ f p)  ↔⟨ ∃-comm ⟩
   (∃ λ p → ∃ λ z → z ≡ f p)  ↔⟨ _ □ ⟩
   (∃ λ p → Singleton (f p))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ (singleton-contractible _)) ⟩
-  Position C s × ⊤           ↔⟨ ×-right-identity {ℓ = lzero} ⟩
+  Position C s × ⊤           ↔⟨ ×-right-identity ⟩
   Position C s               □
 
 -- Position _ ∘ shape respects the various relations.

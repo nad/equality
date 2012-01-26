@@ -21,7 +21,7 @@ import Function-universe as FU; open FU P.equality-with-J hiding (_∘_)
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃
 
-∃-Fin-zero : (P : Fin zero → Set) → ∃ P ↔ ⊥ {ℓ = lzero}
+∃-Fin-zero : (P : Fin zero → Set) → ∃ P ↔ ⊥
 ∃-Fin-zero P = Σ-left-zero
 
 ∃-Fin-suc : ∀ {n} (P : Fin (suc n) → Set) →
