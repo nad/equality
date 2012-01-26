@@ -320,6 +320,31 @@ abstract
   ×-closure n hA hB = Σ-closure n hA (const hB)
 
 ------------------------------------------------------------------------
+-- Lifted types
+
+abstract
+
+  -- A lifted set is isomorphic to the underlying one.
+
+  ↑↔ : ∀ {a b} {A : Set a} → ↑ b A ↔ A
+  ↑↔ {b = b} {A} = record
+    { surjection = record
+      { equivalence = record
+        { to   = lower
+        ; from = lift
+        }
+      ; right-inverse-of = refl
+      }
+    ; left-inverse-of = refl
+    }
+
+  -- All H-levels are closed under lifting.
+
+  ↑-closure : ∀ {a b} {A : Set a} n → H-level n A → H-level n (↑ b A)
+  ↑-closure =
+    respects-surjection (_↔_.surjection (Bijection.inverse ↑↔))
+
+------------------------------------------------------------------------
 -- W-types
 
 -- W-types are isomorphic to Σ-types containing W-types.
@@ -527,20 +552,6 @@ abstract
 -- Binary sums
 
 abstract
-
-  -- A lifted set is isomorphic to the underlying one.
-
-  ↑↔ : ∀ {a b} {A : Set a} → ↑ b A ↔ A
-  ↑↔ {b = b} {A} = record
-    { surjection = record
-      { equivalence = record
-        { to   = lower
-        ; from = lift
-        }
-      ; right-inverse-of = refl
-      }
-    ; left-inverse-of = refl
-    }
 
   -- Binary sums can be expressed using Σ and Bool (with large
   -- elimination).
