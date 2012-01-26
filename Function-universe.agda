@@ -16,7 +16,6 @@ private
     import Bijection; open Bijection eq public
 open Bijection using (_↔_; module _↔_)
 import Equality.Decision-procedures as ED; open ED eq
-import H-level.Closure; open H-level.Closure eq
 private
   module Injection where
     import Injection; open Injection eq public
