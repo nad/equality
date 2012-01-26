@@ -58,19 +58,23 @@ abstract
 
   -- Thus any uninhabited type is also propositional.
 
-  ⊥↠uninhabited : ∀ {a} {A : Set a} → ¬ A → ⊥ ↠ A
-  ⊥↠uninhabited ¬A = record
-    { equivalence = record
-      { to   = ⊥-elim
-      ; from = ¬A
+  ⊥↔uninhabited : ∀ {a} {A : Set a} → ¬ A → ⊥ ↔ A
+  ⊥↔uninhabited ¬A = record
+    { surjection = record
+      { equivalence = record
+        { to   = ⊥-elim
+        ; from = ¬A
+        }
+      ; right-inverse-of = ⊥-elim ∘ ¬A
       }
-    ; right-inverse-of = ⊥-elim ∘ ¬A
+    ; left-inverse-of = λ ()
     }
 
   uninhabited-propositional : ∀ {a} {A : Set a} →
                               ¬ A → Propositional A
   uninhabited-propositional ¬A =
-    respects-surjection (⊥↠uninhabited ¬A) 1 ⊥-propositional
+    respects-surjection (_↔_.surjection $ ⊥↔uninhabited ¬A) 1
+                        ⊥-propositional
 
 ------------------------------------------------------------------------
 -- Booleans
