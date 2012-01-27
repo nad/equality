@@ -629,6 +629,33 @@ private
 ×-⊎-distrib-right = ∃-⊎-distrib-right
 
 ------------------------------------------------------------------------
+-- Some lemmas related to functions
+
+Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
+Π-left-identity = record
+  { surjection = record
+    { equivalence = record
+      { to   = λ f → f tt
+      ; from = λ x _ → x
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
+→-right-zero : ∀ {a} {A : Set a} → (A → ⊤) ↔ ⊤
+→-right-zero = record
+  { surjection = record
+    { equivalence = record
+      { to   = λ _ → tt
+      ; from = λ _ _ → tt
+      }
+    ; right-inverse-of = λ _ → refl tt
+    }
+  ; left-inverse-of = λ _ → refl (λ _ → tt)
+  }
+
+------------------------------------------------------------------------
 -- Lemmas related to if
 
 -- A generalisation of if-encoding (which is defined below).
