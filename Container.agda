@@ -175,22 +175,55 @@ Any-if : ∀ {a c p} {A : Set a} {C : Container c}
 Any-if P xs ys =
   inverse ∘ if-lemma (λ b → Any P (if b then xs else ys)) id id
 
--- Any is defined using the position predicate. We can also define a
--- position predicate by using Any.
+-- One can reconstruct (up to isomorphism) the shape set and the
+-- position predicate from the interpretation and the Any predicate
+-- transformer.
 --
--- (This lemma was suggested by an anonymous reviewer.)
+-- (The following lemmas were suggested by an anonymous reviewer.)
 
-Position′ : ∀ {a c} (C : Container c) →
-            ({A : Set a} → (A → Set c) → (⟦ C ⟧ A → Set c)) →
-            Shape C → Set c
-Position′ _ Any s = Any (λ (_ : ↑ _ ⊤) → ↑ _ ⊤) (s , λ _ → lift tt)
+Shape′ : ∀ {c} → (Set → Set c) → Set c
+Shape′ F = F ⊤
 
-Position-Any : ∀ {a c} {C : Container c} (s : Shape C) →
-               Position C s ↔ Position′ {a = a} C Any s
+Shape-⟦⟧ : ∀ {c} (C : Container c) →
+            Shape C ↔ Shape′ ⟦ C ⟧
+Shape-⟦⟧ C =
+  Shape C                                 ↔⟨ inverse ×-right-identity ⟩
+  Shape C × ⊤                             ↔⟨ ∃-cong (λ _ → inverse →-right-zero) ⟩
+  (∃ λ (s : Shape C) → Position C s → ⊤)  □
+
+Position′ : ∀ {c} (F : Set → Set c) →
+            ({A : Set} → (A → Set) → (F A → Set c)) →
+            Shape′ F → Set c
+Position′ _ Any = Any (λ (_ : ⊤) → ⊤)
+
+Position-Any : ∀ {c} {C : Container c} (s : Shape C) →
+               Position C s ↔
+               Position′ ⟦ C ⟧ Any (_↔_.to (Shape-⟦⟧ C) s)
 Position-Any {C = C} s =
-  Position C s          ↔⟨ inverse ×-right-identity ⟩
-  Position C s × ⊤      ↔⟨ id ×-cong inverse ↑↔ ⟩
-  Position C s × ↑ _ ⊤  □
+  Position C s      ↔⟨ inverse ×-right-identity ⟩
+  Position C s × ⊤  □
+
+expressed-in-terms-of-interpretation-and-Any :
+  ∀ {a c} {A : Set a} (C : Container c) →
+  ⟦ C ⟧ A ↔ ⟦ ⟦ C ⟧ ⊤ ▷ Any (λ _ → ⊤) ⟧ A
+expressed-in-terms-of-interpretation-and-Any {A = A} C =
+  (∃ λ (s : Shape C) → Position C s → A)                ↔⟨ Σ-cong (Shape-⟦⟧ C) (λ _ → lemma) ⟩
+  (∃ λ (s : Shape′ ⟦ C ⟧) → Position′ ⟦ C ⟧ Any s → A)  □
+  where
+  -- If equality of functions had been extensional, then the following
+  -- lemma could have been replaced by a congruence lemma applied to
+  -- Position-Any.
+  lemma : ∀ {b} {B : Set b} → (B → A) ↔ (B × ⊤ → A)
+  lemma = record
+    { surjection = record
+      { equivalence = record
+        { to   = λ { f (p , tt) → f p }
+        ; from = λ f p → f (p , tt)
+        }
+      ; right-inverse-of = λ _ → refl
+      }
+    ; left-inverse-of = λ _ → refl
+    }
 
 ------------------------------------------------------------------------
 -- Alternative definition of bag equality
