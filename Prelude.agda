@@ -61,12 +61,30 @@ record ⊤ : Set where
 data Bool : Set where
   true false : Bool
 
+-- Conditional.
+
 if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A
 if true  then t else f = t
 if false then t else f = f
 
+-- Not.
+
 not : Bool → Bool
 not b = if b then false else true
+
+-- And.
+
+infixr 6 _∧_
+
+_∧_ : Bool → Bool → Bool
+b₁ ∧ b₂ = if b₁ then b₂ else false
+
+-- Or.
+
+infixr 5 _∨_
+
+_∨_ : Bool → Bool → Bool
+b₁ ∨ b₂ = if b₁ then true else b₂
 
 -- The truth predicate T is only inhabited when its argument is true.
 
