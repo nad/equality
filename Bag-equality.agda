@@ -17,6 +17,9 @@ open import Prelude as P hiding (id)
 import Bijection
 open Bijection equality-with-J using (_↔_; module _↔_)
 
+import Injection
+open Injection equality-with-J using (_↣_)
+
 import Equality.Decision-procedures
 open Equality.Decision-procedures equality-with-J
 
@@ -334,6 +337,54 @@ bind-left-distributive xs f g = λ z →
   z ∈ xs ++ xs     ↔⟨ Any-++ (_≡_ z) xs xs ⟩
   z ∈ xs ⊎ z ∈ xs  ↝⟨ ⊎-idempotent ⟩
   z ∈ xs           □
+
+-- The so-called "range splitting" property (see, for instance,
+-- Hoogendijks "(Relational) Programming Laws in the Boom Hierarchy of
+-- Types").
+
+range-splitting : {A : Set} (p : A → Bool) (xs : List A) →
+                  filter p xs ++ filter (not ∘ p) xs ≈-bag xs
+range-splitting p xs = λ z →
+  z ∈ filter p xs ++ filter (not ∘ p) xs                  ↔⟨ Any-++ _ _ (filter (not ∘ p) xs) ⟩
+  z ∈ filter p xs ⊎ z ∈ filter (not ∘ p) xs               ↔⟨ Any-filter _ p xs ⊎-cong Any-filter _ (not ∘ p) xs ⟩
+  Any (λ x → z ≡ x × T (p x)) xs ⊎
+    Any (λ x → z ≡ x × T (not (p x))) xs                  ↔⟨ inverse $ Any-⊎ _ _ xs ⟩
+  Any (λ x → z ≡ x × T (p x) ⊎ z ≡ x × T (not (p x))) xs  ↔⟨ Any-cong (λ x → lemma (z ≡ x) (p x)) (λ x → x ∈ xs □) ⟩
+  z ∈ xs                                                  □
+  where
+  lemma : (A : Set) (b : Bool) → A × T b ⊎ A × T (not b) ↔ A
+  lemma A b =
+    A × T b ⊎ A × T (not b)  ↔⟨ ×-comm ⊎-cong ×-comm ⟩
+    T b × A ⊎ T (not b) × A  ↔⟨ if-lemma (λ _ → A) id id b ⟩
+    A                        □
+
+-- The so-called "range disjunction" property, strengthened to use the
+-- subbag preorder instead of set equality.
+
+range-disjunction :
+  {A : Set} (p q : A → Bool) (xs : List A) →
+  filter (λ x → p x ∨ q x) xs ∼[ subbag ]
+  filter p xs ++ filter q xs
+range-disjunction p q xs = λ z →
+  z ∈ filter (λ x → p x ∨ q x) xs                                  ↔⟨ Any-filter _ (λ x → p x ∨ q x) _ ⟩
+  Any (λ x → z ≡ x × T (p x ∨ q x)) xs                             ↝⟨ Any-cong (λ x → lemma (z ≡ x) (p x) (q x)) (λ x → x ∈ xs □) ⟩
+  Any (λ x → z ≡ x × T (p x) ⊎ z ≡ x × T (q x)) xs                 ↔⟨ Any-⊎ _ _ _ ⟩
+  Any (λ x → z ≡ x × T (p x)) xs ⊎ Any (λ x → z ≡ x × T (q x)) xs  ↔⟨ inverse (Any-filter _ p _ ⊎-cong Any-filter _ q _) ⟩
+  z ∈ filter p xs ⊎ z ∈ filter q xs                                ↔⟨ inverse $ Any-++ _ _ _ ⟩
+  z ∈ filter p xs ++ filter q xs                                   □
+  where
+  inj : (b₁ b₂ : Bool) → T (b₁ ∨ b₂) ↣ T b₁ ⊎ T b₂
+  inj true  true  = record { to = inj₁; injective = λ _      → refl   }
+  inj true  false = record { to = inj₁; injective = λ { refl → refl } }
+  inj false true  = record { to = inj₂; injective = λ { refl → refl } }
+  inj false false = record { to = λ (); injective = λ {}              }
+
+  lemma : (A : Set) (b₁ b₂ : Bool) →
+          A × T (b₁ ∨ b₂) ↣ A × T b₁ ⊎ A × T b₂
+  lemma A b₁ b₂ =
+    A × T (b₁ ∨ b₂)      ↝⟨ id ×-cong inj b₁ b₂ ⟩
+    A × (T b₁ ⊎ T b₂)    ↔⟨ ×-⊎-distrib-left ⟩
+    A × T b₁ ⊎ A × T b₂  □
 
 ------------------------------------------------------------------------
 -- The first two definitions of bag equality above are equivalent
