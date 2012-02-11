@@ -295,7 +295,7 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- ⊥ is a left and right identity of _⊎_.
 
-⊎-left-identity : ∀ {a} {A : Set a} → ⊥ ⊎ A ↔ A
+⊎-left-identity : ∀ {a ℓ} {A : Set a} → ⊥ {ℓ = ℓ} ⊎ A ↔ A
 ⊎-left-identity = record
   { surjection = record
     { equivalence = record
@@ -307,7 +307,7 @@ _⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
   ; left-inverse-of = λ { (inj₁ ()); (inj₂ x) → refl (inj₂ x) }
   }
 
-⊎-right-identity : ∀ {a} {A : Set a} → A ⊎ ⊥ ↔ A
+⊎-right-identity : ∀ {a ℓ} {A : Set a} → A ⊎ ⊥ {ℓ = ℓ} ↔ A
 ⊎-right-identity {A = A} =
   A ⊎ ⊥  ↔⟨ ⊎-comm ⟩
   ⊥ ⊎ A  ↔⟨ ⊎-left-identity ⟩□
@@ -446,7 +446,8 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- ⊥ is a left and right zero of _×_ and Σ.
 
-Σ-left-zero : ∀ {a} {A : ⊥ → Set a} → Σ ⊥ A ↔ ⊥
+Σ-left-zero : ∀ {ℓ₁ a ℓ₂} {A : ⊥ {ℓ = ℓ₁} → Set a} →
+              Σ ⊥ A ↔ ⊥ {ℓ = ℓ₂}
 Σ-left-zero = record
   { surjection = record
     { equivalence = record
@@ -458,10 +459,10 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
   ; left-inverse-of = λ { (() , _) }
   }
 
-×-left-zero : ∀ {a} {A : Set a} → ⊥ × A ↔ ⊥
+×-left-zero : ∀ {a ℓ₁ ℓ₂} {A : Set a} → ⊥ {ℓ = ℓ₁} × A ↔ ⊥ {ℓ = ℓ₂}
 ×-left-zero = Σ-left-zero
 
-×-right-zero : ∀ {a} {A : Set a} → A × ⊥ ↔ ⊥
+×-right-zero : ∀ {a ℓ₁ ℓ₂} {A : Set a} → A × ⊥ {ℓ = ℓ₁} ↔ ⊥ {ℓ = ℓ₂}
 ×-right-zero {A = A} =
   A × ⊥  ↔⟨ ×-comm ⟩
   ⊥ × A  ↔⟨ ×-left-zero ⟩□
@@ -665,12 +666,12 @@ if-lemma : ∀ {a b p} {A : Set a} {B : Set b} (P : Bool → Set p) →
            ∀ b → T b × A ⊎ T (not b) × B ↔ P b
 if-lemma {A = A} {B} P A↔ B↔ true =
   ⊤ × A ⊎ ⊥ × B  ↔⟨ ×-left-identity ⊎-cong ×-left-zero ⟩
-  A ⊎ ⊥          ↔⟨ ⊎-right-identity ⟩
+  A ⊎ ⊥₀         ↔⟨ ⊎-right-identity ⟩
   A              ↔⟨ A↔ ⟩
   P true         □
 if-lemma {A = A} {B} P A↔ B↔ false =
   ⊥ × A ⊎ ⊤ × B  ↔⟨ ×-left-zero ⊎-cong ×-left-identity ⟩
-  ⊥ ⊎ B          ↔⟨ ⊎-left-identity ⟩
+  ⊥₀ ⊎ B         ↔⟨ ⊎-left-identity ⟩
   B              ↔⟨ B↔ ⟩
   P false        □
 

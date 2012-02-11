@@ -21,10 +21,10 @@ import Function-universe as FU; open FU P.equality-with-J hiding (_∘_)
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃
 
-∃-Fin-zero : (P : Fin zero → Set) → ∃ P ↔ ⊥
+∃-Fin-zero : ∀ {p ℓ} (P : Fin zero → Set p) → ∃ P ↔ ⊥ {ℓ = ℓ}
 ∃-Fin-zero P = Σ-left-zero
 
-∃-Fin-suc : ∀ {n} (P : Fin (suc n) → Set) →
+∃-Fin-suc : ∀ {p n} (P : Fin (suc n) → Set p) →
             ∃ P ↔ P (inj₁ tt) ⊎ ∃ (P ∘ inj₂)
 ∃-Fin-suc P =
   ∃ P                          ↔⟨ ∃-⊎-distrib-right ⟩
@@ -59,7 +59,8 @@ cancel-suc f =
 infix 4 _And_Are-related-by_
 
 _And_Are-related-by_ :
-  {A : Set} (xs ys : List A) → Fin (length xs) ↔ Fin (length ys) → Set
+  ∀ {a} {A : Set a}
+  (xs ys : List A) → Fin (length xs) ↔ Fin (length ys) → Set a
 xs And ys Are-related-by f =
   ∀ i → lookup xs i ≡ lookup ys (_↔_.to f i)
 
@@ -68,7 +69,7 @@ abstract
   -- The tails are related.
 
   cancel-suc-preserves-relatedness :
-    ∀ {A : Set} (x : A) xs ys
+    ∀ {a} {A : Set a} (x : A) xs ys
     (f : Fin (length (x ∷ xs)) ↔ Fin (length (x ∷ ys))) →
     x ∷ xs And x ∷ ys Are-related-by f →
     xs And ys Are-related-by cancel-suc f

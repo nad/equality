@@ -47,18 +47,18 @@ abstract
 
   -- The empty type is not contractible.
 
-  ¬-⊥-contractible : ¬ Contractible ⊥
+  ¬-⊥-contractible : ¬ Contractible ⊥₀
   ¬-⊥-contractible = ⊥-elim ∘ proj₁
 
   -- The empty type is propositional.
 
-  ⊥-propositional : Propositional ⊥
+  ⊥-propositional : Propositional ⊥₀
   ⊥-propositional =
     _⇔_.from propositional⇔irrelevant (λ x → ⊥-elim x)
 
   -- Thus any uninhabited type is also propositional.
 
-  ⊥↔uninhabited : ∀ {a} {A : Set a} → ¬ A → ⊥ ↔ A
+  ⊥↔uninhabited : ∀ {a} {A : Set a} → ¬ A → ⊥₀ ↔ A
   ⊥↔uninhabited ¬A = record
     { surjection = record
       { equivalence = record

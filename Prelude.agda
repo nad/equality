@@ -39,17 +39,22 @@ open ↑ public
 
 -- The empty type.
 
-data ⊥ : Set where
+data ⊥ {ℓ} : Set ℓ where
 
-⊥-elim : ∀ {w} {Whatever : Set w} → ⊥ → Whatever
+⊥-elim : ∀ {w ℓ} {Whatever : Set w} → ⊥ {ℓ = ℓ} → Whatever
 ⊥-elim ()
+
+-- A version of the empty type which is not universe-polymorphic.
+
+⊥₀ : Set
+⊥₀ = ⊥
 
 -- Negation.
 
 infix 3 ¬_
 
 ¬_ : ∀ {ℓ} → Set ℓ → Set ℓ
-¬ P = P → ⊥
+¬ P = P → ⊥ {ℓ = lzero}
 
 -- The unit type.
 
@@ -317,48 +322,50 @@ Decidable _∼_ = ∀ x y → Dec (x ∼ y)
 
 infixr 5 _∷_
 
-data List (A : Set) : Set where
+data List {a} (A : Set a) : Set a where
   []  : List A
   _∷_ : (x : A) (xs : List A) → List A
 
 -- Right fold.
 
-foldr : ∀ {A B : Set} → (A → B → B) → B → List A → B
+foldr : ∀ {a b} {A : Set a} {B : Set b} →
+        (A → B → B) → B → List A → B
 foldr _⊕_ ε []       = ε
 foldr _⊕_ ε (x ∷ xs) = x ⊕ foldr _⊕_ ε xs
 
 -- The length of a list.
 
-length : {A : Set} → List A → ℕ
+length : ∀ {a} {A : Set a} → List A → ℕ
 length = foldr (const suc) 0
 
 -- Appends two lists.
 
 infixr 5 _++_
 
-_++_ : {A : Set} → List A → List A → List A
+_++_ : ∀ {a} {A : Set a} → List A → List A → List A
 xs ++ ys = foldr _∷_ ys xs
 
 -- Maps a function over a list.
 
-map : ∀ {A B : Set} → (A → B) → List A → List B
+map : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → List A → List B
 map f = foldr (λ x ys → f x ∷ ys) []
 
 -- Concatenates a list of lists.
 
-concat : {A : Set} → List (List A) → List A
+concat : ∀ {a} {A : Set a} → List (List A) → List A
 concat = foldr _++_ []
 
 -- The list monad's bind operation.
 
 infixl 5 _>>=_
 
-_>>=_ : {A B : Set} → List A → (A → List B) → List B
+_>>=_ : ∀ {a b} {A : Set a} {B : Set b} →
+        List A → (A → List B) → List B
 xs >>= f = concat (map f xs)
 
 -- A filter function.
 
-filter : {A : Set} → (A → Bool) → List A → List A
+filter : ∀ {a} {A : Set a} → (A → Bool) → List A → List A
 filter p = foldr (λ x xs → if p x then x ∷ xs else xs) []
 
 ------------------------------------------------------------------------
@@ -370,7 +377,7 @@ Fin (suc n) = ⊤ ⊎ Fin n
 
 -- A lookup function.
 
-lookup : {A : Set} (xs : List A) → Fin (length xs) → A
+lookup : ∀ {a} {A : Set a} (xs : List A) → Fin (length xs) → A
 lookup []       ()
 lookup (x ∷ xs) (inj₁ tt) = x
 lookup (x ∷ xs) (inj₂ i)  = lookup xs i

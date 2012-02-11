@@ -17,9 +17,6 @@ open import Prelude as P hiding (id)
 import Bijection
 open Bijection equality-with-J using (_↔_; module _↔_)
 
-import Injection
-open Injection equality-with-J using (_↣_)
-
 import Equality.Decision-procedures
 open Equality.Decision-procedures equality-with-J
 
@@ -29,24 +26,29 @@ private
     open Function-universe equality-with-J public
 open Function-universe hiding (_∘_; Kind; module Kind; bijection)
 
+import Injection
+open Injection equality-with-J using (_↣_)
+
 ------------------------------------------------------------------------
 -- Any
 
 -- Any.
 
-Any : {A : Set} (P : A → Set) → List A → Set
+Any : ∀ {a p} {A : Set a} (P : A → Set p) (xs : List A) → Set p
 Any P []       = ⊥
 Any P (x ∷ xs) = P x ⊎ Any P xs
 
 -- Alternative definition of Any.
 
-data Any′ {A : Set} (P : A → Set) : List A → Set where
+data Any′ {a p} {A : Set a}
+          (P : A → Set p) : List A → Set (a ⊔ p) where
   here  : ∀ {x xs} → P x       → Any′ P (x ∷ xs)
   there : ∀ {x xs} → Any′ P xs → Any′ P (x ∷ xs)
 
 -- The two definitions of Any are isomorphic.
 
-Any′-[] : ∀ {A : Set} {P : A → Set} → Any′ P [] ↔ ⊥
+Any′-[] : ∀ {a p ℓ} {A : Set a} {P : A → Set p} →
+          Any′ P [] ↔ ⊥ {ℓ = ℓ}
 Any′-[] {P = P} = record
   { surjection = record
     { equivalence = record
@@ -66,7 +68,7 @@ Any′-[] {P = P} = record
   from∘to : ∀ p → from (to p) ≡ p
   from∘to ()
 
-Any′-∷ : ∀ {A : Set} {P : A → Set} {x xs} →
+Any′-∷ : ∀ {a p} {A : Set a} {P : A → Set p} {x xs} →
         Any′ P (x ∷ xs) ↔ P x ⊎ Any′ P xs
 Any′-∷ {P = P} {x} {xs} = record
   { surjection = record
@@ -89,19 +91,20 @@ Any′-∷ {P = P} {x} {xs} = record
   from∘to (here  p) = refl
   from∘to (there p) = refl
 
-Any↔Any′ : ∀ {A} {P : A → Set} {xs} → Any P xs ↔ Any′ P xs
+Any↔Any′ : ∀ {a p} {A : Set a} {P : A → Set p} {xs} →
+           Any P xs ↔ Any′ P xs
 Any↔Any′ {P = P} {[]}     =
   ⊥          ↔⟨ inverse Any′-[] ⟩
   Any′ P []  □
 Any↔Any′ {P = P} {x ∷ xs} =
-  P x ⊎ Any P xs   ↔⟨ id ⊎-cong Any↔Any′ ⟩
+  P x ⊎ Any P xs   ↔⟨ id ⊎-cong Any↔Any′ {P = P} ⟩
   P x ⊎ Any′ P xs  ↔⟨ inverse Any′-∷ ⟩
   Any′ P (x ∷ xs)  □
 
 ------------------------------------------------------------------------
 -- Lemmas relating Any to some basic list functions
 
-Any-++ : ∀ {A} (P : A → Set) (xs ys : List A) →
+Any-++ : ∀ {a p} {A : Set a} (P : A → Set p) (xs ys : List A) →
          Any P (xs ++ ys) ↔ Any P xs ⊎ Any P ys
 Any-++ P [] ys =
   Any P ys      ↔⟨ inverse ⊎-left-identity ⟩
@@ -111,7 +114,8 @@ Any-++ P (x ∷ xs) ys =
   P x ⊎ (Any P xs ⊎ Any P ys)  ↔⟨ ⊎-assoc ⟩
   (P x ⊎ Any P xs) ⊎ Any P ys  □
 
-Any-concat : ∀ {A} (P : A → Set) (xss : List (List A)) →
+Any-concat : ∀ {a p} {A : Set a}
+             (P : A → Set p) (xss : List (List A)) →
              Any P (concat xss) ↔ Any (Any P) xss
 Any-concat P []         = id
 Any-concat P (xs ∷ xss) =
@@ -119,21 +123,24 @@ Any-concat P (xs ∷ xss) =
   Any P xs ⊎ Any P (concat xss)  ↔⟨ id ⊎-cong Any-concat P xss ⟩
   Any P xs ⊎ Any (Any P) xss     □
 
-Any-map : ∀ {A B} (P : B → Set) (f : A → B) (xs : List A) →
+Any-map : ∀ {a b p} {A : Set a} {B : Set b}
+          (P : B → Set p) (f : A → B) (xs : List A) →
           Any P (map f xs) ↔ Any (P ∘ f) xs
 Any-map P f []       = id
 Any-map P f (x ∷ xs) =
   P (f x)   ⊎ Any P (map f xs)  ↔⟨ id ⊎-cong Any-map P f xs ⟩
   (P ∘ f) x ⊎ Any (P ∘ f) xs    □
 
-Any->>= : ∀ {A B} (P : B → Set) (xs : List A) (f : A → List B) →
+Any->>= : ∀ {a b p} {A : Set a} {B : Set b}
+          (P : B → Set p) (xs : List A) (f : A → List B) →
           Any P (xs >>= f) ↔ Any (Any P ∘ f) xs
 Any->>= P xs f =
   Any P (concat (map f xs))  ↔⟨ Any-concat P (map f xs) ⟩
   Any (Any P) (map f xs)     ↔⟨ Any-map (Any P) f xs ⟩
   Any (Any P ∘ f) xs         □
 
-Any-filter : {A : Set} (P : A → Set) (p : A → Bool) (xs : List A) →
+Any-filter : ∀ {a p} {A : Set a}
+             (P : A → Set p) (p : A → Bool) (xs : List A) →
              Any P (filter p xs) ↔ Any (λ x → P x × T (p x)) xs
 Any-filter P p []       = ⊥ □
 Any-filter P p (x ∷ xs) with p x
@@ -143,7 +150,7 @@ Any-filter P p (x ∷ xs) with p x
 ... | false =
   Any P (filter p xs)                       ↔⟨ Any-filter P p xs ⟩
               Any (λ x → P x × T (p x)) xs  ↔⟨ inverse ⊎-left-identity ⟩
-  ⊥         ⊎ Any (λ x → P x × T (p x)) xs  ↔⟨ inverse ×-right-zero ⊎-cong (_ □) ⟩
+  ⊥₀        ⊎ Any (λ x → P x × T (p x)) xs  ↔⟨ inverse ×-right-zero ⊎-cong (_ □) ⟩
   (P x × ⊥) ⊎ Any (λ x → P x × T (p x)) xs  □
 
 ------------------------------------------------------------------------
@@ -151,16 +158,16 @@ Any-filter P p (x ∷ xs) with p x
 
 infix 4 _∈_
 
-_∈_ : {A : Set} → A → List A → Set
+_∈_ : ∀ {a} {A : Set a} → A → List A → Set _
 x ∈ xs = Any (λ y → x ≡ y) xs
 
 -- Any can be expressed using _∈_.
 
-Any-∈ : ∀ {A} (P : A → Set) (xs : List A) →
+Any-∈ : ∀ {a p} {A : Set a} (P : A → Set p) (xs : List A) →
         Any P xs ↔ ∃ λ x → P x × x ∈ xs
 Any-∈ P [] =
   ⊥                  ↔⟨ inverse ×-right-zero ⟩
-  (∃ λ x → ⊥)        ↔⟨ ∃-cong (λ x → inverse ×-right-zero) ⟩
+  (∃ λ x → ⊥₀)       ↔⟨ ∃-cong (λ x → inverse ×-right-zero) ⟩
   (∃ λ x → P x × ⊥)  □
 Any-∈ P (x ∷ xs) =
   P x                   ⊎ Any P xs                ↔⟨ ∃-intro P x ⊎-cong Any-∈ P xs ⟩
@@ -170,7 +177,8 @@ Any-∈ P (x ∷ xs) =
 
 -- Using this property we can prove that Any and _⊎_ commute.
 
-Any-⊎ : ∀ {A} (P Q : A → Set) (xs : List A) →
+Any-⊎ : ∀ {a p q} {A : Set a}
+        (P : A → Set p) (Q : A → Set q) (xs : List A) →
         Any (λ x → P x ⊎ Q x) xs ↔ Any P xs ⊎ Any Q xs
 Any-⊎ P Q xs =
   Any (λ x → P x ⊎ Q x) xs                         ↔⟨ Any-∈ (λ x → P x ⊎ Q x) xs ⟩
@@ -202,21 +210,21 @@ open Kind public
 
 infix 4 _∼[_]_
 
-_∼[_]_ : {A : Set} → List A → Kind → List A → Set
+_∼[_]_ : ∀ {a} {A : Set a} → List A → Kind → List A → Set a
 xs ∼[ k ] ys = ∀ z → z ∈ xs ↝[ k ] z ∈ ys
 
 -- Bag equality.
 
 infix 4 _≈-bag_
 
-_≈-bag_ : {A : Set} → List A → List A → Set
+_≈-bag_ : ∀ {a} {A : Set a} → List A → List A → Set a
 xs ≈-bag ys = xs ∼[ bag ] ys
 
 -- Alternative definition of bag equality.
 
 infix 4 _≈-bag′_
 
-record _≈-bag′_ {A : Set} (xs ys : List A) : Set where
+record _≈-bag′_ {a} {A : Set a} (xs ys : List A) : Set a where
   field
     bijection : Fin (length xs) ↔ Fin (length ys)
     related   : xs And ys Are-related-by bijection
@@ -227,7 +235,7 @@ record _≈-bag′_ {A : Set} (xs ys : List A) : Set where
 infixr 5 _∷_
 infix  4 _≈-bag″_
 
-data _≈-bag″_ {A : Set} : List A → List A → Set where
+data _≈-bag″_ {a} {A : Set a} : List A → List A → Set a where
   []    : [] ≈-bag″ []
   _∷_   : ∀ x {xs ys} (xs≈ys : xs ≈-bag″ ys) → x ∷ xs ≈-bag″ x ∷ ys
   swap  : ∀ {x y xs} → x ∷ y ∷ xs ≈-bag″ y ∷ x ∷ xs
@@ -237,7 +245,8 @@ data _≈-bag″_ {A : Set} : List A → List A → Set where
 ------------------------------------------------------------------------
 -- Some congruence lemmas
 
-Any-cong : ∀ {k A} {P Q : A → Set} {xs ys : List A} →
+Any-cong : ∀ {k a p q} {A : Set a}
+             {P : A → Set p} {Q : A → Set q} {xs ys : List A} →
            (∀ x → P x ↝[ k ] Q x) → xs ∼[ k ] ys →
            Any P xs ↝[ k ] Any Q ys
 Any-cong {P = P} {Q} {xs} {ys} P↔Q xs≈ys =
@@ -246,7 +255,7 @@ Any-cong {P = P} {Q} {xs} {ys} P↔Q xs≈ys =
   (∃ λ z → Q z × z ∈ ys)  ↔⟨ inverse (Any-∈ Q ys) ⟩
   Any Q ys                □
 
-++-cong : ∀ {k} {A : Set} {xs₁ xs₂ ys₁ ys₂ : List A} →
+++-cong : ∀ {k a} {A : Set a} {xs₁ xs₂ ys₁ ys₂ : List A} →
           xs₁ ∼[ k ] ys₁ → xs₂ ∼[ k ] ys₂ →
           xs₁ ++ xs₂ ∼[ k ] ys₁ ++ ys₂
 ++-cong {xs₁ = xs₁} {xs₂} {ys₁} {ys₂} xs₁∼ys₁ xs₂∼ys₂ = λ z →
@@ -255,7 +264,8 @@ Any-cong {P = P} {Q} {xs} {ys} P↔Q xs≈ys =
   z ∈ ys₁ ⊎ z ∈ ys₂       ↔⟨ inverse (Any-++ _ ys₁ ys₂) ⟩
   z ∈ ys₁ ++ ys₂          □
 
-map-cong : ∀ {k} {A B : Set} (f : A → B) {xs ys : List A} →
+map-cong : ∀ {k a b} {A : Set a} {B : Set b}
+           (f : A → B) {xs ys : List A} →
            xs ∼[ k ] ys → map f xs ∼[ k ] map f ys
 map-cong f {xs} {ys} xs∼ys = λ z →
   z ∈ map f xs            ↔⟨ Any-map _ f xs ⟩
@@ -263,7 +273,7 @@ map-cong f {xs} {ys} xs∼ys = λ z →
   Any (λ x → z ≡ f x) ys  ↔⟨ inverse (Any-map _ f ys) ⟩
   z ∈ map f ys            □
 
-concat-cong : ∀ {k} {A : Set} {xss yss : List (List A)} →
+concat-cong : ∀ {k a} {A : Set a} {xss yss : List (List A)} →
               xss ∼[ k ] yss → concat xss ∼[ k ] concat yss
 concat-cong {xss = xss} {yss} xss∼yss = λ z →
   z ∈ concat xss           ↔⟨ Any-concat _ xss ⟩
@@ -271,7 +281,7 @@ concat-cong {xss = xss} {yss} xss∼yss = λ z →
   Any (λ zs → z ∈ zs) yss  ↔⟨ inverse (Any-concat _ yss) ⟩
   z ∈ concat yss           □
 
->>=-cong : ∀ {k} {A B : Set}
+>>=-cong : ∀ {k a b} {A : Set a} {B : Set b}
            {xs ys : List A} {f g : A → List B} →
            xs ∼[ k ] ys → (∀ x → f x ∼[ k ] g x) →
            (xs >>= f) ∼[ k ] (ys >>= g)
@@ -281,7 +291,7 @@ concat-cong {xss = xss} {yss} xss∼yss = λ z →
   Any (λ x → z ∈ g x) ys  ↔⟨ inverse (Any->>= _ ys g) ⟩
   z ∈ ys >>= g            □
 
-filter-cong : ∀ {k} {A : Set} (p : A → Bool) (xs ys : List A) →
+filter-cong : ∀ {k a} {A : Set a} (p : A → Bool) (xs ys : List A) →
               xs ∼[ k ] ys → filter p xs ∼[ k ] filter p ys
 filter-cong p xs ys xs∼ys = λ z →
   z ∈ filter p xs                 ↔⟨ Any-filter _ p xs ⟩
@@ -295,7 +305,7 @@ filter-cong p xs ys xs∼ys = λ z →
 -- Bind distributes from the left over append.
 
 bind-left-distributive :
-  ∀ {A B} (xs : List A) (f g : A → List B) →
+  ∀ {a b} {A : Set a} {B : Set b} (xs : List A) (f g : A → List B) →
   xs >>= (λ x → f x ++ g x) ≈-bag (xs >>= f) ++ (xs >>= g)
 bind-left-distributive xs f g = λ z →
   z ∈ xs >>= (λ x → f x ++ g x)                    ↔⟨ Any->>= (_≡_ z) xs (λ x → f x ++ g x) ⟩
@@ -308,7 +318,7 @@ bind-left-distributive xs f g = λ z →
 -- This property does not hold for ordinary list equality.
 
 ¬-bind-left-distributive :
-  ¬ (∀ {A B} (xs : List A) (f g : A → List B) →
+  ¬ ({A B : Set} (xs : List A) (f g : A → List B) →
      xs >>= (λ x → f x ++ g x) ≡ (xs >>= f) ++ (xs >>= g))
 ¬-bind-left-distributive distrib with eq
   where
@@ -323,7 +333,7 @@ bind-left-distributive xs f g = λ z →
 
 -- _++_ is commutative.
 
-++-comm : ∀ {A} (xs ys : List A) → xs ++ ys ≈-bag ys ++ xs
+++-comm : ∀ {a} {A : Set a} (xs ys : List A) → xs ++ ys ≈-bag ys ++ xs
 ++-comm xs ys = λ z →
   z ∈ xs ++ ys     ↔⟨ Any-++ (_≡_ z) xs ys ⟩
   z ∈ xs ⊎ z ∈ ys  ↔⟨ ⊎-comm ⟩
@@ -332,7 +342,7 @@ bind-left-distributive xs f g = λ z →
 
 -- _++_ is idempotent (when set equality is used).
 
-++-idempotent : {A : Set} (xs : List A) → xs ++ xs ∼[ set ] xs
+++-idempotent : ∀ {a} {A : Set a} (xs : List A) → xs ++ xs ∼[ set ] xs
 ++-idempotent xs = λ z →
   z ∈ xs ++ xs     ↔⟨ Any-++ (_≡_ z) xs xs ⟩
   z ∈ xs ⊎ z ∈ xs  ↝⟨ ⊎-idempotent ⟩
@@ -342,7 +352,7 @@ bind-left-distributive xs f g = λ z →
 -- Hoogendijks "(Relational) Programming Laws in the Boom Hierarchy of
 -- Types").
 
-range-splitting : {A : Set} (p : A → Bool) (xs : List A) →
+range-splitting : ∀ {a} {A : Set a} (p : A → Bool) (xs : List A) →
                   filter p xs ++ filter (not ∘ p) xs ≈-bag xs
 range-splitting p xs = λ z →
   z ∈ filter p xs ++ filter (not ∘ p) xs                  ↔⟨ Any-++ _ _ (filter (not ∘ p) xs) ⟩
@@ -352,7 +362,7 @@ range-splitting p xs = λ z →
   Any (λ x → z ≡ x × T (p x) ⊎ z ≡ x × T (not (p x))) xs  ↔⟨ Any-cong (λ x → lemma (z ≡ x) (p x)) (λ x → x ∈ xs □) ⟩
   z ∈ xs                                                  □
   where
-  lemma : (A : Set) (b : Bool) → A × T b ⊎ A × T (not b) ↔ A
+  lemma : ∀ {a} (A : Set a) (b : Bool) → A × T b ⊎ A × T (not b) ↔ A
   lemma A b =
     A × T b ⊎ A × T (not b)  ↔⟨ ×-comm ⊎-cong ×-comm ⟩
     T b × A ⊎ T (not b) × A  ↔⟨ if-lemma (λ _ → A) id id b ⟩
@@ -362,7 +372,7 @@ range-splitting p xs = λ z →
 -- subbag preorder instead of set equality.
 
 range-disjunction :
-  {A : Set} (p q : A → Bool) (xs : List A) →
+  ∀ {a} {A : Set a} (p q : A → Bool) (xs : List A) →
   filter (λ x → p x ∨ q x) xs ∼[ subbag ]
   filter p xs ++ filter q xs
 range-disjunction p q xs = λ z →
@@ -379,7 +389,7 @@ range-disjunction p q xs = λ z →
   inj false true  = record { to = inj₂; injective = λ { refl → refl } }
   inj false false = record { to = λ (); injective = λ {}              }
 
-  lemma : (A : Set) (b₁ b₂ : Bool) →
+  lemma : ∀ {a} (A : Set a) (b₁ b₂ : Bool) →
           A × T (b₁ ∨ b₂) ↣ A × T b₁ ⊎ A × T b₂
   lemma A b₁ b₂ =
     A × T (b₁ ∨ b₂)      ↝⟨ id ×-cong inj b₁ b₂ ⟩
@@ -396,7 +406,8 @@ range-disjunction p q xs = λ z →
 -- As an aside, note that the right-hand side is almost
 -- lookup xs ⁻¹ z.
 
-∈-lookup : ∀ {A z} (xs : List A) → z ∈ xs ↔ ∃ λ i → z ≡ lookup xs i
+∈-lookup : ∀ {a} {A : Set a} {z}
+           (xs : List A) → z ∈ xs ↔ ∃ λ i → z ≡ lookup xs i
 ∈-lookup {z = z} [] =
   ⊥                                ↔⟨ inverse $ ∃-Fin-zero _ ⟩
   (∃ λ (i : ⊥) → z ≡ lookup [] i)  □
@@ -407,7 +418,7 @@ range-disjunction p q xs = λ z →
 
 -- The index which points to the element.
 
-index : ∀ {A z} {xs : List A} → z ∈ xs → Fin (length xs)
+index : ∀ {a} {A : Set a} {z} {xs : List A} → z ∈ xs → Fin (length xs)
 index = proj₁ ∘ _↔_.to (∈-lookup _)
 
 -- For the other direction a sequence of lemmas is used.
@@ -416,7 +427,8 @@ index = proj₁ ∘ _↔_.to (∈-lookup _)
 -- where n is the length of xs. Thierry Coquand pointed out that this
 -- is a generalisation of singleton-contractible.
 
-Fin-length : ∀ {A} (xs : List A) → (∃ λ z → z ∈ xs) ↔ Fin (length xs)
+Fin-length : ∀ {a} {A : Set a}
+             (xs : List A) → (∃ λ z → z ∈ xs) ↔ Fin (length xs)
 Fin-length xs =
   (∃ λ z → z ∈ xs)                   ↔⟨ ∃-cong (λ _ → ∈-lookup xs) ⟩
   (∃ λ z → ∃ λ i → z ≡ lookup xs i)  ↔⟨ ∃-comm ⟩
@@ -428,7 +440,7 @@ Fin-length xs =
 -- From this lemma we get that lists which are bag equal have related
 -- lengths.
 
-Fin-length-cong : ∀ {A} {xs ys : List A} →
+Fin-length-cong : ∀ {a} {A : Set a} {xs ys : List A} →
                   xs ≈-bag ys → Fin (length xs) ↔ Fin (length ys)
 Fin-length-cong {xs = xs} {ys} xs≈ys =
   Fin (length xs)   ↔⟨ inverse $ Fin-length xs ⟩
@@ -440,7 +452,7 @@ abstract
 
   -- In fact, they have equal lengths.
 
-  length-cong : ∀ {A} {xs ys : List A} →
+  length-cong : ∀ {a} {A : Set a} {xs ys : List A} →
                 xs ≈-bag ys → length xs ≡ length ys
   length-cong = _⇔_.to Fin.isomorphic-same-size ∘ Fin-length-cong
 
@@ -449,7 +461,7 @@ abstract
   -- lists.
 
   Fin-length-cong-relates :
-    ∀ {A} {xs ys : List A} (xs≈ys : xs ≈-bag ys) →
+    ∀ {a} {A : Set a} {xs ys : List A} (xs≈ys : xs ≈-bag ys) →
     xs And ys Are-related-by Fin-length-cong xs≈ys
   Fin-length-cong-relates {xs = xs} {ys} xs≈ys i =
     lookup xs i                                 ≡⟨ proj₂ $ to (∈-lookup _) $ to (xs≈ys _) (from (∈-lookup _) (i , refl)) ⟩
@@ -461,7 +473,7 @@ abstract
 
 -- We get that the two definitions of bag equality are equivalent.
 
-≈⇔≈′ : ∀ {A : Set} {xs ys : List A} → xs ≈-bag ys ⇔ xs ≈-bag′ ys
+≈⇔≈′ : ∀ {a} {A : Set a} {xs ys : List A} → xs ≈-bag ys ⇔ xs ≈-bag′ ys
 ≈⇔≈′ = record
   { to   = λ xs≈ys → record
              { bijection = Fin-length-cong xs≈ys
@@ -470,7 +482,8 @@ abstract
   ; from = from
   }
   where
-  equality-lemma : ∀ {A} {x y z : A} → y ≡ z → (x ≡ y) ↔ (x ≡ z)
+  equality-lemma : ∀ {a} {A : Set a} {x y z : A} →
+                   y ≡ z → (x ≡ y) ↔ (x ≡ z)
   equality-lemma refl = id
 
   from : ∀ {xs ys} → xs ≈-bag′ ys → xs ≈-bag ys
@@ -488,7 +501,7 @@ abstract
 -- We have basically already showed that cons is left cancellative for
 -- the (first) alternative definition of bag equality.
 
-∷-left-cancellative′ : ∀ {A : Set} {x : A} xs ys →
+∷-left-cancellative′ : ∀ {a} {A : Set a} {x : A} xs ys →
                        x ∷ xs ≈-bag′ x ∷ ys → xs ≈-bag′ ys
 ∷-left-cancellative′ {x = x} xs ys x∷xs≈x∷ys = record
   { bijection = Fin.cancel-suc (_≈-bag′_.bijection x∷xs≈x∷ys)
@@ -508,7 +521,7 @@ abstract
   -- not need to be written out; I included them in an attempt to make
   -- it easier to understand why the lemma holds.
 
-  index-commutes : ∀ {A : Set} {z : A} {xs ys} →
+  index-commutes : ∀ {a} {A : Set a} {z : A} {xs ys} →
                    (xs≈ys : xs ≈-bag ys) (p : z ∈ xs) →
                    index (_↔_.to (xs≈ys z) p) ≡
                    _↔_.to (Fin-length-cong xs≈ys) (index p)
@@ -541,7 +554,7 @@ abstract
   -- (say) to different positions.
 
   index-equality-preserved :
-    ∀ {A : Set} {z : A} {xs ys} {p q : z ∈ xs}
+    ∀ {a} {A : Set a} {z : A} {xs ys} {p q : z ∈ xs}
     (xs≈ys : xs ≈-bag ys) →
     index p ≡ index q →
     index (_↔_.to (xs≈ys z) p) ≡ index (_↔_.to (xs≈ys z) q)
@@ -553,7 +566,7 @@ abstract
 
 -- If x ∷ xs is bag equal to x ∷ ys, then xs and ys are bag equal.
 
-∷-left-cancellative : ∀ {A : Set} {x : A} {xs ys} →
+∷-left-cancellative : ∀ {a} {A : Set a} {x : A} {xs ys} →
                       x ∷ xs ≈-bag x ∷ ys → xs ≈-bag ys
 ∷-left-cancellative {A = A} {x} {xs} {ys} x∷xs≈x∷ys z =
   ⊎-left-cancellative
@@ -588,13 +601,13 @@ abstract
 
 -- _++_ is left and right cancellative (for bag equality).
 
-++-left-cancellative : ∀ {A : Set} (xs : List A) {ys zs} →
+++-left-cancellative : ∀ {a} {A : Set a} (xs : List A) {ys zs} →
                        xs ++ ys ≈-bag xs ++ zs → ys ≈-bag zs
 ++-left-cancellative []       eq = eq
 ++-left-cancellative (x ∷ xs) eq =
   ++-left-cancellative xs (∷-left-cancellative eq)
 
-++-right-cancellative : ∀ {A : Set} {xs ys zs : List A} →
+++-right-cancellative : ∀ {a} {A : Set a} {xs ys zs : List A} →
                         xs ++ zs ≈-bag ys ++ zs → xs ≈-bag ys
 ++-right-cancellative {xs = xs} {ys} {zs} eq =
   ++-left-cancellative zs (λ z →
@@ -611,7 +624,7 @@ abstract
 
 infixr 5 _∷-cong_
 
-_∷-cong_ : ∀ {A : Set} {x y : A} {xs ys} →
+_∷-cong_ : ∀ {a} {A : Set a} {x y : A} {xs ys} →
            x ≡ y → xs ≈-bag ys → x ∷ xs ≈-bag y ∷ ys
 _∷-cong_ {x = x} {xs = xs} {ys} refl xs≈ys = λ z →
   z ≡ x ⊎ z ∈ xs  ↔⟨ id ⊎-cong xs≈ys z ⟩
@@ -619,7 +632,7 @@ _∷-cong_ {x = x} {xs = xs} {ys} refl xs≈ys = λ z →
 
 -- We can swap the first two elements of a list.
 
-swap-first-two : ∀ {A : Set} {x y : A} {xs} →
+swap-first-two : ∀ {a} {A : Set a} {x y : A} {xs} →
                  x ∷ y ∷ xs ≈-bag y ∷ x ∷ xs
 swap-first-two {x = x} {y} {xs} = λ z →
    z ≡ x ⊎ z ≡ y  ⊎ z ∈ xs  ↔⟨ ⊎-assoc ⟩
@@ -630,7 +643,7 @@ swap-first-two {x = x} {y} {xs} = λ z →
 -- The third definition of bag equality is sound with respect to the
 -- first one.
 
-≈″⇒≈ : ∀ {A : Set} {xs ys : List A} → xs ≈-bag″ ys → xs ≈-bag ys
+≈″⇒≈ : ∀ {a} {A : Set a} {xs ys : List A} → xs ≈-bag″ ys → xs ≈-bag ys
 ≈″⇒≈ []                  = λ _ → id
 ≈″⇒≈ (x ∷ xs≈ys)         = refl ∷-cong ≈″⇒≈ xs≈ys
 ≈″⇒≈ swap                = swap-first-two
