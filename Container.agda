@@ -13,9 +13,11 @@ open import Prelude hiding (id; List; map; lookup)
 
 import Bijection
 open Bijection equality-with-J using (_↔_; module _↔_)
-import Function-universe
-open Function-universe equality-with-J
-  hiding (Kind) renaming (_∘_ to _⟨∘⟩_)
+private
+  module Function-universe where
+    import Function-universe
+    open Function-universe equality-with-J public
+open Function-universe hiding (inverse; Kind) renaming (_∘_ to _⟨∘⟩_)
 import H-level.Closure
 open H-level.Closure equality-with-J
 
@@ -69,6 +71,55 @@ module Map where
                 (f : Y → Z) (g : X → Y) (xs : ⟦ C ⟧ X) →
                 map f (map g xs) ≡ map (f ∘ g) xs
   composition f g xs = refl
+
+-- Naturality.
+
+Natural : ∀ {c₁ c₂ a} {C₁ : Container c₁} {C₂ : Container c₂} →
+          ({A : Set a} → ⟦ C₁ ⟧ A → ⟦ C₂ ⟧ A) → Set (c₁ ⊔ c₂ ⊔ lsuc a)
+Natural function =
+  ∀ {A B} (f : A → B) xs →
+  map f (function xs) ≡ function (map f xs)
+
+-- Natural transformations.
+
+infixr 4 _[_]⟶_
+
+record _[_]⟶_ {c₁ c₂} (C₁ : Container c₁) ℓ (C₂ : Container c₂) :
+              Set (c₁ ⊔ c₂ ⊔ lsuc ℓ) where
+  field
+    function : {A : Set ℓ} → ⟦ C₁ ⟧ A → ⟦ C₂ ⟧ A
+    natural  : Natural function
+
+-- Natural isomorphisms.
+
+record _[_]↔_ {c₁ c₂} (C₁ : Container c₁) ℓ (C₂ : Container c₂) :
+              Set (c₁ ⊔ c₂ ⊔ lsuc ℓ) where
+  field
+    isomorphism : {A : Set ℓ} → ⟦ C₁ ⟧ A ↔ ⟦ C₂ ⟧ A
+    natural     : Natural (_↔_.to isomorphism)
+
+  -- Natural isomorphisms are natural transformations.
+
+  natural-transformation : C₁ [ ℓ ]⟶ C₂
+  natural-transformation = record
+    { function = _↔_.to isomorphism
+    ; natural  = natural
+    }
+
+  -- Natural isomorphisms can be inverted.
+
+  inverse : C₂ [ ℓ ]↔ C₁
+  inverse = record
+    { isomorphism = Function-universe.inverse isomorphism
+    ; natural     = λ f xs →
+        map f (from xs)              ≡⟨ sym $ left-inverse-of _ ⟩
+        from (to (map f (from xs)))  ≡⟨ sym $ cong from $ natural f (from xs) ⟩
+        from (map f (to (from xs)))  ≡⟨ cong (from ∘ map f) $ right-inverse-of _ ⟩∎
+        from (map f xs)              ∎
+    }
+    where open module I {A : Set ℓ} = _↔_ (isomorphism {A = A})
+
+open Function-universe using (inverse)
 
 ------------------------------------------------------------------------
 -- Any, _∈_, bag equality and similar relations
@@ -175,9 +226,9 @@ Any-if : ∀ {a c p} {A : Set a} {C : Container c}
 Any-if P xs ys =
   inverse ∘ if-lemma (λ b → Any P (if b then xs else ys)) id id
 
--- One can reconstruct (up to isomorphism) the shape set and the
--- position predicate from the interpretation and the Any predicate
--- transformer.
+-- One can reconstruct (up to natural isomorphism) the shape set and
+-- the position predicate from the interpretation and the Any
+-- predicate transformer.
 --
 -- (The following lemmas were suggested by an anonymous reviewer.)
 
@@ -204,16 +255,19 @@ Position-Any {C = C} s =
   Position C s × ⊤  □
 
 expressed-in-terms-of-interpretation-and-Any :
-  ∀ {a c} {A : Set a} (C : Container c) →
-  ⟦ C ⟧ A ↔ ⟦ ⟦ C ⟧ ⊤ ▷ Any (λ _ → ⊤) ⟧ A
-expressed-in-terms-of-interpretation-and-Any {A = A} C =
-  (∃ λ (s : Shape C) → Position C s → A)                ↔⟨ Σ-cong (Shape-⟦⟧ C) (λ _ → lemma) ⟩
-  (∃ λ (s : Shape′ ⟦ C ⟧) → Position′ ⟦ C ⟧ Any s → A)  □
+  ∀ {c ℓ} (C : Container c) →
+  C [ ℓ ]↔ (⟦ C ⟧ ⊤ ▷ Any (λ _ → ⊤))
+expressed-in-terms-of-interpretation-and-Any C = record
+  { isomorphism = λ {A} →
+      (∃ λ (s : Shape C) → Position C s → A)                ↔⟨ Σ-cong (Shape-⟦⟧ C) (λ _ → lemma) ⟩
+      (∃ λ (s : Shape′ ⟦ C ⟧) → Position′ ⟦ C ⟧ Any s → A)  □
+  ; natural = λ _ _ → refl
+  }
   where
   -- If equality of functions had been extensional, then the following
   -- lemma could have been replaced by a congruence lemma applied to
   -- Position-Any.
-  lemma : ∀ {b} {B : Set b} → (B → A) ↔ (B × ⊤ → A)
+  lemma : ∀ {a b} {A : Set a} {B : Set b} → (B → A) ↔ (B × ⊤ → A)
   lemma = record
     { surjection = record
       { equivalence = record
