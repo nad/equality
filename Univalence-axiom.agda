@@ -21,6 +21,7 @@ import Equality.Decision-procedures as ED; open ED eq
 open import Equivalence hiding (id; _∘_)
 import H-level; open H-level eq
 import H-level.Closure; open H-level.Closure eq
+import Injection; open Injection eq using (Injective)
 open import Prelude
 private
   module Weak where
@@ -57,57 +58,76 @@ Univalence-axiom ℓ = {A B : Set ℓ} → Univalence-axiom′ A B
 
 abstract
 
-  -- First a lemma: Some equality types have more than one inhabitant
-  -- (assuming univalence).
+  -- First a lemma: Some equality types have infinitely many
+  -- inhabitants (assuming univalence).
+  --
+  -- (This lemma is more general than what is necessary for proving
+  -- ¬-Set-set below. For that lemma it is enough to observe that
+  -- there are two proofs of Bool ≡ Bool, corresponding to id and
+  -- not.)
 
-  equality-can-have-more-than-one-inhabitant :
-    Univalence-axiom′ Bool Bool →
+  equality-can-have-infinitely-many-inhabitants :
+    Univalence-axiom′ ℕ ℕ →
     ∃ λ (A : Set) → ∃ λ (B : Set) →
-    ∃ λ (p₁ : A ≡ B) → ∃ λ (p₂ : A ≡ B) → p₁ ≢ p₂
-  equality-can-have-more-than-one-inhabitant univ =
-    (Bool , Bool , cast p₁ , cast p₂ , cast-p₁≢cast-p₂)
+    ∃ λ (p : ℕ → A ≡ B) → Injective p
+  equality-can-have-infinitely-many-inhabitants univ =
+    (ℕ , ℕ , cast ∘ p , cast-preserves-injections p p-injective)
     where
-    cast : Bool ≈ Bool → Bool ≡ Bool
+    cast : ℕ ≈ ℕ → ℕ ≡ ℕ
     cast = _≈_.from (≡≈≈ univ)
 
-    p₁ : Bool ≈ Bool
-    p₁ = Weak.id
+    cast-preserves-injections :
+      {A : Set} (f : A → ℕ ≈ ℕ) →
+      Injective f → Injective (cast ∘ f)
+    cast-preserves-injections f inj {x = x} {y = y} cast-f-x≡cast-f-y =
+      inj (f x               ≡⟨ sym $ _≈_.right-inverse-of (≡≈≈ univ) (f x) ⟩
+           ≡⇒≈ (cast (f x))  ≡⟨ cong ≡⇒≈ cast-f-x≡cast-f-y ⟩
+           ≡⇒≈ (cast (f y))  ≡⟨ _≈_.right-inverse-of (≡≈≈ univ) (f y) ⟩∎
+           f y               ∎)
 
-    not∘not : ∀ b → not (not b) ≡ b
-    not∘not true  = refl _
-    not∘not false = refl _
+    swap : ℕ → ℕ → ℕ
+    swap i zero    = i
+    swap i (suc n) with ℕ._≟_ i (suc n)
+    ... | inj₁ i≡1+n = zero
+    ... | inj₂ i≢1+n = suc n
 
-    Bool↔Bool : Bool ↔ Bool
-    Bool↔Bool = record
+    swap∘swap : ∀ i n → swap i (swap i n) ≡ n
+    swap∘swap zero    zero    = refl zero
+    swap∘swap (suc i) zero    with ℕ._≟_ i i
+    ... | inj₁ _   = refl 0
+    ... | inj₂ i≢i = ⊥-elim $ i≢i (refl i)
+    swap∘swap i       (suc n) with ℕ._≟_ i (suc n)
+    ... | inj₁ i≡1+n = i≡1+n
+    ... | inj₂ i≢1+n with ℕ._≟_ i (suc n)
+    ...   | inj₁ i≡1+n = ⊥-elim $ i≢1+n i≡1+n
+    ...   | inj₂ _     = refl (suc n)
+
+    p : ℕ → ℕ ≈ ℕ
+    p i = bijection⇒weak-equivalence record
       { surjection = record
-        { equivalence      = record { from = not; to = not }
-        ; right-inverse-of = not∘not
+        { equivalence      = record { to = swap i; from = swap i }
+        ; right-inverse-of = swap∘swap i
         }
-      ; left-inverse-of = not∘not
+      ; left-inverse-of = swap∘swap i
       }
 
-    p₂ : Bool ≈ Bool
-    p₂ = bijection⇒weak-equivalence Bool↔Bool
-
-    p₁≢p₂ : p₁ ≢ p₂
-    p₁≢p₂ p₁≡p₂ =
-      Bool.true≢false $
-      cong (λ f → f true) $
-      cong _≈_.to p₁≡p₂
-
-    cast-p₁≢cast-p₂ : cast p₁ ≢ cast p₂
-    cast-p₁≢cast-p₂ cast-p₁≡cast-p₂ = p₁≢p₂ $
-      p₁             ≡⟨ sym $ _≈_.right-inverse-of (≡≈≈ univ) p₁ ⟩
-      ≡⇒≈ (cast p₁)  ≡⟨ cong ≡⇒≈ cast-p₁≡cast-p₂ ⟩
-      ≡⇒≈ (cast p₂)  ≡⟨ _≈_.right-inverse-of (≡≈≈ univ) p₂ ⟩∎
-      p₂             ∎
+    p-injective : Injective p
+    p-injective {x = i₁} {y = i₂} p-i₁≡p-i₂ =
+      i₁         ≡⟨ refl i₁ ⟩
+      swap i₁ 0  ≡⟨ cong (λ f → f 0) swap-i₁≡swap-i₂ ⟩
+      swap i₂ 0  ≡⟨ refl i₂ ⟩∎
+      i₂         ∎
+      where
+      swap-i₁≡swap-i₂ : swap i₁ ≡ swap i₂
+      swap-i₁≡swap-i₂ = cong (_≈_.to) p-i₁≡p-i₂
 
   -- Set is not a set.
 
-  ¬-Set-set : Univalence-axiom′ Bool Bool → ¬ Is-set Set
+  ¬-Set-set : Univalence-axiom′ ℕ ℕ → ¬ Is-set Set
   ¬-Set-set univ is-set
-    with equality-can-have-more-than-one-inhabitant univ
-  ... | (A , B , p₁ , p₂ , p₁≢p₂) = p₁≢p₂ $ proj₁ $ is-set A B p₁ p₂
+    with equality-can-have-infinitely-many-inhabitants univ
+  ... | (A , B , p , inj) =
+    ℕ.0≢+ $ inj $ proj₁ $ is-set A B (p 0) (p 1)
 
 ------------------------------------------------------------------------
 -- A consequence: extensionality for functions
