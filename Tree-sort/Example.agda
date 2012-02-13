@@ -27,9 +27,9 @@ ordered : sort (3 ∷ 1 ∷ 2 ∷ []) ≡
           cons 1 (cons 2 (cons 3 (nil _) _) _) _
 ordered = refl
 
--- The sort function returns a list which is bag equal to the input.
--- This property can be used to establish bag equalities between
--- concrete lists.
+-- The sort function returns a list which is bag equivalent to the
+-- input. This property can be used to establish bag equivalences
+-- between concrete lists.
 
-a-bag-equality : 1 ∷ 2 ∷ 3 ∷ [] ≈-bag 3 ∷ 1 ∷ 2 ∷ []
-a-bag-equality = sort≈ (3 ∷ 1 ∷ 2 ∷ [])
+a-bag-equivalence : 1 ∷ 2 ∷ 3 ∷ [] ≈-bag 3 ∷ 1 ∷ 2 ∷ []
+a-bag-equivalence = sort≈ (3 ∷ 1 ∷ 2 ∷ [])

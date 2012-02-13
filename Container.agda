@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------
--- Containers, including a definition of bag equality
+-- Containers, including a definition of bag equivalence
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
 
 module Container where
 
-open import Bag-equality using (Kind; bag)
+open import Bag-equivalence using (Kind; bag)
 open import Equivalence hiding (id; _∘_; inverse)
 open import Equality.Propositional
 open import Prelude hiding (id; List; map; lookup)
@@ -122,7 +122,7 @@ record _[_]↔_ {c₁ c₂} (C₁ : Container c₁) ℓ (C₂ : Container c₂) 
 open Function-universe using (inverse)
 
 ------------------------------------------------------------------------
--- Any, _∈_, bag equality and similar relations
+-- Any, _∈_, bag equivalence and similar relations
 
 -- Definition of Any for containers.
 
@@ -137,8 +137,8 @@ infix 4 _∈_
 _∈_ : ∀ {a c} {A : Set a} {C : Container c} → A → ⟦ C ⟧ A → Set _
 x ∈ xs = Any (λ y → x ≡ y) xs
 
--- Bag equality etc. Note that the containers can be different as long
--- as the elements they contain have equal types.
+-- Bag equivalence etc. Note that the containers can be different as
+-- long as the elements they contain have equal types.
 
 infix 4 _∼[_]_
 
@@ -147,7 +147,7 @@ _∼[_]_ : ∀ {a c₁ c₂}
          ⟦ C₁ ⟧ A → Kind → ⟦ C₂ ⟧ A → Set _
 xs ∼[ k ] ys = ∀ z → z ∈ xs ↝[ k ] z ∈ ys
 
--- Bag equality.
+-- Bag equivalence.
 
 infix 4 _≈-bag_
 
@@ -189,8 +189,8 @@ Any-⊎ P Q xs =
   (∃ λ x → P x × x ∈ xs) ⊎ (∃ λ x → Q x × x ∈ xs)  ↔⟨ inverse $ Any-∈ P xs ⊎-cong Any-∈ Q xs ⟩
   Any P xs ⊎ Any Q xs                              □
 
--- Any preserves functions of various kinds and respects bag equality
--- and similar relations.
+-- Any preserves functions of various kinds and respects bag
+-- equivalence and similar relations.
 
 Any-cong : ∀ {k a c d p q}
              {A : Set a} {C : Container c} {D : Container d}
@@ -280,7 +280,7 @@ expressed-in-terms-of-interpretation-and-Any C = record
     }
 
 ------------------------------------------------------------------------
--- Alternative definition of bag equality
+-- Alternative definition of bag equivalence
 
 -- Two things are bag equal if there is a bijection between their
 -- positions which relates equal things.
@@ -294,7 +294,7 @@ _≈-bag′_ {C = C} {D} (s , f) (s′ , f′) =
       (∀ p → f p ≡ f′ (to-implication P↔P p))
 
 -- The definition is equivalent to the one given above. The proof is
--- very similar to the one given in Bag-equality.
+-- very similar to the one given in Bag-equivalence.
 
 -- Membership can be expressed as "there is an index which points to
 -- the element". In fact, membership /is/ expressed in this way, so
@@ -358,7 +358,7 @@ Position-shape-cong-relates xs ys xs≈ys p =
                p)                                                 ≡⟨ refl ⟩∎
   lookup ys (to-implication (Position-shape-cong xs ys xs≈ys) p)  ∎
 
--- We get that the two definitions of bag equality are equivalent.
+-- We get that the two definitions of bag equivalence are equivalent.
 
 ≈⇔≈′ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d}
        (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) → xs ≈-bag ys ⇔ xs ≈-bag′ ys
@@ -381,7 +381,7 @@ Position-shape-cong-relates xs ys xs≈ys p =
     z ∈ ys                     □
 
 ------------------------------------------------------------------------
--- Another alternative definition of bag equality
+-- Another alternative definition of bag equivalence
 
 -- A higher-order variant of _∼[_]_. Note that this definition is
 -- large (due to the quantification over predicates).

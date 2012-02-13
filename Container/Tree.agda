@@ -59,7 +59,7 @@ node (l , lkup-l) x (r , lkup-r) =
 
 -- Even if we don't assume extensionality we can prove that
 -- intensionally distinct implementations of the constructors are bag
--- equal.
+-- equivalent.
 
 leaf≈ : {A : Set} {lkup : _ → A} →
         _≈-bag_ {C₂ = Tree} leaf (lf , lkup)
@@ -179,8 +179,8 @@ fold le no (nd l r , lkup) =
 
 -- A lemma which can be used to prove properties about fold.
 --
--- The "respects bag equality" argument could be omitted if equality
--- of functions were extensional.
+-- The "respects bag equivalence" argument could be omitted if
+-- equality of functions were extensional.
 
 fold-lemma : ∀ {A B : Set}
                {le : B} {no : ⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → B → B → B}

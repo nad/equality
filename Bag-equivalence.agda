@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- Bag equality for lists
+-- Bag equivalence for lists
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
@@ -7,7 +7,7 @@
 -- Note that this module is not parametrised by a definition of
 -- equality; it uses ordinary propositional equality.
 
-module Bag-equality where
+module Bag-equivalence where
 
 open import Equality.Propositional hiding (trans)
 open import Equivalence hiding (id; _∘_; inverse)
@@ -188,7 +188,7 @@ Any-⊎ P Q xs =
   Any P xs ⊎ Any Q xs                              □
 
 ------------------------------------------------------------------------
--- Bag and set equality and the subset and subbag orders
+-- Bag and set equivalence and the subset and subbag orders
 
 -- Various kinds of relatedness.
 
@@ -213,14 +213,14 @@ infix 4 _∼[_]_
 _∼[_]_ : ∀ {a} {A : Set a} → List A → Kind → List A → Set a
 xs ∼[ k ] ys = ∀ z → z ∈ xs ↝[ k ] z ∈ ys
 
--- Bag equality.
+-- Bag equivalence.
 
 infix 4 _≈-bag_
 
 _≈-bag_ : ∀ {a} {A : Set a} → List A → List A → Set a
 xs ≈-bag ys = xs ∼[ bag ] ys
 
--- Alternative definition of bag equality.
+-- Alternative definition of bag equivalence.
 
 infix 4 _≈-bag′_
 
@@ -229,7 +229,7 @@ record _≈-bag′_ {a} {A : Set a} (xs ys : List A) : Set a where
     bijection : Fin (length xs) ↔ Fin (length ys)
     related   : xs And ys Are-related-by bijection
 
--- Yet another definition of bag equality. This definition is taken
+-- Yet another definition of bag equivalence. This definition is taken
 -- from Coq's standard library.
 
 infixr 5 _∷_
@@ -340,7 +340,7 @@ bind-left-distributive xs f g = λ z →
   z ∈ ys ⊎ z ∈ xs  ↔⟨ inverse (Any-++ (_≡_ z) ys xs) ⟩
   z ∈ ys ++ xs     □
 
--- _++_ is idempotent (when set equality is used).
+-- _++_ is idempotent (when set equivalence is used).
 
 ++-idempotent : ∀ {a} {A : Set a} (xs : List A) → xs ++ xs ∼[ set ] xs
 ++-idempotent xs = λ z →
@@ -369,7 +369,7 @@ range-splitting p xs = λ z →
     A                        □
 
 -- The so-called "range disjunction" property, strengthened to use the
--- subbag preorder instead of set equality.
+-- subbag preorder instead of set equivalence.
 
 range-disjunction :
   ∀ {a} {A : Set a} (p q : A → Bool) (xs : List A) →
@@ -397,7 +397,7 @@ range-disjunction p q xs = λ z →
     A × T b₁ ⊎ A × T b₂  □
 
 ------------------------------------------------------------------------
--- The first two definitions of bag equality above are equivalent
+-- The first two definitions of bag equivalence above are equivalent
 
 -- One direction follows from the following lemma, which states that
 -- list membership can be expressed as "there is an index which points
@@ -437,8 +437,8 @@ Fin-length xs =
   Fin (length xs) × ⊤                ↔⟨ ×-right-identity ⟩
   Fin (length xs)                    □
 
--- From this lemma we get that lists which are bag equal have related
--- lengths.
+-- From this lemma we get that lists which are bag equivalent have
+-- related lengths.
 
 Fin-length-cong : ∀ {a} {A : Set a} {xs ys : List A} →
                   xs ≈-bag ys → Fin (length xs) ↔ Fin (length ys)
@@ -471,7 +471,7 @@ abstract
     lookup ys (to (Fin-length-cong xs≈ys) i)    ∎
     where open _↔_
 
--- We get that the two definitions of bag equality are equivalent.
+-- We get that the two definitions of bag equivalence are equivalent.
 
 ≈⇔≈′ : ∀ {a} {A : Set a} {xs ys : List A} → xs ≈-bag ys ⇔ xs ≈-bag′ ys
 ≈⇔≈′ = record
@@ -499,7 +499,7 @@ abstract
 -- Left cancellation
 
 -- We have basically already showed that cons is left cancellative for
--- the (first) alternative definition of bag equality.
+-- the (first) alternative definition of bag equivalence.
 
 ∷-left-cancellative′ : ∀ {a} {A : Set a} {x : A} xs ys →
                        x ∷ xs ≈-bag′ x ∷ ys → xs ≈-bag′ ys
@@ -511,8 +511,8 @@ abstract
   }
 
 -- By the equivalence above we get the result also for the first
--- definition of bag equality, but we can show this directly, with the
--- help of some lemmas.
+-- definition of bag equivalence, but we can show this directly, with
+-- the help of some lemmas.
 
 abstract
 
@@ -548,10 +548,10 @@ abstract
     ... | .(lookup xs i) | .(from (∈-lookup xs) (i , refl)) | i | refl =
       refl
 
-  -- Bag equality isomorphisms preserve index equality. Note that this
-  -- means that, even if the underlying equality is proof relevant, a
-  -- bag equality isomorphism cannot map two distinct proofs of z ∈ xs
-  -- (say) to different positions.
+  -- Bag equivalence isomorphisms preserve index equality. Note that
+  -- this means that, even if the underlying equality is proof
+  -- relevant, a bag equivalence isomorphism cannot map two distinct
+  -- proofs of z ∈ xs (say) to different positions.
 
   index-equality-preserved :
     ∀ {a} {A : Set a} {z : A} {xs ys} {p q : z ∈ xs}
@@ -564,7 +564,8 @@ abstract
     _↔_.to (Fin-length-cong xs≈ys) (index q)  ≡⟨ sym $ index-commutes xs≈ys q ⟩∎
     index (_↔_.to (xs≈ys z) q)                ∎
 
--- If x ∷ xs is bag equal to x ∷ ys, then xs and ys are bag equal.
+-- If x ∷ xs is bag equivalent to x ∷ ys, then xs and ys are bag
+-- equivalent.
 
 ∷-left-cancellative : ∀ {a} {A : Set a} {x : A} {xs ys} →
                       x ∷ xs ≈-bag x ∷ ys → xs ≈-bag ys
@@ -591,7 +592,7 @@ abstract
       inj₂ (index {xs = xs} z∈xs)          ∎)
       where open _↔_ (inv z)
 
--- Cons is not left cancellative for set equality.
+-- Cons is not left cancellative for set equivalence.
 
 ∷-not-left-cancellative :
   ¬ (∀ {A : Set} {x : A} {xs ys} →
@@ -599,7 +600,7 @@ abstract
 ∷-not-left-cancellative cancel =
   _⇔_.to (cancel (++-idempotent (tt ∷ [])) tt) (inj₁ refl)
 
--- _++_ is left and right cancellative (for bag equality).
+-- _++_ is left and right cancellative (for bag equivalence).
 
 ++-left-cancellative : ∀ {a} {A : Set a} (xs : List A) {ys zs} →
                        xs ++ ys ≈-bag xs ++ zs → ys ≈-bag zs
@@ -617,10 +618,10 @@ abstract
     z ∈ zs ++ ys  □)
 
 ------------------------------------------------------------------------
--- The third definition of bag equality is sound with respect to the
--- other two
+-- The third definition of bag equivalence is sound with respect to
+-- the other two
 
--- _∷_ preserves bag equality.
+-- _∷_ preserves bag equivalence.
 
 infixr 5 _∷-cong_
 
@@ -640,8 +641,8 @@ swap-first-two {x = x} {y} {xs} = λ z →
   (z ≡ y ⊎ z ≡ x) ⊎ z ∈ xs  ↔⟨ inverse ⊎-assoc ⟩
    z ≡ y ⊎ z ≡ x  ⊎ z ∈ xs  □
 
--- The third definition of bag equality is sound with respect to the
--- first one.
+-- The third definition of bag equivalence is sound with respect to
+-- the first one.
 
 ≈″⇒≈ : ∀ {a} {A : Set a} {xs ys : List A} → xs ≈-bag″ ys → xs ≈-bag ys
 ≈″⇒≈ []                  = λ _ → id

@@ -17,7 +17,7 @@ module Tree-sort
   (total : ∀ x y → le x y ⊎ le y x)
   where
 
-open import Bag-equality using () renaming (Any to AnyL)
+open import Bag-equivalence using () renaming (Any to AnyL)
 open import Equality.Propositional
 
 import Bijection
@@ -126,7 +126,7 @@ infix 4 _∈_
 _∈_ : ∀ {k l u} → A → ⟦ k ⟧ l u → Set
 x ∈ xs = Any (λ y → x ≡ y) xs
 
--- Bag equality.
+-- Bag equivalence.
 
 infix 4 _≈-bag_
 

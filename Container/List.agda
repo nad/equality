@@ -6,7 +6,7 @@
 
 module Container.List where
 
-open import Bag-equality
+open import Bag-equivalence
   using () renaming (_≈-bag_ to _≈-bagL_; _∈_ to _∈L_; Any to AnyL)
 open import Container
 open import Equality.Propositional
@@ -30,8 +30,8 @@ List : Container lzero
 List = ℕ ▷ Fin
 
 ------------------------------------------------------------------------
--- The definitions of lists and bag equality for lists given in
--- Container/Container.List and in Prelude/Bag-equality are closely
+-- The definitions of lists and bag equivalence for lists given in
+-- Container/Container.List and in Prelude/Bag-equivalence are closely
 -- related
 
 -- The two definitions of lists are equivalent.
@@ -112,7 +112,7 @@ Any-from↔Any (P._∷_ x xs) P =
   P x ⊎ Any {C = List} P (_⇔_.from List⇔List xs)                     ↔⟨ id ⊎-cong Any-from↔Any xs P ⟩
   P x ⊎ AnyL P xs                                                    □
 
--- The definition of bag equality in Bag-equality and the one in
+-- The definition of bag equivalence in Bag-equivalence and the one in
 -- Container, instantiated with the List container, are equivalent
 -- (both via "to" and "from").
 
@@ -161,7 +161,7 @@ x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
 
 -- Even if we don't assume extensionality we can prove that
 -- intensionally distinct implementations of the constructors are bag
--- equal.
+-- equivalent.
 
 []≈ : {A : Set} {lkup : _ → A} →
       _≈-bag_ {C₂ = List} [] (zero , lkup)
@@ -249,8 +249,8 @@ fold nl cns (suc n , lkup) =
 
 -- A lemma which can be used to prove properties about fold.
 --
--- The "respects bag equality" argument could be omitted if equality
--- of functions were extensional.
+-- The "respects bag equivalence" argument could be omitted if
+-- equality of functions were extensional.
 
 fold-lemma : ∀ {A B : Set} {nl : B} {cns : A → ⟦ List ⟧ A → B → B}
              (P : ⟦ List ⟧ A → B → Set) →
@@ -272,12 +272,12 @@ fold-lemma Q resp nl cns (suc n , lkup) = resp _ _ ∷≈ _ $
 --
 -- Unfortunately this turned out to be harder than expected. When
 -- proving the Any-++ lemma it seemed as if I had to prove that _++_
--- preserves bag equality in its first argument in order to
--- instantiate the "respects bag equality" argument. However, my
+-- preserves bag equivalence in its first argument in order to
+-- instantiate the "respects bag equivalence" argument. However, my
 -- preferred proof of this property uses Any-++…
 --
 -- An alternative could be to assume that equality of functions is
--- extensional, in which case the "respects bag equality" argument
+-- extensional, in which case the "respects bag equivalence" argument
 -- could be removed. Another option would be to listen to Conor
 -- McBride and avoid higher-order representations of first-order data.
 

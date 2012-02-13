@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- Code related to the paper "Bag Equality via a Proof-Relevant
+-- Code related to the paper "Bag Equivalence via a Proof-Relevant
 -- Membership Relation"
 --
 -- Nils Anders Danielsson
@@ -11,7 +11,7 @@
 
 {-# OPTIONS --without-K #-}
 
-module README.Bag-equality where
+module README.Bag-equivalence where
 
 -- Definitions of some basic types and some related functions.
 
@@ -29,9 +29,9 @@ import Bijection
 
 import Equality.Propositional
 
--- Bag equality for lists.
+-- Bag equivalence for lists.
 
-import Bag-equality
+import Bag-equivalence
 
 -- A universe which includes several kinds of functions (including
 -- ordinary functions, equivalences, injections and bijections), along
@@ -49,7 +49,7 @@ import Tree-sort.Example
 
 import Fin
 
--- Containers, including a definition of bag equality.
+-- Containers, including a definition of bag equivalence.
 
 import Container
 
@@ -61,7 +61,7 @@ import Container
 -- sortedness is not enforced in this development.
 --
 -- The implementation using containers has the advantage of uniform
--- definitions of Any/membership/bag equality, but the other
+-- definitions of Any/membership/bag equivalence, but the other
 -- implementation uses more direct definitions and is perhaps a bit
 -- "leaner".
 
