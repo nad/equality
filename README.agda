@@ -111,9 +111,9 @@ import Container
 -- An implementation of tree sort which uses containers to represent
 -- trees and lists.
 --
--- In Tree-sort.Correct indexed types are used to enforce sortedness,
--- but Containers contains a definition of non-indexed containers, so
--- sortedness is not enforced in this development.
+-- In the module Tree-sort indexed types are used to enforce
+-- sortedness, but Containers contains a definition of non-indexed
+-- containers, so sortedness is not enforced in this development.
 --
 -- The implementation using containers has the advantage of uniform
 -- definitions of Any/membership/bag equivalence, but the other
