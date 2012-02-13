@@ -249,8 +249,8 @@ fold nl cns (suc n , lkup) =
 
 -- A lemma which can be used to prove properties about fold.
 --
--- The "respect bag equality" argument could be omitted if equality of
--- functions were extensional.
+-- The "respects bag equality" argument could be omitted if equality
+-- of functions were extensional.
 
 fold-lemma : ∀ {A B : Set} {nl : B} {cns : A → ⟦ List ⟧ A → B → B}
              (P : ⟦ List ⟧ A → B → Set) →
@@ -273,11 +273,11 @@ fold-lemma Q resp nl cns (suc n , lkup) = resp _ _ ∷≈ _ $
 -- Unfortunately this turned out to be harder than expected. When
 -- proving the Any-++ lemma it seemed as if I had to prove that _++_
 -- preserves bag equality in its first argument in order to
--- instantiate the "respect bag equality" argument. However, my
+-- instantiate the "respects bag equality" argument. However, my
 -- preferred proof of this property uses Any-++…
 --
 -- An alternative could be to assume that equality of functions is
--- extensional, in which case the "respect bag equality" argument
+-- extensional, in which case the "respects bag equality" argument
 -- could be removed. Another option would be to listen to Conor
 -- McBride and avoid higher-order representations of first-order data.
 
