@@ -304,10 +304,10 @@ filter-cong p xs ys xs∼ys = λ z →
 
 -- Bind distributes from the left over append.
 
-bind-left-distributive :
+>>=-left-distributive :
   ∀ {a b} {A : Set a} {B : Set b} (xs : List A) (f g : A → List B) →
   xs >>= (λ x → f x ++ g x) ≈-bag (xs >>= f) ++ (xs >>= g)
-bind-left-distributive xs f g = λ z →
+>>=-left-distributive xs f g = λ z →
   z ∈ xs >>= (λ x → f x ++ g x)                    ↔⟨ Any->>= (_≡_ z) xs (λ x → f x ++ g x) ⟩
   Any (λ x → z ∈ f x ++ g x) xs                    ↔⟨ Any-cong (λ x → Any-++ (_≡_ z) (f x) (g x)) (λ _ → id) ⟩
   Any (λ x → z ∈ f x ⊎ z ∈ g x) xs                 ↔⟨ Any-⊎ (λ x → z ∈ f x) (λ x → z ∈ g x) xs ⟩
@@ -317,10 +317,10 @@ bind-left-distributive xs f g = λ z →
 
 -- This property does not hold for ordinary list equality.
 
-¬-bind-left-distributive :
+¬->>=-left-distributive :
   ¬ ({A B : Set} (xs : List A) (f g : A → List B) →
      xs >>= (λ x → f x ++ g x) ≡ (xs >>= f) ++ (xs >>= g))
-¬-bind-left-distributive distrib with eq
+¬->>=-left-distributive distrib with eq
   where
   xs = true ∷ false ∷ []
   f  = λ x → x ∷ []
