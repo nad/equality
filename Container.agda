@@ -236,7 +236,7 @@ Shape′ : ∀ {c} → (Set → Set c) → Set c
 Shape′ F = F ⊤
 
 Shape-⟦⟧ : ∀ {c} (C : Container c) →
-            Shape C ↔ Shape′ ⟦ C ⟧
+           Shape C ↔ Shape′ ⟦ C ⟧
 Shape-⟦⟧ C =
   Shape C                                 ↔⟨ inverse ×-right-identity ⟩
   Shape C × ⊤                             ↔⟨ ∃-cong (λ _ → inverse →-right-zero) ⟩
