@@ -146,6 +146,11 @@ import Bag-equivalence
 ------------------------------------------------------------------------
 -- 9: Conclusions
 
+-- Two proofs showing that cons is left cancellative, using different
+-- definitions of bag equivalence.
+
+import Bag-equivalence
+
 -- The K rule, and a proof showing that it implies proof-irrelevance.
 
 import Equality
