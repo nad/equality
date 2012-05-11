@@ -98,11 +98,13 @@ import Fin
 
 import Bag-equivalence
 
--- An implementation of tree sort, formally proved to return a sorted
--- permutation of the input.
+-- Implementations of tree sort. One only establishes that the
+-- algorithm permutes its input, the other one also establishes
+-- sortedness.
 
-import Tree-sort
-import Tree-sort.Example
+import Tree-sort.Partial
+import Tree-sort.Full
+import Tree-sort.Examples
 
 -- Containers, including a definition of bag equivalence.
 
@@ -111,13 +113,13 @@ import Container
 -- An implementation of tree sort which uses containers to represent
 -- trees and lists.
 --
--- In the module Tree-sort indexed types are used to enforce
+-- In the module Tree-sort.Full indexed types are used to enforce
 -- sortedness, but Containers contains a definition of non-indexed
 -- containers, so sortedness is not enforced in this development.
 --
 -- The implementation using containers has the advantage of uniform
 -- definitions of Any/membership/bag equivalence, but the other
--- implementation uses more direct definitions and is perhaps a bit
+-- implementations use more direct definitions and are perhaps a bit
 -- "leaner".
 
 import Container.List

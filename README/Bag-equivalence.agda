@@ -17,27 +17,33 @@ module README.Bag-equivalence where
 ------------------------------------------------------------------------
 -- 1: Introduction
 
--- The introduction mentions tree sort as an example. Two
+-- The introduction mentions tree sort as an example. Three
 -- implementations of tree sort are provided. (You may want to read
 -- about the more basic definitions first.)
 
 -- 1) An implementation of tree sort, formally proved to return a
---    sorted permutation of the input.
+--    permutation of the input.
 
-import Tree-sort
-import Tree-sort.Example
+import Tree-sort.Partial
+import Tree-sort.Examples
 
--- 2) An implementation of tree sort which uses containers to
+-- 2) An implementation of tree sort, formally proved to return a
+--    /sorted/ permutation of the input.
+
+import Tree-sort.Full
+import Tree-sort.Examples
+
+-- 3) An implementation of tree sort which uses containers to
 --    represent trees and lists.
 --
---    In the module Tree-sort indexed types are used to enforce
+--    In the module Tree-sort.Full indexed types are used to enforce
 --    sortedness, but this development uses non-indexed containers, so
 --    sortedness is not enforced.
 --
 --    The implementation using containers has the advantage of uniform
 --    definitions of Any/membership/bag equivalence, but the other
---    implementation uses more direct definitions and is perhaps a bit
---    "leaner".
+--    implementations use more direct definitions and are perhaps a
+--    bit "leaner".
 
 import Container.Tree
 import Container.Tree-sort

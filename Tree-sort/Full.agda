@@ -11,7 +11,7 @@
 
 open import Prelude hiding (id; _∘_; _≤_; lower)
 
-module Tree-sort
+module Tree-sort.Full
   {A : Set}
   (le : A → A → Set)
   (total : ∀ x y → le x y ⊎ le y x)
@@ -202,13 +202,13 @@ to-search-tree = foldr (λ x t → insert x t _) (leaf _)
 
 -- No elements are added or removed.
 
-to-search-tree≈ : ∀ xs → to-search-tree xs ≈-bag xs
-to-search-tree≈ [] = λ z →
+to-search-tree-lemma : ∀ xs → to-search-tree xs ≈-bag xs
+to-search-tree-lemma [] = λ z →
   z ∈ leaf {l = min} {u = max} _  ↔⟨ id ⟩
   z ∈ []                          □
-to-search-tree≈ (x ∷ xs) = λ z →
+to-search-tree-lemma (x ∷ xs) = λ z →
   z ∈ insert x (to-search-tree xs) _  ↔⟨ Any-insert (λ x → z ≡ x) _ _ _ ⟩
-  z ≡ x ⊎ z ∈ to-search-tree xs       ↔⟨ id ⊎-cong to-search-tree≈ xs z ⟩
+  z ≡ x ⊎ z ∈ to-search-tree xs       ↔⟨ id ⊎-cong to-search-tree-lemma xs z ⟩
   z ∈ x ∷ xs                          □
 
 ------------------------------------------------------------------------
@@ -245,13 +245,13 @@ flatten (l -[ x ]- r) = flatten l -⁅ x ⁆- flatten r
 
 -- Flatten does not add or remove any elements.
 
-flatten≈ : ∀ {l u} (t : Search-tree l u) → flatten t ≈-bag t
-flatten≈ {l} {u} (leaf l≤u) = λ z →
+flatten-lemma : ∀ {l u} (t : Search-tree l u) → flatten t ≈-bag t
+flatten-lemma {l} {u} (leaf l≤u) = λ z →
   z ∈ nil  {l = l} {u = u} l≤u  ↔⟨ id ⟩
   z ∈ leaf {l = l} {u = u} l≤u  □
-flatten≈ (l -[ x ]- r) = λ z →
+flatten-lemma (l -[ x ]- r) = λ z →
   z ∈ flatten l -⁅ x ⁆- flatten r        ↔⟨ Any-append (λ x → z ≡ x) _ _ _ ⟩
-  z ∈ flatten l ⊎ z ≡ x ⊎ z ∈ flatten r  ↔⟨ flatten≈ l z ⊎-cong id ⊎-cong flatten≈ r z ⟩
+  z ∈ flatten l ⊎ z ≡ x ⊎ z ∈ flatten r  ↔⟨ flatten-lemma l z ⊎-cong id ⊎-cong flatten-lemma r z ⟩
   z ∈ l ⊎ z ≡ x ⊎ z ∈ r                  ↔⟨ id ⟩
   z ∈ l -[ x ]- r                        □
 
@@ -260,14 +260,14 @@ flatten≈ (l -[ x ]- r) = λ z →
 
 -- Sorts a list.
 
-sort : List A → Ordered-list min max
-sort = flatten ∘ to-search-tree
+tree-sort : List A → Ordered-list min max
+tree-sort = flatten ∘ to-search-tree
 
 -- The result is a permutation of the input.
 
-sort≈ : ∀ xs → sort xs ≈-bag xs
-sort≈ xs = λ z →
-  z ∈ sort xs                      ↔⟨ id ⟩
-  z ∈ flatten (to-search-tree xs)  ↔⟨ flatten≈ (to-search-tree xs) _ ⟩
-  z ∈ to-search-tree xs            ↔⟨ to-search-tree≈ xs _ ⟩
+tree-sort-permutes : ∀ xs → tree-sort xs ≈-bag xs
+tree-sort-permutes xs = λ z →
+  z ∈ tree-sort xs                 ↔⟨ id ⟩
+  z ∈ flatten (to-search-tree xs)  ↔⟨ flatten-lemma (to-search-tree xs) _ ⟩
+  z ∈ to-search-tree xs            ↔⟨ to-search-tree-lemma xs _ ⟩
   z ∈ xs                           □
