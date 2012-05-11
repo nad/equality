@@ -11,6 +11,7 @@ open import Container hiding (Shape; Position)
 open import Container.List hiding (fold; fold-lemma)
 open import Equality.Propositional
 open import Prelude hiding (id; _∘_; List; []; _∷_; _++_; lookup)
+import Tree
 
 import Bijection
 open Bijection equality-with-J using (_↔_; module _↔_)
@@ -37,6 +38,43 @@ data Position : Shape → Set where
 
 Tree : Container lzero
 Tree = Shape ▷ Position
+
+------------------------------------------------------------------------
+-- An isomorphism
+
+-- The type of shapes is isomorphic to Tree.Tree ⊤.
+--
+-- This lemma is included because it was mentioned in the paper "Bag
+-- Equivalence via a Proof-Relevant Membership Relation".
+
+Shape↔Tree-⊤ : Shape ↔ Tree.Tree ⊤
+Shape↔Tree-⊤ = record
+  { surjection = record
+    { equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  to : Shape → Tree.Tree ⊤
+  to lf       = Tree.leaf
+  to (nd l r) = Tree.node (to l) tt (to r)
+
+  from : Tree.Tree ⊤ → Shape
+  from Tree.leaf          = lf
+  from (Tree.node l tt r) = nd (from l) (from r)
+
+  to∘from : ∀ t → to (from t) ≡ t
+  to∘from Tree.leaf          = refl
+  to∘from (Tree.node l tt r) =
+    cong₂ (λ l r → Tree.node l tt r) (to∘from l) (to∘from r)
+
+  from∘to : ∀ s → from (to s) ≡ s
+  from∘to lf       = refl
+  from∘to (nd l r) = cong₂ nd (from∘to l) (from∘to r)
 
 ------------------------------------------------------------------------
 -- Constructors
