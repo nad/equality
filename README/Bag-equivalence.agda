@@ -15,11 +15,91 @@
 module README.Bag-equivalence where
 
 ------------------------------------------------------------------------
--- 1: Introduction
+-- 2: Brief Introduction to Agda
 
--- The introduction mentions tree sort as an example. Three
--- implementations of tree sort are provided. (You may want to read
--- about the more basic definitions first.)
+-- The prelude, containing List, ℕ, length, Fin, ⊥, ⊤, _⊎_ (written as
+-- _+_ in the paper), lookup, ∃, and _×_.
+
+import Prelude
+
+-- Equivalences: _⇔_.
+
+import Equivalence
+
+-- Bijections: _↔_.
+
+import Bijection
+
+-- Equality: _≡_.
+
+import Equality.Propositional
+
+-- The K rule, and a proof showing that it implies proof-irrelevance.
+
+import Equality
+
+-- Bijectional reasoning combinators (more general than those in the
+-- paper): inverse (written as sym in the paper), _□, and _↔⟨_⟩_.
+
+import Function-universe
+
+------------------------------------------------------------------------
+-- 3: Bag Equivalence for Lists
+
+-- Any, _∈_, and the two definitions of bag equivalence.
+
+import Bag-equivalence
+
+------------------------------------------------------------------------
+-- 4: Bijectional Reasoning
+
+-- Definitions of map, concat and _>>=_.
+
+import Prelude
+
+-- Algebraic properties of type constructors (like ⊥ ⊎ A ↔ A).
+
+import Function-universe
+import Fin
+
+-- All the main lemmas from this section, including
+-- >>=-left-distributive.
+
+import Bag-equivalence
+
+------------------------------------------------------------------------
+-- 5: The Definitions Are Equivalent
+
+-- The equivalence proof.
+
+import Bag-equivalence
+
+-- There are infinitely many proofs of ℕ ≡ ℕ in homotopy type theory.
+
+import Univalence-axiom
+
+------------------------------------------------------------------------
+-- 6: Bag Equivalence for Arbitrary Containers
+
+-- Containers, including Any, _∈_, the two definitions of bag
+-- equivalence, and a proof showing that the two definitions are
+-- equivalent.
+
+import Container
+
+-- The List, Stream and Tree containers. It is shown that the general
+-- definition of bag equivalence for containers, instantiated with the
+-- List container, is equivalent (in a certain sense) to the list-only
+-- definition given above.
+
+import Container.List
+import Container.Stream
+import Container.Tree
+
+------------------------------------------------------------------------
+-- 7: More Bijectional Reasoning
+
+-- Three implementations of tree sort are provided.
 
 -- 1) An implementation of tree sort, formally proved to return a
 --    permutation of the input.
@@ -50,85 +130,7 @@ import Container.Tree-sort
 import Container.Tree-sort.Example
 
 ------------------------------------------------------------------------
--- 2: Brief introduction to Agda
-
--- The prelude, containing List, ℕ, length, Fin, ⊥, ⊤, _⊎_ (written as
--- _+_ in the paper), lookup, ∃, and _×_.
-
-import Prelude
-
--- Equivalences: _⇔_.
-
-import Equivalence
-
--- Bijections: _↔_.
-
-import Bijection
-
--- Equality: _≡_.
-
-import Equality.Propositional
-
--- Bijectional reasoning combinators (more general than those in the
--- paper): inverse (written as sym in the paper), _□, and _↔⟨_⟩_.
-
-import Function-universe
-
-------------------------------------------------------------------------
--- 3: Bag equivalence for lists
-
--- Any, _∈_, and the two definitions of bag equivalence.
-
-import Bag-equivalence
-
-------------------------------------------------------------------------
--- 4: Bijectional reasoning
-
--- Definitions of map, concat and _>>=_.
-
-import Prelude
-
--- Algebraic properties of type constructors (like ⊥ ⊎ A ↔ A).
-
-import Function-universe
-import Fin
-
--- All the main lemmas from this section, including
--- >>=-left-distributive.
-
-import Bag-equivalence
-
-------------------------------------------------------------------------
--- 5: The definitions are equivalent
-
--- The equivalence proof.
-
-import Bag-equivalence
-
--- There are infinitely many proofs of ℕ ≡ ℕ in homotopy type theory.
-
-import Univalence-axiom
-
-------------------------------------------------------------------------
--- 6: Bag equivalence for arbitrary containers
-
--- Containers, including Any, _∈_, the two definitions of bag
--- equivalence, and a proof showing that the two definitions are
--- equivalent.
-
-import Container
-
--- The List, Stream and Tree containers. It is shown that the general
--- definition of bag equivalence for containers, instantiated with the
--- List container, is equivalent (in a certain sense) to the list-only
--- definition given above.
-
-import Container.List
-import Container.Stream
-import Container.Tree
-
-------------------------------------------------------------------------
--- 7: Set equivalence, subsets and subbags
+-- 8: Set Equivalence, Subsets and Subbags
 
 -- Injections: _↣_.
 
@@ -141,7 +143,7 @@ import Injection
 import Bag-equivalence
 
 ------------------------------------------------------------------------
--- 8: Related work
+-- 9: Related Work
 
 -- One of the definitions of bag equivalence from Coq's standard
 -- library has been replicated, and shown to be sound with respect to
@@ -150,16 +152,12 @@ import Bag-equivalence
 import Bag-equivalence
 
 ------------------------------------------------------------------------
--- 9: Conclusions
+-- 10: Conclusions
 
 -- Two proofs showing that cons is left cancellative, using different
 -- definitions of bag equivalence.
 
 import Bag-equivalence
-
--- The K rule, and a proof showing that it implies proof-irrelevance.
-
-import Equality
 
 ------------------------------------------------------------------------
 
