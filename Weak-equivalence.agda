@@ -459,6 +459,72 @@ groupoid ext {ℓ} = record
     right-inverse p = lift-equality ext (_≈_.right-inverse-of p)
 
 ------------------------------------------------------------------------
+-- An equality equivalence lemma
+
+-- An equality is weakly equivalent to a product of weak equivalences
+-- of equalities (assuming extensionality).
+
+equality-equivalence-lemma :
+  (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
+  ∀ {a} {A : Set a} (y z : A) →
+  (y ≡ z) ≈ (∀ x → (x ≡ y) ≈ (x ≡ z))
+equality-equivalence-lemma ext y z = bijection⇒weak-equivalence (record
+  { surjection = record
+    { equivalence      = record { to = to; from = from }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  })
+  where
+  to : y ≡ z → ∀ x → (x ≡ y) ≈ (x ≡ z)
+  to y≡z x = bijection⇒weak-equivalence (record
+    { surjection = record
+      { equivalence = record
+        { to   = λ x≡y → trans x≡y      y≡z
+        ; from = λ x≡z → trans x≡z (sym y≡z)
+        }
+      ; right-inverse-of = right-inverse-of
+      }
+    ; left-inverse-of = left-inverse-of
+    })
+    where
+    abstract
+      right-inverse-of : (x≡z : x ≡ z) →
+                         trans (trans x≡z (sym y≡z)) y≡z ≡ x≡z
+      right-inverse-of x≡z =
+        trans (trans x≡z (sym y≡z)) y≡z  ≡⟨ trans-assoc _ _ _ ⟩
+        trans x≡z (trans (sym y≡z) y≡z)  ≡⟨ cong (trans x≡z) (G.right-inverse y≡z) ⟩
+        trans x≡z (refl z)               ≡⟨ trans-reflʳ _ ⟩∎
+        x≡z                              ∎
+
+      left-inverse-of : (x≡y : x ≡ y) →
+                        trans (trans x≡y y≡z) (sym y≡z) ≡ x≡y
+      left-inverse-of x≡y =
+        trans (trans x≡y y≡z) (sym y≡z)  ≡⟨ trans-assoc _ _ _ ⟩
+        trans x≡y (trans y≡z (sym y≡z))  ≡⟨ cong (trans x≡y) (G.left-inverse y≡z) ⟩
+        trans x≡y (refl y)               ≡⟨ trans-reflʳ _ ⟩∎
+        x≡y                              ∎
+
+  from : (∀ x → (x ≡ y) ≈ (x ≡ z)) → y ≡ z
+  from f = _≈_.to (f y) (refl y)
+
+  abstract
+    to∘from : ∀ f → to (from f) ≡ f
+    to∘from f = ext λ x → lift-equality ext λ x≡y →
+      trans x≡y (_≈_.to (f y) (refl y))  ≡⟨ elim (λ {u v} u≡v →
+                                                    (f : ∀ x → (x ≡ v) ≈ (x ≡ z)) →
+                                                    trans u≡v (_≈_.to (f v) (refl v)) ≡
+                                                    _≈_.to (f u) u≡v)
+                                                 (λ _ _ → trans-reflˡ _)
+                                                 x≡y f ⟩∎
+      _≈_.to (f x) x≡y                   ∎
+
+    from∘to : ∀ y≡z → from (to y≡z) ≡ y≡z
+    from∘to y≡z =
+      trans (refl y) y≡z  ≡⟨ trans-reflˡ _ ⟩∎
+      y≡z                 ∎
+
+------------------------------------------------------------------------
 -- Closure, preservation
 
 abstract
