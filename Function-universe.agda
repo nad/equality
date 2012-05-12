@@ -656,6 +656,18 @@ private
   ; left-inverse-of = λ _ → refl (λ _ → tt)
   }
 
+-- Π is "commutative".
+
+Π-comm : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
+         (∀ x y → C x y) ↔ (∀ y x → C x y)
+Π-comm = record
+  { surjection = record
+    { equivalence = record { to = flip; from = flip }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
 ------------------------------------------------------------------------
 -- Lemmas related to if
 
