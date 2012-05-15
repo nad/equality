@@ -59,12 +59,13 @@ abstract
   -- equality.
 
   propositional :
-    (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
-    ∀ {a b} {A : Set a} {B : Set b} (f : A → B) →
+    ∀ {a b} →
+    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    {A : Set a} {B : Set b} (f : A → B) →
     Propositional (Is-weak-equivalence f)
-  propositional ext {a} {b} f =
-    Π-closure ext 1 λ _ →
-      Contractible-propositional (ext {a = a ⊔ b} {b = a ⊔ b})
+  propositional {a} ext f =
+    Π-closure (lower-extensionality a lzero ext) 1 λ _ →
+      Contractible-propositional ext
 
 -- Is-weak-equivalence respects extensional equality.
 
@@ -412,23 +413,26 @@ abstract
   -- components are equal (assuming extensionality).
 
   lift-equality :
-    (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
-    ∀ {a b} {A : Set a} {B : Set b} {p q : A ≈ B} →
+    ∀ {a b} →
+    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    {A : Set a} {B : Set b} {p q : A ≈ B} →
     (∀ x → _≈_.to p x ≡ _≈_.to q x) → p ≡ q
-  lift-equality ext {p = weq f f-weq} {q = weq g g-weq} f≡g =
+  lift-equality {a} {b} ext {p = weq f f-weq} {q = weq g g-weq} f≡g =
     elim (λ {f g} f≡g → ∀ f-weq g-weq → weq f f-weq ≡ weq g g-weq)
          (λ f f-weq g-weq →
             cong (weq f)
               (_⇔_.to {To = Proof-irrelevant _}
                       propositional⇔irrelevant
                       (propositional ext f) f-weq g-weq))
-         (ext f≡g) f-weq g-weq
+         (lower-extensionality b a ext f≡g)
+         f-weq g-weq
 
 -- _≈_ comes with a groupoid structure (assuming extensionality).
 
-groupoid : (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
-           ∀ {ℓ} → Groupoid (lsuc ℓ) ℓ
-groupoid ext {ℓ} = record
+groupoid : ∀ {ℓ} →
+           ({A : Set ℓ} {B : A → Set ℓ} → Extensionality A B) →
+           Groupoid (lsuc ℓ) ℓ
+groupoid {ℓ} ext = record
   { Object         = Set ℓ
   ; _∼_            = _≈_
   ; id             = id
@@ -465,8 +469,9 @@ groupoid ext {ℓ} = record
 -- of equalities (assuming extensionality).
 
 equality-equivalence-lemma :
-  (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
-  ∀ {a} {A : Set a} (y z : A) →
+  ∀ {a} →
+  ({A : Set a} {B : A → Set a} → Extensionality A B) →
+  {A : Set a} (y z : A) →
   (y ≡ z) ≈ (∀ x → (x ≡ y) ≈ (x ≡ z))
 equality-equivalence-lemma ext y z = bijection⇒weak-equivalence (record
   { surjection = record
@@ -533,15 +538,17 @@ abstract
   -- (assuming extensionality).
 
   right-closure :
-    (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
-    ∀ {a b} {A : Set a} {B : Set b} n →
+    ∀ {a b} →
+    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    ∀ {A : Set a} {B : Set b} n →
     H-level (1 + n) B → H-level (1 + n) (A ≈ B)
-  right-closure ext {A = A} {B} n h =
+  right-closure {a} {b} ext {A = A} {B} n h =
     H-level.respects-surjection surj (1 + n) lemma
     where
     lemma : H-level (1 + n) (∃ λ (to : A → B) → Is-weak-equivalence to)
     lemma = Σ-closure (1 + n)
-              (Π-closure ext (1 + n) (const h))
+              (Π-closure (lower-extensionality b a ext)
+                         (1 + n) (const h))
               (mono (m≤m+n 1 n) ⊚ propositional ext)
 
     surj : (∃ λ (to : A → B) → Is-weak-equivalence to) ↠ (A ≈ B)
@@ -554,8 +561,9 @@ abstract
       }
 
   left-closure :
-    (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
-    ∀ {a b} {A : Set a} {B : Set b} n →
+    ∀ {a b} →
+    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    ∀ {A : Set a} {B : Set b} n →
     H-level (1 + n) A → H-level (1 + n) (A ≈ B)
   left-closure ext {A = A} {B} n h =
     H-level.[inhabited⇒+]⇒+ n λ (A≈B : A ≈ B) →
@@ -854,12 +862,13 @@ abstract
 -- Π preserves weak equivalence (assuming extensionality).
 
 Π-preserves :
-  (∀ {a b} {A : Set a} {B : A → Set b} → Extensionality A B) →
-  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  ∀ {a₁ a₂ b₁ b₂} →
+  ({A : Set (a₁ ⊔ a₂)} {B : A → Set (b₁ ⊔ b₂)} → Extensionality A B) →
+  {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
   (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
   ((x : A₁) → B₁ x) ≈ ((x : A₂) → B₂ x)
-Π-preserves ext {A₁ = A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁≈B₂ =
+Π-preserves {a₁} {a₂} {b₁} {b₂} ext
+            {A₁ = A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁≈B₂ =
   bijection⇒weak-equivalence record
     { surjection = record
       { equivalence = record
@@ -883,7 +892,7 @@ abstract
 
   abstract
     right-inverse-of′ : ∀ f → to′ (from′ f) ≡ f
-    right-inverse-of′ = λ f → ext λ x →
+    right-inverse-of′ = λ f → lower-extensionality a₁ b₁ ext λ x →
       subst B₂ (right-inverse-of A₁≈A₂ x)
             (to (B₁≈B₂ (from A₁≈A₂ x))
                 (from (B₁≈B₂ (from A₁≈A₂ x))
@@ -896,7 +905,7 @@ abstract
       f x                                              ∎
 
     left-inverse-of′ : ∀ f → from′ (to′ f) ≡ f
-    left-inverse-of′ = λ f → ext λ x →
+    left-inverse-of′ = λ f → lower-extensionality a₂ b₂ ext λ x →
       from (B₁≈B₂ x)
            (subst B₂ (right-inverse-of A₁≈A₂ (to A₁≈A₂ x))
                   (to (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))

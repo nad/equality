@@ -476,3 +476,16 @@ module Derived-definitions-and-properties
         elim (λ p → ∀ q → p ≡ q)
              (λ x → K (λ {x} p → refl x ≡ p) (λ x → refl (refl x)))
     }
+
+  abstract
+
+    -- Universal extensionality at given levels works at lower levels
+    -- as well.
+
+    lower-extensionality :
+      ∀ {a} â {b} b̂ →
+      ({A : Set (a ⊔ â)} {B : A → Set (b ⊔ b̂)} → Extensionality A B) →
+      ({A : Set  a     } {B : A → Set  b     } → Extensionality A B)
+    lower-extensionality â b̂ ext f≡g =
+      cong (λ h → lower ∘ h ∘ lift) $
+        ext {A = ↑ â _} {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g ∘ lower)
