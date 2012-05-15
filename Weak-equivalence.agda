@@ -960,3 +960,58 @@ abstract
                                                                           (λ x → subst-refl B₁ (f x))
                                                                           (left-inverse-of A₁≈A₂ x) ⟩∎
       f x                                                         ∎
+
+-- Weak equivalence preserves weak equivalences (assuming
+-- extensionality).
+
+≈-preserves :
+  ∀ {a₁ a₂ b₁ b₂} →
+  ({A : Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂)} {B : A → Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂)} →
+   Extensionality A B) →
+  {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
+  A₁ ≈ A₂ → B₁ ≈ B₂ → (A₁ ≈ B₁) ≈ (A₂ ≈ B₂)
+≈-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁≈B₂ =
+  bijection⇒weak-equivalence (record
+    { surjection = record
+      { equivalence = record
+        { to   = λ A₁≈B₁ → B₁≈B₂ ∘ A₁≈B₁ ∘ inverse A₁≈A₂
+        ; from = λ A₂≈B₂ → inverse B₁≈B₂ ∘ A₂≈B₂ ∘ A₁≈A₂
+        }
+      ; right-inverse-of = to∘from
+      }
+    ; left-inverse-of = from∘to
+    })
+  where
+  open _≈_
+
+  abstract
+    to∘from :
+      (A₂≈B₂ : A₂ ≈ B₂) →
+      B₁≈B₂ ∘ (inverse B₁≈B₂ ∘ A₂≈B₂ ∘ A₁≈A₂) ∘ inverse A₁≈A₂ ≡ A₂≈B₂
+    to∘from A₂≈B₂ =
+      lift-equality (lower-extensionality (a₁ ⊔ b₁) (a₁ ⊔ b₁) ext) λ x →
+          to B₁≈B₂ (from B₁≈B₂ (to A₂≈B₂ (to A₁≈A₂ (from A₁≈A₂ x))))  ≡⟨ right-inverse-of B₁≈B₂ _ ⟩
+          to A₂≈B₂ (to A₁≈A₂ (from A₁≈A₂ x))                          ≡⟨ cong (to A₂≈B₂) $ right-inverse-of A₁≈A₂ _ ⟩∎
+          to A₂≈B₂ x                                                  ∎
+
+    from∘to :
+      (A₁≈B₁ : A₁ ≈ B₁) →
+      inverse B₁≈B₂ ∘ (B₁≈B₂ ∘ A₁≈B₁ ∘ inverse A₁≈A₂) ∘ A₁≈A₂ ≡ A₁≈B₁
+    from∘to A₁≈B₁ =
+      lift-equality (lower-extensionality (a₂ ⊔ b₂) (a₂ ⊔ b₂) ext) λ x →
+          from B₁≈B₂ (to B₁≈B₂ (to A₁≈B₁ (from A₁≈A₂ (to A₁≈A₂ x))))  ≡⟨ left-inverse-of B₁≈B₂ _ ⟩
+          to A₁≈B₁ (from A₁≈A₂ (to A₁≈A₂ x))                          ≡⟨ cong (to A₁≈B₁) $ left-inverse-of A₁≈A₂ _ ⟩∎
+          to A₁≈B₁ x                                                  ∎
+
+-- Weak equivalence preserves bijections (assuming extensionality).
+
+≈-preserves-bijections :
+  ∀ {a₁ a₂ b₁ b₂} →
+  ({A : Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂)} {B : A → Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂)} →
+   Extensionality A B) →
+  {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
+  A₁ ↔ A₂ → B₁ ↔ B₂ → (A₁ ≈ B₁) ↔ (A₂ ≈ B₂)
+≈-preserves-bijections ext A₁↔A₂ B₁↔B₂ =
+  _≈_.bijection $
+    ≈-preserves ext (bijection⇒weak-equivalence A₁↔A₂)
+                    (bijection⇒weak-equivalence B₁↔B₂)
