@@ -463,6 +463,37 @@ groupoid {ℓ} ext = record
     right-inverse p = lift-equality ext (_≈_.right-inverse-of p)
 
 ------------------------------------------------------------------------
+-- A surjection from A ↔ B to A ≈ B
+
+abstract
+
+  -- bijection⇒weak-equivalence is a left inverse of _≈_.bijection
+  -- (assuming extensionality).
+
+  bijection⇒weak-equivalence-left-inverse :
+    ∀ {a b} {A : Set a} {B : Set b} →
+    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    (A≈B : A ≈ B) →
+    bijection⇒weak-equivalence (_≈_.bijection A≈B) ≡ A≈B
+  bijection⇒weak-equivalence-left-inverse ext _ =
+    lift-equality ext (λ _ → refl _)
+
+-- There is a surjection from A ↔ B to A ≈ B (assuming
+-- extensionality).
+
+↔-↠-≈ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+  (A ↔ B) ↠ (A ≈ B)
+↔-↠-≈ ext = record
+  { equivalence = record
+    { to   = bijection⇒weak-equivalence
+    ; from = _≈_.bijection
+    }
+  ; right-inverse-of = bijection⇒weak-equivalence-left-inverse ext
+  }
+
+------------------------------------------------------------------------
 -- An equality equivalence lemma
 
 -- An equality is weakly equivalent to a product of weak equivalences
