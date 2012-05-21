@@ -519,27 +519,10 @@ equality-equivalence-lemma ext y z = bijection⇒weak-equivalence (record
         { to   = λ x≡y → trans x≡y      y≡z
         ; from = λ x≡z → trans x≡z (sym y≡z)
         }
-      ; right-inverse-of = right-inverse-of
+      ; right-inverse-of = λ x≡z → Groupoid.trans-[trans-sym] x≡z y≡z
       }
-    ; left-inverse-of = left-inverse-of
+    ; left-inverse-of = λ x≡y → Groupoid.trans-[trans]-sym x≡y y≡z
     })
-    where
-    abstract
-      right-inverse-of : (x≡z : x ≡ z) →
-                         trans (trans x≡z (sym y≡z)) y≡z ≡ x≡z
-      right-inverse-of x≡z =
-        trans (trans x≡z (sym y≡z)) y≡z  ≡⟨ trans-assoc _ _ _ ⟩
-        trans x≡z (trans (sym y≡z) y≡z)  ≡⟨ cong (trans x≡z) (G.right-inverse y≡z) ⟩
-        trans x≡z (refl z)               ≡⟨ trans-reflʳ _ ⟩∎
-        x≡z                              ∎
-
-      left-inverse-of : (x≡y : x ≡ y) →
-                        trans (trans x≡y y≡z) (sym y≡z) ≡ x≡y
-      left-inverse-of x≡y =
-        trans (trans x≡y y≡z) (sym y≡z)  ≡⟨ trans-assoc _ _ _ ⟩
-        trans x≡y (trans y≡z (sym y≡z))  ≡⟨ cong (trans x≡y) (G.left-inverse y≡z) ⟩
-        trans x≡y (refl y)               ≡⟨ trans-reflʳ _ ⟩∎
-        x≡y                              ∎
 
   from : (∀ x → (x ≡ y) ≈ (x ≡ z)) → y ≡ z
   from f = _≈_.to (f y) (refl y)
