@@ -241,9 +241,22 @@ record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 bijection⇒weak-equivalence : ∀ {a b} {A : Set a} {B : Set b} →
                              A ↔ B → A ≈ B
 bijection⇒weak-equivalence A↔B = record
-  { to                  = _↔_.to A↔B
-  ; is-weak-equivalence = Preimage.bijection⁻¹-contractible A↔B
+  { to                  = to
+  ; is-weak-equivalence = λ y →
+      (from y , right-inverse-of y) , irrelevance y
   }
+  where
+  open _↔_ A↔B using (to; from)
+
+  abstract
+    is-weak-equivalence : Is-weak-equivalence to
+    is-weak-equivalence = Preimage.bijection⁻¹-contractible A↔B
+
+    right-inverse-of : ∀ x → to (from x) ≡ x
+    right-inverse-of = proj₂ ⊚ proj₁ ⊚ is-weak-equivalence
+
+    irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
+    irrelevance = proj₂ ⊚ is-weak-equivalence
 
 ------------------------------------------------------------------------
 -- Equivalence
@@ -251,21 +264,64 @@ bijection⇒weak-equivalence A↔B = record
 -- Weak equivalences are equivalence relations.
 
 id : ∀ {a} {A : Set a} → A ≈ A
-id = bijection⇒weak-equivalence Bijection.id
+id {A = A} = record
+  { to                  = to
+  ; is-weak-equivalence = λ y →
+      (from y , right-inverse-of y) , irrelevance y
+  }
+  where
+  A≈A  = bijection⇒weak-equivalence (Bijection.id {A = A})
+  to   = _≈_.to   A≈A
+  from = _≈_.from A≈A
+
+  abstract
+    right-inverse-of : ∀ x → to (from x) ≡ x
+    right-inverse-of = _≈_.right-inverse-of A≈A
+
+    irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
+    irrelevance = _≈_.irrelevance A≈A
 
 inverse : ∀ {a b} {A : Set a} {B : Set b} → A ≈ B → B ≈ A
-inverse =
-  bijection⇒weak-equivalence ⊚
-  Bijection.inverse ⊚
-  _≈_.bijection
+inverse A≈B = record
+  { to                  = to
+  ; is-weak-equivalence = λ y →
+      (from y , right-inverse-of y) , irrelevance y
+  }
+  where
+  B≈A  = bijection⇒weak-equivalence $
+         Bijection.inverse $
+         _≈_.bijection A≈B
+  to   = _≈_.to   B≈A
+  from = _≈_.from B≈A
+
+  abstract
+    right-inverse-of : ∀ x → to (from x) ≡ x
+    right-inverse-of = _≈_.right-inverse-of B≈A
+
+    irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
+    irrelevance = _≈_.irrelevance B≈A
 
 infixr 9 _∘_
 
 _∘_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
       B ≈ C → A ≈ B → A ≈ C
-f ∘ g =
-  bijection⇒weak-equivalence $
-    Bijection._∘_ (_≈_.bijection f) (_≈_.bijection g)
+f ∘ g = record
+  { to                  = to
+  ; is-weak-equivalence = λ y →
+      (from y , right-inverse-of y) , irrelevance y
+  }
+  where
+  f∘g  = bijection⇒weak-equivalence $
+         Bijection._∘_ (_≈_.bijection f) (_≈_.bijection g)
+  to   = _≈_.to   f∘g
+  from = _≈_.from f∘g
+
+  abstract
+    right-inverse-of : ∀ x → to (from x) ≡ x
+    right-inverse-of = _≈_.right-inverse-of f∘g
+
+    irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
+    irrelevance = _≈_.irrelevance f∘g
 
 -- Equational reasoning combinators.
 
