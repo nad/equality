@@ -567,6 +567,14 @@ module Derived-definitions-and-properties
                    (λ x → refl x            ≡⟨ sym (cong-refl id {x = x}) ⟩∎
                           cong id (refl x)  ∎)
 
+    cong-const : ∀ {a b} {A : Set a} {B : Set b} {x y : A} {z : B}
+                 (x≡y : x ≡ y) →
+                 cong (const z) x≡y ≡ refl z
+    cong-const {z = z} =
+      elim (λ u≡v → cong (const z) u≡v ≡ refl z)
+           (λ x → cong (const z) (refl x)  ≡⟨ cong-refl (const z) ⟩∎
+                  refl z                   ∎)
+
     cong-∘ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} {x y : A}
              (f : B → C) (g : A → B) (x≡y : x ≡ y) →
              cong f (cong g x≡y) ≡ cong (f ∘ g) x≡y
@@ -585,6 +593,18 @@ module Derived-definitions-and-properties
                              refl (f x)             ≡⟨ sym sym-refl ⟩
                              sym (refl (f x))       ≡⟨ cong sym $ sym (cong-refl f {x = x}) ⟩∎
                              sym (cong f (refl x))  ∎)
+
+    subst-∘ : ∀ {a b p} {A : Set a} {B : Set b} {x y : A}
+              (P : B → Set p) (f : A → B) (x≡y : x ≡ y) {p : P (f x)} →
+              subst (P ∘ f) x≡y p ≡ subst P (cong f x≡y) p
+    subst-∘ P f x≡y =
+      elim (λ {x y} x≡y → ∀ p → subst (P ∘ f) x≡y p ≡
+                                subst P (cong f x≡y) p)
+           (λ x p → subst (P ∘ f) (refl x) p     ≡⟨ subst-refl (P ∘ f) _ ⟩
+                    p                            ≡⟨ sym $ subst-refl P _ ⟩
+                    subst P (refl (f x)) p       ≡⟨ sym $ cong (λ eq → subst P eq p) (cong-refl f) ⟩∎
+                    subst P (cong f (refl x)) p  ∎)
+           x≡y _
 
     -- A fusion law for subst.
 
