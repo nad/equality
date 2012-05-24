@@ -21,9 +21,6 @@ private
   module DUIP where
     import Equality.Decidable-UIP as DUIP; open DUIP eq public
 import Equality.Decision-procedures as ED; open ED eq
-import Equality.Groupoid as EG
-private module G {a} {A : Set a} = EG.Groupoid eq (EG.groupoid eq A)
-import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence hiding (id; _∘_)
 import H-level; open H-level eq
 open import Prelude
@@ -134,7 +131,7 @@ abstract
     {B : A → Set b} → Well-behaved-extensionality A B
   extensionality⇒well-behaved-extensionality {A = A} ext {B} =
     (λ {_} → ext′) , λ f →
-      ext′ (refl ∘ f)  ≡⟨ G.right-inverse _ ⟩∎
+      ext′ (refl ∘ f)  ≡⟨ trans-symˡ _ ⟩∎
       refl f           ∎
     where
     ext′ : Extensionality A B
@@ -236,7 +233,7 @@ abstract
         let lem = subst-refl B (proj₂ x) in
         to (from (refl x))                          ≡⟨ cong to (elim-refl from-P _) ⟩
         to (refl (proj₁ x) , lem)                   ≡⟨ cong (λ f → f lem) (elim-refl to-P _) ⟩
-        cong (_,_ (proj₁ x)) (trans (sym lem) lem)  ≡⟨ cong (cong (_,_ (proj₁ x))) $ G.right-inverse lem ⟩
+        cong (_,_ (proj₁ x)) (trans (sym lem) lem)  ≡⟨ cong (cong (_,_ (proj₁ x))) $ trans-symˡ lem ⟩
         cong (_,_ (proj₁ x)) (refl (proj₂ x))       ≡⟨ cong-refl (_,_ (proj₁ x)) {x = proj₂ x} ⟩∎
         refl x                                      ∎
     }
@@ -256,13 +253,11 @@ abstract
           from (cong (_,_ x) (refl y))                ≡⟨ cong from $ cong-refl (_,_ x) {x = y} ⟩
           from (refl (x , y))                         ≡⟨ elim-refl from-P _ ⟩
           (refl x , lem)                              ≡⟨ cong (_,_ (refl x)) (
-             lem                                           ≡⟨ prove (Lift lem) (Trans (Lift lem) Refl) (refl _) ⟩
+             lem                                           ≡⟨ sym $ trans-reflʳ _ ⟩
              trans lem (refl _)                            ≡⟨ cong (trans lem) eq ⟩
-             trans lem (trans (sym lem) y′≡y)              ≡⟨ prove (Trans (Lift lem) (Trans (Sym (Lift lem)) (Lift y′≡y)))
-                                                                    (Trans (Trans (Lift lem) (Sym (Lift lem))) (Lift y′≡y))
-                                                                    (refl _) ⟩
-             trans (trans lem (sym lem)) y′≡y              ≡⟨ cong (λ p → trans p y′≡y) $ G.left-inverse lem ⟩
-             trans (refl _) y′≡y                           ≡⟨ prove (Trans Refl (Lift y′≡y)) (Lift y′≡y) (refl _) ⟩∎
+             trans lem (trans (sym lem) y′≡y)              ≡⟨ sym $ trans-assoc _ _ _ ⟩
+             trans (trans lem (sym lem)) y′≡y              ≡⟨ cong (λ p → trans p y′≡y) $ trans-symʳ lem ⟩
+             trans (refl _) y′≡y                           ≡⟨ trans-reflˡ _ ⟩∎
              y′≡y                                          ∎) ⟩∎
           (refl x , y′≡y)                             ∎)
          (trans (sym $ subst-refl B y₁) y₁′≡y₂)
@@ -684,13 +679,11 @@ abstract
             ; from = ⊎.cancel-inj₁
             }
           ; right-inverse-of = λ ix≡iy →
-              cong inj₁ (⊎.cancel-inj₁ ix≡iy)              ≡⟨ prove (Cong inj₁ (Cong [ id , const x ] (Lift ix≡iy)))
-                                                                    (Cong f (Lift ix≡iy))
-                                                                    (refl _) ⟩
+              cong inj₁ (⊎.cancel-inj₁ ix≡iy)              ≡⟨ cong-∘ inj₁ [ id , const x ] ix≡iy ⟩
               cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
-              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
-                                                                    (Lift ix≡iy)
-                                                                    (refl _) ⟩∎
+              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ trans-reflˡ _ ⟩
+              trans ix≡iy (sym $ refl _)                   ≡⟨ cong (trans ix≡iy) sym-refl ⟩
+              trans ix≡iy (refl _)                         ≡⟨ trans-reflʳ _ ⟩∎
               ix≡iy                                        ∎
           }
           where
@@ -711,13 +704,11 @@ abstract
             ; from = ⊎.cancel-inj₂
             }
           ; right-inverse-of = λ ix≡iy →
-              cong inj₂ (⊎.cancel-inj₂ ix≡iy)              ≡⟨ prove (Cong inj₂ (Cong [ const x , id ] (Lift ix≡iy)))
-                                                                    (Cong f (Lift ix≡iy))
-                                                                    (refl _) ⟩
+              cong inj₂ (⊎.cancel-inj₂ ix≡iy)              ≡⟨ cong-∘ inj₂ [ const x , id ] ix≡iy ⟩
               cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
-              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ prove (Trans Refl (Trans (Lift ix≡iy) (Sym Refl)))
-                                                                    (Lift ix≡iy)
-                                                                    (refl _) ⟩∎
+              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ trans-reflˡ _ ⟩
+              trans ix≡iy (sym $ refl _)                   ≡⟨ cong (trans ix≡iy) sym-refl ⟩
+              trans ix≡iy (refl _)                         ≡⟨ trans-reflʳ _ ⟩∎
               ix≡iy                                        ∎
           }
           where
@@ -767,10 +758,7 @@ abstract
             trans (f≡id px) (trans (refl x) $ sym (f≡id px′))
           helper x false px _ f≡id = ⊥-elim px
           helper x true  _  _ f≡id =
-            cong f (refl x)                                 ≡⟨ prove (Cong f Refl) Refl (refl _) ⟩
-            refl (f x)                                      ≡⟨ sym $ G.left-inverse _ ⟩
-            trans (f≡id _) (sym (f≡id _))                   ≡⟨ (let fx≡x = Lift (f≡id _) in
-                                                                prove (Trans fx≡x (Sym fx≡x))
-                                                                      (Trans fx≡x (Trans Refl (Sym fx≡x)))
-                                                                      (refl _)) ⟩∎
+            cong f (refl x)                                 ≡⟨ cong-refl f ⟩
+            refl (f x)                                      ≡⟨ sym $ trans-symʳ _ ⟩
+            trans (f≡id _) (sym (f≡id _))                   ≡⟨ cong (trans (f≡id _)) $ sym $ trans-reflˡ _ ⟩∎
             trans (f≡id _) (trans (refl x) $ sym (f≡id _))  ∎

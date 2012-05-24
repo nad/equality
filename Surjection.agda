@@ -10,9 +10,6 @@ module Surjection
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
-import Equality.Groupoid as EG
-private module G {a} {A : Set a} = EG.Groupoid eq (EG.groupoid eq A)
-import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence
   using (_⇔_; module _⇔_) renaming (_∘_ to _⊙_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
@@ -154,11 +151,8 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
                                                                             (cong-refl to) ⟩
              trans (sym (right-inverse-of x)) (
                trans (refl (to (from x))) (
-               right-inverse-of x))                                 ≡⟨ (let eq = Lift (right-inverse-of x) in
-                                                                        prove (Trans (Sym eq) (Trans Refl eq))
-                                                                              (Trans (Sym eq) eq)
-                                                                              (refl _)) ⟩
-             trans (sym (right-inverse-of x)) (right-inverse-of x)  ≡⟨ G.right-inverse _ ⟩∎
+               right-inverse-of x))                                 ≡⟨ cong (trans (sym _)) (trans-reflˡ _) ⟩
+             trans (sym (right-inverse-of x)) (right-inverse-of x)  ≡⟨ trans-symˡ _ ⟩∎
              refl x                                                 ∎)
 
 -- Decidable-equality respects surjections.

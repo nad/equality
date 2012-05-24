@@ -489,3 +489,142 @@ module Derived-definitions-and-properties
     lower-extensionality â b̂ ext f≡g =
       cong (λ h → lower ∘ h ∘ lift) $
         ext {A = ↑ â _} {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g ∘ lower)
+
+  -- A bunch of lemmas that can be used to rearrange equalities.
+
+  abstract
+
+    trans-reflʳ : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
+                  trans x≡y (refl y) ≡ x≡y
+    trans-reflʳ =
+      elim (λ {u v} u≡v → trans u≡v (refl v) ≡ u≡v)
+           (λ _ → trans-refl-refl)
+
+    trans-reflˡ : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
+                  trans (refl x) x≡y ≡ x≡y
+    trans-reflˡ =
+      elim (λ {u v} u≡v → trans (refl u) u≡v ≡ u≡v)
+           (λ _ → trans-refl-refl)
+
+    trans-assoc : ∀ {a} {A : Set a} {x y z u : A}
+                  (x≡y : x ≡ y) (y≡z : y ≡ z) (z≡u : z ≡ u) →
+                  trans (trans x≡y y≡z) z≡u ≡ trans x≡y (trans y≡z z≡u)
+    trans-assoc =
+      elim (λ x≡y → ∀ y≡z z≡u → trans (trans x≡y y≡z) z≡u ≡
+                                trans x≡y (trans y≡z z≡u))
+           (λ y y≡z z≡u →
+              trans (trans (refl y) y≡z) z≡u ≡⟨ cong₂ trans (trans-reflˡ y≡z) (refl z≡u) ⟩
+              trans y≡z z≡u                  ≡⟨ sym $ trans-reflˡ (trans y≡z z≡u) ⟩∎
+              trans (refl y) (trans y≡z z≡u) ∎)
+
+    sym-sym : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
+              sym (sym x≡y) ≡ x≡y
+    sym-sym = elim (λ {u v} u≡v → sym (sym u≡v) ≡ u≡v)
+                   (λ x → sym (sym (refl x))  ≡⟨ cong sym (sym-refl {x = x}) ⟩
+                          sym (refl x)        ≡⟨ sym-refl ⟩∎
+                          refl x              ∎)
+
+    sym-trans : ∀ {a} {A : Set a} {x y z : A}
+                (x≡y : x ≡ y) (y≡z : y ≡ z) →
+                sym (trans x≡y y≡z) ≡ trans (sym y≡z) (sym x≡y)
+    sym-trans {a} =
+      elim (λ x≡y → ∀ y≡z → sym (trans x≡y y≡z) ≡ trans (sym y≡z) (sym x≡y))
+           (λ y y≡z → sym (trans (refl y) y≡z)        ≡⟨ cong sym (trans-reflˡ y≡z) ⟩
+                      sym y≡z                         ≡⟨ sym $ trans-reflʳ (sym y≡z) ⟩
+                      trans (sym y≡z) (refl y)        ≡⟨ cong {a = a} {b = a} (trans (sym y≡z)) (sym sym-refl)  ⟩∎
+                      trans (sym y≡z) (sym (refl y))  ∎)
+
+    trans-symˡ : ∀ {a} {A : Set a} {x y : A} (p : x ≡ y) →
+                 trans (sym p) p ≡ refl y
+    trans-symˡ =
+      elim (λ p → trans (sym p) p ≡ refl _)
+           (λ x → trans (sym (refl x)) (refl x)  ≡⟨ trans-reflʳ _ ⟩
+                  sym (refl x)                   ≡⟨ sym-refl ⟩∎
+                  refl x                         ∎)
+
+    trans-symʳ : ∀ {a} {A : Set a} {x y : A} (p : x ≡ y) →
+                 trans p (sym p) ≡ refl _
+    trans-symʳ =
+      elim (λ p → trans p (sym p) ≡ refl _)
+           (λ x → trans (refl x) (sym (refl x))  ≡⟨ trans-reflˡ _ ⟩
+                  sym (refl x)                   ≡⟨ sym-refl ⟩∎
+                  refl x                         ∎)
+
+    cong-trans : ∀ {a b} {A : Set a} {B : Set b} {x y z : A}
+                 (f : A → B) (x≡y : x ≡ y) (y≡z : y ≡ z) →
+                 cong f (trans x≡y y≡z) ≡ trans (cong f x≡y) (cong f y≡z)
+    cong-trans f =
+      elim (λ x≡y → ∀ y≡z → cong f (trans x≡y y≡z) ≡
+                            trans (cong f x≡y) (cong f y≡z))
+           (λ y y≡z → cong f (trans (refl y) y≡z)           ≡⟨ cong (cong f) (trans-reflˡ _) ⟩
+                      cong f y≡z                            ≡⟨ sym $ trans-reflˡ (cong f y≡z) ⟩
+                      trans (refl (f y)) (cong f y≡z)       ≡⟨ cong₂ trans (sym (cong-refl f {x = y})) (refl (cong f y≡z)) ⟩∎
+                      trans (cong f (refl y)) (cong f y≡z)  ∎)
+
+    cong-id : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
+              x≡y ≡ cong id x≡y
+    cong-id = elim (λ u≡v → u≡v ≡ cong id u≡v)
+                   (λ x → refl x            ≡⟨ sym (cong-refl id {x = x}) ⟩∎
+                          cong id (refl x)  ∎)
+
+    cong-∘ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} {x y : A}
+             (f : B → C) (g : A → B) (x≡y : x ≡ y) →
+             cong f (cong g x≡y) ≡ cong (f ∘ g) x≡y
+    cong-∘ f g = elim (λ x≡y → cong f (cong g x≡y) ≡ cong (f ∘ g) x≡y)
+                      (λ x → cong f (cong g (refl x))  ≡⟨ cong (cong f) (cong-refl g) ⟩
+                             cong f (refl (g x))       ≡⟨ cong-refl f ⟩
+                             refl (f (g x))            ≡⟨ sym (cong-refl (f ∘ g)) ⟩∎
+                             cong (f ∘ g) (refl x)     ∎)
+
+    cong-sym : ∀ {a b} {A : Set a} {B : Set b} {x y : A}
+               (f : A → B) (x≡y : x ≡ y) →
+               cong f (sym x≡y) ≡ sym (cong f x≡y)
+    cong-sym f = elim (λ x≡y → cong f (sym x≡y) ≡ sym (cong f x≡y))
+                      (λ x → cong f (sym (refl x))  ≡⟨ cong (cong f) sym-refl ⟩
+                             cong f (refl x)        ≡⟨ cong-refl f ⟩
+                             refl (f x)             ≡⟨ sym sym-refl ⟩
+                             sym (refl (f x))       ≡⟨ cong sym $ sym (cong-refl f {x = x}) ⟩∎
+                             sym (cong f (refl x))  ∎)
+
+    -- A fusion law for subst.
+
+    subst-subst :
+      ∀ {a p} {A : Set a} (P : A → Set p)
+      {x y z : A} (x≡y : x ≡ y) (y≡z : y ≡ z) (p : P x) →
+      subst P y≡z (subst P x≡y p) ≡ subst P (trans x≡y y≡z) p
+    subst-subst P x≡y y≡z p =
+      elim (λ {x y} x≡y → ∀ {z} (y≡z : y ≡ z) p →
+              subst P y≡z (subst P x≡y p) ≡ subst P (trans x≡y y≡z) p)
+           (λ x y≡z p →
+              subst P y≡z (subst P (refl x) p)  ≡⟨ cong (subst P y≡z) $ subst-refl P p ⟩
+              subst P y≡z p                     ≡⟨ cong (λ q → subst P q p) (sym $ trans-reflˡ _) ⟩∎
+              subst P (trans (refl x) y≡z) p    ∎)
+           x≡y y≡z p
+
+    -- Substitutivity and symmetry sometimes cancel each other out.
+
+    subst-subst-sym :
+      ∀ {a p} {A : Set a} (P : A → Set p) {x y : A}
+      (x≡y : x ≡ y) (p : P y) →
+      subst P x≡y (subst P (sym x≡y) p) ≡ p
+    subst-subst-sym {A = A} P {y = y} x≡y p =
+      subst P x≡y (subst P (sym x≡y) p)  ≡⟨ subst-subst P _ _ _ ⟩
+      subst P (trans (sym x≡y) x≡y) p    ≡⟨ cong (λ q → subst P q p) (trans-symˡ x≡y) ⟩
+      subst P (refl y) p                 ≡⟨ subst-refl P p ⟩∎
+      p                                  ∎
+
+    -- Some corollaries (used in
+    -- Weak-equivalence.equality-equivalence-lemma).
+
+    trans-[trans-sym] : ∀ {a} {A : Set a} {a b c : A} →
+                        (a≡b : a ≡ b) (c≡b : c ≡ b) →
+                        trans (trans a≡b (sym c≡b)) c≡b ≡ a≡b
+    trans-[trans-sym] a≡b c≡b = subst-subst-sym (_≡_ _) c≡b a≡b
+
+    trans-[trans]-sym : ∀ {a} {A : Set a} {a b c : A} →
+                        (a≡b : a ≡ b) (b≡c : b ≡ c) →
+                        trans (trans a≡b b≡c) (sym b≡c) ≡ a≡b
+    trans-[trans]-sym a≡b b≡c =
+      trans (trans a≡b b≡c)             (sym b≡c)  ≡⟨ sym $ cong (λ eq → trans (trans _ eq) (sym _)) $ sym-sym _ ⟩
+      trans (trans a≡b (sym (sym b≡c))) (sym b≡c)  ≡⟨ trans-[trans-sym] _ _ ⟩∎
+      a≡b                                          ∎

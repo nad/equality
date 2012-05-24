@@ -17,9 +17,6 @@ private
     import Bijection; open Bijection eq public
 open Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
-import Equality.Groupoid as EG
-private module G {a} {A : Set a} = EG.Groupoid eq (EG.groupoid eq A)
-import Equality.Tactic as Tactic; open Tactic eq
 private
   module H-level where
     import H-level; open H-level eq public
@@ -73,21 +70,17 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
     right-inverse-of : ∀ p → to′ (from′ p) ≡ p
     right-inverse-of = λ g⁻¹y → cong (_,_ (proj₁ g⁻¹y)) (
       let p = f≡g (proj₁ g⁻¹y); q = proj₂ g⁻¹y in
-      trans (sym p) (trans p q)  ≡⟨ prove (Trans (Sym (Lift p)) (Trans (Lift p) (Lift q)))
-                                          (Trans (Trans (Sym (Lift p)) (Lift p)) (Lift q))
-                                          (refl _) ⟩
-      trans (trans (sym p) p) q  ≡⟨ cong (λ p → trans p q) (G.right-inverse _) ⟩
-      trans (refl _) q           ≡⟨ prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
+      trans (sym p) (trans p q)  ≡⟨ sym $ trans-assoc _ _ _ ⟩
+      trans (trans (sym p) p) q  ≡⟨ cong (λ p → trans p q) (trans-symˡ _) ⟩
+      trans (refl _) q           ≡⟨ trans-reflˡ _ ⟩∎
       q                          ∎)
 
     left-inverse-of : ∀ p → from′ (to′ p) ≡ p
     left-inverse-of = λ f⁻¹y → cong (_,_ (proj₁ f⁻¹y))
       let p = f≡g (proj₁ f⁻¹y); q = proj₂ f⁻¹y in
-      trans p (trans (sym p) q)  ≡⟨ prove (Trans (Lift p) (Trans (Sym (Lift p)) (Lift q)))
-                                          (Trans (Trans (Lift p) (Sym (Lift p))) (Lift q))
-                                          (refl _) ⟩
-      trans (trans p (sym p)) q  ≡⟨ cong (λ p → trans p q) (G.left-inverse _) ⟩
-      trans (refl _) q           ≡⟨ prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
+      trans p (trans (sym p) q)  ≡⟨ sym $ trans-assoc _ _ _ ⟩
+      trans (trans p (sym p)) q  ≡⟨ cong (λ p → trans p q) (trans-symʳ _) ⟩
+      trans (refl _) q           ≡⟨ trans-reflˡ _ ⟩∎
       q                          ∎
 
 -- Surjections can be lifted to preimages.
@@ -140,7 +133,7 @@ lift-surjection {A = A} {B} A↠B {y} = record
         (λ {y x} y≡x → (p : f x ≡ z) →
            _≡_ {A = f ⁻¹ z} (x , p) (y , trans (cong f y≡x) p))
         (λ x p → cong (_,_ x) (
-           p                          ≡⟨ prove (Lift p) (Trans Refl (Lift p)) (refl _) ⟩
+           p                          ≡⟨ sym $ trans-reflˡ _ ⟩
            trans (refl (f x)) p       ≡⟨ cong (λ q → trans q p) (sym (cong-refl f)) ⟩∎
            trans (cong f (refl x)) p  ∎))
 

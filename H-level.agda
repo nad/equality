@@ -17,9 +17,6 @@ open Derived-definitions-and-properties eq
 private
   module DUIP where
     import Equality.Decidable-UIP as DUIP; open DUIP eq public
-import Equality.Groupoid as EG
-private module G {a} {A : Set a} = EG.Groupoid eq (EG.groupoid eq A)
-import Equality.Tactic as Tactic; open Tactic eq
 open import Equivalence hiding (id; _∘_)
 open import Prelude
 import Surjection; open Surjection eq hiding (id; _∘_)
@@ -60,7 +57,7 @@ abstract
 
     irr : ∀ {x y} (x≡y : x ≡ y) → trivial x y ≡ x≡y
     irr = elim (λ {x y} x≡y → trivial x y ≡ x≡y)
-               (λ x → G.right-inverse (proj₂ h x))
+               (λ x → trans-symˡ (proj₂ h x))
 
   mono : ∀ {a m n} {A : Set a} → m ≤ n → H-level m A → H-level n A
   mono ≤-refl               = id

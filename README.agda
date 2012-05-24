@@ -30,23 +30,28 @@ import Equality
 
 import Equality.Propositional
 
--- Some decision procedures for equality.
-
-import Equality.Decision-procedures
-
--- A simple tactic for proving equality of equality proofs.
+-- A simple tactic for proving equality of equality proofs (at the
+-- time of writing only used in Equality.Groupoid).
 
 import Equality.Tactic
 
--- Equalities can be turned into groupoids which are sometimes
--- commutative.
+-- Some decision procedures for equality.
 
-import Equality.Groupoid
+import Equality.Decision-procedures
 
 -- A proof which shows that sets with decidable equality have unique
 -- identity proofs.
 
 import Equality.Decidable-UIP
+
+-- Groupoids.
+
+import Groupoid
+
+-- Equalities can be turned into groupoids which are sometimes
+-- commutative.
+
+import Equality.Groupoid
 
 -- Injections.
 

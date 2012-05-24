@@ -17,12 +17,7 @@ private
     import Bijection; open Bijection eq public
 open Bijection hiding (id; _∘_; inverse)
 open Derived-definitions-and-properties eq
-private
-  module Groupoid where
-    import Equality.Groupoid as EG; open EG eq public
-  open Groupoid using (Groupoid)
-  module G {a} {A : Set a} = Groupoid.Groupoid (Groupoid.groupoid A)
-import Equality.Tactic as Tactic; open Tactic eq
+import Groupoid; open Groupoid eq
 open import Equivalence hiding (id; _∘_; inverse)
 private
   module H-level where
@@ -92,29 +87,22 @@ abstract
   subst-is-weak-equivalence P = elim
     (λ {x y} x≡y → Is-weak-equivalence (subst P x≡y))
     (λ x p → _ , λ q →
-       let srq = Lift (subst-refl P (proj₁ q))
-           q₂  = Lift (proj₂ q)
-       in
        (p , subst-refl P p)                                     ≡⟨ elim
                                                                      (λ {u v : P x} u≡v →
                                                                         _≡_ {A = ∃ λ (w : P x) → subst P (refl x) w ≡ v}
                                                                             (v , subst-refl P v)
                                                                             (u , trans (subst-refl P u) u≡v))
-                                                                     (λ p → cong (_,_ p) (let srp = Lift (subst-refl P p) in
-                                                                              prove srp (Trans srp Refl) (refl _)))
+                                                                     (λ p → cong (_,_ p) (sym $ trans-reflʳ _))
                                                                      (proj₁ q                     ≡⟨ sym $ subst-refl P (proj₁ q) ⟩
                                                                       subst P (refl x) (proj₁ q)  ≡⟨ proj₂ q ⟩∎
                                                                       p                           ∎) ⟩
        (proj₁ q , (trans      (subst-refl P (proj₁ q))  $
                    trans (sym (subst-refl P (proj₁ q))) $
-                         proj₂ q))                              ≡⟨ cong (_,_ (proj₁ q)) $
-                                                                     prove (Trans srq (Trans (Sym srq) q₂))
-                                                                           (Trans (Trans srq (Sym srq)) q₂)
-                                                                           (refl _) ⟩
+                         proj₂ q))                              ≡⟨ cong (_,_ (proj₁ q)) $ sym $ trans-assoc _ _ _ ⟩
        (proj₁ q , trans (trans      (subst-refl P (proj₁ q))
                                (sym (subst-refl P (proj₁ q))))
-                        (proj₂ q))                              ≡⟨ cong (λ eq → proj₁ q , trans eq (proj₂ q)) $ G.left-inverse _ ⟩
-       (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ prove (Trans Refl q₂) q₂ (refl _) ⟩∎
+                        (proj₂ q))                              ≡⟨ cong (λ eq → proj₁ q , trans eq (proj₂ q)) $ trans-symʳ _ ⟩
+       (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ trans-reflˡ _ ⟩∎
        q                                                        ∎)
 
   -- If Σ-map id f is a weak equivalence, then f is also a weak
@@ -226,7 +214,7 @@ record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
            refl (f x)                       ≡⟨ hyp ⟩
            trans (cong f (sym (refl x))) q  ≡⟨ cong (λ p → trans (cong f p) q) sym-refl ⟩
            trans (cong f (refl x)) q        ≡⟨ cong (λ p → trans p q) (cong-refl f) ⟩
-           trans (refl (f x)) q             ≡⟨ prove (Trans Refl (Lift q)) (Lift q) (refl _) ⟩∎
+           trans (refl (f x)) q             ≡⟨ trans-reflˡ _ ⟩∎
            q                                ∎)
 
       lemma₂ : ∀ {f : A → B} {y} {f⁻¹y₁ f⁻¹y₂ : f ⁻¹ y}
@@ -241,9 +229,7 @@ record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
              proj₂ f⁻¹y₂ ≡
                trans (cong f (sym (cong pr p))) (proj₂ f⁻¹y₁))
           (λ f⁻¹y →
-             proj₂ f⁻¹y                                               ≡⟨ prove (Lift (proj₂ f⁻¹y))
-                                                                               (Trans Refl (Lift (proj₂ f⁻¹y)))
-                                                                               (refl _) ⟩
+             proj₂ f⁻¹y                                               ≡⟨ sym $ trans-reflˡ _ ⟩
              trans (refl (f (proj₁ f⁻¹y))) (proj₂ f⁻¹y)               ≡⟨ cong (λ p → trans p (proj₂ f⁻¹y)) (sym (cong-refl f)) ⟩
              trans (cong f (refl (proj₁ f⁻¹y))) (proj₂ f⁻¹y)          ≡⟨ cong (λ p → trans (cong f p) (proj₂ f⁻¹y)) (sym sym-refl) ⟩
              trans (cong f (sym (refl (proj₁ f⁻¹y)))) (proj₂ f⁻¹y)    ≡⟨ cong (λ p → trans (cong f (sym p)) (proj₂ f⁻¹y))
@@ -519,9 +505,9 @@ equality-equivalence-lemma ext y z = bijection⇒weak-equivalence (record
         { to   = λ x≡y → trans x≡y      y≡z
         ; from = λ x≡z → trans x≡z (sym y≡z)
         }
-      ; right-inverse-of = λ x≡z → Groupoid.trans-[trans-sym] x≡z y≡z
+      ; right-inverse-of = λ x≡z → trans-[trans-sym] x≡z y≡z
       }
-    ; left-inverse-of = λ x≡y → Groupoid.trans-[trans]-sym x≡y y≡z
+    ; left-inverse-of = λ x≡y → trans-[trans]-sym x≡y y≡z
     })
 
   from : (∀ x → (x ≡ y) ≈ (x ≡ z)) → y ≡ z
@@ -753,14 +739,12 @@ abstract
                 (subst B₁ (trans (sym (_≈_.left-inverse-of A₁≈A₂ x₁)) $
                            trans (cong (_≈_.from A₁≈A₂) eq₁)
                                  (_≈_.left-inverse-of A₁≈A₂ y₁))
-                          x₂)                                            ≡⟨ cong (to (B₁↣B₂ y₁)) $ sym $
-                                                                              Groupoid.subst-subst B₁ _ _ _ ⟩
+                          x₂)                                            ≡⟨ cong (to (B₁↣B₂ y₁)) $ sym $ subst-subst B₁ _ _ _ ⟩
               to (B₁↣B₂ y₁)
                  (subst B₁ (trans (cong (_≈_.from A₁≈A₂) eq₁)
                                   (_≈_.left-inverse-of A₁≈A₂ y₁)) $
                   subst B₁ (sym (_≈_.left-inverse-of A₁≈A₂ x₁))
-                           x₂)                                           ≡⟨ cong (to (B₁↣B₂ y₁)) $ sym $
-                                                                              Groupoid.subst-subst B₁ _ _ _ ⟩
+                           x₂)                                           ≡⟨ cong (to (B₁↣B₂ y₁)) $ sym $ subst-subst B₁ _ _ _ ⟩
               to (B₁↣B₂ y₁)
                  (subst B₁ (_≈_.left-inverse-of A₁≈A₂ y₁) $
                   subst B₁ (cong (_≈_.from A₁≈A₂) eq₁) $
@@ -771,14 +755,13 @@ abstract
               subst B₂ eq₁
                 (to (B₁↣B₂ x₁) $
                  subst B₁ (_≈_.left-inverse-of A₁≈A₂ x₁) $
-                 subst B₁ (sym (_≈_.left-inverse-of A₁≈A₂ x₁)) x₂)       ≡⟨ cong (subst B₂ eq₁ ⊚ to (B₁↣B₂ x₁)) $
-                                                                              Groupoid.subst-subst B₁ _ _ _ ⟩
+                 subst B₁ (sym (_≈_.left-inverse-of A₁≈A₂ x₁)) x₂)       ≡⟨ cong (subst B₂ eq₁ ⊚ to (B₁↣B₂ x₁)) $ subst-subst B₁ _ _ _ ⟩
               subst B₂ eq₁
                 (to (B₁↣B₂ x₁) $
                  subst B₁ (trans (sym (_≈_.left-inverse-of A₁≈A₂ x₁))
                                  (_≈_.left-inverse-of A₁≈A₂ x₁))
                           x₂)                                            ≡⟨ cong (λ p → subst B₂ eq₁ (to (B₁↣B₂ x₁) (subst B₁ p x₂))) $
-                                                                                 G.right-inverse _ ⟩
+                                                                                 trans-symˡ _ ⟩
               subst B₂ eq₁ (to (B₁↣B₂ x₁) $ subst B₁ (refl _) x₂)        ≡⟨ cong (subst B₂ eq₁ ⊚ to (B₁↣B₂ x₁)) $
                                                                                  subst-refl B₁ x₂ ⟩
               subst B₂ eq₁ (to (B₁↣B₂ x₁) x₂)                            ≡⟨ eq₂ ⟩∎
@@ -814,7 +797,7 @@ abstract
                  (proj₂ p))))                                         ≡⟨ cong (subst B₂ _) $ right-inverse-of (B₁↠B₂ _) _ ⟩
          subst B₂ (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
            (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ (proj₁ p)))
-              (proj₂ p))                                              ≡⟨ Groupoid.subst-subst-sym B₂ _ _ ⟩∎
+              (proj₂ p))                                              ≡⟨ subst-subst-sym B₂ _ _ ⟩∎
          proj₂ p ∎)
       )
 
@@ -859,7 +842,7 @@ abstract
                         (_≈_.to A₁≈A₂ (proj₁ p)))
               (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
                                 (_≈_.to A₁≈A₂ (proj₁ p))))
-                 (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ cong (from (B₁↔B₂ _)) $ Groupoid.subst-subst-sym B₂ _ _ ⟩
+                 (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ cong (from (B₁↔B₂ _)) $ subst-subst-sym B₂ _ _ ⟩
          from (B₁↔B₂ _) (to (B₁↔B₂ _) (proj₂ p))                   ≡⟨ left-inverse-of (B₁↔B₂ _) _ ⟩∎
          proj₂ p                                                   ∎)
       )

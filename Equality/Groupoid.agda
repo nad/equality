@@ -12,57 +12,8 @@ module Equality.Groupoid
 
 open Derived-definitions-and-properties eq
 import Equality.Tactic as Tactic; open Tactic eq
+import Groupoid as G; open G eq
 open import Prelude hiding (id; _∘_)
-
-------------------------------------------------------------------------
--- Groupoids
-
--- Using _≡_ as the underlying equality.
-
-record Groupoid o p : Set (lsuc (o ⊔ p)) where
-  infix  8 _⁻¹
-  infixr 7 _∘_
-  infix  4 _∼_
-  field
-    Object : Set o
-    _∼_    : Object → Object → Set p
-
-    id  : ∀ {x} → x ∼ x
-    _∘_ : ∀ {x y z} → y ∼ z → x ∼ y → x ∼ z
-    _⁻¹ : ∀ {x y} → x ∼ y → y ∼ x
-
-    left-identity  : ∀ {x y} (p : x ∼ y) → id ∘ p ≡ p
-    right-identity : ∀ {x y} (p : x ∼ y) → p ∘ id ≡ p
-    assoc          : ∀ {w x y z} (p : y ∼ z) (q : x ∼ y) (r : w ∼ x) →
-                     p ∘ (q ∘ r) ≡ (p ∘ q) ∘ r
-    left-inverse   : ∀ {x y} (p : x ∼ y) → p ⁻¹ ∘ p ≡ id
-    right-inverse  : ∀ {x y} (p : x ∼ y) → p ∘ p ⁻¹ ≡ id
-
-  -- Note that this definition should perhaps contain more coherence
-  -- properties: we have not assumed that _≡_ is proof-irrelevant.
-
-  -- Some derived properties.
-
-  abstract
-
-    -- The identity is an identity for the inverse operator as well.
-
-    identity : ∀ {x} → id {x = x} ⁻¹ ≡ id
-    identity =
-      id ⁻¹       ≡⟨ sym $ right-identity (id ⁻¹) ⟩
-      id ⁻¹ ∘ id  ≡⟨ left-inverse id ⟩∎
-      id          ∎
-
-    -- The inverse operator is idempotent.
-
-    idempotent : ∀ {x y} (p : x ∼ y) → p ⁻¹ ⁻¹ ≡ p
-    idempotent p =
-      p ⁻¹ ⁻¹               ≡⟨ sym $ right-identity (p ⁻¹ ⁻¹) ⟩
-      p ⁻¹ ⁻¹ ∘ id          ≡⟨ sym $ cong (_∘_ (p ⁻¹ ⁻¹)) (left-inverse p) ⟩
-      p ⁻¹ ⁻¹ ∘ (p ⁻¹ ∘ p)  ≡⟨ assoc _ _ _ ⟩
-      (p ⁻¹ ⁻¹ ∘ p ⁻¹) ∘ p  ≡⟨ cong (λ q → q ∘ p) (left-inverse (p ⁻¹)) ⟩
-      id ∘ p                ≡⟨ left-identity p ⟩∎
-      p                     ∎
 
 ------------------------------------------------------------------------
 -- _≡_ comes with a groupoid structure
@@ -76,37 +27,12 @@ groupoid A = record
   ; _∘_ = flip trans
   ; _⁻¹ = sym
 
-  ; left-identity  = left-identity
-  ; right-identity = right-identity
-  ; assoc          = assoc
-  ; left-inverse   = left-inverse
-  ; right-inverse  = right-inverse
+  ; left-identity  = trans-reflʳ
+  ; right-identity = trans-reflˡ
+  ; assoc          = λ z≡u y≡z x≡y → trans-assoc x≡y y≡z z≡u
+  ; left-inverse   = trans-symʳ
+  ; right-inverse  = trans-symˡ
   }
-  where
-  abstract
-    left-identity : {x y : A} (p : x ≡ y) → trans p (refl _) ≡ p
-    left-identity p = prove (Trans (Lift p) Refl) (Lift p) (refl _)
-
-    right-identity : {x y : A} (p : x ≡ y) → trans (refl _) p ≡ p
-    right-identity = λ p →
-      prove (Trans Refl (Lift p)) (Lift p) (refl _)
-
-    assoc : {w x y z : A} (p : y ≡ z) (q : x ≡ y) (r : w ≡ x) →
-            trans (trans r q) p ≡ trans r (trans q p)
-    assoc = λ p q r →
-      prove (Trans (Trans (Lift r) (Lift q)) (Lift p))
-            (Trans (Lift r) (Trans (Lift q) (Lift p)))
-            (refl _)
-
-    left-inverse : {x y : A} (p : x ≡ y) → trans p (sym p) ≡ refl _
-    left-inverse =
-      elim (λ p → trans p (sym p) ≡ refl _)
-           (λ _ → prove (Trans Refl (Sym Refl)) Refl (refl _))
-
-    right-inverse : {x y : A} (p : x ≡ y) → trans (sym p) p ≡ refl _
-    right-inverse =
-      elim (λ p → trans (sym p) p ≡ refl _)
-           (λ _ → prove (Trans (Sym Refl) Refl) Refl (refl _))
 
 ------------------------------------------------------------------------
 -- In some cases transitivity is commutative
@@ -250,55 +176,3 @@ mutual
   Transitivity-commutative.commutative
     id _∘_ left-identity right-identity p q
   where open Groupoid (groupoid (Ω (1 + n) X x))
-
-------------------------------------------------------------------------
--- More lemmas
-
-abstract
-
-  -- A fusion law for subst.
-
-  subst-subst :
-    ∀ {a p} {A : Set a} (P : A → Set p)
-    {x y z : A} (x≡y : x ≡ y) (y≡z : y ≡ z) (p : P x) →
-    subst P y≡z (subst P x≡y p) ≡ subst P (trans x≡y y≡z) p
-  subst-subst P x≡y y≡z p =
-    elim (λ {x y} x≡y → ∀ {z} (y≡z : y ≡ z) p →
-            subst P y≡z (subst P x≡y p) ≡ subst P (trans x≡y y≡z) p)
-         (λ x y≡z p →
-            subst P y≡z (subst P (refl x) p)  ≡⟨ cong (subst P y≡z) $ subst-refl P p ⟩
-            subst P y≡z p                     ≡⟨ cong (λ q → subst P q p) $
-                                                      (prove (Lift y≡z)
-                                                             (Trans Refl (Lift y≡z))
-                                                             (refl _)) ⟩∎
-            subst P (trans (refl x) y≡z) p    ∎)
-         x≡y y≡z p
-
-  -- Substitutivity and symmetry sometimes cancel each other out.
-
-  subst-subst-sym :
-    ∀ {a p} {A : Set a} (P : A → Set p) {x y : A}
-    (x≡y : x ≡ y) (p : P y) →
-    subst P x≡y (subst P (sym x≡y) p) ≡ p
-  subst-subst-sym {A = A} P {y = y} x≡y p =
-    subst P x≡y (subst P (sym x≡y) p)  ≡⟨ subst-subst P _ _ _ ⟩
-    subst P (trans (sym x≡y) x≡y) p    ≡⟨ cong (λ q → subst P q p) $
-                                               Groupoid.right-inverse (groupoid A) x≡y ⟩
-    subst P (refl y) p                 ≡⟨ subst-refl P p ⟩∎
-    p                                  ∎
-
-  -- Some corollaries (used in
-  -- Weak-equivalence.equality-equivalence-lemma).
-
-  trans-[trans-sym] : ∀ {a} {A : Set a} {a b c : A} →
-                      (a≡b : a ≡ b) (c≡b : c ≡ b) →
-                      trans (trans a≡b (sym c≡b)) c≡b ≡ a≡b
-  trans-[trans-sym] a≡b c≡b = subst-subst-sym (_≡_ _) c≡b a≡b
-
-  trans-[trans]-sym : ∀ {a} {A : Set a} {a b c : A} →
-                      (a≡b : a ≡ b) (b≡c : b ≡ c) →
-                      trans (trans a≡b b≡c) (sym b≡c) ≡ a≡b
-  trans-[trans]-sym a≡b b≡c =
-    trans (trans a≡b b≡c)             (sym b≡c)  ≡⟨ sym $ cong (λ eq → trans (trans _ eq) (sym _)) $ sym-sym _ ⟩
-    trans (trans a≡b (sym (sym b≡c))) (sym b≡c)  ≡⟨ trans-[trans-sym] _ _ ⟩∎
-    a≡b                                          ∎
