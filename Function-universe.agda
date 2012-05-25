@@ -668,6 +668,68 @@ private
   ; left-inverse-of = refl
   }
 
+-- There is a surjection from products of equality isomorphisms to
+-- equalities.
+
+Π≡↔≡-↠-≡ : ∀ k {a} {A : Set a} (x y : A) →
+           (∀ z → (z ≡ x) ↔[ k ] (z ≡ y)) ↠ (x ≡ y)
+Π≡↔≡-↠-≡ k x y = record
+  { equivalence      = record { to = to; from = from }
+  ; right-inverse-of = to∘from
+  }
+  where
+  to : (∀ z → (z ≡ x) ↔[ k ] (z ≡ y)) → x ≡ y
+  to f = to-implication (f x) (refl x)
+
+  from′ : x ≡ y → ∀ z → (z ≡ x) ↔ (z ≡ y)
+  from′ x≡y z = record
+    { surjection = record
+      { equivalence = record
+        { to   = λ z≡x → trans z≡x      x≡y
+        ; from = λ z≡y → trans z≡y (sym x≡y)
+        }
+      ; right-inverse-of = λ z≡y → trans-[trans-sym] z≡y x≡y
+      }
+    ; left-inverse-of = λ z≡x → trans-[trans]-sym z≡x x≡y
+    }
+
+  from : x ≡ y → ∀ z → (z ≡ x) ↔[ k ] (z ≡ y)
+  from x≡y z = from-bijection (from′ x≡y z)
+
+  abstract
+    to∘from : ∀ x≡y → to (from x≡y) ≡ x≡y
+    to∘from x≡y =
+      to (from x≡y)       ≡⟨ sym $ cong (λ f → f (refl x)) $ to-implication∘from-isomorphism bijection ⌊ k ⌋-iso ⟩
+      trans (refl x) x≡y  ≡⟨ trans-reflˡ _ ⟩∎
+      x≡y                 ∎
+
+-- Products of weak equivalences of equalities are isomorphic to
+-- equalities (assuming extensionality).
+
+Π≡≈≡-↔-≡ : ∀ {a} →
+           ({A : Set a} {B : A → Set a} → Extensionality A B) →
+           {A : Set a} (x y : A) →
+           (∀ z → (z ≡ x) ≈ (z ≡ y)) ↔ (x ≡ y)
+Π≡≈≡-↔-≡ ext x y = record
+  { surjection      = surj
+  ; left-inverse-of = from∘to
+  }
+  where
+  surj = Π≡↔≡-↠-≡ weak-equivalence x y
+
+  open _↠_ surj
+
+  abstract
+    from∘to : ∀ f → from (to f) ≡ f
+    from∘to f = ext λ z → Weak.lift-equality ext λ z≡x →
+      trans z≡x (_≈_.to (f x) (refl x))  ≡⟨ elim (λ {u v} u≡v →
+                                                    (f : ∀ z → (z ≡ v) ≈ (z ≡ y)) →
+                                                    trans u≡v (_≈_.to (f v) (refl v)) ≡
+                                                    _≈_.to (f u) u≡v)
+                                                 (λ _ _ → trans-reflˡ _)
+                                                 z≡x f ⟩∎
+      _≈_.to (f z) z≡x                   ∎
+
 ------------------------------------------------------------------------
 -- Lemmas related to if
 
