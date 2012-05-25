@@ -198,10 +198,11 @@ module Kind where
 
   open Function-universe public
     using ()
-    renaming ( implication to subset
-             ; equivalence to set
-             ; injection   to subbag
-             ; bijection   to bag
+    renaming ( implication      to subset
+             ; equivalence      to set
+             ; injection        to subbag
+             ; bijection        to bag
+             ; weak-equivalence to bag-with-weak-equivalence
              )
 
 open Kind public
