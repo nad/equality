@@ -520,6 +520,29 @@ abstract
   bijection⇒weak-equivalence-left-inverse ext _ =
     lift-equality ext (λ _ → refl _)
 
+  -- When sets are used bijection⇒weak-equivalence is a right inverse
+  -- of _≈_.bijection (assuming extensionality).
+
+  bijection⇒weak-equivalence-right-inverse :
+    ∀ {a b} {A : Set a} {B : Set b} →
+    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    Is-set A → (A↔B : A ↔ B) →
+    _≈_.bijection (bijection⇒weak-equivalence A↔B) ≡ A↔B
+  bijection⇒weak-equivalence-right-inverse {a} {b} {B = B}
+                                           ext A-set A↔B =
+    cong₂ (λ l r → record
+             { surjection = record
+               { equivalence      = _↔_.equivalence A↔B
+               ; right-inverse-of = r
+               }
+             ; left-inverse-of = l
+             })
+          (lower-extensionality b b ext λ _ → _⇔_.to set⇔UIP A-set _ _)
+          (lower-extensionality a a ext λ _ → _⇔_.to set⇔UIP B-set _ _)
+    where
+    B-set : Is-set B
+    B-set = respects-surjection (_↔_.surjection A↔B) 2 A-set
+
 -- There is a surjection from A ↔ B to A ≈ B (assuming
 -- extensionality).
 
@@ -533,6 +556,18 @@ abstract
     ; from = _≈_.bijection
     }
   ; right-inverse-of = bijection⇒weak-equivalence-left-inverse ext
+  }
+
+-- When A is a set A ↔ B and A ≈ B are isomorphic (assuming
+-- extensionality).
+
+↔-↔-≈ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+  Is-set A → (A ↔ B) ↔ (A ≈ B)
+↔-↔-≈ ext A-set = record
+  { surjection      = ↔-↠-≈ ext
+  ; left-inverse-of = bijection⇒weak-equivalence-right-inverse ext A-set
   }
 
 ------------------------------------------------------------------------
