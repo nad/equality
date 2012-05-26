@@ -192,7 +192,7 @@ singleton x = node leaf x leaf
 Any-singleton : ∀ {A : Set} (P : A → Set) {x} →
                 Any P (singleton x) ↔ P x
 Any-singleton P {x} =
-  Any P (singleton x)            ↔⟨ id ⟩
+  Any P (singleton x)            ↔⟨⟩
   Any P (node leaf x leaf)       ↔⟨ Any-node P ⟩
   Any P leaf ⊎ P x ⊎ Any P leaf  ↔⟨ Any-leaf P ⊎-cong id ⊎-cong Any-leaf P ⟩
   ⊥ ⊎ P x ⊎ ⊥                    ↔⟨ ⊎-left-identity ⟩

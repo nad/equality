@@ -317,7 +317,7 @@ Position-shape : ∀ {a c} {A : Set a} {C : Container c} (xs : ⟦ C ⟧ A) →
                  (∃ λ z → z ∈ xs) ↔ Position C (shape xs)
 Position-shape {C = C} (s , f) =
   (∃ λ z → ∃ λ p → z ≡ f p)  ↔⟨ ∃-comm ⟩
-  (∃ λ p → ∃ λ z → z ≡ f p)  ↔⟨ _ □ ⟩
+  (∃ λ p → ∃ λ z → z ≡ f p)  ↔⟨⟩
   (∃ λ p → Singleton (f p))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ (singleton-contractible _)) ⟩
   Position C s × ⊤           ↔⟨ ×-right-identity ⟩
   Position C s               □
@@ -375,9 +375,9 @@ Position-shape-cong-relates xs ys xs≈ys p =
 
   from : xs ≈-bag′ ys → xs ≈-bag ys
   from (P↔P , related) = λ z →
-    z ∈ xs                     ↔⟨ z ∈ xs □ ⟩
+    z ∈ xs                     ↔⟨⟩
     ∃ (λ p → z ≡ lookup xs p)  ↝⟨ Σ-cong P↔P (λ p → equality-lemma (related p)) ⟩
-    ∃ (λ p → z ≡ lookup ys p)  ↔⟨ z ∈ ys □ ⟩
+    ∃ (λ p → z ≡ lookup ys p)  ↔⟨⟩
     z ∈ ys                     □
 
 ------------------------------------------------------------------------

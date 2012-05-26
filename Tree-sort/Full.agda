@@ -144,7 +144,7 @@ singleton x (l≤x , x≤u) = leaf l≤x -[ x ]- leaf x≤u
 Any-singleton : ∀ (P : A → Set) {l u x} (l≤x≤u : l ≤[ x ]≤ u) →
                 Any P (singleton x l≤x≤u) ↔ P x
 Any-singleton P {x = x} l≤x≤u =
-  Any P (singleton x l≤x≤u)  ↔⟨ id ⟩
+  Any P (singleton x l≤x≤u)  ↔⟨⟩
   ⊥ ⊎ P x ⊎ ⊥                ↔⟨ ⊎-left-identity ⟩
   P x ⊎ ⊥                    ↔⟨ ⊎-right-identity ⟩
   P x                        □
@@ -166,7 +166,7 @@ Any-insert : ∀ (P : A → Set) {l u} x t (l≤x≤u : l ≤[ x ]≤ u) →
 Any-insert P {l} {u} x (leaf l≤u) l≤x≤u =
   Any P (singleton x l≤x≤u)               ↔⟨ Any-singleton P l≤x≤u ⟩
   P x                                     ↔⟨ inverse ⊎-right-identity ⟩
-  P x ⊎ ⊥                                 ↔⟨ id ⟩
+  P x ⊎ ⊥                                 ↔⟨⟩
   P x ⊎ Any P (leaf {l = l} {u = u} l≤u)  □
 Any-insert P x (ly -[ y ]- yu) (l≤x , x≤u) with total x y
 ... | inj₁ x≤y =
@@ -204,7 +204,7 @@ to-search-tree = foldr (λ x t → insert x t _) (leaf _)
 
 to-search-tree-lemma : ∀ xs → to-search-tree xs ≈-bag xs
 to-search-tree-lemma [] = λ z →
-  z ∈ leaf {l = min} {u = max} _  ↔⟨ id ⟩
+  z ∈ leaf {l = min} {u = max} _  ↔⟨⟩
   z ∈ []                          □
 to-search-tree-lemma (x ∷ xs) = λ z →
   z ∈ insert x (to-search-tree xs) _  ↔⟨ Any-insert (λ x → z ≡ x) _ _ _ ⟩
@@ -247,12 +247,12 @@ flatten (l -[ x ]- r) = flatten l -⁅ x ⁆- flatten r
 
 flatten-lemma : ∀ {l u} (t : Search-tree l u) → flatten t ≈-bag t
 flatten-lemma {l} {u} (leaf l≤u) = λ z →
-  z ∈ nil  {l = l} {u = u} l≤u  ↔⟨ id ⟩
+  z ∈ nil  {l = l} {u = u} l≤u  ↔⟨⟩
   z ∈ leaf {l = l} {u = u} l≤u  □
 flatten-lemma (l -[ x ]- r) = λ z →
   z ∈ flatten l -⁅ x ⁆- flatten r        ↔⟨ Any-append (λ x → z ≡ x) _ _ _ ⟩
   z ∈ flatten l ⊎ z ≡ x ⊎ z ∈ flatten r  ↔⟨ flatten-lemma l z ⊎-cong id ⊎-cong flatten-lemma r z ⟩
-  z ∈ l ⊎ z ≡ x ⊎ z ∈ r                  ↔⟨ id ⟩
+  z ∈ l ⊎ z ≡ x ⊎ z ∈ r                  ↔⟨⟩
   z ∈ l -[ x ]- r                        □
 
 ------------------------------------------------------------------------
@@ -267,7 +267,7 @@ tree-sort = flatten ∘ to-search-tree
 
 tree-sort-permutes : ∀ xs → tree-sort xs ≈-bag xs
 tree-sort-permutes xs = λ z →
-  z ∈ tree-sort xs                 ↔⟨ id ⟩
+  z ∈ tree-sort xs                 ↔⟨⟩
   z ∈ flatten (to-search-tree xs)  ↔⟨ flatten-lemma (to-search-tree xs) _ ⟩
   z ∈ to-search-tree xs            ↔⟨ to-search-tree-lemma xs _ ⟩
   z ∈ xs                           □

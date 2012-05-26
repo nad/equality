@@ -39,7 +39,7 @@ Any-insert : ∀ (P : A → Set) x t →
 Any-insert P x leaf =
   AnyT P (singleton x)  ↔⟨ Any-singleton P ⟩
   P x                   ↔⟨ inverse ⊎-right-identity ⟩
-  P x ⊎ ⊥               ↔⟨ id ⟩
+  P x ⊎ ⊥               ↔⟨⟩
   P x ⊎ AnyT P leaf     □
 Any-insert P x (node l y r) with x ≤ y
 ... | true  =
@@ -78,7 +78,7 @@ to-search-tree = foldr insert leaf
 
 to-search-tree-lemma : ∀ xs z → z ∈T to-search-tree xs ↔ z ∈ xs
 to-search-tree-lemma [] = λ z →
-  z ∈T leaf  ↔⟨ id ⟩
+  z ∈T leaf  ↔⟨⟩
   z ∈  []    □
 to-search-tree-lemma (x ∷ xs) = λ z →
   z ∈T insert x (to-search-tree xs)  ↔⟨ Any-insert (λ x → z ≡ x) _ _ ⟩

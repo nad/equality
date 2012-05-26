@@ -90,6 +90,68 @@ to-implication {bijection}        = _↔_.to
 to-implication {weak-equivalence} = _≈_.to
 
 ------------------------------------------------------------------------
+-- A sub-universe of symmetric kinds of functions
+
+data Symmetric-kind : Set where
+  equivalence bijection weak-equivalence : Symmetric-kind
+
+⌊_⌋-sym : Symmetric-kind → Kind
+⌊ equivalence      ⌋-sym = equivalence
+⌊ bijection        ⌋-sym = bijection
+⌊ weak-equivalence ⌋-sym = weak-equivalence
+
+inverse : ∀ {k a b} {A : Set a} {B : Set b} →
+          A ↝[ ⌊ k ⌋-sym ] B → B ↝[ ⌊ k ⌋-sym ] A
+inverse {equivalence}      = Equivalence.inverse
+inverse {bijection}        = Bijection.inverse
+inverse {weak-equivalence} = Weak.inverse
+
+------------------------------------------------------------------------
+-- A sub-universe of isomorphisms
+
+data Isomorphism-kind : Set where
+  bijection weak-equivalence : Isomorphism-kind
+
+⌊_⌋-iso : Isomorphism-kind → Kind
+⌊ bijection        ⌋-iso = bijection
+⌊ weak-equivalence ⌋-iso = weak-equivalence
+
+infix 0 _↔[_]_
+
+_↔[_]_ : ∀ {ℓ₁ ℓ₂} → Set ℓ₁ → Isomorphism-kind → Set ℓ₂ → Set _
+A ↔[ k ] B = A ↝[ ⌊ k ⌋-iso ] B
+
+from-isomorphism : ∀ {k₁ k₂ a b} {A : Set a} {B : Set b} →
+                   A ↔[ k₁ ] B → A ↝[ k₂ ] B
+from-isomorphism {bijection}        = from-bijection
+from-isomorphism {weak-equivalence} = from-weak-equivalence
+
+-- Lemma: to-implication after from-isomorphism is the same as
+-- to-implication.
+
+to-implication∘from-isomorphism :
+  ∀ {a b} {A : Set a} {B : Set b} k₁ k₂ {A↔B : A ↔[ k₁ ] B} →
+  to-implication A↔B ≡
+  to-implication (from-isomorphism {k₂ = k₂} A↔B)
+to-implication∘from-isomorphism {A = A} {B} = t∘f
+  where
+  t∘f : ∀ k₁ k₂ {A↔B : A ↔[ k₁ ] B} →
+        to-implication A↔B ≡
+        to-implication (from-isomorphism {k₂ = k₂} A↔B)
+  t∘f bijection        implication      = refl _
+  t∘f bijection        equivalence      = refl _
+  t∘f bijection        injection        = refl _
+  t∘f bijection        surjection       = refl _
+  t∘f bijection        bijection        = refl _
+  t∘f bijection        weak-equivalence = refl _
+  t∘f weak-equivalence implication      = refl _
+  t∘f weak-equivalence equivalence      = refl _
+  t∘f weak-equivalence injection        = refl _
+  t∘f weak-equivalence surjection       = refl _
+  t∘f weak-equivalence bijection        = refl _
+  t∘f weak-equivalence weak-equivalence = refl _
+
+------------------------------------------------------------------------
 -- Preorder
 
 -- All the different kinds of functions form preorders.
@@ -114,21 +176,21 @@ id = from-bijection Bijection.id
 
 -- "Equational" reasoning combinators.
 
-infixr 0 _↝⟨_⟩_ _↔⟨_⟩_ _≈⟨_⟩_
-infix  0 finally-↝ finally-↔ finally-≈
+infixr 0 _↝⟨_⟩_ _↔⟨_⟩_ _↔⟨⟩_
+infix  0 finally-↝ finally-↔
 infix  0 _□
 
 _↝⟨_⟩_ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
          A ↝[ k ] B → B ↝[ k ] C → A ↝[ k ] C
 _ ↝⟨ A↝B ⟩ B↝C = B↝C ∘ A↝B
 
-_↔⟨_⟩_ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
-         A ↔ B → B ↝[ k ] C → A ↝[ k ] C
-_ ↔⟨ A↔B ⟩ B↝C = _ ↝⟨ from-bijection A↔B ⟩ B↝C
+_↔⟨_⟩_ : ∀ {k₁ k₂ a b c} (A : Set a) {B : Set b} {C : Set c} →
+         A ↔[ k₁ ] B → B ↝[ k₂ ] C → A ↝[ k₂ ] C
+_ ↔⟨ A↔B ⟩ B↝C = _ ↝⟨ from-isomorphism A↔B ⟩ B↝C
 
-_≈⟨_⟩_ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
-         A ≈ B → B ↝[ k ] C → A ↝[ k ] C
-_ ≈⟨ A≈B ⟩ B↝C = _ ↝⟨ from-weak-equivalence A≈B ⟩ B↝C
+_↔⟨⟩_ : ∀ {k a b} (A : Set a) {B : Set b} →
+        A ↝[ k ] B → A ↝[ k ] B
+_ ↔⟨⟩ A↝B = A↝B
 
 _□ : ∀ {k a} (A : Set a) → A ↝[ k ] A
 A □ = id
@@ -137,34 +199,12 @@ finally-↝ : ∀ {k a b} (A : Set a) (B : Set b) →
             A ↝[ k ] B → A ↝[ k ] B
 finally-↝ _ _ A↝B = A↝B
 
-finally-↔ : ∀ {k a b} (A : Set a) (B : Set b) →
-            A ↔ B → A ↝[ k ] B
-finally-↔ _ _ A↔B = from-bijection A↔B
-
-finally-≈ : ∀ {k a b} (A : Set a) (B : Set b) →
-            A ≈ B → A ↝[ k ] B
-finally-≈ _ _ A≈B = from-weak-equivalence A≈B
+finally-↔ : ∀ {k₁ k₂ a b} (A : Set a) (B : Set b) →
+            A ↔[ k₁ ] B → A ↝[ k₂ ] B
+finally-↔ _ _ A↔B = from-isomorphism A↔B
 
 syntax finally-↝ A B A↝B = A ↝⟨ A↝B ⟩□ B □
 syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
-syntax finally-≈ A B A≈B = A ≈⟨ A≈B ⟩□ B □
-
-------------------------------------------------------------------------
--- A sub-universe of symmetric kinds of functions
-
-data Symmetric-kind : Set where
-  equivalence bijection weak-equivalence : Symmetric-kind
-
-⌊_⌋ : Symmetric-kind → Kind
-⌊ equivalence      ⌋ = equivalence
-⌊ bijection        ⌋ = bijection
-⌊ weak-equivalence ⌋ = weak-equivalence
-
-inverse : ∀ {k a b} {A : Set a} {B : Set b} →
-          A ↝[ ⌊ k ⌋ ] B → B ↝[ ⌊ k ⌋ ] A
-inverse {equivalence}      = Equivalence.inverse
-inverse {bijection}        = Bijection.inverse
-inverse {weak-equivalence} = Weak.inverse
 
 ------------------------------------------------------------------------
 -- Lots of properties
@@ -473,31 +513,44 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
 
 -- See also Σ-left-zero and Σ-right-zero above.
 
--- Σ preserves bijections in its first argument and all kinds of
+-- Σ preserves isomorphisms in its first argument and all kinds of
 -- functions in its second argument.
+--
+-- The first clause is included as an optimisation intended to make
+-- some proof terms smaller.
 
-Σ-cong : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+Σ-cong : ∀ {k₁ k₂ a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
            {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
-         (A₁↔A₂ : A₁ ↔ A₂) →
-         (∀ x → B₁ x ↝[ k ] B₂ (_↔_.to A₁↔A₂ x)) →
-         Σ A₁ B₁ ↝[ k ] Σ A₂ B₂
-Σ-cong {implication}      A₁↔A₂ = Weak.∃-preserves-functions
-                                    (from-bijection A₁↔A₂)
-Σ-cong {equivalence}      A₁↔A₂ = Weak.∃-preserves-equivalences
-                                    (from-bijection A₁↔A₂)
-Σ-cong {injection}        A₁↔A₂ = Weak.∃-preserves-injections
-                                    (from-bijection A₁↔A₂)
-Σ-cong {surjection}       A₁↔A₂ = Weak.∃-preserves-surjections
-                                    (from-bijection A₁↔A₂)
-Σ-cong {bijection}        A₁↔A₂ = Weak.∃-preserves-bijections
-                                    (from-bijection A₁↔A₂)
-Σ-cong {weak-equivalence} A₁↔A₂ = Weak.Σ-preserves
-                                    (from-bijection A₁↔A₂)
+         (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
+         (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
+         Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
+Σ-cong {weak-equivalence} {weak-equivalence} A₁≈A₂ B₁≈B₂ =
+  Weak.Σ-preserves A₁≈A₂ B₁≈B₂
+Σ-cong {k₁} {k₂} {A₁ = A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ = helper k₂ B₁↝B₂′
+  where
+  A₁≈A₂ : A₁ ≈ A₂
+  A₁≈A₂ = from-isomorphism A₁↔A₂
+
+  B₁↝B₂′ : ∀ x → B₁ x ↝[ k₂ ] B₂ (_≈_.to A₁≈A₂ x)
+  B₁↝B₂′ x =
+    B₁ x                                    ↝⟨ B₁↝B₂ x ⟩
+    B₂ (to-implication A₁↔A₂ x)             ↔⟨ ≡⇒↝ bijection $ cong (λ f → B₂ (f x)) $
+                                                 to-implication∘from-isomorphism k₁ weak-equivalence ⟩
+    B₂ (_≈_.to (from-isomorphism A₁↔A₂) x)  □
+
+  helper : ∀ k₂ → (∀ x → B₁ x ↝[ k₂ ] B₂ (_≈_.to A₁≈A₂ x)) →
+           Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
+  helper implication      = Weak.∃-preserves-functions    A₁≈A₂
+  helper equivalence      = Weak.∃-preserves-equivalences A₁≈A₂
+  helper injection        = Weak.∃-preserves-injections   A₁≈A₂
+  helper surjection       = Weak.∃-preserves-surjections  A₁≈A₂
+  helper bijection        = Weak.∃-preserves-bijections   A₁≈A₂
+  helper weak-equivalence = Weak.Σ-preserves              A₁≈A₂
 
 -- ∃ preserves all kinds of functions. One could define
--- ∃-cong = Σ-cong id, but the resulting "from" functions would
--- contain an unnecessary use of substitutivity, and I want to avoid
--- that.
+-- ∃-cong = Σ-cong Bijection.id, but the resulting "from" functions
+-- would contain an unnecessary use of substitutivity, and I want to
+-- avoid that.
 
 private
 
@@ -537,7 +590,7 @@ private
          (∀ x → B₁ x ↝[ k ] B₂ x) → ∃ B₁ ↝[ k ] ∃ B₂
 ∃-cong {implication}      = ∃-cong-impl
 ∃-cong {equivalence}      = ∃-cong-eq
-∃-cong {injection}        = Σ-cong id
+∃-cong {injection}        = Σ-cong Bijection.id
 ∃-cong {surjection}       = ∃-cong-surj
 ∃-cong {bijection}        = ∃-cong-bij
 ∃-cong {weak-equivalence} = λ B₁≈B₂ →

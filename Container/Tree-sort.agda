@@ -135,7 +135,7 @@ sort = flatten ∘ to-search-tree
 
 sort≈ : ∀ xs → sort xs ≈-bag xs
 sort≈ xs = λ z →
-  z ∈ sort xs                      ↔⟨ id ⟩
+  z ∈ sort xs                      ↔⟨⟩
   z ∈ flatten (to-search-tree xs)  ↔⟨ flatten≈ (to-search-tree xs) _ ⟩
   z ∈ to-search-tree xs            ↔⟨ to-search-tree≈ xs _ ⟩
   z ∈ xs                           □

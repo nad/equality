@@ -433,7 +433,7 @@ Fin-length : ∀ {a} {A : Set a}
 Fin-length xs =
   (∃ λ z → z ∈ xs)                   ↔⟨ ∃-cong (λ _ → ∈-lookup xs) ⟩
   (∃ λ z → ∃ λ i → z ≡ lookup xs i)  ↔⟨ ∃-comm ⟩
-  (∃ λ i → ∃ λ z → z ≡ lookup xs i)  ↔⟨ id ⟩
+  (∃ λ i → ∃ λ z → z ≡ lookup xs i)  ↔⟨⟩
   (∃ λ i → Singleton (lookup xs i))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ (singleton-contractible _)) ⟩
   Fin (length xs) × ⊤                ↔⟨ ×-right-identity ⟩
   Fin (length xs)                    □
