@@ -172,7 +172,12 @@ _∘_ {weak-equivalence} = Weak._∘_
 -- Identity.
 
 id : ∀ {k a} {A : Set a} → A ↝[ k ] A
-id = from-bijection Bijection.id
+id {implication}      = P.id
+id {equivalence}      = Equivalence.id
+id {injection}        = Injection.id
+id {surjection}       = Surjection.id
+id {bijection}        = Bijection.id
+id {weak-equivalence} = Weak.id
 
 -- "Equational" reasoning combinators.
 
@@ -212,6 +217,12 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
 
 -- Properties of the form A ↝[ k ] B, for arbitrary k, are only stated
 -- for bijections; converting to the other forms is easy.
+
+------------------------------------------------------------------------
+-- Equalities can be converted to all kinds of functions
+
+≡⇒↝ : ∀ k {ℓ} {A B : Set ℓ} → A ≡ B → A ↝[ k ] B
+≡⇒↝ k = elim (λ {A B} _ → A ↝[ k ] B) (λ _ → id)
 
 ------------------------------------------------------------------------
 -- A lemma related to ⊤

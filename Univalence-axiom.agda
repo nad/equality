@@ -19,6 +19,8 @@ open Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
 import Equality.Decision-procedures as ED; open ED eq
 open import Equivalence hiding (id; _∘_)
+import Function-universe
+open Function-universe eq using (weak-equivalence; ≡⇒↝)
 import H-level; open H-level eq
 import H-level.Closure; open H-level.Closure eq
 import Injection; open Injection eq using (Injective)
@@ -34,7 +36,7 @@ open Weak hiding (_∘_; id)
 -- If two sets are equal, then they are weakly equivalent.
 
 ≡⇒≈ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A ≈ B
-≡⇒≈ = elim (λ {A B} _ → A ≈ B) (λ _ → Weak.id)
+≡⇒≈ = ≡⇒↝ weak-equivalence
 
 -- The univalence axiom states that ≡⇒≈ is a weak equivalence.
 
