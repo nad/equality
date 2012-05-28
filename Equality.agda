@@ -645,6 +645,6 @@ module Derived-definitions-and-properties
                         (a≡b : a ≡ b) (b≡c : b ≡ c) →
                         trans (trans a≡b b≡c) (sym b≡c) ≡ a≡b
     trans-[trans]-sym a≡b b≡c =
-      trans (trans a≡b b≡c)             (sym b≡c)  ≡⟨ sym $ cong (λ eq → trans (trans _ eq) (sym _)) $ sym-sym _ ⟩
+      trans (trans a≡b b≡c)             (sym b≡c)  ≡⟨ sym $ cong (λ eq → trans (trans _ eq) (sym b≡c)) $ sym-sym _ ⟩
       trans (trans a≡b (sym (sym b≡c))) (sym b≡c)  ≡⟨ trans-[trans-sym] _ _ ⟩∎
       a≡b                                          ∎
