@@ -84,8 +84,14 @@ import Univalence-axiom
 -- Containers, including Any, _∈_, the two definitions of bag
 -- equivalence, and a proof showing that the two definitions are
 -- equivalent.
+--
+-- There is also a proof which shows that the definitions are
+-- isomorphic (assuming extensionality), if "bijection" is replaced by
+-- the equivalent concept of "weak equivalence" in the definitions of
+-- bag equivalence.
 
 import Container
+import Weak-equivalence
 
 -- The List, Stream and Tree containers. It is shown that the general
 -- definition of bag equivalence for containers, instantiated with the

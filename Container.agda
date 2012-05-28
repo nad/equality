@@ -6,20 +6,28 @@
 
 module Container where
 
-open import Bag-equivalence using (Kind; bag)
+open import Bag-equivalence using (Kind); open Bag-equivalence.Kind
 open import Equivalence hiding (id; _∘_; inverse)
 open import Equality.Propositional
 open import Prelude hiding (id; List; map; lookup)
 
-import Bijection
-open Bijection equality-with-J using (_↔_; module _↔_)
+private
+  module Bijection where
+    import Bijection
+    open Bijection equality-with-J public
+open Bijection using (_↔_; module _↔_)
 private
   module Function-universe where
     import Function-universe
     open Function-universe equality-with-J public
 open Function-universe hiding (inverse; Kind) renaming (_∘_ to _⟨∘⟩_)
-import H-level.Closure
-open H-level.Closure equality-with-J
+import H-level; open H-level equality-with-J
+import H-level.Closure; open H-level.Closure equality-with-J
+import Surjection; open Surjection equality-with-J using (module _↠_)
+import Weak-equivalence
+private
+  open module Weak = Weak-equivalence equality-with-J
+    using (Is-weak-equivalence; _≈_; weq; module _≈_)
 
 ------------------------------------------------------------------------
 -- Containers
@@ -282,19 +290,31 @@ expressed-in-terms-of-interpretation-and-Any C = record
 ------------------------------------------------------------------------
 -- Alternative definition of bag equivalence
 
--- Two things are bag equal if there is a bijection between their
--- positions which relates equal things.
+-- Two things are bag equal if there is a bijection (or weak
+-- equivalence) between their positions which relates equal things.
 
-infix 4 _≈-bag′_
+infix 4 _≈[_]′_
 
-_≈-bag′_ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
-           ⟦ C ⟧ A → ⟦ D ⟧ A → Set _
-_≈-bag′_ {C = C} {D} (s , f) (s′ , f′) =
-  ∃ λ (P↔P : Position C s ↔ Position D s′) →
+_≈[_]′_ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
+          ⟦ C ⟧ A → Isomorphism-kind → ⟦ D ⟧ A → Set _
+_≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
+  ∃ λ (P↔P : Position C s ↔[ k ] Position D s′) →
       (∀ p → f p ≡ f′ (to-implication P↔P p))
 
--- The definition is equivalent to the one given above. The proof is
--- very similar to the one given in Bag-equivalence.
+-- If the position sets are sets (have H-level two), then the two
+-- instantiations of _≈[_]′_ are isomorphic (assuming extensionality).
+
+≈′↔≈′ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
+        ({A : Set (c ⊔ d)} {B : A → Set (c ⊔ d)} → Extensionality A B) →
+        (∀ s → Is-set (Position C s)) →
+        (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
+        xs ≈[ bag ]′ ys ↔ xs ≈[ bag-with-weak-equivalence ]′ ys
+≈′↔≈′ ext P-set (s , f) (s′ , f′) =
+  (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  ↔⟨ Σ-cong (Weak.↔-↔-≈ ext (P-set s)) (λ _ → Bijection.id) ⟩
+  (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  □
+
+-- The definition _≈[_]′_ is also equivalent to the one given above.
+-- The proof is very similar to the one given in Bag-equivalence.
 
 -- Membership can be expressed as "there is an index which points to
 -- the element". In fact, membership /is/ expressed in this way, so
@@ -337,11 +357,11 @@ Position-shape-cong {C = C} {D} xs ys xs∼ys =
 -- Furthermore Position-shape-cong relates equal elements.
 
 Position-shape-cong-relates :
-  ∀ {a c d} {A : Set a} {C : Container c} {D : Container d}
-  (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) (xs≈ys : xs ≈-bag ys) p →
+  ∀ {k a c d} {A : Set a} {C : Container c} {D : Container d}
+  (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) (xs≈ys : xs ∼[ k ] ys) p →
   lookup xs p ≡
     lookup ys (to-implication (Position-shape-cong xs ys xs≈ys) p)
-Position-shape-cong-relates xs ys xs≈ys p =
+Position-shape-cong-relates {bag} xs ys xs≈ys p =
   lookup xs p                                                     ≡⟨ proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl) ⟩
   lookup ys (proj₁ $ to-implication (xs≈ys (lookup xs p))
                                     (p , refl))                   ≡⟨ refl ⟩
@@ -358,27 +378,109 @@ Position-shape-cong-relates xs ys xs≈ys p =
                p)                                                 ≡⟨ refl ⟩∎
   lookup ys (to-implication (Position-shape-cong xs ys xs≈ys) p)  ∎
 
+Position-shape-cong-relates {bag-with-weak-equivalence} xs ys xs≈ys p =
+  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+Position-shape-cong-relates {subbag} xs ys xs≈ys p =
+  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+Position-shape-cong-relates {set} xs ys xs≈ys p =
+  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+Position-shape-cong-relates {subset} xs ys xs≈ys p =
+  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+Position-shape-cong-relates {surjection} xs ys xs≈ys p =
+  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+
 -- We get that the two definitions of bag equivalence are equivalent.
 
-≈⇔≈′ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d}
-       (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) → xs ≈-bag ys ⇔ xs ≈-bag′ ys
-≈⇔≈′ xs ys = record
+≈⇔≈′ : ∀ {k a c d} {A : Set a} {C : Container c} {D : Container d}
+       (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
+       xs ∼[ ⌊ k ⌋-iso ] ys ⇔ xs ≈[ k ]′ ys
+≈⇔≈′ {k} xs ys = record
   { to   = λ xs≈ys → ( Position-shape-cong xs ys xs≈ys
                      , Position-shape-cong-relates xs ys xs≈ys
                      )
   ; from = from
   }
   where
-  equality-lemma : ∀ {k a} {A : Set a} {x y z : A} →
-                   x ≡ y → (z ≡ x) ↝[ k ] (z ≡ y)
-  equality-lemma {y = y} {z} refl = z ≡ y □
-
-  from : xs ≈-bag′ ys → xs ≈-bag ys
+  from : xs ≈[ k ]′ ys → xs ∼[ ⌊ k ⌋-iso ] ys
   from (P↔P , related) = λ z →
     z ∈ xs                     ↔⟨⟩
-    ∃ (λ p → z ≡ lookup xs p)  ↝⟨ Σ-cong P↔P (λ p → equality-lemma (related p)) ⟩
+    ∃ (λ p → z ≡ lookup xs p)  ↔⟨ Σ-cong P↔P (λ p → _↠_.from (Π≡↔≡-↠-≡ k _ _) (related p) z) ⟩
     ∃ (λ p → z ≡ lookup ys p)  ↔⟨⟩
     z ∈ ys                     □
+
+-- If weak equivalences are used, then the definitions are isomorphic
+-- (assuming extensionality).
+--
+-- Thierry Coquand helped me with this proof: At first I wasn't sure
+-- if it was true or not, but then I managed to prove it for singleton
+-- lists, Thierry found a proof for lists of length two, I found one
+-- for streams, and finally I could complete the proof below.
+
+≈↔≈′ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
+       ({A : Set (a ⊔ c ⊔ d)} {B : A → Set (a ⊔ c ⊔ d)} →
+        Extensionality A B) →
+       (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
+       xs ∼[ bag-with-weak-equivalence ] ys ↔
+       xs ≈[ bag-with-weak-equivalence ]′ ys
+≈↔≈′ {a} {c} {d} {C = C} {D} ext xs ys = record
+  { surjection = record
+    { equivalence      = equiv
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  equiv = ≈⇔≈′ {k = weak-equivalence} xs ys
+
+  open _⇔_ equiv
+
+  from∘to : ∀ xs≈ys → from (to xs≈ys) ≡ xs≈ys
+  from∘to xs≈ys =
+    lower-extensionality (c ⊔ d) a ext λ z →
+      Weak.lift-equality ext λ { (p , z≡xs[p]) →
+
+        let xs[p]≡ys[-] : ∃ λ p′ → lookup xs p ≡ lookup ys p′
+            xs[p]≡ys[-] = _≈_.to (xs≈ys (lookup xs p)) (p , refl) in
+
+      Σ-map id (trans z≡xs[p]) xs[p]≡ys[-]      ≡⟨ elim₁ (λ {z} z≡xs[p] → Σ-map id (trans z≡xs[p]) xs[p]≡ys[-] ≡
+                                                                    _≈_.to (xs≈ys z) (p , z≡xs[p]))
+        (Σ-map id (trans refl) xs[p]≡ys[-]               ≡⟨ cong (_,_ _) (trans-reflˡ _) ⟩∎
+         xs[p]≡ys[-]                                        ∎)
+                                                         z≡xs[p] ⟩∎
+      _≈_.to (xs≈ys z) (p , z≡xs[p])            ∎ }
+
+  to∘from : ∀ xs≈ys → to (from xs≈ys) ≡ xs≈ys
+  to∘from (weq f f-weq , related) = _↔_.to Σ-≡,≡↔≡
+    ( f≡f
+    , (subst (P ∘ _≈_.to) f≡f (trans refl ∘ related)  ≡⟨ cong (subst (P ∘ _≈_.to) f≡f)
+                                                              (lower-extensionality (a ⊔ d) (c ⊔ d) ext λ _ → trans-reflˡ _) ⟩
+       subst (P ∘ _≈_.to) f≡f related                 ≡⟨ subst-∘ P _≈_.to f≡f ⟩
+       subst P (cong _≈_.to f≡f) related              ≡⟨ cong (λ eq → subst P eq related) cong-to-f≡f ⟩
+       subst P refl related                           ≡⟨ subst-refl P {x = f} related ⟩∎
+       related                                        ∎)
+    )
+    where
+    P : (Position C (shape xs) → Position D (shape ys)) → Set (a ⊔ c)
+    P f = ∀ p → lookup xs p ≡ lookup ys (f p)
+
+    f-weq′ : Is-weak-equivalence f
+    f-weq′ = _≈_.is-weak-equivalence $
+             Position-shape-cong xs ys $
+             from (weq f f-weq , related)
+
+    abstract
+      irr : f-weq′ ≡ f-weq
+      irr = proj₁ $
+        Weak.propositional (lower-extensionality a a ext) f _ _
+
+      f≡f : weq f f-weq′ ≡ weq f f-weq
+      f≡f = cong (weq f) irr
+
+      cong-to-f≡f : cong _≈_.to f≡f ≡ refl {x = f}
+      cong-to-f≡f =
+        cong _≈_.to f≡f            ≡⟨ cong-∘ _≈_.to (weq f) irr ⟩
+        cong (_≈_.to ∘ weq f) irr  ≡⟨ cong-const irr ⟩∎
+        refl                       ∎
 
 ------------------------------------------------------------------------
 -- Another alternative definition of bag equivalence
