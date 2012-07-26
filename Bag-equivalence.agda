@@ -15,7 +15,7 @@ open import Fin
 open import Prelude as P hiding (id)
 
 import Bijection
-open Bijection equality-with-J using (_↔_; module _↔_)
+open Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
 
 import Equality.Decision-procedures
 open Equality.Decision-procedures equality-with-J
@@ -60,13 +60,22 @@ Any′-[] {P = P} = record
   ; left-inverse-of = from∘to
   }
   where
+  to′ : ∀ {xs} → Any′ P xs → [] ≡ xs → ⊥
+  to′ (here  p) = ⊥-elim ∘ List.[]≢∷
+  to′ (there p) = ⊥-elim ∘ List.[]≢∷
+
   to : Any′ P [] → ⊥
-  to ()
+  to p = to′ p refl
 
   from = ⊥-elim
 
+  from∘to′ : ∀ {xs} (p : Any′ P xs) ([]≡xs : [] ≡ xs) →
+             subst (Any′ P) []≡xs (from (to′ p []≡xs)) ≡ p
+  from∘to′ (here  p) = ⊥-elim ∘ List.[]≢∷
+  from∘to′ (there p) = ⊥-elim ∘ List.[]≢∷
+
   from∘to : ∀ p → from (to p) ≡ p
-  from∘to ()
+  from∘to p = from∘to′ p refl
 
 Any′-∷ : ∀ {a p} {A : Set a} {P : A → Set p} {x xs} →
         Any′ P (x ∷ xs) ↔ P x ⊎ Any′ P xs
@@ -81,15 +90,28 @@ Any′-∷ {P = P} {x} {xs} = record
   ; left-inverse-of = from∘to
   }
   where
+  to′ : ∀ {ys} → Any′ P ys → ys ≡ x ∷ xs → P x ⊎ Any′ P xs
+  to′ (here  p) ≡∷ = inj₁ (subst P (List.cancel-∷-head ≡∷) p)
+  to′ (there p) ≡∷ = inj₂ (subst (Any′ P) (List.cancel-∷-tail ≡∷) p)
+
   to : Any′ P (x ∷ xs) → P x ⊎ Any′ P xs
-  to (here  p) = inj₁ p
-  to (there p) = inj₂ p
+  to p = to′ p refl
 
   from = [ here , there ]
 
+  from∘to′ : ∀ {ys} (p : Any′ P ys) ≡∷ →
+             from (to′ p ≡∷) ≡ subst (Any′ P) ≡∷ p
+  from∘to′ (here p)  ≡∷ with List.cancel-∷-head ≡∷
+                           | List.cancel-∷-tail ≡∷
+                           | sym (List.unfold-∷ ≡∷)
+  from∘to′ (here p)  .refl | refl | refl | refl = refl
+  from∘to′ (there p) ≡∷ with List.cancel-∷-head ≡∷
+                           | List.cancel-∷-tail ≡∷
+                           | sym (List.unfold-∷ ≡∷)
+  from∘to′ (there p) .refl | refl | refl | refl = refl
+
   from∘to : ∀ p → from (to p) ≡ p
-  from∘to (here  p) = refl
-  from∘to (there p) = refl
+  from∘to p = from∘to′ p refl
 
 Any↔Any′ : ∀ {a p} {A : Set a} {P : A → Set p} {xs} →
            Any P xs ↔ Any′ P xs
@@ -321,7 +343,7 @@ filter-cong p xs ys xs∼ys = λ z →
 ¬->>=-left-distributive :
   ¬ ({A B : Set} (xs : List A) (f g : A → List B) →
      xs >>= (λ x → f x ++ g x) ≡ (xs >>= f) ++ (xs >>= g))
-¬->>=-left-distributive distrib with eq
+¬->>=-left-distributive distrib = Bool.true≢false true≡false
   where
   xs = true ∷ false ∷ []
   f  = λ x → x ∷ []
@@ -330,7 +352,9 @@ filter-cong p xs ys xs∼ys = λ z →
   eq : true ∷ true ∷ false ∷ false ∷ [] ≡
        true ∷ false ∷ true ∷ false ∷ []
   eq = distrib xs f g
-... | ()
+
+  true≡false : true ≡ false
+  true≡false = List.cancel-∷-head (List.cancel-∷-tail eq)
 
 -- _++_ is commutative.
 
@@ -385,10 +409,10 @@ range-disjunction p q xs = λ z →
   z ∈ filter p xs ++ filter q xs                                   □
   where
   inj : (b₁ b₂ : Bool) → T (b₁ ∨ b₂) ↣ T b₁ ⊎ T b₂
-  inj true  true  = record { to = inj₁; injective = λ _      → refl   }
-  inj true  false = record { to = inj₁; injective = λ { refl → refl } }
-  inj false true  = record { to = inj₂; injective = λ { refl → refl } }
-  inj false false = record { to = λ (); injective = λ {}              }
+  inj true  true  = record { to = inj₁; injective = λ _ → refl    }
+  inj true  false = record { to = inj₁; injective = ⊎.cancel-inj₁ }
+  inj false true  = record { to = inj₂; injective = ⊎.cancel-inj₂ }
+  inj false false = record { to = λ (); injective = λ {}          }
 
   lemma : ∀ {a} (A : Set a) (b₁ b₂ : Bool) →
           A × T (b₁ ∨ b₂) ↣ A × T b₁ ⊎ A × T b₂
@@ -545,9 +569,9 @@ abstract
              to (Fin-length xs) (z , p))
     lemma with z | p
              | to (Fin-length xs) (z , p)
-             | left-inverse-of (Fin-length xs) (z , p)
-    ... | .(lookup xs i) | .(from (∈-lookup xs) (i , refl)) | i | refl =
-      refl
+             | from Σ-≡,≡↔≡ (left-inverse-of (Fin-length xs) (z , p))
+    lemma | .(lookup xs i) | .(from (∈-lookup xs) (i , refl))
+          | i | refl , refl = refl
 
   -- Bag equivalence isomorphisms preserve index equality. Note that
   -- this means that, even if the underlying equality is proof

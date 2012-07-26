@@ -15,7 +15,7 @@ open import Fin
 open import Prelude as P hiding (List; []; _∷_; foldr; _++_; id; _∘_)
 
 import Bijection
-open Bijection equality-with-J using (_↔_; module _↔_)
+open Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
 import Function-universe
 open Function-universe equality-with-J
 import H-level.Closure
@@ -69,7 +69,7 @@ List↔List {A} ext = record
   from∘to : ∀ xs → from (to xs) ≡ xs
   from∘to (zero  , f) = cong (_,_ _) (ext λ ())
   from∘to (suc n , f) =
-    (suc (length (to xs)) , P.lookup (P._∷_ x (to xs)))  ≡⟨ lemma₂ (from∘to (n , f ∘ inj₂)) ⟩
+    (suc (length (to xs)) , P.lookup (P._∷_ x (to xs)))  ≡⟨ lemma₃ (from∘to (n , f ∘ inj₂)) ⟩
     (suc n                , [ (λ _ → x) , f ∘ inj₂ ])    ≡⟨ lemma₁ ⟩∎
     (suc n                , f)                           ∎
     where
@@ -82,12 +82,20 @@ List↔List {A} ext = record
                  (suc n , f)
     lemma₁ = cong (_,_ _) (ext [ (λ { tt → refl }) , (λ _ → refl) ])
 
-    lemma₂ : {ys : ⟦ List ⟧ A} →
+    lemma₂ : {n : ℕ} {lkup : Fin n → A} →
+             (≡n : length (to xs) ≡ n) →
+             subst (λ n → Fin n → A) ≡n (P.lookup (to xs)) ≡ lkup →
+             _≡_ {A = ⟦ List ⟧ A}
+                 (suc (length (to xs)) , P.lookup (P._∷_ x (to xs)))
+                 (suc n , [ (λ _ → x) , lkup ])
+    lemma₂ refl refl = sym lemma₁
+
+    lemma₃ : {ys : ⟦ List ⟧ A} →
              (length (to xs) , P.lookup (to xs)) ≡ ys →
              _≡_ {A = ⟦ List ⟧ A}
                  (suc (length (to xs)) , P.lookup (P._∷_ x (to xs)))
                  (suc (proj₁ ys) , [ (λ _ → x) , proj₂ ys ])
-    lemma₂ refl = sym lemma₁
+    lemma₃ ≡ys = uncurry lemma₂ (_↔_.from Σ-≡,≡↔≡ ≡ys)
 
 -- The two definitions of Any are isomorphic (both via "to" and
 -- "from").
