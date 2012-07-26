@@ -15,7 +15,7 @@ private
   module Bijection where
     import Bijection
     open Bijection equality-with-J public
-open Bijection using (_↔_; module _↔_)
+open Bijection using (_↔_; module _↔_; Σ-≡,≡↔≡)
 private
   module Function-universe where
     import Function-universe
