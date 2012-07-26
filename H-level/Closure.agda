@@ -680,7 +680,7 @@ abstract
             }
           ; right-inverse-of = λ ix≡iy →
               cong inj₁ (⊎.cancel-inj₁ ix≡iy)              ≡⟨ cong-∘ inj₁ [ id , const x ] ix≡iy ⟩
-              cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
+              cong f ix≡iy                                 ≡⟨ cong-roughly-id f p ix≡iy _ _ f≡id ⟩
               trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ trans-reflˡ _ ⟩
               trans ix≡iy (sym $ refl _)                   ≡⟨ cong (trans ix≡iy) sym-refl ⟩
               trans ix≡iy (refl _)                         ≡⟨ trans-reflʳ _ ⟩∎
@@ -705,7 +705,7 @@ abstract
             }
           ; right-inverse-of = λ ix≡iy →
               cong inj₂ (⊎.cancel-inj₂ ix≡iy)              ≡⟨ cong-∘ inj₂ [ const x , id ] ix≡iy ⟩
-              cong f ix≡iy                                 ≡⟨ cong-lemma f p ix≡iy _ _ f≡id ⟩
+              cong f ix≡iy                                 ≡⟨ cong-roughly-id f p ix≡iy _ _ f≡id ⟩
               trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ trans-reflˡ _ ⟩
               trans ix≡iy (sym $ refl _)                   ≡⟨ cong (trans ix≡iy) sym-refl ⟩
               trans ix≡iy (refl _)                         ≡⟨ trans-reflʳ _ ⟩∎
@@ -721,44 +721,3 @@ abstract
           f≡id : ∀ z → T (p z) → f z ≡ z
           f≡id (inj₁ x) = ⊥-elim
           f≡id (inj₂ y) = const (refl (inj₂ y))
-
-        -- If f z evaluates to z for a decidable set of values which
-        -- includes x and y, do we have
-        --
-        --   cong f x≡y ≡ x≡y
-        --
-        -- for any x≡y : x ≡ y? The answer is yes, but cong-lemma only
-        -- captures this statement indirectly. (Note that the equation
-        -- above is not well-typed if f is a variable.) If cong-lemma
-        -- is instantiated properly with the various components above,
-        -- then we get
-        --
-        --   cong f x≡y ≡ trans … (trans x≡y (sym …)),
-        --
-        -- where the two occurrences of … evaluate to reflexivity
-        -- proofs.
-
-        cong-lemma : {A : Set} (f : A → A) (p : A → Bool) {x y : A}
-                     (x≡y : x ≡ y) (px : T (p x)) (py : T (p y))
-                     (f≡id : ∀ z → T (p z) → f z ≡ z) →
-                     cong f x≡y ≡
-                     trans (f≡id x px) (trans x≡y $ sym (f≡id y py))
-        cong-lemma {A} f p =
-          elim (λ {x y} x≡y →
-                  (px : T (p x)) (py : T (p y))
-                  (f≡id : ∀ z → T (p z) → f z ≡ z) →
-                  cong f x≡y ≡
-                  trans (f≡id x px) (trans x≡y $ sym (f≡id y py)))
-               (λ x px px′ f≡id → helper x (p x) px px′ (f≡id x))
-          where
-          helper :
-            (x : A) (b : Bool) (px px′ : T b)
-            (f≡id : T b → f x ≡ x) →
-            cong f (refl x) ≡
-            trans (f≡id px) (trans (refl x) $ sym (f≡id px′))
-          helper x false px _ f≡id = ⊥-elim px
-          helper x true  _  _ f≡id =
-            cong f (refl x)                                 ≡⟨ cong-refl f ⟩
-            refl (f x)                                      ≡⟨ sym $ trans-symʳ _ ⟩
-            trans (f≡id _) (sym (f≡id _))                   ≡⟨ cong (trans (f≡id _)) $ sym $ trans-reflˡ _ ⟩∎
-            trans (f≡id _) (trans (refl x) $ sym (f≡id _))  ∎

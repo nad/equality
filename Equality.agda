@@ -660,3 +660,36 @@ module Derived-definitions-and-properties
       trans (trans a≡b b≡c)             (sym b≡c)  ≡⟨ sym $ cong (λ eq → trans (trans _ eq) (sym b≡c)) $ sym-sym _ ⟩
       trans (trans a≡b (sym (sym b≡c))) (sym b≡c)  ≡⟨ trans-[trans-sym] _ _ ⟩∎
       a≡b                                          ∎
+
+    -- If f z evaluates to z for a decidable set of values which
+    -- includes x and y, do we have
+    --
+    --   cong f x≡y ≡ x≡y
+    --
+    -- for any x≡y : x ≡ y? The equation above is not well-typed if f
+    -- is a variable, but the approximation below can be proved.
+
+    cong-roughly-id : ∀ {a} {A : Set a} (f : A → A) (p : A → Bool) {x y : A}
+                      (x≡y : x ≡ y) (px : T (p x)) (py : T (p y))
+                      (f≡id : ∀ z → T (p z) → f z ≡ z) →
+                      cong f x≡y ≡
+                      trans (f≡id x px) (trans x≡y $ sym (f≡id y py))
+    cong-roughly-id {A = A} f p =
+      elim (λ {x y} x≡y →
+              (px : T (p x)) (py : T (p y))
+              (f≡id : ∀ z → T (p z) → f z ≡ z) →
+              cong f x≡y ≡
+              trans (f≡id x px) (trans x≡y $ sym (f≡id y py)))
+           (λ x px px′ f≡id → helper x (p x) px px′ (f≡id x))
+      where
+      helper :
+        (x : A) (b : Bool) (px px′ : T b)
+        (f≡id : T b → f x ≡ x) →
+        cong f (refl x) ≡
+        trans (f≡id px) (trans (refl x) $ sym (f≡id px′))
+      helper x false px _ f≡id = ⊥-elim px
+      helper x true  _  _ f≡id =
+        cong f (refl x)                                 ≡⟨ cong-refl f ⟩
+        refl (f x)                                      ≡⟨ sym $ trans-symʳ _ ⟩
+        trans (f≡id _) (sym (f≡id _))                   ≡⟨ cong (trans (f≡id _)) $ sym $ trans-reflˡ _ ⟩∎
+        trans (f≡id _) (trans (refl x) $ sym (f≡id _))  ∎
