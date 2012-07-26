@@ -438,6 +438,18 @@ module Derived-definitions-and-properties
     f y u  ≡⟨ cong (f y)      u≡v ⟩∎
     f y v  ∎
 
+  abstract
+
+    -- "Evaluation rule" for cong₂.
+
+    cong₂-refl : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+                 (f : A → B → C) {x : A} {y : B} →
+                 cong₂ f (refl x) (refl y) ≡ refl (f x y)
+    cong₂-refl f {x} {y} =
+      trans (cong (flip f y) (refl x)) (cong (f x) (refl y))  ≡⟨ cong₂ trans (cong-refl (flip f y)) (cong-refl (f x)) ⟩
+      trans (refl (f x y)) (refl (f x y))                     ≡⟨ trans-refl-refl ⟩∎
+      refl (f x y)                                            ∎
+
   -- The inspect idiom.
 
   data Inspect {a} {A : Set a} (x : A) : Set a where
