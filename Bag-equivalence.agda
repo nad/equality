@@ -49,7 +49,7 @@ data Any′ {a p} {A : Set a}
 
 Any′-[] : ∀ {a p ℓ} {A : Set a} {P : A → Set p} →
           Any′ P [] ↔ ⊥ {ℓ = ℓ}
-Any′-[] {P = P} = record
+Any′-[] {ℓ = ℓ} {P = P} = record
   { surjection = record
     { equivalence = record
       { to   = to
@@ -60,7 +60,7 @@ Any′-[] {P = P} = record
   ; left-inverse-of = from∘to
   }
   where
-  to′ : ∀ {xs} → Any′ P xs → [] ≡ xs → ⊥
+  to′ : ∀ {xs} → Any′ P xs → [] ≡ xs → ⊥ {ℓ = ℓ}
   to′ (here  p) = ⊥-elim ∘ List.[]≢∷
   to′ (there p) = ⊥-elim ∘ List.[]≢∷
 
