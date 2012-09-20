@@ -191,19 +191,6 @@ module Another-example where
                  (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p)))
               (push-subst-pair B C)
 
-      -- A combination of subst-∘ and proj₁∘Σ-≡,≡→≡.
-
-      subst-Σ-≡,≡→≡ :
-        ∀ {a b p} {A : Set a} {B : A → Set b} {x₁ x₂ y₁ y₂}
-          {x₁≡x₂ : x₁ ≡ x₂} {y₁≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂}
-        (P : A → Set p) {x} →
-        subst (P ⊚ proj₁) (Σ-≡,≡→≡ {B = B} x₁≡x₂ y₁≡y₂) x ≡
-        subst P x₁≡x₂ x
-      subst-Σ-≡,≡→≡ {x₁≡x₂ = x₁≡x₂} {y₁≡y₂} P {x} =
-        subst (P ⊚ proj₁) (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂) x     ≡⟨ subst-∘ P proj₁ _ ⟩
-        subst P (cong proj₁ (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂)) x  ≡⟨ cong (λ eq → subst P eq x) (proj₁-Σ-≡,≡→≡ _ _) ⟩∎
-        subst P x₁≡x₂ x                               ∎
-
     A₁≡A₂ : A₁ ≡ A₂
     A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $
               bijection⇒weak-equivalence bijection
@@ -247,7 +234,7 @@ module Another-example where
 
     lemma₂′ : subst (λ { (A , _) → A }) lemma₁″ x₁ ≡ x₂
     lemma₂′ =
-      subst (λ { (A , _) → A }) lemma₁″ x₁  ≡⟨ subst-Σ-≡,≡→≡ (λ A → A) ⟩
+      subst (λ { (A , _) → A }) lemma₁″ x₁  ≡⟨ subst₂-proj₁ (λ A → A) ⟩
       subst (λ A → A) A₁≡A₂ x₁              ≡⟨ to-lemma x₁ ⟩
       to x₁                                 ≡⟨ x₁₂ ⟩∎
       x₂                                    ∎
@@ -276,8 +263,8 @@ module Another-example where
     lemma₃′ : subst (λ { ((A , _) , _) → A → A }) lemma₂″ f₁ ≡ f₂
     lemma₃′ =
       dependent-extensionality univ₁ (λ _ → univ₂) $ λ x →
-        subst (λ { ((A , _) , _) → A → A }) lemma₂″ f₁ x  ≡⟨ cong (λ f → f x) $ subst-Σ-≡,≡→≡ (λ { (A , _) → A → A }) ⟩
-        subst (λ { (A , _) → A → A }) lemma₁″ f₁ x        ≡⟨ cong (λ f → f x) $ subst-Σ-≡,≡→≡ (λ A → A → A) ⟩
+        subst (λ { ((A , _) , _) → A → A }) lemma₂″ f₁ x  ≡⟨ cong (λ f → f x) $ subst₂-proj₁ (λ { (A , _) → A → A }) ⟩
+        subst (λ { (A , _) → A → A }) lemma₁″ f₁ x        ≡⟨ cong (λ f → f x) $ subst₂-proj₁ (λ A → A → A) ⟩
         subst (λ A → A → A) A₁≡A₂ f₁ x                    ≡⟨ cong (λ f → f x) $ cast-lemma f₁ ⟩
         to (f₁ (from x))                                  ≡⟨ cong to $ sym $ f₂₁ x ⟩
         to (from (f₂ x))                                  ≡⟨ right-inverse-of (f₂ x) ⟩∎

@@ -606,6 +606,14 @@ module Derived-definitions-and-properties
                              sym (refl (f x))       ≡⟨ cong sym $ sym (cong-refl f {x = x}) ⟩∎
                              sym (cong f (refl x))  ∎)
 
+    subst-const : ∀ {a p} {A : Set a} {x₁ x₂ : A} {x₁≡x₂ : x₁ ≡ x₂}
+                    {P : Set p} {p} →
+                  subst (const P) x₁≡x₂ p ≡ p
+    subst-const {P = P} {p} =
+      elim¹ (λ x₁≡x₂ → subst (const P) x₁≡x₂ p ≡ p)
+            (subst-refl (const P) _)
+            _
+
     subst-∘ : ∀ {a b p} {A : Set a} {B : Set b} {x y : A}
               (P : B → Set p) (f : A → B) (x≡y : x ≡ y) {p : P (f x)} →
               subst (P ∘ f) x≡y p ≡ subst P (cong f x≡y) p
@@ -755,6 +763,18 @@ module Derived-definitions-and-properties
        (subst B (refl _) (proj₁ p) ,
         subst₂ C (refl _) (refl _) (proj₂ p))        ∎)
       y≡z
+
+    -- A proof simplification rule for subst₂.
+
+    subst₂-proj₁ :
+      ∀ {a b p} {A : Set a} {B : A → Set b} {x₁ x₂ y₁ y₂}
+        {x₁≡x₂ : x₁ ≡ x₂} {y₁≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂}
+      (P : A → Set p) {p} →
+      subst₂ {B = B} (P ∘ proj₁) x₁≡x₂ y₁≡y₂ p ≡ subst P x₁≡x₂ p
+    subst₂-proj₁ {x₁≡x₂ = x₁≡x₂} {y₁≡y₂} P {p} =
+      subst₂ (P ∘ proj₁) x₁≡x₂ y₁≡y₂ p              ≡⟨ subst-∘ P proj₁ _ ⟩
+      subst P (cong proj₁ (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂)) p  ≡⟨ cong (λ eq → subst P eq p) (proj₁-Σ-≡,≡→≡ _ _) ⟩∎
+      subst P x₁≡x₂ p                               ∎
 
     -- If f z evaluates to z for a decidable set of values which
     -- includes x and y, do we have
