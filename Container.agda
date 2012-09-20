@@ -15,7 +15,7 @@ private
   module Bijection where
     import Bijection
     open Bijection equality-with-J public
-open Bijection using (_↔_; module _↔_; Σ-≡,≡↔≡)
+open Bijection using (_↔_; module _↔_)
 private
   module Function-universe where
     import Function-universe
@@ -450,15 +450,13 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
       _≈_.to (xs≈ys z) (p , z≡xs[p])            ∎ }
 
   to∘from : ∀ xs≈ys → to (from xs≈ys) ≡ xs≈ys
-  to∘from (weq f f-weq , related) = _↔_.to Σ-≡,≡↔≡
-    ( f≡f
-    , (subst (P ∘ _≈_.to) f≡f (trans refl ∘ related)  ≡⟨ cong (subst (P ∘ _≈_.to) f≡f)
-                                                              (lower-extensionality (a ⊔ d) (c ⊔ d) ext λ _ → trans-reflˡ _) ⟩
-       subst (P ∘ _≈_.to) f≡f related                 ≡⟨ subst-∘ P _≈_.to f≡f ⟩
-       subst P (cong _≈_.to f≡f) related              ≡⟨ cong (λ eq → subst P eq related) cong-to-f≡f ⟩
-       subst P refl related                           ≡⟨ subst-refl P {x = f} related ⟩∎
-       related                                        ∎)
-    )
+  to∘from (weq f f-weq , related) = Σ-≡,≡→≡ f≡f
+    (subst (P ∘ _≈_.to) f≡f (trans refl ∘ related)  ≡⟨ cong (subst (P ∘ _≈_.to) f≡f)
+                                                            (lower-extensionality (a ⊔ d) (c ⊔ d) ext λ _ → trans-reflˡ _) ⟩
+     subst (P ∘ _≈_.to) f≡f related                 ≡⟨ subst-∘ P _≈_.to f≡f ⟩
+     subst P (cong _≈_.to f≡f) related              ≡⟨ cong (λ eq → subst P eq related) cong-to-f≡f ⟩
+     subst P refl related                           ≡⟨ subst-refl P {x = f} related ⟩∎
+     related                                        ∎)
     where
     P : (Position C (shape xs) → Position D (shape ys)) → Set (a ⊔ c)
     P f = ∀ p → lookup xs p ≡ lookup ys (f p)

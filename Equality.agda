@@ -661,6 +661,101 @@ module Derived-definitions-and-properties
       trans (trans a≡b (sym (sym b≡c))) (sym b≡c)  ≡⟨ trans-[trans-sym] _ _ ⟩∎
       a≡b                                          ∎
 
+  -- An equality between pairs can be proved using a pair of
+  -- equalities.
+
+  Σ-≡,≡→≡ : ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B} →
+            (p : proj₁ p₁ ≡ proj₁ p₂) →
+            subst B p (proj₂ p₁) ≡ proj₂ p₂ →
+            p₁ ≡ p₂
+  Σ-≡,≡→≡ {B = B} p q = elim
+    (λ {x₁ y₁} (p : x₁ ≡ y₁) → ∀ {x₂ y₂} →
+       subst B p x₂ ≡ y₂ → (x₁ , x₂) ≡ (y₁ , y₂))
+    (λ z₁ {x₂} {y₂} x₂≡y₂ → cong (_,_ z₁) (
+       x₂                    ≡⟨ sym $ subst-refl B x₂ ⟩
+       subst B (refl z₁) x₂  ≡⟨ x₂≡y₂ ⟩∎
+       y₂                    ∎))
+    p q
+
+  abstract
+
+    -- "Evaluation rules" for Σ-≡,≡→≡.
+
+    Σ-≡,≡→≡-reflˡ :
+      ∀ {a b} {A : Set a} {B : A → Set b} {x y₁ y₂} →
+      (y₁≡y₂ : subst B (refl x) y₁ ≡ y₂) →
+      Σ-≡,≡→≡ {B = B} (refl x) y₁≡y₂ ≡
+      cong (_,_ x) (trans (sym $ subst-refl B y₁) y₁≡y₂)
+    Σ-≡,≡→≡-reflˡ {B = B} y₁≡y₂ =
+      cong (λ f → f y₁≡y₂) $
+        elim-refl (λ {x₁ y₁} (p : x₁ ≡ y₁) → ∀ {x₂ y₂} →
+                     subst B p x₂ ≡ y₂ → (x₁ , x₂) ≡ (y₁ , y₂))
+                  _
+
+    Σ-≡,≡→≡-refl-refl :
+      ∀ {a b} {A : Set a} {B : A → Set b} {x y} →
+      Σ-≡,≡→≡ {B = B} (refl x) (refl (subst B (refl x) y)) ≡
+      cong (_,_ x) (sym (subst-refl B y))
+    Σ-≡,≡→≡-refl-refl {B = B} {x} {y} =
+      Σ-≡,≡→≡ (refl x) (refl _)                             ≡⟨ Σ-≡,≡→≡-reflˡ (refl _) ⟩
+      cong (_,_ x) (trans (sym $ subst-refl B y) (refl _))  ≡⟨ cong (cong (_,_ x)) (trans-reflʳ _) ⟩∎
+      cong (_,_ x) (sym (subst-refl B y))                   ∎
+
+    -- A proof simplification rule for Σ-≡,≡→≡.
+
+    proj₁-Σ-≡,≡→≡ :
+      ∀ {a b} {A : Set a} {B : A → Set b} {x₁ x₂ y₁ y₂}
+      (x₁≡x₂ : x₁ ≡ x₂) (y₁≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂) →
+      cong proj₁ (Σ-≡,≡→≡ {B = B} x₁≡x₂ y₁≡y₂) ≡ x₁≡x₂
+    proj₁-Σ-≡,≡→≡ {B = B} {y₁ = y₁} x₁≡x₂ y₁≡y₂ = elim¹
+      (λ x₁≡x₂ → ∀ {y₂} (y₁≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂) →
+         cong proj₁ (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂) ≡ x₁≡x₂)
+      (λ y₁≡y₂ →
+         cong proj₁ (Σ-≡,≡→≡ (refl _) y₁≡y₂)                              ≡⟨ cong (cong proj₁) $ Σ-≡,≡→≡-reflˡ y₁≡y₂ ⟩
+         cong proj₁ (cong (_,_ _) (trans (sym $ subst-refl B y₁) y₁≡y₂))  ≡⟨ cong-∘ proj₁ (_,_ _) _ ⟩
+         cong (const _) (trans (sym $ subst-refl B y₁) y₁≡y₂)             ≡⟨ cong-const _ ⟩∎
+         refl _                                                           ∎)
+      x₁≡x₂ y₁≡y₂
+
+  -- A binary variant of subst.
+
+  subst₂ : ∀ {a b p} {A : Set a} {B : A → Set b}
+           (P : Σ A B → Set p) {x₁ x₂ y₁ y₂} →
+           (x₁≡x₂ : x₁ ≡ x₂) → subst B x₁≡x₂ y₁ ≡ y₂ →
+           P (x₁ , y₁) → P (x₂ , y₂)
+  subst₂ P x₁≡x₂ y₁≡y₂ = subst P (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂)
+
+  abstract
+
+    -- "Evaluation rules" for subst₂.
+
+    subst₂-refl-refl :
+      ∀ {a b p} {A : Set a} {B : A → Set b}
+      (P : Σ A B → Set p) {x y p} →
+      subst₂ P (refl _) (refl _) p ≡
+      subst (curry P x) (sym $ subst-refl B y) p
+    subst₂-refl-refl {B = B} P {x} {y} {p} =
+      subst P (Σ-≡,≡→≡ (refl x) (refl _)) p            ≡⟨ cong (λ eq₁ → subst P eq₁ p) Σ-≡,≡→≡-refl-refl ⟩
+      subst P (cong (_,_ x) (sym (subst-refl B y))) p  ≡⟨ sym $ subst-∘ P (_,_ x) _ ⟩∎
+      subst (curry P x) (sym $ subst-refl B y) p       ∎
+
+    -- The subst function can be "pushed" inside pairs.
+
+    push-subst-pair :
+      ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
+      (B : A → Set b) (C : Σ A B → Set c) {p} →
+      subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
+      (subst B y≡z (proj₁ p) , subst₂ C y≡z (refl _) (proj₂ p))
+    push-subst-pair {y≡z = y≡z} B C {p} = elim¹
+      (λ y≡z →
+         subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
+         (subst B y≡z (proj₁ p) , subst₂ C y≡z (refl _) (proj₂ p)))
+      (subst (λ x → Σ (B x) (curry C x)) (refl _) p  ≡⟨ subst-refl (λ x → Σ (B x) (curry C x)) _ ⟩
+       p                                             ≡⟨ Σ-≡,≡→≡ (sym (subst-refl B _)) (sym (subst₂-refl-refl C)) ⟩∎
+       (subst B (refl _) (proj₁ p) ,
+        subst₂ C (refl _) (refl _) (proj₂ p))        ∎)
+      y≡z
+
     -- If f z evaluates to z for a decidable set of values which
     -- includes x and y, do we have
     --

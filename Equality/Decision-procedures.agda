@@ -108,7 +108,7 @@ module Σ {a b} {A : Set a} {B : A → Set b} where
     (x₁ , y₁) ≟ (x₂ , y₂) with x₁ ≟A x₂
     ... | inj₂ x₁≢x₂ = inj₂ (x₁≢x₂ ∘ cong proj₁)
     ... | inj₁ x₁≡x₂ with subst B x₁≡x₂ y₁ ≟B y₂
-    ...   | inj₁ cast-y₁≡y₂ = inj₁ (_↔_.to Σ-≡,≡↔≡ (x₁≡x₂ , cast-y₁≡y₂))
+    ...   | inj₁ cast-y₁≡y₂ = inj₁ (Σ-≡,≡→≡ x₁≡x₂ cast-y₁≡y₂)
     ...   | inj₂ cast-y₁≢y₂ =
       inj₂ (cast-y₁≢y₂ ∘
             subst (λ p → subst B p y₁ ≡ y₂) (decidable⇒UIP _≟A_ _ _) ∘

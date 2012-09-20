@@ -398,13 +398,14 @@ abstract
     lemma : ∀ {b} {C : Set b} → Contractible C →
             Is-weak-equivalence (λ (_ : C) → tt)
     lemma (x , irr) _ = (x , refl tt) , λ p →
-      (x , refl tt)  ≡⟨ _↔_.to Σ-≡,≡↔≡ (irr (proj₁ p) ,
+      (x , refl tt)  ≡⟨ Σ-≡,≡→≡
+                          (irr (proj₁ p))
                           (subst (λ _ → tt ≡ tt)
                              (irr (proj₁ p)) (refl tt)  ≡⟨ elim (λ eq → subst (λ _ → tt ≡ tt) eq (refl tt) ≡ refl tt)
                                                                 (λ _ → subst-refl (λ _ → tt ≡ tt) (refl tt))
                                                                 (irr (proj₁ p)) ⟩
                            refl tt                      ≡⟨ elim (λ eq → refl tt ≡ eq) (refl ⊚ refl) (proj₂ p) ⟩∎
-                           proj₂ p                      ∎)) ⟩∎
+                           proj₂ p                      ∎) ⟩∎
       p              ∎
 
   -- ext⁻¹ is a weak equivalence (assuming extensionality).
@@ -830,17 +831,16 @@ abstract
   abstract
     right-inverse-of′ :
       ∀ p → _⇔_.to equivalence′ (_⇔_.from equivalence′ p) ≡ p
-    right-inverse-of′ = λ p → _↔_.to Σ-≡,≡↔≡
-      ( _≈_.right-inverse-of A₁≈A₂ (proj₁ p)
-      , (subst B₂ (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
-           (to (B₁↠B₂ _) (from (B₁↠B₂ _)
-              (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ (proj₁ p)))
-                 (proj₂ p))))                                         ≡⟨ cong (subst B₂ _) $ right-inverse-of (B₁↠B₂ _) _ ⟩
-         subst B₂ (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
-           (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ (proj₁ p)))
-              (proj₂ p))                                              ≡⟨ subst-subst-sym B₂ _ _ ⟩∎
-         proj₂ p ∎)
-      )
+    right-inverse-of′ = λ p → Σ-≡,≡→≡
+      (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
+      (subst B₂ (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
+         (to (B₁↠B₂ _) (from (B₁↠B₂ _)
+            (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ (proj₁ p)))
+               (proj₂ p))))                                         ≡⟨ cong (subst B₂ _) $ right-inverse-of (B₁↠B₂ _) _ ⟩
+       subst B₂ (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
+         (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ (proj₁ p)))
+            (proj₂ p))                                              ≡⟨ subst-subst-sym B₂ _ _ ⟩∎
+       proj₂ p ∎)
 
 ∃-preserves-bijections :
   ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
@@ -860,33 +860,32 @@ abstract
   abstract
     left-inverse-of′ :
       ∀ p → _↠_.from surjection′ (_↠_.to surjection′ p) ≡ p
-    left-inverse-of′ = λ p → _↔_.to Σ-≡,≡↔≡
-      ( _≈_.left-inverse-of A₁≈A₂ (proj₁ p)
-      , (subst B₁ (_≈_.left-inverse-of A₁≈A₂ (proj₁ p))
-           (from (B₁↔B₂ _)
-              (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
-                                (_≈_.to A₁≈A₂ (proj₁ p))))
-                 (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ push-subst B₂ (λ x → from (B₁↔B₂ x))
-                                                                        (_≈_.left-inverse-of A₁≈A₂ (proj₁ p)) ⟩
-         from (B₁↔B₂ _)
-           (subst B₂ (cong (_≈_.to A₁≈A₂)
-                           (_≈_.left-inverse-of A₁≈A₂ (proj₁ p)))
-              (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
-                                (_≈_.to A₁≈A₂ (proj₁ p))))
-                 (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ cong (λ eq → from (B₁↔B₂ _)
-                                                                                     (subst B₂ eq
-                                                                                        (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ _))
-                                                                                           (to (B₁↔B₂ _) (proj₂ p))))) $
-                                                                           _≈_.left-right-lemma A₁≈A₂ _ ⟩
-         from (B₁↔B₂ _)
-           (subst B₂ (_≈_.right-inverse-of A₁≈A₂
-                        (_≈_.to A₁≈A₂ (proj₁ p)))
-              (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
-                                (_≈_.to A₁≈A₂ (proj₁ p))))
-                 (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ cong (from (B₁↔B₂ _)) $ subst-subst-sym B₂ _ _ ⟩
-         from (B₁↔B₂ _) (to (B₁↔B₂ _) (proj₂ p))                   ≡⟨ left-inverse-of (B₁↔B₂ _) _ ⟩∎
-         proj₂ p                                                   ∎)
-      )
+    left-inverse-of′ = λ p → Σ-≡,≡→≡
+      (_≈_.left-inverse-of A₁≈A₂ (proj₁ p))
+      (subst B₁ (_≈_.left-inverse-of A₁≈A₂ (proj₁ p))
+         (from (B₁↔B₂ _)
+            (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
+                              (_≈_.to A₁≈A₂ (proj₁ p))))
+               (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ push-subst B₂ (λ x → from (B₁↔B₂ x))
+                                                                      (_≈_.left-inverse-of A₁≈A₂ (proj₁ p)) ⟩
+       from (B₁↔B₂ _)
+         (subst B₂ (cong (_≈_.to A₁≈A₂)
+                         (_≈_.left-inverse-of A₁≈A₂ (proj₁ p)))
+            (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
+                              (_≈_.to A₁≈A₂ (proj₁ p))))
+               (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ cong (λ eq → from (B₁↔B₂ _)
+                                                                                   (subst B₂ eq
+                                                                                      (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ _))
+                                                                                         (to (B₁↔B₂ _) (proj₂ p))))) $
+                                                                         _≈_.left-right-lemma A₁≈A₂ _ ⟩
+       from (B₁↔B₂ _)
+         (subst B₂ (_≈_.right-inverse-of A₁≈A₂
+                      (_≈_.to A₁≈A₂ (proj₁ p)))
+            (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
+                              (_≈_.to A₁≈A₂ (proj₁ p))))
+               (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ cong (from (B₁↔B₂ _)) $ subst-subst-sym B₂ _ _ ⟩
+       from (B₁↔B₂ _) (to (B₁↔B₂ _) (proj₂ p))                   ≡⟨ left-inverse-of (B₁↔B₂ _) _ ⟩∎
+       proj₂ p                                                   ∎)
 
 -- Σ preserves weak equivalence.
 

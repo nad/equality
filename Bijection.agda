@@ -125,7 +125,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
     ; right-inverse-of = elim (λ p≡q → to (from p≡q) ≡ p≡q) λ x →
         let lem = subst-refl B (proj₂ x) in
         to (from (refl x))                          ≡⟨ cong to (elim-refl from-P _) ⟩
-        to (refl (proj₁ x) , lem)                   ≡⟨ cong (λ f → f lem) (elim-refl to-P _) ⟩
+        to (refl (proj₁ x) , lem)                   ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
         cong (_,_ (proj₁ x)) (trans (sym lem) lem)  ≡⟨ cong (cong (_,_ (proj₁ x))) $ trans-symˡ lem ⟩
         cong (_,_ (proj₁ x)) (refl (proj₂ x))       ≡⟨ cong-refl (_,_ (proj₁ x)) {x = proj₂ x} ⟩∎
         refl x                                      ∎
@@ -141,7 +141,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
             from (to (refl x , y₁′≡y₂)) ≡ (refl x , y₁′≡y₂))
          (λ y y′≡y eq →
           let lem = subst-refl B y in
-          from (to (refl x , y′≡y))                   ≡⟨ cong (λ f → from (f y′≡y)) $ elim-refl to-P _ ⟩
+          from (to (refl x , y′≡y))                   ≡⟨ cong from $ Σ-≡,≡→≡-reflˡ _ ⟩
           from (cong (_,_ x) (trans (sym lem) y′≡y))  ≡⟨ cong (from ⊚ cong (_,_ x)) $ sym eq ⟩
           from (cong (_,_ x) (refl y))                ≡⟨ cong from $ cong-refl (_,_ x) {x = y} ⟩
           from (refl (x , y))                         ≡⟨ elim-refl from-P _ ⟩
@@ -169,21 +169,11 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
            subst B p (proj₂ p₁) ≡ proj₂ p₂
   from = elim from-P (λ p → refl _ , subst-refl B _)
 
-  to-P = λ {x₁ y₁ : A} (p : x₁ ≡ y₁) → {x₂ : B x₁} {y₂ : B y₁} →
-           subst B p x₂ ≡ y₂ →
-           _≡_ {A = Σ A B} (x₁ , x₂) (y₁ , y₂)
-
   to : {p₁ p₂ : Σ A B} →
        (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
           subst B p (proj₂ p₁) ≡ proj₂ p₂) →
        p₁ ≡ p₂
-  to (p , q) = elim
-    to-P
-    (λ z₁ {x₂} {y₂} x₂≡y₂ → cong (_,_ z₁) (
-       x₂                    ≡⟨ sym $ subst-refl B x₂ ⟩
-       subst B (refl z₁) x₂  ≡⟨ x₂≡y₂ ⟩∎
-       y₂                    ∎))
-    p q
+  to = uncurry Σ-≡,≡→≡
 
 -- Decidable equality respects bijections.
 
