@@ -104,6 +104,25 @@ module Magma where
       x ∙₂ y                                  ∎
 
 ------------------------------------------------------------------------
+-- A lemma used below
+
+abstract
+
+  -- A variant of push-subst-pair.
+
+  push-subst-pair′ :
+    ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
+    (B : A → Set b) (C : Σ A B → Set c) {p p₁} →
+    (p₁≡p₁ : subst B y≡z (proj₁ p) ≡ p₁) →
+    subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
+    (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p))
+  push-subst-pair′ {y≡z = y≡z} B C {p} =
+    elim¹ (λ {p₁} p₁≡p₁ →
+             subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
+             (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p)))
+          (push-subst-pair B C)
+
+------------------------------------------------------------------------
 -- Another example
 
 module Another-example where
@@ -178,22 +197,6 @@ module Another-example where
 
     where
     open _↔_ bijection
-
-    abstract
-
-      -- A variant of push-subst-pair.
-
-      push-subst-pair′ :
-        ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
-        (B : A → Set b) (C : Σ A B → Set c) {p p₁} →
-        (p₁≡p₁ : subst B y≡z (proj₁ p) ≡ p₁) →
-        subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
-        (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p))
-      push-subst-pair′ {y≡z = y≡z} B C {p} =
-        elim¹ (λ {p₁} p₁≡p₁ →
-                 subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
-                 (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p)))
-              (push-subst-pair B C)
 
     ext : {A : Set} {B : A → Set} → Extensionality A B
     ext = dependent-extensionality univ₁ (λ _ → univ₂)
@@ -687,32 +690,18 @@ abstract
     lemma empty _ _ _ = refl _
 
     lemma (s +axiom (P , P-prop)) (s₁ , ax₁) (s₂ , ax₂) is =
-      subst (λ A → Σ (⟦ s ⟧ A) (P A)) A₁≡A₂′ (s₁ , ax₁)                 ≡⟨ push-subst-pair ⟦ s ⟧ (uncurry P) ⟩
-      (subst ⟦ s ⟧ A₁≡A₂′ s₁ , subst₂ (uncurry P) A₁≡A₂′ (refl _) ax₁)  ≡⟨ Σ-≡,≡→≡ (lemma s s₁ s₂ is)
-                                                                                   (_⇔_.to propositional⇔irrelevant (P-prop _ _) _ _) ⟩∎
-      (s₂ , ax₂)                                                        ∎
+      subst (λ A → Σ (⟦ s ⟧ A) (P A)) A₁≡A₂′ (s₁ , ax₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (uncurry P) (lemma s s₁ s₂ is) ⟩
+      (s₂ , _)                                           ≡⟨ cong (_,_ s₂) $ _⇔_.to propositional⇔irrelevant (P-prop _ _) _ _ ⟩∎
+      (s₂ , ax₂)                                         ∎
 
     lemma (s +operator n) (s₁ , op₁) (s₂ , op₂) (is-s , is-o) =
-      subst (λ A → ⟦ s ⟧ A × (proj₁ A ^ n ⟶ proj₁ A)) A₁≡A₂′ (s₁ , op₁)  ≡⟨ push-subst-pair ⟦ s ⟧ (λ { ((A , _) , _) → A ^ n ⟶ A }) ⟩
+      subst (λ A → ⟦ s ⟧ A × (proj₁ A ^ n ⟶ proj₁ A)) A₁≡A₂′ (s₁ , op₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (λ { ((A , _) , _) → A ^ n ⟶ A })
+                                                                                             (lemma s s₁ s₂ is-s) ⟩
+      (s₂ , subst₂ (λ { ((A , _) , _) → A ^ n ⟶ A }) A₁≡A₂′
+                   (lemma s s₁ s₂ is-s) op₁)                             ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ (λ { (A , _) → A ^ n ⟶ A }) ⟩
 
-      (subst ⟦ s ⟧ A₁≡A₂′ s₁ ,
-       subst₂ (λ { ((A , _) , _) → A ^ n ⟶ A }) A₁≡A₂′ (refl _) op₁)     ≡⟨ cong (_,_ _) $ subst₂-proj₁ (λ { (A , _) → A ^ n ⟶ A }) ⟩
+      (s₂ , subst (λ { (A , _) → A ^ n ⟶ A }) A₁≡A₂′ op₁)                ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ (λ A → A ^ n ⟶ A) ⟩
 
-      (subst ⟦ s ⟧ A₁≡A₂′ s₁ ,
-       subst (λ { (A , _) → A ^ n ⟶ A }) A₁≡A₂′ op₁)                     ≡⟨ cong (_,_ _) $ subst₂-proj₁ (λ A → A ^ n ⟶ A) ⟩
-
-      (subst ⟦ s ⟧ A₁≡A₂′ s₁ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)        ≡⟨ Σ-≡,≡→≡ (lemma s s₁ s₂ is-s) lemma₂ ⟩∎
-
+      (s₂ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)                           ≡⟨ cong (_,_ s₂) $ subst-isomorphism (λ _ → ext) univ₂
+                                                                                              (bijection⇒weak-equivalence m) n op₁ op₂ is-o ⟩∎
       (s₂ , op₂)                                                         ∎
-
-      where
-      lemma₂ : subst (λ _ → A₂ ^ n ⟶ A₂) (lemma s s₁ s₂ is-s)
-                 (subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁) ≡
-               op₂
-      lemma₂ =
-        subst (λ _ → A₂ ^ n ⟶ A₂) (lemma s s₁ s₂ is-s)
-          (subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)           ≡⟨ subst-const ⟩
-
-        subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁               ≡⟨ subst-isomorphism (λ _ → ext) univ₂
-                                                             (bijection⇒weak-equivalence m) n op₁ op₂ is-o ⟩∎
-        op₂                                             ∎
