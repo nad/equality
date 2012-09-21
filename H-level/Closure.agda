@@ -295,11 +295,11 @@ abstract
   -- of equalities (assuming extensionality).
 
   W-≡,≡↠≡ : ∀ {a b} {A : Set a} {B : A → Set b} →
-            (∀ {x c} {C : B x → Set c} → Extensionality (B x) C) →
+            (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality (B x) C) →
             ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
             (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
             (sup x f ≡ sup y g)
-  W-≡,≡↠≡ {A = A} {B} ext {x} {y} {f} {g} =
+  W-≡,≡↠≡ {a} {A = A} {B} ext {x} {y} {f} {g} =
     (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i))        ↠⟨ Surjection.∃-cong lemma ⟩
     (∃ λ (p : x ≡ y) → subst (λ x → B x → W A B) p f ≡ g)  ↠⟨ _↔_.surjection Σ-≡,≡↔≡ ⟩
     (_≡_ {A = ∃ λ (x : A) → B x → W A B} (x , f) (y , g))  ↠⟨ ↠-≡ (_↔_.surjection (Bijection.inverse (W-unfolding {A = A} {B = B}))) ⟩□
@@ -314,7 +314,7 @@ abstract
                    (subst (λ x → B x → W A B) p f ≡ g))
       (λ x f g →
          (∀ i → f i ≡ g (subst B (refl x) i))        ↠⟨ subst (λ h → (∀ i → f i ≡ g (h i)) ↠ (∀ i → f i ≡ g i))
-                                                              (sym (ext (subst-refl B)))
+                                                              (sym (lower-extensionality₂ a ext (subst-refl B)))
                                                               Surjection.id ⟩
          (∀ i → f i ≡ g i)                           ↠⟨ ext-surj ext ⟩
          (f ≡ g)                                     ↠⟨ subst (λ h → (f ≡ g) ↠ (h ≡ g))
@@ -345,7 +345,7 @@ abstract
 
   W-closure :
     ∀ {a b} {A : Set a} {B : A → Set b} →
-    (∀ {x c} {C : B x → Set c} → Extensionality (B x) C) →
+    (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality (B x) C) →
     ∀ n → H-level (1 + n) A → H-level (1 + n) (W A B)
   W-closure {A = A} {B} ext n h = closure
     where

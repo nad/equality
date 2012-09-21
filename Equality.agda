@@ -502,6 +502,14 @@ module Derived-definitions-and-properties
       cong (λ h → lower ∘ h ∘ lift) $
         ext {A = ↑ â _} {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g ∘ lower)
 
+    lower-extensionality₂ :
+      ∀ {a} {A : Set a} {b} b̂ →
+      ({B : A → Set (b ⊔ b̂)} → Extensionality A B) →
+      ({B : A → Set  b     } → Extensionality A B)
+    lower-extensionality₂ b̂ ext f≡g =
+      cong (λ h → lower ∘ h) $
+        ext {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g)
+
   -- A bunch of lemmas that can be used to rearrange equalities.
 
   abstract
