@@ -210,26 +210,13 @@ private
 
   -- An unfolding of Magma.
 
-  Magma-unfolded : Magma ≡
-                   ∃ λ A → ↑ _ ⊤ × (A → A → A)
+  Magma-unfolded : Magma ≡ ∃ λ (A : Set) → ↑ _ ⊤ × (A → A → A)
   Magma-unfolded = refl _
 
-abstract
-
-  -- A lemma which is used to define the example structures below.
-
-  lift-prop : ({A : Set} {B : A → Set} → Extensionality A B) →
-              {S : Set → Set₁} (P : ∀ {A} → S A → Set) →
-              (∀ {A} → Is-set A → (s : S A) → Propositional (P s)) →
-              ∀ A → (s : S A) → Propositional (Is-set A × P s)
-  lift-prop ext P prop A s =
-    [inhabited⇒+]⇒+ 0 λ { (A-set , _) →
-      ×-closure 1 (H-level-propositional ext 2) (prop A-set s)
-    }
-
 -- Example: semigroups. The definition uses extensionality to prove
--- that the axiom is propositional. Note that the associativity axiom
--- includes the assumption that the underlying type is a set.
+-- that the axioms are propositional. Note that one axiom states that
+-- the underlying type is a set. This assumption is used to prove that
+-- the other axioms are propositional.
 
 semigroup :
   ({A : Set} {B : A → Set} → Extensionality A B) →
@@ -237,22 +224,28 @@ semigroup :
 semigroup ext =
   empty
 
+  +axiom
+    ( (λ A _ → Is-set A)
+    , is-set-prop
+    )
+
   +operator 2
 
   +axiom
-    ( (λ { A (_ , _∙_) →
-           Is-set A × (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) })
+    ( (λ { _ (_ , _∙_) →
+           ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
     , assoc-prop
     )
 
   where
-  assoc-prop = lift-prop ext
-    (λ { (_ , _∙_) → ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
-    λ A-set _ →
+  is-set-prop = λ _ _ → H-level-propositional ext 2
+
+  assoc-prop = λ { _ ((_ , A-set) , _) →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
       A-set _ _
+    }
 
 Semigroup :
   ({A : Set} {B : A → Set} → Extensionality A B) →
@@ -265,15 +258,14 @@ private
 
   Semigroup-unfolded :
     (ext : {A : Set} {B : A → Set} → Extensionality A B) →
-    Semigroup ext ≡
-    ∃ λ A →
-        Σ (↑ _ ⊤ ×
-           (A → A → A)) λ { (_ , _∙_) →
-        Is-set A × (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }
+    Semigroup ext ≡ Σ
+      Set                                    λ A → Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Is-set A                             ) λ _ →
+      A → A → A                            ) λ { (_ , _∙_) →
+      ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }
   Semigroup-unfolded _ = refl _
 
--- Example: abelian groups. The definition uses extensionality to
--- prove that the axioms are propositional.
+-- Example: abelian groups.
 
 abelian-group :
   ({A : Set} {B : A → Set} → Extensionality A B) →
@@ -281,20 +273,26 @@ abelian-group :
 abelian-group ext =
   empty
 
+  -- The underlying type is a set.
+  +axiom
+    ( (λ A _ → Is-set A)
+    , is-set-prop
+    )
+
   -- The binary group operation.
   +operator 2
 
   -- Commutativity.
   +axiom
-    ( (λ { A (_ , _∙_) →
-           Is-set A × (∀ x y → x ∙ y ≡ y ∙ x) })
+    ( (λ { _ (_ , _∙_) →
+           ∀ x y → x ∙ y ≡ y ∙ x })
     , comm-prop
     )
 
   -- Associativity.
   +axiom
-    ( (λ { A ((_ , _∙_) , _) →
-           Is-set A × (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) })
+    ( (λ { _ ((_ , _∙_) , _) →
+           ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
     , assoc-prop
     )
 
@@ -303,15 +301,15 @@ abelian-group ext =
 
   -- Left identity.
   +axiom
-    ( (λ { A ((((_ , _∙_) , _) , _) , e) →
-           Is-set A × (∀ x → e ∙ x ≡ x) })
+    ( (λ { _ ((((_ , _∙_) , _) , _) , e) →
+           ∀ x → e ∙ x ≡ x })
     , left-identity-prop
     )
 
   -- Right identity.
   +axiom
-    ( (λ { A (((((_ , _∙_) , _) , _) , e) , _) →
-           Is-set A × (∀ x → x ∙ e ≡ x) })
+    ( (λ { _ (((((_ , _∙_) , _) , _) , e) , _) →
+           ∀ x → x ∙ e ≡ x })
     , right-identity-prop
     )
 
@@ -320,59 +318,59 @@ abelian-group ext =
 
   -- Left inverse.
   +axiom
-    ( (λ { A (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-           Is-set A × (∀ x → (x ⁻¹) ∙ x ≡ e) })
+    ( (λ { _ (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
+           ∀ x → (x ⁻¹) ∙ x ≡ e })
     , left-inverse-prop
     )
 
   -- Right inverse.
   +axiom
-    ( (λ { A ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-           Is-set A × (∀ x → x ∙ (x ⁻¹) ≡ e) })
+    ( (λ { _ ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
+           ∀ x → x ∙ (x ⁻¹) ≡ e })
     , right-inverse-prop
     )
 
   where
-  comm-prop = lift-prop ext
-    (λ { (_ , _∙_) → ∀ x y → x ∙ y ≡ y ∙ x })
-    λ A-set _ →
-      Π-closure ext 1 λ _ →
-      Π-closure ext 1 λ _ →
-      A-set _ _
+  is-set-prop = λ _ _ → H-level-propositional ext 2
 
-  assoc-prop = lift-prop ext
-    (λ { ((_ , _∙_) , _) → ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
-    λ A-set _ →
-      Π-closure ext 1 λ _ →
+  comm-prop =
+    λ { _ ((_ , A-set) , _) →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
       A-set _ _
+    }
 
-  left-identity-prop = lift-prop ext
-    (λ { ((((_ , _∙_) , _) , _) , e) → ∀ x → e ∙ x ≡ x })
-    λ A-set _ →
+  assoc-prop =
+    λ { _ (((_ , A-set) , _) , _) →
+      Π-closure ext 1 λ _ →
+      Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
       A-set _ _
+    }
 
-  right-identity-prop = lift-prop ext
-    (λ { (((((_ , _∙_) , _) , _) , e) , _) → ∀ x → x ∙ e ≡ x })
-    λ A-set _ →
+  left-identity-prop =
+    λ { _ (((((_ , A-set) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
       A-set _ _
+    }
 
-  left-inverse-prop = lift-prop ext
-    (λ { (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-         ∀ x → (x ⁻¹) ∙ x ≡ e })
-    λ A-set _ →
+  right-identity-prop =
+    λ { _ ((((((_ , A-set) , _) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
       A-set _ _
+    }
 
-  right-inverse-prop = lift-prop ext
-    (λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-           ∀ x → x ∙ (x ⁻¹) ≡ e })
-    λ A-set _ →
+  left-inverse-prop =
+    λ { _ ((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
       A-set _ _
+    }
+
+  right-inverse-prop =
+    λ { _ (((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
+      Π-closure ext 1 λ _ →
+      A-set _ _
+    }
 
 Abelian-group :
   ({A : Set} {B : A → Set} → Extensionality A B) →
@@ -387,16 +385,17 @@ private
   Abelian-group-unfolded :
     (ext : {A : Set} {B : A → Set} → Extensionality A B) →
     Abelian-group ext ≡ Σ
-      Set                                               λ A → Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      A → A → A                                         ) λ {        (_ , _∙_) →
-      Is-set A × (∀ x y → x ∙ y ≡ y ∙ x)               }) λ {       ((_ , _∙_) , _) →
-      Is-set A × (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }) λ _ →
-      A                                                 ) λ {     ((((_ , _∙_) , _) , _) , e) →
-      Is-set A × (∀ x → e ∙ x ≡ x)                     }) λ {    (((((_ , _∙_) , _) , _) , e) , _) →
-      Is-set A × (∀ x → x ∙ e ≡ x)                     }) λ _ →
-      A → A                                             ) λ {  (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-      Is-set A × (∀ x → (x ⁻¹) ∙ x ≡ e)                }) λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-      Is-set A × (∀ x → x ∙ (x ⁻¹) ≡ e)                }
+      Set                                    λ A → Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Is-set A                             ) λ _ →
+      A → A → A                            ) λ {        (_ , _∙_) →
+      ∀ x y → x ∙ y ≡ y ∙ x               }) λ {       ((_ , _∙_) , _) →
+      ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }) λ _ →
+      A                                    ) λ {     ((((_ , _∙_) , _) , _) , e) →
+      ∀ x → e ∙ x ≡ x                     }) λ {    (((((_ , _∙_) , _) , _) , e) , _) →
+      ∀ x → x ∙ e ≡ x                     }) λ _ →
+      A → A                                ) λ {  (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
+      ∀ x → (x ⁻¹) ∙ x ≡ e                }) λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
+      ∀ x → x ∙ (x ⁻¹) ≡ e                }
 
   Abelian-group-unfolded _ = refl _
 
