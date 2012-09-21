@@ -144,15 +144,15 @@ mutual
 
     -- Arbitrary /propositional/ axioms.
     _+axiom_ : (s : Structure)
-               (P : ∃ λ (P : (A : ∃ Is-set) → ⟦ s ⟧ A → Set) →
+               (P : ∃ λ (P : (A : Set) → ⟦ s ⟧ A → Set) →
                       ∀ A s → Propositional (P A s)) →
                Structure
 
   -- Interpretation of the codes.
 
-  ⟦_⟧ : Structure → ∃ Is-set → Set₁
+  ⟦_⟧ : Structure → Set → Set₁
   ⟦ empty                 ⟧ A = ↑ _ ⊤
-  ⟦ s +operator n         ⟧ A = ⟦ s ⟧ A × (proj₁ A ^ n ⟶ proj₁ A)
+  ⟦ s +operator n         ⟧ A = ⟦ s ⟧ A × (A ^ n ⟶ A)
   ⟦ s +axiom (P , P-prop) ⟧ A = Σ (⟦ s ⟧ A) (P A)
 
 -- Top-level interpretation.
@@ -164,8 +164,8 @@ mutual
 
 Is-structure-morphism :
   (s : Structure) →
-  {A B : ∃ Is-set} → ⟦ s ⟧ A → ⟦ s ⟧ B →
-  (proj₁ A → proj₁ B) → Set
+  {A B : Set} → ⟦ s ⟧ A → ⟦ s ⟧ B →
+  (A → B) → Set
 Is-structure-morphism empty           _          _          m = ⊤
 Is-structure-morphism (s +axiom _)    (s₁ , _)   (s₂ , _)   m =
   Is-structure-morphism s s₁ s₂ m
@@ -175,7 +175,7 @@ Is-structure-morphism (s +operator n) (s₁ , op₁) (s₂ , op₂) m =
 -- Isomorphisms.
 
 Isomorphism : (s : Structure) → ⟦̂ s ⟧ → ⟦̂ s ⟧ → Set
-Isomorphism s ((A₁ , _) , s₁) ((A₂ , _) , s₂) =
+Isomorphism s (A₁ , s₁) (A₂ , s₂) =
   ∃ λ (m : A₁ ↔ A₂) → Is-structure-morphism s s₁ s₂ (_↔_.to m)
 
 abstract
@@ -184,8 +184,8 @@ abstract
 
   from-also-structure-morphism :
     (s : Structure) →
-    {A B : ∃ Is-set} {s₁ : ⟦ s ⟧ A} {s₂ : ⟦ s ⟧ B} →
-    (m : proj₁ A ↔ proj₁ B) →
+    {A B : Set} {s₁ : ⟦ s ⟧ A} {s₂ : ⟦ s ⟧ B} →
+    (m : A ↔ B) →
     Is-structure-morphism s s₁ s₂ (_↔_.to m) →
     Is-structure-morphism s s₂ s₁ (_↔_.from m)
   from-also-structure-morphism empty           m = _
@@ -211,11 +211,25 @@ private
   -- An unfolding of Magma.
 
   Magma-unfolded : Magma ≡
-                   ∃ λ { (A , A-set) → ↑ _ ⊤ × (A → A → A) }
+                   ∃ λ A → ↑ _ ⊤ × (A → A → A)
   Magma-unfolded = refl _
 
+abstract
+
+  -- A lemma which is used to define the example structures below.
+
+  lift-prop : ({A : Set} {B : A → Set} → Extensionality A B) →
+              {S : Set → Set₁} (P : ∀ {A} → S A → Set) →
+              (∀ {A} → Is-set A → (s : S A) → Propositional (P s)) →
+              ∀ A → (s : S A) → Propositional (Is-set A × P s)
+  lift-prop ext P prop A s =
+    [inhabited⇒+]⇒+ 0 λ { (A-set , _) →
+      ×-closure 1 (H-level-propositional ext 2) (prop A-set s)
+    }
+
 -- Example: semigroups. The definition uses extensionality to prove
--- that the axiom is propositional.
+-- that the axiom is propositional. Note that the associativity axiom
+-- includes the assumption that the underlying type is a set.
 
 semigroup :
   ({A : Set} {B : A → Set} → Extensionality A B) →
@@ -226,17 +240,19 @@ semigroup ext =
   +operator 2
 
   +axiom
-    ( (λ { _ (_ , _∙_) →
-           ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
+    ( (λ { A (_ , _∙_) →
+           Is-set A × (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) })
     , assoc-prop
     )
 
   where
-  assoc-prop = λ { (A , A-set) _ →
-    Π-closure ext 1 λ _ →
-    Π-closure ext 1 λ _ →
-    Π-closure ext 1 λ _ →
-    A-set _ _ }
+  assoc-prop = lift-prop ext
+    (λ { (_ , _∙_) → ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
+    λ A-set _ →
+      Π-closure ext 1 λ _ →
+      Π-closure ext 1 λ _ →
+      Π-closure ext 1 λ _ →
+      A-set _ _
 
 Semigroup :
   ({A : Set} {B : A → Set} → Extensionality A B) →
@@ -250,11 +266,10 @@ private
   Semigroup-unfolded :
     (ext : {A : Set} {B : A → Set} → Extensionality A B) →
     Semigroup ext ≡
-    ∃ λ { (A , A-set) →
-          Σ (↑ _ ⊤ ×
-             (A → A → A)) λ { (_ , _∙_) →
-          ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }
-        }
+    ∃ λ A →
+        Σ (↑ _ ⊤ ×
+           (A → A → A)) λ { (_ , _∙_) →
+        Is-set A × (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }
   Semigroup-unfolded _ = refl _
 
 -- Example: abelian groups. The definition uses extensionality to
@@ -271,15 +286,15 @@ abelian-group ext =
 
   -- Commutativity.
   +axiom
-    ( (λ { _ (_ , _∙_) →
-           ∀ x y → x ∙ y ≡ y ∙ x })
+    ( (λ { A (_ , _∙_) →
+           Is-set A × (∀ x y → x ∙ y ≡ y ∙ x) })
     , comm-prop
     )
 
   -- Associativity.
   +axiom
-    ( (λ { _ ((_ , _∙_) , _) →
-           ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
+    ( (λ { A ((_ , _∙_) , _) →
+           Is-set A × (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) })
     , assoc-prop
     )
 
@@ -288,15 +303,15 @@ abelian-group ext =
 
   -- Left identity.
   +axiom
-    ( (λ { _ ((((_ , _∙_) , _) , _) , e) →
-           ∀ x → e ∙ x ≡ x })
+    ( (λ { A ((((_ , _∙_) , _) , _) , e) →
+           Is-set A × (∀ x → e ∙ x ≡ x) })
     , left-identity-prop
     )
 
   -- Right identity.
   +axiom
-    ( (λ { _ (((((_ , _∙_) , _) , _) , e) , _) →
-           ∀ x → x ∙ e ≡ x })
+    ( (λ { A (((((_ , _∙_) , _) , _) , e) , _) →
+           Is-set A × (∀ x → x ∙ e ≡ x) })
     , right-identity-prop
     )
 
@@ -305,45 +320,59 @@ abelian-group ext =
 
   -- Left inverse.
   +axiom
-    ( (λ { _ (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-           ∀ x → (x ⁻¹) ∙ x ≡ e })
+    ( (λ { A (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
+           Is-set A × (∀ x → (x ⁻¹) ∙ x ≡ e) })
     , left-inverse-prop
     )
 
   -- Right inverse.
   +axiom
-    ( (λ { _ ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-           ∀ x → x ∙ (x ⁻¹) ≡ e })
+    ( (λ { A ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
+           Is-set A × (∀ x → x ∙ (x ⁻¹) ≡ e) })
     , right-inverse-prop
     )
 
   where
-  comm-prop = λ { (A , A-set) _ →
-    Π-closure ext 1 λ _ →
-    Π-closure ext 1 λ _ →
-    A-set _ _ }
+  comm-prop = lift-prop ext
+    (λ { (_ , _∙_) → ∀ x y → x ∙ y ≡ y ∙ x })
+    λ A-set _ →
+      Π-closure ext 1 λ _ →
+      Π-closure ext 1 λ _ →
+      A-set _ _
 
-  assoc-prop = λ { (A , A-set) _ →
-    Π-closure ext 1 λ _ →
-    Π-closure ext 1 λ _ →
-    Π-closure ext 1 λ _ →
-    A-set _ _ }
+  assoc-prop = lift-prop ext
+    (λ { ((_ , _∙_) , _) → ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
+    λ A-set _ →
+      Π-closure ext 1 λ _ →
+      Π-closure ext 1 λ _ →
+      Π-closure ext 1 λ _ →
+      A-set _ _
 
-  left-identity-prop = λ { (A , A-set) _ →
-    Π-closure ext 1 λ _ →
-    A-set _ _ }
+  left-identity-prop = lift-prop ext
+    (λ { ((((_ , _∙_) , _) , _) , e) → ∀ x → e ∙ x ≡ x })
+    λ A-set _ →
+      Π-closure ext 1 λ _ →
+      A-set _ _
 
-  right-identity-prop = λ { (A , A-set) _ →
-    Π-closure ext 1 λ _ →
-    A-set _ _ }
+  right-identity-prop = lift-prop ext
+    (λ { (((((_ , _∙_) , _) , _) , e) , _) → ∀ x → x ∙ e ≡ x })
+    λ A-set _ →
+      Π-closure ext 1 λ _ →
+      A-set _ _
 
-  left-inverse-prop = λ { (A , A-set) _ →
-    Π-closure ext 1 λ _ →
-    A-set _ _ }
+  left-inverse-prop = lift-prop ext
+    (λ { (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
+         ∀ x → (x ⁻¹) ∙ x ≡ e })
+    λ A-set _ →
+      Π-closure ext 1 λ _ →
+      A-set _ _
 
-  right-inverse-prop = λ { (A , A-set) _ →
-    Π-closure ext 1 λ _ →
-    A-set _ _ }
+  right-inverse-prop = lift-prop ext
+    (λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
+           ∀ x → x ∙ (x ⁻¹) ≡ e })
+    λ A-set _ →
+      Π-closure ext 1 λ _ →
+      A-set _ _
 
 Abelian-group :
   ({A : Set} {B : A → Set} → Extensionality A B) →
@@ -357,21 +386,17 @@ private
 
   Abelian-group-unfolded :
     (ext : {A : Set} {B : A → Set} → Extensionality A B) →
-    Abelian-group ext ≡
-
-    Σ (Σ
-
-    Set                                    λ A →
-    Is-set A                             ) λ { (A , _) → Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-    A → A → A                            ) λ {        (_ , _∙_) →
-    ∀ x y → x ∙ y ≡ y ∙ x               }) λ {       ((_ , _∙_) , _) →
-    ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }) λ _ →
-    A                                    ) λ {     ((((_ , _∙_) , _) , _) , e) →
-    ∀ x → e ∙ x ≡ x                     }) λ {    (((((_ , _∙_) , _) , _) , e) , _) →
-    ∀ x → x ∙ e ≡ x                     }) λ _ →
-    A → A                                ) λ {  (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-    ∀ x → (x ⁻¹) ∙ x ≡ e                }) λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-    ∀ x → x ∙ (x ⁻¹) ≡ e                }}
+    Abelian-group ext ≡ Σ
+      Set                                               λ A → Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      A → A → A                                         ) λ {        (_ , _∙_) →
+      Is-set A × (∀ x y → x ∙ y ≡ y ∙ x)               }) λ {       ((_ , _∙_) , _) →
+      Is-set A × (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }) λ _ →
+      A                                                 ) λ {     ((((_ , _∙_) , _) , _) , e) →
+      Is-set A × (∀ x → e ∙ x ≡ x)                     }) λ {    (((((_ , _∙_) , _) , _) , e) , _) →
+      Is-set A × (∀ x → x ∙ e ≡ x)                     }) λ _ →
+      A → A                                             ) λ {  (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
+      Is-set A × (∀ x → (x ⁻¹) ∙ x ≡ e)                }) λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
+      Is-set A × (∀ x → x ∙ (x ⁻¹) ≡ e)                }
 
   Abelian-group-unfolded _ = refl _
 
@@ -388,10 +413,10 @@ abstract
     (s : Structure) (s₁ s₂ : ⟦̂ s ⟧) →
     Isomorphism s s₁ s₂ → s₁ ≡ s₂
   isomorphic-equal univ₁ univ₂
-    s ((A₁ , A₁-set) , s₁) ((A₂ , A₂-set) , s₂) (m , is) =
+    s (A₁ , s₁) (A₂ , s₂) (m , is) =
 
-    ((A₁ , A₁-set) , s₁)  ≡⟨ Σ-≡,≡→≡ A₁≡A₂′ (lemma s s₁ s₂ is) ⟩∎
-    ((A₂ , A₂-set) , s₂)  ∎
+    (A₁ , s₁)  ≡⟨ Σ-≡,≡→≡ A₁≡A₂ (lemma s s₁ s₂ is) ⟩∎
+    (A₂ , s₂)  ∎
 
     where
     open _↔_ m
@@ -407,37 +432,26 @@ abstract
     A₁≡A₂ : A₁ ≡ A₂
     A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ bijection⇒weak-equivalence m
 
-    -- Equality still holds if the types are paired up with proofs
-    -- showing that they are sets.
-
-    A₁≡A₂′ : (A₁ , A₁-set) ≡ (A₂ , A₂-set)
-    A₁≡A₂′ =
-      Σ-≡,≡→≡ A₁≡A₂
-              (_⇔_.to propositional⇔irrelevant
-                      (H-level-propositional ext 2) _ _)
-
     -- We can lift subst-isomorphism to structures by recursion on
     -- structure codes.
 
     lemma : (s : Structure)
-            (s₁ : ⟦ s ⟧ (A₁ , A₁-set)) (s₂ : ⟦ s ⟧ (A₂ , A₂-set)) →
+            (s₁ : ⟦ s ⟧ A₁) (s₂ : ⟦ s ⟧ A₂) →
             Is-structure-morphism s s₁ s₂ to →
-            subst ⟦ s ⟧ A₁≡A₂′ s₁ ≡ s₂
+            subst ⟦ s ⟧ A₁≡A₂ s₁ ≡ s₂
     lemma empty _ _ _ = refl _
 
     lemma (s +axiom (P , P-prop)) (s₁ , ax₁) (s₂ , ax₂) is =
-      subst (λ A → Σ (⟦ s ⟧ A) (P A)) A₁≡A₂′ (s₁ , ax₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (uncurry P) (lemma s s₁ s₂ is) ⟩
-      (s₂ , _)                                           ≡⟨ cong (_,_ s₂) $ _⇔_.to propositional⇔irrelevant (P-prop _ _) _ _ ⟩∎
-      (s₂ , ax₂)                                         ∎
+      subst (λ A → Σ (⟦ s ⟧ A) (P A)) A₁≡A₂ (s₁ , ax₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (uncurry P) (lemma s s₁ s₂ is) ⟩
+      (s₂ , _)                                          ≡⟨ cong (_,_ s₂) $ _⇔_.to propositional⇔irrelevant (P-prop _ _) _ _ ⟩∎
+      (s₂ , ax₂)                                        ∎
 
     lemma (s +operator n) (s₁ , op₁) (s₂ , op₂) (is-s , is-o) =
-      subst (λ A → ⟦ s ⟧ A × (proj₁ A ^ n ⟶ proj₁ A)) A₁≡A₂′ (s₁ , op₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (λ { ((A , _) , _) → A ^ n ⟶ A })
-                                                                                             (lemma s s₁ s₂ is-s) ⟩
-      (s₂ , subst₂ (λ { ((A , _) , _) → A ^ n ⟶ A }) A₁≡A₂′
-                   (lemma s s₁ s₂ is-s) op₁)                             ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ (λ { (A , _) → A ^ n ⟶ A }) ⟩
+      subst (λ A → ⟦ s ⟧ A × (A ^ n ⟶ A)) A₁≡A₂ (s₁ , op₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (λ { (A , _) → A ^ n ⟶ A }) (lemma s s₁ s₂ is-s) ⟩
 
-      (s₂ , subst (λ { (A , _) → A ^ n ⟶ A }) A₁≡A₂′ op₁)                ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ (λ A → A ^ n ⟶ A) ⟩
+      (s₂ , subst₂ (λ { (A , _) → A ^ n ⟶ A }) A₁≡A₂
+                   (lemma s s₁ s₂ is-s) op₁)                ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ (λ A → A ^ n ⟶ A) ⟩
 
-      (s₂ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)                           ≡⟨ cong (_,_ s₂) $ subst-isomorphism (λ _ → ext) univ₂
-                                                                                              (bijection⇒weak-equivalence m) n op₁ op₂ is-o ⟩∎
-      (s₂ , op₂)                                                         ∎
+      (s₂ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)              ≡⟨ cong (_,_ s₂) $ subst-isomorphism (λ _ → ext) univ₂
+                                                                                 (bijection⇒weak-equivalence m) n op₁ op₂ is-o ⟩∎
+      (s₂ , op₂)                                            ∎
