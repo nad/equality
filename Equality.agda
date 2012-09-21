@@ -772,6 +772,20 @@ module Derived-definitions-and-properties
         subst₂ C (refl _) (refl _) (proj₂ p))        ∎)
       y≡z
 
+    -- A corollary of push-subst-pair.
+
+    push-subst-pair′ :
+      ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
+      (B : A → Set b) (C : Σ A B → Set c) {p p₁} →
+      (p₁≡p₁ : subst B y≡z (proj₁ p) ≡ p₁) →
+      subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
+      (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p))
+    push-subst-pair′ {y≡z = y≡z} B C {p} =
+      elim¹ (λ {p₁} p₁≡p₁ →
+               subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
+               (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p)))
+            (push-subst-pair B C)
+
     -- A proof simplification rule for subst₂.
 
     subst₂-proj₁ :
