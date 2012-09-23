@@ -157,8 +157,8 @@ mutual
 
 -- Top-level interpretation.
 
-⟦̂_⟧ : Structure → Set₁
-⟦̂ s ⟧ = ∃ ⟦ s ⟧
+⟪_⟫ : Structure → Set₁
+⟪ s ⟫ = ∃ ⟦ s ⟧
 
 -- Morphisms.
 
@@ -174,7 +174,7 @@ Is-structure-morphism (s +operator n) (s₁ , op₁) (s₂ , op₂) m =
 
 -- Isomorphisms.
 
-Isomorphism : (s : Structure) → ⟦̂ s ⟧ → ⟦̂ s ⟧ → Set
+Isomorphism : (s : Structure) → ⟪ s ⟫ → ⟪ s ⟫ → Set
 Isomorphism s (A₁ , s₁) (A₂ , s₂) =
   ∃ λ (m : A₁ ↔ A₂) → Is-structure-morphism s s₁ s₂ (_↔_.to m)
 
@@ -195,6 +195,57 @@ abstract
     Σ-map (from-also-structure-morphism s m)
           (from-also- n -ary-morphism _ _ m)
 
+  -- Isomorphic structures are equal (assuming univalence).
+
+  isomorphic-equal :
+    Univalence-axiom′ (Set ²/≡) Set →
+    Univalence-axiom lzero →
+    (s : Structure) (s₁ s₂ : ⟪ s ⟫) →
+    Isomorphism s s₁ s₂ → s₁ ≡ s₂
+  isomorphic-equal univ₁ univ₂
+    s (A₁ , s₁) (A₂ , s₂) (m , is) =
+
+    (A₁ , s₁)  ≡⟨ Σ-≡,≡→≡ A₁≡A₂ (lemma s s₁ s₂ is) ⟩∎
+    (A₂ , s₂)  ∎
+
+    where
+    open _↔_ m
+
+    -- Extensionality follows from univalence.
+
+    ext : {A : Set} {B : A → Set} → Extensionality A B
+    ext = dependent-extensionality univ₁ (λ _ → univ₂)
+
+    -- The presence of the bijection implies that the structure's
+    -- underlying types are equal (due to univalence).
+
+    A₁≡A₂ : A₁ ≡ A₂
+    A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ bijection⇒weak-equivalence m
+
+    -- We can lift subst-isomorphism to structures by recursion on
+    -- structure codes.
+
+    lemma : (s : Structure)
+            (s₁ : ⟦ s ⟧ A₁) (s₂ : ⟦ s ⟧ A₂) →
+            Is-structure-morphism s s₁ s₂ to →
+            subst ⟦ s ⟧ A₁≡A₂ s₁ ≡ s₂
+    lemma empty _ _ _ = refl _
+
+    lemma (s +axiom (P , P-prop)) (s₁ , ax₁) (s₂ , ax₂) is =
+      subst (λ A → Σ (⟦ s ⟧ A) (P A)) A₁≡A₂ (s₁ , ax₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (uncurry P) (lemma s s₁ s₂ is) ⟩
+      (s₂ , _)                                          ≡⟨ cong (_,_ s₂) $ _⇔_.to propositional⇔irrelevant (P-prop _ _) _ _ ⟩∎
+      (s₂ , ax₂)                                        ∎
+
+    lemma (s +operator n) (s₁ , op₁) (s₂ , op₂) (is-s , is-o) =
+      subst (λ A → ⟦ s ⟧ A × (A ^ n ⟶ A)) A₁≡A₂ (s₁ , op₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (λ { (A , _) → A ^ n ⟶ A }) (lemma s s₁ s₂ is-s) ⟩
+
+      (s₂ , subst₂ (λ { (A , _) → A ^ n ⟶ A }) A₁≡A₂
+                   (lemma s s₁ s₂ is-s) op₁)                ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ (λ A → A ^ n ⟶ A) ⟩
+
+      (s₂ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)              ≡⟨ cong (_,_ s₂) $ subst-isomorphism (λ _ → ext) univ₂
+                                                                                 (bijection⇒weak-equivalence m) n op₁ op₂ is-o ⟩∎
+      (s₂ , op₂)                                            ∎
+
 ------------------------------------------------------------------------
 -- Some example structures
 
@@ -204,7 +255,7 @@ magma : Structure
 magma = empty +operator 2
 
 Magma : Set₁
-Magma = ⟦̂ magma ⟧
+Magma = ⟪ magma ⟫
 
 private
 
@@ -216,7 +267,7 @@ private
 -- Example: semigroups. The definition uses extensionality to prove
 -- that the axioms are propositional. Note that one axiom states that
 -- the underlying type is a set. This assumption is used to prove that
--- the other axioms are propositional.
+-- the other axiom is propositional.
 
 semigroup :
   ({A : Set} {B : A → Set} → Extensionality A B) →
@@ -250,7 +301,7 @@ semigroup ext =
 Semigroup :
   ({A : Set} {B : A → Set} → Extensionality A B) →
   Set₁
-Semigroup ext = ⟦̂ semigroup ext ⟧
+Semigroup ext = ⟪ semigroup ext ⟫
 
 private
 
@@ -375,7 +426,7 @@ abelian-group ext =
 Abelian-group :
   ({A : Set} {B : A → Set} → Extensionality A B) →
   Set₁
-Abelian-group ext = ⟦̂ abelian-group ext ⟧
+Abelian-group ext = ⟪ abelian-group ext ⟫
 
 private
 
@@ -398,59 +449,3 @@ private
       ∀ x → x ∙ (x ⁻¹) ≡ e                }
 
   Abelian-group-unfolded _ = refl _
-
-------------------------------------------------------------------------
--- Isomorphic structures are equal (assuming univalence)
-
-abstract
-
-  -- Isomorphic structures are equal (assuming univalence).
-
-  isomorphic-equal :
-    Univalence-axiom′ (Set ²/≡) Set →
-    Univalence-axiom lzero →
-    (s : Structure) (s₁ s₂ : ⟦̂ s ⟧) →
-    Isomorphism s s₁ s₂ → s₁ ≡ s₂
-  isomorphic-equal univ₁ univ₂
-    s (A₁ , s₁) (A₂ , s₂) (m , is) =
-
-    (A₁ , s₁)  ≡⟨ Σ-≡,≡→≡ A₁≡A₂ (lemma s s₁ s₂ is) ⟩∎
-    (A₂ , s₂)  ∎
-
-    where
-    open _↔_ m
-
-    -- Extensionality follows from univalence.
-
-    ext : {A : Set} {B : A → Set} → Extensionality A B
-    ext = dependent-extensionality univ₁ (λ _ → univ₂)
-
-    -- The presence of the bijection implies that the structure's
-    -- underlying types are equal (due to univalence).
-
-    A₁≡A₂ : A₁ ≡ A₂
-    A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ bijection⇒weak-equivalence m
-
-    -- We can lift subst-isomorphism to structures by recursion on
-    -- structure codes.
-
-    lemma : (s : Structure)
-            (s₁ : ⟦ s ⟧ A₁) (s₂ : ⟦ s ⟧ A₂) →
-            Is-structure-morphism s s₁ s₂ to →
-            subst ⟦ s ⟧ A₁≡A₂ s₁ ≡ s₂
-    lemma empty _ _ _ = refl _
-
-    lemma (s +axiom (P , P-prop)) (s₁ , ax₁) (s₂ , ax₂) is =
-      subst (λ A → Σ (⟦ s ⟧ A) (P A)) A₁≡A₂ (s₁ , ax₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (uncurry P) (lemma s s₁ s₂ is) ⟩
-      (s₂ , _)                                          ≡⟨ cong (_,_ s₂) $ _⇔_.to propositional⇔irrelevant (P-prop _ _) _ _ ⟩∎
-      (s₂ , ax₂)                                        ∎
-
-    lemma (s +operator n) (s₁ , op₁) (s₂ , op₂) (is-s , is-o) =
-      subst (λ A → ⟦ s ⟧ A × (A ^ n ⟶ A)) A₁≡A₂ (s₁ , op₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (λ { (A , _) → A ^ n ⟶ A }) (lemma s s₁ s₂ is-s) ⟩
-
-      (s₂ , subst₂ (λ { (A , _) → A ^ n ⟶ A }) A₁≡A₂
-                   (lemma s s₁ s₂ is-s) op₁)                ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ (λ A → A ^ n ⟶ A) ⟩
-
-      (s₂ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)              ≡⟨ cong (_,_ s₂) $ subst-isomorphism (λ _ → ext) univ₂
-                                                                                 (bijection⇒weak-equivalence m) n op₁ op₂ is-o ⟩∎
-      (s₂ , op₂)                                            ∎
