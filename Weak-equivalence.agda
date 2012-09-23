@@ -1021,3 +1021,40 @@ abstract
   _≈_.bijection $
     ≈-preserves ext (bijection⇒weak-equivalence A₁↔A₂)
                     (bijection⇒weak-equivalence B₁↔B₂)
+
+------------------------------------------------------------------------
+-- Another property
+
+abstract
+
+  -- As a consequence of extensionality-isomorphism and ≈-≡ we get a
+  -- strengthening of W-≡,≡↠≡.
+
+  W-≡,≡≈≡ : ∀ {a b} {A : Set a} {B : A → Set b} →
+            (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality (B x) C) →
+            ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
+            (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ≈
+            (sup x f ≡ sup y g)
+  W-≡,≡≈≡ {a} {A = A} {B} ext {x} {y} {f} {g} =
+    (∃ λ p → ∀ i → f i ≡ g (subst B p i))        ≈⟨ Σ-preserves id lemma ⟩
+    (∃ λ p → subst (λ x → B x → W A B) p f ≡ g)  ≈⟨ bijection⇒weak-equivalence Σ-≡,≡↔≡ ⟩
+    ((x , f) ≡ (y , g))                          ≈⟨ ≈-≡ (bijection⇒weak-equivalence W-unfolding) ⟩□
+    (sup x f ≡ sup y g)                          □
+    where
+    lemma : (p : x ≡ y) →
+            (∀ i → f i ≡ g (subst B p i)) ≈
+            (subst (λ x → B x → W A B) p f ≡ g)
+    lemma p = elim
+      (λ {x y} p → (f : B x → W A B) (g : B y → W A B) →
+                   (∀ i → f i ≡ g (subst B p i)) ≈
+                   (subst (λ x → B x → W A B) p f ≡ g))
+      (λ x f g →
+         (∀ i → f i ≡ g (subst B (refl x) i))        ≈⟨ subst (λ h → (∀ i → f i ≡ g (h i)) ≈ (∀ i → f i ≡ g i))
+                                                              (sym (lower-extensionality₂ a ext (subst-refl B)))
+                                                              id ⟩
+         (∀ i → f i ≡ g i)                           ≈⟨ extensionality-isomorphism ext ⟩
+         (f ≡ g)                                     ≈⟨ subst (λ h → (f ≡ g) ≈ (h ≡ g))
+                                                              (sym $ subst-refl (λ x' → B x' → W A B) f)
+                                                              id ⟩□
+         (subst (λ x → B x → W A B) (refl x) f ≡ g)  □)
+      p f g
