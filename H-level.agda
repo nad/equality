@@ -105,7 +105,7 @@ abstract
     _⇔_.from {To = Uniqueness-of-identity-proofs A}
              set⇔UIP (DUIP.decidable⇒UIP dec)
 
--- H-level n respects surjections.
+-- H-level n respects (split) surjections.
 
 respects-surjection :
   ∀ {a b} {A : Set a} {B : Set b} →

@@ -140,8 +140,8 @@ ext⁻¹ f≡g = λ x → cong (λ h → h x) f≡g
 
 abstract
 
-  -- Given extensionality there is a surjection from ∀ x → f x ≡ g x
-  -- to f ≡ g.
+  -- Given extensionality there is a (split) surjection from
+  -- ∀ x → f x ≡ g x to f ≡ g.
 
   ext-surj : ∀ {a b} {A : Set a} →
              ({B : A → Set b} → Extensionality A B) →

@@ -57,7 +57,7 @@ import Equality.Groupoid
 
 import Injection
 
--- Surjections.
+-- Split surjections.
 
 import Surjection
 

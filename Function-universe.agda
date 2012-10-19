@@ -720,8 +720,8 @@ private
   ; left-inverse-of = refl
   }
 
--- There is a surjection from products of equality isomorphisms to
--- equalities.
+-- There is a (split) surjection from products of equality
+-- isomorphisms to equalities.
 
 Π≡↔≡-↠-≡ : ∀ k {a} {A : Set a} (x y : A) →
            (∀ z → (z ≡ x) ↔[ k ] (z ≡ y)) ↠ (x ≡ y)

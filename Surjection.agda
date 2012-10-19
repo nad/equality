@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- Surjections
+-- Split surjections
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
@@ -15,11 +15,12 @@ open import Equivalence
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 
 ------------------------------------------------------------------------
--- Surjections
+-- Split surjections
 
 infix 0 _↠_
 
--- Surjections.
+-- Split surjections. Note that in this development split surjections
+-- are often called simply "surjections".
 
 record _↠_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
   field

@@ -77,7 +77,7 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
       trans (refl _) q           ≡⟨ trans-reflˡ _ ⟩∎
       q                          ∎
 
--- Surjections can be lifted to preimages.
+-- Split surjections can be lifted to preimages.
 
 lift-surjection :
   ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) → let open _↠_ A↠B in
