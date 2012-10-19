@@ -604,6 +604,38 @@ module Derived-definitions-and-properties
                              refl (f (g x))            ≡⟨ sym (cong-refl (f ∘ g)) ⟩∎
                              cong (f ∘ g) (refl x)     ∎)
 
+    cong-proj₁-cong₂-, :
+      ∀ {a b} {A : Set a} {B : Set b} {x y : A} {u v : B}
+      (x≡y : x ≡ y) (u≡v : u ≡ v) →
+      cong proj₁ (cong₂ _,_ x≡y u≡v) ≡ x≡y
+    cong-proj₁-cong₂-, {x = x} {y} {u} {v} x≡y u≡v =
+      cong proj₁ (trans (cong (flip _,_ u) x≡y) (cong (_,_ y) u≡v))  ≡⟨ cong-trans proj₁ _ _ ⟩
+
+      trans (cong proj₁ (cong (flip _,_ u) x≡y))
+            (cong proj₁ (cong (_,_ y) u≡v))                          ≡⟨ cong₂ trans (cong-∘ proj₁ (flip _,_ u) x≡y) (cong-∘ proj₁ (_,_ y) u≡v) ⟩
+
+      trans (cong id x≡y) (cong (const y) u≡v)                       ≡⟨ cong₂ trans (sym $ cong-id x≡y) (cong-const u≡v) ⟩
+
+      trans x≡y (refl y)                                             ≡⟨ trans-reflʳ x≡y ⟩∎
+
+      x≡y                                                            ∎
+
+    cong-proj₂-cong₂-, :
+      ∀ {a b} {A : Set a} {B : Set b} {x y : A} {u v : B}
+      (x≡y : x ≡ y) (u≡v : u ≡ v) →
+      cong proj₂ (cong₂ _,_ x≡y u≡v) ≡ u≡v
+    cong-proj₂-cong₂-, {x = x} {y} {u} {v} x≡y u≡v =
+      cong proj₂ (trans (cong (flip _,_ u) x≡y) (cong (_,_ y) u≡v))  ≡⟨ cong-trans proj₂ _ _ ⟩
+
+      trans (cong proj₂ (cong (flip _,_ u) x≡y))
+            (cong proj₂ (cong (_,_ y) u≡v))                          ≡⟨ cong₂ trans (cong-∘ proj₂ (flip _,_ u) x≡y) (cong-∘ proj₂ (_,_ y) u≡v) ⟩
+
+      trans (cong (const u) x≡y) (cong id u≡v)                       ≡⟨ cong₂ trans (cong-const x≡y) (sym $ cong-id u≡v) ⟩
+
+      trans (refl u) u≡v                                             ≡⟨ trans-reflˡ u≡v ⟩∎
+
+      u≡v                                                            ∎
+
     cong-sym : ∀ {a b} {A : Set a} {B : Set b} {x y : A}
                (f : A → B) (x≡y : x ≡ y) →
                cong f (sym x≡y) ≡ sym (cong f x≡y)
