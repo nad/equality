@@ -16,7 +16,7 @@ module Univalence-axiom.Isomorphism-implies-equality
 open import Bijection eq using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence hiding (_∘_; inverse)
-open import Function-universe eq
+open import Function-universe eq hiding (bijection)
 open import H-level eq
 open import H-level.Closure eq
 open import Prelude hiding (_∘_)
@@ -299,156 +299,255 @@ module Simple where
 mutual
 
   infixl 5 _+operator_ _+ho-operator_ _+axiom_
+  infix  5 _+type
 
-  -- Codes for structures.
+  -- Structure n contains codes for structures containing n types.
 
-  data Structure : Set₁ where
-    empty : Structure
+  data Structure : ℕ → Set₁ where
+    empty : Structure 0
+
+    -- A type.
+    _+type : ∀ {n} → Structure n → Structure (1 + n)
 
     -- N-ary functions.
-    _+operator_ : Structure → (n : ℕ) → Structure
+    _+operator_ :
+      ∀ {n} → Structure n → (sig : Fin n × ℕ) → Structure n
 
     -- Simply typed functions.
-    _+ho-operator_ : Structure → (σ : Type) → Structure
+    _+ho-operator_ :
+      ∀ {n} → Structure n → (sig : Fin n × Type) → Structure n
 
     -- Arbitrary /propositional/ axioms.
-    _+axiom_ : (s : Structure)
-               (P : ∃ λ (P : (A : Set) → ⟦ s ⟧ A → Set) →
-                      ∀ A s → Propositional (P A s)) →
-               Structure
+    _+axiom_ : ∀ {n}
+               (s : Structure n)
+               (P : ∃ λ (P : ⟦ s ⟧ → Set) →
+                      ∀ s → Propositional (P s)) →
+               Structure n
 
   -- Interpretation of the codes.
 
-  ⟦_⟧ : Structure → Set → Set₁
-  ⟦ empty                 ⟧ A = ↑ _ ⊤
-  ⟦ s +operator n         ⟧ A = ⟦ s ⟧ A × (A ^ n ⟶ A)
-  ⟦ s +ho-operator σ      ⟧ A = ⟦ s ⟧ A × ⟦ σ ⟧→ A
-  ⟦ s +axiom (P , P-prop) ⟧ A = Σ (⟦ s ⟧ A) (P A)
+  ⟦_⟧ : ∀ {n} → Structure n → Set₁
+  ⟦ empty                  ⟧ = ↑ _ ⊤
+  ⟦ s +type                ⟧ = ⟦ s ⟧ × Set
+  ⟦ s +operator (j , n)    ⟧ = ∃ λ (S : ⟦ s ⟧) → let A = type s j S in
+                                                 A ^ n ⟶ A
+  ⟦ s +ho-operator (j , σ) ⟧ = ∃ λ (S : ⟦ s ⟧) → ⟦ σ ⟧→ (type s j S)
+  ⟦ s +axiom (P , P-prop)  ⟧ = Σ ⟦ s ⟧ P
 
--- Top-level interpretation.
+  -- A projection: type s j S is the j-th type in S.
 
-⟪_⟫ : Structure → Set₁
-⟪ s ⟫ = ∃ ⟦ s ⟧
+  type : ∀ {n} (s : Structure n) → Fin n → ⟦ s ⟧ → Set
+  type empty              ()        _
+  type (s +type)          (inj₁ tt) (S , A) = A
+  type (s +type)          (inj₂ j)  (S , A) = type s j S
+  type (s +operator _)    j         (S , _) = type s j S
+  type (s +ho-operator _) j         (S , _) = type s j S
+  type (s +axiom _)       j         (S , _) = type s j S
 
--- The property of being an isomorphism.
+mutual
 
-Is-structure-isomorphism :
-  (s : Structure) →
-  {A B : Set} → ⟦ s ⟧ A → ⟦ s ⟧ B →
-  A ↔ B → Set
-Is-structure-isomorphism empty              _          _          m = ⊤
-Is-structure-isomorphism (s +axiom _)       (s₁ , _)   (s₂ , _)   m =
-  Is-structure-isomorphism s s₁ s₂ m
-Is-structure-isomorphism (s +operator n)    (s₁ , op₁) (s₂ , op₂) m =
-  Is-structure-isomorphism s s₁ s₂ m ×
-  N-ary.Is- n -ary-morphism op₁ op₂ (_↔_.to m)
-Is-structure-isomorphism (s +ho-operator σ) (s₁ , op₁) (s₂ , op₂) m =
-  Is-structure-isomorphism s s₁ s₂ m ×
-  Simple.Is-isomorphism σ op₁ op₂ m
+  -- Isomorphisms.
 
--- Isomorphisms.
+  Isomorphism : ∀ {n} (s : Structure n) → ⟦ s ⟧ → ⟦ s ⟧ → Set
+  Isomorphism empty    _          _         = ⊤
 
-Isomorphism : (s : Structure) → ⟪ s ⟫ → ⟪ s ⟫ → Set
-Isomorphism s (A₁ , s₁) (A₂ , s₂) =
-  ∃ λ (m : A₁ ↔ A₂) → Is-structure-isomorphism s s₁ s₂ m
+  Isomorphism (s +type) (S₁ , A₁)  (S₂ , A₂) =
+    Isomorphism s S₁ S₂ × (A₁ ↔ A₂)
 
-abstract
+  Isomorphism (s +axiom _) (s₁ , _) (s₂ , _) =
+    Isomorphism s s₁ s₂
 
-  -- If m is an isomorphism, then inverse m is also an isomorphism
-  -- (assuming extensionality).
+  Isomorphism (s +operator (j , n)) (s₁ , op₁) (s₂ , op₂) =
+    ∃ λ (i : Isomorphism s s₁ s₂) →
+    N-ary.Is- n -ary-morphism op₁ op₂ (_↔_.to (bijection s j i))
 
-  inverse-also-structure-isomorphism :
-    {A B : Set} →
-    ((σ τ : Type) → Extensionality (⟦ σ ⟧→ B) (λ _ → ⟦ τ ⟧→ B)) →
-    (s : Structure) {s₁ : ⟦ s ⟧ A} {s₂ : ⟦ s ⟧ B} →
-    (m : A ↔ B) →
-    Is-structure-isomorphism s s₁ s₂ m →
-    Is-structure-isomorphism s s₂ s₁ (inverse m)
-  inverse-also-structure-isomorphism ext empty              m = _
-  inverse-also-structure-isomorphism ext (s +axiom _)       m =
-    inverse-also-structure-isomorphism ext s m
-  inverse-also-structure-isomorphism ext (s +operator n)    m =
-    Σ-map (inverse-also-structure-isomorphism ext s m)
-          (N-ary.from-also- n -ary-morphism _ _ m)
-  inverse-also-structure-isomorphism ext (s +ho-operator σ) m =
-    Σ-map (inverse-also-structure-isomorphism ext s m)
-          (Simple.inverse-also-isomorphism ext σ _ _ m)
+  Isomorphism (s +ho-operator (j , σ)) (s₁ , op₁) (s₂ , op₂) =
+    ∃ λ (i : Isomorphism s s₁ s₂) →
+    Simple.Is-isomorphism σ op₁ op₂ (bijection s j i)
 
-  -- Isomorphic structures are equal (assuming univalence).
+  -- A projection: bijection s j i is the j-th bijection in i.
 
-  isomorphic-equal :
-    Univalence-axiom′ (Set ²/≡) Set →
-    Univalence-axiom lzero →
-    (s : Structure) (s₁ s₂ : ⟪ s ⟫) →
-    Isomorphism s s₁ s₂ → s₁ ≡ s₂
-  isomorphic-equal univ₁ univ₂
-    s (A₁ , s₁) (A₂ , s₂) (m , is) =
+  bijection : ∀ {n} (s : Structure n) {S₁ S₂ : ⟦ s ⟧} (j : Fin n) →
+              Isomorphism s S₁ S₂ → type s j S₁ ↔ type s j S₂
+  bijection empty              ()        _
+  bijection (s +type)          (inj₁ tt) (_ , m) = m
+  bijection (s +type)          (inj₂ j)  (i , _) = bijection s j i
+  bijection (s +operator _)    j         (i , _) = bijection s j i
+  bijection (s +ho-operator _) j         (i , _) = bijection s j i
+  bijection (s +axiom _)       j         i       = bijection s j i
 
-    (A₁ , s₁)  ≡⟨ Σ-≡,≡→≡ A₁≡A₂ (lemma s s₁ s₂ is) ⟩∎
-    (A₂ , s₂)  ∎
+mutual
+ abstract
 
-    where
+  -- Isomorphism s is symmetric (assuming extensionality).
+
+  symmetric : ({A B : Set} → Extensionality A (λ _ → B)) →
+              ∀ {n} (s : Structure n) {S₁ S₂ : ⟦ s ⟧} →
+              Isomorphism s S₁ S₂ → Isomorphism s S₂ S₁
+  symmetric ext empty        i       = i
+  symmetric ext (s +axiom P) i       = symmetric ext s i
+  symmetric ext (s +type)    (i , m) = symmetric ext s i , inverse m
+  symmetric ext (s +operator (j , n)) (i , is) =
+    symmetric ext s i ,
+    subst (N-ary.Is- n -ary-morphism _ _)
+          (cong _↔_.to $ bijection-commutes ext s j i)
+          (N-ary.from-also- n -ary-morphism _ _ (bijection s j i) is)
+  symmetric ext (s +ho-operator (j , σ)) (i , is) =
+    symmetric ext s i ,
+    subst (Simple.Is-isomorphism σ _ _)
+          (bijection-commutes ext s j i)
+          (Simple.inverse-also-isomorphism (λ _ _ → ext) σ _ _
+                                           (bijection s j i) is)
+
+  -- A kind of commutation property.
+
+  bijection-commutes :
+    (ext : {A B : Set} → Extensionality A (λ _ → B)) →
+    ∀ {n} (s : Structure n) {S₁ S₂ : ⟦ s ⟧} →
+    (j : Fin n) (i : Isomorphism s S₁ S₂) →
+    inverse (bijection s j i) ≡ bijection s j (symmetric ext s i)
+  bijection-commutes ext empty              ()        _
+  bijection-commutes ext (s +type)          (inj₁ tt) (_ , m) = refl (inverse m)
+  bijection-commutes ext (s +type)          (inj₂ j)  (i , _) = bijection-commutes ext s j i
+  bijection-commutes ext (s +operator _)    j         (i , _) = bijection-commutes ext s j i
+  bijection-commutes ext (s +ho-operator _) j         (i , _) = bijection-commutes ext s j i
+  bijection-commutes ext (s +axiom P)       j         i       = bijection-commutes ext s j i
+
+-- Isomorphic structures are equal (assuming univalence).
+
+isomorphic-equal :
+  Univalence-axiom′ (Set ²/≡) Set →
+  Univalence-axiom lzero →
+  ∀ {n} (s : Structure n) (S₁ S₂ : ⟦ s ⟧) →
+  Isomorphism s S₁ S₂ → S₁ ≡ S₂
+isomorphic-equal univ₁ univ₂ s S₁ S₂ is = iso-eq s S₁ S₂ is
+  where
+
+  -- Given two isomorphic structures the corresponding types are equal
+  -- (due to univalence).
+
+  corresponding-types-equal :
+    ∀ {n} (s : Structure n) {S₁ S₂ : ⟦ s ⟧}
+    (j : Fin n) (i : Isomorphism s S₁ S₂) →
+    type s j S₁ ≡ type s j S₂
+  corresponding-types-equal s j i =
+    _≈_.from (≡≈≈ univ₂) $
+    bijection⇒weak-equivalence $
+    bijection s j i
+
+  abstract
 
     -- Extensionality follows from univalence.
 
     ext : {A : Set} {B : A → Set} → Extensionality A B
     ext = dependent-extensionality univ₁ (λ _ → univ₂)
 
-    -- The presence of the bijection implies that the structure's
-    -- underlying types are equal (due to univalence).
+  mutual
+   abstract
 
-    A₁≡A₂ : A₁ ≡ A₂
-    A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ bijection⇒weak-equivalence m
+    -- The main lemma.
 
-    -- We can lift subst-isomorphism to structures by recursion on
-    -- structure codes.
+    iso-eq : ∀ {n} (s : Structure n) (S₁ S₂ : ⟦ s ⟧) →
+             Isomorphism s S₁ S₂ → S₁ ≡ S₂
+    iso-eq empty _ _ _ = refl _
 
-    lemma : (s : Structure)
-            (s₁ : ⟦ s ⟧ A₁) (s₂ : ⟦ s ⟧ A₂) →
-            Is-structure-isomorphism s s₁ s₂ m →
-            subst ⟦ s ⟧ A₁≡A₂ s₁ ≡ s₂
-    lemma empty _ _ _ = refl _
+    iso-eq (s +type) (S₁ , A₁) (S₂ , A₂) (i , m) =
+      (S₁ , A₁)  ≡⟨ cong₂ _,_ (iso-eq s S₁ S₂ i) (corresponding-types-equal (s +type) (inj₁ tt) (i , m)) ⟩∎
+      (S₂ , A₂)  ∎
 
-    lemma (s +axiom (P , P-prop)) (s₁ , ax₁) (s₂ , ax₂) is =
-      subst (λ A → Σ (⟦ s ⟧ A) (P A)) A₁≡A₂ (s₁ , ax₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (uncurry P) (lemma s s₁ s₂ is) ⟩
-      (s₂ , _)                                          ≡⟨ cong (_,_ s₂) $ _⇔_.to propositional⇔irrelevant (P-prop _ _) _ _ ⟩∎
-      (s₂ , ax₂)                                        ∎
+    iso-eq (s +axiom (P , P-prop)) (S₁ , ax₁) (S₂ , ax₂) i =
+      (S₁ , ax₁)  ≡⟨ Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) (_⇔_.to propositional⇔irrelevant (P-prop _) _ _) ⟩∎
+      (S₂ , ax₂)  ∎
 
-    lemma (s +operator n) (s₁ , op₁) (s₂ , op₂) (is-s , is-o) =
-      subst (λ A → ⟦ s ⟧ A × (A ^ n ⟶ A)) A₁≡A₂ (s₁ , op₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (λ { (A , _) → A ^ n ⟶ A }) (lemma s s₁ s₂ is-s) ⟩
+    iso-eq (s +operator (j , n)) (S₁ , op₁) (S₂ , op₂) (i , is) =
+      let lemma′ =
+            subst (λ S → type s j S ^ n ⟶ type s j S)
+                  (iso-eq s S₁ S₂ i) op₁                    ≡⟨ subst-∘ (λ A → A ^ n ⟶ A) (type s j) (iso-eq s S₁ S₂ i) ⟩
 
-      (s₂ , subst₂ (λ { (A , _) → A ^ n ⟶ A }) A₁≡A₂
-                   (lemma s s₁ s₂ is-s) op₁)                ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ (λ A → A ^ n ⟶ A) ⟩
+            subst (λ A → A ^ n ⟶ A)
+                  (cong (type s j) (iso-eq s S₁ S₂ i)) op₁  ≡⟨ cong (λ eq → subst (λ A → A ^ n ⟶ A) eq op₁) (cong-type-iso-eq s S₁ S₂ j i) ⟩
 
-      (s₂ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)              ≡⟨ cong (_,_ s₂) $ N-ary.subst-isomorphism (λ _ → ext) univ₂
-                                                                                 (bijection⇒weak-equivalence m) n op₁ op₂ is-o ⟩∎
-      (s₂ , op₂)                                            ∎
+            subst (λ A → A ^ n ⟶ A)
+                  (corresponding-types-equal s j i) op₁     ≡⟨ N-ary.subst-isomorphism (λ _ → ext) univ₂
+                                                                 (bijection⇒weak-equivalence $ bijection s j i) n op₁ op₂ is ⟩∎
+            op₂                                             ∎ in
 
-    lemma (s +ho-operator σ) (s₁ , op₁) (s₂ , op₂) (is-s , is-o) =
-      subst (λ A → ⟦ s ⟧ A × ⟦ σ ⟧→ A) A₁≡A₂ (s₁ , op₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (λ { (A , _) → ⟦ σ ⟧→ A }) (lemma s s₁ s₂ is-s) ⟩
+      (S₁ , op₁)  ≡⟨ Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) lemma′ ⟩∎
+      (S₂ , op₂)  ∎
 
-      (s₂ , subst₂ (λ { (A , _) → ⟦ σ ⟧→ A }) A₁≡A₂
-                   (lemma s s₁ s₂ is-s) op₁)             ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ ⟦ σ ⟧→ ⟩
+    iso-eq (s +ho-operator (j , σ)) (S₁ , op₁) (S₂ , op₂) (i , is) =
+      let lemma′ =
+            subst (⟦ σ ⟧→ ∘ type s j) (iso-eq s S₁ S₂ i) op₁       ≡⟨ subst-∘ ⟦ σ ⟧→ (type s j) (iso-eq s S₁ S₂ i) ⟩
+            subst ⟦ σ ⟧→ (cong (type s j) (iso-eq s S₁ S₂ i)) op₁  ≡⟨ cong (λ eq → subst ⟦ σ ⟧→ eq op₁) (cong-type-iso-eq s S₁ S₂ j i) ⟩
+            subst ⟦ σ ⟧→ (corresponding-types-equal s j i) op₁     ≡⟨ Simple.subst-isomorphism (λ _ _ → ext) univ₂
+                                                                        (bijection s j i) σ op₁ op₂ is ⟩∎
+            op₂                                                   ∎ in
 
-      (s₂ , subst ⟦ σ ⟧→ A₁≡A₂ op₁)                      ≡⟨ cong (_,_ s₂) $ Simple.subst-isomorphism (λ _ _ → ext) univ₂ m σ op₁ op₂ is-o ⟩∎
-      (s₂ , op₂)                                         ∎
+      (S₁ , op₁)  ≡⟨ Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) lemma′ ⟩∎
+      (S₂ , op₂)  ∎
+
+    -- A certain projection of iso-eq corresponds to
+    -- corresponding-types-equal.
+
+    cong-type-iso-eq :
+      ∀ {n} (s : Structure n) (S₁ S₂ : ⟦ s ⟧)
+      (j : Fin n) (i : Isomorphism s S₁ S₂) →
+      cong (type s j) (iso-eq s S₁ S₂ i) ≡
+      corresponding-types-equal s j i
+    cong-type-iso-eq empty S₁ S₂ () i
+
+    cong-type-iso-eq (s +type) (S₁ , A₁) (S₂ , A₂) (inj₁ tt) (i , m) =
+      let A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ bijection⇒weak-equivalence m in
+
+      cong proj₂ (cong₂ _,_ (iso-eq s S₁ S₂ i) A₁≡A₂)  ≡⟨ cong-proj₂-cong₂-, (iso-eq s S₁ S₂ i) _ ⟩∎
+      A₁≡A₂                                            ∎
+
+    cong-type-iso-eq (s +type) (S₁ , _) (S₂ , _) (inj₂ j) (i , _) =
+      cong (type s j ∘ proj₁) (cong₂ _,_ (iso-eq s S₁ S₂ i) _)       ≡⟨ sym $ cong-∘ (type s j) proj₁ _ ⟩
+      cong (type s j) (cong proj₁ (cong₂ _,_ (iso-eq s S₁ S₂ i) _))  ≡⟨ cong (cong (type s j)) $ cong-proj₁-cong₂-, (iso-eq s S₁ S₂ i) _ ⟩
+      cong (type s j) (iso-eq s S₁ S₂ i)                             ≡⟨ cong-type-iso-eq s S₁ S₂ j i ⟩∎
+      corresponding-types-equal s j i                                ∎
+
+    cong-type-iso-eq (s +axiom _) (S₁ , _) (S₂ , _) j i =
+      cong-type-iso-eq′ s S₁ S₂ j i _ _
+
+    cong-type-iso-eq (s +operator _) (S₁ , _) (S₂ , _) j (i , _) =
+      cong-type-iso-eq′ s S₁ S₂ j i _ _
+
+    cong-type-iso-eq (s +ho-operator _) (S₁ , _) (S₂ , _) j (i , _) =
+      cong-type-iso-eq′ s S₁ S₂ j i _ _
+
+    -- A variant of cong-type-iso-eq.
+
+    cong-type-iso-eq′ :
+      ∀ {n} (s : Structure n) (S₁ S₂ : ⟦ s ⟧)
+      (j : Fin n) (i : Isomorphism s S₁ S₂)
+      (P : ⟦ s ⟧ → Set) {p₁ p₂}
+      (eq : subst P (iso-eq s S₁ S₂ i) p₁ ≡ p₂) →
+      cong (type s j ∘ proj₁) (Σ-≡,≡→≡ {B = P} (iso-eq s S₁ S₂ i) eq) ≡
+      corresponding-types-equal s j i
+    cong-type-iso-eq′ s S₁ S₂ j i _ eq =
+      cong (type s j ∘ proj₁) (Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) eq)       ≡⟨ sym $ cong-∘ (type s j) proj₁ _ ⟩
+      cong (type s j) (cong proj₁ $ Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) eq)  ≡⟨ cong (cong (type s j)) $ proj₁-Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) _ ⟩
+      cong (type s j) (iso-eq s S₁ S₂ i)                            ≡⟨ cong-type-iso-eq s S₁ S₂ j i ⟩∎
+      corresponding-types-equal s j i                               ∎
 
 ------------------------------------------------------------------------
 -- Some example structures
 
 -- Example: magmas.
 
-magma : Structure
-magma = empty +operator 2
+magma : Structure 1
+magma = empty +type +operator (inj₁ tt , 2)
 
 Magma : Set₁
-Magma = ⟪ magma ⟫
+Magma = ⟦ magma ⟧
 
 private
 
   -- An unfolding of Magma.
 
-  Magma-unfolded : Magma ≡ ∃ λ (A : Set) → ↑ _ ⊤ × (A → A → A)
+  Magma-unfolded : Magma ≡ Σ (↑ _ ⊤ × Set) λ { (_ , A) → (A → A → A) }
   Magma-unfolded = refl _
 
 -- Example: semigroups. The definition uses extensionality to prove
@@ -458,27 +557,29 @@ private
 
 semigroup :
   ({A : Set} {B : A → Set} → Extensionality A B) →
-  Structure
+  Structure 1
 semigroup ext =
   empty
 
+  +type
+
   +axiom
-    ( (λ A _ → Is-set A)
+    ( (λ { (_ , A) → Is-set A })
     , is-set-prop
     )
 
-  +operator 2
+  +operator (inj₁ tt , 2)
 
   +axiom
-    ( (λ { _ (_ , _∙_) →
+    ( (λ { (_ , _∙_) →
            ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
     , assoc-prop
     )
 
   where
-  is-set-prop = λ _ _ → H-level-propositional ext 2
+  is-set-prop = λ _ → H-level-propositional ext 2
 
-  assoc-prop = λ { _ ((_ , A-set) , _) →
+  assoc-prop = λ { ((_ , A-set) , _) →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
@@ -488,7 +589,7 @@ semigroup ext =
 Semigroup :
   ({A : Set} {B : A → Set} → Extensionality A B) →
   Set₁
-Semigroup ext = ⟪ semigroup ext ⟫
+Semigroup ext = ⟦ semigroup ext ⟧
 
 private
 
@@ -496,10 +597,10 @@ private
 
   Semigroup-unfolded :
     (ext : {A : Set} {B : A → Set} → Extensionality A B) →
-    Semigroup ext ≡ Σ
-      Set                                    λ A → Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Is-set A                             ) λ _ →
-      A → A → A                            ) λ { (_ , _∙_) →
+    Semigroup ext ≡  Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Set                                  ) λ {  (_ , A) →
+      Is-set A                            }) λ { ((_ , A) , _) →
+      A → A → A                           }) λ { (_ , _∙_) →
       ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }
   Semigroup-unfolded _ = refl _
 
@@ -507,79 +608,82 @@ private
 
 abelian-group :
   ({A : Set} {B : A → Set} → Extensionality A B) →
-  Structure
+  Structure 1
 abelian-group ext =
   empty
 
+  -- The underlying type.
+  +type
+
   -- The underlying type is a set.
   +axiom
-    ( (λ A _ → Is-set A)
+    ( (λ { (_ , A) → Is-set A })
     , is-set-prop
     )
 
   -- The binary group operation.
-  +operator 2
+  +operator (inj₁ tt , 2)
 
   -- Commutativity.
   +axiom
-    ( (λ { _ (_ , _∙_) →
+    ( (λ { (_ , _∙_) →
            ∀ x y → x ∙ y ≡ y ∙ x })
     , comm-prop
     )
 
   -- Associativity.
   +axiom
-    ( (λ { _ ((_ , _∙_) , _) →
+    ( (λ { ((_ , _∙_) , _) →
            ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
     , assoc-prop
     )
 
   -- Identity.
-  +operator 0
+  +operator (inj₁ tt , 0)
 
   -- Left identity.
   +axiom
-    ( (λ { _ ((((_ , _∙_) , _) , _) , e) →
+    ( (λ { ((((_ , _∙_) , _) , _) , e) →
            ∀ x → e ∙ x ≡ x })
     , left-identity-prop
     )
 
   -- Right identity.
   +axiom
-    ( (λ { _ (((((_ , _∙_) , _) , _) , e) , _) →
+    ( (λ { (((((_ , _∙_) , _) , _) , e) , _) →
            ∀ x → x ∙ e ≡ x })
     , right-identity-prop
     )
 
   -- Inverse.
-  +operator 1
+  +operator (inj₁ tt , 1)
 
   -- Left inverse.
   +axiom
-    ( (λ { _ (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
+    ( (λ { (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
            ∀ x → (x ⁻¹) ∙ x ≡ e })
     , left-inverse-prop
     )
 
   -- Right inverse.
   +axiom
-    ( (λ { _ ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
+    ( (λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
            ∀ x → x ∙ (x ⁻¹) ≡ e })
     , right-inverse-prop
     )
 
   where
-  is-set-prop = λ _ _ → H-level-propositional ext 2
+  is-set-prop = λ _ → H-level-propositional ext 2
 
   comm-prop =
-    λ { _ ((_ , A-set) , _) →
+    λ { ((_ , A-set) , _) →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
       A-set _ _
     }
 
   assoc-prop =
-    λ { _ (((_ , A-set) , _) , _) →
+    λ { (((_ , A-set) , _) , _) →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
@@ -587,25 +691,25 @@ abelian-group ext =
     }
 
   left-identity-prop =
-    λ { _ (((((_ , A-set) , _) , _) , _) , _) →
+    λ { (((((_ , A-set) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
       A-set _ _
     }
 
   right-identity-prop =
-    λ { _ ((((((_ , A-set) , _) , _) , _) , _) , _) →
+    λ { ((((((_ , A-set) , _) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
       A-set _ _
     }
 
   left-inverse-prop =
-    λ { _ ((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) →
+    λ { ((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
       A-set _ _
     }
 
   right-inverse-prop =
-    λ { _ (((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
+    λ { (((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
       A-set _ _
     }
@@ -613,7 +717,7 @@ abelian-group ext =
 Abelian-group :
   ({A : Set} {B : A → Set} → Extensionality A B) →
   Set₁
-Abelian-group ext = ⟪ abelian-group ext ⟫
+Abelian-group ext = ⟦ abelian-group ext ⟧
 
 private
 
@@ -622,17 +726,17 @@ private
 
   Abelian-group-unfolded :
     (ext : {A : Set} {B : A → Set} → Extensionality A B) →
-    Abelian-group ext ≡ Σ
-      Set                                    λ A → Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Is-set A                             ) λ _ →
-      A → A → A                            ) λ {        (_ , _∙_) →
-      ∀ x y → x ∙ y ≡ y ∙ x               }) λ {       ((_ , _∙_) , _) →
-      ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }) λ _ →
-      A                                    ) λ {     ((((_ , _∙_) , _) , _) , e) →
-      ∀ x → e ∙ x ≡ x                     }) λ {    (((((_ , _∙_) , _) , _) , e) , _) →
-      ∀ x → x ∙ e ≡ x                     }) λ _ →
-      A → A                                ) λ {  (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-      ∀ x → (x ⁻¹) ∙ x ≡ e                }) λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
+    Abelian-group ext ≡ Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Set                                  ) λ {        (_ , A) →
+      Is-set A                            }) λ {       ((_ , A) , _) →
+      A → A → A                           }) λ {                  (_ , _∙_) →
+      ∀ x y → x ∙ y ≡ y ∙ x               }) λ {                 ((_ , _∙_) , _) →
+      ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }) λ {    (((((_ , A) , _) , _  ) , _) , _) →
+      A                                   }) λ {               ((((_ , _∙_) , _) , _) , e) →
+      ∀ x → e ∙ x ≡ x                     }) λ {              (((((_ , _∙_) , _) , _) , e) , _) →
+      ∀ x → x ∙ e ≡ x                     }) λ { ((((((((_ , A) , _) , _  ) , _) , _) , _) , _) , _) →
+      A → A                               }) λ {            (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
+      ∀ x → (x ⁻¹) ∙ x ≡ e                }) λ {           ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
       ∀ x → x ∙ (x ⁻¹) ≡ e                }
 
   Abelian-group-unfolded _ = refl _
@@ -641,27 +745,29 @@ private
 
 set-with-fixed-point-operator :
   ({A : Set} {B : A → Set} → Extensionality A B) →
-  Structure
+  Structure 1
 set-with-fixed-point-operator ext =
   empty
 
+  +type
+
   +axiom
-    ( (λ A _ → Is-set A)
+    ( (λ { (_ , A) → Is-set A })
     , is-set-prop
     )
 
-  +ho-operator ((base ⟶ base) ⟶ base)
+  +ho-operator (inj₁ tt , (base ⟶ base) ⟶ base)
 
   +axiom
-    ( (λ { _ (_ , fix) →
+    ( (λ { (_ , fix) →
            ∀ f → fix f ≡ f (fix f) })
     , fixed-point-prop
     )
 
   where
-  is-set-prop = λ _ _ → H-level-propositional ext 2
+  is-set-prop = λ _ → H-level-propositional ext 2
 
-  fixed-point-prop = λ { _ ((_ , A-set) , _) →
+  fixed-point-prop = λ { ((_ , A-set) , _) →
       Π-closure ext 1 λ _ →
       A-set _ _
     }
@@ -670,7 +776,7 @@ Set-with-fixed-point-operator :
   ({A : Set} {B : A → Set} → Extensionality A B) →
   Set₁
 Set-with-fixed-point-operator ext =
-  ⟪ set-with-fixed-point-operator ext ⟫
+  ⟦ set-with-fixed-point-operator ext ⟧
 
 private
 
@@ -678,10 +784,10 @@ private
 
   Set-with-fixed-point-operator-unfolded :
     (ext : {A : Set} {B : A → Set} → Extensionality A B) →
-    Set-with-fixed-point-operator ext ≡ Σ
-      Set                        λ A → Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Is-set A                 ) λ _ →
-      (A → A) → A              ) λ { (_ , fix) →
+    Set-with-fixed-point-operator ext ≡ Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Set                      ) λ {  (_ , A) →
+      Is-set A                }) λ { ((_ , A) , _) →
+      (A → A) → A             }) λ { (_ , fix) →
       ∀ f → fix f ≡ f (fix f) }
   Set-with-fixed-point-operator-unfolded _ = refl _
 
@@ -702,7 +808,8 @@ private
 -- type ∀ A → Structureʳ A (see the definition of
 -- Is-structure-isomorphismʳ below).
 
--- Codes.
+-- Codes. (Note that these structures are defined for a single
+-- underlying type.)
 
 data Structureʳ (A : Set) : Set₁ where
   empty : Structureʳ A
