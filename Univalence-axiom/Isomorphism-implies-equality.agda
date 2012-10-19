@@ -684,3 +684,136 @@ private
       (A → A) → A              ) λ { (_ , fix) →
       ∀ f → fix f ≡ f (fix f) }
   Set-with-fixed-point-operator-unfolded _ = refl _
+
+------------------------------------------------------------------------
+-- Right-nested structures
+
+-- Right-nested structures are arguably easier to define (see the
+-- example below). However, the following class of right-nested
+-- structures is in some sense different from the class above. Take
+-- "operator 0 f : Structureʳ Bool", for instance. The /shape/ of f op
+-- can vary depending on whether the operator op is true or false.
+--
+-- One could perhaps avoid this issue by only considering values of
+-- type ∀ A → Structureʳ A. However, it is not obvious how to convert
+-- elements of this type to elements of type Structure in a
+-- meaning-preserving way. Furthermore it seems to be awkward to
+-- define things like Is-structure-isomorphism when using values of
+-- type ∀ A → Structureʳ A (see the definition of
+-- Is-structure-isomorphismʳ below).
+
+-- Codes.
+
+data Structureʳ (A : Set) : Set₁ where
+  empty : Structureʳ A
+
+  -- N-ary functions.
+  operator : (n : ℕ)
+             (s : A ^ n ⟶ A → Structureʳ A) →
+             Structureʳ A
+
+  -- Simply typed functions.
+  ho-operator : (σ : Type)
+                (s : ⟦ σ ⟧→ A → Structureʳ A) →
+                Structureʳ A
+
+  -- Arbitrary /propositional/ axioms.
+  axiom : (P : Set)
+          (P-prop : Propositional P)
+          (s : P → Structureʳ A) →
+          Structureʳ A
+
+-- Interpretation of the codes.
+
+⟦_⟧ʳ : {A : Set} → Structureʳ A → Set₁
+⟦ empty            ⟧ʳ = ↑ _ ⊤
+⟦ operator n s     ⟧ʳ = ∃ λ op → ⟦ s op ⟧ʳ
+⟦ ho-operator σ s  ⟧ʳ = ∃ λ op → ⟦ s op ⟧ʳ
+⟦ axiom P P-prop s ⟧ʳ = ∃ λ p  → ⟦ s p  ⟧ʳ
+
+-- Top-level interpretation.
+
+⟪_⟫ʳ : (∀ A → Structureʳ A) → Set₁
+⟪ s ⟫ʳ = ∃ λ A → ⟦ s A ⟧ʳ
+
+-- The property of being an isomorphism.
+
+Is-structure-isomorphismʳ :
+  (s : ∀ A → Structureʳ A) →
+  {A B : Set} → ⟦ s A ⟧ʳ → ⟦ s B ⟧ʳ →
+  A ↔ B → Set
+Is-structure-isomorphismʳ s {A} {B} S₁ S₂ m =
+  helper (s A) (s B) S₁ S₂
+  where
+  helper : (s₁ : Structureʳ A) (s₂ : Structureʳ B) →
+           ⟦ s₁ ⟧ʳ → ⟦ s₂ ⟧ʳ → Set
+  helper empty            empty            _          _          = ⊤
+  helper (operator n₁ s₁) (operator n₂ s₂) (op₁ , S₁) (op₂ , S₂) =
+    (∃ λ (eq : n₁ ≡ n₂) →
+       N-ary.Is- n₁ -ary-morphism
+         op₁ (subst (λ n → B ^ n ⟶ B) (sym eq) op₂) (_↔_.to m)) ×
+    helper (s₁ op₁) (s₂ op₂) S₁ S₂
+  helper (ho-operator σ₁ s₁) (ho-operator σ₂ s₂) (op₁ , S₁) (op₂ , S₂) =
+    ∃ λ (eq : σ₁ ≡ σ₂) →
+       Simple.Is-isomorphism
+         σ₁ op₁ (subst (λ σ → ⟦ σ ⟧→ B) (sym eq) op₂) m ×
+    helper (s₁ op₁) (s₂ op₂) S₁ S₂
+  helper (axiom P₁ _ s₁) (axiom P₂ _ s₂) (p₁ , S₁) (p₂ , S₂) =
+    helper (s₁ p₁) (s₂ p₂) S₁ S₂
+
+  helper empty               (operator n s₂)     _ _ = ⊥
+  helper empty               (ho-operator σ s₂)  _ _ = ⊥
+  helper empty               (axiom P P-prop s₂) _ _ = ⊥
+  helper (operator n s₁)     empty               _ _ = ⊥
+  helper (operator n s₁)     (ho-operator σ s₂)  _ _ = ⊥
+  helper (operator n s₁)     (axiom P P-prop s₂) _ _ = ⊥
+  helper (ho-operator σ s₁)  empty               _ _ = ⊥
+  helper (ho-operator σ s₁)  (operator n s₂)     _ _ = ⊥
+  helper (ho-operator σ s₁)  (axiom P P-prop s₂) _ _ = ⊥
+  helper (axiom P P-prop s₁) empty               _ _ = ⊥
+  helper (axiom P P-prop s₁) (operator n s₂)     _ _ = ⊥
+  helper (axiom P P-prop s₁) (ho-operator σ s₂)  _ _ = ⊥
+
+-- Example: semigroups.
+
+semigroupʳ :
+  ({A : Set} {B : A → Set} → Extensionality A B) →
+  ∀ A → Structureʳ A
+semigroupʳ ext A =
+  axiom (Is-set A)
+
+        (H-level-propositional ext 2)
+
+        λ A-set →
+
+  operator 2 λ _∙_ →
+
+  axiom (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z)
+
+        (Π-closure ext 1 λ _ →
+         Π-closure ext 1 λ _ →
+         Π-closure ext 1 λ _ →
+         A-set _ _)
+
+        λ _ →
+
+  empty
+
+Semigroupʳ :
+  ({A : Set} {B : A → Set} → Extensionality A B) →
+  Set₁
+Semigroupʳ ext = ⟪ semigroupʳ ext ⟫ʳ
+
+private
+
+  -- An unfolding of Semigroupʳ.
+
+  Semigroupʳ-unfolded :
+    (ext : {A : Set} {B : A → Set} → Extensionality A B) →
+    Semigroupʳ ext ≡
+    ∃ λ (A   : Set) →
+    ∃ λ (_   : Is-set A) →
+    ∃ λ (_∙_ : A → A → A) →
+    ∃ λ (_   : ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) →
+    ↑ _ ⊤
+  Semigroupʳ-unfolded _ = refl _
