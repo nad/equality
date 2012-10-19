@@ -16,6 +16,8 @@ open import Prelude hiding (id)
 open import Bijection P.equality-with-J using (_↔_; module _↔_)
 open import Equality.Decision-procedures P.equality-with-J
 open import Function-universe P.equality-with-J hiding (_∘_)
+open import H-level P.equality-with-J
+open import H-level.Closure P.equality-with-J
 
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃
@@ -29,6 +31,18 @@ open import Function-universe P.equality-with-J hiding (_∘_)
   ∃ P                          ↔⟨ ∃-⊎-distrib-right ⟩
   ∃ (P ∘ inj₁) ⊎ ∃ (P ∘ inj₂)  ↔⟨ Σ-left-identity ⊎-cong id ⟩□
   P (inj₁ tt) ⊎ ∃ (P ∘ inj₂)   □
+
+------------------------------------------------------------------------
+-- Fin n is a set
+
+abstract
+
+  Fin-set : ∀ n → Is-set (Fin n)
+  Fin-set zero    = mono₁ 1 ⊥-propositional
+  Fin-set (suc n) = ⊎-closure 0 (mono 0≤2 ⊤-contractible) (Fin-set n)
+    where
+    0≤2 : 0 ≤ 2
+    0≤2 = ≤-step (≤-step ≤-refl)
 
 ------------------------------------------------------------------------
 -- If two nonempty finite sets are isomorphic, then we can remove one
