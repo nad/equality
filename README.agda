@@ -93,10 +93,13 @@ import Univalence-axiom
 
 import Univalence-axiom.Isomorphism-implies-equality.Examples
 
--- In fact, a large class of algebraic structures satisfy the property
--- that isomorphic structures are equal (assuming univalence).
+-- In fact, a large class of algebraic structures satisfies the
+-- property that isomorphic structures are equal (assuming
+-- univalence). Two versions of this development are given; the first
+-- one is less general but perhaps easier to understand.
 
 import Univalence-axiom.Isomorphism-implies-equality
+import Univalence-axiom.Isomorphism-implies-equality.More
 
 -- A universe which includes several kinds of functions (ordinary
 -- functions, equivalences, injections, surjections, bijections and
