@@ -11,12 +11,9 @@ module Bijection
 
 open Derived-definitions-and-properties eq
 import Equivalence
-import Injection; open Injection eq using (Injective; _↣_)
+open import Injection eq using (Injective; _↣_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
-private
-  module Surjection where
-    import Surjection; open Surjection eq public
-open Surjection using (_↠_; module _↠_)
+open import Surjection eq as Surjection using (_↠_; module _↠_)
 
 ------------------------------------------------------------------------
 -- Bijections

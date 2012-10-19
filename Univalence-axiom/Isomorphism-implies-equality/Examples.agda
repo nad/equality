@@ -12,14 +12,14 @@ open import Equality
 module Univalence-axiom.Isomorphism-implies-equality.Examples
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-import Bijection; open Bijection eq
+open import Bijection eq
 open Derived-definitions-and-properties eq
 open import Equivalence
-import H-level; open H-level eq
-import H-level.Closure; open H-level.Closure eq
+open import H-level eq
+open import H-level.Closure eq
 open import Prelude
-import Univalence-axiom; open Univalence-axiom eq
-import Weak-equivalence; open Weak-equivalence eq
+open import Univalence-axiom eq
+open import Weak-equivalence eq
 
 ------------------------------------------------------------------------
 -- An example: if two magmas are isomorphic, then they are equal

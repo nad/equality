@@ -14,20 +14,11 @@ open import Equivalence hiding (id; _∘_; inverse)
 open import Fin
 open import Prelude as P hiding (id)
 
-import Bijection
-open Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
-
-import Equality.Decision-procedures
-open Equality.Decision-procedures equality-with-J
-
-private
-  module Function-universe where
-    import Function-universe
-    open Function-universe equality-with-J public
-open Function-universe hiding (_∘_; Kind; module Kind; bijection)
-
-import Injection
-open Injection equality-with-J using (_↣_)
+open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
+open import Equality.Decision-procedures equality-with-J
+open import Function-universe equality-with-J as Function-universe
+  hiding (_∘_; Kind; module Kind; bijection)
+open import Injection equality-with-J using (_↣_)
 
 ------------------------------------------------------------------------
 -- Any

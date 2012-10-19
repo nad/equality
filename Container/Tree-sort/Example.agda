@@ -8,7 +8,6 @@ module Container.Tree-sort.Example where
 
 open import Container
 open import Container.List
-import Container.Tree-sort as Tree-sort
 open import Equality.Propositional
 open import Prelude using (ℕ; zero; suc; Bool; true; false)
 
@@ -19,7 +18,7 @@ zero  ≤ _     = true
 suc _ ≤ zero  = false
 suc m ≤ suc n = m ≤ n
 
-open Tree-sort _≤_
+open import Container.Tree-sort _≤_
 
 -- The sort function seems to return an ordered list.
 

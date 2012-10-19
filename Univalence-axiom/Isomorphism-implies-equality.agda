@@ -13,17 +13,15 @@ open import Equality
 module Univalence-axiom.Isomorphism-implies-equality
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-import Bijection; open Bijection eq using (_↔_; module _↔_)
+open import Bijection eq using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence hiding (_∘_; inverse)
-import Function-universe; open Function-universe eq
-import H-level; open H-level eq
-import H-level.Closure; open H-level.Closure eq
+open import Function-universe eq
+open import H-level eq
+open import H-level.Closure eq
 open import Prelude hiding (_∘_)
-import Univalence-axiom; open Univalence-axiom eq
-import Weak-equivalence
-private
-  open module Weak = Weak-equivalence eq hiding (_∘_; inverse)
+open import Univalence-axiom eq
+open import Weak-equivalence eq as Weak hiding (_∘_; inverse)
 
 ------------------------------------------------------------------------
 -- N-ary functions

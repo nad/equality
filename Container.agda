@@ -11,23 +11,15 @@ open import Equivalence hiding (id; _∘_; inverse)
 open import Equality.Propositional
 open import Prelude hiding (id; List; map; lookup)
 
-private
-  module Bijection where
-    import Bijection
-    open Bijection equality-with-J public
-open Bijection using (_↔_; module _↔_)
-private
-  module Function-universe where
-    import Function-universe
-    open Function-universe equality-with-J public
-open Function-universe hiding (inverse; Kind) renaming (_∘_ to _⟨∘⟩_)
-import H-level; open H-level equality-with-J
-import H-level.Closure; open H-level.Closure equality-with-J
-import Surjection; open Surjection equality-with-J using (module _↠_)
-import Weak-equivalence
-private
-  open module Weak = Weak-equivalence equality-with-J
-    using (Is-weak-equivalence; _≈_; weq; module _≈_)
+open import Bijection equality-with-J as Bijection
+  using (_↔_; module _↔_)
+open import Function-universe equality-with-J as Function-universe
+  hiding (inverse; Kind) renaming (_∘_ to _⟨∘⟩_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
+open import Surjection equality-with-J using (module _↠_)
+open import Weak-equivalence equality-with-J as Weak
+  using (Is-weak-equivalence; _≈_; weq; module _≈_)
 
 ------------------------------------------------------------------------
 -- Containers

@@ -9,26 +9,14 @@ open import Equality
 module Function-universe
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
+open import Bijection eq as Bijection using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
+open import Equality.Decision-procedures eq
 open import Equivalence using (_⇔_; module _⇔_)
-private
-  module Bijection where
-    import Bijection; open Bijection eq public
-open Bijection using (_↔_; module _↔_)
-import Equality.Decision-procedures as ED; open ED eq
-private
-  module Injection where
-    import Injection; open Injection eq public
-open Injection using (_↣_; module _↣_; Injective)
+open import Injection eq as Injection using (_↣_; module _↣_; Injective)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
-private
-  module Surjection where
-    import Surjection; open Surjection eq public
-open Surjection using (_↠_; module _↠_)
-private
-  module Weak where
-    import Weak-equivalence; open Weak-equivalence eq public
-open Weak using (_≈_; module _≈_)
+open import Surjection eq as Surjection using (_↠_; module _↠_)
+open import Weak-equivalence eq as Weak using (_≈_; module _≈_)
 
 ------------------------------------------------------------------------
 -- The universe

@@ -20,10 +20,8 @@ module Tree-sort.Full
 open import Bag-equivalence using () renaming (Any to AnyL)
 open import Equality.Propositional
 
-import Bijection
-open Bijection equality-with-J using (_↔_)
-import Function-universe
-open Function-universe equality-with-J hiding (Kind; module Kind)
+open import Bijection equality-with-J using (_↔_)
+open import Function-universe equality-with-J hiding (Kind; module Kind)
 
 ------------------------------------------------------------------------
 -- Extending the order with new minimum and maximum elements

@@ -13,10 +13,8 @@ open import Equality.Propositional
 open import Prelude hiding (id; _∘_; List; []; _∷_; _++_; lookup)
 import Tree
 
-import Bijection
-open Bijection equality-with-J using (_↔_; module _↔_)
-import Function-universe
-open Function-universe equality-with-J
+open import Bijection equality-with-J using (_↔_; module _↔_)
+open import Function-universe equality-with-J
 
 ------------------------------------------------------------------------
 -- The type

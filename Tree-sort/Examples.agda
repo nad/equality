@@ -9,8 +9,6 @@ module Tree-sort.Examples where
 open import Bag-equivalence
 open import Equality.Propositional
 open import Prelude
-import Tree-sort.Partial
-import Tree-sort.Full
 
 -- Comparison functions for natural numbers.
 
@@ -26,8 +24,8 @@ m ≤? n with compare m n
 ... | inj₁ m≤n = true
 ... | inj₂ n<m = false
 
-module P = Tree-sort.Partial _≤?_
-open module F = Tree-sort.Full _≤_ compare using (cons; nil)
+open import Tree-sort.Partial _≤?_ as P using ()
+open import Tree-sort.Full _≤_ compare as F using (cons; nil)
 
 -- The sort functions return ordered lists.
 

@@ -12,23 +12,16 @@ open import Equality
 module Univalence-axiom
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-private
-  module Bijection where
-    import Bijection; open Bijection eq public
-open Bijection hiding (id; _∘_)
+open import Bijection eq as Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
-import Equality.Decision-procedures as ED; open ED eq
+open import Equality.Decision-procedures eq
 open import Equivalence hiding (id; _∘_)
-import Function-universe
-open Function-universe eq using (weak-equivalence; ≡⇒↝)
-import H-level; open H-level eq
-import H-level.Closure; open H-level.Closure eq
-import Injection; open Injection eq using (Injective)
+open import Function-universe eq using (weak-equivalence; ≡⇒↝)
+open import H-level eq
+open import H-level.Closure eq
+open import Injection eq using (Injective)
 open import Prelude
-private
-  module Weak where
-    import Weak-equivalence; open Weak-equivalence eq public
-open Weak hiding (_∘_; id)
+open import Weak-equivalence eq as Weak hiding (_∘_; id)
 
 ------------------------------------------------------------------------
 -- The univalence axiom

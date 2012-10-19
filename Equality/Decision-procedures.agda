@@ -10,8 +10,8 @@ module Equality.Decision-procedures
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
-import Bijection; open Bijection eq hiding (id; _∘_)
-import Equality.Decidable-UIP; open Equality.Decidable-UIP eq
+open import Bijection eq hiding (id; _∘_)
+open import Equality.Decidable-UIP eq
 open import Prelude
   hiding ( module ⊤; module ⊥; module Bool; module ℕ; module Σ
          ; module List

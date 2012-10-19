@@ -13,10 +13,9 @@ open import Equality.Propositional as P
 open import Equivalence hiding (id; _∘_; inverse)
 open import Prelude hiding (id)
 
-import Bijection
-open Bijection P.equality-with-J using (_↔_; module _↔_)
-import Equality.Decision-procedures as ED; open ED P.equality-with-J
-import Function-universe as FU; open FU P.equality-with-J hiding (_∘_)
+open import Bijection P.equality-with-J using (_↔_; module _↔_)
+open import Equality.Decision-procedures P.equality-with-J
+open import Function-universe P.equality-with-J hiding (_∘_)
 
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃

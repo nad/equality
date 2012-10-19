@@ -12,17 +12,11 @@ open import Equality
 module Preimage
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-private
-  module Bijection where
-    import Bijection; open Bijection eq public
-open Bijection hiding (id; _∘_)
+open import Bijection eq as Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
-private
-  module H-level where
-    import H-level; open H-level eq public
-open H-level
+open import H-level eq as H-level
 open import Prelude
-import Surjection; open Surjection eq hiding (id; _∘_)
+open import Surjection eq hiding (id; _∘_)
 
 -- The preimage of y under f is denoted by f ⁻¹ y.
 

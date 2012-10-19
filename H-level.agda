@@ -12,14 +12,12 @@ open import Equality
 module H-level
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-import Bijection; open Bijection eq hiding (id; _∘_)
+open import Bijection eq hiding (id; _∘_)
 open Derived-definitions-and-properties eq
-private
-  module DUIP where
-    import Equality.Decidable-UIP as DUIP; open DUIP eq public
+open import Equality.Decidable-UIP eq as DUIP using ()
 open import Equivalence hiding (id; _∘_)
 open import Prelude
-import Surjection; open Surjection eq hiding (id; _∘_)
+open import Surjection eq hiding (id; _∘_)
 
 ------------------------------------------------------------------------
 -- H-levels

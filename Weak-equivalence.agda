@@ -12,31 +12,16 @@ open import Equality
 module Weak-equivalence
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-private
-  module Bijection where
-    import Bijection; open Bijection eq public
-open Bijection hiding (id; _∘_; inverse)
+open import Bijection eq as Bijection hiding (id; _∘_; inverse)
 open Derived-definitions-and-properties eq
-import Groupoid; open Groupoid eq
+open import Groupoid eq
 open import Equivalence hiding (id; _∘_; inverse)
-private
-  module H-level where
-    import H-level; open H-level eq public
-open H-level
-import H-level.Closure; open H-level.Closure eq
-private
-  module Injection where
-    import Injection; open Injection eq public
-open Injection using (_↣_; module _↣_; Injective)
-private
-  module Preimage where
-    import Preimage; open Preimage eq public
-open Preimage using (_⁻¹_)
+open import H-level eq as H-level
+open import H-level.Closure eq
+open import Injection eq using (_↣_; module _↣_; Injective)
+open import Preimage eq as Preimage using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
-private
-  module Surjection where
-    import Surjection; open Surjection eq public
-open Surjection using (_↠_; module _↠_)
+open import Surjection eq as Surjection using (_↠_; module _↠_)
 
 ------------------------------------------------------------------------
 -- Is-weak-equivalence

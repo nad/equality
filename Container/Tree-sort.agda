@@ -18,10 +18,8 @@ open import Container.Tree as Tree
 open import Equality.Propositional
 open import Equivalence using (module _⇔_)
 
-import Bijection
-open Bijection equality-with-J using (_↔_; module _↔_)
-import Function-universe
-open Function-universe equality-with-J
+open import Bijection equality-with-J using (_↔_; module _↔_)
+open import Function-universe equality-with-J
 
 ------------------------------------------------------------------------
 -- Boring lemmas

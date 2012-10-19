@@ -12,22 +12,14 @@ open import Equality
 module H-level.Closure
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-private
-  module Bijection where
-    import Bijection; open Bijection eq public
-open Bijection hiding (id; _∘_)
+open import Bijection eq as Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
-private
-  module DUIP where
-    import Equality.Decidable-UIP as DUIP; open DUIP eq public
-import Equality.Decision-procedures as ED; open ED eq
+open import Equality.Decidable-UIP eq as DUIP using ()
+open import Equality.Decision-procedures eq
 open import Equivalence hiding (id; _∘_)
-import H-level; open H-level eq
+open import H-level eq
 open import Prelude
-private
-  module Surjection where
-    import Surjection; open Surjection eq public
-open Surjection hiding (id; _∘_)
+open import Surjection eq as Surjection hiding (id; _∘_)
 
 ------------------------------------------------------------------------
 -- The unit type

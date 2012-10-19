@@ -14,12 +14,9 @@ open import Equivalence using (_⇔_; module _⇔_)
 open import Fin
 open import Prelude as P hiding (List; []; _∷_; foldr; _++_; id; _∘_)
 
-import Bijection
-open Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
-import Function-universe
-open Function-universe equality-with-J
-import H-level.Closure
-open H-level.Closure equality-with-J
+open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
+open import Function-universe equality-with-J
+open import H-level.Closure equality-with-J
 
 ------------------------------------------------------------------------
 -- The type

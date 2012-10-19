@@ -11,8 +11,8 @@ module Equality.Groupoid
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
-import Equality.Tactic as Tactic; open Tactic eq
-import Groupoid as G; open G eq
+open import Equality.Tactic eq
+open import Groupoid eq
 open import Prelude hiding (id; _∘_)
 
 ------------------------------------------------------------------------

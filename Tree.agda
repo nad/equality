@@ -10,10 +10,8 @@ open import Bag-equivalence
 open import Equality.Propositional
 open import Prelude hiding (id)
 
-import Bijection
-open Bijection equality-with-J using (_↔_)
-import Function-universe
-open Function-universe equality-with-J
+open import Bijection equality-with-J using (_↔_)
+open import Function-universe equality-with-J
 
 ------------------------------------------------------------------------
 -- Binary trees
