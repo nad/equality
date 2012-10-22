@@ -24,7 +24,7 @@ m ≤? n with compare m n
 ... | inj₁ m≤n = true
 ... | inj₂ n<m = false
 
-open import Tree-sort.Partial _≤?_ as P using ()
+import Tree-sort.Partial _≤?_ as P
 open import Tree-sort.Full _≤_ compare as F using (cons; nil)
 
 -- The sort functions return ordered lists.

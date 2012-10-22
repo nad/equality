@@ -14,7 +14,7 @@ module H-level.Closure
 
 open import Bijection eq as Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
-open import Equality.Decidable-UIP eq as DUIP using ()
+import Equality.Decidable-UIP eq as DUIP
 open import Equality.Decision-procedures eq
 open import Equivalence hiding (id; _∘_)
 open import H-level eq

@@ -14,7 +14,7 @@ module H-level
 
 open import Bijection eq hiding (id; _∘_)
 open Derived-definitions-and-properties eq
-open import Equality.Decidable-UIP eq as DUIP using ()
+import Equality.Decidable-UIP eq as DUIP
 open import Equivalence hiding (id; _∘_)
 open import Prelude
 open import Surjection eq hiding (id; _∘_)
