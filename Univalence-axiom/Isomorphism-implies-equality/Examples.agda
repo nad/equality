@@ -174,8 +174,9 @@ module Another-example where
     where
     open _↔_ bijection
 
-    ext : {A : Set} {B : A → Set} → Extensionality A B
-    ext = dependent-extensionality univ₁ (λ _ → univ₂)
+    abstract
+      ext : {A : Set} {B : A → Set} → Extensionality A B
+      ext = dependent-extensionality univ₁ (λ _ → univ₂)
 
     A₁≡A₂ : A₁ ≡ A₂
     A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $
