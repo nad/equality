@@ -699,6 +699,16 @@ module Derived-definitions-and-properties
                     subst P (cong f (refl x)) p  ∎)
            x≡y _
 
+    subst-↑ : ∀ {a p ℓ} {A : Set a} {x y}
+              (P : A → Set p) {p : ↑ ℓ (P x)} {x≡y : x ≡ y} →
+              subst (↑ ℓ ∘ P) x≡y p ≡ lift (subst P x≡y (lower p))
+    subst-↑ {ℓ = ℓ} P {p} = elim¹
+      (λ x≡y → subst (↑ ℓ ∘ P) x≡y p ≡ lift (subst P x≡y (lower p)))
+      (subst (↑ ℓ ∘ P) (refl _) p         ≡⟨ subst-refl (↑ ℓ ∘ P) _ ⟩
+       p                                  ≡⟨ cong lift $ sym $ subst-refl P _ ⟩∎
+       lift (subst P (refl _) (lower p))  ∎)
+      _
+
     -- A fusion law for subst.
 
     subst-subst :
@@ -742,6 +752,20 @@ module Derived-definitions-and-properties
       trans (trans a≡b (sym (sym b≡c))) (sym b≡c)  ≡⟨ trans-[trans-sym] _ _ ⟩∎
       a≡b                                          ∎
 
+    -- The lemmas subst-refl and subst-const can cancel each other
+    -- out.
+
+    subst-refl-subst-const :
+      ∀ {a p} {A : Set a} {x : A} {P : Set p} {p} →
+      trans (sym $ subst-refl (λ _ → P) {x = x} p) subst-const ≡ refl _
+    subst-refl-subst-const {x = x} {P} {p} =
+      trans (sym $ subst-refl (λ _ → P) p)
+            (elim¹ (λ eq → subst (λ _ → P) eq p ≡ p)
+                   (subst-refl (λ _ → P) _) _)        ≡⟨ cong (trans _) (elim¹-refl (λ eq → subst (λ _ → P) eq p ≡ p) _) ⟩
+      trans (sym $ subst-refl (λ _ → P) p)
+            (subst-refl (λ _ → P) _)                  ≡⟨ trans-symˡ _ ⟩∎
+      refl _                                          ∎
+
   -- An equality between pairs can be proved using a pair of
   -- equalities.
 
@@ -782,7 +806,7 @@ module Derived-definitions-and-properties
       cong (_,_ x) (trans (sym $ subst-refl B y) (refl _))  ≡⟨ cong (cong (_,_ x)) (trans-reflʳ _) ⟩∎
       cong (_,_ x) (sym (subst-refl B y))                   ∎
 
-    -- A proof simplification rule for Σ-≡,≡→≡.
+    -- Proof simplification rules for Σ-≡,≡→≡.
 
     proj₁-Σ-≡,≡→≡ :
       ∀ {a b} {A : Set a} {B : A → Set b} {x₁ x₂ y₁ y₂}
@@ -797,6 +821,29 @@ module Derived-definitions-and-properties
          cong (const _) (trans (sym $ subst-refl B y₁) y₁≡y₂)             ≡⟨ cong-const _ ⟩∎
          refl _                                                           ∎)
       x₁≡x₂ y₁≡y₂
+
+    Σ-≡,≡→≡-subst-const :
+      ∀ {a b} {A : Set a} {B : Set b} {p₁ p₂ : A × B} →
+      (p : proj₁ p₁ ≡ proj₁ p₂) (q : proj₂ p₁ ≡ proj₂ p₂) →
+      Σ-≡,≡→≡ p (trans subst-const q) ≡ cong₂ _,_ p q
+    Σ-≡,≡→≡-subst-const {B = B} {_ , y₁} {_ , y₂} p q = elim
+      (λ {x₁ y₁} (p : x₁ ≡ y₁) →
+         Σ-≡,≡→≡ p (trans subst-const q) ≡ cong₂ _,_ p q)
+      (λ x →
+         let lemma =
+               trans (sym $ subst-refl (λ _ → B) y₁)
+                     (trans subst-const q)                                ≡⟨ sym $ trans-assoc _ _ _ ⟩
+               trans (trans (sym $ subst-refl (λ _ → B) y₁) subst-const)
+                     q                                                    ≡⟨ cong₂ trans subst-refl-subst-const (refl _) ⟩
+               trans (refl y₁) q                                          ≡⟨ trans-reflˡ _ ⟩∎
+               q                                                          ∎ in
+
+         Σ-≡,≡→≡ (refl x) (trans subst-const q)               ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
+         cong (_,_ x) (trans (sym $ subst-refl (λ _ → B) y₁)
+                             (trans subst-const q))           ≡⟨ cong (cong (_,_ x)) lemma ⟩
+         cong (_,_ x) q                                       ≡⟨ sym $ cong₂-reflˡ _,_ ⟩∎
+         cong₂ _,_ (refl x) q                                 ∎)
+      p
 
   -- A binary variant of subst.
 
