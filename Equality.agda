@@ -649,6 +649,36 @@ module Derived-definitions-and-properties
                              sym (refl (f x))       ≡⟨ cong sym $ sym (cong-refl f {x = x}) ⟩∎
                              sym (cong f (refl x))  ∎)
 
+    cong₂-reflˡ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+                  (f : A → B → C) {x : A} {u v : B} {u≡v : u ≡ v} →
+                  cong₂ f (refl x) u≡v ≡ cong (f x) u≡v
+    cong₂-reflˡ f {x} {u} {u≡v = u≡v} =
+      trans (cong (flip f u) (refl x)) (cong (f x) u≡v)  ≡⟨ cong₂ trans (cong-refl (flip f u)) (refl _) ⟩
+      trans (refl (f x u)) (cong (f x) u≡v)              ≡⟨ trans-reflˡ _ ⟩∎
+      cong (f x) u≡v                                     ∎
+
+    cong₂-reflʳ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+                  (f : A → B → C) {x y : A} {u : B} {x≡y : x ≡ y} →
+                  cong₂ f x≡y (refl u) ≡ cong (flip f u) x≡y
+    cong₂-reflʳ f {y = y} {u} {x≡y} =
+      trans (cong (flip f u) x≡y) (cong (f y) (refl u))  ≡⟨ cong (trans _) (cong-refl (f y)) ⟩
+      trans (cong (flip f u) x≡y) (refl (f y u))         ≡⟨ trans-reflʳ _ ⟩∎
+      cong (flip f u) x≡y                                ∎
+
+    cong₂-cong-cong :
+      ∀ {a p q r} {A : Set a} {x₁ x₂} {eq : x₁ ≡ x₂}
+      (P : A → Set p) (Q : A → Set q) (R : Set p → Set q → Set r) →
+      cong₂ R (cong P eq) (cong Q eq) ≡
+      cong (λ x → R (P x) (Q x)) eq
+    cong₂-cong-cong P Q R = elim¹
+      (λ eq → cong₂ R (cong P eq) (cong Q eq) ≡
+              cong (λ x → R (P x) (Q x)) eq)
+      (cong₂ R (cong P (refl _)) (cong Q (refl _))  ≡⟨ cong₂ (cong₂ R) (cong-refl P) (cong-refl Q) ⟩
+       cong₂ R (refl _) (refl _)                    ≡⟨ cong₂-refl R ⟩
+       refl _                                       ≡⟨ sym $ cong-refl (λ x → R (P x) (Q x)) ⟩∎
+       cong (λ x → R (P x) (Q x)) (refl _)          ∎)
+      _
+
     subst-const : ∀ {a p} {A : Set a} {x₁ x₂ : A} {x₁≡x₂ : x₁ ≡ x₂}
                     {P : Set p} {p} →
                   subst (const P) x₁≡x₂ p ≡ p
