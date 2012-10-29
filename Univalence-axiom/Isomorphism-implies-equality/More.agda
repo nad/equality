@@ -83,8 +83,7 @@ module N-ary where
       {A₁ A₂ : Set}
       (univ : Univalence-axiom′ A₁ A₂)
       (A₁≈A₂ : A₁ ≈ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
-      cast A₁≈A₂ n f ≡
-      subst (λ C → C ^ n ⟶ C) (_≈_.from (≡≈≈ univ) A₁≈A₂) f
+      cast A₁≈A₂ n f ≡ subst (λ C → C ^ n ⟶ C) (≈⇒≡ univ A₁≈A₂) f
     cast-is-subst ext univ A₁≈A₂ n =
       subst-unique
         (λ A → A ^ n ⟶ A)
@@ -123,11 +122,11 @@ module N-ary where
       (A₁≈A₂ : A₁ ≈ A₂)
       (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
       Is- n -ary-morphism f₁ f₂ (_≈_.to A₁≈A₂) →
-      subst (λ A → A ^ n ⟶ A) (_≈_.from (≡≈≈ univ) A₁≈A₂) f₁ ≡ f₂
+      subst (λ A → A ^ n ⟶ A) (≈⇒≡ univ A₁≈A₂) f₁ ≡ f₂
     subst-isomorphism ext univ A₁≈A₂ n f₁ f₂ is =
-      subst (λ A → A ^ n ⟶ A) (_≈_.from (≡≈≈ univ) A₁≈A₂) f₁  ≡⟨ sym $ cast-is-subst ext univ A₁≈A₂ n f₁ ⟩
-      cast A₁≈A₂ n f₁                                         ≡⟨ cast-isomorphism ext A₁≈A₂ n f₁ f₂ is ⟩∎
-      f₂                                                      ∎
+      subst (λ A → A ^ n ⟶ A) (≈⇒≡ univ A₁≈A₂) f₁  ≡⟨ sym $ cast-is-subst ext univ A₁≈A₂ n f₁ ⟩
+      cast A₁≈A₂ n f₁                              ≡⟨ cast-isomorphism ext A₁≈A₂ n f₁ f₂ is ⟩∎
+      f₂                                           ∎
 
 ------------------------------------------------------------------------
 -- Simple types
@@ -228,8 +227,7 @@ module Simple where
       (univ : Univalence-axiom′ A₁ A₂)
       (m : A₁ ↔ A₂) (σ : Type) (f : ⟦ σ ⟧→ A₁) →
       let m′ = bijection⇒weak-equivalence m in
-      cast σ (_↔_.equivalence m) f ≡
-        subst ⟦ σ ⟧→ (_≈_.from (≡≈≈ univ) m′) f
+      cast σ (_↔_.equivalence m) f ≡ subst ⟦ σ ⟧→ (≈⇒≡ univ m′) f
     cast-is-subst ext univ m σ =
       subst-unique
         ⟦ σ ⟧→
@@ -284,10 +282,9 @@ module Simple where
       (σ : Type) (f₁ : ⟦ σ ⟧→ A₁) (f₂ : ⟦ σ ⟧→ A₂) →
       let m′ = bijection⇒weak-equivalence m in
       Is-isomorphism σ f₁ f₂ m →
-      subst ⟦ σ ⟧→ (_≈_.from (≡≈≈ univ) m′) f₁ ≡ f₂
+      subst ⟦ σ ⟧→ (≈⇒≡ univ m′) f₁ ≡ f₂
     subst-isomorphism ext univ m σ f₁ f₂ is =
-      subst ⟦ σ ⟧→
-        (_≈_.from (≡≈≈ univ) (bijection⇒weak-equivalence m)) f₁  ≡⟨ sym $ cast-is-subst ext univ m σ f₁ ⟩
+      subst ⟦ σ ⟧→ (≈⇒≡ univ (bijection⇒weak-equivalence m)) f₁  ≡⟨ sym $ cast-is-subst ext univ m σ f₁ ⟩
       cast σ (_↔_.equivalence m) f₁                              ≡⟨ _⇔_.to (isomorphism-definitions-equivalent ext ext m σ f₁ f₂) is ⟩∎
       f₂                                                         ∎
 

@@ -79,8 +79,7 @@ abstract
     {A₁ A₂ : Set}
     (univ : Univalence-axiom′ A₁ A₂)
     (A₁≈A₂ : A₁ ≈ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
-    cast A₁≈A₂ n f ≡
-    subst (λ C → C ^ n ⟶ C) (_≈_.from (≡≈≈ univ) A₁≈A₂) f
+    cast A₁≈A₂ n f ≡ subst (λ C → C ^ n ⟶ C) (≈⇒≡ univ A₁≈A₂) f
   cast-is-subst ext univ A₁≈A₂ n =
     subst-unique
       (λ A → A ^ n ⟶ A)
@@ -117,11 +116,11 @@ abstract
     (A₁≈A₂ : A₁ ≈ A₂)
     (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
     Is- n -ary-morphism f₁ f₂ (_≈_.to A₁≈A₂) →
-    subst (λ A → A ^ n ⟶ A) (_≈_.from (≡≈≈ univ) A₁≈A₂) f₁ ≡ f₂
+    subst (λ A → A ^ n ⟶ A) (≈⇒≡ univ A₁≈A₂) f₁ ≡ f₂
   subst-isomorphism ext univ A₁≈A₂ n f₁ f₂ is =
-    subst (λ A → A ^ n ⟶ A) (_≈_.from (≡≈≈ univ) A₁≈A₂) f₁  ≡⟨ sym $ cast-is-subst ext univ A₁≈A₂ n f₁ ⟩
-    cast A₁≈A₂ n f₁                                         ≡⟨ cast-isomorphism ext A₁≈A₂ n f₁ f₂ is ⟩∎
-    f₂                                                      ∎
+    subst (λ A → A ^ n ⟶ A) (≈⇒≡ univ A₁≈A₂) f₁  ≡⟨ sym $ cast-is-subst ext univ A₁≈A₂ n f₁ ⟩
+    cast A₁≈A₂ n f₁                              ≡⟨ cast-isomorphism ext A₁≈A₂ n f₁ f₂ is ⟩∎
+    f₂                                           ∎
 
 ------------------------------------------------------------------------
 -- A class of algebraic structures

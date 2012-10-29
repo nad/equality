@@ -45,6 +45,11 @@ Univalence-axiom ℓ = {A B : Set ℓ} → Univalence-axiom′ A B
 ≡≈≈ : ∀ {ℓ} {A B : Set ℓ} → Univalence-axiom′ A B → (A ≡ B) ≈ (A ≈ B)
 ≡≈≈ univ = weq ≡⇒≈ univ
 
+-- An abbreviation.
+
+≈⇒≡ : ∀ {ℓ} {A B : Set ℓ} → Univalence-axiom′ A B → (A ≈ B) → (A ≡ B)
+≈⇒≡ univ = _≈_.from (≡≈≈ univ)
+
 ------------------------------------------------------------------------
 -- A consequence: Set is not a set
 
@@ -69,7 +74,7 @@ abstract
     (ℕ , ℕ , cast ∘ p , cast-preserves-injections p p-injective)
     where
     cast : ℕ ≈ ℕ → ℕ ≡ ℕ
-    cast = _≈_.from (≡≈≈ univ)
+    cast = ≈⇒≡ univ
 
     cast-preserves-injections :
       {A : Set} (f : A → ℕ ≈ ℕ) →
@@ -138,7 +143,7 @@ abstract
     (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
     ∀ {A B} (univ : Univalence-axiom′ A B) →
     (A≈B : A ≈ B) (p : P A) →
-    resp A≈B p ≡ subst P (_≈_.from (≡≈≈ univ) A≈B) p
+    resp A≈B p ≡ subst P (≈⇒≡ univ A≈B) p
   subst-unique P resp resp-id univ A≈B p =
     resp A≈B p              ≡⟨ sym $ cong (λ q → resp q p) (right-inverse-of A≈B) ⟩
     resp (to (from A≈B)) p  ≡⟨ elim (λ {A B} A≡B → ∀ p →
@@ -163,7 +168,7 @@ abstract
   resp-is-weak-equivalence P resp resp-id univ A≈B =
     Weak.respects-extensional-equality
       (λ p → sym $ subst-unique P resp resp-id univ A≈B p)
-      (subst-is-weak-equivalence P (_≈_.from (≡≈≈ univ) A≈B))
+      (subst-is-weak-equivalence P (≈⇒≡ univ A≈B))
 
   -- If f is a weak equivalence, then (non-dependent) precomposition
   -- with f is also a weak equivalence (assuming univalence).
