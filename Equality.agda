@@ -246,11 +246,14 @@ module Equality-with-substitutivity-and-contractibility′
 
   -- Equational reasoning combinators.
 
+  infixr 0 _≡⟨_⟩_ _≡⟨⟩_
   infix  0 finally
-  infixr 0 _≡⟨_⟩_
 
   _≡⟨_⟩_ : ∀ {a} {A : Set a} x {y z : A} → x ≡ y → y ≡ z → x ≡ z
   _ ≡⟨ x≡y ⟩ y≡z = trans x≡y y≡z
+
+  _≡⟨⟩_ : ∀ {a} {A : Set a} x {y : A} → x ≡ y → x ≡ y
+  _ ≡⟨⟩ x≡y = x≡y
 
   finally : ∀ {a} {A : Set a} (x y : A) → x ≡ y → x ≡ y
   finally _ _ x≡y = x≡y
@@ -338,7 +341,7 @@ module Derived-definitions-and-properties
            (J⇒subst+contr eq) public
       using ( sym; sym-refl
             ; trans; trans-refl-refl
-            ; _≡⟨_⟩_; finally
+            ; _≡⟨_⟩_; _≡⟨⟩_; finally
             )
 
   abstract
