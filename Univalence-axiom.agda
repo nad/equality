@@ -138,7 +138,7 @@ abstract
   -- (up to extensional equality).
 
   subst-unique :
-    ∀ {p} (P : Set p → Set p) →
+    ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
     (resp : ∀ {A B} → A ≈ B → P A → P B) →
     (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
     ∀ {A B} (univ : Univalence-axiom′ A B) →
