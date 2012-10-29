@@ -14,6 +14,7 @@ open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence using (_⇔_; module _⇔_)
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
+open import Preimage eq using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection eq as Surjection using (_↠_; module _↠_)
 open import Weak-equivalence eq as Weak using (_≈_; module _≈_)
@@ -683,6 +684,73 @@ private
 
 ------------------------------------------------------------------------
 -- Some lemmas related to functions
+
+→-cong-⇔ : ∀ {a b c d}
+             {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+           A ⇔ B → C ⇔ D → (A → C) ⇔ (B → D)
+→-cong-⇔ A⇔B C⇔D = record
+  { to   = λ f → to   C⇔D ∘ f ∘ from A⇔B
+  ; from = λ f → from C⇔D ∘ f ∘ to   A⇔B
+  }
+  where open _⇔_
+
+→-cong : ∀ {a b c d} →
+         ({A : Set (a ⊔ b)} {B : A → Set (c ⊔ d)} →
+          Extensionality A B) →
+         {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+         ∀ {k} → A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
+         (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
+→-cong {a} {b} {c} {d} ext {A} {B} {C} {D} = helper _
+  where
+  →-cong-↔ : A ↔ B → C ↔ D → (A → C) ↔ (B → D)
+  →-cong-↔ A↔B C↔D = record
+    { surjection = record
+      { equivalence      = equiv
+      ; right-inverse-of = right-inv
+      }
+    ; left-inverse-of = left-inv
+    }
+    where
+    open _↔_
+
+    equiv = →-cong-⇔ (_↔_.equivalence A↔B) (_↔_.equivalence C↔D)
+
+    abstract
+      right-inv : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
+      right-inv f = lower-extensionality a c ext λ x →
+        to C↔D (from C↔D (f (to A↔B (from A↔B x))))  ≡⟨ right-inverse-of C↔D _ ⟩
+        f (to A↔B (from A↔B x))                      ≡⟨ cong f $ right-inverse-of A↔B _ ⟩∎
+        f x                                          ∎
+
+      left-inv : ∀ f → _⇔_.from equiv (_⇔_.to equiv f) ≡ f
+      left-inv f = lower-extensionality b d ext λ x →
+        from C↔D (to C↔D (f (from A↔B (to A↔B x))))  ≡⟨ left-inverse-of C↔D _ ⟩
+        f (from A↔B (to A↔B x))                      ≡⟨ cong f $ left-inverse-of A↔B _ ⟩∎
+        f x                                          ∎
+
+  helper : ∀ k → A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
+           (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
+  helper equivalence      A⇔B C⇔D = →-cong-⇔ A⇔B C⇔D
+  helper bijection        A↔B C↔D = →-cong-↔ A↔B C↔D
+  helper weak-equivalence A≈B C≈D = record
+    { to                  = to
+    ; is-weak-equivalence = λ y →
+        ((from y , right-inverse-of y) , irrelevance y)
+    }
+    where
+    A→B≈C→D = Weak.bijection⇒weak-equivalence
+                (→-cong-↔ (_≈_.bijection A≈B) (_≈_.bijection C≈D))
+
+    to   = _≈_.to   A→B≈C→D
+    from = _≈_.from A→B≈C→D
+
+    abstract
+      right-inverse-of : ∀ x → to (from x) ≡ x
+      right-inverse-of = _≈_.right-inverse-of A→B≈C→D
+
+      irrelevance : ∀ y (p : to ⁻¹ y) →
+                    (from y , right-inverse-of y) ≡ p
+      irrelevance = _≈_.irrelevance A→B≈C→D
 
 Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
 Π-left-identity = record
