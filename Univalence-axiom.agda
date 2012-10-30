@@ -16,12 +16,14 @@ open import Bijection eq as Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence hiding (id; _∘_)
-open import Function-universe eq using (weak-equivalence; ≡⇒↝)
+open import Function-universe eq using (weak-equivalence; ≡⇒↝; →-cong)
+open import Groupoid eq
 open import H-level eq
 open import H-level.Closure eq
 open import Injection eq using (Injective)
 open import Prelude
-open import Weak-equivalence eq as Weak hiding (_∘_; id)
+open import Weak-equivalence eq as Weak
+  hiding (id) renaming (_∘_ to _⊚_)
 
 ------------------------------------------------------------------------
 -- The univalence axiom
@@ -286,3 +288,82 @@ abstract
   dependent-extensionality univ₁ univ₂ =
     _⇔_.to Π-closure-contractible⇔extensionality
       (Π-closure-contractible univ₁ univ₂)
+
+------------------------------------------------------------------------
+-- More lemmas
+
+abstract
+
+  -- ≡⇒≈ commutes with trans/_⊚_ (assuming extensionality).
+
+  ≡⇒≈-trans :
+    ∀ {ℓ} {A B C : Set ℓ} →
+    ({A : Set ℓ} {B : A → Set ℓ} → Extensionality A B) →
+    (A≡B : A ≡ B) (B≡C : B ≡ C) →
+    ≡⇒≈ (trans A≡B B≡C) ≡ ≡⇒≈ B≡C ⊚ ≡⇒≈ A≡B
+  ≡⇒≈-trans ext A≡B = elim¹
+
+    (λ eq → ≡⇒≈ (trans A≡B eq) ≡ ≡⇒≈ eq ⊚ ≡⇒≈ A≡B)
+
+    (≡⇒≈ (trans A≡B (refl _))  ≡⟨ cong ≡⇒≈ $ trans-reflʳ _ ⟩
+     ≡⇒≈ A≡B                   ≡⟨ sym $ Groupoid.left-identity (Weak.groupoid ext) _ ⟩
+     Weak.id ⊚ ≡⇒≈ A≡B         ≡⟨ cong (λ eq → eq ⊚ ≡⇒≈ A≡B) $ sym $ elim-refl (λ {A B} _ → A ≈ B) _ ⟩∎
+     ≡⇒≈ (refl _) ⊚ ≡⇒≈ A≡B    ∎)
+
+  -- One can express subst in terms of ≡⇒≈.
+
+  subst-in-terms-of-≡⇒≈ :
+    ∀ {ℓ p} {A B : Set ℓ} {A≡B : A ≡ B} (P : Set ℓ → Set p) p →
+    subst P A≡B p ≡ _≈_.to (≡⇒≈ (cong P A≡B)) p
+  subst-in-terms-of-≡⇒≈ P p = elim¹
+
+    (λ eq → subst P eq p ≡ _≈_.to (≡⇒≈ (cong P eq)) p)
+
+    (subst P (refl _) p                ≡⟨ subst-refl P p ⟩
+     p                                 ≡⟨⟩
+     _≈_.to Weak.id p                  ≡⟨ sym $ cong (λ eq → _≈_.to eq p) $ elim-refl (λ {A B} _ → A ≈ B) _ ⟩
+     _≈_.to (≡⇒≈ (refl _)) p           ≡⟨ sym $ cong (λ eq → _≈_.to (≡⇒≈ eq) p) $ cong-refl P ⟩∎
+     _≈_.to (≡⇒≈ (cong P (refl _))) p  ∎)
+
+    _
+
+  -- A lemma relating ≈⇒≡, →-cong and cong₂.
+
+  ≈⇒≡-→-cong :
+    ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ}
+    (ext : {A : Set ℓ} {B : A → Set ℓ} → Extensionality A B)
+    (univ : Univalence-axiom ℓ)
+    (A₁≈A₂ : A₁ ≈ A₂) (B₁≈B₂ : B₁ ≈ B₂) →
+    ≈⇒≡ univ (→-cong ext A₁≈A₂ B₁≈B₂) ≡
+      cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂) (≈⇒≡ univ B₁≈B₂)
+  ≈⇒≡-→-cong {A₂ = A₂} {B₁} ext univ A₁≈A₂ B₁≈B₂ =
+    ≈⇒≡ univ (→-cong ext A₁≈A₂ B₁≈B₂)                        ≡⟨ cong (≈⇒≡ univ) (lift-equality ext lemma) ⟩
+
+    ≈⇒≡ univ (≡⇒≈ (cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂)
+                                         (≈⇒≡ univ B₁≈B₂)))  ≡⟨ left-inverse-of (≡≈≈ univ) _ ⟩∎
+
+    cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂) (≈⇒≡ univ B₁≈B₂)  ∎
+    where
+    open _≈_
+
+    lemma :
+      (λ f → to B₁≈B₂ ∘ f ∘ from A₁≈A₂) ≡
+      to (≡⇒≈ (cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂)
+                                     (≈⇒≡ univ B₁≈B₂)))
+    lemma =
+      (λ f → to B₁≈B₂ ∘ f ∘ from A₁≈A₂)                  ≡⟨ ext (λ _ → subst-unique (λ B → A₂ → B) (λ A≈B g → _≈_.to A≈B ∘ g)
+                                                                                    refl univ B₁≈B₂ _) ⟩
+      subst (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂) ∘
+      (λ f → f ∘ from A₁≈A₂)                             ≡⟨ cong (_∘_ (subst (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂))) (ext λ f →
+                                                              subst-unique (λ A → A → B₁) (λ A≈B g → g ∘ _≈_.from A≈B) refl univ A₁≈A₂ f) ⟩
+      subst (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂) ∘
+      subst (λ A → A → B₁) (≈⇒≡ univ A₁≈A₂)              ≡⟨ cong₂ (λ g h f → g (h f)) (ext $ subst-in-terms-of-≡⇒≈ (λ B → A₂ → B))
+                                                                                      (ext $ subst-in-terms-of-≡⇒≈ (λ A → A → B₁)) ⟩
+      to (≡⇒≈ (cong (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂))) ∘
+      to (≡⇒≈ (cong (λ A → A → B₁) (≈⇒≡ univ A₁≈A₂)))    ≡⟨⟩
+
+      to (≡⇒≈ (cong (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂)) ⊚
+          ≡⇒≈ (cong (λ A → A → B₁) (≈⇒≡ univ A₁≈A₂)))    ≡⟨ cong to $ sym $ ≡⇒≈-trans ext _ _ ⟩∎
+
+      to (≡⇒≈ (cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂)
+                                     (≈⇒≡ univ B₁≈B₂)))  ∎
