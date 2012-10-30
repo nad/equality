@@ -13,18 +13,233 @@ open import Equality
 module Univalence-axiom.Isomorphism-implies-equality.More
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq using (_↔_; module _↔_)
+open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
-open import Equivalence hiding (_∘_; inverse)
-open import Function-universe eq hiding (bijection)
+open import Equivalence using (_⇔_; module _⇔_)
+open import Function-universe eq using (→-cong)
 open import H-level eq
 open import H-level.Closure eq
-open import Prelude hiding (_∘_)
+open import Prelude
 open import Univalence-axiom eq
-open import Weak-equivalence eq as Weak hiding (_∘_; inverse)
+open import Weak-equivalence eq as Weak
+  using (_≈_; module _≈_; bijection⇒weak-equivalence)
 
 ------------------------------------------------------------------------
--- N-ary functions
+-- A class of algebraic structures
+
+-- An algebraic structure universe.
+
+mutual
+
+  -- Codes for structures.
+
+  infixl 5 _▻_
+
+  data Structure : Set₂ where
+    ε   : Structure
+    _▻_ : (s : Structure) → Extension s → Structure
+
+  -- Structures can contain arbitrary "extensions".
+
+  record Extension (s : Structure) : Set₂ where
+    field
+      Ext : ⟦ s ⟧ → Set₁
+
+      Iso : {s₁ s₂ : ⟦ s ⟧} →
+            Ext s₁ → Ext s₂ → Isomorphism s s₁ s₂ → Set
+
+      hyp : (ext : {A : Set} {B : A → Set} → Extensionality A B)
+            (univ : Univalence-axiom lzero)
+            {s₁ s₂ : ⟦ s ⟧} {x₁ : Ext s₁} {x₂ : Ext s₂}
+            (iso : Isomorphism s s₁ s₂) (i : Iso x₁ x₂ iso) →
+            subst Ext (isomorphic-equal ext univ s iso) x₁ ≡ x₂
+
+  -- Interpretation of the codes.
+
+  ⟦_⟧ : Structure → Set₁
+  ⟦ ε     ⟧ = ↑ _ ⊤
+  ⟦ s ▻ e ⟧ = Σ ⟦ s ⟧ (Extension.Ext e)
+
+  -- Isomorphisms.
+
+  Isomorphism : (s : Structure) → ⟦ s ⟧ → ⟦ s ⟧ → Set
+  Isomorphism ε       _         _         = ⊤
+  Isomorphism (s ▻ e) (s₁ , x₁) (s₂ , x₂) =
+    Σ (Isomorphism s s₁ s₂) (Extension.Iso e x₁ x₂)
+
+  -- Isomorphic structures are equal (assuming extensionality and
+  -- univalence).
+
+  isomorphic-equal :
+    ({A : Set} {B : A → Set} → Extensionality A B) →
+    Univalence-axiom lzero →
+    (s : Structure) {s₁ s₂ : ⟦ s ⟧} →
+    Isomorphism s s₁ s₂ → s₁ ≡ s₂
+  isomorphic-equal _   _    ε       _ = refl _
+  isomorphic-equal ext univ (s ▻ e) {s₁ , x₁} {s₂ , x₂} (iso , i) =
+    (s₁ , x₁)  ≡⟨ Σ-≡,≡→≡ (isomorphic-equal ext univ s iso)
+                          (Extension.hyp e ext univ iso i) ⟩∎
+    (s₂ , x₂)  ∎
+
+open Extension public
+
+------------------------------------------------------------------------
+-- Type extractors
+
+-- Type extractors.
+
+record Type-extractor (s : Structure) : Set₁ where
+  field
+    -- Extracts a type from a structure.
+    Typ : ⟦ s ⟧ → Set
+
+    -- Extracts a weak equivalence.
+    equ : ∀ {s₁ s₂} → Isomorphism s s₁ s₂ → Typ s₁ ≈ Typ s₂
+
+    -- Typ and equ are related via isomorphic-equal.
+    Typ-equ : (ext : {A : Set} {B : A → Set} → Extensionality A B)
+              (univ : Univalence-axiom lzero)
+              {s₁ s₂ : ⟦ s ⟧} (iso : Isomorphism s s₁ s₂) →
+              cong Typ (isomorphic-equal ext univ s iso) ≡
+              ≈⇒≡ univ (equ iso)
+
+  abstract
+
+    -- A lemma.
+
+    extractor-lemma :
+      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (univ : Univalence-axiom lzero) →
+
+      ∀ {p s₁ s₂} (P : Set → Set p) (x : P (Typ s₁))
+      (iso : Isomorphism s s₁ s₂) →
+
+      subst (P ∘ Typ) (isomorphic-equal ext univ s iso) x ≡
+      subst P (≈⇒≡ univ (equ iso)) x
+
+    extractor-lemma ext univ P x iso =
+      subst (P ∘ Typ) (isomorphic-equal ext univ s iso) x     ≡⟨ subst-∘ P Typ _ ⟩
+      subst P (cong Typ $ isomorphic-equal ext univ s iso) x  ≡⟨ cong (λ eq → subst P eq x) (Typ-equ ext univ iso) ⟩∎
+      subst P (≈⇒≡ univ (equ iso)) x                          ∎
+
+-- Successor type extractor.
+
+infix 6 1+_
+
+1+_ : ∀ {s e} → Type-extractor s → Type-extractor (s ▻ e)
+1+_ {s} {e} extract = record
+  { Typ     = Typ ∘ proj₁
+  ; equ     = equ ∘ proj₁
+  ; Typ-equ = Typ-equ′
+  }
+  where
+  open Type-extractor extract
+
+  abstract
+    Typ-equ′ :
+      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (univ : Univalence-axiom lzero) →
+      ∀ {s₁ s₂} (iso : Isomorphism (s ▻ e) s₁ s₂) →
+      cong (Typ ∘ proj₁) (isomorphic-equal ext univ (s ▻ e) iso) ≡
+      ≈⇒≡ univ (equ (proj₁ iso))
+    Typ-equ′ ext univ (iso , i) =
+      let iso-eq = isomorphic-equal ext univ in
+
+      cong (Typ ∘ proj₁) (iso-eq (s ▻ e) (iso , i))     ≡⟨ sym $ cong-∘ Typ proj₁ (iso-eq (s ▻ e) (iso , i)) ⟩
+      cong Typ (cong proj₁ $ iso-eq (s ▻ e) (iso , i))  ≡⟨ cong (cong Typ) $ proj₁-Σ-≡,≡→≡ _ _ ⟩
+      cong Typ (iso-eq s iso)                           ≡⟨ Typ-equ ext univ iso ⟩∎
+      ≈⇒≡ univ (equ iso)                                ∎
+
+------------------------------------------------------------------------
+-- An "extension": types
+
+-- Extends a structure with a type.
+
+A-type : ∀ {s} → Extension s
+A-type {s} = record
+  { Ext = λ _ → Set
+  ; Iso = λ A B _ → A ↔ B
+  ; hyp = λ ext univ {_ _ A B} _ bij →
+      subst (λ _ → Set) _ A  ≡⟨ subst-const ⟩
+      A                      ≡⟨ ≈⇒≡ univ (bijection⇒weak-equivalence bij) ⟩∎
+      B                      ∎
+  }
+
+-- A corresponding type extractor.
+
+[0] : ∀ {s} → Type-extractor (s ▻ A-type)
+[0] {s} = record
+  { Typ     = λ { (_ , A) → A }
+  ; equ     = λ { (_ , A↔B) → bijection⇒weak-equivalence A↔B }
+  ; Typ-equ = Typ-equ
+  }
+  where
+  abstract
+    Typ-equ :
+      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (univ : Univalence-axiom lzero) →
+      ∀ {s₁ s₂} (iso : Isomorphism (s ▻ A-type) s₁ s₂) →
+      cong proj₂ (isomorphic-equal ext univ (s ▻ A-type) iso) ≡
+      ≈⇒≡ univ (bijection⇒weak-equivalence (proj₂ iso))
+    Typ-equ ext univ (iso , A↔B) =
+      let A≡B = ≈⇒≡ univ $ bijection⇒weak-equivalence A↔B in
+
+      cong proj₂ (Σ-≡,≡→≡ (isomorphic-equal ext univ s iso)
+                          (trans subst-const A≡B))                  ≡⟨ cong (cong proj₂) $ Σ-≡,≡→≡-subst-const _ _ ⟩
+
+      cong proj₂ (cong₂ _,_ (isomorphic-equal ext univ s iso) A≡B)  ≡⟨ cong-proj₂-cong₂-, _ _ ⟩∎
+
+      A≡B                                                           ∎
+
+------------------------------------------------------------------------
+-- An "extension": propositions
+
+-- Extends a structure with a proposition.
+
+Proposition : ∀ {s} →
+
+              -- The proposition.
+              (P : ⟦ s ⟧ → Set) →
+
+              -- The proposition must be propositional (given some
+              -- assumptions).
+              (({A : Set} {B : A → Set} → Extensionality A B) →
+               Univalence-axiom lzero →
+               ∀ s → Propositional (P s)) →
+
+              Extension s
+Proposition {s} P prop = record
+  { Ext = ↑ _ ∘ P
+  ; Iso = λ _ _ _ → ⊤
+  ; hyp = hyp′
+  }
+  where
+  abstract
+    hyp′ : (ext : {A : Set} {B : A → Set} → Extensionality A B)
+           (univ : Univalence-axiom lzero) →
+           ∀ {s₁ s₂} {x₁ : ↑ (lsuc lzero) (P s₁)} {x₂ : ↑ _ (P s₂)}
+           (iso : Isomorphism s s₁ s₂) (i : ⊤) →
+           subst (↑ _ ∘ P) (isomorphic-equal ext univ s iso) x₁ ≡ x₂
+    hyp′ ext univ _ _ =
+      _⇔_.to propositional⇔irrelevant (↑-closure 1 $ prop ext univ _)
+             _ _
+
+-- The proposition stating that a given type is a set.
+
+Is-a-set : ∀ {s} → Type-extractor s → Extension s
+Is-a-set extract = Proposition (Is-set ∘ Typ) Is-set-prop
+  where
+  open Type-extractor extract
+
+  abstract
+    Is-set-prop :
+      ({A : Set} {B : A → Set} → Extensionality A B) →
+      Univalence-axiom lzero →
+      ∀ s → Propositional (Is-set (Typ s))
+    Is-set-prop ext _ _ = H-level-propositional ext 2
+
+------------------------------------------------------------------------
+-- An "extension": n-ary functions
 
 -- N-ary functions.
 
@@ -32,32 +247,33 @@ _^_⟶_ : Set → ℕ → Set → Set
 A ^ zero  ⟶ B = B
 A ^ suc n ⟶ B = A → A ^ n ⟶ B
 
-module N-ary where
+-- N-ary function morphisms.
 
-  -- N-ary function morphisms.
+Is-_-ary-morphism :
+  (n : ℕ) {A B : Set} → (A ^ n ⟶ A) → (B ^ n ⟶ B) → (A → B) → Set
+Is- zero  -ary-morphism x₁ x₂ m = m x₁ ≡ x₂
+Is- suc n -ary-morphism f₁ f₂ m =
+  ∀ x → Is- n -ary-morphism (f₁ x) (f₂ (m x)) m
 
-  Is-_-ary-morphism :
-    (n : ℕ) {A B : Set} → (A ^ n ⟶ A) → (B ^ n ⟶ B) → (A → B) → Set
-  Is- zero  -ary-morphism x₁ x₂ m = m x₁ ≡ x₂
-  Is- suc n -ary-morphism f₁ f₂ m =
-    ∀ x → Is- n -ary-morphism (f₁ x) (f₂ (m x)) m
+-- An n-ary function extension.
 
-  abstract
+N-ary : ∀ {s} →
 
-    -- If _↔_.to m is a morphism, then _↔_.from m is also a morphism.
+        -- Extracts the underlying type.
+        Type-extractor s →
 
-    from-also-_-ary-morphism :
-      (n : ℕ) {A B : Set}
-      (f₁ : A ^ n ⟶ A) (f₂ : B ^ n ⟶ B) (m : A ↔ B) →
-      Is- n -ary-morphism f₁ f₂ (_↔_.to m) →
-      Is- n -ary-morphism f₂ f₁ (_↔_.from m)
-    from-also- zero  -ary-morphism x₁ x₂ m is = _↔_.to-from m is
-    from-also- suc n -ary-morphism f₁ f₂ m is = λ x →
-      from-also- n -ary-morphism (f₁ (from x)) (f₂ x) m
-        (subst (λ y → Is- n -ary-morphism (f₁ (from x)) (f₂ y) to)
-               (right-inverse-of x)
-               (is (from x)))
-      where open _↔_ m
+        -- The function's arity.
+        ℕ →
+
+        Extension s
+N-ary {s} extract n = record
+  { Ext = λ s → ↑ _ (Typ s ^ n ⟶ Typ s)
+  ; Iso = λ f₁ f₂ iso →
+            Is- n -ary-morphism (lower f₁) (lower f₂) (_≈_.to (equ iso))
+  ; hyp = hyp′
+  }
+  where
+  open Type-extractor extract
 
   -- Changes the type of an n-ary function.
 
@@ -128,414 +344,159 @@ module N-ary where
       cast A₁≈A₂ n f₁                              ≡⟨ cast-isomorphism ext A₁≈A₂ n f₁ f₂ is ⟩∎
       f₂                                           ∎
 
+    hyp′ :
+      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (univ : Univalence-axiom lzero) →
+      ∀ {s₁ s₂ f₁} {f₂ : ↑ (lsuc lzero) _}
+      (iso : Isomorphism s s₁ s₂)
+      (i : Is- n -ary-morphism
+             (lower f₁) (lower f₂) (_≈_.to (equ iso))) →
+      subst (λ s → ↑ _ (Typ s ^ n ⟶ Typ s))
+            (isomorphic-equal ext univ s iso) f₁ ≡
+      f₂
+    hyp′ ext univ {f₁ = f₁} {f₂} iso i =
+      let lf₁ = lower f₁; lf₂ = lower f₂ in
+
+      subst (λ s → ↑ _ (Typ s ^ n ⟶ Typ s))
+            (isomorphic-equal ext univ s iso) f₁               ≡⟨ extractor-lemma ext univ (λ A → ↑ _ (A ^ n ⟶ A)) f₁ iso ⟩
+      subst (λ A → ↑ _ (A ^ n ⟶ A)) (≈⇒≡ univ (equ iso)) f₁    ≡⟨ subst-↑ (λ A → A ^ n ⟶ A) ⟩
+      lift (subst (λ A → A ^ n ⟶ A) (≈⇒≡ univ (equ iso)) lf₁)  ≡⟨ cong lift $ subst-isomorphism (λ _ → ext) univ (equ iso) n lf₁ lf₂ i ⟩∎
+      f₂                                                       ∎
+
 ------------------------------------------------------------------------
--- Simple types
+-- An "extension": simply typed functions
 
 -- This section contains a generalisation of the development for n-ary
 -- functions above.
 
 -- Simple types.
 
-data Type : Set where
-  base : Type
-  _⟶_  : Type → Type → Type
+data Simple-type (s : Structure) : Set₁ where
+  base : Type-extractor s → Simple-type s
+  _⟶_  : Simple-type s → Simple-type s → Simple-type s
 
 -- Interpretation of a simple type.
 
-⟦_⟧→ : Type → Set → Set
-⟦ base  ⟧→ A = A
-⟦ σ ⟶ τ ⟧→ A = ⟦ σ ⟧→ A → ⟦ τ ⟧→ A
+⟦_⟧⟶ : ∀ {s} → Simple-type s → ⟦ s ⟧ → Set
+⟦ base A ⟧⟶ s = Type-extractor.Typ A s
+⟦ σ ⟶ τ  ⟧⟶ s = ⟦ σ ⟧⟶ s → ⟦ τ ⟧⟶ s
 
-module Simple where
+-- A simply typed function extension (defined using extensionality).
 
-  -- Cast.
+Simple : (ext : {A : Set} {B : A → Set} → Extensionality A B) →
+         ∀ {s} → Simple-type s → Extension s
+Simple ext {s} σ = record
+  { Ext = λ s → ↑ _ (⟦ σ ⟧⟶ s)
+  ; Iso = λ f₁ f₂ → Is-isomorphism σ (lower f₁) (lower f₂)
+  ; hyp = main-lemma
+  }
+  where
+  open Type-extractor
 
-  cast : (σ : Type) {A B : Set} → A ⇔ B → ⟦ σ ⟧→ A → ⟦ σ ⟧→ B
-  cast base    m x = _⇔_.to m x
-  cast (σ ⟶ τ) m f = cast τ m ∘ f ∘ cast σ (inverse m)
+  -- Cast. (Extensionality isn't needed to define the cast
+  -- /functions/.)
+
+  cast : (σ : Simple-type s) →
+         ∀ {s₁ s₂} → Isomorphism s s₁ s₂ → ⟦ σ ⟧⟶ s₁ ≈ ⟦ σ ⟧⟶ s₂
+  cast (base A) iso = equ A iso
+  cast (σ ⟶ τ)  iso = →-cong ext (cast σ iso) (cast τ iso)
 
   -- Isomorphisms between simply typed values.
 
   Is-isomorphism :
-    (σ : Type) {A B : Set} → ⟦ σ ⟧→ A → ⟦ σ ⟧→ B → A ↔ B → Set
-  Is-isomorphism base    x₁ x₂ m = _↔_.to m x₁ ≡ x₂
-  Is-isomorphism (σ ⟶ τ) f₁ f₂ m =
-    ∀ f → Is-isomorphism τ (f₁ f) (f₂ (cast σ (_↔_.equivalence m) f)) m
+    (σ : Simple-type s) →
+    ∀ {s₁ s₂} → ⟦ σ ⟧⟶ s₁ → ⟦ σ ⟧⟶ s₂ → Isomorphism s s₁ s₂ → Set
+
+  Is-isomorphism (base A) x₁ x₂ iso =
+    _≈_.to (equ A iso) x₁ ≡ x₂
+
+  Is-isomorphism (σ ⟶ τ) f₁ f₂ iso =
+    ∀ f → Is-isomorphism τ (f₁ f) (f₂ (_≈_.to (cast σ iso) f)) iso
 
   -- Alternative definition of isomorphisms.
 
   Is-isomorphism′ :
-    (σ : Type) {A B : Set} → ⟦ σ ⟧→ A → ⟦ σ ⟧→ B → A ↔ B → Set
-  Is-isomorphism′ σ f₁ f₂ m = cast σ (_↔_.equivalence m) f₁ ≡ f₂
+    (σ : Simple-type s) →
+    ∀ {s₁ s₂} → ⟦ σ ⟧⟶ s₁ → ⟦ σ ⟧⟶ s₂ → Isomorphism s s₁ s₂ → Set
+  Is-isomorphism′ σ f₁ f₂ iso = _≈_.to (cast σ iso) f₁ ≡ f₂
 
   abstract
 
-    -- If you cast twice, in a certain way, then you get back what you
-    -- started with.
-
-    cast-twice :
-      {A B : Set} →
-      ((σ τ : Type) → Extensionality (⟦ σ ⟧→ A) (λ _ → ⟦ τ ⟧→ A)) →
-      (σ : Type) (m : A ↔ B) (f : ⟦ σ ⟧→ A) →
-      let m′ = _↔_.equivalence m in
-      cast σ (inverse m′) (cast σ m′ f) ≡ f
-    cast-twice ext base    m x = _↔_.left-inverse-of m x
-    cast-twice ext (σ ⟶ τ) m f = ext σ τ λ x →
-      let m′ = _↔_.equivalence m in
-      (cast τ (inverse m′) $ cast τ m′ $
-         f $ cast σ (inverse m′) $ cast σ m′ x)  ≡⟨ cast-twice ext τ m _ ⟩
-      (f $ cast σ (inverse m′) $ cast σ m′ x)    ≡⟨ cong f $ cast-twice ext σ m x ⟩∎
-      f x                                        ∎
-
-    -- If m is an isomorphism, then inverse m is also an isomorphism
-    -- (assuming extensionality).
-
-    inverse-also-isomorphism :
-      {A B : Set} →
-      ((σ τ : Type) → Extensionality (⟦ σ ⟧→ B) (λ _ → ⟦ τ ⟧→ B)) →
-      (σ : Type) (f₁ : ⟦ σ ⟧→ A) (f₂ : ⟦ σ ⟧→ B) (m : A ↔ B) →
-      Is-isomorphism σ f₁ f₂ m →
-      Is-isomorphism σ f₂ f₁ (inverse m)
-    inverse-also-isomorphism ext base      f₁ f₂ m is = _↔_.to-from m is
-    inverse-also-isomorphism ext (σ₁ ⟶ σ₂) f₁ f₂ m is = λ f →
-      let f′ = cast σ₁ (inverse $ _↔_.equivalence m) f in
-      inverse-also-isomorphism ext σ₂ (f₁ f′) (f₂ f) m $
-        subst (λ g → Is-isomorphism σ₂ (f₁ f′) (f₂ g) m)
-              (cast-twice ext σ₁ (inverse m) f)
-              (is f′)
-
-    -- Cast simplification lemma.
-
-    cast-id :
-      {A : Set} →
-      ((σ τ : Type) → Extensionality (⟦ σ ⟧→ A) (λ _ → ⟦ τ ⟧→ A)) →
-      ∀ σ (f : ⟦ σ ⟧→ A) → cast σ (_≈_.equivalence Weak.id) f ≡ f
-    cast-id ext base    x = refl x
-    cast-id ext (σ ⟶ τ) f = ext σ τ $ λ x →
-      let id = _≈_.equivalence Weak.id in
-      cast τ id (f (cast σ (inverse id) x))  ≡⟨ cast-id ext τ _ ⟩
-      f (cast σ (inverse id) x)              ≡⟨ cong f $ cast-id ext σ x ⟩∎
-      f x                                    ∎
-
-    -- We can express cast (applied to an isomorphism) as an instance
-    -- of subst (assuming extensionality and univalence).
-
-    cast-is-subst :
-      ({A : Set} (σ τ : Type) →
-       Extensionality (⟦ σ ⟧→ A) (λ _ → ⟦ τ ⟧→ A)) →
-      {A₁ A₂ : Set}
-      (univ : Univalence-axiom′ A₁ A₂)
-      (m : A₁ ↔ A₂) (σ : Type) (f : ⟦ σ ⟧→ A₁) →
-      let m′ = bijection⇒weak-equivalence m in
-      cast σ (_↔_.equivalence m) f ≡ subst ⟦ σ ⟧→ (≈⇒≡ univ m′) f
-    cast-is-subst ext univ m σ =
-      subst-unique
-        ⟦ σ ⟧→
-        (λ A≈B f → cast σ (_≈_.equivalence A≈B) f)
-        (cast-id ext σ)
-        univ
-        (bijection⇒weak-equivalence m)
-
-    -- The two definitions of isomorphisms are equivalent (assuming
-    -- extensionality).
+    -- The two definitions of isomorphisms are equivalent.
 
     isomorphism-definitions-equivalent :
-      {A₁ A₂ : Set} →
-      ((σ τ : Type) → Extensionality (⟦ σ ⟧→ A₁) (λ _ → ⟦ τ ⟧→ A₁)) →
-      ((σ τ : Type) → Extensionality (⟦ σ ⟧→ A₂) (λ _ → ⟦ τ ⟧→ A₂)) →
-      (m : A₁ ↔ A₂)
-      (σ : Type) (f₁ : ⟦ σ ⟧→ A₁) (f₂ : ⟦ σ ⟧→ A₂) →
-      Is-isomorphism σ f₁ f₂ m ⇔ Is-isomorphism′ σ f₁ f₂ m
-    isomorphism-definitions-equivalent {A₁} {A₂} ext₁ ext₂ m =
-      λ σ f₁ f₂ → record { to = to σ f₁ f₂; from = from σ f₁ f₂ }
+      ∀ {s₁ s₂} (iso : Isomorphism s s₁ s₂)
+      (σ : Simple-type s) {f₁ f₂} →
+      Is-isomorphism σ f₁ f₂ iso ⇔ Is-isomorphism′ σ f₁ f₂ iso
+    isomorphism-definitions-equivalent iso =
+      λ σ → record { to = to σ; from = from σ }
       where
-      m′ : A₁ ⇔ A₂
-      m′ = _↔_.equivalence m
+      to : ∀ σ {f₁ f₂} →
+           Is-isomorphism σ f₁ f₂ iso → Is-isomorphism′ σ f₁ f₂ iso
+      to (base A)          i = i
+      to (σ ⟶ τ) {f₁} {f₂} i = ext λ x →
+        _≈_.to (cast τ iso) (f₁ (_≈_.from (cast σ iso) x))  ≡⟨ to τ (i _) ⟩
+        f₂ (_≈_.to (cast σ iso) (_≈_.from (cast σ iso) x))  ≡⟨ cong f₂ $ _≈_.right-inverse-of (cast σ iso) x ⟩∎
+        f₂ x                                                ∎
 
-      to : ∀ σ f₁ f₂ →
-           Is-isomorphism σ f₁ f₂ m → Is-isomorphism′ σ f₁ f₂ m
-      to base    f₁ f₂ is = is
-      to (σ ⟶ τ) f₁ f₂ is = ext₂ σ τ λ x →
-        cast τ m′ (f₁ (cast σ (inverse m′) x))  ≡⟨ to τ _ _ (is _) ⟩
-        f₂ (cast σ m′ (cast σ (inverse m′) x))  ≡⟨ cong f₂ (cast-twice ext₂ σ (inverse m) _) ⟩∎
-        f₂ x                                    ∎
+      from : ∀ σ {f₁ f₂} →
+             Is-isomorphism′ σ f₁ f₂ iso → Is-isomorphism σ f₁ f₂ iso
+      from (base A)          i = i
+      from (σ ⟶ τ) {f₁} {f₂} i = λ f → from τ
+        (_≈_.to (cast τ iso) (f₁ f)                                   ≡⟨ cong (_≈_.to (cast τ iso) ∘ f₁) $ sym $
+                                                                           _≈_.left-inverse-of (cast σ iso) f ⟩
+         _≈_.to (cast τ iso)
+                (f₁ (_≈_.from (cast σ iso) (_≈_.to (cast σ iso) f)))  ≡⟨ cong (λ g → g (_≈_.to (cast σ iso) f)) i ⟩∎
 
-      from : ∀ σ f₁ f₂ →
-             Is-isomorphism′ σ f₁ f₂ m → Is-isomorphism σ f₁ f₂ m
-      from base    f₁ f₂ is = is
-      from (σ ⟶ τ) f₁ f₂ is = λ f → from τ (f₁ f) (f₂ (cast σ m′ f))
-        (cast τ m′ (f₁ f)                                    ≡⟨ cong (cast τ m′ ∘ f₁) $ sym $ cast-twice ext₁ σ m f ⟩
-         cast τ m′ (f₁ (cast σ (inverse m′) (cast σ m′ f)))  ≡⟨ cong (λ g → g (cast σ m′ f)) is ⟩∎
-         f₂ (cast σ m′ f)                                    ∎)
+         f₂ (_≈_.to (cast σ iso) f)                                   ∎)
 
-    -- Combining the results above we get the following: if there is
-    -- an isomorphism from f₁ to f₂, then the corresponding instance
-    -- of subst maps f₁ to f₂ (assuming extensionality and
-    -- univalence).
+    -- The equality that we get from a cast (via ≈⇒≡) can also be
+    -- obtained from isomorphic-equal.
 
-    subst-isomorphism :
-      ({A : Set} (σ τ : Type) →
-       Extensionality (⟦ σ ⟧→ A) (λ _ → ⟦ τ ⟧→ A)) →
-      {A₁ A₂ : Set}
-      (univ : Univalence-axiom′ A₁ A₂)
-      (m : A₁ ↔ A₂)
-      (σ : Type) (f₁ : ⟦ σ ⟧→ A₁) (f₂ : ⟦ σ ⟧→ A₂) →
-      let m′ = bijection⇒weak-equivalence m in
-      Is-isomorphism σ f₁ f₂ m →
-      subst ⟦ σ ⟧→ (≈⇒≡ univ m′) f₁ ≡ f₂
-    subst-isomorphism ext univ m σ f₁ f₂ is =
-      subst ⟦ σ ⟧→ (≈⇒≡ univ (bijection⇒weak-equivalence m)) f₁  ≡⟨ sym $ cast-is-subst ext univ m σ f₁ ⟩
-      cast σ (_↔_.equivalence m) f₁                              ≡⟨ _⇔_.to (isomorphism-definitions-equivalent ext ext m σ f₁ f₂) is ⟩∎
-      f₂                                                         ∎
+    cast-lemma :
+      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (univ : Univalence-axiom lzero) →
+      ∀ (σ : Simple-type s) {s₁ s₂} (iso : Isomorphism s s₁ s₂) →
+      cong ⟦ σ ⟧⟶ (isomorphic-equal ext univ s iso) ≡
+        ≈⇒≡ univ (cast σ iso)
+    cast-lemma ext′ univ (base A)  iso = Typ-equ A ext′ univ iso
+    cast-lemma ext′ univ (σ₁ ⟶ σ₂) iso =
+      let iso-eq = isomorphic-equal ext′ univ s iso in
 
-------------------------------------------------------------------------
--- A class of algebraic structures
+      cong ⟦ σ₁ ⟶ σ₂ ⟧⟶ iso-eq                                           ≡⟨ sym $ cong₂-cong-cong ⟦ σ₁ ⟧⟶ ⟦ σ₂ ⟧⟶ (λ A B → A → B) ⟩
 
--- An algebraic structure universe.
+      cong₂ (λ A B → A → B) (cong ⟦ σ₁ ⟧⟶ iso-eq) (cong ⟦ σ₂ ⟧⟶ iso-eq)  ≡⟨ cong₂ (cong₂ (λ A B → A → B)) (cast-lemma ext′ univ σ₁ iso)
+                                                                                                          (cast-lemma ext′ univ σ₂ iso) ⟩
+      cong₂ (λ A B → A → B) (≈⇒≡ univ (cast σ₁ iso))
+                            (≈⇒≡ univ (cast σ₂ iso))                     ≡⟨ sym $ ≈⇒≡-→-cong ext univ (cast σ₁ iso) (cast σ₂ iso) ⟩∎
 
-mutual
+      ≈⇒≡ univ (→-cong ext (cast σ₁ iso) (cast σ₂ iso))                  ∎
 
-  infixl 5 _+operator_ _+ho-operator_ _+axiom_
-  infix  5 _+type
+    -- The main lemma: If there is an isomorphism from f₁ to f₂, then
+    -- a certain instance of subst maps f₁ to f₂.
 
-  -- Structure n contains codes for structures containing n types.
+    main-lemma :
+      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (univ : Univalence-axiom lzero) →
+      ∀ {s₁ s₂ f₁} {f₂ : ↑ (lsuc lzero) _} (iso : Isomorphism s s₁ s₂) →
+      Is-isomorphism σ (lower f₁) (lower f₂) iso →
+      subst (↑ _ ∘ ⟦ σ ⟧⟶) (isomorphic-equal ext univ s iso) f₁ ≡ f₂
+    main-lemma ext univ {f₁ = f₁} {f₂} iso i =
+      let iso-eq = isomorphic-equal ext univ s iso in
 
-  data Structure : ℕ → Set₁ where
-    empty : Structure 0
-
-    -- A type.
-    _+type : ∀ {n} → Structure n → Structure (1 + n)
-
-    -- N-ary functions.
-    _+operator_ :
-      ∀ {n} → Structure n → (sig : Fin n × ℕ) → Structure n
-
-    -- Simply typed functions.
-    _+ho-operator_ :
-      ∀ {n} → Structure n → (sig : Fin n × Type) → Structure n
-
-    -- Arbitrary /propositional/ axioms.
-    _+axiom_ : ∀ {n}
-               (s : Structure n)
-               (P : ∃ λ (P : ⟦ s ⟧ → Set) →
-                      ∀ s → Propositional (P s)) →
-               Structure n
-
-  -- Interpretation of the codes.
-
-  ⟦_⟧ : ∀ {n} → Structure n → Set₁
-  ⟦ empty                  ⟧ = ↑ _ ⊤
-  ⟦ s +type                ⟧ = ⟦ s ⟧ × Set
-  ⟦ s +operator (j , n)    ⟧ = ∃ λ (S : ⟦ s ⟧) → let A = type s j S in
-                                                 A ^ n ⟶ A
-  ⟦ s +ho-operator (j , σ) ⟧ = ∃ λ (S : ⟦ s ⟧) → ⟦ σ ⟧→ (type s j S)
-  ⟦ s +axiom (P , P-prop)  ⟧ = Σ ⟦ s ⟧ P
-
-  -- A projection: type s j S is the j-th type in S.
-
-  type : ∀ {n} (s : Structure n) → Fin n → ⟦ s ⟧ → Set
-  type empty              ()        _
-  type (s +type)          (inj₁ tt) (S , A) = A
-  type (s +type)          (inj₂ j)  (S , A) = type s j S
-  type (s +operator _)    j         (S , _) = type s j S
-  type (s +ho-operator _) j         (S , _) = type s j S
-  type (s +axiom _)       j         (S , _) = type s j S
-
-mutual
-
-  -- Isomorphisms.
-
-  Isomorphism : ∀ {n} (s : Structure n) → ⟦ s ⟧ → ⟦ s ⟧ → Set
-  Isomorphism empty    _          _         = ⊤
-
-  Isomorphism (s +type) (S₁ , A₁)  (S₂ , A₂) =
-    Isomorphism s S₁ S₂ × (A₁ ↔ A₂)
-
-  Isomorphism (s +axiom _) (s₁ , _) (s₂ , _) =
-    Isomorphism s s₁ s₂
-
-  Isomorphism (s +operator (j , n)) (s₁ , op₁) (s₂ , op₂) =
-    ∃ λ (i : Isomorphism s s₁ s₂) →
-    N-ary.Is- n -ary-morphism op₁ op₂ (_↔_.to (bijection s j i))
-
-  Isomorphism (s +ho-operator (j , σ)) (s₁ , op₁) (s₂ , op₂) =
-    ∃ λ (i : Isomorphism s s₁ s₂) →
-    Simple.Is-isomorphism σ op₁ op₂ (bijection s j i)
-
-  -- A projection: bijection s j i is the j-th bijection in i.
-
-  bijection : ∀ {n} (s : Structure n) {S₁ S₂ : ⟦ s ⟧} (j : Fin n) →
-              Isomorphism s S₁ S₂ → type s j S₁ ↔ type s j S₂
-  bijection empty              ()        _
-  bijection (s +type)          (inj₁ tt) (_ , m) = m
-  bijection (s +type)          (inj₂ j)  (i , _) = bijection s j i
-  bijection (s +operator _)    j         (i , _) = bijection s j i
-  bijection (s +ho-operator _) j         (i , _) = bijection s j i
-  bijection (s +axiom _)       j         i       = bijection s j i
-
-mutual
- abstract
-
-  -- Isomorphism s is symmetric (assuming extensionality).
-
-  symmetric : ({A B : Set} → Extensionality A (λ _ → B)) →
-              ∀ {n} (s : Structure n) {S₁ S₂ : ⟦ s ⟧} →
-              Isomorphism s S₁ S₂ → Isomorphism s S₂ S₁
-  symmetric ext empty        i       = i
-  symmetric ext (s +axiom P) i       = symmetric ext s i
-  symmetric ext (s +type)    (i , m) = symmetric ext s i , inverse m
-  symmetric ext (s +operator (j , n)) (i , is) =
-    symmetric ext s i ,
-    subst (N-ary.Is- n -ary-morphism _ _)
-          (cong _↔_.to $ bijection-commutes ext s j i)
-          (N-ary.from-also- n -ary-morphism _ _ (bijection s j i) is)
-  symmetric ext (s +ho-operator (j , σ)) (i , is) =
-    symmetric ext s i ,
-    subst (Simple.Is-isomorphism σ _ _)
-          (bijection-commutes ext s j i)
-          (Simple.inverse-also-isomorphism (λ _ _ → ext) σ _ _
-                                           (bijection s j i) is)
-
-  -- A kind of commutation property.
-
-  bijection-commutes :
-    (ext : {A B : Set} → Extensionality A (λ _ → B)) →
-    ∀ {n} (s : Structure n) {S₁ S₂ : ⟦ s ⟧} →
-    (j : Fin n) (i : Isomorphism s S₁ S₂) →
-    inverse (bijection s j i) ≡ bijection s j (symmetric ext s i)
-  bijection-commutes ext empty              ()        _
-  bijection-commutes ext (s +type)          (inj₁ tt) (_ , m) = refl (inverse m)
-  bijection-commutes ext (s +type)          (inj₂ j)  (i , _) = bijection-commutes ext s j i
-  bijection-commutes ext (s +operator _)    j         (i , _) = bijection-commutes ext s j i
-  bijection-commutes ext (s +ho-operator _) j         (i , _) = bijection-commutes ext s j i
-  bijection-commutes ext (s +axiom P)       j         i       = bijection-commutes ext s j i
-
--- Isomorphic structures are equal (assuming univalence).
-
-isomorphic-equal :
-  Univalence-axiom′ (Set ²/≡) Set →
-  Univalence-axiom lzero →
-  ∀ {n} (s : Structure n) (S₁ S₂ : ⟦ s ⟧) →
-  Isomorphism s S₁ S₂ → S₁ ≡ S₂
-isomorphic-equal univ₁ univ₂ s S₁ S₂ is = iso-eq s S₁ S₂ is
-  where
-
-  -- Given two isomorphic structures the corresponding types are equal
-  -- (due to univalence).
-
-  corresponding-types-equal :
-    ∀ {n} (s : Structure n) {S₁ S₂ : ⟦ s ⟧}
-    (j : Fin n) (i : Isomorphism s S₁ S₂) →
-    type s j S₁ ≡ type s j S₂
-  corresponding-types-equal s j i =
-    _≈_.from (≡≈≈ univ₂) $
-    bijection⇒weak-equivalence $
-    bijection s j i
-
-  abstract
-
-    -- Extensionality follows from univalence.
-
-    ext : {A : Set} {B : A → Set} → Extensionality A B
-    ext = dependent-extensionality univ₁ (λ _ → univ₂)
-
-  mutual
-   abstract
-
-    -- The main lemma.
-
-    iso-eq : ∀ {n} (s : Structure n) (S₁ S₂ : ⟦ s ⟧) →
-             Isomorphism s S₁ S₂ → S₁ ≡ S₂
-    iso-eq empty _ _ _ = refl _
-
-    iso-eq (s +type) (S₁ , A₁) (S₂ , A₂) (i , m) =
-      (S₁ , A₁)  ≡⟨ cong₂ _,_ (iso-eq s S₁ S₂ i) (corresponding-types-equal (s +type) (inj₁ tt) (i , m)) ⟩∎
-      (S₂ , A₂)  ∎
-
-    iso-eq (s +axiom (P , P-prop)) (S₁ , ax₁) (S₂ , ax₂) i =
-      (S₁ , ax₁)  ≡⟨ Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) (_⇔_.to propositional⇔irrelevant (P-prop _) _ _) ⟩∎
-      (S₂ , ax₂)  ∎
-
-    iso-eq (s +operator (j , n)) (S₁ , op₁) (S₂ , op₂) (i , is) =
-      let lemma′ =
-            subst (λ S → type s j S ^ n ⟶ type s j S)
-                  (iso-eq s S₁ S₂ i) op₁                    ≡⟨ subst-∘ (λ A → A ^ n ⟶ A) (type s j) (iso-eq s S₁ S₂ i) ⟩
-
-            subst (λ A → A ^ n ⟶ A)
-                  (cong (type s j) (iso-eq s S₁ S₂ i)) op₁  ≡⟨ cong (λ eq → subst (λ A → A ^ n ⟶ A) eq op₁) (cong-type-iso-eq s S₁ S₂ j i) ⟩
-
-            subst (λ A → A ^ n ⟶ A)
-                  (corresponding-types-equal s j i) op₁     ≡⟨ N-ary.subst-isomorphism (λ _ → ext) univ₂
-                                                                 (bijection⇒weak-equivalence $ bijection s j i) n op₁ op₂ is ⟩∎
-            op₂                                             ∎ in
-
-      (S₁ , op₁)  ≡⟨ Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) lemma′ ⟩∎
-      (S₂ , op₂)  ∎
-
-    iso-eq (s +ho-operator (j , σ)) (S₁ , op₁) (S₂ , op₂) (i , is) =
-      let lemma′ =
-            subst (⟦ σ ⟧→ ∘ type s j) (iso-eq s S₁ S₂ i) op₁       ≡⟨ subst-∘ ⟦ σ ⟧→ (type s j) (iso-eq s S₁ S₂ i) ⟩
-            subst ⟦ σ ⟧→ (cong (type s j) (iso-eq s S₁ S₂ i)) op₁  ≡⟨ cong (λ eq → subst ⟦ σ ⟧→ eq op₁) (cong-type-iso-eq s S₁ S₂ j i) ⟩
-            subst ⟦ σ ⟧→ (corresponding-types-equal s j i) op₁     ≡⟨ Simple.subst-isomorphism (λ _ _ → ext) univ₂
-                                                                        (bijection s j i) σ op₁ op₂ is ⟩∎
-            op₂                                                   ∎ in
-
-      (S₁ , op₁)  ≡⟨ Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) lemma′ ⟩∎
-      (S₂ , op₂)  ∎
-
-    -- A certain projection of iso-eq corresponds to
-    -- corresponding-types-equal.
-
-    cong-type-iso-eq :
-      ∀ {n} (s : Structure n) (S₁ S₂ : ⟦ s ⟧)
-      (j : Fin n) (i : Isomorphism s S₁ S₂) →
-      cong (type s j) (iso-eq s S₁ S₂ i) ≡
-      corresponding-types-equal s j i
-    cong-type-iso-eq empty S₁ S₂ () i
-
-    cong-type-iso-eq (s +type) (S₁ , A₁) (S₂ , A₂) (inj₁ tt) (i , m) =
-      let A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ bijection⇒weak-equivalence m in
-
-      cong proj₂ (cong₂ _,_ (iso-eq s S₁ S₂ i) A₁≡A₂)  ≡⟨ cong-proj₂-cong₂-, (iso-eq s S₁ S₂ i) _ ⟩∎
-      A₁≡A₂                                            ∎
-
-    cong-type-iso-eq (s +type) (S₁ , _) (S₂ , _) (inj₂ j) (i , _) =
-      cong (type s j ∘ proj₁) (cong₂ _,_ (iso-eq s S₁ S₂ i) _)       ≡⟨ sym $ cong-∘ (type s j) proj₁ _ ⟩
-      cong (type s j) (cong proj₁ (cong₂ _,_ (iso-eq s S₁ S₂ i) _))  ≡⟨ cong (cong (type s j)) $ cong-proj₁-cong₂-, (iso-eq s S₁ S₂ i) _ ⟩
-      cong (type s j) (iso-eq s S₁ S₂ i)                             ≡⟨ cong-type-iso-eq s S₁ S₂ j i ⟩∎
-      corresponding-types-equal s j i                                ∎
-
-    cong-type-iso-eq (s +axiom _) (S₁ , _) (S₂ , _) j i =
-      cong-type-iso-eq′ s S₁ S₂ j i _ _
-
-    cong-type-iso-eq (s +operator _) (S₁ , _) (S₂ , _) j (i , _) =
-      cong-type-iso-eq′ s S₁ S₂ j i _ _
-
-    cong-type-iso-eq (s +ho-operator _) (S₁ , _) (S₂ , _) j (i , _) =
-      cong-type-iso-eq′ s S₁ S₂ j i _ _
-
-    -- A variant of cong-type-iso-eq.
-
-    cong-type-iso-eq′ :
-      ∀ {n} (s : Structure n) (S₁ S₂ : ⟦ s ⟧)
-      (j : Fin n) (i : Isomorphism s S₁ S₂)
-      (P : ⟦ s ⟧ → Set) {p₁ p₂}
-      (eq : subst P (iso-eq s S₁ S₂ i) p₁ ≡ p₂) →
-      cong (type s j ∘ proj₁) (Σ-≡,≡→≡ {B = P} (iso-eq s S₁ S₂ i) eq) ≡
-      corresponding-types-equal s j i
-    cong-type-iso-eq′ s S₁ S₂ j i _ eq =
-      cong (type s j ∘ proj₁) (Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) eq)       ≡⟨ sym $ cong-∘ (type s j) proj₁ _ ⟩
-      cong (type s j) (cong proj₁ $ Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) eq)  ≡⟨ cong (cong (type s j)) $ proj₁-Σ-≡,≡→≡ (iso-eq s S₁ S₂ i) _ ⟩
-      cong (type s j) (iso-eq s S₁ S₂ i)                            ≡⟨ cong-type-iso-eq s S₁ S₂ j i ⟩∎
-      corresponding-types-equal s j i                               ∎
+      subst (↑ _ ∘ ⟦ σ ⟧⟶) iso-eq f₁          ≡⟨ subst-∘ (↑ _) ⟦ σ ⟧⟶ _ ⟩
+      subst (↑ _) (cong ⟦ σ ⟧⟶ iso-eq) f₁     ≡⟨ cong (λ p → subst (↑ _) p f₁) (cast-lemma ext univ σ iso) ⟩
+      subst (↑ _) (≈⇒≡ univ (cast σ iso)) f₁  ≡⟨ sym $ subst-unique (↑ _) (λ A≈B → lift ∘ _≈_.to A≈B ∘ lower) refl univ _ _ ⟩
+      lift (_≈_.to (cast σ iso) (lower f₁))   ≡⟨ cong lift $ _⇔_.to (isomorphism-definitions-equivalent iso σ) i ⟩∎
+      f₂                                      ∎
 
 ------------------------------------------------------------------------
 -- Some example structures
 
 -- Example: magmas.
 
-magma : Structure 1
-magma = empty +type +operator (inj₁ tt , 2)
+magma : Structure
+magma = ε ▻ A-type ▻ N-ary [0] 2
 
 Magma : Set₁
 Magma = ⟦ magma ⟧
@@ -544,230 +505,74 @@ private
 
   -- An unfolding of Magma.
 
-  Magma-unfolded : Magma ≡ Σ (↑ _ ⊤ × Set) λ { (_ , A) → (A → A → A) }
+  Magma-unfolded : Magma ≡
+                   Σ (↑ _ ⊤ × Set) λ { (_ , A) → ↑ _ (A → A → A) }
   Magma-unfolded = refl _
 
--- Example: semigroups. The definition uses extensionality to prove
--- that the axioms are propositional. Note that one axiom states that
--- the underlying type is a set. This assumption is used to prove that
--- the other axioms are propositional.
+-- Example: semigroups. Note that one axiom states that the underlying
+-- type is a set. This assumption is used to prove that the other
+-- axiom is propositional.
 
-semigroup :
-  ({A : Set} {B : A → Set} → Extensionality A B) →
-  Structure 1
-semigroup ext =
-  empty
+semigroup : Structure
+semigroup =
+  ε
 
-  +type
+  ▻ A-type
 
-  +axiom
-    ( (λ { (_ , A) → Is-set A })
-    , is-set-prop
-    )
+  ▻ Is-a-set [0]
 
-  +operator (inj₁ tt , 2)
+  ▻ N-ary (1+ [0]) 2
 
-  +axiom
-    ( (λ { (_ , _∙_) →
+  ▻ Proposition
+      (λ { (_ , lift _∙_) →
            ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
-    , assoc-prop
-    )
+      assoc-prop
 
   where
-  is-set-prop = λ _ → H-level-propositional ext 2
+  assoc-prop = λ { ext _ ((_ , lift Aset) , _) →
+    Π-closure ext 1 λ _ →
+    Π-closure ext 1 λ _ →
+    Π-closure ext 1 λ _ →
+    Aset _ _ }
 
-  assoc-prop = λ { ((_ , A-set) , _) →
-      Π-closure ext 1 λ _ →
-      Π-closure ext 1 λ _ →
-      Π-closure ext 1 λ _ →
-      A-set _ _
-    }
-
-Semigroup :
-  ({A : Set} {B : A → Set} → Extensionality A B) →
-  Set₁
-Semigroup ext = ⟦ semigroup ext ⟧
+Semigroup : Set₁
+Semigroup = ⟦ semigroup ⟧
 
 private
 
   -- An unfolding of Semigroup.
 
   Semigroup-unfolded :
-    (ext : {A : Set} {B : A → Set} → Extensionality A B) →
-    Semigroup ext ≡  Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                                  ) λ {  (_ , A) →
-      Is-set A                            }) λ { ((_ , A) , _) →
-      A → A → A                           }) λ { (_ , _∙_) →
-      ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }
-  Semigroup-unfolded _ = refl _
-
--- Example: abelian groups.
-
-abelian-group :
-  ({A : Set} {B : A → Set} → Extensionality A B) →
-  Structure 1
-abelian-group ext =
-  empty
-
-  -- The underlying type.
-  +type
-
-  -- The underlying type is a set.
-  +axiom
-    ( (λ { (_ , A) → Is-set A })
-    , is-set-prop
-    )
-
-  -- The binary group operation.
-  +operator (inj₁ tt , 2)
-
-  -- Commutativity.
-  +axiom
-    ( (λ { (_ , _∙_) →
-           ∀ x y → x ∙ y ≡ y ∙ x })
-    , comm-prop
-    )
-
-  -- Associativity.
-  +axiom
-    ( (λ { ((_ , _∙_) , _) →
-           ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
-    , assoc-prop
-    )
-
-  -- Identity.
-  +operator (inj₁ tt , 0)
-
-  -- Left identity.
-  +axiom
-    ( (λ { ((((_ , _∙_) , _) , _) , e) →
-           ∀ x → e ∙ x ≡ x })
-    , left-identity-prop
-    )
-
-  -- Right identity.
-  +axiom
-    ( (λ { (((((_ , _∙_) , _) , _) , e) , _) →
-           ∀ x → x ∙ e ≡ x })
-    , right-identity-prop
-    )
-
-  -- Inverse.
-  +operator (inj₁ tt , 1)
-
-  -- Left inverse.
-  +axiom
-    ( (λ { (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-           ∀ x → (x ⁻¹) ∙ x ≡ e })
-    , left-inverse-prop
-    )
-
-  -- Right inverse.
-  +axiom
-    ( (λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-           ∀ x → x ∙ (x ⁻¹) ≡ e })
-    , right-inverse-prop
-    )
-
-  where
-  is-set-prop = λ _ → H-level-propositional ext 2
-
-  comm-prop =
-    λ { ((_ , A-set) , _) →
-      Π-closure ext 1 λ _ →
-      Π-closure ext 1 λ _ →
-      A-set _ _
-    }
-
-  assoc-prop =
-    λ { (((_ , A-set) , _) , _) →
-      Π-closure ext 1 λ _ →
-      Π-closure ext 1 λ _ →
-      Π-closure ext 1 λ _ →
-      A-set _ _
-    }
-
-  left-identity-prop =
-    λ { (((((_ , A-set) , _) , _) , _) , _) →
-      Π-closure ext 1 λ _ →
-      A-set _ _
-    }
-
-  right-identity-prop =
-    λ { ((((((_ , A-set) , _) , _) , _) , _) , _) →
-      Π-closure ext 1 λ _ →
-      A-set _ _
-    }
-
-  left-inverse-prop =
-    λ { ((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) →
-      Π-closure ext 1 λ _ →
-      A-set _ _
-    }
-
-  right-inverse-prop =
-    λ { (((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
-      Π-closure ext 1 λ _ →
-      A-set _ _
-    }
-
-Abelian-group :
-  ({A : Set} {B : A → Set} → Extensionality A B) →
-  Set₁
-Abelian-group ext = ⟦ abelian-group ext ⟧
-
-private
-
-  -- An unfolding of Abelian-group. Note that the inner structure is
-  -- left-nested.
-
-  Abelian-group-unfolded :
-    (ext : {A : Set} {B : A → Set} → Extensionality A B) →
-    Abelian-group ext ≡ Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                                  ) λ {        (_ , A) →
-      Is-set A                            }) λ {       ((_ , A) , _) →
-      A → A → A                           }) λ {                  (_ , _∙_) →
-      ∀ x y → x ∙ y ≡ y ∙ x               }) λ {                 ((_ , _∙_) , _) →
-      ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }) λ {    (((((_ , A) , _) , _  ) , _) , _) →
-      A                                   }) λ {               ((((_ , _∙_) , _) , _) , e) →
-      ∀ x → e ∙ x ≡ x                     }) λ {              (((((_ , _∙_) , _) , _) , e) , _) →
-      ∀ x → x ∙ e ≡ x                     }) λ { ((((((((_ , A) , _) , _  ) , _) , _) , _) , _) , _) →
-      A → A                               }) λ {            (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-      ∀ x → (x ⁻¹) ∙ x ≡ e                }) λ {           ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-      ∀ x → x ∙ (x ⁻¹) ≡ e                }
-
-  Abelian-group-unfolded _ = refl _
+    Semigroup ≡ Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Set                                        ) λ {  (_ , A) →
+      ↑ _ (Is-set A)                            }) λ { ((_ , A) , _) →
+      ↑ _ (A → A → A)                           }) λ { (_ , lift _∙_) →
+      ↑ _ (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }
+  Semigroup-unfolded = refl _
 
 -- Example: Sets with fixed-point operators.
 
 set-with-fixed-point-operator :
   ({A : Set} {B : A → Set} → Extensionality A B) →
-  Structure 1
+  Structure
 set-with-fixed-point-operator ext =
-  empty
+  ε
 
-  +type
+  ▻ A-type
 
-  +axiom
-    ( (λ { (_ , A) → Is-set A })
-    , is-set-prop
-    )
+  ▻ Is-a-set [0]
 
-  +ho-operator (inj₁ tt , (base ⟶ base) ⟶ base)
+  ▻ Simple ext ((base (1+ [0]) ⟶ base (1+ [0])) ⟶ base (1+ [0]))
 
-  +axiom
-    ( (λ { (_ , fix) →
+  ▻ Proposition
+      (λ { (_ , lift fix) →
            ∀ f → fix f ≡ f (fix f) })
-    , fixed-point-prop
-    )
+      fix-point-prop
 
   where
-  is-set-prop = λ _ → H-level-propositional ext 2
-
-  fixed-point-prop = λ { ((_ , A-set) , _) →
-      Π-closure ext 1 λ _ →
-      A-set _ _
-    }
+  fix-point-prop = λ { ext _ ((_ , lift Aset) , _) →
+    Π-closure ext 1 λ _ →
+    Aset _ _ }
 
 Set-with-fixed-point-operator :
   ({A : Set} {B : A → Set} → Extensionality A B) →
@@ -782,8 +587,141 @@ private
   Set-with-fixed-point-operator-unfolded :
     (ext : {A : Set} {B : A → Set} → Extensionality A B) →
     Set-with-fixed-point-operator ext ≡ Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                      ) λ {  (_ , A) →
-      Is-set A                }) λ { ((_ , A) , _) →
-      (A → A) → A             }) λ { (_ , fix) →
-      ∀ f → fix f ≡ f (fix f) }
+      Set                            ) λ {  (_ , A) →
+      ↑ _ (Is-set A)                }) λ { ((_ , A) , _) →
+      ↑ _ ((A → A) → A)             }) λ { (_ , lift fix) →
+      ↑ _ (∀ f → fix f ≡ f (fix f)) }
   Set-with-fixed-point-operator-unfolded _ = refl _
+
+-- Example: abelian groups.
+
+abelian-group : Structure
+abelian-group =
+  ε
+
+  -- The underlying type.
+  ▻ A-type
+
+  -- The underlying type is a set.
+  ▻ Is-a-set [0]
+
+  -- The binary group operation.
+  ▻ N-ary (1+ [0]) 2
+
+  -- Commutativity.
+  ▻ Comm
+
+  -- Associativity.
+  ▻ Assoc
+
+  -- Identity.
+  ▻ N-ary (1+ 1+ 1+ 1+ [0]) 0
+
+  -- Left identity.
+  ▻ Left-identity
+
+  -- Right identity.
+  ▻ Right-identity
+
+  -- Inverse.
+  ▻ N-ary (1+ 1+ 1+ 1+ 1+ 1+ 1+ [0]) 1
+
+  -- Left inverse.
+  ▻ Left-inverse
+
+  -- Right inverse.
+  ▻ Right-inverse
+
+  where
+  bin = ε ▻ A-type ▻ Is-a-set [0] ▻ N-ary (1+ [0]) 2
+
+  Comm = Proposition {bin}
+    (λ { (_ , lift _∙_) →
+       ∀ x y → x ∙ y ≡ y ∙ x })
+
+    (λ { ext _ ((_ , lift Aset) , _) →
+       Π-closure ext 1 λ _ →
+       Π-closure ext 1 λ _ →
+       Aset _ _
+     })
+
+  comm = bin ▻ Comm
+
+  Assoc = Proposition {comm}
+    (λ { ((_ , lift _∙_) , _) →
+         ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
+
+    (λ { ext _ (((_ , lift Aset) , _) , _) →
+       Π-closure ext 1 λ _ →
+       Π-closure ext 1 λ _ →
+       Π-closure ext 1 λ _ →
+       Aset _ _
+     })
+
+  identity = comm ▻ Assoc ▻ N-ary (1+ 1+ 1+ 1+ [0]) 0
+
+  Left-identity = Proposition {identity}
+    (λ { ((((_ , lift _∙_) , _) , _) , lift e) →
+         ∀ x → e ∙ x ≡ x })
+
+    (λ { ext _ (((((_ , lift Aset) , _) , _) , _) , _) →
+       Π-closure ext 1 λ _ →
+       Aset _ _
+     })
+
+  left-identity = identity ▻ Left-identity
+
+  Right-identity = Proposition {left-identity}
+    (λ { (((((_ , lift _∙_) , _) , _) , lift e) , _) →
+         ∀ x → x ∙ e ≡ x })
+
+    (λ { ext _ ((((((_ , lift Aset) , _) , _) , _) , _) , _) →
+       Π-closure ext 1 λ _ →
+       Aset _ _
+     })
+
+  inv = left-identity ▻ Right-identity ▻
+        N-ary (1+ 1+ 1+ 1+ 1+ 1+ 1+ [0]) 1
+
+  Left-inverse = Proposition {inv}
+    (λ { (((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) →
+         ∀ x → (x ⁻¹) ∙ x ≡ e })
+
+    (λ { ext _ ((((((((_ , lift Aset) , _) , _) , _) , _) , _) , _) , _) →
+       Π-closure ext 1 λ _ →
+       Aset _ _
+     })
+
+  left-inverse = inv ▻ Left-inverse
+
+  Right-inverse = Proposition {left-inverse}
+    (λ { ((((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) , _) →
+         ∀ x → x ∙ (x ⁻¹) ≡ e })
+
+    (λ { ext _ (((((((((_ , lift Aset) , _) , _) , _) , _) , _) , _) , _) , _) →
+       Π-closure ext 1 λ _ →
+       Aset _ _
+     })
+
+Abelian-group : Set₁
+Abelian-group = ⟦ abelian-group ⟧
+
+private
+
+  -- An unfolding of Abelian-group. Note that the inner structure is
+  -- left-nested.
+
+  Abelian-group-unfolded :
+    Abelian-group ≡ Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Set                                        ) λ {        (_ , A) →
+      ↑ _ (Is-set A)                            }) λ {       ((_ , A) , _) →
+      ↑ _ (A → A → A)                           }) λ {                  (_ , lift _∙_) →
+      ↑ _ (∀ x y → x ∙ y ≡ y ∙ x)               }) λ {                 ((_ , lift _∙_) , _) →
+      ↑ _ (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }) λ {    (((((_ , A) , _) , _  ) , _) , _) →
+      ↑ _ A                                     }) λ {               ((((_ , lift _∙_) , _) , _) , lift e) →
+      ↑ _ (∀ x → e ∙ x ≡ x)                     }) λ {              (((((_ , lift _∙_) , _) , _) , lift e) , _) →
+      ↑ _ (∀ x → x ∙ e ≡ x)                     }) λ { ((((((((_ , A) , _) , _  ) , _) , _) , _) , _) , _) →
+      ↑ _ (A → A)                               }) λ {            (((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) →
+      ↑ _ (∀ x → (x ⁻¹) ∙ x ≡ e)                }) λ {           ((((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) , _) →
+      ↑ _ (∀ x → x ∙ (x ⁻¹) ≡ e)                }
+  Abelian-group-unfolded = refl _
