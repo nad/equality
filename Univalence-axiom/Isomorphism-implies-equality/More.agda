@@ -103,25 +103,6 @@ record Type-extractor (s : Structure) : Set₁ where
               cong Typ (isomorphic-equal ext univ s iso) ≡
               ≈⇒≡ univ (equ iso)
 
-  abstract
-
-    -- A lemma.
-
-    extractor-lemma :
-      (ext : {A : Set} {B : A → Set} → Extensionality A B)
-      (univ : Univalence-axiom lzero) →
-
-      ∀ {p s₁ s₂} (P : Set → Set p) (x : P (Typ s₁))
-      (iso : Isomorphism s s₁ s₂) →
-
-      subst (P ∘ Typ) (isomorphic-equal ext univ s iso) x ≡
-      subst P (≈⇒≡ univ (equ iso)) x
-
-    extractor-lemma ext univ P x iso =
-      subst (P ∘ Typ) (isomorphic-equal ext univ s iso) x     ≡⟨ subst-∘ P Typ _ ⟩
-      subst P (cong Typ $ isomorphic-equal ext univ s iso) x  ≡⟨ cong (λ eq → subst P eq x) (Typ-equ ext univ iso) ⟩∎
-      subst P (≈⇒≡ univ (equ iso)) x                          ∎
-
 -- Constant type extractor.
 
 [_] : ∀ {s} → Set → Type-extractor s
@@ -379,7 +360,9 @@ N-ary {s} extract n = record
       let lf₁ = lower f₁; lf₂ = lower f₂ in
 
       subst (λ s → ↑ _ (Typ s ^ n ⟶ Typ s))
-            (isomorphic-equal ext univ s iso) f₁               ≡⟨ extractor-lemma ext univ (λ A → ↑ _ (A ^ n ⟶ A)) f₁ iso ⟩
+            (isomorphic-equal ext univ s iso) f₁               ≡⟨ subst-∘ (λ A → ↑ _ (A ^ n ⟶ A)) Typ _ ⟩
+      subst (λ A → ↑ _ (A ^ n ⟶ A))
+            (cong Typ $ isomorphic-equal ext univ s iso) f₁    ≡⟨ cong (λ eq → subst (λ A → ↑ _ (A ^ n ⟶ A)) eq f₁) $ Typ-equ ext univ iso ⟩
       subst (λ A → ↑ _ (A ^ n ⟶ A)) (≈⇒≡ univ (equ iso)) f₁    ≡⟨ subst-↑ (λ A → A ^ n ⟶ A) ⟩
       lift (subst (λ A → A ^ n ⟶ A) (≈⇒≡ univ (equ iso)) lf₁)  ≡⟨ cong lift $ subst-isomorphism (λ _ → ext) univ (equ iso) n lf₁ lf₂ i ⟩∎
       f₂                                                       ∎
