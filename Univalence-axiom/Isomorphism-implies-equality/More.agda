@@ -122,6 +122,27 @@ record Type-extractor (s : Structure) : Set₁ where
       subst P (cong Typ $ isomorphic-equal ext univ s iso) x  ≡⟨ cong (λ eq → subst P eq x) (Typ-equ ext univ iso) ⟩∎
       subst P (≈⇒≡ univ (equ iso)) x                          ∎
 
+-- Constant type extractor.
+
+[_] : ∀ {s} → Set → Type-extractor s
+[_] {s} A = record
+  { Typ     = λ _ → A
+  ; equ     = λ _ → Weak.id
+  ; Typ-equ = Typ-equ
+  }
+  where
+  abstract
+    Typ-equ : (ext : {A : Set} {B : A → Set} → Extensionality A B)
+              (univ : Univalence-axiom lzero) →
+              ∀ {s₁ s₂} (iso : Isomorphism s s₁ s₂) →
+              cong (λ _ → A) (isomorphic-equal ext univ s iso) ≡
+              ≈⇒≡ univ Weak.id
+    Typ-equ _ univ _ =
+      cong (λ _ → A) _         ≡⟨ cong-const _ ⟩
+      refl A                   ≡⟨ sym $ _≈_.left-inverse-of (≡≈≈ univ) (refl A) ⟩
+      ≈⇒≡ univ (≡⇒≈ (refl A))  ≡⟨ cong (≈⇒≡ univ) $ elim-refl (λ {A₁} {B} _ → A₁ ≈ B) (λ _ → Weak.id) ⟩∎
+      ≈⇒≡ univ Weak.id         ∎
+
 -- Successor type extractor.
 
 infix 6 1+_
