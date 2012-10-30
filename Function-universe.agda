@@ -841,7 +841,7 @@ private
 
   abstract
     from∘to : ∀ f → from (to f) ≡ f
-    from∘to f = ext λ z → Weak.lift-equality ext λ z≡x →
+    from∘to f = ext λ z → Weak.lift-equality ext $ ext λ z≡x →
       trans z≡x (_≈_.to (f x) (refl x))  ≡⟨ elim (λ {u v} u≡v →
                                                     (f : ∀ z → (z ≡ v) ≈ (z ≡ y)) →
                                                     trans u≡v (_≈_.to (f v) (refl v)) ≡

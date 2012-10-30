@@ -444,7 +444,7 @@ abstract
     ∀ {a b} →
     ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
     {A : Set a} {B : Set b} {p q : A ≈ B} →
-    (∀ x → _≈_.to p x ≡ _≈_.to q x) → p ≡ q
+    _≈_.to p ≡ _≈_.to q → p ≡ q
   lift-equality {a} {b} ext {p = weq f f-weq} {q = weq g g-weq} f≡g =
     elim (λ {f g} f≡g → ∀ f-weq g-weq → weq f f-weq ≡ weq g g-weq)
          (λ f f-weq g-weq →
@@ -452,8 +452,7 @@ abstract
               (_⇔_.to {To = Proof-irrelevant _}
                       propositional⇔irrelevant
                       (propositional ext f) f-weq g-weq))
-         (lower-extensionality b a ext f≡g)
-         f-weq g-weq
+         f≡g f-weq g-weq
 
 -- _≈_ comes with a groupoid structure (assuming extensionality).
 
@@ -475,20 +474,20 @@ groupoid {ℓ} ext = record
   where
   abstract
     left-identity : {X Y : Set ℓ} (p : X ≈ Y) → id ∘ p ≡ p
-    left-identity _ = lift-equality ext (λ _ → refl _)
+    left-identity _ = lift-equality ext (refl _)
 
     right-identity : {X Y : Set ℓ} (p : X ≈ Y) → p ∘ id ≡ p
-    right-identity _ = lift-equality ext (λ _ → refl _)
+    right-identity _ = lift-equality ext (refl _)
 
     assoc : {W X Y Z : Set ℓ} (p : Y ≈ Z) (q : X ≈ Y) (r : W ≈ X) →
             p ∘ (q ∘ r) ≡ (p ∘ q) ∘ r
-    assoc _ _ _ = lift-equality ext (λ _ → refl _)
+    assoc _ _ _ = lift-equality ext (refl _)
 
     left-inverse : {X Y : Set ℓ} (p : X ≈ Y) → inverse p ∘ p ≡ id
-    left-inverse p = lift-equality ext (_≈_.left-inverse-of p)
+    left-inverse p = lift-equality ext (ext $ _≈_.left-inverse-of p)
 
     right-inverse : {X Y : Set ℓ} (p : X ≈ Y) → p ∘ inverse p ≡ id
-    right-inverse p = lift-equality ext (_≈_.right-inverse-of p)
+    right-inverse p = lift-equality ext (ext $ _≈_.right-inverse-of p)
 
 ------------------------------------------------------------------------
 -- A surjection from A ↔ B to A ≈ B
@@ -504,7 +503,7 @@ abstract
     (A≈B : A ≈ B) →
     bijection⇒weak-equivalence (_≈_.bijection A≈B) ≡ A≈B
   bijection⇒weak-equivalence-left-inverse ext _ =
-    lift-equality ext (λ _ → refl _)
+    lift-equality ext (refl _)
 
   -- When sets are used bijection⇒weak-equivalence is a right inverse
   -- of _≈_.bijection (assuming extensionality).
@@ -980,7 +979,8 @@ abstract
       (A₂≈B₂ : A₂ ≈ B₂) →
       B₁≈B₂ ∘ (inverse B₁≈B₂ ∘ A₂≈B₂ ∘ A₁≈A₂) ∘ inverse A₁≈A₂ ≡ A₂≈B₂
     to∘from A₂≈B₂ =
-      lift-equality (lower-extensionality (a₁ ⊔ b₁) (a₁ ⊔ b₁) ext) λ x →
+      lift-equality (lower-extensionality (a₁ ⊔ b₁) (a₁ ⊔ b₁) ext) $
+        lower-extensionality (a₁ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁) ext λ x →
           to B₁≈B₂ (from B₁≈B₂ (to A₂≈B₂ (to A₁≈A₂ (from A₁≈A₂ x))))  ≡⟨ right-inverse-of B₁≈B₂ _ ⟩
           to A₂≈B₂ (to A₁≈A₂ (from A₁≈A₂ x))                          ≡⟨ cong (to A₂≈B₂) $ right-inverse-of A₁≈A₂ _ ⟩∎
           to A₂≈B₂ x                                                  ∎
@@ -989,7 +989,8 @@ abstract
       (A₁≈B₁ : A₁ ≈ B₁) →
       inverse B₁≈B₂ ∘ (B₁≈B₂ ∘ A₁≈B₁ ∘ inverse A₁≈A₂) ∘ A₁≈A₂ ≡ A₁≈B₁
     from∘to A₁≈B₁ =
-      lift-equality (lower-extensionality (a₂ ⊔ b₂) (a₂ ⊔ b₂) ext) λ x →
+      lift-equality (lower-extensionality (a₂ ⊔ b₂) (a₂ ⊔ b₂) ext) $
+        lower-extensionality (a₂ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₂) ext λ x →
           from B₁≈B₂ (to B₁≈B₂ (to A₁≈B₁ (from A₁≈A₂ (to A₁≈A₂ x))))  ≡⟨ left-inverse-of B₁≈B₂ _ ⟩
           to A₁≈B₁ (from A₁≈A₂ (to A₁≈A₂ x))                          ≡⟨ cong (to A₁≈B₁) $ left-inverse-of A₁≈A₂ _ ⟩∎
           to A₁≈B₁ x                                                  ∎

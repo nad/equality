@@ -429,17 +429,18 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
   from∘to : ∀ xs≈ys → from (to xs≈ys) ≡ xs≈ys
   from∘to xs≈ys =
     lower-extensionality (c ⊔ d) a ext λ z →
-      Weak.lift-equality ext λ { (p , z≡xs[p]) →
+      Weak.lift-equality ext $
+        lower-extensionality d c ext λ { (p , z≡xs[p]) →
 
-        let xs[p]≡ys[-] : ∃ λ p′ → lookup xs p ≡ lookup ys p′
-            xs[p]≡ys[-] = _≈_.to (xs≈ys (lookup xs p)) (p , refl) in
+            let xs[p]≡ys[-] : ∃ λ p′ → lookup xs p ≡ lookup ys p′
+                xs[p]≡ys[-] = _≈_.to (xs≈ys (lookup xs p)) (p , refl) in
 
-      Σ-map id (trans z≡xs[p]) xs[p]≡ys[-]      ≡⟨ elim₁ (λ {z} z≡xs[p] → Σ-map id (trans z≡xs[p]) xs[p]≡ys[-] ≡
-                                                                    _≈_.to (xs≈ys z) (p , z≡xs[p]))
-        (Σ-map id (trans refl) xs[p]≡ys[-]               ≡⟨ cong (_,_ _) (trans-reflˡ _) ⟩∎
-         xs[p]≡ys[-]                                        ∎)
-                                                         z≡xs[p] ⟩∎
-      _≈_.to (xs≈ys z) (p , z≡xs[p])            ∎ }
+          Σ-map id (trans z≡xs[p]) xs[p]≡ys[-]      ≡⟨ elim₁ (λ {z} z≡xs[p] → Σ-map id (trans z≡xs[p]) xs[p]≡ys[-] ≡
+                                                                        _≈_.to (xs≈ys z) (p , z≡xs[p]))
+            (Σ-map id (trans refl) xs[p]≡ys[-]               ≡⟨ cong (_,_ _) (trans-reflˡ _) ⟩∎
+             xs[p]≡ys[-]                                        ∎)
+                                                             z≡xs[p] ⟩∎
+          _≈_.to (xs≈ys z) (p , z≡xs[p])            ∎ }
 
   to∘from : ∀ xs≈ys → to (from xs≈ys) ≡ xs≈ys
   to∘from (weq f f-weq , related) = Σ-≡,≡→≡ f≡f
