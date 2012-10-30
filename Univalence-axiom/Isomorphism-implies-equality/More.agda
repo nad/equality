@@ -157,8 +157,8 @@ infix 6 1+_
 
 -- Extends a structure with a type.
 
-A-type : ∀ {s} → Extension s
-A-type {s} = record
+Type : ∀ {s} → Extension s
+Type {s} = record
   { Ext = λ _ → Set
   ; Iso = λ A B _ → A ↔ B
   ; hyp = λ ext univ {_ _ A B} _ bij →
@@ -169,7 +169,7 @@ A-type {s} = record
 
 -- A corresponding type extractor.
 
-[0] : ∀ {s} → Type-extractor (s ▻ A-type)
+[0] : ∀ {s} → Type-extractor (s ▻ Type)
 [0] {s} = record
   { Typ     = λ { (_ , A) → A }
   ; equ     = λ { (_ , A↔B) → bijection⇒weak-equivalence A↔B }
@@ -180,8 +180,8 @@ A-type {s} = record
     Typ-equ :
       (ext : {A : Set} {B : A → Set} → Extensionality A B)
       (univ : Univalence-axiom lzero) →
-      ∀ {s₁ s₂} (iso : Isomorphism (s ▻ A-type) s₁ s₂) →
-      cong proj₂ (isomorphic-equal ext univ (s ▻ A-type) iso) ≡
+      ∀ {s₁ s₂} (iso : Isomorphism (s ▻ Type) s₁ s₂) →
+      cong proj₂ (isomorphic-equal ext univ (s ▻ Type) iso) ≡
       ≈⇒≡ univ (bijection⇒weak-equivalence (proj₂ iso))
     Typ-equ ext univ (iso , A↔B) =
       let A≡B = ≈⇒≡ univ $ bijection⇒weak-equivalence A↔B in
@@ -272,7 +272,7 @@ N-ary {s} extract n = record
   { Ext = λ s → ↑ _ (Typ s ^ n ⟶ Typ s)
   ; Iso = λ f₁ f₂ iso →
             Is- n -ary-morphism (lower f₁) (lower f₂) (_≈_.to (equ iso))
-  ; hyp = hyp′
+  ; hyp = main-lemma
   }
   where
   open Type-extractor extract
@@ -346,7 +346,10 @@ N-ary {s} extract n = record
       cast A₁≈A₂ n f₁                              ≡⟨ cast-isomorphism ext A₁≈A₂ n f₁ f₂ is ⟩∎
       f₂                                           ∎
 
-    hyp′ :
+    -- The main lemma: If there is an isomorphism from f₁ to f₂, then
+    -- a certain instance of subst maps f₁ to f₂.
+
+    main-lemma :
       (ext : {A : Set} {B : A → Set} → Extensionality A B)
       (univ : Univalence-axiom lzero) →
       ∀ {s₁ s₂ f₁} {f₂ : ↑ (lsuc lzero) _}
@@ -356,7 +359,7 @@ N-ary {s} extract n = record
       subst (λ s → ↑ _ (Typ s ^ n ⟶ Typ s))
             (isomorphic-equal ext univ s iso) f₁ ≡
       f₂
-    hyp′ ext univ {f₁ = f₁} {f₂} iso i =
+    main-lemma ext univ {f₁ = f₁} {f₂} iso i =
       let lf₁ = lower f₁; lf₂ = lower f₂ in
 
       subst (λ s → ↑ _ (Typ s ^ n ⟶ Typ s))
@@ -535,7 +538,7 @@ Simple {s} σ = record
 -- Example: magmas.
 
 magma : Structure
-magma = ε ▻ A-type ▻ N-ary [0] 2
+magma = ε ▻ Type ▻ N-ary [0] 2
 
 Magma : Set₁
 Magma = ⟦ magma ⟧
@@ -556,7 +559,7 @@ semigroup : Structure
 semigroup =
   ε
 
-  ▻ A-type
+  ▻ Type
 
   ▻ Is-a-set [0]
 
@@ -568,11 +571,11 @@ semigroup =
       assoc-prop
 
   where
-  assoc-prop = λ { ext _ ((_ , lift Aset) , _) →
+  assoc-prop = λ { ext _ ((_ , lift A-set) , _) →
     Π-closure ext 1 λ _ →
     Π-closure ext 1 λ _ →
     Π-closure ext 1 λ _ →
-    Aset _ _ }
+    A-set _ _ }
 
 Semigroup : Set₁
 Semigroup = ⟦ semigroup ⟧
@@ -595,7 +598,7 @@ set-with-fixed-point-operator : Structure
 set-with-fixed-point-operator =
   ε
 
-  ▻ A-type
+  ▻ Type
 
   ▻ Is-a-set [0]
 
@@ -607,9 +610,9 @@ set-with-fixed-point-operator =
       fix-point-prop
 
   where
-  fix-point-prop = λ { ext _ ((_ , lift Aset) , _) →
+  fix-point-prop = λ { ext _ ((_ , lift A-set) , _) →
     Π-closure ext 1 λ _ →
-    Aset _ _ }
+    A-set _ _ }
 
 Set-with-fixed-point-operator : Set₁
 Set-with-fixed-point-operator = ⟦ set-with-fixed-point-operator ⟧
@@ -633,7 +636,7 @@ abelian-group =
   ε
 
   -- The underlying type.
-  ▻ A-type
+  ▻ Type
 
   -- The underlying type is a set.
   ▻ Is-a-set [0]
@@ -666,16 +669,16 @@ abelian-group =
   ▻ Right-inverse
 
   where
-  bin = ε ▻ A-type ▻ Is-a-set [0] ▻ N-ary (1+ [0]) 2
+  bin = ε ▻ Type ▻ Is-a-set [0] ▻ N-ary (1+ [0]) 2
 
   Comm = Proposition {bin}
     (λ { (_ , lift _∙_) →
        ∀ x y → x ∙ y ≡ y ∙ x })
 
-    (λ { ext _ ((_ , lift Aset) , _) →
+    (λ { ext _ ((_ , lift A-set) , _) →
        Π-closure ext 1 λ _ →
        Π-closure ext 1 λ _ →
-       Aset _ _
+       A-set _ _
      })
 
   comm = bin ▻ Comm
@@ -684,11 +687,11 @@ abelian-group =
     (λ { ((_ , lift _∙_) , _) →
          ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
 
-    (λ { ext _ (((_ , lift Aset) , _) , _) →
+    (λ { ext _ (((_ , lift A-set) , _) , _) →
        Π-closure ext 1 λ _ →
        Π-closure ext 1 λ _ →
        Π-closure ext 1 λ _ →
-       Aset _ _
+       A-set _ _
      })
 
   identity = comm ▻ Assoc ▻ N-ary (1+ 1+ 1+ 1+ [0]) 0
@@ -697,9 +700,9 @@ abelian-group =
     (λ { ((((_ , lift _∙_) , _) , _) , lift e) →
          ∀ x → e ∙ x ≡ x })
 
-    (λ { ext _ (((((_ , lift Aset) , _) , _) , _) , _) →
+    (λ { ext _ (((((_ , lift A-set) , _) , _) , _) , _) →
        Π-closure ext 1 λ _ →
-       Aset _ _
+       A-set _ _
      })
 
   left-identity = identity ▻ Left-identity
@@ -708,9 +711,9 @@ abelian-group =
     (λ { (((((_ , lift _∙_) , _) , _) , lift e) , _) →
          ∀ x → x ∙ e ≡ x })
 
-    (λ { ext _ ((((((_ , lift Aset) , _) , _) , _) , _) , _) →
+    (λ { ext _ ((((((_ , lift A-set) , _) , _) , _) , _) , _) →
        Π-closure ext 1 λ _ →
-       Aset _ _
+       A-set _ _
      })
 
   inv = left-identity ▻ Right-identity ▻
@@ -720,9 +723,9 @@ abelian-group =
     (λ { (((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) →
          ∀ x → (x ⁻¹) ∙ x ≡ e })
 
-    (λ { ext _ ((((((((_ , lift Aset) , _) , _) , _) , _) , _) , _) , _) →
+    (λ { ext _ ((((((((_ , lift A-set) , _) , _) , _) , _) , _) , _) , _) →
        Π-closure ext 1 λ _ →
-       Aset _ _
+       A-set _ _
      })
 
   left-inverse = inv ▻ Left-inverse
@@ -731,9 +734,9 @@ abelian-group =
     (λ { ((((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) , _) →
          ∀ x → x ∙ (x ⁻¹) ≡ e })
 
-    (λ { ext _ (((((((((_ , lift Aset) , _) , _) , _) , _) , _) , _) , _) , _) →
+    (λ { ext _ (((((((((_ , lift A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
        Π-closure ext 1 λ _ →
-       Aset _ _
+       A-set _ _
      })
 
 Abelian-group : Set₁
