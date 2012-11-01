@@ -85,6 +85,13 @@ abstract
         [inhabited⇒contractible]⇒propositional (λ x → (x , irr x))
     }
 
+  -- If a propositional type is inhabited, then it is contractible.
+
+  propositional⇒inhabited⇒contractible :
+    ∀ {a} {A : Set a} → Propositional A → A → Contractible A
+  propositional⇒inhabited⇒contractible p x =
+    (x , _⇔_.to propositional⇔irrelevant p x)
+
   -- Being a set is equivalent to having unique identity proofs. Note
   -- that this means that, assuming that Agda is consistent, I cannot
   -- prove (inside Agda) that there is any type whose minimal h-level
