@@ -121,7 +121,7 @@ record Type-extractor (s : Structure) : Set₁ where
     Typ-equ _ univ _ =
       cong (λ _ → A) _         ≡⟨ cong-const _ ⟩
       refl A                   ≡⟨ sym $ _≈_.left-inverse-of (≡≈≈ univ) (refl A) ⟩
-      ≈⇒≡ univ (≡⇒≈ (refl A))  ≡⟨ cong (≈⇒≡ univ) $ elim-refl (λ {A₁} {B} _ → A₁ ≈ B) (λ _ → Weak.id) ⟩∎
+      ≈⇒≡ univ (≡⇒≈ (refl A))  ≡⟨ cong (≈⇒≡ univ) ≡⇒≈-refl ⟩∎
       ≈⇒≡ univ Weak.id         ∎
 
 -- Successor type extractor.

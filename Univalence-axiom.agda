@@ -294,6 +294,22 @@ abstract
 
 abstract
 
+  -- "Evaluation rule" for ≡⇒≈.
+
+  ≡⇒≈-refl : ∀ {a} {A : Set a} →
+             ≡⇒≈ (refl A) ≡ Weak.id
+  ≡⇒≈-refl = elim-refl (λ {A B} _ → A ≈ B) _
+
+  -- "Evaluation rule" (?) for ≈⇒≡.
+
+  ≈⇒≡-id : ∀ {a} {A : Set a}
+           (univ : Univalence-axiom′ A A) →
+           ≈⇒≡ univ Weak.id ≡ refl A
+  ≈⇒≡-id univ =
+    ≈⇒≡ univ Weak.id         ≡⟨ sym $ cong (≈⇒≡ univ) ≡⇒≈-refl ⟩
+    ≈⇒≡ univ (≡⇒≈ (refl _))  ≡⟨ _≈_.left-inverse-of (≡≈≈ univ) _ ⟩∎
+    refl _                   ∎
+
   -- ≡⇒≈ commutes with trans/_⊚_ (assuming extensionality).
 
   ≡⇒≈-trans :
@@ -307,7 +323,7 @@ abstract
 
     (≡⇒≈ (trans A≡B (refl _))  ≡⟨ cong ≡⇒≈ $ trans-reflʳ _ ⟩
      ≡⇒≈ A≡B                   ≡⟨ sym $ Groupoid.left-identity (Weak.groupoid ext) _ ⟩
-     Weak.id ⊚ ≡⇒≈ A≡B         ≡⟨ cong (λ eq → eq ⊚ ≡⇒≈ A≡B) $ sym $ elim-refl (λ {A B} _ → A ≈ B) _ ⟩∎
+     Weak.id ⊚ ≡⇒≈ A≡B         ≡⟨ sym $ cong (λ eq → eq ⊚ ≡⇒≈ A≡B) ≡⇒≈-refl ⟩∎
      ≡⇒≈ (refl _) ⊚ ≡⇒≈ A≡B    ∎)
 
   -- One can express subst in terms of ≡⇒≈.
@@ -321,7 +337,7 @@ abstract
 
     (subst P (refl _) p                ≡⟨ subst-refl P p ⟩
      p                                 ≡⟨⟩
-     _≈_.to Weak.id p                  ≡⟨ sym $ cong (λ eq → _≈_.to eq p) $ elim-refl (λ {A B} _ → A ≈ B) _ ⟩
+     _≈_.to Weak.id p                  ≡⟨ sym $ cong (λ eq → _≈_.to eq p) ≡⇒≈-refl ⟩
      _≈_.to (≡⇒≈ (refl _)) p           ≡⟨ sym $ cong (λ eq → _≈_.to (≡⇒≈ eq) p) $ cong-refl P ⟩∎
      _≈_.to (≡⇒≈ (cong P (refl _))) p  ∎)
 
