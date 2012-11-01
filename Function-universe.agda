@@ -851,6 +851,86 @@ private
       _≈_.to (f z) z≡x                   ∎
 
 ------------------------------------------------------------------------
+-- Lemmas related to ↑
+
+-- ↑ _ preserves all kinds of functions.
+
+private
+
+  ↑-cong-→ :
+    ∀ {a b c} {B : Set b} {C : Set c} →
+    (B → C) → ↑ a B → ↑ a C
+  ↑-cong-→ B→C = lift ⊚ B→C ⊚ lower
+
+  ↑-cong-⇔ :
+    ∀ {a b c} {B : Set b} {C : Set c} →
+    B ⇔ C → ↑ a B ⇔ ↑ a C
+  ↑-cong-⇔ B⇔C = record
+    { to   = ↑-cong-→ to
+    ; from = ↑-cong-→ from
+    } where open _⇔_ B⇔C
+
+  ↑-cong-↣ :
+    ∀ {a b c} {B : Set b} {C : Set c} →
+    B ↣ C → ↑ a B ↣ ↑ a C
+  ↑-cong-↣ {a} B↣C = record
+    { to        = to′
+    ; injective = injective′
+    }
+    where
+    open _↣_ B↣C
+
+    to′ = ↑-cong-→ {a = a} to
+
+    abstract
+      injective′ : Injective to′
+      injective′ = cong lift ⊚ injective ⊚ cong lower
+
+  ↑-cong-↠ :
+    ∀ {a b c} {B : Set b} {C : Set c} →
+    B ↠ C → ↑ a B ↠ ↑ a C
+  ↑-cong-↠ {a} B↠C = record
+    { equivalence      = equivalence′
+    ; right-inverse-of = right-inverse-of′
+    }
+    where
+    open _↠_ B↠C renaming (equivalence to equiv)
+
+    equivalence′ = ↑-cong-⇔ {a = a} equiv
+
+    abstract
+      right-inverse-of′ :
+        ∀ x → _⇔_.to equivalence′ (_⇔_.from equivalence′ x) ≡ x
+      right-inverse-of′ = cong lift ⊚ right-inverse-of ⊚ lower
+
+  ↑-cong-↔ :
+    ∀ {a b c} {B : Set b} {C : Set c} →
+    B ↔ C → ↑ a B ↔ ↑ a C
+  ↑-cong-↔ {a} B↔C = record
+    { surjection      = surjection′
+    ; left-inverse-of = left-inverse-of′
+    }
+    where
+    open _↔_ B↔C renaming (surjection to surj)
+
+    surjection′ = ↑-cong-↠ {a = a} surj
+
+    abstract
+      left-inverse-of′ :
+        ∀ x → _↠_.from surjection′ (_↠_.to surjection′ x) ≡ x
+      left-inverse-of′ = cong lift ⊚ left-inverse-of ⊚ lower
+
+↑-cong : ∀ {k a b c} {B : Set b} {C : Set c} →
+           B ↝[ k ] C → ↑ a B ↝[ k ] ↑ a C
+↑-cong {implication}      = ↑-cong-→
+↑-cong {equivalence}      = ↑-cong-⇔
+↑-cong {injection}        = ↑-cong-↣
+↑-cong {surjection}       = ↑-cong-↠
+↑-cong {bijection}        = ↑-cong-↔
+↑-cong {weak-equivalence} =
+  from-bijection ∘ ↑-cong-↔ ∘ from-weak-equivalence
+
+------------------------------------------------------------------------
 -- Lemmas related to if
 
 -- A generalisation of if-encoding (which is defined below).
