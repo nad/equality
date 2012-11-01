@@ -437,11 +437,8 @@ Simple {s} σ = record
   Is-isomorphism :
     (σ : Simple-type s) →
     ∀ {s₁ s₂} → ⟦ σ ⟧⟶ s₁ → ⟦ σ ⟧⟶ s₂ → Isomorphism s s₁ s₂ → Set
-
-  Is-isomorphism (base A) x₁ x₂ iso =
-    _≈_.to (equ A iso) x₁ ≡ x₂
-
-  Is-isomorphism (σ ⟶ τ) f₁ f₂ iso =
+  Is-isomorphism (base A) x₁ x₂ iso = _≈_.to (equ A iso) x₁ ≡ x₂
+  Is-isomorphism (σ ⟶ τ)  f₁ f₂ iso =
     ∀ f → Is-isomorphism τ (f₁ f) (f₂ (_⇔_.to (cast σ iso) f)) iso
 
   -- Alternative definition of isomorphisms.
