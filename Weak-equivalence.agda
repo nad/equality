@@ -448,6 +448,56 @@ extensionality-isomorphism :
 extensionality-isomorphism ext =
   inverse (weq _ (ext⁻¹-is-weak-equivalence ext))
 
+-- Note that the isomorphism gives us a really well-behaved notion of
+-- extensionality.
+
+good-ext :
+  ∀ {a b} →
+  ({A : Set a} {B : A → Set b} → Extensionality A B) →
+  {A : Set a} {B : A → Set b} → Extensionality A B
+good-ext ext = _≈_.to (extensionality-isomorphism ext)
+
+abstract
+
+  good-ext-is-weak-equivalence :
+    ∀ {a b}
+    (ext : {A : Set a} {B : A → Set b} → Extensionality A B) →
+    {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
+    Is-weak-equivalence {A = ∀ x → f x ≡ g x} (good-ext ext)
+  good-ext-is-weak-equivalence ext =
+    _≈_.is-weak-equivalence (extensionality-isomorphism ext)
+
+  good-ext-refl :
+    ∀ {a b}
+    (ext : {A : Set a} {B : A → Set b} → Extensionality A B)
+    {A : Set a} {B : A → Set b} (f : (x : A) → B x) →
+    good-ext ext (λ x → refl (f x)) ≡ refl f
+  good-ext-refl ext f =
+    _≈_.to (extensionality-isomorphism ext) (λ x → refl (f x))  ≡⟨ cong (_≈_.to (extensionality-isomorphism ext)) $ sym $
+                                                                        ext (λ _ → ext⁻¹-refl f) ⟩
+    _≈_.to (extensionality-isomorphism ext) (ext⁻¹ (refl f))    ≡⟨ _≈_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
+    refl f                                                      ∎
+
+  cong-good-ext :
+    ∀ {a b}
+    (ext : {A : Set a} {B : A → Set b} → Extensionality A B)
+    {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
+    {f≡g : ∀ x → f x ≡ g x} {x} →
+    cong (λ h → h x) (good-ext ext f≡g) ≡ f≡g x
+  cong-good-ext ext {f≡g = f≡g} {x} =
+    let lemma = elim
+          (λ f≡g → cong (λ h → h x) f≡g ≡ ext⁻¹ f≡g x)
+          (λ f → cong (λ h → h x) (refl f)  ≡⟨ cong-refl (λ h → h x) {x = f} ⟩
+                 refl (f x)                 ≡⟨ sym $ ext⁻¹-refl f ⟩∎
+                 ext⁻¹ (refl f) x           ∎)
+          (good-ext ext f≡g)
+    in
+
+    cong (λ h → h x) (good-ext ext f≡g)  ≡⟨ lemma ⟩
+    ext⁻¹ (good-ext ext f≡g) x           ≡⟨ cong (λ h → h x) $
+                                                 _≈_.left-inverse-of (extensionality-isomorphism ext) f≡g ⟩∎
+    f≡g x                                ∎
+
 ------------------------------------------------------------------------
 -- Groupoid
 
