@@ -140,6 +140,13 @@ ext⁻¹ f≡g = λ x → cong (λ h → h x) f≡g
 
 abstract
 
+  -- "Evaluation rule" for ext⁻¹.
+
+  ext⁻¹-refl : ∀ {a b} {A : Set a} {B : A → Set b}
+               (f : (x : A) → B x) {x} →
+               ext⁻¹ (refl f) x ≡ refl (f x)
+  ext⁻¹-refl f {x} = cong-refl (λ h → h x) {x = f}
+
   -- Given extensionality there is a (split) surjection from
   -- ∀ x → f x ≡ g x to f ≡ g.
 
@@ -154,8 +161,8 @@ abstract
       }
     ; right-inverse-of =
         elim (λ {f g} f≡g → to (ext⁻¹ f≡g) ≡ f≡g) λ h →
-          proj₁ ext′ (ext⁻¹ (refl h))  ≡⟨ cong (proj₁ ext′) (proj₁ ext′ λ x →
-                                            cong-refl (λ h → h x) {x = h}) ⟩
+          proj₁ ext′ (ext⁻¹ (refl h))  ≡⟨ cong (proj₁ ext′) (proj₁ ext′ λ _ →
+                                            ext⁻¹-refl h) ⟩
           proj₁ ext′ (refl ∘ h)        ≡⟨ proj₂ ext′ h ⟩∎
           refl h                       ∎
     }
