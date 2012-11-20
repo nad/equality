@@ -221,6 +221,22 @@ record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
                                                                               (sym (cong-refl pr)) ⟩∎
              trans (cong f (sym (cong pr (refl f⁻¹y)))) (proj₂ f⁻¹y)  ∎)
 
+    right-left-lemma :
+      ∀ x → cong from (right-inverse-of x) ≡ left-inverse-of (from x)
+    right-left-lemma x = subst
+      (λ x → cong from (right-inverse-of x) ≡ left-inverse-of (from x))
+      (right-inverse-of x)
+      (let y = from x in
+
+       cong from (right-inverse-of (to y))                          ≡⟨ cong (cong from) $ sym $ left-right-lemma y ⟩
+       cong from (cong to (left-inverse-of y))                      ≡⟨ cong-∘ from to _ ⟩
+       cong (from ⊚ to) (left-inverse-of y)                         ≡⟨ cong-roughly-id (from ⊚ to) (λ _ → true) (left-inverse-of y)
+                                                                                       _ _ (λ z _ → left-inverse-of z) ⟩
+       trans (left-inverse-of (from (to y)))
+             (trans (left-inverse-of y) (sym (left-inverse-of y)))  ≡⟨ cong (trans _) $ trans-symʳ _ ⟩
+       trans (left-inverse-of (from (to y))) (refl _)               ≡⟨ trans-reflʳ _ ⟩∎
+       left-inverse-of (from (to y))                                ∎)
+
 -- Bijections are weak equivalences.
 
 bijection⇒weak-equivalence : ∀ {a b} {A : Set a} {B : Set b} →
