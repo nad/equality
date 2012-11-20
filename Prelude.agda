@@ -152,6 +152,7 @@ abstract
 -- Simple combinators working solely on and with functions
 
 infixr 9 _∘_
+infixl 1 _on_
 infixr 0 _$_
 
 -- The identity function.
@@ -183,6 +184,13 @@ const x = λ _ → x
 flip : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
        ((x : A) (y : B) → C x y) → ((y : B) (x : A) → C x y)
 flip f = λ x y → f y x
+
+-- Applies the unary function to each argument and combines the
+-- results using the binary function.
+
+_on_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+       (B → B → C) → (A → B) → (A → A → C)
+_*_ on f = λ x y → f x * f y
 
 ------------------------------------------------------------------------
 -- Σ-types
