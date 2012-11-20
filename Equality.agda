@@ -335,14 +335,13 @@ module Derived-definitions-and-properties
   -- This module reexports most of the definitions and properties
   -- introduced above.
 
-  private
-    open Equality-with-J′ eq public
-    open Equality-with-substitutivity-and-contractibility′
-           (J⇒subst+contr eq) public
-      using ( sym; sym-refl
-            ; trans; trans-refl-refl
-            ; _≡⟨_⟩_; _≡⟨⟩_; finally
-            )
+  open Equality-with-J′ eq public
+  open Equality-with-substitutivity-and-contractibility′
+         (J⇒subst+contr eq) public
+    using ( sym; sym-refl
+          ; trans; trans-refl-refl
+          ; _≡⟨_⟩_; _≡⟨⟩_; finally
+          )
 
   abstract
 
