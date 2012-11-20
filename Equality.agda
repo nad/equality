@@ -513,6 +513,17 @@ module Derived-definitions-and-properties
       cong (λ h → lower ∘ h) $
         ext {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g)
 
+    -- Extensionality for explicit function types works for implicit
+    -- function types as well.
+
+    implicit-extensionality :
+      ∀ {a b} {A : Set a} {B : A → Set b} →
+      Extensionality A B →
+      {f g : {x : A} → B x} →
+      (∀ x → f {x} ≡ g {x}) → (λ {x} → f {x}) ≡ g
+    implicit-extensionality ext f≡g =
+      cong (λ f {x} → f x) $ ext f≡g
+
   -- A bunch of lemmas that can be used to rearrange equalities.
 
   abstract
