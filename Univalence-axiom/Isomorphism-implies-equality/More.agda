@@ -48,7 +48,7 @@ mutual
       Iso : {s₁ s₂ : ⟦ s ⟧} →
             Ext s₁ → Ext s₂ → Isomorphism s s₁ s₂ → Set
 
-      hyp : (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      hyp : (ext : Extensionality lzero lzero)
             (univ : Univalence-axiom lzero)
             {s₁ s₂ : ⟦ s ⟧} {x₁ : Ext s₁} {x₂ : Ext s₂}
             (iso : Isomorphism s s₁ s₂) (i : Iso x₁ x₂ iso) →
@@ -71,7 +71,7 @@ mutual
   -- univalence).
 
   isomorphic-equal :
-    ({A : Set} {B : A → Set} → Extensionality A B) →
+    Extensionality lzero lzero →
     Univalence-axiom lzero →
     (s : Structure) {s₁ s₂ : ⟦ s ⟧} →
     Isomorphism s s₁ s₂ → s₁ ≡ s₂
@@ -97,7 +97,7 @@ record Type-extractor (s : Structure) : Set₁ where
     equ : ∀ {s₁ s₂} → Isomorphism s s₁ s₂ → Typ s₁ ≈ Typ s₂
 
     -- Typ and equ are related via isomorphic-equal.
-    Typ-equ : (ext : {A : Set} {B : A → Set} → Extensionality A B)
+    Typ-equ : (ext : Extensionality lzero lzero)
               (univ : Univalence-axiom lzero)
               {s₁ s₂ : ⟦ s ⟧} (iso : Isomorphism s s₁ s₂) →
               cong Typ (isomorphic-equal ext univ s iso) ≡
@@ -113,7 +113,7 @@ record Type-extractor (s : Structure) : Set₁ where
   }
   where
   abstract
-    Typ-equ : (ext : {A : Set} {B : A → Set} → Extensionality A B)
+    Typ-equ : (ext : Extensionality lzero lzero)
               (univ : Univalence-axiom lzero) →
               ∀ {s₁ s₂} (iso : Isomorphism s s₁ s₂) →
               cong (λ _ → A) (isomorphic-equal ext univ s iso) ≡
@@ -139,7 +139,7 @@ infix 6 1+_
 
   abstract
     Typ-equ′ :
-      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (ext : Extensionality lzero lzero)
       (univ : Univalence-axiom lzero) →
       ∀ {s₁ s₂} (iso : Isomorphism (s ▻ e) s₁ s₂) →
       cong (Typ ∘ proj₁) (isomorphic-equal ext univ (s ▻ e) iso) ≡
@@ -178,7 +178,7 @@ Type {s} = record
   where
   abstract
     Typ-equ :
-      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (ext : Extensionality lzero lzero)
       (univ : Univalence-axiom lzero) →
       ∀ {s₁ s₂} (iso : Isomorphism (s ▻ Type) s₁ s₂) →
       cong proj₂ (isomorphic-equal ext univ (s ▻ Type) iso) ≡
@@ -205,7 +205,7 @@ Proposition : ∀ {s} →
 
               -- The proposition must be propositional (given some
               -- assumptions).
-              (({A : Set} {B : A → Set} → Extensionality A B) →
+              (Extensionality lzero lzero →
                Univalence-axiom lzero →
                ∀ s → Propositional (P s)) →
 
@@ -217,7 +217,7 @@ Proposition {s} P prop = record
   }
   where
   abstract
-    hyp′ : (ext : {A : Set} {B : A → Set} → Extensionality A B)
+    hyp′ : (ext : Extensionality lzero lzero)
            (univ : Univalence-axiom lzero) →
            ∀ {s₁ s₂} {x₁ : ↑ (lsuc lzero) (P s₁)} {x₂ : ↑ _ (P s₂)}
            (iso : Isomorphism s s₁ s₂) (i : ⊤) →
@@ -235,7 +235,7 @@ Is-a-set extract = Proposition (Is-set ∘ Typ) Is-set-prop
 
   abstract
     Is-set-prop :
-      ({A : Set} {B : A → Set} → Extensionality A B) →
+      Extensionality lzero lzero →
       Univalence-axiom lzero →
       ∀ s → Propositional (Is-set (Typ s))
     Is-set-prop ext _ _ = H-level-propositional ext 2
@@ -288,7 +288,7 @@ N-ary {s} extract n = record
     -- Cast simplification lemma.
 
     cast-id : {A : Set} →
-              (∀ n → Extensionality A (λ _ → A ^ n ⟶ A)) →
+              (∀ n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
               ∀ n (f : A ^ n ⟶ A) → cast Weak.id n f ≡ f
     cast-id ext zero    x = refl x
     cast-id ext (suc n) f = ext n $ λ x → cast-id ext n (f x)
@@ -297,7 +297,7 @@ N-ary {s} extract n = record
     -- of subst (assuming extensionality and univalence).
 
     cast-is-subst :
-      (∀ {A : Set} n → Extensionality A (λ _ → A ^ n ⟶ A)) →
+      (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
       {A₁ A₂ : Set}
       (univ : Univalence-axiom′ A₁ A₂)
       (A₁≈A₂ : A₁ ≈ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
@@ -316,7 +316,7 @@ N-ary {s} extract n = record
 
     cast-isomorphism :
       {A₁ A₂ : Set} →
-      (∀ n → Extensionality A₂ (λ _ → A₂ ^ n ⟶ A₂)) →
+      (∀ n → Extensionality′ A₂ (λ _ → A₂ ^ n ⟶ A₂)) →
       (A₁≈A₂ : A₁ ≈ A₂)
       (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
       Is- n -ary-morphism f₁ f₂ (_≈_.to A₁≈A₂) →
@@ -334,7 +334,7 @@ N-ary {s} extract n = record
     -- univalence).
 
     subst-isomorphism :
-      (∀ {A : Set} n → Extensionality A (λ _ → A ^ n ⟶ A)) →
+      (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
       {A₁ A₂ : Set}
       (univ : Univalence-axiom′ A₁ A₂)
       (A₁≈A₂ : A₁ ≈ A₂)
@@ -350,7 +350,7 @@ N-ary {s} extract n = record
     -- a certain instance of subst maps f₁ to f₂.
 
     main-lemma :
-      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (ext : Extensionality lzero lzero)
       (univ : Univalence-axiom lzero) →
       ∀ {s₁ s₂ f₁} {f₂ : ↑ (lsuc lzero) _}
       (iso : Isomorphism s s₁ s₂)
@@ -408,7 +408,7 @@ Simple {s} σ = record
 
   -- A variant of cast, defined using extensionality.
 
-  cast-≈ : ({A : Set} {B : A → Set} → Extensionality A B) →
+  cast-≈ : Extensionality lzero lzero →
            (σ : Simple-type s) →
            ∀ {s₁ s₂} → Isomorphism s s₁ s₂ → ⟦ σ ⟧⟶ s₁ ≈ ⟦ σ ⟧⟶ s₂
   cast-≈ _   (base A) iso = equ A iso
@@ -421,7 +421,7 @@ Simple {s} σ = record
     -- (assuming extensionality).
 
     cast-cast :
-      (ext : {A : Set} {B : A → Set} → Extensionality A B) →
+      (ext : Extensionality lzero lzero) →
       ∀ (σ : Simple-type s) {s₁ s₂} (iso : Isomorphism s s₁ s₂) →
       _≈_.equivalence (cast-≈ ext σ iso) ≡ cast σ iso
     cast-cast ext (base A)  iso = refl _
@@ -454,7 +454,7 @@ Simple {s} σ = record
     -- extensionality).
 
     isomorphism-definitions-equivalent :
-      ({A : Set} {B : A → Set} → Extensionality A B) →
+      Extensionality lzero lzero →
       ∀ {s₁ s₂} (iso : Isomorphism s s₁ s₂)
       (σ : Simple-type s) {f₁ f₂} →
       Is-isomorphism σ f₁ f₂ iso ⇔ Is-isomorphism′ σ f₁ f₂ iso
@@ -492,7 +492,7 @@ Simple {s} σ = record
     -- obtained from isomorphic-equal.
 
     cast-lemma :
-      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (ext : Extensionality lzero lzero)
       (univ : Univalence-axiom lzero) →
       ∀ (σ : Simple-type s) {s₁ s₂} (iso : Isomorphism s s₁ s₂) →
       cong ⟦ σ ⟧⟶ (isomorphic-equal ext univ s iso) ≡
@@ -514,7 +514,7 @@ Simple {s} σ = record
     -- a certain instance of subst maps f₁ to f₂.
 
     main-lemma :
-      (ext : {A : Set} {B : A → Set} → Extensionality A B)
+      (ext : Extensionality lzero lzero)
       (univ : Univalence-axiom lzero) →
       ∀ {s₁ s₂ f₁} {f₂ : ↑ (lsuc lzero) _} (iso : Isomorphism s s₁ s₂) →
       Is-isomorphism σ (lower f₁) (lower f₂) iso →

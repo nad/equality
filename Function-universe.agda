@@ -694,9 +694,7 @@ private
   }
   where open _⇔_
 
-→-cong : ∀ {a b c d} →
-         ({A : Set (a ⊔ b)} {B : A → Set (c ⊔ d)} →
-          Extensionality A B) →
+→-cong : ∀ {a b c d} → Extensionality (a ⊔ b) (c ⊔ d) →
          {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
          ∀ {k} → A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
          (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
@@ -826,8 +824,7 @@ private
 -- Products of weak equivalences of equalities are isomorphic to
 -- equalities (assuming extensionality).
 
-Π≡≈≡-↔-≡ : ∀ {a} →
-           ({A : Set a} {B : A → Set a} → Extensionality A B) →
+Π≡≈≡-↔-≡ : ∀ {a} → Extensionality a a →
            {A : Set a} (x y : A) →
            (∀ z → (z ≡ x) ≈ (z ≡ y)) ↔ (x ≡ y)
 Π≡≈≡-↔-≡ ext x y = record

@@ -47,7 +47,7 @@ List⇔List {A} = record
 -- also prove that the two definitions are isomorphic.
 
 List↔List : {A : Set} →
-            ({B : Set} → Extensionality B (λ _ → A)) →
+            ({B : Set} → Extensionality′ B (λ _ → A)) →
             ⟦ List ⟧ A ↔ P.List A
 List↔List {A} ext = record
   { surjection = record

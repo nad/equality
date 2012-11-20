@@ -306,7 +306,7 @@ abstract
     ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
     ∀ {a} {A : Set a} →
     (∀ {B : A → Set b} x → Univalence-axiom′ (↑ b ⊤) (B x)) →
-    {B : A → Set b} → Extensionality A B
+    {B : A → Set b} → Extensionality′ A B
   dependent-extensionality univ₁ univ₂ =
     _⇔_.to Π-closure-contractible⇔extensionality
       (Π-closure-contractible univ₁ univ₂)
@@ -335,9 +335,8 @@ abstract
   -- ≡⇒≈ commutes with trans/_⊚_ (assuming extensionality).
 
   ≡⇒≈-trans :
-    ∀ {ℓ} {A B C : Set ℓ} →
-    ({A : Set ℓ} {B : A → Set ℓ} → Extensionality A B) →
-    (A≡B : A ≡ B) (B≡C : B ≡ C) →
+    ∀ {ℓ} → Extensionality ℓ ℓ →
+    {A B C : Set ℓ} (A≡B : A ≡ B) (B≡C : B ≡ C) →
     ≡⇒≈ (trans A≡B B≡C) ≡ ≡⇒≈ B≡C ⊚ ≡⇒≈ A≡B
   ≡⇒≈-trans ext A≡B = elim¹
 
@@ -369,7 +368,7 @@ abstract
 
   ≈⇒≡-→-cong :
     ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ}
-    (ext : {A : Set ℓ} {B : A → Set ℓ} → Extensionality A B)
+    (ext : Extensionality ℓ ℓ) →
     (univ : Univalence-axiom ℓ)
     (A₁≈A₂ : A₁ ≈ A₂) (B₁≈B₂ : B₁ ≈ B₂) →
     ≈⇒≡ univ (→-cong ext A₁≈A₂ B₁≈B₂) ≡

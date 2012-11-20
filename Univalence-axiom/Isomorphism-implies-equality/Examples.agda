@@ -71,7 +71,7 @@ module Magma where
     where
     open Magma-isomorphism iso
 
-    ext : {A : Set} {B : A → Set} → Extensionality A B
+    ext : Extensionality lzero lzero
     ext = dependent-extensionality univ₁ (λ _ → univ₂)
 
     A₁≡A₂ : A₁ ≡ A₂
@@ -175,7 +175,7 @@ module Another-example where
     open _↔_ bijection
 
     abstract
-      ext : {A : Set} {B : A → Set} → Extensionality A B
+      ext : Extensionality lzero lzero
       ext = dependent-extensionality univ₁ (λ _ → univ₂)
 
     A₁≡A₂ : A₁ ≡ A₂

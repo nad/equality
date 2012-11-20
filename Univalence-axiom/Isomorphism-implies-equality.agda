@@ -66,7 +66,7 @@ abstract
   -- Cast simplification lemma.
 
   cast-id : {A : Set} →
-            (∀ n → Extensionality A (λ _ → A ^ n ⟶ A)) →
+            (∀ n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
             ∀ n (f : A ^ n ⟶ A) → cast Weak.id n f ≡ f
   cast-id ext zero    f = refl f
   cast-id ext (suc n) f = ext n $ λ x → cast-id ext n (f x)
@@ -75,7 +75,7 @@ abstract
   -- extensionality and univalence).
 
   cast-is-subst :
-    (∀ {A : Set} n → Extensionality A (λ _ → A ^ n ⟶ A)) →
+    (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
     {A₁ A₂ : Set}
     (univ : Univalence-axiom′ A₁ A₂)
     (A₁≈A₂ : A₁ ≈ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
@@ -93,7 +93,7 @@ abstract
 
   cast-isomorphism :
     {A₁ A₂ : Set} →
-    (∀ n → Extensionality A₂ (λ _ → A₂ ^ n ⟶ A₂)) →
+    (∀ n → Extensionality′ A₂ (λ _ → A₂ ^ n ⟶ A₂)) →
     (A₁≈A₂ : A₁ ≈ A₂)
     (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
     Is- n -ary-morphism f₁ f₂ (_≈_.to A₁≈A₂) →
@@ -110,7 +110,7 @@ abstract
   -- subst maps f₁ to f₂ (assuming extensionality and univalence).
 
   subst-isomorphism :
-    (∀ {A : Set} n → Extensionality A (λ _ → A ^ n ⟶ A)) →
+    (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
     {A₁ A₂ : Set}
     (univ : Univalence-axiom′ A₁ A₂)
     (A₁≈A₂ : A₁ ≈ A₂)
@@ -210,7 +210,7 @@ abstract
 
     -- Extensionality follows from univalence.
 
-    ext : {A : Set} {B : A → Set} → Extensionality A B
+    ext : Extensionality lzero lzero
     ext = dependent-extensionality univ₁ (λ _ → univ₂)
 
     -- The presence of the bijection implies that the structure's
@@ -266,9 +266,7 @@ private
 -- the underlying type is a set. This assumption is used to prove that
 -- the other axiom is propositional.
 
-semigroup :
-  ({A : Set} {B : A → Set} → Extensionality A B) →
-  Structure
+semigroup : Extensionality lzero lzero → Structure
 semigroup ext =
   empty
 
@@ -295,9 +293,7 @@ semigroup ext =
       A-set _ _
     }
 
-Semigroup :
-  ({A : Set} {B : A → Set} → Extensionality A B) →
-  Set₁
+Semigroup : Extensionality lzero lzero → Set₁
 Semigroup ext = ⟪ semigroup ext ⟫
 
 private
@@ -305,7 +301,7 @@ private
   -- An unfolding of Semigroup.
 
   Semigroup-unfolded :
-    (ext : {A : Set} {B : A → Set} → Extensionality A B) →
+    (ext : Extensionality lzero lzero) →
     Semigroup ext ≡ Σ
       Set                                    λ A → Σ (Σ (Σ (↑ _ ⊤) λ _ →
       Is-set A                             ) λ _ →
@@ -315,9 +311,7 @@ private
 
 -- Example: abelian groups.
 
-abelian-group :
-  ({A : Set} {B : A → Set} → Extensionality A B) →
-  Structure
+abelian-group : Extensionality lzero lzero → Structure
 abelian-group ext =
   empty
 
@@ -420,9 +414,7 @@ abelian-group ext =
       A-set _ _
     }
 
-Abelian-group :
-  ({A : Set} {B : A → Set} → Extensionality A B) →
-  Set₁
+Abelian-group : Extensionality lzero lzero → Set₁
 Abelian-group ext = ⟪ abelian-group ext ⟫
 
 private
@@ -431,7 +423,7 @@ private
   -- left-nested.
 
   Abelian-group-unfolded :
-    (ext : {A : Set} {B : A → Set} → Extensionality A B) →
+    (ext : Extensionality lzero lzero) →
     Abelian-group ext ≡ Σ
       Set                                    λ A → Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
       Is-set A                             ) λ _ →
@@ -523,7 +515,7 @@ Is-structure-isomorphismʳ s {A} {B} S₁ S₂ m =
 -- Example: semigroups.
 
 semigroupʳ :
-  ({A : Set} {B : A → Set} → Extensionality A B) →
+  Extensionality lzero lzero →
   ∀ A → Structureʳ A
 semigroupʳ ext A =
   axiom (Is-set A)
@@ -545,9 +537,7 @@ semigroupʳ ext A =
 
   empty
 
-Semigroupʳ :
-  ({A : Set} {B : A → Set} → Extensionality A B) →
-  Set₁
+Semigroupʳ : Extensionality lzero lzero → Set₁
 Semigroupʳ ext = ⟪ semigroupʳ ext ⟫ʳ
 
 private
@@ -555,7 +545,7 @@ private
   -- An unfolding of Semigroupʳ.
 
   Semigroupʳ-unfolded :
-    (ext : {A : Set} {B : A → Set} → Extensionality A B) →
+    (ext : Extensionality lzero lzero) →
     Semigroupʳ ext ≡
     ∃ λ (A   : Set) →
     ∃ λ (_   : Is-set A) →

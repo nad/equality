@@ -92,7 +92,7 @@ abstract
   ∀ {a b} {A : Set a} →
   ({B : A → Set b} →
    (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)) ⇔
-  ({B : A → Set b} → Extensionality A B)
+  ({B : A → Set b} → Extensionality′ A B)
 Π-closure-contractible⇔extensionality {b = b} {A} = record
   { to   = ⇒
   ; from = λ ext cB →
@@ -101,7 +101,7 @@ abstract
   where
   ⇒ : ({B : A → Set b} →
        (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)) →
-      (∀ {B} → Extensionality A B)
+      (∀ {B} → Extensionality′ A B)
   ⇒ closure {B} {f} {g} f≡g =
     f                                     ≡⟨ sym (cong (λ c → λ x → proj₁ (c x)) $
                                                proj₂ contractible (λ x → (f x , f≡g x))) ⟩
@@ -119,14 +119,14 @@ abstract
 
   extensionality⇒well-behaved-extensionality :
     ∀ {a b} {A : Set a} →
-    ({B : A → Set b} → Extensionality A B) →
+    ({B : A → Set b} → Extensionality′ A B) →
     {B : A → Set b} → Well-behaved-extensionality A B
   extensionality⇒well-behaved-extensionality {A = A} ext {B} =
     (λ {_} → ext′) , λ f →
       ext′ (refl ∘ f)  ≡⟨ trans-symˡ _ ⟩∎
       refl f           ∎
     where
-    ext′ : Extensionality A B
+    ext′ : Extensionality′ A B
     ext′ = to (from ext)
       where open _⇔_ Π-closure-contractible⇔extensionality
 
@@ -151,7 +151,7 @@ abstract
   -- ∀ x → f x ≡ g x to f ≡ g.
 
   ext-surj : ∀ {a b} {A : Set a} →
-             ({B : A → Set b} → Extensionality A B) →
+             ({B : A → Set b} → Extensionality′ A B) →
              {B : A → Set b} {f g : (x : A) → B x} →
              (∀ x → f x ≡ g x) ↠ (f ≡ g)
   ext-surj {b = b} {A} ext {B} = record
@@ -177,7 +177,7 @@ abstract
   -- functions from A.
 
   Π-closure : ∀ {a b} {A : Set a} →
-              ({B : A → Set b} → Extensionality A B) →
+              ({B : A → Set b} → Extensionality′ A B) →
               ∀ {B : A → Set b} n →
               (∀ x → H-level n (B x)) → H-level n ((x : A) → B x)
   Π-closure ext zero =
@@ -190,7 +190,7 @@ abstract
 
   implicit-Π-closure :
     ∀ {a b} {A : Set a} →
-    ({B : A → Set b} → Extensionality A B) →
+    ({B : A → Set b} → Extensionality′ A B) →
     ∀ {B : A → Set b} n →
     (∀ x → H-level n (B x)) → H-level n ({x : A} → B x)
   implicit-Π-closure {A = A} ext {B} n =
@@ -209,7 +209,7 @@ abstract
 
   ¬-propositional :
     ∀ {a} {A : Set a} →
-    ({B : A → Set} → Extensionality A B) →
+    ({B : A → Set} → Extensionality′ A B) →
     Propositional (¬ A)
   ¬-propositional ext = Π-closure ext 1 (λ _ → ⊥-propositional)
 
@@ -294,7 +294,7 @@ abstract
   -- of equalities (assuming extensionality).
 
   W-≡,≡↠≡ : ∀ {a b} {A : Set a} {B : A → Set b} →
-            (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality (B x) C) →
+            (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality′ (B x) C) →
             ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
             (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
             (sup x f ≡ sup y g)
@@ -344,7 +344,7 @@ abstract
 
   W-closure :
     ∀ {a b} {A : Set a} {B : A → Set b} →
-    (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality (B x) C) →
+    (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality′ (B x) C) →
     ∀ n → H-level (1 + n) A → H-level (1 + n) (W A B)
   W-closure {A = A} {B} ext n h = closure
     where
@@ -428,7 +428,7 @@ abstract
   counit = proj₁
 
   cojoin : ∀ {a} {A : Set a} →
-           ({B : A → Set a} → Extensionality A B) →
+           ({B : A → Set a} → Extensionality′ A B) →
            Contractible A → Contractible (Contractible A)
   cojoin {A = A} ext contr = contr₃
     where
@@ -455,7 +455,7 @@ abstract
 
   Contractible-propositional :
     ∀ {a} {A : Set a} →
-    ({B : A → Set a} → Extensionality A B) →
+    ({B : A → Set a} → Extensionality′ A B) →
     Propositional (Contractible A)
   Contractible-propositional ext =
     [inhabited⇒contractible]⇒propositional (cojoin ext)
@@ -463,8 +463,7 @@ abstract
   -- All h-levels are propositional (assuming extensionality).
 
   H-level-propositional :
-    ∀ {a} →
-    ({A : Set a} {B : A → Set a} → Extensionality A B) →
+    ∀ {a} → Extensionality a a →
     ∀ {A : Set a} n → Propositional (H-level n A)
   H-level-propositional     ext zero    = Contractible-propositional ext
   H-level-propositional {A} ext (suc n) =
@@ -549,7 +548,7 @@ abstract
 
   Dec-closure-propositional :
     ∀ {a} {A : Set a} →
-    ({B : A → Set} → Extensionality A B) →
+    ({B : A → Set} → Extensionality′ A B) →
     Propositional A → Propositional (Dec A)
   Dec-closure-propositional {A = A} ext p =
     _⇔_.from propositional⇔irrelevant irrelevant

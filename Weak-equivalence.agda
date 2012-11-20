@@ -39,8 +39,7 @@ abstract
   -- equality.
 
   propositional :
-    ∀ {a b} →
-    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
     {A : Set a} {B : Set b} (f : A → B) →
     Propositional (Is-weak-equivalence f)
   propositional {a} ext f =
@@ -413,7 +412,7 @@ abstract
 
   ext⁻¹-is-weak-equivalence :
     ∀ {a b} {A : Set a} →
-    ({B : A → Set b} → Extensionality A B) →
+    ({B : A → Set b} → Extensionality′ A B) →
     {B : A → Set b} {f g : (x : A) → B x} →
     Is-weak-equivalence (ext⁻¹ {f = f} {g = g})
   ext⁻¹-is-weak-equivalence ext {f = f} {g} =
@@ -442,7 +441,7 @@ abstract
 
 extensionality-isomorphism :
   ∀ {a b} {A : Set a} →
-  ({B : A → Set b} → Extensionality A B) →
+  ({B : A → Set b} → Extensionality′ A B) →
   {B : A → Set b} {f g : (x : A) → B x} →
   (∀ x → f x ≡ g x) ≈ (f ≡ g)
 extensionality-isomorphism ext =
@@ -451,25 +450,20 @@ extensionality-isomorphism ext =
 -- Note that the isomorphism gives us a really well-behaved notion of
 -- extensionality.
 
-good-ext :
-  ∀ {a b} →
-  ({A : Set a} {B : A → Set b} → Extensionality A B) →
-  {A : Set a} {B : A → Set b} → Extensionality A B
+good-ext : ∀ {a b} → Extensionality a b → Extensionality a b
 good-ext ext = _≈_.to (extensionality-isomorphism ext)
 
 abstract
 
   good-ext-is-weak-equivalence :
-    ∀ {a b}
-    (ext : {A : Set a} {B : A → Set b} → Extensionality A B) →
+    ∀ {a b} (ext : Extensionality a b) →
     {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
     Is-weak-equivalence {A = ∀ x → f x ≡ g x} (good-ext ext)
   good-ext-is-weak-equivalence ext =
     _≈_.is-weak-equivalence (extensionality-isomorphism ext)
 
   good-ext-refl :
-    ∀ {a b}
-    (ext : {A : Set a} {B : A → Set b} → Extensionality A B)
+    ∀ {a b} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} (f : (x : A) → B x) →
     good-ext ext (λ x → refl (f x)) ≡ refl f
   good-ext-refl ext f =
@@ -479,8 +473,7 @@ abstract
     refl f                                                      ∎
 
   cong-good-ext :
-    ∀ {a b}
-    (ext : {A : Set a} {B : A → Set b} → Extensionality A B)
+    ∀ {a b} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
     {f≡g : ∀ x → f x ≡ g x} {x} →
     cong (λ h → h x) (good-ext ext f≡g) ≡ f≡g x
@@ -507,8 +500,7 @@ abstract
   -- components are equal (assuming extensionality).
 
   lift-equality :
-    ∀ {a b} →
-    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
     {A : Set a} {B : Set b} {p q : A ≈ B} →
     _≈_.to p ≡ _≈_.to q → p ≡ q
   lift-equality {a} {b} ext {p = weq f f-weq} {q = weq g g-weq} f≡g =
@@ -522,9 +514,7 @@ abstract
 
 -- _≈_ comes with a groupoid structure (assuming extensionality).
 
-groupoid : ∀ {ℓ} →
-           ({A : Set ℓ} {B : A → Set ℓ} → Extensionality A B) →
-           Groupoid (lsuc ℓ) ℓ
+groupoid : ∀ {ℓ} → Extensionality ℓ ℓ → Groupoid (lsuc ℓ) ℓ
 groupoid {ℓ} ext = record
   { Object         = Set ℓ
   ; _∼_            = _≈_
@@ -565,7 +555,7 @@ abstract
 
   bijection⇒weak-equivalence-left-inverse :
     ∀ {a b} {A : Set a} {B : Set b} →
-    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    Extensionality (a ⊔ b) (a ⊔ b) →
     (A≈B : A ≈ B) →
     bijection⇒weak-equivalence (_≈_.bijection A≈B) ≡ A≈B
   bijection⇒weak-equivalence-left-inverse ext _ =
@@ -576,7 +566,7 @@ abstract
 
   bijection⇒weak-equivalence-right-inverse :
     ∀ {a b} {A : Set a} {B : Set b} →
-    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    Extensionality (a ⊔ b) (a ⊔ b) →
     Is-set A → (A↔B : A ↔ B) →
     _≈_.bijection (bijection⇒weak-equivalence A↔B) ≡ A↔B
   bijection⇒weak-equivalence-right-inverse {a} {b} {B = B}
@@ -599,7 +589,7 @@ abstract
 
 ↔-↠-≈ :
   ∀ {a b} {A : Set a} {B : Set b} →
-  ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+  Extensionality (a ⊔ b) (a ⊔ b) →
   (A ↔ B) ↠ (A ≈ B)
 ↔-↠-≈ ext = record
   { equivalence = record
@@ -614,7 +604,7 @@ abstract
 
 ↔-↔-≈ :
   ∀ {a b} {A : Set a} {B : Set b} →
-  ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+  Extensionality (a ⊔ b) (a ⊔ b) →
   Is-set A → (A ↔ B) ↔ (A ≈ B)
 ↔-↔-≈ ext A-set = record
   { surjection      = ↔-↠-≈ ext
@@ -630,8 +620,7 @@ abstract
   -- (assuming extensionality).
 
   right-closure :
-    ∀ {a b} →
-    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
     ∀ {A : Set a} {B : Set b} n →
     H-level (1 + n) B → H-level (1 + n) (A ≈ B)
   right-closure {a} {b} ext {A = A} {B} n h =
@@ -653,8 +642,7 @@ abstract
       }
 
   left-closure :
-    ∀ {a b} →
-    ({A : Set (a ⊔ b)} {B : A → Set (a ⊔ b)} → Extensionality A B) →
+    ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
     ∀ {A : Set a} {B : Set b} n →
     H-level (1 + n) A → H-level (1 + n) (A ≈ B)
   left-closure ext {A = A} {B} n h =
@@ -949,8 +937,7 @@ abstract
 -- Π preserves weak equivalence (assuming extensionality).
 
 Π-preserves :
-  ∀ {a₁ a₂ b₁ b₂} →
-  ({A : Set (a₁ ⊔ a₂)} {B : A → Set (b₁ ⊔ b₂)} → Extensionality A B) →
+  ∀ {a₁ a₂ b₁ b₂} → Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
   (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
   ((x : A₁) → B₁ x) ≈ ((x : A₂) → B₂ x)
@@ -1023,8 +1010,7 @@ abstract
 -- the one in the proof of Π-preserves.
 
 Π-preserves₂ :
-  ∀ {a b₁ b₂} →
-  ({A : Set a} {B : A → Set (b₁ ⊔ b₂)} → Extensionality A B) →
+  ∀ {a b₁ b₂} → Extensionality a (b₁ ⊔ b₂) →
   {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
   (∀ x → B₁ x ≈ B₂ x) →
   ((x : A) → B₁ x) ≈ ((x : A) → B₂ x)
@@ -1064,8 +1050,7 @@ abstract
 
 ≈-preserves :
   ∀ {a₁ a₂ b₁ b₂} →
-  ({A : Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂)} {B : A → Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂)} →
-   Extensionality A B) →
+  Extensionality (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) →
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
   A₁ ≈ A₂ → B₁ ≈ B₂ → (A₁ ≈ B₁) ≈ (A₂ ≈ B₂)
 ≈-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁≈B₂ =
@@ -1107,8 +1092,7 @@ abstract
 
 ≈-preserves-bijections :
   ∀ {a₁ a₂ b₁ b₂} →
-  ({A : Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂)} {B : A → Set (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂)} →
-   Extensionality A B) →
+  Extensionality (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) →
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
   A₁ ↔ A₂ → B₁ ↔ B₂ → (A₁ ≈ B₁) ↔ (A₂ ≈ B₂)
 ≈-preserves-bijections ext A₁↔A₂ B₁↔B₂ =
@@ -1125,7 +1109,7 @@ abstract
   -- strengthening of W-≡,≡↠≡.
 
   W-≡,≡≈≡ : ∀ {a b} {A : Set a} {B : A → Set b} →
-            (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality (B x) C) →
+            (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality′ (B x) C) →
             ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
             (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ≈
             (sup x f ≡ sup y g)

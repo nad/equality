@@ -57,9 +57,15 @@ module Reflexive′ (reflexive : ∀ ℓ → Reflexive ℓ) where
 
   -- Extensionality for functions of a certain type.
 
-  Extensionality : ∀ {a b} (A : Set a) → (A → Set b) → Set (a ⊔ b)
-  Extensionality A B =
+  Extensionality′ : ∀ {a b} (A : Set a) → (A → Set b) → Set (a ⊔ b)
+  Extensionality′ A B =
     {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
+
+  -- Extensionality for functions at certain levels.
+
+  Extensionality : (a b : Level) → Set (lsuc (a ⊔ b))
+  Extensionality a b =
+    {A : Set a} → {B : A → Set b} → Extensionality′ A B
 
   -- Proofs of extensionality which behave well when applied to
   -- reflexivity.
@@ -67,7 +73,7 @@ module Reflexive′ (reflexive : ∀ ℓ → Reflexive ℓ) where
   Well-behaved-extensionality :
     ∀ {a b} (A : Set a) → (A → Set b) → Set (a ⊔ b)
   Well-behaved-extensionality A B =
-    ∃ λ (ext : Extensionality A B) →
+    ∃ λ (ext : Extensionality′ A B) →
       ∀ f → ext (λ x → refl (f x)) ≡ refl f
 
 ------------------------------------------------------------------------
@@ -498,16 +504,15 @@ module Derived-definitions-and-properties
 
     lower-extensionality :
       ∀ {a} â {b} b̂ →
-      ({A : Set (a ⊔ â)} {B : A → Set (b ⊔ b̂)} → Extensionality A B) →
-      ({A : Set  a     } {B : A → Set  b     } → Extensionality A B)
+      Extensionality (a ⊔ â) (b ⊔ b̂) → Extensionality a b
     lower-extensionality â b̂ ext f≡g =
       cong (λ h → lower ∘ h ∘ lift) $
         ext {A = ↑ â _} {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g ∘ lower)
 
     lower-extensionality₂ :
       ∀ {a} {A : Set a} {b} b̂ →
-      ({B : A → Set (b ⊔ b̂)} → Extensionality A B) →
-      ({B : A → Set  b     } → Extensionality A B)
+      ({B : A → Set (b ⊔ b̂)} → Extensionality′ A B) →
+      ({B : A → Set  b     } → Extensionality′ A B)
     lower-extensionality₂ b̂ ext f≡g =
       cong (λ h → lower ∘ h) $
         ext {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g)
@@ -517,7 +522,7 @@ module Derived-definitions-and-properties
 
     implicit-extensionality :
       ∀ {a b} {A : Set a} {B : A → Set b} →
-      Extensionality A B →
+      Extensionality′ A B →
       {f g : {x : A} → B x} →
       (∀ x → f {x} ≡ g {x}) → (λ {x} → f {x}) ≡ g
     implicit-extensionality ext f≡g =

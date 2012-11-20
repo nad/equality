@@ -297,7 +297,7 @@ _≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
 -- instantiations of _≈[_]′_ are isomorphic (assuming extensionality).
 
 ≈′↔≈′ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
-        ({A : Set (c ⊔ d)} {B : A → Set (c ⊔ d)} → Extensionality A B) →
+        Extensionality (c ⊔ d) (c ⊔ d) →
         (∀ s → Is-set (Position C s)) →
         (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
         xs ≈[ bag ]′ ys ↔ xs ≈[ bag-with-weak-equivalence ]′ ys
@@ -409,8 +409,7 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
 -- for streams, and finally I could complete the proof below.
 
 ≈↔≈′ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
-       ({A : Set (a ⊔ c ⊔ d)} {B : A → Set (a ⊔ c ⊔ d)} →
-        Extensionality A B) →
+       Extensionality (a ⊔ c ⊔ d) (a ⊔ c ⊔ d) →
        (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
        xs ∼[ bag-with-weak-equivalence ] ys ↔
        xs ≈[ bag-with-weak-equivalence ]′ ys
