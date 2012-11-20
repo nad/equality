@@ -904,8 +904,7 @@ abstract
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
   (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
   ((x : A₁) → B₁ x) ≈ ((x : A₂) → B₂ x)
-Π-preserves {a₁} {a₂} {b₁} {b₂} ext
-            {A₁ = A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁≈B₂ =
+Π-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁≈B₂ =
   bijection⇒weak-equivalence record
     { surjection = record
       { equivalence = record
@@ -966,6 +965,49 @@ abstract
                                                                           (λ x → subst-refl B₁ (f x))
                                                                           (left-inverse-of A₁≈A₂ x) ⟩∎
       f x                                                         ∎
+
+-- Π preserves weak equivalence in its second argument (assuming
+-- extensionality).
+--
+-- Note that this proof's "to" component does not use subst, unlike
+-- the one in the proof of Π-preserves.
+
+Π-preserves₂ :
+  ∀ {a b₁ b₂} →
+  ({A : Set a} {B : A → Set (b₁ ⊔ b₂)} → Extensionality A B) →
+  {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+  (∀ x → B₁ x ≈ B₂ x) →
+  ((x : A) → B₁ x) ≈ ((x : A) → B₂ x)
+Π-preserves₂ {a} {b₁} {b₂} ext {A} {B₁} {B₂} B₁≈B₂ =
+  bijection⇒weak-equivalence record
+    { surjection = record
+      { equivalence = record
+        { to   = to′
+        ; from = from′
+        }
+      ; right-inverse-of = right-inverse-of′
+      }
+    ; left-inverse-of = left-inverse-of′
+    }
+  where
+  open _≈_
+
+  to′ : ((x : A) → B₁ x) → (x : A) → B₂ x
+  to′ f x = to (B₁≈B₂ x) (f x)
+
+  from′ : ((x : A) → B₂ x) → (x : A) → B₁ x
+  from′ f x = from (B₁≈B₂ x) (f x)
+
+  abstract
+    right-inverse-of′ : ∀ f → to′ (from′ f) ≡ f
+    right-inverse-of′ = λ f → lower-extensionality a b₁ ext λ x →
+      to (B₁≈B₂ x) (from (B₁≈B₂ x) (f x))  ≡⟨ right-inverse-of (B₁≈B₂ x) (f x) ⟩∎
+      f x                                  ∎
+
+    left-inverse-of′ : ∀ f → from′ (to′ f) ≡ f
+    left-inverse-of′ = λ f → lower-extensionality a b₂ ext λ x →
+      from (B₁≈B₂ x) (to (B₁≈B₂ x) (f x))  ≡⟨ left-inverse-of (B₁≈B₂ x) (f x) ⟩∎
+      f x                                  ∎
 
 -- Weak equivalence preserves weak equivalences (assuming
 -- extensionality).
