@@ -13,7 +13,7 @@ open import Equality
 module Univalence-axiom.Isomorphism-implies-equality.More
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq using (_↔_)
+open import Bijection eq using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence using (_⇔_; module _⇔_)
 open import Function-universe eq using (→-cong-⇔; →-cong)
@@ -399,6 +399,17 @@ Simple {s} σ = record
   where
   open Type-extractor
 
+  -- Isomorphisms between simply typed values.
+
+  Is-isomorphism :
+    (σ : Simple-type s) →
+    ∀ {s₁ s₂} → ⟦ σ ⟧⟶ s₁ → ⟦ σ ⟧⟶ s₂ → Isomorphism s s₁ s₂ → Set
+  Is-isomorphism (base A) x₁ x₂ iso = _≈_.to (equ A iso) x₁ ≡ x₂
+  Is-isomorphism (σ ⟶ τ)  f₁ f₂ iso =
+    ∀ {x₁ x₂} →
+    Is-isomorphism σ x₁ x₂ iso →
+    Is-isomorphism τ (f₁ x₁) (f₂ x₂) iso
+
   -- Cast.
 
   cast : (σ : Simple-type s) →
@@ -432,15 +443,6 @@ Simple {s} σ = record
       →-cong-⇔ (                  cast       σ₁ iso)
                (                  cast       σ₂ iso)  ∎
 
-  -- Isomorphisms between simply typed values.
-
-  Is-isomorphism :
-    (σ : Simple-type s) →
-    ∀ {s₁ s₂} → ⟦ σ ⟧⟶ s₁ → ⟦ σ ⟧⟶ s₂ → Isomorphism s s₁ s₂ → Set
-  Is-isomorphism (base A) x₁ x₂ iso = _≈_.to (equ A iso) x₁ ≡ x₂
-  Is-isomorphism (σ ⟶ τ)  f₁ f₂ iso =
-    ∀ f → Is-isomorphism τ (f₁ f) (f₂ (_⇔_.to (cast σ iso) f)) iso
-
   -- Alternative definition of isomorphisms.
 
   Is-isomorphism′ :
@@ -461,32 +463,35 @@ Simple {s} σ = record
     isomorphism-definitions-equivalent ext iso =
       λ σ → record { to = to σ; from = from σ }
       where
-      to : ∀ σ {f₁ f₂} →
-           Is-isomorphism σ f₁ f₂ iso → Is-isomorphism′ σ f₁ f₂ iso
-      to (base A)          i = i
-      to (σ ⟶ τ) {f₁} {f₂} i = ext λ x →
-        _⇔_.to (cast τ iso) (f₁ (_⇔_.from (cast σ iso) x))              ≡⟨ to τ (i _) ⟩
-        f₂ (_⇔_.to (cast σ iso) (_⇔_.from (cast σ iso) x))              ≡⟨ sym $ cong₂ (λ f g → f₂ (f (g x)))
-                                                                                       (cong _⇔_.to   $ cast-cast ext σ iso)
-                                                                                       (cong _⇔_.from $ cast-cast ext σ iso) ⟩
-        f₂ (_≈_.to (cast-≈ ext σ iso) (_≈_.from (cast-≈ ext σ iso) x))  ≡⟨ cong f₂ $ _≈_.right-inverse-of (cast-≈ ext σ iso) x ⟩∎
-        f₂ x                                                            ∎
+      mutual
+        to : ∀ σ {f₁ f₂} →
+             Is-isomorphism σ f₁ f₂ iso → Is-isomorphism′ σ f₁ f₂ iso
+        to (base A)          i = i
+        to (σ ⟶ τ) {f₁} {f₂} i = ext λ x →
+          _⇔_.to (cast τ iso) (f₁ (_⇔_.from (cast σ iso) x))              ≡⟨ to τ (i (from σ (refl _))) ⟩
+          f₂ (_⇔_.to (cast σ iso) (_⇔_.from (cast σ iso) x))              ≡⟨ sym $ cong₂ (λ f g → f₂ (f (g x)))
+                                                                                         (cong _⇔_.to   $ cast-cast ext σ iso)
+                                                                                         (cong _⇔_.from $ cast-cast ext σ iso) ⟩
+          f₂ (_≈_.to (cast-≈ ext σ iso) (_≈_.from (cast-≈ ext σ iso) x))  ≡⟨ cong f₂ $ _≈_.right-inverse-of (cast-≈ ext σ iso) x ⟩∎
+          f₂ x                                                            ∎
 
-      from : ∀ σ {f₁ f₂} →
-             Is-isomorphism′ σ f₁ f₂ iso → Is-isomorphism σ f₁ f₂ iso
-      from (base A)          i = i
-      from (σ ⟶ τ) {f₁} {f₂} i = λ f → from τ
-        (_⇔_.to (cast τ iso) (f₁ f)                                   ≡⟨ cong (_⇔_.to (cast τ iso) ∘ f₁) $ sym $
-                                                                           _≈_.left-inverse-of (cast-≈ ext σ iso) f ⟩
-         _⇔_.to (cast τ iso)
-                (f₁ (_≈_.from (cast-≈ ext σ iso)
-                       (_≈_.to (cast-≈ ext σ iso) f)))                ≡⟨ cong₂ (λ g h → _⇔_.to (cast τ iso) (f₁ (g (h f))))
-                                                                               (cong _⇔_.from $ cast-cast ext σ iso)
-                                                                               (cong _⇔_.to   $ cast-cast ext σ iso) ⟩
-         _⇔_.to (cast τ iso)
-                (f₁ (_⇔_.from (cast σ iso) (_⇔_.to (cast σ iso) f)))  ≡⟨ cong (λ g → g (_⇔_.to (cast σ iso) f)) i ⟩∎
+        from : ∀ σ {f₁ f₂} →
+               Is-isomorphism′ σ f₁ f₂ iso → Is-isomorphism σ f₁ f₂ iso
+        from (base A)          x₁∼x₂ = x₁∼x₂
+        from (σ ⟶ τ) {f₁} {f₂} f₁∼f₂ = λ {x₁ x₂} x₁∼x₂ → from τ (
+          let
+            lemma =
+              x₁                                                          ≡⟨ sym $ _≈_.left-inverse-of (cast-≈ ext σ iso) _ ⟩
+              _≈_.from (cast-≈ ext σ iso) (_≈_.to (cast-≈ ext σ iso) x₁)  ≡⟨ cong₂ (λ g h → g (h x₁))
+                                                                                   (cong _⇔_.from $ cast-cast ext σ iso)
+                                                                                   (cong _⇔_.to   $ cast-cast ext σ iso) ⟩
+              _⇔_.from (cast σ iso) (_⇔_.to (cast σ iso) x₁)              ≡⟨ cong (_⇔_.from (cast σ iso)) $ to σ x₁∼x₂ ⟩∎
+              _⇔_.from (cast σ iso) x₂                                    ∎
+          in
 
-         f₂ (_⇔_.to (cast σ iso) f)                                   ∎)
+          _⇔_.to (cast τ iso) (f₁ x₁)                          ≡⟨ cong (_⇔_.to (cast τ iso) ∘ f₁) lemma ⟩
+          _⇔_.to (cast τ iso) (f₁ (_⇔_.from (cast σ iso) x₂))  ≡⟨ cong (λ f → f x₂) f₁∼f₂ ⟩∎
+          f₂ x₂                                                ∎)
 
     -- The equality that we get from a cast (via ≈⇒≡) can also be
     -- obtained from isomorphic-equal.
