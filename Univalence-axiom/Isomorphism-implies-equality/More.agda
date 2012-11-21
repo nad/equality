@@ -553,6 +553,18 @@ private
                    Σ (↑ _ ⊤ × Set) λ { (_ , A) → ↑ _ (A → A → A) }
   Magma-unfolded = refl _
 
+  -- An unfolding of Isomorphism magma.
+
+  Isomorphism-magma-unfolded :
+    ∀ {A₁ : Set} {f₁ : A₁ → A₁ → A₁}
+      {A₂ : Set} {f₂ : A₂ → A₂ → A₂} →
+    Isomorphism magma ((_ , A₁) , lift f₁) ((_ , A₂) , lift f₂) ≡
+    Σ (Σ ⊤ λ _ →
+      A₁ ↔ A₂                                   ) λ { (_ , A₁↔A₂) →
+      let open _↔_ A₁↔A₂ in
+        ∀ x y → to (f₁ x y) ≡ f₂ (to x) (to y) }
+  Isomorphism-magma-unfolded = refl _
+
 -- Example: semigroups. Note that one axiom states that the underlying
 -- type is a set. This assumption is used to prove that the other
 -- axiom is propositional.
@@ -594,6 +606,24 @@ private
       ↑ _ (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }
   Semigroup-unfolded = refl _
 
+  -- An unfolding of Isomorphism semigroup.
+
+  Isomorphism-semigroup-unfolded :
+    ∀ {A₁ : Set} {is₁ : Is-set A₁} {_∙₁_ : A₁ → A₁ → A₁}
+      {assoc₁ : ∀ x y z → x ∙₁ (y ∙₁ z) ≡ (x ∙₁ y) ∙₁ z}
+      {A₂ : Set} {is₂ : Is-set A₂} {_∙₂_ : A₂ → A₂ → A₂}
+      {assoc₂ : ∀ x y z → x ∙₂ (y ∙₂ z) ≡ (x ∙₂ y) ∙₂ z} →
+    Isomorphism semigroup
+      ((((_ , A₁) , lift is₁) , lift _∙₁_) , lift assoc₁)
+      ((((_ , A₂) , lift is₂) , lift _∙₂_) , lift assoc₂) ≡
+    Σ (Σ (Σ (Σ ⊤ λ _ →
+      A₁ ↔ A₂                               ) λ { _ →
+      ⊤                                    }) λ { ((_ , A₁↔A₂) , _) →
+      let open _↔_ A₁↔A₂ in
+        ∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y }) λ { _ →
+      ⊤                                    }
+  Isomorphism-semigroup-unfolded = refl _
+
 -- Example: Sets with fixed-point operators.
 
 set-with-fixed-point-operator : Structure
@@ -630,6 +660,26 @@ private
       ↑ _ ((A → A) → A)             }) λ { (_ , lift fix) →
       ↑ _ (∀ f → fix f ≡ f (fix f)) }
   Set-with-fixed-point-operator-unfolded = refl _
+
+  -- An unfolding of Isomorphism set-with-fixed-point-operator.
+
+  Isomorphism-set-with-fixed-point-operator-unfolded :
+    ∀ {A₁ : Set} {is₁ : Is-set A₁} {fix₁ : (A₁ → A₁) → A₁}
+      {fixed-point₁ : ∀ f → fix₁ f ≡ f (fix₁ f)}
+      {A₂ : Set} {is₂ : Is-set A₂} {fix₂ : (A₂ → A₂) → A₂}
+      {fixed-point₂ : ∀ f → fix₂ f ≡ f (fix₂ f)} →
+    Isomorphism set-with-fixed-point-operator
+      ((((_ , A₁) , lift is₁) , lift fix₁) , lift fixed-point₁)
+      ((((_ , A₂) , lift is₂) , lift fix₂) , lift fixed-point₂) ≡
+    Σ (Σ (Σ (Σ ⊤ λ _ →
+      A₁ ↔ A₂                                            ) λ { _ →
+      ⊤                                                 }) λ { ((_ , A₁↔A₂) , _) →
+      let open _↔_ A₁↔A₂ in
+        ∀ {f₁ f₂} →
+        (∀ {x₁ x₂} → to x₁ ≡ x₂ → to (f₁ x₁) ≡ f₂ x₂) →
+        to (fix₁ f₁) ≡ fix₂ f₂                          }) λ { _ →
+      ⊤                                                 }
+  Isomorphism-set-with-fixed-point-operator-unfolded = refl _
 
 -- Example: abelian groups.
 
@@ -763,3 +813,42 @@ private
       ↑ _ (∀ x → (x ⁻¹) ∙ x ≡ e)                }) λ {           ((((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) , _) →
       ↑ _ (∀ x → x ∙ (x ⁻¹) ≡ e)                }
   Abelian-group-unfolded = refl _
+
+  -- An unfolding of Isomorphism abelian-group.
+
+  Isomorphism-abelian-group-unfolded :
+    ∀ {A₁ : Set} {is₁ : Is-set A₁} {_∙₁_ : A₁ → A₁ → A₁}
+      {comm₁ : ∀ x y → x ∙₁ y ≡ y ∙₁ x}
+      {assoc₁ : ∀ x y z → x ∙₁ (y ∙₁ z) ≡ (x ∙₁ y) ∙₁ z}
+      {e₁ : A₁} {lid₁ : ∀ x → e₁ ∙₁ x ≡ x} {rid₁ : ∀ x → x ∙₁ e₁ ≡ x}
+      {_⁻¹₁ : A₁ → A₁} {linv₁ : ∀ x → (x ⁻¹₁) ∙₁ x ≡ e₁}
+      {rinv₁ : ∀ x → x ∙₁ (x ⁻¹₁) ≡ e₁}
+      {A₂ : Set} {is₂ : Is-set A₂} {_∙₂_ : A₂ → A₂ → A₂}
+      {comm₂ : ∀ x y → x ∙₂ y ≡ y ∙₂ x}
+      {assoc₂ : ∀ x y z → x ∙₂ (y ∙₂ z) ≡ (x ∙₂ y) ∙₂ z}
+      {e₂ : A₂} {lid₂ : ∀ x → e₂ ∙₂ x ≡ x} {rid₂ : ∀ x → x ∙₂ e₂ ≡ x}
+      {_⁻¹₂ : A₂ → A₂} {linv₂ : ∀ x → (x ⁻¹₂) ∙₂ x ≡ e₂}
+      {rinv₂ : ∀ x → x ∙₂ (x ⁻¹₂) ≡ e₂} →
+    Isomorphism abelian-group
+      (((((((((((_ , A₁) , lift is₁) , lift _∙₁_) , lift comm₁) ,
+       lift assoc₁) , lift e₁) , lift lid₁) , lift rid₁) , lift _⁻¹₁) ,
+       lift linv₁) , lift rinv₁)
+      (((((((((((_ , A₂) , lift is₂) , lift _∙₂_) , lift comm₂) ,
+       lift assoc₂) , lift e₂) , lift lid₂) , lift rid₂) , lift _⁻¹₂) ,
+       lift linv₂) , lift rinv₂) ≡
+    Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ ⊤ λ _ →
+      A₁ ↔ A₂                               ) λ { _ →
+      ⊤                                    }) λ {       ((_ , A₁↔A₂) , _) →
+      let open _↔_ A₁↔A₂ in
+        ∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y }) λ { _ →
+      ⊤                                    }) λ { _ →
+      ⊤                                    }) λ {    (((((_ , A₁↔A₂) , _) , _) , _) , _) →
+      let open _↔_ A₁↔A₂ in
+        to e₁ ≡ e₂                         }) λ { _ →
+      ⊤                                    }) λ { _ →
+      ⊤                                    }) λ { ((((((((_ , A₁↔A₂) , _) , _) , _) , _) , _) , _) , _) →
+      let open _↔_ A₁↔A₂ in
+        ∀ x → to (x ⁻¹₁) ≡ to x ⁻¹₂        }) λ { _ →
+      ⊤                                    }) λ { _ →
+      ⊤                                    }
+  Isomorphism-abelian-group-unfolded = refl _
