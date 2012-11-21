@@ -410,45 +410,22 @@ Simple {s} σ = record
     Is-isomorphism σ x₁ x₂ iso →
     Is-isomorphism τ (f₁ x₁) (f₂ x₂) iso
 
-  -- Cast.
+  -- Cast (defined using extensionality).
 
-  cast : (σ : Simple-type s) →
-         ∀ {s₁ s₂} → Isomorphism s s₁ s₂ → ⟦ σ ⟧⟶ s₁ ⇔ ⟦ σ ⟧⟶ s₂
-  cast (base A) iso = _≈_.equivalence (equ A iso)
-  cast (σ ⟶ τ)  iso = →-cong-⇔ (cast σ iso) (cast τ iso)
+  cast : Extensionality lzero lzero →
+         (σ : Simple-type s) →
+         ∀ {s₁ s₂} → Isomorphism s s₁ s₂ → ⟦ σ ⟧⟶ s₁ ≈ ⟦ σ ⟧⟶ s₂
+  cast _   (base A) iso = equ A iso
+  cast ext (σ ⟶ τ)  iso = →-cong ext (cast ext σ iso) (cast ext τ iso)
 
-  -- A variant of cast, defined using extensionality.
-
-  cast-≈ : Extensionality lzero lzero →
-           (σ : Simple-type s) →
-           ∀ {s₁ s₂} → Isomorphism s s₁ s₂ → ⟦ σ ⟧⟶ s₁ ≈ ⟦ σ ⟧⟶ s₂
-  cast-≈ _   (base A) iso = equ A iso
-  cast-≈ ext (σ ⟶ τ)  iso =
-    →-cong ext (cast-≈ ext σ iso) (cast-≈ ext τ iso)
-
-  abstract
-
-    -- The function components of the two variants of cast are equal
-    -- (assuming extensionality).
-
-    cast-cast :
-      (ext : Extensionality lzero lzero) →
-      ∀ (σ : Simple-type s) {s₁ s₂} (iso : Isomorphism s s₁ s₂) →
-      _≈_.equivalence (cast-≈ ext σ iso) ≡ cast σ iso
-    cast-cast ext (base A)  iso = refl _
-    cast-cast ext (σ₁ ⟶ σ₂) iso =
-      →-cong-⇔ (_≈_.equivalence $ cast-≈ ext σ₁ iso)
-               (_≈_.equivalence $ cast-≈ ext σ₂ iso)  ≡⟨ cong₂ →-cong-⇔ (cast-cast ext σ₁ iso)
-                                                                        (cast-cast ext σ₂ iso) ⟩∎
-      →-cong-⇔ (                  cast       σ₁ iso)
-               (                  cast       σ₂ iso)  ∎
-
-  -- Alternative definition of isomorphisms.
+  -- Alternative definition of isomorphisms (defined using
+  -- extensionality).
 
   Is-isomorphism′ :
+    Extensionality lzero lzero →
     (σ : Simple-type s) →
     ∀ {s₁ s₂} → ⟦ σ ⟧⟶ s₁ → ⟦ σ ⟧⟶ s₂ → Isomorphism s s₁ s₂ → Set
-  Is-isomorphism′ σ f₁ f₂ iso = _⇔_.to (cast σ iso) f₁ ≡ f₂
+  Is-isomorphism′ ext σ f₁ f₂ iso = _≈_.to (cast ext σ iso) f₁ ≡ f₂
 
   abstract
 
@@ -456,42 +433,32 @@ Simple {s} σ = record
     -- extensionality).
 
     isomorphism-definitions-equivalent :
-      Extensionality lzero lzero →
+      (ext : Extensionality lzero lzero) →
       ∀ {s₁ s₂} (iso : Isomorphism s s₁ s₂)
       (σ : Simple-type s) {f₁ f₂} →
-      Is-isomorphism σ f₁ f₂ iso ⇔ Is-isomorphism′ σ f₁ f₂ iso
+      Is-isomorphism σ f₁ f₂ iso ⇔ Is-isomorphism′ ext σ f₁ f₂ iso
     isomorphism-definitions-equivalent ext iso =
       λ σ → record { to = to σ; from = from σ }
       where
       mutual
         to : ∀ σ {f₁ f₂} →
-             Is-isomorphism σ f₁ f₂ iso → Is-isomorphism′ σ f₁ f₂ iso
+             Is-isomorphism σ f₁ f₂ iso →
+             Is-isomorphism′ ext σ f₁ f₂ iso
         to (base A)          i = i
         to (σ ⟶ τ) {f₁} {f₂} i = ext λ x →
-          _⇔_.to (cast τ iso) (f₁ (_⇔_.from (cast σ iso) x))              ≡⟨ to τ (i (from σ (refl _))) ⟩
-          f₂ (_⇔_.to (cast σ iso) (_⇔_.from (cast σ iso) x))              ≡⟨ sym $ cong₂ (λ f g → f₂ (f (g x)))
-                                                                                         (cong _⇔_.to   $ cast-cast ext σ iso)
-                                                                                         (cong _⇔_.from $ cast-cast ext σ iso) ⟩
-          f₂ (_≈_.to (cast-≈ ext σ iso) (_≈_.from (cast-≈ ext σ iso) x))  ≡⟨ cong f₂ $ _≈_.right-inverse-of (cast-≈ ext σ iso) x ⟩∎
-          f₂ x                                                            ∎
+          _≈_.to (cast ext τ iso) (f₁ (_≈_.from (cast ext σ iso) x))  ≡⟨ to τ (i (from σ (refl _))) ⟩
+          f₂ (_≈_.to (cast ext σ iso) (_≈_.from (cast ext σ iso) x))  ≡⟨ cong f₂ $ _≈_.right-inverse-of (cast ext σ iso) x ⟩∎
+          f₂ x                                                        ∎
 
         from : ∀ σ {f₁ f₂} →
-               Is-isomorphism′ σ f₁ f₂ iso → Is-isomorphism σ f₁ f₂ iso
+               Is-isomorphism′ ext σ f₁ f₂ iso →
+               Is-isomorphism σ f₁ f₂ iso
         from (base A)          x₁∼x₂ = x₁∼x₂
         from (σ ⟶ τ) {f₁} {f₂} f₁∼f₂ = λ {x₁ x₂} x₁∼x₂ → from τ (
-          let
-            lemma =
-              x₁                                                          ≡⟨ sym $ _≈_.left-inverse-of (cast-≈ ext σ iso) _ ⟩
-              _≈_.from (cast-≈ ext σ iso) (_≈_.to (cast-≈ ext σ iso) x₁)  ≡⟨ cong₂ (λ g h → g (h x₁))
-                                                                                   (cong _⇔_.from $ cast-cast ext σ iso)
-                                                                                   (cong _⇔_.to   $ cast-cast ext σ iso) ⟩
-              _⇔_.from (cast σ iso) (_⇔_.to (cast σ iso) x₁)              ≡⟨ cong (_⇔_.from (cast σ iso)) $ to σ x₁∼x₂ ⟩∎
-              _⇔_.from (cast σ iso) x₂                                    ∎
-          in
-
-          _⇔_.to (cast τ iso) (f₁ x₁)                          ≡⟨ cong (_⇔_.to (cast τ iso) ∘ f₁) lemma ⟩
-          _⇔_.to (cast τ iso) (f₁ (_⇔_.from (cast σ iso) x₂))  ≡⟨ cong (λ f → f x₂) f₁∼f₂ ⟩∎
-          f₂ x₂                                                ∎)
+          _≈_.to (cast ext τ iso) (f₁ x₁)                              ≡⟨ cong (_≈_.to (cast ext τ iso) ∘ f₁) $ sym $
+                                                                               _≈_.to-from (cast ext σ iso) $ to σ x₁∼x₂ ⟩
+          _≈_.to (cast ext τ iso) (f₁ (_≈_.from (cast ext σ iso) x₂))  ≡⟨ cong (λ f → f x₂) f₁∼f₂ ⟩∎
+          f₂ x₂                                                        ∎)
 
     -- The equality that we get from a cast (via ≈⇒≡) can also be
     -- obtained from isomorphic-equal.
@@ -501,7 +468,7 @@ Simple {s} σ = record
       (univ : Univalence-axiom lzero) →
       ∀ (σ : Simple-type s) {s₁ s₂} (iso : Isomorphism s s₁ s₂) →
       cong ⟦ σ ⟧⟶ (isomorphic-equal ext univ s iso) ≡
-        ≈⇒≡ univ (cast-≈ ext σ iso)
+        ≈⇒≡ univ (cast ext σ iso)
     cast-lemma ext univ (base A)  iso = Typ-equ A ext univ iso
     cast-lemma ext univ (σ₁ ⟶ σ₂) iso =
       let iso-eq = isomorphic-equal ext univ s iso in
@@ -510,10 +477,10 @@ Simple {s} σ = record
 
       cong₂ (λ A B → A → B) (cong ⟦ σ₁ ⟧⟶ iso-eq) (cong ⟦ σ₂ ⟧⟶ iso-eq)  ≡⟨ cong₂ (cong₂ (λ A B → A → B)) (cast-lemma ext univ σ₁ iso)
                                                                                                           (cast-lemma ext univ σ₂ iso) ⟩
-      cong₂ (λ A B → A → B) (≈⇒≡ univ (cast-≈ ext σ₁ iso))
-                            (≈⇒≡ univ (cast-≈ ext σ₂ iso))               ≡⟨ sym $ ≈⇒≡-→-cong ext univ (cast-≈ ext σ₁ iso)
-                                                                                                      (cast-≈ ext σ₂ iso) ⟩∎
-      ≈⇒≡ univ (→-cong ext (cast-≈ ext σ₁ iso) (cast-≈ ext σ₂ iso))      ∎
+      cong₂ (λ A B → A → B) (≈⇒≡ univ (cast ext σ₁ iso))
+                            (≈⇒≡ univ (cast ext σ₂ iso))                 ≡⟨ sym $ ≈⇒≡-→-cong ext univ (cast ext σ₁ iso) (cast ext σ₂ iso) ⟩∎
+
+      ≈⇒≡ univ (→-cong ext (cast ext σ₁ iso) (cast ext σ₂ iso))          ∎
 
     -- The main lemma: If there is an isomorphism from f₁ to f₂, then
     -- a certain instance of subst maps f₁ to f₂.
@@ -527,12 +494,11 @@ Simple {s} σ = record
     main-lemma ext univ {f₁ = f₁} {f₂} iso i =
       let iso-eq = isomorphic-equal ext univ s iso in
 
-      subst (↑ _ ∘ ⟦ σ ⟧⟶) iso-eq f₁                ≡⟨ subst-∘ (↑ _) ⟦ σ ⟧⟶ _ ⟩
-      subst (↑ _) (cong ⟦ σ ⟧⟶ iso-eq) f₁           ≡⟨ cong (λ p → subst (↑ _) p f₁) (cast-lemma ext univ σ iso) ⟩
-      subst (↑ _) (≈⇒≡ univ (cast-≈ ext σ iso)) f₁  ≡⟨ sym $ subst-unique (↑ _) (λ A≈B → lift ∘ _≈_.to A≈B ∘ lower) refl univ _ _ ⟩
-      lift (_≈_.to (cast-≈ ext σ iso) (lower f₁))   ≡⟨ cong (λ g → lift (_⇔_.to g (lower f₁))) $ cast-cast ext σ iso ⟩
-      lift (_⇔_.to (cast       σ iso) (lower f₁))   ≡⟨ cong lift $ _⇔_.to (isomorphism-definitions-equivalent ext iso σ) i ⟩∎
-      f₂                                            ∎
+      subst (↑ _ ∘ ⟦ σ ⟧⟶) iso-eq f₁              ≡⟨ subst-∘ (↑ _) ⟦ σ ⟧⟶ _ ⟩
+      subst (↑ _) (cong ⟦ σ ⟧⟶ iso-eq) f₁         ≡⟨ cong (λ p → subst (↑ _) p f₁) (cast-lemma ext univ σ iso) ⟩
+      subst (↑ _) (≈⇒≡ univ (cast ext σ iso)) f₁  ≡⟨ sym $ subst-unique (↑ _) (λ A≈B → lift ∘ _≈_.to A≈B ∘ lower) refl univ _ _ ⟩
+      lift (_≈_.to (cast ext σ iso) (lower f₁))   ≡⟨ cong lift $ _⇔_.to (isomorphism-definitions-equivalent ext iso σ) i ⟩∎
+      f₂                                          ∎
 
 ------------------------------------------------------------------------
 -- Some example structures
