@@ -22,6 +22,7 @@ open import H-level eq
 open import H-level.Closure eq
 open import Injection eq using (Injective)
 open import Prelude
+open import Surjection eq hiding (id; _∘_)
 open import Weak-equivalence eq as Weak
   hiding (id) renaming (_∘_ to _⊚_)
 
@@ -158,28 +159,6 @@ abstract
     subst P (from A≈B) p    ∎
     where open _≈_ (≡≈≈ univ)
 
-  -- An aside: A variant of subst-unique. (This lemma is not used to
-  -- prove extensionality for functions.)
-
-  subst-unique′ :
-    ∀ {a p r} {A : Set a}
-    (P : A → Set p) (R : A → A → Set r)
-    (eq-is-R : ∀ {x y} → (x ≡ y) ≈ R x y)
-    (resp : ∀ {x y} → R x y → P x → P y) →
-    (∀ x p → resp (_≈_.to eq-is-R (refl x)) p ≡ p) →
-    ∀ {x y} (r : R x y) (p : P x) →
-    resp r p ≡ subst P (_≈_.from eq-is-R r) p
-  subst-unique′ P R eq-is-R resp hyp r p =
-    resp r p              ≡⟨ sym $ cong (λ r → resp r p) (right-inverse-of r) ⟩
-    resp (to (from r)) p  ≡⟨ elim (λ {x y} x≡y → ∀ p →
-                                     resp (_≈_.to eq-is-R x≡y) p ≡ subst P x≡y p)
-                                  (λ x p →
-                                     resp (_≈_.to eq-is-R (refl x)) p  ≡⟨ hyp x p ⟩
-                                     p                                 ≡⟨ sym $ subst-refl P p ⟩∎
-                                     subst P (refl x) p                ∎) _ _ ⟩∎
-    subst P (from r) p    ∎
-    where open _≈_ eq-is-R
-
   -- If the univalence axiom holds, then any "resp" function
   -- satisfying resp Weak.id p ≡ p is a weak equivalence family.
 
@@ -315,6 +294,27 @@ abstract
 -- More lemmas
 
 abstract
+
+  -- A variant of subst-unique.
+
+  subst-unique′ :
+    ∀ {a p r} {A : Set a}
+    (P : A → Set p) (R : A → A → Set r)
+    (≡↠R : ∀ {x y} → (x ≡ y) ↠ R x y)
+    (resp : ∀ {x y} → R x y → P x → P y) →
+    (∀ x p → resp (_↠_.to ≡↠R (refl x)) p ≡ p) →
+    ∀ {x y} (r : R x y) (p : P x) →
+    resp r p ≡ subst P (_↠_.from ≡↠R r) p
+  subst-unique′ P R ≡↠R resp hyp r p =
+    resp r p              ≡⟨ sym $ cong (λ r → resp r p) (right-inverse-of r) ⟩
+    resp (to (from r)) p  ≡⟨ elim (λ {x y} x≡y → ∀ p →
+                                     resp (_↠_.to ≡↠R x≡y) p ≡ subst P x≡y p)
+                                  (λ x p →
+                                     resp (_↠_.to ≡↠R (refl x)) p  ≡⟨ hyp x p ⟩
+                                     p                             ≡⟨ sym $ subst-refl P p ⟩∎
+                                     subst P (refl x) p            ∎) _ _ ⟩∎
+    subst P (from r) p    ∎
+    where open _↠_ ≡↠R
 
   -- "Evaluation rule" for ≡⇒≈.
 
