@@ -25,6 +25,15 @@ open import Weak-equivalence eq as Weak
   using (_≈_; module _≈_; bijection⇒weak-equivalence)
 
 ------------------------------------------------------------------------
+-- A record packing up certain assumptions
+
+record Assumptions : Set₂ where
+  field
+    ext   : Extensionality (# 1) (# 1)
+    univ  : Univalence-axiom (# 0)
+    univ₁ : Univalence-axiom (# 1)
+
+------------------------------------------------------------------------
 -- A class of algebraic structures
 
 -- An algebraic structure universe.
@@ -48,12 +57,10 @@ mutual
       Iso : {s₁ s₂ : ⟦ s ⟧} →
             Ext s₁ → Ext s₂ → Isomorphism s s₁ s₂ → Set₁
 
-      hyp : (ext : Extensionality (# 1) (# 1))
-            (univ : Univalence-axiom (# 0))
-            (univ₁ : Univalence-axiom (# 1))
+      hyp : (ass : Assumptions) →
             {s₁ s₂ : ⟦ s ⟧} {x₁ : Ext s₁} {x₂ : Ext s₂}
             (iso : Isomorphism s s₁ s₂) (i : Iso x₁ x₂ iso) →
-            subst Ext (isomorphic-equal ext univ univ₁ s iso) x₁ ≡ x₂
+            subst Ext (isomorphic-equal ass s iso) x₁ ≡ x₂
 
   -- Interpretation of the codes.
 
@@ -71,17 +78,13 @@ mutual
   -- Isomorphic structures are equal (assuming extensionality and
   -- univalence).
 
-  isomorphic-equal :
-    Extensionality (# 1) (# 1) →
-    Univalence-axiom (# 0) →
-    Univalence-axiom (# 1) →
-    (s : Structure) {s₁ s₂ : ⟦ s ⟧} →
-    Isomorphism s s₁ s₂ → s₁ ≡ s₂
-  isomorphic-equal _ _ _ ε _ = refl _
-  isomorphic-equal ext univ univ₁
-                   (s ▻ e) {s₁ , x₁} {s₂ , x₂} (iso , i) =
-    (s₁ , x₁)  ≡⟨ Σ-≡,≡→≡ (isomorphic-equal ext univ univ₁ s iso)
-                          (Extension.hyp e ext univ univ₁ iso i) ⟩∎
+  isomorphic-equal : Assumptions →
+                     (s : Structure) {s₁ s₂ : ⟦ s ⟧} →
+                     Isomorphism s s₁ s₂ → s₁ ≡ s₂
+  isomorphic-equal _   ε                           _         = refl _
+  isomorphic-equal ass (s ▻ e) {s₁ , x₁} {s₂ , x₂} (iso , i) =
+    (s₁ , x₁)  ≡⟨ Σ-≡,≡→≡ (isomorphic-equal ass s iso)
+                          (Extension.hyp e ass iso i) ⟩∎
     (s₂ , x₂)  ∎
 
 open Extension public
@@ -100,11 +103,9 @@ record Type-extractor (s : Structure) : Set₂ where
     equ : ∀ {s₁ s₂} → Isomorphism s s₁ s₂ → Typ s₁ ≈ Typ s₂
 
     -- Typ and equ are related via isomorphic-equal.
-    Typ-equ : (ext : Extensionality (# 1) (# 1))
-              (univ : Univalence-axiom (# 0))
-              (univ₁ : Univalence-axiom (# 1))
+    Typ-equ : (ass : Assumptions) → let open Assumptions ass in
               {s₁ s₂ : ⟦ s ⟧} (iso : Isomorphism s s₁ s₂) →
-              cong Typ (isomorphic-equal ext univ univ₁ s iso) ≡
+              cong Typ (isomorphic-equal ass s iso) ≡
               ≈⇒≡ univ (equ iso)
 
 -- Constant type extractor.
@@ -117,17 +118,16 @@ record Type-extractor (s : Structure) : Set₂ where
   }
   where
   abstract
-    Typ-equ : (ext : Extensionality (# 1) (# 1))
-              (univ : Univalence-axiom (# 0))
-              (univ₁ : Univalence-axiom (# 1)) →
+    Typ-equ : (ass : Assumptions) → let open Assumptions ass in
               ∀ {s₁ s₂} (iso : Isomorphism s s₁ s₂) →
-              cong (λ _ → A) (isomorphic-equal ext univ univ₁ s iso) ≡
+              cong (λ _ → A) (isomorphic-equal ass s iso) ≡
               ≈⇒≡ univ Weak.id
-    Typ-equ _ univ _ _ =
+    Typ-equ ass _ =
       cong (λ _ → A) _         ≡⟨ cong-const _ ⟩
       refl A                   ≡⟨ sym $ _≈_.left-inverse-of (≡≈≈ univ) (refl A) ⟩
       ≈⇒≡ univ (≡⇒≈ (refl A))  ≡⟨ cong (≈⇒≡ univ) ≡⇒≈-refl ⟩∎
       ≈⇒≡ univ Weak.id         ∎
+      where open Assumptions ass
 
 -- Successor type extractor.
 
@@ -143,19 +143,17 @@ infix 6 1+_
   open Type-extractor extract
 
   abstract
-    Typ-equ′ :
-      (ext : Extensionality (# 1) (# 1))
-      (univ : Univalence-axiom (# 0))
-      (univ₁ : Univalence-axiom (# 1)) →
-      ∀ {s₁ s₂} (iso : Isomorphism (s ▻ e) s₁ s₂) →
-      cong (Typ ∘ proj₁) (isomorphic-equal ext univ univ₁ (s ▻ e) iso) ≡
-      ≈⇒≡ univ (equ (proj₁ iso))
-    Typ-equ′ ext univ univ₁ (iso , i) =
-      let iso-eq = isomorphic-equal ext univ univ₁ in
+    Typ-equ′ : (ass : Assumptions) → let open Assumptions ass in
+               ∀ {s₁ s₂} (iso : Isomorphism (s ▻ e) s₁ s₂) →
+               cong (Typ ∘ proj₁) (isomorphic-equal ass (s ▻ e) iso) ≡
+               ≈⇒≡ univ (equ (proj₁ iso))
+    Typ-equ′ ass (iso , i) =
+      let open Assumptions ass
+          iso-eq = isomorphic-equal ass in
 
       cong (Typ ∘ proj₁) (iso-eq (s ▻ e) (iso , i))     ≡⟨ sym $ cong-∘ Typ proj₁ (iso-eq (s ▻ e) (iso , i)) ⟩
       cong Typ (cong proj₁ $ iso-eq (s ▻ e) (iso , i))  ≡⟨ cong (cong Typ) $ proj₁-Σ-≡,≡→≡ _ _ ⟩
-      cong Typ (iso-eq s iso)                           ≡⟨ Typ-equ ext univ univ₁ iso ⟩∎
+      cong Typ (iso-eq s iso)                           ≡⟨ Typ-equ ass iso ⟩∎
       ≈⇒≡ univ (equ iso)                                ∎
 
 ------------------------------------------------------------------------
@@ -167,7 +165,9 @@ Type : ∀ {s} → Extension s
 Type {s} = record
   { Ext = λ _ → Set
   ; Iso = λ A B _ → ↑ _ (A ↔ B)
-  ; hyp = λ { _ univ _ {x₁ = A} {x₂ = B} _ (lift bij) →
+  ; hyp = λ { ass {x₁ = A} {x₂ = B} _ (lift bij) →
+      let open Assumptions ass in
+
       subst (λ _ → Set) _ A  ≡⟨ subst-const ⟩
       A                      ≡⟨ ≈⇒≡ univ (bijection⇒weak-equivalence bij) ⟩∎
       B                      ∎ }
@@ -183,15 +183,13 @@ Type {s} = record
   }
   where
   abstract
-    Typ-equ :
-      (ext : Extensionality (# 1) (# 1))
-      (univ : Univalence-axiom (# 0))
-      (univ₁ : Univalence-axiom (# 1)) →
-      ∀ {s₁ s₂} (iso : Isomorphism (s ▻ Type) s₁ s₂) →
-      cong proj₂ (isomorphic-equal ext univ univ₁ (s ▻ Type) iso) ≡
-      ≈⇒≡ univ (bijection⇒weak-equivalence $ lower $ proj₂ iso)
-    Typ-equ ext univ univ₁ (iso , lift A↔B) =
-      let iso-eq = isomorphic-equal ext univ univ₁ s iso
+    Typ-equ : (ass : Assumptions) → let open Assumptions ass in
+              ∀ {s₁ s₂} (iso : Isomorphism (s ▻ Type) s₁ s₂) →
+              cong proj₂ (isomorphic-equal ass (s ▻ Type) iso) ≡
+              ≈⇒≡ univ (bijection⇒weak-equivalence $ lower $ proj₂ iso)
+    Typ-equ ass (iso , lift A↔B) =
+      let open Assumptions ass
+          iso-eq = isomorphic-equal ass s iso
           A≡B = ≈⇒≡ univ $ bijection⇒weak-equivalence A↔B in
 
       cong proj₂ (Σ-≡,≡→≡ iso-eq (trans subst-const A≡B))  ≡⟨ cong (cong proj₂) $ Σ-≡,≡→≡-subst-const _ _ ⟩
@@ -212,10 +210,7 @@ Proposition : ∀ {s} →
 
               -- The proposition must be propositional (given some
               -- assumptions).
-              (Extensionality (# 1) (# 1) →
-               Univalence-axiom (# 0) →
-               Univalence-axiom (# 1) →
-               ∀ s → Propositional (P s)) →
+              (Assumptions → ∀ s → Propositional (P s)) →
 
               Extension s
 Proposition {s} P prop = record
@@ -225,16 +220,14 @@ Proposition {s} P prop = record
   }
   where
   abstract
-    hyp′ : (ext : Extensionality (# 1) (# 1))
-           (univ : Univalence-axiom (# 0))
-           (univ₁ : Univalence-axiom (# 1)) →
+    hyp′ : (ass : Assumptions) →
            ∀ {s₁ s₂} {x₁ : ↑ (# 1) (P s₁)} {x₂ : ↑ _ (P s₂)}
            (iso : Isomorphism s s₁ s₂) (i : ↑ (# 1) ⊤) →
-           subst (↑ _ ∘ P) (isomorphic-equal ext univ univ₁ s iso) x₁ ≡
+           subst (↑ _ ∘ P) (isomorphic-equal ass s iso) x₁ ≡
            x₂
-    hyp′ ext univ univ₁ _ _ =
+    hyp′ ass _ _ =
       _⇔_.to propositional⇔irrelevant
-             (↑-closure 1 $ prop ext univ univ₁ _)
+             (↑-closure 1 $ prop ass _)
              _ _
 
 -- The proposition stating that a given type is a set.
@@ -245,13 +238,11 @@ Is-a-set extract = Proposition (Is-set ∘ Typ) Is-set-prop
   open Type-extractor extract
 
   abstract
-    Is-set-prop :
-      Extensionality (# 1) (# 1) →
-      Univalence-axiom (# 0) →
-      Univalence-axiom (# 1) →
-      ∀ s → Propositional (Is-set (Typ s))
-    Is-set-prop ext _ _ _ =
+    Is-set-prop : Assumptions →
+                  ∀ s → Propositional (Is-set (Typ s))
+    Is-set-prop ass _ =
       H-level-propositional (lower-extensionality _ _ ext) 2
+      where open Assumptions ass
 
 ------------------------------------------------------------------------
 -- An "extension": n-ary functions
@@ -363,22 +354,21 @@ N-ary {s} extract n = record
     -- a certain instance of subst maps f₁ to f₂.
 
     main-lemma :
-      (ext : Extensionality (# 1) (# 1))
-      (univ : Univalence-axiom (# 0))
-      (univ₁ : Univalence-axiom (# 1)) →
+      (ass : Assumptions) →
       ∀ {s₁ s₂ f₁} {f₂ : ↑ (# 1) _}
       (iso : Isomorphism s s₁ s₂) →
       ↑ (# 1)
         (Is- n -ary-morphism (lower f₁) (lower f₂) (_≈_.to (equ iso))) →
       subst (λ s → ↑ _ (Typ s ^ n ⟶ Typ s))
-            (isomorphic-equal ext univ univ₁ s iso) f₁ ≡
+            (isomorphic-equal ass s iso) f₁ ≡
       f₂
-    main-lemma ext univ univ₁ {f₁ = f₁} {f₂} iso (lift i) =
-      let iso-eq = isomorphic-equal ext univ univ₁ s iso
+    main-lemma ass {f₁ = f₁} {f₂} iso (lift i) =
+      let open Assumptions ass
+          iso-eq = isomorphic-equal ass s iso
           lf₁ = lower f₁; lf₂ = lower f₂ in
 
       subst (λ s → ↑ _ (Typ s ^ n ⟶ Typ s)) iso-eq f₁          ≡⟨ subst-∘ (λ A → ↑ _ (A ^ n ⟶ A)) Typ _ ⟩
-      subst (λ A → ↑ _ (A ^ n ⟶ A)) (cong Typ iso-eq) f₁       ≡⟨ cong (λ eq → subst (λ A → ↑ _ (A ^ n ⟶ A)) eq f₁) $ Typ-equ ext univ univ₁ iso ⟩
+      subst (λ A → ↑ _ (A ^ n ⟶ A)) (cong Typ iso-eq) f₁       ≡⟨ cong (λ eq → subst (λ A → ↑ _ (A ^ n ⟶ A)) eq f₁) $ Typ-equ ass iso ⟩
       subst (λ A → ↑ _ (A ^ n ⟶ A)) (≈⇒≡ univ (equ iso)) f₁    ≡⟨ subst-↑ (λ A → A ^ n ⟶ A) ⟩
       lift (subst (λ A → A ^ n ⟶ A) (≈⇒≡ univ (equ iso)) lf₁)  ≡⟨ cong lift $ subst-isomorphism (λ _ → lower-extensionality _ _ ext)
                                                                                                 univ (equ iso) n lf₁ lf₂ i ⟩∎
@@ -479,23 +469,22 @@ Simple {s} σ = record
     -- obtained from isomorphic-equal.
 
     cast-lemma :
-      (ext : Extensionality (# 1) (# 1))
-      (univ : Univalence-axiom (# 0))
-      (univ₁ : Univalence-axiom (# 1)) →
+      (ass : Assumptions) → let open Assumptions ass in
       ∀ (σ : Simple-type s) {s₁ s₂} (iso : Isomorphism s s₁ s₂) →
-      cong ⟦ σ ⟧⟶ (isomorphic-equal ext univ univ₁ s iso) ≡
+      cong ⟦ σ ⟧⟶ (isomorphic-equal ass s iso) ≡
       ≈⇒≡ univ (cast (lower-extensionality _ _ ext) σ iso)
-    cast-lemma ext univ univ₁ (base A)  iso = Typ-equ A ext univ univ₁ iso
-    cast-lemma ext univ univ₁ (σ₁ ⟶ σ₂) iso =
-      let iso-eq = isomorphic-equal ext univ univ₁ s iso
+    cast-lemma ass (base A)  iso = Typ-equ A ass iso
+    cast-lemma ass (σ₁ ⟶ σ₂) iso =
+      let open Assumptions ass
+          iso-eq = isomorphic-equal ass s iso
 
           ext₀ : Extensionality (# 0) (# 0)
           ext₀ = lower-extensionality _ _ ext in
 
       cong ⟦ σ₁ ⟶ σ₂ ⟧⟶ iso-eq                                           ≡⟨ sym $ cong₂-cong-cong ⟦ σ₁ ⟧⟶ ⟦ σ₂ ⟧⟶ (λ A B → A → B) ⟩
 
-      cong₂ (λ A B → A → B) (cong ⟦ σ₁ ⟧⟶ iso-eq) (cong ⟦ σ₂ ⟧⟶ iso-eq)  ≡⟨ cong₂ (cong₂ (λ A B → A → B)) (cast-lemma ext univ univ₁ σ₁ iso)
-                                                                                                          (cast-lemma ext univ univ₁ σ₂ iso) ⟩
+      cong₂ (λ A B → A → B) (cong ⟦ σ₁ ⟧⟶ iso-eq) (cong ⟦ σ₂ ⟧⟶ iso-eq)  ≡⟨ cong₂ (cong₂ (λ A B → A → B)) (cast-lemma ass σ₁ iso)
+                                                                                                          (cast-lemma ass σ₂ iso) ⟩
       cong₂ (λ A B → A → B) (≈⇒≡ univ (cast ext₀ σ₁ iso))
                             (≈⇒≡ univ (cast ext₀ σ₂ iso))                ≡⟨ sym $ ≈⇒≡-→-cong ext₀ univ (cast ext₀ σ₁ iso) (cast ext₀ σ₂ iso) ⟩∎
 
@@ -505,21 +494,20 @@ Simple {s} σ = record
     -- a certain instance of subst maps f₁ to f₂.
 
     main-lemma :
-      (ext : Extensionality (# 1) (# 1))
-      (univ : Univalence-axiom (# 0))
-      (univ₁ : Univalence-axiom (# 1)) →
+      (ass : Assumptions) →
       ∀ {s₁ s₂ f₁} {f₂ : ↑ (# 1) _} (iso : Isomorphism s s₁ s₂) →
       ↑ (# 1) (Is-isomorphism σ (lower f₁) (lower f₂) iso) →
-      subst (↑ _ ∘ ⟦ σ ⟧⟶) (isomorphic-equal ext univ univ₁ s iso) f₁ ≡
+      subst (↑ _ ∘ ⟦ σ ⟧⟶) (isomorphic-equal ass s iso) f₁ ≡
       f₂
-    main-lemma ext univ univ₁ {f₁ = f₁} {f₂} iso (lift i) =
-      let iso-eq = isomorphic-equal ext univ univ₁ s iso
+    main-lemma ass {f₁ = f₁} {f₂} iso (lift i) =
+      let open Assumptions ass
+          iso-eq = isomorphic-equal ass s iso
 
           ext₀ : Extensionality (# 0) (# 0)
           ext₀ = lower-extensionality _ _ ext in
 
       subst (↑ _ ∘ ⟦ σ ⟧⟶) iso-eq f₁               ≡⟨ subst-∘ (↑ _) ⟦ σ ⟧⟶ _ ⟩
-      subst (↑ _) (cong ⟦ σ ⟧⟶ iso-eq) f₁          ≡⟨ cong (λ p → subst (↑ _) p f₁) (cast-lemma ext univ univ₁ σ iso) ⟩
+      subst (↑ _) (cong ⟦ σ ⟧⟶ iso-eq) f₁          ≡⟨ cong (λ p → subst (↑ _) p f₁) (cast-lemma ass σ iso) ⟩
       subst (↑ _) (≈⇒≡ univ (cast ext₀ σ iso)) f₁  ≡⟨ sym $ subst-unique (↑ _) (λ A≈B → lift ∘ _≈_.to A≈B ∘ lower) refl univ _ _ ⟩
       lift (_≈_.to (cast ext₀ σ iso) (lower f₁))   ≡⟨ cong lift $ _⇔_.to (isomorphism-definitions-equivalent ext₀ iso σ) i ⟩∎
       f₂                                           ∎
@@ -575,7 +563,8 @@ semigroup =
       assoc-prop
 
   where
-  assoc-prop = λ { ext _ _ ((_ , lift A-set) , _) →
+  assoc-prop = λ { ass ((_ , lift A-set) , _) →
+    let open Assumptions ass in
     Π-closure (lower-extensionality _ _ ext) 1 λ _ →
     Π-closure (lower-extensionality _ _ ext) 1 λ _ →
     Π-closure (lower-extensionality _ _ ext) 1 λ _ →
@@ -632,7 +621,8 @@ set-with-fixed-point-operator =
       fix-point-prop
 
   where
-  fix-point-prop = λ { ext _ _ ((_ , lift A-set) , _) →
+  fix-point-prop = λ { ass ((_ , lift A-set) , _) →
+    let open Assumptions ass in
     Π-closure (lower-extensionality _ _ ext) 1 λ _ →
     A-set _ _ }
 
@@ -717,7 +707,8 @@ abelian-group =
     (λ { (_ , lift _∙_) →
        ∀ x y → x ∙ y ≡ y ∙ x })
 
-    (λ { ext _ _ ((_ , lift A-set) , _) →
+    (λ { ass ((_ , lift A-set) , _) →
+       let open Assumptions ass in
        Π-closure (lower-extensionality _ _ ext) 1 λ _ →
        Π-closure (lower-extensionality _ _ ext) 1 λ _ →
        A-set _ _
@@ -729,7 +720,8 @@ abelian-group =
     (λ { ((_ , lift _∙_) , _) →
          ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
 
-    (λ { ext _ _ (((_ , lift A-set) , _) , _) →
+    (λ { ass (((_ , lift A-set) , _) , _) →
+       let open Assumptions ass in
        Π-closure (lower-extensionality _ _ ext) 1 λ _ →
        Π-closure (lower-extensionality _ _ ext) 1 λ _ →
        Π-closure (lower-extensionality _ _ ext) 1 λ _ →
@@ -742,7 +734,8 @@ abelian-group =
     (λ { ((((_ , lift _∙_) , _) , _) , lift e) →
          ∀ x → e ∙ x ≡ x })
 
-    (λ { ext _ _ (((((_ , lift A-set) , _) , _) , _) , _) →
+    (λ { ass (((((_ , lift A-set) , _) , _) , _) , _) →
+       let open Assumptions ass in
        Π-closure (lower-extensionality _ _ ext) 1 λ _ →
        A-set _ _
      })
@@ -753,7 +746,8 @@ abelian-group =
     (λ { (((((_ , lift _∙_) , _) , _) , lift e) , _) →
          ∀ x → x ∙ e ≡ x })
 
-    (λ { ext _ _ ((((((_ , lift A-set) , _) , _) , _) , _) , _) →
+    (λ { ass ((((((_ , lift A-set) , _) , _) , _) , _) , _) →
+       let open Assumptions ass in
        Π-closure (lower-extensionality _ _ ext) 1 λ _ →
        A-set _ _
      })
@@ -765,7 +759,8 @@ abelian-group =
     (λ { (((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) →
          ∀ x → (x ⁻¹) ∙ x ≡ e })
 
-    (λ { ext _ _ ((((((((_ , lift A-set) , _) , _) , _) , _) , _) , _) , _) →
+    (λ { ass ((((((((_ , lift A-set) , _) , _) , _) , _) , _) , _) , _) →
+       let open Assumptions ass in
        Π-closure (lower-extensionality _ _ ext) 1 λ _ →
        A-set _ _
      })
@@ -776,7 +771,8 @@ abelian-group =
     (λ { ((((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) , _) →
          ∀ x → x ∙ (x ⁻¹) ≡ e })
 
-    (λ { ext _ _ (((((((((_ , lift A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
+    (λ { ass (((((((((_ , lift A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
+       let open Assumptions ass in
        Π-closure (lower-extensionality _ _ ext) 1 λ _ →
        A-set _ _
      })
