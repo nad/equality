@@ -148,6 +148,12 @@ abstract
   m≤m+n zero    n = zero≤ n
   m≤m+n (suc m) n = suc≤suc (m≤m+n m n)
 
+-- Translation from natural numbers to levels.
+
+# : ℕ → Level
+# zero    = lzero
+# (suc n) = lsuc (# n)
+
 ------------------------------------------------------------------------
 -- Simple combinators working solely on and with functions
 
