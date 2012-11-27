@@ -499,8 +499,7 @@ module Derived-definitions-and-properties
 
   abstract
 
-    -- Universal extensionality at given levels works at lower levels
-    -- as well.
+    -- Extensionality at given levels works at lower levels as well.
 
     lower-extensionality :
       ∀ {a} â {b} b̂ →
@@ -870,7 +869,7 @@ module Derived-definitions-and-properties
 
   abstract
 
-    -- "Evaluation rules" for subst₂.
+    -- "Evaluation rule" for subst₂.
 
     subst₂-refl-refl :
       ∀ {a b p} {A : Set a} {B : A → Set b}
