@@ -429,3 +429,26 @@ abstract
 
       to (≡⇒≈ (cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂)
                                      (≈⇒≡ univ B₁≈B₂)))  ∎
+
+  -- One can sometimes push cong through ≈⇒≡ (assuming
+  -- extensionality).
+
+  cong-≈⇒≡ :
+    ∀ {ℓ p} {A B : Set ℓ} {A≈B : A ≈ B} →
+    Extensionality p p →
+    (univ₁ : Univalence-axiom ℓ)
+    (univ₂ : Univalence-axiom p)
+    (P : Set ℓ → Set p)
+    (P-cong : ∀ {A B} → A ≈ B → P A ≈ P B) →
+    (∀ {A} (p : P A) → _≈_.to (P-cong Weak.id) p ≡ p) →
+    cong P (≈⇒≡ univ₁ A≈B) ≡ ≈⇒≡ univ₂ (P-cong A≈B)
+  cong-≈⇒≡ {A≈B = A≈B} ext univ₁ univ₂ P P-cong P-cong-id =
+    cong P (≈⇒≡ univ₁ A≈B)                    ≡⟨ sym $ _≈_.left-inverse-of (≡≈≈ univ₂) _ ⟩
+    ≈⇒≡ univ₂ (≡⇒≈ (cong P (≈⇒≡ univ₁ A≈B)))  ≡⟨ cong (≈⇒≡ univ₂) $ lift-equality ext lemma ⟩∎
+    ≈⇒≡ univ₂ (P-cong A≈B)                    ∎
+    where
+    lemma : ≡⇒→ (cong P (≈⇒≡ univ₁ A≈B)) ≡ _≈_.to (P-cong A≈B)
+    lemma = ext λ x →
+      ≡⇒→ (cong P (≈⇒≡ univ₁ A≈B)) x  ≡⟨ sym $ subst-in-terms-of-≡⇒≈ P x ⟩
+      subst P (≈⇒≡ univ₁ A≈B) x       ≡⟨ sym $ subst-unique P (_≈_.to ∘ P-cong) P-cong-id univ₁ A≈B x ⟩∎
+      _≈_.to (P-cong A≈B) x           ∎
