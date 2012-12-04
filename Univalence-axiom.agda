@@ -48,9 +48,12 @@ Univalence-axiom ℓ = {A B : Set ℓ} → Univalence-axiom′ A B
 ≡≈≈ : ∀ {ℓ} {A B : Set ℓ} → Univalence-axiom′ A B → (A ≡ B) ≈ (A ≈ B)
 ≡≈≈ univ = weq ≡⇒≈ univ
 
--- An abbreviation.
+-- Some abbreviations.
 
-≈⇒≡ : ∀ {ℓ} {A B : Set ℓ} → Univalence-axiom′ A B → (A ≈ B) → (A ≡ B)
+≡⇒→ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A → B
+≡⇒→ = _≈_.to ∘ ≡⇒≈
+
+≈⇒≡ : ∀ {ℓ} {A B : Set ℓ} → Univalence-axiom′ A B → A ≈ B → A ≡ B
 ≈⇒≡ univ = _≈_.from (≡≈≈ univ)
 
 ------------------------------------------------------------------------
@@ -322,6 +325,12 @@ abstract
              ≡⇒≈ (refl A) ≡ Weak.id
   ≡⇒≈-refl = elim-refl (λ {A B} _ → A ≈ B) _
 
+  -- "Evaluation rule" for ≡⇒→.
+
+  ≡⇒→-refl : ∀ {a} {A : Set a} →
+             ≡⇒→ (refl A) ≡ id
+  ≡⇒→-refl = cong _≈_.to ≡⇒≈-refl
+
   -- "Evaluation rule" (?) for ≈⇒≡.
 
   ≈⇒≡-id : ∀ {a} {A : Set a}
@@ -351,16 +360,16 @@ abstract
 
   subst-in-terms-of-≡⇒≈ :
     ∀ {ℓ p} {A B : Set ℓ} {A≡B : A ≡ B} (P : Set ℓ → Set p) p →
-    subst P A≡B p ≡ _≈_.to (≡⇒≈ (cong P A≡B)) p
+    subst P A≡B p ≡ ≡⇒→ (cong P A≡B) p
   subst-in-terms-of-≡⇒≈ P p = elim¹
 
-    (λ eq → subst P eq p ≡ _≈_.to (≡⇒≈ (cong P eq)) p)
+    (λ eq → subst P eq p ≡ ≡⇒→ (cong P eq) p)
 
-    (subst P (refl _) p                ≡⟨ subst-refl P p ⟩
-     p                                 ≡⟨⟩
-     _≈_.to Weak.id p                  ≡⟨ sym $ cong (λ eq → _≈_.to eq p) ≡⇒≈-refl ⟩
-     _≈_.to (≡⇒≈ (refl _)) p           ≡⟨ sym $ cong (λ eq → _≈_.to (≡⇒≈ eq) p) $ cong-refl P ⟩∎
-     _≈_.to (≡⇒≈ (cong P (refl _))) p  ∎)
+    (subst P (refl _) p       ≡⟨ subst-refl P p ⟩
+     p                        ≡⟨⟩
+     _≈_.to Weak.id p         ≡⟨ sym $ cong (λ eq → _≈_.to eq p) ≡⇒≈-refl ⟩
+     ≡⇒→ (refl _) p           ≡⟨ sym $ cong (λ eq → ≡⇒→ eq p) $ cong-refl P ⟩∎
+     ≡⇒→ (cong P (refl _)) p  ∎)
 
     _
 
