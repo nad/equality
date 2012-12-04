@@ -341,6 +341,22 @@ abstract
     ≈⇒≡ univ (≡⇒≈ (refl _))  ≡⟨ _≈_.left-inverse-of (≡≈≈ univ) _ ⟩∎
     refl _                   ∎
 
+  -- ≡⇒≈ commutes with sym/Weak.inverse (assuming extensionality).
+
+  ≡⇒≈-sym :
+    ∀ {ℓ} → Extensionality ℓ ℓ →
+    {A B : Set ℓ} (A≡B : A ≡ B) →
+    ≡⇒≈ (sym A≡B) ≡ Weak.inverse (≡⇒≈ A≡B)
+  ≡⇒≈-sym ext = elim¹
+
+    (λ eq → ≡⇒≈ (sym eq) ≡ Weak.inverse (≡⇒≈ eq))
+
+    (≡⇒≈ (sym (refl _))           ≡⟨ cong ≡⇒≈ sym-refl ⟩
+     ≡⇒≈ (refl _)                 ≡⟨ ≡⇒≈-refl ⟩
+     Weak.id                      ≡⟨ sym $ Groupoid.identity (Weak.groupoid ext) ⟩
+     Weak.inverse Weak.id         ≡⟨ cong Weak.inverse $ sym ≡⇒≈-refl ⟩∎
+     Weak.inverse (≡⇒≈ (refl _))  ∎)
+
   -- ≡⇒≈ commutes with trans/_⊚_ (assuming extensionality).
 
   ≡⇒≈-trans :
