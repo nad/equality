@@ -12,14 +12,14 @@ open import Equality
 module Univalence-axiom.Isomorphism-implies-equality.Examples
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq
+open import Bijection eq hiding (id)
 open Derived-definitions-and-properties eq
-open import Equivalence
+open import Equivalence using (module _⇔_)
 open import H-level eq
 open import H-level.Closure eq
-open import Prelude
+open import Prelude hiding (id)
 open import Univalence-axiom eq
-open import Weak-equivalence eq
+open import Weak-equivalence eq hiding (id)
 
 ------------------------------------------------------------------------
 -- An example: if two magmas are isomorphic, then they are equal
@@ -264,3 +264,405 @@ module Another-example where
 
     lemma₄ : subst Fixed-point lemma₃″ f₁x₁≡x₁ ≡ f₂x₂≡x₂
     lemma₄ = _⇔_.to set⇔UIP A₂-set _ _
+
+------------------------------------------------------------------------
+-- Yet another example: if two monoids (on sets) are isomorphic, then
+-- they are equal
+
+-- This is proved twice, once using a right-nested definition of
+-- monoids, and once using a left-nested definition.
+
+module Monoid-right-nested where
+
+  -- Monoid laws (including the assumption that the carrier type is a
+  -- set).
+
+  Is-monoid : (A : Set) → (A → A → A) → A → Set
+  Is-monoid A _∙_ id =
+
+    -- A is a set.
+    Is-set A ×
+
+    -- Left and right identity laws.
+    (∀ x → id ∙ x ≡ x) ×
+    (∀ x → x ∙ id ≡ x) ×
+
+    -- Associativity.
+    (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z)
+
+  -- Monoids (on sets).
+
+  Monoid : Set₁
+  Monoid =
+    -- Carrier.
+    Σ Set λ A →
+
+    -- Binary operation.
+    Σ (A → A → A) λ _∙_ →
+
+    -- Identity.
+    Σ A λ id →
+
+    -- Laws.
+    Is-monoid A _∙_ id
+
+  -- The carrier type.
+
+  Carrier : Monoid → Set
+  Carrier M = proj₁ M
+
+  -- The binary operation.
+
+  op : (M : Monoid) → Carrier M → Carrier M → Carrier M
+  op M = proj₁ (proj₂ M)
+
+  -- The identity element.
+
+  id : (M : Monoid) → Carrier M
+  id M = proj₁ (proj₂ (proj₂ M))
+
+  -- The monoid laws.
+
+  monoid-laws : (M : Monoid) → Is-monoid (Carrier M) (op M) (id M)
+  monoid-laws M = proj₂ (proj₂ (proj₂ M))
+
+  -- The monoid laws are propositional (assuming extensionality).
+  --
+  -- I got the idea to formulate this property as a separate lemma
+  -- from Mike Shulman. /NAD
+
+  monoid-laws-propositional :
+    Extensionality (# 0) (# 0) →
+    (M : Monoid) →
+    Propositional (Is-monoid (Carrier M) (op M) (id M))
+  monoid-laws-propositional ext M =
+    ×-closure 1 (H-level-propositional ext 2)
+    (×-closure 1 (Π-closure ext 1 λ _ →
+                  is-set _ _)
+    (×-closure 1 (Π-closure ext 1 λ _ →
+                  is-set _ _)
+                 (Π-closure ext 1 λ _ →
+                  Π-closure ext 1 λ _ →
+                  Π-closure ext 1 λ _ →
+                  is-set _ _)))
+    where is-set = proj₁ (monoid-laws M)
+
+  -- One can prove that two monoids are equal by proving that the
+  -- carrier sets, binary operations and identity elements (suitably
+  -- transported) are equal (assuming extensionality).
+  --
+  -- I got the idea to formulate this property as a separate lemma
+  -- from Mike Shulman. /NAD
+
+  monoids-equal-if :
+    Extensionality (# 0) (# 0) →
+    (M₁ M₂ : Monoid)
+    (C-eq : Carrier M₁ ≡ Carrier M₂) →
+    subst (λ A → A → A → A) C-eq (op M₁) ≡ op M₂ →
+    subst (λ A → A) C-eq (id M₁) ≡ id M₂ →
+    M₁ ≡ M₂
+  monoids-equal-if ext M₁ M₂ C-eq ∙-eq id-eq =
+
+    (Carrier M₁ , op M₁ , id M₁ , monoid-laws M₁)                         ≡⟨ Σ-≡,≡→≡ C-eq (refl _) ⟩
+
+    (Carrier M₂ ,
+       subst (λ A → Σ (A → A → A) λ _∙_ → Σ A λ id → Is-monoid A _∙_ id)
+             C-eq
+             (op M₁ , id M₁ , monoid-laws M₁))                            ≡⟨ cong (λ rest → Carrier M₂ , rest) $
+                                                                               push-subst-pair′
+                                                                                 (λ A → A → A → A)
+                                                                                 (λ { (A , _∙_) → Σ A λ id → Is-monoid A _∙_ id })
+                                                                                 ∙-eq ⟩
+    (Carrier M₂ , op M₂ ,
+       subst (λ { (A , _∙_) → Σ A λ id → Is-monoid A _∙_ id })
+             (Σ-≡,≡→≡ C-eq ∙-eq)
+             (id M₁ , monoid-laws M₁))                                    ≡⟨ cong (λ rest → Carrier M₂ , op M₂ , rest) $
+                                                                               push-subst-pair′
+                                                                                 (λ { (A , _∙_) → A })
+                                                                                 (λ { ((A , _∙_) , id) → Is-monoid A _∙_ id })
+                                                                                 id-eq′ ⟩
+    (Carrier M₂ , op M₂ , id M₂ ,
+       subst (λ { ((A , _∙_) , id) → Is-monoid A _∙_ id })
+             (Σ-≡,≡→≡ (Σ-≡,≡→≡ C-eq ∙-eq) id-eq′)
+             (monoid-laws M₁))                                            ≡⟨ cong (λ rest → Carrier M₂ , op M₂ , id M₂ , rest) $
+                                                                               _⇔_.to propositional⇔irrelevant
+                                                                                      (monoid-laws-propositional ext M₂) _ _ ⟩∎
+    (Carrier M₂ , op M₂ , id M₂ , monoid-laws M₂)                         ∎
+
+    where
+    id-eq′ =
+      subst (λ { (A , _∙_) → A }) (Σ-≡,≡→≡ C-eq ∙-eq) (id M₁)   ≡⟨ subst-∘ (λ A → A) proj₁ _ ⟩
+      subst (λ A → A) (cong proj₁ (Σ-≡,≡→≡ C-eq ∙-eq)) (id M₁)  ≡⟨ cong (λ eq → subst (λ A → A) eq (id M₁)) $ proj₁-Σ-≡,≡→≡ _ _ ⟩
+      subst (λ A → A) C-eq (id M₁)                              ≡⟨ id-eq ⟩∎
+      id M₂                                                     ∎
+
+  -- Monoid morphisms.
+
+  Is-monoid-morphism :
+    ∀ M₁ M₂ → (Carrier M₁ → Carrier M₂) → Set
+  Is-monoid-morphism M₁ M₂ f =
+    (∀ x y → f (op M₁ x y) ≡ op M₂ (f x) (f y)) ×
+    (f (id M₁) ≡ id M₂)
+
+  -- Monoid isomorphisms.
+
+  _≅_ : Monoid → Monoid → Set
+  M₁ ≅ M₂ =
+    Σ (Carrier M₁ ↔ Carrier M₂) λ f →
+    Is-monoid-morphism M₁ M₂ (_↔_.to f)
+
+  -- If two monoids are isomorphic, then they are equal (assuming
+  -- univalence).
+
+  isomorphic-equal :
+    Univalence-axiom (# 0) →
+    Univalence-axiom (# 1) →
+    ∀ M₁ M₂ → M₁ ≅ M₂ → M₁ ≡ M₂
+  isomorphic-equal univ₀ univ₁ M₁ M₂ (bijection , op-homo , id-homo) =
+    monoids-equal-if ext M₁ M₂ C-eq ∙-eq id-eq
+    where
+    open _↔_ bijection
+
+    -- Extensionality follows from univalence.
+
+    ext : Extensionality (# 0) (# 0)
+    ext = dependent-extensionality univ₁ (λ _ → univ₀)
+
+    -- There is a bijection between the carrier sets, so, by
+    -- univalence, they are equal.
+
+    C-eq : Carrier M₁ ≡ Carrier M₂
+    C-eq = ≈⇒≡ univ₀ $ bijection⇒weak-equivalence bijection
+
+    -- One can "cast" binary operators on one monoid so that they
+    -- apply to the other instead.
+
+    cast₂ : (Carrier M₁ → Carrier M₁ → Carrier M₁) →
+            (Carrier M₂ → Carrier M₂ → Carrier M₂)
+    cast₂ f = λ x y → to (f (from x) (from y))
+
+    -- The transport theorem implies that the cast operator can be
+    -- expressed using subst.
+
+    cast₂-is-subst : ∀ f → cast₂ f ≡ subst (λ A → A → A → A) C-eq f
+    cast₂-is-subst f =
+      subst-unique
+        (λ A → A → A → A)
+        (λ A≈B f x y → _≈_.to A≈B (f (_≈_.from A≈B x) (_≈_.from A≈B y)))
+        refl
+        univ₀
+        (bijection⇒weak-equivalence bijection)
+        f
+
+    -- One can transport one binary operator to the other using C-eq.
+    -- This follows from extensionality, cast₂-is-subst, and the fact
+    -- that the bijection is a monoid homomorphism.
+
+    ∙-eq : subst (λ A → A → A → A) C-eq (op M₁) ≡ op M₂
+    ∙-eq = ext λ x → ext λ y →
+      subst (λ A → A → A → A) C-eq (op M₁) x y  ≡⟨ cong (λ f → f x y) $ sym $ cast₂-is-subst (op M₁) ⟩
+      to (op M₁ (from x) (from y))              ≡⟨ op-homo (from x) (from y) ⟩
+      op M₂ (to (from x)) (to (from y))         ≡⟨ cong₂ (op M₂) (right-inverse-of x) (right-inverse-of y) ⟩∎
+      op M₂ x y                                 ∎
+
+    -- The development above can be repeated for the identity
+    -- elements.
+
+    cast₀ : Carrier M₁ → Carrier M₂
+    cast₀ x = to x
+
+    cast₀-is-subst : ∀ x → cast₀ x ≡ subst (λ A → A) C-eq x
+    cast₀-is-subst x =
+      subst-unique
+        (λ A → A)
+        (λ A≈B x → _≈_.to A≈B x)
+        refl
+        univ₀
+        (bijection⇒weak-equivalence bijection)
+        x
+
+    id-eq : subst (λ A → A) C-eq (id M₁) ≡ id M₂
+    id-eq =
+      subst (λ A → A) C-eq (id M₁)  ≡⟨ sym $ cast₀-is-subst (id M₁) ⟩
+      to (id M₁)                    ≡⟨ id-homo ⟩∎
+      id M₂                         ∎
+
+module Monoid-left-nested where
+
+  open Monoid-right-nested public using (Is-monoid)
+
+  -- Monoids (on sets).
+
+  Monoid : Set₁
+  Monoid =
+    Σ (Σ (Σ
+
+    -- Carrier.
+    Set λ A →
+
+    -- Binary operation.
+    A → A → A) λ { (A , _) →
+
+    -- Identity.
+    A }) λ { ((A , _∙_) , id) →
+
+    -- Laws.
+    Is-monoid A _∙_ id }
+
+  -- The carrier type.
+
+  Carrier : Monoid → Set
+  Carrier M = proj₁ (proj₁ (proj₁ M))
+
+  -- The binary operation.
+
+  op : (M : Monoid) → Carrier M → Carrier M → Carrier M
+  op M = proj₂ (proj₁ (proj₁ M))
+
+  -- The identity element.
+
+  id : (M : Monoid) → Carrier M
+  id M = proj₂ (proj₁ M)
+
+  -- The monoid laws.
+
+  monoid-laws : (M : Monoid) → Is-monoid (Carrier M) (op M) (id M)
+  monoid-laws M = proj₂ M
+
+  -- Converts a "left-nested monoid" to a "right-nested" one.
+
+  right-nested : Monoid → Monoid-right-nested.Monoid
+  right-nested (((A , op) , id) , laws) = (A , op , id , laws)
+
+  -- The monoid laws are propositional (assuming extensionality).
+  --
+  -- I got the idea to formulate this property as a separate lemma
+  -- from Mike Shulman. /NAD
+
+  monoid-laws-propositional :
+    Extensionality (# 0) (# 0) →
+    (M : Monoid) →
+    Propositional (Is-monoid (Carrier M) (op M) (id M))
+  monoid-laws-propositional ext M =
+    Monoid-right-nested.monoid-laws-propositional
+      ext (right-nested M)
+
+  -- One can prove that two monoids are equal by proving that the
+  -- carrier sets, binary operations and identity elements (suitably
+  -- transported) are equal (assuming extensionality).
+  --
+  -- I got the idea to formulate this property as a separate lemma
+  -- from Mike Shulman. /NAD
+
+  monoids-equal-if :
+    Extensionality (# 0) (# 0) →
+    (M₁ M₂ : Monoid)
+    (C-eq : Carrier M₁ ≡ Carrier M₂) →
+    subst (λ A → A → A → A) C-eq (op M₁) ≡ op M₂ →
+    subst (λ A → A) C-eq (id M₁) ≡ id M₂ →
+    M₁ ≡ M₂
+  monoids-equal-if ext M₁ M₂ C-eq ∙-eq id-eq =
+    Σ-≡,≡→≡ (Σ-≡,≡→≡ (Σ-≡,≡→≡ C-eq ∙-eq) id-eq′)
+            (_⇔_.to propositional⇔irrelevant
+                    (monoid-laws-propositional ext M₂) _ _)
+    where
+    id-eq′ =
+      subst (λ { (A , _∙_) → A }) (Σ-≡,≡→≡ C-eq ∙-eq) (id M₁)   ≡⟨ subst-∘ (λ A → A) proj₁ _ ⟩
+      subst (λ A → A) (cong proj₁ (Σ-≡,≡→≡ C-eq ∙-eq)) (id M₁)  ≡⟨ cong (λ eq → subst (λ A → A) eq (id M₁)) $ proj₁-Σ-≡,≡→≡ _ _ ⟩
+      subst (λ A → A) C-eq (id M₁)                              ≡⟨ id-eq ⟩∎
+      id M₂                                                     ∎
+
+  -- Monoid morphisms.
+
+  Is-monoid-morphism :
+    ∀ M₁ M₂ → (Carrier M₁ → Carrier M₂) → Set
+  Is-monoid-morphism M₁ M₂ f =
+    Monoid-right-nested.Is-monoid-morphism
+      (right-nested M₁) (right-nested M₂) f
+
+  -- Monoid isomorphisms.
+
+  _≅_ : Monoid → Monoid → Set
+  M₁ ≅ M₂ = Monoid-right-nested._≅_ (right-nested M₁) (right-nested M₂)
+
+  -- If two monoids are isomorphic, then they are equal (assuming
+  -- univalence).
+
+  isomorphic-equal :
+    Univalence-axiom (# 0) →
+    Univalence-axiom (# 1) →
+    ∀ M₁ M₂ → M₁ ≅ M₂ → M₁ ≡ M₂
+  isomorphic-equal univ₀ univ₁ M₁ M₂ (bijection , op-homo , id-homo) =
+    monoids-equal-if ext M₁ M₂ C-eq ∙-eq id-eq
+    where
+    open _↔_ bijection
+
+    -- Extensionality follows from univalence.
+
+    ext : Extensionality (# 0) (# 0)
+    ext = dependent-extensionality univ₁ (λ _ → univ₀)
+
+    -- There is a bijection between the carrier sets, so, by
+    -- univalence, they are equal.
+
+    C-eq : Carrier M₁ ≡ Carrier M₂
+    C-eq = ≈⇒≡ univ₀ $ bijection⇒weak-equivalence bijection
+
+    -- One can "cast" binary operators on one monoid so that they
+    -- apply to the other instead.
+
+    cast₂ : (Carrier M₁ → Carrier M₁ → Carrier M₁) →
+            (Carrier M₂ → Carrier M₂ → Carrier M₂)
+    cast₂ f = λ x y → to (f (from x) (from y))
+
+    -- The transport theorem implies that the cast operator can be
+    -- expressed using subst.
+
+    cast₂-is-subst : ∀ f → cast₂ f ≡ subst (λ A → A → A → A) C-eq f
+    cast₂-is-subst f =
+      subst-unique
+        (λ A → A → A → A)
+        (λ A≈B f x y → _≈_.to A≈B (f (_≈_.from A≈B x) (_≈_.from A≈B y)))
+        refl
+        univ₀
+        (bijection⇒weak-equivalence bijection)
+        f
+
+    -- One can transport one binary operator to the other using C-eq.
+    -- This follows from extensionality, cast₂-is-subst, and the fact
+    -- that the bijection is a monoid homomorphism.
+
+    ∙-eq : subst (λ A → A → A → A) C-eq (op M₁) ≡ op M₂
+    ∙-eq = ext λ x → ext λ y →
+      subst (λ A → A → A → A) C-eq (op M₁) x y  ≡⟨ cong (λ f → f x y) $ sym $ cast₂-is-subst (op M₁) ⟩
+      to (op M₁ (from x) (from y))              ≡⟨ op-homo (from x) (from y) ⟩
+      op M₂ (to (from x)) (to (from y))         ≡⟨ cong₂ (op M₂) (right-inverse-of x) (right-inverse-of y) ⟩∎
+      op M₂ x y                                 ∎
+
+    -- The development above can be repeated for the identity
+    -- elements.
+
+    cast₀ : Carrier M₁ → Carrier M₂
+    cast₀ x = to x
+
+    cast₀-is-subst : ∀ x → cast₀ x ≡ subst (λ A → A) C-eq x
+    cast₀-is-subst x =
+      subst-unique
+        (λ A → A)
+        (λ A≈B x → _≈_.to A≈B x)
+        refl
+        univ₀
+        (bijection⇒weak-equivalence bijection)
+        x
+
+    id-eq : subst (λ A → A) C-eq (id M₁) ≡ id M₂
+    id-eq =
+      subst (λ A → A) C-eq (id M₁)  ≡⟨ sym $ cast₀-is-subst (id M₁) ⟩
+      to (id M₁)                    ≡⟨ id-homo ⟩∎
+      id M₂                         ∎
+
+-- The main differences between the use of right-nested and
+-- left-nested definitions of monoids seem to be the following:
+-- * It is a bit harder to write down a left-nested definition.
+-- * It is much harder to prove the "monoids-equal-if" property for
+--   the right-nested definition.
