@@ -125,7 +125,7 @@ abstract
       i₂         ∎
       where
       swap-i₁≡swap-i₂ : swap i₁ ≡ swap i₂
-      swap-i₁≡swap-i₂ = cong (_≈_.to) p-i₁≡p-i₂
+      swap-i₁≡swap-i₂ = cong _≈_.to p-i₁≡p-i₂
 
   -- Set is not a set.
 
