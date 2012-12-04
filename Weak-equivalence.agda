@@ -512,6 +512,19 @@ abstract
                       (propositional ext f) f-weq g-weq))
          f≡g f-weq g-weq
 
+  -- Two proofs of weak equivalence are equal if the /inverses/ of the
+  -- function components are equal (assuming extensionality).
+
+  lift-equality-inverse :
+    ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
+    {A : Set a} {B : Set b} {p q : A ≈ B} →
+    _≈_.from p ≡ _≈_.from q → p ≡ q
+  lift-equality-inverse ext {p = p} {q = q} f≡g =
+    p                    ≡⟨ lift-equality ext (refl _) ⟩
+    inverse (inverse p)  ≡⟨ cong inverse $ lift-equality ext f≡g ⟩
+    inverse (inverse q)  ≡⟨ lift-equality ext (refl _) ⟩∎
+    q                    ∎
+
 -- _≈_ comes with a groupoid structure (assuming extensionality).
 
 groupoid : ∀ {ℓ} → Extensionality ℓ ℓ → Groupoid (lsuc ℓ) ℓ
