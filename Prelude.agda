@@ -331,6 +331,16 @@ Decidable : ∀ {a b ℓ} {A : Set a} {B : Set b} →
             (A → B → Set ℓ) → Set (a ⊔ b ⊔ ℓ)
 Decidable _∼_ = ∀ x y → Dec (x ∼ y)
 
+-- Combines two relations into a relation on sums.
+
+_⊎-rel_ : ∀ {a b c d ℓ}
+            {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+          (A → C → Set ℓ) → (B → D → Set ℓ) → A ⊎ B → C ⊎ D → Set ℓ
+(_∼A_ ⊎-rel _∼B_) (inj₁ x) (inj₁ y) = x ∼A y
+(_∼A_ ⊎-rel _∼B_) (inj₁ x) (inj₂ y) = ⊥
+(_∼A_ ⊎-rel _∼B_) (inj₂ x) (inj₁ y) = ⊥
+(_∼A_ ⊎-rel _∼B_) (inj₂ x) (inj₂ y) = x ∼B y
+
 ------------------------------------------------------------------------
 -- Lists
 
