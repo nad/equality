@@ -213,6 +213,25 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
 ≡⇒↝ : ∀ k {ℓ} {A B : Set ℓ} → A ≡ B → A ↝[ k ] B
 ≡⇒↝ k = elim (λ {A B} _ → A ↝[ k ] B) (λ _ → id)
 
+-- One can sometimes "push" ≡⇒↝ through cong.
+--
+-- This is a generalisation of a lemma due to Thierry Coquand.
+
+≡⇒↝-cong : ∀ {k ℓ p A B} {eq : A ≡ B}
+           (P : Set ℓ → Set p)
+           (P-cong : ∀ {A B} → A ↝[ k ] B → P A ↝[ k ] P B) →
+           P-cong (id {A = A}) ≡ id →
+           ≡⇒↝ _ (cong P eq) ≡ P-cong (≡⇒↝ _ eq)
+≡⇒↝-cong {eq = eq} P P-cong P-cong-id = elim¹
+  (λ eq → ≡⇒↝ _ (cong P eq) ≡ P-cong (≡⇒↝ _ eq))
+  (≡⇒↝ _ (cong P (refl _))  ≡⟨ cong (≡⇒↝ _) $ cong-refl P ⟩
+   ≡⇒↝ _ (refl _)           ≡⟨ elim-refl (λ {A B} _ → A ↝[ _ ] B) _ ⟩
+   id                       ≡⟨ sym P-cong-id ⟩
+   P-cong id                ≡⟨ cong P-cong $ sym $
+                                 elim-refl (λ {A B} _ → A ↝[ _ ] B) _ ⟩∎
+   P-cong (≡⇒↝ _ (refl _))  ∎)
+  eq
+
 ------------------------------------------------------------------------
 -- A lemma related to ⊤
 
