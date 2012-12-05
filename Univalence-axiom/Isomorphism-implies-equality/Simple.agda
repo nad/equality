@@ -513,8 +513,8 @@ Isomorphic-monoid = refl _
 -- * With the multiplicative inverse introduced as a partial
 --   operation.
 --
--- Note that the latter definition implies that one can decide whether
--- an element is distinct from zero.
+-- Note that the latter definition implies that one can decide if an
+-- element is distinct from zero.
 
 module Field-law where
 
@@ -829,7 +829,7 @@ module Field-partial where
   Isomorphic-field′ = refl _
 
   -- Note that a property of this kind of field is that one can decide
-  -- whether an element is distinct from zero.
+  -- if an element is distinct from zero.
 
   distinct-from-zero? :
     (F : Instance field′) → let 0# = proj₁ (proj₂ (proj₁ (proj₂ F))) in
@@ -875,8 +875,6 @@ vector-space (F , (_+F_ , _ , _*F_ , 1F , _) , _) =
 
        -- Associativity.
       ((∀ u v w → u + (v + w) ≡ (u + v) + w) ×
-
-       -- "Associativity".
        (∀ x y v → x * (y * v) ≡ (x *F y) * v) ×
 
        -- Commutativity.
