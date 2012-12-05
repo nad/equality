@@ -14,7 +14,9 @@ module Preimage
 
 open import Bijection eq as Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
+open import Equivalence using (module _⇔_)
 open import H-level eq as H-level
+open import Injection eq hiding (id; _∘_)
 open import Prelude
 open import Surjection eq hiding (id; _∘_)
 
@@ -148,3 +150,23 @@ bijection⁻¹-contractible A↔B =
                          respects-extensional-equality (sym ∘ left-inverse-of) ⟩
     from ∘ to ⁻¹ y  ↠⟨ lift-surjection surjection ⟩□
     from ⁻¹ y       □
+
+abstract
+
+  -- Preimages under an injection into a set are propositional.
+
+  injection⁻¹-propositional :
+    ∀ {a b} {A : Set a} {B : Set b} (A↣B : A ↣ B) → let open _↣_ A↣B in
+    Is-set B →
+    ∀ y → Propositional (to ⁻¹ y)
+  injection⁻¹-propositional A↣B B-set y =
+    _⇔_.from propositional⇔irrelevant λ { (x₁ , tox₁≡y) (x₂ , tox₂≡y) →
+      Σ-≡,≡→≡ (injective (to x₁  ≡⟨ tox₁≡y ⟩
+                          y      ≡⟨ sym tox₂≡y ⟩∎
+                          to x₂  ∎))
+              (subst (λ x → to x ≡ y)
+                     (injective (trans tox₁≡y (sym tox₂≡y)))
+                     tox₁≡y                                   ≡⟨ _⇔_.to set⇔UIP B-set _ _ ⟩∎
+               tox₂≡y                                         ∎) }
+    where
+    open _↣_ A↣B
