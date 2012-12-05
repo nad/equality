@@ -89,16 +89,17 @@ import Weak-equivalence
 
 import Univalence-axiom
 
--- Certain isomorphic structures are equal (assuming univalence).
+-- Isomorphic instances of certain algebraic structures are equal
+-- (assuming univalence).
 
 import Univalence-axiom.Isomorphism-implies-equality.Examples
 
--- In fact, a large class of algebraic structures satisfies the
--- property that isomorphic structures are equal (assuming
--- univalence). Two versions of this development are given; the first
--- one is less general but perhaps easier to understand.
+-- In fact, several large classes of algebraic structures satisfy
+-- the property that isomorphic instances of a structure are equal
+-- (assuming univalence).
 
 import Univalence-axiom.Isomorphism-implies-equality
+import Univalence-axiom.Isomorphism-implies-equality.Simple
 import Univalence-axiom.Isomorphism-implies-equality.More
 
 -- A universe which includes several kinds of functions (ordinary

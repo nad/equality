@@ -1,6 +1,7 @@
 ------------------------------------------------------------------------
 -- A large(r) class of algebraic structures satisfies the property
--- that isomorphic structures are equal (assuming univalence)
+-- that isomorphic instances of a structure are equal (assuming
+-- univalence)
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
