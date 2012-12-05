@@ -36,6 +36,16 @@ Propositional = H-level 1
 Is-set : ∀ {ℓ} → Set ℓ → Set ℓ
 Is-set = H-level 2
 
+-- Propositions are propositional types.
+
+Proposition : (ℓ : Level) → Set (lsuc ℓ)
+Proposition _ = ∃ Propositional
+
+-- Types that are sets.
+
+SET : (ℓ : Level) → Set (lsuc ℓ)
+SET _ = ∃ Is-set
+
 ------------------------------------------------------------------------
 -- General properties
 

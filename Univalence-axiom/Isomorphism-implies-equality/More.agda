@@ -17,7 +17,7 @@ open import Bijection eq using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence using (_⇔_; module _⇔_)
 open import Function-universe eq using (→-cong-⇔; →-cong)
-open import H-level eq
+open import H-level eq hiding (Proposition)
 open import H-level.Closure eq
 open import Prelude
 open import Univalence-axiom eq
