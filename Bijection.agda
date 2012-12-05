@@ -11,6 +11,7 @@ module Bijection
 
 open Derived-definitions-and-properties eq
 import Equivalence
+open import H-level eq
 open import Injection eq using (Injective; _↣_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection eq as Surjection using (_↠_; module _↠_)
@@ -182,3 +183,19 @@ decidable-equality-respects A↔B _≟A_ x y =
                        (λ from-x≢from-y → from-x≢from-y ⊚ cong from)
         (from x ≟A from y)
   where open _↔_ A↔B
+
+-- All contractible types are isomorphic.
+
+contractible-isomorphic :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Contractible A → Contractible B → A ↔ B
+contractible-isomorphic {A} {B} cA cB = record
+  { surjection = record
+    { equivalence = record
+      { to   = const (proj₁ cB)
+      ; from = const (proj₁ cA)
+      }
+    ; right-inverse-of = proj₂ cB
+    }
+  ; left-inverse-of = proj₂ cA
+  }

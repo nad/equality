@@ -12,7 +12,6 @@ open import Equality
 module H-level
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq hiding (id; _∘_)
 open Derived-definitions-and-properties eq
 import Equality.Decidable-UIP eq as DUIP
 open import Equivalence hiding (id; _∘_)
@@ -141,19 +140,3 @@ respects-surjection A↠B zero (x , irr) = (to x , irr′)
 respects-surjection A↠B (suc n) h = λ x y →
   respects-surjection (↠-≡ A↠B) n (h (from x) (from y))
   where open _↠_ A↠B
-
--- All contractible types are isomorphic.
-
-contractible-isomorphic :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  Contractible A → Contractible B → A ↔ B
-contractible-isomorphic {A} {B} cA cB = record
-  { surjection = record
-    { equivalence = record
-      { to   = const (proj₁ cB)
-      ; from = const (proj₁ cA)
-      }
-    ; right-inverse-of = proj₂ cB
-    }
-  ; left-inverse-of = proj₂ cA
-  }
