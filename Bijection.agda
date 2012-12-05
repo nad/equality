@@ -114,21 +114,46 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
           (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
              subst B p (proj₂ p₁) ≡ proj₂ p₂) ↔
           (p₁ ≡ p₂)
-Σ-≡,≡↔≡ {A = A} {B} = record
+Σ-≡,≡↔≡ {A = A} {B} {p₁} {p₂} = record
   { surjection = record
     { equivalence = record
       { to   = to
       ; from = from
       }
-    ; right-inverse-of = elim (λ p≡q → to (from p≡q) ≡ p≡q) λ x →
-        let lem = subst-refl B (proj₂ x) in
-        to (from (refl x))                          ≡⟨ cong to (elim-refl from-P _) ⟩
-        to (refl (proj₁ x) , lem)                   ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
-        cong (_,_ (proj₁ x)) (trans (sym lem) lem)  ≡⟨ cong (cong (_,_ (proj₁ x))) $ trans-symˡ lem ⟩
-        cong (_,_ (proj₁ x)) (refl (proj₂ x))       ≡⟨ cong-refl (_,_ (proj₁ x)) {x = proj₂ x} ⟩∎
-        refl x                                      ∎
+    ; right-inverse-of = to∘from
     }
-  ; left-inverse-of = λ p → elim
+  ; left-inverse-of = from∘to
+  }
+  where
+  from-P = λ {p₁ p₂ : Σ A B} (_ : p₁ ≡ p₂) →
+             ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+               subst B p (proj₂ p₁) ≡ proj₂ p₂
+
+  from : {p₁ p₂ : Σ A B} →
+         p₁ ≡ p₂ →
+         ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+           subst B p (proj₂ p₁) ≡ proj₂ p₂
+  from = elim from-P (λ p → refl _ , subst-refl B _)
+
+  to : {p₁ p₂ : Σ A B} →
+       (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+          subst B p (proj₂ p₁) ≡ proj₂ p₂) →
+       p₁ ≡ p₂
+  to = uncurry Σ-≡,≡→≡
+
+  abstract
+
+    to∘from : ∀ eq → to (from {p₁ = p₁} {p₂ = p₂} eq) ≡ eq
+    to∘from = elim (λ p≡q → to (from p≡q) ≡ p≡q) λ x →
+      let lem = subst-refl B (proj₂ x) in
+      to (from (refl x))                          ≡⟨ cong to (elim-refl from-P _) ⟩
+      to (refl (proj₁ x) , lem)                   ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
+      cong (_,_ (proj₁ x)) (trans (sym lem) lem)  ≡⟨ cong (cong (_,_ (proj₁ x))) $ trans-symˡ lem ⟩
+      cong (_,_ (proj₁ x)) (refl (proj₂ x))       ≡⟨ cong-refl (_,_ (proj₁ x)) {x = proj₂ x} ⟩∎
+      refl x                                      ∎
+
+    from∘to : ∀ p → from (to {p₁ = p₁} {p₂ = p₂} p) ≡ p
+    from∘to p = elim
       (λ {x₁ x₂} x₁≡x₂ →
          ∀ {y₁ y₂} (y₁′≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂) →
          from (to (x₁≡x₂ , y₁′≡y₂)) ≡ (x₁≡x₂ , y₁′≡y₂))
@@ -155,23 +180,6 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
          y₁′≡y₂
          (refl _))
       (proj₁ p) (proj₂ p)
-  }
-  where
-  from-P = λ {p₁ p₂ : Σ A B} (_ : p₁ ≡ p₂) →
-             ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-               subst B p (proj₂ p₁) ≡ proj₂ p₂
-
-  from : {p₁ p₂ : Σ A B} →
-         p₁ ≡ p₂ →
-         ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-           subst B p (proj₂ p₁) ≡ proj₂ p₂
-  from = elim from-P (λ p → refl _ , subst-refl B _)
-
-  to : {p₁ p₂ : Σ A B} →
-       (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-          subst B p (proj₂ p₁) ≡ proj₂ p₂) →
-       p₁ ≡ p₂
-  to = uncurry Σ-≡,≡→≡
 
 -- If one is given an equality between pairs, where the second
 -- components of the pairs are propositional, then one can restrict
