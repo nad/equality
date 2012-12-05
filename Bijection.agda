@@ -10,7 +10,7 @@ module Bijection
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
-import Equivalence
+open import Equivalence using (_⇔_)
 open import H-level eq
 open import Injection eq using (Injective; _↣_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
@@ -172,6 +172,45 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
           subst B p (proj₂ p₁) ≡ proj₂ p₂) →
        p₁ ≡ p₂
   to = uncurry Σ-≡,≡→≡
+
+-- If one is given an equality between pairs, where the second
+-- components of the pairs are propositional, then one can restrict
+-- attention to the first components.
+
+ignore-propositional-component :
+  ∀ {a b} {A : Set a} {B : A → Set b} {p q : Σ A B} →
+  Propositional (B (proj₁ q)) →
+  (proj₁ p ≡ proj₁ q) ↔ (p ≡ q)
+ignore-propositional-component {p = p₁ , p₂} {q₁ , q₂} Bq₁-prop = record
+  { surjection = record
+    { equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  to : p₁ ≡ q₁ → (p₁ , p₂) ≡ (q₁ , q₂)
+  to = λ p₁≡q₁ →
+    Σ-≡,≡→≡ p₁≡q₁ (_⇔_.to propositional⇔irrelevant Bq₁-prop _ _)
+
+  from : (p₁ , p₂) ≡ (q₁ , q₂) → p₁ ≡ q₁
+  from = proj₁ ⊚ _↔_.from Σ-≡,≡↔≡
+
+  abstract
+
+    to∘from : ∀ p≡q → to (from p≡q) ≡ p≡q
+    to∘from p≡q =
+      Σ-≡,≡→≡ (proj₁ $ _↔_.from Σ-≡,≡↔≡ p≡q) _  ≡⟨ cong (Σ-≡,≡→≡ _) $ _⇔_.to set⇔UIP (mono₁ 1 Bq₁-prop) _ _ ⟩
+      Σ-≡,≡→≡ (proj₁ $ _↔_.from Σ-≡,≡↔≡ p≡q) _  ≡⟨ _↔_.right-inverse-of Σ-≡,≡↔≡ _ ⟩∎
+      p≡q                                       ∎
+
+    from∘to : ∀ p₁≡q₁ → from (to p₁≡q₁) ≡ p₁≡q₁
+    from∘to p₁≡q₁ =
+      proj₁ (_↔_.from Σ-≡,≡↔≡ (Σ-≡,≡→≡ p₁≡q₁ _))  ≡⟨ cong proj₁ $ _↔_.left-inverse-of Σ-≡,≡↔≡ _ ⟩∎
+      p₁≡q₁                                       ∎
 
 -- Decidable equality respects bijections.
 
