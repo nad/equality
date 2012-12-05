@@ -169,7 +169,7 @@ Is-isomorphism B↔C (a ⊕ b) =
 Is-isomorphism B↔C (a ⊗ b) = λ { (x , u) (y , v) →
   Is-isomorphism B↔C a x y × Is-isomorphism B↔C b u v }
 
--- Another notion of "being an isomorphism".
+-- Another definition of "being an isomorphism".
 
 Is-isomorphism′ : ∀ {B C} → B ↔ C → ∀ a → El a B → El a C → Set
 Is-isomorphism′ B↔C a x y = _⇔_.to (cast a (_↔_.equivalence B↔C)) x ≡ y
@@ -213,7 +213,7 @@ abstract
     ×-closure 1 (Is-isomorphism-propositional ext B↔C C-set a)
                 (Is-isomorphism-propositional ext B↔C C-set b)
 
-  -- The two notions of "being an isomorphism" are equivalent
+  -- The two definitions of "being an isomorphism" are equivalent
   -- (assuming extensionality).
 
   isomorphism-definitions-equivalent :
@@ -271,7 +271,7 @@ abstract
         from a (cong proj₁ iso) , from b (cong proj₂ iso)
 
   -- If we add the assumption that one of the underlying types is a
-  -- set, then the two notions of "being an isomorphism" are
+  -- set, then the two definitions of "being an isomorphism" are
   -- "isomorphic" (in bijective correspondence).
 
   isomorphism-definitions-isomorphic :
@@ -284,7 +284,7 @@ abstract
       { equivalence      = isomorphism-definitions-equivalent ext B↔C a
       ; right-inverse-of = λ _ →
           _⇔_.to propositional⇔irrelevant
-           (Is-isomorphism′-propositional ext B↔C C-set a) _ _
+                 (Is-isomorphism′-propositional ext B↔C C-set a) _ _
       }
     ; left-inverse-of = λ _ →
         _⇔_.to propositional⇔irrelevant
