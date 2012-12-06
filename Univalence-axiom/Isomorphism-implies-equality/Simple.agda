@@ -4,12 +4,14 @@
 -- structure are equal (assuming univalence)
 ------------------------------------------------------------------------
 
--- In fact, isomorphism and equality are basically the same thing.
-
-{-# OPTIONS --without-K #-}
+-- In fact, isomorphism and equality are basically the same thing, and
+-- the main theorem can be instantiated with several different
+-- "universes", not only the one based on simple types.
 
 -- This module has been developed in collaboration with Thierry
 -- Coquand.
+
+{-# OPTIONS --without-K #-}
 
 open import Equality
 
@@ -27,6 +29,171 @@ open import Preimage eq
 open import Prelude as P hiding (id)
 open import Univalence-axiom eq
 open import Weak-equivalence eq using (_≈_; module _≈_; ↔⇒≈)
+
+------------------------------------------------------------------------
+-- Universes with some extra stuff
+
+record Universe : Set₂ where
+  field
+    -- Codes for something.
+    U : Set₁
+
+    -- Interpretation of codes.
+    El : U → Set → Set
+
+    -- A predicate.
+    Is-isomorphism : ∀ {B C} → B ↔ C → ∀ a → El a B → El a C → Set
+
+    -- A property.
+    isomorphism↔subst :
+      (univ : Univalence (# 0)) →
+      Univalence (# 1) →
+      ∀ {B C} (B↔C : B ↔ C) → Is-set C →
+      ∀ a {x y} →
+      Is-isomorphism B↔C a x y ↔
+      (subst (El a) (≈⇒≡ univ $ ↔⇒≈ B↔C) x ≡ y)
+
+------------------------------------------------------------------------
+-- A universe-indexed family of classes of structures
+
+module Class (Univ : Universe) where
+
+  open Universe Univ
+
+  -- Codes for structures.
+
+  Code : Set₁
+  Code =
+    -- A code.
+    Σ U λ a →
+
+    -- A proposition.
+    (A : SET (# 0)) → El a (Type A) → Σ Set λ P →
+      -- The proposition should be propositional (assuming
+      -- extensionality).
+      Extensionality (# 0) (# 0) → Propositional P
+
+  -- Interpretation of the codes. The elements of "Instance a" are
+  -- instances of the structure encoded by a.
+
+  Instance : Code → Set₁
+  Instance (a , P) =
+    -- A carrier set.
+    Σ (SET (# 0)) λ A →
+
+    -- An element.
+    Σ (El a (Type A)) λ x →
+
+    -- The element should satisfy the proposition.
+    proj₁ (P A x)
+
+  -- The carrier set.
+
+  Carrier : ∀ a → Instance a → Set
+  Carrier _ I = Type (proj₁ I)
+
+  -- The "element".
+
+  element : ∀ a (I : Instance a) → El (proj₁ a) (Carrier a I)
+  element _ I = proj₁ (proj₂ I)
+
+  abstract
+
+    -- One can prove that two instances of a structure are equal by
+    -- proving that the carrier sets and "elements" (suitably
+    -- transported) are equal (assuming extensionality).
+
+    instances-equal↔ :
+      Extensionality (# 0) (# 0) →
+      ∀ a {I₁ I₂} →
+      (I₁ ≡ I₂) ↔
+      ∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
+        subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂
+    instances-equal↔ ext (a , P)
+                     {(C₁ , s₁) , e₁ , p₁} {(C₂ , s₂) , e₂ , p₂} =
+
+      (((C₁ , s₁) , e₁ , p₁) ≡ ((C₂ , s₂) , e₂ , p₂))         ↝⟨ inverse Σ-≡,≡↔≡ ⟩
+
+      (∃ λ (C-eq : (C₁ , s₁) ≡ (C₂ , s₂)) →
+         subst (λ A → Σ (El a (Type A)) λ x → proj₁ (P A x))
+               C-eq (e₁ , p₁) ≡
+         (e₂ , p₂))                                           ↝⟨ ∃-cong (λ C-eq → ≡⇒↝ _ $ cong (λ eq → eq ≡ _) $
+                                                                    push-subst-pair (λ A → El a (Type A))
+                                                                                    (λ { (A , x) → proj₁ (P A x) })) ⟩
+      (∃ λ (C-eq : (C₁ , s₁) ≡ (C₂ , s₂)) →
+         (subst (λ A → El a (Type A)) C-eq e₁ ,
+          subst (λ { (A , x) → proj₁ (P A x) })
+                (Σ-≡,≡→≡ C-eq (refl _)) p₁) ≡
+         (e₂ , p₂))                                           ↝⟨ ∃-cong (λ C-eq → inverse $ ignore-propositional-component (proj₂ (P _ _) ext)) ⟩
+
+      (∃ λ (C-eq : (C₁ , s₁) ≡ (C₂ , s₂)) →
+         subst (λ A → El a (Type A)) C-eq e₁ ≡ e₂)            ↝⟨ inverse $
+                                                                   Σ-cong (ignore-propositional-component (H-level-propositional ext 2)) (λ C-eq →
+                                                                          ≡⇒↝ _ $ cong (λ e → e ≡ e₂) $ sym (
+
+                                                          subst (λ A → El a (Type A)) (Σ-≡,≡→≡ C-eq _) e₁  ≡⟨ subst-∘ (El a) Type _ ⟩
+                                                          subst (El a) (cong Type $ Σ-≡,≡→≡ C-eq _) e₁     ≡⟨ cong (λ eq → subst (El a) eq _) $
+                                                                                                                    proj₁-Σ-≡,≡→≡ C-eq _ ⟩∎
+                                                          subst (El a) C-eq e₁                              ∎)) ⟩
+
+      (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq e₁ ≡ e₂)      □
+
+  -- Structure isomorphisms.
+
+  Isomorphic : ∀ a → Instance a → Instance a → Set
+  Isomorphic (a , _) ((A₁ , _) , x₁ , _) ((A₂ , _) , x₂ , _) =
+    Σ (A₁ ↔ A₂) λ A₁↔A₂ → Is-isomorphism A₁↔A₂ a x₁ x₂
+
+  abstract
+
+    -- The type of isomorphisms between two instances of a structure
+    -- is isomorphic to the type of equalities between the same
+    -- instances (assuming univalence).
+    --
+    -- In short, isomorphism is isomorphic to equality.
+
+    isomorphic↔equal :
+      Univalence (# 0) →
+      Univalence (# 1) →
+      ∀ a {I₁ I₂} → Isomorphic a I₁ I₂ ↔ (I₁ ≡ I₂)
+    isomorphic↔equal univ univ₁ a {I₁} {I₂} =
+
+      Isomorphic a I₁ I₂                                               ↝⟨ ∃-cong (λ C-eq → isomorphism↔subst univ univ₁ C-eq
+                                                                                             (proj₂ $ proj₁ I₂) (proj₁ a)) ⟩
+      (∃ λ (C-eq : Carrier a I₁ ↔ Carrier a I₂) →
+         subst (El (proj₁ a)) (≈⇒≡ univ $ ↔⇒≈ C-eq) (element a I₁) ≡
+         element a I₂)                                                 ↝⟨ inverse $
+                                                                            Σ-cong (≡≈↔ univ ext is-set) (λ C-eq → ≡⇒↝ _ $ sym $
+                                                                              cong (λ eq → subst (El (proj₁ a)) eq (element a I₁) ≡ element a I₂)
+                                                                                   (_≈_.left-inverse-of (≡≈↔ univ ext is-set) C-eq)) ⟩
+      (∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
+         subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)      ↝⟨ inverse $ instances-equal↔ ext a ⟩□
+
+      (I₁ ≡ I₂)                                                        □
+
+      where
+      -- Extensionality follows from univalence.
+      ext : Extensionality (# 0) (# 0)
+      ext = dependent-extensionality univ₁ (λ _ → univ)
+
+      is-set : Is-set (Carrier a I₁)
+      is-set = proj₂ (proj₁ I₁)
+
+    -- The type of (lifted) isomorphisms between two instances of a
+    -- structure is equal to the type of equalities between the same
+    -- instances (assuming univalence).
+    --
+    -- In short, isomorphism is equal to equality.
+
+    isomorphic≡equal :
+      Univalence (# 0) →
+      Univalence (# 1) →
+      ∀ a {I₁ I₂} → ↑ _ (Isomorphic a I₁ I₂) ≡ (I₁ ≡ I₂)
+    isomorphic≡equal univ univ₁ a {I₁} {I₂} =
+      ≈⇒≡ univ₁ $ ↔⇒≈ (
+        ↑ _ (Isomorphic a I₁ I₂)  ↝⟨ ↑↔ ⟩
+        Isomorphic a I₁ I₂        ↝⟨ isomorphic↔equal univ univ₁ a ⟩□
+        (I₁ ≡ I₂)                 □)
 
 ------------------------------------------------------------------------
 -- A universe of non-recursive, simple types
@@ -312,143 +479,21 @@ abstract
                                                                  univ (↔⇒≈ B↔C) x ⟩□
     (subst (El a) (≈⇒≡ univ $ ↔⇒≈ B↔C) x ≡ y)  □
 
-------------------------------------------------------------------------
--- A class of algebraic structures
+-- The universe above is a "universe with some extra stuff".
 
--- Codes for structures.
+simple : Universe
+simple = record
+  { U                 = U
+  ; El                = El
+  ; Is-isomorphism    = Is-isomorphism
+  ; isomorphism↔subst = λ univ univ₁ →
+      isomorphism↔subst (dependent-extensionality univ₁ (λ _ → univ))
+                        univ
+  }
 
-Code : Set₁
-Code =
-  -- A code for a simple type.
-  Σ U λ a →
+-- Let us use this universe in the examples below.
 
-  -- A proposition.
-  (A : SET (# 0)) → El a (Type A) → Σ Set λ P →
-    -- The proposition should be propositional (assuming
-    -- extensionality).
-    Extensionality (# 0) (# 0) → Propositional P
-
--- Interpretation of the codes. The elements of "Instance a" are
--- instances of the structure encoded by a.
-
-Instance : Code → Set₁
-Instance (a , P) =
-  -- Carrier set.
-  Σ (SET (# 0)) λ A →
-
-  -- An element of the simple type.
-  Σ (El a (Type A)) λ x →
-
-  -- The element should satisfy the proposition.
-  proj₁ (P A x)
-
--- The carrier set.
-
-Carrier : ∀ a → Instance a → Set
-Carrier _ I = Type (proj₁ I)
-
--- The "element".
-
-element : ∀ a (I : Instance a) → El (proj₁ a) (Carrier a I)
-element _ I = proj₁ (proj₂ I)
-
-abstract
-
-  -- One can prove that two instances of a structure are equal by
-  -- proving that the carrier sets and "elements" (suitably
-  -- transported) are equal (assuming extensionality).
-
-  instances-equal↔ :
-    Extensionality (# 0) (# 0) →
-    ∀ a {I₁ I₂} →
-    (I₁ ≡ I₂) ↔
-    ∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
-      subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂
-  instances-equal↔ ext (a , P)
-                   {(C₁ , s₁) , e₁ , p₁} {(C₂ , s₂) , e₂ , p₂} =
-
-    (((C₁ , s₁) , e₁ , p₁) ≡ ((C₂ , s₂) , e₂ , p₂))         ↝⟨ inverse Σ-≡,≡↔≡ ⟩
-
-    (∃ λ (C-eq : (C₁ , s₁) ≡ (C₂ , s₂)) →
-       subst (λ A → Σ (El a (Type A)) λ x → proj₁ (P A x))
-             C-eq (e₁ , p₁) ≡
-       (e₂ , p₂))                                           ↝⟨ ∃-cong (λ C-eq → ≡⇒↝ _ $ cong (λ eq → eq ≡ _) $
-                                                                  push-subst-pair (λ A → El a (Type A))
-                                                                                  (λ { (A , x) → proj₁ (P A x) })) ⟩
-    (∃ λ (C-eq : (C₁ , s₁) ≡ (C₂ , s₂)) →
-       (subst (λ A → El a (Type A)) C-eq e₁ ,
-        subst (λ { (A , x) → proj₁ (P A x) })
-              (Σ-≡,≡→≡ C-eq (refl _)) p₁) ≡
-       (e₂ , p₂))                                           ↝⟨ ∃-cong (λ C-eq → inverse $ ignore-propositional-component (proj₂ (P _ _) ext)) ⟩
-
-    (∃ λ (C-eq : (C₁ , s₁) ≡ (C₂ , s₂)) →
-       subst (λ A → El a (Type A)) C-eq e₁ ≡ e₂)            ↝⟨ inverse $
-                                                                 Σ-cong (ignore-propositional-component (H-level-propositional ext 2)) (λ C-eq →
-                                                                        ≡⇒↝ _ $ cong (λ e → e ≡ e₂) $ sym (
-
-                                                        subst (λ A → El a (Type A)) (Σ-≡,≡→≡ C-eq _) e₁  ≡⟨ subst-∘ (El a) Type _ ⟩
-                                                        subst (El a) (cong Type $ Σ-≡,≡→≡ C-eq _) e₁     ≡⟨ cong (λ eq → subst (El a) eq _) $
-                                                                                                                  proj₁-Σ-≡,≡→≡ C-eq _ ⟩∎
-                                                        subst (El a) C-eq e₁                              ∎)) ⟩
-
-    (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq e₁ ≡ e₂)      □
-
--- Structure isomorphisms.
-
-Isomorphic : ∀ a → Instance a → Instance a → Set
-Isomorphic (a , _) ((A₁ , _) , x₁ , _) ((A₂ , _) , x₂ , _) =
-  Σ (A₁ ↔ A₂) λ A₁↔A₂ → Is-isomorphism A₁↔A₂ a x₁ x₂
-
-abstract
-
-  -- The type of isomorphisms between two instances of a structure is
-  -- isomorphic to the type of equalities between the same instances
-  -- (assuming univalence).
-  --
-  -- In short, isomorphism is isomorphic to equality.
-
-  isomorphic↔equal :
-    Univalence (# 0) →
-    Univalence (# 1) →
-    ∀ a {I₁ I₂} → Isomorphic a I₁ I₂ ↔ (I₁ ≡ I₂)
-  isomorphic↔equal univ₀ univ₁ a {I₁} {I₂} =
-
-    Isomorphic a I₁ I₂                                               ↝⟨ ∃-cong (λ C-eq → isomorphism↔subst ext univ₀ C-eq
-                                                                                           (proj₂ $ proj₁ I₂) (proj₁ a)) ⟩
-    (∃ λ (C-eq : Carrier a I₁ ↔ Carrier a I₂) →
-       subst (El (proj₁ a)) (≈⇒≡ univ₀ $ ↔⇒≈ C-eq) (element a I₁) ≡
-       element a I₂)                                                 ↝⟨ inverse $
-                                                                          Σ-cong (≡≈↔ univ₀ ext is-set) (λ C-eq → ≡⇒↝ _ $ sym $
-                                                                            cong (λ eq → subst (El (proj₁ a)) eq (element a I₁) ≡ element a I₂)
-                                                                                 (_≈_.left-inverse-of (≡≈↔ univ₀ ext is-set) C-eq)) ⟩
-    (∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
-       subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)      ↝⟨ inverse $ instances-equal↔ ext a ⟩□
-
-    (I₁ ≡ I₂)                                                        □
-
-    where
-    -- Extensionality follows from univalence.
-    ext : Extensionality (# 0) (# 0)
-    ext = dependent-extensionality univ₁ (λ _ → univ₀)
-
-    is-set : Is-set (Carrier a I₁)
-    is-set = proj₂ (proj₁ I₁)
-
-  -- The type of (lifted) isomorphisms between two instances of a
-  -- structure is equal to the type of equalities between the same
-  -- instances (assuming univalence).
-  --
-  -- In short, isomorphism is equal to equality.
-
-  isomorphic≡equal :
-    Univalence (# 0) →
-    Univalence (# 1) →
-    ∀ a {I₁ I₂} → ↑ _ (Isomorphic a I₁ I₂) ≡ (I₁ ≡ I₂)
-  isomorphic≡equal univ₀ univ₁ a {I₁} {I₂} =
-    ≈⇒≡ univ₁ $ ↔⇒≈ (
-      ↑ _ (Isomorphic a I₁ I₂)  ↝⟨ ↑↔ ⟩
-      Isomorphic a I₁ I₂        ↝⟨ isomorphic↔equal univ₀ univ₁ a ⟩□
-      (I₁ ≡ I₂)                 □)
+open Class simple
 
 ------------------------------------------------------------------------
 -- An example: monoids
