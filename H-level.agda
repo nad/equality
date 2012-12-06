@@ -45,6 +45,11 @@ Proposition _ = ∃ Propositional
 SET : (ℓ : Level) → Set (lsuc ℓ)
 SET _ = ∃ Is-set
 
+-- The underlying type.
+
+Type : ∀ {ℓ} → SET ℓ → Set ℓ
+Type A = proj₁ A
+
 ------------------------------------------------------------------------
 -- General properties
 
