@@ -77,7 +77,7 @@ abstract
   cast-is-subst :
     (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
     {A₁ A₂ : Set}
-    (univ : Univalence-axiom′ A₁ A₂)
+    (univ : Univalence′ A₁ A₂)
     (A₁≈A₂ : A₁ ≈ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
     cast A₁≈A₂ n f ≡ subst (λ C → C ^ n ⟶ C) (≈⇒≡ univ A₁≈A₂) f
   cast-is-subst ext univ A₁≈A₂ n =
@@ -112,7 +112,7 @@ abstract
   subst-isomorphism :
     (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
     {A₁ A₂ : Set}
-    (univ : Univalence-axiom′ A₁ A₂)
+    (univ : Univalence′ A₁ A₂)
     (A₁≈A₂ : A₁ ≈ A₂)
     (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
     Is- n -ary-morphism f₁ f₂ (_≈_.to A₁≈A₂) →
@@ -195,8 +195,8 @@ abstract
   -- Isomorphic structures are equal (assuming univalence).
 
   isomorphic-equal :
-    Univalence-axiom′ (Set ²/≡) Set →
-    Univalence-axiom lzero →
+    Univalence′ (Set ²/≡) Set →
+    Univalence lzero →
     (s : Structure) (s₁ s₂ : ⟪ s ⟫) →
     Isomorphism s s₁ s₂ → s₁ ≡ s₂
   isomorphic-equal univ₁ univ₂

@@ -299,7 +299,7 @@ abstract
 
   isomorphism↔subst :
     (ext : Extensionality (# 0) (# 0))
-    (univ : Univalence-axiom (# 0)) →
+    (univ : Univalence (# 0)) →
     ∀ {B C} (B↔C : B ↔ C) → Is-set C →
     ∀ a {x y} →
     Is-isomorphism B↔C a x y ↔ (subst (El a) (≈⇒≡ univ $ ↔⇒≈ B↔C) x ≡ y)
@@ -408,8 +408,8 @@ abstract
   -- In short, isomorphism is isomorphic to equality.
 
   isomorphic↔equal :
-    Univalence-axiom (# 0) →
-    Univalence-axiom (# 1) →
+    Univalence (# 0) →
+    Univalence (# 1) →
     ∀ a {I₁ I₂} → Isomorphic a I₁ I₂ ↔ (I₁ ≡ I₂)
   isomorphic↔equal univ₀ univ₁ a {I₁} {I₂} =
 
@@ -441,8 +441,8 @@ abstract
   -- In short, isomorphism is equal to equality.
 
   isomorphic≡equal :
-    Univalence-axiom (# 0) →
-    Univalence-axiom (# 1) →
+    Univalence (# 0) →
+    Univalence (# 1) →
     ∀ a {I₁ I₂} → ↑ _ (Isomorphic a I₁ I₂) ≡ (I₁ ≡ I₂)
   isomorphic≡equal univ₀ univ₁ a {I₁} {I₂} =
     ≈⇒≡ univ₁ $ ↔⇒≈ (

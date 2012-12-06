@@ -30,8 +30,8 @@ open import Weak-equivalence eq as Weak using (_≈_; module _≈_; ↔⇒≈)
 record Assumptions : Set₂ where
   field
     ext   : Extensionality (# 1) (# 1)
-    univ  : Univalence-axiom (# 0)
-    univ₁ : Univalence-axiom (# 1)
+    univ  : Univalence (# 0)
+    univ₁ : Univalence (# 1)
 
 ------------------------------------------------------------------------
 -- A class of algebraic structures
@@ -303,7 +303,7 @@ N-ary {s} extract n = record
     cast-is-subst :
       (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
       {A₁ A₂ : Set}
-      (univ : Univalence-axiom′ A₁ A₂)
+      (univ : Univalence′ A₁ A₂)
       (A₁≈A₂ : A₁ ≈ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
       cast A₁≈A₂ n f ≡ subst (λ C → C ^ n ⟶ C) (≈⇒≡ univ A₁≈A₂) f
     cast-is-subst ext univ A₁≈A₂ n =
@@ -340,7 +340,7 @@ N-ary {s} extract n = record
     subst-isomorphism :
       (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
       {A₁ A₂ : Set}
-      (univ : Univalence-axiom′ A₁ A₂)
+      (univ : Univalence′ A₁ A₂)
       (A₁≈A₂ : A₁ ≈ A₂)
       (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
       Is- n -ary-morphism f₁ f₂ (_≈_.to A₁≈A₂) →

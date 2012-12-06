@@ -36,23 +36,23 @@ open import Weak-equivalence eq as Weak
 
 -- The univalence axiom states that ≡⇒≈ is a weak equivalence.
 
-Univalence-axiom′ : ∀ {ℓ} → Set ℓ → Set ℓ → Set (lsuc ℓ)
-Univalence-axiom′ A B = Is-weak-equivalence (≡⇒≈ {A = A} {B = B})
+Univalence′ : ∀ {ℓ} → Set ℓ → Set ℓ → Set (lsuc ℓ)
+Univalence′ A B = Is-weak-equivalence (≡⇒≈ {A = A} {B = B})
 
-Univalence-axiom : ∀ ℓ → Set (lsuc ℓ)
-Univalence-axiom ℓ = {A B : Set ℓ} → Univalence-axiom′ A B
+Univalence : ∀ ℓ → Set (lsuc ℓ)
+Univalence ℓ = {A B : Set ℓ} → Univalence′ A B
 
 -- An immediate consequence is that equalities are weakly equivalent
 -- to weak equivalences.
 
-≡≈≈ : ∀ {ℓ} {A B : Set ℓ} → Univalence-axiom′ A B → (A ≡ B) ≈ (A ≈ B)
+≡≈≈ : ∀ {ℓ} {A B : Set ℓ} → Univalence′ A B → (A ≡ B) ≈ (A ≈ B)
 ≡≈≈ univ = weq ≡⇒≈ univ
 
 -- In the case of sets equalities are weakly equivalent to bijections
 -- (if we add the assumption of extensionality).
 
 ≡≈↔ : ∀ {ℓ} {A B : Set ℓ} →
-      Univalence-axiom′ A B →
+      Univalence′ A B →
       Extensionality ℓ ℓ →
       Is-set A →
       (A ≡ B) ≈ (A ↔ B)
@@ -66,7 +66,7 @@ Univalence-axiom ℓ = {A B : Set ℓ} → Univalence-axiom′ A B
 ≡⇒→ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A → B
 ≡⇒→ = _≈_.to ∘ ≡⇒≈
 
-≈⇒≡ : ∀ {ℓ} {A B : Set ℓ} → Univalence-axiom′ A B → A ≈ B → A ≡ B
+≈⇒≡ : ∀ {ℓ} {A B : Set ℓ} → Univalence′ A B → A ≈ B → A ≡ B
 ≈⇒≡ univ = _≈_.from (≡≈≈ univ)
 
 ------------------------------------------------------------------------
@@ -86,7 +86,7 @@ abstract
   -- not.)
 
   equality-can-have-infinitely-many-inhabitants :
-    Univalence-axiom′ ℕ ℕ →
+    Univalence′ ℕ ℕ →
     ∃ λ (A : Set) → ∃ λ (B : Set) →
     ∃ λ (p : ℕ → A ≡ B) → Injective p
   equality-can-have-infinitely-many-inhabitants univ =
@@ -142,7 +142,7 @@ abstract
 
   -- Set is not a set.
 
-  ¬-Set-set : Univalence-axiom′ ℕ ℕ → ¬ Is-set Set
+  ¬-Set-set : Univalence′ ℕ ℕ → ¬ Is-set Set
   ¬-Set-set univ is-set
     with equality-can-have-infinitely-many-inhabitants univ
   ... | (A , B , p , inj) =
@@ -160,7 +160,7 @@ abstract
     ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
     (resp : ∀ {A B} → A ≈ B → P A → P B) →
     (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
-    ∀ {A B} (univ : Univalence-axiom′ A B) →
+    ∀ {A B} (univ : Univalence′ A B) →
     (A≈B : A ≈ B) (p : P A) →
     resp A≈B p ≡ subst P (≈⇒≡ univ A≈B) p
   subst-unique P resp resp-id univ A≈B p =
@@ -182,7 +182,7 @@ abstract
     ∀ {p} (P : Set p → Set p) →
     (resp : ∀ {A B} → A ≈ B → P A → P B) →
     (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
-    ∀ {A B} (univ : Univalence-axiom′ A B) →
+    ∀ {A B} (univ : Univalence′ A B) →
     (A≈B : A ≈ B) → Is-weak-equivalence (resp A≈B)
   resp-is-weak-equivalence P resp resp-id univ A≈B =
     Weak.respects-extensional-equality
@@ -193,7 +193,7 @@ abstract
   -- with f is also a weak equivalence (assuming univalence).
 
   precomposition-is-weak-equivalence :
-    ∀ {ℓ} {A B C : Set ℓ} → Univalence-axiom′ B A →
+    ∀ {ℓ} {A B C : Set ℓ} → Univalence′ B A →
     (A≈B : A ≈ B) →
     Is-weak-equivalence (λ (g : B → C) → g ∘ _≈_.to A≈B)
   precomposition-is-weak-equivalence {ℓ} {C = C} univ A≈B =
@@ -209,7 +209,7 @@ abstract
 -- precompositions with h (assuming univalence).
 
 precompositions-cancel :
-  ∀ {ℓ} {A B C : Set ℓ} → Univalence-axiom′ B A →
+  ∀ {ℓ} {A B C : Set ℓ} → Univalence′ B A →
   (A≈B : A ≈ B) {f g : B → C} →
   let open _≈_ A≈B in
   f ∘ to ≡ g ∘ to → f ≡ g
@@ -249,7 +249,7 @@ abstract
 
   extensionality :
     ∀ {a b} {A : Set a} {B : Set b} →
-    Univalence-axiom′ (B ²/≡) B →
+    Univalence′ (B ²/≡) B →
     {f g : A → B} → (∀ x → f x ≡ g x) → f ≡ g
   extensionality {A = A} {B} univ {f} {g} f≡g =
     f          ≡⟨ refl f ⟩
@@ -276,9 +276,9 @@ abstract
   -- Π A.
 
   Π-closure-contractible :
-    ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
+    ∀ {b} → Univalence′ (Set b ²/≡) (Set b) →
     ∀ {a} {A : Set a} {B : A → Set b} →
-    (∀ x → Univalence-axiom′ (↑ b ⊤) (B x)) →
+    (∀ x → Univalence′ (↑ b ⊤) (B x)) →
     (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)
   Π-closure-contractible {b} univ₁ {A = A} {B} univ₂ contr =
     subst Contractible A→⊤≡[x:A]→Bx →⊤-contractible
@@ -298,9 +298,9 @@ abstract
   -- Thus we also get extensionality for dependent functions.
 
   dependent-extensionality :
-    ∀ {b} → Univalence-axiom′ (Set b ²/≡) (Set b) →
+    ∀ {b} → Univalence′ (Set b ²/≡) (Set b) →
     ∀ {a} {A : Set a} →
-    (∀ {B : A → Set b} x → Univalence-axiom′ (↑ b ⊤) (B x)) →
+    (∀ {B : A → Set b} x → Univalence′ (↑ b ⊤) (B x)) →
     {B : A → Set b} → Extensionality′ A B
   dependent-extensionality univ₁ univ₂ =
     _⇔_.to Π-closure-contractible⇔extensionality
@@ -347,7 +347,7 @@ abstract
   -- "Evaluation rule" (?) for ≈⇒≡.
 
   ≈⇒≡-id : ∀ {a} {A : Set a}
-           (univ : Univalence-axiom′ A A) →
+           (univ : Univalence′ A A) →
            ≈⇒≡ univ Weak.id ≡ refl A
   ≈⇒≡-id univ =
     ≈⇒≡ univ Weak.id         ≡⟨ sym $ cong (≈⇒≡ univ) ≡⇒≈-refl ⟩
@@ -407,7 +407,7 @@ abstract
   ≈⇒≡-→-cong :
     ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ}
     (ext : Extensionality ℓ ℓ) →
-    (univ : Univalence-axiom ℓ)
+    (univ : Univalence ℓ)
     (A₁≈A₂ : A₁ ≈ A₂) (B₁≈B₂ : B₁ ≈ B₂) →
     ≈⇒≡ univ (→-cong ext A₁≈A₂ B₁≈B₂) ≡
       cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂) (≈⇒≡ univ B₁≈B₂)
@@ -449,8 +449,8 @@ abstract
   cong-≈⇒≡ :
     ∀ {ℓ p} {A B : Set ℓ} {A≈B : A ≈ B} →
     Extensionality p p →
-    (univ₁ : Univalence-axiom ℓ)
-    (univ₂ : Univalence-axiom p)
+    (univ₁ : Univalence ℓ)
+    (univ₂ : Univalence p)
     (P : Set ℓ → Set p)
     (P-cong : ∀ {A B} → A ≈ B → P A ≈ P B) →
     (∀ {A} (p : P A) → _≈_.to (P-cong Weak.id) p ≡ p) →

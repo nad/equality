@@ -57,8 +57,8 @@ module Magma where
   -- univalence).
 
   isomorphic-equal :
-    Univalence-axiom′ (Set ²/≡) Set →
-    Univalence-axiom lzero →
+    Univalence′ (Set ²/≡) Set →
+    Univalence lzero →
     ∀ {M₁ M₂} → Magma-isomorphism M₁ M₂ → M₁ ≡ M₂
   isomorphic-equal univ₁ univ₂ {magma A₁ _∙₁_} {magma A₂ _∙₂_} iso =
     magma A₁ _∙₁_                                  ≡⟨ elim (λ {A₁ A₂} A₁≡A₂ → (f : A₁ → A₁ → A₁) →
@@ -155,8 +155,8 @@ module Another-example where
   -- equal (assuming univalence).
 
   isomorphic-equal :
-    Univalence-axiom′ (Set ²/≡) Set →
-    Univalence-axiom lzero →
+    Univalence′ (Set ²/≡) Set →
+    Univalence lzero →
     ∀ {F₁ F₂} → Isomorphism F₁ F₂ → F₁ ≡ F₂
   isomorphic-equal univ₁ univ₂
     {A₁ , A₁-set , x₁ , f₁ , f₁x₁≡x₁}
@@ -413,8 +413,8 @@ module Monoid-right-nested where
   -- univalence).
 
   isomorphic-equal :
-    Univalence-axiom (# 0) →
-    Univalence-axiom (# 1) →
+    Univalence (# 0) →
+    Univalence (# 1) →
     (M₁ M₂ : Monoid) → M₁ ≅ M₂ → M₁ ≡ M₂
   isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
     where
@@ -587,8 +587,8 @@ module Monoid-left-nested where
   -- univalence).
 
   isomorphic-equal :
-    Univalence-axiom (# 0) →
-    Univalence-axiom (# 1) →
+    Univalence (# 0) →
+    Univalence (# 1) →
     (M₁ M₂ : Monoid) → M₁ ≅ M₂ → M₁ ≡ M₂
   isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
     where
