@@ -12,11 +12,11 @@ open import Equality
 module Univalence-axiom
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq as Bijection hiding (id; _∘_)
+open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
-open import Equivalence hiding (id; _∘_)
-open import Function-universe eq using (weak-equivalence; ≡⇒↝; →-cong)
+open import Equivalence hiding (id; _∘_; inverse)
+open import Function-universe eq hiding (id; _∘_)
 open import Groupoid eq
 open import H-level eq
 open import H-level.Closure eq
@@ -24,7 +24,7 @@ open import Injection eq using (Injective)
 open import Prelude
 open import Surjection eq hiding (id; _∘_)
 open import Weak-equivalence eq as Weak
-  hiding (id) renaming (_∘_ to _⊚_)
+  hiding (id; inverse) renaming (_∘_ to _⊚_)
 
 ------------------------------------------------------------------------
 -- The univalence axiom
@@ -47,6 +47,19 @@ Univalence-axiom ℓ = {A B : Set ℓ} → Univalence-axiom′ A B
 
 ≡≈≈ : ∀ {ℓ} {A B : Set ℓ} → Univalence-axiom′ A B → (A ≡ B) ≈ (A ≈ B)
 ≡≈≈ univ = weq ≡⇒≈ univ
+
+-- In the case of sets equalities are weakly equivalent to bijections
+-- (if we add the assumption of extensionality).
+
+≡≈↔ : ∀ {ℓ} {A B : Set ℓ} →
+      Univalence-axiom′ A B →
+      Extensionality ℓ ℓ →
+      Is-set A →
+      (A ≡ B) ≈ (A ↔ B)
+≡≈↔ {A = A} {B} univ ext A-set =
+  (A ≡ B)  ↝⟨ ≡≈≈ univ ⟩
+  (A ≈ B)  ↔⟨ inverse $ ↔↔≈ ext A-set ⟩□
+  (A ↔ B)  □
 
 -- Some abbreviations.
 
@@ -272,9 +285,9 @@ abstract
     where
     const-⊤≡B : const (↑ b ⊤) ≡ B
     const-⊤≡B = extensionality univ₁ λ x →
-      _≈_.from (≡≈≈ (univ₂ x)) $
-        ↔⇒≈ $
-          contractible-isomorphic (↑-closure 0 ⊤-contractible) (contr x)
+      _≈_.from (≡≈≈ (univ₂ x)) $ ↔⇒≈ $
+        Bijection.contractible-isomorphic
+          (↑-closure 0 ⊤-contractible) (contr x)
 
     A→⊤≡[x:A]→Bx : (A → ↑ b ⊤) ≡ ((x : A) → B x)
     A→⊤≡[x:A]→Bx = cong (λ X → (x : A) → X x) const-⊤≡B
