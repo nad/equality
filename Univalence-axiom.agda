@@ -109,7 +109,7 @@ abstract
     ...   | inj₂ _     = refl (suc n)
 
     p : ℕ → ℕ ≈ ℕ
-    p i = bijection⇒weak-equivalence record
+    p i = ↔⇒≈ record
       { surjection = record
         { equivalence      = record { to = swap i; from = swap i }
         ; right-inverse-of = swap∘swap i
@@ -253,7 +253,7 @@ abstract
     f′≡g′ : f′ ≡ g′
     f′≡g′ = precompositions-cancel
               univ
-              (bijection⇒weak-equivalence $ Bijection.inverse -²/≡↔-)
+              (↔⇒≈ $ Bijection.inverse -²/≡↔-)
               (refl id)
 
     pair : A → B ²/≡
@@ -273,7 +273,7 @@ abstract
     const-⊤≡B : const (↑ b ⊤) ≡ B
     const-⊤≡B = extensionality univ₁ λ x →
       _≈_.from (≡≈≈ (univ₂ x)) $
-        bijection⇒weak-equivalence $
+        ↔⇒≈ $
           contractible-isomorphic (↑-closure 0 ⊤-contractible) (contr x)
 
     A→⊤≡[x:A]→Bx : (A → ↑ b ⊤) ≡ ((x : A) → B x)

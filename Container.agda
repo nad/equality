@@ -302,7 +302,7 @@ _≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
         (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
         xs ≈[ bag ]′ ys ↔ xs ≈[ bag-with-weak-equivalence ]′ ys
 ≈′↔≈′ ext P-set (s , f) (s′ , f′) =
-  (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  ↔⟨ Σ-cong (Weak.↔-↔-≈ ext (P-set s)) (λ _ → Bijection.id) ⟩
+  (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  ↔⟨ Σ-cong (Weak.↔↔≈ ext (P-set s)) (λ _ → Bijection.id) ⟩
   (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  □
 
 -- The definition _≈[_]′_ is also equivalent to the one given above.

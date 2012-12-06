@@ -22,8 +22,7 @@ open import H-level eq hiding (Proposition)
 open import H-level.Closure eq
 open import Prelude
 open import Univalence-axiom eq
-open import Weak-equivalence eq as Weak
-  using (_≈_; module _≈_; bijection⇒weak-equivalence)
+open import Weak-equivalence eq as Weak using (_≈_; module _≈_; ↔⇒≈)
 
 ------------------------------------------------------------------------
 -- A record packing up certain assumptions
@@ -170,7 +169,7 @@ Type {s} = record
       let open Assumptions ass in
 
       subst (λ _ → Set) _ A  ≡⟨ subst-const ⟩
-      A                      ≡⟨ ≈⇒≡ univ (bijection⇒weak-equivalence bij) ⟩∎
+      A                      ≡⟨ ≈⇒≡ univ (↔⇒≈ bij) ⟩∎
       B                      ∎ }
   }
 
@@ -179,7 +178,7 @@ Type {s} = record
 [0] : ∀ {s} → Type-extractor (s ▻ Type)
 [0] {s} = record
   { Typ     = λ { (_ , A) → A }
-  ; equ     = λ { (_ , lift A↔B) → bijection⇒weak-equivalence A↔B }
+  ; equ     = λ { (_ , lift A↔B) → ↔⇒≈ A↔B }
   ; Typ-equ = Typ-equ
   }
   where
@@ -187,11 +186,11 @@ Type {s} = record
     Typ-equ : (ass : Assumptions) → let open Assumptions ass in
               ∀ {s₁ s₂} (iso : Isomorphism (s ▻ Type) s₁ s₂) →
               cong proj₂ (isomorphic-equal ass (s ▻ Type) iso) ≡
-              ≈⇒≡ univ (bijection⇒weak-equivalence $ lower $ proj₂ iso)
+              ≈⇒≡ univ (↔⇒≈ $ lower $ proj₂ iso)
     Typ-equ ass (iso , lift A↔B) =
       let open Assumptions ass
           iso-eq = isomorphic-equal ass s iso
-          A≡B = ≈⇒≡ univ $ bijection⇒weak-equivalence A↔B in
+          A≡B = ≈⇒≡ univ $ ↔⇒≈ A↔B in
 
       cong proj₂ (Σ-≡,≡→≡ iso-eq (trans subst-const A≡B))  ≡⟨ cong (cong proj₂) $ Σ-≡,≡→≡-subst-const _ _ ⟩
 

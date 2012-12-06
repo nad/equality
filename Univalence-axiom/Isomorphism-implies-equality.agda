@@ -217,7 +217,7 @@ abstract
     -- underlying types are equal (due to univalence).
 
     A₁≡A₂ : A₁ ≡ A₂
-    A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ bijection⇒weak-equivalence m
+    A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ ↔⇒≈ m
 
     -- We can lift subst-isomorphism to structures by recursion on
     -- structure codes.
@@ -239,8 +239,7 @@ abstract
       (s₂ , subst₂ (λ { (A , _) → A ^ n ⟶ A }) A₁≡A₂
                    (lemma s s₁ s₂ is-s) op₁)                ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ (λ A → A ^ n ⟶ A) ⟩
 
-      (s₂ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)              ≡⟨ cong (_,_ s₂) $ subst-isomorphism (λ _ → ext) univ₂
-                                                                                 (bijection⇒weak-equivalence m) n op₁ op₂ is-o ⟩∎
+      (s₂ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)              ≡⟨ cong (_,_ s₂) $ subst-isomorphism (λ _ → ext) univ₂ (↔⇒≈ m) n op₁ op₂ is-o ⟩∎
       (s₂ , op₂)                                            ∎
 
 ------------------------------------------------------------------------

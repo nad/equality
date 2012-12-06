@@ -26,8 +26,7 @@ open import H-level.Closure eq
 open import Preimage eq
 open import Prelude as P hiding (id)
 open import Univalence-axiom eq
-open import Weak-equivalence eq as Weak
-  using (_≈_; module _≈_; bijection⇒weak-equivalence)
+open import Weak-equivalence eq as Weak using (_≈_; module _≈_; ↔⇒≈)
 
 ------------------------------------------------------------------------
 -- A universe of non-recursive, simple types
@@ -84,7 +83,7 @@ abstract
 
 cast≈ : Extensionality (# 0) (# 0) →
         ∀ a {B C} → B ≈ C → El a B ≈ El a C
-cast≈ ext a {B} {C} B≈C = bijection⇒weak-equivalence record
+cast≈ ext a {B} {C} B≈C = ↔⇒≈ record
   { surjection = record
     { equivalence      = cast a B⇔C
     ; right-inverse-of = to∘from
@@ -445,7 +444,7 @@ abstract
     Univalence-axiom (# 1) →
     ∀ a {I₁ I₂} → ↑ _ (Isomorphic a I₁ I₂) ≡ (I₁ ≡ I₂)
   isomorphic≡equal univ₀ univ₁ a {I₁} {I₂} =
-    ≈⇒≡ univ₁ $ bijection⇒weak-equivalence (
+    ≈⇒≡ univ₁ $ ↔⇒≈ (
       ↑ _ (Isomorphic a I₁ I₂)  ↝⟨ ↑↔ ⟩
       Isomorphic a I₁ I₂        ↝⟨ isomorphic↔equal univ₀ univ₁ a ⟩□
       (I₁ ≡ I₂)                 □)

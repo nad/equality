@@ -75,8 +75,7 @@ module Magma where
     ext = dependent-extensionality univ₁ (λ _ → univ₂)
 
     A₁≡A₂ : A₁ ≡ A₂
-    A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $
-              bijection⇒weak-equivalence bijection
+    A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ ↔⇒≈ bijection
 
     cast : (A₁ → A₁ → A₁) → (A₂ → A₂ → A₂)
     cast f = λ x y → to (f (from x) (from y))
@@ -88,7 +87,7 @@ module Magma where
         (λ A≈B f x y → _≈_.to A≈B (f (_≈_.from A≈B x) (_≈_.from A≈B y)))
         refl
         univ₂
-        (bijection⇒weak-equivalence bijection)
+        (↔⇒≈ bijection)
         f
 
     subst-isomorphism : subst (λ A → A → A → A) A₁≡A₂ _∙₁_ ≡ _∙₂_
@@ -179,8 +178,7 @@ module Another-example where
       ext = dependent-extensionality univ₁ (λ _ → univ₂)
 
     A₁≡A₂ : A₁ ≡ A₂
-    A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $
-              bijection⇒weak-equivalence bijection
+    A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ ↔⇒≈ bijection
 
     lemma₀ : (A₁ , A₁-set , x₁ , f₁ , f₁x₁≡x₁) ≡
              (A₂ , subst Is-set-with-fixed-point A₁≡A₂
@@ -213,7 +211,7 @@ module Another-example where
         (λ A≈B x → _≈_.to A≈B x)
         refl
         univ₂
-        (bijection⇒weak-equivalence bijection)
+        (↔⇒≈ bijection)
         x
 
     lemma₂′ : subst (λ { (A , _) → A }) lemma₁″ x₁ ≡ x₂
@@ -241,7 +239,7 @@ module Another-example where
         (λ A≈B f x → _≈_.to A≈B (f (_≈_.from A≈B x)))
         refl
         univ₂
-        (bijection⇒weak-equivalence bijection)
+        (↔⇒≈ bijection)
         f
 
     lemma₃′ : subst (λ { ((A , _) , _) → A → A }) lemma₂″ f₁ ≡ f₂
@@ -432,7 +430,7 @@ module Monoid-right-nested where
     -- univalence, they are equal.
 
     C-eq : Carrier M₁ ≡ Carrier M₂
-    C-eq = ≈⇒≡ univ₀ $ bijection⇒weak-equivalence bijection
+    C-eq = ≈⇒≡ univ₀ $ ↔⇒≈ bijection
 
     -- One can "cast" binary operators on one monoid so that they
     -- apply to the other instead.
@@ -451,7 +449,7 @@ module Monoid-right-nested where
         (λ A≈B f x y → _≈_.to A≈B (f (_≈_.from A≈B x) (_≈_.from A≈B y)))
         refl
         univ₀
-        (bijection⇒weak-equivalence bijection)
+        (↔⇒≈ bijection)
         f
 
     -- One can transport one binary operator to the other using C-eq.
@@ -478,7 +476,7 @@ module Monoid-right-nested where
         (λ A≈B x → _≈_.to A≈B x)
         refl
         univ₀
-        (bijection⇒weak-equivalence bijection)
+        (↔⇒≈ bijection)
         x
 
     id-eq : subst (λ A → A) C-eq (id M₁) ≡ id M₂
@@ -606,7 +604,7 @@ module Monoid-left-nested where
     -- univalence, they are equal.
 
     C-eq : Carrier M₁ ≡ Carrier M₂
-    C-eq = ≈⇒≡ univ₀ $ bijection⇒weak-equivalence bijection
+    C-eq = ≈⇒≡ univ₀ $ ↔⇒≈ bijection
 
     -- One can "cast" binary operators on one monoid so that they
     -- apply to the other instead.
@@ -625,7 +623,7 @@ module Monoid-left-nested where
         (λ A≈B f x y → _≈_.to A≈B (f (_≈_.from A≈B x) (_≈_.from A≈B y)))
         refl
         univ₀
-        (bijection⇒weak-equivalence bijection)
+        (↔⇒≈ bijection)
         f
 
     -- One can transport one binary operator to the other using C-eq.
@@ -652,7 +650,7 @@ module Monoid-left-nested where
         (λ A≈B x → _≈_.to A≈B x)
         refl
         univ₀
-        (bijection⇒weak-equivalence bijection)
+        (↔⇒≈ bijection)
         x
 
     id-eq : subst (λ A → A) C-eq (id M₁) ≡ id M₂

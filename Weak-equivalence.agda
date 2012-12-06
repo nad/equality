@@ -238,9 +238,8 @@ record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 
 -- Bijections are weak equivalences.
 
-bijection⇒weak-equivalence : ∀ {a b} {A : Set a} {B : Set b} →
-                             A ↔ B → A ≈ B
-bijection⇒weak-equivalence A↔B = record
+↔⇒≈ : ∀ {a b} {A : Set a} {B : Set b} → A ↔ B → A ≈ B
+↔⇒≈ A↔B = record
   { to                  = to
   ; is-weak-equivalence = λ y →
       (from y , right-inverse-of y) , irrelevance y
@@ -270,7 +269,7 @@ id {A = A} = record
       (from y , right-inverse-of y) , irrelevance y
   }
   where
-  A≈A  = bijection⇒weak-equivalence (Bijection.id {A = A})
+  A≈A  = ↔⇒≈ (Bijection.id {A = A})
   to   = _≈_.to   A≈A
   from = _≈_.from A≈A
 
@@ -288,9 +287,7 @@ inverse A≈B = record
       (from y , right-inverse-of y) , irrelevance y
   }
   where
-  B≈A  = bijection⇒weak-equivalence $
-         Bijection.inverse $
-         _≈_.bijection A≈B
+  B≈A  = ↔⇒≈ $ Bijection.inverse $ _≈_.bijection A≈B
   to   = _≈_.to   B≈A
   from = _≈_.from B≈A
 
@@ -311,8 +308,7 @@ f ∘ g = record
       (from y , right-inverse-of y) , irrelevance y
   }
   where
-  f∘g  = bijection⇒weak-equivalence $
-         Bijection._∘_ (_≈_.bijection f) (_≈_.bijection g)
+  f∘g  = ↔⇒≈ $ Bijection._∘_ (_≈_.bijection f) (_≈_.bijection g)
   to   = _≈_.to   f∘g
   from = _≈_.from f∘g
 
@@ -563,27 +559,24 @@ groupoid {ℓ} ext = record
 
 abstract
 
-  -- bijection⇒weak-equivalence is a left inverse of _≈_.bijection
-  -- (assuming extensionality).
+  -- ↔⇒≈ is a left inverse of _≈_.bijection (assuming extensionality).
 
-  bijection⇒weak-equivalence-left-inverse :
+  ↔⇒≈-left-inverse :
     ∀ {a b} {A : Set a} {B : Set b} →
     Extensionality (a ⊔ b) (a ⊔ b) →
     (A≈B : A ≈ B) →
-    bijection⇒weak-equivalence (_≈_.bijection A≈B) ≡ A≈B
-  bijection⇒weak-equivalence-left-inverse ext _ =
-    lift-equality ext (refl _)
+    ↔⇒≈ (_≈_.bijection A≈B) ≡ A≈B
+  ↔⇒≈-left-inverse ext _ = lift-equality ext (refl _)
 
-  -- When sets are used bijection⇒weak-equivalence is a right inverse
-  -- of _≈_.bijection (assuming extensionality).
+  -- When sets are used ↔⇒≈ is a right inverse of _≈_.bijection
+  -- (assuming extensionality).
 
-  bijection⇒weak-equivalence-right-inverse :
+  ↔⇒≈-right-inverse :
     ∀ {a b} {A : Set a} {B : Set b} →
     Extensionality (a ⊔ b) (a ⊔ b) →
     Is-set A → (A↔B : A ↔ B) →
-    _≈_.bijection (bijection⇒weak-equivalence A↔B) ≡ A↔B
-  bijection⇒weak-equivalence-right-inverse {a} {b} {B = B}
-                                           ext A-set A↔B =
+    _≈_.bijection (↔⇒≈ A↔B) ≡ A↔B
+  ↔⇒≈-right-inverse {a} {b} {B = B} ext A-set A↔B =
     cong₂ (λ l r → record
              { surjection = record
                { equivalence      = _↔_.equivalence A↔B
@@ -606,22 +599,22 @@ abstract
   (A ↔ B) ↠ (A ≈ B)
 ↔-↠-≈ ext = record
   { equivalence = record
-    { to   = bijection⇒weak-equivalence
+    { to   = ↔⇒≈
     ; from = _≈_.bijection
     }
-  ; right-inverse-of = bijection⇒weak-equivalence-left-inverse ext
+  ; right-inverse-of = ↔⇒≈-left-inverse ext
   }
 
 -- When A is a set A ↔ B and A ≈ B are isomorphic (assuming
 -- extensionality).
 
-↔-↔-≈ :
+↔↔≈ :
   ∀ {a b} {A : Set a} {B : Set b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-set A → (A ↔ B) ↔ (A ≈ B)
-↔-↔-≈ ext A-set = record
+↔↔≈ ext A-set = record
   { surjection      = ↔-↠-≈ ext
-  ; left-inverse-of = bijection⇒weak-equivalence-right-inverse ext A-set
+  ; left-inverse-of = ↔⇒≈-right-inverse ext A-set
   }
 
 ------------------------------------------------------------------------
@@ -669,11 +662,10 @@ abstract
 ≈-≡ : ∀ {a b} {A : Set a} {B : Set b} (A≈B : A ≈ B) {x y : A} →
       let open _≈_ A≈B in
       (to x ≡ to y) ≈ (x ≡ y)
-≈-≡ A≈B {x} {y} =
-  bijection⇒weak-equivalence record
-    { surjection      = surjection′
-    ; left-inverse-of = left-inverse-of′
-    }
+≈-≡ A≈B {x} {y} = ↔⇒≈ record
+  { surjection      = surjection′
+  ; left-inverse-of = left-inverse-of′
+  }
   where
   open _≈_ A≈B
 
@@ -944,7 +936,7 @@ abstract
                 {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
               (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
               Σ A₁ B₁ ≈ Σ A₂ B₂
-Σ-preserves A₁≈A₂ B₁≈B₂ = bijection⇒weak-equivalence $
+Σ-preserves A₁≈A₂ B₁≈B₂ = ↔⇒≈ $
   ∃-preserves-bijections A₁≈A₂ (_≈_.bijection ⊚ B₁≈B₂)
 
 -- Π preserves weak equivalence (assuming extensionality).
@@ -955,7 +947,7 @@ abstract
   (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
   ((x : A₁) → B₁ x) ≈ ((x : A₂) → B₂ x)
 Π-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁≈B₂ =
-  bijection⇒weak-equivalence record
+  ↔⇒≈ record
     { surjection = record
       { equivalence = record
         { to   = to′
@@ -1027,8 +1019,7 @@ abstract
   {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
   (∀ x → B₁ x ≈ B₂ x) →
   ((x : A) → B₁ x) ≈ ((x : A) → B₂ x)
-Π-preserves₂ {a} {b₁} {b₂} ext {A} {B₁} {B₂} B₁≈B₂ =
-  bijection⇒weak-equivalence record
+Π-preserves₂ {a} {b₁} {b₂} ext {A} {B₁} {B₂} B₁≈B₂ = ↔⇒≈ record
     { surjection = record
       { equivalence = record
         { to   = to′
@@ -1067,7 +1058,7 @@ abstract
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
   A₁ ≈ A₂ → B₁ ≈ B₂ → (A₁ ≈ B₁) ≈ (A₂ ≈ B₂)
 ≈-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁≈B₂ =
-  bijection⇒weak-equivalence (record
+  ↔⇒≈ (record
     { surjection = record
       { equivalence = record
         { to   = λ A₁≈B₁ → B₁≈B₂ ∘ A₁≈B₁ ∘ inverse A₁≈A₂
@@ -1109,9 +1100,7 @@ abstract
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
   A₁ ↔ A₂ → B₁ ↔ B₂ → (A₁ ≈ B₁) ↔ (A₂ ≈ B₂)
 ≈-preserves-bijections ext A₁↔A₂ B₁↔B₂ =
-  _≈_.bijection $
-    ≈-preserves ext (bijection⇒weak-equivalence A₁↔A₂)
-                    (bijection⇒weak-equivalence B₁↔B₂)
+  _≈_.bijection $ ≈-preserves ext (↔⇒≈ A₁↔A₂) (↔⇒≈ B₁↔B₂)
 
 ------------------------------------------------------------------------
 -- Another property
@@ -1128,8 +1117,8 @@ abstract
             (sup x f ≡ sup y g)
   W-≡,≡≈≡ {a} {A = A} {B} ext {x} {y} {f} {g} =
     (∃ λ p → ∀ i → f i ≡ g (subst B p i))        ≈⟨ Σ-preserves id lemma ⟩
-    (∃ λ p → subst (λ x → B x → W A B) p f ≡ g)  ≈⟨ bijection⇒weak-equivalence Σ-≡,≡↔≡ ⟩
-    ((x , f) ≡ (y , g))                          ≈⟨ ≈-≡ (bijection⇒weak-equivalence W-unfolding) ⟩□
+    (∃ λ p → subst (λ x → B x → W A B) p f ≡ g)  ≈⟨ ↔⇒≈ Σ-≡,≡↔≡ ⟩
+    ((x , f) ≡ (y , g))                          ≈⟨ ≈-≡ (↔⇒≈ W-unfolding) ⟩□
     (sup x f ≡ sup y g)                          □
     where
     lemma : (p : x ≡ y) →

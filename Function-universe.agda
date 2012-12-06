@@ -54,7 +54,7 @@ from-bijection {equivalence}      = _↔_.equivalence
 from-bijection {injection}        = _↔_.injection
 from-bijection {surjection}       = _↔_.surjection
 from-bijection {bijection}        = P.id
-from-bijection {weak-equivalence} = Weak.bijection⇒weak-equivalence
+from-bijection {weak-equivalence} = Weak.↔⇒≈
 
 -- Weak equivalences can be converted to all kinds of functions.
 
@@ -755,7 +755,7 @@ private
         ((from y , right-inverse-of y) , irrelevance y)
     }
     where
-    A→B≈C→D = Weak.bijection⇒weak-equivalence
+    A→B≈C→D = Weak.↔⇒≈
                 (→-cong-↔ (_≈_.bijection A≈B) (_≈_.bijection C≈D))
 
     to   = _≈_.to   A→B≈C→D
