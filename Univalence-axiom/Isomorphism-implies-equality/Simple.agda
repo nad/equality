@@ -16,7 +16,7 @@ open import Equality
 module Univalence-axiom.Isomorphism-implies-equality.Simple
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq hiding (id; _∘_; inverse)
+open import Bijection eq as Bijection hiding (id; _∘_; inverse)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence using (_⇔_; module _⇔_)
@@ -26,7 +26,7 @@ open import H-level.Closure eq
 open import Preimage eq
 open import Prelude as P hiding (id)
 open import Univalence-axiom eq
-open import Weak-equivalence eq as Weak using (_≈_; module _≈_; ↔⇒≈)
+open import Weak-equivalence eq using (_≈_; module _≈_; ↔⇒≈)
 
 ------------------------------------------------------------------------
 -- A universe of non-recursive, simple types
@@ -79,11 +79,11 @@ abstract
                                                                       (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
     Equivalence.id                                           ∎
 
--- El a also preserves weak equivalences (assuming extensionality).
+-- El a also preserves bijections (assuming extensionality).
 
-cast≈ : Extensionality (# 0) (# 0) →
-        ∀ a {B C} → B ≈ C → El a B ≈ El a C
-cast≈ ext a {B} {C} B≈C = ↔⇒≈ record
+cast↔ : Extensionality (# 0) (# 0) →
+        ∀ a {B C} → B ↔ C → El a B ↔ El a C
+cast↔ ext a {B} {C} B↔C = record
   { surjection = record
     { equivalence      = cast a B⇔C
     ; right-inverse-of = to∘from
@@ -91,22 +91,22 @@ cast≈ ext a {B} {C} B≈C = ↔⇒≈ record
   ; left-inverse-of = from∘to
   }
   where
-  B⇔C = _≈_.equivalence B≈C
+  B⇔C = _↔_.equivalence B↔C
 
-  cst : ∀ a → El a B ≈ El a C
-  cst id      = B≈C
-  cst (k A)   = Weak.id
+  cst : ∀ a → El a B ↔ El a C
+  cst id      = B↔C
+  cst (k A)   = Bijection.id
   cst (a ⇾ b) = →-cong ext (cst a) (cst b)
   cst (a ⊕ b) = cst a ⊎-cong cst b
   cst (a ⊗ b) = cst a ×-cong cst b
 
   abstract
 
-    -- The projection _≈_.equivalence is homomorphic with respect to
+    -- The projection _↔_.equivalence is homomorphic with respect to
     -- cast a/cst a
 
     casts-related :
-      ∀ a → cast a (_≈_.equivalence B≈C) ≡ _≈_.equivalence (cst a)
+      ∀ a → cast a (_↔_.equivalence B↔C) ≡ _↔_.equivalence (cst a)
     casts-related id      = refl _
     casts-related (k A)   = refl _
     casts-related (a ⇾ b) = cong₂ →-cong-⇔ (casts-related a)
@@ -120,14 +120,14 @@ cast≈ ext a {B} {C} B≈C = ↔⇒≈ record
     to∘from x =
       _⇔_.to (cast a B⇔C) (_⇔_.from (cast a B⇔C) x)  ≡⟨ cong₂ (λ f g → f (g x)) (cong _⇔_.to $ casts-related a)
                                                                                 (cong _⇔_.from $ casts-related a) ⟩
-      _≈_.to (cst a) (_≈_.from (cst a) x)            ≡⟨ _≈_.right-inverse-of (cst a) x ⟩∎
+      _↔_.to (cst a) (_↔_.from (cst a) x)            ≡⟨ _↔_.right-inverse-of (cst a) x ⟩∎
       x                                              ∎
 
     from∘to : ∀ x → _⇔_.from (cast a B⇔C) (_⇔_.to (cast a B⇔C) x) ≡ x
     from∘to x =
       _⇔_.from (cast a B⇔C) (_⇔_.to (cast a B⇔C) x)  ≡⟨ cong₂ (λ f g → f (g x)) (cong _⇔_.from $ casts-related a)
                                                                                 (cong _⇔_.to $ casts-related a) ⟩
-      _≈_.from (cst a) (_≈_.to (cst a) x)            ≡⟨ _≈_.left-inverse-of (cst a) x ⟩∎
+      _↔_.from (cst a) (_↔_.to (cst a) x)            ≡⟨ _↔_.left-inverse-of (cst a) x ⟩∎
       x                                              ∎
 
 abstract
@@ -155,25 +155,25 @@ abstract
 
 -- The property of being an isomorphism between two elements.
 
-Is-isomorphism : ∀ {B C} → B ≈ C → ∀ a → El a B → El a C → Set
+Is-isomorphism : ∀ {B C} → B ↔ C → ∀ a → El a B → El a C → Set
 
-Is-isomorphism B≈C id = λ x y → _≈_.to B≈C x ≡ y
+Is-isomorphism B↔C id = λ x y → _↔_.to B↔C x ≡ y
 
-Is-isomorphism B≈C (k A) = λ x y → x ≡ y
+Is-isomorphism B↔C (k A) = λ x y → x ≡ y
 
-Is-isomorphism B≈C (a ⇾ b) = λ f g →
-  ∀ {x y} → Is-isomorphism B≈C a x y → Is-isomorphism B≈C b (f x) (g y)
+Is-isomorphism B↔C (a ⇾ b) = λ f g →
+  ∀ {x y} → Is-isomorphism B↔C a x y → Is-isomorphism B↔C b (f x) (g y)
 
-Is-isomorphism B≈C (a ⊕ b) =
-  Is-isomorphism B≈C a ⊎-rel Is-isomorphism B≈C b
+Is-isomorphism B↔C (a ⊕ b) =
+  Is-isomorphism B↔C a ⊎-rel Is-isomorphism B↔C b
 
-Is-isomorphism B≈C (a ⊗ b) = λ { (x , u) (y , v) →
-  Is-isomorphism B≈C a x y × Is-isomorphism B≈C b u v }
+Is-isomorphism B↔C (a ⊗ b) = λ { (x , u) (y , v) →
+  Is-isomorphism B↔C a x y × Is-isomorphism B↔C b u v }
 
 -- Another definition of "being an isomorphism".
 
-Is-isomorphism′ : ∀ {B C} → B ≈ C → ∀ a → El a B → El a C → Set
-Is-isomorphism′ B≈C a x y = _⇔_.to (cast a (_≈_.equivalence B≈C)) x ≡ y
+Is-isomorphism′ : ∀ {B C} → B ↔ C → ∀ a → El a B → El a C → Set
+Is-isomorphism′ B↔C a x y = _⇔_.to (cast a (_↔_.equivalence B↔C)) x ≡ y
 
 abstract
 
@@ -183,62 +183,62 @@ abstract
 
   Is-isomorphism′-propositional :
      Extensionality (# 0) (# 0) →
-     ∀ {B C} (B≈C : B ≈ C) → Is-set C →
-     ∀ a {x y} → Propositional (Is-isomorphism′ B≈C a x y)
-  Is-isomorphism′-propositional ext B≈C C-set a =
+     ∀ {B C} (B↔C : B ↔ C) → Is-set C →
+     ∀ a {x y} → Propositional (Is-isomorphism′ B↔C a x y)
+  Is-isomorphism′-propositional ext B↔C C-set a =
     El-preserves-Is-set ext a C-set _ _
 
   Is-isomorphism-propositional :
      Extensionality (# 0) (# 0) →
-     ∀ {B C} (B≈C : B ≈ C) → Is-set C →
+     ∀ {B C} (B↔C : B ↔ C) → Is-set C →
      ∀ a {x y} →
-     Propositional (Is-isomorphism B≈C a x y)
+     Propositional (Is-isomorphism B↔C a x y)
 
-  Is-isomorphism-propositional ext B≈C C-set id = C-set _ _
+  Is-isomorphism-propositional ext B↔C C-set id = C-set _ _
 
-  Is-isomorphism-propositional ext B≈C C-set (k A) = proj₂ A _ _
+  Is-isomorphism-propositional ext B↔C C-set (k A) = proj₂ A _ _
 
-  Is-isomorphism-propositional ext B≈C C-set (a ⇾ b) =
+  Is-isomorphism-propositional ext B↔C C-set (a ⇾ b) =
     implicit-Π-closure ext 1 λ _ →
     implicit-Π-closure ext 1 λ _ →
     Π-closure ext 1 λ _ →
-    Is-isomorphism-propositional ext B≈C C-set b
+    Is-isomorphism-propositional ext B↔C C-set b
 
-  Is-isomorphism-propositional ext B≈C C-set (a ⊕ b) {x} {y} with x | y
-  ... | inj₁ _ | inj₁ _ = Is-isomorphism-propositional ext B≈C C-set a
-  ... | inj₂ _ | inj₂ _ = Is-isomorphism-propositional ext B≈C C-set b
+  Is-isomorphism-propositional ext B↔C C-set (a ⊕ b) {x} {y} with x | y
+  ... | inj₁ _ | inj₁ _ = Is-isomorphism-propositional ext B↔C C-set a
+  ... | inj₂ _ | inj₂ _ = Is-isomorphism-propositional ext B↔C C-set b
   ... | inj₁ _ | inj₂ _ = ⊥-propositional
   ... | inj₂ _ | inj₁ _ = ⊥-propositional
 
-  Is-isomorphism-propositional ext B≈C C-set (a ⊗ b) =
-    ×-closure 1 (Is-isomorphism-propositional ext B≈C C-set a)
-                (Is-isomorphism-propositional ext B≈C C-set b)
+  Is-isomorphism-propositional ext B↔C C-set (a ⊗ b) =
+    ×-closure 1 (Is-isomorphism-propositional ext B↔C C-set a)
+                (Is-isomorphism-propositional ext B↔C C-set b)
 
   -- The two definitions of "being an isomorphism" are equivalent
   -- (assuming extensionality).
 
   isomorphism-definitions-equivalent :
     (ext : Extensionality (# 0) (# 0)) →
-    ∀ {B C} (B≈C : B ≈ C) a {x y} →
-    Is-isomorphism B≈C a x y ⇔ Is-isomorphism′ B≈C a x y
-  isomorphism-definitions-equivalent ext B≈C = λ a →
+    ∀ {B C} (B↔C : B ↔ C) a {x y} →
+    Is-isomorphism B↔C a x y ⇔ Is-isomorphism′ B↔C a x y
+  isomorphism-definitions-equivalent ext B↔C = λ a →
     record { to = to a; from = from a }
     where
 
     mutual
 
       to : ∀ a {x y} →
-           Is-isomorphism B≈C a x y → Is-isomorphism′ B≈C a x y
+           Is-isomorphism B↔C a x y → Is-isomorphism′ B↔C a x y
 
       to id iso = iso
 
       to (k A) iso = iso
 
       to (a ⇾ b) {f} {g} iso = ext λ x →
-        let B⇔C = _≈_.equivalence B≈C in
+        let B⇔C = _↔_.equivalence B↔C in
 
         _⇔_.to (cast b B⇔C) (f (_⇔_.from (cast a B⇔C) x))  ≡⟨ to b (iso (from a (refl _))) ⟩
-        g (_⇔_.to (cast a B⇔C) (_⇔_.from (cast a B⇔C) x))  ≡⟨ cong g $ _≈_.right-inverse-of (cast≈ ext a B≈C) x ⟩∎
+        g (_⇔_.to (cast a B⇔C) (_⇔_.from (cast a B⇔C) x))  ≡⟨ cong g $ _↔_.right-inverse-of (cast↔ ext a B↔C) x ⟩∎
         g x                                                ∎
 
       to (a ⊕ b) {inj₁ x} {inj₁ y} iso = cong inj₁ $ to a iso
@@ -249,17 +249,17 @@ abstract
       to (a ⊗ b) (iso-a , iso-b) = cong₂ _,_ (to a iso-a) (to b iso-b)
 
       from : ∀ a {x y} →
-             Is-isomorphism′ B≈C a x y → Is-isomorphism B≈C a x y
+             Is-isomorphism′ B↔C a x y → Is-isomorphism B↔C a x y
 
       from id iso = iso
 
       from (k A) iso = iso
 
       from (a ⇾ b) {f} {g} iso = λ {x y} x≅y → from b (
-        let B⇔C = _≈_.equivalence B≈C in
+        let B⇔C = _↔_.equivalence B↔C in
 
         _⇔_.to (cast b B⇔C) (f x)                          ≡⟨ cong (_⇔_.to (cast b B⇔C) ∘ f) $ sym $
-                                                                   _≈_.to-from (cast≈ ext a B≈C) $ to a x≅y ⟩
+                                                                   _↔_.to-from (cast↔ ext a B↔C) $ to a x≅y ⟩
         _⇔_.to (cast b B⇔C) (f (_⇔_.from (cast a B⇔C) y))  ≡⟨ cong (λ f → f y) iso ⟩∎
         g y                                                ∎)
 
@@ -277,19 +277,19 @@ abstract
 
   isomorphism-definitions-isomorphic :
     (ext : Extensionality (# 0) (# 0)) →
-    ∀ {B C} (B≈C : B ≈ C) → Is-set C →
+    ∀ {B C} (B↔C : B ↔ C) → Is-set C →
     ∀ a {x y} →
-    Is-isomorphism B≈C a x y ↔ Is-isomorphism′ B≈C a x y
-  isomorphism-definitions-isomorphic ext B≈C C-set = λ a → record
+    Is-isomorphism B↔C a x y ↔ Is-isomorphism′ B↔C a x y
+  isomorphism-definitions-isomorphic ext B↔C C-set = λ a → record
     { surjection = record
-      { equivalence      = isomorphism-definitions-equivalent ext B≈C a
+      { equivalence      = isomorphism-definitions-equivalent ext B↔C a
       ; right-inverse-of = λ _ →
           _⇔_.to propositional⇔irrelevant
-                 (Is-isomorphism′-propositional ext B≈C C-set a) _ _
+                 (Is-isomorphism′-propositional ext B↔C C-set a) _ _
       }
     ; left-inverse-of = λ _ →
         _⇔_.to propositional⇔irrelevant
-               (Is-isomorphism-propositional ext B≈C C-set a) _ _
+               (Is-isomorphism-propositional ext B↔C C-set a) _ _
     }
 
   -- "Being an isomorphism between two elements" is isomorphic to "the
@@ -300,17 +300,17 @@ abstract
   isomorphism↔subst :
     (ext : Extensionality (# 0) (# 0))
     (univ : Univalence-axiom (# 0)) →
-    ∀ {B C} (B≈C : B ≈ C) → Is-set C →
+    ∀ {B C} (B↔C : B ↔ C) → Is-set C →
     ∀ a {x y} →
-    Is-isomorphism B≈C a x y ↔ (subst (El a) (≈⇒≡ univ B≈C) x ≡ y)
-  isomorphism↔subst ext univ B≈C C-set a {x} {y} =
-    Is-isomorphism  B≈C a x y            ↝⟨ isomorphism-definitions-isomorphic ext B≈C C-set a ⟩
-    Is-isomorphism′ B≈C a x y            ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ y) $
-                                              subst-unique (El a)
-                                                           (λ A≈B → _⇔_.to (cast a (_≈_.equivalence A≈B)))
-                                                           (λ x → cong (λ f → _⇔_.to f x) $ cast-id ext a)
-                                                           univ B≈C x ⟩□
-    (subst (El a) (≈⇒≡ univ B≈C) x ≡ y)  □
+    Is-isomorphism B↔C a x y ↔ (subst (El a) (≈⇒≡ univ $ ↔⇒≈ B↔C) x ≡ y)
+  isomorphism↔subst ext univ B↔C C-set a {x} {y} =
+    Is-isomorphism  B↔C a x y                  ↝⟨ isomorphism-definitions-isomorphic ext B↔C C-set a ⟩
+    Is-isomorphism′ B↔C a x y                  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ y) $
+                                                    subst-unique (El a)
+                                                                 (λ A≈B → _⇔_.to (cast a (_≈_.equivalence A≈B)))
+                                                                 (λ x → cong (λ f → _⇔_.to f x) $ cast-id ext a)
+                                                                 univ (↔⇒≈ B↔C) x ⟩□
+    (subst (El a) (≈⇒≡ univ $ ↔⇒≈ B↔C) x ≡ y)  □
 
 ------------------------------------------------------------------------
 -- A class of algebraic structures
@@ -397,7 +397,7 @@ abstract
 
 Isomorphic : ∀ a → Instance a → Instance a → Set
 Isomorphic (a , _) ((A₁ , _) , x₁ , _) ((A₂ , _) , x₂ , _) =
-  Σ (A₁ ≈ A₂) λ A₁≈A₂ → Is-isomorphism A₁≈A₂ a x₁ x₂
+  Σ (A₁ ↔ A₂) λ A₁↔A₂ → Is-isomorphism A₁↔A₂ a x₁ x₂
 
 abstract
 
@@ -413,25 +413,26 @@ abstract
     ∀ a {I₁ I₂} → Isomorphic a I₁ I₂ ↔ (I₁ ≡ I₂)
   isomorphic↔equal univ₀ univ₁ a {I₁} {I₂} =
 
-    Isomorphic a I₁ I₂                                           ↝⟨ ∃-cong (λ C-eq → isomorphism↔subst ext univ₀ C-eq
-                                                                                       (proj₂ $ proj₁ I₂) (proj₁ a)) ⟩
-    (∃ λ (C-eq : Carrier a I₁ ≈ Carrier a I₂) →
-       subst (El (proj₁ a)) (≈⇒≡ univ₀ C-eq) (element a I₁) ≡
-       element a I₂)                                             ↝⟨ inverse $
-                                                                      Σ-cong (≡≈≈ univ₀) (λ C-eq → ≡⇒↝ _ $ sym $
-                                                                        cong (λ eq → subst (El (proj₁ a)) eq (element a I₁) ≡ element a I₂)
-                                                                             (_≈_.left-inverse-of (≡≈≈ univ₀) C-eq)) ⟩
+    Isomorphic a I₁ I₂                                               ↝⟨ ∃-cong (λ C-eq → isomorphism↔subst ext univ₀ C-eq
+                                                                                           (proj₂ $ proj₁ I₂) (proj₁ a)) ⟩
+    (∃ λ (C-eq : Carrier a I₁ ↔ Carrier a I₂) →
+       subst (El (proj₁ a)) (≈⇒≡ univ₀ $ ↔⇒≈ C-eq) (element a I₁) ≡
+       element a I₂)                                                 ↝⟨ inverse $
+                                                                          Σ-cong (≡≈↔ univ₀ ext is-set) (λ C-eq → ≡⇒↝ _ $ sym $
+                                                                            cong (λ eq → subst (El (proj₁ a)) eq (element a I₁) ≡ element a I₂)
+                                                                                 (_≈_.left-inverse-of (≡≈↔ univ₀ ext is-set) C-eq)) ⟩
     (∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
-       subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)  ↝⟨ inverse $ instances-equal↔ ext a ⟩□
+       subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)      ↝⟨ inverse $ instances-equal↔ ext a ⟩□
 
-    (I₁ ≡ I₂)                                                    □
+    (I₁ ≡ I₂)                                                        □
 
     where
-
     -- Extensionality follows from univalence.
-
     ext : Extensionality (# 0) (# 0)
     ext = dependent-extensionality univ₁ (λ _ → univ₀)
+
+    is-set : Is-set (Carrier a I₁)
+    is-set = proj₂ (proj₁ I₁)
 
   -- The type of (lifted) isomorphisms between two instances of a
   -- structure is equal to the type of equalities between the same
@@ -497,7 +498,7 @@ Isomorphic-monoid :
   ∀ {M₁ M₁-set _∙₁_ e₁ laws₁ M₂ M₂-set _∙₂_ e₂ laws₂} →
   Isomorphic monoid ((M₁ , M₁-set) , (_∙₁_ , e₁) , laws₁)
                     ((M₂ , M₂-set) , (_∙₂_ , e₂) , laws₂) ≡
-  Σ (M₁ ≈ M₂) λ M₁≈M₂ → let open _≈_ M₁≈M₂ in
+  Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ M₁↔M₂ in
   (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x ∙₁ u) ≡ y ∙₂ v) ×
   to e₁ ≡ e₂
 Isomorphic-monoid = refl _
@@ -657,7 +658,7 @@ module Field-law where
     Isomorphic field′
                ((F₁ , F₁-set) , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_) , laws₁)
                ((F₂ , F₂-set) , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_) , laws₂) ≡
-    Σ (F₁ ≈ F₂) λ F₁≈F₂ → let open _≈_ F₁≈F₂ in
+    Σ (F₁ ↔ F₂) λ F₁↔F₂ → let open _↔_ F₁↔F₂ in
     (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x +₁ u) ≡ y +₂ v) ×
     to 0₁ ≡ 0₂ ×
     (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
@@ -670,7 +671,7 @@ module Field-law where
 
   homomorphic-with-respect-to-multiplicative-inverse :
     ∀ {F₁ F₂} (iso : Isomorphic field′ F₁ F₂) →
-    let open _≈_ (proj₁ iso) in
+    let open _↔_ (proj₁ iso) in
     ∀ {x y} → to x ≡ y → ∀ {x≢0 y≢0} →
     to (proj₁ (multiplicative-inverse F₁) x x≢0) ≡
     proj₁ (multiplicative-inverse F₂) y y≢0
@@ -679,7 +680,7 @@ module Field-law where
      _ , _ , _ , _ , _ , _ , _ , _ , _ , *⁻¹₁}
     {_ , (_ , _ , _*₂_ , 1₂ , _) ,
      _ , *₂-assoc , _ , *₂-comm , _ , _ , *1₂ , _ , _ , *⁻¹₂}
-    (F₁≈F₂ , _ , _ , *-homo , 1-homo , _)
+    (F₁↔F₂ , _ , _ , *-homo , 1-homo , _)
     {x} {y} to-x≡y {x≢0} {y≢0} =
 
       to (inv₁ x x≢0)                       ≡⟨ sym $ *1₂ _ ⟩
@@ -691,7 +692,7 @@ module Field-law where
       inv₂ y y≢0                            ∎
 
     where
-    open _≈_ F₁≈F₂
+    open _↔_ F₁↔F₂
 
     inv₁ = λ x x≢0 → proj₁ (*⁻¹₁ x x≢0)
     inv₂ = λ x x≢0 → proj₁ (*⁻¹₂ x x≢0)
@@ -817,7 +818,7 @@ module Field-partial where
     Isomorphic field′
       ((F₁ , F₁-set) , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_ , _⁻¹₁) , laws₁)
       ((F₂ , F₂-set) , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂) , laws₂) ≡
-    Σ (F₁ ≈ F₂) λ F₁≈F₂ → let open _≈_ F₁≈F₂ in
+    Σ (F₁ ↔ F₂) λ F₁↔F₂ → let open _↔_ F₁↔F₂ in
     (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x +₁ u) ≡ y +₂ v) ×
     to 0₁ ≡ 0₂ ×
     (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
@@ -944,7 +945,7 @@ Isomorphic-vector-space :
   Isomorphic (vector-space F)
              ((V₁ , V₁-set) , (_+₁_ , _*₁_ , 0₁ , -₁_) , laws₁)
              ((V₂ , V₂-set) , (_+₂_ , _*₂_ , 0₂ , -₂_) , laws₂) ≡
-  Σ (V₁ ≈ V₂) λ V₁≈V₂ → let open _≈_ V₁≈V₂ in
+  Σ (V₁ ↔ V₂) λ V₁↔V₂ → let open _↔_ V₁↔V₂ in
   (∀ {a b} → to a ≡ b → ∀ {u v} → to u ≡ v → to (a +₁ u) ≡ b +₂ v) ×
   (∀ {x y} →    x ≡ y → ∀ {u v} → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
   to 0₁ ≡ 0₂ ×
