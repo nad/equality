@@ -549,361 +549,138 @@ Isomorphic-monoid :
 Isomorphic-monoid = refl _
 
 ------------------------------------------------------------------------
--- An example: fields
+-- An example: discrete fields
 
--- Fields are defined in two ways:
---
--- * With the multiplicative inverse introduced using a law.
---
--- * With the multiplicative inverse introduced as a partial
---   operation.
---
--- Note that the latter definition implies that one can decide if an
--- element is distinct from zero.
+-- Discrete fields.
 
-module Field-law where
+discrete-field : Code
+discrete-field =
+  -- Addition.
+  (id ⇾ id ⇾ id) ⊗
 
-  -- Fields.
-  --
-  -- Note that "field" is a reserved word in Agda.
+  -- Zero.
+  id ⊗
 
-  field′ : Code
-  field′ =
-    -- Addition.
-    (id ⇾ id ⇾ id) ⊗
+  -- Multiplication.
+  (id ⇾ id ⇾ id) ⊗
 
-    -- Zero.
-    id ⊗
+  -- One.
+  id ⊗
 
-    -- Multiplication.
-    (id ⇾ id ⇾ id) ⊗
+  -- Minus.
+  (id ⇾ id) ⊗
 
-    -- One.
-    id ⊗
+  -- Multiplicative inverse (a partial operation).
+  (id ⇾ k (⊤ , ⊤-set) ⊕ id) ,
 
-    -- Minus. (Division is introduced using a law.)
-    (id ⇾ id) ,
+  λ { (_ , F-set) (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
 
-    λ { (_ , F-set) (_+_ , 0# , _*_ , 1# , -_) →
+       -- Associativity.
+      ((∀ x y z → x + (y + z) ≡ (x + y) + z) ×
+       (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
 
-         -- Associativity.
-        ((∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-         (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+       -- Commutativity.
+       (∀ x y → x + y ≡ y + x) ×
+       (∀ x y → x * y ≡ y * x) ×
 
-         -- Commutativity.
-         (∀ x y → x + y ≡ y + x) ×
-         (∀ x y → x * y ≡ y * x) ×
+       -- Distributivity.
+       (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
 
-         -- Distributivity.
-         (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+       -- Identity laws.
+       (∀ x → x + 0# ≡ x) ×
+       (∀ x → x * 1# ≡ x) ×
 
-         -- Identity laws.
-         (∀ x → x + 0# ≡ x) ×
-         (∀ x → x * 1# ≡ x) ×
+       -- Zero and one are distinct.
+       0# ≢ 1# ×
 
-         -- Zero and one are distinct.
-         0# ≢ 1# ×
+       -- Inverse laws.
+       (∀ x → x + (- x) ≡ 0#) ×
+       (∀ x → x ⁻¹ ≡ inj₁ tt → x ≡ 0#) ×
+       (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#)) ,
 
-         -- Inverse laws. The multiplicative inverse law is
-         -- "computational" and propositional at the same time (because
-         -- inverses are unique).
-         (∀ x → x + (- x) ≡ 0#) ×
-         (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#)) ,
+      λ ext →
+        ×-closure 1  (Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      F-set _ _)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      F-set _ _)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      F-set _ _)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      F-set _ _)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      F-set _ _)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      F-set _ _)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      F-set _ _)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      ⊥-propositional)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      F-set _ _)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      F-set _ _)
+                     (Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      F-set _ _)))))))))) }
+  where
+  ⊤-set : Is-set ⊤
+  ⊤-set = mono (≤-step (≤-step ≤-refl)) ⊤-contractible
 
-        λ ext → [inhabited⇒+]⇒+ 0
-          λ { (_ , *-assoc , _ , *-comm , _ , _ , *-id , _) →
-            ×-closure 1  (Π-closure ext 1 λ _ →
-                          Π-closure ext 1 λ _ →
-                          Π-closure ext 1 λ _ →
-                          F-set _ _)
-            (×-closure 1 (Π-closure ext 1 λ _ →
-                          Π-closure ext 1 λ _ →
-                          Π-closure ext 1 λ _ →
-                          F-set _ _)
-            (×-closure 1 (Π-closure ext 1 λ _ →
-                          Π-closure ext 1 λ _ →
-                          F-set _ _)
-            (×-closure 1 (Π-closure ext 1 λ _ →
-                          Π-closure ext 1 λ _ →
-                          F-set _ _)
-            (×-closure 1 (Π-closure ext 1 λ _ →
-                          Π-closure ext 1 λ _ →
-                          Π-closure ext 1 λ _ →
-                          F-set _ _)
-            (×-closure 1 (Π-closure ext 1 λ _ →
-                          F-set _ _)
-            (×-closure 1 (Π-closure ext 1 λ _ →
-                          F-set _ _)
-            (×-closure 1 (Π-closure ext 1 λ _ →
-                          ⊥-propositional)
-            (×-closure 1 (Π-closure ext 1 λ _ →
-                          F-set _ _)
-                         (Π-closure ext 1 λ x →
-                          Π-closure ext 1 λ _ →
-                          [inhabited⇒+]⇒+ 0 λ { (x⁻¹ , xx⁻¹≡1) →
-                            let lemma : ∀ y → y ≡ x⁻¹ * (x * y)
-                                lemma y =
-                                  y              ≡⟨ sym $ *-id _ ⟩
-                                  y * 1#         ≡⟨ *-comm _ _ ⟩
-                                  1# * y         ≡⟨ cong (λ x → x * y) $ sym xx⁻¹≡1 ⟩
-                                  (x * x⁻¹) * y  ≡⟨ cong (λ x → x * y) $ *-comm _ _ ⟩
-                                  (x⁻¹ * x) * y  ≡⟨ sym $ *-assoc _ _ _ ⟩∎
-                                  x⁻¹ * (x * y)  ∎
-                            in
+-- The interpretation of the code is reasonable.
 
-                            injection⁻¹-propositional
-                              (record { to        = _*_ x
-                                      ; injective = λ {y₁ y₂} xy₁≡xy₂ →
-                                          y₁              ≡⟨ lemma y₁ ⟩
-                                          x⁻¹ * (x * y₁)  ≡⟨ cong (_*_ x⁻¹) xy₁≡xy₂ ⟩
-                                          x⁻¹ * (x * y₂)  ≡⟨ sym $ lemma y₂ ⟩∎
-                                          y₂              ∎
-                                      })
-                              F-set 1# } ))))))))) } }
+Instance-discrete-field :
+  Instance discrete-field ≡
+  Σ (SET (# 0)) λ { (F , _) →
+  Σ ((F → F → F) × F × (F → F → F) × F × (F → F) × (F → ⊤ ⊎ F))
+    λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
+  (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
+  (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+  (∀ x y → x + y ≡ y + x) ×
+  (∀ x y → x * y ≡ y * x) ×
+  (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+  (∀ x → x + 0# ≡ x) ×
+  (∀ x → x * 1# ≡ x) ×
+  0# ≢ 1# ×
+  (∀ x → x + (- x) ≡ 0#) ×
+  (∀ x → x ⁻¹ ≡ inj₁ tt → x ≡ 0#) ×
+  (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#) } }
+Instance-discrete-field = refl _
 
-  -- The interpretation of the code is reasonable.
+-- The notion of isomorphism that we get is also reasonable.
 
-  Instance-field′ :
-    Instance field′ ≡
-    Σ (SET (# 0)) λ { (F , _) →
-    Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
-      λ { (_+_ , 0# , _*_ , 1# , -_) →
-    (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-    (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-    (∀ x y → x + y ≡ y + x) ×
-    (∀ x y → x * y ≡ y * x) ×
-    (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-    (∀ x → x + 0# ≡ x) ×
-    (∀ x → x * 1# ≡ x) ×
-    0# ≢ 1# ×
-    (∀ x → x + (- x) ≡ 0#) ×
-    (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#) } }
-  Instance-field′ = refl _
-
-  -- Note that we do get a multiplicative inverse, even though it is
-  -- introduced using a propositional law.
-
-  multiplicative-inverse :
-    (F : Instance field′) →
-    let 0#  = proj₁ (proj₂ (proj₁ (proj₂ F)))
-        _*_ = proj₁ (proj₂ (proj₂ (proj₁ (proj₂ F))))
-        1#  = proj₁ (proj₂ (proj₂ (proj₂ (proj₁ (proj₂ F))))) in
-    Σ ((x : Carrier field′ F) → x ≢ 0# → Carrier field′ F) λ *-inv →
-      ∀ x (x≢0 : x ≢ 0#) → x * *-inv x x≢0 ≡ 1#
-  multiplicative-inverse
-    (_ , _ , _ , _ , _ , _ , _ , _ , _ , _ , _ , *-inv) =
-    (λ x x≢0 → proj₁ (*-inv x x≢0)) ,
-    (λ x x≢0 → proj₂ (*-inv x x≢0))
-
-  -- The notion of isomorphism that we get for fields is reasonable.
-
-  Isomorphic-field′ :
-    ∀ {F₁ F₁-set _+₁_ 0₁ _*₁_ 1₁ -₁_ laws₁
-       F₂ F₂-set _+₂_ 0₂ _*₂_ 1₂ -₂_ laws₂} →
-    Isomorphic field′
-               ((F₁ , F₁-set) , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_) , laws₁)
-               ((F₂ , F₂-set) , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_) , laws₂) ≡
-    Σ (F₁ ↔ F₂) λ F₁↔F₂ → let open _↔_ F₁↔F₂ in
-    (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x +₁ u) ≡ y +₂ v) ×
-    to 0₁ ≡ 0₂ ×
-    (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
-    to 1₁ ≡ 1₂ ×
-    (∀ {x y} → to x ≡ y → to (-₁ x) ≡ -₂ y)
-  Isomorphic-field′ = refl _
-
-  -- Note that field isomorphisms are homomorphic also with respect to
-  -- the multiplicative inverse operator.
-
-  homomorphic-with-respect-to-multiplicative-inverse :
-    ∀ {F₁ F₂} (iso : Isomorphic field′ F₁ F₂) →
-    let open _↔_ (proj₁ iso) in
-    ∀ {x y} → to x ≡ y → ∀ {x≢0 y≢0} →
-    to (proj₁ (multiplicative-inverse F₁) x x≢0) ≡
-    proj₁ (multiplicative-inverse F₂) y y≢0
-  homomorphic-with-respect-to-multiplicative-inverse
-    {_ , (_ , _ , _*₁_ , 1₁ , _) ,
-     _ , _ , _ , _ , _ , _ , _ , _ , _ , *⁻¹₁}
-    {_ , (_ , _ , _*₂_ , 1₂ , _) ,
-     _ , *₂-assoc , _ , *₂-comm , _ , _ , *1₂ , _ , _ , *⁻¹₂}
-    (F₁↔F₂ , _ , _ , *-homo , 1-homo , _)
-    {x} {y} to-x≡y {x≢0} {y≢0} =
-
-      to (inv₁ x x≢0)                       ≡⟨ sym $ *1₂ _ ⟩
-      to (inv₁ x x≢0) *₂ 1₂                 ≡⟨ cong (_*₂_ _) $ sym $ proj₂ (*⁻¹₂ y y≢0) ⟩
-      to (inv₁ x x≢0) *₂ (y *₂ inv₂ y y≢0)  ≡⟨ *₂-assoc _ _ _ ⟩
-      (to (inv₁ x x≢0) *₂ y) *₂ inv₂ y y≢0  ≡⟨ cong (λ z → z *₂ _) lemma ⟩
-      1₂ *₂ inv₂ y y≢0                      ≡⟨ *₂-comm _ _ ⟩
-      inv₂ y y≢0 *₂ 1₂                      ≡⟨ *1₂ _ ⟩∎
-      inv₂ y y≢0                            ∎
-
-    where
-    open _↔_ F₁↔F₂
-
-    inv₁ = λ x x≢0 → proj₁ (*⁻¹₁ x x≢0)
-    inv₂ = λ x x≢0 → proj₁ (*⁻¹₂ x x≢0)
-
-    lemma =
-      to (inv₁ x x≢0) *₂ y  ≡⟨ *₂-comm _ _ ⟩
-      y *₂ to (inv₁ x x≢0)  ≡⟨ sym $ *-homo to-x≡y (refl _) ⟩
-      to (x *₁ inv₁ x x≢0)  ≡⟨ cong to $ proj₂ (*⁻¹₁ x x≢0) ⟩
-      to 1₁                 ≡⟨ 1-homo ⟩∎
-      1₂                    ∎
-
-module Field-partial where
-
-  private
-
-    ⊤-set : Is-set ⊤
-    ⊤-set = mono (≤-step (≤-step ≤-refl)) ⊤-contractible
-
-  -- Fields.
-
-  field′ : Code
-  field′ =
-    -- Addition.
-    (id ⇾ id ⇾ id) ⊗
-
-    -- Zero.
-    id ⊗
-
-    -- Multiplication.
-    (id ⇾ id ⇾ id) ⊗
-
-    -- One.
-    id ⊗
-
-    -- Minus.
-    (id ⇾ id) ⊗
-
-    -- Multiplicative inverse (a partial operation).
-    (id ⇾ k (⊤ , ⊤-set) ⊕ id) ,
-
-    λ { (_ , F-set) (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
-
-         -- Associativity.
-        ((∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-         (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-
-         -- Commutativity.
-         (∀ x y → x + y ≡ y + x) ×
-         (∀ x y → x * y ≡ y * x) ×
-
-         -- Distributivity.
-         (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-
-         -- Identity laws.
-         (∀ x → x + 0# ≡ x) ×
-         (∀ x → x * 1# ≡ x) ×
-
-         -- Zero and one are distinct.
-         0# ≢ 1# ×
-
-         -- Inverse laws.
-         (∀ x → x + (- x) ≡ 0#) ×
-         0# ⁻¹ ≡ inj₁ tt ×
-         (∀ x → x ≢ 0# → ⊎-map P.id (_*_ x) (x ⁻¹) ≡ inj₂ 1#)) ,
-
-        λ ext →
-          ×-closure 1  (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        F-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        F-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        F-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        F-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        F-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        F-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        F-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        ⊥-propositional)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        F-set _ _)
-          (×-closure 1 (⊎-closure 0 ⊤-set F-set _ _)
-                       (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        ⊎-closure 0 ⊤-set F-set _ _)))))))))) }
-
-  -- The interpretation of the code is reasonable.
-
-  Instance-field′ :
-    Instance field′ ≡
-    Σ (SET (# 0)) λ { (F , _) →
-    Σ ((F → F → F) × F × (F → F → F) × F × (F → F) × (F → ⊤ ⊎ F))
-      λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
-    (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-    (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-    (∀ x y → x + y ≡ y + x) ×
-    (∀ x y → x * y ≡ y * x) ×
-    (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-    (∀ x → x + 0# ≡ x) ×
-    (∀ x → x * 1# ≡ x) ×
-    0# ≢ 1# ×
-    (∀ x → x + (- x) ≡ 0#) ×
-    0# ⁻¹ ≡ inj₁ tt ×
-    (∀ x → x ≢ 0# → ⊎-map P.id (_*_ x) (x ⁻¹) ≡ inj₂ 1#) } }
-  Instance-field′ = refl _
-
-  -- The notion of isomorphism that we get is also reasonable.
-
-  Isomorphic-field′ :
-    ∀ {F₁ F₁-set _+₁_ 0₁ _*₁_ 1₁ -₁_ _⁻¹₁ laws₁
-       F₂ F₂-set _+₂_ 0₂ _*₂_ 1₂ -₂_ _⁻¹₂ laws₂} →
-    Isomorphic field′
-      ((F₁ , F₁-set) , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_ , _⁻¹₁) , laws₁)
-      ((F₂ , F₂-set) , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂) , laws₂) ≡
-    Σ (F₁ ↔ F₂) λ F₁↔F₂ → let open _↔_ F₁↔F₂ in
-    (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x +₁ u) ≡ y +₂ v) ×
-    to 0₁ ≡ 0₂ ×
-    (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
-    to 1₁ ≡ 1₂ ×
-    (∀ {x y} → to x ≡ y → to (-₁ x) ≡ -₂ y) ×
-    (∀ {x y} → to x ≡ y →
-       ((λ _ _ → tt ≡ tt) ⊎-rel (λ u v → to u ≡ v)) (x ⁻¹₁) (y ⁻¹₂))
-  Isomorphic-field′ = refl _
-
-  -- Note that a property of this kind of field is that one can decide
-  -- if an element is distinct from zero.
-
-  distinct-from-zero? :
-    (F : Instance field′) → let 0# = proj₁ (proj₂ (proj₁ (proj₂ F))) in
-    (x : Carrier field′ F) → Dec (x ≢ 0#)
-  distinct-from-zero?
-    (_ , (_ , 0# , _*_ , 1# , _ , _⁻¹) ,
-     (_ , _ , _ , _ , _ , _ , _ , _ , _ , 0⁻¹ , *⁻¹))
-    x
-    with inspect (x ⁻¹)
-  ... | inj₁ tt with-≡ eq = inj₂ λ x≢0# →
-    ⊎.inj₁≢inj₂ (inj₁ tt                       ≡⟨⟩
-                 ⊎-map P.id (_*_ x) (inj₁ tt)  ≡⟨ cong (⊎-map P.id (_*_ x)) $ sym eq ⟩
-                 ⊎-map P.id (_*_ x) (x ⁻¹)     ≡⟨ *⁻¹ x x≢0# ⟩∎
-                 inj₂ 1#                       ∎)
-  ... | inj₂ x⁻¹ with-≡ eq = inj₁ λ x≡0# →
-    ⊎.inj₁≢inj₂ (inj₁ tt   ≡⟨ sym 0⁻¹ ⟩
-                 0# ⁻¹     ≡⟨ cong _⁻¹ $ sym x≡0# ⟩
-                 x ⁻¹      ≡⟨ eq ⟩∎
-                 inj₂ x⁻¹  ∎)
+Isomorphic-discrete-field :
+  ∀ {F₁ F₁-set _+₁_ 0₁ _*₁_ 1₁ -₁_ _⁻¹₁ laws₁
+     F₂ F₂-set _+₂_ 0₂ _*₂_ 1₂ -₂_ _⁻¹₂ laws₂} →
+  Isomorphic discrete-field
+    ((F₁ , F₁-set) , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_ , _⁻¹₁) , laws₁)
+    ((F₂ , F₂-set) , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂) , laws₂) ≡
+  Σ (F₁ ↔ F₂) λ F₁↔F₂ → let open _↔_ F₁↔F₂ in
+  (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x +₁ u) ≡ y +₂ v) ×
+  to 0₁ ≡ 0₂ ×
+  (∀ {x y} → to x ≡ y → ∀ {u v} → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
+  to 1₁ ≡ 1₂ ×
+  (∀ {x y} → to x ≡ y → to (-₁ x) ≡ -₂ y) ×
+  (∀ {x y} → to x ≡ y →
+     ((λ _ _ → tt ≡ tt) ⊎-rel (λ u v → to u ≡ v)) (x ⁻¹₁) (y ⁻¹₂))
+Isomorphic-discrete-field = refl _
 
 ------------------------------------------------------------------------
--- An example: vector spaces
+-- An example: vector spaces over discrete fields
 
-open Field-law
+-- Vector spaces over a particular discrete field.
 
--- Vector spaces over a particular field.
-
-vector-space : Instance field′ → Code
-vector-space (F , (_+F_ , _ , _*F_ , 1F , _) , _) =
+vector-space : Instance discrete-field → Code
+vector-space (F , (_+F_ , _ , _*F_ , 1F , _ , _) , _) =
   -- Addition.
   (id ⇾ id ⇾ id) ⊗
 
@@ -966,9 +743,9 @@ vector-space (F , (_+F_ , _ , _*F_ , 1F , _) , _) =
 -- The interpretation of the code is reasonable.
 
 Instance-vector-space :
-  ∀ {F F-set _+F_ 0F _*F_ 1F -F_ laws} →
+  ∀ {F F-set _+F_ 0F _*F_ 1F -F_ _⁻¹F laws} →
   Instance (vector-space
-              ((F , F-set) , (_+F_ , 0F , _*F_ , 1F , -F_) , laws)) ≡
+    ((F , F-set) , (_+F_ , 0F , _*F_ , 1F , -F_ , _⁻¹F) , laws)) ≡
   Σ (SET (# 0)) λ { (V , _) →
   Σ ((V → V → V) × (F → V → V) × V × (V → V))
     λ { (_+_ , _*_ , 0V , -_) →
