@@ -36,23 +36,23 @@ abstract
 
   -- The empty type is not contractible.
 
-  ¬-⊥-contractible : ¬ Contractible ⊥₀
+  ¬-⊥-contractible : ∀ {ℓ} → ¬ Contractible (⊥ {ℓ = ℓ})
   ¬-⊥-contractible = ⊥-elim ∘ proj₁
 
   -- The empty type is propositional.
 
-  ⊥-propositional : Propositional ⊥₀
+  ⊥-propositional : ∀ {ℓ} → Propositional (⊥ {ℓ = ℓ})
   ⊥-propositional =
     _⇔_.from propositional⇔irrelevant (λ x → ⊥-elim x)
 
   -- Thus any uninhabited type is also propositional.
 
-  ⊥↔uninhabited : ∀ {a} {A : Set a} → ¬ A → ⊥₀ ↔ A
+  ⊥↔uninhabited : ∀ {a ℓ} {A : Set a} → ¬ A → ⊥ {ℓ = ℓ} ↔ A
   ⊥↔uninhabited ¬A = record
     { surjection = record
       { equivalence = record
         { to   = ⊥-elim
-        ; from = ¬A
+        ; from = ⊥-elim ∘ ¬A
         }
       ; right-inverse-of = ⊥-elim ∘ ¬A
       }
@@ -62,7 +62,7 @@ abstract
   uninhabited-propositional : ∀ {a} {A : Set a} →
                               ¬ A → Propositional A
   uninhabited-propositional ¬A =
-    respects-surjection (_↔_.surjection $ ⊥↔uninhabited ¬A) 1
+    respects-surjection (_↔_.surjection $ ⊥↔uninhabited {ℓ = # 0} ¬A) 1
                         ⊥-propositional
 
 ------------------------------------------------------------------------
