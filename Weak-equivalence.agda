@@ -557,7 +557,8 @@ groupoid {ℓ} ext = record
 ------------------------------------------------------------------------
 -- A surjection from A ↔ B to A ≈ B
 
-abstract
+private
+ abstract
 
   -- ↔⇒≈ is a left inverse of _≈_.bijection (assuming extensionality).
 
