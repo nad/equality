@@ -10,7 +10,6 @@ module Equality.Decision-procedures
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
-open import Bijection eq hiding (id; _∘_)
 open import Equality.Decidable-UIP eq
 open import Prelude
   hiding ( module ⊤; module ⊥; module Bool; module ℕ; module Σ
@@ -112,7 +111,7 @@ module Σ {a b} {A : Set a} {B : A → Set b} where
     ...   | inj₂ cast-y₁≢y₂ =
       inj₂ (cast-y₁≢y₂ ∘
             subst (λ p → subst B p y₁ ≡ y₂) (decidable⇒UIP _≟A_ _ _) ∘
-            proj₂ ∘ _↔_.from Σ-≡,≡↔≡)
+            proj₂ ∘ Σ-≡,≡←≡)
 
 ------------------------------------------------------------------------
 -- Binary products

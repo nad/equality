@@ -796,6 +796,18 @@ module Derived-definitions-and-properties
        y₂                    ∎))
     p q
 
+  -- The uncurried form of Σ-≡,≡→≡ has an inverse, Σ-≡,≡←≡. (For a
+  -- proof, see Bijection.Σ-≡,≡↔≡.)
+
+  Σ-≡,≡←≡ : ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B} →
+            p₁ ≡ p₂ →
+            ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+              subst B p (proj₂ p₁) ≡ proj₂ p₂
+  Σ-≡,≡←≡ {A = A} {B} = elim
+    (λ {p₁ p₂ : Σ A B} _ →
+       ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) → subst B p (proj₂ p₁) ≡ proj₂ p₂)
+    (λ p → refl _ , subst-refl B _)
+
   abstract
 
     -- "Evaluation rules" for Σ-≡,≡→≡.

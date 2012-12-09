@@ -133,7 +133,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
          p₁ ≡ p₂ →
          ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
            subst B p (proj₂ p₁) ≡ proj₂ p₂
-  from = elim from-P (λ p → refl _ , subst-refl B _)
+  from = Σ-≡,≡←≡
 
   to : {p₁ p₂ : Σ A B} →
        (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
