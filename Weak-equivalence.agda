@@ -1014,12 +1014,12 @@ abstract
 -- Note that this proof's "to" component does not use subst, unlike
 -- the one in the proof of Π-preserves.
 
-Π-preserves₂ :
+∀-preserves :
   ∀ {a b₁ b₂} → Extensionality a (b₁ ⊔ b₂) →
   {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
   (∀ x → B₁ x ≈ B₂ x) →
   ((x : A) → B₁ x) ≈ ((x : A) → B₂ x)
-Π-preserves₂ {a} {b₁} {b₂} ext {A} {B₁} {B₂} B₁≈B₂ = ↔⇒≈ record
+∀-preserves {a} {b₁} {b₂} ext {A} {B₁} {B₂} B₁≈B₂ = ↔⇒≈ record
     { surjection = record
       { equivalence = record
         { to   = to′
