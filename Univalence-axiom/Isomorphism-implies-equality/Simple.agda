@@ -33,25 +33,106 @@ open import Weak-equivalence eq using (_≈_; module _≈_; ↔⇒≈)
 ------------------------------------------------------------------------
 -- Universes with some extra stuff
 
+-- A record packing up some assumptions.
+
+record Assumptions : Set₂ where
+  field
+
+    -- Univalence at two different levels.
+
+    univ  : Univalence (# 0)
+    univ₁ : Univalence (# 1)
+
+  abstract
+
+    -- Extensionality.
+
+    ext : Extensionality (# 0) (# 0)
+    ext = dependent-extensionality univ₁ (λ _ → univ)
+
+-- Universes with some extra stuff.
+
 record Universe : Set₂ where
   field
+
     -- Codes for something.
+
     U : Set₁
 
     -- Interpretation of codes.
+
     El : U → Set → Set
 
-    -- A predicate.
+    -- A predicate, possibly specifying what it means for a bijection
+    -- to be an isomorphism between two elements.
+
     Is-isomorphism : ∀ {B C} → B ↔ C → ∀ a → El a B → El a C → Set
 
-    -- A property.
-    isomorphism↔subst :
-      (univ : Univalence (# 0)) →
-      Univalence (# 1) →
+    -- El a preserves equivalences.
+
+    cast : ∀ a {B C} → B ⇔ C → El a B ⇔ El a C
+
+    -- The cast function respects identities (assuming univalence).
+
+    cast-id :
+      Assumptions →
+      ∀ a {B} → cast a (Equivalence.id {A = B}) ≡ Equivalence.id
+
+  -- An alternative definition of Is-isomorphism.
+
+  Is-isomorphism′ : ∀ {B C} → B ↔ C → ∀ a → El a B → El a C → Set
+  Is-isomorphism′ B↔C a x y =
+    _⇔_.to (cast a (_↔_.equivalence B↔C)) x ≡ y
+
+  field
+
+    -- Is-isomorphism and Is-isomorphism′ are isomorphic (assuming
+    -- univalence and that one of the underlying types is a set).
+
+    isomorphism-definitions-isomorphic :
+      Assumptions →
       ∀ {B C} (B↔C : B ↔ C) → Is-set C →
       ∀ a {x y} →
-      Is-isomorphism B↔C a x y ↔
-      (subst (El a) (≈⇒≡ univ $ ↔⇒≈ B↔C) x ≡ y)
+      Is-isomorphism B↔C a x y ↔ Is-isomorphism′ B↔C a x y
+
+  -- Another alternative definition of Is-isomorphism, defined using
+  -- univalence.
+
+  Is-isomorphism″ : Assumptions →
+                    ∀ {B C} → B ↔ C → ∀ a → El a B → El a C → Set
+  Is-isomorphism″ ass B↔C a x y =
+    subst (El a) (≈⇒≡ univ $ ↔⇒≈ B↔C) x ≡ y
+    where open Assumptions ass
+
+  abstract
+
+    -- Every element is isomorphic to itself, transported along the
+    -- isomorphism.
+
+    isomorphic-to-itself :
+      (ass : Assumptions) → let open Assumptions ass in
+      ∀ {B C} (B↔C : B ↔ C) a x →
+      Is-isomorphism′ B↔C a x (subst (El a) (≈⇒≡ univ $ ↔⇒≈ B↔C) x)
+    isomorphic-to-itself ass B↔C a x =
+      subst-unique
+        (El a)
+        (λ A≈B → _⇔_.to (cast a (_≈_.equivalence A≈B)))
+        (λ x → cong (λ f → _⇔_.to f x) $ cast-id ass a)
+        univ (↔⇒≈ B↔C) x
+      where open Assumptions ass
+
+    -- Is-isomorphism and Is-isomorphism″ are isomorphic (assuming
+    -- univalence and that one of the underlying types is a set).
+
+    isomorphism-definitions-isomorphic₂ :
+      (ass : Assumptions) →
+      ∀ {B C} (B↔C : B ↔ C) → Is-set C →
+      ∀ a {x y} →
+      Is-isomorphism B↔C a x y ↔ Is-isomorphism″ ass B↔C a x y
+    isomorphism-definitions-isomorphic₂ ass B↔C C-set a {x} {y} =
+      Is-isomorphism      B↔C a x y  ↝⟨ isomorphism-definitions-isomorphic ass B↔C C-set a ⟩
+      Is-isomorphism′     B↔C a x y  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ y) $ isomorphic-to-itself ass B↔C a x ⟩□
+      Is-isomorphism″ ass B↔C a x y  □
 
 ------------------------------------------------------------------------
 -- A universe-indexed family of classes of structures
@@ -153,31 +234,33 @@ module Class (Univ : Universe) where
     -- In short, isomorphism is isomorphic to equality.
 
     isomorphic↔equal :
-      Univalence (# 0) →
-      Univalence (# 1) →
+      Assumptions →
       ∀ a {I₁ I₂} → Isomorphic a I₁ I₂ ↔ (I₁ ≡ I₂)
-    isomorphic↔equal univ univ₁ a {I₁} {I₂} =
+    isomorphic↔equal ass a {I₁} {I₂} =
 
-      Isomorphic a I₁ I₂                                               ↝⟨ ∃-cong (λ C-eq → isomorphism↔subst univ univ₁ C-eq
-                                                                                             (proj₂ $ proj₁ I₂) (proj₁ a)) ⟩
+      (∃ λ (C-eq : Carrier a I₁ ↔ Carrier a I₂) →
+         Is-isomorphism C-eq (proj₁ a) (element a I₁) (element a I₂))  ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic₂
+                                                                                             ass C-eq I₂-set (proj₁ a)) ⟩
       (∃ λ (C-eq : Carrier a I₁ ↔ Carrier a I₂) →
          subst (El (proj₁ a)) (≈⇒≡ univ $ ↔⇒≈ C-eq) (element a I₁) ≡
          element a I₂)                                                 ↝⟨ inverse $
-                                                                            Σ-cong (≡≈↔ univ ext is-set) (λ C-eq → ≡⇒↝ _ $ sym $
-                                                                              cong (λ eq → subst (El (proj₁ a)) eq (element a I₁) ≡ element a I₂)
-                                                                                   (_≈_.left-inverse-of (≡≈↔ univ ext is-set) C-eq)) ⟩
+                                                                            Σ-cong (≡≈↔ univ ext I₁-set) (λ C-eq → ≡⇒↝ _ $ sym $
+                                                                              cong (λ eq → subst (El (proj₁ a)) eq (element a I₁) ≡
+                                                                                           element a I₂)
+                                                                                   (_≈_.left-inverse-of (≡≈↔ univ ext I₁-set) C-eq)) ⟩
       (∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
          subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)      ↝⟨ inverse $ instances-equal↔ ext a ⟩□
 
       (I₁ ≡ I₂)                                                        □
 
       where
-      -- Extensionality follows from univalence.
-      ext : Extensionality (# 0) (# 0)
-      ext = dependent-extensionality univ₁ (λ _ → univ)
+      open Assumptions ass
 
-      is-set : Is-set (Carrier a I₁)
-      is-set = proj₂ (proj₁ I₁)
+      I₁-set : Is-set (Carrier a I₁)
+      I₁-set = proj₂ (proj₁ I₁)
+
+      I₂-set : Is-set (Carrier a I₂)
+      I₂-set = proj₂ (proj₁ I₂)
 
     -- The type of (lifted) isomorphisms between two instances of a
     -- structure is equal to the type of equalities between the same
@@ -186,14 +269,14 @@ module Class (Univ : Universe) where
     -- In short, isomorphism is equal to equality.
 
     isomorphic≡equal :
-      Univalence (# 0) →
-      Univalence (# 1) →
+      Assumptions →
       ∀ a {I₁ I₂} → ↑ _ (Isomorphic a I₁ I₂) ≡ (I₁ ≡ I₂)
-    isomorphic≡equal univ univ₁ a {I₁} {I₂} =
+    isomorphic≡equal ass a {I₁} {I₂} =
       ≈⇒≡ univ₁ $ ↔⇒≈ (
         ↑ _ (Isomorphic a I₁ I₂)  ↝⟨ ↑↔ ⟩
-        Isomorphic a I₁ I₂        ↝⟨ isomorphic↔equal univ univ₁ a ⟩□
+        Isomorphic a I₁ I₂        ↝⟨ isomorphic↔equal ass a ⟩□
         (I₁ ≡ I₂)                 □)
+      where open Assumptions ass
 
 ------------------------------------------------------------------------
 -- A universe of non-recursive, simple types
@@ -355,6 +438,10 @@ abstract
   Is-isomorphism′-propositional ext B↔C C-set a =
     El-preserves-Is-set ext a C-set _ _
 
+  -- The definition of "being an isomorphism" is propositional,
+  -- assuming extensionality and that one of the underlying types is a
+  -- set.
+
   Is-isomorphism-propositional :
      Extensionality (# 0) (# 0) →
      ∀ {B C} (B↔C : B ↔ C) → Is-set C →
@@ -447,7 +534,7 @@ abstract
     ∀ {B C} (B↔C : B ↔ C) → Is-set C →
     ∀ a {x y} →
     Is-isomorphism B↔C a x y ↔ Is-isomorphism′ B↔C a x y
-  isomorphism-definitions-isomorphic ext B↔C C-set = λ a → record
+  isomorphism-definitions-isomorphic ext B↔C C-set a = record
     { surjection = record
       { equivalence      = isomorphism-definitions-equivalent ext B↔C a
       ; right-inverse-of = λ _ →
@@ -459,37 +546,19 @@ abstract
                (Is-isomorphism-propositional ext B↔C C-set a) _ _
     }
 
-  -- "Being an isomorphism between two elements" is isomorphic to "the
-  -- isomorphism transports one element to the other" (assuming
-  -- extensionality and univalence, and that one of the underlying
-  -- types is a set).
-
-  isomorphism↔subst :
-    (ext : Extensionality (# 0) (# 0))
-    (univ : Univalence (# 0)) →
-    ∀ {B C} (B↔C : B ↔ C) → Is-set C →
-    ∀ a {x y} →
-    Is-isomorphism B↔C a x y ↔ (subst (El a) (≈⇒≡ univ $ ↔⇒≈ B↔C) x ≡ y)
-  isomorphism↔subst ext univ B↔C C-set a {x} {y} =
-    Is-isomorphism  B↔C a x y                  ↝⟨ isomorphism-definitions-isomorphic ext B↔C C-set a ⟩
-    Is-isomorphism′ B↔C a x y                  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ y) $
-                                                    subst-unique (El a)
-                                                                 (λ A≈B → _⇔_.to (cast a (_≈_.equivalence A≈B)))
-                                                                 (λ x → cong (λ f → _⇔_.to f x) $ cast-id ext a)
-                                                                 univ (↔⇒≈ B↔C) x ⟩□
-    (subst (El a) (≈⇒≡ univ $ ↔⇒≈ B↔C) x ≡ y)  □
-
 -- The universe above is a "universe with some extra stuff".
 
 simple : Universe
 simple = record
-  { U                 = U
-  ; El                = El
-  ; Is-isomorphism    = Is-isomorphism
-  ; isomorphism↔subst = λ univ univ₁ →
-      isomorphism↔subst (dependent-extensionality univ₁ (λ _ → univ))
-                        univ
+  { U                                  = U
+  ; El                                 = El
+  ; Is-isomorphism                     = Is-isomorphism
+  ; cast                               = cast
+  ; cast-id                            = λ ass → cast-id (ext ass)
+  ; isomorphism-definitions-isomorphic = λ ass →
+      isomorphism-definitions-isomorphic (ext ass)
   }
+  where open Assumptions
 
 -- Let us use this universe in the examples below.
 
