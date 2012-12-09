@@ -246,3 +246,18 @@ contractible-isomorphic {A} {B} cA cB = record
     }
   ; left-inverse-of = proj₂ cA
   }
+
+-- Implicit and explicit Πs are isomorphic.
+
+implicit-Π↔Π : ∀ {a b} {A : Set a} {B : A → Set b} →
+               ({x : A} → B x) ↔ ((x : A) → B x)
+implicit-Π↔Π = record
+  { surjection = record
+    { equivalence = record
+      { to   = λ f x → f {x}
+      ; from = λ f {x} → f x
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }

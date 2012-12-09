@@ -194,16 +194,9 @@ abstract
     ∀ {B : A → Set b} n →
     (∀ x → H-level n (B x)) → H-level n ({x : A} → B x)
   implicit-Π-closure {A = A} ext {B} n =
-    respects-surjection surj n ∘ Π-closure ext n
-    where
-    surj : ((x : A) → B x) ↠ ({x : A} → B x)
-    surj = record
-      { equivalence = record
-        { to   = λ f {x} → f x
-        ; from = λ f x → f {x}
-        }
-      ; right-inverse-of = refl
-      }
+    respects-surjection
+      (_↔_.surjection $ Bijection.inverse implicit-Π↔Π) n ∘
+    Π-closure ext n
 
   -- Negated types are propositional, assuming extensionality.
 
