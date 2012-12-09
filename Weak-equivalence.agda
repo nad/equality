@@ -594,11 +594,11 @@ private
 -- There is a surjection from A ↔ B to A ≈ B (assuming
 -- extensionality).
 
-↔-↠-≈ :
+↔↠≈ :
   ∀ {a b} {A : Set a} {B : Set b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   (A ↔ B) ↠ (A ≈ B)
-↔-↠-≈ ext = record
+↔↠≈ ext = record
   { equivalence = record
     { to   = ↔⇒≈
     ; from = _≈_.bijection
@@ -614,7 +614,7 @@ private
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-set A → (A ↔ B) ↔ (A ≈ B)
 ↔↔≈ ext A-set = record
-  { surjection      = ↔-↠-≈ ext
+  { surjection      = ↔↠≈ ext
   ; left-inverse-of = ↔⇒≈-right-inverse ext A-set
   }
 
