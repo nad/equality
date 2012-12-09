@@ -878,6 +878,36 @@ private
                                                  z≡x f ⟩∎
       _≈_.to (f z) z≡x                   ∎
 
+-- One can introduce a universal quantifier by also introducing an
+-- equality (assuming extensionality).
+
+∀-intro : ∀ {a b} →
+          Extensionality a (a ⊔ b) →
+          {A : Set a} (B : A → Set b) {x : A} →
+          B x ↔ (∀ y → x ≡ y → B y)
+∀-intro {a} ext B {x} = record
+  { surjection = record
+    { equivalence = record
+      { to   = λ b y x≡y → subst B x≡y b
+      ; from = λ f → f x (refl x)
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = λ b →
+      subst B (refl x) b  ≡⟨ subst-refl B _ ⟩∎
+      b                   ∎
+  }
+  where
+  abstract
+
+    to∘from : ∀ f → (λ y (x≡y : x ≡ y) → subst B x≡y (f x (refl x))) ≡ f
+    to∘from f = ext λ y → lower-extensionality lzero a ext λ x≡y →
+      subst B x≡y (f x (refl x))  ≡⟨ elim¹ (λ {y} x≡y → subst B x≡y (f x (refl x)) ≡ f y x≡y)
+                                           (subst B (refl x) (f x (refl x))  ≡⟨ subst-refl B _ ⟩∎
+                                            f x (refl x)                     ∎)
+                                           x≡y ⟩∎
+      f y x≡y                     ∎
+
 ------------------------------------------------------------------------
 -- Lemmas related to ↑
 
