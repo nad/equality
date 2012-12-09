@@ -179,7 +179,7 @@ abstract
   -- satisfying resp Weak.id p ≡ p is a weak equivalence family.
 
   resp-is-weak-equivalence :
-    ∀ {p} (P : Set p → Set p) →
+    ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
     (resp : ∀ {A B} → A ≈ B → P A → P B) →
     (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
     ∀ {A B} (univ : Univalence′ A B) →
@@ -193,13 +193,13 @@ abstract
   -- with f is also a weak equivalence (assuming univalence).
 
   precomposition-is-weak-equivalence :
-    ∀ {ℓ} {A B C : Set ℓ} → Univalence′ B A →
-    (A≈B : A ≈ B) →
+    ∀ {ℓ c} {A B : Set ℓ} {C : Set c} →
+    Univalence′ B A → (A≈B : A ≈ B) →
     Is-weak-equivalence (λ (g : B → C) → g ∘ _≈_.to A≈B)
-  precomposition-is-weak-equivalence {ℓ} {C = C} univ A≈B =
+  precomposition-is-weak-equivalence {ℓ} {c} {C = C} univ A≈B =
     resp-is-weak-equivalence P resp refl univ (Weak.inverse A≈B)
     where
-    P : Set ℓ → Set ℓ
+    P : Set ℓ → Set (ℓ ⊔ c)
     P X = X → C
 
     resp : ∀ {A B} → A ≈ B → P A → P B
@@ -209,8 +209,8 @@ abstract
 -- precompositions with h (assuming univalence).
 
 precompositions-cancel :
-  ∀ {ℓ} {A B C : Set ℓ} → Univalence′ B A →
-  (A≈B : A ≈ B) {f g : B → C} →
+  ∀ {ℓ c} {A B : Set ℓ} {C : Set c} →
+  Univalence′ B A → (A≈B : A ≈ B) {f g : B → C} →
   let open _≈_ A≈B in
   f ∘ to ≡ g ∘ to → f ≡ g
 precompositions-cancel univ A≈B {f} {g} f∘to≡g∘to =
