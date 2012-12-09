@@ -528,7 +528,7 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
   ⊥      □
 
 ------------------------------------------------------------------------
--- Some lemmas related to Σ/∃
+-- Some lemmas related to Σ/∃/_×_
 
 -- See also Σ-left-zero and Σ-right-zero above.
 
@@ -685,6 +685,18 @@ private
   (∃ λ y → y ≡ x × B x)  ↔⟨ ∃-cong (λ y → ∃-cong (λ y≡x → subst (λ x → B x ↔ B y) y≡x id)) ⟩
   (∃ λ y → y ≡ x × B y)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩□
   (∃ λ y → B y × y ≡ x)  □
+
+-- A non-dependent variant of Σ-≡,≡↔≡.
+
+≡×≡↔≡ : ∀ {a b} {A : Set a} {B : Set b} {p₁ p₂ : A × B} →
+        (proj₁ p₁ ≡ proj₁ p₂ × proj₂ p₁ ≡ proj₂ p₂) ↔ (p₁ ≡ p₂)
+≡×≡↔≡ {B = B} {p₁} {p₂} =
+  (proj₁ p₁ ≡ proj₁ p₂ × proj₂ p₁ ≡ proj₂ p₂)  ↝⟨ ∃-cong (λ _ → ≡⇒↝ _ $ cong (λ q → q ≡ proj₂ p₂) $
+                                                                  sym $ subst-const) ⟩
+  (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+     subst (λ _ → B) p (proj₂ p₁) ≡ proj₂ p₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
+
+  (p₁ ≡ p₂)                                    □
 
 ------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring
