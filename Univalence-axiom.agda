@@ -332,6 +332,20 @@ abstract
     subst P (from r) p    ∎
     where open _↠_ ≡↠R
 
+  -- A variant of resp-is-weak-equivalence.
+
+  resp-is-weak-equivalence′ :
+    ∀ {a p r} {A : Set a}
+    (P : A → Set p) (R : A → A → Set r)
+    (≡↠R : ∀ {x y} → (x ≡ y) ↠ R x y)
+    (resp : ∀ {x y} → R x y → P x → P y) →
+    (∀ x p → resp (_↠_.to ≡↠R (refl x)) p ≡ p) →
+    ∀ {x y} (r : R x y) → Is-weak-equivalence (resp r)
+  resp-is-weak-equivalence′ P R ≡↠R resp hyp r =
+    Weak.respects-extensional-equality
+      (λ p → sym $ subst-unique′ P R ≡↠R resp hyp r p)
+      (subst-is-weak-equivalence P (_↠_.from ≡↠R r))
+
   -- "Evaluation rule" for ≡⇒≈.
 
   ≡⇒≈-refl : ∀ {a} {A : Set a} →
