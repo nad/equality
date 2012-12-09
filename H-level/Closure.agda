@@ -581,59 +581,8 @@ abstract
     ⊎-closure′         zero    = ⊎-closure-set
     ⊎-closure′ {A} {B} (suc n) = clos
       where
-      mutual
-        clos : H-level (3 + n) A → H-level (3 + n) B → H-level (3 + n) (A ⊎ B)
-        clos hA hB (inj₁ x) (inj₁ y) = respects-surjection surj₁ (2 + n) (hA x y)
-        clos hA hB (inj₂ x) (inj₂ y) = respects-surjection surj₂ (2 + n) (hB x y)
-        clos hA hB (inj₁ x) (inj₂ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂
-        clos hA hB (inj₂ x) (inj₁ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym
-
-        surj₁ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
-        surj₁ {x} {y} = record
-          { equivalence = record
-            { to   = cong inj₁
-            ; from = ⊎.cancel-inj₁
-            }
-          ; right-inverse-of = λ ix≡iy →
-              cong inj₁ (⊎.cancel-inj₁ ix≡iy)              ≡⟨ cong-∘ inj₁ [ id , const x ] ix≡iy ⟩
-              cong f ix≡iy                                 ≡⟨ cong-roughly-id f p ix≡iy _ _ f≡id ⟩
-              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ trans-reflˡ _ ⟩
-              trans ix≡iy (sym $ refl _)                   ≡⟨ cong (trans ix≡iy) sym-refl ⟩
-              trans ix≡iy (refl _)                         ≡⟨ trans-reflʳ _ ⟩∎
-              ix≡iy                                        ∎
-          }
-          where
-          f : A ⊎ B → A ⊎ B
-          f = inj₁ ∘ [ id , const x ]
-
-          p : A ⊎ B → Bool
-          p = [ const true , const false ]
-
-          f≡id : ∀ z → T (p z) → f z ≡ z
-          f≡id (inj₁ x) = const (refl (inj₁ x))
-          f≡id (inj₂ y) = ⊥-elim
-
-        surj₂ : ∀ {x y} → (x ≡ y) ↠ _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
-        surj₂ {x} {y} = record
-          { equivalence = record
-            { to   = cong inj₂
-            ; from = ⊎.cancel-inj₂
-            }
-          ; right-inverse-of = λ ix≡iy →
-              cong inj₂ (⊎.cancel-inj₂ ix≡iy)              ≡⟨ cong-∘ inj₂ [ const x , id ] ix≡iy ⟩
-              cong f ix≡iy                                 ≡⟨ cong-roughly-id f p ix≡iy _ _ f≡id ⟩
-              trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ trans-reflˡ _ ⟩
-              trans ix≡iy (sym $ refl _)                   ≡⟨ cong (trans ix≡iy) sym-refl ⟩
-              trans ix≡iy (refl _)                         ≡⟨ trans-reflʳ _ ⟩∎
-              ix≡iy                                        ∎
-          }
-          where
-          f : A ⊎ B → A ⊎ B
-          f = inj₂ ∘ [ const x , id ]
-
-          p : A ⊎ B → Bool
-          p = [ const false , const true ]
-
-          f≡id : ∀ z → T (p z) → f z ≡ z
-          f≡id (inj₁ x) = ⊥-elim
-          f≡id (inj₂ y) = const (refl (inj₂ y))
+      clos : H-level (3 + n) A → H-level (3 + n) B → H-level (3 + n) (A ⊎ B)
+      clos hA hB (inj₁ x) (inj₁ y) = respects-surjection (_↔_.surjection ≡↔inj₁≡inj₁) (2 + n) (hA x y)
+      clos hA hB (inj₂ x) (inj₂ y) = respects-surjection (_↔_.surjection ≡↔inj₂≡inj₂) (2 + n) (hB x y)
+      clos hA hB (inj₁ x) (inj₂ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂
+      clos hA hB (inj₂ x) (inj₁ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym

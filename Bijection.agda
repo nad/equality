@@ -10,6 +10,7 @@ module Bijection
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
+open import Equality.Decision-procedures eq
 open import Equivalence using (_⇔_)
 open import H-level eq
 open import Injection eq using (Injective; _↣_)
@@ -219,6 +220,99 @@ ignore-propositional-component {p = p₁ , p₂} {q₁ , q₂} Bq₁-prop = reco
     from∘to p₁≡q₁ =
       proj₁ (_↔_.from Σ-≡,≡↔≡ (Σ-≡,≡→≡ p₁≡q₁ _))  ≡⟨ cong proj₁ $ _↔_.left-inverse-of Σ-≡,≡↔≡ _ ⟩∎
       p₁≡q₁                                       ∎
+
+-- Equalities are closed, in a strong sense, under applications of
+-- certain injections (at least inj₁ and inj₂).
+
+≡↔inj₁≡inj₁ : ∀ {a b} {A : Set a} {B : Set b} {x y : A} →
+              (x ≡ y) ↔ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
+≡↔inj₁≡inj₁ {A = A} {B} {x} {y} = record
+  { surjection = record
+    { equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  to : x ≡ y → _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
+  to = cong inj₁
+
+  from = ⊎.cancel-inj₁
+
+  abstract
+
+    to∘from : ∀ ix≡iy → to (from ix≡iy) ≡ ix≡iy
+    to∘from ix≡iy =
+      cong inj₁ (⊎.cancel-inj₁ ix≡iy)              ≡⟨ cong-∘ inj₁ [ P.id , const x ] ix≡iy ⟩
+      cong f ix≡iy                                 ≡⟨ cong-roughly-id f p ix≡iy _ _ f≡id ⟩
+      trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ trans-reflˡ _ ⟩
+      trans ix≡iy (sym $ refl _)                   ≡⟨ cong (trans ix≡iy) sym-refl ⟩
+      trans ix≡iy (refl _)                         ≡⟨ trans-reflʳ _ ⟩∎
+      ix≡iy                                        ∎
+      where
+      f : A ⊎ B → A ⊎ B
+      f = inj₁ ⊚ [ P.id , const x ]
+
+      p : A ⊎ B → Bool
+      p = [ const true , const false ]
+
+      f≡id : ∀ z → T (p z) → f z ≡ z
+      f≡id (inj₁ x) = const (refl (inj₁ x))
+      f≡id (inj₂ y) = ⊥-elim
+
+    from∘to : ∀ x≡y → from (to x≡y) ≡ x≡y
+    from∘to x≡y =
+      cong [ P.id , const x ] (cong inj₁ x≡y)  ≡⟨ cong-∘ [ P.id , const x ] inj₁ _ ⟩
+      cong P.id x≡y                            ≡⟨ sym $ cong-id _ ⟩∎
+      x≡y                                      ∎
+
+≡↔inj₂≡inj₂ : ∀ {a b} {A : Set a} {B : Set b} {x y : B} →
+              (x ≡ y) ↔ _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
+≡↔inj₂≡inj₂ {A = A} {B} {x} {y} = record
+  { surjection = record
+    { equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  to : x ≡ y → _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
+  to = cong inj₂
+
+  from = ⊎.cancel-inj₂
+
+  abstract
+
+    to∘from : ∀ ix≡iy → to (from ix≡iy) ≡ ix≡iy
+    to∘from ix≡iy =
+      cong inj₂ (⊎.cancel-inj₂ ix≡iy)              ≡⟨ cong-∘ inj₂ [ const x , P.id ] ix≡iy ⟩
+      cong f ix≡iy                                 ≡⟨ cong-roughly-id f p ix≡iy _ _ f≡id ⟩
+      trans (refl _) (trans ix≡iy $ sym (refl _))  ≡⟨ trans-reflˡ _ ⟩
+      trans ix≡iy (sym $ refl _)                   ≡⟨ cong (trans ix≡iy) sym-refl ⟩
+      trans ix≡iy (refl _)                         ≡⟨ trans-reflʳ _ ⟩∎
+      ix≡iy                                        ∎
+      where
+      f : A ⊎ B → A ⊎ B
+      f = inj₂ ⊚ [ const x , P.id ]
+
+      p : A ⊎ B → Bool
+      p = [ const false , const true ]
+
+      f≡id : ∀ z → T (p z) → f z ≡ z
+      f≡id (inj₁ x) = ⊥-elim
+      f≡id (inj₂ y) = const (refl (inj₂ y))
+
+    from∘to : ∀ x≡y → from (to x≡y) ≡ x≡y
+    from∘to x≡y =
+      cong [ const x , P.id ] (cong inj₂ x≡y)  ≡⟨ cong-∘ [ const x , P.id ] inj₂ _ ⟩
+      cong P.id x≡y                            ≡⟨ sym $ cong-id _ ⟩∎
+      x≡y                                      ∎
 
 -- Decidable equality respects bijections.
 
