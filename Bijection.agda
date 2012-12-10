@@ -355,3 +355,17 @@ implicit-Π↔Π = record
     }
   ; left-inverse-of = refl
   }
+
+-- A lifted set is isomorphic to the underlying one.
+
+↑↔ : ∀ {a b} {A : Set a} → ↑ b A ↔ A
+↑↔ {b = b} {A} = record
+  { surjection = record
+    { equivalence = record
+      { to   = lower
+      ; from = lift
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }

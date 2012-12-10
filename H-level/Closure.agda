@@ -240,20 +240,6 @@ abstract
 
 abstract
 
-  -- A lifted set is isomorphic to the underlying one.
-
-  ↑↔ : ∀ {a b} {A : Set a} → ↑ b A ↔ A
-  ↑↔ {b = b} {A} = record
-    { surjection = record
-      { equivalence = record
-        { to   = lower
-        ; from = lift
-        }
-      ; right-inverse-of = refl
-      }
-    ; left-inverse-of = refl
-    }
-
   -- All H-levels are closed under lifting.
 
   ↑-closure : ∀ {a b} {A : Set a} n → H-level n A → H-level n (↑ b A)
