@@ -748,3 +748,72 @@ Isomorphic-vector-space :
   to 0₁ ≡ 0₂ ×
   (∀ u v → to u ≡ v → to (-₁ u) ≡ -₂ v)
 Isomorphic-vector-space = refl _
+
+------------------------------------------------------------------------
+-- Posets
+
+-- Posets
+
+poset : Code
+poset =
+  -- The ordering relation.
+  (id ⇾ id ⇾ set) ,
+
+  λ P _≤_ →
+
+     -- The carrier type is a set.
+    (Is-set P ×
+
+     -- The ordering relation is (pointwise) propositional.
+     (∀ x y → Propositional (x ≤ y)) ×
+
+     -- Reflexivity.
+     (∀ x → x ≤ x) ×
+
+     -- Transitivity.
+     (∀ x y z → x ≤ y → y ≤ z → x ≤ z) ×
+
+     -- Antisymmetry.
+     (∀ x y → x ≤ y → y ≤ x → x ≡ y)) ,
+
+    λ ext → [inhabited⇒+]⇒+ 0 λ { (P-set , ≤-prop , _) →
+      ×-closure 1  (H-level-propositional ext 2)
+      (×-closure 1 (Π-closure ext 1 λ _ →
+                    Π-closure (lower-extensionality (# 0) _ ext) 1 λ _ →
+                    H-level-propositional
+                      (lower-extensionality _ _ ext) 1)
+      (×-closure 1 (Π-closure (lower-extensionality (# 0) _ ext) 1 λ _ →
+                    ≤-prop _ _)
+      (×-closure 1 (Π-closure ext 1 λ _ →
+                    Π-closure ext 1 λ _ →
+                    Π-closure (lower-extensionality (# 0) _ ext) 1 λ _ →
+                    Π-closure (lower-extensionality _ _ ext) 1 λ _ →
+                    Π-closure (lower-extensionality _ _ ext) 1 λ _ →
+                    ≤-prop _ _)
+                   (Π-closure ext 1 λ _ →
+                    Π-closure ext 1 λ _ →
+                    Π-closure (lower-extensionality _ (# 0) ext) 1 λ _ →
+                    Π-closure (lower-extensionality _ (# 0) ext) 1 λ _ →
+                    P-set _ _)))) }
+
+-- The interpretation of the code is reasonable.
+
+Instance-poset :
+  Instance poset ≡
+  Σ Set₁ λ P →
+  Σ (P → P → Set) λ _≤_ →
+  Is-set P ×
+  (∀ x y → Propositional (x ≤ y)) ×
+  (∀ x → x ≤ x) ×
+  (∀ x y z → x ≤ y → y ≤ z → x ≤ z) ×
+  (∀ x y → x ≤ y → y ≤ x → x ≡ y)
+Instance-poset = refl _
+
+-- The notion of isomorphism that we get is also reasonable.
+
+Isomorphic-poset :
+  ∀ {P₁ _≤₁_ laws₁ P₂ _≤₂_ laws₂} →
+  Isomorphic poset (P₁ , _≤₁_ , laws₁) (P₂ , _≤₂_ , laws₂) ≡
+  Σ (P₁ ≈ P₂) λ P₁≈P₂ → let open _≈_ P₁≈P₂ in
+  ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≈ (b ≤₂ d))
+Isomorphic-poset = refl _
