@@ -833,6 +833,17 @@ module Derived-definitions-and-properties
       cong (_,_ x) (trans (sym $ subst-refl B y) (refl _))  ≡⟨ cong (cong (_,_ x)) (trans-reflʳ _) ⟩∎
       cong (_,_ x) (sym (subst-refl B y))                   ∎
 
+    -- "Evaluation rule" for Σ-≡,≡←≡.
+
+    Σ-≡,≡←≡-refl :
+      ∀ {a b} {A : Set a} {B : A → Set b} {p : Σ A B} →
+      Σ-≡,≡←≡ (refl p) ≡ (refl (proj₁ p) , subst-refl B (proj₂ p))
+    Σ-≡,≡←≡-refl {A = A} {B} = elim-refl
+      (λ {p₁ p₂ : Σ A B} _ →
+         ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
+           subst B p (proj₂ p₁) ≡ proj₂ p₂)
+      _
+
     -- Proof simplification rules for Σ-≡,≡→≡.
 
     proj₁-Σ-≡,≡→≡ :
