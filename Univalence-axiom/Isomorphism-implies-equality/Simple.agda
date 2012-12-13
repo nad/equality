@@ -49,11 +49,8 @@ record Assumptions : Set₃ where
 
     -- Extensionality.
 
-    ext : Extensionality (# 0) (# 0)
-    ext = dependent-extensionality univ₁ (λ _ → univ)
-
-    ext₁ : Extensionality (# 1) (# 1)
-    ext₁ = dependent-extensionality univ₂ (λ _ → univ₁)
+    ext : Extensionality (# 1) (# 1)
+    ext = dependent-extensionality univ₂ (λ _ → univ₁)
 
 -- Universes with some extra stuff.
 
@@ -237,7 +234,7 @@ module Class (Univ : Universe) where
                                                                                            element a I₂)
                                                                                    (_≈_.left-inverse-of (≡≈≈ univ₁) C-eq)) ⟩
       (∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
-         subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)      ↝⟨ inverse $ instances-equal↔ ext₁ a ⟩□
+         subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)      ↝⟨ inverse $ instances-equal↔ ext a ⟩□
 
       (I₁ ≡ I₂)                                                        □
 
@@ -346,7 +343,7 @@ abstract
   isomorphism-definitions-isomorphic :
     (ass : Assumptions) → let open Assumptions ass in
     ∀ {B C} (B≈C : B ≈ C) a {x y} →
-    Is-isomorphism B≈C a x y ↔ Is-isomorphism′ ext₁ B≈C a x y
+    Is-isomorphism B≈C a x y ↔ Is-isomorphism′ ext B≈C a x y
 
   isomorphism-definitions-isomorphic ass B≈C id {x} {y} =
 
@@ -369,22 +366,22 @@ abstract
   isomorphism-definitions-isomorphic ass B≈C (a ⇾ b) {f} {g} =
 
     (∀ x y → Is-isomorphism B≈C a x y →
-             Is-isomorphism B≈C b (f x) (g y))                       ↔⟨ ∀-preserves ext₁ (λ _ → ∀-preserves ext₁ λ _ → ↔⇒≈ $
-                                                                          →-cong ext₁ (isomorphism-definitions-isomorphic ass B≈C a)
-                                                                                      (isomorphism-definitions-isomorphic ass B≈C b)) ⟩
-    (∀ x y → to (cast ext₁ a B≈C) x ≡ y →
-             to (cast ext₁ b B≈C) (f x) ≡ g y)                       ↔⟨ inverse $ ∀-preserves ext₁ (λ x →
-                                                                          ↔⇒≈ $ ∀-intro ext₁ (λ y → to (cast ext₁ b B≈C) (f x) ≡ g y)) ⟩
-    (∀ x → to (cast ext₁ b B≈C) (f x) ≡ g (to (cast ext₁ a B≈C) x))  ↔⟨ extensionality-isomorphism ext₁ ⟩
+             Is-isomorphism B≈C b (f x) (g y))                     ↔⟨ ∀-preserves ext (λ _ → ∀-preserves ext λ _ → ↔⇒≈ $
+                                                                        →-cong ext (isomorphism-definitions-isomorphic ass B≈C a)
+                                                                                   (isomorphism-definitions-isomorphic ass B≈C b)) ⟩
+    (∀ x y → to (cast ext a B≈C) x ≡ y →
+             to (cast ext b B≈C) (f x) ≡ g y)                      ↔⟨ inverse $ ∀-preserves ext (λ x →
+                                                                        ↔⇒≈ $ ∀-intro ext (λ y → to (cast ext b B≈C) (f x) ≡ g y)) ⟩
+    (∀ x → to (cast ext b B≈C) (f x) ≡ g (to (cast ext a B≈C) x))  ↔⟨ extensionality-isomorphism ext ⟩
 
-    (to (cast ext₁ b B≈C) ∘ f ≡ g ∘ to (cast ext₁ a B≈C))            ↝⟨ ≡⇒↝ _ $ cong (λ h → to (cast ext₁ b B≈C) ∘ f ∘ h ≡
-                                                                                            g ∘ to (cast ext₁ a B≈C)) $
-                                                                          sym $ ext₁ $ _≈_.left-inverse-of (cast ext₁ a B≈C) ⟩
-    (to (cast ext₁ b B≈C) ∘ f ∘
-       from (cast ext₁ a B≈C) ∘ to (cast ext₁ a B≈C) ≡
-     g ∘ to (cast ext₁ a B≈C))                                       ↔⟨ ≈-≡ $ weq _ $ precomposition-is-weak-equivalence univ₁ $
-                                                                          cast ext₁ a B≈C ⟩□
-    (to (cast ext₁ b B≈C) ∘ f ∘ from (cast ext₁ a B≈C) ≡ g)          □
+    (to (cast ext b B≈C) ∘ f ≡ g ∘ to (cast ext a B≈C))            ↝⟨ ≡⇒↝ _ $ cong (λ h → to (cast ext b B≈C) ∘ f ∘ h ≡
+                                                                                          g ∘ to (cast ext a B≈C)) $
+                                                                        sym $ ext $ _≈_.left-inverse-of (cast ext a B≈C) ⟩
+    (to (cast ext b B≈C) ∘ f ∘
+       from (cast ext a B≈C) ∘ to (cast ext a B≈C) ≡
+     g ∘ to (cast ext a B≈C))                                      ↔⟨ ≈-≡ $ weq _ $ precomposition-is-weak-equivalence univ₁ $
+                                                                        cast ext a B≈C ⟩□
+    (to (cast ext b B≈C) ∘ f ∘ from (cast ext a B≈C) ≡ g)          □
 
     where
     open _≈_
@@ -392,11 +389,11 @@ abstract
 
   isomorphism-definitions-isomorphic ass B≈C (a ⊕ b) {inj₁ x} {inj₁ y} =
 
-    Is-isomorphism B≈C a x y                  ↝⟨ isomorphism-definitions-isomorphic ass B≈C a ⟩
+    Is-isomorphism B≈C a x y                 ↝⟨ isomorphism-definitions-isomorphic ass B≈C a ⟩
 
-    (to (cast ext₁ a B≈C) x ≡ y)              ↝⟨ ≡↔inj₁≡inj₁ ⟩□
+    (to (cast ext a B≈C) x ≡ y)              ↝⟨ ≡↔inj₁≡inj₁ ⟩□
 
-    (inj₁ (to (cast ext₁ a B≈C) x) ≡ inj₁ y)  □
+    (inj₁ (to (cast ext a B≈C) x) ≡ inj₁ y)  □
 
     where
     open _≈_
@@ -404,11 +401,11 @@ abstract
 
   isomorphism-definitions-isomorphic ass B≈C (a ⊕ b) {inj₂ x} {inj₂ y} =
 
-    Is-isomorphism B≈C b x y                  ↝⟨ isomorphism-definitions-isomorphic ass B≈C b ⟩
+    Is-isomorphism B≈C b x y                 ↝⟨ isomorphism-definitions-isomorphic ass B≈C b ⟩
 
-    (to (cast ext₁ b B≈C) x ≡ y)              ↝⟨ ≡↔inj₂≡inj₂ ⟩□
+    (to (cast ext b B≈C) x ≡ y)              ↝⟨ ≡↔inj₂≡inj₂ ⟩□
 
-    (inj₂ (to (cast ext₁ b B≈C) x) ≡ inj₂ y)  □
+    (inj₂ (to (cast ext b B≈C) x) ≡ inj₂ y)  □
 
     where
     open _≈_
@@ -428,11 +425,11 @@ abstract
 
   isomorphism-definitions-isomorphic ass B≈C (a ⊗ b) {x , u} {y , v} =
 
-    Is-isomorphism  B≈C a x y × Is-isomorphism  B≈C b u v          ↝⟨ isomorphism-definitions-isomorphic ass B≈C a ×-cong
-                                                                      isomorphism-definitions-isomorphic ass B≈C b ⟩
-    (to (cast ext₁ a B≈C) x ≡ y × to (cast ext₁ b B≈C) u ≡ v)      ↝⟨ ≡×≡↔≡ ⟩□
+    Is-isomorphism  B≈C a x y × Is-isomorphism  B≈C b u v        ↝⟨ isomorphism-definitions-isomorphic ass B≈C a ×-cong
+                                                                    isomorphism-definitions-isomorphic ass B≈C b ⟩
+    (to (cast ext a B≈C) x ≡ y × to (cast ext b B≈C) u ≡ v)      ↝⟨ ≡×≡↔≡ ⟩□
 
-    ((to (cast ext₁ a B≈C) x , to (cast ext₁ b B≈C) u) ≡ (y , v))  □
+    ((to (cast ext a B≈C) x , to (cast ext b B≈C) u) ≡ (y , v))  □
 
     where
     open _≈_
@@ -445,9 +442,9 @@ simple = record
   { U              = U
   ; El             = El
   ; Is-isomorphism = Is-isomorphism
-  ; resp           = λ ass a → _≈_.to ∘ cast (ext₁ ass) a
+  ; resp           = λ ass a → _≈_.to ∘ cast (ext ass) a
   ; resp-id        = λ ass a x →
-                       cong (λ f → _≈_.to f x) $ cast-id (ext₁ ass) a
+                       cong (λ f → _≈_.to f x) $ cast-id (ext ass) a
   ; isomorphism-definitions-isomorphic =
       isomorphism-definitions-isomorphic
   }
