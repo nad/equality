@@ -132,28 +132,25 @@ module Equality-with-J′
           x ≡ y → P x → P y
   subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
 
-  abstract
+  -- "Evaluation rule" for subst.
 
-    -- "Evaluation rule" for subst.
-
-    subst-refl : ∀ {a p} {A : Set a} (P : A → Set p) {x} (p : P x) →
-                 subst P (refl x) p ≡ p
-    subst-refl P p =
-      cong (λ h → h p) $
-        elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
+  subst-refl : ∀ {a p} {A : Set a} (P : A → Set p) {x} (p : P x) →
+               subst P (refl x) p ≡ p
+  subst-refl P p =
+    cong (λ h → h p) $
+      elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
 
   -- Singleton types are contractible.
 
   private
-    abstract
 
-      irr : ∀ {a} {A : Set a} {x : A}
-            (p : Singleton x) → (x , refl x) ≡ p
-      irr p =
-        elim (λ {u v} u≡v → _≡_ {A = Singleton v}
-                                (v , refl v) (u , u≡v))
-             (λ _ → refl _)
-             (proj₂ p)
+    irr : ∀ {a} {A : Set a} {x : A}
+          (p : Singleton x) → (x , refl x) ≡ p
+    irr p =
+      elim (λ {u v} u≡v → _≡_ {A = Singleton v}
+                              (v , refl v) (u , u≡v))
+           (λ _ → refl _)
+           (proj₂ p)
 
   singleton-contractible :
     ∀ {a} {A : Set a} (x : A) → Contractible (Singleton x)
@@ -349,24 +346,24 @@ module Derived-definitions-and-properties
           ; _≡⟨_⟩_; _≡⟨⟩_; finally
           )
 
+  -- A minor variant of Christine Paulin-Mohring's version of the J
+  -- rule.
+  --
+  -- This definition is based on Martin Hofmann's (see the addendum
+  -- to Thomas Streicher's Habilitation thesis). Note that it is
+  -- also very similar to the definition of
+  -- Equality-with-substitutivity-and-contractibility.elim.
+
+  elim₁ : ∀ {a p} {A : Set a} {y : A} (P : ∀ {x} → x ≡ y → Set p) →
+          P (refl y) →
+          ∀ {x} (x≡y : x ≡ y) → P x≡y
+  elim₁ {y = y} P p {x} x≡y =
+    subst {A = Singleton y}
+          (P ∘ proj₂)
+          (proj₂ (singleton-contractible y) (x , x≡y))
+          p
+
   abstract
-
-    -- A minor variant of Christine Paulin-Mohring's version of the J
-    -- rule.
-    --
-    -- This definition is based on Martin Hofmann's (see the addendum
-    -- to Thomas Streicher's Habilitation thesis). Note that it is
-    -- also very similar to the definition of
-    -- Equality-with-substitutivity-and-contractibility.elim.
-
-    elim₁ : ∀ {a p} {A : Set a} {y : A} (P : ∀ {x} → x ≡ y → Set p) →
-            P (refl y) →
-            ∀ {x} (x≡y : x ≡ y) → P x≡y
-    elim₁ {y = y} P p {x} x≡y =
-      subst {A = Singleton y}
-            (P ∘ proj₂)
-            (proj₂ (singleton-contractible y) (x , x≡y))
-            p
 
     -- "Evaluation rule" for elim₁.
 
@@ -386,15 +383,14 @@ module Derived-definitions-and-properties
   Other-singleton x = ∃ λ y → x ≡ y
 
   private
-    abstract
 
-      irr : ∀ {a} {A : Set a} {x : A}
-            (p : Other-singleton x) → (x , refl x) ≡ p
-      irr p =
-        elim (λ {u v} u≡v → _≡_ {A = Other-singleton u}
-                                (u , refl u) (v , u≡v))
-             (λ _ → refl _)
-             (proj₂ p)
+    irr : ∀ {a} {A : Set a} {x : A}
+          (p : Other-singleton x) → (x , refl x) ≡ p
+    irr p =
+      elim (λ {u v} u≡v → _≡_ {A = Other-singleton u}
+                              (u , refl u) (v , u≡v))
+           (λ _ → refl _)
+           (proj₂ p)
 
   other-singleton-contractible :
     ∀ {a} {A : Set a} (x : A) → Contractible (Other-singleton x)
@@ -413,16 +409,18 @@ module Derived-definitions-and-properties
                                    (u , refl u) (v , u≡v))
                 _
 
-    -- Christine Paulin-Mohring's version of the J rule.
+  -- Christine Paulin-Mohring's version of the J rule.
 
-    elim¹ : ∀ {a p} {A : Set a} {x : A} (P : ∀ {y} → x ≡ y → Set p) →
-            P (refl x) →
-            ∀ {y} (x≡y : x ≡ y) → P x≡y
-    elim¹ {x = x} P p {y} x≡y =
-      subst {A = Other-singleton x}
-            (P ∘ proj₂)
-            (proj₂ (other-singleton-contractible x) (y , x≡y))
-            p
+  elim¹ : ∀ {a p} {A : Set a} {x : A} (P : ∀ {y} → x ≡ y → Set p) →
+          P (refl x) →
+          ∀ {y} (x≡y : x ≡ y) → P x≡y
+  elim¹ {x = x} P p {y} x≡y =
+    subst {A = Other-singleton x}
+          (P ∘ proj₂)
+          (proj₂ (other-singleton-contractible x) (y , x≡y))
+          p
+
+  abstract
 
     -- "Evaluation rule" for elim¹.
 
@@ -694,13 +692,15 @@ module Derived-definitions-and-properties
        cong (λ x → h (f x) (g x)) (refl _)          ∎)
       _
 
-    subst-const : ∀ {a p} {A : Set a} {x₁ x₂ : A} {x₁≡x₂ : x₁ ≡ x₂}
-                    {P : Set p} {p} →
-                  subst (const P) x₁≡x₂ p ≡ p
-    subst-const {P = P} {p} =
-      elim¹ (λ x₁≡x₂ → subst (const P) x₁≡x₂ p ≡ p)
-            (subst-refl (const P) _)
-            _
+  subst-const : ∀ {a p} {A : Set a} {x₁ x₂ : A} (x₁≡x₂ : x₁ ≡ x₂)
+                  {P : Set p} {p} →
+                subst (const P) x₁≡x₂ p ≡ p
+  subst-const x₁≡x₂ {P = P} {p} =
+    elim¹ (λ x₁≡x₂ → subst (const P) x₁≡x₂ p ≡ p)
+          (subst-refl (const P) _)
+          x₁≡x₂
+
+  abstract
 
     subst-∘ : ∀ {a b p} {A : Set a} {B : Set b} {x y : A}
               (P : B → Set p) (f : A → B) (x≡y : x ≡ y) {p : P (f x)} →
@@ -772,7 +772,8 @@ module Derived-definitions-and-properties
 
     subst-refl-subst-const :
       ∀ {a p} {A : Set a} {x : A} {P : Set p} {p} →
-      trans (sym $ subst-refl (λ _ → P) {x = x} p) subst-const ≡ refl _
+      trans (sym $ subst-refl (λ _ → P) p) (subst-const (refl x)) ≡
+      refl p
     subst-refl-subst-const {x = x} {P} {p} =
       trans (sym $ subst-refl (λ _ → P) p)
             (elim¹ (λ eq → subst (λ _ → P) eq p ≡ p)
@@ -863,22 +864,23 @@ module Derived-definitions-and-properties
     Σ-≡,≡→≡-subst-const :
       ∀ {a b} {A : Set a} {B : Set b} {p₁ p₂ : A × B} →
       (p : proj₁ p₁ ≡ proj₁ p₂) (q : proj₂ p₁ ≡ proj₂ p₂) →
-      Σ-≡,≡→≡ p (trans subst-const q) ≡ cong₂ _,_ p q
+      Σ-≡,≡→≡ p (trans (subst-const p) q) ≡ cong₂ _,_ p q
     Σ-≡,≡→≡-subst-const {B = B} {_ , y₁} {_ , y₂} p q = elim
       (λ {x₁ y₁} (p : x₁ ≡ y₁) →
-         Σ-≡,≡→≡ p (trans subst-const q) ≡ cong₂ _,_ p q)
+         Σ-≡,≡→≡ p (trans (subst-const _) q) ≡ cong₂ _,_ p q)
       (λ x →
          let lemma =
                trans (sym $ subst-refl (λ _ → B) y₁)
-                     (trans subst-const q)                                ≡⟨ sym $ trans-assoc _ _ _ ⟩
-               trans (trans (sym $ subst-refl (λ _ → B) y₁) subst-const)
-                     q                                                    ≡⟨ cong₂ trans subst-refl-subst-const (refl _) ⟩
-               trans (refl y₁) q                                          ≡⟨ trans-reflˡ _ ⟩∎
-               q                                                          ∎ in
+                     (trans (subst-const _) q)               ≡⟨ sym $ trans-assoc _ _ _ ⟩
+               trans (trans (sym $ subst-refl (λ _ → B) y₁)
+                            (subst-const _))
+                     q                                       ≡⟨ cong₂ trans subst-refl-subst-const (refl _) ⟩
+               trans (refl y₁) q                             ≡⟨ trans-reflˡ _ ⟩∎
+               q                                             ∎ in
 
-         Σ-≡,≡→≡ (refl x) (trans subst-const q)               ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
+         Σ-≡,≡→≡ (refl x) (trans (subst-const _) q)           ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
          cong (_,_ x) (trans (sym $ subst-refl (λ _ → B) y₁)
-                             (trans subst-const q))           ≡⟨ cong (cong (_,_ x)) lemma ⟩
+                             (trans (subst-const _) q))       ≡⟨ cong (cong (_,_ x)) lemma ⟩
          cong (_,_ x) q                                       ≡⟨ sym $ cong₂-reflˡ _,_ ⟩∎
          cong₂ _,_ (refl x) q                                 ∎)
       p

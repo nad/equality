@@ -700,7 +700,7 @@ private
         (proj₁ p₁ ≡ proj₁ p₂ × proj₂ p₁ ≡ proj₂ p₂) ↔ (p₁ ≡ p₂)
 ≡×≡↔≡ {B = B} {p₁} {p₂} =
   (proj₁ p₁ ≡ proj₁ p₂ × proj₂ p₁ ≡ proj₂ p₂)  ↝⟨ ∃-cong (λ _ → ≡⇒↝ _ $ cong (λ q → q ≡ proj₂ p₂) $
-                                                                  sym $ subst-const) ⟩
+                                                                  sym $ subst-const _) ⟩
   (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
      subst (λ _ → B) p (proj₂ p₁) ≡ proj₂ p₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
 
