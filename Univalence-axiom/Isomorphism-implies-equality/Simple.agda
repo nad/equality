@@ -810,7 +810,15 @@ Instance-poset :
   (∀ x y → x ≤ y → y ≤ x → x ≡ y)
 Instance-poset = refl _
 
--- The notion of isomorphism that we get is also reasonable.
+-- The notion of isomorphism that we get is also reasonable. It is the
+-- usual notion of "order isomorphism", with two (main) differences:
+--
+-- * Weak equivalences are used instead of bijections. However, weak
+--   equivalences and bijections coincide for sets.
+--
+-- * We use weak equivalence, (a ≤₁ c) ≈ (b ≤₂ d), instead of "iff",
+--   (a ≤₁ c) ⇔ (b ≤₂ d). However, the ordering relation is pointwise
+--   propositional, so these two expressions are equal.
 
 Isomorphic-poset :
   ∀ {P₁ _≤₁_ laws₁ P₂ _≤₂_ laws₂} →
