@@ -680,17 +680,18 @@ module Derived-definitions-and-properties
       cong (flip f u) x≡y                                ∎
 
     cong₂-cong-cong :
-      ∀ {a p q r} {A : Set a} {x₁ x₂} {eq : x₁ ≡ x₂}
-      (P : A → Set p) (Q : A → Set q) (R : Set p → Set q → Set r) →
-      cong₂ R (cong P eq) (cong Q eq) ≡
-      cong (λ x → R (P x) (Q x)) eq
-    cong₂-cong-cong P Q R = elim¹
-      (λ eq → cong₂ R (cong P eq) (cong Q eq) ≡
-              cong (λ x → R (P x) (Q x)) eq)
-      (cong₂ R (cong P (refl _)) (cong Q (refl _))  ≡⟨ cong₂ (cong₂ R) (cong-refl P) (cong-refl Q) ⟩
-       cong₂ R (refl _) (refl _)                    ≡⟨ cong₂-refl R ⟩
-       refl _                                       ≡⟨ sym $ cong-refl (λ x → R (P x) (Q x)) ⟩∎
-       cong (λ x → R (P x) (Q x)) (refl _)          ∎)
+      ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d}
+        {x₁ x₂} {eq : x₁ ≡ x₂}
+      (f : A → B) (g : A → C) (h : B → C → D) →
+      cong₂ h (cong f eq) (cong g eq) ≡
+      cong (λ x → h (f x) (g x)) eq
+    cong₂-cong-cong f g h = elim¹
+      (λ eq → cong₂ h (cong f eq) (cong g eq) ≡
+              cong (λ x → h (f x) (g x)) eq)
+      (cong₂ h (cong f (refl _)) (cong g (refl _))  ≡⟨ cong₂ (cong₂ h) (cong-refl f) (cong-refl g) ⟩
+       cong₂ h (refl _) (refl _)                    ≡⟨ cong₂-refl h ⟩
+       refl _                                       ≡⟨ sym $ cong-refl (λ x → h (f x) (g x)) ⟩∎
+       cong (λ x → h (f x) (g x)) (refl _)          ∎)
       _
 
     subst-const : ∀ {a p} {A : Set a} {x₁ x₂ : A} {x₁≡x₂ : x₁ ≡ x₂}
