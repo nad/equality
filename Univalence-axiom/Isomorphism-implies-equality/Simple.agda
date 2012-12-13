@@ -375,13 +375,8 @@ abstract
                                                                         ↔⇒≈ $ ∀-intro ext (λ y → to (cast ext b B≈C) (f x) ≡ g y)) ⟩
     (∀ x → to (cast ext b B≈C) (f x) ≡ g (to (cast ext a B≈C) x))  ↔⟨ extensionality-isomorphism ext ⟩
 
-    (to (cast ext b B≈C) ∘ f ≡ g ∘ to (cast ext a B≈C))            ↝⟨ ≡⇒↝ _ $ cong (λ h → to (cast ext b B≈C) ∘ f ∘ h ≡
-                                                                                          g ∘ to (cast ext a B≈C)) $
-                                                                        sym $ ext $ _≈_.left-inverse-of (cast ext a B≈C) ⟩
-    (to (cast ext b B≈C) ∘ f ∘
-       from (cast ext a B≈C) ∘ to (cast ext a B≈C) ≡
-     g ∘ to (cast ext a B≈C))                                      ↔⟨ ≈-≡ $ weq _ $ precomposition-is-weak-equivalence univ₁ $
-                                                                        cast ext a B≈C ⟩□
+    (to (cast ext b B≈C) ∘ f ≡ g ∘ to (cast ext a B≈C))            ↝⟨ inverse $ ∘from≡↔≡∘to ext (cast ext a B≈C) ⟩□
+
     (to (cast ext b B≈C) ∘ f ∘ from (cast ext a B≈C) ≡ g)          □
 
     where
