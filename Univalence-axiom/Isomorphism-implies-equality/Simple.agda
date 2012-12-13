@@ -21,6 +21,7 @@ module Univalence-axiom.Isomorphism-implies-equality.Simple
 open import Bijection eq
   hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
 open Derived-definitions-and-properties eq
+  renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq
 open import Equivalence using (_⇔_; module _⇔_)
 open import Function-universe eq hiding (id; _∘_)
@@ -139,7 +140,7 @@ module Class (Univ : Universe) where
 
   -- Codes for structures.
 
-  Code : Set₂
+  Code : Set₃
   Code =
     -- A code.
     Σ U λ a →
@@ -147,8 +148,8 @@ module Class (Univ : Universe) where
     -- A proposition.
     (A : Set₁) → El a A → Σ Set₁ λ P →
       -- The proposition should be propositional (assuming
-      -- extensionality).
-      Extensionality (# 1) (# 1) → Propositional P
+      -- univalence).
+      Assumptions → Propositional P
 
   -- Interpretation of the codes. The elements of "Instance a" are
   -- instances of the structure encoded by a.
@@ -178,15 +179,15 @@ module Class (Univ : Universe) where
 
     -- One can prove that two instances of a structure are equal by
     -- proving that the carrier types and "elements" (suitably
-    -- transported) are equal (assuming extensionality).
+    -- transported) are equal (assuming univalence).
 
     instances-equal↔ :
-      Extensionality (# 1) (# 1) →
+      Assumptions →
       ∀ a {I₁ I₂} →
       (I₁ ≡ I₂) ↔
       ∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
         subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂
-    instances-equal↔ ext (a , P) {C₁ , e₁ , p₁} {C₂ , e₂ , p₂} =
+    instances-equal↔ ass (a , P) {C₁ , e₁ , p₁} {C₂ , e₂ , p₂} =
 
       ((C₁ , e₁ , p₁) ≡ (C₂ , e₂ , p₂))                                 ↝⟨ inverse Σ-≡,≡↔≡ ⟩
 
@@ -200,7 +201,7 @@ module Class (Univ : Universe) where
           subst (λ { (A , x) → proj₁ (P A x) })
                 (Σ-≡,≡→≡ C-eq (refl _)) p₁) ≡
          (e₂ , p₂))                                                     ↝⟨ ∃-cong (λ C-eq → inverse $
-                                                                             ignore-propositional-component (proj₂ (P _ _) ext)) ⟩
+                                                                             ignore-propositional-component (proj₂ (P _ _) ass)) ⟩
 
       (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq e₁ ≡ e₂)                □
 
@@ -234,7 +235,7 @@ module Class (Univ : Universe) where
                                                                                            element a I₂)
                                                                                    (_≈_.left-inverse-of (≡≈≈ univ₁) C-eq)) ⟩
       (∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
-         subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)      ↝⟨ inverse $ instances-equal↔ ext a ⟩□
+         subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)      ↝⟨ inverse $ instances-equal↔ ass a ⟩□
 
       (I₁ ≡ I₂)                                                        □
 
@@ -478,16 +479,17 @@ monoid =
        (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z)) ,
 
        -- The laws are propositional (assuming extensionality).
-      λ ext → [inhabited⇒+]⇒+ 0 λ { (M-set , _) →
-        ×-closure 1  (H-level-propositional ext 2)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      M-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      M-set _ _)
-                     (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      M-set _ _))) }}
+      λ ass → let open Assumptions ass in
+        [inhabited⇒+]⇒+ 0 λ { (M-set , _) →
+          ×-closure 1  (H-level-propositional ext 2)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        M-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        M-set _ _)
+                       (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        M-set _ _))) }}
 
 -- The interpretation of the code is reasonable.
 
@@ -565,41 +567,42 @@ discrete-field =
        (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
        (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#)) ,
 
-      λ ext → [inhabited⇒+]⇒+ 0 λ { (F-set , _) →
-        ×-closure 1  (H-level-propositional ext 2)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      F-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      F-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      F-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      F-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      F-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      F-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      F-set _ _)
-        (×-closure 1 (Π-closure (lower-extensionality (# 0) (# 1) ext) 1 λ _ →
-                      ⊥-propositional)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      F-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      F-set _ _)
-                     (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      F-set _ _))))))))))) }}
+      λ ass → let open Assumptions ass in
+        [inhabited⇒+]⇒+ 0 λ { (F-set , _) →
+          ×-closure 1  (H-level-propositional ext 2)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure (lower-ext (# 0) (# 1) ext) 1 λ _ →
+                        ⊥-propositional)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+                       (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _))))))))))) }}
 
 -- The interpretation of the code is reasonable.
 
@@ -683,33 +686,34 @@ vector-space (F , (_+F_ , _ , _*F_ , 1F , _ , _) , _) =
        -- Inverse law.
        (∀ v → v + (- v) ≡ 0V)) ,
 
-      λ ext → [inhabited⇒+]⇒+ 0 λ { (V-set , _) →
-        ×-closure 1  (H-level-propositional ext 2)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      V-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      V-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      V-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      V-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      V-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      V-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      V-set _ _)
-                     (Π-closure ext 1 λ _ →
-                      V-set _ _)))))))) }}
+      λ ass → let open Assumptions ass in
+        [inhabited⇒+]⇒+ 0 λ { (V-set , _) →
+          ×-closure 1  (H-level-propositional ext 2)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        V-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        V-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        V-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        V-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        V-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        V-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        V-set _ _)
+                       (Π-closure ext 1 λ _ →
+                        V-set _ _)))))))) }}
 
 -- The interpretation of the code is reasonable.
 
@@ -773,25 +777,25 @@ poset =
      -- Antisymmetry.
      (∀ x y → x ≤ y → y ≤ x → x ≡ y)) ,
 
-    λ ext → [inhabited⇒+]⇒+ 0 λ { (P-set , ≤-prop , _) →
-      ×-closure 1  (H-level-propositional ext 2)
-      (×-closure 1 (Π-closure ext 1 λ _ →
-                    Π-closure (lower-extensionality (# 0) _ ext) 1 λ _ →
-                    H-level-propositional
-                      (lower-extensionality _ _ ext) 1)
-      (×-closure 1 (Π-closure (lower-extensionality (# 0) _ ext) 1 λ _ →
-                    ≤-prop _ _)
-      (×-closure 1 (Π-closure ext 1 λ _ →
-                    Π-closure ext 1 λ _ →
-                    Π-closure (lower-extensionality (# 0) _ ext) 1 λ _ →
-                    Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-                    Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-                    ≤-prop _ _)
-                   (Π-closure ext 1 λ _ →
-                    Π-closure ext 1 λ _ →
-                    Π-closure (lower-extensionality _ (# 0) ext) 1 λ _ →
-                    Π-closure (lower-extensionality _ (# 0) ext) 1 λ _ →
-                    P-set _ _)))) }
+    λ ass → let open Assumptions ass in
+      [inhabited⇒+]⇒+ 0 λ { (P-set , ≤-prop , _) →
+        ×-closure 1  (H-level-propositional ext 2)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
+                      H-level-propositional (lower-ext _ _ ext) 1)
+        (×-closure 1 (Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
+                      ≤-prop _ _)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
+                      Π-closure (lower-ext _ _ ext) 1 λ _ →
+                      Π-closure (lower-ext _ _ ext) 1 λ _ →
+                      ≤-prop _ _)
+                     (Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
+                      Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
+                      P-set _ _)))) }
 
 -- The interpretation of the code is reasonable.
 
