@@ -948,6 +948,73 @@ module Derived-definitions-and-properties
       subst P (cong proj₁ (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂)) p  ≡⟨ cong (λ eq → subst P eq p) (proj₁-Σ-≡,≡→≡ _ _) ⟩∎
       subst P x₁≡x₂ p                               ∎
 
+    -- The subst function can be "pushed" inside non-dependent pairs.
+
+    push-subst-, :
+      ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
+      (B : A → Set b) (C : A → Set c) {p} →
+      subst (λ x → B x × C x) y≡z p ≡
+      (subst B y≡z (proj₁ p) , subst C y≡z (proj₂ p))
+    push-subst-, {y≡z = y≡z} B C {x , y} =
+      subst (λ x → B x × C x) y≡z (x , y)                           ≡⟨ push-subst-pair B (C ∘ proj₁) ⟩
+      (subst B y≡z x , subst (C ∘ proj₁) (Σ-≡,≡→≡ y≡z (refl _)) y)  ≡⟨ cong (_,_ _) $ subst₂-proj₁ C ⟩∎
+      (subst B y≡z x , subst C y≡z y)                               ∎
+
+    -- The subst function can be "pushed" inside inj₁ and inj₂.
+
+    push-subst-inj₁ :
+      ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
+      (B : A → Set b) (C : A → Set c) {x} →
+      subst (λ x → B x ⊎ C x) y≡z (inj₁ x) ≡ inj₁ (subst B y≡z x)
+    push-subst-inj₁ {y≡z = y≡z} B C {x} = elim¹
+      (λ y≡z → subst (λ x → B x ⊎ C x) y≡z (inj₁ x) ≡
+               inj₁ (subst B y≡z x))
+      (subst (λ x → B x ⊎ C x) (refl _) (inj₁ x)  ≡⟨ subst-refl (λ x → B x ⊎ C x) _ ⟩
+       inj₁ x                                     ≡⟨ cong inj₁ $ sym $ subst-refl B _ ⟩∎
+       inj₁ (subst B (refl _) x)                  ∎)
+      y≡z
+
+    push-subst-inj₂ :
+      ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
+      (B : A → Set b) (C : A → Set c) {x} →
+      subst (λ x → B x ⊎ C x) y≡z (inj₂ x) ≡ inj₂ (subst C y≡z x)
+    push-subst-inj₂ {y≡z = y≡z} B C {x} = elim¹
+      (λ y≡z → subst (λ x → B x ⊎ C x) y≡z (inj₂ x) ≡
+               inj₂ (subst C y≡z x))
+      (subst (λ x → B x ⊎ C x) (refl _) (inj₂ x)  ≡⟨ subst-refl (λ x → B x ⊎ C x) _ ⟩
+       inj₂ x                                     ≡⟨ cong inj₂ $ sym $ subst-refl C _ ⟩∎
+       inj₂ (subst C (refl _) x)                  ∎)
+      y≡z
+
+    -- The subst function can be "pushed" inside applications.
+
+    push-subst-application :
+      ∀ {a b c} {A : Set a} {x : A} {B : Set b} {y₁ y₂ : B}
+      (y₁≡y₂ : y₁ ≡ y₂) (C : A → B → Set c) {f : (x : A) → C x y₁} →
+      subst (C x) y₁≡y₂ (f x) ≡
+      subst (λ y → (x : A) → C x y) y₁≡y₂ f x
+    push-subst-application {x = x} y₁≡y₂ C {f} = elim¹
+      (λ y₁≡y₂ → subst (C x) y₁≡y₂ (f x) ≡
+                 subst (λ y → ∀ x → C x y) y₁≡y₂ f x)
+      (subst (C x) (refl _) (f x)              ≡⟨ subst-refl (C x) _ ⟩
+       f x                                     ≡⟨ cong (λ g → g x) $ sym $ subst-refl (λ y → ∀ x → C x y) _ ⟩∎
+       subst (λ y → ∀ x → C x y) (refl _) f x  ∎)
+      y₁≡y₂
+
+    push-subst-implicit-application :
+      ∀ {a b c} {A : Set a} {x : A} {B : Set b} {y₁ y₂ : B}
+      (y₁≡y₂ : y₁ ≡ y₂) (C : A → B → Set c) {f : {x : A} → C x y₁} →
+      subst (C x) y₁≡y₂ (f {x = x}) ≡
+      subst (λ y → {x : A} → C x y) y₁≡y₂ f {x = x}
+    push-subst-implicit-application {x = x} y₁≡y₂ C {f} =
+      elim¹
+        (λ y₁≡y₂ → subst (C x) y₁≡y₂ f ≡
+                   subst (λ y → ∀ {x} → C x y) y₁≡y₂ f)
+        (subst (C x) (refl _) f                  ≡⟨ subst-refl (C x) _ ⟩
+         f                                       ≡⟨ cong (λ g → g {x = x}) $ sym $ subst-refl (λ y → ∀ {x} → C x y) _ ⟩∎
+         subst (λ y → ∀ {x} → C x y) (refl _) f  ∎)
+        y₁≡y₂
+
     -- If f z evaluates to z for a decidable set of values which
     -- includes x and y, do we have
     --
