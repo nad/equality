@@ -471,9 +471,9 @@ abstract
   cong-good-ext :
     ∀ {a b} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
-    {f≡g : ∀ x → f x ≡ g x} {x} →
+    (f≡g : ∀ x → f x ≡ g x) {x} →
     cong (λ h → h x) (good-ext ext f≡g) ≡ f≡g x
-  cong-good-ext ext {f≡g = f≡g} {x} =
+  cong-good-ext ext f≡g {x} =
     let lemma = elim
           (λ f≡g → cong (λ h → h x) f≡g ≡ ext⁻¹ f≡g x)
           (λ f → cong (λ h → h x) (refl f)  ≡⟨ cong-refl (λ h → h x) {x = f} ⟩
