@@ -350,7 +350,7 @@ abstract
 
   ≡⇒≈-refl : ∀ {a} {A : Set a} →
              ≡⇒≈ (refl A) ≡ Weak.id
-  ≡⇒≈-refl = elim-refl (λ {A B} _ → A ≈ B) _
+  ≡⇒≈-refl = ≡⇒↝-refl
 
   -- "Evaluation rule" for ≡⇒→.
 
