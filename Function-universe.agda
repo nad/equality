@@ -891,30 +891,47 @@ private
 
 ∀-intro : ∀ {a b} →
           Extensionality a (a ⊔ b) →
-          {A : Set a} (B : A → Set b) {x : A} →
-          B x ↔ (∀ y → x ≡ y → B y)
-∀-intro {a} ext B {x} = record
+          {A : Set a} {x : A} (B : (y : A) → x ≡ y → Set b) →
+          B x (refl x) ↔ (∀ y (x≡y : x ≡ y) → B y x≡y)
+∀-intro {a} ext {x = x} B = record
   { surjection = record
     { equivalence = record
-      { to   = λ b y x≡y → subst B x≡y b
+      { to   = to
       ; from = λ f → f x (refl x)
       }
     ; right-inverse-of = to∘from
     }
-  ; left-inverse-of = λ b →
-      subst B (refl x) b  ≡⟨ subst-refl B _ ⟩∎
-      b                   ∎
+  ; left-inverse-of = from∘to
   }
   where
+  to : B x (refl x) → ∀ y (x≡y : x ≡ y) → B y x≡y
+  to b y x≡y =
+    subst (uncurry B)
+          (proj₂ (other-singleton-contractible x) (y , x≡y))
+          b
+
   abstract
 
-    to∘from : ∀ f → (λ y (x≡y : x ≡ y) → subst B x≡y (f x (refl x))) ≡ f
+    from∘to : ∀ b → to b x (refl x) ≡ b
+    from∘to b =
+      subst (uncurry B)
+            (proj₂ (other-singleton-contractible x) (x , refl x)) b  ≡⟨ cong (λ eq → subst (uncurry B) eq b) $
+                                                                             other-singleton-contractible-refl x ⟩
+      subst (uncurry B) (refl (x , refl x)) b                        ≡⟨ subst-refl (uncurry B) _ ⟩∎
+      b                                                              ∎
+
+    to∘from : ∀ f → to (f x (refl x)) ≡ f
     to∘from f = ext λ y → lower-extensionality lzero a ext λ x≡y →
-      subst B x≡y (f x (refl x))  ≡⟨ elim¹ (λ {y} x≡y → subst B x≡y (f x (refl x)) ≡ f y x≡y)
-                                           (subst B (refl x) (f x (refl x))  ≡⟨ subst-refl B _ ⟩∎
-                                            f x (refl x)                     ∎)
-                                           x≡y ⟩∎
-      f y x≡y                     ∎
+      elim¹ (λ {y} x≡y →
+               subst (uncurry B)
+                     (proj₂ (other-singleton-contractible x) (y , x≡y))
+                     (f x (refl x)) ≡
+               f y x≡y)
+            (subst (uncurry B)
+                   (proj₂ (other-singleton-contractible x) (x , refl x))
+                   (f x (refl x))                                         ≡⟨ from∘to (f x (refl x)) ⟩∎
+             f x (refl x)                                                 ∎)
+            x≡y
 
 abstract
 

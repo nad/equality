@@ -372,7 +372,7 @@ abstract
                                                                                    (isomorphism-definitions-isomorphic ass B≈C b)) ⟩
     (∀ x y → to (cast ext a B≈C) x ≡ y →
              to (cast ext b B≈C) (f x) ≡ g y)                      ↔⟨ inverse $ ∀-preserves ext (λ x →
-                                                                        ↔⇒≈ $ ∀-intro ext (λ y → to (cast ext b B≈C) (f x) ≡ g y)) ⟩
+                                                                        ↔⇒≈ $ ∀-intro ext (λ y _ → to (cast ext b B≈C) (f x) ≡ g y)) ⟩
     (∀ x → to (cast ext b B≈C) (f x) ≡ g (to (cast ext a B≈C) x))  ↔⟨ extensionality-isomorphism ext ⟩
 
     (to (cast ext b B≈C) ∘ f ≡ g ∘ to (cast ext a B≈C))            ↝⟨ inverse $ ∘from≡↔≡∘to ext (cast ext a B≈C) ⟩□
