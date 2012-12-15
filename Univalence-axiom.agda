@@ -311,6 +311,22 @@ abstract
 
 abstract
 
+  -- The univalence axiom is propositional (assuming extensionality).
+
+  Univalence′-propositional :
+    ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
+    {A B : Set ℓ} → Propositional (Univalence′ A B)
+  Univalence′-propositional ext =
+    Weak.propositional ext ≡⇒≈
+
+  Univalence-propositional :
+    ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
+    Propositional (Univalence ℓ)
+  Univalence-propositional ext =
+    implicit-Π-closure ext 1 λ _ →
+    implicit-Π-closure ext 1 λ _ →
+    Univalence′-propositional ext
+
   -- A variant of subst-unique.
 
   subst-unique′ :
