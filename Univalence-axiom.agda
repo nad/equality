@@ -499,9 +499,9 @@ abstract
   -- One can express subst in terms of ≡⇒≈.
 
   subst-in-terms-of-≡⇒≈ :
-    ∀ {ℓ p} {A B : Set ℓ} {A≡B : A ≡ B} (P : Set ℓ → Set p) p →
-    subst P A≡B p ≡ ≡⇒→ (cong P A≡B) p
-  subst-in-terms-of-≡⇒≈ P p = elim¹
+    ∀ {a p} {A : Set a} {x y} (x≡y : x ≡ y) (P : A → Set p) p →
+    subst P x≡y p ≡ ≡⇒→ (cong P x≡y) p
+  subst-in-terms-of-≡⇒≈ x≡y P p = elim¹
 
     (λ eq → subst P eq p ≡ ≡⇒→ (cong P eq) p)
 
@@ -511,7 +511,17 @@ abstract
      ≡⇒→ (refl _) p           ≡⟨ sym $ cong (λ eq → ≡⇒→ eq p) $ cong-refl P ⟩∎
      ≡⇒→ (cong P (refl _)) p  ∎)
 
-    _
+    x≡y
+
+  subst-in-terms-of-from∘≡⇒≈ :
+    ∀ {a p} → Extensionality p p →
+    ∀ {A : Set a} {x y} (x≡y : x ≡ y) (P : A → Set p) p →
+    subst P (sym x≡y) p ≡ _≈_.from (≡⇒≈ (cong P x≡y)) p
+  subst-in-terms-of-from∘≡⇒≈ ext x≡y P p =
+    subst P (sym x≡y) p                ≡⟨ subst-in-terms-of-≡⇒≈ (sym x≡y) P p ⟩
+    _≈_.to (≡⇒≈ (cong P (sym x≡y))) p  ≡⟨ cong (λ eq → _≈_.to (≡⇒≈ eq) p) $ cong-sym P _ ⟩
+    _≈_.to (≡⇒≈ (sym $ cong P x≡y)) p  ≡⟨ cong (λ eq → _≈_.to eq p) $ ≡⇒≈-sym ext _ ⟩∎
+    _≈_.from (≡⇒≈ (cong P x≡y)) p      ∎
 
   -- A lemma relating ≈⇒≡, →-cong and cong₂.
 
@@ -543,8 +553,8 @@ abstract
       (λ f → f ∘ from A₁≈A₂)                             ≡⟨ cong (_∘_ (subst (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂))) (ext λ f →
                                                               subst-unique (λ A → A → B₁) (λ A≈B g → g ∘ _≈_.from A≈B) refl univ A₁≈A₂ f) ⟩
       subst (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂) ∘
-      subst (λ A → A → B₁) (≈⇒≡ univ A₁≈A₂)              ≡⟨ cong₂ (λ g h f → g (h f)) (ext $ subst-in-terms-of-≡⇒≈ (λ B → A₂ → B))
-                                                                                      (ext $ subst-in-terms-of-≡⇒≈ (λ A → A → B₁)) ⟩
+      subst (λ A → A → B₁) (≈⇒≡ univ A₁≈A₂)              ≡⟨ cong₂ (λ g h f → g (h f)) (ext $ subst-in-terms-of-≡⇒≈ _ (λ B → A₂ → B))
+                                                                                      (ext $ subst-in-terms-of-≡⇒≈ _ (λ A → A → B₁)) ⟩
       to (≡⇒≈ (cong (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂))) ∘
       to (≡⇒≈ (cong (λ A → A → B₁) (≈⇒≡ univ A₁≈A₂)))    ≡⟨⟩
 
@@ -573,6 +583,6 @@ abstract
     where
     lemma : ≡⇒→ (cong P (≈⇒≡ univ₁ A≈B)) ≡ _≈_.to (P-cong A≈B)
     lemma = ext λ x →
-      ≡⇒→ (cong P (≈⇒≡ univ₁ A≈B)) x  ≡⟨ sym $ subst-in-terms-of-≡⇒≈ P x ⟩
+      ≡⇒→ (cong P (≈⇒≡ univ₁ A≈B)) x  ≡⟨ sym $ subst-in-terms-of-≡⇒≈ _ P x ⟩
       subst P (≈⇒≡ univ₁ A≈B) x       ≡⟨ sym $ subst-unique P (_≈_.to ∘ P-cong) P-cong-id univ₁ A≈B x ⟩∎
       _≈_.to (P-cong A≈B) x           ∎
