@@ -739,6 +739,21 @@ module Derived-definitions-and-properties
               subst P (trans (refl x) y≡z) p    ∎)
            x≡y y≡z p
 
+    -- The combinator trans is defined in terms of subst. It could
+    -- have been defined in another way.
+
+    subst-trans :
+      ∀ {a} {A : Set a} {x y z : A} (x≡y : x ≡ y) {y≡z : y ≡ z} →
+      subst (λ x → x ≡ z) (sym x≡y) y≡z ≡ trans x≡y y≡z
+    subst-trans {y = y} {z} x≡y {y≡z} =
+      elim₁ (λ x≡y → subst (λ x → x ≡ z) (sym x≡y) y≡z ≡
+                     trans x≡y y≡z)
+            (subst (λ x → x ≡ z) (sym (refl y)) y≡z  ≡⟨ cong (λ eq → subst (λ x → x ≡ z) eq y≡z) sym-refl ⟩
+             subst (λ x → x ≡ z) (refl y) y≡z        ≡⟨ subst-refl (λ x → x ≡ z) y≡z ⟩
+             y≡z                                     ≡⟨ sym $ trans-reflˡ y≡z ⟩∎
+             trans (refl y) y≡z                      ∎)
+            x≡y
+
     -- Substitutivity and symmetry sometimes cancel each other out.
 
     subst-subst-sym :
