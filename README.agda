@@ -16,8 +16,8 @@ import Prelude
 
 import Equivalence
 
--- Two equivalent axiomatisations of equality. Most of the modules
--- below are parametrised by a definition of equality which satisfies
+-- Two equivalent axiomatisations of equality. Many of the modules
+-- below are parametrised by a definition of equality that satisfies
 -- these axioms. The reason for this parametrisation is that I might
 -- later want to use a definition of equality where the application
 -- elim P r (refl x) does not compute to r x, unlike the equality in
