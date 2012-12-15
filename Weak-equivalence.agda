@@ -145,14 +145,15 @@ record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   -- Weakly equivalent sets are isomorphic.
 
   from : B → A
-  from = proj₁ ⊚ proj₁ ⊚ is-weak-equivalence
+  from y = proj₁ (proj₁ (is-weak-equivalence y))
+
+  right-inverse-of : ∀ x → to (from x) ≡ x
+  right-inverse-of x = proj₂ (proj₁ (is-weak-equivalence x))
 
   abstract
-    right-inverse-of : ∀ x → to (from x) ≡ x
-    right-inverse-of = proj₂ ⊚ proj₁ ⊚ is-weak-equivalence
 
     left-inverse-of : ∀ x → from (to x) ≡ x
-    left-inverse-of  = λ x →
+    left-inverse-of x =
       cong (proj₁ {B = λ x′ → to x′ ≡ to x}) $
         proj₂ (is-weak-equivalence (to x)) (x , refl (to x))
 
@@ -177,7 +178,7 @@ record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
     -- equal.
 
     irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-    irrelevance = proj₂ ⊚ is-weak-equivalence
+    irrelevance y = proj₂ (is-weak-equivalence y)
 
     -- The two proofs left-inverse-of and right-inverse-of are
     -- related.
@@ -263,40 +264,58 @@ record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 -- Weak equivalences are equivalence relations.
 
 id : ∀ {a} {A : Set a} → A ≈ A
-id {A = A} = record
-  { to                  = to
-  ; is-weak-equivalence = λ y →
-      (from y , right-inverse-of y) , irrelevance y
-  }
-  where
-  A≈A  = ↔⇒≈ (Bijection.id {A = A})
-  to   = _≈_.to   A≈A
-  from = _≈_.from A≈A
-
-  abstract
-    right-inverse-of : ∀ x → to (from x) ≡ x
-    right-inverse-of = _≈_.right-inverse-of A≈A
-
-    irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-    irrelevance = _≈_.irrelevance A≈A
+id = weq P.id singleton-contractible
 
 inverse : ∀ {a b} {A : Set a} {B : Set b} → A ≈ B → B ≈ A
-inverse A≈B = record
-  { to                  = to
-  ; is-weak-equivalence = λ y →
-      (from y , right-inverse-of y) , irrelevance y
-  }
+inverse A≈B = weq from λ y → (to y , left-inverse-of y) , irr y
   where
-  B≈A  = ↔⇒≈ $ Bijection.inverse $ _≈_.bijection A≈B
-  to   = _≈_.to   B≈A
-  from = _≈_.from B≈A
+  open _≈_ A≈B
 
   abstract
-    right-inverse-of : ∀ x → to (from x) ≡ x
-    right-inverse-of = _≈_.right-inverse-of B≈A
 
-    irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-    irrelevance = _≈_.irrelevance B≈A
+    irr : ∀ y (p : from ⁻¹ y) → (to y , left-inverse-of y) ≡ p
+    irr y (x , from-x≡y) =
+      Σ-≡,≡→≡ (from-to from-x≡y) (elim¹
+        (λ {y} ≡y → subst (λ z → from z ≡ y)
+                          (trans (cong to (sym ≡y))
+                                 (right-inverse-of x))
+                          (left-inverse-of y) ≡ ≡y)
+        (let lemma =
+               trans (cong to (sym (refl (from x))))
+                     (right-inverse-of x)              ≡⟨ cong (λ eq → trans (cong to eq) (right-inverse-of x)) sym-refl ⟩
+
+               trans (cong to (refl (from x)))
+                     (right-inverse-of x)              ≡⟨ cong (λ eq → trans eq (right-inverse-of x)) $ cong-refl to ⟩
+
+               trans (refl (to (from x)))
+                     (right-inverse-of x)              ≡⟨ trans-reflˡ (right-inverse-of x) ⟩∎
+
+               right-inverse-of x                      ∎
+         in
+
+         subst (λ z → from z ≡ from x)
+               (trans (cong to (sym (refl (from x))))
+                      (right-inverse-of x))
+               (left-inverse-of (from x))                    ≡⟨ cong₂ (subst (λ z → from z ≡ from x))
+                                                                      lemma (sym $ right-left-lemma x) ⟩
+         subst (λ z → from z ≡ from x)
+               (right-inverse-of x)
+               (cong from $ right-inverse-of x)              ≡⟨ subst-∘ (λ z → z ≡ from x) from _ ⟩
+
+         subst (λ z → z ≡ from x)
+               (cong from $ right-inverse-of x)
+               (cong from $ right-inverse-of x)              ≡⟨ cong (λ eq → subst (λ z → z ≡ from x) eq
+                                                                                   (cong from $ right-inverse-of x)) $
+                                                                     sym $ sym-sym _ ⟩
+         subst (λ z → z ≡ from x)
+               (sym $ sym $ cong from $ right-inverse-of x)
+               (cong from $ right-inverse-of x)              ≡⟨ subst-trans _ ⟩
+
+         trans (sym $ cong from $ right-inverse-of x)
+               (cong from $ right-inverse-of x)              ≡⟨ trans-symˡ _ ⟩∎
+
+         refl (from x)                                       ∎)
+        from-x≡y)
 
 infixr 9 _∘_
 
@@ -332,6 +351,48 @@ finally-≈ : ∀ {a b} (A : Set a) (B : Set b) → A ≈ B → A ≈ B
 finally-≈ _ _ A≈B = A≈B
 
 syntax finally-≈ A B A≈B = A ≈⟨ A≈B ⟩□ B □
+
+abstract
+
+  -- Some simplification lemmas.
+
+  right-inverse-of-id :
+    ∀ {a} {A : Set a} {x : A} →
+    _≈_.right-inverse-of id x ≡ refl x
+  right-inverse-of-id {x = x} = refl (refl x)
+
+  left-inverse-of-id :
+    ∀ {a} {A : Set a} {x : A} →
+    _≈_.left-inverse-of id x ≡ refl x
+  left-inverse-of-id {x = x} =
+     left-inverse-of x               ≡⟨⟩
+     left-inverse-of (P.id x)        ≡⟨ sym $ right-left-lemma x ⟩
+     cong P.id (right-inverse-of x)  ≡⟨ sym $ cong-id _ ⟩
+     right-inverse-of x              ≡⟨ right-inverse-of-id ⟩∎
+     refl x                          ∎
+     where open _≈_ id
+
+  right-inverse-of∘inverse :
+    ∀ {a b} {A : Set a} {B : Set b} →
+    ∀ (A≈B : A ≈ B) {x} →
+    _≈_.right-inverse-of (inverse A≈B) x ≡
+    _≈_.left-inverse-of A≈B x
+  right-inverse-of∘inverse A≈B = refl _
+
+  left-inverse-of∘inverse :
+    ∀ {a b} {A : Set a} {B : Set b} →
+    ∀ (A≈B : A ≈ B) {x} →
+    _≈_.left-inverse-of (inverse A≈B) x ≡
+    _≈_.right-inverse-of A≈B x
+  left-inverse-of∘inverse {A = A} {B} A≈B {x} =
+    subst (λ x → _≈_.left-inverse-of (inverse A≈B) x ≡
+                 right-inverse-of x)
+          (right-inverse-of x)
+          (_≈_.left-inverse-of (inverse A≈B) (to (from x))        ≡⟨ sym $ _≈_.right-left-lemma (inverse A≈B) (from x) ⟩
+           cong to (_≈_.right-inverse-of (inverse A≈B) (from x))  ≡⟨ cong (cong to) $ right-inverse-of∘inverse A≈B ⟩
+           cong to (left-inverse-of (from x))                     ≡⟨ left-right-lemma (from x) ⟩∎
+           right-inverse-of (to (from x))                         ∎)
+    where open _≈_ A≈B
 
 ------------------------------------------------------------------------
 -- The two-out-of-three property
