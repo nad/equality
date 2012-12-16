@@ -616,7 +616,7 @@ groupoid {ℓ} ext = record
     right-inverse p = lift-equality ext (ext $ _≈_.right-inverse-of p)
 
 ------------------------------------------------------------------------
--- A surjection from A ↔ B to A ≈ B
+-- A surjection from A ↔ B to A ≈ B, and related results
 
 private
  abstract
@@ -678,6 +678,42 @@ private
   { surjection      = ↔↠≈ ext
   ; left-inverse-of = ↔⇒≈-right-inverse ext A-set
   }
+
+-- For propositional types equivalence is isomorphic to weak
+-- equivalence (assuming extensionality).
+
+⇔↔≈ : ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
+      {A : Set a} {B : Set b} →
+      Propositional A → Propositional B → (A ⇔ B) ↔ (A ≈ B)
+⇔↔≈ ext {A} {B} A-prop B-prop = record
+  { surjection = record
+    { equivalence = record
+      { to   = ⇔→≈
+      ; from = _≈_.equivalence
+      }
+    ; right-inverse-of = λ _ → lift-equality ext (refl _)
+    }
+  ; left-inverse-of = refl
+  }
+  where
+  ⇔→≈ : A ⇔ B → A ≈ B
+  ⇔→≈ A⇔B = ↔⇒≈ record
+    { surjection = record
+      { equivalence      = A⇔B
+      ; right-inverse-of = to∘from
+      }
+    ; left-inverse-of = from∘to
+    }
+    where
+    open _⇔_ A⇔B
+
+    abstract
+
+      to∘from : ∀ x → to (from x) ≡ x
+      to∘from _ = _⇔_.to propositional⇔irrelevant B-prop _ _
+
+      from∘to : ∀ x → from (to x) ≡ x
+      from∘to _ = _⇔_.to propositional⇔irrelevant A-prop _ _
 
 ------------------------------------------------------------------------
 -- Closure, preservation
