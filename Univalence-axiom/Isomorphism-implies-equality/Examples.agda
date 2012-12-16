@@ -275,11 +275,11 @@ module Monoid-right-nested where
   -- Monoid laws (including the assumption that the carrier type is a
   -- set).
 
-  Is-monoid : (A : Set) → (A → A → A) → A → Set
-  Is-monoid A _∙_ id =
+  Is-monoid : (C : Set) → (C → C → C) → C → Set
+  Is-monoid C _∙_ id =
 
-    -- A is a set.
-    Is-set A ×
+    -- C is a set.
+    Is-set C ×
 
     -- Left and right identity laws.
     (∀ x → id ∙ x ≡ x) ×
@@ -293,16 +293,16 @@ module Monoid-right-nested where
   Monoid : Set₁
   Monoid =
     -- Carrier.
-    Σ Set λ A →
+    Σ Set λ C →
 
     -- Binary operation.
-    Σ (A → A → A) λ _∙_ →
+    Σ (C → C → C) λ _∙_ →
 
     -- Identity.
-    Σ A λ id →
+    Σ C λ id →
 
     -- Laws.
-    Is-monoid A _∙_ id
+    Is-monoid C _∙_ id
 
   -- The carrier type.
 

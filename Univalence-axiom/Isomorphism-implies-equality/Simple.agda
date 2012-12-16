@@ -146,7 +146,7 @@ module Class (Univ : Universe) where
     Σ U λ a →
 
     -- A proposition.
-    (A : Set₁) → El a A → Σ Set₁ λ P →
+    (C : Set₁) → El a C → Σ Set₁ λ P →
       -- The proposition should be propositional (assuming
       -- univalence).
       Assumptions → Propositional P
@@ -157,13 +157,13 @@ module Class (Univ : Universe) where
   Instance : Code → Set₂
   Instance (a , P) =
     -- A carrier type.
-    Σ Set₁ λ A →
+    Σ Set₁ λ C →
 
     -- An element.
-    Σ (El a A) λ x →
+    Σ (El a C) λ x →
 
     -- The element should satisfy the proposition.
-    proj₁ (P A x)
+    proj₁ (P C x)
 
   -- The carrier type.
 
@@ -767,19 +767,19 @@ poset =
     λ ass → let open Assumptions ass in
       [inhabited⇒+]⇒+ 0 λ { (P-set , ≤-prop , _) →
         ×-closure 1  (H-level-propositional ext 2)
-        (×-closure 1 (Π-closure ext 1 λ _ →
+        (×-closure 1 (Π-closure ext                     1 λ _ →
                       Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
                       H-level-propositional (lower-ext _ _ ext) 1)
         (×-closure 1 (Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
                       ≤-prop _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
+        (×-closure 1 (Π-closure ext                     1 λ _ →
+                      Π-closure ext                     1 λ _ →
                       Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
-                      Π-closure (lower-ext _ _ ext) 1 λ _ →
-                      Π-closure (lower-ext _ _ ext) 1 λ _ →
+                      Π-closure (lower-ext _ _ ext)     1 λ _ →
+                      Π-closure (lower-ext _ _ ext)     1 λ _ →
                       ≤-prop _ _)
-                     (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
+                     (Π-closure ext                     1 λ _ →
+                      Π-closure ext                     1 λ _ →
                       Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
                       Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
                       P-set _ _)))) }
