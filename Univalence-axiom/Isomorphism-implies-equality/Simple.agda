@@ -187,23 +187,15 @@ module Class (Univ : Universe) where
       (I₁ ≡ I₂) ↔
       ∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
         subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂
-    instances-equal↔ ass (a , P) {C₁ , e₁ , p₁} {C₂ , e₂ , p₂} =
+    instances-equal↔ ass (a , P) {C₁ , x₁ , p₁} {C₂ , x₂ , p₂} =
 
-      ((C₁ , e₁ , p₁) ≡ (C₂ , e₂ , p₂))                                 ↝⟨ inverse Σ-≡,≡↔≡ ⟩
+      ((C₁ , x₁ , p₁) ≡ (C₂ , x₂ , p₂))                   ↔⟨ inverse $ ≈-≡ $ ↔⇒≈ Σ-assoc ⟩
 
-      (∃ λ (C-eq : C₁ ≡ C₂) →
-         subst (λ A → Σ (El a A) λ x → proj₁ (P A x)) C-eq (e₁ , p₁) ≡
-         (e₂ , p₂))                                                     ↝⟨ ∃-cong (λ C-eq → ≡⇒↝ _ $ cong (λ eq → eq ≡ _) $
-                                                                             push-subst-pair (λ A → El a A)
-                                                                                             (λ { (A , x) → proj₁ (P A x) })) ⟩
-      (∃ λ (C-eq : C₁ ≡ C₂) →
-         (subst (λ A → El a A) C-eq e₁ ,
-          subst (λ { (A , x) → proj₁ (P A x) })
-                (Σ-≡,≡→≡ C-eq (refl _)) p₁) ≡
-         (e₂ , p₂))                                                     ↝⟨ ∃-cong (λ C-eq → inverse $
-                                                                             ignore-propositional-component (proj₂ (P _ _) ass)) ⟩
+      (((C₁ , x₁) , p₁) ≡ ((C₂ , x₂) , p₂))               ↝⟨ inverse $ ignore-propositional-component (proj₂ (P C₂ x₂) ass) ⟩
 
-      (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq e₁ ≡ e₂)                □
+      ((C₁ , x₁) ≡ (C₂ , x₂))                             ↝⟨ inverse Σ-≡,≡↔≡ ⟩□
+
+      (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq x₁ ≡ x₂)  □
 
   -- Structure isomorphisms.
 
