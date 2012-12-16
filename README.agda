@@ -89,13 +89,14 @@ import Weak-equivalence
 
 import Univalence-axiom
 
--- Isomorphic monoids on sets are equal (assuming univalence).
+-- Isomorphism of monoids on sets coincides with equality (assuming
+-- univalence).
 
 import Univalence-axiom.Isomorphism-implies-equality.Monoid
 
--- In fact, several large classes of algebraic structures satisfy
--- the property that isomorphic instances of a structure are equal
--- (assuming univalence).
+-- In fact, several large classes of algebraic structures satisfy the
+-- property that isomorphic instances of a structure are equal, or
+-- that isomorphism coincides with equality (assuming univalence).
 
 import Univalence-axiom.Isomorphism-implies-equality
 import Univalence-axiom.Isomorphism-implies-equality.Simple
