@@ -11,7 +11,8 @@
 -- This module is very similar to
 -- Univalence-axiom.Isomorphism-implies-equality.Simple, but the
 -- definitions of isomorphism used below are perhaps closer to the
--- "standard" ones.
+-- "standard" ones. Carrier types also live in Set rather than Set₁
+-- (at the cost of quite a bit of lifting).
 
 -- This module has been developed in collaboration with Thierry
 -- Coquand.
@@ -67,11 +68,11 @@ record Universe : Set₃ where
 
     -- Codes for something.
 
-    U : Set₂
+    U : Set₁
 
     -- Interpretation of codes.
 
-    El : U → Set₁ → Set₁
+    El : U → Set → Set₁
 
     -- A predicate, possibly specifying what it means for a bijection
     -- to be an isomorphism between two elements.
@@ -111,7 +112,7 @@ record Universe : Set₃ where
   Is-isomorphism″ : Assumptions →
                     ∀ {B C} → B ↔ C → ∀ a → El a B → El a C → Set₁
   Is-isomorphism″ ass B↔C a x y =
-    subst (El a) (≈⇒≡ univ₁ (↔⇒≈ B↔C)) x ≡ y
+    subst (El a) (≈⇒≡ univ (↔⇒≈ B↔C)) x ≡ y
     where open Assumptions ass
 
   abstract
@@ -122,9 +123,9 @@ record Universe : Set₃ where
     isomorphic-to-itself :
       (ass : Assumptions) → let open Assumptions ass in
       ∀ {B C} (B↔C : B ↔ C) a x →
-      Is-isomorphism′ ass B↔C a x (subst (El a) (≈⇒≡ univ₁ (↔⇒≈ B↔C)) x)
+      Is-isomorphism′ ass B↔C a x (subst (El a) (≈⇒≡ univ (↔⇒≈ B↔C)) x)
     isomorphic-to-itself ass B↔C a x =
-      subst-unique (El a) (resp ass a) (resp-id ass a) univ₁ (↔⇒≈ B↔C) x
+      subst-unique (El a) (resp ass a) (resp-id ass a) univ (↔⇒≈ B↔C) x
       where open Assumptions ass
 
     -- Is-isomorphism and Is-isomorphism″ are isomorphic (assuming
@@ -154,7 +155,7 @@ module Class (Univ : Universe) where
     Σ U λ a →
 
     -- A proposition.
-    (C : SET (# 1)) → El a (Type C) → Σ Set₁ λ P →
+    (C : SET (# 0)) → El a (Type C) → Σ Set₁ λ P →
       -- The proposition should be propositional (assuming
       -- univalence).
       Assumptions → Propositional P
@@ -162,10 +163,10 @@ module Class (Univ : Universe) where
   -- Interpretation of the codes. The elements of "Instance a" are
   -- instances of the structure encoded by a.
 
-  Instance : Code → Set₂
+  Instance : Code → Set₁
   Instance (a , P) =
     -- A carrier set.
-    Σ (SET (# 1)) λ C →
+    Σ (SET (# 0)) λ C →
 
     -- An element.
     Σ (El a (Type C)) λ x →
@@ -175,7 +176,7 @@ module Class (Univ : Universe) where
 
   -- The carrier type.
 
-  Carrier : ∀ a → Instance a → Set₁
+  Carrier : ∀ a → Instance a → Set
   Carrier _ I = Type (proj₁ I)
 
   -- The "element".
@@ -208,24 +209,26 @@ module Class (Univ : Universe) where
 
       where
       bij : Instance (a , P) ↔
-            Σ (Σ Set₁ (El a)) λ { (C , x) →
+            Σ (Σ Set (El a)) λ { (C , x) →
             Σ (Is-set C) λ S → proj₁ (P (C , S) x) }
       bij =
-        (Σ (Σ Set₁ Is-set) λ { (C , S) →
+        (Σ (Σ Set Is-set) λ { (C , S) →
            Σ (El a C) λ x → proj₁ (P (C , S) x) })    ↝⟨ inverse Σ-assoc ⟩
 
-        (Σ Set₁ λ C → Σ (Is-set C) λ S →
+        (Σ Set λ C → Σ (Is-set C) λ S →
            Σ (El a C) λ x → proj₁ (P (C , S) x))      ↝⟨ ∃-cong (λ _ → ∃-comm) ⟩
 
-        (Σ Set₁ λ C → Σ (El a C) λ x →
+        (Σ Set λ C → Σ (El a C) λ x →
            Σ (Is-set C) λ S → proj₁ (P (C , S) x))    ↝⟨ Σ-assoc ⟩□
 
-        (Σ (Σ Set₁ (El a)) λ { (C , x) →
+        (Σ (Σ Set (El a)) λ { (C , x) →
            Σ (Is-set C) λ S → proj₁ (P (C , S) x) })  □
 
       prop : Propositional (Σ (Is-set C₂) λ S₂ → proj₁ (P (C₂ , S₂) x₂))
-      prop = Σ-closure 1 (H-level-propositional (Assumptions.ext ass) 2)
-                         (λ S₂ → proj₂ (P (C₂ , S₂) x₂) ass)
+      prop =
+        Σ-closure 1
+          (H-level-propositional (Assumptions.ext₀ ass) 2)
+          (λ S₂ → proj₂ (P (C₂ , S₂) x₂) ass)
 
   -- Structure isomorphisms.
 
@@ -250,16 +253,16 @@ module Class (Univ : Universe) where
          Is-isomorphism C-eq (proj₁ a) (element a I₁) (element a I₂))  ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic₂
                                                                                              ass C-eq (proj₁ a)) ⟩
       (∃ λ (C-eq : Carrier a I₁ ↔ Carrier a I₂) →
-         subst (El (proj₁ a)) (≈⇒≡ univ₁ (↔⇒≈ C-eq)) (element a I₁) ≡
-         element a I₂)                                                 ↝⟨ Σ-cong (↔↔≈ ext (proj₂ (proj₁ I₁))) (λ _ → _ □) ⟩
+         subst (El (proj₁ a)) (≈⇒≡ univ (↔⇒≈ C-eq)) (element a I₁) ≡
+         element a I₂)                                                 ↝⟨ Σ-cong (↔↔≈ ext₀ (proj₂ (proj₁ I₁))) (λ _ → _ □) ⟩
 
       (∃ λ (C-eq : Carrier a I₁ ≈ Carrier a I₂) →
-         subst (El (proj₁ a)) (≈⇒≡ univ₁ C-eq) (element a I₁) ≡
+         subst (El (proj₁ a)) (≈⇒≡ univ C-eq) (element a I₁) ≡
          element a I₂)                                                 ↝⟨ inverse $
-                                                                            Σ-cong (≡≈≈ univ₁) (λ C-eq → ≡⇒↝ _ $ sym $
+                                                                            Σ-cong (≡≈≈ univ) (λ C-eq → ≡⇒↝ _ $ sym $
                                                                               cong (λ eq → subst (El (proj₁ a)) eq (element a I₁) ≡
                                                                                            element a I₂)
-                                                                                   (_≈_.left-inverse-of (≡≈≈ univ₁) C-eq)) ⟩
+                                                                                   (_≈_.left-inverse-of (≡≈≈ univ) C-eq)) ⟩
       (∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
          subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)      ↝⟨ inverse $ instances-equal↔ ass a ⟩□
 
@@ -275,12 +278,9 @@ module Class (Univ : Universe) where
 
     isomorphic≡equal :
       Assumptions →
-      ∀ a {I₁ I₂} → ↑ (# 2) (Isomorphic a I₁ I₂) ≡ (I₁ ≡ I₂)
+      ∀ a {I₁ I₂} → Isomorphic a I₁ I₂ ≡ (I₁ ≡ I₂)
     isomorphic≡equal ass a {I₁} {I₂} =
-      ≈⇒≡ univ₂ $ ↔⇒≈ (
-        ↑ _ (Isomorphic a I₁ I₂)  ↝⟨ ↑↔ ⟩
-        Isomorphic a I₁ I₂        ↝⟨ isomorphic↔equal ass a ⟩□
-        (I₁ ≡ I₂)                 □)
+      ≈⇒≡ univ₁ $ ↔⇒≈ (isomorphic↔equal ass a)
       where open Assumptions ass
 
 ------------------------------------------------------------------------
@@ -292,9 +292,9 @@ infixr 20 _⊗_
 infixr 15 _⊕_
 infixr 10 _⇾_
 
-data U : Set₂ where
+data U : Set₁ where
   id prop     : U
-  k           : Set₁ → U
+  k           : Set → U
   _⇾_ _⊕_ _⊗_ : U → U → U
 
 -- Interpretation of types.
@@ -302,7 +302,7 @@ data U : Set₂ where
 El : U → Set₁ → Set₁
 El id      B = B
 El prop    B = Proposition (# 0)
-El (k A)   B = A
+El (k A)   B = ↑ _ A
 El (a ⇾ b) B = El a B → El b B
 El (a ⊕ b) B = El a B ⊎ El b B
 El (a ⊗ b) B = El a B × El b B
@@ -342,7 +342,7 @@ Is-isomorphism : ∀ {B C} → B ↔ C → ∀ a → El a B → El a C → Set�
 
 Is-isomorphism B↔C id = λ x y → _↔_.to B↔C x ≡ y
 
-Is-isomorphism B↔C prop = λ P Q → ↑ _ (proj₁ P ⇔ proj₁ Q)
+Is-isomorphism B↔C prop = λ { (P , _) (Q , _) → ↑ _ (P ⇔ Q) }
 
 Is-isomorphism B↔C (k A) = λ x y → x ≡ y
 
@@ -470,13 +470,18 @@ abstract
 simple : Universe
 simple = record
   { U              = U
-  ; El             = El
-  ; Is-isomorphism = Is-isomorphism
-  ; resp           = λ ass a → _≈_.to ∘ cast (ext ass) a
-  ; resp-id        = λ ass a x →
-                       cong (λ f → _≈_.to f x) $ cast-id (ext ass) a
-  ; isomorphism-definitions-isomorphic =
-      isomorphism-definitions-isomorphic
+  ; El             = λ a → El a ∘ ↑ _
+  ; Is-isomorphism = λ B↔C a → Is-isomorphism (↑-cong B↔C) a
+  ; resp           = λ ass a → _≈_.to ∘ cast (ext ass) a ∘ ↑-cong
+  ; resp-id        = λ ass a x → cong (λ f → _≈_.to f x) (
+                       cast (ext ass) a (↑-cong Weak.id)  ≡⟨ cong (cast (ext ass) a) $ lift-equality (ext ass) (refl _) ⟩
+                       cast (ext ass) a Weak.id           ≡⟨ cast-id (ext ass) a ⟩∎
+                       Weak.id                            ∎)
+  ; isomorphism-definitions-isomorphic = λ ass B↔C a {x y} →
+      Is-isomorphism (↑-cong B↔C) a x y                     ↝⟨ isomorphism-definitions-isomorphic ass (↑-cong B↔C) a ⟩
+      (_≈_.to (cast (ext ass) a (↔⇒≈ (↑-cong B↔C))) x ≡ y)  ↝⟨ ≡⇒↝ _ $ cong (λ eq → _≈_.to (cast (ext ass) a eq) x ≡ y) $
+                                                                 lift-equality (ext ass) (refl _) ⟩□
+      (_≈_.to (cast (ext ass) a (↑-cong (↔⇒≈ B↔C))) x ≡ y)  □
   }
   where open Assumptions
 
@@ -507,20 +512,20 @@ monoid =
        -- The laws are propositional (assuming extensionality).
       λ ass → let open Assumptions ass in
         ×-closure 1  (Π-closure ext 1 λ _ →
-                      M-set _ _)
+                      ↑-closure 2 M-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      M-set _ _)
+                      ↑-closure 2 M-set _ _)
                      (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      M-set _ _)) }
+                      ↑-closure 2 M-set _ _)) }
 
 -- The interpretation of the code is reasonable.
 
 Instance-monoid :
   Instance monoid ≡
-  Σ (SET (# 1)) λ { (M , _) →
-  Σ ((M → M → M) × M) λ { (_∙_ , e) →
+  Σ (SET (# 0)) λ { (M , _) →
+  Σ ((↑ _ M → ↑ _ M → ↑ _ M) × ↑ _ M) λ { (_∙_ , e) →
   (∀ x → e ∙ x ≡ x) ×
   (∀ x → x ∙ e ≡ x) ×
   (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }}
@@ -532,7 +537,7 @@ Isomorphic-monoid :
   ∀ {M₁ S₁ _∙₁_ e₁ laws₁ M₂ S₂ _∙₂_ e₂ laws₂} →
   Isomorphic monoid ((M₁ , S₁) , (_∙₁_ , e₁) , laws₁)
                     ((M₂ , S₂) , (_∙₂_ , e₂) , laws₂) ≡
-  Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ M₁↔M₂ in
+  Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
   (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x ∙₁ u) ≡ y ∙₂ v) ×
   to e₁ ≡ e₂
 Isomorphic-monoid = refl _
@@ -560,7 +565,7 @@ discrete-field =
   (id ⇾ id) ⊗
 
   -- Multiplicative inverse (a partial operation).
-  (id ⇾ k (↑ _ ⊤) ⊕ id) ,
+  (id ⇾ k ⊤ ⊕ id) ,
 
   λ { (_ , F-set) (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
 
@@ -591,43 +596,44 @@ discrete-field =
         ×-closure 1  (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      F-set _ _)
+                      ↑-closure 2 F-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      F-set _ _)
+                      ↑-closure 2 F-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      F-set _ _)
+                      ↑-closure 2 F-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      F-set _ _)
+                      ↑-closure 2 F-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      F-set _ _)
+                      ↑-closure 2 F-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      F-set _ _)
+                      ↑-closure 2 F-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      F-set _ _)
+                      ↑-closure 2 F-set _ _)
         (×-closure 1 (Π-closure (lower-ext (# 0) (# 1) ext) 1 λ _ →
                       ⊥-propositional)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      F-set _ _)
+                      ↑-closure 2 F-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      F-set _ _)
+                      ↑-closure 2 F-set _ _)
                      (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      F-set _ _)))))))))) }
+                      ↑-closure 2 F-set _ _)))))))))) }
 
 -- The interpretation of the code is reasonable.
 
 Instance-discrete-field :
   Instance discrete-field ≡
-  Σ (SET (# 1)) λ { (F , _) →
-  Σ ((F → F → F) × F × (F → F → F) × F × (F → F) × (F → ↑ (# 1) ⊤ ⊎ F))
+  Σ (SET (# 0)) λ { (F , _) →
+  Σ ((↑ _ F → ↑ _ F → ↑ _ F) × ↑ _ F × (↑ _ F → ↑ _ F → ↑ _ F) ×
+     ↑ _ F × (↑ _ F → ↑ _ F) × (↑ _ F → ↑ (# 1) ⊤ ⊎ ↑ _ F))
     λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
   (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
   (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
@@ -650,7 +656,7 @@ Isomorphic-discrete-field :
   Isomorphic discrete-field
     ((F₁ , S₁) , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_ , _⁻¹₁) , laws₁)
     ((F₂ , S₂) , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂) , laws₂) ≡
-  Σ (F₁ ↔ F₂) λ F₁↔F₂ → let open _↔_ F₁↔F₂ in
+  Σ (F₁ ↔ F₂) λ F₁↔F₂ → let open _↔_ (↑-cong F₁↔F₂) in
   (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x +₁ u) ≡ y +₂ v) ×
   to 0₁ ≡ 0₂ ×
   (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
@@ -704,28 +710,28 @@ vector-space ((F , _) , (_+F_ , _ , _*F_ , 1F , _ , _) , _) =
         ×-closure 1  (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      V-set _ _)
+                      ↑-closure 2 V-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      V-set _ _)
+                      ↑-closure 2 V-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      V-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      V-set _ _)
+                      ↑-closure 2 V-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      V-set _ _)
+                      ↑-closure 2 V-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      V-set _ _)
+                      Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      ↑-closure 2 V-set _ _)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      V-set _ _)
+                      ↑-closure 2 V-set _ _)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      ↑-closure 2 V-set _ _)
                      (Π-closure ext 1 λ _ →
-                      V-set _ _))))))) }
+                      ↑-closure 2 V-set _ _))))))) }
 
 -- The interpretation of the code is reasonable.
 
@@ -733,8 +739,9 @@ Instance-vector-space :
   ∀ {F S _+F_ 0F _*F_ 1F -F_ _⁻¹F laws} →
   Instance (vector-space
     ((F , S) , (_+F_ , 0F , _*F_ , 1F , -F_ , _⁻¹F) , laws)) ≡
-  Σ (SET (# 1)) λ { (V , _) →
-  Σ ((V → V → V) × (F → V → V) × V × (V → V))
+  Σ (SET (# 0)) λ { (V , _) →
+  Σ ((↑ _ V → ↑ _ V → ↑ _ V) × (↑ _ F → ↑ _ V → ↑ _ V) × ↑ _ V ×
+     (↑ _ V → ↑ _ V))
     λ { (_+_ , _*_ , 0V , -_) →
   (∀ u v w → u + (v + w) ≡ (u + v) + w) ×
   (∀ x y v → x * (y * v) ≡ (x *F y) * v) ×
@@ -754,7 +761,7 @@ Isomorphic-vector-space :
   Isomorphic (vector-space F)
              ((V₁ , S₁) , (_+₁_ , _*₁_ , 0₁ , -₁_) , laws₁)
              ((V₂ , S₂) , (_+₂_ , _*₂_ , 0₂ , -₂_) , laws₂) ≡
-  Σ (V₁ ↔ V₂) λ V₁↔V₂ → let open _↔_ V₁↔V₂ in
+  Σ (V₁ ↔ V₂) λ V₁↔V₂ → let open _↔_ (↑-cong V₁↔V₂) in
   (∀ a b → to a ≡ b → ∀ u v → to u ≡ v → to (a +₁ u) ≡ b +₂ v) ×
   (∀ x y →    x ≡ y → ∀ u v → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
   to 0₁ ≡ 0₂ ×
@@ -773,7 +780,7 @@ poset =
 
   λ { (P , P-set) Le →
 
-    let _≤_ : P → P → Set
+    let _≤_ : ↑ _ P → ↑ _ P → Set
         x ≤ y = proj₁ (Le x y)
     in
 
@@ -799,15 +806,15 @@ poset =
                     Π-closure ext                     1 λ _ →
                     Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
                     Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
-                    P-set _ _)) }
+                    ↑-closure 2 P-set _ _)) }
 
 -- The interpretation of the code is reasonable.
 
 Instance-poset :
   Instance poset ≡
-  Σ (SET (# 1)) λ { (P , _) →
-  Σ (P → P → Proposition (# 0)) λ Le →
-  let _≤_ : P → P → Set
+  Σ (SET (# 0)) λ { (P , _) →
+  Σ (↑ _ P → ↑ _ P → Proposition (# 0)) λ Le →
+  let _≤_ : ↑ _ P → ↑ _ P → Set
       x ≤ y = proj₁ (Le x y)
   in
   (∀ x → x ≤ x) ×
@@ -820,13 +827,13 @@ Instance-poset = refl _
 
 Isomorphic-poset :
   ∀ {P₁ S₁ Le₁ laws₁ P₂ S₂ Le₂ laws₂} →
-  let _≤₁_ : P₁ → P₁ → Set
+  let _≤₁_ : ↑ _ P₁ → ↑ _ P₁ → Set
       _≤₁_ x y = proj₁ (Le₁ x y)
 
-      _≤₂_ : P₂ → P₂ → Set
+      _≤₂_ : ↑ _ P₂ → ↑ _ P₂ → Set
       _≤₂_ x y = proj₁ (Le₂ x y)
   in
   Isomorphic poset ((P₁ , S₁) , Le₁ , laws₁) ((P₂ , S₂) , Le₂ , laws₂) ≡
-  Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ P₁↔P₂ in
+  Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ (↑-cong P₁↔P₂) in
   ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ⇔ (b ≤₂ d))
 Isomorphic-poset = refl _

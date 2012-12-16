@@ -784,7 +784,11 @@ poset =
                       Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
                       P-set _ _)))) }
 
--- The interpretation of the code is reasonable.
+-- The interpretation of the code is reasonable. (Except, perhaps,
+-- that the carrier type lives in Set₁ but the codomain of the
+-- ordering relation is Set. In the corresponding example in
+-- Univalence-axiom.Isomorphism-implies-equality.Simple.Variant the
+-- carrier type lives in Set.)
 
 Instance-poset :
   Instance poset ≡
