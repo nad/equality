@@ -89,10 +89,9 @@ import Weak-equivalence
 
 import Univalence-axiom
 
--- Isomorphic instances of certain algebraic structures are equal
--- (assuming univalence).
+-- Isomorphic monoids on sets are equal (assuming univalence).
 
-import Univalence-axiom.Isomorphism-implies-equality.Examples
+import Univalence-axiom.Isomorphism-implies-equality.Monoid
 
 -- In fact, several large classes of algebraic structures satisfy
 -- the property that isomorphic instances of a structure are equal
