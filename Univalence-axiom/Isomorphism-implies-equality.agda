@@ -5,6 +5,9 @@
 
 {-# OPTIONS --without-K #-}
 
+-- This code has been superseded by more recent developments. See
+-- README.agda.
+
 -- This module has been developed in collaboration with Thierry
 -- Coquand.
 

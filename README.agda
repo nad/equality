@@ -95,13 +95,19 @@ import Univalence-axiom
 import Univalence-axiom.Isomorphism-implies-equality.Monoid
 
 -- In fact, several large classes of algebraic structures satisfy the
--- property that isomorphic instances of a structure are equal, or
--- that isomorphism coincides with equality (assuming univalence).
+-- property that isomorphism coincides with equality (assuming
+-- univalence).
 
-import Univalence-axiom.Isomorphism-implies-equality
 import Univalence-axiom.Isomorphism-implies-equality.Simple
 import Univalence-axiom.Isomorphism-implies-equality.Simple.Variant
 import Univalence-axiom.Isomorphism-implies-equality.More
+
+-- A class of structures that satisfies the property that isomorphic
+-- instances of a structure are equal (assuming univalence). This code
+-- is superseded by the code above, but preserved because it is
+-- mentioned in a blog post.
+
+import Univalence-axiom.Isomorphism-implies-equality
 
 -- A universe which includes several kinds of functions (ordinary
 -- functions, equivalences, injections, surjections, bijections and
