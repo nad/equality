@@ -473,20 +473,27 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
   ; left-inverse-of = refl
   }
 
--- _×_ is associative.
+-- Σ is associative.
 
-×-assoc : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
-          A × (B × C) ↔ (A × B) × C
-×-assoc = record
+Σ-assoc : ∀ {a b c}
+            {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} →
+          (Σ A λ x → Σ (B x) (C x)) ↔ Σ (Σ A B) (uncurry C)
+Σ-assoc = record
   { surjection = record
     { equivalence = record
-      { to   = uncurry λ x → uncurry λ y z → ((x , y) , z)
-      ; from = uncurry (flip λ z → uncurry λ x y → (x , (y , z)))
+      { to   = λ { (x , (y , z)) → (x , y) , z }
+      ; from = λ { ((x , y) , z) → x , (y , z) }
       }
     ; right-inverse-of = refl
     }
   ; left-inverse-of = refl
   }
+
+-- _×_ is associative.
+
+×-assoc : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+          A × (B × C) ↔ (A × B) × C
+×-assoc = Σ-assoc
 
 -- ⊤ is a left and right identity of _×_ and Σ.
 
