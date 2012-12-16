@@ -100,6 +100,7 @@ import Univalence-axiom.Isomorphism-implies-equality.Examples
 
 import Univalence-axiom.Isomorphism-implies-equality
 import Univalence-axiom.Isomorphism-implies-equality.Simple
+import Univalence-axiom.Isomorphism-implies-equality.Simple.Variant
 import Univalence-axiom.Isomorphism-implies-equality.More
 
 -- A universe which includes several kinds of functions (ordinary
