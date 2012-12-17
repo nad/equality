@@ -523,24 +523,61 @@ monoid =
 -- The interpretation of the code is reasonable.
 
 Instance-monoid :
-  Instance monoid ≡
+
+  Instance monoid
+    ≡
   Σ (SET (# 0)) λ { (M , _) →
   Σ ((↑ _ M → ↑ _ M → ↑ _ M) × ↑ _ M) λ { (_∙_ , e) →
   (∀ x → e ∙ x ≡ x) ×
   (∀ x → x ∙ e ≡ x) ×
   (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }}
+
 Instance-monoid = refl _
 
 -- The notion of isomorphism that we get is also reasonable.
 
 Isomorphic-monoid :
   ∀ {M₁ S₁ _∙₁_ e₁ laws₁ M₂ S₂ _∙₂_ e₂ laws₂} →
+
   Isomorphic monoid ((M₁ , S₁) , (_∙₁_ , e₁) , laws₁)
-                    ((M₂ , S₂) , (_∙₂_ , e₂) , laws₂) ≡
+                    ((M₂ , S₂) , (_∙₂_ , e₂) , laws₂)
+    ≡
   Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
   (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x ∙₁ u) ≡ y ∙₂ v) ×
   to e₁ ≡ e₂
+
 Isomorphic-monoid = refl _
+
+-- Note that this definition of isomorphism is isomorphic to a more
+-- standard one (assuming extensionality).
+
+Isomorphism-monoid-isomorphic-to-standard :
+  Extensionality (# 1) (# 1) →
+  ∀ {M₁ S₁ _∙₁_ e₁ laws₁ M₂ S₂ _∙₂_ e₂ laws₂} →
+
+  Isomorphic monoid ((M₁ , S₁) , (_∙₁_ , e₁) , laws₁)
+                    ((M₂ , S₂) , (_∙₂_ , e₂) , laws₂)
+    ↔
+  Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
+  (∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y) ×
+  to e₁ ≡ e₂
+
+Isomorphism-monoid-isomorphic-to-standard ext
+  {M₁} {S₁} {_∙₁_} {e₁} {M₂ = M₂} {_∙₂_ = _∙₂_} {e₂} =
+
+  (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
+   (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x ∙₁ u) ≡ y ∙₂ v) ×
+   to e₁ ≡ e₂)                                                     ↔⟨ inverse $ ∃-cong (λ _ →
+                                                                        (∀-preserves ext λ _ → ↔⇒≈ $ ∀-intro ext λ _ _ → _) ×-cong (_ □)) ⟩
+  (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
+   (∀ x u v → to u ≡ v → to (x ∙₁ u) ≡ to x ∙₂ v) ×
+   to e₁ ≡ e₂)                                                     ↔⟨ inverse $ ∃-cong (λ _ →
+                                                                        (∀-preserves ext λ _ → ∀-preserves ext λ _ → ↔⇒≈ $ ∀-intro ext λ _ _ → _)
+                                                                          ×-cong
+                                                                        (_ □)) ⟩□
+  (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
+   (∀ x u → to (x ∙₁ u) ≡ to x ∙₂ to u) ×
+   to e₁ ≡ e₂)                                                     □
 
 ------------------------------------------------------------------------
 -- An example: discrete fields
@@ -630,7 +667,9 @@ discrete-field =
 -- The interpretation of the code is reasonable.
 
 Instance-discrete-field :
-  Instance discrete-field ≡
+
+  Instance discrete-field
+    ≡
   Σ (SET (# 0)) λ { (F , _) →
   Σ ((↑ _ F → ↑ _ F → ↑ _ F) × ↑ _ F × (↑ _ F → ↑ _ F → ↑ _ F) ×
      ↑ _ F × (↑ _ F → ↑ _ F) × (↑ _ F → ↑ (# 1) ⊤ ⊎ ↑ _ F))
@@ -646,6 +685,7 @@ Instance-discrete-field :
   (∀ x → x + (- x) ≡ 0#) ×
   (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
   (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#) }}
+
 Instance-discrete-field = refl _
 
 -- The notion of isomorphism that we get is also reasonable.
@@ -653,9 +693,11 @@ Instance-discrete-field = refl _
 Isomorphic-discrete-field :
   ∀ {F₁ S₁ _+₁_ 0₁ _*₁_ 1₁ -₁_ _⁻¹₁ laws₁
      F₂ S₂ _+₂_ 0₂ _*₂_ 1₂ -₂_ _⁻¹₂ laws₂} →
+
   Isomorphic discrete-field
     ((F₁ , S₁) , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_ , _⁻¹₁) , laws₁)
-    ((F₂ , S₂) , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂) , laws₂) ≡
+    ((F₂ , S₂) , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂) , laws₂)
+    ≡
   Σ (F₁ ↔ F₂) λ F₁↔F₂ → let open _↔_ (↑-cong F₁↔F₂) in
   (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x +₁ u) ≡ y +₂ v) ×
   to 0₁ ≡ 0₂ ×
@@ -665,6 +707,7 @@ Isomorphic-discrete-field :
   (∀ x y → to x ≡ y →
      ((λ _ _ → lift tt ≡ lift tt) ⊎-rel (λ u v → to u ≡ v))
        (x ⁻¹₁) (y ⁻¹₂))
+
 Isomorphic-discrete-field = refl _
 
 ------------------------------------------------------------------------
@@ -737,8 +780,10 @@ vector-space ((F , _) , (_+F_ , _ , _*F_ , 1F , _ , _) , _) =
 
 Instance-vector-space :
   ∀ {F S _+F_ 0F _*F_ 1F -F_ _⁻¹F laws} →
+
   Instance (vector-space
-    ((F , S) , (_+F_ , 0F , _*F_ , 1F , -F_ , _⁻¹F) , laws)) ≡
+              ((F , S) , (_+F_ , 0F , _*F_ , 1F , -F_ , _⁻¹F) , laws))
+    ≡
   Σ (SET (# 0)) λ { (V , _) →
   Σ ((↑ _ V → ↑ _ V → ↑ _ V) × (↑ _ F → ↑ _ V → ↑ _ V) × ↑ _ V ×
      (↑ _ V → ↑ _ V))
@@ -751,6 +796,7 @@ Instance-vector-space :
   (∀ v → v + 0V ≡ v) ×
   (∀ v → 1F * v ≡ v) ×
   (∀ v → v + (- v) ≡ 0V) }}
+
 Instance-vector-space = refl _
 
 -- The notion of isomorphism that we get is also reasonable.
@@ -758,14 +804,17 @@ Instance-vector-space = refl _
 Isomorphic-vector-space :
   ∀ {F V₁ S₁ _+₁_ _*₁_ 0₁ -₁_ laws₁
        V₂ S₂ _+₂_ _*₂_ 0₂ -₂_ laws₂} →
+
   Isomorphic (vector-space F)
              ((V₁ , S₁) , (_+₁_ , _*₁_ , 0₁ , -₁_) , laws₁)
-             ((V₂ , S₂) , (_+₂_ , _*₂_ , 0₂ , -₂_) , laws₂) ≡
+             ((V₂ , S₂) , (_+₂_ , _*₂_ , 0₂ , -₂_) , laws₂)
+    ≡
   Σ (V₁ ↔ V₂) λ V₁↔V₂ → let open _↔_ (↑-cong V₁↔V₂) in
   (∀ a b → to a ≡ b → ∀ u v → to u ≡ v → to (a +₁ u) ≡ b +₂ v) ×
   (∀ x y →    x ≡ y → ∀ u v → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
   to 0₁ ≡ 0₂ ×
   (∀ u v → to u ≡ v → to (-₁ u) ≡ -₂ v)
+
 Isomorphic-vector-space = refl _
 
 ------------------------------------------------------------------------
@@ -811,7 +860,9 @@ poset =
 -- The interpretation of the code is reasonable.
 
 Instance-poset :
-  Instance poset ≡
+
+  Instance poset
+    ≡
   Σ (SET (# 0)) λ { (P , _) →
   Σ (↑ _ P → ↑ _ P → Proposition (# 0)) λ Le →
   let _≤_ : ↑ _ P → ↑ _ P → Set
@@ -820,6 +871,7 @@ Instance-poset :
   (∀ x → x ≤ x) ×
   (∀ x y z → x ≤ y → y ≤ z → x ≤ z) ×
   (∀ x y → x ≤ y → y ≤ x → x ≡ y) }
+
 Instance-poset = refl _
 
 -- The notion of isomorphism that we get is also reasonable. It is the
@@ -833,7 +885,10 @@ Isomorphic-poset :
       _≤₂_ : ↑ _ P₂ → ↑ _ P₂ → Set
       _≤₂_ x y = proj₁ (Le₂ x y)
   in
-  Isomorphic poset ((P₁ , S₁) , Le₁ , laws₁) ((P₂ , S₂) , Le₂ , laws₂) ≡
+
+  Isomorphic poset ((P₁ , S₁) , Le₁ , laws₁) ((P₂ , S₂) , Le₂ , laws₂)
+    ≡
   Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ (↑-cong P₁↔P₂) in
   ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ⇔ (b ≤₂ d))
+
 Isomorphic-poset = refl _
