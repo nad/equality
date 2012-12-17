@@ -890,3 +890,42 @@ Isomorphic-poset :
   ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ⇔ (b ≤₂ d))
 
 Isomorphic-poset = refl _
+
+------------------------------------------------------------------------
+-- An example: sets equipped with fixpoint operators
+
+set-with-fixpoint-operator : Code
+set-with-fixpoint-operator =
+  (id ⇾ id) ⇾ id ,
+
+  λ { (_ , F-set) fix →
+
+     -- The fixpoint operator property.
+    (∀ f → f (fix f) ≡ fix f) ,
+
+    λ ass → let open Assumptions ass in
+      Π-closure ext 1 λ _ →
+      ↑-closure 2 F-set _ _ }
+
+-- The usual unfolding lemmas.
+
+Instance-set-with-fixpoint-operator :
+
+  Instance set-with-fixpoint-operator
+    ≡
+  Σ (SET (# 0)) λ { (F , _) →
+  Σ ((↑ _ F → ↑ _ F) → ↑ _ F) λ fix →
+  ∀ f → f (fix f) ≡ fix f }
+
+Instance-set-with-fixpoint-operator = refl _
+
+Isomorphic-set-with-fixpoint-operator :
+  ∀ {F₁ S₁ fix₁ law₁ F₂ S₂ fix₂ law₂} →
+
+  Isomorphic set-with-fixpoint-operator
+             ((F₁ , S₁) , fix₁ , law₁) ((F₂ , S₂) , fix₂ , law₂)
+    ≡
+  Σ (F₁ ↔ F₂) λ F₁↔F₂ → let open _↔_ (↑-cong F₁↔F₂) in
+  ∀ f g → (∀ x y → to x ≡ y → to (f x) ≡ g y) → to (fix₁ f) ≡ fix₂ g
+
+Isomorphic-set-with-fixpoint-operator = refl _

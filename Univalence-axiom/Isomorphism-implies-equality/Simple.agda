@@ -909,3 +909,48 @@ Isomorphism-poset-isomorphic-to-order-isomorphism ext
                                                                                                     (proj₁ (proj₂ laws₂) _ _)) ⟩□
   (Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ P₁↔P₂ in
    ∀ a c → (a ≤₁ c) ⇔ (to a ≤₂ to c))                                □
+
+------------------------------------------------------------------------
+-- An example: sets equipped with fixpoint operators
+
+set-with-fixpoint-operator : Code
+set-with-fixpoint-operator =
+  (id ⇾ id) ⇾ id ,
+
+  λ F fix →
+
+     -- The carrier type is a set.
+    (Is-set F ×
+
+     -- The fixpoint operator property.
+     (∀ f → f (fix f) ≡ fix f)) ,
+
+    λ ass → let open Assumptions ass in
+      [inhabited⇒+]⇒+ 0 λ { (F-set , _) →
+        ×-closure 1 (H-level-propositional ext 2)
+                    (Π-closure ext 1 λ _ →
+                     F-set _ _) }
+
+-- The usual unfolding lemmas.
+
+Instance-set-with-fixpoint-operator :
+
+  Instance set-with-fixpoint-operator
+    ≡
+  Σ Set₁ λ F →
+  Σ ((F → F) → F) λ fix →
+  Is-set F ×
+  (∀ f → f (fix f) ≡ fix f)
+
+Instance-set-with-fixpoint-operator = refl _
+
+Isomorphic-set-with-fixpoint-operator :
+  ∀ {F₁ fix₁ laws₁ F₂ fix₂ laws₂} →
+
+  Isomorphic set-with-fixpoint-operator
+             (F₁ , fix₁ , laws₁) (F₂ , fix₂ , laws₂)
+    ≡
+  Σ (F₁ ≈ F₂) λ F₁≈F₂ → let open _≈_ F₁≈F₂ in
+  ∀ f g → (∀ x y → to x ≡ y → to (f x) ≡ g y) → to (fix₁ f) ≡ fix₂ g
+
+Isomorphic-set-with-fixpoint-operator = refl _
