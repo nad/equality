@@ -301,3 +301,16 @@ isomorphism-is-equality univ univ₁
       (to id₁ ≡ id₂)                             ↝⟨ ≡⇒↝ _ $ cong (λ i → i ≡ id₂) $
                                                       subst-unique (λ C → C) _≈_.to refl univ C-eq id₁ ⟩□
       (subst (λ C → C) (≈⇒≡ univ C-eq) id₁ ≡ id₂)  □
+
+-- Equality of monoids is thus equal to equality (assuming
+-- univalence).
+
+isomorphism-is-equal-to-equality :
+  Univalence (# 0) →
+  Univalence (# 1) →
+  (M₁ M₂ : Monoid) → ↑ _ (M₁ ≅ M₂) ≡ (M₁ ≡ M₂)
+isomorphism-is-equal-to-equality univ univ₁ M₁ M₂ =
+  ≈⇒≡ univ₁ $ ↔⇒≈ (
+    ↑ _ (M₁ ≅ M₂)  ↝⟨ ↑↔ ⟩
+    (M₁ ≅ M₂)      ↝⟨ isomorphism-is-equality univ univ₁ M₁ M₂ ⟩□
+    (M₁ ≡ M₂)      □)
