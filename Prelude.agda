@@ -331,6 +331,13 @@ Decidable : ∀ {a b ℓ} {A : Set a} {B : Set b} →
             (A → B → Set ℓ) → Set (a ⊔ b ⊔ ℓ)
 Decidable _∼_ = ∀ x y → Dec (x ∼ y)
 
+-- Exclusive or.
+
+infixr 1 _Xor_
+
+_Xor_ : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
+A Xor B = (A × ¬ B) ⊎ (¬ A × B)
+
 ------------------------------------------------------------------------
 -- Lists
 
