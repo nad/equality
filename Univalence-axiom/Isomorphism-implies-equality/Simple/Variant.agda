@@ -818,9 +818,7 @@ Isomorphic-vector-space :
 Isomorphic-vector-space = refl _
 
 ------------------------------------------------------------------------
--- Posets
-
--- Posets
+-- An example: posets
 
 poset : Code
 poset =

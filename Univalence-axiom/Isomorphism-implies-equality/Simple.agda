@@ -545,8 +545,6 @@ Isomorphism-monoid-isomorphic-to-standard ext
 ------------------------------------------------------------------------
 -- An example: discrete fields
 
--- Discrete fields.
-
 discrete-field : Code
 discrete-field =
   -- Addition.
@@ -791,9 +789,7 @@ Isomorphic-vector-space :
 Isomorphic-vector-space = refl _
 
 ------------------------------------------------------------------------
--- Posets
-
--- Posets
+-- An example: posets
 
 poset : Code
 poset =
