@@ -151,8 +151,8 @@ module Class (Univ : Universe) where
       -- univalence).
       Assumptions → Propositional P
 
-  -- Interpretation of the codes. The elements of "Instance a" are
-  -- instances of the structure encoded by a.
+  -- Interpretation of the codes. The elements of "Instance c" are
+  -- instances of the structure encoded by c.
 
   Instance : Code → Set₂
   Instance (a , P) =
@@ -167,12 +167,12 @@ module Class (Univ : Universe) where
 
   -- The carrier type.
 
-  Carrier : ∀ a → Instance a → Set₁
+  Carrier : ∀ c → Instance c → Set₁
   Carrier _ I = proj₁ I
 
   -- The "element".
 
-  element : ∀ a (I : Instance a) → El (proj₁ a) (Carrier a I)
+  element : ∀ c (I : Instance c) → El (proj₁ c) (Carrier c I)
   element _ I = proj₁ (proj₂ I)
 
   abstract
@@ -183,10 +183,10 @@ module Class (Univ : Universe) where
 
     instances-equal↔ :
       Assumptions →
-      ∀ a {I₁ I₂} →
+      ∀ c {I₁ I₂} →
       (I₁ ≡ I₂) ↔
-      ∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
-        subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂
+      ∃ λ (C-eq : Carrier c I₁ ≡ Carrier c I₂) →
+        subst (El (proj₁ c)) C-eq (element c I₁) ≡ element c I₂
     instances-equal↔ ass (a , P) {C₁ , x₁ , p₁} {C₂ , x₂ , p₂} =
 
       ((C₁ , x₁ , p₁) ≡ (C₂ , x₂ , p₂))                   ↔⟨ inverse $ ≈-≡ $ ↔⇒≈ Σ-assoc ⟩
@@ -199,7 +199,7 @@ module Class (Univ : Universe) where
 
   -- Structure isomorphisms.
 
-  Isomorphic : ∀ a → Instance a → Instance a → Set₁
+  Isomorphic : ∀ c → Instance c → Instance c → Set₁
   Isomorphic (a , _) (C₁ , x₁ , _) (C₂ , x₂ , _) =
     Σ (C₁ ≈ C₂) λ C₁≈C₂ → Is-isomorphism C₁≈C₂ a x₁ x₂
 
@@ -213,21 +213,21 @@ module Class (Univ : Universe) where
 
     isomorphic↔equal :
       Assumptions →
-      ∀ a {I₁ I₂} → Isomorphic a I₁ I₂ ↔ (I₁ ≡ I₂)
-    isomorphic↔equal ass a {I₁} {I₂} =
+      ∀ c {I₁ I₂} → Isomorphic c I₁ I₂ ↔ (I₁ ≡ I₂)
+    isomorphic↔equal ass c {I₁} {I₂} =
 
-      (∃ λ (C-eq : Carrier a I₁ ≈ Carrier a I₂) →
-         Is-isomorphism C-eq (proj₁ a) (element a I₁) (element a I₂))  ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic₂
-                                                                                             ass C-eq (proj₁ a)) ⟩
-      (∃ λ (C-eq : Carrier a I₁ ≈ Carrier a I₂) →
-         subst (El (proj₁ a)) (≈⇒≡ univ₁ C-eq) (element a I₁) ≡
-         element a I₂)                                                 ↝⟨ inverse $
+      (∃ λ (C-eq : Carrier c I₁ ≈ Carrier c I₂) →
+         Is-isomorphism C-eq (proj₁ c) (element c I₁) (element c I₂))  ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic₂
+                                                                                             ass C-eq (proj₁ c)) ⟩
+      (∃ λ (C-eq : Carrier c I₁ ≈ Carrier c I₂) →
+         subst (El (proj₁ c)) (≈⇒≡ univ₁ C-eq) (element c I₁) ≡
+         element c I₂)                                                 ↝⟨ inverse $
                                                                             Σ-cong (≡≈≈ univ₁) (λ C-eq → ≡⇒↝ _ $ sym $
-                                                                              cong (λ eq → subst (El (proj₁ a)) eq (element a I₁) ≡
-                                                                                           element a I₂)
+                                                                              cong (λ eq → subst (El (proj₁ c)) eq (element c I₁) ≡
+                                                                                           element c I₂)
                                                                                    (_≈_.left-inverse-of (≡≈≈ univ₁) C-eq)) ⟩
-      (∃ λ (C-eq : Carrier a I₁ ≡ Carrier a I₂) →
-         subst (El (proj₁ a)) C-eq (element a I₁) ≡ element a I₂)      ↝⟨ inverse $ instances-equal↔ ass a ⟩□
+      (∃ λ (C-eq : Carrier c I₁ ≡ Carrier c I₂) →
+         subst (El (proj₁ c)) C-eq (element c I₁) ≡ element c I₂)      ↝⟨ inverse $ instances-equal↔ ass c ⟩□
 
       (I₁ ≡ I₂)                                                        □
 
@@ -241,11 +241,11 @@ module Class (Univ : Universe) where
 
     isomorphic≡equal :
       Assumptions →
-      ∀ a {I₁ I₂} → ↑ (# 2) (Isomorphic a I₁ I₂) ≡ (I₁ ≡ I₂)
-    isomorphic≡equal ass a {I₁} {I₂} =
+      ∀ c {I₁ I₂} → ↑ (# 2) (Isomorphic c I₁ I₂) ≡ (I₁ ≡ I₂)
+    isomorphic≡equal ass c {I₁} {I₂} =
       ≈⇒≡ univ₂ $ ↔⇒≈ (
-        ↑ _ (Isomorphic a I₁ I₂)  ↝⟨ ↑↔ ⟩
-        Isomorphic a I₁ I₂        ↝⟨ isomorphic↔equal ass a ⟩□
+        ↑ _ (Isomorphic c I₁ I₂)  ↝⟨ ↑↔ ⟩
+        Isomorphic c I₁ I₂        ↝⟨ isomorphic↔equal ass c ⟩□
         (I₁ ≡ I₂)                 □)
       where open Assumptions ass
 

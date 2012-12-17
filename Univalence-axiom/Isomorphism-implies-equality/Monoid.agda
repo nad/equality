@@ -239,17 +239,17 @@ isomorphism-is-equality univ univ₁
 
   (Σ (C₁ ↔ C₂) λ f → Is-homomorphism M₁ M₂ (_↔_.to f))          ↝⟨ Σ-cong (↔↔≈ ext C₁-set) (λ _ → _ □) ⟩
 
-  (Σ (C₁ ≈ C₂) λ eq → Is-homomorphism M₁ M₂ (_≈_.to eq))        ↝⟨ ∃-cong (λ eq → op-lemma eq ×-cong id-lemma eq) ⟩
+  (Σ (C₁ ≈ C₂) λ C-eq → Is-homomorphism M₁ M₂ (_≈_.to C-eq))    ↝⟨ ∃-cong (λ C-eq → op-lemma C-eq ×-cong id-lemma C-eq) ⟩
 
-  (Σ (C₁ ≈ C₂) λ eq →
-     subst (λ C → C → C → C) (≈⇒≡ univ eq) op₁ ≡ op₂ ×
-     subst (λ C → C) (≈⇒≡ univ eq) id₁ ≡ id₂)                   ↝⟨ inverse $ Σ-cong (≡≈≈ univ) (λ eq → ≡⇒↝ _ $
+  (Σ (C₁ ≈ C₂) λ C-eq →
+     subst (λ C → C → C → C) (≈⇒≡ univ C-eq) op₁ ≡ op₂ ×
+     subst (λ C → C) (≈⇒≡ univ C-eq) id₁ ≡ id₂)                 ↝⟨ inverse $ Σ-cong (≡≈≈ univ) (λ C-eq → ≡⇒↝ _ $
                                                                      cong (λ eq → subst (λ C → C → C → C) eq op₁ ≡ op₂ ×
                                                                                   subst (λ C → C) eq id₁ ≡ id₂) $ sym $
-                                                                       _≈_.left-inverse-of (≡≈≈ univ) eq) ⟩
-  (Σ (C₁ ≡ C₂) λ eq →
-     subst (λ C → C → C → C) eq op₁ ≡ op₂ ×
-     subst (λ C → C) eq id₁ ≡ id₂)                              ↝⟨ inverse $ equality-triple-lemma ext M₁ M₂ ⟩
+                                                                       _≈_.left-inverse-of (≡≈≈ univ) C-eq) ⟩
+  (Σ (C₁ ≡ C₂) λ C-eq →
+     subst (λ C → C → C → C) C-eq op₁ ≡ op₂ ×
+     subst (λ C → C) C-eq id₁ ≡ id₂)                            ↝⟨ inverse $ equality-triple-lemma ext M₁ M₂ ⟩
 
   ((C₁ , op₁ , id₁ , laws₁) ≡ (C₂ , op₂ , id₂ , laws₂))         □
 
@@ -270,34 +270,34 @@ isomorphism-is-equality univ univ₁
   C₁-set : Is-set C₁
   C₁-set = proj₁ laws₁
 
-  module _ (eq : C₁ ≈ C₂) where
+  module _ (C-eq : C₁ ≈ C₂) where
 
-    open _≈_ eq
+    open _≈_ C-eq
 
     -- Two component lemmas.
 
     op-lemma :
       (∀ x y → to (op₁ x y) ≡ op₂ (to x) (to y)) ↔
-      subst (λ C → C → C → C) (≈⇒≡ univ eq) op₁ ≡ op₂
+      subst (λ C → C → C → C) (≈⇒≡ univ C-eq) op₁ ≡ op₂
     op-lemma =
       (∀ x y → to (op₁ x y) ≡ op₂ (to x) (to y))                  ↔⟨ ∀-preserves ext (λ _ → extensionality-isomorphism ext) ⟩
 
-      (∀ x → (λ y → to (op₁ x y)) ≡ (λ y → op₂ (to x) (to y)))    ↔⟨ ∀-preserves ext (λ _ → ↔⇒≈ $ inverse $ ∘from≡↔≡∘to ext eq) ⟩
+      (∀ x → (λ y → to (op₁ x y)) ≡ (λ y → op₂ (to x) (to y)))    ↔⟨ ∀-preserves ext (λ _ → ↔⇒≈ $ inverse $ ∘from≡↔≡∘to ext C-eq) ⟩
 
       (∀ x → (λ y → to (op₁ x (from y))) ≡ (λ y → op₂ (to x) y))  ↔⟨ extensionality-isomorphism ext ⟩
 
-      ((λ x y → to (op₁ x (from y))) ≡ (λ x y → op₂ (to x) y))    ↝⟨ inverse $ ∘from≡↔≡∘to ext eq ⟩
+      ((λ x y → to (op₁ x (from y))) ≡ (λ x y → op₂ (to x) y))    ↝⟨ inverse $ ∘from≡↔≡∘to ext C-eq ⟩
 
       ((λ x y → to (op₁ (from x) (from y))) ≡ (λ x y → op₂ x y))  ↝⟨ ≡⇒↝ _ $ cong (λ o → o ≡ op₂) $
                                                                        subst-unique
                                                                          (λ C → C → C → C)
                                                                          (λ eq f x y → _≈_.to eq (f (_≈_.from eq x) (_≈_.from eq y)))
-                                                                         refl univ eq op₁ ⟩
-      (subst (λ C → C → C → C) (≈⇒≡ univ eq) op₁ ≡ op₂)           □
+                                                                         refl univ C-eq op₁ ⟩
+      (subst (λ C → C → C → C) (≈⇒≡ univ C-eq) op₁ ≡ op₂)         □
 
     id-lemma : (to id₁ ≡ id₂) ↔
-               (subst (λ C → C) (≈⇒≡ univ eq) id₁ ≡ id₂)
+               (subst (λ C → C) (≈⇒≡ univ C-eq) id₁ ≡ id₂)
     id-lemma =
       (to id₁ ≡ id₂)                             ↝⟨ ≡⇒↝ _ $ cong (λ i → i ≡ id₂) $
-                                                      subst-unique (λ C → C) _≈_.to refl univ eq id₁ ⟩□
-      (subst (λ C → C) (≈⇒≡ univ eq) id₁ ≡ id₂)  □
+                                                      subst-unique (λ C → C) _≈_.to refl univ C-eq id₁ ⟩□
+      (subst (λ C → C) (≈⇒≡ univ C-eq) id₁ ≡ id₂)  □
