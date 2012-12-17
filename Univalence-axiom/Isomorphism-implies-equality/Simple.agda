@@ -19,7 +19,7 @@ module Univalence-axiom.Isomorphism-implies-equality.Simple
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Bijection eq
-  hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
+  hiding (id; inverse; _↔⟨_⟩_; finally-↔) renaming (_∘_ to _∘B_)
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq
@@ -631,7 +631,7 @@ Instance-discrete-field :
   Instance discrete-field
     ≡
   Σ Set₁ λ F →
-  Σ ((F → F → F) × F × (F → F → F) × F × (F → F) × (F → ↑ (# 1) ⊤ ⊎ F))
+  Σ ((F → F → F) × F × (F → F → F) × F × (F → F) × (F → ↑ _ ⊤ ⊎ F))
     λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
   Is-set F ×
   (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
@@ -648,7 +648,242 @@ Instance-discrete-field :
 
 Instance-discrete-field = refl _
 
--- The notion of isomorphism that we get is also reasonable.
+-- nLab defines a discrete field as a commutative ring satisfying the
+-- property that "an element is invertible xor it equals zero"
+-- (http://ncatlab.org/nlab/show/field). This definition of discrete
+-- fields is isomorphic to the one given above (assuming
+-- extensionality).
+
+Instance-discrete-field-isomorphic-to-standard :
+  Extensionality (# 1) (# 1) →
+
+  Instance discrete-field
+    ↔
+  Σ Set₁ λ F →
+  Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
+    λ { (_+_ , 0# , _*_ , 1# , -_) →
+  Is-set F ×
+  (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
+  (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+  (∀ x y → x + y ≡ y + x) ×
+  (∀ x y → x * y ≡ y * x) ×
+  (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+  (∀ x → x + 0# ≡ x) ×
+  (∀ x → x * 1# ≡ x) ×
+  (∀ x → x + (- x) ≡ 0#) ×
+  (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)) }
+
+Instance-discrete-field-isomorphic-to-standard ext = ∃-cong λ F →
+  (Σ ((F → F → F) × F × (F → F → F) × F × (F → F) × (F → ↑ _ ⊤ ⊎ F))
+      λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
+          Is-set F ×
+          (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
+          (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+          (∀ x y → x + y ≡ y + x) ×
+          (∀ x y → x * y ≡ y * x) ×
+          (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+          (∀ x → x + 0# ≡ x) ×
+          (∀ x → x * 1# ≡ x) ×
+          0# ≢ 1# ×
+          (∀ x → x + (- x) ≡ 0#) ×
+          (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
+          (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#)})                        ↝⟨ Σ-cong (lemma₁ _ _ _ _ _ _) (λ _ →
+                                                                                   lemma₂ _ _ _ _ _ _ _ _ _ _ _) ⟩
+  (Σ (((F → F → F) × F × (F → F → F) × F × (F → F)) × (F → ↑ _ ⊤ ⊎ F))
+     λ { ((_+_ , 0# , _*_ , 1# , -_) , _⁻¹) →
+         The-rest F _+_ 0# _*_ 1# -_ ×
+         0# ≢ 1# ×
+         (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
+         (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#) })                        ↝⟨ inverse Σ-assoc ⟩
+
+  (Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
+     λ { (_+_ , 0# , _*_ , 1# , -_) →
+         Σ (F → ↑ _ ⊤ ⊎ F) λ _⁻¹ →
+         The-rest F _+_ 0# _*_ 1# -_ ×
+         0# ≢ 1# ×
+         (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
+         (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#) })                        ↝⟨ ∃-cong (λ _ → ∃-comm) ⟩
+
+  (Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
+     λ { (_+_ , 0# , _*_ , 1# , -_) →
+         The-rest F _+_ 0# _*_ 1# -_ ×
+         Σ (F → ↑ _ ⊤ ⊎ F) λ _⁻¹ →
+         0# ≢ 1# ×
+         (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
+         (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#) })                        ↝⟨ ∃-cong (λ { (_+_ , 0# , _*_ , 1# , -_) →
+                                                                                       ∃-cong (main-lemma _+_ 0# _*_ 1# -_) }) ⟩
+
+  (Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
+     λ { (_+_ , 0# , _*_ , 1# , -_) →
+         The-rest F _+_ 0# _*_ 1# -_ ×
+         (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)) })                   ↝⟨ ∃-cong (λ _ → inverse $ ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B
+                                                                                                   ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B
+                                                                                                   ×-assoc ∘B ×-assoc) ⟩□
+  (Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
+    λ { (_+_ , 0# , _*_ , 1# , -_) →
+        Is-set F ×
+        (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
+        (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+        (∀ x y → x + y ≡ y + x) ×
+        (∀ x y → x * y ≡ y * x) ×
+        (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+        (∀ x → x + 0# ≡ x) ×
+        (∀ x → x * 1# ≡ x) ×
+        (∀ x → x + (- x) ≡ 0#) ×
+        (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)) })                    □
+  where
+  The-rest :
+    (F : Set₁) → (F → F → F) → F → (F → F → F) → F → (F → F) → Set₁
+  The-rest F _+_ 0# _*_ 1# -_ = (((((((
+    Is-set F ×
+    (∀ x y z → x + (y + z) ≡ (x + y) + z)) ×
+    (∀ x y z → x * (y * z) ≡ (x * y) * z)) ×
+    (∀ x y → x + y ≡ y + x)) ×
+    (∀ x y → x * y ≡ y * x)) ×
+    (∀ x y z → x * (y + z) ≡ (x * y) + (x * z))) ×
+    (∀ x → x + 0# ≡ x)) ×
+    (∀ x → x * 1# ≡ x)) ×
+    (∀ x → x + (- x) ≡ 0#)
+
+  main-lemma :
+    ∀ {F} _+_ 0# _*_ 1# -_ →
+    The-rest F _+_ 0# _*_ 1# -_ →
+
+    (Σ (F → ↑ _ ⊤ ⊎ F) λ _⁻¹ →
+       0# ≢ 1# ×
+       (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
+       (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#))
+      ↔
+    (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#))
+
+  main-lemma {F} _+_ 0# _*_ 1# -_
+    ((((((((F-set , +-assoc) , _) , +-comm) , *-comm) ,
+            *+) , +0) , *1) , +-) = record
+    { surjection = record
+      { equivalence = record
+        { to   = to
+        ; from = from
+        }
+      ; right-inverse-of = to∘from
+      }
+    ; left-inverse-of = from∘to
+    }
+    where
+    0* : 0# ≢ 1# → ∀ x → 0# * x ≡ 0#
+    0* 0≢1 x =
+      0# * x                ≡⟨ sym $ +0 _ ⟩
+      (0# * x) + 0#         ≡⟨ cong (_+_ _) $ sym $ +- _ ⟩
+      (0# * x) + (x + - x)  ≡⟨ +-assoc _ _ _ ⟩
+      ((0# * x) + x) + - x  ≡⟨ cong (λ y → y + _) lemma ⟩
+      x + - x               ≡⟨ +- x ⟩∎
+      0#                    ∎
+      where
+      lemma =
+        (0# * x) + x         ≡⟨ cong (_+_ _) $ sym $ *1 _ ⟩
+        (0# * x) + (x * 1#)  ≡⟨ cong (λ y → y + (x * 1#)) $ *-comm _ _ ⟩
+        (x * 0#) + (x * 1#)  ≡⟨ sym $ *+ _ _ _ ⟩
+        x * (0# + 1#)        ≡⟨ cong (_*_ _) $ +-comm _ _ ⟩
+        x * (1# + 0#)        ≡⟨ cong (_*_ _) $ +0 _ ⟩
+        x * 1#               ≡⟨ *1 _ ⟩∎
+        x                    ∎
+
+    01-lemma : 0# ≢ 1# → ∀ x y → x ≡ 0# → x * y ≡ 1# → ⊥
+    01-lemma 0≢1 x y x≡0 xy≡1 = 0≢1 (
+      0#      ≡⟨ sym $ 0* 0≢1 _ ⟩
+      0# * y  ≡⟨ cong (λ x → x * _) $ sym x≡0 ⟩
+      x * y   ≡⟨ xy≡1 ⟩∎
+      1#      ∎)
+
+    To   = ∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)
+    From = Σ (F → ↑ _ ⊤ ⊎ F) λ _⁻¹ →
+           0# ≢ 1# ×
+           (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
+           (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#)
+
+    to′ : (f : From) → ∀ x y → proj₁ f x ≡ y →
+          (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)
+    to′ (_⁻¹ , 0≢1 , ⁻¹0 , ⁻¹1) x (inj₁ _) x⁻¹≡₁ =
+      inj₂ ((λ { (y , xy≡1) → 01-lemma 0≢1 x y (⁻¹0 x (x⁻¹≡₁)) xy≡1 }) ,
+            ⁻¹0 x (x⁻¹≡₁))
+    to′ (_⁻¹ , 0≢1 , ⁻¹0 , ⁻¹1) x (inj₂ y) x⁻¹≡y =
+      inj₁ ((y , ⁻¹1 x y x⁻¹≡y) , λ x≡0 →
+            01-lemma 0≢1 x y x≡0 (⁻¹1 x y x⁻¹≡y))
+
+    to : From → To
+    to f x = to′ f x (proj₁ f x) (refl _)
+
+    drop-prop : ∀ {x} → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#) → ↑ _ ⊤ ⊎ F
+    drop-prop = [ inj₂ ∘ proj₁ ∘ proj₁ , const (inj₁ _) ]
+
+    from : To → From
+    from _⁻¹ = drop-prop ∘ _⁻¹ ,
+               [ (λ { (_ , 1≢0) → 1≢0 ∘ sym })
+               , (λ { (∄y→1y≡1 , _) → const (∄y→1y≡1 (1# , *1 _)) })
+               ] (1# ⁻¹) ,
+               lemma₁ , lemma₂
+      where
+      lemma₁ : ∀ x → drop-prop (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#
+      lemma₁ x x⁻¹≡₁ with x ⁻¹
+      ... | inj₁ _         = ⊥-elim $ ⊎.inj₁≢inj₂ (sym x⁻¹≡₁)
+      ... | inj₂ (_ , x≡0) = x≡0
+
+      lemma₂ : ∀ x y → drop-prop (x ⁻¹) ≡ inj₂ y → x * y ≡ 1#
+      lemma₂ x y x⁻¹≡y with x ⁻¹
+      ... | inj₂ _                  = ⊥-elim $ ⊎.inj₁≢inj₂ x⁻¹≡y
+      ... | inj₁ ((y′ , xy′≡1) , _) =
+        subst (λ y → x * y ≡ 1#) (⊎.cancel-inj₂ x⁻¹≡y) xy′≡1
+
+    to∘from : ∀ _⁻¹ → to (from _⁻¹) ≡ _⁻¹
+    to∘from _⁻¹ = ext λ x → lemma x (x ⁻¹) (refl _)
+      where
+      lemma : ∀ x y (eq : drop-prop (x ⁻¹) ≡ drop-prop y) →
+              to′ (from _⁻¹) x (drop-prop y) eq ≡ y
+      lemma _ (inj₁ _) _ = cong inj₁ $
+        Σ-≡,≡→≡ (Σ-≡,≡→≡ (refl _)
+                   (_⇔_.to propositional⇔irrelevant (F-set _ _) _ _))
+          (_⇔_.to propositional⇔irrelevant
+                  (¬-propositional (lower-ext (# 0) _ ext)) _ _)
+      lemma _ (inj₂ _) _ = cong inj₂ $
+        _⇔_.to propositional⇔irrelevant
+               (×-closure 1 (¬-propositional (lower-ext (# 0) _ ext))
+                            (F-set _ _)) _ _
+
+    from∘to : ∀ f → from (to f) ≡ f
+    from∘to f = Σ-≡,≡→≡ (ext λ x → lemma x _ (refl _))
+      (_⇔_.to propositional⇔irrelevant
+                (×-closure 1  (¬-propositional (lower-ext (# 0) _ ext))
+                 (×-closure 1 (Π-closure ext 1 λ _ →
+                               Π-closure ext 1 λ _ →
+                               F-set _ _)
+                              (Π-closure ext 1 λ _ →
+                               Π-closure ext 1 λ _ →
+                               Π-closure ext 1 λ _ →
+                               F-set _ _)))
+                _ _)
+      where
+      lemma : ∀ x y x⁻¹≡y → drop-prop (to′ f x y x⁻¹≡y) ≡ proj₁ f x
+      lemma x (inj₁ _) x⁻¹≡₁ = sym x⁻¹≡₁
+      lemma x (inj₂ y) x⁻¹≡y = sym x⁻¹≡y
+
+  lemma₁ : (A B C D E F : Set₁) →
+           (A × B × C × D × E × F) ↔ ((A × B × C × D × E) × F)
+  lemma₁ A B C D E F =
+    (A × B × C × D × E × F)          ↝⟨ ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B ×-assoc ⟩
+    (((((A × B) × C) × D) × E) × F)  ↝⟨ inverse (×-assoc ∘B ×-assoc ∘B ×-assoc) ×-cong (_ □) ⟩□
+    ((A × B × C × D × E) × F)        □
+
+  lemma₂ : (A B C D E F G H I J K : Set₁) →
+           (A × B × C × D × E × F × G × H × I × J × K) ↔
+           (((((((((A × B) × C) × D) × E) × F) × G) × H) × J) × I × K)
+  lemma₂ A B C D E F G H I J K =
+    (A × B × C × D × E × F × G × H × I × J × K)                  ↝⟨ ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B ×-assoc ⟩
+    ((((((((A × B) × C) × D) × E) × F) × G) × H) × I × J × K)    ↝⟨ (_ □) ×-cong ×-assoc ⟩
+    ((((((((A × B) × C) × D) × E) × F) × G) × H) × (I × J) × K)  ↝⟨ (_ □) ×-cong (×-comm ×-cong (_ □)) ⟩
+    ((((((((A × B) × C) × D) × E) × F) × G) × H) × (J × I) × K)  ↝⟨ (_ □) ×-cong inverse ×-assoc ⟩
+    ((((((((A × B) × C) × D) × E) × F) × G) × H) × J × I × K)    ↝⟨ ×-assoc ⟩□
+    (((((((((A × B) × C) × D) × E) × F) × G) × H) × J) × I × K)  □
+
+-- The notion of isomorphism that we get is reasonable.
 
 Isomorphic-discrete-field :
   ∀ {F₁ _+₁_ 0₁ _*₁_ 1₁ -₁_ _⁻¹₁ laws₁
