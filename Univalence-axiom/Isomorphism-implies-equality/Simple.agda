@@ -305,21 +305,15 @@ abstract
 -- The property of being an isomorphism between two elements.
 
 Is-isomorphism : ∀ {B C} → B ≈ C → ∀ a → El a B → El a C → Set₁
-
-Is-isomorphism B≈C id = λ x y → _≈_.to B≈C x ≡ y
-
-Is-isomorphism B≈C set = λ X Y → ↑ _ (X ≈ Y)
-
-Is-isomorphism B≈C (k A) = λ x y → x ≡ y
-
-Is-isomorphism B≈C (a ⇾ b) = λ f g →
-  ∀ x y → Is-isomorphism B≈C a x y → Is-isomorphism B≈C b (f x) (g y)
-
-Is-isomorphism B≈C (a ⊕ b) =
-  Is-isomorphism B≈C a ⊎-rel Is-isomorphism B≈C b
-
-Is-isomorphism B≈C (a ⊗ b) = λ { (x , u) (y , v) →
-  Is-isomorphism B≈C a x y × Is-isomorphism B≈C b u v }
+Is-isomorphism B≈C id      = λ x y → _≈_.to B≈C x ≡ y
+Is-isomorphism B≈C set     = λ X Y → ↑ _ (X ≈ Y)
+Is-isomorphism B≈C (k A)   = λ x y → x ≡ y
+Is-isomorphism B≈C (a ⇾ b) = Is-isomorphism B≈C a →-rel
+                             Is-isomorphism B≈C b
+Is-isomorphism B≈C (a ⊕ b) = Is-isomorphism B≈C a ⊎-rel
+                             Is-isomorphism B≈C b
+Is-isomorphism B≈C (a ⊗ b) = Is-isomorphism B≈C a ×-rel
+                             Is-isomorphism B≈C b
 
 -- Another definition of "being an isomorphism" (defined using
 -- extensionality).

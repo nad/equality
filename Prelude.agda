@@ -331,16 +331,6 @@ Decidable : ∀ {a b ℓ} {A : Set a} {B : Set b} →
             (A → B → Set ℓ) → Set (a ⊔ b ⊔ ℓ)
 Decidable _∼_ = ∀ x y → Dec (x ∼ y)
 
--- Combines two relations into a relation on sums.
-
-_⊎-rel_ : ∀ {a b c d ℓ}
-            {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
-          (A → C → Set ℓ) → (B → D → Set ℓ) → A ⊎ B → C ⊎ D → Set ℓ
-(_∼A_ ⊎-rel _∼B_) (inj₁ x) (inj₁ y) = x ∼A y
-(_∼A_ ⊎-rel _∼B_) (inj₁ x) (inj₂ y) = ⊥
-(_∼A_ ⊎-rel _∼B_) (inj₂ x) (inj₁ y) = ⊥
-(_∼A_ ⊎-rel _∼B_) (inj₂ x) (inj₂ y) = x ∼B y
-
 ------------------------------------------------------------------------
 -- Lists
 
@@ -405,3 +395,31 @@ lookup : ∀ {a} {A : Set a} (xs : List A) → Fin (length xs) → A
 lookup []       ()
 lookup (x ∷ xs) (inj₁ tt) = x
 lookup (x ∷ xs) (inj₂ i)  = lookup xs i
+
+------------------------------------------------------------------------
+-- Some relation combinators
+
+-- Combines two relations into a relation on functions.
+
+_→-rel_ : ∀ {a b c d ℓ}
+            {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+          (A → C → Set ℓ) → (B → D → Set ℓ) →
+          (A → B) → (C → D) → Set (a ⊔ c ⊔ ℓ)
+(P →-rel Q) f g = ∀ x y → P x y → Q (f x) (g y)
+
+-- Combines two relations into a relation on products.
+
+_×-rel_ : ∀ {a b c d ℓ}
+            {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+          (A → C → Set ℓ) → (B → D → Set ℓ) → A × B → C × D → Set ℓ
+(P ×-rel Q) (x , u) (y , v) = P x y × Q u v
+
+-- Combines two relations into a relation on sums.
+
+_⊎-rel_ : ∀ {a b c d ℓ}
+            {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+          (A → C → Set ℓ) → (B → D → Set ℓ) → A ⊎ B → C ⊎ D → Set ℓ
+(P ⊎-rel Q) (inj₁ x) (inj₁ y) = P x y
+(P ⊎-rel Q) (inj₁ x) (inj₂ v) = ⊥
+(P ⊎-rel Q) (inj₂ u) (inj₁ y) = ⊥
+(P ⊎-rel Q) (inj₂ u) (inj₂ v) = Q u v
