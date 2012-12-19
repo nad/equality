@@ -20,10 +20,10 @@ open import Equality
 open Derived-definitions-and-properties eq using (refl)
 
 open import Bijection eq hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
-open import Equivalence using (_⇔_; module _⇔_)
 open import Function-universe eq hiding (id; _∘_)
-open import H-level eq hiding (Proposition; Type)
+open import H-level eq as H-level hiding (Proposition; Type)
 open import H-level.Closure eq
+open import Preimage eq
 open import Prelude
 open import Univalence-axiom eq
 open import Weak-equivalence eq as Weak hiding (id; _∘_; inverse)
@@ -31,9 +31,8 @@ open import Weak-equivalence eq as Weak hiding (id; _∘_; inverse)
 ------------------------------------------------------------------------
 -- A record packing up certain assumptions
 
--- Use of these or similar assumptions is not documented in comments
--- below. (The comments do not include remarks like "assuming
--- univalence".)
+-- Use of these or similar assumptions is usually not documented in
+-- comments below (with remarks like "assuming univalence").
 
 record Assumptions : Set₂ where
   field
@@ -41,8 +40,10 @@ record Assumptions : Set₂ where
     univ  : Univalence (# 0)
     univ₁ : Univalence (# 1)
 
-  ext : Extensionality (# 0) (# 0)
-  ext = lower-extensionality (# 1) (# 1) ext₁
+  abstract
+
+    ext : Extensionality (# 0) (# 0)
+    ext = lower-extensionality (# 1) (# 1) ext₁
 
 ------------------------------------------------------------------------
 -- A class of algebraic structures
@@ -71,13 +72,14 @@ mutual
       -- A predicate specifying when two elements are isomorphic with
       -- respect to an isomorphism.
 
-      Iso : {I J : ⟦ c ⟧} → Isomorphic c I J →
+      Iso : (ass : Assumptions) →
+            {I J : ⟦ c ⟧} → Isomorphic ass c I J →
             Ext I → Ext J → Set₁
 
     -- An alternative definition of Iso.
 
-    Iso′ : Assumptions →
-           ∀ {I J} → Isomorphic c I J →
+    Iso′ : (ass : Assumptions) →
+           ∀ {I J} → Isomorphic ass c I J →
            Ext I → Ext J → Set₁
     Iso′ ass I≅J x y =
       subst Ext (_≈_.to (isomorphism≈equality ass c) I≅J) x ≡ y
@@ -88,8 +90,8 @@ mutual
 
       Iso≈Iso′ :
         (ass : Assumptions) →
-        ∀ {I J} (I≅J : Isomorphic c I J) {x y} →
-        Iso I≅J x y ≈ Iso′ ass I≅J x y
+        ∀ {I J} (I≅J : Isomorphic ass c I J) {x y} →
+        Iso ass I≅J x y ≈ Iso′ ass I≅J x y
 
   -- Interpretation of the codes. The elements of ⟦ c ⟧ are instances
   -- of the structure encoded by c.
@@ -100,16 +102,16 @@ mutual
 
   -- Isomorphisms.
 
-  Isomorphic : (c : Code) → ⟦ c ⟧ → ⟦ c ⟧ → Set₁
-  Isomorphic ε       _       _       = ↑ _ ⊤
-  Isomorphic (c ▻ e) (I , x) (J , y) =
-    Σ (Isomorphic c I J) λ I≅J → Extension.Iso e I≅J x y
+  Isomorphic : Assumptions → (c : Code) → ⟦ c ⟧ → ⟦ c ⟧ → Set₁
+  Isomorphic _   ε       _       _       = ↑ _ ⊤
+  Isomorphic ass (c ▻ e) (I , x) (J , y) =
+    Σ (Isomorphic ass c I J) λ I≅J → Extension.Iso e ass I≅J x y
 
   -- Isomorphism is weakly equivalent to equality.
 
-  isomorphism≈equality : Assumptions →
+  isomorphism≈equality : (ass : Assumptions) →
                          (c : Code) {I J : ⟦ c ⟧} →
-                         Isomorphic c I J ≈ (I ≡ J)
+                         Isomorphic ass c I J ≈ (I ≡ J)
 
   isomorphism≈equality _ ε =
 
@@ -119,37 +121,38 @@ mutual
 
   isomorphism≈equality ass (c ▻ e) {I , x} {J , y} =
 
-    (Σ (Isomorphic c I J) λ I≅J → Iso e I≅J x y)  ↝⟨ Σ-cong (isomorphism≈equality ass c)
-                                                            (λ I≅J → Iso≈Iso′ e ass I≅J) ⟩
-    (Σ (I ≡ J) λ I≡J → subst (Ext e) I≡J x ≡ y)   ↔⟨ Σ-≡,≡↔≡ ⟩□
+    (Σ (Isomorphic ass c I J) λ I≅J → Iso e ass I≅J x y)  ↝⟨ Σ-cong (isomorphism≈equality ass c)
+                                                                    (λ I≅J → Iso≈Iso′ e ass I≅J) ⟩
+    (Σ (I ≡ J) λ I≡J → subst (Ext e) I≡J x ≡ y)           ↔⟨ Σ-≡,≡↔≡ ⟩□
 
-    ((I , x) ≡ (J , y))                           □
+    ((I , x) ≡ (J , y))                                   □
 
     where open Extension
 
--- Isomorphism is equal to equality.
+-- Isomorphism is equal to equality (assuming /only/ univalence).
 
 isomorphism≡equality :
-  Univalence (# 0) →
-  Univalence (# 1) →
-  Univalence (# 2) →
+  (univ  : Univalence (# 0))
+  (univ₁ : Univalence (# 1))
+  (univ₂ : Univalence (# 2)) →
+
+  let ass = record
+        { ext₁  = dependent-extensionality univ₂ (λ _ → univ₁)
+        ; univ  = univ
+        ; univ₁ = univ₁
+        } in
+
   (c : Code) {I J : ⟦ c ⟧} →
-  Isomorphic c I J ≡ (I ≡ J)
+  Isomorphic ass c I J ≡ (I ≡ J)
 isomorphism≡equality univ univ₁ univ₂ c =
-  ≈⇒≡ univ₁ $ isomorphism≈equality ass c
-  where
-  ass = record
-    { ext₁  = dependent-extensionality univ₂ (λ _ → univ₁)
-    ; univ  = univ
-    ; univ₁ = univ₁
-    }
+  ≈⇒≡ univ₁ $ isomorphism≈equality _ c
 
 ------------------------------------------------------------------------
 -- Reflexivity
 
 -- The isomorphism relation is reflexive.
 
-reflexivity : Assumptions → ∀ c I → Isomorphic c I I
+reflexivity : (ass : Assumptions) → ∀ c I → Isomorphic ass c I I
 reflexivity ass c I =
   _≈_.from (isomorphism≈equality ass c) (refl I)
 
@@ -158,7 +161,7 @@ reflexivity ass c I =
 reflexivityE :
   (ass : Assumptions) →
   ∀ c e I x →
-  Extension.Iso e (reflexivity ass c I) x x
+  Extension.Iso e ass (reflexivity ass c I) x x
 reflexivityE ass c e I x =
   _≈_.from (Iso≈Iso′ ass (reflexivity ass c I)) (
     subst Ext (to (from (refl I))) x  ≡⟨ subst (λ eq → subst Ext eq x ≡ x)
@@ -192,13 +195,14 @@ record Extension-with-resp (c : Code) : Set₂ where
     -- A predicate specifying when two elements are isomorphic with
     -- respect to an isomorphism.
 
-    Iso : {I J : ⟦ c ⟧} → Isomorphic c I J →
+    Iso : (ass : Assumptions) →
+          {I J : ⟦ c ⟧} → Isomorphic ass c I J →
           Ext I → Ext J → Set₁
 
     -- Ext, seen as a predicate, respects isomorphisms.
 
-    resp : Assumptions →
-           ∀ {I J} → Isomorphic c I J →
+    resp : (ass : Assumptions) →
+           ∀ {I J} → Isomorphic ass c I J →
            Ext I → Ext J
 
     -- The resp function respects reflexivity.
@@ -209,8 +213,8 @@ record Extension-with-resp (c : Code) : Set₂ where
 
   -- An alternative definition of Iso.
 
-  Iso″ : Assumptions →
-         {I J : ⟦ c ⟧} → Isomorphic c I J →
+  Iso″ : (ass : Assumptions) →
+         {I J : ⟦ c ⟧} → Isomorphic ass c I J →
          Ext I → Ext J → Set₁
   Iso″ ass I≅J x y = resp ass I≅J x ≡ y
 
@@ -220,49 +224,203 @@ record Extension-with-resp (c : Code) : Set₂ where
 
     Iso≈Iso″ :
       (ass : Assumptions) →
-      ∀ {I J} (I≅J : Isomorphic c I J) {x y} →
-      Iso I≅J x y ≈ Iso″ ass I≅J x y
+      ∀ {I J} (I≅J : Isomorphic ass c I J) {x y} →
+      Iso ass I≅J x y ≈ Iso″ ass I≅J x y
 
   -- Another alternative definition of Iso.
 
-  Iso′ : Assumptions →
-         ∀ {I J} → Isomorphic c I J →
+  Iso′ : (ass : Assumptions) →
+         ∀ {I J} → Isomorphic ass c I J →
          Ext I → Ext J → Set₁
   Iso′ ass I≅J x y =
     subst Ext (_≈_.to (isomorphism≈equality ass c) I≅J) x ≡ y
 
-  -- Every element is isomorphic to itself, transported along the
-  -- "outer" isomorphism.
+  abstract
 
-  isomorphic-to-itself :
-    (ass : Assumptions) →
-    ∀ {I J} (I≅J : Isomorphic c I J) {x} →
-    Iso″ ass I≅J x
-         (subst Ext (_≈_.to (isomorphism≈equality ass c) I≅J) x)
-  isomorphic-to-itself ass I≅J {x} = subst-unique′
-    Ext
-    (Isomorphic c)
-    (_≈_.surjection $ inverse $ isomorphism≈equality ass c)
-    (resp ass)
-    (λ _ → resp-refl ass)
-    I≅J
-    x
+    -- Every element is isomorphic to itself, transported along the
+    -- "outer" isomorphism.
+
+    isomorphic-to-itself″ :
+      (ass : Assumptions) →
+      ∀ {I J} (I≅J : Isomorphic ass c I J) {x} →
+      Iso″ ass I≅J x
+           (subst Ext (_≈_.to (isomorphism≈equality ass c) I≅J) x)
+    isomorphic-to-itself″ ass I≅J {x} = subst-unique′
+      Ext
+      (Isomorphic ass c)
+      (_≈_.surjection $ inverse $ isomorphism≈equality ass c)
+      (resp ass)
+      (λ _ → resp-refl ass)
+      I≅J
+      x
 
   -- Iso and Iso′ are weakly equivalent.
 
   Iso≈Iso′ :
     (ass : Assumptions) →
-    ∀ {I J} (I≅J : Isomorphic c I J) {x y} →
-    Iso I≅J x y ≈ Iso′ ass I≅J x y
-  Iso≈Iso′ ass I≅J {x} {y} =
-    Iso      I≅J x y  ↝⟨ Iso≈Iso″ ass I≅J ⟩
-    Iso″ ass I≅J x y  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ y) $ isomorphic-to-itself ass I≅J ⟩□
-    Iso′ ass I≅J x y  □
+    ∀ {I J} (I≅J : Isomorphic ass c I J) {x y} →
+    Iso ass I≅J x y ≈ Iso′ ass I≅J x y
+  Iso≈Iso′ ass I≅J {x} {y} = record
+    { to                  = to
+    ; is-weak-equivalence = λ y →
+        (from y , right-inverse-of y) , irrelevance y
+    }
+    where
+    -- This is the core of the definition. I could have defined
+    -- Iso≈Iso′ ... = I≈I′. The rest is only included in order to
+    -- control how much Agda unfolds the code.
+    I≈I′ =
+      Iso  ass I≅J x y  ↝⟨ Iso≈Iso″ ass I≅J ⟩
+      Iso″ ass I≅J x y  ↝⟨ ≡⇒≈ $ cong (λ z → z ≡ y) $ isomorphic-to-itself″ ass I≅J ⟩□
+      Iso′ ass I≅J x y  □
+
+    to   = _≈_.to   I≈I′
+    from = _≈_.from I≈I′
+
+    abstract
+      right-inverse-of : ∀ x → to (from x) ≡ x
+      right-inverse-of = _≈_.right-inverse-of I≈I′
+
+      irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
+      irrelevance = _≈_.irrelevance I≈I′
 
   -- An extension constructed from the fields above.
 
   extension : Extension c
   extension = record { Ext = Ext; Iso = Iso; Iso≈Iso′ = Iso≈Iso′ }
+
+  -- Every element is isomorphic to itself, transported (in another
+  -- way) along the "outer" isomorphism.
+
+  isomorphic-to-itself :
+    (ass : Assumptions) →
+    ∀ {I J} (I≅J : Isomorphic ass c I J) x →
+    Iso ass I≅J x (resp ass I≅J x)
+  isomorphic-to-itself ass I≅J x =
+    _≈_.from (Iso≈Iso″ ass I≅J) (refl (resp ass I≅J x))
+
+  abstract
+
+    -- Simplification lemmas.
+
+    resp-refl-lemma :
+      (ass : Assumptions) →
+      ∀ I x →
+      resp-refl ass x ≡
+      _≈_.from (≡⇒≈ $ cong (λ z → z ≡ x) $
+                      isomorphic-to-itself″ ass (reflexivity ass c I))
+               (subst (λ eq → subst Ext eq x ≡ x)
+                      (sym $ _≈_.right-inverse-of
+                               (isomorphism≈equality ass c)
+                               (refl I))
+                      (refl x))
+    resp-refl-lemma ass I x =
+      let rfl    = reflexivity ass c I
+          iso≈eq = λ {I J} → isomorphism≈equality ass c {I = I} {J = J}
+          rio    = right-inverse-of iso≈eq (refl I)
+          lio    = left-inverse-of (inverse iso≈eq) (refl I)
+          sx≡x   = subst (λ eq → subst Ext eq x ≡ x) (sym rio) (refl x)
+
+          sx≡x-lemma =
+            cong (λ eq → subst Ext eq x) rio                      ≡⟨ sym $ trans-reflʳ _ ⟩
+
+            trans (cong (λ eq → subst Ext eq x) rio)
+                  (refl x)                                        ≡⟨ sym $ subst-trans (cong (λ eq → subst Ext eq x) rio) ⟩
+
+            subst (λ z → z ≡ x)
+                  (sym $ cong (λ eq → subst Ext eq x) rio)
+                  (refl x)                                        ≡⟨ cong (λ eq → subst (λ z → z ≡ x) eq (refl x)) $ sym $
+                                                                          cong-sym (λ eq → subst Ext eq x) rio ⟩
+            subst (λ z → z ≡ x)
+                  (cong (λ eq → subst Ext eq x) $ sym rio)
+                  (refl x)                                        ≡⟨ sym $ subst-∘ (λ z → z ≡ x) (λ eq → subst Ext eq x) (sym rio) ⟩∎
+
+            subst (λ eq → subst Ext eq x ≡ x) (sym rio) (refl x)  ∎
+
+          lemma₁ =
+            trans (sym lio) rio  ≡⟨ cong (λ eq → trans (sym eq) rio) $ left-inverse-of∘inverse iso≈eq ⟩
+
+            trans (sym rio) rio  ≡⟨ trans-symˡ rio ⟩∎
+
+            refl (refl I)        ∎
+
+          lemma₂ =
+            elim-refl (λ {I J} _ → Ext I → Ext J) (λ _ e → e)  ≡⟨⟩
+
+            cong (subst Ext) (refl (refl I))                   ≡⟨ cong (cong (subst Ext)) $ sym lemma₁ ⟩∎
+
+            cong (subst Ext) (trans (sym lio) rio)             ∎
+
+          lemma₃ =
+            cong (λ r → r x)
+                 (elim-refl (λ {I J} _ → Ext I → Ext J) (λ _ e → e))   ≡⟨ cong (cong (λ r → r x)) lemma₂ ⟩
+
+            cong (λ r → r x) (cong (subst Ext) (trans (sym lio) rio))  ≡⟨ cong-∘ (λ r → r x) (subst Ext) (trans (sym lio) rio) ⟩
+
+            cong (λ eq → subst Ext eq x) (trans (sym lio) rio)         ≡⟨ cong-trans (λ eq → subst Ext eq x) (sym lio) rio ⟩∎
+
+            trans (cong (λ eq → subst Ext eq x) (sym lio))
+                  (cong (λ eq → subst Ext eq x) rio)                   ∎
+      in
+
+      resp-refl ass x                                                  ≡⟨ sym $ trans-reflʳ _ ⟩
+
+      trans (resp-refl ass x) (refl x)                                 ≡⟨ cong (trans (resp-refl ass x)) $ trans-symˡ (subst-refl Ext x) ⟩
+
+      trans (resp-refl ass x)
+            (trans (sym $ subst-refl Ext x) (subst-refl Ext x))        ≡⟨ sym $ trans-assoc _ (sym $ subst-refl Ext x) (subst-refl Ext x) ⟩
+
+      trans (trans (resp-refl ass x) (sym $ subst-refl Ext x))
+            (subst-refl Ext x)                                         ≡⟨ cong (trans (trans (resp-refl ass x) (sym $ subst-refl Ext x)))
+                                                                               lemma₃ ⟩
+      trans (trans (resp-refl ass x) (sym $ subst-refl Ext x))
+            (trans (cong (λ eq → subst Ext eq x) (sym lio))
+                   (cong (λ eq → subst Ext eq x) rio))                 ≡⟨ sym $ trans-assoc _ _ (cong (λ eq → subst Ext eq x) rio) ⟩
+
+      trans (trans (trans (resp-refl ass x) (sym $ subst-refl Ext x))
+                   (cong (λ eq → subst Ext eq x) (sym lio)))
+            (cong (λ eq → subst Ext eq x) rio)                         ≡⟨ cong₂ trans
+                                                                            (sym $ subst-unique′-refl Ext (Isomorphic ass c) (inverse iso≈eq)
+                                                                                                      (resp ass) (λ _ → resp-refl ass) x)
+                                                                            sx≡x-lemma ⟩
+      trans (isomorphic-to-itself″ ass rfl) sx≡x                       ≡⟨ sym $ subst-trans (isomorphic-to-itself″ ass rfl) ⟩
+
+      subst (λ z → z ≡ x) (sym $ isomorphic-to-itself″ ass rfl) sx≡x   ≡⟨ subst-in-terms-of-from∘≡⇒≈ ext₁
+                                                                            (isomorphic-to-itself″ ass rfl) (λ z → z ≡ x) _ ⟩∎
+      from (≡⇒≈ $ cong (λ z → z ≡ x) $ isomorphic-to-itself″ ass rfl)
+           sx≡x                                                        ∎
+
+      where
+      open _≈_
+      open Assumptions ass
+
+    isomorphic-to-itself-reflexivity :
+      (ass : Assumptions) →
+      ∀ I x →
+      isomorphic-to-itself ass (reflexivity ass c I) x ≡
+      subst (Iso ass (reflexivity ass c I) x)
+            (sym $ resp-refl ass x)
+            (reflexivityE ass c extension I x)
+    isomorphic-to-itself-reflexivity ass I x =
+      let rfl = reflexivity ass c I
+          r-r = resp-refl ass x in
+
+      from (Iso≈Iso″ ass rfl) (refl (resp ass rfl x))                  ≡⟨ elim¹ (λ {y} resp-x≡y → from (Iso≈Iso″ ass rfl) (refl (resp ass rfl x)) ≡
+                                                                                                  subst (Iso ass rfl x) (sym resp-x≡y)
+                                                                                                        (from (Iso≈Iso″ ass rfl) resp-x≡y))
+                                                                                (refl _) r-r ⟩
+      subst (Iso ass rfl x) (sym r-r) (from (Iso≈Iso″ ass rfl) r-r)    ≡⟨ cong (subst (Iso ass rfl x) (sym r-r) ∘ from (Iso≈Iso″ ass rfl))
+                                                                               (resp-refl-lemma ass I x) ⟩∎
+      subst (Iso ass rfl x) (sym r-r)
+        (from (Iso≈Iso″ ass rfl)
+           (from
+              (≡⇒≈ $ cong (λ z → z ≡ x)
+                          (isomorphic-to-itself″ ass rfl))
+              (subst (λ eq → subst Ext eq x ≡ x)
+                 (sym $ right-inverse-of (isomorphism≈equality ass c)
+                                         (refl I)) (refl x))))         ∎
+
+      where open _≈_
 
 ------------------------------------------------------------------------
 -- Type extractors
@@ -272,25 +430,31 @@ record Extractor (c : Code) : Set₂ where
 
     -- Extracts a type from an instance.
 
-    Type : ⟦ c ⟧ → Set
+    Type : ⟦ c ⟧ → Set₁
 
     -- Extracts a weak equivalence relating types extracted from
     -- isomorphic instances.
+    --
+    -- Perhaps one could have a variant of Type-cong that is not based
+    -- on any "Assumptions", and produces equivalences (_⇔_) instead
+    -- of weak equivalences (_≈_). Then one could (hopefully) define
+    -- isomorphism without using any assumptions.
 
-    Type-cong : ∀ {I J} → Isomorphic c I J → Type I ≈ Type J
+    Type-cong : (ass : Assumptions) →
+                ∀ {I J} → Isomorphic ass c I J → Type I ≈ Type J
 
     -- Reflexivity is mapped to the identity weak equivalence.
 
     Type-cong-reflexivity :
       (ass : Assumptions) →
-      ∀ I → Type-cong (reflexivity ass c I) ≡ Weak.id
+      ∀ I → Type-cong ass (reflexivity ass c I) ≡ Weak.id
 
 -- Constant type extractor.
 
-[_] : ∀ {c} → Set → Extractor c
+[_] : ∀ {c} → Set₁ → Extractor c
 [_] {c} A = record
   { Type                  = λ _ → A
-  ; Type-cong             = λ _ → Weak.id
+  ; Type-cong             = λ _ _ → Weak.id
   ; Type-cong-reflexivity = λ _ _ → refl _
   }
 
@@ -301,10 +465,10 @@ infix 6 1+_
 1+_ : ∀ {c e} → Extractor c → Extractor (c ▻ e)
 1+_ {c} {e} extractor = record
   { Type                  = Type ∘ proj₁
-  ; Type-cong             = Type-cong ∘ proj₁
+  ; Type-cong             = λ ass → Type-cong ass ∘ proj₁
   ; Type-cong-reflexivity = λ { ass (I , x) →
-      Type-cong (reflexivity ass c I)  ≡⟨ Type-cong-reflexivity ass I ⟩∎
-      Weak.id                          ∎ }
+      Type-cong ass (reflexivity ass c I)  ≡⟨ Type-cong-reflexivity ass I ⟩∎
+      Weak.id                              ∎ }
   }
   where
   open Extractor extractor
@@ -317,7 +481,7 @@ infix 6 1+_
 A-type : ∀ {c} → Extension c
 A-type {c} = record
   { Ext      = λ _ → Set
-  ; Iso      = λ _ A B → ↑ _ (A ≈ B)
+  ; Iso      = λ _ _ A B → ↑ _ (A ≈ B)
   ; Iso≈Iso′ = λ ass I≅J {A B} →
                  let I≡J = _≈_.to (isomorphism≈equality ass c) I≅J in
 
@@ -327,39 +491,25 @@ A-type {c} = record
                  (subst (λ _ → Set) I≡J A ≡ B)  □
   }
 
-private
-
-  -- Alternative, perhaps slightly easier definition.
-
-  A-type′ : ∀ {c} → Extension c
-  A-type′ {c} = Extension-with-resp.extension record
-    { Ext       = λ _ → Set
-    ; Iso       = λ _ A B → ↑ _ (A ≈ B)
-    ; resp      = λ _ _ A → A
-    ; resp-refl = λ _ → refl
-    ; Iso≈Iso″  = λ ass _ {A} {B} →
-                    ↑ _ (A ≈ B)  ↔⟨ ↑↔ ⟩
-                    (A ≈ B)      ↝⟨ inverse $ ≡≈≈ (Assumptions.univ ass) ⟩□
-                    (A ≡ B)      □
-    }
-
 -- A corresponding type extractor.
 
 [0] : ∀ {c} → Extractor (c ▻ A-type)
 [0] {c} = record
-  { Type                  = λ { (_ , A) → A }
-  ; Type-cong             = λ { (_ , lift A≈B) → A≈B }
+  { Type                  = λ { (_ , A) → ↑ _ A }
+  ; Type-cong             = λ { _ (_ , lift A≈B) → ↑-cong A≈B }
   ; Type-cong-reflexivity = λ { ass (I , A) → elim₁
       (λ {p} q →
-         ≡⇒≈ (_≈_.from (≡⇒≈ (cong (λ C → C ≡ A) (sym (subst-const p))))
-                       (subst (λ eq → subst Ext eq A ≡ A)
-                              (sym q) (refl A))) ≡
+         ↑-cong (≡⇒≈
+           (from (≡⇒≈ (cong (λ C → C ≡ A) (sym (subst-const p))))
+                 (subst (λ eq → subst Ext eq A ≡ A)
+                        (sym q) (refl A)))) ≡
          Weak.id)
-      (refl _)
-      (_≈_.right-inverse-of (isomorphism≈equality ass c) (refl I)) }
+      (lift-equality (Assumptions.ext₁ ass) (refl _))
+      (right-inverse-of (isomorphism≈equality ass c) (refl I)) }
   }
   where
   open Extension A-type
+  open _≈_
 
 ------------------------------------------------------------------------
 -- An extension: propositions
@@ -369,7 +519,7 @@ private
 Proposition : ∀ {c} →
 
               -- The proposition.
-              (P : ⟦ c ⟧ → Set) →
+              (P : ⟦ c ⟧ → Set₁) →
 
               -- The proposition must be propositional (given some
               -- assumptions).
@@ -377,12 +527,12 @@ Proposition : ∀ {c} →
 
               Extension c
 Proposition {c} P prop = record
-  { Ext      = ↑ _ ∘ P
-  ; Iso      = λ _ _ _ → ↑ _ ⊤
+  { Ext      = P
+  ; Iso      = λ _ _ _ _ → ↑ _ ⊤
   ; Iso≈Iso′ = λ ass I≅J {_ p} →
                  ↑ _ ⊤    ↔⟨ contractible-isomorphic
                                (↑-closure 0 ⊤-contractible)
-                               (mono₁ 0 (propositional⇒inhabited⇒contractible (↑-closure 1 (prop ass _)) p) _ _) ⟩□
+                               (mono₁ 0 (propositional⇒inhabited⇒contractible (prop ass _) p) _ _) ⟩□
                  (_ ≡ _)  □
   }
 
@@ -391,7 +541,7 @@ Proposition {c} P prop = record
 Is-a-set : ∀ {c} → Extractor c → Extension c
 Is-a-set extractor =
   Proposition (Is-set ∘ Type)
-              (λ ass _ → H-level-propositional (Assumptions.ext ass) 2)
+              (λ ass _ → H-level-propositional (Assumptions.ext₁ ass) 2)
   where open Extractor extractor
 
 ------------------------------------------------------------------------
@@ -399,14 +549,14 @@ Is-a-set extractor =
 
 -- N-ary functions.
 
-_^_⟶_ : Set → ℕ → Set → Set
+_^_⟶_ : Set₁ → ℕ → Set₁ → Set₁
 A ^ zero  ⟶ B = B
 A ^ suc n ⟶ B = A → A ^ n ⟶ B
 
 -- N-ary function morphisms.
 
 Is-_-ary-morphism :
-  (n : ℕ) {A B : Set} → (A ^ n ⟶ A) → (B ^ n ⟶ B) → (A → B) → Set
+  ∀ (n : ℕ) {A B} → (A ^ n ⟶ A) → (B ^ n ⟶ B) → (A → B) → Set₁
 Is- zero  -ary-morphism x y m = m x ≡ y
 Is- suc n -ary-morphism f g m =
   ∀ x → Is- n -ary-morphism (f x) (g (m x)) m
@@ -423,46 +573,38 @@ N-ary : ∀ {c} →
 
         Extension c
 N-ary {c} extractor n = Extension-with-resp.extension record
-  { Ext       = λ I → ↑ _ (Type I ^ n ⟶ Type I)
-  ; Iso       = λ { I≅J (lift f) (lift g) →
-                    ↑ _ (Is- n -ary-morphism f g
-                           (_≈_.to (Type-cong I≅J))) }
-  ; resp      = λ _ I≅J → lift ∘ cast n (Type-cong I≅J) ∘ lower
-  ; resp-refl = λ { ass (lift f) → cong lift $
-                    cast n (Type-cong (reflexivity ass c _)) f  ≡⟨ cong (λ eq → cast n eq f) $ Type-cong-reflexivity ass _ ⟩
-                    cast n Weak.id f                            ≡⟨ cast-id (Assumptions.ext ass) n f ⟩∎
-                    f                                           ∎ }
+  { Ext       = λ I → Type I ^ n ⟶ Type I
+  ; Iso       = λ ass I≅J f g →
+                    Is- n -ary-morphism f g (_≈_.to (Type-cong ass I≅J))
+  ; resp      = λ ass I≅J → cast n (Type-cong ass I≅J)
+  ; resp-refl = λ ass f →
+                    cast n (Type-cong ass (reflexivity ass c _)) f  ≡⟨ cong (λ eq → cast n eq f) $ Type-cong-reflexivity ass _ ⟩
+                    cast n Weak.id f                                ≡⟨ cast-id (Assumptions.ext₁ ass) n f ⟩∎
+                    f                                               ∎
   ; Iso≈Iso″  = λ ass I≅J {f g} →
-                  let lf = lower f; lg = lower g; A≈B = Type-cong I≅J in
-
-                  ↑ _ (Is- n -ary-morphism lf lg (_≈_.to A≈B))  ↔⟨ ↑↔ ⟩
-                  Is- n -ary-morphism lf lg (_≈_.to A≈B)        ↝⟨ Iso≈Iso″ (Assumptions.ext ass) A≈B n lf lg ⟩
-                  (cast n A≈B lf ≡ lg)                          ↝⟨ Weak.≈-≡ (↔⇒≈ ↑↔) ⟩□
-                  (lift (cast n A≈B lf) ≡ g)                    □
+      Iso≈Iso″ (Assumptions.ext₁ ass) (Type-cong ass I≅J) n f g
   }
   where
   open Extractor extractor
 
   -- Changes the type of an n-ary function.
 
-  cast : ∀ n → {A B : Set} → A ≈ B → A ^ n ⟶ A → B ^ n ⟶ B
+  cast : ∀ n {A B} → A ≈ B → A ^ n ⟶ A → B ^ n ⟶ B
   cast zero    A≈B = _≈_.to A≈B
   cast (suc n) A≈B = λ f x → cast n A≈B (f (_≈_.from A≈B x))
 
   -- Cast simplification lemma.
 
-  cast-id : Extensionality (# 0) (# 0) →
-            {A : Set} →
-            ∀ n (f : A ^ n ⟶ A) → cast n Weak.id f ≡ f
+  cast-id : Extensionality (# 1) (# 1) →
+            ∀ {A} n (f : A ^ n ⟶ A) → cast n Weak.id f ≡ f
   cast-id ext zero    x = refl x
   cast-id ext (suc n) f = ext λ x → cast-id ext n (f x)
 
   -- Two definitions of isomorphism are weakly equivalent.
 
   Iso≈Iso″ :
-    {A B : Set} →
-    Extensionality (# 0) (# 0) →
-    (A≈B : A ≈ B)
+    Extensionality (# 1) (# 1) →
+    ∀ {A B} (A≈B : A ≈ B)
     (n : ℕ) (f : A ^ n ⟶ A) (g : B ^ n ⟶ B) →
     Is- n -ary-morphism f g (_≈_.to A≈B) ≈ (cast n A≈B f ≡ g)
 
@@ -471,9 +613,13 @@ N-ary {c} extractor n = Extension-with-resp.extension record
     (_≈_.to A≈B x ≡ y)  □
 
   Iso≈Iso″ ext A≈B (suc n) f g =
-    (∀ x → Is- n -ary-morphism (f x) (g (_≈_.to A≈B x)) (_≈_.to A≈B))  ↝⟨ Weak.∀-preserves ext (λ x → Iso≈Iso″ ext A≈B n (f x) (g (_≈_.to A≈B x))) ⟩
+
+    (∀ x → Is- n -ary-morphism (f x) (g (_≈_.to A≈B x)) (_≈_.to A≈B))  ↝⟨ Weak.∀-preserves ext (λ x →
+                                                                            Iso≈Iso″ ext A≈B n (f x) (g (_≈_.to A≈B x))) ⟩
     (∀ x → cast n A≈B (f x) ≡ g (_≈_.to A≈B x))                        ↝⟨ Weak.extensionality-isomorphism ext ⟩
+
     (cast n A≈B ∘ f ≡ g ∘ _≈_.to A≈B)                                  ↝⟨ inverse $ ∘from≡↔≡∘to ext A≈B ⟩□
+
     (cast n A≈B ∘ f ∘ _≈_.from A≈B ≡ g)                                □
 
 ------------------------------------------------------------------------
@@ -490,7 +636,7 @@ data Simple-type (c : Code) : Set₂ where
 
 -- Interpretation of a simple type.
 
-⟦_⟧⟶ : ∀ {c} → Simple-type c → ⟦ c ⟧ → Set
+⟦_⟧⟶ : ∀ {c} → Simple-type c → ⟦ c ⟧ → Set₁
 ⟦ base A ⟧⟶ I = Extractor.Type A I
 ⟦ σ ⟶ τ  ⟧⟶ I = ⟦ σ ⟧⟶ I → ⟦ τ ⟧⟶ I
 
@@ -498,407 +644,324 @@ data Simple-type (c : Code) : Set₂ where
 
 Simple : ∀ {c} → Simple-type c → Extension c
 Simple {c} σ = Extension-with-resp.extension record
-  { Ext       = λ I → ↑ _ (⟦ σ ⟧⟶ I)
-  ; Iso       = λ { I≅J (lift f) (lift g) → ↑ _ (Iso σ I≅J f g) }
-  ; resp      = λ ass I≅J →
-                  lift ∘
-                  _≈_.to (cast (Assumptions.ext ass) σ I≅J) ∘
-                  lower
-  ; resp-refl = λ { ass (lift f) → cong lift $
-                    let open Assumptions ass in
-
-                    _≈_.to (cast ext σ (reflexivity ass c _)) f  ≡⟨ cong (λ eq → _≈_.to eq f) $ cast-refl ass σ ⟩∎
-                    f                                           ∎ }
-  ; Iso≈Iso″  = λ ass I≅J {f g} →
-                  let open Assumptions ass
-                      lf = lower f; lg = lower g in
-
-                  ↑ _ (Iso σ I≅J lf lg)                    ↔⟨ ↑↔ ⟩
-                  Iso σ I≅J lf lg                          ↝⟨ Iso≈Iso″ ext σ I≅J ⟩
-                  (_≈_.to (cast ext σ I≅J) lf ≡ lg)        ↝⟨ Weak.≈-≡ (↔⇒≈ ↑↔) ⟩□
-                  (lift (_≈_.to (cast ext σ I≅J) lf) ≡ g)  □
+  { Ext       = ⟦ σ ⟧⟶
+  ; Iso       = λ ass → Iso ass σ
+  ; resp      = λ ass I≅J → _≈_.to (cast ass σ I≅J)
+  ; resp-refl = λ ass f → cong (λ eq → _≈_.to eq f) $ cast-refl ass σ
+  ; Iso≈Iso″  = λ ass → Iso≈Iso″ ass σ
   }
   where
   open Extractor
 
   -- Isomorphisms between simply typed values.
 
-  Iso : (σ : Simple-type c) →
-        ∀ {I J} → Isomorphic c I J → ⟦ σ ⟧⟶ I → ⟦ σ ⟧⟶ J → Set
-  Iso (base A) I≅J x y = _≈_.to (Type-cong A I≅J) x ≡ y
-  Iso (σ ⟶ τ)  I≅J f g = ∀ x y → Iso σ I≅J x y → Iso τ I≅J (f x) (g y)
+  Iso : (ass : Assumptions) →
+        (σ : Simple-type c) →
+        ∀ {I J} → Isomorphic ass c I J → ⟦ σ ⟧⟶ I → ⟦ σ ⟧⟶ J → Set₁
+  Iso ass (base A) I≅J x y = _≈_.to (Type-cong A ass I≅J) x ≡ y
+  Iso ass (σ ⟶ τ)  I≅J f g =
+    ∀ x y → Iso ass σ I≅J x y → Iso ass τ I≅J (f x) (g y)
 
-  -- Cast (defined using extensionality).
+  -- Cast.
 
-  cast : Extensionality (# 0) (# 0) →
+  cast : (ass : Assumptions) →
          (σ : Simple-type c) →
-         ∀ {I J} → Isomorphic c I J → ⟦ σ ⟧⟶ I ≈ ⟦ σ ⟧⟶ J
-  cast _   (base A) I≅J = Type-cong A I≅J
-  cast ext (σ ⟶ τ)  I≅J = →-cong ext (cast ext σ I≅J) (cast ext τ I≅J)
+         ∀ {I J} → Isomorphic ass c I J → ⟦ σ ⟧⟶ I ≈ ⟦ σ ⟧⟶ J
+  cast ass (base A) I≅J = Type-cong A ass I≅J
+  cast ass (σ ⟶ τ)  I≅J = →-cong ext₁ (cast ass σ I≅J) (cast ass τ I≅J)
+    where open Assumptions ass
 
   -- Cast simplification lemma.
 
-  cast-refl : (ass : Assumptions) → let open Assumptions ass in
-              ∀ σ {I} → cast ext σ (reflexivity ass c I) ≡ Weak.id
+  cast-refl : (ass : Assumptions) →
+              ∀ σ {I} → cast ass σ (reflexivity ass c I) ≡ Weak.id
   cast-refl ass (base A) {I} =
-    Type-cong A (reflexivity ass c I)  ≡⟨ Type-cong-reflexivity A ass I ⟩∎
-    Weak.id                            ∎
+    Type-cong A ass (reflexivity ass c I)  ≡⟨ Type-cong-reflexivity A ass I ⟩∎
+    Weak.id                                ∎
 
   cast-refl ass (σ ⟶ τ) {I} =
-    cast ext (σ ⟶ τ) (reflexivity ass c I)  ≡⟨ lift-equality ext $ cong _≈_.to $
-                                                 cong₂ (→-cong ext) (cast-refl ass σ) (cast-refl ass τ) ⟩∎
+    cast ass (σ ⟶ τ) (reflexivity ass c I)  ≡⟨ lift-equality ext₁ $ cong _≈_.to $
+                                                 cong₂ (→-cong ext₁) (cast-refl ass σ) (cast-refl ass τ) ⟩∎
     Weak.id                                 ∎
     where open Assumptions ass
 
   -- Two definitions of isomorphism are weakly equivalent.
 
   Iso≈Iso″ :
-    (ext : Extensionality (# 0) (# 0)) →
+    (ass : Assumptions) →
     (σ : Simple-type c) →
-    ∀ {I J} (I≅J : Isomorphic c I J) {f g} →
-    Iso σ I≅J f g ≈ (_≈_.to (cast ext σ I≅J) f ≡ g)
-  Iso≈Iso″ ext (base A) I≅J {x} {y} =
+    ∀ {I J} (I≅J : Isomorphic ass c I J) {f g} →
+    Iso ass σ I≅J f g ≈ (_≈_.to (cast ass σ I≅J) f ≡ g)
+  Iso≈Iso″ ass (base A) I≅J {x} {y} =
 
-    (_≈_.to (Type-cong A I≅J) x ≡ y)  □
+    (_≈_.to (Type-cong A ass I≅J) x ≡ y)  □
 
-  Iso≈Iso″ ext (σ ⟶ τ) I≅J {f} {g} =
+  Iso≈Iso″ ass (σ ⟶ τ) I≅J {f} {g} =
 
-    (∀ x y → Iso σ I≅J x y → Iso τ I≅J (f x) (g y))                ↝⟨ ∀-preserves ext (λ _ → ∀-preserves ext λ _ →
-                                                                        →-cong ext (Iso≈Iso″ ext σ I≅J) (Iso≈Iso″ ext τ I≅J)) ⟩
-    (∀ x y → to (cast ext σ I≅J) x ≡ y →
-             to (cast ext τ I≅J) (f x) ≡ g y)                      ↝⟨ inverse $ ∀-preserves ext (λ x → ↔⇒≈ $
-                                                                        ∀-intro ext (λ y _ → to (cast ext τ I≅J) (f x) ≡ g y)) ⟩
-    (∀ x → to (cast ext τ I≅J) (f x) ≡ g (to (cast ext σ I≅J) x))  ↝⟨ extensionality-isomorphism ext ⟩
+    (∀ x y → Iso ass σ I≅J x y → Iso ass τ I≅J (f x) (g y))        ↝⟨ ∀-preserves ext₁ (λ _ → ∀-preserves ext₁ λ _ →
+                                                                        →-cong ext₁ (Iso≈Iso″ ass σ I≅J) (Iso≈Iso″ ass τ I≅J)) ⟩
+    (∀ x y → to (cast ass σ I≅J) x ≡ y →
+             to (cast ass τ I≅J) (f x) ≡ g y)                      ↝⟨ inverse $ ∀-preserves ext₁ (λ x → ↔⇒≈ $
+                                                                        ∀-intro ext₁ (λ y _ → to (cast ass τ I≅J) (f x) ≡ g y)) ⟩
+    (∀ x → to (cast ass τ I≅J) (f x) ≡ g (to (cast ass σ I≅J) x))  ↝⟨ extensionality-isomorphism ext₁ ⟩
 
-    (to (cast ext τ I≅J) ∘ f ≡ g ∘ to (cast ext σ I≅J))            ↝⟨ inverse $ ∘from≡↔≡∘to ext (cast ext σ I≅J) ⟩□
+    (to (cast ass τ I≅J) ∘ f ≡ g ∘ to (cast ass σ I≅J))            ↝⟨ inverse $ ∘from≡↔≡∘to ext₁ (cast ass σ I≅J) ⟩□
 
-    (to (cast ext τ I≅J) ∘ f ∘ from (cast ext σ I≅J) ≡ g)          □
+    (to (cast ass τ I≅J) ∘ f ∘ from (cast ass σ I≅J) ≡ g)          □
 
-    where open _≈_
+    where
+    open _≈_
+    open Assumptions ass
 
 ------------------------------------------------------------------------
--- Some example structures
+-- An unfinished extension: dependent types
 
--- Example: magmas.
+-- The extension currently supports polymorphic types.
 
-magma : Code
-magma = ε ▻ A-type ▻ N-ary [0] 2
+module Dependent where
 
-Magma : Set₁
-Magma = ⟦ magma ⟧
+  open Extractor
 
-private
+  ----------------------------------------------------------------------
+  -- The extension
 
-  -- An unfolding of Magma.
+  -- Dependent types.
 
-  Magma-unfolded : Magma ≡
-                   Σ (↑ _ ⊤ × Set) λ { (_ , A) → ↑ _ (A → A → A) }
-  Magma-unfolded = refl _
+  data Ty (c : Code) : Set₂
 
-  -- An unfolding of Isomorphic magma.
+  -- Extension: Dependently-typed functions.
 
-  Isomorphic-magma-unfolded :
-    ∀ {A₁ : Set} {f₁ : A₁ → A₁ → A₁}
-      {A₂ : Set} {f₂ : A₂ → A₂ → A₂} →
-    Isomorphic magma ((_ , A₁) , lift f₁) ((_ , A₂) , lift f₂) ≡
-    Σ (Σ (↑ _ ⊤) λ _ →
-      ↑ _ (A₁ ≈ A₂)                              ) λ { (_ , lift A₁≈A₂) →
-      let open _≈_ A₁≈A₂ in ↑ _ (
-        ∀ x y → to (f₁ x y) ≡ f₂ (to x) (to y)) }
-  Isomorphic-magma-unfolded = refl _
+  ext-with-resp : ∀ {c} → Ty c → Extension-with-resp c
 
--- Example: semigroups. Note that one axiom states that the underlying
--- type is a set. This assumption is used to prove that the other
--- axiom is propositional.
+  private
+    open module E {c} (σ : Ty c) =
+      Extension-with-resp (ext-with-resp σ)
+      hiding (Iso; Iso≈Iso″; extension)
+    open E public using () renaming (extension to Dep)
 
-semigroup : Code
-semigroup =
-  ε
-
-  ▻ A-type
-
-  ▻ Is-a-set [0]
-
-  ▻ N-ary (1+ [0]) 2
-
-  ▻ Proposition
-      (λ { (_ , lift _∙_) →
-           ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
-      assoc-prop
-
-  where
-  assoc-prop = λ { ass ((_ , lift A-set) , _) →
-    let open Assumptions ass in
-    Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-    Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-    Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-    A-set _ _ }
-
-Semigroup : Set₁
-Semigroup = ⟦ semigroup ⟧
-
-private
-
-  -- An unfolding of Semigroup.
-
-  Semigroup-unfolded :
-    Semigroup ≡ Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                                        ) λ {  (_ , A) →
-      ↑ _ (Is-set A)                            }) λ { ((_ , A) , _) →
-      ↑ _ (A → A → A)                           }) λ { (_ , lift _∙_) →
-      ↑ _ (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }
-  Semigroup-unfolded = refl _
-
-  -- An unfolding of Isomorphic semigroup.
-
-  Isomorphic-semigroup-unfolded :
-    ∀ {A₁ : Set} {is₁ : Is-set A₁} {_∙₁_ : A₁ → A₁ → A₁}
-      {assoc₁ : ∀ x y z → x ∙₁ (y ∙₁ z) ≡ (x ∙₁ y) ∙₁ z}
-      {A₂ : Set} {is₂ : Is-set A₂} {_∙₂_ : A₂ → A₂ → A₂}
-      {assoc₂ : ∀ x y z → x ∙₂ (y ∙₂ z) ≡ (x ∙₂ y) ∙₂ z} →
-    Isomorphic semigroup
-      ((((_ , A₁) , lift is₁) , lift _∙₁_) , lift assoc₁)
-      ((((_ , A₂) , lift is₂) , lift _∙₂_) , lift assoc₂) ≡
-    Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      ↑ _ (A₁ ≈ A₂)                          ) λ { _ →
-      ↑ _ ⊤                                 }) λ { ((_ , lift A₁≈A₂) , _) →
-      let open _≈_ A₁≈A₂ in ↑ _ (
-        ∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y) }) λ { _ →
-      ↑ _ ⊤                                 }
-  Isomorphic-semigroup-unfolded = refl _
+  data Ty c where
+    set  : Ty c
+    base : Extractor c → Ty c
+    Π    : (σ : Ty c) → Ty (c ▻ Dep σ) → Ty c
 
--- Example: Sets with fixed-point operators.
+  -- Interpretation of a dependent type.
 
-set-with-fixed-point-operator : Code
-set-with-fixed-point-operator =
-  ε
+  ⟦_⟧Π : ∀ {c} → Ty c → ⟦ c ⟧ → Set₁
 
-  ▻ A-type
+  -- Isomorphisms between dependently typed functions.
 
-  ▻ Is-a-set [0]
+  Iso :
+    (ass : Assumptions) →
+    ∀ {c} (σ : Ty c) →
+    ∀ {I J} → Isomorphic ass c I J → ⟦ σ ⟧Π I → ⟦ σ ⟧Π J → Set₁
 
-  ▻ Simple ((base (1+ [0]) ⟶ base (1+ [0])) ⟶ base (1+ [0]))
-
-  ▻ Proposition
-      (λ { (_ , lift fix) →
-           ∀ f → fix f ≡ f (fix f) })
-      fix-point-prop
-
-  where
-  fix-point-prop = λ { ass ((_ , lift A-set) , _) →
-    let open Assumptions ass in
-    Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-    A-set _ _ }
-
-Set-with-fixed-point-operator : Set₁
-Set-with-fixed-point-operator = ⟦ set-with-fixed-point-operator ⟧
-
-private
-
-  -- An unfolding of Set-with-fixed-point-operator.
-
-  Set-with-fixed-point-operator-unfolded :
-    Set-with-fixed-point-operator ≡ Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                            ) λ {  (_ , A) →
-      ↑ _ (Is-set A)                }) λ { ((_ , A) , _) →
-      ↑ _ ((A → A) → A)             }) λ { (_ , lift fix) →
-      ↑ _ (∀ f → fix f ≡ f (fix f)) }
-  Set-with-fixed-point-operator-unfolded = refl _
-
-  -- An unfolding of Isomorphic set-with-fixed-point-operator.
-
-  Isomorphic-set-with-fixed-point-operator-unfolded :
-    ∀ {A₁ : Set} {is₁ : Is-set A₁} {fix₁ : (A₁ → A₁) → A₁}
-      {fixed-point₁ : ∀ f → fix₁ f ≡ f (fix₁ f)}
-      {A₂ : Set} {is₂ : Is-set A₂} {fix₂ : (A₂ → A₂) → A₂}
-      {fixed-point₂ : ∀ f → fix₂ f ≡ f (fix₂ f)} →
-    Isomorphic set-with-fixed-point-operator
-      ((((_ , A₁) , lift is₁) , lift fix₁) , lift fixed-point₁)
-      ((((_ , A₂) , lift is₂) , lift fix₂) , lift fixed-point₂) ≡
-    Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      ↑ _ (A₁ ≈ A₂)                             ) λ { _ →
-      ↑ _ ⊤                                    }) λ { ((_ , lift A₁≈A₂) , _) →
-      let open _≈_ A₁≈A₂ in ↑ _ (
-        ∀ f g →
-        (∀ x y → to x ≡ y → to (f x) ≡ g y) →
-        to (fix₁ f) ≡ fix₂ g)                  }) λ { _ →
-      ↑ _ ⊤                                    }
-  Isomorphic-set-with-fixed-point-operator-unfolded = refl _
-
--- Example: abelian groups.
-
-abelian-group : Code
-abelian-group =
-  ε
-
-  -- The underlying type.
-  ▻ A-type
-
-  -- The underlying type is a set.
-  ▻ Is-a-set [0]
-
-  -- The binary group operation.
-  ▻ N-ary (1+ [0]) 2
-
-  -- Commutativity.
-  ▻ Comm
-
-  -- Associativity.
-  ▻ Assoc
-
-  -- Identity.
-  ▻ N-ary (1+ 1+ 1+ 1+ [0]) 0
-
-  -- Left identity.
-  ▻ Left-identity
-
-  -- Right identity.
-  ▻ Right-identity
-
-  -- Inverse.
-  ▻ N-ary (1+ 1+ 1+ 1+ 1+ 1+ 1+ [0]) 1
-
-  -- Left inverse.
-  ▻ Left-inverse
-
-  -- Right inverse.
-  ▻ Right-inverse
-
-  where
-  bin = ε ▻ A-type ▻ Is-a-set [0] ▻ N-ary (1+ [0]) 2
-
-  Comm = Proposition {bin}
-    (λ { (_ , lift _∙_) →
-       ∀ x y → x ∙ y ≡ y ∙ x })
-
-    (λ { ass ((_ , lift A-set) , _) →
-       let open Assumptions ass in
-       Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-       Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-       A-set _ _
-     })
-
-  comm = bin ▻ Comm
-
-  Assoc = Proposition {comm}
-    (λ { ((_ , lift _∙_) , _) →
-         ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
-
-    (λ { ass (((_ , lift A-set) , _) , _) →
-       let open Assumptions ass in
-       Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-       Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-       Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-       A-set _ _
-     })
-
-  identity = comm ▻ Assoc ▻ N-ary (1+ 1+ 1+ 1+ [0]) 0
-
-  Left-identity = Proposition {identity}
-    (λ { ((((_ , lift _∙_) , _) , _) , lift e) →
-         ∀ x → e ∙ x ≡ x })
-
-    (λ { ass (((((_ , lift A-set) , _) , _) , _) , _) →
-       let open Assumptions ass in
-       Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-       A-set _ _
-     })
-
-  left-identity = identity ▻ Left-identity
-
-  Right-identity = Proposition {left-identity}
-    (λ { (((((_ , lift _∙_) , _) , _) , lift e) , _) →
-         ∀ x → x ∙ e ≡ x })
-
-    (λ { ass ((((((_ , lift A-set) , _) , _) , _) , _) , _) →
-       let open Assumptions ass in
-       Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-       A-set _ _
-     })
-
-  inv = left-identity ▻ Right-identity ▻
-        N-ary (1+ 1+ 1+ 1+ 1+ 1+ 1+ [0]) 1
-
-  Left-inverse = Proposition {inv}
-    (λ { (((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) →
-         ∀ x → (x ⁻¹) ∙ x ≡ e })
-
-    (λ { ass ((((((((_ , lift A-set) , _) , _) , _) , _) , _) , _) , _) →
-       let open Assumptions ass in
-       Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-       A-set _ _
-     })
-
-  left-inverse = inv ▻ Left-inverse
-
-  Right-inverse = Proposition {left-inverse}
-    (λ { ((((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) , _) →
-         ∀ x → x ∙ (x ⁻¹) ≡ e })
-
-    (λ { ass (((((((((_ , lift A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
-       let open Assumptions ass in
-       Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-       A-set _ _
-     })
-
-Abelian-group : Set₁
-Abelian-group = ⟦ abelian-group ⟧
-
-private
-
-  -- An unfolding of Abelian-group. Note that the inner structure is
-  -- left-nested.
-
-  Abelian-group-unfolded :
-    Abelian-group ≡ Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                                        ) λ {        (_ , A) →
-      ↑ _ (Is-set A)                            }) λ {       ((_ , A) , _) →
-      ↑ _ (A → A → A)                           }) λ {                  (_ , lift _∙_) →
-      ↑ _ (∀ x y → x ∙ y ≡ y ∙ x)               }) λ {                 ((_ , lift _∙_) , _) →
-      ↑ _ (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }) λ {    (((((_ , A) , _) , _  ) , _) , _) →
-      ↑ _ A                                     }) λ {               ((((_ , lift _∙_) , _) , _) , lift e) →
-      ↑ _ (∀ x → e ∙ x ≡ x)                     }) λ {              (((((_ , lift _∙_) , _) , _) , lift e) , _) →
-      ↑ _ (∀ x → x ∙ e ≡ x)                     }) λ { ((((((((_ , A) , _) , _  ) , _) , _) , _) , _) , _) →
-      ↑ _ (A → A)                               }) λ {            (((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) →
-      ↑ _ (∀ x → (x ⁻¹) ∙ x ≡ e)                }) λ {           ((((((((_ , lift _∙_) , _) , _) , lift e) , _) , _) , lift _⁻¹) , _) →
-      ↑ _ (∀ x → x ∙ (x ⁻¹) ≡ e)                }
-  Abelian-group-unfolded = refl _
-
-  -- An unfolding of Isomorphic abelian-group.
-
-  Isomorphic-abelian-group-unfolded :
-    ∀ {A₁ : Set} {is₁ : Is-set A₁} {_∙₁_ : A₁ → A₁ → A₁}
-      {comm₁ : ∀ x y → x ∙₁ y ≡ y ∙₁ x}
-      {assoc₁ : ∀ x y z → x ∙₁ (y ∙₁ z) ≡ (x ∙₁ y) ∙₁ z}
-      {e₁ : A₁} {lid₁ : ∀ x → e₁ ∙₁ x ≡ x} {rid₁ : ∀ x → x ∙₁ e₁ ≡ x}
-      {_⁻¹₁ : A₁ → A₁} {linv₁ : ∀ x → (x ⁻¹₁) ∙₁ x ≡ e₁}
-      {rinv₁ : ∀ x → x ∙₁ (x ⁻¹₁) ≡ e₁}
-      {A₂ : Set} {is₂ : Is-set A₂} {_∙₂_ : A₂ → A₂ → A₂}
-      {comm₂ : ∀ x y → x ∙₂ y ≡ y ∙₂ x}
-      {assoc₂ : ∀ x y z → x ∙₂ (y ∙₂ z) ≡ (x ∙₂ y) ∙₂ z}
-      {e₂ : A₂} {lid₂ : ∀ x → e₂ ∙₂ x ≡ x} {rid₂ : ∀ x → x ∙₂ e₂ ≡ x}
-      {_⁻¹₂ : A₂ → A₂} {linv₂ : ∀ x → (x ⁻¹₂) ∙₂ x ≡ e₂}
-      {rinv₂ : ∀ x → x ∙₂ (x ⁻¹₂) ≡ e₂} →
-    Isomorphic abelian-group
-      (((((((((((_ , A₁) , lift is₁) , lift _∙₁_) , lift comm₁) ,
-       lift assoc₁) , lift e₁) , lift lid₁) , lift rid₁) , lift _⁻¹₁) ,
-       lift linv₁) , lift rinv₁)
-      (((((((((((_ , A₂) , lift is₂) , lift _∙₂_) , lift comm₂) ,
-       lift assoc₂) , lift e₂) , lift lid₂) , lift rid₂) , lift _⁻¹₂) ,
-       lift linv₂) , lift rinv₂) ≡
-    Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      ↑ _ (A₁ ≈ A₂)                          ) λ { _ →
-      ↑ _ ⊤                                 }) λ {       ((_ , lift A₁≈A₂) , _) →
-      let open _≈_ A₁≈A₂ in ↑ _ (
-        ∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y) }) λ { _ →
-      ↑ _ ⊤                                 }) λ { _ →
-      ↑ _ ⊤                                 }) λ {    (((((_ , lift A₁≈A₂) , _) , _) , _) , _) →
-      let open _≈_ A₁≈A₂ in ↑ _ (
-        to e₁ ≡ e₂)                         }) λ { _ →
-      ↑ _ ⊤                                 }) λ { _ →
-      ↑ _ ⊤                                 }) λ { ((((((((_ , lift A₁≈A₂) , _) , _) , _) , _) , _) , _) , _) →
-      let open _≈_ A₁≈A₂ in ↑ _ (
-        ∀ x → to (x ⁻¹₁) ≡ to x ⁻¹₂)        }) λ { _ →
-      ↑ _ ⊤                                 }) λ { _ →
-      ↑ _ ⊤                                 }
-  Isomorphic-abelian-group-unfolded = refl _
+  -- A cast function.
+
+  cast : (ass : Assumptions) →
+         ∀ {c} (σ : Ty c) {I J} →
+         Isomorphic ass c I J → ⟦ σ ⟧Π I ≈ ⟦ σ ⟧Π J
+
+  -- Reflexivity is mapped to identity.
+
+  cast-refl : (ass : Assumptions) →
+              ∀ {c} (σ : Ty c) {I} →
+              cast ass σ (reflexivity ass c I) ≡ Weak.id
+
+  -- Two definitions of isomorphism are weakly equivalent.
+
+  Iso≈Iso″ : (ass : Assumptions) →
+             ∀ {c} (σ : Ty c) {I J} (I≅J : Isomorphic ass c I J) {f g} →
+             Iso ass σ I≅J f g ≈ (_≈_.to (cast ass σ I≅J) f ≡ g)
+
+  -- Extension: Dependently-typed functions.
+
+  ext-with-resp {c} σ = record
+    { Ext       = ⟦ σ ⟧Π
+    ; Iso       = λ ass → Iso ass σ
+    ; resp      = λ ass I≅J → _≈_.to (cast ass σ I≅J)
+    ; resp-refl = λ ass f → cong (λ eq → _≈_.to eq f) $ cast-refl ass σ
+    ; Iso≈Iso″  = λ ass → Iso≈Iso″ ass σ
+    }
+
+  -- Interpretation of a dependent type.
+
+  ⟦ set    ⟧Π _ = Set
+  ⟦ base A ⟧Π I = Type A I
+  ⟦ Π σ τ  ⟧Π I = (x : ⟦ σ ⟧Π I) → ⟦ τ ⟧Π (I , x)
+
+  -- Isomorphisms between dependently typed functions.
+
+  Iso _   set      _   A B = ↑ _ (A ≈ B)
+  Iso ass (base A) I≅J x y = x ≡ _≈_.from (Type-cong A ass I≅J) y
+  Iso ass (Π σ τ)  I≅J f g = ∀ x y →
+    (x≅y : Iso ass σ I≅J x y) → Iso ass τ (I≅J , x≅y) (f x) (g y)
+
+  -- A cast function.
+
+  cast ass set      I≅J = Weak.id
+  cast ass (base A) I≅J = Type-cong A ass I≅J
+  cast ass (Π σ τ)  I≅J = Π-preserves ext₁
+    (cast ass σ I≅J)
+    (λ x → cast ass τ (I≅J , isomorphic-to-itself σ ass I≅J x))
+    where open Assumptions ass
+
+  abstract
+
+    -- Reflexivity is mapped to identity.
+
+    cast-refl ass     set          = refl Weak.id
+    cast-refl ass {c} (base A) {I} =
+
+      Type-cong A ass (reflexivity ass c I)  ≡⟨ Type-cong-reflexivity A ass I ⟩∎
+
+      Weak.id                                ∎
+
+    cast-refl ass {c} (Π σ τ) {I} =
+      let rfl   = reflexivity ass c I
+          rflE  = reflexivityE ass c (Dep σ) I in
+
+      lift-equality-inverse ext₁ $ ext₁ λ f → ext₁ λ x →
+
+        from (cast ass τ (rfl , isomorphic-to-itself σ ass rfl x))
+             (f (resp σ ass rfl x))                                 ≡⟨ cong (λ iso → from (cast ass τ (rfl , iso)) (f (resp σ ass rfl x))) $
+                                                                            isomorphic-to-itself-reflexivity σ ass I x ⟩
+        from (cast ass τ (rfl , subst (Iso ass σ rfl x)
+                                      (sym $ resp-refl σ ass x)
+                                      (rflE x)))
+             (f (resp σ ass rfl x))                                 ≡⟨ elim¹ (λ {y} x≡y →
+                                                                                from (cast ass τ (rfl , subst (Iso ass σ rfl x)
+                                                                                                              x≡y (rflE x)))
+                                                                                     (f y) ≡
+                                                                                f x)
+                                                                             (cong (λ h → _≈_.from h (f x)) $ cast-refl ass τ)
+                                                                             (sym $ resp-refl σ ass x) ⟩∎
+        f x                                                         ∎
+
+      where
+      open _≈_
+      open Assumptions ass
+
+  -- Two definitions of isomorphism are weakly equivalent.
+
+  Iso≈Iso‴ :
+    (ass : Assumptions) →
+    ∀ {c} (σ : Ty c) {I J} (I≅J : Isomorphic ass c I J) {f g} →
+    Iso ass σ I≅J f g ≈ (f ≡ _≈_.from (cast ass σ I≅J) g)
+
+  Iso≈Iso‴ ass set I≅J {A} {B} =
+
+    ↑ _ (A ≈ B)  ↔⟨ ↑↔ ⟩
+
+    (A ≈ B)      ↝⟨ inverse $ ≡≈≈ (Assumptions.univ ass) ⟩□
+
+    (A ≡ B)      □
+
+  Iso≈Iso‴ ass (base A) I≅J {x} {y} =
+
+    (x ≡ _≈_.from (Type-cong A ass I≅J) y)  □
+
+  Iso≈Iso‴ ass (Π σ τ) I≅J {f} {g} =
+    let iso-to-itself = isomorphic-to-itself σ ass I≅J in
+
+    (∀ x y (x≅y : Iso ass σ I≅J x y) →
+           Iso ass τ (I≅J , x≅y) (f x) (g y))                        ↝⟨ ∀-preserves ext₁ (λ x → ∀-preserves ext₁ λ y →
+                                                                          Π-preserves ext₁ (Iso≈Iso″ ass σ I≅J) (λ x≅y →
+           Iso ass τ (I≅J , x≅y) (f x) (g y)                                ↝⟨ Iso≈Iso″ ass τ (I≅J , x≅y) ⟩
+           (resp τ ass (I≅J , x≅y) (f x) ≡ g y)                             ↝⟨ ≡⇒≈ $ cong (λ x≅y → resp τ ass (I≅J , x≅y) (f x) ≡ g y) $
+                                                                                 sym $ left-inverse-of (Iso≈Iso″ ass σ I≅J) _ ⟩□
+           (resp τ ass (I≅J , from (Iso≈Iso″ ass σ I≅J)
+                                   (to (Iso≈Iso″ ass σ I≅J) x≅y))
+               (f x) ≡ g y)                                                 □)) ⟩
+
+    (∀ x y (x≡y : to (cast ass σ I≅J) x ≡ y) →
+           resp τ ass (I≅J , from (Iso≈Iso″ ass σ I≅J) x≡y) (f x) ≡
+           g y)                                                      ↝⟨ ∀-preserves ext₁ (λ x → inverse $ ↔⇒≈ $
+                                                                          ∀-intro ext₁ (λ y x≡y → _ ≡ _)) ⟩
+    (∀ x → resp τ ass (I≅J , iso-to-itself x) (f x) ≡
+           g (resp σ ass I≅J x))                                     ↔⟨ extensionality-isomorphism ext₁ ⟩
+
+    (resp τ ass (I≅J , iso-to-itself _) ∘ f ≡ g ∘ resp σ ass I≅J)    ↝⟨ to∘≡↔≡from∘ ext₁ (cast ass τ (I≅J , iso-to-itself _)) ⟩
+
+    (f ≡ from (cast ass τ (I≅J , iso-to-itself _)) ∘
+         g ∘ resp σ ass I≅J)                                         □
+
+    where
+    open _≈_
+    open Assumptions ass
+
+  abstract
+
+    -- Two definitions of isomorphism are weakly equivalent.
+
+    Iso≈Iso″ ass σ I≅J {f} {g} =
+      Iso ass σ I≅J f g                  ↝⟨ Iso≈Iso‴ ass σ I≅J ⟩
+
+      (f ≡ _≈_.from (cast ass σ I≅J) g)  ↝⟨ inverse $ from≡↔≡to (inverse $ cast ass σ I≅J) ⟩□
+
+      (_≈_.to (cast ass σ I≅J) f ≡ g)    □
+
+  ----------------------------------------------------------------------
+  -- An instantiation of the type extractor mechanism that gives us
+  -- support for polymorphic types
+
+  abstract
+
+    reflexivityE-set :
+      (ass : Assumptions) →
+      ∀ {c} {I : ⟦ c ⟧} {A} →
+      reflexivityE ass c (Dep set) I A ≡ lift Weak.id
+    reflexivityE-set ass {c} {I} {A} =
+
+      reflexivityE ass c (Dep set) I A                                 ≡⟨⟩
+
+      lift (≡⇒≈ (to (from≡↔≡to (inverse Weak.id))
+              (from (≡⇒≈ $ cong (λ B → B ≡ A) $
+                       isomorphic-to-itself″ set ass
+                         (reflexivity ass c I))
+                    (subst (λ eq → subst (λ _ → Set) eq A ≡ A)
+                           (sym $ right-inverse-of
+                                    (isomorphism≈equality ass c)
+                                    (refl I))
+                           (refl A)))))                                ≡⟨ cong (λ eq → lift (≡⇒≈ (to (from≡↔≡to (inverse Weak.id)) eq))) $ sym $
+                                                                            resp-refl-lemma set ass I A ⟩
+      lift (≡⇒≈ (to (from≡↔≡to (inverse Weak.id))
+                    (resp-refl set ass {I = I} A)))                    ≡⟨⟩
+
+      lift (≡⇒≈ (to (from≡↔≡to (inverse Weak.id)) (refl A)))           ≡⟨⟩
+
+      lift (≡⇒≈ (≡⇒→ (cong (λ B → B ≡ A)
+                           (right-inverse-of (inverse Weak.id) A))
+                     (cong id (refl A))))                              ≡⟨⟩
+
+      lift (≡⇒≈ (≡⇒→ (cong (λ B → B ≡ A) (left-inverse-of Weak.id A))
+                     (cong id (refl A))))                              ≡⟨ cong (λ eq → lift (≡⇒≈ (≡⇒→ (cong (λ B → B ≡ A) eq) (refl A))))
+                                                                          left-inverse-of-id  ⟩
+      lift (≡⇒≈ (≡⇒→ (cong (λ B → B ≡ A) (refl A)) (refl A)))          ≡⟨⟩
+
+      lift (≡⇒≈ (≡⇒→ (refl (A ≡ A)) (refl A)))                         ≡⟨⟩
+
+      lift (≡⇒≈ (refl A))                                              ≡⟨ refl _ ⟩∎
+
+      lift Weak.id                                                     ∎
+
+      where open _≈_
+
+  ⟨0⟩ : ∀ {c} → Extractor (c ▻ Dep set)
+  ⟨0⟩ {c} = record
+    { Type                  = λ { (_ , A) → ↑ _ A }
+    ; Type-cong             = λ { _ (_ , lift A≈B) → ↑-cong A≈B }
+    ; Type-cong-reflexivity = λ { ass (I , A) →
+        let open Assumptions ass; open _≈_ in
+
+        lift-equality ext₁ (ext₁ λ { (lift x) → cong lift (
+
+          to (lower (reflexivityE ass c (Dep set) I A)) x  ≡⟨ cong (λ eq → to (lower eq) x) $ reflexivityE-set ass ⟩∎
+
+          x                                                ∎ )})}
+    }
+
+------------------------------------------------------------------------
+-- Examples
+
+-- For examples, see
+-- Univalence-axiom.Isomorphism-implies-equality.More.Examples.

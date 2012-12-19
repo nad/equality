@@ -101,6 +101,7 @@ import Univalence-axiom.Isomorphism-implies-equality.Monoid
 import Univalence-axiom.Isomorphism-implies-equality.Simple
 import Univalence-axiom.Isomorphism-implies-equality.Simple.Variant
 import Univalence-axiom.Isomorphism-implies-equality.More
+import Univalence-axiom.Isomorphism-implies-equality.More.Examples
 
 -- A class of structures that satisfies the property that isomorphic
 -- instances of a structure are equal (assuming univalence). This code
