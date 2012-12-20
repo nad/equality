@@ -66,6 +66,9 @@ Univalence ℓ = {A B : Set ℓ} → Univalence′ A B
 ≡⇒→ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A → B
 ≡⇒→ = _≈_.to ∘ ≡⇒≈
 
+≡⇒← : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → B → A
+≡⇒← = _≈_.from ∘ ≡⇒≈
+
 ≈⇒≡ : ∀ {ℓ} {A B : Set ℓ} → Univalence′ A B → A ≈ B → A ≡ B
 ≈⇒≡ univ = _≈_.from (≡≈≈ univ)
 
