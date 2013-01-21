@@ -8,7 +8,7 @@
 -- the main theorem can be instantiated with several different
 -- "universes", not only the one based on simple types.
 
--- This module is very similar to
+-- This module is similar to
 -- Univalence-axiom.Isomorphism-implies-equality.Simple, but the
 -- definitions of isomorphism used below are perhaps closer to the
 -- "standard" ones. Carrier types also live in Set rather than Set₁
