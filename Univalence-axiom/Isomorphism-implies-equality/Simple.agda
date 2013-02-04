@@ -23,7 +23,7 @@ open import Bijection eq
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq
-open import Equivalence using (_⇔_; module _⇔_)
+open import Equivalence using (_⇔_; module _⇔_) renaming (_∘_ to _∘E_)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
@@ -289,11 +289,41 @@ abstract
   cast-id ext (a ⇾ b) = cong₂ →-cong-⇔ (cast-id ext a) (cast-id ext b)
   cast-id ext (a ⊗ b) = cong₂ _×-cong_ (cast-id ext a) (cast-id ext b)
   cast-id ext (a ⊕ b) =
-    cast a Equivalence.id ⊎-cong cast b Equivalence.id       ≡⟨ cong₂ _⊎-cong_ (cast-id ext a) (cast-id ext b) ⟩
-    record { to = [ inj₁ , inj₂ ]; from = [ inj₁ , inj₂ ] }  ≡⟨ cong₂ (λ f g → record { to = f; from = g })
-                                                                      (ext [ refl ∘ inj₁ , refl ∘ inj₂ ])
-                                                                      (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
-    Equivalence.id                                           ∎
+    cast a Equivalence.id ⊎-cong cast b Equivalence.id  ≡⟨ cong₂ _⊎-cong_ (cast-id ext a) (cast-id ext b) ⟩
+    Equivalence.id ⊎-cong Equivalence.id                ≡⟨ cong₂ (λ f g → record { to = f; from = g })
+                                                                 (ext [ refl ∘ inj₁ , refl ∘ inj₂ ])
+                                                                 (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
+    Equivalence.id                                      ∎
+
+  -- The following two properties are not used below.
+
+  -- The cast function respects composition (assuming extensionality).
+
+  cast-∘ : Extensionality (# 1) (# 1) →
+           ∀ a {B C D} (f : C ⇔ D) (g : B ⇔ C) →
+           cast a (f ∘E g) ≡ cast a f ∘E cast a g
+  cast-∘ ext id      f g = refl _
+  cast-∘ ext set     f g = refl _
+  cast-∘ ext (k A)   f g = refl _
+  cast-∘ ext (a ⇾ b) f g = cong₂ →-cong-⇔ (cast-∘ ext a f g) (cast-∘ ext b f g)
+  cast-∘ ext (a ⊗ b) f g = cong₂ _×-cong_ (cast-∘ ext a f g) (cast-∘ ext b f g)
+  cast-∘ ext (a ⊕ b) f g =
+    cast a (f ∘E g) ⊎-cong cast b (f ∘E g)                    ≡⟨ cong₂ _⊎-cong_ (cast-∘ ext a f g) (cast-∘ ext b f g) ⟩
+    cast a f ∘E cast a g ⊎-cong cast b f ∘E cast b g          ≡⟨ cong₂ (λ f g → record { to = f; from = g })
+                                                                       (ext [ (λ _ → refl _) , (λ _ → refl _) ])
+                                                                       (ext [ (λ _ → refl _) , (λ _ → refl _) ]) ⟩∎
+    (cast a f ⊎-cong cast b f) ∘E (cast a g ⊎-cong cast b g)  ∎
+
+  -- The cast function respects inverses.
+
+  cast-⁻¹ : ∀ a {B C} (f : B ⇔ C) →
+            cast a (inverse f) ≡ inverse (cast a f)
+  cast-⁻¹ id      f = refl _
+  cast-⁻¹ set     f = refl _
+  cast-⁻¹ (k A)   f = refl _
+  cast-⁻¹ (a ⇾ b) f = cong₂ →-cong-⇔ (cast-⁻¹ a f) (cast-⁻¹ b f)
+  cast-⁻¹ (a ⊗ b) f = cong₂ _×-cong_ (cast-⁻¹ a f) (cast-⁻¹ b f)
+  cast-⁻¹ (a ⊕ b) f = cong₂ _⊎-cong_ (cast-⁻¹ a f) (cast-⁻¹ b f)
 
 -- The universe above is a "universe with some extra stuff".
 
