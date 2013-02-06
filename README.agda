@@ -89,6 +89,10 @@ import Weak-equivalence
 
 import Univalence-axiom
 
+-- 1-categories.
+
+import Category
+
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
 
