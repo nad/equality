@@ -19,12 +19,12 @@ module Univalence-axiom.Isomorphism-implies-equality.Simple
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Bijection eq
-  hiding (id; inverse; _↔⟨_⟩_; finally-↔) renaming (_∘_ to _∘B_)
+  hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq
-open import Equivalence using (_⇔_; module _⇔_) renaming (_∘_ to _∘E_)
-open import Function-universe eq hiding (id; _∘_)
+open import Equivalence using (_⇔_; module _⇔_)
+open import Function-universe eq hiding (id) renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq
 open import Preimage eq
@@ -301,18 +301,18 @@ abstract
 
   cast-∘ : Extensionality (# 1) (# 1) →
            ∀ a {B C D} (f : C ⇔ D) (g : B ⇔ C) →
-           cast a (f ∘E g) ≡ cast a f ∘E cast a g
+           cast a (f ⊚ g) ≡ cast a f ⊚ cast a g
   cast-∘ ext id      f g = refl _
   cast-∘ ext set     f g = refl _
   cast-∘ ext (k A)   f g = refl _
   cast-∘ ext (a ⇾ b) f g = cong₂ →-cong-⇔ (cast-∘ ext a f g) (cast-∘ ext b f g)
   cast-∘ ext (a ⊗ b) f g = cong₂ _×-cong_ (cast-∘ ext a f g) (cast-∘ ext b f g)
   cast-∘ ext (a ⊕ b) f g =
-    cast a (f ∘E g) ⊎-cong cast b (f ∘E g)                    ≡⟨ cong₂ _⊎-cong_ (cast-∘ ext a f g) (cast-∘ ext b f g) ⟩
-    cast a f ∘E cast a g ⊎-cong cast b f ∘E cast b g          ≡⟨ cong₂ (λ f g → record { to = f; from = g })
-                                                                       (ext [ (λ _ → refl _) , (λ _ → refl _) ])
-                                                                       (ext [ (λ _ → refl _) , (λ _ → refl _) ]) ⟩∎
-    (cast a f ⊎-cong cast b f) ∘E (cast a g ⊎-cong cast b g)  ∎
+    cast a (f ⊚ g) ⊎-cong cast b (f ⊚ g)                     ≡⟨ cong₂ _⊎-cong_ (cast-∘ ext a f g) (cast-∘ ext b f g) ⟩
+    cast a f ⊚ cast a g ⊎-cong cast b f ⊚ cast b g           ≡⟨ cong₂ (λ f g → record { to = f; from = g })
+                                                                      (ext [ (λ _ → refl _) , (λ _ → refl _) ])
+                                                                      (ext [ (λ _ → refl _) , (λ _ → refl _) ]) ⟩∎
+    (cast a f ⊎-cong cast b f) ⊚ (cast a g ⊎-cong cast b g)  ∎
 
   -- The cast function respects inverses.
 
@@ -790,9 +790,9 @@ Instance-discrete-field-isomorphic-to-standard ext = ∃-cong λ F →
   (Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
      λ { (_+_ , 0# , _*_ , 1# , -_) →
          The-rest F _+_ 0# _*_ 1# -_ ×
-         (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)) })                   ↝⟨ ∃-cong (λ _ → inverse $ ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B
-                                                                                                   ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B
-                                                                                                   ×-assoc ∘B ×-assoc) ⟩□
+         (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)) })                   ↝⟨ ∃-cong (λ _ → inverse $ ×-assoc ⊚ ×-assoc ⊚ ×-assoc ⊚
+                                                                                                   ×-assoc ⊚ ×-assoc ⊚ ×-assoc ⊚
+                                                                                                   ×-assoc ⊚ ×-assoc) ⟩□
   (Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
     λ { (_+_ , 0# , _*_ , 1# , -_) →
         Is-set F ×
@@ -942,15 +942,15 @@ Instance-discrete-field-isomorphic-to-standard ext = ∃-cong λ F →
   lemma₁ : (A B C D E F : Set₁) →
            (A × B × C × D × E × F) ↔ ((A × B × C × D × E) × F)
   lemma₁ A B C D E F =
-    (A × B × C × D × E × F)          ↝⟨ ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B ×-assoc ⟩
-    (((((A × B) × C) × D) × E) × F)  ↝⟨ inverse (×-assoc ∘B ×-assoc ∘B ×-assoc) ×-cong (_ □) ⟩□
+    (A × B × C × D × E × F)          ↝⟨ ×-assoc ⊚ ×-assoc ⊚ ×-assoc ⊚ ×-assoc ⟩
+    (((((A × B) × C) × D) × E) × F)  ↝⟨ inverse (×-assoc ⊚ ×-assoc ⊚ ×-assoc) ×-cong (_ □) ⟩□
     ((A × B × C × D × E) × F)        □
 
   lemma₂ : (A B C D E F G H I J K : Set₁) →
            (A × B × C × D × E × F × G × H × I × J × K) ↔
            (((((((((A × B) × C) × D) × E) × F) × G) × H) × J) × I × K)
   lemma₂ A B C D E F G H I J K =
-    (A × B × C × D × E × F × G × H × I × J × K)                  ↝⟨ ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B ×-assoc ∘B ×-assoc ⟩
+    (A × B × C × D × E × F × G × H × I × J × K)                  ↝⟨ ×-assoc ⊚ ×-assoc ⊚ ×-assoc ⊚ ×-assoc ⊚ ×-assoc ⊚ ×-assoc ⊚ ×-assoc ⟩
     ((((((((A × B) × C) × D) × E) × F) × G) × H) × I × J × K)    ↝⟨ (_ □) ×-cong ×-assoc ⟩
     ((((((((A × B) × C) × D) × E) × F) × G) × H) × (I × J) × K)  ↝⟨ (_ □) ×-cong (×-comm ×-cong (_ □)) ⟩
     ((((((((A × B) × C) × D) × E) × F) × G) × H) × (J × I) × K)  ↝⟨ (_ □) ×-cong inverse ×-assoc ⟩
