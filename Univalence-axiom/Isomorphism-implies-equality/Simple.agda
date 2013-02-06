@@ -20,6 +20,7 @@ module Univalence-axiom.Isomorphism-implies-equality.Simple
 
 open import Bijection eq
   hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
+open import Category eq
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq
@@ -234,6 +235,190 @@ module Class (Univ : Universe) where
         Isomorphic c I₁ I₂        ↝⟨ isomorphic↔equal ass c ⟩□
         (I₁ ≡ I₂)                 □)
       where open Assumptions ass
+
+------------------------------------------------------------------------
+-- An aside: A limited variant of Class.isomorphic↔equal can be proved
+-- by using the "Abstract SIP Theorem" (see the HoTT Book)
+
+-- "Standard notions of structure".
+
+record Standard-notion-of-structure
+         {x₁ x₂} ℓ₁ ℓ₂ (X : Precategory x₁ x₂) :
+         Set (x₁ ⊔ x₂ ⊔ lsuc (ℓ₁ ⊔ ℓ₂)) where
+  open Precategory X renaming (id to ⟨id⟩)
+
+  field
+    P               : Obj → Set ℓ₁
+    P-set           : ∀ A → Is-set (P A)
+    H               : ∀ {X Y} (p : P X) (q : P Y) → Hom X Y → Set ℓ₂
+    H-prop          : ∀ {X Y} {p : P X} {q : P Y}
+                      (f : Hom X Y) → Propositional (H p q f)
+    H-id            : ∀ {X} {p : P X} → H p p ⟨id⟩
+    H-∘             : ∀ {X Y Z} {p : P X} {q : P Y} {r : P Z} {f g} →
+                      H p q f → H q r g → H p r (f ∙ g)
+    H-antisymmetric : ∀ {X} (p q : P X) →
+                      H p q ⟨id⟩ → H q p ⟨id⟩ → p ≡ q
+
+  abstract
+
+    -- Two Str morphisms (see below) of equal type are equal if their
+    -- first components are equal.
+
+    lift-equality-Str : {X Y : ∃ P} {f g : ∃ (H (proj₂ X) (proj₂ Y))} →
+                        proj₁ f ≡ proj₁ g → f ≡ g
+    lift-equality-Str eq =
+      Σ-≡,≡→≡ eq (_⇔_.to propositional⇔irrelevant (H-prop _) _ _)
+
+  -- A derived precategory.
+
+  Str : Precategory (x₁ ⊔ ℓ₁) (x₂ ⊔ ℓ₂)
+  Str = record { precategory =
+    ∃ P ,
+    (λ { (X , p) (Y , q) →
+         ∃ (H p q) ,
+         Σ-closure 2 Hom-is-set (λ f → mono₁ 1 (H-prop f)) }) ,
+    (⟨id⟩ , H-id) ,
+    (λ { (f , hf) (g , hg) → f ∙ g , H-∘ hf hg }) ,
+    lift-equality-Str left-identity ,
+    lift-equality-Str right-identity ,
+    lift-equality-Str assoc }
+
+-- The statement of the Abstract SIP Theorem.
+--
+-- I (NAD) have not seen a formalisation of the theorem, and I am not
+-- 100% certain that the statement below is correct. For instance, I
+-- have made the theorem universe-polymorphic, but I am not sure if
+-- the statement of the theorem (in the draft of the HoTT Book that I
+-- looked at) is supposed to be read universe-polymorphically.
+
+Abstract-SIP-Theorem :
+  (x₁ x₂ ℓ₁ ℓ₂ : Level) → Set (lsuc (x₁ ⊔ x₂ ⊔ ℓ₁ ⊔ ℓ₂))
+Abstract-SIP-Theorem x₁ x₂ ℓ₁ ℓ₂ =
+  (X : Category x₁ x₂) →
+  (S : Standard-notion-of-structure ℓ₁ ℓ₂ (Category.precategory X)) →
+  ∀ {X Y} → Is-weak-equivalence
+              (Precategory.≡→≅ (Standard-notion-of-structure.Str S)
+                               {X} {Y})
+
+-- The "Abstract SIP Theorem", as stated above, can be used to prove a
+-- limited variant of Class.isomorphic↔equal.
+
+isomorphic↔equal-is-corollary :
+  Abstract-SIP-Theorem (# 2) (# 1) (# 1) (# 1) →
+  (Univ : Universe) → let open Universe Univ in
+  (∀ a {B C D} (f : C ≈ D) (g : B ≈ C) →
+     resp a (f ⊚ g) ≡ resp a f ∘ resp a g) →
+  (∀ a {B C x y} (f : B ≈ C) →
+     resp a f x ≡ y → resp a (inverse f) y ≡ x) →
+  (∀ a {B} → Is-set B → Is-set (El a B)) →
+  Assumptions →
+  ∀ c {I J} →
+  Is-set (proj₁ I) → Is-set (proj₁ J) →
+  Class.Isomorphic Univ c I J ↔ (I ≡ J)
+isomorphic↔equal-is-corollary
+  sip Univ resp-∘ resp-⁻¹ El-set ass
+  (a , P) {C , x , p} {D , y , q} C-set D-set =
+
+  Isomorphic (a , P) (C , x , p) (D , y , q)  ↝⟨ (let ≈≈≅ = ≈≈≅-Set (# 1) ext Cs Ds in
+                                                  Σ-cong ≈≈≅ (λ C≈D →
+                                                    let C≈D′ = _≈_.from ≈≈≅ (_≈_.to ≈≈≅ C≈D) in
+                                                    Is-isomorphism C≈D  a x y  ↝⟨ ≡⇒↝ _ $ cong (λ eq → Is-isomorphism eq a x y) $ sym $
+                                                                                    _≈_.left-inverse-of ≈≈≅ C≈D ⟩
+                                                    Is-isomorphism C≈D′ a x y  □)) ⟩
+  ∃ (H {X = Cs} {Y = Ds} x y)                 ↝⟨ inverse ×-right-identity ⟩
+  ∃ (H {X = Cs} {Y = Ds} x y) × ⊤             ↝⟨ ∃-cong (λ I≅J → inverse $ contractible↔⊤ $ propositional⇒inhabited⇒contractible
+                                                                   (Precategory.Is-isomorphism-propositional Str I≅J)
+                                                                   (Str-homs-are-isos I≅J)) ⟩
+  ((Cs , x) ≅-Str (Ds , y))                   ↔⟨ inverse $ weq _ (sip X≅ S {X = Cs , x} {Y = Ds , y}) ⟩
+  ((Cs , x) ≡ (Ds , y))                       ↔⟨ ≈-≡ $ ↔⇒≈ (Σ-assoc ⊚ ∃-cong (λ _ → ×-comm) ⊚ inverse Σ-assoc) ⟩
+  (((C , x) , C-set) ≡ ((D , y) , D-set))     ↝⟨ inverse $ ignore-propositional-component (H-level-propositional ext 2) ⟩
+  ((C , x) ≡ (D , y))                         ↝⟨ ignore-propositional-component (proj₂ (P D y) ass) ⟩
+  (((C , x) , p) ≡ ((D , y) , q))             ↔⟨ ≈-≡ $ ↔⇒≈ Σ-assoc ⟩□
+  ((C , x , p) ≡ (D , y , q))                 □
+
+  where
+  open Assumptions ass
+  open Universe Univ
+  open Class Univ using (Isomorphic)
+
+  -- Some abbreviations.
+
+  X : Category (# 2) (# 1)
+  X = category-Set (# 1) ext univ₁
+
+  open Category X using (_≅_)
+
+  Cs : Category.Obj X
+  Cs = C , C-set
+
+  Ds : Category.Obj X
+  Ds = D , D-set
+
+  ≅⇒≈ : (C D : Category.Obj X) → C ≅ D → Type C ≈ Type D
+  ≅⇒≈ C D = _≈_.from (≈≈≅-Set (# 1) ext C D)
+
+  -- The underlying category.
+
+  X≅ : Category (# 2) (# 1)
+  X≅ = category-Set-≅ (# 1) ext univ₁
+
+  -- The "standard notion of structure" that the theorem is
+  -- instantiated with.
+
+  S : Standard-notion-of-structure (# 1) (# 1) (Category.precategory X≅)
+  S = record
+    { P               = El a ∘ Type
+    ; P-set           = El-set a ∘ proj₂
+    ; H               = λ {C D} x y C≅D →
+                          Is-isomorphism (≅⇒≈ C D C≅D) a x y
+    ; H-prop          = λ {_ C} _ → El-set a (proj₂ C) _ _
+    ; H-id            = λ {C x} →
+                          resp a (≅⇒≈ C C (Category.id X≅ {X = C})) x  ≡⟨ cong (λ eq → resp a eq x) $ Weak.lift-equality ext (refl _) ⟩
+                          resp a Weak.id x                             ≡⟨ resp-id ass a x ⟩∎
+                          x                                            ∎
+    ; H-∘             = λ {B C D x y z B≅C C≅D} x≅y y≅z →
+                          resp a (≅⇒≈ B D (Category._∙_ X≅ B≅C C≅D)) x   ≡⟨ cong (λ eq → resp a eq x) $ Weak.lift-equality ext (refl _) ⟩
+                          resp a (≅⇒≈ C D C≅D ⊚ ≅⇒≈ B C B≅C) x           ≡⟨ cong (λ h → h x) $ resp-∘ a (≅⇒≈ C D C≅D) (≅⇒≈ B C B≅C) ⟩
+                          resp a (≅⇒≈ C D C≅D) (resp a (≅⇒≈ B C B≅C) x)  ≡⟨ cong (resp a (≅⇒≈ C D C≅D)) x≅y ⟩
+                          resp a (≅⇒≈ C D C≅D) y                         ≡⟨ y≅z ⟩∎
+                          z                                              ∎
+    ; H-antisymmetric = λ {C} x y x≡y _ →
+                          x                                            ≡⟨ sym $ resp-id ass a x ⟩
+                          resp a Weak.id x                             ≡⟨ cong (λ eq → resp a eq x) $ Weak.lift-equality ext (refl _) ⟩
+                          resp a (≅⇒≈ C C (Category.id X≅ {X = C})) x  ≡⟨ x≡y ⟩∎
+                          y                                            ∎
+    }
+
+  open Standard-notion-of-structure S using (H; Str; lift-equality-Str)
+  open Precategory Str using () renaming (_≅_ to _≅-Str_)
+
+  abstract
+
+    -- Every Str morphism is an isomorphism.
+
+    Str-homs-are-isos :
+      ∀ {C D x y} (f : ∃ (H {X = C} {Y = D} x y)) →
+      Precategory.Is-isomorphism Str {X = C , x} {Y = D , y} f
+    Str-homs-are-isos {C} {D} {x} {y} (C≅D , x≅y) =
+
+      (D≅C ,
+       (resp a (≅⇒≈ D C D≅C) y            ≡⟨ cong (λ eq → resp a eq y) $ Weak.lift-equality ext (refl _) ⟩
+        resp a (inverse $ ≅⇒≈ C D C≅D) y  ≡⟨ resp-⁻¹ a (≅⇒≈ C D C≅D) x≅y ⟩∎
+        x                                 ∎)) ,
+
+      lift-equality-Str {X = C , x} {Y = C , x} (
+        C≅D ∙≅ D≅C   ≡⟨ _≈_.from (≡≈≡¹ {X = C} {Y = C}) (_¹⁻¹ {X = C} {Y = D} C≅D) ⟩∎
+        id≅ {X = C}  ∎) ,
+
+      lift-equality-Str {X = D , y} {Y = D , y} (
+        D≅C ∙≅ C≅D   ≡⟨ _≈_.from (≡≈≡¹ {X = D} {Y = D}) (_⁻¹¹ {X = C} {Y = D} C≅D) ⟩∎
+        id≅ {X = D}  ∎)
+
+      where
+      open Category X using (_⁻¹≅; _∙≅_; id≅; _¹⁻¹; _⁻¹¹; ≡≈≡¹)
+
+      D≅C : D ≅ C
+      D≅C = _⁻¹≅ {X = C} {Y = D} C≅D
 
 ------------------------------------------------------------------------
 -- A universe of non-recursive, simple types
