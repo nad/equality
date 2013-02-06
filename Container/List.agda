@@ -93,7 +93,7 @@ List↔List {A} ext = record
                  (suc (length (to xs)) , P.lookup (P._∷_ x (to xs)))
                  (suc (proj₁ ys) , [ (λ _ → x) , proj₂ ys ])
     lemma₃ ≡ys = lemma₂ (proj₁ ≡,≡) (proj₂ ≡,≡)
-      where ≡,≡ = _↔_.from Σ-≡,≡↔≡ ≡ys
+      where ≡,≡ = Σ-≡,≡←≡ ≡ys
 
 -- The two definitions of Any are isomorphic (both via "to" and
 -- "from").

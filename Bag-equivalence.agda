@@ -560,7 +560,7 @@ abstract
              to (Fin-length xs) (z , p))
     lemma with z | p
              | to (Fin-length xs) (z , p)
-             | from Σ-≡,≡↔≡ (left-inverse-of (Fin-length xs) (z , p))
+             | Σ-≡,≡←≡ (left-inverse-of (Fin-length xs) (z , p))
     lemma | .(lookup xs i) | .(from (∈-lookup xs) (i , refl))
           | i | refl , refl = refl
 

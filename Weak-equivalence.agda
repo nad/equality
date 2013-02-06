@@ -952,7 +952,7 @@ abstract
         in
         subst B₁ (_≈_.injective A₁≈A₂ eq₁) x₂  ≡⟨ _↣_.injective (B₁↣B₂ y₁) lemma ⟩∎
         y₂                                     ∎) ⊚
-      _↔_.from Σ-≡,≡↔≡
+      Σ-≡,≡←≡
 
 ∃-preserves-surjections :
   ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}

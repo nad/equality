@@ -206,15 +206,15 @@ ignore-propositional-component {p = p₁ , p₂} {q₁ , q₂} Bq₁-prop = reco
     Σ-≡,≡→≡ p₁≡q₁ (_⇔_.to propositional⇔irrelevant Bq₁-prop _ _)
 
   from : (p₁ , p₂) ≡ (q₁ , q₂) → p₁ ≡ q₁
-  from = proj₁ ⊚ _↔_.from Σ-≡,≡↔≡
+  from = proj₁ ⊚ Σ-≡,≡←≡
 
   abstract
 
     to∘from : ∀ p≡q → to (from p≡q) ≡ p≡q
     to∘from p≡q =
-      Σ-≡,≡→≡ (proj₁ $ _↔_.from Σ-≡,≡↔≡ p≡q) _  ≡⟨ cong (Σ-≡,≡→≡ _) $ _⇔_.to set⇔UIP (mono₁ 1 Bq₁-prop) _ _ ⟩
-      Σ-≡,≡→≡ (proj₁ $ _↔_.from Σ-≡,≡↔≡ p≡q) _  ≡⟨ _↔_.right-inverse-of Σ-≡,≡↔≡ _ ⟩∎
-      p≡q                                       ∎
+      Σ-≡,≡→≡ (proj₁ $ Σ-≡,≡←≡ p≡q) _  ≡⟨ cong (Σ-≡,≡→≡ _) $ _⇔_.to set⇔UIP (mono₁ 1 Bq₁-prop) _ _ ⟩
+      Σ-≡,≡→≡ (proj₁ $ Σ-≡,≡←≡ p≡q) _  ≡⟨ _↔_.right-inverse-of Σ-≡,≡↔≡ _ ⟩∎
+      p≡q                              ∎
 
     from∘to : ∀ p₁≡q₁ → from (to p₁≡q₁) ≡ p₁≡q₁
     from∘to p₁≡q₁ =
