@@ -900,6 +900,19 @@ module Derived-definitions-and-properties
          cong₂ _,_ (refl x) q                                 ∎)
       p
 
+    -- Proof simplification rule for Σ-≡,≡←≡.
+
+    proj₁-Σ-≡,≡←≡ :
+      ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B}
+      (p₁≡p₂ : p₁ ≡ p₂) →
+      proj₁ (Σ-≡,≡←≡ p₁≡p₂) ≡ cong proj₁ p₁≡p₂
+    proj₁-Σ-≡,≡←≡ = elim
+      (λ p₁≡p₂ → proj₁ (Σ-≡,≡←≡ p₁≡p₂) ≡ cong proj₁ p₁≡p₂)
+      (λ p →
+         proj₁ (Σ-≡,≡←≡ (refl p))  ≡⟨ cong proj₁ $ Σ-≡,≡←≡-refl ⟩
+         refl (proj₁ p)            ≡⟨ sym $ cong-refl proj₁ ⟩∎
+         cong proj₁ (refl p)       ∎)
+
   -- A binary variant of subst.
 
   subst₂ : ∀ {a b p} {A : Set a} {B : A → Set b}
