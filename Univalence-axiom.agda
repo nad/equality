@@ -31,13 +31,13 @@ open import Weak-equivalence eq as Weak
 
 -- If two sets are equal, then they are weakly equivalent.
 
-≡⇒≈ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A ≈ B
-≡⇒≈ = ≡⇒↝ weak-equivalence
+≡⇒≃ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A ≃ B
+≡⇒≃ = ≡⇒↝ weak-equivalence
 
--- The univalence axiom states that ≡⇒≈ is a weak equivalence.
+-- The univalence axiom states that ≡⇒≃ is a weak equivalence.
 
 Univalence′ : ∀ {ℓ} → Set ℓ → Set ℓ → Set (lsuc ℓ)
-Univalence′ A B = Is-weak-equivalence (≡⇒≈ {A = A} {B = B})
+Univalence′ A B = Is-weak-equivalence (≡⇒≃ {A = A} {B = B})
 
 Univalence : ∀ ℓ → Set (lsuc ℓ)
 Univalence ℓ = {A B : Set ℓ} → Univalence′ A B
@@ -45,32 +45,32 @@ Univalence ℓ = {A B : Set ℓ} → Univalence′ A B
 -- An immediate consequence is that equalities are weakly equivalent
 -- to weak equivalences.
 
-≡≈≈ : ∀ {ℓ} {A B : Set ℓ} → Univalence′ A B → (A ≡ B) ≈ (A ≈ B)
-≡≈≈ univ = weq ≡⇒≈ univ
+≡≃≃ : ∀ {ℓ} {A B : Set ℓ} → Univalence′ A B → (A ≡ B) ≃ (A ≃ B)
+≡≃≃ univ = weq ≡⇒≃ univ
 
 -- In the case of sets equalities are weakly equivalent to bijections
 -- (if we add the assumption of extensionality).
 
-≡≈↔ : ∀ {ℓ} {A B : Set ℓ} →
+≡≃↔ : ∀ {ℓ} {A B : Set ℓ} →
       Univalence′ A B →
       Extensionality ℓ ℓ →
       Is-set A →
-      (A ≡ B) ≈ (A ↔ B)
-≡≈↔ {A = A} {B} univ ext A-set =
-  (A ≡ B)  ↝⟨ ≡≈≈ univ ⟩
-  (A ≈ B)  ↔⟨ inverse $ ↔↔≈ ext A-set ⟩□
+      (A ≡ B) ≃ (A ↔ B)
+≡≃↔ {A = A} {B} univ ext A-set =
+  (A ≡ B)  ↝⟨ ≡≃≃ univ ⟩
+  (A ≃ B)  ↔⟨ inverse $ ↔↔≃ ext A-set ⟩□
   (A ↔ B)  □
 
 -- Some abbreviations.
 
 ≡⇒→ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A → B
-≡⇒→ = _≈_.to ∘ ≡⇒≈
+≡⇒→ = _≃_.to ∘ ≡⇒≃
 
 ≡⇒← : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → B → A
-≡⇒← = _≈_.from ∘ ≡⇒≈
+≡⇒← = _≃_.from ∘ ≡⇒≃
 
-≈⇒≡ : ∀ {ℓ} {A B : Set ℓ} → Univalence′ A B → A ≈ B → A ≡ B
-≈⇒≡ univ = _≈_.from (≡≈≈ univ)
+≃⇒≡ : ∀ {ℓ} {A B : Set ℓ} → Univalence′ A B → A ≃ B → A ≡ B
+≃⇒≡ univ = _≃_.from (≡≃≃ univ)
 
 ------------------------------------------------------------------------
 -- A consequence: Set is not a set
@@ -95,16 +95,16 @@ abstract
   equality-can-have-infinitely-many-inhabitants univ =
     (ℕ , ℕ , cast ∘ p , cast-preserves-injections p p-injective)
     where
-    cast : ℕ ≈ ℕ → ℕ ≡ ℕ
-    cast = ≈⇒≡ univ
+    cast : ℕ ≃ ℕ → ℕ ≡ ℕ
+    cast = ≃⇒≡ univ
 
     cast-preserves-injections :
-      {A : Set} (f : A → ℕ ≈ ℕ) →
+      {A : Set} (f : A → ℕ ≃ ℕ) →
       Injective f → Injective (cast ∘ f)
     cast-preserves-injections f inj {x = x} {y = y} cast-f-x≡cast-f-y =
-      inj (f x               ≡⟨ sym $ _≈_.right-inverse-of (≡≈≈ univ) (f x) ⟩
-           ≡⇒≈ (cast (f x))  ≡⟨ cong ≡⇒≈ cast-f-x≡cast-f-y ⟩
-           ≡⇒≈ (cast (f y))  ≡⟨ _≈_.right-inverse-of (≡≈≈ univ) (f y) ⟩∎
+      inj (f x               ≡⟨ sym $ _≃_.right-inverse-of (≡≃≃ univ) (f x) ⟩
+           ≡⇒≃ (cast (f x))  ≡⟨ cong ≡⇒≃ cast-f-x≡cast-f-y ⟩
+           ≡⇒≃ (cast (f y))  ≡⟨ _≃_.right-inverse-of (≡≃≃ univ) (f y) ⟩∎
            f y               ∎)
 
     swap : ℕ → ℕ → ℕ
@@ -124,8 +124,8 @@ abstract
     ...   | inj₁ i≡1+n = ⊥-elim $ i≢1+n i≡1+n
     ...   | inj₂ _     = refl (suc n)
 
-    p : ℕ → ℕ ≈ ℕ
-    p i = ↔⇒≈ record
+    p : ℕ → ℕ ≃ ℕ
+    p i = ↔⇒≃ record
       { surjection = record
         { equivalence      = record { to = swap i; from = swap i }
         ; right-inverse-of = swap∘swap i
@@ -141,7 +141,7 @@ abstract
       i₂         ∎
       where
       swap-i₁≡swap-i₂ : swap i₁ ≡ swap i₂
-      swap-i₁≡swap-i₂ = cong _≈_.to p-i₁≡p-i₂
+      swap-i₁≡swap-i₂ = cong _≃_.to p-i₁≡p-i₂
 
   -- Set is not a set.
 
@@ -161,67 +161,67 @@ abstract
 
   subst-unique :
     ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
-    (resp : ∀ {A B} → A ≈ B → P A → P B) →
+    (resp : ∀ {A B} → A ≃ B → P A → P B) →
     (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
     ∀ {A B} (univ : Univalence′ A B) →
-    (A≈B : A ≈ B) (p : P A) →
-    resp A≈B p ≡ subst P (≈⇒≡ univ A≈B) p
-  subst-unique P resp resp-id univ A≈B p =
-    resp A≈B p              ≡⟨ sym $ cong (λ q → resp q p) (right-inverse-of A≈B) ⟩
-    resp (to (from A≈B)) p  ≡⟨ elim (λ {A B} A≡B → ∀ p →
-                                       resp (≡⇒≈ A≡B) p ≡ subst P A≡B p)
+    (A≃B : A ≃ B) (p : P A) →
+    resp A≃B p ≡ subst P (≃⇒≡ univ A≃B) p
+  subst-unique P resp resp-id univ A≃B p =
+    resp A≃B p              ≡⟨ sym $ cong (λ q → resp q p) (right-inverse-of A≃B) ⟩
+    resp (to (from A≃B)) p  ≡⟨ elim (λ {A B} A≡B → ∀ p →
+                                       resp (≡⇒≃ A≡B) p ≡ subst P A≡B p)
                                     (λ A p →
-                                       resp (≡⇒≈ (refl A)) p  ≡⟨ cong (λ q → resp q p) (elim-refl (λ {A B} _ → A ≈ B) _) ⟩
+                                       resp (≡⇒≃ (refl A)) p  ≡⟨ cong (λ q → resp q p) (elim-refl (λ {A B} _ → A ≃ B) _) ⟩
                                        resp Weak.id p         ≡⟨ resp-id p ⟩
                                        p                      ≡⟨ sym $ subst-refl P p ⟩∎
                                        subst P (refl A) p     ∎) _ _ ⟩∎
-    subst P (from A≈B) p    ∎
-    where open _≈_ (≡≈≈ univ)
+    subst P (from A≃B) p    ∎
+    where open _≃_ (≡≃≃ univ)
 
   -- If the univalence axiom holds, then any "resp" function
   -- satisfying resp Weak.id p ≡ p is a weak equivalence family.
 
   resp-is-weak-equivalence :
     ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
-    (resp : ∀ {A B} → A ≈ B → P A → P B) →
+    (resp : ∀ {A B} → A ≃ B → P A → P B) →
     (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
     ∀ {A B} (univ : Univalence′ A B) →
-    (A≈B : A ≈ B) → Is-weak-equivalence (resp A≈B)
-  resp-is-weak-equivalence P resp resp-id univ A≈B =
+    (A≃B : A ≃ B) → Is-weak-equivalence (resp A≃B)
+  resp-is-weak-equivalence P resp resp-id univ A≃B =
     Weak.respects-extensional-equality
-      (λ p → sym $ subst-unique P resp resp-id univ A≈B p)
-      (subst-is-weak-equivalence P (≈⇒≡ univ A≈B))
+      (λ p → sym $ subst-unique P resp resp-id univ A≃B p)
+      (subst-is-weak-equivalence P (≃⇒≡ univ A≃B))
 
   -- If f is a weak equivalence, then (non-dependent) precomposition
   -- with f is also a weak equivalence (assuming univalence).
 
   precomposition-is-weak-equivalence :
     ∀ {ℓ c} {A B : Set ℓ} {C : Set c} →
-    Univalence′ B A → (A≈B : A ≈ B) →
-    Is-weak-equivalence (λ (g : B → C) → g ∘ _≈_.to A≈B)
-  precomposition-is-weak-equivalence {ℓ} {c} {C = C} univ A≈B =
-    resp-is-weak-equivalence P resp refl univ (Weak.inverse A≈B)
+    Univalence′ B A → (A≃B : A ≃ B) →
+    Is-weak-equivalence (λ (g : B → C) → g ∘ _≃_.to A≃B)
+  precomposition-is-weak-equivalence {ℓ} {c} {C = C} univ A≃B =
+    resp-is-weak-equivalence P resp refl univ (Weak.inverse A≃B)
     where
     P : Set ℓ → Set (ℓ ⊔ c)
     P X = X → C
 
-    resp : ∀ {A B} → A ≈ B → P A → P B
-    resp A≈B p = p ∘ _≈_.from A≈B
+    resp : ∀ {A B} → A ≃ B → P A → P B
+    resp A≃B p = p ∘ _≃_.from A≃B
 
 -- If h is a weak equivalence, then one can cancel (non-dependent)
 -- precompositions with h (assuming univalence).
 
 precompositions-cancel :
   ∀ {ℓ c} {A B : Set ℓ} {C : Set c} →
-  Univalence′ B A → (A≈B : A ≈ B) {f g : B → C} →
-  let open _≈_ A≈B in
+  Univalence′ B A → (A≃B : A ≃ B) {f g : B → C} →
+  let open _≃_ A≃B in
   f ∘ to ≡ g ∘ to → f ≡ g
-precompositions-cancel univ A≈B {f} {g} f∘to≡g∘to =
+precompositions-cancel univ A≃B {f} {g} f∘to≡g∘to =
   f            ≡⟨ sym $ left-inverse-of f ⟩
   from (to f)  ≡⟨ cong from f∘to≡g∘to ⟩
   from (to g)  ≡⟨ left-inverse-of g ⟩∎
   g            ∎
-  where open _≈_ (weq _ (precomposition-is-weak-equivalence univ A≈B))
+  where open _≃_ (weq _ (precomposition-is-weak-equivalence univ A≃B))
 
 -- Pairs of equal elements.
 
@@ -269,7 +269,7 @@ abstract
     f′≡g′ : f′ ≡ g′
     f′≡g′ = precompositions-cancel
               univ
-              (↔⇒≈ $ Bijection.inverse -²/≡↔-)
+              (↔⇒≃ $ Bijection.inverse -²/≡↔-)
               (refl id)
 
     pair : A → B ²/≡
@@ -288,7 +288,7 @@ abstract
     where
     const-⊤≡B : const (↑ b ⊤) ≡ B
     const-⊤≡B = extensionality univ₁ λ x →
-      _≈_.from (≡≈≈ (univ₂ x)) $ ↔⇒≈ $
+      _≃_.from (≡≃≃ (univ₂ x)) $ ↔⇒≃ $
         Bijection.contractible-isomorphic
           (↑-closure 0 ⊤-contractible) (contr x)
 
@@ -320,7 +320,7 @@ abstract
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
     {A B : Set ℓ} → Propositional (Univalence′ A B)
   Univalence′-propositional ext =
-    Weak.propositional ext ≡⇒≈
+    Weak.propositional ext ≡⇒≃
 
   Univalence-propositional :
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
@@ -356,29 +356,29 @@ abstract
   subst-unique′-refl :
     ∀ {a p r} {A : Set a}
     (P : A → Set p) (R : A → A → Set r)
-    (≡≈R : ∀ {x y} → (x ≡ y) ≈ R x y)
+    (≡≃R : ∀ {x y} → (x ≡ y) ≃ R x y)
     (resp : ∀ {x y} → R x y → P x → P y) →
-    (resp-refl : ∀ x p → resp (_≈_.to ≡≈R (refl x)) p ≡ p) →
+    (resp-refl : ∀ x p → resp (_≃_.to ≡≃R (refl x)) p ≡ p) →
     ∀ {x} (p : P x) →
-    subst-unique′ P R (_≈_.surjection ≡≈R) resp resp-refl
-                  (_≈_.to ≡≈R (refl x)) p ≡
+    subst-unique′ P R (_≃_.surjection ≡≃R) resp resp-refl
+                  (_≃_.to ≡≃R (refl x)) p ≡
     trans (trans (resp-refl x p) (sym $ subst-refl P p))
           (cong (λ eq → subst P eq p)
-                (sym (_≈_.left-inverse-of ≡≈R (refl x))))
-  subst-unique′-refl P R ≡≈R resp resp-refl {x} p =
+                (sym (_≃_.left-inverse-of ≡≃R (refl x))))
+  subst-unique′-refl P R ≡≃R resp resp-refl {x} p =
 
     let body = λ x p → trans (resp-refl x p) (sym $ subst-refl P p)
 
         lemma =
           trans (sym $ cong (λ r → resp (to r) p) $ refl (refl x))
                 (elim (λ {x y} x≡y →
-                         ∀ p → resp (_≈_.to ≡≈R x≡y) p ≡ subst P x≡y p)
+                         ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
                       (λ x p → trans (resp-refl x p)
                                      (sym $ subst-refl P p))
                       (refl x) p)                                        ≡⟨ cong₂ (λ q r → trans q (r p))
                                                                                   (sym $ cong-sym (λ r → resp (to r) p) _)
                                                                                   (elim-refl (λ {x y} x≡y → ∀ p →
-                                                                                                resp (_≈_.to ≡≈R x≡y) p ≡ subst P x≡y p) _) ⟩
+                                                                                                resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p) _) ⟩
           trans (cong (λ r → resp (to r) p) $ sym $ refl (refl x))
                 (body x p)                                               ≡⟨ cong (λ q → trans (cong (λ r → resp (to r) p) q) (body x p))
                                                                                  sym-refl ⟩
@@ -399,27 +399,27 @@ abstract
 
     trans (sym $ cong (λ r → resp r p) $ right-inverse-of (to (refl x)))
           (elim (λ {x y} x≡y →
-                   ∀ p → resp (_≈_.to ≡≈R x≡y) p ≡ subst P x≡y p)
+                   ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
                 body (from (to (refl x))) p)                              ≡⟨ cong (λ eq → trans (sym $ cong (λ r → resp r p) eq)
                                                                                                 (elim (λ {x y} x≡y → ∀ p →
-                                                                                                         resp (_≈_.to ≡≈R x≡y) p ≡ subst P x≡y p)
+                                                                                                         resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
                                                                                                       body (from (to (refl x))) p)) $
                                                                                   sym $ left-right-lemma (refl x) ⟩
     trans (sym $ cong (λ r → resp r p) $ cong to $
              left-inverse-of (refl x))
           (elim (λ {x y} x≡y →
-                   ∀ p → resp (_≈_.to ≡≈R x≡y) p ≡ subst P x≡y p)
+                   ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
                 body (from (to (refl x))) p)                              ≡⟨ cong (λ eq → trans (sym eq)
                                                                                                 (elim (λ {x y} x≡y → ∀ p →
-                                                                                                         resp (_≈_.to ≡≈R x≡y) p ≡ subst P x≡y p)
+                                                                                                         resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
                                                                                                       body (from (to (refl x))) p)) $
                                                                                   cong-∘ (λ r → resp r p) to _ ⟩
     trans (sym $ cong (λ r → resp (to r) p) $ left-inverse-of (refl x))
           (elim (λ {x y} x≡y →
-                   ∀ p → resp (_≈_.to ≡≈R x≡y) p ≡ subst P x≡y p)
+                   ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
                 body (from (to (refl x))) p)                              ≡⟨ elim₁ (λ {q} eq → trans (sym $ cong (λ r → resp (to r) p) eq)
                                                                                                      (elim (λ {x y} x≡y → ∀ p →
-                                                                                                              resp (_≈_.to ≡≈R x≡y) p ≡
+                                                                                                              resp (_≃_.to ≡≃R x≡y) p ≡
                                                                                                               subst P x≡y p)
                                                                                                            body q p) ≡
                                                                                                trans (body x p)
@@ -430,7 +430,7 @@ abstract
     trans (body x p)
           (cong (λ eq → subst P eq p) (sym (left-inverse-of (refl x))))   ∎
 
-    where open _≈_ ≡≈R
+    where open _≃_ ≡≃R
 
   -- A variant of resp-is-weak-equivalence.
 
@@ -446,146 +446,146 @@ abstract
       (λ p → sym $ subst-unique′ P R ≡↠R resp hyp r p)
       (subst-is-weak-equivalence P (_↠_.from ≡↠R r))
 
-  -- "Evaluation rule" for ≡⇒≈.
+  -- "Evaluation rule" for ≡⇒≃.
 
-  ≡⇒≈-refl : ∀ {a} {A : Set a} →
-             ≡⇒≈ (refl A) ≡ Weak.id
-  ≡⇒≈-refl = ≡⇒↝-refl
+  ≡⇒≃-refl : ∀ {a} {A : Set a} →
+             ≡⇒≃ (refl A) ≡ Weak.id
+  ≡⇒≃-refl = ≡⇒↝-refl
 
   -- "Evaluation rule" for ≡⇒→.
 
   ≡⇒→-refl : ∀ {a} {A : Set a} →
              ≡⇒→ (refl A) ≡ id
-  ≡⇒→-refl = cong _≈_.to ≡⇒≈-refl
+  ≡⇒→-refl = cong _≃_.to ≡⇒≃-refl
 
-  -- "Evaluation rule" (?) for ≈⇒≡.
+  -- "Evaluation rule" (?) for ≃⇒≡.
 
-  ≈⇒≡-id : ∀ {a} {A : Set a}
+  ≃⇒≡-id : ∀ {a} {A : Set a}
            (univ : Univalence′ A A) →
-           ≈⇒≡ univ Weak.id ≡ refl A
-  ≈⇒≡-id univ =
-    ≈⇒≡ univ Weak.id         ≡⟨ sym $ cong (≈⇒≡ univ) ≡⇒≈-refl ⟩
-    ≈⇒≡ univ (≡⇒≈ (refl _))  ≡⟨ _≈_.left-inverse-of (≡≈≈ univ) _ ⟩∎
+           ≃⇒≡ univ Weak.id ≡ refl A
+  ≃⇒≡-id univ =
+    ≃⇒≡ univ Weak.id         ≡⟨ sym $ cong (≃⇒≡ univ) ≡⇒≃-refl ⟩
+    ≃⇒≡ univ (≡⇒≃ (refl _))  ≡⟨ _≃_.left-inverse-of (≡≃≃ univ) _ ⟩∎
     refl _                   ∎
 
-  -- ≡⇒≈ commutes with sym/Weak.inverse (assuming extensionality).
+  -- ≡⇒≃ commutes with sym/Weak.inverse (assuming extensionality).
 
-  ≡⇒≈-sym :
+  ≡⇒≃-sym :
     ∀ {ℓ} → Extensionality ℓ ℓ →
     {A B : Set ℓ} (A≡B : A ≡ B) →
-    ≡⇒≈ (sym A≡B) ≡ Weak.inverse (≡⇒≈ A≡B)
-  ≡⇒≈-sym ext = elim¹
+    ≡⇒≃ (sym A≡B) ≡ Weak.inverse (≡⇒≃ A≡B)
+  ≡⇒≃-sym ext = elim¹
 
-    (λ eq → ≡⇒≈ (sym eq) ≡ Weak.inverse (≡⇒≈ eq))
+    (λ eq → ≡⇒≃ (sym eq) ≡ Weak.inverse (≡⇒≃ eq))
 
-    (≡⇒≈ (sym (refl _))           ≡⟨ cong ≡⇒≈ sym-refl ⟩
-     ≡⇒≈ (refl _)                 ≡⟨ ≡⇒≈-refl ⟩
+    (≡⇒≃ (sym (refl _))           ≡⟨ cong ≡⇒≃ sym-refl ⟩
+     ≡⇒≃ (refl _)                 ≡⟨ ≡⇒≃-refl ⟩
      Weak.id                      ≡⟨ sym $ Groupoid.identity (Weak.groupoid ext) ⟩
-     Weak.inverse Weak.id         ≡⟨ cong Weak.inverse $ sym ≡⇒≈-refl ⟩∎
-     Weak.inverse (≡⇒≈ (refl _))  ∎)
+     Weak.inverse Weak.id         ≡⟨ cong Weak.inverse $ sym ≡⇒≃-refl ⟩∎
+     Weak.inverse (≡⇒≃ (refl _))  ∎)
 
-  -- ≡⇒≈ commutes with trans/_⊚_ (assuming extensionality).
+  -- ≡⇒≃ commutes with trans/_⊚_ (assuming extensionality).
 
-  ≡⇒≈-trans :
+  ≡⇒≃-trans :
     ∀ {ℓ} → Extensionality ℓ ℓ →
     {A B C : Set ℓ} (A≡B : A ≡ B) (B≡C : B ≡ C) →
-    ≡⇒≈ (trans A≡B B≡C) ≡ ≡⇒≈ B≡C ⊚ ≡⇒≈ A≡B
-  ≡⇒≈-trans ext A≡B = elim¹
+    ≡⇒≃ (trans A≡B B≡C) ≡ ≡⇒≃ B≡C ⊚ ≡⇒≃ A≡B
+  ≡⇒≃-trans ext A≡B = elim¹
 
-    (λ eq → ≡⇒≈ (trans A≡B eq) ≡ ≡⇒≈ eq ⊚ ≡⇒≈ A≡B)
+    (λ eq → ≡⇒≃ (trans A≡B eq) ≡ ≡⇒≃ eq ⊚ ≡⇒≃ A≡B)
 
-    (≡⇒≈ (trans A≡B (refl _))  ≡⟨ cong ≡⇒≈ $ trans-reflʳ _ ⟩
-     ≡⇒≈ A≡B                   ≡⟨ sym $ Groupoid.left-identity (Weak.groupoid ext) _ ⟩
-     Weak.id ⊚ ≡⇒≈ A≡B         ≡⟨ sym $ cong (λ eq → eq ⊚ ≡⇒≈ A≡B) ≡⇒≈-refl ⟩∎
-     ≡⇒≈ (refl _) ⊚ ≡⇒≈ A≡B    ∎)
+    (≡⇒≃ (trans A≡B (refl _))  ≡⟨ cong ≡⇒≃ $ trans-reflʳ _ ⟩
+     ≡⇒≃ A≡B                   ≡⟨ sym $ Groupoid.left-identity (Weak.groupoid ext) _ ⟩
+     Weak.id ⊚ ≡⇒≃ A≡B         ≡⟨ sym $ cong (λ eq → eq ⊚ ≡⇒≃ A≡B) ≡⇒≃-refl ⟩∎
+     ≡⇒≃ (refl _) ⊚ ≡⇒≃ A≡B    ∎)
 
-  -- One can express subst in terms of ≡⇒≈.
+  -- One can express subst in terms of ≡⇒≃.
 
-  subst-in-terms-of-≡⇒≈ :
+  subst-in-terms-of-≡⇒≃ :
     ∀ {a p} {A : Set a} {x y} (x≡y : x ≡ y) (P : A → Set p) p →
     subst P x≡y p ≡ ≡⇒→ (cong P x≡y) p
-  subst-in-terms-of-≡⇒≈ x≡y P p = elim¹
+  subst-in-terms-of-≡⇒≃ x≡y P p = elim¹
 
     (λ eq → subst P eq p ≡ ≡⇒→ (cong P eq) p)
 
     (subst P (refl _) p       ≡⟨ subst-refl P p ⟩
      p                        ≡⟨⟩
-     _≈_.to Weak.id p         ≡⟨ sym $ cong (λ eq → _≈_.to eq p) ≡⇒≈-refl ⟩
+     _≃_.to Weak.id p         ≡⟨ sym $ cong (λ eq → _≃_.to eq p) ≡⇒≃-refl ⟩
      ≡⇒→ (refl _) p           ≡⟨ sym $ cong (λ eq → ≡⇒→ eq p) $ cong-refl P ⟩∎
      ≡⇒→ (cong P (refl _)) p  ∎)
 
     x≡y
 
-  subst-in-terms-of-from∘≡⇒≈ :
+  subst-in-terms-of-from∘≡⇒≃ :
     ∀ {a p} → Extensionality p p →
     ∀ {A : Set a} {x y} (x≡y : x ≡ y) (P : A → Set p) p →
-    subst P (sym x≡y) p ≡ _≈_.from (≡⇒≈ (cong P x≡y)) p
-  subst-in-terms-of-from∘≡⇒≈ ext x≡y P p =
-    subst P (sym x≡y) p                ≡⟨ subst-in-terms-of-≡⇒≈ (sym x≡y) P p ⟩
-    _≈_.to (≡⇒≈ (cong P (sym x≡y))) p  ≡⟨ cong (λ eq → _≈_.to (≡⇒≈ eq) p) $ cong-sym P _ ⟩
-    _≈_.to (≡⇒≈ (sym $ cong P x≡y)) p  ≡⟨ cong (λ eq → _≈_.to eq p) $ ≡⇒≈-sym ext _ ⟩∎
-    _≈_.from (≡⇒≈ (cong P x≡y)) p      ∎
+    subst P (sym x≡y) p ≡ _≃_.from (≡⇒≃ (cong P x≡y)) p
+  subst-in-terms-of-from∘≡⇒≃ ext x≡y P p =
+    subst P (sym x≡y) p                ≡⟨ subst-in-terms-of-≡⇒≃ (sym x≡y) P p ⟩
+    _≃_.to (≡⇒≃ (cong P (sym x≡y))) p  ≡⟨ cong (λ eq → _≃_.to (≡⇒≃ eq) p) $ cong-sym P _ ⟩
+    _≃_.to (≡⇒≃ (sym $ cong P x≡y)) p  ≡⟨ cong (λ eq → _≃_.to eq p) $ ≡⇒≃-sym ext _ ⟩∎
+    _≃_.from (≡⇒≃ (cong P x≡y)) p      ∎
 
-  -- A lemma relating ≈⇒≡, →-cong and cong₂.
+  -- A lemma relating ≃⇒≡, →-cong and cong₂.
 
-  ≈⇒≡-→-cong :
+  ≃⇒≡-→-cong :
     ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ}
     (ext : Extensionality ℓ ℓ) →
     (univ : Univalence ℓ)
-    (A₁≈A₂ : A₁ ≈ A₂) (B₁≈B₂ : B₁ ≈ B₂) →
-    ≈⇒≡ univ (→-cong ext A₁≈A₂ B₁≈B₂) ≡
-      cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂) (≈⇒≡ univ B₁≈B₂)
-  ≈⇒≡-→-cong {A₂ = A₂} {B₁} ext univ A₁≈A₂ B₁≈B₂ =
-    ≈⇒≡ univ (→-cong ext A₁≈A₂ B₁≈B₂)                        ≡⟨ cong (≈⇒≡ univ) (lift-equality ext lemma) ⟩
+    (A₁≃A₂ : A₁ ≃ A₂) (B₁≃B₂ : B₁ ≃ B₂) →
+    ≃⇒≡ univ (→-cong ext A₁≃A₂ B₁≃B₂) ≡
+      cong₂ (λ A B → A → B) (≃⇒≡ univ A₁≃A₂) (≃⇒≡ univ B₁≃B₂)
+  ≃⇒≡-→-cong {A₂ = A₂} {B₁} ext univ A₁≃A₂ B₁≃B₂ =
+    ≃⇒≡ univ (→-cong ext A₁≃A₂ B₁≃B₂)                        ≡⟨ cong (≃⇒≡ univ) (lift-equality ext lemma) ⟩
 
-    ≈⇒≡ univ (≡⇒≈ (cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂)
-                                         (≈⇒≡ univ B₁≈B₂)))  ≡⟨ left-inverse-of (≡≈≈ univ) _ ⟩∎
+    ≃⇒≡ univ (≡⇒≃ (cong₂ (λ A B → A → B) (≃⇒≡ univ A₁≃A₂)
+                                         (≃⇒≡ univ B₁≃B₂)))  ≡⟨ left-inverse-of (≡≃≃ univ) _ ⟩∎
 
-    cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂) (≈⇒≡ univ B₁≈B₂)  ∎
+    cong₂ (λ A B → A → B) (≃⇒≡ univ A₁≃A₂) (≃⇒≡ univ B₁≃B₂)  ∎
     where
-    open _≈_
+    open _≃_
 
     lemma :
-      (λ f → to B₁≈B₂ ∘ f ∘ from A₁≈A₂) ≡
-      to (≡⇒≈ (cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂)
-                                     (≈⇒≡ univ B₁≈B₂)))
+      (λ f → to B₁≃B₂ ∘ f ∘ from A₁≃A₂) ≡
+      to (≡⇒≃ (cong₂ (λ A B → A → B) (≃⇒≡ univ A₁≃A₂)
+                                     (≃⇒≡ univ B₁≃B₂)))
     lemma =
-      (λ f → to B₁≈B₂ ∘ f ∘ from A₁≈A₂)                  ≡⟨ ext (λ _ → subst-unique (λ B → A₂ → B) (λ A≈B g → _≈_.to A≈B ∘ g)
-                                                                                    refl univ B₁≈B₂ _) ⟩
-      subst (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂) ∘
-      (λ f → f ∘ from A₁≈A₂)                             ≡⟨ cong (_∘_ (subst (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂))) (ext λ f →
-                                                              subst-unique (λ A → A → B₁) (λ A≈B g → g ∘ _≈_.from A≈B) refl univ A₁≈A₂ f) ⟩
-      subst (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂) ∘
-      subst (λ A → A → B₁) (≈⇒≡ univ A₁≈A₂)              ≡⟨ cong₂ (λ g h f → g (h f)) (ext $ subst-in-terms-of-≡⇒≈ _ (λ B → A₂ → B))
-                                                                                      (ext $ subst-in-terms-of-≡⇒≈ _ (λ A → A → B₁)) ⟩
-      to (≡⇒≈ (cong (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂))) ∘
-      to (≡⇒≈ (cong (λ A → A → B₁) (≈⇒≡ univ A₁≈A₂)))    ≡⟨⟩
+      (λ f → to B₁≃B₂ ∘ f ∘ from A₁≃A₂)                  ≡⟨ ext (λ _ → subst-unique (λ B → A₂ → B) (λ A≃B g → _≃_.to A≃B ∘ g)
+                                                                                    refl univ B₁≃B₂ _) ⟩
+      subst (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂) ∘
+      (λ f → f ∘ from A₁≃A₂)                             ≡⟨ cong (_∘_ (subst (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂))) (ext λ f →
+                                                              subst-unique (λ A → A → B₁) (λ A≃B g → g ∘ _≃_.from A≃B) refl univ A₁≃A₂ f) ⟩
+      subst (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂) ∘
+      subst (λ A → A → B₁) (≃⇒≡ univ A₁≃A₂)              ≡⟨ cong₂ (λ g h f → g (h f)) (ext $ subst-in-terms-of-≡⇒≃ _ (λ B → A₂ → B))
+                                                                                      (ext $ subst-in-terms-of-≡⇒≃ _ (λ A → A → B₁)) ⟩
+      to (≡⇒≃ (cong (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂))) ∘
+      to (≡⇒≃ (cong (λ A → A → B₁) (≃⇒≡ univ A₁≃A₂)))    ≡⟨⟩
 
-      to (≡⇒≈ (cong (λ B → A₂ → B) (≈⇒≡ univ B₁≈B₂)) ⊚
-          ≡⇒≈ (cong (λ A → A → B₁) (≈⇒≡ univ A₁≈A₂)))    ≡⟨ cong to $ sym $ ≡⇒≈-trans ext _ _ ⟩∎
+      to (≡⇒≃ (cong (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂)) ⊚
+          ≡⇒≃ (cong (λ A → A → B₁) (≃⇒≡ univ A₁≃A₂)))    ≡⟨ cong to $ sym $ ≡⇒≃-trans ext _ _ ⟩∎
 
-      to (≡⇒≈ (cong₂ (λ A B → A → B) (≈⇒≡ univ A₁≈A₂)
-                                     (≈⇒≡ univ B₁≈B₂)))  ∎
+      to (≡⇒≃ (cong₂ (λ A B → A → B) (≃⇒≡ univ A₁≃A₂)
+                                     (≃⇒≡ univ B₁≃B₂)))  ∎
 
-  -- One can sometimes push cong through ≈⇒≡ (assuming
+  -- One can sometimes push cong through ≃⇒≡ (assuming
   -- extensionality).
 
-  cong-≈⇒≡ :
-    ∀ {ℓ p} {A B : Set ℓ} {A≈B : A ≈ B} →
+  cong-≃⇒≡ :
+    ∀ {ℓ p} {A B : Set ℓ} {A≃B : A ≃ B} →
     Extensionality p p →
     (univ₁ : Univalence ℓ)
     (univ₂ : Univalence p)
     (P : Set ℓ → Set p)
-    (P-cong : ∀ {A B} → A ≈ B → P A ≈ P B) →
-    (∀ {A} (p : P A) → _≈_.to (P-cong Weak.id) p ≡ p) →
-    cong P (≈⇒≡ univ₁ A≈B) ≡ ≈⇒≡ univ₂ (P-cong A≈B)
-  cong-≈⇒≡ {A≈B = A≈B} ext univ₁ univ₂ P P-cong P-cong-id =
-    cong P (≈⇒≡ univ₁ A≈B)                    ≡⟨ sym $ _≈_.left-inverse-of (≡≈≈ univ₂) _ ⟩
-    ≈⇒≡ univ₂ (≡⇒≈ (cong P (≈⇒≡ univ₁ A≈B)))  ≡⟨ cong (≈⇒≡ univ₂) $ lift-equality ext lemma ⟩∎
-    ≈⇒≡ univ₂ (P-cong A≈B)                    ∎
+    (P-cong : ∀ {A B} → A ≃ B → P A ≃ P B) →
+    (∀ {A} (p : P A) → _≃_.to (P-cong Weak.id) p ≡ p) →
+    cong P (≃⇒≡ univ₁ A≃B) ≡ ≃⇒≡ univ₂ (P-cong A≃B)
+  cong-≃⇒≡ {A≃B = A≃B} ext univ₁ univ₂ P P-cong P-cong-id =
+    cong P (≃⇒≡ univ₁ A≃B)                    ≡⟨ sym $ _≃_.left-inverse-of (≡≃≃ univ₂) _ ⟩
+    ≃⇒≡ univ₂ (≡⇒≃ (cong P (≃⇒≡ univ₁ A≃B)))  ≡⟨ cong (≃⇒≡ univ₂) $ lift-equality ext lemma ⟩∎
+    ≃⇒≡ univ₂ (P-cong A≃B)                    ∎
     where
-    lemma : ≡⇒→ (cong P (≈⇒≡ univ₁ A≈B)) ≡ _≈_.to (P-cong A≈B)
+    lemma : ≡⇒→ (cong P (≃⇒≡ univ₁ A≃B)) ≡ _≃_.to (P-cong A≃B)
     lemma = ext λ x →
-      ≡⇒→ (cong P (≈⇒≡ univ₁ A≈B)) x  ≡⟨ sym $ subst-in-terms-of-≡⇒≈ _ P x ⟩
-      subst P (≈⇒≡ univ₁ A≈B) x       ≡⟨ sym $ subst-unique P (_≈_.to ∘ P-cong) P-cong-id univ₁ A≈B x ⟩∎
-      _≈_.to (P-cong A≈B) x           ∎
+      ≡⇒→ (cong P (≃⇒≡ univ₁ A≃B)) x  ≡⟨ sym $ subst-in-terms-of-≡⇒≃ _ P x ⟩
+      subst P (≃⇒≡ univ₁ A≃B) x       ≡⟨ sym $ subst-unique P (_≃_.to ∘ P-cong) P-cong-id univ₁ A≃B x ⟩∎
+      _≃_.to (P-cong A≃B) x           ∎

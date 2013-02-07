@@ -47,8 +47,8 @@ private
     ∀ {ass A₁ f₁ A₂ f₂} →
     Isomorphic ass magma ((_ , A₁) , f₁) ((_ , A₂) , f₂) ≡
     Σ (Σ (↑ _ ⊤) λ _ →
-      ↑ _ (A₁ ≈ A₂)                             ) λ { (_ , lift A₁≈A₂) →
-      let open _≈_ (↑-cong A₁≈A₂) in
+      ↑ _ (A₁ ≃ A₂)                             ) λ { (_ , lift A₁≃A₂) →
+      let open _≃_ (↑-cong A₁≃A₂) in
         ∀ x y → to (f₁ x y) ≡ f₂ (to x) (to y) }
   Isomorphic-magma-unfolded = refl
 
@@ -103,9 +103,9 @@ private
     Isomorphic ass semigroup ((((_ , A₁) , is₁) , _∙₁_) , assoc₁)
                              ((((_ , A₂) , is₂) , _∙₂_) , assoc₂) ≡
     Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      ↑ _ (A₁ ≈ A₂)                         ) λ { _ →
-      ↑ _ ⊤                                }) λ { ((_ , lift A₁≈A₂) , _) →
-      let open _≈_ (↑-cong A₁≈A₂) in
+      ↑ _ (A₁ ≃ A₂)                         ) λ { _ →
+      ↑ _ ⊤                                }) λ { ((_ , lift A₁≃A₂) , _) →
+      let open _≃_ (↑-cong A₁≃A₂) in
         ∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y }) λ { _ →
       ↑ _ ⊤                                }
   Isomorphic-semigroup-unfolded = refl
@@ -157,9 +157,9 @@ private
                ((((_ , A₁) , is₁) , fix₁) , fixed-point₁)
                ((((_ , A₂) , is₂) , fix₂) , fixed-point₂) ≡
     Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      ↑ _ (A₁ ≈ A₂)                             ) λ { _ →
-      ↑ _ ⊤                                    }) λ { ((_ , lift A₁≈A₂) , _) →
-      let open _≈_ (↑-cong A₁≈A₂) in
+      ↑ _ (A₁ ≃ A₂)                             ) λ { _ →
+      ↑ _ ⊤                                    }) λ { ((_ , lift A₁≃A₂) , _) →
+      let open _≃_ (↑-cong A₁≃A₂) in
         ∀ f g →
         (∀ x y → to x ≡ y → to (f x) ≡ g y) →
         to (fix₁ f) ≡ fix₂ g                   }) λ { _ →
@@ -317,17 +317,17 @@ private
       (((((((((((_ , A₂) , is₂) , _∙₂_) , comm₂) ,
        assoc₂) , e₂) , lid₂) , rid₂) , _⁻¹₂) , linv₂) , rinv₂) ≡
     Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      ↑ _ (A₁ ≈ A₂)                         ) λ { _ →
-      ↑ _ ⊤                                }) λ {       ((_ , lift A₁≈A₂) , _) →
-      let open _≈_ (↑-cong A₁≈A₂) in
+      ↑ _ (A₁ ≃ A₂)                         ) λ { _ →
+      ↑ _ ⊤                                }) λ {       ((_ , lift A₁≃A₂) , _) →
+      let open _≃_ (↑-cong A₁≃A₂) in
         ∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y }) λ { _ →
       ↑ _ ⊤                                }) λ { _ →
-      ↑ _ ⊤                                }) λ {    (((((_ , lift A₁≈A₂) , _) , _) , _) , _) →
-      let open _≈_ (↑-cong A₁≈A₂) in
+      ↑ _ ⊤                                }) λ {    (((((_ , lift A₁≃A₂) , _) , _) , _) , _) →
+      let open _≃_ (↑-cong A₁≃A₂) in
         to e₁ ≡ e₂                         }) λ { _ →
       ↑ _ ⊤                                }) λ { _ →
-      ↑ _ ⊤                                }) λ { ((((((((_ , lift A₁≈A₂) , _) , _) , _) , _) , _) , _) , _) →
-      let open _≈_ (↑-cong A₁≈A₂) in
+      ↑ _ ⊤                                }) λ { ((((((((_ , lift A₁≃A₂) , _) , _) , _) , _) , _) , _) , _) →
+      let open _≃_ (↑-cong A₁≃A₂) in
         ∀ x → to (x ⁻¹₁) ≡ to x ⁻¹₂        }) λ { _ →
       ↑ _ ⊤                                }) λ { _ →
       ↑ _ ⊤                                }
@@ -408,8 +408,8 @@ private
   --                  ((_ , n₁) , prop₁) ((_ , n₂) , prop₂)
   --     ≡
   --   Σ (Σ (↑ (# 1) ⊤) λ _ →
-  --   ((A₁ A₂ : Set) → (A₁≈A₂ : ↑ (# 1) (A₁ ≈ A₂)) →
-  --    let cast = _≈_.from (↑-cong (lower A₁≈A₂)) in
+  --   ((A₁ A₂ : Set) → (A₁≃A₂ : ↑ (# 1) (A₁ ≃ A₂)) →
+  --    let cast = _≃_.from (↑-cong (lower A₁≃A₂)) in
   --    (z₁ : ↑ (# 1) A₁) (z₂ : ↑ (# 1) A₂) →
   --      z₁ ≡ cast z₂ →
   --    (s₁ : ↑ (# 1) A₁ → ↑ (# 1) A₁) (s₂ : ↑ (# 1) A₂ → ↑ (# 1) A₂) →

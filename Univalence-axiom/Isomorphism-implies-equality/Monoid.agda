@@ -121,7 +121,7 @@ equality-triple-lemma :
 equality-triple-lemma
   ext (C₁ , op₁ , id₁ , laws₁) (C₂ , op₂ , id₂ , laws₂) =
 
-  ((C₁ , op₁ , id₁ , laws₁) ≡ (C₂ , op₂ , id₂ , laws₂))               ↔⟨ inverse $ ≈-≡ $ ↔⇒≈ bij ⟩
+  ((C₁ , op₁ , id₁ , laws₁) ≡ (C₂ , op₂ , id₂ , laws₂))               ↔⟨ inverse $ ≃-≡ $ ↔⇒≃ bij ⟩
 
   (((C₁ , op₁ , id₁) , laws₁) ≡ ((C₂ , op₂ , id₂) , laws₂))           ↝⟨ inverse $ ignore-propositional-component $
                                                                            laws-propositional ext (C₂ , op₂ , id₂ , laws₂) ⟩
@@ -159,7 +159,7 @@ isomorphic-equal :
   (M₁ M₂ : Monoid) → M₁ ≅ M₂ → M₁ ≡ M₂
 isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
   where
-  open _≈_
+  open _≃_
 
   -- Our goal:
 
@@ -182,16 +182,16 @@ isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
 
   -- Our bijection can be converted into a weak equivalence.
 
-  equiv : Carrier M₁ ≈ Carrier M₂
-  equiv = ↔⇒≈ bij
+  equiv : Carrier M₁ ≃ Carrier M₂
+  equiv = ↔⇒≃ bij
 
   -- Hence the first equality follows directly from univalence.
 
-  C-eq = ≈⇒≡ univ equiv
+  C-eq = ≃⇒≡ univ equiv
 
   -- For the second equality, let us first define a "cast" operator.
 
-  cast₂ : {A B : Set} → A ≈ B → (A → A → A) → (B → B → B)
+  cast₂ : {A B : Set} → A ≃ B → (A → A → A) → (B → B → B)
   cast₂ eq f = λ x y → to eq (f (from eq x) (from eq y))
 
   -- The transport theorem implies that cast₂ equiv can be expressed
@@ -215,7 +215,7 @@ isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
   -- The development above can be repeated for the identity
   -- elements.
 
-  cast₀ : {A B : Set} → A ≈ B → A → B
+  cast₀ : {A B : Set} → A ≃ B → A → B
   cast₀ eq x = to eq x
 
   cast₀-equiv-is-subst : ∀ x → cast₀ equiv x ≡ subst (λ A → A) C-eq x
@@ -237,16 +237,16 @@ isomorphism-is-equality :
 isomorphism-is-equality univ univ₁
   (C₁ , op₁ , id₁ , laws₁) (C₂ , op₂ , id₂ , laws₂) =
 
-  (Σ (C₁ ↔ C₂) λ f → Is-homomorphism M₁ M₂ (_↔_.to f))          ↝⟨ Σ-cong (↔↔≈ ext C₁-set) (λ _ → _ □) ⟩
+  (Σ (C₁ ↔ C₂) λ f → Is-homomorphism M₁ M₂ (_↔_.to f))          ↝⟨ Σ-cong (↔↔≃ ext C₁-set) (λ _ → _ □) ⟩
 
-  (Σ (C₁ ≈ C₂) λ C-eq → Is-homomorphism M₁ M₂ (_≈_.to C-eq))    ↝⟨ ∃-cong (λ C-eq → op-lemma C-eq ×-cong id-lemma C-eq) ⟩
+  (Σ (C₁ ≃ C₂) λ C-eq → Is-homomorphism M₁ M₂ (_≃_.to C-eq))    ↝⟨ ∃-cong (λ C-eq → op-lemma C-eq ×-cong id-lemma C-eq) ⟩
 
-  (Σ (C₁ ≈ C₂) λ C-eq →
-     subst (λ C → C → C → C) (≈⇒≡ univ C-eq) op₁ ≡ op₂ ×
-     subst (λ C → C) (≈⇒≡ univ C-eq) id₁ ≡ id₂)                 ↝⟨ inverse $ Σ-cong (≡≈≈ univ) (λ C-eq → ≡⇒↝ _ $
+  (Σ (C₁ ≃ C₂) λ C-eq →
+     subst (λ C → C → C → C) (≃⇒≡ univ C-eq) op₁ ≡ op₂ ×
+     subst (λ C → C) (≃⇒≡ univ C-eq) id₁ ≡ id₂)                 ↝⟨ inverse $ Σ-cong (≡≃≃ univ) (λ C-eq → ≡⇒↝ _ $
                                                                      cong (λ eq → subst (λ C → C → C → C) eq op₁ ≡ op₂ ×
                                                                                   subst (λ C → C) eq id₁ ≡ id₂) $ sym $
-                                                                       _≈_.left-inverse-of (≡≈≈ univ) C-eq) ⟩
+                                                                       _≃_.left-inverse-of (≡≃≃ univ) C-eq) ⟩
   (Σ (C₁ ≡ C₂) λ C-eq →
      subst (λ C → C → C → C) C-eq op₁ ≡ op₂ ×
      subst (λ C → C) C-eq id₁ ≡ id₂)                            ↝⟨ inverse $ equality-triple-lemma ext M₁ M₂ ⟩
@@ -270,19 +270,19 @@ isomorphism-is-equality univ univ₁
   C₁-set : Is-set C₁
   C₁-set = proj₁ laws₁
 
-  module _ (C-eq : C₁ ≈ C₂) where
+  module _ (C-eq : C₁ ≃ C₂) where
 
-    open _≈_ C-eq
+    open _≃_ C-eq
 
     -- Two component lemmas.
 
     op-lemma :
       (∀ x y → to (op₁ x y) ≡ op₂ (to x) (to y)) ↔
-      subst (λ C → C → C → C) (≈⇒≡ univ C-eq) op₁ ≡ op₂
+      subst (λ C → C → C → C) (≃⇒≡ univ C-eq) op₁ ≡ op₂
     op-lemma =
       (∀ x y → to (op₁ x y) ≡ op₂ (to x) (to y))                  ↔⟨ ∀-preserves ext (λ _ → extensionality-isomorphism ext) ⟩
 
-      (∀ x → (λ y → to (op₁ x y)) ≡ (λ y → op₂ (to x) (to y)))    ↔⟨ ∀-preserves ext (λ _ → ↔⇒≈ $ inverse $ ∘from≡↔≡∘to ext C-eq) ⟩
+      (∀ x → (λ y → to (op₁ x y)) ≡ (λ y → op₂ (to x) (to y)))    ↔⟨ ∀-preserves ext (λ _ → ↔⇒≃ $ inverse $ ∘from≡↔≡∘to ext C-eq) ⟩
 
       (∀ x → (λ y → to (op₁ x (from y))) ≡ (λ y → op₂ (to x) y))  ↔⟨ extensionality-isomorphism ext ⟩
 
@@ -291,16 +291,16 @@ isomorphism-is-equality univ univ₁
       ((λ x y → to (op₁ (from x) (from y))) ≡ (λ x y → op₂ x y))  ↝⟨ ≡⇒↝ _ $ cong (λ o → o ≡ op₂) $
                                                                        subst-unique
                                                                          (λ C → C → C → C)
-                                                                         (λ eq f x y → _≈_.to eq (f (_≈_.from eq x) (_≈_.from eq y)))
+                                                                         (λ eq f x y → _≃_.to eq (f (_≃_.from eq x) (_≃_.from eq y)))
                                                                          refl univ C-eq op₁ ⟩
-      (subst (λ C → C → C → C) (≈⇒≡ univ C-eq) op₁ ≡ op₂)         □
+      (subst (λ C → C → C → C) (≃⇒≡ univ C-eq) op₁ ≡ op₂)         □
 
     id-lemma : (to id₁ ≡ id₂) ↔
-               (subst (λ C → C) (≈⇒≡ univ C-eq) id₁ ≡ id₂)
+               (subst (λ C → C) (≃⇒≡ univ C-eq) id₁ ≡ id₂)
     id-lemma =
       (to id₁ ≡ id₂)                             ↝⟨ ≡⇒↝ _ $ cong (λ i → i ≡ id₂) $
-                                                      subst-unique (λ C → C) _≈_.to refl univ C-eq id₁ ⟩□
-      (subst (λ C → C) (≈⇒≡ univ C-eq) id₁ ≡ id₂)  □
+                                                      subst-unique (λ C → C) _≃_.to refl univ C-eq id₁ ⟩□
+      (subst (λ C → C) (≃⇒≡ univ C-eq) id₁ ≡ id₂)  □
 
 -- Equality of monoids is thus equal to equality (assuming
 -- univalence).
@@ -310,7 +310,7 @@ isomorphism-is-equal-to-equality :
   Univalence (# 1) →
   (M₁ M₂ : Monoid) → ↑ _ (M₁ ≅ M₂) ≡ (M₁ ≡ M₂)
 isomorphism-is-equal-to-equality univ univ₁ M₁ M₂ =
-  ≈⇒≡ univ₁ $ ↔⇒≈ (
+  ≃⇒≡ univ₁ $ ↔⇒≃ (
     ↑ _ (M₁ ≅ M₂)  ↝⟨ ↑↔ ⟩
     (M₁ ≅ M₂)      ↝⟨ isomorphism-is-equality univ univ₁ M₁ M₂ ⟩□
     (M₁ ≡ M₂)      □)

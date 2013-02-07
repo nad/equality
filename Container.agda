@@ -19,7 +19,7 @@ open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import Surjection equality-with-J using (module _↠_)
 open import Weak-equivalence equality-with-J as Weak
-  using (Is-weak-equivalence; _≈_; weq; module _≈_)
+  using (Is-weak-equivalence; _≃_; weq; module _≃_)
 
 ------------------------------------------------------------------------
 -- Containers
@@ -302,7 +302,7 @@ _≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
         (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
         xs ≈[ bag ]′ ys ↔ xs ≈[ bag-with-weak-equivalence ]′ ys
 ≈′↔≈′ ext P-set (s , f) (s′ , f′) =
-  (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  ↔⟨ Σ-cong (Weak.↔↔≈ ext (P-set s)) (λ _ → Bijection.id) ⟩
+  (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  ↔⟨ Σ-cong (Weak.↔↔≃ ext (P-set s)) (λ _ → Bijection.id) ⟩
   (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  □
 
 -- The definition _≈[_]′_ is also equivalent to the one given above.
@@ -432,21 +432,21 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
         lower-extensionality d c ext λ { (p , z≡xs[p]) →
 
             let xs[p]≡ys[-] : ∃ λ p′ → lookup xs p ≡ lookup ys p′
-                xs[p]≡ys[-] = _≈_.to (xs≈ys (lookup xs p)) (p , refl) in
+                xs[p]≡ys[-] = _≃_.to (xs≈ys (lookup xs p)) (p , refl) in
 
           Σ-map id (trans z≡xs[p]) xs[p]≡ys[-]      ≡⟨ elim₁ (λ {z} z≡xs[p] → Σ-map id (trans z≡xs[p]) xs[p]≡ys[-] ≡
-                                                                        _≈_.to (xs≈ys z) (p , z≡xs[p]))
+                                                                        _≃_.to (xs≈ys z) (p , z≡xs[p]))
             (Σ-map id (trans refl) xs[p]≡ys[-]               ≡⟨ cong (_,_ _) (trans-reflˡ _) ⟩∎
              xs[p]≡ys[-]                                        ∎)
                                                              z≡xs[p] ⟩∎
-          _≈_.to (xs≈ys z) (p , z≡xs[p])            ∎ }
+          _≃_.to (xs≈ys z) (p , z≡xs[p])            ∎ }
 
   to∘from : ∀ xs≈ys → to (from xs≈ys) ≡ xs≈ys
   to∘from (weq f f-weq , related) = Σ-≡,≡→≡ f≡f
-    (subst (P ∘ _≈_.to) f≡f (trans refl ∘ related)  ≡⟨ cong (subst (P ∘ _≈_.to) f≡f)
+    (subst (P ∘ _≃_.to) f≡f (trans refl ∘ related)  ≡⟨ cong (subst (P ∘ _≃_.to) f≡f)
                                                             (lower-extensionality (a ⊔ d) (c ⊔ d) ext λ _ → trans-reflˡ _) ⟩
-     subst (P ∘ _≈_.to) f≡f related                 ≡⟨ subst-∘ P _≈_.to f≡f ⟩
-     subst P (cong _≈_.to f≡f) related              ≡⟨ cong (λ eq → subst P eq related) cong-to-f≡f ⟩
+     subst (P ∘ _≃_.to) f≡f related                 ≡⟨ subst-∘ P _≃_.to f≡f ⟩
+     subst P (cong _≃_.to f≡f) related              ≡⟨ cong (λ eq → subst P eq related) cong-to-f≡f ⟩
      subst P refl related                           ≡⟨ subst-refl P {x = f} related ⟩∎
      related                                        ∎)
     where
@@ -454,7 +454,7 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
     P f = ∀ p → lookup xs p ≡ lookup ys (f p)
 
     f-weq′ : Is-weak-equivalence f
-    f-weq′ = _≈_.is-weak-equivalence $
+    f-weq′ = _≃_.is-weak-equivalence $
              Position-shape-cong xs ys $
              from (weq f f-weq , related)
 
@@ -466,10 +466,10 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
       f≡f : weq f f-weq′ ≡ weq f f-weq
       f≡f = cong (weq f) irr
 
-      cong-to-f≡f : cong _≈_.to f≡f ≡ refl {x = f}
+      cong-to-f≡f : cong _≃_.to f≡f ≡ refl {x = f}
       cong-to-f≡f =
-        cong _≈_.to f≡f            ≡⟨ cong-∘ _≈_.to (weq f) irr ⟩
-        cong (_≈_.to ∘ weq f) irr  ≡⟨ cong-const irr ⟩∎
+        cong _≃_.to f≡f            ≡⟨ cong-∘ _≃_.to (weq f) irr ⟩
+        cong (_≃_.to ∘ weq f) irr  ≡⟨ cong-const irr ⟩∎
         refl                       ∎
 
 ------------------------------------------------------------------------

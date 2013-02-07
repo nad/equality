@@ -60,9 +60,9 @@ abstract
 
 -- Changes the type of an n-ary function.
 
-cast : {A₁ A₂ : Set} → A₁ ≈ A₂ → ∀ n → A₁ ^ n ⟶ A₁ → A₂ ^ n ⟶ A₂
-cast A₁≈A₂ zero    = _≈_.to A₁≈A₂
-cast A₁≈A₂ (suc n) = λ f x → cast A₁≈A₂ n (f (_≈_.from A₁≈A₂ x))
+cast : {A₁ A₂ : Set} → A₁ ≃ A₂ → ∀ n → A₁ ^ n ⟶ A₁ → A₂ ^ n ⟶ A₂
+cast A₁≃A₂ zero    = _≃_.to A₁≃A₂
+cast A₁≃A₂ (suc n) = λ f x → cast A₁≃A₂ n (f (_≃_.from A₁≃A₂ x))
 
 abstract
 
@@ -81,15 +81,15 @@ abstract
     (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
     {A₁ A₂ : Set}
     (univ : Univalence′ A₁ A₂)
-    (A₁≈A₂ : A₁ ≈ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
-    cast A₁≈A₂ n f ≡ subst (λ C → C ^ n ⟶ C) (≈⇒≡ univ A₁≈A₂) f
-  cast-is-subst ext univ A₁≈A₂ n =
+    (A₁≃A₂ : A₁ ≃ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
+    cast A₁≃A₂ n f ≡ subst (λ C → C ^ n ⟶ C) (≃⇒≡ univ A₁≃A₂) f
+  cast-is-subst ext univ A₁≃A₂ n =
     subst-unique
       (λ A → A ^ n ⟶ A)
-      (λ A≈B f → cast A≈B n f)
+      (λ A≃B f → cast A≃B n f)
       (cast-id ext n)
       univ
-      A₁≈A₂
+      A₁≃A₂
 
   -- If there is an isomorphism from f₁ to f₂, then the corresponding
   -- instance of cast maps f₁ to f₂ (assuming extensionality).
@@ -97,16 +97,16 @@ abstract
   cast-isomorphism :
     {A₁ A₂ : Set} →
     (∀ n → Extensionality′ A₂ (λ _ → A₂ ^ n ⟶ A₂)) →
-    (A₁≈A₂ : A₁ ≈ A₂)
+    (A₁≃A₂ : A₁ ≃ A₂)
     (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
-    Is- n -ary-morphism f₁ f₂ (_≈_.to A₁≈A₂) →
-    cast A₁≈A₂ n f₁ ≡ f₂
-  cast-isomorphism ext A₁≈A₂ zero    f₁ f₂ is = is
-  cast-isomorphism ext A₁≈A₂ (suc n) f₁ f₂ is = ext n $ λ x →
-    cast A₁≈A₂ n (f₁ (from x))  ≡⟨ cast-isomorphism ext A₁≈A₂ n _ _ (is (from x)) ⟩
+    Is- n -ary-morphism f₁ f₂ (_≃_.to A₁≃A₂) →
+    cast A₁≃A₂ n f₁ ≡ f₂
+  cast-isomorphism ext A₁≃A₂ zero    f₁ f₂ is = is
+  cast-isomorphism ext A₁≃A₂ (suc n) f₁ f₂ is = ext n $ λ x →
+    cast A₁≃A₂ n (f₁ (from x))  ≡⟨ cast-isomorphism ext A₁≃A₂ n _ _ (is (from x)) ⟩
     f₂ (to (from x))            ≡⟨ cong f₂ (right-inverse-of x) ⟩∎
     f₂ x                        ∎
-    where open _≈_ A₁≈A₂
+    where open _≃_ A₁≃A₂
 
   -- Combining the results above we get the following: if there is an
   -- isomorphism from f₁ to f₂, then the corresponding instance of
@@ -116,13 +116,13 @@ abstract
     (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
     {A₁ A₂ : Set}
     (univ : Univalence′ A₁ A₂)
-    (A₁≈A₂ : A₁ ≈ A₂)
+    (A₁≃A₂ : A₁ ≃ A₂)
     (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
-    Is- n -ary-morphism f₁ f₂ (_≈_.to A₁≈A₂) →
-    subst (λ A → A ^ n ⟶ A) (≈⇒≡ univ A₁≈A₂) f₁ ≡ f₂
-  subst-isomorphism ext univ A₁≈A₂ n f₁ f₂ is =
-    subst (λ A → A ^ n ⟶ A) (≈⇒≡ univ A₁≈A₂) f₁  ≡⟨ sym $ cast-is-subst ext univ A₁≈A₂ n f₁ ⟩
-    cast A₁≈A₂ n f₁                              ≡⟨ cast-isomorphism ext A₁≈A₂ n f₁ f₂ is ⟩∎
+    Is- n -ary-morphism f₁ f₂ (_≃_.to A₁≃A₂) →
+    subst (λ A → A ^ n ⟶ A) (≃⇒≡ univ A₁≃A₂) f₁ ≡ f₂
+  subst-isomorphism ext univ A₁≃A₂ n f₁ f₂ is =
+    subst (λ A → A ^ n ⟶ A) (≃⇒≡ univ A₁≃A₂) f₁  ≡⟨ sym $ cast-is-subst ext univ A₁≃A₂ n f₁ ⟩
+    cast A₁≃A₂ n f₁                              ≡⟨ cast-isomorphism ext A₁≃A₂ n f₁ f₂ is ⟩∎
     f₂                                           ∎
 
 ------------------------------------------------------------------------
@@ -220,7 +220,7 @@ abstract
     -- underlying types are equal (due to univalence).
 
     A₁≡A₂ : A₁ ≡ A₂
-    A₁≡A₂ = _≈_.from (≡≈≈ univ₂) $ ↔⇒≈ m
+    A₁≡A₂ = _≃_.from (≡≃≃ univ₂) $ ↔⇒≃ m
 
     -- We can lift subst-isomorphism to structures by recursion on
     -- structure codes.
@@ -242,7 +242,7 @@ abstract
       (s₂ , subst₂ (λ { (A , _) → A ^ n ⟶ A }) A₁≡A₂
                    (lemma s s₁ s₂ is-s) op₁)                ≡⟨ cong (_,_ s₂) $ subst₂-proj₁ (λ A → A ^ n ⟶ A) ⟩
 
-      (s₂ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)              ≡⟨ cong (_,_ s₂) $ subst-isomorphism (λ _ → ext) univ₂ (↔⇒≈ m) n op₁ op₂ is-o ⟩∎
+      (s₂ , subst (λ A → A ^ n ⟶ A) A₁≡A₂ op₁)              ≡⟨ cong (_,_ s₂) $ subst-isomorphism (λ _ → ext) univ₂ (↔⇒≃ m) n op₁ op₂ is-o ⟩∎
       (s₂ , op₂)                                            ∎
 
 ------------------------------------------------------------------------

@@ -130,13 +130,13 @@ abstract
       }
 
 ------------------------------------------------------------------------
--- _≈_
+-- _≃_
 
 -- Weak equivalences.
 
-infix 4 _≈_
+infix 4 _≃_
 
-record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   constructor weq
   field
     to                  : A → B
@@ -239,8 +239,8 @@ record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 
 -- Bijections are weak equivalences.
 
-↔⇒≈ : ∀ {a b} {A : Set a} {B : Set b} → A ↔ B → A ≈ B
-↔⇒≈ A↔B = record
+↔⇒≃ : ∀ {a b} {A : Set a} {B : Set b} → A ↔ B → A ≃ B
+↔⇒≃ A↔B = record
   { to                  = to
   ; is-weak-equivalence = λ y →
       (from y , right-inverse-of y) , irrelevance y
@@ -263,13 +263,13 @@ record _≈_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 
 -- Weak equivalences are equivalence relations.
 
-id : ∀ {a} {A : Set a} → A ≈ A
+id : ∀ {a} {A : Set a} → A ≃ A
 id = weq P.id singleton-contractible
 
-inverse : ∀ {a b} {A : Set a} {B : Set b} → A ≈ B → B ≈ A
-inverse A≈B = weq from λ y → (to y , left-inverse-of y) , irr y
+inverse : ∀ {a b} {A : Set a} {B : Set b} → A ≃ B → B ≃ A
+inverse A≃B = weq from λ y → (to y , left-inverse-of y) , irr y
   where
-  open _≈_ A≈B
+  open _≃_ A≃B
 
   abstract
 
@@ -320,37 +320,37 @@ inverse A≈B = weq from λ y → (to y , left-inverse-of y) , irr y
 infixr 9 _∘_
 
 _∘_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
-      B ≈ C → A ≈ B → A ≈ C
+      B ≃ C → A ≃ B → A ≃ C
 f ∘ g = record
   { to                  = to
   ; is-weak-equivalence = λ y →
       (from y , right-inverse-of y) , irrelevance y
   }
   where
-  f∘g  = ↔⇒≈ $ Bijection._∘_ (_≈_.bijection f) (_≈_.bijection g)
-  to   = _≈_.to   f∘g
-  from = _≈_.from f∘g
+  f∘g  = ↔⇒≃ $ Bijection._∘_ (_≃_.bijection f) (_≃_.bijection g)
+  to   = _≃_.to   f∘g
+  from = _≃_.from f∘g
 
   abstract
     right-inverse-of : ∀ x → to (from x) ≡ x
-    right-inverse-of = _≈_.right-inverse-of f∘g
+    right-inverse-of = _≃_.right-inverse-of f∘g
 
     irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-    irrelevance = _≈_.irrelevance f∘g
+    irrelevance = _≃_.irrelevance f∘g
 
 -- Equational reasoning combinators.
 
-infixr 0 _≈⟨_⟩_
-infix  0 finally-≈
+infixr 0 _≃⟨_⟩_
+infix  0 finally-≃
 
-_≈⟨_⟩_ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
-         A ≈ B → B ≈ C → A ≈ C
-_ ≈⟨ A≈B ⟩ B≈C = B≈C ∘ A≈B
+_≃⟨_⟩_ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
+         A ≃ B → B ≃ C → A ≃ C
+_ ≃⟨ A≃B ⟩ B≃C = B≃C ∘ A≃B
 
-finally-≈ : ∀ {a b} (A : Set a) (B : Set b) → A ≈ B → A ≈ B
-finally-≈ _ _ A≈B = A≈B
+finally-≃ : ∀ {a b} (A : Set a) (B : Set b) → A ≃ B → A ≃ B
+finally-≃ _ _ A≃B = A≃B
 
-syntax finally-≈ A B A≈B = A ≈⟨ A≈B ⟩□ B □
+syntax finally-≃ A B A≃B = A ≃⟨ A≃B ⟩□ B □
 
 abstract
 
@@ -358,41 +358,41 @@ abstract
 
   right-inverse-of-id :
     ∀ {a} {A : Set a} {x : A} →
-    _≈_.right-inverse-of id x ≡ refl x
+    _≃_.right-inverse-of id x ≡ refl x
   right-inverse-of-id {x = x} = refl (refl x)
 
   left-inverse-of-id :
     ∀ {a} {A : Set a} {x : A} →
-    _≈_.left-inverse-of id x ≡ refl x
+    _≃_.left-inverse-of id x ≡ refl x
   left-inverse-of-id {x = x} =
      left-inverse-of x               ≡⟨⟩
      left-inverse-of (P.id x)        ≡⟨ sym $ right-left-lemma x ⟩
      cong P.id (right-inverse-of x)  ≡⟨ sym $ cong-id _ ⟩
      right-inverse-of x              ≡⟨ right-inverse-of-id ⟩∎
      refl x                          ∎
-     where open _≈_ id
+     where open _≃_ id
 
   right-inverse-of∘inverse :
     ∀ {a b} {A : Set a} {B : Set b} →
-    ∀ (A≈B : A ≈ B) {x} →
-    _≈_.right-inverse-of (inverse A≈B) x ≡
-    _≈_.left-inverse-of A≈B x
-  right-inverse-of∘inverse A≈B = refl _
+    ∀ (A≃B : A ≃ B) {x} →
+    _≃_.right-inverse-of (inverse A≃B) x ≡
+    _≃_.left-inverse-of A≃B x
+  right-inverse-of∘inverse A≃B = refl _
 
   left-inverse-of∘inverse :
     ∀ {a b} {A : Set a} {B : Set b} →
-    ∀ (A≈B : A ≈ B) {x} →
-    _≈_.left-inverse-of (inverse A≈B) x ≡
-    _≈_.right-inverse-of A≈B x
-  left-inverse-of∘inverse {A = A} {B} A≈B {x} =
-    subst (λ x → _≈_.left-inverse-of (inverse A≈B) x ≡
+    ∀ (A≃B : A ≃ B) {x} →
+    _≃_.left-inverse-of (inverse A≃B) x ≡
+    _≃_.right-inverse-of A≃B x
+  left-inverse-of∘inverse {A = A} {B} A≃B {x} =
+    subst (λ x → _≃_.left-inverse-of (inverse A≃B) x ≡
                  right-inverse-of x)
           (right-inverse-of x)
-          (_≈_.left-inverse-of (inverse A≈B) (to (from x))        ≡⟨ sym $ _≈_.right-left-lemma (inverse A≈B) (from x) ⟩
-           cong to (_≈_.right-inverse-of (inverse A≈B) (from x))  ≡⟨ cong (cong to) $ right-inverse-of∘inverse A≈B ⟩
+          (_≃_.left-inverse-of (inverse A≃B) (to (from x))        ≡⟨ sym $ _≃_.right-left-lemma (inverse A≃B) (from x) ⟩
+           cong to (_≃_.right-inverse-of (inverse A≃B) (from x))  ≡⟨ cong (cong to) $ right-inverse-of∘inverse A≃B ⟩
            cong to (left-inverse-of (from x))                     ≡⟨ left-right-lemma (from x) ⟩∎
            right-inverse-of (to (from x))                         ∎)
-    where open _≈_ A≈B
+    where open _≃_ A≃B
 
 ------------------------------------------------------------------------
 -- The two-out-of-three property
@@ -416,20 +416,20 @@ two-out-of-three :
   (f : A → B) (g : B → C) → Two-out-of-three f g
 two-out-of-three f g = record
   { f-g   = λ f-weq g-weq →
-              _≈_.is-weak-equivalence (weq g g-weq ∘ weq f f-weq)
+              _≃_.is-weak-equivalence (weq g g-weq ∘ weq f f-weq)
   ; g-g∘f = λ g-weq g∘f-weq →
               respects-extensional-equality
-                (λ x → let g⁻¹ = _≈_.from (weq g g-weq) in
-                   g⁻¹ (g (f x))  ≡⟨ _≈_.left-inverse-of (weq g g-weq) (f x) ⟩∎
+                (λ x → let g⁻¹ = _≃_.from (weq g g-weq) in
+                   g⁻¹ (g (f x))  ≡⟨ _≃_.left-inverse-of (weq g g-weq) (f x) ⟩∎
                    f x            ∎)
-                (_≈_.is-weak-equivalence
+                (_≃_.is-weak-equivalence
                    (inverse (weq g g-weq) ∘ weq _ g∘f-weq))
   ; g∘f-f = λ g∘f-weq f-weq →
               respects-extensional-equality
-                (λ x → let f⁻¹ = _≈_.from (weq f f-weq) in
-                   g (f (f⁻¹ x))  ≡⟨ cong g (_≈_.right-inverse-of (weq f f-weq) x) ⟩∎
+                (λ x → let f⁻¹ = _≃_.from (weq f f-weq) in
+                   g (f (f⁻¹ x))  ≡⟨ cong g (_≃_.right-inverse-of (weq f f-weq) x) ⟩∎
                    g x            ∎)
-                (_≈_.is-weak-equivalence
+                (_≃_.is-weak-equivalence
                    (weq _ g∘f-weq ∘ inverse (weq f f-weq)))
   }
 
@@ -500,7 +500,7 @@ extensionality-isomorphism :
   ∀ {a b} {A : Set a} →
   ({B : A → Set b} → Extensionality′ A B) →
   {B : A → Set b} {f g : (x : A) → B x} →
-  (∀ x → f x ≡ g x) ≈ (f ≡ g)
+  (∀ x → f x ≡ g x) ≃ (f ≡ g)
 extensionality-isomorphism ext =
   inverse (weq _ (ext⁻¹-is-weak-equivalence ext))
 
@@ -508,7 +508,7 @@ extensionality-isomorphism ext =
 -- extensionality.
 
 good-ext : ∀ {a b} → Extensionality a b → Extensionality a b
-good-ext ext = _≈_.to (extensionality-isomorphism ext)
+good-ext ext = _≃_.to (extensionality-isomorphism ext)
 
 abstract
 
@@ -517,16 +517,16 @@ abstract
     {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
     Is-weak-equivalence {A = ∀ x → f x ≡ g x} (good-ext ext)
   good-ext-is-weak-equivalence ext =
-    _≈_.is-weak-equivalence (extensionality-isomorphism ext)
+    _≃_.is-weak-equivalence (extensionality-isomorphism ext)
 
   good-ext-refl :
     ∀ {a b} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} (f : (x : A) → B x) →
     good-ext ext (λ x → refl (f x)) ≡ refl f
   good-ext-refl ext f =
-    _≈_.to (extensionality-isomorphism ext) (λ x → refl (f x))  ≡⟨ cong (_≈_.to (extensionality-isomorphism ext)) $ sym $
+    _≃_.to (extensionality-isomorphism ext) (λ x → refl (f x))  ≡⟨ cong (_≃_.to (extensionality-isomorphism ext)) $ sym $
                                                                         ext (λ _ → ext⁻¹-refl f) ⟩
-    _≈_.to (extensionality-isomorphism ext) (ext⁻¹ (refl f))    ≡⟨ _≈_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
+    _≃_.to (extensionality-isomorphism ext) (ext⁻¹ (refl f))    ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
     refl f                                                      ∎
 
   cong-good-ext :
@@ -545,7 +545,7 @@ abstract
 
     cong (λ h → h x) (good-ext ext f≡g)  ≡⟨ lemma ⟩
     ext⁻¹ (good-ext ext f≡g) x           ≡⟨ cong (λ h → h x) $
-                                                 _≈_.left-inverse-of (extensionality-isomorphism ext) f≡g ⟩∎
+                                                 _≃_.left-inverse-of (extensionality-isomorphism ext) f≡g ⟩∎
     f≡g x                                ∎
 
 ------------------------------------------------------------------------
@@ -558,8 +558,8 @@ abstract
 
   lift-equality :
     ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
-    {A : Set a} {B : Set b} {p q : A ≈ B} →
-    _≈_.to p ≡ _≈_.to q → p ≡ q
+    {A : Set a} {B : Set b} {p q : A ≃ B} →
+    _≃_.to p ≡ _≃_.to q → p ≡ q
   lift-equality {a} {b} ext {p = weq f f-weq} {q = weq g g-weq} f≡g =
     elim (λ {f g} f≡g → ∀ f-weq g-weq → weq f f-weq ≡ weq g g-weq)
          (λ f f-weq g-weq →
@@ -574,20 +574,20 @@ abstract
 
   lift-equality-inverse :
     ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
-    {A : Set a} {B : Set b} {p q : A ≈ B} →
-    _≈_.from p ≡ _≈_.from q → p ≡ q
+    {A : Set a} {B : Set b} {p q : A ≃ B} →
+    _≃_.from p ≡ _≃_.from q → p ≡ q
   lift-equality-inverse ext {p = p} {q = q} f≡g =
     p                    ≡⟨ lift-equality ext (refl _) ⟩
     inverse (inverse p)  ≡⟨ cong inverse $ lift-equality ext f≡g ⟩
     inverse (inverse q)  ≡⟨ lift-equality ext (refl _) ⟩∎
     q                    ∎
 
--- _≈_ comes with a groupoid structure (assuming extensionality).
+-- _≃_ comes with a groupoid structure (assuming extensionality).
 
 groupoid : ∀ {ℓ} → Extensionality ℓ ℓ → Groupoid (lsuc ℓ) ℓ
 groupoid {ℓ} ext = record
   { Object         = Set ℓ
-  ; _∼_            = _≈_
+  ; _∼_            = _≃_
   ; id             = id
   ; _∘_            = _∘_
   ; _⁻¹            = inverse
@@ -599,46 +599,46 @@ groupoid {ℓ} ext = record
   }
   where
   abstract
-    left-identity : {X Y : Set ℓ} (p : X ≈ Y) → id ∘ p ≡ p
+    left-identity : {X Y : Set ℓ} (p : X ≃ Y) → id ∘ p ≡ p
     left-identity _ = lift-equality ext (refl _)
 
-    right-identity : {X Y : Set ℓ} (p : X ≈ Y) → p ∘ id ≡ p
+    right-identity : {X Y : Set ℓ} (p : X ≃ Y) → p ∘ id ≡ p
     right-identity _ = lift-equality ext (refl _)
 
-    assoc : {W X Y Z : Set ℓ} (p : Y ≈ Z) (q : X ≈ Y) (r : W ≈ X) →
+    assoc : {W X Y Z : Set ℓ} (p : Y ≃ Z) (q : X ≃ Y) (r : W ≃ X) →
             p ∘ (q ∘ r) ≡ (p ∘ q) ∘ r
     assoc _ _ _ = lift-equality ext (refl _)
 
-    left-inverse : {X Y : Set ℓ} (p : X ≈ Y) → inverse p ∘ p ≡ id
-    left-inverse p = lift-equality ext (ext $ _≈_.left-inverse-of p)
+    left-inverse : {X Y : Set ℓ} (p : X ≃ Y) → inverse p ∘ p ≡ id
+    left-inverse p = lift-equality ext (ext $ _≃_.left-inverse-of p)
 
-    right-inverse : {X Y : Set ℓ} (p : X ≈ Y) → p ∘ inverse p ≡ id
-    right-inverse p = lift-equality ext (ext $ _≈_.right-inverse-of p)
+    right-inverse : {X Y : Set ℓ} (p : X ≃ Y) → p ∘ inverse p ≡ id
+    right-inverse p = lift-equality ext (ext $ _≃_.right-inverse-of p)
 
 ------------------------------------------------------------------------
--- A surjection from A ↔ B to A ≈ B, and related results
+-- A surjection from A ↔ B to A ≃ B, and related results
 
 private
  abstract
 
-  -- ↔⇒≈ is a left inverse of _≈_.bijection (assuming extensionality).
+  -- ↔⇒≃ is a left inverse of _≃_.bijection (assuming extensionality).
 
-  ↔⇒≈-left-inverse :
+  ↔⇒≃-left-inverse :
     ∀ {a b} {A : Set a} {B : Set b} →
     Extensionality (a ⊔ b) (a ⊔ b) →
-    (A≈B : A ≈ B) →
-    ↔⇒≈ (_≈_.bijection A≈B) ≡ A≈B
-  ↔⇒≈-left-inverse ext _ = lift-equality ext (refl _)
+    (A≃B : A ≃ B) →
+    ↔⇒≃ (_≃_.bijection A≃B) ≡ A≃B
+  ↔⇒≃-left-inverse ext _ = lift-equality ext (refl _)
 
-  -- When sets are used ↔⇒≈ is a right inverse of _≈_.bijection
+  -- When sets are used ↔⇒≃ is a right inverse of _≃_.bijection
   -- (assuming extensionality).
 
-  ↔⇒≈-right-inverse :
+  ↔⇒≃-right-inverse :
     ∀ {a b} {A : Set a} {B : Set b} →
     Extensionality (a ⊔ b) (a ⊔ b) →
     Is-set A → (A↔B : A ↔ B) →
-    _≈_.bijection (↔⇒≈ A↔B) ≡ A↔B
-  ↔⇒≈-right-inverse {a} {b} {B = B} ext A-set A↔B =
+    _≃_.bijection (↔⇒≃ A↔B) ≡ A↔B
+  ↔⇒≃-right-inverse {a} {b} {B = B} ext A-set A↔B =
     cong₂ (λ l r → record
              { surjection = record
                { equivalence      = _↔_.equivalence A↔B
@@ -652,52 +652,52 @@ private
     B-set : Is-set B
     B-set = respects-surjection (_↔_.surjection A↔B) 2 A-set
 
--- There is a surjection from A ↔ B to A ≈ B (assuming
+-- There is a surjection from A ↔ B to A ≃ B (assuming
 -- extensionality).
 
-↔↠≈ :
+↔↠≃ :
   ∀ {a b} {A : Set a} {B : Set b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
-  (A ↔ B) ↠ (A ≈ B)
-↔↠≈ ext = record
+  (A ↔ B) ↠ (A ≃ B)
+↔↠≃ ext = record
   { equivalence = record
-    { to   = ↔⇒≈
-    ; from = _≈_.bijection
+    { to   = ↔⇒≃
+    ; from = _≃_.bijection
     }
-  ; right-inverse-of = ↔⇒≈-left-inverse ext
+  ; right-inverse-of = ↔⇒≃-left-inverse ext
   }
 
--- When A is a set A ↔ B and A ≈ B are isomorphic (assuming
+-- When A is a set A ↔ B and A ≃ B are isomorphic (assuming
 -- extensionality).
 
-↔↔≈ :
+↔↔≃ :
   ∀ {a b} {A : Set a} {B : Set b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
-  Is-set A → (A ↔ B) ↔ (A ≈ B)
-↔↔≈ ext A-set = record
-  { surjection      = ↔↠≈ ext
-  ; left-inverse-of = ↔⇒≈-right-inverse ext A-set
+  Is-set A → (A ↔ B) ↔ (A ≃ B)
+↔↔≃ ext A-set = record
+  { surjection      = ↔↠≃ ext
+  ; left-inverse-of = ↔⇒≃-right-inverse ext A-set
   }
 
 -- For propositional types equivalence is isomorphic to weak
 -- equivalence (assuming extensionality).
 
-⇔↔≈ : ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
+⇔↔≃ : ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
       {A : Set a} {B : Set b} →
-      Propositional A → Propositional B → (A ⇔ B) ↔ (A ≈ B)
-⇔↔≈ ext {A} {B} A-prop B-prop = record
+      Propositional A → Propositional B → (A ⇔ B) ↔ (A ≃ B)
+⇔↔≃ ext {A} {B} A-prop B-prop = record
   { surjection = record
     { equivalence = record
-      { to   = ⇔→≈
-      ; from = _≈_.equivalence
+      { to   = ⇔→≃
+      ; from = _≃_.equivalence
       }
     ; right-inverse-of = λ _ → lift-equality ext (refl _)
     }
   ; left-inverse-of = refl
   }
   where
-  ⇔→≈ : A ⇔ B → A ≈ B
-  ⇔→≈ A⇔B = ↔⇒≈ record
+  ⇔→≃ : A ⇔ B → A ≃ B
+  ⇔→≃ A⇔B = ↔⇒≃ record
     { surjection = record
       { equivalence      = A⇔B
       ; right-inverse-of = to∘from
@@ -726,7 +726,7 @@ abstract
   right-closure :
     ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
     ∀ {A : Set a} {B : Set b} n →
-    H-level (1 + n) B → H-level (1 + n) (A ≈ B)
+    H-level (1 + n) B → H-level (1 + n) (A ≃ B)
   right-closure {a} {b} ext {A = A} {B} n h =
     H-level.respects-surjection surj (1 + n) lemma
     where
@@ -736,11 +736,11 @@ abstract
                          (1 + n) (const h))
               (mono (m≤m+n 1 n) ⊚ propositional ext)
 
-    surj : (∃ λ (to : A → B) → Is-weak-equivalence to) ↠ (A ≈ B)
+    surj : (∃ λ (to : A → B) → Is-weak-equivalence to) ↠ (A ≃ B)
     surj = record
       { equivalence = record
-          { to   = λ A≈B → weq (proj₁ A≈B) (proj₂ A≈B)
-          ; from = λ A≈B → (_≈_.to A≈B , _≈_.is-weak-equivalence A≈B)
+          { to   = λ A≃B → weq (proj₁ A≃B) (proj₂ A≃B)
+          ; from = λ A≃B → (_≃_.to A≃B , _≃_.is-weak-equivalence A≃B)
           }
       ; right-inverse-of = λ _ → refl _
       }
@@ -748,31 +748,31 @@ abstract
   left-closure :
     ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
     ∀ {A : Set a} {B : Set b} n →
-    H-level (1 + n) A → H-level (1 + n) (A ≈ B)
+    H-level (1 + n) A → H-level (1 + n) (A ≃ B)
   left-closure ext {A = A} {B} n h =
-    H-level.[inhabited⇒+]⇒+ n λ (A≈B : A ≈ B) →
+    H-level.[inhabited⇒+]⇒+ n λ (A≃B : A ≃ B) →
       right-closure ext n $
-        H-level.respects-surjection (_≈_.surjection A≈B) (1 + n) h
+        H-level.respects-surjection (_≃_.surjection A≃B) (1 + n) h
 
 -- Equalities are closed, in a strong sense, under applications of
 -- weak equivalences.
 
-≈-≡ : ∀ {a b} {A : Set a} {B : Set b} (A≈B : A ≈ B) {x y : A} →
-      let open _≈_ A≈B in
-      (to x ≡ to y) ≈ (x ≡ y)
-≈-≡ A≈B {x} {y} = ↔⇒≈ record
+≃-≡ : ∀ {a b} {A : Set a} {B : Set b} (A≃B : A ≃ B) {x y : A} →
+      let open _≃_ A≃B in
+      (to x ≡ to y) ≃ (x ≡ y)
+≃-≡ A≃B {x} {y} = ↔⇒≃ record
   { surjection      = surjection′
   ; left-inverse-of = left-inverse-of′
   }
   where
-  open _≈_ A≈B
+  open _≃_ A≃B
 
   surjection′ : (to x ≡ to y) ↠ (x ≡ y)
   surjection′ =
     Surjection.↠-≡ $
     _↔_.surjection $
     Bijection.inverse $
-    _≈_.bijection A≈B
+    _≃_.bijection A≃B
 
   abstract
     left-inverse-of′ :
@@ -794,7 +794,7 @@ abstract
                                                            (left-right-lemma y) ⟩
       trans (sym (right-inverse-of (to x))) (
         trans (cong to (cong from to-x≡to-y)) (
-        right-inverse-of (to y)))                  ≡⟨ _↠_.right-inverse-of (Surjection.↠-≡ $ _≈_.surjection A≈B) to-x≡to-y ⟩∎
+        right-inverse-of (to y)))                  ≡⟨ _↠_.right-inverse-of (Surjection.↠-≡ $ _≃_.surjection A≃B) to-x≡to-y ⟩∎
       to-x≡to-y                                    ∎
 
 abstract
@@ -819,17 +819,17 @@ abstract
 
     push-subst′ :
       ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-      (A₁≈A₂ : A₁ ≈ A₂) (B₁ : A₁ → Set b₁) (B₂ : A₂ → Set b₂) →
-      let open _≈_ A₁≈A₂ in {x₁ x₂ : A₁} {y : B₁ (from (to x₁))}
+      (A₁≃A₂ : A₁ ≃ A₂) (B₁ : A₁ → Set b₁) (B₂ : A₂ → Set b₂) →
+      let open _≃_ A₁≃A₂ in {x₁ x₂ : A₁} {y : B₁ (from (to x₁))}
       (g : ∀ x → B₁ (from (to x)) → B₂ (to x)) (eq : to x₁ ≡ to x₂) →
       subst B₂ eq (g x₁ y) ≡ g x₂ (subst B₁ (cong from eq) y)
-    push-subst′ A₁≈A₂ B₁ B₂ {x₁} {x₂} {y} g eq =
+    push-subst′ A₁≃A₂ B₁ B₂ {x₁} {x₂} {y} g eq =
       subst B₂ eq (g x₁ y)                    ≡⟨ cong (subst B₂ eq) $ sym $ g′-lemma _ _ ⟩
       subst B₂ eq (g′ (to x₁) y)              ≡⟨ push-subst B₁ g′ eq ⟩
       g′ (to x₂) (subst B₁ (cong from eq) y)  ≡⟨ g′-lemma _ _ ⟩∎
       g x₂ (subst B₁ (cong from eq) y)        ∎
       where
-      open _≈_ A₁≈A₂
+      open _≃_ A₁≃A₂
 
       g′ : ∀ x′ → B₁ (from x′) → B₂ x′
       g′ x′ y = subst B₂ (right-inverse-of x′) $
@@ -877,31 +877,31 @@ abstract
 ∃-preserves-functions :
   ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
     {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
-  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x → B₂ (_≈_.to A₁≈A₂ x)) →
+  (A₁≃A₂ : A₁ ≃ A₂) → (∀ x → B₁ x → B₂ (_≃_.to A₁≃A₂ x)) →
   Σ A₁ B₁ → Σ A₂ B₂
-∃-preserves-functions A₁≈A₂ B₁→B₂ = Σ-map (_≈_.to A₁≈A₂) (B₁→B₂ _)
+∃-preserves-functions A₁≃A₂ B₁→B₂ = Σ-map (_≃_.to A₁≃A₂) (B₁→B₂ _)
 
 ∃-preserves-equivalences :
   ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
     {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
-  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ⇔ B₂ (_≈_.to A₁≈A₂ x)) →
+  (A₁≃A₂ : A₁ ≃ A₂) → (∀ x → B₁ x ⇔ B₂ (_≃_.to A₁≃A₂ x)) →
   Σ A₁ B₁ ⇔ Σ A₂ B₂
-∃-preserves-equivalences {B₂ = B₂} A₁≈A₂ B₁⇔B₂ = record
-  { to   = ∃-preserves-functions A₁≈A₂ (_⇔_.to ⊚ B₁⇔B₂)
+∃-preserves-equivalences {B₂ = B₂} A₁≃A₂ B₁⇔B₂ = record
+  { to   = ∃-preserves-functions A₁≃A₂ (_⇔_.to ⊚ B₁⇔B₂)
   ; from =
      ∃-preserves-functions
-       (inverse A₁≈A₂)
+       (inverse A₁≃A₂)
        (λ x y → _⇔_.from
-                  (B₁⇔B₂ (_≈_.from A₁≈A₂ x))
-                  (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ x)) y))
+                  (B₁⇔B₂ (_≃_.from A₁≃A₂ x))
+                  (subst B₂ (sym (_≃_.right-inverse-of A₁≃A₂ x)) y))
   }
 
 ∃-preserves-injections :
   ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
     {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
-  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ↣ B₂ (_≈_.to A₁≈A₂ x)) →
+  (A₁≃A₂ : A₁ ≃ A₂) → (∀ x → B₁ x ↣ B₂ (_≃_.to A₁≃A₂ x)) →
   Σ A₁ B₁ ↣ Σ A₂ B₂
-∃-preserves-injections {A₁ = A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁↣B₂ = record
+∃-preserves-injections {A₁ = A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁↣B₂ = record
   { to        = to′
   ; injective = injective′
   }
@@ -909,40 +909,40 @@ abstract
   open _↣_
 
   to′ : Σ A₁ B₁ → Σ A₂ B₂
-  to′ = ∃-preserves-functions A₁≈A₂ (_↣_.to ⊚ B₁↣B₂)
+  to′ = ∃-preserves-functions A₁≃A₂ (_↣_.to ⊚ B₁↣B₂)
 
   abstract
     injective′ : Injective to′
     injective′ {x = (x₁ , x₂)} {y = (y₁ , y₂)} =
       _↔_.to Σ-≡,≡↔≡ ⊚
-      Σ-map (_≈_.injective A₁≈A₂) (λ {eq₁} eq₂ →
+      Σ-map (_≃_.injective A₁≃A₂) (λ {eq₁} eq₂ →
         let lemma =
-              to (B₁↣B₂ y₁) (subst B₁ (_≈_.injective A₁≈A₂ eq₁) x₂)      ≡⟨ refl _ ⟩
+              to (B₁↣B₂ y₁) (subst B₁ (_≃_.injective A₁≃A₂ eq₁) x₂)      ≡⟨ refl _ ⟩
               to (B₁↣B₂ y₁)
-                (subst B₁ (trans (sym (_≈_.left-inverse-of A₁≈A₂ x₁)) $
-                           trans (cong (_≈_.from A₁≈A₂) eq₁)
-                                 (_≈_.left-inverse-of A₁≈A₂ y₁))
+                (subst B₁ (trans (sym (_≃_.left-inverse-of A₁≃A₂ x₁)) $
+                           trans (cong (_≃_.from A₁≃A₂) eq₁)
+                                 (_≃_.left-inverse-of A₁≃A₂ y₁))
                           x₂)                                            ≡⟨ cong (to (B₁↣B₂ y₁)) $ sym $ subst-subst B₁ _ _ _ ⟩
               to (B₁↣B₂ y₁)
-                 (subst B₁ (trans (cong (_≈_.from A₁≈A₂) eq₁)
-                                  (_≈_.left-inverse-of A₁≈A₂ y₁)) $
-                  subst B₁ (sym (_≈_.left-inverse-of A₁≈A₂ x₁))
+                 (subst B₁ (trans (cong (_≃_.from A₁≃A₂) eq₁)
+                                  (_≃_.left-inverse-of A₁≃A₂ y₁)) $
+                  subst B₁ (sym (_≃_.left-inverse-of A₁≃A₂ x₁))
                            x₂)                                           ≡⟨ cong (to (B₁↣B₂ y₁)) $ sym $ subst-subst B₁ _ _ _ ⟩
               to (B₁↣B₂ y₁)
-                 (subst B₁ (_≈_.left-inverse-of A₁≈A₂ y₁) $
-                  subst B₁ (cong (_≈_.from A₁≈A₂) eq₁) $
-                  subst B₁ (sym (_≈_.left-inverse-of A₁≈A₂ x₁)) x₂)      ≡⟨ sym $ push-subst′ A₁≈A₂ B₁ B₂
+                 (subst B₁ (_≃_.left-inverse-of A₁≃A₂ y₁) $
+                  subst B₁ (cong (_≃_.from A₁≃A₂) eq₁) $
+                  subst B₁ (sym (_≃_.left-inverse-of A₁≃A₂ x₁)) x₂)      ≡⟨ sym $ push-subst′ A₁≃A₂ B₁ B₂
                                                                               (λ x y → to (B₁↣B₂ x)
-                                                                                          (subst B₁ (_≈_.left-inverse-of A₁≈A₂ x) y))
+                                                                                          (subst B₁ (_≃_.left-inverse-of A₁≃A₂ x) y))
                                                                               eq₁ ⟩
               subst B₂ eq₁
                 (to (B₁↣B₂ x₁) $
-                 subst B₁ (_≈_.left-inverse-of A₁≈A₂ x₁) $
-                 subst B₁ (sym (_≈_.left-inverse-of A₁≈A₂ x₁)) x₂)       ≡⟨ cong (subst B₂ eq₁ ⊚ to (B₁↣B₂ x₁)) $ subst-subst B₁ _ _ _ ⟩
+                 subst B₁ (_≃_.left-inverse-of A₁≃A₂ x₁) $
+                 subst B₁ (sym (_≃_.left-inverse-of A₁≃A₂ x₁)) x₂)       ≡⟨ cong (subst B₂ eq₁ ⊚ to (B₁↣B₂ x₁)) $ subst-subst B₁ _ _ _ ⟩
               subst B₂ eq₁
                 (to (B₁↣B₂ x₁) $
-                 subst B₁ (trans (sym (_≈_.left-inverse-of A₁≈A₂ x₁))
-                                 (_≈_.left-inverse-of A₁≈A₂ x₁))
+                 subst B₁ (trans (sym (_≃_.left-inverse-of A₁≃A₂ x₁))
+                                 (_≃_.left-inverse-of A₁≃A₂ x₁))
                           x₂)                                            ≡⟨ cong (λ p → subst B₂ eq₁ (to (B₁↣B₂ x₁) (subst B₁ p x₂))) $
                                                                                  trans-symˡ _ ⟩
               subst B₂ eq₁ (to (B₁↣B₂ x₁) $ subst B₁ (refl _) x₂)        ≡⟨ cong (subst B₂ eq₁ ⊚ to (B₁↣B₂ x₁)) $
@@ -950,16 +950,16 @@ abstract
               subst B₂ eq₁ (to (B₁↣B₂ x₁) x₂)                            ≡⟨ eq₂ ⟩∎
               to (B₁↣B₂ y₁) y₂                                           ∎
         in
-        subst B₁ (_≈_.injective A₁≈A₂ eq₁) x₂  ≡⟨ _↣_.injective (B₁↣B₂ y₁) lemma ⟩∎
+        subst B₁ (_≃_.injective A₁≃A₂ eq₁) x₂  ≡⟨ _↣_.injective (B₁↣B₂ y₁) lemma ⟩∎
         y₂                                     ∎) ⊚
       Σ-≡,≡←≡
 
 ∃-preserves-surjections :
   ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
     {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
-  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ↠ B₂ (_≈_.to A₁≈A₂ x)) →
+  (A₁≃A₂ : A₁ ≃ A₂) → (∀ x → B₁ x ↠ B₂ (_≃_.to A₁≃A₂ x)) →
   Σ A₁ B₁ ↠ Σ A₂ B₂
-∃-preserves-surjections {A₁ = A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁↠B₂ = record
+∃-preserves-surjections {A₁ = A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁↠B₂ = record
   { equivalence      = equivalence′
   ; right-inverse-of = right-inverse-of′
   }
@@ -967,28 +967,28 @@ abstract
   open _↠_
 
   equivalence′ : Σ A₁ B₁ ⇔ Σ A₂ B₂
-  equivalence′ = ∃-preserves-equivalences A₁≈A₂ (equivalence ⊚ B₁↠B₂)
+  equivalence′ = ∃-preserves-equivalences A₁≃A₂ (equivalence ⊚ B₁↠B₂)
 
   abstract
     right-inverse-of′ :
       ∀ p → _⇔_.to equivalence′ (_⇔_.from equivalence′ p) ≡ p
     right-inverse-of′ = λ p → Σ-≡,≡→≡
-      (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
-      (subst B₂ (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
+      (_≃_.right-inverse-of A₁≃A₂ (proj₁ p))
+      (subst B₂ (_≃_.right-inverse-of A₁≃A₂ (proj₁ p))
          (to (B₁↠B₂ _) (from (B₁↠B₂ _)
-            (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ (proj₁ p)))
+            (subst B₂ (sym (_≃_.right-inverse-of A₁≃A₂ (proj₁ p)))
                (proj₂ p))))                                         ≡⟨ cong (subst B₂ _) $ right-inverse-of (B₁↠B₂ _) _ ⟩
-       subst B₂ (_≈_.right-inverse-of A₁≈A₂ (proj₁ p))
-         (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ (proj₁ p)))
+       subst B₂ (_≃_.right-inverse-of A₁≃A₂ (proj₁ p))
+         (subst B₂ (sym (_≃_.right-inverse-of A₁≃A₂ (proj₁ p)))
             (proj₂ p))                                              ≡⟨ subst-subst-sym B₂ _ _ ⟩∎
        proj₂ p ∎)
 
 ∃-preserves-bijections :
   ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
     {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
-  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ↔ B₂ (_≈_.to A₁≈A₂ x)) →
+  (A₁≃A₂ : A₁ ≃ A₂) → (∀ x → B₁ x ↔ B₂ (_≃_.to A₁≃A₂ x)) →
   Σ A₁ B₁ ↔ Σ A₂ B₂
-∃-preserves-bijections {A₁ = A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁↔B₂ = record
+∃-preserves-bijections {A₁ = A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁↔B₂ = record
   { surjection      = surjection′
   ; left-inverse-of = left-inverse-of′
   }
@@ -996,34 +996,34 @@ abstract
   open _↔_
 
   surjection′ : Σ A₁ B₁ ↠ Σ A₂ B₂
-  surjection′ = ∃-preserves-surjections A₁≈A₂ (surjection ⊚ B₁↔B₂)
+  surjection′ = ∃-preserves-surjections A₁≃A₂ (surjection ⊚ B₁↔B₂)
 
   abstract
     left-inverse-of′ :
       ∀ p → _↠_.from surjection′ (_↠_.to surjection′ p) ≡ p
     left-inverse-of′ = λ p → Σ-≡,≡→≡
-      (_≈_.left-inverse-of A₁≈A₂ (proj₁ p))
-      (subst B₁ (_≈_.left-inverse-of A₁≈A₂ (proj₁ p))
+      (_≃_.left-inverse-of A₁≃A₂ (proj₁ p))
+      (subst B₁ (_≃_.left-inverse-of A₁≃A₂ (proj₁ p))
          (from (B₁↔B₂ _)
-            (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
-                              (_≈_.to A₁≈A₂ (proj₁ p))))
+            (subst B₂ (sym (_≃_.right-inverse-of A₁≃A₂
+                              (_≃_.to A₁≃A₂ (proj₁ p))))
                (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ push-subst B₂ (λ x → from (B₁↔B₂ x))
-                                                                      (_≈_.left-inverse-of A₁≈A₂ (proj₁ p)) ⟩
+                                                                      (_≃_.left-inverse-of A₁≃A₂ (proj₁ p)) ⟩
        from (B₁↔B₂ _)
-         (subst B₂ (cong (_≈_.to A₁≈A₂)
-                         (_≈_.left-inverse-of A₁≈A₂ (proj₁ p)))
-            (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
-                              (_≈_.to A₁≈A₂ (proj₁ p))))
+         (subst B₂ (cong (_≃_.to A₁≃A₂)
+                         (_≃_.left-inverse-of A₁≃A₂ (proj₁ p)))
+            (subst B₂ (sym (_≃_.right-inverse-of A₁≃A₂
+                              (_≃_.to A₁≃A₂ (proj₁ p))))
                (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ cong (λ eq → from (B₁↔B₂ _)
                                                                                    (subst B₂ eq
-                                                                                      (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂ _))
+                                                                                      (subst B₂ (sym (_≃_.right-inverse-of A₁≃A₂ _))
                                                                                          (to (B₁↔B₂ _) (proj₂ p))))) $
-                                                                         _≈_.left-right-lemma A₁≈A₂ _ ⟩
+                                                                         _≃_.left-right-lemma A₁≃A₂ _ ⟩
        from (B₁↔B₂ _)
-         (subst B₂ (_≈_.right-inverse-of A₁≈A₂
-                      (_≈_.to A₁≈A₂ (proj₁ p)))
-            (subst B₂ (sym (_≈_.right-inverse-of A₁≈A₂
-                              (_≈_.to A₁≈A₂ (proj₁ p))))
+         (subst B₂ (_≃_.right-inverse-of A₁≃A₂
+                      (_≃_.to A₁≃A₂ (proj₁ p)))
+            (subst B₂ (sym (_≃_.right-inverse-of A₁≃A₂
+                              (_≃_.to A₁≃A₂ (proj₁ p))))
                (to (B₁↔B₂ _) (proj₂ p))))                        ≡⟨ cong (from (B₁↔B₂ _)) $ subst-subst-sym B₂ _ _ ⟩
        from (B₁↔B₂ _) (to (B₁↔B₂ _) (proj₂ p))                   ≡⟨ left-inverse-of (B₁↔B₂ _) _ ⟩∎
        proj₂ p                                                   ∎)
@@ -1032,20 +1032,20 @@ abstract
 
 Σ-preserves : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
                 {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
-              (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
-              Σ A₁ B₁ ≈ Σ A₂ B₂
-Σ-preserves A₁≈A₂ B₁≈B₂ = ↔⇒≈ $
-  ∃-preserves-bijections A₁≈A₂ (_≈_.bijection ⊚ B₁≈B₂)
+              (A₁≃A₂ : A₁ ≃ A₂) → (∀ x → B₁ x ≃ B₂ (_≃_.to A₁≃A₂ x)) →
+              Σ A₁ B₁ ≃ Σ A₂ B₂
+Σ-preserves A₁≃A₂ B₁≃B₂ = ↔⇒≃ $
+  ∃-preserves-bijections A₁≃A₂ (_≃_.bijection ⊚ B₁≃B₂)
 
 -- Π preserves weak equivalence (assuming extensionality).
 
 Π-preserves :
   ∀ {a₁ a₂ b₁ b₂} → Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
-  (A₁≈A₂ : A₁ ≈ A₂) → (∀ x → B₁ x ≈ B₂ (_≈_.to A₁≈A₂ x)) →
-  ((x : A₁) → B₁ x) ≈ ((x : A₂) → B₂ x)
-Π-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁≈B₂ =
-  ↔⇒≈ record
+  (A₁≃A₂ : A₁ ≃ A₂) → (∀ x → B₁ x ≃ B₂ (_≃_.to A₁≃A₂ x)) →
+  ((x : A₁) → B₁ x) ≃ ((x : A₂) → B₂ x)
+Π-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁≃B₂ =
+  ↔⇒≃ record
     { surjection = record
       { equivalence = record
         { to   = to′
@@ -1056,54 +1056,54 @@ abstract
     ; left-inverse-of = left-inverse-of′
     }
   where
-  open _≈_
+  open _≃_
 
   to′ : ((x : A₁) → B₁ x) → (x : A₂) → B₂ x
-  to′ f x = subst B₂ (right-inverse-of A₁≈A₂ x)
-                  (to (B₁≈B₂ (from A₁≈A₂ x))
-                      (f (from A₁≈A₂ x)))
+  to′ f x = subst B₂ (right-inverse-of A₁≃A₂ x)
+                  (to (B₁≃B₂ (from A₁≃A₂ x))
+                      (f (from A₁≃A₂ x)))
 
   from′ : ((x : A₂) → B₂ x) → (x : A₁) → B₁ x
-  from′ f x = from (B₁≈B₂ x) (f (to A₁≈A₂ x))
+  from′ f x = from (B₁≃B₂ x) (f (to A₁≃A₂ x))
 
   abstract
     right-inverse-of′ : ∀ f → to′ (from′ f) ≡ f
     right-inverse-of′ = λ f → lower-extensionality a₁ b₁ ext λ x →
-      subst B₂ (right-inverse-of A₁≈A₂ x)
-            (to (B₁≈B₂ (from A₁≈A₂ x))
-                (from (B₁≈B₂ (from A₁≈A₂ x))
-                      (f (to A₁≈A₂ (from A₁≈A₂ x)))))  ≡⟨ cong (subst B₂ (right-inverse-of A₁≈A₂ x)) $
-                                                               right-inverse-of (B₁≈B₂ _) _ ⟩
-      subst B₂ (right-inverse-of A₁≈A₂ x)
-            (f (to A₁≈A₂ (from A₁≈A₂ x)))              ≡⟨ elim (λ {x y} x≡y → subst B₂ x≡y (f x) ≡ f y)
+      subst B₂ (right-inverse-of A₁≃A₂ x)
+            (to (B₁≃B₂ (from A₁≃A₂ x))
+                (from (B₁≃B₂ (from A₁≃A₂ x))
+                      (f (to A₁≃A₂ (from A₁≃A₂ x)))))  ≡⟨ cong (subst B₂ (right-inverse-of A₁≃A₂ x)) $
+                                                               right-inverse-of (B₁≃B₂ _) _ ⟩
+      subst B₂ (right-inverse-of A₁≃A₂ x)
+            (f (to A₁≃A₂ (from A₁≃A₂ x)))              ≡⟨ elim (λ {x y} x≡y → subst B₂ x≡y (f x) ≡ f y)
                                                                (λ x → subst-refl B₂ (f x))
-                                                               (right-inverse-of A₁≈A₂ x) ⟩∎
+                                                               (right-inverse-of A₁≃A₂ x) ⟩∎
       f x                                              ∎
 
     left-inverse-of′ : ∀ f → from′ (to′ f) ≡ f
     left-inverse-of′ = λ f → lower-extensionality a₂ b₂ ext λ x →
-      from (B₁≈B₂ x)
-           (subst B₂ (right-inverse-of A₁≈A₂ (to A₁≈A₂ x))
-                  (to (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))
-                      (f (from A₁≈A₂ (to A₁≈A₂ x)))))             ≡⟨ cong (λ eq → from (B₁≈B₂ x)
+      from (B₁≃B₂ x)
+           (subst B₂ (right-inverse-of A₁≃A₂ (to A₁≃A₂ x))
+                  (to (B₁≃B₂ (from A₁≃A₂ (to A₁≃A₂ x)))
+                      (f (from A₁≃A₂ (to A₁≃A₂ x)))))             ≡⟨ cong (λ eq → from (B₁≃B₂ x)
                                                                                     (subst B₂ eq
-                                                                                       (to (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))
-                                                                                          (f (from A₁≈A₂ (to A₁≈A₂ x))))))
-                                                                          (sym $ left-right-lemma A₁≈A₂ x) ⟩
-      from (B₁≈B₂ x)
-           (subst B₂ (cong (to A₁≈A₂) (left-inverse-of A₁≈A₂ x))
-                  (to (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))
-                      (f (from A₁≈A₂ (to A₁≈A₂ x)))))             ≡⟨ sym $ push-subst B₂ (λ x y → from (B₁≈B₂ x) y)
-                                                                                      (left-inverse-of A₁≈A₂ x) ⟩
-      subst B₁ (left-inverse-of A₁≈A₂ x)
-            (from (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))
-                  (to (B₁≈B₂ (from A₁≈A₂ (to A₁≈A₂ x)))
-                      (f (from A₁≈A₂ (to A₁≈A₂ x)))))             ≡⟨ cong (subst B₁ (left-inverse-of A₁≈A₂ x)) $
-                                                                       left-inverse-of (B₁≈B₂ _) _ ⟩
-      subst B₁ (left-inverse-of A₁≈A₂ x)
-            (f (from A₁≈A₂ (to A₁≈A₂ x)))                         ≡⟨ elim (λ {x y} x≡y → subst B₁ x≡y (f x) ≡ f y)
+                                                                                       (to (B₁≃B₂ (from A₁≃A₂ (to A₁≃A₂ x)))
+                                                                                          (f (from A₁≃A₂ (to A₁≃A₂ x))))))
+                                                                          (sym $ left-right-lemma A₁≃A₂ x) ⟩
+      from (B₁≃B₂ x)
+           (subst B₂ (cong (to A₁≃A₂) (left-inverse-of A₁≃A₂ x))
+                  (to (B₁≃B₂ (from A₁≃A₂ (to A₁≃A₂ x)))
+                      (f (from A₁≃A₂ (to A₁≃A₂ x)))))             ≡⟨ sym $ push-subst B₂ (λ x y → from (B₁≃B₂ x) y)
+                                                                                      (left-inverse-of A₁≃A₂ x) ⟩
+      subst B₁ (left-inverse-of A₁≃A₂ x)
+            (from (B₁≃B₂ (from A₁≃A₂ (to A₁≃A₂ x)))
+                  (to (B₁≃B₂ (from A₁≃A₂ (to A₁≃A₂ x)))
+                      (f (from A₁≃A₂ (to A₁≃A₂ x)))))             ≡⟨ cong (subst B₁ (left-inverse-of A₁≃A₂ x)) $
+                                                                       left-inverse-of (B₁≃B₂ _) _ ⟩
+      subst B₁ (left-inverse-of A₁≃A₂ x)
+            (f (from A₁≃A₂ (to A₁≃A₂ x)))                         ≡⟨ elim (λ {x y} x≡y → subst B₁ x≡y (f x) ≡ f y)
                                                                           (λ x → subst-refl B₁ (f x))
-                                                                          (left-inverse-of A₁≈A₂ x) ⟩∎
+                                                                          (left-inverse-of A₁≃A₂ x) ⟩∎
       f x                                                         ∎
 
 -- Π preserves weak equivalence in its second argument (assuming
@@ -1115,9 +1115,9 @@ abstract
 ∀-preserves :
   ∀ {a b₁ b₂} → Extensionality a (b₁ ⊔ b₂) →
   {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
-  (∀ x → B₁ x ≈ B₂ x) →
-  ((x : A) → B₁ x) ≈ ((x : A) → B₂ x)
-∀-preserves {a} {b₁} {b₂} ext {A} {B₁} {B₂} B₁≈B₂ = ↔⇒≈ record
+  (∀ x → B₁ x ≃ B₂ x) →
+  ((x : A) → B₁ x) ≃ ((x : A) → B₂ x)
+∀-preserves {a} {b₁} {b₂} ext {A} {B₁} {B₂} B₁≃B₂ = ↔⇒≃ record
     { surjection = record
       { equivalence = record
         { to   = to′
@@ -1128,110 +1128,110 @@ abstract
     ; left-inverse-of = left-inverse-of′
     }
   where
-  open _≈_
+  open _≃_
 
   to′ : ((x : A) → B₁ x) → (x : A) → B₂ x
-  to′ f x = to (B₁≈B₂ x) (f x)
+  to′ f x = to (B₁≃B₂ x) (f x)
 
   from′ : ((x : A) → B₂ x) → (x : A) → B₁ x
-  from′ f x = from (B₁≈B₂ x) (f x)
+  from′ f x = from (B₁≃B₂ x) (f x)
 
   abstract
     right-inverse-of′ : ∀ f → to′ (from′ f) ≡ f
     right-inverse-of′ = λ f → lower-extensionality a b₁ ext λ x →
-      to (B₁≈B₂ x) (from (B₁≈B₂ x) (f x))  ≡⟨ right-inverse-of (B₁≈B₂ x) (f x) ⟩∎
+      to (B₁≃B₂ x) (from (B₁≃B₂ x) (f x))  ≡⟨ right-inverse-of (B₁≃B₂ x) (f x) ⟩∎
       f x                                  ∎
 
     left-inverse-of′ : ∀ f → from′ (to′ f) ≡ f
     left-inverse-of′ = λ f → lower-extensionality a b₂ ext λ x →
-      from (B₁≈B₂ x) (to (B₁≈B₂ x) (f x))  ≡⟨ left-inverse-of (B₁≈B₂ x) (f x) ⟩∎
+      from (B₁≃B₂ x) (to (B₁≃B₂ x) (f x))  ≡⟨ left-inverse-of (B₁≃B₂ x) (f x) ⟩∎
       f x                                  ∎
 
 -- Weak equivalence preserves weak equivalences (assuming
 -- extensionality).
 
-≈-preserves :
+≃-preserves :
   ∀ {a₁ a₂ b₁ b₂} →
   Extensionality (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) →
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
-  A₁ ≈ A₂ → B₁ ≈ B₂ → (A₁ ≈ B₁) ≈ (A₂ ≈ B₂)
-≈-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≈A₂ B₁≈B₂ =
-  ↔⇒≈ (record
+  A₁ ≃ A₂ → B₁ ≃ B₂ → (A₁ ≃ B₁) ≃ (A₂ ≃ B₂)
+≃-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁≃B₂ =
+  ↔⇒≃ (record
     { surjection = record
       { equivalence = record
-        { to   = λ A₁≈B₁ → B₁≈B₂ ∘ A₁≈B₁ ∘ inverse A₁≈A₂
-        ; from = λ A₂≈B₂ → inverse B₁≈B₂ ∘ A₂≈B₂ ∘ A₁≈A₂
+        { to   = λ A₁≃B₁ → B₁≃B₂ ∘ A₁≃B₁ ∘ inverse A₁≃A₂
+        ; from = λ A₂≃B₂ → inverse B₁≃B₂ ∘ A₂≃B₂ ∘ A₁≃A₂
         }
       ; right-inverse-of = to∘from
       }
     ; left-inverse-of = from∘to
     })
   where
-  open _≈_
+  open _≃_
 
   abstract
     to∘from :
-      (A₂≈B₂ : A₂ ≈ B₂) →
-      B₁≈B₂ ∘ (inverse B₁≈B₂ ∘ A₂≈B₂ ∘ A₁≈A₂) ∘ inverse A₁≈A₂ ≡ A₂≈B₂
-    to∘from A₂≈B₂ =
+      (A₂≃B₂ : A₂ ≃ B₂) →
+      B₁≃B₂ ∘ (inverse B₁≃B₂ ∘ A₂≃B₂ ∘ A₁≃A₂) ∘ inverse A₁≃A₂ ≡ A₂≃B₂
+    to∘from A₂≃B₂ =
       lift-equality (lower-extensionality (a₁ ⊔ b₁) (a₁ ⊔ b₁) ext) $
         lower-extensionality (a₁ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁) ext λ x →
-          to B₁≈B₂ (from B₁≈B₂ (to A₂≈B₂ (to A₁≈A₂ (from A₁≈A₂ x))))  ≡⟨ right-inverse-of B₁≈B₂ _ ⟩
-          to A₂≈B₂ (to A₁≈A₂ (from A₁≈A₂ x))                          ≡⟨ cong (to A₂≈B₂) $ right-inverse-of A₁≈A₂ _ ⟩∎
-          to A₂≈B₂ x                                                  ∎
+          to B₁≃B₂ (from B₁≃B₂ (to A₂≃B₂ (to A₁≃A₂ (from A₁≃A₂ x))))  ≡⟨ right-inverse-of B₁≃B₂ _ ⟩
+          to A₂≃B₂ (to A₁≃A₂ (from A₁≃A₂ x))                          ≡⟨ cong (to A₂≃B₂) $ right-inverse-of A₁≃A₂ _ ⟩∎
+          to A₂≃B₂ x                                                  ∎
 
     from∘to :
-      (A₁≈B₁ : A₁ ≈ B₁) →
-      inverse B₁≈B₂ ∘ (B₁≈B₂ ∘ A₁≈B₁ ∘ inverse A₁≈A₂) ∘ A₁≈A₂ ≡ A₁≈B₁
-    from∘to A₁≈B₁ =
+      (A₁≃B₁ : A₁ ≃ B₁) →
+      inverse B₁≃B₂ ∘ (B₁≃B₂ ∘ A₁≃B₁ ∘ inverse A₁≃A₂) ∘ A₁≃A₂ ≡ A₁≃B₁
+    from∘to A₁≃B₁ =
       lift-equality (lower-extensionality (a₂ ⊔ b₂) (a₂ ⊔ b₂) ext) $
         lower-extensionality (a₂ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₂) ext λ x →
-          from B₁≈B₂ (to B₁≈B₂ (to A₁≈B₁ (from A₁≈A₂ (to A₁≈A₂ x))))  ≡⟨ left-inverse-of B₁≈B₂ _ ⟩
-          to A₁≈B₁ (from A₁≈A₂ (to A₁≈A₂ x))                          ≡⟨ cong (to A₁≈B₁) $ left-inverse-of A₁≈A₂ _ ⟩∎
-          to A₁≈B₁ x                                                  ∎
+          from B₁≃B₂ (to B₁≃B₂ (to A₁≃B₁ (from A₁≃A₂ (to A₁≃A₂ x))))  ≡⟨ left-inverse-of B₁≃B₂ _ ⟩
+          to A₁≃B₁ (from A₁≃A₂ (to A₁≃A₂ x))                          ≡⟨ cong (to A₁≃B₁) $ left-inverse-of A₁≃A₂ _ ⟩∎
+          to A₁≃B₁ x                                                  ∎
 
 -- Weak equivalence preserves bijections (assuming extensionality).
 
-≈-preserves-bijections :
+≃-preserves-bijections :
   ∀ {a₁ a₂ b₁ b₂} →
   Extensionality (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) →
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
-  A₁ ↔ A₂ → B₁ ↔ B₂ → (A₁ ≈ B₁) ↔ (A₂ ≈ B₂)
-≈-preserves-bijections ext A₁↔A₂ B₁↔B₂ =
-  _≈_.bijection $ ≈-preserves ext (↔⇒≈ A₁↔A₂) (↔⇒≈ B₁↔B₂)
+  A₁ ↔ A₂ → B₁ ↔ B₂ → (A₁ ≃ B₁) ↔ (A₂ ≃ B₂)
+≃-preserves-bijections ext A₁↔A₂ B₁↔B₂ =
+  _≃_.bijection $ ≃-preserves ext (↔⇒≃ A₁↔A₂) (↔⇒≃ B₁↔B₂)
 
 ------------------------------------------------------------------------
 -- Another property
 
 abstract
 
-  -- As a consequence of extensionality-isomorphism and ≈-≡ we get a
+  -- As a consequence of extensionality-isomorphism and ≃-≡ we get a
   -- strengthening of W-≡,≡↠≡.
 
-  W-≡,≡≈≡ : ∀ {a b} {A : Set a} {B : A → Set b} →
+  W-≡,≡≃≡ : ∀ {a b} {A : Set a} {B : A → Set b} →
             (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality′ (B x) C) →
             ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
-            (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ≈
+            (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ≃
             (sup x f ≡ sup y g)
-  W-≡,≡≈≡ {a} {A = A} {B} ext {x} {y} {f} {g} =
-    (∃ λ p → ∀ i → f i ≡ g (subst B p i))        ≈⟨ Σ-preserves id lemma ⟩
-    (∃ λ p → subst (λ x → B x → W A B) p f ≡ g)  ≈⟨ ↔⇒≈ Σ-≡,≡↔≡ ⟩
-    ((x , f) ≡ (y , g))                          ≈⟨ ≈-≡ (↔⇒≈ W-unfolding) ⟩□
+  W-≡,≡≃≡ {a} {A = A} {B} ext {x} {y} {f} {g} =
+    (∃ λ p → ∀ i → f i ≡ g (subst B p i))        ≃⟨ Σ-preserves id lemma ⟩
+    (∃ λ p → subst (λ x → B x → W A B) p f ≡ g)  ≃⟨ ↔⇒≃ Σ-≡,≡↔≡ ⟩
+    ((x , f) ≡ (y , g))                          ≃⟨ ≃-≡ (↔⇒≃ W-unfolding) ⟩□
     (sup x f ≡ sup y g)                          □
     where
     lemma : (p : x ≡ y) →
-            (∀ i → f i ≡ g (subst B p i)) ≈
+            (∀ i → f i ≡ g (subst B p i)) ≃
             (subst (λ x → B x → W A B) p f ≡ g)
     lemma p = elim
       (λ {x y} p → (f : B x → W A B) (g : B y → W A B) →
-                   (∀ i → f i ≡ g (subst B p i)) ≈
+                   (∀ i → f i ≡ g (subst B p i)) ≃
                    (subst (λ x → B x → W A B) p f ≡ g))
       (λ x f g →
-         (∀ i → f i ≡ g (subst B (refl x) i))        ≈⟨ subst (λ h → (∀ i → f i ≡ g (h i)) ≈ (∀ i → f i ≡ g i))
+         (∀ i → f i ≡ g (subst B (refl x) i))        ≃⟨ subst (λ h → (∀ i → f i ≡ g (h i)) ≃ (∀ i → f i ≡ g i))
                                                               (sym (lower-extensionality₂ a ext (subst-refl B)))
                                                               id ⟩
-         (∀ i → f i ≡ g i)                           ≈⟨ extensionality-isomorphism ext ⟩
-         (f ≡ g)                                     ≈⟨ subst (λ h → (f ≡ g) ≈ (h ≡ g))
+         (∀ i → f i ≡ g i)                           ≃⟨ extensionality-isomorphism ext ⟩
+         (f ≡ g)                                     ≃⟨ subst (λ h → (f ≡ g) ≃ (h ≡ g))
                                                               (sym $ subst-refl (λ x' → B x' → W A B) f)
                                                               id ⟩□
          (subst (λ x → B x → W A B) (refl x) f ≡ g)  □)

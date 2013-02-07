@@ -17,7 +17,7 @@ open import Injection eq as Injection using (_↣_; module _↣_; Injective)
 open import Preimage eq using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection eq as Surjection using (_↠_; module _↠_)
-open import Weak-equivalence eq as Weak using (_≈_; module _≈_)
+open import Weak-equivalence eq as Weak using (_≃_; module _≃_)
 
 ------------------------------------------------------------------------
 -- The universe
@@ -43,7 +43,7 @@ A ↝[ equivalence      ] B = A ⇔ B
 A ↝[ injection        ] B = A ↣ B
 A ↝[ surjection       ] B = A ↠ B
 A ↝[ bijection        ] B = A ↔ B
-A ↝[ weak-equivalence ] B = A ≈ B
+A ↝[ weak-equivalence ] B = A ≃ B
 
 -- Bijections can be converted to all kinds of functions.
 
@@ -54,17 +54,17 @@ from-bijection {equivalence}      = _↔_.equivalence
 from-bijection {injection}        = _↔_.injection
 from-bijection {surjection}       = _↔_.surjection
 from-bijection {bijection}        = P.id
-from-bijection {weak-equivalence} = Weak.↔⇒≈
+from-bijection {weak-equivalence} = Weak.↔⇒≃
 
 -- Weak equivalences can be converted to all kinds of functions.
 
 from-weak-equivalence : ∀ {k a b} {A : Set a} {B : Set b} →
-                        A ≈ B → A ↝[ k ] B
-from-weak-equivalence {implication}      = _≈_.to
-from-weak-equivalence {equivalence}      = _≈_.equivalence
-from-weak-equivalence {injection}        = _≈_.injection
-from-weak-equivalence {surjection}       = _≈_.surjection
-from-weak-equivalence {bijection}        = _≈_.bijection
+                        A ≃ B → A ↝[ k ] B
+from-weak-equivalence {implication}      = _≃_.to
+from-weak-equivalence {equivalence}      = _≃_.equivalence
+from-weak-equivalence {injection}        = _≃_.injection
+from-weak-equivalence {surjection}       = _≃_.surjection
+from-weak-equivalence {bijection}        = _≃_.bijection
 from-weak-equivalence {weak-equivalence} = P.id
 
 -- All kinds of functions can be converted to implications.
@@ -76,7 +76,7 @@ to-implication {equivalence}      = _⇔_.to
 to-implication {injection}        = _↣_.to
 to-implication {surjection}       = _↠_.to
 to-implication {bijection}        = _↔_.to
-to-implication {weak-equivalence} = _≈_.to
+to-implication {weak-equivalence} = _≃_.to
 
 ------------------------------------------------------------------------
 -- A sub-universe of symmetric kinds of functions
@@ -325,9 +325,9 @@ _⊎-cong_ {equivalence}      = ⊎-cong-eq
 _⊎-cong_ {injection}        = ⊎-cong-inj
 _⊎-cong_ {surjection}       = ⊎-cong-surj
 _⊎-cong_ {bijection}        = ⊎-cong-bij
-_⊎-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
-  from-bijection $ ⊎-cong-bij (from-weak-equivalence A₁≈A₂)
-                              (from-weak-equivalence B₁≈B₂)
+_⊎-cong_ {weak-equivalence} = λ A₁≃A₂ B₁≃B₂ →
+  from-bijection $ ⊎-cong-bij (from-weak-equivalence A₁≃A₂)
+                              (from-weak-equivalence B₁≃B₂)
 
 -- _⊎_ is commutative.
 
@@ -455,9 +455,9 @@ _×-cong_ {equivalence}      = ×-cong-eq
 _×-cong_ {injection}        = ×-cong-inj
 _×-cong_ {surjection}       = ×-cong-surj
 _×-cong_ {bijection}        = ×-cong-bij
-_×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
-  from-bijection $ ×-cong-bij (from-weak-equivalence A₁≈A₂)
-                              (from-weak-equivalence B₁≈B₂)
+_×-cong_ {weak-equivalence} = λ A₁≃A₂ B₁≃B₂ →
+  from-bijection $ ×-cong-bij (from-weak-equivalence A₁≃A₂)
+                              (from-weak-equivalence B₁≃B₂)
 
 -- _×_ is commutative.
 
@@ -558,28 +558,28 @@ _×-cong_ {weak-equivalence} = λ A₁≈A₂ B₁≈B₂ →
          (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
          (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
          Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
-Σ-cong {weak-equivalence} {weak-equivalence} A₁≈A₂ B₁≈B₂ =
-  Weak.Σ-preserves A₁≈A₂ B₁≈B₂
+Σ-cong {weak-equivalence} {weak-equivalence} A₁≃A₂ B₁≃B₂ =
+  Weak.Σ-preserves A₁≃A₂ B₁≃B₂
 Σ-cong {k₁} {k₂} {A₁ = A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ = helper k₂ B₁↝B₂′
   where
-  A₁≈A₂ : A₁ ≈ A₂
-  A₁≈A₂ = from-isomorphism A₁↔A₂
+  A₁≃A₂ : A₁ ≃ A₂
+  A₁≃A₂ = from-isomorphism A₁↔A₂
 
-  B₁↝B₂′ : ∀ x → B₁ x ↝[ k₂ ] B₂ (_≈_.to A₁≈A₂ x)
+  B₁↝B₂′ : ∀ x → B₁ x ↝[ k₂ ] B₂ (_≃_.to A₁≃A₂ x)
   B₁↝B₂′ x =
     B₁ x                                    ↝⟨ B₁↝B₂ x ⟩
     B₂ (to-implication A₁↔A₂ x)             ↔⟨ ≡⇒↝ bijection $ cong (λ f → B₂ (f x)) $
                                                  to-implication∘from-isomorphism k₁ weak-equivalence ⟩
-    B₂ (_≈_.to (from-isomorphism A₁↔A₂) x)  □
+    B₂ (_≃_.to (from-isomorphism A₁↔A₂) x)  □
 
-  helper : ∀ k₂ → (∀ x → B₁ x ↝[ k₂ ] B₂ (_≈_.to A₁≈A₂ x)) →
+  helper : ∀ k₂ → (∀ x → B₁ x ↝[ k₂ ] B₂ (_≃_.to A₁≃A₂ x)) →
            Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
-  helper implication      = Weak.∃-preserves-functions    A₁≈A₂
-  helper equivalence      = Weak.∃-preserves-equivalences A₁≈A₂
-  helper injection        = Weak.∃-preserves-injections   A₁≈A₂
-  helper surjection       = Weak.∃-preserves-surjections  A₁≈A₂
-  helper bijection        = Weak.∃-preserves-bijections   A₁≈A₂
-  helper weak-equivalence = Weak.Σ-preserves              A₁≈A₂
+  helper implication      = Weak.∃-preserves-functions    A₁≃A₂
+  helper equivalence      = Weak.∃-preserves-equivalences A₁≃A₂
+  helper injection        = Weak.∃-preserves-injections   A₁≃A₂
+  helper surjection       = Weak.∃-preserves-surjections  A₁≃A₂
+  helper bijection        = Weak.∃-preserves-bijections   A₁≃A₂
+  helper weak-equivalence = Weak.Σ-preserves              A₁≃A₂
 
 -- ∃ preserves all kinds of functions. One could define
 -- ∃-cong = Σ-cong Bijection.id, but the resulting "from" functions
@@ -627,8 +627,8 @@ private
 ∃-cong {injection}        = Σ-cong Bijection.id
 ∃-cong {surjection}       = ∃-cong-surj
 ∃-cong {bijection}        = ∃-cong-bij
-∃-cong {weak-equivalence} = λ B₁≈B₂ →
-  from-bijection $ ∃-cong-bij (from-weak-equivalence ⊚ B₁≈B₂)
+∃-cong {weak-equivalence} = λ B₁≃B₂ →
+  from-bijection $ ∃-cong-bij (from-weak-equivalence ⊚ B₁≃B₂)
 
 -- ∃ distributes "from the left" over _⊎_.
 
@@ -776,25 +776,25 @@ private
            (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
   helper equivalence      A⇔B C⇔D = →-cong-⇔ A⇔B C⇔D
   helper bijection        A↔B C↔D = →-cong-↔ A↔B C↔D
-  helper weak-equivalence A≈B C≈D = record
+  helper weak-equivalence A≃B C≃D = record
     { to                  = to
     ; is-weak-equivalence = λ y →
         ((from y , right-inverse-of y) , irrelevance y)
     }
     where
-    A→B≈C→D = Weak.↔⇒≈
-                (→-cong-↔ (_≈_.bijection A≈B) (_≈_.bijection C≈D))
+    A→B≃C→D = Weak.↔⇒≃
+                (→-cong-↔ (_≃_.bijection A≃B) (_≃_.bijection C≃D))
 
-    to   = _≈_.to   A→B≈C→D
-    from = _≈_.from A→B≈C→D
+    to   = _≃_.to   A→B≃C→D
+    from = _≃_.from A→B≃C→D
 
     abstract
       right-inverse-of : ∀ x → to (from x) ≡ x
-      right-inverse-of = _≈_.right-inverse-of A→B≈C→D
+      right-inverse-of = _≃_.right-inverse-of A→B≃C→D
 
       irrelevance : ∀ y (p : to ⁻¹ y) →
                     (from y , right-inverse-of y) ≡ p
-      irrelevance = _≈_.irrelevance A→B≈C→D
+      irrelevance = _≃_.irrelevance A→B≃C→D
 
 Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
 Π-left-identity = record
@@ -870,10 +870,10 @@ private
 -- Products of weak equivalences of equalities are isomorphic to
 -- equalities (assuming extensionality).
 
-Π≡≈≡-↔-≡ : ∀ {a} → Extensionality a a →
+Π≡≃≡-↔-≡ : ∀ {a} → Extensionality a a →
            {A : Set a} (x y : A) →
-           (∀ z → (z ≡ x) ≈ (z ≡ y)) ↔ (x ≡ y)
-Π≡≈≡-↔-≡ ext x y = record
+           (∀ z → (z ≡ x) ≃ (z ≡ y)) ↔ (x ≡ y)
+Π≡≃≡-↔-≡ ext x y = record
   { surjection      = surj
   ; left-inverse-of = from∘to
   }
@@ -885,13 +885,13 @@ private
   abstract
     from∘to : ∀ f → from (to f) ≡ f
     from∘to f = ext λ z → Weak.lift-equality ext $ ext λ z≡x →
-      trans z≡x (_≈_.to (f x) (refl x))  ≡⟨ elim (λ {u v} u≡v →
-                                                    (f : ∀ z → (z ≡ v) ≈ (z ≡ y)) →
-                                                    trans u≡v (_≈_.to (f v) (refl v)) ≡
-                                                    _≈_.to (f u) u≡v)
+      trans z≡x (_≃_.to (f x) (refl x))  ≡⟨ elim (λ {u v} u≡v →
+                                                    (f : ∀ z → (z ≡ v) ≃ (z ≡ y)) →
+                                                    trans u≡v (_≃_.to (f v) (refl v)) ≡
+                                                    _≃_.to (f u) u≡v)
                                                  (λ _ _ → trans-reflˡ _)
                                                  z≡x f ⟩∎
-      _≈_.to (f z) z≡x                   ∎
+      _≃_.to (f z) z≡x                   ∎
 
 -- One can introduce a universal quantifier by also introducing an
 -- equality (assuming extensionality).
@@ -944,28 +944,28 @@ private
 
 from≡↔≡to : ∀ {a b k} →
             {A : Set a} {B : Set b}
-            (A≈B : A ≈ B) {x : B} {y : A} →
-            (_≈_.from A≈B x ≡ y) ↔[ k ] (x ≡ _≈_.to A≈B y)
-from≡↔≡to A≈B {x} {y} =
-  (_≈_.from A≈B x ≡ y)                          ↔⟨ inverse $ Weak.≈-≡ A≈B ⟩
-  (_≈_.to A≈B (_≈_.from A≈B x) ≡ _≈_.to A≈B y)  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ _≈_.to A≈B y) $ _≈_.right-inverse-of A≈B x ⟩□
-  (x ≡ _≈_.to A≈B y)                            □
+            (A≃B : A ≃ B) {x : B} {y : A} →
+            (_≃_.from A≃B x ≡ y) ↔[ k ] (x ≡ _≃_.to A≃B y)
+from≡↔≡to A≃B {x} {y} =
+  (_≃_.from A≃B x ≡ y)                          ↔⟨ inverse $ Weak.≃-≡ A≃B ⟩
+  (_≃_.to A≃B (_≃_.from A≃B x) ≡ _≃_.to A≃B y)  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ _≃_.to A≃B y) $ _≃_.right-inverse-of A≃B x ⟩□
+  (x ≡ _≃_.to A≃B y)                            □
 
 ∘from≡↔≡∘to : ∀ {a b c k} →
               Extensionality (a ⊔ b) c →
               {A : Set a} {B : Set b} {C : Set c}
-              (A≈B : A ≈ B) {f : A → C} {g : B → C} →
-              (f ∘ _≈_.from A≈B ≡ g) ↔[ k ] (f ≡ g ∘ _≈_.to A≈B)
-∘from≡↔≡∘to ext A≈B = from≡↔≡to (→-cong ext (inverse A≈B) Weak.id)
+              (A≃B : A ≃ B) {f : A → C} {g : B → C} →
+              (f ∘ _≃_.from A≃B ≡ g) ↔[ k ] (f ≡ g ∘ _≃_.to A≃B)
+∘from≡↔≡∘to ext A≃B = from≡↔≡to (→-cong ext (inverse A≃B) Weak.id)
 
 to∘≡↔≡from∘ : ∀ {a b c k} →
               Extensionality a (b ⊔ c) →
               {A : Set a} {B : A → Set b} {C : A → Set c}
-              (B≈C : ∀ {x} → B x ≈ C x)
+              (B≃C : ∀ {x} → B x ≃ C x)
               {f : (x : A) → B x} {g : (x : A) → C x} →
-              (_≈_.to B≈C ⊚ f ≡ g) ↔[ k ] (f ≡ _≈_.from B≈C ⊚ g)
-to∘≡↔≡from∘ ext B≈C =
-  from≡↔≡to (Weak.∀-preserves ext (λ _ → inverse B≈C))
+              (_≃_.to B≃C ⊚ f ≡ g) ↔[ k ] (f ≡ _≃_.from B≃C ⊚ g)
+to∘≡↔≡from∘ ext B≃C =
+  from≡↔≡to (Weak.∀-preserves ext (λ _ → inverse B≃C))
 
 ------------------------------------------------------------------------
 -- Lemmas related to ↑

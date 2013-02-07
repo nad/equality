@@ -82,16 +82,16 @@ mutual
            ∀ {I J} → Isomorphic ass c I J →
            Ext I → Ext J → Set₁
     Iso′ ass I≅J x y =
-      subst Ext (_≈_.to (isomorphism≈equality ass c) I≅J) x ≡ y
+      subst Ext (_≃_.to (isomorphism≃equality ass c) I≅J) x ≡ y
 
     field
 
       -- Iso and Iso′ are weakly equivalent.
 
-      Iso≈Iso′ :
+      Iso≃Iso′ :
         (ass : Assumptions) →
         ∀ {I J} (I≅J : Isomorphic ass c I J) {x y} →
-        Iso ass I≅J x y ≈ Iso′ ass I≅J x y
+        Iso ass I≅J x y ≃ Iso′ ass I≅J x y
 
   -- Interpretation of the codes. The elements of ⟦ c ⟧ are instances
   -- of the structure encoded by c.
@@ -109,20 +109,20 @@ mutual
 
   -- Isomorphism is weakly equivalent to equality.
 
-  isomorphism≈equality : (ass : Assumptions) →
+  isomorphism≃equality : (ass : Assumptions) →
                          (c : Code) {I J : ⟦ c ⟧} →
-                         Isomorphic ass c I J ≈ (I ≡ J)
+                         Isomorphic ass c I J ≃ (I ≡ J)
 
-  isomorphism≈equality _ ε =
+  isomorphism≃equality _ ε =
 
       ↑ _ ⊤              ↔⟨ contractible-isomorphic (↑-closure 0 ⊤-contractible)
                                                     (↑-closure 1 (mono₁ 0 ⊤-contractible) _ _) ⟩□
       lift tt ≡ lift tt  □
 
-  isomorphism≈equality ass (c ▻ e) {I , x} {J , y} =
+  isomorphism≃equality ass (c ▻ e) {I , x} {J , y} =
 
-    (Σ (Isomorphic ass c I J) λ I≅J → Iso e ass I≅J x y)  ↝⟨ Σ-cong (isomorphism≈equality ass c)
-                                                                    (λ I≅J → Iso≈Iso′ e ass I≅J) ⟩
+    (Σ (Isomorphic ass c I J) λ I≅J → Iso e ass I≅J x y)  ↝⟨ Σ-cong (isomorphism≃equality ass c)
+                                                                    (λ I≅J → Iso≃Iso′ e ass I≅J) ⟩
     (Σ (I ≡ J) λ I≡J → subst (Ext e) I≡J x ≡ y)           ↔⟨ Σ-≡,≡↔≡ ⟩□
 
     ((I , x) ≡ (J , y))                                   □
@@ -145,7 +145,7 @@ isomorphism≡equality :
   (c : Code) {I J : ⟦ c ⟧} →
   Isomorphic ass c I J ≡ (I ≡ J)
 isomorphism≡equality univ univ₁ univ₂ c =
-  ≈⇒≡ univ₁ $ isomorphism≈equality _ c
+  ≃⇒≡ univ₁ $ isomorphism≃equality _ c
 
 ------------------------------------------------------------------------
 -- Reflexivity
@@ -154,7 +154,7 @@ isomorphism≡equality univ univ₁ univ₂ c =
 
 reflexivity : (ass : Assumptions) → ∀ c I → Isomorphic ass c I I
 reflexivity ass c I =
-  _≈_.from (isomorphism≈equality ass c) (refl I)
+  _≃_.from (isomorphism≃equality ass c) (refl I)
 
 -- Reflexivity relates an element to itself.
 
@@ -163,14 +163,14 @@ reflexivityE :
   ∀ c e I x →
   Extension.Iso e ass (reflexivity ass c I) x x
 reflexivityE ass c e I x =
-  _≈_.from (Iso≈Iso′ ass (reflexivity ass c I)) (
+  _≃_.from (Iso≃Iso′ ass (reflexivity ass c I)) (
     subst Ext (to (from (refl I))) x  ≡⟨ subst (λ eq → subst Ext eq x ≡ x)
                                                (sym $ right-inverse-of (refl I))
                                                (refl x) ⟩∎
     x                                 ∎)
   where
   open Extension e
-  open _≈_ (isomorphism≈equality ass c)
+  open _≃_ (isomorphism≃equality ass c)
 
 -- Unfolding lemma (definitional) for reflexivity.
 
@@ -222,10 +222,10 @@ record Extension-with-resp (c : Code) : Set₂ where
 
     -- Iso and Iso″ are weakly equivalent.
 
-    Iso≈Iso″ :
+    Iso≃Iso″ :
       (ass : Assumptions) →
       ∀ {I J} (I≅J : Isomorphic ass c I J) {x y} →
-      Iso ass I≅J x y ≈ Iso″ ass I≅J x y
+      Iso ass I≅J x y ≃ Iso″ ass I≅J x y
 
   -- Another alternative definition of Iso.
 
@@ -233,7 +233,7 @@ record Extension-with-resp (c : Code) : Set₂ where
          ∀ {I J} → Isomorphic ass c I J →
          Ext I → Ext J → Set₁
   Iso′ ass I≅J x y =
-    subst Ext (_≈_.to (isomorphism≈equality ass c) I≅J) x ≡ y
+    subst Ext (_≃_.to (isomorphism≃equality ass c) I≅J) x ≡ y
 
   abstract
 
@@ -244,11 +244,11 @@ record Extension-with-resp (c : Code) : Set₂ where
       (ass : Assumptions) →
       ∀ {I J} (I≅J : Isomorphic ass c I J) {x} →
       Iso″ ass I≅J x
-           (subst Ext (_≈_.to (isomorphism≈equality ass c) I≅J) x)
+           (subst Ext (_≃_.to (isomorphism≃equality ass c) I≅J) x)
     isomorphic-to-itself″ ass I≅J {x} = subst-unique′
       Ext
       (Isomorphic ass c)
-      (_≈_.surjection $ inverse $ isomorphism≈equality ass c)
+      (_≃_.surjection $ inverse $ isomorphism≃equality ass c)
       (resp ass)
       (λ _ → resp-refl ass)
       I≅J
@@ -256,38 +256,38 @@ record Extension-with-resp (c : Code) : Set₂ where
 
   -- Iso and Iso′ are weakly equivalent.
 
-  Iso≈Iso′ :
+  Iso≃Iso′ :
     (ass : Assumptions) →
     ∀ {I J} (I≅J : Isomorphic ass c I J) {x y} →
-    Iso ass I≅J x y ≈ Iso′ ass I≅J x y
-  Iso≈Iso′ ass I≅J {x} {y} = record
+    Iso ass I≅J x y ≃ Iso′ ass I≅J x y
+  Iso≃Iso′ ass I≅J {x} {y} = record
     { to                  = to
     ; is-weak-equivalence = λ y →
         (from y , right-inverse-of y) , irrelevance y
     }
     where
     -- This is the core of the definition. I could have defined
-    -- Iso≈Iso′ ... = I≈I′. The rest is only included in order to
+    -- Iso≃Iso′ ... = I≃I′. The rest is only included in order to
     -- control how much Agda unfolds the code.
-    I≈I′ =
-      Iso  ass I≅J x y  ↝⟨ Iso≈Iso″ ass I≅J ⟩
-      Iso″ ass I≅J x y  ↝⟨ ≡⇒≈ $ cong (λ z → z ≡ y) $ isomorphic-to-itself″ ass I≅J ⟩□
+    I≃I′ =
+      Iso  ass I≅J x y  ↝⟨ Iso≃Iso″ ass I≅J ⟩
+      Iso″ ass I≅J x y  ↝⟨ ≡⇒≃ $ cong (λ z → z ≡ y) $ isomorphic-to-itself″ ass I≅J ⟩□
       Iso′ ass I≅J x y  □
 
-    to   = _≈_.to   I≈I′
-    from = _≈_.from I≈I′
+    to   = _≃_.to   I≃I′
+    from = _≃_.from I≃I′
 
     abstract
       right-inverse-of : ∀ x → to (from x) ≡ x
-      right-inverse-of = _≈_.right-inverse-of I≈I′
+      right-inverse-of = _≃_.right-inverse-of I≃I′
 
       irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-      irrelevance = _≈_.irrelevance I≈I′
+      irrelevance = _≃_.irrelevance I≃I′
 
   -- An extension constructed from the fields above.
 
   extension : Extension c
-  extension = record { Ext = Ext; Iso = Iso; Iso≈Iso′ = Iso≈Iso′ }
+  extension = record { Ext = Ext; Iso = Iso; Iso≃Iso′ = Iso≃Iso′ }
 
   -- Every element is isomorphic to itself, transported (in another
   -- way) along the "outer" isomorphism.
@@ -297,7 +297,7 @@ record Extension-with-resp (c : Code) : Set₂ where
     ∀ {I J} (I≅J : Isomorphic ass c I J) x →
     Iso ass I≅J x (resp ass I≅J x)
   isomorphic-to-itself ass I≅J x =
-    _≈_.from (Iso≈Iso″ ass I≅J) (refl (resp ass I≅J x))
+    _≃_.from (Iso≃Iso″ ass I≅J) (refl (resp ass I≅J x))
 
   abstract
 
@@ -307,18 +307,18 @@ record Extension-with-resp (c : Code) : Set₂ where
       (ass : Assumptions) →
       ∀ I x →
       resp-refl ass x ≡
-      _≈_.from (≡⇒≈ $ cong (λ z → z ≡ x) $
+      _≃_.from (≡⇒≃ $ cong (λ z → z ≡ x) $
                       isomorphic-to-itself″ ass (reflexivity ass c I))
                (subst (λ eq → subst Ext eq x ≡ x)
-                      (sym $ _≈_.right-inverse-of
-                               (isomorphism≈equality ass c)
+                      (sym $ _≃_.right-inverse-of
+                               (isomorphism≃equality ass c)
                                (refl I))
                       (refl x))
     resp-refl-lemma ass I x =
       let rfl    = reflexivity ass c I
-          iso≈eq = λ {I J} → isomorphism≈equality ass c {I = I} {J = J}
-          rio    = right-inverse-of iso≈eq (refl I)
-          lio    = left-inverse-of (inverse iso≈eq) (refl I)
+          iso≃eq = λ {I J} → isomorphism≃equality ass c {I = I} {J = J}
+          rio    = right-inverse-of iso≃eq (refl I)
+          lio    = left-inverse-of (inverse iso≃eq) (refl I)
           sx≡x   = subst (λ eq → subst Ext eq x ≡ x) (sym rio) (refl x)
 
           sx≡x-lemma =
@@ -338,7 +338,7 @@ record Extension-with-resp (c : Code) : Set₂ where
             subst (λ eq → subst Ext eq x ≡ x) (sym rio) (refl x)  ∎
 
           lemma₁ =
-            trans (sym lio) rio  ≡⟨ cong (λ eq → trans (sym eq) rio) $ left-inverse-of∘inverse iso≈eq ⟩
+            trans (sym lio) rio  ≡⟨ cong (λ eq → trans (sym eq) rio) $ left-inverse-of∘inverse iso≃eq ⟩
 
             trans (sym rio) rio  ≡⟨ trans-symˡ rio ⟩∎
 
@@ -380,18 +380,18 @@ record Extension-with-resp (c : Code) : Set₂ where
       trans (trans (trans (resp-refl ass x) (sym $ subst-refl Ext x))
                    (cong (λ eq → subst Ext eq x) (sym lio)))
             (cong (λ eq → subst Ext eq x) rio)                         ≡⟨ cong₂ trans
-                                                                            (sym $ subst-unique′-refl Ext (Isomorphic ass c) (inverse iso≈eq)
+                                                                            (sym $ subst-unique′-refl Ext (Isomorphic ass c) (inverse iso≃eq)
                                                                                                       (resp ass) (λ _ → resp-refl ass) x)
                                                                             sx≡x-lemma ⟩
       trans (isomorphic-to-itself″ ass rfl) sx≡x                       ≡⟨ sym $ subst-trans (isomorphic-to-itself″ ass rfl) ⟩
 
-      subst (λ z → z ≡ x) (sym $ isomorphic-to-itself″ ass rfl) sx≡x   ≡⟨ subst-in-terms-of-from∘≡⇒≈ ext₁
+      subst (λ z → z ≡ x) (sym $ isomorphic-to-itself″ ass rfl) sx≡x   ≡⟨ subst-in-terms-of-from∘≡⇒≃ ext₁
                                                                             (isomorphic-to-itself″ ass rfl) (λ z → z ≡ x) _ ⟩∎
-      from (≡⇒≈ $ cong (λ z → z ≡ x) $ isomorphic-to-itself″ ass rfl)
+      from (≡⇒≃ $ cong (λ z → z ≡ x) $ isomorphic-to-itself″ ass rfl)
            sx≡x                                                        ∎
 
       where
-      open _≈_
+      open _≃_
       open Assumptions ass
 
     isomorphic-to-itself-reflexivity :
@@ -405,22 +405,22 @@ record Extension-with-resp (c : Code) : Set₂ where
       let rfl = reflexivity ass c I
           r-r = resp-refl ass x in
 
-      from (Iso≈Iso″ ass rfl) (refl (resp ass rfl x))                  ≡⟨ elim¹ (λ {y} resp-x≡y → from (Iso≈Iso″ ass rfl) (refl (resp ass rfl x)) ≡
+      from (Iso≃Iso″ ass rfl) (refl (resp ass rfl x))                  ≡⟨ elim¹ (λ {y} resp-x≡y → from (Iso≃Iso″ ass rfl) (refl (resp ass rfl x)) ≡
                                                                                                   subst (Iso ass rfl x) (sym resp-x≡y)
-                                                                                                        (from (Iso≈Iso″ ass rfl) resp-x≡y))
+                                                                                                        (from (Iso≃Iso″ ass rfl) resp-x≡y))
                                                                                 (refl _) r-r ⟩
-      subst (Iso ass rfl x) (sym r-r) (from (Iso≈Iso″ ass rfl) r-r)    ≡⟨ cong (subst (Iso ass rfl x) (sym r-r) ∘ from (Iso≈Iso″ ass rfl))
+      subst (Iso ass rfl x) (sym r-r) (from (Iso≃Iso″ ass rfl) r-r)    ≡⟨ cong (subst (Iso ass rfl x) (sym r-r) ∘ from (Iso≃Iso″ ass rfl))
                                                                                (resp-refl-lemma ass I x) ⟩∎
       subst (Iso ass rfl x) (sym r-r)
-        (from (Iso≈Iso″ ass rfl)
+        (from (Iso≃Iso″ ass rfl)
            (from
-              (≡⇒≈ $ cong (λ z → z ≡ x)
+              (≡⇒≃ $ cong (λ z → z ≡ x)
                           (isomorphic-to-itself″ ass rfl))
               (subst (λ eq → subst Ext eq x ≡ x)
-                 (sym $ right-inverse-of (isomorphism≈equality ass c)
+                 (sym $ right-inverse-of (isomorphism≃equality ass c)
                                          (refl I)) (refl x))))         ∎
 
-      where open _≈_
+      where open _≃_
 
 ------------------------------------------------------------------------
 -- Type extractors
@@ -437,11 +437,11 @@ record Extractor (c : Code) : Set₂ where
     --
     -- Perhaps one could have a variant of Type-cong that is not based
     -- on any "Assumptions", and produces equivalences (_⇔_) instead
-    -- of weak equivalences (_≈_). Then one could (hopefully) define
+    -- of weak equivalences (_≃_). Then one could (hopefully) define
     -- isomorphism without using any assumptions.
 
     Type-cong : (ass : Assumptions) →
-                ∀ {I J} → Isomorphic ass c I J → Type I ≈ Type J
+                ∀ {I J} → Isomorphic ass c I J → Type I ≃ Type J
 
     -- Reflexivity is mapped to the identity weak equivalence.
 
@@ -481,13 +481,13 @@ infix 6 1+_
 A-type : ∀ {c} → Extension c
 A-type {c} = record
   { Ext      = λ _ → Set
-  ; Iso      = λ _ _ A B → ↑ _ (A ≈ B)
-  ; Iso≈Iso′ = λ ass I≅J {A B} →
-                 let I≡J = _≈_.to (isomorphism≈equality ass c) I≅J in
+  ; Iso      = λ _ _ A B → ↑ _ (A ≃ B)
+  ; Iso≃Iso′ = λ ass I≅J {A B} →
+                 let I≡J = _≃_.to (isomorphism≃equality ass c) I≅J in
 
-                 ↑ _ (A ≈ B)                    ↔⟨ ↑↔ ⟩
-                 (A ≈ B)                        ↝⟨ inverse $ ≡≈≈ (Assumptions.univ ass) ⟩
-                 (A ≡ B)                        ↝⟨ ≡⇒≈ $ cong (λ C → C ≡ B) $ sym (subst-const I≡J) ⟩
+                 ↑ _ (A ≃ B)                    ↔⟨ ↑↔ ⟩
+                 (A ≃ B)                        ↝⟨ inverse $ ≡≃≃ (Assumptions.univ ass) ⟩
+                 (A ≡ B)                        ↝⟨ ≡⇒≃ $ cong (λ C → C ≡ B) $ sym (subst-const I≡J) ⟩
                  (subst (λ _ → Set) I≡J A ≡ B)  □
   }
 
@@ -496,20 +496,20 @@ A-type {c} = record
 [0] : ∀ {c} → Extractor (c ▻ A-type)
 [0] {c} = record
   { Type                  = λ { (_ , A) → ↑ _ A }
-  ; Type-cong             = λ { _ (_ , lift A≈B) → ↑-cong A≈B }
+  ; Type-cong             = λ { _ (_ , lift A≃B) → ↑-cong A≃B }
   ; Type-cong-reflexivity = λ { ass (I , A) → elim₁
       (λ {p} q →
-         ↑-cong (≡⇒≈
-           (from (≡⇒≈ (cong (λ C → C ≡ A) (sym (subst-const p))))
+         ↑-cong (≡⇒≃
+           (from (≡⇒≃ (cong (λ C → C ≡ A) (sym (subst-const p))))
                  (subst (λ eq → subst Ext eq A ≡ A)
                         (sym q) (refl A)))) ≡
          Weak.id)
       (lift-equality (Assumptions.ext₁ ass) (refl _))
-      (right-inverse-of (isomorphism≈equality ass c) (refl I)) }
+      (right-inverse-of (isomorphism≃equality ass c) (refl I)) }
   }
   where
   open Extension A-type
-  open _≈_
+  open _≃_
 
 ------------------------------------------------------------------------
 -- An extension: propositions
@@ -529,7 +529,7 @@ Proposition : ∀ {c} →
 Proposition {c} P prop = record
   { Ext      = P
   ; Iso      = λ _ _ _ _ → ↑ _ ⊤
-  ; Iso≈Iso′ = λ ass I≅J {_ p} →
+  ; Iso≃Iso′ = λ ass I≅J {_ p} →
                  ↑ _ ⊤    ↔⟨ contractible-isomorphic
                                (↑-closure 0 ⊤-contractible)
                                (mono₁ 0 (propositional⇒inhabited⇒contractible (prop ass _) p) _ _) ⟩□
@@ -575,23 +575,23 @@ N-ary : ∀ {c} →
 N-ary {c} extractor n = Extension-with-resp.extension record
   { Ext       = λ I → Type I ^ n ⟶ Type I
   ; Iso       = λ ass I≅J f g →
-                    Is- n -ary-morphism f g (_≈_.to (Type-cong ass I≅J))
+                    Is- n -ary-morphism f g (_≃_.to (Type-cong ass I≅J))
   ; resp      = λ ass I≅J → cast n (Type-cong ass I≅J)
   ; resp-refl = λ ass f →
                     cast n (Type-cong ass (reflexivity ass c _)) f  ≡⟨ cong (λ eq → cast n eq f) $ Type-cong-reflexivity ass _ ⟩
                     cast n Weak.id f                                ≡⟨ cast-id (Assumptions.ext₁ ass) n f ⟩∎
                     f                                               ∎
-  ; Iso≈Iso″  = λ ass I≅J {f g} →
-      Iso≈Iso″ (Assumptions.ext₁ ass) (Type-cong ass I≅J) n f g
+  ; Iso≃Iso″  = λ ass I≅J {f g} →
+      Iso≃Iso″ (Assumptions.ext₁ ass) (Type-cong ass I≅J) n f g
   }
   where
   open Extractor extractor
 
   -- Changes the type of an n-ary function.
 
-  cast : ∀ n {A B} → A ≈ B → A ^ n ⟶ A → B ^ n ⟶ B
-  cast zero    A≈B = _≈_.to A≈B
-  cast (suc n) A≈B = λ f x → cast n A≈B (f (_≈_.from A≈B x))
+  cast : ∀ n {A B} → A ≃ B → A ^ n ⟶ A → B ^ n ⟶ B
+  cast zero    A≃B = _≃_.to A≃B
+  cast (suc n) A≃B = λ f x → cast n A≃B (f (_≃_.from A≃B x))
 
   -- Cast simplification lemma.
 
@@ -602,25 +602,25 @@ N-ary {c} extractor n = Extension-with-resp.extension record
 
   -- Two definitions of isomorphism are weakly equivalent.
 
-  Iso≈Iso″ :
+  Iso≃Iso″ :
     Extensionality (# 1) (# 1) →
-    ∀ {A B} (A≈B : A ≈ B)
+    ∀ {A B} (A≃B : A ≃ B)
     (n : ℕ) (f : A ^ n ⟶ A) (g : B ^ n ⟶ B) →
-    Is- n -ary-morphism f g (_≈_.to A≈B) ≈ (cast n A≈B f ≡ g)
+    Is- n -ary-morphism f g (_≃_.to A≃B) ≃ (cast n A≃B f ≡ g)
 
-  Iso≈Iso″ ext A≈B zero x y =
+  Iso≃Iso″ ext A≃B zero x y =
 
-    (_≈_.to A≈B x ≡ y)  □
+    (_≃_.to A≃B x ≡ y)  □
 
-  Iso≈Iso″ ext A≈B (suc n) f g =
+  Iso≃Iso″ ext A≃B (suc n) f g =
 
-    (∀ x → Is- n -ary-morphism (f x) (g (_≈_.to A≈B x)) (_≈_.to A≈B))  ↝⟨ Weak.∀-preserves ext (λ x →
-                                                                            Iso≈Iso″ ext A≈B n (f x) (g (_≈_.to A≈B x))) ⟩
-    (∀ x → cast n A≈B (f x) ≡ g (_≈_.to A≈B x))                        ↝⟨ Weak.extensionality-isomorphism ext ⟩
+    (∀ x → Is- n -ary-morphism (f x) (g (_≃_.to A≃B x)) (_≃_.to A≃B))  ↝⟨ Weak.∀-preserves ext (λ x →
+                                                                            Iso≃Iso″ ext A≃B n (f x) (g (_≃_.to A≃B x))) ⟩
+    (∀ x → cast n A≃B (f x) ≡ g (_≃_.to A≃B x))                        ↝⟨ Weak.extensionality-isomorphism ext ⟩
 
-    (cast n A≈B ∘ f ≡ g ∘ _≈_.to A≈B)                                  ↝⟨ inverse $ ∘from≡↔≡∘to ext A≈B ⟩□
+    (cast n A≃B ∘ f ≡ g ∘ _≃_.to A≃B)                                  ↝⟨ inverse $ ∘from≡↔≡∘to ext A≃B ⟩□
 
-    (cast n A≈B ∘ f ∘ _≈_.from A≈B ≡ g)                                □
+    (cast n A≃B ∘ f ∘ _≃_.from A≃B ≡ g)                                □
 
 ------------------------------------------------------------------------
 -- An extension: simply typed functions
@@ -646,9 +646,9 @@ Simple : ∀ {c} → Simple-type c → Extension c
 Simple {c} σ = Extension-with-resp.extension record
   { Ext       = ⟦ σ ⟧⟶
   ; Iso       = λ ass → Iso ass σ
-  ; resp      = λ ass I≅J → _≈_.to (cast ass σ I≅J)
-  ; resp-refl = λ ass f → cong (λ eq → _≈_.to eq f) $ cast-refl ass σ
-  ; Iso≈Iso″  = λ ass → Iso≈Iso″ ass σ
+  ; resp      = λ ass I≅J → _≃_.to (cast ass σ I≅J)
+  ; resp-refl = λ ass f → cong (λ eq → _≃_.to eq f) $ cast-refl ass σ
+  ; Iso≃Iso″  = λ ass → Iso≃Iso″ ass σ
   }
   where
   open Extractor
@@ -658,7 +658,7 @@ Simple {c} σ = Extension-with-resp.extension record
   Iso : (ass : Assumptions) →
         (σ : Simple-type c) →
         ∀ {I J} → Isomorphic ass c I J → ⟦ σ ⟧⟶ I → ⟦ σ ⟧⟶ J → Set₁
-  Iso ass (base A) I≅J x y = _≈_.to (Type-cong A ass I≅J) x ≡ y
+  Iso ass (base A) I≅J x y = _≃_.to (Type-cong A ass I≅J) x ≡ y
   Iso ass (σ ⟶ τ)  I≅J f g =
     ∀ x y → Iso ass σ I≅J x y → Iso ass τ I≅J (f x) (g y)
 
@@ -666,7 +666,7 @@ Simple {c} σ = Extension-with-resp.extension record
 
   cast : (ass : Assumptions) →
          (σ : Simple-type c) →
-         ∀ {I J} → Isomorphic ass c I J → ⟦ σ ⟧⟶ I ≈ ⟦ σ ⟧⟶ J
+         ∀ {I J} → Isomorphic ass c I J → ⟦ σ ⟧⟶ I ≃ ⟦ σ ⟧⟶ J
   cast ass (base A) I≅J = Type-cong A ass I≅J
   cast ass (σ ⟶ τ)  I≅J = →-cong ext₁ (cast ass σ I≅J) (cast ass τ I≅J)
     where open Assumptions ass
@@ -680,28 +680,28 @@ Simple {c} σ = Extension-with-resp.extension record
     Weak.id                                ∎
 
   cast-refl ass (σ ⟶ τ) {I} =
-    cast ass (σ ⟶ τ) (reflexivity ass c I)  ≡⟨ lift-equality ext₁ $ cong _≈_.to $
+    cast ass (σ ⟶ τ) (reflexivity ass c I)  ≡⟨ lift-equality ext₁ $ cong _≃_.to $
                                                  cong₂ (→-cong ext₁) (cast-refl ass σ) (cast-refl ass τ) ⟩∎
     Weak.id                                 ∎
     where open Assumptions ass
 
   -- Two definitions of isomorphism are weakly equivalent.
 
-  Iso≈Iso″ :
+  Iso≃Iso″ :
     (ass : Assumptions) →
     (σ : Simple-type c) →
     ∀ {I J} (I≅J : Isomorphic ass c I J) {f g} →
-    Iso ass σ I≅J f g ≈ (_≈_.to (cast ass σ I≅J) f ≡ g)
-  Iso≈Iso″ ass (base A) I≅J {x} {y} =
+    Iso ass σ I≅J f g ≃ (_≃_.to (cast ass σ I≅J) f ≡ g)
+  Iso≃Iso″ ass (base A) I≅J {x} {y} =
 
-    (_≈_.to (Type-cong A ass I≅J) x ≡ y)  □
+    (_≃_.to (Type-cong A ass I≅J) x ≡ y)  □
 
-  Iso≈Iso″ ass (σ ⟶ τ) I≅J {f} {g} =
+  Iso≃Iso″ ass (σ ⟶ τ) I≅J {f} {g} =
 
     (∀ x y → Iso ass σ I≅J x y → Iso ass τ I≅J (f x) (g y))        ↝⟨ ∀-preserves ext₁ (λ _ → ∀-preserves ext₁ λ _ →
-                                                                        →-cong ext₁ (Iso≈Iso″ ass σ I≅J) (Iso≈Iso″ ass τ I≅J)) ⟩
+                                                                        →-cong ext₁ (Iso≃Iso″ ass σ I≅J) (Iso≃Iso″ ass τ I≅J)) ⟩
     (∀ x y → to (cast ass σ I≅J) x ≡ y →
-             to (cast ass τ I≅J) (f x) ≡ g y)                      ↝⟨ inverse $ ∀-preserves ext₁ (λ x → ↔⇒≈ $
+             to (cast ass τ I≅J) (f x) ≡ g y)                      ↝⟨ inverse $ ∀-preserves ext₁ (λ x → ↔⇒≃ $
                                                                         ∀-intro ext₁ (λ y _ → to (cast ass τ I≅J) (f x) ≡ g y)) ⟩
     (∀ x → to (cast ass τ I≅J) (f x) ≡ g (to (cast ass σ I≅J) x))  ↝⟨ extensionality-isomorphism ext₁ ⟩
 
@@ -710,7 +710,7 @@ Simple {c} σ = Extension-with-resp.extension record
     (to (cast ass τ I≅J) ∘ f ∘ from (cast ass σ I≅J) ≡ g)          □
 
     where
-    open _≈_
+    open _≃_
     open Assumptions ass
 
 ------------------------------------------------------------------------
@@ -736,7 +736,7 @@ module Dependent where
   private
     open module E {c} (σ : Ty c) =
       Extension-with-resp (ext-with-resp σ)
-      hiding (Iso; Iso≈Iso″; extension)
+      hiding (Iso; Iso≃Iso″; extension)
     open E public using () renaming (extension to Dep)
 
   data Ty c where
@@ -759,7 +759,7 @@ module Dependent where
 
   cast : (ass : Assumptions) →
          ∀ {c} (σ : Ty c) {I J} →
-         Isomorphic ass c I J → ⟦ σ ⟧Π I ≈ ⟦ σ ⟧Π J
+         Isomorphic ass c I J → ⟦ σ ⟧Π I ≃ ⟦ σ ⟧Π J
 
   -- Reflexivity is mapped to identity.
 
@@ -769,18 +769,18 @@ module Dependent where
 
   -- Two definitions of isomorphism are weakly equivalent.
 
-  Iso≈Iso″ : (ass : Assumptions) →
+  Iso≃Iso″ : (ass : Assumptions) →
              ∀ {c} (σ : Ty c) {I J} (I≅J : Isomorphic ass c I J) {f g} →
-             Iso ass σ I≅J f g ≈ (_≈_.to (cast ass σ I≅J) f ≡ g)
+             Iso ass σ I≅J f g ≃ (_≃_.to (cast ass σ I≅J) f ≡ g)
 
   -- Extension: Dependently-typed functions.
 
   ext-with-resp {c} σ = record
     { Ext       = ⟦ σ ⟧Π
     ; Iso       = λ ass → Iso ass σ
-    ; resp      = λ ass I≅J → _≈_.to (cast ass σ I≅J)
-    ; resp-refl = λ ass f → cong (λ eq → _≈_.to eq f) $ cast-refl ass σ
-    ; Iso≈Iso″  = λ ass → Iso≈Iso″ ass σ
+    ; resp      = λ ass I≅J → _≃_.to (cast ass σ I≅J)
+    ; resp-refl = λ ass f → cong (λ eq → _≃_.to eq f) $ cast-refl ass σ
+    ; Iso≃Iso″  = λ ass → Iso≃Iso″ ass σ
     }
 
   -- Interpretation of a dependent type.
@@ -791,8 +791,8 @@ module Dependent where
 
   -- Isomorphisms between dependently typed functions.
 
-  Iso _   set      _   A B = ↑ _ (A ≈ B)
-  Iso ass (base A) I≅J x y = x ≡ _≈_.from (Type-cong A ass I≅J) y
+  Iso _   set      _   A B = ↑ _ (A ≃ B)
+  Iso ass (base A) I≅J x y = x ≡ _≃_.from (Type-cong A ass I≅J) y
   Iso ass (Π σ τ)  I≅J f g = ∀ x y →
     (x≅y : Iso ass σ I≅J x y) → Iso ass τ (I≅J , x≅y) (f x) (g y)
 
@@ -833,49 +833,49 @@ module Dependent where
                                                                                                               x≡y (rflE x)))
                                                                                      (f y) ≡
                                                                                 f x)
-                                                                             (cong (λ h → _≈_.from h (f x)) $ cast-refl ass τ)
+                                                                             (cong (λ h → _≃_.from h (f x)) $ cast-refl ass τ)
                                                                              (sym $ resp-refl σ ass x) ⟩∎
         f x                                                         ∎
 
       where
-      open _≈_
+      open _≃_
       open Assumptions ass
 
   -- Two definitions of isomorphism are weakly equivalent.
 
-  Iso≈Iso‴ :
+  Iso≃Iso‴ :
     (ass : Assumptions) →
     ∀ {c} (σ : Ty c) {I J} (I≅J : Isomorphic ass c I J) {f g} →
-    Iso ass σ I≅J f g ≈ (f ≡ _≈_.from (cast ass σ I≅J) g)
+    Iso ass σ I≅J f g ≃ (f ≡ _≃_.from (cast ass σ I≅J) g)
 
-  Iso≈Iso‴ ass set I≅J {A} {B} =
+  Iso≃Iso‴ ass set I≅J {A} {B} =
 
-    ↑ _ (A ≈ B)  ↔⟨ ↑↔ ⟩
+    ↑ _ (A ≃ B)  ↔⟨ ↑↔ ⟩
 
-    (A ≈ B)      ↝⟨ inverse $ ≡≈≈ (Assumptions.univ ass) ⟩□
+    (A ≃ B)      ↝⟨ inverse $ ≡≃≃ (Assumptions.univ ass) ⟩□
 
     (A ≡ B)      □
 
-  Iso≈Iso‴ ass (base A) I≅J {x} {y} =
+  Iso≃Iso‴ ass (base A) I≅J {x} {y} =
 
-    (x ≡ _≈_.from (Type-cong A ass I≅J) y)  □
+    (x ≡ _≃_.from (Type-cong A ass I≅J) y)  □
 
-  Iso≈Iso‴ ass (Π σ τ) I≅J {f} {g} =
+  Iso≃Iso‴ ass (Π σ τ) I≅J {f} {g} =
     let iso-to-itself = isomorphic-to-itself σ ass I≅J in
 
     (∀ x y (x≅y : Iso ass σ I≅J x y) →
            Iso ass τ (I≅J , x≅y) (f x) (g y))                        ↝⟨ ∀-preserves ext₁ (λ x → ∀-preserves ext₁ λ y →
-                                                                          Π-preserves ext₁ (Iso≈Iso″ ass σ I≅J) (λ x≅y →
-           Iso ass τ (I≅J , x≅y) (f x) (g y)                                ↝⟨ Iso≈Iso″ ass τ (I≅J , x≅y) ⟩
-           (resp τ ass (I≅J , x≅y) (f x) ≡ g y)                             ↝⟨ ≡⇒≈ $ cong (λ x≅y → resp τ ass (I≅J , x≅y) (f x) ≡ g y) $
-                                                                                 sym $ left-inverse-of (Iso≈Iso″ ass σ I≅J) _ ⟩□
-           (resp τ ass (I≅J , from (Iso≈Iso″ ass σ I≅J)
-                                   (to (Iso≈Iso″ ass σ I≅J) x≅y))
+                                                                          Π-preserves ext₁ (Iso≃Iso″ ass σ I≅J) (λ x≅y →
+           Iso ass τ (I≅J , x≅y) (f x) (g y)                                ↝⟨ Iso≃Iso″ ass τ (I≅J , x≅y) ⟩
+           (resp τ ass (I≅J , x≅y) (f x) ≡ g y)                             ↝⟨ ≡⇒≃ $ cong (λ x≅y → resp τ ass (I≅J , x≅y) (f x) ≡ g y) $
+                                                                                 sym $ left-inverse-of (Iso≃Iso″ ass σ I≅J) _ ⟩□
+           (resp τ ass (I≅J , from (Iso≃Iso″ ass σ I≅J)
+                                   (to (Iso≃Iso″ ass σ I≅J) x≅y))
                (f x) ≡ g y)                                                 □)) ⟩
 
     (∀ x y (x≡y : to (cast ass σ I≅J) x ≡ y) →
-           resp τ ass (I≅J , from (Iso≈Iso″ ass σ I≅J) x≡y) (f x) ≡
-           g y)                                                      ↝⟨ ∀-preserves ext₁ (λ x → inverse $ ↔⇒≈ $
+           resp τ ass (I≅J , from (Iso≃Iso″ ass σ I≅J) x≡y) (f x) ≡
+           g y)                                                      ↝⟨ ∀-preserves ext₁ (λ x → inverse $ ↔⇒≃ $
                                                                           ∀-intro ext₁ (λ y x≡y → _ ≡ _)) ⟩
     (∀ x → resp τ ass (I≅J , iso-to-itself x) (f x) ≡
            g (resp σ ass I≅J x))                                     ↔⟨ extensionality-isomorphism ext₁ ⟩
@@ -886,19 +886,19 @@ module Dependent where
          g ∘ resp σ ass I≅J)                                         □
 
     where
-    open _≈_
+    open _≃_
     open Assumptions ass
 
   abstract
 
     -- Two definitions of isomorphism are weakly equivalent.
 
-    Iso≈Iso″ ass σ I≅J {f} {g} =
-      Iso ass σ I≅J f g                  ↝⟨ Iso≈Iso‴ ass σ I≅J ⟩
+    Iso≃Iso″ ass σ I≅J {f} {g} =
+      Iso ass σ I≅J f g                  ↝⟨ Iso≃Iso‴ ass σ I≅J ⟩
 
-      (f ≡ _≈_.from (cast ass σ I≅J) g)  ↝⟨ inverse $ from≡↔≡to (inverse $ cast ass σ I≅J) ⟩□
+      (f ≡ _≃_.from (cast ass σ I≅J) g)  ↝⟨ inverse $ from≡↔≡to (inverse $ cast ass σ I≅J) ⟩□
 
-      (_≈_.to (cast ass σ I≅J) f ≡ g)    □
+      (_≃_.to (cast ass σ I≅J) f ≡ g)    □
 
   ----------------------------------------------------------------------
   -- An instantiation of the type extractor mechanism that gives us
@@ -914,44 +914,44 @@ module Dependent where
 
       reflexivityE ass c (Dep set) I A                                 ≡⟨⟩
 
-      lift (≡⇒≈ (to (from≡↔≡to (inverse Weak.id))
-              (from (≡⇒≈ $ cong (λ B → B ≡ A) $
+      lift (≡⇒≃ (to (from≡↔≡to (inverse Weak.id))
+              (from (≡⇒≃ $ cong (λ B → B ≡ A) $
                        isomorphic-to-itself″ set ass
                          (reflexivity ass c I))
                     (subst (λ eq → subst (λ _ → Set) eq A ≡ A)
                            (sym $ right-inverse-of
-                                    (isomorphism≈equality ass c)
+                                    (isomorphism≃equality ass c)
                                     (refl I))
-                           (refl A)))))                                ≡⟨ cong (λ eq → lift (≡⇒≈ (to (from≡↔≡to (inverse Weak.id)) eq))) $ sym $
+                           (refl A)))))                                ≡⟨ cong (λ eq → lift (≡⇒≃ (to (from≡↔≡to (inverse Weak.id)) eq))) $ sym $
                                                                             resp-refl-lemma set ass I A ⟩
-      lift (≡⇒≈ (to (from≡↔≡to (inverse Weak.id))
+      lift (≡⇒≃ (to (from≡↔≡to (inverse Weak.id))
                     (resp-refl set ass {I = I} A)))                    ≡⟨⟩
 
-      lift (≡⇒≈ (to (from≡↔≡to (inverse Weak.id)) (refl A)))           ≡⟨⟩
+      lift (≡⇒≃ (to (from≡↔≡to (inverse Weak.id)) (refl A)))           ≡⟨⟩
 
-      lift (≡⇒≈ (≡⇒→ (cong (λ B → B ≡ A)
+      lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A)
                            (right-inverse-of (inverse Weak.id) A))
                      (cong id (refl A))))                              ≡⟨⟩
 
-      lift (≡⇒≈ (≡⇒→ (cong (λ B → B ≡ A) (left-inverse-of Weak.id A))
-                     (cong id (refl A))))                              ≡⟨ cong (λ eq → lift (≡⇒≈ (≡⇒→ (cong (λ B → B ≡ A) eq) (refl A))))
+      lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A) (left-inverse-of Weak.id A))
+                     (cong id (refl A))))                              ≡⟨ cong (λ eq → lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A) eq) (refl A))))
                                                                           left-inverse-of-id  ⟩
-      lift (≡⇒≈ (≡⇒→ (cong (λ B → B ≡ A) (refl A)) (refl A)))          ≡⟨⟩
+      lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A) (refl A)) (refl A)))          ≡⟨⟩
 
-      lift (≡⇒≈ (≡⇒→ (refl (A ≡ A)) (refl A)))                         ≡⟨⟩
+      lift (≡⇒≃ (≡⇒→ (refl (A ≡ A)) (refl A)))                         ≡⟨⟩
 
-      lift (≡⇒≈ (refl A))                                              ≡⟨ refl _ ⟩∎
+      lift (≡⇒≃ (refl A))                                              ≡⟨ refl _ ⟩∎
 
       lift Weak.id                                                     ∎
 
-      where open _≈_
+      where open _≃_
 
   ⟨0⟩ : ∀ {c} → Extractor (c ▻ Dep set)
   ⟨0⟩ {c} = record
     { Type                  = λ { (_ , A) → ↑ _ A }
-    ; Type-cong             = λ { _ (_ , lift A≈B) → ↑-cong A≈B }
+    ; Type-cong             = λ { _ (_ , lift A≃B) → ↑-cong A≃B }
     ; Type-cong-reflexivity = λ { ass (I , A) →
-        let open Assumptions ass; open _≈_ in
+        let open Assumptions ass; open _≃_ in
 
         lift-equality ext₁ (ext₁ λ { (lift x) → cong lift (
 

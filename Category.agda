@@ -20,7 +20,7 @@ open import H-level.Closure eq
 open import Prelude as P hiding (id)
 open import Univalence-axiom eq
 open import Weak-equivalence eq as Weak
-  using (_≈_; module _≈_; Is-weak-equivalence; weq)
+  using (_≃_; module _≃_; Is-weak-equivalence; weq)
 
 ------------------------------------------------------------------------
 -- Precategories
@@ -152,8 +152,8 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
     -- Isomorphism equality is weakly equivalent to "forward morphism"
     -- equality.
 
-    ≡≈≡¹ : ∀ {X Y} {f g : X ≅ Y} → (f ≡ g) ≈ (f ¹ ≡ g ¹)
-    ≡≈≡¹ {f = f} {g} =
+    ≡≃≡¹ : ∀ {X Y} {f g : X ≅ Y} → (f ≡ g) ≃ (f ¹ ≡ g ¹)
+    ≡≃≡¹ {f = f} {g} =
       (f ≡ g)      ↔⟨ inverse $ ignore-propositional-component $ Is-isomorphism-propositional _ ⟩□
       (f ¹ ≡ g ¹)  □
 
@@ -210,9 +210,9 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
     Obj ,
     (λ X Y → (X ≅ Y) , ≅-set) ,
     id≅ , _∙≅_ ,
-    _≈_.from ≡≈≡¹ left-identity ,
-    _≈_.from ≡≈≡¹ right-identity ,
-    _≈_.from ≡≈≡¹ assoc }
+    _≃_.from ≡≃≡¹ left-identity ,
+    _≃_.from ≡≃≡¹ right-identity ,
+    _≃_.from ≡≃≡¹ assoc }
 
   -- Equal objects are isomorphic.
 
@@ -251,17 +251,17 @@ precategory-Set ℓ ext = record { precategory =
 -- Isomorphisms in this category are weakly equivalent to weak
 -- equivalences (assuming extensionality).
 
-≈≈≅-Set :
+≃≃≅-Set :
   (ℓ : Level) (ext : Extensionality ℓ ℓ) →
   let open Precategory (precategory-Set ℓ ext) in
-  (X Y : Obj) → (Type X ≈ Type Y) ≈ (X ≅ Y)
-≈≈≅-Set ℓ ext X Y = Weak.↔⇒≈ record
+  (X Y : Obj) → (Type X ≃ Type Y) ≃ (X ≅ Y)
+≃≃≅-Set ℓ ext X Y = Weak.↔⇒≃ record
   { surjection = record
     { equivalence = record
-      { to   = λ X≈Y → _≈_.to X≈Y , _≈_.from X≈Y ,
-                       ext (_≈_.left-inverse-of  X≈Y) ,
-                       ext (_≈_.right-inverse-of X≈Y)
-      ; from = λ X≅Y → Weak.↔⇒≈ record
+      { to   = λ X≃Y → _≃_.to X≃Y , _≃_.from X≃Y ,
+                       ext (_≃_.left-inverse-of  X≃Y) ,
+                       ext (_≃_.right-inverse-of X≃Y)
+      ; from = λ X≅Y → Weak.↔⇒≃ record
                  { surjection = record
                    { equivalence = record
                      { to   = proj₁ X≅Y
@@ -275,12 +275,12 @@ precategory-Set ℓ ext = record { precategory =
                  }
       }
     ; right-inverse-of = λ X≅Y →
-        _≈_.from (≡≈≡¹ {X = X} {Y = Y}) (refl (proj₁ X≅Y))
+        _≃_.from (≡≃≡¹ {X = X} {Y = Y}) (refl (proj₁ X≅Y))
     }
-  ; left-inverse-of = λ X≈Y →
-      Weak.lift-equality ext (refl (_≈_.to X≈Y))
+  ; left-inverse-of = λ X≃Y →
+      Weak.lift-equality ext (refl (_≃_.to X≃Y))
   }
-  where open Precategory (precategory-Set ℓ ext) using (≡≈≡¹)
+  where open Precategory (precategory-Set ℓ ext) using (≡≃≡¹)
 
 ------------------------------------------------------------------------
 -- Categories
@@ -314,18 +314,18 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
     ∀ {X Y} → Is-weak-equivalence (≡→≅ {X = X} {Y = Y})
   ≡→≅-weak-equivalence = proj₂ category
 
-  ≡≈≅ : ∀ {X Y} → (X ≡ Y) ≈ (X ≅ Y)
-  ≡≈≅ = weq _ ≡→≅-weak-equivalence
+  ≡≃≅ : ∀ {X Y} → (X ≡ Y) ≃ (X ≅ Y)
+  ≡≃≅ = weq _ ≡→≅-weak-equivalence
 
   ≅→≡ : ∀ {X Y} → X ≅ Y → X ≡ Y
-  ≅→≡ = _≈_.from ≡≈≅
+  ≅→≡ = _≃_.from ≡≃≅
 
   -- Obj has h-level 3.
 
   Obj-3 : H-level 3 Obj
   Obj-3 X Y =
     respects-surjection
-      (_≈_.surjection (Weak.inverse ≡≈≅))
+      (_≃_.surjection (Weak.inverse ≡≃≅))
       2 ≅-set
 
   -- Isomorphisms form a category.
@@ -421,22 +421,22 @@ category-Set ℓ ext univ = record { category = precategory , is-weak }
     -- ≡→≅ can be expressed as the composition of three weak
     -- equivalences.
 
-    cong-Type : {X Y : Obj} → (X ≡ Y) ≈ (Type X ≡ Type Y)
-    cong-Type = Weak.↔⇒≈ $ inverse $
+    cong-Type : {X Y : Obj} → (X ≡ Y) ≃ (Type X ≡ Type Y)
+    cong-Type = Weak.↔⇒≃ $ inverse $
       ignore-propositional-component (H-level-propositional ext 2)
 
-    ≈≈≅ : (X Y : Obj) → (Type X ≈ Type Y) ≈ (X ≅ Y)
-    ≈≈≅ = ≈≈≅-Set ℓ ext
+    ≃≃≅ : (X Y : Obj) → (Type X ≃ Type Y) ≃ (X ≅ Y)
+    ≃≃≅ = ≃≃≅-Set ℓ ext
 
     ≡→≅-is-composition :
       ∀ {X Y} (X≡Y : X ≡ Y) →
-      _≈_.to (≈≈≅ X Y ⊚ ≡≈≈ univ ⊚ cong-Type) X≡Y ≡ ≡→≅ X≡Y
+      _≃_.to (≃≃≅ X Y ⊚ ≡≃≃ univ ⊚ cong-Type) X≡Y ≡ ≡→≅ X≡Y
     ≡→≅-is-composition =
       elim (λ {X Y} X≡Y →
-              _≈_.to (≈≈≅ X Y) (≡⇒≈ (proj₁ (Σ-≡,≡←≡ X≡Y))) ≡ ≡→≅ X≡Y)
-           (λ X → _≈_.to (≈≈≅ X X) (≡⇒≈ (proj₁ (Σ-≡,≡←≡ (refl X))))  ≡⟨ cong (_≈_.to (≈≈≅ X X) ∘ ≡⇒≈ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
-                  _≈_.to (≈≈≅ X X) (≡⇒≈ (refl (Type X)))             ≡⟨ cong (_≈_.to (≈≈≅ X X)) ≡⇒≈-refl ⟩
-                  _≈_.to (≈≈≅ X X) Weak.id                           ≡⟨ _≈_.from (≡≈≡¹ {X = X} {Y = X}) (refl P.id) ⟩
+              _≃_.to (≃≃≅ X Y) (≡⇒≃ (proj₁ (Σ-≡,≡←≡ X≡Y))) ≡ ≡→≅ X≡Y)
+           (λ X → _≃_.to (≃≃≅ X X) (≡⇒≃ (proj₁ (Σ-≡,≡←≡ (refl X))))  ≡⟨ cong (_≃_.to (≃≃≅ X X) ∘ ≡⇒≃ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
+                  _≃_.to (≃≃≅ X X) (≡⇒≃ (refl (Type X)))             ≡⟨ cong (_≃_.to (≃≃≅ X X)) ≡⇒≃-refl ⟩
+                  _≃_.to (≃≃≅ X X) Weak.id                           ≡⟨ _≃_.from (≡≃≡¹ {X = X} {Y = X}) (refl P.id) ⟩
                   id≅ {X = X}                                        ≡⟨ sym ≡→≅-refl ⟩∎
                   ≡→≅ (refl X)                                       ∎)
 
@@ -446,7 +446,7 @@ category-Set ℓ ext univ = record { category = precategory , is-weak }
     is-weak {X} {Y} =
       Weak.respects-extensional-equality
         ≡→≅-is-composition
-        (_≈_.is-weak-equivalence (≈≈≅ X Y ⊚ ≡≈≈ univ ⊚ cong-Type))
+        (_≃_.is-weak-equivalence (≃≃≅ X Y ⊚ ≡≃≃ univ ⊚ cong-Type))
 
 -- An example: sets and bijections. (Defined using extensionality and
 -- univalence.)
