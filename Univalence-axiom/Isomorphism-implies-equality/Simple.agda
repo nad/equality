@@ -83,15 +83,15 @@ record Universe : Set₃ where
   -- A predicate that specifies what it means for a weak equivalence
   -- to be an isomorphism between two elements.
 
-  Is-isomorphism : ∀ {B C} → B ≈ C → ∀ a → El a B → El a C → Set₁
-  Is-isomorphism B≈C a x y = resp a B≈C x ≡ y
+  Is-isomorphism : ∀ a {B C} → B ≈ C → El a B → El a C → Set₁
+  Is-isomorphism a B≈C x y = resp a B≈C x ≡ y
 
   -- An alternative definition of Is-isomorphism, defined using
   -- univalence.
 
   Is-isomorphism′ : Assumptions →
-                    ∀ {B C} → B ≈ C → ∀ a → El a B → El a C → Set₁
-  Is-isomorphism′ ass B≈C a x y = subst (El a) (≈⇒≡ univ₁ B≈C) x ≡ y
+                    ∀ a {B C} → B ≈ C → El a B → El a C → Set₁
+  Is-isomorphism′ ass a B≈C x y = subst (El a) (≈⇒≡ univ₁ B≈C) x ≡ y
     where open Assumptions ass
 
   abstract
@@ -101,9 +101,9 @@ record Universe : Set₃ where
 
     isomorphic-to-itself :
       (ass : Assumptions) → let open Assumptions ass in
-      ∀ {B C} (B≈C : B ≈ C) a x →
-      Is-isomorphism B≈C a x (subst (El a) (≈⇒≡ univ₁ B≈C) x)
-    isomorphic-to-itself ass B≈C a x =
+      ∀ a {B C} (B≈C : B ≈ C) x →
+      Is-isomorphism a B≈C x (subst (El a) (≈⇒≡ univ₁ B≈C) x)
+    isomorphic-to-itself ass a B≈C x =
       subst-unique (El a) (resp a) (resp-id ass a) univ₁ B≈C x
       where open Assumptions ass
 
@@ -112,11 +112,11 @@ record Universe : Set₃ where
 
     isomorphism-definitions-isomorphic :
       (ass : Assumptions) →
-      ∀ {B C} (B≈C : B ≈ C) a {x y} →
-      Is-isomorphism B≈C a x y ↔ Is-isomorphism′ ass B≈C a x y
-    isomorphism-definitions-isomorphic ass B≈C a {x} {y} =
-      Is-isomorphism      B≈C a x y  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ y) $ isomorphic-to-itself ass B≈C a x ⟩□
-      Is-isomorphism′ ass B≈C a x y  □
+      ∀ a {B C} (B≈C : B ≈ C) {x y} →
+      Is-isomorphism a B≈C x y ↔ Is-isomorphism′ ass a B≈C x y
+    isomorphism-definitions-isomorphic ass a B≈C {x} {y} =
+      Is-isomorphism      a B≈C x y  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ y) $ isomorphic-to-itself ass a B≈C x ⟩□
+      Is-isomorphism′ ass a B≈C x y  □
 
 ------------------------------------------------------------------------
 -- A universe-indexed family of classes of structures
@@ -188,7 +188,7 @@ module Class (Univ : Universe) where
 
   Isomorphic : ∀ c → Instance c → Instance c → Set₁
   Isomorphic (a , _) (C₁ , x₁ , _) (C₂ , x₂ , _) =
-    Σ (C₁ ≈ C₂) λ C₁≈C₂ → Is-isomorphism C₁≈C₂ a x₁ x₂
+    Σ (C₁ ≈ C₂) λ C₁≈C₂ → Is-isomorphism a C₁≈C₂ x₁ x₂
 
   abstract
 
@@ -204,8 +204,8 @@ module Class (Univ : Universe) where
     isomorphic↔equal ass c {I₁} {I₂} =
 
       (∃ λ (C-eq : Carrier c I₁ ≈ Carrier c I₂) →
-         Is-isomorphism C-eq (proj₁ c) (element c I₁) (element c I₂))  ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic
-                                                                                             ass C-eq (proj₁ c)) ⟩
+         Is-isomorphism (proj₁ c) C-eq (element c I₁) (element c I₂))  ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic
+                                                                                             ass (proj₁ c) C-eq) ⟩
       (∃ λ (C-eq : Carrier c I₁ ≈ Carrier c I₂) →
          subst (El (proj₁ c)) (≈⇒≡ univ₁ C-eq) (element c I₁) ≡
          element c I₂)                                                 ↝⟨ inverse $
@@ -322,9 +322,9 @@ isomorphic↔equal-is-corollary
   Isomorphic (a , P) (C , x , p) (D , y , q)  ↝⟨ (let ≈≈≅ = ≈≈≅-Set (# 1) ext Cs Ds in
                                                   Σ-cong ≈≈≅ (λ C≈D →
                                                     let C≈D′ = _≈_.from ≈≈≅ (_≈_.to ≈≈≅ C≈D) in
-                                                    Is-isomorphism C≈D  a x y  ↝⟨ ≡⇒↝ _ $ cong (λ eq → Is-isomorphism eq a x y) $ sym $
+                                                    Is-isomorphism a C≈D  x y  ↝⟨ ≡⇒↝ _ $ cong (λ eq → Is-isomorphism a eq x y) $ sym $
                                                                                     _≈_.left-inverse-of ≈≈≅ C≈D ⟩
-                                                    Is-isomorphism C≈D′ a x y  □)) ⟩
+                                                    Is-isomorphism a C≈D′ x y  □)) ⟩
   ∃ (H {X = Cs} {Y = Ds} x y)                 ↝⟨ inverse ×-right-identity ⟩
   ∃ (H {X = Cs} {Y = Ds} x y) × ⊤             ↝⟨ ∃-cong (λ I≅J → inverse $ contractible↔⊤ $ propositional⇒inhabited⇒contractible
                                                                    (Precategory.Is-isomorphism-propositional Str I≅J)
@@ -370,7 +370,7 @@ isomorphic↔equal-is-corollary
     { P               = El a ∘ Type
     ; P-set           = El-set a ∘ proj₂
     ; H               = λ {C D} x y C≅D →
-                          Is-isomorphism (≅⇒≈ C D C≅D) a x y
+                          Is-isomorphism a (≅⇒≈ C D C≅D) x y
     ; H-prop          = λ {_ C} _ → El-set a (proj₂ C) _ _
     ; H-id            = λ {C x} →
                           resp a (≅⇒≈ C C (Category.id X≅ {X = C})) x  ≡⟨ cong (λ eq → resp a eq x) $ Weak.lift-equality ext (refl _) ⟩
@@ -531,16 +531,16 @@ open Class simple
 -- This definition is in bijective correspondence with Is-isomorphism
 -- (see below).
 
-Is-isomorphism′ : ∀ {B C} → B ≈ C → ∀ a → El a B → El a C → Set₁
-Is-isomorphism′ B≈C id      = λ x y → _≈_.to B≈C x ≡ y
-Is-isomorphism′ B≈C set     = λ X Y → ↑ _ (X ≈ Y)
-Is-isomorphism′ B≈C (k A)   = λ x y → x ≡ y
-Is-isomorphism′ B≈C (a ⇾ b) = Is-isomorphism′ B≈C a →-rel
-                              Is-isomorphism′ B≈C b
-Is-isomorphism′ B≈C (a ⊕ b) = Is-isomorphism′ B≈C a ⊎-rel
-                              Is-isomorphism′ B≈C b
-Is-isomorphism′ B≈C (a ⊗ b) = Is-isomorphism′ B≈C a ×-rel
-                              Is-isomorphism′ B≈C b
+Is-isomorphism′ : ∀ a {B C} → B ≈ C → El a B → El a C → Set₁
+Is-isomorphism′ id      B≈C = λ x y → _≈_.to B≈C x ≡ y
+Is-isomorphism′ set     B≈C = λ X Y → ↑ _ (X ≈ Y)
+Is-isomorphism′ (k A)   B≈C = λ x y → x ≡ y
+Is-isomorphism′ (a ⇾ b) B≈C = Is-isomorphism′ a B≈C →-rel
+                              Is-isomorphism′ b B≈C
+Is-isomorphism′ (a ⊕ b) B≈C = Is-isomorphism′ a B≈C ⊎-rel
+                              Is-isomorphism′ b B≈C
+Is-isomorphism′ (a ⊗ b) B≈C = Is-isomorphism′ a B≈C ×-rel
+                              Is-isomorphism′ b B≈C
 
 -- El a preserves weak equivalences (assuming extensionality).
 --
@@ -605,14 +605,14 @@ abstract
 
   isomorphism-definitions-isomorphic :
     Assumptions →
-    ∀ {B C} (B≈C : B ≈ C) a {x y} →
-    Is-isomorphism B≈C a x y ↔ Is-isomorphism′ B≈C a x y
+    ∀ a {B C} (B≈C : B ≈ C) {x y} →
+    Is-isomorphism a B≈C x y ↔ Is-isomorphism′ a B≈C x y
 
-  isomorphism-definitions-isomorphic ass B≈C id {x} {y} =
+  isomorphism-definitions-isomorphic ass id B≈C {x} {y} =
 
     (_≈_.to B≈C x ≡ y)  □
 
-  isomorphism-definitions-isomorphic ass B≈C set {X} {Y} =
+  isomorphism-definitions-isomorphic ass set B≈C {X} {Y} =
 
     (X ≡ Y)      ↔⟨ ≡≈≈ univ ⟩
 
@@ -622,11 +622,11 @@ abstract
 
     where open Assumptions ass
 
-  isomorphism-definitions-isomorphic ass B≈C (k A) {x} {y} =
+  isomorphism-definitions-isomorphic ass (k A) B≈C {x} {y} =
 
     (x ≡ y) □
 
-  isomorphism-definitions-isomorphic ass B≈C (a ⇾ b) {f} {g} =
+  isomorphism-definitions-isomorphic ass (a ⇾ b) B≈C {f} {g} =
 
     (resp b B≈C ∘ f ∘ resp⁻¹ a B≈C ≡ g)                  ↝⟨ ∘from≡↔≡∘to ext (cast≈ ext a B≈C) ⟩
 
@@ -635,52 +635,52 @@ abstract
     (∀ x → resp b B≈C (f x) ≡ g (resp a B≈C x))          ↔⟨ ∀-preserves ext (λ x → ↔⇒≈ $
                                                               ∀-intro ext (λ y _ → resp b B≈C (f x) ≡ g y)) ⟩
     (∀ x y → resp a B≈C x ≡ y → resp b B≈C (f x) ≡ g y)  ↔⟨ ∀-preserves ext (λ _ → ∀-preserves ext λ _ → ↔⇒≈ $
-                                                              →-cong ext (isomorphism-definitions-isomorphic ass B≈C a)
-                                                                         (isomorphism-definitions-isomorphic ass B≈C b)) ⟩□
-    (∀ x y → Is-isomorphism′ B≈C a x y →
-             Is-isomorphism′ B≈C b (f x) (g y))          □
+                                                              →-cong ext (isomorphism-definitions-isomorphic ass a B≈C)
+                                                                         (isomorphism-definitions-isomorphic ass b B≈C)) ⟩□
+    (∀ x y → Is-isomorphism′ a B≈C x y →
+             Is-isomorphism′ b B≈C (f x) (g y))          □
 
     where open Assumptions ass
 
-  isomorphism-definitions-isomorphic ass B≈C (a ⊕ b) {inj₁ x} {inj₁ y} =
+  isomorphism-definitions-isomorphic ass (a ⊕ b) B≈C {inj₁ x} {inj₁ y} =
 
     (inj₁ (resp a B≈C x) ≡ inj₁ y)  ↝⟨ inverse ≡↔inj₁≡inj₁ ⟩
 
-    (resp a B≈C x ≡ y)              ↝⟨ isomorphism-definitions-isomorphic ass B≈C a ⟩□
+    (resp a B≈C x ≡ y)              ↝⟨ isomorphism-definitions-isomorphic ass a B≈C ⟩□
 
-    Is-isomorphism′ B≈C a x y       □
+    Is-isomorphism′ a B≈C x y       □
 
     where open Assumptions ass
 
-  isomorphism-definitions-isomorphic ass B≈C (a ⊕ b) {inj₂ x} {inj₂ y} =
+  isomorphism-definitions-isomorphic ass (a ⊕ b) B≈C {inj₂ x} {inj₂ y} =
 
     (inj₂ (resp b B≈C x) ≡ inj₂ y)  ↝⟨ inverse ≡↔inj₂≡inj₂ ⟩
 
-    (resp b B≈C x ≡ y)              ↝⟨ isomorphism-definitions-isomorphic ass B≈C b ⟩□
+    (resp b B≈C x ≡ y)              ↝⟨ isomorphism-definitions-isomorphic ass b B≈C ⟩□
 
-    Is-isomorphism′ B≈C b x y       □
+    Is-isomorphism′ b B≈C x y       □
 
     where open Assumptions ass
 
-  isomorphism-definitions-isomorphic ass B≈C (a ⊕ b) {inj₁ x} {inj₂ y} =
+  isomorphism-definitions-isomorphic ass (a ⊕ b) B≈C {inj₁ x} {inj₂ y} =
 
     (inj₁ _ ≡ inj₂ _)  ↝⟨ inverse $ ⊥↔uninhabited ⊎.inj₁≢inj₂ ⟩□
 
     ⊥                  □
 
-  isomorphism-definitions-isomorphic ass B≈C (a ⊕ b) {inj₂ x} {inj₁ y} =
+  isomorphism-definitions-isomorphic ass (a ⊕ b) B≈C {inj₂ x} {inj₁ y} =
 
     (inj₂ _ ≡ inj₁ _)  ↝⟨ inverse $ ⊥↔uninhabited (⊎.inj₁≢inj₂ ∘ sym) ⟩□
 
     ⊥                  □
 
-  isomorphism-definitions-isomorphic ass B≈C (a ⊗ b) {x , u} {y , v} =
+  isomorphism-definitions-isomorphic ass (a ⊗ b) B≈C {x , u} {y , v} =
 
     ((resp a B≈C x , resp b B≈C u) ≡ (y , v))              ↝⟨ inverse ≡×≡↔≡ ⟩
 
-    (resp a B≈C x ≡ y × resp b B≈C u ≡ v)                  ↝⟨ isomorphism-definitions-isomorphic ass B≈C a ×-cong
-                                                              isomorphism-definitions-isomorphic ass B≈C b ⟩□
-    Is-isomorphism′ B≈C a x y × Is-isomorphism′ B≈C b u v  □
+    (resp a B≈C x ≡ y × resp b B≈C u ≡ v)                  ↝⟨ isomorphism-definitions-isomorphic ass a B≈C ×-cong
+                                                              isomorphism-definitions-isomorphic ass b B≈C ⟩□
+    Is-isomorphism′ a B≈C x y × Is-isomorphism′ b B≈C u v  □
 
     where open Assumptions ass
 
