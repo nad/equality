@@ -547,6 +547,13 @@ Is-isomorphism′ (a ⊗ b) B≃C = Is-isomorphism′ a B≃C ×-rel
 Is-isomorphism′ (a ⊕ b) B≃C = Is-isomorphism′ a B≃C ⊎-rel
                               Is-isomorphism′ b B≃C
 
+-- An alternative definition of Isomorphic, using Is-isomorphism′
+-- instead of Is-isomorphism.
+
+Isomorphic′ : ∀ c → Instance c → Instance c → Set₁
+Isomorphic′ (a , _) (C₁ , x₁ , _) (C₂ , x₂ , _) =
+  Σ (C₁ ≃ C₂) λ C₁≃C₂ → Is-isomorphism′ a C₁≃C₂ x₁ x₂
+
 -- El a preserves weak equivalences (assuming extensionality).
 --
 -- Note that _≃_.equivalence (cast≃ ext a B≃C) is (definitionally)
@@ -1409,6 +1416,42 @@ Isomorphism-poset-isomorphic-to-order-isomorphism ass
    (∀ a b → (a ≤₁ b) ⇔ (to a ≤₂ to b)))         □
 
   where open Assumptions ass
+
+-- If we define isomorphism using Is-isomorphism′ instead of
+-- Is-isomorphism, then the previous property can be proved without
+-- using univalence (but still extensionality).
+
+Isomorphism′-poset-isomorphic-to-order-isomorphism :
+  Extensionality (# 1) (# 1) →
+  ∀ {P₁ _≤₁_ laws₁ P₂ _≤₂_ laws₂} →
+
+  Isomorphic′ poset (P₁ , _≤₁_ , laws₁) (P₂ , _≤₂_ , laws₂)
+    ↔
+  Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ P₁↔P₂ in
+  ∀ x y → (x ≤₁ y) ⇔ (to x ≤₂ to y)
+
+Isomorphism′-poset-isomorphic-to-order-isomorphism ext
+  {P₁} {_≤₁_} {laws₁} {P₂} {_≤₂_} {laws₂} =
+
+  (Σ (P₁ ≃ P₂) λ P₁≃P₂ → let open _≃_ P₁≃P₂ in
+   ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (b ≤₂ d)))  ↝⟨ inverse $ Σ-cong (↔↔≃ ext (proj₁ laws₁)) (λ _ → _ □) ⟩
+
+  (Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ P₁↔P₂ in
+   ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (b ≤₂ d)))  ↔⟨ inverse $ ∃-cong (λ _ → ∀-preserves ext λ _ → ↔⇒≃ $
+                                                                          ∀-intro ext λ _ _ → _) ⟩
+  (Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ P₁↔P₂ in
+   ∀ a c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (to a ≤₂ d)))                ↔⟨ inverse $ ∃-cong (λ _ → ∀-preserves ext λ _ → ∀-preserves ext λ _ → ↔⇒≃ $
+                                                                          ∀-intro ext λ _ _ → _) ⟩
+  (Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ P₁↔P₂ in
+   ∀ a c → ↑ _ ((a ≤₁ c) ≃ (to a ≤₂ to c)))                          ↔⟨ ∃-cong (λ _ → ∀-preserves ext λ _ → ∀-preserves ext λ _ → ↔⇒≃
+                                                                          ↑↔) ⟩
+  (Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ P₁↔P₂ in
+   ∀ a c → (a ≤₁ c) ≃ (to a ≤₂ to c))                                ↔⟨ inverse $ ∃-cong (λ _ →
+                                                                          ∀-preserves ext λ _ → ∀-preserves (lower-ext (# 0) _ ext) λ _ → ↔⇒≃ $
+                                                                            ⇔↔≃ (lower-ext _ _ ext) (proj₁ (proj₂ laws₁) _ _)
+                                                                                                    (proj₁ (proj₂ laws₂) _ _)) ⟩□
+  (Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ P₁↔P₂ in
+   ∀ a c → (a ≤₁ c) ⇔ (to a ≤₂ to c))                                □
 
 ------------------------------------------------------------------------
 -- An example: sets equipped with fixpoint operators
