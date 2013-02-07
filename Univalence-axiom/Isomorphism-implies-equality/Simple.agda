@@ -170,19 +170,19 @@ module Class (Univ : Universe) where
 
     instances-equal↔ :
       Assumptions →
-      ∀ c {I₁ I₂} →
-      (I₁ ≡ I₂) ↔
-      ∃ λ (C-eq : Carrier c I₁ ≡ Carrier c I₂) →
-        subst (El (proj₁ c)) C-eq (element c I₁) ≡ element c I₂
-    instances-equal↔ ass (a , P) {C₁ , x₁ , p₁} {C₂ , x₂ , p₂} =
+      ∀ c {I J} →
+      (I ≡ J) ↔
+      ∃ λ (C-eq : Carrier c I ≡ Carrier c J) →
+        subst (El (proj₁ c)) C-eq (element c I) ≡ element c J
+    instances-equal↔ ass (a , P) {C , x , p} {D , y , q} =
 
-      ((C₁ , x₁ , p₁) ≡ (C₂ , x₂ , p₂))                   ↔⟨ inverse $ ≈-≡ $ ↔⇒≈ Σ-assoc ⟩
+      ((C , x , p) ≡ (D , y , q))                     ↔⟨ inverse $ ≈-≡ $ ↔⇒≈ Σ-assoc ⟩
 
-      (((C₁ , x₁) , p₁) ≡ ((C₂ , x₂) , p₂))               ↝⟨ inverse $ ignore-propositional-component (proj₂ (P C₂ x₂) ass) ⟩
+      (((C , x) , p) ≡ ((D , y) , q))                 ↝⟨ inverse $ ignore-propositional-component (proj₂ (P D y) ass) ⟩
 
-      ((C₁ , x₁) ≡ (C₂ , x₂))                             ↝⟨ inverse Σ-≡,≡↔≡ ⟩□
+      ((C , x) ≡ (D , y))                             ↝⟨ inverse Σ-≡,≡↔≡ ⟩□
 
-      (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq x₁ ≡ x₂)  □
+      (∃ λ (C-eq : C ≡ D) → subst (El a) C-eq x ≡ y)  □
 
   -- Structure isomorphisms.
 
@@ -200,25 +200,30 @@ module Class (Univ : Universe) where
 
     isomorphic↔equal :
       Assumptions →
-      ∀ c {I₁ I₂} → Isomorphic c I₁ I₂ ↔ (I₁ ≡ I₂)
-    isomorphic↔equal ass c {I₁} {I₂} =
+      ∀ c {I J} → Isomorphic c I J ↔ (I ≡ J)
+    isomorphic↔equal ass (a , P) {C , x , p} {D , y , q} =
 
-      (∃ λ (C-eq : Carrier c I₁ ≈ Carrier c I₂) →
-         Is-isomorphism (proj₁ c) C-eq (element c I₁) (element c I₂))  ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic
-                                                                                             ass (proj₁ c) C-eq) ⟩
-      (∃ λ (C-eq : Carrier c I₁ ≈ Carrier c I₂) →
-         subst (El (proj₁ c)) (≈⇒≡ univ₁ C-eq) (element c I₁) ≡
-         element c I₂)                                                 ↝⟨ inverse $
-                                                                            Σ-cong (≡≈≈ univ₁) (λ C-eq → ≡⇒↝ _ $ sym $
-                                                                              cong (λ eq → subst (El (proj₁ c)) eq (element c I₁) ≡
-                                                                                           element c I₂)
-                                                                                   (_≈_.left-inverse-of (≡≈≈ univ₁) C-eq)) ⟩
-      (∃ λ (C-eq : Carrier c I₁ ≡ Carrier c I₂) →
-         subst (El (proj₁ c)) C-eq (element c I₁) ≡ element c I₂)      ↝⟨ inverse $ instances-equal↔ ass c ⟩□
+      (∃ λ (C-eq : C ≈ D) → Is-isomorphism a C-eq x y)            ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic ass a C-eq) ⟩
 
-      (I₁ ≡ I₂)                                                        □
+      (∃ λ (C-eq : C ≈ D) → subst (El a) (≈⇒≡ univ₁ C-eq) x ≡ y)  ↝⟨ inverse $
+                                                                       Σ-cong (≡≈≈ univ₁) (λ C-eq → ≡⇒↝ _ $ sym $
+                                                                         cong (λ eq → subst (El a) eq x ≡ y)
+                                                                              (_≈_.left-inverse-of (≡≈≈ univ₁) C-eq)) ⟩
+      (∃ λ (C-eq : C ≡ D) → subst (El a) C-eq x ≡ y)              ↝⟨ inverse $ instances-equal↔ ass c ⟩□
 
-      where open Assumptions ass
+      (I ≡ J)                                                     □
+
+      where
+      open Assumptions ass
+
+      c : Code
+      c = a , P
+
+      I : Instance c
+      I = C , x , p
+
+      J : Instance c
+      J = D , y , q
 
     -- The type of (lifted) isomorphisms between two instances of a
     -- structure is equal to the type of equalities between the same
@@ -228,12 +233,12 @@ module Class (Univ : Universe) where
 
     isomorphic≡equal :
       Assumptions →
-      ∀ c {I₁ I₂} → ↑ (# 2) (Isomorphic c I₁ I₂) ≡ (I₁ ≡ I₂)
-    isomorphic≡equal ass c {I₁} {I₂} =
+      ∀ c {I J} → ↑ (# 2) (Isomorphic c I J) ≡ (I ≡ J)
+    isomorphic≡equal ass c {I} {J} =
       ≈⇒≡ univ₂ $ ↔⇒≈ (
-        ↑ _ (Isomorphic c I₁ I₂)  ↝⟨ ↑↔ ⟩
-        Isomorphic c I₁ I₂        ↝⟨ isomorphic↔equal ass c ⟩□
-        (I₁ ≡ I₂)                 □)
+        ↑ _ (Isomorphic c I J)  ↝⟨ ↑↔ ⟩
+        Isomorphic c I J        ↝⟨ isomorphic↔equal ass c ⟩□
+        (I ≡ J)                 □)
       where open Assumptions ass
 
 ------------------------------------------------------------------------
@@ -432,7 +437,7 @@ infixr 10 _⇾_
 data U : Set₂ where
   id set      : U
   k           : Set₁ → U
-  _⇾_ _⊕_ _⊗_ : U → U → U
+  _⇾_ _⊗_ _⊕_ : U → U → U
 
 -- Interpretation of types.
 
@@ -441,8 +446,8 @@ El id      B = B
 El set     B = Set
 El (k A)   B = A
 El (a ⇾ b) B = El a B → El b B
-El (a ⊕ b) B = El a B ⊎ El b B
 El (a ⊗ b) B = El a B × El b B
+El (a ⊕ b) B = El a B ⊎ El b B
 
 -- El a preserves equivalences.
 
@@ -451,8 +456,8 @@ cast id      B≈C = B≈C
 cast set     B≈C = Equivalence.id
 cast (k A)   B≈C = Equivalence.id
 cast (a ⇾ b) B≈C = →-cong-⇔ (cast a B≈C) (cast b B≈C)
-cast (a ⊕ b) B≈C = cast a B≈C ⊎-cong cast b B≈C
 cast (a ⊗ b) B≈C = cast a B≈C ×-cong cast b B≈C
+cast (a ⊕ b) B≈C = cast a B≈C ⊎-cong cast b B≈C
 
 -- El a respects weak equivalences.
 
@@ -537,9 +542,9 @@ Is-isomorphism′ set     B≈C = λ X Y → ↑ _ (X ≈ Y)
 Is-isomorphism′ (k A)   B≈C = λ x y → x ≡ y
 Is-isomorphism′ (a ⇾ b) B≈C = Is-isomorphism′ a B≈C →-rel
                               Is-isomorphism′ b B≈C
-Is-isomorphism′ (a ⊕ b) B≈C = Is-isomorphism′ a B≈C ⊎-rel
-                              Is-isomorphism′ b B≈C
 Is-isomorphism′ (a ⊗ b) B≈C = Is-isomorphism′ a B≈C ×-rel
+                              Is-isomorphism′ b B≈C
+Is-isomorphism′ (a ⊕ b) B≈C = Is-isomorphism′ a B≈C ⊎-rel
                               Is-isomorphism′ b B≈C
 
 -- El a preserves weak equivalences (assuming extensionality).
@@ -564,8 +569,8 @@ cast≈ ext a {B} {C} B≈C = ↔⇒≈ record
   cst set     = Weak.id
   cst (k A)   = Weak.id
   cst (a ⇾ b) = →-cong ext (cst a) (cst b)
-  cst (a ⊕ b) = cst a ⊎-cong cst b
   cst (a ⊗ b) = cst a ×-cong cst b
+  cst (a ⊕ b) = cst a ⊎-cong cst b
 
   abstract
 
@@ -579,9 +584,9 @@ cast≈ ext a {B} {C} B≈C = ↔⇒≈ record
     casts-related (k A)   = refl _
     casts-related (a ⇾ b) = cong₂ →-cong-⇔ (casts-related a)
                                            (casts-related b)
-    casts-related (a ⊕ b) = cong₂ _⊎-cong_ (casts-related a)
-                                           (casts-related b)
     casts-related (a ⊗ b) = cong₂ _×-cong_ (casts-related a)
+                                           (casts-related b)
+    casts-related (a ⊕ b) = cong₂ _⊎-cong_ (casts-related a)
                                            (casts-related b)
 
     to∘from : ∀ x → _⇔_.to (cast a B⇔C) (_⇔_.from (cast a B⇔C) x) ≡ x
@@ -642,6 +647,16 @@ abstract
 
     where open Assumptions ass
 
+  isomorphism-definitions-isomorphic ass (a ⊗ b) B≈C {x , u} {y , v} =
+
+    ((resp a B≈C x , resp b B≈C u) ≡ (y , v))              ↝⟨ inverse ≡×≡↔≡ ⟩
+
+    (resp a B≈C x ≡ y × resp b B≈C u ≡ v)                  ↝⟨ isomorphism-definitions-isomorphic ass a B≈C ×-cong
+                                                              isomorphism-definitions-isomorphic ass b B≈C ⟩□
+    Is-isomorphism′ a B≈C x y × Is-isomorphism′ b B≈C u v  □
+
+    where open Assumptions ass
+
   isomorphism-definitions-isomorphic ass (a ⊕ b) B≈C {inj₁ x} {inj₁ y} =
 
     (inj₁ (resp a B≈C x) ≡ inj₁ y)  ↝⟨ inverse ≡↔inj₁≡inj₁ ⟩
@@ -673,16 +688,6 @@ abstract
     (inj₂ _ ≡ inj₁ _)  ↝⟨ inverse $ ⊥↔uninhabited (⊎.inj₁≢inj₂ ∘ sym) ⟩□
 
     ⊥                  □
-
-  isomorphism-definitions-isomorphic ass (a ⊗ b) B≈C {x , u} {y , v} =
-
-    ((resp a B≈C x , resp b B≈C u) ≡ (y , v))              ↝⟨ inverse ≡×≡↔≡ ⟩
-
-    (resp a B≈C x ≡ y × resp b B≈C u ≡ v)                  ↝⟨ isomorphism-definitions-isomorphic ass a B≈C ×-cong
-                                                              isomorphism-definitions-isomorphic ass b B≈C ⟩□
-    Is-isomorphism′ a B≈C x y × Is-isomorphism′ b B≈C u v  □
-
-    where open Assumptions ass
 
 ------------------------------------------------------------------------
 -- An example: monoids
