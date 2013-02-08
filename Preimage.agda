@@ -158,7 +158,7 @@ abstract
   injection⁻¹-propositional :
     ∀ {a b} {A : Set a} {B : Set b} (A↣B : A ↣ B) → let open _↣_ A↣B in
     Is-set B →
-    ∀ y → Propositional (to ⁻¹ y)
+    ∀ y → Is-proposition (to ⁻¹ y)
   injection⁻¹-propositional A↣B B-set y =
     _⇔_.from propositional⇔irrelevant λ { (x₁ , tox₁≡y) (x₂ , tox₂≡y) →
       Σ-≡,≡→≡ (injective (to x₁  ≡⟨ tox₁≡y ⟩

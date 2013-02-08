@@ -94,7 +94,7 @@ M₁ ≅ M₂ =
 laws-propositional :
   Extensionality (# 0) (# 0) →
   (M : Monoid) →
-  Propositional (Is-monoid (Carrier M) (op M) (id M))
+  Is-proposition (Is-monoid (Carrier M) (op M) (id M))
 laws-propositional ext M =
   ×-closure 1 (H-level-propositional ext 2)
   (×-closure 1 (Π-closure ext 1 λ _ →

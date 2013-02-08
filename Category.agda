@@ -136,7 +136,7 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
 
     Is-isomorphism-propositional :
       ∀ {X Y} (f : Hom X Y) →
-      Propositional (Is-isomorphism f)
+      Is-proposition (Is-isomorphism f)
     Is-isomorphism-propositional f =
       _⇔_.from propositional⇔irrelevant
         λ { (g , fg , gf) (g′ , fg′ , g′f) →

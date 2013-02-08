@@ -318,13 +318,13 @@ abstract
 
   Univalence′-propositional :
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
-    {A B : Set ℓ} → Propositional (Univalence′ A B)
+    {A B : Set ℓ} → Is-proposition (Univalence′ A B)
   Univalence′-propositional ext =
     Weak.propositional ext ≡⇒≃
 
   Univalence-propositional :
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
-    Propositional (Univalence ℓ)
+    Is-proposition (Univalence ℓ)
   Univalence-propositional ext =
     implicit-Π-closure ext 1 λ _ →
     implicit-Π-closure ext 1 λ _ →

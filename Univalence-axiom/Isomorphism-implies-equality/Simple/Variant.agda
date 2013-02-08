@@ -158,7 +158,7 @@ module Class (Univ : Universe) where
     (C : SET (# 0)) → El a (Type C) → Σ Set₁ λ P →
       -- The proposition should be propositional (assuming
       -- univalence).
-      Assumptions → Propositional P
+      Assumptions → Is-proposition P
 
   -- Interpretation of the codes. The elements of "Instance c" are
   -- instances of the structure encoded by c.
@@ -224,7 +224,8 @@ module Class (Univ : Universe) where
         (Σ (Σ Set (El a)) λ { (C , x) →
            Σ (Is-set C) λ S → proj₁ (P (C , S) x) })  □
 
-      prop : Propositional (Σ (Is-set C₂) λ S₂ → proj₁ (P (C₂ , S₂) x₂))
+      prop : Is-proposition
+               (Σ (Is-set C₂) λ S₂ → proj₁ (P (C₂ , S₂) x₂))
       prop =
         Σ-closure 1
           (H-level-propositional (Assumptions.ext₀ ass) 2)

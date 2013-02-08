@@ -188,7 +188,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
 
 ignore-propositional-component :
   ∀ {a b} {A : Set a} {B : A → Set b} {p q : Σ A B} →
-  Propositional (B (proj₁ q)) →
+  Is-proposition (B (proj₁ q)) →
   (proj₁ p ≡ proj₁ q) ↔ (p ≡ q)
 ignore-propositional-component {p = p₁ , p₂} {q₁ , q₂} Bq₁-prop = record
   { surjection = record

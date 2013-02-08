@@ -145,7 +145,7 @@ mutual
     -- Arbitrary /propositional/ axioms.
     _+axiom_ : (s : Structure)
                (P : ∃ λ (P : (A : Set) → ⟦ s ⟧ A → Set) →
-                      ∀ A s → Propositional (P A s)) →
+                      ∀ A s → Is-proposition (P A s)) →
                Structure
 
   -- Interpretation of the codes.
@@ -471,7 +471,7 @@ data Structureʳ (A : Set) : Set₁ where
 
   -- Arbitrary /propositional/ axioms.
   axiom : (P : Set)
-          (P-prop : Propositional P)
+          (P-prop : Is-proposition P)
           (s : P → Structureʳ A) →
           Structureʳ A
 

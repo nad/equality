@@ -136,7 +136,7 @@ module Class (Univ : Universe) where
     (C : Set₁) → El a C → Σ Set₁ λ P →
       -- The proposition should be propositional (assuming
       -- univalence).
-      Assumptions → Propositional P
+      Assumptions → Is-proposition P
 
   -- Interpretation of the codes. The elements of "Instance c" are
   -- instances of the structure encoded by c.
@@ -257,7 +257,7 @@ record Standard-notion-of-structure
     P-set           : ∀ A → Is-set (P A)
     H               : ∀ {X Y} (p : P X) (q : P Y) → Hom X Y → Set ℓ₂
     H-prop          : ∀ {X Y} {p : P X} {q : P Y}
-                      (f : Hom X Y) → Propositional (H p q f)
+                      (f : Hom X Y) → Is-proposition (H p q f)
     H-id            : ∀ {X} {p : P X} → H p p ⟨id⟩
     H-∘             : ∀ {X Y Z} {p : P X} {q : P Y} {r : P Z} {f g} →
                       H p q f → H q r g → H p r (f ∙ g)
@@ -1302,7 +1302,7 @@ poset =
     (Is-set P ×
 
      -- The ordering relation is (pointwise) propositional.
-     (∀ x y → Propositional (x ≤ y)) ×
+     (∀ x y → Is-proposition (x ≤ y)) ×
 
      -- Reflexivity.
      (∀ x → x ≤ x) ×
@@ -1346,7 +1346,7 @@ Instance-poset :
   Σ Set₁ λ P →
   Σ (P → P → Set) λ _≤_ →
   Is-set P ×
-  (∀ x y → Propositional (x ≤ y)) ×
+  (∀ x y → Is-proposition (x ≤ y)) ×
   (∀ x → x ≤ x) ×
   (∀ x y z → x ≤ y → y ≤ z → x ≤ z) ×
   (∀ x y → x ≤ y → y ≤ x → x ≡ y)

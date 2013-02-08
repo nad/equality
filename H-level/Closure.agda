@@ -41,7 +41,7 @@ abstract
 
   -- The empty type is propositional.
 
-  ⊥-propositional : ∀ {ℓ} → Propositional (⊥ {ℓ = ℓ})
+  ⊥-propositional : ∀ {ℓ} → Is-proposition (⊥ {ℓ = ℓ})
   ⊥-propositional =
     _⇔_.from propositional⇔irrelevant (λ x → ⊥-elim x)
 
@@ -60,7 +60,7 @@ abstract
     }
 
   uninhabited-propositional : ∀ {a} {A : Set a} →
-                              ¬ A → Propositional A
+                              ¬ A → Is-proposition A
   uninhabited-propositional ¬A =
     respects-surjection (_↔_.surjection $ ⊥↔uninhabited {ℓ = # 0} ¬A) 1
                         ⊥-propositional
@@ -72,7 +72,7 @@ abstract
 
   -- The booleans are not propositional.
 
-  ¬-Bool-propositional : ¬ Propositional Bool
+  ¬-Bool-propositional : ¬ Is-proposition Bool
   ¬-Bool-propositional propositional =
     Bool.true≢false $
     (_⇔_.to propositional⇔irrelevant propositional) true false
@@ -203,7 +203,7 @@ abstract
   ¬-propositional :
     ∀ {a} {A : Set a} →
     ({B : A → Set} → Extensionality′ A B) →
-    Propositional (¬ A)
+    Is-proposition (¬ A)
   ¬-propositional ext = Π-closure ext 1 (λ _ → ⊥-propositional)
 
 ------------------------------------------------------------------------
@@ -379,12 +379,12 @@ abstract
     irr : ∀ m′ → m ≡M m′
     irr (dns x′ f) = dns (irrA x′) (λ _ → ♯ irr _)
 
-  -- The same applies to Propositional.
+  -- The same applies to Is-proposition.
 
   M-closure-propositional :
     ∀ {a b} {A : Set a} {B : A → Set b} →
     ({m m′ : M A B} → m ≡M m′ → m ≡ m′) →
-    Propositional A → Propositional (M A B)
+    Is-proposition A → Is-proposition (M A B)
   M-closure-propositional {A = A} {B} ext p =
     _⇔_.from {To = Proof-irrelevant (M A B)}
              propositional⇔irrelevant
@@ -435,7 +435,7 @@ abstract
   Contractible-propositional :
     ∀ {a} {A : Set a} →
     ({B : A → Set a} → Extensionality′ A B) →
-    Propositional (Contractible A)
+    Is-proposition (Contractible A)
   Contractible-propositional ext =
     [inhabited⇒contractible]⇒propositional (cojoin ext)
 
@@ -443,7 +443,7 @@ abstract
 
   H-level-propositional :
     ∀ {a} → Extensionality a a →
-    ∀ {A : Set a} n → Propositional (H-level n A)
+    ∀ {A : Set a} n → Is-proposition (H-level n A)
   H-level-propositional     ext zero    = Contractible-propositional ext
   H-level-propositional {A} ext (suc n) =
     Π-closure ext 1 λ x →
@@ -486,7 +486,7 @@ abstract
   -- H-level is not closed under _⊎_.
 
   ¬-⊎-propositional : ∀ {a b} {A : Set a} {B : Set b} →
-                      A → B → ¬ Propositional (A ⊎ B)
+                      A → B → ¬ Is-proposition (A ⊎ B)
   ¬-⊎-propositional {A = A} {B} x y hA⊎B =
     ⊎.inj₁≢inj₂ {A = A} {B = B} $ proj₁ $ hA⊎B (inj₁ x) (inj₂ y)
 
@@ -522,13 +522,13 @@ abstract
                      (_↔_.surjection $ Bijection.inverse ↑↔)
                      (2 + n) hB
 
-  -- Furthermore Propositional is closed under Dec (assuming
+  -- Furthermore Is-proposition is closed under Dec (assuming
   -- extensionality).
 
   Dec-closure-propositional :
     ∀ {a} {A : Set a} →
     ({B : A → Set} → Extensionality′ A B) →
-    Propositional A → Propositional (Dec A)
+    Is-proposition A → Is-proposition (Dec A)
   Dec-closure-propositional {A = A} ext p =
     _⇔_.from propositional⇔irrelevant irrelevant
     where

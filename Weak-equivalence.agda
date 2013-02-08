@@ -41,7 +41,7 @@ abstract
   propositional :
     ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
     {A : Set a} {B : Set b} (f : A → B) →
-    Propositional (Is-weak-equivalence f)
+    Is-proposition (Is-weak-equivalence f)
   propositional {a} ext f =
     Π-closure (lower-extensionality a lzero ext) 1 λ _ →
       Contractible-propositional ext
@@ -684,7 +684,7 @@ private
 
 ⇔↔≃ : ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
       {A : Set a} {B : Set b} →
-      Propositional A → Propositional B → (A ⇔ B) ↔ (A ≃ B)
+      Is-proposition A → Is-proposition B → (A ⇔ B) ↔ (A ≃ B)
 ⇔↔≃ ext {A} {B} A-prop B-prop = record
   { surjection = record
     { equivalence = record

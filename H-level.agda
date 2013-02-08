@@ -29,8 +29,8 @@ H-level (suc n) A = (x y : A) → H-level n (x ≡ y)
 
 -- Some named levels.
 
-Propositional : ∀ {ℓ} → Set ℓ → Set ℓ
-Propositional = H-level 1
+Is-proposition : ∀ {ℓ} → Set ℓ → Set ℓ
+Is-proposition = H-level 1
 
 Is-set : ∀ {ℓ} → Set ℓ → Set ℓ
 Is-set = H-level 2
@@ -38,7 +38,7 @@ Is-set = H-level 2
 -- Propositions are propositional types.
 
 Proposition : (ℓ : Level) → Set (lsuc ℓ)
-Proposition _ = ∃ Propositional
+Proposition _ = ∃ Is-proposition
 
 -- Types that are sets.
 
@@ -79,7 +79,7 @@ abstract
   -- inhabited, then it is propositional.
 
   [inhabited⇒contractible]⇒propositional :
-    ∀ {a} {A : Set a} → (A → Contractible A) → Propositional A
+    ∀ {a} {A : Set a} → (A → Contractible A) → Is-proposition A
   [inhabited⇒contractible]⇒propositional h x = mono₁ 0 (h x) x
 
   -- If something has h-level (1 + n) given the assumption that it is
@@ -92,7 +92,7 @@ abstract
   -- Being propositional is equivalent to having at most one element.
 
   propositional⇔irrelevant :
-    ∀ {a} {A : Set a} → Propositional A ⇔ Proof-irrelevant A
+    ∀ {a} {A : Set a} → Is-proposition A ⇔ Proof-irrelevant A
   propositional⇔irrelevant {A} = record
     { to   = λ h x y → proj₁ (h x y)
     ; from = λ irr →
@@ -102,7 +102,7 @@ abstract
   -- If a propositional type is inhabited, then it is contractible.
 
   propositional⇒inhabited⇒contractible :
-    ∀ {a} {A : Set a} → Propositional A → A → Contractible A
+    ∀ {a} {A : Set a} → Is-proposition A → A → Contractible A
   propositional⇒inhabited⇒contractible p x =
     (x , _⇔_.to propositional⇔irrelevant p x)
 

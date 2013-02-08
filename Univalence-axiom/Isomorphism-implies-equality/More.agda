@@ -523,7 +523,7 @@ Proposition : ∀ {c} →
 
               -- The proposition must be propositional (given some
               -- assumptions).
-              (Assumptions → ∀ I → Propositional (P I)) →
+              (Assumptions → ∀ I → Is-proposition (P I)) →
 
               Extension c
 Proposition {c} P prop = record
