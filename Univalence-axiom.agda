@@ -178,8 +178,8 @@ abstract
     subst P (from A≃B) p    ∎
     where open _≃_ (≡≃≃ univ)
 
-  -- If the univalence axiom holds, then any "resp" function
-  -- satisfying resp Weak.id p ≡ p is a weak equivalence family.
+  -- If the univalence axiom holds, then any "resp" function that
+  -- preserves identity is a weak equivalence family.
 
   resp-is-weak-equivalence :
     ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
@@ -484,6 +484,19 @@ abstract
      Weak.inverse Weak.id         ≡⟨ cong Weak.inverse $ sym ≡⇒≃-refl ⟩∎
      Weak.inverse (≡⇒≃ (refl _))  ∎)
 
+  -- ≃⇒≡ univ commutes with Weak.inverse/sym (assuming
+  -- extensionality).
+
+  ≃⇒≡-inverse :
+    ∀ {ℓ} (univ : Univalence ℓ) → Extensionality ℓ ℓ →
+    {A B : Set ℓ} (A≃B : A ≃ B) →
+    ≃⇒≡ univ (Weak.inverse A≃B) ≡ sym (≃⇒≡ univ A≃B)
+  ≃⇒≡-inverse univ ext A≃B =
+    ≃⇒≡ univ (Weak.inverse A≃B)                   ≡⟨ sym $ cong (λ p → ≃⇒≡ univ (Weak.inverse p)) (_≃_.right-inverse-of (≡≃≃ univ) _) ⟩
+    ≃⇒≡ univ (Weak.inverse (≡⇒≃ (≃⇒≡ univ A≃B)))  ≡⟨ cong (≃⇒≡ univ) $ sym $ ≡⇒≃-sym ext _ ⟩
+    ≃⇒≡ univ (≡⇒≃ (sym (≃⇒≡ univ A≃B)))           ≡⟨ _≃_.left-inverse-of (≡≃≃ univ) _ ⟩∎
+    sym (≃⇒≡ univ A≃B)                            ∎
+
   -- ≡⇒≃ commutes with trans/_⊚_ (assuming extensionality).
 
   ≡⇒≃-trans :
@@ -498,6 +511,19 @@ abstract
      ≡⇒≃ A≡B                   ≡⟨ sym $ Groupoid.left-identity (Weak.groupoid ext) _ ⟩
      Weak.id ⊚ ≡⇒≃ A≡B         ≡⟨ sym $ cong (λ eq → eq ⊚ ≡⇒≃ A≡B) ≡⇒≃-refl ⟩∎
      ≡⇒≃ (refl _) ⊚ ≡⇒≃ A≡B    ∎)
+
+  -- ≃⇒≡ univ commutes with _⊚_/flip trans (assuming extensionality).
+
+  ≃⇒≡-∘ :
+    ∀ {ℓ} (univ : Univalence ℓ) → Extensionality ℓ ℓ →
+    {A B C : Set ℓ} (A≃B : A ≃ B) (B≃C : B ≃ C) →
+    ≃⇒≡ univ (B≃C ⊚ A≃B) ≡ trans (≃⇒≡ univ A≃B) (≃⇒≡ univ B≃C)
+  ≃⇒≡-∘ univ ext A≃B B≃C =
+    ≃⇒≡ univ (B≃C ⊚ A≃B)                                  ≡⟨ sym $ cong₂ (λ p q → ≃⇒≡ univ (p ⊚ q)) (_≃_.right-inverse-of (≡≃≃ univ) _)
+                                                                                                    (_≃_.right-inverse-of (≡≃≃ univ) _) ⟩
+    ≃⇒≡ univ (≡⇒≃ (≃⇒≡ univ B≃C) ⊚ ≡⇒≃ (≃⇒≡ univ A≃B))    ≡⟨ cong (≃⇒≡ univ) $ sym $ ≡⇒≃-trans ext _ _ ⟩
+    ≃⇒≡ univ (≡⇒≃ (trans (≃⇒≡ univ A≃B) (≃⇒≡ univ B≃C)))  ≡⟨ _≃_.left-inverse-of (≡≃≃ univ) _ ⟩∎
+    trans (≃⇒≡ univ A≃B) (≃⇒≡ univ B≃C)                   ∎
 
   -- One can express subst in terms of ≡⇒≃.
 
@@ -589,3 +615,45 @@ abstract
       ≡⇒→ (cong P (≃⇒≡ univ₁ A≃B)) x  ≡⟨ sym $ subst-in-terms-of-≡⇒≃ _ P x ⟩
       subst P (≃⇒≡ univ₁ A≃B) x       ≡⟨ sym $ subst-unique P (_≃_.to ∘ P-cong) P-cong-id univ₁ A≃B x ⟩∎
       _≃_.to (P-cong A≃B) x           ∎
+
+  -- Any "resp" function that preserves identity also preserves
+  -- compositions (assuming univalence and extensionality).
+
+  resp-preserves-compositions :
+    ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
+    (resp : ∀ {A B} → A ≃ B → P A → P B) →
+    (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
+    Univalence p₁ → Extensionality p₁ p₁ →
+    ∀ {A B C} (A≃B : A ≃ B) (B≃C : B ≃ C) p →
+    resp (B≃C ⊚ A≃B) p ≡ (resp B≃C ∘ resp A≃B) p
+  resp-preserves-compositions P resp resp-id univ ext A≃B B≃C p =
+    resp (B≃C ⊚ A≃B) p                                 ≡⟨ subst-unique P resp resp-id univ _ _ ⟩
+    subst P (≃⇒≡ univ (B≃C ⊚ A≃B)) p                   ≡⟨ cong (λ eq → subst P eq p) $ ≃⇒≡-∘ univ ext A≃B B≃C ⟩
+    subst P (trans (≃⇒≡ univ A≃B) (≃⇒≡ univ B≃C)) p    ≡⟨ sym $ subst-subst P _ _ _ ⟩
+    subst P (≃⇒≡ univ B≃C) (subst P (≃⇒≡ univ A≃B) p)  ≡⟨ sym $ subst-unique P resp resp-id univ _ _ ⟩
+    resp B≃C (subst P (≃⇒≡ univ A≃B) p)                ≡⟨ sym $ cong (resp _) $ subst-unique P resp resp-id univ _ _ ⟩∎
+    resp B≃C (resp A≃B p)                              ∎
+
+  -- Any "resp" function that preserves identity also preserves
+  -- inverses (assuming univalence and extensionality).
+
+  resp-preserves-inverses :
+    ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
+    (resp : ∀ {A B} → A ≃ B → P A → P B) →
+    (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
+    Univalence p₁ → Extensionality p₁ p₁ →
+    ∀ {A B} (A≃B : A ≃ B) p q →
+    resp A≃B p ≡ q → resp (inverse A≃B) q ≡ p
+  resp-preserves-inverses P resp resp-id univ ext A≃B p q eq =
+    let lemma =
+          q                                     ≡⟨ sym eq ⟩
+          resp A≃B p                            ≡⟨ subst-unique P resp resp-id univ _ _ ⟩
+          subst P (≃⇒≡ univ A≃B) p              ≡⟨ cong (λ eq → subst P eq p) $ sym $ sym-sym _ ⟩∎
+          subst P (sym (sym (≃⇒≡ univ A≃B))) p  ∎
+    in
+
+    resp (inverse A≃B) q                                                 ≡⟨ subst-unique P resp resp-id univ _ _ ⟩
+    subst P (≃⇒≡ univ (inverse A≃B)) q                                   ≡⟨ cong (λ eq → subst P eq q) $ ≃⇒≡-inverse univ ext A≃B ⟩
+    subst P (sym (≃⇒≡ univ A≃B)) q                                       ≡⟨ cong (subst P (sym (≃⇒≡ univ A≃B))) lemma ⟩
+    subst P (sym (≃⇒≡ univ A≃B)) (subst P (sym (sym (≃⇒≡ univ A≃B))) p)  ≡⟨ subst-subst-sym P _ _ ⟩∎
+    p                                                                    ∎
