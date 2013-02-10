@@ -482,6 +482,10 @@ abstract
                                                                  (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
     Equivalence.id                                      ∎
 
+  resp-id : Extensionality (# 1) (# 1) →
+            ∀ a {B} x → resp a (Weak.id {A = B}) x ≡ x
+  resp-id ext a x = cong (λ eq → _⇔_.to eq x) $ cast-id ext a
+
 -- The universe above is a "universe with some extra stuff".
 
 simple : Universe
@@ -489,8 +493,7 @@ simple = record
   { U       = U
   ; El      = El
   ; resp    = resp
-  ; resp-id = λ ass a x → cong (λ eq → _⇔_.to eq x) $
-                            cast-id (Assumptions.ext ass) a
+  ; resp-id = resp-id ∘ Assumptions.ext
   }
 
 -- Let us use this universe below.
@@ -576,6 +579,27 @@ cast≃ ext a {B} {C} B≃C = ↔⇒≃ record
                                                                                 (cong _⇔_.to $ casts-related a) ⟩
       _≃_.from (cst a) (_≃_.to (cst a) x)            ≡⟨ _≃_.left-inverse-of (cst a) x ⟩∎
       x                                              ∎
+
+private
+
+  equivalence-cast≃ :
+    (ext : Extensionality (# 1) (# 1)) →
+    ∀ a {B C} (B≃C : B ≃ C) →
+    _≃_.equivalence (cast≃ ext a B≃C) ≡ cast a (_≃_.equivalence B≃C)
+  equivalence-cast≃ _ _ _ = refl _
+
+-- Alternative, shorter definition of cast≃, based on univalence.
+--
+-- This proof does not (at the time of writing) have the property that
+-- _≃_.equivalence (cast≃′ ass a B≃C) is definitionally equal to
+-- cast a (_≃_.equivalence B≃C).
+
+cast≃′ : Assumptions → ∀ a {B C} → B ≃ C → El a B ≃ El a C
+cast≃′ ass a B≃C =
+  weq (resp a B≃C)
+      (resp-is-weak-equivalence (El a) (resp a) (resp-id ext a)
+                                univ₁ B≃C)
+  where open Assumptions ass
 
 abstract
 
