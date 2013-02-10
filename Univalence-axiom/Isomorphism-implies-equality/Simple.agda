@@ -482,36 +482,6 @@ abstract
                                                                  (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
     Equivalence.id                                      ∎
 
-  -- The following two properties are not used below.
-
-  -- The cast function respects composition (assuming extensionality).
-
-  cast-∘ : Extensionality (# 1) (# 1) →
-           ∀ a {B C D} (f : C ⇔ D) (g : B ⇔ C) →
-           cast a (f ⊚ g) ≡ cast a f ⊚ cast a g
-  cast-∘ ext id      f g = refl _
-  cast-∘ ext set     f g = refl _
-  cast-∘ ext (k A)   f g = refl _
-  cast-∘ ext (a ⇾ b) f g = cong₂ →-cong-⇔ (cast-∘ ext a f g) (cast-∘ ext b f g)
-  cast-∘ ext (a ⊗ b) f g = cong₂ _×-cong_ (cast-∘ ext a f g) (cast-∘ ext b f g)
-  cast-∘ ext (a ⊕ b) f g =
-    cast a (f ⊚ g) ⊎-cong cast b (f ⊚ g)                     ≡⟨ cong₂ _⊎-cong_ (cast-∘ ext a f g) (cast-∘ ext b f g) ⟩
-    cast a f ⊚ cast a g ⊎-cong cast b f ⊚ cast b g           ≡⟨ cong₂ (λ f g → record { to = f; from = g })
-                                                                      (ext [ (λ _ → refl _) , (λ _ → refl _) ])
-                                                                      (ext [ (λ _ → refl _) , (λ _ → refl _) ]) ⟩∎
-    (cast a f ⊎-cong cast b f) ⊚ (cast a g ⊎-cong cast b g)  ∎
-
-  -- The cast function respects inverses.
-
-  cast-⁻¹ : ∀ a {B C} (f : B ⇔ C) →
-            cast a (inverse f) ≡ inverse (cast a f)
-  cast-⁻¹ id      f = refl _
-  cast-⁻¹ set     f = refl _
-  cast-⁻¹ (k A)   f = refl _
-  cast-⁻¹ (a ⇾ b) f = cong₂ →-cong-⇔ (cast-⁻¹ a f) (cast-⁻¹ b f)
-  cast-⁻¹ (a ⊗ b) f = cong₂ _×-cong_ (cast-⁻¹ a f) (cast-⁻¹ b f)
-  cast-⁻¹ (a ⊕ b) f = cong₂ _⊎-cong_ (cast-⁻¹ a f) (cast-⁻¹ b f)
-
 -- The universe above is a "universe with some extra stuff".
 
 simple : Universe
