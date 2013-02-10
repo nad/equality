@@ -10,8 +10,8 @@ open import Bag-equivalence
   using () renaming (_≈-bag_ to _≈-bagL_; _∈_ to _∈L_; Any to AnyL)
 open import Container
 open import Equality.Propositional
-open import Equivalence using (_⇔_; module _⇔_)
 open import Fin
+open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Prelude as P hiding (List; []; _∷_; foldr; _++_; id; _∘_)
 
 open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
@@ -31,7 +31,7 @@ List = ℕ ▷ Fin
 -- Container/Container.List and in Prelude/Bag-equivalence are closely
 -- related
 
--- The two definitions of lists are equivalent.
+-- The two definitions of lists are logically equivalent.
 
 List⇔List : {A : Set} → ⟦ List ⟧ A ⇔ P.List A
 List⇔List {A} = record
@@ -119,8 +119,8 @@ Any-from↔Any (P._∷_ x xs) P =
   P x ⊎ AnyL P xs                                                    □
 
 -- The definition of bag equivalence in Bag-equivalence and the one in
--- Container, instantiated with the List container, are equivalent
--- (both via "to" and "from").
+-- Container, instantiated with the List container, are logically
+-- equivalent (both via "to" and "from").
 
 ≈-⇔-to-≈-to :
   {A : Set} {xs ys : ⟦ List ⟧ A} →

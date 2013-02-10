@@ -15,12 +15,12 @@ module Univalence-axiom.Isomorphism-implies-equality.Monoid
 
 open import Bijection eq hiding (id; inverse; _↔⟨_⟩_)
 open Derived-definitions-and-properties eq
+open import Equivalence eq hiding (id; inverse)
 open import Function-universe eq hiding (id)
 open import H-level eq
 open import H-level.Closure eq
 open import Prelude hiding (id)
 open import Univalence-axiom eq
-open import Weak-equivalence eq hiding (id; inverse)
 
 -- Monoid laws (including the assumption that the carrier type is a
 -- set).
@@ -180,7 +180,7 @@ isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
   goal = _↔_.from (equality-triple-lemma ext M₁ M₂)
                   (C-eq , op-eq , id-eq)
 
-  -- Our bijection can be converted into a weak equivalence.
+  -- Our bijection can be converted into an equivalence.
 
   equiv : Carrier M₁ ≃ Carrier M₂
   equiv = ↔⇒≃ bij

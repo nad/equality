@@ -14,9 +14,9 @@ module Preimage
 
 open import Bijection eq as Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
-open import Equivalence using (module _⇔_)
 open import H-level eq as H-level
 open import Injection eq hiding (id; _∘_)
+open import Logical-equivalence using (module _⇔_)
 open import Prelude
 open import Surjection eq hiding (id; _∘_)
 

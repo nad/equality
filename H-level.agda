@@ -14,7 +14,7 @@ module H-level
 
 open Derived-definitions-and-properties eq
 import Equality.Decidable-UIP eq as DUIP
-open import Equivalence hiding (id; _∘_)
+open import Logical-equivalence hiding (id; _∘_)
 open import Prelude
 open import Surjection eq hiding (id; _∘_)
 
@@ -89,7 +89,8 @@ abstract
     ∀ {a} {A : Set a} n → (A → H-level (1 + n) A) → H-level (1 + n) A
   [inhabited⇒+]⇒+ n h x = h x x
 
-  -- Being propositional is equivalent to having at most one element.
+  -- Being propositional is logically equivalent to having at most one
+  -- element.
 
   propositional⇔irrelevant :
     ∀ {a} {A : Set a} → Is-proposition A ⇔ Proof-irrelevant A
@@ -106,10 +107,10 @@ abstract
   propositional⇒inhabited⇒contractible p x =
     (x , _⇔_.to propositional⇔irrelevant p x)
 
-  -- Being a set is equivalent to having unique identity proofs. Note
-  -- that this means that, assuming that Agda is consistent, I cannot
-  -- prove (inside Agda) that there is any type whose minimal h-level
-  -- is at least three.
+  -- Being a set is logically equivalent to having unique identity
+  -- proofs. Note that this means that, assuming that Agda is
+  -- consistent, I cannot prove (inside Agda) that there is any type
+  -- whose minimal h-level is at least three.
 
   set⇔UIP : ∀ {a} {A : Set a} →
             Is-set A ⇔ Uniqueness-of-identity-proofs A

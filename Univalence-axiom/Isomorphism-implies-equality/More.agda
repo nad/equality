@@ -20,13 +20,13 @@ open import Equality
 open Derived-definitions-and-properties eq using (refl)
 
 open import Bijection eq hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
+open import Equivalence eq as Eq hiding (id; _∘_; inverse)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq as H-level hiding (Proposition; Type)
 open import H-level.Closure eq
 open import Preimage eq
 open import Prelude
 open import Univalence-axiom eq
-open import Weak-equivalence eq as Weak hiding (id; _∘_; inverse)
 
 ------------------------------------------------------------------------
 -- A record packing up certain assumptions
@@ -86,7 +86,7 @@ mutual
 
     field
 
-      -- Iso and Iso′ are weakly equivalent.
+      -- Iso and Iso′ are equivalent.
 
       Iso≃Iso′ :
         (ass : Assumptions) →
@@ -107,7 +107,7 @@ mutual
   Isomorphic ass (c ▻ e) (I , x) (J , y) =
     Σ (Isomorphic ass c I J) λ I≅J → Extension.Iso e ass I≅J x y
 
-  -- Isomorphism is weakly equivalent to equality.
+  -- Isomorphism is equivalent to equality.
 
   isomorphism≃equality : (ass : Assumptions) →
                          (c : Code) {I J : ⟦ c ⟧} →
@@ -220,7 +220,7 @@ record Extension-with-resp (c : Code) : Set₂ where
 
   field
 
-    -- Iso and Iso″ are weakly equivalent.
+    -- Iso and Iso″ are equivalent.
 
     Iso≃Iso″ :
       (ass : Assumptions) →
@@ -254,15 +254,15 @@ record Extension-with-resp (c : Code) : Set₂ where
       I≅J
       x
 
-  -- Iso and Iso′ are weakly equivalent.
+  -- Iso and Iso′ are equivalent.
 
   Iso≃Iso′ :
     (ass : Assumptions) →
     ∀ {I J} (I≅J : Isomorphic ass c I J) {x y} →
     Iso ass I≅J x y ≃ Iso′ ass I≅J x y
   Iso≃Iso′ ass I≅J {x} {y} = record
-    { to                  = to
-    ; is-weak-equivalence = λ y →
+    { to             = to
+    ; is-equivalence = λ y →
         (from y , right-inverse-of y) , irrelevance y
     }
     where
@@ -432,29 +432,29 @@ record Extractor (c : Code) : Set₂ where
 
     Type : ⟦ c ⟧ → Set₁
 
-    -- Extracts a weak equivalence relating types extracted from
+    -- Extracts an equivalence relating types extracted from
     -- isomorphic instances.
     --
     -- Perhaps one could have a variant of Type-cong that is not based
-    -- on any "Assumptions", and produces equivalences (_⇔_) instead
-    -- of weak equivalences (_≃_). Then one could (hopefully) define
-    -- isomorphism without using any assumptions.
+    -- on any "Assumptions", and produces logical equivalences (_⇔_)
+    -- instead of equivalences (_≃_). Then one could (hopefully)
+    -- define isomorphism without using any assumptions.
 
     Type-cong : (ass : Assumptions) →
                 ∀ {I J} → Isomorphic ass c I J → Type I ≃ Type J
 
-    -- Reflexivity is mapped to the identity weak equivalence.
+    -- Reflexivity is mapped to the identity equivalence.
 
     Type-cong-reflexivity :
       (ass : Assumptions) →
-      ∀ I → Type-cong ass (reflexivity ass c I) ≡ Weak.id
+      ∀ I → Type-cong ass (reflexivity ass c I) ≡ Eq.id
 
 -- Constant type extractor.
 
 [_] : ∀ {c} → Set₁ → Extractor c
 [_] {c} A = record
   { Type                  = λ _ → A
-  ; Type-cong             = λ _ _ → Weak.id
+  ; Type-cong             = λ _ _ → Eq.id
   ; Type-cong-reflexivity = λ _ _ → refl _
   }
 
@@ -468,7 +468,7 @@ infix 6 1+_
   ; Type-cong             = λ ass → Type-cong ass ∘ proj₁
   ; Type-cong-reflexivity = λ { ass (I , x) →
       Type-cong ass (reflexivity ass c I)  ≡⟨ Type-cong-reflexivity ass I ⟩∎
-      Weak.id                              ∎ }
+      Eq.id                                ∎ }
   }
   where
   open Extractor extractor
@@ -503,7 +503,7 @@ A-type {c} = record
            (from (≡⇒≃ (cong (λ C → C ≡ A) (sym (subst-const p))))
                  (subst (λ eq → subst Ext eq A ≡ A)
                         (sym q) (refl A)))) ≡
-         Weak.id)
+         Eq.id)
       (lift-equality (Assumptions.ext₁ ass) (refl _))
       (right-inverse-of (isomorphism≃equality ass c) (refl I)) }
   }
@@ -579,7 +579,7 @@ N-ary {c} extractor n = Extension-with-resp.extension record
   ; resp      = λ ass I≅J → cast n (Type-cong ass I≅J)
   ; resp-refl = λ ass f →
                     cast n (Type-cong ass (reflexivity ass c _)) f  ≡⟨ cong (λ eq → cast n eq f) $ Type-cong-reflexivity ass _ ⟩
-                    cast n Weak.id f                                ≡⟨ cast-id (Assumptions.ext₁ ass) n f ⟩∎
+                    cast n Eq.id f                                  ≡⟨ cast-id (Assumptions.ext₁ ass) n f ⟩∎
                     f                                               ∎
   ; Iso≃Iso″  = λ ass I≅J {f g} →
       Iso≃Iso″ (Assumptions.ext₁ ass) (Type-cong ass I≅J) n f g
@@ -596,11 +596,11 @@ N-ary {c} extractor n = Extension-with-resp.extension record
   -- Cast simplification lemma.
 
   cast-id : Extensionality (# 1) (# 1) →
-            ∀ {A} n (f : A ^ n ⟶ A) → cast n Weak.id f ≡ f
+            ∀ {A} n (f : A ^ n ⟶ A) → cast n Eq.id f ≡ f
   cast-id ext zero    x = refl x
   cast-id ext (suc n) f = ext λ x → cast-id ext n (f x)
 
-  -- Two definitions of isomorphism are weakly equivalent.
+  -- Two definitions of isomorphism are equivalent.
 
   Iso≃Iso″ :
     Extensionality (# 1) (# 1) →
@@ -614,9 +614,9 @@ N-ary {c} extractor n = Extension-with-resp.extension record
 
   Iso≃Iso″ ext A≃B (suc n) f g =
 
-    (∀ x → Is- n -ary-morphism (f x) (g (_≃_.to A≃B x)) (_≃_.to A≃B))  ↝⟨ Weak.∀-preserves ext (λ x →
+    (∀ x → Is- n -ary-morphism (f x) (g (_≃_.to A≃B x)) (_≃_.to A≃B))  ↝⟨ Eq.∀-preserves ext (λ x →
                                                                             Iso≃Iso″ ext A≃B n (f x) (g (_≃_.to A≃B x))) ⟩
-    (∀ x → cast n A≃B (f x) ≡ g (_≃_.to A≃B x))                        ↝⟨ Weak.extensionality-isomorphism ext ⟩
+    (∀ x → cast n A≃B (f x) ≡ g (_≃_.to A≃B x))                        ↝⟨ Eq.extensionality-isomorphism ext ⟩
 
     (cast n A≃B ∘ f ≡ g ∘ _≃_.to A≃B)                                  ↝⟨ inverse $ ∘from≡↔≡∘to ext A≃B ⟩□
 
@@ -674,18 +674,18 @@ Simple {c} σ = Extension-with-resp.extension record
   -- Cast simplification lemma.
 
   cast-refl : (ass : Assumptions) →
-              ∀ σ {I} → cast ass σ (reflexivity ass c I) ≡ Weak.id
+              ∀ σ {I} → cast ass σ (reflexivity ass c I) ≡ Eq.id
   cast-refl ass (base A) {I} =
     Type-cong A ass (reflexivity ass c I)  ≡⟨ Type-cong-reflexivity A ass I ⟩∎
-    Weak.id                                ∎
+    Eq.id                                  ∎
 
   cast-refl ass (σ ⟶ τ) {I} =
     cast ass (σ ⟶ τ) (reflexivity ass c I)  ≡⟨ lift-equality ext₁ $ cong _≃_.to $
                                                  cong₂ (→-cong ext₁) (cast-refl ass σ) (cast-refl ass τ) ⟩∎
-    Weak.id                                 ∎
+    Eq.id                                   ∎
     where open Assumptions ass
 
-  -- Two definitions of isomorphism are weakly equivalent.
+  -- Two definitions of isomorphism are equivalent.
 
   Iso≃Iso″ :
     (ass : Assumptions) →
@@ -765,9 +765,9 @@ module Dependent where
 
   cast-refl : (ass : Assumptions) →
               ∀ {c} (σ : Ty c) {I} →
-              cast ass σ (reflexivity ass c I) ≡ Weak.id
+              cast ass σ (reflexivity ass c I) ≡ Eq.id
 
-  -- Two definitions of isomorphism are weakly equivalent.
+  -- Two definitions of isomorphism are equivalent.
 
   Iso≃Iso″ : (ass : Assumptions) →
              ∀ {c} (σ : Ty c) {I J} (I≅J : Isomorphic ass c I J) {f g} →
@@ -798,7 +798,7 @@ module Dependent where
 
   -- A cast function.
 
-  cast ass set      I≅J = Weak.id
+  cast ass set      I≅J = Eq.id
   cast ass (base A) I≅J = Type-cong A ass I≅J
   cast ass (Π σ τ)  I≅J = Π-preserves ext₁
     (cast ass σ I≅J)
@@ -809,12 +809,12 @@ module Dependent where
 
     -- Reflexivity is mapped to identity.
 
-    cast-refl ass     set          = refl Weak.id
+    cast-refl ass     set          = refl Eq.id
     cast-refl ass {c} (base A) {I} =
 
       Type-cong A ass (reflexivity ass c I)  ≡⟨ Type-cong-reflexivity A ass I ⟩∎
 
-      Weak.id                                ∎
+      Eq.id                                  ∎
 
     cast-refl ass {c} (Π σ τ) {I} =
       let rfl   = reflexivity ass c I
@@ -841,7 +841,7 @@ module Dependent where
       open _≃_
       open Assumptions ass
 
-  -- Two definitions of isomorphism are weakly equivalent.
+  -- Two definitions of isomorphism are equivalent.
 
   Iso≃Iso‴ :
     (ass : Assumptions) →
@@ -891,7 +891,7 @@ module Dependent where
 
   abstract
 
-    -- Two definitions of isomorphism are weakly equivalent.
+    -- Two definitions of isomorphism are equivalent.
 
     Iso≃Iso″ ass σ I≅J {f} {g} =
       Iso ass σ I≅J f g                  ↝⟨ Iso≃Iso‴ ass σ I≅J ⟩
@@ -909,12 +909,12 @@ module Dependent where
     reflexivityE-set :
       (ass : Assumptions) →
       ∀ {c} {I : ⟦ c ⟧} {A} →
-      reflexivityE ass c (Dep set) I A ≡ lift Weak.id
+      reflexivityE ass c (Dep set) I A ≡ lift Eq.id
     reflexivityE-set ass {c} {I} {A} =
 
       reflexivityE ass c (Dep set) I A                                 ≡⟨⟩
 
-      lift (≡⇒≃ (to (from≡↔≡to (inverse Weak.id))
+      lift (≡⇒≃ (to (from≡↔≡to (inverse Eq.id))
               (from (≡⇒≃ $ cong (λ B → B ≡ A) $
                        isomorphic-to-itself″ set ass
                          (reflexivity ass c I))
@@ -922,18 +922,18 @@ module Dependent where
                            (sym $ right-inverse-of
                                     (isomorphism≃equality ass c)
                                     (refl I))
-                           (refl A)))))                                ≡⟨ cong (λ eq → lift (≡⇒≃ (to (from≡↔≡to (inverse Weak.id)) eq))) $ sym $
+                           (refl A)))))                                ≡⟨ cong (λ eq → lift (≡⇒≃ (to (from≡↔≡to (inverse Eq.id)) eq))) $ sym $
                                                                             resp-refl-lemma set ass I A ⟩
-      lift (≡⇒≃ (to (from≡↔≡to (inverse Weak.id))
+      lift (≡⇒≃ (to (from≡↔≡to (inverse Eq.id))
                     (resp-refl set ass {I = I} A)))                    ≡⟨⟩
 
-      lift (≡⇒≃ (to (from≡↔≡to (inverse Weak.id)) (refl A)))           ≡⟨⟩
+      lift (≡⇒≃ (to (from≡↔≡to (inverse Eq.id)) (refl A)))             ≡⟨⟩
 
       lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A)
-                           (right-inverse-of (inverse Weak.id) A))
+                           (right-inverse-of (inverse Eq.id) A))
                      (cong id (refl A))))                              ≡⟨⟩
 
-      lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A) (left-inverse-of Weak.id A))
+      lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A) (left-inverse-of Eq.id A))
                      (cong id (refl A))))                              ≡⟨ cong (λ eq → lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A) eq) (refl A))))
                                                                           left-inverse-of-id  ⟩
       lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A) (refl A)) (refl A)))          ≡⟨⟩
@@ -942,7 +942,7 @@ module Dependent where
 
       lift (≡⇒≃ (refl A))                                              ≡⟨ refl _ ⟩∎
 
-      lift Weak.id                                                     ∎
+      lift Eq.id                                                       ∎
 
       where open _≃_
 

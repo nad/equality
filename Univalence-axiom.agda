@@ -15,41 +15,41 @@ module Univalence-axiom
 open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
-open import Equivalence hiding (id; _∘_; inverse)
+open import Equivalence eq as Eq
+  hiding (id; inverse) renaming (_∘_ to _⊚_)
 open import Function-universe eq hiding (id; _∘_)
 open import Groupoid eq
 open import H-level eq
 open import H-level.Closure eq
 open import Injection eq using (Injective)
+open import Logical-equivalence hiding (id; _∘_; inverse)
 open import Prelude
 open import Surjection eq hiding (id; _∘_)
-open import Weak-equivalence eq as Weak
-  hiding (id; inverse) renaming (_∘_ to _⊚_)
 
 ------------------------------------------------------------------------
 -- The univalence axiom
 
--- If two sets are equal, then they are weakly equivalent.
+-- If two sets are equal, then they are equivalent.
 
 ≡⇒≃ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A ≃ B
-≡⇒≃ = ≡⇒↝ weak-equivalence
+≡⇒≃ = ≡⇒↝ equivalence
 
--- The univalence axiom states that ≡⇒≃ is a weak equivalence.
+-- The univalence axiom states that ≡⇒≃ is an equivalence.
 
 Univalence′ : ∀ {ℓ} → Set ℓ → Set ℓ → Set (lsuc ℓ)
-Univalence′ A B = Is-weak-equivalence (≡⇒≃ {A = A} {B = B})
+Univalence′ A B = Is-equivalence (≡⇒≃ {A = A} {B = B})
 
 Univalence : ∀ ℓ → Set (lsuc ℓ)
 Univalence ℓ = {A B : Set ℓ} → Univalence′ A B
 
--- An immediate consequence is that equalities are weakly equivalent
--- to weak equivalences.
+-- An immediate consequence is that equalities are equivalent to
+-- equivalences.
 
 ≡≃≃ : ∀ {ℓ} {A B : Set ℓ} → Univalence′ A B → (A ≡ B) ≃ (A ≃ B)
-≡≃≃ univ = weq ≡⇒≃ univ
+≡≃≃ univ = ⟨ ≡⇒≃ , univ ⟩
 
--- In the case of sets equalities are weakly equivalent to bijections
--- (if we add the assumption of extensionality).
+-- In the case of sets equalities are equivalent to bijections (if we
+-- add the assumption of extensionality).
 
 ≡≃↔ : ∀ {ℓ} {A B : Set ℓ} →
       Univalence′ A B →
@@ -162,7 +162,7 @@ abstract
   subst-unique :
     ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
     (resp : ∀ {A B} → A ≃ B → P A → P B) →
-    (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
+    (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
     ∀ {A B} (univ : Univalence′ A B) →
     (A≃B : A ≃ B) (p : P A) →
     resp A≃B p ≡ subst P (≃⇒≡ univ A≃B) p
@@ -172,35 +172,35 @@ abstract
                                        resp (≡⇒≃ A≡B) p ≡ subst P A≡B p)
                                     (λ A p →
                                        resp (≡⇒≃ (refl A)) p  ≡⟨ cong (λ q → resp q p) (elim-refl (λ {A B} _ → A ≃ B) _) ⟩
-                                       resp Weak.id p         ≡⟨ resp-id p ⟩
+                                       resp Eq.id p           ≡⟨ resp-id p ⟩
                                        p                      ≡⟨ sym $ subst-refl P p ⟩∎
                                        subst P (refl A) p     ∎) _ _ ⟩∎
     subst P (from A≃B) p    ∎
     where open _≃_ (≡≃≃ univ)
 
   -- If the univalence axiom holds, then any "resp" function that
-  -- preserves identity is a weak equivalence family.
+  -- preserves identity is an equivalence family.
 
-  resp-is-weak-equivalence :
+  resp-is-equivalence :
     ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
     (resp : ∀ {A B} → A ≃ B → P A → P B) →
-    (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
+    (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
     ∀ {A B} (univ : Univalence′ A B) →
-    (A≃B : A ≃ B) → Is-weak-equivalence (resp A≃B)
-  resp-is-weak-equivalence P resp resp-id univ A≃B =
-    Weak.respects-extensional-equality
+    (A≃B : A ≃ B) → Is-equivalence (resp A≃B)
+  resp-is-equivalence P resp resp-id univ A≃B =
+    Eq.respects-extensional-equality
       (λ p → sym $ subst-unique P resp resp-id univ A≃B p)
-      (subst-is-weak-equivalence P (≃⇒≡ univ A≃B))
+      (subst-is-equivalence P (≃⇒≡ univ A≃B))
 
-  -- If f is a weak equivalence, then (non-dependent) precomposition
-  -- with f is also a weak equivalence (assuming univalence).
+  -- If f is an equivalence, then (non-dependent) precomposition with
+  -- f is also an equivalence (assuming univalence).
 
-  precomposition-is-weak-equivalence :
+  precomposition-is-equivalence :
     ∀ {ℓ c} {A B : Set ℓ} {C : Set c} →
     Univalence′ B A → (A≃B : A ≃ B) →
-    Is-weak-equivalence (λ (g : B → C) → g ∘ _≃_.to A≃B)
-  precomposition-is-weak-equivalence {ℓ} {c} {C = C} univ A≃B =
-    resp-is-weak-equivalence P resp refl univ (Weak.inverse A≃B)
+    Is-equivalence (λ (g : B → C) → g ∘ _≃_.to A≃B)
+  precomposition-is-equivalence {ℓ} {c} {C = C} univ A≃B =
+    resp-is-equivalence P resp refl univ (Eq.inverse A≃B)
     where
     P : Set ℓ → Set (ℓ ⊔ c)
     P X = X → C
@@ -208,7 +208,7 @@ abstract
     resp : ∀ {A B} → A ≃ B → P A → P B
     resp A≃B p = p ∘ _≃_.from A≃B
 
--- If h is a weak equivalence, then one can cancel (non-dependent)
+-- If h is an equivalence, then one can cancel (non-dependent)
 -- precompositions with h (assuming univalence).
 
 precompositions-cancel :
@@ -221,7 +221,7 @@ precompositions-cancel univ A≃B {f} {g} f∘to≡g∘to =
   from (to f)  ≡⟨ cong from f∘to≡g∘to ⟩
   from (to g)  ≡⟨ left-inverse-of g ⟩∎
   g            ∎
-  where open _≃_ (weq _ (precomposition-is-weak-equivalence univ A≃B))
+  where open _≃_ (⟨ _ , precomposition-is-equivalence univ A≃B ⟩)
 
 -- Pairs of equal elements.
 
@@ -320,7 +320,7 @@ abstract
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
     {A B : Set ℓ} → Is-proposition (Univalence′ A B)
   Univalence′-propositional ext =
-    Weak.propositional ext ≡⇒≃
+    Eq.propositional ext ≡⇒≃
 
   Univalence-propositional :
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
@@ -432,24 +432,24 @@ abstract
 
     where open _≃_ ≡≃R
 
-  -- A variant of resp-is-weak-equivalence.
+  -- A variant of resp-is-equivalence.
 
-  resp-is-weak-equivalence′ :
+  resp-is-equivalence′ :
     ∀ {a p r} {A : Set a}
     (P : A → Set p) (R : A → A → Set r)
     (≡↠R : ∀ {x y} → (x ≡ y) ↠ R x y)
     (resp : ∀ {x y} → R x y → P x → P y) →
     (∀ x p → resp (_↠_.to ≡↠R (refl x)) p ≡ p) →
-    ∀ {x y} (r : R x y) → Is-weak-equivalence (resp r)
-  resp-is-weak-equivalence′ P R ≡↠R resp hyp r =
-    Weak.respects-extensional-equality
+    ∀ {x y} (r : R x y) → Is-equivalence (resp r)
+  resp-is-equivalence′ P R ≡↠R resp hyp r =
+    Eq.respects-extensional-equality
       (λ p → sym $ subst-unique′ P R ≡↠R resp hyp r p)
-      (subst-is-weak-equivalence P (_↠_.from ≡↠R r))
+      (subst-is-equivalence P (_↠_.from ≡↠R r))
 
   -- "Evaluation rule" for ≡⇒≃.
 
   ≡⇒≃-refl : ∀ {a} {A : Set a} →
-             ≡⇒≃ (refl A) ≡ Weak.id
+             ≡⇒≃ (refl A) ≡ Eq.id
   ≡⇒≃-refl = ≡⇒↝-refl
 
   -- "Evaluation rule" for ≡⇒→.
@@ -462,40 +462,39 @@ abstract
 
   ≃⇒≡-id : ∀ {a} {A : Set a}
            (univ : Univalence′ A A) →
-           ≃⇒≡ univ Weak.id ≡ refl A
+           ≃⇒≡ univ Eq.id ≡ refl A
   ≃⇒≡-id univ =
-    ≃⇒≡ univ Weak.id         ≡⟨ sym $ cong (≃⇒≡ univ) ≡⇒≃-refl ⟩
+    ≃⇒≡ univ Eq.id           ≡⟨ sym $ cong (≃⇒≡ univ) ≡⇒≃-refl ⟩
     ≃⇒≡ univ (≡⇒≃ (refl _))  ≡⟨ _≃_.left-inverse-of (≡≃≃ univ) _ ⟩∎
     refl _                   ∎
 
-  -- ≡⇒≃ commutes with sym/Weak.inverse (assuming extensionality).
+  -- ≡⇒≃ commutes with sym/Eq.inverse (assuming extensionality).
 
   ≡⇒≃-sym :
     ∀ {ℓ} → Extensionality ℓ ℓ →
     {A B : Set ℓ} (A≡B : A ≡ B) →
-    ≡⇒≃ (sym A≡B) ≡ Weak.inverse (≡⇒≃ A≡B)
+    ≡⇒≃ (sym A≡B) ≡ Eq.inverse (≡⇒≃ A≡B)
   ≡⇒≃-sym ext = elim¹
 
-    (λ eq → ≡⇒≃ (sym eq) ≡ Weak.inverse (≡⇒≃ eq))
+    (λ eq → ≡⇒≃ (sym eq) ≡ Eq.inverse (≡⇒≃ eq))
 
-    (≡⇒≃ (sym (refl _))           ≡⟨ cong ≡⇒≃ sym-refl ⟩
-     ≡⇒≃ (refl _)                 ≡⟨ ≡⇒≃-refl ⟩
-     Weak.id                      ≡⟨ sym $ Groupoid.identity (Weak.groupoid ext) ⟩
-     Weak.inverse Weak.id         ≡⟨ cong Weak.inverse $ sym ≡⇒≃-refl ⟩∎
-     Weak.inverse (≡⇒≃ (refl _))  ∎)
+    (≡⇒≃ (sym (refl _))         ≡⟨ cong ≡⇒≃ sym-refl ⟩
+     ≡⇒≃ (refl _)               ≡⟨ ≡⇒≃-refl ⟩
+     Eq.id                      ≡⟨ sym $ Groupoid.identity (Eq.groupoid ext) ⟩
+     Eq.inverse Eq.id           ≡⟨ cong Eq.inverse $ sym ≡⇒≃-refl ⟩∎
+     Eq.inverse (≡⇒≃ (refl _))  ∎)
 
-  -- ≃⇒≡ univ commutes with Weak.inverse/sym (assuming
-  -- extensionality).
+  -- ≃⇒≡ univ commutes with Eq.inverse/sym (assuming extensionality).
 
   ≃⇒≡-inverse :
     ∀ {ℓ} (univ : Univalence ℓ) → Extensionality ℓ ℓ →
     {A B : Set ℓ} (A≃B : A ≃ B) →
-    ≃⇒≡ univ (Weak.inverse A≃B) ≡ sym (≃⇒≡ univ A≃B)
+    ≃⇒≡ univ (Eq.inverse A≃B) ≡ sym (≃⇒≡ univ A≃B)
   ≃⇒≡-inverse univ ext A≃B =
-    ≃⇒≡ univ (Weak.inverse A≃B)                   ≡⟨ sym $ cong (λ p → ≃⇒≡ univ (Weak.inverse p)) (_≃_.right-inverse-of (≡≃≃ univ) _) ⟩
-    ≃⇒≡ univ (Weak.inverse (≡⇒≃ (≃⇒≡ univ A≃B)))  ≡⟨ cong (≃⇒≡ univ) $ sym $ ≡⇒≃-sym ext _ ⟩
-    ≃⇒≡ univ (≡⇒≃ (sym (≃⇒≡ univ A≃B)))           ≡⟨ _≃_.left-inverse-of (≡≃≃ univ) _ ⟩∎
-    sym (≃⇒≡ univ A≃B)                            ∎
+    ≃⇒≡ univ (Eq.inverse A≃B)                   ≡⟨ sym $ cong (λ p → ≃⇒≡ univ (Eq.inverse p)) (_≃_.right-inverse-of (≡≃≃ univ) _) ⟩
+    ≃⇒≡ univ (Eq.inverse (≡⇒≃ (≃⇒≡ univ A≃B)))  ≡⟨ cong (≃⇒≡ univ) $ sym $ ≡⇒≃-sym ext _ ⟩
+    ≃⇒≡ univ (≡⇒≃ (sym (≃⇒≡ univ A≃B)))         ≡⟨ _≃_.left-inverse-of (≡≃≃ univ) _ ⟩∎
+    sym (≃⇒≡ univ A≃B)                          ∎
 
   -- ≡⇒≃ commutes with trans/_⊚_ (assuming extensionality).
 
@@ -508,8 +507,8 @@ abstract
     (λ eq → ≡⇒≃ (trans A≡B eq) ≡ ≡⇒≃ eq ⊚ ≡⇒≃ A≡B)
 
     (≡⇒≃ (trans A≡B (refl _))  ≡⟨ cong ≡⇒≃ $ trans-reflʳ _ ⟩
-     ≡⇒≃ A≡B                   ≡⟨ sym $ Groupoid.left-identity (Weak.groupoid ext) _ ⟩
-     Weak.id ⊚ ≡⇒≃ A≡B         ≡⟨ sym $ cong (λ eq → eq ⊚ ≡⇒≃ A≡B) ≡⇒≃-refl ⟩∎
+     ≡⇒≃ A≡B                   ≡⟨ sym $ Groupoid.left-identity (Eq.groupoid ext) _ ⟩
+     Eq.id ⊚ ≡⇒≃ A≡B           ≡⟨ sym $ cong (λ eq → eq ⊚ ≡⇒≃ A≡B) ≡⇒≃-refl ⟩∎
      ≡⇒≃ (refl _) ⊚ ≡⇒≃ A≡B    ∎)
 
   -- ≃⇒≡ univ commutes with _⊚_/flip trans (assuming extensionality).
@@ -536,7 +535,7 @@ abstract
 
     (subst P (refl _) p       ≡⟨ subst-refl P p ⟩
      p                        ≡⟨⟩
-     _≃_.to Weak.id p         ≡⟨ sym $ cong (λ eq → _≃_.to eq p) ≡⇒≃-refl ⟩
+     _≃_.to Eq.id p           ≡⟨ sym $ cong (λ eq → _≃_.to eq p) ≡⇒≃-refl ⟩
      ≡⇒→ (refl _) p           ≡⟨ sym $ cong (λ eq → ≡⇒→ eq p) $ cong-refl P ⟩∎
      ≡⇒→ (cong P (refl _)) p  ∎)
 
@@ -603,7 +602,7 @@ abstract
     (univ₂ : Univalence p)
     (P : Set ℓ → Set p)
     (P-cong : ∀ {A B} → A ≃ B → P A ≃ P B) →
-    (∀ {A} (p : P A) → _≃_.to (P-cong Weak.id) p ≡ p) →
+    (∀ {A} (p : P A) → _≃_.to (P-cong Eq.id) p ≡ p) →
     cong P (≃⇒≡ univ₁ A≃B) ≡ ≃⇒≡ univ₂ (P-cong A≃B)
   cong-≃⇒≡ {A≃B = A≃B} ext univ₁ univ₂ P P-cong P-cong-id =
     cong P (≃⇒≡ univ₁ A≃B)                    ≡⟨ sym $ _≃_.left-inverse-of (≡≃≃ univ₂) _ ⟩
@@ -622,7 +621,7 @@ abstract
   resp-preserves-compositions :
     ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
     (resp : ∀ {A B} → A ≃ B → P A → P B) →
-    (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
+    (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
     Univalence p₁ → Extensionality p₁ p₁ →
     ∀ {A B C} (A≃B : A ≃ B) (B≃C : B ≃ C) p →
     resp (B≃C ⊚ A≃B) p ≡ (resp B≃C ∘ resp A≃B) p
@@ -640,7 +639,7 @@ abstract
   resp-preserves-inverses :
     ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
     (resp : ∀ {A B} → A ≃ B → P A → P B) →
-    (∀ {A} (p : P A) → resp Weak.id p ≡ p) →
+    (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
     Univalence p₁ → Extensionality p₁ p₁ →
     ∀ {A B} (A≃B : A ≃ B) p q →
     resp A≃B p ≡ q → resp (inverse A≃B) q ≡ p

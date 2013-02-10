@@ -24,14 +24,14 @@ open import Category eq
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq
-open import Equivalence using (_⇔_; module _⇔_)
+open import Equivalence eq as Eq hiding (id; _∘_; inverse)
 open import Function-universe eq hiding (id) renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq
+open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Preimage eq
 open import Prelude as P hiding (id)
 open import Univalence-axiom eq
-open import Weak-equivalence eq as Weak hiding (id; _∘_; inverse)
 
 ------------------------------------------------------------------------
 -- Universes with some extra stuff
@@ -70,18 +70,18 @@ record Universe : Set₃ where
 
     El : U → Set₁ → Set₁
 
-    -- El a, seen as a predicate, respects weak equivalences.
+    -- El a, seen as a predicate, respects equivalences.
 
     resp : ∀ a {B C} → B ≃ C → El a B → El a C
 
     -- The resp function respects identities (assuming univalence).
 
-    resp-id : Assumptions → ∀ a {B} (x : El a B) → resp a Weak.id x ≡ x
+    resp-id : Assumptions → ∀ a {B} (x : El a B) → resp a Eq.id x ≡ x
 
   -- Derived definitions.
 
-  -- A predicate that specifies what it means for a weak equivalence
-  -- to be an isomorphism between two elements.
+  -- A predicate that specifies what it means for an equivalence to be
+  -- an isomorphism between two elements.
 
   Is-isomorphism : ∀ a {B C} → B ≃ C → El a B → El a C → Set₁
   Is-isomorphism a B≃C x y = resp a B≃C x ≡ y
@@ -302,7 +302,7 @@ Abstract-SIP-Theorem :
 Abstract-SIP-Theorem x₁ x₂ ℓ₁ ℓ₂ =
   (X : Category x₁ x₂) →
   (S : Standard-notion-of-structure ℓ₁ ℓ₂ (Category.precategory X)) →
-  ∀ {X Y} → Is-weak-equivalence
+  ∀ {X Y} → Is-equivalence
               (Precategory.≡→≅ (Standard-notion-of-structure.Str S)
                                {X} {Y})
 
@@ -330,7 +330,7 @@ isomorphic↔equal-is-corollary sip Univ El-set ass
   ∃ (H {X = Cs} {Y = Ds} x y) × ⊤             ↝⟨ ∃-cong (λ I≅J → inverse $ contractible↔⊤ $ propositional⇒inhabited⇒contractible
                                                                    (Precategory.Is-isomorphism-propositional Str I≅J)
                                                                    (Str-homs-are-isos I≅J)) ⟩
-  ((Cs , x) ≅-Str (Ds , y))                   ↔⟨ inverse $ weq _ (sip X≅ S {X = Cs , x} {Y = Ds , y}) ⟩
+  ((Cs , x) ≅-Str (Ds , y))                   ↔⟨ inverse ⟨ _ , sip X≅ S {X = Cs , x} {Y = Ds , y} ⟩ ⟩
   ((Cs , x) ≡ (Ds , y))                       ↔⟨ ≃-≡ $ ↔⇒≃ (Σ-assoc ⊚ ∃-cong (λ _ → ×-comm) ⊚ inverse Σ-assoc) ⟩
   (((C , x) , C-set) ≡ ((D , y) , D-set))     ↝⟨ inverse $ ignore-propositional-component (H-level-propositional ext 2) ⟩
   ((C , x) ≡ (D , y))                         ↝⟨ ignore-propositional-component (proj₂ (P D y) ass) ⟩
@@ -374,11 +374,11 @@ isomorphic↔equal-is-corollary sip Univ El-set ass
                           Is-isomorphism a (≅⇒≃ C D C≅D) x y
     ; H-prop          = λ {_ C} _ → El-set a (proj₂ C) _ _
     ; H-id            = λ {C x} →
-                          resp a (≅⇒≃ C C (Category.id X≅ {X = C})) x  ≡⟨ cong (λ eq → resp a eq x) $ Weak.lift-equality ext (refl _) ⟩
-                          resp a Weak.id x                             ≡⟨ resp-id ass a x ⟩∎
+                          resp a (≅⇒≃ C C (Category.id X≅ {X = C})) x  ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
+                          resp a Eq.id x                               ≡⟨ resp-id ass a x ⟩∎
                           x                                            ∎
     ; H-∘             = λ {B C D x y z B≅C C≅D} x≅y y≅z →
-                          resp a (≅⇒≃ B D (Category._∙_ X≅ B≅C C≅D)) x   ≡⟨ cong (λ eq → resp a eq x) $ Weak.lift-equality ext (refl _) ⟩
+                          resp a (≅⇒≃ B D (Category._∙_ X≅ B≅C C≅D)) x   ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
                           resp a (≅⇒≃ C D C≅D ⊚ ≅⇒≃ B C B≅C) x           ≡⟨ resp-preserves-compositions (El a) (resp a) (resp-id ass a)
                                                                                                         univ₁ ext (≅⇒≃ B C B≅C) (≅⇒≃ C D C≅D) x ⟩
                           resp a (≅⇒≃ C D C≅D) (resp a (≅⇒≃ B C B≅C) x)  ≡⟨ cong (resp a (≅⇒≃ C D C≅D)) x≅y ⟩
@@ -386,7 +386,7 @@ isomorphic↔equal-is-corollary sip Univ El-set ass
                           z                                              ∎
     ; H-antisymmetric = λ {C} x y x≡y _ →
                           x                                            ≡⟨ sym $ resp-id ass a x ⟩
-                          resp a Weak.id x                             ≡⟨ cong (λ eq → resp a eq x) $ Weak.lift-equality ext (refl _) ⟩
+                          resp a Eq.id x                               ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
                           resp a (≅⇒≃ C C (Category.id X≅ {X = C})) x  ≡⟨ x≡y ⟩∎
                           y                                            ∎
     }
@@ -404,7 +404,7 @@ isomorphic↔equal-is-corollary sip Univ El-set ass
     Str-homs-are-isos {C} {D} {x} {y} (C≅D , x≅y) =
 
       (D≅C ,
-       (resp a (≅⇒≃ D C D≅C) y            ≡⟨ cong (λ eq → resp a eq y) $ Weak.lift-equality ext (refl _) ⟩
+       (resp a (≅⇒≃ D C D≅C) y            ≡⟨ cong (λ eq → resp a eq y) $ Eq.lift-equality ext (refl _) ⟩
         resp a (inverse $ ≅⇒≃ C D C≅D) y  ≡⟨ resp-preserves-inverses (El a) (resp a) (resp-id ass a) univ₁ ext (≅⇒≃ C D C≅D) _ _ x≅y ⟩∎
         x                                 ∎)) ,
 
@@ -446,17 +446,17 @@ El (a ⇾ b) B = El a B → El b B
 El (a ⊗ b) B = El a B × El b B
 El (a ⊕ b) B = El a B ⊎ El b B
 
--- El a preserves equivalences.
+-- El a preserves logical equivalences.
 
 cast : ∀ a {B C} → B ⇔ C → El a B ⇔ El a C
 cast id      B≃C = B≃C
-cast set     B≃C = Equivalence.id
-cast (k A)   B≃C = Equivalence.id
+cast set     B≃C = Logical-equivalence.id
+cast (k A)   B≃C = Logical-equivalence.id
 cast (a ⇾ b) B≃C = →-cong-⇔ (cast a B≃C) (cast b B≃C)
 cast (a ⊗ b) B≃C = cast a B≃C ×-cong cast b B≃C
 cast (a ⊕ b) B≃C = cast a B≃C ⊎-cong cast b B≃C
 
--- El a respects weak equivalences.
+-- El a respects equivalences.
 
 resp : ∀ a {B C} → B ≃ C → El a B → El a C
 resp a B≃C = _⇔_.to (cast a (_≃_.equivalence B≃C))
@@ -469,21 +469,22 @@ abstract
   -- The cast function respects identities (assuming extensionality).
 
   cast-id : Extensionality (# 1) (# 1) →
-            ∀ a {B} → cast a (Equivalence.id {A = B}) ≡ Equivalence.id
+            ∀ a {B} → cast a (Logical-equivalence.id {A = B}) ≡
+                      Logical-equivalence.id
   cast-id ext id      = refl _
   cast-id ext set     = refl _
   cast-id ext (k A)   = refl _
   cast-id ext (a ⇾ b) = cong₂ →-cong-⇔ (cast-id ext a) (cast-id ext b)
   cast-id ext (a ⊗ b) = cong₂ _×-cong_ (cast-id ext a) (cast-id ext b)
   cast-id ext (a ⊕ b) =
-    cast a Equivalence.id ⊎-cong cast b Equivalence.id  ≡⟨ cong₂ _⊎-cong_ (cast-id ext a) (cast-id ext b) ⟩
-    Equivalence.id ⊎-cong Equivalence.id                ≡⟨ cong₂ (λ f g → record { to = f; from = g })
-                                                                 (ext [ refl ∘ inj₁ , refl ∘ inj₂ ])
-                                                                 (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
-    Equivalence.id                                      ∎
+    cast a Logical-equivalence.id ⊎-cong cast b Logical-equivalence.id  ≡⟨ cong₂ _⊎-cong_ (cast-id ext a) (cast-id ext b) ⟩
+    Logical-equivalence.id ⊎-cong Logical-equivalence.id                ≡⟨ cong₂ (λ f g → record { to = f; from = g })
+                                                                                 (ext [ refl ∘ inj₁ , refl ∘ inj₂ ])
+                                                                                 (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
+    Logical-equivalence.id                                              ∎
 
   resp-id : Extensionality (# 1) (# 1) →
-            ∀ a {B} x → resp a (Weak.id {A = B}) x ≡ x
+            ∀ a {B} x → resp a (Eq.id {A = B}) x ≡ x
   resp-id ext a x = cong (λ eq → _⇔_.to eq x) $ cast-id ext a
 
 -- The universe above is a "universe with some extra stuff".
@@ -524,7 +525,7 @@ Isomorphic′ : ∀ c → Instance c → Instance c → Set₁
 Isomorphic′ (a , _) (C₁ , x₁ , _) (C₂ , x₂ , _) =
   Σ (C₁ ≃ C₂) λ C₁≃C₂ → Is-isomorphism′ a C₁≃C₂ x₁ x₂
 
--- El a preserves weak equivalences (assuming extensionality).
+-- El a preserves equivalences (assuming extensionality).
 --
 -- Note that _≃_.equivalence (cast≃ ext a B≃C) is (definitionally)
 -- equal to cast a (_≃_.equivalence B≃C); this property is used below.
@@ -543,8 +544,8 @@ cast≃ ext a {B} {C} B≃C = ↔⇒≃ record
 
   cst : ∀ a → El a B ≃ El a C
   cst id      = B≃C
-  cst set     = Weak.id
-  cst (k A)   = Weak.id
+  cst set     = Eq.id
+  cst (k A)   = Eq.id
   cst (a ⇾ b) = →-cong ext (cst a) (cst b)
   cst (a ⊗ b) = cst a ×-cong cst b
   cst (a ⊕ b) = cst a ⊎-cong cst b
@@ -596,9 +597,9 @@ private
 
 cast≃′ : Assumptions → ∀ a {B C} → B ≃ C → El a B ≃ El a C
 cast≃′ ass a B≃C =
-  weq (resp a B≃C)
-      (resp-is-weak-equivalence (El a) (resp a) (resp-id ext a)
-                                univ₁ B≃C)
+  ⟨ resp a B≃C
+  , resp-is-equivalence (El a) (resp a) (resp-id ext a) univ₁ B≃C
+  ⟩
   where open Assumptions ass
 
 abstract
@@ -1347,7 +1348,7 @@ Instance-poset = refl _
 -- The notion of isomorphism that we get is also reasonable. It is the
 -- usual notion of "order isomorphism", with two (main) differences:
 --
--- * Weak equivalences are used instead of bijections. However, weak
+-- * Equivalences are used instead of bijections. However,
 --   equivalences and bijections coincide for sets (assuming
 --   extensionality).
 --

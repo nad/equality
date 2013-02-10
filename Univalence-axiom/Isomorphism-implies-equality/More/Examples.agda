@@ -15,12 +15,12 @@ module Univalence-axiom.Isomorphism-implies-equality.More.Examples where
 
 open import Equality.Propositional renaming (equality-with-J to eq)
 
+open import Equivalence eq hiding (id)
 open import Function-universe eq hiding (id)
 open import H-level eq using (Is-proposition; Is-set)
 open import H-level.Closure eq
 open import Prelude hiding (id)
 open import Univalence-axiom.Isomorphism-implies-equality.More
-open import Weak-equivalence eq hiding (id)
 
 ------------------------------------------------------------------------
 -- Magmas

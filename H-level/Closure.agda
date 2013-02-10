@@ -16,8 +16,8 @@ open import Bijection eq as Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
 import Equality.Decidable-UIP eq as DUIP
 open import Equality.Decision-procedures eq
-open import Equivalence hiding (id; _∘_)
 open import H-level eq
+open import Logical-equivalence hiding (id; _∘_)
 open import Prelude
 open import Surjection eq as Surjection hiding (id; _∘_)
 
@@ -97,8 +97,8 @@ abstract
 ------------------------------------------------------------------------
 -- Π-types
 
--- Closure of contractibility under Π A is equivalent to having
--- extensional equality for functions from A.
+-- Closure of contractibility under Π A is logically equivalent to
+-- having extensional equality for functions from A.
 
 Π-closure-contractible⇔extensionality :
   ∀ {a b} {A : Set a} →
@@ -142,8 +142,8 @@ abstract
     ext′ = to (from ext)
       where open _⇔_ Π-closure-contractible⇔extensionality
 
--- A potential inverse of extensionality. (See Weak-equivalence for a
--- proof which shows that this function has an inverse, assuming
+-- A potential inverse of extensionality. (See Equivalence for a proof
+-- which shows that this function has an inverse, assuming
 -- extensionality.)
 
 ext⁻¹ : ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →

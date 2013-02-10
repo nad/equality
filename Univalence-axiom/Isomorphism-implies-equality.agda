@@ -18,12 +18,12 @@ module Univalence-axiom.Isomorphism-implies-equality
 
 open import Bijection eq
 open Derived-definitions-and-properties eq
-open import Equivalence
+open import Equivalence eq as Eq
 open import H-level eq
 open import H-level.Closure eq
+open import Logical-equivalence
 open import Prelude
 open import Univalence-axiom eq
-open import Weak-equivalence eq as Weak
 
 ------------------------------------------------------------------------
 -- N-ary functions
@@ -70,7 +70,7 @@ abstract
 
   cast-id : {A : Set} →
             (∀ n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
-            ∀ n (f : A ^ n ⟶ A) → cast Weak.id n f ≡ f
+            ∀ n (f : A ^ n ⟶ A) → cast Eq.id n f ≡ f
   cast-id ext zero    f = refl f
   cast-id ext (suc n) f = ext n $ λ x → cast-id ext n (f x)
 

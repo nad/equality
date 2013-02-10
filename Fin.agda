@@ -10,7 +10,7 @@
 module Fin where
 
 open import Equality.Propositional as P
-open import Equivalence hiding (id; _∘_; inverse)
+open import Logical-equivalence hiding (id; _∘_; inverse)
 open import Prelude hiding (id)
 
 open import Bijection P.equality-with-J using (_↔_; module _↔_)

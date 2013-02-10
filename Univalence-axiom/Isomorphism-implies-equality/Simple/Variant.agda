@@ -28,14 +28,14 @@ open import Bijection eq hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq
-open import Equivalence using (_⇔_; module _⇔_)
+open import Equivalence eq as Eq hiding (id; _∘_; inverse)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
+open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Preimage eq
 open import Prelude as P hiding (id)
 open import Univalence-axiom eq
-open import Weak-equivalence eq as Weak hiding (id; _∘_; inverse)
 
 ------------------------------------------------------------------------
 -- Universes with some extra stuff
@@ -79,7 +79,7 @@ record Universe : Set₃ where
 
     Is-isomorphism : ∀ a {B C} → B ↔ C → El a B → El a C → Set₁
 
-    -- El a, seen as a predicate, respects weak equivalences (assuming
+    -- El a, seen as a predicate, respects equivalences (assuming
     -- univalence).
 
     resp : Assumptions → ∀ a {B C} → B ≃ C → El a B → El a C
@@ -87,7 +87,7 @@ record Universe : Set₃ where
     -- The resp function respects identities (assuming univalence).
 
     resp-id : (ass : Assumptions) →
-              ∀ a {B} (x : El a B) → resp ass a Weak.id x ≡ x
+              ∀ a {B} (x : El a B) → resp ass a Eq.id x ≡ x
 
   -- An alternative definition of Is-isomorphism, (possibly) defined
   -- using univalence.
@@ -308,13 +308,13 @@ El (a ⇾ b) B = El a B → El b B
 El (a ⊕ b) B = El a B ⊎ El b B
 El (a ⊗ b) B = El a B × El b B
 
--- El a preserves weak equivalences (assuming extensionality).
+-- El a preserves equivalences (assuming extensionality).
 
 cast : Extensionality (# 1) (# 1) →
        ∀ a {B C} → B ≃ C → El a B ≃ El a C
 cast ext id      B≃C = B≃C
-cast ext prop    B≃C = Weak.id
-cast ext (k A)   B≃C = Weak.id
+cast ext prop    B≃C = Eq.id
+cast ext (k A)   B≃C = Eq.id
 cast ext (a ⇾ b) B≃C = →-cong ext (cast ext a B≃C) (cast ext b B≃C)
 cast ext (a ⊕ b) B≃C = cast ext a B≃C ⊎-cong cast ext b B≃C
 cast ext (a ⊗ b) B≃C = cast ext a B≃C ×-cong cast ext b B≃C
@@ -324,7 +324,7 @@ abstract
   -- The cast function respects identities (assuming extensionality).
 
   cast-id : (ext : Extensionality (# 1) (# 1)) →
-            ∀ a {B} → cast ext a (Weak.id {A = B}) ≡ Weak.id
+            ∀ a {B} → cast ext a (Eq.id {A = B}) ≡ Eq.id
   cast-id ext id      = refl _
   cast-id ext prop    = refl _
   cast-id ext (k A)   = refl _
@@ -333,9 +333,9 @@ abstract
   cast-id ext (a ⊗ b) = lift-equality ext $ cong _≃_.to $
                           cong₂ _×-cong_ (cast-id ext a) (cast-id ext b)
   cast-id ext (a ⊕ b) =
-    cast ext a Weak.id ⊎-cong cast ext b Weak.id  ≡⟨ cong₂ _⊎-cong_ (cast-id ext a) (cast-id ext b) ⟩
-    weq [ inj₁ , inj₂ ] _                         ≡⟨ lift-equality ext (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
-    Weak.id                                       ∎
+    cast ext a Eq.id ⊎-cong cast ext b Eq.id  ≡⟨ cong₂ _⊎-cong_ (cast-id ext a) (cast-id ext b) ⟩
+    ⟨ [ inj₁ , inj₂ ] , _ ⟩                   ≡⟨ lift-equality ext (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
+    Eq.id                                     ∎
 
 -- The property of being an isomorphism between two elements.
 
@@ -469,9 +469,9 @@ simple = record
   ; Is-isomorphism = λ a B↔C → Is-isomorphism a (↑-cong B↔C)
   ; resp           = λ ass a → _≃_.to ∘ cast (ext ass) a ∘ ↑-cong
   ; resp-id        = λ ass a x → cong (λ f → _≃_.to f x) (
-                       cast (ext ass) a (↑-cong Weak.id)  ≡⟨ cong (cast (ext ass) a) $ lift-equality (ext ass) (refl _) ⟩
-                       cast (ext ass) a Weak.id           ≡⟨ cast-id (ext ass) a ⟩∎
-                       Weak.id                            ∎)
+                       cast (ext ass) a (↑-cong Eq.id)  ≡⟨ cong (cast (ext ass) a) $ lift-equality (ext ass) (refl _) ⟩
+                       cast (ext ass) a Eq.id           ≡⟨ cast-id (ext ass) a ⟩∎
+                       Eq.id                            ∎)
   ; isomorphism-definitions-isomorphic = λ ass a B↔C {x y} →
       Is-isomorphism a (↑-cong B↔C) x y                     ↝⟨ isomorphism-definitions-isomorphic ass a (↑-cong B↔C) ⟩
       (_≃_.to (cast (ext ass) a (↔⇒≃ (↑-cong B↔C))) x ≡ y)  ↝⟨ ≡⇒↝ _ $ cong (λ eq → _≃_.to (cast (ext ass) a eq) x ≡ y) $

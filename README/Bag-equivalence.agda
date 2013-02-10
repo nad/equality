@@ -22,9 +22,9 @@ module README.Bag-equivalence where
 
 import Prelude
 
--- Equivalences: _⇔_.
+-- Logical equivalences: _⇔_.
 
-import Equivalence
+import Logical-equivalence
 
 -- Bijections: _↔_.
 
@@ -83,15 +83,15 @@ import Univalence-axiom
 
 -- Containers, including Any, _∈_, the two definitions of bag
 -- equivalence, and a proof showing that the two definitions are
--- equivalent.
+-- logically equivalent.
 --
 -- There is also a proof which shows that the definitions are
 -- isomorphic (assuming extensionality), if "bijection" is replaced by
--- the equivalent concept of "weak equivalence" in the definitions of
--- bag equivalence.
+-- the logically equivalent concept of "(weak) equivalence" in the
+-- definitions of bag equivalence.
 
 import Container
-import Weak-equivalence
+import Equivalence
 
 -- The List, Stream and Tree containers. It is shown that the general
 -- definition of bag equivalence for containers, instantiated with the

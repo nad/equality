@@ -12,17 +12,18 @@ module README where
 
 import Prelude
 
--- Equivalences.
+-- Logical equivalences.
 
-import Equivalence
+import Logical-equivalence
 
--- Two equivalent axiomatisations of equality. Many of the modules
--- below are parametrised by a definition of equality that satisfies
--- these axioms. The reason for this parametrisation is that I might
--- later want to use a definition of equality where the application
--- elim P r (refl x) does not compute to r x, unlike the equality in
--- Equality.Propositional. (Equality.Tactic also contains a definition
--- of equality which, roughly speaking, computes in this way.)
+-- Two logically equivalent axiomatisations of equality. Many of the
+-- modules below are parametrised by a definition of equality that
+-- satisfies these axioms. The reason for this parametrisation is that
+-- I might later want to use a definition of equality where the
+-- application elim P r (refl x) does not compute to r x, unlike the
+-- equality in Equality.Propositional. (Equality.Tactic also contains
+-- a definition of equality which, roughly speaking, computes in this
+-- way.)
 
 import Equality
 
@@ -81,9 +82,9 @@ import H-level.Closure
 
 import Preimage
 
--- Weak equivalences.
+-- Equivalences.
 
-import Weak-equivalence
+import Equivalence
 
 -- The univalence axiom.
 
@@ -115,8 +116,8 @@ import Univalence-axiom.Isomorphism-implies-equality.More.Examples
 import Univalence-axiom.Isomorphism-implies-equality
 
 -- A universe which includes several kinds of functions (ordinary
--- functions, equivalences, injections, surjections, bijections and
--- weak equivalences).
+-- functions, logical equivalences, injections, surjections,
+-- bijections and equivalences).
 
 import Function-universe
 

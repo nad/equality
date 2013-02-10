@@ -7,7 +7,7 @@
 module Equality.Propositional where
 
 open import Equality
-open import Equivalence hiding (_∘_)
+open import Logical-equivalence hiding (_∘_)
 open import Prelude
 
 ------------------------------------------------------------------------

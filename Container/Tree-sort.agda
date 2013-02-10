@@ -16,7 +16,7 @@ open import Container
 open import Container.List as List
 open import Container.Tree as Tree
 open import Equality.Propositional
-open import Equivalence using (module _⇔_)
+open import Logical-equivalence using (module _⇔_)
 
 open import Bijection equality-with-J using (_↔_; module _↔_)
 open import Function-universe equality-with-J

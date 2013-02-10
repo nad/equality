@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------
--- Two equivalent axiomatisations of equality
+-- Two logically equivalent axiomatisations of equality
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
 
 module Equality where
 
-open import Equivalence hiding (id; _∘_)
+open import Logical-equivalence hiding (id; _∘_)
 open import Prelude
 
 ------------------------------------------------------------------------
@@ -302,7 +302,7 @@ module Equality-with-substitutivity-and-contractibility′
       p x                                                                  ∎
 
 ------------------------------------------------------------------------
--- The two abstract definitions are equivalent
+-- The two abstract definitions are logically equivalent
 
 J⇒subst+contr :
   ∀ {reflexive} →
@@ -483,8 +483,8 @@ module Derived-definitions-and-properties
   Uniqueness-of-identity-proofs A =
     {x y : A} → Proof-irrelevant (x ≡ y)
 
-  -- The K rule is equivalent to uniqueness of identity proofs (at
-  -- least for certain combinations of levels).
+  -- The K rule is logically equivalent to uniqueness of identity
+  -- proofs (at least for certain combinations of levels).
 
   K⇔UIP : ∀ {ℓ} →
           K-rule ℓ ℓ ⇔ ({A : Set ℓ} → Uniqueness-of-identity-proofs A)
@@ -767,7 +767,7 @@ module Derived-definitions-and-properties
       p                                  ∎
 
     -- Some corollaries (used in
-    -- Weak-equivalence.equality-equivalence-lemma).
+    -- Equivalence.equality-equivalence-lemma).
 
     trans-[trans-sym] : ∀ {a} {A : Set a} {a b c : A} →
                         (a≡b : a ≡ b) (c≡b : c ≡ b) →

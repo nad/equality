@@ -10,8 +10,8 @@
 module Bag-equivalence where
 
 open import Equality.Propositional hiding (trans)
-open import Equivalence hiding (id; _∘_; inverse)
 open import Fin
+open import Logical-equivalence hiding (id; _∘_; inverse)
 open import Prelude as P hiding (id)
 
 open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
@@ -211,11 +211,11 @@ module Kind where
 
   open Function-universe public
     using ()
-    renaming ( implication      to subset
-             ; equivalence      to set
-             ; injection        to subbag
-             ; bijection        to bag
-             ; weak-equivalence to bag-with-weak-equivalence
+    renaming ( implication         to subset
+             ; logical-equivalence to set
+             ; injection           to subbag
+             ; bijection           to bag
+             ; equivalence         to bag-with-equivalence
              )
 
 open Kind public
@@ -413,7 +413,8 @@ range-disjunction p q xs = λ z →
     A × T b₁ ⊎ A × T b₂  □
 
 ------------------------------------------------------------------------
--- The first two definitions of bag equivalence above are equivalent
+-- The first two definitions of bag equivalence above are logically
+-- equivalent
 
 -- One direction follows from the following lemma, which states that
 -- list membership can be expressed as "there is an index which points
@@ -487,7 +488,8 @@ abstract
     lookup ys (to (Fin-length-cong xs≈ys) i)    ∎
     where open _↔_
 
--- We get that the two definitions of bag equivalence are equivalent.
+-- We get that the two definitions of bag equivalence are logically
+-- equivalent.
 
 ≈⇔≈′ : ∀ {a} {A : Set a} {xs ys : List A} → xs ≈-bag ys ⇔ xs ≈-bag′ ys
 ≈⇔≈′ = record

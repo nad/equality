@@ -10,7 +10,7 @@ module Surjection
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
-open import Equivalence
+open import Logical-equivalence
   using (_⇔_; module _⇔_) renaming (_∘_ to _⊙_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 
@@ -48,7 +48,7 @@ record _↠_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
 
 id : ∀ {a} {A : Set a} → A ↠ A
 id = record
-  { equivalence      = Equivalence.id
+  { equivalence      = Logical-equivalence.id
   ; right-inverse-of = refl
   }
 

@@ -11,9 +11,9 @@ module Bijection
 
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
-open import Equivalence using (_⇔_)
 open import H-level eq
 open import Injection eq using (Injective; _↣_)
+open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection eq as Surjection using (_↠_; module _↠_)
 
@@ -68,7 +68,7 @@ id = record
 inverse : ∀ {a b} {A : Set a} {B : Set b} → A ↔ B → B ↔ A
 inverse A↔B = record
   { surjection = record
-    { equivalence      = Equivalence.inverse equivalence
+    { equivalence      = Logical-equivalence.inverse equivalence
     ; right-inverse-of = left-inverse-of
     }
   ; left-inverse-of = right-inverse-of
