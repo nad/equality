@@ -242,8 +242,9 @@ module Class (Univ : Universe) where
       where open Assumptions ass
 
 ------------------------------------------------------------------------
--- An aside: A limited variant of Class.isomorphic↔equal can be proved
--- by using the "Abstract SIP Theorem" (see the HoTT Book)
+-- An aside: A slightly restricted variant of Class.isomorphic↔equal
+-- can be proved by using the "Abstract SIP Theorem" (see the HoTT
+-- Book)
 
 -- "Standard notions of structure".
 
@@ -306,22 +307,17 @@ Abstract-SIP-Theorem x₁ x₂ ℓ₁ ℓ₂ =
                                {X} {Y})
 
 -- The "Abstract SIP Theorem", as stated above, can be used to prove a
--- limited variant of Class.isomorphic↔equal.
+-- slightly restricted variant of Class.isomorphic↔equal.
 
 isomorphic↔equal-is-corollary :
   Abstract-SIP-Theorem (# 2) (# 1) (# 1) (# 1) →
   (Univ : Universe) → let open Universe Univ in
-  (∀ a {B C D} (f : C ≃ D) (g : B ≃ C) →
-     resp a (f ⊚ g) ≡ resp a f ∘ resp a g) →
-  (∀ a {B C x y} (f : B ≃ C) →
-     resp a f x ≡ y → resp a (inverse f) y ≡ x) →
-  (∀ a {B} → Is-set B → Is-set (El a B)) →
+  (∀ a {B} → Is-set B → Is-set (El a B)) →  -- Extra assumption.
   Assumptions →
   ∀ c {I J} →
-  Is-set (proj₁ I) → Is-set (proj₁ J) →
+  Is-set (proj₁ I) → Is-set (proj₁ J) →     -- Extra assumptions.
   Class.Isomorphic Univ c I J ↔ (I ≡ J)
-isomorphic↔equal-is-corollary
-  sip Univ resp-∘ resp-⁻¹ El-set ass
+isomorphic↔equal-is-corollary sip Univ El-set ass
   (a , P) {C , x , p} {D , y , q} C-set D-set =
 
   Isomorphic (a , P) (C , x , p) (D , y , q)  ↝⟨ (let ≃≃≅ = ≃≃≅-Set (# 1) ext Cs Ds in
@@ -383,7 +379,8 @@ isomorphic↔equal-is-corollary
                           x                                            ∎
     ; H-∘             = λ {B C D x y z B≅C C≅D} x≅y y≅z →
                           resp a (≅⇒≃ B D (Category._∙_ X≅ B≅C C≅D)) x   ≡⟨ cong (λ eq → resp a eq x) $ Weak.lift-equality ext (refl _) ⟩
-                          resp a (≅⇒≃ C D C≅D ⊚ ≅⇒≃ B C B≅C) x           ≡⟨ cong (λ h → h x) $ resp-∘ a (≅⇒≃ C D C≅D) (≅⇒≃ B C B≅C) ⟩
+                          resp a (≅⇒≃ C D C≅D ⊚ ≅⇒≃ B C B≅C) x           ≡⟨ resp-preserves-compositions (El a) (resp a) (resp-id ass a)
+                                                                                                        univ₁ ext (≅⇒≃ B C B≅C) (≅⇒≃ C D C≅D) x ⟩
                           resp a (≅⇒≃ C D C≅D) (resp a (≅⇒≃ B C B≅C) x)  ≡⟨ cong (resp a (≅⇒≃ C D C≅D)) x≅y ⟩
                           resp a (≅⇒≃ C D C≅D) y                         ≡⟨ y≅z ⟩∎
                           z                                              ∎
@@ -408,7 +405,7 @@ isomorphic↔equal-is-corollary
 
       (D≅C ,
        (resp a (≅⇒≃ D C D≅C) y            ≡⟨ cong (λ eq → resp a eq y) $ Weak.lift-equality ext (refl _) ⟩
-        resp a (inverse $ ≅⇒≃ C D C≅D) y  ≡⟨ resp-⁻¹ a (≅⇒≃ C D C≅D) x≅y ⟩∎
+        resp a (inverse $ ≅⇒≃ C D C≅D) y  ≡⟨ resp-preserves-inverses (El a) (resp a) (resp-id ass a) univ₁ ext (≅⇒≃ C D C≅D) _ _ x≅y ⟩∎
         x                                 ∎)) ,
 
       lift-equality-Str {X = C , x} {Y = C , x} (
