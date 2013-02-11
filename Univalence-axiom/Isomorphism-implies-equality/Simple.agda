@@ -168,13 +168,13 @@ module Class (Univ : Universe) where
     -- proving that the carrier types and "elements" (suitably
     -- transported) are equal (assuming univalence).
 
-    instances-equal↔ :
+    equality-pair-lemma :
       Assumptions →
       ∀ c {I J} →
       (I ≡ J) ↔
       ∃ λ (C-eq : Carrier c I ≡ Carrier c J) →
         subst (El (proj₁ c)) C-eq (element c I) ≡ element c J
-    instances-equal↔ ass (a , P) {C , x , p} {D , y , q} =
+    equality-pair-lemma ass (a , P) {C , x , p} {D , y , q} =
 
       ((C , x , p) ≡ (D , y , q))                     ↔⟨ inverse $ ≃-≡ $ ↔⇒≃ Σ-assoc ⟩
 
@@ -198,10 +198,10 @@ module Class (Univ : Universe) where
     --
     -- In short, isomorphism is isomorphic to equality.
 
-    isomorphic↔equal :
+    isomorphism-is-equality :
       Assumptions →
       ∀ c {I J} → Isomorphic c I J ↔ (I ≡ J)
-    isomorphic↔equal ass (a , P) {C , x , p} {D , y , q} =
+    isomorphism-is-equality ass (a , P) {C , x , p} {D , y , q} =
 
       (∃ λ (C-eq : C ≃ D) → Is-isomorphism a C-eq x y)            ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic ass a C-eq) ⟩
 
@@ -209,7 +209,7 @@ module Class (Univ : Universe) where
                                                                        Σ-cong (≡≃≃ univ₁) (λ C-eq → ≡⇒↝ _ $ sym $
                                                                          cong (λ eq → subst (El a) eq x ≡ y)
                                                                               (_≃_.left-inverse-of (≡≃≃ univ₁) C-eq)) ⟩
-      (∃ λ (C-eq : C ≡ D) → subst (El a) C-eq x ≡ y)              ↝⟨ inverse $ instances-equal↔ ass c ⟩□
+      (∃ λ (C-eq : C ≡ D) → subst (El a) C-eq x ≡ y)              ↝⟨ inverse $ equality-pair-lemma ass c ⟩□
 
       (I ≡ J)                                                     □
 
@@ -231,20 +231,20 @@ module Class (Univ : Universe) where
     --
     -- In short, isomorphism is equal to equality.
 
-    isomorphic≡equal :
+    isomorphic≡≡ :
       Assumptions →
       ∀ c {I J} → ↑ (# 2) (Isomorphic c I J) ≡ (I ≡ J)
-    isomorphic≡equal ass c {I} {J} =
+    isomorphic≡≡ ass c {I} {J} =
       ≃⇒≡ univ₂ $ ↔⇒≃ (
         ↑ _ (Isomorphic c I J)  ↝⟨ ↑↔ ⟩
-        Isomorphic c I J        ↝⟨ isomorphic↔equal ass c ⟩□
+        Isomorphic c I J        ↝⟨ isomorphism-is-equality ass c ⟩□
         (I ≡ J)                 □)
       where open Assumptions ass
 
 ------------------------------------------------------------------------
--- An aside: A slightly restricted variant of Class.isomorphic↔equal
--- can be proved by using the "Abstract SIP Theorem" (see the HoTT
--- Book)
+-- An aside: A slightly restricted variant of
+-- Class.isomorphism-is-equality can be proved by using the "Abstract
+-- SIP Theorem" (see the HoTT Book)
 
 -- "Standard notions of structure".
 
@@ -307,9 +307,9 @@ Abstract-SIP-Theorem x₁ x₂ ℓ₁ ℓ₂ =
                                {X} {Y})
 
 -- The "Abstract SIP Theorem", as stated above, can be used to prove a
--- slightly restricted variant of Class.isomorphic↔equal.
+-- slightly restricted variant of Class.isomorphism-is-equality.
 
-isomorphic↔equal-is-corollary :
+isomorphism-is-equality-is-corollary :
   Abstract-SIP-Theorem (# 2) (# 1) (# 1) (# 1) →
   (Univ : Universe) → let open Universe Univ in
   (∀ a {B} → Is-set B → Is-set (El a B)) →  -- Extra assumption.
@@ -317,7 +317,7 @@ isomorphic↔equal-is-corollary :
   ∀ c {I J} →
   Is-set (proj₁ I) → Is-set (proj₁ J) →     -- Extra assumptions.
   Class.Isomorphic Univ c I J ↔ (I ≡ J)
-isomorphic↔equal-is-corollary sip Univ El-set ass
+isomorphism-is-equality-is-corollary sip Univ El-set ass
   (a , P) {C , x , p} {D , y , q} C-set D-set =
 
   Isomorphic (a , P) (C , x , p) (D , y , q)  ↝⟨ (let ≃≃≅ = ≃≃≅-Set (# 1) ext Cs Ds in
