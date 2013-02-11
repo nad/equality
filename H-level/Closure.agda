@@ -95,6 +95,22 @@ abstract
   Bool-set = decidable⇒set Bool._≟_
 
 ------------------------------------------------------------------------
+-- Natural numbers
+
+abstract
+
+  -- ℕ is not propositional.
+
+  ¬-ℕ-propositional : ¬ Is-proposition ℕ
+  ¬-ℕ-propositional ℕ-prop =
+    ℕ.0≢+ $ _⇔_.to propositional⇔irrelevant ℕ-prop 0 1
+
+  -- ℕ is a set.
+
+  ℕ-set : Is-set ℕ
+  ℕ-set = decidable⇒set ℕ._≟_
+
+------------------------------------------------------------------------
 -- Π-types
 
 -- Closure of contractibility under Π A is logically equivalent to
