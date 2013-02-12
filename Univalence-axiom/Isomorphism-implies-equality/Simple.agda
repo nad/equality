@@ -897,6 +897,27 @@ private
            z * z⁻¹   ≡⟨ hyp z⁻¹ (refl _) ⟩∎
            1#        ∎))
 
+  dec-lemma₃ :
+    {F : Set₁}
+    (_+_ : F → F → F)
+    (0# : F)
+    (-_ : F → F) →
+    (_*_ : F → F → F)
+    (1# : F) →
+    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
+    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
+    (∀ x y → x + y ≡ y + x) →
+    (∀ x y → x * y ≡ y * x) →
+    (∀ x → x + 0# ≡ x) →
+    (∀ x → x * 1# ≡ x) →
+    (∀ x → x + (- x) ≡ 0#) →
+    (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)) →
+    Decidable (_≡_ {A = F})
+  dec-lemma₃ _+_ 0# -_ _*_ 1# +-assoc *-assoc +-comm *-comm +0 *1 +-
+             inv-xor =
+    dec-lemma₁ _+_ 0# -_ +-assoc +-comm +0 +-
+               (λ x → [ inj₂ ∘ proj₂ , inj₁ ∘ proj₂ ] (inv-xor x))
+
   *-injective :
     {F : Set₁}
     (_*_ : F → F → F)
@@ -938,7 +959,7 @@ private
               })
       F-set 1# }
 
-  proposition-lemma :
+  proposition-lemma₁ :
     Extensionality (# 1) (# 1) →
     {F : Set₁}
     (0# : F)
@@ -949,7 +970,7 @@ private
     (∀ x → x * 1# ≡ x) →
     Is-proposition (((x y : F) → x ≡ y ⊎ x ≢ y) ×
                     (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#))
-  proposition-lemma ext 0# _*_ 1# *-assoc *-comm *1 =
+  proposition-lemma₁ ext 0# _*_ 1# *-assoc *-comm *1 =
     [inhabited⇒+]⇒+ 0 λ { (dec , _) →
     let F-set = decidable⇒set dec in
     ×-closure 1 (Π-closure ext 1 λ _ →
@@ -960,6 +981,33 @@ private
                  Π-closure ext 1 λ _ →
                  inverse-propositional _*_ 1# *-assoc *-comm *1
                                        F-set x) }
+
+  proposition-lemma₂ :
+    Extensionality (# 1) (# 1) →
+    {F : Set₁}
+    (_+_ : F → F → F)
+    (0# : F)
+    (-_ : F → F) →
+    (_*_ : F → F → F)
+    (1# : F) →
+    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
+    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
+    (∀ x y → x + y ≡ y + x) →
+    (∀ x y → x * y ≡ y * x) →
+    (∀ x → x + 0# ≡ x) →
+    (∀ x → x * 1# ≡ x) →
+    (∀ x → x + (- x) ≡ 0#) →
+    Is-proposition (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#))
+  proposition-lemma₂ ext _+_ 0# -_ _*_ 1# +-assoc *-assoc +-comm *-comm
+                     +0 *1 +- =
+    [inhabited⇒+]⇒+ 0 λ inv-xor →
+    let F-set = decidable⇒set $
+                  dec-lemma₃ _+_ 0# -_ _*_ 1# +-assoc *-assoc
+                             +-comm *-comm +0 *1 +- inv-xor in
+    Π-closure ext 1 λ x →
+    Xor-closure-propositional (lower-ext (# 0) _ ext)
+      (inverse-propositional _*_ 1# *-assoc *-comm *1 F-set x)
+      (F-set _ _)
 
 -- Discrete fields.
 
@@ -1075,37 +1123,128 @@ Instance-discrete-field :
 
 Instance-discrete-field = refl _
 
+-- The notion of isomorphism that we get is reasonable.
+
+Isomorphic-discrete-field :
+  ∀ {F₁ _+₁_ 0₁ _*₁_ 1₁ -₁_ _⁻¹₁ laws₁
+     F₂ _+₂_ 0₂ _*₂_ 1₂ -₂_ _⁻¹₂ laws₂} →
+
+  Isomorphic discrete-field
+             (F₁ , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_ , _⁻¹₁) , laws₁)
+             (F₂ , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂) , laws₂)
+    ≡
+  Σ (F₁ ≃ F₂) λ F₁≃F₂ → let open _≃_ F₁≃F₂ in
+  ((λ x y → to (from x +₁ from y)) ,
+   to 0₁ ,
+   (λ x y → to (from x *₁ from y)) ,
+   to 1₁ ,
+   (λ x → to (-₁ from x)) ,
+   (λ x → ⊎-map P.id to (from x ⁻¹₁))) ≡
+  (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂)
+
+Isomorphic-discrete-field = refl _
+
 -- In "Varieties of Constructive Mathematics" Bridges and Richman
 -- define a discrete field as a commutative ring with 1, decidable
 -- equality, and satisfying the property that non-zero elements are
--- invertible. If we restrict ourselves to non-trivial discrete fields
--- of this kind, and use equality as the equality relation, and denial
--- inequality as the inequality relation, then Bridges and Richman's
--- definition is isomorphic to the one given above (assuming
--- extensionality, and assuming that I interpreted the informal
--- definition correctly).
+-- invertible. What follows is—assuming that I interpreted the
+-- informal definition correctly—an encoding of this definition,
+-- restricted so that the discrete fields are non-trivial, and using
+-- equality as the equality relation, and denial inequality as the
+-- inequality relation.
 
-Instance-discrete-field-isomorphic-to-standard :
+discrete-field-à-la-Bridges-and-Richman : Code
+discrete-field-à-la-Bridges-and-Richman =
+  -- Addition.
+  (id ⇾ id ⇾ id) ⊗
+
+  -- Zero.
+  id ⊗
+
+  -- Multiplication.
+  (id ⇾ id ⇾ id) ⊗
+
+  -- One.
+  id ⊗
+
+  -- Minus.
+  (id ⇾ id) ,
+
+  λ { F (_+_ , 0# , _*_ , 1# , -_) →
+
+      (-- Associativity.
+       (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
+       (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+
+       -- Commutativity.
+       (∀ x y → x + y ≡ y + x) ×
+       (∀ x y → x * y ≡ y * x) ×
+
+       -- Distributivity.
+       (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+
+       -- Identity laws.
+       (∀ x → x + 0# ≡ x) ×
+       (∀ x → x * 1# ≡ x) ×
+
+       -- Additive inverse law.
+       (∀ x → x + (- x) ≡ 0#) ×
+
+       -- Zero and one are distinct.
+       0# ≢ 1# ×
+
+       -- Decidable equality.
+       ((x y : F) → x ≡ y ⊎ x ≢ y) ×
+
+       -- Non-zero elements are invertible.
+       (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#)) ,
+
+      λ ass → let open Assumptions ass in
+        [inhabited⇒+]⇒+ 0 λ { (_ , *-assoc , _ , *-comm , _ , _ , *1 ,
+                               _ , _ , dec , _) →
+          let F-set : Is-set F
+              F-set = decidable⇒set dec
+          in
+          ×-closure  1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure (lower-ext (# 0) (# 1) ext) 1 λ _ →
+                        ⊥-propositional)
+          (proposition-lemma₁ ext 0# _*_ 1# *-assoc *-comm *1))))))))) }}
+
+-- The two discrete field definitions above are isomorphic (assuming
+-- extensionality).
+
+Instance-discrete-field-isomorphic-to-Bridges-and-Richman's :
   Extensionality (# 1) (# 1) →
 
   Instance discrete-field
     ↔
-  Σ Set₁ λ F →
-  Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
-    λ { (_+_ , 0# , _*_ , 1# , -_) →
-  (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-  (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-  (∀ x y → x + y ≡ y + x) ×
-  (∀ x y → x * y ≡ y * x) ×
-  (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-  (∀ x → x + 0# ≡ x) ×
-  (∀ x → x * 1# ≡ x) ×
-  (∀ x → x + (- x) ≡ 0#) ×
-  0# ≢ 1# ×
-  ((x y : F) → x ≡ y ⊎ x ≢ y) ×
-  (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#) }
+  Instance discrete-field-à-la-Bridges-and-Richman
 
-Instance-discrete-field-isomorphic-to-standard ext = ∃-cong λ F →
+Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
+  ∃-cong λ F →
 
   (Σ ((F → F → F) × F × (F → F → F) × F × (F → F) × (F → ↑ _ ⊤ ⊎ F))
       λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
@@ -1204,16 +1343,9 @@ Instance-discrete-field-isomorphic-to-standard ext = ∃-cong λ F →
              +-assoc *-assoc +-comm *-comm *+ +0 *1 +- 0≢1 =
     _≃_.bijection $
     _↔_.to (⇔↔≃ ext From-propositional
-                    (proposition-lemma ext 0# _*_ 1# *-assoc *-comm *1))
+                    (proposition-lemma₁ ext 0# _*_ 1# *-assoc *-comm *1))
            (record { to = to; from = from })
     where
-    01-lemma : ∀ x y → x ≡ 0# → x * y ≡ 1# → ⊥
-    01-lemma x y x≡0 xy≡1 = 0≢1 (
-      0#      ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
-      0# * y  ≡⟨ cong (λ x → x * _) $ sym x≡0 ⟩
-      x * y   ≡⟨ xy≡1 ⟩∎
-      1#      ∎)
-
     To   = (((x y : F) → x ≡ y ⊎ x ≢ y) ×
             (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#))
     From = Σ (F → ↑ _ ⊤ ⊎ F) λ _⁻¹ →
@@ -1252,9 +1384,10 @@ Instance-discrete-field-isomorphic-to-standard ext = ∃-cong λ F →
         1#                     ∎
 
     From-propositional : Is-proposition From
-    From-propositional = _⇔_.from propositional⇔irrelevant irr
+    From-propositional =
+      _⇔_.from propositional⇔irrelevant irr
       where
-      irr : (x y : From) → x ≡ y
+      irr : ∀ x y → x ≡ y
       irr (inv , inv₁ , inv₂) (inv′ , inv₁′ , inv₂′) =
         _↔_.to (ignore-propositional-component
                   (×-closure 1 (Π-closure ext 1 λ _ →
@@ -1270,6 +1403,13 @@ Instance-discrete-field-isomorphic-to-standard ext = ∃-cong λ F →
         F-set = decidable⇒set $
           dec-lemma₂ _+_ 0# _*_ 1# -_ inv +-assoc +-comm
                      *-comm *+ +0 *1 +- 0≢1 inv₁ inv₂
+
+        01-lemma : ∀ x y → x ≡ 0# → x * y ≡ 1# → ⊥
+        01-lemma x y x≡0 xy≡1 = 0≢1 (
+          0#      ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
+          0# * y  ≡⟨ cong (λ x → x * _) $ sym x≡0 ⟩
+          x * y   ≡⟨ xy≡1 ⟩∎
+          1#      ∎)
 
         inv≡inv′ : ∀ x → inv x ≡ inv′ x
         inv≡inv′ x with inv  x | inv₁  x | inv₂  x
@@ -1312,43 +1452,98 @@ Instance-discrete-field-isomorphic-to-standard ext = ∃-cong λ F →
 
 -- nLab defines a discrete field as a commutative ring satisfying the
 -- property that "an element is invertible xor it equals zero"
--- (http://ncatlab.org/nlab/show/field). This definition of discrete
--- fields is isomorphic to the two treated above (assuming
--- extensionality, and assuming that I interpreted the informal
--- definition correctly).
+-- (http://ncatlab.org/nlab/show/field). This definition can also be
+-- encoded in our framework (assuming that I interpreted the informal
+-- definitions correctly).
 
-standard-isomorphic-to-standard :
+discrete-field-à-la-nLab : Code
+discrete-field-à-la-nLab =
+  -- Addition.
+  (id ⇾ id ⇾ id) ⊗
+
+  -- Zero.
+  id ⊗
+
+  -- Multiplication.
+  (id ⇾ id ⇾ id) ⊗
+
+  -- One.
+  id ⊗
+
+  -- Minus.
+  (id ⇾ id) ,
+
+  λ { F (_+_ , 0# , _*_ , 1# , -_) →
+
+      (-- Associativity.
+       (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
+       (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+
+       -- Commutativity.
+       (∀ x y → x + y ≡ y + x) ×
+       (∀ x y → x * y ≡ y * x) ×
+
+       -- Distributivity.
+       (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+
+       -- Identity laws.
+       (∀ x → x + 0# ≡ x) ×
+       (∀ x → x * 1# ≡ x) ×
+
+       -- Additive inverse law.
+       (∀ x → x + (- x) ≡ 0#) ×
+
+       -- An element is invertible xor it equals zero.
+       (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#))) ,
+
+      λ ass → let open Assumptions ass in
+        [inhabited⇒+]⇒+ 0 λ { (+-assoc , *-assoc , +-comm , *-comm , _ ,
+                               +0 , *1 , +- , inv-xor) →
+          let F-set : Is-set F
+              F-set = decidable⇒set $
+                        dec-lemma₃ _+_ 0# -_ _*_ 1# +-assoc *-assoc
+                                   +-comm *-comm +0 *1 +- inv-xor
+          in
+          ×-closure  1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (×-closure 1 (Π-closure ext 1 λ _ →
+                        F-set _ _)
+          (proposition-lemma₂ ext _+_ 0# -_ _*_ 1#
+                              +-assoc *-assoc +-comm *-comm
+                              +0 *1 +-)))))))) }}
+
+-- nLab's definition of discrete fields is isomorphic to Bridges and
+-- Richman's (assuming extensionality, and assuming that I interpreted
+-- the informal definitions correctly).
+
+nLab's-isomorphic-to-Bridges-and-Richman's :
   Extensionality (# 1) (# 1) →
 
-  (Σ Set₁ λ F →
-   Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
-     λ { (_+_ , 0# , _*_ , 1# , -_) →
-   (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-   (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-   (∀ x y → x + y ≡ y + x) ×
-   (∀ x y → x * y ≡ y * x) ×
-   (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-   (∀ x → x + 0# ≡ x) ×
-   (∀ x → x * 1# ≡ x) ×
-   (∀ x → x + (- x) ≡ 0#) ×
-   (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)) })
+  Instance discrete-field-à-la-nLab
     ↔
-  Σ Set₁ λ F →
-  Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
-    λ { (_+_ , 0# , _*_ , 1# , -_) →
-  (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-  (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-  (∀ x y → x + y ≡ y + x) ×
-  (∀ x y → x * y ≡ y * x) ×
-  (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-  (∀ x → x + 0# ≡ x) ×
-  (∀ x → x * 1# ≡ x) ×
-  (∀ x → x + (- x) ≡ 0#) ×
-  0# ≢ 1# ×
-  ((x y : F) → x ≡ y ⊎ x ≢ y) ×
-  (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#) }
+  Instance discrete-field-à-la-Bridges-and-Richman
 
-standard-isomorphic-to-standard ext =
+nLab's-isomorphic-to-Bridges-and-Richman's ext =
   ∃-cong λ F →
   ∃-cong λ { (_+_ , 0# , _*_ , 1# , -_) →
   ∃-cong λ +-assoc →
@@ -1386,11 +1581,13 @@ standard-isomorphic-to-standard ext =
   main-lemma F _+_ 0# _*_ 1# -_
              +-assoc *-assoc +-comm *-comm *+ +0 *1 +- =
     _≃_.bijection $
-    _↔_.to (⇔↔≃ ext From-propositional
+    _↔_.to (⇔↔≃ ext (proposition-lemma₂ ext _+_ 0# -_ _*_ 1#
+                                        +-assoc *-assoc +-comm *-comm
+                                        +0 *1 +-)
                     (×-closure 1
                        (¬-propositional (lower-ext (# 0) _ ext))
-                       (proposition-lemma ext 0# _*_ 1# *-assoc
-                                          *-comm *1)))
+                       (proposition-lemma₁ ext 0# _*_ 1# *-assoc
+                                           *-comm *1)))
            (record { to = to; from = from })
     where
     To   = 0# ≢ 1# ×
@@ -1408,8 +1605,8 @@ standard-isomorphic-to-standard ext =
         ] (inv-xor 1#)
 
       dec : Decidable (_≡_ {A = F})
-      dec = dec-lemma₁ _+_ 0# -_ +-assoc +-comm +0 +-
-                       (λ x → [ inj₂ ∘ proj₂ , inj₁ ∘ proj₂ ] (inv-xor x))
+      dec = dec-lemma₃ _+_ 0# -_ _*_ 1# +-assoc *-assoc +-comm *-comm
+                       +0 *1 +- inv-xor
 
       inv : ∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#
       inv x x≢0 =
@@ -1427,36 +1624,6 @@ standard-isomorphic-to-standard ext =
                       ))
       , (λ x≢0 → inj₁ (inv x x≢0 , x≢0))
       ] (dec x 0#)
-
-    From-propositional : Is-proposition From
-    From-propositional =
-      [inhabited⇒+]⇒+ 0 λ inv-xor →
-      let F-set = decidable⇒set (proj₁ $ proj₂ $ to inv-xor) in
-      Π-closure ext 1 λ x →
-      Xor-closure-propositional (lower-ext (# 0) _ ext)
-        (inverse-propositional _*_ 1# *-assoc *-comm *1 F-set x)
-        (F-set _ _)
-
--- The notion of isomorphism that we get is reasonable.
-
-Isomorphic-discrete-field :
-  ∀ {F₁ _+₁_ 0₁ _*₁_ 1₁ -₁_ _⁻¹₁ laws₁
-     F₂ _+₂_ 0₂ _*₂_ 1₂ -₂_ _⁻¹₂ laws₂} →
-
-  Isomorphic discrete-field
-             (F₁ , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_ , _⁻¹₁) , laws₁)
-             (F₂ , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂) , laws₂)
-    ≡
-  Σ (F₁ ≃ F₂) λ F₁≃F₂ → let open _≃_ F₁≃F₂ in
-  ((λ x y → to (from x +₁ from y)) ,
-   to 0₁ ,
-   (λ x y → to (from x *₁ from y)) ,
-   to 1₁ ,
-   (λ x → to (-₁ from x)) ,
-   (λ x → ⊎-map P.id to (from x ⁻¹₁))) ≡
-  (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂)
-
-Isomorphic-discrete-field = refl _
 
 ------------------------------------------------------------------------
 -- An example: vector spaces over discrete fields
