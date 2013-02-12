@@ -1009,6 +1009,67 @@ private
       (inverse-propositional _*_ 1# *-assoc *-comm *1 F-set x)
       (F-set _ _)
 
+  proposition-lemma₃ :
+    Extensionality (# 1) (# 1) →
+    {F : Set₁}
+    (_+_ : F → F → F)
+    (0# : F)
+    (_*_ : F → F → F)
+    (1# : F) →
+    (-_ : F → F) →
+    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
+    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
+    (∀ x y → x + y ≡ y + x) →
+    (∀ x y → x * y ≡ y * x) →
+    (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) →
+    (∀ x → x + 0# ≡ x) →
+    (∀ x → x * 1# ≡ x) →
+    (∀ x → x + (- x) ≡ 0#) →
+    0# ≢ 1# →
+    Is-proposition (Σ (F → ↑ _ ⊤ ⊎ F) λ _⁻¹ →
+                      (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
+                      (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#))
+  proposition-lemma₃ ext {F} _+_ 0# _*_ 1# -_ +-assoc *-assoc
+                     +-comm *-comm *+ +0 *1 +- 0≢1 =
+    _⇔_.from propositional⇔irrelevant irr
+    where
+    irr : ∀ x y → x ≡ y
+    irr (inv , inv₁ , inv₂) (inv′ , inv₁′ , inv₂′) =
+      _↔_.to (ignore-propositional-component
+                (×-closure 1 (Π-closure ext 1 λ _ →
+                              Π-closure ext 1 λ _ →
+                              F-set _ _)
+                             (Π-closure ext 1 λ _ →
+                              Π-closure ext 1 λ _ →
+                              Π-closure ext 1 λ _ →
+                              F-set _ _)))
+             (ext inv≡inv′)
+      where
+      F-set : Is-set F
+      F-set = decidable⇒set $
+        dec-lemma₂ _+_ 0# _*_ 1# -_ inv +-assoc +-comm
+                   *-comm *+ +0 *1 +- 0≢1 inv₁ inv₂
+
+      01-lemma : ∀ x y → x ≡ 0# → x * y ≡ 1# → ⊥
+      01-lemma x y x≡0 xy≡1 = 0≢1 (
+        0#      ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
+        0# * y  ≡⟨ cong (λ x → x * _) $ sym x≡0 ⟩
+        x * y   ≡⟨ xy≡1 ⟩∎
+        1#      ∎)
+
+      inv≡inv′ : ∀ x → inv x ≡ inv′ x
+      inv≡inv′ x with inv  x | inv₁  x | inv₂  x
+                    | inv′ x | inv₁′ x | inv₂′ x
+      ... | inj₁ _   | _ | _   | inj₁ _    | _    | _ = refl _
+      ... | inj₂ x⁻¹ | _ | hyp | inj₁ _    | hyp′ | _ = ⊥-elim $ 01-lemma x x⁻¹ (hyp′ (refl _)) (hyp x⁻¹ (refl _))
+      ... | inj₁ _   | hyp | _ | inj₂ x⁻¹  | _ | hyp′ = ⊥-elim $ 01-lemma x x⁻¹ (hyp (refl _)) (hyp′ x⁻¹ (refl _))
+      ... | inj₂ x⁻¹ | _ | hyp | inj₂ x⁻¹′ | _ | hyp′ =
+        cong inj₂ $ *-injective _*_ 1# *-assoc *-comm *1 x
+                                (x⁻¹ , hyp x⁻¹ (refl _))
+          (x * x⁻¹   ≡⟨ hyp x⁻¹ (refl _) ⟩
+           1#        ≡⟨ sym $ hyp′ x⁻¹′ (refl _) ⟩∎
+           x * x⁻¹′  ∎)
+
 -- Discrete fields.
 
 discrete-field : Code
@@ -1143,6 +1204,138 @@ Isomorphic-discrete-field :
   (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂)
 
 Isomorphic-discrete-field = refl _
+
+-- The definitions of discrete field introduced below do not have an
+-- inverse operator in their signature, so the derived notion of
+-- isomorphism is perhaps not obviously identical to the one above.
+-- However, the two notions of isomorphism are isomorphic (assuming
+-- extensionality).
+
+Isomorphic-discrete-field-isomorphic-to-one-without-⁻¹ :
+  Extensionality (# 1) (# 1) →
+  ∀ {F₁ _+₁_ 0₁ _*₁_ 1₁ -₁_ _⁻¹₁ laws₁
+     F₂ _+₂_ 0₂ _*₂_ 1₂ -₂_ _⁻¹₂ laws₂} →
+
+  Isomorphic discrete-field
+             (F₁ , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_ , _⁻¹₁) , laws₁)
+             (F₂ , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂) , laws₂)
+    ↔
+  Σ (F₁ ≃ F₂) λ F₁≃F₂ → let open _≃_ F₁≃F₂ in
+  ((λ x y → to (from x +₁ from y)) ,
+   to 0₁ ,
+   (λ x y → to (from x *₁ from y)) ,
+   to 1₁ ,
+   (λ x → to (-₁ from x))) ≡
+  (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_)
+
+Isomorphic-discrete-field-isomorphic-to-one-without-⁻¹ ext
+  {F₁} {_+₁_} {0₁} {_*₁_} {1₁} { -₁_} {_⁻¹₁}
+  {_ , _ , _ , _ , _ , _ , _ , _ , _ , ⁻¹₁₁ , ⁻¹₁₂}
+  {F₂} {_+₂_} {0₂} {_*₂_} {1₂} { -₂_} {_⁻¹₂}
+  {+₂-assoc , *₂-assoc , +₂-comm , *₂-comm , *₂+₂ , +₂0₂ , *₂1₂ , +₂-₂ ,
+   0₂≢1₂ , ⁻¹₂₁ , ⁻¹₂₂} =
+
+  ∃-cong λ F₁≃F₂ → let open _≃_ F₁≃F₂ in
+
+  (((λ x y → to (from x +₁ from y)) ,
+    to 0₁ ,
+    (λ x y → to (from x *₁ from y)) ,
+    to 1₁ ,
+    (λ x → to (-₁ from x)) ,
+    (λ x → ⊎-map P.id to (from x ⁻¹₁))) ≡
+   (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂))                  ↝⟨ inverse (≡×≡↔≡ ⊚ ((_ □) ×-cong
+                                                                      ≡×≡↔≡ ⊚ ((_ □) ×-cong
+                                                                      ≡×≡↔≡ ⊚ ((_ □) ×-cong
+                                                                      ≡×≡↔≡ ⊚ ((_ □) ×-cong
+                                                                      ≡×≡↔≡))))) ⟩
+  ((λ x y → to (from x +₁ from y)) ≡ _+₂_ ×
+   to 0₁ ≡ 0₂ ×
+   (λ x y → to (from x *₁ from y)) ≡ _*₂_ ×
+   to 1₁ ≡ 1₂ ×
+   (λ x → to (-₁ from x)) ≡ -₂_ ×
+   (λ x → ⊎-map P.id to (from x ⁻¹₁)) ≡ _⁻¹₂)             ↝⟨ (∃-cong λ _ →
+                                                              ∃-cong λ 0-homo →
+                                                              ∃-cong λ *-homo →
+                                                              ∃-cong λ 1-homo →
+                                                              ∃-cong λ _ →
+                                                              contractible↔⊤ $ propositional⇒inhabited⇒contractible
+                                                                (⁻¹-set _ _)
+                                                                (⁻¹-homo F₁≃F₂ 0-homo *-homo 1-homo)) ⟩
+  ((λ x y → to (from x +₁ from y)) ≡ _+₂_ ×
+   to 0₁ ≡ 0₂ ×
+   (λ x y → to (from x *₁ from y)) ≡ _*₂_ ×
+   to 1₁ ≡ 1₂ ×
+   (λ x → to (-₁ from x)) ≡ -₂_ ×
+   ⊤)                                                     ↝⟨ (_ □) ×-cong (_ □) ×-cong (_ □) ×-cong (_ □) ×-cong ×-right-identity ⟩
+
+  ((λ x y → to (from x +₁ from y)) ≡ _+₂_ ×
+   to 0₁ ≡ 0₂ ×
+   (λ x y → to (from x *₁ from y)) ≡ _*₂_ ×
+   to 1₁ ≡ 1₂ ×
+   (λ x → to (-₁ from x)) ≡ -₂_)                          ↝⟨ ≡×≡↔≡ ⊚ ((_ □) ×-cong
+                                                             ≡×≡↔≡ ⊚ ((_ □) ×-cong
+                                                             ≡×≡↔≡ ⊚ ((_ □) ×-cong
+                                                             ≡×≡↔≡))) ⟩
+  (((λ x y → to (from x +₁ from y)) ,
+    to 0₁ ,
+    (λ x y → to (from x *₁ from y)) ,
+    to 1₁ ,
+    (λ x → to (-₁ from x))) ≡
+   (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_))                         □
+
+  where
+  ⁻¹-set : Is-set (F₂ → ↑ _ ⊤ ⊎ F₂)
+  ⁻¹-set =
+    Π-closure ext 2 λ _ →
+    ⊎-closure 0 (↑-closure 2 (mono (≤-step (≤-step ≤-refl))
+                           ⊤-contractible))
+                (decidable⇒set $
+                   dec-lemma₂ _+₂_ 0₂ _*₂_ 1₂ -₂_ _⁻¹₂ +₂-assoc +₂-comm
+                              *₂-comm *₂+₂ +₂0₂ *₂1₂ +₂-₂ 0₂≢1₂
+                              ⁻¹₂₁ ⁻¹₂₂)
+
+  ⁻¹-homo :
+    (F₁≃F₂ : F₁ ≃ F₂) → let open _≃_ F₁≃F₂ in
+    to 0₁ ≡ 0₂ →
+    (λ x y → to (from x *₁ from y)) ≡ _*₂_ →
+    to 1₁ ≡ 1₂ →
+    (λ x → ⊎-map P.id to (from x ⁻¹₁)) ≡ _⁻¹₂
+  ⁻¹-homo F₁≃F₂ 0-homo *-homo 1-homo =
+    cong proj₁ $
+    _⇔_.to propositional⇔irrelevant
+           (proposition-lemma₃ ext _+₂_ 0₂ _*₂_ 1₂ -₂_
+                               +₂-assoc *₂-assoc +₂-comm *₂-comm
+                               *₂+₂ +₂0₂ *₂1₂ +₂-₂ 0₂≢1₂)
+           ( (λ x → ⊎-map P.id to (from x ⁻¹₁))
+           , (λ x x⁻¹₁≡₁ →
+                let lemma =
+                      from x ⁻¹₁                                    ≡⟨ [_,_] {C = λ z → z ≡ ⊎-map P.id from (⊎-map P.id to z)}
+                                                                             (λ _ → refl _)
+                                                                             (λ _ → cong inj₂ $ sym $ left-inverse-of _)
+                                                                             (from x ⁻¹₁) ⟩
+                      ⊎-map P.id from (⊎-map P.id to (from x ⁻¹₁))  ≡⟨ cong (⊎-map P.id from) x⁻¹₁≡₁ ⟩∎
+                      inj₁ (lift tt)                                ∎
+                in
+                x            ≡⟨ sym $ right-inverse-of x ⟩
+                to (from x)  ≡⟨ cong to (⁻¹₁₁ (from x) lemma) ⟩
+                to 0₁        ≡⟨ 0-homo ⟩∎
+                0₂           ∎)
+           , (λ x y x⁻¹₁≡y →
+                let lemma =
+                      from x ⁻¹₁                                    ≡⟨ [_,_] {C = λ z → z ≡ ⊎-map P.id from (⊎-map P.id to z)}
+                                                                             (λ _ → refl _)
+                                                                             (λ _ → cong inj₂ $ sym $ left-inverse-of _)
+                                                                             (from x ⁻¹₁) ⟩
+                      ⊎-map P.id from (⊎-map P.id to (from x ⁻¹₁))  ≡⟨ cong (⊎-map P.id from) x⁻¹₁≡y ⟩∎
+                      inj₂ (from y)                                 ∎
+                in
+                x *₂ y                 ≡⟨ sym $ cong (λ _*_ → x * y) *-homo ⟩
+                to (from x *₁ from y)  ≡⟨ cong to $ ⁻¹₁₂ (from x) (from y) lemma ⟩
+                to 1₁                  ≡⟨ 1-homo ⟩∎
+                1₂                     ∎)
+           )
+           (_⁻¹₂ , ⁻¹₂₁ , ⁻¹₂₂)
+    where open _≃_ F₁≃F₂
 
 -- In "Varieties of Constructive Mathematics" Bridges and Richman
 -- define a discrete field as a commutative ring with 1, decidable
@@ -1342,7 +1535,9 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
   main-lemma F _+_ 0# _*_ 1# -_
              +-assoc *-assoc +-comm *-comm *+ +0 *1 +- 0≢1 =
     _≃_.bijection $
-    _↔_.to (⇔↔≃ ext From-propositional
+    _↔_.to (⇔↔≃ ext (proposition-lemma₃ ext _+_ 0# _*_ 1# -_
+                                        +-assoc *-assoc +-comm *-comm
+                                        *+ +0 *1 +- 0≢1)
                     (proposition-lemma₁ ext 0# _*_ 1# *-assoc *-comm *1))
            (record { to = to; from = from })
     where
@@ -1382,47 +1577,6 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
         x * y                  ≡⟨ cong (_*_ _) $ sym $ ⊎.cancel-inj₂ x⁻¹≡y ⟩
         x * proj₁ (inv x x≢0)  ≡⟨ proj₂ (inv x x≢0) ⟩∎
         1#                     ∎
-
-    From-propositional : Is-proposition From
-    From-propositional =
-      _⇔_.from propositional⇔irrelevant irr
-      where
-      irr : ∀ x y → x ≡ y
-      irr (inv , inv₁ , inv₂) (inv′ , inv₁′ , inv₂′) =
-        _↔_.to (ignore-propositional-component
-                  (×-closure 1 (Π-closure ext 1 λ _ →
-                                Π-closure ext 1 λ _ →
-                                F-set _ _)
-                               (Π-closure ext 1 λ _ →
-                                Π-closure ext 1 λ _ →
-                                Π-closure ext 1 λ _ →
-                                F-set _ _)))
-               (ext inv≡inv′)
-        where
-        F-set : Is-set F
-        F-set = decidable⇒set $
-          dec-lemma₂ _+_ 0# _*_ 1# -_ inv +-assoc +-comm
-                     *-comm *+ +0 *1 +- 0≢1 inv₁ inv₂
-
-        01-lemma : ∀ x y → x ≡ 0# → x * y ≡ 1# → ⊥
-        01-lemma x y x≡0 xy≡1 = 0≢1 (
-          0#      ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
-          0# * y  ≡⟨ cong (λ x → x * _) $ sym x≡0 ⟩
-          x * y   ≡⟨ xy≡1 ⟩∎
-          1#      ∎)
-
-        inv≡inv′ : ∀ x → inv x ≡ inv′ x
-        inv≡inv′ x with inv  x | inv₁  x | inv₂  x
-                      | inv′ x | inv₁′ x | inv₂′ x
-        ... | inj₁ _   | _ | _   | inj₁ _    | _    | _ = refl _
-        ... | inj₂ x⁻¹ | _ | hyp | inj₁ _    | hyp′ | _ = ⊥-elim $ 01-lemma x x⁻¹ (hyp′ (refl _)) (hyp x⁻¹ (refl _))
-        ... | inj₁ _   | hyp | _ | inj₂ x⁻¹  | _ | hyp′ = ⊥-elim $ 01-lemma x x⁻¹ (hyp (refl _)) (hyp′ x⁻¹ (refl _))
-        ... | inj₂ x⁻¹ | _ | hyp | inj₂ x⁻¹′ | _ | hyp′ =
-          cong inj₂ $ *-injective _*_ 1# *-assoc *-comm *1 x
-                                  (x⁻¹ , hyp x⁻¹ (refl _))
-            (x * x⁻¹   ≡⟨ hyp x⁻¹ (refl _) ⟩
-             1#        ≡⟨ sym $ hyp′ x⁻¹′ (refl _) ⟩∎
-             x * x⁻¹′  ∎)
 
   lemma₁ : (A B C D E F : Set₁) (G : A × B × C × D × E × F → Set₁) →
            Σ (A × B × C × D × E × F) G ↔
