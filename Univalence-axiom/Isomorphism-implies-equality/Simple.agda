@@ -912,11 +912,46 @@ Instance-discrete-field :
 
 Instance-discrete-field = refl _
 
+-- A lemma.
+
+0* :
+  {F : Set₁}
+  (_+_ : F → F → F)
+  (0# : F)
+  (_*_ : F → F → F)
+  (1# : F)
+  (-_ : F → F) →
+  (∀ x y z → x + (y + z) ≡ (x + y) + z) →
+  (∀ x y → x + y ≡ y + x) →
+  (∀ x y → x * y ≡ y * x) →
+  (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) →
+  (∀ x → x + 0# ≡ x) →
+  (∀ x → x * 1# ≡ x) →
+  (∀ x → x + (- x) ≡ 0#) →
+  ∀ x → 0# * x ≡ 0#
+0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- x =
+  0# * x                ≡⟨ sym $ +0 _ ⟩
+  (0# * x) + 0#         ≡⟨ cong (_+_ _) $ sym $ +- _ ⟩
+  (0# * x) + (x + - x)  ≡⟨ +-assoc _ _ _ ⟩
+  ((0# * x) + x) + - x  ≡⟨ cong (λ y → y + _) lemma ⟩
+  x + - x               ≡⟨ +- x ⟩∎
+  0#                    ∎
+  where
+  lemma =
+    (0# * x) + x         ≡⟨ cong (_+_ _) $ sym $ *1 _ ⟩
+    (0# * x) + (x * 1#)  ≡⟨ cong (λ y → y + (x * 1#)) $ *-comm _ _ ⟩
+    (x * 0#) + (x * 1#)  ≡⟨ sym $ *+ _ _ _ ⟩
+    x * (0# + 1#)        ≡⟨ cong (_*_ _) $ +-comm _ _ ⟩
+    x * (1# + 0#)        ≡⟨ cong (_*_ _) $ +0 _ ⟩
+    x * 1#               ≡⟨ *1 _ ⟩∎
+    x                    ∎
+
 -- nLab defines a discrete field as a commutative ring satisfying the
 -- property that "an element is invertible xor it equals zero"
 -- (http://ncatlab.org/nlab/show/field). This definition of discrete
 -- fields is isomorphic to the one given above (assuming
--- extensionality).
+-- extensionality, and assuming that I interpreted the informal
+-- definition correctly).
 
 Instance-discrete-field-isomorphic-to-standard :
   Extensionality (# 1) (# 1) →
@@ -1033,27 +1068,9 @@ Instance-discrete-field-isomorphic-to-standard ext = ∃-cong λ F →
     ; left-inverse-of = from∘to
     }
     where
-    0* : 0# ≢ 1# → ∀ x → 0# * x ≡ 0#
-    0* 0≢1 x =
-      0# * x                ≡⟨ sym $ +0 _ ⟩
-      (0# * x) + 0#         ≡⟨ cong (_+_ _) $ sym $ +- _ ⟩
-      (0# * x) + (x + - x)  ≡⟨ +-assoc _ _ _ ⟩
-      ((0# * x) + x) + - x  ≡⟨ cong (λ y → y + _) lemma ⟩
-      x + - x               ≡⟨ +- x ⟩∎
-      0#                    ∎
-      where
-      lemma =
-        (0# * x) + x         ≡⟨ cong (_+_ _) $ sym $ *1 _ ⟩
-        (0# * x) + (x * 1#)  ≡⟨ cong (λ y → y + (x * 1#)) $ *-comm _ _ ⟩
-        (x * 0#) + (x * 1#)  ≡⟨ sym $ *+ _ _ _ ⟩
-        x * (0# + 1#)        ≡⟨ cong (_*_ _) $ +-comm _ _ ⟩
-        x * (1# + 0#)        ≡⟨ cong (_*_ _) $ +0 _ ⟩
-        x * 1#               ≡⟨ *1 _ ⟩∎
-        x                    ∎
-
     01-lemma : 0# ≢ 1# → ∀ x y → x ≡ 0# → x * y ≡ 1# → ⊥
     01-lemma 0≢1 x y x≡0 xy≡1 = 0≢1 (
-      0#      ≡⟨ sym $ 0* 0≢1 _ ⟩
+      0#      ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
       0# * y  ≡⟨ cong (λ x → x * _) $ sym x≡0 ⟩
       x * y   ≡⟨ xy≡1 ⟩∎
       1#      ∎)
@@ -1146,6 +1163,177 @@ Instance-discrete-field-isomorphic-to-standard ext = ∃-cong λ F →
     ((((((((A × B) × C) × D) × E) × F) × G) × H) × (J × I) × K)  ↝⟨ (_ □) ×-cong inverse ×-assoc ⟩
     ((((((((A × B) × C) × D) × E) × F) × G) × H) × J × I × K)    ↝⟨ ×-assoc ⟩□
     (((((((((A × B) × C) × D) × E) × F) × G) × H) × J) × I × K)  □
+
+-- In "Varieties of Constructive Mathematics" Bridges and Richman
+-- define a (non-trivial) discrete field (using denial inequality as
+-- the inequality relation) as a commutative ring with 0 distinct from
+-- 1, decidable equality, and satisfying the property that non-zero
+-- elements are invertible. This definition of discrete fields is
+-- isomorphic to nLab's (assuming extensionality, and assuming that I
+-- interpreted the two informal definitions correctly).
+
+standard-isomorphic-to-standard :
+  Extensionality (# 1) (# 1) →
+
+  (Σ Set₁ λ F →
+   Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
+     λ { (_+_ , 0# , _*_ , 1# , -_) →
+   Is-set F ×
+   (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
+   (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+   (∀ x y → x + y ≡ y + x) ×
+   (∀ x y → x * y ≡ y * x) ×
+   (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+   (∀ x → x + 0# ≡ x) ×
+   (∀ x → x * 1# ≡ x) ×
+   (∀ x → x + (- x) ≡ 0#) ×
+   (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)) })
+    ↔
+  Σ Set₁ λ F →
+  Σ ((F → F → F) × F × (F → F → F) × F × (F → F))
+    λ { (_+_ , 0# , _*_ , 1# , -_) →
+  Is-set F ×
+  (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
+  (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+  (∀ x y → x + y ≡ y + x) ×
+  (∀ x y → x * y ≡ y * x) ×
+  (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+  (∀ x → x + 0# ≡ x) ×
+  (∀ x → x * 1# ≡ x) ×
+  (∀ x → x + (- x) ≡ 0#) ×
+  0# ≢ 1# ×
+  ((x y : F) → x ≡ y ⊎ x ≢ y) ×
+  (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#) }
+
+standard-isomorphic-to-standard ext =
+  ∃-cong λ F →
+  ∃-cong λ { (_+_ , 0# , _*_ , 1# , -_) →
+  ∃-cong λ F-set →
+  ∃-cong λ +-assoc →
+  ∃-cong λ *-assoc →
+  ∃-cong λ +-comm →
+  ∃-cong λ *-comm →
+  ∃-cong λ *+ →
+  ∃-cong λ +0 →
+  ∃-cong λ *1 →
+  ∃-cong λ +- →
+  main-lemma F _+_ 0# _*_ 1# -_ F-set
+             +-assoc *-assoc +-comm *-comm *+ +0 *1 +- }
+  where
+  main-lemma :
+    (F : Set₁)
+    (_+_ : F → F → F)
+    (0# : F)
+    (_*_ : F → F → F)
+    (1# : F)
+    (-_ : F → F) →
+    Is-set F →
+    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
+    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
+    (∀ x y → x + y ≡ y + x) →
+    (∀ x y → x * y ≡ y * x) →
+    (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) →
+    (∀ x → x + 0# ≡ x) →
+    (∀ x → x * 1# ≡ x) →
+    (∀ x → x + (- x) ≡ 0#) →
+
+   (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#))
+     ↔
+   (0# ≢ 1# ×
+    ((x y : F) → x ≡ y ⊎ x ≢ y) ×
+    (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#))
+  main-lemma F _+_ 0# _*_ 1# -_ F-set
+             +-assoc *-assoc +-comm *-comm *+ +0 *1 +- =
+    _≃_.bijection $ _↔_.to (⇔↔≃ ext From-propositional To-propositional)
+      (record { to = to; from = from })
+    where
+    To   = 0# ≢ 1# ×
+           ((x y : F) → x ≡ y ⊎ x ≢ y) ×
+           (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#)
+    From = ∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)
+
+    to : From → To
+    to inv = (0≢1 , dec , inv′)
+      where
+      0≢1 : 0# ≢ 1#
+      0≢1 0≡1 =
+        [ (λ { (_        , 1≢0) → 1≢0 (sym 0≡1) })
+        , (λ { (∄y[1y≡1] , _)   → ∄y[1y≡1] (1# , *1 1#) })
+        ] (inv 1#)
+
+      dec : Decidable (_≡_ {A = F})
+      dec x y =
+        [ (λ { (_ , x-y≢0) → inj₂ (λ x≡y → x-y≢0 (x + - y  ≡⟨ cong (_+_ _ ∘ -_) $ sym x≡y ⟩
+                                                  x + - x  ≡⟨ +- _ ⟩∎
+                                                  0#       ∎)) })
+        , (λ { (_ , x-y≡0) → inj₁ (x              ≡⟨ sym $ +0 _ ⟩
+                                   x + 0#         ≡⟨ cong (_+_ _) $ sym $ +- _ ⟩
+                                   x + (y + - y)  ≡⟨ cong (_+_ _) $ +-comm _ _ ⟩
+                                   x + (- y + y)  ≡⟨ +-assoc _ _ _ ⟩
+                                   (x + - y) + y  ≡⟨ cong (λ x → x + _) x-y≡0 ⟩
+                                   0# + y         ≡⟨ +-comm _ _ ⟩
+                                   y + 0#         ≡⟨ +0 _ ⟩∎
+                                   y              ∎) })
+        ] (inv (x + - y))
+
+      inv′ : ∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#
+      inv′ x x≢0 =
+        [ proj₁
+        , (λ { (_ , x≡0) → ⊥-elim (x≢0 x≡0) })
+        ] (inv x)
+
+    from : To → From
+    from (0≢1 , dec , inv) x =
+      [ (λ x≡0 → inj₂ ( (λ { (y , xy≡1) → 0≢1 (0#      ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- y ⟩
+                                               0# * y  ≡⟨ cong (λ x → x * y) $ sym x≡0 ⟩
+                                               x * y   ≡⟨ xy≡1 ⟩∎
+                                               1#      ∎) })
+                      , x≡0
+                      ))
+      , (λ x≢0 → inj₁ (inv x x≢0 , x≢0))
+      ] (dec x 0#)
+
+    inverse-propositional : ∀ x → Is-proposition (∃ λ y → x * y ≡ 1#)
+    inverse-propositional x =
+      [inhabited⇒+]⇒+ 0 λ { (x⁻¹ , xx⁻¹≡1) →
+
+      let lemma : ∀ y → y ≡ x⁻¹ * (x * y)
+          lemma y =
+            y              ≡⟨ sym $ *1 _ ⟩
+            y * 1#         ≡⟨ *-comm _ _ ⟩
+            1# * y         ≡⟨ cong (λ x → x * y) $ sym xx⁻¹≡1 ⟩
+            (x * x⁻¹) * y  ≡⟨ cong (λ x → x * y) $ *-comm _ _ ⟩
+            (x⁻¹ * x) * y  ≡⟨ sym $ *-assoc _ _ _ ⟩∎
+            x⁻¹ * (x * y)  ∎
+      in
+
+      injection⁻¹-propositional
+        (record { to        = _*_ x
+                ; injective = λ {y₁ y₂} xy₁≡xy₂ →
+                    y₁              ≡⟨ lemma y₁ ⟩
+                    x⁻¹ * (x * y₁)  ≡⟨ cong (_*_ x⁻¹) xy₁≡xy₂ ⟩
+                    x⁻¹ * (x * y₂)  ≡⟨ sym $ lemma y₂ ⟩∎
+                    y₂              ∎
+                })
+        F-set 1# }
+
+    From-propositional : Is-proposition From
+    From-propositional =
+      Π-closure ext 1 λ x →
+      Xor-closure-propositional (lower-ext (# 0) _ ext)
+        (inverse-propositional x)
+        (F-set _ _)
+
+    To-propositional : Is-proposition To
+    To-propositional =
+      ×-closure  1 (¬-propositional (lower-ext (# 0) _ ext))
+      (×-closure 1 (Π-closure ext 1 λ _ →
+                    Π-closure ext 1 λ _ →
+                    Dec-closure-propositional
+                      (lower-ext (# 0) _ ext) (F-set _ _))
+                   (Π-closure ext 1 λ x →
+                    Π-closure ext 1 λ _ →
+                    inverse-propositional x))
 
 -- The notion of isomorphism that we get is reasonable.
 
