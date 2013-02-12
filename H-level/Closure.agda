@@ -567,6 +567,40 @@ abstract
     irrelevant (inj₂ ¬a) (inj₂ ¬a′) =
       cong (inj₂ {A = A}) $ proj₁ $ ¬-propositional ext ¬a ¬a′
 
+  -- Is-proposition is also closed under _Xor_ (assuming
+  -- extensionality).
+
+  Xor-closure-propositional :
+    ∀ {a b} {A : Set a} {B : Set b} →
+    Extensionality (a ⊔ b) (# 0) →
+    Is-proposition A → Is-proposition B →
+    Is-proposition (A Xor B)
+  Xor-closure-propositional {ℓa} {ℓb} {A} {B} ext pA pB =
+    _⇔_.from propositional⇔irrelevant irr
+    where
+    irr : (x y : A Xor B) → x ≡ y
+    irr (inj₁ (a , ¬b)) (inj₂ (¬a  , b))   = ⊥-elim (¬a a)
+    irr (inj₂ (¬a , b)) (inj₁ (a   , ¬b))  = ⊥-elim (¬b b)
+    irr (inj₁ (a , ¬b)) (inj₁ (a′  , ¬b′)) =
+      cong₂ (λ x y → inj₁ (x , y))
+        (_⇔_.to propositional⇔irrelevant pA a a′)
+        (lower-extensionality ℓa _ ext λ b → ⊥-elim (¬b b))
+    irr (inj₂ (¬a , b)) (inj₂ (¬a′ , b′)) =
+      cong₂ (λ x y → inj₂ (x , y))
+        (lower-extensionality ℓb _ ext λ a → ⊥-elim (¬a a))
+        (_⇔_.to propositional⇔irrelevant pB b b′)
+
+  -- However, H-level is not closed under _Xor_.
+
+  ¬-Xor-closure-contractible : ∀ {a b} →
+    ¬ ({A : Set a} {B : Set b} →
+       Contractible A → Contractible B → Contractible (A Xor B))
+  ¬-Xor-closure-contractible closure
+    with proj₁ $ closure (↑-closure 0 ⊤-contractible)
+                         (↑-closure 0 ⊤-contractible)
+  ... | inj₁ (_ , ¬⊤) = ¬⊤ _
+  ... | inj₂ (¬⊤ , _) = ¬⊤ _
+
   -- Alternative definition of ⊎-closure (for Set₀).
 
   module Alternative-proof where
