@@ -243,8 +243,9 @@ module Class (Univ : Universe) where
 
 ------------------------------------------------------------------------
 -- An aside: A slightly restricted variant of
--- Class.isomorphism-is-equality can be proved by using the "Abstract
--- SIP Theorem" (see the HoTT Book)
+-- Class.isomorphism-is-equality can be proved by using Aczel and
+-- Shulman's "Abstract SIP Theorem", as found in one draft of the HoTT
+-- Book
 
 -- "Standard notions of structure".
 
