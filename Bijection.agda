@@ -218,8 +218,8 @@ ignore-propositional-component {p = p₁ , p₂} {q₁ , q₂} Bq₁-prop = reco
 
     from∘to : ∀ p₁≡q₁ → from (to p₁≡q₁) ≡ p₁≡q₁
     from∘to p₁≡q₁ =
-      proj₁ (_↔_.from Σ-≡,≡↔≡ (Σ-≡,≡→≡ p₁≡q₁ _))  ≡⟨ cong proj₁ $ _↔_.left-inverse-of Σ-≡,≡↔≡ _ ⟩∎
-      p₁≡q₁                                       ∎
+      proj₁ (Σ-≡,≡←≡ (Σ-≡,≡→≡ p₁≡q₁ _))  ≡⟨ cong proj₁ $ _↔_.left-inverse-of Σ-≡,≡↔≡ _ ⟩∎
+      p₁≡q₁                              ∎
 
 -- Equalities are closed, in a strong sense, under applications of
 -- certain injections (at least inj₁ and inj₂).
