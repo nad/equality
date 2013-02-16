@@ -171,7 +171,7 @@ module Class (Univ : Universe) where
 
     equality-pair-lemma :
       Assumptions →
-      ∀ c {I J} →
+      ∀ c {I J : Instance c} →
       (I ≡ J) ↔
       ∃ λ (C-eq : Carrier c I ≡ Carrier c J) →
         subst (El (proj₁ c)) C-eq (element c I) ≡ element c J
