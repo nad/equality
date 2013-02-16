@@ -81,7 +81,7 @@ import Equality.Decidable-UIP
 -- Propositional second components of pairs can be dropped
 -- (ignore-propositional-component).
 
-import Bijection
+import Function-universe
 
 -- Is-equivalence, subst P eq is an equivalence
 -- (subst-is-equivalence), _≃_, _≃_ is logically equivalent to _↔_ and

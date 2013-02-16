@@ -182,45 +182,6 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
          (refl _))
       (proj₁ p) (proj₂ p)
 
--- If one is given an equality between pairs, where the second
--- components of the pairs are propositional, then one can restrict
--- attention to the first components.
-
-ignore-propositional-component :
-  ∀ {a b} {A : Set a} {B : A → Set b} {p q : Σ A B} →
-  Is-proposition (B (proj₁ q)) →
-  (proj₁ p ≡ proj₁ q) ↔ (p ≡ q)
-ignore-propositional-component {p = p₁ , p₂} {q₁ , q₂} Bq₁-prop = record
-  { surjection = record
-    { equivalence = record
-      { to   = to
-      ; from = from
-      }
-    ; right-inverse-of = to∘from
-    }
-  ; left-inverse-of = from∘to
-  }
-  where
-  to : p₁ ≡ q₁ → (p₁ , p₂) ≡ (q₁ , q₂)
-  to = λ p₁≡q₁ →
-    Σ-≡,≡→≡ p₁≡q₁ (_⇔_.to propositional⇔irrelevant Bq₁-prop _ _)
-
-  from : (p₁ , p₂) ≡ (q₁ , q₂) → p₁ ≡ q₁
-  from = proj₁ ⊚ Σ-≡,≡←≡
-
-  abstract
-
-    to∘from : ∀ p≡q → to (from p≡q) ≡ p≡q
-    to∘from p≡q =
-      Σ-≡,≡→≡ (proj₁ $ Σ-≡,≡←≡ p≡q) _  ≡⟨ cong (Σ-≡,≡→≡ _) $ _⇔_.to set⇔UIP (mono₁ 1 Bq₁-prop) _ _ ⟩
-      Σ-≡,≡→≡ (proj₁ $ Σ-≡,≡←≡ p≡q) _  ≡⟨ _↔_.right-inverse-of Σ-≡,≡↔≡ _ ⟩∎
-      p≡q                              ∎
-
-    from∘to : ∀ p₁≡q₁ → from (to p₁≡q₁) ≡ p₁≡q₁
-    from∘to p₁≡q₁ =
-      proj₁ (Σ-≡,≡←≡ (Σ-≡,≡→≡ p₁≡q₁ _))  ≡⟨ cong proj₁ $ _↔_.left-inverse-of Σ-≡,≡↔≡ _ ⟩∎
-      p₁≡q₁                              ∎
-
 -- Equalities are closed, in a strong sense, under applications of
 -- certain injections (at least inj₁ and inj₂).
 

@@ -13,6 +13,7 @@ open import Bijection eq as Bijection using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; module _≃_)
+open import H-level eq
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
 open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Preimage eq using (_⁻¹_)
@@ -712,6 +713,20 @@ private
      subst (λ _ → B) p (proj₂ p₁) ≡ proj₂ p₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
 
   (p₁ ≡ p₂)                                    □
+
+-- If one is given an equality between pairs, where the second
+-- components of the pairs are propositional, then one can restrict
+-- attention to the first components.
+
+ignore-propositional-component :
+  ∀ {a b} {A : Set a} {B : A → Set b} {p q : Σ A B} →
+  Is-proposition (B (proj₁ q)) →
+  (proj₁ p ≡ proj₁ q) ↔ (p ≡ q)
+ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
+  (p₁ ≡ q₁)                                  ↝⟨ inverse ×-right-identity ⟩
+  (p₁ ≡ q₁ × ⊤)                              ↝⟨ ∃-cong (λ _ → inverse $ contractible↔⊤ (Bq₁-prop _ _)) ⟩
+  (∃ λ (eq : p₁ ≡ q₁) → subst B eq p₂ ≡ q₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
+  ((p₁ , p₂) ≡ (q₁ , q₂))                    □
 
 ------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring
