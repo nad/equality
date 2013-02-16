@@ -164,10 +164,3 @@ import Bag-equivalence
 -- definitions of bag equivalence.
 
 import Bag-equivalence
-
-------------------------------------------------------------------------
-
--- For an overview over the other modules in this development, see the
--- README.
-
-import README

@@ -161,3 +161,8 @@ import Container.Tree-sort.Example
 -- The stream container.
 
 import Container.Stream
+
+-- Overview of code related to some papers.
+
+import README.Bag-equivalence
+import README.Isomorphism-is-equality
