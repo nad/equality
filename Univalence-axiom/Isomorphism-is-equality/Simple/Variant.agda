@@ -9,7 +9,7 @@
 -- "universes", not only the one based on simple types.
 
 -- This module is similar to
--- Univalence-axiom.Isomorphism-implies-equality.Simple, but the
+-- Univalence-axiom.Isomorphism-is-equality.Simple, but the
 -- definitions of isomorphism used below are perhaps closer to the
 -- "standard" ones. Carrier types also live in Set rather than Set₁
 -- (at the cost of quite a bit of lifting).
@@ -21,7 +21,7 @@
 
 open import Equality
 
-module Univalence-axiom.Isomorphism-implies-equality.Simple.Variant
+module Univalence-axiom.Isomorphism-is-equality.Simple.Variant
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Bijection eq hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)

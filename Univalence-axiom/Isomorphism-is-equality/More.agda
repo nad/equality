@@ -12,7 +12,7 @@
 -- This module has been developed in collaboration with Thierry
 -- Coquand.
 
-module Univalence-axiom.Isomorphism-implies-equality.More where
+module Univalence-axiom.Isomorphism-is-equality.More where
 
 open import Equality.Propositional
   hiding (refl) renaming (equality-with-J to eq)
@@ -964,4 +964,4 @@ module Dependent where
 -- Examples
 
 -- For examples, see
--- Univalence-axiom.Isomorphism-implies-equality.More.Examples.
+-- Univalence-axiom.Isomorphism-is-equality.More.Examples.

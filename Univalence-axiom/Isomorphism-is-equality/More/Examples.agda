@@ -1,6 +1,5 @@
 ------------------------------------------------------------------------
--- Examples related to
--- Univalence-axiom.Isomorphism-implies-equality.More
+-- Examples related to Univalence-axiom.Isomorphism-is-equality.More
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
@@ -11,7 +10,7 @@
 -- This module has been developed in collaboration with Thierry
 -- Coquand.
 
-module Univalence-axiom.Isomorphism-implies-equality.More.Examples where
+module Univalence-axiom.Isomorphism-is-equality.More.Examples where
 
 open import Equality.Propositional renaming (equality-with-J to eq)
 
@@ -20,7 +19,7 @@ open import Function-universe eq hiding (id)
 open import H-level eq using (Is-proposition; Is-set)
 open import H-level.Closure eq
 open import Prelude hiding (id)
-open import Univalence-axiom.Isomorphism-implies-equality.More
+open import Univalence-axiom.Isomorphism-is-equality.More
 
 ------------------------------------------------------------------------
 -- Magmas

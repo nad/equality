@@ -97,16 +97,16 @@ import Category
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
 
-import Univalence-axiom.Isomorphism-implies-equality.Monoid
+import Univalence-axiom.Isomorphism-is-equality.Monoid
 
 -- In fact, several large classes of algebraic structures satisfy the
 -- property that isomorphism coincides with equality (assuming
 -- univalence).
 
-import Univalence-axiom.Isomorphism-implies-equality.Simple
-import Univalence-axiom.Isomorphism-implies-equality.Simple.Variant
-import Univalence-axiom.Isomorphism-implies-equality.More
-import Univalence-axiom.Isomorphism-implies-equality.More.Examples
+import Univalence-axiom.Isomorphism-is-equality.Simple
+import Univalence-axiom.Isomorphism-is-equality.Simple.Variant
+import Univalence-axiom.Isomorphism-is-equality.More
+import Univalence-axiom.Isomorphism-is-equality.More.Examples
 
 -- A class of structures that satisfies the property that isomorphic
 -- instances of a structure are equal (assuming univalence). This code

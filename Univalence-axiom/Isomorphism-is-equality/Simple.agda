@@ -15,7 +15,7 @@
 
 open import Equality
 
-module Univalence-axiom.Isomorphism-implies-equality.Simple
+module Univalence-axiom.Isomorphism-is-equality.Simple
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Bijection eq
@@ -1940,8 +1940,8 @@ poset =
 -- The interpretation of the code is reasonable. (Except, perhaps,
 -- that the carrier type lives in Set₁ but the codomain of the
 -- ordering relation is Set. In the corresponding example in
--- Univalence-axiom.Isomorphism-implies-equality.Simple.Variant the
--- carrier type lives in Set.)
+-- Univalence-axiom.Isomorphism-is-equality.Simple.Variant the carrier
+-- type lives in Set.)
 
 Instance-poset :
 

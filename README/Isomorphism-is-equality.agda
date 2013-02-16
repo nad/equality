@@ -109,7 +109,7 @@ import Univalence-axiom
 
 -- The parameters are represented using a record type called Universe.
 
-import Univalence-axiom.Isomorphism-implies-equality.Simple
+import Univalence-axiom.Isomorphism-is-equality.Simple
 
 ------------------------------------------------------------------------
 -- 3.2: Codes for Structures
@@ -117,7 +117,7 @@ import Univalence-axiom.Isomorphism-implies-equality.Simple
 -- Code, Instance, Is-isomorphism, Isomorphic, Carrier, element,
 -- equality-pair-lemma.
 
-import Univalence-axiom.Isomorphism-implies-equality.Simple
+import Univalence-axiom.Isomorphism-is-equality.Simple
 
 ------------------------------------------------------------------------
 -- 3.3: Main Theorem
@@ -125,7 +125,7 @@ import Univalence-axiom.Isomorphism-implies-equality.Simple
 -- The main result (isomorphism-is-equality) as well as a corollary
 -- (isomorphic≡≡).
 
-import Univalence-axiom.Isomorphism-implies-equality.Simple
+import Univalence-axiom.Isomorphism-is-equality.Simple
 
 ------------------------------------------------------------------------
 -- 3.4: A Universe
@@ -133,7 +133,7 @@ import Univalence-axiom.Isomorphism-implies-equality.Simple
 -- U, El, cast, resp, resp-id, Is-isomorphism′,
 -- isomorphism-definitions-isomorphic.
 
-import Univalence-axiom.Isomorphism-implies-equality.Simple
+import Univalence-axiom.Isomorphism-is-equality.Simple
 
 -- The operators _→-eq_ (→-cong-⇔), _×-eq_ (_×-cong_) and _+-eq_
 -- (_⊎-cong_).
@@ -149,7 +149,7 @@ import Prelude
 
 -- Monoids, posets, discrete fields, fixpoint operators.
 
-import Univalence-axiom.Isomorphism-implies-equality.Simple
+import Univalence-axiom.Isomorphism-is-equality.Simple
 
 ---=====================================================================
 -- 4: Related Work
@@ -158,7 +158,7 @@ import Univalence-axiom.Isomorphism-implies-equality.Simple
 -- using one (preliminary?) version of the "Abstract SIP Theorem"
 -- (isomorphism-is-equality-is-corollary).
 
-import Univalence-axiom.Isomorphism-implies-equality.Simple
+import Univalence-axiom.Isomorphism-is-equality.Simple
 
 ---=====================================================================
 -- 5: Conclusions
@@ -166,5 +166,5 @@ import Univalence-axiom.Isomorphism-implies-equality.Simple
 -- A development with support for multiple carrier types as well as
 -- polynomial types (using a computing J rule).
 
-import Univalence-axiom.Isomorphism-implies-equality.More
-import Univalence-axiom.Isomorphism-implies-equality.More.Examples
+import Univalence-axiom.Isomorphism-is-equality.More
+import Univalence-axiom.Isomorphism-is-equality.More.Examples

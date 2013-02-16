@@ -10,7 +10,7 @@
 
 open import Equality
 
-module Univalence-axiom.Isomorphism-implies-equality.Monoid
+module Univalence-axiom.Isomorphism-is-equality.Monoid
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Bijection eq hiding (id; inverse; _↔⟨_⟩_)
