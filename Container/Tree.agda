@@ -205,13 +205,16 @@ Any-singleton P {x} =
 
 fold : {A B : Set} →
        B → (⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → B → B → B) → ⟦ Tree ⟧ A → B
-fold le no (lf     , lkup) = le
-fold le no (nd l r , lkup) =
-  no (l , lkup ∘ left )
-     (lkup root)
-     (r , lkup ∘ right)
-     (fold le no (l , lkup ∘ left ))
-     (fold le no (r , lkup ∘ right))
+fold {A} {B} le no = uncurry fold′
+  where
+  fold′ : (s : Shape) → (Position s → A) → B
+  fold′ lf       lkup = le
+  fold′ (nd l r) lkup =
+    no (l , lkup ∘ left )
+       (lkup root)
+       (r , lkup ∘ right)
+       (fold′ l (lkup ∘ left ))
+       (fold′ r (lkup ∘ right))
 
 -- A lemma which can be used to prove properties about fold.
 --
@@ -226,11 +229,15 @@ fold-lemma : ∀ {A B : Set}
              (∀ l x r b₁ b₂ →
                 P l b₁ → P r b₂ → P (node l x r) (no l x r b₁ b₂)) →
              ∀ t → P t (fold le no t)
-fold-lemma P resp le no (lf     , lkup) = resp _ _ leaf≈ _ le
-fold-lemma P resp le no (nd l r , lkup) = resp _ _ node≈ _ $
-  no _ _ _ _ _
-     (fold-lemma P resp le no (l , lkup ∘ left ))
-     (fold-lemma P resp le no (r , lkup ∘ right))
+fold-lemma {A} {le = le} {no} P resp P-le P-no = uncurry fold-lemma′
+  where
+  fold-lemma′ : (s : Shape) (lkup : Position s → A) →
+                P (s , lkup) (fold le no (s , lkup))
+  fold-lemma′ lf       lkup = resp _ _ leaf≈ _ P-le
+  fold-lemma′ (nd l r) lkup = resp _ _ node≈ _ $
+    P-no _ _ _ _ _
+       (fold-lemma′ l (lkup ∘ left ))
+       (fold-lemma′ r (lkup ∘ right))
 
 -- Inorder flattening of a tree.
 

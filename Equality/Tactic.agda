@@ -99,118 +99,174 @@ private
   ⟦_⟧S {upper}  Refl           = refl _
   ⟦_⟧S {upper}  (Cons x≈y y≈z) = trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S
 
-  -- Simplified expressions which are equivalent to a given proof.
-
-  EqS_⟨_⟩ : Level → ∀ {a} {A : Set a} {x y : A} → x ≡ y → Set (lsuc a)
-  EqS ℓ ⟨ x≡y ⟩ = ∃ λ (x≈y : EqS ℓ _ _) → x≡y ≡ ⟦ x≈y ⟧S
-
 ------------------------------------------------------------------------
--- Manipulation of expressions combined with proofs
+-- Manipulation of expressions
 
 private
 
-  lift : ∀ {a} {A : Set a} {x y : A}
-         (x≡y : x ≡ y) → EqS upper ⟨ x≡y ⟩
-  lift x≡y = Cons (No-Sym (Cong id x≡y)) Refl , (
-    x≡y                           ≡⟨ cong-id _ ⟩
-    cong id x≡y                   ≡⟨ sym (trans-reflʳ _) ⟩∎
-    trans (cong id x≡y) (refl _)  ∎)
+  lift : ∀ {a} {A : Set a} {x y : A} →
+         x ≡ y → EqS upper x y
+  lift x≡y = Cons (No-Sym (Cong id x≡y)) Refl
 
-  snoc : ∀ {a} {A : Set a} {x y z : A} {x≡y : x ≡ y} {y≡z : y ≡ z} →
-         EqS upper  ⟨ sym            y≡z  ⟩ →
-         EqS middle ⟨ sym        x≡y      ⟩ →
-         EqS upper  ⟨ sym (trans x≡y y≡z) ⟩
-  snoc {x≡y = x≡y} {y≡z} (Refl , h₁) (y≈z , h₂) = Cons y≈z Refl , (
-    sym (trans x≡y y≡z)        ≡⟨ sym-trans _ _ ⟩
-    trans (sym y≡z) (sym x≡y)  ≡⟨ cong₂ trans h₁ h₂ ⟩
-    trans (refl _) ⟦ y≈z ⟧S    ≡⟨ trans-reflˡ _ ⟩
-    ⟦ y≈z ⟧S                   ≡⟨ sym (trans-reflʳ _) ⟩∎
-    trans ⟦ y≈z ⟧S (refl _)    ∎)
-  snoc {x≡y = x≡y} {y≡z} (Cons x≈y y≈z , h₁) (z≈u , h₂)
-    with snoc (y≈z , sym-sym _) (z≈u , h₂)
-  ... | (y≈u , h₃) = Cons x≈y y≈u , (
-    sym (trans x≡y y≡z)                                    ≡⟨ sym-trans _ _ ⟩
-    trans (sym y≡z) (sym x≡y)                              ≡⟨ cong₂ trans h₁ (refl (sym x≡y)) ⟩
-    trans (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S) (sym x≡y)              ≡⟨ trans-assoc _ _ _ ⟩
-    trans ⟦ x≈y ⟧S (trans ⟦ y≈z ⟧S (sym x≡y))              ≡⟨ cong (trans ⟦ x≈y ⟧S) $
-                                                                cong₂ trans (sym (sym-sym ⟦ y≈z ⟧S)) (refl (sym x≡y)) ⟩
-    trans ⟦ x≈y ⟧S (trans (sym (sym ⟦ y≈z ⟧S)) (sym x≡y))  ≡⟨ cong (trans _) $ sym (sym-trans x≡y (sym ⟦ y≈z ⟧S)) ⟩
-    trans ⟦ x≈y ⟧S (sym (trans x≡y (sym ⟦ y≈z ⟧S)))        ≡⟨ cong (trans _) h₃ ⟩∎
-    trans ⟦ x≈y ⟧S ⟦ y≈u ⟧S                                ∎)
+  abstract
 
-  append : ∀ {a} {A : Set a} {x y z : A} {x≡y : x ≡ y} {y≡z : y ≡ z} →
-           EqS upper ⟨       x≡y     ⟩ →
-           EqS upper ⟨           y≡z ⟩ →
-           EqS upper ⟨ trans x≡y y≡z ⟩
-  append {x≡y = x≡y} {y≡z} (Refl , h) x≈y =
-    Σ-map id
-          (λ {y≈z} y≡z≡⟦y≈z⟧ →
-             trans x≡y y≡z            ≡⟨ cong₂ trans h y≡z≡⟦y≈z⟧ ⟩
-             trans (refl _) ⟦ y≈z ⟧S  ≡⟨ trans-reflˡ _ ⟩∎
-             ⟦ y≈z ⟧S                 ∎)
-          x≈y
-  append {x≡y = x≡z} {z≡u} (Cons x≈y y≈z , h) z≈u =
-    Σ-map (Cons x≈y)
-          (λ {y≈u} trans⟦y≈z⟧z≡u≡⟦y≈u⟧ →
-             trans x≡z z≡u                        ≡⟨ cong₂ trans h (refl z≡u) ⟩
-             trans (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S) z≡u  ≡⟨ trans-assoc _ _ _ ⟩
-             trans ⟦ x≈y ⟧S (trans ⟦ y≈z ⟧S z≡u)  ≡⟨ cong (trans _) trans⟦y≈z⟧z≡u≡⟦y≈u⟧ ⟩∎
-             trans ⟦ x≈y ⟧S ⟦ y≈u ⟧S              ∎)
-          (append (y≈z , refl _) z≈u)
+    lift-correct : ∀ {a} {A : Set a} {x y : A}
+                   (x≡y : x ≡ y) → x≡y ≡ ⟦ lift x≡y ⟧S
+    lift-correct x≡y =
+      x≡y                           ≡⟨ cong-id _ ⟩
+      cong id x≡y                   ≡⟨ sym (trans-reflʳ _) ⟩∎
+      trans (cong id x≡y) (refl _)  ∎
 
-  map-sym : ∀ {a} {A : Set a} {x y : A} {x≡y : x ≡ y} →
-            EqS middle ⟨ x≡y ⟩ → EqS middle ⟨ sym x≡y ⟩
-  map-sym {x≡y = x≡y} (No-Sym x≈y , h) = Sym    x≈y , (sym x≡y       ≡⟨ cong sym h ⟩∎
-                                                       sym ⟦ x≈y ⟧S  ∎)
-  map-sym {x≡y = x≡y} (Sym    x≈y , h) = No-Sym x≈y , (sym x≡y             ≡⟨ cong sym h ⟩
-                                                       sym (sym ⟦ x≈y ⟧S)  ≡⟨ sym-sym _ ⟩∎
-                                                       ⟦ x≈y ⟧S            ∎)
+  snoc : ∀ {a} {A : Set a} {x y z : A} →
+         EqS upper x y → EqS middle y z → EqS upper x z
+  snoc Refl           y≈z = Cons y≈z Refl
+  snoc (Cons x≈y y≈z) z≈u = Cons x≈y (snoc y≈z z≈u)
 
-  reverse : ∀ {a} {A : Set a} {x y : A} {x≡y : x ≡ y} →
-            EqS upper ⟨     x≡y ⟩ →
-            EqS upper ⟨ sym x≡y ⟩
-  reverse {x≡y = x≡y} (Refl         , h) = Refl , (sym x≡y       ≡⟨ cong sym h ⟩
-                                                   sym (refl _)  ≡⟨ sym-refl ⟩∎
-                                                   refl _        ∎)
-  reverse {x≡y = x≡y} (Cons x≈y y≈z , h)
-    with snoc (reverse (y≈z , refl _)) (map-sym (x≈y , refl _))
-  ... | (x≈z , h′) = x≈z , (sym x≡y                        ≡⟨ cong sym h ⟩
-                            sym (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S)  ≡⟨ h′ ⟩∎
-                            ⟦ x≈z ⟧S                       ∎)
+  abstract
+
+    snoc-correct :
+      ∀ {a} {A : Set a} {x y z : A} {x≡y y≡z}
+      (z≈y : EqS upper z y) (y≈x : EqS middle y x) →
+      sym y≡z ≡ ⟦ z≈y ⟧S → sym x≡y ≡ ⟦ y≈x ⟧S →
+      sym (trans x≡y y≡z) ≡ ⟦ snoc z≈y y≈x ⟧S
+    snoc-correct {x≡y = x≡y} {y≡z} Refl y≈z h₁ h₂ =
+      sym (trans x≡y y≡z)        ≡⟨ sym-trans _ _ ⟩
+      trans (sym y≡z) (sym x≡y)  ≡⟨ cong₂ trans h₁ h₂ ⟩
+      trans (refl _) ⟦ y≈z ⟧S    ≡⟨ trans-reflˡ _ ⟩
+      ⟦ y≈z ⟧S                   ≡⟨ sym (trans-reflʳ _) ⟩∎
+      trans ⟦ y≈z ⟧S (refl _)    ∎
+    snoc-correct {x≡y = x≡y} {y≡z} (Cons x≈y y≈z) z≈u h₁ h₂ =
+      sym (trans x≡y y≡z)                                    ≡⟨ sym-trans _ _ ⟩
+      trans (sym y≡z) (sym x≡y)                              ≡⟨ cong₂ trans h₁ (refl (sym x≡y)) ⟩
+      trans (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S) (sym x≡y)              ≡⟨ trans-assoc _ _ _ ⟩
+      trans ⟦ x≈y ⟧S (trans ⟦ y≈z ⟧S (sym x≡y))              ≡⟨ cong (trans ⟦ x≈y ⟧S) $
+                                                                  cong₂ trans (sym (sym-sym ⟦ y≈z ⟧S)) (refl (sym x≡y)) ⟩
+      trans ⟦ x≈y ⟧S (trans (sym (sym ⟦ y≈z ⟧S)) (sym x≡y))  ≡⟨ cong (trans _) $ sym (sym-trans x≡y (sym ⟦ y≈z ⟧S)) ⟩
+      trans ⟦ x≈y ⟧S (sym (trans x≡y (sym ⟦ y≈z ⟧S)))        ≡⟨ cong (trans _) $ snoc-correct y≈z z≈u (sym-sym _) h₂ ⟩∎
+      trans ⟦ x≈y ⟧S ⟦ snoc y≈z z≈u ⟧S                       ∎
+
+  append : ∀ {a} {A : Set a} {x y z : A} →
+           EqS upper x y → EqS upper y z → EqS upper x z
+  append Refl           x≈y = x≈y
+  append (Cons x≈y y≈z) z≈u = Cons x≈y (append y≈z z≈u)
+
+  abstract
+
+    append-correct :
+      ∀ {a} {A : Set a} {x y z : A} {x≡y y≡z}
+      (x≈y : EqS upper x y) (y≈z : EqS upper y z) →
+      x≡y ≡ ⟦ x≈y ⟧S → y≡z ≡ ⟦ y≈z ⟧S →
+      trans x≡y y≡z ≡ ⟦ append x≈y y≈z ⟧S
+    append-correct {x≡y = x≡y} {y≡z} Refl x≈y h₁ h₂ =
+      trans x≡y y≡z            ≡⟨ cong₂ trans h₁ h₂ ⟩
+      trans (refl _) ⟦ x≈y ⟧S  ≡⟨ trans-reflˡ _ ⟩∎
+      ⟦ x≈y ⟧S                 ∎
+    append-correct {x≡y = x≡z} {z≡u} (Cons x≈y y≈z) z≈u h₁ h₂ =
+      trans x≡z z≡u                        ≡⟨ cong₂ trans h₁ (refl z≡u) ⟩
+      trans (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S) z≡u  ≡⟨ trans-assoc _ _ _ ⟩
+      trans ⟦ x≈y ⟧S (trans ⟦ y≈z ⟧S z≡u)  ≡⟨ cong (trans _) $ append-correct y≈z z≈u (refl _) h₂ ⟩∎
+      trans ⟦ x≈y ⟧S ⟦ append y≈z z≈u ⟧S   ∎
+
+  map-sym : ∀ {a} {A : Set a} {x y : A} →
+            EqS middle x y → EqS middle y x
+  map-sym (No-Sym x≈y) = Sym    x≈y
+  map-sym (Sym    x≈y) = No-Sym x≈y
+
+  abstract
+
+    map-sym-correct :
+      ∀ {a} {A : Set a} {x y : A} {x≡y}
+      (x≈y : EqS middle x y) →
+      x≡y ≡ ⟦ x≈y ⟧S → sym x≡y ≡ ⟦ map-sym x≈y ⟧S
+    map-sym-correct {x≡y = x≡y} (No-Sym x≈y) h =
+      sym x≡y       ≡⟨ cong sym h ⟩∎
+      sym ⟦ x≈y ⟧S  ∎
+    map-sym-correct {x≡y = x≡y} (Sym x≈y) h =
+      sym x≡y             ≡⟨ cong sym h ⟩
+      sym (sym ⟦ x≈y ⟧S)  ≡⟨ sym-sym _ ⟩∎
+      ⟦ x≈y ⟧S            ∎
+
+  reverse : ∀ {a} {A : Set a} {x y : A} →
+            EqS upper x y → EqS upper y x
+  reverse Refl           = Refl
+  reverse (Cons x≈y y≈z) = snoc (reverse y≈z) (map-sym x≈y)
+
+  abstract
+
+    reverse-correct :
+      ∀ {a} {A : Set a} {x y : A} {x≡y}
+      (x≈y : EqS upper x y) →
+      x≡y ≡ ⟦ x≈y ⟧S → sym x≡y ≡ ⟦ reverse x≈y ⟧S
+    reverse-correct {x≡y = x≡y} Refl h =
+      sym x≡y       ≡⟨ cong sym h ⟩
+      sym (refl _)  ≡⟨ sym-refl ⟩∎
+      refl _        ∎
+    reverse-correct {x≡y = x≡y} (Cons x≈y y≈z) h =
+      sym x≡y                                ≡⟨ cong sym h ⟩
+      sym (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S)          ≡⟨ snoc-correct (reverse y≈z) _
+                                                             (reverse-correct y≈z (refl _))
+                                                             (map-sym-correct x≈y (refl _)) ⟩∎
+      ⟦ snoc (reverse y≈z) (map-sym x≈y) ⟧S  ∎
 
   map-cong : ∀ {ℓ a} {A B : Set a} {x y : A}
-             (f : A → B) {x≡y : x ≡ y} →
-             EqS ℓ ⟨ x≡y ⟩ → EqS ℓ ⟨ cong f x≡y ⟩
-  map-cong {lower}  f {gx≡gy} (Cong g x≡y   , h) = Cong (f ∘ g) x≡y , (cong f gx≡gy         ≡⟨ cong (cong f) h ⟩
-                                                                       cong f (cong g x≡y)  ≡⟨ cong-∘ f g _ ⟩∎
-                                                                       cong (f ∘ g) x≡y     ∎)
-  map-cong {middle} f {x≡y}   (No-Sym x≈y   , h) = Σ-map No-Sym id (map-cong f (x≈y , h))
-  map-cong {middle} f {x≡y}   (Sym    x≈y   , h) = Σ-map Sym (λ {fy≈fx} cong-f-⟦x≈y⟧≡⟦fy≈fx⟧ →
-                                                                cong f x≡y             ≡⟨ cong (cong f) h ⟩
-                                                                cong f (sym ⟦ x≈y ⟧S)  ≡⟨ cong-sym f _ ⟩
-                                                                sym (cong f ⟦ x≈y ⟧S)  ≡⟨ cong sym cong-f-⟦x≈y⟧≡⟦fy≈fx⟧ ⟩∎
-                                                                sym ⟦ fy≈fx ⟧S         ∎)
-                                                         (map-cong f (x≈y , refl _))
-  map-cong {upper}  f {x≡y}   (Refl         , h) = Refl , (cong f x≡y       ≡⟨ cong (cong f) h ⟩
+             (f : A → B) →
+             EqS ℓ x y → EqS ℓ (f x) (f y)
+  map-cong {lower}  f (Cong g x≡y)   = Cong (f ∘ g) x≡y
+  map-cong {middle} f (No-Sym x≈y)   = No-Sym (map-cong f x≈y)
+  map-cong {middle} f (Sym    y≈x)   = Sym (map-cong f y≈x)
+  map-cong {upper}  f Refl           = Refl
+  map-cong {upper}  f (Cons x≈y y≈z) =
+    Cons (map-cong f x≈y) (map-cong f y≈z)
+
+  abstract
+
+    map-cong-correct :
+      ∀ {ℓ a} {A B : Set a} {x y : A} (f : A → B) {x≡y}
+      (x≈y : EqS ℓ x y) →
+      x≡y ≡ ⟦ x≈y ⟧S → cong f x≡y ≡ ⟦ map-cong f x≈y ⟧S
+    map-cong-correct {lower}  f {gx≡gy} (Cong g x≡y)   h = cong f gx≡gy         ≡⟨ cong (cong f) h ⟩
+                                                           cong f (cong g x≡y)  ≡⟨ cong-∘ f g _ ⟩∎
+                                                           cong (f ∘ g) x≡y     ∎
+    map-cong-correct {middle} f {x≡y}   (No-Sym x≈y)   h = cong f x≡y           ≡⟨ map-cong-correct f x≈y h ⟩∎
+                                                           ⟦ map-cong f x≈y ⟧S  ∎
+    map-cong-correct {middle} f {x≡y}   (Sym    y≈x)   h = cong f x≡y               ≡⟨ cong (cong f) h ⟩
+                                                           cong f (sym ⟦ y≈x ⟧S)    ≡⟨ cong-sym f _ ⟩
+                                                           sym (cong f ⟦ y≈x ⟧S)    ≡⟨ cong sym (map-cong-correct f y≈x (refl _)) ⟩∎
+                                                           sym ⟦ map-cong f y≈x ⟧S  ∎
+    map-cong-correct {upper}  f {x≡y}    Refl          h = cong f x≡y       ≡⟨ cong (cong f) h ⟩
                                                            cong f (refl _)  ≡⟨ cong-refl f ⟩∎
-                                                           refl _           ∎)
-  map-cong {upper}  f {x≡y}   (Cons x≈y y≈z , h)
-    with map-cong f (x≈y , refl _) | map-cong f (y≈z , refl _)
-  ... | (fx≈fy , h₁) | (fy≈fz , h₂) = Cons fx≈fy fy≈fz , (
-    cong f x≡y                                 ≡⟨ cong (cong f) h ⟩
-    cong f (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S)           ≡⟨ cong-trans f _ _ ⟩
-    trans (cong f ⟦ x≈y ⟧S) (cong f ⟦ y≈z ⟧S)  ≡⟨ cong₂ trans h₁ h₂ ⟩∎
-    trans ⟦ fx≈fy ⟧S ⟦ fy≈fz ⟧S                ∎)
+                                                           refl _           ∎
+    map-cong-correct {upper}  f {x≡y}   (Cons x≈y y≈z) h =
+      cong f x≡y                                     ≡⟨ cong (cong f) h ⟩
+      cong f (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S)               ≡⟨ cong-trans f _ _ ⟩
+      trans (cong f ⟦ x≈y ⟧S) (cong f ⟦ y≈z ⟧S)      ≡⟨ cong₂ trans (map-cong-correct f x≈y (refl _))
+                                                                    (map-cong-correct f y≈z (refl _)) ⟩∎
+      trans ⟦ map-cong f x≈y ⟧S ⟦ map-cong f y≈z ⟧S  ∎
 
 -- Equality-preserving simplifier.
 
-simplify : ∀ {a} {A : Set a} {x y : A}
-           (x≡y : Eq x y) → EqS upper ⟨ ⟦ x≡y ⟧ ⟩
+simplify : ∀ {a} {A : Set a} {x y : A} →
+           Eq x y → EqS upper x y
 simplify (Lift x≡y)      = lift x≡y
-simplify Refl            = (Refl , refl _)
+simplify Refl            = Refl
 simplify (Sym x≡y)       = reverse (simplify x≡y)
 simplify (Trans x≡y y≡z) = append (simplify x≡y) (simplify y≡z)
 simplify (Cong f x≡y)    = map-cong f (simplify x≡y)
+
+abstract
+
+  simplify-correct :
+    ∀ {a} {A : Set a} {x y : A}
+    (x≈y : Eq x y) → ⟦ x≈y ⟧ ≡ ⟦ simplify x≈y ⟧S
+  simplify-correct (Lift x≡y)      = lift-correct x≡y
+  simplify-correct Refl            = refl _
+  simplify-correct (Sym x≈y)       = reverse-correct (simplify x≈y)
+                                       (simplify-correct x≈y)
+  simplify-correct (Trans x≈y y≈z) = append-correct (simplify x≈y) _
+                                       (simplify-correct x≈y)
+                                       (simplify-correct y≈z)
+  simplify-correct (Cong f x≈y)    = map-cong-correct f (simplify x≈y)
+                                       (simplify-correct x≈y)
 
 ------------------------------------------------------------------------
 -- Tactic
@@ -220,13 +276,13 @@ abstract
   -- Simple tactic for proving equality of equality proofs.
 
   prove : ∀ {a} {A : Set a} {x y : A} (x≡y x≡y′ : Eq x y) →
-          ⟦ proj₁ (simplify x≡y) ⟧S ≡ ⟦ proj₁ (simplify x≡y′) ⟧S →
+          ⟦ simplify x≡y ⟧S ≡ ⟦ simplify x≡y′ ⟧S →
           ⟦ x≡y ⟧ ≡ ⟦ x≡y′ ⟧
   prove x≡y x≡y′ hyp =
-    ⟦ x≡y ⟧                     ≡⟨ proj₂ (simplify x≡y) ⟩
-    ⟦ proj₁ (simplify x≡y ) ⟧S  ≡⟨ hyp ⟩
-    ⟦ proj₁ (simplify x≡y′) ⟧S  ≡⟨ sym (proj₂ (simplify x≡y′)) ⟩∎
-    ⟦ x≡y′ ⟧                    ∎
+    ⟦ x≡y ⟧             ≡⟨ simplify-correct x≡y ⟩
+    ⟦ simplify x≡y  ⟧S  ≡⟨ hyp ⟩
+    ⟦ simplify x≡y′ ⟧S  ≡⟨ sym (simplify-correct x≡y′) ⟩∎
+    ⟦ x≡y′ ⟧            ∎
 
 ------------------------------------------------------------------------
 -- Some examples

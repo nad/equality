@@ -35,13 +35,13 @@ List = ℕ ▷ Fin
 
 List⇔List : {A : Set} → ⟦ List ⟧ A ⇔ P.List A
 List⇔List {A} = record
-  { to   = to
+  { to   = uncurry to
   ; from = λ xs → (length xs , P.lookup xs)
   }
   where
-  to : ⟦ List ⟧ A → P.List A
-  to (zero  , f) = P.[]
-  to (suc n , f) = P._∷_ (f (inj₁ tt)) (to (n , f ∘ inj₂))
+  to : (n : ℕ) → (Fin n → A) → P.List A
+  to zero    f = P.[]
+  to (suc n) f = P._∷_ (f (inj₁ tt)) (to n (f ∘ inj₂))
 
 -- If we assume that equality of functions is extensional, then we can
 -- also prove that the two definitions are isomorphic.
@@ -54,7 +54,7 @@ List↔List {A} ext = record
     { equivalence      = List⇔List
     ; right-inverse-of = to∘from
     }
-  ; left-inverse-of = from∘to
+  ; left-inverse-of = uncurry from∘to
   }
   where
   open _⇔_ List⇔List
@@ -63,10 +63,10 @@ List↔List {A} ext = record
   to∘from P.[]         = refl
   to∘from (P._∷_ x xs) = cong (P._∷_ x) (to∘from xs)
 
-  from∘to : ∀ xs → from (to xs) ≡ xs
-  from∘to (zero  , f) = cong (_,_ _) (ext λ ())
-  from∘to (suc n , f) =
-    (suc (length (to xs)) , P.lookup (P._∷_ x (to xs)))  ≡⟨ lemma₃ (from∘to (n , f ∘ inj₂)) ⟩
+  from∘to : ∀ n f → from (to (n , f)) ≡ (n , f)
+  from∘to zero    f = cong (_,_ _) (ext λ ())
+  from∘to (suc n) f =
+    (suc (length (to xs)) , P.lookup (P._∷_ x (to xs)))  ≡⟨ lemma₃ (from∘to n (f ∘ inj₂)) ⟩
     (suc n                , [ (λ _ → x) , f ∘ inj₂ ])    ≡⟨ lemma₁ ⟩∎
     (suc n                , f)                           ∎
     where
@@ -98,24 +98,29 @@ List↔List {A} ext = record
 -- The two definitions of Any are isomorphic (both via "to" and
 -- "from").
 
-Any↔Any-to : {A : Set} (xs : ⟦ List ⟧ A) (P : A → Set) →
+Any↔Any-to : {A : Set} (P : A → Set) (xs : ⟦ List ⟧ A) →
              Any P xs ↔ AnyL P (_⇔_.to List⇔List xs)
-Any↔Any-to (zero , lkup) P =
-  (∃ λ (p : Fin zero) → P (lkup p))  ↔⟨ ∃-Fin-zero _ ⟩
-  ⊥                                  □
-Any↔Any-to (suc n , lkup) P =
-  (∃ λ (p : Fin (suc n)) → P (lkup p))                              ↔⟨ ∃-Fin-suc _ ⟩
-  P (lkup (inj₁ tt)) ⊎ Any {C = List} P (n , lkup ∘ inj₂)           ↔⟨ id ⊎-cong Any↔Any-to (n , lkup ∘ inj₂) P ⟩
-  P (lkup (inj₁ tt)) ⊎ AnyL P (_⇔_.to List⇔List (n , lkup ∘ inj₂))  □
+Any↔Any-to {A} P = uncurry Any↔Any-to′
+  where
+  Any↔Any-to′ : (n : ℕ) (lkup : Fin n → A) →
+                Any {C = List} P (n , lkup) ↔
+                AnyL P (_⇔_.to List⇔List (n , lkup))
+  Any↔Any-to′ zero lkup =
+    (∃ λ (p : Fin zero) → P (lkup p))  ↔⟨ ∃-Fin-zero _ ⟩
+    ⊥                                  □
+  Any↔Any-to′ (suc n) lkup =
+    (∃ λ (p : Fin (suc n)) → P (lkup p))                              ↔⟨ ∃-Fin-suc _ ⟩
+    P (lkup (inj₁ tt)) ⊎ Any {C = List} P (n , lkup ∘ inj₂)           ↔⟨ id ⊎-cong Any↔Any-to′ n (lkup ∘ inj₂) ⟩
+    P (lkup (inj₁ tt)) ⊎ AnyL P (_⇔_.to List⇔List (n , lkup ∘ inj₂))  □
 
-Any-from↔Any : {A : Set} (xs : P.List A) (P : A → Set) →
+Any-from↔Any : {A : Set} (P : A → Set) (xs : P.List A) →
                Any P (_⇔_.from List⇔List xs) ↔ AnyL P xs
-Any-from↔Any P.[] P =
+Any-from↔Any P P.[] =
   (∃ λ (p : Fin zero) → P (P.lookup P.[] p))  ↔⟨ ∃-Fin-zero _ ⟩
   ⊥                                           □
-Any-from↔Any (P._∷_ x xs) P =
+Any-from↔Any P (P._∷_ x xs) =
   (∃ λ (p : Fin (suc (P.length xs))) → P (P.lookup (P._∷_ x xs) p))  ↔⟨ ∃-Fin-suc _ ⟩
-  P x ⊎ Any {C = List} P (_⇔_.from List⇔List xs)                     ↔⟨ id ⊎-cong Any-from↔Any xs P ⟩
+  P x ⊎ Any {C = List} P (_⇔_.from List⇔List xs)                     ↔⟨ id ⊎-cong Any-from↔Any P xs ⟩
   P x ⊎ AnyL P xs                                                    □
 
 -- The definition of bag equivalence in Bag-equivalence and the one in
@@ -127,14 +132,14 @@ Any-from↔Any (P._∷_ x xs) P =
   xs ≈-bag ys ⇔ _⇔_.to List⇔List xs ≈-bagL _⇔_.to List⇔List ys
 ≈-⇔-to-≈-to {xs = xs} {ys} = record
   { to   = λ xs≈ys z →
-             z ∈L (_⇔_.to List⇔List xs)  ↔⟨ inverse $ Any↔Any-to xs _ ⟩
+             z ∈L (_⇔_.to List⇔List xs)  ↔⟨ inverse $ Any↔Any-to _ xs ⟩
              z ∈ xs                      ↔⟨ xs≈ys z ⟩
-             z ∈ ys                      ↔⟨ Any↔Any-to ys _ ⟩
+             z ∈ ys                      ↔⟨ Any↔Any-to _ ys ⟩
              z ∈L (_⇔_.to List⇔List ys)  □
   ; from = λ xs≈ys z →
-             z ∈ xs                      ↔⟨ Any↔Any-to xs _ ⟩
+             z ∈ xs                      ↔⟨ Any↔Any-to _ xs ⟩
              z ∈L (_⇔_.to List⇔List xs)  ↔⟨ xs≈ys z ⟩
-             z ∈L (_⇔_.to List⇔List ys)  ↔⟨ inverse $ Any↔Any-to ys _ ⟩
+             z ∈L (_⇔_.to List⇔List ys)  ↔⟨ inverse $ Any↔Any-to _ ys ⟩
              z ∈ ys                      □
   }
 
@@ -143,14 +148,14 @@ Any-from↔Any (P._∷_ x xs) P =
   xs ≈-bagL ys ⇔ _⇔_.from List⇔List xs ≈-bag _⇔_.from List⇔List ys
 ≈-⇔-from-≈-from {xs = xs} {ys} = record
   { to   = λ xs≈ys z →
-             z ∈ (_⇔_.from List⇔List xs)  ↔⟨ Any-from↔Any xs _ ⟩
+             z ∈ (_⇔_.from List⇔List xs)  ↔⟨ Any-from↔Any _ xs ⟩
              z ∈L xs                      ↔⟨ xs≈ys z ⟩
-             z ∈L ys                      ↔⟨ inverse $ Any-from↔Any ys _ ⟩
+             z ∈L ys                      ↔⟨ inverse $ Any-from↔Any _ ys ⟩
              z ∈ (_⇔_.from List⇔List ys)  □
   ; from = λ xs≈ys z →
-             z ∈L xs                      ↔⟨ inverse $ Any-from↔Any xs _ ⟩
+             z ∈L xs                      ↔⟨ inverse $ Any-from↔Any _ xs ⟩
              z ∈ (_⇔_.from List⇔List xs)  ↔⟨ xs≈ys z ⟩
-             z ∈ (_⇔_.from List⇔List ys)  ↔⟨ Any-from↔Any ys _ ⟩
+             z ∈ (_⇔_.from List⇔List ys)  ↔⟨ Any-from↔Any _ ys ⟩
              z ∈L ys                      □
   }
 
@@ -248,10 +253,12 @@ Any-∷ _ = record
 -- paramorphism.)
 
 fold : {A B : Set} → B → (A → ⟦ List ⟧ A → B → B) → ⟦ List ⟧ A → B
-fold nl cns (zero  , lkup) = nl
-fold nl cns (suc n , lkup) =
-  cns (lkup (inj₁ tt)) (n , lkup ∘ inj₂)
-      (fold nl cns (n , lkup ∘ inj₂))
+fold {A} {B} nl cns = uncurry fold′
+  where
+  fold′ : (n : ℕ) → (Fin n → A) → B
+  fold′ zero    lkup = nl
+  fold′ (suc n) lkup =
+    cns (lkup (inj₁ tt)) (n , lkup ∘ inj₂) (fold′ n (lkup ∘ inj₂))
 
 -- A lemma which can be used to prove properties about fold.
 --
@@ -264,9 +271,13 @@ fold-lemma : ∀ {A B : Set} {nl : B} {cns : A → ⟦ List ⟧ A → B → B}
              P [] nl →
              (∀ x xs b → P xs b → P (x ∷ xs) (cns x xs b)) →
              ∀ xs → P xs (fold nl cns xs)
-fold-lemma Q resp nl cns (zero  , lkup) = resp _ _ []≈ _ nl
-fold-lemma Q resp nl cns (suc n , lkup) = resp _ _ ∷≈ _ $
-  cns _ _ _ $ fold-lemma Q resp nl cns (n , lkup ∘ inj₂)
+fold-lemma {A} {nl = nl} {cns} P resp P-nl P-cns = uncurry fold′-lemma
+  where
+  fold′-lemma : ∀ n (lkup : Fin n → A) →
+                P (n , lkup) (fold nl cns (n , lkup))
+  fold′-lemma zero    lkup = resp _ _ []≈ _ P-nl
+  fold′-lemma (suc n) lkup = resp _ _ ∷≈ _ $
+    P-cns _ _ _ $ fold′-lemma n (lkup ∘ inj₂)
 
 -- Why have I included both fold and fold-lemma rather than simply a
 -- dependent eliminator? I tried this, and could easily define the
