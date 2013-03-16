@@ -184,52 +184,50 @@ module Class (Univ : Universe) where
   element : ∀ c (I : Instance c) → El (proj₁ c) (Carrier c I)
   element _ I = proj₁ (proj₂ I)
 
-  abstract
+  -- One can prove that two instances of a structure are equal by
+  -- proving that the carrier types and "elements" (suitably
+  -- transported) are equal (assuming univalence).
 
-    -- One can prove that two instances of a structure are equal by
-    -- proving that the carrier types and "elements" (suitably
-    -- transported) are equal (assuming univalence).
+  instances-equal↔ :
+    Assumptions →
+    ∀ c {I₁ I₂} →
+    (I₁ ≡ I₂) ↔
+    ∃ λ (C-eq : Carrier c I₁ ≡ Carrier c I₂) →
+      subst (El (proj₁ c)) C-eq (element c I₁) ≡ element c I₂
+  instances-equal↔ ass (a , P)
+                   {(C₁ , S₁) , x₁ , p₁} {(C₂ , S₂) , x₂ , p₂} =
 
-    instances-equal↔ :
-      Assumptions →
-      ∀ c {I₁ I₂} →
-      (I₁ ≡ I₂) ↔
-      ∃ λ (C-eq : Carrier c I₁ ≡ Carrier c I₂) →
-        subst (El (proj₁ c)) C-eq (element c I₁) ≡ element c I₂
-    instances-equal↔ ass (a , P)
-                     {(C₁ , S₁) , x₁ , p₁} {(C₂ , S₂) , x₂ , p₂} =
+    (((C₁ , S₁) , x₁ , p₁) ≡ ((C₂ , S₂) , x₂ , p₂))      ↔⟨ inverse $ ≃-≡ $ ↔⇒≃ bij ⟩
 
-      (((C₁ , S₁) , x₁ , p₁) ≡ ((C₂ , S₂) , x₂ , p₂))      ↔⟨ inverse $ ≃-≡ $ ↔⇒≃ bij ⟩
+    (((C₁ , x₁) , (S₁ , p₁)) ≡ ((C₂ , x₂) , (S₂ , p₂)))  ↝⟨ inverse $ ignore-propositional-component prop ⟩
 
-      (((C₁ , x₁) , (S₁ , p₁)) ≡ ((C₂ , x₂) , (S₂ , p₂)))  ↝⟨ inverse $ ignore-propositional-component prop ⟩
+    ((C₁ , x₁) ≡ (C₂ , x₂))                              ↝⟨ inverse Σ-≡,≡↔≡ ⟩□
 
-      ((C₁ , x₁) ≡ (C₂ , x₂))                              ↝⟨ inverse Σ-≡,≡↔≡ ⟩□
+    (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq x₁ ≡ x₂)   □
 
-      (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq x₁ ≡ x₂)   □
+    where
+    bij : Instance (a , P) ↔
+          Σ (Σ Set (El a)) λ { (C , x) →
+          Σ (Is-set C) λ S → proj₁ (P (C , S) x) }
+    bij =
+      (Σ (Σ Set Is-set) λ { (C , S) →
+         Σ (El a C) λ x → proj₁ (P (C , S) x) })    ↝⟨ inverse Σ-assoc ⟩
 
-      where
-      bij : Instance (a , P) ↔
-            Σ (Σ Set (El a)) λ { (C , x) →
-            Σ (Is-set C) λ S → proj₁ (P (C , S) x) }
-      bij =
-        (Σ (Σ Set Is-set) λ { (C , S) →
-           Σ (El a C) λ x → proj₁ (P (C , S) x) })    ↝⟨ inverse Σ-assoc ⟩
+      (Σ Set λ C → Σ (Is-set C) λ S →
+         Σ (El a C) λ x → proj₁ (P (C , S) x))      ↝⟨ ∃-cong (λ _ → ∃-comm) ⟩
 
-        (Σ Set λ C → Σ (Is-set C) λ S →
-           Σ (El a C) λ x → proj₁ (P (C , S) x))      ↝⟨ ∃-cong (λ _ → ∃-comm) ⟩
+      (Σ Set λ C → Σ (El a C) λ x →
+         Σ (Is-set C) λ S → proj₁ (P (C , S) x))    ↝⟨ Σ-assoc ⟩□
 
-        (Σ Set λ C → Σ (El a C) λ x →
-           Σ (Is-set C) λ S → proj₁ (P (C , S) x))    ↝⟨ Σ-assoc ⟩□
+      (Σ (Σ Set (El a)) λ { (C , x) →
+         Σ (Is-set C) λ S → proj₁ (P (C , S) x) })  □
 
-        (Σ (Σ Set (El a)) λ { (C , x) →
-           Σ (Is-set C) λ S → proj₁ (P (C , S) x) })  □
-
-      prop : Is-proposition
-               (Σ (Is-set C₂) λ S₂ → proj₁ (P (C₂ , S₂) x₂))
-      prop =
-        Σ-closure 1
-          (H-level-propositional (Assumptions.ext₀ ass) 2)
-          (λ S₂ → proj₂ (P (C₂ , S₂) x₂) ass)
+    prop : Is-proposition
+             (Σ (Is-set C₂) λ S₂ → proj₁ (P (C₂ , S₂) x₂))
+    prop =
+      Σ-closure 1
+        (H-level-propositional (Assumptions.ext₀ ass) 2)
+        (λ S₂ → proj₂ (P (C₂ , S₂) x₂) ass)
 
   -- Structure isomorphisms.
 
@@ -270,6 +268,33 @@ module Class (Univ : Universe) where
       (I₁ ≡ I₂)                                                        □
 
       where open Assumptions ass
+
+    -- The first part of the from component of the preceding lemma is
+    -- extensionally equal to a simple function. (The codomain of the
+    -- second part is propositional whenever El (proj₁ c) applied to
+    -- either carrier type is a set.)
+
+    proj₁-from-isomorphic↔equal :
+      ∀ ass c {I J} (I≡J : I ≡ J) →
+      proj₁ (_↔_.from (isomorphic↔equal ass c) I≡J) ≡
+      _≃_.bijection (≡⇒≃ (cong (proj₁ ∘ proj₁) I≡J))
+    proj₁-from-isomorphic↔equal ass (a , P) I≡J =
+      let A = Instance (a , P)
+          B = Σ (∃ (El a)) λ { (C , x) →
+                ∃ λ (S : Is-set C) → proj₁ (P (C , S) x) }
+      in
+
+      cong (_≃_.bijection ∘ ≡⇒≃) (
+        proj₁ (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡ (cong {B = B}
+          (λ { ((C , S) , x , p) → (C , x) , S , p }) I≡J))))            ≡⟨ cong (proj₁ ∘ Σ-≡,≡←≡) $ proj₁-Σ-≡,≡←≡ _ ⟩
+        proj₁ (Σ-≡,≡←≡ (cong proj₁ (cong {B = B}
+          (λ { ((C , S) , x , p) → (C , x) , S , p }) I≡J)))             ≡⟨ cong (proj₁ ∘ Σ-≡,≡←≡) $
+                                                                              cong-∘ {B = B} proj₁
+                                                                                     (λ { ((C , S) , x , p) → (C , x) , S , p }) _ ⟩
+        proj₁ (Σ-≡,≡←≡ (cong {A = A}
+          (λ { ((C , S) , x , p) → C , x }) I≡J))                        ≡⟨ proj₁-Σ-≡,≡←≡ _ ⟩
+        cong proj₁ (cong {A = A} (λ { ((C , S) , x , p) → C , x }) I≡J)  ≡⟨ cong-∘ {A = A} proj₁ (λ { ((C , S) , x , p) → C , x }) _ ⟩∎
+        cong (proj₁ ∘ proj₁) I≡J                                         ∎)
 
     -- The type of (lifted) isomorphisms between two instances of a
     -- structure is equal to the type of equalities between the same

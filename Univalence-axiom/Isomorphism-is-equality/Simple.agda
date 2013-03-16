@@ -191,40 +191,59 @@ module Class (Univ : Universe) where
   Isomorphic (a , _) (C₁ , x₁ , _) (C₂ , x₂ , _) =
     Σ (C₁ ≃ C₂) λ C₁≃C₂ → Is-isomorphism a C₁≃C₂ x₁ x₂
 
+  -- The type of isomorphisms between two instances of a structure
+  -- is isomorphic to the type of equalities between the same
+  -- instances (assuming univalence).
+  --
+  -- In short, isomorphism is isomorphic to equality.
+
+  isomorphism-is-equality :
+    Assumptions →
+    ∀ c {I J} → Isomorphic c I J ↔ (I ≡ J)
+  isomorphism-is-equality ass (a , P) {C , x , p} {D , y , q} =
+
+    (∃ λ (C-eq : C ≃ D) → Is-isomorphism a C-eq x y)            ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic ass a C-eq) ⟩
+
+    (∃ λ (C-eq : C ≃ D) → subst (El a) (≃⇒≡ univ₁ C-eq) x ≡ y)  ↝⟨ inverse $
+                                                                     Σ-cong (≡≃≃ univ₁) (λ C-eq → ≡⇒↝ _ $ sym $
+                                                                       cong (λ eq → subst (El a) eq x ≡ y)
+                                                                            (_≃_.left-inverse-of (≡≃≃ univ₁) C-eq)) ⟩
+    (∃ λ (C-eq : C ≡ D) → subst (El a) C-eq x ≡ y)              ↝⟨ inverse $ equality-pair-lemma ass c ⟩□
+
+    (I ≡ J)                                                     □
+
+    where
+    open Assumptions ass
+
+    c : Code
+    c = a , P
+
+    I : Instance c
+    I = C , x , p
+
+    J : Instance c
+    J = D , y , q
+
   abstract
 
-    -- The type of isomorphisms between two instances of a structure
-    -- is isomorphic to the type of equalities between the same
-    -- instances (assuming univalence).
-    --
-    -- In short, isomorphism is isomorphic to equality.
+    -- The first part of the from component of the preceding lemma is
+    -- extensionally equal to a simple function. (The codomain of the
+    -- second part is propositional whenever El (proj₁ c) applied to
+    -- either carrier type is a set.)
 
-    isomorphism-is-equality :
-      Assumptions →
-      ∀ c {I J} → Isomorphic c I J ↔ (I ≡ J)
-    isomorphism-is-equality ass (a , P) {C , x , p} {D , y , q} =
-
-      (∃ λ (C-eq : C ≃ D) → Is-isomorphism a C-eq x y)            ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic ass a C-eq) ⟩
-
-      (∃ λ (C-eq : C ≃ D) → subst (El a) (≃⇒≡ univ₁ C-eq) x ≡ y)  ↝⟨ inverse $
-                                                                       Σ-cong (≡≃≃ univ₁) (λ C-eq → ≡⇒↝ _ $ sym $
-                                                                         cong (λ eq → subst (El a) eq x ≡ y)
-                                                                              (_≃_.left-inverse-of (≡≃≃ univ₁) C-eq)) ⟩
-      (∃ λ (C-eq : C ≡ D) → subst (El a) C-eq x ≡ y)              ↝⟨ inverse $ equality-pair-lemma ass c ⟩□
-
-      (I ≡ J)                                                     □
-
-      where
-      open Assumptions ass
-
-      c : Code
-      c = a , P
-
-      I : Instance c
-      I = C , x , p
-
-      J : Instance c
-      J = D , y , q
+    proj₁-from-isomorphism-is-equality :
+      ∀ ass c {I J} (I≡J : I ≡ J) →
+      proj₁ (_↔_.from (isomorphism-is-equality ass c) I≡J) ≡
+      ≡⇒≃ (cong proj₁ I≡J)
+    proj₁-from-isomorphism-is-equality ass _ I≡J =
+      cong ≡⇒≃ (
+        proj₁ (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
+          (cong (λ { (x , (y , z)) → (x , y) , z }) I≡J))))       ≡⟨ cong (proj₁ ∘ Σ-≡,≡←≡) $ proj₁-Σ-≡,≡←≡ _ ⟩
+        proj₁ (Σ-≡,≡←≡ (cong proj₁
+          (cong (λ { (x , (y , z)) → (x , y) , z }) I≡J)))        ≡⟨ cong (proj₁ ∘ Σ-≡,≡←≡) $ cong-∘ proj₁ (λ { (x , (y , z)) → (x , y) , z }) _ ⟩
+        proj₁ (Σ-≡,≡←≡ (cong (λ { (x , (y , z)) → x , y }) I≡J))  ≡⟨ proj₁-Σ-≡,≡←≡ _ ⟩
+        cong proj₁ (cong (λ { (x , (y , z)) → x , y }) I≡J)       ≡⟨ cong-∘ proj₁ (λ { (x , (y , z)) → x , y }) _ ⟩∎
+        cong proj₁ I≡J                                            ∎)
 
     -- The type of (lifted) isomorphisms between two instances of a
     -- structure is equal to the type of equalities between the same
