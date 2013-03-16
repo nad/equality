@@ -569,7 +569,7 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
   B₁↝B₂′ : ∀ x → B₁ x ↝[ k₂ ] B₂ (_≃_.to A₁≃A₂ x)
   B₁↝B₂′ x =
     B₁ x                                    ↝⟨ B₁↝B₂ x ⟩
-    B₂ (to-implication A₁↔A₂ x)             ↔⟨ ≡⇒↝ bijection $ cong (λ f → B₂ (f x)) $
+    B₂ (to-implication A₁↔A₂ x)             ↝⟨ ≡⇒↝ _ $ cong (λ f → B₂ (f x)) $
                                                  to-implication∘from-isomorphism k₁ equivalence ⟩
     B₂ (_≃_.to (from-isomorphism A₁↔A₂) x)  □
 
