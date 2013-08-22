@@ -414,8 +414,7 @@ abstract
     ({m m′ : M A B} → m ≡M m′ → m ≡ m′) →
     Is-proposition A → Is-proposition (M A B)
   M-closure-propositional {A = A} {B} ext p =
-    _⇔_.from {To = Proof-irrelevant (M A B)}
-             propositional⇔irrelevant
+    _⇔_.from propositional⇔irrelevant
              (λ x y → ext $ irrelevant x y)
     where
     irrelevant : (x y : M A B) → x ≡M y
