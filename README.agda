@@ -94,6 +94,10 @@ import Univalence-axiom
 
 import Category
 
+-- M-types.
+
+import M
+
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
 

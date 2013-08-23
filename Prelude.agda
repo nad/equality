@@ -281,22 +281,6 @@ postulate
 {-# BUILTIN FLAT     ♭  #-}
 
 ------------------------------------------------------------------------
--- M-types
-
-data M {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
-  dns : (x : A) (f : B x → ∞ (M A B)) → M A B
-
--- Projections.
-
-pɐǝɥ : ∀ {a b} {A : Set a} {B : A → Set b} →
-       M A B → A
-pɐǝɥ (dns x f) = x
-
-lıɐʇ : ∀ {a b} {A : Set a} {B : A → Set b} →
-      (x : M A B) → B (pɐǝɥ x) → M A B
-lıɐʇ (dns x f) y = ♭ (f y)
-
-------------------------------------------------------------------------
 -- Binary sums
 
 infixr 1 _⊎_
