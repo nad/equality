@@ -91,23 +91,34 @@ abstract
       p f g
 
 ------------------------------------------------------------------------
--- Bisimilarity
+-- Bisimilarity and bisimilarity for bisimilarity
+
+-- Bisimilarity.
 
 infix 4 _≡M_
 
-data _≡M_ {a b} {A : Set a} {B : A → Set b} :
-          M A B → M A B → Set (a ⊔ b) where
-  dns : ∀ {x x′ f f′}
-        (x≡x′ : x ≡ x′)
-        (f≡f′ : ∀ b → ∞ (♭ (f b) ≡M ♭ (f′ (subst B x≡x′ b)))) →
-        dns x f ≡M dns x′ f′
+data _≡M_ {a b} {A : Set a} {B : A → Set b}
+          (x y : M A B) : Set (a ⊔ b) where
+  dns : (p : pɐǝɥ x ≡ pɐǝɥ y) →
+        (∀ b → ∞ (lıɐʇ x b ≡M lıɐʇ y (subst B p b))) →
+        x ≡M y
+
+-- Projections.
+
+pɐǝɥ≡ : ∀ {a b} {A : Set a} {B : A → Set b} {x y : M A B} →
+        x ≡M y → pɐǝɥ x ≡ pɐǝɥ y
+pɐǝɥ≡ (dns p q) = p
+
+lıɐʇ≡ : ∀ {a b} {A : Set a} {B : A → Set b} {x y : M A B} →
+      (p : x ≡M y) → ∀ b → lıɐʇ x b ≡M lıɐʇ y (subst B (pɐǝɥ≡ p) b)
+lıɐʇ≡ (dns p q) y = ♭ (q y)
 
 -- Equality implies bisimilarity.
 
 ≡⇒≡M : ∀ {a b} {A : Set a} {B : A → Set b} {x y : M A B} →
        x ≡ y → x ≡M y
 ≡⇒≡M {B = B} {dns x f} {dns y g} p =
-  dns (proj₁ q) (λ b → ♯ ≡⇒≡M (proj₂ q b))
+  dns (proj₁ q) λ b → ♯ ≡⇒≡M (proj₂ q b)
   where
   q = elim (λ {m m′} m≡m′ →
               ∃ λ (x≡y : pɐǝɥ m ≡ pɐǝɥ m′) →
@@ -116,6 +127,16 @@ data _≡M_ {a b} {A : Set a} {B : A → Set b} :
               lıɐʇ m b                            ≡⟨ cong (lıɐʇ m) (sym $ subst-refl B _) ⟩∎
               lıɐʇ m (subst B (refl (pɐǝɥ m)) b)  ∎)
            p
+
+-- Bisimilarity for the bisimilarity type.
+
+data _≡≡M_ {a b} {A : Set a} {B : A → Set b} {x y : M A B}
+           (p q : x ≡M y) : Set (a ⊔ b) where
+  dns : (r : pɐǝɥ≡ p ≡ pɐǝɥ≡ q) →
+        (∀ b → ∞ (lıɐʇ≡ p b ≡≡M
+                  subst (λ p → lıɐʇ x b ≡M lıɐʇ y (subst B p b)) (sym r)
+                        (lıɐʇ≡ q b))) →
+        p ≡≡M q
 
 ------------------------------------------------------------------------
 -- Closure under various h-levels
@@ -127,21 +148,21 @@ abstract
 
   M-closure-contractible :
     ∀ {a b} {A : Set a} {B : A → Set b} →
-    ({m m′ : M A B} → m ≡M m′ → m ≡ m′) →
+    ({x y : M A B} → x ≡M y → x ≡ y) →
     Contractible A → Contractible (M A B)
-  M-closure-contractible {A = A} {B} ext (x , irrA) = (m , ext ∘ irr)
+  M-closure-contractible {A = A} {B} ext (z , irrA) = (x , ext ∘ irr)
     where
-    m : M A B
-    m = dns x (λ _ → ♯ m)
+    x : M A B
+    x = dns z (λ _ → ♯ x)
 
-    irr : ∀ m′ → m ≡M m′
-    irr (dns x′ f) = dns (irrA x′) (λ _ → ♯ irr _)
+    irr : ∀ y → x ≡M y
+    irr (dns x′ f) = dns (irrA x′) λ _ → ♯ irr _
 
   -- The same applies to Is-proposition.
 
   M-closure-propositional :
     ∀ {a b} {A : Set a} {B : A → Set b} →
-    ({m m′ : M A B} → m ≡M m′ → m ≡ m′) →
+    ({x y : M A B} → x ≡M y → x ≡ y) →
     Is-proposition A → Is-proposition (M A B)
   M-closure-propositional {A = A} {B} ext p =
     _⇔_.from propositional⇔irrelevant
@@ -149,4 +170,18 @@ abstract
     where
     irrelevant : (x y : M A B) → x ≡M y
     irrelevant (dns x f) (dns y g) =
-      dns (proj₁ $ p x y) (λ _ → ♯ irrelevant _ _)
+      dns (proj₁ (p x y)) λ _ → ♯ irrelevant _ _
+
+  -- If we assume that we have another notion of extensionality, then
+  -- Contractible is closed under M.
+
+  M-closure-set :
+    ∀ {a b} {A : Set a} {B : A → Set b} →
+    ({x y : M A B} {p q : x ≡ y} → ≡⇒≡M p ≡≡M ≡⇒≡M q → p ≡ q) →
+    Is-set A → Is-set (M A B)
+  M-closure-set {A = A} {B} ext s =
+    _⇔_.from set⇔UIP (λ p q → ext $ uip (≡⇒≡M p) (≡⇒≡M q))
+    where
+    uip : {x y : M A B} (p q : x ≡M y) → p ≡≡M q
+    uip (dns p _) (dns q _) =
+      dns (proj₁ (s _ _ p q)) λ _ → ♯ uip _ _
