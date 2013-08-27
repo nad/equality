@@ -2040,9 +2040,23 @@ Isomorphism-poset-isomorphic-to-order-isomorphism ass
 
   where open Assumptions ass
 
--- If we define isomorphism using Is-isomorphism′ instead of
--- Is-isomorphism, then the previous property can be proved without
--- using univalence (but still extensionality).
+-- The notion of isomorphism that we get if we use Is-isomorphism′
+-- instead of Is-isomorphism is also reasonable.
+
+Isomorphic′-poset :
+  ∀ {C₁ _≤₁_ laws₁ C₂ _≤₂_ laws₂} →
+
+  Isomorphic′ poset (C₁ , _≤₁_ , laws₁) (C₂ , _≤₂_ , laws₂)
+    ≡
+  Σ (C₁ ≃ C₂) λ eq → let open _≃_ eq in
+  ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (b ≤₂ d))
+
+Isomorphic′-poset = refl _
+
+-- If we had defined isomorphism using Is-isomorphism′ instead of
+-- Is-isomorphism, then we could have proved
+-- Isomorphism-poset-isomorphic-to-order-isomorphism without assuming
+-- univalence, but instead assuming extensionality.
 
 Isomorphism′-poset-isomorphic-to-order-isomorphism :
   Extensionality (# 1) (# 1) →
