@@ -600,6 +600,80 @@ Isomorphism-monoid-isomorphic-to-standard ext
    to e₁ ≡ e₂)                                                     □
 
 ------------------------------------------------------------------------
+-- An example: posets
+
+poset : Code
+poset =
+  -- The ordering relation.
+  (id ⇾ id ⇾ prop) ,
+
+  λ { (P , P-set) Le →
+
+    let _≤_ : ↑ _ P → ↑ _ P → Set
+        x ≤ y = proj₁ (Le x y)
+    in
+
+     -- Reflexivity.
+    ((∀ x → x ≤ x) ×
+
+     -- Transitivity.
+     (∀ x y z → x ≤ y → y ≤ z → x ≤ z) ×
+
+     -- Antisymmetry.
+     (∀ x y → x ≤ y → y ≤ x → x ≡ y)) ,
+
+    λ ass → let open Assumptions ass in
+      ×-closure 1  (Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
+                    proj₂ (Le _ _))
+      (×-closure 1 (Π-closure ext                     1 λ _ →
+                    Π-closure ext                     1 λ _ →
+                    Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
+                    Π-closure ext₀                    1 λ _ →
+                    Π-closure ext₀                    1 λ _ →
+                    proj₂ (Le _ _))
+                   (Π-closure ext                     1 λ _ →
+                    Π-closure ext                     1 λ _ →
+                    Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
+                    Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
+                    ↑-closure 2 P-set _ _)) }
+
+-- The interpretation of the code is reasonable.
+
+Instance-poset :
+
+  Instance poset
+    ≡
+  Σ (SET (# 0)) λ { (P , _) →
+  Σ (↑ _ P → ↑ _ P → Proposition (# 0)) λ Le →
+  let _≤_ : ↑ _ P → ↑ _ P → Set
+      x ≤ y = proj₁ (Le x y)
+  in
+  (∀ x → x ≤ x) ×
+  (∀ x y z → x ≤ y → y ≤ z → x ≤ z) ×
+  (∀ x y → x ≤ y → y ≤ x → x ≡ y) }
+
+Instance-poset = refl _
+
+-- The notion of isomorphism that we get is also reasonable. It is the
+-- usual notion of "order isomorphism".
+
+Isomorphic-poset :
+  ∀ {P₁ S₁ Le₁ laws₁ P₂ S₂ Le₂ laws₂} →
+  let _≤₁_ : ↑ _ P₁ → ↑ _ P₁ → Set
+      _≤₁_ x y = proj₁ (Le₁ x y)
+
+      _≤₂_ : ↑ _ P₂ → ↑ _ P₂ → Set
+      _≤₂_ x y = proj₁ (Le₂ x y)
+  in
+
+  Isomorphic poset ((P₁ , S₁) , Le₁ , laws₁) ((P₂ , S₂) , Le₂ , laws₂)
+    ≡
+  Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ (↑-cong P₁↔P₂) in
+  ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ⇔ (b ≤₂ d))
+
+Isomorphic-poset = refl _
+
+------------------------------------------------------------------------
 -- An example: discrete fields
 
 -- Discrete fields.
@@ -836,80 +910,6 @@ Isomorphic-vector-space :
   (∀ u v → to u ≡ v → to (-₁ u) ≡ -₂ v)
 
 Isomorphic-vector-space = refl _
-
-------------------------------------------------------------------------
--- An example: posets
-
-poset : Code
-poset =
-  -- The ordering relation.
-  (id ⇾ id ⇾ prop) ,
-
-  λ { (P , P-set) Le →
-
-    let _≤_ : ↑ _ P → ↑ _ P → Set
-        x ≤ y = proj₁ (Le x y)
-    in
-
-     -- Reflexivity.
-    ((∀ x → x ≤ x) ×
-
-     -- Transitivity.
-     (∀ x y z → x ≤ y → y ≤ z → x ≤ z) ×
-
-     -- Antisymmetry.
-     (∀ x y → x ≤ y → y ≤ x → x ≡ y)) ,
-
-    λ ass → let open Assumptions ass in
-      ×-closure 1  (Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
-                    proj₂ (Le _ _))
-      (×-closure 1 (Π-closure ext                     1 λ _ →
-                    Π-closure ext                     1 λ _ →
-                    Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
-                    Π-closure ext₀                    1 λ _ →
-                    Π-closure ext₀                    1 λ _ →
-                    proj₂ (Le _ _))
-                   (Π-closure ext                     1 λ _ →
-                    Π-closure ext                     1 λ _ →
-                    Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
-                    Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
-                    ↑-closure 2 P-set _ _)) }
-
--- The interpretation of the code is reasonable.
-
-Instance-poset :
-
-  Instance poset
-    ≡
-  Σ (SET (# 0)) λ { (P , _) →
-  Σ (↑ _ P → ↑ _ P → Proposition (# 0)) λ Le →
-  let _≤_ : ↑ _ P → ↑ _ P → Set
-      x ≤ y = proj₁ (Le x y)
-  in
-  (∀ x → x ≤ x) ×
-  (∀ x y z → x ≤ y → y ≤ z → x ≤ z) ×
-  (∀ x y → x ≤ y → y ≤ x → x ≡ y) }
-
-Instance-poset = refl _
-
--- The notion of isomorphism that we get is also reasonable. It is the
--- usual notion of "order isomorphism".
-
-Isomorphic-poset :
-  ∀ {P₁ S₁ Le₁ laws₁ P₂ S₂ Le₂ laws₂} →
-  let _≤₁_ : ↑ _ P₁ → ↑ _ P₁ → Set
-      _≤₁_ x y = proj₁ (Le₁ x y)
-
-      _≤₂_ : ↑ _ P₂ → ↑ _ P₂ → Set
-      _≤₂_ x y = proj₁ (Le₂ x y)
-  in
-
-  Isomorphic poset ((P₁ , S₁) , Le₁ , laws₁) ((P₂ , S₂) , Le₂ , laws₂)
-    ≡
-  Σ (P₁ ↔ P₂) λ P₁↔P₂ → let open _↔_ (↑-cong P₁↔P₂) in
-  ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ⇔ (b ≤₂ d))
-
-Isomorphic-poset = refl _
 
 ------------------------------------------------------------------------
 -- An example: sets equipped with fixpoint operators
