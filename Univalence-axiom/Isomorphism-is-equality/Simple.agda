@@ -2111,7 +2111,7 @@ set-with-fixpoint-operator =
                     (Π-closure ext 1 λ _ →
                      F-set _ _) }
 
--- The usual unfolding lemmas.
+-- Some unfolding lemmas.
 
 Instance-set-with-fixpoint-operator :
 
@@ -2134,3 +2134,16 @@ Isomorphic-set-with-fixpoint-operator :
   (λ f → to (fix₁ (λ x → from (f (to x))))) ≡ fix₂
 
 Isomorphic-set-with-fixpoint-operator = refl _
+
+Isomorphic′-set-with-fixpoint-operator :
+  ∀ {C₁ fix₁ laws₁ C₂ fix₂ laws₂} →
+
+  Isomorphic′ set-with-fixpoint-operator
+              (C₁ , fix₁ , laws₁) (C₂ , fix₂ , laws₂)
+    ≡
+  Σ (C₁ ≃ C₂) λ eq → let open _≃_ eq in
+  ∀ f g →
+  (∀ x y → to x ≡ y → to (f x) ≡ g y) →
+  to (fix₁ f) ≡ fix₂ g
+
+Isomorphic′-set-with-fixpoint-operator = refl _
