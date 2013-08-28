@@ -628,16 +628,16 @@ abstract
   -- The two definitions of "being an isomorphism" are "isomorphic"
   -- (in bijective correspondence), assuming univalence.
 
-  isomorphism-definitions-isomorphic :
+  is-isomorphism-isomorphic :
     Assumptions →
     ∀ a {B C x y} (eq : B ≃ C) →
     Is-isomorphism a eq x y ↔ Is-isomorphism′ a eq x y
 
-  isomorphism-definitions-isomorphic ass id {x = x} {y} eq =
+  is-isomorphism-isomorphic ass id {x = x} {y} eq =
 
     (_≃_.to eq x ≡ y)  □
 
-  isomorphism-definitions-isomorphic ass set {x = X} {Y} eq =
+  is-isomorphism-isomorphic ass set {x = X} {Y} eq =
 
     (X ≡ Y)      ↔⟨ ≡≃≃ univ ⟩
 
@@ -647,11 +647,11 @@ abstract
 
     where open Assumptions ass
 
-  isomorphism-definitions-isomorphic ass (k A) {x = x} {y} eq =
+  is-isomorphism-isomorphic ass (k A) {x = x} {y} eq =
 
     (x ≡ y) □
 
-  isomorphism-definitions-isomorphic ass (a ⇾ b) {x = f} {g} eq =
+  is-isomorphism-isomorphic ass (a ⇾ b) {x = f} {g} eq =
 
     (resp b eq ∘ f ∘ resp⁻¹ a eq ≡ g)                  ↝⟨ ∘from≡↔≡∘to ext (cast≃ ext a eq) ⟩
 
@@ -660,59 +660,65 @@ abstract
     (∀ x → resp b eq (f x) ≡ g (resp a eq x))          ↔⟨ ∀-preserves ext (λ x → ↔⇒≃ $
                                                             ∀-intro ext (λ y _ → resp b eq (f x) ≡ g y)) ⟩
     (∀ x y → resp a eq x ≡ y → resp b eq (f x) ≡ g y)  ↔⟨ ∀-preserves ext (λ _ → ∀-preserves ext λ _ → ↔⇒≃ $
-                                                            →-cong ext (isomorphism-definitions-isomorphic ass a eq)
-                                                                       (isomorphism-definitions-isomorphic ass b eq)) ⟩□
+                                                            →-cong ext (is-isomorphism-isomorphic ass a eq)
+                                                                       (is-isomorphism-isomorphic ass b eq)) ⟩□
     (∀ x y → Is-isomorphism′ a eq x y →
              Is-isomorphism′ b eq (f x) (g y))         □
 
     where open Assumptions ass
 
-  isomorphism-definitions-isomorphic
-    ass (a ⊗ b) {x = x , u} {y , v} eq =
+  is-isomorphism-isomorphic ass (a ⊗ b) {x = x , u} {y , v} eq =
 
     ((resp a eq x , resp b eq u) ≡ (y , v))              ↝⟨ inverse ≡×≡↔≡ ⟩
 
-    (resp a eq x ≡ y × resp b eq u ≡ v)                  ↝⟨ isomorphism-definitions-isomorphic ass a eq ×-cong
-                                                            isomorphism-definitions-isomorphic ass b eq ⟩□
+    (resp a eq x ≡ y × resp b eq u ≡ v)                  ↝⟨ is-isomorphism-isomorphic ass a eq ×-cong
+                                                            is-isomorphism-isomorphic ass b eq ⟩□
     Is-isomorphism′ a eq x y × Is-isomorphism′ b eq u v  □
 
     where open Assumptions ass
 
-  isomorphism-definitions-isomorphic
-    ass (a ⊕ b) {x = inj₁ x} {inj₁ y} eq =
+  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₁ x} {inj₁ y} eq =
 
     (inj₁ (resp a eq x) ≡ inj₁ y)  ↝⟨ inverse ≡↔inj₁≡inj₁ ⟩
 
-    (resp a eq x ≡ y)              ↝⟨ isomorphism-definitions-isomorphic ass a eq ⟩□
+    (resp a eq x ≡ y)              ↝⟨ is-isomorphism-isomorphic ass a eq ⟩□
 
     Is-isomorphism′ a eq x y       □
 
     where open Assumptions ass
 
-  isomorphism-definitions-isomorphic
-    ass (a ⊕ b) {x = inj₂ x} {inj₂ y} eq =
+  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₂ x} {inj₂ y} eq =
 
     (inj₂ (resp b eq x) ≡ inj₂ y)  ↝⟨ inverse ≡↔inj₂≡inj₂ ⟩
 
-    (resp b eq x ≡ y)              ↝⟨ isomorphism-definitions-isomorphic ass b eq ⟩□
+    (resp b eq x ≡ y)              ↝⟨ is-isomorphism-isomorphic ass b eq ⟩□
 
     Is-isomorphism′ b eq x y       □
 
     where open Assumptions ass
 
-  isomorphism-definitions-isomorphic
-    ass (a ⊕ b) {x = inj₁ x} {inj₂ y} eq =
+  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₁ x} {inj₂ y} eq =
 
     (inj₁ _ ≡ inj₂ _)  ↝⟨ inverse $ ⊥↔uninhabited ⊎.inj₁≢inj₂ ⟩□
 
     ⊥                  □
 
-  isomorphism-definitions-isomorphic
-    ass (a ⊕ b) {x = inj₂ x} {inj₁ y} eq =
+  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₂ x} {inj₁ y} eq =
 
     (inj₂ _ ≡ inj₁ _)  ↝⟨ inverse $ ⊥↔uninhabited (⊎.inj₁≢inj₂ ∘ sym) ⟩□
 
     ⊥                  □
+
+  -- The two definitions of isomorphism are "isomorphic" (in bijective
+  -- correspondence), assuming univalence.
+
+  isomorphic-isomorphic :
+    Assumptions →
+    ∀ c I J →
+    Isomorphic c I J ↔ Isomorphic′ c I J
+  isomorphic-isomorphic ass (a , _) (C , x , _) (D , y , _) =
+    Σ (C ≃ D) (λ eq → Is-isomorphism  a eq x y)  ↝⟨ ∃-cong (λ eq → is-isomorphism-isomorphic ass a eq) ⟩
+    Σ (C ≃ D) (λ eq → Is-isomorphism′ a eq x y)  □
 
 ------------------------------------------------------------------------
 -- An example: monoids
