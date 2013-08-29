@@ -32,6 +32,7 @@ open import Injection eq hiding (id; _∘_)
 open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Preimage eq
 open import Prelude as P hiding (id)
+open import Structure-identity-principle eq
 open import Univalence-axiom eq
 
 ------------------------------------------------------------------------
@@ -263,82 +264,21 @@ module Class (Univ : Universe) where
 
 ------------------------------------------------------------------------
 -- An aside: A slightly restricted variant of
--- Class.isomorphism-is-equality can be proved by using Aczel and
--- Shulman's "Abstract SIP Theorem", as found in one draft of the HoTT
--- Book
+-- Class.isomorphism-is-equality can be proved by using Aczel's
+-- structure identity principle, as found in "Homotopy Type Theory:
+-- Univalent Foundations of Mathematics" (first edition)
 
--- "Standard notions of structure".
-
-record Standard-notion-of-structure
-         {x₁ x₂} ℓ₁ ℓ₂ (X : Precategory x₁ x₂) :
-         Set (x₁ ⊔ x₂ ⊔ lsuc (ℓ₁ ⊔ ℓ₂)) where
-  open Precategory X renaming (id to ⟨id⟩)
-
-  field
-    P               : Obj → Set ℓ₁
-    P-set           : ∀ A → Is-set (P A)
-    H               : ∀ {X Y} (p : P X) (q : P Y) → Hom X Y → Set ℓ₂
-    H-prop          : ∀ {X Y} {p : P X} {q : P Y}
-                      (f : Hom X Y) → Is-proposition (H p q f)
-    H-id            : ∀ {X} {p : P X} → H p p ⟨id⟩
-    H-∘             : ∀ {X Y Z} {p : P X} {q : P Y} {r : P Z} {f g} →
-                      H p q f → H q r g → H p r (f ∙ g)
-    H-antisymmetric : ∀ {X} (p q : P X) →
-                      H p q ⟨id⟩ → H q p ⟨id⟩ → p ≡ q
-
-  abstract
-
-    -- Two Str morphisms (see below) of equal type are equal if their
-    -- first components are equal.
-
-    lift-equality-Str : {X Y : ∃ P} {f g : ∃ (H (proj₂ X) (proj₂ Y))} →
-                        proj₁ f ≡ proj₁ g → f ≡ g
-    lift-equality-Str eq =
-      Σ-≡,≡→≡ eq (_⇔_.to propositional⇔irrelevant (H-prop _) _ _)
-
-  -- A derived precategory.
-
-  Str : Precategory (x₁ ⊔ ℓ₁) (x₂ ⊔ ℓ₂)
-  Str = record { precategory =
-    ∃ P ,
-    (λ { (X , p) (Y , q) →
-         ∃ (H p q) ,
-         Σ-closure 2 Hom-is-set (λ f → mono₁ 1 (H-prop f)) }) ,
-    (⟨id⟩ , H-id) ,
-    (λ { (f , hf) (g , hg) → f ∙ g , H-∘ hf hg }) ,
-    lift-equality-Str left-identity ,
-    lift-equality-Str right-identity ,
-    lift-equality-Str assoc }
-
--- The statement of the Abstract SIP Theorem.
---
--- I (NAD) have not seen a formalisation of the theorem, and I am not
--- 100% certain that the statement below is correct. For instance, I
--- have made the theorem universe-polymorphic, but I am not sure if
--- the statement of the theorem (in the draft of the HoTT Book that I
--- looked at) is supposed to be read universe-polymorphically.
-
-Abstract-SIP-Theorem :
-  (x₁ x₂ ℓ₁ ℓ₂ : Level) → Set (lsuc (x₁ ⊔ x₂ ⊔ ℓ₁ ⊔ ℓ₂))
-Abstract-SIP-Theorem x₁ x₂ ℓ₁ ℓ₂ =
-  (X : Category x₁ x₂) →
-  (S : Standard-notion-of-structure ℓ₁ ℓ₂ (Category.precategory X)) →
-  ∀ {X Y} → Is-equivalence
-              (Precategory.≡→≅ (Standard-notion-of-structure.Str S)
-                               {X} {Y})
-
--- The "Abstract SIP Theorem", as stated above, can be used to prove a
--- slightly restricted variant of Class.isomorphism-is-equality.
+-- The structure identity principle can be used to prove a slightly
+-- restricted variant of Class.isomorphism-is-equality.
 
 isomorphism-is-equality-is-corollary :
-  Abstract-SIP-Theorem (# 2) (# 1) (# 1) (# 1) →
   (Univ : Universe) → let open Universe Univ in
   (∀ a {B} → Is-set B → Is-set (El a B)) →  -- Extra assumption.
   Assumptions →
   ∀ c {I J} →
   Is-set (proj₁ I) → Is-set (proj₁ J) →     -- Extra assumptions.
   Class.Isomorphic Univ c I J ↔ (I ≡ J)
-isomorphism-is-equality-is-corollary sip Univ El-set ass
+isomorphism-is-equality-is-corollary Univ El-set ass
   (a , P) {C , x , p} {D , y , q} C-set D-set =
 
   Isomorphic (a , P) (C , x , p) (D , y , q)  ↝⟨ (let ≃≃≅ = ≃≃≅-Set (# 1) ext Cs Ds in
@@ -351,7 +291,7 @@ isomorphism-is-equality-is-corollary sip Univ El-set ass
   ∃ (H {X = Cs} {Y = Ds} x y) × ⊤             ↝⟨ ∃-cong (λ I≅J → inverse $ contractible↔⊤ $ propositional⇒inhabited⇒contractible
                                                                    (Precategory.Is-isomorphism-propositional Str I≅J)
                                                                    (Str-homs-are-isos I≅J)) ⟩
-  ((Cs , x) ≅-Str (Ds , y))                   ↔⟨ inverse ⟨ _ , sip X≅ S {X = Cs , x} {Y = Ds , y} ⟩ ⟩
+  ((Cs , x) Str.≅ (Ds , y))                   ↔⟨ inverse ⟨ _ , structure-identity-principle ext X≅ S {X = Cs , x} {Y = Ds , y} ⟩ ⟩
   ((Cs , x) ≡ (Ds , y))                       ↔⟨ ≃-≡ $ ↔⇒≃ (Σ-assoc ⊚ ∃-cong (λ _ → ×-comm) ⊚ inverse Σ-assoc) ⟩
   (((C , x) , C-set) ≡ ((D , y) , D-set))     ↝⟨ inverse $ ignore-propositional-component (H-level-propositional ext 2) ⟩
   ((C , x) ≡ (D , y))                         ↝⟨ ignore-propositional-component (proj₂ (P D y) ass) ⟩
@@ -413,7 +353,7 @@ isomorphism-is-equality-is-corollary sip Univ El-set ass
     }
 
   open Standard-notion-of-structure S using (H; Str; lift-equality-Str)
-  open Precategory Str using () renaming (_≅_ to _≅-Str_)
+  module Str = Precategory Str
 
   abstract
 

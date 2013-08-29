@@ -94,6 +94,10 @@ import Univalence-axiom
 
 import Category
 
+-- Aczel's structure identity principle (for 1-categories).
+
+import Structure-identity-principle
+
 -- M-types.
 
 import M

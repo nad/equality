@@ -154,9 +154,12 @@ import Univalence-axiom.Isomorphism-is-equality.Simple
 ---=====================================================================
 -- 4: Related Work
 
--- A slightly restricted variant of our main theorem can be proved
--- using one (preliminary?) version of the "Abstract SIP Theorem"
--- (isomorphism-is-equality-is-corollary).
+-- Aczel's structure identity principle.
+
+import Structure-identity-principle
+
+-- This principle can be used to prove a slightly restricted variant
+-- of our main theorem (isomorphism-is-equality-is-corollary).
 
 import Univalence-axiom.Isomorphism-is-equality.Simple
 
