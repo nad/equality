@@ -273,13 +273,13 @@ module Class (Univ : Universe) where
 
 isomorphism-is-equality-is-corollary :
   (Univ : Universe) → let open Universe Univ in
-  (∀ a {B} → Is-set B → Is-set (El a B)) →  -- Extra assumption.
   Assumptions →
   ∀ c {I J} →
-  Is-set (proj₁ I) → Is-set (proj₁ J) →     -- Extra assumptions.
+  (∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →  -- Extra assumption.
+  Is-set (proj₁ I) → Is-set (proj₁ J) →           -- Extra assumptions.
   Class.Isomorphic Univ c I J ↔ (I ≡ J)
-isomorphism-is-equality-is-corollary Univ El-set ass
-  (a , P) {C , x , p} {D , y , q} C-set D-set =
+isomorphism-is-equality-is-corollary Univ ass
+  (a , P) {C , x , p} {D , y , q} El-set C-set D-set =
 
   Isomorphic (a , P) (C , x , p) (D , y , q)  ↝⟨ (let ≃≃≅ = ≃≃≅-Set (# 1) ext Cs Ds in
                                                   Σ-cong ≃≃≅ (λ eq →
@@ -330,10 +330,10 @@ isomorphism-is-equality-is-corollary Univ El-set ass
   S : Standard-notion-of-structure (# 1) (# 1) (Category.precategory X≅)
   S = record
     { P               = El a ∘ Type
-    ; P-set           = El-set a ∘ proj₂
+    ; P-set           = El-set ∘ proj₂
     ; H               = λ {C D} x y C≅D →
                           Is-isomorphism a (≅⇒≃ C D C≅D) x y
-    ; H-prop          = λ {_ C} _ → El-set a (proj₂ C) _ _
+    ; H-prop          = λ {_ C} _ → El-set (proj₂ C) _ _
     ; H-id            = λ {C x} →
                           resp a (≅⇒≃ C C (Category.id X≅ {X = C})) x  ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
                           resp a Eq.id x                               ≡⟨ resp-id ass a x ⟩∎
