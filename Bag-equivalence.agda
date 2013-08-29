@@ -42,7 +42,7 @@ Any′-[] : ∀ {a p ℓ} {A : Set a} {P : A → Set p} →
           Any′ P [] ↔ ⊥ {ℓ = ℓ}
 Any′-[] {ℓ = ℓ} {P = P} = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to
       ; from = from
       }
@@ -72,7 +72,7 @@ Any′-∷ : ∀ {a p} {A : Set a} {P : A → Set p} {x xs} →
         Any′ P (x ∷ xs) ↔ P x ⊎ Any′ P xs
 Any′-∷ {P = P} {x} {xs} = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to
       ; from = from
       }

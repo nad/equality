@@ -270,7 +270,7 @@ expressed-in-terms-of-interpretation-and-Any C = record
   lemma : ∀ {a b} {A : Set a} {B : Set b} → (B → A) ↔ (B × ⊤ → A)
   lemma = record
     { surjection = record
-      { equivalence = record
+      { logical-equivalence = record
         { to   = λ { f (p , tt) → f p }
         ; from = λ f p → f (p , tt)
         }
@@ -417,8 +417,8 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
        xs ≈[ bag-with-equivalence ]′ ys
 ≈↔≈′ {a} {c} {d} {C = C} {D} ext xs ys = record
   { surjection = record
-    { equivalence      = equiv
-    ; right-inverse-of = to∘from
+    { logical-equivalence = equiv
+    ; right-inverse-of    = to∘from
     }
   ; left-inverse-of = from∘to
   }

@@ -48,7 +48,7 @@ Tree = Shape ▷ Position
 Shape↔Tree-⊤ : Shape ↔ Tree.Tree ⊤
 Shape↔Tree-⊤ = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to
       ; from = from
       }
@@ -101,7 +101,7 @@ leaf≈ : {A : Set} {lkup : _ → A} →
         _≈-bag_ {C₂ = Tree} leaf (lf , lkup)
 leaf≈ _ = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (() , _) }
       ; from = λ { (() , _) }
       }
@@ -116,7 +116,7 @@ node≈ : ∀ {A : Set} {l r} {lkup : _ → A} →
                 (nd l r , lkup)
 node≈ _ = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (root    , eq) → (root    , eq)
                  ; (left p  , eq) → (left p  , eq)
                  ; (right p , eq) → (right p , eq)
@@ -143,7 +143,7 @@ Any-leaf : ∀ {A : Set} (P : A → Set) →
            Any P leaf ↔ ⊥₀
 Any-leaf _ = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (() , _) }
       ; from = λ ()
       }
@@ -156,7 +156,7 @@ Any-node : ∀ {A : Set} (P : A → Set) {l x r} →
            Any P (node l x r) ↔ Any P l ⊎ P x ⊎ Any P r
 Any-node _ {l = _ , _} {r = _ , _} = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (root    , eq) → inj₂ (inj₁ eq)
                  ; (left p  , eq) → inj₁ (p , eq)
                  ; (right p , eq) → inj₂ (inj₂ (p , eq))

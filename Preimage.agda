@@ -41,7 +41,7 @@ respects-extensional-equality :
   (∀ x → f x ≡ g x) → (f ⁻¹ y) ↔ (g ⁻¹ y)
 respects-extensional-equality {f = f} {g} {y} f≡g = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to′
       ; from = from′
       }
@@ -85,7 +85,7 @@ lift-surjection :
   ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) → let open _↠_ A↠B in
   ∀ {y} → (from ∘ to ⁻¹ y) ↠ (from ⁻¹ y)
 lift-surjection {A = A} {B} A↠B {y} = record
-  { equivalence = record
+  { logical-equivalence = record
     { to   = drop-∘
     ; from = add-∘
     }

@@ -273,13 +273,13 @@ precategory-Set ℓ ext = record { precategory =
   (X Y : Obj) → (Type X ≃ Type Y) ≃ (X ≅ Y)
 ≃≃≅-Set ℓ ext X Y = Eq.↔⇒≃ record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ X≃Y → _≃_.to X≃Y , _≃_.from X≃Y ,
                        ext (_≃_.left-inverse-of  X≃Y) ,
                        ext (_≃_.right-inverse-of X≃Y)
       ; from = λ X≅Y → Eq.↔⇒≃ record
                  { surjection = record
-                   { equivalence = record
+                   { logical-equivalence = record
                      { to   = proj₁ X≅Y
                      ; from = proj₁ (proj₂ X≅Y)
                      }

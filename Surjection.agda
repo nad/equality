@@ -24,9 +24,9 @@ infix 0 _↠_
 
 record _↠_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
   field
-    equivalence : From ⇔ To
+    logical-equivalence : From ⇔ To
 
-  open _⇔_ equivalence
+  open _⇔_ logical-equivalence
 
   field
     right-inverse-of : ∀ x → to (from x) ≡ x
@@ -39,7 +39,7 @@ record _↠_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
     to (from x)  ≡⟨ right-inverse-of x ⟩∎
     x            ∎
 
-  open _⇔_ equivalence public
+  open _⇔_ logical-equivalence public
 
 ------------------------------------------------------------------------
 -- Preorder
@@ -48,8 +48,8 @@ record _↠_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
 
 id : ∀ {a} {A : Set a} → A ↠ A
 id = record
-  { equivalence      = Logical-equivalence.id
-  ; right-inverse-of = refl
+  { logical-equivalence = Logical-equivalence.id
+  ; right-inverse-of    = refl
   }
 
 infixr 9 _∘_
@@ -57,8 +57,8 @@ infixr 9 _∘_
 _∘_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
       B ↠ C → A ↠ B → A ↠ C
 f ∘ g = record
-  { equivalence      = equivalence f ⊙ equivalence g
-  ; right-inverse-of = to∘from
+  { logical-equivalence = logical-equivalence f ⊙ logical-equivalence g
+  ; right-inverse-of    = to∘from
   }
   where
   open _↠_
@@ -92,7 +92,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 ∃-cong : ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
          (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
 ∃-cong {B₁ = B₁} {B₂} B₁↠B₂ = record
-  { equivalence = record
+  { logical-equivalence = record
     { to   = to′
     ; from = from′
     }
@@ -117,7 +117,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 ↠-≡ : ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) {x y : B} →
       (_↠_.from A↠B x ≡ _↠_.from A↠B y) ↠ (x ≡ y)
 ↠-≡ A↠B {x} {y} = record
-  { equivalence = record
+  { logical-equivalence = record
     { from = cong from
     ; to   = to′
     }

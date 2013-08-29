@@ -51,8 +51,8 @@ List↔List : {A : Set} →
             ⟦ List ⟧ A ↔ P.List A
 List↔List {A} ext = record
   { surjection = record
-    { equivalence      = List⇔List
-    ; right-inverse-of = to∘from
+    { logical-equivalence = List⇔List
+    ; right-inverse-of    = to∘from
     }
   ; left-inverse-of = uncurry from∘to
   }
@@ -178,7 +178,7 @@ x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
       _≈-bag_ {C₂ = List} [] (zero , lkup)
 []≈ _ = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (() , _) }
       ; from = λ { (() , _) }
       }
@@ -193,7 +193,7 @@ x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
              (suc n , lkup)
 ∷≈ _ = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (inj₁ tt , eq) → (inj₁ tt , eq)
                  ; (inj₂ s  , eq) → (inj₂ s  , eq)
                  }
@@ -216,7 +216,7 @@ Any-[] : {A : Set} (P : A → Set) →
          Any P [] ↔ ⊥₀
 Any-[] _ = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (() , _) }
       ; from = λ ()
       }
@@ -229,7 +229,7 @@ Any-∷ : ∀ {A : Set} (P : A → Set) {x xs} →
         Any P (x ∷ xs) ↔ P x ⊎ Any P xs
 Any-∷ _ = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (inj₁ tt , eq) → inj₁ eq
                  ; (inj₂ s  , eq) → inj₂ (s , eq)
                  }

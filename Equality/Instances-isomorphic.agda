@@ -21,7 +21,7 @@ all-instances-isomorphic :
   Reflexive′._≡_ refl₁ x y ↔ Reflexive′._≡_ refl₂ x y
 all-instances-isomorphic {refl₁} {refl₂} eq₁ eq₂ = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to refl₂ eq₁
       ; from = to refl₁ eq₂
       }

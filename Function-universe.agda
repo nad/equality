@@ -51,7 +51,7 @@ A ↝[ equivalence         ] B = A ≃ B
 from-bijection : ∀ {k a b} {A : Set a} {B : Set b} →
                  A ↔ B → A ↝[ k ] B
 from-bijection {implication}         = _↔_.to
-from-bijection {logical-equivalence} = _↔_.equivalence
+from-bijection {logical-equivalence} = _↔_.logical-equivalence
 from-bijection {injection}           = _↔_.injection
 from-bijection {surjection}          = _↔_.surjection
 from-bijection {bijection}           = P.id
@@ -62,7 +62,7 @@ from-bijection {equivalence}         = Eq.↔⇒≃
 from-equivalence : ∀ {k a b} {A : Set a} {B : Set b} →
                    A ≃ B → A ↝[ k ] B
 from-equivalence {implication}         = _≃_.to
-from-equivalence {logical-equivalence} = _≃_.equivalence
+from-equivalence {logical-equivalence} = _≃_.logical-equivalence
 from-equivalence {injection}           = _≃_.injection
 from-equivalence {surjection}          = _≃_.surjection
 from-equivalence {bijection}           = _≃_.bijection
@@ -249,7 +249,7 @@ abstract
 contractible↔⊤ : ∀ {a} {A : Set a} → Contractible A → A ↔ ⊤
 contractible↔⊤ c = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = const tt
       ; from = const $ proj₁ c
       }
@@ -296,9 +296,9 @@ private
                   {B₁ : Set b₁} {B₂ : Set b₂} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ ⊎ B₁ ↠ A₂ ⊎ B₂
   ⊎-cong-surj A₁↠A₂ B₁↠B₂ = record
-    { equivalence      = ⊎-cong-eq (_↠_.equivalence A₁↠A₂)
-                                   (_↠_.equivalence B₁↠B₂)
-    ; right-inverse-of =
+    { logical-equivalence = ⊎-cong-eq (_↠_.logical-equivalence A₁↠A₂)
+                                      (_↠_.logical-equivalence B₁↠B₂)
+    ; right-inverse-of    =
         [ cong inj₁ ⊚ _↠_.right-inverse-of A₁↠A₂
         , cong inj₂ ⊚ _↠_.right-inverse-of B₁↠B₂
         ]
@@ -335,7 +335,7 @@ _⊎-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
 ⊎-comm : ∀ {a b} {A : Set a} {B : Set b} → A ⊎ B ↔ B ⊎ A
 ⊎-comm = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = [ inj₂ , inj₁ ]
       ; from = [ inj₂ , inj₁ ]
       }
@@ -350,7 +350,7 @@ _⊎-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
           A ⊎ (B ⊎ C) ↔ (A ⊎ B) ⊎ C
 ⊎-assoc = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = [ inj₁ ⊚ inj₁ , [ inj₁ ⊚ inj₂ , inj₂ ] ]
       ; from = [ [ inj₁ , inj₂ ⊚ inj₁ ] , inj₂ ⊚ inj₂ ]
       }
@@ -366,7 +366,7 @@ _⊎-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
 ⊎-left-identity : ∀ {a ℓ} {A : Set a} → ⊥ {ℓ = ℓ} ⊎ A ↔ A
 ⊎-left-identity = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (inj₁ ()); (inj₂ x) → x }
       ; from = inj₂
       }
@@ -428,9 +428,9 @@ private
                   {B₁ : Set b₁} {B₂ : Set b₂} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ × B₁ ↠ A₂ × B₂
   ×-cong-surj A₁↠A₂ B₁↠B₂ = record
-    { equivalence      = ×-cong-eq (_↠_.equivalence A₁↠A₂)
-                                   (_↠_.equivalence B₁↠B₂)
-    ; right-inverse-of = uncurry λ x y →
+    { logical-equivalence = ×-cong-eq (_↠_.logical-equivalence A₁↠A₂)
+                                      (_↠_.logical-equivalence B₁↠B₂)
+    ; right-inverse-of    = uncurry λ x y →
         cong₂ _,_ (_↠_.right-inverse-of A₁↠A₂ x)
                   (_↠_.right-inverse-of B₁↠B₂ y)
     }
@@ -465,7 +465,7 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
 ×-comm : ∀ {a b} {A : Set a} {B : Set b} → A × B ↔ B × A
 ×-comm = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = uncurry λ x y → (y , x)
       ; from = uncurry λ x y → (y , x)
       }
@@ -481,7 +481,7 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
           (Σ A λ x → Σ (B x) (C x)) ↔ Σ (Σ A B) (uncurry C)
 Σ-assoc = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (x , (y , z)) → (x , y) , z }
       ; from = λ { ((x , y) , z) → x , (y , z) }
       }
@@ -501,7 +501,7 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
 Σ-left-identity : ∀ {a} {A : ⊤ → Set a} → Σ ⊤ A ↔ A tt
 Σ-left-identity = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = proj₂
       ; from = λ x → (tt , x)
       }
@@ -525,7 +525,7 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
               Σ ⊥ A ↔ ⊥ {ℓ = ℓ₂}
 Σ-left-zero = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (() , _) }
       ; from = λ ()
       }
@@ -606,8 +606,8 @@ private
                   {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
                 (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
   ∃-cong-surj B₁↠B₂ = record
-    { equivalence      = ∃-cong-eq (_↠_.equivalence ⊚ B₁↠B₂)
-    ; right-inverse-of = uncurry λ x y →
+    { logical-equivalence = ∃-cong-eq (_↠_.logical-equivalence ⊚ B₁↠B₂)
+    ; right-inverse-of    = uncurry λ x y →
         cong (_,_ x) (_↠_.right-inverse-of (B₁↠B₂ x) y)
     }
 
@@ -638,7 +638,7 @@ private
   (∃ λ x → B x ⊎ C x) ↔ ∃ B ⊎ ∃ C
 ∃-⊎-distrib-left = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = uncurry λ x → [ inj₁ ⊚ _,_ x , inj₂ ⊚ _,_ x ]
       ; from = [ Σ-map id inj₁ , Σ-map id inj₂ ]
       }
@@ -655,7 +655,7 @@ private
   Σ (A ⊎ B) C ↔ Σ A (C ⊚ inj₁) ⊎ Σ B (C ⊚ inj₂)
 ∃-⊎-distrib-right {A = A} {B} {C} = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to
       ; from = from
       }
@@ -680,7 +680,7 @@ private
          (∃ λ x → ∃ λ y → C x y) ↔ (∃ λ y → ∃ λ x → C x y)
 ∃-comm = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = uncurry λ x → uncurry λ y z → (y , (x , z))
       ; from = uncurry λ x → uncurry λ y z → (y , (x , z))
       }
@@ -764,24 +764,27 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   →-cong-↔ : A ↔ B → C ↔ D → (A → C) ↔ (B → D)
   →-cong-↔ A↔B C↔D = record
     { surjection = record
-      { equivalence      = equiv
-      ; right-inverse-of = right-inv
+      { logical-equivalence = logical-equiv
+      ; right-inverse-of    = right-inv
       }
     ; left-inverse-of = left-inv
     }
     where
     open _↔_
 
-    equiv = →-cong-⇔ (_↔_.equivalence A↔B) (_↔_.equivalence C↔D)
+    logical-equiv = →-cong-⇔ (_↔_.logical-equivalence A↔B)
+                             (_↔_.logical-equivalence C↔D)
 
     abstract
-      right-inv : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
+      right-inv :
+        ∀ f → _⇔_.to logical-equiv (_⇔_.from logical-equiv f) ≡ f
       right-inv f = lower-extensionality a c ext λ x →
         to C↔D (from C↔D (f (to A↔B (from A↔B x))))  ≡⟨ right-inverse-of C↔D _ ⟩
         f (to A↔B (from A↔B x))                      ≡⟨ cong f $ right-inverse-of A↔B _ ⟩∎
         f x                                          ∎
 
-      left-inv : ∀ f → _⇔_.from equiv (_⇔_.to equiv f) ≡ f
+      left-inv :
+        ∀ f → _⇔_.from logical-equiv (_⇔_.to logical-equiv f) ≡ f
       left-inv f = lower-extensionality b d ext λ x →
         from C↔D (to C↔D (f (from A↔B (to A↔B x))))  ≡⟨ left-inverse-of C↔D _ ⟩
         f (from A↔B (to A↔B x))                      ≡⟨ cong f $ left-inverse-of A↔B _ ⟩∎
@@ -814,7 +817,7 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
 Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
 Π-left-identity = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ f → f tt
       ; from = λ x _ → x
       }
@@ -826,7 +829,7 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
 →-right-zero : ∀ {a} {A : Set a} → (A → ⊤) ↔ ⊤
 →-right-zero = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ _ → tt
       ; from = λ _ _ → tt
       }
@@ -841,8 +844,8 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
          (∀ x y → C x y) ↔ (∀ y x → C x y)
 Π-comm = record
   { surjection = record
-    { equivalence = record { to = flip; from = flip }
-    ; right-inverse-of = refl
+    { logical-equivalence = record { to = flip; from = flip }
+    ; right-inverse-of    = refl
     }
   ; left-inverse-of = refl
   }
@@ -853,8 +856,8 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
 Π≡↔≡-↠-≡ : ∀ k {a} {A : Set a} (x y : A) →
            (∀ z → (z ≡ x) ↔[ k ] (z ≡ y)) ↠ (x ≡ y)
 Π≡↔≡-↠-≡ k x y = record
-  { equivalence      = record { to = to; from = from }
-  ; right-inverse-of = to∘from
+  { logical-equivalence = record { to = to; from = from }
+  ; right-inverse-of    = to∘from
   }
   where
   to : (∀ z → (z ≡ x) ↔[ k ] (z ≡ y)) → x ≡ y
@@ -863,7 +866,7 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   from′ : x ≡ y → ∀ z → (z ≡ x) ↔ (z ≡ y)
   from′ x≡y z = record
     { surjection = record
-      { equivalence = record
+      { logical-equivalence = record
         { to   = λ z≡x → trans z≡x      x≡y
         ; from = λ z≡y → trans z≡y (sym x≡y)
         }
@@ -917,7 +920,7 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
           B x (refl x) ↔ (∀ y (x≡y : x ≡ y) → B y x≡y)
 ∀-intro {a} ext {x = x} B = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to
       ; from = λ f → f x (refl x)
       }
@@ -1022,17 +1025,19 @@ private
     ∀ {a b c} {B : Set b} {C : Set c} →
     B ↠ C → ↑ a B ↠ ↑ a C
   ↑-cong-↠ {a} B↠C = record
-    { equivalence      = equivalence′
-    ; right-inverse-of = right-inverse-of′
+    { logical-equivalence = logical-equivalence′
+    ; right-inverse-of    = right-inverse-of′
     }
     where
-    open _↠_ B↠C renaming (equivalence to equiv)
+    open _↠_ B↠C renaming (logical-equivalence to logical-equiv)
 
-    equivalence′ = ↑-cong-⇔ {a = a} equiv
+    logical-equivalence′ = ↑-cong-⇔ {a = a} logical-equiv
 
     abstract
-      right-inverse-of′ :
-        ∀ x → _⇔_.to equivalence′ (_⇔_.from equivalence′ x) ≡ x
+      right-inverse-of′ : ∀ x →
+                          _⇔_.to logical-equivalence′
+                            (_⇔_.from logical-equivalence′ x) ≡
+                          x
       right-inverse-of′ = cong lift ⊚ right-inverse-of ⊚ lower
 
   ↑-cong-↔ :
@@ -1097,7 +1102,7 @@ if-encoding {A = A} {B} =
 ℕ↔ℕ⊎⊤ : ℕ ↔ ℕ ⊎ ⊤
 ℕ↔ℕ⊎⊤ = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = ℕ-rec (inj₂ tt) (λ n _ → inj₁ n)
       ; from = [ suc , const zero ]
       }
@@ -1151,7 +1156,7 @@ Well-behaved f =
   B ↔ C
 ⊎-left-cancellative inv to-hyp from-hyp = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = g (to   inv) to-hyp
       ; from = g (from inv) from-hyp
       }

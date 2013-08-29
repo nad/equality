@@ -42,7 +42,7 @@ M-unfolding : ∀ {a b} {A : Set a} {B : A → Set b} →
               M A B ↔ ∃ λ (x : A) → B x → ∞ (M A B)
 M-unfolding = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (dns x f) → x , f }
       ; from = uncurry dns
       }

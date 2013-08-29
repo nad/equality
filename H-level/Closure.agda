@@ -62,7 +62,7 @@ abstract
   ⊥↔uninhabited : ∀ {a ℓ} {A : Set a} → ¬ A → ⊥ {ℓ = ℓ} ↔ A
   ⊥↔uninhabited ¬A = record
     { surjection = record
-      { equivalence = record
+      { logical-equivalence = record
         { to   = ⊥-elim
         ; from = ⊥-elim ∘ ¬A
         }
@@ -183,7 +183,7 @@ abstract
              {B : A → Set b} {f g : (x : A) → B x} →
              (∀ x → f x ≡ g x) ↠ (f ≡ g)
   ext-surj {b = b} {A} ext {B} = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to
       ; from = ext⁻¹
       }
@@ -283,7 +283,7 @@ W-unfolding : ∀ {a b} {A : Set a} {B : A → Set b} →
               W A B ↔ ∃ λ (x : A) → B x → W A B
 W-unfolding = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ w → head w , tail w
       ; from = uncurry sup
       }
@@ -429,7 +429,7 @@ abstract
                 (A ⊎ B) ↔ (∃ λ x → if x then ↑ b A else ↑ a B)
   sum-as-pair {a} {b} {A} {B} = record
     { surjection = record
-      { equivalence = record
+      { logical-equivalence = record
         { to   = to
         ; from = from
         }

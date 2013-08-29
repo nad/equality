@@ -420,10 +420,10 @@ cast (a ⊕ b) eq = cast a eq ⊎-cong cast b eq
 -- El a respects equivalences.
 
 resp : ∀ a {B C} → B ≃ C → El a B → El a C
-resp a eq = _⇔_.to (cast a (_≃_.equivalence eq))
+resp a eq = _⇔_.to (cast a (_≃_.logical-equivalence eq))
 
 resp⁻¹ : ∀ a {B C} → B ≃ C → El a C → El a B
-resp⁻¹ a eq = _⇔_.from (cast a (_≃_.equivalence eq))
+resp⁻¹ a eq = _⇔_.from (cast a (_≃_.logical-equivalence eq))
 
 abstract
 
@@ -488,20 +488,21 @@ Isomorphic′ (a , _) (C , x , _) (D , y , _) =
 
 -- El a preserves equivalences (assuming extensionality).
 --
--- Note that _≃_.equivalence (cast≃ ext a eq) is (definitionally)
--- equal to cast a (_≃_.equivalence eq); this property is used below.
+-- Note that _≃_.logical-equivalence (cast≃ ext a eq) is
+-- (definitionally) equal to cast a (_≃_.logical-equivalence eq); this
+-- property is used below.
 
 cast≃ : Extensionality (# 1) (# 1) →
         ∀ a {B C} → B ≃ C → El a B ≃ El a C
 cast≃ ext a {B} {C} B≃C = ↔⇒≃ record
   { surjection = record
-    { equivalence      = cast a B⇔C
-    ; right-inverse-of = to∘from
+    { logical-equivalence = cast a B⇔C
+    ; right-inverse-of    = to∘from
     }
   ; left-inverse-of = from∘to
   }
   where
-  B⇔C = _≃_.equivalence B≃C
+  B⇔C = _≃_.logical-equivalence B≃C
 
   cst : ∀ a → El a B ≃ El a C
   cst id      = B≃C
@@ -513,11 +514,12 @@ cast≃ ext a {B} {C} B≃C = ↔⇒≃ record
 
   abstract
 
-    -- The projection _≃_.equivalence is homomorphic with respect to
-    -- cast a/cst a.
+    -- The projection _≃_.logical-equivalence is homomorphic with
+    -- respect to cast a/cst a.
 
-    casts-related :
-      ∀ a → cast a (_≃_.equivalence B≃C) ≡ _≃_.equivalence (cst a)
+    casts-related : ∀ a →
+                    cast a (_≃_.logical-equivalence B≃C) ≡
+                    _≃_.logical-equivalence (cst a)
     casts-related id      = refl _
     casts-related set     = refl _
     casts-related (k A)   = refl _
@@ -544,17 +546,18 @@ cast≃ ext a {B} {C} B≃C = ↔⇒≃ record
 
 private
 
-  equivalence-cast≃ :
+  logical-equivalence-cast≃ :
     (ext : Extensionality (# 1) (# 1)) →
     ∀ a {B C} (eq : B ≃ C) →
-    _≃_.equivalence (cast≃ ext a eq) ≡ cast a (_≃_.equivalence eq)
-  equivalence-cast≃ _ _ _ = refl _
+    _≃_.logical-equivalence (cast≃ ext a eq) ≡
+    cast a (_≃_.logical-equivalence eq)
+  logical-equivalence-cast≃ _ _ _ = refl _
 
 -- Alternative, shorter definition of cast≃, based on univalence.
 --
 -- This proof does not (at the time of writing) have the property that
--- _≃_.equivalence (cast≃′ ass a eq) is definitionally equal to
--- cast a (_≃_.equivalence eq).
+-- _≃_.logical-equivalence (cast≃′ ass a eq) is definitionally equal
+-- to cast a (_≃_.logical-equivalence eq).
 
 cast≃′ : Assumptions → ∀ a {B C} → B ≃ C → El a B ≃ El a C
 cast≃′ ass a eq =

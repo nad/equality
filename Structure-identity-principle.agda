@@ -101,7 +101,7 @@ abstract
             ((X , p) Str.≅ (Y , q))
     ≅HH≃≅ {X} {Y} {p} {q} = ↔⇒≃ (record
       { surjection = record
-        { equivalence = record
+        { logical-equivalence = record
           { to   = ≅HH≃≅.to
           ; from = from
           }

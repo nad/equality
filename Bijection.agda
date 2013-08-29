@@ -68,8 +68,9 @@ id = record
 inverse : ∀ {a b} {A : Set a} {B : Set b} → A ↔ B → B ↔ A
 inverse A↔B = record
   { surjection = record
-    { equivalence      = Logical-equivalence.inverse equivalence
-    ; right-inverse-of = left-inverse-of
+    { logical-equivalence = Logical-equivalence.inverse
+                              logical-equivalence
+    ; right-inverse-of    = left-inverse-of
     }
   ; left-inverse-of = right-inverse-of
   } where open _↔_ A↔B
@@ -117,7 +118,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
           (p₁ ≡ p₂)
 Σ-≡,≡↔≡ {A = A} {B} {p₁} {p₂} = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to
       ; from = from
       }
@@ -189,7 +190,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
               (x ≡ y) ↔ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
 ≡↔inj₁≡inj₁ {A = A} {B} {x} {y} = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to
       ; from = from
       }
@@ -234,7 +235,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
               (x ≡ y) ↔ _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
 ≡↔inj₂≡inj₂ {A = A} {B} {x} {y} = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = to
       ; from = from
       }
@@ -293,7 +294,7 @@ contractible-isomorphic :
   Contractible A → Contractible B → A ↔ B
 contractible-isomorphic {A} {B} cA cB = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = const (proj₁ cB)
       ; from = const (proj₁ cA)
       }
@@ -308,7 +309,7 @@ implicit-Π↔Π : ∀ {a b} {A : Set a} {B : A → Set b} →
                ({x : A} → B x) ↔ ((x : A) → B x)
 implicit-Π↔Π = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ f x → f {x}
       ; from = λ f {x} → f x
       }
@@ -322,7 +323,7 @@ implicit-Π↔Π = record
 ↑↔ : ∀ {a b} {A : Set a} → ↑ b A ↔ A
 ↑↔ {b = b} {A} = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = lower
       ; from = lift
       }

@@ -123,8 +123,8 @@ abstract
 
     surj : map-f ⁻¹ (x , z) ↠ f ⁻¹ z
     surj = record
-      { equivalence      = record { to = to; from = from }
-      ; right-inverse-of = to∘from
+      { logical-equivalence = record { to = to; from = from }
+      ; right-inverse-of    = to∘from
       }
 
 ------------------------------------------------------------------------
@@ -158,7 +158,7 @@ record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   bijection : A ↔ B
   bijection = record
     { surjection = record
-      { equivalence = record
+      { logical-equivalence = record
         { to   = to
         ; from = from
         }
@@ -469,7 +469,7 @@ abstract
   ext⁻¹-is-equivalence ext {f = f} {g} =
     let surj : (∀ x → Singleton (g x)) ↠ (∃ λ f → ∀ x → f x ≡ g x)
         surj = record
-          { equivalence = record
+          { logical-equivalence = record
             { to   = λ f → proj₁ ⊚ f , proj₂ ⊚ f
             ; from = λ p x → proj₁ p x , proj₂ p x
             }
@@ -635,8 +635,8 @@ private
   ↔⇒≃-right-inverse {a} {b} {B = B} ext A-set A↔B =
     cong₂ (λ l r → record
              { surjection = record
-               { equivalence      = _↔_.equivalence A↔B
-               ; right-inverse-of = r
+               { logical-equivalence = _↔_.logical-equivalence A↔B
+               ; right-inverse-of    = r
                }
              ; left-inverse-of = l
              })
@@ -654,7 +654,7 @@ private
   Extensionality (a ⊔ b) (a ⊔ b) →
   (A ↔ B) ↠ (A ≃ B)
 ↔↠≃ ext = record
-  { equivalence = record
+  { logical-equivalence = record
     { to   = ↔⇒≃
     ; from = _≃_.bijection
     }
@@ -681,9 +681,9 @@ private
       Is-proposition A → Is-proposition B → (A ⇔ B) ↔ (A ≃ B)
 ⇔↔≃ ext {A} {B} A-prop B-prop = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = ⇔→≃
-      ; from = _≃_.equivalence
+      ; from = _≃_.logical-equivalence
       }
     ; right-inverse-of = λ _ → lift-equality ext (refl _)
     }
@@ -693,8 +693,8 @@ private
   ⇔→≃ : A ⇔ B → A ≃ B
   ⇔→≃ A⇔B = ↔⇒≃ record
     { surjection = record
-      { equivalence      = A⇔B
-      ; right-inverse-of = to∘from
+      { logical-equivalence = A⇔B
+      ; right-inverse-of    = to∘from
       }
     ; left-inverse-of = from∘to
     }
@@ -732,7 +732,7 @@ abstract
 
     surj : (∃ λ (to : A → B) → Is-equivalence to) ↠ (A ≃ B)
     surj = record
-      { equivalence = record
+      { logical-equivalence = record
           { to   = λ A≃B → ⟨ proj₁ A≃B , proj₂ A≃B ⟩
           ; from = λ A≃B → (_≃_.to A≃B , _≃_.is-equivalence A≃B)
           }
@@ -954,19 +954,20 @@ abstract
   (A₁≃A₂ : A₁ ≃ A₂) → (∀ x → B₁ x ↠ B₂ (_≃_.to A₁≃A₂ x)) →
   Σ A₁ B₁ ↠ Σ A₂ B₂
 ∃-preserves-surjections {A₁ = A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁↠B₂ = record
-  { equivalence      = equivalence′
-  ; right-inverse-of = right-inverse-of′
+  { logical-equivalence = logical-equivalence′
+  ; right-inverse-of    = right-inverse-of′
   }
   where
   open _↠_
 
-  equivalence′ : Σ A₁ B₁ ⇔ Σ A₂ B₂
-  equivalence′ =
-    ∃-preserves-logical-equivalences A₁≃A₂ (equivalence ⊚ B₁↠B₂)
+  logical-equivalence′ : Σ A₁ B₁ ⇔ Σ A₂ B₂
+  logical-equivalence′ =
+    ∃-preserves-logical-equivalences A₁≃A₂ (logical-equivalence ⊚ B₁↠B₂)
 
   abstract
     right-inverse-of′ :
-      ∀ p → _⇔_.to equivalence′ (_⇔_.from equivalence′ p) ≡ p
+      ∀ p →
+      _⇔_.to logical-equivalence′ (_⇔_.from logical-equivalence′ p) ≡ p
     right-inverse-of′ = λ p → Σ-≡,≡→≡
       (_≃_.right-inverse-of A₁≃A₂ (proj₁ p))
       (subst B₂ (_≃_.right-inverse-of A₁≃A₂ (proj₁ p))
@@ -1042,7 +1043,7 @@ abstract
 Π-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁≃B₂ =
   ↔⇒≃ record
     { surjection = record
-      { equivalence = record
+      { logical-equivalence = record
         { to   = to′
         ; from = from′
         }
@@ -1114,7 +1115,7 @@ abstract
   ((x : A) → B₁ x) ≃ ((x : A) → B₂ x)
 ∀-preserves {a} {b₁} {b₂} ext {A} {B₁} {B₂} B₁≃B₂ = ↔⇒≃ record
     { surjection = record
-      { equivalence = record
+      { logical-equivalence = record
         { to   = to′
         ; from = from′
         }
@@ -1152,7 +1153,7 @@ abstract
 ≃-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁≃B₂ =
   ↔⇒≃ (record
     { surjection = record
-      { equivalence = record
+      { logical-equivalence = record
         { to   = λ A₁≃B₁ → B₁≃B₂ ∘ A₁≃B₁ ∘ inverse A₁≃A₂
         ; from = λ A₂≃B₂ → inverse B₁≃B₂ ∘ A₂≃B₂ ∘ A₁≃A₂
         }

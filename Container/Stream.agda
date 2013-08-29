@@ -69,7 +69,7 @@ Any-head-tail : ∀ {A : Set} (P : A → Set) {xs} →
                 Any P xs ↔ P (head xs) ⊎ Any P (tail xs)
 Any-head-tail P = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = λ { (zero  , p) → inj₁ p
                  ; (suc n , p) → inj₂ (n , p)
                  }

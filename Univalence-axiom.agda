@@ -127,8 +127,8 @@ abstract
     p : ℕ → ℕ ≃ ℕ
     p i = ↔⇒≃ record
       { surjection = record
-        { equivalence      = record { to = swap i; from = swap i }
-        ; right-inverse-of = swap∘swap i
+        { logical-equivalence = record { to = swap i; from = swap i }
+        ; right-inverse-of    = swap∘swap i
         }
       ; left-inverse-of = swap∘swap i
       }
@@ -233,7 +233,7 @@ A ²/≡ = ∃ λ (x : A) → ∃ λ (y : A) → y ≡ x
 -²/≡↔- : ∀ {a} {A : Set a} → (A ²/≡) ↔ A
 -²/≡↔- = record
   { surjection = record
-    { equivalence = record
+    { logical-equivalence = record
       { to   = proj₁
       ; from = λ x → (x , x , refl x)
       }
