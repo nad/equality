@@ -155,7 +155,7 @@ abstract
 # (suc n) = lsuc (# n)
 
 ------------------------------------------------------------------------
--- Simple combinators working solely on and with functions
+-- Combinators defined using only abstraction and application
 
 infixr 9 _∘_
 infixl 1 _on_
@@ -197,6 +197,11 @@ flip f = λ x y → f y x
 _on_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
        (B → B → C) → (A → B) → (A → A → C)
 _*_ on f = λ x y → f x * f y
+
+-- A term's type.
+
+Type-of : ∀ {a} {A : Set a} → A → Set a
+Type-of {A = A} _ = A
 
 ------------------------------------------------------------------------
 -- Σ-types
