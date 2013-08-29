@@ -224,6 +224,21 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
   ≡→≅-refl : ∀ {X} → ≡→≅ (refl X) ≡ id≅
   ≡→≅-refl = elim-refl (λ {X Y} _ → X ≅ Y) _
 
+  -- A lemma that can be used to prove that ≡→≅ is an equivalence.
+
+  ≡→≅-equivalence-lemma :
+    ∀ {X} →
+    (≡≃≅ : ∀ {Y} → (X ≡ Y) ≃ (X ≅ Y)) →
+    _≃_.to ≡≃≅ (refl X) ≡ id≅ →
+    ∀ {Y} → Is-equivalence (≡→≅ {X = X} {Y = Y})
+  ≡→≅-equivalence-lemma {X} ≡≃≅ ≡≃≅-refl {Y} =
+    Eq.respects-extensional-equality
+      (elim¹ (λ X≡Y → _≃_.to ≡≃≅ X≡Y ≡ ≡→≅ X≡Y)
+             (_≃_.to ≡≃≅ (refl X)  ≡⟨ ≡≃≅-refl ⟩
+              id≅                  ≡⟨ sym ≡→≅-refl ⟩∎
+              ≡→≅ (refl X)         ∎))
+      (_≃_.is-equivalence ≡≃≅)
+
 -- An example: sets and functions. (Defined using extensionality.)
 
 precategory-Set :
@@ -400,6 +415,19 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
         id≅ ∙≅ id≅                     ≡⟨ sym $ cong₂ _∙≅_ ≡→≅-refl ≡→≅-refl ⟩∎
         ≡→≅ (refl X) ∙≅ ≡→≅ (refl X)   ∎))
 
+-- A lemma that can be used to turn a precategory into a category.
+
+precategory-to-category :
+  ∀ {c₁ c₂}
+  (C : Precategory c₁ c₂) →
+  let open Precategory C in
+  (≡≃≅ : ∀ {X Y} → (X ≡ Y) ≃ (X ≅ Y)) →
+  (∀ {X} → _≃_.to ≡≃≅ (refl X) ≡ id≅) →
+  Category c₁ c₂
+precategory-to-category C ≡≃≅ ≡≃≅-refl = record
+  { category = C , Precategory.≡→≅-equivalence-lemma C ≡≃≅ ≡≃≅-refl
+  }
+
 -- An example: sets and functions. (Defined using extensionality and
 -- univalence.)
 
@@ -408,14 +436,15 @@ category-Set :
   Extensionality ℓ ℓ →
   Univalence ℓ →
   Category (lsuc ℓ) ℓ
-category-Set ℓ ext univ = record { category = precategory , is-equiv }
+category-Set ℓ ext univ =
+  precategory-to-category precategory ≡≃≅ ≡≃≅-refl-is-id≅
   where
   precategory = precategory-Set ℓ ext
   open Precategory precategory hiding (precategory)
 
   abstract
 
-    -- ≡→≅ can be expressed as the composition of three equivalences.
+    -- _≡_ and _≅_ are pointwise equivalent…
 
     cong-Type : {X Y : Obj} → (X ≡ Y) ≃ (Type X ≡ Type Y)
     cong-Type = Eq.↔⇒≃ $ inverse $
@@ -424,25 +453,17 @@ category-Set ℓ ext univ = record { category = precategory , is-equiv }
     ≃≃≅ : (X Y : Obj) → (Type X ≃ Type Y) ≃ (X ≅ Y)
     ≃≃≅ = ≃≃≅-Set ℓ ext
 
-    ≡→≅-is-composition :
-      ∀ {X Y} (X≡Y : X ≡ Y) →
-      _≃_.to (≃≃≅ X Y ⊚ ≡≃≃ univ ⊚ cong-Type) X≡Y ≡ ≡→≅ X≡Y
-    ≡→≅-is-composition =
-      elim (λ {X Y} X≡Y →
-              _≃_.to (≃≃≅ X Y) (≡⇒≃ (proj₁ (Σ-≡,≡←≡ X≡Y))) ≡ ≡→≅ X≡Y)
-           (λ X → _≃_.to (≃≃≅ X X) (≡⇒≃ (proj₁ (Σ-≡,≡←≡ (refl X))))  ≡⟨ cong (_≃_.to (≃≃≅ X X) ∘ ≡⇒≃ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
-                  _≃_.to (≃≃≅ X X) (≡⇒≃ (refl (Type X)))             ≡⟨ cong (_≃_.to (≃≃≅ X X)) ≡⇒≃-refl ⟩
-                  _≃_.to (≃≃≅ X X) Eq.id                             ≡⟨ _≃_.from (≡≃≡¹ {X = X} {Y = X}) (refl P.id) ⟩
-                  id≅ {X = X}                                        ≡⟨ sym ≡→≅-refl ⟩∎
-                  ≡→≅ (refl X)                                       ∎)
+    ≡≃≅ : ∀ {X Y} → (X ≡ Y) ≃ (X ≅ Y)
+    ≡≃≅ {X} {Y} = ≃≃≅ X Y ⊚ ≡≃≃ univ ⊚ cong-Type
 
-    -- ≡→≅ is an equivalence.
+    -- …and the proof maps reflexivity to the identity isomorphism.
 
-    is-equiv : ∀ {X Y} → Is-equivalence (≡→≅ {X = X} {Y = Y})
-    is-equiv {X} {Y} =
-      Eq.respects-extensional-equality
-        ≡→≅-is-composition
-        (_≃_.is-equivalence (≃≃≅ X Y ⊚ ≡≃≃ univ ⊚ cong-Type))
+    ≡≃≅-refl-is-id≅ : ∀ {X} → _≃_.to ≡≃≅ (refl X) ≡ id≅ {X = X}
+    ≡≃≅-refl-is-id≅ {X} =
+      _≃_.to (≃≃≅ X X) (≡⇒≃ (proj₁ (Σ-≡,≡←≡ (refl X))))  ≡⟨ cong (_≃_.to (≃≃≅ X X) ∘ ≡⇒≃ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
+      _≃_.to (≃≃≅ X X) (≡⇒≃ (refl (Type X)))             ≡⟨ cong (_≃_.to (≃≃≅ X X)) ≡⇒≃-refl ⟩
+      _≃_.to (≃≃≅ X X) Eq.id                             ≡⟨ _≃_.from (≡≃≡¹ {X = X} {Y = X}) (refl P.id) ⟩∎
+      id≅ {X = X}                                        ∎
 
 -- An example: sets and bijections. (Defined using extensionality and
 -- univalence.)
