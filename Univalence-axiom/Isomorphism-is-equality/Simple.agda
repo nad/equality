@@ -228,9 +228,7 @@ module Class (Univ : Universe) where
   abstract
 
     -- The first part of the from component of the preceding lemma is
-    -- extensionally equal to a simple function. (The codomain of the
-    -- second part is propositional whenever El (proj₁ c) applied to
-    -- either carrier type is a set.)
+    -- pointwise equal to a simple function.
 
     proj₁-from-isomorphism-is-equality :
       ∀ ass c {I J} (eq : I ≡ J) →
@@ -245,6 +243,22 @@ module Class (Univ : Universe) where
         proj₁ (Σ-≡,≡←≡ (cong (λ { (x , (y , z)) → x , y }) eq))  ≡⟨ proj₁-Σ-≡,≡←≡ _ ⟩
         cong proj₁ (cong (λ { (x , (y , z)) → x , y }) eq)       ≡⟨ cong-∘ proj₁ (λ { (x , (y , z)) → x , y }) _ ⟩∎
         cong proj₁ eq                                            ∎)
+
+    -- The codomain of the second part of the from component of
+    -- isomorphism-is-equality is pointwise propositional whenever
+    -- El (proj₁ c) applied to either carrier type is a set.
+
+    proj₂-from-isomorphism-is-equality :
+      ∀ ass c {I J} →
+      Is-set (El (proj₁ c) (proj₁ I)) ⊎
+      Is-set (El (proj₁ c) (proj₁ J)) →
+      (eq : I ≡ J) →
+      Is-proposition
+        (Type-of (proj₂ (_↔_.from (isomorphism-is-equality ass c) eq)))
+    proj₂-from-isomorphism-is-equality ass (a , _) (inj₁ I-set) eq =
+      subst (Is-set ∘ El a ∘ proj₁) eq I-set _ _
+    proj₂-from-isomorphism-is-equality _   _       (inj₂ J-set) _  =
+      J-set _ _
 
     -- The type of (lifted) isomorphisms between two instances of a
     -- structure is equal to the type of equalities between the same
