@@ -2,8 +2,9 @@
 -- 1-categories
 ------------------------------------------------------------------------
 
--- Based on a draft of the chapter "Category theory" from the HoTT
--- book. I think this chapter was written by Peter Aczel and Mike
+-- Based on a draft of the chapter "Category theory" from "Homotopy
+-- Type Theory: Univalent Foundations of Mathematics". I think the
+-- parts of this chapter that I make use of were written by Mike
 -- Shulman.
 
 open import Equality
