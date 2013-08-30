@@ -86,13 +86,15 @@ import Preimage
 
 import Equivalence
 
+-- A universe which includes several kinds of functions (ordinary
+-- functions, logical equivalences, injections, surjections,
+-- bijections and equivalences).
+
+import Function-universe
+
 -- The univalence axiom.
 
 import Univalence-axiom
-
--- M-types.
-
-import M
 
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
@@ -123,11 +125,9 @@ import Category
 
 import Structure-identity-principle
 
--- A universe which includes several kinds of functions (ordinary
--- functions, logical equivalences, injections, surjections,
--- bijections and equivalences).
+-- M-types.
 
-import Function-universe
+import M
 
 -- Some definitions related to and properties of finite sets.
 
