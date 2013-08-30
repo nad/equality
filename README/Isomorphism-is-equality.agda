@@ -86,7 +86,7 @@ import Function-universe
 -- Is-equivalence, subst P eq is an equivalence
 -- (subst-is-equivalence), _≃_, _≃_ is logically equivalent to _↔_ and
 -- related properties (_≃_.bijection, ↔⇒≃, ↔↔≃, ⇔↔≃), congruence
--- properties for Σ and Π (Σ-preserves, Π-preserves),
+-- properties for Σ and Π (Σ-preserves, Π-preserves).
 
 import Equivalence
 
