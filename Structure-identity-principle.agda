@@ -9,15 +9,21 @@ open import Equality
 module Structure-identity-principle
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq using (module _↔_; Σ-≡,≡↔≡)
+open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
 open import Category eq
 open Derived-definitions-and-properties eq
-open import Equivalence eq hiding (id; _∘_; inverse)
-open import Function-universe eq using (inverse) renaming (_∘_ to _⊚_)
+open import Equivalence eq as Eq
+  hiding (id; _∘_; inverse; lift-equality)
+open import Function-universe eq hiding (id) renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq
 open import Logical-equivalence using (module _⇔_)
-open import Prelude hiding (id)
+open import Prelude as P hiding (id)
+open import Univalence-axiom eq
+open import Univalence-axiom.Isomorphism-is-equality.Simple eq
+  using (Assumptions; module Assumptions;
+         Universe; module Universe;
+         module Class)
 
 -- Standard notions of structure.
 
@@ -41,9 +47,9 @@ record Standard-notion-of-structure
   -- Two Str morphisms (see below) of equal type are equal if their
   -- first components are equal.
 
-  lift-equality-Str : {X Y : ∃ P} {f g : ∃ (H (proj₂ X) (proj₂ Y))} →
-                      proj₁ f ≡ proj₁ g → f ≡ g
-  lift-equality-Str eq =
+  lift-equality : {X Y : ∃ P} {f g : ∃ (H (proj₂ X) (proj₂ Y))} →
+                  proj₁ f ≡ proj₁ g → f ≡ g
+  lift-equality eq =
     Σ-≡,≡→≡ eq (_⇔_.to propositional⇔irrelevant (H-prop _) _ _)
 
   -- A derived precategory.
@@ -56,9 +62,26 @@ record Standard-notion-of-structure
          Σ-closure 2 Hom-is-set (λ f → mono₁ 1 (H-prop f)) }) ,
     (id , H-id) ,
     (λ { (f , hf) (g , hg) → f ∙ g , H-∘ hf hg }) ,
-    lift-equality-Str left-identity ,
-    lift-equality-Str right-identity ,
-    lift-equality-Str assoc }
+    lift-equality left-identity ,
+    lift-equality right-identity ,
+    lift-equality assoc }
+
+  module Str = Precategory Str
+
+  -- A rearrangement lemma.
+
+  proj₁-≡→≅-¹ :
+    ∀ {X Y} (X≡Y : X ≡ Y) →
+    proj₁ (Str.≡→≅ X≡Y Str.¹) ≡
+    elim (λ {X Y} _ → Hom X Y) (λ _ → id) (cong proj₁ X≡Y)
+  proj₁-≡→≅-¹ {X , p} = elim¹
+    (λ X≡Y → proj₁ (Str.≡→≅ X≡Y Str.¹) ≡
+             elim (λ {X Y} _ → Hom X Y) (λ _ → id) (cong proj₁ X≡Y))
+    (proj₁ (Str.≡→≅ (refl (X , p)) Str.¹)                               ≡⟨ cong (proj₁ ∘ Str._¹) $ elim-refl _ _ ⟩
+     proj₁ (Str.id {X = X , p})                                         ≡⟨⟩
+     id {X = X}                                                         ≡⟨ sym $ elim-refl _ _ ⟩
+     elim (λ {X Y} _ → Hom X Y) (λ _ → id) (refl X)                     ≡⟨ cong (elim _ _) $ sym $ cong-refl proj₁ ⟩∎
+     elim (λ {X Y} _ → Hom X Y) (λ _ → id) (cong proj₁ (refl (X , p)))  ∎)
 
 -- The structure identity principle states that the precategory Str is
 -- a category (assuming extensionality).
@@ -81,8 +104,7 @@ abstract
     Str.≡→≅-equivalence-lemma ≡≃≅ ≡≃≅-refl
     where
     open Standard-notion-of-structure S
-    module C   = Category C
-    module Str = Precategory Str
+    module C = Category C
 
     -- _≡_ is pointwise equivalent to Str._≅_.
 
@@ -93,8 +115,8 @@ abstract
            (X , p) Str.≅ (Y , q)
       to ((f , f⁻¹ , f∙f⁻¹ , f⁻¹∙f) , Hf , Hf⁻¹) =
         (f , Hf) , (f⁻¹ , Hf⁻¹) ,
-        lift-equality-Str f∙f⁻¹ ,
-        lift-equality-Str f⁻¹∙f
+        lift-equality f∙f⁻¹ ,
+        lift-equality f⁻¹∙f
 
     ≅HH≃≅ : ∀ {X Y} {p : P X} {q : P Y} →
             (∃ λ (f : X C.≅ Y) → H p q (f C.¹) × H q p (f C.⁻¹)) ≃
@@ -201,3 +223,266 @@ abstract
       ≅HH≃≅.to (C.≡→≅ (refl X) , ≡≡≃≅HH.to (refl X) (subst-refl P p))  ≡⟨ cong ≅HH≃≅.to $ Σ-≡,≡→≡ C.≡→≅-refl ≡≡≃≅HH.to-refl ⟩
       ≅HH≃≅.to (C.id≅ , H-id , H-id)                                   ≡⟨ refl _ ⟩∎
       Str.id≅                                                          ∎
+
+------------------------------------------------------------------------
+-- An example
+
+-- The structure identity principle can be used to prove a slightly
+-- restricted variant of isomorphism-is-equality (which is defined in
+-- Univalence-axiom.Isomorphism-is-equality.Simple.Class).
+
+isomorphism-is-equality′ :
+  (Univ : Universe) → let open Universe Univ in
+  Assumptions →
+  ∀ c {I J} →
+  (∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →  -- Extra assumption.
+  Is-set (proj₁ I) → Is-set (proj₁ J) →           -- Extra assumptions.
+  Class.Isomorphic Univ c I J ↔ (I ≡ J)
+isomorphism-is-equality′ Univ ass
+  (a , P) {C , x , p} {D , y , q} El-set C-set D-set = isomorphic
+
+  module Isomorphism-is-equality′ where
+
+  open Assumptions ass
+  open Universe Univ
+  open Class Univ using (Isomorphic; Carrier)
+
+  -- The category of sets and functions.
+
+  Fun : Category (# 2) (# 1)
+  Fun = category-Set (# 1) ext univ₁
+
+  module Fun = Category Fun
+
+  -- The category of sets and bijections.
+
+  Bij : Category (# 2) (# 1)
+  Bij = category-Set-≅ (# 1) ext univ₁
+
+  module Bij = Category Bij
+
+  -- If two sets are isomorphic, then the underlying types are
+  -- equivalent.
+
+  ≅⇒≃ : (C D : Fun.Obj) → C Fun.≅ D → Type C ≃ Type D
+  ≅⇒≃ C D = _≃_.from (≃≃≅-Set (# 1) ext C D)
+
+  -- The "standard notion of structure" that the structure identity
+  -- principle is instantiated with.
+
+  S : Standard-notion-of-structure (# 1) (# 1) Bij.precategory
+  S = record
+    { P               = El a ∘ Type
+    ; P-set           = El-set ∘ proj₂
+    ; H               = λ {C D} x y C≅D →
+                          Is-isomorphism a (≅⇒≃ C D C≅D) x y
+    ; H-prop          = λ {_ C} _ → El-set (proj₂ C) _ _
+    ; H-id            = λ {C x} →
+                          resp a (≅⇒≃ C C (Bij.id {X = C})) x  ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
+                          resp a Eq.id x                       ≡⟨ resp-id ass a x ⟩∎
+                          x                                    ∎
+    ; H-∘             = λ {B C D x y z B≅C C≅D} x≅y y≅z →
+                          resp a (≅⇒≃ B D (B≅C Bij.∙ C≅D)) x             ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
+                          resp a (≅⇒≃ C D C≅D ⊚ ≅⇒≃ B C B≅C) x           ≡⟨ resp-preserves-compositions (El a) (resp a) (resp-id ass a)
+                                                                                                        univ₁ ext (≅⇒≃ B C B≅C) (≅⇒≃ C D C≅D) x ⟩
+                          resp a (≅⇒≃ C D C≅D) (resp a (≅⇒≃ B C B≅C) x)  ≡⟨ cong (resp a (≅⇒≃ C D C≅D)) x≅y ⟩
+                          resp a (≅⇒≃ C D C≅D) y                         ≡⟨ y≅z ⟩∎
+                          z                                              ∎
+    ; H-antisymmetric = λ {C} x y x≡y _ →
+                          x                                    ≡⟨ sym $ resp-id ass a x ⟩
+                          resp a Eq.id x                       ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
+                          resp a (≅⇒≃ C C (Bij.id {X = C})) x  ≡⟨ x≡y ⟩∎
+                          y                                    ∎
+    }
+
+  open module S = Standard-notion-of-structure S
+    using (H; Str; module Str)
+
+  abstract
+
+    -- Every Str morphism is an isomorphism.
+
+    Str-homs-are-isos :
+      ∀ {C D x y} (f : ∃ (H {X = C} {Y = D} x y)) →
+      Str.Is-isomorphism {X = C , x} {Y = D , y} f
+    Str-homs-are-isos {C} {D} {x} {y} (C≅D , x≅y) =
+
+      (D≅C ,
+       (resp a (≅⇒≃ D C D≅C) y            ≡⟨ cong (λ eq → resp a eq y) $ Eq.lift-equality ext (refl _) ⟩
+        resp a (inverse $ ≅⇒≃ C D C≅D) y  ≡⟨ resp-preserves-inverses (El a) (resp a) (resp-id ass a) univ₁ ext (≅⇒≃ C D C≅D) _ _ x≅y ⟩∎
+        x                                 ∎)) ,
+
+      S.lift-equality {X = C , x} {Y = C , x} (
+        C≅D Fun.∙≅ D≅C   ≡⟨ _≃_.from (Fun.≡≃≡¹ {X = C} {Y = C}) (Fun._¹⁻¹ {X = C} {Y = D} C≅D) ⟩∎
+        Fun.id≅ {X = C}  ∎) ,
+
+      S.lift-equality {X = D , y} {Y = D , y} (
+        D≅C Fun.∙≅ C≅D   ≡⟨ _≃_.from (Fun.≡≃≡¹ {X = D} {Y = D}) (Fun._⁻¹¹ {X = C} {Y = D} C≅D) ⟩∎
+        Fun.id≅ {X = D}  ∎)
+
+      where
+
+      D≅C : D Fun.≅ C
+      D≅C = Fun._⁻¹≅ {X = C} {Y = D} C≅D
+
+    -- The isomorphism that should be constructed.
+
+    isomorphic : Isomorphic (a , P) (C , x , p) (D , y , q) ↔
+                 ((C , x , p) ≡ (D , y , q))
+    isomorphic =
+      Σ (C ≃ D) (λ eq → Is-isomorphism a eq x y)     ↝⟨ (let ≃≃≅-CD = ≃≃≅-Set (# 1) ext (C , C-set) (D , D-set) in
+                                                         Σ-cong ≃≃≅-CD (λ eq →
+                                                           let eq′ = _≃_.from ≃≃≅-CD (_≃_.to ≃≃≅-CD eq) in
+                                                           Is-isomorphism a eq  x y  ↝⟨ ≡⇒↝ _ $ cong (λ eq → Is-isomorphism a eq x y) $ sym $
+                                                                                          _≃_.left-inverse-of ≃≃≅-CD eq ⟩
+                                                           Is-isomorphism a eq′ x y  □)) ⟩
+      ∃ (H {X = C , C-set} {Y = D , D-set} x y)      ↝⟨ inverse ×-right-identity ⟩
+      ∃ (H {X = C , C-set} {Y = D , D-set} x y) × ⊤  ↝⟨ ∃-cong (λ I≅J → inverse $ contractible↔⊤ $ propositional⇒inhabited⇒contractible
+                                                                          (Str.Is-isomorphism-propositional I≅J)
+                                                                          (Str-homs-are-isos I≅J)) ⟩
+      (((C , C-set) , x) Str.≅ ((D , D-set) , y))    ↔⟨ inverse ⟨ _ , structure-identity-principle ext Bij S
+                                                                        {X = (C , C-set) , x} {Y = (D , D-set) , y} ⟩ ⟩
+      (((C , C-set) , x) ≡ ((D , D-set) , y))        ↔⟨ ≃-≡ $ ↔⇒≃ (Σ-assoc ⊚ ∃-cong (λ _ → ×-comm) ⊚ inverse Σ-assoc) ⟩
+      (((C , x) , C-set) ≡ ((D , y) , D-set))        ↝⟨ inverse $ ignore-propositional-component (H-level-propositional ext 2) ⟩
+      ((C , x) ≡ (D , y))                            ↝⟨ ignore-propositional-component (proj₂ (P D y) ass) ⟩
+      (((C , x) , p) ≡ ((D , y) , q))                ↔⟨ ≃-≡ $ ↔⇒≃ Σ-assoc ⟩□
+      ((C , x , p) ≡ (D , y , q))                    □
+
+    -- A simplification lemma.
+
+    proj₁-from-isomorphic :
+      ∀ I≡J → proj₁ (_↔_.from isomorphic I≡J) ≡ ≡⇒≃ (cong proj₁ I≡J)
+    proj₁-from-isomorphic I≡J = Eq.lift-equality ext (
+
+      _≃_.to (proj₁ (_↔_.from isomorphic I≡J))  ≡⟨⟩
+
+      cast C-set D-set I≡J                      ≡⟨ lemma ⟩∎
+
+      ≡⇒→ (cong proj₁ I≡J)                      ∎)
+
+      where
+
+      cast : ∀ {I J} →
+             Is-set (Carrier (a , P) I) → Is-set (Carrier (a , P) J) →
+             I ≡ J → Carrier (a , P) I → Carrier (a , P) J
+      cast {C , x , p} {D , y , q} C-set D-set I≡J =
+        proj₁ $ proj₁ $ proj₁ $
+        Str.≡→≅ {X = (C , C-set) , x} {Y = (D , D-set) , y} $
+        cong (λ { ((C , x) , C-set) → (C , C-set) , x }) $
+        Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡
+                   (cong (λ { (C , (x , p)) → (C , x) , p }) I≡J)))
+                (proj₁ (H-level-propositional ext 2 _ _))
+
+      lemma : cast C-set D-set I≡J ≡ ≡⇒→ (cong proj₁ I≡J)
+      lemma = elim¹
+        (λ I≡J → ∀ D-set → cast C-set D-set I≡J ≡ ≡⇒→ (cong proj₁ I≡J))
+        (λ C-set′ →
+
+           cast C-set C-set′ (refl (C , x , p))                      ≡⟨ cong (λ eq →
+                                                                                proj₁ $ proj₁ $ proj₁ $
+                                                                                Str.≡→≅ {X = (C , C-set) , x} {Y = (C , C-set′) , x} $
+                                                                                cong (λ { ((C , x) , C-set) → (C , C-set) , x }) $
+                                                                                Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ {B = proj₁ ∘ uncurry P} eq))
+                                                                                        (proj₁ (H-level-propositional ext 2 _ _)))
+                                                                             (cong-refl (λ { (C , (x , p)) → (C , x) , p })) ⟩
+           (proj₁ $ proj₁ $ proj₁ $
+            Str.≡→≅ {X = (C , C-set) , x} {Y = (C , C-set′) , x} $
+            cong (λ { ((C , x) , C-set) → (C , C-set) , x }) $
+            Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
+                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ cong proj₁ (S.proj₁-≡→≅-¹ _) ⟩
+
+           (proj₁ $
+            Fun.≡→≅ $
+            cong proj₁ $
+            cong (λ { ((C , x) , C-set) → (C , C-set) , x }) $
+            Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
+                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ cong (proj₁ ∘ Fun.≡→≅) $
+                                                                          cong-∘ proj₁ (λ { ((C , x) , C-set) → (C , C-set) , x }) _ ⟩
+           (proj₁ $
+            Fun.≡→≅ $
+            cong (λ { ((C , _) , C-set) → C , C-set }) $
+            Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
+                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ Fun.≡→≅-¹ _ ⟩
+
+           (elim (λ {X Y} _ → Fun.Hom X Y) (λ _ → P.id) $
+            cong (λ { ((C , _) , C-set) → C , C-set }) $
+            Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
+                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ elim¹ (λ eq → elim (λ {X Y} _ → Fun.Hom X Y) (λ _ → P.id) eq ≡
+                                                                                      ≡⇒↝ implication (cong proj₁ eq))
+                        (elim (λ {X Y} _ → Fun.Hom X Y) (λ _ → P.id)
+                              (refl (C , C-set))                          ≡⟨ elim-refl _ _ ⟩
+                         P.id                                             ≡⟨ sym $ elim-refl _ _ ⟩
+                         ≡⇒↝ implication (refl C)                         ≡⟨ cong (≡⇒↝ implication) (sym $ cong-refl proj₁) ⟩∎
+                         ≡⇒↝ implication (cong proj₁ (refl (C , C-set)))  ∎) _ ⟩
+
+           (≡⇒↝ implication $
+            cong proj₁ $
+            cong (λ { ((C , _) , C-set) → C , C-set }) $
+            Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
+                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ cong (≡⇒↝ implication)
+                                                                             (cong-∘ proj₁ (λ { ((C , _) , C-set) → C , C-set }) _) ⟩
+           (≡⇒↝ implication $
+            cong (λ { ((C , _) , _) → C }) $
+            Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
+                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ cong (λ eq →
+                                                                                ≡⇒↝ implication $
+                                                                                cong (λ { ((C , _) , _) → C }) $
+                                                                                Σ-≡,≡→≡ (proj₁ {B = λ q → subst (proj₁ ∘ uncurry P) q p ≡ p} eq)
+                                                                                        (proj₁ (H-level-propositional ext 2 _ C-set′)))
+                                                                             Σ-≡,≡←≡-refl ⟩
+           (≡⇒↝ implication $
+            cong (λ { ((C , _) , _) → C }) $
+            Σ-≡,≡→≡ (refl (C , x))
+                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ cong (≡⇒↝ implication ∘ cong (λ { ((C , _) , _) → C }))
+                                                                             (Σ-≡,≡→≡-reflˡ (proj₁ (H-level-propositional ext 2 _ _))) ⟩
+           (≡⇒↝ implication $
+            cong (λ { ((C , _) , _) → C }) $
+            cong (_,_ (C , x))
+                 (trans (sym $ subst-refl (Is-set ∘ proj₁) C-set)
+                        (proj₁ (H-level-propositional ext 2 _ _))))  ≡⟨ cong (≡⇒↝ implication)
+                                                                             (cong-∘ (λ { ((C , _) , _) → C }) (_,_ (C , x)) _) ⟩
+           (≡⇒↝ implication $
+            cong (const C)
+                 (trans (sym $ subst-refl (Is-set ∘ proj₁) C-set)
+                        (proj₁ (H-level-propositional ext 2 _ _))))  ≡⟨ cong (≡⇒↝ implication) (cong-const _) ⟩
+
+           ≡⇒↝ implication (refl C)                                  ≡⟨ ≡⇒↝-refl ⟩
+
+           P.id                                                      ≡⟨ sym ≡⇒→-refl ⟩
+
+           ≡⇒→ (refl C)                                              ≡⟨ sym $ cong ≡⇒→ $ cong-refl proj₁ ⟩∎
+
+           ≡⇒→ (cong proj₁ (refl (C , x , p)))                       ∎)
+
+        I≡J D-set
+
+abstract
+
+  -- The first part of the from component of isomorphism-is-equality′ is
+  -- pointwise equal to a simple function…
+
+  proj₁-from-isomorphism-is-equality′ :
+    ∀ Univ ass c {I J} → let open Universe Univ in
+    (El-set : ∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →
+    ∀ I-set J-set (eq : I ≡ J) →
+    proj₁ (_↔_.from (isomorphism-is-equality′
+                       Univ ass c El-set I-set J-set)
+                    eq) ≡
+    ≡⇒≃ (cong proj₁ eq)
+  proj₁-from-isomorphism-is-equality′
+    Univ ass c El-set I-set J-set eq =
+    Isomorphism-is-equality′.proj₁-from-isomorphic
+      Univ ass _ _ _ _ _ _ _ _ El-set I-set J-set eq
+
+  -- …and the second part has a type which is "pointwise propositional".
+
+  proj₂-from-isomorphism-is-equality′ :
+    ∀ Univ ass c {I J} → let open Universe Univ in
+    (El-set : ∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →
+    ∀ I-set J-set (eq : I ≡ J) →
+    Is-proposition
+      (Type-of (proj₂ (_↔_.from (isomorphism-is-equality′
+                                   Univ ass c El-set I-set J-set)
+                                eq)))
+  proj₂-from-isomorphism-is-equality′
+    _ _ _ El-set _ J-set _ = El-set J-set _ _

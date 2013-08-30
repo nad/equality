@@ -20,7 +20,6 @@ module Univalence-axiom.Isomorphism-is-equality.Simple
 
 open import Bijection eq
   hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
-open import Category eq
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq
@@ -28,11 +27,10 @@ open import Equivalence eq as Eq hiding (id; _∘_; inverse)
 open import Function-universe eq hiding (id) renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq
-open import Injection eq hiding (id; _∘_)
+open import Injection eq using (Injective)
 open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Preimage eq
 open import Prelude as P hiding (id)
-open import Structure-identity-principle eq
 open import Univalence-axiom eq
 
 ------------------------------------------------------------------------
@@ -228,7 +226,7 @@ module Class (Univ : Universe) where
   abstract
 
     -- The first part of the from component of the preceding lemma is
-    -- pointwise equal to a simple function.
+    -- pointwise equal to a simple function…
 
     proj₁-from-isomorphism-is-equality :
       ∀ ass c {I J} (eq : I ≡ J) →
@@ -244,9 +242,9 @@ module Class (Univ : Universe) where
         cong proj₁ (cong (λ { (x , (y , z)) → x , y }) eq)       ≡⟨ cong-∘ proj₁ (λ { (x , (y , z)) → x , y }) _ ⟩∎
         cong proj₁ eq                                            ∎)
 
-    -- The codomain of the second part of the from component of
-    -- isomorphism-is-equality is pointwise propositional whenever
-    -- El (proj₁ c) applied to either carrier type is a set.
+    -- …and the second part has a type which is "pointwise
+    -- propositional" whenever El (proj₁ c) applied to either carrier
+    -- type is a set.
 
     proj₂-from-isomorphism-is-equality :
       ∀ ass c {I J} →
@@ -275,127 +273,6 @@ module Class (Univ : Universe) where
         Isomorphic c I J        ↝⟨ isomorphism-is-equality ass c ⟩□
         (I ≡ J)                 □)
       where open Assumptions ass
-
-------------------------------------------------------------------------
--- An aside: A slightly restricted variant of
--- Class.isomorphism-is-equality can be proved by using Aczel's
--- structure identity principle, as found in "Homotopy Type Theory:
--- Univalent Foundations of Mathematics" (first edition)
-
--- The structure identity principle can be used to prove a slightly
--- restricted variant of Class.isomorphism-is-equality.
-
-isomorphism-is-equality-is-corollary :
-  (Univ : Universe) → let open Universe Univ in
-  Assumptions →
-  ∀ c {I J} →
-  (∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →  -- Extra assumption.
-  Is-set (proj₁ I) → Is-set (proj₁ J) →           -- Extra assumptions.
-  Class.Isomorphic Univ c I J ↔ (I ≡ J)
-isomorphism-is-equality-is-corollary Univ ass
-  (a , P) {C , x , p} {D , y , q} El-set C-set D-set =
-
-  Isomorphic (a , P) (C , x , p) (D , y , q)  ↝⟨ (let ≃≃≅ = ≃≃≅-Set (# 1) ext Cs Ds in
-                                                  Σ-cong ≃≃≅ (λ eq →
-                                                    let eq′ = _≃_.from ≃≃≅ (_≃_.to ≃≃≅ eq) in
-                                                    Is-isomorphism a eq  x y  ↝⟨ ≡⇒↝ _ $ cong (λ eq → Is-isomorphism a eq x y) $ sym $
-                                                                                   _≃_.left-inverse-of ≃≃≅ eq ⟩
-                                                    Is-isomorphism a eq′ x y  □)) ⟩
-  ∃ (H {X = Cs} {Y = Ds} x y)                 ↝⟨ inverse ×-right-identity ⟩
-  ∃ (H {X = Cs} {Y = Ds} x y) × ⊤             ↝⟨ ∃-cong (λ I≅J → inverse $ contractible↔⊤ $ propositional⇒inhabited⇒contractible
-                                                                   (Precategory.Is-isomorphism-propositional Str I≅J)
-                                                                   (Str-homs-are-isos I≅J)) ⟩
-  ((Cs , x) Str.≅ (Ds , y))                   ↔⟨ inverse ⟨ _ , structure-identity-principle ext X≅ S {X = Cs , x} {Y = Ds , y} ⟩ ⟩
-  ((Cs , x) ≡ (Ds , y))                       ↔⟨ ≃-≡ $ ↔⇒≃ (Σ-assoc ⊚ ∃-cong (λ _ → ×-comm) ⊚ inverse Σ-assoc) ⟩
-  (((C , x) , C-set) ≡ ((D , y) , D-set))     ↝⟨ inverse $ ignore-propositional-component (H-level-propositional ext 2) ⟩
-  ((C , x) ≡ (D , y))                         ↝⟨ ignore-propositional-component (proj₂ (P D y) ass) ⟩
-  (((C , x) , p) ≡ ((D , y) , q))             ↔⟨ ≃-≡ $ ↔⇒≃ Σ-assoc ⟩□
-  ((C , x , p) ≡ (D , y , q))                 □
-
-  where
-  open Assumptions ass
-  open Universe Univ
-  open Class Univ using (Isomorphic)
-
-  -- Some abbreviations.
-
-  X : Category (# 2) (# 1)
-  X = category-Set (# 1) ext univ₁
-
-  open Category X using (_≅_)
-
-  Cs : Category.Obj X
-  Cs = C , C-set
-
-  Ds : Category.Obj X
-  Ds = D , D-set
-
-  ≅⇒≃ : (C D : Category.Obj X) → C ≅ D → Type C ≃ Type D
-  ≅⇒≃ C D = _≃_.from (≃≃≅-Set (# 1) ext C D)
-
-  -- The underlying category.
-
-  X≅ : Category (# 2) (# 1)
-  X≅ = category-Set-≅ (# 1) ext univ₁
-
-  -- The "standard notion of structure" that the theorem is
-  -- instantiated with.
-
-  S : Standard-notion-of-structure (# 1) (# 1) (Category.precategory X≅)
-  S = record
-    { P               = El a ∘ Type
-    ; P-set           = El-set ∘ proj₂
-    ; H               = λ {C D} x y C≅D →
-                          Is-isomorphism a (≅⇒≃ C D C≅D) x y
-    ; H-prop          = λ {_ C} _ → El-set (proj₂ C) _ _
-    ; H-id            = λ {C x} →
-                          resp a (≅⇒≃ C C (Category.id X≅ {X = C})) x  ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
-                          resp a Eq.id x                               ≡⟨ resp-id ass a x ⟩∎
-                          x                                            ∎
-    ; H-∘             = λ {B C D x y z B≅C C≅D} x≅y y≅z →
-                          resp a (≅⇒≃ B D (Category._∙_ X≅ B≅C C≅D)) x   ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
-                          resp a (≅⇒≃ C D C≅D ⊚ ≅⇒≃ B C B≅C) x           ≡⟨ resp-preserves-compositions (El a) (resp a) (resp-id ass a)
-                                                                                                        univ₁ ext (≅⇒≃ B C B≅C) (≅⇒≃ C D C≅D) x ⟩
-                          resp a (≅⇒≃ C D C≅D) (resp a (≅⇒≃ B C B≅C) x)  ≡⟨ cong (resp a (≅⇒≃ C D C≅D)) x≅y ⟩
-                          resp a (≅⇒≃ C D C≅D) y                         ≡⟨ y≅z ⟩∎
-                          z                                              ∎
-    ; H-antisymmetric = λ {C} x y x≡y _ →
-                          x                                            ≡⟨ sym $ resp-id ass a x ⟩
-                          resp a Eq.id x                               ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
-                          resp a (≅⇒≃ C C (Category.id X≅ {X = C})) x  ≡⟨ x≡y ⟩∎
-                          y                                            ∎
-    }
-
-  open Standard-notion-of-structure S using (H; Str; lift-equality-Str)
-  module Str = Precategory Str
-
-  abstract
-
-    -- Every Str morphism is an isomorphism.
-
-    Str-homs-are-isos :
-      ∀ {C D x y} (f : ∃ (H {X = C} {Y = D} x y)) →
-      Precategory.Is-isomorphism Str {X = C , x} {Y = D , y} f
-    Str-homs-are-isos {C} {D} {x} {y} (C≅D , x≅y) =
-
-      (D≅C ,
-       (resp a (≅⇒≃ D C D≅C) y            ≡⟨ cong (λ eq → resp a eq y) $ Eq.lift-equality ext (refl _) ⟩
-        resp a (inverse $ ≅⇒≃ C D C≅D) y  ≡⟨ resp-preserves-inverses (El a) (resp a) (resp-id ass a) univ₁ ext (≅⇒≃ C D C≅D) _ _ x≅y ⟩∎
-        x                                 ∎)) ,
-
-      lift-equality-Str {X = C , x} {Y = C , x} (
-        C≅D ∙≅ D≅C   ≡⟨ _≃_.from (≡≃≡¹ {X = C} {Y = C}) (_¹⁻¹ {X = C} {Y = D} C≅D) ⟩∎
-        id≅ {X = C}  ∎) ,
-
-      lift-equality-Str {X = D , y} {Y = D , y} (
-        D≅C ∙≅ C≅D   ≡⟨ _≃_.from (≡≃≡¹ {X = D} {Y = D}) (_⁻¹¹ {X = C} {Y = D} C≅D) ⟩∎
-        id≅ {X = D}  ∎)
-
-      where
-      open Category X using (_⁻¹≅; _∙≅_; id≅; _¹⁻¹; _⁻¹¹; ≡≃≡¹)
-
-      D≅C : D ≅ C
-      D≅C = _⁻¹≅ {X = C} {Y = D} C≅D
 
 ------------------------------------------------------------------------
 -- A universe of non-recursive, simple types

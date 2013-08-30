@@ -90,14 +90,6 @@ import Equivalence
 
 import Univalence-axiom
 
--- 1-categories.
-
-import Category
-
--- Aczel's structure identity principle (for 1-categories).
-
-import Structure-identity-principle
-
 -- M-types.
 
 import M
@@ -122,6 +114,14 @@ import Univalence-axiom.Isomorphism-is-equality.More.Examples
 -- mentioned in a blog post.
 
 import Univalence-axiom.Isomorphism-implies-equality
+
+-- 1-categories.
+
+import Category
+
+-- Aczel's structure identity principle (for 1-categories).
+
+import Structure-identity-principle
 
 -- A universe which includes several kinds of functions (ordinary
 -- functions, logical equivalences, injections, surjections,
