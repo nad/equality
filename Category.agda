@@ -225,6 +225,19 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
   ≡→≅-refl : ∀ {X} → ≡→≅ (refl X) ≡ id≅
   ≡→≅-refl = elim-refl (λ {X Y} _ → X ≅ Y) _
 
+  -- Rearrangement lemma for ≡→≅.
+
+  ≡→≅-¹ :
+    ∀ {X Y} (X≡Y : X ≡ Y) →
+    ≡→≅ X≡Y ¹ ≡ elim (λ {X Y} _ → Hom X Y) (λ _ → id) X≡Y
+  ≡→≅-¹ {X} = elim¹
+    (λ X≡Y → ≡→≅ X≡Y ¹ ≡
+             elim (λ {X Y} _ → Hom X Y) (λ _ → id) X≡Y)
+    (≡→≅ (refl X) ¹                                  ≡⟨ cong _¹ ≡→≅-refl ⟩
+     id≅ ¹                                           ≡⟨⟩
+     id                                              ≡⟨ sym $ elim-refl _ _ ⟩∎
+     elim (λ {X Y} _ → Hom X Y) (λ _ → id) (refl X)  ∎)
+
   -- A lemma that can be used to prove that ≡→≅ is an equivalence.
 
   ≡→≅-equivalence-lemma :
