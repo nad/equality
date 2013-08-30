@@ -551,8 +551,8 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
 -- Σ preserves isomorphisms in its first argument and all kinds of
 -- functions in its second argument.
 --
--- The first clause is included as an optimisation intended to make
--- some proof terms smaller.
+-- The first two clauses are included as an optimisation intended to
+-- make some proof terms easier to work with.
 
 Σ-cong : ∀ {k₁ k₂ a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
            {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
@@ -561,6 +561,8 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
          Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
 Σ-cong {equivalence} {equivalence} A₁≃A₂ B₁≃B₂ =
   Eq.Σ-preserves A₁≃A₂ B₁≃B₂
+Σ-cong {equivalence} {bijection} A₁≃A₂ B₁↔B₂ =
+  Eq.∃-preserves-bijections A₁≃A₂ B₁↔B₂
 Σ-cong {k₁} {k₂} {A₁ = A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ = helper k₂ B₁↝B₂′
   where
   A₁≃A₂ : A₁ ≃ A₂
