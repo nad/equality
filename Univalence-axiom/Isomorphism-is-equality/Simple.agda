@@ -231,16 +231,17 @@ module Class (Univ : Universe) where
     proj₁-from-isomorphism-is-equality :
       ∀ ass c {I J} (eq : I ≡ J) →
       proj₁ (_↔_.from (isomorphism-is-equality ass c) eq) ≡
-      ≡⇒≃ (cong proj₁ eq)
+      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) eq
     proj₁-from-isomorphism-is-equality ass _ eq =
-      cong ≡⇒≃ (
-        proj₁ (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
-          (cong (λ { (x , (y , z)) → (x , y) , z }) eq))))       ≡⟨ cong (proj₁ ∘ Σ-≡,≡←≡) $ proj₁-Σ-≡,≡←≡ _ ⟩
-        proj₁ (Σ-≡,≡←≡ (cong proj₁
-          (cong (λ { (x , (y , z)) → (x , y) , z }) eq)))        ≡⟨ cong (proj₁ ∘ Σ-≡,≡←≡) $ cong-∘ proj₁ (λ { (x , (y , z)) → (x , y) , z }) _ ⟩
-        proj₁ (Σ-≡,≡←≡ (cong (λ { (x , (y , z)) → x , y }) eq))  ≡⟨ proj₁-Σ-≡,≡←≡ _ ⟩
-        cong proj₁ (cong (λ { (x , (y , z)) → x , y }) eq)       ≡⟨ cong-∘ proj₁ (λ { (x , (y , z)) → x , y }) _ ⟩∎
-        cong proj₁ eq                                            ∎)
+      ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
+        (cong (λ { (x , (y , z)) → (x , y) , z }) eq)))))            ≡⟨ cong (≡⇒≃ ∘ proj₁ ∘ Σ-≡,≡←≡) $ proj₁-Σ-≡,≡←≡ _ ⟩
+      ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (cong proj₁
+        (cong (λ { (x , (y , z)) → (x , y) , z }) eq))))             ≡⟨ cong (≡⇒≃ ∘ proj₁ ∘ Σ-≡,≡←≡) $
+                                                                          cong-∘ proj₁ (λ { (x , (y , z)) → (x , y) , z }) _ ⟩
+      ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (cong (λ { (x , (y , z)) → x , y }) eq)))  ≡⟨ cong ≡⇒≃ $ proj₁-Σ-≡,≡←≡ _ ⟩
+      ≡⇒≃ (cong proj₁ (cong (λ { (x , (y , z)) → x , y }) eq))       ≡⟨ cong ≡⇒≃ $ cong-∘ proj₁ (λ { (x , (y , z)) → x , y }) _ ⟩
+      ≡⇒≃ (cong proj₁ eq)                                            ≡⟨ elim-cong _ _ _ ⟩∎
+      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) eq          ∎
 
     -- …and the second part has a type which is "pointwise
     -- propositional" whenever El (proj₁ c) applied to either carrier

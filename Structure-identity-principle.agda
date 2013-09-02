@@ -351,14 +351,16 @@ isomorphism-is-equality′ Univ ass
     -- A simplification lemma.
 
     proj₁-from-isomorphic :
-      ∀ I≡J → proj₁ (_↔_.from isomorphic I≡J) ≡ ≡⇒≃ (cong proj₁ I≡J)
+      ∀ I≡J →
+      proj₁ (_↔_.from isomorphic I≡J) ≡
+      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) I≡J
     proj₁-from-isomorphic I≡J = Eq.lift-equality ext (
 
-      _≃_.to (proj₁ (_↔_.from isomorphic I≡J))  ≡⟨⟩
+      _≃_.to (proj₁ (_↔_.from isomorphic I≡J))                         ≡⟨⟩
 
-      cast C-set D-set I≡J                      ≡⟨ lemma ⟩∎
+      cast C-set D-set I≡J                                             ≡⟨ lemma ⟩∎
 
-      ≡⇒→ (cong proj₁ I≡J)                      ∎)
+      _≃_.to (elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) I≡J)  ∎)
 
       where
 
@@ -373,9 +375,13 @@ isomorphism-is-equality′ Univ ass
                    (cong (λ { (C , (x , p)) → (C , x) , p }) I≡J)))
                 (proj₁ (H-level-propositional ext 2 _ _))
 
-      lemma : cast C-set D-set I≡J ≡ ≡⇒→ (cong proj₁ I≡J)
+      lemma :
+        cast C-set D-set I≡J ≡
+        _≃_.to (elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) I≡J)
       lemma = elim¹
-        (λ I≡J → ∀ D-set → cast C-set D-set I≡J ≡ ≡⇒→ (cong proj₁ I≡J))
+        (λ I≡J → ∀ D-set → cast C-set D-set I≡J ≡
+                           _≃_.to (elim (λ {I J} _ → proj₁ I ≃ proj₁ J)
+                                        (λ _ → Eq.id) I≡J))
         (λ C-set′ →
 
            cast C-set C-set′ (refl (C , x , p))                      ≡⟨ cong (λ eq →
@@ -448,11 +454,11 @@ isomorphism-is-equality′ Univ ass
 
            ≡⇒↝ implication (refl C)                                  ≡⟨ ≡⇒↝-refl ⟩
 
-           P.id                                                      ≡⟨ sym ≡⇒→-refl ⟩
+           P.id                                                      ≡⟨ sym $ cong _≃_.to $ elim-refl _ _ ⟩∎
 
-           ≡⇒→ (refl C)                                              ≡⟨ sym $ cong ≡⇒→ $ cong-refl proj₁ ⟩∎
-
-           ≡⇒→ (cong proj₁ (refl (C , x , p)))                       ∎)
+           _≃_.to (elim (λ {I J} _ → proj₁ I ≃ proj₁ J)
+                        (λ _ → Eq.id)
+                        (refl (C , x , p)))                          ∎)
 
         I≡J D-set
 
@@ -468,7 +474,7 @@ abstract
     proj₁ (_↔_.from (isomorphism-is-equality′
                        Univ ass c El-set I-set J-set)
                     eq) ≡
-    ≡⇒≃ (cong proj₁ eq)
+    elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) eq
   proj₁-from-isomorphism-is-equality′
     Univ ass c El-set I-set J-set eq =
     Isomorphism-is-equality′.proj₁-from-isomorphic
