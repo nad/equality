@@ -201,6 +201,40 @@ finally-↔ _ _ A↔B = from-isomorphism A↔B
 syntax finally-↝ A B A↝B = A ↝⟨ A↝B ⟩□ B □
 syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
 
+-- Lemma: to-implication maps id to the identity function.
+
+to-implication-id :
+  ∀ {a} {A : Set a} k →
+  to-implication {k = k} id ≡ id {A = A}
+to-implication-id implication         = refl _
+to-implication-id logical-equivalence = refl _
+to-implication-id injection           = refl _
+to-implication-id surjection          = refl _
+to-implication-id bijection           = refl _
+to-implication-id equivalence         = refl _
+
+-- Lemma: to-implication is homomorphic with respect to _∘_.
+
+to-implication-∘ :
+  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+  (k : Kind) {f : A ↝[ k ] B} {g : B ↝[ k ] C} →
+  to-implication (g ∘ f) ≡ to-implication g ∘ to-implication f
+to-implication-∘ implication         = refl _
+to-implication-∘ logical-equivalence = refl _
+to-implication-∘ injection           = refl _
+to-implication-∘ surjection          = refl _
+to-implication-∘ bijection           = refl _
+to-implication-∘ equivalence         = refl _
+
+-- Lemma: to-implication maps inverse id to the identity function.
+
+to-implication-inverse-id :
+  ∀ {a} {A : Set a} k →
+  to-implication (inverse {k = k} id) ≡ id {A = A}
+to-implication-inverse-id logical-equivalence = refl _
+to-implication-inverse-id bijection           = refl _
+to-implication-inverse-id equivalence         = refl _
+
 ------------------------------------------------------------------------
 -- Lots of properties
 ------------------------------------------------------------------------
