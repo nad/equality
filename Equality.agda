@@ -702,17 +702,26 @@ module Derived-definitions-and-properties
 
   abstract
 
+    elim-cong :
+      ∀ {a b p} {A : Set a} {B : Set b} {x y : A}
+      (P : B → B → Set p) (f : A → B)
+      (r : ∀ x → P x x) {x≡y : x ≡ y} →
+      elim (λ {x y} _ → P x y) r (cong f x≡y) ≡
+      elim (λ {x y} _ → P (f x) (f y)) (r ∘ f) x≡y
+    elim-cong {x = x} P f r {x≡y} = elim¹
+      (λ x≡y → elim (λ {x y} _ → P x y) r (cong f x≡y) ≡
+               elim (λ {x y} _ → P (f x) (f y)) (r ∘ f) x≡y)
+      (elim (λ {x y} _ → P x y) r (cong f (refl x))       ≡⟨ cong (elim _ _) $ cong-refl _ ⟩
+       elim (λ {x y} _ → P x y) r (refl (f x))            ≡⟨ elim-refl _ _ ⟩
+       r (f x)                                            ≡⟨ sym $ elim-refl _ _ ⟩∎
+       elim (λ {x y} _ → P (f x) (f y)) (r ∘ f) (refl x)  ∎)
+      x≡y
+
     subst-∘ : ∀ {a b p} {A : Set a} {B : Set b} {x y : A}
               (P : B → Set p) (f : A → B) (x≡y : x ≡ y) {p : P (f x)} →
               subst (P ∘ f) x≡y p ≡ subst P (cong f x≡y) p
-    subst-∘ P f x≡y =
-      elim (λ {x y} x≡y → ∀ p → subst (P ∘ f) x≡y p ≡
-                                subst P (cong f x≡y) p)
-           (λ x p → subst (P ∘ f) (refl x) p     ≡⟨ subst-refl (P ∘ f) _ ⟩
-                    p                            ≡⟨ sym $ subst-refl P _ ⟩
-                    subst P (refl (f x)) p       ≡⟨ sym $ cong (λ eq → subst P eq p) (cong-refl f) ⟩∎
-                    subst P (cong f (refl x)) p  ∎)
-           x≡y _
+    subst-∘ P f _ =
+      sym $ cong (λ g → g _) $ elim-cong (λ u v → P u → P v) f _
 
     subst-↑ : ∀ {a p ℓ} {A : Set a} {x y}
               (P : A → Set p) {p : ↑ ℓ (P x)} {x≡y : x ≡ y} →
