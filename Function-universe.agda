@@ -250,11 +250,39 @@ to-implication-inverse-id equivalence         = refl _
 
 abstract
 
-  -- "Evaluation rule" for ≡⇒↝.
+  -- Some lemmas that can be used to manipulate expressions involving
+  -- ≡⇒↝ and refl/sym/trans.
 
   ≡⇒↝-refl : ∀ {k a} {A : Set a} →
              ≡⇒↝ k (refl A) ≡ id
   ≡⇒↝-refl {k} = elim-refl (λ {A B} _ → A ↝[ k ] B) _
+
+  ≡⇒↝-sym : ∀ k {ℓ} {A B : Set ℓ} {eq : A ≡ B} →
+            to-implication (≡⇒↝ ⌊ k ⌋-sym (sym eq)) ≡
+            to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym eq))
+  ≡⇒↝-sym k {A = A} {eq = eq} = elim¹
+    (λ eq → to-implication (≡⇒↝ ⌊ k ⌋-sym (sym eq)) ≡
+            to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym eq)))
+    (to-implication (≡⇒↝ ⌊ k ⌋-sym (sym (refl A)))      ≡⟨ cong (to-implication ∘ ≡⇒↝ ⌊ k ⌋-sym) sym-refl ⟩
+     to-implication (≡⇒↝ ⌊ k ⌋-sym (refl A))            ≡⟨ cong (to-implication {k = ⌊ k ⌋-sym}) ≡⇒↝-refl ⟩
+     to-implication {k = ⌊ k ⌋-sym} id                  ≡⟨ to-implication-id ⌊ k ⌋-sym ⟩
+     id                                                 ≡⟨ sym $ to-implication-inverse-id k ⟩
+     to-implication (inverse {k = k} id)                ≡⟨ cong (to-implication ∘ inverse {k = k}) $ sym ≡⇒↝-refl ⟩∎
+     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (refl A)))  ∎)
+    eq
+
+  ≡⇒↝-trans : ∀ k {ℓ} {A B C : Set ℓ} {A≡B : A ≡ B} {B≡C : B ≡ C} →
+              to-implication (≡⇒↝ k (trans A≡B B≡C)) ≡
+              to-implication (≡⇒↝ k B≡C ∘ ≡⇒↝ k A≡B)
+  ≡⇒↝-trans k {B = B} {A≡B = A≡B} = elim¹
+    (λ B≡C → to-implication (≡⇒↝ k (trans A≡B B≡C)) ≡
+             to-implication (≡⇒↝ k B≡C ∘ ≡⇒↝ k A≡B))
+    (to-implication (≡⇒↝ k (trans A≡B (refl B)))             ≡⟨ cong (to-implication ∘ ≡⇒↝ k) $ trans-reflʳ _ ⟩
+     to-implication (≡⇒↝ k A≡B)                              ≡⟨ sym $ cong (λ f → f ∘ to-implication (≡⇒↝ k A≡B)) $ to-implication-id k ⟩
+     to-implication {k = k} id ∘ to-implication (≡⇒↝ k A≡B)  ≡⟨ sym $ to-implication-∘ k ⟩
+     to-implication (id ∘ ≡⇒↝ k A≡B)                         ≡⟨ sym $ cong (λ f → to-implication (f ∘ ≡⇒↝ k A≡B)) ≡⇒↝-refl ⟩∎
+     to-implication (≡⇒↝ k (refl B) ∘ ≡⇒↝ k A≡B)             ∎)
+    _
 
   -- One can sometimes "push" ≡⇒↝ through cong.
   --
