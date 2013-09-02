@@ -692,15 +692,21 @@ module Derived-definitions-and-properties
        cong (λ x → h (f x) (g x)) (refl _)          ∎)
       _
 
-  subst-const : ∀ {a p} {A : Set a} {x₁ x₂ : A} (x₁≡x₂ : x₁ ≡ x₂)
-                  {P : Set p} {p} →
-                subst (const P) x₁≡x₂ p ≡ p
-  subst-const x₁≡x₂ {P = P} {p} =
-    elim¹ (λ x₁≡x₂ → subst (const P) x₁≡x₂ p ≡ p)
-          (subst-refl (const P) _)
-          x₁≡x₂
-
   abstract
+
+    elim-∘ :
+      ∀ {a p} {A : Set a} {x y : A}
+      (P Q : ∀ {x y} → x ≡ y → Set p)
+      (f : ∀ {x y} {x≡y : x ≡ y} → P x≡y → Q x≡y)
+      (r : ∀ x → P (refl x)) {x≡y : x ≡ y} →
+      f (elim P r x≡y) ≡ elim Q (f ∘ r) x≡y
+    elim-∘ {x = x} P Q f r {x≡y} = elim¹
+      (λ x≡y → f (elim P r x≡y) ≡
+               elim Q (f ∘ r) x≡y)
+      (f (elim P r (refl x))    ≡⟨ cong f $ elim-refl _ _ ⟩
+       f (r x)                  ≡⟨ sym $ elim-refl _ _ ⟩∎
+       elim Q (f ∘ r) (refl x)  ∎)
+      x≡y
 
     elim-cong :
       ∀ {a b p} {A : Set a} {B : Set b} {x y : A}
@@ -716,6 +722,16 @@ module Derived-definitions-and-properties
        r (f x)                                            ≡⟨ sym $ elim-refl _ _ ⟩∎
        elim (λ {x y} _ → P (f x) (f y)) (r ∘ f) (refl x)  ∎)
       x≡y
+
+  subst-const : ∀ {a p} {A : Set a} {x₁ x₂ : A} (x₁≡x₂ : x₁ ≡ x₂)
+                  {P : Set p} {p} →
+                subst (const P) x₁≡x₂ p ≡ p
+  subst-const x₁≡x₂ {P = P} {p} =
+    elim¹ (λ x₁≡x₂ → subst (const P) x₁≡x₂ p ≡ p)
+          (subst-refl (const P) _)
+          x₁≡x₂
+
+  abstract
 
     subst-∘ : ∀ {a b p} {A : Set a} {B : Set b} {x y : A}
               (P : B → Set p) (f : A → B) (x≡y : x ≡ y) {p : P (f x)} →
