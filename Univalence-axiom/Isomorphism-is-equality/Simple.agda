@@ -51,8 +51,11 @@ record Assumptions : Set₃ where
 
     -- Extensionality.
 
-    ext : Extensionality (# 1) (# 1)
+    ext : ∀ {ℓ} → Extensionality ℓ (# 1)
     ext = dependent-extensionality univ₂ (λ _ → univ₁)
+
+    ext₁ : Extensionality (# 1) (# 1)
+    ext₁ = ext
 
 -- Universes with some extra stuff.
 
@@ -347,7 +350,7 @@ simple = record
   { U       = U
   ; El      = El
   ; resp    = resp
-  ; resp-id = resp-id ∘ Assumptions.ext
+  ; resp-id = resp-id ∘ Assumptions.ext₁
   }
 
 -- Let us use this universe below.
@@ -454,7 +457,7 @@ private
 cast≃′ : Assumptions → ∀ a {B C} → B ≃ C → El a B ≃ El a C
 cast≃′ ass a eq =
   ⟨ resp a eq
-  , resp-is-equivalence (El a) (resp a) (resp-id ext a) univ₁ eq
+  , resp-is-equivalence (El a) (resp a) (resp-id ext₁ a) univ₁ eq
   ⟩
   where open Assumptions ass
 
@@ -488,15 +491,15 @@ abstract
 
   is-isomorphism-isomorphic ass (a ⇾ b) {x = f} {g} eq =
 
-    (resp b eq ∘ f ∘ resp⁻¹ a eq ≡ g)                  ↝⟨ ∘from≡↔≡∘to ext (cast≃ ext a eq) ⟩
+    (resp b eq ∘ f ∘ resp⁻¹ a eq ≡ g)                  ↝⟨ ∘from≡↔≡∘to ext₁ (cast≃ ext₁ a eq) ⟩
 
-    (resp b eq ∘ f ≡ g ∘ resp a eq)                    ↔⟨ inverse $ extensionality-isomorphism ext ⟩
+    (resp b eq ∘ f ≡ g ∘ resp a eq)                    ↔⟨ inverse $ extensionality-isomorphism ext₁ ⟩
 
-    (∀ x → resp b eq (f x) ≡ g (resp a eq x))          ↔⟨ ∀-preserves ext (λ x → ↔⇒≃ $
-                                                            ∀-intro ext (λ y _ → resp b eq (f x) ≡ g y)) ⟩
-    (∀ x y → resp a eq x ≡ y → resp b eq (f x) ≡ g y)  ↔⟨ ∀-preserves ext (λ _ → ∀-preserves ext λ _ → ↔⇒≃ $
-                                                            →-cong ext (is-isomorphism-isomorphic ass a eq)
-                                                                       (is-isomorphism-isomorphic ass b eq)) ⟩□
+    (∀ x → resp b eq (f x) ≡ g (resp a eq x))          ↔⟨ ∀-preserves ext₁ (λ x → ↔⇒≃ $
+                                                            ∀-intro ext₁ (λ y _ → resp b eq (f x) ≡ g y)) ⟩
+    (∀ x y → resp a eq x ≡ y → resp b eq (f x) ≡ g y)  ↔⟨ ∀-preserves ext₁ (λ _ → ∀-preserves ext₁ λ _ → ↔⇒≃ $
+                                                            →-cong ext₁ (is-isomorphism-isomorphic ass a eq)
+                                                                        (is-isomorphism-isomorphic ass b eq)) ⟩□
     (∀ x y → Is-isomorphism′ a eq x y →
              Is-isomorphism′ b eq (f x) (g y))         □
 
@@ -581,14 +584,14 @@ monoid =
        -- The laws are propositional (assuming extensionality).
       λ ass → let open Assumptions ass in
         [inhabited⇒+]⇒+ 0 λ { (C-set , _) →
-          ×-closure 1  (H-level-propositional ext 2)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          ×-closure 1  (H-level-propositional ext₁ 2)
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-                       (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+                       (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _))) }}
 
 -- The interpretation of the code is reasonable.
@@ -693,22 +696,22 @@ poset =
 
     λ ass → let open Assumptions ass in
       [inhabited⇒+]⇒+ 0 λ { (C-set , ≤-prop , _) →
-        ×-closure 1  (H-level-propositional ext 2)
-        (×-closure 1 (Π-closure ext                     1 λ _ →
-                      Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
-                      H-level-propositional (lower-ext _ _ ext) 1)
-        (×-closure 1 (Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
+        ×-closure 1  (H-level-propositional ext₁ 2)
+        (×-closure 1 (Π-closure ext₁                     1 λ _ →
+                      Π-closure (lower-ext (# 0) _ ext₁) 1 λ _ →
+                      H-level-propositional (lower-ext _ _ ext₁) 1)
+        (×-closure 1 (Π-closure (lower-ext (# 0) _ ext₁) 1 λ _ →
                       ≤-prop _ _)
-        (×-closure 1 (Π-closure ext                     1 λ _ →
-                      Π-closure ext                     1 λ _ →
-                      Π-closure (lower-ext (# 0) _ ext) 1 λ _ →
-                      Π-closure (lower-ext _ _ ext)     1 λ _ →
-                      Π-closure (lower-ext _ _ ext)     1 λ _ →
+        (×-closure 1 (Π-closure ext₁                     1 λ _ →
+                      Π-closure ext₁                     1 λ _ →
+                      Π-closure (lower-ext (# 0) _ ext₁) 1 λ _ →
+                      Π-closure (lower-ext _ _ ext₁)     1 λ _ →
+                      Π-closure (lower-ext _ _ ext₁)     1 λ _ →
                       ≤-prop _ _)
-                     (Π-closure ext                     1 λ _ →
-                      Π-closure ext                     1 λ _ →
-                      Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
-                      Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
+                     (Π-closure ext₁                     1 λ _ →
+                      Π-closure ext₁                     1 λ _ →
+                      Π-closure ext                      1 λ _ →
+                      Π-closure ext                      1 λ _ →
                       C-set _ _)))) }
 
 -- The interpretation of the code is reasonable. (Except, perhaps,
@@ -769,27 +772,27 @@ Isomorphism-poset-isomorphic-to-order-isomorphism ass
   {C₁} {_≤₁_} {laws₁} {C₂} {_≤₂_} {laws₂} =
 
   (Σ (C₁ ≃ C₂) λ eq → let open _≃_ eq in
-   (λ a b → from a ≤₁ from b) ≡ _≤₂_)           ↝⟨ inverse $ Σ-cong (↔↔≃ ext (proj₁ laws₁)) (λ _ → _ □) ⟩
+   (λ a b → from a ≤₁ from b) ≡ _≤₂_)           ↝⟨ inverse $ Σ-cong (↔↔≃ ext₁ (proj₁ laws₁)) (λ _ → _ □) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (λ a b → from a ≤₁ from b) ≡ _≤₂_)           ↔⟨ inverse $ ∃-cong (λ _ → extensionality-isomorphism ext) ⟩
+   (λ a b → from a ≤₁ from b) ≡ _≤₂_)           ↔⟨ inverse $ ∃-cong (λ _ → extensionality-isomorphism ext₁) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (∀ a → (λ b → from a ≤₁ from b) ≡ _≤₂_ a))   ↔⟨ inverse $ ∃-cong (λ _ → ∀-preserves ext λ _ → extensionality-isomorphism ext) ⟩
+   (∀ a → (λ b → from a ≤₁ from b) ≡ _≤₂_ a))   ↔⟨ inverse $ ∃-cong (λ _ → ∀-preserves ext₁ λ _ → extensionality-isomorphism ext₁) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ a b → (from a ≤₁ from b) ≡ (a ≤₂ b)))     ↔⟨ inverse $ ∃-cong (λ eq →
-                                                     Π-preserves ext (↔⇒≃ eq) λ a → Π-preserves ext (↔⇒≃ eq) λ b →
+                                                     Π-preserves ext₁ (↔⇒≃ eq) λ a → Π-preserves ext₁ (↔⇒≃ eq) λ b →
                                                          ≡⇒≃ $ sym $ cong₂ (λ x y → (x ≤₁ y) ≡ (_↔_.to eq a ≤₂ _↔_.to eq b))
                                                                            (_↔_.left-inverse-of eq a)
                                                                            (_↔_.left-inverse-of eq b)) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (∀ a b → (a ≤₁ b) ≡ (to a ≤₂ to b)))         ↔⟨ ∃-cong (λ _ → ∀-preserves ext λ _ → ∀-preserves ext λ _ → ≡≃≃ univ) ⟩
+   (∀ a b → (a ≤₁ b) ≡ (to a ≤₂ to b)))         ↔⟨ ∃-cong (λ _ → ∀-preserves ext₁ λ _ → ∀-preserves ext₁ λ _ → ≡≃≃ univ) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (∀ a b → (a ≤₁ b) ≃ (to a ≤₂ to b)))         ↔⟨ inverse $ ∃-cong (λ _ → ∀-preserves ext λ _ → ∀-preserves (lower-ext (# 0) _ ext) λ _ → ↔⇒≃ $
-                                                     ⇔↔≃ (lower-ext _ _ ext) (proj₁ (proj₂ laws₁) _ _)
-                                                                             (proj₁ (proj₂ laws₂) _ _)) ⟩□
+   (∀ a b → (a ≤₁ b) ≃ (to a ≤₂ to b)))         ↔⟨ inverse $ ∃-cong (λ _ → ∀-preserves ext₁ λ _ → ∀-preserves (lower-ext (# 0) _ ext₁) λ _ → ↔⇒≃ $
+                                                     ⇔↔≃ (lower-ext _ _ ext₁) (proj₁ (proj₂ laws₁) _ _)
+                                                                              (proj₁ (proj₂ laws₂) _ _)) ⟩□
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ a b → (a ≤₁ b) ⇔ (to a ≤₂ to b)))         □
 
@@ -1171,38 +1174,38 @@ discrete-field =
                         dec-lemma₂ _+_ 0# _*_ 1# -_ _⁻¹ +-assoc +-comm
                                    *-comm *+ +0 *1 +- 0≢1 ⁻¹₁ ⁻¹₂
           in
-          ×-closure  1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          ×-closure  1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure (lower-ext (# 0) (# 1) ext) 1 λ _ →
+          (×-closure 1 (Π-closure (lower-ext (# 0) (# 1) ext₁) 1 λ _ →
                         ⊥-propositional)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-                       (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+                       (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)))))))))) }}
 
 -- The interpretation of the code is reasonable.
@@ -1442,33 +1445,34 @@ discrete-field-à-la-Bridges-and-Richman =
           let C-set : Is-set C
               C-set = decidable⇒set dec
           in
-          ×-closure  1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          ×-closure  1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure (lower-ext (# 0) (# 1) ext) 1 λ _ →
+          (×-closure 1 (Π-closure (lower-ext (# 0) (# 1) ext₁) 1 λ _ →
                         ⊥-propositional)
-          (proposition-lemma₁ ext 0# _*_ 1# *-assoc *-comm *1))))))))) }}
+          (proposition-lemma₁ ext₁ 0# _*_ 1#
+                              *-assoc *-comm *1))))))))) }}
 
 -- The two discrete field definitions above are isomorphic (assuming
 -- extensionality).
@@ -1702,31 +1706,31 @@ discrete-field-à-la-nLab =
                         dec-lemma₃ _+_ 0# -_ _*_ 1# +-assoc *-assoc
                                    +-comm *-comm +0 *1 +- inv-xor
           in
-          ×-closure  1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          ×-closure  1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         C-set _ _)
-          (proposition-lemma₂ ext _+_ 0# -_ _*_ 1#
+          (proposition-lemma₂ ext₁ _+_ 0# -_ _*_ 1#
                               +-assoc *-assoc +-comm *-comm
                               +0 *1 +-)))))))) }}
 
@@ -1868,31 +1872,31 @@ vector-space (F , (_+F_ , _ , _*F_ , 1F , _ , _) , _) =
 
       λ ass → let open Assumptions ass in
         [inhabited⇒+]⇒+ 0 λ { (V-set , _) →
-          ×-closure 1  (H-level-propositional ext 2)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          ×-closure 1  (H-level-propositional ext₁ 2)
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         V-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         V-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         V-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         V-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
-                        Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
                         V-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         V-set _ _)
-          (×-closure 1 (Π-closure ext 1 λ _ →
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         V-set _ _)
-                       (Π-closure ext 1 λ _ →
+                       (Π-closure ext₁ 1 λ _ →
                         V-set _ _)))))))) }}
 
 -- The interpretation of the code is reasonable.
@@ -1954,8 +1958,8 @@ set-with-fixpoint-operator =
 
     λ ass → let open Assumptions ass in
       [inhabited⇒+]⇒+ 0 λ { (C-set , _) →
-        ×-closure 1 (H-level-propositional ext 2)
-                    (Π-closure ext 1 λ _ →
+        ×-closure 1 (H-level-propositional ext₁ 2)
+                    (Π-closure ext₁ 1 λ _ →
                      C-set _ _) }
 
 -- Some unfolding lemmas.
