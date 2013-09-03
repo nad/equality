@@ -122,9 +122,9 @@ import Univalence-axiom.Isomorphism-is-equality.Simple
 ------------------------------------------------------------------------
 -- 3.3: Main Theorem
 
--- The main result (isomorphism-is-equality,
--- proj₁-from-isomorphism-is-equality) as well as a corollary
--- (isomorphic≡≡).
+-- The main result (isomorphism-is-equality), a corollary
+-- (isomorphic≡≡), the right-to-left direction of the bijection is
+-- equal to a simple function (from-isomorphism-is-equality).
 
 import Univalence-axiom.Isomorphism-is-equality.Simple
 
@@ -157,8 +157,7 @@ import Univalence-axiom.Isomorphism-is-equality.Simple
 
 -- Aczel's structure identity principle (structure-identity-principle)
 -- can be used to prove a slightly restricted variant of our main
--- theorem (isomorphism-is-equality′,
--- proj₁-from-isomorphism-is-equality′).
+-- theorem (isomorphism-is-equality′, from-isomorphism-is-equality′).
 
 import Structure-identity-principle
 

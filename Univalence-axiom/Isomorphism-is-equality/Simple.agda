@@ -97,29 +97,27 @@ record Universe : Set₃ where
   Is-isomorphism′ ass a eq x y = subst (El a) (≃⇒≡ univ₁ eq) x ≡ y
     where open Assumptions ass
 
-  abstract
+  -- Every element is isomorphic to itself, transported along the
+  -- isomorphism.
 
-    -- Every element is isomorphic to itself, transported along the
-    -- isomorphism.
+  isomorphic-to-itself :
+    (ass : Assumptions) → let open Assumptions ass in
+    ∀ a {B C} (eq : B ≃ C) x →
+    Is-isomorphism a eq x (subst (El a) (≃⇒≡ univ₁ eq) x)
+  isomorphic-to-itself ass a eq x =
+    subst-unique (El a) (resp a) (resp-id ass a) univ₁ eq x
+    where open Assumptions ass
 
-    isomorphic-to-itself :
-      (ass : Assumptions) → let open Assumptions ass in
-      ∀ a {B C} (eq : B ≃ C) x →
-      Is-isomorphism a eq x (subst (El a) (≃⇒≡ univ₁ eq) x)
-    isomorphic-to-itself ass a eq x =
-      subst-unique (El a) (resp a) (resp-id ass a) univ₁ eq x
-      where open Assumptions ass
+  -- Is-isomorphism and Is-isomorphism′ are isomorphic (assuming
+  -- univalence).
 
-    -- Is-isomorphism and Is-isomorphism′ are isomorphic (assuming
-    -- univalence).
-
-    isomorphism-definitions-isomorphic :
-      (ass : Assumptions) →
-      ∀ a {B C} (eq : B ≃ C) {x y} →
-      Is-isomorphism a eq x y ↔ Is-isomorphism′ ass a eq x y
-    isomorphism-definitions-isomorphic ass a eq {x} {y} =
-      Is-isomorphism      a eq x y  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ y) $ isomorphic-to-itself ass a eq x ⟩□
-      Is-isomorphism′ ass a eq x y  □
+  isomorphism-definitions-isomorphic :
+    (ass : Assumptions) →
+    ∀ a {B C} (eq : B ≃ C) {x y} →
+    Is-isomorphism a eq x y ↔ Is-isomorphism′ ass a eq x y
+  isomorphism-definitions-isomorphic ass a eq {x} {y} =
+    Is-isomorphism      a eq x y  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ y) $ isomorphic-to-itself ass a eq x ⟩□
+    Is-isomorphism′ ass a eq x y  □
 
 ------------------------------------------------------------------------
 -- A universe-indexed family of classes of structures
@@ -201,8 +199,8 @@ module Class (Univ : Universe) where
 
   isomorphism-is-equality :
     Assumptions →
-    ∀ c {I J} → Isomorphic c I J ↔ (I ≡ J)
-  isomorphism-is-equality ass (a , P) {C , x , p} {D , y , q} =
+    ∀ c I J → Isomorphic c I J ↔ (I ≡ J)
+  isomorphism-is-equality ass (a , P) (C , x , p) (D , y , q) =
 
     (∃ λ (eq : C ≃ D) → resp a eq x ≡ y)                    ↝⟨ ∃-cong (λ eq → isomorphism-definitions-isomorphic ass a eq) ⟩
 
@@ -228,40 +226,6 @@ module Class (Univ : Universe) where
 
   abstract
 
-    -- The first part of the from component of the preceding lemma is
-    -- pointwise equal to a simple function…
-
-    proj₁-from-isomorphism-is-equality :
-      ∀ ass c {I J} (eq : I ≡ J) →
-      proj₁ (_↔_.from (isomorphism-is-equality ass c) eq) ≡
-      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) eq
-    proj₁-from-isomorphism-is-equality ass _ eq =
-      ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
-        (cong (λ { (x , (y , z)) → (x , y) , z }) eq)))))            ≡⟨ cong (≡⇒≃ ∘ proj₁ ∘ Σ-≡,≡←≡) $ proj₁-Σ-≡,≡←≡ _ ⟩
-      ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (cong proj₁
-        (cong (λ { (x , (y , z)) → (x , y) , z }) eq))))             ≡⟨ cong (≡⇒≃ ∘ proj₁ ∘ Σ-≡,≡←≡) $
-                                                                          cong-∘ proj₁ (λ { (x , (y , z)) → (x , y) , z }) _ ⟩
-      ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (cong (λ { (x , (y , z)) → x , y }) eq)))  ≡⟨ cong ≡⇒≃ $ proj₁-Σ-≡,≡←≡ _ ⟩
-      ≡⇒≃ (cong proj₁ (cong (λ { (x , (y , z)) → x , y }) eq))       ≡⟨ cong ≡⇒≃ $ cong-∘ proj₁ (λ { (x , (y , z)) → x , y }) _ ⟩
-      ≡⇒≃ (cong proj₁ eq)                                            ≡⟨ elim-cong _ _ _ ⟩∎
-      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) eq          ∎
-
-    -- …and the second part has a type which is "pointwise
-    -- propositional" whenever El (proj₁ c) applied to either carrier
-    -- type is a set.
-
-    proj₂-from-isomorphism-is-equality :
-      ∀ ass c {I J} →
-      Is-set (El (proj₁ c) (proj₁ I)) ⊎
-      Is-set (El (proj₁ c) (proj₁ J)) →
-      (eq : I ≡ J) →
-      Is-proposition
-        (Type-of (proj₂ (_↔_.from (isomorphism-is-equality ass c) eq)))
-    proj₂-from-isomorphism-is-equality ass (a , _) (inj₁ I-set) eq =
-      subst (Is-set ∘ El a ∘ proj₁) eq I-set _ _
-    proj₂-from-isomorphism-is-equality _   _       (inj₂ J-set) _  =
-      J-set _ _
-
     -- The type of (lifted) isomorphisms between two instances of a
     -- structure is equal to the type of equalities between the same
     -- instances (assuming univalence).
@@ -274,9 +238,215 @@ module Class (Univ : Universe) where
     isomorphic≡≡ ass c {I} {J} =
       ≃⇒≡ univ₂ $ ↔⇒≃ (
         ↑ _ (Isomorphic c I J)  ↝⟨ ↑↔ ⟩
-        Isomorphic c I J        ↝⟨ isomorphism-is-equality ass c ⟩□
+        Isomorphic c I J        ↝⟨ isomorphism-is-equality ass c I J ⟩□
         (I ≡ J)                 □)
       where open Assumptions ass
+
+    -- The "first part" of the from component of
+    -- isomorphism-is-equality is equal to a simple function.
+
+    proj₁-from-isomorphism-is-equality :
+      ∀ ass c I J →
+      proj₁ ∘ _↔_.from (isomorphism-is-equality ass c I J) ≡
+      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id)
+    proj₁-from-isomorphism-is-equality ass _ _ _ = ext λ eq →
+
+      ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
+        (cong (λ { (x , (y , z)) → (x , y) , z }) eq)))))            ≡⟨ cong (≡⇒≃ ∘ proj₁ ∘ Σ-≡,≡←≡) $ proj₁-Σ-≡,≡←≡ _ ⟩
+
+      ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (cong proj₁
+        (cong (λ { (x , (y , z)) → (x , y) , z }) eq))))             ≡⟨ cong (≡⇒≃ ∘ proj₁ ∘ Σ-≡,≡←≡) $
+                                                                          cong-∘ proj₁ (λ { (x , (y , z)) → (x , y) , z }) _ ⟩
+      ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (cong (λ { (x , (y , z)) → x , y }) eq)))  ≡⟨ cong ≡⇒≃ $ proj₁-Σ-≡,≡←≡ _ ⟩
+
+      ≡⇒≃ (cong proj₁ (cong (λ { (x , (y , z)) → x , y }) eq))       ≡⟨ cong ≡⇒≃ $ cong-∘ proj₁ (λ { (x , (y , z)) → x , y }) _ ⟩
+
+      ≡⇒≃ (cong proj₁ eq)                                            ≡⟨ elim-cong _ _ _ ⟩∎
+
+      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) eq          ∎
+
+      where open Assumptions ass
+
+    -- In fact, the entire from component of isomorphism-is-equality
+    -- is equal to a simple function.
+    --
+    -- The proof of this lemma is somewhat complicated. A much shorter
+    -- proof can be constructed if El (proj₁ c) (proj₁ J) is a set
+    -- (see
+    -- Structure-identity-principle.from-isomorphism-is-equality′).
+
+    from-isomorphism-is-equality :
+      ∀ ass c I J →
+      _↔_.from (isomorphism-is-equality ass c I J) ≡
+      elim (λ {I J} _ → Isomorphic c I J)
+           (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
+    from-isomorphism-is-equality ass (a , P) (C , x , p) _ =
+      ext (elim¹
+        (λ eq → Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
+                  (cong (λ { (C , (x , p)) → (C , x) , p }) eq)))) ≡
+                elim (λ {I J} _ → Isomorphic (a , P) I J)
+                     (λ { (_ , x , _) → Eq.id , resp-id ass a x })
+                     eq)
+
+        (Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
+                        (cong (λ { (C , (x , p)) → (C , x) , p })
+                              (refl (C , x , p))))))                   ≡⟨ cong (Σ-map ≡⇒≃ f ∘ Σ-≡,≡←≡ ∘ proj₁ ∘ Σ-≡,≡←≡) $ cong-refl _ ⟩
+
+         Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p)))))  ≡⟨ cong (Σ-map ≡⇒≃ f ∘ Σ-≡,≡←≡ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
+
+         Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (refl (C , x)))                          ≡⟨ cong (Σ-map ≡⇒≃ f) Σ-≡,≡←≡-refl ⟩
+
+         (≡⇒≃ (refl C) , f (subst-refl (El a) x))                      ≡⟨ Σ-≡,≡→≡ ≡⇒≃-refl lemma₄ ⟩
+
+         (Eq.id , resp-id ass a x)                                     ≡⟨ sym $ elim-refl _ _ ⟩∎
+
+         elim (λ {I J} _ → Isomorphic (a , P) I J)
+              (λ { (_ , x , _) → Eq.id , resp-id ass a x })
+              (refl (C , x , p))                                       ∎))
+
+      where
+      open Assumptions ass
+
+      f : ∀ {D} {y : El a D} {eq : C ≡ D} →
+          subst (El a) eq x ≡ y →
+          resp a (≡⇒≃ eq) x ≡ y
+      f {y = y} {eq} eq′ =
+        _↔_.from (≡⇒↝ _ $ cong (λ z → z ≡ y) $
+                    subst-unique (El a) (resp a) (resp-id ass a) univ₁
+                                 (≡⇒≃ eq) x)
+           (_↔_.to (≡⇒↝ _ $ sym $ cong (λ eq → subst (El a) eq x ≡ y)
+                      (_≃_.left-inverse-of (≡≃≃ univ₁) eq)) eq′)
+
+      lemma₁ : ∀ {ℓ} {A B C : Set ℓ} {x} (eq₁ : B ≡ A) (eq₂ : C ≡ B) →
+               _↔_.from (≡⇒↝ _ eq₂) (_↔_.to (≡⇒↝ _ (sym eq₁)) x) ≡
+               _↔_.to (≡⇒↝ _ (sym (trans eq₂ eq₁))) x
+      lemma₁ {x = x} eq₁ eq₂ =
+        _↔_.from (≡⇒↝ _ eq₂) (_↔_.to (≡⇒↝ _ (sym eq₁)) x)      ≡⟨ sym $ cong (λ f → f (_↔_.to (≡⇒↝ _ (sym eq₁)) x)) $ ≡⇒↝-sym bijection ⟩
+        _↔_.to (≡⇒↝ _ (sym eq₂)) (_↔_.to (≡⇒↝ _ (sym eq₁)) x)  ≡⟨ sym $ cong (λ f → f x) $ ≡⇒↝-trans bijection ⟩
+        _↔_.to (≡⇒↝ _ (trans (sym eq₁) (sym eq₂))) x           ≡⟨ sym $ cong (λ eq → _↔_.to (≡⇒↝ _ eq) x) $ sym-trans _ _ ⟩∎
+        _↔_.to (≡⇒↝ _ (sym (trans eq₂ eq₁))) x                 ∎
+
+      lemma₂ : ∀ {a} {A : Set a} {x y z : A}
+               (x≡y : x ≡ y) (y≡z : y ≡ z) →
+               _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (sym x≡y))) y≡z ≡
+               trans x≡y y≡z
+      lemma₂ {y = y} {z} x≡y y≡z = elim₁
+        (λ x≡y → _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (sym x≡y))) y≡z ≡
+                 trans x≡y y≡z)
+        (_↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (sym (refl y)))) y≡z  ≡⟨ cong (λ eq → _↔_.to (≡⇒↝ _ (cong _ eq)) y≡z) sym-refl ⟩
+         _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (refl y))) y≡z        ≡⟨ cong (λ eq → _↔_.to (≡⇒↝ _ eq) y≡z) $ cong-refl _ ⟩
+         _↔_.to (≡⇒↝ _ (refl (y ≡ z))) y≡z                       ≡⟨ cong (λ f → _↔_.to f y≡z) ≡⇒↝-refl ⟩
+         y≡z                                                     ≡⟨ sym $ trans-reflˡ _ ⟩∎
+         trans (refl y) y≡z                                      ∎)
+        x≡y
+
+      lemma₃ :
+        sym (trans (cong (λ z → z ≡ x) $
+                      subst-unique (El a) (resp a) (resp-id ass a) univ₁
+                                   (≡⇒≃ (refl C)) x)
+               (cong (λ eq → subst (El a) eq x ≡ x)
+                  (_≃_.left-inverse-of (≡≃≃ univ₁) (refl C)))) ≡
+        cong (λ z → z ≡ x) (sym $
+          trans (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
+                   (resp-id ass a x))
+            (sym $ subst-refl (El a) x))
+      lemma₃ =
+        sym (trans (cong (λ z → z ≡ x) _)
+               (cong (λ eq → subst (El a) eq x ≡ x) _))           ≡⟨ cong (λ eq → sym (trans (cong (λ z → z ≡ x)
+                                                                                                (subst-unique (El a) (resp a) (resp-id ass a)
+                                                                                                              univ₁ (≡⇒≃ (refl C)) x))
+                                                                                         eq)) $ sym $
+                                                                          cong-∘ (λ z → z ≡ x) (λ eq → subst (El a) eq x) _ ⟩
+        sym (trans (cong (λ z → z ≡ x) _)
+               (cong (λ z → z ≡ x)
+                  (cong (λ eq → subst (El a) eq x) _)))           ≡⟨ cong sym $ sym $ cong-trans (λ z → z ≡ x) _ _ ⟩
+
+        sym (cong (λ z → z ≡ x)
+          (trans _ (cong (λ eq → subst (El a) eq x) _)))          ≡⟨ sym $ cong-sym (λ z → z ≡ x) _ ⟩
+
+        cong (λ z → z ≡ x) (sym $
+          trans (subst-unique (El a) (resp a)
+                   (resp-id ass a) univ₁ (≡⇒≃ (refl C)) x)
+            (cong (λ eq → subst (El a) eq x) _))                  ≡⟨ cong (λ eq → cong (λ z → z ≡ x) (sym $
+                                                                                    trans eq (cong (λ eq → subst (El a) eq x)
+                                                                                                (_≃_.left-inverse-of (≡≃≃ univ₁) (refl C)))))
+                                                                          (subst-unique-≡⇒≃-refl _ _ _ univ₁ _) ⟩
+        cong (λ z → z ≡ x) (sym $
+          trans (trans (trans (trans (cong (λ eq → resp a eq x)
+                                        ≡⇒≃-refl)
+                                 (resp-id ass a x))
+                          (sym $ subst-refl (El a) x))
+                   (sym $ cong (λ eq → subst (El a) eq x)
+                            (_≃_.left-inverse-of
+                               (≡≃≃ univ₁) (refl C))))
+            (cong (λ eq → subst (El a) eq x)
+                  (_≃_.left-inverse-of (≡≃≃ univ₁) (refl C))))    ≡⟨ cong (cong (λ z → z ≡ x) ∘ sym) $
+                                                                          trans-[trans-sym] _ _ ⟩∎
+        cong (λ z → z ≡ x) (sym $
+           trans (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
+                    (resp-id ass a x))
+             (sym $ subst-refl (El a) x))                         ∎
+
+      lemma₄ : subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl
+                     (f (subst-refl (El a) x)) ≡
+               resp-id ass a x
+      lemma₄ =
+        subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl
+          (f (subst-refl (El a) x))                                      ≡⟨ cong (subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl) $ lemma₁ _ _ ⟩
+
+        subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl
+          (_↔_.to (≡⇒↝ _ (sym (trans (cong (λ z → z ≡ x) $
+                                        subst-unique (El a) (resp a)
+                                          (resp-id ass a) univ₁
+                                          (≡⇒≃ (refl C)) x)
+                                 (cong (λ eq → subst (El a) eq x ≡ x)
+                                    (_≃_.left-inverse-of
+                                       (≡≃≃ univ₁) (refl C))))))
+                  (subst-refl (El a) x))                                 ≡⟨ cong (λ eq → subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl
+                                                                                           (_↔_.to (≡⇒↝ _ eq) (subst-refl (El a) x)))
+                                                                                 lemma₃ ⟩
+        subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl
+          (_↔_.to (≡⇒↝ _
+                     (cong (λ z → z ≡ x) $ sym
+                        (trans (trans (cong (λ eq → resp a eq x)
+                                         ≡⇒≃-refl)
+                                  (resp-id ass a x))
+                           (sym $ subst-refl (El a) x))))
+                  (subst-refl (El a) x))                                 ≡⟨ cong (subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl) $ lemma₂ _ _ ⟩
+
+        subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl
+          (trans (trans (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
+                           (resp-id ass a x))
+                    (sym $ subst-refl (El a) x))
+             (subst-refl (El a) x))                                      ≡⟨ cong (λ eq → subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl eq)
+                                                                                 (trans-[trans-sym] _ _) ⟩
+        subst (λ eq → resp a eq x ≡ x) ≡⇒≃-refl
+          (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
+             (resp-id ass a x))                                          ≡⟨ subst-∘ _ _ _ ⟩
+
+        subst (λ z → z ≡ x)
+          (cong (λ eq → resp a eq x) ≡⇒≃-refl)
+          (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
+             (resp-id ass a x))                                          ≡⟨ cong (λ eq → subst (λ z → z ≡ x) eq
+                                                                                           (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
+                                                                                              (resp-id ass a x))) $
+                                                                                 sym $ sym-sym _ ⟩
+        subst (λ z → z ≡ x)
+          (sym $ sym $ cong (λ eq → resp a eq x) ≡⇒≃-refl)
+          (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
+             (resp-id ass a x))                                          ≡⟨ subst-trans (sym $ cong (λ eq → resp a eq x) ≡⇒≃-refl) ⟩
+
+        trans (sym $ cong (λ eq → resp a eq x) ≡⇒≃-refl)
+          (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
+             (resp-id ass a x))                                          ≡⟨ sym $ trans-assoc _ _ _ ⟩
+
+        trans (trans (sym $ cong (λ eq → resp a eq x) ≡⇒≃-refl)
+                     (cong (λ eq → resp a eq x) ≡⇒≃-refl))
+          (resp-id ass a x)                                              ≡⟨ cong (λ eq → trans eq _) $ trans-symˡ _ ⟩
+
+        trans (refl (resp a Eq.id x)) (resp-id ass a x)                  ≡⟨ trans-reflˡ _ ⟩∎
+
+        resp-id ass a x                                                  ∎
 
 ------------------------------------------------------------------------
 -- A universe of non-recursive, simple types

@@ -234,12 +234,12 @@ abstract
 isomorphism-is-equality′ :
   (Univ : Universe) → let open Universe Univ in
   Assumptions →
-  ∀ c {I J} →
+  ∀ c I J →
   (∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →  -- Extra assumption.
   Is-set (proj₁ I) → Is-set (proj₁ J) →           -- Extra assumptions.
   Class.Isomorphic Univ c I J ↔ (I ≡ J)
 isomorphism-is-equality′ Univ ass
-  (a , P) {C , x , p} {D , y , q} El-set C-set D-set = isomorphic
+  (a , P) (C , x , p) (D , y , q) El-set C-set D-set = isomorphic
 
   module Isomorphism-is-equality′ where
 
@@ -464,31 +464,37 @@ isomorphism-is-equality′ Univ ass
 
 abstract
 
-  -- The first part of the from component of isomorphism-is-equality′ is
-  -- pointwise equal to a simple function…
+  -- The from component of isomorphism-is-equality′ is equal
+  -- to a simple function.
 
-  proj₁-from-isomorphism-is-equality′ :
-    ∀ Univ ass c {I J} → let open Universe Univ in
+  from-isomorphism-is-equality′ :
+    ∀ Univ ass c I J → let open Universe Univ; open Class Univ in
     (El-set : ∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →
-    ∀ I-set J-set (eq : I ≡ J) →
-    proj₁ (_↔_.from (isomorphism-is-equality′
-                       Univ ass c El-set I-set J-set)
-                    eq) ≡
-    elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) eq
-  proj₁-from-isomorphism-is-equality′
-    Univ ass c El-set I-set J-set eq =
-    Isomorphism-is-equality′.proj₁-from-isomorphic
-      Univ ass _ _ _ _ _ _ _ _ El-set I-set J-set eq
+    ∀ I-set J-set →
+    _↔_.from (isomorphism-is-equality′
+                Univ ass c I J El-set I-set J-set) ≡
+    elim (λ {I J} _ → Isomorphic c I J)
+         (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
+  from-isomorphism-is-equality′ Univ ass c I J El-set I-set J-set =
+    ext λ eq →
+      Σ-≡,≡→≡ (lemma eq) (_⇔_.to set⇔UIP (El-set J-set) _ _)
+    where
+    open Assumptions ass
+    open Universe Univ
+    open Class Univ
 
-  -- …and the second part has a type which is "pointwise propositional".
-
-  proj₂-from-isomorphism-is-equality′ :
-    ∀ Univ ass c {I J} → let open Universe Univ in
-    (El-set : ∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →
-    ∀ I-set J-set (eq : I ≡ J) →
-    Is-proposition
-      (Type-of (proj₂ (_↔_.from (isomorphism-is-equality′
-                                   Univ ass c El-set I-set J-set)
-                                eq)))
-  proj₂-from-isomorphism-is-equality′
-    _ _ _ El-set _ J-set _ = El-set J-set _ _
+    lemma :
+      ∀ eq →
+      proj₁ (_↔_.from (isomorphism-is-equality′
+                         Univ ass c I J El-set I-set J-set) eq) ≡
+      proj₁ (elim (λ {I J} _ → Isomorphic c I J)
+                  (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
+                  eq)
+    lemma eq =
+      proj₁ (_↔_.from (isomorphism-is-equality′
+                         Univ ass c I J El-set I-set J-set) eq)          ≡⟨ Isomorphism-is-equality′.proj₁-from-isomorphic
+                                                                              Univ ass _ _ _ _ _ _ _ _ El-set I-set J-set eq ⟩
+      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) eq              ≡⟨ sym $ elim-∘ (λ {I J} _ → Isomorphic c I J) _ proj₁ _ ⟩∎
+      proj₁ (elim (λ {I J} _ → Isomorphic c I J)
+                  (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
+                  eq)                                                    ∎
