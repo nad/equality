@@ -357,9 +357,12 @@ record Extension-with-resp (c : Code) : Set₂ where
 
             cong (λ r → r x) (cong (subst Ext) (trans (sym lio) rio))  ≡⟨ cong-∘ (λ r → r x) (subst Ext) (trans (sym lio) rio) ⟩
 
-            cong (λ eq → subst Ext eq x) (trans (sym lio) rio)         ≡⟨ cong-trans (λ eq → subst Ext eq x) (sym lio) rio ⟩∎
+            cong (λ eq → subst Ext eq x) (trans (sym lio) rio)         ≡⟨ cong-trans (λ eq → subst Ext eq x) (sym lio) rio ⟩
 
             trans (cong (λ eq → subst Ext eq x) (sym lio))
+                  (cong (λ eq → subst Ext eq x) rio)                   ≡⟨ cong (λ eq → trans eq (cong (λ eq → subst Ext eq x) rio)) $
+                                                                               cong-sym (λ eq → subst Ext eq x) lio ⟩∎
+            trans (sym (cong (λ eq → subst Ext eq x) lio))
                   (cong (λ eq → subst Ext eq x) rio)                   ∎
       in
 
@@ -374,11 +377,11 @@ record Extension-with-resp (c : Code) : Set₂ where
             (subst-refl Ext x)                                         ≡⟨ cong (trans (trans (resp-refl ass x) (sym $ subst-refl Ext x)))
                                                                                lemma₃ ⟩
       trans (trans (resp-refl ass x) (sym $ subst-refl Ext x))
-            (trans (cong (λ eq → subst Ext eq x) (sym lio))
+            (trans (sym (cong (λ eq → subst Ext eq x) lio))
                    (cong (λ eq → subst Ext eq x) rio))                 ≡⟨ sym $ trans-assoc _ _ (cong (λ eq → subst Ext eq x) rio) ⟩
 
       trans (trans (trans (resp-refl ass x) (sym $ subst-refl Ext x))
-                   (cong (λ eq → subst Ext eq x) (sym lio)))
+                   (sym (cong (λ eq → subst Ext eq x) lio)))
             (cong (λ eq → subst Ext eq x) rio)                         ≡⟨ cong₂ trans
                                                                             (sym $ subst-unique′-refl Ext (Isomorphic ass c) (inverse iso≃eq)
                                                                                                       (resp ass) (λ _ → resp-refl ass) x)

@@ -171,8 +171,7 @@ abstract
     resp (to (from A≃B)) p  ≡⟨ elim (λ {A B} A≡B → ∀ p →
                                        resp (≡⇒≃ A≡B) p ≡ subst P A≡B p)
                                     (λ A p →
-                                       resp (≡⇒≃ (refl A)) p  ≡⟨ cong (λ q → resp q p) (elim-refl (λ {A B} _ → A ≃ B) _) ⟩
-                                       resp Eq.id p           ≡⟨ resp-id p ⟩
+                                       resp (≡⇒≃ (refl A)) p  ≡⟨ trans (cong (λ q → resp q p) ≡⇒↝-refl) (resp-id p) ⟩
                                        p                      ≡⟨ sym $ subst-refl P p ⟩∎
                                        subst P (refl A) p     ∎) _ _ ⟩∎
     subst P (from A≃B) p    ∎
@@ -330,122 +329,6 @@ abstract
     implicit-Π-closure ext 1 λ _ →
     Univalence′-propositional ext
 
-  -- A variant of subst-unique.
-
-  subst-unique′ :
-    ∀ {a p r} {A : Set a}
-    (P : A → Set p) (R : A → A → Set r)
-    (≡↠R : ∀ {x y} → (x ≡ y) ↠ R x y)
-    (resp : ∀ {x y} → R x y → P x → P y) →
-    (∀ x p → resp (_↠_.to ≡↠R (refl x)) p ≡ p) →
-    ∀ {x y} (r : R x y) (p : P x) →
-    resp r p ≡ subst P (_↠_.from ≡↠R r) p
-  subst-unique′ P R ≡↠R resp hyp r p =
-    resp r p              ≡⟨ sym $ cong (λ r → resp r p) (right-inverse-of r) ⟩
-    resp (to (from r)) p  ≡⟨ elim (λ {x y} x≡y → ∀ p →
-                                     resp (_↠_.to ≡↠R x≡y) p ≡ subst P x≡y p)
-                                  (λ x p →
-                                     resp (_↠_.to ≡↠R (refl x)) p  ≡⟨ hyp x p ⟩
-                                     p                             ≡⟨ sym $ subst-refl P p ⟩∎
-                                     subst P (refl x) p            ∎) _ _ ⟩∎
-    subst P (from r) p    ∎
-    where open _↠_ ≡↠R
-
-  -- Simplification (?) lemma for subst-unique′.
-
-  subst-unique′-refl :
-    ∀ {a p r} {A : Set a}
-    (P : A → Set p) (R : A → A → Set r)
-    (≡≃R : ∀ {x y} → (x ≡ y) ≃ R x y)
-    (resp : ∀ {x y} → R x y → P x → P y) →
-    (resp-refl : ∀ x p → resp (_≃_.to ≡≃R (refl x)) p ≡ p) →
-    ∀ {x} (p : P x) →
-    subst-unique′ P R (_≃_.surjection ≡≃R) resp resp-refl
-                  (_≃_.to ≡≃R (refl x)) p ≡
-    trans (trans (resp-refl x p) (sym $ subst-refl P p))
-          (cong (λ eq → subst P eq p)
-                (sym (_≃_.left-inverse-of ≡≃R (refl x))))
-  subst-unique′-refl P R ≡≃R resp resp-refl {x} p =
-
-    let body = λ x p → trans (resp-refl x p) (sym $ subst-refl P p)
-
-        lemma =
-          trans (sym $ cong (λ r → resp (to r) p) $ refl (refl x))
-                (elim (λ {x y} x≡y →
-                         ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
-                      (λ x p → trans (resp-refl x p)
-                                     (sym $ subst-refl P p))
-                      (refl x) p)                                        ≡⟨ cong₂ (λ q r → trans q (r p))
-                                                                                  (sym $ cong-sym (λ r → resp (to r) p) _)
-                                                                                  (elim-refl (λ {x y} x≡y → ∀ p →
-                                                                                                resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p) _) ⟩
-          trans (cong (λ r → resp (to r) p) $ sym $ refl (refl x))
-                (body x p)                                               ≡⟨ cong (λ q → trans (cong (λ r → resp (to r) p) q) (body x p))
-                                                                                 sym-refl ⟩
-          trans (cong (λ r → resp (to r) p) $ refl (refl x)) (body x p)  ≡⟨ cong (λ q → trans q (body x p)) $
-                                                                                 cong-refl (λ r → resp (to r) p) ⟩
-          trans (refl (resp (to (refl x)) p)) (body x p)                 ≡⟨ trans-reflˡ _ ⟩
-
-          body x p                                                       ≡⟨ sym $ trans-reflʳ _ ⟩
-
-          trans (body x p) (refl (subst P (refl x) p))                   ≡⟨ cong (trans (body x p)) $ sym $
-                                                                                 cong-refl (λ eq → subst P eq p) ⟩
-          trans (body x p)
-                (cong (λ eq → subst P eq p) (refl (refl x)))             ≡⟨ cong (trans (body x p) ∘ cong (λ eq → subst P eq p)) $
-                                                                                 sym sym-refl ⟩∎
-          trans (body x p)
-                (cong (λ eq → subst P eq p) (sym (refl (refl x))))       ∎
-    in
-
-    trans (sym $ cong (λ r → resp r p) $ right-inverse-of (to (refl x)))
-          (elim (λ {x y} x≡y →
-                   ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
-                body (from (to (refl x))) p)                              ≡⟨ cong (λ eq → trans (sym $ cong (λ r → resp r p) eq)
-                                                                                                (elim (λ {x y} x≡y → ∀ p →
-                                                                                                         resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
-                                                                                                      body (from (to (refl x))) p)) $
-                                                                                  sym $ left-right-lemma (refl x) ⟩
-    trans (sym $ cong (λ r → resp r p) $ cong to $
-             left-inverse-of (refl x))
-          (elim (λ {x y} x≡y →
-                   ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
-                body (from (to (refl x))) p)                              ≡⟨ cong (λ eq → trans (sym eq)
-                                                                                                (elim (λ {x y} x≡y → ∀ p →
-                                                                                                         resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
-                                                                                                      body (from (to (refl x))) p)) $
-                                                                                  cong-∘ (λ r → resp r p) to _ ⟩
-    trans (sym $ cong (λ r → resp (to r) p) $ left-inverse-of (refl x))
-          (elim (λ {x y} x≡y →
-                   ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
-                body (from (to (refl x))) p)                              ≡⟨ elim₁ (λ {q} eq → trans (sym $ cong (λ r → resp (to r) p) eq)
-                                                                                                     (elim (λ {x y} x≡y → ∀ p →
-                                                                                                              resp (_≃_.to ≡≃R x≡y) p ≡
-                                                                                                              subst P x≡y p)
-                                                                                                           body q p) ≡
-                                                                                               trans (body x p)
-                                                                                                     (cong (λ eq → subst P eq p) (sym eq)))
-                                                                                   lemma
-                                                                                   (left-inverse-of (refl x)) ⟩∎
-
-    trans (body x p)
-          (cong (λ eq → subst P eq p) (sym (left-inverse-of (refl x))))   ∎
-
-    where open _≃_ ≡≃R
-
-  -- A variant of resp-is-equivalence.
-
-  resp-is-equivalence′ :
-    ∀ {a p r} {A : Set a}
-    (P : A → Set p) (R : A → A → Set r)
-    (≡↠R : ∀ {x y} → (x ≡ y) ↠ R x y)
-    (resp : ∀ {x y} → R x y → P x → P y) →
-    (∀ x p → resp (_↠_.to ≡↠R (refl x)) p ≡ p) →
-    ∀ {x y} (r : R x y) → Is-equivalence (resp r)
-  resp-is-equivalence′ P R ≡↠R resp hyp r =
-    Eq.respects-extensional-equality
-      (λ p → sym $ subst-unique′ P R ≡↠R resp hyp r p)
-      (subst-is-equivalence P (_↠_.from ≡↠R r))
-
   -- "Evaluation rule" for ≡⇒≃.
 
   ≡⇒≃-refl : ∀ {a} {A : Set a} →
@@ -550,6 +433,142 @@ abstract
     _≃_.to (≡⇒≃ (cong P (sym x≡y))) p  ≡⟨ cong (λ eq → _≃_.to (≡⇒≃ eq) p) $ cong-sym P _ ⟩
     _≃_.to (≡⇒≃ (sym $ cong P x≡y)) p  ≡⟨ cong (λ eq → _≃_.to eq p) $ ≡⇒≃-sym ext _ ⟩∎
     _≃_.from (≡⇒≃ (cong P x≡y)) p      ∎
+
+  -- A variant of subst-unique.
+
+  subst-unique′ :
+    ∀ {a p r} {A : Set a}
+    (P : A → Set p) (R : A → A → Set r)
+    (≡↠R : ∀ {x y} → (x ≡ y) ↠ R x y)
+    (resp : ∀ {x y} → R x y → P x → P y) →
+    (∀ x p → resp (_↠_.to ≡↠R (refl x)) p ≡ p) →
+    ∀ {x y} (r : R x y) (p : P x) →
+    resp r p ≡ subst P (_↠_.from ≡↠R r) p
+  subst-unique′ P R ≡↠R resp hyp r p =
+    resp r p              ≡⟨ sym $ cong (λ r → resp r p) (right-inverse-of r) ⟩
+    resp (to (from r)) p  ≡⟨ elim (λ {x y} x≡y → ∀ p →
+                                     resp (_↠_.to ≡↠R x≡y) p ≡ subst P x≡y p)
+                                  (λ x p →
+                                     resp (_↠_.to ≡↠R (refl x)) p  ≡⟨ hyp x p ⟩
+                                     p                             ≡⟨ sym $ subst-refl P p ⟩∎
+                                     subst P (refl x) p            ∎) _ _ ⟩∎
+    subst P (from r) p    ∎
+    where open _↠_ ≡↠R
+
+  -- Simplification (?) lemma for subst-unique′.
+
+  subst-unique′-refl :
+    ∀ {a p r} {A : Set a}
+    (P : A → Set p) (R : A → A → Set r)
+    (≡≃R : ∀ {x y} → (x ≡ y) ≃ R x y)
+    (resp : ∀ {x y} → R x y → P x → P y) →
+    (resp-refl : ∀ x p → resp (_≃_.to ≡≃R (refl x)) p ≡ p) →
+    ∀ {x} (p : P x) →
+    subst-unique′ P R (_≃_.surjection ≡≃R) resp resp-refl
+                  (_≃_.to ≡≃R (refl x)) p ≡
+    trans (trans (resp-refl x p) (sym $ subst-refl P p))
+          (sym $ cong (λ eq → subst P eq p)
+                      (_≃_.left-inverse-of ≡≃R (refl x)))
+  subst-unique′-refl P R ≡≃R resp resp-refl {x} p =
+
+    let body = λ x p → trans (resp-refl x p) (sym $ subst-refl P p)
+
+        lemma =
+          trans (sym $ cong (λ r → resp (to r) p) $ refl (refl x))
+                (elim (λ {x y} x≡y →
+                         ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
+                      (λ x p → trans (resp-refl x p)
+                                     (sym $ subst-refl P p))
+                      (refl x) p)                                        ≡⟨ cong₂ (λ q r → trans q (r p))
+                                                                                  (sym $ cong-sym (λ r → resp (to r) p) _)
+                                                                                  (elim-refl (λ {x y} x≡y → ∀ p →
+                                                                                                resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p) _) ⟩
+          trans (cong (λ r → resp (to r) p) $ sym $ refl (refl x))
+                (body x p)                                               ≡⟨ cong (λ q → trans (cong (λ r → resp (to r) p) q) (body x p))
+                                                                                 sym-refl ⟩
+          trans (cong (λ r → resp (to r) p) $ refl (refl x)) (body x p)  ≡⟨ cong (λ q → trans q (body x p)) $
+                                                                                 cong-refl (λ r → resp (to r) p) ⟩
+          trans (refl (resp (to (refl x)) p)) (body x p)                 ≡⟨ trans-reflˡ _ ⟩
+
+          body x p                                                       ≡⟨ sym $ trans-reflʳ _ ⟩
+
+          trans (body x p) (refl (subst P (refl x) p))                   ≡⟨ cong (trans (body x p)) $ sym $
+                                                                                 cong-refl (λ eq → subst P eq p) ⟩
+          trans (body x p)
+                (cong (λ eq → subst P eq p) (refl (refl x)))             ≡⟨ cong (trans (body x p) ∘ cong (λ eq → subst P eq p)) $
+                                                                                 sym sym-refl ⟩
+          trans (body x p)
+                (cong (λ eq → subst P eq p) (sym (refl (refl x))))       ≡⟨ cong (trans (body x p)) $ cong-sym _ _ ⟩∎
+
+          trans (body x p)
+                (sym $ cong (λ eq → subst P eq p) (refl (refl x)))       ∎
+    in
+
+    trans (sym $ cong (λ r → resp r p) $ right-inverse-of (to (refl x)))
+          (elim (λ {x y} x≡y →
+                   ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
+                body (from (to (refl x))) p)                              ≡⟨ cong (λ eq → trans (sym $ cong (λ r → resp r p) eq)
+                                                                                                (elim (λ {x y} x≡y → ∀ p →
+                                                                                                         resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
+                                                                                                      body (from (to (refl x))) p)) $
+                                                                                  sym $ left-right-lemma (refl x) ⟩
+    trans (sym $ cong (λ r → resp r p) $ cong to $
+             left-inverse-of (refl x))
+          (elim (λ {x y} x≡y →
+                   ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
+                body (from (to (refl x))) p)                              ≡⟨ cong (λ eq → trans (sym eq)
+                                                                                                (elim (λ {x y} x≡y → ∀ p →
+                                                                                                         resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
+                                                                                                      body (from (to (refl x))) p)) $
+                                                                                  cong-∘ (λ r → resp r p) to _ ⟩
+    trans (sym $ cong (λ r → resp (to r) p) $ left-inverse-of (refl x))
+          (elim (λ {x y} x≡y →
+                   ∀ p → resp (_≃_.to ≡≃R x≡y) p ≡ subst P x≡y p)
+                body (from (to (refl x))) p)                              ≡⟨ elim₁ (λ {q} eq → trans (sym $ cong (λ r → resp (to r) p) eq)
+                                                                                                     (elim (λ {x y} x≡y → ∀ p →
+                                                                                                              resp (_≃_.to ≡≃R x≡y) p ≡
+                                                                                                              subst P x≡y p)
+                                                                                                           body q p) ≡
+                                                                                               trans (body x p)
+                                                                                                     (sym $ cong (λ eq → subst P eq p) eq))
+                                                                                   lemma
+                                                                                   (left-inverse-of (refl x)) ⟩∎
+
+    trans (body x p)
+          (sym $ cong (λ eq → subst P eq p) (left-inverse-of (refl x)))   ∎
+
+    where open _≃_ ≡≃R
+
+  -- Simplification (?) lemma for subst-unique.
+
+  subst-unique-≡⇒≃-refl :
+    ∀ {p₁ p₂} (P : Set p₁ → Set p₂)
+    (resp : ∀ {A B} → A ≃ B → P A → P B)
+    (resp-id : ∀ {A} (p : P A) → resp Eq.id p ≡ p)
+    (univ : Univalence p₁) {A} (p : P A) →
+    subst-unique P resp resp-id univ (≡⇒≃ (refl A)) p ≡
+    trans (trans (trans (cong (λ eq → resp eq p) ≡⇒≃-refl)
+                    (resp-id p))
+             (sym $ subst-refl P p))
+      (sym $ cong (λ eq → subst P eq p)
+                  (_≃_.left-inverse-of (≡≃≃ univ) (refl A)))
+  subst-unique-≡⇒≃-refl P resp resp-id univ {A} p =
+    subst-unique′-refl P _≃_ (≡≃≃ univ) resp
+      (λ _ p → trans (cong (λ eq → resp eq p) ≡⇒≃-refl) (resp-id p)) p
+
+  -- A variant of resp-is-equivalence.
+
+  resp-is-equivalence′ :
+    ∀ {a p r} {A : Set a}
+    (P : A → Set p) (R : A → A → Set r)
+    (≡↠R : ∀ {x y} → (x ≡ y) ↠ R x y)
+    (resp : ∀ {x y} → R x y → P x → P y) →
+    (∀ x p → resp (_↠_.to ≡↠R (refl x)) p ≡ p) →
+    ∀ {x y} (r : R x y) → Is-equivalence (resp r)
+  resp-is-equivalence′ P R ≡↠R resp hyp r =
+    Eq.respects-extensional-equality
+      (λ p → sym $ subst-unique′ P R ≡↠R resp hyp r p)
+      (subst-is-equivalence P (_↠_.from ≡↠R r))
 
   -- A lemma relating ≃⇒≡, →-cong and cong₂.
 
