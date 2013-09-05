@@ -152,8 +152,9 @@ record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 
     left-inverse-of : ∀ x → from (to x) ≡ x
     left-inverse-of x =
-      cong (proj₁ {B = λ x′ → to x′ ≡ to x}) $
-        proj₂ (is-equivalence (to x)) (x , refl (to x))
+      cong (proj₁ {B = λ x′ → to x′ ≡ to x}) (
+        proj₁ (is-equivalence (to x))  ≡⟨ proj₂ (is-equivalence (to x)) (x , refl (to x)) ⟩∎
+        (x , refl (to x))              ∎)
 
   bijection : A ↔ B
   bijection = record
