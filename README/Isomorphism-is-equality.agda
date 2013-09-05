@@ -160,12 +160,3 @@ import Univalence-axiom.Isomorphism-is-equality.Simple
 -- theorem (isomorphism-is-equality′, from-isomorphism-is-equality′).
 
 import Structure-identity-principle
-
----=====================================================================
--- 5: Conclusions
-
--- A development with support for multiple carrier types as well as
--- polynomial types (using a computing J rule).
-
-import Univalence-axiom.Isomorphism-is-equality.More
-import Univalence-axiom.Isomorphism-is-equality.More.Examples
