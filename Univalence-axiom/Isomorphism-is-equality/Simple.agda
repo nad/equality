@@ -156,12 +156,12 @@ module Class (Univ : Universe) where
   -- The carrier type.
 
   Carrier : ∀ c → Instance c → Set₁
-  Carrier _ I = proj₁ I
+  Carrier _ X = proj₁ X
 
   -- The "element".
 
-  element : ∀ c (I : Instance c) → El (proj₁ c) (Carrier c I)
-  element _ I = proj₁ (proj₂ I)
+  element : ∀ c (X : Instance c) → El (proj₁ c) (Carrier c X)
+  element _ X = proj₁ (proj₂ X)
 
   abstract
 
@@ -171,10 +171,10 @@ module Class (Univ : Universe) where
 
     equality-pair-lemma :
       Assumptions →
-      ∀ c {I J : Instance c} →
-      (I ≡ J) ↔
-      ∃ λ (eq : Carrier c I ≡ Carrier c J) →
-        subst (El (proj₁ c)) eq (element c I) ≡ element c J
+      ∀ c {X Y : Instance c} →
+      (X ≡ Y) ↔
+      ∃ λ (eq : Carrier c X ≡ Carrier c Y) →
+        subst (El (proj₁ c)) eq (element c X) ≡ element c Y
     equality-pair-lemma ass (a , P) {C , x , p} {D , y , q} =
 
       ((C , x , p) ≡ (D , y , q))                 ↔⟨ inverse $ ≃-≡ $ ↔⇒≃ Σ-assoc ⟩
@@ -199,7 +199,7 @@ module Class (Univ : Universe) where
 
   isomorphism-is-equality :
     Assumptions →
-    ∀ c I J → Isomorphic c I J ↔ (I ≡ J)
+    ∀ c X Y → Isomorphic c X Y ↔ (X ≡ Y)
   isomorphism-is-equality ass (a , P) (C , x , p) (D , y , q) =
 
     (∃ λ (eq : C ≃ D) → resp a eq x ≡ y)                    ↝⟨ ∃-cong (λ eq → isomorphism-definitions-isomorphic ass a eq) ⟩
@@ -210,7 +210,7 @@ module Class (Univ : Universe) where
                                                                         (_≃_.left-inverse-of (≡≃≃ univ₁) eq)) ⟩
     (∃ λ (eq : C ≡ D) → subst (El a) eq x ≡ y)              ↝⟨ inverse $ equality-pair-lemma ass c ⟩□
 
-    (I ≡ J)                                                 □
+    (X ≡ Y)                                                 □
 
     where
     open Assumptions ass
@@ -218,11 +218,11 @@ module Class (Univ : Universe) where
     c : Code
     c = a , P
 
-    I : Instance c
-    I = C , x , p
+    X : Instance c
+    X = C , x , p
 
-    J : Instance c
-    J = D , y , q
+    Y : Instance c
+    Y = D , y , q
 
   abstract
 
@@ -234,21 +234,21 @@ module Class (Univ : Universe) where
 
     isomorphic≡≡ :
       Assumptions →
-      ∀ c {I J} → ↑ (# 2) (Isomorphic c I J) ≡ (I ≡ J)
-    isomorphic≡≡ ass c {I} {J} =
+      ∀ c {X Y} → ↑ (# 2) (Isomorphic c X Y) ≡ (X ≡ Y)
+    isomorphic≡≡ ass c {X} {Y} =
       ≃⇒≡ univ₂ $ ↔⇒≃ (
-        ↑ _ (Isomorphic c I J)  ↝⟨ ↑↔ ⟩
-        Isomorphic c I J        ↝⟨ isomorphism-is-equality ass c I J ⟩□
-        (I ≡ J)                 □)
+        ↑ _ (Isomorphic c X Y)  ↝⟨ ↑↔ ⟩
+        Isomorphic c X Y        ↝⟨ isomorphism-is-equality ass c X Y ⟩□
+        (X ≡ Y)                 □)
       where open Assumptions ass
 
     -- The "first part" of the from component of
     -- isomorphism-is-equality is equal to a simple function.
 
     proj₁-from-isomorphism-is-equality :
-      ∀ ass c I J →
-      proj₁ ∘ _↔_.from (isomorphism-is-equality ass c I J) ≡
-      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id)
+      ∀ ass c X Y →
+      proj₁ ∘ _↔_.from (isomorphism-is-equality ass c X Y) ≡
+      elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y) (λ _ → Eq.id)
     proj₁-from-isomorphism-is-equality ass _ _ _ = ext λ eq →
 
       ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
@@ -263,7 +263,7 @@ module Class (Univ : Universe) where
 
       ≡⇒≃ (cong proj₁ eq)                                            ≡⟨ elim-cong _ _ _ ⟩∎
 
-      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) eq          ∎
+      elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y) (λ _ → Eq.id) eq          ∎
 
       where open Assumptions ass
 
@@ -276,15 +276,15 @@ module Class (Univ : Universe) where
     -- Structure-identity-principle.from-isomorphism-is-equality′).
 
     from-isomorphism-is-equality :
-      ∀ ass c I J →
-      _↔_.from (isomorphism-is-equality ass c I J) ≡
-      elim (λ {I J} _ → Isomorphic c I J)
+      ∀ ass c X Y →
+      _↔_.from (isomorphism-is-equality ass c X Y) ≡
+      elim (λ {X Y} _ → Isomorphic c X Y)
            (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
     from-isomorphism-is-equality ass (a , P) (C , x , p) _ =
       ext (elim¹
         (λ eq → Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
                   (cong (λ { (C , (x , p)) → (C , x) , p }) eq)))) ≡
-                elim (λ {I J} _ → Isomorphic (a , P) I J)
+                elim (λ {X Y} _ → Isomorphic (a , P) X Y)
                      (λ { (_ , x , _) → Eq.id , resp-id ass a x })
                      eq)
 
@@ -300,7 +300,7 @@ module Class (Univ : Universe) where
 
          (Eq.id , resp-id ass a x)                                     ≡⟨ sym $ elim-refl _ _ ⟩∎
 
-         elim (λ {I J} _ → Isomorphic (a , P) I J)
+         elim (λ {X Y} _ → Isomorphic (a , P) X Y)
               (λ { (_ , x , _) → Eq.id , resp-id ass a x })
               (refl (C , x , p))                                       ∎))
 
@@ -722,8 +722,8 @@ abstract
 
   isomorphic-isomorphic :
     Assumptions →
-    ∀ c I J →
-    Isomorphic c I J ↔ Isomorphic′ c I J
+    ∀ c X Y →
+    Isomorphic c X Y ↔ Isomorphic′ c X Y
   isomorphic-isomorphic ass (a , _) (C , x , _) (D , y , _) =
     Σ (C ≃ D) (λ eq → Is-isomorphism  a eq x y)  ↝⟨ ∃-cong (λ eq → is-isomorphism-isomorphic ass a eq) ⟩
     Σ (C ≃ D) (λ eq → Is-isomorphism′ a eq x y)  □

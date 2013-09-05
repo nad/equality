@@ -234,10 +234,10 @@ abstract
 isomorphism-is-equality′ :
   (Univ : Universe) → let open Universe Univ in
   Assumptions →
-  ∀ c I J →
+  ∀ c X Y →
   (∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →  -- Extra assumption.
-  Is-set (proj₁ I) → Is-set (proj₁ J) →           -- Extra assumptions.
-  Class.Isomorphic Univ c I J ↔ (I ≡ J)
+  Is-set (proj₁ X) → Is-set (proj₁ Y) →           -- Extra assumptions.
+  Class.Isomorphic Univ c X Y ↔ (X ≡ Y)
 isomorphism-is-equality′ Univ ass
   (a , P) (C , x , p) (D , y , q) El-set C-set D-set = isomorphic
 
@@ -337,9 +337,9 @@ isomorphism-is-equality′ Univ ass
                                                                                           _≃_.left-inverse-of ≃≃≅-CD eq ⟩
                                                            Is-isomorphism a eq′ x y  □)) ⟩
       ∃ (H {X = C , C-set} {Y = D , D-set} x y)      ↝⟨ inverse ×-right-identity ⟩
-      ∃ (H {X = C , C-set} {Y = D , D-set} x y) × ⊤  ↝⟨ ∃-cong (λ I≅J → inverse $ contractible↔⊤ $ propositional⇒inhabited⇒contractible
-                                                                          (Str.Is-isomorphism-propositional I≅J)
-                                                                          (Str-homs-are-isos I≅J)) ⟩
+      ∃ (H {X = C , C-set} {Y = D , D-set} x y) × ⊤  ↝⟨ ∃-cong (λ X≅Y → inverse $ contractible↔⊤ $ propositional⇒inhabited⇒contractible
+                                                                          (Str.Is-isomorphism-propositional X≅Y)
+                                                                          (Str-homs-are-isos X≅Y)) ⟩
       (((C , C-set) , x) Str.≅ ((D , D-set) , y))    ↔⟨ inverse ⟨ _ , structure-identity-principle ext Bij S
                                                                         {X = (C , C-set) , x} {Y = (D , D-set) , y} ⟩ ⟩
       (((C , C-set) , x) ≡ ((D , D-set) , y))        ↔⟨ ≃-≡ $ ↔⇒≃ (Σ-assoc ⊚ ∃-cong (λ _ → ×-comm) ⊚ inverse Σ-assoc) ⟩
@@ -351,37 +351,37 @@ isomorphism-is-equality′ Univ ass
     -- A simplification lemma.
 
     proj₁-from-isomorphic :
-      ∀ I≡J →
-      proj₁ (_↔_.from isomorphic I≡J) ≡
-      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) I≡J
-    proj₁-from-isomorphic I≡J = Eq.lift-equality ext (
+      ∀ X≡Y →
+      proj₁ (_↔_.from isomorphic X≡Y) ≡
+      elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y) (λ _ → Eq.id) X≡Y
+    proj₁-from-isomorphic X≡Y = Eq.lift-equality ext (
 
-      _≃_.to (proj₁ (_↔_.from isomorphic I≡J))                         ≡⟨⟩
+      _≃_.to (proj₁ (_↔_.from isomorphic X≡Y))                         ≡⟨⟩
 
-      cast C-set D-set I≡J                                             ≡⟨ lemma ⟩∎
+      cast C-set D-set X≡Y                                             ≡⟨ lemma ⟩∎
 
-      _≃_.to (elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) I≡J)  ∎)
+      _≃_.to (elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y) (λ _ → Eq.id) X≡Y)  ∎)
 
       where
 
-      cast : ∀ {I J} →
-             Is-set (Carrier (a , P) I) → Is-set (Carrier (a , P) J) →
-             I ≡ J → Carrier (a , P) I → Carrier (a , P) J
-      cast {C , x , p} {D , y , q} C-set D-set I≡J =
+      cast : ∀ {X Y} →
+             Is-set (Carrier (a , P) X) → Is-set (Carrier (a , P) Y) →
+             X ≡ Y → Carrier (a , P) X → Carrier (a , P) Y
+      cast {C , x , p} {D , y , q} C-set D-set X≡Y =
         proj₁ $ proj₁ $ proj₁ $
         Str.≡→≅ {X = (C , C-set) , x} {Y = (D , D-set) , y} $
         cong (λ { ((C , x) , C-set) → (C , C-set) , x }) $
         Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡
-                   (cong (λ { (C , (x , p)) → (C , x) , p }) I≡J)))
+                   (cong (λ { (C , (x , p)) → (C , x) , p }) X≡Y)))
                 (proj₁ (H-level-propositional ext 2 _ _))
 
       lemma :
-        cast C-set D-set I≡J ≡
-        _≃_.to (elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) I≡J)
+        cast C-set D-set X≡Y ≡
+        _≃_.to (elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y) (λ _ → Eq.id) X≡Y)
       lemma = elim¹
-        (λ I≡J → ∀ D-set → cast C-set D-set I≡J ≡
-                           _≃_.to (elim (λ {I J} _ → proj₁ I ≃ proj₁ J)
-                                        (λ _ → Eq.id) I≡J))
+        (λ X≡Y → ∀ D-set → cast C-set D-set X≡Y ≡
+                           _≃_.to (elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y)
+                                        (λ _ → Eq.id) X≡Y))
         (λ C-set′ →
 
            cast C-set C-set′ (refl (C , x , p))                      ≡⟨ cong (λ eq →
@@ -456,11 +456,11 @@ isomorphism-is-equality′ Univ ass
 
            P.id                                                      ≡⟨ sym $ cong _≃_.to $ elim-refl _ _ ⟩∎
 
-           _≃_.to (elim (λ {I J} _ → proj₁ I ≃ proj₁ J)
+           _≃_.to (elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y)
                         (λ _ → Eq.id)
                         (refl (C , x , p)))                          ∎)
 
-        I≡J D-set
+        X≡Y D-set
 
 abstract
 
@@ -468,14 +468,14 @@ abstract
   -- to a simple function.
 
   from-isomorphism-is-equality′ :
-    ∀ Univ ass c I J → let open Universe Univ; open Class Univ in
+    ∀ Univ ass c X Y → let open Universe Univ; open Class Univ in
     (El-set : ∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →
     ∀ I-set J-set →
     _↔_.from (isomorphism-is-equality′
-                Univ ass c I J El-set I-set J-set) ≡
-    elim (λ {I J} _ → Isomorphic c I J)
+                Univ ass c X Y El-set I-set J-set) ≡
+    elim (λ {X Y} _ → Isomorphic c X Y)
          (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
-  from-isomorphism-is-equality′ Univ ass c I J El-set I-set J-set =
+  from-isomorphism-is-equality′ Univ ass c X Y El-set I-set J-set =
     ext λ eq →
       Σ-≡,≡→≡ (lemma eq) (_⇔_.to set⇔UIP (El-set J-set) _ _)
     where
@@ -486,15 +486,15 @@ abstract
     lemma :
       ∀ eq →
       proj₁ (_↔_.from (isomorphism-is-equality′
-                         Univ ass c I J El-set I-set J-set) eq) ≡
-      proj₁ (elim (λ {I J} _ → Isomorphic c I J)
+                         Univ ass c X Y El-set I-set J-set) eq) ≡
+      proj₁ (elim (λ {X Y} _ → Isomorphic c X Y)
                   (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
                   eq)
     lemma eq =
       proj₁ (_↔_.from (isomorphism-is-equality′
-                         Univ ass c I J El-set I-set J-set) eq)          ≡⟨ Isomorphism-is-equality′.proj₁-from-isomorphic
+                         Univ ass c X Y El-set I-set J-set) eq)          ≡⟨ Isomorphism-is-equality′.proj₁-from-isomorphic
                                                                               Univ ass _ _ _ _ _ _ _ _ El-set I-set J-set eq ⟩
-      elim (λ {I J} _ → proj₁ I ≃ proj₁ J) (λ _ → Eq.id) eq              ≡⟨ sym $ elim-∘ (λ {I J} _ → Isomorphic c I J) _ proj₁ _ ⟩∎
-      proj₁ (elim (λ {I J} _ → Isomorphic c I J)
+      elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y) (λ _ → Eq.id) eq              ≡⟨ sym $ elim-∘ (λ {X Y} _ → Isomorphic c X Y) _ proj₁ _ ⟩∎
+      proj₁ (elim (λ {X Y} _ → Isomorphic c X Y)
                   (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
                   eq)                                                    ∎
