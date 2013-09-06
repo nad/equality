@@ -926,7 +926,7 @@ Isomorphic-poset :
 
 Isomorphic-poset = refl _
 
--- We can prove that the notion of isomorphism is isomorphic to the
+-- We can prove that this notion of isomorphism is isomorphic to the
 -- usual notion of order isomorphism (assuming univalence).
 
 Isomorphism-poset-isomorphic-to-order-isomorphism :
@@ -966,6 +966,25 @@ Isomorphism-poset-isomorphic-to-order-isomorphism ass
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ a b → (a ≤₁ b) ⇔ (to a ≤₂ to b)))         □
 
+  where open Assumptions ass
+
+-- The previous lemma implies that we can prove that the notion of
+-- isomorphism that we get is /equal/ to the usual notion of order
+-- isomorphism (assuming univalence).
+
+Isomorphism-poset-equal-to-order-isomorphism :
+  Assumptions →
+  ∀ {C₁ _≤₁_ laws₁ C₂ _≤₂_ laws₂} →
+
+  Isomorphic poset (C₁ , _≤₁_ , laws₁) (C₂ , _≤₂_ , laws₂)
+    ≡
+  Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
+  ∀ x y → (x ≤₁ y) ⇔ (to x ≤₂ to y)
+Isomorphism-poset-equal-to-order-isomorphism ass
+  {laws₁ = laws₁} {laws₂ = laws₂} =
+  ≃⇒≡ univ₁ $ ↔⇒≃ $
+    Isomorphism-poset-isomorphic-to-order-isomorphism ass
+      {laws₁ = laws₁} {laws₂ = laws₂}
   where open Assumptions ass
 
 -- The notion of isomorphism that we get if we use Is-isomorphism′
