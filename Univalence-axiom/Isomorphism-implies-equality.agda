@@ -84,7 +84,7 @@ abstract
     (A₁≃A₂ : A₁ ≃ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
     cast A₁≃A₂ n f ≡ subst (λ C → C ^ n ⟶ C) (≃⇒≡ univ A₁≃A₂) f
   cast-is-subst ext univ A₁≃A₂ n =
-    subst-unique
+    transport-theorem
       (λ A → A ^ n ⟶ A)
       (λ A≃B f → cast A≃B n f)
       (cast-id ext n)

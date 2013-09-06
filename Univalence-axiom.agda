@@ -156,17 +156,16 @@ abstract
 
 abstract
 
-  -- If the univalence axiom holds, then "subst P ∘ from" is unique
-  -- (up to extensional equality).
+  -- The transport theorem.
 
-  subst-unique :
+  transport-theorem :
     ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
     (resp : ∀ {A B} → A ≃ B → P A → P B) →
     (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
     ∀ {A B} (univ : Univalence′ A B) →
     (A≃B : A ≃ B) (p : P A) →
     resp A≃B p ≡ subst P (≃⇒≡ univ A≃B) p
-  subst-unique P resp resp-id univ A≃B p =
+  transport-theorem P resp resp-id univ A≃B p =
     resp A≃B p              ≡⟨ sym $ cong (λ q → resp q p) (right-inverse-of A≃B) ⟩
     resp (to (from A≃B)) p  ≡⟨ elim (λ {A B} A≡B → ∀ p →
                                        resp (≡⇒≃ A≡B) p ≡ subst P A≡B p)
@@ -188,7 +187,7 @@ abstract
     (A≃B : A ≃ B) → Is-equivalence (resp A≃B)
   resp-is-equivalence P resp resp-id univ A≃B =
     Eq.respects-extensional-equality
-      (λ p → sym $ subst-unique P resp resp-id univ A≃B p)
+      (λ p → sym $ transport-theorem P resp resp-id univ A≃B p)
       (subst-is-equivalence P (≃⇒≡ univ A≃B))
 
   -- If f is an equivalence, then (non-dependent) precomposition with
@@ -434,9 +433,9 @@ abstract
     _≃_.to (≡⇒≃ (sym $ cong P x≡y)) p  ≡⟨ cong (λ eq → _≃_.to eq p) $ ≡⇒≃-sym ext _ ⟩∎
     _≃_.from (≡⇒≃ (cong P x≡y)) p      ∎
 
-  -- A variant of subst-unique.
+  -- A variant of the transport theorem.
 
-  subst-unique′ :
+  transport-theorem′ :
     ∀ {a p r} {A : Set a}
     (P : A → Set p) (R : A → A → Set r)
     (≡↠R : ∀ {x y} → (x ≡ y) ↠ R x y)
@@ -444,7 +443,7 @@ abstract
     (∀ x p → resp (_↠_.to ≡↠R (refl x)) p ≡ p) →
     ∀ {x y} (r : R x y) (p : P x) →
     resp r p ≡ subst P (_↠_.from ≡↠R r) p
-  subst-unique′ P R ≡↠R resp hyp r p =
+  transport-theorem′ P R ≡↠R resp hyp r p =
     resp r p              ≡⟨ sym $ cong (λ r → resp r p) (right-inverse-of r) ⟩
     resp (to (from r)) p  ≡⟨ elim (λ {x y} x≡y → ∀ p →
                                      resp (_↠_.to ≡↠R x≡y) p ≡ subst P x≡y p)
@@ -455,21 +454,21 @@ abstract
     subst P (from r) p    ∎
     where open _↠_ ≡↠R
 
-  -- Simplification (?) lemma for subst-unique′.
+  -- Simplification (?) lemma for transport-theorem′.
 
-  subst-unique′-refl :
+  transport-theorem′-refl :
     ∀ {a p r} {A : Set a}
     (P : A → Set p) (R : A → A → Set r)
     (≡≃R : ∀ {x y} → (x ≡ y) ≃ R x y)
     (resp : ∀ {x y} → R x y → P x → P y) →
     (resp-refl : ∀ x p → resp (_≃_.to ≡≃R (refl x)) p ≡ p) →
     ∀ {x} (p : P x) →
-    subst-unique′ P R (_≃_.surjection ≡≃R) resp resp-refl
-                  (_≃_.to ≡≃R (refl x)) p ≡
+    transport-theorem′ P R (_≃_.surjection ≡≃R) resp resp-refl
+                       (_≃_.to ≡≃R (refl x)) p ≡
     trans (trans (resp-refl x p) (sym $ subst-refl P p))
           (sym $ cong (λ eq → subst P eq p)
                       (_≃_.left-inverse-of ≡≃R (refl x)))
-  subst-unique′-refl P R ≡≃R resp resp-refl {x} p =
+  transport-theorem′-refl P R ≡≃R resp resp-refl {x} p =
 
     let body = λ x p → trans (resp-refl x p) (sym $ subst-refl P p)
 
@@ -539,21 +538,21 @@ abstract
 
     where open _≃_ ≡≃R
 
-  -- Simplification (?) lemma for subst-unique.
+  -- Simplification (?) lemma for transport-theorem.
 
-  subst-unique-≡⇒≃-refl :
+  transport-theorem-≡⇒≃-refl :
     ∀ {p₁ p₂} (P : Set p₁ → Set p₂)
     (resp : ∀ {A B} → A ≃ B → P A → P B)
     (resp-id : ∀ {A} (p : P A) → resp Eq.id p ≡ p)
     (univ : Univalence p₁) {A} (p : P A) →
-    subst-unique P resp resp-id univ (≡⇒≃ (refl A)) p ≡
+    transport-theorem P resp resp-id univ (≡⇒≃ (refl A)) p ≡
     trans (trans (trans (cong (λ eq → resp eq p) ≡⇒≃-refl)
                     (resp-id p))
              (sym $ subst-refl P p))
       (sym $ cong (λ eq → subst P eq p)
                   (_≃_.left-inverse-of (≡≃≃ univ) (refl A)))
-  subst-unique-≡⇒≃-refl P resp resp-id univ {A} p =
-    subst-unique′-refl P _≃_ (≡≃≃ univ) resp
+  transport-theorem-≡⇒≃-refl P resp resp-id univ {A} p =
+    transport-theorem′-refl P _≃_ (≡≃≃ univ) resp
       (λ _ p → trans (cong (λ eq → resp eq p) ≡⇒≃-refl) (resp-id p)) p
 
   -- A variant of resp-is-equivalence.
@@ -567,7 +566,7 @@ abstract
     ∀ {x y} (r : R x y) → Is-equivalence (resp r)
   resp-is-equivalence′ P R ≡↠R resp hyp r =
     Eq.respects-extensional-equality
-      (λ p → sym $ subst-unique′ P R ≡↠R resp hyp r p)
+      (λ p → sym $ transport-theorem′ P R ≡↠R resp hyp r p)
       (subst-is-equivalence P (_↠_.from ≡↠R r))
 
   -- A lemma relating ≃⇒≡, →-cong and cong₂.
@@ -594,11 +593,11 @@ abstract
       to (≡⇒≃ (cong₂ (λ A B → A → B) (≃⇒≡ univ A₁≃A₂)
                                      (≃⇒≡ univ B₁≃B₂)))
     lemma =
-      (λ f → to B₁≃B₂ ∘ f ∘ from A₁≃A₂)                  ≡⟨ ext (λ _ → subst-unique (λ B → A₂ → B) (λ A≃B g → _≃_.to A≃B ∘ g)
-                                                                                    refl univ B₁≃B₂ _) ⟩
+      (λ f → to B₁≃B₂ ∘ f ∘ from A₁≃A₂)                  ≡⟨ ext (λ _ → transport-theorem (λ B → A₂ → B) (λ A≃B g → _≃_.to A≃B ∘ g)
+                                                                                         refl univ B₁≃B₂ _) ⟩
       subst (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂) ∘
       (λ f → f ∘ from A₁≃A₂)                             ≡⟨ cong (_∘_ (subst (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂))) (ext λ f →
-                                                              subst-unique (λ A → A → B₁) (λ A≃B g → g ∘ _≃_.from A≃B) refl univ A₁≃A₂ f) ⟩
+                                                              transport-theorem (λ A → A → B₁) (λ A≃B g → g ∘ _≃_.from A≃B) refl univ A₁≃A₂ f) ⟩
       subst (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂) ∘
       subst (λ A → A → B₁) (≃⇒≡ univ A₁≃A₂)              ≡⟨ cong₂ (λ g h f → g (h f)) (ext $ subst-in-terms-of-≡⇒≃ _ (λ B → A₂ → B))
                                                                                       (ext $ subst-in-terms-of-≡⇒≃ _ (λ A → A → B₁)) ⟩
@@ -631,7 +630,7 @@ abstract
     lemma : ≡⇒→ (cong P (≃⇒≡ univ₁ A≃B)) ≡ _≃_.to (P-cong A≃B)
     lemma = ext λ x →
       ≡⇒→ (cong P (≃⇒≡ univ₁ A≃B)) x  ≡⟨ sym $ subst-in-terms-of-≡⇒≃ _ P x ⟩
-      subst P (≃⇒≡ univ₁ A≃B) x       ≡⟨ sym $ subst-unique P (_≃_.to ∘ P-cong) P-cong-id univ₁ A≃B x ⟩∎
+      subst P (≃⇒≡ univ₁ A≃B) x       ≡⟨ sym $ transport-theorem P (_≃_.to ∘ P-cong) P-cong-id univ₁ A≃B x ⟩∎
       _≃_.to (P-cong A≃B) x           ∎
 
   -- Any "resp" function that preserves identity also preserves
@@ -645,11 +644,11 @@ abstract
     ∀ {A B C} (A≃B : A ≃ B) (B≃C : B ≃ C) p →
     resp (B≃C ⊚ A≃B) p ≡ (resp B≃C ∘ resp A≃B) p
   resp-preserves-compositions P resp resp-id univ ext A≃B B≃C p =
-    resp (B≃C ⊚ A≃B) p                                 ≡⟨ subst-unique P resp resp-id univ _ _ ⟩
+    resp (B≃C ⊚ A≃B) p                                 ≡⟨ transport-theorem P resp resp-id univ _ _ ⟩
     subst P (≃⇒≡ univ (B≃C ⊚ A≃B)) p                   ≡⟨ cong (λ eq → subst P eq p) $ ≃⇒≡-∘ univ ext A≃B B≃C ⟩
     subst P (trans (≃⇒≡ univ A≃B) (≃⇒≡ univ B≃C)) p    ≡⟨ sym $ subst-subst P _ _ _ ⟩
-    subst P (≃⇒≡ univ B≃C) (subst P (≃⇒≡ univ A≃B) p)  ≡⟨ sym $ subst-unique P resp resp-id univ _ _ ⟩
-    resp B≃C (subst P (≃⇒≡ univ A≃B) p)                ≡⟨ sym $ cong (resp _) $ subst-unique P resp resp-id univ _ _ ⟩∎
+    subst P (≃⇒≡ univ B≃C) (subst P (≃⇒≡ univ A≃B) p)  ≡⟨ sym $ transport-theorem P resp resp-id univ _ _ ⟩
+    resp B≃C (subst P (≃⇒≡ univ A≃B) p)                ≡⟨ sym $ cong (resp _) $ transport-theorem P resp resp-id univ _ _ ⟩∎
     resp B≃C (resp A≃B p)                              ∎
 
   -- Any "resp" function that preserves identity also preserves
@@ -665,12 +664,12 @@ abstract
   resp-preserves-inverses P resp resp-id univ ext A≃B p q eq =
     let lemma =
           q                                     ≡⟨ sym eq ⟩
-          resp A≃B p                            ≡⟨ subst-unique P resp resp-id univ _ _ ⟩
+          resp A≃B p                            ≡⟨ transport-theorem P resp resp-id univ _ _ ⟩
           subst P (≃⇒≡ univ A≃B) p              ≡⟨ cong (λ eq → subst P eq p) $ sym $ sym-sym _ ⟩∎
           subst P (sym (sym (≃⇒≡ univ A≃B))) p  ∎
     in
 
-    resp (inverse A≃B) q                                                 ≡⟨ subst-unique P resp resp-id univ _ _ ⟩
+    resp (inverse A≃B) q                                                 ≡⟨ transport-theorem P resp resp-id univ _ _ ⟩
     subst P (≃⇒≡ univ (inverse A≃B)) q                                   ≡⟨ cong (λ eq → subst P eq q) $ ≃⇒≡-inverse univ ext A≃B ⟩
     subst P (sym (≃⇒≡ univ A≃B)) q                                       ≡⟨ cong (subst P (sym (≃⇒≡ univ A≃B))) lemma ⟩
     subst P (sym (≃⇒≡ univ A≃B)) (subst P (sym (sym (≃⇒≡ univ A≃B))) p)  ≡⟨ subst-subst-sym P _ _ ⟩∎

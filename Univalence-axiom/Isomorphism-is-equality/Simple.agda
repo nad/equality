@@ -105,7 +105,7 @@ record Universe : Set₃ where
     ∀ a {B C} (eq : B ≃ C) x →
     Is-isomorphism a eq x (subst (El a) (≃⇒≡ univ₁ eq) x)
   isomorphic-to-itself ass a eq x =
-    subst-unique (El a) (resp a) (resp-id ass a) univ₁ eq x
+    transport-theorem (El a) (resp a) (resp-id ass a) univ₁ eq x
     where open Assumptions ass
 
   -- Is-isomorphism and Is-isomorphism′ are isomorphic (assuming
@@ -312,8 +312,8 @@ module Class (Univ : Universe) where
           resp a (≡⇒≃ eq) x ≡ y
       f {y = y} {eq} eq′ =
         _↔_.from (≡⇒↝ _ $ cong (λ z → z ≡ y) $
-                    subst-unique (El a) (resp a) (resp-id ass a) univ₁
-                                 (≡⇒≃ eq) x)
+                    transport-theorem (El a) (resp a) (resp-id ass a)
+                                      univ₁ (≡⇒≃ eq) x)
            (_↔_.to (≡⇒↝ _ $ sym $ cong (λ eq → subst (El a) eq x ≡ y)
                       (_≃_.left-inverse-of (≡≃≃ univ₁) eq)) eq′)
 
@@ -342,8 +342,8 @@ module Class (Univ : Universe) where
 
       lemma₃ :
         sym (trans (cong (λ z → z ≡ x) $
-                      subst-unique (El a) (resp a) (resp-id ass a) univ₁
-                                   (≡⇒≃ (refl C)) x)
+                      transport-theorem (El a) (resp a) (resp-id ass a)
+                                        univ₁ (≡⇒≃ (refl C)) x)
                (cong (λ eq → subst (El a) eq x ≡ x)
                   (_≃_.left-inverse-of (≡≃≃ univ₁) (refl C)))) ≡
         cong (λ z → z ≡ x) (sym $
@@ -353,8 +353,8 @@ module Class (Univ : Universe) where
       lemma₃ =
         sym (trans (cong (λ z → z ≡ x) _)
                (cong (λ eq → subst (El a) eq x ≡ x) _))           ≡⟨ cong (λ eq → sym (trans (cong (λ z → z ≡ x)
-                                                                                                (subst-unique (El a) (resp a) (resp-id ass a)
-                                                                                                              univ₁ (≡⇒≃ (refl C)) x))
+                                                                                                (transport-theorem (El a) (resp a) (resp-id ass a)
+                                                                                                                   univ₁ (≡⇒≃ (refl C)) x))
                                                                                          eq)) $ sym $
                                                                           cong-∘ (λ z → z ≡ x) (λ eq → subst (El a) eq x) _ ⟩
         sym (trans (cong (λ z → z ≡ x) _)
@@ -365,12 +365,12 @@ module Class (Univ : Universe) where
           (trans _ (cong (λ eq → subst (El a) eq x) _)))          ≡⟨ sym $ cong-sym (λ z → z ≡ x) _ ⟩
 
         cong (λ z → z ≡ x) (sym $
-          trans (subst-unique (El a) (resp a)
+          trans (transport-theorem (El a) (resp a)
                    (resp-id ass a) univ₁ (≡⇒≃ (refl C)) x)
             (cong (λ eq → subst (El a) eq x) _))                  ≡⟨ cong (λ eq → cong (λ z → z ≡ x) (sym $
                                                                                     trans eq (cong (λ eq → subst (El a) eq x)
                                                                                                 (_≃_.left-inverse-of (≡≃≃ univ₁) (refl C)))))
-                                                                          (subst-unique-≡⇒≃-refl _ _ _ univ₁ _) ⟩
+                                                                          (transport-theorem-≡⇒≃-refl _ _ _ univ₁ _) ⟩
         cong (λ z → z ≡ x) (sym $
           trans (trans (trans (trans (cong (λ eq → resp a eq x)
                                         ≡⇒≃-refl)
@@ -396,9 +396,9 @@ module Class (Univ : Universe) where
 
         subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl
           (_↔_.to (≡⇒↝ _ (sym (trans (cong (λ z → z ≡ x) $
-                                        subst-unique (El a) (resp a)
-                                          (resp-id ass a) univ₁
-                                          (≡⇒≃ (refl C)) x)
+                                        transport-theorem (El a)
+                                          (resp a) (resp-id ass a)
+                                          univ₁ (≡⇒≃ (refl C)) x)
                                  (cong (λ eq → subst (El a) eq x ≡ x)
                                     (_≃_.left-inverse-of
                                        (≡≃≃ univ₁) (refl C))))))

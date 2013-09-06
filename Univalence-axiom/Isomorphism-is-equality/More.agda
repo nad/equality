@@ -245,7 +245,7 @@ record Extension-with-resp (c : Code) : Set₂ where
       ∀ {I J} (I≅J : Isomorphic ass c I J) {x} →
       Iso″ ass I≅J x
            (subst Ext (_≃_.to (isomorphism≃equality ass c) I≅J) x)
-    isomorphic-to-itself″ ass I≅J {x} = subst-unique′
+    isomorphic-to-itself″ ass I≅J {x} = transport-theorem′
       Ext
       (Isomorphic ass c)
       (_≃_.surjection $ inverse $ isomorphism≃equality ass c)
@@ -383,8 +383,8 @@ record Extension-with-resp (c : Code) : Set₂ where
       trans (trans (trans (resp-refl ass x) (sym $ subst-refl Ext x))
                    (sym (cong (λ eq → subst Ext eq x) lio)))
             (cong (λ eq → subst Ext eq x) rio)                         ≡⟨ cong₂ trans
-                                                                            (sym $ subst-unique′-refl Ext (Isomorphic ass c) (inverse iso≃eq)
-                                                                                                      (resp ass) (λ _ → resp-refl ass) x)
+                                                                            (sym $ transport-theorem′-refl Ext (Isomorphic ass c) (inverse iso≃eq)
+                                                                                                           (resp ass) (λ _ → resp-refl ass) x)
                                                                             sx≡x-lemma ⟩
       trans (isomorphic-to-itself″ ass rfl) sx≡x                       ≡⟨ sym $ subst-trans (isomorphic-to-itself″ ass rfl) ⟩
 

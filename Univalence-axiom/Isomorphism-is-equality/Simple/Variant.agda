@@ -125,7 +125,8 @@ record Universe : Set₃ where
       ∀ a {B C} (B↔C : B ↔ C) x →
       Is-isomorphism′ ass a B↔C x (subst (El a) (≃⇒≡ univ (↔⇒≃ B↔C)) x)
     isomorphic-to-itself ass a B↔C x =
-      subst-unique (El a) (resp ass a) (resp-id ass a) univ (↔⇒≃ B↔C) x
+      transport-theorem (El a) (resp ass a) (resp-id ass a)
+                        univ (↔⇒≃ B↔C) x
       where open Assumptions ass
 
     -- Is-isomorphism and Is-isomorphism″ are isomorphic (assuming

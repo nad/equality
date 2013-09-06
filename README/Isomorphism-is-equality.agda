@@ -95,9 +95,10 @@ import Equivalence
 import Function-universe
 
 -- ≡⇒≃, Univalence, ≃⇒≡, the univalence axiom implies extensionality
--- (dependent-extensionality), the transport theorem (subst-unique),
--- resp eq is an equivalence (resp-is-equivalence), resp eq preserves
--- compositions (resp-preserves-compositions).
+-- (dependent-extensionality), the transport theorem
+-- (transport-theorem), resp eq is an equivalence
+-- (resp-is-equivalence), resp eq preserves compositions
+-- (resp-preserves-compositions).
 
 import Univalence-axiom
 

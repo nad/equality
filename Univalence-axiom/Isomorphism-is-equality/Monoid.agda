@@ -200,7 +200,7 @@ isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
   cast₂-equiv-is-subst :
     ∀ f → cast₂ equiv f ≡ subst (λ A → A → A → A) C-eq f
   cast₂-equiv-is-subst f =
-    subst-unique (λ A → A → A → A) cast₂ refl univ equiv f
+    transport-theorem (λ A → A → A → A) cast₂ refl univ equiv f
 
   -- The second equality op-eq follows from extensionality,
   -- cast₂-equiv-is-subst, and the fact that the bijection is a
@@ -220,7 +220,7 @@ isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
 
   cast₀-equiv-is-subst : ∀ x → cast₀ equiv x ≡ subst (λ A → A) C-eq x
   cast₀-equiv-is-subst x =
-    subst-unique (λ A → A) cast₀ refl univ equiv x
+    transport-theorem (λ A → A) cast₀ refl univ equiv x
 
   id-eq =
     subst (λ A → A) C-eq (id M₁)  ≡⟨ sym $ cast₀-equiv-is-subst (id M₁) ⟩
@@ -289,7 +289,7 @@ isomorphism-is-equality univ univ₁
       ((λ x y → to (op₁ x (from y))) ≡ (λ x y → op₂ (to x) y))    ↝⟨ inverse $ ∘from≡↔≡∘to ext C-eq ⟩
 
       ((λ x y → to (op₁ (from x) (from y))) ≡ (λ x y → op₂ x y))  ↝⟨ ≡⇒↝ _ $ cong (λ o → o ≡ op₂) $
-                                                                       subst-unique
+                                                                       transport-theorem
                                                                          (λ C → C → C → C)
                                                                          (λ eq f x y → _≃_.to eq (f (_≃_.from eq x) (_≃_.from eq y)))
                                                                          refl univ C-eq op₁ ⟩
@@ -298,8 +298,8 @@ isomorphism-is-equality univ univ₁
     id-lemma : (to id₁ ≡ id₂) ↔
                (subst (λ C → C) (≃⇒≡ univ C-eq) id₁ ≡ id₂)
     id-lemma =
-      (to id₁ ≡ id₂)                             ↝⟨ ≡⇒↝ _ $ cong (λ i → i ≡ id₂) $
-                                                      subst-unique (λ C → C) _≃_.to refl univ C-eq id₁ ⟩□
+      (to id₁ ≡ id₂)                               ↝⟨ ≡⇒↝ _ $ cong (λ i → i ≡ id₂) $
+                                                        transport-theorem (λ C → C) _≃_.to refl univ C-eq id₁ ⟩□
       (subst (λ C → C) (≃⇒≡ univ C-eq) id₁ ≡ id₂)  □
 
 -- Equality of monoids is thus equal to equality (assuming
