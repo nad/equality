@@ -85,8 +85,8 @@ import Function-universe
 
 -- Is-equivalence, subst P eq is an equivalence
 -- (subst-is-equivalence), _≃_, _≃_ is logically equivalent to _↔_ and
--- related properties (_≃_.bijection, ↔⇒≃, ↔↔≃, ⇔↔≃), congruence
--- properties for Σ and Π (Σ-preserves, Π-preserves).
+-- related properties (_≃_.bijection, ↔⇒≃, ↔↔≃, ⇔↔≃), Σ and Π preserve
+-- equivalences (Σ-preserves, Π-preserves).
 
 import Equivalence
 
@@ -123,9 +123,10 @@ import Univalence-axiom.Isomorphism-is-equality.Simple
 ------------------------------------------------------------------------
 -- 3.3: Main Theorem
 
--- The main result (isomorphism-is-equality), a corollary
--- (isomorphic≡≡), the right-to-left direction of the bijection is
--- equal to a simple function (from-isomorphism-is-equality).
+-- The main result (isomorphism-is-equality), isomorphism is equal to
+-- equality (isomorphic≡≡), the right-to-left direction of the
+-- bijection is equal to a simple function
+-- (from-isomorphism-is-equality).
 
 import Univalence-axiom.Isomorphism-is-equality.Simple
 
