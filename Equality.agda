@@ -703,8 +703,8 @@ module Derived-definitions-and-properties
     elim-∘ {x = x} P Q f r {x≡y} = elim¹
       (λ x≡y → f (elim P r x≡y) ≡
                elim Q (f ∘ r) x≡y)
-      (f (elim P r (refl x))    ≡⟨ cong f $ elim-refl _ _ ⟩
-       f (r x)                  ≡⟨ sym $ elim-refl _ _ ⟩∎
+      (f (elim P r (refl x))    ≡⟨ cong f $ elim-refl P _ ⟩
+       f (r x)                  ≡⟨ sym $ elim-refl Q _ ⟩∎
        elim Q (f ∘ r) (refl x)  ∎)
       x≡y
 
@@ -717,9 +717,9 @@ module Derived-definitions-and-properties
     elim-cong {x = x} P f r {x≡y} = elim¹
       (λ x≡y → elim (λ {x y} _ → P x y) r (cong f x≡y) ≡
                elim (λ {x y} _ → P (f x) (f y)) (r ∘ f) x≡y)
-      (elim (λ {x y} _ → P x y) r (cong f (refl x))       ≡⟨ cong (elim _ _) $ cong-refl _ ⟩
-       elim (λ {x y} _ → P x y) r (refl (f x))            ≡⟨ elim-refl _ _ ⟩
-       r (f x)                                            ≡⟨ sym $ elim-refl _ _ ⟩∎
+      (elim (λ {x y} _ → P x y) r (cong f (refl x))       ≡⟨ cong (elim (λ {x y} _ → P x y) _) $ cong-refl f ⟩
+       elim (λ {x y} _ → P x y) r (refl (f x))            ≡⟨ elim-refl (λ {x y} _ → P x y) _ ⟩
+       r (f x)                                            ≡⟨ sym $ elim-refl (λ {x y} _ → P (f x) (f y)) _ ⟩∎
        elim (λ {x y} _ → P (f x) (f y)) (r ∘ f) (refl x)  ∎)
       x≡y
 

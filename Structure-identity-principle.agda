@@ -77,10 +77,10 @@ record Standard-notion-of-structure
   proj₁-≡→≅-¹ {X , p} = elim¹
     (λ X≡Y → proj₁ (Str.≡→≅ X≡Y Str.¹) ≡
              elim (λ {X Y} _ → Hom X Y) (λ _ → id) (cong proj₁ X≡Y))
-    (proj₁ (Str.≡→≅ (refl (X , p)) Str.¹)                               ≡⟨ cong (proj₁ ∘ Str._¹) $ elim-refl _ _ ⟩
+    (proj₁ (Str.≡→≅ (refl (X , p)) Str.¹)                               ≡⟨ cong (proj₁ ∘ Str._¹) $ elim-refl (λ {X Y} _ → X Str.≅ Y) _ ⟩
      proj₁ (Str.id {X = X , p})                                         ≡⟨⟩
-     id {X = X}                                                         ≡⟨ sym $ elim-refl _ _ ⟩
-     elim (λ {X Y} _ → Hom X Y) (λ _ → id) (refl X)                     ≡⟨ cong (elim _ _) $ sym $ cong-refl proj₁ ⟩∎
+     id {X = X}                                                         ≡⟨ sym $ elim-refl (λ {X Y} _ → Hom X Y) _ ⟩
+     elim (λ {X Y} _ → Hom X Y) (λ _ → id) (refl X)                     ≡⟨ cong (elim (λ {X Y} _ → Hom X Y) _) $ sym $ cong-refl proj₁ ⟩∎
      elim (λ {X Y} _ → Hom X Y) (λ _ → id) (cong proj₁ (refl (X , p)))  ∎)
 
 -- The structure identity principle states that the precategory Str is
@@ -218,7 +218,7 @@ abstract
 
     ≡≃≅-refl : ∀ {Xp} → _≃_.to ≡≃≅ (refl Xp) ≡ Str.id≅
     ≡≃≅-refl {X , p} =
-      ≅HH≃≅.to (_≃_.to ≡≡≃≅HH (Σ-≡,≡←≡ (refl (X , p))))                ≡⟨ cong (≅HH≃≅.to ∘ _≃_.to ≡≡≃≅HH) Σ-≡,≡←≡-refl ⟩
+      ≅HH≃≅.to (_≃_.to ≡≡≃≅HH (Σ-≡,≡←≡ (refl (_,_ {B = P} X p))))      ≡⟨ cong (≅HH≃≅.to ∘ _≃_.to ≡≡≃≅HH) $ Σ-≡,≡←≡-refl {B = P} ⟩
       ≅HH≃≅.to (_≃_.to ≡≡≃≅HH (refl X , subst-refl P p))               ≡⟨⟩
       ≅HH≃≅.to (C.≡→≅ (refl X) , ≡≡≃≅HH.to (refl X) (subst-refl P p))  ≡⟨ cong ≅HH≃≅.to $ Σ-≡,≡→≡ C.≡→≅-refl ≡≡≃≅HH.to-refl ⟩
       ≅HH≃≅.to (C.id≅ , H-id , H-id)                                   ≡⟨ refl _ ⟩∎
@@ -416,8 +416,8 @@ isomorphism-is-equality′ Univ ass
                     (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ elim¹ (λ eq → elim (λ {X Y} _ → Fun.Hom X Y) (λ _ → P.id) eq ≡
                                                                                       ≡⇒↝ implication (cong proj₁ eq))
                         (elim (λ {X Y} _ → Fun.Hom X Y) (λ _ → P.id)
-                              (refl (C , C-set))                          ≡⟨ elim-refl _ _ ⟩
-                         P.id                                             ≡⟨ sym $ elim-refl _ _ ⟩
+                              (refl (C , C-set))                          ≡⟨ elim-refl (λ {X Y} _ → Fun.Hom X Y) _ ⟩
+                         P.id                                             ≡⟨ sym $ elim-refl (λ {A B} _ → A → B) _ ⟩
                          ≡⇒↝ implication (refl C)                         ≡⟨ cong (≡⇒↝ implication) (sym $ cong-refl proj₁) ⟩∎
                          ≡⇒↝ implication (cong proj₁ (refl (C , C-set)))  ∎) _ ⟩
 
@@ -454,7 +454,7 @@ isomorphism-is-equality′ Univ ass
 
            ≡⇒↝ implication (refl C)                                  ≡⟨ ≡⇒↝-refl ⟩
 
-           P.id                                                      ≡⟨ sym $ cong _≃_.to $ elim-refl _ _ ⟩∎
+           P.id                                                      ≡⟨ sym $ cong _≃_.to $ elim-refl (λ {X Y} _ → proj₁ X ≃ proj₁ Y) _ ⟩∎
 
            _≃_.to (elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y)
                         (λ _ → Eq.id)

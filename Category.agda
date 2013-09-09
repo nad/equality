@@ -235,7 +235,7 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
              elim (λ {X Y} _ → Hom X Y) (λ _ → id) X≡Y)
     (≡→≅ (refl X) ¹                                  ≡⟨ cong _¹ ≡→≅-refl ⟩
      id≅ ¹                                           ≡⟨⟩
-     id                                              ≡⟨ sym $ elim-refl _ _ ⟩∎
+     id                                              ≡⟨ sym $ elim-refl (λ {X Y} _ → Hom X Y) _ ⟩∎
      elim (λ {X Y} _ → Hom X Y) (λ _ → id) (refl X)  ∎)
 
   -- A lemma that can be used to prove that ≡→≅ is an equivalence.

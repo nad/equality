@@ -497,7 +497,7 @@ abstract
                 (cong (λ eq → subst P eq p) (refl (refl x)))             ≡⟨ cong (trans (body x p) ∘ cong (λ eq → subst P eq p)) $
                                                                                  sym sym-refl ⟩
           trans (body x p)
-                (cong (λ eq → subst P eq p) (sym (refl (refl x))))       ≡⟨ cong (trans (body x p)) $ cong-sym _ _ ⟩∎
+                (cong (λ eq → subst P eq p) (sym (refl (refl x))))       ≡⟨ cong (trans (body x p)) $ cong-sym (λ eq → subst P eq p) _ ⟩∎
 
           trans (body x p)
                 (sym $ cong (λ eq → subst P eq p) (refl (refl x)))       ∎
