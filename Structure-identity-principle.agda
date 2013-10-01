@@ -435,7 +435,7 @@ isomorphism-is-equality′ Univ ass
                                                                                 cong (λ { ((C , _) , _) → C }) $
                                                                                 Σ-≡,≡→≡ (proj₁ {B = λ q → subst (proj₁ ∘ uncurry P) q p ≡ p} eq)
                                                                                         (proj₁ (H-level-propositional ext 2 _ C-set′)))
-                                                                             Σ-≡,≡←≡-refl ⟩
+                                                                             (Σ-≡,≡←≡-refl {B = λ { (C , x) → proj₁ (P C x)}}) ⟩
            (≡⇒↝ implication $
             cong (λ { ((C , _) , _) → C }) $
             Σ-≡,≡→≡ (refl (C , x))

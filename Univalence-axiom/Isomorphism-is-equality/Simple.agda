@@ -261,7 +261,7 @@ module Class (Univ : Universe) where
 
       ≡⇒≃ (cong proj₁ (cong (λ { (x , (y , z)) → x , y }) eq))       ≡⟨ cong ≡⇒≃ $ cong-∘ proj₁ (λ { (x , (y , z)) → x , y }) _ ⟩
 
-      ≡⇒≃ (cong proj₁ eq)                                            ≡⟨ elim-cong _ _ _ ⟩∎
+      ≡⇒≃ (cong proj₁ eq)                                            ≡⟨ elim-cong _≃_ proj₁ _ ⟩∎
 
       elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y) (λ _ → Eq.id) eq          ∎
 
@@ -288,21 +288,23 @@ module Class (Univ : Universe) where
                      (λ { (_ , x , _) → Eq.id , resp-id ass a x })
                      eq)
 
-        (Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
+        (Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡ {A = ∃ (El a)}
                         (cong (λ { (C , (x , p)) → (C , x) , p })
-                              (refl (C , x , p))))))                   ≡⟨ cong (Σ-map ≡⇒≃ f ∘ Σ-≡,≡←≡ ∘ proj₁ ∘ Σ-≡,≡←≡) $ cong-refl _ ⟩
+                              (refl (C , x , p))))))               ≡⟨ cong (Σ-map ≡⇒≃ f ∘ Σ-≡,≡←≡ ∘ proj₁ ∘ Σ-≡,≡←≡) $
+                                                                        cong-refl {A = Instance (a , P)}
+                                                                                  (λ { (C , (x , p)) → (C , x) , p }) ⟩
+         Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡ {A = ∃ (El a)}
+                                        (refl ((C , x) , p)))))    ≡⟨ cong (Σ-map ≡⇒≃ f ∘ Σ-≡,≡←≡ ∘ proj₁) (Σ-≡,≡←≡-refl {A = ∃ (El a)}) ⟩
 
-         Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p)))))  ≡⟨ cong (Σ-map ≡⇒≃ f ∘ Σ-≡,≡←≡ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
+         Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (refl {A = ∃ (El a)} (C , x)))       ≡⟨ cong (Σ-map ≡⇒≃ f) (Σ-≡,≡←≡-refl {B = El a}) ⟩
 
-         Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (refl (C , x)))                          ≡⟨ cong (Σ-map ≡⇒≃ f) Σ-≡,≡←≡-refl ⟩
+         (≡⇒≃ (refl C) , f (subst-refl (El a) x))                  ≡⟨ Σ-≡,≡→≡ ≡⇒≃-refl lemma₄ ⟩
 
-         (≡⇒≃ (refl C) , f (subst-refl (El a) x))                      ≡⟨ Σ-≡,≡→≡ ≡⇒≃-refl lemma₄ ⟩
-
-         (Eq.id , resp-id ass a x)                                     ≡⟨ sym $ elim-refl _ _ ⟩∎
+         (Eq.id , resp-id ass a x)                                 ≡⟨ sym $ elim-refl (λ {X Y} _ → Isomorphic (a , P) X Y) _ ⟩∎
 
          elim (λ {X Y} _ → Isomorphic (a , P) X Y)
               (λ { (_ , x , _) → Eq.id , resp-id ass a x })
-              (refl (C , x , p))                                       ∎))
+              (refl (C , x , p))                                   ∎))
 
       where
       open Assumptions ass
@@ -333,8 +335,8 @@ module Class (Univ : Universe) where
       lemma₂ {y = y} {z} x≡y y≡z = elim₁
         (λ x≡y → _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (sym x≡y))) y≡z ≡
                  trans x≡y y≡z)
-        (_↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (sym (refl y)))) y≡z  ≡⟨ cong (λ eq → _↔_.to (≡⇒↝ _ (cong _ eq)) y≡z) sym-refl ⟩
-         _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (refl y))) y≡z        ≡⟨ cong (λ eq → _↔_.to (≡⇒↝ _ eq) y≡z) $ cong-refl _ ⟩
+        (_↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (sym (refl y)))) y≡z  ≡⟨ cong (λ eq → _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) eq)) y≡z) sym-refl ⟩
+         _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (refl y))) y≡z        ≡⟨ cong (λ eq → _↔_.to (≡⇒↝ _ eq) y≡z) $ cong-refl (λ x → x ≡ z) ⟩
          _↔_.to (≡⇒↝ _ (refl (y ≡ z))) y≡z                       ≡⟨ cong (λ f → _↔_.to f y≡z) ≡⇒↝-refl ⟩
          y≡z                                                     ≡⟨ sym $ trans-reflˡ _ ⟩∎
          trans (refl y) y≡z                                      ∎)
@@ -370,7 +372,7 @@ module Class (Univ : Universe) where
             (cong (λ eq → subst (El a) eq x) _))                  ≡⟨ cong (λ eq → cong (λ z → z ≡ x) (sym $
                                                                                     trans eq (cong (λ eq → subst (El a) eq x)
                                                                                                 (_≃_.left-inverse-of (≡≃≃ univ₁) (refl C)))))
-                                                                          (transport-theorem-≡⇒≃-refl _ _ _ univ₁ _) ⟩
+                                                                          (transport-theorem-≡⇒≃-refl (El a) (resp a) (resp-id ass a) univ₁ _) ⟩
         cong (λ z → z ≡ x) (sym $
           trans (trans (trans (trans (cong (λ eq → resp a eq x)
                                         ≡⇒≃-refl)
@@ -422,7 +424,7 @@ module Class (Univ : Universe) where
                                                                                  (trans-[trans-sym] _ _) ⟩
         subst (λ eq → resp a eq x ≡ x) ≡⇒≃-refl
           (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
-             (resp-id ass a x))                                          ≡⟨ subst-∘ _ _ _ ⟩
+             (resp-id ass a x))                                          ≡⟨ subst-∘ (λ z → z ≡ x) (λ eq → resp a eq x) _ ⟩
 
         subst (λ z → z ≡ x)
           (cong (λ eq → resp a eq x) ≡⇒≃-refl)
