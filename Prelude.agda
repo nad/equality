@@ -13,18 +13,7 @@ module Prelude where
 
 -- Universe levels.
 
-infixl 6 _⊔_
-
-postulate
-  Level : Set
-  lzero : Level
-  lsuc  : Level → Level
-  _⊔_   : Level → Level → Level
-
-{-# BUILTIN LEVEL     Level #-}
-{-# BUILTIN LEVELZERO lzero #-}
-{-# BUILTIN LEVELSUC  lsuc  #-}
-{-# BUILTIN LEVELMAX  _⊔_   #-}
+open import Agda.Prim public using (Level; _⊔_; lzero; lsuc)
 
 -- Lifting.
 
