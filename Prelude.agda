@@ -13,7 +13,7 @@ module Prelude where
 
 -- Universe levels.
 
-open import Agda.Prim public using (Level; _⊔_; lzero; lsuc)
+open import Agda.Primitive public using (Level; _⊔_; lzero; lsuc)
 
 -- Lifting.
 
