@@ -94,9 +94,7 @@ data ℕ : Set where
 
 -- Support for natural number literals.
 
-{-# BUILTIN NATURAL ℕ    #-}
-{-# BUILTIN ZERO    zero #-}
-{-# BUILTIN SUC     suc  #-}
+{-# BUILTIN NATURAL ℕ #-}
 
 -- Dependent eliminator.
 
