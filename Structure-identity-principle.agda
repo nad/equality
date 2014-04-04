@@ -46,12 +46,13 @@ record Standard-notion-of-structure
     H-antisymmetric : ∀ {X} (p q : P X) →
                       H p q id → H q p id → p ≡ q
 
-  -- P constructs sets. (The proof was suggested by Michael Shulman.)
+  -- P constructs sets. (The proof was suggested by Michael Shulman in
+  -- a mailing list post.)
 
   P-set : ∀ A → Is-set (P A)
   P-set A = propositional-identity⇒set
     (λ p q → H p q id × H q p id)
-    (λ p q → ×-closure 1 (H-prop id) (H-prop id))
+    (λ _ _ → ×-closure 1 (H-prop id) (H-prop id))
     (λ _ → H-id , H-id)
     (λ p q → uncurry (H-antisymmetric p q))
 
