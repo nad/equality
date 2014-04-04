@@ -87,3 +87,30 @@ abstract
   decidable⇒set {A = A} dec =
     _⇔_.from {To = Uniqueness-of-identity-proofs A}
              set⇔UIP (decidable⇒UIP dec)
+
+  -- Non-dependent functions with propositional domains are constant.
+
+  propositional-domain⇒constant :
+    ∀ {a b} {A : Set a} {B : Set b} →
+    Is-proposition A → (f : A → B) → Constant f
+  propositional-domain⇒constant A-prop f = λ x y →
+    cong f (_⇔_.to propositional⇔irrelevant A-prop x y)
+
+  -- If there is a propositional, reflexive relation on A, and related
+  -- elements are equal, then A is a set.
+  --
+  -- (The statement of this lemma is one part of the statement of
+  -- Theorem 7.2.2 in "Homotopy Type Theory: Univalent Foundations of
+  -- Mathematics" (first edition).)
+
+  propositional-identity⇒set :
+    ∀ {a b} {A : Set a}
+    (B : A → A → Set b) →
+    (∀ x y → Is-proposition (B x y)) →
+    (∀ x → B x x) →
+    (∀ x y → B x y → x ≡ y) →
+    Is-set A
+  propositional-identity⇒set B B-prop B-refl f =
+    _⇔_.from set⇔UIP $ constant⇒UIP λ x y →
+      (λ eq → f x y (subst (B x) eq (B-refl x))) ,
+      (λ _ _ → propositional-domain⇒constant (B-prop x y) (f x y) _ _)
