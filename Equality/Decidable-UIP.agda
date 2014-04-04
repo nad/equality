@@ -67,13 +67,14 @@ abstract
 
   -- Sets which are decidable come with constant endofunctions.
 
-  constant : ∀ {a} {A : Set a} → Dec A →
-             ∃ λ (f : A → A) → Constant f
-  constant (inj₁  x) = (const x , λ _ _ → refl x)
-  constant (inj₂ ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
+  decidable⇒constant : ∀ {a} {A : Set a} → Dec A →
+                       ∃ λ (f : A → A) → Constant f
+  decidable⇒constant (inj₁  x) = (const x , λ _ _ → refl x)
+  decidable⇒constant (inj₂ ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
 
   -- Sets with decidable equality have unique identity proofs.
 
   decidable⇒UIP : ∀ {a} {A : Set a} →
     Decidable-equality A → Uniqueness-of-identity-proofs A
-  decidable⇒UIP dec = constant⇒UIP (λ x y → constant (dec x y))
+  decidable⇒UIP dec =
+    constant⇒UIP (λ x y → decidable⇒constant (dec x y))
