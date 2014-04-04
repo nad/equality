@@ -14,6 +14,7 @@ module Structure-identity-principle
 open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
 open import Category eq
 open Derived-definitions-and-properties eq
+open import Equality.Decidable-UIP eq
 open import Equivalence eq as Eq
   hiding (id; _∘_; inverse; lift-equality)
 open import Function-universe eq hiding (id) renaming (_∘_ to _⊚_)
@@ -36,7 +37,6 @@ record Standard-notion-of-structure
 
   field
     P               : Obj → Set ℓ₁
-    P-set           : ∀ A → Is-set (P A)
     H               : ∀ {X Y} (p : P X) (q : P Y) → Hom X Y → Set ℓ₂
     H-prop          : ∀ {X Y} {p : P X} {q : P Y}
                       (f : Hom X Y) → Is-proposition (H p q f)
@@ -45,6 +45,15 @@ record Standard-notion-of-structure
                       H p q f → H q r g → H p r (f ∙ g)
     H-antisymmetric : ∀ {X} (p q : P X) →
                       H p q id → H q p id → p ≡ q
+
+  -- P constructs sets. (The proof was suggested by Michael Shulman.)
+
+  P-set : ∀ A → Is-set (P A)
+  P-set A = propositional-identity⇒set
+    (λ p q → H p q id × H q p id)
+    (λ p q → ×-closure 1 (H-prop id) (H-prop id))
+    (λ _ → H-id , H-id)
+    (λ p q → uncurry (H-antisymmetric p q))
 
   -- Two Str morphisms (see below) of equal type are equal if their
   -- first components are equal.
@@ -275,7 +284,6 @@ isomorphism-is-equality′ Univ ass
   S : Standard-notion-of-structure (# 1) (# 1) Bij.precategory
   S = record
     { P               = El a ∘ Type
-    ; P-set           = El-set ∘ proj₂
     ; H               = λ {C D} x y C≅D →
                           Is-isomorphism a (≅⇒≃ C D C≅D) x y
     ; H-prop          = λ {_ C} _ → El-set (proj₂ C) _ _
