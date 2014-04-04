@@ -7,6 +7,8 @@
 -- parts of this chapter that I make use of were written by Mike
 -- Shulman.
 
+{-# OPTIONS --without-K #-}
+
 open import Equality
 
 module Category

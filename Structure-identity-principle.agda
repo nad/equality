@@ -4,6 +4,8 @@
 -- Mathematics" (first edition)
 ------------------------------------------------------------------------
 
+{-# OPTIONS --without-K #-}
+
 open import Equality
 
 module Structure-identity-principle
