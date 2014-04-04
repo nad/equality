@@ -4,8 +4,8 @@
 
 {-# OPTIONS --without-K #-}
 
--- Following a proof by Michael Hedberg ("A coherence theorem for
--- Martin-Löf's type theory", JFP 1998).
+-- The part up to "decidable⇒UIP" follows a proof by Michael Hedberg
+-- ("A coherence theorem for Martin-Löf's type theory", JFP 1998).
 
 open import Equality
 
@@ -13,6 +13,8 @@ module Equality.Decidable-UIP
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
+open import Logical-equivalence using (module _⇔_)
+open import H-level eq
 open import Prelude
 
 -- Constant functions.
@@ -78,3 +80,10 @@ abstract
     Decidable-equality A → Uniqueness-of-identity-proofs A
   decidable⇒UIP dec =
     constant⇒UIP (λ x y → decidable⇒constant (dec x y))
+
+  -- Types with decidable equality are sets.
+
+  decidable⇒set : ∀ {a} {A : Set a} → Decidable-equality A → Is-set A
+  decidable⇒set {A = A} dec =
+    _⇔_.from {To = Uniqueness-of-identity-proofs A}
+             set⇔UIP (decidable⇒UIP dec)

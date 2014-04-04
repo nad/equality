@@ -13,7 +13,6 @@ module H-level
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
-import Equality.Decidable-UIP eq as DUIP
 open import Logical-equivalence hiding (id; _∘_)
 open import Prelude
 open import Surjection eq hiding (id; _∘_)
@@ -119,13 +118,6 @@ abstract
     ; from = λ UIP x y →
         [inhabited⇒contractible]⇒propositional (λ x≡y → (x≡y , UIP x≡y))
     }
-
-  -- Types with decidable equality are sets.
-
-  decidable⇒set : ∀ {a} {A : Set a} → Decidable-equality A → Is-set A
-  decidable⇒set {A = A} dec =
-    _⇔_.from {To = Uniqueness-of-identity-proofs A}
-             set⇔UIP (DUIP.decidable⇒UIP dec)
 
 -- H-level n respects (split) surjections.
 

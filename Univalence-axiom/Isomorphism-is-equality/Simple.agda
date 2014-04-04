@@ -22,6 +22,7 @@ open import Bijection eq
   hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
+open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq hiding (id; _∘_; inverse)
 open import Function-universe eq hiding (id) renaming (_∘_ to _⊚_)

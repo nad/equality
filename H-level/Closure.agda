@@ -92,7 +92,7 @@ abstract
   -- The booleans form a set.
 
   Bool-set : Is-set Bool
-  Bool-set = decidable⇒set Bool._≟_
+  Bool-set = DUIP.decidable⇒set Bool._≟_
 
 ------------------------------------------------------------------------
 -- Natural numbers
@@ -108,7 +108,7 @@ abstract
   -- ℕ is a set.
 
   ℕ-set : Is-set ℕ
-  ℕ-set = decidable⇒set ℕ._≟_
+  ℕ-set = DUIP.decidable⇒set ℕ._≟_
 
 ------------------------------------------------------------------------
 -- Π-types
