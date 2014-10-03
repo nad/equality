@@ -62,42 +62,34 @@ private
   data Level : Set where
     upper middle lower : Level
 
-  -- Bottom layer: a single use of congruence applied to an actual
-  -- equality.
+  data EqS {a} {A : Set a} : Level → A → A → Set (lsuc a) where
 
-  data EqS-lower {a} {A : Set a} : A → A → Set (lsuc a) where
+    -- Bottom layer: a single use of congruence applied to an actual
+    -- equality.
+
     Cong : {B : Set a} {x y : B} (f : B → A) (x≡y : x ≡ y) →
-           EqS-lower (f x) (f y)
+           EqS lower (f x) (f y)
 
-  -- Middle layer: at most one use of symmetry.
+    -- Middle layer: at most one use of symmetry.
 
-  data EqS-middle {a} {A : Set a} : A → A → Set (lsuc a) where
-    No-Sym : ∀ {x y} (x≈y : EqS-lower x y) → EqS-middle x y
-    Sym    : ∀ {x y} (x≈y : EqS-lower x y) → EqS-middle y x
+    No-Sym : ∀ {x y} (x≈y : EqS lower x y) → EqS middle x y
+    Sym    : ∀ {x y} (x≈y : EqS lower x y) → EqS middle y x
 
-  -- Uppermost layer: a sequence of equalities, combined using
-  -- transitivity and a single use of reflexivity.
+    -- Uppermost layer: a sequence of equalities, combined using
+    -- transitivity and a single use of reflexivity.
 
-  data EqS-upper {a} {A : Set a} : A → A → Set (lsuc a) where
-    Refl : ∀ {x} → EqS-upper x x
-    Cons : ∀ {x y z} (x≈y : EqS-middle x y) (y≈z : EqS-upper y z) →
-           EqS-upper x z
-
-  -- Simplified expressions.
-
-  EqS : ∀ {a} {A : Set a} → Level → A → A → Set (lsuc a)
-  EqS lower  = EqS-lower
-  EqS middle = EqS-middle
-  EqS upper  = EqS-upper
+    Refl : ∀ {x} → EqS upper x x
+    Cons : ∀ {x y z} (x≈y : EqS middle x y) (y≈z : EqS upper y z) →
+           EqS upper x z
 
   -- Semantics of simplified expressions.
 
   ⟦_⟧S : ∀ {ℓ a} {A : Set a} {x y : A} → EqS ℓ x y → x ≡ y
-  ⟦_⟧S {lower}  (Cong f x≡y)   = cong f x≡y
-  ⟦_⟧S {middle} (No-Sym x≈y)   =     ⟦ x≈y ⟧S
-  ⟦_⟧S {middle} (Sym    x≈y)   = sym ⟦ x≈y ⟧S
-  ⟦_⟧S {upper}  Refl           = refl _
-  ⟦_⟧S {upper}  (Cons x≈y y≈z) = trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S
+  ⟦ Cong f x≡y   ⟧S = cong f x≡y
+  ⟦ No-Sym x≈y   ⟧S =     ⟦ x≈y ⟧S
+  ⟦ Sym    x≈y   ⟧S = sym ⟦ x≈y ⟧S
+  ⟦ Refl         ⟧S = refl _
+  ⟦ Cons x≈y y≈z ⟧S = trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S
 
 ------------------------------------------------------------------------
 -- Manipulation of expressions

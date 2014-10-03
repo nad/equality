@@ -46,7 +46,7 @@ module Transitivity-commutative
   (right-identity : ∀ x → x ∙ e ≡ x)
   where
 
-  open Groupoid (groupoid A)
+  open Groupoid (groupoid A) hiding (left-identity; right-identity)
 
   abstract
 
