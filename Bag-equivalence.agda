@@ -544,7 +544,7 @@ abstract
                    index (_↔_.to (xs≈ys z) p) ≡
                    _↔_.to (Fin-length-cong xs≈ys) (index p)
   index-commutes {z = z} {xs} {ys} xs≈ys p =
-    (index $ to (xs≈ys z) p)                             ≡⟨ lemma ⟩
+    (index $ to (xs≈ys z) p)                             ≡⟨ lemma z p ⟩
     (index $ to (xs≈ys _) $ proj₂ $
      from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
     (index $ proj₂ $ Σ-map P.id (to (xs≈ys _)) $
@@ -555,15 +555,15 @@ abstract
     where
     open _↔_
 
-    lemma : (index $ to (xs≈ys z) p) ≡
+    lemma : ∀ z p →
+            (index $ to (xs≈ys z) p) ≡
             (index $
              to (xs≈ys (lookup xs (to (Fin-length xs) (z , p)))) $
              proj₂ $ from (Fin-length xs) $
              to (Fin-length xs) (z , p))
-    lemma with z | p
-             | to (Fin-length xs) (z , p)
-             | Σ-≡,≡←≡ (left-inverse-of (Fin-length xs) (z , p))
-    lemma | .(lookup xs i) | .(from (∈-lookup xs) (i , refl))
+    lemma z p with to (Fin-length xs) (z , p)
+                 | Σ-≡,≡←≡ (left-inverse-of (Fin-length xs) (z , p))
+    lemma .(lookup xs i) .(from (∈-lookup xs) (i , refl))
           | i | refl , refl = refl
 
   -- Bag equivalence isomorphisms preserve index equality. Note that
