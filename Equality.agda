@@ -249,8 +249,8 @@ module Equality-with-substitutivity-and-contractibility′
 
   -- Equational reasoning combinators.
 
-  infixr 0 _≡⟨_⟩_ _≡⟨⟩_
-  infix  0 finally
+  infix  -1 finally
+  infixr -2 _≡⟨_⟩_ _≡⟨⟩_
 
   _≡⟨_⟩_ : ∀ {a} {A : Set a} x {y z : A} → x ≡ y → y ≡ z → x ≡ z
   _ ≡⟨ x≡y ⟩ y≡z = trans x≡y y≡z

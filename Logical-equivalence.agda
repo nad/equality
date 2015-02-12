@@ -48,8 +48,8 @@ f ∘ g = record
 
 -- "Equational" reasoning combinators.
 
-infix  0 finally-⇔
-infixr 0 _⇔⟨_⟩_
+infix  -1 finally-⇔
+infixr -2 _⇔⟨_⟩_
 
 _⇔⟨_⟩_ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
          A ⇔ B → B ⇔ C → A ⇔ C

@@ -171,9 +171,9 @@ id {equivalence}         = Eq.id
 
 -- "Equational" reasoning combinators.
 
-infixr 0 _↝⟨_⟩_ _↔⟨_⟩_ _↔⟨⟩_
-infix  0 finally-↝ finally-↔
-infix  0 _□
+infix  -1 finally-↝ finally-↔
+infix  -1 _□
+infixr -2 _↝⟨_⟩_ _↔⟨_⟩_ _↔⟨⟩_
 
 _↝⟨_⟩_ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
          A ↝[ k ] B → B ↝[ k ] C → A ↝[ k ] C
