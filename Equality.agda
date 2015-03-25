@@ -1070,6 +1070,17 @@ module Derived-definitions-and-properties
          subst (λ y → ∀ {x} → C x y) (refl _) f  ∎)
         y₁≡y₂
 
+    -- An application of subst to the right kind of function
+    -- application is equal to a function application.
+
+    subst-application :
+      ∀ {a p} {A : Set a} {P : A → Set p}
+      (f : ∀ x → P x) {x y} (x≡y : x ≡ y) →
+      subst P x≡y (f x) ≡ f y
+    subst-application {P = P} f =
+      elim (λ {x y} x≡y → subst P x≡y (f x) ≡ f y)
+           (subst-refl P ∘ f)
+
     -- If f z evaluates to z for a decidable set of values which
     -- includes x and y, do we have
     --
