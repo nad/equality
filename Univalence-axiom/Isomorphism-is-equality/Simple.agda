@@ -748,11 +748,11 @@ monoid =
       (Is-set C ×
 
        -- Left and right identity laws.
-       (∀ x → e ∙ x ≡ x) ×
-       (∀ x → x ∙ e ≡ x) ×
+       (∀ x → (e ∙ x) ≡ x) ×
+       (∀ x → (x ∙ e) ≡ x) ×
 
        -- Associativity.
-       (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z)) ,
+       (∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z))) ,
 
        -- The laws are propositional (assuming extensionality).
       λ ass → let open Assumptions ass in
@@ -776,9 +776,9 @@ Instance-monoid :
   Σ Set₁ λ C →
   Σ ((C → C → C) × C) λ { (_∙_ , e) →
   Is-set C ×
-  (∀ x → e ∙ x ≡ x) ×
-  (∀ x → x ∙ e ≡ x) ×
-  (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }
+  (∀ x → (e ∙ x) ≡ x) ×
+  (∀ x → (x ∙ e) ≡ x) ×
+  (∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z)) }
 
 Instance-monoid = refl _
 
@@ -806,7 +806,7 @@ Isomorphism-monoid-isomorphic-to-standard :
                     (C₂ , (_∙₂_ , e₂) , laws₂)
     ↔
   Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-  (∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y) ×
+  (∀ x y → to (x ∙₁ y) ≡ (to x ∙₂ to y)) ×
   to e₁ ≡ e₂
 
 Isomorphism-monoid-isomorphic-to-standard ext
@@ -829,17 +829,17 @@ Isomorphism-monoid-isomorphic-to-standard ext
                                                                     ×-cong
                                                                   (_ □)) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (∀ x y → to (from x ∙₁ from y) ≡ x ∙₂ y) ×
+   (∀ x y → to (from x ∙₁ from y) ≡ (x ∙₂ y)) ×
    to e₁ ≡ e₂)                                               ↔⟨ inverse $ ∃-cong (λ eq →
                                                                   Π-preserves ext (↔⇒≃ eq) (λ x → Π-preserves ext (↔⇒≃ eq) (λ y →
                                                                       ≡⇒≃ $ sym $ cong₂ (λ u v → _↔_.to eq (u ∙₁ v) ≡
-                                                                                                 _↔_.to eq x ∙₂ _↔_.to eq y)
+                                                                                                 (_↔_.to eq x ∙₂ _↔_.to eq y))
                                                                                         (_↔_.left-inverse-of eq x)
                                                                                         (_↔_.left-inverse-of eq y)))
                                                                     ×-cong
                                                                   (_ □)) ⟩□
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y) ×
+   (∀ x y → to (x ∙₁ y) ≡ (to x ∙₂ to y)) ×
    to e₁ ≡ e₂)                                               □
 
 ------------------------------------------------------------------------
@@ -1054,55 +1054,55 @@ private
     (_*_ : C → C → C)
     (1# : C)
     (-_ : C → C) →
-    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
-    (∀ x y → x + y ≡ y + x) →
-    (∀ x y → x * y ≡ y * x) →
-    (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) →
-    (∀ x → x + 0# ≡ x) →
-    (∀ x → x * 1# ≡ x) →
-    (∀ x → x + (- x) ≡ 0#) →
-    ∀ x → 0# * x ≡ 0#
+    (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) →
+    (∀ x y → (x + y) ≡ (y + x)) →
+    (∀ x y → (x * y) ≡ (y * x)) →
+    (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) →
+    (∀ x → (x + 0#) ≡ x) →
+    (∀ x → (x * 1#) ≡ x) →
+    (∀ x → (x + (- x)) ≡ 0#) →
+    ∀ x → (0# * x) ≡ 0#
   0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- x =
-    0# * x                ≡⟨ sym $ +0 _ ⟩
-    (0# * x) + 0#         ≡⟨ cong (_+_ _) $ sym $ +- _ ⟩
-    (0# * x) + (x + - x)  ≡⟨ +-assoc _ _ _ ⟩
-    ((0# * x) + x) + - x  ≡⟨ cong (λ y → y + _) lemma ⟩
-    x + - x               ≡⟨ +- x ⟩∎
-    0#                    ∎
+    (0# * x)                  ≡⟨ sym $ +0 _ ⟩
+    ((0# * x) + 0#)           ≡⟨ cong (_+_ _) $ sym $ +- _ ⟩
+    ((0# * x) + (x + (- x)))  ≡⟨ +-assoc _ _ _ ⟩
+    (((0# * x) + x) + (- x))  ≡⟨ cong (λ y → y + _) lemma ⟩
+    (x + (- x))               ≡⟨ +- x ⟩∎
+    0#                        ∎
     where
     lemma =
-      (0# * x) + x         ≡⟨ cong (_+_ _) $ sym $ *1 _ ⟩
-      (0# * x) + (x * 1#)  ≡⟨ cong (λ y → y + (x * 1#)) $ *-comm _ _ ⟩
-      (x * 0#) + (x * 1#)  ≡⟨ sym $ *+ _ _ _ ⟩
-      x * (0# + 1#)        ≡⟨ cong (_*_ _) $ +-comm _ _ ⟩
-      x * (1# + 0#)        ≡⟨ cong (_*_ _) $ +0 _ ⟩
-      x * 1#               ≡⟨ *1 _ ⟩∎
-      x                    ∎
+      ((0# * x) + x)         ≡⟨ cong (_+_ _) $ sym $ *1 _ ⟩
+      ((0# * x) + (x * 1#))  ≡⟨ cong (λ y → y + (x * 1#)) $ *-comm _ _ ⟩
+      ((x * 0#) + (x * 1#))  ≡⟨ sym $ *+ _ _ _ ⟩
+      (x * (0# + 1#))        ≡⟨ cong (_*_ _) $ +-comm _ _ ⟩
+      (x * (1# + 0#))        ≡⟨ cong (_*_ _) $ +0 _ ⟩
+      (x * 1#)               ≡⟨ *1 _ ⟩∎
+      x                      ∎
 
   dec-lemma₁ :
     {C : Set₁}
     (_+_ : C → C → C)
     (0# : C)
     (-_ : C → C) →
-    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
-    (∀ x y → x + y ≡ y + x) →
-    (∀ x → x + 0# ≡ x) →
-    (∀ x → x + (- x) ≡ 0#) →
+    (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) →
+    (∀ x y → (x + y) ≡ (y + x)) →
+    (∀ x → (x + 0#) ≡ x) →
+    (∀ x → (x + (- x)) ≡ 0#) →
     (∀ x → Dec (x ≡ 0#)) →
     Decidable (_≡_ {A = C})
   dec-lemma₁ _+_ 0# -_ +-assoc +-comm +0 +- dec-0 x y =
-    ⊎-map (λ x-y≡0 → x              ≡⟨ sym $ +0 _ ⟩
-                     x + 0#         ≡⟨ cong (_+_ _) $ sym $ +- _ ⟩
-                     x + (y + - y)  ≡⟨ cong (_+_ _) $ +-comm _ _ ⟩
-                     x + (- y + y)  ≡⟨ +-assoc _ _ _ ⟩
-                     (x + - y) + y  ≡⟨ cong (λ x → x + _) x-y≡0 ⟩
-                     0# + y         ≡⟨ +-comm _ _ ⟩
-                     y + 0#         ≡⟨ +0 _ ⟩∎
-                     y              ∎)
-          (λ x-y≢0 x≡y → x-y≢0 (x + - y  ≡⟨ cong (_+_ _ ∘ -_) $ sym x≡y ⟩
-                                x + - x  ≡⟨ +- _ ⟩∎
-                                0#       ∎))
-          (dec-0 (x + - y))
+    ⊎-map (λ x-y≡0 → x                  ≡⟨ sym $ +0 _ ⟩
+                     (x + 0#)           ≡⟨ cong (_+_ _) $ sym $ +- _ ⟩
+                     (x + (y + (- y)))  ≡⟨ cong (_+_ _) $ +-comm _ _ ⟩
+                     (x + ((- y) + y))  ≡⟨ +-assoc _ _ _ ⟩
+                     ((x + (- y)) + y)  ≡⟨ cong (λ x → x + _) x-y≡0 ⟩
+                     (0# + y)           ≡⟨ +-comm _ _ ⟩
+                     (y + 0#)           ≡⟨ +0 _ ⟩∎
+                     y                  ∎)
+          (λ x-y≢0 x≡y → x-y≢0 ((x + (- y))  ≡⟨ cong (_+_ _ ∘ -_) $ sym x≡y ⟩
+                                (x + (- x))  ≡⟨ +- _ ⟩∎
+                                0#           ∎))
+          (dec-0 (x + (- y)))
 
   dec-lemma₂ :
     {C : Set₁}
@@ -1112,16 +1112,16 @@ private
     (1# : C)
     (-_ : C → C) →
     (_⁻¹ : C → ↑ (# 1) ⊤ ⊎ C) →
-    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
-    (∀ x y → x + y ≡ y + x) →
-    (∀ x y → x * y ≡ y * x) →
-    (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) →
-    (∀ x → x + 0# ≡ x) →
-    (∀ x → x * 1# ≡ x) →
-    (∀ x → x + (- x) ≡ 0#) →
+    (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) →
+    (∀ x y → (x + y) ≡ (y + x)) →
+    (∀ x y → (x * y) ≡ (y * x)) →
+    (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) →
+    (∀ x → (x + 0#) ≡ x) →
+    (∀ x → (x * 1#) ≡ x) →
+    (∀ x → (x + (- x)) ≡ 0#) →
     0# ≢ 1# →
-    (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) →
-    (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#) →
+    (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) →
+    (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#) →
     Decidable (_≡_ {A = C})
   dec-lemma₂ _+_ 0# _*_ 1# -_ _⁻¹ +-assoc +-comm *-comm
              *+ +0 *1 +- 0≢1 ⁻¹₁ ⁻¹₂ =
@@ -1131,10 +1131,10 @@ private
     dec-0 z with z ⁻¹ | ⁻¹₁ z | ⁻¹₂ z
     ... | inj₁ _   | hyp | _   = inj₁ (hyp (refl _))
     ... | inj₂ z⁻¹ | _   | hyp = inj₂ (λ z≡0 →
-      0≢1 (0#        ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
-           0# * z⁻¹  ≡⟨ cong (λ x → x * _) $ sym z≡0 ⟩
-           z * z⁻¹   ≡⟨ hyp z⁻¹ (refl _) ⟩∎
-           1#        ∎))
+      0≢1 (0#          ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
+           (0# * z⁻¹)  ≡⟨ cong (λ x → x * _) $ sym z≡0 ⟩
+           (z * z⁻¹)   ≡⟨ hyp z⁻¹ (refl _) ⟩∎
+           1#          ∎))
 
   dec-lemma₃ :
     {C : Set₁}
@@ -1143,14 +1143,14 @@ private
     (-_ : C → C) →
     (_*_ : C → C → C)
     (1# : C) →
-    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
-    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
-    (∀ x y → x + y ≡ y + x) →
-    (∀ x y → x * y ≡ y * x) →
-    (∀ x → x + 0# ≡ x) →
-    (∀ x → x * 1# ≡ x) →
-    (∀ x → x + (- x) ≡ 0#) →
-    (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)) →
+    (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) →
+    (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) →
+    (∀ x y → (x + y) ≡ (y + x)) →
+    (∀ x y → (x * y) ≡ (y * x)) →
+    (∀ x → (x + 0#) ≡ x) →
+    (∀ x → (x * 1#) ≡ x) →
+    (∀ x → (x + (- x)) ≡ 0#) →
+    (∀ x → (∃ λ y → (x * y) ≡ 1#) Xor (x ≡ 0#)) →
     Decidable (_≡_ {A = C})
   dec-lemma₃ _+_ 0# -_ _*_ 1# +-assoc *-assoc +-comm *-comm +0 *1 +-
              inv-xor =
@@ -1161,35 +1161,35 @@ private
     {C : Set₁}
     (_*_ : C → C → C)
     (1# : C) →
-    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
-    (∀ x y → x * y ≡ y * x) →
-    (∀ x → x * 1# ≡ x) →
-    ∀ x → ∃ (λ y → x * y ≡ 1#) → Injective (_*_ x)
+    (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) →
+    (∀ x y → (x * y) ≡ (y * x)) →
+    (∀ x → (x * 1#) ≡ x) →
+    ∀ x → ∃ (λ y → (x * y) ≡ 1#) → Injective (_*_ x)
   *-injective _*_ 1# *-assoc *-comm *1 x (x⁻¹ , xx⁻¹≡1)
              {y₁} {y₂} xy₁≡xy₂ =
-    y₁              ≡⟨ lemma y₁ ⟩
-    x⁻¹ * (x * y₁)  ≡⟨ cong (_*_ x⁻¹) xy₁≡xy₂ ⟩
-    x⁻¹ * (x * y₂)  ≡⟨ sym $ lemma y₂ ⟩∎
-    y₂              ∎
+    y₁                ≡⟨ lemma y₁ ⟩
+    (x⁻¹ * (x * y₁))  ≡⟨ cong (_*_ x⁻¹) xy₁≡xy₂ ⟩
+    (x⁻¹ * (x * y₂))  ≡⟨ sym $ lemma y₂ ⟩∎
+    y₂                ∎
     where
-    lemma : ∀ y → y ≡ x⁻¹ * (x * y)
+    lemma : ∀ y → y ≡ (x⁻¹ * (x * y))
     lemma y =
-      y              ≡⟨ sym $ *1 _ ⟩
-      y * 1#         ≡⟨ *-comm _ _ ⟩
-      1# * y         ≡⟨ cong (λ x → x * y) $ sym xx⁻¹≡1 ⟩
-      (x * x⁻¹) * y  ≡⟨ cong (λ x → x * y) $ *-comm _ _ ⟩
-      (x⁻¹ * x) * y  ≡⟨ sym $ *-assoc _ _ _ ⟩∎
-      x⁻¹ * (x * y)  ∎
+      y                ≡⟨ sym $ *1 _ ⟩
+      (y * 1#)         ≡⟨ *-comm _ _ ⟩
+      (1# * y)         ≡⟨ cong (λ x → x * y) $ sym xx⁻¹≡1 ⟩
+      ((x * x⁻¹) * y)  ≡⟨ cong (λ x → x * y) $ *-comm _ _ ⟩
+      ((x⁻¹ * x) * y)  ≡⟨ sym $ *-assoc _ _ _ ⟩∎
+      (x⁻¹ * (x * y))  ∎
 
   inverse-propositional :
     {C : Set₁}
     (_*_ : C → C → C)
     (1# : C) →
-    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
-    (∀ x y → x * y ≡ y * x) →
-    (∀ x → x * 1# ≡ x) →
+    (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) →
+    (∀ x y → (x * y) ≡ (y * x)) →
+    (∀ x → (x * 1#) ≡ x) →
     Is-set C →
-    ∀ x → Is-proposition (∃ λ y → x * y ≡ 1#)
+    ∀ x → Is-proposition (∃ λ y → (x * y) ≡ 1#)
   inverse-propositional _*_ 1# *-assoc *-comm *1 C-set x =
     [inhabited⇒+]⇒+ 0 λ { inv →
     injection⁻¹-propositional
@@ -1204,11 +1204,11 @@ private
     (0# : C)
     (_*_ : C → C → C)
     (1# : C) →
-    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
-    (∀ x y → x * y ≡ y * x) →
-    (∀ x → x * 1# ≡ x) →
+    (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) →
+    (∀ x y → (x * y) ≡ (y * x)) →
+    (∀ x → (x * 1#) ≡ x) →
     Is-proposition (((x y : C) → x ≡ y ⊎ x ≢ y) ×
-                    (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#))
+                    (∀ x → x ≢ 0# → ∃ λ y → (x * y) ≡ 1#))
   proposition-lemma₁ ext 0# _*_ 1# *-assoc *-comm *1 =
     [inhabited⇒+]⇒+ 0 λ { (dec , _) →
     let C-set = decidable⇒set dec in
@@ -1229,14 +1229,14 @@ private
     (-_ : C → C) →
     (_*_ : C → C → C)
     (1# : C) →
-    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
-    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
-    (∀ x y → x + y ≡ y + x) →
-    (∀ x y → x * y ≡ y * x) →
-    (∀ x → x + 0# ≡ x) →
-    (∀ x → x * 1# ≡ x) →
-    (∀ x → x + (- x) ≡ 0#) →
-    Is-proposition (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#))
+    (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) →
+    (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) →
+    (∀ x y → (x + y) ≡ (y + x)) →
+    (∀ x y → (x * y) ≡ (y * x)) →
+    (∀ x → (x + 0#) ≡ x) →
+    (∀ x → (x * 1#) ≡ x) →
+    (∀ x → (x + (- x)) ≡ 0#) →
+    Is-proposition (∀ x → (∃ λ y → (x * y) ≡ 1#) Xor (x ≡ 0#))
   proposition-lemma₂ ext _+_ 0# -_ _*_ 1# +-assoc *-assoc +-comm *-comm
                      +0 *1 +- =
     [inhabited⇒+]⇒+ 0 λ inv-xor →
@@ -1256,18 +1256,18 @@ private
     (_*_ : C → C → C)
     (1# : C) →
     (-_ : C → C) →
-    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
-    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
-    (∀ x y → x + y ≡ y + x) →
-    (∀ x y → x * y ≡ y * x) →
-    (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) →
-    (∀ x → x + 0# ≡ x) →
-    (∀ x → x * 1# ≡ x) →
-    (∀ x → x + (- x) ≡ 0#) →
+    (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) →
+    (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) →
+    (∀ x y → (x + y) ≡ (y + x)) →
+    (∀ x y → (x * y) ≡ (y * x)) →
+    (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) →
+    (∀ x → (x + 0#) ≡ x) →
+    (∀ x → (x * 1#) ≡ x) →
+    (∀ x → (x + (- x)) ≡ 0#) →
     0# ≢ 1# →
     Is-proposition (Σ (C → ↑ _ ⊤ ⊎ C) λ _⁻¹ →
-                      (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
-                      (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#))
+                      (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
+                      (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#))
   proposition-lemma₃ ext {C} _+_ 0# _*_ 1# -_ +-assoc *-assoc
                      +-comm *-comm *+ +0 *1 +- 0≢1 =
     _⇔_.from propositional⇔irrelevant irr
@@ -1289,12 +1289,12 @@ private
         dec-lemma₂ _+_ 0# _*_ 1# -_ inv +-assoc +-comm
                    *-comm *+ +0 *1 +- 0≢1 inv₁ inv₂
 
-      01-lemma : ∀ x y → x ≡ 0# → x * y ≡ 1# → ⊥
+      01-lemma : ∀ x y → x ≡ 0# → (x * y) ≡ 1# → ⊥
       01-lemma x y x≡0 xy≡1 = 0≢1 (
-        0#      ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
-        0# * y  ≡⟨ cong (λ x → x * _) $ sym x≡0 ⟩
-        x * y   ≡⟨ xy≡1 ⟩∎
-        1#      ∎)
+        0#        ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
+        (0# * y)  ≡⟨ cong (λ x → x * _) $ sym x≡0 ⟩
+        (x * y)   ≡⟨ xy≡1 ⟩∎
+        1#        ∎)
 
       inv≡inv′ : ∀ x → inv x ≡ inv′ x
       inv≡inv′ x with inv  x | inv₁  x | inv₂  x
@@ -1305,9 +1305,9 @@ private
       ... | inj₂ x⁻¹ | _ | hyp | inj₂ x⁻¹′ | _ | hyp′ =
         cong inj₂ $ *-injective _*_ 1# *-assoc *-comm *1 x
                                 (x⁻¹ , hyp x⁻¹ (refl _))
-          (x * x⁻¹   ≡⟨ hyp x⁻¹ (refl _) ⟩
-           1#        ≡⟨ sym $ hyp′ x⁻¹′ (refl _) ⟩∎
-           x * x⁻¹′  ∎)
+          ((x * x⁻¹)   ≡⟨ hyp x⁻¹ (refl _) ⟩
+           1#          ≡⟨ sym $ hyp′ x⁻¹′ (refl _) ⟩∎
+           (x * x⁻¹′)  ∎)
 
 -- Discrete fields.
 
@@ -1334,29 +1334,29 @@ discrete-field =
   λ { C (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
 
       (-- Associativity.
-       (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-       (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+       (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
+       (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) ×
 
        -- Commutativity.
-       (∀ x y → x + y ≡ y + x) ×
-       (∀ x y → x * y ≡ y * x) ×
+       (∀ x y → (x + y) ≡ (y + x)) ×
+       (∀ x y → (x * y) ≡ (y * x)) ×
 
        -- Distributivity.
-       (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+       (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) ×
 
        -- Identity laws.
-       (∀ x → x + 0# ≡ x) ×
-       (∀ x → x * 1# ≡ x) ×
+       (∀ x → (x + 0#) ≡ x) ×
+       (∀ x → (x * 1#) ≡ x) ×
 
        -- Additive inverse law.
-       (∀ x → x + (- x) ≡ 0#) ×
+       (∀ x → (x + (- x)) ≡ 0#) ×
 
        -- Zero and one are distinct.
        0# ≢ 1# ×
 
        -- Multiplicative inverse laws.
-       (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
-       (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#)) ,
+       (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
+       (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#)) ,
 
       λ ass → let open Assumptions ass in
         [inhabited⇒+]⇒+ 0 λ { (+-assoc , _ , +-comm , *-comm , *+ , +0 ,
@@ -1409,17 +1409,17 @@ Instance-discrete-field :
   Σ Set₁ λ C →
   Σ ((C → C → C) × C × (C → C → C) × C × (C → C) × (C → ↑ _ ⊤ ⊎ C))
     λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
-  (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-  (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-  (∀ x y → x + y ≡ y + x) ×
-  (∀ x y → x * y ≡ y * x) ×
-  (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-  (∀ x → x + 0# ≡ x) ×
-  (∀ x → x * 1# ≡ x) ×
-  (∀ x → x + (- x) ≡ 0#) ×
+  (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
+  (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) ×
+  (∀ x y → (x + y) ≡ (y + x)) ×
+  (∀ x y → (x * y) ≡ (y * x)) ×
+  (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) ×
+  (∀ x → (x + 0#) ≡ x) ×
+  (∀ x → (x * 1#) ≡ x) ×
+  (∀ x → (x + (- x)) ≡ 0#) ×
   0# ≢ 1# ×
-  (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
-  (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#) }
+  (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
+  (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#) }
 
 Instance-discrete-field = refl _
 
@@ -1548,7 +1548,7 @@ Isomorphic-discrete-field-isomorphic-to-one-without-⁻¹ ext
            ( (λ x → ⊎-map P.id to (from x ⁻¹₁))
            , (λ x x⁻¹₁≡₁ →
                 let lemma =
-                      from x ⁻¹₁                                    ≡⟨ [_,_] {C = λ z → z ≡ ⊎-map P.id from (⊎-map P.id to z)}
+                      (from x ⁻¹₁)                                  ≡⟨ [_,_] {C = λ z → z ≡ ⊎-map P.id from (⊎-map P.id to z)}
                                                                              (λ _ → refl _)
                                                                              (λ _ → cong inj₂ $ sym $ left-inverse-of _)
                                                                              (from x ⁻¹₁) ⟩
@@ -1561,14 +1561,14 @@ Isomorphic-discrete-field-isomorphic-to-one-without-⁻¹ ext
                 0₂           ∎)
            , (λ x y x⁻¹₁≡y →
                 let lemma =
-                      from x ⁻¹₁                                    ≡⟨ [_,_] {C = λ z → z ≡ ⊎-map P.id from (⊎-map P.id to z)}
+                      (from x ⁻¹₁)                                  ≡⟨ [_,_] {C = λ z → z ≡ ⊎-map P.id from (⊎-map P.id to z)}
                                                                              (λ _ → refl _)
                                                                              (λ _ → cong inj₂ $ sym $ left-inverse-of _)
                                                                              (from x ⁻¹₁) ⟩
                       ⊎-map P.id from (⊎-map P.id to (from x ⁻¹₁))  ≡⟨ cong (⊎-map P.id from) x⁻¹₁≡y ⟩∎
                       inj₂ (from y)                                 ∎
                 in
-                x *₂ y                 ≡⟨ sym $ cong (λ _*_ → x * y) *-homo ⟩
+                (x *₂ y)               ≡⟨ sym $ cong (λ _*_ → x * y) *-homo ⟩
                 to (from x *₁ from y)  ≡⟨ cong to $ ⁻¹₁₂ (from x) (from y) lemma ⟩
                 to 1₁                  ≡⟨ 1-homo ⟩∎
                 1₂                     ∎)
@@ -1605,22 +1605,22 @@ discrete-field-à-la-Bridges-and-Richman =
   λ { C (_+_ , 0# , _*_ , 1# , -_) →
 
       (-- Associativity.
-       (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-       (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+       (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
+       (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) ×
 
        -- Commutativity.
-       (∀ x y → x + y ≡ y + x) ×
-       (∀ x y → x * y ≡ y * x) ×
+       (∀ x y → (x + y) ≡ (y + x)) ×
+       (∀ x y → (x * y) ≡ (y * x)) ×
 
        -- Distributivity.
-       (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+       (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) ×
 
        -- Identity laws.
-       (∀ x → x + 0# ≡ x) ×
-       (∀ x → x * 1# ≡ x) ×
+       (∀ x → (x + 0#) ≡ x) ×
+       (∀ x → (x * 1#) ≡ x) ×
 
        -- Additive inverse law.
-       (∀ x → x + (- x) ≡ 0#) ×
+       (∀ x → (x + (- x)) ≡ 0#) ×
 
        -- Zero and one are distinct.
        0# ≢ 1# ×
@@ -1629,7 +1629,7 @@ discrete-field-à-la-Bridges-and-Richman =
        ((x y : C) → x ≡ y ⊎ x ≢ y) ×
 
        -- Non-zero elements are invertible.
-       (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#)) ,
+       (∀ x → x ≢ 0# → ∃ λ y → (x * y) ≡ 1#)) ,
 
       λ ass → let open Assumptions ass in
         [inhabited⇒+]⇒+ 0 λ { (_ , *-assoc , _ , *-comm , _ , _ , *1 ,
@@ -1681,47 +1681,47 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
 
   (Σ ((C → C → C) × C × (C → C → C) × C × (C → C) × (C → ↑ _ ⊤ ⊎ C))
       λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
-          (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-          (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-          (∀ x y → x + y ≡ y + x) ×
-          (∀ x y → x * y ≡ y * x) ×
-          (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-          (∀ x → x + 0# ≡ x) ×
-          (∀ x → x * 1# ≡ x) ×
-          (∀ x → x + (- x) ≡ 0#) ×
+          (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
+          (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) ×
+          (∀ x y → (x + y) ≡ (y + x)) ×
+          (∀ x y → (x * y) ≡ (y * x)) ×
+          (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) ×
+          (∀ x → (x + 0#) ≡ x) ×
+          (∀ x → (x * 1#) ≡ x) ×
+          (∀ x → (x + (- x)) ≡ 0#) ×
           0# ≢ 1# ×
-          (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
-          (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#)})                      ↝⟨ lemma₁ _ _ _ _ _ _ _ ⟩
+          (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
+          (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#)})                  ↝⟨ lemma₁ _ _ _ _ _ _ _ ⟩
 
   (Σ ((C → C → C) × C × (C → C → C) × C × (C → C))
       λ { (_+_ , 0# , _*_ , 1# , -_) →
           Σ (C → ↑ _ ⊤ ⊎ C) λ _⁻¹ →
-          (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-          (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-          (∀ x y → x + y ≡ y + x) ×
-          (∀ x y → x * y ≡ y * x) ×
-          (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-          (∀ x → x + 0# ≡ x) ×
-          (∀ x → x * 1# ≡ x) ×
-          (∀ x → x + (- x) ≡ 0#) ×
+          (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
+          (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) ×
+          (∀ x y → (x + y) ≡ (y + x)) ×
+          (∀ x y → (x * y) ≡ (y * x)) ×
+          (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) ×
+          (∀ x → (x + 0#) ≡ x) ×
+          (∀ x → (x * 1#) ≡ x) ×
+          (∀ x → (x + (- x)) ≡ 0#) ×
           0# ≢ 1# ×
-          (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
-          (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#)})                      ↝⟨ ∃-cong (λ _ → lemma₂ _ _ _ _ _ _ _ _ _ _ _) ⟩
+          (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
+          (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#)})                  ↝⟨ ∃-cong (λ _ → lemma₂ _ _ _ _ _ _ _ _ _ _ _) ⟩
 
   (Σ (((C → C → C) × C × (C → C → C) × C × (C → C)))
      λ { (_+_ , 0# , _*_ , 1# , -_) →
-         (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-         (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-         (∀ x y → x + y ≡ y + x) ×
-         (∀ x y → x * y ≡ y * x) ×
-         (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-         (∀ x → x + 0# ≡ x) ×
-         (∀ x → x * 1# ≡ x) ×
-         (∀ x → x + (- x) ≡ 0#) ×
+         (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
+         (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) ×
+         (∀ x y → (x + y) ≡ (y + x)) ×
+         (∀ x y → (x * y) ≡ (y * x)) ×
+         (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) ×
+         (∀ x → (x + 0#) ≡ x) ×
+         (∀ x → (x * 1#) ≡ x) ×
+         (∀ x → (x + (- x)) ≡ 0#) ×
          0# ≢ 1# ×
          Σ (C → ↑ _ ⊤ ⊎ C) λ _⁻¹ →
-         (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
-         (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#) })                      ↝⟨ (∃-cong λ { (_+_ , 0# , _*_ , 1# , -_) →
+         (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
+         (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#) })                  ↝⟨ (∃-cong λ { (_+_ , 0# , _*_ , 1# , -_) →
                                                                           ∃-cong λ +-assoc →
                                                                           ∃-cong λ *-assoc →
                                                                           ∃-cong λ +-comm →
@@ -1735,17 +1735,17 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
                                                                                      +-assoc *-assoc +-comm *-comm *+ +0 *1 +- 0≢1 }) ⟩□
   (Σ ((C → C → C) × C × (C → C → C) × C × (C → C))
      λ { (_+_ , 0# , _*_ , 1# , -_) →
-         (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-         (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-         (∀ x y → x + y ≡ y + x) ×
-         (∀ x y → x * y ≡ y * x) ×
-         (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-         (∀ x → x + 0# ≡ x) ×
-         (∀ x → x * 1# ≡ x) ×
-         (∀ x → x + (- x) ≡ 0#) ×
+         (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
+         (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) ×
+         (∀ x y → (x + y) ≡ (y + x)) ×
+         (∀ x y → (x * y) ≡ (y * x)) ×
+         (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) ×
+         (∀ x → (x + 0#) ≡ x) ×
+         (∀ x → (x * 1#) ≡ x) ×
+         (∀ x → (x + (- x)) ≡ 0#) ×
          0# ≢ 1# ×
          ((x y : C) → x ≡ y ⊎ x ≢ y) ×
-         (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#) })                       □
+         (∀ x → x ≢ 0# → ∃ λ y → (x * y) ≡ 1#) })                     □
 
   where
   main-lemma :
@@ -1755,22 +1755,22 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
     (_*_ : C → C → C)
     (1# : C)
     (-_ : C → C) →
-    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
-    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
-    (∀ x y → x + y ≡ y + x) →
-    (∀ x y → x * y ≡ y * x) →
-    (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) →
-    (∀ x → x + 0# ≡ x) →
-    (∀ x → x * 1# ≡ x) →
-    (∀ x → x + (- x) ≡ 0#) →
+    (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) →
+    (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) →
+    (∀ x y → (x + y) ≡ (y + x)) →
+    (∀ x y → (x * y) ≡ (y * x)) →
+    (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) →
+    (∀ x → (x + 0#) ≡ x) →
+    (∀ x → (x * 1#) ≡ x) →
+    (∀ x → (x + (- x)) ≡ 0#) →
     0# ≢ 1# →
 
     (Σ (C → ↑ _ ⊤ ⊎ C) λ _⁻¹ →
-     (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
-     (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#))
+     (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
+     (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#))
       ↔
     (((x y : C) → x ≡ y ⊎ x ≢ y) ×
-     (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#))
+     (∀ x → x ≢ 0# → ∃ λ y → (x * y) ≡ 1#))
 
   main-lemma C _+_ 0# _*_ 1# -_
              +-assoc *-assoc +-comm *-comm *+ +0 *1 +- 0≢1 =
@@ -1782,10 +1782,10 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
            (record { to = to; from = from })
     where
     To   = (((x y : C) → x ≡ y ⊎ x ≢ y) ×
-            (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#))
+            (∀ x → x ≢ 0# → ∃ λ y → (x * y) ≡ 1#))
     From = Σ (C → ↑ _ ⊤ ⊎ C) λ _⁻¹ →
-           (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
-           (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#)
+           (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
+           (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#)
 
     to : From → To
     to (_⁻¹ , ⁻¹₁ , ⁻¹₂) = (dec , inv)
@@ -1794,7 +1794,7 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
       dec = dec-lemma₂ _+_ 0# _*_ 1# -_ _⁻¹ +-assoc +-comm *-comm *+
                        +0 *1 +- 0≢1 ⁻¹₁ ⁻¹₂
 
-      inv : ∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#
+      inv : ∀ x → x ≢ 0# → ∃ λ y → (x * y) ≡ 1#
       inv x x≢0 with x ⁻¹ | ⁻¹₁ x | ⁻¹₂ x
       ... | inj₁ _ | hyp | _   = ⊥-elim $ x≢0 (hyp (refl _))
       ... | inj₂ y | _   | hyp = y , hyp y (refl _)
@@ -1805,18 +1805,18 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
       _⁻¹ : C → ↑ _ ⊤ ⊎ C
       x ⁻¹ = ⊎-map (λ _ → _) (proj₁ ∘ inv x) (dec x 0#)
 
-      ⁻¹₁ : ∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#
+      ⁻¹₁ : ∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#
       ⁻¹₁ x x⁻¹≡₁ with dec x 0#
       ... | inj₁ x≡0 = x≡0
       ... | inj₂ x≢0 = ⊥-elim $ ⊎.inj₁≢inj₂ (sym x⁻¹≡₁)
 
-      ⁻¹₂ : ∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#
+      ⁻¹₂ : ∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#
       ⁻¹₂ x y x⁻¹≡y with dec x 0#
       ... | inj₁ x≡0 = ⊥-elim $ ⊎.inj₁≢inj₂ x⁻¹≡y
       ... | inj₂ x≢0 =
-        x * y                  ≡⟨ cong (_*_ _) $ sym $ ⊎.cancel-inj₂ x⁻¹≡y ⟩
-        x * proj₁ (inv x x≢0)  ≡⟨ proj₂ (inv x x≢0) ⟩∎
-        1#                     ∎
+        (x * y)                  ≡⟨ cong (_*_ _) $ sym $ ⊎.cancel-inj₂ x⁻¹≡y ⟩
+        (x * proj₁ (inv x x≢0))  ≡⟨ proj₂ (inv x x≢0) ⟩∎
+        1#                       ∎
 
   lemma₁ : (A B C D E F : Set₁) (G : A × B × C × D × E × F → Set₁) →
            Σ (A × B × C × D × E × F) G ↔
@@ -1870,25 +1870,25 @@ discrete-field-à-la-nLab =
   λ { C (_+_ , 0# , _*_ , 1# , -_) →
 
       (-- Associativity.
-       (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-       (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+       (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
+       (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) ×
 
        -- Commutativity.
-       (∀ x y → x + y ≡ y + x) ×
-       (∀ x y → x * y ≡ y * x) ×
+       (∀ x y → (x + y) ≡ (y + x)) ×
+       (∀ x y → (x * y) ≡ (y * x)) ×
 
        -- Distributivity.
-       (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+       (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) ×
 
        -- Identity laws.
-       (∀ x → x + 0# ≡ x) ×
-       (∀ x → x * 1# ≡ x) ×
+       (∀ x → (x + 0#) ≡ x) ×
+       (∀ x → (x * 1#) ≡ x) ×
 
        -- Additive inverse law.
-       (∀ x → x + (- x) ≡ 0#) ×
+       (∀ x → (x + (- x)) ≡ 0#) ×
 
        -- An element is invertible xor it equals zero.
-       (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#))) ,
+       (∀ x → (∃ λ y → (x * y) ≡ 1#) Xor (x ≡ 0#))) ,
 
       λ ass → let open Assumptions ass in
         [inhabited⇒+]⇒+ 0 λ { (+-assoc , *-assoc , +-comm , *-comm , _ ,
@@ -1959,20 +1959,20 @@ nLab's-isomorphic-to-Bridges-and-Richman's ext =
     (_*_ : C → C → C)
     (1# : C)
     (-_ : C → C) →
-    (∀ x y z → x + (y + z) ≡ (x + y) + z) →
-    (∀ x y z → x * (y * z) ≡ (x * y) * z) →
-    (∀ x y → x + y ≡ y + x) →
-    (∀ x y → x * y ≡ y * x) →
-    (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) →
-    (∀ x → x + 0# ≡ x) →
-    (∀ x → x * 1# ≡ x) →
-    (∀ x → x + (- x) ≡ 0#) →
+    (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) →
+    (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) →
+    (∀ x y → (x + y) ≡ (y + x)) →
+    (∀ x y → (x * y) ≡ (y * x)) →
+    (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) →
+    (∀ x → (x + 0#) ≡ x) →
+    (∀ x → (x * 1#) ≡ x) →
+    (∀ x → (x + (- x)) ≡ 0#) →
 
-   (∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#))
+   (∀ x → (∃ λ y → (x * y) ≡ 1#) Xor (x ≡ 0#))
      ↔
    (0# ≢ 1# ×
     ((x y : C) → x ≡ y ⊎ x ≢ y) ×
-    (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#))
+    (∀ x → x ≢ 0# → ∃ λ y → (x * y) ≡ 1#))
   main-lemma C _+_ 0# _*_ 1# -_
              +-assoc *-assoc +-comm *-comm *+ +0 *1 +- =
     _≃_.bijection $
@@ -1987,8 +1987,8 @@ nLab's-isomorphic-to-Bridges-and-Richman's ext =
     where
     To   = 0# ≢ 1# ×
            ((x y : C) → x ≡ y ⊎ x ≢ y) ×
-           (∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#)
-    From = ∀ x → (∃ λ y → x * y ≡ 1#) Xor (x ≡ 0#)
+           (∀ x → x ≢ 0# → ∃ λ y → (x * y) ≡ 1#)
+    From = ∀ x → (∃ λ y → (x * y) ≡ 1#) Xor (x ≡ 0#)
 
     to : From → To
     to inv-xor = (0≢1 , dec , inv)
@@ -2003,7 +2003,7 @@ nLab's-isomorphic-to-Bridges-and-Richman's ext =
       dec = dec-lemma₃ _+_ 0# -_ _*_ 1# +-assoc *-assoc +-comm *-comm
                        +0 *1 +- inv-xor
 
-      inv : ∀ x → x ≢ 0# → ∃ λ y → x * y ≡ 1#
+      inv : ∀ x → x ≢ 0# → ∃ λ y → (x * y) ≡ 1#
       inv x x≢0 =
         [ proj₁
         , (λ { (_ , x≡0) → ⊥-elim (x≢0 x≡0) })
@@ -2011,10 +2011,10 @@ nLab's-isomorphic-to-Bridges-and-Richman's ext =
 
     from : To → From
     from (0≢1 , dec , inv) x =
-      [ (λ x≡0 → inj₂ ( (λ { (y , xy≡1) → 0≢1 (0#      ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- y ⟩
-                                               0# * y  ≡⟨ cong (λ x → x * y) $ sym x≡0 ⟩
-                                               x * y   ≡⟨ xy≡1 ⟩∎
-                                               1#      ∎) })
+      [ (λ x≡0 → inj₂ ( (λ { (y , xy≡1) → 0≢1 (0#        ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- y ⟩
+                                               (0# * y)  ≡⟨ cong (λ x → x * y) $ sym x≡0 ⟩
+                                               (x * y)   ≡⟨ xy≡1 ⟩∎
+                                               1#        ∎) })
                       , x≡0
                       ))
       , (λ x≢0 → inj₁ (inv x x≢0 , x≢0))
@@ -2045,22 +2045,22 @@ vector-space (F , (_+F_ , _ , _*F_ , 1F , _ , _) , _) =
       (Is-set V ×
 
        -- Associativity.
-       (∀ u v w → u + (v + w) ≡ (u + v) + w) ×
-       (∀ x y v → x * (y * v) ≡ (x *F y) * v) ×
+       (∀ u v w → (u + (v + w)) ≡ ((u + v) + w)) ×
+       (∀ x y v → (x * (y * v)) ≡ ((x *F y) * v)) ×
 
        -- Commutativity.
-       (∀ u v → u + v ≡ v + u) ×
+       (∀ u v → (u + v) ≡ (v + u)) ×
 
        -- Distributivity.
-       (∀ x u v → x * (u + v) ≡ (x * u) + (x * v)) ×
-       (∀ x y v → (x +F y) * v ≡ (x * v) + (y * v)) ×
+       (∀ x u v → (x * (u + v)) ≡ ((x * u) + (x * v))) ×
+       (∀ x y v → ((x +F y) * v) ≡ ((x * v) + (y * v))) ×
 
        -- Identity laws.
-       (∀ v → v + 0V ≡ v) ×
-       (∀ v → 1F * v ≡ v) ×
+       (∀ v → (v + 0V) ≡ v) ×
+       (∀ v → (1F * v) ≡ v) ×
 
        -- Inverse law.
-       (∀ v → v + (- v) ≡ 0V)) ,
+       (∀ v → (v + (- v)) ≡ 0V)) ,
 
       λ ass → let open Assumptions ass in
         [inhabited⇒+]⇒+ 0 λ { (V-set , _) →
@@ -2103,14 +2103,14 @@ Instance-vector-space :
   Σ ((V → V → V) × (F → V → V) × V × (V → V))
     λ { (_+_ , _*_ , 0V , -_) →
   Is-set V ×
-  (∀ u v w → u + (v + w) ≡ (u + v) + w) ×
-  (∀ x y v → x * (y * v) ≡ (x *F y) * v) ×
-  (∀ u v → u + v ≡ v + u) ×
-  (∀ x u v → x * (u + v) ≡ (x * u) + (x * v)) ×
-  (∀ x y v → (x +F y) * v ≡ (x * v) + (y * v)) ×
-  (∀ v → v + 0V ≡ v) ×
-  (∀ v → 1F * v ≡ v) ×
-  (∀ v → v + (- v) ≡ 0V) }
+  (∀ u v w → (u + (v + w)) ≡ ((u + v) + w)) ×
+  (∀ x y v → (x * (y * v)) ≡ ((x *F y) * v)) ×
+  (∀ u v → (u + v) ≡ (v + u)) ×
+  (∀ x u v → (x * (u + v)) ≡ ((x * u) + (x * v))) ×
+  (∀ x y v → ((x +F y) * v) ≡ ((x * v) + (y * v))) ×
+  (∀ v → (v + 0V) ≡ v) ×
+  (∀ v → (1F * v) ≡ v) ×
+  (∀ v → (v + (- v)) ≡ 0V) }
 
 Instance-vector-space = refl _
 

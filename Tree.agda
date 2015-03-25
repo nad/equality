@@ -28,6 +28,8 @@ AnyT P (node l x r) = AnyT P l ⊎ P x ⊎ AnyT P r
 
 -- Membership.
 
+infix 4 _∈T_
+
 _∈T_ : ∀ {A} → A → Tree A → Set
 x ∈T t = AnyT (_≡_ x) t
 

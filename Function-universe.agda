@@ -1153,7 +1153,7 @@ if-lemma {A = A} {B} P A↔ B↔ false =
 -- An encoding of if_then_else_ in terms of _⊎_, _×_, T and not.
 
 if-encoding : ∀ {ℓ} {A B : Set ℓ} →
-              ∀ b → if b then A else B ↔ T b × A ⊎ T (not b) × B
+              ∀ b → (if b then A else B) ↔ T b × A ⊎ T (not b) × B
 if-encoding {A = A} {B} =
   inverse ⊚ if-lemma (λ b → if b then A else B) id id
 

@@ -524,11 +524,11 @@ monoid =
   λ { (_ , M-set) (_∙_ , e) →
 
       (-- Left and right identity laws.
-       (∀ x → e ∙ x ≡ x) ×
-       (∀ x → x ∙ e ≡ x) ×
+       (∀ x → (e ∙ x) ≡ x) ×
+       (∀ x → (x ∙ e) ≡ x) ×
 
        -- Associativity.
-       (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z)) ,
+       (∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z))) ,
 
        -- The laws are propositional (assuming extensionality).
       λ ass → let open Assumptions ass in
@@ -549,9 +549,9 @@ Instance-monoid :
     ≡
   Σ (SET (# 0)) λ { (M , _) →
   Σ ((↑ _ M → ↑ _ M → ↑ _ M) × ↑ _ M) λ { (_∙_ , e) →
-  (∀ x → e ∙ x ≡ x) ×
-  (∀ x → x ∙ e ≡ x) ×
-  (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) }}
+  (∀ x → (e ∙ x) ≡ x) ×
+  (∀ x → (x ∙ e) ≡ x) ×
+  (∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z)) }}
 
 Instance-monoid = refl _
 
@@ -564,7 +564,7 @@ Isomorphic-monoid :
                     ((M₂ , S₂) , (_∙₂_ , e₂) , laws₂)
     ≡
   Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
-  (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x ∙₁ u) ≡ y ∙₂ v) ×
+  (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x ∙₁ u) ≡ (y ∙₂ v)) ×
   to e₁ ≡ e₂
 
 Isomorphic-monoid = refl _
@@ -580,25 +580,25 @@ Isomorphism-monoid-isomorphic-to-standard :
                     ((M₂ , S₂) , (_∙₂_ , e₂) , laws₂)
     ↔
   Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
-  (∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y) ×
+  (∀ x y → to (x ∙₁ y) ≡ (to x ∙₂ to y)) ×
   to e₁ ≡ e₂
 
 Isomorphism-monoid-isomorphic-to-standard ext
   {M₁} {S₁} {_∙₁_} {e₁} {M₂ = M₂} {_∙₂_ = _∙₂_} {e₂} =
 
   (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
-   (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x ∙₁ u) ≡ y ∙₂ v) ×
-   to e₁ ≡ e₂)                                                     ↔⟨ inverse $ ∃-cong (λ _ →
-                                                                        (∀-preserves ext λ _ → ↔⇒≃ $ ∀-intro ext λ _ _ → _) ×-cong (_ □)) ⟩
+   (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x ∙₁ u) ≡ (y ∙₂ v)) ×
+   to e₁ ≡ e₂)                                                       ↔⟨ inverse $ ∃-cong (λ _ →
+                                                                          (∀-preserves ext λ _ → ↔⇒≃ $ ∀-intro ext λ _ _ → _) ×-cong (_ □)) ⟩
   (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
-   (∀ x u v → to u ≡ v → to (x ∙₁ u) ≡ to x ∙₂ v) ×
-   to e₁ ≡ e₂)                                                     ↔⟨ inverse $ ∃-cong (λ _ →
-                                                                        (∀-preserves ext λ _ → ∀-preserves ext λ _ → ↔⇒≃ $ ∀-intro ext λ _ _ → _)
-                                                                          ×-cong
-                                                                        (_ □)) ⟩□
+   (∀ x u v → to u ≡ v → to (x ∙₁ u) ≡ (to x ∙₂ v)) ×
+   to e₁ ≡ e₂)                                                       ↔⟨ inverse $ ∃-cong (λ _ →
+                                                                          (∀-preserves ext λ _ → ∀-preserves ext λ _ → ↔⇒≃ $ ∀-intro ext λ _ _ → _)
+                                                                            ×-cong
+                                                                          (_ □)) ⟩□
   (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
-   (∀ x u → to (x ∙₁ u) ≡ to x ∙₂ to u) ×
-   to e₁ ≡ e₂)                                                     □
+   (∀ x u → to (x ∙₁ u) ≡ (to x ∙₂ to u)) ×
+   to e₁ ≡ e₂)                                                       □
 
 ------------------------------------------------------------------------
 -- An example: posets
@@ -702,27 +702,27 @@ discrete-field =
   λ { (_ , F-set) (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
 
        -- Associativity.
-      ((∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-       (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
+      ((∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
+       (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) ×
 
        -- Commutativity.
-       (∀ x y → x + y ≡ y + x) ×
-       (∀ x y → x * y ≡ y * x) ×
+       (∀ x y → (x + y) ≡ (y + x)) ×
+       (∀ x y → (x * y) ≡ (y * x)) ×
 
        -- Distributivity.
-       (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
+       (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) ×
 
        -- Identity laws.
-       (∀ x → x + 0# ≡ x) ×
-       (∀ x → x * 1# ≡ x) ×
+       (∀ x → (x + 0#) ≡ x) ×
+       (∀ x → (x * 1#) ≡ x) ×
 
        -- Zero and one are distinct.
        0# ≢ 1# ×
 
        -- Inverse laws.
-       (∀ x → x + (- x) ≡ 0#) ×
-       (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
-       (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#)) ,
+       (∀ x → (x + (- x)) ≡ 0#) ×
+       (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
+       (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#)) ,
 
       λ ass → let open Assumptions ass in
         ×-closure 1  (Π-closure ext 1 λ _ →
@@ -769,17 +769,17 @@ Instance-discrete-field :
   Σ ((↑ _ F → ↑ _ F → ↑ _ F) × ↑ _ F × (↑ _ F → ↑ _ F → ↑ _ F) ×
      ↑ _ F × (↑ _ F → ↑ _ F) × (↑ _ F → ↑ (# 1) ⊤ ⊎ ↑ _ F))
     λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
-  (∀ x y z → x + (y + z) ≡ (x + y) + z) ×
-  (∀ x y z → x * (y * z) ≡ (x * y) * z) ×
-  (∀ x y → x + y ≡ y + x) ×
-  (∀ x y → x * y ≡ y * x) ×
-  (∀ x y z → x * (y + z) ≡ (x * y) + (x * z)) ×
-  (∀ x → x + 0# ≡ x) ×
-  (∀ x → x * 1# ≡ x) ×
+  (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
+  (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) ×
+  (∀ x y → (x + y) ≡ (y + x)) ×
+  (∀ x y → (x * y) ≡ (y * x)) ×
+  (∀ x y z → (x * (y + z)) ≡ ((x * y) + (x * z))) ×
+  (∀ x → (x + 0#) ≡ x) ×
+  (∀ x → (x * 1#) ≡ x) ×
   0# ≢ 1# ×
-  (∀ x → x + (- x) ≡ 0#) ×
-  (∀ x → x ⁻¹ ≡ inj₁ (lift tt) → x ≡ 0#) ×
-  (∀ x y → x ⁻¹ ≡ inj₂ y → x * y ≡ 1#) }}
+  (∀ x → (x + (- x)) ≡ 0#) ×
+  (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
+  (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#) }}
 
 Instance-discrete-field = refl _
 
@@ -794,11 +794,11 @@ Isomorphic-discrete-field :
     ((F₂ , S₂) , (_+₂_ , 0₂ , _*₂_ , 1₂ , -₂_ , _⁻¹₂) , laws₂)
     ≡
   Σ (F₁ ↔ F₂) λ F₁↔F₂ → let open _↔_ (↑-cong F₁↔F₂) in
-  (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x +₁ u) ≡ y +₂ v) ×
+  (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x +₁ u) ≡ (y +₂ v)) ×
   to 0₁ ≡ 0₂ ×
-  (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
+  (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x *₁ u) ≡ (y *₂ v)) ×
   to 1₁ ≡ 1₂ ×
-  (∀ x y → to x ≡ y → to (-₁ x) ≡ -₂ y) ×
+  (∀ x y → to x ≡ y → to (-₁ x) ≡ (-₂ y)) ×
   (∀ x y → to x ≡ y →
      ((λ _ _ → lift tt ≡ lift tt) ⊎-rel (λ u v → to u ≡ v))
        (x ⁻¹₁) (y ⁻¹₂))
@@ -827,22 +827,22 @@ vector-space ((F , _) , (_+F_ , _ , _*F_ , 1F , _ , _) , _) =
   λ { (_ , V-set) (_+_ , _*_ , 0V , -_) →
 
        -- Associativity.
-      ((∀ u v w → u + (v + w) ≡ (u + v) + w) ×
-       (∀ x y v → x * (y * v) ≡ (x *F y) * v) ×
+      ((∀ u v w → (u + (v + w)) ≡ ((u + v) + w)) ×
+       (∀ x y v → (x * (y * v)) ≡ ((x *F y) * v)) ×
 
        -- Commutativity.
-       (∀ u v → u + v ≡ v + u) ×
+       (∀ u v → (u + v) ≡ (v + u)) ×
 
        -- Distributivity.
-       (∀ x u v → x * (u + v) ≡ (x * u) + (x * v)) ×
-       (∀ x y v → (x +F y) * v ≡ (x * v) + (y * v)) ×
+       (∀ x u v → (x * (u + v)) ≡ ((x * u) + (x * v))) ×
+       (∀ x y v → ((x +F y) * v) ≡ ((x * v) + (y * v))) ×
 
        -- Identity laws.
-        (∀ v → v + 0V ≡ v) ×
-       (∀ v → 1F * v ≡ v) ×
+       (∀ v → (v + 0V) ≡ v) ×
+       (∀ v → (1F * v) ≡ v) ×
 
        -- Inverse law.
-       (∀ v → v + (- v) ≡ 0V)) ,
+       (∀ v → (v + (- v)) ≡ 0V)) ,
 
       λ ass → let open Assumptions ass in
         ×-closure 1  (Π-closure ext 1 λ _ →
@@ -883,14 +883,14 @@ Instance-vector-space :
   Σ ((↑ _ V → ↑ _ V → ↑ _ V) × (↑ _ F → ↑ _ V → ↑ _ V) × ↑ _ V ×
      (↑ _ V → ↑ _ V))
     λ { (_+_ , _*_ , 0V , -_) →
-  (∀ u v w → u + (v + w) ≡ (u + v) + w) ×
-  (∀ x y v → x * (y * v) ≡ (x *F y) * v) ×
-  (∀ u v → u + v ≡ v + u) ×
-  (∀ x u v → x * (u + v) ≡ (x * u) + (x * v)) ×
-  (∀ x y v → (x +F y) * v ≡ (x * v) + (y * v)) ×
-  (∀ v → v + 0V ≡ v) ×
-  (∀ v → 1F * v ≡ v) ×
-  (∀ v → v + (- v) ≡ 0V) }}
+  (∀ u v w → (u + (v + w)) ≡ ((u + v) + w)) ×
+  (∀ x y v → (x * (y * v)) ≡ ((x *F y) * v)) ×
+  (∀ u v → (u + v) ≡ (v + u)) ×
+  (∀ x u v → (x * (u + v)) ≡ ((x * u) + (x * v))) ×
+  (∀ x y v → ((x +F y) * v) ≡ ((x * v) + (y * v))) ×
+  (∀ v → (v + 0V) ≡ v) ×
+  (∀ v → (1F * v) ≡ v) ×
+  (∀ v → (v + (- v)) ≡ 0V) }}
 
 Instance-vector-space = refl _
 
@@ -905,10 +905,10 @@ Isomorphic-vector-space :
              ((V₂ , S₂) , (_+₂_ , _*₂_ , 0₂ , -₂_) , laws₂)
     ≡
   Σ (V₁ ↔ V₂) λ V₁↔V₂ → let open _↔_ (↑-cong V₁↔V₂) in
-  (∀ a b → to a ≡ b → ∀ u v → to u ≡ v → to (a +₁ u) ≡ b +₂ v) ×
-  (∀ x y →    x ≡ y → ∀ u v → to u ≡ v → to (x *₁ u) ≡ y *₂ v) ×
+  (∀ a b → to a ≡ b → ∀ u v → to u ≡ v → to (a +₁ u) ≡ (b +₂ v)) ×
+  (∀ x y →    x ≡ y → ∀ u v → to u ≡ v → to (x *₁ u) ≡ (y *₂ v)) ×
   to 0₁ ≡ 0₂ ×
-  (∀ u v → to u ≡ v → to (-₁ u) ≡ -₂ v)
+  (∀ u v → to u ≡ v → to (-₁ u) ≡ (-₂ v))
 
 Isomorphic-vector-space = refl _
 

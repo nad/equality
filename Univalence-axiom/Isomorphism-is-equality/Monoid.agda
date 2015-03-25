@@ -32,11 +32,11 @@ Is-monoid C _∙_ id =
   Is-set C ×
 
   -- Left and right identity laws.
-  (∀ x → id ∙ x ≡ x) ×
-  (∀ x → x ∙ id ≡ x) ×
+  (∀ x → (id ∙ x) ≡ x) ×
+  (∀ x → (x ∙ id) ≡ x) ×
 
   -- Associativity.
-  (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z)
+  (∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z))
 
 -- Monoids (on sets).
 

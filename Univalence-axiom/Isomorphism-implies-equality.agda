@@ -281,7 +281,7 @@ semigroup ext =
 
   +axiom
     ( (λ { _ (_ , _∙_) →
-           ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
+           ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) })
     , assoc-prop
     )
 
@@ -305,10 +305,10 @@ private
   Semigroup-unfolded :
     (ext : Extensionality lzero lzero) →
     Semigroup ext ≡ Σ
-      Set                                    λ A → Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Is-set A                             ) λ _ →
-      A → A → A                            ) λ { (_ , _∙_) →
-      ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }
+      Set                                        λ A → Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Is-set A                                 ) λ _ →
+      A → A → A                                ) λ { (_ , _∙_) →
+      ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) }
   Semigroup-unfolded _ = refl _
 
 -- Example: abelian groups.
@@ -329,14 +329,14 @@ abelian-group ext =
   -- Commutativity.
   +axiom
     ( (λ { _ (_ , _∙_) →
-           ∀ x y → x ∙ y ≡ y ∙ x })
+           ∀ x y → (x ∙ y) ≡ (y ∙ x) })
     , comm-prop
     )
 
   -- Associativity.
   +axiom
     ( (λ { _ ((_ , _∙_) , _) →
-           ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
+           ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) })
     , assoc-prop
     )
 
@@ -346,14 +346,14 @@ abelian-group ext =
   -- Left identity.
   +axiom
     ( (λ { _ ((((_ , _∙_) , _) , _) , e) →
-           ∀ x → e ∙ x ≡ x })
+           ∀ x → (e ∙ x) ≡ x })
     , left-identity-prop
     )
 
   -- Right identity.
   +axiom
     ( (λ { _ (((((_ , _∙_) , _) , _) , e) , _) →
-           ∀ x → x ∙ e ≡ x })
+           ∀ x → (x ∙ e) ≡ x })
     , right-identity-prop
     )
 
@@ -363,14 +363,14 @@ abelian-group ext =
   -- Left inverse.
   +axiom
     ( (λ { _ (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-           ∀ x → (x ⁻¹) ∙ x ≡ e })
+           ∀ x → ((x ⁻¹) ∙ x) ≡ e })
     , left-inverse-prop
     )
 
   -- Right inverse.
   +axiom
     ( (λ { _ ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-           ∀ x → x ∙ (x ⁻¹) ≡ e })
+           ∀ x → (x ∙ (x ⁻¹)) ≡ e })
     , right-inverse-prop
     )
 
@@ -427,17 +427,17 @@ private
   Abelian-group-unfolded :
     (ext : Extensionality lzero lzero) →
     Abelian-group ext ≡ Σ
-      Set                                    λ A → Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Is-set A                             ) λ _ →
-      A → A → A                            ) λ {        (_ , _∙_) →
-      ∀ x y → x ∙ y ≡ y ∙ x               }) λ {       ((_ , _∙_) , _) →
-      ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }) λ _ →
-      A                                    ) λ {     ((((_ , _∙_) , _) , _) , e) →
-      ∀ x → e ∙ x ≡ x                     }) λ {    (((((_ , _∙_) , _) , _) , e) , _) →
-      ∀ x → x ∙ e ≡ x                     }) λ _ →
-      A → A                                ) λ {  (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-      ∀ x → (x ⁻¹) ∙ x ≡ e                }) λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-      ∀ x → x ∙ (x ⁻¹) ≡ e                }
+      Set                                        λ A → Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Is-set A                                 ) λ _ →
+      A → A → A                                ) λ {        (_ , _∙_) →
+      ∀ x y → (x ∙ y) ≡ (y ∙ x)               }) λ {       ((_ , _∙_) , _) →
+      ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) }) λ _ →
+      A                                        ) λ {     ((((_ , _∙_) , _) , _) , e) →
+      ∀ x → (e ∙ x) ≡ x                       }) λ {    (((((_ , _∙_) , _) , _) , e) , _) →
+      ∀ x → (x ∙ e) ≡ x                       }) λ _ →
+      A → A                                    ) λ {  (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
+      ∀ x → ((x ⁻¹) ∙ x) ≡ e                  }) λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
+      ∀ x → (x ∙ (x ⁻¹)) ≡ e                  }
 
   Abelian-group-unfolded _ = refl _
 
@@ -528,7 +528,7 @@ semigroupʳ ext A =
 
   operator 2 λ _∙_ →
 
-  axiom (∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z)
+  axiom (∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z))
 
         (Π-closure ext 1 λ _ →
          Π-closure ext 1 λ _ →
@@ -552,6 +552,6 @@ private
     ∃ λ (A   : Set) →
     ∃ λ (_   : Is-set A) →
     ∃ λ (_∙_ : A → A → A) →
-    ∃ λ (_   : ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z) →
+    ∃ λ (_   : ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z)) →
     ↑ _ ⊤
   Semigroupʳ-unfolded _ = refl _

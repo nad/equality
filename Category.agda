@@ -44,12 +44,12 @@ Precategory′ ℓ₁ ℓ₂ =
   ∃ λ (_∙_ : ∀ {X Y Z} → Hom X Y → Hom Y Z → Hom X Z) →
 
   -- Identity laws.
-  (∀ {X Y} {f : Hom X Y} → id ∙ f ≡ f) ×
-  (∀ {X Y} {f : Hom X Y} → f ∙ id ≡ f) ×
+  (∀ {X Y} {f : Hom X Y} → (id ∙ f) ≡ f) ×
+  (∀ {X Y} {f : Hom X Y} → (f ∙ id) ≡ f) ×
 
   -- Associativity.
   (∀ {X Y Z U} {f : Hom X Y} {g : Hom Y Z} {h : Hom Z U} →
-     f ∙ (g ∙ h) ≡ (f ∙ g) ∙ h)
+     (f ∙ (g ∙ h)) ≡ ((f ∙ g) ∙ h))
 
 -- A wrapper.
 

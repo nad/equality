@@ -42,8 +42,8 @@ groupoid A = record
 
 module Transitivity-commutative
   {a} {A : Set a} (e : A) (_∙_ : A → A → A)
-  (left-identity  : ∀ x → e ∙ x ≡ x)
-  (right-identity : ∀ x → x ∙ e ≡ x)
+  (left-identity  : ∀ x → (e ∙ x) ≡ x)
+  (right-identity : ∀ x → (x ∙ e) ≡ x)
   where
 
   open Groupoid (groupoid A) hiding (left-identity; right-identity)
@@ -81,10 +81,10 @@ module Transitivity-commutative
 
       -- Abbreviations.
 
-      li : ∀ {x} → e ∙ x ≡ x
+      li : ∀ {x} → (e ∙ x) ≡ x
       li = left-identity _
 
-      ri : ∀ {x} → x ∙ e ≡ x
+      ri : ∀ {x} → (x ∙ e) ≡ x
       ri = right-identity _
 
       q′ : e ≡ e

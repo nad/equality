@@ -69,7 +69,7 @@ semigroup =
 
   ▻ Proposition
       (λ { (_ , _∙_) →
-           ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
+           ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) })
       assoc-prop
 
   where
@@ -89,10 +89,10 @@ private
 
   Semigroup-unfolded :
     Semigroup ≡ Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                                  ) λ {  (_ , A) →
-      Is-set (↑ _ A)                      }) λ { ((_ , A) , _) →
-      ↑ _ A → ↑ _ A → ↑ _ A               }) λ { (_ , _∙_) →
-      ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }
+      Set                                      ) λ {  (_ , A) →
+      Is-set (↑ _ A)                          }) λ { ((_ , A) , _) →
+      ↑ _ A → ↑ _ A → ↑ _ A                   }) λ { (_ , _∙_) →
+      ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) }
   Semigroup-unfolded = refl
 
   -- An unfolding of Isomorphic semigroup.
@@ -102,11 +102,11 @@ private
     Isomorphic ass semigroup ((((_ , A₁) , is₁) , _∙₁_) , assoc₁)
                              ((((_ , A₂) , is₂) , _∙₂_) , assoc₂) ≡
     Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      ↑ _ (A₁ ≃ A₂)                         ) λ { _ →
-      ↑ _ ⊤                                }) λ { ((_ , lift A₁≃A₂) , _) →
+      ↑ _ (A₁ ≃ A₂)                           ) λ { _ →
+      ↑ _ ⊤                                  }) λ { ((_ , lift A₁≃A₂) , _) →
       let open _≃_ (↑-cong A₁≃A₂) in
-        ∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y }) λ { _ →
-      ↑ _ ⊤                                }
+        ∀ x y → to (x ∙₁ y) ≡ (to x ∙₂ to y) }) λ { _ →
+      ↑ _ ⊤                                  }
   Isomorphic-semigroup-unfolded = refl
 
 ------------------------------------------------------------------------
@@ -210,7 +210,7 @@ abelian-group =
 
   Comm = Proposition {bin}
     (λ { (_ , _∙_) →
-       ∀ x y → x ∙ y ≡ y ∙ x })
+       ∀ x y → (x ∙ y) ≡ (y ∙ x) })
 
     (λ { ass ((_ , A-set) , _) →
        let open Assumptions ass in
@@ -223,7 +223,7 @@ abelian-group =
 
   Assoc = Proposition {comm}
     (λ { ((_ , _∙_) , _) →
-         ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z })
+         ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) })
 
     (λ { ass (((_ , A-set) , _) , _) →
        let open Assumptions ass in
@@ -237,7 +237,7 @@ abelian-group =
 
   Left-identity = Proposition {identity}
     (λ { ((((_ , _∙_) , _) , _) , e) →
-         ∀ x → e ∙ x ≡ x })
+         ∀ x → (e ∙ x) ≡ x })
 
     (λ { ass (((((_ , A-set) , _) , _) , _) , _) →
        let open Assumptions ass in
@@ -249,7 +249,7 @@ abelian-group =
 
   Right-identity = Proposition {left-identity}
     (λ { (((((_ , _∙_) , _) , _) , e) , _) →
-         ∀ x → x ∙ e ≡ x })
+         ∀ x → (x ∙ e) ≡ x })
 
     (λ { ass ((((((_ , A-set) , _) , _) , _) , _) , _) →
        let open Assumptions ass in
@@ -262,7 +262,7 @@ abelian-group =
 
   Left-inverse = Proposition {inv}
     (λ { (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-         ∀ x → (x ⁻¹) ∙ x ≡ e })
+         ∀ x → ((x ⁻¹) ∙ x) ≡ e })
 
     (λ { ass ((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) →
        let open Assumptions ass in
@@ -274,7 +274,7 @@ abelian-group =
 
   Right-inverse = Proposition {left-inverse}
     (λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-         ∀ x → x ∙ (x ⁻¹) ≡ e })
+         ∀ x → (x ∙ (x ⁻¹)) ≡ e })
 
     (λ { ass (((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
        let open Assumptions ass in
@@ -292,17 +292,17 @@ private
 
   Abelian-group-unfolded :
     Abelian-group ≡ Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                                  ) λ {        (_ , A) →
-      Is-set (↑ _ A)                      }) λ {       ((_ , A) , _) →
-      ↑ _ A → ↑ _ A → ↑ _ A               }) λ {                  (_ , _∙_) →
-      ∀ x y → x ∙ y ≡ y ∙ x               }) λ {                 ((_ , _∙_) , _) →
-      ∀ x y z → x ∙ (y ∙ z) ≡ (x ∙ y) ∙ z }) λ {    (((((_ , A) , _) , _  ) , _) , _) →
-      ↑ _ A                               }) λ {               ((((_ , _∙_) , _) , _) , e) →
-      ∀ x → e ∙ x ≡ x                     }) λ {              (((((_ , _∙_) , _) , _) , e) , _) →
-      ∀ x → x ∙ e ≡ x                     }) λ { ((((((((_ , A) , _) , _  ) , _) , _) , _) , _) , _) →
-      ↑ _ A → ↑ _ A                       }) λ {            (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
-      ∀ x → (x ⁻¹) ∙ x ≡ e                }) λ {           ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
-      ∀ x → x ∙ (x ⁻¹) ≡ e                }
+      Set                                      ) λ {        (_ , A) →
+      Is-set (↑ _ A)                          }) λ {       ((_ , A) , _) →
+      ↑ _ A → ↑ _ A → ↑ _ A                   }) λ {                  (_ , _∙_) →
+      ∀ x y → (x ∙ y) ≡ (y ∙ x)               }) λ {                 ((_ , _∙_) , _) →
+      ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) }) λ {    (((((_ , A) , _) , _  ) , _) , _) →
+      ↑ _ A                                   }) λ {               ((((_ , _∙_) , _) , _) , e) →
+      ∀ x → (e ∙ x) ≡ x                       }) λ {              (((((_ , _∙_) , _) , _) , e) , _) →
+      ∀ x → (x ∙ e) ≡ x                       }) λ { ((((((((_ , A) , _) , _  ) , _) , _) , _) , _) , _) →
+      ↑ _ A → ↑ _ A                           }) λ {            (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
+      ∀ x → ((x ⁻¹) ∙ x) ≡ e                  }) λ {           ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
+      ∀ x → (x ∙ (x ⁻¹)) ≡ e                  }
   Abelian-group-unfolded = refl
 
   -- An unfolding of Isomorphic abelian-group.
@@ -316,20 +316,20 @@ private
       (((((((((((_ , A₂) , is₂) , _∙₂_) , comm₂) ,
        assoc₂) , e₂) , lid₂) , rid₂) , _⁻¹₂) , linv₂) , rinv₂) ≡
     Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      ↑ _ (A₁ ≃ A₂)                         ) λ { _ →
-      ↑ _ ⊤                                }) λ {       ((_ , lift A₁≃A₂) , _) →
+      ↑ _ (A₁ ≃ A₂)                           ) λ { _ →
+      ↑ _ ⊤                                  }) λ {       ((_ , lift A₁≃A₂) , _) →
       let open _≃_ (↑-cong A₁≃A₂) in
-        ∀ x y → to (x ∙₁ y) ≡ to x ∙₂ to y }) λ { _ →
-      ↑ _ ⊤                                }) λ { _ →
-      ↑ _ ⊤                                }) λ {    (((((_ , lift A₁≃A₂) , _) , _) , _) , _) →
+        ∀ x y → to (x ∙₁ y) ≡ (to x ∙₂ to y) }) λ { _ →
+      ↑ _ ⊤                                  }) λ { _ →
+      ↑ _ ⊤                                  }) λ {    (((((_ , lift A₁≃A₂) , _) , _) , _) , _) →
       let open _≃_ (↑-cong A₁≃A₂) in
-        to e₁ ≡ e₂                         }) λ { _ →
-      ↑ _ ⊤                                }) λ { _ →
-      ↑ _ ⊤                                }) λ { ((((((((_ , lift A₁≃A₂) , _) , _) , _) , _) , _) , _) , _) →
+        to e₁ ≡ e₂                           }) λ { _ →
+      ↑ _ ⊤                                  }) λ { _ →
+      ↑ _ ⊤                                  }) λ { ((((((((_ , lift A₁≃A₂) , _) , _) , _) , _) , _) , _) , _) →
       let open _≃_ (↑-cong A₁≃A₂) in
-        ∀ x → to (x ⁻¹₁) ≡ to x ⁻¹₂        }) λ { _ →
-      ↑ _ ⊤                                }) λ { _ →
-      ↑ _ ⊤                                }
+        ∀ x → to (x ⁻¹₁) ≡ (to x ⁻¹₂)        }) λ { _ →
+      ↑ _ ⊤                                  }) λ { _ →
+      ↑ _ ⊤                                  }
   Isomorphic-abelian-group-unfolded = refl
 
 ------------------------------------------------------------------------
