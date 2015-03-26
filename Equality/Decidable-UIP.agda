@@ -71,8 +71,8 @@ abstract
 
   decidable⇒constant : ∀ {a} {A : Set a} → Dec A →
                        ∃ λ (f : A → A) → Constant f
-  decidable⇒constant (inj₁  x) = (const x , λ _ _ → refl x)
-  decidable⇒constant (inj₂ ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
+  decidable⇒constant (yes x) = (const x , λ _ _ → refl x)
+  decidable⇒constant (no ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
 
   -- Sets with decidable equality have unique identity proofs.
 

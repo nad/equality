@@ -301,6 +301,9 @@ data _⊎_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 Dec : ∀ {p} → Set p → Set p
 Dec P = P ⊎ ¬ P
 
+pattern yes p = inj₁ p
+pattern no  p = inj₂ p
+
 -- Decidable relations.
 
 Decidable : ∀ {a b ℓ} {A : Set a} {B : Set b} →

@@ -24,7 +24,7 @@ module ⊤ where
   -- Equality of values of the unit type is decidable.
 
   _≟_ : Decidable-equality ⊤
-  _ ≟ _ = inj₁ (refl _)
+  _ ≟ _ = yes (refl _)
 
 ------------------------------------------------------------------------
 -- The empty type
@@ -51,10 +51,10 @@ module Bool where
   -- Equality of booleans is decidable.
 
   _≟_ : Decidable-equality Bool
-  true  ≟ true  = inj₁ (refl _)
-  false ≟ false = inj₁ (refl _)
-  true  ≟ false = inj₂ true≢false
-  false ≟ true  = inj₂ (true≢false ∘ sym)
+  true  ≟ true  = yes (refl _)
+  false ≟ false = yes (refl _)
+  true  ≟ false = no true≢false
+  false ≟ true  = no (true≢false ∘ sym)
 
 ------------------------------------------------------------------------
 -- Natural numbers
@@ -88,10 +88,10 @@ module ℕ where
   -- Equality of natural numbers is decidable.
 
   _≟_ : Decidable-equality ℕ
-  zero  ≟ zero  = inj₁ (refl _)
+  zero  ≟ zero  = yes (refl _)
   suc m ≟ suc n = ⊎-map (cong suc) (λ m≢n → m≢n ∘ cancel-suc) (m ≟ n)
-  zero  ≟ suc n = inj₂ 0≢+
-  suc m ≟ zero  = inj₂ (0≢+ ∘ sym)
+  zero  ≟ suc n = no 0≢+
+  suc m ≟ zero  = no (0≢+ ∘ sym)
 
 ------------------------------------------------------------------------
 -- Σ-types
@@ -105,13 +105,13 @@ module Σ {a b} {A : Set a} {B : A → Set b} where
 
     _≟_ : Decidable-equality (Σ A B)
     (x₁ , y₁) ≟ (x₂ , y₂) with x₁ ≟A x₂
-    ... | inj₂ x₁≢x₂ = inj₂ (x₁≢x₂ ∘ cong proj₁)
-    ... | inj₁ x₁≡x₂ with subst B x₁≡x₂ y₁ ≟B y₂
-    ...   | inj₁ cast-y₁≡y₂ = inj₁ (Σ-≡,≡→≡ x₁≡x₂ cast-y₁≡y₂)
-    ...   | inj₂ cast-y₁≢y₂ =
-      inj₂ (cast-y₁≢y₂ ∘
-            subst (λ p → subst B p y₁ ≡ y₂) (decidable⇒UIP _≟A_ _ _) ∘
-            proj₂ ∘ Σ-≡,≡←≡)
+    ... | no  x₁≢x₂ = no (x₁≢x₂ ∘ cong proj₁)
+    ... | yes x₁≡x₂ with subst B x₁≡x₂ y₁ ≟B y₂
+    ...   | yes cast-y₁≡y₂ = yes (Σ-≡,≡→≡ x₁≡x₂ cast-y₁≡y₂)
+    ...   | no  cast-y₁≢y₂ =
+      no (cast-y₁≢y₂ ∘
+          subst (λ p → subst B p y₁ ≡ y₂) (decidable⇒UIP _≟A_ _ _) ∘
+          proj₂ ∘ Σ-≡,≡←≡)
 
 ------------------------------------------------------------------------
 -- Binary products
@@ -155,8 +155,8 @@ module ⊎ {a b} {A : Set a} {B : Set b} where
     _≟_ : Decidable-equality (A ⊎ B)
     inj₁ x ≟ inj₁ y = ⊎-map (cong (inj₁ {B = B})) (λ x≢y → x≢y ∘ cancel-inj₁) (x ≟A y)
     inj₂ x ≟ inj₂ y = ⊎-map (cong (inj₂ {A = A})) (λ x≢y → x≢y ∘ cancel-inj₂) (x ≟B y)
-    inj₁ x ≟ inj₂ y = inj₂ inj₁≢inj₂
-    inj₂ x ≟ inj₁ y = inj₂ (inj₁≢inj₂ ∘ sym)
+    inj₁ x ≟ inj₂ y = no inj₁≢inj₂
+    inj₂ x ≟ inj₁ y = no (inj₁≢inj₂ ∘ sym)
 
 ------------------------------------------------------------------------
 -- Lists
@@ -232,14 +232,14 @@ module List {a} {A : Set a} where
   module Dec (_≟A_ : Decidable-equality A) where
 
     _≟_ : Decidable-equality (List A)
-    []       ≟ []       = inj₁ (refl [])
-    []       ≟ (_ ∷ _)  = inj₂ []≢∷
-    (_ ∷ _)  ≟ []       = inj₂ ([]≢∷ ∘ sym)
+    []       ≟ []       = yes (refl [])
+    []       ≟ (_ ∷ _)  = no []≢∷
+    (_ ∷ _)  ≟ []       = no ([]≢∷ ∘ sym)
     (x ∷ xs) ≟ (y ∷ ys) with x ≟A y
-    ... | inj₂ x≢y = inj₂ (x≢y ∘ cancel-∷-head)
-    ... | inj₁ x≡y with xs ≟ ys
-    ...   | inj₁ xs≡ys = inj₁ (cong₂ _∷_ x≡y xs≡ys)
-    ...   | inj₂ xs≢ys = inj₂ (xs≢ys ∘ cancel-∷-tail)
+    ... | no  x≢y = no (x≢y ∘ cancel-∷-head)
+    ... | yes x≡y with xs ≟ ys
+    ...   | yes xs≡ys = yes (cong₂ _∷_ x≡y xs≡ys)
+    ...   | no  xs≢ys = no  (xs≢ys ∘ cancel-∷-tail)
 
 ------------------------------------------------------------------------
 -- Finite sets
@@ -250,4 +250,4 @@ module Fin where
 
   _≟_ : ∀ {n} → Decidable-equality (Fin n)
   _≟_ {zero}  = λ ()
-  _≟_ {suc n} = ⊎.Dec._≟_ (λ _ _ → inj₁ (refl tt)) (_≟_ {n})
+  _≟_ {suc n} = ⊎.Dec._≟_ (λ _ _ → yes (refl tt)) (_≟_ {n})

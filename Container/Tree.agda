@@ -205,12 +205,12 @@ Any-singleton P {x} =
 
 fold : {A B : Set} →
        B → (⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → B → B → B) → ⟦ Tree ⟧ A → B
-fold {A} {B} le no = uncurry fold′
+fold {A} {B} fl fn = uncurry fold′
   where
   fold′ : (s : Shape) → (Position s → A) → B
-  fold′ lf       lkup = le
+  fold′ lf       lkup = fl
   fold′ (nd l r) lkup =
-    no (l , lkup ∘ left )
+    fn (l , lkup ∘ left )
        (lkup root)
        (r , lkup ∘ right)
        (fold′ l (lkup ∘ left ))
@@ -222,17 +222,17 @@ fold {A} {B} le no = uncurry fold′
 -- equality of functions were extensional.
 
 fold-lemma : ∀ {A B : Set}
-               {le : B} {no : ⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → B → B → B}
+               {fl : B} {fn : ⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → B → B → B}
              (P : ⟦ Tree ⟧ A → B → Set) →
              (∀ t₁ t₂ → t₁ ≈-bag t₂ → ∀ b → P t₁ b → P t₂ b) →
-             P leaf le →
+             P leaf fl →
              (∀ l x r b₁ b₂ →
-                P l b₁ → P r b₂ → P (node l x r) (no l x r b₁ b₂)) →
-             ∀ t → P t (fold le no t)
-fold-lemma {A} {le = le} {no} P resp P-le P-no = uncurry fold-lemma′
+                P l b₁ → P r b₂ → P (node l x r) (fn l x r b₁ b₂)) →
+             ∀ t → P t (fold fl fn t)
+fold-lemma {A} {fl = fl} {fn} P resp P-le P-no = uncurry fold-lemma′
   where
   fold-lemma′ : (s : Shape) (lkup : Position s → A) →
-                P (s , lkup) (fold le no (s , lkup))
+                P (s , lkup) (fold fl fn (s , lkup))
   fold-lemma′ lf       lkup = resp _ _ leaf≈ _ P-le
   fold-lemma′ (nd l r) lkup = resp _ _ node≈ _ $
     P-no _ _ _ _ _

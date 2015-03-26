@@ -110,19 +110,19 @@ abstract
     swap : ℕ → ℕ → ℕ
     swap i zero    = i
     swap i (suc n) with ℕ._≟_ i (suc n)
-    ... | inj₁ i≡1+n = zero
-    ... | inj₂ i≢1+n = suc n
+    ... | yes i≡1+n = zero
+    ... | no  i≢1+n = suc n
 
     swap∘swap : ∀ i n → swap i (swap i n) ≡ n
     swap∘swap zero    zero    = refl zero
     swap∘swap (suc i) zero    with ℕ._≟_ i i
-    ... | inj₁ _   = refl 0
-    ... | inj₂ i≢i = ⊥-elim $ i≢i (refl i)
+    ... | yes _   = refl 0
+    ... | no  i≢i = ⊥-elim $ i≢i (refl i)
     swap∘swap i       (suc n) with ℕ._≟_ i (suc n)
-    ... | inj₁ i≡1+n = i≡1+n
-    ... | inj₂ i≢1+n with ℕ._≟_ i (suc n)
-    ...   | inj₁ i≡1+n = ⊥-elim $ i≢1+n i≡1+n
-    ...   | inj₂ _     = refl (suc n)
+    ... | yes i≡1+n = i≡1+n
+    ... | no  i≢1+n with ℕ._≟_ i (suc n)
+    ...   | yes i≡1+n = ⊥-elim $ i≢1+n i≡1+n
+    ...   | no  _     = refl (suc n)
 
     p : ℕ → ℕ ≃ ℕ
     p i = ↔⇒≃ record

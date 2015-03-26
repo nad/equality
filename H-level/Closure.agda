@@ -518,11 +518,11 @@ abstract
     _⇔_.from propositional⇔irrelevant irrelevant
     where
     irrelevant : Proof-irrelevant (Dec A)
-    irrelevant (inj₁  a) (inj₁  a′) = cong (inj₁ {B = ¬ A}) $ proj₁ $ p a a′
-    irrelevant (inj₁  a) (inj₂ ¬a)  = ⊥-elim (¬a a)
-    irrelevant (inj₂ ¬a) (inj₁  a)  = ⊥-elim (¬a a)
-    irrelevant (inj₂ ¬a) (inj₂ ¬a′) =
-      cong (inj₂ {A = A}) $ proj₁ $ ¬-propositional ext ¬a ¬a′
+    irrelevant (yes  a) (yes  a′) = cong yes $ proj₁ $ p a a′
+    irrelevant (yes  a) (no  ¬a)  = ⊥-elim (¬a a)
+    irrelevant (no  ¬a) (yes  a)  = ⊥-elim (¬a a)
+    irrelevant (no  ¬a) (no  ¬a′) =
+      cong no $ proj₁ $ ¬-propositional ext ¬a ¬a′
 
   -- Is-proposition is also closed under _Xor_ (assuming
   -- extensionality).
