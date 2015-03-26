@@ -263,6 +263,24 @@ abstract
               H-level n A → H-level n B → H-level n (A × B)
   ×-closure n hA hB = Σ-closure n hA (const hB)
 
+  -- If B a is inhabited for all a, and Σ A B has h-level n, then A
+  -- also has h-level n.
+
+  proj₁-closure :
+    ∀ {a b} {A : Set a} {B : A → Set b} →
+    (∀ a → B a) →
+    ∀ n → H-level n (Σ A B) → H-level n A
+  proj₁-closure {A = A} {B} inhabited = respects-surjection surj
+    where
+    surj : Σ A B ↠ A
+    surj = record
+      { logical-equivalence = record
+        { to   = proj₁
+        ; from = λ x → x , inhabited x
+        }
+      ; right-inverse-of = refl
+      }
+
 ------------------------------------------------------------------------
 -- Lifted types
 
