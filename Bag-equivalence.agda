@@ -602,12 +602,12 @@ abstract
     lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) →
             Well-behaved (_↔_.to (inv z))
     lemma {xs} inv {b = z∈xs} {a = p} {a′ = q} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
-      inj₁ tt                              ≡⟨ refl ⟩
+      fzero                                ≡⟨ refl ⟩
       index {xs = x ∷ xs} (inj₁ p)         ≡⟨ cong index $ sym $ to-from hyp₂ ⟩
       index {xs = x ∷ xs} (from (inj₁ q))  ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
       index {xs = x ∷ xs} (from (inj₁ p))  ≡⟨ cong index $ to-from hyp₁ ⟩
       index {xs = x ∷ xs} (inj₂ z∈xs)      ≡⟨ refl ⟩∎
-      inj₂ (index {xs = xs} z∈xs)          ∎)
+      fsuc (index {xs = xs} z∈xs)          ∎)
       where open _↔_ (inv z)
 
 -- Cons is not left cancellative for set equivalence.

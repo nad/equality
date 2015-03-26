@@ -41,7 +41,7 @@ List⇔List {A} = record
   where
   to : (n : ℕ) → (Fin n → A) → P.List A
   to zero    f = P.[]
-  to (suc n) f = P._∷_ (f (inj₁ tt)) (to n (f ∘ inj₂))
+  to (suc n) f = P._∷_ (f fzero) (to n (f ∘ fsuc))
 
 -- If we assume that equality of functions is extensional, then we can
 -- also prove that the two definitions are isomorphic.
@@ -109,9 +109,9 @@ Any↔Any-to {A} P = uncurry Any↔Any-to′
     (∃ λ (p : Fin zero) → P (lkup p))  ↔⟨ ∃-Fin-zero _ ⟩
     ⊥                                  □
   Any↔Any-to′ (suc n) lkup =
-    (∃ λ (p : Fin (suc n)) → P (lkup p))                              ↔⟨ ∃-Fin-suc _ ⟩
-    P (lkup (inj₁ tt)) ⊎ Any {C = List} P (n , lkup ∘ inj₂)           ↔⟨ id ⊎-cong Any↔Any-to′ n (lkup ∘ inj₂) ⟩
-    P (lkup (inj₁ tt)) ⊎ AnyL P (_⇔_.to List⇔List (n , lkup ∘ inj₂))  □
+    (∃ λ (p : Fin (suc n)) → P (lkup p))                          ↔⟨ ∃-Fin-suc _ ⟩
+    P (lkup fzero) ⊎ Any {C = List} P (n , lkup ∘ fsuc)           ↔⟨ id ⊎-cong Any↔Any-to′ n (lkup ∘ fsuc) ⟩
+    P (lkup fzero) ⊎ AnyL P (_⇔_.to List⇔List (n , lkup ∘ fsuc))  □
 
 Any-from↔Any : {A : Set} (P : A → Set) (xs : P.List A) →
                Any P (_⇔_.from List⇔List xs) ↔ AnyL P xs
@@ -258,7 +258,7 @@ fold {A} {B} nl cns = uncurry fold′
   fold′ : (n : ℕ) → (Fin n → A) → B
   fold′ zero    lkup = nl
   fold′ (suc n) lkup =
-    cns (lkup (inj₁ tt)) (n , lkup ∘ inj₂) (fold′ n (lkup ∘ inj₂))
+    cns (lkup fzero) (n , lkup ∘ fsuc) (fold′ n (lkup ∘ fsuc))
 
 -- A lemma which can be used to prove properties about fold.
 --
@@ -277,7 +277,7 @@ fold-lemma {A} {nl = nl} {cns} P resp P-nl P-cns = uncurry fold′-lemma
                 P (n , lkup) (fold nl cns (n , lkup))
   fold′-lemma zero    lkup = resp _ _ []≈ _ P-nl
   fold′-lemma (suc n) lkup = resp _ _ ∷≈ _ $
-    P-cns _ _ _ $ fold′-lemma n (lkup ∘ inj₂)
+    P-cns _ _ _ $ fold′-lemma n (lkup ∘ fsuc)
 
 -- Why have I included both fold and fold-lemma rather than simply a
 -- dependent eliminator? I tried this, and could easily define the

@@ -26,7 +26,7 @@ open import H-level.Closure P.equality-with-J
 ∃-Fin-zero P = Σ-left-zero
 
 ∃-Fin-suc : ∀ {p n} (P : Fin (suc n) → Set p) →
-            ∃ P ↔ P (inj₁ tt) ⊎ ∃ (P ∘ inj₂)
+            ∃ P ↔ P fzero ⊎ ∃ (P ∘ fsuc)
 ∃-Fin-suc P =
   ∃ P                          ↔⟨ ∃-⊎-distrib-right ⟩
   ∃ (P ∘ inj₁) ⊎ ∃ (P ∘ inj₂)  ↔⟨ Σ-left-identity ⊎-cong id ⟩□
@@ -53,9 +53,9 @@ private
   well-behaved : ∀ {m n} (f : Fin (1 + m) ↔ Fin (1 + n)) →
                  Well-behaved (_↔_.to f)
   well-behaved f {b = i} eq₁ eq₂ =  ⊎.inj₁≢inj₂ (
-    inj₁ tt           ≡⟨ sym $ to-from f eq₂ ⟩
-    from f (inj₁ tt)  ≡⟨ to-from f eq₁ ⟩∎
-    inj₂ i            ∎)
+    fzero         ≡⟨ sym $ to-from f eq₂ ⟩
+    from f fzero  ≡⟨ to-from f eq₁ ⟩∎
+    fsuc i        ∎)
     where open _↔_
 
 cancel-suc : ∀ {m n} → Fin (1 + m) ↔ Fin (1 + n) → Fin m ↔ Fin n
@@ -91,23 +91,23 @@ abstract
     open _↔_ f
 
     helper : xs And ys Are-related-by cancel-suc f
-    helper i with inspect (to (inj₂ i)) | related (inj₂ i)
-    helper i | inj₂ k with-≡ eq₁ | hyp₁ =
+    helper i with inspect (to (fsuc i)) | related (fsuc i)
+    helper i | fsuc k with-≡ eq₁ | hyp₁ =
       lookup xs i                    ≡⟨ hyp₁ ⟩
-      lookup (x ∷ ys) (to (inj₂ i))  ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
-      lookup (x ∷ ys) (inj₂ k)       ≡⟨ refl ⟩∎
+      lookup (x ∷ ys) (to (fsuc i))  ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
+      lookup (x ∷ ys) (fsuc k)       ≡⟨ refl ⟩∎
       lookup ys k                    ∎
-    helper i | inj₁ tt with-≡ eq₁ | hyp₁
-      with inspect (to (inj₁ tt)) | related (inj₁ tt)
-    helper i | inj₁ tt with-≡ eq₁ | hyp₁ | inj₂ j with-≡ eq₂ | hyp₂ =
-      lookup xs i                     ≡⟨ hyp₁ ⟩
-      lookup (x ∷ ys) (to (inj₂ i))   ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
-      lookup (x ∷ ys) (inj₁ tt)       ≡⟨ refl ⟩
-      x                               ≡⟨ hyp₂ ⟩
-      lookup (x ∷ ys) (to (inj₁ tt))  ≡⟨ cong (lookup (x ∷ ys)) eq₂ ⟩
-      lookup (x ∷ ys) (inj₂ j)        ≡⟨ refl ⟩∎
-      lookup ys j                     ∎
-    helper i | inj₁ tt with-≡ eq₁ | hyp₁ | inj₁ tt with-≡ eq₂ | hyp₂ =
+    helper i | fzero with-≡ eq₁ | hyp₁
+      with inspect (to (fzero)) | related (fzero)
+    helper i | fzero with-≡ eq₁ | hyp₁ | fsuc j with-≡ eq₂ | hyp₂ =
+      lookup xs i                    ≡⟨ hyp₁ ⟩
+      lookup (x ∷ ys) (to (fsuc i))  ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
+      lookup (x ∷ ys) (fzero)        ≡⟨ refl ⟩
+      x                              ≡⟨ hyp₂ ⟩
+      lookup (x ∷ ys) (to (fzero))   ≡⟨ cong (lookup (x ∷ ys)) eq₂ ⟩
+      lookup (x ∷ ys) (fsuc j)       ≡⟨ refl ⟩∎
+      lookup ys j                    ∎
+    helper i | fzero with-≡ eq₁ | hyp₁ | fzero with-≡ eq₂ | hyp₂ =
       ⊥-elim $ well-behaved f eq₁ eq₂
 
 -- By using cancel-suc we can show that finite sets are isomorphic iff
@@ -123,5 +123,5 @@ isomorphic-same-size {m} {n} = record
     to : ∀ m n → (Fin m ↔ Fin n) → m ≡ n
     to zero    zero    _       = refl
     to (suc m) (suc n) 1+m↔1+n = cong suc $ to m n $ cancel-suc 1+m↔1+n
-    to zero    (suc n)   0↔1+n = ⊥-elim $ _↔_.from 0↔1+n (inj₁ tt)
-    to (suc m) zero    1+m↔0   = ⊥-elim $ _↔_.to 1+m↔0 (inj₁ tt)
+    to zero    (suc n)   0↔1+n = ⊥-elim $ _↔_.from 0↔1+n fzero
+    to (suc m) zero    1+m↔0   = ⊥-elim $ _↔_.to 1+m↔0 fzero

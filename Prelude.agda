@@ -372,12 +372,15 @@ Fin : ℕ → Set
 Fin zero    = ⊥
 Fin (suc n) = ⊤ ⊎ Fin n
 
+pattern fzero  = inj₁ tt
+pattern fsuc i = inj₂ i
+
 -- A lookup function.
 
 lookup : ∀ {a} {A : Set a} (xs : List A) → Fin (length xs) → A
 lookup []       ()
-lookup (x ∷ xs) (inj₁ tt) = x
-lookup (x ∷ xs) (inj₂ i)  = lookup xs i
+lookup (x ∷ xs) fzero    = x
+lookup (x ∷ xs) (fsuc i) = lookup xs i
 
 ------------------------------------------------------------------------
 -- Some relation combinators
