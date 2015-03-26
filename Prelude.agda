@@ -43,7 +43,7 @@ data ⊥ {ℓ} : Set ℓ where
 infix 3 ¬_
 
 ¬_ : ∀ {ℓ} → Set ℓ → Set ℓ
-¬ P = P → ⊥ {ℓ = lzero}
+¬ P = P → ⊥₀
 
 -- The unit type.
 
