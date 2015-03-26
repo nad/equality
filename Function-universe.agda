@@ -303,6 +303,33 @@ abstract
      P-cong (≡⇒↝ _ (refl _))  ∎)
     eq
 
+  -- One can express subst in terms of ≡⇒↝.
+
+  subst-in-terms-of-≡⇒↝ :
+    ∀ k {a p} {A : Set a} {x y} (x≡y : x ≡ y) (P : A → Set p) p →
+    subst P x≡y p ≡ to-implication (≡⇒↝ k (cong P x≡y)) p
+  subst-in-terms-of-≡⇒↝ k x≡y P p = elim¹
+
+    (λ eq → subst P eq p ≡ to-implication (≡⇒↝ k (cong P eq)) p)
+
+    (subst P (refl _) p                          ≡⟨ subst-refl P p ⟩
+     p                                           ≡⟨ sym $ cong (_$ p) (to-implication-id k) ⟩
+     to-implication {k = k} id p                 ≡⟨ sym $ cong (λ f → to-implication {k = k} f p) ≡⇒↝-refl ⟩
+     to-implication (≡⇒↝ k (refl _)) p           ≡⟨ sym $ cong (λ eq → to-implication (≡⇒↝ k eq) p) $ cong-refl P ⟩∎
+     to-implication (≡⇒↝ k (cong P (refl _))) p  ∎)
+
+    x≡y
+
+  subst-in-terms-of-inverse∘≡⇒↝ :
+    ∀ k {a p} {A : Set a} {x y} (x≡y : x ≡ y) (P : A → Set p) p →
+    subst P (sym x≡y) p ≡
+    to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong P x≡y))) p
+  subst-in-terms-of-inverse∘≡⇒↝ k x≡y P p =
+    subst P (sym x≡y) p                                      ≡⟨ subst-in-terms-of-≡⇒↝ ⌊ k ⌋-sym (sym x≡y) P p ⟩
+    to-implication (≡⇒↝ ⌊ k ⌋-sym (cong P (sym x≡y))) p      ≡⟨ cong (λ eq → to-implication (≡⇒↝ ⌊ k ⌋-sym eq) p) (cong-sym P _) ⟩
+    to-implication (≡⇒↝ ⌊ k ⌋-sym (sym $ cong P x≡y)) p      ≡⟨ cong (_$ p) (≡⇒↝-sym k) ⟩∎
+    to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong P x≡y))) p  ∎
+
 ------------------------------------------------------------------------
 -- A lemma related to ⊤
 

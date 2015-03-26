@@ -388,14 +388,12 @@ record Extension-with-resp (c : Code) : Set₂ where
                                                                             sx≡x-lemma ⟩
       trans (isomorphic-to-itself″ ass rfl) sx≡x                       ≡⟨ sym $ subst-trans (isomorphic-to-itself″ ass rfl) ⟩
 
-      subst (λ z → z ≡ x) (sym $ isomorphic-to-itself″ ass rfl) sx≡x   ≡⟨ subst-in-terms-of-from∘≡⇒≃ ext₁
+      subst (λ z → z ≡ x) (sym $ isomorphic-to-itself″ ass rfl) sx≡x   ≡⟨ subst-in-terms-of-inverse∘≡⇒↝ equivalence
                                                                             (isomorphic-to-itself″ ass rfl) (λ z → z ≡ x) _ ⟩∎
       from (≡⇒≃ $ cong (λ z → z ≡ x) $ isomorphic-to-itself″ ass rfl)
            sx≡x                                                        ∎
 
-      where
-      open _≃_
-      open Assumptions ass
+      where open _≃_
 
     isomorphic-to-itself-reflexivity :
       (ass : Assumptions) →
