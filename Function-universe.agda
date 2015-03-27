@@ -14,6 +14,7 @@ open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; module _≃_)
 open import H-level eq
+open import H-level.Closure eq
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
 open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Preimage eq using (_⁻¹_)
@@ -329,23 +330,6 @@ abstract
     to-implication (≡⇒↝ ⌊ k ⌋-sym (cong P (sym x≡y))) p      ≡⟨ cong (λ eq → to-implication (≡⇒↝ ⌊ k ⌋-sym eq) p) (cong-sym P _) ⟩
     to-implication (≡⇒↝ ⌊ k ⌋-sym (sym $ cong P x≡y)) p      ≡⟨ cong (_$ p) (≡⇒↝-sym k) ⟩∎
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong P x≡y))) p  ∎
-
-------------------------------------------------------------------------
--- A lemma related to ⊤
-
--- Contractible sets are isomorphic to ⊤.
-
-contractible↔⊤ : ∀ {a} {A : Set a} → Contractible A → A ↔ ⊤
-contractible↔⊤ c = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = const tt
-      ; from = const $ proj₁ c
-      }
-    ; right-inverse-of = refl
-    }
-  ; left-inverse-of = proj₂ c
-  }
 
 ------------------------------------------------------------------------
 -- _⊎_ is a commutative monoid
@@ -786,7 +770,7 @@ private
           B x ↔ ∃ λ y → B y × y ≡ x
 ∃-intro B x =
   B x                    ↔⟨ inverse ×-right-identity ⟩
-  B x × ⊤                ↔⟨ id ×-cong inverse (contractible↔⊤ (singleton-contractible x)) ⟩
+  B x × ⊤                ↔⟨ id ×-cong _⇔_.to contractible⇔⊤↔ (singleton-contractible x) ⟩
   B x × (∃ λ y → y ≡ x)  ↔⟨ ∃-comm ⟩
   (∃ λ y → B x × y ≡ x)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩
   (∃ λ y → y ≡ x × B x)  ↔⟨ ∃-cong (λ y → ∃-cong (λ y≡x → subst (λ x → B x ↔ B y) y≡x id)) ⟩
@@ -815,7 +799,7 @@ ignore-propositional-component :
   (proj₁ p ≡ proj₁ q) ↔ (p ≡ q)
 ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   (p₁ ≡ q₁)                                  ↝⟨ inverse ×-right-identity ⟩
-  (p₁ ≡ q₁ × ⊤)                              ↝⟨ ∃-cong (λ _ → inverse $ contractible↔⊤ (Bq₁-prop _ _)) ⟩
+  (p₁ ≡ q₁ × ⊤)                              ↝⟨ ∃-cong (λ _ → _⇔_.to contractible⇔⊤↔ (Bq₁-prop _ _)) ⟩
   (∃ λ (eq : p₁ ≡ q₁) → subst B eq p₂ ≡ q₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
   ((p₁ , p₂) ≡ (q₁ , q₂))                    □
 

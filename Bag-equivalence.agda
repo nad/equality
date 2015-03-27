@@ -18,6 +18,7 @@ open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔�
 open import Equality.Decision-procedures equality-with-J
 open import Function-universe equality-with-J as Function-universe
   hiding (_∘_; Kind; module Kind; bijection)
+open import H-level.Closure equality-with-J
 open import Injection equality-with-J using (_↣_)
 
 ------------------------------------------------------------------------
@@ -450,7 +451,7 @@ Fin-length xs =
   (∃ λ z → z ∈ xs)                   ↔⟨ ∃-cong (λ _ → ∈-lookup xs) ⟩
   (∃ λ z → ∃ λ i → z ≡ lookup xs i)  ↔⟨ ∃-comm ⟩
   (∃ λ i → ∃ λ z → z ≡ lookup xs i)  ↔⟨⟩
-  (∃ λ i → Singleton (lookup xs i))  ↔⟨ ∃-cong (λ _ → contractible↔⊤ (singleton-contractible _)) ⟩
+  (∃ λ i → Singleton (lookup xs i))  ↔⟨ ∃-cong (λ _ → inverse (_⇔_.to contractible⇔⊤↔ (singleton-contractible _))) ⟩
   Fin (length xs) × ⊤                ↔⟨ ×-right-identity ⟩
   Fin (length xs)                    □
 

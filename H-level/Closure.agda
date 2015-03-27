@@ -29,17 +29,15 @@ open import Surjection eq as Surjection hiding (id; _∘_)
 ⊤-contractible : Contractible ⊤
 ⊤-contractible = (_ , λ _ → refl _)
 
-abstract
+-- A type is contractible iff it is in bijective correspondence with
+-- the unit type.
 
-  -- A type is contractible iff it is in bijective correspondence with
-  -- the unit type.
-
-  contractible⇔⊤↔ : ∀ {a} {A : Set a} → Contractible A ⇔ (⊤ ↔ A)
-  contractible⇔⊤↔ = λ {a} {A} → record
-    { to   = contractible-isomorphic ⊤-contractible
-    ; from = λ ⊤↔A → respects-surjection (_↔_.surjection ⊤↔A) 0
-                                         ⊤-contractible
-    }
+contractible⇔⊤↔ : ∀ {a} {A : Set a} → Contractible A ⇔ (⊤ ↔ A)
+contractible⇔⊤↔ = λ {a} {A} → record
+  { to   = contractible-isomorphic ⊤-contractible
+  ; from = λ ⊤↔A → respects-surjection (_↔_.surjection ⊤↔A) 0
+                                       ⊤-contractible
+  }
 
 ------------------------------------------------------------------------
 -- The empty type

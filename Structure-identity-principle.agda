@@ -348,7 +348,7 @@ isomorphism-is-equality′ Univ ass
                                                                                           _≃_.left-inverse-of ≃≃≅-CD eq ⟩
                                                            Is-isomorphism a eq′ x y  □)) ⟩
       ∃ (H {X = C , C-set} {Y = D , D-set} x y)      ↝⟨ inverse ×-right-identity ⟩
-      ∃ (H {X = C , C-set} {Y = D , D-set} x y) × ⊤  ↝⟨ ∃-cong (λ X≅Y → inverse $ contractible↔⊤ $ propositional⇒inhabited⇒contractible
+      ∃ (H {X = C , C-set} {Y = D , D-set} x y) × ⊤  ↝⟨ ∃-cong (λ X≅Y → _⇔_.to contractible⇔⊤↔ $ propositional⇒inhabited⇒contractible
                                                                           (Str.Is-isomorphism-propositional X≅Y)
                                                                           (Str-homs-are-isos X≅Y)) ⟩
       (((C , C-set) , x) Str.≅ ((D , D-set) , y))    ↔⟨ inverse ⟨ _ , structure-identity-principle ext Bij S
