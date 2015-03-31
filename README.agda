@@ -129,6 +129,10 @@ import Structure-identity-principle
 
 import M
 
+-- Some definitions related to and properties of booleans.
+
+import Bool
+
 -- Some definitions related to and properties of finite sets.
 
 import Fin
