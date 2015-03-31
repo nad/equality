@@ -170,6 +170,10 @@ import Container.Tree-sort.Example
 
 import Container.Stream
 
+-- Record types with manifest fields and "with".
+
+import Record
+
 -- Overview of code related to some papers.
 
 import README.Bag-equivalence
