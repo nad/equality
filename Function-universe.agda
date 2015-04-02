@@ -331,6 +331,16 @@ abstract
     to-implication (≡⇒↝ ⌊ k ⌋-sym (sym $ cong P x≡y)) p      ≡⟨ cong (_$ p) (≡⇒↝-sym k) ⟩∎
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong P x≡y))) p  ∎
 
+  to-implication-≡⇒↝ :
+    ∀ k {ℓ} {A B : Set ℓ} (eq : A ≡ B) →
+    to-implication (≡⇒↝ k eq) ≡ ≡⇒↝ implication eq
+  to-implication-≡⇒↝ k =
+    elim (λ eq → to-implication (≡⇒↝ k eq) ≡ ≡⇒↝ implication eq)
+         (λ A → to-implication (≡⇒↝ k (refl A))  ≡⟨ cong to-implication (≡⇒↝-refl {k = k}) ⟩
+                to-implication {k = k} id        ≡⟨ to-implication-id k ⟩
+                id                               ≡⟨ sym ≡⇒↝-refl ⟩∎
+                ≡⇒↝ implication (refl A)         ∎)
+
 ------------------------------------------------------------------------
 -- _⊎_ is a commutative monoid
 
