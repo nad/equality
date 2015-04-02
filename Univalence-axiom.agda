@@ -350,6 +350,17 @@ abstract
     ≃⇒≡ univ (≡⇒≃ (refl _))  ≡⟨ _≃_.left-inverse-of (≡≃≃ univ) _ ⟩∎
     refl _                   ∎
 
+  -- Simplification lemma for ≃⇒≡.
+
+  ≡⇒→-≃⇒≡ : ∀ k {ℓ} {A B : Set ℓ} {eq : A ≃ B}
+            (univ : Univalence′ A B) →
+            to-implication (≡⇒↝ k (≃⇒≡ univ eq)) ≡ _≃_.to eq
+  ≡⇒→-≃⇒≡ k {eq = eq} univ =
+    to-implication (≡⇒↝ k (≃⇒≡ univ eq))  ≡⟨ to-implication-≡⇒↝ k _ ⟩
+    ≡⇒↝ implication (≃⇒≡ univ eq)         ≡⟨ sym $ to-implication-≡⇒↝ equivalence _ ⟩
+    ≡⇒→ (≃⇒≡ univ eq)                     ≡⟨ cong _≃_.to (_≃_.right-inverse-of (≡≃≃ univ) _) ⟩∎
+    _≃_.to eq                             ∎
+
   -- ≡⇒≃ commutes with sym/Eq.inverse (assuming extensionality).
 
   ≡⇒≃-sym :
