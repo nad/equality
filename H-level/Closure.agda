@@ -279,6 +279,24 @@ abstract
       ; right-inverse-of = refl
       }
 
+  -- If A is inhabited and A × B has h-level n, then B also has
+  -- h-level n.
+
+  proj₂-closure :
+    ∀ {a b} {A : Set a} {B : Set b} →
+    A →
+    ∀ n → H-level n (A × B) → H-level n B
+  proj₂-closure {A = A} {B} inhabited = respects-surjection surj
+    where
+    surj : A × B ↠ B
+    surj = record
+      { logical-equivalence = record
+        { to   = proj₂
+        ; from = λ x → inhabited , x
+        }
+      ; right-inverse-of = refl
+      }
+
 ------------------------------------------------------------------------
 -- Lifted types
 
