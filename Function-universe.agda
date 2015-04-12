@@ -935,6 +935,24 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   ; left-inverse-of = refl
   }
 
+-- Π and Σ commute (in a certain sense).
+
+ΠΣ-comm :
+  ∀ {a b c} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} →
+  (∀ x → ∃ λ (y : B x) → C x y)
+    ↔
+  (∃ λ (f : ∀ x → B x) → ∀ x → C x (f x))
+ΠΣ-comm = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ f → proj₁ ⊚ f , proj₂ ⊚ f
+      ; from = λ { (f , g) x → f x , g x }
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
 -- There is a (split) surjection from products of equality
 -- isomorphisms to equalities.
 
