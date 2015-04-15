@@ -658,3 +658,76 @@ abstract
     subst P (sym (≃⇒≡ univ A≃B)) q                                       ≡⟨ cong (subst P (sym (≃⇒≡ univ A≃B))) lemma ⟩
     subst P (sym (≃⇒≡ univ A≃B)) (subst P (sym (sym (≃⇒≡ univ A≃B))) p)  ≡⟨ subst-subst-sym P _ _ ⟩∎
     p                                                                    ∎
+
+-- Equality preserves equivalences (assuming extensionality and
+-- univalence).
+
+≡-preserves-≃ :
+  ∀ {ℓ₁ ℓ₂} {A₁ : Set ℓ₁} {A₂ : Set ℓ₂} {B₁ : Set ℓ₁} {B₂ : Set ℓ₂} →
+  Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+  Univalence′ A₁ B₁ →
+  Univalence′ A₂ B₂ →
+  A₁ ≃ A₂ → B₁ ≃ B₂ → (A₁ ≡ B₁) ≃ (A₂ ≡ B₂)
+≡-preserves-≃ {ℓ₁} {ℓ₂} {A₁} {A₂} {B₁} {B₂}
+              ext univ₁ univ₂ A₁≃A₂ B₁≃B₂ = ↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  })
+  where
+  to = λ A₁≡B₁ → ≃⇒≡ univ₂ (
+    A₂  ↝⟨ inverse A₁≃A₂ ⟩
+    A₁  ↝⟨ ≡⇒≃ A₁≡B₁ ⟩
+    B₁  ↝⟨ B₁≃B₂ ⟩□
+    B₂  □)
+
+  from = λ A₂≡B₂ → ≃⇒≡ univ₁ (
+    A₁  ↝⟨ A₁≃A₂ ⟩
+    A₂  ↝⟨ ≡⇒≃ A₂≡B₂ ⟩
+    B₂  ↝⟨ inverse B₁≃B₂ ⟩□
+    B₁  □)
+
+  abstract
+
+    to∘from : ∀ eq → to (from eq) ≡ eq
+    to∘from A₂≡B₂ =
+      let ext₂ = lower-extensionality ℓ₁ ℓ₁ ext in
+
+      _≃_.to (≃-≡ (≡≃≃ univ₂)) (lift-equality ext₂ (
+
+        ≡⇒→ (≃⇒≡ univ₂ ((B₁≃B₂ ⊚ ≡⇒≃ (≃⇒≡ univ₁ ((inverse B₁≃B₂ ⊚
+                             ≡⇒≃ A₂≡B₂) ⊚ A₁≃A₂))) ⊚ inverse A₁≃A₂))  ≡⟨ cong _≃_.to $ _≃_.right-inverse-of (≡≃≃ univ₂) _ ⟩
+
+        (_≃_.to B₁≃B₂ ∘
+         ≡⇒→ (≃⇒≡ univ₁ ((inverse B₁≃B₂ ⊚ ≡⇒≃ A₂≡B₂) ⊚ A₁≃A₂)) ∘
+         _≃_.from A₁≃A₂)                                              ≡⟨ cong (λ eq → _≃_.to B₁≃B₂ ∘ _≃_.to eq ∘ _≃_.from A₁≃A₂) $
+                                                                           _≃_.right-inverse-of (≡≃≃ univ₁) _ ⟩
+        ((_≃_.to B₁≃B₂ ∘ _≃_.from B₁≃B₂) ∘ ≡⇒→ A₂≡B₂ ∘
+         (_≃_.to A₁≃A₂ ∘ _≃_.from A₁≃A₂))                             ≡⟨ cong₂ (λ f g → f ∘ ≡⇒→ A₂≡B₂ ∘ g)
+                                                                               (ext₂ $ _≃_.right-inverse-of B₁≃B₂)
+                                                                               (ext₂ $ _≃_.right-inverse-of A₁≃A₂) ⟩∎
+        ≡⇒→ A₂≡B₂                                                     ∎))
+
+    from∘to : ∀ eq → from (to eq) ≡ eq
+    from∘to A₁≡B₁ =
+      let ext₁ = lower-extensionality ℓ₂ ℓ₂ ext in
+
+      _≃_.to (≃-≡ (≡≃≃ univ₁)) (lift-equality ext₁ (
+
+        ≡⇒→ (≃⇒≡ univ₁ ((inverse B₁≃B₂ ⊚ ≡⇒≃ (≃⇒≡ univ₂ ((B₁≃B₂ ⊚
+                             ≡⇒≃ A₁≡B₁) ⊚ inverse A₁≃A₂))) ⊚ A₁≃A₂))  ≡⟨ cong _≃_.to $ _≃_.right-inverse-of (≡≃≃ univ₁) _ ⟩
+
+        (_≃_.from B₁≃B₂ ∘
+         ≡⇒→ (≃⇒≡ univ₂ ((B₁≃B₂ ⊚ ≡⇒≃ A₁≡B₁) ⊚ inverse A₁≃A₂)) ∘
+         _≃_.to A₁≃A₂)                                                ≡⟨ cong (λ eq → _≃_.from B₁≃B₂ ∘ _≃_.to eq ∘ _≃_.to A₁≃A₂) $
+                                                                           _≃_.right-inverse-of (≡≃≃ univ₂) _ ⟩
+        ((_≃_.from B₁≃B₂ ∘ _≃_.to B₁≃B₂) ∘ ≡⇒→ A₁≡B₁ ∘
+         (_≃_.from A₁≃A₂ ∘ _≃_.to A₁≃A₂))                             ≡⟨ cong₂ (λ f g → f ∘ ≡⇒→ A₁≡B₁ ∘ g)
+                                                                               (ext₁ $ _≃_.left-inverse-of B₁≃B₂)
+                                                                               (ext₁ $ _≃_.left-inverse-of A₁≃A₂) ⟩∎
+        ≡⇒→ A₁≡B₁                                                     ∎))
