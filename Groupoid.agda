@@ -48,10 +48,10 @@ record Groupoid o p : Set (lsuc (o ⊔ p)) where
       id ⁻¹ ∘ id  ≡⟨ left-inverse id ⟩∎
       id          ∎
 
-    -- The inverse operator is idempotent.
+    -- The inverse operator is involutive.
 
-    idempotent : ∀ {x y} (p : x ∼ y) → p ⁻¹ ⁻¹ ≡ p
-    idempotent p =
+    involutive : ∀ {x y} (p : x ∼ y) → p ⁻¹ ⁻¹ ≡ p
+    involutive p =
       p ⁻¹ ⁻¹               ≡⟨ sym $ right-identity (p ⁻¹ ⁻¹) ⟩
       p ⁻¹ ⁻¹ ∘ id          ≡⟨ sym $ cong (_∘_ (p ⁻¹ ⁻¹)) (left-inverse p) ⟩
       p ⁻¹ ⁻¹ ∘ (p ⁻¹ ∘ p)  ≡⟨ assoc _ _ _ ⟩
