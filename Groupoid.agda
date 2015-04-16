@@ -9,8 +9,10 @@ open import Equality
 module Groupoid
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open Derived-definitions-and-properties eq
 open import Prelude hiding (id; _∘_)
+
+open import Bijection eq hiding (id; _∘_)
+open Derived-definitions-and-properties eq
 
 -- Groupoids using _≡_ as the underlying equality.
 
@@ -58,3 +60,17 @@ record Groupoid o p : Set (lsuc (o ⊔ p)) where
       (p ⁻¹ ⁻¹ ∘ p ⁻¹) ∘ p  ≡⟨ cong (λ q → q ∘ p) (left-inverse (p ⁻¹)) ⟩
       id ∘ p                ≡⟨ left-identity p ⟩∎
       p                     ∎
+
+  -- The inverse operator is a bijection.
+
+  ⁻¹-bijection : ∀ {x y} → x ∼ y ↔ y ∼ x
+  ⁻¹-bijection = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = _⁻¹
+        ; from = _⁻¹
+        }
+      ; right-inverse-of = involutive
+      }
+    ; left-inverse-of = involutive
+    }
