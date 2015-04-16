@@ -626,6 +626,18 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
   ⊥ × A  ↔⟨ ×-left-zero ⟩□
   ⊥      □
 
+-- Currying.
+
+currying : ∀ {a b c} {A : Set a} {B : A → Set b} {C : Σ A B → Set c} →
+           ((p : Σ A B) → C p) ↔ ((x : A) (y : B x) → C (x , y))
+currying = record
+  { surjection = record
+    { logical-equivalence = record { to = curry; from = uncurry }
+    ; right-inverse-of    = refl
+    }
+  ; left-inverse-of = refl
+  }
+
 ------------------------------------------------------------------------
 -- Some lemmas related to Σ/∃/_×_
 
