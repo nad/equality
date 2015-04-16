@@ -235,6 +235,21 @@ record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
        trans (left-inverse-of (from (to y))) (refl _)               ≡⟨ trans-reflʳ _ ⟩∎
        left-inverse-of (from (to y))                                ∎)
 
+-- Equivalences are isomorphic to pairs.
+
+≃-as-Σ : ∀ {a b} {A : Set a} {B : Set b} →
+         A ≃ B ↔ ∃ λ (f : A → B) → Is-equivalence f
+≃-as-Σ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ { ⟨ f , is ⟩ → f , is }
+      ; from = uncurry ⟨_,_⟩
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
 -- Bijections are equivalences.
 
 ↔⇒≃ : ∀ {a b} {A : Set a} {B : Set b} → A ↔ B → A ≃ B
