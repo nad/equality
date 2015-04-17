@@ -16,6 +16,8 @@ open import Logical-equivalence using (_⇔_)
 
 open import Bijection eq hiding (_∘_)
 open Derived-definitions-and-properties eq
+open import Equality.Decidable-UIP eq
+open import Function-universe eq hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
 
@@ -59,6 +61,36 @@ private
     (h : H-level n B) (f : A → B) (x : A) →
     rec h f ∣ x ∣ ≡ f x
   rec-∣∣ _ _ _ = refl _
+
+-- The following two results come from "Generalizations of Hedberg's
+-- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
+
+-- Types with constant endofunctions are "h-stable" (meaning that
+-- "mere inhabitance" implies inhabitance).
+
+constant-endofunction⇒h-stable :
+  ∀ {a} {A : Set a} {f : A → A} →
+  Constant f → ∥ A ∥ 1 a → A
+constant-endofunction⇒h-stable {a} {A} {f} c =
+  ∥ A ∥ 1 a                ↝⟨ rec (fixpoint-lemma f c) (λ x → f x , c (f x) x) ⟩
+  (∃ λ (x : A) → f x ≡ x)  ↝⟨ proj₁ ⟩□
+  A                        □
+
+-- Having a constant endofunction is logically equivalent to being
+-- h-stable (assuming extensionality).
+
+constant-endofunction⇔h-stable :
+  ∀ {a} {A : Set a} →
+  Extensionality (lsuc a) a →
+  (∃ λ (f : A → A) → Constant f) ⇔ (∥ A ∥ 1 a → A)
+constant-endofunction⇔h-stable ext = record
+  { to = λ { (_ , c) → constant-endofunction⇒h-stable c }
+  ; from = λ f → f ∘ ∣_∣ , λ x y →
+
+      f ∣ x ∣  ≡⟨ cong f $ _⇔_.to propositional⇔irrelevant
+                             (truncation-has-correct-h-level 1 ext) _ _ ⟩∎
+      f ∣ y ∣  ∎
+  }
 
 -- Some properties of an imagined "real" /propositional/ truncation.
 

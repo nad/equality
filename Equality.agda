@@ -1112,3 +1112,26 @@ module Derived-definitions-and-properties
         refl (f x)                                      ≡⟨ sym $ trans-symʳ _ ⟩
         trans (f≡id _) (sym (f≡id _))                   ≡⟨ cong (trans (f≡id _)) $ sym $ trans-reflˡ _ ⟩∎
         trans (f≡id _) (trans (refl x) $ sym (f≡id _))  ∎
+
+    -- The following lemma is Proposition 2 from "Generalizations of
+    -- Hedberg's Theorem" by Kraus, Escardó, Coquand and Altenkirch.
+
+    subst-in-terms-of-trans-and-cong :
+      ∀ {a b} {A : Set a} {B : Set b} {f g : A → B} {x y}
+        {x≡y : x ≡ y} {fx≡gx : f x ≡ g x} →
+      subst (λ z → f z ≡ g z) x≡y fx≡gx ≡
+      trans (sym (cong f x≡y)) (trans fx≡gx (cong g x≡y))
+    subst-in-terms-of-trans-and-cong {f = f} {g} = elim
+      (λ {x y} x≡y →
+           (fx≡gx : f x ≡ g x) →
+           subst (λ z → f z ≡ g z) x≡y fx≡gx ≡
+           trans (sym (cong f x≡y)) (trans fx≡gx (cong g x≡y)))
+      (λ x fx≡gx →
+           subst (λ z → f z ≡ g z) (refl x) fx≡gx                         ≡⟨ subst-refl _ _ ⟩
+           fx≡gx                                                          ≡⟨ sym $ trans-reflˡ _ ⟩
+           trans (refl (f x)) fx≡gx                                       ≡⟨ sym $ cong₂ trans sym-refl (trans-reflʳ _)  ⟩
+           trans (sym (refl (f x))) (trans fx≡gx (refl (g x)))            ≡⟨ sym $ cong₂ (λ p q → trans (sym p) (trans _ q))
+                                                                                         (cong-refl _) (cong-refl _) ⟩∎
+           trans (sym (cong f (refl x))) (trans fx≡gx (cong g (refl x)))  ∎ )
+      _
+      _

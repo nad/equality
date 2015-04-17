@@ -114,3 +114,64 @@ abstract
     _⇔_.from set⇔UIP $ constant⇒UIP λ x y →
       (λ eq → f x y (subst (B x) eq (B-refl x))) ,
       (λ _ _ → propositional-domain⇒constant (B-prop x y) (f x y) _ _)
+
+  -- The following two results come from "Generalizations of Hedberg's
+  -- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
+
+  -- Proposition 3.
+
+  cong-constant :
+    ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {x} {x≡x : x ≡ x} →
+    (c : Constant f) →
+    cong f x≡x ≡ refl (f x)
+  cong-constant {f = f} {x} {x≡x} c =
+    cong f x≡x                   ≡⟨ elim (λ {x y} x≡y →
+                                              cong f x≡y ≡ trans (sym (c x x)) (c x y))
+                                         (λ x →
+            cong f (refl x)                  ≡⟨ cong-refl _ ⟩
+            refl (f x)                       ≡⟨ sym $ trans-symˡ _ ⟩∎
+            trans (sym (c x x)) (c x x)      ∎)
+                                         _ ⟩
+    trans (sym (c x x)) (c x x)  ≡⟨ trans-symˡ _ ⟩∎
+    refl (f x)                   ∎
+
+  -- The "Fixed Point Lemma".
+
+  fixpoint-lemma :
+    ∀ {a} {A : Set a} →
+    (f : A → A) →
+    Constant f →
+    Is-proposition (∃ λ x → f x ≡ x)
+  fixpoint-lemma f constant =
+    _⇔_.from propositional⇔irrelevant λ { (x , fx≡x) (y , fy≡y) →
+      let x≡y = x    ≡⟨ sym fx≡x ⟩
+                f x  ≡⟨ constant x y ⟩
+                f y  ≡⟨ fy≡y ⟩∎
+                y    ∎
+
+          x≡x = x    ≡⟨ sym fx≡x ⟩
+                f x  ≡⟨ subst (λ z → f z ≡ z) (sym x≡y) fy≡y ⟩∎
+                x    ∎
+
+          lemma =
+            subst (λ z → f z ≡ z) x≡x fx≡x                       ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+            trans (sym (cong f x≡x)) (trans fx≡x (cong id x≡x))  ≡⟨ cong₂ (λ p q → trans (sym p) (trans _ q))
+                                                                          (cong-constant constant) (sym $ cong-id _) ⟩
+            trans (sym (refl (f x))) (trans fx≡x x≡x)            ≡⟨ cong (λ p → trans p (trans fx≡x x≡x)) sym-refl ⟩
+
+            trans (refl (f x)) (trans fx≡x x≡x)                  ≡⟨ trans-reflˡ _ ⟩
+
+            trans fx≡x x≡x                                       ≡⟨ sym $ trans-assoc _ _ _ ⟩
+
+            trans (trans fx≡x (sym fx≡x))
+                  (subst (λ z → f z ≡ z) (sym x≡y) fy≡y)         ≡⟨ cong (λ p → trans p (subst (λ z → f z ≡ z) (sym x≡y) fy≡y)) $
+                                                                      trans-symʳ _ ⟩
+            trans (refl (f x))
+                  (subst (λ z → f z ≡ z) (sym x≡y) fy≡y)         ≡⟨ trans-reflˡ _ ⟩∎
+
+            subst (λ z → f z ≡ z) (sym x≡y) fy≡y                 ∎
+      in
+      x , fx≡x                                  ≡⟨ Σ-≡,≡→≡ x≡x lemma ⟩
+      x , subst (λ z → f z ≡ z) (sym x≡y) fy≡y  ≡⟨ sym $ Σ-≡,≡→≡ (sym x≡y) (refl _) ⟩∎
+      y , fy≡y                                  ∎ }
