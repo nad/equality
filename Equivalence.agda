@@ -18,7 +18,7 @@ open import Groupoid eq
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_; module _↣_; Injective)
-open import Logical-equivalence hiding (id; _∘_; inverse)
+open import Logical-equivalence as L-eq hiding (id; _∘_; inverse)
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection eq as Surjection using (_↠_; module _↠_)
@@ -689,21 +689,17 @@ private
   ; left-inverse-of = ↔⇒≃-right-inverse ext A-set
   }
 
--- For propositional types logical equivalence is isomorphic to
--- equivalence (assuming extensionality).
+-- For propositional types there is a split surjection from
+-- equivalence to logical equivalence.
 
-⇔↔≃ : ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
-      {A : Set a} {B : Set b} →
-      Is-proposition A → Is-proposition B → (A ⇔ B) ↔ (A ≃ B)
-⇔↔≃ ext {A} {B} A-prop B-prop = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = ⇔→≃
-      ; from = _≃_.logical-equivalence
-      }
-    ; right-inverse-of = λ _ → lift-equality ext (refl _)
+≃↠⇔ : ∀ {a b} {A : Set a} {B : Set b} →
+      Is-proposition A → Is-proposition B → (A ≃ B) ↠ (A ⇔ B)
+≃↠⇔ {A = A} {B} A-prop B-prop = record
+  { logical-equivalence = record
+    { to   = _≃_.logical-equivalence
+    ; from = ⇔→≃
     }
-  ; left-inverse-of = refl
+  ; right-inverse-of = refl
   }
   where
   ⇔→≃ : A ⇔ B → A ≃ B
@@ -724,6 +720,21 @@ private
 
       from∘to : ∀ x → from (to x) ≡ x
       from∘to _ = _⇔_.to propositional⇔irrelevant A-prop _ _
+
+-- For propositional types logical equivalence is isomorphic to
+-- equivalence (assuming extensionality).
+
+⇔↔≃ : ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
+      {A : Set a} {B : Set b} →
+      Is-proposition A → Is-proposition B → (A ⇔ B) ↔ (A ≃ B)
+⇔↔≃ ext {A} {B} A-prop B-prop = record
+  { surjection = record
+    { logical-equivalence = L-eq.inverse $ _↠_.logical-equivalence $
+                              ≃↠⇔ A-prop B-prop
+    ; right-inverse-of    = λ _ → lift-equality ext (refl _)
+    }
+  ; left-inverse-of = refl
+  }
 
 ------------------------------------------------------------------------
 -- Closure, preservation
