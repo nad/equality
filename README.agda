@@ -78,6 +78,10 @@ import H-level
 
 import H-level.Closure
 
+-- Truncation.
+
+import H-level.Truncation
+
 -- Preimages.
 
 import Preimage
