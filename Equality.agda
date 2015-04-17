@@ -791,8 +791,7 @@ module Derived-definitions-and-properties
       subst P (refl y) p                 ≡⟨ subst-refl P p ⟩∎
       p                                  ∎
 
-    -- Some corollaries (used in
-    -- Equivalence.equality-equivalence-lemma).
+    -- Some corollaries (used in Function-universe.Π≡↔≡-↠-≡).
 
     trans-[trans-sym] : ∀ {a} {A : Set a} {a b c : A} →
                         (a≡b : a ≡ b) (c≡b : c ≡ b) →
