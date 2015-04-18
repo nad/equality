@@ -24,7 +24,7 @@ open import H-level.Closure eq
 open import Injection eq using (Injective)
 open import Logical-equivalence hiding (id; _∘_; inverse)
 open import Prelude
-open import Surjection eq hiding (id; _∘_)
+open import Surjection eq hiding (id; _∘_; ∃-cong)
 
 ------------------------------------------------------------------------
 -- The univalence axiom
@@ -306,6 +306,71 @@ abstract
   dependent-extensionality univ₁ univ₂ =
     _⇔_.to Π-closure-contractible⇔extensionality
       (Π-closure-contractible univ₁ univ₂)
+
+------------------------------------------------------------------------
+-- Pow and Fam
+
+-- Slightly different variants of Pow and Fam are described in
+-- "Specifying interactions with dependent types" by Peter Hancock and
+-- Anton Setzer (in APPSEM Workshop on Subtyping & Dependent Types in
+-- Programming, DTP'00). The fact that Pow and Fam are logically
+-- equivalent is proved in "Programming Interfaces and Basic Topology"
+-- by Peter Hancock and Pierre Hyvernat (Annals of Pure and Applied
+-- Logic, 2006). The results may be older than this.
+
+-- Pow.
+
+Pow : ∀ ℓ {a} → Set a → Set (lsuc (a ⊔ ℓ))
+Pow ℓ {a} A = A → Set (a ⊔ ℓ)
+
+-- Fam.
+
+Fam : ∀ ℓ {a} → Set a → Set (lsuc (a ⊔ ℓ))
+Fam ℓ {a} A = ∃ λ (I : Set (a ⊔ ℓ)) → I → A
+
+-- Pow and Fam are pointwise logically equivalent.
+
+Pow⇔Fam : ∀ ℓ {a} {A : Set a} →
+          Pow ℓ A ⇔ Fam ℓ A
+Pow⇔Fam _ = record
+  { to   = λ P → ∃ P , proj₁
+  ; from = λ { (I , f) a → ∃ λ i → f i ≡ a }
+  }
+
+-- Pow and Fam are pointwise isomorphic (assuming extensionality and
+-- univalence).
+
+Pow↔Fam : ∀ ℓ {a} {A : Set a} →
+          Extensionality a (lsuc (a ⊔ ℓ)) →
+          Univalence (a ⊔ ℓ) →
+          Pow ℓ A ↔ Fam ℓ A
+Pow↔Fam ℓ {A = A} ext univ = record
+  { surjection = record
+    { logical-equivalence = Pow⇔Fam ℓ
+    ; right-inverse-of    = λ { (I , f) →
+        let lemma₁ =
+              (∃ λ a → ∃ λ i → f i ≡ a)  ↔⟨ ∃-comm ⟩
+              (∃ λ i → ∃ λ a → f i ≡ a)  ↔⟨ ∃-cong (λ _ → inverse $ _⇔_.to contractible⇔⊤↔ (other-singleton-contractible _)) ⟩
+              I × ⊤                      ↔⟨ ×-right-identity ⟩□
+              I                          □
+
+            lemma₂ =
+              subst (λ I → I → A) (≃⇒≡ univ lemma₁) proj₁  ≡⟨ sym $ transport-theorem (λ I → I → A) (λ eq → _∘ _≃_.from eq) refl univ _ _ ⟩
+              proj₁ ∘ _≃_.from lemma₁                      ≡⟨ refl _ ⟩∎
+              f                                            ∎
+        in
+        (∃ λ a → ∃ λ i → f i ≡ a) , proj₁  ≡⟨ Σ-≡,≡→≡ (≃⇒≡ univ lemma₁) lemma₂ ⟩∎
+        I                         , f      ∎ }
+    }
+  ; left-inverse-of = λ P →
+      let lemma = λ a →
+            (∃ λ (i : ∃ P) → proj₁ i ≡ a)  ↔⟨ inverse Σ-assoc ⟩
+            (∃ λ a′ → P a′ × a′ ≡ a)       ↔⟨ inverse $ ∃-intro _ _ ⟩□
+            P a                            □
+      in
+      (λ a → ∃ λ (i : ∃ P) → proj₁ i ≡ a)  ≡⟨ ext (λ a → ≃⇒≡ univ (lemma a)) ⟩∎
+      P                                    ∎
+  }
 
 ------------------------------------------------------------------------
 -- More lemmas
