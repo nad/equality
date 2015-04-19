@@ -229,19 +229,10 @@ A ²/≡ = ∃ λ (x : A) → ∃ λ (y : A) → y ≡ x
 -- The set of such pairs is isomorphic to the underlying type.
 
 -²/≡↔- : ∀ {a} {A : Set a} → (A ²/≡) ↔ A
--²/≡↔- = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = proj₁
-      ; from = λ x → (x , x , refl x)
-      }
-    ; right-inverse-of = refl
-    }
-  ; left-inverse-of = λ p →
-      (proj₁ p , proj₁ p , refl (proj₁ p))  ≡⟨ cong (_,_ (proj₁ p))
-                                                    (proj₂ (singleton-contractible (proj₁ p)) (proj₂ p)) ⟩∎
-      p                                     ∎
-  }
+-²/≡↔- {A = A} =
+  (∃ λ (x : A) → ∃ λ (y : A) → y ≡ x)  ↝⟨ ∃-cong (λ _ → inverse $ _⇔_.to contractible⇔⊤↔ (singleton-contractible _)) ⟩
+  A × ⊤                                ↝⟨ ×-right-identity ⟩□
+  A                                    □
 
 abstract
 
