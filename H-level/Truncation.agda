@@ -62,6 +62,50 @@ private
     rec h f ∣ x ∣ ≡ f x
   rec-∣∣ _ _ _ = refl _
 
+-- The universe level can be decreased (unless it is zero).
+
+with-lower-level :
+  ∀ ℓ₁ {ℓ₂ a n} {A : Set a} →
+  ∥ A ∥ n (ℓ₁ ⊔ ℓ₂) → ∥ A ∥ n ℓ₂
+with-lower-level ℓ₁ x =
+  λ P h f → lower (x (↑ ℓ₁ P) (↑-closure _ h) (lift ∘ f))
+
+-- The function rec can be used to define a kind of dependently typed
+-- eliminator for the propositional truncation (assuming
+-- extensionality).
+
+prop-elim :
+  ∀ {ℓ a p} {A : Set a} →
+  Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a ⊔ p) →
+  (P : ∥ A ∥ 1 ℓ → Set p) →
+  (∀ x → Is-proposition (P x)) →
+  ((x : A) → P ∣ x ∣) →
+  ∥ A ∥ 1 (lsuc ℓ ⊔ a ⊔ p) → (x : ∥ A ∥ 1 ℓ) → P x
+prop-elim {ℓ} {a} {p} {A} ext P P-prop f =
+  rec {A = A}
+      {B = ∀ x → P x}
+      (Π-closure (lower-extensionality lzero (ℓ ⊔ a) ext) 1 P-prop)
+      (λ x _ → subst P
+                     (_⇔_.to propositional⇔irrelevant
+                        (truncation-has-correct-h-level 1
+                           (lower-extensionality lzero p ext)) _ _)
+                     (f x))
+
+abstract
+
+  -- The eliminator gives the right result, up to propositional
+  -- equality, when applied to ∣ x ∣ and ∣ x ∣.
+
+  prop-elim-∣∣ :
+    ∀ {ℓ a p} {A : Set a}
+    (ext : Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a ⊔ p))
+    (P : ∥ A ∥ 1 ℓ → Set p)
+    (P-prop : ∀ x → Is-proposition (P x))
+    (f : (x : A) → P ∣ x ∣) (x : A) →
+    prop-elim ext P P-prop f ∣ x ∣ ∣ x ∣ ≡ f x
+  prop-elim-∣∣ _ _ P-prop _ _ =
+    _⇔_.to propositional⇔irrelevant (P-prop _) _ _
+
 -- The following two results come from "Generalizations of Hedberg's
 -- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
