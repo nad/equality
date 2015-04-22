@@ -14,10 +14,11 @@ module H-level.Truncation
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
-open import Bijection eq hiding (_∘_)
+open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decidable-UIP eq
-open import Function-universe eq hiding (_∘_)
+open import Equivalence eq as Eq hiding (_∘_; inverse)
+open import Function-universe eq as F hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
 
@@ -135,6 +136,125 @@ constant-endofunction⇔h-stable ext = record
                              (truncation-has-correct-h-level 1 ext) _ _ ⟩∎
       f ∣ y ∣  ∎
   }
+
+-- A simple isomorphism involving propositional truncation.
+
+∥∥×↔ :
+  ∀ {ℓ a} {A : Set a} →
+  Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
+  ∥ A ∥ 1 ℓ × A ↔ A
+∥∥×↔ {ℓ} {A = A} ext =
+  ∥ A ∥ 1 ℓ × A  ↝⟨ ×-comm ⟩
+  A × ∥ A ∥ 1 ℓ  ↝⟨ (∃-cong λ a →
+                       inverse $ _⇔_.to contractible⇔⊤↔ $
+                         propositional⇒inhabited⇒contractible
+                           (truncation-has-correct-h-level 1 ext)
+                           ∣ a ∣) ⟩
+  A × ⊤          ↝⟨ ×-right-identity ⟩□
+  A              □
+
+-- Having a constant function into a set is equivalent to having a
+-- function from a propositionally truncated type into the set
+-- (assuming extensionality). This result is Example 2.2 in "The
+-- General Universal Property of the Propositional Truncation" by
+-- Kraus.
+
+constant-function≃∥inhabited∥⇒inhabited :
+  ∀ {a b} ℓ {A : Set a} {B : Set b} →
+  Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
+  Is-set B →
+  (∃ λ (f : A → B) → Constant f) ≃ (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)
+constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B} ext B-set =
+  (∃ λ (f : A → B) → Constant f)                          ↝⟨ Σ-cong (→-cong (lower-extensionality lzero (a ⊔ ℓ) ext)
+                                                                            (inverse $ ∥∥×↔ ext)
+                                                                            F.id) (λ _ →
+                                                               Π-preserves (lower-extensionality lzero ℓ ext)
+                                                                           (inverse $ ↔⇒≃ $ ∥∥×↔ ext)
+                                                                           (λ _ → F.id)) ⟩
+  (∃ λ (f : ∥ A ∥ 1 ℓ′ × A → B) →
+     (p : ∥ A ∥ 1 ℓ′ × A) → ∀ y → f p ≡ f (proj₁ p , y))  ↔⟨ Σ-cong currying (λ _ → currying) ⟩
+
+  (∃ λ (f : ∥ A ∥ 1 ℓ′ → A → B) →
+     (∥a∥ : ∥ A ∥ 1 ℓ′) → Constant (λ x → f ∥a∥ x))       ↔⟨ inverse ΠΣ-comm ⟩
+
+  (∥ A ∥ 1 ℓ′ → ∃ λ (f : A → B) → Constant f)             ↝⟨ ∀-preserves (lower-extensionality lzero ℓ ext) (inverse ∘ lemma₂) ⟩□
+
+  (∥ A ∥ 1 ℓ′ → B)                                        □
+
+  where
+  ℓ′ = a ⊔ b ⊔ ℓ
+
+  lemma₁ : A → B ≃ ∃ λ (f : A → B) → Constant f
+  lemma₁ a₀ = ↔⇒≃ (
+    B                                                            ↝⟨ inverse ×-right-identity ⟩
+
+    B × ⊤                                                        ↝⟨ (∃-cong λ _ →
+                                                                       _⇔_.to contractible⇔⊤↔ $
+                                                                         Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
+                                                                         singleton-contractible _) ⟩
+    (∃ λ (f₁ : B) → (a : A) → ∃ λ (b : B) → b ≡ f₁)              ↝⟨ (∃-cong λ _ → ΠΣ-comm) ⟩
+
+    (∃ λ (f₁ : B) → ∃ λ (f : A → B) → (a : A) → f a ≡ f₁)        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse ×-right-identity) ⟩
+
+    (∃ λ (f₁ : B) → ∃ λ (f : A → B) → ((a : A) → f a ≡ f₁) × ⊤)  ↝⟨ (∃-cong λ f₁ → ∃-cong λ f → ∃-cong λ eq →
+                                                                       _⇔_.to contractible⇔⊤↔ $
+                                                                         propositional⇒inhabited⇒contractible
+                                                                           (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
+                                                                            Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
+                                                                            B-set _ _)
+                                                                           (λ x y → f x  ≡⟨ eq x ⟩
+                                                                                    f₁   ≡⟨ sym (eq y) ⟩∎
+                                                                                    f y  ∎)) ⟩
+    (∃ λ (f₁ : B) → ∃ λ (f : A → B) →
+       ((a : A) → f a ≡ f₁) × Constant f)                        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → inverse ×-right-identity) ⟩
+
+    (∃ λ (f₁ : B) → ∃ λ (f : A → B) →
+       ((a : A) → f a ≡ f₁) × Constant f × ⊤)                    ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ eq → ∃-cong λ _ →
+                                                                       _⇔_.to contractible⇔⊤↔ $
+                                                                         propositional⇒inhabited⇒contractible
+                                                                           (B-set _ _)
+                                                                           (eq a₀)) ⟩
+    (∃ λ (f₁ : B) → ∃ λ (f : A → B) →
+       ((a : A) → f a ≡ f₁) × Constant f × f a₀ ≡ f₁)            ↝⟨ ∃-comm ⟩
+
+    (∃ λ (f : A → B) → ∃ λ (f₁ : B) →
+       ((a : A) → f a ≡ f₁) × Constant f × f a₀ ≡ f₁)            ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ×-comm) ⟩
+
+    (∃ λ (f : A → B) → ∃ λ (f₁ : B) →
+       (Constant f × f a₀ ≡ f₁) × ((a : A) → f a ≡ f₁))          ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse ×-assoc) ⟩
+
+    (∃ λ (f : A → B) → ∃ λ (f₁ : B) →
+       Constant f × f a₀ ≡ f₁ × ((a : A) → f a ≡ f₁))            ↝⟨ (∃-cong λ _ → ∃-comm) ⟩
+
+    (∃ λ (f : A → B) → Constant f × ∃ λ (f₁ : B) →
+       f a₀ ≡ f₁ × ((a : A) → f a ≡ f₁))                         ↝⟨ (∃-cong λ f → ∃-cong λ const → ∃-cong λ f₁ → ∃-cong λ eq →
+                                                                       inverse $ _⇔_.to contractible⇔⊤↔ $
+                                                                         propositional⇒inhabited⇒contractible
+                                                                           (Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
+                                                                            B-set _ _)
+                                                                           (λ a → f a   ≡⟨ const a a₀ ⟩
+                                                                                  f a₀  ≡⟨ eq ⟩∎
+                                                                                  f₁    ∎)) ⟩
+    (∃ λ (f : A → B) → Constant f × ∃ λ (f₁ : B) →
+       f a₀ ≡ f₁ × ⊤)                                            ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ×-right-identity) ⟩
+
+    (∃ λ (f : A → B) → Constant f × ∃ λ (f₁ : B) → f a₀ ≡ f₁)    ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                                       inverse $ _⇔_.to contractible⇔⊤↔ $
+                                                                         other-singleton-contractible _) ⟩
+    (∃ λ (f : A → B) → Constant f × ⊤)                           ↝⟨ (∃-cong λ _ → ×-right-identity) ⟩□
+
+    (∃ λ (f : A → B) → Constant f)                               □)
+
+  -- The forward component of the equivalence above does not depend on
+  -- the value a₀ of type A, so we get the following result:
+
+  lemma₂ : ∥ A ∥ 1 ℓ′ → B ≃ ∃ λ (f : A → B) → Constant f
+  lemma₂ ∥a∥ =
+    ⟨ (λ b → (λ _ → b) , λ _ _ → trans (refl b) (sym (refl b)))
+    , rec (Eq.propositional (lower-extensionality _ ℓ ext) _)
+          (λ a → _≃_.is-equivalence (lemma₁ a))
+          (with-lower-level ℓ ∥a∥)
+    ⟩
 
 -- Some properties of an imagined "real" /propositional/ truncation.
 
