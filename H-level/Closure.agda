@@ -199,30 +199,32 @@ abstract
     to : {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
     to = proj₁ ext′
 
-  -- H-level is closed under Π A, assuming extensionality for
-  -- functions from A.
+-- H-level is closed under Π A, assuming extensionality for
+-- functions from A.
 
-  Π-closure : ∀ {a b} {A : Set a} →
-              ({B : A → Set b} → Extensionality′ A B) →
-              ∀ {B : A → Set b} n →
-              (∀ x → H-level n (B x)) → H-level n ((x : A) → B x)
-  Π-closure ext zero =
-    _⇔_.from Π-closure-contractible⇔extensionality ext
-  Π-closure ext (suc n) = λ h f g →
-    respects-surjection (ext-surj ext) n $
-      Π-closure ext n (λ x → h x (f x) (g x))
+Π-closure : ∀ {a b} {A : Set a} →
+            ({B : A → Set b} → Extensionality′ A B) →
+            ∀ {B : A → Set b} n →
+            (∀ x → H-level n (B x)) → H-level n ((x : A) → B x)
+Π-closure ext zero =
+  _⇔_.from Π-closure-contractible⇔extensionality ext
+Π-closure ext (suc n) = λ h f g →
+  respects-surjection (ext-surj ext) n $
+    Π-closure ext n (λ x → h x (f x) (g x))
 
-  -- This also applies to the implicit function space.
+-- This also applies to the implicit function space.
 
-  implicit-Π-closure :
-    ∀ {a b} {A : Set a} →
-    ({B : A → Set b} → Extensionality′ A B) →
-    ∀ {B : A → Set b} n →
-    (∀ x → H-level n (B x)) → H-level n ({x : A} → B x)
-  implicit-Π-closure {A = A} ext {B} n =
-    respects-surjection
-      (_↔_.surjection $ Bijection.inverse implicit-Π↔Π) n ∘
-    Π-closure ext n
+implicit-Π-closure :
+  ∀ {a b} {A : Set a} →
+  ({B : A → Set b} → Extensionality′ A B) →
+  ∀ {B : A → Set b} n →
+  (∀ x → H-level n (B x)) → H-level n ({x : A} → B x)
+implicit-Π-closure {A = A} ext {B} n =
+  respects-surjection
+    (_↔_.surjection $ Bijection.inverse implicit-Π↔Π) n ∘
+  Π-closure ext n
+
+abstract
 
   -- Negated types are propositional, assuming extensionality.
 
