@@ -1170,6 +1170,18 @@ abstract
       from (B₁≃B₂ x) (to (B₁≃B₂ x) (f x))  ≡⟨ left-inverse-of (B₁≃B₂ x) (f x) ⟩∎
       f x                                  ∎
 
+-- A part of the implementation of ≃-preserves (see below) that does
+-- not depend on extensionality.
+
+≃-preserves-⇔ :
+  ∀ {a₁ a₂ b₁ b₂}
+    {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : Set b₁} {B₂ : Set b₂} →
+  A₁ ≃ A₂ → B₁ ≃ B₂ → (A₁ ≃ B₁) ⇔ (A₂ ≃ B₂)
+≃-preserves-⇔ A₁≃A₂ B₁≃B₂ = record
+  { to   = λ A₁≃B₁ → B₁≃B₂ ∘ A₁≃B₁ ∘ inverse A₁≃A₂
+  ; from = λ A₂≃B₂ → inverse B₁≃B₂ ∘ A₂≃B₂ ∘ A₁≃A₂
+  }
+
 -- Equivalence preserves equivalences (assuming extensionality).
 
 ≃-preserves :
@@ -1180,11 +1192,8 @@ abstract
 ≃-preserves {a₁} {a₂} {b₁} {b₂} ext {A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁≃B₂ =
   ↔⇒≃ (record
     { surjection = record
-      { logical-equivalence = record
-        { to   = λ A₁≃B₁ → B₁≃B₂ ∘ A₁≃B₁ ∘ inverse A₁≃A₂
-        ; from = λ A₂≃B₂ → inverse B₁≃B₂ ∘ A₂≃B₂ ∘ A₁≃A₂
-        }
-      ; right-inverse-of = to∘from
+      { logical-equivalence = ≃-preserves-⇔ A₁≃A₂ B₁≃B₂
+      ; right-inverse-of    = to∘from
       }
     ; left-inverse-of = from∘to
     })
