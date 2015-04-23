@@ -558,6 +558,17 @@ abstract
                                                  _≃_.left-inverse-of (extensionality-isomorphism ext) f≡g ⟩∎
     f≡g x                                ∎
 
+  subst-good-ext :
+    ∀ {a b p} (ext : Extensionality a b)
+    {A : Set a} {B : A → Set b} {f g : (x : A) → B x} {x}
+    (P : B x → Set p) {p}
+    (f≡g : ∀ x → f x ≡ g x) →
+    subst (λ f → P (f x)) (good-ext ext f≡g) p ≡ subst P (f≡g x) p
+  subst-good-ext ext {f = f} {g} {x = x} P {p} f≡g =
+    subst (λ f → P (f x)) (good-ext ext f≡g) p  ≡⟨ subst-∘ P (_$ x) _ ⟩
+    subst P (cong (_$ x) (good-ext ext f≡g)) p  ≡⟨ cong (λ eq → subst P eq p) (cong-good-ext ext f≡g) ⟩∎
+    subst P (f≡g x) p                           ∎
+
 ------------------------------------------------------------------------
 -- Groupoid
 
