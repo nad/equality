@@ -175,6 +175,7 @@ id {equivalence}         = Eq.id
 infix  -1 finally-↝ finally-↔
 infix  -1 _□
 infixr -2 _↝⟨_⟩_ _↔⟨_⟩_ _↔⟨⟩_
+infix  -3 $⟨_⟩_
 
 _↝⟨_⟩_ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
          A ↝[ k ] B → B ↝[ k ] C → A ↝[ k ] C
@@ -201,6 +202,10 @@ finally-↔ _ _ A↔B = from-isomorphism A↔B
 
 syntax finally-↝ A B A↝B = A ↝⟨ A↝B ⟩□ B □
 syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
+
+$⟨_⟩_ : ∀ {k a b} {A : Set a} {B : Set b} →
+        A → A ↝[ k ] B → B
+$⟨ a ⟩ A↝B = to-implication A↝B a
 
 -- Lemma: to-implication maps id to the identity function.
 
