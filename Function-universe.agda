@@ -1073,6 +1073,31 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
              f x (refl x)                                                 ∎)
             x≡y
 
+-- One can introduce a (non-dependent) function argument of the same
+-- type as another one if the codomain is propositional (assuming
+-- extensionality).
+
+→-intro :
+  ∀ {a p} {A : Set a} {P : A → Set p} →
+  Extensionality a (a ⊔ p) →
+  (∀ x → Is-proposition (P x)) →
+  (∀ x → P x) ↔ (A → ∀ x → P x)
+→-intro {a = a} ext P-prop = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ f _ x → f x
+      ; from = λ f x → f x x
+      }
+    ; right-inverse-of = λ _ →
+        _⇔_.to propositional⇔irrelevant
+          (Π-closure ext                            1 λ _ →
+           Π-closure (lower-extensionality a a ext) 1 λ _ →
+           P-prop _)
+          _ _
+    }
+  ; left-inverse-of = refl
+  }
+
 -- Equality expression rearrangement lemmas.
 
 from≡↔≡to : ∀ {a b k} →
