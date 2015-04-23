@@ -40,7 +40,13 @@ private
   non-trivial : _↔_.to swap ≢ id
   non-trivial not≡id = Bool.true≢false (cong (_$ false) not≡id)
 
--- Equality rearrangement lemma.
+-- Equality rearrangement lemmas.
+
+not≡⇒≢ : (b₁ b₂ : Bool) → not b₁ ≡ b₂ → b₁ ≢ b₂
+not≡⇒≢ true  true  ()
+not≡⇒≢ true  false _ ()
+not≡⇒≢ false true  _ ()
+not≡⇒≢ false false ()
 
 ≢⇒not≡ : (b₁ b₂ : Bool) → b₁ ≢ b₂ → not b₁ ≡ b₂
 ≢⇒not≡ true  true  t≢t = ⊥-elim (t≢t (refl))
