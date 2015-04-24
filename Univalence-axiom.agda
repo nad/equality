@@ -17,7 +17,7 @@ open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq
   hiding (id; inverse) renaming (_∘_ to _⊚_)
-open import Function-universe eq hiding (id; _∘_)
+open import Function-universe eq as F hiding (id; _∘_)
 open import Groupoid eq
 open import H-level eq
 open import H-level.Closure eq
@@ -362,6 +362,31 @@ Pow↔Fam ℓ {A = A} ext univ = record
       (λ a → ∃ λ (i : ∃ P) → proj₁ i ≡ a)  ≡⟨ ext (λ a → ≃⇒≡ univ (lemma a)) ⟩∎
       P                                    ∎
   }
+
+-- An isomorphism that follows from Pow↔Fam.
+--
+-- This isomorphism was suggested to me by Paolo Capriotti.
+
+→↔Σ≃Σ :
+  ∀ ℓ {a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b ⊔ ℓ) (lsuc (a ⊔ b ⊔ ℓ)) →
+  Univalence (a ⊔ b ⊔ ℓ) →
+  (A → B) ↔ ∃ λ (P : B → Set (a ⊔ b ⊔ ℓ)) → A ≃ Σ B P
+→↔Σ≃Σ ℓ {a} {b} {A} {B} ext univ =
+  (A → B)                                                   ↝⟨ →-cong (lower-extensionality lzero _ ext) (inverse Bijection.↑↔) F.id ⟩
+  (↑ (b ⊔ ℓ) A → B)                                         ↝⟨ inverse ×-left-identity ⟩
+  ⊤ × (↑ _ A → B)                                           ↝⟨ _⇔_.to contractible⇔⊤↔ (singleton-contractible _) ×-cong F.id ⟩
+  (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A) × (↑ _ A → B)            ↝⟨ inverse Σ-assoc ⟩
+  (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A × (↑ _ A → B))            ↝⟨ (∃-cong λ _ → ∃-cong λ eq → →-cong (lower-extensionality lzero _ ext) (≡⇒↝ _ (sym eq)) F.id) ⟩
+  (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A × (A′ → B))               ↝⟨ (∃-cong λ _ → ×-comm) ⟩
+  (∃ λ (A′ : Set ℓ′) → (A′ → B) × A′ ≡ ↑ _ A)               ↝⟨ Σ-assoc ⟩
+  (∃ λ (p : ∃ λ (A′ : Set ℓ′) → A′ → B) → proj₁ p ≡ ↑ _ A)  ↝⟨ inverse $ Σ-cong (Pow↔Fam (a ⊔ ℓ) (lower-extensionality ℓ′ lzero ext) univ) (λ _ → F.id) ⟩
+  (∃ λ (P : B → Set ℓ′) → ∃ P ≡ ↑ _ A)                      ↔⟨ (∃-cong λ _ → ≡≃≃ univ) ⟩
+  (∃ λ (P : B → Set ℓ′) → ∃ P ≃ ↑ _ A)                      ↝⟨ (∃-cong λ _ → Groupoid.⁻¹-bijection (groupoid (lower-extensionality ℓ′ _ ext))) ⟩
+  (∃ λ (P : B → Set ℓ′) → ↑ _ A ≃ ∃ P)                      ↔⟨ (∃-cong λ _ → ≃-preserves (lower-extensionality lzero _ ext) (↔⇒≃ Bijection.↑↔) F.id) ⟩□
+  (∃ λ (P : B → Set ℓ′) → A ≃ ∃ P)                          □
+  where
+  ℓ′ = a ⊔ b ⊔ ℓ
 
 ------------------------------------------------------------------------
 -- More lemmas
