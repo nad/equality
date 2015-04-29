@@ -970,6 +970,52 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   ; left-inverse-of = refl
   }
 
+-- The Yoneda lemma, as given in the HoTT book, but specialised to the
+-- opposite of the category of sets and functions, and with some
+-- naturality properties omitted. (The proof uses extensionality.)
+
+yoneda :
+  ∀ {a b X} →
+  Extensionality (lsuc a) (lsuc a ⊔ b) →
+  (F : SET a → SET b) →
+  (map : ∀ {A B} → (Type A → Type B) → Type (F A) → Type (F B)) →
+  (∀ {A} {x : Type (F A)} → map id x ≡ x) →
+  (∀ {A B C f g x} →
+   (map {A = B} {B = C} f ∘ map {A = A} g) x ≡ map (f ∘ g) x) →
+
+  Type (F X)
+    ↔
+  ∃ λ (γ : ∀ Y → (Type X → Type Y) → Type (F Y)) →
+    ∀ Y₁ Y₂ f g → map f (γ Y₁ g) ≡ γ Y₂ (f ∘ g)
+
+yoneda {a} {X = X} ext F map map-id map-∘ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to = λ x → (λ _ f → map f x) , λ _ _ f g →
+          map f (map g x)  ≡⟨ map-∘ ⟩∎
+          map (f ∘ g) x    ∎
+      ; from = λ { (γ , _) → γ X id }
+      }
+    ; right-inverse-of = λ { (γ , h) → Σ-≡,≡→≡
+
+        ((λ _ f → map f (γ X id))  ≡⟨ (lower-extensionality lzero (lsuc a) ext λ Y →
+                                       lower-extensionality _     (lsuc a) ext λ f →
+                                       h X Y f id) ⟩∎
+         (λ Y f → γ Y f)           ∎)
+
+        (_⇔_.to propositional⇔irrelevant
+           (Π-closure                                      ext  1 λ _  →
+            Π-closure (lower-extensionality lzero (lsuc a) ext) 1 λ Y₂ →
+            Π-closure (lower-extensionality _     (lsuc a) ext) 1 λ _  →
+            Π-closure (lower-extensionality _     (lsuc a) ext) 1 λ _  →
+            proj₂ (F Y₂) _ _)
+           _ _) }
+    }
+  ; left-inverse-of = λ x →
+      map id x  ≡⟨ map-id ⟩∎
+      x         ∎
+  }
+
 -- There is a (split) surjection from products of equality
 -- isomorphisms to equalities.
 
