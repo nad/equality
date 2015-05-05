@@ -63,6 +63,13 @@ private
     rec h f ∣ x ∣ ≡ f x
   rec-∣∣ _ _ _ = refl _
 
+-- Map function.
+
+∥∥-map : ∀ {n a b ℓ} {A : Set a} {B : Set b} →
+         (A → B) →
+         ∥ A ∥ n ℓ → ∥ B ∥ n ℓ
+∥∥-map f x = λ P h g → x P h (g ∘ f)
+
 -- The universe level can be decreased (unless it is zero).
 
 with-lower-level :
