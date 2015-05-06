@@ -21,6 +21,7 @@ open import Equivalence eq as Eq hiding (_∘_; inverse)
 open import Function-universe eq as F hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
+open import Surjection eq using (_↠_)
 
 -- Truncation.
 
@@ -114,6 +115,50 @@ abstract
   prop-elim-∣∣ _ _ P-prop _ _ =
     _⇔_.to propositional⇔irrelevant (P-prop _) _ _
 
+-- If the underlying type has a certain h-level, then there is a split
+-- surjection from corresponding truncations (if they are "big"
+-- enough) to the type itself.
+
+∥∥↠ : ∀ ℓ {a} {A : Set a} n →
+      H-level n A → ∥ A ∥ n (a ⊔ ℓ) ↠ A
+∥∥↠ ℓ _ h = record
+  { logical-equivalence = record
+    { to   = rec h F.id ∘ with-lower-level ℓ
+    ; from = ∣_∣
+    }
+  ; right-inverse-of = refl
+  }
+
+-- If the underlying type is a proposition, then propositional
+-- truncations of the type are isomorphic to the type itself (if they
+-- are "big" enough, and assuming extensionality).
+
+∥∥↔ : ∀ ℓ {a} {A : Set a} →
+      Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ ℓ) →
+      Is-proposition A → ∥ A ∥ 1 (a ⊔ ℓ) ↔ A
+∥∥↔ ℓ ext A-prop = record
+  { surjection      = ∥∥↠ ℓ 1 A-prop
+  ; left-inverse-of = λ _ →
+      _⇔_.to propositional⇔irrelevant
+        (truncation-has-correct-h-level 1 ext) _ _
+  }
+
+-- A simple isomorphism involving propositional truncation.
+
+∥∥×↔ :
+  ∀ {ℓ a} {A : Set a} →
+  Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
+  ∥ A ∥ 1 ℓ × A ↔ A
+∥∥×↔ {ℓ} {A = A} ext =
+  ∥ A ∥ 1 ℓ × A  ↝⟨ ×-comm ⟩
+  A × ∥ A ∥ 1 ℓ  ↝⟨ (∃-cong λ a →
+                       inverse $ _⇔_.to contractible⇔⊤↔ $
+                         propositional⇒inhabited⇒contractible
+                           (truncation-has-correct-h-level 1 ext)
+                           ∣ a ∣) ⟩
+  A × ⊤          ↝⟨ ×-right-identity ⟩□
+  A              □
+
 -- The following two results come from "Generalizations of Hedberg's
 -- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
@@ -143,22 +188,6 @@ constant-endofunction⇔h-stable ext = record
                              (truncation-has-correct-h-level 1 ext) _ _ ⟩∎
       f ∣ y ∣  ∎
   }
-
--- A simple isomorphism involving propositional truncation.
-
-∥∥×↔ :
-  ∀ {ℓ a} {A : Set a} →
-  Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
-  ∥ A ∥ 1 ℓ × A ↔ A
-∥∥×↔ {ℓ} {A = A} ext =
-  ∥ A ∥ 1 ℓ × A  ↝⟨ ×-comm ⟩
-  A × ∥ A ∥ 1 ℓ  ↝⟨ (∃-cong λ a →
-                       inverse $ _⇔_.to contractible⇔⊤↔ $
-                         propositional⇒inhabited⇒contractible
-                           (truncation-has-correct-h-level 1 ext)
-                           ∣ a ∣) ⟩
-  A × ⊤          ↝⟨ ×-right-identity ⟩□
-  A              □
 
 -- Having a constant function into a set is equivalent to having a
 -- function from a propositionally truncated type into the set
