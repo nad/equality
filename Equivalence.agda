@@ -576,6 +576,8 @@ abstract
 
   -- Two proofs of equivalence are equal if the function components
   -- are equal (assuming extensionality).
+  --
+  -- See also Function-universe.≃-to-≡↔≡.
 
   lift-equality :
     ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
@@ -592,6 +594,8 @@ abstract
 
   -- Two proofs of equivalence are equal if the /inverses/ of the
   -- function components are equal (assuming extensionality).
+  --
+  -- See also Function-universe.≃-from-≡↔≡.
 
   lift-equality-inverse :
     ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →

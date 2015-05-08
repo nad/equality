@@ -830,6 +830,33 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   (∃ λ (eq : p₁ ≡ q₁) → subst B eq p₂ ≡ q₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
   ((p₁ , p₂) ≡ (q₁ , q₂))                    □
 
+-- Equality of equivalences is isomorphic to pointwise equality of the
+-- underlying functions (assuming extensionality).
+
+≃-to-≡↔≡ :
+  ∀ {a b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  {A : Set a} {B : Set b} {p q : A ≃ B} →
+  (∀ x → _≃_.to p x ≡ _≃_.to q x) ↔ p ≡ q
+≃-to-≡↔≡ {a} {b} ext {p = p} {q} =
+  (∀ x → _≃_.to p x ≡ _≃_.to q x)                                        ↔⟨ Eq.extensionality-isomorphism (lower-extensionality b a ext) ⟩
+  _≃_.to p ≡ _≃_.to q                                                    ↝⟨ ignore-propositional-component (Eq.propositional ext _) ⟩
+  (_≃_.to p , _≃_.is-equivalence p) ≡ (_≃_.to q , _≃_.is-equivalence q)  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Eq.≃-as-Σ) ⟩□
+  p ≡ q                                                                  □
+
+-- Equality of equivalences is isomorphic to pointwise equality of the
+-- underlying /inverse/ functions (assuming extensionality).
+
+≃-from-≡↔≡ :
+  ∀ {a b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  {A : Set a} {B : Set b} {p q : A ≃ B} →
+  (∀ x → _≃_.from p x ≡ _≃_.from q x) ↔ p ≡ q
+≃-from-≡↔≡ ext {p = p} {q} =
+  (∀ x → _≃_.from p x ≡ _≃_.from q x)  ↝⟨ ≃-to-≡↔≡ ext ⟩
+  inverse p ≡ inverse q                ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.inverse-isomorphism ext)) ⟩□
+  p ≡ q                                □
+
 ------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring
 
