@@ -636,6 +636,40 @@ groupoid {ℓ} ext = record
     right-inverse : {X Y : Set ℓ} (p : X ≃ Y) → p ∘ inverse p ≡ id
     right-inverse p = lift-equality ext (ext $ _≃_.right-inverse-of p)
 
+-- Inverse is involutive (assuming extensionality).
+--
+-- This property is more general than
+-- Groupoid.involutive (groupoid …), because A and B do not have to
+-- have the same size.
+
+inverse-involutive :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  (p : A ≃ B) →
+  inverse (inverse p) ≡ p
+inverse-involutive ext p = lift-equality ext (refl _)
+
+-- Inverse is an isomorphism (assuming extensionality).
+--
+-- This property is more general than
+-- Groupoid.⁻¹-bijection (groupoid …), because A and B do not have to
+-- have the same size.
+
+inverse-isomorphism :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  A ≃ B ↔ B ≃ A
+inverse-isomorphism ext = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = inverse
+      ; from = inverse
+      }
+    ; right-inverse-of = inverse-involutive ext
+    }
+  ; left-inverse-of = inverse-involutive ext
+  }
+
 ------------------------------------------------------------------------
 -- A surjection from A ↔ B to A ≃ B, and related results
 
