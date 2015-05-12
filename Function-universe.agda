@@ -1151,6 +1151,34 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
              f x (refl x)                                                 ∎)
             x≡y
 
+private
+
+  -- The following proof is perhaps easier to follow, but the
+  -- resulting "from" function is more complicated than the one used
+  -- in ∀-intro. (If subst reduced in the usual way when applied to
+  -- refl, then the two functions would be definitionally equal.)
+  --
+  -- This proof is based on one presented by Egbert Rijke in "A type
+  -- theoretical Yoneda lemma"
+  -- (http://homotopytypetheory.org/2012/05/02/a-type-theoretical-yoneda-lemma/).
+
+  ∀-intro′ : ∀ {a b} →
+             Extensionality a (a ⊔ b) →
+             {A : Set a} {x : A} (B : (y : A) → x ≡ y → Set b) →
+             B x (refl x) ↔ (∀ y (x≡y : x ≡ y) → B y x≡y)
+  ∀-intro′ {a} ext {x = x} B =
+    B x (refl x)                        ↝⟨ inverse Π-left-identity ⟩
+    (⊤ → B x (refl x))                  ↝⟨ →-cong (lower-extensionality lzero a ext)
+                                                  (_⇔_.to contractible⇔⊤↔ c) id ⟩
+    ((∃ λ y → x ≡ y) → B x (refl x))    ↝⟨ currying ⟩
+    (∀ y (x≡y : x ≡ y) → B x (refl x))  ↔⟨ (Eq.∀-preserves ext λ y →
+                                            Eq.∀-preserves (lower-extensionality lzero a ext) λ x≡y →
+                                              Eq.subst-as-equivalence (uncurry B) (proj₂ c (y , x≡y))) ⟩□
+    (∀ y (x≡y : x ≡ y) → B y x≡y)       □
+    where
+    c : Contractible (∃ λ y → x ≡ y)
+    c = other-singleton-contractible x
+
 -- One can introduce a (non-dependent) function argument of the same
 -- type as another one if the codomain is propositional (assuming
 -- extensionality).
