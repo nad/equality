@@ -59,35 +59,6 @@ respects-extensional-equality f≡g f-eq = λ b →
 
 abstract
 
-  -- The function subst is an equivalence family.
-  --
-  -- Note that this proof would be easier if subst P (refl x) p
-  -- reduced to p.
-
-  subst-is-equivalence :
-    ∀ {a p} {A : Set a} (P : A → Set p) {x y : A} (x≡y : x ≡ y) →
-    Is-equivalence (subst P x≡y)
-  subst-is-equivalence P = elim
-    (λ {x y} x≡y → Is-equivalence (subst P x≡y))
-    (λ x p → _ , λ q →
-       (p , subst-refl P p)                                     ≡⟨ elim
-                                                                     (λ {u v : P x} u≡v →
-                                                                        _≡_ {A = ∃ λ (w : P x) → subst P (refl x) w ≡ v}
-                                                                            (v , subst-refl P v)
-                                                                            (u , trans (subst-refl P u) u≡v))
-                                                                     (λ p → cong (_,_ p) (sym $ trans-reflʳ _))
-                                                                     (proj₁ q                     ≡⟨ sym $ subst-refl P (proj₁ q) ⟩
-                                                                      subst P (refl x) (proj₁ q)  ≡⟨ proj₂ q ⟩∎
-                                                                      p                           ∎) ⟩
-       (proj₁ q , (trans      (subst-refl P (proj₁ q))  $
-                   trans (sym (subst-refl P (proj₁ q))) $
-                         proj₂ q))                              ≡⟨ cong (_,_ (proj₁ q)) $ sym $ trans-assoc _ _ _ ⟩
-       (proj₁ q , trans (trans      (subst-refl P (proj₁ q))
-                               (sym (subst-refl P (proj₁ q))))
-                        (proj₂ q))                              ≡⟨ cong (λ eq → proj₁ q , trans eq (proj₂ q)) $ trans-symʳ _ ⟩
-       (proj₁ q , trans (refl _) (proj₂ q))                     ≡⟨ cong (_,_ (proj₁ q)) $ trans-reflˡ _ ⟩∎
-       q                                                        ∎)
-
   -- If Σ-map id f is an equivalence, then f is also an equivalence.
 
   drop-Σ-map-id :
@@ -270,6 +241,33 @@ record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 
     irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
     irrelevance = proj₂ ⊚ is-equivalence
+
+-- The function subst is an equivalence family.
+
+subst-as-equivalence :
+  ∀ {a p} {A : Set a} (P : A → Set p) {x y : A} (x≡y : x ≡ y) →
+  P x ≃ P y
+subst-as-equivalence P {y = y} x≡y = ↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = subst P x≡y
+      ; from = subst P (sym x≡y)
+      }
+    ; right-inverse-of = subst-subst-sym P x≡y
+    }
+  ; left-inverse-of = λ p →
+      subst P (sym x≡y) (subst P x≡y p)              ≡⟨ cong (λ eq → subst P (sym x≡y) (subst P eq _)) $ sym $ sym-sym _ ⟩
+      subst P (sym x≡y) (subst P (sym (sym x≡y)) p)  ≡⟨ subst-subst-sym P _ _ ⟩∎
+      p                                              ∎
+  })
+
+abstract
+
+  subst-is-equivalence :
+    ∀ {a p} {A : Set a} (P : A → Set p) {x y : A} (x≡y : x ≡ y) →
+    Is-equivalence (subst P x≡y)
+  subst-is-equivalence P x≡y =
+    _≃_.is-equivalence (subst-as-equivalence P x≡y)
 
 ------------------------------------------------------------------------
 -- Equivalence
