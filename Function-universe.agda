@@ -804,6 +804,21 @@ private
   (∃ λ y → y ≡ x × B y)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩□
   (∃ λ y → B y × y ≡ x)  □
 
+-- A variant of ∃-intro.
+
+∃-introduction :
+  ∀ {a b} {A : Set a} {x : A} (B : (y : A) → x ≡ y → Set b) →
+  B x (refl x) ↔ ∃ λ y → ∃ λ (x≡y : x ≡ y) → B y x≡y
+∃-introduction {x = x} B =
+  B x (refl x)                                              ↝⟨ ∃-intro (uncurry B) _ ⟩
+  (∃ λ { (y , x≡y) → B y x≡y × (y , x≡y) ≡ (x , refl x) })  ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                                  inverse $
+                                                                  _⇔_.to contractible⇔⊤↔ $
+                                                                  mono₁ 0 (other-singleton-contractible x) _ _) ⟩
+  (∃ λ { (y , x≡y) → B y x≡y × ⊤ })                         ↝⟨ (∃-cong λ _ → ×-right-identity) ⟩
+  (∃ λ { (y , x≡y) → B y x≡y })                             ↝⟨ inverse Σ-assoc ⟩□
+  (∃ λ y → ∃ λ x≡y → B y x≡y)                               □
+
 -- A non-dependent variant of Σ-≡,≡↔≡.
 
 ≡×≡↔≡ : ∀ {a b} {A : Set a} {B : Set b} {p₁ p₂ : A × B} →
