@@ -71,6 +71,38 @@ private
          ∥ A ∥ n ℓ → ∥ B ∥ n ℓ
 ∥∥-map f x = λ P h g → x P h (g ∘ f)
 
+-- The truncation operator preserves bijections (assuming
+-- extensionality).
+
+∥∥-cong : ∀ {n a b ℓ} {A : Set a} {B : Set b} →
+          Extensionality (a ⊔ b ⊔ lsuc ℓ) (a ⊔ b ⊔ ℓ) →
+          A ↔ B → ∥ A ∥ n ℓ ↔ ∥ B ∥ n ℓ
+∥∥-cong {n} {a} {b} {ℓ} ext A↔B = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = ∥∥-map (_↔_.to   A↔B)
+      ; from = ∥∥-map (_↔_.from A↔B)
+      }
+    ; right-inverse-of = lemma (lower-extensionality a a ext) A↔B
+    }
+  ; left-inverse-of = lemma (lower-extensionality b b ext) (inverse A↔B)
+  }
+  where
+  lemma :
+    ∀ {c d} {C : Set c} {D : Set d} →
+    Extensionality (d ⊔ lsuc ℓ) (d ⊔ ℓ) →
+    (C↔D : C ↔ D) (∥d∥ : ∥ D ∥ n ℓ) →
+    ∥∥-map (_↔_.to C↔D) (∥∥-map (_↔_.from C↔D) ∥d∥) ≡ ∥d∥
+  lemma {d = d} ext C↔D ∥d∥ =
+    lower-extensionality d        lzero ext λ P →
+    lower-extensionality _        lzero ext λ h →
+    lower-extensionality (lsuc ℓ) d     ext λ g →
+
+      ∥d∥ P h (g ∘ _↔_.to C↔D ∘ _↔_.from C↔D)  ≡⟨ cong (λ f → ∥d∥ P h (g ∘ f)) $
+                                                    lower-extensionality (lsuc ℓ) ℓ ext
+                                                      (_↔_.right-inverse-of C↔D) ⟩∎
+      ∥d∥ P h g                                ∎
+
 -- The universe level can be decreased (unless it is zero).
 
 with-lower-level :
