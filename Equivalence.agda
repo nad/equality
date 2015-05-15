@@ -14,6 +14,7 @@ module Equivalence
 
 open import Bijection eq as Bijection hiding (id; _∘_; inverse)
 open Derived-definitions-and-properties eq
+open import Equality.Decision-procedures eq
 open import Groupoid eq
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -44,6 +45,47 @@ abstract
   propositional {a} ext f =
     Π-closure (lower-extensionality a lzero ext) 1 λ _ →
       Contractible-propositional ext
+
+  -- If the domain is contractible and the codomain is propositional,
+  -- then Is-equivalence f is contractible.
+
+  sometimes-contractible :
+    ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
+    {A : Set a} {B : Set b} {f : A → B} →
+    Contractible A → Is-proposition B →
+    Contractible (Is-equivalence f)
+  sometimes-contractible {a} ext A-contr B-prop =
+    Π-closure (lower-extensionality a lzero ext) 0 λ _ →
+      cojoin ext (Σ-closure 0 A-contr (λ _ → B-prop _ _))
+
+  -- Is-equivalence f is not always contractible.
+
+  not-always-contractible₁ :
+    ∀ {a b} →
+    ∃ λ (A : Set a) → ∃ λ (B : Set b) → ∃ λ (f : A → B) →
+      Is-proposition A × Contractible B ×
+      ¬ Contractible (Is-equivalence f)
+  not-always-contractible₁ =
+    ⊥ ,
+    ↑ _ ⊤ ,
+    const (lift tt) ,
+    ⊥-propositional ,
+    ↑-closure 0 ⊤-contractible ,
+    λ c → ⊥-elim (proj₁ (proj₁ (proj₁ c (lift tt))))
+
+  not-always-contractible₂ :
+    ∀ {a b} →
+    ∃ λ (A : Set a) → ∃ λ (B : Set b) → ∃ λ (f : A → B) →
+      Contractible A × Is-set B ×
+      ¬ Contractible (Is-equivalence f)
+  not-always-contractible₂ =
+    ↑ _ ⊤ ,
+    ↑ _ Bool ,
+    const (lift true) ,
+    ↑-closure 0 ⊤-contractible ,
+    ↑-closure 2 Bool-set ,
+    λ c → Bool.true≢false (cong lower
+            (proj₂ (proj₁ (proj₁ c (lift false)))))
 
 -- Is-equivalence respects extensional equality.
 
@@ -788,39 +830,100 @@ private
 
 abstract
 
-  -- Positive h-levels are closed under the equivalence operator
-  -- (assuming extensionality).
+  -- All h-levels are closed under the equivalence operator (assuming
+  -- extensionality).
 
-  right-closure :
-    ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
+  h-level-closure :
+    ∀ {a b} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
     ∀ {A : Set a} {B : Set b} n →
-    H-level (1 + n) B → H-level (1 + n) (A ≃ B)
-  right-closure {a} {b} ext {A = A} {B} n h =
-    H-level.respects-surjection surj (1 + n) lemma
+    H-level n A → H-level n B → H-level n (A ≃ B)
+  h-level-closure {a} {b} ext {A = A} {B} n hA hB =
+    H-level.respects-surjection
+      (_↔_.surjection $ Bijection.inverse ≃-as-Σ) n lemma₂
     where
-    lemma : H-level (1 + n) (∃ λ (to : A → B) → Is-equivalence to)
-    lemma = Σ-closure (1 + n)
-              (Π-closure (lower-extensionality b a ext)
-                         (1 + n) (const h))
-              (mono (m≤m+n 1 n) ⊚ propositional ext)
+    lemma₁ : ∀ n {to : A → B} →
+             H-level n A → H-level n B →
+             H-level n (Is-equivalence to)
+    lemma₁ zero    cA cB = sometimes-contractible ext cA (mono₁ 0 cB)
+    lemma₁ (suc n) _  _  = mono (m≤m+n 1 n) (propositional ext _)
 
-    surj : (∃ λ (to : A → B) → Is-equivalence to) ↠ (A ≃ B)
-    surj = record
-      { logical-equivalence = record
-          { to   = λ A≃B → ⟨ proj₁ A≃B , proj₂ A≃B ⟩
-          ; from = λ A≃B → (_≃_.to A≃B , _≃_.is-equivalence A≃B)
-          }
-      ; right-inverse-of = λ _ → refl _
-      }
+    lemma₂ : H-level n (∃ λ (to : A → B) → Is-equivalence to)
+    lemma₂ = Σ-closure n
+              (Π-closure (lower-extensionality b a ext) n (λ _ → hB))
+              (λ _ → lemma₁ n hA hB)
+
+  -- For positive h-levels it is enough if one of the sides has the
+  -- given h-level.
 
   left-closure :
-    ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
+    ∀ {a b} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
     ∀ {A : Set a} {B : Set b} n →
     H-level (1 + n) A → H-level (1 + n) (A ≃ B)
-  left-closure ext {A = A} {B} n h =
+  left-closure ext {A = A} {B} n hA =
     H-level.[inhabited⇒+]⇒+ n λ (A≃B : A ≃ B) →
-      right-closure ext n $
-        H-level.respects-surjection (_≃_.surjection A≃B) (1 + n) h
+      h-level-closure ext (1 + n) hA $
+        H-level.respects-surjection (_≃_.surjection A≃B) (1 + n) hA
+
+  right-closure :
+    ∀ {a b} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    ∀ {A : Set a} {B : Set b} n →
+    H-level (1 + n) B → H-level (1 + n) (A ≃ B)
+  right-closure ext {A = A} {B} n hB =
+    H-level.[inhabited⇒+]⇒+ n λ (A≃B : A ≃ B) →
+      left-closure ext n $
+        H-level.respects-surjection
+          (_≃_.surjection (inverse A≃B)) (1 + n) hB
+
+  -- This is not enough for level 0.
+
+  ¬-left-closure :
+    ∀ {a b} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    ∃ λ (A : Set a) → ∃ λ (B : Set b) →
+      Contractible A × Is-proposition B × ¬ Contractible (A ≃ B)
+  ¬-left-closure ext =
+    ↑ _ ⊤ ,
+    ⊥ ,
+    ↑-closure 0 ⊤-contractible ,
+    ⊥-propositional ,
+    λ c → ⊥-elim (_≃_.to (proj₁ c) _)
+
+  ¬-right-closure :
+    ∀ {a b} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    ∃ λ (A : Set a) → ∃ λ (B : Set b) →
+      Is-proposition A × Contractible B × ¬ Contractible (A ≃ B)
+  ¬-right-closure ext =
+    ⊥ ,
+    ↑ _ ⊤ ,
+    ⊥-propositional ,
+    ↑-closure 0 ⊤-contractible ,
+    λ c → ⊥-elim (_≃_.from (proj₁ c) _)
+
+  -- ⊥ ≃ ⊥ is contractible (assuming extensionality).
+
+  ⊥≃⊥-contractible :
+    ∀ {ℓ₁ ℓ₂} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    Contractible (⊥ {ℓ = ℓ₁} ≃ ⊥ {ℓ = ℓ₂})
+  ⊥≃⊥-contractible {ℓ₁} {ℓ₂} ext =
+    ↔⇒≃ ⊥↔⊥ , λ ⊥↔⊥′ →
+      lift-equality ext $ lower-extensionality ℓ₂ ℓ₁ ext λ x → ⊥-elim x
+    where
+    ⊥↔⊥ : ⊥ {ℓ = ℓ₁} ↔ ⊥ {ℓ = ℓ₂}
+    ⊥↔⊥ = record
+      { surjection = record
+        { logical-equivalence = record
+          { to   = ⊥-elim
+          ; from = ⊥-elim
+          }
+        ; right-inverse-of = λ x → ⊥-elim x
+        }
+      ; left-inverse-of = λ x → ⊥-elim x
+      }
 
 -- Equalities are closed, in a strong sense, under applications of
 -- equivalences.
