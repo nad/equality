@@ -13,7 +13,7 @@ open import Bijection eq as Bijection using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; module _≃_)
-open import H-level eq
+open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
 open import Logical-equivalence using (_⇔_; module _⇔_)
@@ -844,6 +844,38 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   (p₁ ≡ q₁ × ⊤)                              ↝⟨ ∃-cong (λ _ → _⇔_.to contractible⇔⊤↔ (Bq₁-prop _ _)) ⟩
   (∃ λ (eq : p₁ ≡ q₁) → subst B eq p₂ ≡ q₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
   ((p₁ , p₂) ≡ (q₁ , q₂))                    □
+
+-- Contractible commutes with _×_ (assuming extensionality).
+
+Contractible-commutes-with-× :
+  ∀ {x y} {X : Set x} {Y : Set y} →
+  Extensionality (x ⊔ y) (x ⊔ y) →
+  Contractible (X × Y) ≃ (Contractible X × Contractible Y)
+Contractible-commutes-with-× {x} {y} ext =
+  _↔_.to (Eq.⇔↔≃ ext
+                 (Contractible-propositional ext)
+                 (×-closure 1 (Contractible-propositional
+                                 (lower-extensionality y y ext))
+                              (Contractible-propositional
+                                 (lower-extensionality x x ext))))
+    (record
+       { to = λ cX×Y →
+           lemma cX×Y ,
+           lemma (H-level.respects-surjection
+                    (_↔_.surjection ×-comm) 0 cX×Y)
+       ; from = λ { ((x , eq₁) , (y , eq₂)) →
+           (x , y) ,
+           λ { (x′ , y′) →
+             (x  , y)   ≡⟨ cong₂ _,_ (eq₁ x′) (eq₂ y′) ⟩∎
+             (x′ , y′)  ∎ } }
+       })
+  where
+  lemma : ∀ {x y} {X : Set x} {Y : Set y} →
+          Contractible (X × Y) → Contractible X
+  lemma ((x , y) , eq) = x , λ x′ →
+    x               ≡⟨⟩
+    proj₁ (x , y)   ≡⟨ cong proj₁ (eq (x′ , y)) ⟩∎
+    proj₁ (x′ , y)  ∎
 
 ------------------------------------------------------------------------
 -- Some lemmas related to _≃_
