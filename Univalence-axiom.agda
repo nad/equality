@@ -812,3 +812,18 @@ abstract
                                                                                (ext₁ $ _≃_.left-inverse-of B₁≃B₂)
                                                                                (ext₁ $ _≃_.left-inverse-of A₁≃A₂) ⟩∎
         ≡⇒→ A₁≡B₁                                                     ∎))
+
+-- ∃ Contractible is isomorphic to the unit type (assuming
+-- extensionality and univalence).
+
+∃Contractible↔⊤ :
+  ∀ {a} →
+  Extensionality a a →
+  Univalence a →
+  (∃ λ (A : Set a) → Contractible A) ↔ ⊤
+∃Contractible↔⊤ ext univ =
+  (∃ λ A → Contractible A)  ↝⟨ (∃-cong λ _ → contractible↔⊤≃ ext) ⟩
+  (∃ λ A →     ⊤ ≃ A)       ↝⟨ (∃-cong λ _ → inverse $ Eq.≃-preserves-bijections ext Bijection.↑↔ F.id) ⟩
+  (∃ λ A → ↑ _ ⊤ ≃ A)       ↔⟨ (∃-cong λ _ → inverse $ ≡≃≃ univ) ⟩
+  (∃ λ A → ↑ _ ⊤ ≡ A)       ↝⟨ inverse $ _⇔_.to contractible⇔⊤↔ (other-singleton-contractible _) ⟩□
+  ⊤                         □
