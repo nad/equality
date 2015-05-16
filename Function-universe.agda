@@ -845,6 +845,9 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   (∃ λ (eq : p₁ ≡ q₁) → subst B eq p₂ ≡ q₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
   ((p₁ , p₂) ≡ (q₁ , q₂))                    □
 
+------------------------------------------------------------------------
+-- Some lemmas related to _≃_
+
 -- Equality of equivalences is isomorphic to pointwise equality of the
 -- underlying functions (assuming extensionality).
 
@@ -871,6 +874,27 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   (∀ x → _≃_.from p x ≡ _≃_.from q x)  ↝⟨ ≃-to-≡↔≡ ext ⟩
   inverse p ≡ inverse q                ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.inverse-isomorphism ext)) ⟩□
   p ≡ q                                □
+
+-- Contractibility is isomorphic to equivalence to the unit type
+-- (assuming extensionality).
+
+contractible↔⊤≃ :
+  ∀ {a} {A : Set a} →
+  Extensionality a a →
+  Contractible A ↔ (⊤ ≃ A)
+contractible↔⊤≃ ext = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = Eq.↔⇒≃ ∘ _⇔_.to contractible⇔⊤↔
+      ; from = _⇔_.from contractible⇔⊤↔ ∘ _≃_.bijection
+      }
+    ; right-inverse-of = λ _ →
+        Eq.lift-equality ext (refl _)
+    }
+  ; left-inverse-of = λ _ →
+      _⇔_.to propositional⇔irrelevant
+        (Contractible-propositional ext) _ _
+  }
 
 ------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring
