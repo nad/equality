@@ -928,6 +928,22 @@ contractible↔⊤≃ ext = record
         (Contractible-propositional ext) _ _
   }
 
+-- Equivalence to the empty type is equivalent to not being inhabited
+-- (assuming extensionality).
+
+≃⊥≃¬ :
+  ∀ {a ℓ} {A : Set a} →
+  Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
+  (A ≃ ⊥ {ℓ = ℓ}) ≃ (¬ A)
+≃⊥≃¬ {ℓ = ℓ} {A} ext =
+  _↔_.to (Eq.⇔↔≃ ext (Eq.right-closure ext 0 ⊥-propositional)
+                     (¬-propositional
+                        (lower-extensionality ℓ _ ext))) (record
+    { to   = λ eq a → ⊥-elim (_≃_.to eq a)
+    ; from = λ ¬a → A  ↔⟨ inverse (⊥↔uninhabited ¬a) ⟩□
+                    ⊥  □
+    })
+
 ------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring
 
