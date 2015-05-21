@@ -721,6 +721,31 @@ private
 ∃-cong {equivalence}         = λ B₁≃B₂ →
   from-bijection $ ∃-cong-bij (from-equivalence ⊚ B₁≃B₂)
 
+-- Lemmas that can be used to simplify sigma types where one of the
+-- two type arguments is (conditionally) isomorphic to the unit type.
+
+drop-⊤-right : ∀ {k a b} {A : Set a} {B : A → Set b} →
+               ((x : A) → B x ↔[ k ] ⊤) → Σ A B ↔ A
+drop-⊤-right {A = A} {B} B↔⊤ =
+  Σ A B  ↔⟨ ∃-cong B↔⊤ ⟩
+  A × ⊤  ↝⟨ ×-right-identity ⟩□
+  A      □
+
+drop-⊤-left-× : ∀ {k a b} {A : Set a} {B : Set b} →
+                (B → A ↔[ k ] ⊤) → A × B ↔ B
+drop-⊤-left-× {A = A} {B} A↔⊤ =
+  A × B  ↝⟨ ×-comm ⟩
+  B × A  ↝⟨ drop-⊤-right A↔⊤ ⟩□
+  B      □
+
+drop-⊤-left-Σ : ∀ {a b} {A : Set a} {B : A → Set b} →
+                (A↔⊤ : A ↔ ⊤) →
+                Σ A B ↔ B (_↔_.from A↔⊤ tt)
+drop-⊤-left-Σ {A = A} {B} A↔⊤ =
+  Σ A B                   ↝⟨ inverse $ Σ-cong (inverse A↔⊤) (λ _ → id) ⟩
+  Σ ⊤ (B ∘ _↔_.from A↔⊤)  ↝⟨ Σ-left-identity ⟩□
+  B (_↔_.from A↔⊤ tt)     □
+
 -- Currying.
 
 currying : ∀ {a b c} {A : Set a} {B : A → Set b} {C : Σ A B → Set c} →
