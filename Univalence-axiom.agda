@@ -813,6 +813,31 @@ abstract
                                                                                (ext₁ $ _≃_.left-inverse-of A₁≃A₂) ⟩∎
         ≡⇒→ A₁≡B₁                                                     ∎))
 
+-- Singletons expressed using equivalences instead of equalities are
+-- isomorphic to the unit type (assuming extensionality and
+-- univalence).
+
+singleton-with-≃-↔-⊤ :
+  ∀ {a b} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Univalence (a ⊔ b) →
+  (∃ λ (A : Set (a ⊔ b)) → A ≃ B) ↔ ⊤
+singleton-with-≃-↔-⊤ {a} {B = B} ext univ =
+  (∃ λ A → A ≃ B)      ↝⟨ inverse (∃-cong λ _ → Eq.≃-preserves-bijections ext F.id Bijection.↑↔) ⟩
+  (∃ λ A → A ≃ ↑ a B)  ↔⟨ inverse (∃-cong λ _ → ≡≃≃ univ) ⟩
+  (∃ λ A → A ≡ ↑ a B)  ↝⟨ inverse $ _⇔_.to contractible⇔⊤↔ (singleton-contractible _) ⟩□
+  ⊤                    □
+
+other-singleton-with-≃-↔-⊤ :
+  ∀ {a b} {A : Set a} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Univalence (a ⊔ b) →
+  (∃ λ (B : Set (a ⊔ b)) → A ≃ B) ↔ ⊤
+other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
+  (∃ λ B → A ≃ B)  ↝⟨ (∃-cong λ _ → inverse-isomorphism ext) ⟩
+  (∃ λ B → B ≃ A)  ↝⟨ singleton-with-≃-↔-⊤ {a = b} ext univ ⟩□
+  ⊤                □
+
 -- ∃ Contractible is isomorphic to the unit type (assuming
 -- extensionality and univalence).
 
@@ -823,7 +848,18 @@ abstract
   (∃ λ (A : Set a) → Contractible A) ↔ ⊤
 ∃Contractible↔⊤ ext univ =
   (∃ λ A → Contractible A)  ↝⟨ (∃-cong λ _ → contractible↔⊤≃ ext) ⟩
-  (∃ λ A →     ⊤ ≃ A)       ↝⟨ (∃-cong λ _ → inverse $ Eq.≃-preserves-bijections ext Bijection.↑↔ F.id) ⟩
-  (∃ λ A → ↑ _ ⊤ ≃ A)       ↔⟨ (∃-cong λ _ → inverse $ ≡≃≃ univ) ⟩
-  (∃ λ A → ↑ _ ⊤ ≡ A)       ↝⟨ inverse $ _⇔_.to contractible⇔⊤↔ (other-singleton-contractible _) ⟩□
+  (∃ λ A → ⊤ ≃ A)           ↝⟨ other-singleton-with-≃-↔-⊤ ext univ ⟩
   ⊤                         □
+
+-- A certain type of uninhabited types is isomorphic to the unit type
+-- (assuming extensionality and univalence).
+
+∃¬↔⊤ :
+  ∀ {a} →
+  Extensionality a a →
+  Univalence a →
+  (∃ λ (A : Set a) → ¬ A) ↔ ⊤
+∃¬↔⊤ ext univ =
+  (∃ λ A → ¬ A)     ↔⟨ inverse (∃-cong λ _ → ≃⊥≃¬ ext) ⟩
+  (∃ λ A → A ≃ ⊥₀)  ↔⟨ singleton-with-≃-↔-⊤ ext univ ⟩
+  ⊤                 □
