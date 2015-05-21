@@ -310,6 +310,11 @@ abstract
   ↑-closure =
     respects-surjection (_↔_.surjection (Bijection.inverse ↑↔))
 
+  -- All H-levels are also closed under removal of lifting.
+
+  ↑⁻¹-closure : ∀ {a b} {A : Set a} n → H-level n (↑ b A) → H-level n A
+  ↑⁻¹-closure = respects-surjection (_↔_.surjection ↑↔)
+
 ------------------------------------------------------------------------
 -- W-types
 
