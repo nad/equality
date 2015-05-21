@@ -246,7 +246,8 @@ to-implication-inverse-id equivalence         = refl _
 ------------------------------------------------------------------------
 
 -- Properties of the form A ↝[ k ] B, for arbitrary k, are only stated
--- for bijections; converting to the other forms is easy.
+-- for bijections or equivalences; converting to the other forms is
+-- easy.
 
 ------------------------------------------------------------------------
 -- Equalities can be converted to all kinds of functions
