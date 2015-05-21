@@ -19,7 +19,7 @@ open import Equivalence eq as Eq
   hiding (id; inverse) renaming (_∘_ to _⊚_)
 open import Function-universe eq as F hiding (id; _∘_)
 open import Groupoid eq
-open import H-level eq
+open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (Injective)
 open import Logical-equivalence hiding (id; _∘_; inverse)
@@ -850,6 +850,43 @@ other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
   (∃ λ A → Contractible A)  ↝⟨ (∃-cong λ _ → contractible↔⊤≃ ext) ⟩
   (∃ λ A → ⊤ ≃ A)           ↝⟨ other-singleton-with-≃-↔-⊤ ext univ ⟩
   ⊤                         □
+
+-- ∃ λ A → H-level n A has h-level 1 + n (assuming extensionality and
+-- univalence).
+
+∃-H-level-H-level-1+ :
+  ∀ {a} →
+  Extensionality a a →
+  Univalence a →
+  ∀ n → H-level (1 + n) (∃ λ (A : Set a) → H-level n A)
+∃-H-level-H-level-1+ ext univ n (A₁ , h₁) (A₂ , h₂) =
+                                     $⟨ h₁ , h₂ ⟩
+  H-level n A₁ × H-level n A₂        ↝⟨ uncurry (Eq.h-level-closure ext n) ⟩
+  H-level n (A₁ ≃ A₂)                ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≡≃≃ univ) n ⟩
+  H-level n (A₁ ≡ A₂)                ↝⟨ H-level.respects-surjection
+                                          (_↔_.surjection $ ignore-propositional-component
+                                                              (H-level-propositional ext _)) n ⟩□
+  H-level n ((A₁ , h₁) ≡ (A₂ , h₂))  □
+
+-- ∃ λ A → H-level n A does not in general have h-level n.
+--
+-- (Kraus and Sattler show that, for all n,
+-- ∃ λ (A : Set (# n)) → H-level (2 + n) A does not have h-level
+-- 2 + n, assuming univalence. See "Higher Homotopies in a Hierarchy
+-- of Univalent Universes".)
+
+¬-∃-H-level-H-level :
+  ∀ {a} →
+  ¬ (∀ n → H-level n (∃ λ (A : Set a) → H-level n A))
+¬-∃-H-level-H-level =
+  (∀ n → H-level n (∃ λ A → H-level n A))                 ↝⟨ _$ 1 ⟩
+  Is-proposition (∃ λ A → Is-proposition A)               ↝⟨ _⇔_.to propositional⇔irrelevant ⟩
+  ((p q : ∃ λ A → Is-proposition A) → p ≡ q)              ↝⟨ (λ f p q → cong proj₁ (f p q)) ⟩
+  ((p q : ∃ λ A → Is-proposition A) → proj₁ p ≡ proj₁ q)  ↝⟨ (_$ (⊥ , ⊥-propositional)) ∘
+                                                             (_$ (↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible))) ⟩
+  ↑ _ ⊤ ≡ ⊥                                               ↝⟨ flip (subst id) _ ⟩
+  ⊥                                                       ↝⟨ ⊥-elim ⟩□
+  ⊥₀                                                      □
 
 -- A certain type of uninhabited types is isomorphic to the unit type
 -- (assuming extensionality and univalence).
