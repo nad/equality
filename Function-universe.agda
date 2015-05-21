@@ -1427,6 +1427,27 @@ private
   from-bijection ∘ ↑-cong-↔ ∘ from-equivalence
 
 ------------------------------------------------------------------------
+-- A lemma related to H-level
+
+-- H-level n preserves isomorphisms (assuming extensionality).
+
+H-level-cong :
+  ∀ {k a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  ∀ n → A ↔[ k ] B → H-level n A ↔[ k ] H-level n B
+H-level-cong {a = a} {b} ext n A↔B′ =
+  from-equivalence $
+    _↔_.to (Eq.⇔↔≃ ext (H-level-propositional
+                          (lower-extensionality b b ext) n)
+                       (H-level-propositional
+                          (lower-extensionality a a ext) n)) (record
+      { to   = respects-surjection (_↔_.surjection          A↔B)  n
+      ; from = respects-surjection (_↔_.surjection (inverse A↔B)) n
+      })
+  where
+  A↔B = from-isomorphism A↔B′
+
+------------------------------------------------------------------------
 -- Lemmas related to if
 
 -- A generalisation of if-encoding (which is defined below).
