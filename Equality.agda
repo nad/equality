@@ -1135,3 +1135,23 @@ module Derived-definitions-and-properties
            trans (sym (cong f (refl x))) (trans fx≡gx (cong g (refl x)))  ∎ )
       _
       _
+
+    -- The following lemma is basically Theorem 2.11.5 from the HoTT
+    -- book (the book's lemma gives an equivalence between equality
+    -- types, rather than an equality between equality types).
+
+    [subst≡]≡[trans≡trans] :
+      ∀ {a} {A : Set a} {x y : A} {p : x ≡ y} {q : x ≡ x} {r : y ≡ y} →
+      (subst (λ z → z ≡ z) p q ≡ r)
+        ≡
+      (trans q p ≡ trans p r)
+    [subst≡]≡[trans≡trans] {p = p} {q} {r} = elim
+      (λ {x y} p → {q : x ≡ x} {r : y ≡ y} →
+                   (subst (λ z → z ≡ z) p q ≡ r)
+                     ≡
+                   (trans q p ≡ trans p r))
+      (λ x {q r} →
+         subst (λ z → z ≡ z) (refl x) q ≡ r   ≡⟨ cong (_≡ _) (subst-refl (λ z → z ≡ z) _) ⟩
+         q ≡ r                                ≡⟨ sym $ cong₂ _≡_ (trans-reflʳ _) (trans-reflˡ _) ⟩∎
+         trans q (refl x) ≡ trans (refl x) r  ∎)
+      p
