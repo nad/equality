@@ -925,3 +925,67 @@ other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
   (∃ λ A → ¬ A)     ↔⟨ inverse (∃-cong λ _ → ≃⊥≃¬ ext) ⟩
   (∃ λ A → A ≃ ⊥₀)  ↔⟨ singleton-with-≃-↔-⊤ ext univ ⟩
   ⊤                 □
+
+-- The following two proofs are taken from "Higher Homotopies in a
+-- Hierarchy of Univalent Universes" by Kraus and Sattler (Section 3).
+
+-- The type (a : A) → a ≡ a is not necessarily a proposition (assuming
+-- extensionality and univalence).
+
+¬-type-of-refl-propositional :
+  Extensionality (# 1) (# 1) →
+  Univalence (# 0) →
+  ∃ λ (A : Set₁) → ¬ Is-proposition ((a : A) → a ≡ a)
+¬-type-of-refl-propositional ext univ =
+  (∃ λ A → A ≡ A) ,
+
+  (Is-proposition ((l : ∃ λ A → A ≡ A) → l ≡ l)                    ↝⟨ H-level.respects-surjection (_↔_.surjection currying) 1 ⟩
+
+   Is-proposition (∀ A (p : A ≡ A) → (A , p) ≡ (A , p))            ↝⟨ H-level.respects-surjection
+                                                                        (_≃_.surjection $ Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
+                                                                           Eq.↔⇒≃ $ inverse $ Bijection.Σ-≡,≡↔≡ {a = # 1})
+                                                                        1 ⟩
+   Is-proposition (∀ A (p : A ≡ A) →
+                     ∃ λ (q : A ≡ A) →
+                       subst (λ A → A ≡ A) q p ≡ p)                ↝⟨ H-level.respects-surjection
+                                                                        (_≃_.surjection $ Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
+                                                                           ∃-cong λ _ → ≡⇒↝ _ [subst≡]≡[trans≡trans])
+                                                                        1 ⟩
+   Is-proposition (∀ A (p : A ≡ A) →
+                     ∃ λ (q : A ≡ A) →
+                       trans p q ≡ trans q p)                      ↝⟨ _⇔_.to propositional⇔irrelevant ⟩
+
+   Proof-irrelevant (∀ A (p : A ≡ A) →
+                       ∃ λ (q : A ≡ A) →
+                         trans p q ≡ trans q p)                    ↝⟨ (λ irr → irr _ _) ⟩
+
+   (λ A p → p , refl _)
+     ≡
+   (λ A p → refl _ , (trans p (refl _)  ≡⟨ trans-reflʳ p ⟩
+                      p                 ≡⟨ sym $ trans-reflˡ p ⟩∎
+                      trans (refl _) p  ∎))                        ↝⟨ cong (λ f → proj₁ (f Bool (swap-as-an-equality univ))) ⟩
+
+   swap-as-an-equality univ ≡ refl _                               ↝⟨ swap≢refl univ ⟩
+
+   ⊥                                                               □)
+
+-- Set₁ does not have h-level 3 (assuming extensionality and
+-- univalence).
+
+¬-Set₁-groupoid :
+  Extensionality (# 1) (# 1) →
+  Univalence (# 1) →
+  Univalence (# 0) →
+  ¬ H-level 3 Set₁
+¬-Set₁-groupoid ext univ₁ univ₀ =
+  let L = _ in
+
+  H-level 3 Set₁                        ↝⟨ (λ h → h _ _) ⟩
+  Is-set (L ≡ L)                        ↝⟨ H-level.respects-surjection (_≃_.surjection $ ≡≃≃ univ₁) 2 ⟩
+  Is-set (L ≃ L)                        ↝⟨ (λ h → h _ _) ⟩
+  Is-proposition (F.id ≡ F.id)          ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≃-≡ $ ↔⇒≃ ≃-as-Σ) 1 ⟩
+  Is-proposition ((id , _) ≡ (id , _))  ↝⟨ H-level.respects-surjection
+                                             (_↔_.surjection $ inverse $ ignore-propositional-component (Eq.propositional ext id)) 1 ⟩
+  Is-proposition (id ≡ id)              ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ extensionality-isomorphism ext) 1 ⟩
+  Is-proposition ((l : L) → l ≡ l)      ↝⟨ proj₂ $ ¬-type-of-refl-propositional ext univ₀ ⟩□
+  ⊥                                     □
