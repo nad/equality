@@ -13,6 +13,7 @@ module Univalence-axiom
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Bijection eq as Bijection using (_↔_)
+open import Bool eq
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq
@@ -73,20 +74,83 @@ Univalence ℓ = {A B : Set ℓ} → Univalence′ A B
 ≃⇒≡ univ = _≃_.from (≡≃≃ univ)
 
 ------------------------------------------------------------------------
+-- Some simple lemmas
+
+abstract
+
+  -- "Evaluation rule" for ≡⇒≃.
+
+  ≡⇒≃-refl : ∀ {a} {A : Set a} →
+             ≡⇒≃ (refl A) ≡ Eq.id
+  ≡⇒≃-refl = ≡⇒↝-refl
+
+  -- "Evaluation rule" for ≡⇒→.
+
+  ≡⇒→-refl : ∀ {a} {A : Set a} →
+             ≡⇒→ (refl A) ≡ id
+  ≡⇒→-refl = cong _≃_.to ≡⇒≃-refl
+
+  -- "Evaluation rule" (?) for ≃⇒≡.
+
+  ≃⇒≡-id : ∀ {a} {A : Set a}
+           (univ : Univalence′ A A) →
+           ≃⇒≡ univ Eq.id ≡ refl A
+  ≃⇒≡-id univ =
+    ≃⇒≡ univ Eq.id           ≡⟨ sym $ cong (≃⇒≡ univ) ≡⇒≃-refl ⟩
+    ≃⇒≡ univ (≡⇒≃ (refl _))  ≡⟨ _≃_.left-inverse-of (≡≃≃ univ) _ ⟩∎
+    refl _                   ∎
+
+  -- A simplification lemma for ≃⇒≡.
+
+  ≡⇒→-≃⇒≡ : ∀ k {ℓ} {A B : Set ℓ} {eq : A ≃ B}
+            (univ : Univalence′ A B) →
+            to-implication (≡⇒↝ k (≃⇒≡ univ eq)) ≡ _≃_.to eq
+  ≡⇒→-≃⇒≡ k {eq = eq} univ =
+    to-implication (≡⇒↝ k (≃⇒≡ univ eq))  ≡⟨ to-implication-≡⇒↝ k _ ⟩
+    ≡⇒↝ implication (≃⇒≡ univ eq)         ≡⟨ sym $ to-implication-≡⇒↝ equivalence _ ⟩
+    ≡⇒→ (≃⇒≡ univ eq)                     ≡⟨ cong _≃_.to (_≃_.right-inverse-of (≡≃≃ univ) _) ⟩∎
+    _≃_.to eq                             ∎
+
+------------------------------------------------------------------------
 -- A consequence: Set is not a set
 
 -- The univalence axiom implies that Set is not a set. (This was
 -- pointed out to me by Thierry Coquand.)
 
+module _ (univ : Univalence′ Bool Bool) where
+
+  -- First note that the univalence axiom implies that there is an
+  -- inhabitant of Bool ≡ Bool that is not equal to refl.
+
+  swap-as-an-equality : Bool ≡ Bool
+  swap-as-an-equality = ≃⇒≡ univ (Eq.↔⇒≃ swap)
+
+  abstract
+
+    swap≢refl : swap-as-an-equality ≢ refl Bool
+    swap≢refl =
+      swap-as-an-equality ≡ refl _            ↝⟨ cong ≡⇒→ ⟩
+      ≡⇒→ swap-as-an-equality ≡ ≡⇒→ (refl _)  ↝⟨ subst (uncurry _≡_) (cong₂ _,_ (≡⇒→-≃⇒≡ equivalence univ) ≡⇒→-refl) ⟩
+      not ≡ id                                ↝⟨ cong (_$ false) ⟩
+      true ≡ false                            ↝⟨ Bool.true≢false ⟩□
+      ⊥                                       □
+
+    -- This implies that Set is not a set.
+
+    ¬-Set-set : ¬ Is-set Set
+    ¬-Set-set =
+      Is-set Set                         ↝⟨ _⇔_.to set⇔UIP ⟩
+      Uniqueness-of-identity-proofs Set  ↝⟨ (λ uip → uip _ _) ⟩
+      swap-as-an-equality ≡ refl Bool    ↝⟨ swap≢refl ⟩□
+      ⊥                                  □
+
+------------------------------------------------------------------------
+-- A consequence: some equality types have infinitely many inhabitants
+
 abstract
 
-  -- First a lemma: Some equality types have infinitely many
-  -- inhabitants (assuming univalence).
-  --
-  -- (This lemma is more general than what is necessary for proving
-  -- ¬-Set-set below. For that lemma it is enough to observe that
-  -- there are two proofs of Bool ≡ Bool, corresponding to id and
-  -- not.)
+  -- Some equality types have infinitely many inhabitants (assuming
+  -- univalence).
 
   equality-can-have-infinitely-many-inhabitants :
     Univalence′ ℕ ℕ →
@@ -107,13 +171,13 @@ abstract
            ≡⇒≃ (cast (f y))  ≡⟨ _≃_.right-inverse-of (≡≃≃ univ) (f y) ⟩∎
            f y               ∎)
 
-    swap : ℕ → ℕ → ℕ
-    swap i zero    = i
-    swap i (suc n) with ℕ._≟_ i (suc n)
+    swap_and-0 : ℕ → ℕ → ℕ
+    swap i and-0 zero    = i
+    swap i and-0 (suc n) with ℕ._≟_ i (suc n)
     ... | yes i≡1+n = zero
     ... | no  i≢1+n = suc n
 
-    swap∘swap : ∀ i n → swap i (swap i n) ≡ n
+    swap∘swap : ∀ i n → swap i and-0 (swap i and-0 n) ≡ n
     swap∘swap zero    zero    = refl zero
     swap∘swap (suc i) zero    with ℕ._≟_ i i
     ... | yes _   = refl 0
@@ -127,7 +191,9 @@ abstract
     p : ℕ → ℕ ≃ ℕ
     p i = ↔⇒≃ record
       { surjection = record
-        { logical-equivalence = record { to = swap i; from = swap i }
+        { logical-equivalence = record { to   = swap i and-0
+                                       ; from = swap i and-0
+                                       }
         ; right-inverse-of    = swap∘swap i
         }
       ; left-inverse-of = swap∘swap i
@@ -135,21 +201,13 @@ abstract
 
     p-injective : Injective p
     p-injective {x = i₁} {y = i₂} p-i₁≡p-i₂ =
-      i₁         ≡⟨ refl i₁ ⟩
-      swap i₁ 0  ≡⟨ cong (λ f → f 0) swap-i₁≡swap-i₂ ⟩
-      swap i₂ 0  ≡⟨ refl i₂ ⟩∎
-      i₂         ∎
+      i₁               ≡⟨ refl i₁ ⟩
+      swap i₁ and-0 0  ≡⟨ cong (λ f → f 0) swap-i₁≡swap-i₂ ⟩
+      swap i₂ and-0 0  ≡⟨ refl i₂ ⟩∎
+      i₂               ∎
       where
-      swap-i₁≡swap-i₂ : swap i₁ ≡ swap i₂
+      swap-i₁≡swap-i₂ : swap i₁ and-0 ≡ swap i₂ and-0
       swap-i₁≡swap-i₂ = cong _≃_.to p-i₁≡p-i₂
-
-  -- Set is not a set.
-
-  ¬-Set-set : Univalence′ ℕ ℕ → ¬ Is-set Set
-  ¬-Set-set univ is-set
-    with equality-can-have-infinitely-many-inhabitants univ
-  ... | (A , B , p , inj) =
-    ℕ.0≢+ $ inj $ proj₁ $ is-set A B (p 0) (p 1)
 
 ------------------------------------------------------------------------
 -- A consequence: extensionality for functions
@@ -408,39 +466,6 @@ abstract
     implicit-Π-closure ext 1 λ _ →
     implicit-Π-closure ext 1 λ _ →
     Univalence′-propositional ext
-
-  -- "Evaluation rule" for ≡⇒≃.
-
-  ≡⇒≃-refl : ∀ {a} {A : Set a} →
-             ≡⇒≃ (refl A) ≡ Eq.id
-  ≡⇒≃-refl = ≡⇒↝-refl
-
-  -- "Evaluation rule" for ≡⇒→.
-
-  ≡⇒→-refl : ∀ {a} {A : Set a} →
-             ≡⇒→ (refl A) ≡ id
-  ≡⇒→-refl = cong _≃_.to ≡⇒≃-refl
-
-  -- "Evaluation rule" (?) for ≃⇒≡.
-
-  ≃⇒≡-id : ∀ {a} {A : Set a}
-           (univ : Univalence′ A A) →
-           ≃⇒≡ univ Eq.id ≡ refl A
-  ≃⇒≡-id univ =
-    ≃⇒≡ univ Eq.id           ≡⟨ sym $ cong (≃⇒≡ univ) ≡⇒≃-refl ⟩
-    ≃⇒≡ univ (≡⇒≃ (refl _))  ≡⟨ _≃_.left-inverse-of (≡≃≃ univ) _ ⟩∎
-    refl _                   ∎
-
-  -- Simplification lemma for ≃⇒≡.
-
-  ≡⇒→-≃⇒≡ : ∀ k {ℓ} {A B : Set ℓ} {eq : A ≃ B}
-            (univ : Univalence′ A B) →
-            to-implication (≡⇒↝ k (≃⇒≡ univ eq)) ≡ _≃_.to eq
-  ≡⇒→-≃⇒≡ k {eq = eq} univ =
-    to-implication (≡⇒↝ k (≃⇒≡ univ eq))  ≡⟨ to-implication-≡⇒↝ k _ ⟩
-    ≡⇒↝ implication (≃⇒≡ univ eq)         ≡⟨ sym $ to-implication-≡⇒↝ equivalence _ ⟩
-    ≡⇒→ (≃⇒≡ univ eq)                     ≡⟨ cong _≃_.to (_≃_.right-inverse-of (≡≃≃ univ) _) ⟩∎
-    _≃_.to eq                             ∎
 
   -- ≡⇒≃ commutes with sym/Eq.inverse (assuming extensionality).
 

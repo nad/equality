@@ -96,6 +96,10 @@ import Equivalence
 
 import Function-universe
 
+-- Some definitions related to and properties of booleans.
+
+import Bool
+
 -- The univalence axiom.
 
 import Univalence-axiom
@@ -132,10 +136,6 @@ import Structure-identity-principle
 -- M-types.
 
 import M
-
--- Some definitions related to and properties of booleans.
-
-import Bool
 
 -- Some definitions related to and properties of finite sets.
 

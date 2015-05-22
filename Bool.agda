@@ -4,18 +4,18 @@
 
 {-# OPTIONS --without-K #-}
 
--- Note that this module is not parametrised by a definition of
--- equality; it uses ordinary propositional equality.
+open import Equality
 
-module Bool where
+module Bool
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Equality.Propositional
 open import Prelude hiding (id; _∘_)
 
-open import Bijection equality-with-J using (_↔_)
-open import Equality.Decision-procedures equality-with-J
-open import Equivalence equality-with-J using (_≃_; ↔⇒≃; lift-equality)
-open import Function-universe equality-with-J
+open import Bijection eq using (_↔_)
+open Derived-definitions-and-properties eq
+open import Equality.Decision-procedures eq
+open import Equivalence eq using (_≃_; ↔⇒≃; lift-equality)
+open import Function-universe eq
 
 -- A non-trivial automorphism on Bool.
 
@@ -32,8 +32,8 @@ swap = record
   }
   where
   not∘not : ∀ b → not (not b) ≡ b
-  not∘not true  = refl
-  not∘not false = refl
+  not∘not true  = refl _
+  not∘not false = refl _
 
 private
 
@@ -43,16 +43,16 @@ private
 -- Equality rearrangement lemmas.
 
 not≡⇒≢ : (b₁ b₂ : Bool) → not b₁ ≡ b₂ → b₁ ≢ b₂
-not≡⇒≢ true  true  ()
-not≡⇒≢ true  false _ ()
-not≡⇒≢ false true  _ ()
-not≡⇒≢ false false ()
+not≡⇒≢ true  true  f≡t _   = Bool.true≢false (sym f≡t)
+not≡⇒≢ true  false _   t≡f = Bool.true≢false t≡f
+not≡⇒≢ false true  _   f≡t = Bool.true≢false (sym f≡t)
+not≡⇒≢ false false t≡f _   = Bool.true≢false t≡f
 
 ≢⇒not≡ : (b₁ b₂ : Bool) → b₁ ≢ b₂ → not b₁ ≡ b₂
-≢⇒not≡ true  true  t≢t = ⊥-elim (t≢t (refl))
-≢⇒not≡ true  false _   = refl
-≢⇒not≡ false true  _   = refl
-≢⇒not≡ false false f≢f = ⊥-elim (f≢f (refl))
+≢⇒not≡ true  true  t≢t = ⊥-elim (t≢t (refl _))
+≢⇒not≡ true  false _   = refl _
+≢⇒not≡ false true  _   = refl _
+≢⇒not≡ false false f≢f = ⊥-elim (f≢f (refl _))
 
 -- Bool ≃ Bool is isomorphic to Bool (assuming extensionality).
 
@@ -64,21 +64,21 @@ not≡⇒≢ false false ()
       { to   = λ eq → _≃_.to eq true
       ; from = if_then id else ↔⇒≃ swap
       }
-    ; right-inverse-of = λ { true → refl; false → refl }
+    ; right-inverse-of = λ { true → refl _; false → refl _ }
     }
   ; left-inverse-of = λ eq → lift-equality ext (ext (lemma₂ eq))
   }
   where
   lemma₁ : ∀ b → _≃_.to (if b then id else ↔⇒≃ swap) false ≡ not b
-  lemma₁ true  = refl
-  lemma₁ false = refl
+  lemma₁ true  = refl _
+  lemma₁ false = refl _
 
   lemma₂ : ∀ eq b →
            _≃_.to (if _≃_.to eq true then id else ↔⇒≃ swap) b ≡
            _≃_.to eq b
   lemma₂ eq true  with _≃_.to eq true
-  ...             | true  = refl
-  ...             | false = refl
+  ...             | true  = refl _
+  ...             | false = refl _
   lemma₂ eq false =
     _≃_.to (if _≃_.to eq true then id else ↔⇒≃ swap) false  ≡⟨ lemma₁ (_≃_.to eq true) ⟩
     not (_≃_.to eq true)                                    ≡⟨ ≢⇒not≡ _ _ (Bool.true≢false ∘ _≃_.injective eq) ⟩∎
@@ -95,21 +95,21 @@ not≡⇒≢ false false ()
       { to   = λ eq → _≃_.to eq false
       ; from = if_then ↔⇒≃ swap else id
       }
-    ; right-inverse-of = λ { true → refl; false → refl }
+    ; right-inverse-of = λ { true → refl _; false → refl _ }
     }
   ; left-inverse-of = λ eq → lift-equality ext (ext (lemma₂ eq))
   }
   where
   lemma₁ : ∀ b → _≃_.to (if b then ↔⇒≃ swap else id) true ≡ not b
-  lemma₁ true  = refl
-  lemma₁ false = refl
+  lemma₁ true  = refl _
+  lemma₁ false = refl _
 
   lemma₂ : ∀ eq b →
            _≃_.to (if _≃_.to eq false then ↔⇒≃ swap else id) b ≡
            _≃_.to eq b
   lemma₂ eq false with _≃_.to eq false
-  ...             | true  = refl
-  ...             | false = refl
+  ...             | true  = refl _
+  ...             | false = refl _
   lemma₂ eq true  =
     _≃_.to (if _≃_.to eq false then ↔⇒≃ swap else id) true  ≡⟨ lemma₁ (_≃_.to eq false) ⟩
     not (_≃_.to eq false)                                   ≡⟨ ≢⇒not≡ _ _ (Bool.true≢false ∘ sym ∘ _≃_.injective eq) ⟩∎
