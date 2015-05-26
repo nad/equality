@@ -1080,6 +1080,22 @@ contractible↔⊤≃ ext = record
   ; left-inverse-of = λ _ → refl (λ _ → tt)
   }
 
+-- ¬ ⊥ is isomorphic to ⊤ (assuming extensionality).
+
+¬⊥↔⊤ : ∀ {ℓ} →
+       Extensionality ℓ lzero →
+       ¬ ⊥ {ℓ = ℓ} ↔ ⊤
+¬⊥↔⊤ ext = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = _
+      ; from = λ _ → ⊥-elim
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = λ _ → ext (λ x → ⊥-elim x)
+  }
+
 -- Π is "commutative".
 
 Π-comm : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
