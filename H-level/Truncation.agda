@@ -191,6 +191,31 @@ abstract
   A × ⊤          ↝⟨ ×-right-identity ⟩□
   A              □
 
+-- If A is merely inhabited (at a certain level), then the
+-- propositional truncation of A (at the same level) is isomorphic to
+-- the unit type (assuming extensionality).
+
+inhabited⇒∥∥↔⊤ :
+  ∀ {ℓ a} {A : Set a} →
+  Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
+  ∥ A ∥ 1 ℓ → ∥ A ∥ 1 ℓ ↔ ⊤
+inhabited⇒∥∥↔⊤ ext ∥a∥ =
+  inverse $ _⇔_.to contractible⇔⊤↔ $
+    propositional⇒inhabited⇒contractible
+      (truncation-has-correct-h-level 1 ext)
+      ∥a∥
+
+-- If A is not inhabited, then the propositional truncation of A is
+-- isomorphic to the empty type.
+
+not-inhabited⇒∥∥↔⊥ :
+  ∀ {ℓ₁ ℓ₂ a} {A : Set a} →
+  ¬ A → ∥ A ∥ 1 ℓ₁ ↔ ⊥ {ℓ = ℓ₂}
+not-inhabited⇒∥∥↔⊥ {A = A} =
+  ¬ A            ↝⟨ (λ ¬a ∥a∥ → rec ⊥-propositional ¬a (with-lower-level _ ∥a∥)) ⟩
+  ¬ ∥ A ∥ 1 _    ↝⟨ inverse ∘ ⊥↔uninhabited ⟩□
+  ∥ A ∥ 1 _ ↔ ⊥  □
+
 -- The following two results come from "Generalizations of Hedberg's
 -- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
