@@ -331,3 +331,22 @@ implicit-Π↔Π = record
     }
   ; left-inverse-of = refl
   }
+
+-- Families of functions that satisfy a kind of involution property
+-- can be turned into bijections.
+
+bijection-from-involutive-family :
+  ∀ {a b} {A : Set a} {B : A → Set b} →
+  (f : ∀ a₁ a₂ → B a₁ → B a₂) →
+  (∀ a₁ a₂ (x : B a₁) → f _ _ (f _ a₂ x) ≡ x) →
+  ∀ a₁ a₂ → B a₁ ↔ B a₂
+bijection-from-involutive-family f f-involutive _ _ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = f _ _
+      ; from = f _ _
+      }
+    ; right-inverse-of = f-involutive _ _
+    }
+  ; left-inverse-of = f-involutive _ _
+  }
