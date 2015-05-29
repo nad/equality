@@ -257,6 +257,25 @@ abstract
         (λ pr₁p₁≡pr₁p₂ →
            hB (proj₁ p₂) (subst B pr₁p₁≡pr₁p₂ (proj₂ p₁)) (proj₂ p₂))
 
+  -- In the case of contractibility the codomain only needs to have
+  -- the right h-level (0) for a single index.
+
+  Σ-closure-contractible :
+    ∀ {a b} {A : Set a} {B : A → Set b} →
+    (c : Contractible A) → Contractible (B (proj₁ c)) →
+    Contractible (Σ A B)
+  Σ-closure-contractible {B = B} cA (b , irrB) = Σ-closure 0 cA cB
+    where
+    cB : ∀ a → Contractible (B a)
+    cB a =
+      subst B (proj₂ cA a) b , λ b′ →
+
+      subst B (proj₂ cA a) b                                ≡⟨ cong (subst B (proj₂ cA a)) $
+                                                                irrB (subst B (sym $ proj₂ cA a) b′) ⟩
+      subst B (proj₂ cA a) (subst B (sym $ proj₂ cA a) b′)  ≡⟨ subst-subst-sym _ _ _ ⟩∎
+
+      b′                                                    ∎
+
   -- H-level is closed under _×_.
 
   ×-closure : ∀ {a b} {A : Set a} {B : Set b} n →
