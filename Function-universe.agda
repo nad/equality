@@ -722,6 +722,27 @@ private
 ∃-cong {equivalence}         = λ B₁≃B₂ →
   from-bijection $ ∃-cong-bij (from-equivalence ⊚ B₁≃B₂)
 
+private
+
+  -- ∃-cong also works for _×_, in which case it is a more general
+  -- variant of id ×-cong_:
+
+  ×-cong₂ : ∀ {k a b₁ b₂}
+              {A : Set a} {B₁ : Set b₁} {B₂ : Set b₂} →
+           (A → B₁ ↝[ k ] B₂) → A × B₁ ↝[ k ] A × B₂
+  ×-cong₂ = ∃-cong
+
+-- The following lemma is a more general variant of _×-cong id.
+
+×-cong₁ : ∀ {k a₁ a₂ b}
+            {A₁ : Set a₁} {A₂ : Set a₂} {B : Set b} →
+          (B → A₁ ↝[ k ] A₂) → A₁ × B ↝[ k ] A₂ × B
+×-cong₁ {A₁ = A₁} {A₂} {B} A₁↔A₂ =
+  A₁ × B  ↔⟨ ×-comm ⟩
+  B × A₁  ↝⟨ ∃-cong A₁↔A₂ ⟩
+  B × A₂  ↔⟨ ×-comm ⟩□
+  A₂ × B  □
+
 -- Lemmas that can be used to simplify sigma types where one of the
 -- two type arguments is (conditionally) isomorphic to the unit type.
 
@@ -825,9 +846,7 @@ currying = record
   B x                    ↔⟨ inverse ×-right-identity ⟩
   B x × ⊤                ↔⟨ id ×-cong _⇔_.to contractible⇔⊤↔ (singleton-contractible x) ⟩
   B x × (∃ λ y → y ≡ x)  ↔⟨ ∃-comm ⟩
-  (∃ λ y → B x × y ≡ x)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩
-  (∃ λ y → y ≡ x × B x)  ↔⟨ ∃-cong (λ y → ∃-cong (λ y≡x → subst (λ x → B x ↔ B y) y≡x id)) ⟩
-  (∃ λ y → y ≡ x × B y)  ↔⟨ ∃-cong (λ _ → ×-comm) ⟩□
+  (∃ λ y → B x × y ≡ x)  ↔⟨ ∃-cong (λ y → ×-cong₁ (λ y≡x → subst (λ x → B x ↔ B y) y≡x id)) ⟩□
   (∃ λ y → B y × y ≡ x)  □
 
 -- A variant of ∃-intro.
