@@ -1068,6 +1068,17 @@ contractible↔⊤≃ ext = record
   ; left-inverse-of = refl
   }
 
+-- A lemma that can be used to simplify a pi type where the domain is
+-- isomorphic to the unit type.
+
+drop-⊤-left-Π : ∀ {a b} {A : Set a} {B : A → Set b} →
+                Extensionality a b →
+                (A↔⊤ : A ↔ ⊤) → ((x : A) → B x) ↔ B (_↔_.from A↔⊤ tt)
+drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
+  ((x : A) → B x)                 ↔⟨ inverse $ Eq.Π-preserves ext (inverse $ from-isomorphism A↔⊤) (λ _ → id) ⟩
+  ((x : ⊤) → B (_↔_.from A↔⊤ x))  ↝⟨ Π-left-identity ⟩□
+  B (_↔_.from A↔⊤ tt)             □
+
 →-right-zero : ∀ {a} {A : Set a} → (A → ⊤) ↔ ⊤
 →-right-zero = record
   { surjection = record
