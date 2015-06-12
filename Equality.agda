@@ -434,6 +434,30 @@ module Derived-definitions-and-properties
       subst {A = Other-singleton x} (P ∘ proj₂) (refl (x , refl x)) p  ≡⟨ subst-refl {A = Other-singleton x} (P ∘ proj₂) p ⟩∎
       p                                                                ∎
 
+  -- A dependent variant of cong.
+
+  dependent-cong :
+    ∀ {a b} {A : Set a} {B : A → Set b}
+    (f : (x : A) → B x) {x y} (x≡y : x ≡ y) →
+    subst B x≡y (f x) ≡ f y
+  dependent-cong {B = B} f = elim
+    (λ {x y} (x≡y : x ≡ y) → subst B x≡y (f x) ≡ f y)
+    (λ x → subst B (refl x) (f x)  ≡⟨ subst-refl _ _ ⟩∎
+           f x                     ∎)
+
+  abstract
+
+    -- "Evaluation rule" for dependent-cong.
+
+    dependent-cong-refl :
+      ∀ {a b} {A : Set a} {B : A → Set b} (f : (x : A) → B x) {x} →
+      dependent-cong f (refl x) ≡ subst-refl B (f x)
+    dependent-cong-refl {B = B} f {x} =
+      elim (λ {x y} (x≡y : x ≡ y) → subst B x≡y (f x) ≡ f y)
+           (λ x → subst-refl B (f x))
+           (refl x)                                           ≡⟨ elim-refl _ _ ⟩∎
+      subst-refl B (f x)                                      ∎
+
   -- Binary congruence.
 
   cong₂ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
