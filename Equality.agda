@@ -1179,3 +1179,25 @@ module Derived-definitions-and-properties
          q ≡ r                                ≡⟨ sym $ cong₂ _≡_ (trans-reflʳ _) (trans-reflˡ _) ⟩∎
          trans q (refl x) ≡ trans (refl x) r  ∎)
       p
+
+    -- Sometimes one can turn two ("modified") copies of a proof into
+    -- one.
+
+    trans-cong-cong :
+      ∀ {a b} {A : Set a} {B : Set b} {x y : A}
+      (f : A → A → B) (p : x ≡ y) →
+      trans (cong (λ z → f z x) p)
+            (cong (λ z → f y z) p) ≡
+             cong (λ z → f z z) p
+    trans-cong-cong f = elim
+      (λ {x y} p → trans (cong (λ z → f z x) p)
+                         (cong (λ z → f y z) p) ≡
+                          cong (λ z → f z z) p)
+      (λ x → trans (cong (λ z → f z x) (refl x))
+                   (cong (λ z → f x z) (refl x))  ≡⟨ cong₂ trans (cong-refl _) (cong-refl _) ⟩
+
+             trans (refl (f x x)) (refl (f x x))  ≡⟨ trans-refl-refl ⟩
+
+             refl (f x x)                         ≡⟨ sym $ cong-refl (λ z → f z z) ⟩∎
+
+             cong (λ z → f z z) (refl x)          ∎)
