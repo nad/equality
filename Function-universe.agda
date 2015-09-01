@@ -1110,21 +1110,29 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
   ; left-inverse-of = λ _ → refl (λ _ → tt)
   }
 
+-- Function types with the empty type as domain are isomorphic to the
+-- unit type (assuming extensionality).
+
+Π⊥↔⊤ : ∀ {ℓ a} {A : ⊥ {ℓ = ℓ} → Set a} →
+       Extensionality ℓ a →
+       ((x : ⊥) → A x) ↔ ⊤
+Π⊥↔⊤ ext = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = _
+      ; from = λ _ x → ⊥-elim x
+      }
+    ; right-inverse-of = λ _ → refl _
+    }
+  ; left-inverse-of = λ _ → ext (λ x → ⊥-elim x)
+  }
+
 -- ¬ ⊥ is isomorphic to ⊤ (assuming extensionality).
 
 ¬⊥↔⊤ : ∀ {ℓ} →
        Extensionality ℓ lzero →
        ¬ ⊥ {ℓ = ℓ} ↔ ⊤
-¬⊥↔⊤ ext = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = _
-      ; from = λ _ → ⊥-elim
-      }
-    ; right-inverse-of = refl
-    }
-  ; left-inverse-of = λ _ → ext (λ x → ⊥-elim x)
-  }
+¬⊥↔⊤ = Π⊥↔⊤
 
 -- Π is "commutative".
 
