@@ -1134,6 +1134,28 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
        ¬ ⊥ {ℓ = ℓ} ↔ ⊤
 ¬⊥↔⊤ = Π⊥↔⊤
 
+-- Simplification lemmas for types of the form A → A → B.
+
+→→↠→ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (A → A → B) ↠ (A → B)
+→→↠→ = record
+  { logical-equivalence = record
+    { to   = λ f x → f x x
+    ; from = λ f x _ → f x
+    }
+  ; right-inverse-of = refl
+  }
+
+→→⊥↔→⊥ :
+  ∀ {a ℓ} {A : Set a} →
+  Extensionality a (a ⊔ ℓ) →
+  (A → A → ⊥ {ℓ = ℓ}) ↔ (A → ⊥ {ℓ = ℓ})
+→→⊥↔→⊥ ext = record
+  { surjection      = →→↠→
+  ; left-inverse-of = λ f → ext λ x → ⊥-elim (f x x)
+  }
+
 -- Π is "commutative".
 
 Π-comm : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
