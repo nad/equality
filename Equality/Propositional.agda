@@ -2,7 +2,7 @@
 -- Propositional equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 module Equality.Propositional where
 

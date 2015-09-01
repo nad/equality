@@ -8,7 +8,7 @@
 -- This module has been developed in collaboration with Thorsten
 -- Altenkirch.
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 module Partiality-monad.Inductive where
 
