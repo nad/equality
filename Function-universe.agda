@@ -1503,6 +1503,23 @@ private
   from-bijection ∘ ↑-cong-↔ ∘ from-equivalence
 
 ------------------------------------------------------------------------
+-- Lemmas related to ⊥
+
+-- All instances of ⊥ are isomorphic.
+
+⊥↔⊥ : ∀ {ℓ₁ ℓ₂} → ⊥ {ℓ = ℓ₁} ↔ ⊥ {ℓ = ℓ₂}
+⊥↔⊥ = ⊥↔uninhabited ⊥-elim
+
+-- All instances of A → ⊥ are isomorphic to ¬ A.
+
+¬↔→⊥ : ∀ {a ℓ} {A : Set a} →
+       Extensionality a ℓ →
+       ¬ A ↔ (A → ⊥ {ℓ = ℓ})
+¬↔→⊥ {A = A} ext =
+  (A → ⊥₀)  ↝⟨ →-cong ext id ⊥↔⊥ ⟩□
+  (A → ⊥)   □
+
+------------------------------------------------------------------------
 -- A lemma related to H-level
 
 -- H-level n preserves isomorphisms (assuming extensionality).
