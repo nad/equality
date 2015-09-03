@@ -183,12 +183,11 @@ abstract
   ∥ A ∥ 1 ℓ × A ↔ A
 ∥∥×↔ {ℓ} {A = A} ext =
   ∥ A ∥ 1 ℓ × A  ↝⟨ ×-comm ⟩
-  A × ∥ A ∥ 1 ℓ  ↝⟨ (∃-cong λ a →
-                       inverse $ _⇔_.to contractible⇔⊤↔ $
-                         propositional⇒inhabited⇒contractible
-                           (truncation-has-correct-h-level 1 ext)
-                           ∣ a ∣) ⟩
-  A × ⊤          ↝⟨ ×-right-identity ⟩□
+  A × ∥ A ∥ 1 ℓ  ↝⟨ (drop-⊤-right λ a → inverse $
+                     _⇔_.to contractible⇔⊤↔ $
+                       propositional⇒inhabited⇒contractible
+                         (truncation-has-correct-h-level 1 ext)
+                         ∣ a ∣) ⟩□
   A              □
 
 -- If A is merely inhabited (at a certain level), then the
@@ -279,64 +278,52 @@ constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B} ext B-set =
 
   lemma₁ : A → B ≃ ∃ λ (f : A → B) → Constant f
   lemma₁ a₀ = ↔⇒≃ (
-    B                                                            ↝⟨ inverse ×-right-identity ⟩
+    B                                                          ↝⟨ (inverse $ drop-⊤-right λ _ → inverse $
+                                                                   _⇔_.to contractible⇔⊤↔ $
+                                                                     Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
+                                                                     singleton-contractible _) ⟩
+    (∃ λ (f₁ : B) → (a : A) → ∃ λ (b : B) → b ≡ f₁)            ↝⟨ (∃-cong λ _ → ΠΣ-comm) ⟩
 
-    B × ⊤                                                        ↝⟨ (∃-cong λ _ →
-                                                                       _⇔_.to contractible⇔⊤↔ $
-                                                                         Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
-                                                                         singleton-contractible _) ⟩
-    (∃ λ (f₁ : B) → (a : A) → ∃ λ (b : B) → b ≡ f₁)              ↝⟨ (∃-cong λ _ → ΠΣ-comm) ⟩
-
-    (∃ λ (f₁ : B) → ∃ λ (f : A → B) → (a : A) → f a ≡ f₁)        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse ×-right-identity) ⟩
-
-    (∃ λ (f₁ : B) → ∃ λ (f : A → B) → ((a : A) → f a ≡ f₁) × ⊤)  ↝⟨ (∃-cong λ f₁ → ∃-cong λ f → ∃-cong λ eq →
-                                                                       _⇔_.to contractible⇔⊤↔ $
-                                                                         propositional⇒inhabited⇒contractible
-                                                                           (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
-                                                                            Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
-                                                                            B-set _ _)
-                                                                           (λ x y → f x  ≡⟨ eq x ⟩
-                                                                                    f₁   ≡⟨ sym (eq y) ⟩∎
-                                                                                    f y  ∎)) ⟩
+    (∃ λ (f₁ : B) → ∃ λ (f : A → B) → (a : A) → f a ≡ f₁)      ↝⟨ (∃-cong λ f₁ → ∃-cong λ f → inverse $ drop-⊤-right λ eq → inverse $
+                                                                   _⇔_.to contractible⇔⊤↔ $
+                                                                     propositional⇒inhabited⇒contractible
+                                                                       (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
+                                                                        Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
+                                                                        B-set _ _)
+                                                                       (λ x y → f x  ≡⟨ eq x ⟩
+                                                                                f₁   ≡⟨ sym (eq y) ⟩∎
+                                                                                f y  ∎)) ⟩
     (∃ λ (f₁ : B) → ∃ λ (f : A → B) →
-       ((a : A) → f a ≡ f₁) × Constant f)                        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → inverse ×-right-identity) ⟩
-
+       ((a : A) → f a ≡ f₁) × Constant f)                      ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ eq → inverse $ drop-⊤-right λ _ → inverse $
+                                                                   _⇔_.to contractible⇔⊤↔ $
+                                                                     propositional⇒inhabited⇒contractible
+                                                                       (B-set _ _)
+                                                                       (eq a₀)) ⟩
     (∃ λ (f₁ : B) → ∃ λ (f : A → B) →
-       ((a : A) → f a ≡ f₁) × Constant f × ⊤)                    ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ eq → ∃-cong λ _ →
-                                                                       _⇔_.to contractible⇔⊤↔ $
-                                                                         propositional⇒inhabited⇒contractible
-                                                                           (B-set _ _)
-                                                                           (eq a₀)) ⟩
-    (∃ λ (f₁ : B) → ∃ λ (f : A → B) →
-       ((a : A) → f a ≡ f₁) × Constant f × f a₀ ≡ f₁)            ↝⟨ ∃-comm ⟩
+       ((a : A) → f a ≡ f₁) × Constant f × f a₀ ≡ f₁)          ↝⟨ ∃-comm ⟩
 
     (∃ λ (f : A → B) → ∃ λ (f₁ : B) →
-       ((a : A) → f a ≡ f₁) × Constant f × f a₀ ≡ f₁)            ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ×-comm) ⟩
+       ((a : A) → f a ≡ f₁) × Constant f × f a₀ ≡ f₁)          ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ×-comm) ⟩
 
     (∃ λ (f : A → B) → ∃ λ (f₁ : B) →
-       (Constant f × f a₀ ≡ f₁) × ((a : A) → f a ≡ f₁))          ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse ×-assoc) ⟩
+       (Constant f × f a₀ ≡ f₁) × ((a : A) → f a ≡ f₁))        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse ×-assoc) ⟩
 
     (∃ λ (f : A → B) → ∃ λ (f₁ : B) →
-       Constant f × f a₀ ≡ f₁ × ((a : A) → f a ≡ f₁))            ↝⟨ (∃-cong λ _ → ∃-comm) ⟩
+       Constant f × f a₀ ≡ f₁ × ((a : A) → f a ≡ f₁))          ↝⟨ (∃-cong λ _ → ∃-comm) ⟩
 
     (∃ λ (f : A → B) → Constant f × ∃ λ (f₁ : B) →
-       f a₀ ≡ f₁ × ((a : A) → f a ≡ f₁))                         ↝⟨ (∃-cong λ f → ∃-cong λ const → ∃-cong λ f₁ → ∃-cong λ eq →
-                                                                       inverse $ _⇔_.to contractible⇔⊤↔ $
-                                                                         propositional⇒inhabited⇒contractible
-                                                                           (Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
-                                                                            B-set _ _)
-                                                                           (λ a → f a   ≡⟨ const a a₀ ⟩
-                                                                                  f a₀  ≡⟨ eq ⟩∎
-                                                                                  f₁    ∎)) ⟩
-    (∃ λ (f : A → B) → Constant f × ∃ λ (f₁ : B) →
-       f a₀ ≡ f₁ × ⊤)                                            ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ×-right-identity) ⟩
-
-    (∃ λ (f : A → B) → Constant f × ∃ λ (f₁ : B) → f a₀ ≡ f₁)    ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
-                                                                       inverse $ _⇔_.to contractible⇔⊤↔ $
-                                                                         other-singleton-contractible _) ⟩
-    (∃ λ (f : A → B) → Constant f × ⊤)                           ↝⟨ (∃-cong λ _ → ×-right-identity) ⟩□
-
-    (∃ λ (f : A → B) → Constant f)                               □)
+       f a₀ ≡ f₁ × ((a : A) → f a ≡ f₁))                       ↝⟨ (∃-cong λ f → ∃-cong λ const → ∃-cong λ f₁ → drop-⊤-right λ eq → inverse $
+                                                                   _⇔_.to contractible⇔⊤↔ $
+                                                                     propositional⇒inhabited⇒contractible
+                                                                       (Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
+                                                                        B-set _ _)
+                                                                       (λ a → f a   ≡⟨ const a a₀ ⟩
+                                                                              f a₀  ≡⟨ eq ⟩∎
+                                                                              f₁    ∎)) ⟩
+    (∃ λ (f : A → B) → Constant f × ∃ λ (f₁ : B) → f a₀ ≡ f₁)  ↝⟨ (∃-cong λ _ → drop-⊤-right λ _ → inverse $
+                                                                   _⇔_.to contractible⇔⊤↔ $
+                                                                     other-singleton-contractible _) ⟩□
+    (∃ λ (f : A → B) → Constant f)                             □)
 
   -- The forward component of the equivalence above does not depend on
   -- the value a₀ of type A, so we get the following result:
