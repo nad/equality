@@ -1160,6 +1160,44 @@ module Derived-definitions-and-properties
       _
       _
 
+    -- Some rearrangement lemmas for equalities between equalities.
+
+    [trans≡]≡[≡trans-symʳ] :
+      ∀ {a} {A : Set a} {a₁ a₂ a₃ : A}
+      (p₁₂ : a₁ ≡ a₂) (p₁₃ : a₁ ≡ a₃) (p₂₃ : a₂ ≡ a₃) →
+      (trans p₁₂ p₂₃ ≡ p₁₃)
+        ≡
+      (p₁₂ ≡ trans p₁₃ (sym p₂₃))
+    [trans≡]≡[≡trans-symʳ] p₁₂ p₁₃ p₂₃ = elim
+      (λ {a₂ a₃} p₂₃ →
+         ∀ {a₁} (p₁₂ : a₁ ≡ a₂) (p₁₃ : a₁ ≡ a₃) →
+         (trans p₁₂ p₂₃ ≡ p₁₃)
+           ≡
+         (p₁₂ ≡ trans p₁₃ (sym p₂₃)))
+      (λ a₂₃ p₁₂ p₁₃ →
+         trans p₁₂ (refl a₂₃) ≡ p₁₃        ≡⟨ cong₂ _≡_ (trans-reflʳ _) (sym $ trans-reflʳ _) ⟩
+         p₁₂ ≡ trans p₁₃ (refl a₂₃)        ≡⟨ cong ((_ ≡_) ∘ trans _) (sym sym-refl) ⟩∎
+         p₁₂ ≡ trans p₁₃ (sym (refl a₂₃))  ∎)
+      p₂₃ p₁₂ p₁₃
+
+    [trans≡]≡[≡trans-symˡ] :
+      ∀ {a} {A : Set a} {a₁ a₂ a₃ : A}
+      (p₁₂ : a₁ ≡ a₂) (p₁₃ : a₁ ≡ a₃) (p₂₃ : a₂ ≡ a₃) →
+      (trans p₁₂ p₂₃ ≡ p₁₃)
+        ≡
+      (p₂₃ ≡ trans (sym p₁₂) p₁₃)
+    [trans≡]≡[≡trans-symˡ] p₁₂ = elim
+      (λ {a₁ a₂} p₁₂ →
+         ∀ {a₃} (p₁₃ : a₁ ≡ a₃) (p₂₃ : a₂ ≡ a₃) →
+         (trans p₁₂ p₂₃ ≡ p₁₃)
+           ≡
+         (p₂₃ ≡ trans (sym p₁₂) p₁₃))
+      (λ a₁₂ p₁₃ p₂₃ →
+         trans (refl a₁₂) p₂₃ ≡ p₁₃        ≡⟨ cong₂ _≡_ (trans-reflˡ _) (sym $ trans-reflˡ _) ⟩
+         p₂₃ ≡ trans (refl a₁₂) p₁₃        ≡⟨ cong ((_ ≡_) ∘ flip trans _) (sym sym-refl) ⟩∎
+         p₂₃ ≡ trans (sym (refl a₁₂)) p₁₃  ∎)
+      p₁₂
+
     -- The following lemma is basically Theorem 2.11.5 from the HoTT
     -- book (the book's lemma gives an equivalence between equality
     -- types, rather than an equality between equality types).
