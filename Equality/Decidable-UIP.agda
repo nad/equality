@@ -17,7 +17,7 @@ open import Logical-equivalence using (module _⇔_)
 open import H-level eq
 open import Prelude
 
--- Constant functions.
+-- Weakly constant functions.
 
 Constant : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
 Constant f = ∀ x y → f x ≡ f y
