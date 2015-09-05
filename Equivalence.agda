@@ -274,15 +274,14 @@ record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   where
   open _↔_ A↔B using (to; from)
 
-  abstract
-    is-equivalence : Is-equivalence to
-    is-equivalence = Preimage.bijection⁻¹-contractible A↔B
+  is-equivalence : Is-equivalence to
+  is-equivalence = Preimage.bijection⁻¹-contractible A↔B
 
-    right-inverse-of : ∀ x → to (from x) ≡ x
-    right-inverse-of = proj₂ ⊚ proj₁ ⊚ is-equivalence
+  right-inverse-of : ∀ x → to (from x) ≡ x
+  right-inverse-of = proj₂ ⊚ proj₁ ⊚ is-equivalence
 
-    irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-    irrelevance = proj₂ ⊚ is-equivalence
+  irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
+  irrelevance = proj₂ ⊚ is-equivalence
 
 -- The function subst is an equivalence family.
 
