@@ -21,6 +21,7 @@ open import Equivalence eq as Eq hiding (_∘_; inverse)
 open import Function-universe eq as F hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
+import Preimage eq as Preimage
 open import Surjection eq using (_↠_)
 
 -- Truncation.
@@ -189,6 +190,29 @@ abstract
                          (truncation-has-correct-h-level 1 ext)
                          ∣ a ∣) ⟩□
   A              □
+
+-- A variant of ∥∥×↔, introduced to ensure that the right-inverse-of
+-- proof is, by definition, simple (see right-inverse-of-∥∥×≃ below).
+
+∥∥×≃ :
+  ∀ {ℓ a} {A : Set a} →
+  Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
+  (∥ A ∥ 1 ℓ × A) ≃ A
+∥∥×≃ ext =
+  ⟨ proj₂
+  , (λ a → propositional⇒inhabited⇒contractible
+             (mono₁ 0 $
+                Preimage.bijection⁻¹-contractible (∥∥×↔ ext) a)
+             ((∣ a ∣ , a) , refl a))
+  ⟩
+
+private
+
+  right-inverse-of-∥∥×≃ :
+    ∀ {ℓ a} {A : Set a}
+    (ext : Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a)) (x : A) →
+    _≃_.right-inverse-of (∥∥×≃ {ℓ = ℓ} ext) x ≡ refl x
+  right-inverse-of-∥∥×≃ _ x = refl (refl x)
 
 -- If A is merely inhabited (at a certain level), then the
 -- propositional truncation of A (at the same level) is isomorphic to
