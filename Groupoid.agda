@@ -50,6 +50,18 @@ record Groupoid o p : Set (lsuc (o ⊔ p)) where
       id ⁻¹ ∘ id  ≡⟨ left-inverse id ⟩∎
       id          ∎
 
+    -- If p is idempotent with respect to _∘_, then p is equal to the
+    -- identity element.
+
+    idempotent⇒≡id : ∀ {x} {p : x ∼ x} → p ∘ p ≡ p → p ≡ id
+    idempotent⇒≡id {p = p} p∘p≡p =
+      p               ≡⟨ sym $ left-identity _ ⟩
+      id ∘ p          ≡⟨ cong (_∘ _) $ sym $ left-inverse _ ⟩
+      (p ⁻¹ ∘ p) ∘ p  ≡⟨ sym $ assoc _ _ _ ⟩
+      p ⁻¹ ∘ (p ∘ p)  ≡⟨ cong (_ ∘_) p∘p≡p ⟩
+      p ⁻¹ ∘ p        ≡⟨ left-inverse _ ⟩∎
+      id              ∎
+
     -- The inverse operator is involutive.
 
     involutive : ∀ {x y} (p : x ∼ y) → p ⁻¹ ⁻¹ ≡ p
