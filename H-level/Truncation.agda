@@ -17,8 +17,10 @@ open import Logical-equivalence using (_⇔_)
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decidable-UIP eq
+import Equality.Groupoid eq as EG
 open import Equivalence eq as Eq hiding (_∘_; inverse)
 open import Function-universe eq as F hiding (_∘_)
+open import Groupoid eq
 open import H-level eq
 open import H-level.Closure eq
 import Preimage eq as Preimage
@@ -274,6 +276,12 @@ constant-endofunction⇔h-stable ext = record
 -- (assuming extensionality). This result is Example 2.2 in "The
 -- General Universal Property of the Propositional Truncation" by
 -- Kraus.
+--
+-- Note that constant-function≃∥inhabited∥⇒inhabited can be proved
+-- using coherently-constant-function≃∥inhabited∥⇒inhabited (as
+-- observed by Kraus). However, when I tried to replace the proof
+-- below the computational properties of the definition changed in an
+-- unfortunate way (for me), so I decided to keep the direct proof.
 
 constant-function≃∥inhabited∥⇒inhabited :
   ∀ {a b} ℓ {A : Set a} {B : Set b} →
@@ -357,6 +365,450 @@ constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B} ext B-set =
     ⟨ (λ b → (λ _ → b) , λ _ _ → trans (refl b) (sym (refl b)))
     , rec (Eq.propositional (lower-extensionality _ ℓ ext) _)
           (λ a → _≃_.is-equivalence (lemma₁ a))
+          (with-lower-level ℓ ∥a∥)
+    ⟩
+
+-- This is (perhaps) an instance of Lemma 2.1 from "The General
+-- Universal Property of the Propositional Truncation" by Kraus.
+
+drop-extra-truncated-hypothesis :
+  ∀ ℓ {a b c d}
+    {A : Set a} {B : A → Set b} {C : A → (∀ x → B x) → Set c}
+    {D : A → (f : ∀ x → B x) → (∀ x → C x f) → Set d} →
+  Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ b ⊔ c ⊔ d ⊔ ℓ) →
+
+  (∥ A ∥ 1 (a ⊔ ℓ) →
+   ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
+    ↔
+  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
+
+drop-extra-truncated-hypothesis ℓ {a} {b} {c} {d} {A} {B} {C} {D} ext =
+  (∥ A ∥ 1 ℓ′ →
+   ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)        ↝⟨ ΠΣ-comm ⟩
+
+  (∃ λ (f : ∥ A ∥ 1 ℓ′ → ∀ x → B x) →
+   ∀ ∥x∥ → ∃ λ (g : ∀ x → C x (f ∥x∥)) → ∀ x → D x (f ∥x∥) g)          ↝⟨ (∃-cong λ _ → ΠΣ-comm) ⟩
+
+  (∃ λ (f : ∥ A ∥ 1 ℓ′ → ∀ x → B x) →
+   ∃ λ (g : ∀ ∥x∥ x → C x (f ∥x∥)) → ∀ ∥x∥ x → D x (f ∥x∥) (g ∥x∥))    ↝⟨ inverse $ Σ-cong currying (λ _ → Σ-cong currying λ _ → currying) ⟩
+
+  (∃ λ (f : (p : ∥ A ∥ 1 ℓ′ × A) → B (proj₂ p)) →
+   ∃ λ (g : ∀ p → C (proj₂ p) (f ∘ (proj₁ p ,_))) →
+            ∀ p → D (proj₂ p) (f ∘ (proj₁ p ,_)) (g ∘ (proj₁ p ,_)))   ↔⟨ Σ-cong (Π-preserves (lower-extensionality lzero (a ⊔ c ⊔ d ⊔ ℓ) ext)
+                                                                                              ∥A∥×A≃A
+                                                                                              (λ _ → F.id))
+                                                                                 (λ f →
+                                                                          Σ-cong (Π-preserves (lower-extensionality lzero (a ⊔ b ⊔ d ⊔ ℓ) ext)
+                                                                                              ∥A∥×A≃A
+                                                                                              (λ { (∥x∥ , x) → ≡⇒↝ _ $ cong (C x) $ lemma f ∥x∥ }))
+                                                                                 (λ g →
+                                                                          Π-preserves (lower-extensionality lzero (a ⊔ b ⊔ c ⊔ ℓ) ext)
+                                                                                      ∥A∥×A≃A
+                                                                                      (λ { (∥x∥ , x) → ≡⇒↝ _ (lemma′ f g ∥x∥ x) }))) ⟩□
+  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)        □
+  where
+  ℓ′ = a ⊔ ℓ
+
+  ∥A∥×A≃A : (∥ A ∥ 1 ℓ′ × A) ≃ A
+  ∥A∥×A≃A = ∥∥×≃ (lower-extensionality lzero (b ⊔ c ⊔ d) ext)
+
+  f′ : (f : (p : ∥ A ∥ 1 ℓ′ × A) → B (proj₂ p)) →
+       ∀ x → B x
+  f′ f x = subst B (refl x) (f (∣ x ∣ , x))
+
+  lemma :
+    ∀ (f : (p : ∥ A ∥ 1 ℓ′ × A) → B (proj₂ p)) ∥x∥ →
+    (f ∘ (∥x∥ ,_)) ≡ f′ f
+  lemma f ∥x∥ = lower-extensionality _ (a ⊔ c ⊔ d ⊔ ℓ) ext λ x →
+    f (∥x∥ , x)                       ≡⟨ cong (λ ∥x∥ → f (∥x∥ , x)) $
+                                         _⇔_.to propositional⇔irrelevant
+                                            (truncation-has-correct-h-level 1
+                                               (lower-extensionality lzero (b ⊔ c ⊔ d) ext))
+                                            _ _ ⟩
+    f (∣ x ∣ , x)                     ≡⟨ sym $ subst-refl _ _ ⟩∎
+    subst B (refl x) (f (∣ x ∣ , x))  ∎
+
+  lemma′ :
+    (f : (p : ∥ A ∥ 1 ℓ′ × A) → B (proj₂ p))
+    (g : (p : ∥ A ∥ 1 ℓ′ × A) → C (proj₂ p) (f ∘ (proj₁ p ,_))) →
+    ∀ ∥x∥ x →
+    D x (f ∘ (∥x∥ ,_)) (g ∘ (∥x∥ ,_)) ≡
+    D x (f′ f)
+        (λ x → subst
+                 (λ x → C x (f′ f))
+                 (refl x)
+                 (_≃_.to (≡⇒↝ equivalence $ cong (C x) $ lemma f ∣ x ∣)
+                         (g (∣ x ∣ , x))))
+  lemma′ f g ∥x∥ x =
+    D x (f ∘ (∥x∥ ,_)) (g ∘ (∥x∥ ,_))                                    ≡⟨ elim (λ {f₁ f₂} f₁≡f₂ → (g : ∀ x → C x f₁) →
+                                                                                    D x f₁ g
+                                                                                      ≡
+                                                                                    D x f₂ (λ x → subst (C x) f₁≡f₂ (g x)))
+                                                                                  (λ f g → cong (D x f) $
+                                                                                           lower-extensionality _ (a ⊔ b ⊔ d ⊔ ℓ) ext λ x →
+                                                                                             g x                         ≡⟨ sym $ subst-refl _ _ ⟩∎
+                                                                                             subst (C x) (refl f) (g x)  ∎)
+                                                                                  (lemma f ∥x∥) _ ⟩
+    D x (f′ f) (λ x → subst (C x) (lemma f ∥x∥) (g (∥x∥ , x)))           ≡⟨ cong (D x (f′ f)) $ lower-extensionality _ (a ⊔ b ⊔ d ⊔ ℓ) ext (λ x →
+                                                                            subst-in-terms-of-≡⇒↝ equivalence _ _ _) ⟩
+    D x (f′ f)
+        (λ x → _≃_.to (≡⇒↝ equivalence $ cong (C x) $ lemma f ∥x∥)
+                      (g (∥x∥ , x)))                                     ≡⟨ cong (D x (f′ f)) $ lower-extensionality _ (a ⊔ b ⊔ d ⊔ ℓ) ext (λ x →
+                                                                            cong (λ ∥x∥ → _≃_.to (≡⇒↝ equivalence $ cong (C x) $ lemma f ∥x∥)
+                                                                                                 (g (∥x∥ , x))) $
+                                                                            _⇔_.to propositional⇔irrelevant
+                                                                               (truncation-has-correct-h-level 1
+                                                                                  (lower-extensionality lzero (b ⊔ c ⊔ d) ext))
+                                                                               _ _) ⟩
+    D x (f′ f)
+        (λ x → _≃_.to (≡⇒↝ equivalence $ cong (C x) $ lemma f ∣ x ∣)
+                      (g (∣ x ∣ , x)))                                   ≡⟨ cong (D x (f′ f)) $ lower-extensionality _ (a ⊔ b ⊔ d ⊔ ℓ) ext (λ x →
+                                                                            sym $ subst-refl _ _) ⟩∎
+    D x (f′ f)
+        (λ x → subst
+                 (λ x → C x (f′ f))
+                 (refl x)
+                 (_≃_.to (≡⇒↝ equivalence $ cong (C x) $ lemma f ∣ x ∣)
+                         (g (∣ x ∣ , x))))                               ∎
+
+-- Having a coherently constant function into a groupoid is equivalent
+-- to having a function from a propositionally truncated type into the
+-- groupoid (assuming extensionality). This result is Example 2.3 in
+-- "The General Universal Property of the Propositional Truncation" by
+-- Kraus.
+
+Coherently-constant :
+  ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Coherently-constant f =
+  ∃ λ (c : Constant f) →
+  ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃
+
+coherently-constant-function≃∥inhabited∥⇒inhabited :
+  ∀ {a b} ℓ {A : Set a} {B : Set b} →
+  Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
+  H-level 3 B →
+  (∃ λ (f : A → B) → Coherently-constant f) ≃ (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)
+coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
+                                                   ext B-groupoid =
+  (∃ λ (f : A → B) → Coherently-constant f)               ↔⟨ inverse $ drop-extra-truncated-hypothesis (b ⊔ ℓ) ext ⟩
+  (∥ A ∥ 1 ℓ′ → ∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ ∀-preserves (lower-extensionality lzero ℓ ext) (inverse ∘ equivalence₂) ⟩□
+  (∥ A ∥ 1 ℓ′ → B)                                        □
+  where
+  ℓ′ = a ⊔ b ⊔ ℓ
+
+  rearrangement-lemma = λ a₀ →
+    (∃ λ (f₁ : B) →
+     ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (c : Constant f) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (c₂ : f a₀ ≡ f₁) → ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ ∃-comm ⟩
+
+    (∃ λ (f : A → B) →
+     ∃ λ (f₁ : B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (c : Constant f) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (c₂ : f a₀ ≡ f₁) → ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-comm) ⟩
+
+    (∃ λ (f : A → B) →
+     ∃ λ (f₁ : B) →
+     ∃ λ (c : Constant f) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (c₂ : f a₀ ≡ f₁) → ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ (∃-cong λ _ → ∃-comm) ⟩
+
+    (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+     ∃ λ (f₁ : B) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (c₂ : f a₀ ≡ f₁) → ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                           ∃-cong λ _ → ∃-comm) ⟩
+    (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+     ∃ λ (f₁ : B) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (c₂ : f a₀ ≡ f₁) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                           ∃-comm) ⟩
+    (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+     ∃ λ (f₁ : B) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     ∃ λ (c₂ : f a₀ ≡ f₁) →
+     ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-comm) ⟩
+
+    (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+     ∃ λ (f₁ : B) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (c₂ : f a₀ ≡ f₁) →
+     ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-comm) ⟩
+
+    (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+     ∃ λ (f₁ : B) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (c₂ : f a₀ ≡ f₁) →
+     ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-comm) ⟩
+
+    (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     ∃ λ (f₁ : B) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (c₂ : f a₀ ≡ f₁) →
+     ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                           ∃-comm) ⟩
+    (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     ∃ λ (f₁ : B) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (c₂ : f a₀ ≡ f₁) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-comm) ⟩
+
+    (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     ∃ λ (f₁ : B) → ∃ λ (c₂ : f a₀ ≡ f₁) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+     (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                           ∃-cong λ _ → ∃-cong λ _ → ×-comm) ⟩
+    (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     ∃ λ (f₁ : B) → ∃ λ (c₂ : f a₀ ≡ f₁) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     ∃ λ (d₂ : (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂) →
+     trans (c a₀ a₀) (c₁ a₀) ≡ c₂)                                     ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                           ∃-cong λ _ → ∃-comm) ⟩□
+    (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+     ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+     ∃ λ (f₁ : B) → ∃ λ (c₂ : f a₀ ≡ f₁) →
+     ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+     ∃ λ (d₂ : (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂) →
+     ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+     trans (c a₀ a₀) (c₁ a₀) ≡ c₂)                                     □
+
+  abstract
+
+    equivalence₁ : A → (B ≃ ∃ λ (f : A → B) → Coherently-constant f)
+    equivalence₁ a₀ = ↔⇒≃ (
+      B                                                                    ↝⟨ (inverse $ drop-⊤-right λ _ → inverse $
+                                                                               _⇔_.to contractible⇔⊤↔ $
+                                                                                 Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
+                                                                                 singleton-contractible _) ⟩
+      (∃ λ (f₁ : B) →
+       (a : A) → ∃ λ (b : B) → b ≡ f₁)                                     ↝⟨ (∃-cong λ _ → ΠΣ-comm) ⟩
+
+      (∃ λ (f₁ : B) →
+       ∃ λ (f : A → B) → (a : A) → f a ≡ f₁)                               ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse $ drop-⊤-right λ _ → inverse $
+                                                                               _⇔_.to contractible⇔⊤↔ $
+                                                                                 Π-closure (lower-extensionality _ ℓ       ext) 0 λ _ →
+                                                                                 Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
+                                                                                 singleton-contractible _) ⟩
+      (∃ λ (f₁ : B) →
+       ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+       ∀ a₁ a₂ → ∃ λ (c : f a₁ ≡ f a₂) → c ≡ trans (c₁ a₁) (sym (c₁ a₂)))  ↔⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                               ∀-preserves (lower-extensionality _ ℓ       ext) λ _ →
+                                                                               ∀-preserves (lower-extensionality _ (a ⊔ ℓ) ext) λ _ →
+                                                                               ∃-cong λ _ → ≡⇒↝ _ $ sym $ [trans≡]≡[≡trans-symʳ] _ _ _) ⟩
+      (∃ λ (f₁ : B) →
+       ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+       ∀ a₁ a₂ → ∃ λ (c : f a₁ ≡ f a₂) → trans c (c₁ a₂) ≡ c₁ a₁)          ↔⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                               ∀-preserves (lower-extensionality _ ℓ ext) λ _ →
+                                                                               ↔⇒≃ ΠΣ-comm) ⟩
+      (∃ λ (f₁ : B) →
+       ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+       ∀ a₁ → ∃ λ (c : ∀ a₂ → f a₁ ≡ f a₂) →
+              ∀ a₂ → trans (c a₂) (c₁ a₂) ≡ c₁ a₁)                         ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ΠΣ-comm) ⟩
+
+      (∃ λ (f₁ : B) →
+       ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+       ∃ λ (c : Constant f) → ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁)   ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                               inverse $ drop-⊤-right λ _ → inverse $
+                                                                               _⇔_.to contractible⇔⊤↔ $
+                                                                                 other-singleton-contractible _) ⟩
+      (∃ λ (f₁ : B) →
+       ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+       ∃ λ (c : Constant f) →
+       ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+       ∃ λ (c₂ : f a₀ ≡ f₁) → trans (c a₀ a₀) (c₁ a₀) ≡ c₂)                ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ c₁ → ∃-cong λ c → ∃-cong λ d₁ →
+                                                                               ∃-cong λ _ → inverse $ drop-⊤-right λ _ → inverse $
+                                                                               _⇔_.to contractible⇔⊤↔ $
+                                                                                 propositional⇒inhabited⇒contractible
+                                                                                   (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
+                                                                                    Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
+                                                                                    Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
+                                                                                    B-groupoid _ _ _ _)
+                                                                                   (λ a₁ a₂ a₃ →
+           trans (c a₁ a₂) (c a₂ a₃)                                                  ≡⟨ cong₂ trans (≡⇒↝ implication
+                                                                                                          ([trans≡]≡[≡trans-symʳ] _ _ _) (d₁ _ _))
+                                                                                                     (≡⇒↝ implication
+                                                                                                          ([trans≡]≡[≡trans-symʳ] _ _ _) (d₁ _ _)) ⟩
+           trans (trans (c₁ a₁) (sym (c₁ a₂)))
+                 (trans (c₁ a₂) (sym (c₁ a₃)))                                        ≡⟨ sym $ trans-assoc _ _ _ ⟩
+
+           trans (trans (trans (c₁ a₁) (sym (c₁ a₂))) (c₁ a₂))
+                 (sym (c₁ a₃))                                                        ≡⟨ cong (flip trans _) $ trans-[trans-sym] _ _ ⟩
+
+           trans (c₁ a₁) (sym (c₁ a₃))                                                ≡⟨ sym $ ≡⇒↝ implication
+                                                                                                   ([trans≡]≡[≡trans-symʳ] _ _ _) (d₁ _ _) ⟩∎
+           c a₁ a₃                                                                    ∎)) ⟩
+
+      (∃ λ (f₁ : B) →
+       ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+       ∃ λ (c : Constant f) →
+       ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+       ∃ λ (c₂ : f a₀ ≡ f₁) → ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+       ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃)                   ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ c₁ → ∃-cong λ c → ∃-cong λ d₁ →
+                                                                               ∃-cong λ c₂ → ∃-cong λ d₃ → inverse $ drop-⊤-right λ d → inverse $
+                                                                               _⇔_.to contractible⇔⊤↔ $
+                                                                                 propositional⇒inhabited⇒contractible
+                                                                                   (Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
+                                                                                    B-groupoid _ _ _ _)
+                                                                                   (λ a →
+           trans (c a₀ a) (c₁ a)                                                      ≡⟨ cong (λ x → trans x _) $ sym $ d _ _ _ ⟩
+           trans (trans (c a₀ a₀) (c a₀ a)) (c₁ a)                                    ≡⟨ trans-assoc _ _ _ ⟩
+           trans (c a₀ a₀) (trans (c a₀ a) (c₁ a))                                    ≡⟨ cong (trans _) $ d₁ _ _ ⟩
+           trans (c a₀ a₀) (c₁ a₀)                                                    ≡⟨ d₃ ⟩∎
+           c₂                                                                         ∎)) ⟩
+
+      (∃ λ (f₁ : B) →
+       ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+       ∃ λ (c : Constant f) →
+       ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+       ∃ λ (c₂ : f a₀ ≡ f₁) → ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
+       ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+       (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                               ↝⟨ rearrangement-lemma a₀ ⟩
+
+      (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+       ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+       ∃ λ (f₁ : B) → ∃ λ (c₂ : f a₀ ≡ f₁) →
+       ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+       ∃ λ (d₂ : (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂) →
+       ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
+       trans (c a₀ a₀) (c₁ a₀) ≡ c₂)                                       ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                               ∃-cong λ _ → ∃-cong λ d₂ → drop-⊤-right λ _ → inverse $
+                                                                               _⇔_.to contractible⇔⊤↔ $
+                                                                                 propositional⇒inhabited⇒contractible
+                                                                                   (B-groupoid _ _ _ _)
+                                                                                   (d₂ _)) ⟩
+      (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+       ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+       ∃ λ (f₁ : B) → ∃ λ (c₂ : f a₀ ≡ f₁) →
+       ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+       ∃ λ (d₂ : (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂) →
+       ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁)                          ↝⟨ (∃-cong λ _ → ∃-cong λ c → ∃-cong λ d → ∃-cong λ _ → ∃-cong λ c₂ →
+                                                                               ∃-cong λ c₁ → drop-⊤-right λ d₂ → inverse $
+                                                                               _⇔_.to contractible⇔⊤↔ $
+                                                                                 propositional⇒inhabited⇒contractible
+                                                                                   (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
+                                                                                    Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
+                                                                                    B-groupoid _ _ _ _)
+                                                                                   (λ a₁ a₂ →
+           trans (c a₁ a₂) (c₁ a₂)                                                    ≡⟨ cong₂ trans (sym $ d _ _ _)
+                                                                                                     (≡⇒↝ implication
+                                                                                                          ([trans≡]≡[≡trans-symˡ] _ _ _) (d₂ _)) ⟩
+           trans (trans (c a₁ a₀) (c a₀ a₂)) (trans (sym (c a₀ a₂)) c₂)               ≡⟨ sym $ trans-assoc _ _ _ ⟩
+           trans (trans (trans (c a₁ a₀) (c a₀ a₂)) (sym (c a₀ a₂))) c₂               ≡⟨ cong (flip trans _) $ trans-[trans]-sym _ _ ⟩
+           trans (c a₁ a₀) c₂                                                         ≡⟨ cong (trans _) $ sym $ d₂ _ ⟩
+           trans (c a₁ a₀) (trans (c a₀ a₁) (c₁ a₁))                                  ≡⟨ sym $ trans-assoc _ _ _ ⟩
+           trans (trans (c a₁ a₀) (c a₀ a₁)) (c₁ a₁)                                  ≡⟨ cong (flip trans _) $ d _ _ _ ⟩
+           trans (c a₁ a₁) (c₁ a₁)                                                    ≡⟨ cong (flip trans _) $
+                                                                                           Groupoid.idempotent⇒≡id (EG.groupoid _) (d _ _ _) ⟩
+           trans (refl _) (c₁ a₁)                                                     ≡⟨ trans-reflˡ _ ⟩∎
+           c₁ a₁                                                                      ∎)) ⟩
+
+      (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+       ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+       ∃ λ (f₁ : B) → ∃ λ (c₂ : f a₀ ≡ f₁) →
+       ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
+       (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂)                               ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                               inverse ΠΣ-comm) ⟩
+      (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+       ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+       ∃ λ (f₁ : B) → ∃ λ (c₂ : f a₀ ≡ f₁) →
+       (a : A) → ∃ λ (c₁ : f a ≡ f₁) → trans (c a₀ a) c₁ ≡ c₂)             ↔⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                               ∀-preserves (lower-extensionality _ (a ⊔ ℓ) ext) λ _ → ∃-cong λ _ →
+                                                                               ≡⇒↝ _ $ [trans≡]≡[≡trans-symˡ] _ _ _) ⟩
+      (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+       ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+       ∃ λ (f₁ : B) → ∃ λ (c₂ : f a₀ ≡ f₁) →
+       (a : A) → ∃ λ (c₁ : f a ≡ f₁) → c₁ ≡ trans (sym (c a₀ a)) c₂)       ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                               drop-⊤-right λ _ → inverse $
+                                                                               _⇔_.to contractible⇔⊤↔ $
+                                                                                 Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
+                                                                                 singleton-contractible _) ⟩
+      (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+       ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
+       ∃ λ (f₁ : B) → f a₀ ≡ f₁)                                           ↝⟨ (∃-cong λ _ → ∃-cong λ _ → drop-⊤-right λ _ → inverse $
+                                                                               _⇔_.to contractible⇔⊤↔ $
+                                                                                 other-singleton-contractible _) ⟩□
+      (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
+       ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃)                   □)
+
+  -- An alternative implementation of the forward component of the
+  -- equivalence above (with shorter proofs).
+
+  to : B → ∃ λ (f : A → B) → Coherently-constant f
+  to b =
+      (λ _ → b)
+    , (λ _ _ → refl b)
+    , (λ _ _ _ → trans-refl-refl)
+
+  abstract
+
+    to-is-an-equivalence : A → Is-equivalence to
+    to-is-an-equivalence a₀ =
+      respects-extensional-equality
+        (λ b →
+           Σ-≡,≡→≡ (refl _) $
+           Σ-≡,≡→≡
+             (proj₁ (subst Coherently-constant
+                           (refl _)
+                           (proj₂ (_≃_.to (equivalence₁ a₀) b)))  ≡⟨ cong proj₁ $ subst-refl Coherently-constant _ ⟩
+
+              (λ _ _ → trans (refl b) (sym (refl b)))             ≡⟨ (lower-extensionality _ ℓ       ext λ _ →
+                                                                      lower-extensionality _ (a ⊔ ℓ) ext λ _ →
+                                                                      trans-symʳ _) ⟩∎
+              (λ _ _ → refl b)                                    ∎)
+             (_⇔_.to propositional⇔irrelevant
+                (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
+                 Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
+                 Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
+                 B-groupoid _ _ _ _)
+                _ _))
+        (_≃_.is-equivalence (equivalence₁ a₀))
+
+  -- The forward component of the equivalence above does not depend on
+  -- the value a₀ of type A, so it suffices to assume that A is merely
+  -- inhabited.
+
+  equivalence₂ :
+    ∥ A ∥ 1 ℓ′ → (B ≃ ∃ λ (f : A → B) → Coherently-constant f)
+  equivalence₂ ∥a∥ =
+    ⟨ to
+    , rec (Eq.propositional (lower-extensionality _ ℓ ext) _)
+          to-is-an-equivalence
           (with-lower-level ℓ ∥a∥)
     ⟩
 
