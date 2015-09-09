@@ -941,7 +941,7 @@ module Derived-definitions-and-properties
            subst B p (proj₂ p₁) ≡ proj₂ p₂)
       _
 
-    -- Proof simplification rules for Σ-≡,≡→≡.
+    -- Proof transformation rules for Σ-≡,≡→≡.
 
     proj₁-Σ-≡,≡→≡ :
       ∀ {a b} {A : Set a} {B : A → Set b} {x₁ x₂ y₁ y₂}
@@ -956,6 +956,170 @@ module Derived-definitions-and-properties
          cong (const _) (trans (sym $ subst-refl B y₁) y₁≡y₂)             ≡⟨ cong-const _ ⟩∎
          refl _                                                           ∎)
       x₁≡x₂ y₁≡y₂
+
+    Σ-≡,≡→≡-cong :
+      ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B}
+      {q₁ q₂ : proj₁ p₁ ≡ proj₁ p₂}
+      (q₁≡q₂ : q₁ ≡ q₂)
+      {r₁ : subst B q₁ (proj₂ p₁) ≡ proj₂ p₂}
+      {r₂ : subst B q₂ (proj₂ p₁) ≡ proj₂ p₂}
+      (r₁≡r₂ : (subst B q₂ (proj₂ p₁)  ≡⟨ cong (flip (subst B) _) (sym q₁≡q₂) ⟩
+                subst B q₁ (proj₂ p₁)  ≡⟨ r₁ ⟩∎
+                proj₂ p₂               ∎)
+                 ≡
+               r₂) →
+      Σ-≡,≡→≡ q₁ r₁ ≡ Σ-≡,≡→≡ q₂ r₂
+    Σ-≡,≡→≡-cong {B = B} = elim
+      (λ {q₁ q₂} q₁≡q₂ →
+         ∀ {r₁ r₂}
+         (r₁≡r₂ : trans (cong (flip (subst B) _) (sym q₁≡q₂)) r₁ ≡ r₂) →
+         Σ-≡,≡→≡ q₁ r₁ ≡ Σ-≡,≡→≡ q₂ r₂)
+      (λ q {r₁ r₂} r₁≡r₂ → cong (Σ-≡,≡→≡ q) (
+         r₁                                                 ≡⟨ sym $ trans-reflˡ _ ⟩
+         trans (refl (subst B q _)) r₁                      ≡⟨ cong (flip trans _) $ sym $ cong-refl _ ⟩
+         trans (cong (flip (subst B) _) (refl q)) r₁        ≡⟨ cong (λ e → trans (cong (flip (subst B) _) e) _) $ sym sym-refl ⟩
+         trans (cong (flip (subst B) _) (sym (refl q))) r₁  ≡⟨ r₁≡r₂ ⟩∎
+         r₂                                                 ∎))
+
+    trans-Σ-≡,≡→≡ :
+      ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ p₃ : Σ A B} →
+      (q₁₂ : proj₁ p₁ ≡ proj₁ p₂) (q₂₃ : proj₁ p₂ ≡ proj₁ p₃)
+      (r₁₂ : subst B q₁₂ (proj₂ p₁) ≡ proj₂ p₂)
+      (r₂₃ : subst B q₂₃ (proj₂ p₂) ≡ proj₂ p₃) →
+      trans (Σ-≡,≡→≡ q₁₂ r₁₂) (Σ-≡,≡→≡ q₂₃ r₂₃) ≡
+      Σ-≡,≡→≡ (trans q₁₂ q₂₃)
+              (subst B (trans q₁₂ q₂₃) (proj₂ p₁)    ≡⟨ sym $ subst-subst _ _ _ _ ⟩
+               subst B q₂₃ (subst B q₁₂ (proj₂ p₁))  ≡⟨ cong (subst _ _) r₁₂ ⟩
+               subst B q₂₃ (proj₂ p₂)                ≡⟨ r₂₃ ⟩∎
+               proj₂ p₃                              ∎)
+    trans-Σ-≡,≡→≡ {B = B} q₁₂ q₂₃ r₁₂ r₂₃ = elim
+      (λ {p₂₁ p₃₁} q₂₃ → ∀ {p₁₁} (q₁₂ : p₁₁ ≡ p₂₁)
+         {p₁₂ p₂₂} (r₁₂ : subst B q₁₂ p₁₂ ≡ p₂₂)
+         {p₃₂} (r₂₃ : subst B q₂₃ p₂₂ ≡ p₃₂) →
+         trans (Σ-≡,≡→≡ q₁₂ r₁₂) (Σ-≡,≡→≡ q₂₃ r₂₃) ≡
+         Σ-≡,≡→≡ (trans q₁₂ q₂₃)
+                 (trans (sym $ subst-subst _ _ _ _)
+                        (trans (cong (subst _ _) r₁₂) r₂₃)))
+      (λ x → elim₁
+         (λ q₁₂ →
+          ∀ {p₁₂ p₂₂} (r₁₂ : subst B q₁₂ p₁₂ ≡ p₂₂)
+            {p₃₂} (r₂₃ : subst B (refl _) p₂₂ ≡ p₃₂) →
+            trans (Σ-≡,≡→≡ q₁₂ r₁₂) (Σ-≡,≡→≡ (refl _) r₂₃) ≡
+            Σ-≡,≡→≡ (trans q₁₂ (refl _))
+                    (trans (sym $ subst-subst _ _ _ _)
+                           (trans (cong (subst _ _) r₁₂) r₂₃)))
+         (λ {y} → elim¹
+            (λ {p₂₂} r₁₂ →
+             ∀ {p₃₂} (r₂₃ : subst B (refl _) p₂₂ ≡ p₃₂) →
+               trans (Σ-≡,≡→≡ (refl _) r₁₂) (Σ-≡,≡→≡ (refl _) r₂₃) ≡
+               Σ-≡,≡→≡ (trans (refl _) (refl _))
+                       (trans (sym $ subst-subst _ _ _ _)
+                              (trans (cong (subst _ _) r₁₂) r₂₃)))
+            (elim¹
+              (λ r₂₃ →
+                 trans (Σ-≡,≡→≡ (refl _) (refl _))
+                       (Σ-≡,≡→≡ (refl _) r₂₃) ≡
+                 Σ-≡,≡→≡ (trans (refl _) (refl _))
+                         (trans (sym $ subst-subst _ _ _ _)
+                                (trans (cong (subst _ _) (refl _))
+                                       r₂₃)))
+              (let lemma₁ =
+                     sym (subst-refl B (subst B (refl x) y))          ≡⟨⟩
+
+                     sym (cong (λ f → f (subst B (refl x) y))
+                               (subst-refl≡id B))                     ≡⟨ cong sym $ cong-≡id B _ ⟩
+
+                     sym (cong (λ f → subst B (refl x) (f y))
+                               (subst-refl≡id B))                     ≡⟨ cong sym $ sym $ cong-∘ _ _ _ ⟩∎
+
+                     sym (cong (subst B (refl x)) (subst-refl B y))   ∎
+
+                   lemma₂ =
+                     sym (cong (subst B _) (subst-refl B _))          ≡⟨ sym $ trans-reflˡ _ ⟩
+
+                     trans (refl _)
+                           (sym (cong (subst B _) (subst-refl B _)))  ≡⟨ cong (flip trans _) $ sym $ trans-symˡ _ ⟩
+
+                     trans (trans (sym $ cong (flip (subst B) _)
+                                              trans-refl-refl)
+                                  (cong (flip (subst B) _)
+                                        trans-refl-refl))
+                           (sym (cong (subst B _) (subst-refl B _)))  ≡⟨ trans-assoc _ _ _ ⟩
+
+                     trans (sym $ cong (flip (subst B) _)
+                                       trans-refl-refl)
+                           (trans (cong (flip (subst B) _)
+                                        trans-refl-refl)
+                                  (sym (cong (subst B _)
+                                             (subst-refl B _))))      ≡⟨ cong (flip trans _) $ sym $ cong-sym _ _ ⟩∎
+
+                     trans (cong (flip (subst B) _)
+                                 (sym trans-refl-refl))
+                           (trans (cong (flip (subst B) _)
+                                        trans-refl-refl)
+                                  (sym (cong (subst B _)
+                                             (subst-refl B _))))      ∎
+
+                   lemma₃ =
+                     trans (cong (flip (subst B) _) trans-refl-refl)
+                           (sym (cong (subst B _) (subst-refl B _)))     ≡⟨ cong (λ e → trans (cong (flip (subst B) _) e)
+                                                                                              (sym $ cong (subst B _) (subst-refl B _))) $
+                                                                                 sym $ sym-sym _ ⟩
+                     trans (cong (flip (subst B) _)
+                                 (sym $ sym trans-refl-refl))
+                           (sym (cong (subst B _) (subst-refl B _)))     ≡⟨ cong (flip trans _) $ cong-sym _ _ ⟩
+
+                     trans (sym (cong (flip (subst B) _)
+                                      (sym trans-refl-refl)))
+                           (sym (cong (subst B _) (subst-refl B _)))     ≡⟨ sym $ sym-trans _ _ ⟩
+
+                     sym (trans (cong (subst B _) (subst-refl B _))
+                                (cong (flip (subst B) _)
+                                      (sym trans-refl-refl)))            ≡⟨⟩
+
+                     sym (cong₂ (flip (subst B)) (subst-refl B _)
+                                                 (sym trans-refl-refl))  ≡⟨ cong sym $ sym $ subst-subst-refl-refl _ ⟩
+
+                     sym (subst-subst _ _ _ _)                           ≡⟨ sym $ trans-reflʳ _ ⟩
+
+                     trans (sym $ subst-subst _ _ _ _) (refl _)          ≡⟨ cong (trans (sym $ subst-subst _ _ _ _)) $ sym trans-refl-refl ⟩
+
+                     trans (sym $ subst-subst _ _ _ _)
+                           (trans (refl _) (refl _))                     ≡⟨ cong (λ x → trans (sym $ subst-subst _ _ _ _) (trans x (refl _))) $
+                                                                                 sym $ cong-refl _ ⟩∎
+                     trans (sym $ subst-subst _ _ _ _)
+                           (trans (cong (subst _ _) (refl _)) (refl _))  ∎
+               in
+               trans (Σ-≡,≡→≡ (refl _) (refl _))
+                     (Σ-≡,≡→≡ (refl _) (refl _))                          ≡⟨ cong₂ trans Σ-≡,≡→≡-refl-refl Σ-≡,≡→≡-refl-refl ⟩
+
+               trans (cong (_ ,_) (sym (subst-refl B _)))
+                     (cong (_ ,_) (sym (subst-refl B _)))                 ≡⟨ sym $ cong-trans _ _ _ ⟩
+
+               cong (_ ,_) (trans (sym (subst-refl B _))
+                                  (sym (subst-refl B _)))                 ≡⟨ cong (cong (_ ,_) ∘ trans _) lemma₁ ⟩
+
+               cong (_ ,_)
+                    (trans (sym (subst-refl B _))
+                           (sym (cong (subst B _) (subst-refl B _))))     ≡⟨ sym $ Σ-≡,≡→≡-reflˡ _ ⟩
+
+               Σ-≡,≡→≡ (refl _)
+                       (sym (cong (subst B _) (subst-refl B _)))          ≡⟨ cong (Σ-≡,≡→≡ _) lemma₂ ⟩
+
+               Σ-≡,≡→≡ (refl _)
+                 (trans (cong (flip (subst B) _) (sym trans-refl-refl))
+                    (trans (cong (flip (subst B) _) trans-refl-refl)
+                       (sym (cong (subst B _) (subst-refl B _)))))        ≡⟨ sym $ Σ-≡,≡→≡-cong _ (refl _) ⟩
+
+               Σ-≡,≡→≡ (trans (refl _) (refl _))
+                       (trans (cong (flip (subst B) _) trans-refl-refl)
+                              (sym (cong (subst B _) (subst-refl B _))))  ≡⟨ cong (Σ-≡,≡→≡ (trans (refl _) (refl _))) lemma₃ ⟩∎
+
+               Σ-≡,≡→≡ (trans (refl _) (refl _))
+                       (trans (sym $ subst-subst _ _ _ _)
+                              (trans (cong (subst _ _) (refl _))
+                                     (refl _)))                           ∎))))
+      q₂₃ q₁₂ r₁₂ r₂₃
 
     Σ-≡,≡→≡-subst-const :
       ∀ {a b} {A : Set a} {B : Set b} {p₁ p₂ : A × B} →
