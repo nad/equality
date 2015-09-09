@@ -797,6 +797,30 @@ module Derived-definitions-and-properties
               subst P (trans (refl x) y≡z) p    ∎)
            x≡y y≡z p
 
+    -- "Computation rules" for subst-subst.
+
+    subst-subst-reflˡ :
+      ∀ {a p} {A : Set a} (P : A → Set p) {x y p} {x≡y : x ≡ y} →
+      subst-subst P (refl x) x≡y p ≡
+      cong₂ (flip (subst P)) (subst-refl P p) (sym $ trans-reflˡ x≡y)
+    subst-subst-reflˡ P =
+      cong (λ f → f _ _) $
+        elim-refl (λ {x y} x≡y → ∀ {z} (y≡z : y ≡ z) p →
+                     subst P y≡z (subst P x≡y p) ≡ _)
+                  _
+
+    subst-subst-refl-refl :
+      ∀ {a p} {A : Set a} (P : A → Set p) {x p} →
+      subst-subst P (refl x) (refl x) p ≡
+      cong₂ (flip (subst P)) (subst-refl P p) (sym trans-refl-refl)
+    subst-subst-refl-refl P {x} {p} =
+      subst-subst P (refl x) (refl x) p                              ≡⟨ subst-subst-reflˡ _ ⟩
+
+      cong₂ (flip (subst P)) (subst-refl P p)
+                             (sym $ trans-reflˡ (refl x))            ≡⟨ cong (cong₂ (flip (subst P)) (subst-refl P p) ∘ sym) $
+                                                                             elim-refl _ _ ⟩∎
+      cong₂ (flip (subst P)) (subst-refl P p) (sym trans-refl-refl)  ∎
+
     -- The combinator trans is defined in terms of subst. It could
     -- have been defined in another way.
 
