@@ -132,13 +132,15 @@ module Equality-with-J′
           x ≡ y → P x → P y
   subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
 
-  -- "Evaluation rule" for subst.
+  -- "Evaluation rules" for subst.
+
+  subst-refl≡id : ∀ {a p} {A : Set a} (P : A → Set p) {x} →
+                  subst P (refl x) ≡ id
+  subst-refl≡id P = elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
 
   subst-refl : ∀ {a p} {A : Set a} (P : A → Set p) {x} (p : P x) →
                subst P (refl x) p ≡ p
-  subst-refl P p =
-    cong (λ h → h p) $
-      elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
+  subst-refl P p = cong (_$ p) (subst-refl≡id P)
 
   -- Singleton types are contractible.
 
@@ -716,7 +718,14 @@ module Derived-definitions-and-properties
        cong (λ x → h (f x) (g x)) (refl _)          ∎)
       _
 
-  abstract
+    cong-≡id :
+      ∀ {a b} {A : Set a} (B : A → Set b) {x} {y : B x} {f : B x → B x}
+      (f≡id : f ≡ id) →
+      cong (λ g → g (f y)) f≡id ≡
+      cong (λ g → f (g y)) f≡id
+    cong-≡id B = elim₁
+      (λ {f} p → cong (λ g → g (f _)) p ≡ cong (λ g → f (g _)) p)
+      (refl _)
 
     elim-∘ :
       ∀ {a p} {A : Set a} {x y : A}
