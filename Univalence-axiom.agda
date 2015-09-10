@@ -876,6 +876,44 @@ other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
   (∃ λ A → ⊤ ≃ A)           ↝⟨ other-singleton-with-≃-↔-⊤ ext univ ⟩
   ⊤                         □
 
+-- If two types have a certain h-level, then the type of equalities
+-- between these types also has the given h-level (assuming
+-- extensionality and univalence).
+
+H-level-H-level-≡ :
+  ∀ {a} {A₁ A₂ : Set a} →
+  Extensionality a a →
+  Univalence a →
+  ∀ n → H-level n A₁ → H-level n A₂ → H-level n (A₁ ≡ A₂)
+H-level-H-level-≡ {A₁ = A₁} {A₂} ext univ n = curry (
+  H-level n A₁ × H-level n A₂  ↝⟨ uncurry (Eq.h-level-closure ext n) ⟩
+  H-level n (A₁ ≃ A₂)          ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≡≃≃ univ) n ⟩
+  H-level n (A₁ ≡ A₂)          □)
+
+-- If a type has a certain positive h-level, then the types of
+-- equalities between this type and other types also has the given
+-- h-level (assuming extensionality and univalence).
+
+H-level-H-level-≡ˡ :
+  ∀ {a} {A₁ A₂ : Set a} →
+  Extensionality a a →
+  Univalence a →
+  ∀ n → H-level (1 + n) A₁ → H-level (1 + n) (A₁ ≡ A₂)
+H-level-H-level-≡ˡ {A₁ = A₁} {A₂} ext univ n =
+  H-level (1 + n) A₁         ↝⟨ Eq.left-closure ext n ⟩
+  H-level (1 + n) (A₁ ≃ A₂)  ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≡≃≃ univ) (1 + n) ⟩
+  H-level (1 + n) (A₁ ≡ A₂)  □
+
+H-level-H-level-≡ʳ :
+  ∀ {a} {A₁ A₂ : Set a} →
+  Extensionality a a →
+  Univalence a →
+  ∀ n → H-level (1 + n) A₂ → H-level (1 + n) (A₁ ≡ A₂)
+H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
+  H-level (1 + n) A₂         ↝⟨ Eq.right-closure ext n ⟩
+  H-level (1 + n) (A₁ ≃ A₂)  ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≡≃≃ univ) (1 + n) ⟩
+  H-level (1 + n) (A₁ ≡ A₂)  □
+
 -- ∃ λ A → H-level n A has h-level 1 + n (assuming extensionality and
 -- univalence).
 
@@ -886,8 +924,7 @@ other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
   ∀ n → H-level (1 + n) (∃ λ (A : Set a) → H-level n A)
 ∃-H-level-H-level-1+ ext univ n (A₁ , h₁) (A₂ , h₂) =
                                      $⟨ h₁ , h₂ ⟩
-  H-level n A₁ × H-level n A₂        ↝⟨ uncurry (Eq.h-level-closure ext n) ⟩
-  H-level n (A₁ ≃ A₂)                ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≡≃≃ univ) n ⟩
+  H-level n A₁ × H-level n A₂        ↝⟨ uncurry (H-level-H-level-≡ ext univ n) ⟩
   H-level n (A₁ ≡ A₂)                ↝⟨ H-level.respects-surjection
                                           (_↔_.surjection $ ignore-propositional-component
                                                               (H-level-propositional ext _)) n ⟩□
