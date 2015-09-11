@@ -848,20 +848,37 @@ module Derived-definitions-and-properties
       subst P (refl y) p                 ≡⟨ subst-refl P p ⟩∎
       p                                  ∎
 
-    -- Some corollaries (used in Function-universe.Π≡↔≡-↠-≡).
+    -- Some corollaries and variants.
 
-    trans-[trans-sym] : ∀ {a} {A : Set a} {a b c : A} →
-                        (a≡b : a ≡ b) (c≡b : c ≡ b) →
-                        trans (trans a≡b (sym c≡b)) c≡b ≡ a≡b
-    trans-[trans-sym] a≡b c≡b = subst-subst-sym (_≡_ _) c≡b a≡b
+    trans-[trans-sym]- : ∀ {a} {A : Set a} {a b c : A} →
+                         (a≡b : a ≡ b) (c≡b : c ≡ b) →
+                         trans (trans a≡b (sym c≡b)) c≡b ≡ a≡b
+    trans-[trans-sym]- a≡b c≡b = subst-subst-sym (_≡_ _) c≡b a≡b
 
     trans-[trans]-sym : ∀ {a} {A : Set a} {a b c : A} →
                         (a≡b : a ≡ b) (b≡c : b ≡ c) →
                         trans (trans a≡b b≡c) (sym b≡c) ≡ a≡b
     trans-[trans]-sym a≡b b≡c =
       trans (trans a≡b b≡c)             (sym b≡c)  ≡⟨ sym $ cong (λ eq → trans (trans _ eq) (sym b≡c)) $ sym-sym _ ⟩
-      trans (trans a≡b (sym (sym b≡c))) (sym b≡c)  ≡⟨ trans-[trans-sym] _ _ ⟩∎
+      trans (trans a≡b (sym (sym b≡c))) (sym b≡c)  ≡⟨ trans-[trans-sym]- _ _ ⟩∎
       a≡b                                          ∎
+
+    trans--[trans-sym] : ∀ {a} {A : Set a} {a b c : A} →
+                         (b≡a : b ≡ a) (b≡c : b ≡ c) →
+                         trans b≡a (trans (sym b≡a) b≡c) ≡ b≡c
+    trans--[trans-sym] b≡a b≡c =
+      trans b≡a (trans (sym b≡a) b≡c)  ≡⟨ sym $ trans-assoc _ _ _ ⟩
+      trans (trans b≡a (sym b≡a)) b≡c  ≡⟨ cong (flip trans _) $ trans-symʳ _ ⟩
+      trans (refl _) b≡c               ≡⟨ trans-reflˡ _ ⟩∎
+      b≡c                              ∎
+
+    trans-sym-[trans] : ∀ {a} {A : Set a} {a b c : A} →
+                        (a≡b : a ≡ b) (b≡c : b ≡ c) →
+                        trans (sym a≡b) (trans a≡b b≡c) ≡ b≡c
+    trans-sym-[trans] a≡b b≡c =
+      trans (sym a≡b) (trans a≡b b≡c)              ≡⟨ cong (λ p → trans (sym _) (trans p _)) $ sym $ sym-sym _ ⟩
+      trans (sym a≡b) (trans (sym (sym a≡b)) b≡c)  ≡⟨ trans--[trans-sym] _ _ ⟩∎
+      b≡c                                          ∎
 
     -- The lemmas subst-refl and subst-const can cancel each other
     -- out.
@@ -1035,16 +1052,7 @@ module Derived-definitions-and-properties
                      sym (cong (subst B (refl x)) (subst-refl B y))   ∎
 
                    lemma₂ =
-                     sym (cong (subst B _) (subst-refl B _))          ≡⟨ sym $ trans-reflˡ _ ⟩
-
-                     trans (refl _)
-                           (sym (cong (subst B _) (subst-refl B _)))  ≡⟨ cong (flip trans _) $ sym $ trans-symˡ _ ⟩
-
-                     trans (trans (sym $ cong (flip (subst B) _)
-                                              trans-refl-refl)
-                                  (cong (flip (subst B) _)
-                                        trans-refl-refl))
-                           (sym (cong (subst B _) (subst-refl B _)))  ≡⟨ trans-assoc _ _ _ ⟩
+                     sym (cong (subst B _) (subst-refl B _))          ≡⟨ sym $ trans-sym-[trans] _ _ ⟩
 
                      trans (sym $ cong (flip (subst B) _)
                                        trans-refl-refl)

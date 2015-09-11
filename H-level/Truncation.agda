@@ -569,7 +569,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
                (trans (c₁ a₂) (sym (c₁ a₃)))                                        ≡⟨ sym $ trans-assoc _ _ _ ⟩
 
          trans (trans (trans (c₁ a₁) (sym (c₁ a₂))) (c₁ a₂))
-               (sym (c₁ a₃))                                                        ≡⟨ cong (flip trans _) $ trans-[trans-sym] _ _ ⟩
+               (sym (c₁ a₃))                                                        ≡⟨ cong (flip trans _) $ trans-[trans-sym]- _ _ ⟩
 
          trans (c₁ a₁) (sym (c₁ a₃))                                                ≡⟨ sym $ ≡⇒↝ implication
                                                                                                  ([trans≡]≡[≡trans-symʳ] _ _ _) (d₁ _ _) ⟩∎

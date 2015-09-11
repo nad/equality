@@ -384,7 +384,7 @@ module Class (Univ : Universe) where
                                (≡≃≃ univ₁) (refl C))))
             (cong (λ eq → subst (El a) eq x)
                   (_≃_.left-inverse-of (≡≃≃ univ₁) (refl C))))    ≡⟨ cong (cong (λ z → z ≡ x) ∘ sym) $
-                                                                          trans-[trans-sym] _ _ ⟩∎
+                                                                          trans-[trans-sym]- _ _ ⟩∎
         cong (λ z → z ≡ x) (sym $
            trans (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
                     (resp-id ass a x))
@@ -422,7 +422,7 @@ module Class (Univ : Universe) where
                            (resp-id ass a x))
                     (sym $ subst-refl (El a) x))
              (subst-refl (El a) x))                                      ≡⟨ cong (λ eq → subst (λ eq → Is-isomorphism a eq x x) ≡⇒≃-refl eq)
-                                                                                 (trans-[trans-sym] _ _) ⟩
+                                                                                 (trans-[trans-sym]- _ _) ⟩
         subst (λ eq → resp a eq x ≡ x) ≡⇒≃-refl
           (trans (cong (λ eq → resp a eq x) ≡⇒≃-refl)
              (resp-id ass a x))                                          ≡⟨ subst-∘ (λ z → z ≡ x) (λ eq → resp a eq x) _ ⟩

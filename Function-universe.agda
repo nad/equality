@@ -1252,7 +1252,7 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
         { to   = λ z≡x → trans z≡x      x≡y
         ; from = λ z≡y → trans z≡y (sym x≡y)
         }
-      ; right-inverse-of = λ z≡y → trans-[trans-sym] z≡y x≡y
+      ; right-inverse-of = λ z≡y → trans-[trans-sym]- z≡y x≡y
       }
     ; left-inverse-of = λ z≡x → trans-[trans]-sym z≡x x≡y
     }
