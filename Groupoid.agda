@@ -62,6 +62,34 @@ record Groupoid o p : Set (lsuc (o ⊔ p)) where
       p ⁻¹ ∘ p        ≡⟨ left-inverse _ ⟩∎
       id              ∎
 
+    -- Groupoids are left-cancellative and right-cancellative.
+
+    left-cancellative :
+      ∀ {x y z} {p : y ∼ z} {q₁ q₂ : x ∼ y} →
+      p ∘ q₁ ≡ p ∘ q₂ → q₁ ≡ q₂
+    left-cancellative {p = p} {q₁} {q₂} p∘q₁≡p∘q₂ =
+      q₁               ≡⟨ sym $ left-identity _ ⟩
+      id ∘ q₁          ≡⟨ cong (_∘ _) $ sym $ left-inverse _ ⟩
+      (p ⁻¹ ∘ p) ∘ q₁  ≡⟨ sym $ assoc _ _ _ ⟩
+      p ⁻¹ ∘ (p ∘ q₁)  ≡⟨ cong (_ ∘_) p∘q₁≡p∘q₂ ⟩
+      p ⁻¹ ∘ (p ∘ q₂)  ≡⟨ assoc _ _ _ ⟩
+      (p ⁻¹ ∘ p) ∘ q₂  ≡⟨ cong (_∘ _) $ left-inverse _ ⟩
+      id ∘ q₂          ≡⟨ left-identity _ ⟩∎
+      q₂               ∎
+
+    right-cancellative :
+      ∀ {x y z} {p₁ p₂ : y ∼ z} {q : x ∼ y} →
+      p₁ ∘ q ≡ p₂ ∘ q → p₁ ≡ p₂
+    right-cancellative {p₁ = p₁} {p₂} {q} p₁∘q≡p₂∘q =
+      p₁               ≡⟨ sym $ right-identity _ ⟩
+      p₁ ∘ id          ≡⟨ cong (_ ∘_) $ sym $ right-inverse _ ⟩
+      p₁ ∘ (q ∘ q ⁻¹)  ≡⟨ assoc _ _ _ ⟩
+      (p₁ ∘ q) ∘ q ⁻¹  ≡⟨ cong (_∘ _) p₁∘q≡p₂∘q ⟩
+      (p₂ ∘ q) ∘ q ⁻¹  ≡⟨ sym $ assoc _ _ _ ⟩
+      p₂ ∘ (q ∘ q ⁻¹)  ≡⟨ cong (_ ∘_) $ right-inverse _ ⟩
+      p₂ ∘ id          ≡⟨ right-identity _ ⟩∎
+      p₂               ∎
+
     -- The inverse operator is involutive.
 
     involutive : ∀ {x y} (p : x ∼ y) → p ⁻¹ ⁻¹ ≡ p
