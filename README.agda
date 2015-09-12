@@ -78,10 +78,6 @@ import H-level
 
 import H-level.Closure
 
--- Truncation.
-
-import H-level.Truncation
-
 -- Preimages.
 
 import Preimage
@@ -103,6 +99,10 @@ import Bool
 -- The univalence axiom.
 
 import Univalence-axiom
+
+-- Truncation.
+
+import H-level.Truncation
 
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
