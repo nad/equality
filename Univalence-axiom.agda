@@ -144,6 +144,37 @@ module _ (univ : Univalence′ Bool Bool) where
       swap-as-an-equality ≡ refl Bool    ↝⟨ swap≢refl ⟩□
       ⊥                                  □
 
+abstract
+
+  -- The result can be generalised to arbitrary universe levels.
+
+  ¬-Set-set-↑ : ∀ {ℓ} →
+                Univalence′ (↑ ℓ Bool) (↑ ℓ Bool) →
+                ¬ Is-set (Set ℓ)
+  ¬-Set-set-↑ {ℓ} univ =
+    Is-set (Set ℓ)                           ↝⟨ _⇔_.to set⇔UIP ⟩
+    Uniqueness-of-identity-proofs (Set ℓ)    ↝⟨ (λ uip → uip _ _) ⟩
+    swap-as-an-equality-↑ ≡ refl (↑ ℓ Bool)  ↝⟨ swap-↑≢refl ⟩□
+    ⊥                                        □
+    where
+    swap-as-an-equality-↑ : ↑ ℓ Bool ≡ ↑ ℓ Bool
+    swap-as-an-equality-↑ =
+      ≃⇒≡ univ $
+      Eq.↔⇒≃ $
+      (Bijection.inverse Bijection.↑↔
+         Bijection.∘
+       swap
+         Bijection.∘
+       Bijection.↑↔)
+
+    swap-↑≢refl : swap-as-an-equality-↑ ≢ refl (↑ ℓ Bool)
+    swap-↑≢refl =
+      swap-as-an-equality-↑ ≡ refl _            ↝⟨ cong ≡⇒→ ⟩
+      ≡⇒→ swap-as-an-equality-↑ ≡ ≡⇒→ (refl _)  ↝⟨ subst (uncurry _≡_) (cong₂ _,_ (≡⇒→-≃⇒≡ equivalence univ) ≡⇒→-refl) ⟩
+      lift ∘ not ∘ lower ≡ id                   ↝⟨ cong (lower ∘ (_$ lift false)) ⟩
+      true ≡ false                              ↝⟨ Bool.true≢false ⟩□
+      ⊥                                         □
+
 ------------------------------------------------------------------------
 -- A consequence: some equality types have infinitely many inhabitants
 
