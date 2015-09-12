@@ -104,6 +104,10 @@ import Univalence-axiom
 
 import H-level.Truncation
 
+-- The "circle".
+
+import Circle
+
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
 
