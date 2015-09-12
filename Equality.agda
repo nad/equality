@@ -895,6 +895,28 @@ module Derived-definitions-and-properties
             (subst-refl (λ _ → P) _)                  ≡⟨ trans-symˡ _ ⟩∎
       refl _                                          ∎
 
+    -- In non-dependent cases one can express dependent-cong using
+    -- subst-const and cong.
+    --
+    -- This is (similar to) Lemma 2.3.8 in the HoTT book.
+
+    dependent-cong-subst-const-cong :
+      ∀ {a b} {A : Set a} {B : Set b} (f : A → B) {x y} (x≡y : x ≡ y) →
+      dependent-cong f x≡y ≡
+      (subst (const B) x≡y (f x)  ≡⟨ subst-const x≡y ⟩
+       f x                        ≡⟨ cong f x≡y ⟩∎
+       f y                        ∎)
+    dependent-cong-subst-const-cong f = elim
+      (λ {x y} x≡y → dependent-cong f x≡y ≡
+                     trans (subst-const x≡y) (cong f x≡y))
+      (λ x →
+        dependent-cong f (refl x)                        ≡⟨ dependent-cong-refl f ⟩
+        subst-refl (const _) (f x)                       ≡⟨ sym $ trans-reflʳ _ ⟩
+        trans (subst-refl (const _) (f x)) (refl (f x))  ≡⟨ cong₂ trans
+                                                                  (sym $ elim¹-refl _ _)
+                                                                  (sym $ cong-refl f) ⟩∎
+        trans (subst-const (refl x)) (cong f (refl x))   ∎)
+
   -- An equality between pairs can be proved using a pair of
   -- equalities.
 
