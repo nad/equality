@@ -357,13 +357,13 @@ Position-shape-cong-relates :
 Position-shape-cong-relates {bag} xs ys xs≈ys p =
   lookup xs p                                                     ≡⟨ proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl) ⟩
   lookup ys (proj₁ $ to-implication (xs≈ys (lookup xs p))
-                                    (p , refl))                   ≡⟨ refl ⟩
+                                    (p , refl))                   ≡⟨⟩
   lookup ys (_↔_.to (Position-shape ys) $
              Σ-map id (λ {z} → to-implication (xs≈ys z)) $
-             _↔_.from (Position-shape xs) $ p)                    ≡⟨ refl ⟩
+             _↔_.from (Position-shape xs) $ p)                    ≡⟨⟩
   lookup ys (_↔_.to (Position-shape ys) $
              to-implication (∃-cong xs≈ys) $
-             _↔_.from (Position-shape xs) $ p)                    ≡⟨ refl ⟩
+             _↔_.from (Position-shape xs) $ p)                    ≡⟨⟩
   lookup ys (to-implication
                ((from-bijection (Position-shape ys) ⟨∘⟩
                  ∃-cong xs≈ys) ⟨∘⟩
