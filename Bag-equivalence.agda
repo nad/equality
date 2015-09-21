@@ -206,7 +206,7 @@ Any-⊎ P Q xs =
 
 -- Various kinds of relatedness.
 
-open Function-universe public using (Kind)
+open Function-universe public using (Kind) hiding (module Kind)
 
 module Kind where
 
