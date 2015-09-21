@@ -271,10 +271,60 @@ constant-endofunction⇔h-stable ext = record
       f ∣ y ∣  ∎
   }
 
--- This is (perhaps) an instance of Lemma 2.1 from "The General
+-- The following three lemmas were communicated to me by Nicolai
+-- Kraus. (In slightly different form.) They are closely related to
+-- Lemma 2.1 in his paper "The General Universal Property of the
+-- Propositional Truncation".
+
+-- A variant of ∥∥×≃.
+
+drop-∥∥ :
+  ∀ ℓ {a b} {A : Set a} {B : A → Set b} →
+  Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
+
+  (∥ A ∥ 1 (a ⊔ ℓ) → ∀ x → B x)
+    ↔
+  (∀ x → B x)
+drop-∥∥ ℓ {a} {b} {A} {B} ext =
+
+  (∥ A ∥ 1 _ → ∀ x → B x)              ↝⟨ inverse currying ⟩
+
+  ((p : ∥ A ∥ 1 _ × A) → B (proj₂ p))  ↔⟨ Π-preserves (lower-extensionality lzero (a ⊔ ℓ) ext)
+                                                      (∥∥×≃ (lower-extensionality lzero b ext))
+                                                      (λ _ → F.id) ⟩□
+  (∀ x → B x)                          □
+
+-- Another variant of ∥∥×≃.
+
+push-∥∥ :
+  ∀ ℓ {a b c} {A : Set a} {B : A → Set b} {C : (∀ x → B x) → Set c} →
+  Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ b ⊔ c ⊔ ℓ) →
+
+  (∥ A ∥ 1 (a ⊔ ℓ) → ∃ λ (f : ∀ x → B x) → C f)
+    ↔
+  (∃ λ (f : ∀ x → B x) → ∥ A ∥ 1 (a ⊔ ℓ) → C f)
+
+push-∥∥ ℓ {a} {b} {c} {A} {B} {C} ext =
+
+  (∥ A ∥ 1 _ → ∃ λ (f : ∀ x → B x) → C f)                ↝⟨ ΠΣ-comm ⟩
+
+  (∃ λ (f : ∥ A ∥ 1 _ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↔⟨ Σ-cong (drop-∥∥ ℓ (lower-extensionality lzero c ext)) (λ f →
+                                                            Eq.∀-preserves (lower-extensionality lzero (a ⊔ b ⊔ ℓ) ext) λ ∥x∥ →
+                                                            ≡⇒↝ _ $ cong C $ lower-extensionality _ (a ⊔ c ⊔ ℓ) ext λ x →
+      f ∥x∥ x                                                 ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $
+                                                                 _⇔_.to propositional⇔irrelevant
+                                                                   (truncation-has-correct-h-level 1
+                                                                      (lower-extensionality lzero (b ⊔ c) ext))
+                                                                   _ _ ⟩
+      f ∣ x ∣ x                                               ≡⟨ sym $ subst-refl _ _ ⟩∎
+      subst B (refl x) (f ∣ x ∣ x)                            ∎) ⟩□
+
+  (∃ λ (f : ∀ x → B x) → ∥ A ∥ 1 _ → C (λ x → f x))      □
+
+-- This is an instance of a variant of Lemma 2.1 from "The General
 -- Universal Property of the Propositional Truncation" by Kraus.
 
-drop-extra-truncated-hypothesis :
+drop-∥∥₃ :
   ∀ ℓ {a b c d}
     {A : Set a} {B : A → Set b} {C : A → (∀ x → B x) → Set c}
     {D : A → (f : ∀ x → B x) → (∀ x → C x f) → Set d} →
@@ -285,94 +335,17 @@ drop-extra-truncated-hypothesis :
     ↔
   (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
 
-drop-extra-truncated-hypothesis ℓ {a} {b} {c} {d} {A} {B} {C} {D} ext =
-  (∥ A ∥ 1 ℓ′ →
-   ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)        ↝⟨ ΠΣ-comm ⟩
+drop-∥∥₃ ℓ {b = b} {c} {A = A} {B} {C} {D} ext =
+  (∥ A ∥ 1 _ →
+   ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  ↝⟨ push-∥∥ ℓ ext ⟩
 
-  (∃ λ (f : ∥ A ∥ 1 ℓ′ → ∀ x → B x) →
-   ∀ ∥x∥ → ∃ λ (g : ∀ x → C x (f ∥x∥)) → ∀ x → D x (f ∥x∥) g)          ↝⟨ (∃-cong λ _ → ΠΣ-comm) ⟩
-
-  (∃ λ (f : ∥ A ∥ 1 ℓ′ → ∀ x → B x) →
-   ∃ λ (g : ∀ ∥x∥ x → C x (f ∥x∥)) → ∀ ∥x∥ x → D x (f ∥x∥) (g ∥x∥))    ↝⟨ inverse $ Σ-cong currying (λ _ → Σ-cong currying λ _ → currying) ⟩
-
-  (∃ λ (f : (p : ∥ A ∥ 1 ℓ′ × A) → B (proj₂ p)) →
-   ∃ λ (g : ∀ p → C (proj₂ p) (f ∘ (proj₁ p ,_))) →
-            ∀ p → D (proj₂ p) (f ∘ (proj₁ p ,_)) (g ∘ (proj₁ p ,_)))   ↔⟨ Σ-cong (Π-preserves (lower-extensionality lzero (a ⊔ c ⊔ d ⊔ ℓ) ext)
-                                                                                              ∥A∥×A≃A
-                                                                                              (λ _ → F.id))
-                                                                                 (λ f →
-                                                                          Σ-cong (Π-preserves (lower-extensionality lzero (a ⊔ b ⊔ d ⊔ ℓ) ext)
-                                                                                              ∥A∥×A≃A
-                                                                                              (λ { (∥x∥ , x) → ≡⇒↝ _ $ cong (C x) $ lemma f ∥x∥ }))
-                                                                                 (λ g →
-                                                                          Π-preserves (lower-extensionality lzero (a ⊔ b ⊔ c ⊔ ℓ) ext)
-                                                                                      ∥A∥×A≃A
-                                                                                      (λ { (∥x∥ , x) → ≡⇒↝ _ (lemma′ f g ∥x∥ x) }))) ⟩□
-  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)        □
-  where
-  ℓ′ = a ⊔ ℓ
-
-  ∥A∥×A≃A : (∥ A ∥ 1 ℓ′ × A) ≃ A
-  ∥A∥×A≃A = ∥∥×≃ (lower-extensionality lzero (b ⊔ c ⊔ d) ext)
-
-  f′ : (f : (p : ∥ A ∥ 1 ℓ′ × A) → B (proj₂ p)) →
-       ∀ x → B x
-  f′ f x = subst B (refl x) (f (∣ x ∣ , x))
-
-  lemma :
-    ∀ (f : (p : ∥ A ∥ 1 ℓ′ × A) → B (proj₂ p)) ∥x∥ →
-    (f ∘ (∥x∥ ,_)) ≡ f′ f
-  lemma f ∥x∥ = lower-extensionality _ (a ⊔ c ⊔ d ⊔ ℓ) ext λ x →
-    f (∥x∥ , x)                       ≡⟨ cong (λ ∥x∥ → f (∥x∥ , x)) $
-                                         _⇔_.to propositional⇔irrelevant
-                                            (truncation-has-correct-h-level 1
-                                               (lower-extensionality lzero (b ⊔ c ⊔ d) ext))
-                                            _ _ ⟩
-    f (∣ x ∣ , x)                     ≡⟨ sym $ subst-refl _ _ ⟩∎
-    subst B (refl x) (f (∣ x ∣ , x))  ∎
-
-  lemma′ :
-    (f : (p : ∥ A ∥ 1 ℓ′ × A) → B (proj₂ p))
-    (g : (p : ∥ A ∥ 1 ℓ′ × A) → C (proj₂ p) (f ∘ (proj₁ p ,_))) →
-    ∀ ∥x∥ x →
-    D x (f ∘ (∥x∥ ,_)) (g ∘ (∥x∥ ,_)) ≡
-    D x (f′ f)
-        (λ x → subst
-                 (λ x → C x (f′ f))
-                 (refl x)
-                 (_≃_.to (≡⇒↝ equivalence $ cong (C x) $ lemma f ∣ x ∣)
-                         (g (∣ x ∣ , x))))
-  lemma′ f g ∥x∥ x =
-    D x (f ∘ (∥x∥ ,_)) (g ∘ (∥x∥ ,_))                                    ≡⟨ elim (λ {f₁ f₂} f₁≡f₂ → (g : ∀ x → C x f₁) →
-                                                                                    D x f₁ g
-                                                                                      ≡
-                                                                                    D x f₂ (λ x → subst (C x) f₁≡f₂ (g x)))
-                                                                                  (λ f g → cong (D x f) $
-                                                                                           lower-extensionality _ (a ⊔ b ⊔ d ⊔ ℓ) ext λ x →
-                                                                                             g x                         ≡⟨ sym $ subst-refl _ _ ⟩∎
-                                                                                             subst (C x) (refl f) (g x)  ∎)
-                                                                                  (lemma f ∥x∥) _ ⟩
-    D x (f′ f) (λ x → subst (C x) (lemma f ∥x∥) (g (∥x∥ , x)))           ≡⟨ cong (D x (f′ f)) $ lower-extensionality _ (a ⊔ b ⊔ d ⊔ ℓ) ext (λ x →
-                                                                            subst-in-terms-of-≡⇒↝ equivalence _ _ _) ⟩
-    D x (f′ f)
-        (λ x → _≃_.to (≡⇒↝ equivalence $ cong (C x) $ lemma f ∥x∥)
-                      (g (∥x∥ , x)))                                     ≡⟨ cong (D x (f′ f)) $ lower-extensionality _ (a ⊔ b ⊔ d ⊔ ℓ) ext (λ x →
-                                                                            cong (λ ∥x∥ → _≃_.to (≡⇒↝ equivalence $ cong (C x) $ lemma f ∥x∥)
-                                                                                                 (g (∥x∥ , x))) $
-                                                                            _⇔_.to propositional⇔irrelevant
-                                                                               (truncation-has-correct-h-level 1
-                                                                                  (lower-extensionality lzero (b ⊔ c ⊔ d) ext))
-                                                                               _ _) ⟩
-    D x (f′ f)
-        (λ x → _≃_.to (≡⇒↝ equivalence $ cong (C x) $ lemma f ∣ x ∣)
-                      (g (∣ x ∣ , x)))                                   ≡⟨ cong (D x (f′ f)) $ lower-extensionality _ (a ⊔ b ⊔ d ⊔ ℓ) ext (λ x →
-                                                                            sym $ subst-refl _ _) ⟩∎
-    D x (f′ f)
-        (λ x → subst
-                 (λ x → C x (f′ f))
-                 (refl x)
-                 (_≃_.to (≡⇒↝ equivalence $ cong (C x) $ lemma f ∣ x ∣)
-                         (g (∣ x ∣ , x))))                               ∎
+  (∃ λ (f : ∀ x → B x) →
+   ∥ A ∥ 1 _ → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)            ↝⟨ (∃-cong λ _ →
+                                                                     push-∥∥ ℓ (lower-extensionality lzero b ext)) ⟩
+  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) →
+   ∥ A ∥ 1 _ → ∀ x → D x f g)                                    ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                                     drop-∥∥ ℓ (lower-extensionality lzero (b ⊔ c) ext)) ⟩□
+  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  □
 
 -- Having a coherently constant function into a groupoid is equivalent
 -- to having a function from a propositionally truncated type into the
@@ -393,7 +366,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited :
   (∃ λ (f : A → B) → Coherently-constant f) ≃ (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)
 coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
                                                    ext B-groupoid =
-  (∃ λ (f : A → B) → Coherently-constant f)               ↔⟨ inverse $ drop-extra-truncated-hypothesis (b ⊔ ℓ) ext ⟩
+  (∃ λ (f : A → B) → Coherently-constant f)               ↔⟨ inverse $ drop-∥∥₃ (b ⊔ ℓ) ext ⟩
   (∥ A ∥ 1 ℓ′ → ∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ ∀-preserves (lower-extensionality lzero ℓ ext) (inverse ∘ equivalence₂) ⟩□
   (∥ A ∥ 1 ℓ′ → B)                                        □
   where
