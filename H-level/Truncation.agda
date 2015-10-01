@@ -23,7 +23,7 @@ open import Function-universe eq as F hiding (_∘_)
 open import Groupoid eq
 open import H-level eq
 open import H-level.Closure eq
-import Preimage eq as Preimage
+open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq using (_↠_)
 
 -- Truncation.
@@ -149,6 +149,15 @@ abstract
     prop-elim ext P P-prop f ∣ x ∣ ∣ x ∣ ≡ f x
   prop-elim-∣∣ _ _ P-prop _ _ =
     _⇔_.to propositional⇔irrelevant (P-prop _) _ _
+
+-- Surjectivity.
+--
+-- I'm not quite sure what the universe level of the truncation should
+-- be, so I've included it as a parameter.
+
+Surjective : ∀ {a b} ℓ {A : Set a} {B : Set b} →
+             (A → B) → Set (a ⊔ b ⊔ lsuc ℓ)
+Surjective ℓ f = ∀ b → ∥ f ⁻¹ b ∥ 1 ℓ
 
 -- If the underlying type has a certain h-level, then there is a split
 -- surjection from corresponding truncations (if they are "big"
