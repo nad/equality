@@ -104,6 +104,10 @@ import Univalence-axiom
 
 import H-level.Truncation
 
+-- Quotients (set-quotients).
+
+import Quotient
+
 -- The "circle".
 
 import Circle
