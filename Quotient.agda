@@ -294,3 +294,133 @@ module _ {a} {A : Set a} {R : A → A → Proposition a} where
         (x : A) →
         rec P P-set f R⇒≡ [ x ] ≡ f x
       rec-[] _ _ _ _ _ = D.refl _
+
+  module _
+    (ext   : Extensionality (lsuc (lsuc a)) (lsuc (lsuc a)))
+    (univ  : Univalence a)
+    (refl  : ∀ {x} → proj₁ (R x x))
+    (sym   : ∀ {x y} → proj₁ (R x y) → proj₁ (R y x))
+    (trans : ∀ {x y z} → proj₁ (R x y) → proj₁ (R y z) → proj₁ (R x z))
+    where
+
+    -- If the relation is an equivalence relation, then functions from
+    -- quotients to sets are isomorphic to relation-respecting functions
+    -- (assuming extensionality and univalence).
+
+    /→set↔relation-respecting :
+      {B : Set a} →
+      Is-set B →
+      (A / R → B) ↔ ∃ λ (f : A → B) → ∀ x y → proj₁ (R x y) → f x ≡ f y
+    /→set↔relation-respecting {B = B} B-set =
+
+      ((∃ λ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _) → B)              ↝⟨ currying ⟩
+
+      (∀ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _ → B)                  ↔⟨ (Eq.∀-preserves (lower-extensionality _ lzero ext) λ P → inverse $
+                                                                 constant-function≃∥inhabited∥⇒inhabited
+                                                                   lzero (lower-extensionality lzero _ ext) B-set) ⟩
+      (∀ P → ∃ λ (f : (∃ λ x → R x ≡ P) → B) → Constant f)   ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+                                                                 Σ-cong currying λ _ → F.id) ⟩
+      (∀ P → ∃ λ (f : (x : A) → R x ≡ P → B) →
+                 Constant (uncurry f))                       ↝⟨ ΠΣ-comm ⟩
+
+      (∃ λ (f : ∀ P → (x : A) → R x ≡ P → B) →
+         ∀ P → Constant (uncurry (f P)))                     ↝⟨ Σ-cong Π-comm (λ _ → F.id) ⟩
+
+      (∃ λ (f : (x : A) → ∀ P → R x ≡ P → B) →
+         ∀ P → Constant (uncurry (flip f P)))                ↝⟨ Σ-cong (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+                                                                        Eq.↔⇒≃ $ inverse currying) (λ _ →
+                                                                F.id) ⟩
+      (∃ λ (f : (x : A) → (∃ λ P → R x ≡ P) → B) →
+         ∀ P → Constant (λ { (x , eq) → f x (P , eq) }))     ↝⟨ inverse $
+                                                                Σ-cong (inverse $
+                                                                        Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+                                                                        Eq.↔⇒≃ $ drop-⊤-left-Π (lower-extensionality _ _ ext) $
+                                                                        inverse $ _⇔_.to contractible⇔⊤↔ $
+                                                                        other-singleton-contractible _)
+                                                                lemma ⟩□
+      (∃ λ (f : A → B) → ∀ x y → proj₁ (R x y) → f x ≡ f y)  □
+
+      where
+
+      lemma′ : ∀ x y → proj₁ (R x y) ↔ R x ≡ R y
+      lemma′ x y = record
+        { surjection = record
+          { logical-equivalence = record
+            { to   = λ Rxy   → lower-extensionality _ _ ext λ z →
+                                 Σ-≡,≡→≡
+                                   (≃⇒≡ univ $
+                                    _↔_.to (Eq.⇔↔≃ (lower-extensionality _ _ ext)
+                                                   (proj₂ (R x z)) (proj₂ (R y z)))
+                                      (proj₁ (R x z)  ↝⟨ record { to = trans (sym Rxy); from = trans Rxy } ⟩□
+                                       proj₁ (R y z)  □))
+                                   (_⇔_.to propositional⇔irrelevant
+                                      (H-level-propositional (lower-extensionality _ _ ext) 1)
+                                      _ _)
+            ; from = λ Rx≡Ry →                $⟨ refl ⟩
+                               proj₁ (R y y)  ↝⟨ subst (λ P → proj₁ (P y)) (D.sym Rx≡Ry) ⟩□
+                               proj₁ (R x y)  □
+            }
+          ; right-inverse-of = λ _ →
+              _⇔_.to propositional⇔irrelevant
+                (H-level.respects-surjection
+                   (_≃_.surjection $
+                      Eq.extensionality-isomorphism
+                        (lower-extensionality _ _ ext))
+                   1 $
+                 Π-closure (lower-extensionality _ _ ext) 1 λ z →
+                 H-level.respects-surjection
+                   (_↔_.surjection $
+                      ignore-propositional-component
+                        (H-level-propositional
+                           (lower-extensionality _ _ ext) 1))
+                   1 $
+                 H-level-H-level-≡ˡ
+                   (lower-extensionality _ _ ext) univ 0 (proj₂ (R x z)))
+                _ _
+          }
+        ; left-inverse-of = λ _ →
+            _⇔_.to propositional⇔irrelevant (proj₂ (R x y)) _ _
+        }
+
+      lemma = λ f →
+        (∀ x y → proj₁ (R x y) → f x ≡ f y)                            ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ x →
+                                                                           Eq.∀-preserves (lower-extensionality _ _ ext) λ y →
+                                                                           Eq.↔⇒≃ $ →-cong (lower-extensionality _ _ ext)
+                                                                                           (lemma′ x y)
+                                                                           F.id) ⟩
+        (∀ x y → R x ≡ R y → f x ≡ f y)                                ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+                                                                           Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+                                                                           Eq.↔⇒≃ $ →-cong (lower-extensionality _ _ ext)
+                                                                                           (Groupoid.⁻¹-bijection (EG.groupoid _))
+                                                                           F.id) ⟩
+        (∀ x y → R y ≡ R x → f x ≡ f y)                                ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+                                                                           Eq.↔⇒≃ $ inverse currying) ⟩
+        (∀ x (q : ∃ λ y → R y ≡ R x) → f x ≡ f (proj₁ q))              ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+                                                                           Eq.↔⇒≃ $ inverse $ drop-⊤-left-Π (lower-extensionality _ _ ext) $
+                                                                           inverse $ _⇔_.to contractible⇔⊤↔ $
+                                                                           other-singleton-contractible _) ⟩
+        (∀ x (Q : ∃ λ P → R x ≡ P) (q : ∃ λ x → R x ≡ proj₁ Q) →
+         f x ≡ f (proj₁ q))                                            ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+                                                                           Eq.↔⇒≃ currying) ⟩
+        (∀ x P → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↝⟨ Π-comm ⟩
+
+        (∀ P x → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+                                                                           Eq.↔⇒≃ $ inverse currying) ⟩
+        (∀ P (p q : ∃ λ x → R x ≡ P) → f (proj₁ p) ≡ f (proj₁ q))      ↝⟨ F.id ⟩
+
+        (∀ P → Constant (λ { (x , _) → f x }))                         ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+                                                                           ≡⇒↝ _ $ cong Constant $ lower-extensionality _ _ ext λ _ →
+                                                                           D.sym $ subst-const _) ⟩□
+        (∀ P → Constant (λ { (x , eq) → subst (const B) _ (f x) }))    □
+
+    -- "Computation rule" for /→set↔relation-respecting.
+
+    proj₁-to-/→set↔relation-respecting :
+      {B : Set a}
+      (B-set : Is-set B)
+      (f : A / R → B) →
+      proj₁ (_↔_.to (/→set↔relation-respecting B-set) f) ≡ λ x → f [ x ]
+    proj₁-to-/→set↔relation-respecting {B} _ f =
+      lower-extensionality _ _ ext λ x →
+        subst (const B) (D.refl _) (f [ x ])  ≡⟨ subst-refl _ _ ⟩∎
+        f [ x ]                               ∎
