@@ -350,3 +350,27 @@ bijection-from-involutive-family f f-involutive _ _ = record
     }
   ; left-inverse-of = f-involutive _ _
   }
+
+abstract
+
+  -- An equality rearrangement lemma.
+
+  trans-to-to≡to-trans :
+    ∀ {a b} {A : Set a} {B : Set b} {f : A → B}
+    (iso : ∀ x y → f x ≡ f y ↔ x ≡ y) →
+    (∀ x → _↔_.from (iso x x) (refl x) ≡ refl (f x)) →
+    ∀ {x y z p q} →
+    trans (_↔_.to (iso x y) p) (_↔_.to (iso y z) q) ≡
+    _↔_.to (iso x z) (trans p q)
+  trans-to-to≡to-trans {f = f} iso iso-refl {x} {y} {z} {p} {q} =
+    trans (_↔_.to (iso x y) p) (_↔_.to (iso y z) q)               ≡⟨ elim₁ (λ {x} p → trans p (_↔_.to (iso y z) q) ≡
+                                                                                      _↔_.to (iso x z) (trans (_↔_.from (iso x y) p) q)) (
+        trans (refl y) (_↔_.to (iso y z) q)                              ≡⟨ trans-reflˡ _ ⟩
+        _↔_.to (iso y z) q                                               ≡⟨ cong (_↔_.to (iso y z)) $ sym $ trans-reflˡ _ ⟩
+        _↔_.to (iso y z) (trans (refl (f y)) q)                          ≡⟨ cong (_↔_.to (iso y z) ⊚ flip trans _) $ sym $ iso-refl y ⟩∎
+        _↔_.to (iso y z) (trans (_↔_.from (iso y y) (refl y)) q)         ∎)
+                                                                           (_↔_.to (iso x y) p) ⟩
+    _↔_.to (iso x z)
+      (trans (_↔_.from (iso x y) (_↔_.to (iso x y) p)) q)         ≡⟨ cong (_↔_.to (iso x z) ⊚ flip trans _) $
+                                                                       _↔_.left-inverse-of (iso _ _) _ ⟩∎
+    _↔_.to (iso x z) (trans p q)                                  ∎
