@@ -33,7 +33,7 @@ data ⊥ {ℓ} : Set ℓ where
 ⊥-elim : ∀ {w ℓ} {Whatever : Set w} → ⊥ {ℓ = ℓ} → Whatever
 ⊥-elim ()
 
--- A version of the empty type which is not universe-polymorphic.
+-- A version of the empty type that is not universe-polymorphic.
 
 ⊥₀ : Set
 ⊥₀ = ⊥
