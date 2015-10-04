@@ -11,6 +11,7 @@ module Function-universe
 
 open import Bijection eq as Bijection using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
+open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; module _≃_)
 open import H-level eq as H-level
@@ -1651,7 +1652,29 @@ Well-behaved : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
 Well-behaved f =
   ∀ {b a a′} → f (inj₂ b) ≡ inj₁ a → f (inj₁ a) ≢ inj₁ a′
 
--- TODO: Make this property more general.
+private
+
+  -- Some helper functions.
+
+  module ⊎-left-cancellative
+    {a b c} {A : Set a} {B : Set b} {C : Set c}
+    (f : A ⊎ B → A ⊎ C)
+    (hyp : Well-behaved f)
+    where
+
+    mutual
+
+      g : B → C
+      g b = g′ (inspect (f (inj₂ b)))
+
+      g′ : ∀ {b} → Other-singleton (f (inj₂ b)) → C
+      g′ (inj₂ c , _)  = c
+      g′ (inj₁ a , eq) = g″ eq (inspect (f (inj₁ a)))
+
+      g″ : ∀ {a b} →
+           f (inj₂ b) ≡ inj₁ a → Other-singleton (f (inj₁ a)) → C
+      g″ _   (inj₂ c , _)   = c
+      g″ eq₁ (inj₁ _ , eq₂) = ⊥-elim $ hyp eq₁ eq₂
 
 ⊎-left-cancellative :
   ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
@@ -1659,7 +1682,7 @@ Well-behaved f =
   Well-behaved (_↔_.to   f) →
   Well-behaved (_↔_.from f) →
   B ↔ C
-⊎-left-cancellative inv to-hyp from-hyp = record
+⊎-left-cancellative {A = A} = λ inv to-hyp from-hyp → record
   { surjection = record
     { logical-equivalence = record
       { to   = g (to   inv) to-hyp
@@ -1671,19 +1694,11 @@ Well-behaved f =
   }
   where
   open _↔_
-
-  g : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
-      (f : A ⊎ B → A ⊎ C) → Well-behaved f → (B → C)
-  g f hyp b with inspect (f (inj₂ b))
-  g f hyp b | inj₂ c , eq₁ = c
-  g f hyp b | inj₁ a , eq₁ with inspect (f (inj₁ a))
-  g f hyp b | inj₁ a , eq₁ | inj₂ c  , eq₂ = c
-  g f hyp b | inj₁ a , eq₁ | inj₁ a′ , eq₂ =
-    ⊥-elim $ hyp eq₁ eq₂
+  open ⊎-left-cancellative
 
   abstract
 
-    g∘g : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+    g∘g : ∀ {b c} {B : Set b} {C : Set c}
           (f : A ⊎ B ↔ A ⊎ C) →
           (to-hyp   : Well-behaved (to   f)) →
           (from-hyp : Well-behaved (from f)) →
@@ -1720,3 +1735,208 @@ Well-behaved f =
         from f (inj₁ a′)  ≡⟨ cong (from f ⊚ inj₁) $ ⊎.cancel-inj₁ lemma ⟩
         from f (inj₁ a)   ≡⟨ to-from f eq₁ ⟩∎
         inj₂ b            ∎)
+
+-- _⊎_ is left cancellative (for bijections) if the left argument is
+-- the unit type.
+
+⊎-left-cancellative-⊤ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (⊤ ⊎ A) ↔ (⊤ ⊎ B) → A ↔ B
+⊎-left-cancellative-⊤ = λ ⊤⊎A↔⊤⊎B →
+  ⊎-left-cancellative               ⊤⊎A↔⊤⊎B
+                      (wb           ⊤⊎A↔⊤⊎B)
+                      (wb $ inverse ⊤⊎A↔⊤⊎B)
+  where
+  open _↔_
+
+  abstract
+
+    wb : ∀ {a b} {A : Set a} {B : Set b}
+         (⊤⊎A↔⊤⊎B : (⊤ ⊎ A) ↔ (⊤ ⊎ B)) →
+         Well-behaved (_↔_.to ⊤⊎A↔⊤⊎B)
+    wb ⊤⊎A↔⊤⊎B {b = b} eq₁ eq₂ = ⊎.inj₁≢inj₂ (
+      inj₁ tt                 ≡⟨ sym $ to-from ⊤⊎A↔⊤⊎B eq₂ ⟩
+      from ⊤⊎A↔⊤⊎B (inj₁ tt)  ≡⟨ to-from ⊤⊎A↔⊤⊎B eq₁ ⟩∎
+      inj₂ b                  ∎)
+
+-- If the codomain of ⊎-left-cancellative-⊤ is paired up with a value
+-- in ⊤ ⊎ B, then the function can be strengthened to a bijection
+-- (assuming both decidability of equality of values in B and
+-- extensionality).
+
+[⊤⊎↔⊤⊎]↔[⊤⊎×↔] :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Decidable-equality B →
+  ((⊤ ⊎ A) ↔ (⊤ ⊎ B)) ↔ (⊤ ⊎ B) × (A ↔ B)
+[⊤⊎↔⊤⊎]↔[⊤⊎×↔] {A = A} {B} ext _≟B_ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  _≟_ : Decidable-equality (⊤ ⊎ B)
+  _≟_ = ⊎.Dec._≟_ ⊤._≟_ _≟B_
+
+  if⌊_⌋then_else_ : ∀ {a p} {A : Set a} {P : Set p} → Dec P → A → A → A
+  if⌊ yes _ ⌋then t else e = t
+  if⌊ no  _ ⌋then t else e = e
+
+  if-not : ∀ {a p} {A : Set a} {P : Set p} (d : Dec P) (t e : A) →
+           ¬ P → if⌊ d ⌋then t else e ≡ e
+  if-not (yes p) t e ¬p = ⊥-elim (¬p p)
+  if-not (no  _) t e ¬p = refl _
+
+  to : (⊤ ⊎ A) ↔ (⊤ ⊎ B) → (⊤ ⊎ B) × (A ↔ B)
+  to ⊤⊎A↔⊤⊎B = _↔_.to ⊤⊎A↔⊤⊎B (inj₁ tt) , ⊎-left-cancellative-⊤ ⊤⊎A↔⊤⊎B
+
+  from : (⊤ ⊎ B) × (A ↔ B) → (⊤ ⊎ A) ↔ (⊤ ⊎ B)
+  from (⊤⊎B , A↔B) = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = t ⊤⊎B
+        ; from = f ⊤⊎B
+        }
+      ; right-inverse-of = t∘f ⊤⊎B
+      }
+    ; left-inverse-of = f∘t ⊤⊎B
+    }
+    where
+    t : ⊤ ⊎ B → ⊤ ⊎ A → ⊤ ⊎ B
+    t ⊤⊎B (inj₁ tt) = ⊤⊎B
+    t ⊤⊎B (inj₂ a)  = if⌊ b ≟ ⊤⊎B ⌋then inj₁ tt else b
+      where
+      b = inj₂ (_↔_.to A↔B a)
+
+    f : ⊤ ⊎ B → ⊤ ⊎ B → ⊤ ⊎ A
+    f ⊤⊎B (inj₁ tt) = [ const (inj₁ tt) , inj₂ ∘ _↔_.from A↔B ] ⊤⊎B
+    f ⊤⊎B (inj₂ b)  =
+      if⌊ ⊤⊎B ≟ inj₂ b ⌋then inj₁ tt else inj₂ (_↔_.from A↔B b)
+
+    abstract
+
+      t∘f : ∀ ⊤⊎B x → t ⊤⊎B (f ⊤⊎B x) ≡ x
+      t∘f (inj₁ tt) (inj₁ tt) = refl _
+      t∘f (inj₁ tt) (inj₂ b′) = inj₂ (_↔_.to A↔B (_↔_.from A↔B b′))  ≡⟨ cong inj₂ $ _↔_.right-inverse-of A↔B _ ⟩∎
+                                inj₂ b′                              ∎
+      t∘f (inj₂ b)  (inj₁ tt) with _↔_.to A↔B (_↔_.from A↔B b) ≟B b
+      t∘f (inj₂ b)  (inj₁ tt) | yes _   = refl _
+      t∘f (inj₂ b)  (inj₁ tt) | no  b≢b = ⊥-elim $ b≢b (
+                                            _↔_.to A↔B (_↔_.from A↔B b)  ≡⟨ _↔_.right-inverse-of A↔B _ ⟩∎
+                                            b                            ∎)
+      t∘f (inj₂ b)  (inj₂ b′) with b ≟B b′
+      t∘f (inj₂ b)  (inj₂ b′) | yes b≡b′ = inj₂ b  ≡⟨ cong inj₂ b≡b′ ⟩∎
+                                           inj₂ b′ ∎
+      t∘f (inj₂ b)  (inj₂ b′) | no  b≢b′ =
+        t (inj₂ b) (inj₂ (_↔_.from A↔B b′))                             ≡⟨⟩
+
+        if⌊ inj₂ (_↔_.to A↔B (_↔_.from A↔B b′)) ≟ inj₂ b ⌋then inj₁ tt
+          else inj₂ (_↔_.to A↔B (_↔_.from A↔B b′))                      ≡⟨ cong (λ b′ → if⌊ inj₂ b′ ≟ inj₂ b ⌋then inj₁ tt else inj₂ b′) $
+                                                                             _↔_.right-inverse-of A↔B _ ⟩
+        if⌊ inj₂ b′ ≟ inj₂ b ⌋then inj₁ tt else inj₂ b′                 ≡⟨ if-not (inj₂ b′ ≟ inj₂ b) (inj₁ tt) _ (b≢b′ ∘ sym ∘ ⊎.cancel-inj₂) ⟩∎
+
+        inj₂ b′                                                         ∎
+
+      f∘t : ∀ ⊤⊎B x → f ⊤⊎B (t ⊤⊎B x) ≡ x
+      f∘t (inj₁ tt) (inj₁ tt) = refl _
+      f∘t (inj₁ tt) (inj₂ a)  = inj₂ (_↔_.from A↔B (_↔_.to A↔B a))  ≡⟨ cong inj₂ $ _↔_.left-inverse-of A↔B _ ⟩∎
+                                inj₂ a                              ∎
+      f∘t (inj₂ b)  (inj₁ tt) with b ≟B b
+      f∘t (inj₂ b)  (inj₁ tt) | yes _   = refl _
+      f∘t (inj₂ b)  (inj₁ tt) | no  b≢b = ⊥-elim $ b≢b (refl _)
+      f∘t (inj₂ b)  (inj₂ a)  with _↔_.to A↔B a ≟B b
+      f∘t (inj₂ b)  (inj₂ a)  | yes to-a≡b = inj₂ (_↔_.from A↔B b)  ≡⟨ cong inj₂ $ _↔_.to-from A↔B to-a≡b ⟩∎
+                                             inj₂ a                 ∎
+      f∘t (inj₂ b)  (inj₂ a)  | no  to-a≢b with b ≟B _↔_.to A↔B a
+      f∘t (inj₂ b)  (inj₂ a)  | no  to-a≢b | yes b≡to-a = ⊥-elim $ to-a≢b
+                                                            (_↔_.to A↔B a  ≡⟨ sym b≡to-a ⟩∎
+                                                             b             ∎)
+      f∘t (inj₂ b)  (inj₂ a)  | no  to-a≢b | no  b≢to-a =
+        inj₂ (_↔_.from A↔B (_↔_.to A↔B a))  ≡⟨ cong inj₂ $ _↔_.left-inverse-of A↔B _ ⟩∎
+        inj₂ a                              ∎
+
+  to∘from : ∀ x → to (from x) ≡ x
+  to∘from (⊤⊎B , A↔B) =
+    cong (⊤⊎B ,_) (_↔_.to (↔-to-≡↔≡ ext A-set) (lemma ⊤⊎B))
+    where
+    A-set : Is-set A
+    A-set =                 $⟨ _≟B_ ⟩
+      Decidable-equality B  ↝⟨ decidable⇒set ⟩
+      Is-set B              ↝⟨ H-level.respects-surjection
+                                 (_↔_.surjection $ inverse A↔B) 2 ⟩□
+      Is-set A              □
+
+    lemma :
+      ∀ ⊤⊎B a →
+      _↔_.to (⊎-left-cancellative-⊤ (from (⊤⊎B , A↔B))) a ≡ _↔_.to A↔B a
+    lemma (inj₁ tt) a = refl _
+    lemma (inj₂ b)  a with inspect (_↔_.to (from (inj₂ b , A↔B))
+                                           (inj₂ a))
+    lemma (inj₂ b)  a | (inj₁ tt , eq) with _↔_.to A↔B a ≟B b
+    lemma (inj₂ b)  a | (inj₁ tt , eq) | yes to-a≡b = sym to-a≡b
+    lemma (inj₂ b)  a | (inj₁ tt , eq) | no  _      = ⊥-elim $ ⊎.inj₁≢inj₂ $ sym eq
+    lemma (inj₂ b)  a | (inj₂ _  , eq) with _↔_.to A↔B a ≟B b
+    lemma (inj₂ b)  a | (inj₂ _  , eq) | yes _ = ⊥-elim $ ⊎.inj₁≢inj₂ eq
+    lemma (inj₂ b)  a | (inj₂ _  , eq) | no  _ = ⊎.cancel-inj₂ $ sym eq
+
+  from∘to : ∀ x → from (to x) ≡ x
+  from∘to ⊤⊎A↔⊤⊎B = _↔_.to (↔-to-≡↔≡ ext ⊤⊎A-set) lemma₁
+    where
+    open ⊎-left-cancellative
+
+    ⊤⊎A-set : Is-set (⊤ ⊎ A)
+    ⊤⊎A-set =               $⟨ _≟B_ ⟩
+      Decidable-equality B  ↝⟨ decidable⇒set ⟩
+      Is-set B              ↝⟨ ⊎-closure 0 (mono (zero≤ 2) ⊤-contractible) ⟩
+      Is-set (⊤ ⊎ B)        ↝⟨ H-level.respects-surjection
+                                 (_↔_.surjection $ inverse ⊤⊎A↔⊤⊎B) 2 ⟩□
+      Is-set (⊤ ⊎ A)        □
+
+    mutual
+
+      lemma₁ : ∀ ⊤⊎A →
+               _↔_.to (from (to ⊤⊎A↔⊤⊎B)) ⊤⊎A ≡ _↔_.to ⊤⊎A↔⊤⊎B ⊤⊎A
+      lemma₁ (inj₁ tt) = refl _
+      lemma₁ (inj₂ a)  = lemma₂ (inspect _) (inspect _)
+
+      lemma₂ :
+        ∀ {a} {wb : Well-behaved (_↔_.to ⊤⊎A↔⊤⊎B)}
+        (x : Other-singleton (_↔_.to ⊤⊎A↔⊤⊎B (inj₂ a)))
+        (y : Other-singleton (_↔_.to ⊤⊎A↔⊤⊎B (inj₁ tt))) →
+        let b = g′ (_↔_.to ⊤⊎A↔⊤⊎B) wb x in
+        if⌊ inj₂ b ≟ proj₁ y ⌋then inj₁ tt else inj₂ b ≡ proj₁ x
+      lemma₂ {a} (inj₁ tt , eq₁) (inj₁ tt , eq₂) = ⊥-elim $ ⊎.inj₁≢inj₂ (
+        inj₁ tt                                      ≡⟨ sym $ _↔_.left-inverse-of ⊤⊎A↔⊤⊎B _ ⟩
+        _↔_.from ⊤⊎A↔⊤⊎B (_↔_.to ⊤⊎A↔⊤⊎B (inj₁ tt))  ≡⟨ cong (_↔_.from ⊤⊎A↔⊤⊎B) eq₂ ⟩
+        _↔_.from ⊤⊎A↔⊤⊎B (inj₁ tt)                   ≡⟨ cong (_↔_.from ⊤⊎A↔⊤⊎B) $ sym eq₁ ⟩
+        _↔_.from ⊤⊎A↔⊤⊎B (_↔_.to ⊤⊎A↔⊤⊎B (inj₂ a))   ≡⟨ _↔_.left-inverse-of ⊤⊎A↔⊤⊎B _ ⟩∎
+        inj₂ a                                       ∎)
+      lemma₂     (inj₁ tt , eq₁) (inj₂ b′ , eq₂) = lemma₃ eq₁ (inspect _) eq₂ (inj₂ _ ≟ inj₂ b′)
+      lemma₂     (inj₂ b  , eq₁) (inj₁ tt , eq₂) = refl _
+      lemma₂     (inj₂ b  , eq₁) (inj₂ b′ , eq₂) with b ≟B b′
+      lemma₂     (inj₂ b  , eq₁) (inj₂ b′ , eq₂) | no  _    = refl _
+      lemma₂ {a} (inj₂ b  , eq₁) (inj₂ b′ , eq₂) | yes b≡b′ =
+        ⊥-elim $ ⊎.inj₁≢inj₂ (
+          inj₁ tt                                      ≡⟨ sym $ _↔_.left-inverse-of ⊤⊎A↔⊤⊎B _ ⟩
+          _↔_.from ⊤⊎A↔⊤⊎B (_↔_.to ⊤⊎A↔⊤⊎B (inj₁ tt))  ≡⟨ cong (_↔_.from ⊤⊎A↔⊤⊎B) eq₂ ⟩
+          _↔_.from ⊤⊎A↔⊤⊎B (inj₂ b′)                   ≡⟨ cong (_↔_.from ⊤⊎A↔⊤⊎B ∘ inj₂) $ sym b≡b′ ⟩
+          _↔_.from ⊤⊎A↔⊤⊎B (inj₂ b)                    ≡⟨ cong (_↔_.from ⊤⊎A↔⊤⊎B) $ sym eq₁ ⟩
+          _↔_.from ⊤⊎A↔⊤⊎B (_↔_.to ⊤⊎A↔⊤⊎B (inj₂ a))   ≡⟨ _↔_.left-inverse-of ⊤⊎A↔⊤⊎B _ ⟩∎
+          inj₂ a                                       ∎)
+
+      lemma₃ :
+        ∀ {a b′} {wb : Well-behaved (_↔_.to ⊤⊎A↔⊤⊎B)}
+        (eq : _↔_.to ⊤⊎A↔⊤⊎B (inj₂ a) ≡ inj₁ tt)
+        (x : Other-singleton (_↔_.to ⊤⊎A↔⊤⊎B (inj₁ tt))) →
+        proj₁ x ≡ inj₂ b′ →
+        let b = g″ (_↔_.to ⊤⊎A↔⊤⊎B) wb eq x in
+        (d : Dec (inj₂ {A = ⊤} b ≡ inj₂ b′)) →
+        if⌊ d ⌋then inj₁ tt else inj₂ b ≡ inj₁ tt
+      lemma₃ eq₁ (inj₁ _  , eq₂) eq₃ _           = ⊥-elim $ ⊎.inj₁≢inj₂ eq₃
+      lemma₃ eq₁ (inj₂ b″ , eq₂) eq₃ (yes b″≡b′) = refl _
+      lemma₃ eq₁ (inj₂ b″ , eq₂) eq₃ (no  b″≢b′) = ⊥-elim $ b″≢b′ eq₃
