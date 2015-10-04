@@ -939,6 +939,22 @@ Contractible-commutes-with-× {x} {y} ext =
   (_≃_.to p , _≃_.is-equivalence p) ≡ (_≃_.to q , _≃_.is-equivalence q)  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Eq.≃-as-Σ) ⟩□
   p ≡ q                                                                  □
 
+-- Equality of bijections between a set and a type is isomorphic to
+-- pointwise equality of the underlying functions (assuming
+-- extensionality).
+
+↔-to-≡↔≡ :
+  ∀ {a b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  {A : Set a} {B : Set b} {p q : A ↔ B} →
+  Is-set A →
+  (∀ x → _↔_.to p x ≡ _↔_.to q x) ↔ p ≡ q
+↔-to-≡↔≡ ext {p = p} {q} A-set =
+  (∀ x → _↔_.to p x ≡ _↔_.to q x)                    ↝⟨ id ⟩
+  (∀ x → _≃_.to (Eq.↔⇒≃ p) x ≡ _≃_.to (Eq.↔⇒≃ q) x)  ↝⟨ ≃-to-≡↔≡ ext ⟩
+  Eq.↔⇒≃ p ≡ Eq.↔⇒≃ q                                ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.↔↔≃ ext A-set)) ⟩□
+  p ≡ q                                              □
+
 -- Equality of equivalences is isomorphic to pointwise equality of the
 -- underlying /inverse/ functions (assuming extensionality).
 
@@ -951,6 +967,22 @@ Contractible-commutes-with-× {x} {y} ext =
   (∀ x → _≃_.from p x ≡ _≃_.from q x)  ↝⟨ ≃-to-≡↔≡ ext ⟩
   inverse p ≡ inverse q                ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.inverse-isomorphism ext)) ⟩□
   p ≡ q                                □
+
+-- Equality of bijections between a set and a type is isomorphic to
+-- pointwise equality of the underlying /inverse/ functions (assuming
+-- extensionality).
+
+↔-from-≡↔≡ :
+  ∀ {a b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  {A : Set a} {B : Set b} {p q : A ↔ B} →
+  Is-set A →
+  (∀ x → _↔_.from p x ≡ _↔_.from q x) ↔ p ≡ q
+↔-from-≡↔≡ ext {p = p} {q} A-set =
+  (∀ x → _↔_.from p x ≡ _↔_.from q x)                    ↝⟨ id ⟩
+  (∀ x → _≃_.from (Eq.↔⇒≃ p) x ≡ _≃_.from (Eq.↔⇒≃ q) x)  ↝⟨ ≃-from-≡↔≡ ext ⟩
+  Eq.↔⇒≃ p ≡ Eq.↔⇒≃ q                                    ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.↔↔≃ ext A-set)) ⟩□
+  p ≡ q                                                  □
 
 -- Contractibility is isomorphic to equivalence to the unit type
 -- (assuming extensionality).
