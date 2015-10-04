@@ -24,9 +24,13 @@ record ↑ {a} ℓ (A : Set a) : Set (a ⊔ ℓ) where
 open ↑ public
 
 ------------------------------------------------------------------------
--- Some finite types
+-- The unit type
 
--- The empty type.
+record ⊤ : Set where
+  constructor tt
+
+------------------------------------------------------------------------
+-- The empty type
 
 data ⊥ {ℓ} : Set ℓ where
 
@@ -44,46 +48,6 @@ infix 3 ¬_
 
 ¬_ : ∀ {ℓ} → Set ℓ → Set ℓ
 ¬ P = P → ⊥₀
-
--- The unit type.
-
-record ⊤ : Set where
-  constructor tt
-
--- Booleans.
-
-data Bool : Set where
-  true false : Bool
-
--- Conditional.
-
-if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A
-if true  then t else f = t
-if false then t else f = f
-
--- Not.
-
-not : Bool → Bool
-not b = if b then false else true
-
--- And.
-
-infixr 6 _∧_
-
-_∧_ : Bool → Bool → Bool
-b₁ ∧ b₂ = if b₁ then b₂ else false
-
--- Or.
-
-infixr 5 _∨_
-
-_∨_ : Bool → Bool → Bool
-b₁ ∨ b₂ = if b₁ then true else b₂
-
--- The truth predicate T is only inhabited when its argument is true.
-
-T : Bool → Set
-T b = if b then ⊤ else ⊥
 
 ------------------------------------------------------------------------
 -- Natural numbers
@@ -316,6 +280,47 @@ infixr 1 _Xor_
 
 _Xor_ : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
 A Xor B = (A × ¬ B) ⊎ (¬ A × B)
+
+------------------------------------------------------------------------
+-- Booleans
+
+-- Booleans.
+
+Bool : Set
+Bool = ⊤ ⊎ ⊤
+
+pattern true  = inj₁ tt
+pattern false = inj₂ tt
+
+-- Conditional.
+
+if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A
+if true  then t else f = t
+if false then t else f = f
+
+-- Not.
+
+not : Bool → Bool
+not b = if b then false else true
+
+-- And.
+
+infixr 6 _∧_
+
+_∧_ : Bool → Bool → Bool
+b₁ ∧ b₂ = if b₁ then b₂ else false
+
+-- Or.
+
+infixr 5 _∨_
+
+_∨_ : Bool → Bool → Bool
+b₁ ∨ b₂ = if b₁ then true else b₂
+
+-- The truth predicate T is only inhabited when its argument is true.
+
+T : Bool → Set
+T b = if b then ⊤ else ⊥
 
 ------------------------------------------------------------------------
 -- Lists

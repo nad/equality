@@ -12,9 +12,7 @@ module Equality.Decision-procedures
 open Derived-definitions-and-properties eq
 open import Equality.Decidable-UIP eq
 open import Prelude
-  hiding ( module ⊤; module ⊥; module Bool; module ℕ; module Σ
-         ; module List
-         )
+  hiding (module ⊤; module ⊥; module ℕ; module Σ; module List)
 
 ------------------------------------------------------------------------
 -- The unit type
