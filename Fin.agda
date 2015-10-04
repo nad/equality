@@ -52,7 +52,7 @@ private
 
   well-behaved : ∀ {m n} (f : Fin (1 + m) ↔ Fin (1 + n)) →
                  Well-behaved (_↔_.to f)
-  well-behaved f {b = i} eq₁ eq₂ =  ⊎.inj₁≢inj₂ (
+  well-behaved f {b = i} eq₁ eq₂ = ⊎.inj₁≢inj₂ (
     fzero         ≡⟨ sym $ to-from f eq₂ ⟩
     from f fzero  ≡⟨ to-from f eq₁ ⟩∎
     fsuc i        ∎)
