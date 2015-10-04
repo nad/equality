@@ -92,14 +92,14 @@ abstract
 
     helper : xs And ys Are-related-by cancel-suc f
     helper i with inspect (to (fsuc i)) | related (fsuc i)
-    helper i | fsuc k with-≡ eq₁ | hyp₁ =
+    helper i | fsuc k , eq₁ | hyp₁ =
       lookup xs i                    ≡⟨ hyp₁ ⟩
       lookup (x ∷ ys) (to (fsuc i))  ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
       lookup (x ∷ ys) (fsuc k)       ≡⟨ refl ⟩∎
       lookup ys k                    ∎
-    helper i | fzero with-≡ eq₁ | hyp₁
+    helper i | fzero , eq₁ | hyp₁
       with inspect (to (fzero)) | related (fzero)
-    helper i | fzero with-≡ eq₁ | hyp₁ | fsuc j with-≡ eq₂ | hyp₂ =
+    helper i | fzero , eq₁ | hyp₁ | fsuc j , eq₂ | hyp₂ =
       lookup xs i                    ≡⟨ hyp₁ ⟩
       lookup (x ∷ ys) (to (fsuc i))  ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
       lookup (x ∷ ys) (fzero)        ≡⟨ refl ⟩
@@ -107,7 +107,7 @@ abstract
       lookup (x ∷ ys) (to (fzero))   ≡⟨ cong (lookup (x ∷ ys)) eq₂ ⟩
       lookup (x ∷ ys) (fsuc j)       ≡⟨ refl ⟩∎
       lookup ys j                    ∎
-    helper i | fzero with-≡ eq₁ | hyp₁ | fzero with-≡ eq₂ | hyp₂ =
+    helper i | fzero , eq₁ | hyp₁ | fzero , eq₂ | hyp₂ =
       ⊥-elim $ well-behaved f eq₁ eq₂
 
 -- By using cancel-suc we can show that finite sets are isomorphic iff

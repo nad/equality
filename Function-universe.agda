@@ -1643,10 +1643,10 @@ Well-behaved f =
   g : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
       (f : A ⊎ B → A ⊎ C) → Well-behaved f → (B → C)
   g f hyp b with inspect (f (inj₂ b))
-  g f hyp b | inj₂ c with-≡ eq₁ = c
-  g f hyp b | inj₁ a with-≡ eq₁ with inspect (f (inj₁ a))
-  g f hyp b | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ = c
-  g f hyp b | inj₁ a with-≡ eq₁ | inj₁ a′ with-≡ eq₂ =
+  g f hyp b | inj₂ c , eq₁ = c
+  g f hyp b | inj₁ a , eq₁ with inspect (f (inj₁ a))
+  g f hyp b | inj₁ a , eq₁ | inj₂ c  , eq₂ = c
+  g f hyp b | inj₁ a , eq₁ | inj₁ a′ , eq₂ =
     ⊥-elim $ hyp eq₁ eq₂
 
   abstract
@@ -1660,25 +1660,25 @@ Well-behaved f =
       where
       g∘g′ : g (from f) from-hyp (g (to f) to-hyp b) ≡ b
       g∘g′ with inspect (to f (inj₂ b))
-      g∘g′ | inj₂ c with-≡ eq₁ with inspect (from f (inj₂ c))
-      g∘g′ | inj₂ c with-≡ eq₁ | inj₂ b′ with-≡ eq₂ = ⊎.cancel-inj₂ (
-                                                        inj₂ b′          ≡⟨ sym eq₂ ⟩
-                                                        from f (inj₂ c)  ≡⟨ to-from f eq₁ ⟩∎
-                                                        inj₂ b           ∎)
-      g∘g′ | inj₂ c with-≡ eq₁ | inj₁ a  with-≡ eq₂ = ⊥-elim $ ⊎.inj₁≢inj₂ (
-                                                        inj₁ a           ≡⟨ sym eq₂ ⟩
-                                                        from f (inj₂ c)  ≡⟨ to-from f eq₁ ⟩∎
-                                                        inj₂ b           ∎)
-      g∘g′ | inj₁ a with-≡ eq₁ with inspect (to f (inj₁ a))
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₁ a′ with-≡ eq₂ = ⊥-elim $ to-hyp eq₁ eq₂
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ with inspect (from f (inj₂ c))
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₂ b′ with-≡ eq₃ = ⊥-elim $ ⊎.inj₁≢inj₂ (
-                                                                             inj₁ a           ≡⟨ sym $ to-from f eq₂ ⟩
-                                                                             from f (inj₂ c)  ≡⟨ eq₃ ⟩∎
-                                                                             inj₂ b′          ∎)
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ with inspect (from f (inj₁ a′))
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ | inj₁ a″ with-≡ eq₄ = ⊥-elim $ from-hyp eq₃ eq₄
-      g∘g′ | inj₁ a with-≡ eq₁ | inj₂ c  with-≡ eq₂ | inj₁ a′ with-≡ eq₃ | inj₂ b′ with-≡ eq₄ = ⊎.cancel-inj₂ (
+      g∘g′ | inj₂ c , eq₁ with inspect (from f (inj₂ c))
+      g∘g′ | inj₂ c , eq₁ | inj₂ b′ , eq₂ = ⊎.cancel-inj₂ (
+                                              inj₂ b′          ≡⟨ sym eq₂ ⟩
+                                              from f (inj₂ c)  ≡⟨ to-from f eq₁ ⟩∎
+                                              inj₂ b           ∎)
+      g∘g′ | inj₂ c , eq₁ | inj₁ a  , eq₂ = ⊥-elim $ ⊎.inj₁≢inj₂ (
+                                              inj₁ a           ≡⟨ sym eq₂ ⟩
+                                              from f (inj₂ c)  ≡⟨ to-from f eq₁ ⟩∎
+                                              inj₂ b           ∎)
+      g∘g′ | inj₁ a , eq₁ with inspect (to f (inj₁ a))
+      g∘g′ | inj₁ a , eq₁ | inj₁ a′ , eq₂ = ⊥-elim $ to-hyp eq₁ eq₂
+      g∘g′ | inj₁ a , eq₁ | inj₂ c  , eq₂ with inspect (from f (inj₂ c))
+      g∘g′ | inj₁ a , eq₁ | inj₂ c  , eq₂ | inj₂ b′ , eq₃ = ⊥-elim $ ⊎.inj₁≢inj₂ (
+                                                              inj₁ a           ≡⟨ sym $ to-from f eq₂ ⟩
+                                                              from f (inj₂ c)  ≡⟨ eq₃ ⟩∎
+                                                              inj₂ b′          ∎)
+      g∘g′ | inj₁ a , eq₁ | inj₂ c  , eq₂ | inj₁ a′ , eq₃ with inspect (from f (inj₁ a′))
+      g∘g′ | inj₁ a , eq₁ | inj₂ c  , eq₂ | inj₁ a′ , eq₃ | inj₁ a″ , eq₄ = ⊥-elim $ from-hyp eq₃ eq₄
+      g∘g′ | inj₁ a , eq₁ | inj₂ c  , eq₂ | inj₁ a′ , eq₃ | inj₂ b′ , eq₄ = ⊎.cancel-inj₂ (
         let lemma =
               inj₁ a′          ≡⟨ sym eq₃ ⟩
               from f (inj₂ c)  ≡⟨ to-from f eq₂ ⟩∎

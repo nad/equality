@@ -484,11 +484,8 @@ module Derived-definitions-and-properties
 
   -- The inspect idiom.
 
-  data Inspect {a} {A : Set a} (x : A) : Set a where
-    _with-≡_ : (y : A) (eq : x ≡ y) → Inspect x
-
-  inspect : ∀ {a} {A : Set a} (x : A) → Inspect x
-  inspect x = x with-≡ refl x
+  inspect : ∀ {a} {A : Set a} (x : A) → Other-singleton x
+  inspect x = x , refl x
 
   -- The K rule (without computational content).
 
