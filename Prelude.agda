@@ -260,6 +260,16 @@ data _⊎_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
         (A₁ → A₂) → (B₁ → B₂) → A₁ ⊎ B₁ → A₂ ⊎ B₂
 ⊎-map f g = [ inj₁ ∘ f , inj₂ ∘ g ]
 
+-- The function from-⊎ is a safe analogue of fromJust.
+
+From-⊎ : ∀ {ℓ} {A B : Set ℓ} → A ⊎ B → Set ℓ
+From-⊎ {A = A} (inj₁ _) = A
+From-⊎ {B = B} (inj₂ _) = B
+
+from-⊎ : ∀ {ℓ} {A B : Set ℓ} (x : A ⊎ B) → From-⊎ x
+from-⊎ (inj₁ x) = x
+from-⊎ (inj₂ y) = y
+
 -- A special case of binary sums: decided predicates.
 
 Dec : ∀ {p} → Set p → Set p
