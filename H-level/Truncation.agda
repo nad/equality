@@ -176,6 +176,47 @@ abstract
   prop-elim-∣∣ _ _ P-prop _ _ =
     _⇔_.to propositional⇔irrelevant (P-prop _) _ _
 
+-- Nested truncations can sometimes be flattened.
+
+flatten↠ :
+  ∀ {m n a ℓ} {A : Set a} →
+  Extensionality (a ⊔ lsuc ℓ) (a ⊔ ℓ) →
+  m ≤ n →
+  ∥ ∥ A ∥ m ℓ ∥ n (a ⊔ lsuc ℓ) ↠ ∥ A ∥ m ℓ
+flatten↠ ext m≤n = record
+  { logical-equivalence = record
+    { to   = rec (H-level.mono m≤n
+                    (truncation-has-correct-h-level _ ext))
+                 F.id
+    ; from = ∣_∣
+    }
+  ; right-inverse-of = refl
+  }
+
+flatten↔ :
+  ∀ {a ℓ} {A : Set a} →
+  Extensionality (lsuc (a ⊔ lsuc ℓ)) (lsuc (a ⊔ lsuc ℓ)) →
+  (∥ ∥ A ∥ 1 ℓ ∥ 1       (a ⊔ lsuc ℓ) →
+   ∥ ∥ A ∥ 1 ℓ ∥ 1 (lsuc (a ⊔ lsuc ℓ))) →
+  ∥ ∥ A ∥ 1 ℓ ∥ 1 (a ⊔ lsuc ℓ) ↔ ∥ A ∥ 1 ℓ
+flatten↔ ext resize = record
+  { surjection      = flatten↠ ext′ ≤-refl
+  ; left-inverse-of = λ x →
+      prop-elim
+        ext
+        (λ x → ∣ rec (H-level.mono ≤-refl
+                        (truncation-has-correct-h-level _ ext′))
+                     F.id x ∣ ≡ x)
+        (λ _ → mono₁ 0 (truncation-has-correct-h-level
+                          1 (lower-extensionality lzero _ ext)
+                          _ _))
+        (λ x → refl ∣ x ∣)
+        (resize x)
+        x
+  }
+  where
+  ext′ = lower-extensionality _ _ ext
+
 -- Surjectivity.
 --
 -- I'm not quite sure what the universe level of the truncation should
