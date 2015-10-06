@@ -1580,7 +1580,7 @@ private
   (A → ⊥)   □
 
 ------------------------------------------------------------------------
--- A lemma related to H-level
+-- Lemmas related to H-level
 
 -- H-level n preserves isomorphisms (assuming extensionality).
 
@@ -1599,6 +1599,83 @@ H-level-cong {a = a} {b} ext n A↔B′ =
       })
   where
   A↔B = from-isomorphism A↔B′
+
+-- Some lemmas relating equivalences A ≃ B with types of the form
+-- ∀ C → H-level n C → (A → C) ≃ (B → C).
+
+→≃→↠≃ :
+  ∀ {n ℓ} {A B : Set ℓ} →
+  Extensionality ℓ ℓ →
+  (hA : H-level n A) (hB : H-level n B) →
+  (∃ λ (f : (C : Set ℓ) → H-level n C → (A → C) ≃ (B → C)) →
+     ((C : Set ℓ) (hC : H-level n C) (g : A → C) →
+        g ∘ _≃_.to (f A hA) id ≡ _≃_.to (f C hC) g) ×
+     ((C : Set ℓ) (hC : H-level n C) (g : B → C) →
+        g ∘ _≃_.from (f B hB) id ≡ _≃_.from (f C hC) g))
+    ↠
+  (A ≃ B)
+→≃→↠≃ {A = A} {B} ext hA hB = record
+  { logical-equivalence = record
+    { from = λ A≃B → (λ _ _ → →-cong ext A≃B id)
+                   , (λ _ _ g → refl (g ∘ _≃_.from A≃B))
+                   , (λ _ _ g → refl (g ∘ _≃_.to   A≃B))
+    ; to   = λ { (A→≃B→ , ∘to≡ , ∘from≡) → Eq.↔⇒≃ (record
+      { surjection = record
+        { logical-equivalence = record
+          { to   = _≃_.from (A→≃B→ B hB) id
+          ; from = _≃_.to   (A→≃B→ A hA) id
+          }
+        ; right-inverse-of = λ x →
+            _≃_.from (A→≃B→ B hB) id (_≃_.to (A→≃B→ A hA) id x)    ≡⟨⟩
+            (_≃_.from (A→≃B→ B hB) id ∘ _≃_.to (A→≃B→ A hA) id) x  ≡⟨ cong (_$ x) $ ∘to≡ _ _ _ ⟩
+            (_≃_.to (A→≃B→ B hB) (_≃_.from (A→≃B→ B hB) id)) x     ≡⟨ cong (_$ x) $ _≃_.right-inverse-of (A→≃B→ B hB) _ ⟩∎
+            x                                                      ∎
+        }
+      ; left-inverse-of = λ x →
+          _≃_.to (A→≃B→ A hA) id (_≃_.from (A→≃B→ B hB) id x)    ≡⟨⟩
+          (_≃_.to (A→≃B→ A hA) id ∘ _≃_.from (A→≃B→ B hB) id) x  ≡⟨ cong (_$ x) $ ∘from≡ _ _ _ ⟩
+          (_≃_.from (A→≃B→ A hA) (_≃_.to (A→≃B→ A hA) id)) x     ≡⟨ cong (_$ x) $ _≃_.left-inverse-of (A→≃B→ A hA) _ ⟩∎
+          x                                                      ∎
+      }) }
+    }
+  ; right-inverse-of = λ A≃B → _↔_.to (≃-to-≡↔≡ ext) λ x →
+      refl (_≃_.to A≃B x)
+  }
+
+-- The following property can be generalised.
+
+→≃→↔≃ :
+  ∀ {ℓ} {A B : Set ℓ} →
+  Extensionality (lsuc ℓ) ℓ →
+  (hA : Is-set A) (hB : Is-set B) →
+  (∃ λ (f : (C : Set ℓ) → Is-set C → (A → C) ≃ (B → C)) →
+     ((C : Set ℓ) (hC : Is-set C) (g : A → C) →
+        g ∘ _≃_.to (f A hA) id ≡ _≃_.to (f C hC) g) ×
+     ((C : Set ℓ) (hC : Is-set C) (g : B → C) →
+        g ∘ _≃_.from (f B hB) id ≡ _≃_.from (f C hC) g))
+    ↔
+  (A ≃ B)
+→≃→↔≃ {A = A} {B} ext hA hB = record
+  { surjection      = →≃→↠≃ ext′ hA hB
+  ; left-inverse-of = λ { (A→≃B→ , ∘to≡ , _) →
+      Σ-≡,≡→≡
+        (ext λ C → ext′ λ hC → _↔_.to (≃-to-≡↔≡ ext′) λ f →
+           f ∘ _≃_.to (A→≃B→ A hA) id  ≡⟨ ∘to≡ _ _ _ ⟩∎
+           _≃_.to (A→≃B→ C hC) f       ∎)
+        (_⇔_.to propositional⇔irrelevant
+           (×-closure 1
+              (Π-closure ext  1 λ _  →
+               Π-closure ext′ 1 λ hC →
+               Π-closure ext′ 1 λ _ →
+               (Π-closure ext′ 2 λ _ → hC) _ _)
+              (Π-closure ext  1 λ _  →
+               Π-closure ext′ 1 λ hC →
+               Π-closure ext′ 1 λ _ →
+               (Π-closure ext′ 2 λ _ → hC) _ _))
+           _ _) }
+  }
+  where
+  ext′ = lower-extensionality _ lzero ext
 
 ------------------------------------------------------------------------
 -- Lemmas related to if
