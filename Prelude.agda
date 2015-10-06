@@ -75,6 +75,30 @@ _+_ : ℕ → ℕ → ℕ
 zero  + n = n
 suc m + n = suc (m + n)
 
+-- Multiplication.
+
+infixl 7 _*_
+
+_*_ : ℕ → ℕ → ℕ
+zero  * n = zero
+suc m * n = n + m * n
+
+-- Exponentiation.
+
+infixr 8 _^_
+
+_^_ : ℕ → ℕ → ℕ
+m ^ zero  = 1
+m ^ suc n = m * m ^ n
+
+-- Factorial.
+
+infix 9 _!
+
+_! : ℕ → ℕ
+zero  ! = 1
+suc n ! = suc n * n !
+
 -- The usual ordering of the natural numbers.
 
 infix 4 _≤_
