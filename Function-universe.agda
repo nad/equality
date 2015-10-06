@@ -781,6 +781,33 @@ currying = record
   ; left-inverse-of = refl
   }
 
+-- Some lemmas relating functions from binary sums and pairs of
+-- functions.
+
+Π⊎↠Π×Π :
+  ∀ {a b c} {A : Set a} {B : Set b} {C : A ⊎ B → Set c} →
+  ((x : A ⊎ B) → C x)
+    ↠
+  ((x : A) → C (inj₁ x)) × ((y : B) → C (inj₂ y))
+Π⊎↠Π×Π = record
+  { logical-equivalence = record
+    { to   = λ f → f ⊚ inj₁ , f ⊚ inj₂
+    ; from = uncurry [_,_]
+    }
+  ; right-inverse-of = refl
+  }
+
+Π⊎↔Π×Π :
+  ∀ {a b c} {A : Set a} {B : Set b} {C : A ⊎ B → Set c} →
+  Extensionality (a ⊔ b) c →
+  ((x : A ⊎ B) → C x)
+    ↔
+  ((x : A) → C (inj₁ x)) × ((y : B) → C (inj₂ y))
+Π⊎↔Π×Π ext = record
+  { surjection      = Π⊎↠Π×Π
+  ; left-inverse-of = λ _ → ext [ refl ⊚ _ , refl ⊚ _ ]
+  }
+
 -- ∃ distributes "from the left" over _⊎_.
 
 ∃-⊎-distrib-left :
