@@ -10,12 +10,12 @@
 module Bag-equivalence where
 
 open import Equality.Propositional hiding (trans)
-open import Fin
 open import Logical-equivalence hiding (id; _∘_; inverse)
 open import Prelude as P hiding (id)
 
 open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
 open import Equality.Decision-procedures equality-with-J
+open import Fin equality-with-J as Finite
 open import Function-universe equality-with-J as Function-universe
   hiding (_∘_; Kind; module Kind; bijection)
 open import H-level.Closure equality-with-J
@@ -472,7 +472,7 @@ abstract
 
   length-cong : ∀ {a} {A : Set a} {xs ys : List A} →
                 xs ≈-bag ys → length xs ≡ length ys
-  length-cong = _⇔_.to Fin.isomorphic-same-size ∘ Fin-length-cong
+  length-cong = _⇔_.to Finite.isomorphic-same-size ∘ Fin-length-cong
 
   -- All that remains (except for some bookkeeping) is to show that
   -- the isomorphism which Fin-length-cong returns relates the two
@@ -523,8 +523,8 @@ abstract
 ∷-left-cancellative′ : ∀ {a} {A : Set a} {x : A} xs ys →
                        x ∷ xs ≈-bag′ x ∷ ys → xs ≈-bag′ ys
 ∷-left-cancellative′ {x = x} xs ys x∷xs≈x∷ys = record
-  { bijection = Fin.cancel-suc (_≈-bag′_.bijection x∷xs≈x∷ys)
-  ; related   = Fin.cancel-suc-preserves-relatedness x xs ys
+  { bijection = Finite.cancel-suc (_≈-bag′_.bijection x∷xs≈x∷ys)
+  ; related   = Finite.cancel-suc-preserves-relatedness x xs ys
                   (_≈-bag′_.bijection x∷xs≈x∷ys)
                   (_≈-bag′_.related x∷xs≈x∷ys)
   }

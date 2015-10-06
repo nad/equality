@@ -10,11 +10,11 @@ open import Bag-equivalence
   using () renaming (_≈-bag_ to _≈-bagL_; _∈_ to _∈L_; Any to AnyL)
 open import Container
 open import Equality.Propositional
-open import Fin
 open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Prelude as P hiding (List; []; _∷_; foldr; _++_; id; _∘_)
 
 open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
+open import Fin equality-with-J
 open import Function-universe equality-with-J
 open import H-level.Closure equality-with-J
 

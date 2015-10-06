@@ -4,22 +4,22 @@
 
 {-# OPTIONS --without-K #-}
 
--- Note that this module is not parametrised by a definition of
--- equality; it uses ordinary propositional equality.
+open import Equality
 
-module Fin where
+module Fin
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Equality.Propositional as P
 open import Logical-equivalence hiding (id; _∘_; inverse)
 open import Prelude hiding (id)
 
-open import Bijection P.equality-with-J using (_↔_; module _↔_)
-open import Equality.Decision-procedures P.equality-with-J
-open import Equivalence P.equality-with-J as Eq using (_≃_)
-open import Function-universe P.equality-with-J hiding (_∘_)
-open import H-level P.equality-with-J
-open import H-level.Closure P.equality-with-J
-open import Univalence-axiom P.equality-with-J
+open import Bijection eq using (_↔_; module _↔_)
+open Derived-definitions-and-properties eq
+open import Equality.Decision-procedures eq
+open import Equivalence eq as Eq using (_≃_)
+open import Function-universe eq hiding (_∘_)
+open import H-level eq
+open import H-level.Closure eq
+open import Univalence-axiom eq
 
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃
@@ -97,17 +97,17 @@ abstract
     helper i | fsuc k , eq₁ | hyp₁ =
       lookup xs i                    ≡⟨ hyp₁ ⟩
       lookup (x ∷ ys) (to (fsuc i))  ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
-      lookup (x ∷ ys) (fsuc k)       ≡⟨ refl ⟩∎
+      lookup (x ∷ ys) (fsuc k)       ≡⟨ refl _ ⟩∎
       lookup ys k                    ∎
     helper i | fzero , eq₁ | hyp₁
       with inspect (to (fzero)) | related (fzero)
     helper i | fzero , eq₁ | hyp₁ | fsuc j , eq₂ | hyp₂ =
       lookup xs i                    ≡⟨ hyp₁ ⟩
       lookup (x ∷ ys) (to (fsuc i))  ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
-      lookup (x ∷ ys) (fzero)        ≡⟨ refl ⟩
+      lookup (x ∷ ys) (fzero)        ≡⟨ refl _ ⟩
       x                              ≡⟨ hyp₂ ⟩
       lookup (x ∷ ys) (to (fzero))   ≡⟨ cong (lookup (x ∷ ys)) eq₂ ⟩
-      lookup (x ∷ ys) (fsuc j)       ≡⟨ refl ⟩∎
+      lookup (x ∷ ys) (fsuc j)       ≡⟨ refl _ ⟩∎
       lookup ys j                    ∎
     helper i | fzero , eq₁ | hyp₁ | fzero , eq₂ | hyp₂ =
       ⊥-elim $ well-behaved f eq₁ eq₂
@@ -123,7 +123,7 @@ isomorphic-same-size {m} {n} = record
   where
   abstract
     to : ∀ m n → (Fin m ↔ Fin n) → m ≡ n
-    to zero    zero    _       = refl
+    to zero    zero    _       = refl _
     to (suc m) (suc n) 1+m↔1+n = cong suc $ to m n $ cancel-suc 1+m↔1+n
     to zero    (suc n)   0↔1+n = ⊥-elim $ _↔_.from 0↔1+n fzero
     to (suc m) zero    1+m↔0   = ⊥-elim $ _↔_.to 1+m↔0 fzero
