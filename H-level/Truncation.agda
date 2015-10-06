@@ -367,9 +367,9 @@ drop-∥∥₃ ℓ {b = b} {c} {A = A} {B} {C} {D} ext =
 
 -- Having a coherently constant function into a groupoid is equivalent
 -- to having a function from a propositionally truncated type into the
--- groupoid (assuming extensionality). This result is Example 2.3 in
--- "The General Universal Property of the Propositional Truncation" by
--- Kraus.
+-- groupoid (assuming extensionality). This result is Proposition 2.3
+-- in "The General Universal Property of the Propositional Truncation"
+-- by Kraus.
 
 Coherently-constant :
   ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
@@ -705,9 +705,9 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
 -- Having a constant function into a set is equivalent to having a
 -- function from a propositionally truncated type into the set
 -- (assuming extensionality). The statement of this result is that of
--- Example 2.2 in "The General Universal Property of the Propositional
--- Truncation" by Kraus, but it uses a different proof: as observed by
--- Kraus this result follows from Example 2.3.
+-- Proposition 2.2 in "The General Universal Property of the
+-- Propositional Truncation" by Kraus, but it uses a different proof:
+-- as observed by Kraus this result follows from Proposition 2.3.
 
 constant-function≃∥inhabited∥⇒inhabited :
   ∀ {a b} ℓ {A : Set a} {B : Set b} →
