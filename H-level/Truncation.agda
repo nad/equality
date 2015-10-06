@@ -292,6 +292,41 @@ private
     _≃_.right-inverse-of (∥∥×≃ {ℓ = ℓ} ext) x ≡ refl x
   right-inverse-of-∥∥×≃ _ x = refl (refl x)
 
+-- ∥_∥ commutes with _×_ (assuming extensionality and a resizing
+-- function for the propositional truncation).
+
+∥∥×∥∥↔∥×∥ :
+  ∀ {a b} ℓ {A : Set a} {B : Set b} →
+  Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
+  (∀ {x} {X : Set x} →
+     ∥ X ∥ 1       (a ⊔ b ⊔ ℓ) →
+     ∥ X ∥ 1 (lsuc (a ⊔ b ⊔ ℓ))) →
+  let ℓ′ = a ⊔ b ⊔ ℓ in
+  (∥ A ∥ 1 ℓ′ × ∥ B ∥ 1 ℓ′) ↔ ∥ A × B ∥ 1 ℓ′
+∥∥×∥∥↔∥×∥ _ ext resize = record
+  { surjection = record
+    { logical-equivalence = record
+      { from = λ p → ∥∥-map proj₁ p , ∥∥-map proj₂ p
+      ; to   = λ { (x , y) →
+                   rec (truncation-has-correct-h-level 1 ext)
+                       (λ x → rec (truncation-has-correct-h-level 1 ext)
+                                  (λ y → ∣ x , y ∣)
+                                  (resize y))
+                       (resize x) }
+      }
+    ; right-inverse-of = λ _ →
+        _⇔_.to propositional⇔irrelevant
+          (truncation-has-correct-h-level 1 ext)
+          _ _
+    }
+  ; left-inverse-of = λ _ →
+      _⇔_.to propositional⇔irrelevant
+        (×-closure 1
+           (truncation-has-correct-h-level 1 ext)
+           (truncation-has-correct-h-level 1 ext))
+        _ _
+  }
+
 -- If A is merely inhabited (at a certain level), then the
 -- propositional truncation of A (at the same level) is isomorphic to
 -- the unit type (assuming extensionality).
