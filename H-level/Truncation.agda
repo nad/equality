@@ -782,6 +782,54 @@ constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B} ext B-set =
   (∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ coherently-constant-function≃∥inhabited∥⇒inhabited ℓ ext (mono₁ 2 B-set) ⟩□
   (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)                  □
 
+-- The propositional truncation's universal property (defined using
+-- extensionality).
+--
+-- As observed by Kraus this result follows from Proposition 2.2 in
+-- his "The General Universal Property of the Propositional
+-- Truncation".
+
+universal-property :
+  ∀ {a b} ℓ {A : Set a} {B : Set b} →
+  Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
+  Is-proposition B →
+  (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B) ≃ (A → B)
+universal-property {a = a} {b} ℓ {A} {B} ext B-prop =
+  with-other-function
+    ((∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)       ↝⟨ inverse $ constant-function≃∥inhabited∥⇒inhabited ℓ ext (mono₁ 1 B-prop) ⟩
+     (∃ λ (f : A → B) → Constant f)  ↔⟨ (drop-⊤-right λ _ →
+                                         inverse $ _⇔_.to contractible⇔⊤↔ $
+                                         Π-closure (lower-extensionality _ ℓ       ext) 0 λ _ →
+                                         Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
+                                         B-prop _ _) ⟩□
+     (A → B)                         □)
+
+    (_∘ ∣_∣)
+
+    (λ f → lower-extensionality _ (a ⊔ ℓ) ext λ x →
+       subst (const B) (refl x) (f ∣ x ∣)  ≡⟨ subst-refl _ _ ⟩∎
+       f ∣ x ∣                             ∎)
+
+private
+
+  -- The universal property computes in the right way.
+
+  to-universal-property :
+    ∀ {a b} ℓ {A : Set a} {B : Set b}
+    (ext : Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ))
+    (B-prop : Is-proposition B)
+    (f : ∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B) →
+    _≃_.to (universal-property ℓ ext B-prop) f ≡ f ∘ ∣_∣
+  to-universal-property _ _ _ _ = refl _
+
+  from-universal-property :
+    ∀ {a b} ℓ {A : Set a} {B : Set b}
+    (ext : Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ))
+    (B-prop : Is-proposition B)
+    (f : A → B) (x : A) →
+    _≃_.from (universal-property ℓ ext B-prop) f ∣ x ∣ ≡ f x
+  from-universal-property _ _ _ _ _ = refl _
+
 -- Some properties of an imagined "real" /propositional/ truncation.
 
 module Real-propositional-truncation
