@@ -447,6 +447,58 @@ abstract
     where open _≃_ A≃B
 
 ------------------------------------------------------------------------
+-- One can replace either of the functions with an extensionally equal
+-- function
+
+with-other-function :
+  ∀ {a b} {A : Set a} {B : Set b}
+  (A≃B : A ≃ B) (f : A → B) →
+  (∀ x → _≃_.to A≃B x ≡ f x) →
+  A ≃ B
+with-other-function ⟨ g , is-equivalence ⟩ f g≡f =
+  ⟨ f , respects-extensional-equality g≡f is-equivalence ⟩
+
+with-other-inverse :
+  ∀ {a b} {A : Set a} {B : Set b}
+  (A≃B : A ≃ B) (f : B → A) →
+  (∀ x → _≃_.from A≃B x ≡ f x) →
+  A ≃ B
+with-other-inverse A≃B f from≡f =
+  inverse $ with-other-function (inverse A≃B) f from≡f
+
+private
+
+  -- The two functions above compute in the right way.
+
+  to∘with-other-function :
+    ∀ {a b} {A : Set a} {B : Set b}
+    (A≃B : A ≃ B) (f : A → B)
+    (to≡f : ∀ x → _≃_.to A≃B x ≡ f x) →
+    _≃_.to (with-other-function A≃B f to≡f) ≡ f
+  to∘with-other-function _ _ _ = refl _
+
+  from∘with-other-function :
+    ∀ {a b} {A : Set a} {B : Set b}
+    (A≃B : A ≃ B) (f : A → B)
+    (to≡f : ∀ x → _≃_.to A≃B x ≡ f x) →
+    _≃_.from (with-other-function A≃B f to≡f) ≡ _≃_.from A≃B
+  from∘with-other-function _ _ _ = refl _
+
+  to∘with-other-inverse :
+    ∀ {a b} {A : Set a} {B : Set b}
+    (A≃B : A ≃ B) (g : B → A)
+    (from≡g : ∀ x → _≃_.from A≃B x ≡ g x) →
+    _≃_.to (with-other-inverse A≃B g from≡g) ≡ _≃_.to A≃B
+  to∘with-other-inverse _ _ _ = refl _
+
+  from∘with-other-inverse :
+    ∀ {a b} {A : Set a} {B : Set b}
+    (A≃B : A ≃ B) (g : B → A)
+    (from≡g : ∀ x → _≃_.from A≃B x ≡ g x) →
+    _≃_.from (with-other-inverse A≃B g from≡g) ≡ g
+  from∘with-other-inverse _ _ _ = refl _
+
+------------------------------------------------------------------------
 -- The two-out-of-three property
 
 -- If two out of three of f, g and g ∘ f are equivalences, then the
