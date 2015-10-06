@@ -17,6 +17,13 @@ open import Equality.Decision-procedures eq
 open import Equivalence eq using (_≃_; ↔⇒≃; lift-equality)
 open import Function-universe eq
 
+-- Bool is isomorphic to Fin 2.
+
+Bool↔Fin2 : Bool ↔ Fin 2
+Bool↔Fin2 =
+  ⊤ ⊎ ⊤      ↝⟨ inverse $ id ⊎-cong ⊎-right-identity ⟩□
+  ⊤ ⊎ ⊤ ⊎ ⊥  □
+
 -- A non-trivial automorphism on Bool.
 
 swap : Bool ↔ Bool
