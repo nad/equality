@@ -15,9 +15,11 @@ open import Prelude hiding (id)
 
 open import Bijection P.equality-with-J using (_↔_; module _↔_)
 open import Equality.Decision-procedures P.equality-with-J
+open import Equivalence P.equality-with-J as Eq using (_≃_)
 open import Function-universe P.equality-with-J hiding (_∘_)
 open import H-level P.equality-with-J
 open import H-level.Closure P.equality-with-J
+open import Univalence-axiom P.equality-with-J
 
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃
@@ -125,3 +127,92 @@ isomorphic-same-size {m} {n} = record
     to (suc m) (suc n) 1+m↔1+n = cong suc $ to m n $ cancel-suc 1+m↔1+n
     to zero    (suc n)   0↔1+n = ⊥-elim $ _↔_.from 0↔1+n fzero
     to (suc m) zero    1+m↔0   = ⊥-elim $ _↔_.to 1+m↔0 fzero
+
+------------------------------------------------------------------------
+-- "Type arithmetic" using Fin
+
+-- Taking the disjoint union of two finite sets amounts to the same
+-- thing as adding the sizes.
+
+Fin⊎Fin↔Fin+ : ∀ m n → Fin m ⊎ Fin n ↔ Fin (m + n)
+Fin⊎Fin↔Fin+ zero n =
+  Fin 0 ⊎ Fin n  ↝⟨ id ⟩
+  ⊥ ⊎ Fin n      ↝⟨ ⊎-left-identity ⟩
+  Fin n          ↝⟨ id ⟩□
+  Fin (0 + n)    □
+Fin⊎Fin↔Fin+ (suc m) n =
+  Fin (suc m) ⊎ Fin n  ↝⟨ id ⟩
+  (⊤ ⊎ Fin m) ⊎ Fin n  ↝⟨ inverse ⊎-assoc ⟩
+  ⊤ ⊎ (Fin m ⊎ Fin n)  ↝⟨ id ⊎-cong Fin⊎Fin↔Fin+ m n ⟩
+  ⊤ ⊎ Fin (m + n)      ↝⟨ id ⟩
+  Fin (suc (m + n))    ↝⟨ id ⟩□
+  Fin (suc m + n)      □
+
+-- Taking the product of two finite sets amounts to the same thing as
+-- multiplying the sizes.
+
+Fin×Fin↔Fin* : ∀ m n → Fin m × Fin n ↔ Fin (m * n)
+Fin×Fin↔Fin* zero n =
+  Fin 0 × Fin n  ↝⟨ id ⟩
+  ⊥ × Fin n      ↝⟨ ×-left-zero ⟩
+  ⊥              ↝⟨ id ⟩□
+  Fin 0          □
+Fin×Fin↔Fin* (suc m) n =
+  Fin (suc m) × Fin n        ↝⟨ id ⟩
+  (⊤ ⊎ Fin m) × Fin n        ↝⟨ ∃-⊎-distrib-right ⟩
+  ⊤ × Fin n ⊎ Fin m × Fin n  ↝⟨ ×-left-identity ⊎-cong Fin×Fin↔Fin* m n ⟩
+  Fin n ⊎ Fin (m * n)        ↝⟨ Fin⊎Fin↔Fin+ _ _ ⟩
+  Fin (n + m * n)            ↝⟨ id ⟩□
+  Fin (suc m * n)            □
+
+-- Forming the function space between two finite sets amounts to the
+-- same thing as raising one size to the power of the other (assuming
+-- extensionality).
+
+[Fin→Fin]↔Fin^ :
+  Extensionality (# 0) (# 0) →
+  ∀ m n → (Fin m → Fin n) ↔ Fin (n ^ m)
+[Fin→Fin]↔Fin^ ext zero n =
+  (Fin 0 → Fin n)  ↝⟨ id ⟩
+  (⊥ → Fin n)      ↝⟨ Π⊥↔⊤ ext ⟩
+  ⊤                ↝⟨ inverse ⊎-right-identity ⟩□
+  Fin 1            □
+[Fin→Fin]↔Fin^ ext (suc m) n =
+  (Fin (suc m) → Fin n)          ↝⟨ id ⟩
+  (⊤ ⊎ Fin m → Fin n)            ↝⟨ Π⊎↔Π×Π ext ⟩
+  (⊤ → Fin n) × (Fin m → Fin n)  ↝⟨ Π-left-identity ×-cong [Fin→Fin]↔Fin^ ext m n ⟩
+  Fin n × Fin (n ^ m)            ↝⟨ Fin×Fin↔Fin* _ _ ⟩
+  Fin (n * n ^ m)                ↝⟨ id ⟩□
+  Fin (n ^ suc m)                □
+
+-- Automorphisms on Fin n are isomorphic to Fin (n !) (assuming
+-- extensionality).
+
+[Fin↔Fin]↔Fin! :
+  Extensionality (# 0) (# 0) →
+  ∀ n → (Fin n ↔ Fin n) ↔ Fin (n !)
+[Fin↔Fin]↔Fin! ext zero =
+  Fin 0 ↔ Fin 0  ↝⟨ Eq.↔↔≃ ext (Fin-set 0) ⟩
+  Fin 0 ≃ Fin 0  ↝⟨ id ⟩
+  ⊥ ≃ ⊥          ↔⟨ ≃⊥≃¬ ext ⟩
+  ¬ ⊥            ↝⟨ ¬⊥↔⊤ ext ⟩
+  ⊤              ↝⟨ inverse ⊎-right-identity ⟩
+  ⊤ ⊎ ⊥          ↝⟨ id ⟩□
+  Fin 1          □
+[Fin↔Fin]↔Fin! ext (suc n) =
+  Fin (suc n) ↔ Fin (suc n)      ↝⟨ [⊤⊎↔⊤⊎]↔[⊤⊎×↔] ext Fin._≟_ ⟩
+  Fin (suc n) × (Fin n ↔ Fin n)  ↝⟨ id ×-cong [Fin↔Fin]↔Fin! ext n ⟩
+  Fin (suc n) × Fin (n !)        ↝⟨ Fin×Fin↔Fin* _ _ ⟩□
+  Fin (suc n !)                  □
+
+-- A variant of the previous property.
+
+[Fin≡Fin]↔Fin! :
+  Extensionality (# 0) (# 0) →
+  Univalence (# 0) →
+  ∀ n → (Fin n ≡ Fin n) ↔ Fin (n !)
+[Fin≡Fin]↔Fin! ext univ n =
+  Fin n ≡ Fin n  ↔⟨ ≡≃≃ univ ⟩
+  Fin n ≃ Fin n  ↝⟨ inverse $ Eq.↔↔≃ ext (Fin-set n) ⟩
+  Fin n ↔ Fin n  ↝⟨ [Fin↔Fin]↔Fin! ext n ⟩□
+  Fin (n !)      □
