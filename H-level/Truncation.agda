@@ -21,7 +21,7 @@ import Equality.Groupoid eq as EG
 open import Equivalence eq as Eq hiding (_∘_; inverse)
 open import Function-universe eq as F hiding (_∘_)
 open import Groupoid eq
-open import H-level eq
+open import H-level eq as H-level
 open import H-level.Closure eq
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq using (_↠_)
@@ -122,6 +122,23 @@ private
     ∀ {ℓ₁ ℓ₂ a n} {A : Set a} (x : A) →
     with-lower-level ℓ₁ {ℓ₂ = ℓ₂} {n = n} ∣ x ∣ ≡ ∣ x ∣
   with-lower-level-∣∣ _ = refl _
+
+-- ∥_∥ is downwards closed in the h-level.
+
+downwards-closed :
+  ∀ {m n a ℓ} {A : Set a} →
+  n ≤ m →
+  ∥ A ∥ m ℓ → ∥ A ∥ n ℓ
+downwards-closed n≤m x = λ P h f → x P (H-level.mono n≤m h) f
+
+private
+
+  -- The function downwards-closed computes in the right way.
+
+  downwards-closed-∣∣ :
+    ∀ {m n a ℓ} {A : Set a} (n≤m : n ≤ m) (x : A) →
+    downwards-closed {ℓ = ℓ} n≤m ∣ x ∣ ≡ ∣ x ∣
+  downwards-closed-∣∣ _ _ = refl _
 
 -- The function rec can be used to define a kind of dependently typed
 -- eliminator for the propositional truncation (assuming
