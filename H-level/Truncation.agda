@@ -114,6 +114,15 @@ with-lower-level :
 with-lower-level ℓ₁ x =
   λ P h f → lower (x (↑ ℓ₁ P) (↑-closure _ h) (lift ∘ f))
 
+private
+
+  -- The function with-lower-level computes in the right way.
+
+  with-lower-level-∣∣ :
+    ∀ {ℓ₁ ℓ₂ a n} {A : Set a} (x : A) →
+    with-lower-level ℓ₁ {ℓ₂ = ℓ₂} {n = n} ∣ x ∣ ≡ ∣ x ∣
+  with-lower-level-∣∣ _ = refl _
+
 -- The function rec can be used to define a kind of dependently typed
 -- eliminator for the propositional truncation (assuming
 -- extensionality).
