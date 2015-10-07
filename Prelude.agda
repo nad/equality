@@ -284,7 +284,9 @@ data _⊎_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
         (A₁ → A₂) → (B₁ → B₂) → A₁ ⊎ B₁ → A₂ ⊎ B₂
 ⊎-map f g = [ inj₁ ∘ f , inj₂ ∘ g ]
 
--- The function from-⊎ is a safe analogue of fromJust.
+-- The function from-⊎ is a safe analogue of fromJust. For an example
+-- of how from-⊎ can be used, see
+-- Quotient.equivalence-but-not-strong-equivalence.
 
 From-⊎ : ∀ {ℓ} {A B : Set ℓ} → A ⊎ B → Set ℓ
 From-⊎ {A = A} (inj₁ _) = A

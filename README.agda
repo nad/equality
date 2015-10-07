@@ -104,7 +104,7 @@ import Univalence-axiom
 
 import H-level.Truncation
 
--- Quotients (set-quotients).
+-- Quotients.
 
 import Quotient
 
