@@ -360,6 +360,9 @@ module _ {a p q} {A : Set a}
       dependent-cong ⊥-rec (antisymmetry x⊑y x⊒y) ≡
       pa x⊑y x⊒y (⊥-rec x) (⊥-rec y) (⊑-rec x⊑y) (⊑-rec x⊒y)
 
+  -- Local rewrite rules, used to make some of the postulates below
+  -- type-correct.
+
   {-# REWRITE ⊥-rec-never #-}
   {-# REWRITE ⊥-rec-now   #-}
   {-# REWRITE ⊥-rec-⨆     #-}
@@ -387,11 +390,16 @@ module _ {a p q} {A : Set a}
                               qt (⊥-rec x) (⊥-rec y) (⊥-rec z)
                                  (⊑-rec x⊑y) (⊑-rec y⊑z)
 
-  {-# REWRITE ⊑-rec-never⊑ #-}
-  {-# REWRITE ⊑-rec-now⊑now #-}
-  {-# REWRITE ⊑-rec-upper-bound #-}
-  {-# REWRITE ⊑-rec-least-upper-bound #-}
-  {-# REWRITE ⊑-rec-⊑-trans #-}
+-- Global rewrite rules.
+
+{-# REWRITE ⊥-rec-never             #-}
+{-# REWRITE ⊥-rec-now               #-}
+{-# REWRITE ⊥-rec-⨆                 #-}
+{-# REWRITE ⊑-rec-never⊑            #-}
+{-# REWRITE ⊑-rec-now⊑now           #-}
+{-# REWRITE ⊑-rec-upper-bound       #-}
+{-# REWRITE ⊑-rec-least-upper-bound #-}
+{-# REWRITE ⊑-rec-⊑-trans           #-}
 
 module _ {a} {A : Set a} where
 
