@@ -936,3 +936,17 @@ module Real-propositional-truncation
         _⇔_.to propositional⇔irrelevant
           truncation-is-proposition _ _
     }
+
+-- The axiom of choice, in one of the alternative forms given in the
+-- HoTT book (§3.8).
+--
+-- The HoTT book uses a "real" propositional truncation, rather than
+-- the defined one used here. Note that I don't know if the universe
+-- levels used below (b ⊔ ℓ and a ⊔ b ⊔ ℓ) make sense. However, in the
+-- presence of a "real" propositional truncation (and extensionality)
+-- they can be dropped (see Real-propositional-truncation.isomorphic).
+
+Axiom-of-choice : (a b ℓ : Level) → Set (lsuc (a ⊔ b ⊔ ℓ))
+Axiom-of-choice a b ℓ =
+  {A : Set a} {B : A → Set b} →
+  Is-set A → (∀ x → ∥ B x ∥ 1 (b ⊔ ℓ)) → ∥ (∀ x → B x) ∥ 1 (a ⊔ b ⊔ ℓ)
