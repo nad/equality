@@ -1442,6 +1442,17 @@ module Derived-definitions-and-properties
          trans q (refl x) ≡ trans (refl x) r  ∎)
       p
 
+    -- "Evaluation rule" for [subst≡]≡[trans≡trans].
+
+    [subst≡]≡[trans≡trans]-refl :
+      ∀ {a} {A : Set a} {x : A} {q : x ≡ x} {r : x ≡ x} →
+      [subst≡]≡[trans≡trans] {p = refl x} {q = q} {r = r} ≡
+      trans (cong (_≡ r) (subst-refl (λ z → z ≡ z) q))
+            (sym $ cong₂ _≡_ (trans-reflʳ q) (trans-reflˡ r))
+    [subst≡]≡[trans≡trans]-refl {q = q} {r = r} =
+      cong (λ f → f {q = q} {r = r}) $
+        elim-refl (λ {x y} _ → {q : x ≡ x} {r : y ≡ y} → _) _
+
     -- Sometimes one can turn two ("modified") copies of a proof into
     -- one.
 
