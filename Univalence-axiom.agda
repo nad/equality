@@ -994,8 +994,48 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
   (∃ λ A → A ≃ ⊥₀)  ↔⟨ singleton-with-≃-↔-⊤ ext univ ⟩
   ⊤                 □
 
--- The following two proofs are taken from "Higher Homotopies in a
--- Hierarchy of Univalent Universes" by Kraus and Sattler (Section 3).
+-- The following three proofs are taken from or variants of proofs in
+-- "Higher Homotopies in a Hierarchy of Univalent Universes" by Kraus
+-- and Sattler (Section 3).
+
+-- There is a function which, despite having the same type, is not
+-- equal to a certain instance of reflexivity (assuming extensionality
+-- and univalence).
+
+∃≢refl :
+  Extensionality (# 1) (# 1) →
+  Univalence (# 0) →
+  ∃ λ (A : Set₁) → ∃ λ (f : (x : A) → x ≡ x) → f ≢ refl
+∃≢refl ext univ =
+    (∃ λ (A : Set) → A ≡ A)
+  , _↔_.from iso f
+  , (_↔_.from iso f ≡ refl                                      ↝⟨ cong (_↔_.to iso) ⟩
+
+     _↔_.to iso (_↔_.from iso f) ≡ _↔_.to iso refl              ↝⟨ (λ eq → f                            ≡⟨ sym (_↔_.right-inverse-of iso f) ⟩
+                                                                           _↔_.to iso (_↔_.from iso f)  ≡⟨ eq ⟩∎
+                                                                           _↔_.to iso refl              ∎) ⟩
+     f ≡ _↔_.to iso refl                                        ↝⟨ cong (λ f → proj₁ (f Bool (swap-as-an-equality univ))) ⟩
+
+     swap-as-an-equality univ ≡ proj₁ (_↔_.to iso refl Bool _)  ↝⟨ (λ eq → swap-as-an-equality univ        ≡⟨ eq ⟩
+                                                                           proj₁ (_↔_.to iso refl Bool _)  ≡⟨ cong proj₁ Σ-≡,≡←≡-refl ⟩∎
+                                                                           refl Bool                       ∎) ⟩
+
+     swap-as-an-equality univ ≡ refl Bool                       ↝⟨ swap≢refl univ ⟩□
+
+     ⊥                                                          □)
+  where
+  f = λ A p → p , refl (trans p p)
+
+  iso =
+    ((p : ∃ λ A → A ≡ A) → p ≡ p)                      ↝⟨ currying ⟩
+
+    (∀ A (p : A ≡ A) → (A , p) ≡ (A , p))              ↔⟨ (Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
+                                                             Eq.↔⇒≃ $ inverse $ Bijection.Σ-≡,≡↔≡ {a = # 1}) ⟩
+    ((A : Set) (p : A ≡ A) →
+       ∃ λ (q : A ≡ A) → subst (λ A → A ≡ A) q p ≡ p)  ↔⟨ (Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
+                                                             ∃-cong λ _ → ≡⇒↝ _ [subst≡]≡[trans≡trans]) ⟩□
+    ((A : Set) (p : A ≡ A) →
+       ∃ λ (q : A ≡ A) → trans p q ≡ trans q p)        □
 
 -- The type (a : A) → a ≡ a is not necessarily a proposition (assuming
 -- extensionality and univalence).
@@ -1005,37 +1045,12 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
   Univalence (# 0) →
   ∃ λ (A : Set₁) → ¬ Is-proposition ((a : A) → a ≡ a)
 ¬-type-of-refl-propositional ext univ =
-  (∃ λ A → A ≡ A) ,
-
-  (Is-proposition ((l : ∃ λ A → A ≡ A) → l ≡ l)                    ↝⟨ H-level.respects-surjection (_↔_.surjection currying) 1 ⟩
-
-   Is-proposition (∀ A (p : A ≡ A) → (A , p) ≡ (A , p))            ↝⟨ H-level.respects-surjection
-                                                                        (_≃_.surjection $ Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
-                                                                           Eq.↔⇒≃ $ inverse $ Bijection.Σ-≡,≡↔≡ {a = # 1})
-                                                                        1 ⟩
-   Is-proposition (∀ A (p : A ≡ A) →
-                     ∃ λ (q : A ≡ A) →
-                       subst (λ A → A ≡ A) q p ≡ p)                ↝⟨ H-level.respects-surjection
-                                                                        (_≃_.surjection $ Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
-                                                                           ∃-cong λ _ → ≡⇒↝ _ [subst≡]≡[trans≡trans])
-                                                                        1 ⟩
-   Is-proposition (∀ A (p : A ≡ A) →
-                     ∃ λ (q : A ≡ A) →
-                       trans p q ≡ trans q p)                      ↝⟨ _⇔_.to propositional⇔irrelevant ⟩
-
-   Proof-irrelevant (∀ A (p : A ≡ A) →
-                       ∃ λ (q : A ≡ A) →
-                         trans p q ≡ trans q p)                    ↝⟨ (λ irr → irr _ _) ⟩
-
-   (λ A p → p , refl _)
-     ≡
-   (λ A p → refl _ , (trans p (refl _)  ≡⟨ trans-reflʳ p ⟩
-                      p                 ≡⟨ sym $ trans-reflˡ p ⟩∎
-                      trans (refl _) p  ∎))                        ↝⟨ cong (λ f → proj₁ (f Bool (swap-as-an-equality univ))) ⟩
-
-   swap-as-an-equality univ ≡ refl _                               ↝⟨ swap≢refl univ ⟩
-
-   ⊥                                                               □)
+  let A , f , f≢refl = ∃≢refl ext univ in
+  A ,
+  (Is-proposition (∀ x → x ≡ x)    ↝⟨ _⇔_.to propositional⇔irrelevant ⟩
+   Proof-irrelevant (∀ x → x ≡ x)  ↝⟨ (λ irr → irr _ _) ⟩
+   f ≡ refl                        ↝⟨ f≢refl ⟩□
+   ⊥                               □)
 
 -- Set₁ does not have h-level 3 (assuming extensionality and
 -- univalence).
