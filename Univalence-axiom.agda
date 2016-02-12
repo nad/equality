@@ -970,16 +970,16 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
 
 ¬-∃-H-level-H-level :
   ∀ {a} →
-  ¬ (∀ n → H-level n (∃ λ (A : Set a) → H-level n A))
+  ∃ λ n → ¬ H-level n (∃ λ (A : Set a) → H-level n A)
 ¬-∃-H-level-H-level =
-  (∀ n → H-level n (∃ λ A → H-level n A))                 ↝⟨ _$ 1 ⟩
-  Is-proposition (∃ λ A → Is-proposition A)               ↝⟨ _⇔_.to propositional⇔irrelevant ⟩
-  ((p q : ∃ λ A → Is-proposition A) → p ≡ q)              ↝⟨ (λ f p q → cong proj₁ (f p q)) ⟩
-  ((p q : ∃ λ A → Is-proposition A) → proj₁ p ≡ proj₁ q)  ↝⟨ (_$ (⊥ , ⊥-propositional)) ∘
-                                                             (_$ (↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible))) ⟩
-  ↑ _ ⊤ ≡ ⊥                                               ↝⟨ flip (subst id) _ ⟩
-  ⊥                                                       ↝⟨ ⊥-elim ⟩□
-  ⊥₀                                                      □
+  1 ,
+  ( Is-proposition (∃ λ A → Is-proposition A)               ↝⟨ _⇔_.to propositional⇔irrelevant ⟩
+    ((p q : ∃ λ A → Is-proposition A) → p ≡ q)              ↝⟨ (λ f p q → cong proj₁ (f p q)) ⟩
+    ((p q : ∃ λ A → Is-proposition A) → proj₁ p ≡ proj₁ q)  ↝⟨ (_$ (⊥ , ⊥-propositional)) ∘
+                                                               (_$ (↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible))) ⟩
+    ↑ _ ⊤ ≡ ⊥                                               ↝⟨ flip (subst id) _ ⟩
+    ⊥                                                       ↝⟨ ⊥-elim ⟩□
+    ⊥₀                                                      □)
 
 -- A certain type of uninhabited types is isomorphic to the unit type
 -- (assuming extensionality and univalence).
