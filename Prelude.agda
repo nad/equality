@@ -249,16 +249,11 @@ abstract
 ------------------------------------------------------------------------
 -- Support for coinduction
 
-infix 1000 ♯_
-
-postulate
-  ∞  : ∀ {a} (A : Set a) → Set a
-  ♯_ : ∀ {a} {A : Set a} → A → ∞ A
-  ♭  : ∀ {a} {A : Set a} → ∞ A → A
-
-{-# BUILTIN INFINITY ∞  #-}
-{-# BUILTIN SHARP    ♯_ #-}
-{-# BUILTIN FLAT     ♭  #-}
+{-# BUILTIN SIZEUNIV Size-universe #-}
+{-# BUILTIN SIZE     Size          #-}
+{-# BUILTIN SIZELT   Size<_        #-}
+{-# BUILTIN SIZESUC  ssuc          #-}
+{-# BUILTIN SIZEINF  ∞             #-}
 
 ------------------------------------------------------------------------
 -- Binary sums
