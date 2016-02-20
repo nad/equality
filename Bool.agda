@@ -17,6 +17,12 @@ open import Equality.Decision-procedures eq
 open import Equivalence eq using (_≃_; ↔⇒≃; lift-equality)
 open import Function-universe eq
 
+-- The not function is involutive.
+
+not-involutive : ∀ b → not (not b) ≡ b
+not-involutive true  = refl _
+not-involutive false = refl _
+
 -- Bool is isomorphic to Fin 2.
 
 Bool↔Fin2 : Bool ↔ Fin 2
@@ -33,14 +39,10 @@ swap = record
       { to   = not
       ; from = not
       }
-    ; right-inverse-of = not∘not
+    ; right-inverse-of = not-involutive
     }
-  ; left-inverse-of = not∘not
+  ; left-inverse-of = not-involutive
   }
-  where
-  not∘not : ∀ b → not (not b) ≡ b
-  not∘not true  = refl _
-  not∘not false = refl _
 
 private
 
