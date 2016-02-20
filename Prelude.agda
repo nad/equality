@@ -321,6 +321,14 @@ infixr 1 _Xor_
 _Xor_ : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
 A Xor B = (A × ¬ B) ⊎ (¬ A × B)
 
+-- Maybe.
+
+Maybe : ∀ {a} → Set a → Set a
+Maybe A = ⊤ ⊎ A
+
+pattern nothing = inj₁ tt
+pattern just x  = inj₂ x
+
 ------------------------------------------------------------------------
 -- Booleans
 
