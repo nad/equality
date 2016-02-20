@@ -210,6 +210,15 @@ A × B = Σ A (const B)
         Σ A P → Σ B Q
 Σ-map f g = λ p → (f (proj₁ p) , g (proj₂ p))
 
+-- Zip.
+
+Σ-zip : ∀ {a b c p q r}
+          {A : Set a} {B : Set b} {C : Set c}
+          {P : A → Set p} {Q : B → Set q} {R : C → Set r} →
+        (f : A → B → C) → (∀ {x y} → P x → Q y → R (f x y)) →
+        Σ A P → Σ B Q → Σ C R
+Σ-zip f g = λ p q → (f (proj₁ p) (proj₁ q) , g (proj₂ p) (proj₂ q))
+
 -- Curry and uncurry.
 
 curry : ∀ {a b c} {A : Set a} {B : A → Set b} {C : Σ A B → Set c} →
