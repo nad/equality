@@ -160,6 +160,8 @@ f $ x = f x
 const : ∀ {a b} {A : Set a} {B : Set b} → A → (B → A)
 const x = λ _ → x
 
+{-# DISPLAY const x y = x #-}
+
 -- Flips the first two arguments.
 
 flip : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
