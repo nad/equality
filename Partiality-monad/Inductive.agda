@@ -26,6 +26,7 @@ open import H-level.Closure equality-with-J
 -- First: A partial inductive definition of the partiality monad,
 -- without path or truncation constructors, in order to get the basics
 -- right
+------------------------------------------------------------------------
 
 private
  module Preliminary-sketch where
@@ -223,6 +224,10 @@ private
 
 ------------------------------------------------------------------------
 -- The partiality monad
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+-- Definition of _⊥ and _⊑_
 
 -- The partiality monad (_⊥) and the information ordering (_⊑_) are
 -- defined simultaneously.
@@ -393,6 +398,9 @@ module _ {a p q} {A : Set a}
   {-# REWRITE ⊑-rec-least-upper-bound #-}
   {-# REWRITE ⊑-rec-⊑-trans           #-}
 
+------------------------------------------------------------------------
+-- Some simple properties
+
 module _ {a} {A : Set a} where
 
   -- _⊑_ is reflexive.
@@ -442,7 +450,10 @@ module _ {a} {A : Set a} where
                                        ⊑-propositional) ⟩□
     s₁ ≡ s₂                      □
 
--- Monotone functions.
+------------------------------------------------------------------------
+-- Monotone functions
+
+-- Definition of monotone functions.
 
 [_⊥→_⊥]⊑ : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
 [ A ⊥→ B ⊥]⊑ = ∃ λ (f : A ⊥ → B ⊥) → ∀ {x y} → x ⊑ y → f x ⊑ f y
@@ -499,7 +510,10 @@ module _ {a b} {A : Set a} {B : Set b} where
 
     proj₁ f (⨆ s)        ■)
 
--- ω-continuous functions.
+------------------------------------------------------------------------
+-- ω-continuous functions
+
+-- Definition of ω-continuous functions.
 
 [_⊥→_⊥] : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
 [ A ⊥→ B ⊥] = ∃ λ (f : [ A ⊥→ B ⊥]⊑) →
@@ -534,10 +548,15 @@ equality-characterisation-continuous {a} {A = A} {B} {f} {g} ext =
                                                        ⊥-is-set _ _) ⟩□
   f ≡ g                                          □
 
--- _⊥ is a monad.
+------------------------------------------------------------------------
+-- _⊥ is a monad
+
+-- Return/unit.
 
 return : ∀ {a} {A : Set a} → A → A ⊥
 return = now
+
+-- Bind.
 
 module _ {a b} {A : Set a} {B : Set b} (f : A → B ⊥) where
 
