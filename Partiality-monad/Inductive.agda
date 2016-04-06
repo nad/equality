@@ -18,6 +18,7 @@ open import Logical-equivalence using (module _⇔_)
 open import Prelude hiding (⊥; map; _>>=_)
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Decidable-UIP equality-with-J
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
@@ -272,7 +273,6 @@ module _ {a} {A : Set a} where
     now          : A → A ⊥
     ⨆            : Increasing-sequence A → A ⊥
     antisymmetry : {x y : A ⊥} → x ⊑ y → x ⊒ y → x ≡ y
-    ⊥-is-set     : Is-set (A ⊥)
 
     -- _⊑_ "constructors".
     never⊑            : ∀ x → never ⊑ x
@@ -317,7 +317,6 @@ record Rec-args
          (p-x : P x) (p-y : P y)
          (q-x⊑y : Q p-x p-y x⊑y) (q-x⊒y : Q p-y p-x x⊒y) →
          subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
-    ps : ∀ x → Is-set (P x)
     qe : ∀ x (p : P x) → Q pe p (never⊑ x)
     qo : ∀ x → Q (po x) (po x) (now⊑now x)
     qu : ∀ s n (pq : Inc P Q s) →
@@ -438,25 +437,31 @@ module _ {a} {A : Set a} where
 
   syntax finally-⊑ x y x⊑y = x ⊑⟨ x⊑y ⟩■ y ■
 
-  -- If two values are equal, then they are also smaller than or equal
-  -- to each other.
+  private
 
-  ≡⇒⊑ : {x y : A ⊥} → x ≡ y → x ⊑ y
-  ≡⇒⊑ x≡y = subst (_ ⊑_) x≡y (⊑-refl _)
+    -- A lemma.
+
+    ⊥-is-set-and-equality-characterisation =
+      Eq.propositional-identity≃≡
+        (λ x y → x ⊑ y × x ⊒ y)
+        (λ _ _ → ×-closure 1 ⊑-propositional ⊑-propositional)
+        (λ x → ⊑-refl x , ⊑-refl x)
+        (λ _ _ → uncurry antisymmetry)
+
+  -- _⊥ is a family of sets. (This lemma is analogous to
+  -- Theorem 11.3.9 in "Homotopy Type Theory: Univalent Foundations of
+  -- Mathematics" (first edition).)
+
+  ⊥-is-set : Is-set (A ⊥)
+  ⊥-is-set = proj₁ ⊥-is-set-and-equality-characterisation
 
   -- Equality characterisation lemma for the partiality monad.
 
   equality-characterisation-⊥ :
     Extensionality a a →
-    {x y : A ⊥} → (x ≡ y) ≃ (x ⊑ y × x ⊒ y)
-  equality-characterisation-⊥ ext =
-    _↔_.to (Eq.⇔↔≃ ext
-                   (⊥-is-set _ _)
-                   (×-closure 1 ⊑-propositional ⊑-propositional))
-      (record
-         { to   = λ x≡y → ≡⇒⊑ x≡y , ≡⇒⊑ (sym x≡y)
-         ; from = uncurry antisymmetry
-         })
+    {x y : A ⊥} → (x ⊑ y × x ⊒ y) ≃ (x ≡ y)
+  equality-characterisation-⊥ =
+    proj₂ ⊥-is-set-and-equality-characterisation
 
   -- Equality characterisation lemma for increasing sequences.
 
@@ -604,7 +609,6 @@ module _ {a b} {A : Set a} {B : Set b} (f : A → B ⊥) where
                subst (λ _ → B ⊥) (antisymmetry x⊑y x⊒y) u  ≡⟨ subst-const (antisymmetry x⊑y x⊒y) ⟩
                u                                           ≡⟨ antisymmetry u⊑v u⊒v ⟩∎
                v                                           ∎
-      ; ps = λ _ → ⊥-is-set
       ; qe = λ _ → never⊑
       ; qo = ⊑-refl ∘ f
       ; qu = λ _ n pq → upper-bound pq n
