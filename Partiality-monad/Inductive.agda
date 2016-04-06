@@ -6,7 +6,8 @@
 -- encode a higher inductive-inductive type.
 
 -- This module has been developed in collaboration with Thorsten
--- Altenkirch.
+-- Altenkirch. The code is heavily inspired by the section on Cauchy
+-- reals in the HoTT book.
 
 {-# OPTIONS --without-K --rewriting #-}
 
