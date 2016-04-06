@@ -399,6 +399,162 @@ module _ {a p q} {A : Set a}
   {-# REWRITE ⊑-rec-⊑-trans           #-}
 
 ------------------------------------------------------------------------
+-- Specialised eliminators
+
+-- Non-dependent eliminators.
+
+Inc-nd : ∀ {a p q}
+         (A : Set a) (P : Set p)
+         (Q : P → P → Set q) → Set (p ⊔ q)
+Inc-nd A P Q = ∃ λ (p : ℕ → P) → ∀ n → Q (p n) (p (suc n))
+
+record Rec-args-nd
+         {a p q} (A : Set a) (P : Set p) (Q : P → P → Set q) :
+         Set (a ⊔ p ⊔ q) where
+  field
+    pe : P
+    po : (x : A) → P
+    pl : (s : Increasing-sequence A) (pq : Inc-nd A P Q) → P
+    pa : (p₁ p₂ : P) (q₁ : Q p₁ p₂) (q₂ : Q p₂ p₁) → p₁ ≡ p₂
+    qe : (x : A ⊥) (p : P) → Q pe p
+    qo : (x : A) → Q (po x) (po x)
+    qu : (s : Increasing-sequence A) (n : ℕ) (pq : Inc-nd A P Q) →
+         Q (proj₁ pq n) (pl s pq)
+    ql : ∀ s (ub : A ⊥) (is-ub : Is-upper-bound s ub) pq (pu : P)
+         (qu : ∀ n → Q (proj₁ pq n) pu) →
+         Q (pl s pq) pu
+    qt : (p₁ p₂ p₃ : P) (q₁₂ : Q p₁ p₂) (q₂₃ : Q p₂ p₃) → Q p₁ p₃
+    qp : (p₁ p₂ : P) → Is-proposition (Q p₁ p₂)
+
+module _ {a p q} {A : Set a} {P : Set p} {Q : P → P → Set q}
+         (args : Rec-args-nd A P Q) where
+
+  open Rec-args-nd args
+
+  private
+
+    args′ : Rec-args {A = A} (λ _ → P) (λ p-x p-y _ → Q p-x p-y)
+    args′ = record
+      { pe = pe
+      ; po = po
+      ; pl = pl
+      ; pa = λ x⊑y x⊒y p₁ p₂ q₁ q₂ →
+               subst (const P) (antisymmetry x⊑y x⊒y) p₁  ≡⟨ subst-const (antisymmetry x⊑y x⊒y) ⟩
+               p₁                                         ≡⟨ pa p₁ p₂ q₁ q₂ ⟩∎
+               p₂                                         ∎
+      ; qe = qe
+      ; qo = qo
+      ; qu = qu
+      ; ql = ql
+      ; qt = qt
+      ; qp = λ p-x p-y _ → qp p-x p-y
+      }
+
+  ⊥-rec-nd : A ⊥ → P
+  ⊥-rec-nd = ⊥-rec args′
+
+  ⊑-rec-nd : ∀ {x y} → x ⊑ y → Q (⊥-rec-nd x) (⊥-rec-nd y)
+  ⊑-rec-nd = ⊑-rec args′
+
+  inc-rec-nd : Increasing-sequence A → Inc-nd A P Q
+  inc-rec-nd = inc-rec args′
+
+-- An eliminator which is trivial for _⊑_.
+
+record Rec-args-⊥ {a p} {A : Set a}
+                  (P : A ⊥ → Set p) : Set (a ⊔ p) where
+  field
+    pe : P never
+    po : ∀ x → P (now x)
+    pl : ∀ s (p : ∀ n → P (s [ n ])) → P (⨆ s)
+    pa : ∀ {x y} (x⊑y : x ⊑ y) (x⊒y : x ⊒ y)
+         (p-x : P x) (p-y : P y) →
+         subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
+
+module _ {a p} {A : Set a} {P : A ⊥ → Set p}
+         (args : Rec-args-⊥ P) where
+
+  open Rec-args-⊥ args
+
+  ⊥-rec-⊥ : (x : A ⊥) → P x
+  ⊥-rec-⊥ = ⊥-rec (record
+    { pe = pe
+    ; po = po
+    ; pl = λ s pq → pl s (proj₁ pq)
+    ; pa = λ x⊑y x⊒y p-x p-y _ _ → pa x⊑y x⊒y p-x p-y
+    ; qp = λ _ _ _ → mono₁ 0 ⊤-contractible
+    })
+
+  inc-rec-⊥ : (s : ℕ → A ⊥) → ∀ n → P (s n)
+  inc-rec-⊥ s = ⊥-rec-⊥ ∘ s
+
+-- The previous eliminator can be simplified further if the motive is
+-- propositional.
+
+record Rec-args-Prop {a p} {A : Set a}
+                     (P : A ⊥ → Set p) : Set (a ⊔ p) where
+  field
+    pe : P never
+    po : ∀ x → P (now x)
+    pl : ∀ s (p : ∀ n → P (s [ n ])) → P (⨆ s)
+    pp : ∀ x → Is-proposition (P x)
+
+module _ {a p} {A : Set a} {P : A ⊥ → Set p}
+         (args : Rec-args-Prop P) where
+
+  open Rec-args-Prop args
+
+  ⊥-rec-Prop : (x : A ⊥) → P x
+  ⊥-rec-Prop = ⊥-rec-⊥ (record
+    { pe = pe
+    ; po = po
+    ; pl = pl
+    ; pa = λ _ _ _ _ →
+             _⇔_.to propositional⇔irrelevant (pp _) _ _
+    })
+
+  inc-rec-Prop : (s : ℕ → A ⊥) → ∀ n → P (s n)
+  inc-rec-Prop s = ⊥-rec-Prop ∘ s
+
+-- An eliminator which is trivial for _⊥.
+
+record Rec-args-⊑ {a q} {A : Set a}
+                  (Q : {x y : A ⊥} → x ⊑ y → Set q) :
+                  Set (a ⊔ q) where
+  field
+    qe : ∀ x → Q (never⊑ x)
+    qo : ∀ x → Q (now⊑now x)
+    qu : ∀ s n (q : ∀ n → Q (increasing s n)) →
+         Q (upper-bound s n)
+    ql : ∀ s ub is-ub (q : ∀ n → Q (increasing s n))
+         (qu : ∀ n → Q (is-ub n)) →
+         Q (least-upper-bound s ub is-ub)
+    qt : ∀ {x y z} {x⊑y : x ⊑ y} {y⊑z : y ⊑ z}
+         (qxy : Q x⊑y) (qyz : Q y⊑z) →
+         Q (⊑-trans x⊑y y⊑z)
+    qp : ∀ {x y} (x⊑y : x ⊑ y) →
+         Is-proposition (Q x⊑y)
+
+module _ {a q} {A : Set a} {Q : {x y : A ⊥} → x ⊑ y → Set q}
+         (args : Rec-args-⊑ Q) where
+
+  open Rec-args-⊑ args
+
+  ⊑-rec-⊑ : ∀ {x y} (x⊑y : x ⊑ y) → Q x⊑y
+  ⊑-rec-⊑ = ⊑-rec {P = λ _ → ⊤} {Q = λ _ _ → Q} (record
+    { pa = λ _ _ _ _ _ _ → refl
+    ; qe = λ x _ → qe x
+    ; qo = qo
+    ; qu = λ s n pq → qu s n (proj₂ pq)
+    ; ql = λ s ub is-ub pq _ qu → ql s ub is-ub (proj₂ pq) qu
+    ; qt = λ _ _ _ → qt
+    ; qp = λ _ _ → qp
+    })
+
+  inc-rec-⊑ : (s : Increasing-sequence A) → ∀ n → Q (increasing s n)
+  inc-rec-⊑ (_ , inc) = ⊑-rec-⊑ ∘ inc
+
+------------------------------------------------------------------------
 -- Some simple properties
 
 module _ {a} {A : Set a} where
@@ -406,15 +562,12 @@ module _ {a} {A : Set a} where
   -- _⊑_ is reflexive.
 
   ⊑-refl : (x : A ⊥) → x ⊑ x
-  ⊑-refl = ⊥-rec
+  ⊑-refl = ⊥-rec-Prop
     (record
        { pe = never⊑ never
        ; po = now⊑now
        ; pl = λ s _ → least-upper-bound s (⨆ s) (upper-bound s)
-       ; pa = λ _ _ _ _ _ _ →
-                _⇔_.to propositional⇔irrelevant ⊑-propositional _ _
-       ; ps = λ _ → mono₁ 1 ⊑-propositional
-       ; qp = λ _ _ _ → mono₁ 0 ⊤-contractible
+       ; pp = λ _ → ⊑-propositional
        })
 
   -- Preorder reasoning combinators.
@@ -600,30 +753,27 @@ module _ {a b} {A : Set a} {B : Set b} (f : A → B ⊥) where
 
   private
 
-    =<<-args : Rec-args (λ (_ : A ⊥) → B ⊥) (λ u v _ → u ⊑ v)
+    =<<-args : Rec-args-nd A (B ⊥) _⊑_
     =<<-args = record
       { pe = never
       ; po = f
       ; pl = λ _ → ⨆
-      ; pa = λ x⊑y x⊒y u v u⊑v u⊒v →
-               subst (λ _ → B ⊥) (antisymmetry x⊑y x⊒y) u  ≡⟨ subst-const (antisymmetry x⊑y x⊒y) ⟩
-               u                                           ≡⟨ antisymmetry u⊑v u⊒v ⟩∎
-               v                                           ∎
+      ; pa = λ _ _ → antisymmetry
       ; qe = λ _ → never⊑
       ; qo = ⊑-refl ∘ f
       ; qu = λ _ n pq → upper-bound pq n
       ; ql = λ _ _ _ → least-upper-bound
       ; qt = λ _ _ _ → ⊑-trans
-      ; qp = λ _ _ _ → ⊑-propositional
+      ; qp = λ _ _ → ⊑-propositional
       }
 
   infix 50 _∗ _∗-inc_
 
   _∗ : [ A ⊥→ B ⊥]
-  _∗ = (⊥-rec =<<-args , ⊑-rec =<<-args) , λ _ → refl
+  _∗ = (⊥-rec-nd =<<-args , ⊑-rec-nd =<<-args) , λ _ → refl
 
   _∗-inc_ : Increasing-sequence A → Increasing-sequence B
-  _∗-inc_ = inc-rec =<<-args
+  _∗-inc_ = inc-rec-nd =<<-args
 
 infixl 15 _>>=_
 
@@ -640,7 +790,7 @@ left-identity x f = refl
 right-identity : ∀ {a} {A : Set a} →
                  Extensionality lzero a →
                  (x : A ⊥) → x >>= return ≡ x
-right-identity ext = ⊥-rec
+right-identity ext = ⊥-rec-Prop
   (record
      { pe = refl
      ; po = λ _ → refl
@@ -648,35 +798,29 @@ right-identity ext = ⊥-rec
               ⨆ s >>= return      ≡⟨⟩
               ⨆ (return ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to (equality-characterisation-increasing ext) λ n →
 
-                s [ n ] >>= return       ≡⟨ proj₁ hyp n ⟩∎
+                s [ n ] >>= return       ≡⟨ hyp n ⟩∎
                 s [ n ]                  ∎) ⟩∎
 
               ⨆ s                 ∎
-     ; pa = λ _ _ _ _ _ _ →
-               _⇔_.to propositional⇔irrelevant (⊥-is-set _ _) _ _
-     ; ps = λ _ → mono₁ 1 (⊥-is-set _ _)
-     ; qp = λ _ _ _ → mono₁ 0 ⊤-contractible
+     ; pp = λ _ → ⊥-is-set _ _
      })
 
 associativity : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
                 Extensionality lzero c →
                 (x : A ⊥) (f : A → B ⊥) (g : B → C ⊥) →
                 x >>= (λ x → f x >>= g) ≡ x >>= f >>= g
-associativity ext x f g = ⊥-rec
+associativity ext x f g = ⊥-rec-Prop
   (record
      { pe = refl
      ; po = λ _ → refl
      ; pl = λ s hyp →
               ⨆ ((λ x → f x >>= g) ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to (equality-characterisation-increasing ext) λ n →
 
-                s [ n ] >>= (λ x → f x >>= g)       ≡⟨ proj₁ hyp n ⟩∎
+                s [ n ] >>= (λ x → f x >>= g)       ≡⟨ hyp n ⟩∎
                 s [ n ] >>= f >>= g                 ∎) ⟩∎
 
               ⨆ (g ∗-inc (f ∗-inc s))        ∎
-     ; pa = λ _ _ _ _ _ _ →
-               _⇔_.to propositional⇔irrelevant (⊥-is-set _ _) _ _
-     ; ps = λ _ → mono₁ 1 (⊥-is-set _ _)
-     ; qp = λ _ _ _ → mono₁ 0 ⊤-contractible
+     ; pp = λ _ → ⊥-is-set _ _
      })
   x
 
