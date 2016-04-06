@@ -14,6 +14,7 @@ module Equivalence
 
 open import Bijection eq as Bijection hiding (id; _∘_; inverse)
 open Derived-definitions-and-properties eq
+open import Equality.Decidable-UIP eq using (propositional-identity⇒set)
 open import Equality.Decision-procedures eq
 open import Groupoid eq
 open import H-level eq as H-level
@@ -875,6 +876,32 @@ private
     }
   ; left-inverse-of = refl
   }
+
+-- If there is a propositional, reflexive relation on A, and related
+-- elements are equal, then A is a set, and (assuming extensionality)
+-- the relation is equivalent to equality.
+--
+-- (This is more or less Theorem 7.2.2 from "Homotopy Type Theory:
+-- Univalent Foundations of Mathematics" (first edition).)
+
+propositional-identity≃≡ :
+  ∀ {a b} {A : Set a}
+  (B : A → A → Set b) →
+  (∀ x y → Is-proposition (B x y)) →
+  (∀ x → B x x) →
+  (∀ x y → B x y → x ≡ y) →
+  Is-set A ×
+  (Extensionality (a ⊔ b) (a ⊔ b) → ∀ {x y} → B x y ≃ (x ≡ y))
+propositional-identity≃≡ B B-prop B-refl f =
+    A-set
+  , λ ext →
+      _↔_.to (⇔↔≃ ext (B-prop _ _) (A-set _ _))
+        (record
+           { to   = f _ _
+           ; from = λ x≡y → subst (B _) x≡y (B-refl _)
+           })
+  where
+  A-set = propositional-identity⇒set B B-prop B-refl f
 
 ------------------------------------------------------------------------
 -- Closure, preservation
