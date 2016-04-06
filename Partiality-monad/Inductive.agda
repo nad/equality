@@ -17,7 +17,7 @@ open import Logical-equivalence using (module _⇔_)
 open import Prelude hiding (⊥; map; _>>=_)
 
 open import Bijection equality-with-J using (_↔_)
-import Equivalence equality-with-J as Eq
+open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -436,6 +436,26 @@ module _ {a} {A : Set a} where
   finally-⊑ _ _ x⊑y = x⊑y
 
   syntax finally-⊑ x y x⊑y = x ⊑⟨ x⊑y ⟩■ y ■
+
+  -- If two values are equal, then they are also smaller than or equal
+  -- to each other.
+
+  ≡⇒⊑ : {x y : A ⊥} → x ≡ y → x ⊑ y
+  ≡⇒⊑ x≡y = subst (_ ⊑_) x≡y (⊑-refl _)
+
+  -- Equality characterisation lemma for the partiality monad.
+
+  equality-characterisation-⊥ :
+    Extensionality a a →
+    {x y : A ⊥} → (x ≡ y) ≃ (x ⊑ y × x ⊒ y)
+  equality-characterisation-⊥ ext =
+    _↔_.to (Eq.⇔↔≃ ext
+                   (⊥-is-set _ _)
+                   (×-closure 1 ⊑-propositional ⊑-propositional))
+      (record
+         { to   = λ x≡y → ≡⇒⊑ x≡y , ≡⇒⊑ (sym x≡y)
+         ; from = uncurry antisymmetry
+         })
 
   -- Equality characterisation lemma for increasing sequences.
 
