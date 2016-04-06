@@ -470,6 +470,18 @@ module _ {a} {A : Set a} where
                                        ⊑-propositional) ⟩□
     s₁ ≡ s₂                      □
 
+  -- Only never is smaller than or equal to never.
+
+  only-never-⊑-never : {x : A ⊥} → x ⊑ never → x ≡ never
+  only-never-⊑-never x⊑never = antisymmetry x⊑never (never⊑ _)
+
+  -- The least value never is equal to the least upper bound of a
+  -- constant sequence of nevers.
+
+  never≡⨆never : never ≡ ⨆ ((λ _ → never {A = A}) , λ _ → never⊑ never)
+  never≡⨆never =
+    antisymmetry (never⊑ _) (least-upper-bound _ _ λ _ → never⊑ never)
+
 ------------------------------------------------------------------------
 -- Monotone functions
 
