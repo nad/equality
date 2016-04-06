@@ -2,6 +2,9 @@
 -- Experiments related to equality
 --
 -- Nils Anders Danielsson
+--
+-- Some files have been developed in collaboration with others, see
+-- the individual files.
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
