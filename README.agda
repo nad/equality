@@ -107,6 +107,10 @@ import Univalence-axiom
 
 import H-level.Truncation
 
+-- Propositional truncation.
+
+import H-level.Truncation.Propositional
+
 -- Quotients.
 
 import Quotient
