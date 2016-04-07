@@ -1072,3 +1072,28 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
   Is-proposition (id ≡ id)              ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ extensionality-isomorphism ext) 1 ⟩
   Is-proposition ((l : L) → l ≡ l)      ↝⟨ proj₂ $ ¬-type-of-refl-propositional ext univ₀ ⟩□
   ⊥                                     □
+
+-- For propositional types there is a split surjection from equality
+-- to logical equivalence (assuming univalence).
+
+≡↠⇔ : ∀ {ℓ} {A B : Set ℓ} →
+      Univalence ℓ →
+      Is-proposition A → Is-proposition B →
+      (A ≡ B) ↠ (A ⇔ B)
+≡↠⇔ {A = A} {B} univ A-prop B-prop =
+  A ≡ B  ↔⟨ ≡≃≃ univ ⟩
+  A ≃ B  ↝⟨ ≃↠⇔ A-prop B-prop ⟩□
+  A ⇔ B  □
+
+-- For propositional types logical equivalence is isomorphic to
+-- equality (assuming extensionality and univalence).
+
+⇔↔≡ : ∀ {ℓ} {A B : Set ℓ} →
+      Extensionality ℓ ℓ →
+      Univalence ℓ →
+      Is-proposition A → Is-proposition B →
+      (A ⇔ B) ↔ (A ≡ B)
+⇔↔≡ {A = A} {B} ext univ A-prop B-prop =
+  A ⇔ B  ↝⟨ ⇔↔≃ ext A-prop B-prop ⟩
+  A ≃ B  ↔⟨ inverse $ ≡≃≃ univ ⟩□
+  A ≡ B  □
