@@ -14,7 +14,7 @@
 module Partiality-monad.Inductive where
 
 open import Equality.Propositional
-open import Logical-equivalence using (module _⇔_)
+open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥; map; _>>=_)
 
 open import Bijection equality-with-J using (_↔_)
@@ -23,6 +23,8 @@ open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import Surjection equality-with-J using (module _↠_)
+open import Univalence-axiom equality-with-J
 
 ------------------------------------------------------------------------
 -- First: A partial inductive definition of the partiality monad,
@@ -655,6 +657,66 @@ module _ {a} {A : Set a} where
   never≡⨆never : never ≡ ⨆ ((λ _ → never {A = A}) , λ _ → never⊑ never)
   never≡⨆never =
     antisymmetry (never⊑ _) (least-upper-bound _ _ λ _ → never⊑ never)
+
+  -- Defined values of the form now x are never smaller than or equal
+  -- to never (assuming extensionality and univalence).
+  --
+  -- This lemma was proved together with Paolo Capriotti and Nicolai
+  -- Kraus.
+
+  now⋢never : Extensionality a a →
+              Univalence a →
+              (x : A) → ¬ now x ⊑ never
+  now⋢never ext univ x =
+    now x ⊑ never          ↝⟨ P-downwards-closed ⟩
+    (P never → P (now x))  ↝⟨ _∘ lift ⟩
+    (⊤ → Prelude.⊥)        ↝⟨ _$ tt ⟩
+    Prelude.⊥              ↝⟨ ⊥-elim ⟩□
+    ⊥₀                     □
+    where
+    args : Rec-args-nd A (Proposition a) (λ P Q → proj₁ Q → proj₁ P)
+    args = record
+      { pe = ↑ _ ⊤ , mono₁ 0 (↑-closure 0 ⊤-contractible)
+      ; po = λ _ → Prelude.⊥ , ⊥-propositional
+      ; pl = λ { _ (p , _) → (∀ n → proj₁ (p n))
+                           , Π-closure (lower-extensionality _ lzero ext) 1 λ n →
+                             proj₂ (p n)
+               }
+      ; pa = λ P Q Q→P P→Q →      $⟨ record { to = P→Q; from = Q→P } ⟩
+               proj₁ P ⇔ proj₁ Q  ↝⟨ _↠_.from (≡↠⇔ univ (proj₂ P) (proj₂ Q)) ⟩
+               proj₁ P ≡ proj₁ Q  ↝⟨ _↔_.to (ignore-propositional-component (H-level-propositional ext 1)) ⟩□
+               P ≡ Q              □
+      ; qr = λ { _ (P , _) →
+                 P  ↝⟨ id ⟩□
+                 P  □
+               }
+      ; qu = λ { _ _ _ n (P , P-downwards-closed) Q Q→∀nPn →
+                 proj₁ Q      ↝⟨ flip Q→∀nPn n ⟩
+                 proj₁ (P n)  □
+               }
+      ; ql = λ { _ _ _ (P , _) (Q , _) ∀nQ→Pn →
+                 Q                    ↝⟨ flip ∀nQ→Pn ⟩□
+                 (∀ n → proj₁ (P n))  □
+               }
+      ; qp = λ P _ →
+               Π-closure ext 1 λ _ →
+               proj₂ P
+      }
+
+    P : A ⊥ → Set a
+    P = proj₁ ∘ ⊥-rec-nd args
+
+    P-downwards-closed : {x y : A ⊥} → x ⊑ y → P y → P x
+    P-downwards-closed = ⊑-rec-nd args
+
+  -- Defined values of the form now x are never equal to never
+  -- (assuming extensionality and univalence).
+
+  now≢never : Extensionality a a →
+              Univalence a →
+              (x : A) → now x ≢ never
+  now≢never ext univ x now≡never =
+    now⋢never ext univ x (subst (now x ⊑_) now≡never (⊑-refl _))
 
 ------------------------------------------------------------------------
 -- Monotone functions
