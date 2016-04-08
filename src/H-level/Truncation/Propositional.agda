@@ -61,11 +61,11 @@ postulate
 -- The propositional truncation defined here is isomorphic to the one
 -- defined in H-level.Truncation (assuming extensionality).
 
-isomorphic :
+∥∥↔∥∥ :
   ∀ ℓ {a} {A : Set a} →
   Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ ℓ) →
   ∥ A ∥ ↔ Trunc.∥ A ∥ 1 (a ⊔ ℓ)
-isomorphic ℓ ext = record
+∥∥↔∥∥ ℓ ext = record
   { surjection = record
     { logical-equivalence = record
       { to   = rec (Trunc.truncation-has-correct-h-level 1 ext)
@@ -129,9 +129,9 @@ elim-∣∣ ext P P-prop f x =
           Extensionality (lsuc (a ⊔ b)) (a ⊔ b) →
           A ↔ B → ∥ A ∥ ↔ ∥ B ∥
 ∥∥-cong {a} {b} {A} {B} ext A↔B =
-  ∥ A ∥                  ↝⟨ isomorphic b ext ⟩
+  ∥ A ∥                  ↝⟨ ∥∥↔∥∥ b ext ⟩
   Trunc.∥ A ∥ 1 (a ⊔ b)  ↝⟨ Trunc.∥∥-cong ext A↔B ⟩
-  Trunc.∥ B ∥ 1 (a ⊔ b)  ↝⟨ inverse (isomorphic a ext) ⟩□
+  Trunc.∥ B ∥ 1 (a ⊔ b)  ↝⟨ inverse (∥∥↔∥∥ a ext) ⟩□
   ∥ B ∥                  □
 
 -- Nested truncations can be flattened.
@@ -380,7 +380,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} {A} {B}
                                                    ext B-groupoid =
   (∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ Trunc.coherently-constant-function≃∥inhabited∥⇒inhabited lzero ext B-groupoid ⟩
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)                ↔⟨ →-cong (lower-extensionality lzero a ext)
-                                                       (inverse $ isomorphic (a ⊔ b) ext) F.id ⟩□
+                                                       (inverse $ ∥∥↔∥∥ (a ⊔ b) ext) F.id ⟩□
   (∥ A ∥ → B)                                □
 
 -- Having a constant function into a set is equivalent to having a
@@ -398,7 +398,7 @@ constant-function≃∥inhabited∥⇒inhabited :
 constant-function≃∥inhabited∥⇒inhabited {a} {b} {A} {B} ext B-set =
   (∃ λ (f : A → B) → Constant f)  ↝⟨ Trunc.constant-function≃∥inhabited∥⇒inhabited lzero ext B-set ⟩
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)     ↔⟨ →-cong (lower-extensionality lzero a ext)
-                                            (inverse $ isomorphic (a ⊔ b) ext) F.id ⟩□
+                                            (inverse $ ∥∥↔∥∥ (a ⊔ b) ext) F.id ⟩□
   (∥ A ∥ → B)                     □
 
 -- The propositional truncation's universal property (defined using
@@ -415,7 +415,7 @@ universal-property :
   (∥ A ∥ → B) ≃ (A → B)
 universal-property {a} {b} {A} {B} ext B-prop =
   (∥ A ∥ → B)                  ↔⟨ →-cong (lower-extensionality lzero a ext)
-                                         (isomorphic (a ⊔ b) ext) F.id ⟩
+                                         (∥∥↔∥∥ (a ⊔ b) ext) F.id ⟩
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)  ↝⟨ Trunc.universal-property lzero ext B-prop ⟩□
   (A → B)                      □
 
