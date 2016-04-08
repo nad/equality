@@ -197,10 +197,6 @@ import Container.Stream
 
 import Record
 
--- A higher inductive-inductive definition of the partiality monad.
-
-import Partiality-monad.Inductive
-
 -- Overview of code related to some papers.
 
 import README.Bag-equivalence
