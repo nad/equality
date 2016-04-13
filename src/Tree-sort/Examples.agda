@@ -8,24 +8,18 @@ module Tree-sort.Examples where
 
 open import Bag-equivalence
 open import Equality.Propositional
+import Nat
 open import Prelude
 
 -- Comparison functions for natural numbers.
 
-compare : (m n : ℕ) → m ≤ n ⊎ n ≤ m
-compare zero    _       = inj₁ (zero≤ _)
-compare _       zero    = inj₂ (zero≤ _)
-compare (suc m) (suc n) with compare m n
-... | inj₁ m≤n = inj₁ (suc≤suc m≤n)
-... | inj₂ n≤m = inj₂ (suc≤suc n≤m)
-
 _≤?_ : ℕ → ℕ → Bool
-m ≤? n with compare m n
+m ≤? n with Nat.total m n
 ... | inj₁ m≤n = true
 ... | inj₂ n<m = false
 
 import Tree-sort.Partial _≤?_ as P
-open import Tree-sort.Full _≤_ compare as F using (cons; nil)
+open import Tree-sort.Full _≤_ Nat.total as F using (cons; nil)
 
 -- The sort functions return ordered lists.
 

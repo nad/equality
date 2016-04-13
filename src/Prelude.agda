@@ -107,22 +107,6 @@ data _≤_ (m : ℕ) : ℕ → Set where
   ≤-refl :                       m ≤ m
   ≤-step : ∀ {n} (m≤n : m ≤ n) → m ≤ suc n
 
-abstract
-
-  -- Some lemmas.
-
-  zero≤ : ∀ n → zero ≤ n
-  zero≤ zero    = ≤-refl
-  zero≤ (suc n) = ≤-step (zero≤ n)
-
-  suc≤suc : ∀ {m n} → m ≤ n → suc m ≤ suc n
-  suc≤suc ≤-refl       = ≤-refl
-  suc≤suc (≤-step m≤n) = ≤-step (suc≤suc m≤n)
-
-  m≤m+n : ∀ m n → m ≤ m + n
-  m≤m+n zero    n = zero≤ n
-  m≤m+n (suc m) n = suc≤suc (m≤m+n m n)
-
 -- Translation from natural numbers to levels.
 
 # : ℕ → Level

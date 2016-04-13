@@ -17,6 +17,7 @@ module Quotient
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Logical-equivalence using (_⇔_)
+open import Nat
 open import Prelude
 
 open import Bijection eq as Bij using (_↔_)

@@ -95,9 +95,11 @@ import Equivalence
 
 import Function-universe
 
--- Some definitions related to and properties of booleans.
+-- Some definitions related to and properties of booleans and natural
+-- numbers.
 
 import Bool
+import Nat
 
 -- The univalence axiom.
 

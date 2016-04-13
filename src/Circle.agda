@@ -12,6 +12,7 @@ module Circle
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Logical-equivalence using (module _⇔_)
+open import Nat
 open import Prelude
 
 open Derived-definitions-and-properties eq hiding (elim)
