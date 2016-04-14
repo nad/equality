@@ -1601,6 +1601,19 @@ H-level-cong {a = a} {b} ext n A↔B′ =
   where
   A↔B = from-isomorphism A↔B′
 
+-- Being propositional is equivalent to having at most one element
+-- (assuming extensionality).
+
+propositional≃irrelevant :
+  ∀ {a} {A : Set a} →
+  Extensionality a a →
+  Is-proposition A ≃ Proof-irrelevant A
+propositional≃irrelevant ext =
+  _↔_.to (Eq.⇔↔≃ ext
+                 (H-level-propositional ext 1)
+                 (Proof-irrelevant-propositional ext))
+         propositional⇔irrelevant
+
 -- Some lemmas relating equivalences A ≃ B with types of the form
 -- ∀ C → H-level n C → (A → C) ≃ (B → C).
 

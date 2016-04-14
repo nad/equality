@@ -478,6 +478,20 @@ abstract
     Π-closure ext 1 λ y →
     H-level-propositional ext {A = x ≡ y} n
 
+  -- The property Proof-irrelevant A is a proposition (assuming
+  -- extensionality).
+  --
+  -- This result is proved in the HoTT book (first edition,
+  -- Lemma 3.3.5).
+
+  Proof-irrelevant-propositional :
+    ∀ {a} {A : Set a} → Extensionality a a →
+    Is-proposition (Proof-irrelevant A)
+  Proof-irrelevant-propositional ext = [inhabited⇒+]⇒+ 0 λ irr →
+    Π-closure ext 1 λ x →
+    Π-closure ext 1 λ y →
+    mono₁ 0 (_⇔_.from propositional⇔irrelevant irr x y)
+
 ------------------------------------------------------------------------
 -- Binary sums
 
