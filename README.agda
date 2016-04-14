@@ -117,6 +117,10 @@ import H-level.Truncation.Propositional
 
 import Quotient
 
+-- The "interval".
+
+import Interval
+
 -- The "circle".
 
 import Circle
