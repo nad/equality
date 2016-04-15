@@ -1097,3 +1097,14 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
   A ⇔ B  ↝⟨ ⇔↔≃ ext A-prop B-prop ⟩
   A ≃ B  ↔⟨ inverse $ ≡≃≃ univ ⟩□
   A ≡ B  □
+
+-- A variant of the previous statement.
+
+⇔↔≡′ : ∀ {ℓ} {A B : Proposition ℓ} →
+       Extensionality ℓ ℓ →
+       Univalence ℓ →
+       (proj₁ A ⇔ proj₁ B) ↔ (A ≡ B)
+⇔↔≡′ {A = A} {B} ext univ =
+  proj₁ A ⇔ proj₁ B  ↝⟨ ⇔↔≡ ext univ (proj₂ A) (proj₂ B) ⟩
+  proj₁ A ≡ proj₁ B  ↝⟨ ignore-propositional-component (H-level-propositional ext 1) ⟩□
+  A ≡ B              □
