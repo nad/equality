@@ -22,6 +22,7 @@ open import Equality.Propositional
 
 open import Bijection equality-with-J using (_↔_)
 open import Function-universe equality-with-J hiding (Kind; module Kind)
+open import List equality-with-J
 
 ------------------------------------------------------------------------
 -- Extending the order with new minimum and maximum elements

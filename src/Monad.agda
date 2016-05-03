@@ -10,7 +10,7 @@ module Monad
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (_>>=_)
+open import Prelude
 
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq

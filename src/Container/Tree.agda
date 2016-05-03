@@ -10,7 +10,7 @@ module Container.Tree where
 open import Container hiding (Shape; Position)
 open import Container.List hiding (fold; fold-lemma)
 open import Equality.Propositional
-open import Prelude hiding (id; _∘_; List; []; _∷_; _++_; lookup)
+open import Prelude hiding (id; _∘_; List; []; _∷_)
 import Tree
 
 open import Bijection equality-with-J using (_↔_; module _↔_)

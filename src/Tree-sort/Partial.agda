@@ -18,6 +18,7 @@ open import Tree
 
 open import Bijection equality-with-J using (_↔_)
 open import Function-universe equality-with-J hiding (_∘_)
+open import List equality-with-J
 
 ------------------------------------------------------------------------
 -- Insertion into trees

@@ -9,7 +9,7 @@ module Container where
 open import Bag-equivalence using (Kind); open Bag-equivalence.Kind
 open import Equality.Propositional
 open import Logical-equivalence hiding (id; _∘_; inverse)
-open import Prelude hiding (id; List; map; lookup)
+open import Prelude hiding (id; List)
 
 open import Bijection equality-with-J as Bijection
   using (_↔_; module _↔_)

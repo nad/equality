@@ -10,7 +10,7 @@ open import Container
 open import Container.List as L hiding (_∷_; _++_; Any-∷; Any-++)
 open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (id; List; []; _∷_; _++_; head; tail)
+open import Prelude hiding (id; List; []; _∷_; head; tail)
 
 open import Bijection equality-with-J using (_↔_; module _↔_)
 open import Function-universe equality-with-J hiding (_∘_)

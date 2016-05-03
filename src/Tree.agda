@@ -12,6 +12,7 @@ open import Prelude hiding (id)
 
 open import Bijection equality-with-J using (_↔_)
 open import Function-universe equality-with-J
+open import List equality-with-J
 
 ------------------------------------------------------------------------
 -- Binary trees

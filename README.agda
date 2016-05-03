@@ -99,10 +99,10 @@ import Function-universe
 
 import Monad
 
--- Some definitions related to and properties of booleans and natural
--- numbers.
+-- Some definitions related to and properties of specific types.
 
 import Bool
+import List
 import Nat
 
 -- The univalence axiom.

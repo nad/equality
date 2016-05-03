@@ -20,6 +20,8 @@ open import Function-universe equality-with-J as Function-universe
   hiding (_∘_; Kind; module Kind; bijection)
 open import H-level.Closure equality-with-J
 open import Injection equality-with-J using (_↣_)
+open import List equality-with-J
+open import Monad equality-with-J
 
 ------------------------------------------------------------------------
 -- Any
@@ -145,7 +147,7 @@ Any-map P f (x ∷ xs) =
   P (f x)   ⊎ Any P (map f xs)  ↔⟨ id ⊎-cong Any-map P f xs ⟩
   (P ∘ f) x ⊎ Any (P ∘ f) xs    □
 
-Any->>= : ∀ {a b p} {A : Set a} {B : Set b}
+Any->>= : ∀ {ℓ p} {A B : Set ℓ}
           (P : B → Set p) (xs : List A) (f : A → List B) →
           Any P (xs >>= f) ↔ Any (Any P ∘ f) xs
 Any->>= P xs f =
@@ -296,7 +298,7 @@ concat-cong {xss = xss} {yss} xss∼yss = λ z →
   Any (λ zs → z ∈ zs) yss  ↔⟨ inverse (Any-concat _ yss) ⟩
   z ∈ concat yss           □
 
->>=-cong : ∀ {k a b} {A : Set a} {B : Set b}
+>>=-cong : ∀ {k ℓ} {A B : Set ℓ}
            {xs ys : List A} {f g : A → List B} →
            xs ∼[ k ] ys → (∀ x → f x ∼[ k ] g x) →
            (xs >>= f) ∼[ k ] (ys >>= g)
@@ -320,7 +322,7 @@ filter-cong p xs ys xs∼ys = λ z →
 -- Bind distributes from the left over append.
 
 >>=-left-distributive :
-  ∀ {a b} {A : Set a} {B : Set b} (xs : List A) (f g : A → List B) →
+  ∀ {ℓ} {A B : Set ℓ} (xs : List A) (f g : A → List B) →
   xs >>= (λ x → f x ++ g x) ≈-bag (xs >>= f) ++ (xs >>= g)
 >>=-left-distributive xs f g = λ z →
   z ∈ xs >>= (λ x → f x ++ g x)                    ↔⟨ Any->>= (_≡_ z) xs (λ x → f x ++ g x) ⟩

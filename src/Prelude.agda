@@ -365,48 +365,6 @@ data List {a} (A : Set a) : Set a where
   []  : List A
   _∷_ : (x : A) (xs : List A) → List A
 
--- Right fold.
-
-foldr : ∀ {a b} {A : Set a} {B : Set b} →
-        (A → B → B) → B → List A → B
-foldr _⊕_ ε []       = ε
-foldr _⊕_ ε (x ∷ xs) = x ⊕ foldr _⊕_ ε xs
-
--- The length of a list.
-
-length : ∀ {a} {A : Set a} → List A → ℕ
-length = foldr (const suc) 0
-
--- Appends two lists.
-
-infixr 5 _++_
-
-_++_ : ∀ {a} {A : Set a} → List A → List A → List A
-xs ++ ys = foldr _∷_ ys xs
-
--- Maps a function over a list.
-
-map : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → List A → List B
-map f = foldr (λ x ys → f x ∷ ys) []
-
--- Concatenates a list of lists.
-
-concat : ∀ {a} {A : Set a} → List (List A) → List A
-concat = foldr _++_ []
-
--- The list monad's bind operation.
-
-infixl 5 _>>=_
-
-_>>=_ : ∀ {a b} {A : Set a} {B : Set b} →
-        List A → (A → List B) → List B
-xs >>= f = concat (map f xs)
-
--- A filter function.
-
-filter : ∀ {a} {A : Set a} → (A → Bool) → List A → List A
-filter p = foldr (λ x xs → if p x then x ∷ xs else xs) []
-
 ------------------------------------------------------------------------
 -- Finite sets
 
@@ -416,13 +374,6 @@ Fin (suc n) = ⊤ ⊎ Fin n
 
 pattern fzero  = inj₁ tt
 pattern fsuc i = inj₂ i
-
--- A lookup function.
-
-lookup : ∀ {a} {A : Set a} (xs : List A) → Fin (length xs) → A
-lookup []       ()
-lookup (x ∷ xs) fzero    = x
-lookup (x ∷ xs) (fsuc i) = lookup xs i
 
 ------------------------------------------------------------------------
 -- Some relation combinators

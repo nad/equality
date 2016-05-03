@@ -11,12 +11,13 @@ open import Bag-equivalence
 open import Container
 open import Equality.Propositional
 open import Logical-equivalence using (_⇔_; module _⇔_)
-open import Prelude as P hiding (List; []; _∷_; foldr; _++_; id; _∘_)
+open import Prelude as P hiding (List; []; _∷_; id; _∘_)
 
 open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
 open import Fin equality-with-J
 open import Function-universe equality-with-J
 open import H-level.Closure equality-with-J
+import List equality-with-J as L
 
 ------------------------------------------------------------------------
 -- The type
@@ -36,7 +37,7 @@ List = ℕ ▷ Fin
 List⇔List : {A : Set} → ⟦ List ⟧ A ⇔ P.List A
 List⇔List {A} = record
   { to   = uncurry to
-  ; from = λ xs → (length xs , P.lookup xs)
+  ; from = λ xs → (L.length xs , L.lookup xs)
   }
   where
   to : (n : ℕ) → (Fin n → A) → P.List A
@@ -66,9 +67,9 @@ List↔List {A} ext = record
   from∘to : ∀ n f → from (to (n , f)) ≡ (n , f)
   from∘to zero    f = cong (_,_ _) (ext λ ())
   from∘to (suc n) f =
-    (suc (length (to xs)) , P.lookup (P._∷_ x (to xs)))  ≡⟨ lemma₃ (from∘to n (f ∘ inj₂)) ⟩
-    (suc n                , [ (λ _ → x) , f ∘ inj₂ ])    ≡⟨ lemma₁ ⟩∎
-    (suc n                , f)                           ∎
+    (suc (L.length (to xs)) , L.lookup (P._∷_ x (to xs)))  ≡⟨ lemma₃ (from∘to n (f ∘ inj₂)) ⟩
+    (suc n                  , [ (λ _ → x) , f ∘ inj₂ ])    ≡⟨ lemma₁ ⟩∎
+    (suc n                  , f)                           ∎
     where
     x  = f (inj₁ tt)
     xs = (n , f ∘ inj₂)
@@ -80,17 +81,17 @@ List↔List {A} ext = record
     lemma₁ = cong (_,_ _) (ext [ (λ { tt → refl }) , (λ _ → refl) ])
 
     lemma₂ : {n : ℕ} {lkup : Fin n → A} →
-             (≡n : length (to xs) ≡ n) →
-             subst (λ n → Fin n → A) ≡n (P.lookup (to xs)) ≡ lkup →
+             (≡n : L.length (to xs) ≡ n) →
+             subst (λ n → Fin n → A) ≡n (L.lookup (to xs)) ≡ lkup →
              _≡_ {A = ⟦ List ⟧ A}
-                 (suc (length (to xs)) , P.lookup (P._∷_ x (to xs)))
+                 (suc (L.length (to xs)) , L.lookup (P._∷_ x (to xs)))
                  (suc n , [ (λ _ → x) , lkup ])
     lemma₂ refl refl = sym lemma₁
 
     lemma₃ : {ys : ⟦ List ⟧ A} →
-             (length (to xs) , P.lookup (to xs)) ≡ ys →
+             (L.length (to xs) , L.lookup (to xs)) ≡ ys →
              _≡_ {A = ⟦ List ⟧ A}
-                 (suc (length (to xs)) , P.lookup (P._∷_ x (to xs)))
+                 (suc (L.length (to xs)) , L.lookup (P._∷_ x (to xs)))
                  (suc (proj₁ ys) , [ (λ _ → x) , proj₂ ys ])
     lemma₃ ≡ys = lemma₂ (proj₁ ≡,≡) (proj₂ ≡,≡)
       where ≡,≡ = Σ-≡,≡←≡ ≡ys
@@ -116,10 +117,10 @@ Any↔Any-to {A} P = uncurry Any↔Any-to′
 Any-from↔Any : {A : Set} (P : A → Set) (xs : P.List A) →
                Any P (_⇔_.from List⇔List xs) ↔ AnyL P xs
 Any-from↔Any P P.[] =
-  (∃ λ (p : Fin zero) → P (P.lookup P.[] p))  ↔⟨ ∃-Fin-zero _ ⟩
+  (∃ λ (p : Fin zero) → P (L.lookup P.[] p))  ↔⟨ ∃-Fin-zero _ ⟩
   ⊥                                           □
 Any-from↔Any P (P._∷_ x xs) =
-  (∃ λ (p : Fin (suc (P.length xs))) → P (P.lookup (P._∷_ x xs) p))  ↔⟨ ∃-Fin-suc _ ⟩
+  (∃ λ (p : Fin (suc (L.length xs))) → P (L.lookup (P._∷_ x xs) p))  ↔⟨ ∃-Fin-suc _ ⟩
   P x ⊎ Any {C = List} P (_⇔_.from List⇔List xs)                     ↔⟨ id ⊎-cong Any-from↔Any P xs ⟩
   P x ⊎ AnyL P xs                                                    □
 
