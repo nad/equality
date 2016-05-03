@@ -95,6 +95,10 @@ import Equivalence
 
 import Function-universe
 
+-- Monads.
+
+import Monad
+
 -- Some definitions related to and properties of booleans and natural
 -- numbers.
 
