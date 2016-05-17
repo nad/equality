@@ -35,6 +35,10 @@ m≤m+n : ∀ m n → m ≤ m + n
 m≤m+n zero    n = zero≤ n
 m≤m+n (suc m) n = suc≤suc (m≤m+n m n)
 
+m≤n+m : ∀ m n → m ≤ n + m
+m≤n+m m zero    = ≤-refl
+m≤n+m m (suc n) = ≤-step (m≤n+m m n)
+
 -- A decision procedure for _≤_.
 
 _≤?_ : Decidable _≤_
