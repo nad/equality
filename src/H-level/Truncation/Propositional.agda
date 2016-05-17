@@ -130,24 +130,44 @@ elim-∣∣ P P-prop f x =
   Trunc.∥ B ∥ 1 (a ⊔ b)  ↝⟨ inverse (∥∥↔∥∥ a) ⟩□
   ∥ B ∥                  □
 
+-- A generalised flattening lemma.
+
+flatten′ :
+  ∀ {ℓ f}
+  (F : (Set ℓ → Set ℓ) → Set f) →
+  (∀ {G H} → (∀ {A} → G A → H A) → F G → F H) →
+  (F ∥_∥ → ∥ F id ∥) →
+  ∥ F ∥_∥ ∥ ↔ ∥ F id ∥
+flatten′ _ map f = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = rec truncation-is-proposition f
+      ; from = ∥∥-map (map ∣_∣)
+      }
+    ; right-inverse-of = λ _ →
+        _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _
+    }
+  ; left-inverse-of = λ _ →
+      _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _
+  }
+
 -- Nested truncations can be flattened.
 
 flatten : ∀ {a} {A : Set a} →
           ∥ ∥ A ∥ ∥ ↔ ∥ A ∥
-flatten = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = rec truncation-is-proposition id
-      ; from = ∣_∣
-      }
-    ; right-inverse-of = λ _ → refl
-    }
-  ; left-inverse-of = λ x → elim
-      (λ x → ∣ rec truncation-is-proposition id x ∣ ≡ x)
-      (λ _ → mono₁ 0 (truncation-is-proposition _ _))
-      (λ _ → refl)
-      x
-  }
+flatten {A = A} = flatten′ (λ F → F A) (λ f → f) id
+
+private
+
+  -- Another flattening lemma, given as an example of how flatten′ can
+  -- be used.
+
+  ∥∃∥∥∥↔∥∃∥ : ∀ {a b} {A : Set a} {B : A → Set b} →
+              ∥ ∃ (∥_∥ ∘ B) ∥ ↔ ∥ ∃ B ∥
+  ∥∃∥∥∥↔∥∃∥ {B = B} =
+    flatten′ (λ F → ∃ (F ∘ B))
+             (λ f → Σ-map id f)
+             (uncurry λ x → ∥∥-map (x ,_))
 
 -- Surjectivity.
 
