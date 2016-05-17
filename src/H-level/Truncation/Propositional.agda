@@ -122,12 +122,12 @@ elim-∣∣ P P-prop f x =
 
 -- The truncation operator preserves bijections.
 
-∥∥-cong : ∀ {a b} {A : Set a} {B : Set b} →
-          A ↔ B → ∥ A ∥ ↔ ∥ B ∥
-∥∥-cong {a} {b} {A} {B} A↔B =
-  ∥ A ∥                  ↝⟨ ∥∥↔∥∥ b ⟩
+∥∥-cong : ∀ {k a b} {A : Set a} {B : Set b} →
+          A ↔[ k ] B → ∥ A ∥ ↔[ k ] ∥ B ∥
+∥∥-cong {a = a} {b} {A} {B} A↔B =
+  ∥ A ∥                  ↔⟨ ∥∥↔∥∥ b ⟩
   Trunc.∥ A ∥ 1 (a ⊔ b)  ↝⟨ Trunc.∥∥-cong ext A↔B ⟩
-  Trunc.∥ B ∥ 1 (a ⊔ b)  ↝⟨ inverse (∥∥↔∥∥ a) ⟩□
+  Trunc.∥ B ∥ 1 (a ⊔ b)  ↔⟨ inverse (∥∥↔∥∥ a) ⟩□
   ∥ B ∥                  □
 
 -- A generalised flattening lemma.

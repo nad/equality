@@ -77,10 +77,10 @@ private
 -- The truncation operator preserves bijections (assuming
 -- extensionality).
 
-∥∥-cong : ∀ {n a b ℓ} {A : Set a} {B : Set b} →
+∥∥-cong : ∀ {k n a b ℓ} {A : Set a} {B : Set b} →
           Extensionality (a ⊔ b ⊔ lsuc ℓ) (a ⊔ b ⊔ ℓ) →
-          A ↔ B → ∥ A ∥ n ℓ ↔ ∥ B ∥ n ℓ
-∥∥-cong {n} {a} {b} {ℓ} ext A↔B = record
+          A ↔[ k ] B → ∥ A ∥ n ℓ ↔[ k ] ∥ B ∥ n ℓ
+∥∥-cong {k} {n} {a} {b} {ℓ} ext A↝B = from-bijection (record
   { surjection = record
     { logical-equivalence = record
       { to   = ∥∥-map (_↔_.to   A↔B)
@@ -89,8 +89,10 @@ private
     ; right-inverse-of = lemma (lower-extensionality a a ext) A↔B
     }
   ; left-inverse-of = lemma (lower-extensionality b b ext) (inverse A↔B)
-  }
+  })
   where
+  A↔B = from-isomorphism A↝B
+
   lemma :
     ∀ {c d} {C : Set c} {D : Set d} →
     Extensionality (d ⊔ lsuc ℓ) (d ⊔ ℓ) →
