@@ -22,7 +22,7 @@ open import Function-universe eq using (inverse)
 -- Raw monads.
 
 record Raw-monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
-  constructor mk-raw-monad
+  constructor mk
   infixl 5 _>>=_
   field
     return : ∀ {A} → A → M A
@@ -33,7 +33,7 @@ open Raw-monad ⦃ … ⦄ public
 -- Monads.
 
 record Monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
-  constructor mk-monad
+  constructor mk
   field
     instance
       ⦃ raw-monad ⦄ : Raw-monad M
@@ -50,14 +50,36 @@ open Monad ⦃ … ⦄ public
 
 -- Monad transformers.
 
-Raw-monad-transformer :
-  ∀ {d c} → ((Set d → Set c) → (Set d → Set c)) → Set (lsuc (c ⊔ d))
-Raw-monad-transformer F =
-  ∀ {M} ⦃ is-raw-monad : Raw-monad M ⦄ → Raw-monad (F M)
+record Raw-monad-transformer
+         {d c} (F : (Set d → Set c) → (Set d → Set c)) :
+         Set (lsuc (c ⊔ d)) where
+  constructor mk
+  field
+    transform : ∀ {M}   ⦃ is-raw-monad : Raw-monad M ⦄ → Raw-monad (F M)
+    liftʳ     : ∀ {M A} ⦃ is-raw-monad : Raw-monad M ⦄ → M A → F M A
 
-Monad-transformer :
-  ∀ {d c} → ((Set d → Set c) → (Set d → Set c)) → Set (lsuc (c ⊔ d))
-Monad-transformer F = ∀ {M} ⦃ is-monad : Monad M ⦄ → Monad (F M)
+open Raw-monad-transformer ⦃ … ⦄ public using (liftʳ)
+
+record Monad-transformer
+         {d c} (F : (Set d → Set c) → (Set d → Set c)) :
+         Set (lsuc (c ⊔ d)) where
+  constructor mk
+  field
+    transform : ∀ {M}   ⦃ is-monad : Monad M ⦄ → Monad (F M)
+    liftᵐ     : ∀ {M A} ⦃ is-monad : Monad M ⦄ → M A → F M A
+
+    lift-return :
+      ∀ {M A} ⦃ is-monad : Monad M ⦄ (x : A) →
+      let module M = Raw-monad (Monad.raw-monad transform) in
+      liftᵐ {M = M} (return x) ≡ M.return x
+
+    lift->>= :
+      ∀ {M A B} ⦃ is-monad : Monad M ⦄
+      (x : M A) (f : A → M B) →
+      let module M = Raw-monad (Monad.raw-monad transform) in
+      liftᵐ (x >>= f) ≡ liftᵐ x M.>>= liftᵐ ∘ f
+
+open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
 
 ------------------------------------------------------------------------
 -- Preservation lemmas
@@ -107,7 +129,7 @@ Monad-transformer F = ∀ {M} ⦃ is-monad : Monad M ⦄ → Monad (F M)
     (F↔G : ∀ x → F x ↔ G x) (F-monad : Raw-monad F) →
     let eq = ⇔→raw⇔raw (_↔_.logical-equivalence ∘ F↔G) in
     _⇔_.from eq (_⇔_.to eq F-monad) ≡ F-monad
-  to∘to {f} ext F↔G (mk-raw-monad return _>>=_) = cong₂ mk-raw-monad
+  to∘to {f} ext F↔G (mk return _>>=_) = cong₂ Raw-monad.mk
     (implicit-extensionality (lower-extensionality f (lsuc a) ext) λ _ →
      lower-extensionality _ (lsuc a) ext λ x →
 
