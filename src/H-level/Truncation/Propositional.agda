@@ -12,6 +12,7 @@
 module H-level.Truncation.Propositional where
 
 open import Equality.Propositional hiding (elim)
+open import Interval using (ext)
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
@@ -59,13 +60,12 @@ postulate
   {-# REWRITE rec-∣∣ #-}
 
 -- The propositional truncation defined here is isomorphic to the one
--- defined in H-level.Truncation (assuming extensionality).
+-- defined in H-level.Truncation.
 
 ∥∥↔∥∥ :
   ∀ ℓ {a} {A : Set a} →
-  Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ ℓ) →
   ∥ A ∥ ↔ Trunc.∥ A ∥ 1 (a ⊔ ℓ)
-∥∥↔∥∥ ℓ ext = record
+∥∥↔∥∥ ℓ = record
   { surjection = record
     { logical-equivalence = record
       { to   = rec (Trunc.truncation-has-correct-h-level 1 ext)
@@ -90,16 +90,15 @@ postulate
 ∥∥-map f = rec truncation-is-proposition (∣_∣ ∘ f)
 
 -- The function rec can be used to define a dependently typed
--- eliminator (assuming extensionality).
+-- eliminator.
 
 elim :
   ∀ {a p} {A : Set a} →
-  Extensionality a p →
   (P : ∥ A ∥ → Set p) →
   (∀ x → Is-proposition (P x)) →
   ((x : A) → P ∣ x ∣) →
   (x : ∥ A ∥) → P x
-elim ext P P-prop f x =
+elim P P-prop f x =
   rec (Π-closure ext 1 P-prop)
       (λ x _ → subst P
                      (_⇔_.to propositional⇔irrelevant
@@ -113,45 +112,37 @@ elim ext P P-prop f x =
 
 elim-∣∣ :
   ∀ {a p} {A : Set a}
-  (ext : Extensionality a p)
   (P : ∥ A ∥ → Set p)
   (P-prop : ∀ x → Is-proposition (P x))
   (f : (x : A) → P ∣ x ∣)
   (x : A) →
-  elim ext P P-prop f ∣ x ∣ ≡ f x
-elim-∣∣ ext P P-prop f x =
+  elim P P-prop f ∣ x ∣ ≡ f x
+elim-∣∣ P P-prop f x =
   _⇔_.to propositional⇔irrelevant (P-prop _) _ _
 
--- The truncation operator preserves bijections (assuming
--- extensionality).
+-- The truncation operator preserves bijections.
 
 ∥∥-cong : ∀ {a b} {A : Set a} {B : Set b} →
-          Extensionality (lsuc (a ⊔ b)) (a ⊔ b) →
           A ↔ B → ∥ A ∥ ↔ ∥ B ∥
-∥∥-cong {a} {b} {A} {B} ext A↔B =
-  ∥ A ∥                  ↝⟨ ∥∥↔∥∥ b ext ⟩
+∥∥-cong {a} {b} {A} {B} A↔B =
+  ∥ A ∥                  ↝⟨ ∥∥↔∥∥ b ⟩
   Trunc.∥ A ∥ 1 (a ⊔ b)  ↝⟨ Trunc.∥∥-cong ext A↔B ⟩
-  Trunc.∥ B ∥ 1 (a ⊔ b)  ↝⟨ inverse (∥∥↔∥∥ a ext) ⟩□
+  Trunc.∥ B ∥ 1 (a ⊔ b)  ↝⟨ inverse (∥∥↔∥∥ a) ⟩□
   ∥ B ∥                  □
 
 -- Nested truncations can be flattened.
 
-flatten↠ : ∀ {a} {A : Set a} → ∥ ∥ A ∥ ∥ ↠ ∥ A ∥
-flatten↠ = record
-  { logical-equivalence = record
-    { to   = rec truncation-is-proposition id
-    ; from = ∣_∣
+flatten : ∀ {a} {A : Set a} →
+          ∥ ∥ A ∥ ∥ ↔ ∥ A ∥
+flatten = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = rec truncation-is-proposition id
+      ; from = ∣_∣
+      }
+    ; right-inverse-of = λ _ → refl
     }
-  ; right-inverse-of = λ _ → refl
-  }
-
-flatten↔ : ∀ {a} {A : Set a} →
-           Extensionality a a →
-           ∥ ∥ A ∥ ∥ ↔ ∥ A ∥
-flatten↔ ext = record
-  { surjection      = flatten↠
   ; left-inverse-of = λ x → elim
-      ext
       (λ x → ∣ rec truncation-is-proposition id x ∣ ≡ x)
       (λ _ → mono₁ 0 (truncation-is-proposition _ _))
       (λ _ → refl)
@@ -300,12 +291,11 @@ constant-endofunction⇔h-stable = record
 
 drop-∥∥ :
   ∀ {a b} {A : Set a} {B : A → Set b} →
-  Extensionality a b →
 
   (∥ A ∥ → ∀ x → B x)
     ↔
   (∀ x → B x)
-drop-∥∥ {A = A} {B} ext =
+drop-∥∥ {A = A} {B} =
   (∥ A ∥ → ∀ x → B x)              ↝⟨ inverse currying ⟩
   ((p : ∥ A ∥ × A) → B (proj₂ p))  ↔⟨ Π-preserves ext ∥∥×≃ (λ _ → F.id) ⟩□
   (∀ x → B x)                      □
@@ -314,19 +304,18 @@ drop-∥∥ {A = A} {B} ext =
 
 push-∥∥ :
   ∀ {a b c} {A : Set a} {B : A → Set b} {C : (∀ x → B x) → Set c} →
-  Extensionality a (b ⊔ c) →
 
   (∥ A ∥ → ∃ λ (f : ∀ x → B x) → C f)
     ↔
   (∃ λ (f : ∀ x → B x) → ∥ A ∥ → C f)
 
-push-∥∥ {b = b} {c} {A} {B} {C} ext =
+push-∥∥ {b = b} {c} {A} {B} {C} =
 
   (∥ A ∥ → ∃ λ (f : ∀ x → B x) → C f)                ↝⟨ ΠΣ-comm ⟩
 
-  (∃ λ (f : ∥ A ∥ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↔⟨ Σ-cong (drop-∥∥ (lower-extensionality lzero c ext)) (λ f →
-                                                        Eq.∀-preserves (lower-extensionality lzero b ext) λ ∥x∥ →
-                                                        ≡⇒↝ _ $ cong C $ lower-extensionality lzero c ext λ x →
+  (∃ λ (f : ∥ A ∥ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↔⟨ Σ-cong drop-∥∥ (λ f →
+                                                        Eq.∀-preserves ext λ ∥x∥ →
+                                                        ≡⇒↝ _ $ cong C $ ext λ x →
       f ∥x∥ x                                             ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $
                                                              _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _ ⟩∎
       f ∣ x ∣ x                                           ∎) ⟩□
@@ -340,30 +329,28 @@ drop-∥∥₃ :
   ∀ {a b c d}
     {A : Set a} {B : A → Set b} {C : A → (∀ x → B x) → Set c}
     {D : A → (f : ∀ x → B x) → (∀ x → C x f) → Set d} →
-  Extensionality a (a ⊔ b ⊔ c ⊔ d) →
 
   (∥ A ∥ →
    ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
     ↔
   (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
 
-drop-∥∥₃ {a} {b} {c} {A = A} {B} {C} {D} ext =
+drop-∥∥₃ {a} {b} {c} {A = A} {B} {C} {D} =
   (∥ A ∥ →
-   ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  ↝⟨ push-∥∥ ext ⟩
+   ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  ↝⟨ push-∥∥ ⟩
 
   (∃ λ (f : ∀ x → B x) →
-   ∥ A ∥ → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)                ↝⟨ (∃-cong λ _ →
-                                                                     push-∥∥ (lower-extensionality lzero b ext)) ⟩
+   ∥ A ∥ → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)                ↝⟨ (∃-cong λ _ → push-∥∥) ⟩
+
   (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) →
-   ∥ A ∥ → ∀ x → D x f g)                                        ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
-                                                                     drop-∥∥ (lower-extensionality lzero (a ⊔ b ⊔ c) ext)) ⟩□
+   ∥ A ∥ → ∀ x → D x f g)                                        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → drop-∥∥) ⟩□
+
   (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  □
 
 -- Having a coherently constant function into a groupoid is equivalent
 -- to having a function from a propositionally truncated type into the
--- groupoid (assuming extensionality). This result is Proposition 2.3
--- in "The General Universal Property of the Propositional Truncation"
--- by Kraus.
+-- groupoid. This result is Proposition 2.3 in "The General Universal
+-- Property of the Propositional Truncation" by Kraus.
 
 Coherently-constant :
   ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
@@ -373,36 +360,31 @@ Coherently-constant f =
 
 coherently-constant-function≃∥inhabited∥⇒inhabited :
   ∀ {a b} {A : Set a} {B : Set b} →
-  Extensionality (lsuc (a ⊔ b)) (a ⊔ b) →
   H-level 3 B →
   (∃ λ (f : A → B) → Coherently-constant f) ≃ (∥ A ∥ → B)
 coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} {A} {B}
-                                                   ext B-groupoid =
+                                                   B-groupoid =
   (∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ Trunc.coherently-constant-function≃∥inhabited∥⇒inhabited lzero ext B-groupoid ⟩
-  (Trunc.∥ A ∥ 1 (a ⊔ b) → B)                ↔⟨ →-cong (lower-extensionality lzero a ext)
-                                                       (inverse $ ∥∥↔∥∥ (a ⊔ b) ext) F.id ⟩□
+  (Trunc.∥ A ∥ 1 (a ⊔ b) → B)                ↔⟨ →-cong ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) F.id ⟩□
   (∥ A ∥ → B)                                □
 
 -- Having a constant function into a set is equivalent to having a
--- function from a propositionally truncated type into the set
--- (assuming extensionality). The statement of this result is that of
--- Proposition 2.2 in "The General Universal Property of the
--- Propositional Truncation" by Kraus, but it uses a different proof:
--- as observed by Kraus this result follows from Proposition 2.3.
+-- function from a propositionally truncated type into the set. The
+-- statement of this result is that of Proposition 2.2 in "The General
+-- Universal Property of the Propositional Truncation" by Kraus, but
+-- it uses a different proof: as observed by Kraus this result follows
+-- from Proposition 2.3.
 
 constant-function≃∥inhabited∥⇒inhabited :
   ∀ {a b} {A : Set a} {B : Set b} →
-  Extensionality (lsuc (a ⊔ b)) (a ⊔ b) →
   Is-set B →
   (∃ λ (f : A → B) → Constant f) ≃ (∥ A ∥ → B)
-constant-function≃∥inhabited∥⇒inhabited {a} {b} {A} {B} ext B-set =
+constant-function≃∥inhabited∥⇒inhabited {a} {b} {A} {B} B-set =
   (∃ λ (f : A → B) → Constant f)  ↝⟨ Trunc.constant-function≃∥inhabited∥⇒inhabited lzero ext B-set ⟩
-  (Trunc.∥ A ∥ 1 (a ⊔ b) → B)     ↔⟨ →-cong (lower-extensionality lzero a ext)
-                                            (inverse $ ∥∥↔∥∥ (a ⊔ b) ext) F.id ⟩□
+  (Trunc.∥ A ∥ 1 (a ⊔ b) → B)     ↔⟨ →-cong ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) F.id ⟩□
   (∥ A ∥ → B)                     □
 
--- The propositional truncation's universal property (defined using
--- extensionality).
+-- The propositional truncation's universal property.
 --
 -- As observed by Kraus this result follows from Proposition 2.2 in
 -- his "The General Universal Property of the Propositional
@@ -410,12 +392,10 @@ constant-function≃∥inhabited∥⇒inhabited {a} {b} {A} {B} ext B-set =
 
 universal-property :
   ∀ {a b} {A : Set a} {B : Set b} →
-  Extensionality (lsuc (a ⊔ b)) (a ⊔ b) →
   Is-proposition B →
   (∥ A ∥ → B) ≃ (A → B)
-universal-property {a} {b} {A} {B} ext B-prop =
-  (∥ A ∥ → B)                  ↔⟨ →-cong (lower-extensionality lzero a ext)
-                                         (∥∥↔∥∥ (a ⊔ b) ext) F.id ⟩
+universal-property {a} {b} {A} {B} B-prop =
+  (∥ A ∥ → B)                  ↔⟨ →-cong ext (∥∥↔∥∥ (a ⊔ b)) F.id ⟩
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)  ↝⟨ Trunc.universal-property lzero ext B-prop ⟩□
   (A → B)                      □
 
@@ -425,19 +405,17 @@ private
 
   to-universal-property :
     ∀ {a b} {A : Set a} {B : Set b}
-    (ext : Extensionality (lsuc (a ⊔ b)) (a ⊔ b))
     (B-prop : Is-proposition B)
     (f : ∥ A ∥ → B) →
-    _≃_.to (universal-property ext B-prop) f ≡ f ∘ ∣_∣
-  to-universal-property _ _ _ = refl
+    _≃_.to (universal-property B-prop) f ≡ f ∘ ∣_∣
+  to-universal-property _ _ = refl
 
   from-universal-property :
     ∀ {a b} {A : Set a} {B : Set b}
-    (ext : Extensionality (lsuc (a ⊔ b)) (a ⊔ b))
     (B-prop : Is-proposition B)
     (f : A → B) (x : A) →
-    _≃_.from (universal-property ext B-prop) f ∣ x ∣ ≡ f x
-  from-universal-property _ _ _ _ = refl
+    _≃_.from (universal-property B-prop) f ∣ x ∣ ≡ f x
+  from-universal-property _ _ _ = refl
 
 -- The axiom of choice, in one of the alternative forms given in the
 -- HoTT book (§3.8).
