@@ -21,7 +21,7 @@ open import Function-universe equality-with-J as Function-universe
 open import H-level.Closure equality-with-J
 open import Injection equality-with-J using (_↣_)
 open import List equality-with-J
-open import Monad equality-with-J
+open import Monad equality-with-J hiding (map)
 
 ------------------------------------------------------------------------
 -- Any

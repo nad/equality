@@ -12,7 +12,7 @@ module List
 open import Prelude
 
 open Derived-definitions-and-properties eq
-open import Monad eq
+open import Monad eq hiding (map)
 
 -- Right fold.
 

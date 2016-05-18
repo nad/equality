@@ -28,6 +28,11 @@ record Raw-monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
     return : ∀ {A} → A → M A
     _>>=_  : ∀ {A B} → M A → (A → M B) → M B
 
+  -- A map function.
+
+  map : ∀ {A B} → (A → B) → M A → M B
+  map f x = x >>= return ∘ f
+
 open Raw-monad ⦃ … ⦄ public
 
 -- Monads.
@@ -45,6 +50,46 @@ record Monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
     associativity  : ∀ {A B C} →
                      (x : M A) (f : A → M B) (g : B → M C) →
                      x >>= (λ x → f x >>= g) ≡ x >>= f >>= g
+
+  -- Monads are functors.
+
+  map-id : ∀ {A} (x : M A) → map id x ≡ x
+  map-id x =
+    x >>= return ∘ id  ≡⟨⟩
+    x >>= return       ≡⟨ right-identity _ ⟩∎
+    x                  ∎
+
+  map-∘ : Extensionality d c →
+          ∀ {A B C} (f : B → C) (g : A → B) (x : M A) →
+          map (f ∘ g) x ≡ map f (map g x)
+  map-∘ ext f g x =
+    x >>= return ∘ (f ∘ g)                     ≡⟨ cong (x >>=_) (ext λ _ → sym $ left-identity _ _) ⟩
+    x >>= (λ x → return (g x) >>= return ∘ f)  ≡⟨ associativity _ _ _ ⟩∎
+    (x >>= return ∘ g) >>= return ∘ f          ∎
+
+  -- More lemmas.
+
+  map-return : ∀ {A B} (f : A → B) (x : A) →
+               map {M = M} f (return x) ≡ return (f x)
+  map-return f x =
+    return x >>= return ∘ f  ≡⟨ left-identity _ _ ⟩∎
+    return (f x)             ∎
+
+  map->>= : ∀ {A B C} (f : B → C) (x : M A) (g : A → M B) →
+            map f (x >>= g) ≡ x >>= map f ∘ g
+  map->>= f x g =
+    x >>= g >>= return ∘ f            ≡⟨ sym $ associativity _ _ _ ⟩
+    x >>= (λ x → g x >>= return ∘ f)  ≡⟨⟩
+    x >>= (λ x → map f (g x))         ≡⟨ refl _ ⟩∎
+    x >>= map f ∘ g                   ∎
+
+  >>=-map : Extensionality d c →
+            ∀ {A B C} (f : A → B) (x : M A) (g : B → M C) →
+            map f x >>= g ≡ x >>= g ∘ f
+  >>=-map ext f x g =
+    (x >>= return ∘ f) >>= g          ≡⟨ sym $ associativity _ _ _ ⟩
+    x >>= (λ x → return (f x) >>= g)  ≡⟨ cong (x >>=_) (ext λ _ → left-identity _ _) ⟩∎
+    x >>= g ∘ f                       ∎
 
 open Monad ⦃ … ⦄ public
 
