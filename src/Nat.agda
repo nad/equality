@@ -4,9 +4,23 @@
 
 {-# OPTIONS --without-K #-}
 
-module Nat where
+open import Equality
+
+module Nat
+  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Prelude
+
+open Derived-definitions-and-properties eq
+
+------------------------------------------------------------------------
+-- One property related to _+_
+
+-- Addition is associative.
+
++-assoc : ∀ m {n o} → m + (n + o) ≡ (m + n) + o
++-assoc zero    = refl _
++-assoc (suc m) = cong suc (+-assoc m)
 
 ------------------------------------------------------------------------
 -- Some properties related to _≤_

@@ -8,7 +8,7 @@ module Tree-sort.Examples where
 
 open import Bag-equivalence
 open import Equality.Propositional
-import Nat
+import Nat equality-with-J as Nat
 open import Prelude
 
 -- Comparison functions for natural numbers.

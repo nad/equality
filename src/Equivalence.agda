@@ -21,7 +21,7 @@ open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_; module _↣_; Injective)
 open import Logical-equivalence as L-eq hiding (id; _∘_; inverse)
-open import Nat
+open import Nat eq
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection eq as Surjection using (_↠_; module _↠_)

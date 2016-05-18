@@ -18,7 +18,7 @@ import Equality.Decidable-UIP eq as DUIP
 open import Equality.Decision-procedures eq
 open import H-level eq
 open import Logical-equivalence hiding (id; _∘_)
-open import Nat
+open import Nat eq
 open import Prelude
 open import Surjection eq as Surjection hiding (id; _∘_)
 

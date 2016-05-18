@@ -12,7 +12,6 @@ module Circle
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Logical-equivalence using (module _⇔_)
-open import Nat
 open import Prelude
 
 open Derived-definitions-and-properties eq hiding (elim)
@@ -21,6 +20,7 @@ open import Function-universe eq hiding (_∘_)
 open import Groupoid eq
 open import H-level eq
 open import H-level.Truncation eq hiding (rec)
+open import Nat eq
 open import Univalence-axiom eq
 
 -- Circle p is an axiomatisation of the circle, eliminating into
