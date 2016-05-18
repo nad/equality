@@ -102,7 +102,9 @@ import Monad
 -- Some definitions related to and properties of specific types.
 
 import Bool
+import Fin
 import List
+import M
 import Maybe
 import Nat
 
@@ -158,14 +160,6 @@ import Category
 -- Aczel's structure identity principle (for 1-categories).
 
 import Structure-identity-principle
-
--- M-types.
-
-import M
-
--- Some definitions related to and properties of finite sets.
-
-import Fin
 
 -- Bag equivalence for lists.
 

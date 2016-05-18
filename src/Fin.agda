@@ -20,8 +20,8 @@ open import Function-universe eq hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
 open import List eq
-open import Univalence-axiom eq
 open import Nat eq using (_≤_; ≤-refl; ≤-step)
+open import Univalence-axiom eq
 
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃
