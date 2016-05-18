@@ -164,6 +164,18 @@ _*_ on f = λ x y → f x * f y
 Type-of : ∀ {a} {A : Set a} → A → Set a
 Type-of {A = A} _ = A
 
+-- Case expressions (to be used with pattern-matching lambdas).
+
+infix 0 case_return_of_ case_of_
+
+case_return_of_ :
+  ∀ {a b} {A : Set a}
+  (x : A) (B : A → Set b) → ((x : A) → B x) → B x
+case x return B of f = f x
+
+case_of_ : ∀ {a b} {A : Set a} {B : Set b} → A → (A → B) → B
+case x of f = case x return _ of f
+
 ------------------------------------------------------------------------
 -- Σ-types
 
