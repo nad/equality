@@ -18,7 +18,7 @@ import Equality.Decidable-UIP eq as DUIP
 open import Equality.Decision-procedures eq
 open import H-level eq
 open import Logical-equivalence hiding (id; _∘_)
-open import Nat eq
+open import Nat eq as Nat
 open import Prelude
 open import Surjection eq as Surjection hiding (id; _∘_)
 
@@ -102,12 +102,12 @@ abstract
 
   ¬-ℕ-propositional : ¬ Is-proposition ℕ
   ¬-ℕ-propositional ℕ-prop =
-    ℕ.0≢+ $ _⇔_.to propositional⇔irrelevant ℕ-prop 0 1
+    0≢+ $ _⇔_.to propositional⇔irrelevant ℕ-prop 0 1
 
   -- ℕ is a set.
 
   ℕ-set : Is-set ℕ
-  ℕ-set = DUIP.decidable⇒set ℕ._≟_
+  ℕ-set = DUIP.decidable⇒set Nat._≟_
 
 ------------------------------------------------------------------------
 -- Π-types

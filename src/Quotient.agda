@@ -34,7 +34,7 @@ open import Groupoid
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import H-level.Truncation eq as Trunc hiding (rec)
-open import Nat eq
+open import Nat eq as Nat
 open import Univalence-axiom eq
 
 ------------------------------------------------------------------------
@@ -180,7 +180,7 @@ equivalence-but-not-strong-equivalence ext univ =
   not-strong-equivalence : ¬ Strong-equivalence R
   not-strong-equivalence =
     Strong-equivalence R  ↝⟨ const-Fin-strong-equivalence⇒≡! ext univ 3 ⟩
-    3 ≡ 3 !               ↝⟨ from-⊎ (3 ℕ.≟ (3 !)) ⟩□
+    3 ≡ 3 !               ↝⟨ from-⊎ (3 Nat.≟ (3 !)) ⟩□
     ⊥                     □
 
 -- On the other hand, if n is 2, then λ (_ _ : ⊤) → Fin n is a strong
@@ -259,7 +259,7 @@ strong-equivalence-not-closed-under-on ext univ₁ univ₀ =
       Fin (3 ! !)                                    □)
 
     contradiction : ⊥
-    contradiction = from-⊎ ((3 !) ℕ.≟ (3 ! !)) 3!≡3!!
+    contradiction = from-⊎ ((3 !) Nat.≟ (3 ! !)) 3!≡3!!
 
 -- However, Strong-equivalence is closed under _on f when f is an
 -- equivalence (assuming extensionality).
@@ -329,7 +329,7 @@ strong-equivalence-not-closed-under-×-or-⊎ ext univ =
     Strong-equivalence (λ _ _ → B)      ↝⟨ (≡⇒↝ _ $ cong Strong-equivalence $ ext λ _ → ext λ _ →
                                             ≃⇒≡ univ $ Eq.↔⇒≃ B↔Fin4) ⟩
     Strong-equivalence (λ _ _ → Fin 4)  ↝⟨ const-Fin-strong-equivalence⇒≡! ext univ 4 ⟩
-    4 ≡ 4 !                             ↝⟨ from-⊎ (4 ℕ.≟ (4 !)) ⟩□
+    4 ≡ 4 !                             ↝⟨ from-⊎ (4 Nat.≟ (4 !)) ⟩□
     ⊥                                   □
 
   not-strong-equivalence′ :
@@ -385,7 +385,7 @@ another-negative-result ext univ₁ univ₀ =
       Fin 2                                                        □)
 
     contradiction : ⊥
-    contradiction = from-⊎ (4 ℕ.≟ 2) 4≡2
+    contradiction = from-⊎ (4 Nat.≟ 2) 4≡2
 
 ------------------------------------------------------------------------
 -- Quotients

@@ -24,6 +24,7 @@ open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (Injective)
 open import Logical-equivalence hiding (id; _∘_; inverse)
+import Nat eq as Nat
 open import Prelude
 open import Surjection eq hiding (id; _∘_; ∃-cong)
 
@@ -204,18 +205,18 @@ abstract
 
     swap_and-0 : ℕ → ℕ → ℕ
     swap i and-0 zero    = i
-    swap i and-0 (suc n) with ℕ._≟_ i (suc n)
+    swap i and-0 (suc n) with i Nat.≟ suc n
     ... | yes i≡1+n = zero
     ... | no  i≢1+n = suc n
 
     swap∘swap : ∀ i n → swap i and-0 (swap i and-0 n) ≡ n
     swap∘swap zero    zero    = refl zero
-    swap∘swap (suc i) zero    with ℕ._≟_ i i
+    swap∘swap (suc i) zero    with i Nat.≟ i
     ... | yes _   = refl 0
     ... | no  i≢i = ⊥-elim $ i≢i (refl i)
-    swap∘swap i       (suc n) with ℕ._≟_ i (suc n)
+    swap∘swap i       (suc n) with i Nat.≟ suc n
     ... | yes i≡1+n = i≡1+n
-    ... | no  i≢1+n with ℕ._≟_ i (suc n)
+    ... | no  i≢1+n with i Nat.≟ suc n
     ...   | yes i≡1+n = ⊥-elim $ i≢1+n i≡1+n
     ...   | no  _     = refl (suc n)
 

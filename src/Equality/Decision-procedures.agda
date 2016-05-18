@@ -55,43 +55,6 @@ module Bool where
   false ≟ true  = no (true≢false ∘ sym)
 
 ------------------------------------------------------------------------
--- Natural numbers
-
-module ℕ where
-
-  -- Inhabited only for zero.
-
-  Zero : ℕ → Set
-  Zero zero    = ⊤
-  Zero (suc n) = ⊥
-
-  -- Predecessor (except if the argument is zero).
-
-  pred : ℕ → ℕ
-  pred zero    = zero
-  pred (suc n) = n
-
-  abstract
-
-    -- Zero is not equal to the successor of any number.
-
-    0≢+ : {n : ℕ} → zero ≢ suc n
-    0≢+ 0≡+ = subst Zero 0≡+ tt
-
-  -- The suc constructor is cancellative.
-
-  cancel-suc : {m n : ℕ} → suc m ≡ suc n → m ≡ n
-  cancel-suc = cong pred
-
-  -- Equality of natural numbers is decidable.
-
-  _≟_ : Decidable-equality ℕ
-  zero  ≟ zero  = yes (refl _)
-  suc m ≟ suc n = ⊎-map (cong suc) (λ m≢n → m≢n ∘ cancel-suc) (m ≟ n)
-  zero  ≟ suc n = no 0≢+
-  suc m ≟ zero  = no (0≢+ ∘ sym)
-
-------------------------------------------------------------------------
 -- Σ-types
 
 module Σ {a b} {A : Set a} {B : A → Set b} where
