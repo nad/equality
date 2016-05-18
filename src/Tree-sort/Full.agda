@@ -9,7 +9,7 @@
 
 -- The module is parametrised by a total relation.
 
-open import Prelude hiding (id; _∘_; _≤_; lower)
+open import Prelude hiding (id; _∘_; lower)
 
 module Tree-sort.Full
   {A : Set}

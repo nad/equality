@@ -99,14 +99,6 @@ _! : ℕ → ℕ
 zero  ! = 1
 suc n ! = suc n * n !
 
--- The usual ordering of the natural numbers.
-
-infix 4 _≤_
-
-data _≤_ (m : ℕ) : ℕ → Set where
-  ≤-refl :                       m ≤ m
-  ≤-step : ∀ {n} (m≤n : m ≤ n) → m ≤ suc n
-
 -- Translation from natural numbers to levels.
 
 # : ℕ → Level

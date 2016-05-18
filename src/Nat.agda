@@ -58,13 +58,30 @@ suc m ≟ zero  = no (0≢+ ∘ sym)
 +-assoc (suc m) = cong suc (+-assoc m)
 
 ------------------------------------------------------------------------
--- Some properties related to _≤_
+-- The usual ordering of the natural numbers, along with some
+-- properties
+
+-- The ordering.
+
+infix 4 _≤_
+
+data _≤_ (m n : ℕ) : Set where
+  ≤-refl′ : m ≡ n → m ≤ n
+  ≤-step′ : ∀ {k} → m ≤ k → suc k ≡ n → m ≤ n
+
+-- Some abbreviations.
+
+≤-refl : ∀ {n} → n ≤ n
+≤-refl = ≤-refl′ (refl _)
+
+≤-step : ∀ {m n} → m ≤ n → m ≤ suc n
+≤-step m≤n = ≤-step′ m≤n (refl _)
 
 -- _≤_ is transitive.
 
 ≤-trans : ∀ {m n o} → m ≤ n → n ≤ o → m ≤ o
-≤-trans p ≤-refl     = p
-≤-trans p (≤-step q) = ≤-step (≤-trans p q)
+≤-trans p (≤-refl′ eq)   = subst (_ ≤_) eq p
+≤-trans p (≤-step′ q eq) = ≤-step′ (≤-trans p q) eq
 
 -- Some simple lemmas.
 
@@ -73,12 +90,13 @@ zero≤ zero    = ≤-refl
 zero≤ (suc n) = ≤-step (zero≤ n)
 
 suc≤suc : ∀ {m n} → m ≤ n → suc m ≤ suc n
-suc≤suc ≤-refl       = ≤-refl
-suc≤suc (≤-step m≤n) = ≤-step (suc≤suc m≤n)
+suc≤suc (≤-refl′ eq)     = ≤-refl′ (cong suc eq)
+suc≤suc (≤-step′ m≤n eq) = ≤-step′ (suc≤suc m≤n) (cong suc eq)
 
 suc≤suc⁻¹ : ∀ {m n} → suc m ≤ suc n → m ≤ n
-suc≤suc⁻¹ ≤-refl     = ≤-refl
-suc≤suc⁻¹ (≤-step p) = ≤-trans (≤-step ≤-refl) p
+suc≤suc⁻¹ (≤-refl′ eq)   = ≤-refl′ (cancel-suc eq)
+suc≤suc⁻¹ (≤-step′ p eq) =
+  ≤-trans (≤-step ≤-refl) (subst (_ ≤_) (cancel-suc eq) p)
 
 m≤m+n : ∀ m n → m ≤ m + n
 m≤m+n zero    n = zero≤ n
@@ -92,7 +110,9 @@ m≤n+m m (suc n) = ≤-step (m≤n+m m n)
 
 _≤?_ : Decidable _≤_
 zero  ≤? n     = inj₁ (zero≤ n)
-suc m ≤? zero  = inj₂ (λ ())
+suc m ≤? zero  = inj₂ λ { (≤-refl′ eq)   → 0≢+ (sym eq)
+                        ; (≤-step′ _ eq) → 0≢+ (sym eq)
+                        }
 suc m ≤? suc n = ⊎-map suc≤suc (λ m≰n → m≰n ∘ suc≤suc⁻¹) (m ≤? n)
 
 -- If m is not smaller than or equal to n, then n is smaller than or

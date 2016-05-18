@@ -19,7 +19,7 @@ m ≤? n with Nat.total m n
 ... | inj₂ n<m = false
 
 import Tree-sort.Partial _≤?_ as P
-open import Tree-sort.Full _≤_ Nat.total as F using (cons; nil)
+open import Tree-sort.Full Nat._≤_ Nat.total as F using (cons; nil)
 
 -- The sort functions return ordered lists.
 

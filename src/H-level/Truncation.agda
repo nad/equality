@@ -23,6 +23,7 @@ open import Function-universe eq as F hiding (_∘_)
 open import Groupoid eq
 open import H-level eq as H-level
 open import H-level.Closure eq
+open import Nat eq
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq using (_↠_)
 

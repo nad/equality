@@ -611,7 +611,7 @@ poset =
   λ { (P , P-set) Le →
 
     let _≤_ : ↑ _ P → ↑ _ P → Set
-        x ≤ y = proj₁ (Le x y)
+        _≤_ x y = proj₁ (Le x y)
     in
 
      -- Reflexivity.
@@ -647,7 +647,7 @@ Instance-poset :
   Σ (SET (# 0)) λ { (P , _) →
   Σ (↑ _ P → ↑ _ P → Proposition (# 0)) λ Le →
   let _≤_ : ↑ _ P → ↑ _ P → Set
-      x ≤ y = proj₁ (Le x y)
+      _≤_ x y = proj₁ (Le x y)
   in
   (∀ x → x ≤ x) ×
   (∀ x y z → x ≤ y → y ≤ z → x ≤ z) ×

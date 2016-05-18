@@ -14,6 +14,7 @@ module H-level
 
 open Derived-definitions-and-properties eq
 open import Logical-equivalence hiding (id; _∘_)
+open import Nat eq
 open import Prelude
 open import Surjection eq hiding (id; _∘_)
 
@@ -71,8 +72,11 @@ abstract
                (λ x → trans-symˡ (proj₂ h x))
 
   mono : ∀ {a m n} {A : Set a} → m ≤ n → H-level m A → H-level n A
-  mono ≤-refl               = id
-  mono (≤-step {n = n} m≤n) = λ h → mono₁ n (mono m≤n h)
+  mono (≤-refl′ eq)     = subst (λ n → H-level n _) eq
+  mono (≤-step′ m≤n eq) =
+    subst (λ n → H-level n _) eq ∘
+    mono₁ _ ∘
+    mono m≤n
 
   -- If something is contractible given the assumption that it is
   -- inhabited, then it is propositional.

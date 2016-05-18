@@ -30,6 +30,7 @@ open import H-level eq
 open import H-level.Closure eq
 open import Injection eq using (Injective)
 open import Logical-equivalence using (_⇔_; module _⇔_)
+open import Nat eq
 open import Preimage eq
 open import Prelude as P hiding (id)
 open import Univalence-axiom eq
