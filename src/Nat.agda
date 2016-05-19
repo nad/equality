@@ -57,6 +57,28 @@ suc m ≟ zero  = no (0≢+ ∘ sym)
 +-assoc zero    = refl _
 +-assoc (suc m) = cong suc (+-assoc m)
 
+-- Zero is a right additive unit.
+
++-right-identity : ∀ {n} → n + 0 ≡ n
++-right-identity {zero}  = refl 0
++-right-identity {suc _} = cong suc +-right-identity
+
+-- The successor constructor can be moved from one side of _+_ to the
+-- other.
+
+suc+≡+suc : ∀ m {n} → suc m + n ≡ m + suc n
+suc+≡+suc zero    = refl _
+suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
+
+-- Addition is commutative.
+
++-comm : ∀ m {n} → m + n ≡ n + m
++-comm zero        = sym +-right-identity
++-comm (suc m) {n} =
+  suc (m + n)  ≡⟨ cong suc (+-comm m) ⟩
+  suc (n + m)  ≡⟨ suc+≡+suc n ⟩∎
+  n + suc m    ∎
+
 ------------------------------------------------------------------------
 -- The usual ordering of the natural numbers, along with some
 -- properties
