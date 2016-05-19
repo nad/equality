@@ -99,6 +99,10 @@ import Function-universe
 
 import Monad
 
+-- The double-negation monad.
+
+import Double-negation
+
 -- Some definitions related to and properties of specific types.
 
 import Bool
