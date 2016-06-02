@@ -270,8 +270,8 @@ strong-equivalence-closed-under-on :
   (B≃A : B ≃ A) →
   Strong-equivalence R →
   Strong-equivalence (R on _≃_.to B≃A)
-strong-equivalence-closed-under-on {R = R} ext B≃A strong-equivalence =
-  λ {x} {y} →
+strong-equivalence-closed-under-on {R = R} ext B≃A strong-equivalence
+                                   {x} {y} =
     R (f x) (f y)                                  ↝⟨ strong-equivalence ⟩
     R (f x) ≡ R (f y)                              ↝⟨ F.id ⟩
     (λ z → R (f x)    z)  ≡ (λ z → R (f y)    z)   ↝⟨ inverse $ Eq.extensionality-isomorphism ext ⟩

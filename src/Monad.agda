@@ -159,7 +159,7 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
             Extensionality (lsuc a ⊔ f ⊔ g) (lsuc a ⊔ f ⊔ g) →
             {F : Set a → Set f} {G : Set a → Set g} →
             (∀ x → F x ↔ G x) → Raw-monad F ↔ Raw-monad G
-↔→raw↔raw {a} = λ {f g} ext F↔G → record
+↔→raw↔raw {a} {f} {g} = λ ext F↔G → record
   { surjection = record
     { logical-equivalence = ⇔→raw⇔raw (_↔_.logical-equivalence ∘ F↔G)
     ; right-inverse-of    = to∘to (lower-extensionality f f ext)
@@ -203,7 +203,7 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
       Extensionality a (f ⊔ g) →
       {F : Set a → Set f} {G : Set a → Set g} →
       (∀ x → F x ↔ G x) → Monad F ⇔ Monad G
-↔→⇔ {a} = λ {f g} ext F↔G → record
+↔→⇔ {a} {f} {g} = λ ext F↔G → record
   { to   = to (lower-extensionality lzero g ext) F↔G
   ; from = to (lower-extensionality lzero f ext) (inverse ∘ F↔G)
   }

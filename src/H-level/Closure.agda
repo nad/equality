@@ -34,7 +34,7 @@ open import Surjection eq as Surjection hiding (id; _∘_)
 -- the unit type.
 
 contractible⇔⊤↔ : ∀ {a} {A : Set a} → Contractible A ⇔ (⊤ ↔ A)
-contractible⇔⊤↔ = λ {a} {A} → record
+contractible⇔⊤↔ = record
   { to   = contractible-isomorphic ⊤-contractible
   ; from = λ ⊤↔A → respects-surjection (_↔_.surjection ⊤↔A) 0
                                        ⊤-contractible
