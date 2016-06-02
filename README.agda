@@ -128,6 +128,10 @@ import H-level.Truncation.Propositional
 
 import Quotient
 
+-- Quotients, defined using a higher inductive type.
+
+import Quotient.HIT
+
 -- The "interval".
 
 import Interval
