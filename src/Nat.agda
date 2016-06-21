@@ -49,7 +49,7 @@ zero  ≟ suc n = no 0≢+
 suc m ≟ zero  = no (0≢+ ∘ sym)
 
 ------------------------------------------------------------------------
--- One property related to _+_
+-- Properties related to _+_
 
 -- Addition is associative.
 
@@ -78,6 +78,12 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
   suc (m + n)  ≡⟨ cong suc (+-comm m) ⟩
   suc (n + m)  ≡⟨ suc+≡+suc n ⟩∎
   n + suc m    ∎
+
+-- A number is not equal to a strictly larger number.
+
+≢1+ : ∀ m {n} → ¬ m ≡ suc (m + n)
+≢1+ zero    p = 0≢+ p
+≢1+ (suc m) p = ≢1+ m (cancel-suc p)
 
 ------------------------------------------------------------------------
 -- The usual ordering of the natural numbers, along with some
@@ -200,3 +206,17 @@ total m n = ⊎-map id ≰→≥ (m ≤? n)
 
 ≤⊎> : ∀ m n → m ≤ n ⊎ n < m
 ≤⊎> m n = ⊎-map id ≰→> (m ≤? n)
+
+-- A number is not strictly greater than a smaller (strictly or not)
+-- number.
+
++≮ : ∀ m {n} → ¬ m + n < n
++≮ m {n}     (≤-refl′ q)           = ≢1+ n (n            ≡⟨ sym q ⟩
+                                            suc (m + n)  ≡⟨ cong suc (+-comm m) ⟩∎
+                                            suc (n + m)  ∎)
++≮ m {zero}  (≤-step′ {k = k} p q) = 0≢+ (0      ≡⟨ sym q ⟩∎
+                                          suc k  ∎)
++≮ m {suc n} (≤-step′ {k = k} p q) = +≮ m {n} (suc m + n  ≡⟨ suc+≡+suc m ⟩≤
+                                               m + suc n  <⟨ p ⟩
+                                               k          ≡⟨ cancel-suc q ⟩≤
+                                               n          ∎≤)
