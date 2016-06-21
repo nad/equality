@@ -109,6 +109,55 @@ abstract
   ℕ-set : Is-set ℕ
   ℕ-set = DUIP.decidable⇒set Nat._≟_
 
+  -- Nat._≤_ is not a family of contractible types.
+
+  ¬-≤-contractible : ¬ (∀ {m n} → Contractible (m Nat.≤ n))
+  ¬-≤-contractible ≤-contr with proj₁ (≤-contr {m = 1} {n = 0})
+  ... | ≤-refl′ 1≡0   = 0≢+ (sym 1≡0)
+  ... | ≤-step′ _ +≡0 = 0≢+ (sym +≡0)
+
+  -- Nat._≤_ is a family of propositions.
+
+  ≤-propositional : ∀ {m n} → Is-proposition (m Nat.≤ n)
+  ≤-propositional = _⇔_.from propositional⇔irrelevant irr
+    where
+    lemma : ∀ {m n k} → m ≡ n → m ≤ k → suc k ≡ n → ⊥₀
+    lemma {m} {n} {k} m≡n m≤k 1+k≡n = <-irreflexive (
+      suc n  ≡⟨ cong suc $ sym m≡n ⟩≤
+      suc m  ≤⟨ suc≤suc m≤k ⟩
+      suc k  ≡⟨ 1+k≡n ⟩≤
+      n      ∎≤)
+
+    cong-≤-step′ :
+      ∀ {m n k₁ k₂}
+        {p₁ : m ≤ k₁} {q₁ : suc k₁ ≡ n}
+        {p₂ : m ≤ k₂} {q₂ : suc k₂ ≡ n} →
+      (k₁≡k₂ : k₁ ≡ k₂) →
+      subst (m ≤_) k₁≡k₂ p₁ ≡ p₂ →
+      subst (λ k → suc k ≡ n) k₁≡k₂ q₁ ≡ q₂ →
+      ≤-step′ p₁ q₁ ≡ ≤-step′ p₂ q₂
+    cong-≤-step′ {p₁ = p₁} {q₁} {p₂} {q₂} k₁≡k₂ p-eq q-eq =
+      cong (λ { (k , p , q) → ≤-step′ {k = k} p q })
+        (Σ-≡,≡→≡
+           k₁≡k₂
+           (subst (λ k → _ ≤ k × suc k ≡ _) k₁≡k₂ (p₁ , q₁)             ≡⟨ push-subst-, _ _ ⟩
+            (subst (_ ≤_) k₁≡k₂ p₁ , subst (λ k → suc k ≡ _) k₁≡k₂ q₁)  ≡⟨ cong₂ _,_ p-eq q-eq ⟩∎
+            (p₂ , q₂)                                                   ∎))
+
+    irr : ∀ {m n} → Proof-irrelevant (m Nat.≤ n)
+    irr (≤-refl′ q₁)    (≤-refl′ q₂)    = cong ≤-refl′ $
+                                            _⇔_.to set⇔UIP ℕ-set q₁ q₂
+    irr (≤-refl′ q₁)    (≤-step′ p₂ q₂) = ⊥-elim (lemma q₁ p₂ q₂)
+    irr (≤-step′ p₁ q₁) (≤-refl′ q₂)    = ⊥-elim (lemma q₂ p₁ q₁)
+
+    irr {n = n} (≤-step′ {k = k₁} p₁ q₁)
+                (≤-step′ {k = k₂} p₂ q₂) =
+      cong-≤-step′ (cancel-suc (suc k₁  ≡⟨ q₁ ⟩
+                                n       ≡⟨ sym q₂ ⟩∎
+                                suc k₂  ∎))
+                   (irr _ p₂)
+                   (_⇔_.to set⇔UIP ℕ-set _ _)
+
 ------------------------------------------------------------------------
 -- Π-types
 
