@@ -177,16 +177,26 @@ suc m ≤? zero  = inj₂ λ { (≤-refl′ eq)   → 0≢+ (sym eq)
                         }
 suc m ≤? suc n = ⊎-map suc≤suc (λ m≰n → m≰n ∘ suc≤suc⁻¹) (m ≤? n)
 
+-- If m is not smaller than or equal to n, then n is strictly smaller
+-- than m.
+
+≰→> : ∀ {m n} → ¬ m ≤ n → n < m
+≰→> {zero}  {n}     p = ⊥-elim (p (zero≤ n))
+≰→> {suc m} {zero}  p = suc≤suc (zero≤ m)
+≰→> {suc m} {suc n} p = suc≤suc (≰→> (p ∘ suc≤suc))
+
 -- If m is not smaller than or equal to n, then n is smaller than or
 -- equal to m.
 
 ≰→≥ : ∀ {m n} → ¬ m ≤ n → n ≤ m
-≰→≥ {zero}  {zero}  _ = ≤-refl
-≰→≥ {zero}  {suc n} p = ⊥-elim (p (zero≤ (suc n)))
-≰→≥ {suc m} {zero}  p = zero≤ (suc m)
-≰→≥ {suc m} {suc n} p = suc≤suc (≰→≥ (p ∘ suc≤suc))
+≰→≥ p = ≤-trans (≤-step ≤-refl) (≰→> p)
 
 -- _≤_ is total.
 
 total : ∀ m n → m ≤ n ⊎ n ≤ m
 total m n = ⊎-map id ≰→≥ (m ≤? n)
+
+-- A variant of total.
+
+≤⊎> : ∀ m n → m ≤ n ⊎ n < m
+≤⊎> m n = ⊎-map id ≰→> (m ≤? n)
