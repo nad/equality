@@ -1718,7 +1718,7 @@ if-encoding {A = A} {B} =
   inverse ⊚ if-lemma (λ b → if b then A else B) id id
 
 ------------------------------------------------------------------------
--- A property related to ℕ
+-- Properties related to ℕ
 
 -- The natural numbers are isomorphic to the natural numbers extended
 -- with another element.
@@ -1734,6 +1734,87 @@ if-encoding {A = A} {B} =
     }
   ; left-inverse-of = ℕ-rec (refl 0) (λ n _ → refl (suc n))
   }
+
+-- ℕ is isomorphic to ℕ².
+
+ℕ↔ℕ² : ℕ ↔ ℕ × ℕ
+ℕ↔ℕ² = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  step : ℕ × ℕ → ℕ × ℕ
+  step (m , zero)  = (zero , suc m)
+  step (m , suc n) = (suc m , n)
+
+  to : ℕ → ℕ × ℕ
+  to zero    = (zero , zero)
+  to (suc n) = step (to n)
+
+  -- The function from′ is defined by lexicographic induction on first
+  -- sum, and then m.
+
+  from′ : (m n sum : ℕ) → n + m ≡ sum → ℕ
+  from′ zero    zero    _ _          = zero
+  from′ zero    (suc n) zero      eq = ⊥-elim (0≢+ (sym eq))
+  from′ zero    (suc n) (suc sum) eq = suc (from′ n zero sum (cancel-suc
+                                              (suc n        ≡⟨ cong suc (sym +-right-identity) ⟩
+                                               suc (n + 0)  ≡⟨ eq ⟩∎
+                                               suc sum      ∎)))
+  from′ (suc m) n       sum       eq = suc (from′ m (suc n) sum
+                                              (suc n + m  ≡⟨ suc+≡+suc n ⟩
+                                               n + suc m  ≡⟨ eq ⟩∎
+                                               sum        ∎))
+
+  from : ℕ × ℕ → ℕ
+  from (m , n) = from′ m n _ (refl _)
+
+  from′-irr : ∀ m {n sum₁ eq₁ sum₂ eq₂} →
+              from′ m n sum₁ eq₁ ≡ from′ m n sum₂ eq₂
+  from′-irr m {n} {sum₁} {eq₁} {sum₂} {eq₂} =
+    from′ m n sum₁ eq₁  ≡⟨ cong (uncurry (from′ m n)) (Σ-≡,≡→≡ lemma (_⇔_.to set⇔UIP ℕ-set _ _)) ⟩∎
+    from′ m n sum₂ eq₂  ∎
+    where
+    lemma =
+      sum₁   ≡⟨ sym eq₁ ⟩
+      n + m  ≡⟨ eq₂ ⟩∎
+      sum₂   ∎
+
+  from∘step : ∀ p → from (step p) ≡ suc (from p)
+  from∘step (m , zero)  = from (zero , suc m)    ≡⟨ cong suc (from′-irr m) ⟩∎
+                          suc (from (m , zero))  ∎
+  from∘step (m , suc n) = from (suc m , n)        ≡⟨ cong suc (from′-irr m) ⟩∎
+                          suc (from (m , suc n))  ∎
+
+  from∘to : ∀ n → from (to n) ≡ n
+  from∘to zero    = refl _
+  from∘to (suc n) =
+    from (to (suc n))   ≡⟨⟩
+    from (step (to n))  ≡⟨ from∘step (to n) ⟩
+    suc (from (to n))   ≡⟨ cong suc (from∘to n) ⟩∎
+    suc n               ∎
+
+  to∘from′ : ∀ m n sum eq → to (from′ m n sum eq) ≡ (m , n)
+  to∘from′ zero zero    _ _          = refl _
+  to∘from′ zero (suc n) zero      eq = ⊥-elim (0≢+ (sym eq))
+  to∘from′ zero (suc n) (suc sum) eq =
+    step (to (from′ n zero _ _))  ≡⟨ cong step (to∘from′ n zero sum _) ⟩
+    step (n , zero)               ≡⟨⟩
+    (zero , suc n)                ∎
+
+  to∘from′ (suc m) n sum eq =
+    step (to (from′ m (suc n) _ _))  ≡⟨ cong step (to∘from′ m (suc n) sum _) ⟩
+    step (m , suc n)                 ≡⟨⟩
+    (suc m , n)                      ∎
+
+  to∘from : ∀ p → to (from p) ≡ p
+  to∘from _ = to∘from′ _ _ _ _
 
 ------------------------------------------------------------------------
 -- Left cancellation for _⊎_
