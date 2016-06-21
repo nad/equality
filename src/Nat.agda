@@ -85,11 +85,16 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
 
 -- The ordering.
 
-infix 4 _≤_
+infix 4 _≤_ _<_
 
 data _≤_ (m n : ℕ) : Set where
   ≤-refl′ : m ≡ n → m ≤ n
   ≤-step′ : ∀ {k} → m ≤ k → suc k ≡ n → m ≤ n
+
+-- Strict inequality.
+
+_<_ : ℕ → ℕ → Set
+m < n = suc m ≤ n
 
 -- Some abbreviations.
 
