@@ -220,3 +220,22 @@ total m n = ⊎-map id ≰→≥ (m ≤? n)
                                                m + suc n  <⟨ p ⟩
                                                k          ≡⟨ cancel-suc q ⟩≤
                                                n          ∎≤)
+
+-- _<_ is irreflexive.
+
+<-irreflexive : ∀ {n} → ¬ n < n
+<-irreflexive = +≮ 0
+
+-- Antisymmetry.
+
+≤-antisymmetric : ∀ {m n} → m ≤ n → n ≤ m → m ≡ n
+≤-antisymmetric         (≤-refl′ q₁)             _                        = q₁
+≤-antisymmetric         _                        (≤-refl′ q₂)             = sym q₂
+≤-antisymmetric {m} {n} (≤-step′ {k = k₁} p₁ q₁) (≤-step′ {k = k₂} p₂ q₂) =
+  ⊥-elim (<-irreflexive (
+    suc k₁  ≡⟨ q₁ ⟩≤
+    n       ≤⟨ p₂ ⟩
+    k₂      <⟨⟩
+    suc k₂  ≡⟨ q₂ ⟩≤
+    m       ≤⟨ p₁ ⟩
+    k₁      ∎≤))
