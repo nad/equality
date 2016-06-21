@@ -110,6 +110,41 @@ m < n = suc m ≤ n
 ≤-trans p (≤-refl′ eq)   = subst (_ ≤_) eq p
 ≤-trans p (≤-step′ q eq) = ≤-step′ (≤-trans p q) eq
 
+-- "Equational" reasoning combinators.
+
+infix  -1 finally-≤ _∎≤
+infixr -2 _≤⟨_⟩_ _≡⟨_⟩≤_ _≡⟨⟩≤_ _<⟨_⟩_ _<⟨⟩_
+
+_∎≤ : ∀ n → n ≤ n
+_ ∎≤ = ≤-refl
+
+_≤⟨_⟩_ : ∀ m {n o} → m ≤ n → n ≤ o → m ≤ o
+_ ≤⟨ m≤n ⟩ n≤o = ≤-trans m≤n n≤o
+
+_≡⟨_⟩≤_ : ∀ m {n o} → m ≡ n → n ≤ o → m ≤ o
+_ ≡⟨ m≡n ⟩≤ n≤o = subst (_≤ _) (sym m≡n) n≤o
+
+_≡⟨⟩≤_ : ∀ m {n} → m ≤ n → m ≤ n
+_ ≡⟨⟩≤ m≤n = m≤n
+
+finally-≤ : ∀ m n → m ≤ n → m ≤ n
+finally-≤ _ _ m≤n = m≤n
+
+syntax finally-≤ m n m≤n = m ≤⟨ m≤n ⟩∎ n ∎≤
+
+_<⟨_⟩_ : ∀ m {n o} → m < n → n ≤ o → m ≤ o
+_<⟨_⟩_ m {n} {o} m<n n≤o =
+  m      ≤⟨ ≤-step ≤-refl ⟩
+  suc m  ≤⟨ m<n ⟩
+  n      ≤⟨ n≤o ⟩∎
+  o      ∎≤
+
+_<⟨⟩_ : ∀ m {n} → m < n → m ≤ n
+_<⟨⟩_ m {n} m<n =
+  m      <⟨ ≤-refl ⟩
+  suc m  ≤⟨ m<n ⟩∎
+  n      ∎≤
+
 -- Some simple lemmas.
 
 zero≤ : ∀ n → zero ≤ n
