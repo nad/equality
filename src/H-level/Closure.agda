@@ -53,7 +53,8 @@ abstract
   -- The empty type is propositional.
 
   ⊥-propositional : ∀ {ℓ} → Is-proposition (⊥ {ℓ = ℓ})
-  ⊥-propositional x = ⊥-elim x
+  ⊥-propositional =
+    _⇔_.from propositional⇔irrelevant (λ x → ⊥-elim x)
 
   -- Thus any uninhabited type is also propositional.
 
@@ -72,9 +73,8 @@ abstract
   uninhabited-propositional : ∀ {a} {A : Set a} →
                               ¬ A → Is-proposition A
   uninhabited-propositional ¬A =
-    Is-proposition-respects-surjection
-      (_↔_.surjection $ ⊥↔uninhabited {ℓ = # 0} ¬A)
-      ⊥-propositional
+    respects-surjection (_↔_.surjection $ ⊥↔uninhabited {ℓ = # 0} ¬A) 1
+                        ⊥-propositional
 
 ------------------------------------------------------------------------
 -- Booleans
@@ -85,7 +85,8 @@ abstract
 
   ¬-Bool-propositional : ¬ Is-proposition Bool
   ¬-Bool-propositional propositional =
-    Bool.true≢false $ propositional true false
+    Bool.true≢false $
+    (_⇔_.to propositional⇔irrelevant propositional) true false
 
   -- The booleans form a set.
 
@@ -100,7 +101,8 @@ abstract
   -- ℕ is not propositional.
 
   ¬-ℕ-propositional : ¬ Is-proposition ℕ
-  ¬-ℕ-propositional ℕ-prop = 0≢+ $ ℕ-prop 0 1
+  ¬-ℕ-propositional ℕ-prop =
+    0≢+ $ _⇔_.to propositional⇔irrelevant ℕ-prop 0 1
 
   -- ℕ is a set.
 
@@ -117,7 +119,7 @@ abstract
   -- Nat._≤_ is a family of propositions.
 
   ≤-propositional : ∀ {m n} → Is-proposition (m Nat.≤ n)
-  ≤-propositional = prop
+  ≤-propositional = _⇔_.from propositional⇔irrelevant irr
     where
     lemma : ∀ {m n k} → m ≡ n → m ≤ k → suc k ≡ n → ⊥₀
     lemma {m} {n} {k} m≡n m≤k 1+k≡n = <-irreflexive (
@@ -142,18 +144,19 @@ abstract
             (subst (_ ≤_) k₁≡k₂ p₁ , subst (λ k → suc k ≡ _) k₁≡k₂ q₁)  ≡⟨ cong₂ _,_ p-eq q-eq ⟩∎
             (p₂ , q₂)                                                   ∎))
 
-    prop : ∀ {m n} → Is-proposition (m Nat.≤ n)
-    prop (≤-refl′ q₁)    (≤-refl′ q₂)    = cong ≤-refl′ $ ℕ-set q₁ q₂
-    prop (≤-refl′ q₁)    (≤-step′ p₂ q₂) = ⊥-elim (lemma q₁ p₂ q₂)
-    prop (≤-step′ p₁ q₁) (≤-refl′ q₂)    = ⊥-elim (lemma q₂ p₁ q₁)
+    irr : ∀ {m n} → Proof-irrelevant (m Nat.≤ n)
+    irr (≤-refl′ q₁)    (≤-refl′ q₂)    = cong ≤-refl′ $
+                                            _⇔_.to set⇔UIP ℕ-set q₁ q₂
+    irr (≤-refl′ q₁)    (≤-step′ p₂ q₂) = ⊥-elim (lemma q₁ p₂ q₂)
+    irr (≤-step′ p₁ q₁) (≤-refl′ q₂)    = ⊥-elim (lemma q₂ p₁ q₁)
 
-    prop {n = n} (≤-step′ {k = k₁} p₁ q₁)
-                 (≤-step′ {k = k₂} p₂ q₂) =
+    irr {n = n} (≤-step′ {k = k₁} p₁ q₁)
+                (≤-step′ {k = k₂} p₂ q₂) =
       cong-≤-step′ (cancel-suc (suc k₁  ≡⟨ q₁ ⟩
                                 n       ≡⟨ sym q₂ ⟩∎
                                 suc k₂  ∎))
-                   (prop _ p₂)
-                   (ℕ-set _ _)
+                   (irr _ p₂)
+                   (_⇔_.to set⇔UIP ℕ-set _ _)
 
 ------------------------------------------------------------------------
 -- Π-types

@@ -27,19 +27,13 @@ H-level : ℕ → ∀ {ℓ} → Set ℓ → Set ℓ
 H-level zero    A = Contractible A
 H-level (suc n) A = (x y : A) → H-level n (x ≡ y)
 
--- Alternative definitions of some h-levels.
---
--- It is proved later that Is-proposition is pointwise equivalent to
--- H-level 1, and that Is-set is pointwise equivalent to H-level 2
--- (assuming extensionality; see
--- Function-universe.propositional≃irrelevant and
--- Function-universe.set≃UIP).
+-- Some named levels.
 
 Is-proposition : ∀ {ℓ} → Set ℓ → Set ℓ
-Is-proposition = Proof-irrelevant
+Is-proposition = H-level 1
 
 Is-set : ∀ {ℓ} → Set ℓ → Set ℓ
-Is-set = Uniqueness-of-identity-proofs
+Is-set = H-level 2
 
 -- Propositions are propositional types.
 
@@ -85,11 +79,11 @@ abstract
     mono m≤n
 
   -- If something is contractible given the assumption that it is
-  -- inhabited, then it has h-level 1.
+  -- inhabited, then it is propositional.
 
-  [inhabited⇒contractible]⇒h-level-1 :
-    ∀ {a} {A : Set a} → (A → Contractible A) → H-level 1 A
-  [inhabited⇒contractible]⇒h-level-1 h x = mono₁ 0 (h x) x
+  [inhabited⇒contractible]⇒propositional :
+    ∀ {a} {A : Set a} → (A → Contractible A) → Is-proposition A
+  [inhabited⇒contractible]⇒propositional h x = mono₁ 0 (h x) x
 
   -- If something has h-level (1 + n) given the assumption that it is
   -- inhabited, then it has h-level (1 + n).
@@ -98,43 +92,37 @@ abstract
     ∀ {a} {A : Set a} n → (A → H-level (1 + n) A) → H-level (1 + n) A
   [inhabited⇒+]⇒+ n h x = h x x
 
-  -- Having h-level 1 is logically equivalent to being a proposition.
+  -- Being propositional is logically equivalent to having at most one
+  -- element.
 
-  h-level-1⇔propositional :
-    ∀ {a} {A : Set a} → H-level 1 A ⇔ Is-proposition A
-  h-level-1⇔propositional {A} = record
+  propositional⇔irrelevant :
+    ∀ {a} {A : Set a} → Is-proposition A ⇔ Proof-irrelevant A
+  propositional⇔irrelevant {A} = record
     { to   = λ h x y → proj₁ (h x y)
     ; from = λ irr →
-        [inhabited⇒contractible]⇒h-level-1 (λ x → (x , irr x))
+        [inhabited⇒contractible]⇒propositional (λ x → (x , irr x))
     }
-
-  -- If something is contractible given the assumption that it is
-  -- inhabited, then it is propositional.
-
-  [inhabited⇒contractible]⇒propositional :
-    ∀ {a} {A : Set a} → (A → Contractible A) → Is-proposition A
-  [inhabited⇒contractible]⇒propositional =
-    _⇔_.to h-level-1⇔propositional ∘
-    [inhabited⇒contractible]⇒h-level-1
 
 -- If a propositional type is inhabited, then it is contractible.
 
 propositional⇒inhabited⇒contractible :
   ∀ {a} {A : Set a} → Is-proposition A → A → Contractible A
-propositional⇒inhabited⇒contractible p x = (x , p x)
+propositional⇒inhabited⇒contractible p x =
+  (x , _⇔_.to propositional⇔irrelevant p x)
 
 abstract
 
-  -- Having h-level 2 is logically equivalent to being a set. Note
-  -- that this means that, assuming that Agda is consistent, I cannot
-  -- prove (inside Agda) that there is any type whose minimal h-level
-  -- is at least three.
+  -- Being a set is logically equivalent to having unique identity
+  -- proofs. Note that this means that, assuming that Agda is
+  -- consistent, I cannot prove (inside Agda) that there is any type
+  -- whose minimal h-level is at least three.
 
-  h-level-2⇔set : ∀ {a} {A : Set a} → H-level 2 A ⇔ Is-set A
-  h-level-2⇔set {A = A} = record
+  set⇔UIP : ∀ {a} {A : Set a} →
+            Is-set A ⇔ Uniqueness-of-identity-proofs A
+  set⇔UIP {A = A} = record
     { to   = λ h {x} {y} x≡y x≡y′ → proj₁ (h x y x≡y x≡y′)
     ; from = λ UIP x y →
-        [inhabited⇒contractible]⇒h-level-1 (λ x≡y → (x≡y , UIP x≡y))
+        [inhabited⇒contractible]⇒propositional (λ x≡y → (x≡y , UIP x≡y))
     }
 
 -- H-level n respects (split) surjections.
@@ -156,23 +144,3 @@ respects-surjection A↠B zero (x , irr) = (to x , irr′)
 respects-surjection A↠B (suc n) h = λ x y →
   respects-surjection (↠-≡ A↠B) n (h (from x) (from y))
   where open _↠_ A↠B
-
--- Is-proposition respects (split) surjections.
-
-Is-proposition-respects-surjection :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  A ↠ B → Is-proposition A → Is-proposition B
-Is-proposition-respects-surjection surj =
-  _⇔_.to h-level-1⇔propositional ∘
-  respects-surjection surj 1 ∘
-  _⇔_.from h-level-1⇔propositional
-
--- Is-set respects (split) surjections.
-
-Is-set-respects-surjection :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  A ↠ B → Is-set A → Is-set B
-Is-set-respects-surjection surj =
-  _⇔_.to h-level-2⇔set ∘
-  respects-surjection surj 2 ∘
-  _⇔_.from h-level-2⇔set
