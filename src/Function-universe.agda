@@ -1614,6 +1614,19 @@ propositional≃irrelevant ext =
                  (Proof-irrelevant-propositional ext))
          propositional⇔irrelevant
 
+-- Being a set is equivalent to satisfying UIP (assuming
+-- extensionality).
+
+set≃UIP :
+  ∀ {a} {A : Set a} →
+  Extensionality a a →
+  Is-set A ≃ Uniqueness-of-identity-proofs A
+set≃UIP ext =
+  _↔_.to (Eq.⇔↔≃ ext
+                 (H-level-propositional ext 2)
+                 (UIP-propositional ext))
+         set⇔UIP
+
 -- Some lemmas relating equivalences A ≃ B with types of the form
 -- ∀ C → H-level n C → (A → C) ≃ (B → C).
 

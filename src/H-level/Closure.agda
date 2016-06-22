@@ -541,6 +541,17 @@ abstract
     Π-closure ext 1 λ y →
     mono₁ 0 (_⇔_.from propositional⇔irrelevant irr x y)
 
+  -- The property Uniqueness-of-identity-proofs A is a proposition
+  -- (assuming extensionality).
+
+  UIP-propositional :
+    ∀ {a} {A : Set a} → Extensionality a a →
+    Is-proposition (Uniqueness-of-identity-proofs A)
+  UIP-propositional ext = [inhabited⇒+]⇒+ 0 λ irr →
+    implicit-Π-closure ext 1 λ x →
+    implicit-Π-closure ext 1 λ y →
+    Proof-irrelevant-propositional ext
+
 ------------------------------------------------------------------------
 -- Binary sums
 
