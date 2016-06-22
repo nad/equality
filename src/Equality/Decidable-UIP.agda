@@ -30,14 +30,14 @@ g Left-inverse-of f = ∀ x → g (f x) ≡ x
 
 abstract
 
-  -- A set with a constant endofunction with a left inverse is proof
-  -- irrelevant.
+  -- A set with a constant endofunction with a left inverse is
+  -- propositional.
 
-  irrelevant : ∀ {a} {A : Set a} →
-               (f : ∃ λ (f : A → A) → Constant f) →
-               (∃ λ g → g Left-inverse-of (proj₁ f)) →
-               Proof-irrelevant A
-  irrelevant (f , constant) (g , left-inverse) x y =
+  propositional : ∀ {a} {A : Set a} →
+                  (f : ∃ λ (f : A → A) → Constant f) →
+                  (∃ λ g → g Left-inverse-of (proj₁ f)) →
+                  Is-proposition A
+  propositional (f , constant) (g , left-inverse) x y =
     x        ≡⟨ sym (left-inverse x) ⟩
     g (f x)  ≡⟨ cong g (constant x y) ⟩
     g (f y)  ≡⟨ left-inverse y ⟩∎
@@ -56,45 +56,36 @@ abstract
     elim (λ {x y} x≡y → trans (f x y x≡y) (sym (f y y (refl y))) ≡ x≡y)
          (λ _ → trans-symʳ _)
 
-  -- A set A has unique identity proofs if there is a family of
-  -- constant endofunctions on _≡_ {A = A}.
+  -- A type A is a set if there is a family of constant endofunctions
+  -- on _≡_ {A = A}.
 
-  constant⇒UIP :
+  constant⇒set :
     ∀ {a} {A : Set a} →
     ((x y : A) → ∃ λ (f : x ≡ y → x ≡ y) → Constant f) →
-    Uniqueness-of-identity-proofs A
-  constant⇒UIP constant {x} {y} =
-    irrelevant (constant x y)
-               (left-inverse (λ x y → proj₁ $ constant x y))
+    Is-set A
+  constant⇒set constant {x} {y} =
+    propositional (constant x y)
+                  (left-inverse (λ x y → proj₁ $ constant x y))
 
-  -- Sets which are decidable come with constant endofunctions.
+  -- Types which are "decided" come with constant endofunctions.
 
-  decidable⇒constant : ∀ {a} {A : Set a} → Dec A →
-                       ∃ λ (f : A → A) → Constant f
-  decidable⇒constant (yes x) = (const x , λ _ _ → refl x)
-  decidable⇒constant (no ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
-
-  -- Sets with decidable equality have unique identity proofs.
-
-  decidable⇒UIP : ∀ {a} {A : Set a} →
-    Decidable-equality A → Uniqueness-of-identity-proofs A
-  decidable⇒UIP dec =
-    constant⇒UIP (λ x y → decidable⇒constant (dec x y))
+  decided⇒constant : ∀ {a} {A : Set a} → Dec A →
+                     ∃ λ (f : A → A) → Constant f
+  decided⇒constant (yes x) = (const x , λ _ _ → refl x)
+  decided⇒constant (no ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
 
   -- Types with decidable equality are sets.
 
   decidable⇒set : ∀ {a} {A : Set a} → Decidable-equality A → Is-set A
-  decidable⇒set {A = A} dec =
-    _⇔_.from {To = Uniqueness-of-identity-proofs A}
-             set⇔UIP (decidable⇒UIP dec)
+  decidable⇒set dec =
+    constant⇒set (λ x y → decided⇒constant (dec x y))
 
   -- Non-dependent functions with propositional domains are constant.
 
   propositional-domain⇒constant :
     ∀ {a b} {A : Set a} {B : Set b} →
     Is-proposition A → (f : A → B) → Constant f
-  propositional-domain⇒constant A-prop f = λ x y →
-    cong f (_⇔_.to propositional⇔irrelevant A-prop x y)
+  propositional-domain⇒constant A-prop f = λ x y → cong f (A-prop x y)
 
   -- If there is a propositional, reflexive relation on A, and related
   -- elements are equal, then A is a set.
@@ -111,7 +102,7 @@ abstract
     (∀ x y → B x y → x ≡ y) →
     Is-set A
   propositional-identity⇒set B B-prop B-refl f =
-    _⇔_.from set⇔UIP $ constant⇒UIP λ x y →
+    constant⇒set λ x y →
       (λ eq → f x y (subst (B x) eq (B-refl x))) ,
       (λ _ _ → propositional-domain⇒constant (B-prop x y) (f x y) _ _)
 
@@ -142,8 +133,7 @@ abstract
     (f : A → A) →
     Constant f →
     Is-proposition (∃ λ x → f x ≡ x)
-  fixpoint-lemma f constant =
-    _⇔_.from propositional⇔irrelevant λ { (x , fx≡x) (y , fy≡y) →
+  fixpoint-lemma f constant (x , fx≡x) (y , fy≡y) =
       let x≡y = x    ≡⟨ sym fx≡x ⟩
                 f x  ≡⟨ constant x y ⟩
                 f y  ≡⟨ fy≡y ⟩∎
@@ -174,4 +164,4 @@ abstract
       in
       x , fx≡x                                  ≡⟨ Σ-≡,≡→≡ x≡x lemma ⟩
       x , subst (λ z → f z ≡ z) (sym x≡y) fy≡y  ≡⟨ sym $ Σ-≡,≡→≡ (sym x≡y) (refl _) ⟩∎
-      y , fy≡y                                  ∎ }
+      y , fy≡y                                  ∎
