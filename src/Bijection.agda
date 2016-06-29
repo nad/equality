@@ -110,6 +110,20 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
 ------------------------------------------------------------------------
 -- More lemmas
 
+-- Uninhabited types are isomorphic to the empty type.
+
+⊥↔uninhabited : ∀ {a ℓ} {A : Set a} → ¬ A → ⊥ {ℓ = ℓ} ↔ A
+⊥↔uninhabited ¬A = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = ⊥-elim
+      ; from = ⊥-elim ⊚ ¬A
+      }
+    ; right-inverse-of = ⊥-elim ⊚ ¬A
+    }
+  ; left-inverse-of = λ ()
+  }
+
 -- Equality between pairs can be expressed as a pair of equalities.
 
 Σ-≡,≡↔≡ : ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B} →

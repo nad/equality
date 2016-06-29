@@ -16,7 +16,7 @@ open import Interval using (ext)
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
-open import Bijection equality-with-J using (_↔_)
+open import Bijection equality-with-J as Bijection using (_↔_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equivalence equality-with-J as Eq hiding (id; _∘_; inverse)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
@@ -270,7 +270,7 @@ not-inhabited⇒∥∥↔⊥ :
   ¬ A → ∥ A ∥ ↔ ⊥ {ℓ = ℓ}
 not-inhabited⇒∥∥↔⊥ {A = A} =
   ¬ A        ↝⟨ (λ ¬a ∥a∥ → rec ⊥-propositional ¬a ∥a∥) ⟩
-  ¬ ∥ A ∥    ↝⟨ inverse ∘ ⊥↔uninhabited ⟩□
+  ¬ ∥ A ∥    ↝⟨ inverse ∘ Bijection.⊥↔uninhabited ⟩□
   ∥ A ∥ ↔ ⊥  □
 
 -- The following two results come from "Generalizations of Hedberg's

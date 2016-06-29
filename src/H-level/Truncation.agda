@@ -14,7 +14,7 @@ module H-level.Truncation
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
-open import Bijection eq using (_↔_)
+open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decidable-UIP eq
 import Equality.Groupoid eq as EG
@@ -352,7 +352,7 @@ not-inhabited⇒∥∥↔⊥ :
   ¬ A → ∥ A ∥ 1 ℓ₁ ↔ ⊥ {ℓ = ℓ₂}
 not-inhabited⇒∥∥↔⊥ {A = A} =
   ¬ A            ↝⟨ (λ ¬a ∥a∥ → rec ⊥-propositional ¬a (with-lower-level _ ∥a∥)) ⟩
-  ¬ ∥ A ∥ 1 _    ↝⟨ inverse ∘ ⊥↔uninhabited ⟩□
+  ¬ ∥ A ∥ 1 _    ↝⟨ inverse ∘ Bijection.⊥↔uninhabited ⟩□
   ∥ A ∥ 1 _ ↔ ⊥  □
 
 -- The following two results come from "Generalizations of Hedberg's

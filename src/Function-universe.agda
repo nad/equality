@@ -1046,7 +1046,7 @@ contractible↔⊤≃ ext = record
                      (¬-propositional
                         (lower-extensionality ℓ _ ext))) (record
     { to   = λ eq a → ⊥-elim (_≃_.to eq a)
-    ; from = λ ¬a → A  ↔⟨ inverse (⊥↔uninhabited ¬a) ⟩□
+    ; from = λ ¬a → A  ↔⟨ inverse (Bijection.⊥↔uninhabited ¬a) ⟩□
                     ⊥  □
     })
 
@@ -1569,7 +1569,7 @@ private
 -- All instances of ⊥ are isomorphic.
 
 ⊥↔⊥ : ∀ {ℓ₁ ℓ₂} → ⊥ {ℓ = ℓ₁} ↔ ⊥ {ℓ = ℓ₂}
-⊥↔⊥ = ⊥↔uninhabited ⊥-elim
+⊥↔⊥ = Bijection.⊥↔uninhabited ⊥-elim
 
 -- All instances of A → ⊥ are isomorphic to ¬ A.
 
