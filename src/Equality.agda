@@ -12,7 +12,7 @@ open import Prelude
 ------------------------------------------------------------------------
 -- Reflexive relations
 
-record Reflexive a : Set (lsuc a) where
+record Reflexive-relation a : Set (lsuc a) where
   infix 4 _≡_
   field
 
@@ -26,10 +26,11 @@ record Reflexive a : Set (lsuc a) where
 
 -- Some definitions.
 
-module Reflexive′ (reflexive : ∀ ℓ → Reflexive ℓ) where
+module Reflexive-relation′
+         (reflexive : ∀ ℓ → Reflexive-relation ℓ) where
 
   private
-    open module R {ℓ} = Reflexive (reflexive ℓ) public
+    open module R {ℓ} = Reflexive-relation (reflexive ℓ) public
 
   -- Non-equality.
 
@@ -82,10 +83,10 @@ module Reflexive′ (reflexive : ∀ ℓ → Reflexive ℓ) where
 -- Parametrised by a reflexive relation.
 
 record Equality-with-J
-         a p (reflexive : ∀ ℓ → Reflexive ℓ) :
+         a p (reflexive : ∀ ℓ → Reflexive-relation ℓ) :
          Set (lsuc (a ⊔ p)) where
 
-  open Reflexive′ reflexive
+  open Reflexive-relation′ reflexive
 
   field
 
@@ -104,12 +105,12 @@ record Equality-with-J
 -- Some derived properties.
 
 module Equality-with-J′
-  {reflexive : ∀ ℓ → Reflexive ℓ}
+  {reflexive : ∀ ℓ → Reflexive-relation ℓ}
   (eq : ∀ {a p} → Equality-with-J a p reflexive)
   where
 
   private
-    open Reflexive′ reflexive public
+    open Reflexive-relation′ reflexive public
     open module E {a p} = Equality-with-J (eq {a} {p}) public
 
   -- Congruence.
@@ -175,10 +176,10 @@ module Equality-with-J′
 -- contractibility of singleton types
 
 record Equality-with-substitutivity-and-contractibility
-         a p (reflexive : ∀ ℓ → Reflexive ℓ) :
+         a p (reflexive : ∀ ℓ → Reflexive-relation ℓ) :
          Set (lsuc (a ⊔ p)) where
 
-  open Reflexive′ reflexive
+  open Reflexive-relation′ reflexive
 
   field
 
@@ -199,13 +200,13 @@ record Equality-with-substitutivity-and-contractibility
 -- Some derived properties.
 
 module Equality-with-substitutivity-and-contractibility′
-  {reflexive : ∀ ℓ → Reflexive ℓ}
+  {reflexive : ∀ ℓ → Reflexive-relation ℓ}
   (eq :  ∀ {a p} → Equality-with-substitutivity-and-contractibility
                      a p reflexive)
   where
 
   private
-    open Reflexive′ reflexive public
+    open Reflexive-relation′ reflexive public
     open module E {a p} =
       Equality-with-substitutivity-and-contractibility (eq {a} {p}) public
       hiding (singleton-contractible)

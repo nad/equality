@@ -38,13 +38,13 @@ private
 ------------------------------------------------------------------------
 -- Various derived definitions and properties
 
-reflexive : ∀ ℓ → Reflexive ℓ
-reflexive _ = record
+reflexive-relation : ∀ ℓ → Reflexive-relation ℓ
+reflexive-relation _ = record
   { _≡_  = _≡_
   ; refl = refl′
   }
 
-equality-with-J : ∀ {a p} → Equality-with-J a p reflexive
+equality-with-J : ∀ {a p} → Equality-with-J a p reflexive-relation
 equality-with-J = record
   { elim      = elim
   ; elim-refl = elim-refl

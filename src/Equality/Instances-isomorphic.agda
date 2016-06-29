@@ -18,7 +18,7 @@ all-instances-isomorphic :
   (eq₂ : ∀ {a p} → Equality-with-J a p refl₂) →
   let open Bijection eq₁ in
   ∀ {a} {A : Set a} {x y : A} →
-  Reflexive′._≡_ refl₁ x y ↔ Reflexive′._≡_ refl₂ x y
+  Reflexive-relation′._≡_ refl₁ x y ↔ Reflexive-relation′._≡_ refl₂ x y
 all-instances-isomorphic {refl₁} {refl₂} eq₁ eq₂ = record
   { surjection = record
     { logical-equivalence = record
@@ -30,7 +30,7 @@ all-instances-isomorphic {refl₁} {refl₂} eq₁ eq₂ = record
   ; left-inverse-of = to∘to _ _ eq₁ eq₂
   }
   where
-  open Reflexive′
+  open Reflexive-relation′
   open Equality-with-J′ hiding (_≡_; refl)
 
   to : ∀ {refl₁} refl₂ (eq₁ : ∀ {a p} → Equality-with-J a p refl₁)
