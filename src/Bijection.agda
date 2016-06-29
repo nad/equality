@@ -124,6 +124,20 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
   ; left-inverse-of = λ ()
   }
 
+-- A lifted set is isomorphic to the underlying one.
+
+↑↔ : ∀ {a b} {A : Set a} → ↑ b A ↔ A
+↑↔ {b = b} {A} = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = lower
+      ; from = lift
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
 -- Equality between pairs can be expressed as a pair of equalities.
 
 Σ-≡,≡↔≡ : ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B} →
@@ -290,6 +304,28 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
       cong P.id x≡y                            ≡⟨ sym $ cong-id _ ⟩∎
       x≡y                                      ∎
 
+-- An alternative characterisation of equality for binary sums.
+
+Equality-⊎ : ∀ {a b} {A : Set a} {B : Set b} →
+             A ⊎ B → A ⊎ B → Set (a ⊔ b)
+Equality-⊎ {b = b} (inj₁ x) (inj₁ y) = ↑ b (x ≡ y)
+Equality-⊎         (inj₁ x) (inj₂ y) = ⊥
+Equality-⊎         (inj₂ x) (inj₁ y) = ⊥
+Equality-⊎ {a = a} (inj₂ x) (inj₂ y) = ↑ a (x ≡ y)
+
+≡↔⊎ : ∀ {a b} {A : Set a} {B : Set b} {x y : A ⊎ B} →
+      x ≡ y ↔ Equality-⊎ x y
+≡↔⊎ {x = inj₁ x} {inj₁ y} = inj₁ x ≡ inj₁ y  ↔⟨ inverse ≡↔inj₁≡inj₁ ⟩
+                            x ≡ y            ↔⟨ inverse ↑↔ ⟩□
+                            ↑ _ (x ≡ y)      □
+≡↔⊎ {x = inj₁ x} {inj₂ y} = inj₁ x ≡ inj₂ y  ↔⟨ inverse (⊥↔uninhabited ⊎.inj₁≢inj₂) ⟩□
+                            ⊥                □
+≡↔⊎ {x = inj₂ x} {inj₁ y} = inj₂ x ≡ inj₁ y  ↔⟨ inverse (⊥↔uninhabited (⊎.inj₁≢inj₂ ⊚ sym)) ⟩□
+                            ⊥                □
+≡↔⊎ {x = inj₂ x} {inj₂ y} = inj₂ x ≡ inj₂ y  ↔⟨ inverse ≡↔inj₂≡inj₂ ⟩
+                            x ≡ y            ↔⟨ inverse ↑↔ ⟩□
+                            ↑ _ (x ≡ y)      □
+
 -- Decidable equality respects bijections.
 
 decidable-equality-respects :
@@ -326,20 +362,6 @@ implicit-Π↔Π = record
     { logical-equivalence = record
       { to   = λ f x → f {x}
       ; from = λ f {x} → f x
-      }
-    ; right-inverse-of = refl
-    }
-  ; left-inverse-of = refl
-  }
-
--- A lifted set is isomorphic to the underlying one.
-
-↑↔ : ∀ {a b} {A : Set a} → ↑ b A ↔ A
-↑↔ {b = b} {A} = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = lower
-      ; from = lift
       }
     ; right-inverse-of = refl
     }
