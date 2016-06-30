@@ -229,6 +229,18 @@ Surjective : ∀ {a b} ℓ {A : Set a} {B : Set b} →
              (A → B) → Set (a ⊔ b ⊔ lsuc ℓ)
 Surjective ℓ f = ∀ b → ∥ f ⁻¹ b ∥ 1 ℓ
 
+-- The property Surjective ℓ f is a proposition (assuming
+-- extensionality).
+
+Surjective-propositional :
+  ∀ {ℓ a b} {A : Set a} {B : Set b} {f : A → B} →
+  Extensionality (a ⊔ b ⊔ lsuc ℓ) (a ⊔ b ⊔ lsuc ℓ) →
+  Is-proposition (Surjective ℓ f)
+Surjective-propositional {ℓ} {a} ext =
+  Π-closure (lower-extensionality (a ⊔ lsuc ℓ) lzero ext) 1 λ _ →
+  truncation-has-correct-h-level 1
+    (lower-extensionality lzero (lsuc ℓ) ext)
+
 -- If the underlying type has a certain h-level, then there is a split
 -- surjection from corresponding truncations (if they are "big"
 -- enough) to the type itself.

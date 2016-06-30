@@ -175,6 +175,15 @@ Surjective : ∀ {a b} {A : Set a} {B : Set b} →
              (A → B) → Set (a ⊔ b)
 Surjective f = ∀ b → ∥ f ⁻¹ b ∥
 
+-- The property Surjective f is a proposition.
+
+Surjective-propositional :
+  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} →
+  Is-proposition (Surjective f)
+Surjective-propositional =
+  Π-closure ext 1 λ _ →
+  truncation-is-proposition
+
 -- If the underlying type is a proposition, then truncations of the
 -- type are isomorphic to the type itself.
 
