@@ -16,6 +16,7 @@ open import Logical-equivalence using (_⇔_)
 
 open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
+open import Embedding eq hiding (_∘_)
 open import Equality.Decidable-UIP eq
 import Equality.Groupoid eq as EG
 open import Equivalence eq as Eq hiding (_∘_; inverse)
@@ -240,6 +241,45 @@ Surjective-propositional {ℓ} {a} ext =
   Π-closure (lower-extensionality (a ⊔ lsuc ℓ) lzero ext) 1 λ _ →
   truncation-has-correct-h-level 1
     (lower-extensionality lzero (lsuc ℓ) ext)
+
+-- Being both surjective and an embedding is equivalent to being an
+-- equivalence.
+--
+-- This is Corollary 4.6.4 from the first edition of the HoTT book
+-- (the proof is perhaps not quite identical).
+
+surjective×embedding≃equivalence :
+  ∀ {a b} ℓ {A : Set a} {B : Set b} {f : A → B} →
+  Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (lsuc (a ⊔ b ⊔ ℓ)) →
+  (Surjective (a ⊔ b ⊔ ℓ) f × Is-embedding f) ≃ Is-equivalence f
+surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
+  _↔_.to (⇔↔≃ ext (×-closure 1 (Surjective-propositional ext)
+                               (Is-embedding-propositional
+                                  (lower-extensionality _ _ ext)))
+                  (Eq.propositional (lower-extensionality _ _ ext) _))
+    (record
+       { from = λ is-eq →
+
+                    (λ y →                        $⟨ is-eq y ⟩
+                       Contractible (f ⁻¹ y)      ↝⟨ proj₁ ⟩
+                       f ⁻¹ y                     ↝⟨ ∣_∣ ⟩□
+                       ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)   □)
+
+                  ,                  ($⟨ is-eq ⟩
+                    Is-equivalence f  ↝⟨ Embedding.is-embedding ∘ from-equivalence ∘ ⟨ _ ,_⟩ ⟩□
+                    Is-embedding f    □)
+
+       ; to = λ { (is-surj , is-emb) y →
+                                             $⟨ is-surj y ⟩
+                  ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)   ↝⟨ with-lower-level ℓ ⟩
+                  ∥ f ⁻¹ y ∥ 1 (a ⊔ b)       ↝⟨ rec (Contractible-propositional
+                                                       (lower-extensionality _ _ ext))
+                      (f ⁻¹ y                       ↝⟨ propositional⇒inhabited⇒contractible
+                                                         (embedding→⁻¹-propositional is-emb y) ⟩□
+                       Contractible (f ⁻¹ y)        □) ⟩□
+
+                  Contractible (f ⁻¹ y)      □ }
+       })
 
 -- If the underlying type has a certain h-level, then there is a split
 -- surjection from corresponding truncations (if they are "big"

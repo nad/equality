@@ -17,6 +17,7 @@ open import Prelude
 open import Logical-equivalence using (_⇔_)
 
 open import Bijection equality-with-J as Bijection using (_↔_)
+open import Embedding equality-with-J hiding (id; _∘_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equivalence equality-with-J as Eq hiding (id; _∘_; inverse)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
@@ -183,6 +184,20 @@ Surjective-propositional :
 Surjective-propositional =
   Π-closure ext 1 λ _ →
   truncation-is-proposition
+
+-- Being both surjective and an embedding is equivalent to being an
+-- equivalence.
+--
+-- This is Corollary 4.6.4 from the first edition of the HoTT book
+-- (the proof is perhaps not quite identical).
+
+surjective×embedding≃equivalence :
+  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} →
+  (Surjective f × Is-embedding f) ≃ Is-equivalence f
+surjective×embedding≃equivalence {f = f} =
+  (Surjective f × Is-embedding f)          ↝⟨ ∀-preserves ext (λ _ → ↔⇒≃ $ ∥∥↔∥∥ lzero) ×-cong F.id ⟩
+  (Trunc.Surjective _ f × Is-embedding f)  ↝⟨ Trunc.surjective×embedding≃equivalence lzero ext ⟩□
+  Is-equivalence f                         □
 
 -- If the underlying type is a proposition, then truncations of the
 -- type are isomorphic to the type itself.

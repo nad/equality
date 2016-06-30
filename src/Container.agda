@@ -379,6 +379,8 @@ Position-shape-cong-relates {set} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
 Position-shape-cong-relates {subset} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+Position-shape-cong-relates {embedding} xs ys xs≈ys p =
+  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
 Position-shape-cong-relates {surjection} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
 

@@ -207,6 +207,11 @@ Any-⊎ P Q xs =
 -- Bag and set equivalence and the subset and subbag orders
 
 -- Various kinds of relatedness.
+--
+-- NOTE: Perhaps it would be better to define the subbag property in
+-- terms of embeddings, rather than injections. The HoTT book (first
+-- edition) claims that injectivity "is an ill-behaved notion for
+-- non-sets".
 
 open Function-universe public using (Kind) hiding (module Kind)
 

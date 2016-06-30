@@ -89,9 +89,13 @@ import Preimage
 
 import Equivalence
 
+-- Embeddings.
+
+import Embedding
+
 -- A universe which includes several kinds of functions (ordinary
--- functions, logical equivalences, injections, surjections,
--- bijections and equivalences).
+-- functions, logical equivalences, injections, embeddings,
+-- surjections, bijections and equivalences).
 
 import Function-universe
 

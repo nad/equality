@@ -11,6 +11,7 @@ module Function-universe
 
 open import Bijection eq as Bijection using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
+open import Embedding eq as Emb using (Is-embedding; Embedding)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; module _≃_)
@@ -27,12 +28,13 @@ open import Surjection eq as Surjection using (_↠_; module _↠_)
 -- The universe
 
 -- The universe includes implications, logical equivalences,
--- injections, surjections, bijections and equivalences.
+-- injections, embeddings, surjections, bijections and equivalences.
 
 data Kind : Set where
   implication
     logical-equivalence
     injection
+    embedding
     surjection
     bijection
     equivalence : Kind
@@ -45,20 +47,10 @@ _↝[_]_ : ∀ {ℓ₁ ℓ₂} → Set ℓ₁ → Kind → Set ℓ₂ → Set _
 A ↝[ implication         ] B = A → B
 A ↝[ logical-equivalence ] B = A ⇔ B
 A ↝[ injection           ] B = A ↣ B
+A ↝[ embedding           ] B = Embedding A B
 A ↝[ surjection          ] B = A ↠ B
 A ↝[ bijection           ] B = A ↔ B
 A ↝[ equivalence         ] B = A ≃ B
-
--- Bijections can be converted to all kinds of functions.
-
-from-bijection : ∀ {k a b} {A : Set a} {B : Set b} →
-                 A ↔ B → A ↝[ k ] B
-from-bijection {implication}         = _↔_.to
-from-bijection {logical-equivalence} = _↔_.logical-equivalence
-from-bijection {injection}           = _↔_.injection
-from-bijection {surjection}          = _↔_.surjection
-from-bijection {bijection}           = P.id
-from-bijection {equivalence}         = Eq.↔⇒≃
 
 -- Equivalences can be converted to all kinds of functions.
 
@@ -67,9 +59,27 @@ from-equivalence : ∀ {k a b} {A : Set a} {B : Set b} →
 from-equivalence {implication}         = _≃_.to
 from-equivalence {logical-equivalence} = _≃_.logical-equivalence
 from-equivalence {injection}           = _≃_.injection
+from-equivalence {embedding}           = λ f → record
+                                           { to           = _≃_.to f
+                                           ; is-embedding = λ _ _ →
+                                               _≃_.is-equivalence
+                                                 (Eq.inverse (Eq.≃-≡ f))
+                                           }
 from-equivalence {surjection}          = _≃_.surjection
 from-equivalence {bijection}           = _≃_.bijection
 from-equivalence {equivalence}         = P.id
+
+-- Bijections can be converted to all kinds of functions.
+
+from-bijection : ∀ {k a b} {A : Set a} {B : Set b} →
+                 A ↔ B → A ↝[ k ] B
+from-bijection {implication}         = _↔_.to
+from-bijection {logical-equivalence} = _↔_.logical-equivalence
+from-bijection {injection}           = _↔_.injection
+from-bijection {embedding}           = from-equivalence ⊚ Eq.↔⇒≃
+from-bijection {surjection}          = _↔_.surjection
+from-bijection {bijection}           = P.id
+from-bijection {equivalence}         = Eq.↔⇒≃
 
 -- All kinds of functions can be converted to implications.
 
@@ -78,6 +88,7 @@ to-implication : ∀ {k a b} {A : Set a} {B : Set b} →
 to-implication {implication}         = P.id
 to-implication {logical-equivalence} = _⇔_.to
 to-implication {injection}           = _↣_.to
+to-implication {embedding}           = Embedding.to
 to-implication {surjection}          = _↠_.to
 to-implication {bijection}           = _↔_.to
 to-implication {equivalence}         = _≃_.to
@@ -134,12 +145,14 @@ to-implication∘from-isomorphism {A = A} {B} = t∘f
   t∘f bijection   implication         = refl _
   t∘f bijection   logical-equivalence = refl _
   t∘f bijection   injection           = refl _
+  t∘f bijection   embedding           = refl _
   t∘f bijection   surjection          = refl _
   t∘f bijection   bijection           = refl _
   t∘f bijection   equivalence         = refl _
   t∘f equivalence implication         = refl _
   t∘f equivalence logical-equivalence = refl _
   t∘f equivalence injection           = refl _
+  t∘f equivalence embedding           = refl _
   t∘f equivalence surjection          = refl _
   t∘f equivalence bijection           = refl _
   t∘f equivalence equivalence         = refl _
@@ -158,6 +171,7 @@ _∘_ : ∀ {k a b c} {A : Set a} {B : Set b} {C : Set c} →
 _∘_ {implication}         = λ f g → f ⊚ g
 _∘_ {logical-equivalence} = Logical-equivalence._∘_
 _∘_ {injection}           = Injection._∘_
+_∘_ {embedding}           = Emb._∘_
 _∘_ {surjection}          = Surjection._∘_
 _∘_ {bijection}           = Bijection._∘_
 _∘_ {equivalence}         = Eq._∘_
@@ -168,6 +182,7 @@ id : ∀ {k a} {A : Set a} → A ↝[ k ] A
 id {implication}         = P.id
 id {logical-equivalence} = Logical-equivalence.id
 id {injection}           = Injection.id
+id {embedding}           = Emb.id
 id {surjection}          = Surjection.id
 id {bijection}           = Bijection.id
 id {equivalence}         = Eq.id
@@ -217,6 +232,7 @@ to-implication-id :
 to-implication-id implication         = refl _
 to-implication-id logical-equivalence = refl _
 to-implication-id injection           = refl _
+to-implication-id embedding           = refl _
 to-implication-id surjection          = refl _
 to-implication-id bijection           = refl _
 to-implication-id equivalence         = refl _
@@ -230,6 +246,7 @@ to-implication-∘ :
 to-implication-∘ implication         = refl _
 to-implication-∘ logical-equivalence = refl _
 to-implication-∘ injection           = refl _
+to-implication-∘ embedding           = refl _
 to-implication-∘ surjection          = refl _
 to-implication-∘ bijection           = refl _
 to-implication-∘ equivalence         = refl _
@@ -383,6 +400,74 @@ private
       injective′ {x = inj₁ x} {y = inj₂ y} = ⊥-elim ⊚ ⊎.inj₁≢inj₂
       injective′ {x = inj₂ x} {y = inj₁ y} = ⊥-elim ⊚ ⊎.inj₁≢inj₂ ⊚ sym
 
+  ⊎-cong-emb : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+                 {B₁ : Set b₁} {B₂ : Set b₂} →
+               Embedding A₁ A₂ → Embedding B₁ B₂ →
+               Embedding (A₁ ⊎ B₁) (A₂ ⊎ B₂)
+  ⊎-cong-emb A₁↣A₂ B₁↣B₂ = record
+    { to           = to′
+    ; is-embedding = is-embedding′
+    }
+    where
+    open Embedding
+
+    to′ = ⊎-map (to A₁↣A₂) (to B₁↣B₂)
+
+    is-embedding′ : Is-embedding to′
+    is-embedding′ (inj₁ x) (inj₁ y) =
+      _≃_.is-equivalence $
+      Eq.with-other-function
+        (inj₁ x ≡ inj₁ y                        ↔⟨ inverse Bijection.≡↔inj₁≡inj₁ ⟩
+         x ≡ y                                  ↝⟨ Eq.⟨ _ , is-embedding A₁↣A₂ _ _ ⟩ ⟩
+         to A₁↣A₂ x ≡ to A₁↣A₂ y                ↔⟨ Bijection.≡↔inj₁≡inj₁ ⟩□
+         inj₁ (to A₁↣A₂ x) ≡ inj₁ (to A₁↣A₂ y)  □)
+        _
+        (λ eq →
+           cong inj₁ (cong (to A₁↣A₂) (⊎.cancel-inj₁ eq))                 ≡⟨ cong-∘ _ _ _ ⟩
+           cong (inj₁ ⊚ to A₁↣A₂) (⊎.cancel-inj₁ eq)                      ≡⟨ cong-∘ _ _ _ ⟩
+           cong (inj₁ ⊚ to A₁↣A₂ ⊚ [ id , const x ]) eq                   ≡⟨ sym $ trans-reflʳ _ ⟩
+           trans (cong (inj₁ ⊚ to A₁↣A₂ ⊚ [ id , const x ]) eq) (refl _)  ≡⟨ cong-respects-relevant-equality
+                                                                               [ const true , const false ]
+                                                                               [ (λ _ _ → refl _) , (λ _ ()) ] ⟩
+           trans (refl _) (cong (⊎-map (to A₁↣A₂) (to B₁↣B₂)) eq)         ≡⟨ trans-reflˡ _ ⟩∎
+           cong (⊎-map (to A₁↣A₂) (to B₁↣B₂)) eq                          ∎)
+
+    is-embedding′ (inj₂ x) (inj₂ y) =
+      _≃_.is-equivalence $
+      Eq.with-other-function
+        (inj₂ x ≡ inj₂ y                        ↔⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
+         x ≡ y                                  ↝⟨ Eq.⟨ _ , is-embedding B₁↣B₂ _ _ ⟩ ⟩
+         to B₁↣B₂ x ≡ to B₁↣B₂ y                ↔⟨ Bijection.≡↔inj₂≡inj₂ ⟩□
+         inj₂ (to B₁↣B₂ x) ≡ inj₂ (to B₁↣B₂ y)  □)
+        _
+        (λ eq →
+           cong inj₂ (cong (to B₁↣B₂) (⊎.cancel-inj₂ eq))                 ≡⟨ cong-∘ _ _ _ ⟩
+           cong (inj₂ ⊚ to B₁↣B₂) (⊎.cancel-inj₂ eq)                      ≡⟨ cong-∘ _ _ _ ⟩
+           cong (inj₂ ⊚ to B₁↣B₂ ⊚ [ const x , id ]) eq                   ≡⟨ sym $ trans-reflʳ _ ⟩
+           trans (cong (inj₂ ⊚ to B₁↣B₂ ⊚ [ const x , id ]) eq) (refl _)  ≡⟨ cong-respects-relevant-equality
+                                                                               [ const false , const true ]
+                                                                               [ (λ _ ()) , (λ _ _ → refl _) ] ⟩
+           trans (refl _) (cong (⊎-map (to A₁↣A₂) (to B₁↣B₂)) eq)         ≡⟨ trans-reflˡ _ ⟩∎
+           cong (⊎-map (to A₁↣A₂) (to B₁↣B₂)) eq                          ∎)
+
+    is-embedding′ (inj₁ x) (inj₂ y) =
+      _≃_.is-equivalence $
+      Eq.with-other-function
+        (inj₁ x ≡ inj₂ y                        ↔⟨ inverse $ Bijection.⊥↔uninhabited ⊎.inj₁≢inj₂ ⟩
+         ⊥₀                                     ↔⟨ Bijection.⊥↔uninhabited ⊎.inj₁≢inj₂ ⟩□
+         inj₁ (to A₁↣A₂ x) ≡ inj₂ (to B₁↣B₂ y)  □)
+        _
+        (⊥-elim ⊚ ⊎.inj₁≢inj₂)
+
+    is-embedding′ (inj₂ x) (inj₁ y) =
+      _≃_.is-equivalence $
+      Eq.with-other-function
+        (inj₂ x ≡ inj₁ y                        ↔⟨ inverse $ Bijection.⊥↔uninhabited (⊎.inj₁≢inj₂ ⊚ sym) ⟩
+         ⊥₀                                     ↔⟨ Bijection.⊥↔uninhabited (⊎.inj₁≢inj₂ ⊚ sym) ⟩□
+         inj₂ (to B₁↣B₂ x) ≡ inj₁ (to A₁↣A₂ y)  □)
+        _
+        (⊥-elim ⊚ ⊎.inj₁≢inj₂ ⊚ sym)
+
   ⊎-cong-surj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
                   {B₁ : Set b₁} {B₂ : Set b₂} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ ⊎ B₁ ↠ A₂ ⊎ B₂
@@ -415,6 +500,7 @@ _⊎-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
 _⊎-cong_ {implication}         = ⊎-map
 _⊎-cong_ {logical-equivalence} = ⊎-cong-eq
 _⊎-cong_ {injection}           = ⊎-cong-inj
+_⊎-cong_ {embedding}           = ⊎-cong-emb
 _⊎-cong_ {surjection}          = ⊎-cong-surj
 _⊎-cong_ {bijection}           = ⊎-cong-bij
 _⊎-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
@@ -484,6 +570,118 @@ _⊎-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
 ------------------------------------------------------------------------
 -- _×_ is a commutative monoid with a zero
 
+-- Σ preserves embeddings. (This definition is used in the proof of
+-- _×-cong_.)
+
+Σ-preserves-embeddings :
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
+  (A₁↣A₂ : Embedding A₁ A₂) →
+  (∀ x → Embedding (B₁ x) (B₂ (Embedding.to A₁↣A₂ x))) →
+  Embedding (Σ A₁ B₁) (Σ A₂ B₂)
+Σ-preserves-embeddings {B₁ = B₁} {B₂} A₁↣A₂ B₁↣B₂ = record
+  { to           = Σ-map (to A₁↣A₂) (to (B₁↣B₂ _))
+  ; is-embedding = λ { (x₁ , x₂) (y₁ , y₂) →
+      _≃_.is-equivalence $
+      Eq.with-other-function
+        ((x₁ , x₂) ≡ (y₁ , y₂)                                   ↝⟨ inverse $ Eq.↔⇒≃ Bijection.Σ-≡,≡↔≡ ⟩
+
+         (∃ λ (eq : x₁ ≡ y₁) → subst B₁ eq x₂ ≡ y₂)              ↝⟨ Eq.Σ-preserves Eq.⟨ _ , is-embedding A₁↣A₂ _ _ ⟩ (λ eq →
+
+             subst B₁ eq x₂ ≡ y₂                                      ↝⟨ Eq.⟨ _ , is-embedding (B₁↣B₂ y₁) _ _ ⟩ ⟩
+
+             to (B₁↣B₂ y₁) (subst B₁ eq x₂) ≡ to (B₁↣B₂ y₁) y₂        ↝⟨ ≡⇒↝ _ (cong (_≡ _) $ lemma₁ eq _ y₂) ⟩□
+
+             subst B₂ (cong (to A₁↣A₂) eq) (to (B₁↣B₂ x₁) x₂) ≡
+             to (B₁↣B₂ y₁) y₂                                         □) ⟩
+
+         (∃ λ (eq : to A₁↣A₂ x₁ ≡ to A₁↣A₂ y₁) →
+            subst B₂ eq (to (B₁↣B₂ x₁) x₂) ≡ to (B₁↣B₂ y₁) y₂)   ↝⟨ Eq.↔⇒≃ Bijection.Σ-≡,≡↔≡ ⟩□
+
+         (to A₁↣A₂ x₁ , to (B₁↣B₂ x₁) x₂) ≡
+         (to A₁↣A₂ y₁ , to (B₁↣B₂ y₁) y₂)                        □)
+        _
+        (elim
+          (λ { {y = _ , y₂} eq →
+               uncurry Σ-≡,≡→≡
+                 (Σ-map (cong (to A₁↣A₂))
+                        (_≃_.to (≡⇒↝ _ (cong (_≡ _) $ lemma₁ _ _ y₂)) ⊚
+                         cong (to (B₁↣B₂ _)))
+                        (Σ-≡,≡←≡ eq)) ≡
+               cong (Σ-map (to A₁↣A₂) (to (B₁↣B₂ _))) eq })
+          (λ _ →
+             uncurry Σ-≡,≡→≡
+               (Σ-map (cong (to A₁↣A₂))
+                      (_≃_.to (≡⇒↝ _ (cong (_≡ _) $ lemma₁ _ _ _)) ⊚
+                       cong (to (B₁↣B₂ _)))
+                      (Σ-≡,≡←≡ (refl _)))                                 ≡⟨ cong (λ eq → uncurry Σ-≡,≡→≡
+                                                                                            (Σ-map _
+                                                                                                   (_≃_.to (≡⇒↝ _ (cong (_≡ _) $ lemma₁ _ _ _)) ⊚
+                                                                                                    cong (to (B₁↣B₂ _)))
+                                                                                                   eq))
+                                                                                  Σ-≡,≡←≡-refl ⟩
+             Σ-≡,≡→≡
+               (cong (to A₁↣A₂) (refl _))
+               (_≃_.to (≡⇒↝ _ (cong (_≡ to (B₁↣B₂ _) _) $ lemma₁ _ _ _))
+                  (cong (to (B₁↣B₂ _)) (subst-refl B₁ _)))                ≡⟨ Σ-≡,≡→≡-cong (cong-refl _) (lemma₂ _ _) ⟩
+
+             Σ-≡,≡→≡ (refl _) (subst-refl B₂ _)                           ≡⟨ Σ-≡,≡→≡-refl-subst-refl ⟩
+
+             refl _                                                       ≡⟨ sym $ cong-refl _ ⟩∎
+
+             cong (Σ-map (to A₁↣A₂) (to (B₁↣B₂ _))) (refl _)              ∎)) }
+  }
+  where
+  open Embedding
+
+  lemma₁ = elim
+    (λ {x₁ y₁} eq → (x₂ : B₁ x₁) (y₂ : B₁ y₁) →
+       to (B₁↣B₂ y₁) (subst B₁ eq x₂) ≡
+       subst B₂ (cong (to A₁↣A₂) eq) (to (B₁↣B₂ x₁) x₂))
+    (λ z₁ x₂ y₂ →
+       to (B₁↣B₂ z₁) (subst B₁ (refl z₁) x₂)                    ≡⟨ cong (to (B₁↣B₂ z₁)) $ subst-refl _ _ ⟩
+       to (B₁↣B₂ z₁) x₂                                         ≡⟨ sym $ subst-refl _ _ ⟩
+       subst B₂ (refl (to A₁↣A₂ z₁)) (to (B₁↣B₂ z₁) x₂)         ≡⟨ cong (λ eq → subst B₂ eq _) (sym $ cong-refl _) ⟩∎
+       subst B₂ (cong (to A₁↣A₂) (refl z₁)) (to (B₁↣B₂ z₁) x₂)  ∎)
+
+  lemma₂ = λ x y →
+    let eq₁ = cong (flip (subst B₂) _) (sym (cong-refl _))
+        eq₂ = cong (to (B₁↣B₂ x)) (subst-refl B₁ y)
+    in
+    trans eq₁ (_≃_.to (≡⇒↝ _ (cong (_≡ _) $ lemma₁ (refl x) y y)) eq₂)   ≡⟨ cong (λ eq → trans eq₁ (_≃_.to (≡⇒↝ _ (cong (_≡ _) (eq y y))) eq₂)) $
+                                                                              elim-refl (λ {x₁ y₁} eq → (x₂ : B₁ x₁) (y₂ : B₁ y₁) →
+                                                                                           to (B₁↣B₂ y₁) (subst B₁ eq x₂) ≡
+                                                                                           subst B₂ (cong (to A₁↣A₂) eq) (to (B₁↣B₂ x₁) x₂))
+                                                                                        _ ⟩
+    trans eq₁ (_≃_.to (≡⇒↝ _ $ cong (_≡ _) $
+                         trans eq₂ (trans (sym $ subst-refl B₂ _) eq₁))
+                 eq₂)                                                    ≡⟨ cong (trans _) $ sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
+
+    trans eq₁ (subst (_≡ _)
+                 (trans eq₂ (trans (sym $ subst-refl B₂ _) eq₁))
+                 eq₂)                                                    ≡⟨ cong (λ eq → trans eq₁ (subst (_≡ _) eq eq₂)) $
+                                                                              sym $ sym-sym (trans eq₂ (trans (sym $ subst-refl B₂ _) eq₁)) ⟩
+    trans eq₁ (subst (_≡ _)
+                 (sym $ sym $
+                    trans eq₂ (trans (sym $ subst-refl B₂ _) eq₁))
+                 eq₂)                                                    ≡⟨ cong (trans _) $ subst-trans _ ⟩
+
+    trans eq₁ (trans
+                 (sym $ trans eq₂ (trans (sym $ subst-refl B₂ _) eq₁))
+                 eq₂)                                                    ≡⟨ cong (λ eq → trans eq₁ (trans eq eq₂)) $
+                                                                              sym-trans eq₂ (trans (sym $ subst-refl B₂ _) eq₁) ⟩
+    trans eq₁ (trans (trans (sym $ trans (sym $ subst-refl B₂ _) eq₁)
+                            (sym eq₂))
+                     eq₂)                                                ≡⟨ cong (trans _) $ trans-[trans-sym]- _ _ ⟩
+
+    trans eq₁ (sym $ trans (sym $ subst-refl B₂ _) eq₁)                  ≡⟨ cong (trans _) $ sym-trans _ _ ⟩
+
+    trans eq₁ (trans (sym eq₁) (sym $ sym $ subst-refl B₂ _))            ≡⟨ trans--[trans-sym] _ _ ⟩
+
+    sym $ sym $ subst-refl B₂ _                                          ≡⟨ sym-sym _ ⟩∎
+
+    subst-refl B₂ _                                                      ∎
+
 -- _×_ preserves all kinds of functions.
 
 private
@@ -545,6 +743,9 @@ _×-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
 _×-cong_ {implication}         = λ f g → Σ-map f g
 _×-cong_ {logical-equivalence} = ×-cong-eq
 _×-cong_ {injection}           = ×-cong-inj
+_×-cong_ {embedding}           = λ A₁↣A₂ B₁↣B₂ →
+                                   Σ-preserves-embeddings
+                                     A₁↣A₂ (λ _ → B₁↣B₂)
 _×-cong_ {surjection}          = ×-cong-surj
 _×-cong_ {bijection}           = ×-cong-bij
 _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
@@ -671,6 +872,8 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
   helper implication         = Eq.∃-preserves-functions            A₁≃A₂
   helper logical-equivalence = Eq.∃-preserves-logical-equivalences A₁≃A₂
   helper injection           = Eq.∃-preserves-injections           A₁≃A₂
+  helper embedding           = Σ-preserves-embeddings
+                                 (from-equivalence A₁≃A₂)
   helper surjection          = Eq.∃-preserves-surjections          A₁≃A₂
   helper bijection           = Eq.∃-preserves-bijections           A₁≃A₂
   helper equivalence         = Eq.Σ-preserves                      A₁≃A₂
@@ -719,6 +922,7 @@ private
 ∃-cong {implication}         = ∃-cong-impl
 ∃-cong {logical-equivalence} = ∃-cong-eq
 ∃-cong {injection}           = Σ-cong Bijection.id
+∃-cong {embedding}           = Σ-preserves-embeddings Emb.id
 ∃-cong {surjection}          = ∃-cong-surj
 ∃-cong {bijection}           = ∃-cong-bij
 ∃-cong {equivalence}         = λ B₁≃B₂ →
@@ -1517,6 +1721,46 @@ private
       injective′ : Injective to′
       injective′ = cong lift ⊚ injective ⊚ cong lower
 
+  ↑-cong-Embedding :
+    ∀ {a b c} {B : Set b} {C : Set c} →
+    Embedding B C → Embedding (↑ a B) (↑ a C)
+  ↑-cong-Embedding {a} {B = B} B↣C = record
+    { to           = ↑-cong-→ to
+    ; is-embedding = λ x y →
+        _≃_.is-equivalence $
+        Eq.with-other-function
+          (x ≡ y                                      ↔⟨⟩
+           lift (lower x) ≡ lift (lower y)            ↔⟨ inverse lift-lemma ⟩
+           lower x ≡ lower y                          ↝⟨ Eq.⟨ _ , is-embedding _ _ ⟩ ⟩
+           to (lower x) ≡ to (lower y)                ↔⟨ lift-lemma ⟩□
+           lift (to (lower x)) ≡ lift (to (lower y))  □)
+          _
+          (λ p → cong lift (cong to (cong lower p))  ≡⟨ cong-∘ _ _ _ ⟩
+                 cong (lift ⊚ to) (cong lower p)     ≡⟨ cong-∘ _ _ _ ⟩∎
+                 cong (lift ⊚ to ⊚ lower) p          ∎)
+    }
+    where
+    open Embedding B↣C
+
+    lift-lemma : ∀ {ℓ a} {A : Set a} {x y : A} →
+                 (x ≡ y) ↔ (lift {ℓ = ℓ} x ≡ lift y)
+    lift-lemma {ℓ} = record
+      { surjection = record
+        { logical-equivalence = record
+          { to   = cong lift
+          ; from = cong lower
+          }
+        ; right-inverse-of = λ eq →
+            cong lift (cong lower eq)  ≡⟨ cong-∘ _ _ _ ⟩
+            cong (lift ⊚ lower) eq     ≡⟨ sym (cong-id _) ⟩∎
+            eq                         ∎
+        }
+      ; left-inverse-of = λ eq →
+          cong lower (cong lift eq)       ≡⟨ cong-∘ _ _ _ ⟩
+          cong (lower {ℓ = ℓ} ⊚ lift) eq  ≡⟨ sym (cong-id _) ⟩∎
+          eq                              ∎
+      }
+
   ↑-cong-↠ :
     ∀ {a b c} {B : Set b} {C : Set c} →
     B ↠ C → ↑ a B ↠ ↑ a C
@@ -1558,6 +1802,7 @@ private
 ↑-cong {implication}         = ↑-cong-→
 ↑-cong {logical-equivalence} = ↑-cong-⇔
 ↑-cong {injection}           = ↑-cong-↣
+↑-cong {embedding}           = ↑-cong-Embedding
 ↑-cong {surjection}          = ↑-cong-↠
 ↑-cong {bijection}           = ↑-cong-↔
 ↑-cong {equivalence}         =
