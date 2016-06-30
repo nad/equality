@@ -970,6 +970,15 @@ module Derived-definitions-and-properties
       cong (_,_ x) (trans (sym $ subst-refl B y) (refl _))  ≡⟨ cong (cong (_,_ x)) (trans-reflʳ _) ⟩∎
       cong (_,_ x) (sym (subst-refl B y))                   ∎
 
+    Σ-≡,≡→≡-refl-subst-refl :
+      ∀ {a b} {A : Set a} {B : A → Set b} {x y} →
+      Σ-≡,≡→≡ (refl x) (subst-refl B y) ≡ refl (x , y)
+    Σ-≡,≡→≡-refl-subst-refl {B = B} {x} {y} =
+      Σ-≡,≡→≡ (refl x) (subst-refl B y)                             ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
+      cong (_,_ x) (trans (sym $ subst-refl B y) (subst-refl B y))  ≡⟨ cong (cong _) (trans-symˡ _) ⟩
+      cong (_,_ x) (refl y)                                         ≡⟨ cong-refl _ ⟩∎
+      refl (x , y)                                                  ∎
+
     -- "Evaluation rule" for Σ-≡,≡←≡.
 
     Σ-≡,≡←≡-refl :
