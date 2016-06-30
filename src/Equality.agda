@@ -1332,39 +1332,6 @@ module Derived-definitions-and-properties
       elim (λ {x y} x≡y → subst P x≡y (f x) ≡ f y)
            (subst-refl P ∘ f)
 
-    -- If f z evaluates to z for a decidable set of values which
-    -- includes x and y, do we have
-    --
-    --   cong f x≡y ≡ x≡y
-    --
-    -- for any x≡y : x ≡ y? The equation above is not well-typed if f
-    -- is a variable, but the approximation below can be proved.
-
-    cong-roughly-id : ∀ {a} {A : Set a} (f : A → A) (p : A → Bool) {x y : A}
-                      (x≡y : x ≡ y) (px : T (p x)) (py : T (p y))
-                      (f≡id : ∀ z → T (p z) → f z ≡ z) →
-                      cong f x≡y ≡
-                      trans (f≡id x px) (trans x≡y $ sym (f≡id y py))
-    cong-roughly-id {A = A} f p =
-      elim (λ {x y} x≡y →
-              (px : T (p x)) (py : T (p y))
-              (f≡id : ∀ z → T (p z) → f z ≡ z) →
-              cong f x≡y ≡
-              trans (f≡id x px) (trans x≡y $ sym (f≡id y py)))
-           (λ x px px′ f≡id → helper x (p x) px px′ (f≡id x))
-      where
-      helper :
-        (x : A) (b : Bool) (px px′ : T b)
-        (f≡id : T b → f x ≡ x) →
-        cong f (refl x) ≡
-        trans (f≡id px) (trans (refl x) $ sym (f≡id px′))
-      helper x false px _ f≡id = ⊥-elim px
-      helper x true  _  _ f≡id =
-        cong f (refl x)                                 ≡⟨ cong-refl f ⟩
-        refl (f x)                                      ≡⟨ sym $ trans-symʳ _ ⟩
-        trans (f≡id _) (sym (f≡id _))                   ≡⟨ cong (trans (f≡id _)) $ sym $ trans-reflˡ _ ⟩∎
-        trans (f≡id _) (trans (refl x) $ sym (f≡id _))  ∎
-
     -- The following lemma is Proposition 2 from "Generalizations of
     -- Hedberg's Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
@@ -1478,3 +1445,55 @@ module Derived-definitions-and-properties
              refl (f x x)                         ≡⟨ sym $ cong-refl (λ z → f z z) ⟩∎
 
              cong (λ z → f z z) (refl x)          ∎)
+
+    -- If f and g agree on a decidable subset of their common domain, then
+    -- cong f eq is equal to (modulo some uses of transitivity) cong g eq
+    -- for proofs eq between elements in this subset.
+
+    cong-respects-relevant-equality :
+      ∀ {a b} {A : Set a} {B : Set b} {x y} {x≡y : x ≡ y} {f g : A → B}
+      (p : A → Bool) (f≡g : ∀ x → T (p x) → f x ≡ g x)
+      {px : T (p x)} {py : T (p y)} →
+      trans (cong f x≡y) (f≡g y py) ≡ trans (f≡g x px) (cong g x≡y)
+    cong-respects-relevant-equality {f = f} {g} p f≡g = elim
+      (λ {x y} x≡y →
+         {px : T (p x)} {py : T (p y)} →
+         trans (cong f x≡y) (f≡g y py) ≡ trans (f≡g x px) (cong g x≡y))
+      (λ x {px px′} →
+         trans (cong f (refl x)) (f≡g x px′)  ≡⟨ cong (flip trans _) (cong-refl _) ⟩
+         trans (refl (f x)) (f≡g x px′)       ≡⟨ trans-reflˡ _ ⟩
+         f≡g x px′                            ≡⟨ cong (f≡g x) (T-irr (p x) px′ px) ⟩
+         f≡g x px                             ≡⟨ sym $ trans-reflʳ _ ⟩
+         trans (f≡g x px) (refl (g x))        ≡⟨ cong (trans _) (sym $ cong-refl _) ⟩∎
+         trans (f≡g x px) (cong g (refl x))   ∎)
+      _
+      where
+      T-irr : ∀ b → Proof-irrelevant (T b)
+      T-irr true  _ _ = refl _
+      T-irr false ()
+
+    -- If f z evaluates to z for a decidable set of values which
+    -- includes x and y, do we have
+    --
+    --   cong f x≡y ≡ x≡y
+    --
+    -- for any x≡y : x ≡ y? The equation above is not well-typed if f
+    -- is a variable, but the approximation below can be proved.
+
+    cong-roughly-id :
+      ∀ {a} {A : Set a} (f : A → A) (p : A → Bool) {x y : A}
+      (x≡y : x ≡ y) (px : T (p x)) (py : T (p y))
+      (f≡id : ∀ z → T (p z) → f z ≡ z) →
+      cong f x≡y ≡
+      trans (f≡id x px) (trans x≡y $ sym (f≡id y py))
+    cong-roughly-id f p {x} {y} x≡y px py f≡id =
+      let lemma =
+            trans (cong id x≡y) (sym (f≡id y py))  ≡⟨ cong-respects-relevant-equality p (λ x → sym ∘ f≡id x) ⟩∎
+            trans (sym (f≡id x px)) (cong f x≡y)   ∎
+      in
+      cong f x≡y                                                 ≡⟨ sym $ subst (λ eq → eq → trans (f≡id x px)
+                                                                                                   (trans (cong id x≡y) (sym (f≡id y py))) ≡
+                                                                                             cong f x≡y)
+                                                                                ([trans≡]≡[≡trans-symˡ] _ _ _) id lemma ⟩
+      trans (f≡id x px) (trans (cong id x≡y) $ sym (f≡id y py))  ≡⟨ cong (λ eq → trans _ (trans eq _)) (sym $ cong-id _) ⟩∎
+      trans (f≡id x px) (trans x≡y $ sym (f≡id y py))            ∎
