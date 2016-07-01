@@ -636,20 +636,11 @@ abstract
     ∀ {a b} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) {x} →
-    cong (λ h → h x) (good-ext ext f≡g) ≡ f≡g x
+    cong (_$ x) (good-ext ext f≡g) ≡ f≡g x
   cong-good-ext ext f≡g {x} =
-    let lemma = elim
-          (λ f≡g → cong (λ h → h x) f≡g ≡ ext⁻¹ f≡g x)
-          (λ f → cong (λ h → h x) (refl f)  ≡⟨ cong-refl (λ h → h x) {x = f} ⟩
-                 refl (f x)                 ≡⟨ sym $ ext⁻¹-refl f ⟩∎
-                 ext⁻¹ (refl f) x           ∎)
-          (good-ext ext f≡g)
-    in
-
-    cong (λ h → h x) (good-ext ext f≡g)  ≡⟨ lemma ⟩
-    ext⁻¹ (good-ext ext f≡g) x           ≡⟨ cong (λ h → h x) $
-                                                 _≃_.left-inverse-of (extensionality-isomorphism ext) f≡g ⟩∎
-    f≡g x                                ∎
+    cong (_$ x) (good-ext ext f≡g)  ≡⟨⟩
+    ext⁻¹ (good-ext ext f≡g) x      ≡⟨ cong (_$ x) $ _≃_.left-inverse-of (extensionality-isomorphism ext) f≡g ⟩∎
+    f≡g x                           ∎
 
   subst-good-ext :
     ∀ {a b p} (ext : Extensionality a b)
