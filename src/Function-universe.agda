@@ -1318,9 +1318,9 @@ contractible↔⊤≃ ext = record
 
   helper : ∀ k → A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
            (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
-  helper logical-equivalence      A⇔B C⇔D = →-cong-⇔ A⇔B C⇔D
-  helper bijection        A↔B C↔D = →-cong-↔ A↔B C↔D
-  helper equivalence A≃B C≃D = record
+  helper logical-equivalence A⇔B C⇔D = →-cong-⇔ A⇔B C⇔D
+  helper bijection           A↔B C↔D = →-cong-↔ A↔B C↔D
+  helper equivalence         A≃B C≃D = record
     { to             = to
     ; is-equivalence = λ y →
         ((from y , right-inverse-of y) , irrelevance y)
