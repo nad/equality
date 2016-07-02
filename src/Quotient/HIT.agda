@@ -12,10 +12,11 @@
 module Quotient.HIT where
 
 open import Equality.Propositional hiding (elim)
-open import Logical-equivalence using (module _⇔_)
+open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection equality-with-J using (module _↔_)
+open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (_∘_)
 open import H-level equality-with-J
 import H-level.Truncation equality-with-J as Trunc
@@ -182,3 +183,61 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
     (λ _ → refl)
     (λ _ → _⇔_.to set⇔UIP /-is-set _ _)
     (λ _ → mono₁ 1 (/-is-set _ _))
+
+-- Two applications of _/_ are isomorphic if the underlying types are
+-- isomorphic and the relations are pointwise logically equivalent.
+
+infix 5 _/-cong_
+
+_/-cong_ :
+  ∀ {k a₁ a₂ r₁ r₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {R₁ : A₁ → A₁ → Proposition r₁}
+    {R₂ : A₂ → A₂ → Proposition r₂} →
+  (A₁↔A₂ : A₁ ↔[ k ] A₂) →
+  (∀ x y →
+     proj₁ (R₁ x y) ⇔
+     proj₁ (R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y))) →
+  A₁ / R₁ ↔[ k ] A₂ / R₂
+_/-cong_ {k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = rec
+                 ([_] ∘ to)
+                 ([]-respects-relation ∘ _⇔_.to (R₁⇔R₂′ _ _))
+                 /-is-set
+      ; from = rec
+                 ([_] ∘ from)
+                 (λ {x y} →
+                    proj₁ (R₂ x y)                          ↝⟨ ≡⇒↝ _ (sym $ cong₂ (λ x y → proj₁ (R₂ x y))
+                                                                                  (right-inverse-of x)
+                                                                                  (right-inverse-of y)) ⟩
+                    proj₁ (R₂ (to (from x)) (to (from y)))  ↝⟨ _⇔_.from (R₁⇔R₂′ _ _) ⟩
+                    proj₁ (R₁ (from x) (from y))            ↝⟨ []-respects-relation ⟩□
+                    [ from x ] ≡ [ from y ]                 □)
+                 /-is-set
+      }
+    ; right-inverse-of = elim
+        _
+        (λ x →
+          [ to (from x) ]  ≡⟨ cong [_] $ right-inverse-of x ⟩∎
+          [ x ]            ∎)
+        (λ _ → _⇔_.to propositional⇔irrelevant (/-is-set _ _) _ _)
+        (λ _ → mono₁ 1 (/-is-set _ _))
+    }
+  ; left-inverse-of = elim
+      _
+      (λ x →
+        [ from (to x) ]  ≡⟨ cong [_] $ left-inverse-of x ⟩∎
+        [ x ]            ∎)
+      (λ _ → _⇔_.to propositional⇔irrelevant (/-is-set _ _) _ _)
+      (λ _ → mono₁ 1 (/-is-set _ _))
+  })
+  where
+  open _↔_ (from-isomorphism A₁↔A₂)
+
+  R₁⇔R₂′ = λ x y →
+    proj₁ (R₁ x y)                                                ↝⟨ R₁⇔R₂ x y ⟩
+    proj₁ (R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y))  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → proj₁ (R₂ (f x) (g y)))
+                                                                                   (to-implication∘from-isomorphism k bijection)
+                                                                                   (to-implication∘from-isomorphism k bijection) ⟩□
+    proj₁ (R₂ (to x) (to y))                                      □
