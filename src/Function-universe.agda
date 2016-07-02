@@ -1340,6 +1340,15 @@ contractible↔⊤≃ ext = record
                     (from y , right-inverse-of y) ≡ p
       irrelevance = _≃_.irrelevance A→B≃C→D
 
+∀-cong-⇔ :
+  ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+  (∀ x → B₁ x ⇔ B₂ x) →
+  ((x : A) → B₁ x) ⇔ ((x : A) → B₂ x)
+∀-cong-⇔ B₁⇔B₂ = record
+  { to   = λ f x → _⇔_.to   (B₁⇔B₂ x) (f x)
+  ; from = λ f x → _⇔_.from (B₁⇔B₂ x) (f x)
+  }
+
 Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
 Π-left-identity = record
   { surjection = record
