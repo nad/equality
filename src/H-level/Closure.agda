@@ -612,6 +612,15 @@ abstract
                      (_↔_.surjection $ Bijection.inverse ↑↔)
                      (2 + n) hB
 
+  -- All levels greater than or equal to 2 are also closed under
+  -- Maybe.
+
+  Maybe-closure :
+    ∀ {a} {A : Set a} n →
+    H-level (2 + n) A → H-level (2 + n) (Maybe A)
+  Maybe-closure n h =
+    ⊎-closure n (mono (zero≤ (2 + n)) ⊤-contractible) h
+
   -- Furthermore Is-proposition is closed under Dec (assuming
   -- extensionality).
 
