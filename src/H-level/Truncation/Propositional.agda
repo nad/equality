@@ -121,6 +121,15 @@ elim-∣∣ :
 elim-∣∣ P P-prop f x =
   _⇔_.to propositional⇔irrelevant (P-prop _) _ _
 
+-- The truncation operator preserves logical equivalences.
+
+∥∥-cong-⇔ : ∀ {a b} {A : Set a} {B : Set b} →
+            A ⇔ B → ∥ A ∥ ⇔ ∥ B ∥
+∥∥-cong-⇔ A⇔B = record
+  { to   = ∥∥-map (_⇔_.to   A⇔B)
+  ; from = ∥∥-map (_⇔_.from A⇔B)
+  }
+
 -- The truncation operator preserves bijections.
 
 ∥∥-cong : ∀ {k a b} {A : Set a} {B : Set b} →

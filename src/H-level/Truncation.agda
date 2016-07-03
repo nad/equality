@@ -76,6 +76,15 @@ private
          ∥ A ∥ n ℓ → ∥ B ∥ n ℓ
 ∥∥-map f x = λ P h g → x P h (g ∘ f)
 
+-- The truncation operator preserves logical equivalences.
+
+∥∥-cong-⇔ : ∀ {n a b ℓ} {A : Set a} {B : Set b} →
+            A ⇔ B → ∥ A ∥ n ℓ ⇔ ∥ B ∥ n ℓ
+∥∥-cong-⇔ A⇔B = record
+  { to   = ∥∥-map (_⇔_.to   A⇔B)
+  ; from = ∥∥-map (_⇔_.from A⇔B)
+  }
+
 -- The truncation operator preserves bijections (assuming
 -- extensionality).
 
