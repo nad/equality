@@ -12,6 +12,7 @@
 module Quotient.HIT where
 
 open import Equality.Propositional hiding (elim)
+open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
@@ -19,6 +20,7 @@ open import Bijection equality-with-J using (module _↔_)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (_∘_)
 open import H-level equality-with-J
+open import H-level.Closure equality-with-J
 import H-level.Truncation equality-with-J as Trunc
 open import H-level.Truncation.Propositional hiding (rec; elim)
 import Quotient equality-with-J as Quotient
@@ -108,6 +110,36 @@ rec {P = P} f resp P-set = elim
      f y                                             ∎)
   (λ _ → P-set)
 
+-- A variant of elim that can be used if the motive composed with [_]
+-- is a family of propositions.
+--
+-- I took the idea for this eliminator from Nicolai Kraus.
+
+elim-Prop :
+  ∀ {a r} {A : Set a} {R : A → A → Proposition r} {p}
+  (P : A / R → Set p) →
+  (p-[] : ∀ x → P [ x ]) →
+  (∀ x → Is-proposition (P [ x ])) →
+  ∀ x → P x
+elim-Prop P p-[] P-prop = elim
+  P p-[]
+  (λ _ → _⇔_.to propositional⇔irrelevant (P-prop _) _ _)
+  (elim
+     _
+     (mono₁ 1 ∘ P-prop)
+     (λ _ → _⇔_.to propositional⇔irrelevant
+              (H-level-propositional ext 2) _ _)
+     (λ _ → mono₁ 1 (H-level-propositional ext 2)))
+
+-- A variant of rec that can be used if the motive is a proposition.
+
+rec-Prop :
+  ∀ {a r} {A : Set a} {R : A → A → Proposition r} {p} {P : Set p} →
+  (A → P) →
+  Is-proposition P →
+  A / R → P
+rec-Prop p-[] P-prop = elim-Prop (const _) p-[] (const P-prop)
+
 ------------------------------------------------------------------------
 -- Some properties
 
@@ -116,12 +148,10 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
   -- [_] is surjective.
 
   []-surjective : Surjective ([_] {R = R})
-  []-surjective = elim
+  []-surjective = elim-Prop
     _
     (λ x → ∣ x , refl ∣)
-    (λ r → _⇔_.to propositional⇔irrelevant
-             truncation-is-proposition _ _)
-    (λ _ → mono₁ 1 truncation-is-proposition)
+    (λ _ → truncation-is-proposition)
 
 -- If the relation is a propositional equivalence relation of a
 -- certain size, then there is a split surjection from the definition
@@ -178,11 +208,10 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
        ext univ univ₀ 1 R-prop)
 
   to∘from : ∀ x → to (from x) ≡ x
-  to∘from = elim
+  to∘from = elim-Prop
     _
     (λ _ → refl)
-    (λ _ → _⇔_.to set⇔UIP /-is-set _ _)
-    (λ _ → mono₁ 1 (/-is-set _ _))
+    (λ _ → /-is-set _ _)
 
 -- Two applications of _/_ are isomorphic if the underlying types are
 -- isomorphic and the relations are pointwise logically equivalent.
@@ -216,21 +245,19 @@ _/-cong_ {k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (reco
                     [ from x ] ≡ [ from y ]                 □)
                  /-is-set
       }
-    ; right-inverse-of = elim
+    ; right-inverse-of = elim-Prop
         _
         (λ x →
           [ to (from x) ]  ≡⟨ cong [_] $ right-inverse-of x ⟩∎
           [ x ]            ∎)
-        (λ _ → _⇔_.to propositional⇔irrelevant (/-is-set _ _) _ _)
-        (λ _ → mono₁ 1 (/-is-set _ _))
+        (λ _ → /-is-set _ _)
     }
-  ; left-inverse-of = elim
+  ; left-inverse-of = elim-Prop
       _
       (λ x →
         [ from (to x) ]  ≡⟨ cong [_] $ left-inverse-of x ⟩∎
         [ x ]            ∎)
-      (λ _ → _⇔_.to propositional⇔irrelevant (/-is-set _ _) _ _)
-      (λ _ → mono₁ 1 (/-is-set _ _))
+      (λ _ → /-is-set _ _)
   })
   where
   open _↔_ (from-isomorphism A₁↔A₂)
