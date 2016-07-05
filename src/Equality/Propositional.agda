@@ -39,16 +39,12 @@ private
 -- Various derived definitions and properties
 
 reflexive-relation : ∀ ℓ → Reflexive-relation ℓ
-reflexive-relation _ = record
-  { _≡_  = _≡_
-  ; refl = refl′
-  }
+Reflexive-relation._≡_  (reflexive-relation _) = _≡_
+Reflexive-relation.refl (reflexive-relation _) = refl′
 
 equality-with-J : ∀ {a p} → Equality-with-J a p reflexive-relation
-equality-with-J = record
-  { elim      = elim
-  ; elim-refl = elim-refl
-  }
+Equality-with-J.elim      equality-with-J = elim
+Equality-with-J.elim-refl equality-with-J = elim-refl
 
 open Derived-definitions-and-properties equality-with-J public
   hiding (_≡_; refl)
