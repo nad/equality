@@ -478,8 +478,56 @@ Axiom-of-choice a b =
   {A : Set a} {B : A → Set b} →
   Is-set A → (∀ x → ∥ B x ∥) → ∥ (∀ x → B x) ∥
 
+-- The axiom of choice can be turned into a bijection.
+
+choice-bijection :
+  ∀ {a b} {A : Set a} {B : A → Set b} →
+  Axiom-of-choice a b → Is-set A →
+  (∀ x → ∥ B x ∥) ↔ ∥ (∀ x → B x) ∥
+choice-bijection choice A-set = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = choice A-set
+      ; from = λ f x → ∥∥-map (_$ x) f
+      }
+    ; right-inverse-of = λ _ →
+        _⇔_.to propositional⇔irrelevant
+          truncation-is-proposition
+          _ _
+    }
+  ; left-inverse-of = λ _ →
+      _⇔_.to propositional⇔irrelevant
+          (Π-closure ext 1 λ _ →
+           truncation-is-proposition)
+          _ _
+  }
+
 -- The axiom of countable choice, stated in a corresponding way.
 
 Axiom-of-countable-choice : (b : Level) → Set (lsuc b)
 Axiom-of-countable-choice b =
   {B : ℕ → Set b} → (∀ x → ∥ B x ∥) → ∥ (∀ x → B x) ∥
+
+-- The axiom of countable choice can be turned into a bijection.
+
+countable-choice-bijection :
+  ∀ {b} {B : ℕ → Set b} →
+  Axiom-of-countable-choice b →
+  (∀ x → ∥ B x ∥) ↔ ∥ (∀ x → B x) ∥
+countable-choice-bijection cc = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = cc
+      ; from = λ f x → ∥∥-map (_$ x) f
+      }
+    ; right-inverse-of = λ _ →
+        _⇔_.to propositional⇔irrelevant
+          truncation-is-proposition
+          _ _
+    }
+  ; left-inverse-of = λ _ →
+      _⇔_.to propositional⇔irrelevant
+          (Π-closure ext 1 λ _ →
+           truncation-is-proposition)
+          _ _
+  }
