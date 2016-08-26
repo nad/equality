@@ -1340,13 +1340,19 @@ contractible↔⊤≃ ext = record
                     (from y , right-inverse-of y) ≡ p
       irrelevance = _≃_.irrelevance A→B≃C→D
 
+∀-cong-→ :
+  ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+  (∀ x → B₁ x → B₂ x) →
+  ((x : A) → B₁ x) → ((x : A) → B₂ x)
+∀-cong-→ B₁→B₂ = Π-map (B₁→B₂ _)
+
 ∀-cong-⇔ :
   ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
   (∀ x → B₁ x ⇔ B₂ x) →
   ((x : A) → B₁ x) ⇔ ((x : A) → B₂ x)
 ∀-cong-⇔ B₁⇔B₂ = record
-  { to   = λ f x → _⇔_.to   (B₁⇔B₂ x) (f x)
-  ; from = λ f x → _⇔_.from (B₁⇔B₂ x) (f x)
+  { to   = ∀-cong-→ (_⇔_.to   ⊚ B₁⇔B₂)
+  ; from = ∀-cong-→ (_⇔_.from ⊚ B₁⇔B₂)
   }
 
 Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt

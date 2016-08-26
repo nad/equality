@@ -144,6 +144,14 @@ flip : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
        ((x : A) (y : B) → C x y) → ((y : B) (x : A) → C x y)
 flip f = λ x y → f y x
 
+-- A map function for Π A (for arbitrary A).
+
+Π-map :
+  ∀ {a b c} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} →
+  (∀ {x} (y : B x) → C x y) →
+  (f : (x : A) → B x) → ((x : A) → C x (f x))
+Π-map g f = λ x → g (f x)
+
 -- Applies the unary function to each argument and combines the
 -- results using the binary function.
 
