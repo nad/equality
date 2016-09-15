@@ -42,13 +42,14 @@ open import Univalence-axiom eq
 
 -- A strengthening of the concept of "equivalence relation".
 
-Strong-equivalence : ∀ {a} {A : Set a} → (A → A → Set a) → Set (lsuc a)
+Strong-equivalence : ∀ {a r} {A : Set a} →
+                     (A → A → Set r) → Set (a ⊔ lsuc r)
 Strong-equivalence R = ∀ {x y} → R x y ≃ (R x ≡ R y)
 
 -- Strong equivalence relations are equivalence relations.
 
 strong-equivalence⇒equivalence :
-  ∀ {a} {A : Set a} {R : A → A → Set a} →
+  ∀ {a r} {A : Set a} {R : A → A → Set r} →
   Strong-equivalence R →
   (∀ {x} → R x x) ×
   (∀ {x y} → R x y → R y x) ×
@@ -72,23 +73,23 @@ strong-equivalence⇒equivalence {R = R} strong-equivalence =
 -- extensionality and univalence).
 
 propositional-equivalence⇒strong-equivalence :
-  ∀ {a} {A : Set a} {R : A → A → Set a} →
-  Extensionality a (lsuc a) →
-  Univalence a →
+  ∀ {a r} {A : Set a} {R : A → A → Set r} →
+  Extensionality (a ⊔ r) (lsuc r) →
+  Univalence r →
   (∀ {x} → R x x) →
   (∀ {x y} → R x y → R y x) →
   (∀ {x y z} → R x y → R y z → R x z) →
   (∀ x y → Is-proposition (R x y)) →
   Strong-equivalence R
 propositional-equivalence⇒strong-equivalence
-  {R = R} ext univ rfl sm trns R-prop {x = x} {y = y} =
+  {a} {r} {R = R} ext univ rfl sm trns R-prop {x = x} {y = y} =
 
   Eq.↔⇒≃ (record
     { surjection = record
       { logical-equivalence = record
-        { to = λ Rxy → ext λ z →
+        { to = λ Rxy → lower-extensionality r lzero ext λ z →
                  ≃⇒≡ univ $
-                 _↔_.to (Eq.⇔↔≃ (lower-extensionality lzero _ ext)
+                 _↔_.to (Eq.⇔↔≃ (lower-extensionality a _ ext)
                                 (R-prop x z) (R-prop y z))
                  (R x z  ↝⟨ record { to   = trns (sm Rxy)
                                    ; from = trns Rxy
@@ -101,11 +102,12 @@ propositional-equivalence⇒strong-equivalence
       ; right-inverse-of = λ _ →
           _⇔_.to propositional⇔irrelevant
             (H-level.respects-surjection
-               (_≃_.surjection $ Eq.extensionality-isomorphism ext)
+               (_≃_.surjection $ Eq.extensionality-isomorphism
+                                   (lower-extensionality r lzero ext))
                1 $
-             Π-closure ext 1 λ z →
+             Π-closure (lower-extensionality r lzero ext) 1 λ z →
              H-level-H-level-≡ˡ
-               (lower-extensionality lzero _ ext)
+               (lower-extensionality a _ ext)
                univ 0 (R-prop x z))
             _ _
       }
@@ -265,21 +267,24 @@ strong-equivalence-not-closed-under-on ext univ₁ univ₀ =
 -- equivalence (assuming extensionality).
 
 strong-equivalence-closed-under-on :
-  ∀ {ℓ} {A B : Set ℓ} {R : A → A → Set ℓ} →
-  Extensionality ℓ (lsuc ℓ) →
+  ∀ {a b r} {A : Set a} {B : Set b} {R : A → A → Set r} →
+  Extensionality (a ⊔ b) (lsuc r) →
   (B≃A : B ≃ A) →
   Strong-equivalence R →
   Strong-equivalence (R on _≃_.to B≃A)
-strong-equivalence-closed-under-on {R = R} ext B≃A strong-equivalence
-                                   {x} {y} =
-    R (f x) (f y)                                  ↝⟨ strong-equivalence ⟩
-    R (f x) ≡ R (f y)                              ↝⟨ F.id ⟩
-    (λ z → R (f x)    z)  ≡ (λ z → R (f y)    z)   ↝⟨ inverse $ Eq.extensionality-isomorphism ext ⟩
-    (∀ z → R (f x)    z   ≡        R (f y)    z)   ↝⟨ (Eq.Π-preserves ext (inverse B≃A) λ z →
-                                                       ≡⇒≃ $ cong₂ _≡_ (lemma x z) (lemma y z)) ⟩
-    (∀ z → R (f x) (f z)  ≡        R (f y) (f z))  ↝⟨ Eq.extensionality-isomorphism ext ⟩
-    (λ z → R (f x) (f z)) ≡ (λ z → R (f y) (f z))  ↝⟨ F.id ⟩□
-    (R on f) x ≡ (R on f) y                        □
+strong-equivalence-closed-under-on
+  {a} {b} {R = R} ext B≃A strong-equivalence {x} {y} =
+
+  R (f x) (f y)                                  ↝⟨ strong-equivalence ⟩
+  R (f x) ≡ R (f y)                              ↝⟨ F.id ⟩
+  (λ z → R (f x)    z)  ≡ (λ z → R (f y)    z)   ↝⟨ inverse $ Eq.extensionality-isomorphism
+                                                                (lower-extensionality b lzero ext) ⟩
+  (∀ z → R (f x)    z   ≡        R (f y)    z)   ↝⟨ (Eq.Π-preserves ext (inverse B≃A) λ z →
+                                                     ≡⇒≃ $ cong₂ _≡_ (lemma x z) (lemma y z)) ⟩
+  (∀ z → R (f x) (f z)  ≡        R (f y) (f z))  ↝⟨ Eq.extensionality-isomorphism
+                                                      (lower-extensionality a lzero ext) ⟩
+  (λ z → R (f x) (f z)) ≡ (λ z → R (f y) (f z))  ↝⟨ F.id ⟩□
+  (R on f) x ≡ (R on f) y                        □
   where
   f   = _≃_.to   B≃A
   f⁻¹ = _≃_.from B≃A
