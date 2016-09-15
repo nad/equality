@@ -16,7 +16,7 @@ open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection equality-with-J using (module _↔_)
+open import Bijection equality-with-J using (_↔_)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (_∘_)
 open import H-level equality-with-J
@@ -152,6 +152,24 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
     _
     (λ x → ∣ x , refl ∣)
     (λ _ → truncation-is-proposition)
+
+-- Quotienting with equality (for a set) amounts to the same thing as
+-- not quotienting at all.
+
+/≡↔ :
+  ∀ {a} {A : Set a} →
+  (A-set : Is-set A) →
+  (A / λ x y → (x ≡ y) , A-set x y) ↔ A
+/≡↔ A-set = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = rec id id A-set
+      ; from = [_]
+      }
+    ; right-inverse-of = λ _ → refl
+    }
+  ; left-inverse-of = elim-Prop _ (λ _ → refl) (λ _ → /-is-set _ _)
+  }
 
 -- If the relation is a propositional equivalence relation of a
 -- certain size, then there is a split surjection from the definition
