@@ -13,8 +13,7 @@
 
 open import Equality
 
-module Quotient
-  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
+module Quotient {r} (eq : ∀ {a p} → Equality-with-J a p r) where
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude
@@ -38,6 +37,18 @@ open import Nat eq as Nat
 open import Univalence-axiom eq
 
 ------------------------------------------------------------------------
+-- Equivalence relations
+
+-- The definition of an equivalence relation.
+
+record Is-equivalence-relation
+         {a r} {A : Set a} (R : A → A → Set r) : Set (a ⊔ r) where
+  field
+    reflexive  : ∀ {x} → R x x
+    symmetric  : ∀ {x y} → R x y → R y x
+    transitive : ∀ {x y z} → R x y → R y z → R x z
+
+------------------------------------------------------------------------
 -- Strong equivalence relations
 
 -- A strengthening of the concept of "equivalence relation".
@@ -51,22 +62,23 @@ Strong-equivalence R = ∀ {x y} → R x y ≃ (R x ≡ R y)
 strong-equivalence⇒equivalence :
   ∀ {a r} {A : Set a} {R : A → A → Set r} →
   Strong-equivalence R →
-  (∀ {x} → R x x) ×
-  (∀ {x y} → R x y → R y x) ×
-  (∀ {x y z} → R x y → R y z → R x z)
-strong-equivalence⇒equivalence {R = R} strong-equivalence =
-  (λ {x} →            $⟨ refl (R x) ⟩
-           R x ≡ R x  ↝⟨ _≃_.from strong-equivalence ⟩□
-           R x x      □) ,
-  (λ {x y} →  R x y      ↝⟨ _≃_.to strong-equivalence ⟩
-              R x ≡ R y  ↝⟨ sym ⟩
-              R y ≡ R x  ↝⟨ _≃_.from strong-equivalence ⟩□
-              R y x      □ ) ,
-  (λ {x y z} Rxy Ryz →
+  Is-equivalence-relation R
+strong-equivalence⇒equivalence {R = R} strong-equivalence = record
+  { reflexive = λ {x} →
+                 $⟨ refl (R x) ⟩
+      R x ≡ R x  ↝⟨ _≃_.from strong-equivalence ⟩□
+      R x x      □
+  ; symmetric = λ {x y} →
+      R x y      ↝⟨ _≃_.to strong-equivalence ⟩
+      R x ≡ R y  ↝⟨ sym ⟩
+      R y ≡ R x  ↝⟨ _≃_.from strong-equivalence ⟩□
+      R y x      □
+  ; transitive = λ {x y z} Rxy Ryz →
      _≃_.from strong-equivalence (
        R x  ≡⟨ _≃_.to strong-equivalence Rxy ⟩
        R y  ≡⟨ _≃_.to strong-equivalence Ryz ⟩∎
-       R z  ∎))
+       R z  ∎)
+  }
 
 -- A relation that is an equivalence relation, and a family of
 -- propositions, is a strong equivalence relation (assuming
@@ -76,13 +88,11 @@ propositional-equivalence⇒strong-equivalence :
   ∀ {a r} {A : Set a} {R : A → A → Set r} →
   Extensionality (a ⊔ r) (lsuc r) →
   Univalence r →
-  (∀ {x} → R x x) →
-  (∀ {x y} → R x y → R y x) →
-  (∀ {x y z} → R x y → R y z → R x z) →
+  Is-equivalence-relation R →
   (∀ x y → Is-proposition (R x y)) →
   Strong-equivalence R
 propositional-equivalence⇒strong-equivalence
-  {a} {r} {R = R} ext univ rfl sm trns R-prop {x = x} {y = y} =
+  {a} {r} {R = R} ext univ R-equiv R-prop {x = x} {y = y} =
 
   Eq.↔⇒≃ (record
     { surjection = record
@@ -91,11 +101,11 @@ propositional-equivalence⇒strong-equivalence
                  ≃⇒≡ univ $
                  _↔_.to (Eq.⇔↔≃ (lower-extensionality a _ ext)
                                 (R-prop x z) (R-prop y z))
-                 (R x z  ↝⟨ record { to   = trns (sm Rxy)
-                                   ; from = trns Rxy
+                 (R x z  ↝⟨ record { to   = transitive (symmetric Rxy)
+                                   ; from = transitive Rxy
                                    } ⟩□
                   R y z  □)
-        ; from = λ Rx≡Ry →        $⟨ rfl ⟩
+        ; from = λ Rx≡Ry →        $⟨ reflexive ⟩
                            R y y  ↝⟨ subst (_$ y) (sym Rx≡Ry) ⟩□
                            R x y  □
         }
@@ -114,6 +124,8 @@ propositional-equivalence⇒strong-equivalence
     ; left-inverse-of = λ _ →
         _⇔_.to propositional⇔irrelevant (R-prop x y) _ _
     })
+  where
+  open Is-equivalence-relation R-equiv
 
 -- _≡_ is a strong equivalence relation (assuming extensionality and
 -- univalence).

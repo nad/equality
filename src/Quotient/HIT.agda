@@ -141,6 +141,18 @@ rec-Prop :
 rec-Prop p-[] P-prop = elim-Prop (const _) p-[] (const P-prop)
 
 ------------------------------------------------------------------------
+-- Equivalence relations
+
+-- The definition of an equivalence relation.
+
+Is-equivalence-relation :
+  ∀ {a r} {A : Set a} (R : A → A → Proposition r) → Set (a ⊔ r)
+Is-equivalence-relation R =
+  Quotient.Is-equivalence-relation (λ x y → proj₁ (R x y))
+
+open Quotient public using (module Is-equivalence-relation)
+
+------------------------------------------------------------------------
 -- Some properties
 
 module _ {a r} {A : Set a} {R : A → A → Proposition r} where
@@ -162,25 +174,25 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
 
   related≃[equal] :
     Univalence r →
-    (∀ {x} → proj₁ (R x x)) →
-    (∀ {x y} → proj₁ (R x y) → proj₁ (R y x)) →
-    (∀ {x y z} → proj₁ (R x y) → proj₁ (R y z) → proj₁ (R x z)) →
+    Is-equivalence-relation R →
     ∀ {x y} → proj₁ (R x y) ≃ _≡_ {A = A / R} [ x ] [ y ]
-  related≃[equal] univ R-refl R-sym R-trans {x} {y} =
+  related≃[equal] univ R-equiv {x} {y} =
     _↠_.from (Eq.≃↠⇔ (proj₂ (R x y)) (/-is-set _ _))
       (record
         { to   = []-respects-relation
         ; from = λ [x]≡[y] →
-                                $⟨ R-refl ⟩
+                                $⟨ reflexive ⟩
             proj₁ (R′ x [ x ])  ↝⟨ ≡⇒→ (cong (proj₁ ∘ R′ x) [x]≡[y]) ⟩
             proj₁ (R′ x [ y ])  ↝⟨ id ⟩□
             proj₁ (R x y)       □
         })
     where
+    open Is-equivalence-relation R-equiv
+
     lemma : ∀ {x y z} → proj₁ (R y z) → R x y ≡ R x z
     lemma {x} {y} {z} r =            $⟨ record
-                                          { to   = flip R-trans r
-                                          ; from = flip R-trans (R-sym r)
+                                          { to   = flip transitive r
+                                          ; from = flip transitive (symmetric r)
                                           } ⟩
       proj₁ (R x y) ⇔ proj₁ (R x z)  ↝⟨ ⇔↔≡ ext univ (proj₂ (R x y)) (proj₂ (R x z)) ⟩
       proj₁ (R x y) ≡ proj₁ (R x z)  ↝⟨ ignore-propositional-component (H-level-propositional ext 1) ⟩□
@@ -221,12 +233,10 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
 /↠/ : ∀ {a} {A : Set a} {R : A → A → Set a} →
       Univalence a →
       Univalence (# 0) →
-      (∀ {x} → R x x) →
-      (∀ {x y} → R x y → R y x) →
-      (∀ {x y z} → R x y → R y z → R x z) →
+      Quotient.Is-equivalence-relation R →
       (R-prop : ∀ x y → Is-proposition (R x y)) →
       A Quotient./ R ↠ A / (λ x y → R x y , R-prop x y)
-/↠/ {a} {A} {R} univ univ₀ R-refl R-sym R-trans R-prop = record
+/↠/ {a} {A} {R} univ univ₀ R-equiv R-prop = record
   { logical-equivalence = record
     { to   = to
     ; from = from
@@ -240,7 +250,7 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
   R-is-strong-equivalence : Quotient.Strong-equivalence R
   R-is-strong-equivalence =
     Quotient.propositional-equivalence⇒strong-equivalence
-      ext univ R-refl R-sym R-trans R-prop
+      ext univ R-equiv R-prop
 
   []-respects-R : ∀ {x y} → R x y → Quotient.[ x ] ≡ Quotient.[ y ]
   []-respects-R =
@@ -249,7 +259,7 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
   to : A Quotient./ R → A / R′
   to = Quotient.rec
     ext
-    R-refl
+    (Is-equivalence-relation.reflexive R-equiv)
     _
     /-is-set
     [_]
