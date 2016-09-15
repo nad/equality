@@ -219,7 +219,6 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
 -- I encountered size issues when trying to prove this.
 
 /↠/ : ∀ {a} {A : Set a} {R : A → A → Set a} →
-      Extensionality (lsuc (lsuc a)) (lsuc a) →
       Univalence a →
       Univalence (# 0) →
       (∀ {x} → R x x) →
@@ -227,7 +226,7 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
       (∀ {x y z} → R x y → R y z → R x z) →
       (R-prop : ∀ x y → Is-proposition (R x y)) →
       A Quotient./ R ↠ A / (λ x y → R x y , R-prop x y)
-/↠/ {a} {A} {R} ext univ univ₀ R-refl R-sym R-trans R-prop = record
+/↠/ {a} {A} {R} univ univ₀ R-refl R-sym R-trans R-prop = record
   { logical-equivalence = record
     { to   = to
     ; from = from
@@ -241,8 +240,7 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
   R-is-strong-equivalence : Quotient.Strong-equivalence R
   R-is-strong-equivalence =
     Quotient.propositional-equivalence⇒strong-equivalence
-      (lower-extensionality _ lzero ext)
-      univ R-refl R-sym R-trans R-prop
+      ext univ R-refl R-sym R-trans R-prop
 
   []-respects-R : ∀ {x y} → R x y → Quotient.[ x ] ≡ Quotient.[ y ]
   []-respects-R =
