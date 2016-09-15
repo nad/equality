@@ -18,7 +18,7 @@ open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 open import Equivalence equality-with-J as Eq using (_≃_)
-open import Function-universe equality-with-J as F hiding (_∘_)
+open import Function-universe equality-with-J as F hiding (_∘_; id)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 import H-level.Truncation equality-with-J as Trunc
@@ -152,6 +152,45 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
     _
     (λ x → ∣ x , refl ∣)
     (λ _ → truncation-is-proposition)
+
+  -- If the relation is an equivalence relation, then it is equivalent
+  -- to equality under [_].
+  --
+  -- The basic structure of this proof is that of Proposition 2 in
+  -- "Quotienting the Delay Monad by Weak Bisimilarity" by Chapman,
+  -- Uustalu and Veltri.
+
+  related≃[equal] :
+    Univalence r →
+    (∀ {x} → proj₁ (R x x)) →
+    (∀ {x y} → proj₁ (R x y) → proj₁ (R y x)) →
+    (∀ {x y z} → proj₁ (R x y) → proj₁ (R y z) → proj₁ (R x z)) →
+    ∀ {x y} → proj₁ (R x y) ≃ _≡_ {A = A / R} [ x ] [ y ]
+  related≃[equal] univ R-refl R-sym R-trans {x} {y} =
+    _↠_.from (Eq.≃↠⇔ (proj₂ (R x y)) (/-is-set _ _))
+      (record
+        { to   = []-respects-relation
+        ; from = λ [x]≡[y] →
+                                $⟨ R-refl ⟩
+            proj₁ (R′ x [ x ])  ↝⟨ ≡⇒→ (cong (proj₁ ∘ R′ x) [x]≡[y]) ⟩
+            proj₁ (R′ x [ y ])  ↝⟨ id ⟩□
+            proj₁ (R x y)       □
+        })
+    where
+    lemma : ∀ {x y z} → proj₁ (R y z) → R x y ≡ R x z
+    lemma {x} {y} {z} r =            $⟨ record
+                                          { to   = flip R-trans r
+                                          ; from = flip R-trans (R-sym r)
+                                          } ⟩
+      proj₁ (R x y) ⇔ proj₁ (R x z)  ↝⟨ ⇔↔≡ ext univ (proj₂ (R x y)) (proj₂ (R x z)) ⟩
+      proj₁ (R x y) ≡ proj₁ (R x z)  ↝⟨ ignore-propositional-component (H-level-propositional ext 1) ⟩□
+      R x y ≡ R x z                  □
+
+    R′ : A → A / R → Proposition r
+    R′ x = rec
+      (λ y → R x y)
+      lemma
+      (∃-H-level-H-level-1+ ext univ 1)
 
 -- Quotienting with equality (for a set) amounts to the same thing as
 -- not quotienting at all.
