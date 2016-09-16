@@ -437,6 +437,18 @@ constant-function≃∥inhabited∥⇒inhabited {a} {b} {A} {B} B-set =
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)     ↔⟨ →-cong ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) F.id ⟩□
   (∥ A ∥ → B)                     □
 
+private
+
+  -- One direction of the proposition above computes in the right way.
+
+  to-constant-function≃∥inhabited∥⇒inhabited :
+    ∀ {a b} {A : Set a} {B : Set b}
+    (B-set : Is-set B)
+    (f : ∃ λ (f : A → B) → Constant f) (x : A) →
+    _≃_.to (constant-function≃∥inhabited∥⇒inhabited B-set) f ∣ x ∣ ≡
+    proj₁ f x
+  to-constant-function≃∥inhabited∥⇒inhabited _ _ _ = refl
+
 -- The propositional truncation's universal property.
 --
 -- As observed by Kraus this result follows from Proposition 2.2 in

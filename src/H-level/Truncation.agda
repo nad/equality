@@ -881,6 +881,19 @@ constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B} ext B-set =
   (∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ coherently-constant-function≃∥inhabited∥⇒inhabited ℓ ext (mono₁ 2 B-set) ⟩□
   (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)                  □
 
+private
+
+  -- One direction of the proposition above computes in the right way.
+
+  to-constant-function≃∥inhabited∥⇒inhabited :
+    ∀ {a b} ℓ {A : Set a} {B : Set b}
+    (ext : Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ))
+    (B-set : Is-set B)
+    (f : ∃ λ (f : A → B) → Constant f) (x : A) →
+    _≃_.to (constant-function≃∥inhabited∥⇒inhabited ℓ ext B-set)
+      f ∣ x ∣ ≡ proj₁ f x
+  to-constant-function≃∥inhabited∥⇒inhabited _ _ _ _ _ = refl _
+
 -- The propositional truncation's universal property (defined using
 -- extensionality).
 --
