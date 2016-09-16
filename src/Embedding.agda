@@ -49,6 +49,9 @@ record Embedding {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
     to           : From → To
     is-embedding : Is-embedding to
 
+  equivalence : ∀ {x y} → (x ≡ y) ≃ (to x ≡ to y)
+  equivalence = ⟨ _ , is-embedding _ _ ⟩
+
 ------------------------------------------------------------------------
 -- Preorder
 

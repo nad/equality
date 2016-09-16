@@ -586,9 +586,9 @@ _⊎-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
       Eq.with-other-function
         ((x₁ , x₂) ≡ (y₁ , y₂)                                   ↝⟨ inverse $ Eq.↔⇒≃ Bijection.Σ-≡,≡↔≡ ⟩
 
-         (∃ λ (eq : x₁ ≡ y₁) → subst B₁ eq x₂ ≡ y₂)              ↝⟨ Eq.Σ-preserves Eq.⟨ _ , is-embedding A₁↣A₂ _ _ ⟩ (λ eq →
+         (∃ λ (eq : x₁ ≡ y₁) → subst B₁ eq x₂ ≡ y₂)              ↝⟨ Eq.Σ-preserves (Embedding.equivalence A₁↣A₂) (λ eq →
 
-             subst B₁ eq x₂ ≡ y₂                                      ↝⟨ Eq.⟨ _ , is-embedding (B₁↣B₂ y₁) _ _ ⟩ ⟩
+             subst B₁ eq x₂ ≡ y₂                                      ↝⟨ Embedding.equivalence (B₁↣B₂ y₁) ⟩
 
              to (B₁↣B₂ y₁) (subst B₁ eq x₂) ≡ to (B₁↣B₂ y₁) y₂        ↝⟨ ≡⇒↝ _ (cong (_≡ _) $ lemma₁ eq _ y₂) ⟩□
 
@@ -632,7 +632,7 @@ _⊎-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
              cong (Σ-map (to A₁↣A₂) (to (B₁↣B₂ _))) (refl _)              ∎)) }
   }
   where
-  open Embedding
+  open Embedding using (to)
 
   lemma₁ = elim
     (λ {x₁ y₁} eq → (x₂ : B₁ x₁) (y₂ : B₁ y₁) →
