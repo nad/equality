@@ -26,8 +26,15 @@ open ↑ public
 ------------------------------------------------------------------------
 -- The unit type
 
+-- A variant of the unit type with η-equality.
+
 record ⊤ : Set where
   constructor tt
+
+-- A variant without η-equality.
+
+data Unit : Set where
+  unit : Unit
 
 ------------------------------------------------------------------------
 -- The empty type
