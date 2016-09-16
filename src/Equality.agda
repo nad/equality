@@ -1330,6 +1330,24 @@ module Derived-definitions-and-properties
          subst (λ y → ∀ {x} → C x y) (refl _) f  ∎)
         y₁≡y₂
 
+    -- Yet another equality rearrangement lemma.
+
+    subst-→-domain :
+      ∀ {a b c} {A : Set a} {x y : A}
+      (B : A → Set b) {C : Set c} {f : B x → C}
+      (x≡y : x ≡ y) →
+      subst (λ x → B x → C) x≡y f ≡ f ∘ subst B (sym x≡y)
+    subst-→-domain B {C} x≡y = elim
+      (λ {x y} x≡y → (f : B x → C) →
+                     subst (λ x → B x → C) x≡y f ≡
+                     f ∘ subst B (sym x≡y))
+      (λ x f →
+         subst (λ x → B x → C) (refl x) f  ≡⟨ subst-refl (λ x → B x → _) _ ⟩
+         f                                 ≡⟨ cong (f ∘_) $ sym $ subst-refl≡id _ ⟩
+         f ∘ subst B (refl x)              ≡⟨ cong (λ p → f ∘ subst B p) $ sym sym-refl ⟩∎
+         f ∘ subst B (sym (refl x))        ∎)
+      x≡y _
+
     -- The following lemma is Proposition 2 from "Generalizations of
     -- Hedberg's Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
