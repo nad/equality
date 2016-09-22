@@ -21,8 +21,7 @@ open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (_∘_; id)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-import H-level.Truncation equality-with-J as Trunc
-open import H-level.Truncation.Propositional hiding (rec; elim)
+open import H-level.Truncation.Propositional as Trunc hiding (rec; elim)
 import Quotient equality-with-J as Quotient
 open import Surjection equality-with-J using (_↠_)
 open import Univalence-axiom equality-with-J
@@ -221,6 +220,36 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
     }
   ; left-inverse-of = elim-Prop _ (λ _ → refl) (λ _ → /-is-set _ _)
   }
+
+-- Quotienting with a trivial relation amounts to the same thing as
+-- using the propositional truncation.
+
+/trivial↔∥∥ :
+  ∀ {a r} {A : Set a} {R : A → A → Proposition r} →
+  (∀ x y → proj₁ (R x y)) →
+  A / R ↔ ∥ A ∥
+/trivial↔∥∥ {A = A} {R} trivial = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = rec-Prop ∣_∣ truncation-is-proposition
+      ; from = Trunc.rec /-prop [_]
+      }
+    ; right-inverse-of = Trunc.elim
+        _
+        (λ _ → mono₁ 0 (truncation-is-proposition _ _))
+        (λ _ → refl)
+    }
+  ; left-inverse-of = elim-Prop _ (λ _ → refl) (λ _ → /-is-set _ _)
+  }
+  where
+  /-prop : Is-proposition (A / R)
+  /-prop = _⇔_.from propositional⇔irrelevant $
+    elim-Prop _
+      (λ x → elim-Prop _
+         (λ y → []-respects-relation (trivial x y))
+         (λ _ → /-is-set _ _))
+      (λ _ → Π-closure ext 1 λ _ →
+             /-is-set _ _)
 
 -- If the relation is a propositional equivalence relation of a
 -- certain size, then there is a split surjection from the definition
