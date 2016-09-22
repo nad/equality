@@ -300,8 +300,7 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
                                           { to   = flip transitive r
                                           ; from = flip transitive (symmetric r)
                                           } ⟩
-      proj₁ (R x y) ⇔ proj₁ (R x z)  ↝⟨ ⇔↔≡ ext univ (proj₂ (R x y)) (proj₂ (R x z)) ⟩
-      proj₁ (R x y) ≡ proj₁ (R x z)  ↝⟨ ignore-propositional-component (H-level-propositional ext 1) ⟩□
+      proj₁ (R x y) ⇔ proj₁ (R x z)  ↝⟨ ⇔↔≡′ ext univ ⟩
       R x y ≡ R x z                  □
 
     R′ : A → A / R → Proposition r
