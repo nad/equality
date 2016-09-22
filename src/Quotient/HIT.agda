@@ -151,6 +151,111 @@ Is-equivalence-relation R =
 
 open Quotient public using (module Is-equivalence-relation)
 
+-- A trivial, propositional binary relation.
+
+Trivial : ∀ {a r} {A : Set a} → A → A → Proposition r
+Trivial _ _ = ↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible)
+
+-- This relation is an equivalence relation.
+
+Trivial-is-equivalence-relation :
+  ∀ {a r} {A : Set a} →
+  Is-equivalence-relation (Trivial {r = r} {A = A})
+Trivial-is-equivalence-relation = _
+
+------------------------------------------------------------------------
+-- Pointwise liftings of binary relations
+
+-- The superscript P used in the names of the definitions in this
+-- section stands for "pointwise".
+
+-- Lifts binary, propositional relations from B to A → B.
+
+infix 0 _→ᴾ_
+
+_→ᴾ_ :
+  ∀ {a b r} (A : Set a) {B : Set b} →
+  (B → B → Proposition r) →
+  ((A → B) → (A → B) → Proposition (a ⊔ r))
+(_ →ᴾ R) f g =
+    (∀ x → proj₁ (R (f x) (g x)))
+  , Π-closure ext 1 λ _ →
+    proj₂ (R _ _)
+
+-- _→ᴾ_ preserves equivalence relations.
+
+→ᴾ-preserves-Is-equivalence-relation :
+  ∀ {a b r} {A : Set a} {B : Set b} {R : B → B → Proposition r} →
+  Is-equivalence-relation R →
+  Is-equivalence-relation (A →ᴾ R)
+→ᴾ-preserves-Is-equivalence-relation R-equiv = record
+  { reflexive  = λ _ → reflexive
+  ; symmetric  = λ f∼g x → symmetric (f∼g x)
+  ; transitive = λ f∼g g∼h x → transitive (f∼g x) (g∼h x)
+  }
+  where
+  open Is-equivalence-relation R-equiv
+
+-- Lifts binary, propositional relations from A and B to A ⊎ B.
+
+infixr 1 _⊎ᴾ_
+
+_⊎ᴾ_ :
+  ∀ {a b r} {A : Set a} {B : Set b} →
+  (A → A → Proposition r) →
+  (B → B → Proposition r) →
+  (A ⊎ B → A ⊎ B → Proposition r)
+(P ⊎ᴾ Q) (inj₁ x) (inj₁ y) = P x y
+(P ⊎ᴾ Q) (inj₂ x) (inj₂ y) = Q x y
+(P ⊎ᴾ Q) _        _        = ⊥ , ⊥-propositional
+
+-- _⊎ᴾ_ preserves Is-equivalence-relation.
+
+⊎ᴾ-preserves-Is-equivalence-relation :
+  ∀ {a b r} {A : Set a} {B : Set b}
+    {P : A → A → Proposition r} {Q : B → B → Proposition r} →
+  Is-equivalence-relation P →
+  Is-equivalence-relation Q →
+  Is-equivalence-relation (P ⊎ᴾ Q)
+⊎ᴾ-preserves-Is-equivalence-relation P-equiv Q-equiv = record
+  { reflexive  = λ { {x = inj₁ _} → reflexive P-equiv
+                   ; {x = inj₂ _} → reflexive Q-equiv
+                   }
+    ; symmetric  = λ { {x = inj₁ _} {y = inj₁ _} → symmetric P-equiv
+                     ; {x = inj₂ _} {y = inj₂ _} → symmetric Q-equiv
+                     ; {x = inj₁ _} {y = inj₂ _} ()
+                     ; {x = inj₂ _} {y = inj₁ _} ()
+                     }
+  ; transitive = λ
+     { {x = inj₁ _} {y = inj₁ _} {z = inj₁ _} → transitive P-equiv
+     ; {x = inj₂ _} {y = inj₂ _} {z = inj₂ _} → transitive Q-equiv
+
+     ; {x = inj₁ _} {y = inj₂ _} ()
+     ; {x = inj₂ _} {y = inj₁ _} ()
+     ; {y = inj₁ _} {z = inj₂ _} _ ()
+     ; {y = inj₂ _} {z = inj₁ _} _ ()
+     }
+  }
+  where
+  open Is-equivalence-relation
+
+-- Lifts a binary, propositional relation from A to Maybe A.
+
+Maybeᴾ :
+  ∀ {a r} {A : Set a} →
+  (A → A → Proposition r) →
+  (Maybe A → Maybe A → Proposition r)
+Maybeᴾ R = Trivial ⊎ᴾ R
+
+-- Maybeᴾ preserves Is-equivalence-relation.
+
+Maybeᴾ-preserves-Is-equivalence-relation :
+  ∀ {a r} {A : Set a} {R : A → A → Proposition r} →
+  Is-equivalence-relation R →
+  Is-equivalence-relation (Maybeᴾ R)
+Maybeᴾ-preserves-Is-equivalence-relation =
+  ⊎ᴾ-preserves-Is-equivalence-relation Trivial-is-equivalence-relation
+
 ------------------------------------------------------------------------
 -- Some properties
 
