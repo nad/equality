@@ -58,7 +58,7 @@ record Groupoid o p : Set (lsuc (o ⊔ p)) where
       p               ≡⟨ sym $ left-identity _ ⟩
       id ∘ p          ≡⟨ cong (_∘ _) $ sym $ left-inverse _ ⟩
       (p ⁻¹ ∘ p) ∘ p  ≡⟨ sym $ assoc _ _ _ ⟩
-      p ⁻¹ ∘ (p ∘ p)  ≡⟨ cong (_ ∘_) p∘p≡p ⟩
+      p ⁻¹ ∘ (p ∘ p)  ≡⟨ cong (p ⁻¹ ∘_) p∘p≡p ⟩
       p ⁻¹ ∘ p        ≡⟨ left-inverse _ ⟩∎
       id              ∎
 
@@ -71,7 +71,7 @@ record Groupoid o p : Set (lsuc (o ⊔ p)) where
       q₁               ≡⟨ sym $ left-identity _ ⟩
       id ∘ q₁          ≡⟨ cong (_∘ _) $ sym $ left-inverse _ ⟩
       (p ⁻¹ ∘ p) ∘ q₁  ≡⟨ sym $ assoc _ _ _ ⟩
-      p ⁻¹ ∘ (p ∘ q₁)  ≡⟨ cong (_ ∘_) p∘q₁≡p∘q₂ ⟩
+      p ⁻¹ ∘ (p ∘ q₁)  ≡⟨ cong (p ⁻¹ ∘_) p∘q₁≡p∘q₂ ⟩
       p ⁻¹ ∘ (p ∘ q₂)  ≡⟨ assoc _ _ _ ⟩
       (p ⁻¹ ∘ p) ∘ q₂  ≡⟨ cong (_∘ _) $ left-inverse _ ⟩
       id ∘ q₂          ≡⟨ left-identity _ ⟩∎
@@ -84,7 +84,7 @@ record Groupoid o p : Set (lsuc (o ⊔ p)) where
       p₁               ≡⟨ sym $ right-identity _ ⟩
       p₁ ∘ id          ≡⟨ cong (_ ∘_) $ sym $ right-inverse _ ⟩
       p₁ ∘ (q ∘ q ⁻¹)  ≡⟨ assoc _ _ _ ⟩
-      (p₁ ∘ q) ∘ q ⁻¹  ≡⟨ cong (_∘ _) p₁∘q≡p₂∘q ⟩
+      (p₁ ∘ q) ∘ q ⁻¹  ≡⟨ cong (_∘ q ⁻¹) p₁∘q≡p₂∘q ⟩
       (p₂ ∘ q) ∘ q ⁻¹  ≡⟨ sym $ assoc _ _ _ ⟩
       p₂ ∘ (q ∘ q ⁻¹)  ≡⟨ cong (_ ∘_) $ right-inverse _ ⟩
       p₂ ∘ id          ≡⟨ right-identity _ ⟩∎
