@@ -11,7 +11,7 @@
 
 module Quotient.HIT where
 
-open import Equality.Propositional hiding (elim)
+open import Equality.Propositional as EP hiding (elim)
 open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
@@ -20,7 +20,7 @@ open import Bijection equality-with-J as Bijection using (_↔_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (_∘_; id)
-open import H-level equality-with-J
+open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional as Trunc hiding (rec; elim)
 open import Preimage equality-with-J using (_⁻¹_)
@@ -692,3 +692,144 @@ Maybe/-comm {A = A} {R} =
 
          [ f ]                                           ∎)
       (λ _ → /-is-set _ _)
+
+------------------------------------------------------------------------
+-- Quotient-like eliminators
+
+-- If there is a split surjection from a quotient type to some other
+-- type, then one can construct a quotient-like eliminator for the
+-- other type.
+--
+-- This kind of construction is used in "Quotienting the Delay Monad
+-- by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
+
+↠-eliminator :
+  ∀ {a b r} {A : Set a} {R : A → A → Proposition r} {B : Set b}
+  (surj : A / R ↠ B) →
+  ∀ {p} (P : B → Set p) →
+  (p-[] : ∀ x → P (_↠_.to surj [ x ])) →
+  (∀ {x y} (r : proj₁ (R x y)) →
+   subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x) ≡
+   p-[] y) →
+  (∀ x → Is-set (P x)) →
+  ∀ x → P x
+↠-eliminator surj P p-[] ok P-set x =
+  subst P (_↠_.right-inverse-of surj x) p
+  where
+  p : P (_↠_.to surj (_↠_.from surj x))
+  p = elim
+    (P ∘ _↠_.to surj)
+    p-[]
+    (λ {x y} r →
+       subst (P ∘ _↠_.to surj) ([]-respects-relation r) (p-[] x)       ≡⟨ subst-∘ P (_↠_.to surj) ([]-respects-relation r) ⟩
+       subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x)  ≡⟨ ok r ⟩
+       p-[] y                                                          ∎)
+    (λ _ → P-set _)
+    (_↠_.from surj x)
+
+-- The eliminator "computes" in the "right" way for elements that
+-- satisfy a certain property.
+
+↠-eliminator-[] :
+  ∀ {a b r} {A : Set a} {R : A → A → Proposition r} {B : Set b}
+  (surj : A / R ↠ B) →
+  ∀ {p} (P : B → Set p)
+  (p-[] : ∀ x → P (_↠_.to surj [ x ]))
+  (ok : ∀ {x y} (r : proj₁ (R x y)) →
+        subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x) ≡
+        p-[] y)
+  (P-set : ∀ x → Is-set (P x)) x →
+  _↠_.from surj (_↠_.to surj [ x ]) ≡ [ x ] →
+  ↠-eliminator surj P p-[] ok P-set (_↠_.to surj [ x ]) ≡ p-[] x
+↠-eliminator-[] {R = R} surj P p-[] ok P-set x hyp =
+  subst P (_↠_.right-inverse-of surj (_↠_.to surj [ x ]))
+    (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _)
+          (_↠_.from surj (_↠_.to surj [ x ])))               ≡⟨ cong (λ p → subst P p (elim (P ∘ _↠_.to surj) _ _ _ _)) $
+                                                                  _⇔_.to set⇔UIP (H-level.respects-surjection surj 2 /-is-set)
+                                                                    (_↠_.right-inverse-of surj (_↠_.to surj [ x ]))
+                                                                    (cong (_↠_.to surj) hyp) ⟩
+  subst P (cong (_↠_.to surj) hyp)
+    (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _)
+          (_↠_.from surj (_↠_.to surj [ x ])))               ≡⟨ EP.elim
+                                                                  (λ {x y} p → subst P (cong (_↠_.to surj) p)
+                                                                                 (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) x) ≡
+                                                                               elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) y)
+                                                                  (λ _ → refl)
+                                                                  hyp ⟩
+  elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) [ x ]      ≡⟨⟩
+
+  p-[] x                                                     ∎
+  where
+  ok′ : ∀ {x y} (r : proj₁ (R x y)) → _
+  ok′ = λ r →
+    trans (subst-∘ P (_↠_.to surj) ([]-respects-relation r)) (ok r)
+
+-- If there is a bijection from a quotient type to some other type,
+-- then one can also construct a quotient-like eliminator for the
+-- other type.
+
+↔-eliminator :
+  ∀ {a b r} {A : Set a} {R : A → A → Proposition r} {B : Set b}
+  (bij : A / R ↔ B) →
+  ∀ {p} (P : B → Set p) →
+  (p-[] : ∀ x → P (_↔_.to bij [ x ])) →
+  (∀ {x y} (r : proj₁ (R x y)) →
+   subst P (cong (_↔_.to bij) ([]-respects-relation r)) (p-[] x) ≡
+   p-[] y) →
+  (∀ x → Is-set (P x)) →
+  ∀ x → P x
+↔-eliminator bij = ↠-eliminator (_↔_.surjection bij)
+
+-- This latter eliminator always "computes" in the "right" way.
+
+↔-eliminator-[] :
+  ∀ {a b r} {A : Set a} {R : A → A → Proposition r} {B : Set b}
+  (bij : A / R ↔ B) →
+  ∀ {p} (P : B → Set p)
+  (p-[] : ∀ x → P (_↔_.to bij [ x ]))
+  (ok : ∀ {x y} (r : proj₁ (R x y)) →
+        subst P (cong (_↔_.to bij) ([]-respects-relation r)) (p-[] x) ≡
+        p-[] y)
+  (P-set : ∀ x → Is-set (P x)) x →
+  ↔-eliminator bij P p-[] ok P-set (_↔_.to bij [ x ]) ≡ p-[] x
+↔-eliminator-[] bij P p-[] ok P-set x =
+  ↠-eliminator-[] (_↔_.surjection bij) P p-[] ok P-set x
+    (_↔_.left-inverse-of bij [ x ])
+
+-- A quotient-like eliminator for functions of type ℕ → A / R, where R
+-- is an equivalence relation. Defined using univalence and countable
+-- choice.
+--
+-- This eliminator is taken from Corollary 1 in "Quotienting the Delay
+-- Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
+
+ℕ→/-elim :
+  ∀ {a p r} {A : Set a} {R : A → A → Proposition r} →
+  Univalence r →
+  Axiom-of-countable-choice (a ⊔ r) →
+  Is-equivalence-relation R →
+  (P : (ℕ → A / R) → Set p)
+  (p-[] : ∀ f → P (λ n → [ f n ])) →
+  (∀ {f g} (r : proj₁ ((ℕ →ᴾ R) f g)) →
+   subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡
+   p-[] g) →
+  (∀ f → Is-set (P f)) →
+  ∀ f → P f
+ℕ→/-elim univ cc R-equiv = ↔-eliminator (ℕ→/-comm univ cc R-equiv)
+
+-- The eliminator "computes" in the "right" way.
+
+ℕ→/-elim-[] :
+  ∀ {a p r} {A : Set a} {R : A → A → Proposition r}
+  (univ : Univalence r)
+  (cc : Axiom-of-countable-choice (a ⊔ r))
+  (R-equiv : Is-equivalence-relation R)
+  (P : (ℕ → A / R) → Set p)
+  (p-[] : ∀ f → P (λ n → [ f n ]))
+  (ok : ∀ {f g} (r : proj₁ ((ℕ →ᴾ R) f g)) →
+        subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡
+        p-[] g)
+  (P-set : ∀ f → Is-set (P f)) f →
+  ℕ→/-elim univ cc R-equiv P p-[] ok P-set (λ n → [ f n ]) ≡ p-[] f
+ℕ→/-elim-[] univ cc R-equiv =
+  ↔-eliminator-[] (ℕ→/-comm univ cc R-equiv)
