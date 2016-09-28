@@ -526,6 +526,29 @@ Maybe/-comm {A = A} {R} =
   ∥ ⊤ ∥ ⊎ A / R        ↝⟨ ∥∥↔ (mono₁ 0 ⊤-contractible) ⊎-cong F.id ⟩□
   Maybe (A / R)        □
 
+-- A simplification lemma for Maybe/-comm.
+
+Maybe/-comm-[] :
+  ∀ {a r} {A : Set a} {R : A → A → Proposition r} →
+  _↔_.to Maybe/-comm ∘ [_] ≡ ⊎-map id ([_] {R = R})
+Maybe/-comm-[] =
+  _↔_.to Maybe/-comm ∘ [_]                             ≡⟨⟩
+
+  ⊎-map _ id ∘
+  ⊎-map (rec-Prop ∣_∣ truncation-is-proposition) id ∘
+  ⊎-map [_] [_]                                        ≡⟨ cong (_∘ ⊎-map [_] [_]) ⊎-map-∘ ⟩
+
+  ⊎-map _ id ∘ ⊎-map [_] [_]                           ≡⟨ ⊎-map-∘ ⟩∎
+
+  ⊎-map id [_]                                         ∎
+  where
+  ⊎-map-∘ : ∀ {a₁ b₁ c₁} {A₁ : Set a₁} {B₁ : Set b₁} {C₁ : Set c₁}
+              {a₂ b₂ c₂} {A₂ : Set a₂} {B₂ : Set b₂} {C₂ : Set c₂}
+              {f₁ : B₁ → C₁} {g₁ : A₁ → B₁}
+              {f₂ : B₂ → C₂} {g₂ : A₂ → B₂} →
+            ⊎-map f₁ f₂ ∘ ⊎-map g₁ g₂ ≡ ⊎-map (f₁ ∘ g₁) (f₂ ∘ g₂)
+  ⊎-map-∘ = ext Prelude.[ (λ _ → refl) , (λ _ → refl) ]
+
 -- The sigma type former commutes (kind of) with quotients, assuming
 -- that the second projections come from propositional types.
 
