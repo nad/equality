@@ -21,6 +21,13 @@ foldr : ∀ {a b} {A : Set a} {B : Set b} →
 foldr _⊕_ ε []       = ε
 foldr _⊕_ ε (x ∷ xs) = x ⊕ foldr _⊕_ ε xs
 
+-- Left fold.
+
+foldl : ∀ {a b} {A : Set a} {B : Set b} →
+        (B → A → B) → B → List A → B
+foldl _⊕_ ε []       = ε
+foldl _⊕_ ε (x ∷ xs) = foldl _⊕_ (ε ⊕ x) xs
+
 -- The length of a list.
 
 length : ∀ {a} {A : Set a} → List A → ℕ
@@ -42,6 +49,17 @@ map f = foldr (λ x ys → f x ∷ ys) []
 
 concat : ∀ {a} {A : Set a} → List (List A) → List A
 concat = foldr _++_ []
+
+-- Reverses a list.
+
+reverse : ∀ {a} {A : Set a} → List A → List A
+reverse = foldl (λ xs x → x ∷ xs) []
+
+-- Replicates the given value the given number of times.
+
+replicate : ∀ {a} {A : Set a} → ℕ → A → List A
+replicate zero    x = []
+replicate (suc n) x = x ∷ replicate n x
 
 -- A filter function.
 
