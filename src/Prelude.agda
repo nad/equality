@@ -28,8 +28,7 @@ open ↑ public
 
 -- A variant of the unit type with η-equality.
 
-record ⊤ : Set where
-  constructor tt
+open import Agda.Builtin.Unit public using (⊤; tt)
 
 -- A variant without η-equality.
 
@@ -59,13 +58,9 @@ infix 3 ¬_
 ------------------------------------------------------------------------
 -- Natural numbers
 
-data ℕ : Set where
-  zero : ℕ
-  suc  : (n : ℕ) → ℕ
-
--- Support for natural number literals.
-
-{-# BUILTIN NATURAL ℕ #-}
+open import Agda.Builtin.Nat public
+  using (zero; suc; _+_; _*_)
+  renaming (Nat to ℕ)
 
 -- Dependent eliminator.
 
@@ -73,22 +68,6 @@ data ℕ : Set where
         P 0 → (∀ n → P n → P (suc n)) → ∀ n → P n
 ℕ-rec z s zero    = z
 ℕ-rec z s (suc n) = s n (ℕ-rec z s n)
-
--- Addition.
-
-infixl 6 _+_
-
-_+_ : ℕ → ℕ → ℕ
-zero  + n = n
-suc m + n = suc (m + n)
-
--- Multiplication.
-
-infixl 7 _*_
-
-_*_ : ℕ → ℕ → ℕ
-zero  * n = zero
-suc m * n = n + m * n
 
 -- Exponentiation.
 
@@ -263,11 +242,9 @@ abstract
 ------------------------------------------------------------------------
 -- Support for coinduction
 
-{-# BUILTIN SIZEUNIV Size-universe #-}
-{-# BUILTIN SIZE     Size          #-}
-{-# BUILTIN SIZELT   Size<_        #-}
-{-# BUILTIN SIZESUC  ssuc          #-}
-{-# BUILTIN SIZEINF  ∞             #-}
+open import Agda.Builtin.Size public
+  using (Size; Size<_)
+  renaming (SizeU to Size-universe; ↑_ to ssuc; ω to ∞)
 
 ------------------------------------------------------------------------
 -- Binary sums
@@ -378,11 +355,7 @@ T b = if b then ⊤ else ⊥
 ------------------------------------------------------------------------
 -- Lists
 
-infixr 5 _∷_
-
-data List {a} (A : Set a) : Set a where
-  []  : List A
-  _∷_ : (x : A) (xs : List A) → List A
+open import Agda.Builtin.List public using (List; []; _∷_)
 
 ------------------------------------------------------------------------
 -- Finite sets

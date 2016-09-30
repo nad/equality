@@ -13,10 +13,7 @@ open import Prelude
 ------------------------------------------------------------------------
 -- Equality
 
-infix 4 _≡_
-
-data _≡_ {a} {A : Set a} (x : A) : A → Set a where
-  refl : x ≡ x
+open import Agda.Builtin.Equality public using (_≡_; refl)
 
 {-# BUILTIN REWRITE _≡_ #-}
 
