@@ -39,6 +39,11 @@ import Equality.Propositional
 
 import Equality.Tactic
 
+-- Some tactics aimed at making equational reasoning proofs more
+-- readable.
+
+import Tactic.By
+
 -- Some decision procedures for equality.
 
 import Equality.Decision-procedures
