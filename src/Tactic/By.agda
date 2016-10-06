@@ -116,20 +116,14 @@ private
   apply t               _  =
     typeError (strErr "apply" ∷ termErr t ∷ [])
 
-  -- The tactic refine x goal tries to use the name or term x, applied
-  -- to as many fresh meta-variables as possible (based on its type),
-  -- to solve the given goal. If this fails, then an attempt is made
-  -- to solve the goal using "sym (x metas)" instead.
+  -- The tactic refine A t goal tries to use the term t (of type A),
+  -- applied to as many fresh meta-variables as possible (based on its
+  -- type), to solve the given goal. If this fails, then an attempt is
+  -- made to solve the goal using "sym (x metas)" instead.
 
-  refine : Name ⊎ Term → Term → TC Term
-  refine x goal = bindTC (inferType t) (refine-with-type [])
+  refine : Type → Term → Term → TC Term
+  refine A t goal = refine-with-type [] A
     where
-    toTerm : Name ⊎ Term → Term
-    toTerm (inj₁ x) = def x []
-    toTerm (inj₂ x) = x
-
-    t = toTerm x
-
     with-sym : Bool → Term → Term
     with-sym true  t = def (quote sym) (varg t ∷ [])
     with-sym false t = t
@@ -141,7 +135,7 @@ private
       where
       t′ = with-sym use-sym t
 
-    refine-with-type : List (Arg Term) → Term → TC Term
+    refine-with-type : List (Arg Term) → Type → TC Term
     refine-with-type args (meta x _)               = blockOnMeta x
     refine-with-type args (pi (arg i _) (abs _ τ)) =
       refine-with-type (arg i unknown ∷ args) τ
@@ -151,151 +145,142 @@ private
       catchTC (try true  t)           $
       typeError (strErr "refine failed" ∷ [])
 
-  -- The call by-tactic fuel x goal tries to use (non-dependent)
-  -- "cong" functions, reflexivity and x (via refine) to solve the
-  -- given goal (which must be an equality).
-  --
-  -- The fuel is used to ensure termination. (Termination could
-  -- perhaps be proved in some way, but using fuel was easier.)
+  -- The call by-tactic t goal tries to use (non-dependent) "cong"
+  -- functions, reflexivity and t (via refine) to solve the given goal
+  -- (which must be an equality).
   --
   -- The constructed term is returned.
 
-  by-tactic : ℕ → Name ⊎ Term → Term → TC Term
-  by-tactic zero    _ _    = typeError (strErr "by: no more fuel" ∷ [])
-  by-tactic (suc n) x goal =
-    bindTC (inferType goal)          λ goal-type →
-    bindTC (block-if-meta goal-type) λ _ →
-    catchTC (try-refl goal-type)     $
-    catchTC (refine x goal)          $
-    try-cong goal-type
+  by-tactic : {A : Set} → A → Term → TC Term
+  by-tactic {A} t goal =
+    bindTC (quoteTC A) λ A →
+    bindTC (quoteTC t) λ t →
+    by-tactic′ fuel A t goal
     where
-    ill-formed failure : {A : Set} → TC A
-    ill-formed = typeError (strErr "by: ill-formed goal" ∷ [])
-    failure    = typeError (strErr "by failed" ∷ [])
+    -- Fuel, used to ensure termination. (Termination could perhaps be
+    -- proved in some way, but using fuel was easier.)
 
-    -- Blocks if the goal type is not sufficiently concrete. Raises a
-    -- type error if the goal type is not an equality.
+    fuel : ℕ
+    fuel = 1000000
 
-    block-if-meta : Type → TC ⊤
-    block-if-meta (meta m _)                            = blockOnMeta m
-    block-if-meta
-      (def (quote _≡_)
-           (_ ∷ _ ∷ arg _ (meta m _) ∷ _))              = blockOnMeta m
-    block-if-meta
-      (def (quote _≡_)
-           (_ ∷ _ ∷ _ ∷ arg _ (meta m _) ∷ _))          = blockOnMeta m
-    block-if-meta (def (quote _≡_) (_ ∷ _ ∷ _ ∷ _ ∷ _)) = returnTC _
-    block-if-meta _                                     = ill-formed
+    -- The tactic's main loop.
 
-    -- Tries to solve the goal using reflexivity.
-
-    try-refl : Type → TC Term
-    try-refl (def (quote _≡_) (a ∷ A ∷ arg _ lhs ∷ _)) =
-      bindTC (unify t goal) λ _ →
-      returnTC t
+    by-tactic′ : ℕ → Type → Term → Term → TC Term
+    by-tactic′ zero    _ _ _    = typeError
+                                    (strErr "by: no more fuel" ∷ [])
+    by-tactic′ (suc n) A t goal =
+      bindTC (inferType goal)          λ goal-type →
+      bindTC (block-if-meta goal-type) λ _ →
+      catchTC (try-refl goal-type)     $
+      catchTC (refine A t goal)        $
+      try-cong goal-type
       where
-      t = con (quote refl) (a ∷ A ∷ harg lhs ∷ [])
-    try-refl _ = ill-formed
+      -- Error messages.
 
-    -- Tries to solve the goal using one of the "cong" functions.
+      ill-formed failure : {A : Set} → TC A
+      ill-formed = typeError (strErr "by: ill-formed goal" ∷ [])
+      failure    = typeError (strErr "by failed" ∷ [])
 
-    try-cong : Term → TC Term
-    try-cong (def (quote _≡_) (_ ∷ _ ∷ arg _ y ∷ arg _ z ∷ [])) =
-      bindTC (heads y z)                     λ { (head , ys , zs) →
-      bindTC (arguments ys zs)               λ args →
-      bindTC (make-cong (length args))       λ cong →
-      let t = def cong (varg head ∷ args) in
-      bindTC (unify t goal)                  λ _ →
-      returnTC t                             }
-      where
-      -- Checks if the heads are equal. Returns the (unique) head,
-      -- along with the two argument lists.
+      -- Blocks if the goal type is not sufficiently concrete. Raises
+      -- a type error if the goal type is not an equality.
 
-      heads : Term → Term →
-              TC (Term × List (Arg Term) × List (Arg Term))
-      heads = λ
-        { (def y ys) (def z zs) → helper (primQNameEquality y z)
-                                         (def y []) (def z []) ys zs
-        ; (con y ys) (con z zs) → helper (primQNameEquality y z)
-                                         (con y []) (con z []) ys zs
-        ; (var y ys) (var z zs) → helper (y == z)
-                                         (var y []) (var z []) ys zs
-        ; _          _          → failure
-        }
+      block-if-meta : Type → TC ⊤
+      block-if-meta (meta m _)                            = blockOnMeta m
+      block-if-meta
+        (def (quote _≡_)
+             (_ ∷ _ ∷ arg _ (meta m _) ∷ _))              = blockOnMeta m
+      block-if-meta
+        (def (quote _≡_)
+             (_ ∷ _ ∷ _ ∷ arg _ (meta m _) ∷ _))          = blockOnMeta m
+      block-if-meta (def (quote _≡_) (_ ∷ _ ∷ _ ∷ _ ∷ _)) = returnTC _
+      block-if-meta _                                     = ill-formed
+
+      -- Tries to solve the goal using reflexivity.
+
+      try-refl : Type → TC Term
+      try-refl (def (quote _≡_) (a ∷ A ∷ arg _ lhs ∷ _)) =
+        bindTC (unify t′ goal) λ _ →
+        returnTC t′
         where
-        helper : B.Bool → _ → _ → _ → _ → _
-        helper B.true  y _ ys zs = returnTC (y , ys , zs)
-        helper B.false y z _  _  =
-          typeError
-            (strErr "by: distinct heads:" ∷ termErr y ∷ termErr z ∷ [])
+        t′ = con (quote refl) (a ∷ A ∷ harg lhs ∷ [])
+      try-refl _ = ill-formed
 
-      -- Tries to prove that the argument lists are equal.
+      -- Tries to solve the goal using one of the "cong" functions.
 
-      arguments : List (Arg Term) → List (Arg Term) →
-                  TC (List (Arg Term))
-      arguments [] []                             = returnTC []
-      arguments (arg (arg-info visible _) y ∷ ys)
-                (arg (arg-info visible _) z ∷ zs) =
-                 -- Relevance is ignored.
+      try-cong : Term → TC Term
+      try-cong (def (quote _≡_) (_ ∷ _ ∷ arg _ y ∷ arg _ z ∷ [])) =
+        bindTC (heads y z)                     λ { (head , ys , zs) →
+        bindTC (arguments ys zs)               λ args →
+        bindTC (make-cong (length args))       λ cong →
+        let t = def cong (varg head ∷ args) in
+        bindTC (unify t goal)                  λ _ →
+        returnTC t                             }
+        where
+        -- Checks if the heads are equal. Returns the (unique) head,
+        -- along with the two argument lists.
 
-        bindTC (checkType unknown
-                  (def (quote _≡_) (varg y ∷ varg z ∷ []))) λ goal →
-        bindTC (by-tactic n x goal) λ t →
-        bindTC (arguments ys zs) λ args →
-        returnTC (varg t ∷ args)
+        heads : Term → Term →
+                TC (Term × List (Arg Term) × List (Arg Term))
+        heads = λ
+          { (def y ys) (def z zs) → helper (primQNameEquality y z)
+                                           (def y []) (def z []) ys zs
+          ; (con y ys) (con z zs) → helper (primQNameEquality y z)
+                                           (con y []) (con z []) ys zs
+          ; (var y ys) (var z zs) → helper (y == z)
+                                           (var y []) (var z []) ys zs
+          ; _          _          → failure
+          }
+          where
+          helper : B.Bool → _ → _ → _ → _ → _
+          helper B.true  y _ ys zs = returnTC (y , ys , zs)
+          helper B.false y z _  _  =
+            typeError (strErr "by: distinct heads:" ∷
+                       termErr y ∷ termErr z ∷ [])
 
-      -- Hidden and instance arguments are ignored.
+        -- Tries to prove that the argument lists are equal.
 
-      arguments (arg (arg-info hidden _) _ ∷ ys) zs    = arguments ys zs
-      arguments (arg (arg-info instance′ _) _ ∷ ys) zs = arguments ys zs
-      arguments ys (arg (arg-info hidden _) _ ∷ zs)    = arguments ys zs
-      arguments ys (arg (arg-info instance′ _) _ ∷ zs) = arguments ys zs
+        arguments : List (Arg Term) → List (Arg Term) →
+                    TC (List (Arg Term))
+        arguments [] []                             = returnTC []
+        arguments (arg (arg-info visible _) y ∷ ys)
+                  (arg (arg-info visible _) z ∷ zs) =
+                   -- Relevance is ignored.
 
-      arguments _ _ = failure
+          bindTC (checkType unknown
+                    (def (quote _≡_) (varg y ∷ varg z ∷ []))) λ goal →
+          bindTC (by-tactic′ n A t goal) λ t →
+          bindTC (arguments ys zs) λ args →
+          returnTC (varg t ∷ args)
 
-    try-cong _ = ill-formed
+        -- Hidden and instance arguments are ignored.
 
-  -- The amount of fuel given to the by tactic.
+        arguments (arg (arg-info hidden _) _ ∷ ys) zs    = arguments ys zs
+        arguments (arg (arg-info instance′ _) _ ∷ ys) zs = arguments ys zs
+        arguments ys (arg (arg-info hidden _) _ ∷ zs)    = arguments ys zs
+        arguments ys (arg (arg-info instance′ _) _ ∷ zs) = arguments ys zs
 
-  fuel : ℕ
-  fuel = 1000000
+        arguments _ _ = failure
+
+      try-cong _ = ill-formed
 
 macro
 
-  -- The call by x tries to use x (along with congruence, reflexivity
+  -- The call by t tries to use t (along with congruence, reflexivity
   -- and symmetry) to solve the goal, which must be an equality.
 
-  by : Name → Term → TC ⊤
-  by x goal =
-    bindTC (by-tactic fuel (inj₁ x) goal) λ _ →
+  by : {A : Set} → A → Term → TC ⊤
+  by t goal =
+    bindTC (by-tactic t goal) λ _ →
     returnTC _
 
-  -- If by x would have been successful, then debug-by x raises an
+  -- If by t would have been successful, then debug-by t raises an
   -- error message that includes the term that would have been
   -- constructed by by.
 
-  debug-by : Name → Term → TC ⊤
-  debug-by x goal =
-    bindTC (by-tactic fuel (inj₁ x) goal) λ t →
+  debug-by : {A : Set} → A → Term → TC ⊤
+  debug-by {A} t goal =
+    bindTC (by-tactic t goal) λ t →
     typeError (strErr "Term found by by:" ∷ termErr t ∷ [])
-
-  -- The call by[ t ] tries to use t (along with congruence,
-  -- reflexivity and symmetry) to solve the goal, which must be an
-  -- equality.
-
-  by[_] : Term → Term → TC ⊤
-  by[ t ] goal =
-    bindTC (by-tactic fuel (inj₂ t) goal) λ _ →
-    returnTC _
-
-  -- If by[ t ] would have been successful, then debug-by[ t ] raises
-  -- an error message that includes the term that would have been
-  -- constructed by by.
-
-  debug-by[_] : Term → Term → TC ⊤
-  debug-by[ t ] goal =
-    bindTC (by-tactic fuel (inj₂ t) goal) λ t →
-    typeError (strErr "Term found by by[_]:" ∷ termErr t ∷ [])
 
 -- A definition that provides no information. Intended to be used
 -- together with the by tactic: "by definition".
@@ -318,29 +303,29 @@ private
     test₁ = by definition
 
     test₂ : 48 ≡ 42 → 42 ≡ 48
-    test₂ eq = by[ eq ]
+    test₂ eq = by eq
 
     test₃ : (f : ℕ → ℕ) → f 42 ≡ f 48
-    test₃ f = by[ assumption ]
+    test₃ f = by assumption
 
     test₄ : (f : ℕ → ℕ) → f 48 ≡ f 42
-    test₄ f = by[ assumption ]
+    test₄ f = by assumption
 
     test₅ : (f : ℕ → ℕ → ℕ) → f 42 48 ≡ f 48 42
-    test₅ f = by[ assumption ]
+    test₅ f = by assumption
 
     test₆ : (f : ℕ → ℕ → ℕ → ℕ) → f 42 45 48 ≡ f 48 45 42
-    test₆ f = by[ assumption ]
+    test₆ f = by assumption
 
     test₇ : f 48 (f 42 45 48) 42 ≡ f 48 (f 48 45 42) 48
-    test₇ = by[ assumption ]
+    test₇ = by assumption
 
     g : ℕ → ℕ → ℕ → ℕ
     g zero    _ _ = 12
     g (suc _) _ _ = 12
 
     test₈ : ∀ n → g n (g n 45 48) 42 ≡ g n (g n 45 42) 48
-    test₈ n = by[ assumption ]
+    test₈ n = by assumption
 
     test₉ : (f : ℕ → ℕ) → f 42 ≡ f 48
-    test₉ f = by[ lemma 40 ]
+    test₉ f = by (lemma 40)
