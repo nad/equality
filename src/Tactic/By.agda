@@ -30,6 +30,13 @@ private
   harg : {A : Set} → A → Arg A
   harg = arg (arg-info hidden relevant)
 
+  -- Returns a fresh meta-variable of type Level.
+
+  fresh-level : TC Level
+  fresh-level =
+    bindTC (checkType unknown (def (quote Level) [])) λ ℓ →
+    unquoteTC ℓ
+
   -- Constructs a "cong" function (like cong and cong₂ in Equality)
   -- for functions with the given name and the given number of
   -- arguments.
@@ -105,16 +112,30 @@ private
     bindTC (make-cong-called cong n) λ _ →
     returnTC cong
 
-  -- Tries to apply the term to the list of arguments.
+  -- Tries to apply the given term (of the given type, which must live
+  -- in Set₀) to the list of arguments.
 
-  apply : Term → List (Arg Term) → TC Term
-  apply (var x xs)      ys = returnTC (var x      (xs ++ ys))
-  apply (con x xs)      ys = returnTC (con x      (xs ++ ys))
-  apply (def x xs)      ys = returnTC (def x      (xs ++ ys))
-  apply (pat-lam cs xs) ys = returnTC (pat-lam cs (xs ++ ys))
-  apply (meta x xs)     ys = returnTC (meta x     (xs ++ ys))
-  apply t               _  =
-    typeError (strErr "apply" ∷ termErr t ∷ [])
+  apply : Type → Term → List (Arg Term) → TC Term
+  apply A t []       = returnTC t
+  apply A t (a ∷ as) =
+    bindTC (reduce A)     λ A →
+    bindTC (apply₁ A t a) λ { (A , t) →
+    apply A t as          }
+    where
+    apply₁ : Type → Term → Arg Term → TC (Type × Term)
+    apply₁ (meta x _) _ _ = blockOnMeta x
+    apply₁ (pi (arg (arg-info visible relevant) A) B) t₁ (arg _ t₂) =
+      bindTC fresh-level                 λ a →
+      bindTC fresh-level                 λ b →
+      bindTC (unquoteTC A)               λ (A : Set a) →
+      bindTC (unquoteTC (lam visible B)) λ (B : A → Set b) →
+      bindTC (unquoteTC t₁)              λ (t₁ : (x : A) → B x) →
+      bindTC (unquoteTC t₂)              λ (t₂ : A) →
+      bindTC (quoteTC (B t₂))            λ Bt₂ →
+      bindTC (quoteTC (t₁ t₂))           λ t₁t₂ →
+      returnTC (Bt₂ , t₁t₂)
+    apply₁ A _ _ =
+      typeError (strErr "apply: not a pi" ∷ termErr A ∷ [])
 
   -- The tactic refine A t goal tries to use the term t (of type A),
   -- applied to as many fresh meta-variables as possible (based on its
@@ -142,9 +163,9 @@ private
     refine-with-type args (pi (arg i _) (abs _ τ)) =
       refine-with-type (arg i unknown ∷ args) τ
     refine-with-type args _                        =
-      bindTC (apply t (reverse args)) λ t →
-      catchTC (try false t)           $
-      catchTC (try true  t)           $
+      bindTC (apply A t (reverse args)) λ t →
+      catchTC (try false t)             $
+      catchTC (try true  t)             $
       typeError (strErr "refine failed" ∷ [])
 
   -- The call by-tactic t goal tries to use (non-dependent) "cong"
@@ -332,3 +353,6 @@ private
 
     test₉ : (f : ℕ → ℕ) → f 42 ≡ f 48
     test₉ f = by (lemma 40)
+
+    test₁₀ : (f : ℕ → ℕ) → f 42 ≡ f 48
+    test₁₀ f = by (λ (_ : ⊤) → assumption)
