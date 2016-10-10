@@ -122,7 +122,9 @@ private
   -- made to solve the goal using "sym (x metas)" instead.
 
   refine : Type → Term → Term → TC Term
-  refine A t goal = refine-with-type [] A
+  refine A t goal =
+    bindTC (normalise A) λ A →
+    refine-with-type [] A
     where
     with-sym : Bool → Term → Term
     with-sym true  t = def (quote sym) (varg t ∷ [])
@@ -170,6 +172,7 @@ private
                                     (strErr "by: no more fuel" ∷ [])
     by-tactic′ (suc n) A t goal =
       bindTC (inferType goal)          λ goal-type →
+      bindTC (reduce goal-type)        λ goal-type →
       bindTC (block-if-meta goal-type) λ _ →
       catchTC (try-refl goal-type)     $
       catchTC (refine A t goal)        $
