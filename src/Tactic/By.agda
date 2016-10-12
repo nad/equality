@@ -174,8 +174,8 @@ private
   --
   -- The constructed term is returned.
 
-  by-tactic : {A : Set} → A → Term → TC Term
-  by-tactic {A} t goal =
+  by-tactic : ∀ {a} {A : Set a} → A → Term → TC Term
+  by-tactic {A = A} t goal =
     bindTC (quoteTC A) λ A →
     bindTC (quoteTC t) λ t →
     by-tactic′ fuel A t goal
@@ -292,7 +292,7 @@ macro
   -- The call by t tries to use t (along with congruence, reflexivity
   -- and symmetry) to solve the goal, which must be an equality.
 
-  by : {A : Set} → A → Term → TC ⊤
+  by : ∀ {a} {A : Set a} → A → Term → TC ⊤
   by t goal =
     bindTC (by-tactic t goal) λ _ →
     returnTC _
@@ -301,8 +301,8 @@ macro
   -- error message that includes the term that would have been
   -- constructed by by.
 
-  debug-by : {A : Set} → A → Term → TC ⊤
-  debug-by {A} t goal =
+  debug-by : ∀ {a} {A : Set a} → A → Term → TC ⊤
+  debug-by t goal =
     bindTC (by-tactic t goal) λ t →
     typeError (strErr "Term found by by:" ∷ termErr t ∷ [])
 
