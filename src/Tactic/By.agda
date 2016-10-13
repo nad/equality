@@ -12,7 +12,7 @@ open import Agda.Builtin.Nat using (_==_)
 open import Agda.Primitive
 open import Agda.Builtin.Reflection
 
-open import Equality.Propositional hiding (cong₂)
+open import Equality.Propositional
 open import Prelude
 
 open import Equality.Decision-procedures
@@ -89,25 +89,34 @@ private
       clause (varg (var "f") ∷ replicate n (varg (con (quote refl) [])))
              (con (quote refl) [])
 
-  unquoteDecl cong₁ = make-cong-called cong₁ 1
-  unquoteDecl cong₂ = make-cong-called cong₂ 2
-  unquoteDecl cong₃ = make-cong-called cong₃ 3
-  unquoteDecl cong₄ = make-cong-called cong₄ 4
-  unquoteDecl cong₅ = make-cong-called cong₅ 5
+  unquoteDecl cong₃  = make-cong-called cong₃   3
+  unquoteDecl cong₄  = make-cong-called cong₄   4
+  unquoteDecl cong₅  = make-cong-called cong₅   5
+  unquoteDecl cong₆  = make-cong-called cong₆   6
+  unquoteDecl cong₇  = make-cong-called cong₇   7
+  unquoteDecl cong₈  = make-cong-called cong₈   8
+  unquoteDecl cong₉  = make-cong-called cong₉   9
+  unquoteDecl cong₁₀ = make-cong-called cong₁₀ 10
 
   -- Constructs a "cong" function (like cong and cong₂ in Equality)
   -- for functions with the given number of arguments. The name of the
-  -- constructed function is returned. The cong functions for
-  -- functions with 1 up to 5 arguments are cached to avoid creating
-  -- lots of copies of the same functions.
+  -- constructed function is returned (for 1 and 2 the functions in
+  -- Equality are returned). The cong functions for functions with 3
+  -- up to 10 arguments are cached to avoid creating lots of copies of
+  -- the same functions.
 
   make-cong : ℕ → TC Name
-  make-cong 1 = returnTC (quote cong₁)
-  make-cong 2 = returnTC (quote cong₂)
-  make-cong 3 = returnTC (quote cong₃)
-  make-cong 4 = returnTC (quote cong₄)
-  make-cong 5 = returnTC (quote cong₅)
-  make-cong n =
+  make-cong  1 = returnTC (quote cong)
+  make-cong  2 = returnTC (quote cong₂)
+  make-cong  3 = returnTC (quote cong₃)
+  make-cong  4 = returnTC (quote cong₄)
+  make-cong  5 = returnTC (quote cong₅)
+  make-cong  6 = returnTC (quote cong₆)
+  make-cong  7 = returnTC (quote cong₇)
+  make-cong  8 = returnTC (quote cong₈)
+  make-cong  9 = returnTC (quote cong₉)
+  make-cong 10 = returnTC (quote cong₁₀)
+  make-cong n  =
     bindTC (freshName "cong") λ cong →
     bindTC (make-cong-called cong n) λ _ →
     returnTC cong
