@@ -8,9 +8,12 @@
 module Tactic.By where
 
 import Agda.Builtin.Bool as B
+open import Agda.Builtin.Char
+open import Agda.Builtin.Float
 open import Agda.Builtin.Nat using (_==_)
-open import Agda.Primitive
 open import Agda.Builtin.Reflection
+open import Agda.Builtin.String
+open import Agda.Primitive
 
 open import Equality.Propositional
 open import Prelude
@@ -29,6 +32,87 @@ private
 
   harg : {A : Set} → A → Arg A
   harg = arg (arg-info hidden relevant)
+
+  -- Converts B.Bool to Bool.
+
+  to-Bool : B.Bool → Bool
+  to-Bool B.false = false
+  to-Bool B.true  = true
+
+  mutual
+
+    -- Checks if the terms are syntactically equal.
+    --
+    -- Pattern-matching lambdas and "unknown" are currently never seen
+    -- as equal to anything.
+    --
+    -- Note that this function does not perform any kind of parameter
+    -- reconstruction.
+
+    eq-Term : Term → Term → Bool
+    eq-Term (var x₁ ts₁)   (var x₂ ts₂)   = eq-ℕ x₁ x₂ ∧ eq-Args ts₁ ts₂
+    eq-Term (con c₁ ts₁)   (con c₂ ts₂)   = eq-Name c₁ c₂ ∧ eq-Args ts₁ ts₂
+    eq-Term (def f₁ ts₁)   (def f₂ ts₂)   = eq-Name f₁ f₂ ∧ eq-Args ts₁ ts₂
+    eq-Term (lam v₁ t₁)    (lam v₂ t₂)    = eq-Visibility v₁ v₂ ∧ eq-Abs t₁ t₂
+    eq-Term (pi a₁ b₁)     (pi a₂ b₂)     = eq-Arg a₁ a₁ ∧ eq-Abs b₁ b₂
+    eq-Term (agda-sort s₁) (agda-sort s₂) = eq-Sort s₁ s₂
+    eq-Term (lit l₁)       (lit l₂)       = eq-Literal l₁ l₂
+    eq-Term (meta x₁ ts₁)  (meta x₂ ts₂)  = eq-Meta x₁ x₂ ∧ eq-Args ts₁ ts₂
+    eq-Term _              _              = false
+
+    eq-Name : Name → Name → Bool
+    eq-Name x₁ x₂ = to-Bool (primQNameEquality x₁ x₂)
+
+    eq-ℕ : ℕ → ℕ → Bool
+    eq-ℕ n₁ n₂ = to-Bool (n₁ == n₂)
+
+    eq-Meta : Meta → Meta → Bool
+    eq-Meta x₁ x₂ = to-Bool (primMetaEquality x₁ x₂)
+
+    eq-String : String → String → Bool
+    eq-String x₁ x₂ = to-Bool (primStringEquality x₁ x₂)
+
+    eq-Sort : Sort → Sort → Bool
+    eq-Sort (set t₁) (set t₂) = eq-Term t₁ t₂
+    eq-Sort (lit n₁) (lit n₂) = eq-ℕ n₁ n₂
+    eq-Sort _        _        = false
+
+    eq-Literal : Literal → Literal → Bool
+    eq-Literal (nat n₁)    (nat n₂)    = eq-ℕ n₁ n₂
+    eq-Literal (float x₁)  (float x₂)  = to-Bool (primFloatEquality x₁ x₂)
+    eq-Literal (char c₁)   (char c₂)   = to-Bool (primCharEquality c₁ c₂)
+    eq-Literal (string s₁) (string s₂) = eq-String s₁ s₂
+    eq-Literal (name x₁)   (name x₂)   = eq-Name x₁ x₂
+    eq-Literal (meta x₁)   (meta x₂)   = eq-Meta x₁ x₂
+    eq-Literal _           _           = false
+
+    eq-Args : List (Arg Term) → List (Arg Term) → Bool
+    eq-Args []         []         = true
+    eq-Args (t₁ ∷ ts₁) (t₂ ∷ ts₂) = eq-Arg t₁ t₂ ∧ eq-Args ts₁ ts₂
+    eq-Args _          _          = false
+
+    eq-Abs : Abs Term → Abs Term → Bool
+    eq-Abs (abs s₁ t₁) (abs s₂ t₂) =
+      eq-String s₁ s₂ ∧ eq-Term t₁ t₂
+
+    eq-ArgInfo : ArgInfo → ArgInfo → Bool
+    eq-ArgInfo (arg-info v₁ r₁) (arg-info v₂ r₂) =
+      eq-Visibility v₁ v₂ ∧ eq-Relevance r₁ r₂
+
+    eq-Arg : Arg Term → Arg Term → Bool
+    eq-Arg (arg i₁ t₁) (arg i₂ t₂) =
+      eq-ArgInfo i₁ i₂ ∧ eq-Term t₁ t₂
+
+    eq-Visibility : Visibility → Visibility → Bool
+    eq-Visibility visible   visible   = true
+    eq-Visibility hidden    hidden    = true
+    eq-Visibility instance′ instance′ = true
+    eq-Visibility _         _         = false
+
+    eq-Relevance : Relevance → Relevance → Bool
+    eq-Relevance relevant   relevant   = true
+    eq-Relevance irrelevant irrelevant = true
+    eq-Relevance _          _          = false
 
   -- Returns a fresh meta-variable of type Level.
 
@@ -249,26 +333,40 @@ private
         bindTC (unify t goal)                  λ _ →
         returnTC t                             }
         where
-        -- Checks if the heads are equal. Returns the (unique) head,
-        -- along with the two argument lists.
+        -- Checks if the heads are equal. If they are, then the
+        -- function figures out how many arguments are equal, and
+        -- returns the (unique) head applied to these arguments, plus
+        -- two lists containing the remaining arguments.
 
         heads : Term → Term →
                 TC (Term × List (Arg Term) × List (Arg Term))
         heads = λ
           { (def y ys) (def z zs) → helper (primQNameEquality y z)
-                                           (def y []) (def z []) ys zs
+                                           (def y) (def z) ys zs
           ; (con y ys) (con z zs) → helper (primQNameEquality y z)
-                                           (con y []) (con z []) ys zs
+                                           (con y) (con z) ys zs
           ; (var y ys) (var z zs) → helper (y == z)
-                                           (var y []) (var z []) ys zs
+                                           (var y) (var z) ys zs
           ; _          _          → failure
           }
           where
+          find-equal-arguments :
+            List (Arg Term) → List (Arg Term) →
+            List (Arg Term) × List (Arg Term) × List (Arg Term)
+          find-equal-arguments []       zs       = [] , [] , zs
+          find-equal-arguments ys       []       = [] , ys , []
+          find-equal-arguments (y ∷ ys) (z ∷ zs) with eq-Arg y z
+          ... | false = [] , y ∷ ys , z ∷ zs
+          ... | true  with find-equal-arguments ys zs
+          ...   | (es , ys′ , zs′) = y ∷ es , ys′ , zs′
+
           helper : B.Bool → _ → _ → _ → _ → _
-          helper B.true  y _ ys zs = returnTC (y , ys , zs)
           helper B.false y z _  _  =
             typeError (strErr "by: distinct heads:" ∷
-                       termErr y ∷ termErr z ∷ [])
+                       termErr (y []) ∷ termErr (z []) ∷ [])
+          helper B.true  y _ ys zs =
+            let es , ys′ , zs′ = find-equal-arguments ys zs in
+            returnTC (y es , ys′ , zs′)
 
         -- Tries to prove that the argument lists are equal.
 
