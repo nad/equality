@@ -463,3 +463,11 @@ private
 
     test₁₀ : (f : ℕ → ℕ) → f 42 ≡ f 48
     test₁₀ f = by (λ (_ : ⊤) → assumption)
+
+    fst : ∀ {a b} {A : Set a} {B : A → Set b} →
+          Σ A B → A
+    fst = proj₁
+
+    test₁₁ : (f : ℕ × ℕ → ℕ × ℕ) → (∀ x → f x ≡ x) →
+             fst (f (12 , 73)) ≡ fst {B = λ _ → ℕ} (12 , 73)
+    test₁₁ _ hyp = by hyp
