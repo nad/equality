@@ -191,6 +191,27 @@ all-points-on-the-circle-are-merely-equal ext C =
   where
   open Circle C
 
+-- However, it is not the case that every point on a circle that
+-- eliminates into a universe with a positive universe level is
+-- /equal/ to the base point (assuming univalence).
+
+¬-all-points-on-the-circle-are-equal :
+  ∀ {ℓ} →
+  Univalence ℓ →
+  (C : Circle (lsuc ℓ)) →
+  let open Circle C in
+  ¬ ((x : S¹) → x ≡ base)
+¬-all-points-on-the-circle-are-equal univ C =
+  ((x : S¹) → x ≡ base)  ↝⟨ (λ hyp x y → x     ≡⟨ hyp x ⟩
+                                         base  ≡⟨ sym (hyp y) ⟩∎
+                                         y     ∎) ⟩
+  Proof-irrelevant S¹    ↝⟨ _⇔_.from propositional⇔irrelevant ⟩
+  Is-proposition S¹      ↝⟨ mono₁ 1 ⟩
+  Is-set S¹              ↝⟨ ¬-S¹-set univ C ⟩□
+  ⊥                      □
+  where
+  open Circle C
+
 -- H-level.Closure.proj₁-closure cannot be generalised by replacing
 -- the assumption ∀ a → B a with ∀ a → ∥ B a ∥ 1 (# 0) (assuming
 -- extensionality, univalence and the presence of a certain kind of
