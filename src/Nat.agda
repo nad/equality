@@ -119,16 +119,23 @@ m < n = suc m ≤ n
 -- "Equational" reasoning combinators.
 
 infix  -1 finally-≤ _∎≤
-infixr -2 _≤⟨_⟩_ _≡⟨_⟩≤_ _≡⟨⟩≤_ _<⟨_⟩_ _<⟨⟩_
+infixr -2 step-≤ step-≡≤ _≡⟨⟩≤_ step-< _<⟨⟩_
 
 _∎≤ : ∀ n → n ≤ n
 _ ∎≤ = ≤-refl
 
-_≤⟨_⟩_ : ∀ m {n o} → m ≤ n → n ≤ o → m ≤ o
-_ ≤⟨ m≤n ⟩ n≤o = ≤-trans m≤n n≤o
+-- For an explanation of why step-≤, step-≡≤ and step-< are defined in
+-- this way, see Equality.step-≡.
 
-_≡⟨_⟩≤_ : ∀ m {n o} → m ≡ n → n ≤ o → m ≤ o
-_ ≡⟨ m≡n ⟩≤ n≤o = subst (_≤ _) (sym m≡n) n≤o
+step-≤ : ∀ m {n o} → n ≤ o → m ≤ n → m ≤ o
+step-≤ _ n≤o m≤n = ≤-trans m≤n n≤o
+
+syntax step-≤ m n≤o m≤n = m ≤⟨ m≤n ⟩ n≤o
+
+step-≡≤ : ∀ m {n o} → n ≤ o → m ≡ n → m ≤ o
+step-≡≤ _ n≤o m≡n = subst (_≤ _) (sym m≡n) n≤o
+
+syntax step-≡≤ m n≤o m≡n = m ≡⟨ m≡n ⟩≤ n≤o
 
 _≡⟨⟩≤_ : ∀ m {n} → m ≤ n → m ≤ n
 _ ≡⟨⟩≤ m≤n = m≤n
@@ -138,12 +145,14 @@ finally-≤ _ _ m≤n = m≤n
 
 syntax finally-≤ m n m≤n = m ≤⟨ m≤n ⟩∎ n ∎≤
 
-_<⟨_⟩_ : ∀ m {n o} → m < n → n ≤ o → m ≤ o
-_<⟨_⟩_ m {n} {o} m<n n≤o =
+step-< : ∀ m {n o} → n ≤ o → m < n → m ≤ o
+step-< m {n} {o} n≤o m<n =
   m      ≤⟨ ≤-step ≤-refl ⟩
   suc m  ≤⟨ m<n ⟩
   n      ≤⟨ n≤o ⟩∎
   o      ∎≤
+
+syntax step-< m n≤o m<n = m <⟨ m<n ⟩ n≤o
 
 _<⟨⟩_ : ∀ m {n} → m < n → m ≤ n
 _<⟨⟩_ m {n} m<n =

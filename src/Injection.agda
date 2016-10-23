@@ -60,11 +60,16 @@ f ∘ g = record
 -- "Equational" reasoning combinators.
 
 infix  -1 finally-↣
-infixr -2 _↣⟨_⟩_
+infixr -2 step-↣
 
-_↣⟨_⟩_ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
-         A ↣ B → B ↣ C → A ↣ C
-_ ↣⟨ A↣B ⟩ B↣C = B↣C ∘ A↣B
+-- For an explanation of why step-↣ is defined in this way, see
+-- Equality.step-≡.
+
+step-↣ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
+         B ↣ C → A ↣ B → A ↣ C
+step-↣ _ = _∘_
+
+syntax step-↣ A B↣C A↣B = A ↣⟨ A↣B ⟩ B↣C
 
 finally-↣ : ∀ {a b} (A : Set a) (B : Set b) → A ↣ B → A ↣ B
 finally-↣ _ _ A↣B = A↣B

@@ -191,16 +191,23 @@ id {equivalence}         = Eq.id
 
 infix  -1 finally-↝ finally-↔
 infix  -1 _□
-infixr -2 _↝⟨_⟩_ _↔⟨_⟩_ _↔⟨⟩_
+infixr -2 step-↝ step-↔ _↔⟨⟩_
 infix  -3 $⟨_⟩_
 
-_↝⟨_⟩_ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
-         A ↝[ k ] B → B ↝[ k ] C → A ↝[ k ] C
-_ ↝⟨ A↝B ⟩ B↝C = B↝C ∘ A↝B
+-- For an explanation of why step-↝ and step-↔ are defined in this
+-- way, see Equality.step-≡.
 
-_↔⟨_⟩_ : ∀ {k₁ k₂ a b c} (A : Set a) {B : Set b} {C : Set c} →
-         A ↔[ k₁ ] B → B ↝[ k₂ ] C → A ↝[ k₂ ] C
-_ ↔⟨ A↔B ⟩ B↝C = _ ↝⟨ from-isomorphism A↔B ⟩ B↝C
+step-↝ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
+         B ↝[ k ] C → A ↝[ k ] B → A ↝[ k ] C
+step-↝ _ = _∘_
+
+syntax step-↝ A B↝C A↝B = A ↝⟨ A↝B ⟩ B↝C
+
+step-↔ : ∀ {k₁ k₂ a b c} (A : Set a) {B : Set b} {C : Set c} →
+         B ↝[ k₂ ] C → A ↔[ k₁ ] B → A ↝[ k₂ ] C
+step-↔ _ B↝C A↔B = step-↝ _ B↝C (from-isomorphism A↔B)
+
+syntax step-↔ A B↝C A↔B = A ↔⟨ A↔B ⟩ B↝C
 
 _↔⟨⟩_ : ∀ {k a b} (A : Set a) {B : Set b} →
         A ↝[ k ] B → A ↝[ k ] B
@@ -213,11 +220,12 @@ finally-↝ : ∀ {k a b} (A : Set a) (B : Set b) →
             A ↝[ k ] B → A ↝[ k ] B
 finally-↝ _ _ A↝B = A↝B
 
+syntax finally-↝ A B A↝B = A ↝⟨ A↝B ⟩□ B □
+
 finally-↔ : ∀ {k₁ k₂ a b} (A : Set a) (B : Set b) →
             A ↔[ k₁ ] B → A ↝[ k₂ ] B
 finally-↔ _ _ A↔B = from-isomorphism A↔B
 
-syntax finally-↝ A B A↝B = A ↝⟨ A↝B ⟩□ B □
 syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
 
 $⟨_⟩_ : ∀ {k a b} {A : Set a} {B : Set b} →

@@ -24,7 +24,7 @@ open import Equality
 module Univalence-axiom.Isomorphism-is-equality.Simple.Variant
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
+open import Bijection eq hiding (id; _∘_; inverse; step-↔; finally-↔)
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq

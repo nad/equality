@@ -50,4 +50,4 @@ all-instances-isomorphic {refl₁} {refl₂} eq₁ eq₂ = record
            refl refl₁ x                                ∎)
     where
     open Derived-definitions-and-properties eq₁
-      using (_≡⟨_⟩_; finally)
+      using (step-≡; finally)

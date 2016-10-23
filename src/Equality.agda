@@ -253,13 +253,23 @@ module Equality-with-substitutivity-and-contractibility′
   -- Equational reasoning combinators.
 
   infix  -1 finally _∎
-  infixr -2 _≡⟨_⟩_ _≡⟨⟩_
+  infixr -2 step-≡ _≡⟨⟩_
 
   _∎ : ∀ {a} {A : Set a} (x : A) → x ≡ x
   x ∎ = refl x
 
-  _≡⟨_⟩_ : ∀ {a} {A : Set a} x {y z : A} → x ≡ y → y ≡ z → x ≡ z
-  _ ≡⟨ x≡y ⟩ y≡z = trans x≡y y≡z
+  -- It can be easier for Agda to type-check typical equational
+  -- reasoning chains if the transitivity proof gets the equality
+  -- arguments in the opposite order, because then the y argument is
+  -- (perhaps more) known once the proof of x ≡ y is type-checked.
+  --
+  -- The idea behind this optimisation came up in discussions with Ulf
+  -- Norell.
+
+  step-≡ : ∀ {a} {A : Set a} x {y z : A} → y ≡ z → x ≡ y → x ≡ z
+  step-≡ _ = flip trans
+
+  syntax step-≡ x y≡z x≡y = x ≡⟨ x≡y ⟩ y≡z
 
   _≡⟨⟩_ : ∀ {a} {A : Set a} x {y : A} → x ≡ y → x ≡ y
   _ ≡⟨⟩ x≡y = x≡y
@@ -349,7 +359,7 @@ module Derived-definitions-and-properties
          (J⇒subst+contr eq) public
     using ( sym; sym-refl
           ; trans; trans-refl-refl
-          ; _∎; _≡⟨_⟩_; _≡⟨⟩_; finally
+          ; _∎; step-≡; _≡⟨⟩_; finally
           )
 
   -- A minor variant of Christine Paulin-Mohring's version of the J

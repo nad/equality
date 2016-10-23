@@ -19,7 +19,7 @@ open import Equality.Propositional
 open import Equality
 open Derived-definitions-and-properties eq using (refl)
 
-open import Bijection eq hiding (id; _∘_; inverse; _↔⟨_⟩_; finally-↔)
+open import Bijection eq hiding (id; _∘_; inverse; step-↔; finally-↔)
 open import Equivalence eq as Eq hiding (id; _∘_; inverse)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq as H-level hiding (Proposition; Type)
