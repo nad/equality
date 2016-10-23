@@ -173,6 +173,7 @@ import Univalence-axiom.Isomorphism-implies-equality
 -- 1-categories.
 
 import Category
+import Functor
 
 -- Aczel's structure identity principle (for 1-categories).
 
