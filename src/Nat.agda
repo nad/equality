@@ -206,6 +206,13 @@ suc m ≤? suc n = ⊎-map suc≤suc (λ m≰n → m≰n ∘ suc≤suc⁻¹) (m 
 ≰→≥ : ∀ {m n} → ¬ m ≤ n → n ≤ m
 ≰→≥ p = ≤-trans (≤-step ≤-refl) (≰→> p)
 
+-- If m is less than or equal to n, but not equal to n, then m is
+-- strictly less than n.
+
+≤≢→< : ∀ {m n} → m ≤ n → m ≢ n → m < n
+≤≢→< (≤-refl′ eq)     m≢m   = ⊥-elim (m≢m eq)
+≤≢→< (≤-step′ m≤n eq) m≢1+n = subst (_ <_) eq (suc≤suc m≤n)
+
 -- _≤_ is total.
 
 total : ∀ m n → m ≤ n ⊎ n ≤ m
