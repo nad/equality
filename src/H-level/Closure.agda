@@ -357,6 +357,68 @@ abstract
       }
 
 ------------------------------------------------------------------------
+-- Logical equivalences, split surjections and bijections
+
+-- H-level n is closed under the type formers _⇔_, _↠_ and _↔_
+-- (assuming extensionality).
+
+⇔-closure :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  ∀ n → H-level n A → H-level n B → H-level n (A ⇔ B)
+⇔-closure {a} {b} ext n hA hB =
+  respects-surjection
+    (record
+       { logical-equivalence = record
+         { to   = _
+         ; from = λ A⇔B → _⇔_.to A⇔B , _⇔_.from A⇔B
+         }
+       ; right-inverse-of = λ _ → refl _
+       })
+    n
+    (×-closure n
+       (Π-closure (lower-extensionality b a ext) n (λ _ → hB))
+       (Π-closure (lower-extensionality a b ext) n (λ _ → hA)))
+
+↠-closure :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  ∀ n → H-level n A → H-level n B → H-level n (A ↠ B)
+↠-closure {a} {b} ext n hA hB =
+  respects-surjection
+    (record
+       { logical-equivalence = record
+         { to   = _
+         ; from = λ A↠B → _↠_.logical-equivalence A↠B ,
+                          _↠_.right-inverse-of A↠B
+         }
+       ; right-inverse-of = λ _ → refl _
+       })
+    n
+    (Σ-closure n (⇔-closure ext n hA hB) λ _ →
+     Π-closure (lower-extensionality a a ext) n λ _ →
+     mono₁ n hB _ _)
+
+↔-closure :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  ∀ n → H-level n A → H-level n B → H-level n (A ↔ B)
+↔-closure {a} {b} ext n hA hB =
+  respects-surjection
+    (record
+       { logical-equivalence = record
+         { to   = _
+         ; from = λ A↔B → _↔_.surjection A↔B ,
+                          _↔_.left-inverse-of A↔B
+         }
+       ; right-inverse-of = λ _ → refl _
+       })
+    n
+    (Σ-closure n (↠-closure ext n hA hB) λ _ →
+     Π-closure (lower-extensionality b b ext) n λ _ →
+     mono₁ n hA _ _)
+
+------------------------------------------------------------------------
 -- Lifted types
 
 abstract
