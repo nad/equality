@@ -1109,3 +1109,99 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
   proj₁ A ⇔ proj₁ B  ↝⟨ ⇔↔≡ ext univ (proj₂ A) (proj₂ B) ⟩
   proj₁ A ≡ proj₁ B  ↝⟨ ignore-propositional-component (H-level-propositional ext 1) ⟩□
   A ≡ B              □
+
+-- Propositional extensionality.
+--
+-- Basically as defined by Chapman, Uustalu and Veltri in "Quotienting
+-- the Delay Monad by Weak Bisimilarity".
+
+Propositional-extensionality : (ℓ : Level) → Set (lsuc ℓ)
+Propositional-extensionality ℓ =
+  {A B : Set ℓ} → Is-proposition A → Is-proposition B → A ⇔ B → A ≡ B
+
+-- Propositional extensionality is equivalent to univalence restricted
+-- to propositions (assuming extensionality).
+--
+-- I took the statement of this result from Chapman, Uustalu and
+-- Veltri's "Quotienting the Delay Monad by Weak Bisimilarity", and
+-- Nicolai Kraus helped me with the proof.
+
+Propositional-extensionality-is-univalence-for-propositions :
+  ∀ {ℓ} →
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+
+  Propositional-extensionality ℓ
+    ≃
+  ({A B : Set ℓ} →
+   Is-proposition A → Is-proposition B → Univalence′ A B)
+
+Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
+  _↔_.to (⇔↔≃ ext
+              ([inhabited⇒+]⇒+ 0 λ prop-ext →
+               implicit-Π-closure ext 1 λ _ →
+               implicit-Π-closure ext 1 λ _ →
+               Π-closure (lower-extensionality _ lzero ext) 1 λ A-prop →
+               Π-closure (lower-extensionality _ lzero ext) 1 λ B-prop →
+               Π-closure (lower-extensionality _ lzero ext) 1 λ _ →
+               ≡-closure (prop-ext {_}) A-prop B-prop)
+              (implicit-Π-closure ext 1 λ _ →
+               implicit-Π-closure ext 1 λ _ →
+               Π-closure (lower-extensionality _ lzero ext) 1 λ _ →
+               Π-closure (lower-extensionality _ lzero ext) 1 λ _ →
+               Eq.propositional ext _))
+    (record
+       { to   = λ prop-ext A-prop B-prop A≃B →
+                  ( prop-ext A-prop B-prop (_≃_.logical-equivalence A≃B)
+                  , _⇔_.to propositional⇔irrelevant
+                      (Eq.left-closure (lower-extensionality _ _ ext)
+                                       0 A-prop)
+                      _ _
+                  ) , λ _ → Σ-≡,≡→≡
+                        (_⇔_.to propositional⇔irrelevant
+                           (≡-closure prop-ext A-prop B-prop)
+                           _ _)
+                        (_⇔_.to propositional⇔irrelevant
+                           (mono₁ 1 (Eq.left-closure
+                                       (lower-extensionality _ _ ext)
+                                       0 A-prop)
+                                  _ _)
+                           _ _)
+       ; from = λ univ {A B} A-prop B-prop →
+                  A ⇔ B  ↔⟨ ⇔↔≃ (lower-extensionality _ _ ext) A-prop B-prop ⟩
+                  A ≃ B  ↔⟨ inverse ⟨ _ , univ A-prop B-prop ⟩ ⟩□
+                  A ≡ B  □
+       })
+  where
+  ⇔≃≡ :
+    Propositional-extensionality ℓ →
+    {A B : Set ℓ} →
+    Is-proposition A → Is-proposition B →
+    (A ⇔ B) ≃ (A ≡ B)
+  ⇔≃≡ prop-ext {A} {B} A-prop B-prop =
+    A ⇔ B                        ↝⟨ proj₂ (propositional-identity≃≡
+                                             (λ (A B : Proposition ℓ) → proj₁ A ⇔ proj₁ B)
+                                             (λ { (A , A-prop) (B , B-prop) →
+                                                  ⇔-closure (lower-extensionality _ _ ext)
+                                                            1 A-prop B-prop })
+                                             (λ _ → F.id)
+                                             (λ { (A , A-prop) (B , B-prop) A⇔B →
+                                                  Σ-≡,≡→≡ (prop-ext A-prop B-prop A⇔B)
+                                                          (_⇔_.to propositional⇔irrelevant
+                                                             (H-level-propositional
+                                                                (lower-extensionality _ _ ext) 1)
+                                                             _ _) }))
+                                          ext ⟩
+    (A , A-prop) ≡ (B , B-prop)  ↔⟨ inverse $ ignore-propositional-component
+                                                (H-level-propositional
+                                                   (lower-extensionality _ _ ext) 1) ⟩□
+    A ≡ B                        □
+
+  ≡-closure :
+    Propositional-extensionality ℓ →
+    {A B : Set ℓ} →
+    Is-proposition A → Is-proposition B → Is-proposition (A ≡ B)
+  ≡-closure prop-ext A-prop B-prop =
+    H-level.respects-surjection
+      (_≃_.surjection (⇔≃≡ prop-ext A-prop B-prop))
+      1
+      (⇔-closure (lower-extensionality _ _ ext) 1 A-prop B-prop)
