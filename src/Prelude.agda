@@ -150,6 +150,15 @@ _*_ on f = λ x y → f x * f y
 Type-of : ∀ {a} {A : Set a} → A → Set a
 Type-of {A = A} _ = A
 
+-- Type signatures.
+
+infix 0 type-signature
+
+type-signature : ∀ {a} (A : Set a) → A → A
+type-signature _ a = a
+
+syntax type-signature A a = a ⦂ A
+
 -- Case expressions (to be used with pattern-matching lambdas).
 
 infix 0 case_return_of_ case_of_
