@@ -674,6 +674,22 @@ abstract
                      (_↔_.surjection $ Bijection.inverse ↑↔)
                      (2 + n) hB
 
+  -- Furthermore, if A and B are propositions and mutually exclusive,
+  -- then A ⊎ B is a proposition.
+
+  ⊎-closure-propositional :
+    ∀ {a b} {A : Set a} {B : Set b} →
+    (A → B → ⊥₀) →
+    Is-proposition A → Is-proposition B → Is-proposition (A ⊎ B)
+  ⊎-closure-propositional A→B→⊥ A-prop B-prop =
+    _⇔_.from propositional⇔irrelevant λ where
+      (inj₁ a₁) (inj₁ a₂) → cong inj₁ (_⇔_.to propositional⇔irrelevant
+                                         A-prop a₁ a₂)
+      (inj₁ a₁) (inj₂ b₂) → ⊥-elim (A→B→⊥ a₁ b₂)
+      (inj₂ b₁) (inj₁ a₂) → ⊥-elim (A→B→⊥ a₂ b₁)
+      (inj₂ b₁) (inj₂ b₂) → cong inj₂ (_⇔_.to propositional⇔irrelevant
+                                         B-prop b₁ b₂)
+
   -- All levels greater than or equal to 2 are also closed under
   -- Maybe.
 
