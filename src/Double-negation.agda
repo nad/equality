@@ -71,3 +71,9 @@ run excluded-middle ¬[a⊎¬a] = ¬[a⊎¬a] (no λ a → ¬[a⊎¬a] (yes a))
 call/cc : ∀ {a w} {A : Set a} {Whatever : Set w} →
           ((A → Whatever) → ¬¬ A) → ¬¬ A
 run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
+
+-- If one can prove that the empty type is inhabited in the
+-- double-negation monad, then the empty type is inhabited.
+
+¬¬¬⊥ : ¬ (¬¬ ⊥₀)
+¬¬¬⊥ ¬¬⊥ = run ¬¬⊥ id
