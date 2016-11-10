@@ -611,7 +611,7 @@ abstract
   -- elimination).
 
   sum-as-pair : ∀ {a b} {A : Set a} {B : Set b} →
-                (A ⊎ B) ↔ (∃ λ x → if x then ↑ b A else ↑ a B)
+                (A ⊎ B) ↔ (∃ λ (x : Bool) → if x then ↑ b A else ↑ a B)
   sum-as-pair {a} {b} {A} {B} = record
     { surjection = record
       { logical-equivalence = record

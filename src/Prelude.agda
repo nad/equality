@@ -272,6 +272,14 @@ data _⊎_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 [ f , g ] (inj₁ x) = f x
 [ f , g ] (inj₂ y) = g y
 
+-- A generalisation of if-then-else.
+
+infix 5 if_then_else_
+
+if_then_else_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+                A ⊎ B → C → C → C
+if x then t else f = [ const t , const f ] x
+
 -- A map function.
 
 ⊎-map : ∀ {a₁ a₂ b₁ b₂}
@@ -330,12 +338,6 @@ Bool = ⊤ ⊎ ⊤
 
 pattern true  = inj₁ tt
 pattern false = inj₂ tt
-
--- Conditional.
-
-if_then_else_ : ∀ {a} {A : Set a} → Bool → A → A → A
-if true  then t else f = t
-if false then t else f = f
 
 -- Not.
 
