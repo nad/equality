@@ -1848,6 +1848,15 @@ private
   (A → ⊥₀)  ↝⟨ →-cong ext id ⊥↔⊥ ⟩□
   (A → ⊥)   □
 
+-- A type cannot be logically equivalent to its own negation.
+
+¬[⇔¬] : ∀ {a} {A : Set a} → ¬ (A ⇔ ¬ A)
+¬[⇔¬] {A = A} =
+  A ⇔ ¬ A          ↝⟨ (λ eq → (λ a → _⇔_.to eq a a) , eq) ⟩
+  ¬ A × (A ⇔ ¬ A)  ↝⟨ (λ { (¬a , eq) → ¬a , _⇔_.from eq ¬a }) ⟩
+  ¬ A × A          ↝⟨ uncurry _$_ ⟩□
+  ⊥                □
+
 ------------------------------------------------------------------------
 -- Lemmas related to H-level
 
