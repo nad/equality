@@ -255,3 +255,22 @@ total m n = ⊎-map id ≰→≥ (m ≤? n)
     suc k₂  ≡⟨ q₂ ⟩≤
     m       ≤⟨ p₁ ⟩
     k₁      ∎≤))
+
+-- _+_ is monotone.
+
+infixl 6 _+-mono_
+
+_+-mono_ : ∀ {m₁ m₂ n₁ n₂} → m₁ ≤ m₂ → n₁ ≤ n₂ → m₁ + n₁ ≤ m₂ + n₂
+_+-mono_ {m₁} {m₂} {n₁} {n₂} (≤-refl′ eq) q =
+  m₁ + n₁  ≡⟨ cong (_+ _) eq ⟩≤
+  m₂ + n₁  ≤⟨ lemma m₂ q ⟩∎
+  m₂ + n₂  ∎≤
+  where
+  lemma : ∀ m {n k} → n ≤ k → m + n ≤ m + k
+  lemma zero    p = p
+  lemma (suc m) p = suc≤suc (lemma m p)
+_+-mono_ {m₁} {m₂} {n₁} {n₂} (≤-step′ {k = k} p eq) q =
+  m₁ + n₁     ≤⟨ p +-mono q ⟩
+  k + n₂      ≤⟨ ≤-step (_ ∎≤) ⟩
+  suc k + n₂  ≡⟨ cong (_+ _) eq ⟩≤
+  m₂ + n₂     ∎≤
