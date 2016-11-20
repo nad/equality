@@ -827,6 +827,23 @@ private
   ; left-inverse-of = ↔⇒≃-right-inverse ext A-set
   }
 
+-- When B is a set A ↔ B and A ≃ B are isomorphic (assuming
+-- extensionality).
+
+↔↔≃′ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Is-set B → (A ↔ B) ↔ (A ≃ B)
+↔↔≃′ ext B-set = record
+  { surjection      = ↔↠≃ ext
+  ; left-inverse-of = λ A↔B →
+      ↔⇒≃-right-inverse
+        ext
+        (H-level.respects-surjection
+           (_↔_.surjection $ Bijection.inverse A↔B) 2 B-set)
+        A↔B
+  }
+
 -- For propositional types there is a split surjection from
 -- equivalence to logical equivalence.
 
