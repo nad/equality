@@ -9,13 +9,16 @@ open import Equality
 module Bool
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
+open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (id; _∘_)
 
-open import Bijection eq using (_↔_)
+open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq using (_≃_; ↔⇒≃; lift-equality)
 open import Function-universe eq
+open import H-level eq
+open import H-level.Closure eq
 
 -- The not function is involutive.
 
@@ -62,6 +65,75 @@ not≡⇒≢ false false t≡f _   = Bool.true≢false t≡f
 ≢⇒not≡ true  false _   = refl _
 ≢⇒not≡ false true  _   = refl _
 ≢⇒not≡ false false f≢f = ⊥-elim (f≢f (refl _))
+
+not≡↔≡not : {b₁ b₂ : Bool} → not b₁ ≡ b₂ ↔ b₁ ≡ not b₂
+not≡↔≡not {true} {true} =
+  false ≡ true  ↝⟨ inverse $ Bijection.⊥↔uninhabited (Bool.true≢false ∘ sym) ⟩
+  ⊥₀            ↝⟨ Bijection.⊥↔uninhabited Bool.true≢false ⟩□
+  true ≡ false  □
+not≡↔≡not {true} {false} =
+  false ≡ false  ↝⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
+  tt ≡ tt        ↝⟨ Bijection.≡↔inj₁≡inj₁ ⟩□
+  true ≡ true    □
+not≡↔≡not {false} {true} =
+  true ≡ true    ↝⟨ inverse Bijection.≡↔inj₁≡inj₁ ⟩
+  tt ≡ tt        ↝⟨ Bijection.≡↔inj₂≡inj₂ ⟩□
+  false ≡ false  □
+not≡↔≡not {false} {false} =
+  true ≡ false  ↝⟨ inverse $ Bijection.⊥↔uninhabited Bool.true≢false ⟩
+  ⊥₀            ↝⟨ Bijection.⊥↔uninhabited (Bool.true≢false ∘ sym) ⟩□
+  false ≡ true  □
+
+-- Some lemmas related to T.
+
+T↔≡true : ∀ {b} → T b ↔ b ≡ true
+T↔≡true {false} =   $⟨ Bool.true≢false ⟩
+  true ≢ false      ↝⟨ (_∘ sym) ⟩
+  false ≢ true      ↝⟨ Bijection.⊥↔uninhabited ⟩□
+  ⊥ ↔ false ≡ true  □
+T↔≡true {true} =              $⟨ refl true ⟩
+  true ≡ true                 ↝⟨ propositional⇒inhabited⇒contractible (Bool-set _ _) ⟩
+  Contractible (true ≡ true)  ↝⟨ _⇔_.to contractible⇔⊤↔ ⟩□
+  ⊤ ↔ true ≡ true             □
+
+T-not↔≡false : ∀ {b} → T (not b) ↔ b ≡ false
+T-not↔≡false {b} =
+  T (not b)     ↝⟨ T↔≡true ⟩
+  not b ≡ true  ↝⟨ not≡↔≡not ⟩□
+  b ≡ false     □
+
+T-not⇔¬T :
+  ∀ b → T (not b) ⇔ ¬ T b
+T-not⇔¬T true =
+  ⊥        ↔⟨ Bijection.⊥↔uninhabited (_$ _) ⟩
+  (⊤ → ⊥)  □
+T-not⇔¬T false =
+  ⊤    ↝⟨ record { to = λ _ → id } ⟩□
+  ¬ ⊥  □
+
+T-not↔¬T :
+  Extensionality (# 0) (# 0) →
+  ∀ b → T (not b) ↔ ¬ T b
+T-not↔¬T _ true =
+  ⊥        ↝⟨ Bijection.⊥↔uninhabited (_$ _) ⟩
+  (⊤ → ⊥)  □
+T-not↔¬T ext false =
+  ⊤    ↝⟨ inverse $ ¬⊥↔⊤ ext ⟩□
+  ¬ ⊥  □
+
+¬T⇔≡false : ∀ {b} → ¬ T b ⇔ b ≡ false
+¬T⇔≡false {b} =
+  ¬ T b      ↝⟨ inverse $ T-not⇔¬T b ⟩
+  T (not b)  ↔⟨ T-not↔≡false ⟩□
+  b ≡ false  □
+
+¬T↔≡false :
+  Extensionality (# 0) (# 0) →
+  ∀ {b} → ¬ T b ↔ b ≡ false
+¬T↔≡false ext {b} =
+  ¬ T b      ↝⟨ inverse $ T-not↔¬T ext b ⟩
+  T (not b)  ↝⟨ T-not↔≡false ⟩□
+  b ≡ false  □
 
 -- Bool ≃ Bool is isomorphic to Bool (assuming extensionality).
 
