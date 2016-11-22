@@ -22,18 +22,26 @@ maybe : ∀ {a b} {A : Set a} {B : Maybe A → Set b} →
 maybe j n (just x) = j x
 maybe j n nothing  = n
 
+-- A universe-polymorphic variant of bind.
+
+infixl 5 _>>=′_
+
+_>>=′_ : ∀ {a b} {A : Set a} {B : Set b} →
+         Maybe A → (A → Maybe B) → Maybe B
+x >>=′ f = maybe f nothing x
+
 instance
 
   -- The maybe monad.
 
   monad : ∀ {ℓ} → Monad (Maybe {a = ℓ})
-  Raw-monad.return (Monad.raw-monad monad) x  = just x
-  Raw-monad._>>=_ (Monad.raw-monad monad) x f = maybe f nothing x
-  Monad.left-identity monad x f               = refl (f x)
-  Monad.right-identity monad nothing          = refl nothing
-  Monad.right-identity monad (just x)         = refl (just x)
-  Monad.associativity monad nothing f g       = refl nothing
-  Monad.associativity monad (just x) f g      = refl (f x >>= g)
+  Raw-monad.return (Monad.raw-monad monad) x = just x
+  Raw-monad._>>=_ (Monad.raw-monad monad)    = _>>=′_
+  Monad.left-identity monad x f              = refl (f x)
+  Monad.right-identity monad nothing         = refl nothing
+  Monad.right-identity monad (just x)        = refl (just x)
+  Monad.associativity monad nothing f g      = refl nothing
+  Monad.associativity monad (just x) f g     = refl (f x >>= g)
 
 -- The maybe monad transformer.
 
