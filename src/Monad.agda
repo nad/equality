@@ -23,6 +23,7 @@ open import Function-universe eq using (inverse)
 
 record Raw-monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
   constructor mk
+  infixl 6 _⟨$⟩_ _⊛_
   infixl 5 _>>=_
   field
     return : ∀ {A} → A → M A
@@ -32,6 +33,16 @@ record Raw-monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
 
   map : ∀ {A B} → (A → B) → M A → M B
   map f x = x >>= return ∘ f
+
+  -- A synonym.
+
+  _⟨$⟩_ : ∀ {A B} → (A → B) → M A → M B
+  _⟨$⟩_ = map
+
+  -- Applicative functor application.
+
+  _⊛_ : ∀ {A B} → M (A → B) → M A → M B
+  f ⊛ x = f >>= λ f → x >>= λ x → return (f x)
 
 open Raw-monad ⦃ … ⦄ public
 
