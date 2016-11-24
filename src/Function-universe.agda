@@ -2025,6 +2025,64 @@ if-encoding {A = A} {B} =
   ; left-inverse-of = ℕ-rec (refl 0) (λ n _ → refl (suc n))
   }
 
+-- ℕ is isomorphic to ℕ ⊎ ℕ.
+
+ℕ↔ℕ⊎ℕ : ℕ ↔ ℕ ⊎ ℕ
+ℕ↔ℕ⊎ℕ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  step : ℕ ⊎ ℕ → ℕ ⊎ ℕ
+  step = [ inj₂ , inj₁ ∘ suc ]
+
+  to : ℕ → ℕ ⊎ ℕ
+  to zero    = inj₁ zero
+  to (suc n) = step (to n)
+
+  double : ℕ → ℕ
+  double zero    = zero
+  double (suc n) = suc (suc (double n))
+
+  from : ℕ ⊎ ℕ → ℕ
+  from = [ double , suc ∘ double ]
+
+  from∘to : ∀ n → from (to n) ≡ n
+  from∘to zero    = zero ∎
+  from∘to (suc n) with to n | from∘to n
+  ... | inj₁ m | eq =
+    suc (double m)  ≡⟨ cong suc eq ⟩∎
+    suc n          ∎
+  ... | inj₂ m | eq =
+    suc (suc (double m))  ≡⟨ cong suc eq ⟩∎
+    suc n                ∎
+
+  to∘double : ∀ n → to (double n) ≡ inj₁ n
+  to∘double zero    = inj₁ zero ∎
+  to∘double (suc n) =
+    to (double (suc n))          ≡⟨⟩
+    to (suc (suc (double n)))    ≡⟨⟩
+    step (step (to (double n)))  ≡⟨ cong (step ∘ step) (to∘double n) ⟩
+    step (step (inj₁ n))         ≡⟨⟩
+    inj₁ (suc n)                 ∎
+
+  to∘from : ∀ x → to (from x) ≡ x
+  to∘from =
+    [ to∘double
+    , (λ n →
+         to (from (inj₂ n))    ≡⟨⟩
+         to (suc (double n))   ≡⟨⟩
+         step (to (double n))  ≡⟨ cong step (to∘double n) ⟩
+         step (inj₁ n)         ≡⟨⟩
+         inj₂ n                ∎)
+    ]
+
 -- ℕ is isomorphic to ℕ².
 
 ℕ↔ℕ² : ℕ ↔ ℕ × ℕ
