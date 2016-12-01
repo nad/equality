@@ -34,14 +34,17 @@ instance
 
   -- The maybe monad.
 
+  raw-monad : ∀ {ℓ} → Raw-monad (Maybe {a = ℓ})
+  Raw-monad.return raw-monad x = just x
+  Raw-monad._>>=_ raw-monad    = _>>=′_
+
   monad : ∀ {ℓ} → Monad (Maybe {a = ℓ})
-  Raw-monad.return (Monad.raw-monad monad) x = just x
-  Raw-monad._>>=_ (Monad.raw-monad monad)    = _>>=′_
-  Monad.left-identity monad x f              = refl (f x)
-  Monad.right-identity monad nothing         = refl nothing
-  Monad.right-identity monad (just x)        = refl (just x)
-  Monad.associativity monad nothing f g      = refl nothing
-  Monad.associativity monad (just x) f g     = refl (f x >>= g)
+  Monad.raw-monad      monad              = raw-monad
+  Monad.left-identity  monad x f          = refl (f x)
+  Monad.right-identity monad nothing      = refl nothing
+  Monad.right-identity monad (just x)     = refl (just x)
+  Monad.associativity  monad nothing f g  = refl nothing
+  Monad.associativity  monad (just x) f g = refl (f x >>= g)
 
 -- The maybe monad transformer.
 

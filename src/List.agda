@@ -110,11 +110,14 @@ instance
 
   -- The list monad.
 
+  raw-monad : ∀ {ℓ} → Raw-monad (List {a = ℓ})
+  Raw-monad.return raw-monad x    = x ∷ []
+  Raw-monad._>>=_  raw-monad xs f = concat (map f xs)
+
   monad : ∀ {ℓ} → Monad (List {a = ℓ})
-  Raw-monad.return (Monad.raw-monad monad) x    = x ∷ []
-  Raw-monad._>>=_  (Monad.raw-monad monad) xs f = concat (map f xs)
-  Monad.left-identity  monad x f                = foldr-∷-[] (f x)
-  Monad.right-identity monad xs                 = lemma xs
+  Monad.raw-monad      monad     = raw-monad
+  Monad.left-identity  monad x f = foldr-∷-[] (f x)
+  Monad.right-identity monad xs  = lemma xs
     where
     lemma : ∀ xs → concat (map (_∷ []) xs) ≡ xs
     lemma []       = refl _

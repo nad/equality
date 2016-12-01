@@ -51,8 +51,7 @@ open Raw-monad ⦃ … ⦄ public
 record Monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
   constructor mk
   field
-    instance
-      ⦃ raw-monad ⦄ : Raw-monad M
+    ⦃ raw-monad ⦄  : Raw-monad M
 
     left-identity  : ∀ {A B} (x : A) (f : A → M B) →
                      return x >>= f ≡ f x
@@ -102,7 +101,7 @@ record Monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
     x >>= (λ x → return (f x) >>= g)  ≡⟨ cong (x >>=_) (ext λ _ → left-identity _ _) ⟩∎
     x >>= g ∘ f                       ∎
 
-open Monad ⦃ … ⦄ public
+open Monad ⦃ … ⦄ public hiding (raw-monad)
 
 -- Monad transformers.
 
@@ -302,9 +301,12 @@ open Id public
 
 instance
 
-  identity-monad′ : ∀ {ℓ} → Monad {d = ℓ} Id
-  run (Raw-monad.return (Monad.raw-monad identity-monad′) x)   = x
-  run (Raw-monad._>>=_  (Monad.raw-monad identity-monad′) x f) = run (f (run x))
-  Monad.left-identity  identity-monad′ x f   = cong wrap (refl (run (f x)))
-  Monad.right-identity identity-monad′ x     = cong wrap (refl (run x))
-  Monad.associativity  identity-monad′ x f g = cong wrap (refl (run (g (run (f (run x))))))
+  Id-raw-monad : ∀ {ℓ} → Raw-monad {d = ℓ} Id
+  run (Raw-monad.return Id-raw-monad x)   = x
+  run (Raw-monad._>>=_  Id-raw-monad x f) = run (f (run x))
+
+  Id-monad : ∀ {ℓ} → Monad {d = ℓ} Id
+  Monad.raw-monad      Id-monad       = Id-raw-monad
+  Monad.left-identity  Id-monad x f   = cong wrap (refl (run (f x)))
+  Monad.right-identity Id-monad x     = cong wrap (refl (run x))
+  Monad.associativity  Id-monad x f g = cong wrap (refl (run (g (run (f (run x))))))
