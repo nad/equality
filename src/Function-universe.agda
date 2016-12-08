@@ -435,6 +435,7 @@ private
            cong (inj₁ ⊚ to A₁↣A₂) (⊎.cancel-inj₁ eq)                      ≡⟨ cong-∘ _ _ _ ⟩
            cong (inj₁ ⊚ to A₁↣A₂ ⊚ [ id , const x ]) eq                   ≡⟨ sym $ trans-reflʳ _ ⟩
            trans (cong (inj₁ ⊚ to A₁↣A₂ ⊚ [ id , const x ]) eq) (refl _)  ≡⟨ cong-respects-relevant-equality
+                                                                               {f = inj₁ ⊚ to A₁↣A₂ ⊚ [ id , const x ]}
                                                                                [ const true , const false ]
                                                                                [ (λ _ _ → refl _) , (λ _ ()) ] ⟩
            trans (refl _) (cong (⊎-map (to A₁↣A₂) (to B₁↣B₂)) eq)         ≡⟨ trans-reflˡ _ ⟩∎
@@ -453,6 +454,7 @@ private
            cong (inj₂ ⊚ to B₁↣B₂) (⊎.cancel-inj₂ eq)                      ≡⟨ cong-∘ _ _ _ ⟩
            cong (inj₂ ⊚ to B₁↣B₂ ⊚ [ const x , id ]) eq                   ≡⟨ sym $ trans-reflʳ _ ⟩
            trans (cong (inj₂ ⊚ to B₁↣B₂ ⊚ [ const x , id ]) eq) (refl _)  ≡⟨ cong-respects-relevant-equality
+                                                                               {f = inj₂ ⊚ to B₁↣B₂ ⊚ [ const x , id ]}
                                                                                [ const false , const true ]
                                                                                [ (λ _ ()) , (λ _ _ → refl _) ] ⟩
            trans (refl _) (cong (⊎-map (to A₁↣A₂) (to B₁↣B₂)) eq)         ≡⟨ trans-reflˡ _ ⟩∎

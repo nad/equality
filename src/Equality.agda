@@ -1035,7 +1035,7 @@ module Derived-definitions-and-properties
          Σ-≡,≡→≡ q₁ r₁ ≡ Σ-≡,≡→≡ q₂ r₂)
       (λ q {r₁ r₂} r₁≡r₂ → cong (Σ-≡,≡→≡ q) (
          r₁                                                 ≡⟨ sym $ trans-reflˡ _ ⟩
-         trans (refl (subst B q _)) r₁                      ≡⟨ cong (flip trans _) $ sym $ cong-refl _ ⟩
+         trans (refl (subst B q _)) r₁                      ≡⟨ cong (flip trans _) $ sym $ cong-refl (flip (subst B) _) ⟩
          trans (cong (flip (subst B) _) (refl q)) r₁        ≡⟨ cong (λ e → trans (cong (flip (subst B) _) e) _) $ sym sym-refl ⟩
          trans (cong (flip (subst B) _) (sym (refl q))) r₁  ≡⟨ r₁≡r₂ ⟩∎
          r₂                                                 ∎))
@@ -1101,7 +1101,7 @@ module Derived-definitions-and-properties
                            (trans (cong (flip (subst B) _)
                                         trans-refl-refl)
                                   (sym (cong (subst B _)
-                                             (subst-refl B _))))      ≡⟨ cong (flip trans _) $ sym $ cong-sym _ _ ⟩∎
+                                             (subst-refl B _))))      ≡⟨ cong (flip trans _) $ sym $ cong-sym (flip (subst B) _) _ ⟩∎
 
                      trans (cong (flip (subst B) _)
                                  (sym trans-refl-refl))
@@ -1117,7 +1117,7 @@ module Derived-definitions-and-properties
                                                                                  sym $ sym-sym _ ⟩
                      trans (cong (flip (subst B) _)
                                  (sym $ sym trans-refl-refl))
-                           (sym (cong (subst B _) (subst-refl B _)))     ≡⟨ cong (flip trans _) $ cong-sym _ _ ⟩
+                           (sym (cong (subst B _) (subst-refl B _)))     ≡⟨ cong (flip trans _) $ cong-sym (flip (subst B) _) _ ⟩
 
                      trans (sym (cong (flip (subst B) _)
                                       (sym trans-refl-refl)))
@@ -1353,7 +1353,7 @@ module Derived-definitions-and-properties
                      f ∘ subst B (sym x≡y))
       (λ x f →
          subst (λ x → B x → C) (refl x) f  ≡⟨ subst-refl (λ x → B x → _) _ ⟩
-         f                                 ≡⟨ cong (f ∘_) $ sym $ subst-refl≡id _ ⟩
+         f                                 ≡⟨ cong (f ∘_) $ sym $ subst-refl≡id B ⟩
          f ∘ subst B (refl x)              ≡⟨ cong (λ p → f ∘ subst B p) $ sym sym-refl ⟩∎
          f ∘ subst B (sym (refl x))        ∎)
       x≡y _
@@ -1376,7 +1376,7 @@ module Derived-definitions-and-properties
            fx≡gx                                                          ≡⟨ sym $ trans-reflˡ _ ⟩
            trans (refl (f x)) fx≡gx                                       ≡⟨ sym $ cong₂ trans sym-refl (trans-reflʳ _)  ⟩
            trans (sym (refl (f x))) (trans fx≡gx (refl (g x)))            ≡⟨ sym $ cong₂ (λ p q → trans (sym p) (trans _ q))
-                                                                                         (cong-refl _) (cong-refl _) ⟩∎
+                                                                                         (cong-refl f) (cong-refl g) ⟩∎
            trans (sym (cong f (refl x))) (trans fx≡gx (cong g (refl x)))  ∎ )
       _
       _
@@ -1464,7 +1464,7 @@ module Derived-definitions-and-properties
                          (cong (λ z → f y z) p) ≡
                           cong (λ z → f z z) p)
       (λ x → trans (cong (λ z → f z x) (refl x))
-                   (cong (λ z → f x z) (refl x))  ≡⟨ cong₂ trans (cong-refl _) (cong-refl _) ⟩
+                   (cong (λ z → f x z) (refl x))  ≡⟨ cong₂ trans (cong-refl (λ z → f z x)) (cong-refl (λ z → f x z)) ⟩
 
              trans (refl (f x x)) (refl (f x x))  ≡⟨ trans-refl-refl ⟩
 
@@ -1486,7 +1486,7 @@ module Derived-definitions-and-properties
          {px : T (p x)} {py : T (p y)} →
          trans (cong f x≡y) (f≡g y py) ≡ trans (f≡g x px) (cong g x≡y))
       (λ x {px px′} →
-         trans (cong f (refl x)) (f≡g x px′)  ≡⟨ cong (flip trans _) (cong-refl _) ⟩
+         trans (cong f (refl x)) (f≡g x px′)  ≡⟨ cong (flip trans _) (cong-refl f) ⟩
          trans (refl (f x)) (f≡g x px′)       ≡⟨ trans-reflˡ _ ⟩
          f≡g x px′                            ≡⟨ cong (f≡g x) (T-irr (p x) px′ px) ⟩
          f≡g x px                             ≡⟨ sym $ trans-reflʳ _ ⟩
