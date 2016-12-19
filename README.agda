@@ -120,6 +120,7 @@ import List
 import M
 import Maybe
 import Nat
+import Vec
 
 -- The univalence axiom.
 

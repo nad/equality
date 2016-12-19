@@ -379,6 +379,13 @@ pattern fzero  = inj₁ tt
 pattern fsuc i = inj₂ i
 
 ------------------------------------------------------------------------
+-- Vectors
+
+Vec : ∀ {a} → Set a → ℕ → Set a
+Vec A zero    = ↑ _ ⊤
+Vec A (suc n) = A × Vec A n
+
+------------------------------------------------------------------------
 -- Some relation combinators
 
 -- Combines two relations into a relation on functions.
