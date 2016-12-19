@@ -37,7 +37,7 @@ List = ℕ ▷ Fin
 List⇔List : {A : Set} → ⟦ List ⟧ A ⇔ P.List A
 List⇔List {A} = record
   { to   = uncurry to
-  ; from = λ xs → (L.length xs , L.lookup xs)
+  ; from = λ xs → (L.length xs , L.index xs)
   }
   where
   to : (n : ℕ) → (Fin n → A) → P.List A
@@ -67,9 +67,9 @@ List↔List {A} ext = record
   from∘to : ∀ n f → from (to (n , f)) ≡ (n , f)
   from∘to zero    f = cong (_,_ _) (ext λ ())
   from∘to (suc n) f =
-    (suc (L.length (to xs)) , L.lookup (P._∷_ x (to xs)))  ≡⟨ lemma₃ (from∘to n (f ∘ inj₂)) ⟩
-    (suc n                  , [ (λ _ → x) , f ∘ inj₂ ])    ≡⟨ lemma₁ ⟩∎
-    (suc n                  , f)                           ∎
+    (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))  ≡⟨ lemma₃ (from∘to n (f ∘ inj₂)) ⟩
+    (suc n                  , [ (λ _ → x) , f ∘ inj₂ ])   ≡⟨ lemma₁ ⟩∎
+    (suc n                  , f)                          ∎
     where
     x  = f (inj₁ tt)
     xs = (n , f ∘ inj₂)
@@ -82,16 +82,16 @@ List↔List {A} ext = record
 
     lemma₂ : {n : ℕ} {lkup : Fin n → A} →
              (≡n : L.length (to xs) ≡ n) →
-             subst (λ n → Fin n → A) ≡n (L.lookup (to xs)) ≡ lkup →
+             subst (λ n → Fin n → A) ≡n (L.index (to xs)) ≡ lkup →
              _≡_ {A = ⟦ List ⟧ A}
-                 (suc (L.length (to xs)) , L.lookup (P._∷_ x (to xs)))
+                 (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))
                  (suc n , [ (λ _ → x) , lkup ])
     lemma₂ refl refl = sym lemma₁
 
     lemma₃ : {ys : ⟦ List ⟧ A} →
-             (L.length (to xs) , L.lookup (to xs)) ≡ ys →
+             (L.length (to xs) , L.index (to xs)) ≡ ys →
              _≡_ {A = ⟦ List ⟧ A}
-                 (suc (L.length (to xs)) , L.lookup (P._∷_ x (to xs)))
+                 (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))
                  (suc (proj₁ ys) , [ (λ _ → x) , proj₂ ys ])
     lemma₃ ≡ys = lemma₂ (proj₁ ≡,≡) (proj₂ ≡,≡)
       where ≡,≡ = Σ-≡,≡←≡ ≡ys
@@ -117,12 +117,12 @@ Any↔Any-to {A} P = uncurry Any↔Any-to′
 Any-from↔Any : {A : Set} (P : A → Set) (xs : P.List A) →
                Any P (_⇔_.from List⇔List xs) ↔ AnyL P xs
 Any-from↔Any P P.[] =
-  (∃ λ (p : Fin zero) → P (L.lookup P.[] p))  ↔⟨ ∃-Fin-zero _ ⟩
-  ⊥                                           □
+  (∃ λ (p : Fin zero) → P (L.index P.[] p))  ↔⟨ ∃-Fin-zero _ ⟩
+  ⊥                                          □
 Any-from↔Any P (P._∷_ x xs) =
-  (∃ λ (p : Fin (suc (L.length xs))) → P (L.lookup (P._∷_ x xs) p))  ↔⟨ ∃-Fin-suc _ ⟩
-  P x ⊎ Any {C = List} P (_⇔_.from List⇔List xs)                     ↔⟨ id ⊎-cong Any-from↔Any P xs ⟩
-  P x ⊎ AnyL P xs                                                    □
+  (∃ λ (p : Fin (suc (L.length xs))) → P (L.index (P._∷_ x xs) p))  ↔⟨ ∃-Fin-suc _ ⟩
+  P x ⊎ Any {C = List} P (_⇔_.from List⇔List xs)                    ↔⟨ id ⊎-cong Any-from↔Any P xs ⟩
+  P x ⊎ AnyL P xs                                                   □
 
 -- The definition of bag equivalence in Bag-equivalence and the one in
 -- Container, instantiated with the List container, are logically

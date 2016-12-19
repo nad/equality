@@ -79,7 +79,7 @@ _And_Are-related-by_ :
   ∀ {a} {A : Set a}
   (xs ys : List A) → Fin (length xs) ↔ Fin (length ys) → Set a
 xs And ys Are-related-by f =
-  ∀ i → lookup xs i ≡ lookup ys (_↔_.to f i)
+  ∀ i → index xs i ≡ index ys (_↔_.to f i)
 
 abstract
 
@@ -97,20 +97,20 @@ abstract
     helper : xs And ys Are-related-by cancel-suc f
     helper i with inspect (to (fsuc i)) | related (fsuc i)
     helper i | fsuc k , eq₁ | hyp₁ =
-      lookup xs i                    ≡⟨ hyp₁ ⟩
-      lookup (x ∷ ys) (to (fsuc i))  ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
-      lookup (x ∷ ys) (fsuc k)       ≡⟨ refl _ ⟩∎
-      lookup ys k                    ∎
+      index xs i                    ≡⟨ hyp₁ ⟩
+      index (x ∷ ys) (to (fsuc i))  ≡⟨ cong (index (x ∷ ys)) eq₁ ⟩
+      index (x ∷ ys) (fsuc k)       ≡⟨ refl _ ⟩∎
+      index ys k                    ∎
     helper i | fzero , eq₁ | hyp₁
       with inspect (to (fzero)) | related (fzero)
     helper i | fzero , eq₁ | hyp₁ | fsuc j , eq₂ | hyp₂ =
-      lookup xs i                    ≡⟨ hyp₁ ⟩
-      lookup (x ∷ ys) (to (fsuc i))  ≡⟨ cong (lookup (x ∷ ys)) eq₁ ⟩
-      lookup (x ∷ ys) (fzero)        ≡⟨ refl _ ⟩
-      x                              ≡⟨ hyp₂ ⟩
-      lookup (x ∷ ys) (to (fzero))   ≡⟨ cong (lookup (x ∷ ys)) eq₂ ⟩
-      lookup (x ∷ ys) (fsuc j)       ≡⟨ refl _ ⟩∎
-      lookup ys j                    ∎
+      index xs i                    ≡⟨ hyp₁ ⟩
+      index (x ∷ ys) (to (fsuc i))  ≡⟨ cong (index (x ∷ ys)) eq₁ ⟩
+      index (x ∷ ys) (fzero)        ≡⟨ refl _ ⟩
+      x                             ≡⟨ hyp₂ ⟩
+      index (x ∷ ys) (to (fzero))   ≡⟨ cong (index (x ∷ ys)) eq₂ ⟩
+      index (x ∷ ys) (fsuc j)       ≡⟨ refl _ ⟩∎
+      index ys j                    ∎
     helper i | fzero , eq₁ | hyp₁ | fzero , eq₂ | hyp₂ =
       ⊥-elim $ well-behaved f eq₁ eq₂
 

@@ -22,7 +22,7 @@ module README.Bag-equivalence where
 
 import Prelude
 
--- Some list functions: length and lookup.
+-- Some list functions: length and index (called lookup in the paper).
 
 import List
 

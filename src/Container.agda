@@ -45,11 +45,11 @@ open Container public
 shape : ∀ {a c} {A : Set a} {C : Container c} → ⟦ C ⟧ A → Shape C
 shape = proj₁
 
--- A lookup function.
+-- Finds the value at the given position.
 
-lookup : ∀ {a c} {A : Set a} {C : Container c}
-         (xs : ⟦ C ⟧ A) → Position C (shape xs) → A
-lookup = proj₂
+index : ∀ {a c} {A : Set a} {C : Container c}
+        (xs : ⟦ C ⟧ A) → Position C (shape xs) → A
+index = proj₂
 
 ------------------------------------------------------------------------
 -- Map
@@ -313,15 +313,15 @@ _≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
 -- the element". In fact, membership /is/ expressed in this way, so
 -- this proof is unnecessary.
 
-∈-lookup : ∀ {a c} {A : Set a} {C : Container c} {z}
-           (xs : ⟦ C ⟧ A) → z ∈ xs ↔ ∃ λ p → z ≡ lookup xs p
-∈-lookup {z = z} xs = z ∈ xs □
+∈-index : ∀ {a c} {A : Set a} {C : Container c} {z}
+          (xs : ⟦ C ⟧ A) → z ∈ xs ↔ ∃ λ p → z ≡ index xs p
+∈-index {z = z} xs = z ∈ xs □
 
 -- The index which points to the element (not used below).
 
-index : ∀ {a c} {A : Set a} {C : Container c} {z}
-        (xs : ⟦ C ⟧ A) → z ∈ xs → Position C (shape xs)
-index xs = proj₁ ∘ to-implication (∈-lookup xs)
+index-of : ∀ {a c} {A : Set a} {C : Container c} {z}
+           (xs : ⟦ C ⟧ A) → z ∈ xs → Position C (shape xs)
+index-of xs = proj₁ ∘ to-implication (∈-index xs)
 
 -- The positions for a given shape can be expressed in terms of the
 -- membership predicate.
@@ -352,37 +352,37 @@ Position-shape-cong {C = C} {D} xs ys xs∼ys =
 Position-shape-cong-relates :
   ∀ {k a c d} {A : Set a} {C : Container c} {D : Container d}
   (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) (xs≈ys : xs ∼[ k ] ys) p →
-  lookup xs p ≡
-    lookup ys (to-implication (Position-shape-cong xs ys xs≈ys) p)
+  index xs p ≡
+    index ys (to-implication (Position-shape-cong xs ys xs≈ys) p)
 Position-shape-cong-relates {bag} xs ys xs≈ys p =
-  lookup xs p                                                     ≡⟨ proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl) ⟩
-  lookup ys (proj₁ $ to-implication (xs≈ys (lookup xs p))
-                                    (p , refl))                   ≡⟨⟩
-  lookup ys (_↔_.to (Position-shape ys) $
-             Σ-map id (λ {z} → to-implication (xs≈ys z)) $
-             _↔_.from (Position-shape xs) $ p)                    ≡⟨⟩
-  lookup ys (_↔_.to (Position-shape ys) $
-             to-implication (∃-cong xs≈ys) $
-             _↔_.from (Position-shape xs) $ p)                    ≡⟨⟩
-  lookup ys (to-implication
-               ((from-bijection (Position-shape ys) ⟨∘⟩
-                 ∃-cong xs≈ys) ⟨∘⟩
-                from-bijection (inverse $ Position-shape xs))
-               p)                                                 ≡⟨ refl ⟩∎
-  lookup ys (to-implication (Position-shape-cong xs ys xs≈ys) p)  ∎
+  index xs p                                                     ≡⟨ proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl) ⟩
+  index ys (proj₁ $ to-implication (xs≈ys (index xs p))
+                                   (p , refl))                   ≡⟨⟩
+  index ys (_↔_.to (Position-shape ys) $
+            Σ-map id (λ {z} → to-implication (xs≈ys z)) $
+            _↔_.from (Position-shape xs) $ p)                    ≡⟨⟩
+  index ys (_↔_.to (Position-shape ys) $
+            to-implication (∃-cong xs≈ys) $
+            _↔_.from (Position-shape xs) $ p)                    ≡⟨⟩
+  index ys (to-implication
+              ((from-bijection (Position-shape ys) ⟨∘⟩
+                ∃-cong xs≈ys) ⟨∘⟩
+               from-bijection (inverse $ Position-shape xs))
+              p)                                                 ≡⟨ refl ⟩∎
+  index ys (to-implication (Position-shape-cong xs ys xs≈ys) p)  ∎
 
 Position-shape-cong-relates {bag-with-equivalence} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
 Position-shape-cong-relates {subbag} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
 Position-shape-cong-relates {set} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
 Position-shape-cong-relates {subset} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
 Position-shape-cong-relates {embedding} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
 Position-shape-cong-relates {surjection} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (lookup xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
 
 -- We get that the two definitions of bag equivalence are logically
 -- equivalent.
@@ -399,10 +399,10 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
   where
   from : xs ≈[ k ]′ ys → xs ∼[ ⌊ k ⌋-iso ] ys
   from (P↔P , related) = λ z →
-    z ∈ xs                     ↔⟨⟩
-    ∃ (λ p → z ≡ lookup xs p)  ↔⟨ Σ-cong P↔P (λ p → _↠_.from (Π≡↔≡-↠-≡ k _ _) (related p) z) ⟩
-    ∃ (λ p → z ≡ lookup ys p)  ↔⟨⟩
-    z ∈ ys                     □
+    z ∈ xs                    ↔⟨⟩
+    ∃ (λ p → z ≡ index xs p)  ↔⟨ Σ-cong P↔P (λ p → _↠_.from (Π≡↔≡-↠-≡ k _ _) (related p) z) ⟩
+    ∃ (λ p → z ≡ index ys p)  ↔⟨⟩
+    z ∈ ys                    □
 
 -- If equivalences are used, then the definitions are isomorphic
 -- (assuming extensionality).
@@ -425,7 +425,7 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
       let
         P : (Position C (shape xs) → Position D (shape ys)) →
             Set (a ⊔ c)
-        P f = ∀ p → lookup xs p ≡ lookup ys (f p)
+        P f = ∀ p → index xs p ≡ index ys (f p)
 
         f-eq′ : Is-equivalence f
         f-eq′ = _
@@ -456,8 +456,8 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
         Eq.lift-equality ext $
           lower-extensionality d c ext λ { (p , z≡xs[p]) →
 
-              let xs[p]≡ys[-] : ∃ λ p′ → lookup xs p ≡ lookup ys p′
-                  xs[p]≡ys[-] = _≃_.to (xs≈ys (lookup xs p)) (p , refl) in
+              let xs[p]≡ys[-] : ∃ λ p′ → index xs p ≡ index ys p′
+                  xs[p]≡ys[-] = _≃_.to (xs≈ys (index xs p)) (p , refl) in
 
             Σ-map id (trans z≡xs[p]) xs[p]≡ys[-]      ≡⟨ elim₁ (λ {z} z≡xs[p] → Σ-map id (trans z≡xs[p]) xs[p]≡ys[-] ≡
                                                                           _≃_.to (xs≈ys z) (p , z≡xs[p]))

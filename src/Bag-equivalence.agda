@@ -429,22 +429,23 @@ range-disjunction p q xs = λ z →
 -- to the element".
 --
 -- As an aside, note that the right-hand side is almost
--- lookup xs ⁻¹ z.
+-- index xs ⁻¹ z.
 
-∈-lookup : ∀ {a} {A : Set a} {z}
-           (xs : List A) → z ∈ xs ↔ ∃ λ i → z ≡ lookup xs i
-∈-lookup {z = z} [] =
-  ⊥                                ↔⟨ inverse $ ∃-Fin-zero _ ⟩
-  (∃ λ (i : ⊥) → z ≡ lookup [] i)  □
-∈-lookup {z = z} (x ∷ xs) =
-  z ≡ x ⊎ z ∈ xs                     ↔⟨ id ⊎-cong ∈-lookup xs ⟩
-  z ≡ x ⊎ (∃ λ i → z ≡ lookup xs i)  ↔⟨ inverse $ ∃-Fin-suc _ ⟩
-  (∃ λ i → z ≡ lookup (x ∷ xs) i)    □
+∈-index : ∀ {a} {A : Set a} {z}
+          (xs : List A) → z ∈ xs ↔ ∃ λ i → z ≡ index xs i
+∈-index {z = z} [] =
+  ⊥                               ↔⟨ inverse $ ∃-Fin-zero _ ⟩
+  (∃ λ (i : ⊥) → z ≡ index [] i)  □
+∈-index {z = z} (x ∷ xs) =
+  z ≡ x ⊎ z ∈ xs                    ↔⟨ id ⊎-cong ∈-index xs ⟩
+  z ≡ x ⊎ (∃ λ i → z ≡ index xs i)  ↔⟨ inverse $ ∃-Fin-suc _ ⟩
+  (∃ λ i → z ≡ index (x ∷ xs) i)    □
 
 -- The index which points to the element.
 
-index : ∀ {a} {A : Set a} {z} {xs : List A} → z ∈ xs → Fin (length xs)
-index = proj₁ ∘ _↔_.to (∈-lookup _)
+index-of : ∀ {a} {A : Set a} {z} {xs : List A} →
+           z ∈ xs → Fin (length xs)
+index-of = proj₁ ∘ _↔_.to (∈-index _)
 
 -- For the other direction a sequence of lemmas is used.
 
@@ -455,12 +456,12 @@ index = proj₁ ∘ _↔_.to (∈-lookup _)
 Fin-length : ∀ {a} {A : Set a}
              (xs : List A) → (∃ λ z → z ∈ xs) ↔ Fin (length xs)
 Fin-length xs =
-  (∃ λ z → z ∈ xs)                   ↔⟨ ∃-cong (λ _ → ∈-lookup xs) ⟩
-  (∃ λ z → ∃ λ i → z ≡ lookup xs i)  ↔⟨ ∃-comm ⟩
-  (∃ λ i → ∃ λ z → z ≡ lookup xs i)  ↔⟨⟩
-  (∃ λ i → Singleton (lookup xs i))  ↔⟨ ∃-cong (λ _ → inverse (_⇔_.to contractible⇔⊤↔ (singleton-contractible _))) ⟩
-  Fin (length xs) × ⊤                ↔⟨ ×-right-identity ⟩
-  Fin (length xs)                    □
+  (∃ λ z → z ∈ xs)                  ↔⟨ ∃-cong (λ _ → ∈-index xs) ⟩
+  (∃ λ z → ∃ λ i → z ≡ index xs i)  ↔⟨ ∃-comm ⟩
+  (∃ λ i → ∃ λ z → z ≡ index xs i)  ↔⟨⟩
+  (∃ λ i → Singleton (index xs i))  ↔⟨ ∃-cong (λ _ → inverse (_⇔_.to contractible⇔⊤↔ (singleton-contractible _))) ⟩
+  Fin (length xs) × ⊤               ↔⟨ ×-right-identity ⟩
+  Fin (length xs)                   □
 
 -- From this lemma we get that lists which are bag equivalent have
 -- related lengths.
@@ -489,11 +490,11 @@ abstract
     ∀ {a} {A : Set a} {xs ys : List A} (xs≈ys : xs ≈-bag ys) →
     xs And ys Are-related-by Fin-length-cong xs≈ys
   Fin-length-cong-relates {xs = xs} {ys} xs≈ys i =
-    lookup xs i                                 ≡⟨ proj₂ $ to (∈-lookup _) $ to (xs≈ys _) (from (∈-lookup _) (i , refl)) ⟩
-    lookup ys (proj₁ $ to (∈-lookup _) $
-               to (xs≈ys _) $
-               from (∈-lookup _) (i , refl))    ≡⟨ refl ⟩∎
-    lookup ys (to (Fin-length-cong xs≈ys) i)    ∎
+    index xs i                               ≡⟨ proj₂ $ to (∈-index _) $ to (xs≈ys _) (from (∈-index _) (i , refl)) ⟩
+    index ys (proj₁ $ to (∈-index _) $
+              to (xs≈ys _) $
+              from (∈-index _) (i , refl))   ≡⟨ refl ⟩∎
+    index ys (to (Fin-length-cong xs≈ys) i)  ∎
     where open _↔_
 
 -- We get that the two definitions of bag equivalence are logically
@@ -514,12 +515,12 @@ abstract
 
   from : ∀ {xs ys} → xs ≈-bag′ ys → xs ≈-bag ys
   from {xs} {ys} xs≈ys z =
-    z ∈ xs                     ↔⟨ ∈-lookup xs ⟩
-    ∃ (λ i → z ≡ lookup xs i)  ↔⟨ Σ-cong (_≈-bag′_.bijection xs≈ys)
-                                         (λ i → equality-lemma $
-                                                  _≈-bag′_.related xs≈ys i) ⟩
-    ∃ (λ i → z ≡ lookup ys i)  ↔⟨ inverse (∈-lookup ys) ⟩
-    z ∈ ys                     □
+    z ∈ xs                    ↔⟨ ∈-index xs ⟩
+    ∃ (λ i → z ≡ index xs i)  ↔⟨ Σ-cong (_≈-bag′_.bijection xs≈ys)
+                                        (λ i → equality-lemma $
+                                                 _≈-bag′_.related xs≈ys i) ⟩
+    ∃ (λ i → z ≡ index ys i)  ↔⟨ inverse (∈-index ys) ⟩
+    z ∈ ys                    □
 
 ------------------------------------------------------------------------
 -- Left cancellation
@@ -542,36 +543,37 @@ abstract
 
 abstract
 
-  -- The index function commutes with applications of certain
+  -- The index-of function commutes with applications of certain
   -- inverses. Note that the last three equational reasoning steps do
   -- not need to be written out; I included them in an attempt to make
   -- it easier to understand why the lemma holds.
 
-  index-commutes : ∀ {a} {A : Set a} {z : A} {xs ys} →
-                   (xs≈ys : xs ≈-bag ys) (p : z ∈ xs) →
-                   index (_↔_.to (xs≈ys z) p) ≡
-                   _↔_.to (Fin-length-cong xs≈ys) (index p)
-  index-commutes {z = z} {xs} {ys} xs≈ys p =
-    (index $ to (xs≈ys z) p)                             ≡⟨ lemma z p ⟩
-    (index $ to (xs≈ys _) $ proj₂ $
+  index-of-commutes :
+    ∀ {a} {A : Set a} {z : A} {xs ys} →
+    (xs≈ys : xs ≈-bag ys) (p : z ∈ xs) →
+    index-of (_↔_.to (xs≈ys z) p) ≡
+    _↔_.to (Fin-length-cong xs≈ys) (index-of p)
+  index-of-commutes {z = z} {xs} {ys} xs≈ys p =
+    (index-of $ to (xs≈ys z) p)                          ≡⟨ lemma z p ⟩
+    (index-of $ to (xs≈ys _) $ proj₂ $
      from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
-    (index $ proj₂ $ Σ-map P.id (to (xs≈ys _)) $
+    (index-of $ proj₂ $ Σ-map P.id (to (xs≈ys _)) $
      from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
     (to (Fin-length ys) $ Σ-map P.id (to (xs≈ys _)) $
-     from (Fin-length xs) $ index p)                     ≡⟨ refl ⟩∎
-    (to (Fin-length-cong xs≈ys) $ index p)               ∎
+     from (Fin-length xs) $ index-of p)                  ≡⟨ refl ⟩∎
+    (to (Fin-length-cong xs≈ys) $ index-of p)            ∎
     where
     open _↔_
 
     lemma : ∀ z p →
-            (index $ to (xs≈ys z) p) ≡
-            (index $
-             to (xs≈ys (lookup xs (to (Fin-length xs) (z , p)))) $
+            (index-of $ to (xs≈ys z) p) ≡
+            (index-of $
+             to (xs≈ys (index xs (to (Fin-length xs) (z , p)))) $
              proj₂ $ from (Fin-length xs) $
              to (Fin-length xs) (z , p))
     lemma z p with to (Fin-length xs) (z , p)
                  | Σ-≡,≡←≡ (left-inverse-of (Fin-length xs) (z , p))
-    lemma .(lookup xs i) .(from (∈-lookup xs) (i , refl))
+    lemma .(index xs i) .(from (∈-index xs) (i , refl))
           | i | refl , refl = refl
 
   -- Bag equivalence isomorphisms preserve index equality. Note that
@@ -582,13 +584,13 @@ abstract
   index-equality-preserved :
     ∀ {a} {A : Set a} {z : A} {xs ys} {p q : z ∈ xs}
     (xs≈ys : xs ≈-bag ys) →
-    index p ≡ index q →
-    index (_↔_.to (xs≈ys z) p) ≡ index (_↔_.to (xs≈ys z) q)
+    index-of p ≡ index-of q →
+    index-of (_↔_.to (xs≈ys z) p) ≡ index-of (_↔_.to (xs≈ys z) q)
   index-equality-preserved {z = z} {p = p} {q} xs≈ys eq =
-    index (_↔_.to (xs≈ys z) p)                ≡⟨ index-commutes xs≈ys p ⟩
-    _↔_.to (Fin-length-cong xs≈ys) (index p)  ≡⟨ cong (_↔_.to (Fin-length-cong xs≈ys)) eq ⟩
-    _↔_.to (Fin-length-cong xs≈ys) (index q)  ≡⟨ sym $ index-commutes xs≈ys q ⟩∎
-    index (_↔_.to (xs≈ys z) q)                ∎
+    index-of (_↔_.to (xs≈ys z) p)                ≡⟨ index-of-commutes xs≈ys p ⟩
+    _↔_.to (Fin-length-cong xs≈ys) (index-of p)  ≡⟨ cong (_↔_.to (Fin-length-cong xs≈ys)) eq ⟩
+    _↔_.to (Fin-length-cong xs≈ys) (index-of q)  ≡⟨ sym $ index-of-commutes xs≈ys q ⟩∎
+    index-of (_↔_.to (xs≈ys z) q)                ∎
 
 -- If x ∷ xs is bag equivalent to x ∷ ys, then xs and ys are bag
 -- equivalent.
@@ -610,12 +612,12 @@ abstract
     lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) →
             Well-behaved (_↔_.to (inv z))
     lemma {xs} inv {b = z∈xs} {a = p} {a′ = q} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
-      fzero                                ≡⟨ refl ⟩
-      index {xs = x ∷ xs} (inj₁ p)         ≡⟨ cong index $ sym $ to-from hyp₂ ⟩
-      index {xs = x ∷ xs} (from (inj₁ q))  ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
-      index {xs = x ∷ xs} (from (inj₁ p))  ≡⟨ cong index $ to-from hyp₁ ⟩
-      index {xs = x ∷ xs} (inj₂ z∈xs)      ≡⟨ refl ⟩∎
-      fsuc (index {xs = xs} z∈xs)          ∎)
+      fzero                                   ≡⟨ refl ⟩
+      index-of {xs = x ∷ xs} (inj₁ p)         ≡⟨ cong index-of $ sym $ to-from hyp₂ ⟩
+      index-of {xs = x ∷ xs} (from (inj₁ q))  ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
+      index-of {xs = x ∷ xs} (from (inj₁ p))  ≡⟨ cong index-of $ to-from hyp₁ ⟩
+      index-of {xs = x ∷ xs} (inj₂ z∈xs)      ≡⟨ refl ⟩∎
+      fsuc (index-of {xs = xs} z∈xs)          ∎)
       where open _↔_ (inv z)
 
 -- Cons is not left cancellative for set equivalence.

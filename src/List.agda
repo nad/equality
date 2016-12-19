@@ -66,12 +66,12 @@ replicate (suc n) x = x ∷ replicate n x
 filter : ∀ {a} {A : Set a} → (A → Bool) → List A → List A
 filter p = foldr (λ x xs → if p x then x ∷ xs else xs) []
 
--- A lookup function.
+-- Finds the element at the given position.
 
-lookup : ∀ {a} {A : Set a} (xs : List A) → Fin (length xs) → A
-lookup []       ()
-lookup (x ∷ xs) fzero    = x
-lookup (x ∷ xs) (fsuc i) = lookup xs i
+index : ∀ {a} {A : Set a} (xs : List A) → Fin (length xs) → A
+index []       ()
+index (x ∷ xs) fzero    = x
+index (x ∷ xs) (fsuc i) = index xs i
 
 -- The function foldr _∷_ [] is pointwise equal to the identity
 -- function.
