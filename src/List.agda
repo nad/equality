@@ -73,6 +73,14 @@ index []       ()
 index (x ∷ xs) fzero    = x
 index (x ∷ xs) (fsuc i) = index xs i
 
+-- A lookup function.
+
+lookup : ∀ {a b} {A : Set a} {B : Set b} →
+         (A → A → Bool) → A → List (A × B) → Maybe B
+lookup _≟_ x []             = nothing
+lookup _≟_ x ((y , z) ∷ ps) =
+  if x ≟ y then just z else lookup _≟_ x ps
+
 -- The function foldr _∷_ [] is pointwise equal to the identity
 -- function.
 
