@@ -17,10 +17,14 @@ module README.Bag-equivalence where
 ------------------------------------------------------------------------
 -- 2: Brief Introduction to Agda
 
--- The prelude, containing List, ℕ, length, Fin, ⊥, ⊤, _⊎_ (written as
--- _+_ in the paper), lookup, ∃, and _×_.
+-- The prelude, containing List, ℕ, Fin, ⊥, ⊤, _⊎_ (written as _+_ in
+-- the paper), ∃, and _×_.
 
 import Prelude
+
+-- Some list functions: length and lookup.
+
+import List
 
 -- Logical equivalences: _⇔_.
 
@@ -53,9 +57,10 @@ import Bag-equivalence
 ------------------------------------------------------------------------
 -- 4: Bijectional Reasoning
 
--- Definitions of map, concat and _>>=_.
+-- Definitions of map, concat and _>>=_ (the latter as part of a monad
+-- instance).
 
-import Prelude
+import List
 
 -- Algebraic properties of type constructors (like ⊥ ⊎ A ↔ A).
 
