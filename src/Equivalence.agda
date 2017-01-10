@@ -658,6 +658,21 @@ abstract
     subst P (cong (_$ x) (good-ext ext f≡g)) p  ≡⟨ cong (λ eq → subst P eq p) (cong-good-ext ext f≡g) ⟩∎
     subst P (f≡g x) p                           ∎
 
+  elim-good-ext :
+    ∀ {a b p}
+    (ext : Extensionality a b)
+    {A : Set a} {B : A → Set b} {x : A}
+    (P : B x → B x → Set p)
+    (p : (y : B x) → P y y)
+    {f g : (x : A) → B x}
+    (f≡g : ∀ x → f x ≡ g x) →
+    elim (λ {f g} _ → P (f x) (g x)) (p ⊚ (_$ x)) (good-ext ext f≡g) ≡
+    elim (λ {x y} _ → P x y) p (f≡g x)
+  elim-good-ext ext {x = x} P p f≡g =
+    elim (λ {f g} _ → P (f x) (g x)) (p ⊚ (_$ x)) (good-ext ext f≡g)  ≡⟨ sym $ elim-cong _ _ _ ⟩
+    elim (λ {x y} _ → P x y) p (cong (_$ x) (good-ext ext f≡g))       ≡⟨ cong (elim (λ {x y} _ → P x y) p) (cong-good-ext ext f≡g) ⟩
+    elim (λ {x y} _ → P x y) p (f≡g x)                                ∎
+
 ------------------------------------------------------------------------
 -- Groupoid
 
