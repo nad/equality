@@ -37,7 +37,7 @@ Functor C D =
   -- F should be homomorphic with respect to identity and composition.
   (∀ {X} → F (id C {X = X}) ≡ id D) ×
   (∀ {X Y Z} {f : Hom C X Y} {g : Hom C Y Z} →
-     F (_∙_ C f g) ≡ _∙_ D (F f) (F g))
+     F (_∙_ C g f) ≡ _∙_ D (F g) (F f))
 
   where open Precategory
 
@@ -73,7 +73,7 @@ record _⇨_ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
   -- The morphism map is homomorphic with respect to composition.
 
   ⊙-∙ : ∀ {X Y Z} {f : Hom C X Y} {g : Hom C Y Z} →
-        _⊙_ (_∙_ C f g) ≡ _∙_ D (_⊙_ f) (_⊙_ g)
+        _⊙_ (_∙_ C g f) ≡ _∙_ D (_⊙_ g) (_⊙_ f)
   ⊙-∙ = proj₂ (proj₂ (proj₂ functor))
 
 open _⇨_ public
@@ -93,7 +93,7 @@ private
 
      Is-proposition ((∀ {X} → F ⊙ id C {X = X} ≡ id D) ×
                      (∀ {X Y Z} {f : Hom C X Y} {g : Hom C Y Z} →
-                      F ⊙ (_∙_ C f g) ≡ _∙_ D (F ⊙ f) (F ⊙ g)))
+                      F ⊙ (_∙_ C g f) ≡ _∙_ D (F ⊙ g) (F ⊙ f)))
 
    functor-properties-propositional {ℓ₁} {ℓ₂} ext {D = D} _ = ×-closure 1
      (implicit-Π-closure (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
@@ -137,7 +137,7 @@ private
          Q : ∃ P → Set _
          Q = λ { (F₀ , F) → (∀ {X} → F (id C {X = X}) ≡ id D) ×
                             (∀ {X Y Z} {f : Hom C X Y} {g : Hom C Y Z} →
-                               F (_∙_ C f g) ≡ _∙_ D (F f) (F g)) }
+                               F (_∙_ C g f) ≡ _∙_ D (F g) (F f)) }
      in
 
      (F ≡ G)                                                              ↝⟨ ↔⇒≃ record
@@ -253,7 +253,7 @@ Natural-transformation {C = C} {D = D} F G =
   ∃ λ (γ : ∀ {X} → Hom D (F ⊚ X) (G ⊚ X)) →
 
   -- Naturality.
-  ∀ {X Y} {f : Hom C X Y} → γ ∙ (G ⊙ f) ≡ (F ⊙ f) ∙ γ
+  ∀ {X Y} {f : Hom C X Y} → (G ⊙ f) ∙ γ ≡ γ ∙ (F ⊙ f)
 
   where
   open Precategory hiding (_∙_)
@@ -278,7 +278,7 @@ record _⇾_ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
   -- Naturality.
 
   natural : ∀ {X Y} {f : Hom C X Y} →
-            transformation ∙ (G ⊙ f) ≡ (F ⊙ f) ∙ transformation
+            (G ⊙ f) ∙ transformation ≡ transformation ∙ (F ⊙ f)
   natural = proj₂ natural-transformation
 
 private
@@ -297,8 +297,8 @@ private
      {transformation : ∀ {X} → Hom D (F ⊚ X) (G ⊚ X)} →
 
      Is-proposition (∀ {X Y} {f : Hom C X Y} →
-                       transformation ∙ (G ⊙ f) ≡
-                       (F ⊙ f) ∙ transformation)
+                     (G ⊙ f) ∙ transformation ≡
+                     transformation ∙ (F ⊙ f))
 
    naturality-propositional {ℓ₁} {ℓ₂} ext {D = D} _ _ =
      implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
@@ -384,20 +384,20 @@ id⇾ {C = C} {D = D} F =
    abstract
 
     nat : ∀ {X Y} {f : Precategory.Hom C X Y} →
-          id ∙ (F ⊙ f) ≡ (F ⊙ f) ∙ id
+          (F ⊙ f) ∙ id ≡ id ∙ (F ⊙ f)
     nat {f = f} =
-      id ∙ (F ⊙ f)  ≡⟨ left-identity ⟩
-      F ⊙ f         ≡⟨ sym $ right-identity ⟩∎
-      (F ⊙ f) ∙ id  ∎
+      (F ⊙ f) ∙ id  ≡⟨ right-identity ⟩
+      F ⊙ f         ≡⟨ sym $ left-identity ⟩∎
+      id ∙ (F ⊙ f)  ∎
 
 -- Composition of natural transformations.
 
-infixl 10 _∙⇾_
+infixr 10 _∙⇾_
 
 _∙⇾_ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
          {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄}
          {F G H : C ⇨ D} →
-       F ⇾ G → G ⇾ H → F ⇾ H
+       G ⇾ H → F ⇾ G → F ⇾ H
 _∙⇾_ {C = C} {D = D} {F} {G} {H} γ δ =
   record { natural-transformation = ε , Dummy₅.nat }
   where
@@ -411,14 +411,14 @@ _∙⇾_ {C = C} {D = D} {F} {G} {H} γ δ =
    abstract
 
     nat : ∀ {X Y} {f : Precategory.Hom C X Y} →
-          ε ∙ (H ⊙ f) ≡ (F ⊙ f) ∙ ε
+          (H ⊙ f) ∙ ε ≡ ε ∙ (F ⊙ f)
     nat {f = f} =
-      (transformation γ ∙ transformation δ) ∙ (H ⊙ f)  ≡⟨ sym assoc ⟩
-      transformation γ ∙ (transformation δ ∙ (H ⊙ f))  ≡⟨ cong (_∙_ _) $ natural δ ⟩
-      transformation γ ∙ ((G ⊙ f) ∙ transformation δ)  ≡⟨ assoc ⟩
-      (transformation γ ∙ (G ⊙ f)) ∙ transformation δ  ≡⟨ cong (λ f → f ∙ _) $ natural γ ⟩
-      ((F ⊙ f) ∙ transformation γ) ∙ transformation δ  ≡⟨ sym assoc ⟩∎
-      (F ⊙ f) ∙ (transformation γ ∙ transformation δ)  ∎
+      (H ⊙ f) ∙ (transformation γ ∙ transformation δ)  ≡⟨ assoc ⟩
+      ((H ⊙ f) ∙ transformation γ) ∙ transformation δ  ≡⟨ cong (λ f → f ∙ _) $ natural γ ⟩
+      (transformation γ ∙ (G ⊙ f)) ∙ transformation δ  ≡⟨ sym assoc ⟩
+      transformation γ ∙ ((G ⊙ f) ∙ transformation δ)  ≡⟨ cong (_∙_ _) $ natural δ ⟩
+      transformation γ ∙ (transformation δ ∙ (F ⊙ f))  ≡⟨ assoc ⟩∎
+      (transformation γ ∙ transformation δ) ∙ (F ⊙ f)  ∎
 
 ------------------------------------------------------------------------
 -- Functor precategories
@@ -465,26 +465,26 @@ private
          transformation δ ,
          (transformation γ ∙ transformation δ  ≡⟨⟩
           transformation (γ ∙⇾ δ)              ≡⟨ cong (λ ε → transformation ε) γδ ⟩
-          transformation (id⇾ F)               ≡⟨⟩
+          transformation (id⇾ G)               ≡⟨⟩
           id                                   ∎) ,
          (transformation δ ∙ transformation γ  ≡⟨⟩
           transformation (δ ∙⇾ γ)              ≡⟨ cong (λ ε → transformation ε) δγ ⟩
-          transformation (id⇾ G)               ≡⟨⟩
+          transformation (id⇾ F)               ≡⟨⟩
           id                                   ∎) }
      ; from = λ iso →
          record { natural-transformation =
            proj₁ iso ,
            (λ {_ _ f} →
-                proj₁ iso ∙ (F ⊙ f)                                     ≡⟨ sym right-identity ⟩
-                proj₁ iso ∙ (F ⊙ f) ∙ id                                ≡⟨ cong (_∙_ _) $ sym $ proj₁ (proj₂ iso) ⟩
-                proj₁ iso ∙ (F ⊙ f) ∙ (transformation γ ∙ proj₁ iso)    ≡⟨ sym assoc ⟩
-                proj₁ iso ∙ ((F ⊙ f) ∙ (transformation γ ∙ proj₁ iso))  ≡⟨ cong (_∙_ _) assoc ⟩
-                proj₁ iso ∙ (((F ⊙ f) ∙ transformation γ) ∙ proj₁ iso)  ≡⟨ cong (λ g → _ ∙ (g ∙ _)) $ sym $ natural γ ⟩
-                proj₁ iso ∙ ((transformation γ ∙ (G ⊙ f)) ∙ proj₁ iso)  ≡⟨ cong (_∙_ _) $ sym assoc ⟩
-                proj₁ iso ∙ (transformation γ ∙ ((G ⊙ f) ∙ proj₁ iso))  ≡⟨ assoc ⟩
-                proj₁ iso ∙ transformation γ ∙ ((G ⊙ f) ∙ proj₁ iso)    ≡⟨ cong (λ g → g ∙ ((G ⊙ f) ∙ proj₁ iso)) $ proj₂ (proj₂ iso) ⟩
-                id ∙ ((G ⊙ f) ∙ proj₁ iso)                              ≡⟨ left-identity ⟩∎
-                (G ⊙ f) ∙ proj₁ iso                                     ∎) } ,
+                (F ⊙ f) ∙ proj₁ iso                                     ≡⟨ sym left-identity ⟩
+                id ∙ (F ⊙ f) ∙ proj₁ iso                                ≡⟨ cong (λ g → g ∙ (F ⊙ f) ∙ proj₁ iso) $ sym $ proj₂ (proj₂ iso) ⟩
+                (proj₁ iso ∙ transformation γ) ∙ (F ⊙ f) ∙ proj₁ iso    ≡⟨ sym assoc ⟩
+                proj₁ iso ∙ (transformation γ ∙ (F ⊙ f) ∙ proj₁ iso)    ≡⟨ cong (_ ∙_) assoc ⟩
+                proj₁ iso ∙ ((transformation γ ∙ (F ⊙ f)) ∙ proj₁ iso)  ≡⟨ cong (λ g → _ ∙ (g ∙ _)) $ sym $ natural γ ⟩
+                proj₁ iso ∙ (((G ⊙ f) ∙ transformation γ) ∙ proj₁ iso)  ≡⟨ cong (_ ∙_) $ sym assoc ⟩
+                proj₁ iso ∙ (G ⊙ f) ∙ (transformation γ ∙ proj₁ iso)    ≡⟨ cong ((_ ∙_) ∘ (_ ∙_)) $ proj₁ (proj₂ iso) ⟩
+                proj₁ iso ∙ (G ⊙ f) ∙ id                                ≡⟨ assoc ⟩
+                (proj₁ iso ∙ (G ⊙ f)) ∙ id                              ≡⟨ right-identity ⟩∎
+                proj₁ iso ∙ (G ⊙ f)                                     ∎) } ,
          _≃_.from (equality-characterisation⇾ ext) (proj₁ (proj₂ iso)) ,
          _≃_.from (equality-characterisation⇾ ext) (proj₂ (proj₂ iso))
      }
@@ -558,18 +558,18 @@ abstract
                      subst (uncurry Hom)
                            (cong₂ _,_ (≅→≡ (γ X)) (≅→≡ (γ Y))) (F ⊙ f)   ≡⟨ Hom-, (≅→≡ (γ X)) (≅→≡ (γ Y)) ⟩
 
-                     ≡→≅ (≅→≡ (γ X)) ⁻¹ ∙ (F ⊙ f) ∙ ≡→≅ (≅→≡ (γ Y)) ¹    ≡⟨ cong₂ (λ p q → p ⁻¹ ∙ (F ⊙ f) ∙ q ¹)
+                     ≡→≅ (≅→≡ (γ Y)) ¹ ∙ (F ⊙ f) ∙ ≡→≅ (≅→≡ (γ X)) ⁻¹    ≡⟨ cong₂ (λ p q → p ¹ ∙ (F ⊙ f) ∙ q ⁻¹)
                                                                                   (_≃_.right-inverse-of ≡≃≅ _)
                                                                                   (_≃_.right-inverse-of ≡≃≅ _) ⟩
-                     γ X ⁻¹ ∙ (F ⊙ f) ∙ γ Y ¹                            ≡⟨ sym assoc ⟩
+                     γ Y ¹ ∙ (F ⊙ f) ∙ γ X ⁻¹                            ≡⟨ assoc ⟩
 
-                     γ X ⁻¹ ∙ ((F ⊙ f) ∙ γ Y ¹)                          ≡⟨ cong (_∙_ _) $ sym $ _⇾_.natural F⇾G ⟩
+                     (γ Y ¹ ∙ (F ⊙ f)) ∙ γ X ⁻¹                          ≡⟨ cong (_∙ γ X ⁻¹) $ sym $ _⇾_.natural F⇾G ⟩
 
-                     γ X ⁻¹ ∙ (γ X ¹ ∙ (G ⊙ f))                          ≡⟨ assoc ⟩
+                     ((G ⊙ f) ∙ γ X ¹) ∙ γ X ⁻¹                          ≡⟨ sym assoc ⟩
 
-                     γ X ⁻¹ ∙ γ X ¹ ∙ (G ⊙ f)                            ≡⟨ cong (λ g → g ∙ _) $ γ X ⁻¹¹ ⟩
+                     (G ⊙ f) ∙ γ X ¹ ∙ γ X ⁻¹                            ≡⟨ cong (_ ∙_) $ γ X ¹⁻¹ ⟩
 
-                     id ∙ (G ⊙ f)                                        ≡⟨ left-identity ⟩∎
+                     (G ⊙ f) ∙ id                                        ≡⟨ right-identity ⟩∎
 
                      G ⊙ f                                               ∎
 

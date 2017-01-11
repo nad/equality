@@ -42,7 +42,7 @@ record Standard-notion-of-structure
                       (f : Hom X Y) → Is-proposition (H p q f)
     H-id            : ∀ {X} {p : P X} → H p p id
     H-∘             : ∀ {X Y Z} {p : P X} {q : P Y} {r : P Z} {f g} →
-                      H p q f → H q r g → H p r (f ∙ g)
+                      H p q f → H q r g → H p r (g ∙ f)
     H-antisymmetric : ∀ {X} (p q : P X) →
                       H p q id → H q p id → p ≡ q
 
@@ -73,7 +73,7 @@ record Standard-notion-of-structure
          ∃ (H p q) ,
          Σ-closure 2 Hom-is-set (λ f → mono₁ 1 (H-prop f)) }) ,
     (id , H-id) ,
-    (λ { (f , hf) (g , hg) → f ∙ g , H-∘ hf hg }) ,
+    (λ { (f , hf) (g , hg) → f ∙ g , H-∘ hg hf }) ,
     lift-equality left-identity ,
     lift-equality right-identity ,
     lift-equality assoc }
@@ -293,7 +293,7 @@ isomorphism-is-equality′ Univ ass
                           resp a Eq.id x                       ≡⟨ resp-id ass a x ⟩∎
                           x                                    ∎
     ; H-∘             = λ {B C D x y z B≅C C≅D} x≅y y≅z →
-                          resp a (≅⇒≃ B D (B≅C Bij.∙ C≅D)) x             ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
+                          resp a (≅⇒≃ B D (C≅D Bij.∙ B≅C)) x             ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
                           resp a (≅⇒≃ C D C≅D ⊚ ≅⇒≃ B C B≅C) x           ≡⟨ resp-preserves-compositions (El a) (resp a) (resp-id ass a)
                                                                                                         univ₁ ext (≅⇒≃ B C B≅C) (≅⇒≃ C D C≅D) x ⟩
                           resp a (≅⇒≃ C D C≅D) (resp a (≅⇒≃ B C B≅C) x)  ≡⟨ cong (resp a (≅⇒≃ C D C≅D)) x≅y ⟩
@@ -323,13 +323,13 @@ isomorphism-is-equality′ Univ ass
         resp a (inverse $ ≅⇒≃ C D C≅D) y  ≡⟨ resp-preserves-inverses (El a) (resp a) (resp-id ass a) univ₁ ext (≅⇒≃ C D C≅D) _ _ x≅y ⟩∎
         x                                 ∎)) ,
 
-      S.lift-equality {X = C , x} {Y = C , x} (
-        C≅D Fun.∙≅ D≅C   ≡⟨ _≃_.from (Fun.≡≃≡¹ {X = C} {Y = C}) (Fun._¹⁻¹ {X = C} {Y = D} C≅D) ⟩∎
-        Fun.id≅ {X = C}  ∎) ,
-
       S.lift-equality {X = D , y} {Y = D , y} (
-        D≅C Fun.∙≅ C≅D   ≡⟨ _≃_.from (Fun.≡≃≡¹ {X = D} {Y = D}) (Fun._⁻¹¹ {X = C} {Y = D} C≅D) ⟩∎
-        Fun.id≅ {X = D}  ∎)
+        C≅D Fun.∙≅ D≅C   ≡⟨ _≃_.from (Fun.≡≃≡¹ {X = D} {Y = D}) (Fun._¹⁻¹ {X = C} {Y = D} C≅D) ⟩∎
+        Fun.id≅ {X = D}  ∎) ,
+
+      S.lift-equality {X = C , x} {Y = C , x} (
+        D≅C Fun.∙≅ C≅D   ≡⟨ _≃_.from (Fun.≡≃≡¹ {X = C} {Y = C}) (Fun._⁻¹¹ {X = C} {Y = D} C≅D) ⟩∎
+        Fun.id≅ {X = C}  ∎)
 
       where
 

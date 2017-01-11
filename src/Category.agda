@@ -2,10 +2,8 @@
 -- 1-categories
 ------------------------------------------------------------------------
 
--- Based on a draft of the chapter "Category theory" from "Homotopy
--- Type Theory: Univalent Foundations of Mathematics". I think the
--- parts of this chapter that I make use of were written by Mike
--- Shulman.
+-- The code is based on the presentation in the HoTT book (but might
+-- not follow it exactly).
 
 {-# OPTIONS --without-K #-}
 
@@ -41,7 +39,7 @@ Precategory′ ℓ₁ ℓ₂ =
   ∃ λ (id : ∀ {X} → Hom X X) →
 
   -- Composition.
-  ∃ λ (_∙_ : ∀ {X Y Z} → Hom X Y → Hom Y Z → Hom X Z) →
+  ∃ λ (_∙_ : ∀ {X Y Z} → Hom Y Z → Hom X Y → Hom X Z) →
 
   -- Identity laws.
   (∀ {X Y} {f : Hom X Y} → (id ∙ f) ≡ f) ×
@@ -49,7 +47,7 @@ Precategory′ ℓ₁ ℓ₂ =
 
   -- Associativity.
   (∀ {X Y Z U} {f : Hom X Y} {g : Hom Y Z} {h : Hom Z U} →
-     (f ∙ (g ∙ h)) ≡ ((f ∙ g) ∙ h))
+     (h ∙ (g ∙ f)) ≡ ((h ∙ g) ∙ f))
 
 -- A wrapper.
 
@@ -84,9 +82,9 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
 
   -- Composition.
 
-  infixl 10 _∙_
+  infixr 10 _∙_
 
-  _∙_ : ∀ {X Y Z} → Hom X Y → Hom Y Z → Hom X Z
+  _∙_ : ∀ {X Y Z} → Hom Y Z → Hom X Y → Hom X Z
   _∙_ = proj₁ (proj₂ (proj₂ (proj₂ precategory)))
 
   -- The left identity law.
@@ -103,7 +101,7 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
   -- The associativity law.
 
   assoc : ∀ {X Y Z U} {f : Hom X Y} {g : Hom Y Z} {h : Hom Z U} →
-          f ∙ (g ∙ h) ≡ (f ∙ g) ∙ h
+          h ∙ (g ∙ f) ≡ (h ∙ g) ∙ f
   assoc =
     proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ precategory)))))
 
@@ -173,13 +171,13 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
 
   -- Composition of isomorphisms.
 
-  infixl 10 _∙≅_
+  infixr 10 _∙≅_
 
-  _∙≅_ : ∀ {X Y Z} → X ≅ Y → Y ≅ Z → X ≅ Z
+  _∙≅_ : ∀ {X Y Z} → Y ≅ Z → X ≅ Y → X ≅ Z
   f ∙≅ g = (f ¹ ∙ g ¹) , (g ⁻¹ ∙ f ⁻¹) , fg f g , gf f g
     where
     abstract
-      fg : ∀ {X Y Z} (f : X ≅ Y) (g : Y ≅ Z) →
+      fg : ∀ {X Y Z} (f : Y ≅ Z) (g : X ≅ Y) →
            (f ¹ ∙ g ¹) ∙ (g ⁻¹ ∙ f ⁻¹) ≡ id
       fg f g =
         (f ¹ ∙ g ¹) ∙ (g ⁻¹ ∙ f ⁻¹)  ≡⟨ sym assoc ⟩
@@ -189,7 +187,7 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
         f ¹ ∙ f ⁻¹                   ≡⟨ f ¹⁻¹ ⟩∎
         id                           ∎
 
-      gf : ∀ {X Y Z} (f : X ≅ Y) (g : Y ≅ Z) →
+      gf : ∀ {X Y Z} (f : Y ≅ Z) (g : X ≅ Y) →
            (g ⁻¹ ∙ f ⁻¹) ∙ (f ¹ ∙ g ¹) ≡ id
       gf f g =
         (g ⁻¹ ∙ f ⁻¹) ∙ (f ¹ ∙ g ¹)  ≡⟨ sym assoc ⟩
@@ -274,7 +272,7 @@ precategory-Set ℓ ext = record { precategory =
   P.id ,
 
   -- Composition.
-  (λ f g → g ∘ f) ,
+  (λ f g → f ∘ g) ,
 
   -- Laws.
   refl _ , refl _ , refl _ }
@@ -290,8 +288,8 @@ precategory-Set ℓ ext = record { precategory =
   { surjection = record
     { logical-equivalence = record
       { to   = λ X≃Y → _≃_.to X≃Y , _≃_.from X≃Y ,
-                       ext (_≃_.left-inverse-of  X≃Y) ,
-                       ext (_≃_.right-inverse-of X≃Y)
+                       ext (_≃_.right-inverse-of X≃Y) ,
+                       ext (_≃_.left-inverse-of  X≃Y)
       ; from = λ X≅Y → Eq.↔⇒≃ record
                  { surjection = record
                    { logical-equivalence = record
@@ -299,10 +297,10 @@ precategory-Set ℓ ext = record { precategory =
                      ; from = proj₁ (proj₂ X≅Y)
                      }
                    ; right-inverse-of = λ x →
-                       cong (λ f → f x) $ proj₂ (proj₂ (proj₂ X≅Y))
+                       cong (_$ x) $ proj₁ (proj₂ (proj₂ X≅Y))
                    }
                  ; left-inverse-of = λ x →
-                     cong (λ f → f x) $ proj₁ (proj₂ (proj₂ X≅Y))
+                     cong (_$ x) $ proj₂ (proj₂ (proj₂ X≅Y))
                  }
       }
     ; right-inverse-of = λ X≅Y →
@@ -409,30 +407,31 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
 
   Hom-, : ∀ {X X′ Y Y′} {f : Hom X Y}
           (p : X ≡ X′) (q : Y ≡ Y′) →
-          subst (uncurry Hom) (cong₂ _,_ p q) f ≡ ≡→≅ p ⁻¹ ∙ f ∙ ≡→≅ q ¹
+          subst (uncurry Hom) (cong₂ _,_ p q) f ≡ ≡→≅ q ¹ ∙ f ∙ ≡→≅ p ⁻¹
   Hom-, p q = elim
     (λ p → ∀ q → ∀ {f} → subst (uncurry Hom) (cong₂ _,_ p q) f ≡
-                         ≡→≅ p ⁻¹ ∙ f ∙ ≡→≅ q ¹)
+                         ≡→≅ q ¹ ∙ f ∙ ≡→≅ p ⁻¹)
     (λ X q → elim
        (λ q → ∀ {f} → subst (uncurry Hom) (cong₂ _,_ (refl X) q) f ≡
-                      ≡→≅ (refl X) ⁻¹ ∙ f ∙ ≡→≅ q ¹)
+                      ≡→≅ q ¹ ∙ f ∙ ≡→≅ (refl X) ⁻¹)
        (λ Y {f} →
           subst (uncurry Hom) (cong₂ _,_ (refl X) (refl Y)) f  ≡⟨ cong (λ eq → subst (uncurry Hom) eq f) $ cong₂-refl _,_ ⟩
           subst (uncurry Hom) (refl (X , Y)) f                 ≡⟨ subst-refl (uncurry Hom) _ ⟩
           f                                                    ≡⟨ sym left-identity ⟩
-          id ∙ f                                               ≡⟨ cong (λ g → g ⁻¹ ∙ f) $ sym ≡→≅-refl ⟩
-          ≡→≅ (refl X) ⁻¹ ∙ f                                  ≡⟨ sym right-identity ⟩
-          ≡→≅ (refl X) ⁻¹ ∙ f ∙ id                             ≡⟨ cong (λ g → ≡→≅ (refl X) ⁻¹ ∙ f ∙ g ¹) $ sym ≡→≅-refl ⟩∎
-          ≡→≅ (refl X) ⁻¹ ∙ f ∙ ≡→≅ (refl Y) ¹                 ∎)
+          id ∙ f                                               ≡⟨ cong (λ g → g ¹ ∙ f) $ sym ≡→≅-refl ⟩
+          ≡→≅ (refl Y) ¹ ∙ f                                   ≡⟨ sym right-identity ⟩
+          (≡→≅ (refl Y) ¹ ∙ f) ∙ id                            ≡⟨ sym assoc ⟩
+          ≡→≅ (refl Y) ¹ ∙ f ∙ id                              ≡⟨ cong (λ g → ≡→≅ (refl Y) ¹ ∙ f ∙ g ⁻¹) $ sym ≡→≅-refl ⟩∎
+          ≡→≅ (refl Y) ¹ ∙ f ∙ ≡→≅ (refl X) ⁻¹                 ∎)
        q)
     p q
 
   ≡→≅-trans : ∀ {X Y Z} (p : X ≡ Y) (q : Y ≡ Z) →
-              ≡→≅ (trans p q) ≡ ≡→≅ p ∙≅ ≡→≅ q
+              ≡→≅ (trans p q) ≡ ≡→≅ q ∙≅ ≡→≅ p
   ≡→≅-trans {X} = elim¹
-    (λ p → ∀ q → ≡→≅ (trans p q) ≡ ≡→≅ p ∙≅ ≡→≅ q)
+    (λ p → ∀ q → ≡→≅ (trans p q) ≡ ≡→≅ q ∙≅ ≡→≅ p)
     (elim¹
-       (λ q → ≡→≅ (trans (refl X) q) ≡ ≡→≅ (refl X) ∙≅ ≡→≅ q)
+       (λ q → ≡→≅ (trans (refl X) q) ≡ ≡→≅ q ∙≅ ≡→≅ (refl X))
        (≡→≅ (trans (refl X) (refl X))  ≡⟨ cong ≡→≅ trans-refl-refl ⟩
         ≡→≅ (refl X)                   ≡⟨ ≡→≅-refl ⟩
         id≅                            ≡⟨ sym $ Precategory.left-identity precategory-≅ ⟩
