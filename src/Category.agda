@@ -348,6 +348,14 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
   ≅→≡ : ∀ {X Y} → X ≅ Y → X ≡ Y
   ≅→≡ = _≃_.from ≡≃≅
 
+  -- "Computation rule" for ≅→≡.
+
+  ≅→≡-refl : ∀ {X} → ≅→≡ id≅ ≡ refl X
+  ≅→≡-refl {X} =
+    ≅→≡ id≅             ≡⟨ cong ≅→≡ $ sym ≡→≅-refl ⟩
+    ≅→≡ (≡→≅ (refl X))  ≡⟨ _≃_.left-inverse-of ≡≃≅ _ ⟩∎
+    refl X              ∎
+
   -- Obj has h-level 3.
 
   Obj-3 : H-level 3 Obj
