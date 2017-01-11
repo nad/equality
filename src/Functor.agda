@@ -261,6 +261,8 @@ Natural-transformation {C = C} {D = D} F G =
 
 -- A wrapper.
 
+infix 4 _⇾_
+
 record _⇾_ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
            {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄}
            (F G : C ⇨ D) : Set (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₃ ⊔ ℓ₄) where
