@@ -279,10 +279,10 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
   -- Uustalu and Veltri.
 
   related≃[equal] :
-    Univalence r →
+    Propositional-extensionality r →
     Is-equivalence-relation R →
     ∀ {x y} → proj₁ (R x y) ≃ _≡_ {A = A / R} [ x ] [ y ]
-  related≃[equal] univ R-equiv {x} {y} =
+  related≃[equal] prop-ext R-equiv {x} {y} =
     _↠_.from (Eq.≃↠⇔ (proj₂ (R x y)) (/-is-set _ _))
       (record
         { to   = []-respects-relation
@@ -300,14 +300,14 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
                                           { to   = flip transitive r
                                           ; from = flip transitive (symmetric r)
                                           } ⟩
-      proj₁ (R x y) ⇔ proj₁ (R x z)  ↝⟨ ⇔↔≡′ ext univ ⟩
+      proj₁ (R x y) ⇔ proj₁ (R x z)  ↝⟨ ⇔↔≡″ ext prop-ext ⟩
       R x y ≡ R x z                  □
 
     R′ : A → A / R → Proposition r
     R′ x = rec
       (λ y → R x y)
       lemma
-      (∃-H-level-H-level-1+ ext univ 1)
+      (Is-set-∃-Is-proposition ext prop-ext)
 
 -- Quotienting with equality (for a set) amounts to the same thing as
 -- not quotienting at all.
@@ -596,7 +596,7 @@ Maybe/-comm-[] =
 
 -- The type former λ X → ℕ → X commutes with quotients, assuming that
 -- the quotient relation is an equivalence relation, and also assuming
--- univalence and countable choice.
+-- propositional extensionality and countable choice.
 --
 -- This result is very similar to Proposition 5 in "Quotienting the
 -- Delay Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
@@ -617,11 +617,11 @@ Maybe/-comm-[] =
 
 ℕ→/-comm :
   ∀ {a r} {A : Set a} {R : A → A → Proposition r} →
-  Univalence r →
+  Propositional-extensionality r →
   Axiom-of-countable-choice (a ⊔ r) →
   Is-equivalence-relation R →
   (ℕ → A) / (ℕ →ᴾ R) ↔ (ℕ → A / R)
-ℕ→/-comm {A = A} {R} univ cc R-equiv = record
+ℕ→/-comm {A = A} {R} prop-ext cc R-equiv = record
   { surjection = record
     { logical-equivalence = record
       { to   = ℕ→/-comm-to
@@ -669,7 +669,7 @@ Maybe/-comm-[] =
 
     (∀ n → [ g₁ ]→ n ≡ [ g₂ ]→ n)            ↔⟨ Bijection.id ⟩
 
-    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ Eq.∀-preserves ext (λ _ → inverse $ related≃[equal] {R = R} univ R-equiv) ⟩
+    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ Eq.∀-preserves ext (λ _ → inverse $ related≃[equal] {R = R} prop-ext R-equiv) ⟩
 
     (∀ n → proj₁ (R (g₁ n) (g₂ n)))          ↔⟨ Bijection.id ⟩
 
@@ -820,15 +820,15 @@ Maybe/-comm-[] =
     (_↔_.left-inverse-of bij [ x ])
 
 -- A quotient-like eliminator for functions of type ℕ → A / R, where R
--- is an equivalence relation. Defined using univalence and countable
--- choice.
+-- is an equivalence relation. Defined using propositional
+-- extensionality and countable choice.
 --
 -- This eliminator is taken from Corollary 1 in "Quotienting the Delay
 -- Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
 ℕ→/-elim :
   ∀ {a p r} {A : Set a} {R : A → A → Proposition r} →
-  Univalence r →
+  Propositional-extensionality r →
   Axiom-of-countable-choice (a ⊔ r) →
   Is-equivalence-relation R →
   (P : (ℕ → A / R) → Set p)
@@ -838,13 +838,13 @@ Maybe/-comm-[] =
    p-[] g) →
   (∀ f → Is-set (P f)) →
   ∀ f → P f
-ℕ→/-elim univ cc R-equiv = ↔-eliminator (ℕ→/-comm univ cc R-equiv)
+ℕ→/-elim prop-ext cc R-equiv = ↔-eliminator (ℕ→/-comm prop-ext cc R-equiv)
 
 -- The eliminator "computes" in the "right" way.
 
 ℕ→/-elim-[] :
   ∀ {a p r} {A : Set a} {R : A → A → Proposition r}
-  (univ : Univalence r)
+  (prop-ext : Propositional-extensionality r)
   (cc : Axiom-of-countable-choice (a ⊔ r))
   (R-equiv : Is-equivalence-relation R)
   (P : (ℕ → A / R) → Set p)
@@ -853,6 +853,6 @@ Maybe/-comm-[] =
         subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡
         p-[] g)
   (P-set : ∀ f → Is-set (P f)) f →
-  ℕ→/-elim univ cc R-equiv P p-[] ok P-set (λ n → [ f n ]) ≡ p-[] f
-ℕ→/-elim-[] univ cc R-equiv =
-  ↔-eliminator-[] (ℕ→/-comm univ cc R-equiv)
+  ℕ→/-elim prop-ext cc R-equiv P p-[] ok P-set (λ n → [ f n ]) ≡ p-[] f
+ℕ→/-elim-[] prop-ext cc R-equiv =
+  ↔-eliminator-[] (ℕ→/-comm prop-ext cc R-equiv)
