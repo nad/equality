@@ -1014,7 +1014,7 @@ other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
 H-level-H-level-≡ :
   ∀ {a} {A₁ A₂ : Set a} →
   Extensionality a a →
-  Univalence a →
+  Univalence′ A₁ A₂ →
   ∀ n → H-level n A₁ → H-level n A₂ → H-level n (A₁ ≡ A₂)
 H-level-H-level-≡ {A₁ = A₁} {A₂} ext univ n = curry (
   H-level n A₁ × H-level n A₂  ↝⟨ uncurry (Eq.h-level-closure ext n) ⟩
@@ -1028,7 +1028,7 @@ H-level-H-level-≡ {A₁ = A₁} {A₂} ext univ n = curry (
 H-level-H-level-≡ˡ :
   ∀ {a} {A₁ A₂ : Set a} →
   Extensionality a a →
-  Univalence a →
+  Univalence′ A₁ A₂ →
   ∀ n → H-level (1 + n) A₁ → H-level (1 + n) (A₁ ≡ A₂)
 H-level-H-level-≡ˡ {A₁ = A₁} {A₂} ext univ n =
   H-level (1 + n) A₁         ↝⟨ Eq.left-closure ext n ⟩
@@ -1038,7 +1038,7 @@ H-level-H-level-≡ˡ {A₁ = A₁} {A₂} ext univ n =
 H-level-H-level-≡ʳ :
   ∀ {a} {A₁ A₂ : Set a} →
   Extensionality a a →
-  Univalence a →
+  Univalence′ A₁ A₂ →
   ∀ n → H-level (1 + n) A₂ → H-level (1 + n) (A₁ ≡ A₂)
 H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
   H-level (1 + n) A₂         ↝⟨ Eq.right-closure ext n ⟩
@@ -1060,6 +1060,25 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
                                           (_↔_.surjection $ ignore-propositional-component
                                                               (H-level-propositional ext _)) n ⟩□
   H-level n ((A₁ , h₁) ≡ (A₂ , h₂))  □
+
+-- ∃ λ A → Is-proposition A is a set (assuming extensionality and
+-- propositional extensionality).
+
+Is-set-∃-Is-proposition :
+  ∀ {a} →
+  Extensionality (lsuc a) (lsuc a) →
+  Propositional-extensionality a →
+  Is-set (∃ λ (A : Set a) → Is-proposition A)
+Is-set-∃-Is-proposition {a} ext prop-ext (A₁ , A₁-prop) (A₂ , A₂-prop) =
+                                                    $⟨ _≃_.to (Propositional-extensionality-is-univalence-for-propositions ext)
+                                                            prop-ext A₁-prop A₂-prop ⟩
+  Univalence′ A₁ A₂                                 ↝⟨ (λ univ → H-level-H-level-≡ ext′ univ 1 A₁-prop A₂-prop) ⟩
+  Is-proposition (A₁ ≡ A₂)                          ↝⟨ H-level.respects-surjection
+                                                         (_↔_.surjection $ ignore-propositional-component
+                                                                             (H-level-propositional ext′ _)) 1 ⟩□
+  Is-proposition ((A₁ , A₁-prop) ≡ (A₂ , A₂-prop))  □
+  where
+  ext′ = lower-extensionality _ _ ext
 
 -- ∃ λ A → H-level n A does not in general have h-level n.
 --
@@ -1177,7 +1196,7 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
 -- to logical equivalence (assuming univalence).
 
 ≡↠⇔ : ∀ {ℓ} {A B : Set ℓ} →
-      Univalence ℓ →
+      Univalence′ A B →
       Is-proposition A → Is-proposition B →
       (A ≡ B) ↠ (A ⇔ B)
 ≡↠⇔ {A = A} {B} univ A-prop B-prop =
@@ -1190,7 +1209,7 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
 
 ⇔↔≡ : ∀ {ℓ} {A B : Set ℓ} →
       Extensionality ℓ ℓ →
-      Univalence ℓ →
+      Univalence′ A B →
       Is-proposition A → Is-proposition B →
       (A ⇔ B) ↔ (A ≡ B)
 ⇔↔≡ {A = A} {B} ext univ A-prop B-prop =
@@ -1202,9 +1221,21 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
 
 ⇔↔≡′ : ∀ {ℓ} {A B : Proposition ℓ} →
        Extensionality ℓ ℓ →
-       Univalence ℓ →
+       Univalence′ (proj₁ A) (proj₁ B) →
        (proj₁ A ⇔ proj₁ B) ↔ (A ≡ B)
 ⇔↔≡′ {A = A} {B} ext univ =
   proj₁ A ⇔ proj₁ B  ↝⟨ ⇔↔≡ ext univ (proj₂ A) (proj₂ B) ⟩
   proj₁ A ≡ proj₁ B  ↝⟨ ignore-propositional-component (H-level-propositional ext 1) ⟩□
   A ≡ B              □
+
+-- A variant of the previous statement.
+
+⇔↔≡″ : ∀ {ℓ} {A B : Proposition ℓ} →
+       Extensionality (lsuc ℓ) (lsuc ℓ) →
+       Propositional-extensionality ℓ →
+       (proj₁ A ⇔ proj₁ B) ↔ (A ≡ B)
+⇔↔≡″ {ℓ} {A} {B} ext =
+  Propositional-extensionality ℓ   ↝⟨ (λ prop-ext → _≃_.to (Propositional-extensionality-is-univalence-for-propositions ext)
+                                                           prop-ext (proj₂ A) (proj₂ B)) ⟩
+  Univalence′ (proj₁ A) (proj₁ B)  ↝⟨ ⇔↔≡′ (lower-extensionality _ _ ext) ⟩□
+  (proj₁ A ⇔ proj₁ B) ↔ (A ≡ B)    □
