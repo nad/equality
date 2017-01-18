@@ -241,6 +241,74 @@ private
 
 open Dummy₃ public
 
+-- Identity functor.
+
+id⇨ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂} → C ⇨ C
+functor id⇨ = P.id , P.id , refl _ , refl _
+
+-- Composition of functors.
+
+infixr 10 _∙⇨_
+
+_∙⇨_ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
+         {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄}
+         {ℓ₅ ℓ₆} {E : Precategory ℓ₅ ℓ₆} →
+       D ⇨ E → C ⇨ D → C ⇨ E
+functor (_∙⇨_ {C = C} {D = D} {E = E} G F) =
+  (G ⊚_) ∘ (F ⊚_) ,
+  (G ⊙_) ∘ (F ⊙_) ,
+  (G ⊙ F ⊙ id C              ≡⟨ cong (G ⊙_) $ ⊙-id F ⟩
+   G ⊙ id D                  ≡⟨ ⊙-id G ⟩∎
+   id E                      ∎) ,
+  (λ {_ _ _ f g} →
+     G ⊙ F ⊙ _∙_ C g f              ≡⟨ cong (G ⊙_) $ ⊙-∙ F ⟩
+     G ⊙ _∙_ D (F ⊙ g) (F ⊙ f)      ≡⟨ ⊙-∙ G ⟩∎
+     _∙_ E (G ⊙ F ⊙ g) (G ⊙ F ⊙ f)  ∎)
+  where
+  open Precategory
+
+-- id⇨ is a left identity (assuming extensionality).
+
+id⇨∙⇨ :
+  ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
+    {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄} →
+  Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
+  {F : C ⇨ D} → id⇨ ∙⇨ F ≡ F
+id⇨∙⇨ ext {F} = _≃_.from (equality-characterisation⇨ ext)
+  ( refl (F ⊚_)
+  , (subst _ (refl (F ⊚_)) (λ {_ _} → F ⊙_)  ≡⟨ subst-refl _ _ ⟩∎
+     (λ {_ _} → F ⊙_)                        ∎)
+  )
+
+-- id⇨ is a right identity (assuming extensionality).
+
+∙⇨id⇨ :
+  ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
+    {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄} →
+  Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
+  {F : C ⇨ D} → F ∙⇨ id⇨ ≡ F
+∙⇨id⇨ ext {F} = _≃_.from (equality-characterisation⇨ ext)
+  ( refl (F ⊚_)
+  , (subst _ (refl (F ⊚_)) (λ {_ _} → F ⊙_)  ≡⟨ subst-refl _ _ ⟩∎
+     (λ {_ _} → F ⊙_)                        ∎)
+  )
+
+-- _∙⇨_ is associative (assuming extensionality).
+
+∙⇨-assoc :
+  ∀ {ℓ₁ ℓ₂} {C₁ : Precategory ℓ₁ ℓ₂}
+    {ℓ₃ ℓ₄} {C₂ : Precategory ℓ₃ ℓ₄}
+    {ℓ₅ ℓ₆} {C₃ : Precategory ℓ₅ ℓ₆}
+    {ℓ₇ ℓ₈} {C₄ : Precategory ℓ₇ ℓ₈} →
+  Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₈) →
+  (F : C₃ ⇨ C₄) (G : C₂ ⇨ C₃) {H : C₁ ⇨ C₂} →
+  F ∙⇨ (G ∙⇨ H) ≡ (F ∙⇨ G) ∙⇨ H
+∙⇨-assoc ext F G {H} = _≃_.from (equality-characterisation⇨ ext)
+  ( refl _
+  , (subst _ (refl _) (λ {_ _} → (F ∙⇨ G ∙⇨ H) ⊙_)  ≡⟨ subst-refl _ _ ⟩
+     (λ {_ _} → (F ∙⇨ G ∙⇨ H) ⊙_)                   ∎)
+  )
+
 ------------------------------------------------------------------------
 -- Natural transformations
 
@@ -421,6 +489,44 @@ _∙⇾_ {C = C} {D = D} {F} {G} {H} γ δ =
       transformation γ ∙ ((G ⊙ f) ∙ transformation δ)  ≡⟨ cong (_∙_ _) $ natural δ ⟩
       transformation γ ∙ (transformation δ ∙ (F ⊙ f))  ≡⟨ assoc ⟩∎
       (transformation γ ∙ transformation δ) ∙ (F ⊙ f)  ∎
+
+-- Composition of functors and natural transformations.
+
+infixr 10 _⇾∙⇨_ _⇨∙⇾_
+
+_⇾∙⇨_ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
+          {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄}
+          {ℓ₅ ℓ₆} {E : Precategory ℓ₅ ℓ₆}
+          {G H : D ⇨ E} →
+        G ⇾ H → (F : C ⇨ D) → (G ∙⇨ F) ⇾ (H ∙⇨ F)
+_⇾_.natural-transformation (γ ⇾∙⇨ _) = transformation , natural
+  where
+  open _⇾_ γ
+
+_⇨∙⇾_ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
+          {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄}
+          {ℓ₅ ℓ₆} {E : Precategory ℓ₅ ℓ₆}
+          {G H : C ⇨ D} →
+        (F : D ⇨ E) → G ⇾ H → (F ∙⇨ G) ⇾ (F ∙⇨ H)
+_⇾_.natural-transformation (_⇨∙⇾_ {C = C} {D = D} {E = E} {G} {H} F γ) =
+  ε , Dummy₅.nat
+  where
+  open Precategory
+  open _⇾_ γ
+
+  ε : ∀ {X} → Hom E (F ⊚ G ⊚ X) (F ⊚ H ⊚ X)
+  ε = F ⊙ transformation
+
+  module Dummy₅ where
+   abstract
+
+    nat : ∀ {X Y} {f : Hom C X Y} →
+          _∙_ E (F ⊙ H ⊙ f) ε ≡ _∙_ E ε (F ⊙ G ⊙ f)
+    nat {f = f} =
+      _∙_ E (F ⊙ H ⊙ f) (F ⊙ transformation)  ≡⟨ sym $ ⊙-∙ F ⟩
+      F ⊙ _∙_ D (H ⊙ f) transformation        ≡⟨ cong (F ⊙_) natural ⟩
+      F ⊙ _∙_ D transformation (G ⊙ f)        ≡⟨ ⊙-∙ F ⟩∎
+      _∙_ E (F ⊙ transformation) (F ⊙ G ⊙ f)  ∎
 
 ------------------------------------------------------------------------
 -- Functor precategories
