@@ -175,6 +175,7 @@ import Univalence-axiom.Isomorphism-implies-equality
 
 import Category
 import Functor
+import Adjunction
 
 -- Aczel's structure identity principle (for 1-categories).
 
