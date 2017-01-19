@@ -228,13 +228,13 @@ abstract
 
     -- …and the proof maps reflexivity to the identity morphism.
 
-    ≡≃≅-refl : ∀ {Xp} → _≃_.to ≡≃≅ (refl Xp) ≡ Str.id≅
-    ≡≃≅-refl {X , p} =
+    ≡≃≅-refl : ∀ {Xp} → _≃_.to ≡≃≅ (refl Xp) Str.¹ ≡ Str.id
+    ≡≃≅-refl {X , p} = cong Str._¹ (
       ≅HH≃≅.to (_≃_.to ≡≡≃≅HH (Σ-≡,≡←≡ (refl (_,_ {B = P} X p))))      ≡⟨ cong (≅HH≃≅.to ∘ _≃_.to ≡≡≃≅HH) $ Σ-≡,≡←≡-refl {B = P} ⟩
       ≅HH≃≅.to (_≃_.to ≡≡≃≅HH (refl X , subst-refl P p))               ≡⟨⟩
       ≅HH≃≅.to (C.≡→≅ (refl X) , ≡≡≃≅HH.to (refl X) (subst-refl P p))  ≡⟨ cong ≅HH≃≅.to $ Σ-≡,≡→≡ C.≡→≅-refl ≡≡≃≅HH.to-refl ⟩
       ≅HH≃≅.to (C.id≅ , H-id , H-id)                                   ≡⟨ refl _ ⟩∎
-      Str.id≅                                                          ∎
+      Str.id≅                                                          ∎)
 
 ------------------------------------------------------------------------
 -- An example

@@ -243,12 +243,12 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
   ≡→≅-equivalence-lemma :
     ∀ {X} →
     (≡≃≅ : ∀ {Y} → (X ≡ Y) ≃ (X ≅ Y)) →
-    _≃_.to ≡≃≅ (refl X) ≡ id≅ →
+    _≃_.to ≡≃≅ (refl X) ¹ ≡ id →
     ∀ {Y} → Is-equivalence (≡→≅ {X = X} {Y = Y})
   ≡→≅-equivalence-lemma {X} ≡≃≅ ≡≃≅-refl {Y} =
     Eq.respects-extensional-equality
       (elim¹ (λ X≡Y → _≃_.to ≡≃≅ X≡Y ≡ ≡→≅ X≡Y)
-             (_≃_.to ≡≃≅ (refl X)  ≡⟨ ≡≃≅-refl ⟩
+             (_≃_.to ≡≃≅ (refl X)  ≡⟨ _≃_.from ≡≃≡¹ ≡≃≅-refl ⟩
               id≅                  ≡⟨ sym ≡→≅-refl ⟩∎
               ≡→≅ (refl X)         ∎))
       (_≃_.is-equivalence ≡≃≅)
@@ -445,7 +445,7 @@ precategory-to-category :
   (C : Precategory c₁ c₂) →
   let open Precategory C in
   (≡≃≅ : ∀ {X Y} → (X ≡ Y) ≃ (X ≅ Y)) →
-  (∀ {X} → _≃_.to ≡≃≅ (refl X) ≡ id≅) →
+  (∀ {X} → _≃_.to ≡≃≅ (refl X) ¹ ≡ id) →
   Category c₁ c₂
 precategory-to-category C ≡≃≅ ≡≃≅-refl = record
   { category = C , Precategory.≡→≅-equivalence-lemma C ≡≃≅ ≡≃≅-refl
@@ -481,12 +481,13 @@ category-Set ℓ ext univ =
 
     -- …and the proof maps reflexivity to the identity isomorphism.
 
-    ≡≃≅-refl-is-id≅ : ∀ {X} → _≃_.to ≡≃≅ (refl X) ≡ id≅ {X = X}
-    ≡≃≅-refl-is-id≅ {X} =
+    ≡≃≅-refl-is-id≅ :
+      ∀ {X} → _¹ {X = X} {Y = X} (_≃_.to ≡≃≅ (refl X)) ≡ P.id
+    ≡≃≅-refl-is-id≅ {X} = cong (_¹ {X = X} {Y = X}) (
       _≃_.to (≃≃≅ X X) (≡⇒≃ (proj₁ (Σ-≡,≡←≡ (refl X))))  ≡⟨ cong (_≃_.to (≃≃≅ X X) ∘ ≡⇒≃ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
       _≃_.to (≃≃≅ X X) (≡⇒≃ (refl (Type X)))             ≡⟨ cong (_≃_.to (≃≃≅ X X)) ≡⇒≃-refl ⟩
       _≃_.to (≃≃≅ X X) Eq.id                             ≡⟨ _≃_.from (≡≃≡¹ {X = X} {Y = X}) (refl P.id) ⟩∎
-      id≅ {X = X}                                        ∎
+      id≅ {X = X}                                        ∎)
 
 -- An example: sets and bijections. (Defined using extensionality and
 -- univalence for sets.)
