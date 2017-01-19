@@ -452,12 +452,12 @@ precategory-to-category C ≡≃≅ ≡≃≅-refl = record
   }
 
 -- An example: sets and functions. (Defined using extensionality and
--- univalence.)
+-- univalence for sets.)
 
 category-Set :
   (ℓ : Level) →
   Extensionality ℓ ℓ →
-  Univalence ℓ →
+  ((A B : SET ℓ) → Univalence′ (Type A) (Type B)) →
   Category (lsuc ℓ) ℓ
 category-Set ℓ ext univ =
   precategory-to-category precategory ≡≃≅ ≡≃≅-refl-is-id≅
@@ -477,7 +477,7 @@ category-Set ℓ ext univ =
     ≃≃≅ = ≃≃≅-Set ℓ ext
 
     ≡≃≅ : ∀ {X Y} → (X ≡ Y) ≃ (X ≅ Y)
-    ≡≃≅ {X} {Y} = ≃≃≅ X Y ⊚ ≡≃≃ univ ⊚ cong-Type
+    ≡≃≅ {X} {Y} = ≃≃≅ X Y ⊚ ≡≃≃ (univ X Y) ⊚ cong-Type
 
     -- …and the proof maps reflexivity to the identity isomorphism.
 
@@ -489,12 +489,12 @@ category-Set ℓ ext univ =
       id≅ {X = X}                                        ∎
 
 -- An example: sets and bijections. (Defined using extensionality and
--- univalence.)
+-- univalence for sets.)
 
 category-Set-≅ :
   (ℓ : Level) →
   Extensionality ℓ ℓ →
-  Univalence ℓ →
+  ((A B : SET ℓ) → Univalence′ (Type A) (Type B)) →
   Category (lsuc ℓ) ℓ
 category-Set-≅ ℓ ext univ =
   Category.category-≅ (category-Set ℓ ext univ)
@@ -504,14 +504,16 @@ private
   -- The objects are sets.
 
   Obj-category-Set-≅ :
-    ∀ ℓ (ext : Extensionality ℓ ℓ) (univ : Univalence ℓ) →
+    ∀ ℓ (ext : Extensionality ℓ ℓ)
+    (univ : (A B : SET ℓ) → Univalence′ (Type A) (Type B)) →
     Category.Obj (category-Set-≅ ℓ ext univ) ≡ SET ℓ
   Obj-category-Set-≅ _ _ _ = refl _
 
   -- The morphisms are bijections.
 
   Hom-category-Set-≅ :
-    ∀ ℓ (ext : Extensionality ℓ ℓ) (univ : Univalence ℓ) →
+    ∀ ℓ (ext : Extensionality ℓ ℓ)
+    (univ : (A B : SET ℓ) → Univalence′ (Type A) (Type B)) →
     Category.Hom (category-Set-≅ ℓ ext univ) ≡
     Category._≅_ (category-Set ℓ ext univ)
   Hom-category-Set-≅ _ _ _ = refl _

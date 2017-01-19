@@ -262,14 +262,14 @@ isomorphism-is-equality′ Univ ass
   -- The category of sets and functions.
 
   Fun : Category (# 2) (# 1)
-  Fun = category-Set (# 1) ext univ₁
+  Fun = category-Set (# 1) ext (λ _ _ → univ₁)
 
   module Fun = Category Fun
 
   -- The category of sets and bijections.
 
   Bij : Category (# 2) (# 1)
-  Bij = category-Set-≅ (# 1) ext univ₁
+  Bij = category-Set-≅ (# 1) ext (λ _ _ → univ₁)
 
   module Bij = Category Bij
 
