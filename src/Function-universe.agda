@@ -1476,6 +1476,19 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
   ; left-inverse-of = refl
   }
 
+-- A variant of extensionality-isomorphism for functions with implicit
+-- arguments.
+
+implicit-extensionality-isomorphism :
+  ∀ {k a b} {A : Set a} →
+  ({B : A → Set b} → Extensionality′ A B) →
+  {B : A → Set b} {f g : {x : A} → B x} →
+  (∀ x → f {x} ≡ g {x}) ↔[ k ] ((λ {x} → f {x}) ≡ g)
+implicit-extensionality-isomorphism ext {f = f} {g} =
+  (∀ x → f {x} ≡ g {x})            ↔⟨ Eq.extensionality-isomorphism ext ⟩
+  ((λ x → f {x}) ≡ (λ x → g {x}))  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Bijection.implicit-Π↔Π) ⟩□
+  ((λ {x} → f {x}) ≡ g)            □
+
 -- The Yoneda lemma, as given in the HoTT book, but specialised to the
 -- opposite of the category of sets and functions, and with some
 -- naturality properties omitted. (The proof uses extensionality.)
