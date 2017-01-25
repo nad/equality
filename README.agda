@@ -181,6 +181,12 @@ import Adjunction
 
 import Structure-identity-principle
 
+-- The structure identity principle can be used to establish that
+-- isomorphism coincides with equality (assuming univalence).
+
+import
+  Univalence-axiom.Isomorphism-is-equality.Structure-identity-principle
+
 -- Bag equivalence for lists.
 
 import Bag-equivalence

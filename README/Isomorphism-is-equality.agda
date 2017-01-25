@@ -157,8 +157,13 @@ import Univalence-axiom.Isomorphism-is-equality.Simple
 ---=====================================================================
 -- 4: Related Work
 
--- Aczel's structure identity principle (structure-identity-principle)
--- can be used to prove a slightly restricted variant of our main
--- theorem (isomorphism-is-equality′, from-isomorphism-is-equality′).
+-- Aczel's structure identity principle (structure-identity-principle).
 
 import Structure-identity-principle
+
+-- The structure identity principle can be used to prove a slightly
+-- restricted variant of our main theorem (isomorphism-is-equality′,
+-- from-isomorphism-is-equality′).
+
+import
+  Univalence-axiom.Isomorphism-is-equality.Structure-identity-principle
