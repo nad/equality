@@ -190,6 +190,12 @@ abstract
              ≡⇒→ (refl A) ≡ id
   ≡⇒→-refl = cong _≃_.to ≡⇒≃-refl
 
+  -- "Evaluation rule" for ≡⇒←.
+
+  ≡⇒←-refl : ∀ {a} {A : Set a} →
+             ≡⇒← (refl A) ≡ id
+  ≡⇒←-refl = cong _≃_.from ≡⇒≃-refl
+
   -- "Evaluation rule" (?) for ≃⇒≡.
 
   ≃⇒≡-id : ∀ {a} {A : Set a}
