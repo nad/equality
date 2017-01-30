@@ -233,7 +233,7 @@ private
   -- The tactic refine A t goal tries to use the term t (of type A),
   -- applied to as many fresh meta-variables as possible (based on its
   -- type), to solve the given goal. If this fails, then an attempt is
-  -- made to solve the goal using "sym (x metas)" instead.
+  -- made to solve the goal using "sym (t metas)" instead.
 
   refine : Type → Term → Term → TC Term
   refine A t goal =
