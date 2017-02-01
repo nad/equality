@@ -1360,7 +1360,64 @@ module Derived-definitions-and-properties
        subst (λ x → ∀ {y} → C x y) (refl _) g {y = f x₁}  ∎)
       x₁≡x₂
 
-    -- Yet another equality rearrangement lemma.
+    subst-∀ :
+      ∀ {a b c} {A : Set a} {B : A → Set b} {x₁ x₂ : A} {y : B x₁}
+        {C : (x : A) → B x → Set c} {f : (y : B x₂) → C x₂ y}
+        {x₁≡x₂ : x₁ ≡ x₂} →
+      subst (λ x → (y : B x) → C x y) (sym x₁≡x₂) f y ≡
+      subst (uncurry C) (sym $ Σ-≡,≡→≡ x₁≡x₂ (refl _))
+        (f (subst B x₁≡x₂ y))
+    subst-∀ {B = B} {C = C} {x₁≡x₂ = x₁≡x₂} = elim
+      (λ {x₁ x₂} x₁≡x₂ →
+         {y : B x₁} (f : (y : B x₂) → C x₂ y) →
+         subst (λ x → (y : B x) → C x y) (sym x₁≡x₂) f y ≡
+         subst (uncurry C) (sym $ Σ-≡,≡→≡ x₁≡x₂ (refl _))
+           (f (subst B x₁≡x₂ y)))
+      (λ x {y} f →
+         let lemma =
+               cong (x ,_) (subst-refl B y)              ≡⟨ cong (cong (x ,_)) $ sym $ sym-sym _ ⟩
+               cong (x ,_) (sym $ sym $ subst-refl B y)  ≡⟨ cong-sym _ _ ⟩
+               sym $ cong (x ,_) (sym $ subst-refl B y)  ≡⟨ cong sym $ sym Σ-≡,≡→≡-refl-refl ⟩∎
+               sym $ Σ-≡,≡→≡ (refl x) (refl _)           ∎
+         in
+         subst (λ x → (y : B x) → C x y) (sym (refl x)) f y     ≡⟨ cong (λ eq → subst (λ x → (y : B x) → C x y) eq _ _) sym-refl ⟩
+
+         subst (λ x → (y : B x) → C x y) (refl x) f y           ≡⟨ cong (_$ y) $ subst-refl _ _ ⟩
+
+         f y                                                    ≡⟨ sym $ dependent-cong f _ ⟩
+
+         subst (C x) (subst-refl B _) (f (subst B (refl x) y))  ≡⟨ subst-∘ _ _ _ ⟩
+
+         subst (uncurry C) (cong (x ,_) (subst-refl B y))
+           (f (subst B (refl x) y))                             ≡⟨ cong (λ eq → subst (uncurry C) eq (f (subst B (refl x) y))) lemma ⟩∎
+
+         subst (uncurry C) (sym $ Σ-≡,≡→≡ (refl x) (refl _))
+           (f (subst B (refl x) y))                             ∎)
+      x₁≡x₂ _
+
+    subst-→ :
+      ∀ {a b c} {A : Set a} {B : A → Set b} {x₁ x₂ : A} {y : B x₂}
+      {C : A → Set c} {f : B x₁ → C x₁}
+      {x₁≡x₂ : x₁ ≡ x₂} →
+      subst (λ x → B x → C x) x₁≡x₂ f y ≡
+      subst C x₁≡x₂ (f (subst B (sym x₁≡x₂) y))
+    subst-→ {B = B} {y = y} {C} {f} {x₁≡x₂} =
+      subst (λ x → B x → C x) x₁≡x₂ f y                          ≡⟨ cong (λ eq → subst (λ x → B x → C x) eq f y) $ sym $
+                                                                      sym-sym _ ⟩
+      subst (λ x → B x → C x) (sym $ sym x₁≡x₂) f y              ≡⟨ subst-∀ ⟩
+
+      subst (C ∘ proj₁) (sym $ Σ-≡,≡→≡ (sym x₁≡x₂) (refl _))
+        (f (subst B (sym x₁≡x₂) y))                              ≡⟨ subst-∘ _ _ _ ⟩
+
+      subst C (cong proj₁ $ sym $ Σ-≡,≡→≡ (sym x₁≡x₂) (refl _))
+        (f (subst B (sym x₁≡x₂) y))                              ≡⟨ cong (λ eq → subst C eq (f (subst B (sym x₁≡x₂) y))) $
+                                                                      cong-sym _ _ ⟩
+      subst C (sym $ cong proj₁ $ Σ-≡,≡→≡ (sym x₁≡x₂) (refl _))
+        (f (subst B (sym x₁≡x₂) y))                              ≡⟨ cong (λ eq → subst C (sym eq) (f (subst B (sym x₁≡x₂) y))) $
+                                                                      proj₁-Σ-≡,≡→≡ _ _ ⟩
+      subst C (sym $ sym x₁≡x₂) (f (subst B (sym x₁≡x₂) y))      ≡⟨ cong (λ eq → subst C eq (f (subst B (sym x₁≡x₂) y))) $
+                                                                      sym-sym _ ⟩∎
+      subst C x₁≡x₂ (f (subst B (sym x₁≡x₂) y))                  ∎
 
     subst-→-domain :
       ∀ {a b c} {A : Set a} {x y : A}
