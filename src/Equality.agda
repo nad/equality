@@ -1331,31 +1331,34 @@ module Derived-definitions-and-properties
     -- The subst function can be "pushed" inside applications.
 
     push-subst-application :
-      ∀ {a b c} {A : Set a} {x : A} {B : Set b} {y₁ y₂ : B}
-      (y₁≡y₂ : y₁ ≡ y₂) (C : A → B → Set c) {f : (x : A) → C x y₁} →
-      subst (C x) y₁≡y₂ (f x) ≡
-      subst (λ y → (x : A) → C x y) y₁≡y₂ f x
-    push-subst-application {x = x} y₁≡y₂ C {f} = elim¹
-      (λ y₁≡y₂ → subst (C x) y₁≡y₂ (f x) ≡
-                 subst (λ y → ∀ x → C x y) y₁≡y₂ f x)
-      (subst (C x) (refl _) (f x)              ≡⟨ subst-refl (C x) _ ⟩
-       f x                                     ≡⟨ cong (λ g → g x) $ sym $ subst-refl (λ y → ∀ x → C x y) _ ⟩∎
-       subst (λ y → ∀ x → C x y) (refl _) f x  ∎)
-      y₁≡y₂
+      ∀ {a b c} {A : Set a} {B : A → Set b} {x₁ x₂ : A}
+      (x₁≡x₂ : x₁ ≡ x₂) (C : (x : A) → B x → Set c)
+      {f : (x : A) → B x} {g : (y : B x₁) → C x₁ y} →
+      subst (λ x → C x (f x)) x₁≡x₂ (g (f x₁)) ≡
+      subst (λ x → (y : B x) → C x y) x₁≡x₂ g (f x₂)
+    push-subst-application {x₁ = x₁} x₁≡x₂ C {f} {g} = elim¹
+      (λ {x₂} x₁≡x₂ →
+         subst (λ x → C x (f x)) x₁≡x₂ (g (f x₁)) ≡
+         subst (λ x → ∀ y → C x y) x₁≡x₂ g (f x₂))
+      (subst (λ x → C x (f x)) (refl _) (g (f x₁))  ≡⟨ subst-refl (λ x → C x (f x)) _ ⟩
+       g (f x₁)                                     ≡⟨ cong (_$ f x₁) $ sym $ subst-refl (λ x → ∀ y → C x y) _ ⟩∎
+       subst (λ x → ∀ y → C x y) (refl _) g (f x₁)  ∎)
+      x₁≡x₂
 
     push-subst-implicit-application :
-      ∀ {a b c} {A : Set a} {x : A} {B : Set b} {y₁ y₂ : B}
-      (y₁≡y₂ : y₁ ≡ y₂) (C : A → B → Set c) {f : {x : A} → C x y₁} →
-      subst (C x) y₁≡y₂ (f {x = x}) ≡
-      subst (λ y → {x : A} → C x y) y₁≡y₂ f {x = x}
-    push-subst-implicit-application {x = x} y₁≡y₂ C {f} =
-      elim¹
-        (λ y₁≡y₂ → subst (C x) y₁≡y₂ f ≡
-                   subst (λ y → ∀ {x} → C x y) y₁≡y₂ f)
-        (subst (C x) (refl _) f                  ≡⟨ subst-refl (C x) _ ⟩
-         f                                       ≡⟨ cong (λ g → g {x = x}) $ sym $ subst-refl (λ y → ∀ {x} → C x y) _ ⟩∎
-         subst (λ y → ∀ {x} → C x y) (refl _) f  ∎)
-        y₁≡y₂
+      ∀ {a b c} {A : Set a} {B : A → Set b} {x₁ x₂ : A}
+      (x₁≡x₂ : x₁ ≡ x₂) (C : (x : A) → B x → Set c)
+      {f : (x : A) → B x} {g : {y : B x₁} → C x₁ y} →
+      subst (λ x → C x (f x)) x₁≡x₂ (g {y = f x₁}) ≡
+      subst (λ x → {y : B x} → C x y) x₁≡x₂ g {y = f x₂}
+    push-subst-implicit-application {x₁ = x₁} x₁≡x₂ C {f} {g} = elim¹
+      (λ {x₂} x₁≡x₂ →
+         subst (λ x → C x (f x)) x₁≡x₂ (g {y = f x₁}) ≡
+         subst (λ x → ∀ {y} → C x y) x₁≡x₂ g {y = f x₂})
+      (subst (λ x → C x (f x)) (refl _) (g {y = f x₁})    ≡⟨ subst-refl (λ x → C x (f x)) _ ⟩
+       g {y = f x₁}                                       ≡⟨ cong (λ g → g {y = f x₁}) $ sym $ subst-refl (λ x → ∀ {y} → C x y) _ ⟩∎
+       subst (λ x → ∀ {y} → C x y) (refl _) g {y = f x₁}  ∎)
+      x₁≡x₂
 
     -- Yet another equality rearrangement lemma.
 

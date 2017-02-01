@@ -646,14 +646,14 @@ abstract
                      subst (λ F → ∀ {X Y} → HomC X Y → Hom (F X) (F Y))
                            ⊚F≡⊚G (_⊙_ F) f                               ≡⟨ cong (λ H → H f) $ sym $
                                                                                  push-subst-implicit-application ⊚F≡⊚G
-                                                                                   (λ X F → ∀ {Y} → HomC X Y → Hom (F X) (F Y)) ⟩
+                                                                                   (λ F X → ∀ {Y} → HomC X Y → Hom (F X) (F Y)) ⟩
                      subst (λ F → ∀ {Y} → HomC X Y → Hom (F X) (F Y))
                            ⊚F≡⊚G (_⊙_ F) f                               ≡⟨ cong (λ H → H f) $ sym $
                                                                                  push-subst-implicit-application ⊚F≡⊚G
-                                                                                   (λ Y F → HomC X Y → Hom (F X) (F Y)) ⟩
+                                                                                   (λ F Y → HomC X Y → Hom (F X) (F Y)) ⟩
                      subst (λ F → HomC X Y → Hom (F X) (F Y))
                            ⊚F≡⊚G (_⊙_ F) f                               ≡⟨ sym $ push-subst-application ⊚F≡⊚G
-                                                                                    (λ _ F → Hom (F X) (F Y)) ⟩
+                                                                                    (λ F _ → Hom (F X) (F Y)) ⟩
                      subst (λ F → Hom (F X) (F Y)) ⊚F≡⊚G (F ⊙ f)         ≡⟨ subst-∘ (uncurry Hom) (λ H → (H X , H Y)) ⊚F≡⊚G ⟩
 
                      subst (uncurry Hom)
