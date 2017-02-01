@@ -450,16 +450,37 @@ module Derived-definitions-and-properties
       subst {A = Other-singleton x} (P ∘ proj₂) (refl (x , refl x)) p  ≡⟨ subst-refl {A = Other-singleton x} (P ∘ proj₂) p ⟩∎
       p                                                                ∎
 
+  -- A generalisation of dependent-cong (which is defined below).
+
+  dependent-cong′ :
+    ∀ {a b} {A : Set a} {B : A → Set b} {x y}
+    (f : (x : A) → x ≡ y → B x) (x≡y : x ≡ y) →
+    subst B x≡y (f x x≡y) ≡ f y (refl y)
+  dependent-cong′ {B = B} {y = y} f x≡y = elim₁
+    (λ {x} (x≡y : x ≡ y) →
+       (f : ∀ x → x ≡ y → B x) →
+       subst B x≡y (f x x≡y) ≡ f y (refl y))
+    (λ f → subst B (refl y) (f y (refl y))  ≡⟨ subst-refl _ _ ⟩∎
+           f y (refl y)                     ∎)
+    x≡y f
+
+  abstract
+
+    -- "Evaluation rule" for dependent-cong′.
+
+    dependent-cong′-refl :
+      ∀ {a b} {A : Set a} {B : A → Set b} {y}
+      (f : (x : A) → x ≡ y → B x) →
+      dependent-cong′ f (refl y) ≡ subst-refl B (f y (refl y))
+    dependent-cong′-refl f = cong (_$ f) $ elim₁-refl _ _
+
   -- A dependent variant of cong.
 
   dependent-cong :
     ∀ {a b} {A : Set a} {B : A → Set b}
     (f : (x : A) → B x) {x y} (x≡y : x ≡ y) →
     subst B x≡y (f x) ≡ f y
-  dependent-cong {B = B} f = elim
-    (λ {x y} (x≡y : x ≡ y) → subst B x≡y (f x) ≡ f y)
-    (λ x → subst B (refl x) (f x)  ≡⟨ subst-refl _ _ ⟩∎
-           f x                     ∎)
+  dependent-cong f = dependent-cong′ (const ∘ f)
 
   abstract
 
@@ -468,11 +489,7 @@ module Derived-definitions-and-properties
     dependent-cong-refl :
       ∀ {a b} {A : Set a} {B : A → Set b} (f : (x : A) → B x) {x} →
       dependent-cong f (refl x) ≡ subst-refl B (f x)
-    dependent-cong-refl {B = B} f {x} =
-      elim (λ {x y} (x≡y : x ≡ y) → subst B x≡y (f x) ≡ f y)
-           (λ x → subst-refl B (f x))
-           (refl x)                                           ≡⟨ elim-refl _ _ ⟩∎
-      subst-refl B (f x)                                      ∎
+    dependent-cong-refl _ = dependent-cong′-refl _
 
   -- Binary congruence.
 
