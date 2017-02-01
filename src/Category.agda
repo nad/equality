@@ -20,7 +20,8 @@ open import Function-universe eq hiding (id) renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq
 open import Logical-equivalence using (module _⇔_)
-open import Prelude as P hiding (id)
+import Nat eq as Nat
+open import Prelude as P hiding (id; Unit)
 open import Univalence-axiom eq
 
 ------------------------------------------------------------------------
@@ -518,3 +519,51 @@ private
     Category.Hom (category-Set-≅ ℓ ext univ) ≡
     Category._≅_ (category-Set ℓ ext univ)
   Hom-category-Set-≅ _ _ _ = refl _
+
+-- A trivial category (with a singleton type of objects and singleton
+-- homsets).
+
+Unit : ∀ ℓ₁ ℓ₂ → Category ℓ₁ ℓ₂
+Unit ℓ₁ ℓ₂ =
+  precategory-to-category record
+    { precategory =
+          ↑ ℓ₁ ⊤
+        , (λ _ _ → ↑ ℓ₂ ⊤ , ↑⊤-set)
+        , _
+        , _
+        , refl _
+        , refl _
+        , refl _
+    }
+  (λ {x y} →
+     x ≡ y                                                    ↔⟨ ≡↔⊤ ⟩
+     ⊤                                                        ↔⟨ inverse ≡↔⊤ ⟩
+     lift tt ≡ lift tt                                        ↔⟨ inverse $ drop-⊤-left-Σ ≡↔⊤ ⟩
+     lift tt ≡ lift tt × lift tt ≡ lift tt                    ↔⟨ inverse $ drop-⊤-left-Σ Bijection.↑↔ ⟩
+     ↑ ℓ₂ ⊤ × lift tt ≡ lift tt × lift tt ≡ lift tt           ↔⟨ inverse $ drop-⊤-left-Σ Bijection.↑↔ ⟩□
+     ↑ ℓ₂ ⊤ × ↑ ℓ₂ ⊤ × lift tt ≡ lift tt × lift tt ≡ lift tt  □)
+  (refl _)
+  where
+  ↑⊤-set : ∀ {ℓ} → Is-set (↑ ℓ ⊤)
+  ↑⊤-set = mono (Nat.zero≤ _) (↑-closure 0 ⊤-contractible)
+
+  ≡↔⊤ : ∀ {ℓ} {x y : ↑ ℓ ⊤} → (x ≡ y) ↔ ⊤
+  ≡↔⊤ = inverse $ _⇔_.to contractible⇔⊤↔ $
+          propositional⇒inhabited⇒contractible (↑⊤-set _ _) (refl _)
+
+-- An "empty" category, without objects.
+
+Empty : ∀ ℓ₁ ℓ₂ → Category ℓ₁ ℓ₂
+Empty ℓ₁ ℓ₂ =
+  precategory-to-category record
+    { precategory =
+          ⊥
+        , ⊥-elim
+        , (λ {x} → ⊥-elim x)
+        , (λ {x} → ⊥-elim x)
+        , (λ {x} → ⊥-elim x)
+        , (λ {x} → ⊥-elim x)
+        , (λ {x} → ⊥-elim x)
+    }
+  (λ {x} → ⊥-elim x)
+  (λ {x} → ⊥-elim x)
