@@ -252,7 +252,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
       f = inj₁ ⊚ [ P.id , const x ]
 
       p : A ⊎ B → Bool
-      p = [ const true , const false ]
+      p = if_then true else false
 
       f≡id : ∀ z → T (p z) → f z ≡ z
       f≡id (inj₁ x) = const (refl (inj₁ x))
@@ -297,7 +297,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
       f = inj₂ ⊚ [ const x , P.id ]
 
       p : A ⊎ B → Bool
-      p = [ const false , const true ]
+      p = if_then false else true
 
       f≡id : ∀ z → T (p z) → f z ≡ z
       f≡id (inj₁ x) = ⊥-elim

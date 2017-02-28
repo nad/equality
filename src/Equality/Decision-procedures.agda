@@ -97,8 +97,7 @@ module ⊎ {a b} {A : Set a} {B : Set b} where
     -- The values inj₁ x and inj₂ y are never equal.
 
     inj₁≢inj₂ : {x : A} {y : B} → inj₁ x ≢ inj₂ y
-    inj₁≢inj₂ = Bool.true≢false ∘
-                cong {A = A ⊎ B} {B = Bool} [ const true , const false ]
+    inj₁≢inj₂ = Bool.true≢false ∘ cong (if_then true else false)
 
   -- The inj₁ and inj₂ constructors are cancellative.
 
