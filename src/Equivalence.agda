@@ -544,63 +544,67 @@ two-out-of-three f g = record
 ------------------------------------------------------------------------
 -- f ≡ g and ∀ x → f x ≡ g x are isomorphic (assuming extensionality)
 
-abstract
+private
+ module Separate-abstract-block where
+  abstract
 
-  -- Functions between contractible types are equivalences.
+    -- Functions between contractible types are equivalences.
 
-  function-between-contractible-types-is-equivalence :
-    ∀ {a b} {A : Set a} {B : Set b} (f : A → B) →
-    Contractible A → Contractible B → Is-equivalence f
-  function-between-contractible-types-is-equivalence f cA cB =
-    Two-out-of-three.g-g∘f
-      (two-out-of-three f (const tt))
-      (lemma cB)
-      (lemma cA)
-    where
-    -- Functions from a contractible type to the unit type are
-    -- contractible.
+    function-between-contractible-types-is-equivalence :
+      ∀ {a b} {A : Set a} {B : Set b} (f : A → B) →
+      Contractible A → Contractible B → Is-equivalence f
+    function-between-contractible-types-is-equivalence f cA cB =
+      Two-out-of-three.g-g∘f
+        (two-out-of-three f (const tt))
+        (lemma cB)
+        (lemma cA)
+      where
+      -- Functions from a contractible type to the unit type are
+      -- contractible.
 
-    lemma : ∀ {b} {C : Set b} → Contractible C →
-            Is-equivalence (λ (_ : C) → tt)
-    lemma (x , irr) _ = (x , refl tt) , λ p →
-      (x , refl tt)  ≡⟨ Σ-≡,≡→≡
-                          (irr (proj₁ p))
-                          (subst (λ _ → tt ≡ tt)
-                             (irr (proj₁ p)) (refl tt)  ≡⟨ elim (λ eq → subst (λ _ → tt ≡ tt) eq (refl tt) ≡ refl tt)
-                                                                (λ _ → subst-refl (λ _ → tt ≡ tt) (refl tt))
-                                                                (irr (proj₁ p)) ⟩
-                           refl tt                      ≡⟨ elim (λ eq → refl tt ≡ eq) (refl ⊚ refl) (proj₂ p) ⟩∎
-                           proj₂ p                      ∎) ⟩∎
-      p              ∎
+      lemma : ∀ {b} {C : Set b} → Contractible C →
+              Is-equivalence (λ (_ : C) → tt)
+      lemma (x , irr) _ = (x , refl tt) , λ p →
+        (x , refl tt)  ≡⟨ Σ-≡,≡→≡
+                            (irr (proj₁ p))
+                            (subst (λ _ → tt ≡ tt)
+                               (irr (proj₁ p)) (refl tt)  ≡⟨ elim (λ eq → subst (λ _ → tt ≡ tt) eq (refl tt) ≡ refl tt)
+                                                                  (λ _ → subst-refl (λ _ → tt ≡ tt) (refl tt))
+                                                                  (irr (proj₁ p)) ⟩
+                             refl tt                      ≡⟨ elim (λ eq → refl tt ≡ eq) (refl ⊚ refl) (proj₂ p) ⟩∎
+                             proj₂ p                      ∎) ⟩∎
+        p              ∎
 
-  -- ext⁻¹ is an equivalence (assuming extensionality).
+    -- ext⁻¹ is an equivalence (assuming extensionality).
 
-  ext⁻¹-is-equivalence :
-    ∀ {a b} {A : Set a} →
-    ({B : A → Set b} → Extensionality′ A B) →
-    {B : A → Set b} {f g : (x : A) → B x} →
-    Is-equivalence (ext⁻¹ {f = f} {g = g})
-  ext⁻¹-is-equivalence ext {f = f} {g} =
-    let surj : (∀ x → Singleton (g x)) ↠ (∃ λ f → ∀ x → f x ≡ g x)
-        surj = record
-          { logical-equivalence = record
-            { to   = λ f → proj₁ ⊚ f , proj₂ ⊚ f
-            ; from = λ p x → proj₁ p x , proj₂ p x
+    ext⁻¹-is-equivalence :
+      ∀ {a b} {A : Set a} →
+      ({B : A → Set b} → Extensionality′ A B) →
+      {B : A → Set b} {f g : (x : A) → B x} →
+      Is-equivalence (ext⁻¹ {f = f} {g = g})
+    ext⁻¹-is-equivalence ext {f = f} {g} =
+      let surj : (∀ x → Singleton (g x)) ↠ (∃ λ f → ∀ x → f x ≡ g x)
+          surj = record
+            { logical-equivalence = record
+              { to   = λ f → proj₁ ⊚ f , proj₂ ⊚ f
+              ; from = λ p x → proj₁ p x , proj₂ p x
+              }
+            ; right-inverse-of = refl
             }
-          ; right-inverse-of = refl
-          }
 
-        lemma₁ : Contractible (∃ λ f → ∀ x → f x ≡ g x)
-        lemma₁ =
-          H-level.respects-surjection surj 0 $
-            _⇔_.from Π-closure-contractible⇔extensionality
-              ext (singleton-contractible ⊚ g)
+          lemma₁ : Contractible (∃ λ f → ∀ x → f x ≡ g x)
+          lemma₁ =
+            H-level.respects-surjection surj 0 $
+              _⇔_.from Π-closure-contractible⇔extensionality
+                ext (singleton-contractible ⊚ g)
 
-        lemma₂ : Is-equivalence (Σ-map P.id ext⁻¹)
-        lemma₂ = function-between-contractible-types-is-equivalence
-                   _ (singleton-contractible g) lemma₁
+          lemma₂ : Is-equivalence (Σ-map P.id ext⁻¹)
+          lemma₂ = function-between-contractible-types-is-equivalence
+                     _ (singleton-contractible g) lemma₁
 
-    in drop-Σ-map-id ext⁻¹ lemma₂ f
+      in drop-Σ-map-id ext⁻¹ lemma₂ f
+
+open Separate-abstract-block public
 
 -- f ≡ g and ∀ x → f x ≡ g x are isomorphic (assuming extensionality).
 
