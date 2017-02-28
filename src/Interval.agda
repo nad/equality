@@ -11,10 +11,11 @@
 
 module Interval where
 
-open import Equality.Propositional as EP hiding (elim)
+open import Equality.Propositional as Eq hiding (elim)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+open import Equivalence equality-with-J hiding (_∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J using (ext⁻¹)
 
@@ -126,52 +127,94 @@ rec-const p p≡p i =
 ------------------------------------------------------------------------
 -- Extensionality
 
--- The interval can be used to prove that equality of functions is
--- extensional.
+abstract
 
-private
+  -- The interval can be used to prove that equality of functions is
+  -- extensional.
 
-  -- ext-helper {f = f} {g = g} f≡g reduces to λ x → f x when the
-  -- input is [0], and to λ x → g x when the input is [1].
+  private
 
-  ext-helper :
+    -- ext-helper {f = f} {g = g} f≡g reduces to λ x → f x when the
+    -- input is [0], and to λ x → g x when the input is [1].
+
+    ext-helper :
+      ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
+      (∀ x → f x ≡ g x) → I → (x : A) → B x
+    ext-helper {f = f} {g} f≡g i =
+      λ x → rec (f x) (g x) (f≡g x) i
+
+    ext′ : ∀ {a b} → Extensionality a b
+    ext′ {f = f} {g = g} f≡g =
+      f                   ≡⟨⟩
+      ext-helper f≡g [0]  ≡⟨ cong (ext-helper f≡g) 0≡1 ⟩∎
+      ext-helper f≡g [1]  ∎
+
+  ext : ∀ {a b} → Extensionality a b
+  ext = good-ext ext′
+
+  -- The function ext is an equivalence.
+
+  ext-is-equivalence :
     ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
-    (∀ x → f x ≡ g x) → I → (x : A) → B x
-  ext-helper {f = f} {g} f≡g i =
-    λ x → rec (f x) (g x) (f≡g x) i
+    Is-equivalence {A = ∀ x → f x ≡ g x} ext
+  ext-is-equivalence = good-ext-is-equivalence ext′
 
-ext : ∀ {a b} → Extensionality a b
-ext {f = f} {g = g} f≡g =
-  f                   ≡⟨⟩
-  ext-helper f≡g [0]  ≡⟨ cong (ext-helper f≡g) 0≡1 ⟩∎
-  ext-helper f≡g [1]  ∎
+  -- Equality rearrangement lemmas for ext.
 
--- Equality rearrangement lemmas for ext.
+  ext-refl :
+    ∀ {a b} {A : Set a} {B : A → Set b} (f : (x : A) → B x) →
+    ext (λ x → refl {x = f x}) ≡ refl {x = f}
+  ext-refl = good-ext-refl ext′
 
-cong-ext :
-  ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
-  (f≡g : ∀ x → f x ≡ g x) {x} →
-  cong (_$ x) (ext f≡g) ≡ f≡g x
-cong-ext {B = B} {f = f} {g} f≡g {x} =
-  cong (_$ x) (cong (ext-helper f≡g) 0≡1)  ≡⟨ cong-∘ (_$ x) (ext-helper f≡g) 0≡1 ⟩
-  cong (λ i → ext-helper f≡g i x) 0≡1      ≡⟨⟩
-  cong (rec (f x) (g x) (f≡g x)) 0≡1       ≡⟨ rec-0≡1 _ _ _ ⟩∎
-  f≡g x                                    ∎
+  cong-ext :
+    ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
+    (f≡g : ∀ x → f x ≡ g x) {x} →
+    cong (_$ x) (ext f≡g) ≡ f≡g x
+  cong-ext = cong-good-ext ext′
 
-cong-∘-ext :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : B → Set c}
-    {f g : (x : B) → C x} {h : A → B}
-  (f≡g : ∀ x → f x ≡ g x) →
-  cong (_∘ h) (ext f≡g) ≡ ext (f≡g ∘ h)
-cong-∘-ext {h = h} f≡g =
-  cong (_∘ h) (cong (ext-helper f≡g) 0≡1)  ≡⟨ cong-∘ (_∘ h) (ext-helper f≡g) 0≡1 ⟩∎
-  cong (λ i → ext-helper f≡g i ∘ h) 0≡1    ∎
+  subst-ext :
+    ∀ {a b p} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} {x}
+    (P : B x → Set p) {p} (f≡g : ∀ x → f x ≡ g x) →
+    subst (λ f → P (f x)) (ext f≡g) p ≡ subst P (f≡g x) p
+  subst-ext = subst-good-ext ext′
 
-subst-ext :
-  ∀ {a b p} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} {x}
-  (P : B x → Set p) {p} (f≡g : ∀ x → f x ≡ g x) →
-  subst (λ f → P (f x)) (ext f≡g) p ≡ subst P (f≡g x) p
-subst-ext {f = f} {g} {x = x} P {p} f≡g =
-  subst (λ f → P (f x)) (ext f≡g) p  ≡⟨ subst-∘ P (_$ x) (ext f≡g) ⟩
-  subst P (cong (_$ x) (ext f≡g)) p  ≡⟨ cong (λ eq → subst P eq p) (cong-ext f≡g) ⟩∎
-  subst P (f≡g x) p                  ∎
+  elim-ext :
+    ∀ {a b p} {A : Set a} {B : A → Set b} {x : A}
+    (P : B x → B x → Set p)
+    (p : (y : B x) → P y y)
+    {f g : (x : A) → B x}
+    (f≡g : ∀ x → f x ≡ g x) →
+    Eq.elim (λ {f g} _ → P (f x) (g x)) (p ∘ (_$ x)) (ext f≡g) ≡
+    Eq.elim (λ {x y} _ → P x y) p (f≡g x)
+  elim-ext = elim-good-ext ext′
+
+  -- I based the statements of the following three lemmas on code in
+  -- the Lean Homotopy Type Theory Library with Jakob von Raumer and
+  -- Floris van Doorn listed as authors. The file was claimed to have
+  -- been ported from the Coq HoTT library.
+
+  ext-sym :
+    ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
+    (f≡g : ∀ x → f x ≡ g x) →
+    ext (sym ∘ f≡g) ≡ sym (ext f≡g)
+  ext-sym = good-ext-sym ext′
+
+  ext-trans :
+    ∀ {a b} {A : Set a} {B : A → Set b} {f g h : (x : A) → B x}
+    (f≡g : ∀ x → f x ≡ g x) (g≡h : ∀ x → g x ≡ h x) →
+    ext (λ x → trans (f≡g x) (g≡h x)) ≡ trans (ext f≡g) (ext g≡h)
+  ext-trans = good-ext-trans ext′
+
+  cong-post-∘-ext :
+    ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+      {f g : A → B} {h : B → C}
+    (f≡g : ∀ x → f x ≡ g x) →
+    cong (h ∘_) (ext f≡g) ≡ ext (cong h ∘ f≡g)
+  cong-post-∘-ext = cong-post-∘-good-ext ext′ ext′
+
+  cong-pre-∘-ext :
+    ∀ {a b c} {A : Set a} {B : Set b} {C : B → Set c}
+      {f g : (x : B) → C x} {h : A → B}
+    (f≡g : ∀ x → f x ≡ g x) →
+    cong (_∘ h) (ext f≡g) ≡ ext (f≡g ∘ h)
+  cong-pre-∘-ext = cong-pre-∘-good-ext ext′ ext′
