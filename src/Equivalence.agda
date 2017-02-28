@@ -677,6 +677,80 @@ abstract
     elim (λ {x y} _ → P x y) p (cong (_$ x) (good-ext ext f≡g))       ≡⟨ cong (elim (λ {x y} _ → P x y) p) (cong-good-ext ext f≡g) ⟩
     elim (λ {x y} _ → P x y) p (f≡g x)                                ∎
 
+  -- I based the statements of the following three lemmas on code in
+  -- the Lean Homotopy Type Theory Library with Jakob von Raumer and
+  -- Floris van Doorn listed as authors. The file was claimed to have
+  -- been ported from the Coq HoTT library.
+
+  good-ext-sym :
+    ∀ {a b} (ext : Extensionality a b)
+    {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
+    (f≡g : ∀ x → f x ≡ g x) →
+    good-ext ext (sym ⊚ f≡g) ≡ sym (good-ext ext f≡g)
+  good-ext-sym ext f≡g =
+    good-ext ext (sym ⊚ f≡g)                                   ≡⟨ cong (good-ext ext ⊚ (sym ⊚_)) $ sym $
+                                                                    _≃_.left-inverse-of (extensionality-isomorphism ext) _ ⟩
+    good-ext ext (sym ⊚ ext⁻¹ (good-ext ext f≡g))              ≡⟨⟩
+    good-ext ext (λ x → sym $ cong (_$ x) (good-ext ext f≡g))  ≡⟨ cong (good-ext ext) $ ext (λ _ → sym $ cong-sym _ _) ⟩
+    good-ext ext (λ x → cong (_$ x) (sym $ good-ext ext f≡g))  ≡⟨⟩
+    good-ext ext (ext⁻¹ (sym $ good-ext ext f≡g))              ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
+    sym (good-ext ext f≡g)                                     ∎
+
+  good-ext-trans :
+    ∀ {a b} (ext : Extensionality a b)
+    {A : Set a} {B : A → Set b} {f g h : (x : A) → B x}
+    (f≡g : ∀ x → f x ≡ g x) (g≡h : ∀ x → g x ≡ h x) →
+    good-ext ext (λ x → trans (f≡g x) (g≡h x)) ≡
+    trans (good-ext ext f≡g) (good-ext ext g≡h)
+  good-ext-trans ext f≡g g≡h =
+    good-ext ext (λ x → trans (f≡g x) (g≡h x))                          ≡⟨ sym $ cong₂ (λ f g → good-ext ext (λ x → trans (f x) (g x)))
+                                                                             (_≃_.left-inverse-of (extensionality-isomorphism ext) _)
+                                                                             (_≃_.left-inverse-of (extensionality-isomorphism ext) _) ⟩
+    good-ext ext (λ x → trans (ext⁻¹ (good-ext ext f≡g) x)
+                              (ext⁻¹ (good-ext ext g≡h) x))             ≡⟨⟩
+
+    good-ext ext (λ x → trans (cong (_$ x) (good-ext ext f≡g))
+                              (cong (_$ x) (good-ext ext g≡h)))         ≡⟨ cong (good-ext ext) $ ext (λ _ → sym $
+                                                                             cong-trans _ _ _) ⟩
+    good-ext ext (λ x →
+      cong (_$ x) (trans (good-ext ext f≡g) (good-ext ext g≡h)))        ≡⟨⟩
+
+    good-ext ext (ext⁻¹ (trans (good-ext ext f≡g) (good-ext ext g≡h)))  ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
+
+    trans (good-ext ext f≡g) (good-ext ext g≡h)                         ∎
+
+  cong-post-∘-good-ext :
+    ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+      {f g : A → B} {h : B → C}
+    (ext₁ : Extensionality a b)
+    (ext₂ : Extensionality a c)
+    (f≡g : ∀ x → f x ≡ g x) →
+    cong (h ⊚_) (good-ext ext₁ f≡g) ≡ good-ext ext₂ (cong h ⊚ f≡g)
+  cong-post-∘-good-ext {f = f} {g} {h} ext₁ ext₂ f≡g =
+    cong (h ⊚_) (good-ext ext₁ f≡g)                                      ≡⟨ sym $ _≃_.right-inverse-of (extensionality-isomorphism ext₂) _ ⟩
+    good-ext ext₂ (ext⁻¹ (cong (h ⊚_) (good-ext ext₁ f≡g)))              ≡⟨⟩
+    good-ext ext₂ (λ x → cong (_$ x) (cong (h ⊚_) (good-ext ext₁ f≡g)))  ≡⟨ cong (good-ext ext₂) $ ext₂ (λ _ → cong-∘ _ _ _) ⟩
+    good-ext ext₂ (λ x → cong (λ f → h (f x)) (good-ext ext₁ f≡g))       ≡⟨ cong (good-ext ext₂) $ ext₂ (λ _ → sym $ cong-∘ _ _ _) ⟩
+    good-ext ext₂ (λ x → cong h (cong (_$ x) (good-ext ext₁ f≡g)))       ≡⟨⟩
+    good-ext ext₂ (cong h ⊚ ext⁻¹ (good-ext ext₁ f≡g))                   ≡⟨ cong (good-ext ext₂ ⊚ (cong h ⊚_)) $
+                                                                              _≃_.left-inverse-of (extensionality-isomorphism ext₁) _ ⟩∎
+    good-ext ext₂ (cong h ⊚ f≡g)                                         ∎
+
+  cong-pre-∘-good-ext :
+    ∀ {a b c} {A : Set a} {B : Set b} {C : B → Set c}
+      {f g : (x : B) → C x} {h : A → B}
+    (ext₁ : Extensionality a c)
+    (ext₂ : Extensionality b c)
+    (f≡g : ∀ x → f x ≡ g x) →
+    cong (_⊚ h) (good-ext ext₂ f≡g) ≡ good-ext ext₁ (f≡g ⊚ h)
+  cong-pre-∘-good-ext {f = f} {g} {h} ext₁ ext₂ f≡g =
+    cong (_⊚ h) (good-ext ext₂ f≡g)                                      ≡⟨ sym $ _≃_.right-inverse-of (extensionality-isomorphism ext₁) _ ⟩
+    good-ext ext₁ (ext⁻¹ (cong (_⊚ h) (good-ext ext₂ f≡g)))              ≡⟨⟩
+    good-ext ext₁ (λ x → cong (_$ x) (cong (_⊚ h) (good-ext ext₂ f≡g)))  ≡⟨ cong (good-ext ext₁) $ ext₁ (λ _ → cong-∘ _ _ _) ⟩
+    good-ext ext₁ (λ x → cong (_$ h x) (good-ext ext₂ f≡g))              ≡⟨ cong (good-ext ext₁) $ ext₁ (λ _ → cong-good-ext ext₂ _) ⟩
+    good-ext ext₁ (λ x → f≡g (h x))                                      ≡⟨⟩
+    good-ext ext₁ (f≡g ⊚ h)                                              ∎
+
 ------------------------------------------------------------------------
 -- Groupoid
 
