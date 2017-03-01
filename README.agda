@@ -122,6 +122,10 @@ import Maybe
 import Nat
 import Vec
 
+-- Some properties related to the const function.
+
+import Const
+
 -- The univalence axiom.
 
 import Univalence-axiom
