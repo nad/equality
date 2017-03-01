@@ -11,7 +11,7 @@
 
 module H-level.Truncation.Propositional where
 
-open import Equality.Propositional hiding (elim)
+open import Equality.Propositional as EP hiding (elim)
 open import Interval using (ext)
 open import Prelude
 open import Logical-equivalence using (_⇔_)
