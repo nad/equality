@@ -39,19 +39,34 @@ import Equality.Propositional
 
 import Equality.Tactic
 
--- Some tactics aimed at making equational reasoning proofs more
--- readable.
+-- Injections.
 
-import Tactic.By
+import Injection
 
--- Some decision procedures for equality.
+-- Split surjections.
 
-import Equality.Decision-procedures
+import Surjection
+
+-- Some definitions related to and properties of natural numbers.
+
+import Nat
+
+-- H-levels, along with some general properties.
+
+import H-level
 
 -- A proof which shows that sets with decidable equality have unique
 -- identity proofs.
 
 import Equality.Decidable-UIP
+
+-- Some decision procedures for equality.
+
+import Equality.Decision-procedures
+
+-- Bijections.
+
+import Bijection
 
 -- Groupoids.
 
@@ -62,25 +77,9 @@ import Groupoid
 
 import Equality.Groupoid
 
--- Injections.
-
-import Injection
-
--- Split surjections.
-
-import Surjection
-
--- Bijections.
-
-import Bijection
-
 -- All instances of the equality axioms are isomorphic.
 
 import Equality.Instances-isomorphic
-
--- H-levels, along with some general properties.
-
-import H-level
 
 -- Closure properties for h-levels.
 
@@ -104,6 +103,10 @@ import Embedding
 
 import Function-universe
 
+-- Some definitions related to and properties of booleans.
+
+import Bool
+
 -- Monads.
 
 import Monad
@@ -112,23 +115,13 @@ import Monad
 
 import Double-negation
 
--- Some definitions related to and properties of specific types.
-
-import Bool
-import Fin
-import List
-import M
-import Maybe
-import Nat
-import Vec
-
--- Some properties related to the const function.
-
-import Const
-
 -- The univalence axiom.
 
 import Univalence-axiom
+
+-- The "interval".
+
+import Interval
 
 -- Truncation.
 
@@ -138,6 +131,39 @@ import H-level.Truncation
 
 import H-level.Truncation.Propositional
 
+-- The "circle".
+
+import Circle
+
+-- Lists.
+
+import List
+
+-- Some definitions related to and properties of finite sets.
+
+import Fin
+
+-- M-types.
+
+import M
+
+-- Some definitions related to and properties of the Maybe type.
+
+import Maybe
+
+-- Vectors.
+
+import Vec
+
+-- Some properties related to the const function.
+
+import Const
+
+-- Some tactics aimed at making equational reasoning proofs more
+-- readable.
+
+import Tactic.By
+
 -- Quotients.
 
 import Quotient
@@ -145,14 +171,6 @@ import Quotient
 -- Quotients, defined using a higher inductive type.
 
 import Quotient.HIT
-
--- The "interval".
-
-import Interval
-
--- The "circle".
-
-import Circle
 
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
@@ -194,6 +212,10 @@ import
 -- Bag equivalence for lists.
 
 import Bag-equivalence
+
+-- Binary trees.
+
+import Tree
 
 -- Implementations of tree sort. One only establishes that the
 -- algorithm permutes its input, the other one also establishes
