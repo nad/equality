@@ -1505,6 +1505,44 @@ private
 ∀-cong {bijection}           = ∀-cong-bij
 ∀-cong {equivalence}         = ∀-cong-eq
 
+-- The implicit variant of Π preserves all kinds of functions in its
+-- second argument, in some cases assuming extensionality.
+
+private
+
+  ∀-cong→implicit-∀-cong :
+    ∀ {k a b₁ b₂} →
+    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    ((∀ x → B₁ x ↝[ k ] B₂ x) →
+     ((x : A) → B₁ x) ↝[ k ] ((x : A) → B₂ x)) →
+    ((∀ {x} → B₁ x ↝[ k ] B₂ x) →
+     ({x : A} → B₁ x) ↝[ k ] ({x : A} → B₂ x))
+  ∀-cong→implicit-∀-cong {A = A} {B₁} {B₂} ∀-cong B₁↝B₂ =
+    ({x : A} → B₁ x)  ↔⟨ Bijection.implicit-Π↔Π ⟩
+    ((x : A) → B₁ x)  ↝⟨ ∀-cong (λ _ → B₁↝B₂) ⟩
+    ((x : A) → B₂ x)  ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
+    ({x : A} → B₂ x)  □
+
+implicit-∀-cong-→ :
+  ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+  (∀ {x} → B₁ x → B₂ x) →
+  ({x : A} → B₁ x) → ({x : A} → B₂ x)
+implicit-∀-cong-→ = ∀-cong→implicit-∀-cong ∀-cong-→
+
+implicit-∀-cong-⇔ :
+  ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+  (∀ {x} → B₁ x ⇔ B₂ x) →
+  ({x : A} → B₁ x) ⇔ ({x : A} → B₂ x)
+implicit-∀-cong-⇔ = ∀-cong→implicit-∀-cong ∀-cong-⇔
+
+implicit-∀-cong :
+  ∀ {k a b₁ b₂} →
+  Extensionality a (b₁ ⊔ b₂) →
+  {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+  (∀ {x} → B₁ x ↝[ k ] B₂ x) →
+  ({x : A} → B₁ x) ↝[ k ] ({x : A} → B₂ x)
+implicit-∀-cong ext = ∀-cong→implicit-∀-cong (∀-cong ext)
+
 Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
 Π-left-identity = record
   { surjection = record
