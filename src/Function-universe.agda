@@ -1476,6 +1476,19 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
   ; left-inverse-of = refl
   }
 
+-- The implicit variant of Π and Σ commute (in a certain sense).
+
+implicit-ΠΣ-comm :
+  ∀ {a b c} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} →
+  (∀ {x} → ∃ λ (y : B x) → C x y)
+    ↔
+  (∃ λ (f : ∀ {x} → B x) → ∀ {x} → C x f)
+implicit-ΠΣ-comm {A = A} {B} {C} =
+  (∀ {x} → ∃ λ (y : B x) → C x y)          ↝⟨ Bijection.implicit-Π↔Π ⟩
+  (∀ x → ∃ λ (y : B x) → C x y)            ↝⟨ ΠΣ-comm ⟩
+  (∃ λ (f : ∀ x → B x) → ∀ x → C x (f x))  ↝⟨ inverse $ Σ-cong Bijection.implicit-Π↔Π (λ _ → Bijection.implicit-Π↔Π) ⟩□
+  (∃ λ (f : ∀ {x} → B x) → ∀ {x} → C x f)  □
+
 -- A variant of extensionality-isomorphism for functions with implicit
 -- arguments.
 
