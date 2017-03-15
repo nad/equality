@@ -657,7 +657,7 @@ abstract
     (P : B x → Set p) {p}
     (f≡g : ∀ x → f x ≡ g x) →
     subst (λ f → P (f x)) (good-ext ext f≡g) p ≡ subst P (f≡g x) p
-  subst-good-ext ext {f = f} {g} {x = x} P {p} f≡g =
+  subst-good-ext ext {f = f} {g} {x} P {p} f≡g =
     subst (λ f → P (f x)) (good-ext ext f≡g) p  ≡⟨ subst-∘ P (_$ x) _ ⟩
     subst P (cong (_$ x) (good-ext ext f≡g)) p  ≡⟨ cong (λ eq → subst P eq p) (cong-good-ext ext f≡g) ⟩∎
     subst P (f≡g x) p                           ∎
