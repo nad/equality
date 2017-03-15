@@ -50,11 +50,40 @@ module Reflexive-relation′
   Contractible : ∀ {ℓ} → Set ℓ → Set ℓ
   Contractible A = ∃ λ (x : A) → ∀ y → x ≡ y
 
+  -- Proof irrelevance (or maybe "data irrelevance", depending on what
+  -- the type is used for).
+
+  Proof-irrelevant : ∀ {ℓ} → Set ℓ → Set ℓ
+  Proof-irrelevant A = (x y : A) → x ≡ y
+
+  -- Uniqueness of identity proofs (for a particular type).
+
+  Uniqueness-of-identity-proofs : ∀ {ℓ} → Set ℓ → Set ℓ
+  Uniqueness-of-identity-proofs A =
+    {x y : A} → Proof-irrelevant (x ≡ y)
+
+  -- The K rule (without computational content).
+
+  K-rule : ∀ a p → Set (lsuc (a ⊔ p))
+  K-rule a p = {A : Set a} (P : {x : A} → x ≡ x → Set p) →
+               (∀ x → P (refl x)) →
+               ∀ {x} (x≡x : x ≡ x) → P x≡x
+
   -- Singleton x is a set which contains all elements which are equal
   -- to x.
 
   Singleton : ∀ {a} → {A : Set a} → A → Set a
   Singleton x = ∃ λ y → y ≡ x
+
+  -- A variant of Singleton.
+
+  Other-singleton : ∀ {a} {A : Set a} → A → Set a
+  Other-singleton x = ∃ λ y → x ≡ y
+
+  -- The inspect idiom.
+
+  inspect : ∀ {a} {A : Set a} (x : A) → Other-singleton x
+  inspect x = x , refl x
 
   -- Extensionality for functions of a certain type.
 
@@ -395,9 +424,6 @@ module Derived-definitions-and-properties
 
   -- A variant of singleton-contractible.
 
-  Other-singleton : ∀ {a} {A : Set a} → A → Set a
-  Other-singleton x = ∃ λ y → x ≡ y
-
   private
 
     irr : ∀ {a} {A : Set a} {x : A}
@@ -512,30 +538,6 @@ module Derived-definitions-and-properties
       trans (cong (flip f y) (refl x)) (cong (f x) (refl y))  ≡⟨ cong₂ trans (cong-refl (flip f y)) (cong-refl (f x)) ⟩
       trans (refl (f x y)) (refl (f x y))                     ≡⟨ trans-refl-refl ⟩∎
       refl (f x y)                                            ∎
-
-  -- The inspect idiom.
-
-  inspect : ∀ {a} {A : Set a} (x : A) → Other-singleton x
-  inspect x = x , refl x
-
-  -- The K rule (without computational content).
-
-  K-rule : ∀ a p → Set (lsuc (a ⊔ p))
-  K-rule a p = {A : Set a} (P : {x : A} → x ≡ x → Set p) →
-               (∀ x → P (refl x)) →
-               ∀ {x} (x≡x : x ≡ x) → P x≡x
-
-  -- Proof irrelevance (or maybe "data irrelevance", depending on what
-  -- the set is used for).
-
-  Proof-irrelevant : ∀ {ℓ} → Set ℓ → Set ℓ
-  Proof-irrelevant A = (x y : A) → x ≡ y
-
-  -- Uniqueness of identity proofs (for a particular type).
-
-  Uniqueness-of-identity-proofs : ∀ {ℓ} → Set ℓ → Set ℓ
-  Uniqueness-of-identity-proofs A =
-    {x y : A} → Proof-irrelevant (x ≡ y)
 
   -- The K rule is logically equivalent to uniqueness of identity
   -- proofs (at least for certain combinations of levels).
