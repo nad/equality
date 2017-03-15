@@ -1464,47 +1464,6 @@ abstract
                                                                           (left-inverse-of A₁≃A₂ x) ⟩∎
       f x                                                         ∎
 
--- Π preserves equivalence in its second argument (assuming
--- extensionality).
---
--- Note that this proof's "to" component does not use subst, unlike
--- the one in the proof of Π-preserves.
-
-∀-preserves :
-  ∀ {a b₁ b₂} → Extensionality a (b₁ ⊔ b₂) →
-  {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
-  (∀ x → B₁ x ≃ B₂ x) →
-  ((x : A) → B₁ x) ≃ ((x : A) → B₂ x)
-∀-preserves {a} {b₁} {b₂} ext {A} {B₁} {B₂} B₁≃B₂ = ↔⇒≃ record
-    { surjection = record
-      { logical-equivalence = record
-        { to   = to′
-        ; from = from′
-        }
-      ; right-inverse-of = right-inverse-of′
-      }
-    ; left-inverse-of = left-inverse-of′
-    }
-  where
-  open _≃_
-
-  to′ : ((x : A) → B₁ x) → (x : A) → B₂ x
-  to′ f x = to (B₁≃B₂ x) (f x)
-
-  from′ : ((x : A) → B₂ x) → (x : A) → B₁ x
-  from′ f x = from (B₁≃B₂ x) (f x)
-
-  abstract
-    right-inverse-of′ : ∀ f → to′ (from′ f) ≡ f
-    right-inverse-of′ = λ f → lower-extensionality a b₁ ext λ x →
-      to (B₁≃B₂ x) (from (B₁≃B₂ x) (f x))  ≡⟨ right-inverse-of (B₁≃B₂ x) (f x) ⟩∎
-      f x                                  ∎
-
-    left-inverse-of′ : ∀ f → from′ (to′ f) ≡ f
-    left-inverse-of′ = λ f → lower-extensionality a b₂ ext λ x →
-      from (B₁≃B₂ x) (to (B₁≃B₂ x) (f x))  ≡⟨ left-inverse-of (B₁≃B₂ x) (f x) ⟩∎
-      f x                                  ∎
-
 -- A part of the implementation of ≃-preserves (see below) that does
 -- not depend on extensionality.
 

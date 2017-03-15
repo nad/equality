@@ -483,8 +483,8 @@ push-∥∥ ℓ {a} {b} {c} {A} {B} {C} ext =
 
   (∥ A ∥ 1 _ → ∃ λ (f : ∀ x → B x) → C f)                ↝⟨ ΠΣ-comm ⟩
 
-  (∃ λ (f : ∥ A ∥ 1 _ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↔⟨ Σ-cong (drop-∥∥ ℓ (lower-extensionality lzero c ext)) (λ f →
-                                                            Eq.∀-preserves (lower-extensionality lzero (a ⊔ b ⊔ ℓ) ext) λ ∥x∥ →
+  (∃ λ (f : ∥ A ∥ 1 _ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↝⟨ Σ-cong (drop-∥∥ ℓ (lower-extensionality lzero c ext)) (λ f →
+                                                            ∀-cong (lower-extensionality lzero (a ⊔ b ⊔ ℓ) ext) λ ∥x∥ →
                                                             ≡⇒↝ _ $ cong C $ lower-extensionality _ (a ⊔ c ⊔ ℓ) ext λ x →
       f ∥x∥ x                                                 ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $
                                                                  _⇔_.to propositional⇔irrelevant
@@ -542,7 +542,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited :
 coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
                                                    ext B-groupoid =
   (∃ λ (f : A → B) → Coherently-constant f)               ↔⟨ inverse $ drop-∥∥₃ (b ⊔ ℓ) ext ⟩
-  (∥ A ∥ 1 ℓ′ → ∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ ∀-preserves (lower-extensionality lzero ℓ ext) (inverse ∘ equivalence₂) ⟩□
+  (∥ A ∥ 1 ℓ′ → ∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ ∀-cong (lower-extensionality lzero ℓ ext) (inverse ∘ equivalence₂) ⟩□
   (∥ A ∥ 1 ℓ′ → B)                                        □
   where
   ℓ′ = a ⊔ b ⊔ ℓ
@@ -676,15 +676,15 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
                                                                                singleton-contractible _) ⟩
     (∃ λ (f₁ : B) →
      ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
-     ∀ a₁ a₂ → ∃ λ (c : f a₁ ≡ f a₂) → c ≡ trans (c₁ a₁) (sym (c₁ a₂)))  ↔⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
-                                                                             ∀-preserves (lower-extensionality _ ℓ       ext) λ _ →
-                                                                             ∀-preserves (lower-extensionality _ (a ⊔ ℓ) ext) λ _ →
+     ∀ a₁ a₂ → ∃ λ (c : f a₁ ≡ f a₂) → c ≡ trans (c₁ a₁) (sym (c₁ a₂)))  ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                             ∀-cong (lower-extensionality _ ℓ       ext) λ _ →
+                                                                             ∀-cong (lower-extensionality _ (a ⊔ ℓ) ext) λ _ →
                                                                              ∃-cong λ _ → ≡⇒↝ _ $ sym $ [trans≡]≡[≡trans-symʳ] _ _ _) ⟩
     (∃ λ (f₁ : B) →
      ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
-     ∀ a₁ a₂ → ∃ λ (c : f a₁ ≡ f a₂) → trans c (c₁ a₂) ≡ c₁ a₁)          ↔⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
-                                                                             ∀-preserves (lower-extensionality _ ℓ ext) λ _ →
-                                                                             ↔⇒≃ ΠΣ-comm) ⟩
+     ∀ a₁ a₂ → ∃ λ (c : f a₁ ≡ f a₂) → trans c (c₁ a₂) ≡ c₁ a₁)          ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                             ∀-cong (lower-extensionality _ ℓ ext) λ _ →
+                                                                             ΠΣ-comm) ⟩
     (∃ λ (f₁ : B) →
      ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
      ∀ a₁ → ∃ λ (c : ∀ a₂ → f a₁ ≡ f a₂) →
@@ -796,8 +796,8 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
     (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
      ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
      ∃ λ (f₁ : B) → ∃ λ (c₂ : f a₀ ≡ f₁) →
-     (a : A) → ∃ λ (c₁ : f a ≡ f₁) → trans (c a₀ a) c₁ ≡ c₂)             ↔⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
-                                                                             ∀-preserves (lower-extensionality _ (a ⊔ ℓ) ext) λ _ → ∃-cong λ _ →
+     (a : A) → ∃ λ (c₁ : f a ≡ f₁) → trans (c a₀ a) c₁ ≡ c₂)             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                             ∀-cong (lower-extensionality _ (a ⊔ ℓ) ext) λ _ → ∃-cong λ _ →
                                                                              ≡⇒↝ _ $ [trans≡]≡[≡trans-symˡ] _ _ _) ⟩
     (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
      ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →

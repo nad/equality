@@ -615,7 +615,7 @@ N-ary {c} extractor n = Extension-with-resp.extension record
 
   Iso≃Iso″ ext A≃B (suc n) f g =
 
-    (∀ x → Is- n -ary-morphism (f x) (g (_≃_.to A≃B x)) (_≃_.to A≃B))  ↝⟨ Eq.∀-preserves ext (λ x →
+    (∀ x → Is- n -ary-morphism (f x) (g (_≃_.to A≃B x)) (_≃_.to A≃B))  ↝⟨ ∀-cong ext (λ x →
                                                                             Iso≃Iso″ ext A≃B n (f x) (g (_≃_.to A≃B x))) ⟩
     (∀ x → cast n A≃B (f x) ≡ g (_≃_.to A≃B x))                        ↝⟨ Eq.extensionality-isomorphism ext ⟩
 
@@ -699,10 +699,10 @@ Simple {c} σ = Extension-with-resp.extension record
 
   Iso≃Iso″ ass (σ ⟶ τ) I≅J {f} {g} =
 
-    (∀ x y → Iso ass σ I≅J x y → Iso ass τ I≅J (f x) (g y))        ↝⟨ ∀-preserves ext₁ (λ _ → ∀-preserves ext₁ λ _ →
+    (∀ x y → Iso ass σ I≅J x y → Iso ass τ I≅J (f x) (g y))        ↝⟨ ∀-cong ext₁ (λ _ → ∀-cong ext₁ λ _ →
                                                                         →-cong ext₁ (Iso≃Iso″ ass σ I≅J) (Iso≃Iso″ ass τ I≅J)) ⟩
     (∀ x y → to (cast ass σ I≅J) x ≡ y →
-             to (cast ass τ I≅J) (f x) ≡ g y)                      ↝⟨ inverse $ ∀-preserves ext₁ (λ x → ↔⇒≃ $
+             to (cast ass τ I≅J) (f x) ≡ g y)                      ↔⟨ inverse $ ∀-cong ext₁ (λ x →
                                                                         ∀-intro ext₁ (λ y _ → to (cast ass τ I≅J) (f x) ≡ g y)) ⟩
     (∀ x → to (cast ass τ I≅J) (f x) ≡ g (to (cast ass σ I≅J) x))  ↝⟨ extensionality-isomorphism ext₁ ⟩
 
@@ -865,7 +865,7 @@ module Dependent where
     let iso-to-itself = isomorphic-to-itself σ ass I≅J in
 
     (∀ x y (x≅y : Iso ass σ I≅J x y) →
-           Iso ass τ (I≅J , x≅y) (f x) (g y))                        ↝⟨ ∀-preserves ext₁ (λ x → ∀-preserves ext₁ λ y →
+           Iso ass τ (I≅J , x≅y) (f x) (g y))                        ↝⟨ ∀-cong ext₁ (λ x → ∀-cong ext₁ λ y →
                                                                           Π-preserves ext₁ (Iso≃Iso″ ass σ I≅J) (λ x≅y →
            Iso ass τ (I≅J , x≅y) (f x) (g y)                                ↝⟨ Iso≃Iso″ ass τ (I≅J , x≅y) ⟩
            (resp τ ass (I≅J , x≅y) (f x) ≡ g y)                             ↝⟨ ≡⇒≃ $ cong (λ x≅y → resp τ ass (I≅J , x≅y) (f x) ≡ g y) $
@@ -876,7 +876,7 @@ module Dependent where
 
     (∀ x y (x≡y : to (cast ass σ I≅J) x ≡ y) →
            resp τ ass (I≅J , from (Iso≃Iso″ ass σ I≅J) x≡y) (f x) ≡
-           g y)                                                      ↝⟨ ∀-preserves ext₁ (λ x → inverse $ ↔⇒≃ $
+           g y)                                                      ↔⟨ ∀-cong ext₁ (λ x → inverse $
                                                                           ∀-intro ext₁ (λ y x≡y → _ ≡ _)) ⟩
     (∀ x → resp τ ass (I≅J , iso-to-itself x) (f x) ≡
            g (resp σ ass I≅J x))                                     ↔⟨ extensionality-isomorphism ext₁ ⟩

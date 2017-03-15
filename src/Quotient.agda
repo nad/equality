@@ -137,11 +137,11 @@ equality-strong-equivalence :
   Strong-equivalence (_≡_ {A = A})
 equality-strong-equivalence ext univ {x = x} {y = y} =
   x ≡ y                      ↔⟨ inverse $ Π≡≃≡-↔-≡ (lower-extensionality lzero _ ext) _ _ ⟩
-  (∀ z → (z ≡ x) ≃ (z ≡ y))  ↝⟨ (Eq.∀-preserves (lower-extensionality lzero _ ext) λ _ → Eq.↔⇒≃ $
+  (∀ z → (z ≡ x) ≃ (z ≡ y))  ↝⟨ (∀-cong (lower-extensionality lzero _ ext) λ _ → Eq.↔⇒≃ $
                                  Eq.≃-preserves-bijections (lower-extensionality lzero _ ext)
                                    (Groupoid.⁻¹-bijection (EG.groupoid _))
                                    (Groupoid.⁻¹-bijection (EG.groupoid _))) ⟩
-  (∀ z → (x ≡ z) ≃ (y ≡ z))  ↝⟨ (Eq.∀-preserves ext λ _ → inverse $ ≡≃≃ univ) ⟩
+  (∀ z → (x ≡ z) ≃ (y ≡ z))  ↝⟨ (∀-cong ext λ _ → inverse $ ≡≃≃ univ) ⟩
   (∀ z → (x ≡ z) ≡ (y ≡ z))  ↝⟨ Eq.extensionality-isomorphism ext ⟩□
   (x ≡_) ≡ (y ≡_)            □
 
@@ -553,7 +553,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
   equality-characterisation₃ ext univ {x} {y} =
     x ≡ y                          ↝⟨ equality-characterisation₂ ext ⟩
 
-    (∀ z → proj₁ x z ≡ proj₁ y z)  ↔⟨ (Eq.∀-preserves (lower-extensionality _ lzero ext) λ _ →
+    (∀ z → proj₁ x z ≡ proj₁ y z)  ↔⟨ (∀-cong (lower-extensionality _ lzero ext) λ _ →
                                        ≡≃≃ univ) ⟩□
     (∀ z → proj₁ x z ≃ proj₁ y z)  □
 
@@ -677,10 +677,10 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
 
     ((∃ λ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _) → B)             ↝⟨ currying ⟩
 
-    (∀ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _ → B)                 ↔⟨ (Eq.∀-preserves (lower-extensionality _ lzero ext) λ P → inverse $
+    (∀ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _ → B)                 ↔⟨ (∀-cong (lower-extensionality _ lzero ext) λ P → inverse $
                                                               constant-function≃∥inhabited∥⇒inhabited
                                                                 lzero (lower-extensionality lzero _ ext) B-set) ⟩
-    (∀ P → ∃ λ (f : (∃ λ x → R x ≡ P) → B) → Constant f)  ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+    (∀ P → ∃ λ (f : (∃ λ x → R x ≡ P) → B) → Constant f)  ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
                                                               Σ-cong currying λ _ → F.id) ⟩
     (∀ P → ∃ λ (f : (x : A) → R x ≡ P → B) →
                Constant (uncurry f))                      ↝⟨ ΠΣ-comm ⟩
@@ -689,14 +689,14 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
        ∀ P → Constant (uncurry (f P)))                    ↝⟨ Σ-cong Π-comm (λ _ → F.id) ⟩
 
     (∃ λ (f : (x : A) → ∀ P → R x ≡ P → B) →
-       ∀ P → Constant (uncurry (flip f P)))               ↝⟨ Σ-cong (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
-                                                                     Eq.↔⇒≃ $ inverse currying) (λ _ →
+       ∀ P → Constant (uncurry (flip f P)))               ↝⟨ Σ-cong (∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                                     inverse currying) (λ _ →
                                                              F.id) ⟩
     (∃ λ (f : (x : A) → (∃ λ P → R x ≡ P) → B) →
        ∀ P → Constant (λ { (x , eq) → f x (P , eq) }))    ↝⟨ inverse $
                                                              Σ-cong (inverse $
-                                                                     Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
-                                                                     Eq.↔⇒≃ $ drop-⊤-left-Π (lower-extensionality _ _ ext) $
+                                                                     ∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                                     drop-⊤-left-Π (lower-extensionality _ _ ext) $
                                                                      inverse $ _⇔_.to contractible⇔⊤↔ $
                                                                      other-singleton-contractible _)
                                                              lemma ⟩□
@@ -705,30 +705,30 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
     where
 
     lemma = λ f →
-      (∀ x y → R x y → f x ≡ f y)                                    ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ x →
-                                                                         Eq.∀-preserves (lower-extensionality _ _ ext) λ y →
+      (∀ x y → R x y → f x ≡ f y)                                    ↔⟨ (∀-cong (lower-extensionality _ _ ext) λ x →
+                                                                         ∀-cong (lower-extensionality _ _ ext) λ y →
                                                                          →-cong (lower-extensionality _ _ ext) strong-equivalence F.id) ⟩
-      (∀ x y → R x ≡ R y → f x ≡ f y)                                ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
-                                                                         Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
-                                                                         Eq.↔⇒≃ $ →-cong (lower-extensionality _ _ ext)
-                                                                                         (Groupoid.⁻¹-bijection (EG.groupoid _))
-                                                                         F.id) ⟩
-      (∀ x y → R y ≡ R x → f x ≡ f y)                                ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
-                                                                         Eq.↔⇒≃ $ inverse currying) ⟩
-      (∀ x (q : ∃ λ y → R y ≡ R x) → f x ≡ f (proj₁ q))              ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
-                                                                         Eq.↔⇒≃ $ inverse $ drop-⊤-left-Π (lower-extensionality _ _ ext) $
+      (∀ x y → R x ≡ R y → f x ≡ f y)                                ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                                         ∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                                         →-cong (lower-extensionality _ _ ext)
+                                                                                (Groupoid.⁻¹-bijection (EG.groupoid _))
+                                                                                F.id) ⟩
+      (∀ x y → R y ≡ R x → f x ≡ f y)                                ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                                         inverse currying) ⟩
+      (∀ x (q : ∃ λ y → R y ≡ R x) → f x ≡ f (proj₁ q))              ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                                         inverse $ drop-⊤-left-Π (lower-extensionality _ _ ext) $
                                                                          inverse $ _⇔_.to contractible⇔⊤↔ $
                                                                          other-singleton-contractible _) ⟩
       (∀ x (Q : ∃ λ P → R x ≡ P) (q : ∃ λ x → R x ≡ proj₁ Q) →
-       f x ≡ f (proj₁ q))                                            ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
-                                                                         Eq.↔⇒≃ currying) ⟩
+       f x ≡ f (proj₁ q))                                            ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                                         currying) ⟩
       (∀ x P → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↝⟨ Π-comm ⟩
 
-      (∀ P x → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
-                                                                         Eq.↔⇒≃ $ inverse currying) ⟩
+      (∀ P x → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                                         inverse currying) ⟩
       (∀ P (p q : ∃ λ x → R x ≡ P) → f (proj₁ p) ≡ f (proj₁ q))      ↝⟨ F.id ⟩
 
-      (∀ P → Constant (λ { (x , _) → f x }))                         ↔⟨ (Eq.∀-preserves (lower-extensionality _ _ ext) λ _ →
+      (∀ P → Constant (λ { (x , _) → f x }))                         ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                          ≡⇒↝ _ $ cong Constant $ lower-extensionality _ _ ext λ _ →
                                                                          sym $ subst-const _) ⟩□
       (∀ P → Constant (λ { (x , _) → subst (const B) _ (f x) }))     □

@@ -280,9 +280,9 @@ isomorphism-is-equality univ univ₁
       (∀ x y → to (op₁ x y) ≡ op₂ (to x) (to y)) ↔
       subst (λ C → C → C → C) (≃⇒≡ univ C-eq) op₁ ≡ op₂
     op-lemma =
-      (∀ x y → to (op₁ x y) ≡ op₂ (to x) (to y))                  ↔⟨ ∀-preserves ext (λ _ → extensionality-isomorphism ext) ⟩
+      (∀ x y → to (op₁ x y) ≡ op₂ (to x) (to y))                  ↔⟨ ∀-cong ext (λ _ → extensionality-isomorphism ext) ⟩
 
-      (∀ x → (λ y → to (op₁ x y)) ≡ (λ y → op₂ (to x) (to y)))    ↔⟨ ∀-preserves ext (λ _ → ↔⇒≃ $ inverse $ ∘from≡↔≡∘to ext C-eq) ⟩
+      (∀ x → (λ y → to (op₁ x y)) ≡ (λ y → op₂ (to x) (to y)))    ↝⟨ ∀-cong ext (λ _ → inverse $ ∘from≡↔≡∘to ext C-eq) ⟩
 
       (∀ x → (λ y → to (op₁ x (from y))) ≡ (λ y → op₂ (to x) y))  ↔⟨ extensionality-isomorphism ext ⟩
 

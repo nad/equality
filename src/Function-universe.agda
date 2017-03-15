@@ -1350,6 +1350,9 @@ contractible↔⊤≃ ext = record
                     (from y , right-inverse-of y) ≡ p
       irrelevance = _≃_.irrelevance A→B≃C→D
 
+-- Π preserves all kinds of functions in its second argument, in some
+-- cases assuming extensionality.
+
 ∀-cong-→ :
   ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
   (∀ x → B₁ x → B₂ x) →
@@ -1364,6 +1367,143 @@ contractible↔⊤≃ ext = record
   { to   = ∀-cong-→ (_⇔_.to   ⊚ B₁⇔B₂)
   ; from = ∀-cong-→ (_⇔_.from ⊚ B₁⇔B₂)
   }
+
+private
+
+  ∀-cong-surj :
+    ∀ {a b₁ b₂} →
+    Extensionality a (b₁ ⊔ b₂) →
+    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    (∀ x → B₁ x ↠ B₂ x) →
+    ((x : A) → B₁ x) ↠ ((x : A) → B₂ x)
+  ∀-cong-surj {b₁ = b₁} ext B₁↠B₂ = record
+    { logical-equivalence = equiv
+    ; right-inverse-of    = right-inverse-of
+    }
+    where
+    equiv = ∀-cong-⇔ (_↠_.logical-equivalence ⊚ B₁↠B₂)
+
+    abstract
+      right-inverse-of : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
+      right-inverse-of = λ f → lower-extensionality lzero b₁ ext λ x →
+        _↠_.to (B₁↠B₂ x) (_↠_.from (B₁↠B₂ x) (f x))  ≡⟨ _↠_.right-inverse-of (B₁↠B₂ x) (f x) ⟩∎
+        f x                                          ∎
+
+  ∀-cong-bij :
+    ∀ {a b₁ b₂} →
+    Extensionality a (b₁ ⊔ b₂) →
+    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    (∀ x → B₁ x ↔ B₂ x) →
+    ((x : A) → B₁ x) ↔ ((x : A) → B₂ x)
+  ∀-cong-bij {b₂ = b₂} ext B₁↔B₂ = record
+    { surjection      = surj
+    ; left-inverse-of = left-inverse-of
+    }
+    where
+    surj = ∀-cong-surj ext (_↔_.surjection ⊚ B₁↔B₂)
+
+    abstract
+      left-inverse-of : ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
+      left-inverse-of = λ f → lower-extensionality lzero b₂ ext λ x →
+        _↔_.from (B₁↔B₂ x) (_↔_.to (B₁↔B₂ x) (f x))  ≡⟨ _↔_.left-inverse-of (B₁↔B₂ x) (f x) ⟩∎
+        f x                                          ∎
+
+  -- Note that this proof's "to" component does not use subst, unlike
+  -- the one in the proof of Eq.Π-preserves.
+
+  ∀-cong-eq :
+    ∀ {a b₁ b₂} →
+    Extensionality a (b₁ ⊔ b₂) →
+    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    (∀ x → B₁ x ≃ B₂ x) →
+    ((x : A) → B₁ x) ≃ ((x : A) → B₂ x)
+  ∀-cong-eq ext = Eq.↔⇒≃ ⊚ ∀-cong-bij ext ⊚ (_≃_.bijection ⊚_)
+
+  ∀-cong-inj :
+    ∀ {a b₁ b₂} →
+    Extensionality a (b₁ ⊔ b₂) →
+    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    (∀ x → B₁ x ↣ B₂ x) →
+    ((x : A) → B₁ x) ↣ ((x : A) → B₂ x)
+  ∀-cong-inj {b₁ = b₁} {b₂} ext B₁↣B₂ = record
+    { to        = to
+    ; injective = injective
+    }
+    where
+    to = ∀-cong-→ (_↣_.to ⊚ B₁↣B₂)
+
+    abstract
+      injective : Injective to
+      injective {x = f} {y = g} =
+        (λ x → _↣_.to (B₁↣B₂ x) (f x)) ≡ (λ x → _↣_.to (B₁↣B₂ x) (g x))  ↔⟨ inverse $ Eq.extensionality-isomorphism
+                                                                                        (lower-extensionality lzero b₁ ext) ⟩
+        (∀ x → _↣_.to (B₁↣B₂ x) (f x) ≡ _↣_.to (B₁↣B₂ x) (g x))          ↝⟨ ∀-cong-→ (λ x → _↣_.injective (B₁↣B₂ x)) ⟩
+        (∀ x → f x ≡ g x)                                                ↔⟨ Eq.extensionality-isomorphism
+                                                                              (lower-extensionality lzero b₂ ext) ⟩□
+        f ≡ g                                                            □
+
+  ∀-cong-emb :
+    ∀ {a b₁ b₂} →
+    Extensionality a (b₁ ⊔ b₂) →
+    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    (∀ x → Embedding (B₁ x) (B₂ x)) →
+    Embedding ((x : A) → B₁ x) ((x : A) → B₂ x)
+  ∀-cong-emb {b₁ = b₁} {b₂} ext B₁↣B₂ = record
+    { to           = to
+    ; is-embedding = is-embedding
+    }
+    where
+    to = ∀-cong-→ (Embedding.to ⊚ B₁↣B₂)
+
+    ext₂ = lower-extensionality lzero b₁ ext
+
+    abstract
+      is-embedding : Is-embedding to
+      is-embedding f g = _≃_.is-equivalence $
+        Eq.with-other-function
+          (f ≡ g                                   ↝⟨ inverse $ Eq.extensionality-isomorphism
+                                                                  (lower-extensionality lzero b₂ ext) ⟩
+           (∀ x → f x ≡ g x)                       ↝⟨ ∀-cong-eq ext (λ x →
+                                                        Eq.⟨ _ , Embedding.is-embedding (B₁↣B₂ x) (f x) (g x) ⟩) ⟩
+           (∀ x → Embedding.to (B₁↣B₂ x) (f x) ≡
+                  Embedding.to (B₁↣B₂ x) (g x))    ↝⟨ Eq.extensionality-isomorphism ext₂ ⟩□
+
+           (λ x → Embedding.to (B₁↣B₂ x) (f x)) ≡
+           (λ x → Embedding.to (B₁↣B₂ x) (g x))    □)
+          _
+          (λ f≡g →
+             Eq.good-ext ext₂
+               (λ x → cong (Embedding.to (B₁↣B₂ x)) (ext⁻¹ f≡g x))        ≡⟨⟩
+
+             Eq.good-ext ext₂
+               (λ x → cong (Embedding.to (B₁↣B₂ x)) (cong (_$ x) f≡g))    ≡⟨ cong (Eq.good-ext ext₂) (ext₂ λ _ → cong-∘ _ _ _) ⟩
+
+             Eq.good-ext ext₂
+               (λ x → cong (λ h → Embedding.to (B₁↣B₂ x) (h x)) f≡g)      ≡⟨ cong (Eq.good-ext ext₂) (ext₂ λ _ → sym $ cong-∘ _ _ _) ⟩
+
+             Eq.good-ext ext₂
+               (λ x → cong (_$ x)
+                        (cong (λ h x → Embedding.to (B₁↣B₂ x) (h x))
+                           f≡g))                                          ≡⟨⟩
+
+             Eq.good-ext ext₂
+               (ext⁻¹ (cong (λ h x → Embedding.to (B₁↣B₂ x) (h x)) f≡g))  ≡⟨ _≃_.right-inverse-of (Eq.extensionality-isomorphism ext₂) _ ⟩∎
+
+             cong (λ h x → Embedding.to (B₁↣B₂ x) (h x)) f≡g              ∎)
+
+∀-cong :
+  ∀ {k a b₁ b₂} →
+  Extensionality a (b₁ ⊔ b₂) →
+  {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+  (∀ x → B₁ x ↝[ k ] B₂ x) →
+  ((x : A) → B₁ x) ↝[ k ] ((x : A) → B₂ x)
+∀-cong {implication}         = λ _ → ∀-cong-→
+∀-cong {logical-equivalence} = λ _ → ∀-cong-⇔
+∀-cong {injection}           = ∀-cong-inj
+∀-cong {embedding}           = ∀-cong-emb
+∀-cong {surjection}          = ∀-cong-surj
+∀-cong {bijection}           = ∀-cong-bij
+∀-cong {equivalence}         = ∀-cong-eq
 
 Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
 Π-left-identity = record
@@ -1676,8 +1816,8 @@ private
     (⊤ → B x (refl x))                  ↝⟨ →-cong (lower-extensionality lzero a ext)
                                                   (_⇔_.to contractible⇔⊤↔ c) id ⟩
     ((∃ λ y → x ≡ y) → B x (refl x))    ↝⟨ currying ⟩
-    (∀ y (x≡y : x ≡ y) → B x (refl x))  ↔⟨ (Eq.∀-preserves ext λ y →
-                                            Eq.∀-preserves (lower-extensionality lzero a ext) λ x≡y →
+    (∀ y (x≡y : x ≡ y) → B x (refl x))  ↔⟨ (∀-cong ext λ y →
+                                            ∀-cong (lower-extensionality lzero a ext) λ x≡y →
                                               Eq.subst-as-equivalence (uncurry B) (proj₂ c (y , x≡y))) ⟩□
     (∀ y (x≡y : x ≡ y) → B y x≡y)       □
     where
@@ -1734,7 +1874,7 @@ to∘≡↔≡from∘ : ∀ {a b c k} →
               {f : (x : A) → B x} {g : (x : A) → C x} →
               (_≃_.to B≃C ⊚ f ≡ g) ↔[ k ] (f ≡ _≃_.from B≃C ⊚ g)
 to∘≡↔≡from∘ ext B≃C =
-  from≡↔≡to (Eq.∀-preserves ext (λ _ → inverse B≃C))
+  from≡↔≡to (∀-cong ext (λ _ → inverse B≃C))
 
 ------------------------------------------------------------------------
 -- Lemmas related to ↑

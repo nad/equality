@@ -669,9 +669,9 @@ abstract
 
     (resp b eq ∘ f ≡ g ∘ resp a eq)                    ↔⟨ inverse $ extensionality-isomorphism ext₁ ⟩
 
-    (∀ x → resp b eq (f x) ≡ g (resp a eq x))          ↔⟨ ∀-preserves ext₁ (λ x → ↔⇒≃ $
+    (∀ x → resp b eq (f x) ≡ g (resp a eq x))          ↝⟨ ∀-cong ext₁ (λ x →
                                                             ∀-intro ext₁ (λ y _ → resp b eq (f x) ≡ g y)) ⟩
-    (∀ x y → resp a eq x ≡ y → resp b eq (f x) ≡ g y)  ↔⟨ ∀-preserves ext₁ (λ _ → ∀-preserves ext₁ λ _ → ↔⇒≃ $
+    (∀ x y → resp a eq x ≡ y → resp b eq (f x) ≡ g y)  ↝⟨ ∀-cong ext₁ (λ _ → ∀-cong ext₁ λ _ →
                                                             →-cong ext₁ (is-isomorphism-isomorphic ass a eq)
                                                                         (is-isomorphism-isomorphic ass b eq)) ⟩□
     (∀ x y → Is-isomorphism′ a eq x y →
@@ -826,7 +826,7 @@ Isomorphism-monoid-isomorphic-to-standard ext
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ x → (λ y → to (from x ∙₁ from y)) ≡ _∙₂_ x) ×
    to e₁ ≡ e₂)                                               ↔⟨ inverse $ ∃-cong (λ _ →
-                                                                  ∀-preserves ext (λ _ → extensionality-isomorphism ext)
+                                                                  ∀-cong ext (λ _ → extensionality-isomorphism ext)
                                                                     ×-cong
                                                                   (_ □)) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
@@ -952,7 +952,7 @@ Isomorphism-poset-isomorphic-to-order-isomorphism ass
    (λ a b → from a ≤₁ from b) ≡ _≤₂_)           ↔⟨ inverse $ ∃-cong (λ _ → extensionality-isomorphism ext₁) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (∀ a → (λ b → from a ≤₁ from b) ≡ _≤₂_ a))   ↔⟨ inverse $ ∃-cong (λ _ → ∀-preserves ext₁ λ _ → extensionality-isomorphism ext₁) ⟩
+   (∀ a → (λ b → from a ≤₁ from b) ≡ _≤₂_ a))   ↔⟨ inverse $ ∃-cong (λ _ → ∀-cong ext₁ λ _ → extensionality-isomorphism ext₁) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ a b → (from a ≤₁ from b) ≡ (a ≤₂ b)))     ↔⟨ inverse $ ∃-cong (λ eq →
@@ -961,10 +961,10 @@ Isomorphism-poset-isomorphic-to-order-isomorphism ass
                                                                            (_↔_.left-inverse-of eq a)
                                                                            (_↔_.left-inverse-of eq b)) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (∀ a b → (a ≤₁ b) ≡ (to a ≤₂ to b)))         ↔⟨ ∃-cong (λ _ → ∀-preserves ext₁ λ _ → ∀-preserves ext₁ λ _ → ≡≃≃ univ) ⟩
+   (∀ a b → (a ≤₁ b) ≡ (to a ≤₂ to b)))         ↔⟨ ∃-cong (λ _ → ∀-cong ext₁ λ _ → ∀-cong ext₁ λ _ → ≡≃≃ univ) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (∀ a b → (a ≤₁ b) ≃ (to a ≤₂ to b)))         ↔⟨ inverse $ ∃-cong (λ _ → ∀-preserves ext₁ λ _ → ∀-preserves (lower-ext (# 0) _ ext₁) λ _ → ↔⇒≃ $
+   (∀ a b → (a ≤₁ b) ≃ (to a ≤₂ to b)))         ↝⟨ inverse $ ∃-cong (λ _ → ∀-cong ext₁ λ _ → ∀-cong (lower-ext (# 0) _ ext₁) λ _ →
                                                      ⇔↔≃ (lower-ext _ _ ext₁) (proj₁ (proj₂ laws₁) _ _)
                                                                               (proj₁ (proj₂ laws₂) _ _)) ⟩□
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
@@ -1025,17 +1025,17 @@ Isomorphism′-poset-isomorphic-to-order-isomorphism ext
    ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (b ≤₂ d)))  ↝⟨ inverse $ Σ-cong (↔↔≃ ext (proj₁ laws₁)) (λ _ → _ □) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (b ≤₂ d)))  ↔⟨ inverse $ ∃-cong (λ _ → ∀-preserves ext λ _ → ↔⇒≃ $
+   ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (b ≤₂ d)))  ↝⟨ inverse $ ∃-cong (λ _ → ∀-cong ext λ _ →
                                                                           ∀-intro ext λ _ _ → _) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   ∀ a c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (to a ≤₂ d)))                ↔⟨ inverse $ ∃-cong (λ _ → ∀-preserves ext λ _ → ∀-preserves ext λ _ → ↔⇒≃ $
+   ∀ a c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (to a ≤₂ d)))                ↝⟨ inverse $ ∃-cong (λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                           ∀-intro ext λ _ _ → _) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   ∀ a c → ↑ _ ((a ≤₁ c) ≃ (to a ≤₂ to c)))                          ↔⟨ ∃-cong (λ _ → ∀-preserves ext λ _ → ∀-preserves ext λ _ → ↔⇒≃
+   ∀ a c → ↑ _ ((a ≤₁ c) ≃ (to a ≤₂ to c)))                          ↝⟨ ∃-cong (λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                           ↑↔) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   ∀ a c → (a ≤₁ c) ≃ (to a ≤₂ to c))                                ↔⟨ inverse $ ∃-cong (λ _ →
-                                                                          ∀-preserves ext λ _ → ∀-preserves (lower-ext (# 0) _ ext) λ _ → ↔⇒≃ $
+   ∀ a c → (a ≤₁ c) ≃ (to a ≤₂ to c))                                ↝⟨ inverse $ ∃-cong (λ _ →
+                                                                          ∀-cong ext λ _ → ∀-cong (lower-ext (# 0) _ ext) λ _ →
                                                                             ⇔↔≃ (lower-ext _ _ ext) (proj₁ (proj₂ laws₁) _ _)
                                                                                                     (proj₁ (proj₂ laws₂) _ _)) ⟩□
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in

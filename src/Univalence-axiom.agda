@@ -1154,10 +1154,10 @@ Is-set-∃-Is-proposition {a} ext prop-ext (A₁ , A₁-prop) (A₂ , A₂-prop)
   iso =
     ((p : ∃ λ A → A ≡ A) → p ≡ p)                      ↝⟨ currying ⟩
 
-    (∀ A (p : A ≡ A) → (A , p) ≡ (A , p))              ↔⟨ (Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
-                                                             Eq.↔⇒≃ $ inverse $ Bijection.Σ-≡,≡↔≡ {a = # 1}) ⟩
+    (∀ A (p : A ≡ A) → (A , p) ≡ (A , p))              ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
+                                                             inverse $ Bijection.Σ-≡,≡↔≡ {a = # 1}) ⟩
     ((A : Set) (p : A ≡ A) →
-       ∃ λ (q : A ≡ A) → subst (λ A → A ≡ A) q p ≡ p)  ↔⟨ (Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
+       ∃ λ (q : A ≡ A) → subst (λ A → A ≡ A) q p ≡ p)  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                              ∃-cong λ _ → ≡⇒↝ _ [subst≡]≡[trans≡trans]) ⟩□
     ((A : Set) (p : A ≡ A) →
        ∃ λ (q : A ≡ A) → trans p q ≡ trans q p)        □

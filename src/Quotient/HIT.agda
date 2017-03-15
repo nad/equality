@@ -669,7 +669,7 @@ Maybe/-comm-[] =
 
     (∀ n → [ g₁ ]→ n ≡ [ g₂ ]→ n)            ↔⟨ Bijection.id ⟩
 
-    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ Eq.∀-preserves ext (λ _ → inverse $ related≃[equal] {R = R} prop-ext R-equiv) ⟩
+    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ ∀-cong ext (λ _ → inverse $ related≃[equal] {R = R} prop-ext R-equiv) ⟩
 
     (∀ n → proj₁ (R (g₁ n) (g₂ n)))          ↔⟨ Bijection.id ⟩
 

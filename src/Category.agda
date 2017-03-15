@@ -344,8 +344,8 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
         _≃_.to (eqH X Z) (C._∙_ (_≃_.from (eqH Y Z) f)
                                 (_≃_.from (eqH X Y) g)) ≡
         f D.∙ g))                                                        ↝⟨ ∃-cong (λ _ → inverse $
-                                                                              Σ-cong (Eq.∀-preserves ext₁₁₂₊ λ _ →
-                                                                                      Eq.∀-preserves ext₁₂₊  λ _ →
+                                                                              Σ-cong (∀-cong ext₁₁₂₊ λ _ →
+                                                                                      ∀-cong ext₁₂₊  λ _ →
                                                                                       ≡≃≃ univ₂)
                                                                                      (λ _ → F.id)) ⟩
   (∃ λ (eqO : C.Obj ≃ D.Obj) →
@@ -364,11 +364,11 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
      (∀ X Y Z (f : D.Hom Y Z) (g : D.Hom X Y) →
         ≡⇒→ (eqH X Z) (C._∙_ (≡⇒← (eqH Y Z) f) (≡⇒← (eqH X Y) g)) ≡
         f D.∙ g))                                                        ↝⟨ ∃-cong (λ _ → inverse $
-                                                                              Σ-cong (Eq.∀-preserves ext₁₁₂₊ λ _ →
-                                                                                      Eq.∀-preserves ext₁₂₊  λ _ →
+                                                                              Σ-cong (∀-cong ext₁₁₂₊ λ _ →
+                                                                                      ∀-cong ext₁₂₊  λ _ →
                                                                                       inverse $
-                                                                                      Eq.↔⇒≃ $ ignore-propositional-component $
-                                                                                                 H-level-propositional ext₂₂ 2)
+                                                                                      ignore-propositional-component $
+                                                                                        H-level-propositional ext₂₂ 2)
                                                                                      (λ _ → F.id)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
    ∃ λ (eqH : ∀ X Y → C.HOM (≡⇒← eqO X) (≡⇒← eqO Y) ≡ D.HOM X Y) →
@@ -394,7 +394,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
      (∀ X Y Z (f : D.Hom Y Z) (g : D.Hom X Y) →
         ≡⇒→ (eqH′ X Z) (C._∙_ (≡⇒← (eqH′ Y Z) f) (≡⇒← (eqH′ X Y) g)) ≡
         f D.∙ g))                                                        ↝⟨ ∃-cong (λ _ → inverse $
-                                                                               Σ-cong (Eq.∀-preserves ext₁₁₂₊ λ _ →
+                                                                               Σ-cong (∀-cong ext₁₁₂₊ λ _ →
                                                                                        inverse $ Eq.extensionality-isomorphism ext₁₂₊)
                                                                                       (λ _ → F.id)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
@@ -450,15 +450,15 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
        ×
      (∀ X Y Z (f : D.Hom Y Z) (g : D.Hom X Y) →
         ≡⇒→ (eqH′ X Z) (C._∙_ (≡⇒← (eqH′ Y Z) f) (≡⇒← (eqH′ X Y) g)) ≡
-        f D.∙ g))                                                        ↔⟨ ∃-cong (λ eqO → ∃-cong λ eqH →
-                                                                              (Eq.∀-preserves ext₁₂ λ _ →
+        f D.∙ g))                                                        ↝⟨ ∃-cong (λ eqO → ∃-cong λ eqH →
+                                                                              (∀-cong ext₁₂ λ _ →
                                                                                  ≡⇒↝ _ $ cong (_≡ _) P-lemma)
                                                                                 ×-cong
-                                                                              (Eq.∀-preserves ext₁₁₂ λ X →
-                                                                               Eq.∀-preserves ext₁₁₂ λ Y →
-                                                                               Eq.∀-preserves ext₁₂  λ Z →
-                                                                               Eq.∀-preserves ext₂₂  λ f →
-                                                                               Eq.∀-preserves ext₂₂  λ g →
+                                                                              (∀-cong ext₁₁₂ λ X →
+                                                                               ∀-cong ext₁₁₂ λ Y →
+                                                                               ∀-cong ext₁₂  λ Z →
+                                                                               ∀-cong ext₂₂  λ f →
+                                                                               ∀-cong ext₂₂  λ g →
                                                                                  ≡⇒↝ _ $ cong (_≡ _) Q-lemma)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
    ∃ λ (eqH : subst (λ Obj → Obj → Obj → SET _) eqO C.HOM ≡ D.HOM) →
@@ -478,29 +478,29 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
      (∀ X → subst (uncurry P) eq C.id {X = X} ≡ D.id)
        ×
      (∀ X Y Z (f : D.Hom Y Z) (g : D.Hom X Y) →
-        subst (uncurry Q) eq C._∙_ f g ≡ f D.∙ g))                       ↔⟨ ∃-cong (λ _ → ∃-cong λ _ → Eq.∀-preserves ext₁₁₂ λ _ →
-                                                                              Eq.∀-preserves ext₁₁₂ λ _ → Eq.∀-preserves ext₁₂ λ _ →
-                                                                                Eq.∀-preserves ext₂₂ λ _ →
+        subst (uncurry Q) eq C._∙_ f g ≡ f D.∙ g))                       ↔⟨ ∃-cong (λ _ → ∃-cong λ _ → ∀-cong ext₁₁₂ λ _ →
+                                                                              ∀-cong ext₁₁₂ λ _ → ∀-cong ext₁₂ λ _ →
+                                                                                ∀-cong ext₂₂ λ _ →
                                                                                   Eq.extensionality-isomorphism ext₂₂) ⟩
   (∃ λ (eq : (C.Obj , C.HOM) ≡ (D.Obj , D.HOM)) →
      (∀ X → subst (uncurry P) eq C.id {X = X} ≡ D.id)
        ×
      (∀ X Y Z (f : D.Hom Y Z) →
-        subst (uncurry Q) eq C._∙_ {X = X} f ≡ D._∙_ f))                 ↔⟨ ∃-cong (λ _ → ∃-cong λ _ → Eq.∀-preserves ext₁₁₂ λ _ →
-                                                                              Eq.∀-preserves ext₁₁₂ λ _ → Eq.∀-preserves ext₁₂ λ _ →
+        subst (uncurry Q) eq C._∙_ {X = X} f ≡ D._∙_ f))                 ↔⟨ ∃-cong (λ _ → ∃-cong λ _ → ∀-cong ext₁₁₂ λ _ →
+                                                                              ∀-cong ext₁₁₂ λ _ → ∀-cong ext₁₂ λ _ →
                                                                                 Eq.extensionality-isomorphism ext₂₂) ⟩
   (∃ λ (eq : (C.Obj , C.HOM) ≡ (D.Obj , D.HOM)) →
      (∀ X → subst (uncurry P) eq C.id {X = X} ≡ D.id)
        ×
      (∀ X Y Z →
-        subst (uncurry Q) eq C._∙_ {X = X} {Y = Y} {Z = Z} ≡ D._∙_))     ↔⟨ ∃-cong (λ _ → ∃-cong λ _ →
-                                                                              Eq.∀-preserves ext₁₁₂ λ _ → Eq.∀-preserves ext₁₁₂ λ _ →
+        subst (uncurry Q) eq C._∙_ {X = X} {Y = Y} {Z = Z} ≡ D._∙_))     ↝⟨ ∃-cong (λ _ → ∃-cong λ _ →
+                                                                              ∀-cong ext₁₁₂ λ _ → ∀-cong ext₁₁₂ λ _ →
                                                                                 implicit-extensionality-isomorphism ext₁₂) ⟩
   (∃ λ (eq : (C.Obj , C.HOM) ≡ (D.Obj , D.HOM)) →
      (∀ X → subst (uncurry P) eq C.id {X = X} ≡ D.id)
        ×
      (∀ X Y →
-        (λ {_} → subst (uncurry Q) eq C._∙_ {X = X} {Y = Y}) ≡ D._∙_))   ↔⟨ ∃-cong (λ _ → ∃-cong λ _ → Eq.∀-preserves ext₁₁₂ λ _ →
+        (λ {_} → subst (uncurry Q) eq C._∙_ {X = X} {Y = Y}) ≡ D._∙_))   ↝⟨ ∃-cong (λ _ → ∃-cong λ _ → ∀-cong ext₁₁₂ λ _ →
                                                                               implicit-extensionality-isomorphism ext₁₁₂) ⟩
   (∃ λ (eq : (C.Obj , C.HOM) ≡ (D.Obj , D.HOM)) →
      (∀ X → subst (uncurry P) eq C.id {X = X} ≡ D.id)

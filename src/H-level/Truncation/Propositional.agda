@@ -204,7 +204,7 @@ surjective×embedding≃equivalence :
   ∀ {a b} {A : Set a} {B : Set b} {f : A → B} →
   (Surjective f × Is-embedding f) ≃ Is-equivalence f
 surjective×embedding≃equivalence {f = f} =
-  (Surjective f × Is-embedding f)          ↝⟨ ∀-preserves ext (λ _ → ↔⇒≃ $ ∥∥↔∥∥ lzero) ×-cong F.id ⟩
+  (Surjective f × Is-embedding f)          ↔⟨ ∀-cong ext (λ _ → ∥∥↔∥∥ lzero) ×-cong F.id ⟩
   (Trunc.Surjective _ f × Is-embedding f)  ↝⟨ Trunc.surjective×embedding≃equivalence lzero ext ⟩□
   Is-equivalence f                         □
 
@@ -366,8 +366,8 @@ push-∥∥ {b = b} {c} {A} {B} {C} =
 
   (∥ A ∥ → ∃ λ (f : ∀ x → B x) → C f)                ↝⟨ ΠΣ-comm ⟩
 
-  (∃ λ (f : ∥ A ∥ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↔⟨ Σ-cong drop-∥∥ (λ f →
-                                                        Eq.∀-preserves ext λ ∥x∥ →
+  (∃ λ (f : ∥ A ∥ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↝⟨ Σ-cong drop-∥∥ (λ f →
+                                                        ∀-cong ext λ ∥x∥ →
                                                         ≡⇒↝ _ $ cong C $ ext λ x →
       f ∥x∥ x                                             ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $
                                                              _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _ ⟩∎

@@ -419,12 +419,12 @@ abstract
     let B≃C = ↔⇒≃ B↔C in
 
     (∀ x y → Is-isomorphism a B↔C x y →
-             Is-isomorphism b B↔C (f x) (g y))                     ↔⟨ ∀-preserves ext (λ _ → ∀-preserves ext λ _ → ↔⇒≃ $
+             Is-isomorphism b B↔C (f x) (g y))                     ↝⟨ ∀-cong ext (λ _ → ∀-cong ext λ _ →
                                                                         →-cong ext (isomorphism-definitions-isomorphic ass a B↔C)
                                                                                    (isomorphism-definitions-isomorphic ass b B↔C)) ⟩
     (∀ x y → to (cast ext a B≃C) x ≡ y →
-             to (cast ext b B≃C) (f x) ≡ g y)                      ↔⟨ inverse $ ∀-preserves ext (λ x →
-                                                                        ↔⇒≃ $ ∀-intro ext (λ y _ → to (cast ext b B≃C) (f x) ≡ g y)) ⟩
+             to (cast ext b B≃C) (f x) ≡ g y)                      ↝⟨ inverse $ ∀-cong ext (λ x →
+                                                                        ∀-intro ext (λ y _ → to (cast ext b B≃C) (f x) ≡ g y)) ⟩
     (∀ x → to (cast ext b B≃C) (f x) ≡ g (to (cast ext a B≃C) x))  ↔⟨ extensionality-isomorphism ext ⟩
 
     (to (cast ext b B≃C) ∘ f ≡ g ∘ to (cast ext a B≃C))            ↝⟨ inverse $ ∘from≡↔≡∘to ext (cast ext a B≃C) ⟩□
@@ -588,12 +588,12 @@ Isomorphism-monoid-isomorphic-to-standard ext
 
   (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
    (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x ∙₁ u) ≡ (y ∙₂ v)) ×
-   to e₁ ≡ e₂)                                                       ↔⟨ inverse $ ∃-cong (λ _ →
-                                                                          (∀-preserves ext λ _ → ↔⇒≃ $ ∀-intro ext λ _ _ → _) ×-cong (_ □)) ⟩
+   to e₁ ≡ e₂)                                                       ↝⟨ inverse $ ∃-cong (λ _ →
+                                                                          (∀-cong ext λ _ → ∀-intro ext λ _ _ → _) ×-cong (_ □)) ⟩
   (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
    (∀ x u v → to u ≡ v → to (x ∙₁ u) ≡ (to x ∙₂ v)) ×
-   to e₁ ≡ e₂)                                                       ↔⟨ inverse $ ∃-cong (λ _ →
-                                                                          (∀-preserves ext λ _ → ∀-preserves ext λ _ → ↔⇒≃ $ ∀-intro ext λ _ _ → _)
+   to e₁ ≡ e₂)                                                       ↝⟨ inverse $ ∃-cong (λ _ →
+                                                                          (∀-cong ext λ _ → ∀-cong ext λ _ → ∀-intro ext λ _ _ → _)
                                                                             ×-cong
                                                                           (_ □)) ⟩□
   (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in

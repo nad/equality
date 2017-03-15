@@ -91,6 +91,6 @@ const-is-not-embedding {a} {b} ext univ univ₀ hyp =
     const (↑ b (Fin 2)) ≡ const (↑ b (Fin 2))  ↔⟨ inverse $ Eq.extensionality-isomorphism ext-ab₊ ⟩
     (↑ a (Fin 2) → ↑ b (Fin 2) ≡ ↑ b (Fin 2))  ↔⟨ →-cong ext-ab₊ (Eq.↔⇒≃ Bijection.↑↔)
                                                     (≡-preserves-≃ ext-b univ univ₀ (Eq.↔⇒≃ Bijection.↑↔) (Eq.↔⇒≃ Bijection.↑↔)) ⟩
-    (Fin 2 → Fin 2 ≡ Fin 2)                    ↔⟨ Eq.∀-preserves ext₁ (λ _ → Eq.↔⇒≃ $ [Fin≡Fin]↔Fin! ext₀ univ₀ 2) ⟩
+    (Fin 2 → Fin 2 ≡ Fin 2)                    ↝⟨ ∀-cong ext₁ (λ _ → [Fin≡Fin]↔Fin! ext₀ univ₀ 2) ⟩
     (Fin 2 → Fin 2)                            ↝⟨ [Fin→Fin]↔Fin^ ext₀ 2 2 ⟩□
     Fin 4                                      □)
