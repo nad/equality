@@ -77,10 +77,6 @@ import Groupoid
 
 import Equality.Groupoid
 
--- All instances of the equality axioms are isomorphic.
-
-import Equality.Instances-isomorphic
-
 -- Closure properties for h-levels.
 
 import H-level.Closure
@@ -102,6 +98,11 @@ import Embedding
 -- surjections, bijections and equivalences).
 
 import Function-universe
+
+-- Results relating different instances of certain axioms related to
+-- equality.
+
+import Equality.Instances-related
 
 -- Some definitions related to and properties of booleans.
 
