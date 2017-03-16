@@ -1357,7 +1357,7 @@ contractible↔⊤≃ ext = record
   ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
   (∀ x → B₁ x → B₂ x) →
   ((x : A) → B₁ x) → ((x : A) → B₂ x)
-∀-cong-→ B₁→B₂ = Π-map (B₁→B₂ _)
+∀-cong-→ B₁→B₂ = B₁→B₂ _ ⊚_
 
 ∀-cong-⇔ :
   ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
