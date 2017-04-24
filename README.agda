@@ -104,6 +104,11 @@ import Function-universe
 
 import Equality.Instances-related
 
+-- A parametrised specification of "natrec", along with a proof that
+-- the specification is propositional (assuming extensionality).
+
+import Nat.Eliminator
+
 -- Some definitions related to and properties of booleans.
 
 import Bool
