@@ -20,8 +20,24 @@ open import Function-universe eq hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
 open import List eq
-open import Nat eq using (_≤_; ≤-refl; ≤-step)
+open import Nat eq as Nat using (_≤_; ≤-refl; ≤-step)
 open import Univalence-axiom eq
+
+------------------------------------------------------------------------
+-- Weakening
+
+-- Single-step weakening.
+
+weaken₁ : ∀ {n} → Fin n → Fin (suc n)
+weaken₁ {zero}  ()
+weaken₁ {suc _} fzero    = fzero
+weaken₁ {suc _} (fsuc i) = fsuc (weaken₁ i)
+
+-- Multiple-step weakening.
+
+weaken : ∀ {m n} → m ≤ n → Fin m → Fin n
+weaken (Nat.≤-refl′ m≡n)       = subst Fin m≡n
+weaken (Nat.≤-step′ m≤k 1+k≡n) = subst Fin 1+k≡n ∘ weaken₁ ∘ weaken m≤k
 
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃
