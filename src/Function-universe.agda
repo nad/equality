@@ -1108,16 +1108,29 @@ currying = record
   (∃ λ y → ∃ λ x≡y → B y x≡y)                               □
 
 -- A non-dependent variant of Σ-≡,≡↔≡.
+--
+-- This property used to be defined in terms of Σ-≡,≡↔≡, but was
+-- changed in order to make it compute in a different way.
 
 ≡×≡↔≡ : ∀ {a b} {A : Set a} {B : Set b} {p₁ p₂ : A × B} →
         (proj₁ p₁ ≡ proj₁ p₂ × proj₂ p₁ ≡ proj₂ p₂) ↔ (p₁ ≡ p₂)
-≡×≡↔≡ {B = B} {p₁} {p₂} =
-  (proj₁ p₁ ≡ proj₁ p₂ × proj₂ p₁ ≡ proj₂ p₂)  ↝⟨ ∃-cong (λ _ → ≡⇒↝ _ $ cong (λ q → q ≡ proj₂ p₂) $
-                                                                  sym $ subst-const _) ⟩
-  (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
-     subst (λ _ → B) p (proj₂ p₁) ≡ proj₂ p₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
-
-  (p₁ ≡ p₂)                                    □
+≡×≡↔≡ {B = B} {p₁} {p₂} = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = uncurry (cong₂ _,_)
+      ; from = λ eq → cong proj₁ eq , cong proj₂ eq
+      }
+    ; right-inverse-of = λ eq →
+        cong₂ _,_ (cong proj₁ eq) (cong proj₂ eq)  ≡⟨ cong₂-cong-cong _ _ _ ⟩
+        cong (λ p → proj₁ p , proj₂ p) eq          ≡⟨⟩
+        cong id eq                                 ≡⟨ sym $ cong-id _ ⟩∎
+        eq                                         ∎
+    }
+  ; left-inverse-of = λ { (eq₁ , eq₂) →
+        cong proj₁ (cong₂ _,_ eq₁ eq₂) , cong proj₂ (cong₂ _,_ eq₁ eq₂)  ≡⟨ cong₂ _,_ (cong-proj₁-cong₂-, eq₁ eq₂) (cong-proj₂-cong₂-, eq₁ eq₂) ⟩∎
+        eq₁ , eq₂                                                        ∎
+      }
+  }
 
 -- If one is given an equality between pairs, where the second
 -- components of the pairs are propositional, then one can restrict
