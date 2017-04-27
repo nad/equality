@@ -1684,14 +1684,32 @@ implicit-ΠΣ-comm {A = A} {B} {C} =
 -- arguments.
 
 implicit-extensionality-isomorphism :
-  ∀ {k a b} {A : Set a} →
-  ({B : A → Set b} → Extensionality′ A B) →
-  {B : A → Set b} {f g : {x : A} → B x} →
+  ∀ {k a b} →
+  Extensionality a b →
+  {A : Set a} {B : A → Set b} {f g : {x : A} → B x} →
   (∀ x → f {x} ≡ g {x}) ↔[ k ] ((λ {x} → f {x}) ≡ g)
 implicit-extensionality-isomorphism ext {f = f} {g} =
   (∀ x → f {x} ≡ g {x})            ↔⟨ Eq.extensionality-isomorphism ext ⟩
-  ((λ x → f {x}) ≡ (λ x → g {x}))  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Bijection.implicit-Π↔Π) ⟩□
+  ((λ x → f {x}) ≡ (λ x → g {x}))  ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ (inverse Bijection.implicit-Π↔Π)) ⟩□
   ((λ {x} → f {x}) ≡ g)            □
+
+private
+
+  -- The forward direction of
+  -- implicit-extensionality-isomorphism {k = bijection} computes in a
+  -- certain way.
+  --
+  -- Note that (at the time of writing) the proof below fails if the
+  -- two occurrences of "inverse" in the previous proof are removed.
+
+  to-implicit-extensionality-isomorphism :
+    ∀ {a b}
+    (ext : Extensionality a b) {A : Set a} {B : A → Set b}
+    {f g : {x : A} → B x} (f≡g : ∀ x → f {x} ≡ g {x}) →
+    _↔_.to (implicit-extensionality-isomorphism ext) f≡g
+      ≡
+    implicit-extensionality (Eq.good-ext ext) f≡g
+  to-implicit-extensionality-isomorphism _ _ = refl _
 
 -- The Yoneda lemma, as given in the HoTT book, but specialised to the
 -- opposite of the category of sets and functions, and with some
