@@ -433,7 +433,7 @@ A / R = ∃ λ (P : A → Set _) → P is-equivalence-class-of R
 /≡↔ {A = A} ext univ =
   (∃ λ P → ∥ (∃ λ x → (x ≡_) ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → ∥∥↔ lzero ext $ _⇔_.from propositional⇔irrelevant irr) ⟩
   (∃ λ P → ∃ λ x → (x ≡_) ≡ P)            ↝⟨ ∃-comm ⟩
-  (∃ λ x → ∃ λ P → (x ≡_) ≡ P)            ↝⟨ drop-⊤-right (λ _ → inverse $ _⇔_.to contractible⇔⊤↔ $ other-singleton-contractible _) ⟩□
+  (∃ λ x → ∃ λ P → (x ≡_) ≡ P)            ↝⟨ drop-⊤-right (λ _ → _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _) ⟩□
   A                                       □
   where
   se = equality-strong-equivalence
@@ -526,7 +526,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
     x ≡ y                                                          ↝⟨ inverse Bij.Σ-≡,≡↔≡ ⟩
 
     (∃ λ (eq : proj₁ x ≡ proj₁ y) →
-       subst (_is-equivalence-class-of R) eq (proj₂ x) ≡ proj₂ y)  ↝⟨ (drop-⊤-right λ _ → inverse $ _⇔_.to contractible⇔⊤↔ $
+       subst (_is-equivalence-class-of R) eq (proj₂ x) ≡ proj₂ y)  ↝⟨ (drop-⊤-right λ _ → _⇔_.to contractible⇔↔⊤ $
                                                                        truncation-has-correct-h-level 1 ext _ _) ⟩□
     proj₁ x ≡ proj₁ y                                              □
 
@@ -647,7 +647,8 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
       lemma₃ x z =                $⟨ equivalence-classes-have-same-h-level-as-relation
                                        (lower-extensionality _ _ ext)
                                        0 h x z ⟩
-        Contractible (proj₁ x z)  ↝⟨ _⇔_.to contractible⇔⊤↔ ⟩
+        Contractible (proj₁ x z)  ↝⟨ _⇔_.to contractible⇔↔⊤ ⟩
+        proj₁ x z ↔ ⊤             ↝⟨ inverse ⟩
         ⊤ ↔ proj₁ x z             ↝⟨ Eq.↔⇒≃ ⟩□
         ⊤ ≃ proj₁ x z             □
 
@@ -697,7 +698,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
                                                              Σ-cong (inverse $
                                                                      ∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                      drop-⊤-left-Π (lower-extensionality _ _ ext) $
-                                                                     inverse $ _⇔_.to contractible⇔⊤↔ $
+                                                                     _⇔_.to contractible⇔↔⊤ $
                                                                      other-singleton-contractible _)
                                                              lemma ⟩□
     (∃ λ (f : A → B) → ∀ x y → R x y → f x ≡ f y)         □
@@ -717,7 +718,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
                                                                          inverse currying) ⟩
       (∀ x (q : ∃ λ y → R y ≡ R x) → f x ≡ f (proj₁ q))              ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                          inverse $ drop-⊤-left-Π (lower-extensionality _ _ ext) $
-                                                                         inverse $ _⇔_.to contractible⇔⊤↔ $
+                                                                         _⇔_.to contractible⇔↔⊤ $
                                                                          other-singleton-contractible _) ⟩
       (∀ x (Q : ∃ λ P → R x ≡ P) (q : ∃ λ x → R x ≡ proj₁ Q) →
        f x ≡ f (proj₁ q))                                            ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →

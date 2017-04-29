@@ -326,8 +326,8 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
   ∥ A ∥ 1 ℓ × A ↔ A
 ∥∥×↔ {ℓ} {A = A} ext =
   ∥ A ∥ 1 ℓ × A  ↝⟨ ×-comm ⟩
-  A × ∥ A ∥ 1 ℓ  ↝⟨ (drop-⊤-right λ a → inverse $
-                     _⇔_.to contractible⇔⊤↔ $
+  A × ∥ A ∥ 1 ℓ  ↝⟨ (drop-⊤-right λ a →
+                     _⇔_.to contractible⇔↔⊤ $
                        propositional⇒inhabited⇒contractible
                          (truncation-has-correct-h-level 1 ext)
                          ∣ a ∣) ⟩□
@@ -400,7 +400,7 @@ inhabited⇒∥∥↔⊤ :
   Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
   ∥ A ∥ 1 ℓ → ∥ A ∥ 1 ℓ ↔ ⊤
 inhabited⇒∥∥↔⊤ ext ∥a∥ =
-  inverse $ _⇔_.to contractible⇔⊤↔ $
+  _⇔_.to contractible⇔↔⊤ $
     propositional⇒inhabited⇒contractible
       (truncation-has-correct-h-level 1 ext)
       ∥a∥
@@ -661,16 +661,16 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
 
   equivalence₁ : A → (B ≃ ∃ λ (f : A → B) → Coherently-constant f)
   equivalence₁ a₀ = ↔⇒≃ (
-    B                                                                    ↝⟨ (inverse $ drop-⊤-right λ _ → inverse $
-                                                                             _⇔_.to contractible⇔⊤↔ $
+    B                                                                    ↝⟨ (inverse $ drop-⊤-right λ _ →
+                                                                             _⇔_.to contractible⇔↔⊤ $
                                                                                Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
                                                                                singleton-contractible _) ⟩
     (∃ λ (f₁ : B) →
      (a : A) → ∃ λ (b : B) → b ≡ f₁)                                     ↝⟨ (∃-cong λ _ → ΠΣ-comm) ⟩
 
     (∃ λ (f₁ : B) →
-     ∃ λ (f : A → B) → (a : A) → f a ≡ f₁)                               ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse $ drop-⊤-right λ _ → inverse $
-                                                                             _⇔_.to contractible⇔⊤↔ $
+     ∃ λ (f : A → B) → (a : A) → f a ≡ f₁)                               ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse $ drop-⊤-right λ _ →
+                                                                             _⇔_.to contractible⇔↔⊤ $
                                                                                Π-closure (lower-extensionality _ ℓ       ext) 0 λ _ →
                                                                                Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
                                                                                singleton-contractible _) ⟩
@@ -693,16 +693,16 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
     (∃ λ (f₁ : B) →
      ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
      ∃ λ (c : Constant f) → ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁)   ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
-                                                                             inverse $ drop-⊤-right λ _ → inverse $
-                                                                             _⇔_.to contractible⇔⊤↔ $
+                                                                             inverse $ drop-⊤-right λ _ →
+                                                                             _⇔_.to contractible⇔↔⊤ $
                                                                                other-singleton-contractible _) ⟩
     (∃ λ (f₁ : B) →
      ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
      ∃ λ (c : Constant f) →
      ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
      ∃ λ (c₂ : f a₀ ≡ f₁) → trans (c a₀ a₀) (c₁ a₀) ≡ c₂)                ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ c₁ → ∃-cong λ c → ∃-cong λ d₁ →
-                                                                             ∃-cong λ _ → inverse $ drop-⊤-right λ _ → inverse $
-                                                                             _⇔_.to contractible⇔⊤↔ $
+                                                                             ∃-cong λ _ → inverse $ drop-⊤-right λ _ →
+                                                                             _⇔_.to contractible⇔↔⊤ $
                                                                                propositional⇒inhabited⇒contractible
                                                                                  (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
                                                                                   Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
@@ -729,8 +729,8 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
      ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
      ∃ λ (c₂ : f a₀ ≡ f₁) → ∃ λ (d₃ : trans (c a₀ a₀) (c₁ a₀) ≡ c₂) →
      ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃)                   ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ c₁ → ∃-cong λ c → ∃-cong λ d₁ →
-                                                                             ∃-cong λ c₂ → ∃-cong λ d₃ → inverse $ drop-⊤-right λ d → inverse $
-                                                                             _⇔_.to contractible⇔⊤↔ $
+                                                                             ∃-cong λ c₂ → ∃-cong λ d₃ → inverse $ drop-⊤-right λ d →
+                                                                             _⇔_.to contractible⇔↔⊤ $
                                                                                propositional⇒inhabited⇒contractible
                                                                                  (Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
                                                                                   B-groupoid _ _ _ _)
@@ -756,8 +756,8 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
      ∃ λ (d₂ : (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂) →
      ∃ λ (d₁ : ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁) →
      trans (c a₀ a₀) (c₁ a₀) ≡ c₂)                                       ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
-                                                                             ∃-cong λ _ → ∃-cong λ d₂ → drop-⊤-right λ _ → inverse $
-                                                                             _⇔_.to contractible⇔⊤↔ $
+                                                                             ∃-cong λ _ → ∃-cong λ d₂ → drop-⊤-right λ _ →
+                                                                             _⇔_.to contractible⇔↔⊤ $
                                                                                propositional⇒inhabited⇒contractible
                                                                                  (B-groupoid _ _ _ _)
                                                                                  (d₂ _)) ⟩
@@ -767,8 +767,8 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
      ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
      ∃ λ (d₂ : (a : A) → trans (c a₀ a) (c₁ a) ≡ c₂) →
      ∀ a₁ a₂ → trans (c a₁ a₂) (c₁ a₂) ≡ c₁ a₁)                          ↝⟨ (∃-cong λ _ → ∃-cong λ c → ∃-cong λ d → ∃-cong λ _ → ∃-cong λ c₂ →
-                                                                             ∃-cong λ c₁ → drop-⊤-right λ d₂ → inverse $
-                                                                             _⇔_.to contractible⇔⊤↔ $
+                                                                             ∃-cong λ c₁ → drop-⊤-right λ d₂ →
+                                                                             _⇔_.to contractible⇔↔⊤ $
                                                                                propositional⇒inhabited⇒contractible
                                                                                  (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
                                                                                   Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
@@ -803,14 +803,14 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
      ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
      ∃ λ (f₁ : B) → ∃ λ (c₂ : f a₀ ≡ f₁) →
      (a : A) → ∃ λ (c₁ : f a ≡ f₁) → c₁ ≡ trans (sym (c a₀ a)) c₂)       ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
-                                                                             drop-⊤-right λ _ → inverse $
-                                                                             _⇔_.to contractible⇔⊤↔ $
+                                                                             drop-⊤-right λ _ →
+                                                                             _⇔_.to contractible⇔↔⊤ $
                                                                                Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
                                                                                singleton-contractible _) ⟩
     (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
      ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
-     ∃ λ (f₁ : B) → f a₀ ≡ f₁)                                           ↝⟨ (∃-cong λ _ → ∃-cong λ _ → drop-⊤-right λ _ → inverse $
-                                                                             _⇔_.to contractible⇔⊤↔ $
+     ∃ λ (f₁ : B) → f a₀ ≡ f₁)                                           ↝⟨ (∃-cong λ _ → ∃-cong λ _ → drop-⊤-right λ _ →
+                                                                             _⇔_.to contractible⇔↔⊤ $
                                                                                other-singleton-contractible _) ⟩□
     (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
      ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃)                   □)
@@ -872,8 +872,8 @@ constant-function≃∥inhabited∥⇒inhabited :
   Is-set B →
   (∃ λ (f : A → B) → Constant f) ≃ (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)
 constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B} ext B-set =
-  (∃ λ (f : A → B) → Constant f)             ↔⟨ (∃-cong λ f → inverse $ drop-⊤-right λ c → inverse $
-                                                 _⇔_.to contractible⇔⊤↔ $
+  (∃ λ (f : A → B) → Constant f)             ↔⟨ (∃-cong λ f → inverse $ drop-⊤-right λ c →
+                                                 _⇔_.to contractible⇔↔⊤ $
                                                    Π-closure (lower-extensionality _ ℓ       ext) 0 λ _ →
                                                    Π-closure (lower-extensionality _ ℓ       ext) 0 λ _ →
                                                    Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
@@ -910,7 +910,7 @@ universal-property {a = a} {b} ℓ {A} {B} ext B-prop =
   with-other-function
     ((∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)       ↝⟨ inverse $ constant-function≃∥inhabited∥⇒inhabited ℓ ext (mono₁ 1 B-prop) ⟩
      (∃ λ (f : A → B) → Constant f)  ↔⟨ (drop-⊤-right λ _ →
-                                         inverse $ _⇔_.to contractible⇔⊤↔ $
+                                         _⇔_.to contractible⇔↔⊤ $
                                          Π-closure (lower-extensionality _ ℓ       ext) 0 λ _ →
                                          Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
                                          B-prop _ _) ⟩□

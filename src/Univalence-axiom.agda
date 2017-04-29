@@ -425,7 +425,7 @@ A ²/≡ = ∃ λ (x : A) → ∃ λ (y : A) → y ≡ x
 
 -²/≡↔- : ∀ {a} {A : Set a} → (A ²/≡) ↔ A
 -²/≡↔- {A = A} =
-  (∃ λ (x : A) → ∃ λ (y : A) → y ≡ x)  ↝⟨ ∃-cong (λ _ → inverse $ _⇔_.to contractible⇔⊤↔ (singleton-contractible _)) ⟩
+  (∃ λ (x : A) → ∃ λ (y : A) → y ≡ x)  ↝⟨ ∃-cong (λ _ → _⇔_.to contractible⇔↔⊤ (singleton-contractible _)) ⟩
   A × ⊤                                ↝⟨ ×-right-identity ⟩□
   A                                    □
 
@@ -536,7 +536,7 @@ Pow↔Fam ℓ {A = A} ext univ = record
     ; right-inverse-of    = λ { (I , f) →
         let lemma₁ =
               (∃ λ a → ∃ λ i → f i ≡ a)  ↔⟨ ∃-comm ⟩
-              (∃ λ i → ∃ λ a → f i ≡ a)  ↔⟨ ∃-cong (λ _ → inverse $ _⇔_.to contractible⇔⊤↔ (other-singleton-contractible _)) ⟩
+              (∃ λ i → ∃ λ a → f i ≡ a)  ↔⟨ ∃-cong (λ _ → _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _)) ⟩
               I × ⊤                      ↔⟨ ×-right-identity ⟩□
               I                          □
 
@@ -570,7 +570,7 @@ Pow↔Fam ℓ {A = A} ext univ = record
 →↔Σ≃Σ ℓ {a} {b} {A} {B} ext univ =
   (A → B)                                                   ↝⟨ →-cong (lower-extensionality lzero _ ext) (inverse Bijection.↑↔) F.id ⟩
   (↑ (b ⊔ ℓ) A → B)                                         ↝⟨ inverse ×-left-identity ⟩
-  ⊤ × (↑ _ A → B)                                           ↝⟨ _⇔_.to contractible⇔⊤↔ (singleton-contractible _) ×-cong F.id ⟩
+  ⊤ × (↑ _ A → B)                                           ↝⟨ inverse $ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ×-cong F.id ⟩
   (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A) × (↑ _ A → B)            ↝⟨ inverse Σ-assoc ⟩
   (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A × (↑ _ A → B))            ↝⟨ (∃-cong λ _ → ∃-cong λ eq → →-cong (lower-extensionality lzero _ ext) (≡⇒↝ _ (sym eq)) F.id) ⟩
   (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A × (A′ → B))               ↝⟨ (∃-cong λ _ → ×-comm) ⟩
@@ -987,7 +987,7 @@ singleton-with-≃-↔-⊤ :
 singleton-with-≃-↔-⊤ {a} {B = B} ext univ =
   (∃ λ A → A ≃ B)      ↝⟨ inverse (∃-cong λ _ → Eq.≃-preserves-bijections ext F.id Bijection.↑↔) ⟩
   (∃ λ A → A ≃ ↑ a B)  ↔⟨ inverse (∃-cong λ _ → ≡≃≃ univ) ⟩
-  (∃ λ A → A ≡ ↑ a B)  ↝⟨ inverse $ _⇔_.to contractible⇔⊤↔ (singleton-contractible _) ⟩□
+  (∃ λ A → A ≡ ↑ a B)  ↝⟨ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ⟩□
   ⊤                    □
 
 other-singleton-with-≃-↔-⊤ :
@@ -1009,8 +1009,8 @@ other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
   Univalence a →
   (∃ λ (A : Set a) → Contractible A) ↔ ⊤
 ∃Contractible↔⊤ ext univ =
-  (∃ λ A → Contractible A)  ↝⟨ (∃-cong λ _ → contractible↔⊤≃ ext) ⟩
-  (∃ λ A → ⊤ ≃ A)           ↝⟨ other-singleton-with-≃-↔-⊤ ext univ ⟩
+  (∃ λ A → Contractible A)  ↝⟨ (∃-cong λ _ → contractible↔≃⊤ ext) ⟩
+  (∃ λ A → A ≃ ⊤)           ↝⟨ singleton-with-≃-↔-⊤ ext univ ⟩
   ⊤                         □
 
 -- If two types have a certain h-level, then the type of equalities

@@ -93,7 +93,8 @@ T↔≡true {false} =   $⟨ Bool.true≢false ⟩
   ⊥ ↔ false ≡ true  □
 T↔≡true {true} =              $⟨ refl true ⟩
   true ≡ true                 ↝⟨ propositional⇒inhabited⇒contractible (Bool-set _ _) ⟩
-  Contractible (true ≡ true)  ↝⟨ _⇔_.to contractible⇔⊤↔ ⟩□
+  Contractible (true ≡ true)  ↝⟨ _⇔_.to contractible⇔↔⊤ ⟩
+  true ≡ true ↔ ⊤             ↝⟨ inverse ⟩□
   ⊤ ↔ true ≡ true             □
 
 T-not↔≡false : ∀ {b} → T (not b) ↔ b ≡ false

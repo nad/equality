@@ -331,7 +331,7 @@ Position-shape : ∀ {a c} {A : Set a} {C : Container c} (xs : ⟦ C ⟧ A) →
 Position-shape {C = C} (s , f) =
   (∃ λ z → ∃ λ p → z ≡ f p)  ↔⟨ ∃-comm ⟩
   (∃ λ p → ∃ λ z → z ≡ f p)  ↔⟨⟩
-  (∃ λ p → Singleton (f p))  ↔⟨ ∃-cong (λ _ → inverse (_⇔_.to contractible⇔⊤↔ (singleton-contractible _))) ⟩
+  (∃ λ p → Singleton (f p))  ↔⟨ ∃-cong (λ _ → _⇔_.to contractible⇔↔⊤ (singleton-contractible _)) ⟩
   Position C s × ⊤           ↔⟨ ×-right-identity ⟩
   Position C s               □
 

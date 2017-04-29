@@ -230,8 +230,8 @@ surjective×embedding≃equivalence {f = f} =
 ∥∥×↔ : ∀ {a} {A : Set a} → ∥ A ∥ × A ↔ A
 ∥∥×↔ {A = A} =
   ∥ A ∥ × A  ↝⟨ ×-comm ⟩
-  A × ∥ A ∥  ↝⟨ (drop-⊤-right λ a → inverse $
-                 _⇔_.to contractible⇔⊤↔ $
+  A × ∥ A ∥  ↝⟨ (drop-⊤-right λ a →
+                 _⇔_.to contractible⇔↔⊤ $
                    propositional⇒inhabited⇒contractible
                      truncation-is-proposition
                      ∣ a ∣) ⟩□
@@ -290,7 +290,7 @@ inhabited⇒∥∥↔⊤ :
   ∀ {a} {A : Set a} →
   ∥ A ∥ → ∥ A ∥ ↔ ⊤
 inhabited⇒∥∥↔⊤ ∥a∥ =
-  inverse $ _⇔_.to contractible⇔⊤↔ $
+  _⇔_.to contractible⇔↔⊤ $
     propositional⇒inhabited⇒contractible
       truncation-is-proposition
       ∥a∥

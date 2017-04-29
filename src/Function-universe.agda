@@ -1087,7 +1087,7 @@ currying = record
           B x ↔ ∃ λ y → B y × y ≡ x
 ∃-intro B x =
   B x                    ↔⟨ inverse ×-right-identity ⟩
-  B x × ⊤                ↔⟨ id ×-cong _⇔_.to contractible⇔⊤↔ (singleton-contractible x) ⟩
+  B x × ⊤                ↔⟨ id ×-cong inverse (_⇔_.to contractible⇔↔⊤ (singleton-contractible x)) ⟩
   B x × (∃ λ y → y ≡ x)  ↔⟨ ∃-comm ⟩
   (∃ λ y → B x × y ≡ x)  ↔⟨ ∃-cong (λ y → ×-cong₁ (λ y≡x → subst (λ x → B x ↔ B y) y≡x id)) ⟩□
   (∃ λ y → B y × y ≡ x)  □
@@ -1100,8 +1100,7 @@ currying = record
 ∃-introduction {x = x} B =
   B x (refl x)                                              ↝⟨ ∃-intro (uncurry B) _ ⟩
   (∃ λ { (y , x≡y) → B y x≡y × (y , x≡y) ≡ (x , refl x) })  ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
-                                                                  inverse $
-                                                                  _⇔_.to contractible⇔⊤↔ $
+                                                                  _⇔_.to contractible⇔↔⊤ $
                                                                   mono₁ 0 (other-singleton-contractible x) _ _) ⟩
   (∃ λ { (y , x≡y) → B y x≡y × ⊤ })                         ↝⟨ (∃-cong λ _ → ×-right-identity) ⟩
   (∃ λ { (y , x≡y) → B y x≡y })                             ↝⟨ inverse Σ-assoc ⟩□
@@ -1142,7 +1141,7 @@ ignore-propositional-component :
   (proj₁ p ≡ proj₁ q) ↔ (p ≡ q)
 ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   (p₁ ≡ q₁)                                  ↝⟨ inverse ×-right-identity ⟩
-  (p₁ ≡ q₁ × ⊤)                              ↝⟨ ∃-cong (λ _ → _⇔_.to contractible⇔⊤↔ (Bq₁-prop _ _)) ⟩
+  (p₁ ≡ q₁ × ⊤)                              ↝⟨ ∃-cong (λ _ → inverse $ _⇔_.to contractible⇔↔⊤ (Bq₁-prop _ _)) ⟩
   (∃ λ (eq : p₁ ≡ q₁) → subst B eq p₂ ≡ q₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
   ((p₁ , p₂) ≡ (q₁ , q₂))                    □
 
@@ -1243,15 +1242,15 @@ Contractible-commutes-with-× {x} {y} ext =
 -- Contractibility is isomorphic to equivalence to the unit type
 -- (assuming extensionality).
 
-contractible↔⊤≃ :
+contractible↔≃⊤ :
   ∀ {a} {A : Set a} →
   Extensionality a a →
-  Contractible A ↔ (⊤ ≃ A)
-contractible↔⊤≃ ext = record
+  Contractible A ↔ (A ≃ ⊤)
+contractible↔≃⊤ ext = record
   { surjection = record
     { logical-equivalence = record
-      { to   = Eq.↔⇒≃ ∘ _⇔_.to contractible⇔⊤↔
-      ; from = _⇔_.from contractible⇔⊤↔ ∘ _≃_.bijection
+      { to   = Eq.↔⇒≃ ∘ _⇔_.to contractible⇔↔⊤
+      ; from = _⇔_.from contractible⇔↔⊤ ∘ _≃_.bijection
       }
     ; right-inverse-of = λ _ →
         Eq.lift-equality ext (refl _)
@@ -1883,7 +1882,7 @@ private
   ∀-intro′ {a} ext {x = x} B =
     B x (refl x)                        ↝⟨ inverse Π-left-identity ⟩
     (⊤ → B x (refl x))                  ↝⟨ →-cong (lower-extensionality lzero a ext)
-                                                  (_⇔_.to contractible⇔⊤↔ c) id ⟩
+                                                  (inverse $ _⇔_.to contractible⇔↔⊤ c) id ⟩
     ((∃ λ y → x ≡ y) → B x (refl x))    ↝⟨ currying ⟩
     (∀ y (x≡y : x ≡ y) → B x (refl x))  ↔⟨ (∀-cong ext λ y →
                                             ∀-cong (lower-extensionality lzero a ext) λ x≡y →

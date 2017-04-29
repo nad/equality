@@ -103,7 +103,7 @@ module _ {reflexive}
         (∀ x → Q x)                    ↝⟨ ∀-cong (lower-extensionality lzero a ext) (λ _ → inverse Π-left-identity) ⟩
         (∀ x → ⊤ → Q x)                ↝⟨ ∀-cong ext (λ _ →
                                           →-cong (lower-extensionality lzero a ext)
-                                            (_⇔_.to contractible⇔⊤↔ $ other-singleton-contractible _)
+                                            (inverse $ _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _)
                                             id) ⟩
         (∀ x → (∃ λ y → x ≡ y) → Q x)  ↝⟨ ∀-cong ext (λ _ → currying) ⟩
         (∀ x y → x ≡ y → Q x)          ↝⟨ ∀-cong ext (λ _ → inverse implicit-Π↔Π) ⟩

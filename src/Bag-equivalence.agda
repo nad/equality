@@ -459,7 +459,7 @@ Fin-length xs =
   (∃ λ z → z ∈ xs)                  ↔⟨ ∃-cong (λ _ → ∈-index xs) ⟩
   (∃ λ z → ∃ λ i → z ≡ index xs i)  ↔⟨ ∃-comm ⟩
   (∃ λ i → ∃ λ z → z ≡ index xs i)  ↔⟨⟩
-  (∃ λ i → Singleton (index xs i))  ↔⟨ ∃-cong (λ _ → inverse (_⇔_.to contractible⇔⊤↔ (singleton-contractible _))) ⟩
+  (∃ λ i → Singleton (index xs i))  ↔⟨ ∃-cong (λ _ → _⇔_.to contractible⇔↔⊤ (singleton-contractible _)) ⟩
   Fin (length xs) × ⊤               ↔⟨ ×-right-identity ⟩
   Fin (length xs)                   □
 

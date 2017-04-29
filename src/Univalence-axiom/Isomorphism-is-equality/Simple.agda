@@ -1498,7 +1498,7 @@ Isomorphic-discrete-field-isomorphic-to-one-without-⁻¹ ext
                                                               ∃-cong λ *-homo →
                                                               ∃-cong λ 1-homo →
                                                               ∃-cong λ _ →
-                                                              inverse $ _⇔_.to contractible⇔⊤↔ $ propositional⇒inhabited⇒contractible
+                                                              _⇔_.to contractible⇔↔⊤ $ propositional⇒inhabited⇒contractible
                                                                 (⁻¹-set _ _)
                                                                 (⁻¹-homo eq 0-homo *-homo 1-homo)) ⟩
   ((λ x y → to (from x +₁ from y)) ≡ _+₂_ ×

@@ -1323,7 +1323,7 @@ Unit ℓ₁ ℓ₂ =
   ↑⊤-set = mono (Nat.zero≤ _) (↑-closure 0 ⊤-contractible)
 
   ≡↔⊤ : ∀ {ℓ} {x y : ↑ ℓ ⊤} → (x ≡ y) ↔ ⊤
-  ≡↔⊤ = inverse $ _⇔_.to contractible⇔⊤↔ $
+  ≡↔⊤ = _⇔_.to contractible⇔↔⊤ $
           propositional⇒inhabited⇒contractible (↑⊤-set _ _) (refl _)
 
 -- An "empty" category, without objects.
