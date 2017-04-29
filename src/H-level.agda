@@ -53,23 +53,23 @@ Type A = proj₁ A
 ------------------------------------------------------------------------
 -- General properties
 
+-- H-level is upwards closed in its first argument.
+
+mono₁ : ∀ {a} {A : Set a} n → H-level n A → H-level (1 + n) A
+mono₁         (suc n) h x y = mono₁ n (h x y)
+mono₁ {A = A} zero    h x y = (trivial x y , irr)
+  where
+  trivial : (x y : A) → x ≡ y
+  trivial x y =
+    x        ≡⟨ sym $ proj₂ h x ⟩
+    proj₁ h  ≡⟨ proj₂ h y ⟩∎
+    y        ∎
+
+  irr : ∀ {x y} (x≡y : x ≡ y) → trivial x y ≡ x≡y
+  irr = elim (λ {x y} x≡y → trivial x y ≡ x≡y)
+             (λ x → trans-symˡ (proj₂ h x))
+
 abstract
-
-  -- H-level is upwards closed in its first argument.
-
-  mono₁ : ∀ {a} {A : Set a} n → H-level n A → H-level (1 + n) A
-  mono₁         (suc n) h x y = mono₁ n (h x y)
-  mono₁ {A = A} zero    h x y = (trivial x y , irr)
-    where
-    trivial : (x y : A) → x ≡ y
-    trivial x y =
-      x        ≡⟨ sym $ proj₂ h x ⟩
-      proj₁ h  ≡⟨ proj₂ h y ⟩∎
-      y        ∎
-
-    irr : ∀ {x y} (x≡y : x ≡ y) → trivial x y ≡ x≡y
-    irr = elim (λ {x y} x≡y → trivial x y ≡ x≡y)
-               (λ x → trans-symˡ (proj₂ h x))
 
   mono : ∀ {a m n} {A : Set a} → m ≤ n → H-level m A → H-level n A
   mono (≤-refl′ eq)     = subst (λ n → H-level n _) eq
@@ -134,12 +134,11 @@ respects-surjection A↠B zero (x , irr) = (to x , irr′)
   where
   open _↠_ A↠B
 
-  abstract
-    irr′ : ∀ y → to x ≡ y
-    irr′ = λ y →
-      to x         ≡⟨ cong to (irr (from y)) ⟩
-      to (from y)  ≡⟨ right-inverse-of y ⟩∎
-      y            ∎
+  irr′ : ∀ y → to x ≡ y
+  irr′ = λ y →
+    to x         ≡⟨ cong to (irr (from y)) ⟩
+    to (from y)  ≡⟨ right-inverse-of y ⟩∎
+    y            ∎
 
 respects-surjection A↠B (suc n) h = λ x y →
   respects-surjection (↠-≡ A↠B) n (h (from x) (from y))
