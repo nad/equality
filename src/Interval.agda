@@ -191,7 +191,8 @@ abstract
   -- I based the statements of the following three lemmas on code in
   -- the Lean Homotopy Type Theory Library with Jakob von Raumer and
   -- Floris van Doorn listed as authors. The file was claimed to have
-  -- been ported from the Coq HoTT library.
+  -- been ported from the Coq HoTT library. (The third lemma has later
+  -- been generalised.)
 
   ext-sym :
     ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
@@ -206,8 +207,8 @@ abstract
   ext-trans = good-ext-trans ext′
 
   cong-post-∘-ext :
-    ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
-      {f g : A → B} {h : B → C}
+    ∀ {a b c} {A : Set a} {B : A → Set b} {C : A → Set c}
+      {f g : (x : A) → B x} {h : ∀ {x} → B x → C x}
     (f≡g : ∀ x → f x ≡ g x) →
     cong (h ∘_) (ext f≡g) ≡ ext (cong h ∘ f≡g)
   cong-post-∘-ext = cong-post-∘-good-ext ext′ ext′
