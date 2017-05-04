@@ -15,5 +15,8 @@ module README.Weak-J where
 -- For the main result about contractibility of the type of pairs
 -- containing J functions and the corresponding β-rule, see
 -- Equality-with-J-contractible.
+--
+-- Note that there are minor differences between the code and the
+-- presentation in the abstract.
 
 import Equality.Instances-related
