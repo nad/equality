@@ -64,10 +64,10 @@ module _ {reflexive}
          (eq : ∀ {a p} → Equality-with-J a p reflexive)
          where
 
-  open Bijection eq hiding (id; inverse; step-↔)
+  open Bijection eq hiding (id; _∘_; inverse; step-↔)
   open Derived-definitions-and-properties eq
-  open Equivalence eq hiding (id; inverse)
-  open Function-universe eq
+  open Equivalence eq hiding (id; _∘_; inverse)
+  open Function-universe eq hiding (_∘_)
   open H-level.Closure eq
 
   abstract
@@ -83,83 +83,92 @@ module _ {reflexive}
       Extensionality (lsuc (a ⊔ p)) (a ⊔ lsuc p) →
       Contractible (Equality-with-J a p reflexive)
     Equality-with-J-contractible {a} {p} ext =                     $⟨ contr ⟩
-      Contractible ({A : Set a} (P : A → Set p) (r : ∀ x → P x) →
-                    Singleton r)                                   ↝⟨ H-level.respects-surjection eq surj 0 ⟩
+      Contractible ((A : Set a) (P : I A → Set p)
+                    (d : ∀ x → P (x , x , refl x)) → Singleton d)  ↝⟨ H-level.respects-surjection eq surj 0 ⟩
+
       Contractible (Equality-with-J a p reflexive)                 □
       where
+      I : Set a → Set a
+      I A = ∃ λ (x : A) → ∃ λ (y : A) → x ≡ y
+
+      ≃I : ∀ {A} → A ≃ I A
+      ≃I = ↔⇒≃ (record
+        { surjection = record
+          { logical-equivalence = record
+            { to   = λ x → x , x , refl x
+            ; from = proj₁
+            }
+          ; right-inverse-of = λ q →
+              let x , y , x≡y = q in
+              cong (x ,_) $
+                Σ-≡,≡→≡ x≡y
+                        (subst (x ≡_) x≡y (refl x)  ≡⟨⟩
+                         trans (refl x) x≡y         ≡⟨ trans-reflˡ x≡y ⟩∎
+                         x≡y                        ∎)
+          }
+        ; left-inverse-of = refl
+        })
+
       contr :
-        Contractible ({A : Set a} (P : A → Set p) (r : ∀ x → P x) →
-                      Singleton r)
+        Contractible ((A : Set a) (P : I A → Set p)
+                      (d : ∀ x → P (x , x , refl x)) → Singleton d)
       contr =
-        implicit-Π-closure (lower-extensionality (lsuc p) lzero    ext) 0 λ _ →
+        Π-closure          (lower-extensionality (lsuc p) lzero    ext) 0 λ _ →
         Π-closure          (lower-extensionality (lsuc a) (lsuc p) ext) 0 λ _ →
         Π-closure          (lower-extensionality _        (lsuc p) ext) 0 λ _ →
         singleton-contractible _
 
-      lemma : ∀ {q} {A : Set a} {Q : A → Set q} →
-              Extensionality a (a ⊔ q) →
-              (∀ x → Q x) ↔ (∀ {x y} → x ≡ y → Q x)
-      lemma {q} {Q = Q} ext =
-        (∀ x → Q x)                    ↝⟨ ∀-cong (lower-extensionality lzero a ext) (λ _ → inverse Π-left-identity) ⟩
-        (∀ x → ⊤ → Q x)                ↝⟨ ∀-cong ext (λ _ →
-                                          →-cong (lower-extensionality lzero a ext)
-                                            (inverse $ _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _)
-                                            id) ⟩
-        (∀ x → (∃ λ y → x ≡ y) → Q x)  ↝⟨ ∀-cong ext (λ _ → currying) ⟩
-        (∀ x y → x ≡ y → Q x)          ↝⟨ ∀-cong ext (λ _ → inverse implicit-Π↔Π) ⟩
-        (∀ x → ∀ {y} → x ≡ y → Q x)    ↝⟨ inverse implicit-Π↔Π ⟩□
-        (∀ {x y} → x ≡ y → Q x)        □
-
       surj =
-        ({A : Set a} (P : A → Set p) (r : ∀ x → P x) →
-         Singleton r)                                               ↔⟨ implicit-∀-cong (lower-extensionality (lsuc p) lzero ext) $
-                                                                       ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) (λ _ →
-                                                                       ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ →
-                                                                       ∃-cong λ _ → inverse $
-                                                                       extensionality-isomorphism (lower-extensionality _ _ ext)) ⟩
-        ({A : Set a} (P : A → Set p) (r : ∀ x → P x) →
-         ∃ λ (elim : ∀ x → P x) → ∀ x → elim x ≡ r x)               ↔⟨ implicit-∀-cong (lower-extensionality (lsuc p) lzero ext) $
-                                                                       Π-preserves (lower-extensionality (lsuc a) (lsuc p) ext)
-                                                                         (↔⇒≃ $ lemma (lower-extensionality _ lzero ext)) (λ _ →
-                                                                       ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ →
-                                                                       Σ-cong (lemma (lower-extensionality _ (lsuc p) ext)) λ _ →
-                                                                              (↔⇒≃ $ inverse implicit-Π↔Π)) ⟩
-        ({A : Set a}
-         (P : {x y : A} → x ≡ y → Set p)
-         (r : ∀ x → P (refl x)) →
-         ∃ λ (elim : ∀ {x y} (x≡y : x ≡ y) → P x≡y) →
-           ∀ {x} → elim (refl x) ≡ r x)                             ↔⟨ implicit-∀-cong (lower-extensionality (lsuc p) lzero ext) $
-                                                                       ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) (λ _ →
-                                                                       ΠΣ-comm) ⟩
-        ({A : Set a}
-         (P : {x y : A} → x ≡ y → Set p) →
-         ∃ λ (elim : (∀ x → P (refl x)) →
-                     ∀ {x y} (x≡y : x ≡ y) → P x≡y) →
-           (r : ∀ x → P (refl x)) →
-           ∀ {x} → elim r (refl x) ≡ r x)                           ↔⟨ implicit-∀-cong (lower-extensionality (lsuc p) lzero ext)
-                                                                       ΠΣ-comm ⟩
-        ({A : Set a} →
-         ∃ λ (elim : (P : {x y : A} → x ≡ y → Set p) →
-                     (∀ x → P (refl x)) →
-                     ∀ {x y} (x≡y : x ≡ y) → P x≡y) →
-           (P : {x y : A} → x ≡ y → Set p)
-           (r : ∀ x → P (refl x)) →
-           ∀ {x} → elim P r (refl x) ≡ r x)                         ↔⟨ implicit-ΠΣ-comm ⟩
+        ((A : Set a) (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
+         Singleton d)                                                     ↔⟨⟩
 
-        (∃ λ (elim : {A : Set a} (P : {x y : A} → x ≡ y → Set p) →
-                     (∀ x → P (refl x)) →
-                     ∀ {x y} (x≡y : x ≡ y) → P x≡y) →
-             ∀ {A : Set a} (P : {x y : A} → x ≡ y → Set p)
-             (r : ∀ x → P (refl x)) {x} →
-             elim P r (refl x) ≡ r x)                               ↝⟨ record
-                                                                         { logical-equivalence = record
-                                                                           { to   = uncurry λ elim elim-refl → record
-                                                                                      { elim      = λ {_} → elim      {_}
-                                                                                      ; elim-refl = λ {_} → elim-refl {_}
-                                                                                      }
-                                                                           ; from = λ eq → Equality-with-J.elim      eq
-                                                                                         , Equality-with-J.elim-refl eq
-                                                                           }
-                                                                         ; right-inverse-of = refl
-                                                                         } ⟩□
-        Equality-with-J a p reflexive                               □
+        ((A : Set a) (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
+         ∃ λ (j : (x : A) → P (x , x , refl x)) → j ≡ d)                  ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
+                                                                              ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
+                                                                              ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ →
+                                                                              ∃-cong λ _ → inverse $
+                                                                              extensionality-isomorphism (lower-extensionality _ _ ext)) ⟩
+        ((A : Set a) (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
+         ∃ λ (j : (x : A) → P (x , x , refl x)) → (x : A) → j x ≡ d x)    ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
+                                                                              ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
+                                                                              ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ → inverse $
+                                                                              Σ-cong (inverse $ Π-preserves (lower-extensionality _ _ ext)
+                                                                                                            ≃I λ _ → id) λ _ →
+                                                                              id {k = equivalence}) ⟩
+        ((A : Set a) (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
+         ∃ λ (j : (q : I A) → P q) → (x : A) → j (x , x , refl x) ≡ d x)  ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
+                                                                              ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
+                                                                              ΠΣ-comm) ⟩
+        ((A : Set a) (P : I A → Set p) →
+         ∃ λ (j : (d : ∀ x → P (x , x , refl x)) →
+                  (q : I A) → P q) →
+             (d : ∀ x → P (x , x , refl x))
+             (x : A) → j d (x , x , refl x) ≡ d x)                        ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
+                                                                              ΠΣ-comm) ⟩
+        ((A : Set a) →
+         ∃ λ (j : (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
+                  (q : I A) → P q) →
+             (P : I A → Set p) (d : ∀ x → P (x , x , refl x))
+             (x : A) → j P d (x , x , refl x) ≡ d x)                      ↔⟨ ΠΣ-comm ⟩
+
+        (∃ λ (J : (A : Set a) (P : I A → Set p)
+                  (d : ∀ x → P (x , x , refl x)) →
+                  (q : I A) → P q) →
+             (A : Set a) (P : I A → Set p)
+             (d : ∀ x → P (x , x , refl x))
+             (x : A) → J A P d (x , x , refl x) ≡ d x)                    ↝⟨ record
+                                                                               { logical-equivalence = record
+                                                                                 { to   = uncurry λ J Jβ → record
+                                                                                            { elim      = λ P r x≡y →
+                                                                                                            J _ (P ∘ proj₂ ∘ proj₂) r (_ , _ , x≡y)
+                                                                                            ; elim-refl = λ P r → Jβ _ (P ∘ proj₂ ∘ proj₂) r _
+                                                                                            }
+                                                                                 ; from = λ eq →
+                                                                                       (λ A P d q → Equality-with-J.elim eq
+                                                                                                      (λ x≡y → P (_ , _ , x≡y)) d (proj₂ (proj₂ q)))
+                                                                                     , (λ A P d x → Equality-with-J.elim-refl eq
+                                                                                                      (λ x≡y → P (_ , _ , x≡y)) d)
+                                                                                 }
+                                                                               ; right-inverse-of = refl
+                                                                               } ⟩□
+        Equality-with-J a p reflexive                                     □
