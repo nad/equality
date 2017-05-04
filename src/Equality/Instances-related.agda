@@ -14,7 +14,7 @@ import Function-universe
 import H-level
 import H-level.Closure
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (id)
+open import Prelude
 
 -- All families of equality types that satisfy certain axioms are
 -- pointwise isomorphic. One of the families are used to define what
@@ -67,7 +67,7 @@ module _ {reflexive}
   open Bijection eq hiding (id; _∘_; inverse; step-↔)
   open Derived-definitions-and-properties eq
   open Equivalence eq hiding (id; _∘_; inverse)
-  open Function-universe eq hiding (_∘_)
+  open Function-universe eq hiding (_∘_) renaming (id to ⟨id⟩)
   open H-level.Closure eq
 
   abstract
@@ -133,8 +133,8 @@ module _ {reflexive}
                                                                               ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
                                                                               ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ → inverse $
                                                                               Σ-cong (inverse $ Π-preserves (lower-extensionality _ _ ext)
-                                                                                                            ≃I λ _ → id) λ _ →
-                                                                              id {k = equivalence}) ⟩
+                                                                                                            ≃I λ _ → ⟨id⟩) λ _ →
+                                                                              ⟨id⟩ {k = equivalence}) ⟩
         ((A : Set a) (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
          ∃ λ (j : (q : I A) → P q) → (x : A) → j (x , x , refl x) ≡ d x)  ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
                                                                               ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
@@ -172,3 +172,36 @@ module _ {reflexive}
                                                                                ; right-inverse-of = refl
                                                                                } ⟩□
         Equality-with-J a p reflexive                                     □
+
+  private
+
+    -- A related example. It had been suggested that the two proofs
+    -- proof₁ and proof₂ below might not be provably equal, but Simon
+    -- Huber managed to prove that they are (using a slightly
+    -- different type for elim-refl).
+
+    module _ {a p} {A : Set a}
+             (P : A → Set p)
+             {x : A} (y : P x) where
+
+      proof₁ proof₂ :
+        subst P (refl x) (subst P (refl x) y) ≡ subst P (refl x) y
+
+      proof₁ = cong (_$ subst P (refl x) y) (subst-refl≡id P)
+
+      proof₂ = cong (subst P (refl x)) (cong (_$ y) (subst-refl≡id P))
+
+      proof₁≡proof₂ : proof₁ ≡ proof₂
+      proof₁≡proof₂ =
+        subst (λ (s : Singleton id) →
+                 ∀ y → cong (_$ proj₁ s y) (proj₂ s) ≡
+                       cong (proj₁ s) (cong (_$ y) (proj₂ s)))
+
+              (id               , refl id          ≡⟨ proj₂ (singleton-contractible _) _ ⟩∎
+               subst P (refl x) , subst-refl≡id P  ∎)
+
+              (λ y →
+                 cong (_$ y) (refl id)            ≡⟨ cong-id _ ⟩∎
+                 cong id (cong (_$ y) (refl id))  ∎)
+
+              y
