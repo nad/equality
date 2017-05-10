@@ -320,6 +320,12 @@ Maybe A = ⊤ ⊎ A
 pattern nothing = inj₁ tt
 pattern just x  = inj₂ x
 
+-- The truth predicate T is only inhabited when its argument is
+-- inj₁ something.
+
+T : ∀ {a b} {A : Set a} {B : Set b} → A ⊎ B → Set
+T b = if b then ⊤ else ⊥
+
 ------------------------------------------------------------------------
 -- Booleans
 
@@ -349,11 +355,6 @@ infixr 5 _∨_
 
 _∨_ : Bool → Bool → Bool
 b₁ ∨ b₂ = if b₁ then true else b₂
-
--- The truth predicate T is only inhabited when its argument is true.
-
-T : Bool → Set
-T b = if b then ⊤ else ⊥
 
 ------------------------------------------------------------------------
 -- Lists
