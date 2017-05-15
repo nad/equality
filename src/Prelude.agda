@@ -166,7 +166,7 @@ case x of f = case x return _ of f
 ------------------------------------------------------------------------
 -- Σ-types
 
-infixr 4 _,_
+infixr 4 _,_ _,′_
 infixr 2 _×_
 
 record Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
@@ -186,6 +186,12 @@ open Σ public
 
 _×_ : ∀ {a b} (A : Set a) (B : Set b) → Set (a ⊔ b)
 A × B = Σ A (const B)
+
+-- A variant of _,_ that is specialised to _×_. Use of this variant
+-- can make type-inference easier.
+
+_,′_ : ∀ {a b} {A : Set a} {B : Set b} → A → B → A × B
+_,′_ = _,_
 
 -- A map function.
 
