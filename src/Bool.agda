@@ -10,7 +10,7 @@ module Bool
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (id; _∘_)
+open import Prelude hiding (id; _∘_; swap)
 
 open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq

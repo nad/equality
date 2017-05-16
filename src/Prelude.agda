@@ -222,6 +222,11 @@ uncurry : ∀ {a b c} {A : Set a} {B : A → Set b} {C : Σ A B → Set c} →
           ((p : Σ A B) → C p)
 uncurry f (x , y) = f x y
 
+-- Swaps the two components of the pair.
+
+swap : ∀ {a b} {A : Set a} {B : Set b} → A × B → B × A
+swap (x , y) = y , x
+
 ------------------------------------------------------------------------
 -- W-types
 

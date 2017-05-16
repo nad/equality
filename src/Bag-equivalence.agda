@@ -11,7 +11,7 @@ module Bag-equivalence where
 
 open import Equality.Propositional hiding (trans)
 open import Logical-equivalence hiding (id; _∘_; inverse)
-open import Prelude as P hiding (id)
+open import Prelude as P hiding (id; swap)
 
 open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
 open import Equality.Decision-procedures equality-with-J
