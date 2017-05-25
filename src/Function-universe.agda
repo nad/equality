@@ -1294,14 +1294,40 @@ contractible↔≃⊤ ext = record
 ------------------------------------------------------------------------
 -- Some lemmas related to functions
 
+→-cong-→ : ∀ {a b c d}
+             {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+           (B → A) → (C → D) → (A → C) → (B → D)
+→-cong-→ B→A C→D = (C→D ∘_) ∘ (_∘ B→A)
+
 →-cong-⇔ : ∀ {a b c d}
              {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
            A ⇔ B → C ⇔ D → (A → C) ⇔ (B → D)
 →-cong-⇔ A⇔B C⇔D = record
-  { to   = λ f → to   C⇔D ∘ f ∘ from A⇔B
-  ; from = λ f → from C⇔D ∘ f ∘ to   A⇔B
+  { to   = →-cong-→ (from A⇔B) (to   C⇔D)
+  ; from = →-cong-→ (to   A⇔B) (from C⇔D)
   }
   where open _⇔_
+
+→-cong-↠ : ∀ {a b c d} → Extensionality b d →
+           {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+           A ↠ B → C ↠ D → (A → C) ↠ (B → D)
+→-cong-↠ {a} {b} {c} {d} ext A↠B C↠D = record
+  { logical-equivalence = logical-equiv
+  ; right-inverse-of    = right-inv
+  }
+  where
+  open _↠_
+
+  logical-equiv = →-cong-⇔ (_↠_.logical-equivalence A↠B)
+                           (_↠_.logical-equivalence C↠D)
+
+  abstract
+    right-inv :
+      ∀ f → _⇔_.to logical-equiv (_⇔_.from logical-equiv f) ≡ f
+    right-inv f = ext λ x →
+      to C↠D (from C↠D (f (to A↠B (from A↠B x))))  ≡⟨ right-inverse-of C↠D _ ⟩
+      f (to A↠B (from A↠B x))                      ≡⟨ cong f $ right-inverse-of A↠B _ ⟩∎
+      f x                                          ∎
 
 →-cong : ∀ {a b c d} → Extensionality (a ⊔ b) (c ⊔ d) →
          {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
@@ -1311,28 +1337,19 @@ contractible↔≃⊤ ext = record
   where
   →-cong-↔ : A ↔ B → C ↔ D → (A → C) ↔ (B → D)
   →-cong-↔ A↔B C↔D = record
-    { surjection = record
-      { logical-equivalence = logical-equiv
-      ; right-inverse-of    = right-inv
-      }
+    { surjection      = surj
     ; left-inverse-of = left-inv
     }
     where
     open _↔_
 
-    logical-equiv = →-cong-⇔ (_↔_.logical-equivalence A↔B)
-                             (_↔_.logical-equivalence C↔D)
+    surj = →-cong-↠ (lower-extensionality a c ext)
+                    (_↔_.surjection A↔B)
+                    (_↔_.surjection C↔D)
 
     abstract
-      right-inv :
-        ∀ f → _⇔_.to logical-equiv (_⇔_.from logical-equiv f) ≡ f
-      right-inv f = lower-extensionality a c ext λ x →
-        to C↔D (from C↔D (f (to A↔B (from A↔B x))))  ≡⟨ right-inverse-of C↔D _ ⟩
-        f (to A↔B (from A↔B x))                      ≡⟨ cong f $ right-inverse-of A↔B _ ⟩∎
-        f x                                          ∎
-
       left-inv :
-        ∀ f → _⇔_.from logical-equiv (_⇔_.to logical-equiv f) ≡ f
+        ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
       left-inv f = lower-extensionality b d ext λ x →
         from C↔D (to C↔D (f (from A↔B (to A↔B x))))  ≡⟨ left-inverse-of C↔D _ ⟩
         f (from A↔B (to A↔B x))                      ≡⟨ cong f $ left-inverse-of A↔B _ ⟩∎
