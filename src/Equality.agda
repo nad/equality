@@ -1460,6 +1460,24 @@ module Derived-definitions-and-properties
       _
       _
 
+    -- Sometimes cong can be "pushed" inside subst. The following
+    -- lemma provides one example.
+
+    cong-subst :
+      ∀ {a b c} {A : Set a} {B : A → Set b} {C : A → Set c}
+        {f : ∀ {x} → B x → C x} {g h : (x : A) → B x} {x y}
+      (eq₁ : x ≡ y) (eq₂ : g x ≡ h x) →
+      cong f (subst (λ x → g x ≡ h x) eq₁ eq₂) ≡
+      subst (λ x → f (g x) ≡ f (h x)) eq₁ (cong f eq₂)
+    cong-subst {f = f} {g} {h} = elim₁
+      (λ eq₁ → ∀ eq₂ →
+         cong f (subst (λ x → g x ≡ h x) eq₁ eq₂) ≡
+         subst (λ x → f (g x) ≡ f (h x)) eq₁ (cong f eq₂))
+      (λ eq₂ →
+         cong f (subst (λ x → g x ≡ h x) (refl _) eq₂)          ≡⟨ cong (cong f) $ subst-refl _ _ ⟩
+         cong f eq₂                                             ≡⟨ sym $ subst-refl _ _ ⟩∎
+         subst (λ x → f (g x) ≡ f (h x)) (refl _) (cong f eq₂)  ∎)
+
     -- Some rearrangement lemmas for equalities between equalities.
 
     [trans≡]≡[≡trans-symʳ] :
