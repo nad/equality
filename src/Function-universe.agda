@@ -1437,9 +1437,6 @@ private
         _↔_.from (B₁↔B₂ x) (_↔_.to (B₁↔B₂ x) (f x))  ≡⟨ _↔_.left-inverse-of (B₁↔B₂ x) (f x) ⟩∎
         f x                                          ∎
 
-  -- Note that this proof's "to" component does not use subst, unlike
-  -- the one in the proof of Eq.Π-preserves.
-
   ∀-cong-eq :
     ∀ {a b₁ b₂} →
     Extensionality a (b₁ ⊔ b₂) →
@@ -1572,6 +1569,313 @@ implicit-∀-cong :
   ({x : A} → B₁ x) ↝[ k ] ({x : A} → B₂ x)
 implicit-∀-cong ext = ∀-cong→implicit-∀-cong (∀-cong ext)
 
+-- Two generalisations of ∀-cong-→.
+
+Π-cong-←→ :
+  ∀ {a₁ a₂ b₁ b₂}
+    {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₂→A₁ : A₂ → A₁) →
+  (∀ x → B₁ (A₂→A₁ x) → B₂ x) →
+  ((x : A₁) → B₁ x) → ((x : A₂) → B₂ x)
+Π-cong-←→ {B₁ = B₁} {B₂} A₂→A₁ B₁→B₂ f x =
+                $⟨ f (A₂→A₁ x) ⟩
+  B₁ (A₂→A₁ x)  ↝⟨ B₁→B₂ x ⟩
+  B₂ x          □
+
+Π-cong-↠→ :
+  ∀ {a₁ a₂ b₁ b₂}
+    {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₁↠A₂ : A₁ ↠ A₂) →
+  (∀ x → B₁ x → B₂ (_↠_.to A₁↠A₂ x)) →
+  ((x : A₁) → B₁ x) → ((x : A₂) → B₂ x)
+Π-cong-↠→ {B₁ = B₁} {B₂} A₁↠A₂ B₁→B₂ f x =
+                                        $⟨ f (_↠_.from A₁↠A₂ x) ⟩
+  B₁ (_↠_.from A₁↠A₂ x)                 ↝⟨ B₁→B₂ (_↠_.from A₁↠A₂ x) ⟩
+  B₂ (_↠_.to A₁↠A₂ (_↠_.from A₁↠A₂ x))  ↝⟨ subst B₂ (_↠_.right-inverse-of A₁↠A₂ x) ⟩□
+  B₂ x                                  □
+
+-- A generalisation of ∀-cong-⇔.
+
+Π-cong-⇔ :
+  ∀ {a₁ a₂ b₁ b₂}
+    {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₁↠A₂ : A₁ ↠ A₂) →
+  (∀ x → B₁ x ⇔ B₂ (_↠_.to A₁↠A₂ x)) →
+  ((x : A₁) → B₁ x) ⇔ ((x : A₂) → B₂ x)
+Π-cong-⇔ {A₁ = A₁} {A₂} {B₁} {B₂} A₁↠A₂ B₁⇔B₂ = record
+  { to   = Π-cong-↠→         A₁↠A₂  (_⇔_.to   ⊚ B₁⇔B₂)
+  ; from = Π-cong-←→ (_↠_.to A₁↠A₂) (_⇔_.from ⊚ B₁⇔B₂)
+  }
+
+-- Π preserves split surjections in a certain way (assuming
+-- extensionality).
+
+Π-cong-↠ :
+  ∀ {a₁ a₂ b₁ b₂} →
+  Extensionality a₂ b₂ →
+  ∀ {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₁↠A₂ : A₁ ↠ A₂) →
+  (∀ x → B₁ x ↠ B₂ (_↠_.to A₁↠A₂ x)) →
+  ((x : A₁) → B₁ x) ↠ ((x : A₂) → B₂ x)
+Π-cong-↠ ext {B₂ = B₂} A₁↠A₂ B₁↠B₂ = record
+  { logical-equivalence = equiv
+  ; right-inverse-of    = to∘from
+  }
+  where
+  equiv = Π-cong-⇔ A₁↠A₂ (_↠_.logical-equivalence ⊚ B₁↠B₂)
+
+  abstract
+
+    to∘from : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
+    to∘from f = ext λ x →
+      subst B₂ (_↠_.right-inverse-of A₁↠A₂ x)
+        (_↠_.to (B₁↠B₂ (_↠_.from A₁↠A₂ x))
+           (_↠_.from (B₁↠B₂ (_↠_.from A₁↠A₂ x))
+              (f (_↠_.to A₁↠A₂ (_↠_.from A₁↠A₂ x)))))  ≡⟨ cong (subst B₂ (_↠_.right-inverse-of A₁↠A₂ x)) $ _↠_.right-inverse-of (B₁↠B₂ _) _ ⟩
+
+      subst B₂ (_↠_.right-inverse-of A₁↠A₂ x)
+        (f (_↠_.to A₁↠A₂ (_↠_.from A₁↠A₂ x)))          ≡⟨ dependent-cong f _ ⟩∎
+
+      f x                                              ∎
+
+-- Another preservation lemma.
+
+Π-cong-↞↣ :
+  ∀ {a₁ a₂ b₁ b₂} →
+  Extensionality a₁ b₁ →
+  ∀ {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₂↠A₁ : A₂ ↠ A₁) →
+  (∀ x → B₁ (_↠_.to A₂↠A₁ x) ↣ B₂ x) →
+  ((x : A₁) → B₁ x) ↣ ((x : A₂) → B₂ x)
+Π-cong-↞↣ ext A₂↠A₁ B₁↣B₂ = record
+  { to        = to
+  ; injective = injective
+  }
+  where
+  to = Π-cong-←→ (_↠_.to A₂↠A₁) (_↣_.to ⊚ B₁↣B₂)
+
+  abstract
+
+    injective : Injective to
+    injective {x = f} {y = g} to-f≡to-g = Eq.good-ext ext λ x →
+
+      let x′ = _↠_.to A₂↠A₁ (_↠_.from A₂↠A₁ x) in
+                                                       $⟨ to-f≡to-g ⟩
+      (λ x → _↣_.to (B₁↣B₂ x) (f (_↠_.to A₂↠A₁ x))) ≡
+      (λ x → _↣_.to (B₁↣B₂ x) (g (_↠_.to A₂↠A₁ x)))    ↝⟨ cong (_$ _) ⟩
+
+      _↣_.to (B₁↣B₂ (_↠_.from A₂↠A₁ x)) (f x′) ≡
+      _↣_.to (B₁↣B₂ (_↠_.from A₂↠A₁ x)) (g x′)         ↝⟨ _↣_.injective (B₁↣B₂ _) ⟩
+
+      f x′ ≡ g x′                                      ↝⟨ subst (λ x → f x ≡ g x) $ _↠_.right-inverse-of A₂↠A₁ x ⟩□
+
+      f x ≡ g x                                        □
+
+-- A generalisation of ∀-cong.
+
+private
+
+  Π-cong-↔ :
+    ∀ {a₁ a₂ b₁ b₂} →
+    Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    (A₁≃A₂ : A₁ ≃ A₂) →
+    (∀ x → B₁ x ↔ B₂ (_≃_.to A₁≃A₂ x)) →
+    ((x : A₁) → B₁ x) ↔ ((x : A₂) → B₂ x)
+  Π-cong-↔ {a₁} {a₂} {b₁} {b₂} ext {B₂ = B₂} A₁≃A₂ B₁↔B₂ = record
+    { surjection      = surj
+    ; left-inverse-of = from∘to
+    }
+    where
+    surj = Π-cong-↠ (lower-extensionality a₁ b₁ ext)
+                    (_≃_.surjection A₁≃A₂) (_↔_.surjection ⊚ B₁↔B₂)
+
+    abstract
+
+      from∘to : ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
+      from∘to f = lower-extensionality a₂ b₂ ext λ x →
+        _↔_.from (B₁↔B₂ x)
+          (subst B₂ (_≃_.right-inverse-of A₁≃A₂ (_≃_.to A₁≃A₂ x))
+             (_↔_.to (B₁↔B₂ (_≃_.from A₁≃A₂ (_≃_.to A₁≃A₂ x)))
+                (f (_≃_.from A₁≃A₂ (_≃_.to A₁≃A₂ x)))))                  ≡⟨ cong (λ eq → _↔_.from (B₁↔B₂ x) (subst B₂ eq _)) $ sym $
+                                                                              _≃_.left-right-lemma A₁≃A₂ _ ⟩
+        _↔_.from (B₁↔B₂ x)
+          (subst B₂ (cong (_≃_.to A₁≃A₂) (_≃_.left-inverse-of A₁≃A₂ x))
+             (_↔_.to (B₁↔B₂ (_≃_.from A₁≃A₂ (_≃_.to A₁≃A₂ x)))
+                (f (_≃_.from A₁≃A₂ (_≃_.to A₁≃A₂ x)))))                  ≡⟨ cong (_↔_.from (B₁↔B₂ x)) $ sym $ subst-∘ _ _ _ ⟩
+
+        _↔_.from (B₁↔B₂ x)
+          (subst (B₂ ⊚ _≃_.to A₁≃A₂) (_≃_.left-inverse-of A₁≃A₂ x)
+             (_↔_.to (B₁↔B₂ (_≃_.from A₁≃A₂ (_≃_.to A₁≃A₂ x)))
+                (f (_≃_.from A₁≃A₂ (_≃_.to A₁≃A₂ x)))))                  ≡⟨ cong (_↔_.from (B₁↔B₂ x)) $
+                                                                              dependent-cong (λ x → _↔_.to (B₁↔B₂ x) (f x)) _ ⟩
+
+        _↔_.from (B₁↔B₂ x) (_↔_.to (B₁↔B₂ x) (f x))                      ≡⟨ _↔_.left-inverse-of (B₁↔B₂ x) _ ⟩
+
+        f x                                                              ∎
+
+  Π-cong-≃ :
+    ∀ {a₁ a₂ b₁ b₂} →
+    Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    (A₁≃A₂ : A₁ ≃ A₂) →
+    (∀ x → B₁ x ≃ B₂ (_≃_.to A₁≃A₂ x)) →
+    ((x : A₁) → B₁ x) ≃ ((x : A₂) → B₂ x)
+  Π-cong-≃ ext A₁≃A₂ =
+    from-isomorphism ⊚ Π-cong-↔ ext A₁≃A₂ ⊚ (from-isomorphism ⊚_)
+
+  Π-cong-↣ :
+    ∀ {a₁ a₂ b₁ b₂} →
+    Extensionality a₁ b₁ →
+    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    (A₁↔A₂ : A₁ ↔ A₂) →
+    (∀ x → B₁ x ↣ B₂ (_↔_.to A₁↔A₂ x)) →
+    ((x : A₁) → B₁ x) ↣ ((x : A₂) → B₂ x)
+  Π-cong-↣ ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ =
+    (∀ x → B₁ x ↣ B₂ (_↔_.to A₁↔A₂ x))                                    ↝⟨ Π-cong-←→ (_↔_.from A₁↔A₂) (λ _ → id) ⟩
+    (∀ x → B₁ (_↔_.from A₁↔A₂ x) ↣ B₂ (_↔_.to A₁↔A₂ (_↔_.from A₁↔A₂ x)))  ↝⟨ (∀-cong-→ λ _ →
+                                                                              subst ((B₁ _ ↣_) ⊚ B₂) (_↔_.right-inverse-of A₁↔A₂ _)) ⟩
+    (∀ x → B₁ (_↔_.from A₁↔A₂ x) ↣ B₂ x)                                  ↝⟨ Π-cong-↞↣ ext (_↔_.surjection $ inverse A₁↔A₂) ⟩□
+    ((x : A₁) → B₁ x) ↣ ((x : A₂) → B₂ x)                                 □
+
+  Π-cong-Emb′ :
+    ∀ {a₁ a₂ b₁ b₂} →
+    Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    (A₁≃A₂ : A₁ ≃ A₂) →
+    (∀ x → Embedding (B₁ (_≃_.from A₁≃A₂ x)) (B₂ x)) →
+    Embedding ((x : A₁) → B₁ x) ((x : A₂) → B₂ x)
+  Π-cong-Emb′ {a₁} {a₂} {b₁} {b₂} ext A₁≃A₂ B₁↣B₂ = record
+    { to           = to
+    ; is-embedding = is-embedding
+    }
+    where
+
+    to = Π-cong-←→ (_≃_.from A₁≃A₂) (Embedding.to ⊚ B₁↣B₂)
+
+    abstract
+
+      ext₁₁ : Extensionality a₁ b₁
+      ext₁₁ = lower-extensionality a₂ b₂ ext
+
+      ext₂₁ : Extensionality a₂ b₁
+      ext₂₁ = lower-extensionality a₁ b₂ ext
+
+      ext₂₂ : Extensionality a₂ b₂
+      ext₂₂ = lower-extensionality a₁ b₁ ext
+
+      is-embedding : Is-embedding to
+      is-embedding f g =
+        _≃_.is-equivalence $
+          Eq.with-other-function
+            (f ≡ g                                                    ↝⟨ inverse $ Eq.extensionality-isomorphism ext₁₁ ⟩
+
+             (∀ x → f x ≡ g x)                                        ↝⟨ (inverse $ Π-cong-≃ ext (inverse A₁≃A₂) λ x →
+                                                                          inverse $ Embedding.equivalence (B₁↣B₂ x)) ⟩
+             (∀ x → Embedding.to (B₁↣B₂ x) (f (_≃_.from A₁≃A₂ x)) ≡
+                    Embedding.to (B₁↣B₂ x) (g (_≃_.from A₁≃A₂ x)))    ↝⟨ Eq.extensionality-isomorphism ext₂₂ ⟩
+
+             (λ {x} → Embedding.to (B₁↣B₂ x)) ⊚ f ⊚ _≃_.from A₁≃A₂ ≡
+             (λ {x} → Embedding.to (B₁↣B₂ x)) ⊚ g ⊚ _≃_.from A₁≃A₂    ↔⟨⟩
+
+             to f ≡ to g                                              □)
+            _
+            (λ f≡g →
+               Eq.good-ext ext₂₂
+                 (cong (Embedding.to (B₁↣B₂ _)) ⊚
+                    ext⁻¹ f≡g ⊚ _≃_.from A₁≃A₂)                      ≡⟨ sym $ Eq.cong-post-∘-good-ext ext₂₁ ext₂₂ _ ⟩
+
+               cong (Embedding.to (B₁↣B₂ _) ⊚_)
+                 (Eq.good-ext ext₂₁ (ext⁻¹ f≡g ⊚ _≃_.from A₁≃A₂))    ≡⟨ cong (cong (Embedding.to (B₁↣B₂ _) ⊚_)) $ sym $
+                                                                        Eq.cong-pre-∘-good-ext ext₂₁ ext₁₁ _ ⟩
+               cong (Embedding.to (B₁↣B₂ _) ⊚_)
+                 (cong (_⊚ _≃_.from A₁≃A₂)
+                   (Eq.good-ext ext₁₁ (ext⁻¹ f≡g)))                  ≡⟨ cong-∘ _ _ _ ⟩
+
+               cong to (Eq.good-ext ext₁₁ (ext⁻¹ f≡g))               ≡⟨ cong (cong to) $
+                                                                        _≃_.right-inverse-of (Eq.extensionality-isomorphism ext₁₁) _ ⟩∎
+
+               cong to f≡g                                           ∎)
+
+  Π-cong-Emb :
+    ∀ {a₁ a₂ b₁ b₂} →
+    Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    (A₁≃A₂ : A₁ ≃ A₂) →
+    (∀ x → Embedding (B₁ x) (B₂ (_≃_.to A₁≃A₂ x))) →
+    Embedding ((x : A₁) → B₁ x) ((x : A₂) → B₂ x)
+  Π-cong-Emb ext {A₁} {A₂} {B₁} {B₂} A₁≃A₂ =
+
+    (∀ x → Embedding (B₁ x) (B₂ (_≃_.to A₁≃A₂ x)))            ↝⟨ Π-cong-←→ (_≃_.from A₁≃A₂) (λ _ → id) ⟩
+
+    (∀ x → Embedding (B₁ (_≃_.from A₁≃A₂ x))
+                     (B₂ (_≃_.to A₁≃A₂ (_≃_.from A₁≃A₂ x))))  ↝⟨ (∀-cong-→ λ _ → subst (Embedding (B₁ _) ⊚ B₂) (_≃_.right-inverse-of A₁≃A₂ _)) ⟩
+
+    (∀ x → Embedding (B₁ (_≃_.from A₁≃A₂ x)) (B₂ x))          ↝⟨ Π-cong-Emb′ ext A₁≃A₂ ⟩□
+
+    Embedding ((x : A₁) → B₁ x) ((x : A₂) → B₂ x)             □
+
+Π-cong :
+  ∀ {k₁ k₂ a₁ a₂ b₁ b₂} →
+  Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+  {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
+  (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
+  ((x : A₁) → B₁ x) ↝[ k₂ ] ((x : A₂) → B₂ x)
+Π-cong {k₁} {k₂} {a₁} {a₂} {b₁} {b₂}
+       ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ =
+  helper k₂ (B₁↝B₂′ k₁ A₁↔A₂ B₁↝B₂)
+  where
+  -- The first six clauses are included as optimisations intended to
+  -- make some proof terms easier to work with. These clauses cover
+  -- every possible use of B₁↝B₂′ in the expression above.
+
+  B₁↝B₂′ :
+    ∀ k₁ (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
+    (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
+    ∀ k x →
+    B₁ x ↝[ k₂ ] B₂ (to-implication {k = k} (from-isomorphism A₁↔A₂) x)
+  B₁↝B₂′ bijection   _     B₁↝B₂ bijection   = B₁↝B₂
+  B₁↝B₂′ bijection   _     B₁↝B₂ surjection  = B₁↝B₂
+  B₁↝B₂′ bijection   _     B₁↝B₂ equivalence = B₁↝B₂
+  B₁↝B₂′ equivalence _     B₁↝B₂ bijection   = B₁↝B₂
+  B₁↝B₂′ equivalence _     B₁↝B₂ surjection  = B₁↝B₂
+  B₁↝B₂′ equivalence _     B₁↝B₂ equivalence = B₁↝B₂
+  B₁↝B₂′ k₁          A₁↔A₂ B₁↝B₂ k           = λ x →
+    B₁ x                                                    ↝⟨ B₁↝B₂ x ⟩
+    B₂ (to-implication A₁↔A₂ x)                             ↝⟨ ≡⇒↝ _ $ cong (λ f → B₂ (f x)) $
+                                                                 to-implication∘from-isomorphism k₁ k ⟩□
+    B₂ (to-implication {k = k} (from-isomorphism A₁↔A₂) x)  □
+
+  A₁↝A₂ : ∀ {k} → A₁ ↝[ k ] A₂
+  A₁↝A₂ = from-isomorphism A₁↔A₂
+
+  ext₁₁ = lower-extensionality a₂ b₂ ext
+  ext₂₂ = lower-extensionality a₁ b₁ ext
+
+  helper :
+    ∀ k₂ →
+    (∀ k x → B₁ x ↝[ k₂ ]
+             B₂ (to-implication {k = k} (from-isomorphism A₁↔A₂) x)) →
+    ((x : A₁) → B₁ x) ↝[ k₂ ] ((x : A₂) → B₂ x)
+  helper implication         = Π-cong-↠→      A₁↝A₂ ⊚ (_$ surjection)
+  helper logical-equivalence = Π-cong-⇔       A₁↝A₂ ⊚ (_$ surjection)
+  helper injection           = Π-cong-↣ ext₁₁ A₁↝A₂ ⊚ (_$ bijection)
+  helper embedding           = Π-cong-Emb ext A₁↝A₂ ⊚ (_$ equivalence)
+  helper surjection          = Π-cong-↠ ext₂₂ A₁↝A₂ ⊚ (_$ surjection)
+  helper bijection           = Π-cong-↔ ext   A₁↝A₂ ⊚ (_$ equivalence)
+  helper equivalence         = Π-cong-≃ ext   A₁↝A₂ ⊚ (_$ equivalence)
+
 Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
 Π-left-identity = record
   { surjection = record
@@ -1591,7 +1895,7 @@ drop-⊤-left-Π : ∀ {a b} {A : Set a} {B : A → Set b} →
                 Extensionality a b →
                 (A↔⊤ : A ↔ ⊤) → ((x : A) → B x) ↔ B (_↔_.from A↔⊤ tt)
 drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
-  ((x : A) → B x)                 ↔⟨ inverse $ Eq.Π-preserves ext (inverse $ from-isomorphism A↔⊤) (λ _ → id) ⟩
+  ((x : A) → B x)                 ↝⟨ inverse $ Π-cong ext (inverse A↔⊤) (λ _ → id) ⟩
   ((x : ⊤) → B (_↔_.from A↔⊤ x))  ↝⟨ Π-left-identity ⟩□
   B (_↔_.from A↔⊤ tt)             □
 

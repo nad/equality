@@ -801,7 +801,7 @@ module Dependent where
 
   cast ass set      I≅J = Eq.id
   cast ass (base A) I≅J = Type-cong A ass I≅J
-  cast ass (Π σ τ)  I≅J = Π-preserves ext₁
+  cast ass (Π σ τ)  I≅J = Π-cong ext₁
     (cast ass σ I≅J)
     (λ x → cast ass τ (I≅J , isomorphic-to-itself σ ass I≅J x))
     where open Assumptions ass
@@ -866,7 +866,7 @@ module Dependent where
 
     (∀ x y (x≅y : Iso ass σ I≅J x y) →
            Iso ass τ (I≅J , x≅y) (f x) (g y))                        ↝⟨ ∀-cong ext₁ (λ x → ∀-cong ext₁ λ y →
-                                                                          Π-preserves ext₁ (Iso≃Iso″ ass σ I≅J) (λ x≅y →
+                                                                          Π-cong ext₁ (Iso≃Iso″ ass σ I≅J) (λ x≅y →
            Iso ass τ (I≅J , x≅y) (f x) (g y)                                ↝⟨ Iso≃Iso″ ass τ (I≅J , x≅y) ⟩
            (resp τ ass (I≅J , x≅y) (f x) ≡ g y)                             ↝⟨ ≡⇒≃ $ cong (λ x≅y → resp τ ass (I≅J , x≅y) (f x) ≡ g y) $
                                                                                  sym $ left-inverse-of (Iso≃Iso″ ass σ I≅J) _ ⟩□

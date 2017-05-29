@@ -464,9 +464,9 @@ drop-∥∥ ℓ {a} {b} {A} {B} ext =
 
   (∥ A ∥ 1 _ → ∀ x → B x)              ↝⟨ inverse currying ⟩
 
-  ((p : ∥ A ∥ 1 _ × A) → B (proj₂ p))  ↔⟨ Π-preserves (lower-extensionality lzero (a ⊔ ℓ) ext)
-                                                      (∥∥×≃ (lower-extensionality lzero b ext))
-                                                      (λ _ → F.id) ⟩□
+  ((p : ∥ A ∥ 1 _ × A) → B (proj₂ p))  ↝⟨ Π-cong (lower-extensionality lzero (a ⊔ ℓ) ext)
+                                                 (∥∥×≃ (lower-extensionality lzero b ext))
+                                                 (λ _ → F.id) ⟩□
   (∀ x → B x)                          □
 
 -- Another variant of ∥∥×≃.

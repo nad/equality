@@ -832,7 +832,7 @@ Isomorphism-monoid-isomorphic-to-standard ext
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ x y → to (from x ∙₁ from y) ≡ (x ∙₂ y)) ×
    to e₁ ≡ e₂)                                               ↔⟨ inverse $ ∃-cong (λ eq →
-                                                                  Π-preserves ext (↔⇒≃ eq) (λ x → Π-preserves ext (↔⇒≃ eq) (λ y →
+                                                                  Π-cong ext (↔⇒≃ eq) (λ x → Π-cong ext (↔⇒≃ eq) (λ y →
                                                                       ≡⇒≃ $ sym $ cong₂ (λ u v → _↔_.to eq (u ∙₁ v) ≡
                                                                                                  (_↔_.to eq x ∙₂ _↔_.to eq y))
                                                                                         (_↔_.left-inverse-of eq x)
@@ -956,7 +956,7 @@ Isomorphism-poset-isomorphic-to-order-isomorphism ass
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ a b → (from a ≤₁ from b) ≡ (a ≤₂ b)))     ↔⟨ inverse $ ∃-cong (λ eq →
-                                                     Π-preserves ext₁ (↔⇒≃ eq) λ a → Π-preserves ext₁ (↔⇒≃ eq) λ b →
+                                                     Π-cong ext₁ (↔⇒≃ eq) λ a → Π-cong ext₁ (↔⇒≃ eq) λ b →
                                                          ≡⇒≃ $ sym $ cong₂ (λ x y → (x ≤₁ y) ≡ (_↔_.to eq a ≤₂ _↔_.to eq b))
                                                                            (_↔_.left-inverse-of eq a)
                                                                            (_↔_.left-inverse-of eq b)) ⟩

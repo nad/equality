@@ -350,7 +350,7 @@ drop-∥∥ :
   (∀ x → B x)
 drop-∥∥ {A = A} {B} =
   (∥ A ∥ → ∀ x → B x)              ↝⟨ inverse currying ⟩
-  ((p : ∥ A ∥ × A) → B (proj₂ p))  ↔⟨ Π-preserves ext ∥∥×≃ (λ _ → F.id) ⟩□
+  ((p : ∥ A ∥ × A) → B (proj₂ p))  ↝⟨ Π-cong ext ∥∥×≃ (λ _ → F.id) ⟩□
   (∀ x → B x)                      □
 
 -- Another variant of ∥∥×≃.

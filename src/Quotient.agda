@@ -291,7 +291,7 @@ strong-equivalence-closed-under-on
   R (f x) ≡ R (f y)                              ↝⟨ F.id ⟩
   (λ z → R (f x)    z)  ≡ (λ z → R (f y)    z)   ↝⟨ inverse $ Eq.extensionality-isomorphism
                                                                 (lower-extensionality b lzero ext) ⟩
-  (∀ z → R (f x)    z   ≡        R (f y)    z)   ↝⟨ (Eq.Π-preserves ext (inverse B≃A) λ z →
+  (∀ z → R (f x)    z   ≡        R (f y)    z)   ↝⟨ (Π-cong ext (inverse B≃A) λ z →
                                                      ≡⇒≃ $ cong₂ _≡_ (lemma x z) (lemma y z)) ⟩
   (∀ z → R (f x) (f z)  ≡        R (f y) (f z))  ↝⟨ Eq.extensionality-isomorphism
                                                       (lower-extensionality a lzero ext) ⟩

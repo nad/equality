@@ -132,8 +132,8 @@ module _ {reflexive}
          ∃ λ (j : (x : A) → P (x , x , refl x)) → (x : A) → j x ≡ d x)    ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
                                                                               ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
                                                                               ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ → inverse $
-                                                                              Σ-cong (inverse $ Π-preserves (lower-extensionality _ _ ext)
-                                                                                                            ≃I λ _ → ⟨id⟩) λ _ →
+                                                                              Σ-cong (inverse $ Π-cong (lower-extensionality _ _ ext)
+                                                                                                       ≃I λ _ → ⟨id⟩ {k = equivalence}) λ _ →
                                                                               ⟨id⟩ {k = equivalence}) ⟩
         ((A : Set a) (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
          ∃ λ (j : (q : I A) → P q) → (x : A) → j (x , x , refl x) ≡ d x)  ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
