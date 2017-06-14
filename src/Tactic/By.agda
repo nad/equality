@@ -205,8 +205,8 @@ private
     bindTC (make-cong-called cong n) λ _ →
     returnTC cong
 
-  -- Tries to apply the given term (of the given type, which must live
-  -- in Set₀) to the list of arguments.
+  -- Tries to apply the given term (of the given type) to the list of
+  -- arguments.
 
   apply : Type → Term → List (Arg Term) → TC Term
   apply A t []       = returnTC t
