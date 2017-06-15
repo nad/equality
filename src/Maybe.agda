@@ -90,11 +90,10 @@ instance
   run (Raw-monad-transformer.liftʳ raw-monad-transformer m) =
     map just m
 
-  transform-MaybeT :
+  transform :
     ∀ {d c} {M : Set d → Set c} ⦃ is-raw-monad : Raw-monad M ⦄ →
     Raw-monad (MaybeT M)
-  transform-MaybeT =
-    Raw-monad-transformer.transform raw-monad-transformer
+  transform = Raw-monad-transformer.transform raw-monad-transformer
 
 -- MaybeT is a monad transformer (assuming extensionality).
 
