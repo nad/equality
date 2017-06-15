@@ -24,10 +24,15 @@ open import Function-universe eq using (inverse)
 record Raw-monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
   constructor mk
   infixl 6 _⟨$⟩_ _⊛_
-  infixl 5 _>>=_
+  infixl 5 _>>=_ _>>_
   field
     return : ∀ {A} → A → M A
     _>>=_  : ∀ {A B} → M A → (A → M B) → M B
+
+  -- A variant of _>>=_.
+
+  _>>_ : ∀ {A B} → M A → M B → M B
+  x >> y = x >>= const y
 
   -- A map function.
 
