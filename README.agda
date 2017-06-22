@@ -173,6 +173,10 @@ import Vec
 
 import Const
 
+-- Support for reflection.
+
+import Reflection
+
 -- Some tactics aimed at making equational reasoning proofs more
 -- readable.
 
