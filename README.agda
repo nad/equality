@@ -117,6 +117,14 @@ import Bool
 
 import Monad
 
+-- The reader monad transformer.
+
+import Monad.Reader
+
+-- The state monad transformer.
+
+import Monad.State
+
 -- The double-negation monad.
 
 import Double-negation
