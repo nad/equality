@@ -185,6 +185,8 @@ m≤n+m m (suc n) = ≤-step (m≤n+m m n)
 
 -- A decision procedure for _≤_.
 
+infix 4 _≤?_
+
 _≤?_ : Decidable _≤_
 zero  ≤? n     = inj₁ (zero≤ n)
 suc m ≤? zero  = inj₂ λ { (≤-refl′ eq)   → 0≢+ (sym eq)
