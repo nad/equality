@@ -282,8 +282,8 @@ expressed-in-terms-of-interpretation-and-Any C = record
 ------------------------------------------------------------------------
 -- Alternative definition of bag equivalence
 
--- Two things are bag equal if there is a bijection (or equivalence)
--- between their positions which relates equal things.
+-- Two things are bag equivalent if there is a bijection (or
+-- equivalence) between their positions that relates equal things.
 
 infix 4 _≈[_]′_
 
