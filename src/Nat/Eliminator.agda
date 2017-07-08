@@ -115,7 +115,7 @@ Natrec-propositional {ℓ} ext₊ =
                                   (sym $ ns₀ P z s n)))) in
 
           _↔_.to ≡×≡↔≡
-            ( (trans (cong (_$ zero) (ext f)) (nz₀ P z s)      ≡⟨ cong (flip trans (nz₀ P z s)) $ cong-good-ext ext₀ _ ⟩
+            ( (trans (cong (_$ zero) (ext f)) (nz₀ P z s)      ≡⟨ cong (flip trans (nz₀ P z s)) $ cong-good-ext ext₀ f ⟩
                trans (f zero) (nz₀ P z s)                      ≡⟨ cong (flip trans (nz₀ P z s) ∘ lower) $ nz₀ _ _ _ ⟩
                trans (trans nz (sym $ nz₀ P z s)) (nz₀ P z s)  ≡⟨ trans-[trans-sym]- _ (nz₀ P z s) ⟩∎
                nz                                              ∎)
@@ -125,7 +125,7 @@ Natrec-propositional {ℓ} ext₊ =
                   (cong (_$ suc n) (ext f))
                   (trans (ns₀ P z s n)
                      (sym $ cong (s n) $ cong (_$ n) (ext f)))     ≡⟨ cong₂ (λ p q → trans p (trans (ns₀ P z s n) (sym $ cong (s n) q)))
-                                                                        (cong-good-ext ext₀ _) (cong-good-ext ext₀ _) ⟩
+                                                                        (cong-good-ext ext₀ f) (cong-good-ext ext₀ f) ⟩
                 trans
                   (f (suc n))
                   (trans (ns₀ P z s n) (sym $ cong (s n) (f n)))   ≡⟨ cong (flip trans (trans _ (sym $ cong (s n) (f n))) ∘ lower) $ ns₀ _ _ _ _ ⟩

@@ -1120,7 +1120,7 @@ currying = record
       ; from = λ eq → cong proj₁ eq , cong proj₂ eq
       }
     ; right-inverse-of = λ eq →
-        cong₂ _,_ (cong proj₁ eq) (cong proj₂ eq)  ≡⟨ cong₂-cong-cong _ _ _ ⟩
+        cong₂ _,_ (cong proj₁ eq) (cong proj₂ eq)  ≡⟨ cong₂-cong-cong _ _ _,_ ⟩
         cong (λ p → proj₁ p , proj₂ p) eq          ≡⟨⟩
         cong id eq                                 ≡⟨ sym $ cong-id _ ⟩∎
         eq                                         ∎
