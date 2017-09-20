@@ -392,28 +392,25 @@ private
       P n                       }
   ⟦inductive-natural-numbers⟧ = refl
 
-  -- Due to performance issues I have not been able to type-check the
-  -- following lemma. /NAD
+  Isomorphic-inductive-natural-numbers :
+    ∀ {ass : Assumptions}
+      {n₁ n₂ : Nat}
+      {prop₁ : (P : Nat → Set) → Is-proposition (P n₁) →
+               P Zero → (∀ m → P m → P (Suc m)) → P n₁}
+      {prop₂ : (P : Nat → Set) → Is-proposition (P n₂) →
+               P Zero → (∀ m → P m → P (Suc m)) → P n₂} →
 
-  -- Isomorphic-inductive-natural-numbers :
-  --   ∀ {ass : Assumptions}
-  --     {n₁ n₂ : Nat}
-  --     {prop₁ : (P : Nat → Set) → Is-proposition (P n₁) →
-  --              P Zero → (∀ m → P m → P (Suc m)) → P n₁}
-  --     {prop₂ : (P : Nat → Set) → Is-proposition (P n₂) →
-  --              P Zero → (∀ m → P m → P (Suc m)) → P n₂} →
+    Isomorphic ass inductive-natural-numbers
+                   ((_ , n₁) , prop₁) ((_ , n₂) , prop₂)
+      ≡
+    Σ (Σ (↑ (# 1) ⊤) λ _ →
+    ((A₁ A₂ : Set) → (A₁≃A₂ : ↑ (# 1) (A₁ ≃ A₂)) →
+     let cast = _≃_.from (↑-cong (lower A₁≃A₂)) in
+     (z₁ : ↑ (# 1) A₁) (z₂ : ↑ (# 1) A₂) →
+       z₁ ≡ cast z₂ →
+     (s₁ : ↑ (# 1) A₁ → ↑ (# 1) A₁) (s₂ : ↑ (# 1) A₂ → ↑ (# 1) A₂) →
+       (∀ n₁ n₂ → n₁ ≡ cast n₂ → s₁ n₁ ≡ cast (s₂ n₂)) →
+     n₁ A₁ z₁ s₁ ≡ cast (n₂ A₂ z₂ s₂))) λ _ →
+    ↑ (# 1) ⊤
 
-  --   Isomorphic ass inductive-natural-numbers
-  --                  ((_ , n₁) , prop₁) ((_ , n₂) , prop₂)
-  --     ≡
-  --   Σ (Σ (↑ (# 1) ⊤) λ _ →
-  --   ((A₁ A₂ : Set) → (A₁≃A₂ : ↑ (# 1) (A₁ ≃ A₂)) →
-  --    let cast = _≃_.from (↑-cong (lower A₁≃A₂)) in
-  --    (z₁ : ↑ (# 1) A₁) (z₂ : ↑ (# 1) A₂) →
-  --      z₁ ≡ cast z₂ →
-  --    (s₁ : ↑ (# 1) A₁ → ↑ (# 1) A₁) (s₂ : ↑ (# 1) A₂ → ↑ (# 1) A₂) →
-  --      (∀ n₁ n₂ → n₁ ≡ cast n₂ → s₁ n₁ ≡ cast (s₂ n₂)) →
-  --    n₁ A₁ z₁ s₁ ≡ cast (n₂ A₂ z₂ s₂))) λ _ →
-  --   ↑ (# 1) ⊤
-
-  -- Isomorphic-inductive-natural-numbers = refl
+  Isomorphic-inductive-natural-numbers = refl
