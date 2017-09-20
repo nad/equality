@@ -168,7 +168,7 @@ isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
   -- Extensionality follows from univalence.
 
   ext : Extensionality (# 0) (# 0)
-  ext = dependent-extensionality univ₁ (λ _ → univ)
+  ext = dependent-extensionality univ₁ univ
 
   -- Hence the goal follows from monoids-equal-if, if we can prove
   -- three equalities.
@@ -206,7 +206,7 @@ isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
   -- cast₂-equiv-is-subst, and the fact that the bijection is a
   -- monoid homomorphism.
 
-  op-eq = ext λ x → ext λ y →
+  op-eq = apply-ext ext λ x → apply-ext ext λ y →
     subst (λ A → A → A → A) C-eq (op M₁) x y                   ≡⟨ cong (λ f → f x y) $ sym $ cast₂-equiv-is-subst (op M₁) ⟩
     to equiv (op M₁ (from equiv x) (from equiv y))             ≡⟨ bij-op (from equiv x) (from equiv y) ⟩
     op M₂ (to equiv (from equiv x)) (to equiv (from equiv y))  ≡⟨ cong₂ (op M₂) (right-inverse-of equiv x) (right-inverse-of equiv y) ⟩∎
@@ -263,7 +263,7 @@ isomorphism-is-equality univ univ₁
   -- Extensionality follows from univalence.
 
   ext : Extensionality (# 0) (# 0)
-  ext = dependent-extensionality univ₁ (λ _ → univ)
+  ext = dependent-extensionality univ₁ univ
 
   -- C₁ is a set.
 

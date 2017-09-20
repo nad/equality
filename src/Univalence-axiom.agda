@@ -484,14 +484,22 @@ abstract
 
   -- Thus we also get extensionality for dependent functions.
 
-  dependent-extensionality :
+  dependent-extensionality′ :
     ∀ {b} → Univalence′ (Set b ²/≡) (Set b) →
     ∀ {a} {A : Set a} →
     (∀ {B : A → Set b} x → Univalence′ (↑ b ⊤) (B x)) →
     {B : A → Set b} → Extensionality′ A B
-  dependent-extensionality univ₁ univ₂ =
+  dependent-extensionality′ univ₁ univ₂ =
     _⇔_.to Π-closure-contractible⇔extensionality
       (Π-closure-contractible univ₁ univ₂)
+
+  dependent-extensionality :
+    ∀ {b} →
+    Univalence (lsuc b) →
+    Univalence b →
+    ∀ {a} → Extensionality a b
+  apply-ext (dependent-extensionality univ₁ univ₂) =
+    dependent-extensionality′ univ₁ (λ _ → univ₂)
 
 ------------------------------------------------------------------------
 -- Pow and Fam
@@ -554,7 +562,7 @@ Pow↔Fam ℓ {A = A} ext univ = record
             (∃ λ a′ → P a′ × a′ ≡ a)       ↔⟨ inverse $ ∃-intro _ _ ⟩□
             P a                            □
       in
-      (λ a → ∃ λ (i : ∃ P) → proj₁ i ≡ a)  ≡⟨ ext (λ a → ≃⇒≡ univ (lemma a)) ⟩∎
+      (λ a → ∃ λ (i : ∃ P) → proj₁ i ≡ a)  ≡⟨ apply-ext ext (λ a → ≃⇒≡ univ (lemma a)) ⟩∎
       P                                    ∎
   }
 
@@ -820,14 +828,15 @@ abstract
       to (≡⇒≃ (cong₂ (λ A B → A → B) (≃⇒≡ univ A₁≃A₂)
                                      (≃⇒≡ univ B₁≃B₂)))
     lemma =
-      (λ f → to B₁≃B₂ ∘ f ∘ from A₁≃A₂)                  ≡⟨ ext (λ _ → transport-theorem (λ B → A₂ → B) (λ A≃B g → _≃_.to A≃B ∘ g)
-                                                                                         refl univ B₁≃B₂ _) ⟩
+      (λ f → to B₁≃B₂ ∘ f ∘ from A₁≃A₂)                  ≡⟨ apply-ext ext (λ _ → transport-theorem (λ B → A₂ → B) (λ A≃B g → _≃_.to A≃B ∘ g)
+                                                                                                   refl univ B₁≃B₂ _) ⟩
       subst (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂) ∘
-      (λ f → f ∘ from A₁≃A₂)                             ≡⟨ cong (_∘_ (subst (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂))) (ext λ f →
+      (λ f → f ∘ from A₁≃A₂)                             ≡⟨ cong (_∘_ (subst (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂))) (apply-ext ext λ f →
                                                               transport-theorem (λ A → A → B₁) (λ A≃B g → g ∘ _≃_.from A≃B) refl univ A₁≃A₂ f) ⟩
       subst (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂) ∘
-      subst (λ A → A → B₁) (≃⇒≡ univ A₁≃A₂)              ≡⟨ cong₂ (λ g h f → g (h f)) (ext $ subst-in-terms-of-≡⇒↝ equivalence _ (λ B → A₂ → B))
-                                                                                      (ext $ subst-in-terms-of-≡⇒↝ equivalence _ (λ A → A → B₁)) ⟩
+      subst (λ A → A → B₁) (≃⇒≡ univ A₁≃A₂)              ≡⟨ cong₂ (λ g h f → g (h f))
+                                                              (apply-ext ext $ subst-in-terms-of-≡⇒↝ equivalence _ (λ B → A₂ → B))
+                                                              (apply-ext ext $ subst-in-terms-of-≡⇒↝ equivalence _ (λ A → A → B₁)) ⟩
       to (≡⇒≃ (cong (λ B → A₂ → B) (≃⇒≡ univ B₁≃B₂))) ∘
       to (≡⇒≃ (cong (λ A → A → B₁) (≃⇒≡ univ A₁≃A₂)))    ≡⟨⟩
 
@@ -855,7 +864,7 @@ abstract
     ≃⇒≡ univ₂ (P-cong A≃B)                    ∎
     where
     lemma : ≡⇒→ (cong P (≃⇒≡ univ₁ A≃B)) ≡ _≃_.to (P-cong A≃B)
-    lemma = ext λ x →
+    lemma = apply-ext ext λ x →
       ≡⇒→ (cong P (≃⇒≡ univ₁ A≃B)) x  ≡⟨ sym $ subst-in-terms-of-≡⇒↝ equivalence _ P x ⟩
       subst P (≃⇒≡ univ₁ A≃B) x       ≡⟨ sym $ transport-theorem P (_≃_.to ∘ P-cong) P-cong-id univ₁ A≃B x ⟩∎
       _≃_.to (P-cong A≃B) x           ∎
@@ -952,8 +961,8 @@ abstract
                                                                            _≃_.right-inverse-of (≡≃≃ univ₁) _ ⟩
         ((_≃_.to B₁≃B₂ ∘ _≃_.from B₁≃B₂) ∘ ≡⇒→ A₂≡B₂ ∘
          (_≃_.to A₁≃A₂ ∘ _≃_.from A₁≃A₂))                             ≡⟨ cong₂ (λ f g → f ∘ ≡⇒→ A₂≡B₂ ∘ g)
-                                                                               (ext₂ $ _≃_.right-inverse-of B₁≃B₂)
-                                                                               (ext₂ $ _≃_.right-inverse-of A₁≃A₂) ⟩∎
+                                                                               (apply-ext ext₂ $ _≃_.right-inverse-of B₁≃B₂)
+                                                                               (apply-ext ext₂ $ _≃_.right-inverse-of A₁≃A₂) ⟩∎
         ≡⇒→ A₂≡B₂                                                     ∎))
 
     from∘to : ∀ eq → from (to eq) ≡ eq
@@ -971,8 +980,8 @@ abstract
                                                                            _≃_.right-inverse-of (≡≃≃ univ₂) _ ⟩
         ((_≃_.from B₁≃B₂ ∘ _≃_.to B₁≃B₂) ∘ ≡⇒→ A₁≡B₁ ∘
          (_≃_.from A₁≃A₂ ∘ _≃_.to A₁≃A₂))                             ≡⟨ cong₂ (λ f g → f ∘ ≡⇒→ A₁≡B₁ ∘ g)
-                                                                               (ext₁ $ _≃_.left-inverse-of B₁≃B₂)
-                                                                               (ext₁ $ _≃_.left-inverse-of A₁≃A₂) ⟩∎
+                                                                               (apply-ext ext₁ $ _≃_.left-inverse-of B₁≃B₂)
+                                                                               (apply-ext ext₁ $ _≃_.left-inverse-of A₁≃A₂) ⟩∎
         ≡⇒→ A₁≡B₁                                                     ∎))
 
 -- Singletons expressed using equivalences instead of equalities are

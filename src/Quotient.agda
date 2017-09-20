@@ -97,7 +97,7 @@ propositional-equivalence⇒strong-equivalence
   Eq.↔⇒≃ (record
     { surjection = record
       { logical-equivalence = record
-        { to = λ Rxy → lower-extensionality r lzero ext λ z →
+        { to = λ Rxy → apply-ext (lower-extensionality r lzero ext) λ z →
                  ≃⇒≡ univ $
                  _↔_.to (Eq.⇔↔≃ (lower-extensionality a _ ext)
                                 (R-prop x z) (R-prop y z))
@@ -343,7 +343,7 @@ strong-equivalence-not-closed-under-×-or-⊎ ext univ =
     B ↔ Fin 4 →
     ¬ Strong-equivalence (λ (_ _ : ⊤) → B)
   not-strong-equivalence {B} B↔Fin4 =
-    Strong-equivalence (λ _ _ → B)      ↝⟨ (≡⇒↝ _ $ cong Strong-equivalence $ ext λ _ → ext λ _ →
+    Strong-equivalence (λ _ _ → B)      ↝⟨ (≡⇒↝ _ $ cong Strong-equivalence $ apply-ext ext λ _ → apply-ext ext λ _ →
                                             ≃⇒≡ univ $ Eq.↔⇒≃ B↔Fin4) ⟩
     Strong-equivalence (λ _ _ → Fin 4)  ↝⟨ const-Fin-strong-equivalence⇒≡! ext univ 4 ⟩
     4 ≡ 4 !                             ↝⟨ from-⊎ (4 Nat.≟ (4 !)) ⟩□
@@ -730,7 +730,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
       (∀ P (p q : ∃ λ x → R x ≡ P) → f (proj₁ p) ≡ f (proj₁ q))      ↝⟨ F.id ⟩
 
       (∀ P → Constant (λ { (x , _) → f x }))                         ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                         ≡⇒↝ _ $ cong Constant $ lower-extensionality _ _ ext λ _ →
+                                                                         ≡⇒↝ _ $ cong Constant $ apply-ext (lower-extensionality _ _ ext) λ _ →
                                                                          sym $ subst-const _) ⟩□
       (∀ P → Constant (λ { (x , _) → subst (const B) _ (f x) }))     □
 
@@ -747,7 +747,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
       ≡
     f ∘ [_]
   proj₁-to-/→set↔relation-respecting ext _ {B} _ f =
-    lower-extensionality _ _ ext λ x →
+    apply-ext (lower-extensionality _ _ ext) λ x →
       subst (const B) (refl _) (f [ x ])  ≡⟨ subst-refl _ _ ⟩∎
       f [ x ]                             ∎
 

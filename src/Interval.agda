@@ -144,7 +144,7 @@ abstract
       λ x → rec (f x) (g x) (f≡g x) i
 
     ext′ : ∀ {a b} → Extensionality a b
-    ext′ {f = f} {g = g} f≡g =
+    apply-ext ext′ {f = f} {g = g} f≡g =
       f                   ≡⟨⟩
       ext-helper f≡g [0]  ≡⟨ cong (ext-helper f≡g) 0≡1 ⟩∎
       ext-helper f≡g [1]  ∎
@@ -152,30 +152,33 @@ abstract
   ext : ∀ {a b} → Extensionality a b
   ext = good-ext ext′
 
-  -- The function ext is an equivalence.
+  ⟨ext⟩ : ∀ {a b} {A : Set a} {B : A → Set b} → Extensionality′ A B
+  ⟨ext⟩ = apply-ext ext
+
+  -- The function ⟨ext⟩ is an equivalence.
 
   ext-is-equivalence :
     ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
-    Is-equivalence {A = ∀ x → f x ≡ g x} ext
+    Is-equivalence {A = ∀ x → f x ≡ g x} ⟨ext⟩
   ext-is-equivalence = good-ext-is-equivalence ext′
 
-  -- Equality rearrangement lemmas for ext.
+  -- Equality rearrangement lemmas for ⟨ext⟩.
 
   ext-refl :
     ∀ {a b} {A : Set a} {B : A → Set b} (f : (x : A) → B x) →
-    ext (λ x → refl {x = f x}) ≡ refl {x = f}
+    ⟨ext⟩ (λ x → refl {x = f x}) ≡ refl {x = f}
   ext-refl = good-ext-refl ext′
 
   cong-ext :
     ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) {x} →
-    cong (_$ x) (ext f≡g) ≡ f≡g x
+    cong (_$ x) (⟨ext⟩ f≡g) ≡ f≡g x
   cong-ext = cong-good-ext ext′
 
   subst-ext :
     ∀ {a b p} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} {x}
     (P : B x → Set p) {p} (f≡g : ∀ x → f x ≡ g x) →
-    subst (λ f → P (f x)) (ext f≡g) p ≡ subst P (f≡g x) p
+    subst (λ f → P (f x)) (⟨ext⟩ f≡g) p ≡ subst P (f≡g x) p
   subst-ext = subst-good-ext ext′
 
   elim-ext :
@@ -184,7 +187,7 @@ abstract
     (p : (y : B x) → P y y)
     {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) →
-    Eq.elim (λ {f g} _ → P (f x) (g x)) (p ∘ (_$ x)) (ext f≡g) ≡
+    Eq.elim (λ {f g} _ → P (f x) (g x)) (p ∘ (_$ x)) (⟨ext⟩ f≡g) ≡
     Eq.elim (λ {x y} _ → P x y) p (f≡g x)
   elim-ext = elim-good-ext ext′
 
@@ -197,25 +200,25 @@ abstract
   ext-sym :
     ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) →
-    ext (sym ∘ f≡g) ≡ sym (ext f≡g)
+    ⟨ext⟩ (sym ∘ f≡g) ≡ sym (⟨ext⟩ f≡g)
   ext-sym = good-ext-sym ext′
 
   ext-trans :
     ∀ {a b} {A : Set a} {B : A → Set b} {f g h : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) (g≡h : ∀ x → g x ≡ h x) →
-    ext (λ x → trans (f≡g x) (g≡h x)) ≡ trans (ext f≡g) (ext g≡h)
+    ⟨ext⟩ (λ x → trans (f≡g x) (g≡h x)) ≡ trans (⟨ext⟩ f≡g) (⟨ext⟩ g≡h)
   ext-trans = good-ext-trans ext′
 
   cong-post-∘-ext :
     ∀ {a b c} {A : Set a} {B : A → Set b} {C : A → Set c}
       {f g : (x : A) → B x} {h : ∀ {x} → B x → C x}
     (f≡g : ∀ x → f x ≡ g x) →
-    cong (h ∘_) (ext f≡g) ≡ ext (cong h ∘ f≡g)
+    cong (h ∘_) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (cong h ∘ f≡g)
   cong-post-∘-ext = cong-post-∘-good-ext ext′ ext′
 
   cong-pre-∘-ext :
     ∀ {a b c} {A : Set a} {B : Set b} {C : B → Set c}
       {f g : (x : B) → C x} {h : A → B}
     (f≡g : ∀ x → f x ≡ g x) →
-    cong (_∘ h) (ext f≡g) ≡ ext (f≡g ∘ h)
+    cong (_∘ h) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (f≡g ∘ h)
   cong-pre-∘-ext = cong-pre-∘-good-ext ext′ ext′

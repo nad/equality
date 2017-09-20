@@ -445,16 +445,16 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
       in
       Σ-≡,≡→≡ f≡f
         (subst (P ∘ _≃_.to) f≡f (trans refl ∘ related)  ≡⟨ cong (subst (P ∘ _≃_.to) f≡f)
-                                                                (lower-extensionality (a ⊔ d) (c ⊔ d) ext λ _ → trans-reflˡ _) ⟩
+                                                                (apply-ext (lower-extensionality (a ⊔ d) (c ⊔ d) ext) λ _ → trans-reflˡ _) ⟩
          subst (P ∘ _≃_.to) f≡f related                 ≡⟨ subst-∘ P _≃_.to f≡f ⟩
          subst P (cong _≃_.to f≡f) related              ≡⟨ cong (λ eq → subst P eq related) cong-to-f≡f ⟩
          subst P refl related                           ≡⟨ subst-refl P {x = f} related ⟩∎
          related                                        ∎) }
     }
   ; left-inverse-of = λ xs≈ys →
-      lower-extensionality (c ⊔ d) a ext λ z →
+      apply-ext (lower-extensionality (c ⊔ d) a ext) λ z →
         Eq.lift-equality ext $
-          lower-extensionality d c ext λ { (p , z≡xs[p]) →
+          apply-ext (lower-extensionality d c ext) λ { (p , z≡xs[p]) →
 
               let xs[p]≡ys[-] : ∃ λ p′ → index xs p ≡ index ys p′
                   xs[p]≡ys[-] = _≃_.to (xs≈ys (index xs p)) (p , refl) in

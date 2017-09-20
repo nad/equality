@@ -289,8 +289,8 @@ precategory-Set ℓ ext = record { precategory =
   { surjection = record
     { logical-equivalence = record
       { to   = λ X≃Y → _≃_.to X≃Y , _≃_.from X≃Y ,
-                       ext (_≃_.right-inverse-of X≃Y) ,
-                       ext (_≃_.left-inverse-of  X≃Y)
+                       apply-ext ext (_≃_.right-inverse-of X≃Y) ,
+                       apply-ext ext (_≃_.left-inverse-of  X≃Y)
       ; from = λ X≅Y → Eq.↔⇒≃ record
                  { surjection = record
                    { logical-equivalence = record
@@ -384,7 +384,8 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                       (∀ X Y Z f g →
                                                                                          ≡⇒→ (eqH′ X Z)
                                                                                            (C._∙_ (≡⇒← (eqH′ Y Z) f) (≡⇒← (eqH′ X Y) g)) ≡ f D.∙ g))
-                                                                                   (ext₁₁₂₊ λ _ → ext₁₂₊ λ _ → proj₁-Σ-≡,≡←≡ _)) ⟩
+                                                                                   (apply-ext ext₁₁₂₊ λ _ → apply-ext ext₁₂₊ λ _ →
+                                                                                      proj₁-Σ-≡,≡←≡ _)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
    ∃ λ (eqH : ∀ X Y → C.HOM (≡⇒← eqO X) (≡⇒← eqO Y) ≡ D.HOM X Y) →
      let eqH′ = λ X Y → cong proj₁ (eqH X Y)
@@ -435,7 +436,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                       (∀ X Y Z f g →
                                                                                          ≡⇒→ (eqH′ X Z)
                                                                                            (C._∙_ (≡⇒← (eqH′ Y Z) f) (≡⇒← (eqH′ X Y) g)) ≡ f D.∙ g))
-                                                                                   (ext₁₁₂₊ λ X → ext₁₂₊ λ Y →
+                                                                                   (apply-ext ext₁₁₂₊ λ X → apply-ext ext₁₂₊ λ Y →
       cong proj₁ (ext⁻¹ (ext⁻¹ (≡⇒← (HOM-lemma eqO) eqH) X) Y)                        ≡⟨⟩
       cong proj₁ (cong (_$ Y) (cong (_$ X) (≡⇒← (HOM-lemma eqO) eqH)))                ≡⟨ cong (cong _) $ cong-∘ _ _ _ ⟩
       cong proj₁ (cong (λ f → f X Y) (≡⇒← (HOM-lemma eqO) eqH))                       ≡⟨ cong-∘ _ _ _ ⟩∎
@@ -744,9 +745,9 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
     _
   subst-Σ-≡,≡→≡ {C} {F} {eqH = eqH} {P} =
     subst (P C) eqH ∘
-    subst (P C) (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) F)       ≡⟨ lower-extensionality lzero (lsuc ℓ₂) ext (λ _ →
+    subst (P C) (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) F)       ≡⟨ apply-ext (lower-extensionality lzero (lsuc ℓ₂) ext) (λ _ →
                                                                              subst-subst (P C) _ _ _) ⟩
-    subst (P C) (trans (sym $ subst-refl _ _) eqH)                      ≡⟨ lower-extensionality lzero (lsuc ℓ₂) ext (λ _ →
+    subst (P C) (trans (sym $ subst-refl _ _) eqH)                      ≡⟨ apply-ext (lower-extensionality lzero (lsuc ℓ₂) ext) (λ _ →
                                                                              subst-∘ (uncurry P) (C ,_) _) ⟩
     subst (uncurry P) (cong (C ,_) (trans (sym $ subst-refl _ _) eqH))  ≡⟨ cong (subst (uncurry P)) $ sym $ Σ-≡,≡→≡-reflˡ eqH ⟩∎
 

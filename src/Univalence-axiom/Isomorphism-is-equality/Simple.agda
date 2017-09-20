@@ -54,7 +54,7 @@ record Assumptions : Set₃ where
     -- Extensionality.
 
     ext : ∀ {ℓ} → Extensionality ℓ (# 1)
-    ext = dependent-extensionality univ₂ (λ _ → univ₁)
+    ext = dependent-extensionality univ₂ univ₁
 
     ext₁ : Extensionality (# 1) (# 1)
     ext₁ = ext
@@ -251,7 +251,7 @@ module Class (Univ : Universe) where
       ∀ ass c X Y →
       proj₁ ∘ _↔_.from (isomorphism-is-equality ass c X Y) ≡
       elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y) (λ _ → Eq.id)
-    proj₁-from-isomorphism-is-equality ass _ _ _ = ext λ eq →
+    proj₁-from-isomorphism-is-equality ass _ _ _ = apply-ext ext λ eq →
 
       ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
         (cong (λ { (x , (y , z)) → (x , y) , z }) eq)))))            ≡⟨ cong (≡⇒≃ ∘ proj₁ ∘ Σ-≡,≡←≡) $ proj₁-Σ-≡,≡←≡ _ ⟩
@@ -283,7 +283,7 @@ module Class (Univ : Universe) where
       elim (λ {X Y} _ → Isomorphic c X Y)
            (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
     from-isomorphism-is-equality ass (a , P) (C , x , p) _ =
-      ext (elim¹
+      apply-ext ext (elim¹
         (λ eq → Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
                   (cong (λ { (C , (x , p)) → (C , x) , p }) eq)))) ≡
                 elim (λ {X Y} _ → Isomorphic (a , P) X Y)
@@ -509,8 +509,8 @@ abstract
   cast-id ext (a ⊕ b) =
     cast a Logical-equivalence.id ⊎-cong cast b Logical-equivalence.id  ≡⟨ cong₂ _⊎-cong_ (cast-id ext a) (cast-id ext b) ⟩
     Logical-equivalence.id ⊎-cong Logical-equivalence.id                ≡⟨ cong₂ (λ f g → record { to = f; from = g })
-                                                                                 (ext [ refl ∘ inj₁ , refl ∘ inj₂ ])
-                                                                                 (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
+                                                                                 (apply-ext ext [ refl ∘ inj₁ , refl ∘ inj₂ ])
+                                                                                 (apply-ext ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
     Logical-equivalence.id                                              ∎
 
   resp-id : Extensionality (# 1) (# 1) →
@@ -1283,7 +1283,7 @@ private
                               Π-closure ext 1 λ _ →
                               Π-closure ext 1 λ _ →
                               C-set _ _)))
-             (ext inv≡inv′)
+             (apply-ext ext inv≡inv′)
       where
       C-set : Is-set C
       C-set = decidable⇒set $

@@ -68,7 +68,7 @@ abstract
 
   M-≡,≡↠≡ :
     ∀ {a b} {A : Set a} {B : A → Set b} →
-    (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality′ (B x) C) →
+    Extensionality b (a ⊔ b) →
     (∀ {x} {f g : B x → M′ A B} → M′.♭ ∘ f ≡ M′.♭ ∘ g ↠ f ≡ g) →
     ∀ {x y} {f : B x → M′ A B} {g : B y → M′ A B} →
     (∃ λ (p : x ≡ y) → ∀ i → M′.♭ (f i) ≡ M′.♭ (g (subst B p i))) ↠
@@ -88,7 +88,7 @@ abstract
                    (subst (λ x → B x → M′ A B) p f ≡ g))
       (λ x f g →
          (∀ i → M′.♭ (f i) ≡ M′.♭ (g (subst B (refl x) i)))  ↠⟨ subst (λ h → (∀ i → M′.♭ (f i) ≡ M′.♭ (g (h i))) ↠ (∀ i → M′.♭ (f i) ≡ M′.♭ (g i)))
-                                                                      (sym (lower-extensionality₂ a ext (subst-refl B)))
+                                                                      (sym (apply-ext (lower-extensionality lzero a ext) (subst-refl B)))
                                                                       Surjection.id ⟩
          (∀ i → M′.♭ (f i) ≡ M′.♭ (g i))                     ↠⟨ ext-surj ext ⟩
          (M′.♭ ∘ f ≡ M′.♭ ∘ g)                               ↠⟨ η ⟩

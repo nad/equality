@@ -110,12 +110,12 @@ private
     (C↔D : C ↔ D) (∥d∥ : ∥ D ∥ n ℓ) →
     ∥∥-map (_↔_.to C↔D) (∥∥-map (_↔_.from C↔D) ∥d∥) ≡ ∥d∥
   lemma {d = d} ext C↔D ∥d∥ =
-    lower-extensionality d        lzero ext λ P →
-    lower-extensionality _        lzero ext λ h →
-    lower-extensionality (lsuc ℓ) d     ext λ g →
+    apply-ext (lower-extensionality d        lzero ext) λ P →
+    apply-ext (lower-extensionality _        lzero ext) λ h →
+    apply-ext (lower-extensionality (lsuc ℓ) d     ext) λ g →
 
       ∥d∥ P h (g ∘ _↔_.to C↔D ∘ _↔_.from C↔D)  ≡⟨ cong (λ f → ∥d∥ P h (g ∘ f)) $
-                                                    lower-extensionality (lsuc ℓ) ℓ ext
+                                                    apply-ext (lower-extensionality (lsuc ℓ) ℓ ext)
                                                       (_↔_.right-inverse-of C↔D) ⟩∎
       ∥d∥ P h g                                ∎
 
@@ -485,7 +485,7 @@ push-∥∥ ℓ {a} {b} {c} {A} {B} {C} ext =
 
   (∃ λ (f : ∥ A ∥ 1 _ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↝⟨ Σ-cong (drop-∥∥ ℓ (lower-extensionality lzero c ext)) (λ f →
                                                             ∀-cong (lower-extensionality lzero (a ⊔ b ⊔ ℓ) ext) λ ∥x∥ →
-                                                            ≡⇒↝ _ $ cong C $ lower-extensionality _ (a ⊔ c ⊔ ℓ) ext λ x →
+                                                            ≡⇒↝ _ $ cong C $ apply-ext (lower-extensionality _ (a ⊔ c ⊔ ℓ) ext) λ x →
       f ∥x∥ x                                                 ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $
                                                                  _⇔_.to propositional⇔irrelevant
                                                                    (truncation-has-correct-h-level 1
@@ -834,8 +834,8 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
                          (refl _)
                          (proj₂ (_≃_.to (equivalence₁ a₀) b)))  ≡⟨ cong proj₁ $ subst-refl Coherently-constant _ ⟩
 
-            (λ _ _ → trans (refl b) (sym (refl b)))             ≡⟨ (lower-extensionality _ ℓ       ext λ _ →
-                                                                    lower-extensionality _ (a ⊔ ℓ) ext λ _ →
+            (λ _ _ → trans (refl b) (sym (refl b)))             ≡⟨ (apply-ext (lower-extensionality _ ℓ       ext) λ _ →
+                                                                    apply-ext (lower-extensionality _ (a ⊔ ℓ) ext) λ _ →
                                                                     trans-symʳ _) ⟩∎
             (λ _ _ → refl b)                                    ∎)
            (_⇔_.to propositional⇔irrelevant
@@ -918,7 +918,7 @@ universal-property {a = a} {b} ℓ {A} {B} ext B-prop =
 
     (_∘ ∣_∣)
 
-    (λ f → lower-extensionality _ (a ⊔ ℓ) ext λ x →
+    (λ f → apply-ext (lower-extensionality _ (a ⊔ ℓ) ext) λ x →
        subst (const B) (refl x) (f ∣ x ∣)  ≡⟨ subst-refl _ _ ⟩∎
        f ∣ x ∣                             ∎)
 

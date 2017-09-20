@@ -137,7 +137,7 @@ isomorphism≡equality :
   (univ₂ : Univalence (# 2)) →
 
   let ass = record
-        { ext₁  = dependent-extensionality univ₂ (λ _ → univ₁)
+        { ext₁  = dependent-extensionality univ₂ univ₁
         ; univ  = univ
         ; univ₁ = univ₁
         } in
@@ -599,7 +599,7 @@ N-ary {c} extractor n = Extension-with-resp.extension record
   cast-id : Extensionality (# 1) (# 1) →
             ∀ {A} n (f : A ^ n ⟶ A) → cast n Eq.id f ≡ f
   cast-id ext zero    x = refl x
-  cast-id ext (suc n) f = ext λ x → cast-id ext n (f x)
+  cast-id ext (suc n) f = apply-ext ext λ x → cast-id ext n (f x)
 
   -- Two definitions of isomorphism are equivalent.
 
@@ -821,7 +821,9 @@ module Dependent where
       let rfl   = reflexivity ass c I
           rflE  = reflexivityE ass c (Dep σ) I in
 
-      lift-equality-inverse ext₁ $ ext₁ λ f → ext₁ λ x →
+      lift-equality-inverse ext₁ $
+      apply-ext ext₁ λ f →
+      apply-ext ext₁ λ x →
 
         from (cast ass τ (rfl , isomorphic-to-itself σ ass rfl x))
              (f (resp σ ass rfl x))                                 ≡⟨ cong (λ iso → from (cast ass τ (rfl , iso)) (f (resp σ ass rfl x))) $
@@ -954,7 +956,7 @@ module Dependent where
     ; Type-cong-reflexivity = λ { ass (I , A) →
         let open Assumptions ass; open _≃_ in
 
-        lift-equality ext₁ (ext₁ λ { (lift x) → cong lift (
+        lift-equality ext₁ (apply-ext ext₁ λ { (lift x) → cong lift (
 
           to (lower (reflexivityE ass c (Dep set) I A)) x  ≡⟨ cong (λ eq → to (lower eq) x) $ reflexivityE-set ass ⟩∎
 

@@ -56,10 +56,10 @@ record Assumptions : Set₃ where
     -- Extensionality.
 
     ext : Extensionality (# 1) (# 1)
-    ext = dependent-extensionality univ₂ (λ _ → univ₁)
+    ext = dependent-extensionality univ₂ univ₁
 
     ext₀ : Extensionality (# 0) (# 0)
-    ext₀ = dependent-extensionality univ₁ (λ _ → univ)
+    ext₀ = dependent-extensionality univ₁ univ
 
 -- Universes with some extra stuff.
 
@@ -360,7 +360,7 @@ abstract
                           cong₂ _×-cong_ (cast-id ext a) (cast-id ext b)
   cast-id ext (a ⊕ b) =
     cast ext a Eq.id ⊎-cong cast ext b Eq.id  ≡⟨ cong₂ _⊎-cong_ (cast-id ext a) (cast-id ext b) ⟩
-    ⟨ [ inj₁ , inj₂ ] , _ ⟩                   ≡⟨ lift-equality ext (ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
+    ⟨ [ inj₁ , inj₂ ] , _ ⟩                   ≡⟨ lift-equality ext (apply-ext ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
     Eq.id                                     ∎
 
 -- The property of being an isomorphism between two elements.

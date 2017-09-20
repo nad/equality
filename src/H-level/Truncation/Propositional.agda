@@ -12,7 +12,7 @@
 module H-level.Truncation.Propositional where
 
 open import Equality.Propositional as EP hiding (elim)
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩)
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
@@ -368,7 +368,7 @@ push-∥∥ {b = b} {c} {A} {B} {C} =
 
   (∃ λ (f : ∥ A ∥ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↝⟨ Σ-cong drop-∥∥ (λ f →
                                                         ∀-cong ext λ ∥x∥ →
-                                                        ≡⇒↝ _ $ cong C $ ext λ x →
+                                                        ≡⇒↝ _ $ cong C $ ⟨ext⟩ λ x →
       f ∥x∥ x                                             ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $
                                                              _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _ ⟩∎
       f ∣ x ∣ x                                           ∎) ⟩□

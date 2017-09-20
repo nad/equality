@@ -112,7 +112,7 @@ Monad.left-identity
 
 Monad.right-identity
   (Monad-transformer.transform (monad-transformer ext)) x = cong wrap (
-    run x >>= maybe (return ∘ just) (return nothing)  ≡⟨ cong (run x >>=_) (ext (maybe (λ _ → refl _) (refl _))) ⟩
+    run x >>= maybe (return ∘ just) (return nothing)  ≡⟨ cong (run x >>=_) (apply-ext ext (maybe (λ _ → refl _) (refl _))) ⟩
     run x >>= return                                  ≡⟨ right-identity _ ⟩∎
     run x                                             ∎)
 
@@ -120,7 +120,7 @@ Monad.associativity
   (Monad-transformer.transform (monad-transformer ext)) x f g = cong wrap (
     run x >>=
       (maybe (λ x → run (f x) >>= maybe (run ∘ g) (return nothing))
-             (return nothing))                                       ≡⟨ cong (run x >>=_) (ext (maybe (λ _ → refl _) (
+             (return nothing))                                       ≡⟨ cong (run x >>=_) (apply-ext ext (maybe (λ _ → refl _) (
 
       return nothing                                                      ≡⟨ sym $ left-identity _ _ ⟩∎
       return nothing >>= maybe (run ∘ g) (return nothing)                 ∎))) ⟩

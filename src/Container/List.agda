@@ -47,10 +47,9 @@ List⇔List {A} = record
 -- If we assume that equality of functions is extensional, then we can
 -- also prove that the two definitions are isomorphic.
 
-List↔List : {A : Set} →
-            ({B : Set} → Extensionality′ B (λ _ → A)) →
-            ⟦ List ⟧ A ↔ P.List A
-List↔List {A} ext = record
+List↔List : Extensionality lzero lzero →
+            {A : Set} → ⟦ List ⟧ A ↔ P.List A
+List↔List ext {A} = record
   { surjection = record
     { logical-equivalence = List⇔List
     ; right-inverse-of    = to∘from
@@ -65,7 +64,7 @@ List↔List {A} ext = record
   to∘from (P._∷_ x xs) = cong (P._∷_ x) (to∘from xs)
 
   from∘to : ∀ n f → from (to (n , f)) ≡ (n , f)
-  from∘to zero    f = cong (_,_ _) (ext λ ())
+  from∘to zero    f = cong (_,_ _) (apply-ext ext λ ())
   from∘to (suc n) f =
     (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))  ≡⟨ lemma₃ (from∘to n (f ∘ inj₂)) ⟩
     (suc n                  , [ (λ _ → x) , f ∘ inj₂ ])   ≡⟨ lemma₁ ⟩∎
@@ -78,7 +77,8 @@ List↔List {A} ext = record
              _≡_ {A = ⟦ List ⟧ A}
                  (suc n , [ (λ _ → f (inj₁ tt)) , f ∘ inj₂ ])
                  (suc n , f)
-    lemma₁ = cong (_,_ _) (ext [ (λ { tt → refl }) , (λ _ → refl) ])
+    lemma₁ =
+      cong (_,_ _) (apply-ext ext [ (λ { tt → refl }) , (λ _ → refl) ])
 
     lemma₂ : {n : ℕ} {lkup : Fin n → A} →
              (≡n : L.length (to xs) ≡ n) →

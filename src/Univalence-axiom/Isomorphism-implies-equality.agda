@@ -213,8 +213,8 @@ abstract
 
     -- Extensionality follows from univalence.
 
-    ext : Extensionality lzero lzero
-    ext = dependent-extensionality univ₁ (λ _ → univ₂)
+    ext : {A : Set} {B : A → Set} → Extensionality′ A B
+    ext = dependent-extensionality′ univ₁ (λ _ → univ₂)
 
     -- The presence of the bijection implies that the structure's
     -- underlying types are equal (due to univalence).

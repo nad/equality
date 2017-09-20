@@ -609,35 +609,35 @@ open Separate-abstract-block public
 -- f ≡ g and ∀ x → f x ≡ g x are isomorphic (assuming extensionality).
 
 extensionality-isomorphism :
-  ∀ {a b} {A : Set a} →
-  ({B : A → Set b} → Extensionality′ A B) →
-  {B : A → Set b} {f g : (x : A) → B x} →
+  ∀ {a b} →
+  Extensionality a b →
+  {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
   (∀ x → f x ≡ g x) ≃ (f ≡ g)
 extensionality-isomorphism ext =
-  inverse ⟨ _ , ext⁻¹-is-equivalence ext ⟩
+  inverse ⟨ _ , ext⁻¹-is-equivalence (apply-ext ext) ⟩
 
 -- Note that the isomorphism gives us a really well-behaved notion of
 -- extensionality.
 
 good-ext : ∀ {a b} → Extensionality a b → Extensionality a b
-good-ext ext = _≃_.to (extensionality-isomorphism ext)
+apply-ext (good-ext ext) = _≃_.to (extensionality-isomorphism ext)
 
 abstract
 
   good-ext-is-equivalence :
     ∀ {a b} (ext : Extensionality a b) →
     {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
-    Is-equivalence {A = ∀ x → f x ≡ g x} (good-ext ext)
+    Is-equivalence {A = ∀ x → f x ≡ g x} (apply-ext (good-ext ext))
   good-ext-is-equivalence ext =
     _≃_.is-equivalence (extensionality-isomorphism ext)
 
   good-ext-refl :
     ∀ {a b} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} (f : (x : A) → B x) →
-    good-ext ext (λ x → refl (f x)) ≡ refl f
+    apply-ext (good-ext ext) (λ x → refl (f x)) ≡ refl f
   good-ext-refl ext f =
     _≃_.to (extensionality-isomorphism ext) (λ x → refl (f x))  ≡⟨ cong (_≃_.to (extensionality-isomorphism ext)) $ sym $
-                                                                        ext (λ _ → ext⁻¹-refl f) ⟩
+                                                                        apply-ext ext (λ _ → ext⁻¹-refl f) ⟩
     _≃_.to (extensionality-isomorphism ext) (ext⁻¹ (refl f))    ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
     refl f                                                      ∎
 
@@ -645,22 +645,23 @@ abstract
     ∀ {a b} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) {x} →
-    cong (_$ x) (good-ext ext f≡g) ≡ f≡g x
+    cong (_$ x) (apply-ext (good-ext ext) f≡g) ≡ f≡g x
   cong-good-ext ext f≡g {x} =
-    cong (_$ x) (good-ext ext f≡g)  ≡⟨⟩
-    ext⁻¹ (good-ext ext f≡g) x      ≡⟨ cong (_$ x) $ _≃_.left-inverse-of (extensionality-isomorphism ext) f≡g ⟩∎
-    f≡g x                           ∎
+    cong (_$ x) (apply-ext (good-ext ext) f≡g)  ≡⟨⟩
+    ext⁻¹ (apply-ext (good-ext ext) f≡g) x      ≡⟨ cong (_$ x) $ _≃_.left-inverse-of (extensionality-isomorphism ext) f≡g ⟩∎
+    f≡g x                                       ∎
 
   subst-good-ext :
     ∀ {a b p} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} {f g : (x : A) → B x} {x}
     (P : B x → Set p) {p}
     (f≡g : ∀ x → f x ≡ g x) →
-    subst (λ f → P (f x)) (good-ext ext f≡g) p ≡ subst P (f≡g x) p
+    subst (λ f → P (f x)) (apply-ext (good-ext ext) f≡g) p ≡
+    subst P (f≡g x) p
   subst-good-ext ext {f = f} {g} {x} P {p} f≡g =
-    subst (λ f → P (f x)) (good-ext ext f≡g) p  ≡⟨ subst-∘ P (_$ x) _ ⟩
-    subst P (cong (_$ x) (good-ext ext f≡g)) p  ≡⟨ cong (λ eq → subst P eq p) (cong-good-ext ext f≡g) ⟩∎
-    subst P (f≡g x) p                           ∎
+    subst (λ f → P (f x)) (apply-ext (good-ext ext) f≡g) p  ≡⟨ subst-∘ P (_$ x) _ ⟩
+    subst P (cong (_$ x) (apply-ext (good-ext ext) f≡g)) p  ≡⟨ cong (λ eq → subst P eq p) (cong-good-ext ext f≡g) ⟩∎
+    subst P (f≡g x) p                                       ∎
 
   elim-good-ext :
     ∀ {a b p}
@@ -670,12 +671,13 @@ abstract
     (p : (y : B x) → P y y)
     {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) →
-    elim (λ {f g} _ → P (f x) (g x)) (p ⊚ (_$ x)) (good-ext ext f≡g) ≡
+    elim (λ {f g} _ → P (f x) (g x)) (p ⊚ (_$ x))
+         (apply-ext (good-ext ext) f≡g) ≡
     elim (λ {x y} _ → P x y) p (f≡g x)
   elim-good-ext ext {x = x} P p f≡g =
-    elim (λ {f g} _ → P (f x) (g x)) (p ⊚ (_$ x)) (good-ext ext f≡g)  ≡⟨ sym $ elim-cong _ _ _ ⟩
-    elim (λ {x y} _ → P x y) p (cong (_$ x) (good-ext ext f≡g))       ≡⟨ cong (elim (λ {x y} _ → P x y) p) (cong-good-ext ext f≡g) ⟩
-    elim (λ {x y} _ → P x y) p (f≡g x)                                ∎
+    elim (λ {f g} _ → P (f x) (g x)) (p ⊚ (_$ x)) (apply-ext (good-ext ext) f≡g)  ≡⟨ sym $ elim-cong _ _ _ ⟩
+    elim (λ {x y} _ → P x y) p (cong (_$ x) (apply-ext (good-ext ext) f≡g))       ≡⟨ cong (elim (λ {x y} _ → P x y) p) (cong-good-ext ext f≡g) ⟩
+    elim (λ {x y} _ → P x y) p (f≡g x)                                            ∎
 
   -- I based the statements of the following three lemmas on code in
   -- the Lean Homotopy Type Theory Library with Jakob von Raumer and
@@ -687,38 +689,53 @@ abstract
     ∀ {a b} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) →
-    good-ext ext (sym ⊚ f≡g) ≡ sym (good-ext ext f≡g)
+    apply-ext (good-ext ext) (sym ⊚ f≡g) ≡
+    sym (apply-ext (good-ext ext) f≡g)
   good-ext-sym ext f≡g =
-    good-ext ext (sym ⊚ f≡g)                                   ≡⟨ cong (good-ext ext ⊚ (sym ⊚_)) $ sym $
-                                                                    _≃_.left-inverse-of (extensionality-isomorphism ext) _ ⟩
-    good-ext ext (sym ⊚ ext⁻¹ (good-ext ext f≡g))              ≡⟨⟩
-    good-ext ext (λ x → sym $ cong (_$ x) (good-ext ext f≡g))  ≡⟨ cong (good-ext ext) $ ext (λ _ → sym $ cong-sym _ _) ⟩
-    good-ext ext (λ x → cong (_$ x) (sym $ good-ext ext f≡g))  ≡⟨⟩
-    good-ext ext (ext⁻¹ (sym $ good-ext ext f≡g))              ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
-    sym (good-ext ext f≡g)                                     ∎
+    apply-ext (good-ext ext) (sym ⊚ f≡g)                 ≡⟨ cong (apply-ext (good-ext ext) ⊚ (sym ⊚_)) $ sym $
+                                                              _≃_.left-inverse-of (extensionality-isomorphism ext) _ ⟩
+    apply-ext (good-ext ext)
+      (sym ⊚ ext⁻¹ (apply-ext (good-ext ext) f≡g))       ≡⟨⟩
+
+    apply-ext (good-ext ext) (λ x →
+      sym $ cong (_$ x) (apply-ext (good-ext ext) f≡g))  ≡⟨ cong (apply-ext (good-ext ext)) $
+                                                              apply-ext ext (λ _ → sym $ cong-sym _ _) ⟩
+    apply-ext (good-ext ext) (λ x →
+      cong (_$ x) (sym $ apply-ext (good-ext ext) f≡g))  ≡⟨⟩
+
+    apply-ext (good-ext ext)
+      (ext⁻¹ (sym $ apply-ext (good-ext ext) f≡g))       ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
+
+    sym (apply-ext (good-ext ext) f≡g)                   ∎
 
   good-ext-trans :
     ∀ {a b} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} {f g h : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) (g≡h : ∀ x → g x ≡ h x) →
-    good-ext ext (λ x → trans (f≡g x) (g≡h x)) ≡
-    trans (good-ext ext f≡g) (good-ext ext g≡h)
+    apply-ext (good-ext ext) (λ x → trans (f≡g x) (g≡h x)) ≡
+    trans (apply-ext (good-ext ext) f≡g) (apply-ext (good-ext ext) g≡h)
   good-ext-trans ext f≡g g≡h =
-    good-ext ext (λ x → trans (f≡g x) (g≡h x))                          ≡⟨ sym $ cong₂ (λ f g → good-ext ext (λ x → trans (f x) (g x)))
-                                                                             (_≃_.left-inverse-of (extensionality-isomorphism ext) _)
-                                                                             (_≃_.left-inverse-of (extensionality-isomorphism ext) _) ⟩
-    good-ext ext (λ x → trans (ext⁻¹ (good-ext ext f≡g) x)
-                              (ext⁻¹ (good-ext ext g≡h) x))             ≡⟨⟩
+    apply-ext (good-ext ext) (λ x → trans (f≡g x) (g≡h x))  ≡⟨ sym $ cong₂ (λ f g → apply-ext (good-ext ext) (λ x → trans (f x) (g x)))
+                                                                           (_≃_.left-inverse-of (extensionality-isomorphism ext) _)
+                                                                           (_≃_.left-inverse-of (extensionality-isomorphism ext) _) ⟩
+    apply-ext (good-ext ext) (λ x →
+      trans (ext⁻¹ (apply-ext (good-ext ext) f≡g) x)
+            (ext⁻¹ (apply-ext (good-ext ext) g≡h) x))       ≡⟨⟩
 
-    good-ext ext (λ x → trans (cong (_$ x) (good-ext ext f≡g))
-                              (cong (_$ x) (good-ext ext g≡h)))         ≡⟨ cong (good-ext ext) $ ext (λ _ → sym $
-                                                                             cong-trans _ _ _) ⟩
-    good-ext ext (λ x →
-      cong (_$ x) (trans (good-ext ext f≡g) (good-ext ext g≡h)))        ≡⟨⟩
+    apply-ext (good-ext ext) (λ x →
+      trans (cong (_$ x) (apply-ext (good-ext ext) f≡g))
+            (cong (_$ x) (apply-ext (good-ext ext) g≡h)))   ≡⟨ cong (apply-ext (good-ext ext)) $ apply-ext ext (λ _ → sym $
+                                                                 cong-trans _ _ _) ⟩
+    apply-ext (good-ext ext) (λ x →
+      cong (_$ x) (trans (apply-ext (good-ext ext) f≡g)
+                         (apply-ext (good-ext ext) g≡h)))   ≡⟨⟩
 
-    good-ext ext (ext⁻¹ (trans (good-ext ext f≡g) (good-ext ext g≡h)))  ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
+    apply-ext (good-ext ext)
+      (ext⁻¹ (trans (apply-ext (good-ext ext) f≡g)
+                    (apply-ext (good-ext ext) g≡h)))        ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
 
-    trans (good-ext ext f≡g) (good-ext ext g≡h)                         ∎
+    trans (apply-ext (good-ext ext) f≡g)
+          (apply-ext (good-ext ext) g≡h)                    ∎
 
   cong-post-∘-good-ext :
     ∀ {a b c} {A : Set a} {B : A → Set b} {C : A → Set c}
@@ -726,16 +743,27 @@ abstract
     (ext₁ : Extensionality a b)
     (ext₂ : Extensionality a c)
     (f≡g : ∀ x → f x ≡ g x) →
-    cong (h ⊚_) (good-ext ext₁ f≡g) ≡ good-ext ext₂ (cong h ⊚ f≡g)
+    cong (h ⊚_) (apply-ext (good-ext ext₁) f≡g) ≡
+    apply-ext (good-ext ext₂) (cong h ⊚ f≡g)
   cong-post-∘-good-ext {f = f} {g} {h} ext₁ ext₂ f≡g =
-    cong (h ⊚_) (good-ext ext₁ f≡g)                                      ≡⟨ sym $ _≃_.right-inverse-of (extensionality-isomorphism ext₂) _ ⟩
-    good-ext ext₂ (ext⁻¹ (cong (h ⊚_) (good-ext ext₁ f≡g)))              ≡⟨⟩
-    good-ext ext₂ (λ x → cong (_$ x) (cong (h ⊚_) (good-ext ext₁ f≡g)))  ≡⟨ cong (good-ext ext₂) $ ext₂ (λ _ → cong-∘ _ _ _) ⟩
-    good-ext ext₂ (λ x → cong (λ f → h (f x)) (good-ext ext₁ f≡g))       ≡⟨ cong (good-ext ext₂) $ ext₂ (λ _ → sym $ cong-∘ _ _ _) ⟩
-    good-ext ext₂ (λ x → cong h (cong (_$ x) (good-ext ext₁ f≡g)))       ≡⟨⟩
-    good-ext ext₂ (cong h ⊚ ext⁻¹ (good-ext ext₁ f≡g))                   ≡⟨ cong (good-ext ext₂ ⊚ (cong h ⊚_)) $
-                                                                              _≃_.left-inverse-of (extensionality-isomorphism ext₁) _ ⟩∎
-    good-ext ext₂ (cong h ⊚ f≡g)                                         ∎
+    cong (h ⊚_) (apply-ext (good-ext ext₁) f≡g)                   ≡⟨ sym $ _≃_.right-inverse-of (extensionality-isomorphism ext₂) _ ⟩
+
+    apply-ext (good-ext ext₂)
+      (ext⁻¹ (cong (h ⊚_) (apply-ext (good-ext ext₁) f≡g)))       ≡⟨⟩
+
+    apply-ext (good-ext ext₂) (λ x →
+      cong (_$ x) (cong (h ⊚_) (apply-ext (good-ext ext₁) f≡g)))  ≡⟨ cong (apply-ext (good-ext ext₂)) $ apply-ext ext₂ (λ _ →
+                                                                       cong-∘ _ _ _) ⟩
+    apply-ext (good-ext ext₂) (λ x →
+      cong (λ f → h (f x)) (apply-ext (good-ext ext₁) f≡g))       ≡⟨ cong (apply-ext (good-ext ext₂)) $ apply-ext ext₂ (λ _ → sym $
+                                                                       cong-∘ _ _ _) ⟩
+    apply-ext (good-ext ext₂) (λ x →
+      cong h (cong (_$ x) (apply-ext (good-ext ext₁) f≡g)))       ≡⟨⟩
+
+    apply-ext (good-ext ext₂)
+      (cong h ⊚ ext⁻¹ (apply-ext (good-ext ext₁) f≡g))            ≡⟨ cong (apply-ext (good-ext ext₂) ⊚ (cong h ⊚_)) $
+                                                                       _≃_.left-inverse-of (extensionality-isomorphism ext₁) _ ⟩∎
+    apply-ext (good-ext ext₂) (cong h ⊚ f≡g)                      ∎
 
   cong-pre-∘-good-ext :
     ∀ {a b c} {A : Set a} {B : Set b} {C : B → Set c}
@@ -743,14 +771,22 @@ abstract
     (ext₁ : Extensionality a c)
     (ext₂ : Extensionality b c)
     (f≡g : ∀ x → f x ≡ g x) →
-    cong (_⊚ h) (good-ext ext₂ f≡g) ≡ good-ext ext₁ (f≡g ⊚ h)
+    cong (_⊚ h) (apply-ext (good-ext ext₂) f≡g) ≡ apply-ext (good-ext ext₁) (f≡g ⊚ h)
   cong-pre-∘-good-ext {f = f} {g} {h} ext₁ ext₂ f≡g =
-    cong (_⊚ h) (good-ext ext₂ f≡g)                                      ≡⟨ sym $ _≃_.right-inverse-of (extensionality-isomorphism ext₁) _ ⟩
-    good-ext ext₁ (ext⁻¹ (cong (_⊚ h) (good-ext ext₂ f≡g)))              ≡⟨⟩
-    good-ext ext₁ (λ x → cong (_$ x) (cong (_⊚ h) (good-ext ext₂ f≡g)))  ≡⟨ cong (good-ext ext₁) $ ext₁ (λ _ → cong-∘ _ _ _) ⟩
-    good-ext ext₁ (λ x → cong (_$ h x) (good-ext ext₂ f≡g))              ≡⟨ cong (good-ext ext₁) $ ext₁ (λ _ → cong-good-ext ext₂ _) ⟩
-    good-ext ext₁ (λ x → f≡g (h x))                                      ≡⟨⟩
-    good-ext ext₁ (f≡g ⊚ h)                                              ∎
+    cong (_⊚ h) (apply-ext (good-ext ext₂) f≡g)                   ≡⟨ sym $ _≃_.right-inverse-of (extensionality-isomorphism ext₁) _ ⟩
+
+    apply-ext (good-ext ext₁)
+      (ext⁻¹ (cong (_⊚ h) (apply-ext (good-ext ext₂) f≡g)))       ≡⟨⟩
+
+    apply-ext (good-ext ext₁) (λ x →
+      cong (_$ x) (cong (_⊚ h) (apply-ext (good-ext ext₂) f≡g)))  ≡⟨ cong (apply-ext (good-ext ext₁)) $ apply-ext ext₁ (λ _ →
+                                                                       cong-∘ _ _ _) ⟩
+    apply-ext (good-ext ext₁) (λ x →
+      cong (_$ h x) (apply-ext (good-ext ext₂) f≡g))              ≡⟨ cong (apply-ext (good-ext ext₁)) $ apply-ext ext₁ (λ _ →
+                                                                       cong-good-ext ext₂ _) ⟩
+    apply-ext (good-ext ext₁) (λ x → f≡g (h x))                   ≡⟨⟩
+
+    apply-ext (good-ext ext₁) (f≡g ⊚ h)                           ∎
 
 ------------------------------------------------------------------------
 -- Groupoid
@@ -818,10 +854,12 @@ groupoid {ℓ} ext = record
     assoc _ _ _ = lift-equality ext (refl _)
 
     left-inverse : {X Y : Set ℓ} (p : X ≃ Y) → inverse p ∘ p ≡ id
-    left-inverse p = lift-equality ext (ext $ _≃_.left-inverse-of p)
+    left-inverse p =
+      lift-equality ext (apply-ext ext $ _≃_.left-inverse-of p)
 
     right-inverse : {X Y : Set ℓ} (p : X ≃ Y) → p ∘ inverse p ≡ id
-    right-inverse p = lift-equality ext (ext $ _≃_.right-inverse-of p)
+    right-inverse p =
+      lift-equality ext (apply-ext ext $ _≃_.right-inverse-of p)
 
 -- Inverse is involutive (assuming extensionality).
 --
@@ -888,8 +926,10 @@ private
                }
              ; left-inverse-of = l
              })
-          (lower-extensionality b b ext λ _ → _⇔_.to set⇔UIP A-set _ _)
-          (lower-extensionality a a ext λ _ → _⇔_.to set⇔UIP B-set _ _)
+          (apply-ext (lower-extensionality b b ext) λ _ →
+             _⇔_.to set⇔UIP A-set _ _)
+          (apply-ext (lower-extensionality a a ext) λ _ →
+             _⇔_.to set⇔UIP B-set _ _)
     where
     B-set : Is-set B
     B-set = respects-surjection (_↔_.surjection A↔B) 2 A-set
@@ -1097,7 +1137,8 @@ abstract
     Contractible (⊥ {ℓ = ℓ₁} ≃ ⊥ {ℓ = ℓ₂})
   ⊥≃⊥-contractible {ℓ₁} {ℓ₂} ext =
     ↔⇒≃ ⊥↔⊥ , λ ⊥↔⊥′ →
-      lift-equality ext $ lower-extensionality ℓ₂ ℓ₁ ext λ x → ⊥-elim x
+      lift-equality ext $
+        apply-ext (lower-extensionality ℓ₂ ℓ₁ ext) λ x → ⊥-elim x
     where
     ⊥↔⊥ : ⊥ {ℓ = ℓ₁} ↔ ⊥ {ℓ = ℓ₂}
     ⊥↔⊥ = record
@@ -1426,26 +1467,29 @@ abstract
   where
   open _≃_
 
+  ext₁ = lower-extensionality (a₁ ⊔ b₁) (a₁ ⊔ b₁) ext
+  ext₂ = lower-extensionality (a₂ ⊔ b₂) (a₂ ⊔ b₂) ext
+
   abstract
     to∘from :
       (A₂≃B₂ : A₂ ≃ B₂) →
       B₁≃B₂ ∘ (inverse B₁≃B₂ ∘ A₂≃B₂ ∘ A₁≃A₂) ∘ inverse A₁≃A₂ ≡ A₂≃B₂
     to∘from A₂≃B₂ =
-      lift-equality (lower-extensionality (a₁ ⊔ b₁) (a₁ ⊔ b₁) ext) $
-        lower-extensionality (a₁ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁) ext λ x →
-          to B₁≃B₂ (from B₁≃B₂ (to A₂≃B₂ (to A₁≃A₂ (from A₁≃A₂ x))))  ≡⟨ right-inverse-of B₁≃B₂ _ ⟩
-          to A₂≃B₂ (to A₁≃A₂ (from A₁≃A₂ x))                          ≡⟨ cong (to A₂≃B₂) $ right-inverse-of A₁≃A₂ _ ⟩∎
-          to A₂≃B₂ x                                                  ∎
+      lift-equality ext₁ $
+      apply-ext (lower-extensionality b₂ a₂ ext₁) λ x →
+        to B₁≃B₂ (from B₁≃B₂ (to A₂≃B₂ (to A₁≃A₂ (from A₁≃A₂ x))))  ≡⟨ right-inverse-of B₁≃B₂ _ ⟩
+        to A₂≃B₂ (to A₁≃A₂ (from A₁≃A₂ x))                          ≡⟨ cong (to A₂≃B₂) $ right-inverse-of A₁≃A₂ _ ⟩∎
+        to A₂≃B₂ x                                                  ∎
 
     from∘to :
       (A₁≃B₁ : A₁ ≃ B₁) →
       inverse B₁≃B₂ ∘ (B₁≃B₂ ∘ A₁≃B₁ ∘ inverse A₁≃A₂) ∘ A₁≃A₂ ≡ A₁≃B₁
     from∘to A₁≃B₁ =
-      lift-equality (lower-extensionality (a₂ ⊔ b₂) (a₂ ⊔ b₂) ext) $
-        lower-extensionality (a₂ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₂) ext λ x →
-          from B₁≃B₂ (to B₁≃B₂ (to A₁≃B₁ (from A₁≃A₂ (to A₁≃A₂ x))))  ≡⟨ left-inverse-of B₁≃B₂ _ ⟩
-          to A₁≃B₁ (from A₁≃A₂ (to A₁≃A₂ x))                          ≡⟨ cong (to A₁≃B₁) $ left-inverse-of A₁≃A₂ _ ⟩∎
-          to A₁≃B₁ x                                                  ∎
+      lift-equality ext₂ $
+      apply-ext (lower-extensionality b₁ a₁ ext₂) λ x →
+        from B₁≃B₂ (to B₁≃B₂ (to A₁≃B₁ (from A₁≃A₂ (to A₁≃A₂ x))))  ≡⟨ left-inverse-of B₁≃B₂ _ ⟩
+        to A₁≃B₁ (from A₁≃A₂ (to A₁≃A₂ x))                          ≡⟨ cong (to A₁≃B₁) $ left-inverse-of A₁≃A₂ _ ⟩∎
+        to A₁≃B₁ x                                                  ∎
 
 -- Equivalence preserves bijections (assuming extensionality).
 
@@ -1480,7 +1524,7 @@ abstract
   -- strengthening of W-≡,≡↠≡.
 
   W-≡,≡≃≡ : ∀ {a b} {A : Set a} {B : A → Set b} →
-            (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality′ (B x) C) →
+            Extensionality b (a ⊔ b) →
             ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
             (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ≃
             (sup x f ≡ sup y g)
@@ -1499,7 +1543,7 @@ abstract
                    (subst (λ x → B x → W A B) p f ≡ g))
       (λ x f g →
          (∀ i → f i ≡ g (subst B (refl x) i))        ≃⟨ subst (λ h → (∀ i → f i ≡ g (h i)) ≃ (∀ i → f i ≡ g i))
-                                                              (sym (lower-extensionality₂ a ext (subst-refl B)))
+                                                              (sym (apply-ext (lower-extensionality lzero a ext) (subst-refl B)))
                                                               id ⟩
          (∀ i → f i ≡ g i)                           ≃⟨ extensionality-isomorphism ext ⟩
          (f ≡ g)                                     ≃⟨ subst (λ h → (f ≡ g) ≃ (h ≡ g))

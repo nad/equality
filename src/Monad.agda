@@ -78,7 +78,7 @@ record Monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
           ∀ {A B C} (f : B → C) (g : A → B) (x : M A) →
           map (f ∘ g) x ≡ map f (map g x)
   map-∘ ext f g x =
-    x >>= return ∘ (f ∘ g)                     ≡⟨ cong (x >>=_) (ext λ _ → sym $ left-identity _ _) ⟩
+    x >>= return ∘ (f ∘ g)                     ≡⟨ cong (x >>=_) (apply-ext ext λ _ → sym $ left-identity _ _) ⟩
     x >>= (λ x → return (g x) >>= return ∘ f)  ≡⟨ associativity _ _ _ ⟩∎
     (x >>= return ∘ g) >>= return ∘ f          ∎
 
@@ -103,7 +103,7 @@ record Monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
             map f x >>= g ≡ x >>= g ∘ f
   >>=-map ext f x g =
     (x >>= return ∘ f) >>= g          ≡⟨ sym $ associativity _ _ _ ⟩
-    x >>= (λ x → return (f x) >>= g)  ≡⟨ cong (x >>=_) (ext λ _ → left-identity _ _) ⟩∎
+    x >>= (λ x → return (f x) >>= g)  ≡⟨ cong (x >>=_) (apply-ext ext λ _ → left-identity _ _) ⟩∎
     x >>= g ∘ f                       ∎
 
 open Monad ⦃ … ⦄ public hiding (raw-monad)
@@ -191,15 +191,15 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
     _⇔_.from eq (_⇔_.to eq F-monad) ≡ F-monad
   to∘to {f} ext F↔G (mk return _>>=_) = cong₂ Raw-monad.mk
     (implicit-extensionality (lower-extensionality f (lsuc a) ext) λ _ →
-     lower-extensionality _ (lsuc a) ext λ x →
+     apply-ext (lower-extensionality _ (lsuc a) ext) λ x →
 
        _↔_.from (F↔G _) (_↔_.to (F↔G _) (return x))  ≡⟨ _↔_.left-inverse-of (F↔G _) _ ⟩∎
        return x                                      ∎)
 
     (implicit-extensionality (lower-extensionality f lzero    ext) λ _ →
      implicit-extensionality (lower-extensionality f (lsuc a) ext) λ _ →
-     lower-extensionality (lsuc a) (lsuc a) ext λ x →
-     lower-extensionality (lsuc a) (lsuc a) ext λ f →
+     apply-ext (lower-extensionality (lsuc a) (lsuc a) ext) λ x →
+     apply-ext (lower-extensionality (lsuc a) (lsuc a) ext) λ f →
 
        _↔_.from (F↔G _) (_↔_.to (F↔G _)
          (_↔_.from (F↔G _) (_↔_.to (F↔G _) x) >>= λ x →
@@ -207,7 +207,7 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
 
        (_↔_.from (F↔G _) (_↔_.to (F↔G _) x) >>= λ x →
         _↔_.from (F↔G _) (_↔_.to (F↔G _) (f x)))         ≡⟨ cong₂ _>>=_ (_↔_.left-inverse-of (F↔G _) _)
-                                                                        (lower-extensionality _ (lsuc a) ext λ _ →
+                                                                        (apply-ext (lower-extensionality _ (lsuc a) ext) λ _ →
                                                                          _↔_.left-inverse-of (F↔G _) _) ⟩∎
        x >>= f                                           ∎)
 
@@ -248,7 +248,7 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
   Monad.right-identity (to ext F↔G F-monad) x =
     _↔_.to (F↔G _) (_↔_.from (F↔G _) x FR.>>= λ x →
                     _↔_.from (F↔G _) (_↔_.to (F↔G _) (FR.return x)))  ≡⟨ cong (λ g → _↔_.to (F↔G _) (_ FR.>>= g))
-                                                                              (ext λ _ → _↔_.left-inverse-of (F↔G _) _) ⟩
+                                                                              (apply-ext ext λ _ → _↔_.left-inverse-of (F↔G _) _) ⟩
     _↔_.to (F↔G _) (_↔_.from (F↔G _) x FR.>>= FR.return)              ≡⟨ cong (_↔_.to (F↔G _)) (FM.right-identity _) ⟩
 
     _↔_.to (F↔G _) (_↔_.from (F↔G _) x)                               ≡⟨ _↔_.right-inverse-of (F↔G _) _ ⟩∎
@@ -263,7 +263,7 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
       (_↔_.from (F↔G _) x FR.>>= λ x →
        _↔_.from (F↔G _) (_↔_.to (F↔G _)
          (_↔_.from (F↔G _) (f x) FR.>>= λ x → _↔_.from (F↔G _) (g x))))  ≡⟨ cong (λ g → _↔_.to (F↔G _) (_↔_.from (F↔G _) x FR.>>= g))
-                                                                                 (ext λ _ → _↔_.left-inverse-of (F↔G _) _) ⟩
+                                                                                 (apply-ext ext λ _ → _↔_.left-inverse-of (F↔G _) _) ⟩
     _↔_.to (F↔G _)
       (_↔_.from (F↔G _) x FR.>>= λ x →
        _↔_.from (F↔G _) (f x) FR.>>= λ x → _↔_.from (F↔G _) (g x))       ≡⟨ cong (_↔_.to (F↔G _)) (FM.associativity _ _ _) ⟩

@@ -1020,7 +1020,7 @@ currying = record
   ((x : A) → C (inj₁ x)) × ((y : B) → C (inj₂ y))
 Π⊎↔Π×Π ext = record
   { surjection      = Π⊎↠Π×Π
-  ; left-inverse-of = λ _ → ext [ refl ⊚ _ , refl ⊚ _ ]
+  ; left-inverse-of = λ _ → apply-ext ext [ refl ⊚ _ , refl ⊚ _ ]
   }
 
 -- ∃ distributes "from the left" over _⊎_.
@@ -1324,7 +1324,7 @@ contractible↔≃⊤ ext = record
   abstract
     right-inv :
       ∀ f → _⇔_.to logical-equiv (_⇔_.from logical-equiv f) ≡ f
-    right-inv f = ext λ x →
+    right-inv f = apply-ext ext λ x →
       to C↠D (from C↠D (f (to A↠B (from A↠B x))))  ≡⟨ right-inverse-of C↠D _ ⟩
       f (to A↠B (from A↠B x))                      ≡⟨ cong f $ right-inverse-of A↠B _ ⟩∎
       f x                                          ∎
@@ -1350,7 +1350,7 @@ contractible↔≃⊤ ext = record
     abstract
       left-inv :
         ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
-      left-inv f = lower-extensionality b d ext λ x →
+      left-inv f = apply-ext (lower-extensionality b d ext) λ x →
         from C↔D (to C↔D (f (from A↔B (to A↔B x))))  ≡⟨ left-inverse-of C↔D _ ⟩
         f (from A↔B (to A↔B x))                      ≡⟨ cong f $ left-inverse-of A↔B _ ⟩∎
         f x                                          ∎
@@ -1414,9 +1414,10 @@ private
 
     abstract
       right-inverse-of : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
-      right-inverse-of = λ f → lower-extensionality lzero b₁ ext λ x →
-        _↠_.to (B₁↠B₂ x) (_↠_.from (B₁↠B₂ x) (f x))  ≡⟨ _↠_.right-inverse-of (B₁↠B₂ x) (f x) ⟩∎
-        f x                                          ∎
+      right-inverse-of = λ f →
+        apply-ext (lower-extensionality lzero b₁ ext) λ x →
+          _↠_.to (B₁↠B₂ x) (_↠_.from (B₁↠B₂ x) (f x))  ≡⟨ _↠_.right-inverse-of (B₁↠B₂ x) (f x) ⟩∎
+          f x                                          ∎
 
   ∀-cong-bij :
     ∀ {a b₁ b₂} →
@@ -1433,9 +1434,10 @@ private
 
     abstract
       left-inverse-of : ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
-      left-inverse-of = λ f → lower-extensionality lzero b₂ ext λ x →
-        _↔_.from (B₁↔B₂ x) (_↔_.to (B₁↔B₂ x) (f x))  ≡⟨ _↔_.left-inverse-of (B₁↔B₂ x) (f x) ⟩∎
-        f x                                          ∎
+      left-inverse-of = λ f →
+        apply-ext (lower-extensionality lzero b₂ ext) λ x →
+          _↔_.from (B₁↔B₂ x) (_↔_.to (B₁↔B₂ x) (f x))  ≡⟨ _↔_.left-inverse-of (B₁↔B₂ x) (f x) ⟩∎
+          f x                                          ∎
 
   ∀-cong-eq :
     ∀ {a b₁ b₂} →
@@ -1498,21 +1500,21 @@ private
            (λ x → Embedding.to (B₁↣B₂ x) (g x))    □)
           _
           (λ f≡g →
-             Eq.good-ext ext₂
+             apply-ext (Eq.good-ext ext₂)
                (λ x → cong (Embedding.to (B₁↣B₂ x)) (ext⁻¹ f≡g x))        ≡⟨⟩
 
-             Eq.good-ext ext₂
-               (λ x → cong (Embedding.to (B₁↣B₂ x)) (cong (_$ x) f≡g))    ≡⟨ cong (Eq.good-ext ext₂) (ext₂ λ _ → cong-∘ _ _ _) ⟩
-
-             Eq.good-ext ext₂
-               (λ x → cong (λ h → Embedding.to (B₁↣B₂ x) (h x)) f≡g)      ≡⟨ cong (Eq.good-ext ext₂) (ext₂ λ _ → sym $ cong-∘ _ _ _) ⟩
-
-             Eq.good-ext ext₂
+             apply-ext (Eq.good-ext ext₂)
+               (λ x → cong (Embedding.to (B₁↣B₂ x)) (cong (_$ x) f≡g))    ≡⟨ cong (apply-ext (Eq.good-ext ext₂)) (apply-ext ext₂ λ _ →
+                                                                               cong-∘ _ _ _) ⟩
+             apply-ext (Eq.good-ext ext₂)
+               (λ x → cong (λ h → Embedding.to (B₁↣B₂ x) (h x)) f≡g)      ≡⟨ cong (apply-ext (Eq.good-ext ext₂)) (apply-ext ext₂ λ _ → sym $
+                                                                               cong-∘ _ _ _) ⟩
+             apply-ext (Eq.good-ext ext₂)
                (λ x → cong (_$ x)
                         (cong (λ h x → Embedding.to (B₁↣B₂ x) (h x))
                            f≡g))                                          ≡⟨⟩
 
-             Eq.good-ext ext₂
+             apply-ext (Eq.good-ext ext₂)
                (ext⁻¹ (cong (λ h x → Embedding.to (B₁↣B₂ x) (h x)) f≡g))  ≡⟨ _≃_.right-inverse-of (Eq.extensionality-isomorphism ext₂) _ ⟩∎
 
              cong (λ h x → Embedding.to (B₁↣B₂ x) (h x)) f≡g              ∎)
@@ -1631,7 +1633,7 @@ implicit-∀-cong ext = ∀-cong→implicit-∀-cong (∀-cong ext)
   abstract
 
     to∘from : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
-    to∘from f = ext λ x →
+    to∘from f = apply-ext ext λ x →
       subst B₂ (_↠_.right-inverse-of A₁↠A₂ x)
         (_↠_.to (B₁↠B₂ (_↠_.from A₁↠A₂ x))
            (_↠_.from (B₁↠B₂ (_↠_.from A₁↠A₂ x))
@@ -1662,7 +1664,7 @@ implicit-∀-cong ext = ∀-cong→implicit-∀-cong (∀-cong ext)
   abstract
 
     injective : Injective to
-    injective {x = f} {y = g} to-f≡to-g = Eq.good-ext ext λ x →
+    injective {x = f} {y = g} to-f≡to-g = apply-ext ext λ x →
 
       let x′ = _↠_.to A₂↠A₁ (_↠_.from A₂↠A₁ x) in
                                                        $⟨ to-f≡to-g ⟩
@@ -1699,7 +1701,7 @@ private
     abstract
 
       from∘to : ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
-      from∘to f = lower-extensionality a₂ b₂ ext λ x →
+      from∘to f = apply-ext (lower-extensionality a₂ b₂ ext) λ x →
         _↔_.from (B₁↔B₂ x)
           (subst B₂ (_≃_.right-inverse-of A₁≃A₂ (_≃_.to A₁≃A₂ x))
              (_↔_.to (B₁↔B₂ (_≃_.from A₁≃A₂ (_≃_.to A₁≃A₂ x)))
@@ -1790,21 +1792,22 @@ private
              to f ≡ to g                                              □)
             _
             (λ f≡g →
-               Eq.good-ext ext₂₂
+               apply-ext (Eq.good-ext ext₂₂)
                  (cong (Embedding.to (B₁↣B₂ _)) ⊚
-                    ext⁻¹ f≡g ⊚ _≃_.from A₁≃A₂)                      ≡⟨ sym $ Eq.cong-post-∘-good-ext ext₂₁ ext₂₂ _ ⟩
+                    ext⁻¹ f≡g ⊚ _≃_.from A₁≃A₂)                     ≡⟨ sym $ Eq.cong-post-∘-good-ext ext₂₁ ext₂₂ _ ⟩
 
                cong (Embedding.to (B₁↣B₂ _) ⊚_)
-                 (Eq.good-ext ext₂₁ (ext⁻¹ f≡g ⊚ _≃_.from A₁≃A₂))    ≡⟨ cong (cong (Embedding.to (B₁↣B₂ _) ⊚_)) $ sym $
-                                                                        Eq.cong-pre-∘-good-ext ext₂₁ ext₁₁ _ ⟩
+                 (apply-ext (Eq.good-ext ext₂₁)
+                    (ext⁻¹ f≡g ⊚ _≃_.from A₁≃A₂))                   ≡⟨ cong (cong (Embedding.to (B₁↣B₂ _) ⊚_)) $ sym $
+                                                                       Eq.cong-pre-∘-good-ext ext₂₁ ext₁₁ _ ⟩
                cong (Embedding.to (B₁↣B₂ _) ⊚_)
                  (cong (_⊚ _≃_.from A₁≃A₂)
-                   (Eq.good-ext ext₁₁ (ext⁻¹ f≡g)))                  ≡⟨ cong-∘ _ _ _ ⟩
+                   (apply-ext (Eq.good-ext ext₁₁) (ext⁻¹ f≡g)))     ≡⟨ cong-∘ _ _ _ ⟩
 
-               cong to (Eq.good-ext ext₁₁ (ext⁻¹ f≡g))               ≡⟨ cong (cong to) $
-                                                                        _≃_.right-inverse-of (Eq.extensionality-isomorphism ext₁₁) _ ⟩∎
+               cong to (apply-ext (Eq.good-ext ext₁₁) (ext⁻¹ f≡g))  ≡⟨ cong (cong to) $
+                                                                       _≃_.right-inverse-of (Eq.extensionality-isomorphism ext₁₁) _ ⟩∎
 
-               cong to f≡g                                           ∎)
+               cong to f≡g                                          ∎)
 
   Π-cong-Emb :
     ∀ {a₁ a₂ b₁ b₂} →
@@ -1925,7 +1928,7 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
       }
     ; right-inverse-of = λ _ → refl _
     }
-  ; left-inverse-of = λ _ → ext (λ x → ⊥-elim x)
+  ; left-inverse-of = λ _ → apply-ext ext (λ x → ⊥-elim x)
   }
 
 -- ¬ ⊥ is isomorphic to ⊤ (assuming extensionality).
@@ -1954,7 +1957,7 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
   (A → A → ⊥ {ℓ = ℓ}) ↔ (A → ⊥ {ℓ = ℓ})
 →→⊥↔→⊥ ext = record
   { surjection      = →→↠→
-  ; left-inverse-of = λ f → ext λ x → ⊥-elim (f x x)
+  ; left-inverse-of = λ f → apply-ext ext λ x → ⊥-elim (f x x)
   }
 
 -- Π is "commutative".
@@ -2059,8 +2062,8 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
       }
     ; right-inverse-of = λ { (γ , h) → Σ-≡,≡→≡
 
-        ((λ _ f → map f (γ X id))  ≡⟨ (lower-extensionality lzero (lsuc a) ext λ Y →
-                                       lower-extensionality _     (lsuc a) ext λ f →
+        ((λ _ f → map f (γ X id))  ≡⟨ (apply-ext (lower-extensionality lzero (lsuc a) ext) λ Y →
+                                       apply-ext (lower-extensionality _     (lsuc a) ext) λ f →
                                        h X Y f id) ⟩∎
          (λ Y f → γ Y f)           ∎)
 
@@ -2129,14 +2132,15 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 
   abstract
     from∘to : ∀ f → from (to f) ≡ f
-    from∘to f = ext λ z → Eq.lift-equality ext $ ext λ z≡x →
-      trans z≡x (_≃_.to (f x) (refl x))  ≡⟨ elim (λ {u v} u≡v →
-                                                    (f : ∀ z → (z ≡ v) ≃ (z ≡ y)) →
-                                                    trans u≡v (_≃_.to (f v) (refl v)) ≡
-                                                    _≃_.to (f u) u≡v)
-                                                 (λ _ _ → trans-reflˡ _)
-                                                 z≡x f ⟩∎
-      _≃_.to (f z) z≡x                   ∎
+    from∘to f =
+      apply-ext ext λ z → Eq.lift-equality ext $ apply-ext ext λ z≡x →
+        trans z≡x (_≃_.to (f x) (refl x))  ≡⟨ elim (λ {u v} u≡v →
+                                                      (f : ∀ z → (z ≡ v) ≃ (z ≡ y)) →
+                                                      trans u≡v (_≃_.to (f v) (refl v)) ≡
+                                                      _≃_.to (f u) u≡v)
+                                                   (λ _ _ → trans-reflˡ _)
+                                                   z≡x f ⟩∎
+        _≃_.to (f z) z≡x                   ∎
 
 -- One can introduce a universal quantifier by also introducing an
 -- equality (assuming extensionality).
@@ -2173,17 +2177,21 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
       b                                                              ∎
 
     to∘from : ∀ f → to (f x (refl x)) ≡ f
-    to∘from f = ext λ y → lower-extensionality lzero a ext λ x≡y →
-      elim¹ (λ {y} x≡y →
-               subst (uncurry B)
-                     (proj₂ (other-singleton-contractible x) (y , x≡y))
-                     (f x (refl x)) ≡
-               f y x≡y)
-            (subst (uncurry B)
-                   (proj₂ (other-singleton-contractible x) (x , refl x))
-                   (f x (refl x))                                         ≡⟨ from∘to (f x (refl x)) ⟩∎
-             f x (refl x)                                                 ∎)
-            x≡y
+    to∘from f =
+      apply-ext ext λ y →
+      apply-ext (lower-extensionality lzero a ext) λ x≡y →
+        elim¹ (λ {y} x≡y →
+                 subst (uncurry B)
+                       (proj₂ (other-singleton-contractible x)
+                              (y , x≡y))
+                       (f x (refl x)) ≡
+                 f y x≡y)
+              (subst (uncurry B)
+                     (proj₂ (other-singleton-contractible x)
+                            (x , refl x))
+                     (f x (refl x))                           ≡⟨ from∘to (f x (refl x)) ⟩∎
+               f x (refl x)                                   ∎)
+              x≡y
 
 private
 
@@ -2520,7 +2528,9 @@ set≃UIP ext =
   { surjection      = →≃→↠≃ ext′ hA hB
   ; left-inverse-of = λ { (A→≃B→ , ∘to≡ , _) →
       Σ-≡,≡→≡
-        (ext λ C → ext′ λ hC → _↔_.to (≃-to-≡↔≡ ext′) λ f →
+        (apply-ext ext  λ C  →
+         apply-ext ext′ λ hC →
+         _↔_.to (≃-to-≡↔≡ ext′) λ f →
            f ∘ _≃_.to (A→≃B→ A hA) id  ≡⟨ ∘to≡ _ _ _ ⟩∎
            _≃_.to (A→≃B→ C hC) f       ∎)
         (_⇔_.to propositional⇔irrelevant

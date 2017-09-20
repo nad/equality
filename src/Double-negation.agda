@@ -52,7 +52,7 @@ private
 
   proof-irrelevant : ∀ {a} {A : Set a} {x y : ¬¬ A} →
                      Extensionality a lzero → x ≡ y
-  proof-irrelevant ext = cong wrap $ ext λ _ →
+  proof-irrelevant ext = cong wrap $ apply-ext ext λ _ →
     _⇔_.to propositional⇔irrelevant ⊥-propositional _ _
 
 monad : ∀ {ℓ} →

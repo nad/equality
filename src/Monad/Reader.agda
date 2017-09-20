@@ -61,30 +61,30 @@ Monad.raw-monad (Monad-transformer.transform (monad-transformer _)) =
 
 Monad.left-identity (Monad-transformer.transform
                        (monad-transformer ext)) x f =
-  cong wrap (ext λ s →
+  cong wrap (apply-ext ext λ s →
     (return x >>= λ x → run (f x) s)  ≡⟨ left-identity _ _ ⟩∎
     run (f x) s                       ∎)
 
 Monad.right-identity (Monad-transformer.transform
                         (monad-transformer ext)) x =
-  cong wrap (ext λ s →
+  cong wrap (apply-ext ext λ s →
     run x s >>= return  ≡⟨ right-identity _ ⟩∎
     run x s             ∎)
 
 Monad.associativity (Monad-transformer.transform
                        (monad-transformer ext)) x f g =
-  cong wrap (ext λ s →
+  cong wrap (apply-ext ext λ s →
     (run x s >>= λ x → run (f x) s >>= λ x → run (g x) s)    ≡⟨ associativity _ _ _ ⟩∎
     ((run x s >>= λ x → run (f x) s) >>= λ x → run (g x) s)  ∎)
 
 Monad-transformer.liftᵐ (monad-transformer _) = liftʳ
 
 Monad-transformer.lift-return (monad-transformer ext) x =
-  cong wrap (ext λ _ →
+  cong wrap (apply-ext ext λ _ →
     return x  ∎)
 
 Monad-transformer.lift->>= (monad-transformer ext) x f =
-  cong wrap (ext λ _ →
+  cong wrap (apply-ext ext λ _ →
     x >>= f  ∎)
 
 -- Returns the "state".

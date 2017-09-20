@@ -92,10 +92,16 @@ module Reflexive-relation′
     {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
 
   -- Extensionality for functions at certain levels.
+  --
+  -- The definition is wrapped in a record type in order to avoid
+  -- certain problems related to Agda's handling of implicit
+  -- arguments.
 
-  Extensionality : (a b : Level) → Set (lsuc (a ⊔ b))
-  Extensionality a b =
-    {A : Set a} → {B : A → Set b} → Extensionality′ A B
+  record Extensionality (a b : Level) : Set (lsuc (a ⊔ b)) where
+    field
+      apply-ext : {A : Set a} {B : A → Set b} → Extensionality′ A B
+
+  open Extensionality public
 
   -- Proofs of extensionality which behave well when applied to
   -- reflexivity.
@@ -558,28 +564,21 @@ module Derived-definitions-and-properties
     lower-extensionality :
       ∀ {a} â {b} b̂ →
       Extensionality (a ⊔ â) (b ⊔ b̂) → Extensionality a b
-    lower-extensionality â b̂ ext f≡g =
+    apply-ext (lower-extensionality â b̂ ext) f≡g =
       cong (λ h → lower ∘ h ∘ lift) $
-        ext {A = ↑ â _} {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g ∘ lower)
-
-    lower-extensionality₂ :
-      ∀ {a} {A : Set a} {b} b̂ →
-      ({B : A → Set (b ⊔ b̂)} → Extensionality′ A B) →
-      ({B : A → Set  b     } → Extensionality′ A B)
-    lower-extensionality₂ b̂ ext f≡g =
-      cong (λ h → lower ∘ h) $
-        ext {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g)
+        apply-ext ext
+          {A = ↑ â _} {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g ∘ lower)
 
   -- Extensionality for explicit function types works for implicit
   -- function types as well.
 
   implicit-extensionality :
-    ∀ {a b} {A : Set a} {B : A → Set b} →
-    Extensionality′ A B →
-    {f g : {x : A} → B x} →
+    ∀ {a b} →
+    Extensionality a b →
+    {A : Set a} {B : A → Set b} {f g : {x : A} → B x} →
     (∀ x → f {x} ≡ g {x}) → (λ {x} → f {x}) ≡ g
   implicit-extensionality ext f≡g =
-    cong (λ f {x} → f x) $ ext f≡g
+    cong (λ f {x} → f x) $ apply-ext ext f≡g
 
   -- A bunch of lemmas that can be used to rearrange equalities.
 

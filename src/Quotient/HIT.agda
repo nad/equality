@@ -12,7 +12,7 @@
 module Quotient.HIT where
 
 open import Equality.Propositional as EP hiding (elim)
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
@@ -547,7 +547,7 @@ Maybe/-comm-[] =
               {f₁ : B₁ → C₁} {g₁ : A₁ → B₁}
               {f₂ : B₂ → C₂} {g₂ : A₂ → B₂} →
             ⊎-map f₁ f₂ ∘ ⊎-map g₁ g₂ ≡ ⊎-map (f₁ ∘ g₁) (f₂ ∘ g₂)
-  ⊎-map-∘ = ext Prelude.[ (λ _ → refl) , (λ _ → refl) ]
+  ⊎-map-∘ = ⟨ext⟩ Prelude.[ (λ _ → refl) , (λ _ → refl) ]
 
 -- The sigma type former commutes (kind of) with quotients, assuming
 -- that the second projections come from propositional types.
@@ -563,7 +563,7 @@ Maybe/-comm-[] =
       { to = uncurry $ elim
           (λ x → P x → Σ A (P ∘ [_]) / (R on proj₁))
           (curry [_])
-          (λ {x y} r → ext λ P[y] →
+          (λ {x y} r → ⟨ext⟩ λ P[y] →
              subst (λ x → P x → Σ A (P ∘ [_]) / (R on proj₁))
                    ([]-respects-relation r)
                    (curry [_] x) P[y]                               ≡⟨ cong (_$ P[y]) $ subst-→-domain _ ([]-respects-relation r) ⟩
@@ -609,7 +609,7 @@ Maybe/-comm-[] =
   (ℕ → A) / (ℕ →ᴾ R) → (ℕ → A / R)
 ℕ→/-comm-to = rec
   (λ f n → [ f n ])
-  (λ r → ext ([]-respects-relation ∘ r))
+  (λ r → ⟨ext⟩ ([]-respects-relation ∘ r))
   (Π-closure ext 2 λ _ →
    /-is-set)
 

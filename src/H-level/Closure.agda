@@ -216,11 +216,11 @@ abstract
   -- Given extensionality there is a (split) surjection from
   -- ∀ x → f x ≡ g x to f ≡ g.
 
-  ext-surj : ∀ {a b} {A : Set a} →
-             ({B : A → Set b} → Extensionality′ A B) →
-             {B : A → Set b} {f g : (x : A) → B x} →
+  ext-surj : ∀ {a b} →
+             Extensionality a b →
+             {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
              (∀ x → f x ≡ g x) ↠ (f ≡ g)
-  ext-surj {b = b} {A} ext {B} = record
+  ext-surj {b = b} ext {A} {B} = record
     { logical-equivalence = record
       { to   = to
       ; from = ext⁻¹
@@ -234,20 +234,18 @@ abstract
     }
     where
     ext′ : {B : A → Set b} → Well-behaved-extensionality A B
-    ext′ = extensionality⇒well-behaved-extensionality ext
+    ext′ = extensionality⇒well-behaved-extensionality (apply-ext ext)
 
     to : {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
     to = proj₁ ext′
 
--- H-level is closed under Π A, assuming extensionality for
--- functions from A.
+-- H-level is closed under Π A (assuming extensionality).
 
-Π-closure : ∀ {a b} {A : Set a} →
-            ({B : A → Set b} → Extensionality′ A B) →
-            ∀ {B : A → Set b} n →
-            (∀ x → H-level n (B x)) → H-level n ((x : A) → B x)
+Π-closure : ∀ {a b} {A : Set a} {B : A → Set b} →
+            Extensionality a b →
+            ∀ n → (∀ x → H-level n (B x)) → H-level n ((x : A) → B x)
 Π-closure ext zero =
-  _⇔_.from Π-closure-contractible⇔extensionality ext
+  _⇔_.from Π-closure-contractible⇔extensionality (apply-ext ext)
 Π-closure ext (suc n) = λ h f g →
   respects-surjection (ext-surj ext) n $
     Π-closure ext n (λ x → h x (f x) (g x))
@@ -255,11 +253,10 @@ abstract
 -- This also applies to the implicit function space.
 
 implicit-Π-closure :
-  ∀ {a b} {A : Set a} →
-  ({B : A → Set b} → Extensionality′ A B) →
-  ∀ {B : A → Set b} n →
-  (∀ x → H-level n (B x)) → H-level n ({x : A} → B x)
-implicit-Π-closure {A = A} ext {B} n =
+  ∀ {a b} {A : Set a} {B : A → Set b} →
+  Extensionality a b →
+  ∀ n → (∀ x → H-level n (B x)) → H-level n ({x : A} → B x)
+implicit-Π-closure ext n =
   respects-surjection
     (_↔_.surjection $ Bijection.inverse implicit-Π↔Π) n ∘
   Π-closure ext n
@@ -270,7 +267,7 @@ abstract
 
   ¬-propositional :
     ∀ {a} {A : Set a} →
-    ({B : A → Set} → Extensionality′ A B) →
+    Extensionality a lzero →
     Is-proposition (¬ A)
   ¬-propositional ext = Π-closure ext 1 (λ _ → ⊥-propositional)
 
@@ -463,7 +460,7 @@ abstract
   -- of equalities (assuming extensionality).
 
   W-≡,≡↠≡ : ∀ {a b} {A : Set a} {B : A → Set b} →
-            (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality′ (B x) C) →
+            Extensionality b (a ⊔ b) →
             ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
             (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
             (sup x f ≡ sup y g)
@@ -482,7 +479,7 @@ abstract
                    (subst (λ x → B x → W A B) p f ≡ g))
       (λ x f g →
          (∀ i → f i ≡ g (subst B (refl x) i))        ↠⟨ subst (λ h → (∀ i → f i ≡ g (h i)) ↠ (∀ i → f i ≡ g i))
-                                                              (sym (lower-extensionality₂ a ext (subst-refl B)))
+                                                              (sym (apply-ext (lower-extensionality lzero a ext) (subst-refl B)))
                                                               Surjection.id ⟩
          (∀ i → f i ≡ g i)                           ↠⟨ ext-surj ext ⟩
          (f ≡ g)                                     ↠⟨ subst (λ h → (f ≡ g) ↠ (h ≡ g))
@@ -508,12 +505,12 @@ abstract
        H-level n A → (∀ x → H-level n (B x)) → H-level n (W A B))
   ¬-W-closure closure = ¬-W-closure-contractible (closure 0)
 
-  -- However, all positive h-levels are closed under W, assuming that
-  -- equality is sufficiently extensional.
+  -- However, all positive h-levels are closed under W (assuming
+  -- extensionality).
 
   W-closure :
     ∀ {a b} {A : Set a} {B : A → Set b} →
-    (∀ {x} {C : B x → Set (a ⊔ b)} → Extensionality′ (B x) C) →
+    Extensionality b (a ⊔ b) →
     ∀ n → H-level (1 + n) A → H-level (1 + n) (W A B)
   W-closure {A = A} {B} ext n h = closure
     where
@@ -536,7 +533,7 @@ abstract
   counit = proj₁
 
   cojoin : ∀ {a} {A : Set a} →
-           ({B : A → Set a} → Extensionality′ A B) →
+           Extensionality a a →
            Contractible A → Contractible (Contractible A)
   cojoin {A = A} ext contr = contr₃
     where
@@ -563,7 +560,7 @@ abstract
 
   Contractible-propositional :
     ∀ {a} {A : Set a} →
-    ({B : A → Set a} → Extensionality′ A B) →
+    Extensionality a a →
     Is-proposition (Contractible A)
   Contractible-propositional ext =
     [inhabited⇒contractible]⇒propositional (cojoin ext)
@@ -706,7 +703,7 @@ abstract
 
   Dec-closure-propositional :
     ∀ {a} {A : Set a} →
-    ({B : A → Set} → Extensionality′ A B) →
+    Extensionality a lzero →
     Is-proposition A → Is-proposition (Dec A)
   Dec-closure-propositional {A = A} ext p =
     _⇔_.from propositional⇔irrelevant irrelevant
@@ -735,10 +732,10 @@ abstract
     irr (inj₁ (a , ¬b)) (inj₁ (a′  , ¬b′)) =
       cong₂ (λ x y → inj₁ (x , y))
         (_⇔_.to propositional⇔irrelevant pA a a′)
-        (lower-extensionality ℓa _ ext λ b → ⊥-elim (¬b b))
+        (apply-ext (lower-extensionality ℓa _ ext) λ b → ⊥-elim (¬b b))
     irr (inj₂ (¬a , b)) (inj₂ (¬a′ , b′)) =
       cong₂ (λ x y → inj₂ (x , y))
-        (lower-extensionality ℓb _ ext λ a → ⊥-elim (¬a a))
+        (apply-ext (lower-extensionality ℓb _ ext) λ a → ⊥-elim (¬a a))
         (_⇔_.to propositional⇔irrelevant pB b b′)
 
   -- However, H-level is not closed under _Xor_.

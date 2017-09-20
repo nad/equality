@@ -61,19 +61,19 @@ Monad.raw-monad (Monad-transformer.transform (monad-transformer _)) =
 
 Monad.left-identity (Monad-transformer.transform
                        (monad-transformer ext)) x f =
-  cong wrap (ext λ s →
+  cong wrap (apply-ext ext λ s →
     (return (x , s) >>= λ { (x , s) → run (f x) s })  ≡⟨ left-identity _ _ ⟩∎
     run (f x) s                                       ∎)
 
 Monad.right-identity (Monad-transformer.transform
                         (monad-transformer ext)) x =
-  cong wrap (ext λ s →
+  cong wrap (apply-ext ext λ s →
     run x s >>= (λ { (x , s) → return (x , s) })  ≡⟨ right-identity _ ⟩∎
     run x s                                       ∎)
 
 Monad.associativity (Monad-transformer.transform
                        (monad-transformer ext)) x f g =
-  cong wrap (ext λ s →
+  cong wrap (apply-ext ext λ s →
     (run x s >>= λ { (x , s) →
      run (f x) s >>= λ { (x , s) →
      run (g x) s } })                                             ≡⟨ associativity _ _ _ ⟩∎
@@ -84,12 +84,12 @@ Monad.associativity (Monad-transformer.transform
 Monad-transformer.liftᵐ (monad-transformer _) = liftʳ
 
 Monad-transformer.lift-return (monad-transformer ext) x =
-  cong wrap (ext λ s →
+  cong wrap (apply-ext ext λ s →
     map (_, s) (return x)  ≡⟨ map-return _ _ ⟩∎
     return (x , s)         ∎)
 
 Monad-transformer.lift->>= (monad-transformer ext) x f =
-  cong wrap (ext λ s →
+  cong wrap (apply-ext ext λ s →
     map (_, s) (x >>= f)                                 ≡⟨ map->>= _ _ _ ⟩
     (x >>= λ x → map (_, s) (f x))                       ≡⟨ sym $ >>=-map ext _ _ _ ⟩∎
     (map (_, s) x >>= λ { (x , s) → map (_, s) (f x) })  ∎)

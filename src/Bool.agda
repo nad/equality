@@ -148,7 +148,8 @@ T-not↔¬T ext false =
       }
     ; right-inverse-of = λ { true → refl _; false → refl _ }
     }
-  ; left-inverse-of = λ eq → lift-equality ext (ext (lemma₂ eq))
+  ; left-inverse-of = λ eq →
+      lift-equality ext (apply-ext ext (lemma₂ eq))
   }
   where
   lemma₁ : ∀ b → _≃_.to (if b then id else ↔⇒≃ swap) false ≡ not b
@@ -179,7 +180,8 @@ T-not↔¬T ext false =
       }
     ; right-inverse-of = λ { true → refl _; false → refl _ }
     }
-  ; left-inverse-of = λ eq → lift-equality ext (ext (lemma₂ eq))
+  ; left-inverse-of = λ eq →
+      lift-equality ext (apply-ext ext (lemma₂ eq))
   }
   where
   lemma₁ : ∀ b → _≃_.to (if b then ↔⇒≃ swap else id) true ≡ not b

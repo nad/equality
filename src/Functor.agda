@@ -626,7 +626,7 @@ abstract
                          _⇔_.to (natural-isomorphism-lemma ext₁) F⇾G-iso
 
                    ⊚F≡⊚G : _⊚_ F ≡ _⊚_ G
-                   ⊚F≡⊚G = Eq.good-ext ext₂ λ X →
+                   ⊚F≡⊚G = apply-ext (Eq.good-ext ext₂) λ X →
                      F ⊚ X  ≡⟨ ≅→≡ (γ X) ⟩∎
                      G ⊚ X  ∎
 
@@ -641,7 +641,7 @@ abstract
                    ⊙F≡⊙G =
                      implicit-extensionality (lower-extensionality ℓ₄ ℓ₁        ext) λ X →
                      implicit-extensionality (lower-extensionality ℓ₄ (ℓ₁ ⊔ ℓ₃) ext) λ Y →
-                     lower-extensionality ℓ₃ (ℓ₁ ⊔ ℓ₃ ⊔ ℓ₄) ext λ f →
+                     apply-ext (lower-extensionality ℓ₃ (ℓ₁ ⊔ ℓ₃ ⊔ ℓ₄) ext) λ f →
 
                      subst (λ F → ∀ {X Y} → HomC X Y → Hom (F X) (F Y))
                            ⊚F≡⊚G (_⊙_ F) f                               ≡⟨ cong (λ H → H f) $ sym $
@@ -714,7 +714,7 @@ abstract
                     (λ _ → id) (cong _⊚_ _)                               ≡⟨ cong (elim (λ {F G} _ → Hom (F X) (G X)) (λ _ → id)) $
                                                                                cong-⊚-from-equality-characterisation⇨ _ _ _ ⟩
                elim (λ {F G} _ → Hom (F X) (G X)) (λ _ → id)
-                    (Eq.good-ext ext₂ λ Y →
+                    (apply-ext (Eq.good-ext ext₂) λ Y →
                        ≅→≡ (_⇾_.transformation F⇾G {X = Y} , _))          ≡⟨ Eq.elim-good-ext ext₂ _ _ _ ⟩
 
                elim (λ {X Y} _ → Hom X Y) (λ _ → id)
@@ -734,35 +734,35 @@ abstract
            _≃_.from (equality-characterisation≡⇨ ext₁) (
               cong _⊚_ _                                           ≡⟨ cong-⊚-from-equality-characterisation⇨ _ _ _ ⟩
 
-              Eq.good-ext ext₂ (λ X →
+              apply-ext (Eq.good-ext ext₂) (λ X →
                 ≅→≡ ( _⇾_.transformation
                         (proj₁ $ Precategory.≡→≅ D^C F≡G) {X = X}
                     , _
                     ))                                             ≡⟨ elim
                                                                         (λ {F G} F≡G → (f : (X : _) → _) →
-                                                                           Eq.good-ext ext₂ (λ X →
+                                                                           apply-ext (Eq.good-ext ext₂) (λ X →
                                                                              ≅→≡ (_⇾_.transformation (proj₁ $ Precategory.≡→≅ D^C F≡G) , f X)) ≡
                                                                            cong _⊚_ F≡G)
                                                                         (λ F _ →
-                  Eq.good-ext ext₂ (λ _ →
+                  apply-ext (Eq.good-ext ext₂) (λ _ →
                     ≅→≡ ( _⇾_.transformation
                             (proj₁ $ Precategory.≡→≅ D^C (refl F))
                         , _
-                        ))                                                  ≡⟨ cong (Eq.good-ext ext₂) (ext₂ λ X → cong ≅→≡ $
+                        ))                                                  ≡⟨ cong (apply-ext (Eq.good-ext ext₂)) (apply-ext ext₂ λ X → cong ≅→≡ $
                                                                                  Σ-≡,≡→≡ (cong (λ f → _⇾_.transformation (proj₁ f) {X = X}) $
                                                                                             Precategory.≡→≅-refl D^C)
                                                                                          (refl _)) ⟩
-                  Eq.good-ext ext₂ (λ _ →
+                  apply-ext (Eq.good-ext ext₂) (λ _ →
                     ≅→≡ ( _⇾_.transformation {F = F}
                             (proj₁ $ Precategory.id≅ D^C)
                         , _
                         ))                                                  ≡⟨⟩
 
-                  Eq.good-ext ext₂ (λ _ → ≅→≡ (id , _))                     ≡⟨ cong (Eq.good-ext ext₂) (ext₂ λ _ →
+                  apply-ext (Eq.good-ext ext₂) (λ _ → ≅→≡ (id , _))         ≡⟨ cong (apply-ext (Eq.good-ext ext₂)) (apply-ext ext₂ λ _ →
                                                                                  cong ≅→≡ $ _≃_.from ≡≃≡¹ $ refl _) ⟩
-                  Eq.good-ext ext₂ (λ _ → ≅→≡ id≅)                          ≡⟨ cong (Eq.good-ext ext₂) (ext₂ λ _ → ≅→≡-refl) ⟩
-
-                  Eq.good-ext ext₂ (λ X → refl (F ⊚ X))                     ≡⟨ Eq.good-ext-refl ext₂ _ ⟩
+                  apply-ext (Eq.good-ext ext₂) (λ _ → ≅→≡ id≅)              ≡⟨ cong (apply-ext (Eq.good-ext ext₂)) (apply-ext ext₂ λ _ →
+                                                                                 ≅→≡-refl) ⟩
+                  apply-ext (Eq.good-ext ext₂) (λ X → refl (F ⊚ X))         ≡⟨ Eq.good-ext-refl ext₂ _ ⟩
 
                   refl (_⊚_ F)                                              ≡⟨ sym $ cong-refl _ ⟩∎
 

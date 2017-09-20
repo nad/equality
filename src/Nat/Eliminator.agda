@@ -91,18 +91,18 @@ Natrec-propositional {ℓ} ext₊ =
                      rec₀ P z s (suc n)  ≡⟨ ns₀ P z s n ⟩
                      s n (rec₀ P z s n)  ≡⟨ sym $ cong (s n) $ cong (_$ n) eq ⟩∎
                      s n (natrec n)      ∎
-      ; from = λ { (nz , ns) →
-                   ext (lower ∘
-                        rec₀ (λ n → ↑ ℓ (natrec n ≡ rec₀ P z s n))
-                          (lift (
-                             natrec zero      ≡⟨ nz ⟩
-                             z                ≡⟨ sym $ nz₀ P z s ⟩∎
-                             rec₀ P z s zero  ∎))
-                          (λ n ih → lift (
-                             natrec (suc n)      ≡⟨ ns n ⟩
-                             s n (natrec n)      ≡⟨ cong (s n) (lower ih) ⟩
-                             s n (rec₀ P z s n)  ≡⟨ sym $ ns₀ P z s n ⟩∎
-                             rec₀ P z s (suc n)  ∎)))
+      ; from = λ { (nz , ns) → apply-ext ext $
+                     lower ∘
+                     rec₀ (λ n → ↑ ℓ (natrec n ≡ rec₀ P z s n))
+                       (lift (
+                          natrec zero      ≡⟨ nz ⟩
+                          z                ≡⟨ sym $ nz₀ P z s ⟩∎
+                          rec₀ P z s zero  ∎))
+                       (λ n ih → lift (
+                          natrec (suc n)      ≡⟨ ns n ⟩
+                          s n (natrec n)      ≡⟨ cong (s n) (lower ih) ⟩
+                          s n (rec₀ P z s n)  ≡⟨ sym $ ns₀ P z s n ⟩∎
+                          rec₀ P z s (suc n)  ∎))
                  }
       }
     ; right-inverse-of = λ { (nz , ns) →
@@ -115,43 +115,43 @@ Natrec-propositional {ℓ} ext₊ =
                                   (sym $ ns₀ P z s n)))) in
 
           _↔_.to ≡×≡↔≡
-            ( (trans (cong (_$ zero) (ext f)) (nz₀ P z s)      ≡⟨ cong (flip trans (nz₀ P z s)) $ cong-good-ext ext₀ f ⟩
-               trans (f zero) (nz₀ P z s)                      ≡⟨ cong (flip trans (nz₀ P z s) ∘ lower) $ nz₀ _ _ _ ⟩
-               trans (trans nz (sym $ nz₀ P z s)) (nz₀ P z s)  ≡⟨ trans-[trans-sym]- _ (nz₀ P z s) ⟩∎
-               nz                                              ∎)
+            ( (trans (cong (_$ zero) (apply-ext ext f)) (nz₀ P z s)  ≡⟨ cong (flip trans (nz₀ P z s)) $ cong-good-ext ext₀ f ⟩
+               trans (f zero) (nz₀ P z s)                            ≡⟨ cong (flip trans (nz₀ P z s) ∘ lower) $ nz₀ _ _ _ ⟩
+               trans (trans nz (sym $ nz₀ P z s)) (nz₀ P z s)        ≡⟨ trans-[trans-sym]- _ (nz₀ P z s) ⟩∎
+               nz                                                    ∎)
 
-            , ext λ n →
+            , apply-ext ext λ n →
                 trans
-                  (cong (_$ suc n) (ext f))
+                  (cong (_$ suc n) (apply-ext ext f))
                   (trans (ns₀ P z s n)
-                     (sym $ cong (s n) $ cong (_$ n) (ext f)))     ≡⟨ cong₂ (λ p q → trans p (trans (ns₀ P z s n) (sym $ cong (s n) q)))
-                                                                        (cong-good-ext ext₀ f) (cong-good-ext ext₀ f) ⟩
+                     (sym $ cong (s n) $ cong (_$ n) (apply-ext ext f)))     ≡⟨ cong₂ (λ p q → trans p (trans (ns₀ P z s n) (sym $ cong (s n) q)))
+                                                                                  (cong-good-ext ext₀ f) (cong-good-ext ext₀ f) ⟩
                 trans
                   (f (suc n))
-                  (trans (ns₀ P z s n) (sym $ cong (s n) (f n)))   ≡⟨ cong (flip trans (trans _ (sym $ cong (s n) (f n))) ∘ lower) $ ns₀ _ _ _ _ ⟩
-
+                  (trans (ns₀ P z s n) (sym $ cong (s n) (f n)))             ≡⟨ cong (flip trans (trans _ (sym $ cong (s n) (f n))) ∘ lower) $
+                                                                                  ns₀ _ _ _ _ ⟩
                 trans
                   (trans (ns n)
                      (trans (cong (s n) (f n))
                         (sym $ ns₀ P z s n)))
-                  (trans (ns₀ P z s n) (sym $ cong (s n) (f n)))   ≡⟨ cong (flip trans (trans _ (sym $ cong (s n) (f n)))) $
-                                                                        sym $ trans-assoc _ _ (sym $ ns₀ P z s n) ⟩
+                  (trans (ns₀ P z s n) (sym $ cong (s n) (f n)))             ≡⟨ cong (flip trans (trans _ (sym $ cong (s n) (f n)))) $
+                                                                                  sym $ trans-assoc _ _ (sym $ ns₀ P z s n) ⟩
                 trans
                   (trans (trans (ns n) (cong (s n) (f n)))
                      (sym $ ns₀ P z s n))
-                  (trans (ns₀ P z s n) (sym $ cong (s n) (f n)))   ≡⟨ sym $ trans-assoc _ _ (sym $ cong (s n) (f n)) ⟩
+                  (trans (ns₀ P z s n) (sym $ cong (s n) (f n)))             ≡⟨ sym $ trans-assoc _ _ (sym $ cong (s n) (f n)) ⟩
 
                 trans
                   (trans (trans (trans (ns n) (cong (s n) (f n)))
                             (sym $ ns₀ P z s n))
                      (ns₀ P z s n))
-                  (sym $ cong (s n) (f n))                         ≡⟨ cong (flip trans (sym $ cong (s n) (f n))) $
-                                                                        trans-[trans-sym]- _ (ns₀ P z s n) ⟩
+                  (sym $ cong (s n) (f n))                                   ≡⟨ cong (flip trans (sym $ cong (s n) (f n))) $
+                                                                                  trans-[trans-sym]- _ (ns₀ P z s n) ⟩
                 trans
                   (trans (ns n) (cong (s n) (f n)))
-                  (sym $ cong (s n) (f n))                         ≡⟨ trans-[trans]-sym _ (cong (s n) (f n)) ⟩∎
+                  (sym $ cong (s n) (f n))                                   ≡⟨ trans-[trans]-sym _ (cong (s n) (f n)) ⟩∎
 
-                ns n                                               ∎
+                ns n                                                         ∎
             )
         }
     }

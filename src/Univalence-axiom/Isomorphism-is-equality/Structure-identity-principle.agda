@@ -313,7 +313,7 @@ abstract
     elim (λ {X Y} _ → Isomorphic c X Y)
          (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
   from-isomorphism-is-equality′ Univ ass c X Y El-set I-set J-set =
-    ext λ eq →
+    apply-ext ext λ eq →
       Σ-≡,≡→≡ (lemma eq) (_⇔_.to set⇔UIP (El-set J-set) _ _)
     where
     open Assumptions ass
