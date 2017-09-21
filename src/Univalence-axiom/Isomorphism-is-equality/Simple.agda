@@ -482,7 +482,7 @@ cast : ∀ a {B C} → B ⇔ C → El a B ⇔ El a C
 cast id      eq = eq
 cast set     eq = Logical-equivalence.id
 cast (k A)   eq = Logical-equivalence.id
-cast (a ⇾ b) eq = →-cong-⇔ (cast a eq) (cast b eq)
+cast (a ⇾ b) eq = →-cong _ (cast a eq) (cast b eq)
 cast (a ⊗ b) eq = cast a eq ×-cong cast b eq
 cast (a ⊕ b) eq = cast a eq ⊎-cong cast b eq
 
@@ -504,7 +504,7 @@ abstract
   cast-id ext id      = refl _
   cast-id ext set     = refl _
   cast-id ext (k A)   = refl _
-  cast-id ext (a ⇾ b) = cong₂ →-cong-⇔ (cast-id ext a) (cast-id ext b)
+  cast-id ext (a ⇾ b) = cong₂ (→-cong _) (cast-id ext a) (cast-id ext b)
   cast-id ext (a ⊗ b) = cong₂ _×-cong_ (cast-id ext a) (cast-id ext b)
   cast-id ext (a ⊕ b) =
     cast a Logical-equivalence.id ⊎-cong cast b Logical-equivalence.id  ≡⟨ cong₂ _⊎-cong_ (cast-id ext a) (cast-id ext b) ⟩
@@ -592,8 +592,8 @@ cast≃ ext a {B} {C} B≃C = ↔⇒≃ record
     casts-related id      = refl _
     casts-related set     = refl _
     casts-related (k A)   = refl _
-    casts-related (a ⇾ b) = cong₂ →-cong-⇔ (casts-related a)
-                                           (casts-related b)
+    casts-related (a ⇾ b) = cong₂ (→-cong _) (casts-related a)
+                                             (casts-related b)
     casts-related (a ⊗ b) = cong₂ _×-cong_ (casts-related a)
                                            (casts-related b)
     casts-related (a ⊕ b) = cong₂ _⊎-cong_ (casts-related a)

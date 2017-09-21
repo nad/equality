@@ -695,7 +695,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
                                                              F.id) ⟩
     (∃ λ (f : (x : A) → (∃ λ P → R x ≡ P) → B) →
        ∀ P → Constant (λ { (x , eq) → f x (P , eq) }))    ↝⟨ inverse $
-                                                             Σ-cong (inverse $
+                                                             Σ-cong (Bij.inverse $
                                                                      ∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                      drop-⊤-left-Π (lower-extensionality _ _ ext) $
                                                                      _⇔_.to contractible⇔↔⊤ $

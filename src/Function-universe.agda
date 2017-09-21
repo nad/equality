@@ -269,6 +269,102 @@ to-implication-inverse-id bijection           = refl _
 to-implication-inverse-id equivalence         = refl _
 
 ------------------------------------------------------------------------
+-- Conditional extensionality
+
+-- Code that provides support for proving general statements about
+-- functions of different kinds, in which the statements involve
+-- assumptions of extensionality for some kinds of functions, but not
+-- all. For some examples, see ∀-cong and ∀-intro.
+
+-- Kinds for which extensionality is not provided.
+
+data Without-extensionality : Set where
+  implication logical-equivalence : Without-extensionality
+
+⌊_⌋-without : Without-extensionality → Kind
+⌊ implication         ⌋-without = implication
+⌊ logical-equivalence ⌋-without = logical-equivalence
+
+-- Kinds for which extensionality is provided.
+
+data With-extensionality : Set where
+  injection embedding surjection bijection equivalence :
+    With-extensionality
+
+⌊_⌋-with : With-extensionality → Kind
+⌊ injection   ⌋-with = injection
+⌊ embedding   ⌋-with = embedding
+⌊ surjection  ⌋-with = surjection
+⌊ bijection   ⌋-with = bijection
+⌊ equivalence ⌋-with = equivalence
+
+-- Kinds annotated with information about whether extensionality is
+-- provided or not.
+
+data Extensionality-kind : Kind → Set where
+  without-extensionality : (k : Without-extensionality) →
+                           Extensionality-kind ⌊ k ⌋-without
+  with-extensionality    : (k : With-extensionality) →
+                           Extensionality-kind ⌊ k ⌋-with
+
+-- Is extensionality provided for the given kind?
+
+extensionality? : (k : Kind) → Extensionality-kind k
+extensionality? implication         = without-extensionality implication
+extensionality? logical-equivalence = without-extensionality
+                                        logical-equivalence
+extensionality? injection           = with-extensionality injection
+extensionality? embedding           = with-extensionality embedding
+extensionality? surjection          = with-extensionality surjection
+extensionality? bijection           = with-extensionality bijection
+extensionality? equivalence         = with-extensionality equivalence
+
+-- Extensionality, but only for certain kinds of functions.
+
+Extensionality? : Kind → (a b : Level) → Set (lsuc (a ⊔ b))
+Extensionality? k with extensionality? k
+... | without-extensionality _ = λ _ _ → ↑ _ ⊤
+... | with-extensionality    _ = Extensionality
+
+-- Turns extensionality into conditional extensionality.
+
+forget-ext? : ∀ k {a b} → Extensionality a b → Extensionality? k a b
+forget-ext? k with extensionality? k
+... | without-extensionality _ = _
+... | with-extensionality    _ = id
+
+-- A variant of lower-extensionality.
+
+lower-extensionality? :
+  ∀ k {a} â {b} b̂ →
+  Extensionality? k (a ⊔ â) (b ⊔ b̂) → Extensionality? k a b
+lower-extensionality? k with extensionality? k
+... | without-extensionality _ = _
+... | with-extensionality    _ = lower-extensionality
+
+-- A function that can be used to generalise results.
+
+generalise-ext? :
+  ∀ {a b c d} {A : Set a} {B : Set b} →
+  A ⇔ B →
+  (Extensionality c d → A ↔ B) →
+  ∀ {k} → Extensionality? k c d → A ↝[ k ] B
+generalise-ext? f⇔ f↔ {k} with extensionality? k
+... | without-extensionality implication         = λ _ → _⇔_.to f⇔
+... | without-extensionality logical-equivalence = λ _ → f⇔
+... | with-extensionality    _                   = λ ext →
+  from-isomorphism (f↔ ext)
+
+-- General results of the kind produced by generalise-ext? are
+-- symmetric.
+
+inverse-ext? :
+  ∀ {a b c d} {A : Set a} {B : Set b} →
+  (∀ {k} → Extensionality? k c d → A ↝[ k ] B) →
+  (∀ {k} → Extensionality? k c d → B ↝[ k ] A)
+inverse-ext? hyp = generalise-ext? (inverse $ hyp _) (inverse ⊚ hyp)
+
+------------------------------------------------------------------------
 -- Lots of properties
 ------------------------------------------------------------------------
 
@@ -1013,15 +1109,16 @@ currying = record
   }
 
 Π⊎↔Π×Π :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : A ⊎ B → Set c} →
-  Extensionality (a ⊔ b) c →
+  ∀ {k a b c} {A : Set a} {B : Set b} {C : A ⊎ B → Set c} →
+  Extensionality? k (a ⊔ b) c →
   ((x : A ⊎ B) → C x)
-    ↔
+    ↝[ k ]
   ((x : A) → C (inj₁ x)) × ((y : B) → C (inj₂ y))
-Π⊎↔Π×Π ext = record
-  { surjection      = Π⊎↠Π×Π
-  ; left-inverse-of = λ _ → apply-ext ext [ refl ⊚ _ , refl ⊚ _ ]
-  }
+Π⊎↔Π×Π =
+  generalise-ext? (_↠_.logical-equivalence Π⊎↠Π×Π) λ ext → record
+    { surjection      = Π⊎↠Π×Π
+    ; left-inverse-of = λ _ → apply-ext ext [ refl ⊚ _ , refl ⊚ _ ]
+    }
 
 -- ∃ distributes "from the left" over _⊎_.
 
@@ -1299,14 +1396,18 @@ contractible↔≃⊤ ext = record
            (B → A) → (C → D) → (A → C) → (B → D)
 →-cong-→ B→A C→D = (C→D ∘_) ∘ (_∘ B→A)
 
-→-cong-⇔ : ∀ {a b c d}
-             {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
-           A ⇔ B → C ⇔ D → (A → C) ⇔ (B → D)
-→-cong-⇔ A⇔B C⇔D = record
-  { to   = →-cong-→ (from A⇔B) (to   C⇔D)
-  ; from = →-cong-→ (to   A⇔B) (from C⇔D)
-  }
-  where open _⇔_
+private
+
+  -- A lemma used in the implementations of →-cong and →-cong-↠.
+
+  →-cong-⇔ : ∀ {a b c d}
+               {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+             A ⇔ B → C ⇔ D → (A → C) ⇔ (B → D)
+  →-cong-⇔ A⇔B C⇔D = record
+    { to   = →-cong-→ (from A⇔B) (to   C⇔D)
+    ; from = →-cong-→ (to   A⇔B) (from C⇔D)
+    }
+    where open _⇔_
 
 →-cong-↠ : ∀ {a b c d} → Extensionality b d →
            {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
@@ -1329,14 +1430,15 @@ contractible↔≃⊤ ext = record
       f (to A↠B (from A↠B x))                      ≡⟨ cong f $ right-inverse-of A↠B _ ⟩∎
       f x                                          ∎
 
-→-cong : ∀ {a b c d} → Extensionality (a ⊔ b) (c ⊔ d) →
-         {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
-         ∀ {k} → A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
-         (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
-→-cong {a} {b} {c} {d} ext {A} {B} {C} {D} = helper _
-  where
-  →-cong-↔ : A ↔ B → C ↔ D → (A → C) ↔ (B → D)
-  →-cong-↔ A↔B C↔D = record
+private
+
+  -- A lemma used in the implementation of →-cong.
+
+  →-cong-↔ : ∀ {a b c d}
+               {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+             Extensionality (a ⊔ b) (c ⊔ d) →
+             A ↔ B → C ↔ D → (A → C) ↔ (B → D)
+  →-cong-↔ {a} {b} {c} {d} ext A↔B C↔D = record
     { surjection      = surj
     ; left-inverse-of = left-inv
     }
@@ -1355,49 +1457,54 @@ contractible↔≃⊤ ext = record
         f (from A↔B (to A↔B x))                      ≡⟨ cong f $ left-inverse-of A↔B _ ⟩∎
         f x                                          ∎
 
-  helper : ∀ k → A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
-           (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
-  helper logical-equivalence A⇔B C⇔D = →-cong-⇔ A⇔B C⇔D
-  helper bijection           A↔B C↔D = →-cong-↔ A↔B C↔D
-  helper equivalence         A≃B C≃D = record
-    { to             = to
-    ; is-equivalence = λ y →
-        ((from y , right-inverse-of y) , irrelevance y)
-    }
-    where
-    A→B≃C→D = Eq.↔⇒≃
-                (→-cong-↔ (_≃_.bijection A≃B) (_≃_.bijection C≃D))
+-- The non-dependent function space preserves symmetric kinds of
+-- functions (in some cases assuming extensionality).
 
-    to   = _≃_.to   A→B≃C→D
-    from = _≃_.from A→B≃C→D
-
-    abstract
-      right-inverse-of : ∀ x → to (from x) ≡ x
-      right-inverse-of = _≃_.right-inverse-of A→B≃C→D
-
-      irrelevance : ∀ y (p : to ⁻¹ y) →
-                    (from y , right-inverse-of y) ≡ p
-      irrelevance = _≃_.irrelevance A→B≃C→D
-
--- Π preserves all kinds of functions in its second argument, in some
--- cases assuming extensionality.
-
-∀-cong-→ :
-  ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
-  (∀ x → B₁ x → B₂ x) →
-  ((x : A) → B₁ x) → ((x : A) → B₂ x)
-∀-cong-→ B₁→B₂ = B₁→B₂ _ ⊚_
-
-∀-cong-⇔ :
-  ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
-  (∀ x → B₁ x ⇔ B₂ x) →
-  ((x : A) → B₁ x) ⇔ ((x : A) → B₂ x)
-∀-cong-⇔ B₁⇔B₂ = record
-  { to   = ∀-cong-→ (_⇔_.to   ⊚ B₁⇔B₂)
-  ; from = ∀-cong-→ (_⇔_.from ⊚ B₁⇔B₂)
+→-cong : ∀ {k a b c d} →
+         Extensionality? ⌊ k ⌋-sym (a ⊔ b) (c ⊔ d) →
+         {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+         A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
+         (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
+→-cong {logical-equivalence} _   A⇔B C⇔D = →-cong-⇔ A⇔B C⇔D
+→-cong {bijection}           ext A↔B C↔D = →-cong-↔ ext A↔B C↔D
+→-cong {equivalence}         ext A≃B C≃D = record
+  { to             = to
+  ; is-equivalence = λ y →
+      ((from y , right-inverse-of y) , irrelevance y)
   }
+  where
+  A→B≃C→D =
+    Eq.↔⇒≃ (→-cong-↔ ext (_≃_.bijection A≃B) (_≃_.bijection C≃D))
+
+  to   = _≃_.to   A→B≃C→D
+  from = _≃_.from A→B≃C→D
+
+  abstract
+    right-inverse-of : ∀ x → to (from x) ≡ x
+    right-inverse-of = _≃_.right-inverse-of A→B≃C→D
+
+    irrelevance : ∀ y (p : to ⁻¹ y) →
+                  (from y , right-inverse-of y) ≡ p
+    irrelevance = _≃_.irrelevance A→B≃C→D
 
 private
+
+  -- Lemmas used in the implementation of ∀-cong.
+
+  ∀-cong-→ :
+    ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    (∀ x → B₁ x → B₂ x) →
+    ((x : A) → B₁ x) → ((x : A) → B₂ x)
+  ∀-cong-→ B₁→B₂ = B₁→B₂ _ ⊚_
+
+  ∀-cong-⇔ :
+    ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    (∀ x → B₁ x ⇔ B₂ x) →
+    ((x : A) → B₁ x) ⇔ ((x : A) → B₂ x)
+  ∀-cong-⇔ B₁⇔B₂ = record
+    { to   = ∀-cong-→ (_⇔_.to   ⊚ B₁⇔B₂)
+    ; from = ∀-cong-→ (_⇔_.from ⊚ B₁⇔B₂)
+    }
 
   ∀-cong-surj :
     ∀ {a b₁ b₂} →
@@ -1519,9 +1626,12 @@ private
 
              cong (λ h x → Embedding.to (B₁↣B₂ x) (h x)) f≡g              ∎)
 
+-- Π preserves all kinds of functions in its second argument (in some
+-- cases assuming extensionality).
+
 ∀-cong :
   ∀ {k a b₁ b₂} →
-  Extensionality a (b₁ ⊔ b₂) →
+  Extensionality? k a (b₁ ⊔ b₂) →
   {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
   (∀ x → B₁ x ↝[ k ] B₂ x) →
   ((x : A) → B₁ x) ↝[ k ] ((x : A) → B₂ x)
@@ -1534,44 +1644,21 @@ private
 ∀-cong {equivalence}         = ∀-cong-eq
 
 -- The implicit variant of Π preserves all kinds of functions in its
--- second argument, in some cases assuming extensionality.
-
-private
-
-  ∀-cong→implicit-∀-cong :
-    ∀ {k a b₁ b₂} →
-    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
-    ((∀ x → B₁ x ↝[ k ] B₂ x) →
-     ((x : A) → B₁ x) ↝[ k ] ((x : A) → B₂ x)) →
-    ((∀ {x} → B₁ x ↝[ k ] B₂ x) →
-     ({x : A} → B₁ x) ↝[ k ] ({x : A} → B₂ x))
-  ∀-cong→implicit-∀-cong {A = A} {B₁} {B₂} ∀-cong B₁↝B₂ =
-    ({x : A} → B₁ x)  ↔⟨ Bijection.implicit-Π↔Π ⟩
-    ((x : A) → B₁ x)  ↝⟨ ∀-cong (λ _ → B₁↝B₂) ⟩
-    ((x : A) → B₂ x)  ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
-    ({x : A} → B₂ x)  □
-
-implicit-∀-cong-→ :
-  ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
-  (∀ {x} → B₁ x → B₂ x) →
-  ({x : A} → B₁ x) → ({x : A} → B₂ x)
-implicit-∀-cong-→ = ∀-cong→implicit-∀-cong ∀-cong-→
-
-implicit-∀-cong-⇔ :
-  ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
-  (∀ {x} → B₁ x ⇔ B₂ x) →
-  ({x : A} → B₁ x) ⇔ ({x : A} → B₂ x)
-implicit-∀-cong-⇔ = ∀-cong→implicit-∀-cong ∀-cong-⇔
+-- second argument (in some cases assuming extensionality).
 
 implicit-∀-cong :
   ∀ {k a b₁ b₂} →
-  Extensionality a (b₁ ⊔ b₂) →
+  Extensionality? k a (b₁ ⊔ b₂) →
   {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
   (∀ {x} → B₁ x ↝[ k ] B₂ x) →
   ({x : A} → B₁ x) ↝[ k ] ({x : A} → B₂ x)
-implicit-∀-cong ext = ∀-cong→implicit-∀-cong (∀-cong ext)
+implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
+  ({x : A} → B₁ x)  ↔⟨ Bijection.implicit-Π↔Π ⟩
+  ((x : A) → B₁ x)  ↝⟨ ∀-cong ext (λ _ → B₁↝B₂) ⟩
+  ((x : A) → B₂ x)  ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
+  ({x : A} → B₂ x)  □
 
--- Two generalisations of ∀-cong-→.
+-- Two generalisations of ∀-cong for non-dependent functions.
 
 Π-cong-contra-→ :
   ∀ {a₁ a₂ b₁ b₂}
@@ -1598,7 +1685,7 @@ implicit-∀-cong ext = ∀-cong→implicit-∀-cong (∀-cong ext)
   B₂ (_↠_.to A₁↠A₂ (_↠_.from A₁↠A₂ x))  ↝⟨ subst B₂ (_↠_.right-inverse-of A₁↠A₂ x) ⟩□
   B₂ x                                  □
 
--- Two generalisations of ∀-cong-⇔.
+-- Two generalisations of ∀-cong for logical equivalences.
 
 Π-cong-⇔ :
   ∀ {a₁ a₂ b₁ b₂}
@@ -1816,7 +1903,7 @@ private
     ((x : A₁) → B₁ x) ↣ ((x : A₂) → B₂ x)
   Π-cong-↣ ext {A₁} {A₂} {B₁} {B₂} A₁≃A₂ =
     (∀ x → B₁ x ↣ B₂ (_≃_.to A₁≃A₂ x))                                    ↝⟨ Π-cong-contra-→ (_≃_.from A₁≃A₂) (λ _ → id) ⟩
-    (∀ x → B₁ (_≃_.from A₁≃A₂ x) ↣ B₂ (_≃_.to A₁≃A₂ (_≃_.from A₁≃A₂ x)))  ↝⟨ (∀-cong-→ λ _ →
+    (∀ x → B₁ (_≃_.from A₁≃A₂ x) ↣ B₂ (_≃_.to A₁≃A₂ (_≃_.from A₁≃A₂ x)))  ↝⟨ (∀-cong _ λ _ →
                                                                               subst ((B₁ _ ↣_) ⊚ B₂) (_≃_.right-inverse-of A₁≃A₂ _)) ⟩
     (∀ x → B₁ (_≃_.from A₁≃A₂ x) ↣ B₂ x)                                  ↝⟨ Π-cong-contra-↣ ext (_≃_.surjection $ inverse A₁≃A₂) ⟩□
     ((x : A₁) → B₁ x) ↣ ((x : A₂) → B₂ x)                                 □
@@ -1895,7 +1982,7 @@ private
     (∀ x → Embedding (B₁ x) (B₂ (_≃_.to A₁≃A₂ x)))            ↝⟨ Π-cong-contra-→ (_≃_.from A₁≃A₂) (λ _ → id) ⟩
 
     (∀ x → Embedding (B₁ (_≃_.from A₁≃A₂ x))
-                     (B₂ (_≃_.to A₁≃A₂ (_≃_.from A₁≃A₂ x))))  ↝⟨ (∀-cong-→ λ _ → subst (Embedding (B₁ _) ⊚ B₂) (_≃_.right-inverse-of A₁≃A₂ _)) ⟩
+                     (B₂ (_≃_.to A₁≃A₂ (_≃_.from A₁≃A₂ x))))  ↝⟨ (∀-cong _ λ _ → subst (Embedding (B₁ _) ⊚ B₂) (_≃_.right-inverse-of A₁≃A₂ _)) ⟩
 
     (∀ x → Embedding (B₁ (_≃_.from A₁≃A₂ x)) (B₂ x))          ↝⟨ Π-cong-contra-Emb ext (inverse A₁≃A₂) ⟩□
 
@@ -1905,14 +1992,14 @@ private
 
 Π-cong :
   ∀ {k₁ k₂ a₁ a₂ b₁ b₂} →
-  Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+  Extensionality? k₂ (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
   (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
   (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
   ((x : A₁) → B₁ x) ↝[ k₂ ] ((x : A₂) → B₂ x)
 Π-cong {k₁} {k₂} {a₁} {a₂} {b₁} {b₂}
        ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ =
-  helper k₂ (B₁↝B₂′ k₁ A₁↔A₂ B₁↝B₂)
+  helper k₂ ext (B₁↝B₂′ k₁ A₁↔A₂ B₁↝B₂)
   where
   -- The first six clauses are included as optimisations intended to
   -- make some proof terms easier to work with. These clauses cover
@@ -1936,34 +2023,35 @@ private
   A₁↝A₂ : ∀ {k} → A₁ ↝[ k ] A₂
   A₁↝A₂ = from-isomorphism A₁↔A₂
 
-  ext₁₁ = lower-extensionality a₂ b₂ ext
-  ext₂₂ = lower-extensionality a₁ b₁ ext
+  l₁ = lower-extensionality a₁ b₁
+  l₂ = lower-extensionality a₂ b₂
 
   helper :
     ∀ k₂ →
+    Extensionality? k₂ (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
     (∀ k x → B₁ x ↝[ k₂ ]
              B₂ (to-implication {k = k} (from-isomorphism A₁↔A₂) x)) →
     ((x : A₁) → B₁ x) ↝[ k₂ ] ((x : A₂) → B₂ x)
-  helper implication         = Π-cong-→       A₁↝A₂ ⊚ (_$ surjection)
-  helper logical-equivalence = Π-cong-⇔       A₁↝A₂ ⊚ (_$ surjection)
-  helper injection           = Π-cong-↣ ext₁₁ A₁↝A₂ ⊚ (_$ equivalence)
-  helper embedding           = Π-cong-Emb ext A₁↝A₂ ⊚ (_$ equivalence)
-  helper surjection          = Π-cong-↠ ext₂₂ A₁↝A₂ ⊚ (_$ surjection)
-  helper bijection           = Π-cong-↔ ext   A₁↝A₂ ⊚ (_$ equivalence)
-  helper equivalence         = Π-cong-≃ ext   A₁↝A₂ ⊚ (_$ equivalence)
+  helper implication         _   = Π-cong-→          A₁↝A₂ ⊚ (_$ surjection)
+  helper logical-equivalence _   = Π-cong-⇔          A₁↝A₂ ⊚ (_$ surjection)
+  helper injection           ext = Π-cong-↣ (l₂ ext) A₁↝A₂ ⊚ (_$ equivalence)
+  helper embedding           ext = Π-cong-Emb ext    A₁↝A₂ ⊚ (_$ equivalence)
+  helper surjection          ext = Π-cong-↠ (l₁ ext) A₁↝A₂ ⊚ (_$ surjection)
+  helper bijection           ext = Π-cong-↔ ext      A₁↝A₂ ⊚ (_$ equivalence)
+  helper equivalence         ext = Π-cong-≃ ext      A₁↝A₂ ⊚ (_$ equivalence)
 
 -- A variant of Π-cong.
 
 Π-cong-contra :
   ∀ {k₁ k₂ a₁ a₂ b₁ b₂} →
-  Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+  Extensionality? k₂ (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
   {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
   (A₂↔A₁ : A₂ ↔[ k₁ ] A₁) →
   (∀ x → B₁ (to-implication A₂↔A₁ x) ↝[ k₂ ] B₂ x) →
   ((x : A₁) → B₁ x) ↝[ k₂ ] ((x : A₂) → B₂ x)
 Π-cong-contra {k₁} {k₂} {a₁} {a₂} {b₁} {b₂}
               ext {A₁} {A₂} {B₁} {B₂} A₂↔A₁ B₁↝B₂ =
-  helper k₂ (B₁↝B₂′ k₁ A₂↔A₁ B₁↝B₂)
+  helper k₂ ext (B₁↝B₂′ k₁ A₂↔A₁ B₁↝B₂)
   where
   -- The first six clauses are included as optimisations intended to
   -- make some proof terms easier to work with. These clauses cover
@@ -1988,22 +2076,23 @@ private
   A₂↝A₁ : ∀ {k} → A₂ ↝[ k ] A₁
   A₂↝A₁ = from-isomorphism A₂↔A₁
 
-  ext₁₁ = lower-extensionality a₂ b₂ ext
-  ext₂₂ = lower-extensionality a₁ b₁ ext
+  l₁ = lower-extensionality a₁ b₁
+  l₂ = lower-extensionality a₂ b₂
 
   helper :
     ∀ k₂ →
+    Extensionality? k₂ (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
     (∀ k x → B₁ (to-implication {k = k} (from-isomorphism A₂↔A₁) x)
                ↝[ k₂ ]
              B₂ x) →
     ((x : A₁) → B₁ x) ↝[ k₂ ] ((x : A₂) → B₂ x)
-  helper implication         = Π-cong-contra-→       A₂↝A₁ ⊚ (_$ implication)
-  helper logical-equivalence = Π-cong-contra-⇔       A₂↝A₁ ⊚ (_$ surjection)
-  helper injection           = Π-cong-contra-↣ ext₁₁ A₂↝A₁ ⊚ (_$ surjection)
-  helper embedding           = Π-cong-contra-Emb ext A₂↝A₁ ⊚ (_$ equivalence)
-  helper surjection          = Π-cong-contra-↠ ext₂₂ A₂↝A₁ ⊚ (_$ equivalence)
-  helper bijection           = Π-cong-contra-↔ ext   A₂↝A₁ ⊚ (_$ equivalence)
-  helper equivalence         = Π-cong-contra-≃ ext   A₂↝A₁ ⊚ (_$ equivalence)
+  helper implication         _   = Π-cong-contra-→          A₂↝A₁ ⊚ (_$ implication)
+  helper logical-equivalence _   = Π-cong-contra-⇔          A₂↝A₁ ⊚ (_$ surjection)
+  helper injection           ext = Π-cong-contra-↣ (l₂ ext) A₂↝A₁ ⊚ (_$ surjection)
+  helper embedding           ext = Π-cong-contra-Emb ext    A₂↝A₁ ⊚ (_$ equivalence)
+  helper surjection          ext = Π-cong-contra-↠ (l₁ ext) A₂↝A₁ ⊚ (_$ equivalence)
+  helper bijection           ext = Π-cong-contra-↔ ext      A₂↝A₁ ⊚ (_$ equivalence)
+  helper equivalence         ext = Π-cong-contra-≃ ext      A₂↝A₁ ⊚ (_$ equivalence)
 
 Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
 Π-left-identity = record
@@ -2020,12 +2109,14 @@ private
 -- A lemma that can be used to simplify a pi type where the domain is
 -- isomorphic to the unit type.
 
-drop-⊤-left-Π : ∀ {a b} {A : Set a} {B : A → Set b} →
-                Extensionality a b →
-                (A↔⊤ : A ↔ ⊤) → ((x : A) → B x) ↔ B (_↔_.from A↔⊤ tt)
+drop-⊤-left-Π :
+  ∀ {k a b} {A : Set a} {B : A → Set b} →
+  Extensionality? k a b →
+  (A↔⊤ : A ↔ ⊤) →
+  ((x : A) → B x) ↝[ k ] B (_↔_.from A↔⊤ tt)
 drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
-  ((x : A) → B x)                 ↝⟨ inverse $ Π-cong ext (inverse A↔⊤) (λ _ → id) ⟩
-  ((x : ⊤) → B (_↔_.from A↔⊤ x))  ↝⟨ Π-left-identity ⟩□
+  ((x : A) → B x)                 ↝⟨ Π-cong-contra ext (inverse A↔⊤) (λ _ → id) ⟩
+  ((x : ⊤) → B (_↔_.from A↔⊤ x))  ↔⟨ Π-left-identity ⟩□
   B (_↔_.from A↔⊤ tt)             □
 
 →-right-zero : ∀ {a} {A : Set a} → (A → ⊤) ↔ ⊤
@@ -2040,28 +2131,30 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
   ; left-inverse-of = λ _ → refl (λ _ → tt)
   }
 
--- Function types with the empty type as domain are isomorphic to the
--- unit type (assuming extensionality).
+-- A lemma relating function types with the empty type as domain and
+-- the unit type.
 
-Π⊥↔⊤ : ∀ {ℓ a} {A : ⊥ {ℓ = ℓ} → Set a} →
-       Extensionality ℓ a →
-       ((x : ⊥) → A x) ↔ ⊤
-Π⊥↔⊤ ext = record
+Π⊥↔⊤ : ∀ {k ℓ a} {A : ⊥ {ℓ = ℓ} → Set a} →
+       Extensionality? k ℓ a →
+       ((x : ⊥) → A x) ↝[ k ] ⊤
+Π⊥↔⊤ = generalise-ext? Π⊥⇔⊤ λ ext → record
   { surjection = record
-    { logical-equivalence = record
-      { to   = _
-      ; from = λ _ x → ⊥-elim x
-      }
-    ; right-inverse-of = λ _ → refl _
+    { logical-equivalence = Π⊥⇔⊤
+    ; right-inverse-of    = λ _ → refl _
     }
   ; left-inverse-of = λ _ → apply-ext ext (λ x → ⊥-elim x)
   }
+  where
+  Π⊥⇔⊤ = record
+    { to   = _
+    ; from = λ _ x → ⊥-elim x
+    }
 
--- ¬ ⊥ is isomorphic to ⊤ (assuming extensionality).
+-- A lemma relating ¬ ⊥ and ⊤.
 
-¬⊥↔⊤ : ∀ {ℓ} →
-       Extensionality ℓ lzero →
-       ¬ ⊥ {ℓ = ℓ} ↔ ⊤
+¬⊥↔⊤ : ∀ {k ℓ} →
+       Extensionality? k ℓ lzero →
+       ¬ ⊥ {ℓ = ℓ} ↝[ k ] ⊤
 ¬⊥↔⊤ = Π⊥↔⊤
 
 -- Simplification lemmas for types of the form A → A → B.
@@ -2269,78 +2362,91 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
         _≃_.to (f z) z≡x                   ∎
 
 -- One can introduce a universal quantifier by also introducing an
--- equality (assuming extensionality).
+-- equality (perhaps assuming extensionality).
 
-∀-intro : ∀ {a b} →
-          Extensionality a (a ⊔ b) →
+∀-intro : ∀ {k a b} →
+          Extensionality? k a (a ⊔ b) →
           {A : Set a} {x : A} (B : (y : A) → x ≡ y → Set b) →
-          B x (refl x) ↔ (∀ y (x≡y : x ≡ y) → B y x≡y)
-∀-intro {a} ext {x = x} B = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = to
-      ; from = λ f → f x (refl x)
-      }
-    ; right-inverse-of = to∘from
-    }
-  ; left-inverse-of = from∘to
-  }
+          B x (refl x) ↝[ k ] (∀ y (x≡y : x ≡ y) → B y x≡y)
+∀-intro ext B =
+  generalise-ext? (∀-intro-⇔ B) (λ ext → ∀-intro-↔ ext B) ext
   where
-  to : B x (refl x) → ∀ y (x≡y : x ≡ y) → B y x≡y
-  to b y x≡y =
-    subst (uncurry B)
-          (proj₂ (other-singleton-contractible x) (y , x≡y))
-          b
+  ∀-intro-⇔ : ∀ {a b} {A : Set a} {x : A}
+              (B : (y : A) → x ≡ y → Set b) →
+              B x (refl x) ⇔ (∀ y (x≡y : x ≡ y) → B y x≡y)
+  ∀-intro-⇔ {x = x} B = record
+    { to   = λ b y x≡y →
+               subst (uncurry B)
+                     (proj₂ (other-singleton-contractible x) (y , x≡y))
+                     b
+    ; from = λ f → f x (refl x)
+    }
 
-  abstract
+  ∀-intro-↔ : ∀ {a b} →
+              Extensionality a (a ⊔ b) →
+              {A : Set a} {x : A} (B : (y : A) → x ≡ y → Set b) →
+              B x (refl x) ↔ (∀ y (x≡y : x ≡ y) → B y x≡y)
+  ∀-intro-↔ {a} ext {x = x} B = record
+    { surjection = record
+      { logical-equivalence = ∀-intro-⇔ B
+      ; right-inverse-of    = to∘from
+      }
+    ; left-inverse-of = from∘to
+    }
+    where
 
-    from∘to : ∀ b → to b x (refl x) ≡ b
-    from∘to b =
-      subst (uncurry B)
-            (proj₂ (other-singleton-contractible x) (x , refl x)) b  ≡⟨ cong (λ eq → subst (uncurry B) eq b) $
-                                                                             other-singleton-contractible-refl x ⟩
-      subst (uncurry B) (refl (x , refl x)) b                        ≡⟨ subst-refl (uncurry B) _ ⟩∎
-      b                                                              ∎
+    abstract
 
-    to∘from : ∀ f → to (f x (refl x)) ≡ f
-    to∘from f =
-      apply-ext ext λ y →
-      apply-ext (lower-extensionality lzero a ext) λ x≡y →
-        elim¹ (λ {y} x≡y →
-                 subst (uncurry B)
+      from∘to :
+        ∀ b → _⇔_.from (∀-intro-⇔ B) (_⇔_.to (∀-intro-⇔ B) b) ≡ b
+      from∘to b =
+        subst (uncurry B)
+              (proj₂ (other-singleton-contractible x) (x , refl x)) b  ≡⟨ cong (λ eq → subst (uncurry B) eq b) $
+                                                                               other-singleton-contractible-refl x ⟩
+        subst (uncurry B) (refl (x , refl x)) b                        ≡⟨ subst-refl (uncurry B) _ ⟩∎
+        b                                                              ∎
+
+      to∘from :
+        ∀ b → _⇔_.to (∀-intro-⇔ B) (_⇔_.from (∀-intro-⇔ B) b) ≡ b
+      to∘from f =
+        apply-ext ext λ y →
+        apply-ext (lower-extensionality lzero a ext) λ x≡y →
+          elim¹ (λ {y} x≡y →
+                   subst (uncurry B)
+                         (proj₂ (other-singleton-contractible x)
+                                (y , x≡y))
+                         (f x (refl x)) ≡
+                   f y x≡y)
+                (subst (uncurry B)
                        (proj₂ (other-singleton-contractible x)
-                              (y , x≡y))
-                       (f x (refl x)) ≡
-                 f y x≡y)
-              (subst (uncurry B)
-                     (proj₂ (other-singleton-contractible x)
-                            (x , refl x))
-                     (f x (refl x))                           ≡⟨ from∘to (f x (refl x)) ⟩∎
-               f x (refl x)                                   ∎)
-              x≡y
+                              (x , refl x))
+                       (f x (refl x))                           ≡⟨ from∘to (f x (refl x)) ⟩∎
+                 f x (refl x)                                   ∎)
+                x≡y
 
 private
 
   -- The following proof is perhaps easier to follow, but the
-  -- resulting "from" function is more complicated than the one used
+  -- resulting "from" functions are more complicated than the one used
   -- in ∀-intro. (If subst reduced in the usual way when applied to
-  -- refl, then the two functions would be definitionally equal.)
+  -- refl, then the two functions would perhaps be definitionally
+  -- equal.)
   --
   -- This proof is based on one presented by Egbert Rijke in "A type
   -- theoretical Yoneda lemma"
   -- (http://homotopytypetheory.org/2012/05/02/a-type-theoretical-yoneda-lemma/).
 
-  ∀-intro′ : ∀ {a b} →
-             Extensionality a (a ⊔ b) →
+  ∀-intro′ : ∀ {k a b} →
+             Extensionality? k a (a ⊔ b) →
              {A : Set a} {x : A} (B : (y : A) → x ≡ y → Set b) →
-             B x (refl x) ↔ (∀ y (x≡y : x ≡ y) → B y x≡y)
-  ∀-intro′ {a} ext {x = x} B =
-    B x (refl x)                        ↝⟨ inverse Π-left-identity ⟩
-    (⊤ → B x (refl x))                  ↝⟨ →-cong (lower-extensionality lzero a ext)
-                                                  (inverse $ _⇔_.to contractible⇔↔⊤ c) id ⟩
-    ((∃ λ y → x ≡ y) → B x (refl x))    ↝⟨ currying ⟩
-    (∀ y (x≡y : x ≡ y) → B x (refl x))  ↔⟨ (∀-cong ext λ y →
-                                            ∀-cong (lower-extensionality lzero a ext) λ x≡y →
+             B x (refl x) ↝[ k ] (∀ y (x≡y : x ≡ y) → B y x≡y)
+  ∀-intro′ {k} {a} ext {x = x} B =
+    B x (refl x)                        ↔⟨ inverse Π-left-identity ⟩
+    (⊤ → B x (refl x))                  ↝⟨ Π-cong-contra (lower-extensionality? k lzero a ext)
+                                                         (_⇔_.to contractible⇔↔⊤ c) (λ _ → id) ⟩
+    ((∃ λ y → x ≡ y) → B x (refl x))    ↔⟨ currying ⟩
+    (∀ y (x≡y : x ≡ y) → B x (refl x))  ↝⟨ (∀-cong ext λ y →
+                                            ∀-cong (lower-extensionality? k lzero a ext) λ x≡y → from-isomorphism $
                                               Eq.subst-as-equivalence (uncurry B) (proj₂ c (y , x≡y))) ⟩□
     (∀ y (x≡y : x ≡ y) → B y x≡y)       □
     where
