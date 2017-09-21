@@ -127,59 +127,74 @@ rec-const p p≡p i =
 ------------------------------------------------------------------------
 -- Extensionality
 
-abstract
+-- The definition of bad-ext has been placed in a separate abstract
+-- block to ensure that the definitions in the other abstract block
+-- below do not accidentally depend on the implementation of bad-ext.
 
-  -- The interval can be used to prove that equality of functions is
-  -- extensional.
+private
+ module Separate-abstract-block where
 
-  private
+  abstract
 
-    -- ext-helper {f = f} {g = g} f≡g reduces to λ x → f x when the
-    -- input is [0], and to λ x → g x when the input is [1].
+    -- The interval can be used to prove that equality of functions is
+    -- extensional.
+    --
+    -- The proof bad-ext is perhaps not less "good" than ext (I don't
+    -- know), it is called this simply because it is not defined using
+    -- good-ext.
 
-    ext-helper :
-      ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
-      (∀ x → f x ≡ g x) → I → (x : A) → B x
-    ext-helper {f = f} {g} f≡g i =
-      λ x → rec (f x) (g x) (f≡g x) i
+    private
 
-    ext′ : ∀ {a b} → Extensionality a b
-    apply-ext ext′ {f = f} {g = g} f≡g =
+      -- ext-helper {f = f} {g = g} f≡g reduces to λ x → f x when the
+      -- input is [0], and to λ x → g x when the input is [1].
+
+      ext-helper :
+        ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
+        (∀ x → f x ≡ g x) → I → (x : A) → B x
+      ext-helper {f = f} {g} f≡g i =
+        λ x → rec (f x) (g x) (f≡g x) i
+
+    bad-ext : ∀ {a b} → Extensionality a b
+    apply-ext bad-ext {f = f} {g = g} f≡g =
       f                   ≡⟨⟩
       ext-helper f≡g [0]  ≡⟨ cong (ext-helper f≡g) 0≡1 ⟩∎
       ext-helper f≡g [1]  ∎
 
-  ext : ∀ {a b} → Extensionality a b
-  ext = good-ext ext′
+open Separate-abstract-block public
 
-  ⟨ext⟩ : ∀ {a b} {A : Set a} {B : A → Set b} → Extensionality′ A B
-  ⟨ext⟩ = apply-ext ext
+ext : ∀ {a b} → Extensionality a b
+ext = good-ext bad-ext
+
+⟨ext⟩ : ∀ {a b} {A : Set a} {B : A → Set b} → Extensionality′ A B
+⟨ext⟩ = apply-ext ext
+
+abstract
 
   -- The function ⟨ext⟩ is an equivalence.
 
   ext-is-equivalence :
     ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
     Is-equivalence {A = ∀ x → f x ≡ g x} ⟨ext⟩
-  ext-is-equivalence = good-ext-is-equivalence ext′
+  ext-is-equivalence = good-ext-is-equivalence bad-ext
 
   -- Equality rearrangement lemmas for ⟨ext⟩.
 
   ext-refl :
     ∀ {a b} {A : Set a} {B : A → Set b} (f : (x : A) → B x) →
     ⟨ext⟩ (λ x → refl {x = f x}) ≡ refl {x = f}
-  ext-refl = good-ext-refl ext′
+  ext-refl = good-ext-refl bad-ext
 
   cong-ext :
     ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) {x} →
     cong (_$ x) (⟨ext⟩ f≡g) ≡ f≡g x
-  cong-ext = cong-good-ext ext′
+  cong-ext = cong-good-ext bad-ext
 
   subst-ext :
     ∀ {a b p} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} {x}
     (P : B x → Set p) {p} (f≡g : ∀ x → f x ≡ g x) →
     subst (λ f → P (f x)) (⟨ext⟩ f≡g) p ≡ subst P (f≡g x) p
-  subst-ext = subst-good-ext ext′
+  subst-ext = subst-good-ext bad-ext
 
   elim-ext :
     ∀ {a b p} {A : Set a} {B : A → Set b} {x : A}
@@ -189,7 +204,7 @@ abstract
     (f≡g : ∀ x → f x ≡ g x) →
     Eq.elim (λ {f g} _ → P (f x) (g x)) (p ∘ (_$ x)) (⟨ext⟩ f≡g) ≡
     Eq.elim (λ {x y} _ → P x y) p (f≡g x)
-  elim-ext = elim-good-ext ext′
+  elim-ext = elim-good-ext bad-ext
 
   -- I based the statements of the following three lemmas on code in
   -- the Lean Homotopy Type Theory Library with Jakob von Raumer and
@@ -201,24 +216,24 @@ abstract
     ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) →
     ⟨ext⟩ (sym ∘ f≡g) ≡ sym (⟨ext⟩ f≡g)
-  ext-sym = good-ext-sym ext′
+  ext-sym = good-ext-sym bad-ext
 
   ext-trans :
     ∀ {a b} {A : Set a} {B : A → Set b} {f g h : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) (g≡h : ∀ x → g x ≡ h x) →
     ⟨ext⟩ (λ x → trans (f≡g x) (g≡h x)) ≡ trans (⟨ext⟩ f≡g) (⟨ext⟩ g≡h)
-  ext-trans = good-ext-trans ext′
+  ext-trans = good-ext-trans bad-ext
 
   cong-post-∘-ext :
     ∀ {a b c} {A : Set a} {B : A → Set b} {C : A → Set c}
       {f g : (x : A) → B x} {h : ∀ {x} → B x → C x}
     (f≡g : ∀ x → f x ≡ g x) →
     cong (h ∘_) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (cong h ∘ f≡g)
-  cong-post-∘-ext = cong-post-∘-good-ext ext′ ext′
+  cong-post-∘-ext = cong-post-∘-good-ext bad-ext bad-ext
 
   cong-pre-∘-ext :
     ∀ {a b c} {A : Set a} {B : Set b} {C : B → Set c}
       {f g : (x : B) → C x} {h : A → B}
     (f≡g : ∀ x → f x ≡ g x) →
     cong (_∘ h) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (f≡g ∘ h)
-  cong-pre-∘-ext = cong-pre-∘-good-ext ext′ ext′
+  cong-pre-∘-ext = cong-pre-∘-good-ext bad-ext bad-ext
