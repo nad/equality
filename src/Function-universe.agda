@@ -1391,6 +1391,9 @@ contractible↔≃⊤ ext = record
 ------------------------------------------------------------------------
 -- Some lemmas related to functions
 
+-- The non-dependent function space preserves non-dependent functions
+-- (contravariantly for the domain).
+
 →-cong-→ : ∀ {a b c d}
              {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
            (B → A) → (C → D) → (A → C) → (B → D)
@@ -1408,6 +1411,9 @@ private
     ; from = →-cong-→ (to   A⇔B) (from C⇔D)
     }
     where open _⇔_
+
+-- The non-dependent function space preserves split surjections
+-- (assuming extensionality).
 
 →-cong-↠ : ∀ {a b c d} → Extensionality b d →
            {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
