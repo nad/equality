@@ -2,7 +2,7 @@
 -- The univalence axiom
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.

@@ -2,7 +2,7 @@
 -- Truncation
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 -- Partly following the HoTT book.
 

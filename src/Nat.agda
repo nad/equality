@@ -2,7 +2,7 @@
 -- Some definitions related to and properties of natural numbers
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Equality
 

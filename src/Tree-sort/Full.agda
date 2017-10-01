@@ -2,7 +2,7 @@
 -- A correct implementation of tree sort
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 -- The algorithm and the treatment of ordering information is taken
 -- from Conor McBride's talk "Pivotal pragmatism".

@@ -2,7 +2,7 @@
 -- Sets with decidable equality have unique identity proofs
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 -- The part up to "decidable⇒UIP" follows a proof by Michael Hedberg
 -- ("A coherence theorem for Martin-Löf's type theory", JFP 1998).

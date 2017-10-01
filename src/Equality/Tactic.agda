@@ -2,7 +2,7 @@
 -- A simple tactic for proving equality of equality proofs
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Equality
 

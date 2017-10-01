@@ -5,7 +5,7 @@
 -- The code is written by Nils Anders Danielsson
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module README.Isomorphism-is-equality where
 

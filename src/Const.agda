@@ -2,7 +2,7 @@
 -- Some properties related to the const function
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Equality
 

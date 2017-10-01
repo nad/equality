@@ -5,7 +5,7 @@
 -- The code is based on the presentation in the HoTT book (but might
 -- not follow it exactly).
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Equality
 

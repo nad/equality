@@ -5,7 +5,7 @@
 -- The interface is based on that used by the "mtl" package on
 -- Hackage.
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Equality
 

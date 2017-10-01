@@ -2,7 +2,7 @@
 -- Some decision procedures for equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Equality
 

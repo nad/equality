@@ -2,7 +2,7 @@
 -- Examples showing how Tree-sort can be used
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Tree-sort.Examples where
 

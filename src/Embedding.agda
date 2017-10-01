@@ -4,7 +4,7 @@
 
 -- Partially following the HoTT book.
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Equality
 

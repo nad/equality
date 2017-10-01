@@ -2,7 +2,7 @@
 -- Binary trees
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Tree where
 

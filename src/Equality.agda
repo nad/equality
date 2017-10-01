@@ -2,7 +2,7 @@
 -- Two logically equivalent axiomatisations of equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Equality where
 

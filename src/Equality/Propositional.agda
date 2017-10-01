@@ -2,7 +2,7 @@
 -- Propositional equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Equality.Propositional where
 
@@ -14,8 +14,6 @@ open import Prelude
 -- Equality
 
 open import Agda.Builtin.Equality public using (_≡_; refl)
-
-{-# BUILTIN REWRITE _≡_ #-}
 
 private
 

@@ -3,7 +3,7 @@
 -- equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Equality.Instances-related where
 

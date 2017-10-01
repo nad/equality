@@ -3,7 +3,7 @@
 -- the specification is propositional (assuming extensionality)
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Equality
 

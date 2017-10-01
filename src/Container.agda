@@ -2,7 +2,7 @@
 -- Containers, including a definition of bag equivalence
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Container where
 

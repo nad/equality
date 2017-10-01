@@ -3,7 +3,7 @@
 -- permutation of the input
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Prelude hiding (id; _∘_; List; module List; []; _∷_)
 

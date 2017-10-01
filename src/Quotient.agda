@@ -2,7 +2,7 @@
 -- Quotients
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 -- Partly based on the presentation of quotients in the HoTT book.
 -- Perhaps that presentation is partly based on work by Voevodsky.

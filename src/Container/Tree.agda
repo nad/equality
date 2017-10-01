@@ -3,7 +3,7 @@
 -- nodes
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Container.Tree where
 

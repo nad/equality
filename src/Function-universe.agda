@@ -2,7 +2,7 @@
 -- A universe which includes several kinds of functions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Equality
 

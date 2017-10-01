@@ -2,7 +2,7 @@
 -- Logical equivalences
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Logical-equivalence where
 

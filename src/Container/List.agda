@@ -2,7 +2,7 @@
 -- The list container
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Container.List where
 

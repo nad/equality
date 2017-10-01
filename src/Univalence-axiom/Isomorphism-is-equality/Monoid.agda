@@ -3,7 +3,7 @@
 -- univalence)
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 -- This module has been developed in collaboration with Thierry
 -- Coquand.

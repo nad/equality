@@ -11,6 +11,13 @@
 
 module README where
 
+------------------------------------------------------------------------
+-- Modules that can be type-checked in --safe mode
+
+-- Note that currently (with Agda 2.5.3) Agda.Primitive and certain
+-- modules under Agda.Builtin that this code depends on cannot be
+-- type-checked in --safe mode.
+
 -- Definitions of some basic types and some related functions.
 
 import Prelude
@@ -133,17 +140,9 @@ import Double-negation
 
 import Univalence-axiom
 
--- The "interval".
-
-import Interval
-
 -- Truncation.
 
 import H-level.Truncation
-
--- Propositional truncation.
-
-import H-level.Truncation.Propositional
 
 -- The "circle".
 
@@ -185,10 +184,6 @@ import Tactic.By
 -- Quotients.
 
 import Quotient
-
--- Quotients, defined using a higher inductive type.
-
-import Quotient.HIT
 
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
@@ -277,3 +272,26 @@ import Record
 import README.Bag-equivalence
 import README.Isomorphism-is-equality
 import README.Weak-J
+
+------------------------------------------------------------------------
+-- Modules that can (perhaps) not be type-checked in --safe mode
+
+-- Support for using propositional equality with the rewriting
+-- machinery.
+
+import Equality.Propositional.Rewriting
+
+-- The following modules use postulates and rewrite rules to encode
+-- higher inductive types.
+
+-- The "interval".
+
+import Interval
+
+-- Propositional truncation.
+
+import H-level.Truncation.Propositional
+
+-- Quotients, defined using a higher inductive type.
+
+import Quotient.HIT

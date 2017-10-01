@@ -2,7 +2,7 @@
 -- An example showing how Container.Tree-sort can be used
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Container.Tree-sort.Example where
 

@@ -10,7 +10,7 @@
 -- the paper contains both a specialised and a more general definition
 -- the code only contains the more general one.
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module README.Bag-equivalence where
 

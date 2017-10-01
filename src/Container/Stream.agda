@@ -2,7 +2,7 @@
 -- The stream container
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Container.Stream where
 

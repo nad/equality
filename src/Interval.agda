@@ -12,6 +12,7 @@
 module Interval where
 
 open import Equality.Propositional as Eq hiding (elim)
+import Equality.Propositional.Rewriting
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 

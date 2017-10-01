@@ -2,7 +2,7 @@
 -- Bag equivalence for lists
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 -- Note that this module is not parametrised by a definition of
 -- equality; it uses ordinary propositional equality.
