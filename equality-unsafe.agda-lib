@@ -1,0 +1,3 @@
+name: equality-unsafe
+depend: equality
+include: src
