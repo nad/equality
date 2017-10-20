@@ -157,6 +157,10 @@ import M
 
 import Maybe
 
+-- Definitions related to sizes.
+
+import Size
+
 -- Vectors.
 
 import Vec
