@@ -20,12 +20,12 @@ open import Prelude
 -- that definition is rejected.
 
 data [Size<_] (i : Size) : Set where
-  boxed : Size< i → [Size< i ]
+  box : Size< i → [Size< i ]
 
 -- A projection.
 
 unbox : ∀ {i} → [Size< i ] → Size< i
-unbox (boxed j) = j
+unbox (box j) = j
 
 -- Size elimination.
 
@@ -34,4 +34,4 @@ elim :
   (P : Size → Set p) →
   (∀ i → ((j : [Size< i ]) → P (unbox j)) → P i) →
   ∀ i → P i
-elim P f i = f i λ { (boxed j) → elim P f j }
+elim P f i = f i λ { (box j) → elim P f j }
