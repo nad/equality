@@ -2635,6 +2635,16 @@ private
   from-bijection ∘ ↑-cong-↔ ∘ from-equivalence
 
 ------------------------------------------------------------------------
+-- A lemma related to ⊤
+
+-- The type of equalities tt ≡ tt is isomorphic to the unit type.
+
+tt≡tt↔⊤ : tt ≡ tt ↔ ⊤
+tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
+            propositional⇒inhabited⇒contractible
+              (mono (zero≤ 2) ⊤-contractible _ _) (refl _)
+
+------------------------------------------------------------------------
 -- Lemmas related to ⊥
 
 -- All instances of ⊥ are isomorphic.
