@@ -12,7 +12,7 @@ module Fin
 open import Logical-equivalence hiding (id; _∘_; inverse)
 open import Prelude hiding (id)
 
-open import Bijection eq using (_↔_; module _↔_)
+open import Bijection eq as Bijection using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_)
@@ -234,3 +234,69 @@ Fin×Fin↔Fin* (suc m) n =
   Fin n ≃ Fin n  ↝⟨ inverse $ Eq.↔↔≃ ext (Fin-set n) ⟩
   Fin n ↔ Fin n  ↝⟨ [Fin↔Fin]↔Fin! ext n ⟩□
   Fin (n !)      □
+
+------------------------------------------------------------------------
+-- Inequality and a related isomorphism
+
+-- Inequality.
+
+Distinct : ∀ {n} → Fin n → Fin n → Set
+Distinct {zero}  ()
+Distinct {suc _} fzero    fzero    = ⊥
+Distinct {suc _} fzero    (fsuc j) = ⊤
+Distinct {suc _} (fsuc i) fzero    = ⊤
+Distinct {suc _} (fsuc i) (fsuc j) = Distinct i j
+
+-- This definition of inequality is pointwise logically equivalent to
+-- _≢_, and in the presence of extensionality the two definitions are
+-- pointwise isomorphic.
+
+Distinct↔≢ :
+  ∀ {k n} {i j : Fin n} →
+  Extensionality? ⌊ k ⌋-sym lzero lzero →
+  Distinct i j ↝[ ⌊ k ⌋-sym ] i ≢ j
+Distinct↔≢ {n = zero}  {}
+Distinct↔≢ {n = suc _} {fzero} {fzero} ext =
+  ⊥              ↔⟨ inverse Π-left-identity ⟩
+  ¬ ⊤            ↝⟨ →-cong ext (from-bijection $ inverse tt≡tt↔⊤) id ⟩
+  tt ≢ tt        ↝⟨ →-cong ext (from-bijection Bijection.≡↔inj₁≡inj₁) id ⟩□
+  fzero ≢ fzero  □
+
+Distinct↔≢ {n = suc _} {fzero} {fsuc j} ext =
+  ⊤               ↝⟨ inverse $ ¬⊥↔⊤ ext ⟩
+  ¬ ⊥             ↝⟨ →-cong ext (from-bijection $ inverse Bijection.≡↔⊎) id ⟩□
+  fzero ≢ fsuc j  □
+
+Distinct↔≢ {n = suc _} {fsuc i} {fzero} ext =
+  ⊤               ↝⟨ inverse $ ¬⊥↔⊤ ext ⟩
+  ¬ ⊥             ↝⟨ →-cong ext (from-bijection $ inverse Bijection.≡↔⊎) id ⟩□
+  fsuc i ≢ fzero  □
+
+Distinct↔≢ {n = suc _} {fsuc i} {fsuc j} ext =
+  Distinct i j     ↝⟨ Distinct↔≢ ext ⟩
+  i ≢ j            ↝⟨ →-cong ext (from-bijection Bijection.≡↔inj₂≡inj₂) id ⟩□
+  fsuc i ≢ fsuc j  □
+
+-- For every i : Fin (suc n) there is a bijection between Fin n and
+-- numbers in Fin (suc n) distinct from i.
+--
+-- The forward direction of this bijection corresponds to the function
+-- "thin" from McBride's "First-order unification by structural
+-- recursion", with an added inequality proof, and the other direction
+-- is a total variant of "thick".
+
+Fin↔Fin+≢ :
+  ∀ {n} (i : Fin (suc n)) →
+  Fin n ↔ ∃ λ (j : Fin (suc n)) → Distinct j i
+Fin↔Fin+≢ {n} fzero =
+  Fin n                                       ↝⟨ inverse ⊎-left-identity ⟩
+  ⊥ ⊎ Fin n                                   ↝⟨ inverse $ id ⊎-cong ×-right-identity ⟩
+  ⊥ ⊎ Fin n × ⊤                               ↝⟨ inverse $ ∃-Fin-suc _ ⟩□
+  (∃ λ (j : Fin (suc n)) → Distinct j fzero)  □
+
+Fin↔Fin+≢ {zero}  (fsuc ())
+Fin↔Fin+≢ {suc n} (fsuc i)  =
+  Fin (1 + n)                                    ↔⟨⟩
+  ⊤ ⊎ Fin n                                      ↝⟨ id ⊎-cong Fin↔Fin+≢ i ⟩
+  ⊤ ⊎ (∃ λ (j : Fin (1 + n)) → Distinct j i)     ↔⟨ inverse $ ∃-Fin-suc _ ⟩□
+  (∃ λ (j : Fin (2 + n)) → Distinct j (fsuc i))  □
