@@ -165,18 +165,31 @@ apply A t (a ∷ as) =
   apply A t as        }
   where
   apply₁ : Type → Term → Arg Term → TC (Type × Term)
+  apply₁ (pi (arg i₁@(arg-info k _) A) B) t₁ (arg i₂ t₂) =
+    if not (eq-ArgInfo i₁ i₂)
+    then typeError (strErr "apply: argument info mismatch" ∷ [])
+    else
+      bindTC fresh-level                   λ a →
+      bindTC fresh-level                   λ b →
+      bindTC (unquoteTC A)                 λ (A : Set a) →
+      bindTC (unquoteTC (lam visible B))   λ (B : A → Set b) →
+      bindTC (unquoteTC t₂)                λ (t₂ : A) →
+      bindTC (quoteTC (B t₂))              λ Bt₂ →
+      case k of λ where
+        visible →
+          bindTC (unquoteTC t₁)            λ (t₁ : (x : A) → B x) →
+          bindTC (quoteTC (t₁ t₂))         λ t₁t₂ →
+          return (Bt₂ , t₁t₂)
+        hidden →
+          bindTC (unquoteTC t₁)            λ (t₁ : {x : A} → B x) →
+          bindTC (quoteTC (t₁ {x = t₂}))   λ t₁t₂ →
+          return (Bt₂ , t₁t₂)
+        instance′ →
+          bindTC (unquoteTC t₁)            λ (t₁ : ⦃ x : A ⦄ → B x) →
+          bindTC (quoteTC (t₁ ⦃ x = t₂ ⦄)) λ t₁t₂ →
+          return (Bt₂ , t₁t₂)
   apply₁ (meta x _) _ _ = blockOnMeta x
-  apply₁ (pi (arg (arg-info visible relevant) A) B) t₁ (arg _ t₂) =
-    bindTC fresh-level                 λ a →
-    bindTC fresh-level                 λ b →
-    bindTC (unquoteTC A)               λ (A : Set a) →
-    bindTC (unquoteTC (lam visible B)) λ (B : A → Set b) →
-    bindTC (unquoteTC t₁)              λ (t₁ : (x : A) → B x) →
-    bindTC (unquoteTC t₂)              λ (t₂ : A) →
-    bindTC (quoteTC (B t₂))            λ Bt₂ →
-    bindTC (quoteTC (t₁ t₂))           λ t₁t₂ →
-    return (Bt₂ , t₁t₂)
-  apply₁ A _ _ =
+  apply₁ A          _ _ =
     typeError (strErr "apply: not a pi" ∷ termErr A ∷ [])
 
 mutual
