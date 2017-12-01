@@ -110,9 +110,20 @@ private
 
   refine : Type → Term → Term → TC Term
   refine A t goal =
-    normalise A           >>= λ A →
-    refine-with-type [] A
+    compute-args fuel [] A >>= λ args →
+    apply A t args         >>= λ t →
+    catchTC (try false t)  $
+    catchTC (try true  t)  $
+    failure
     where
+    -- Fuel, used to ensure termination.
+
+    fuel : ℕ
+    fuel = 10000
+
+    failure : {A : Set} → TC A
+    failure = typeError (strErr "refine failed" ∷ [])
+
     with-sym : Bool → Term → Term
     with-sym true  t = def (quote sym) (varg t ∷ [])
     with-sym false t = t
@@ -124,15 +135,20 @@ private
       where
       t′ = with-sym use-sym t
 
-    refine-with-type : List (Arg Term) → Type → TC Term
-    refine-with-type args (meta x _)               = blockOnMeta x
-    refine-with-type args (pi (arg i _) (abs _ τ)) =
-      refine-with-type (arg i unknown ∷ args) τ
-    refine-with-type args _                        =
-      apply A t (reverse args) >>= λ t →
-      catchTC (try false t)    $
-      catchTC (try true  t)    $
-      typeError (strErr "refine failed" ∷ [])
+    mutual
+
+      compute-args : ℕ → List (Arg Term) → Type → TC (List (Arg Term))
+      compute-args zero    _    _ = failure
+      compute-args (suc n) args τ =
+        reduce τ               >>= λ τ →
+        compute-args′ n args τ
+
+      compute-args′ : ℕ → List (Arg Term) → Type → TC (List (Arg Term))
+      compute-args′ n args (pi a@(arg i _) (abs _ τ)) =
+        extendContext a $
+        compute-args n (arg i unknown ∷ args) τ
+      compute-args′ n args (meta x _) = blockOnMeta x
+      compute-args′ n args _          = return (reverse args)
 
   -- The call by-tactic t goal tries to use (non-dependent) "cong"
   -- functions, reflexivity and t (via refine) to solve the given goal
