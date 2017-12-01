@@ -17,6 +17,9 @@ open import List equality-with-J
 open import Monad equality-with-J
 open import Reflection equality-with-J
 
+------------------------------------------------------------------------
+-- The by tactic
+
 private
 
   -- Constructs a "cong" function (like cong and cong₂ in Equality)
@@ -103,42 +106,25 @@ private
     make-cong-called cong n >>= λ _ →
     return cong
 
-  -- The tactic refine A t goal tries to use the term t (of type A),
-  -- applied to as many fresh meta-variables as possible (based on its
-  -- type), to solve the given goal. If this fails, then an attempt is
-  -- made to solve the goal using "sym (t metas)" instead.
+  -- The computation apply-to-metas A t tries to apply the term t to
+  -- as many fresh meta-variables as possible (based on its type, A).
+  -- The type of the resulting term is returned.
 
-  refine : Type → Term → Term → TC Term
-  refine A t goal =
+  apply-to-metas : Type → Term → TC (Type × Term)
+  apply-to-metas A t =
     compute-args fuel [] A >>= λ args →
-    apply A t args         >>= λ { (_ , t) →
-    catchTC (try false t)  $
-    catchTC (try true  t)  $
-    failure                }
+    apply A t args
     where
     -- Fuel, used to ensure termination.
 
     fuel : ℕ
     fuel = 10000
 
-    failure : {A : Set} → TC A
-    failure = typeError (strErr "refine failed" ∷ [])
-
-    with-sym : Bool → Term → Term
-    with-sym true  t = def (quote sym) (varg t ∷ [])
-    with-sym false t = t
-
-    try : Bool → Term → TC Term
-    try use-sym t =
-      unify t′ goal >>= λ _ →
-      return t′
-      where
-      t′ = with-sym use-sym t
-
     mutual
 
       compute-args : ℕ → List (Arg Term) → Type → TC (List (Arg Term))
-      compute-args zero    _    _ = failure
+      compute-args zero _ _ =
+        typeError (strErr "apply-to-metas failed" ∷ [])
       compute-args (suc n) args τ =
         reduce τ               >>= λ τ →
         compute-args′ n args τ
@@ -149,6 +135,29 @@ private
         compute-args n (arg i unknown ∷ args) τ
       compute-args′ n args (meta x _) = blockOnMeta x
       compute-args′ n args _          = return (reverse args)
+
+  -- The tactic refine A t goal tries to use the term t (of type A),
+  -- applied to as many fresh meta-variables as possible (based on its
+  -- type), to solve the given goal. If this fails, then an attempt is
+  -- made to solve the goal using "sym (t metas)" instead.
+
+  refine : Type → Term → Term → TC Term
+  refine A t goal =
+    apply-to-metas A t    >>= λ { (_ , t) →
+    catchTC (try false t) $
+    catchTC (try true  t) $
+    typeError (strErr "refine failed" ∷ []) }
+    where
+    with-sym : Bool → Term → Term
+    with-sym true  t = def (quote sym) (varg t ∷ [])
+    with-sym false t = t
+
+    try : Bool → Term → TC Term
+    try use-sym t =
+      unify t′ goal >>= λ _ →
+      return t′
+      where
+      t′ = with-sym use-sym t
 
   -- The call by-tactic t goal tries to use (non-dependent) "cong"
   -- functions, reflexivity and t (via refine) to solve the given goal
@@ -309,6 +318,116 @@ definition : ⊤
 definition = _
 
 ------------------------------------------------------------------------
+-- The ⟨by⟩ tactic
+
+-- The tactic ⟨by⟩ t is intended for use with goals of the form
+-- C [ ⟨ e₁ ⟩ ] ≡ e₂ (with some limitations). The tactic tries to
+-- generate the term cong (λ x → C [ x ]) t′, where t′ is t applied to
+-- as many meta-variables as possible (based on its type), and if that
+-- term fails to unify with the goal type, then the term
+-- cong (λ x → C [ x ]) (sym t′) is generated instead.
+
+-- Used to mark the subterms that should be rewritten.
+--
+-- The idea to mark subterms in this way is taken from Bradley Hardy,
+-- who used it in the Holes library
+-- (https://github.com/bch29/agda-holes).
+
+⟨_⟩ : ∀ {a} {A : Set a} → A → A
+⟨_⟩ = id
+
+private
+
+  -- A non-macro variant of ⟨by⟩ that returns the (first) constructed
+  -- term.
+
+  ⟨by⟩-tactic : ∀ {a} {A : Set a} → A → Term → TC Term
+  ⟨by⟩-tactic {A = A} t goal =
+    quoteTC A                               >>= λ A →
+    reduce A                                >>= λ A →
+    quoteTC t                               >>= λ t →
+    apply-to-metas A t                      >>= λ { (A , t) →
+    inferType goal                          >>= λ goal-type →
+    reduce goal-type                        >>= λ goal-type →
+    construct-context goal-type             >>= λ f →
+    construct-terms goal-type A t f         >>= λ { (t₁ , t₂) →
+    catchTC (unify t₁ goal) (unify t₂ goal) >>= λ _ →
+    return t₁                               }}
+    where
+    construct-terms : Type → Type → Term → Term → TC (Term × Term)
+    construct-terms
+      (def (quote _≡_) (harg b ∷ harg B ∷ _))
+      (def (quote _≡_) (harg a ∷ harg A ∷ varg lhs ∷ varg rhs ∷ []))
+      t f =
+      return ( term (harg lhs ∷ harg rhs ∷ varg t ∷ [])
+             , term (harg rhs ∷ harg lhs ∷
+                     varg (def (quote sym) (varg t ∷ [])) ∷ [])
+             )
+      where
+      term = λ args → def (quote cong)
+                          (harg a ∷ harg b ∷ harg A ∷ harg B ∷
+                           varg f ∷ args)
+
+    construct-terms _ (meta m _) _ _ = blockOnMeta m
+    construct-terms _ _          _ _ =
+      typeError (strErr "⟨by⟩: ill-formed proof" ∷ [])
+
+    mutual
+
+      -- The natural number is the variable that should be used for
+      -- the hole.
+
+      context-term : ℕ → Term → TC Term
+      context-term n = λ where
+        (def f args)  → if eq-Name f (quote ⟨_⟩)
+                        then return (var n [])
+                        else def f ⟨$⟩ context-args n args
+        (var x args)  → var (weaken-var n 1 x) ⟨$⟩ context-args n args
+        (con c args)  → con c ⟨$⟩ context-args n args
+        (lam v t)     → lam v ⟨$⟩ context-abs n t
+        (pi a b)      → pi ⟨$⟩ context-arg n a ⊛ context-abs n b
+        (meta m _)    → blockOnMeta m
+        t             → return (weaken-term n 1 t)
+
+      context-abs : ℕ → Abs Term → TC (Abs Term)
+      context-abs n (abs s t) = abs s ⟨$⟩ context-term (suc n) t
+
+      context-arg : ℕ → Arg Term → TC (Arg Term)
+      context-arg n (arg i t) = arg i ⟨$⟩ context-term n t
+
+      context-args : ℕ → List (Arg Term) → TC (List (Arg Term))
+      context-args n = λ where
+        []       → return []
+        (a ∷ as) → _∷_ ⟨$⟩ context-arg n a ⊛ context-args n as
+
+    construct-context : Term → TC Term
+    construct-context (def (quote _≡_) (_ ∷ _ ∷ varg lhs ∷ _ ∷ [])) =
+      context-term 0 lhs >>= λ body →
+      return (lam visible (abs "x" body))
+
+    construct-context (meta m _) = blockOnMeta m
+    construct-context _          =
+      typeError (strErr "⟨by⟩: ill-formed goal" ∷ [])
+
+macro
+
+  -- The ⟨by⟩ tactic.
+
+  ⟨by⟩ : ∀ {a} {A : Set a} → A → Term → TC ⊤
+  ⟨by⟩ t goal =
+    ⟨by⟩-tactic t goal >>= λ _ →
+    return _
+
+  -- If ⟨by⟩ t would have been successful, then debug-⟨by⟩ t raises an
+  -- error message that includes the (first) term that would have been
+  -- constructed by ⟨by⟩.
+
+  debug-⟨by⟩ : ∀ {a} {A : Set a} → A → Term → TC ⊤
+  debug-⟨by⟩ t goal =
+    ⟨by⟩-tactic t goal                                        >>= λ t →
+    typeError (strErr "Term found by ⟨by⟩:" ∷ termErr t ∷ [])
+
+------------------------------------------------------------------------
 -- Some unit tests
 
 private
@@ -319,44 +438,86 @@ private
     (f          : ℕ → ℕ → ℕ → ℕ)
     where
 
-    test₁ : 40 + 2 ≡ 42
-    test₁ = by definition
-
-    test₂ : 48 ≡ 42 → 42 ≡ 48
-    test₂ eq = by eq
-
-    test₃ : (f : ℕ → ℕ) → f 42 ≡ f 48
-    test₃ f = by assumption
-
-    test₄ : (f : ℕ → ℕ) → f 48 ≡ f 42
-    test₄ f = by assumption
-
-    test₅ : (f : ℕ → ℕ → ℕ) → f 42 48 ≡ f 48 42
-    test₅ f = by assumption
-
-    test₆ : (f : ℕ → ℕ → ℕ → ℕ) → f 42 45 48 ≡ f 48 45 42
-    test₆ f = by assumption
-
-    test₇ : f 48 (f 42 45 48) 42 ≡ f 48 (f 48 45 42) 48
-    test₇ = by assumption
-
     g : ℕ → ℕ → ℕ → ℕ
     g zero    _ _ = 12
     g (suc _) _ _ = 12
-
-    test₈ : ∀ n → g n (g n 45 48) 42 ≡ g n (g n 45 42) 48
-    test₈ n = by assumption
-
-    test₉ : (f : ℕ → ℕ) → f 42 ≡ f 48
-    test₉ f = by (lemma 40)
-
-    test₁₀ : (f : ℕ → ℕ) → f 42 ≡ f 48
-    test₁₀ f = by (λ (_ : ⊤) → assumption)
 
     fst : ∀ {a b} {A : Set a} {B : A → Set b} →
           Σ A B → A
     fst = proj₁
 
-    test₁₁ : (f : ℕ × ℕ → ℕ × ℕ) → (∀ x → f x ≡ x) →
-             fst (f (12 , 73)) ≡ fst {B = λ _ → ℕ} (12 , 73)
-    test₁₁ _ hyp = by hyp
+    -- Tests for by.
+
+    module By where
+
+      test₁ : 40 + 2 ≡ 42
+      test₁ = by definition
+
+      test₂ : 48 ≡ 42 → 42 ≡ 48
+      test₂ eq = by eq
+
+      test₃ : (f : ℕ → ℕ) → f 42 ≡ f 48
+      test₃ f = by assumption
+
+      test₄ : (f : ℕ → ℕ) → f 48 ≡ f 42
+      test₄ f = by assumption
+
+      test₅ : (f : ℕ → ℕ → ℕ) → f 42 48 ≡ f 48 42
+      test₅ f = by assumption
+
+      test₆ : (f : ℕ → ℕ → ℕ → ℕ) → f 42 45 48 ≡ f 48 45 42
+      test₆ f = by assumption
+
+      test₇ : f 48 (f 42 45 48) 42 ≡ f 48 (f 48 45 42) 48
+      test₇ = by assumption
+
+      test₈ : ∀ n → g n (g n 45 48) 42 ≡ g n (g n 45 42) 48
+      test₈ n = by assumption
+
+      test₉ : (f : ℕ → ℕ) → f 42 ≡ f 48
+      test₉ f = by (lemma 40)
+
+      test₁₀ : (f : ℕ → ℕ) → f 42 ≡ f 48
+      test₁₀ f = by (λ (_ : ⊤) → assumption)
+
+      test₁₁ : (f : ℕ × ℕ → ℕ × ℕ) → (∀ x → f x ≡ x) →
+               fst (f (12 , 73)) ≡ fst {B = λ _ → ℕ} (12 , 73)
+      test₁₁ _ hyp = by hyp
+
+    -- Tests for ⟨by⟩.
+
+    module ⟨By⟩ where
+
+      test₁ : ⟨ 40 + 2 ⟩ ≡ 42
+      test₁ = ⟨by⟩ refl
+
+      test₂ : 48 ≡ 42 → ⟨ 42 ⟩ ≡ 48
+      test₂ eq = ⟨by⟩ eq
+
+      test₃ : (f : ℕ → ℕ) → f ⟨ 42 ⟩ ≡ f 48
+      test₃ f = ⟨by⟩ assumption
+
+      test₄ : (f : ℕ → ℕ) → f ⟨ 48 ⟩ ≡ f 42
+      test₄ f = ⟨by⟩ assumption
+
+      test₅ : (f : ℕ → ℕ → ℕ) → f ⟨ 42 ⟩ ⟨ 42 ⟩ ≡ f 48 48
+      test₅ f = ⟨by⟩ assumption
+
+      test₆ : (f : ℕ → ℕ → ℕ → ℕ) → f ⟨ 48 ⟩ 45 ⟨ 48 ⟩ ≡ f 42 45 42
+      test₆ f = ⟨by⟩ assumption
+
+      test₇ : f ⟨ 48 ⟩ (f ⟨ 48 ⟩ 45 ⟨ 48 ⟩) ⟨ 48 ⟩ ≡ f 42 (f 42 45 42) 42
+      test₇ = ⟨by⟩ assumption
+
+      test₈ : ∀ n → g n (g n 45 ⟨ 48 ⟩) ⟨ 48 ⟩ ≡ g n (g n 45 42) 42
+      test₈ n = ⟨by⟩ assumption
+
+      test₉ : (f : ℕ → ℕ) → f ⟨ 42 ⟩ ≡ f 48
+      test₉ f = ⟨by⟩ (lemma 40)
+
+      test₁₀ : (f : ℕ → ℕ) → f ⟨ 42 ⟩ ≡ f 48
+      test₁₀ f = ⟨by⟩ (λ (_ : ⊤) → assumption)
+
+      test₁₁ : (f : ℕ × ℕ → ℕ × ℕ) → (∀ x → f x ≡ x) →
+               fst ⟨ f (12 , 73) ⟩ ≡ fst {B = λ _ → ℕ} (12 , 73)
+      test₁₁ _ hyp = ⟨by⟩ hyp
