@@ -155,10 +155,10 @@ fresh-level =
   unquoteTC ℓ
 
 -- Tries to apply the given term (of the given type) to the list of
--- arguments.
+-- arguments. The type of the resulting term is also returned.
 
-apply : Type → Term → List (Arg Term) → TC Term
-apply A t []       = returnTC t
+apply : Type → Term → List (Arg Term) → TC (Type × Term)
+apply A t []       = returnTC (A , t)
 apply A t (a ∷ as) =
   reduce A      >>= λ A →
   apply₁ A t a  >>= λ { (A , t) →

@@ -111,10 +111,10 @@ private
   refine : Type → Term → Term → TC Term
   refine A t goal =
     compute-args fuel [] A >>= λ args →
-    apply A t args         >>= λ t →
+    apply A t args         >>= λ { (_ , t) →
     catchTC (try false t)  $
     catchTC (try true  t)  $
-    failure
+    failure                }
     where
     -- Fuel, used to ensure termination.
 
