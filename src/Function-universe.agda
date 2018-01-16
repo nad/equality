@@ -2979,6 +2979,34 @@ if-encoding {A = A} {B} =
   to∘from : ∀ p → to (from p) ≡ p
   to∘from _ = to∘from′ _ _ _ _
 
+-- Some isomorphisms related to the ordering of natural numbers.
+
+zero≤↔ : ∀ {n} → zero ≤ n ↔ ⊤
+zero≤↔ =
+  _≃_.bijection $
+  _↠_.from (Eq.≃↠⇔ ≤-propositional (mono₁ 0 ⊤-contractible)) $
+  record { to = _; from = λ _ → zero≤ _ }
+
+<zero↔ : ∀ {n} → n < zero ↔ ⊥
+<zero↔ =
+  _≃_.bijection $
+  _↠_.from (Eq.≃↠⇔ ≤-propositional ⊥-propositional) $
+  record { to = ≮0 _; from = ⊥-elim }
+
+suc≤suc↔ : ∀ {m n} → suc m ≤ suc n ↔ m ≤ n
+suc≤suc↔ =
+  _≃_.bijection $
+  _↠_.from (Eq.≃↠⇔ ≤-propositional ≤-propositional) $
+  record { to = suc≤suc⁻¹; from = suc≤suc }
+
+≤↔<⊎≡ : ∀ {m n} → m ≤ n ↔ m < n ⊎ m ≡ n
+≤↔<⊎≡ =
+  _≃_.bijection $
+  _↠_.from (Eq.≃↠⇔ ≤-propositional
+                   (⊎-closure-propositional
+                      <→≢ ≤-propositional (ℕ-set _ _))) $
+  record { to = ≤→<⊎≡; from = [ <→≤ , ≤-refl′ ] }
+
 ------------------------------------------------------------------------
 -- Left cancellation for _⊎_
 
