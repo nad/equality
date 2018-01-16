@@ -116,6 +116,11 @@ m < n = suc m ≤ n
 ≤-trans p (≤-refl′ eq)   = subst (_ ≤_) eq p
 ≤-trans p (≤-step′ q eq) = ≤-step′ (≤-trans p q) eq
 
+-- If m is strictly less than n, then m is less than or equal to n.
+
+<→≤ : ∀ {m n} → m < n → m ≤ n
+<→≤ m<n = ≤-trans (≤-step ≤-refl) m<n
+
 -- "Equational" reasoning combinators.
 
 infix  -1 finally-≤ _∎≤
@@ -155,10 +160,7 @@ step-< m {n} {o} n≤o m<n =
 syntax step-< m n≤o m<n = m <⟨ m<n ⟩ n≤o
 
 _<⟨⟩_ : ∀ m {n} → m < n → m ≤ n
-_<⟨⟩_ m {n} m<n =
-  m      <⟨ ≤-refl ⟩
-  suc m  ≤⟨ m<n ⟩∎
-  n      ∎≤
+_<⟨⟩_ _ = <→≤
 
 -- Some simple lemmas.
 
@@ -215,6 +217,16 @@ suc m ≤? suc n = ⊎-map suc≤suc (λ m≰n → m≰n ∘ suc≤suc⁻¹) (m 
 ≤≢→< (≤-refl′ eq)     m≢m   = ⊥-elim (m≢m eq)
 ≤≢→< (≤-step′ m≤n eq) m≢1+n = subst (_ <_) eq (suc≤suc m≤n)
 
+-- If m is less than or equal to n, then m is strictly less than n or
+-- equal to n.
+
+≤→<⊎≡ : ∀ {m n} → m ≤ n → m < n ⊎ m ≡ n
+≤→<⊎≡         (≤-refl′ m≡n)               = inj₂ m≡n
+≤→<⊎≡ {m} {n} (≤-step′ {k = k} m≤k 1+k≡n) = inj₁ (
+  suc m  ≤⟨ suc≤suc m≤k ⟩
+  suc k  ≡⟨ 1+k≡n ⟩≤
+  n      ∎≤)
+
 -- _≤_ is total.
 
 total : ∀ m n → m ≤ n ⊎ n ≤ m
@@ -239,10 +251,20 @@ total m n = ⊎-map id ≰→≥ (m ≤? n)
                                                k          ≡⟨ cancel-suc q ⟩≤
                                                n          ∎≤)
 
+-- No number is strictly smaller than zero.
+
+≮0 : ∀ n → ¬ n < zero
+≮0 n = +≮ n ∘ subst (_< 0) (sym +-right-identity)
+
 -- _<_ is irreflexive.
 
 <-irreflexive : ∀ {n} → ¬ n < n
 <-irreflexive = +≮ 0
+
+-- If m is strictly less than n, then m is not equal to n.
+
+<→≢ : ∀ {m n} → m < n → m ≢ n
+<→≢ m<n m≡n = <-irreflexive (subst (_< _) m≡n m<n)
 
 -- Antisymmetry.
 
