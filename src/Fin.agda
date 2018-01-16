@@ -210,6 +210,23 @@ weaken-correct (Nat.≤-step′ m≤k 1+k≡n) i =
   ⌞ i ⌟                                         ∎
 
 ------------------------------------------------------------------------
+-- Arithmetic
+
+-- Addition.
+
+_+ᶠ_ : ∀ {m n} → Fin m → Fin n → Fin (m + n)
+_+ᶠ_ {m = zero}  ()
+_+ᶠ_ {m = suc m} fzero    j = weaken (Nat.m≤n+m _ (suc m)) j
+_+ᶠ_ {m = suc _} (fsuc i) j = fsuc (i +ᶠ j)
+
++ᶠ-correct :
+  ∀ {m n} (i : Fin m) (j : Fin n) → ⌞ i +ᶠ j ⌟ ≡ ⌞ i ⌟ + ⌞ j ⌟
++ᶠ-correct {m = zero}  ()
++ᶠ-correct {m = suc m} fzero    j = weaken-correct
+                                      (Nat.m≤n+m _ (suc m)) _
++ᶠ-correct {m = suc _} (fsuc i) j = cong suc (+ᶠ-correct i j)
+
+------------------------------------------------------------------------
 -- "Type arithmetic" using Fin
 
 -- Taking the disjoint union of two finite sets amounts to the same
