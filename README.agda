@@ -14,6 +14,10 @@ module README where
 
 import Equality.Propositional.Rewriting
 
+-- IO.
+
+import IO
+
 -- The following modules use postulates and rewrite rules to encode
 -- higher inductive types.
 
