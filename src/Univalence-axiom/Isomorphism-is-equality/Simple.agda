@@ -290,23 +290,20 @@ module Class (Univ : Universe) where
                      (λ { (_ , x , _) → Eq.id , resp-id ass a x })
                      eq)
 
-        (Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡ {A = ∃ (El a)}
-                        (cong (λ { (C , (x , p)) → (C , x) , p })
-                              (refl (C , x , p))))))               ≡⟨ cong (Σ-map ≡⇒≃ f ∘ Σ-≡,≡←≡ ∘ proj₁ ∘ Σ-≡,≡←≡) $
-                                                                        cong-refl {A = Instance (a , P)}
-                                                                                  (λ { (C , (x , p)) → (C , x) , p }) ⟩
-         Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡ {A = ∃ (El a)}
-                                        (refl ((C , x) , p)))))    ≡⟨ cong (Σ-map ≡⇒≃ f ∘ Σ-≡,≡←≡ ∘ proj₁) (Σ-≡,≡←≡-refl {A = ∃ (El a)}) ⟩
+        (Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡
+                        (cong (_↔_.to Σ-assoc) (refl (C , x , p))))))  ≡⟨ cong (Σ-map ≡⇒≃ f ∘ Σ-≡,≡←≡ ∘ proj₁ ∘ Σ-≡,≡←≡) $ cong-refl _ ⟩
 
-         Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (refl {A = ∃ (El a)} (C , x)))       ≡⟨ cong (Σ-map ≡⇒≃ f) (Σ-≡,≡←≡-refl {B = El a}) ⟩
+         Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p)))))  ≡⟨ cong (Σ-map ≡⇒≃ f ∘ Σ-≡,≡←≡ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
 
-         (≡⇒≃ (refl C) , f (subst-refl (El a) x))                  ≡⟨ Σ-≡,≡→≡ ≡⇒≃-refl lemma₄ ⟩
+         Σ-map ≡⇒≃ f (Σ-≡,≡←≡ (refl (C , x)))                          ≡⟨ cong (Σ-map ≡⇒≃ f) Σ-≡,≡←≡-refl ⟩
 
-         (Eq.id , resp-id ass a x)                                 ≡⟨ sym $ elim-refl (λ {X Y} _ → Isomorphic (a , P) X Y) _ ⟩∎
+         (≡⇒≃ (refl C) , f (subst-refl (El a) x))                      ≡⟨ Σ-≡,≡→≡ ≡⇒≃-refl lemma₄ ⟩
+
+         (Eq.id , resp-id ass a x)                                     ≡⟨ sym $ elim-refl (λ {X Y} _ → Isomorphic (a , P) X Y) _ ⟩∎
 
          elim (λ {X Y} _ → Isomorphic (a , P) X Y)
               (λ { (_ , x , _) → Eq.id , resp-id ass a x })
-              (refl (C , x , p))                                   ∎))
+              (refl (C , x , p))                                       ∎))
 
       where
       open Assumptions ass
@@ -1273,7 +1270,7 @@ private
                      +-comm *-comm *+ +0 *1 +- 0≢1 =
     _⇔_.from propositional⇔irrelevant irr
     where
-    irr : ∀ x y → x ≡ y
+    irr : (x y : ∃ λ _ → _ × _) → x ≡ y
     irr (inv , inv₁ , inv₂) (inv′ , inv₁′ , inv₂′) =
       _↔_.to (ignore-propositional-component
                 (×-closure 1 (Π-closure ext 1 λ _ →

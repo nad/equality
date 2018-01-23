@@ -86,7 +86,7 @@ not≡↔≡not {false} {false} =
 
 -- Some lemmas related to T.
 
-T↔≡true : ∀ {b} → T b ↔ b ≡ true
+T↔≡true : {b : Bool} → T b ↔ b ≡ true
 T↔≡true {false} =   $⟨ Bool.true≢false ⟩
   true ≢ false      ↝⟨ (_∘ sym) ⟩
   false ≢ true      ↝⟨ Bijection.⊥↔uninhabited ⟩□

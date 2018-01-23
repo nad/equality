@@ -625,7 +625,7 @@ abstract
     to : A ⊎ B → (∃ λ x → if x then ↑ b A else ↑ a B)
     to = [ _,_ true ∘ lift , _,_ false ∘ lift ]
 
-    from : (∃ λ x → if x then ↑ b A else ↑ a B) → A ⊎ B
+    from : (∃ λ (x : Bool) → if x then ↑ b A else ↑ a B) → A ⊎ B
     from (true  , x) = inj₁ $ lower x
     from (false , y) = inj₂ $ lower y
 
@@ -665,7 +665,7 @@ abstract
     Bool-2+n : H-level (2 + n) Bool
     Bool-2+n = mono (m≤m+n 2 n) Bool-set
 
-    if-2+n : ∀ x → H-level (2 + n) (if x then ↑ b A else ↑ a B)
+    if-2+n : (x : Bool) → H-level (2 + n) (if x then ↑ b A else ↑ a B)
     if-2+n true  = respects-surjection
                      (_↔_.surjection $ Bijection.inverse ↑↔)
                      (2 + n) hA

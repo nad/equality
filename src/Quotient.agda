@@ -694,7 +694,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
                                                                      inverse currying) (λ _ →
                                                              F.id) ⟩
     (∃ λ (f : (x : A) → (∃ λ P → R x ≡ P) → B) →
-       ∀ P → Constant (λ { (x , eq) → f x (P , eq) }))    ↝⟨ inverse $
+       ∀ P → Constant (uncurry λ x eq → f x (P , eq)))    ↝⟨ inverse $
                                                              Σ-cong (Bij.inverse $
                                                                      ∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                      drop-⊤-left-Π (lower-extensionality _ _ ext) $
@@ -729,10 +729,10 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
                                                                          inverse currying) ⟩
       (∀ P (p q : ∃ λ x → R x ≡ P) → f (proj₁ p) ≡ f (proj₁ q))      ↝⟨ F.id ⟩
 
-      (∀ P → Constant (λ { (x , _) → f x }))                         ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+      (∀ P → Constant (uncurry λ x _ → f x))                         ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                          ≡⇒↝ _ $ cong Constant $ apply-ext (lower-extensionality _ _ ext) λ _ →
                                                                          sym $ subst-const _) ⟩□
-      (∀ P → Constant (λ { (x , _) → subst (const B) _ (f x) }))     □
+      (∀ P → Constant (uncurry λ x _ → subst (const B) _ (f x)))     □
 
   -- "Computation rule" for /→set↔relation-respecting.
 

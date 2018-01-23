@@ -1590,7 +1590,7 @@ module Derived-definitions-and-properties
          trans (f≡g x px) (cong g (refl x))   ∎)
       _
       where
-      T-irr : ∀ b → Proof-irrelevant (T b)
+      T-irr : (b : Bool) → Proof-irrelevant (T b)
       T-irr true  _ _ = refl _
       T-irr false ()
 
