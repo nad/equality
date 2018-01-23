@@ -18,6 +18,10 @@ import Equality.Propositional.Rewriting
 
 import IO
 
+-- Strings.
+
+import String
+
 -- The following modules use postulates and rewrite rules to encode
 -- higher inductive types.
 
