@@ -31,7 +31,9 @@ mutual
             Set (a ⊔ b) where
     coinductive
     field
-      ♭ : {j : Size< i} → M A B j
+      force : {j : Size< i} → M A B j
+
+open M′ public
 
 -- Projections.
 
@@ -41,7 +43,7 @@ pɐǝɥ (dns x f) = x
 
 lıɐʇ : ∀ {a b i} {j : Size< i} {A : Set a} {B : A → Set b} →
        (x : M A B i) → B (pɐǝɥ x) → M A B j
-lıɐʇ (dns x f) y = M′.♭ (f y)
+lıɐʇ (dns x f) y = force (f y)
 
 ------------------------------------------------------------------------
 -- Equality
@@ -73,46 +75,49 @@ abstract
     ∀ {a b i} {A : Set a} {B : A → Set b} →
     Extensionality b (a ⊔ b) →
     (∀ {x} {f g : B x → M′ A B i} →
-       _≡_ {A = B x → {j : Size< i} → M A B j} (M′.♭ ∘ f) (M′.♭ ∘ g) ↠
+       _≡_ {A = B x → {j : Size< i} → M A B j}
+           (force ∘ f) (force ∘ g) ↠
        f ≡ g) →
     ∀ {x y} {f : B x → M′ A B i} {g : B y → M′ A B i} →
     (∃ λ (p : x ≡ y) → ∀ b {j : Size< i} →
-       M′.♭ (f b) {j = j} ≡ M′.♭ (g (subst B p b))) ↠
+       force (f b) {j = j} ≡ force (g (subst B p b))) ↠
     _≡_ {A = M A B i} (dns x f) (dns y g)
   M-≡,≡↠≡ {a} {i = i} {A} {B} ext η {x} {y} {f} {g} =
     (∃ λ (p : x ≡ y) → ∀ b {j : Size< i} →
-       M′.♭ (f b) {j = j} ≡ M′.♭ (g (subst B p b)))           ↠⟨ Surjection.∃-cong lemma ⟩
+       force (f b) {j = j} ≡ force (g (subst B p b)))         ↠⟨ Surjection.∃-cong lemma ⟩
     (∃ λ (p : x ≡ y) → subst (λ x → B x → M′ A B i) p f ≡ g)  ↠⟨ _↔_.surjection Bijection.Σ-≡,≡↔≡ ⟩
     (_≡_ {A = ∃ λ (x : A) → B x → M′ A B i} (x , f) (y , g))  ↠⟨ ↠-≡ (_↔_.surjection (Bijection.inverse (M-unfolding {A = A} {B = B}))) ⟩□
     (dns x f ≡ dns y g)                                       □
     where
     lemma : (p : x ≡ y) →
             ((b : B x) {j : Size< i} →
-             M′.♭ (f b) {j = j} ≡ M′.♭ (g (subst B p b))) ↠
+             force (f b) {j = j} ≡ force (g (subst B p b))) ↠
             (subst (λ x → B x → M′ A B i) p f ≡ g)
     lemma p = elim
       (λ {x y} p → (f : B x → M′ A B i) (g : B y → M′ A B i) →
-                   (∀ b {j} → M′.♭ (f b) {j = j} ≡ M′.♭ (g (subst B p b))) ↠
+                   (∀ b {j} → force (f b) {j = j} ≡
+                              force (g (subst B p b))) ↠
                    (subst (λ x → B x → M′ A B i) p f ≡ g))
       (λ x f g →
-         (∀ b {j} → M′.♭ (f b) {j = j} ≡ M′.♭ (g (subst B (refl x) b)))  ↝⟨ subst
-                                                                              (λ h → (∀ b {j} → M′.♭ (f b) ≡ M′.♭ (g (h b))) ↠
-                                                                                     (∀ b {j} → M′.♭ (f b) ≡ M′.♭ (g b)))
-                                                                              (sym (apply-ext (lower-extensionality lzero a ext) (subst-refl B)))
-                                                                              Surjection.id ⟩
-         (∀ b {j : Size< i} → M′.♭ (f b) {j = j} ≡ M′.♭ (g b))           ↔⟨ ∀-cong ext (λ _ → Bijection.implicit-Π↔Π) ⟩
+         (∀ b {j} → force (f b) {j = j} ≡
+                    force (g (subst B (refl x) b)))               ↝⟨ subst (λ h → (∀ b {j} → force (f b) ≡ force (g (h b))) ↠
+                                                                                  (∀ b {j} → force (f b) ≡ force (g b)))
+                                                                           (sym (apply-ext (lower-extensionality lzero a ext) (subst-refl B)))
+                                                                           Surjection.id ⟩
 
-         (∀ b (j : Size< i) → M′.♭ (f b) {j = j} ≡ M′.♭ (g b))           ↔⟨ ∀-cong ext (λ _ → implicit-extensionality-isomorphism {k = bijection}
-                                                                                                (lower-extensionality _ lzero ext)) ⟩
+         (∀ b {j : Size< i} → force (f b) {j = j} ≡ force (g b))  ↔⟨ ∀-cong ext (λ _ → Bijection.implicit-Π↔Π) ⟩
+
+         (∀ b (j : Size< i) → force (f b) {j = j} ≡ force (g b))  ↔⟨ ∀-cong ext (λ _ → implicit-extensionality-isomorphism {k = bijection}
+                                                                                         (lower-extensionality _ lzero ext)) ⟩
          ((b : B x) → _≡_ {A = {j : Size< i} → _}
-                          (M′.♭ (f b)) (M′.♭ (g b)))                     ↝⟨ ext-surj ext ⟩
+                          (force (f b)) (force (g b)))            ↝⟨ ext-surj ext ⟩
 
-         (M′.♭ ∘ f ≡ M′.♭ ∘ g)                                           ↝⟨ η ⟩
+         (force ∘ f ≡ force ∘ g)                                  ↝⟨ η ⟩
 
-         (f ≡ g)                                                         ↝⟨ subst (λ h → (f ≡ g) ↠ (h ≡ g))
-                                                                                  (sym $ subst-refl (λ x' → B x' → M′ A B i) f)
-                                                                                  Surjection.id ⟩□
-         (subst (λ x → B x → M′ A B i) (refl x) f ≡ g)                   □)
+         (f ≡ g)                                                  ↝⟨ subst (λ h → (f ≡ g) ↠ (h ≡ g))
+                                                                           (sym $ subst-refl (λ x' → B x' → M′ A B i) f)
+                                                                           Surjection.id ⟩□
+         (subst (λ x → B x → M′ A B i) (refl x) f ≡ g)            □)
       p f g
 
 ------------------------------------------------------------------------
@@ -134,7 +139,9 @@ mutual
                   (i : Size) (x y : M A B ∞) : Set (a ⊔ b) where
     coinductive
     field
-      ♭ : {j : Size< i} → [ j ] x ≡M y
+      force : {j : Size< i} → [ j ] x ≡M y
+
+open [_]_≡M′_ public
 
 -- Projections.
 
@@ -147,7 +154,7 @@ lıɐʇ≡ :
   ∀ {a b i} {A : Set a} {B : A → Set b} {x y : M A B ∞} →
   (p : [ i ] x ≡M y) →
   ∀ b {j : Size< i} → [ j ] lıɐʇ x b ≡M lıɐʇ y (subst B (pɐǝɥ≡ p) b)
-lıɐʇ≡ (dns p q) y = [_]_≡M′_.♭ (q y)
+lıɐʇ≡ (dns p q) y = force (q y)
 
 -- Equality implies bisimilarity.
 
@@ -167,7 +174,7 @@ lıɐʇ≡ (dns p q) y = [_]_≡M′_.♭ (q y)
   helper :
     ∀ b →
     [ i ] lıɐʇ (dns x f) b ≡M′ lıɐʇ (dns y g) (subst B (proj₁ q) b)
-  [_]_≡M′_.♭ (helper b) = ≡⇒≡M (proj₂ q b)
+  force (helper b) = ≡⇒≡M (proj₂ q b)
 
 -- Bisimilarity for the bisimilarity type.
 
@@ -187,7 +194,9 @@ mutual
                    (i : Size) (p q : [ ∞ ] x ≡M y) : Set (a ⊔ b) where
     coinductive
     field
-      ♭ : {j : Size< i} → [ j ] p ≡≡M q
+      force : {j : Size< i} → [ j ] p ≡≡M q
+
+open [_]_≡≡M′_ public
 
 ------------------------------------------------------------------------
 -- Closure under various h-levels
@@ -204,16 +213,13 @@ abstract
   M-closure-contractible {A = A} {B} ext (z , irrA) = (x , ext ∘ irr)
     where
     x : ∀ {i} → M A B i
-    x {i} = dns z (λ _ → helper)
-      where
-      helper : M′ A B i
-      M′.♭ helper = x
+    x = dns z λ _ → λ { .force → x }
 
     irr : ∀ {i} y → [ i ] x ≡M y
     irr {i} (dns x′ f) = dns (irrA x′) helper
       where
-      helper : ∀ y → [ i ] x ≡M′ M′.♭ (f (subst B (irrA x′) y))
-      [_]_≡M′_.♭ (helper _) = irr _
+      helper : ∀ y → [ i ] x ≡M′ force (f (subst B (irrA x′) y))
+      force (helper _) = irr _
 
   -- The same applies to Is-proposition.
 
@@ -231,8 +237,8 @@ abstract
       where
       helper :
         (y′ : B x) →
-        [ i ] M′.♭ (f y′) ≡M′ M′.♭ (g (subst B (proj₁ (p x y)) y′))
-      [_]_≡M′_.♭ (helper _) = irrelevant _ _
+        [ i ] force (f y′) ≡M′ force (g (subst B (proj₁ (p x y)) y′))
+      force (helper _) = irrelevant _ _
 
   -- If we assume that we have another notion of extensionality, then
   -- Is-set is closed under M.
@@ -250,8 +256,8 @@ abstract
       where
       helper :
         (b : B (pɐǝɥ x)) →
-        [ i ] [_]_≡M′_.♭ (f b) ≡≡M′
+        [ i ] force (f b) ≡≡M′
               subst (λ eq → [ ∞ ] lıɐʇ x b ≡M lıɐʇ y (subst B eq b))
                     (sym (proj₁ (s (pɐǝɥ x) (pɐǝɥ y) p q)))
-                    ([_]_≡M′_.♭ (g b))
-      [_]_≡≡M′_.♭ (helper _) = uip _ _
+                    (force (g b))
+      force (helper _) = uip _ _
