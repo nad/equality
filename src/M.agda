@@ -212,7 +212,7 @@ abstract
       _≡M′_.♭ (helper _) = irrelevant _ _
 
   -- If we assume that we have another notion of extensionality, then
-  -- Contractible is closed under M.
+  -- Is-set is closed under M.
 
   M-closure-set :
     ∀ {a b} {A : Set a} {B : A → Set b} →
