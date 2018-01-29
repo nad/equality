@@ -11,12 +11,12 @@ module M
 
 open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
+import Equivalence eq as Eq
 open import Function-universe eq hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
 open import Logical-equivalence hiding (_∘_)
 open import Prelude
-open import Surjection eq as Surjection hiding (_∘_)
 
 ------------------------------------------------------------------------
 -- M-types
@@ -71,52 +71,52 @@ abstract
   -- Note that, because the equality type former is not sized, this
   -- lemma is perhaps not very useful.
 
-  M-≡,≡↠≡ :
+  M-≡,≡↔≡ :
     ∀ {a b i} {A : Set a} {B : A → Set b} →
     Extensionality b (a ⊔ b) →
     (∀ {x} {f g : B x → M′ A B i} →
        _≡_ {A = B x → {j : Size< i} → M A B j}
-           (force ∘ f) (force ∘ g) ↠
+           (force ∘ f) (force ∘ g) ↔
        f ≡ g) →
     ∀ {x y} {f : B x → M′ A B i} {g : B y → M′ A B i} →
     (∃ λ (p : x ≡ y) → ∀ b {j : Size< i} →
-       force (f b) {j = j} ≡ force (g (subst B p b))) ↠
+       force (f b) {j = j} ≡ force (g (subst B p b))) ↔
     _≡_ {A = M A B i} (dns x f) (dns y g)
-  M-≡,≡↠≡ {a} {i = i} {A} {B} ext η {x} {y} {f} {g} =
+  M-≡,≡↔≡ {a} {i = i} {A} {B} ext η {x} {y} {f} {g} =
     (∃ λ (p : x ≡ y) → ∀ b {j : Size< i} →
-       force (f b) {j = j} ≡ force (g (subst B p b)))         ↠⟨ Surjection.∃-cong lemma ⟩
-    (∃ λ (p : x ≡ y) → subst (λ x → B x → M′ A B i) p f ≡ g)  ↠⟨ _↔_.surjection Bijection.Σ-≡,≡↔≡ ⟩
-    (_≡_ {A = ∃ λ (x : A) → B x → M′ A B i} (x , f) (y , g))  ↠⟨ ↠-≡ (_↔_.surjection (Bijection.inverse (M-unfolding {A = A} {B = B}))) ⟩□
+       force (f b) {j = j} ≡ force (g (subst B p b)))         ↝⟨ ∃-cong lemma ⟩
+    (∃ λ (p : x ≡ y) → subst (λ x → B x → M′ A B i) p f ≡ g)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩
+    (_≡_ {A = ∃ λ (x : A) → B x → M′ A B i} (x , f) (y , g))  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ M-unfolding) ⟩□
     (dns x f ≡ dns y g)                                       □
     where
     lemma : (p : x ≡ y) →
             ((b : B x) {j : Size< i} →
-             force (f b) {j = j} ≡ force (g (subst B p b))) ↠
+             force (f b) {j = j} ≡ force (g (subst B p b))) ↔
             (subst (λ x → B x → M′ A B i) p f ≡ g)
     lemma p = elim
       (λ {x y} p → (f : B x → M′ A B i) (g : B y → M′ A B i) →
                    (∀ b {j} → force (f b) {j = j} ≡
-                              force (g (subst B p b))) ↠
+                              force (g (subst B p b))) ↔
                    (subst (λ x → B x → M′ A B i) p f ≡ g))
       (λ x f g →
          (∀ b {j} → force (f b) {j = j} ≡
-                    force (g (subst B (refl x) b)))               ↝⟨ subst (λ h → (∀ b {j} → force (f b) ≡ force (g (h b))) ↠
+                    force (g (subst B (refl x) b)))               ↝⟨ subst (λ h → (∀ b {j} → force (f b) ≡ force (g (h b))) ↔
                                                                                   (∀ b {j} → force (f b) ≡ force (g b)))
                                                                            (sym (apply-ext (lower-extensionality lzero a ext) (subst-refl B)))
-                                                                           Surjection.id ⟩
+                                                                           Bijection.id ⟩
 
-         (∀ b {j : Size< i} → force (f b) {j = j} ≡ force (g b))  ↔⟨ ∀-cong ext (λ _ → Bijection.implicit-Π↔Π) ⟩
+         (∀ b {j : Size< i} → force (f b) {j = j} ≡ force (g b))  ↝⟨ ∀-cong ext (λ _ → Bijection.implicit-Π↔Π) ⟩
 
-         (∀ b (j : Size< i) → force (f b) {j = j} ≡ force (g b))  ↔⟨ ∀-cong ext (λ _ → implicit-extensionality-isomorphism {k = bijection}
+         (∀ b (j : Size< i) → force (f b) {j = j} ≡ force (g b))  ↝⟨ ∀-cong ext (λ _ → implicit-extensionality-isomorphism
                                                                                          (lower-extensionality _ lzero ext)) ⟩
          ((b : B x) → _≡_ {A = {j : Size< i} → _}
-                          (force (f b)) (force (g b)))            ↝⟨ ext-surj ext ⟩
+                          (force (f b)) (force (g b)))            ↔⟨ Eq.extensionality-isomorphism ext ⟩
 
          (force ∘ f ≡ force ∘ g)                                  ↝⟨ η ⟩
 
-         (f ≡ g)                                                  ↝⟨ subst (λ h → (f ≡ g) ↠ (h ≡ g))
+         (f ≡ g)                                                  ↝⟨ subst (λ h → (f ≡ g) ↔ (h ≡ g))
                                                                            (sym $ subst-refl (λ x' → B x' → M′ A B i) f)
-                                                                           Surjection.id ⟩□
+                                                                           Bijection.id ⟩□
          (subst (λ x → B x → M′ A B i) (refl x) f ≡ g)            □)
       p f g
 
