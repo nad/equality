@@ -255,8 +255,8 @@ abstract
 -- Support for coinduction
 
 open import Agda.Builtin.Size public
-  using (Size; Size<_)
-  renaming (SizeU to Size-universe; ↑_ to ssuc; ω to ∞)
+  using (Size; Size<_; ∞)
+  renaming (SizeU to Size-universe; ↑_ to ssuc)
 
 ------------------------------------------------------------------------
 -- Binary sums
