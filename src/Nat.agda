@@ -298,3 +298,44 @@ _+-mono_ {m₁} {m₂} {n₁} {n₂} (≤-step′ {k = k} p eq) q =
   k + n₂      ≤⟨ ≤-step (_ ∎≤) ⟩
   suc k + n₂  ≡⟨ cong (_+ _) eq ⟩≤
   m₂ + n₂     ∎≤
+
+------------------------------------------------------------------------
+-- Properties related to _∸_
+
+-- If you add a number and then subtract it again, then you get back
+-- what you started with.
+
++∸≡ : ∀ {m} n → (m + n) ∸ n ≡ m
++∸≡ {m} zero =
+  m + 0  ≡⟨ +-right-identity ⟩∎
+  m      ∎
++∸≡ {zero}  (suc n) = +∸≡ n
++∸≡ {suc m} (suc n) =
+  m + suc n ∸ n  ≡⟨ cong (_∸ n) (sym (suc+≡+suc m))  ⟩
+  suc m + n ∸ n  ≡⟨ +∸≡ n ⟩∎
+  suc m          ∎
+
+-- If you subtract a number from itself, then the answer is zero.
+
+∸≡0 : ∀ n → n ∸ n ≡ 0
+∸≡0 = +∸≡
+
+-- A limited form of associativity for _+_ and _∸_.
+
++-∸-assoc : ∀ {m n k} → k ≤ n → (m + n) ∸ k ≡ m + (n ∸ k)
++-∸-assoc {m} {n} {zero} _ =
+  m + n ∸ 0    ≡⟨⟩
+  m + n        ≡⟨⟩
+  m + (n ∸ 0)  ∎
++-∸-assoc {m} {zero}  {suc k} <0      = ⊥-elim (≮0 _ <0)
++-∸-assoc {m} {suc n} {suc k} 1+k≤1+n =
+  m + suc n ∸ suc k    ≡⟨ cong (_∸ suc k) (sym (suc+≡+suc m)) ⟩
+  suc m + n ∸ suc k    ≡⟨⟩
+  m + n ∸ k            ≡⟨ +-∸-assoc (suc≤suc⁻¹ 1+k≤1+n) ⟩
+  m + (n ∸ k)          ≡⟨⟩
+  m + (suc n ∸ suc k)  ∎
+
+-- A special case of +-∸-assoc.
+
+∸≡suc∸suc : ∀ {m n} → n < m → m ∸ n ≡ suc (m ∸ suc n)
+∸≡suc∸suc = +-∸-assoc
