@@ -42,6 +42,8 @@ cancel-suc = cong pred
 
 -- Equality of natural numbers is decidable.
 
+infix 4 _≟_
+
 _≟_ : Decidable-equality ℕ
 zero  ≟ zero  = yes (refl _)
 suc m ≟ suc n = ⊎-map (cong suc) (λ m≢n → m≢n ∘ cancel-suc) (m ≟ n)

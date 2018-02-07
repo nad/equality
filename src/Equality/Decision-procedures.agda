@@ -21,6 +21,8 @@ module ⊤ where
 
   -- Equality of values of the unit type is decidable.
 
+  infix 4 _≟_
+
   _≟_ : Decidable-equality ⊤
   _ ≟ _ = yes (refl _)
 
@@ -30,6 +32,8 @@ module ⊤ where
 module ⊥ {ℓ} where
 
   -- Equality of values of the empty type is decidable.
+
+  infix 4 _≟_
 
   _≟_ : Decidable-equality (⊥ {ℓ = ℓ})
   () ≟ ()
@@ -48,6 +52,8 @@ module Bool where
 
   -- Equality of booleans is decidable.
 
+  infix 4 _≟_
+
   _≟_ : Decidable-equality Bool
   true  ≟ true  = yes (refl _)
   false ≟ false = yes (refl _)
@@ -63,6 +69,8 @@ module Σ {a b} {A : Set a} {B : A → Set b} where
 
   module Dec (_≟A_ : Decidable-equality A)
              (_≟B_ : {x : A} → Decidable-equality (B x)) where
+
+    infix 4 _≟_
 
     _≟_ : Decidable-equality (Σ A B)
     (x₁ , y₁) ≟ (x₂ , y₂) with x₁ ≟A x₂
@@ -83,6 +91,8 @@ module × {a b} {A : Set a} {B : Set b} where
 
   module Dec (_≟A_ : Decidable-equality A)
              (_≟B_ : Decidable-equality B) where
+
+    infix 4 _≟_
 
     _≟_ : Decidable-equality (A × B)
     _≟_ = Σ.Dec._≟_ _≟A_ _≟B_
@@ -111,6 +121,8 @@ module ⊎ {a b} {A : Set a} {B : Set b} where
 
   module Dec (_≟A_ : Decidable-equality A)
              (_≟B_ : Decidable-equality B) where
+
+    infix 4 _≟_
 
     _≟_ : Decidable-equality (A ⊎ B)
     inj₁ x ≟ inj₁ y = ⊎-map (cong (inj₁ {B = B})) (λ x≢y → x≢y ∘ cancel-inj₁) (x ≟A y)
@@ -191,6 +203,8 @@ module List {a} {A : Set a} where
 
   module Dec (_≟A_ : Decidable-equality A) where
 
+    infix 4 _≟_
+
     _≟_ : Decidable-equality (List A)
     []       ≟ []       = yes (refl [])
     []       ≟ (_ ∷ _)  = no []≢∷
@@ -207,6 +221,8 @@ module List {a} {A : Set a} where
 module Fin where
 
   -- Equality of finite numbers is decidable.
+
+  infix 4 _≟_
 
   _≟_ : ∀ {n} → Decidable-equality (Fin n)
   _≟_ {zero}  = λ ()
