@@ -145,6 +145,14 @@ import Circle
 
 import List
 
+-- Conatural numbers.
+
+import Conat
+
+-- Colists.
+
+import Colist
+
 -- Some definitions related to and properties of finite sets.
 
 import Fin
