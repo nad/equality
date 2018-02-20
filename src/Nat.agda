@@ -420,3 +420,107 @@ _∸-mono_ {suc _}  {suc _}  {suc _}  {suc _} p q =
 pred≡∸1 : ∀ n → pred n ≡ n ∸ 1
 pred≡∸1 zero    = refl _
 pred≡∸1 (suc _) = refl _
+
+------------------------------------------------------------------------
+-- Minimum and maximum
+
+-- Minimum.
+
+min : ℕ → ℕ → ℕ
+min zero    n       = zero
+min m       zero    = zero
+min (suc m) (suc n) = suc (min m n)
+
+-- Maximum.
+
+max : ℕ → ℕ → ℕ
+max zero    n       = n
+max m       zero    = m
+max (suc m) (suc n) = suc (max m n)
+
+-- The min operation can be expressed using repeated truncated
+-- subtraction.
+
+min≡∸∸ : ∀ m n → min m n ≡ m ∸ (m ∸ n)
+min≡∸∸ zero n =
+  0            ≡⟨ sym (∸-left-zero (0 ∸ n)) ⟩∎
+  0 ∸ (0 ∸ n)  ∎
+min≡∸∸ (suc m) zero =
+  0      ≡⟨ sym (∸≡0 m) ⟩∎
+  m ∸ m  ∎
+min≡∸∸ (suc m) (suc n) =
+  suc (min m n)      ≡⟨ cong suc (min≡∸∸ m n) ⟩
+  suc (m ∸ (m ∸ n))  ≡⟨ sym (+-∸-assoc (∸≤ _ n)) ⟩∎
+  suc m ∸ (m ∸ n)    ∎
+
+-- The max operation can be expressed using addition and truncated
+-- subtraction.
+
+max≡+∸ : ∀ m n → max m n ≡ m + (n ∸ m)
+max≡+∸ zero    _       = refl _
+max≡+∸ (suc m) zero    = suc m        ≡⟨ cong suc (sym +-right-identity) ⟩∎
+                         suc (m + 0)  ∎
+max≡+∸ (suc m) (suc n) = cong suc (max≡+∸ m n)
+
+-- Given two numbers one is the minimum and the other is the maximum.
+
+min-and-max :
+  ∀ m n → min m n ≡ m × max m n ≡ n ⊎ min m n ≡ n × max m n ≡ m
+min-and-max zero    _       = inj₁ (refl _ , refl _)
+min-and-max (suc _) zero    = inj₂ (refl _ , refl _)
+min-and-max (suc m) (suc n) =
+  ⊎-map (Σ-map (cong suc) (cong suc))
+        (Σ-map (cong suc) (cong suc))
+        (min-and-max m n)
+
+-- The min operation is idempotent.
+
+min-idempotent : ∀ n → min n n ≡ n
+min-idempotent n = case min-and-max n n of [ proj₁ , proj₁ ]
+
+-- The max operation is idempotent.
+
+max-idempotent : ∀ n → max n n ≡ n
+max-idempotent n = case min-and-max n n of [ proj₂ , proj₂ ]
+
+-- The min operation is commutative.
+
+min-comm : ∀ m n → min m n ≡ min n m
+min-comm zero    zero    = refl _
+min-comm zero    (suc _) = refl _
+min-comm (suc _) zero    = refl _
+min-comm (suc m) (suc n) = cong suc (min-comm m n)
+
+-- The max operation is commutative.
+
+max-comm : ∀ m n → max m n ≡ max n m
+max-comm zero    zero    = refl _
+max-comm zero    (suc _) = refl _
+max-comm (suc _) zero    = refl _
+max-comm (suc m) (suc n) = cong suc (max-comm m n)
+
+-- The minimum is smaller than or equal to both arguments.
+
+min≤ˡ : ∀ m n → min m n ≤ m
+min≤ˡ zero    _       = ≤-refl
+min≤ˡ (suc _) zero    = zero≤ _
+min≤ˡ (suc m) (suc n) = suc≤suc (min≤ˡ m n)
+
+min≤ʳ : ∀ m n → min m n ≤ n
+min≤ʳ m n =
+  min m n  ≡⟨ min-comm _ _ ⟩≤
+  min n m  ≤⟨ min≤ˡ _ _ ⟩∎
+  n        ∎≤
+
+-- The maximum is greater than or equal to both arguments.
+
+ˡ≤max : ∀ m n → m ≤ max m n
+ˡ≤max zero    _       = zero≤ _
+ˡ≤max (suc _) zero    = ≤-refl
+ˡ≤max (suc m) (suc n) = suc≤suc (ˡ≤max m n)
+
+ʳ≤max : ∀ m n → n ≤ max m n
+ʳ≤max m n =
+  n        ≤⟨ ˡ≤max _ _ ⟩
+  max n m  ≡⟨ max-comm n _ ⟩≤
+  max m n  ∎≤
