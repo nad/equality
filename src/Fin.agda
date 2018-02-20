@@ -188,6 +188,41 @@ Fin↔<≡∸⌞⌟ {n = zero}  ()
 Fin↔<≡∸⌞⌟ {n = suc _} fzero    = refl _
 Fin↔<≡∸⌞⌟ {n = suc _} (fsuc i) = Fin↔<≡∸⌞⌟ i
 
+-- The largest possible number.
+
+largest : ∀ n → Fin (suc n)
+largest zero    = fzero
+largest (suc n) = fsuc (largest n)
+
+largest-correct : ∀ n → ⌞ largest n ⌟ ≡ n
+largest-correct zero    = refl _
+largest-correct (suc n) = cong suc (largest-correct n)
+
+-- The largest possible number can be expressed using Fin↔<.
+
+largest≡Fin↔< :
+  ∀ {n} →
+  largest n ≡ _↔_.from (Fin↔< (suc n)) (0 , Nat.suc≤suc (Nat.zero≤ n))
+largest≡Fin↔< {n} =
+  largest n                                                         ≡⟨ sym (_↔_.left-inverse-of (Fin↔< (suc n)) _) ⟩
+  _↔_.from (Fin↔< (suc n)) (_↔_.to (Fin↔< (suc n)) (largest n))     ≡⟨ cong (_↔_.from (Fin↔< (suc n))) (Σ-≡,≡→≡ (Fin↔<≡∸⌞⌟ (largest n)) (refl _)) ⟩
+  _↔_.from (Fin↔< (suc n)) (Nat.pred (suc n ∸ ⌞ largest n ⌟) , p₁)  ≡⟨ cong (_↔_.from (Fin↔< (suc n)))
+                                                                         (Σ-≡,≡→≡ lemma (_⇔_.to propositional⇔irrelevant ≤-propositional p₂ p₃)) ⟩∎
+  _↔_.from (Fin↔< (suc n)) (0 , p₃)                                 ∎
+  where
+  lemma =
+    Nat.pred (suc n ∸ ⌞ largest n ⌟)  ≡⟨ cong (λ m → Nat.pred (suc n ∸ m)) (largest-correct n) ⟩
+    Nat.pred (suc n ∸ n)              ≡⟨ Nat.pred≡∸1 (suc n ∸ n) ⟩
+    (suc n ∸ n) ∸ 1                   ≡⟨ Nat.∸-∸-assoc n ⟩
+    suc n ∸ (n + 1)                   ≡⟨ cong (suc n ∸_) (Nat.+-comm n) ⟩
+    suc n ∸ suc n                     ≡⟨ Nat.∸≡0 n ⟩∎
+    0                                 ∎
+
+  p₁ = subst (_< suc n) (Fin↔<≡∸⌞⌟ (largest n))
+             (proj₂ (_↔_.to (Fin↔< (suc n)) (largest n)))
+  p₂ = subst (_< suc n) lemma p₁
+  p₃ = Nat.suc≤suc (Nat.zero≤ n)
+
 ------------------------------------------------------------------------
 -- Weakening
 
