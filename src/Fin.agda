@@ -152,6 +152,17 @@ isomorphic-same-size {m} {n} = record
   ⌞ subst Fin (refl m) i ⌟  ≡⟨ cong ⌞_⌟ (subst-refl _ _) ⟩∎
   ⌞ i ⌟                     ∎
 
+-- If the underlying natural numbers are equal, then the values in
+-- Fin n are equal.
+
+cancel-⌞⌟ : ∀ {n} {i j : Fin n} → ⌞ i ⌟ ≡ ⌞ j ⌟ → i ≡ j
+cancel-⌞⌟ {zero}  {}
+cancel-⌞⌟ {suc _} {fzero}  {fzero}  _   = refl _
+cancel-⌞⌟ {suc _} {fzero}  {fsuc _} 0≡+ = ⊥-elim (Nat.0≢+ 0≡+)
+cancel-⌞⌟ {suc _} {fsuc _} {fzero}  +≡0 = ⊥-elim (Nat.0≢+ (sym +≡0))
+cancel-⌞⌟ {suc _} {fsuc _} {fsuc _} +≡+ =
+  cong fsuc (cancel-⌞⌟ (Nat.cancel-suc +≡+))
+
 -- Values of type Fin n can be seen as natural numbers smaller than n.
 
 Fin↔< : ∀ n → Fin n ↔ ∃ λ m → m < n
