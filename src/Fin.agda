@@ -256,6 +256,34 @@ weaken-correct (Nat.≤-step′ m≤k 1+k≡n) i =
   ⌞ i ⌟                                         ∎
 
 ------------------------------------------------------------------------
+-- Predecessor and successor
+
+-- Predecessor.
+
+predᶠ : ∀ {n} → Fin n → Fin n
+predᶠ {n = zero}  ()
+predᶠ {n = suc _} fzero    = fzero
+predᶠ {n = suc _} (fsuc i) = weaken₁ i
+
+predᶠ-correct : ∀ {n} (i : Fin n) → ⌞ predᶠ i ⌟ ≡ Nat.pred ⌞ i ⌟
+predᶠ-correct {n = zero}  ()
+predᶠ-correct {n = suc _} fzero    = refl _
+predᶠ-correct {n = suc _} (fsuc i) = weaken₁-correct i
+
+-- Successor.
+
+sucᶠ : ∀ {n} (i : Fin (suc n)) →
+       i ≡ largest n ⊎
+       i ≢ largest n × ∃ λ (j : Fin (suc n)) → ⌞ j ⌟ ≡ suc ⌞ i ⌟
+sucᶠ {zero}  fzero     = inj₁ (refl _)
+sucᶠ {zero}  (fsuc ())
+sucᶠ {suc _} fzero     = inj₂ (⊎.inj₁≢inj₂ , fsuc fzero , refl _)
+sucᶠ {suc _} (fsuc i)  =
+  ⊎-map (cong fsuc)
+        (Σ-map (_∘ ⊎.cancel-inj₂) (Σ-map fsuc (cong suc)))
+        (sucᶠ i)
+
+------------------------------------------------------------------------
 -- Arithmetic
 
 -- Addition.
