@@ -235,13 +235,13 @@ data W {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
 
 -- Projections.
 
-head : ∀ {a b} {A : Set a} {B : A → Set b} →
-       W A B → A
-head (sup x f) = x
+headᵂ : ∀ {a b} {A : Set a} {B : A → Set b} →
+         W A B → A
+headᵂ (sup x f) = x
 
-tail : ∀ {a b} {A : Set a} {B : A → Set b} →
-       (x : W A B) → B (head x) → W A B
-tail (sup x f) = f
+tailᵂ : ∀ {a b} {A : Set a} {B : A → Set b} →
+         (x : W A B) → B (headᵂ x) → W A B
+tailᵂ (sup x f) = f
 
 -- If B is always inhabited, then W A B is empty.
 

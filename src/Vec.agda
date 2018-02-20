@@ -9,7 +9,7 @@ open import Equality
 module Vec
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Prelude hiding (tail)
+open import Prelude
 
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq

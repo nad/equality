@@ -443,7 +443,7 @@ W-unfolding : ∀ {a b} {A : Set a} {B : A → Set b} →
 W-unfolding = record
   { surjection = record
     { logical-equivalence = record
-      { to   = λ w → head w , tail w
+      { to   = λ w → headᵂ w , tailᵂ w
       ; from = uncurry sup
       }
     ; right-inverse-of = refl
@@ -451,7 +451,7 @@ W-unfolding = record
   ; left-inverse-of = left-inverse-of
   }
   where
-  left-inverse-of : (w : W _ _) → sup (head w) (tail w) ≡ w
+  left-inverse-of : (w : W _ _) → sup (headᵂ w) (tailᵂ w) ≡ w
   left-inverse-of (sup x f) = refl (sup x f)
 
 abstract
