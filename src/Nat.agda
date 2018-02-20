@@ -187,6 +187,10 @@ m≤n+m : ∀ m n → m ≤ n + m
 m≤n+m m zero    = ≤-refl
 m≤n+m m (suc n) = ≤-step (m≤n+m m n)
 
+pred≤ : ∀ n → pred n ≤ n
+pred≤ zero    = ≤-refl
+pred≤ (suc _) = ≤-step ≤-refl
+
 -- A decision procedure for _≤_.
 
 infix 4 _≤?_
@@ -304,23 +308,19 @@ _+-mono_ {m₁} {m₂} {n₁} {n₂} (≤-step′ {k = k} p eq) q =
 ------------------------------------------------------------------------
 -- Properties related to _∸_
 
--- If you add a number and then subtract it again, then you get back
--- what you started with.
+-- Zero is a left zero of truncated subtraction.
 
-+∸≡ : ∀ {m} n → (m + n) ∸ n ≡ m
-+∸≡ {m} zero =
-  m + 0  ≡⟨ +-right-identity ⟩∎
-  m      ∎
-+∸≡ {zero}  (suc n) = +∸≡ n
-+∸≡ {suc m} (suc n) =
-  m + suc n ∸ n  ≡⟨ cong (_∸ n) (sym (suc+≡+suc m))  ⟩
-  suc m + n ∸ n  ≡⟨ +∸≡ n ⟩∎
-  suc m          ∎
+∸-left-zero : ∀ n → 0 ∸ n ≡ 0
+∸-left-zero zero    = refl _
+∸-left-zero (suc _) = refl _
 
--- If you subtract a number from itself, then the answer is zero.
+-- A form of associativity for _∸_.
 
-∸≡0 : ∀ n → n ∸ n ≡ 0
-∸≡0 = +∸≡
+∸-∸-assoc : ∀ {m} n {k} → (m ∸ n) ∸ k ≡ m ∸ (n + k)
+∸-∸-assoc         zero            = refl _
+∸-∸-assoc {zero}  (suc _) {zero}  = refl _
+∸-∸-assoc {zero}  (suc _) {suc _} = refl _
+∸-∸-assoc {suc _} (suc n)         = ∸-∸-assoc n
 
 -- A limited form of associativity for _+_ and _∸_.
 
@@ -341,3 +341,82 @@ _+-mono_ {m₁} {m₂} {n₁} {n₂} (≤-step′ {k = k} p eq) q =
 
 ∸≡suc∸suc : ∀ {m n} → n < m → m ∸ n ≡ suc (m ∸ suc n)
 ∸≡suc∸suc = +-∸-assoc
+
+-- If you add a number and then subtract it again, then you get back
+-- what you started with.
+
++∸≡ : ∀ {m} n → (m + n) ∸ n ≡ m
++∸≡ {m} zero =
+  m + 0  ≡⟨ +-right-identity ⟩∎
+  m      ∎
++∸≡ {zero}  (suc n) = +∸≡ n
++∸≡ {suc m} (suc n) =
+  m + suc n ∸ n  ≡⟨ cong (_∸ n) (sym (suc+≡+suc m))  ⟩
+  suc m + n ∸ n  ≡⟨ +∸≡ n ⟩∎
+  suc m          ∎
+
+-- If you subtract a number from itself, then the answer is zero.
+
+∸≡0 : ∀ n → n ∸ n ≡ 0
+∸≡0 = +∸≡
+
+-- If you subtract a number and then add it again, then you get back
+-- what you started with if the number is smaller than or equal to the
+-- number that you started with.
+
+∸+≡ : ∀ {m n} → n ≤ m → (m ∸ n) + n ≡ m
+∸+≡ {m} {n} (≤-refl′ n≡m) =
+  (m ∸ n) + n  ≡⟨ cong (λ n → m ∸ n + n) n≡m ⟩
+  (m ∸ m) + m  ≡⟨ cong (_+ m) (∸≡0 m) ⟩
+  0 + m        ≡⟨⟩
+  m            ∎
+∸+≡ {m} {n} (≤-step′ {k = k} n≤k 1+k≡m) =
+  (m ∸ n) + n        ≡⟨ cong (λ m → m ∸ n + n) (sym 1+k≡m) ⟩
+  (1 + k ∸ n) + n    ≡⟨ cong (_+ n) (∸≡suc∸suc (suc≤suc n≤k)) ⟩
+  1 + ((k ∸ n) + n)  ≡⟨ cong (1 +_) (∸+≡ n≤k) ⟩
+  1 + k              ≡⟨ 1+k≡m ⟩∎
+  m                  ∎
+
+-- If you subtract a number and then add it again, then you get
+-- something that is greater than or equal to what you started with.
+
+≤∸+ : ∀ m n → m ≤ (m ∸ n) + n
+≤∸+ m zero    =
+  m      ≡⟨ sym +-right-identity ⟩≤
+  m + 0  ∎≤
+≤∸+ zero    (suc n) = zero≤ _
+≤∸+ (suc m) (suc n) =
+  suc m            ≤⟨ suc≤suc (≤∸+ m n) ⟩
+  suc (m ∸ n + n)  ≡⟨ suc+≡+suc _ ⟩≤
+  m ∸ n + suc n    ∎≤
+
+-- If you subtract something from a number you get a number that is
+-- smaller than or equal to the one you started with.
+
+∸≤ : ∀ m n → m ∸ n ≤ m
+∸≤ _       zero    = ≤-refl
+∸≤ zero    (suc _) = ≤-refl
+∸≤ (suc m) (suc n) = ≤-step (∸≤ m n)
+
+-- _∸_ is monotone in its first argument and antitone in its second
+-- argument.
+
+infixl 6 _∸-mono_
+
+_∸-mono_ : ∀ {m₁ m₂ n₁ n₂} → m₁ ≤ m₂ → n₂ ≤ n₁ → m₁ ∸ n₁ ≤ m₂ ∸ n₂
+_∸-mono_              {n₁ = zero}   {zero}  p _ = p
+_∸-mono_              {n₁ = zero}   {suc _} _ q = ⊥-elim (≮0 _ q)
+_∸-mono_ {zero}       {n₁ = suc n₁}         _ _ = zero≤ _
+_∸-mono_ {suc _}  {zero}   {suc _}          p _ = ⊥-elim (≮0 _ p)
+_∸-mono_ {suc m₁} {suc m₂} {suc n₁} {zero}  p _ = m₁ ∸ n₁  ≤⟨ ∸≤ _ n₁ ⟩
+                                                  m₁       ≤⟨ pred≤ _ ⟩
+                                                  suc m₁   ≤⟨ p ⟩∎
+                                                  suc m₂   ∎≤
+_∸-mono_ {suc _}  {suc _}  {suc _}  {suc _} p q =
+  suc≤suc⁻¹ p ∸-mono suc≤suc⁻¹ q
+
+-- The predecessor function can be expressed using _∸_.
+
+pred≡∸1 : ∀ n → pred n ≡ n ∸ 1
+pred≡∸1 zero    = refl _
+pred≡∸1 (suc _) = refl _
