@@ -306,6 +306,47 @@ _+-mono_ {m₁} {m₂} {n₁} {n₂} (≤-step′ {k = k} p eq) q =
   m₂ + n₂     ∎≤
 
 ------------------------------------------------------------------------
+-- An alternative definition of the ordering
+
+-- The following ordering can be used to define a function by
+-- recursion up to some bound (see the example below).
+
+infix 4 _≤↑_
+
+data _≤↑_ (m n : ℕ) : Set where
+  ≤↑-refl : m ≡ n → m ≤↑ n
+  ≤↑-step : suc m ≤↑ n → m ≤↑ n
+
+-- The successor function preserves _≤↑_.
+
+suc≤↑suc : ∀ {m n} → m ≤↑ n → suc m ≤↑ suc n
+suc≤↑suc (≤↑-refl m≡n)    = ≤↑-refl (cong suc m≡n)
+suc≤↑suc (≤↑-step 1+m≤↑n) = ≤↑-step (suc≤↑suc 1+m≤↑n)
+
+-- Functions that convert between _≤_ and _≤↑_.
+
+≤→≤↑ : ∀ {m n} → m ≤ n → m ≤↑ n
+≤→≤↑ (≤-refl′ m≡n)               = ≤↑-refl m≡n
+≤→≤↑ (≤-step′ {k = k} m≤k 1+k≡n) =
+  subst (_ ≤↑_) 1+k≡n (≤↑-step (suc≤↑suc (≤→≤↑ m≤k)))
+
+≤↑→≤ : ∀ {m n} → m ≤↑ n → m ≤ n
+≤↑→≤ (≤↑-refl m≡n)    = ≤-refl′ m≡n
+≤↑→≤ (≤↑-step 1+m≤↑n) = <→≤ (≤↑→≤ 1+m≤↑n)
+
+private
+
+  -- An example: The list up-to n consists of all natural numbers from
+  -- 0 to n, inclusive.
+
+  up-to : ℕ → List ℕ
+  up-to bound = helper 0 (≤→≤↑ (zero≤ bound))
+    where
+    helper : ∀ n → n ≤↑ bound → List ℕ
+    helper n (≤↑-refl _) = n ∷ []
+    helper n (≤↑-step p) = n ∷ helper _ p
+
+------------------------------------------------------------------------
 -- Properties related to _∸_
 
 -- Zero is a left zero of truncated subtraction.
