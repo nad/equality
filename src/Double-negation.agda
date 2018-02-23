@@ -77,8 +77,14 @@ run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
 -- If one can prove that the empty type is inhabited in the
 -- double-negation monad, then the empty type is inhabited.
 
-¬¬¬⊥ : ¬ (¬¬ ⊥₀)
-¬¬¬⊥ ¬¬⊥ = run ¬¬⊥ id
+¬¬¬⊥ : ∀ {ℓ} → ¬ (¬¬ (⊥ {ℓ = ℓ}))
+¬¬¬⊥ ¬¬⊥ = run ¬¬⊥ ⊥-elim
+
+-- If the double-negation of a negation can be proved, then the
+-- negation itself can be proved.
+
+¬¬¬→¬ : ∀ {a} {A : Set a} → ¬¬ ¬ A → ¬ A
+¬¬¬→¬ ¬¬¬a = λ a → ¬¬¬⊥ (¬¬¬a >>= λ ¬a → ⊥-elim (¬a a))
 
 ------------------------------------------------------------------------
 -- Excluded middle and double-negation elimination
