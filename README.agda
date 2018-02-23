@@ -141,6 +141,10 @@ import H-level.Truncation
 
 import Circle
 
+-- Some omniscience principles.
+
+import Omniscience
+
 -- Lists.
 
 import List
