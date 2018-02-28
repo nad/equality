@@ -154,10 +154,9 @@ syntax finally-≤ m n m≤n = m ≤⟨ m≤n ⟩∎ n ∎≤
 
 step-< : ∀ m {n o} → n ≤ o → m < n → m ≤ o
 step-< m {n} {o} n≤o m<n =
-  m      ≤⟨ ≤-step ≤-refl ⟩
-  suc m  ≤⟨ m<n ⟩
-  n      ≤⟨ n≤o ⟩∎
-  o      ∎≤
+  m  ≤⟨ <→≤ m<n ⟩
+  n  ≤⟨ n≤o ⟩∎
+  o  ∎≤
 
 syntax step-< m n≤o m<n = m <⟨ m<n ⟩ n≤o
 
