@@ -201,15 +201,15 @@ suc m ≤? zero  = inj₂ λ { (≤-refl′ eq)   → 0≢+ (sym eq)
                         }
 suc m ≤? suc n = ⊎-map suc≤suc (λ m≰n → m≰n ∘ suc≤suc⁻¹) (m ≤? n)
 
--- If m is not smaller than or equal to n, then n is strictly smaller
--- than m.
+-- If m is not less than or equal to n, then n is strictly less
+-- than m.
 
 ≰→> : ∀ {m n} → ¬ m ≤ n → n < m
 ≰→> {zero}  {n}     p = ⊥-elim (p (zero≤ n))
 ≰→> {suc m} {zero}  p = suc≤suc (zero≤ m)
 ≰→> {suc m} {suc n} p = suc≤suc (≰→> (p ∘ suc≤suc))
 
--- If m is not smaller than or equal to n, then n is smaller than or
+-- If m is not less than or equal to n, then n is less than or
 -- equal to m.
 
 ≰→≥ : ∀ {m n} → ¬ m ≤ n → n ≤ m
@@ -256,7 +256,7 @@ total m n = ⊎-map id ≰→≥ (m ≤? n)
                                                k          ≡⟨ cancel-suc q ⟩≤
                                                n          ∎≤)
 
--- No number is strictly smaller than zero.
+-- No number is strictly less than zero.
 
 ≮0 : ∀ n → ¬ n < zero
 ≮0 n = +≮ n ∘ subst (_< 0) (sym +-right-identity)
@@ -401,7 +401,7 @@ private
 ∸≡0 = +∸≡
 
 -- If you subtract a number and then add it again, then you get back
--- what you started with if the number is smaller than or equal to the
+-- what you started with if the number is less than or equal to the
 -- number that you started with.
 
 ∸+≡ : ∀ {m n} → n ≤ m → (m ∸ n) + n ≡ m
@@ -431,7 +431,7 @@ private
   m ∸ n + suc n    ∎≤
 
 -- If you subtract something from a number you get a number that is
--- smaller than or equal to the one you started with.
+-- less than or equal to the one you started with.
 
 ∸≤ : ∀ m n → m ∸ n ≤ m
 ∸≤ _       zero    = ≤-refl
@@ -539,7 +539,7 @@ max-comm zero    (suc _) = refl _
 max-comm (suc _) zero    = refl _
 max-comm (suc m) (suc n) = cong suc (max-comm m n)
 
--- The minimum is smaller than or equal to both arguments.
+-- The minimum is less than or equal to both arguments.
 
 min≤ˡ : ∀ m n → min m n ≤ m
 min≤ˡ zero    _       = ≤-refl
