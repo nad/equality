@@ -279,6 +279,11 @@ infinity≰⌜⌝ : ∀ n → ¬ [ ∞ ] infinity ≤ ⌜ n ⌝
 infinity≰⌜⌝ zero    ()
 infinity≰⌜⌝ (suc n) (suc p) = infinity≰⌜⌝ n (force p)
 
+-- No number is less than zero.
+
+≮0 : ∀ {n i} → ¬ [ i ] n < zero
+≮0 ()
+
 -- If a number is not bounded from above by any natural number, then
 -- it is bisimilar to infinity.
 
@@ -378,6 +383,14 @@ m≤m+n {m} {n} =
   n + m  ≤⟨ ∼→≤ (+-comm n) ⟩∎
   m + n  ∎≤
 
+-- A form of associativity for _∸_.
+
+∸-∸-assoc : ∀ {m} n {k i} → [ i ] (m ∸ n) ∸ k ∼ m ∸ (n Prelude.+ k)
+∸-∸-assoc         zero            = _ ∎∼
+∸-∸-assoc {zero}  (suc _) {zero}  = _ ∎∼
+∸-∸-assoc {zero}  (suc _) {suc _} = _ ∎∼
+∸-∸-assoc {suc _} (suc n)         = ∸-∸-assoc n
+
 -- A limited form of associativity for _+_ and _∸_.
 
 +-∸-assoc : ∀ {m n k i} →
@@ -407,6 +420,30 @@ m≤m+n {m} {n} =
   ⌜ 1 ⌝ + (force m ∸ n + ⌜ n ⌝)  ∼⟨ (suc λ { .force → ∸+≡ (force p) }) ⟩
   ⌜ 1 ⌝ + force m                ∼⟨ (suc λ { .force → _ ∎∼ }) ⟩∎
   suc m                          ∎∼
+
+-- If you subtract a natural number and then add it again, then you
+-- get something that is greater than or equal to what you started
+-- with.
+
+≤∸+ : ∀ m n {i} → [ i ] m ≤ (m ∸ n) + ⌜ n ⌝
+≤∸+ m zero =
+  m          ∼⟨ symmetric-∼ (+-right-identity _) ⟩≤
+  m + ⌜ 0 ⌝  ∎≤
+≤∸+ zero    (suc n) = zero
+≤∸+ (suc m) (suc n) =
+  suc m                          ≤⟨ (suc λ { .force → ≤∸+ (force m) n }) ⟩
+  ⌜ 1 ⌝ + (force m ∸ n + ⌜ n ⌝)  ∼⟨ +-assoc ⌜ 1 ⌝ ⟩≤
+  ⌜ 1 ⌝ + (force m ∸ n) + ⌜ n ⌝  ∼⟨ 1++∼+suc _ ⟩≤
+  force m ∸ n + ⌜ suc n ⌝        ≡⟨⟩≤
+  suc m ∸ suc n + ⌜ suc n ⌝      ∎≤
+
+-- If you subtract something from a number you get a number that is
+-- less than or equal to the one you started with.
+
+∸≤ : ∀ {m} n {i} → [ i ] m ∸ n ≤ m
+∸≤         zero    = _ ∎≤
+∸≤ {zero}  (suc _) = _ ∎≤
+∸≤ {suc m} (suc n) = ≤-step λ { .force → ∸≤ n }
 
 -- Lemmas relating the ordering relation, subtraction and the
 -- successor function.
@@ -462,6 +499,24 @@ _+-mono_ {m₁ = m₁} {m₂} {n₁} {n₂} zero q =
   n₂         ≤⟨ m≤n+m ⟩∎
   m₂ + n₂    ∎≤
 suc p +-mono q = suc λ { .force → force p +-mono q }
+
+-- Subtraction is monotone in its first argument and antitone in its
+-- second argument.
+
+infixl 6 _∸-mono_
+
+_∸-mono_ : ∀ {m₁ m₂ n₁ n₂ i} →
+           [ ∞ ] m₁ ≤ m₂ → n₂ ≤ n₁ → [ i ] m₁ ∸ n₁ ≤ m₂ ∸ n₂
+_∸-mono_              {n₁ = zero}   {zero}  p  _ = p
+_∸-mono_              {n₁ = zero}   {suc _} _  q = ⊥-elim (Nat.≮0 _ q)
+_∸-mono_ {zero}       {n₁ = suc n₁}         _  _ = zero
+_∸-mono_ {suc _}  {zero}   {suc _}          () _
+_∸-mono_ {suc m₁} {suc m₂} {suc n₁} {zero}  p  _ = force m₁ ∸ n₁  ≤⟨ ∸≤ n₁ ⟩
+                                                   force m₁       ≤⟨ ≤suc ⟩
+                                                   suc m₁         ≤⟨ p ⟩∎
+                                                   suc m₂         ∎≤
+_∸-mono_ {suc _}  {suc _}  {suc _}  {suc _} p  q =
+  force (cancel-suc p) ∸-mono Nat.suc≤suc⁻¹ q
 
 ------------------------------------------------------------------------
 -- Minimum and maximum
