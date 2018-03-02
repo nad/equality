@@ -599,3 +599,131 @@ Infinite→∼infinity {suc n} inf =
 ≤⌜⌝→Finite {.zero}  {suc n} zero      = zero , zero
 ≤⌜⌝→Finite {.suc m} {suc n} (suc m≤n) =
   Σ-map suc (λ hyp → suc λ { .force → hyp }) (≤⌜⌝→Finite (force m≤n))
+
+------------------------------------------------------------------------
+-- Functions and proofs related to addition of strictly positive
+-- numbers
+
+-- The function _⁺+_ adds two numbers, given that the first one is
+-- positive. This fact allows the second number to have type Conat′ i,
+-- rather than Conat i. This can be convenient in corecursive
+-- definitions.
+
+infixl 6 _⁺+_
+
+_⁺+_ : ∀ {m i} → [ i ] ⌜ 1 ⌝ ≤ m → Conat′ i → Conat i
+_⁺+_ {zero}  () _
+_⁺+_ {suc m} _  n = suc λ { .force → force m + force n }
+
+-- The definition of _⁺+_ is correct.
+
+⁺+∼+ : ∀ {m i} (1≤m : [ ∞ ] ⌜ 1 ⌝ ≤ m) n →
+       [ i ] 1≤m ⁺+ n ∼ m + force n
+⁺+∼+ {zero}  () _
+⁺+∼+ {suc _} _  _ = suc λ { .force → _ ∎∼ }
+
+-- _⁺+_ preserves bisimilarity.
+
+⁺+-cong :
+  ∀ {m₁ m₂ n₁ n₂ i}
+  (1≤m₁ : [ ∞ ] ⌜ 1 ⌝ ≤ m₁)
+  (1≤m₂ : [ ∞ ] ⌜ 1 ⌝ ≤ m₂) →
+  [ i ] m₁ ∼ m₂ →
+  [ i ] force n₁ ∼′ force n₂ →
+  [ i ] 1≤m₁ ⁺+ n₁ ∼ 1≤m₂ ⁺+ n₂
+⁺+-cong {zero}          () _  _           _
+⁺+-cong {suc _} {zero}  _  () _           _
+⁺+-cong {suc _} {suc _} _  _  (suc m₁∼m₂) n₁∼n₂ =
+  suc λ { .force → force m₁∼m₂ +-cong force n₁∼n₂ }
+
+-- _⁺+_ is monotone.
+
+⁺+-mono :
+  ∀ {m₁ m₂ n₁ n₂ i}
+  (1≤m₁ : [ ∞ ] ⌜ 1 ⌝ ≤ m₁)
+  (1≤m₂ : [ ∞ ] ⌜ 1 ⌝ ≤ m₂) →
+  [ i ] m₁ ≤ m₂ →
+  [ i ] force n₁ ≤′ force n₂ →
+  [ i ] 1≤m₁ ⁺+ n₁ ≤ 1≤m₂ ⁺+ n₂
+⁺+-mono {zero}          () _  _           _
+⁺+-mono {suc _} {zero}  _  () _           _
+⁺+-mono {suc _} {suc _} _  _  (suc m₁∼m₂) n₁∼n₂ =
+  suc λ { .force → force m₁∼m₂ +-mono force n₁∼n₂ }
+
+-- Variants of _+-cong_ that can be used when one or more of the
+-- numbers are known to be positive. With this information at hand it
+-- suffices for some of the proofs to be "primed".
+
+1≤+-cong :
+  ∀ {m₁ m₂ n₁ n₂ i} →
+  [ i ] ⌜ 1 ⌝ ≤ m₁ →
+  [ i ] m₁ ∼ m₂ →
+  [ i ] n₁ ∼′ n₂ →
+  [ i ] m₁ + n₁ ∼ m₂ + n₂
+1≤+-cong {zero}          () _           _
+1≤+-cong {suc _} {zero}  _  ()          _
+1≤+-cong {suc _} {suc _} _  (suc m₁∼m₂) n₁∼n₂ =
+  suc λ { .force → force m₁∼m₂ +-cong force n₁∼n₂ }
+
++1≤-cong :
+  ∀ {m₁ m₂ n₁ n₂ i} →
+  [ i ] ⌜ 1 ⌝ ≤ n₁ →
+  [ i ] m₁ ∼′ m₂ →
+  [ i ] n₁ ∼ n₂ →
+  [ i ] m₁ + n₁ ∼ m₂ + n₂
++1≤-cong {m₁} {m₂} {n₁} {n₂} 1≤n₁ m₁∼m₂ n₁∼n₂ =
+  m₁ + n₁  ∼⟨ +-comm m₁ ⟩
+  n₁ + m₁  ∼⟨ 1≤+-cong 1≤n₁ n₁∼n₂ m₁∼m₂ ⟩
+  n₂ + m₂  ∼⟨ +-comm n₂ ⟩∎
+  m₂ + n₂  ∎∼
+
+1≤+1≤-cong :
+  ∀ {m₁ m₂ n₁ n₂ i} →
+  [ i ] ⌜ 1 ⌝ ≤ m₁ →
+  [ i ] ⌜ 1 ⌝ ≤ n₂ →
+  [ i ] m₁ ∼′ m₂ →
+  [ i ] n₁ ∼′ n₂ →
+  [ i ] m₁ + n₁ ∼ m₂ + n₂
+1≤+1≤-cong {m₁} {m₂} {n₁} {n₂} 1≤m₁ 1≤n₂ m₁∼m₂ n₁∼n₂ =
+  m₁ + n₁  ∼⟨ 1≤+-cong 1≤m₁ (_ ∎∼) n₁∼n₂ ⟩
+  m₁ + n₂  ∼⟨ +1≤-cong 1≤n₂ m₁∼m₂ (_ ∎∼) ⟩∎
+  m₂ + n₂  ∎∼
+
+-- Variants of _+-mono_ that can be used when one or more of the
+-- numbers are known to be positive. With this information at hand it
+-- suffices for some of the proofs to be "primed".
+
+1≤+-mono :
+  ∀ {m₁ m₂ n₁ n₂ i} →
+  [ i ] ⌜ 1 ⌝ ≤ m₁ →
+  [ i ] m₁ ≤ m₂ →
+  [ i ] n₁ ≤′ n₂ →
+  [ i ] m₁ + n₁ ≤ m₂ + n₂
+1≤+-mono {zero}          () _           _
+1≤+-mono {suc _} {zero}  _  ()          _
+1≤+-mono {suc _} {suc _} _  (suc m₁≤m₂) n₁≤n₂ =
+  suc λ { .force → force m₁≤m₂ +-mono force n₁≤n₂ }
+
++1≤-mono :
+  ∀ {m₁ m₂ n₁ n₂ i} →
+  [ i ] ⌜ 1 ⌝ ≤ n₁ →
+  [ i ] m₁ ≤′ m₂ →
+  [ i ] n₁ ≤ n₂ →
+  [ i ] m₁ + n₁ ≤ m₂ + n₂
++1≤-mono {m₁} {m₂} {n₁} {n₂} 1≤n₁ m₁≤m₂ n₁≤n₂ =
+  m₁ + n₁  ∼⟨ +-comm m₁ ⟩≤
+  n₁ + m₁  ≤⟨ 1≤+-mono 1≤n₁ n₁≤n₂ m₁≤m₂ ⟩
+  n₂ + m₂  ∼⟨ +-comm n₂ ⟩≤
+  m₂ + n₂  ∎≤
+
+1≤+1≤-mono :
+  ∀ {m₁ m₂ n₁ n₂ i} →
+  [ i ] ⌜ 1 ⌝ ≤ m₁ →
+  [ i ] ⌜ 1 ⌝ ≤ n₂ →
+  [ i ] m₁ ≤′ m₂ →
+  [ i ] n₁ ≤′ n₂ →
+  [ i ] m₁ + n₁ ≤ m₂ + n₂
+1≤+1≤-mono {m₁} {m₂} {n₁} {n₂} 1≤m₁ 1≤n₂ m₁≤m₂ n₁≤n₂ =
+  m₁ + n₁  ≤⟨ 1≤+-mono 1≤m₁ (_ ∎≤) n₁≤n₂ ⟩
+  m₁ + n₂  ≤⟨ +1≤-mono 1≤n₂ m₁≤m₂ (_ ∎≤) ⟩∎
+  m₂ + n₂  ∎≤
