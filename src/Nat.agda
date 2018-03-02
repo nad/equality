@@ -421,7 +421,7 @@ private
 -- something that is greater than or equal to what you started with.
 
 ≤∸+ : ∀ m n → m ≤ (m ∸ n) + n
-≤∸+ m zero    =
+≤∸+ m zero =
   m      ≡⟨ sym +-right-identity ⟩≤
   m + 0  ∎≤
 ≤∸+ zero    (suc n) = zero≤ _
