@@ -98,11 +98,16 @@ syntax finally-∼ m n m∼n = m ∼⟨ m∼n ⟩∎ n ∎∼
 infinity : ∀ {i} → Conat i
 infinity = suc λ { .force → infinity }
 
--- Turns natural numbers into conatural numbers.
+mutual
 
-⌜_⌝ : ∀ {i} → ℕ → Conat i
-⌜ zero  ⌝ = zero
-⌜ suc n ⌝ = suc λ { .force → ⌜ n ⌝ }
+  -- Turns natural numbers into conatural numbers.
+
+  ⌜_⌝ : ∀ {i} → ℕ → Conat i
+  ⌜ zero  ⌝ = zero
+  ⌜ suc n ⌝ = suc ⌜ n ⌝′
+
+  ⌜_⌝′ : ∀ {i} → ℕ → Conat′ i
+  force ⌜ n ⌝′ = ⌜ n ⌝
 
 -- ⌜_⌝ maps equal numbers to bisimilar numbers.
 
@@ -463,6 +468,30 @@ m≤m+n {m} {n} =
 ∸≤suc→∸suc≤ zero    (suc n) p       = zero
 ∸≤suc→∸suc≤ (suc m) zero    (suc p) = force p
 ∸≤suc→∸suc≤ (suc m) (suc n) p       = ∸≤suc→∸suc≤ (force m) n p
+
+-- One can decide whether a natural number is greater than or equal
+-- to, or less than, any number.
+
+≤⌜⌝⊎>⌜⌝ : ∀ {i} m n → [ i ] m ≤ ⌜ n ⌝ ⊎ [ i ] ⌜ n ⌝′ < m
+≤⌜⌝⊎>⌜⌝ zero    _       = inj₁ zero
+≤⌜⌝⊎>⌜⌝ (suc m) zero    = inj₂ (suc λ { .force → zero })
+≤⌜⌝⊎>⌜⌝ (suc m) (suc n) =
+  ⊎-map (λ p → suc λ { .force → p })
+        (λ p → suc λ { .force → p })
+        (≤⌜⌝⊎>⌜⌝ (force m) n)
+
+-- One can decide whether a natural number is less than or equal to,
+-- or greater than, any number.
+
+⌜⌝≤⊎⌜⌝> : ∀ {i} m n → [ i ] ⌜ m ⌝ ≤ n ⊎ [ i ] ⌜ 1 ⌝ + n ≤ ⌜ m ⌝
+⌜⌝≤⊎⌜⌝> zero    _       = inj₁ zero
+⌜⌝≤⊎⌜⌝> (suc m) zero    = inj₂ (suc λ { .force → zero })
+⌜⌝≤⊎⌜⌝> (suc m) (suc n) =
+  ⊎-map (λ p → suc λ { .force → p })
+        (λ p → suc λ { .force → suc n            ≤⟨ (suc λ { .force → _ ∎≤ }) ⟩
+                                ⌜ 1 ⌝ + force n  ≤⟨ p ⟩∎
+                                ⌜ m ⌝            ∎≤ })
+        (⌜⌝≤⊎⌜⌝> m (force n))
 
 -- ⌜_⌝ is monotone.
 
