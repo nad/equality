@@ -265,11 +265,6 @@ infix 4 [_]_<_
 [_]_<_ : Size → Conat′ ∞ → Conat ∞ → Set
 [ i ] m < n = [ i ] suc m ≤ n
 
--- An inversion lemma.
-
-cancel-suc : ∀ {i m n} → [ i ] suc m ≤ suc n → [ i ] force m ≤′ force n
-cancel-suc (suc p) = p
-
 -- Every conatural number is less than or equal to infinity.
 
 infix 4 _≤infinity
@@ -349,6 +344,33 @@ finally-≤ : ∀ {i} m n → [ i ] m ≤ n → [ i ] m ≤ n
 finally-≤ _ _ m≤n = m≤n
 
 syntax finally-≤ m n m≤n = m ≤⟨ m≤n ⟩∎ n ∎≤
+
+-- Some inversion lemmas.
+
+cancel-suc-≤ :
+  ∀ {i m n} → [ i ] suc m ≤ suc n → [ i ] force m ≤′ force n
+cancel-suc-≤ (suc p) = p
+
+cancel-pred-≤ :
+  ∀ {m n i} →
+  [ i ] ⌜ 1 ⌝ ≤ n →
+  [ i ] pred m ≤′ pred n →
+  [ i ] m ≤ n
+cancel-pred-≤ {zero}  (suc _) = λ _ → zero
+cancel-pred-≤ {suc _} (suc _) = suc
+
+cancel-∸-suc-≤ :
+  ∀ {m n o i} →
+  [ ∞ ] ⌜ o ⌝′ < n →
+  [ i ] m ∸ suc o ≤′ n ∸ suc o →
+  [ i ] m ∸ o ≤ n ∸ o
+cancel-∸-suc-≤ {zero} {n} {o} _ _ =
+  zero ∸ o  ∼⟨ ∸-left-zero-zero o ⟩≤
+  zero      ≤⟨ zero ⟩∎
+  n ∸ o     ∎≤
+cancel-∸-suc-≤ {suc _} {_}     {zero}  (suc _)   = suc
+cancel-∸-suc-≤ {suc m} {suc n} {suc o} (suc o<n) =
+  cancel-∸-suc-≤ (force o<n)
 
 -- The successor of a number is greater than or equal to the number.
 
@@ -545,7 +567,7 @@ _∸-mono_ {suc m₁} {suc m₂} {suc n₁} {zero}  p  _ = force m₁ ∸ n₁  
                                                    suc m₁         ≤⟨ p ⟩∎
                                                    suc m₂         ∎≤
 _∸-mono_ {suc _}  {suc _}  {suc _}  {suc _} p  q =
-  force (cancel-suc p) ∸-mono Nat.suc≤suc⁻¹ q
+  force (cancel-suc-≤ p) ∸-mono Nat.suc≤suc⁻¹ q
 
 ------------------------------------------------------------------------
 -- Minimum and maximum
