@@ -285,6 +285,22 @@ total m n = ⊎-map id ≰→≥ (m ≤? n)
     m       ≤⟨ p₁ ⟩
     k₁      ∎≤))
 
+-- If n is less than or equal to pred n, then n is equal to zero.
+
+≤pred→≡zero : ∀ {n} → n ≤ pred n → n ≡ zero
+≤pred→≡zero {zero}  _   = refl _
+≤pred→≡zero {suc n} n<n = ⊥-elim (+≮ 0 n<n)
+
+-- The pred function is monotone.
+
+pred-mono : ∀ {m n} → m ≤ n → pred m ≤ pred n
+pred-mono         (≤-refl′ m≡n)               = ≤-refl′ (cong pred m≡n)
+pred-mono {m} {n} (≤-step′ {k = k} m≤k 1+k≡n) =
+  pred m  ≤⟨ pred-mono m≤k ⟩
+  pred k  ≤⟨ pred≤ _ ⟩
+  k       ≡⟨ cong pred 1+k≡n ⟩≤
+  pred n  ∎≤
+
 -- _+_ is monotone.
 
 infixl 6 _+-mono_
