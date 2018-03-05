@@ -242,6 +242,13 @@ total m n = ⊎-map id ≰→≥ (m ≤? n)
 ≤⊎> : ∀ m n → m ≤ n ⊎ n < m
 ≤⊎> m n = ⊎-map id ≰→> (m ≤? n)
 
+-- Another variant of total.
+
+<⊎≡⊎> : ∀ m n → m < n ⊎ m ≡ n ⊎ n < m
+<⊎≡⊎> m n = case ≤⊎> m n of λ where
+  (inj₂ n<m) → inj₂ (inj₂ n<m)
+  (inj₁ m≤n) → ⊎-map id inj₁ (≤→<⊎≡ m≤n)
+
 -- A number is not strictly greater than a smaller (strictly or not)
 -- number.
 
