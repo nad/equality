@@ -327,6 +327,32 @@ _+-mono_ {m₁} {m₂} {n₁} {n₂} (≤-step′ {k = k} p eq) q =
   suc k + n₂  ≡⟨ cong (_+ _) eq ⟩≤
   m₂ + n₂     ∎≤
 
+-- An eliminator corresponding to well-founded induction.
+
+well-founded-elim :
+  ∀ {p}
+  (P : ℕ → Set p) →
+  (∀ m → (∀ {n} → n < m → P n) → P m) →
+  ∀ m → P m
+well-founded-elim P p m = helper (suc m) ≤-refl
+  where
+  helper : ∀ m {n} → n < m → P n
+  helper zero    n<0                           = ⊥-elim (≮0 _ n<0)
+  helper (suc m) (≤-step′ {k = k} n<k 1+k≡1+m) =
+    helper m (subst (_ <_) (cancel-suc 1+k≡1+m) n<k)
+  helper (suc m) (≤-refl′ 1+n≡1+m) =
+    subst P (sym (cancel-suc 1+n≡1+m)) (p m (helper m))
+
+-- The accessibility relation for _<_.
+
+data Acc (n : ℕ) : Set where
+  acc : (∀ {m} → m < n → Acc m) → Acc n
+
+-- Every natural number is accessible.
+
+accessible : ∀ n → Acc n
+accessible = well-founded-elim _ λ _ → acc
+
 ------------------------------------------------------------------------
 -- An alternative definition of the ordering
 
