@@ -131,8 +131,7 @@ Monad.associativity
     (run x >>= maybe (run ∘ f) (return nothing)) >>=
       maybe (run ∘ g) (return nothing)                               ∎)
 
-Monad-transformer.liftᵐ (monad-transformer _) =
-  Raw-monad-transformer.liftʳ raw-monad-transformer
+Monad-transformer.liftᵐ (monad-transformer _) = liftʳ
 
 Monad-transformer.lift-return (monad-transformer _) x = cong wrap (
   map just (return x)  ≡⟨ map-return just x ⟩∎
