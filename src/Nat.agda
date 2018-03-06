@@ -394,6 +394,29 @@ private
     helper n (≤↑-refl _) = n ∷ []
     helper n (≤↑-step p) = n ∷ helper _ p
 
+-- An eliminator wrapping up the technique used in the example above.
+
+up-to-elim :
+  ∀ {p}
+  (P : ℕ → Set p) →
+  ∀ n →
+  P n →
+  (∀ m → m < n → P (suc m) → P m) →
+  P 0
+up-to-elim P n Pn P<n = helper 0 (≤→≤↑ (zero≤ n))
+  where
+  helper : ∀ m → m ≤↑ n → P m
+  helper m (≤↑-refl m≡n) = subst P (sym m≡n) Pn
+  helper m (≤↑-step m<n) = P<n m (≤↑→≤ m<n) (helper (suc m) m<n)
+
+private
+
+  -- The example, expressed using the eliminator.
+
+  up-to′ : ℕ → List ℕ
+  up-to′ bound =
+    up-to-elim (const _) bound (bound ∷ []) (λ n _ → n ∷_)
+
 ------------------------------------------------------------------------
 -- Properties related to _∸_
 
