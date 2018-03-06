@@ -111,8 +111,8 @@ open Monad ⦃ … ⦄ public hiding (raw-monad)
 -- Monad transformers.
 
 record Raw-monad-transformer
-         {d c} (F : (Set d → Set c) → (Set d → Set c)) :
-         Set (lsuc (c ⊔ d)) where
+         {d c₁ c₂} (F : (Set d → Set c₁) → (Set d → Set c₂)) :
+         Set (lsuc (c₁ ⊔ d) ⊔ c₂) where
   constructor mk
   field
     transform : ∀ {M}   ⦃ is-raw-monad : Raw-monad M ⦄ → Raw-monad (F M)
@@ -121,8 +121,8 @@ record Raw-monad-transformer
 open Raw-monad-transformer ⦃ … ⦄ public using (liftʳ)
 
 record Monad-transformer
-         {d c} (F : (Set d → Set c) → (Set d → Set c)) :
-         Set (lsuc (c ⊔ d)) where
+         {d c₁ c₂} (F : (Set d → Set c₁) → (Set d → Set c₂)) :
+         Set (lsuc (c₁ ⊔ d) ⊔ c₂) where
   constructor mk
   field
     transform : ∀ {M}   ⦃ is-monad : Monad M ⦄ → Monad (F M)
