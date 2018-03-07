@@ -27,6 +27,15 @@ index {zero}  ()       _
 index {suc _} fzero    (x , _)  = x
 index {suc _} (fsuc i) (_ , xs) = index i xs
 
+-- Updates the element at the given position.
+
+infix 3 _[_≔_]
+
+_[_≔_] : ∀ {n} {a} {A : Set a} → Vec A n → Fin n → A → Vec A n
+_[_≔_] {zero}  _        ()       _
+_[_≔_] {suc _} (x , xs) fzero    y = y , xs
+_[_≔_] {suc _} (x , xs) (fsuc i) y = x , (xs [ i ≔ y ])
+
 -- Applies the function to every element in the vector.
 
 map : ∀ {n a b} {A : Set a} {B : Set b} → (A → B) → Vec A n → Vec B n
