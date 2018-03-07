@@ -163,6 +163,17 @@ cancel-⌞⌟ {suc _} {fsuc _} {fzero}  +≡0 = ⊥-elim (Nat.0≢+ (sym +≡0))
 cancel-⌞⌟ {suc _} {fsuc _} {fsuc _} +≡+ =
   cong fsuc (cancel-⌞⌟ (Nat.cancel-suc +≡+))
 
+-- Tries to convert from natural numbers.
+
+from-ℕ′ : ∀ {m} (n : ℕ) → m ≤ n ⊎ ∃ λ (i : Fin m) → ⌞ i ⌟ ≡ n
+from-ℕ′ {zero}  _       = inj₁ (Nat.zero≤ _)
+from-ℕ′ {suc m} zero    = inj₂ (fzero , refl _)
+from-ℕ′ {suc m} (suc n) =
+  ⊎-map Nat.suc≤suc (Σ-map fsuc (cong suc)) (from-ℕ′ {m} n)
+
+from-ℕ : ∀ {m} (n : ℕ) → m ≤ n ⊎ Fin m
+from-ℕ = ⊎-map id proj₁ ∘ from-ℕ′
+
 -- Values of type Fin n can be seen as natural numbers smaller than n.
 
 Fin↔< : ∀ n → Fin n ↔ ∃ λ m → m < n
