@@ -3007,6 +3007,53 @@ suc≤suc↔ =
                       <→≢ ≤-propositional (ℕ-set _ _))) $
   record { to = ≤→<⊎≡; from = [ <→≤ , ≤-refl′ ] }
 
+≤↔≡0⊎0<×≤ : ∀ {m n} → m ≤ n ↔ m ≡ 0 ⊎ 0 < m × m ≤ n
+≤↔≡0⊎0<×≤ {zero} {n} =
+  0 ≤ n                  ↝⟨ zero≤↔ ⟩
+  ⊤                      ↝⟨ inverse ⊎-right-identity ⟩
+  ⊤ ⊎ ⊥₀                 ↝⟨ id ⊎-cong inverse ×-left-zero ⟩
+  ⊤ ⊎ (⊥ × 0 ≤ n)        ↝⟨ inverse (_⇔_.to contractible⇔↔⊤ (propositional⇒inhabited⇒contractible (ℕ-set _ _) (refl _)))
+                              ⊎-cong
+                            inverse <zero↔ ×-cong id ⟩□
+  0 ≡ 0 ⊎ 0 < 0 × 0 ≤ n  □
+
+≤↔≡0⊎0<×≤ {suc m} {n} =
+  m < n                          ↝⟨ inverse ×-left-identity ⟩
+  ⊤ × m < n                      ↝⟨ inverse zero≤↔ ×-cong id ⟩
+  0 ≤ m × m < n                  ↝⟨ inverse ⊎-left-identity ⟩
+  ⊥₀ ⊎ 0 ≤ m × m < n             ↝⟨ Bijection.⊥↔uninhabited (0≢+ ∘ sym) ⊎-cong inverse suc≤suc↔ ×-cong id ⟩□
+  1 + m ≡ 0 ⊎ 0 < 1 + m × m < n  □
+
+∃0<↔∃suc :
+  ∀ {p} {P : ℕ → Set p} →
+  (∃ λ n → 0 < n × P n) ↔ (∃ λ n → P (suc n))
+∃0<↔∃suc {P = P} = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = Σ-map pred λ where
+                 {zero}  (0<0 , _) → ⊥-elim (≮0 _ 0<0)
+                 {suc _} (_   , p) → p
+      ; from = Σ-map suc (λ p → suc≤suc (zero≤ _) , p)
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = λ where
+      (zero  , 0<0 , p) → ⊥-elim (≮0 _ 0<0)
+      (suc n , 0<+ , p) →
+        Σ-≡,≡→≡ (refl _)
+          (trans (subst-refl _ _)
+             (_↔_.to ≡×≡↔≡
+                ( _⇔_.to propositional⇔irrelevant ≤-propositional _ _
+                , refl _
+                )))
+  }
+
+∃<↔∃0<×≤ : ∀ {n} → (∃ λ m → m < n) ↔ (∃ λ m → 0 < m × m ≤ n)
+∃<↔∃0<×≤ {n} =
+  (∃ λ m → m < n)          ↔⟨⟩
+  (∃ λ m → suc m ≤ n)      ↝⟨ inverse ∃0<↔∃suc ⟩□
+  (∃ λ m → 0 < m × m ≤ n)  □
+
 ------------------------------------------------------------------------
 -- Left cancellation for _⊎_
 
