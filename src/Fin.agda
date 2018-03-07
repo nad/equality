@@ -171,22 +171,21 @@ Fin↔< zero =
   ℕ × ⊥               ↔⟨ ∃-cong (λ _ → inverse <zero↔) ⟩□
   (∃ λ m → m < zero)  □
 Fin↔< (suc n) =
-  ⊤ ⊎ Fin n                          ↝⟨ inverse (_⇔_.to contractible⇔↔⊤ (singleton-contractible n)) ⊎-cong Fin↔< n ⟩
-  (∃ λ m → m ≡ n) ⊎ (∃ λ m → m < n)  ↝⟨ inverse ∃-⊎-distrib-left ⟩
-  (∃ λ m → m ≡ n ⊎ m < n)            ↝⟨ ∃-cong (λ _ → ⊎-comm) ⟩
-  (∃ λ m → m < n ⊎ m ≡ n)            ↝⟨ ∃-cong (λ _ → inverse ≤↔<⊎≡) ⟩
-  (∃ λ m → m ≤ n)                    ↝⟨ ∃-cong (λ _ → inverse suc≤suc↔) ⟩
-  (∃ λ m → suc m ≤ suc n)            ↔⟨⟩
-  (∃ λ m → m < suc n)                □
+  ⊤ ⊎ Fin n                                  ↝⟨ inverse (_⇔_.to contractible⇔↔⊤ (singleton-contractible 0)) ⊎-cong Fin↔< n ⟩
+  (∃ λ m → m ≡ 0) ⊎ (∃ λ m → m < n)          ↝⟨ id ⊎-cong ∃<↔∃0<×≤ ⟩
+  (∃ λ m → m ≡ 0) ⊎ (∃ λ m → 0 < m × m ≤ n)  ↝⟨ inverse ∃-⊎-distrib-left ⟩
+  (∃ λ m → m ≡ 0 ⊎ 0 < m × m ≤ n)            ↝⟨ ∃-cong (λ _ → inverse ≤↔≡0⊎0<×≤) ⟩
+  (∃ λ m → m ≤ n)                            ↝⟨ ∃-cong (λ _ → inverse suc≤suc↔) ⟩
+  (∃ λ m → suc m ≤ suc n)                    ↔⟨⟩
+  (∃ λ m → m < suc n)                        □
 
--- The forward direction of Fin↔< gives the "mirror image" of the
--- underlying natural number.
+-- The forward direction of Fin↔< gives the underlying natural number.
 
-Fin↔<≡∸⌞⌟ :
-  ∀ {n} (i : Fin n) → proj₁ (_↔_.to (Fin↔< n) i) ≡ Nat.pred (n ∸ ⌞ i ⌟)
-Fin↔<≡∸⌞⌟ {n = zero}  ()
-Fin↔<≡∸⌞⌟ {n = suc _} fzero    = refl _
-Fin↔<≡∸⌞⌟ {n = suc _} (fsuc i) = Fin↔<≡∸⌞⌟ i
+Fin↔<≡⌞⌟ :
+  ∀ {n} (i : Fin n) → proj₁ (_↔_.to (Fin↔< n) i) ≡ ⌞ i ⌟
+Fin↔<≡⌞⌟ {n = zero}  ()
+Fin↔<≡⌞⌟ {n = suc _} fzero    = refl _
+Fin↔<≡⌞⌟ {n = suc _} (fsuc i) = cong suc (Fin↔<≡⌞⌟ i)
 
 -- The largest possible number.
 
@@ -201,27 +200,18 @@ largest-correct (suc n) = cong suc (largest-correct n)
 -- The largest possible number can be expressed using Fin↔<.
 
 largest≡Fin↔< :
-  ∀ {n} →
-  largest n ≡ _↔_.from (Fin↔< (suc n)) (0 , Nat.suc≤suc (Nat.zero≤ n))
+  ∀ {n} → largest n ≡ _↔_.from (Fin↔< (suc n)) (n , ≤-refl)
 largest≡Fin↔< {n} =
-  largest n                                                         ≡⟨ sym (_↔_.left-inverse-of (Fin↔< (suc n)) _) ⟩
-  _↔_.from (Fin↔< (suc n)) (_↔_.to (Fin↔< (suc n)) (largest n))     ≡⟨ cong (_↔_.from (Fin↔< (suc n))) (Σ-≡,≡→≡ (Fin↔<≡∸⌞⌟ (largest n)) (refl _)) ⟩
-  _↔_.from (Fin↔< (suc n)) (Nat.pred (suc n ∸ ⌞ largest n ⌟) , p₁)  ≡⟨ cong (_↔_.from (Fin↔< (suc n)))
-                                                                         (Σ-≡,≡→≡ lemma (_⇔_.to propositional⇔irrelevant ≤-propositional p₂ p₃)) ⟩∎
-  _↔_.from (Fin↔< (suc n)) (0 , p₃)                                 ∎
+  largest n                                                      ≡⟨ sym (_↔_.left-inverse-of (Fin↔< (suc n)) _) ⟩
+  _↔_.from (Fin↔< (suc n)) (_↔_.to (Fin↔< (suc n)) (largest n))  ≡⟨ cong (_↔_.from (Fin↔< (suc n))) (Σ-≡,≡→≡ (Fin↔<≡⌞⌟ (largest n)) (refl _)) ⟩
+  _↔_.from (Fin↔< (suc n)) (⌞ largest n ⌟ , p₁)                  ≡⟨ cong (_↔_.from (Fin↔< (suc n)))
+                                                                      (Σ-≡,≡→≡ (largest-correct n)
+                                                                         (_⇔_.to propositional⇔irrelevant ≤-propositional p₂ ≤-refl)) ⟩∎
+  _↔_.from (Fin↔< (suc n)) (n , ≤-refl)                          ∎
   where
-  lemma =
-    Nat.pred (suc n ∸ ⌞ largest n ⌟)  ≡⟨ cong (λ m → Nat.pred (suc n ∸ m)) (largest-correct n) ⟩
-    Nat.pred (suc n ∸ n)              ≡⟨ Nat.pred≡∸1 (suc n ∸ n) ⟩
-    (suc n ∸ n) ∸ 1                   ≡⟨ Nat.∸-∸-assoc n ⟩
-    suc n ∸ (n + 1)                   ≡⟨ cong (suc n ∸_) (Nat.+-comm n) ⟩
-    suc n ∸ suc n                     ≡⟨ Nat.∸≡0 n ⟩∎
-    0                                 ∎
-
-  p₁ = subst (_< suc n) (Fin↔<≡∸⌞⌟ (largest n))
+  p₁ = subst (_< suc n) (Fin↔<≡⌞⌟ (largest n))
              (proj₂ (_↔_.to (Fin↔< (suc n)) (largest n)))
-  p₂ = subst (_< suc n) lemma p₁
-  p₃ = Nat.suc≤suc (Nat.zero≤ n)
+  p₂ = subst (_< suc n) (largest-correct n) p₁
 
 ------------------------------------------------------------------------
 -- Weakening
