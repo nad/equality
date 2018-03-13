@@ -169,9 +169,13 @@ import M
 
 import Maybe
 
--- Vectors.
+-- Vectors, defined using a recursive function.
 
 import Vec
+
+-- Vectors, defined using an inductive family.
+
+import Vec.Data
 
 -- Some properties related to the const function.
 

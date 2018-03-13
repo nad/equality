@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------
--- Vectors, defined using a recursive function
+-- Vectors, defined using an inductive family
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K --safe #-}
 
 open import Equality
 
-module Vec
+module Vec.Data
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Prelude
@@ -22,9 +22,11 @@ open import Surjection eq using (_↠_; ↠-≡)
 
 -- Vectors.
 
-Vec : ∀ {a} → Set a → ℕ → Set a
-Vec A zero    = ↑ _ ⊤
-Vec A (suc n) = A × Vec A n
+infixr 5 _∷_
+
+data Vec {a} (A : Set a) : ℕ → Set a where
+  []  : Vec A zero
+  _∷_ : ∀ {n} → A → Vec A n → Vec A (suc n)
 
 ------------------------------------------------------------------------
 -- Some simple functions
@@ -32,31 +34,31 @@ Vec A (suc n) = A × Vec A n
 -- Finds the element at the given position.
 
 index : ∀ {n} {a} {A : Set a} → Fin n → Vec A n → A
-index {zero}  ()       _
-index {suc _} fzero    (x , _)  = x
-index {suc _} (fsuc i) (_ , xs) = index i xs
+index ()       []
+index fzero    (x ∷ _)  = x
+index (fsuc i) (_ ∷ xs) = index i xs
 
 -- Updates the element at the given position.
 
 infix 3 _[_≔_]
 
 _[_≔_] : ∀ {n} {a} {A : Set a} → Vec A n → Fin n → A → Vec A n
-_[_≔_] {zero}  _        ()       _
-_[_≔_] {suc _} (x , xs) fzero    y = y , xs
-_[_≔_] {suc _} (x , xs) (fsuc i) y = x , (xs [ i ≔ y ])
+_[_≔_] []       ()       _
+_[_≔_] (x ∷ xs) fzero    y = y ∷ xs
+_[_≔_] (x ∷ xs) (fsuc i) y = x ∷ (xs [ i ≔ y ])
 
 -- Applies the function to every element in the vector.
 
 map : ∀ {n a b} {A : Set a} {B : Set b} → (A → B) → Vec A n → Vec B n
-map {zero}  f _        = _
-map {suc _} f (x , xs) = f x , map f xs
+map f []       = []
+map f (x ∷ xs) = f x ∷ map f xs
 
 -- Constructs a vector containing a certain number of copies of the
 -- given element.
 
 replicate : ∀ {n a} {A : Set a} → A → Vec A n
-replicate {zero}  _ = _
-replicate {suc _} x = x , replicate x
+replicate {zero}  _ = []
+replicate {suc _} x = x ∷ replicate x
 
 ------------------------------------------------------------------------
 -- Conversions to and from lists
@@ -64,14 +66,14 @@ replicate {suc _} x = x , replicate x
 -- Vectors can be converted to lists.
 
 to-list : ∀ {n} {a} {A : Set a} → Vec A n → List A
-to-list {zero}  _        = []
-to-list {suc n} (x , xs) = x ∷ to-list xs
+to-list  []        = []
+to-list (x ∷ xs) = x ∷ to-list xs
 
 -- Lists can be converted to vectors.
 
 from-list : ∀ {a} {A : Set a} (xs : List A) → Vec A (length xs)
-from-list []       = _
-from-list (x ∷ xs) = x , from-list xs
+from-list []       = []
+from-list (x ∷ xs) = x ∷ from-list xs
 
 -- ∃ (Vec A) is isomorphic to List A.
 
@@ -95,9 +97,9 @@ from-list (x ∷ xs) = x , from-list xs
   tail y = record
     { logical-equivalence = record
       { to   = λ where
-                 (suc n , _ , xs) → n , xs
+                 (suc n , _ ∷ xs) → n , xs
                  xs@(zero , _)    → xs
-      ; from = Σ-map suc (y ,_)
+      ; from = Σ-map suc (y ∷_)
       }
     ; right-inverse-of = refl
     }
@@ -105,10 +107,10 @@ from-list (x ∷ xs) = x , from-list xs
   from∘to :
     ∀ n (xs : Vec A n) →
     (length (to-list xs) , from-list (to-list xs)) ≡ (n , xs)
-  from∘to zero    _        = refl _
-  from∘to (suc n) (x , xs) =                                    $⟨ from∘to n xs ⟩
+  from∘to zero    []       = refl _
+  from∘to (suc n) (x ∷ xs) =                                    $⟨ from∘to n xs ⟩
     (length (to-list xs) , from-list (to-list xs)) ≡ (n , xs)   ↝⟨ _↠_.from $ ↠-≡ (tail x) ⟩□
 
-    (length (to-list (x , xs)) , from-list (to-list (x , xs)))
+    (length (to-list (x ∷ xs)) , from-list (to-list (x ∷ xs)))
       ≡
-    (suc n , x , xs)                                            □
+    (suc n , x ∷ xs)                                            □
