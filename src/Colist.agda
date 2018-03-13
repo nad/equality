@@ -65,6 +65,14 @@ replicate (suc n) x = x ∷ λ { .force → replicate (force n) x }
 repeat : ∀ {a i} {A : Set a} → A → Colist A i
 repeat = replicate infinity
 
+-- Appends one colist to another.
+
+infixr 5 _++_
+
+_++_ : ∀ {a i} {A : Set a} → Colist A i → Colist A i → Colist A i
+[]       ++ ys = ys
+(x ∷ xs) ++ ys = x ∷ λ { .force → force xs ++ ys }
+
 ------------------------------------------------------------------------
 -- Bisimilarity
 
