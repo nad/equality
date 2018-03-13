@@ -58,7 +58,7 @@ index = proj₂
 
 map : ∀ {c x y} {C : Container c} {X : Set x} {Y : Set y} →
       (X → Y) → ⟦ C ⟧ X → ⟦ C ⟧ Y
-map f = Σ-map id (λ g → f ∘ g)
+map f = Σ-map id (f ∘_)
 
 module Map where
 
@@ -493,3 +493,55 @@ _∼[_]″_ {a} {A = A} xs k ys =
   { to   = λ xs∼ys P → Any-cong P P xs ys (λ _ → id) xs∼ys
   ; from = λ Any-xs↝Any-ys z → Any-xs↝Any-ys (λ x → z ≡ x)
   }
+
+------------------------------------------------------------------------
+-- The ⟦_⟧₂ operator
+
+-- Lifts a family of binary relations from A to ⟦ C ⟧ A.
+
+⟦_⟧₂ :
+  ∀ {a c r} {A : Set a} (C : Container c) →
+  (A → A → Set r) →
+  ⟦ C ⟧ A → ⟦ C ⟧ A → Set (c ⊔ r)
+⟦ C ⟧₂ R (s , f) (t , g) =
+  ∃ λ (eq : s ≡ t) →
+  (p : Position C s) →
+  R (f p) (g (subst (Position C) eq p))
+  where
+  open Container
+
+-- A map function for ⟦_⟧₂.
+
+⟦⟧₂-map :
+  ∀ {a b c r s} {A : Set a} {B : Set b} {C : Container c}
+  (R : A → A → Set r) (S : B → B → Set s) (f : A → B) →
+  (∀ x y → R x y → S (f x) (f y)) →
+  (∀ x y → ⟦ C ⟧₂ R x y → ⟦ C ⟧₂ S (map f x) (map f y))
+⟦⟧₂-map _ _ _ f _ _ = Σ-map id (f _ _ ∘_)
+
+-- ⟦_⟧₂ preserves reflexivity.
+
+⟦⟧₂-reflexive :
+  ∀ {a c r} {A : Set a} {C : Container c}
+  (R : A → A → Set r) →
+  (∀ x → R x x) →
+  (∀ x → ⟦ C ⟧₂ R x x)
+⟦⟧₂-reflexive _ r _ = refl , λ _ → r _
+
+-- ⟦_⟧₂ preserves symmetry.
+
+⟦⟧₂-symmetric :
+  ∀ {a c r} {A : Set a} {C : Container c}
+  (R : A → A → Set r) →
+  (∀ {x y} → R x y → R y x) →
+  (∀ {x y} → ⟦ C ⟧₂ R x y → ⟦ C ⟧₂ R y x)
+⟦⟧₂-symmetric _ r (refl , f) = refl , r ∘ f
+
+-- ⟦_⟧₂ preserves transitivity.
+
+⟦⟧₂-transitive :
+  ∀ {a c r} {A : Set a} {C : Container c}
+  (R : A → A → Set r) →
+  (∀ {x y z} → R x y → R y z → R x z) →
+  (∀ {x y z} → ⟦ C ⟧₂ R x y → ⟦ C ⟧₂ R y z → ⟦ C ⟧₂ R x z)
+⟦⟧₂-transitive _ r (refl , f) (refl , g) = refl , λ p → r (f p) (g p)
