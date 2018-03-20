@@ -1809,7 +1809,8 @@ private
         _↠_.to (B₁↠B₂ x)
           (subst B₁ (_≃_.right-inverse-of A₂≃A₁ (_≃_.to A₂≃A₁ x))
              (_↠_.from (B₁↠B₂ (_≃_.from A₂≃A₁ (_≃_.to A₂≃A₁ x)))
-                (f (_≃_.from A₂≃A₁ (_≃_.to A₂≃A₁ x)))))                  ≡⟨ cong (λ eq → _↠_.to (B₁↠B₂ x) (subst B₁ eq _)) $ sym $
+                (f (_≃_.from A₂≃A₁ (_≃_.to A₂≃A₁ x)))))                  ≡⟨ cong (λ eq → _↠_.to (B₁↠B₂ x)
+                                                                                           (subst B₁ eq (_↠_.from (B₁↠B₂ _) (f _)))) $ sym $
                                                                               _≃_.left-right-lemma A₂≃A₁ _ ⟩
         _↠_.to (B₁↠B₂ x)
           (subst B₁ (cong (_≃_.to A₂≃A₁) $ _≃_.left-inverse-of A₂≃A₁ x)
