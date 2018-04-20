@@ -8,6 +8,7 @@ module Colist where
 
 open import Conat using (Conat; zero; suc; force; infinity)
 open import Equality.Propositional
+open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 ------------------------------------------------------------------------
@@ -160,6 +161,13 @@ data ◇ {a p} {A : Set a}
           ◇ (const P) xs → P
 ◇-const = proj₂ ∘ ◇-witness
 
+-- Colist membership.
+
+infix 4 _∈_
+
+_∈_ : ∀ {a} {A : Set a} → A → Colist A ∞ → Set a
+x ∈ xs = ◇ (x ≡_) xs
+
 ------------------------------------------------------------------------
 -- The □ predicate
 
@@ -198,13 +206,27 @@ open □′ public
 □-∼ []         _        = []
 □-∼ (refl ∷ b) (p ∷ ps) = p ∷ λ { .force → □-∼ (force b) (force ps) }
 
+-- □ ∞ P xs holds iff P is true for every element in xs.
+
+□⇔ : ∀ {a p} {A : Set a} {P : A → Set p} {xs} →
+     □ ∞ P xs ⇔ (∀ x → x ∈ xs → P x)
+□⇔ {P = P} = record { to = to; from = from _ }
+  where
+  to : ∀ {xs} → □ ∞ P xs → (∀ x → x ∈ xs → P x)
+  to (p ∷ ps) x (here refl)  = p
+  to (p ∷ ps) x (there x∈xs) = to (force ps) x x∈xs
+
+  from : ∀ xs → (∀ x → x ∈ xs → P x) → □ ∞ P xs
+  from []       f = []
+  from (x ∷ xs) f =
+    f x (here refl) ∷ λ { .force → from (force xs) (λ x → f x ∘ there) }
+
 -- If P is universally true, then □ i P is also universally true.
 
-□-replicate : ∀ {a p i} {A : Set a} {P : A → Set p} →
+□-replicate : ∀ {a p} {A : Set a} {P : A → Set p} →
               (∀ x → P x) →
-              (∀ xs → □ i P xs)
-□-replicate f []       = []
-□-replicate f (x ∷ xs) = f x ∷ λ { .force → □-replicate f (force xs) }
+              (∀ xs → □ ∞ P xs)
+□-replicate f _ = _⇔_.from □⇔ (λ x _ → f x)
 
 -- Something resembling applicative functor application for □.
 
