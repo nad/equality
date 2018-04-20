@@ -147,6 +147,16 @@ data ◇ {a p} {A : Set a} (i : Size)
 ◇-map f (here p)  = here (f p)
 ◇-map f (there p) = there (◇-map f p)
 
+-- A variant of ◇-map.
+
+◇-map′ : ∀ {a b p q i}
+           {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q}
+           {f : A → B} →
+         (∀ {x} → P x → Q (f x)) →
+         (∀ {xs} → ◇ i P xs → ◇ i Q (map f xs))
+◇-map′ g (here p)  = here (g p)
+◇-map′ g (there p) = there (◇-map′ g p)
+
 -- If a predicate holds for some element in a colist, then it holds
 -- for some value.
 
@@ -244,6 +254,16 @@ _□-⊛_ : ∀ {i a p q} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs} �
         (∀ {x} → P x → Q x) →
         (∀ {xs} → □ i P xs → □ i Q xs)
 □-map f ps = □-replicate (λ _ → f) _ □-⊛ ps
+
+-- A variant of □-map.
+
+□-map′ : ∀ {a b p q i}
+           {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q}
+           {f : A → B} →
+         (∀ {x} → P x → Q (f x)) →
+         (∀ {xs} → □ i P xs → □ i Q (map f xs))
+□-map′ g []       = []
+□-map′ g (p ∷ ps) = g p ∷ λ { .force → □-map′ g (force ps) }
 
 -- Something resembling applicative functor application for □ and ◇.
 
