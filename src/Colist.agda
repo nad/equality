@@ -126,47 +126,47 @@ transitive-∼ (p₁ ∷ p₂) (q₁ ∷ q₂) =
 
 -- ◇ ∞ P xs means that P holds for some element in xs.
 
-data ◇ {a p} {A : Set a}
+data ◇ {a p} {A : Set a} (i : Size)
        (P : A → Set p) : Colist A ∞ → Set (a ⊔ p) where
-  here  : ∀ {x xs} → P x → ◇ P (x ∷ xs)
-  there : ∀ {x xs} → ◇ P (force xs) → ◇ P (x ∷ xs)
+  here  : ∀ {x xs} → P x → ◇ i P (x ∷ xs)
+  there : ∀ {x xs} {j : Size< i} → ◇ j P (force xs) → ◇ i P (x ∷ xs)
 
 -- ◇ respects bisimilarity.
 
 ◇-∼ :
-  ∀ {a p} {A : Set a} {P : A → Set p} {xs ys} →
-  [ ∞ ] xs ∼ ys → ◇ P xs → ◇ P ys
+  ∀ {a p i} {A : Set a} {P : A → Set p} {xs ys} →
+  [ ∞ ] xs ∼ ys → ◇ i P xs → ◇ i P ys
 ◇-∼ (refl ∷ _) (here p)  = here p
 ◇-∼ (_    ∷ b) (there p) = there (◇-∼ (force b) p)
 
 -- A map function for ◇.
 
-◇-map : ∀ {a p q} {A : Set a} {P : A → Set p} {Q : A → Set q} →
+◇-map : ∀ {a p q i} {A : Set a} {P : A → Set p} {Q : A → Set q} →
         (∀ {x} → P x → Q x) →
-        (∀ {xs} → ◇ P xs → ◇ Q xs)
+        (∀ {xs} → ◇ i P xs → ◇ i Q xs)
 ◇-map f (here p)  = here (f p)
 ◇-map f (there p) = there (◇-map f p)
 
 -- If a predicate holds for some element in a colist, then it holds
 -- for some value.
 
-◇-witness : ∀ {a p} {A : Set a} {P : A → Set p} {xs} →
-            ◇ P xs → ∃ P
+◇-witness : ∀ {a p i} {A : Set a} {P : A → Set p} {xs} →
+            ◇ i P xs → ∃ P
 ◇-witness (here p)  = _ , p
 ◇-witness (there p) = ◇-witness p
 
 -- If const P holds for some element, then P holds.
 
-◇-const : ∀ {a p} {A : Set a} {P : Set p} {xs : Colist A ∞} →
-          ◇ (const P) xs → P
+◇-const : ∀ {a p i} {A : Set a} {P : Set p} {xs : Colist A ∞} →
+          ◇ i (const P) xs → P
 ◇-const = proj₂ ∘ ◇-witness
 
 -- Colist membership.
 
-infix 4 _∈_
+infix 4 [_]_∈_
 
-_∈_ : ∀ {a} {A : Set a} → A → Colist A ∞ → Set a
-x ∈ xs = ◇ (x ≡_) xs
+[_]_∈_ : ∀ {a} {A : Set a} → Size → A → Colist A ∞ → Set a
+[ i ] x ∈ xs = ◇ i (x ≡_) xs
 
 ------------------------------------------------------------------------
 -- The □ predicate
@@ -206,26 +206,27 @@ open □′ public
 □-∼ []         _        = []
 □-∼ (refl ∷ b) (p ∷ ps) = p ∷ λ { .force → □-∼ (force b) (force ps) }
 
--- □ ∞ P xs holds iff P is true for every element in xs.
+-- A generalisation of "□ ∞ P xs holds iff P is true for every element
+-- in xs".
 
-□⇔ : ∀ {a p} {A : Set a} {P : A → Set p} {xs} →
-     □ ∞ P xs ⇔ (∀ x → x ∈ xs → P x)
+□⇔ : ∀ {a p i} {A : Set a} {P : A → Set p} {xs} →
+     □ i P xs ⇔ (∀ x → [ i ] x ∈ xs → P x)
 □⇔ {P = P} = record { to = to; from = from _ }
   where
-  to : ∀ {xs} → □ ∞ P xs → (∀ x → x ∈ xs → P x)
+  to : ∀ {i xs} → □ i P xs → (∀ x → [ i ] x ∈ xs → P x)
   to (p ∷ ps) x (here refl)  = p
   to (p ∷ ps) x (there x∈xs) = to (force ps) x x∈xs
 
-  from : ∀ xs → (∀ x → x ∈ xs → P x) → □ ∞ P xs
+  from : ∀ {i} xs → (∀ x → [ i ] x ∈ xs → P x) → □ i P xs
   from []       f = []
   from (x ∷ xs) f =
     f x (here refl) ∷ λ { .force → from (force xs) (λ x → f x ∘ there) }
 
 -- If P is universally true, then □ i P is also universally true.
 
-□-replicate : ∀ {a p} {A : Set a} {P : A → Set p} →
+□-replicate : ∀ {a p i} {A : Set a} {P : A → Set p} →
               (∀ x → P x) →
-              (∀ xs → □ ∞ P xs)
+              (∀ xs → □ i P xs)
 □-replicate f _ = _⇔_.from □⇔ (λ x _ → f x)
 
 -- Something resembling applicative functor application for □.
@@ -248,14 +249,14 @@ _□-⊛_ : ∀ {i a p q} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs} �
 
 infixl 4 _□◇-⊛_
 
-_□◇-⊛_ : ∀ {a p q} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs} →
-         □ ∞ (λ x → P x → Q x) xs → ◇ P xs → ◇ Q xs
+_□◇-⊛_ : ∀ {a p q i} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs} →
+         □ i (λ x → P x → Q x) xs → ◇ i P xs → ◇ i Q xs
 (f ∷ _)  □◇-⊛ (here p)  = here (f p)
 (_ ∷ fs) □◇-⊛ (there p) = there (force fs □◇-⊛ p)
 
 -- A combination of some of the combinators above.
 
 □◇-witness :
-  ∀ {a p q} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs} →
-  □ ∞ P xs → ◇ Q xs → ∃ λ x → P x × Q x
+  ∀ {a p q i} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs} →
+  □ i P xs → ◇ i Q xs → ∃ λ x → P x × Q x
 □◇-witness p q = ◇-witness (□-map _,_ p □◇-⊛ q)
