@@ -676,3 +676,55 @@ min≤ʳ m n =
   n        ≤⟨ ˡ≤max _ _ ⟩
   max n m  ≡⟨ max-comm n _ ⟩≤
   max m n  ∎≤
+
+------------------------------------------------------------------------
+-- Division by two
+
+-- Division by two, rounded upwards.
+
+⌈_/2⌉ : ℕ → ℕ
+⌈ zero        /2⌉ = zero
+⌈ suc zero    /2⌉ = suc zero
+⌈ suc (suc n) /2⌉ = suc ⌈ n /2⌉
+
+-- Division by two, rounded downwards.
+
+⌊_/2⌋ : ℕ → ℕ
+⌊ zero        /2⌋ = zero
+⌊ suc zero    /2⌋ = zero
+⌊ suc (suc n) /2⌋ = suc ⌊ n /2⌋
+
+-- Some simple lemmas related to division by two.
+
+⌈/2⌉+⌊/2⌋ : ∀ n → ⌈ n /2⌉ + ⌊ n /2⌋ ≡ n
+⌈/2⌉+⌊/2⌋ zero          = refl _
+⌈/2⌉+⌊/2⌋ (suc zero)    = refl _
+⌈/2⌉+⌊/2⌋ (suc (suc n)) =
+  suc ⌈ n /2⌉ + suc ⌊ n /2⌋      ≡⟨ cong suc (sym (suc+≡+suc _)) ⟩
+  suc (suc (⌈ n /2⌉ + ⌊ n /2⌋))  ≡⟨ cong (suc ∘ suc) (⌈/2⌉+⌊/2⌋ n) ⟩∎
+  suc (suc n)                    ∎
+
+⌊/2⌋≤⌈/2⌉ : ∀ n → ⌊ n /2⌋ ≤ ⌈ n /2⌉
+⌊/2⌋≤⌈/2⌉ zero          = ≤-refl
+⌊/2⌋≤⌈/2⌉ (suc zero)    = zero≤ 1
+⌊/2⌋≤⌈/2⌉ (suc (suc n)) = suc≤suc (⌊/2⌋≤⌈/2⌉ n)
+
+⌈/2⌉≤ : ∀ n → ⌈ n /2⌉ ≤ n
+⌈/2⌉≤ zero          = ≤-refl
+⌈/2⌉≤ (suc zero)    = ≤-refl
+⌈/2⌉≤ (suc (suc n)) =
+  suc ⌈ n /2⌉  ≤⟨ suc≤suc (⌈/2⌉≤ n) ⟩
+  suc n        ≤⟨ m≤n+m _ 1 ⟩∎
+  suc (suc n)  ∎≤
+
+⌈/2⌉< : ∀ n → ⌈ 2 + n /2⌉ < 2 + n
+⌈/2⌉< n =
+  2 + ⌈ n /2⌉  ≤⟨ ≤-refl +-mono ⌈/2⌉≤ n ⟩∎
+  2 + n        ∎≤
+
+⌊/2⌋< : ∀ n → ⌊ 1 + n /2⌋ < 1 + n
+⌊/2⌋< zero    = ≤-refl
+⌊/2⌋< (suc n) =
+  2 + ⌊ n /2⌋  ≤⟨ ≤-refl +-mono ⌊/2⌋≤⌈/2⌉ n ⟩
+  2 + ⌈ n /2⌉  ≤⟨ ⌈/2⌉< n ⟩∎
+  2 + n        ∎≤
