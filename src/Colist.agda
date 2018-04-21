@@ -11,6 +11,8 @@ open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+open import Function-universe equality-with-J hiding (id; _∘_)
+
 ------------------------------------------------------------------------
 -- The type
 
@@ -295,3 +297,328 @@ _□◇-⊛_ : ∀ {a p q i} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs
   ∀ {a p q i} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs} →
   □ i P xs → ◇ i Q xs → ∃ λ x → P x × Q x
 □◇-witness p q = ◇-witness (□-map _,_ p □◇-⊛ q)
+
+------------------------------------------------------------------------
+-- A variant of ◇ with a sized predicate
+
+-- ◇ˢ ∞ P xs means that (some instance of) P holds for some element in
+-- xs.
+
+data ◇ˢ {a p} {A : Set a} (i : Size)
+        (P : Size → A → Set p) : Colist A ∞ → Set (a ⊔ p) where
+  here  : ∀ {x xs} → P i x → ◇ˢ i P (x ∷ xs)
+  there : ∀ {x xs} {j : Size< i} → ◇ˢ j P (force xs) → ◇ˢ i P (x ∷ xs)
+
+-- ◇ˢ respects bisimilarity.
+
+◇ˢ-∼ :
+  ∀ {a p i} {A : Set a} {P : Size → A → Set p} {xs ys} →
+  [ ∞ ] xs ∼ ys → ◇ˢ i P xs → ◇ˢ i P ys
+◇ˢ-∼ (refl ∷ _) (here p)  = here p
+◇ˢ-∼ (_    ∷ b) (there p) = there (◇ˢ-∼ (force b) p)
+
+-- If P is upwards closed, then flip ◇ˢ P is upwards closed.
+
+◇ˢ-upwards-closed :
+  ∀ {a p} {A : Set a} {P : Size → A → Set p} →
+  (∀ {i} {j : Size< i} {x} → P j x → P i x) →
+  (∀ {i} {j : Size< i} {xs} → ◇ˢ j P xs → ◇ˢ i P xs)
+◇ˢ-upwards-closed P-closed (here p)  = here (P-closed p)
+◇ˢ-upwards-closed P-closed (there p) =
+  there (◇ˢ-upwards-closed P-closed p)
+
+-- A variant of the previous lemma.
+
+◇ˢ-upwards-closed-∞ :
+  ∀ {a p} {A : Set a} {P : Size → A → Set p} →
+  (∀ {i x} → P i x → P ∞ x) →
+  (∀ {i xs} → ◇ˢ i P xs → ◇ˢ ∞ P xs)
+◇ˢ-upwards-closed-∞ P-closed-∞ (here p)  = here (P-closed-∞ p)
+◇ˢ-upwards-closed-∞ P-closed-∞ (there p) =
+  there (◇ˢ-upwards-closed-∞ P-closed-∞ p)
+
+-- A map function for ◇ˢ.
+
+◇ˢ-map : ∀ {a p q i}
+           {A : Set a} {P : Size → A → Set p} {Q : Size → A → Set q} →
+         (∀ {i x} → P i x → Q i x) →
+         (∀ {xs} → ◇ˢ i P xs → ◇ˢ i Q xs)
+◇ˢ-map f (here p)  = here (f p)
+◇ˢ-map f (there p) = there (◇ˢ-map f p)
+
+-- A variant of ◇ˢ-map.
+
+◇ˢ-map′ : ∀ {a b p q i} {A : Set a} {B : Set b}
+            {P : Size → A → Set p} {Q : Size → B → Set q} {f : A → B} →
+          (∀ {i x} → P i x → Q i (f x)) →
+          (∀ {xs} → ◇ˢ i P xs → ◇ˢ i Q (map f xs))
+◇ˢ-map′ g (here p)  = here (g p)
+◇ˢ-map′ g (there p) = there (◇ˢ-map′ g p)
+
+-- If a predicate holds for some element in a colist, then it holds
+-- for some value (assuming that P is upwards closed).
+
+◇ˢ-witness : ∀ {a p i} {A : Set a} {P : Size → A → Set p} {xs} →
+             (∀ {i} {j : Size< i} {x} → P j x → P i x) →
+             ◇ˢ i P xs → ∃ (P i)
+◇ˢ-witness closed (here p)  = _ , p
+◇ˢ-witness closed (there p) = Σ-map id closed (◇ˢ-witness closed p)
+
+-- If P ∞ holds for some element in xs, then ◇ˢ ∞ P xs holds.
+
+∈×∞→◇ˢ : ∀ {a p} {A : Set a} {P : Size → A → Set p} {x xs} →
+         [ ∞ ] x ∈ xs → P ∞ x → ◇ˢ ∞ P xs
+∈×∞→◇ˢ (here refl)  p = here p
+∈×∞→◇ˢ (there x∈xs) p = there (∈×∞→◇ˢ x∈xs p)
+
+-- If P i x implies P ∞ x for any i and x, then ◇ˢ ∞ P xs holds iff
+-- P ∞ holds for some element in xs.
+
+◇ˢ⇔∈× : ∀ {a p} {A : Set a} {P : Size → A → Set p} {xs} →
+        (∀ {i x} → P i x → P ∞ x) →
+        ◇ˢ ∞ P xs ⇔ (∃ λ x → [ ∞ ] x ∈ xs × P ∞ x)
+◇ˢ⇔∈× {P = P} →∞ = record
+  { to   = to
+  ; from = λ { (_ , x∈xs , p) → ∈×∞→◇ˢ x∈xs p }
+  }
+  where
+  to : ∀ {i xs} → ◇ˢ i P xs → ∃ λ x → [ ∞ ] x ∈ xs × P ∞ x
+  to (here p)  = _ , here refl , →∞ p
+  to (there p) = Σ-map id (Σ-map there id) (to p)
+
+-- Sized variants of the previous lemma.
+
+◇ˢ→∈× : ∀ {a p} {A : Set a} {P : Size → A → Set p} →
+        (∀ {i} {j : Size< i} {x} → P j x → P i x) →
+        ∀ {i xs} → ◇ˢ i P xs → ∃ λ x → [ i ] x ∈ xs × P i x
+◇ˢ→∈× closed (here p)  = _ , here refl , p
+◇ˢ→∈× closed (there p) = Σ-map id (Σ-map there closed) (◇ˢ→∈× closed p)
+
+∈×→◇ˢ : ∀ {a p} {A : Set a} {P : Size → A → Set p} →
+        (∀ {i} {j : Size< i} {x} → P i x → P j x) →
+        ∀ {i x xs} → [ i ] x ∈ xs → P i x → ◇ˢ i P xs
+∈×→◇ˢ closed (here refl)  p = here p
+∈×→◇ˢ closed (there x∈xs) p = there (∈×→◇ˢ closed x∈xs (closed p))
+
+-- ◇ ∞ (P ∞) is "contained in" ◇ˢ ∞ P.
+
+◇∞→◇ˢ∞ : ∀ {a p} {A : Set a} {P : Size → A → Set p} {xs} →
+         ◇ ∞ (P ∞) xs → ◇ˢ ∞ P xs
+◇∞→◇ˢ∞ {P = P} {xs} =
+  ◇ ∞ (P ∞) xs                    ↝⟨ _⇔_.to ◇⇔∈× ⟩
+  (∃ λ x → [ ∞ ] x ∈ xs × P ∞ x)  ↝⟨ (λ { (_ , x∈xs , p) → ∈×∞→◇ˢ x∈xs p }) ⟩□
+  ◇ˢ ∞ P xs                       □
+
+-- If P i x implies P ∞ x for any i and x, then ◇ˢ ∞ P is pointwise
+-- logically equivalent to ◇ ∞ (P ∞).
+
+◇ˢ∞⇔◇∞ : ∀ {a p} {A : Set a} {P : Size → A → Set p} {xs} →
+         (∀ {i x} → P i x → P ∞ x) →
+         ◇ˢ ∞ P xs ⇔ ◇ ∞ (P ∞) xs
+◇ˢ∞⇔◇∞ {P = P} {xs} →∞ =
+  ◇ˢ ∞ P xs                       ↝⟨ ◇ˢ⇔∈× →∞ ⟩
+  (∃ λ x → [ ∞ ] x ∈ xs × P ∞ x)  ↝⟨ inverse ◇⇔∈× ⟩□
+  ◇ ∞ (P ∞) xs                    □
+
+-- ◇ˢ i (const P) is pointwise logically equivalent to ◇ i P.
+
+◇ˢ⇔◇ : ∀ {a p i} {A : Set a} {P : A → Set p} {xs} →
+       ◇ˢ i (const P) xs ⇔ ◇ i P xs
+◇ˢ⇔◇ {P = P} {xs} = record { to = to; from = from }
+  where
+  to : ∀ {i xs} → ◇ˢ i (const P) xs → ◇ i P xs
+  to (here p)  = here p
+  to (there p) = there (to p)
+
+  from : ∀ {i xs} → ◇ i P xs → ◇ˢ i (const P) xs
+  from (here p)  = here p
+  from (there p) = there (from p)
+
+------------------------------------------------------------------------
+-- A variant of □ with a sized predicate
+
+-- □ˢ ∞ P xs means that (some instance of) P holds for every element
+-- in xs.
+
+mutual
+
+  data □ˢ {a p} {A : Set a} (i : Size)
+          (P : Size → A → Set p) : Colist A ∞ → Set (a ⊔ p) where
+    []  : □ˢ i P []
+    _∷_ : ∀ {x xs} → P i x → □ˢ′ i P (force xs) → □ˢ i P (x ∷ xs)
+
+  record □ˢ′ {a p} {A : Set a} (i : Size)
+             (P : Size → A → Set p) (xs : Colist A ∞) : Set (a ⊔ p) where
+    coinductive
+    field
+      force : {j : Size< i} → □ˢ j P xs
+
+open □ˢ′ public
+
+-- Some projections.
+
+□ˢ-head : ∀ {a p i} {A : Set a} {P : Size → A → Set p} {x xs} →
+          □ˢ i P (x ∷ xs) → P i x
+□ˢ-head (p ∷ _) = p
+
+□ˢ-tail : ∀ {a p i} {j : Size< i}
+            {A : Set a} {P : Size → A → Set p} {x xs} →
+          □ˢ i P (x ∷ xs) → □ˢ j P (force xs)
+□ˢ-tail (_ ∷ ps) = force ps
+
+-- □ˢ respects bisimilarity.
+
+□ˢ-∼ :
+  ∀ {i a p} {A : Set a} {P : Size → A → Set p} {xs ys} →
+  [ i ] xs ∼ ys → □ˢ i P xs → □ˢ i P ys
+□ˢ-∼ []         _        = []
+□ˢ-∼ (refl ∷ b) (p ∷ ps) = p ∷ λ { .force → □ˢ-∼ (force b) (force ps) }
+
+-- If P is downwards closed, then flip □ˢ P is downwards closed.
+
+□ˢ-downwards-closed :
+  ∀ {a p} {A : Set a} {P : Size → A → Set p} →
+  (∀ {i} {j : Size< i} {x} → P i x → P j x) →
+  (∀ {i} {j : Size< i} {xs} → □ˢ i P xs → □ˢ j P xs)
+□ˢ-downwards-closed P-closed []       = []
+□ˢ-downwards-closed P-closed (p ∷ ps) =
+  P-closed p ∷ λ { .force → □ˢ-downwards-closed P-closed (force ps) }
+
+-- A variant of the previous lemma.
+
+□ˢ-downwards-closed-∞ :
+  ∀ {a p} {A : Set a} {P : Size → A → Set p} →
+  (∀ {i x} → P ∞ x → P i x) →
+  (∀ {i xs} → □ˢ ∞ P xs → □ˢ i P xs)
+□ˢ-downwards-closed-∞ P-closed-∞ []       = []
+□ˢ-downwards-closed-∞ P-closed-∞ (p ∷ ps) =
+  P-closed-∞ p ∷ λ { .force →
+  □ˢ-downwards-closed-∞ P-closed-∞ (force ps) }
+
+-- If □ˢ ∞ P xs holds, then P ∞ holds for every element in xs.
+
+□ˢ∞∈→ : ∀ {a p} {A : Set a} {P : Size → A → Set p} {xs x} →
+        □ˢ ∞ P xs → [ ∞ ] x ∈ xs → P ∞ x
+□ˢ∞∈→ (p ∷ ps) (here refl)  = p
+□ˢ∞∈→ (p ∷ ps) (there x∈xs) = □ˢ∞∈→ (force ps) x∈xs
+
+-- If P ∞ x implies P i x for any i and x, then □ˢ ∞ P xs holds iff P ∞
+-- holds for every element in xs.
+
+□ˢ⇔∈→ : ∀ {a p} {A : Set a} {P : Size → A → Set p} {xs} →
+        (∀ {i x} → P ∞ x → P i x) →
+        □ˢ ∞ P xs ⇔ (∀ x → [ ∞ ] x ∈ xs → P ∞ x)
+□ˢ⇔∈→ {P = P} ∞→ = record { to = λ p _ → □ˢ∞∈→ p; from = from _ }
+  where
+  from : ∀ {i} xs → (∀ x → [ ∞ ] x ∈ xs → P ∞ x) → □ˢ i P xs
+  from []       f = []
+  from (x ∷ xs) f =
+    ∞→ (f x (here refl)) ∷ λ { .force →
+    from (force xs) (λ x → f x ∘ there) }
+
+-- Sized variants of the previous lemma.
+
+□ˢ∈→ : ∀ {a p} {A : Set a} {P : Size → A → Set p} →
+       (∀ {i} {j : Size< i} {x} → P j x → P i x) →
+       ∀ {i x xs} → □ˢ i P xs → [ i ] x ∈ xs → P i x
+□ˢ∈→ closed (p ∷ ps) (here refl)  = p
+□ˢ∈→ closed (p ∷ ps) (there x∈xs) = closed (□ˢ∈→ closed (force ps) x∈xs)
+
+∈→→□ˢ : ∀ {a p} {A : Set a} {P : Size → A → Set p} →
+        (∀ {i} {j : Size< i} {x} → P i x → P j x) →
+        ∀ {i} xs → (∀ x → [ i ] x ∈ xs → P i x) → □ˢ i P xs
+∈→→□ˢ closed []       f = []
+∈→→□ˢ closed (x ∷ xs) f =
+  f x (here refl) ∷ λ { .force →
+  ∈→→□ˢ closed (force xs) (λ x → closed ∘ f x ∘ there) }
+
+-- □ˢ ∞ P is "contained in" □ ∞ (P ∞).
+
+□ˢ∞→□∞ : ∀ {a p} {A : Set a} {P : Size → A → Set p} {xs} →
+         □ˢ ∞ P xs → □ ∞ (P ∞) xs
+□ˢ∞→□∞ {P = P} {xs} =
+  □ˢ ∞ P xs                     ↝⟨ (λ p _ → □ˢ∞∈→ p) ⟩
+  (∀ x → [ ∞ ] x ∈ xs → P ∞ x)  ↝⟨ _⇔_.from □⇔∈→ ⟩□
+  □ ∞ (P ∞) xs                  □
+
+-- If P ∞ x implies P i x for any i and x, then □ˢ ∞ P is pointwise
+-- logically equivalent to □ ∞ (P ∞).
+
+□ˢ∞⇔□∞ : ∀ {a p} {A : Set a} {P : Size → A → Set p} {xs} →
+         (∀ {i x} → P ∞ x → P i x) →
+         □ˢ ∞ P xs ⇔ □ ∞ (P ∞) xs
+□ˢ∞⇔□∞ {P = P} {xs} ∞→ =
+  □ˢ ∞ P xs                     ↝⟨ □ˢ⇔∈→ ∞→ ⟩
+  (∀ x → [ ∞ ] x ∈ xs → P ∞ x)  ↝⟨ inverse □⇔∈→ ⟩□
+  □ ∞ (P ∞) xs                  □
+
+-- □ˢ i (const P) is pointwise logically equivalent to □ i P.
+
+□ˢ⇔□ : ∀ {a p i} {A : Set a} {P : A → Set p} {xs} →
+       □ˢ i (const P) xs ⇔ □ i P xs
+□ˢ⇔□ {P = P} {xs} = record { to = to; from = from }
+  where
+  to : ∀ {i xs} → □ˢ i (const P) xs → □ i P xs
+  to []       = []
+  to (p ∷ ps) = p ∷ λ { .force → to (force ps) }
+
+  from : ∀ {i xs} → □ i P xs → □ˢ i (const P) xs
+  from []       = []
+  from (p ∷ ps) = p ∷ λ { .force → from (force ps) }
+
+-- If P is universally true, then □ˢ i P is also universally true.
+
+□ˢ-replicate : ∀ {a p i} {A : Set a} {P : Size → A → Set p} →
+               (∀ {i} x → P i x) →
+               (∀ xs → □ˢ i P xs)
+□ˢ-replicate f []       = []
+□ˢ-replicate f (x ∷ xs) = f x ∷ λ { .force → □ˢ-replicate f (force xs) }
+
+-- Something resembling applicative functor application for □ˢ.
+
+infixl 4 _□ˢ-⊛_
+
+_□ˢ-⊛_ : ∀ {i a p q} {A : Set a}
+           {P : Size → A → Set p} {Q : Size → A → Set q} {xs} →
+         □ˢ i (λ j x → P j x → Q j x) xs → □ˢ i P xs → □ˢ i Q xs
+[]       □ˢ-⊛ _        = []
+(f ∷ fs) □ˢ-⊛ (p ∷ ps) = f p ∷ λ { .force → force fs □ˢ-⊛ force ps }
+
+-- A map function for □ˢ.
+
+□ˢ-map : ∀ {a p q i}
+           {A : Set a} {P : Size → A → Set p} {Q : Size → A → Set q} →
+         (∀ {i x} → P i x → Q i x) →
+         (∀ {xs} → □ˢ i P xs → □ˢ i Q xs)
+□ˢ-map f ps = □ˢ-replicate (λ _ → f) _ □ˢ-⊛ ps
+
+-- A variant of □ˢ-map.
+
+□ˢ-map′ : ∀ {a b p q i} {A : Set a} {B : Set b}
+            {P : Size → A → Set p} {Q : Size → B → Set q} {f : A → B} →
+          (∀ {i x} → P i x → Q i (f x)) →
+          (∀ {xs} → □ˢ i P xs → □ˢ i Q (map f xs))
+□ˢ-map′ g []       = []
+□ˢ-map′ g (p ∷ ps) = g p ∷ λ { .force → □ˢ-map′ g (force ps) }
+
+-- Something resembling applicative functor application for □ˢ and ◇ˢ.
+
+infixl 4 _□ˢ◇ˢ-⊛_
+
+_□ˢ◇ˢ-⊛_ : ∀ {a p q i} {A : Set a}
+             {P : Size → A → Set p} {Q : Size → A → Set q} {xs} →
+           □ˢ i (λ j x → P j x → Q j x) xs → ◇ˢ i P xs → ◇ˢ i Q xs
+(f ∷ _)  □ˢ◇ˢ-⊛ (here p)  = here (f p)
+(_ ∷ fs) □ˢ◇ˢ-⊛ (there p) = there (force fs □ˢ◇ˢ-⊛ p)
+
+-- A combination of some of the combinators above.
+
+□ˢ◇ˢ-witness :
+  ∀ {a p q i}
+    {A : Set a} {P : Size → A → Set p} {Q : Size → A → Set q} {xs} →
+  (∀ {i} {j : Size< i} {x} → P j x → P i x) →
+  (∀ {i} {j : Size< i} {x} → Q j x → Q i x) →
+  □ˢ i P xs → ◇ˢ i Q xs → ∃ λ x → P i x × Q i x
+□ˢ◇ˢ-witness P-closed Q-closed p q =
+  ◇ˢ-witness (λ { {_} {_} → Σ-map P-closed Q-closed })
+             (□ˢ-map _,_ p □ˢ◇ˢ-⊛ q)
