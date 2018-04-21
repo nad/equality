@@ -178,6 +178,21 @@ infix 4 [_]_∈_
 [_]_∈_ : ∀ {a} {A : Set a} → Size → A → Colist A ∞ → Set a
 [ i ] x ∈ xs = ◇ i (x ≡_) xs
 
+-- A generalisation of "◇ ∞ P xs holds iff P holds for some element in
+-- xs".
+
+◇⇔∈× : ∀ {a p i} {A : Set a} {P : A → Set p} {xs} →
+       ◇ i P xs ⇔ ∃ λ x → [ i ] x ∈ xs × P x
+◇⇔∈× {P = P} = record { to = to; from = from }
+  where
+  to : ∀ {i xs} → ◇ i P xs → ∃ λ x → [ i ] x ∈ xs × P x
+  to (here p)  = _ , here refl , p
+  to (there p) = Σ-map id (Σ-map there id) (to p)
+
+  from : ∀ {i xs} → (∃ λ x → [ i ] x ∈ xs × P x) → ◇ i P xs
+  from (x , here refl  , p) = here p
+  from (x , there x∈xs , p) = there (from (x , x∈xs , p))
+
 ------------------------------------------------------------------------
 -- The □ predicate
 
@@ -219,9 +234,9 @@ open □′ public
 -- A generalisation of "□ ∞ P xs holds iff P is true for every element
 -- in xs".
 
-□⇔ : ∀ {a p i} {A : Set a} {P : A → Set p} {xs} →
-     □ i P xs ⇔ (∀ x → [ i ] x ∈ xs → P x)
-□⇔ {P = P} = record { to = to; from = from _ }
+□⇔∈→ : ∀ {a p i} {A : Set a} {P : A → Set p} {xs} →
+       □ i P xs ⇔ (∀ x → [ i ] x ∈ xs → P x)
+□⇔∈→ {P = P} = record { to = to; from = from _ }
   where
   to : ∀ {i xs} → □ i P xs → (∀ x → [ i ] x ∈ xs → P x)
   to (p ∷ ps) x (here refl)  = p
@@ -237,7 +252,7 @@ open □′ public
 □-replicate : ∀ {a p i} {A : Set a} {P : A → Set p} →
               (∀ x → P x) →
               (∀ xs → □ i P xs)
-□-replicate f _ = _⇔_.from □⇔ (λ x _ → f x)
+□-replicate f _ = _⇔_.from □⇔∈→ (λ x _ → f x)
 
 -- Something resembling applicative functor application for □.
 
