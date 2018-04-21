@@ -88,6 +88,46 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
 ≢1+ (suc m) p = ≢1+ m (cancel-suc p)
 
 ------------------------------------------------------------------------
+-- Properties related to _*_
+
+-- Zero is a right zero for multiplication.
+
+*-right-zero : ∀ n → n * 0 ≡ 0
+*-right-zero zero    = refl 0
+*-right-zero (suc n) = *-right-zero n
+
+-- Multiplication is commutative.
+
+*-comm : ∀ m {n} → m * n ≡ n * m
+*-comm zero    {n}     = sym (*-right-zero n)
+*-comm (suc m) {zero}  = *-right-zero m
+*-comm (suc m) {suc n} =
+  suc (n + m * suc n)    ≡⟨ cong (suc ∘ (n +_)) (*-comm m) ⟩
+  suc (n + suc n * m)    ≡⟨⟩
+  suc (n + (m + n * m))  ≡⟨ cong suc (+-assoc n) ⟩
+  suc (n + m + n * m)    ≡⟨ cong₂ (λ x y → suc (x + y)) (+-comm n) (sym (*-comm m)) ⟩
+  suc (m + n + m * n)    ≡⟨ cong suc (sym (+-assoc m)) ⟩
+  suc (m + (n + m * n))  ≡⟨⟩
+  suc (m + suc m * n)    ≡⟨ cong (suc ∘ (m +_)) (*-comm (suc m) {n}) ⟩∎
+  suc (m + n * suc m)    ∎
+
+-- One is a left identity for multiplication.
+
+*-left-identity : ∀ {n} → 1 * n ≡ n
+*-left-identity {n} =
+  1 * n     ≡⟨⟩
+  n + zero  ≡⟨ +-right-identity ⟩∎
+  n         ∎
+
+-- One is a right identity for multiplication.
+
+*-right-identity : ∀ n → n * 1 ≡ n
+*-right-identity n =
+  n * 1 ≡⟨ *-comm n ⟩
+  1 * n ≡⟨ *-left-identity ⟩∎
+  n     ∎
+
+------------------------------------------------------------------------
 -- The usual ordering of the natural numbers, along with some
 -- properties
 
