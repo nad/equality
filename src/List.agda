@@ -88,6 +88,13 @@ foldr-∷-[] : ∀ {a} {A : Set a} (xs : List A) → foldr _∷_ [] xs ≡ xs
 foldr-∷-[] []       = refl _
 foldr-∷-[] (x ∷ xs) = cong (x ∷_) (foldr-∷-[] xs)
 
+-- The empty list is a right identity for the append function.
+
+++-right-identity :
+  ∀ {a} {A : Set a} (xs : List A) → xs ++ [] ≡ xs
+++-right-identity []       = refl _
+++-right-identity (x ∷ xs) = cong (x ∷_) (++-right-identity xs)
+
 -- The append function is associative.
 
 ++-associative : ∀ {a} {A : Set a} (xs ys zs : List A) →
