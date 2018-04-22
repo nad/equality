@@ -120,6 +120,12 @@ pred : Conat ∞ → Conat ∞
 pred zero    = zero
 pred (suc n) = force n
 
+-- ⌜_⌝ is homomorphic with respect to pred.
+
+⌜⌝-pred : ∀ n {i} → [ i ] ⌜ Nat.pred n ⌝ ∼ pred ⌜ n ⌝
+⌜⌝-pred zero    = zero   ∎∼
+⌜⌝-pred (suc n) = ⌜ n ⌝  ∎∼
+
 -- Addition.
 
 infixl 6 _+_
