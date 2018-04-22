@@ -336,6 +336,8 @@ definition = _
 ⟨_⟩ : ∀ {a} {A : Set a} → A → A
 ⟨_⟩ = id
 
+{-# NOINLINE ⟨_⟩ #-}
+
 private
 
   -- A non-macro variant of ⟨by⟩ that returns the (first) constructed
@@ -445,6 +447,8 @@ private
     fst : ∀ {a b} {A : Set a} {B : A → Set b} →
           Σ A B → A
     fst = proj₁
+
+    {-# NOINLINE fst #-}
 
     -- Tests for by.
 
