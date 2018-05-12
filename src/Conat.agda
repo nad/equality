@@ -504,8 +504,8 @@ m≤m+n {m} {n} =
 ≤⌜⌝⊎>⌜⌝ zero    _       = inj₁ zero
 ≤⌜⌝⊎>⌜⌝ (suc m) zero    = inj₂ (suc λ { .force → zero })
 ≤⌜⌝⊎>⌜⌝ (suc m) (suc n) =
-  ⊎-map (λ p → suc λ { .force → p })
-        (λ p → suc λ { .force → p })
+  ⊎-map (λ (p : [ _ ] _ ≤ _) → suc λ { .force → p })
+        (λ (p : [ _ ] _ < _) → suc λ { .force → p })
         (≤⌜⌝⊎>⌜⌝ (force m) n)
 
 -- One can decide whether a natural number is less than or equal to,
@@ -515,10 +515,10 @@ m≤m+n {m} {n} =
 ⌜⌝≤⊎⌜⌝> zero    _       = inj₁ zero
 ⌜⌝≤⊎⌜⌝> (suc m) zero    = inj₂ (suc λ { .force → zero })
 ⌜⌝≤⊎⌜⌝> (suc m) (suc n) =
-  ⊎-map (λ p → suc λ { .force → p })
-        (λ p → suc λ { .force → suc n            ≤⟨ (suc λ { .force → _ ∎≤ }) ⟩
-                                ⌜ 1 ⌝ + force n  ≤⟨ p ⟩∎
-                                ⌜ m ⌝            ∎≤ })
+  ⊎-map (λ (p : [ _ ] _ ≤ _) → suc λ { .force → p })
+        (λ p                 → suc λ { .force → suc n            ≤⟨ (suc λ { .force → _ ∎≤ }) ⟩
+                                                ⌜ 1 ⌝ + force n  ≤⟨ p ⟩∎
+                                                ⌜ m ⌝            ∎≤ })
         (⌜⌝≤⊎⌜⌝> m (force n))
 
 -- ⌜_⌝ is monotone.
@@ -655,7 +655,8 @@ Infinite→∼infinity {suc n} inf =
 ≤⌜⌝→Finite {.zero}  {zero}  zero      = zero , zero
 ≤⌜⌝→Finite {.zero}  {suc n} zero      = zero , zero
 ≤⌜⌝→Finite {.suc m} {suc n} (suc m≤n) =
-  Σ-map suc (λ hyp → suc λ { .force → hyp }) (≤⌜⌝→Finite (force m≤n))
+  Σ-map suc (λ (hyp : [ _ ] _ ∼ _) → suc λ { .force → hyp })
+    (≤⌜⌝→Finite (force m≤n))
 
 ------------------------------------------------------------------------
 -- Functions and proofs related to addition of strictly positive
