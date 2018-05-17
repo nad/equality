@@ -589,7 +589,7 @@ private
                 proj₁ iso ∙ (transformation γ ∙ (F ⊙ f) ∙ proj₁ iso)    ≡⟨ cong (_ ∙_) assoc ⟩
                 proj₁ iso ∙ ((transformation γ ∙ (F ⊙ f)) ∙ proj₁ iso)  ≡⟨ cong (λ g → _ ∙ (g ∙ _)) $ sym $ natural γ ⟩
                 proj₁ iso ∙ (((G ⊙ f) ∙ transformation γ) ∙ proj₁ iso)  ≡⟨ cong (_ ∙_) $ sym assoc ⟩
-                proj₁ iso ∙ (G ⊙ f) ∙ (transformation γ ∙ proj₁ iso)    ≡⟨ cong ((_ ∙_) ∘ (_ ∙_)) $ proj₁ (proj₂ iso) ⟩
+                proj₁ iso ∙ (G ⊙ f) ∙ (transformation γ ∙ proj₁ iso)    ≡⟨ cong ((_ ∙_) ∘ ((G ⊙ f) ∙_)) $ proj₁ (proj₂ iso) ⟩
                 proj₁ iso ∙ (G ⊙ f) ∙ id                                ≡⟨ assoc ⟩
                 (proj₁ iso ∙ (G ⊙ f)) ∙ id                              ≡⟨ right-identity ⟩∎
                 proj₁ iso ∙ (G ⊙ f)                                     ∎) } ,
