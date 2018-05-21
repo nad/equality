@@ -206,9 +206,7 @@ abelian-group =
   ▻ Right-inverse
 
   where
-  bin = ε ▻ A-type ▻ Is-a-set [0] ▻ N-ary (1+ [0]) 2
-
-  Comm = Proposition {bin}
+  Comm = Proposition
     (λ { (_ , _∙_) →
        ∀ x y → (x ∙ y) ≡ (y ∙ x) })
 
@@ -219,9 +217,7 @@ abelian-group =
        A-set _ _
      })
 
-  comm = bin ▻ Comm
-
-  Assoc = Proposition {comm}
+  Assoc = Proposition
     (λ { ((_ , _∙_) , _) →
          ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) })
 
@@ -233,9 +229,7 @@ abelian-group =
        A-set _ _
      })
 
-  identity = comm ▻ Assoc ▻ N-ary (1+ 1+ 1+ 1+ [0]) 0
-
-  Left-identity = Proposition {identity}
+  Left-identity = Proposition
     (λ { ((((_ , _∙_) , _) , _) , e) →
          ∀ x → (e ∙ x) ≡ x })
 
@@ -245,9 +239,7 @@ abelian-group =
        A-set _ _
      })
 
-  left-identity = identity ▻ Left-identity
-
-  Right-identity = Proposition {left-identity}
+  Right-identity = Proposition
     (λ { (((((_ , _∙_) , _) , _) , e) , _) →
          ∀ x → (x ∙ e) ≡ x })
 
@@ -257,10 +249,7 @@ abelian-group =
        A-set _ _
      })
 
-  inv = left-identity ▻ Right-identity ▻
-        N-ary (1+ 1+ 1+ 1+ 1+ 1+ 1+ [0]) 1
-
-  Left-inverse = Proposition {inv}
+  Left-inverse = Proposition
     (λ { (((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) →
          ∀ x → ((x ⁻¹) ∙ x) ≡ e })
 
@@ -270,9 +259,7 @@ abelian-group =
        A-set _ _
      })
 
-  left-inverse = inv ▻ Left-inverse
-
-  Right-inverse = Proposition {left-inverse}
+  Right-inverse = Proposition
     (λ { ((((((((_ , _∙_) , _) , _) , e) , _) , _) , _⁻¹) , _) →
          ∀ x → (x ∙ (x ⁻¹)) ≡ e })
 
