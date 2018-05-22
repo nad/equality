@@ -118,7 +118,7 @@ private
     -- Fuel, used to ensure termination.
 
     fuel : ℕ
-    fuel = 5
+    fuel = 100
 
     mutual
 
@@ -175,7 +175,7 @@ private
     -- proved in some way, but using fuel was easier.)
 
     fuel : ℕ
-    fuel = 5
+    fuel = 100
 
     -- The tactic's main loop.
 
