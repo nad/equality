@@ -76,6 +76,13 @@ _++_ : ∀ {a i} {A : Set a} → Colist A i → Colist A i → Colist A i
 []       ++ ys = ys
 (x ∷ xs) ++ ys = x ∷ λ { .force → force xs ++ ys }
 
+-- "Scan left".
+
+scanl : ∀ {a b i} {A : Set a} {B : Set b} →
+        (A → B → A) → A → Colist B i → Colist A i
+scanl c n []       = n ∷ λ { .force → [] }
+scanl c n (x ∷ xs) = n ∷ λ { .force → scanl c (c n x) (force xs) }
+
 ------------------------------------------------------------------------
 -- Bisimilarity
 
