@@ -12,6 +12,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Function-universe E.equality-with-J hiding (id; _∘_)
+import Nat E.equality-with-J as Nat
 
 ------------------------------------------------------------------------
 -- The type
@@ -82,6 +83,17 @@ scanl : ∀ {a b i} {A : Set a} {B : Set b} →
         (A → B → A) → A → Colist B i → Colist A i
 scanl c n []       = n ∷ λ { .force → [] }
 scanl c n (x ∷ xs) = n ∷ λ { .force → scanl c (c n x) (force xs) }
+
+-- The natural numbers in strictly increasing order.
+
+nats : ∀ {i} → Colist ℕ i
+nats = 0 ∷ λ { .force → map suc nats }
+
+-- The colist nats-from n is the natural numbers greater than or equal
+-- to n, in strictly increasing order.
+
+nats-from : ∀ {i} → ℕ → Colist ℕ i
+nats-from n = n ∷ λ { .force → nats-from (suc n) }
 
 -- The list take n xs is the longest possible prefix of xs that
 -- contains at most n elements.
@@ -201,6 +213,25 @@ take-cong :
 take-cong n       []       = refl
 take-cong zero    (p ∷ ps) = refl
 take-cong (suc n) (p ∷ ps) = E.cong₂ _∷_ p (take-cong n (force ps))
+
+-- A lemma relating nats and nats-from n.
+
+map-+-nats∼nats-from :
+  ∀ {i} n → [ i ] map (n +_) nats ∼ nats-from n
+map-+-nats∼nats-from n = Nat.+-right-identity ∷ λ { .force →
+  map (n +_) (map suc nats)  ∼⟨ symmetric-∼ (map-∘ _) ⟩
+  map ((n +_) ∘ suc) nats    ∼⟨ map-cong (λ _ → E.sym (Nat.suc+≡+suc _)) (_ ∎) ⟩
+  map (suc n +_) nats        ∼⟨ map-+-nats∼nats-from (suc n) ⟩
+  nats-from (suc n)          ∎ }
+
+-- The colist nats is bisimilar to nats-from 0.
+
+nats∼nats-from-0 : ∀ {i} → [ i ] nats ∼ nats-from 0
+nats∼nats-from-0 =
+  nats             ∼⟨ symmetric-∼ (map-id _) ⟩
+  map id nats      ∼⟨⟩
+  map (0 +_) nats  ∼⟨ map-+-nats∼nats-from _ ⟩
+  nats-from 0      ∎
 
 ------------------------------------------------------------------------
 -- The ◇ predicate
