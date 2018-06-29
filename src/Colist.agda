@@ -83,6 +83,14 @@ scanl : ∀ {a b i} {A : Set a} {B : Set b} →
 scanl c n []       = n ∷ λ { .force → [] }
 scanl c n (x ∷ xs) = n ∷ λ { .force → scanl c (c n x) (force xs) }
 
+-- The list take n xs is the longest possible prefix of xs that
+-- contains at most n elements.
+
+take : ∀ {a} {A : Set a} → ℕ → Colist A ∞ → List A
+take zero    _        = []
+take _       []       = []
+take (suc n) (x ∷ xs) = x ∷ take n (force xs)
+
 ------------------------------------------------------------------------
 -- Bisimilarity
 
@@ -186,6 +194,13 @@ scanl-cong :
   [ i ] xs ∼ ys → [ i ] scanl c n xs ∼ scanl c n ys
 scanl-cong []          = refl ∷ λ { .force → [] }
 scanl-cong (refl ∷ ps) = refl ∷ λ { .force → scanl-cong (force ps) }
+
+take-cong :
+  ∀ {a} {A : Set a} n {xs ys : Colist A ∞} →
+  [ ∞ ] xs ∼ ys → take n xs ≡ take n ys
+take-cong n       []       = refl
+take-cong zero    (p ∷ ps) = refl
+take-cong (suc n) (p ∷ ps) = E.cong₂ _∷_ p (take-cong n (force ps))
 
 ------------------------------------------------------------------------
 -- The ◇ predicate
