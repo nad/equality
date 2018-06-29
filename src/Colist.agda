@@ -261,13 +261,14 @@ data ◇ {a p} {A : Set a} (i : Size)
 
 -- A variant of ◇-map.
 
-◇-map′ : ∀ {a b p q i}
-           {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q}
-           {f : A → B} →
-         (∀ {x} → P x → Q (f x)) →
-         (∀ {xs} → ◇ i P xs → ◇ i Q (map f xs))
-◇-map′ g (here p)  = here (g p)
-◇-map′ g (there p) = there (◇-map′ g p)
+◇-map′ : ∀ {a b c p q i} {A : Set a} {B : Set b} {C : Set c}
+           {P : B → Set p} {Q : C → Set q}
+           {f : A → B} {g : A → C} →
+         (∀ {x} → P (f x) → Q (g x)) →
+         (∀ {xs} → ◇ i P (map f xs) → ◇ i Q (map g xs))
+◇-map′ g {_ ∷ _} (here p)  = here (g p)
+◇-map′ g {_ ∷ _} (there p) = there (◇-map′ g p)
+◇-map′ g {[]}    ()
 
 -- If a predicate holds for some element in a colist, then it holds
 -- for some value.
@@ -384,13 +385,13 @@ _□-⊛_ : ∀ {i a p q} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs} �
 
 -- A variant of □-map.
 
-□-map′ : ∀ {a b p q i}
-           {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q}
-           {f : A → B} →
-         (∀ {x} → P x → Q (f x)) →
-         (∀ {xs} → □ i P xs → □ i Q (map f xs))
-□-map′ g []       = []
-□-map′ g (p ∷ ps) = g p ∷ λ { .force → □-map′ g (force ps) }
+□-map′ : ∀ {a b c p q i} {A : Set a} {B : Set b} {C : Set c}
+           {P : B → Set p} {Q : C → Set q}
+           {f : A → B} {g : A → C} →
+         (∀ {x} → P (f x) → Q (g x)) →
+         (∀ {xs} → □ i P (map f xs) → □ i Q (map g xs))
+□-map′ g {[]}    []       = []
+□-map′ g {_ ∷ _} (p ∷ ps) = g p ∷ λ { .force → □-map′ g (force ps) }
 
 -- Something resembling applicative functor application for □ and ◇.
 
@@ -458,12 +459,14 @@ data ◇ˢ {a p} {A : Set a} (i : Size)
 
 -- A variant of ◇ˢ-map.
 
-◇ˢ-map′ : ∀ {a b p q i} {A : Set a} {B : Set b}
-            {P : Size → A → Set p} {Q : Size → B → Set q} {f : A → B} →
-          (∀ {i x} → P i x → Q i (f x)) →
-          (∀ {xs} → ◇ˢ i P xs → ◇ˢ i Q (map f xs))
-◇ˢ-map′ g (here p)  = here (g p)
-◇ˢ-map′ g (there p) = there (◇ˢ-map′ g p)
+◇ˢ-map′ : ∀ {a b c p q i} {A : Set a} {B : Set b} {C : Set c}
+            {P : Size → B → Set p} {Q : Size → C → Set q}
+            {f : A → B} {g : A → C} →
+          (∀ {i x} → P i (f x) → Q i (g x)) →
+          (∀ {xs} → ◇ˢ i P (map f xs) → ◇ˢ i Q (map g xs))
+◇ˢ-map′ g {_ ∷ _} (here p)  = here (g p)
+◇ˢ-map′ g {_ ∷ _} (there p) = there (◇ˢ-map′ g p)
+◇ˢ-map′ g {[]}    ()
 
 -- If a predicate holds for some element in a colist, then it holds
 -- for some value (assuming that P is upwards closed).
@@ -704,12 +707,13 @@ _□ˢ-⊛_ : ∀ {i a p q} {A : Set a}
 
 -- A variant of □ˢ-map.
 
-□ˢ-map′ : ∀ {a b p q i} {A : Set a} {B : Set b}
-            {P : Size → A → Set p} {Q : Size → B → Set q} {f : A → B} →
-          (∀ {i x} → P i x → Q i (f x)) →
-          (∀ {xs} → □ˢ i P xs → □ˢ i Q (map f xs))
-□ˢ-map′ g []       = []
-□ˢ-map′ g (p ∷ ps) = g p ∷ λ { .force → □ˢ-map′ g (force ps) }
+□ˢ-map′ : ∀ {a b c p q i} {A : Set a} {B : Set b} {C : Set c}
+            {P : Size → B → Set p} {Q : Size → C → Set q}
+            {f : A → B} {g : A → C} →
+          (∀ {i x} → P i (f x) → Q i (g x)) →
+          (∀ {xs} → □ˢ i P (map f xs) → □ˢ i Q (map g xs))
+□ˢ-map′ g {[]}    []       = []
+□ˢ-map′ g {_ ∷ _} (p ∷ ps) = g p ∷ λ { .force → □ˢ-map′ g (force ps) }
 
 -- Something resembling applicative functor application for □ˢ and ◇ˢ.
 
