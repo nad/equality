@@ -130,6 +130,41 @@ transitive-∼ (p₁ ∷ p₂) (q₁ ∷ q₂) =
        [ i ] x ∷ xs ∼ x ∷′ force xs
 ∷∼∷′ = refl ∷ λ { .force → reflexive-∼ _ }
 
+-- Some preservation lemmas.
+
+tail-cong :
+  ∀ {a i} {A : Set a} {xs ys : Colist A ∞} →
+  [ i ] xs ∼ ys → [ i ] force (tail xs) ∼′ force (tail ys)
+tail-cong []       = λ { .force → [] }
+tail-cong (_ ∷ ps) = ps
+
+map-cong :
+  ∀ {a b i} {A : Set a} {B : Set b} {f g : A → B} {xs ys} →
+  (∀ x → f x ≡ g x) → [ i ] xs ∼ ys → [ i ] map f xs ∼ map g ys
+map-cong f≡g []          = []
+map-cong f≡g (refl ∷ ps) =
+  f≡g _ ∷ λ { .force → map-cong f≡g (force ps) }
+
+replicate-cong :
+  ∀ {a i} {A : Set a} {m n} {x : A} →
+  Conat.[ i ] m ∼ n → [ i ] replicate m x ∼ replicate n x
+replicate-cong zero    = []
+replicate-cong (suc p) = refl ∷ λ { .force → replicate-cong (force p) }
+
+infixr 5 _++-cong_
+
+_++-cong_ :
+  ∀ {a i} {A : Set a} {xs₁ xs₂ ys₁ ys₂ : Colist A ∞} →
+  [ i ] xs₁ ∼ ys₁ → [ i ] xs₂ ∼ ys₂ → [ i ] xs₁ ++ xs₂ ∼ ys₁ ++ ys₂
+[]       ++-cong qs = qs
+(p ∷ ps) ++-cong qs = p ∷ λ { .force → force ps ++-cong qs }
+
+scanl-cong :
+  ∀ {a b i} {A : Set a} {B : Set b} {c : A → B → A} {n : A} {xs ys} →
+  [ i ] xs ∼ ys → [ i ] scanl c n xs ∼ scanl c n ys
+scanl-cong []          = refl ∷ λ { .force → [] }
+scanl-cong (refl ∷ ps) = refl ∷ λ { .force → scanl-cong (force ps) }
+
 ------------------------------------------------------------------------
 -- The ◇ predicate
 
