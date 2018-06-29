@@ -7,11 +7,11 @@
 module Colist where
 
 open import Conat using (Conat; zero; suc; force; infinity)
-open import Equality.Propositional
+open import Equality.Propositional as E using (_≡_; refl)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Function-universe equality-with-J hiding (id; _∘_)
+open import Function-universe E.equality-with-J hiding (id; _∘_)
 
 ------------------------------------------------------------------------
 -- The type
@@ -86,49 +86,71 @@ scanl c n (x ∷ xs) = n ∷ λ { .force → scanl c (c n x) (force xs) }
 ------------------------------------------------------------------------
 -- Bisimilarity
 
--- [ ∞ ] xs ∼ ys means that xs and ys are "equal".
+module _ {a} {A : Set a} where
 
-mutual
+  -- [ ∞ ] xs ∼ ys means that xs and ys are "equal".
 
-  infix 4 [_]_∼_ [_]_∼′_
+  mutual
 
-  data [_]_∼_ {a} {A : Set a} (i : Size) :
-              Colist A ∞ → Colist A ∞ → Set a where
-    []  : [ i ] [] ∼ []
-    _∷_ : ∀ {x y xs ys} →
-          x ≡ y → [ i ] force xs ∼′ force ys → [ i ] x ∷ xs ∼ y ∷ ys
+    infix 4 [_]_∼_ [_]_∼′_
 
-  record [_]_∼′_ {a} {A : Set a} (i : Size)
-                 (xs ys : Colist A ∞) : Set a where
-    coinductive
-    field
-      force : {j : Size< i} → [ j ] xs ∼ ys
+    data [_]_∼_ (i : Size) : Colist A ∞ → Colist A ∞ → Set a where
+      []  : [ i ] [] ∼ []
+      _∷_ : ∀ {x y xs ys} →
+            x ≡ y → [ i ] force xs ∼′ force ys → [ i ] x ∷ xs ∼ y ∷ ys
 
-open [_]_∼′_ public
+    record [_]_∼′_ (i : Size) (xs ys : Colist A ∞) : Set a where
+      coinductive
+      field
+        force : {j : Size< i} → [ j ] xs ∼ ys
 
--- Bisimilarity is an equivalence relation.
+  open [_]_∼′_ public
 
-reflexive-∼ : ∀ {i a} {A : Set a}
-              (xs : Colist A ∞) → [ i ] xs ∼ xs
-reflexive-∼ []       = []
-reflexive-∼ (x ∷ xs) = refl ∷ λ { .force → reflexive-∼ (force xs) }
+  -- Bisimilarity is an equivalence relation.
 
-symmetric-∼ : ∀ {i a} {A : Set a} {xs ys : Colist A ∞} →
-              [ i ] xs ∼ ys → [ i ] ys ∼ xs
-symmetric-∼ []        = []
-symmetric-∼ (p₁ ∷ p₂) = sym p₁ ∷ λ { .force → symmetric-∼ (force p₂) }
+  reflexive-∼ : ∀ {i} xs → [ i ] xs ∼ xs
+  reflexive-∼ []       = []
+  reflexive-∼ (x ∷ xs) = refl ∷ λ { .force → reflexive-∼ (force xs) }
 
-transitive-∼ : ∀ {i a} {A : Set a} {xs ys zs : Colist A ∞} →
-               [ i ] xs ∼ ys → [ i ] ys ∼ zs → [ i ] xs ∼ zs
-transitive-∼ []        []        = []
-transitive-∼ (p₁ ∷ p₂) (q₁ ∷ q₂) =
-  trans p₁ q₁ ∷ λ { .force → transitive-∼ (force p₂) (force q₂) }
+  symmetric-∼ : ∀ {i xs ys} →
+                [ i ] xs ∼ ys → [ i ] ys ∼ xs
+  symmetric-∼ []        = []
+  symmetric-∼ (p₁ ∷ p₂) =
+    E.sym p₁ ∷ λ { .force → symmetric-∼ (force p₂) }
 
--- A property relating Colist._∷_ and _∷′_.
+  transitive-∼ : ∀ {i xs ys zs} →
+                 [ i ] xs ∼ ys → [ i ] ys ∼ zs → [ i ] xs ∼ zs
+  transitive-∼ []        []        = []
+  transitive-∼ (p₁ ∷ p₂) (q₁ ∷ q₂) =
+    E.trans p₁ q₁ ∷ λ { .force → transitive-∼ (force p₂) (force q₂) }
 
-∷∼∷′ : ∀ {i a} {A : Set a} {x : A} {xs} →
-       [ i ] x ∷ xs ∼ x ∷′ force xs
-∷∼∷′ = refl ∷ λ { .force → reflexive-∼ _ }
+  -- Equational reasoning combinators.
+
+  infix  -1 _∎
+  infixr -2 step-∼ step-≡ _∼⟨⟩_
+
+  _∎ : ∀ {i} xs → [ i ] xs ∼ xs
+  _∎ = reflexive-∼
+
+  step-∼ : ∀ {i} xs {ys zs} →
+           [ i ] ys ∼ zs → [ i ] xs ∼ ys → [ i ] xs ∼ zs
+  step-∼ _ ys∼zs xs∼ys = transitive-∼ xs∼ys ys∼zs
+
+  syntax step-∼ xs ys∼zs xs∼ys = xs ∼⟨ xs∼ys ⟩ ys∼zs
+
+  step-≡ : ∀ {i} xs {ys zs} → [ i ] ys ∼ zs → xs ≡ ys → [ i ] xs ∼ zs
+  step-≡ _ ys∼zs refl = ys∼zs
+
+  syntax step-≡ xs ys∼zs xs≡ys = xs ≡⟨ xs≡ys ⟩ ys∼zs
+
+  _∼⟨⟩_ : ∀ {i} xs {ys} → [ i ] xs ∼ ys → [ i ] xs ∼ ys
+  _ ∼⟨⟩ xs∼ys = xs∼ys
+
+  -- A property relating Colist._∷_ and _∷′_.
+
+  ∷∼∷′ : ∀ {i} {x : A} {xs} →
+         [ i ] x ∷ xs ∼ x ∷′ force xs
+  ∷∼∷′ = refl ∷ λ { .force → reflexive-∼ _ }
 
 -- Some preservation lemmas.
 
