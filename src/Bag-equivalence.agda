@@ -204,6 +204,38 @@ Any-⊎ P Q xs =
   Any P xs ⊎ Any Q xs                              □
 
 ------------------------------------------------------------------------
+-- Some lemmas related to list membership
+
+-- If f and g are pointwise equal for elements in xs, then map f xs
+-- and map g xs are equal.
+
+map-cong-∈ :
+  ∀ {a b} {A : Set a} {B : Set b}
+  (f g : A → B) (xs : List A) →
+  (∀ {x} → x ∈ xs → f x ≡ g x) →
+  map f xs ≡ map g xs
+map-cong-∈ p q []       p≡q = refl
+map-cong-∈ p q (x ∷ xs) p≡q =
+  cong₂ _∷_ (p≡q (inj₁ refl)) (map-cong-∈ p q xs (p≡q ∘ inj₂))
+
+-- If p and q are pointwise equal for elements in xs, then filter p xs
+-- and filter q xs are equal.
+
+filter-cong-∈ :
+  ∀ {a} {A : Set a}
+  (p q : A → Bool) (xs : List A) →
+  (∀ {x} → x ∈ xs → p x ≡ q x) →
+  filter p xs ≡ filter q xs
+filter-cong-∈ p q []       p≡q = refl
+filter-cong-∈ p q (x ∷ xs) p≡q
+  with p x | q x | p≡q (inj₁ refl)
+     | filter-cong-∈ p q xs (p≡q ∘ inj₂)
+... | true  | true  | _   | ih = cong (x ∷_) ih
+... | false | false | _   | ih = ih
+... | true  | false | ()  | _
+... | false | true  | ()  | _
+
+------------------------------------------------------------------------
 -- Bag and set equivalence and the subset and subbag orders
 
 -- Various kinds of relatedness.
