@@ -14,6 +14,9 @@ open import Prelude
 open Derived-definitions-and-properties eq
 open import Monad eq hiding (map)
 
+------------------------------------------------------------------------
+-- Some functions
+
 -- Right fold.
 
 foldr : ∀ {a b} {A : Set a} {B : Set b} →
@@ -81,6 +84,9 @@ lookup _≟_ x []             = nothing
 lookup _≟_ x ((y , z) ∷ ps) =
   if x ≟ y then just z else lookup _≟_ x ps
 
+------------------------------------------------------------------------
+-- Some properties
+
 -- The function foldr _∷_ [] is pointwise equal to the identity
 -- function.
 
@@ -120,6 +126,37 @@ concat-++ (xs ∷ xss) yss =
   xs ++ (concat xss ++ concat yss)  ≡⟨ ++-associative xs _ _ ⟩
   (xs ++ concat xss) ++ concat yss  ≡⟨ refl _ ⟩∎
   concat (xs ∷ xss) ++ concat yss   ∎
+
+-- A fusion lemma for foldr and map.
+
+foldr∘map :
+  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+  (_⊕_ : B → C → C) (ε : C) (f : A → B) (xs : List A) →
+  (foldr _⊕_ ε ∘ map f) xs ≡ foldr (_⊕_ ∘ f) ε xs
+foldr∘map _⊕_ ε f []       = ε ∎
+foldr∘map _⊕_ ε f (x ∷ xs) = cong (f x ⊕_) (foldr∘map _⊕_ ε f xs)
+
+-- A fusion lemma for length and map.
+
+length∘map :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (f : A → B) (xs : List A) →
+  (length ∘ map f) xs ≡ length xs
+length∘map = foldr∘map _ _
+
+-- The functions filter and map commute (kind of).
+
+filter∘map :
+  ∀ {a b} {A : Set a} {B : Set b}
+  (p : B → Bool) (f : A → B) (xs : List A) →
+  (filter p ∘ map f) xs ≡ (map f ∘ filter (p ∘ f)) xs
+filter∘map p f []       = refl _
+filter∘map p f (x ∷ xs) with p (f x)
+... | true  = cong (_ ∷_) (filter∘map p f xs)
+... | false = filter∘map p f xs
+
+------------------------------------------------------------------------
+-- The list monad
 
 instance
 
