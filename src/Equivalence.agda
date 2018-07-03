@@ -285,6 +285,16 @@ record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
   irrelevance = proj₂ ⊚ is-equivalence
 
+-- There is a logical equivalence between A ↔ B and A ≃ B.
+
+↔⇔≃ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (A ↔ B) ⇔ (A ≃ B)
+↔⇔≃ = record
+  { to   = ↔⇒≃
+  ; from = _≃_.bijection
+  }
+
 -- The function subst is an equivalence family.
 
 subst-as-equivalence :
@@ -942,11 +952,8 @@ private
   Extensionality (a ⊔ b) (a ⊔ b) →
   (A ↔ B) ↠ (A ≃ B)
 ↔↠≃ ext = record
-  { logical-equivalence = record
-    { to   = ↔⇒≃
-    ; from = _≃_.bijection
-    }
-  ; right-inverse-of = ↔⇒≃-left-inverse ext
+  { logical-equivalence = ↔⇔≃
+  ; right-inverse-of    = ↔⇒≃-left-inverse ext
   }
 
 -- When A is a set A ↔ B and A ≃ B are isomorphic (assuming
