@@ -77,6 +77,12 @@ _++_ : ∀ {a i} {A : Set a} → Colist A i → Colist A i → Colist A i
 []       ++ ys = ys
 (x ∷ xs) ++ ys = x ∷ λ { .force → force xs ++ ys }
 
+-- The colist cycle x xs is an endless cycle of repetitions of the
+-- colist x ∷ xs.
+
+cycle : ∀ {a i} {A : Set a} → A → Colist′ A i → Colist A i
+cycle x xs = x ∷ λ { .force → force xs ++ cycle x xs }
+
 -- "Scan left".
 
 scanl : ∀ {a b i} {A : Set a} {B : Set b} →
@@ -217,6 +223,11 @@ _++-cong_ :
 []       ++-cong qs = qs
 (p ∷ ps) ++-cong qs = p ∷ λ { .force → force ps ++-cong qs }
 
+cycle-cong :
+  ∀ {a i} {A : Set a} {x : A} {xs ys} →
+  [ i ] force xs ∼′ force ys → [ i ] cycle x xs ∼ cycle x ys
+cycle-cong p = refl ∷ λ { .force → force p ++-cong cycle-cong p }
+
 scanl-cong :
   ∀ {a b i} {A : Set a} {B : Set b} {c : A → B → A} {n : A} {xs ys} →
   [ i ] xs ∼ ys → [ i ] scanl c n xs ∼ scanl c n ys
@@ -322,6 +333,33 @@ infix 4 [_]_∈_
   from (x , here refl  , p) = here p
   from (x , there x∈xs , p) = there (from (x , x∈xs , p))
 
+-- If P holds for some element in cycle x xs, then it also holds for
+-- some element in x ∷ xs, and vice versa.
+
+◇-cycle⇔ :
+  ∀ {a p i} {A : Set a} {P : A → Set p} {x : A} {xs} →
+  ◇ i P (cycle x xs) ⇔ ◇ i P (x ∷ xs)
+◇-cycle⇔ {i = i} {P = P} {x} {xs} = record
+  { to   = ◇ i P (cycle x xs)               ↝⟨ ◇-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩
+           ◇ i P ((x ∷ xs) ++ cycle x xs)   ↝⟨ to _ ⟩
+           ◇ i P (x ∷ xs) ⊎ ◇ i P (x ∷ xs)  ↝⟨ [ id , id ] ⟩□
+           ◇ i P (x ∷ xs)                   □
+  ; from = ◇ i P (x ∷ xs)                  ↝⟨ from ⟩
+           ◇ i P ((x ∷ xs) ++ cycle x xs)  ↝⟨ ◇-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩□
+           ◇ i P (cycle x xs)              □
+  }
+  where
+  to : ∀ {i} ys → ◇ i P (ys ++ cycle x xs) → ◇ i P ys ⊎ ◇ i P (x ∷ xs)
+  to []       (here p)  = inj₂ (here p)
+  to []       (there p) = case to (force xs) p of
+                            [ inj₂ ∘ there , inj₂ ]
+  to (y ∷ ys) (here p)  = inj₁ (here p)
+  to (y ∷ ys) (there p) = ⊎-map there id (to (force ys) p)
+
+  from : ∀ {i ys} → ◇ i P ys → ◇ i P (ys ++ cycle x xs)
+  from (here p)   = here p
+  from (there ps) = there (from ps)
+
 ------------------------------------------------------------------------
 -- The □ predicate
 
@@ -424,6 +462,30 @@ _□◇-⊛_ : ∀ {a p q i} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs
   ∀ {a p q i} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs} →
   □ i P xs → ◇ i Q xs → ∃ λ x → P x × Q x
 □◇-witness p q = ◇-witness (□-map _,_ p □◇-⊛ q)
+
+-- If P holds for every element in cycle x xs, then it also holds for
+-- every element in x ∷ xs, and vice versa.
+
+□-cycle⇔ :
+  ∀ {a p i} {A : Set a} {P : A → Set p} {x : A} {xs} →
+  □ i P (cycle x xs) ⇔ □ i P (x ∷ xs)
+□-cycle⇔ {i = i} {P = P} {x} {xs} = record
+  { to   = □ i P (cycle x xs)              ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩
+           □ i P ((x ∷ xs) ++ cycle x xs)  ↝⟨ to _ ⟩□
+           □ i P (x ∷ xs)                  □
+  ; from = □ i P (x ∷ xs)                  ↝⟨ (λ hyp → from hyp hyp) ⟩
+           □ i P ((x ∷ xs) ++ cycle x xs)  ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩□
+           □ i P (cycle x xs)              □
+  }
+  where
+  to : ∀ {i} ys → □ i P (ys ++ cycle x xs) → □ i P ys
+  to []       _        = []
+  to (y ∷ ys) (p ∷ ps) = p ∷ λ { .force → to (force ys) (force ps) }
+
+  from : ∀ {i ys} →
+         □ i P (x ∷ xs) → □ i P ys → □ i P (ys ++ cycle x xs)
+  from ps       (q ∷ qs) = q ∷ λ { .force → from ps (force qs) }
+  from (p ∷ ps) []       = p ∷ λ { .force → from (p ∷ ps) (force ps) }
 
 ------------------------------------------------------------------------
 -- A variant of ◇ with a sized predicate
@@ -562,6 +624,43 @@ data ◇ˢ {a p} {A : Set a} (i : Size)
   from : ∀ {i xs} → ◇ i P xs → ◇ˢ i (const P) xs
   from (here p)  = here p
   from (there p) = there (from p)
+
+-- If ◇ˢ i P (x ∷ xs) holds, then ◇ˢ i P (cycle x xs) also holds.
+
+◇ˢ-cycle← :
+  ∀ {a p i} {A : Set a} {P : Size → A → Set p} {x : A} {xs} →
+  ◇ˢ i P (x ∷ xs) → ◇ˢ i P (cycle x xs)
+◇ˢ-cycle← {i = i} {P = P} {x} {xs} =
+  ◇ˢ i P (x ∷ xs)                  ↝⟨ from ⟩
+  ◇ˢ i P ((x ∷ xs) ++ cycle x xs)  ↝⟨ ◇ˢ-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩□
+  ◇ˢ i P (cycle x xs)              □
+  where
+  from : ∀ {i ys} → ◇ˢ i P ys → ◇ˢ i P (ys ++ cycle x xs)
+  from (here p)   = here p
+  from (there ps) = there (from ps)
+
+-- If P i x implies P ∞ x for any i and x, then ◇ˢ ∞ P (cycle x xs) is
+-- logically equivalent to ◇ˢ ∞ P (x ∷ xs).
+
+◇ˢ-cycle⇔ :
+  ∀ {a p} {A : Set a} {P : Size → A → Set p} {x : A} {xs} →
+  (∀ {i x} → P i x → P ∞ x) →
+  ◇ˢ ∞ P (cycle x xs) ⇔ ◇ˢ ∞ P (x ∷ xs)
+◇ˢ-cycle⇔ {P = P} {x} {xs} →∞ = record
+  { to   = ◇ˢ ∞ P (cycle x xs)                ↝⟨ ◇ˢ-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩
+           ◇ˢ ∞ P ((x ∷ xs) ++ cycle x xs)    ↝⟨ to _ ⟩
+           ◇ˢ ∞ P (x ∷ xs) ⊎ ◇ˢ ∞ P (x ∷ xs)  ↝⟨ [ id , id ] ⟩□
+           ◇ˢ ∞ P (x ∷ xs)                    □
+  ; from = ◇ˢ-cycle←
+  }
+  where
+  to :
+    ∀ {i} ys → ◇ˢ i P (ys ++ cycle x xs) → ◇ˢ ∞ P ys ⊎ ◇ˢ ∞ P (x ∷ xs)
+  to []       (here p)  = inj₂ (here (→∞ p))
+  to []       (there p) = case to (force xs) p of
+                            [ inj₂ ∘ there , inj₂ ]
+  to (y ∷ ys) (here p)  = inj₁ (here (→∞ p))
+  to (y ∷ ys) (there p) = ⊎-map there id (to (force ys) p)
 
 ------------------------------------------------------------------------
 -- A variant of □ with a sized predicate
@@ -752,3 +851,37 @@ _□ˢ◇ˢ-⊛_ : ∀ {a p q i} {A : Set a}
 □ˢ◇ˢ-witness P-closed Q-closed p q =
   ◇ˢ-witness (λ { {_} {_} → Σ-map P-closed Q-closed })
              (□ˢ-map _,_ p □ˢ◇ˢ-⊛ q)
+
+-- If □ˢ i P (cycle x xs) holds, then □ˢ i P (x ∷ xs) also holds.
+
+□ˢ-cycle→ :
+  ∀ {a p i} {A : Set a} {P : Size → A → Set p} {x : A} {xs} →
+  □ˢ i P (cycle x xs) → □ˢ i P (x ∷ xs)
+□ˢ-cycle→ {i = i} {P = P} {x} {xs} =
+  □ˢ i P (cycle x xs)              ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩
+  □ˢ i P ((x ∷ xs) ++ cycle x xs)  ↝⟨ to _ ⟩□
+  □ˢ i P (x ∷ xs)                  □
+  where
+  to : ∀ {i} ys → □ˢ i P (ys ++ cycle x xs) → □ˢ i P ys
+  to []       _        = []
+  to (y ∷ ys) (p ∷ ps) = p ∷ λ { .force → to (force ys) (force ps) }
+
+-- If P ∞ x implies P i x for any i and x, then □ˢ ∞ P (cycle x xs) is
+-- logically equivalent to □ˢ ∞ P (x ∷ xs).
+
+□ˢ-cycle⇔ :
+  ∀ {a p} {A : Set a} {P : Size → A → Set p} {x : A} {xs} →
+  (∀ {i x} → P ∞ x → P i x) →
+  □ˢ ∞ P (cycle x xs) ⇔ □ˢ ∞ P (x ∷ xs)
+□ˢ-cycle⇔ {P = P} {x} {xs} ∞→ = record
+  { to   = □ˢ-cycle→
+  ; from = □ˢ ∞ P (x ∷ xs)                  ↝⟨ (λ hyp → from hyp hyp) ⟩
+           □ˢ ∞ P ((x ∷ xs) ++ cycle x xs)  ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩□
+           □ˢ ∞ P (cycle x xs)              □
+  }
+  where
+  from : ∀ {i ys} →
+         □ˢ ∞ P (x ∷ xs) → □ˢ i P ys → □ˢ i P (ys ++ cycle x xs)
+  from ps       (q ∷ qs) = q ∷ λ { .force → from ps (force qs) }
+  from (p ∷ ps) []       = ∞→ p ∷ λ { .force →
+                           from (p ∷ ps) (force ps) }
