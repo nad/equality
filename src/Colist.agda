@@ -172,6 +172,22 @@ module _ {a} {A : Set a} where
          [ i ] x ∷ xs ∼ x ∷′ force xs
   ∷∼∷′ = refl ∷ λ { .force → reflexive-∼ _ }
 
+-- Functor laws.
+
+map-id :
+  ∀ {a i} {A : Set a} (xs : Colist A ∞) →
+  [ i ] map id xs ∼ xs
+map-id []       = []
+map-id (_ ∷ xs) = refl ∷ λ { .force → map-id (force xs) }
+
+map-∘ :
+  ∀ {a b c i} {A : Set a} {B : Set b} {C : Set c}
+    {f : B → C} {g : A → B}
+  (xs : Colist A ∞) →
+  [ i ] map (f ∘ g) xs ∼ map f (map g xs)
+map-∘ []       = []
+map-∘ (_ ∷ xs) = refl ∷ λ { .force → map-∘ (force xs) }
+
 -- Some preservation lemmas.
 
 tail-cong :
