@@ -22,6 +22,35 @@ maybe : ∀ {a b} {A : Set a} {B : Maybe A → Set b} →
 maybe j n (just x) = j x
 maybe j n nothing  = n
 
+-- Is the value just something?
+
+is-just : ∀ {a} {A : Set a} → Maybe A → Bool
+is-just = maybe (const true) false
+
+-- Is the value nothing?
+
+is-nothing : ∀ {a} {A : Set a} → Maybe A → Bool
+is-nothing = not ∘ is-just
+
+-- Is-just x is a proposition that is inhabited iff x is
+-- just something.
+
+Is-just : ∀ {a} {A : Set a} → Maybe A → Set
+Is-just = T ∘ is-just
+
+-- Is-nothing x is a proposition that is inhabited iff x is nothing.
+
+Is-nothing : ∀ {a} {A : Set a} → Maybe A → Set
+Is-nothing = T ∘ is-nothing
+
+-- Is-just and Is-nothing are mutually exclusive.
+
+not-both-just-and-nothing :
+  ∀ {a} {A : Set a} (x : Maybe A) →
+  Is-just x → Is-nothing x → ⊥₀
+not-both-just-and-nothing (just _) _  ()
+not-both-just-and-nothing nothing  () _
+
 -- A universe-polymorphic variant of bind.
 
 infixl 5 _>>=′_
