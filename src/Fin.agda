@@ -20,7 +20,7 @@ open import Function-universe eq as F hiding (_∘_; Distinct↔≢)
 open import H-level eq
 open import H-level.Closure eq
 open import List eq
-open import Nat eq as Nat using (_≤_; ≤-refl; ≤-step; _<_)
+open import Nat eq as Nat using (_≤_; ≤-refl; ≤-step; _<_; pred)
 open import Univalence-axiom eq
 
 ------------------------------------------------------------------------
@@ -419,26 +419,28 @@ Distinct↔≢ {i = i} {j} ext =
   ≢⇔≢ : ⌞ i ⌟ ≢ ⌞ j ⌟ ⇔ i ≢ j
   ≢⇔≢ = record { to = _∘ cong ⌞_⌟; from = _∘ cancel-⌞⌟ }
 
--- For every i : Fin (suc n) there is a bijection between Fin n and
--- numbers in Fin (suc n) distinct from i.
+-- For every i : Fin n there is a bijection between Fin (pred n) and
+-- numbers in Fin n distinct from i.
 --
--- The forward direction of this bijection corresponds to the function
--- "thin" from McBride's "First-order unification by structural
--- recursion", with an added inequality proof, and the other direction
--- is a total variant of "thick".
+-- When n is positive the forward direction of this bijection
+-- corresponds to the function "thin" from McBride's "First-order
+-- unification by structural recursion", with an added inequality
+-- proof, and the other direction is a total variant of "thick".
 
 Fin↔Fin+≢ :
-  ∀ {n} (i : Fin (suc n)) →
-  Fin n ↔ ∃ λ (j : Fin (suc n)) → Distinct j i
-Fin↔Fin+≢ {n} fzero =
+  ∀ {n} (i : Fin n) →
+  Fin (pred n) ↔ ∃ λ (j : Fin n) → Distinct j i
+Fin↔Fin+≢ {suc n} fzero =
   Fin n                                       ↝⟨ inverse ⊎-left-identity ⟩
   ⊥ ⊎ Fin n                                   ↝⟨ inverse $ id ⊎-cong ×-right-identity ⟩
   ⊥ ⊎ Fin n × ⊤                               ↝⟨ inverse $ ∃-Fin-suc _ ⟩□
   (∃ λ (j : Fin (suc n)) → Distinct j fzero)  □
 
-Fin↔Fin+≢ {zero}  (fsuc ())
-Fin↔Fin+≢ {suc n} (fsuc i)  =
+Fin↔Fin+≢ {suc (suc n)} (fsuc i) =
   Fin (1 + n)                                    ↔⟨⟩
   ⊤ ⊎ Fin n                                      ↝⟨ id ⊎-cong Fin↔Fin+≢ i ⟩
   ⊤ ⊎ (∃ λ (j : Fin (1 + n)) → Distinct j i)     ↔⟨ inverse $ ∃-Fin-suc _ ⟩□
   (∃ λ (j : Fin (2 + n)) → Distinct j (fsuc i))  □
+
+Fin↔Fin+≢ {zero}     ()
+Fin↔Fin+≢ {suc zero} (fsuc ())
