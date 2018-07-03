@@ -84,6 +84,13 @@ lookup _≟_ x []             = nothing
 lookup _≟_ x ((y , z) ∷ ps) =
   if x ≟ y then just z else lookup _≟_ x ps
 
+-- The list nats-< consists of the first n natural numbers in
+-- strictly descending order.
+
+nats-< : ℕ → List ℕ
+nats-< zero    = []
+nats-< (suc n) = n ∷ nats-< n
+
 ------------------------------------------------------------------------
 -- Some properties
 
@@ -154,6 +161,12 @@ filter∘map p f []       = refl _
 filter∘map p f (x ∷ xs) with p (f x)
 ... | true  = cong (_ ∷_) (filter∘map p f xs)
 ... | false = filter∘map p f xs
+
+-- The length of nats-< n is n.
+
+length∘nats-< : ∀ n → length (nats-< n) ≡ n
+length∘nats-< zero    = 0 ∎
+length∘nats-< (suc n) = cong suc (length∘nats-< n)
 
 ------------------------------------------------------------------------
 -- The list monad

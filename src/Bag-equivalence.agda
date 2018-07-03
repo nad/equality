@@ -22,6 +22,7 @@ open import H-level.Closure equality-with-J
 open import Injection equality-with-J using (_↣_)
 open import List equality-with-J
 open import Monad equality-with-J hiding (map)
+open import Nat equality-with-J
 
 ------------------------------------------------------------------------
 -- Any
@@ -234,6 +235,23 @@ filter-cong-∈ p q (x ∷ xs) p≡q
 ... | false | false | _   | ih = ih
 ... | true  | false | ()  | _
 ... | false | true  | ()  | _
+
+-- The ordering of natural numbers can be related to list membership
+-- and nats-<.
+
+<-↔-∈-nats-< : ∀ {m n} → m < n ↔ m ∈ nats-< n
+<-↔-∈-nats-< {m} {zero} =
+  m < zero         ↝⟨ <zero↔ ⟩
+  ⊥                ↔⟨⟩
+  m ∈ nats-< zero  □
+<-↔-∈-nats-< {m} {suc n} =
+  m < suc n             ↔⟨⟩
+  suc m ≤ suc n         ↝⟨ suc≤suc↔ ⟩
+  m ≤ n                 ↝⟨ ≤↔<⊎≡ ⟩
+  m < n ⊎ m ≡ n         ↝⟨ ⊎-comm ⟩
+  m ≡ n ⊎ m < n         ↝⟨ Function-universe.id ⊎-cong <-↔-∈-nats-< ⟩
+  m ≡ n ⊎ m ∈ nats-< n  ↔⟨⟩
+  m ∈ nats-< (suc n)    □
 
 ------------------------------------------------------------------------
 -- Bag and set equivalence and the subset and subbag orders
