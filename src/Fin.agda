@@ -16,7 +16,7 @@ open import Bijection eq as Bijection using (_↔_; module _↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_)
-open import Function-universe eq hiding (_∘_)
+open import Function-universe eq as F hiding (_∘_; Distinct↔≢)
 open import H-level eq
 open import H-level.Closure eq
 open import List eq
@@ -396,11 +396,7 @@ Fin×Fin↔Fin* (suc m) n =
 -- Inequality.
 
 Distinct : ∀ {n} → Fin n → Fin n → Set
-Distinct {zero}  ()
-Distinct {suc _} fzero    fzero    = ⊥
-Distinct {suc _} fzero    (fsuc j) = ⊤
-Distinct {suc _} (fsuc i) fzero    = ⊤
-Distinct {suc _} (fsuc i) (fsuc j) = Distinct i j
+Distinct i j = Nat.Distinct ⌞ i ⌟ ⌞ j ⌟
 
 -- This definition of inequality is pointwise logically equivalent to
 -- _≢_, and in the presence of extensionality the two definitions are
@@ -410,27 +406,18 @@ Distinct↔≢ :
   ∀ {k n} {i j : Fin n} →
   Extensionality? ⌊ k ⌋-sym lzero lzero →
   Distinct i j ↝[ ⌊ k ⌋-sym ] i ≢ j
-Distinct↔≢ {n = zero}  {}
-Distinct↔≢ {n = suc _} {fzero} {fzero} ext =
-  ⊥              ↔⟨ inverse Π-left-identity ⟩
-  ¬ ⊤            ↝⟨ →-cong ext (from-bijection $ inverse tt≡tt↔⊤) id ⟩
-  tt ≢ tt        ↝⟨ →-cong ext (from-bijection Bijection.≡↔inj₁≡inj₁) id ⟩□
-  fzero ≢ fzero  □
-
-Distinct↔≢ {n = suc _} {fzero} {fsuc j} ext =
-  ⊤               ↝⟨ inverse $ ¬⊥↔⊤ ext ⟩
-  ¬ ⊥             ↝⟨ →-cong ext (from-bijection $ inverse Bijection.≡↔⊎) id ⟩□
-  fzero ≢ fsuc j  □
-
-Distinct↔≢ {n = suc _} {fsuc i} {fzero} ext =
-  ⊤               ↝⟨ inverse $ ¬⊥↔⊤ ext ⟩
-  ¬ ⊥             ↝⟨ →-cong ext (from-bijection $ inverse Bijection.≡↔⊎) id ⟩□
-  fsuc i ≢ fzero  □
-
-Distinct↔≢ {n = suc _} {fsuc i} {fsuc j} ext =
-  Distinct i j     ↝⟨ Distinct↔≢ ext ⟩
-  i ≢ j            ↝⟨ →-cong ext (from-bijection Bijection.≡↔inj₂≡inj₂) id ⟩□
-  fsuc i ≢ fsuc j  □
+Distinct↔≢ {i = i} {j} ext =
+  Distinct i j              ↔⟨⟩
+  Nat.Distinct ⌞ i ⌟ ⌞ j ⌟  ↝⟨ F.Distinct↔≢ ext ⟩
+  ⌞ i ⌟ ≢ ⌞ j ⌟             ↝⟨ generalise-ext?
+                                 ≢⇔≢
+                                 (λ ext → from-isomorphism $
+                                            _↔_.to (Eq.⇔↔≃ ext (¬-propositional ext) (¬-propositional ext)) ≢⇔≢)
+                                 ext ⟩□
+  i ≢ j                     □
+  where
+  ≢⇔≢ : ⌞ i ⌟ ≢ ⌞ j ⌟ ⇔ i ≢ j
+  ≢⇔≢ = record { to = _∘ cong ⌞_⌟; from = _∘ cancel-⌞⌟ }
 
 -- For every i : Fin (suc n) there is a bijection between Fin n and
 -- numbers in Fin (suc n) distinct from i.

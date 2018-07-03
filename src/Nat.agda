@@ -9,6 +9,7 @@ open import Equality
 module Nat
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
+open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open Derived-definitions-and-properties eq
@@ -49,6 +50,39 @@ zero  ≟ zero  = yes (refl _)
 suc m ≟ suc n = ⊎-map (cong suc) (λ m≢n → m≢n ∘ cancel-suc) (m ≟ n)
 zero  ≟ suc n = no 0≢+
 suc m ≟ zero  = no (0≢+ ∘ sym)
+
+------------------------------------------------------------------------
+-- Inequality
+
+-- Inequality.
+
+Distinct : ℕ → ℕ → Set
+Distinct zero    zero    = ⊥
+Distinct zero    (suc _) = ⊤
+Distinct (suc _) zero    = ⊤
+Distinct (suc m) (suc n) = Distinct m n
+
+-- Distinct is pointwise logically equivalent to _≢_.
+
+Distinct⇔≢ : {m n : ℕ} → Distinct m n ⇔ m ≢ n
+Distinct⇔≢ = record { to = to _ _; from = from _ _ }
+  where
+  to : ∀ m n → Distinct m n → m ≢ n
+  to zero    zero    ()
+  to zero    (suc n) _   = 0≢+
+  to (suc m) zero    _   = 0≢+ ∘ sym
+  to (suc m) (suc n) m≢n = to m n m≢n ∘ cancel-suc
+
+  from : ∀ m n → m ≢ n → Distinct m n
+  from zero    zero    0≢0     = 0≢0 (refl 0)
+  from zero    (suc n) _       = _
+  from (suc m) zero    _       = _
+  from (suc m) (suc n) 1+m≢1+n = from m n (1+m≢1+n ∘ cong suc)
+
+-- Two natural numbers are either equal or distinct.
+
+≡⊎Distinct : ∀ m n → m ≡ n ⊎ Distinct m n
+≡⊎Distinct m n = ⊎-map id (_⇔_.from Distinct⇔≢) (m ≟ n)
 
 ------------------------------------------------------------------------
 -- Properties related to _+_

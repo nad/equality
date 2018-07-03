@@ -3055,6 +3055,34 @@ suc≤suc↔ =
   (∃ λ m → suc m ≤ n)      ↝⟨ inverse ∃0<↔∃suc ⟩□
   (∃ λ m → 0 < m × m ≤ n)  □
 
+-- Equality or distinctness of two natural numbers is isomorphic to
+-- the unit type.
+
+≡⊎Distinct↔⊤ : ∀ m n → m ≡ n ⊎ Distinct m n ↔ ⊤
+≡⊎Distinct↔⊤ m n =
+  _⇔_.to contractible⇔↔⊤ $
+  propositional⇒inhabited⇒contractible
+    (⊎-closure-propositional
+       (λ m≡n m≢n → _⇔_.to Distinct⇔≢ m≢n m≡n)
+       (ℕ-set _ _)
+       (Distinct-propositional m n))
+    (≡⊎Distinct m n)
+
+-- Distinct is pointwise logically equivalent to _≢_, and in the
+-- presence of extensionality the two definitions are pointwise
+-- isomorphic.
+
+Distinct↔≢ :
+  ∀ {k m n} →
+  Extensionality? ⌊ k ⌋-sym lzero lzero →
+  Distinct m n ↝[ ⌊ k ⌋-sym ] m ≢ n
+Distinct↔≢ {m = m} {n} =
+  generalise-ext? Distinct⇔≢ λ ext →
+    from-isomorphism $
+    _↔_.to (Eq.⇔↔≃ ext (Distinct-propositional m n)
+                       (¬-propositional ext))
+           Distinct⇔≢
+
 ------------------------------------------------------------------------
 -- Left cancellation for _⊎_
 

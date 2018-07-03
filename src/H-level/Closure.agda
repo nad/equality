@@ -148,6 +148,21 @@ abstract
                    (irr _ p₂)
                    (_⇔_.to set⇔UIP ℕ-set _ _)
 
+  -- Nat.Distinct is not a family of contractible types.
+
+  ¬-Distinct-contractible :
+    ¬ (∀ m n → Contractible (Nat.Distinct m n))
+  ¬-Distinct-contractible Distinct-contr =
+    proj₁ (Distinct-contr 0 0)
+
+  -- Distinct is a family of propositions.
+
+  Distinct-propositional : ∀ m n → Is-proposition (Distinct m n)
+  Distinct-propositional zero    zero    = ⊥-propositional
+  Distinct-propositional zero    (suc n) = mono₁ 0 ⊤-contractible
+  Distinct-propositional (suc m) zero    = mono₁ 0 ⊤-contractible
+  Distinct-propositional (suc m) (suc n) = Distinct-propositional m n
+
 ------------------------------------------------------------------------
 -- Π-types
 
