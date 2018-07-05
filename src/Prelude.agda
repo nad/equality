@@ -151,6 +151,12 @@ type-signature _ a = a
 
 syntax type-signature A a = a ⦂ A
 
+-- The it function can be used to instantiate an argument by using
+-- instance search.
+
+it : ∀ {a} {A : Set a} → ⦃ _ : A ⦄ → A
+it ⦃ x ⦄ = x
+
 -- Case expressions (to be used with pattern-matching lambdas).
 
 infix 0 case_return_of_ case_of_
