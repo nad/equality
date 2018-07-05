@@ -87,7 +87,7 @@ mutual
       _⇔_.from propositional⇔irrelevant λ where
         (n₁ , fn₁≡true , <n₁→≡false) (n₂ , fn₂≡true , <n₂→≡false) →
           Σ-≡,≡→≡
-            (case <⊎≡⊎> n₁ n₂ of λ where
+            (case n₁ <⊎≡⊎> n₂ of λ where
               (inj₁ n₁<n₂)        → ⊥-elim (Bool.true≢false (
                                       true   ≡⟨ sym fn₁≡true ⟩
                                       f n₁   ≡⟨ <n₂→≡false n₁<n₂ ⟩∎
