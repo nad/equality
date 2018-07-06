@@ -354,6 +354,22 @@ infix 4 [_]_∈_
   from (x , here refl  , p) = here p
   from (x , there x∈xs , p) = there (from (x , x∈xs , p))
 
+-- If P holds for some element in replicate (suc n) x, then it also
+-- holds for x, and vice versa.
+
+◇-replicate-suc⇔ :
+  ∀ {a p i} {A : Set a} {P : A → Set p} {x : A} {n} →
+  ◇ i P (replicate (suc n) x) ⇔ P x
+◇-replicate-suc⇔ {P = P} {x} = record
+  { to   = to _
+  ; from = here
+  }
+  where
+  to : ∀ {i} n → ◇ i P (replicate n x) → P x
+  to zero    ()
+  to (suc n) (here p)  = p
+  to (suc n) (there p) = to (force n) p
+
 -- If P holds for some element in cycle x xs, then it also holds for
 -- some element in x ∷ xs, and vice versa.
 
@@ -483,6 +499,21 @@ _□◇-⊛_ : ∀ {a p q i} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs
   ∀ {a p q i} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs} →
   □ i P xs → ◇ i Q xs → ∃ λ x → P x × Q x
 □◇-witness p q = ◇-witness (□-map _,_ p □◇-⊛ q)
+
+-- If P holds for every element in replicate (suc n) x, then it also holds
+-- for x, and vice versa.
+
+□-replicate-suc⇔ :
+  ∀ {a p i} {A : Set a} {P : A → Set p} {x : A} {n} →
+  □ i P (replicate (suc n) x) ⇔ P x
+□-replicate-suc⇔ {P = P} {x} = record
+  { to   = □-head
+  ; from = from _
+  }
+  where
+  from : ∀ {i} n → P x → □ i P (replicate n x)
+  from zero    p = []
+  from (suc n) p = p ∷ λ { .force → from (force n) p }
 
 -- If P holds for every element in cycle x xs, then it also holds for
 -- every element in x ∷ xs, and vice versa.
