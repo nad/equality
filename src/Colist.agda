@@ -57,6 +57,12 @@ map : ∀ {a b i} {A : Set a} {B : Set b} →
 map f []       = []
 map f (x ∷ xs) = f x ∷ λ { .force → map f (force xs) }
 
+-- The length of a colist.
+
+length : ∀ {a i} {A : Set a} → Colist A i → Conat i
+length []       = zero
+length (n ∷ ns) = suc λ { .force → length (force ns) }
+
 -- The colist replicate n x contains exactly n copies of x (and
 -- nothing else).
 
@@ -209,6 +215,12 @@ map-cong f≡g []          = []
 map-cong f≡g (refl ∷ ps) =
   f≡g _ ∷ λ { .force → map-cong f≡g (force ps) }
 
+length-cong :
+  ∀ {a i} {A : Set a} {xs ys : Colist A ∞} →
+  [ i ] xs ∼ ys → Conat.[ i ] length xs ∼ length ys
+length-cong []       = zero
+length-cong (_ ∷ ps) = suc λ { .force → length-cong (force ps) }
+
 replicate-cong :
   ∀ {a i} {A : Set a} {m n} {x : A} →
   Conat.[ i ] m ∼ n → [ i ] replicate m x ∼ replicate n x
@@ -240,6 +252,15 @@ take-cong :
 take-cong n       []       = refl
 take-cong zero    (p ∷ ps) = refl
 take-cong (suc n) (p ∷ ps) = E.cong₂ _∷_ p (take-cong n (force ps))
+
+-- The length of replicate n x is bisimilar to n.
+
+length-replicate :
+  ∀ {a i} {A : Set a} {x : A} n →
+  Conat.[ i ] length (replicate n x) ∼ n
+length-replicate zero    = zero
+length-replicate (suc n) =
+  suc λ { .force → length-replicate (force n) }
 
 -- A lemma relating nats and nats-from n.
 
