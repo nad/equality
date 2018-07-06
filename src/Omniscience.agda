@@ -41,6 +41,26 @@ WLPO-propositional ext =
     (Π-closure ext 1 λ _ →
      Bool-set _ _)
 
+-- LPO implies WLPO.
+
+LPO→WLPO : LPO → WLPO
+LPO→WLPO LPO f =
+  ⊎-map id
+        (uncurry λ n fn≡true ∀n→fn≡false → Bool.true≢false (
+           true   ≡⟨ sym fn≡true ⟩
+           f n    ≡⟨ ∀n→fn≡false n ⟩∎
+           false  ∎))
+        (LPO f)
+
+-- WLPO follows from excluded middle (assuming extensionality).
+--
+-- This follows from LPO→WLPO and LEM→LPO (see below), but this proof
+-- is less complicated.
+
+LEM→WLPO : Extensionality lzero lzero → Excluded-middle lzero → WLPO
+LEM→WLPO ext em = λ _ → em (Π-closure ext 1 λ _ →
+                            Bool-set _ _)
+
 mutual
 
   -- There is a propositional property that is logically equivalent to
@@ -130,17 +150,6 @@ mutual
         case ≤→≤↑ o<1+m of λ where
           (≤↑-refl refl)    → fm≡false
           (≤↑-step 1+o<1+m) → <→≡false (pred-mono (≤↑→≤ 1+o<1+m))
-
--- LPO implies WLPO.
-
-LPO→WLPO : LPO → WLPO
-LPO→WLPO LPO f =
-  ⊎-map id
-        (uncurry λ n fn≡true ∀n→fn≡false → Bool.true≢false (
-           true   ≡⟨ sym fn≡true ⟩
-           f n    ≡⟨ ∀n→fn≡false n ⟩∎
-           false  ∎))
-        (LPO f)
 
 -- LPO follows from excluded middle (assuming extensionality).
 
