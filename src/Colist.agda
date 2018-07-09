@@ -200,6 +200,13 @@ map-∘ :
 map-∘ []       = []
 map-∘ (_ ∷ xs) = refl ∷ λ { .force → map-∘ (force xs) }
 
+-- If two non-empty colists are bisimilar, then their heads are
+-- bisimilar.
+
+head-cong : ∀ {a i} {A : Set a} {x y : A} {xs ys} →
+            [ i ] x ∷ xs ∼ y ∷ ys → x ≡ y
+head-cong (p ∷ _) = p
+
 -- Some preservation lemmas.
 
 tail-cong :
