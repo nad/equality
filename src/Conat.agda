@@ -264,7 +264,7 @@ mutual
 
 open [_]_≤′_ public
 
--- [ ∞ ] m < n means that m is less than n.
+-- [ ∞ ] m < n means that m is less than n (if n is finite).
 
 infix 4 [_]_<_
 
