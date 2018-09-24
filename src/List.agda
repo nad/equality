@@ -12,6 +12,7 @@ module List
 open import Prelude
 
 open Derived-definitions-and-properties eq
+open import Equality.Decision-procedures eq
 open import Monad eq hiding (map)
 
 ------------------------------------------------------------------------
@@ -167,6 +168,15 @@ filter∘map p f (x ∷ xs) with p (f x)
 length∘nats-< : ∀ n → length (nats-< n) ≡ n
 length∘nats-< zero    = 0 ∎
 length∘nats-< (suc n) = cong suc (length∘nats-< n)
+
+-- If xs ++ ys is equal to [], then both lists are.
+
+++≡[]→≡[]×≡[] :
+  ∀ {a} {A : Set a} (xs {ys} : List A) →
+  xs ++ ys ≡ [] → xs ≡ [] × ys ≡ []
+++≡[]→≡[]×≡[] []      {[]}    _    = refl _ , refl _
+++≡[]→≡[]×≡[] []      {_ ∷ _} ∷≡[] = ⊥-elim (List.[]≢∷ (sym ∷≡[]))
+++≡[]→≡[]×≡[] (_ ∷ _)         ∷≡[] = ⊥-elim (List.[]≢∷ (sym ∷≡[]))
 
 ------------------------------------------------------------------------
 -- The list monad
