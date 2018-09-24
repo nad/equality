@@ -113,13 +113,14 @@ T-not⇔¬T false =
   ¬ ⊥  □
 
 T-not↔¬T :
-  Extensionality (# 0) (# 0) →
-  ∀ b → T (not b) ↔ ¬ T b
+  ∀ {k} →
+  Extensionality? k (# 0) (# 0) →
+  ∀ b → T (not b) ↝[ k ] ¬ T b
 T-not↔¬T _ true =
-  ⊥        ↝⟨ Bijection.⊥↔uninhabited (_$ _) ⟩
+  ⊥        ↔⟨ Bijection.⊥↔uninhabited (_$ _) ⟩
   (⊤ → ⊥)  □
 T-not↔¬T ext false =
-  ⊤    ↝⟨ inverse $ ¬⊥↔⊤ ext ⟩□
+  ⊤    ↝⟨ inverse-ext? ¬⊥↔⊤ ext ⟩□
   ¬ ⊥  □
 
 ¬T⇔≡false : ∀ {b} → ¬ T b ⇔ b ≡ false
@@ -129,11 +130,12 @@ T-not↔¬T ext false =
   b ≡ false  □
 
 ¬T↔≡false :
-  Extensionality (# 0) (# 0) →
-  ∀ {b} → ¬ T b ↔ b ≡ false
+  ∀ {k} →
+  Extensionality? k (# 0) (# 0) →
+  ∀ {b} → ¬ T b ↝[ k ] b ≡ false
 ¬T↔≡false ext {b} =
-  ¬ T b      ↝⟨ inverse $ T-not↔¬T ext b ⟩
-  T (not b)  ↝⟨ T-not↔≡false ⟩□
+  ¬ T b      ↝⟨ inverse-ext? (flip T-not↔¬T b) ext ⟩
+  T (not b)  ↔⟨ T-not↔≡false ⟩□
   b ≡ false  □
 
 -- Bool ≃ Bool is isomorphic to Bool (assuming extensionality).
