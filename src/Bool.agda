@@ -138,6 +138,20 @@ T-not↔¬T ext false =
   T (not b)  ↔⟨ T-not↔≡false ⟩□
   b ≡ false  □
 
+T-∧↔T×T : ∀ b₁ {b₂} → T (b₁ ∧ b₂) ↔ T b₁ × T b₂
+T-∧↔T×T true {b₂} =
+  T b₂      ↝⟨ inverse ×-left-identity ⟩□
+  ⊤ × T b₂  □
+T-∧↔T×T false {b₂} =
+  ⊥         ↝⟨ inverse ×-left-zero ⟩□
+  ⊥ × T b₂  □
+
+T-∨⇔T⊎T : ∀ b₁ {b₂} → T (b₁ ∨ b₂) ⇔ T b₁ ⊎ T b₂
+T-∨⇔T⊎T true       = record { to = inj₁ }
+T-∨⇔T⊎T false {b₂} =
+  T b₂      ↔⟨ inverse ⊎-left-identity ⟩□
+  ⊥ ⊎ T b₂  □
+
 -- Bool ≃ Bool is isomorphic to Bool (assuming extensionality).
 
 [Bool≃Bool]↔Bool₁ : Extensionality lzero lzero →
