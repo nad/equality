@@ -7,7 +7,7 @@
 module Conat where
 
 open import Equality.Propositional
-open import Prelude hiding (_+_; _∸_)
+open import Prelude hiding (_+_; _∸_; _*_)
 
 open import Function-universe equality-with-J hiding (_∘_)
 open import Nat equality-with-J as Nat using (_≤_)
@@ -243,6 +243,131 @@ _∸-cong_ {n₁ = suc n} (suc p) refl = force p ∸-cong (n ∎)
 ⌜⌝-∸ m       zero    = reflexive-∼ _
 ⌜⌝-∸ zero    (suc n) = reflexive-∼ _
 ⌜⌝-∸ (suc m) (suc n) = ⌜⌝-∸ m n
+
+-- Multiplication.
+
+infixl 7 _*_
+
+_*_ : ∀ {i} → Conat i → Conat i → Conat i
+zero  * n     = zero
+m     * zero  = zero
+suc m * suc n = suc λ { .force → n .force + m .force * suc n }
+
+-- One is a left and right identity of multiplication (up to
+-- bisimilarity).
+
+*-left-identity : ∀ {i} n → [ i ] ⌜ 1 ⌝ * n ∼ n
+*-left-identity zero    = reflexive-∼ _
+*-left-identity (suc n) = suc λ { .force →
+  n .force + zero  ∼⟨ +-right-identity _ ⟩
+  n .force         ∎∼ }
+
+*-right-identity : ∀ {i} n → [ i ] n * ⌜ 1 ⌝ ∼ n
+*-right-identity zero    = reflexive-∼ _
+*-right-identity (suc n) = suc λ { .force → *-right-identity _ }
+
+-- Zero is a left and right zero of multiplication (up to
+-- bisimilarity).
+
+*-left-zero : ∀ {i n} → [ i ] zero * n ∼ zero
+*-left-zero = reflexive-∼ _
+
+*-right-zero : ∀ {i n} → [ i ] n * zero ∼ zero
+*-right-zero {n = zero}  = reflexive-∼ _
+*-right-zero {n = suc n} = reflexive-∼ _
+
+-- An unfolding lemma for multiplication.
+
+suc*∼+* : ∀ {m n i} → [ i ] suc m * n ∼ n + m .force * n
+suc*∼+* {m} {zero}  =
+  zero             ∼⟨ symmetric-∼ *-right-zero ⟩
+  m .force * zero  ∎∼
+suc*∼+* {m} {suc n} = suc λ { .force → reflexive-∼ _ }
+
+-- Multiplication distributes over addition.
+
+*-+-distribˡ : ∀ m {n o i} → [ i ] m * (n + o) ∼ m * n + m * o
+*-+-distribˡ zero                = reflexive-∼ _
+*-+-distribˡ (suc m) {zero}  {o} = reflexive-∼ _
+*-+-distribˡ (suc m) {suc n} {o} = suc λ { .force →
+  n .force + o + m .force * (suc n + o)               ∼⟨ (_ ∎∼) +-cong *-+-distribˡ (m .force) ⟩
+  n .force + o + (m .force * suc n + m .force * o)    ∼⟨ symmetric-∼ (+-assoc (n .force)) ⟩
+  n .force + (o + (m .force * suc n + m .force * o))  ∼⟨ (n .force ∎∼) +-cong +-assoc o ⟩
+  n .force + ((o + m .force * suc n) + m .force * o)  ∼⟨ (n .force ∎∼) +-cong (+-comm o +-cong (_ ∎∼)) ⟩
+  n .force + ((m .force * suc n + o) + m .force * o)  ∼⟨ (n .force ∎∼) +-cong symmetric-∼ (+-assoc (m .force * _)) ⟩
+  n .force + (m .force * suc n + (o + m .force * o))  ∼⟨ +-assoc (n .force) ⟩
+  n .force + m .force * suc n + (o + m .force * o)    ∼⟨ (n .force + _ ∎∼) +-cong symmetric-∼ suc*∼+* ⟩
+  n .force + m .force * suc n + suc m * o             ∎∼ }
+
+*-+-distribʳ : ∀ m {n o i} → [ i ] (m + n) * o ∼ m * o + n * o
+*-+-distribʳ zero               = reflexive-∼ _
+*-+-distribʳ (suc m) {n} {zero} =
+  zero      ∼⟨ symmetric-∼ *-right-zero ⟩
+  n * zero  ∎∼
+*-+-distribʳ (suc m) {n} {suc o} = suc λ { .force →
+  o .force + (m .force + n) * suc o          ∼⟨ (_ ∎∼) +-cong *-+-distribʳ (m .force) ⟩
+  o .force + (m .force * suc o + n * suc o)  ∼⟨ +-assoc (o .force) ⟩
+  o .force + m .force * suc o + n * suc o    ∎∼ }
+
+-- Multiplication is associative.
+
+*-assoc : ∀ m {n o i} → [ i ] m * (n * o) ∼ (m * n) * o
+*-assoc zero                    = reflexive-∼ _
+*-assoc (suc m) {zero}          = reflexive-∼ _
+*-assoc (suc m) {suc n} {zero}  = reflexive-∼ _
+*-assoc (suc m) {suc n} {suc o} = suc λ { .force →
+  o .force + n .force * suc o + m .force * (suc n * suc o)    ∼⟨ symmetric-∼ (+-assoc (o .force)) ⟩
+  o .force + (n .force * suc o + m .force * (suc n * suc o))  ∼⟨ (o .force ∎∼) +-cong ((_ ∎∼) +-cong *-assoc (m .force)) ⟩
+  o .force + (n .force * suc o + (m .force * suc n) * suc o)  ∼⟨ (o .force ∎∼) +-cong symmetric-∼ (*-+-distribʳ (n .force)) ⟩
+  o .force + (n .force + m .force * suc n) * suc o            ∎∼ }
+
+-- Multiplication is commutative.
+
+*-comm : ∀ m {n i} → [ i ] m * n ∼ n * m
+*-comm zero {n} =
+  zero      ∼⟨ symmetric-∼ *-right-zero ⟩
+  n * zero  ∎∼
+*-comm (suc m) {zero}  = reflexive-∼ _
+*-comm (suc m) {suc n} = suc λ { .force →
+  n .force + m .force * suc n                  ∼⟨ (_ ∎∼) +-cong *-comm (m .force) ⟩
+  n .force + suc n * m .force                  ∼⟨ (n .force ∎∼) +-cong suc*∼+* ⟩
+  n .force + (m .force + n .force * m .force)  ∼⟨ +-assoc (n .force) ⟩
+  (n .force + m .force) + n .force * m .force  ∼⟨ +-comm (n .force) +-cong *-comm _ ⟩
+  (m .force + n .force) + m .force * n .force  ∼⟨ symmetric-∼ (+-assoc (m .force)) ⟩
+  m .force + (n .force + m .force * n .force)  ∼⟨ (m .force ∎∼) +-cong symmetric-∼ suc*∼+* ⟩
+  m .force + suc m * n .force                  ∼⟨ (m .force ∎∼) +-cong *-comm (suc m) ⟩
+  m .force + n .force * suc m                  ∎∼ }
+
+-- An unfolding lemma for multiplication.
+
+*suc∼+* : ∀ {m n i} → [ i ] m * suc n ∼ m + m * n .force
+*suc∼+* {m} {n} =
+  m * suc n         ∼⟨ *-comm _ ⟩
+  suc n * m         ∼⟨ suc*∼+* ⟩
+  m + n .force * m  ∼⟨ (_ ∎∼) +-cong *-comm (n .force) ⟩
+  m + m * n .force  ∎∼
+
+-- Multiplication preserves bisimilarity.
+
+infixl 7 _*-cong_
+
+_*-cong_ :
+  ∀ {i m₁ m₂ n₁ n₂} →
+  [ i ] m₁ ∼ m₂ → [ i ] n₁ ∼ n₂ → [ i ] m₁ * n₁ ∼ m₂ * n₂
+zero  *-cong _     = zero
+suc p *-cong zero  = zero
+suc p *-cong suc q = suc λ { .force →
+  q .force +-cong p .force *-cong suc q }
+
+-- ⌜_⌝ is homomorphic with respect to multiplication.
+
+⌜⌝-* : ∀ m {n i} → [ i ] ⌜ m Prelude.* n ⌝ ∼ ⌜ m ⌝ * ⌜ n ⌝
+⌜⌝-* zero        = reflexive-∼ _
+⌜⌝-* (suc m) {n} =
+  ⌜ n Prelude.+ m Prelude.* n ⌝  ∼⟨ ⌜⌝-+ n ⟩
+  ⌜ n ⌝ + ⌜ m Prelude.* n ⌝      ∼⟨ reflexive-∼ _ +-cong ⌜⌝-* m ⟩
+  ⌜ n ⌝ + ⌜ m ⌝ * ⌜ n ⌝          ∼⟨ symmetric-∼ suc*∼+* ⟩
+  ⌜ suc m ⌝ * ⌜ n ⌝              ∎∼
 
 ------------------------------------------------------------------------
 -- Ordering
@@ -574,6 +699,17 @@ _∸-mono_ {suc m₁} {suc m₂} {suc n₁} {zero}  p  _ = force m₁ ∸ n₁  
                                                    suc m₂         ∎≤
 _∸-mono_ {suc _}  {suc _}  {suc _}  {suc _} p  q =
   force (cancel-suc-≤ p) ∸-mono Nat.suc≤suc⁻¹ q
+
+-- Multiplication is monotone.
+
+infixl 7 _*-mono_
+
+_*-mono_ : ∀ {i m₁ m₂ n₁ n₂} →
+           [ i ] m₁ ≤ m₂ → [ i ] n₁ ≤ n₂ → [ i ] m₁ * n₁ ≤ m₂ * n₂
+zero  *-mono _     = zero
+suc _ *-mono zero  = zero
+suc p *-mono suc q = suc λ { .force →
+  q .force +-mono p .force *-mono suc q  }
 
 ------------------------------------------------------------------------
 -- Minimum and maximum
