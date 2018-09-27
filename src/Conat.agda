@@ -724,9 +724,8 @@ min (suc m) (suc n) = suc λ { .force → min (force m) (force n) }
 -- The largest number.
 
 max : ∀ {i} → Conat i → Conat i → Conat i
-max zero    n       = n
-max m       zero    = m
-max (suc m) (suc n) = suc λ { .force → max (force m) (force n) }
+max zero    n = n
+max (suc m) n = suc λ { .force → max (force m) (pred n) }
 
 -- The minimum of two numbers is less than or equal to both of them.
 
@@ -744,9 +743,8 @@ min≤ʳ (suc m) (suc n) = suc λ { .force → min≤ʳ (force m) (force n) }
 -- them.
 
 ˡ≤max : ∀ {i} m n → [ i ] m ≤ max m n
-ˡ≤max zero    _       = zero
-ˡ≤max (suc _) zero    = reflexive-≤ _
-ˡ≤max (suc m) (suc n) = suc λ { .force → ˡ≤max (force m) (force n) }
+ˡ≤max zero    _ = zero
+ˡ≤max (suc m) n = suc λ { .force → ˡ≤max (force m) (pred n) }
 
 ʳ≤max : ∀ {i} m n → [ i ] n ≤ max m n
 ʳ≤max zero    _       = reflexive-≤ _
