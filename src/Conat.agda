@@ -116,7 +116,7 @@ mutual
 
 -- Truncated predecessor.
 
-pred : Conat ∞ → Conat ∞
+pred : ∀ {i} {j : Size< i} → Conat i → Conat j
 pred zero    = zero
 pred (suc n) = force n
 
