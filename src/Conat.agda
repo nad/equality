@@ -7,6 +7,7 @@
 module Conat where
 
 open import Equality.Propositional
+open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (_+_; _∸_; _*_)
 
 open import Function-universe equality-with-J hiding (_∘_)
@@ -475,6 +476,33 @@ finally-≤ : ∀ {i} m n → [ i ] m ≤ n → [ i ] m ≤ n
 finally-≤ _ _ m≤n = m≤n
 
 syntax finally-≤ m n m≤n = m ≤⟨ m≤n ⟩∎ n ∎≤
+
+-- The ordering relation respects the ordering relation
+-- (contravariantly in the first argument).
+
+infix 4 _≤-cong-≤_
+
+_≤-cong-≤_ :
+  ∀ {m m′ n n′ i} →
+  [ i ] m′ ≤ m → [ i ] n ≤ n′ → [ i ] m ≤ n → [ i ] m′ ≤ n′
+_≤-cong-≤_ {m} {m′} {n} {n′} m≥m′ n≤n′ m≤n =
+  m′  ≤⟨ m≥m′ ⟩
+  m   ≤⟨ m≤n ⟩
+  n   ≤⟨ n≤n′ ⟩
+  n′  ∎≤
+
+-- A kind of preservation result for bisimilarity, ordering and
+-- logical equivalence.
+
+infix 4 _≤-cong-∼_
+
+_≤-cong-∼_ :
+  ∀ {m m′ n n′ i} →
+  [ i ] m ∼ m′ → [ i ] n ∼ n′ → [ i ] m ≤ n ⇔ [ i ] m′ ≤ n′
+m∼m′ ≤-cong-∼ n∼n′ = record
+  { to   = ∼→≤ (symmetric-∼ m∼m′) ≤-cong-≤ ∼→≤ n∼n′
+  ; from = ∼→≤ m∼m′ ≤-cong-≤ ∼→≤ (symmetric-∼ n∼n′)
+  }
 
 -- Some inversion lemmas.
 
