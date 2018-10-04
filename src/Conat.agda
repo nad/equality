@@ -959,8 +959,8 @@ no-strengthening-21 :
   ¬ (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)
 no-strengthening-21 strengthen = contradiction (ssuc ∞) ∞
   where
-  2≰1 : ∀ i (j : Size< i) → ¬ [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝
-  2≰1 i j =
+  2≁1 : ∀ i (j : Size< i) → ¬ [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝
+  2≁1 i j =
     [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝  ↝⟨ strengthen ⟩
     [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝  ↝⟨ (λ hyp → cancel-suc-≤ hyp .force) ⟩
     [ j ] ⌜ 1 ⌝ ≤ ⌜ 0 ⌝  ↝⟨ ≮0 ⟩□
@@ -972,7 +972,7 @@ no-strengthening-21 strengthen = contradiction (ssuc ∞) ∞
     2∼1 i = suc λ { .force {j} → ⊥-elim (contradiction i j) }
 
     contradiction : ∀ i (j : Size< i) → ⊥
-    contradiction i j = 2≰1 i j (2∼1 j)
+    contradiction i j = 2≁1 i j (2∼1 j)
 
 -- It is impossible to define a strengthening function that, for any
 -- sizes i and j < i, takes strong bisimilarity of size j between 2
