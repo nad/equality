@@ -947,3 +947,51 @@ _⁺+_ {suc m} _  n = suc λ { .force → force m + force n }
   m₁ + n₁  ≤⟨ 1≤+-mono 1≤m₁ (_ ∎≤) n₁≤n₂ ⟩
   m₁ + n₂  ≤⟨ +1≤-mono 1≤n₂ m₁≤m₂ (_ ∎≤) ⟩∎
   m₂ + n₂  ∎≤
+
+------------------------------------------------------------------------
+-- Some negative results
+
+-- It is impossible to define a strengthening function that, for any
+-- sizes i and j < i, takes strong bisimilarity of size j between 2
+-- and 1 into ordering of size i between 2 and 1.
+
+no-strengthening-21 :
+  ¬ (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)
+no-strengthening-21 strengthen = contradiction (ssuc ∞) ∞
+  where
+  2≰1 : ∀ i (j : Size< i) → ¬ [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝
+  2≰1 i j =
+    [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝  ↝⟨ strengthen ⟩
+    [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝  ↝⟨ (λ hyp → cancel-suc-≤ hyp .force) ⟩
+    [ j ] ⌜ 1 ⌝ ≤ ⌜ 0 ⌝  ↝⟨ ≮0 ⟩□
+    ⊥                    □
+
+  mutual
+
+    2∼1 : ∀ i → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝
+    2∼1 i = suc λ { .force {j} → ⊥-elim (contradiction i j) }
+
+    contradiction : ∀ i (j : Size< i) → ⊥
+    contradiction i j = 2≰1 i j (2∼1 j)
+
+-- It is impossible to define a strengthening function that, for any
+-- sizes i and j < i, takes strong bisimilarity of size j between 2
+-- and 1 into strong bisimilarity of size i between 2 and 1.
+
+no-strengthening-∼-21 :
+  ¬ (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝)
+no-strengthening-∼-21 =
+  (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝)  ↝⟨ (λ { hyp p → ∼→≤ (hyp p) }) ⟩
+  (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)  ↝⟨ no-strengthening-21 ⟩□
+  ⊥                                                                  □
+
+-- It is impossible to define a strengthening function that, for any
+-- sizes i and j < i, takes ordering of size j between 2 and 1 into
+-- ordering of size i between 2 and 1.
+
+no-strengthening-≤-21 :
+  ¬ (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)
+no-strengthening-≤-21 =
+  (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)  ↝⟨ (λ { hyp p → hyp (∼→≤ p) }) ⟩
+  (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)  ↝⟨ no-strengthening-21 ⟩□
+  ⊥                                                                  □
