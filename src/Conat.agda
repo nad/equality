@@ -952,46 +952,46 @@ _⁺+_ {suc m} _  n = suc λ { .force → force m + force n }
 -- Some negative results
 
 -- It is impossible to define a strengthening function that, for any
--- sizes i and j < i, takes strong bisimilarity of size j between 2
--- and 1 into ordering of size i between 2 and 1.
+-- size i, takes strong bisimilarity of size i between 2 and 1 into
+-- ordering of size ssuc i between 2 and 1.
 
 no-strengthening-21 :
-  ¬ (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)
-no-strengthening-21 strengthen = contradiction (ssuc ∞) ∞
+  ¬ (∀ {i} → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ ssuc i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)
+no-strengthening-21 strengthen = contradiction ∞
   where
-  2≁1 : ∀ i (j : Size< i) → ¬ [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝
-  2≁1 i j =
-    [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝  ↝⟨ strengthen ⟩
-    [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝  ↝⟨ (λ hyp → cancel-suc-≤ hyp .force) ⟩
-    [ j ] ⌜ 1 ⌝ ≤ ⌜ 0 ⌝  ↝⟨ ≮0 ⟩□
-    ⊥                    □
+  2≁1 : ∀ i → ¬ [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝
+  2≁1 i =
+    [ i      ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝  ↝⟨ strengthen ⟩
+    [ ssuc i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝  ↝⟨ (λ hyp → cancel-suc-≤ hyp .force) ⟩
+    [ i      ] ⌜ 1 ⌝ ≤ ⌜ 0 ⌝  ↝⟨ ≮0 ⟩□
+    ⊥                         □
 
   mutual
 
     2∼1 : ∀ i → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝
-    2∼1 i = suc λ { .force {j} → ⊥-elim (contradiction i j) }
+    2∼1 i = suc λ { .force {j} → ⊥-elim (contradiction j) }
 
-    contradiction : ∀ i (j : Size< i) → ⊥
-    contradiction i j = 2≁1 i j (2∼1 j)
+    contradiction : Size → ⊥
+    contradiction i = 2≁1 i (2∼1 i)
 
 -- It is impossible to define a strengthening function that, for any
--- sizes i and j < i, takes strong bisimilarity of size j between 2
--- and 1 into strong bisimilarity of size i between 2 and 1.
+-- size i, takes strong bisimilarity of size i between 2 and 1 into
+-- strong bisimilarity of size ssuc i between 2 and 1.
 
 no-strengthening-∼-21 :
-  ¬ (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝)
+  ¬ (∀ {i} → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ ssuc i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝)
 no-strengthening-∼-21 =
-  (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝)  ↝⟨ (λ { hyp p → ∼→≤ (hyp p) }) ⟩
-  (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)  ↝⟨ no-strengthening-21 ⟩□
-  ⊥                                                                  □
+  (∀ {i} → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ ssuc i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝)  ↝⟨ ∼→≤ ∘_ ⟩
+  (∀ {i} → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ ssuc i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)  ↝⟨ no-strengthening-21 ⟩□
+  ⊥                                                         □
 
 -- It is impossible to define a strengthening function that, for any
--- sizes i and j < i, takes ordering of size j between 2 and 1 into
--- ordering of size i between 2 and 1.
+-- size i, takes ordering of size i between 2 and 1 into ordering of
+-- size ssuc i between 2 and 1.
 
 no-strengthening-≤-21 :
-  ¬ (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)
+  ¬ (∀ {i} → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝ → [ ssuc i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)
 no-strengthening-≤-21 =
-  (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)  ↝⟨ (λ { hyp p → hyp (∼→≤ p) }) ⟩
-  (∀ {i} {j : Size< i} → [ j ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)  ↝⟨ no-strengthening-21 ⟩□
-  ⊥                                                                  □
+  (∀ {i} → [ i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝ → [ ssuc i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)  ↝⟨ _∘ ∼→≤ ⟩
+  (∀ {i} → [ i ] ⌜ 2 ⌝ ∼ ⌜ 1 ⌝ → [ ssuc i ] ⌜ 2 ⌝ ≤ ⌜ 1 ⌝)  ↝⟨ no-strengthening-21 ⟩□
+  ⊥                                                         □
