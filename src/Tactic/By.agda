@@ -302,15 +302,6 @@ macro
     by-tactic t goal >>= λ _ →
     return _
 
-  -- If by t would have been successful, then debug-by t raises an
-  -- error message that includes the term that would have been
-  -- constructed by by.
-
-  debug-by : ∀ {a} {A : Set a} → A → Term → TC ⊤
-  debug-by t goal =
-    by-tactic t goal                                        >>= λ t →
-    typeError (strErr "Term found by by:" ∷ termErr t ∷ [])
-
 -- A definition that provides no information. Intended to be used
 -- together with the by tactic: "by definition".
 
@@ -419,15 +410,6 @@ macro
   ⟨by⟩ t goal =
     ⟨by⟩-tactic t goal >>= λ _ →
     return _
-
-  -- If ⟨by⟩ t would have been successful, then debug-⟨by⟩ t raises an
-  -- error message that includes the (first) term that would have been
-  -- constructed by ⟨by⟩.
-
-  debug-⟨by⟩ : ∀ {a} {A : Set a} → A → Term → TC ⊤
-  debug-⟨by⟩ t goal =
-    ⟨by⟩-tactic t goal                                        >>= λ t →
-    typeError (strErr "Term found by ⟨by⟩:" ∷ termErr t ∷ [])
 
 ------------------------------------------------------------------------
 -- Some unit tests
