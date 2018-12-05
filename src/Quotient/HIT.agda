@@ -767,7 +767,7 @@ Maybe/-comm-[] =
 ↠-eliminator-[] {R = R} surj P p-[] ok P-set x hyp =
   subst P (_↠_.right-inverse-of surj (_↠_.to surj [ x ]))
     (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _)
-          (_↠_.from surj (_↠_.to surj [ x ])))               ≡⟨ cong (λ p → subst P p (elim (P ∘ _↠_.to surj) _ _ _ _)) $
+          (_↠_.from surj (_↠_.to surj [ x ])))               ≡⟨ cong (λ p → subst P p (elim (P ∘ _↠_.to surj) _ ok′ _ _)) $
                                                                   _⇔_.to set⇔UIP (H-level.respects-surjection surj 2 /-is-set)
                                                                     (_↠_.right-inverse-of surj (_↠_.to surj [ x ]))
                                                                     (cong (_↠_.to surj) hyp) ⟩
