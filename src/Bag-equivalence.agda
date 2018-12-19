@@ -629,7 +629,7 @@ abstract
   -- Bag equivalence isomorphisms preserve index equality. Note that
   -- this means that, even if the underlying equality is proof
   -- relevant, a bag equivalence isomorphism cannot map two distinct
-  -- proofs of z ∈ xs (say) to different positions.
+  -- proofs, that point to the same position, to different positions.
 
   index-equality-preserved :
     ∀ {a} {A : Set a} {z : A} {xs ys} {p q : z ∈ xs}
