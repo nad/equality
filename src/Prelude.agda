@@ -172,16 +172,18 @@ case x of f = case x return _ of f
 ------------------------------------------------------------------------
 -- Σ-types
 
-infixr 4 _,_ _,′_
+infixr 4 _,′_
 infixr 2 _×_
 
-record Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
-  constructor _,_
-  field
-    proj₁ : A
-    proj₂ : B proj₁
-
-open Σ public
+import Agda.Builtin.Sigma
+open Agda.Builtin.Sigma public
+  using (Σ; _,_)
+  hiding (module Σ)
+  renaming (fst to proj₁; snd to proj₂)
+module Σ where
+  open Agda.Builtin.Sigma.Σ public
+    using ()
+    renaming (fst to proj₁; snd to proj₂)
 
 -- A variant where the first argument is implicit.
 
