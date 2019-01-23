@@ -3,6 +3,8 @@
 -- Pollack's "Dependently Typed Records in Type Theory"
 ------------------------------------------------------------------------
 
+{-# OPTIONS --without-K --safe #-}
+
 open import Equality.Propositional
 open import Prelude hiding (id; proj₁; proj₂)
 
