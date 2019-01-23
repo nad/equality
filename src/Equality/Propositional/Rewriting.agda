@@ -3,10 +3,8 @@
 -- machinery
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module Equality.Propositional.Rewriting where
 
-open import Equality.Propositional
-
-{-# BUILTIN REWRITE _≡_ #-}
+open import Agda.Builtin.Equality.Rewrite
