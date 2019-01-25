@@ -10,6 +10,7 @@ open import Conat using (Conat; zero; suc; force; infinity)
 open import Equality.Propositional as E using (_≡_; refl)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
+open import Size
 
 open import Function-universe E.equality-with-J hiding (id; _∘_)
 import Nat E.equality-with-J as Nat

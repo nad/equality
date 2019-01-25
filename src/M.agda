@@ -17,6 +17,7 @@ open import H-level eq
 open import H-level.Closure eq
 open import Logical-equivalence hiding (_∘_)
 open import Prelude
+open import Size
 
 ------------------------------------------------------------------------
 -- M-types

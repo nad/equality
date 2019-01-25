@@ -260,13 +260,6 @@ abstract
   inhabited⇒W-empty b (sup x f) = inhabited⇒W-empty b (f (b x))
 
 ------------------------------------------------------------------------
--- Support for coinduction
-
-open import Agda.Builtin.Size public
-  using (Size; Size<_; ∞)
-  renaming (SizeU to Size-universe; ↑_ to ssuc)
-
-------------------------------------------------------------------------
 -- Binary sums
 
 infixr 1 _⊎_
