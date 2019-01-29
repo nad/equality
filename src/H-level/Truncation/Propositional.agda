@@ -24,6 +24,7 @@ open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 import H-level.Truncation equality-with-J as Trunc
+open import Monad equality-with-J
 open import Preimage equality-with-J as Preimage using (_⁻¹_)
 open import Surjection equality-with-J using (_↠_)
 
@@ -178,6 +179,43 @@ private
     flatten′ (λ F → ∃ (F ∘ B))
              (λ f → Σ-map id f)
              (uncurry λ x → ∥∥-map (x ,_))
+
+-- A universe-polymorphic variant of bind.
+
+infixl 5 _>>=′_
+
+_>>=′_ : ∀ {a b} {A : Set a} {B : Set b} →
+         ∥ A ∥ → (A → ∥ B ∥) → ∥ B ∥
+x >>=′ f = _↔_.to flatten (∥∥-map f x)
+
+-- The universe-polymorphic variant of bind is associative.
+
+>>=′-associative :
+  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+  (x : ∥ A ∥) {f : A → ∥ B ∥} {g : B → ∥ C ∥} →
+  x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
+>>=′-associative x {f} {g} = elim
+  (λ x → x >>=′ (λ x₁ → f x₁ >>=′ g) ≡ x >>=′ f >>=′ g)
+  (λ _ → mono₁ 1 truncation-is-proposition _ _)
+  (λ _ → refl)
+  x
+
+instance
+
+  -- The propositional truncation operator is a monad.
+
+  raw-monad : ∀ {ℓ} → Raw-monad (∥_∥ {a = ℓ})
+  Raw-monad.return raw-monad = ∣_∣
+  Raw-monad._>>=_  raw-monad = _>>=′_
+
+  monad : ∀ {ℓ} → Monad (∥_∥ {a = ℓ})
+  Monad.raw-monad monad           = raw-monad
+  Monad.left-identity monad x f   = refl
+  Monad.associativity monad x _ _ = >>=′-associative x
+  Monad.right-identity monad      = elim
+    _
+    (λ _ → mono₁ 1 truncation-is-proposition _ _)
+    (λ _ → refl)
 
 -- Surjectivity.
 
