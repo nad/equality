@@ -213,8 +213,17 @@ private
       -- Tries to solve the goal using reflexivity.
 
       try-refl : Type → TC Term
-      try-refl (def (quote _≡_) (a ∷ A ∷ arg _ lhs ∷ _)) =
-        unify t′ goal >>= λ _ →
+      try-refl (def (quote _≡_) (a ∷ A ∷ arg _ lhs ∷ _)) = do
+        unify t′ goal
+
+        -- If unification succeeds, but the goal is not solved by
+        -- refl, then this attempt is aborted. (This check was
+        -- suggested by Ulf Norell.) Potential future improvement:
+        -- If unification results in unsolved constraints, block until
+        -- progress has been made on those constraints.
+        con (quote refl) _ ← reduce goal
+          where _ → failure
+
         return t′
         where
         t′ = con (quote refl) (a ∷ A ∷ harg lhs ∷ [])
