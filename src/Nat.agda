@@ -772,6 +772,16 @@ min≤ʳ m n =
   max n m  ≡⟨ max-comm n _ ⟩≤
   max m n  ∎≤
 
+-- A kind of distributivity property for max and _∸_.
+
+max-∸ : ∀ m n o → max (m ∸ o) (n ∸ o) ≡ max m n ∸ o
+max-∸ m       n       zero    = refl _
+max-∸ zero    n       (suc o) = refl _
+max-∸ (suc m) (suc n) (suc o) = max-∸ m n o
+max-∸ (suc m) zero    (suc o) =
+  max (m ∸ o) 0  ≡⟨ max-comm _ 0 ⟩
+  m ∸ o          ∎
+
 ------------------------------------------------------------------------
 -- Division by two
 
