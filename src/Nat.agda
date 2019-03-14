@@ -496,6 +496,30 @@ private
     up-to-elim (const _) bound (bound ∷ []) (λ n _ → n ∷_)
 
 ------------------------------------------------------------------------
+-- Another alternative definition of the ordering
+
+-- This ordering relation is defined by recursion on the numbers.
+
+infix 4 _≤→_
+
+_≤→_ : ℕ → ℕ → Set
+zero  ≤→ _     = ⊤
+suc m ≤→ zero  = ⊥
+suc m ≤→ suc n = m ≤→ n
+
+-- Functions that convert between _≤_ and _≤→_.
+
+≤→≤→ : ∀ m n → m ≤ n → m ≤→ n
+≤→≤→ zero    _       _ = _
+≤→≤→ (suc m) zero    p = ≮0 _ p
+≤→≤→ (suc m) (suc n) p = ≤→≤→ m n (suc≤suc⁻¹ p)
+
+≤→→≤ : ∀ m n → m ≤→ n → m ≤ n
+≤→→≤ zero    n       _  = zero≤ n
+≤→→≤ (suc m) zero    ()
+≤→→≤ (suc m) (suc n) p  = suc≤suc (≤→→≤ m n p)
+
+------------------------------------------------------------------------
 -- Properties related to _∸_
 
 -- Zero is a left zero of truncated subtraction.
