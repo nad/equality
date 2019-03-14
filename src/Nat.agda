@@ -184,6 +184,17 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
   m * o + n * o  ∎
 
 ------------------------------------------------------------------------
+-- Properties related to _^_
+
+-- One is a right identity for exponentiation.
+
+^-right-identity : ∀ {n} → n ^ 1 ≡ n
+^-right-identity {n} =
+  n ^ 1  ≡⟨⟩
+  n * 1  ≡⟨ *-right-identity _ ⟩∎
+  n      ∎
+
+------------------------------------------------------------------------
 -- The usual ordering of the natural numbers, along with some
 -- properties
 
