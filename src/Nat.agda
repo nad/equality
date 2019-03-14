@@ -161,6 +161,28 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
   1 * n ≡⟨ *-left-identity ⟩∎
   n     ∎
 
+-- Multiplication distributes from the left over addition.
+
+*-+-distribˡ : ∀ m {n o} → m * (n + o) ≡ m * n + m * o
+*-+-distribˡ zero            = refl _
+*-+-distribˡ (suc m) {n} {o} =
+  n + o + m * (n + o)        ≡⟨ cong ((n + o) +_) (*-+-distribˡ m) ⟩
+  n + o + (m * n + m * o)    ≡⟨ sym (+-assoc n) ⟩
+  n + (o + (m * n + m * o))  ≡⟨ cong (n +_) (+-assoc o) ⟩
+  n + (o + m * n + m * o)    ≡⟨ cong ((n +_) ∘ (_+ m * o)) (+-comm o) ⟩
+  n + (m * n + o + m * o)    ≡⟨ cong (n +_) (sym (+-assoc (m * _))) ⟩
+  n + (m * n + (o + m * o))  ≡⟨ +-assoc n ⟩∎
+  n + m * n + (o + m * o)    ∎
+
+-- Multiplication distributes from the right over addition.
+
+*-+-distribʳ : ∀ m {n o} → (m + n) * o ≡ m * o + n * o
+*-+-distribʳ m {n} {o} =
+  (m + n) * o    ≡⟨ *-comm (m + _) ⟩
+  o * (m + n)    ≡⟨ *-+-distribˡ o ⟩
+  o * m + o * n  ≡⟨ cong₂ _+_ (*-comm o) (*-comm o) ⟩∎
+  m * o + n * o  ∎
+
 ------------------------------------------------------------------------
 -- The usual ordering of the natural numbers, along with some
 -- properties
