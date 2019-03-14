@@ -438,6 +438,91 @@ _+-mono_ {m₁} {m₂} {n₁} {n₂} (≤-step′ {k = k} p eq) q =
   suc k + n₂  ≡⟨ cong (_+ _) eq ⟩≤
   m₂ + n₂     ∎≤
 
+-- _*_ is monotone.
+
+infixl 7 _*-mono_
+
+_*-mono_ : ∀ {m₁ m₂ n₁ n₂} → m₁ ≤ m₂ → n₁ ≤ n₂ → m₁ * n₁ ≤ m₂ * n₂
+_*-mono_ {zero}          _ _ = zero≤ _
+_*-mono_ {suc _} {zero}  p q = ⊥-elim (≮0 _ p)
+_*-mono_ {suc _} {suc _} p q = q +-mono suc≤suc⁻¹ p *-mono q
+
+-- 1 is less than or equal to positive natural numbers raised to any
+-- power.
+
+1≤+^ : ∀ {m} n → 1 ≤ suc m ^ n
+1≤+^ {m} zero    = ≤-refl
+1≤+^ {m} (suc n) =
+  1                          ≡⟨⟩≤
+  1 + 0                      ≤⟨ 1≤+^ n +-mono zero≤ _ ⟩
+  suc m ^ n + m * suc m ^ n  ∎≤
+
+private
+
+  -- _^_ is not monotone.
+
+  ¬-^-mono : ¬ (∀ {m₁ m₂ n₁ n₂} → m₁ ≤ m₂ → n₁ ≤ n₂ → m₁ ^ n₁ ≤ m₂ ^ n₂)
+  ¬-^-mono mono = ≮0 _ (
+    1      ≡⟨⟩≤
+    0 ^ 0  ≤⟨ mono (≤-refl {n = 0}) (zero≤ 1) ⟩
+    0 ^ 1  ≡⟨⟩≤
+    0      ∎≤)
+
+-- _^_ is monotone for positive bases.
+
+infixr 8 _⁺^-mono_
+
+_⁺^-mono_ : ∀ {m₁ m₂ n₁ n₂} →
+            suc m₁ ≤ m₂ → n₁ ≤ n₂ → suc m₁ ^ n₁ ≤ m₂ ^ n₂
+_⁺^-mono_ {m₁} {m₂ = suc m₂} {n₁ = zero} {n₂} _ _ =
+  suc m₁ ^ 0   ≡⟨⟩≤
+  1            ≤⟨ 1≤+^ n₂ ⟩
+  suc m₂ ^ n₂  ∎≤
+_⁺^-mono_ {m₁} {m₂} {suc n₁} {suc n₂} p q =
+  suc m₁ * suc m₁ ^ n₁  ≤⟨ p *-mono p ⁺^-mono suc≤suc⁻¹ q ⟩
+  m₂     * m₂     ^ n₂  ∎≤
+_⁺^-mono_ {m₂ = zero}              p _ = ⊥-elim (≮0 _ p)
+_⁺^-mono_ {n₁ = suc _} {n₂ = zero} _ q = ⊥-elim (≮0 _ q)
+
+-- _^_ is monotone for positive exponents.
+
+infixr 8 _^⁺-mono_
+
+_^⁺-mono_ : ∀ {m₁ m₂ n₁ n₂} →
+            m₁ ≤ m₂ → suc n₁ ≤ n₂ → m₁ ^ suc n₁ ≤ m₂ ^ n₂
+_^⁺-mono_ {zero}  _ _ = zero≤ _
+_^⁺-mono_ {suc _} p q = p ⁺^-mono q
+
+-- A natural number raised to a positive power is greater than or
+-- equal to the number.
+
+≤^+ : ∀ {m} n → m ≤ m ^ suc n
+≤^+ {m} n =
+  m          ≡⟨ sym ^-right-identity ⟩≤
+  m ^ 1      ≤⟨ ≤-refl {n = m} ^⁺-mono suc≤suc (zero≤ n) ⟩
+  m ^ suc n  ∎≤
+
+-- The result of _! is always positive.
+
+1≤! : ∀ n → 1 ≤ n !
+1≤! zero    = ≤-refl
+1≤! (suc n) =
+  1            ≡⟨⟩≤
+  1     * 1    ≤⟨ suc≤suc (zero≤ n) *-mono 1≤! n ⟩
+  suc n * n !  ≡⟨⟩≤
+  suc n !      ∎≤
+
+-- _! is monotone.
+
+infix 9 _!-mono
+
+_!-mono : ∀ {m n} → m ≤ n → m ! ≤ n !
+_!-mono {zero}  {n}     _ = 1≤! n
+_!-mono {suc m} {zero}  p = ⊥-elim (≮0 _ p)
+_!-mono {suc m} {suc n} p =
+  suc m * m !  ≤⟨ p *-mono suc≤suc⁻¹ p !-mono ⟩
+  suc n * n !  ∎≤
+
 -- An eliminator corresponding to well-founded induction.
 
 well-founded-elim :
