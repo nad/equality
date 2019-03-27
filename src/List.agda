@@ -152,6 +152,14 @@ length∘map :
   (length ∘ map f) xs ≡ length xs
 length∘map = foldr∘map _ _
 
+-- The length function is homomorphic with respect to _++_/_+_.
+
+length-++ :
+  ∀ {a} {A : Set a} xs {ys : List A} →
+  length (xs ++ ys) ≡ length xs + length ys
+length-++ []       = refl _
+length-++ (_ ∷ xs) = cong suc (length-++ xs)
+
 -- The functions filter and map commute (kind of).
 
 filter∘map :
