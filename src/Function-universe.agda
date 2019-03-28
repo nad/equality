@@ -3074,8 +3074,8 @@ suc≤suc↔ =
 
 Distinct↔≢ :
   ∀ {k m n} →
-  Extensionality? ⌊ k ⌋-sym lzero lzero →
-  Distinct m n ↝[ ⌊ k ⌋-sym ] m ≢ n
+  Extensionality? k lzero lzero →
+  Distinct m n ↝[ k ] m ≢ n
 Distinct↔≢ {m = m} {n} =
   generalise-ext? Distinct⇔≢ λ ext →
     from-isomorphism $
