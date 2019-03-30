@@ -331,10 +331,10 @@ Any-cong {P = P} {Q} {xs} {ys} P↔Q xs≈ys =
           xs₁ ∼[ k ] ys₁ → xs₂ ∼[ k ] ys₂ →
           xs₁ ++ xs₂ ∼[ k ] ys₁ ++ ys₂
 ++-cong {xs₁ = xs₁} {xs₂} {ys₁} {ys₂} xs₁∼ys₁ xs₂∼ys₂ = λ z →
-  z ∈ xs₁ ++ xs₂          ↔⟨ Any-++ _ xs₁ xs₂ ⟩
-  z ∈ xs₁ ⊎ z ∈ xs₂       ↝⟨ xs₁∼ys₁ z ⊎-cong xs₂∼ys₂ z ⟩
-  z ∈ ys₁ ⊎ z ∈ ys₂       ↔⟨ inverse (Any-++ _ ys₁ ys₂) ⟩
-  z ∈ ys₁ ++ ys₂          □
+  z ∈ xs₁ ++ xs₂     ↔⟨ Any-++ _ xs₁ xs₂ ⟩
+  z ∈ xs₁ ⊎ z ∈ xs₂  ↝⟨ xs₁∼ys₁ z ⊎-cong xs₂∼ys₂ z ⟩
+  z ∈ ys₁ ⊎ z ∈ ys₂  ↔⟨ inverse (Any-++ _ ys₁ ys₂) ⟩
+  z ∈ ys₁ ++ ys₂     □
 
 map-cong : ∀ {k a b} {A : Set a} {B : Set b}
            (f : A → B) {xs ys : List A} →
