@@ -259,7 +259,7 @@ mutual
 
   weaken-abs : ℕ → ℕ → Abs Term → Abs Term
   weaken-abs from by (abs s t) =
-    abs s (weaken-term (suc from) (suc by) t)
+    abs s (weaken-term (suc from) by t)
 
   weaken-arg : ℕ → ℕ → Arg Term → Arg Term
   weaken-arg from by (arg i t) = arg i (weaken-term from by t)
