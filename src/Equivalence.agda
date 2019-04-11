@@ -1509,20 +1509,6 @@ abstract
 ≃-preserves-bijections ext A₁↔A₂ B₁↔B₂ =
   _≃_.bijection $ ≃-preserves ext (↔⇒≃ A₁↔A₂) (↔⇒≃ B₁↔B₂)
 
--- Is-equivalence preserves equality, if we see _≃_ as a form of
--- equality (assuming extensionality).
-
-Is-equivalence-preserves :
-  ∀ {a b} {A : Set a} {B : Set b} {f g : A → B} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
-  (∀ x → f x ≡ g x) →
-  Is-equivalence f ≃ Is-equivalence g
-Is-equivalence-preserves ext f≡g =
-  _↠_.from (≃↠⇔ (propositional ext _) (propositional ext _)) (record
-    { to   = respects-extensional-equality f≡g
-    ; from = respects-extensional-equality (sym ⊚ f≡g)
-    })
-
 ------------------------------------------------------------------------
 -- Another property
 

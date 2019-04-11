@@ -14,7 +14,7 @@ open Derived-definitions-and-properties eq
 open import Embedding eq as Emb using (Is-embedding; Embedding)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
-open import Equivalence eq as Eq using (_≃_; module _≃_)
+open import Equivalence eq as Eq using (_≃_; module _≃_; Is-equivalence)
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
@@ -1404,6 +1404,24 @@ contractible↔≃⊤ ext = record
     ; from = λ ¬a → A  ↔⟨ inverse (Bijection.⊥↔uninhabited ¬a) ⟩□
                     ⊥  □
     })
+
+-- Is-equivalence preserves equality, if we see _≃_ as a form of
+-- equality (assuming extensionality).
+
+Is-equivalence-cong :
+  ∀ {k a b} {A : Set a} {B : Set b} {f g : A → B} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  (∀ x → f x ≡ g x) →
+  Is-equivalence f ↝[ k ] Is-equivalence g
+Is-equivalence-cong ext f≡g =
+  generalise-ext?-prop
+    (record
+       { to   = Eq.respects-extensional-equality f≡g
+       ; from = Eq.respects-extensional-equality (sym ⊚ f≡g)
+       })
+    (λ ext → Eq.propositional ext _)
+    (λ ext → Eq.propositional ext _)
+    ext
 
 ------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring
