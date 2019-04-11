@@ -59,6 +59,16 @@ replicate : ∀ {n a} {A : Set a} → A → Vec A n
 replicate {zero}  _ = []
 replicate {suc _} x = x ∷ replicate x
 
+-- The head of the vector.
+
+head : ∀ {n a} {A : Set a} → Vec A (suc n) → A
+head (x ∷ _) = x
+
+-- The tail of the vector.
+
+tail : ∀ {n a} {A : Set a} → Vec A (suc n) → Vec A n
+tail (_ ∷ xs) = xs
+
 ------------------------------------------------------------------------
 -- Conversions to and from lists
 
@@ -92,8 +102,8 @@ from-list (x ∷ xs) = x ∷ from-list xs
   to∘from []       = refl _
   to∘from (x ∷ xs) = cong (x ∷_) (to∘from xs)
 
-  tail : A → ∃ (Vec A) ↠ ∃ (Vec A)
-  tail y = record
+  tail′ : A → ∃ (Vec A) ↠ ∃ (Vec A)
+  tail′ y = record
     { logical-equivalence = record
       { to   = λ where
                  (suc n , _ ∷ xs) → n , xs
@@ -108,7 +118,7 @@ from-list (x ∷ xs) = x ∷ from-list xs
     (length (to-list xs) , from-list (to-list xs)) ≡ (n , xs)
   from∘to zero    []       = refl _
   from∘to (suc n) (x ∷ xs) =                                    $⟨ from∘to n xs ⟩
-    (length (to-list xs) , from-list (to-list xs)) ≡ (n , xs)   ↝⟨ _↠_.from $ ↠-≡ (tail x) ⟩□
+    (length (to-list xs) , from-list (to-list xs)) ≡ (n , xs)   ↝⟨ _↠_.from $ ↠-≡ (tail′ x) ⟩□
 
     (length (to-list (x ∷ xs)) , from-list (to-list (x ∷ xs)))
       ≡
