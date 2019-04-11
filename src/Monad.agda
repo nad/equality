@@ -25,14 +25,18 @@ record Raw-monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
   constructor mk
   infixl 6 _⟨$⟩_ _⊛_
   infixl 5 _>>=_ _>>_
+  infixr 5 _=<<_
   field
     return : ∀ {A} → A → M A
     _>>=_  : ∀ {A B} → M A → (A → M B) → M B
 
-  -- A variant of _>>=_.
+  -- Variants of _>>=_.
 
   _>>_ : ∀ {A B} → M A → M B → M B
   x >> y = x >>= const y
+
+  _=<<_ : ∀ {A B} → (A → M B) → M A → M B
+  _=<<_ = flip _>>=_
 
   -- A map function.
 
