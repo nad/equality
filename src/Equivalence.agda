@@ -884,6 +884,16 @@ inverse-involutive :
   inverse (inverse p) ≡ p
 inverse-involutive ext p = lift-equality ext (refl _)
 
+-- Inverse is a logical equivalence.
+
+inverse-logical-equivalence :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  A ≃ B ⇔ B ≃ A
+inverse-logical-equivalence = record
+  { to   = inverse
+  ; from = inverse
+  }
+
 -- Inverse is an isomorphism (assuming extensionality).
 --
 -- This property is more general than
@@ -896,11 +906,8 @@ inverse-isomorphism :
   A ≃ B ↔ B ≃ A
 inverse-isomorphism ext = record
   { surjection = record
-    { logical-equivalence = record
-      { to   = inverse
-      ; from = inverse
-      }
-    ; right-inverse-of = inverse-involutive ext
+    { logical-equivalence = inverse-logical-equivalence
+    ; right-inverse-of    = inverse-involutive ext
     }
   ; left-inverse-of = inverse-involutive ext
   }

@@ -1423,6 +1423,17 @@ Is-equivalence-cong ext f≡g =
     (λ ext → Eq.propositional ext _)
     ext
 
+-- _≃_ is commutative (assuming extensionality).
+
+≃-comm :
+  ∀ {k a b} {A : Set a} {B : Set b} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  A ≃ B ↝[ k ] B ≃ A
+≃-comm =
+  generalise-ext?
+    Eq.inverse-logical-equivalence
+    Eq.inverse-isomorphism
+
 ------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring
 
