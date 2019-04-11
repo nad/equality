@@ -174,6 +174,148 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
       (⇔-closure (lower-extensionality _ _ ext) 1 A-prop B-prop)
 
 ------------------------------------------------------------------------
+-- An alternative formulation of univalence
+
+-- First some supporting lemmas.
+
+-- A variant of a part of Theorem 5.8.2 from the HoTT book.
+
+flip-subst-is-equivalence↔∃-is-contractible :
+  ∀ {k a p} {A : Set a} {P : A → Set p} →
+  Extensionality? k (a ⊔ p) (a ⊔ p) →
+  {x : A} {p : P x} →
+  (∀ y → Is-equivalence (flip (subst P {y = y}) p))
+    ↝[ k ]
+  Contractible (∃ P)
+flip-subst-is-equivalence↔∃-is-contractible {p = p′} {P = P}
+                                            ext {x} {p} =
+  generalise-ext?-prop
+    lemma
+    (λ ext → Π-closure (lower-extensionality p′ lzero ext) 1 λ _ →
+             Eq.propositional ext _)
+    Contractible-propositional
+    ext
+  where
+  lemma :
+    (∀ y → Is-equivalence (flip (subst P {y = y}) p))
+      ⇔
+    Contractible (∃ P)
+  lemma = record
+    { to = λ eq →                         $⟨ other-singleton-contractible x ⟩
+        Contractible (Other-singleton x)  ↝⟨ id ⟩
+        Contractible (∃ (x ≡_))           ↝⟨ H-level.respects-surjection (∃-cong λ y → _≃_.surjection ⟨ _ , eq y ⟩) 0 ⟩□
+        Contractible (∃ P)                □
+    ; from = λ { ((y , q) , u) z →
+        _≃_.is-equivalence (↔⇒≃ (record
+          { surjection = record
+            { logical-equivalence = record
+              { from = λ r →
+                  x  ≡⟨ cong proj₁ $ sym $ u (x , p) ⟩
+                  y  ≡⟨ cong proj₁ $ u (z , r) ⟩∎
+                  z  ∎
+              }
+            ; right-inverse-of = λ r →
+                subst P (trans (cong proj₁ (sym (u (x , p))))
+                               (cong proj₁ (u (z , r)))) p         ≡⟨ sym $ subst-subst _ _ _ _ ⟩
+
+                subst P (cong proj₁ (u (z , r)))
+                  (subst P (cong proj₁ (sym (u (x , p)))) p)       ≡⟨ cong (subst P _) $ cong (λ p → subst P p _) $ sym $ proj₁-Σ-≡,≡←≡ _ ⟩
+
+                subst P (cong proj₁ (u (z , r)))
+                  (subst P (proj₁ (Σ-≡,≡←≡ (sym (u (x , p))))) p)  ≡⟨ cong (subst P _) $ proj₂ $ Σ-≡,≡←≡ (sym (u (x , p))) ⟩
+
+                subst P (cong proj₁ (u (z , r))) q                 ≡⟨ cong (λ p → subst P p _) $ sym $ proj₁-Σ-≡,≡←≡ _ ⟩
+
+                subst P (proj₁ (Σ-≡,≡←≡ (u (z , r)))) q            ≡⟨ proj₂ $ Σ-≡,≡←≡ (u (z , r)) ⟩∎
+
+                r                                                  ∎
+            }
+          ; left-inverse-of = elim¹
+              (λ {z} x≡z → trans (cong proj₁ (sym (u (x , p))))
+                                 (cong proj₁ (u (z , subst P x≡z p))) ≡
+                           x≡z)
+              (trans (cong proj₁ (sym (u (x , p))))
+                     (cong proj₁ (u (x , subst P (refl x) p)))  ≡⟨ cong₂ trans (cong-sym _ _)
+                                                                               (cong (λ p → cong proj₁ (u (x , p))) $ subst-refl _ _) ⟩
+               trans (sym (cong proj₁ (u (x , p))))
+                     (cong proj₁ (u (x , p)))                   ≡⟨ trans-symˡ _ ⟩∎
+
+               refl x                                           ∎)
+          })) }
+    }
+
+-- If f is an equivalence, then f ∘ sym is also an equivalence.
+
+∘-sym-preserves-equivalences :
+  ∀ {k a b} {A : Set a} {B : Set b} {x y : A} {f : x ≡ y → B} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  Is-equivalence f ↝[ k ] Is-equivalence (f ∘ sym)
+∘-sym-preserves-equivalences {A = A} {B} =
+  generalise-ext?-prop
+    (record { to = to; from = from })
+    (λ ext → Eq.propositional ext _)
+    (λ ext → Eq.propositional ext _)
+  where
+  to : {x y : A} {f : x ≡ y → B} →
+       Is-equivalence f → Is-equivalence (f ∘ sym)
+  to {x} {y} eq = _≃_.is-equivalence (↔⇒≃ (record
+    { surjection = record
+      { logical-equivalence = record
+        { from = sym ∘ _≃_.from x≡y≃B
+        }
+      ; right-inverse-of = λ z →
+          _≃_.to x≡y≃B (sym (sym (_≃_.from x≡y≃B z)))  ≡⟨ cong (_≃_.to x≡y≃B) $ sym-sym _ ⟩
+          _≃_.to x≡y≃B (_≃_.from x≡y≃B z)              ≡⟨ _≃_.right-inverse-of x≡y≃B _ ⟩∎
+          z                                            ∎
+      }
+    ; left-inverse-of = λ p →
+        sym (_≃_.from x≡y≃B (_≃_.to x≡y≃B (sym p)))  ≡⟨ cong sym $ _≃_.left-inverse-of x≡y≃B _ ⟩
+        sym (sym p)                                  ≡⟨ sym-sym _ ⟩∎
+        p                                            ∎
+    }))
+    where
+    x≡y≃B : (x ≡ y) ≃ B
+    x≡y≃B = ⟨ _ , eq ⟩
+
+  from : {x y : A} {f : x ≡ y → B} →
+         Is-equivalence (f ∘ sym) → Is-equivalence f
+  from {f = f} =
+    Is-equivalence (f ∘ sym)        ↝⟨ to ⟩
+    Is-equivalence (f ∘ sym ∘ sym)  ↝⟨ Is-equivalence-cong _ (λ _ → cong f $ sym-sym _) ⟩□
+    Is-equivalence f                □
+
+-- An alternative formulation of univalence, due to Martin Escardo
+-- (see the following post to the Homotopy Type Theory group from
+-- 2018-04-05:
+-- https://groups.google.com/forum/#!msg/homotopytypetheory/HfCB_b-PNEU/Ibb48LvUMeUJ).
+
+Other-univalence : ∀ ℓ → Set (lsuc ℓ)
+Other-univalence ℓ =
+  {B : Set ℓ} → Contractible (∃ λ (A : Set ℓ) → A ≃ B)
+
+-- Univalence and Other-univalence are pointwise isomorphic (assuming
+-- extensionality).
+
+Univalence↔Other-univalence :
+  ∀ {k ℓ} →
+  Extensionality? k (lsuc ℓ) (lsuc ℓ) →
+  Univalence ℓ ↝[ k ] Other-univalence ℓ
+Univalence↔Other-univalence {k} {ℓ} ext =
+  ({A B : Set ℓ} → Is-equivalence (≡⇒≃ {A = A} {B = B}))               ↔⟨ Bijection.implicit-Π↔Π ⟩
+  ((A {B} : Set ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B}))             ↝⟨ (∀-cong ext λ _ → from-bijection Bijection.implicit-Π↔Π) ⟩
+  ((A B : Set ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B}))               ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ∘-sym-preserves-equivalences ext) ⟩
+  ((A B : Set ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B} ∘ sym))         ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ B →
+                                                                           Is-equivalence-cong ext (λ B≡A →
+      ≡⇒≃ (sym B≡A)                                                          ≡⟨ ≡⇒↝-in-terms-of-subst-sym _ _ ⟩
+      subst (_≃ B) (sym (sym B≡A)) Eq.id                                     ≡⟨ cong (flip (subst _) _) $ sym-sym _ ⟩∎
+      subst (_≃ B) B≡A Eq.id                                                 ∎)) ⟩
+
+  ((A B : Set ℓ) → Is-equivalence (flip (subst (_≃ B) {y = A}) F.id))  ↔⟨ Π-comm ⟩
+  ((B A : Set ℓ) → Is-equivalence (flip (subst (_≃ B) {y = A}) F.id))  ↝⟨ (∀-cong ext λ _ → flip-subst-is-equivalence↔∃-is-contractible ext) ⟩
+  ((B : Set ℓ) → Contractible (∃ λ (A : Set ℓ) → A ≃ B))               ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
+  ({B : Set ℓ} → Contractible (∃ λ (A : Set ℓ) → A ≃ B))               □
+
+------------------------------------------------------------------------
 -- Some simple lemmas
 
 abstract
