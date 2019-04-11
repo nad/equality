@@ -975,12 +975,11 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
 
   helper : ∀ k₂ → (∀ x → B₁ x ↝[ k₂ ] B₂ (_≃_.to A₁≃A₂ x)) →
            Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
-  helper implication         = Eq.∃-preserves-functions            A₁≃A₂
-  helper logical-equivalence = Eq.∃-preserves-logical-equivalences A₁≃A₂
+  helper implication         = Eq.∃-preserves-functions            (from-equivalence A₁≃A₂)
+  helper logical-equivalence = Eq.∃-preserves-logical-equivalences (from-equivalence A₁≃A₂)
   helper injection           = Eq.∃-preserves-injections           A₁≃A₂
-  helper embedding           = Σ-preserves-embeddings
-                                 (from-equivalence A₁≃A₂)
-  helper surjection          = Eq.∃-preserves-surjections          A₁≃A₂
+  helper embedding           = Σ-preserves-embeddings              (from-equivalence A₁≃A₂)
+  helper surjection          = Eq.∃-preserves-surjections          (from-equivalence A₁≃A₂)
   helper bijection           = Eq.∃-preserves-bijections           A₁≃A₂
   helper equivalence         = Eq.Σ-preserves                      A₁≃A₂
 
