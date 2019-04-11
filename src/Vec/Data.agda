@@ -33,10 +33,9 @@ data Vec {a} (A : Set a) : ℕ → Set a where
 
 -- Finds the element at the given position.
 
-index : ∀ {n} {a} {A : Set a} → Fin n → Vec A n → A
-index ()       []
-index fzero    (x ∷ _)  = x
-index (fsuc i) (_ ∷ xs) = index i xs
+index : ∀ {n} {a} {A : Set a} → Vec A n → Fin n → A
+index (x ∷ _)  fzero    = x
+index (_ ∷ xs) (fsuc i) = index xs i
 
 -- Updates the element at the given position.
 

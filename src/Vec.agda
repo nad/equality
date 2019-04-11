@@ -31,10 +31,9 @@ Vec A (suc n) = A × Vec A n
 
 -- Finds the element at the given position.
 
-index : ∀ {n} {a} {A : Set a} → Fin n → Vec A n → A
-index {zero}  ()       _
-index {suc _} fzero    (x , _)  = x
-index {suc _} (fsuc i) (_ , xs) = index i xs
+index : ∀ {n} {a} {A : Set a} → Vec A n → Fin n → A
+index {suc _} (x , _)  fzero    = x
+index {suc _} (_ , xs) (fsuc i) = index xs i
 
 -- Updates the element at the given position.
 
