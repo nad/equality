@@ -12,7 +12,7 @@ module Equality.Decision-procedures
 open Derived-definitions-and-properties eq
 open import Equality.Decidable-UIP eq
 open import Prelude
-  hiding (module ⊤; module ⊥; module ℕ; module Σ; module List)
+  hiding (module ⊤; module ⊥; module ↑; module ℕ; module Σ; module List)
 
 ------------------------------------------------------------------------
 -- The unit type
@@ -37,6 +37,20 @@ module ⊥ {ℓ} where
 
   _≟_ : Decidable-equality (⊥ {ℓ = ℓ})
   () ≟ ()
+
+------------------------------------------------------------------------
+-- Lifting
+
+module ↑ {a ℓ} {A : Set a} where
+
+  -- ↑ preserves decidability of equality.
+
+  module Dec (dec : Decidable-equality A) where
+
+    infix 4 _≟_
+
+    _≟_ : Decidable-equality (↑ ℓ A)
+    lift x ≟ lift y = ⊎-map (cong lift) (_∘ cong lower) (dec x y)
 
 ------------------------------------------------------------------------
 -- Booleans

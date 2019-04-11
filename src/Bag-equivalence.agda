@@ -18,11 +18,12 @@ open import Equality.Decision-procedures equality-with-J
 open import Fin equality-with-J as Finite
 open import Function-universe equality-with-J as Function-universe
   hiding (_∘_; Kind; module Kind; bijection)
+open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import Injection equality-with-J using (_↣_)
 open import List equality-with-J
 open import Monad equality-with-J hiding (map)
-open import Nat equality-with-J
+open import Nat equality-with-J hiding (_≟_)
 
 ------------------------------------------------------------------------
 -- Any
@@ -373,6 +374,25 @@ filter-cong p xs ys xs∼ys = λ z →
 
 ------------------------------------------------------------------------
 -- More properties
+
+-- Any preserves decidability of equality.
+
+module Dec {a p} {A : Set a} {P : A → Set p}
+           (dec : ∀ {x} → Decidable-equality (P x)) where
+
+  infix 4 _≟_
+
+  _≟_ : ∀ {xs} → Decidable-equality (Any P xs)
+  _≟_ {xs = _ ∷ _} = ⊎.Dec._≟_ dec _≟_
+
+-- If the type of x is a set, then equality is decidable for x ∈ xs.
+
+module Dec-∈ {a} {A : Set a} (A-set : Is-set A) where
+
+  infix 4 _≟_
+
+  _≟_ : ∀ {x xs} → Decidable-equality (x ∈ xs)
+  _≟_ = Dec._≟_ λ _ _ → yes (_⇔_.to set⇔UIP A-set _ _)
 
 -- Bind distributes from the left over append.
 
