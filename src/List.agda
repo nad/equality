@@ -152,6 +152,38 @@ length∘map :
   (length ∘ map f) xs ≡ length xs
 length∘map = foldr∘map _ _
 
+-- A lemma relating index, map and length∘map.
+
+index∘map :
+  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} xs {i} →
+  index (map f xs) i ≡
+  f (index xs (subst Fin (length∘map f xs) i))
+index∘map {f = f} (x ∷ xs) {i} =
+  index (f x ∷ map f xs) i                                  ≡⟨ lemma i ⟩
+  f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p i))          ≡⟨⟩
+  f (index (x ∷ xs) (subst (Fin ∘ suc) p i))                ≡⟨ cong (f ∘ index _) (subst-∘ Fin suc p) ⟩
+  f (index (x ∷ xs) (subst Fin (cong suc p) i))             ≡⟨⟩
+  f (index (x ∷ xs) (subst Fin (length∘map f (x ∷ xs)) i))  ∎
+  where
+  p = length∘map f xs
+
+  lemma :
+    ∀ i →
+    index (f x ∷ map f xs) i ≡
+    f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p i))
+  lemma fzero =
+    index (f x ∷ map f xs) fzero                          ≡⟨⟩
+    f x                                                   ≡⟨⟩
+    f (index (x ∷ xs) fzero)                              ≡⟨⟩
+    f (index (x ∷ xs) (inj₁ (subst (λ _ → ⊤) p tt)))      ≡⟨ cong (f ∘ index _) $ sym $ push-subst-inj₁ {y≡z = p} _ _ ⟩∎
+    f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p fzero))  ∎
+  lemma (fsuc i) =
+    index (f x ∷ map f xs) (fsuc i)                          ≡⟨⟩
+    index (map f xs) i                                       ≡⟨ index∘map xs ⟩
+    f (index xs (subst Fin p i))                             ≡⟨⟩
+    f (index (x ∷ xs) (fsuc (subst Fin p i)))                ≡⟨ cong (f ∘ index _) $ sym $ push-subst-inj₂ {y≡z = p} _ _ ⟩∎
+    f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p (fsuc i)))  ∎
+
 -- The length function is homomorphic with respect to _++_/_+_.
 
 length-++ :
