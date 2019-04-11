@@ -433,6 +433,27 @@ abstract
      P-cong (≡⇒↝ _ (refl _))  ∎)
     eq
 
+  -- One can express ≡⇒↝ in terms of subst.
+
+  ≡⇒↝-in-terms-of-subst :
+    ∀ k {ℓ} {A B : Set ℓ} (A≡B : A ≡ B) →
+    ≡⇒↝ k A≡B ≡ subst (A ↝[ k ]_) A≡B id
+  ≡⇒↝-in-terms-of-subst k {B = B} = elim₁
+    (λ {A} A≡B → ≡⇒↝ k A≡B ≡ subst (A ↝[ k ]_) A≡B id)
+    (≡⇒↝ k (refl B)                 ≡⟨ ≡⇒↝-refl ⟩
+     id                             ≡⟨ sym $ subst-refl _ _ ⟩∎
+     subst (B ↝[ k ]_) (refl B) id  ∎)
+
+  ≡⇒↝-in-terms-of-subst-sym :
+    ∀ k {ℓ} {A B : Set ℓ} (A≡B : A ≡ B) →
+    ≡⇒↝ k A≡B ≡ subst (_↝[ k ] B) (sym A≡B) id
+  ≡⇒↝-in-terms-of-subst-sym k {B = B} = elim₁
+    (λ {A} A≡B → ≡⇒↝ k A≡B ≡ subst (_↝[ k ] B) (sym A≡B) id)
+    (≡⇒↝ k (refl B)                       ≡⟨ ≡⇒↝-refl ⟩
+     id                                   ≡⟨ sym $ subst-refl _ _ ⟩
+     subst (_↝[ k ] B) (refl B) id        ≡⟨ cong (flip (subst _) _) $ sym sym-refl ⟩∎
+     subst (_↝[ k ] B) (sym (refl B)) id  ∎)
+
   -- One can express subst in terms of ≡⇒↝.
 
   subst-in-terms-of-≡⇒↝ :
