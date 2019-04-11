@@ -2716,18 +2716,18 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
 -- H-level n preserves isomorphisms (assuming extensionality).
 
 H-level-cong :
-  ∀ {k a b} {A : Set a} {B : Set b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
-  ∀ n → A ↔[ k ] B → H-level n A ↔[ k ] H-level n B
+  ∀ {k₁ k₂ a b} {A : Set a} {B : Set b} →
+  Extensionality? k₂ (a ⊔ b) (a ⊔ b) →
+  ∀ n → A ↔[ k₁ ] B → H-level n A ↝[ k₂ ] H-level n B
 H-level-cong {a = a} {b} ext n A↔B′ =
-  from-equivalence $
-    _↔_.to (Eq.⇔↔≃ ext (H-level-propositional
-                          (lower-extensionality b b ext) n)
-                       (H-level-propositional
-                          (lower-extensionality a a ext) n)) (record
-      { to   = respects-surjection (_↔_.surjection          A↔B)  n
-      ; from = respects-surjection (_↔_.surjection (inverse A↔B)) n
-      })
+  generalise-ext?-prop
+    (record
+       { to   = respects-surjection (_↔_.surjection          A↔B)  n
+       ; from = respects-surjection (_↔_.surjection (inverse A↔B)) n
+       })
+    (λ ext → H-level-propositional (lower-extensionality b b ext) n)
+    (λ ext → H-level-propositional (lower-extensionality a a ext) n)
+    ext
   where
   A↔B = from-isomorphism A↔B′
 
