@@ -2343,21 +2343,28 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 -- Products of equivalences of equalities are isomorphic to equalities
 -- (assuming extensionality).
 
-Π≡≃≡-↔-≡ : ∀ {a} → Extensionality a a →
-           {A : Set a} (x y : A) →
-           (∀ z → (z ≡ x) ≃ (z ≡ y)) ↔ (x ≡ y)
-Π≡≃≡-↔-≡ ext x y = record
-  { surjection      = surj
-  ; left-inverse-of = from∘to
-  }
+Π≡≃≡-↔-≡ :
+  ∀ {k a} →
+  Extensionality? k a a →
+  {A : Set a} (x y : A) →
+  (∀ z → (z ≡ x) ≃ (z ≡ y)) ↝[ k ] (x ≡ y)
+Π≡≃≡-↔-≡ {a = a} ext x y =
+  generalise-ext? (_↠_.logical-equivalence surj)
+                  (λ ext → record
+                     { surjection      = surj
+                     ; left-inverse-of = from∘to ext
+                     })
+                  ext
   where
   surj = Π≡↔≡-↠-≡ equivalence x y
 
   open _↠_ surj
 
   abstract
-    from∘to : ∀ f → from (to f) ≡ f
-    from∘to f =
+    from∘to :
+      Extensionality a a →
+      ∀ f → from (to f) ≡ f
+    from∘to ext f =
       apply-ext ext λ z → Eq.lift-equality ext $ apply-ext ext λ z≡x →
         trans z≡x (_≃_.to (f x) (refl x))  ≡⟨ elim (λ {u v} u≡v →
                                                       (f : ∀ z → (z ≡ v) ≃ (z ≡ y)) →
