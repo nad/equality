@@ -342,7 +342,7 @@ lower-extensionality? k with extensionality? k
 ... | without-extensionality _ = _
 ... | with-extensionality    _ = lower-extensionality
 
--- A function that can be used to generalise results.
+-- Some functions that can be used to generalise results.
 
 generalise-ext? :
   ∀ {a b c d} {A : Set a} {B : Set b} →
@@ -354,6 +354,18 @@ generalise-ext? f⇔ f↔ {k} with extensionality? k
 ... | without-extensionality logical-equivalence = λ _ → f⇔
 ... | with-extensionality    _                   = λ ext →
   from-isomorphism (f↔ ext)
+
+generalise-ext?-prop :
+  ∀ {a b c d} {A : Set a} {B : Set b} →
+  A ⇔ B →
+  (Extensionality c d → Is-proposition A) →
+  (Extensionality c d → Is-proposition B) →
+  ∀ {k} → Extensionality? k c d → A ↝[ k ] B
+generalise-ext?-prop f⇔ A-prop B-prop =
+  generalise-ext?
+    f⇔
+    (λ ext → _≃_.bijection $
+               _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
 
 -- General results of the kind produced by generalise-ext? are
 -- symmetric.
