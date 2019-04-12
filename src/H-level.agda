@@ -114,8 +114,8 @@ abstract
 
   -- Being a set is logically equivalent to having unique identity
   -- proofs. Note that this means that, assuming that Agda is
-  -- consistent, I cannot prove (inside Agda) that there is any type
-  -- whose minimal h-level is at least three.
+  -- consistent, I cannot prove (inside non-cubical Agda) that there
+  -- is any type whose minimal h-level is at least three.
 
   set⇔UIP : ∀ {a} {A : Set a} →
             Is-set A ⇔ Uniqueness-of-identity-proofs A
