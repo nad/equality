@@ -22,11 +22,12 @@ open import Prelude
 
 all-equality-types-isomorphic :
   ∀ {refl₁ refl₂}
-  (eq₁ : ∀ {a p} → Equality-with-J a p refl₁)
-  (eq₂ : ∀ {a p} → Equality-with-J a p refl₂) →
-  let open Bijection eq₁ in
+  (eq₁ : ∀ {a p} → Equality-with-J₀ a p refl₁)
+  (eq₂ : ∀ {a p} → Equality-with-J₀ a p refl₂) →
+  let open Bijection (J₀⇒J eq₁) in
   ∀ {a} {A : Set a} {x y : A} →
-  Reflexive-relation′._≡_ refl₁ x y ↔ Reflexive-relation′._≡_ refl₂ x y
+  Reflexive-relation′._≡_ refl₁ x y ↔
+  Reflexive-relation′._≡_ refl₂ x y
 all-equality-types-isomorphic {refl₁} {refl₂} eq₁ eq₂ = record
   { surjection = record
     { logical-equivalence = record
@@ -39,16 +40,17 @@ all-equality-types-isomorphic {refl₁} {refl₂} eq₁ eq₂ = record
   }
   where
   open Reflexive-relation′
-  open Equality-with-J′ hiding (_≡_; refl)
+  open module E {refl} (eq : ∀ {a p} → Equality-with-J₀ a p refl) =
+    Equality-with-J′ (J₀⇒J eq) hiding (_≡_; refl)
 
-  to : ∀ {refl₁} refl₂ (eq₁ : ∀ {a p} → Equality-with-J a p refl₁)
+  to : ∀ {refl₁} refl₂ (eq₁ : ∀ {a p} → Equality-with-J₀ a p refl₁)
        {a} {A : Set a} {x y : A} →
        _≡_ refl₁ x y → _≡_ refl₂ x y
   to refl₂ eq₁ {x = x} x≡y = subst eq₁ (_≡_ refl₂ x) x≡y (refl refl₂ x)
 
   to∘to : ∀ refl₁ refl₂
-          (eq₁ : ∀ {a p} → Equality-with-J a p refl₁)
-          (eq₂ : ∀ {a p} → Equality-with-J a p refl₂) →
+          (eq₁ : ∀ {a p} → Equality-with-J₀ a p refl₁)
+          (eq₂ : ∀ {a p} → Equality-with-J₀ a p refl₂) →
           ∀ {a} {A : Set a} {x y : A} (x≡y : _≡_ refl₁ x y) →
           _≡_ refl₁ (to refl₁ eq₂ (to refl₂ eq₁ x≡y)) x≡y
   to∘to refl₁ refl₂ eq₁ eq₂ = elim eq₁
@@ -57,11 +59,11 @@ all-equality-types-isomorphic {refl₁} {refl₂} eq₁ eq₂ = record
            to refl₁ eq₂ (refl refl₂ x)                 ≡⟨ to refl₁ eq₂ $ subst-refl eq₂ (_≡_ refl₁ x) (refl refl₁ x) ⟩∎
            refl refl₁ x                                ∎)
     where
-    open Derived-definitions-and-properties eq₁
+    open Derived-definitions-and-properties (J₀⇒J eq₁)
       using (step-≡; finally)
 
-module _ {reflexive}
-         (eq : ∀ {a p} → Equality-with-J a p reflexive)
+module _ {congruence⁺}
+         (eq : ∀ {a p} → Equality-with-J a p congruence⁺)
          where
 
   open Bijection eq hiding (id; _∘_; inverse; step-↔)
@@ -72,21 +74,22 @@ module _ {reflexive}
 
   abstract
 
-    -- The type Equality-with-J a p reflexive is contractible (given
-    -- the assumptions in the telescope above, and assuming
-    -- extensionality). A slight variant of this observation came up
-    -- in a discussion between Thierry Coquand, Simon Huber and
-    -- Nicolai Kraus. The proof is based on one due to Nicolai Kraus.
+    -- The type Equality-with-J₀ a p reflexive-relation is
+    -- contractible (given the assumptions in the telescope above, and
+    -- assuming extensionality). A slight variant of this observation
+    -- came up in a discussion between Thierry Coquand, Simon Huber
+    -- and Nicolai Kraus. The proof is based on one due to Nicolai
+    -- Kraus.
 
     Equality-with-J-contractible :
       ∀ {a p} →
       Extensionality (lsuc (a ⊔ p)) (a ⊔ lsuc p) →
-      Contractible (Equality-with-J a p reflexive)
-    Equality-with-J-contractible {a} {p} ext =                     $⟨ contr ⟩
+      Contractible (Equality-with-J₀ a p (λ _ → reflexive-relation))
+    Equality-with-J-contractible {a} {p} ext =                        $⟨ contr ⟩
       Contractible ((A : Set a) (P : I A → Set p)
-                    (d : ∀ x → P (x , x , refl x)) → Singleton d)  ↝⟨ H-level.respects-surjection eq surj 0 ⟩
+                    (d : ∀ x → P (x , x , refl x)) → Singleton d)     ↝⟨ H-level.respects-surjection eq surj 0 ⟩
 
-      Contractible (Equality-with-J a p reflexive)                 □
+      Contractible (Equality-with-J₀ a p (λ _ → reflexive-relation))  □
       where
       I : Set a → Set a
       I A = ∃ λ (x : A) → ∃ λ (y : A) → x ≡ y
@@ -102,7 +105,7 @@ module _ {reflexive}
               let x , y , x≡y = q in
               cong (x ,_) $
                 Σ-≡,≡→≡ x≡y
-                        (subst (x ≡_) x≡y (refl x)  ≡⟨⟩
+                        (subst (x ≡_) x≡y (refl x)  ≡⟨ sym trans-subst ⟩
                          trans (refl x) x≡y         ≡⟨ trans-reflˡ x≡y ⟩∎
                          x≡y                        ∎)
           }
@@ -164,14 +167,14 @@ module _ {reflexive}
                                                                                             ; elim-refl = λ P r → Jβ _ (P ∘ proj₂ ∘ proj₂) r _
                                                                                             }
                                                                                  ; from = λ eq →
-                                                                                       (λ A P d q → Equality-with-J.elim eq
+                                                                                       (λ A P d q → Equality-with-J₀.elim eq
                                                                                                       (λ x≡y → P (_ , _ , x≡y)) d (proj₂ (proj₂ q)))
-                                                                                     , (λ A P d x → Equality-with-J.elim-refl eq
+                                                                                     , (λ A P d x → Equality-with-J₀.elim-refl eq
                                                                                                       (λ x≡y → P (_ , _ , x≡y)) d)
                                                                                  }
                                                                                ; right-inverse-of = refl
                                                                                } ⟩□
-        Equality-with-J a p reflexive                                     □
+        Equality-with-J₀ a p (λ _ → reflexive-relation)                   □
 
   private
 

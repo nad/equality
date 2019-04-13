@@ -37,9 +37,15 @@ reflexive-relation : ∀ ℓ → Reflexive-relation ℓ
 Reflexive-relation._≡_  (reflexive-relation _) = _≡_
 Reflexive-relation.refl (reflexive-relation _) = refl′
 
-equality-with-J : ∀ {a p} → Equality-with-J a p reflexive-relation
-Equality-with-J.elim      equality-with-J = elim
-Equality-with-J.elim-refl equality-with-J = elim-refl
+equality-with-J₀ : ∀ {a p} → Equality-with-J₀ a p reflexive-relation
+Equality-with-J₀.elim      equality-with-J₀ = elim
+Equality-with-J₀.elim-refl equality-with-J₀ = elim-refl
 
-open Derived-definitions-and-properties equality-with-J public
-  hiding (_≡_; refl)
+congruence⁺ : ∀ ℓ → Congruence⁺ ℓ
+congruence⁺ _ = J₀⇒Congruence⁺ equality-with-J₀
+
+equality-with-J : ∀ {a p} → Equality-with-J a p congruence⁺
+equality-with-J = J₀⇒J equality-with-J₀
+
+open Derived-definitions-and-properties (J₀⇒J equality-with-J₀) public
+  hiding (_≡_; refl; reflexive-relation; equality-with-J₀)

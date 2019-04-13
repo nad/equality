@@ -117,7 +117,7 @@ module Reflexive-relation′
 
 -- Parametrised by a reflexive relation.
 
-record Equality-with-J
+record Equality-with-J₀
          a p (reflexive : ∀ ℓ → Reflexive-relation ℓ) :
          Set (lsuc (a ⊔ p)) where
 
@@ -137,42 +137,230 @@ record Equality-with-J
                 (r : ∀ x → P (refl x)) {x} →
                 elim P r (refl x) ≡ r x
 
--- Some derived properties.
+-- Extended variants of Reflexive-relation and Equality-with-J₀ with
+-- some extra fields. These fields can be derived from
+-- Equality-with-J₀ (see J₀⇒Congruence and J₀⇒J below), but those
+-- derived definitions may not have the intended computational
+-- behaviour (in particular, not when the paths of Cubical Agda are
+-- used).
 
-module Equality-with-J′
-  {reflexive : ∀ ℓ → Reflexive-relation ℓ}
-  (eq : ∀ {a p} → Equality-with-J a p reflexive)
-  where
+-- A variant of Reflexive-relation: congruences with some extra
+-- structure.
+
+record Congruence⁺ a : Set (lsuc a) where
+  field
+    reflexive-relation : Reflexive-relation a
+
+  open Reflexive-relation reflexive-relation
+
+  field
+
+    -- Symmetry.
+
+    sym      : {A : Set a} {x y : A} → x ≡ y → y ≡ x
+    sym-refl : {A : Set a} {x : A} → sym (refl x) ≡ refl x
+
+    -- Transitivity.
+
+    trans           : {A : Set a} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+    trans-refl-refl : {A : Set a} {x : A} →
+                      trans (refl x) (refl x) ≡ refl x
+
+    -- The relation is compatible with all non-dependent functions
+    -- between types in Set a. (The letter h stands for "homogeneous",
+    -- as opposed to a more general variant that would allow functions
+    -- between types in different universes.)
+
+    hcong      : {A B : Set a} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+    hcong-refl : {A B : Set a} (f : A → B) {x : A} →
+                 hcong f (refl x) ≡ refl (f x)
+
+-- A variant of Equality-with-J₀.
+
+record Equality-with-J
+         a b (congruence : ∀ ℓ → Congruence⁺ ℓ) :
+         Set (lsuc (a ⊔ b)) where
 
   private
-    open Reflexive-relation′ reflexive public
-    open module E {a p} = Equality-with-J (eq {a} {p}) public
+    open module R  {ℓ} = Congruence⁺ (congruence ℓ)
+    open module R₀ {ℓ} = Reflexive-relation (reflexive-relation {ℓ})
 
-  -- Congruence.
+  field
+    equality-with-J₀ : Equality-with-J₀ a b (λ _ → reflexive-relation)
 
-  cong : ∀ {a b} {A : Set a} {B : Set b}
+  open Equality-with-J₀ equality-with-J₀
+
+  field
+
+    -- Congruence.
+
+    cong      : {A : Set a} {B : Set b}
+                (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+    cong-refl : {A : Set a} {B : Set b} (f : A → B) {x : A} →
+                cong f (refl x) ≡ refl (f x)
+
+    -- Substitutivity.
+
+    subst :         {A : Set a} (P : A → Set b) {x y : A} →
+                    x ≡ y → P x → P y
+    subst-refl≡id : ∀ {A : Set a} (P : A → Set b) {x} →
+                    subst P (refl x) ≡ id
+
+    -- A dependent variant of cong.
+    --
+    -- (Below hcong is used instead of cong because using cong would
+    -- lead to a universe level mismatch.)
+
+    dependent-cong :
+      ∀ {A : Set a} {B : A → Set b}
+      (f : (x : A) → B x) {x y} (x≡y : x ≡ y) →
+      subst B x≡y (f x) ≡ f y
+    dependent-cong-refl-hcong :
+      ∀ {A : Set a} {B : A → Set b} (f : (x : A) → B x) {x} →
+      dependent-cong f (refl x) ≡ hcong (_$ f x) (subst-refl≡id B)
+
+-- Congruence⁺ can be derived from Equality-with-J₀.
+
+J₀⇒Congruence⁺ :
+  ∀ {ℓ reflexive} →
+  Equality-with-J₀ ℓ ℓ reflexive →
+  Congruence⁺ ℓ
+J₀⇒Congruence⁺ {ℓ} {r} eq = record
+  { reflexive-relation = r ℓ
+  ; sym                = sym
+  ; sym-refl           = sym-refl
+  ; trans              = trans
+  ; trans-refl-refl    = trans-refl-refl
+  ; hcong              = hcong
+  ; hcong-refl         = hcong-refl
+  }
+  where
+  open Reflexive-relation (r ℓ)
+  open Equality-with-J₀ eq
+
+  hcong : {A B : Set ℓ} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
+  hcong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
+
+  abstract
+
+    hcong-refl : {A B : Set ℓ} (f : A → B) {x : A} →
+                 hcong f (refl x) ≡ refl (f x)
+    hcong-refl f = elim-refl (λ {u v} _ → f u ≡ f v) (refl ∘ f)
+
+  subst : {A : Set ℓ} (P : A → Set ℓ) {x y : A} →
+          x ≡ y → P x → P y
+  subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
+
+  subst-refl : ∀ {A : Set ℓ} (P : A → Set ℓ) {x} (p : P x) →
+               subst P (refl x) p ≡ p
+  subst-refl P p =
+    hcong (_$ p) $ elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
+
+  sym : {A : Set ℓ} {x y : A} → x ≡ y → y ≡ x
+  sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
+
+  abstract
+
+    sym-refl : {A : Set ℓ} {x : A} → sym (refl x) ≡ refl x
+    sym-refl {x = x} =
+      hcong (λ f → f (refl x)) $
+        subst-refl (λ z → x ≡ z → z ≡ x) id
+
+  trans : {A : Set ℓ} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  trans {x = x} = flip (subst (x ≡_))
+
+  abstract
+
+    trans-refl-refl : {A : Set ℓ} {x : A} →
+                      trans (refl x) (refl x) ≡ refl x
+    trans-refl-refl {x = x} = subst-refl (x ≡_) (refl x)
+
+-- Equality-with-J (for arbitrary universe levels) can be derived from
+-- Equality-with-J₀ (for arbitrary universe levels).
+
+J₀⇒J :
+  ∀ {reflexive} →
+  (eq : ∀ {a p} → Equality-with-J₀ a p reflexive) →
+  ∀ {a p} → Equality-with-J a p (λ _ → J₀⇒Congruence⁺ eq)
+J₀⇒J {r} eq {a} {b} = record
+  { equality-with-J₀          = eq
+  ; cong                      = cong
+  ; cong-refl                 = cong-refl
+  ; subst                     = subst
+  ; subst-refl≡id             = subst-refl≡id
+  ; dependent-cong            = dependent-cong
+  ; dependent-cong-refl-hcong = dependent-cong-refl
+  }
+  where
+  open module R {ℓ}     = Reflexive-relation (r ℓ)
+  open module E {a} {b} = Equality-with-J₀ (eq {a} {b})
+
+  cong : ∀ {a} {A : Set a} {B : Set b}
          (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
   cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
 
   abstract
 
-    -- "Evaluation rule" for cong.
-
-    cong-refl : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) {x : A} →
+    cong-refl : {A : Set a} {B : Set b} (f : A → B) {x : A} →
                 cong f (refl x) ≡ refl (f x)
     cong-refl f = elim-refl (λ {u v} _ → f u ≡ f v) (refl ∘ f)
+
+  subst : {A : Set a} (P : A → Set b) {x y : A} →
+          x ≡ y → P x → P y
+  subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
+
+  subst-refl≡id : ∀ {A : Set a} (P : A → Set b) {x} →
+                  subst P (refl x) ≡ id
+  subst-refl≡id P = elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
+
+  subst-refl : ∀ {A : Set a} (P : A → Set b) {x} p →
+               subst P (refl x) p ≡ p
+  subst-refl P p = cong (_$ p) (subst-refl≡id P)
+
+  dependent-cong :
+    ∀ {A : Set a} {B : A → Set b}
+    (f : (x : A) → B x) {x y} (x≡y : x ≡ y) →
+    subst B x≡y (f x) ≡ f y
+  dependent-cong {A} {B} f x≡y = elim
+    (λ {x y} (x≡y : x ≡ y) → (f : (x : A) → B x) →
+       subst B x≡y (f x) ≡ f y)
+    (λ f y → subst-refl _ _)
+    x≡y
+    f
+
+  abstract
+
+    dependent-cong-refl :
+      ∀ {A : Set a} {B : A → Set b}
+      (f : (x : A) → B x) {x} →
+      dependent-cong f (refl x) ≡
+      subst-refl B (f x)
+    dependent-cong-refl f = cong (_$ f) $ elim-refl _ _
+
+-- Some derived properties.
+
+module Equality-with-J′
+  {congruence : ∀ ℓ → Congruence⁺ ℓ}
+  (eq : ∀ {a p} → Equality-with-J a p congruence)
+  where
+
+  private
+    open module Eq {ℓ}   = Congruence⁺ (congruence ℓ) public
+    open module E  {a b} = Equality-with-J (eq {a} {b}) public
+                             hiding (subst; subst-refl≡id)
+    open module E₀ {a p} = Equality-with-J₀ (equality-with-J₀ {a} {p})
+                             public
+  open Reflexive-relation′ (λ ℓ → reflexive-relation {ℓ}) public
 
   -- Substitutivity.
 
   subst : ∀ {a p} {A : Set a} (P : A → Set p) {x y : A} →
           x ≡ y → P x → P y
-  subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
-
-  -- "Evaluation rules" for subst.
+  subst = E.subst
 
   subst-refl≡id : ∀ {a p} {A : Set a} (P : A → Set p) {x} →
                   subst P (refl x) ≡ id
-  subst-refl≡id P = elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
+  subst-refl≡id = E.subst-refl≡id
 
   subst-refl : ∀ {a p} {A : Set a} (P : A → Set p) {x} (p : P x) →
                subst P (refl x) p ≡ p
@@ -236,8 +424,8 @@ record Equality-with-substitutivity-and-contractibility
 
 module Equality-with-substitutivity-and-contractibility′
   {reflexive : ∀ ℓ → Reflexive-relation ℓ}
-  (eq :  ∀ {a p} → Equality-with-substitutivity-and-contractibility
-                     a p reflexive)
+  (eq : ∀ {a p} → Equality-with-substitutivity-and-contractibility
+                    a p reflexive)
   where
 
   private
@@ -285,6 +473,77 @@ module Equality-with-substitutivity-and-contractibility′
                       trans (refl x) (refl x) ≡ refl x
     trans-refl-refl {x = x} = subst-refl (_≡_ x) (refl x)
 
+  abstract
+
+    -- The J rule.
+
+    elim : ∀ {a p} {A : Set a} (P : {x y : A} → x ≡ y → Set p) →
+           (∀ x → P (refl x)) →
+           ∀ {x y} (x≡y : x ≡ y) → P x≡y
+    elim P p {x} {y} x≡y =
+      let lemma = proj₂ (singleton-contractible y) in
+      subst (P ∘ proj₂)
+            (trans (sym (lemma (y , refl y))) (lemma (x , x≡y)))
+            (p y)
+
+    -- Transitivity and symmetry sometimes cancel each other out.
+
+    trans-sym : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
+                trans (sym x≡y) x≡y ≡ refl y
+    trans-sym =
+      elim (λ {x y} (x≡y : x ≡ y) → trans (sym x≡y) x≡y ≡ refl y)
+           (λ _ → trans (cong (λ p → trans p _) sym-refl)
+                        trans-refl-refl)
+
+    -- "Evaluation rule" for elim.
+
+    elim-refl : ∀ {a p} {A : Set a} (P : {x y : A} → x ≡ y → Set p)
+                (p : ∀ x → P (refl x)) {x} →
+                elim P p (refl x) ≡ p x
+    elim-refl _ _ {x} =
+      let lemma = proj₂ (singleton-contractible x) (x , refl x) in
+      trans (cong (λ q → subst _ q _) (trans-sym lemma))
+            (subst-refl _ _)
+
+------------------------------------------------------------------------
+-- The two abstract definitions are logically equivalent
+
+J⇒subst+contr :
+  ∀ {reflexive} →
+  (∀ {a p} → Equality-with-J₀ a p reflexive) →
+  ∀ {a p} → Equality-with-substitutivity-and-contractibility
+              a p reflexive
+J⇒subst+contr eq = record
+  { subst                  = subst
+  ; subst-refl             = subst-refl
+  ; singleton-contractible = singleton-contractible
+  }
+  where open Equality-with-J′ (J₀⇒J eq)
+
+subst+contr⇒J :
+  ∀ {reflexive} →
+  (∀ {a p} → Equality-with-substitutivity-and-contractibility
+               a p reflexive) →
+  ∀ {a p} → Equality-with-J₀ a p reflexive
+subst+contr⇒J eq = record
+  { elim      = elim
+  ; elim-refl = elim-refl
+  }
+  where open Equality-with-substitutivity-and-contractibility′ eq
+
+------------------------------------------------------------------------
+-- Some derived definitions and properties
+
+module Derived-definitions-and-properties
+  {congruence}
+  (eq : ∀ {a p} → Equality-with-J a p congruence)
+  where
+
+  -- This module reexports most of the definitions and properties
+  -- introduced above.
+
+  open Equality-with-J′ eq public
+
   -- Equational reasoning combinators.
 
   infix  -1 finally _∎
@@ -313,89 +572,6 @@ module Equality-with-substitutivity-and-contractibility′
   finally _ _ x≡y = x≡y
 
   syntax finally x y x≡y = x ≡⟨ x≡y ⟩∎ y ∎
-
-  abstract
-
-    -- The J rule.
-
-    elim : ∀ {a p} {A : Set a} (P : {x y : A} → x ≡ y → Set p) →
-           (∀ x → P (refl x)) →
-           ∀ {x y} (x≡y : x ≡ y) → P x≡y
-    elim P p {x} {y} x≡y =
-      let lemma = proj₂ (singleton-contractible y) in
-      subst {A = Singleton y}
-            (P ∘ proj₂)
-            ((y , refl y)                      ≡⟨ sym (lemma (y , refl y)) ⟩
-             proj₁ (singleton-contractible y)  ≡⟨ lemma (x , x≡y) ⟩∎
-             (x , x≡y)                         ∎)
-            (p y)
-
-    -- Transitivity and symmetry sometimes cancel each other out.
-
-    trans-sym : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
-                trans (sym x≡y) x≡y ≡ refl y
-    trans-sym =
-      elim (λ {x y} (x≡y : x ≡ y) → trans (sym x≡y) x≡y ≡ refl y)
-           (λ x → trans (sym (refl x)) (refl x)  ≡⟨ cong (λ p → trans p (refl x)) sym-refl ⟩
-                  trans (refl x) (refl x)        ≡⟨ trans-refl-refl ⟩∎
-                  refl x                         ∎)
-
-    -- "Evaluation rule" for elim.
-
-    elim-refl : ∀ {a p} {A : Set a} (P : {x y : A} → x ≡ y → Set p)
-                (p : ∀ x → P (refl x)) {x} →
-                elim P p (refl x) ≡ p x
-    elim-refl P p {x} =
-      let lemma = proj₂ (singleton-contractible x) (x , refl x) in
-      subst {A = Singleton x} (P ∘ proj₂) (trans (sym lemma) lemma) (p x)  ≡⟨ cong (λ q → subst {A = Singleton x} (P ∘ proj₂) q (p x))
-                                                                                   (trans-sym lemma) ⟩
-      subst {A = Singleton x} (P ∘ proj₂) (refl (x , refl x))       (p x)  ≡⟨ subst-refl {A = Singleton x} (P ∘ proj₂) (p x) ⟩∎
-      p x                                                                  ∎
-
-------------------------------------------------------------------------
--- The two abstract definitions are logically equivalent
-
-J⇒subst+contr :
-  ∀ {reflexive} →
-  (∀ {a p} → Equality-with-J a p reflexive) →
-  ∀ {a p} → Equality-with-substitutivity-and-contractibility
-              a p reflexive
-J⇒subst+contr eq = record
-  { subst                  = subst
-  ; subst-refl             = subst-refl
-  ; singleton-contractible = singleton-contractible
-  }
-  where open Equality-with-J′ eq
-
-subst+contr⇒J :
-  ∀ {reflexive} →
-  (∀ {a p} → Equality-with-substitutivity-and-contractibility
-               a p reflexive) →
-  ∀ {a p} → Equality-with-J a p reflexive
-subst+contr⇒J eq = record
-  { elim      = elim
-  ; elim-refl = elim-refl
-  }
-  where open Equality-with-substitutivity-and-contractibility′ eq
-
-------------------------------------------------------------------------
--- Some derived definitions and properties
-
-module Derived-definitions-and-properties
-  {reflexive}
-  (eq : ∀ {a p} → Equality-with-J a p reflexive)
-  where
-
-  -- This module reexports most of the definitions and properties
-  -- introduced above.
-
-  open Equality-with-J′ eq public
-  open Equality-with-substitutivity-and-contractibility′
-         (J⇒subst+contr eq) public
-    using ( sym; sym-refl
-          ; trans; trans-refl-refl
-          ; _∎; step-≡; _≡⟨⟩_; finally
-          )
 
   -- A minor variant of Christine Paulin-Mohring's version of the J
   -- rule.
@@ -482,7 +658,31 @@ module Derived-definitions-and-properties
       subst {A = Other-singleton x} (P ∘ proj₂) (refl (x , refl x)) p  ≡⟨ subst-refl {A = Other-singleton x} (P ∘ proj₂) p ⟩∎
       p                                                                ∎
 
-  -- A generalisation of dependent-cong (which is defined below).
+    -- The homogeneous variant of cong is pointwise equal to cong.
+
+    hcong-cong :
+      ∀ {ℓ} {A B : Set ℓ} {f : A → B} {x y : A} {x≡y : x ≡ y} →
+      hcong f x≡y ≡ cong f x≡y
+    hcong-cong {f = f} = elim
+      (λ x≡y → hcong f x≡y ≡ cong f x≡y)
+      (λ x →
+         hcong f (refl x)  ≡⟨ hcong-refl _ ⟩
+         refl (f x)        ≡⟨ sym $ cong-refl _ ⟩∎
+         cong f (refl x)   ∎)
+      _
+
+    -- "Evaluation rule" for dependent-cong.
+
+    dependent-cong-refl :
+      ∀ {a b} {A : Set a} {B : A → Set b} (f : (x : A) → B x) {x} →
+      dependent-cong f (refl x) ≡ subst-refl B (f x)
+    dependent-cong-refl {B = B} f {x} =
+      dependent-cong f (refl x)         ≡⟨ dependent-cong-refl-hcong _ ⟩
+      hcong (_$ f x) (subst-refl≡id B)  ≡⟨ hcong-cong ⟩
+      cong (_$ f x) (subst-refl≡id B)   ≡⟨⟩
+      subst-refl B (f x)                ∎
+
+  -- A generalisation of dependent-cong.
 
   dependent-cong′ :
     ∀ {a b} {A : Set a} {B : A → Set b} {x y}
@@ -505,23 +705,6 @@ module Derived-definitions-and-properties
       (f : (x : A) → x ≡ y → B x) →
       dependent-cong′ f (refl y) ≡ subst-refl B (f y (refl y))
     dependent-cong′-refl f = cong (_$ f) $ elim₁-refl _ _
-
-  -- A dependent variant of cong.
-
-  dependent-cong :
-    ∀ {a b} {A : Set a} {B : A → Set b}
-    (f : (x : A) → B x) {x y} (x≡y : x ≡ y) →
-    subst B x≡y (f x) ≡ f y
-  dependent-cong f = dependent-cong′ (const ∘ f)
-
-  abstract
-
-    -- "Evaluation rule" for dependent-cong.
-
-    dependent-cong-refl :
-      ∀ {a b} {A : Set a} {B : A → Set b} (f : (x : A) → B x) {x} →
-      dependent-cong f (refl x) ≡ subst-refl B (f x)
-    dependent-cong-refl _ = dependent-cong′-refl _
 
   -- Binary congruence.
 
@@ -795,11 +978,70 @@ module Derived-definitions-and-properties
 
   abstract
 
+    -- One can express sym in terms of subst.
+
+    sym-subst :
+      ∀ {a} {A : Set a} {x y : A} {x≡y : x ≡ y} →
+      sym x≡y ≡ subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
+    sym-subst = elim
+      (λ {x} x≡y → sym x≡y ≡ subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y)
+      (λ x →
+         sym (refl x)                                      ≡⟨ sym-refl ⟩
+         refl x                                            ≡⟨ cong (_$ refl x) $ sym $ subst-refl _ _ ⟩∎
+         subst (λ z → x ≡ z → z ≡ x) (refl x) id (refl x)  ∎)
+      _
+
+    -- One can express trans in terms of subst (in several ways).
+
+    trans-subst :
+      ∀ {a} {A : Set a} {x y z : A} {x≡y : x ≡ y} {y≡z : y ≡ z} →
+      trans x≡y y≡z ≡ subst (x ≡_) y≡z x≡y
+    trans-subst {z = z} = elim
+      (λ {x y} x≡y → (y≡z : y ≡ z) → trans x≡y y≡z ≡ subst (x ≡_) y≡z x≡y)
+      (λ y → elim
+         (λ {y} y≡z → trans (refl y) y≡z ≡ subst (y ≡_) y≡z (refl y))
+         (λ x →
+            trans (refl x) (refl x)         ≡⟨ trans-refl-refl ⟩
+            refl x                          ≡⟨ sym $ subst-refl _ _ ⟩∎
+            subst (x ≡_) (refl x) (refl x)  ∎))
+      _
+      _
+
+    subst-trans :
+      ∀ {a} {A : Set a} {x y z : A} (x≡y : x ≡ y) {y≡z : y ≡ z} →
+      subst (_≡ z) (sym x≡y) y≡z ≡ trans x≡y y≡z
+    subst-trans {y = y} {z} x≡y {y≡z} =
+      elim₁ (λ x≡y → subst (λ x → x ≡ z) (sym x≡y) y≡z ≡
+                     trans x≡y y≡z)
+            (subst (λ x → x ≡ z) (sym (refl y)) y≡z  ≡⟨ cong (λ eq → subst (λ x → x ≡ z) eq y≡z) sym-refl ⟩
+             subst (λ x → x ≡ z) (refl y) y≡z        ≡⟨ subst-refl (λ x → x ≡ z) y≡z ⟩
+             y≡z                                     ≡⟨ sym $ trans-reflˡ y≡z ⟩∎
+             trans (refl y) y≡z                      ∎)
+            x≡y
+
+    -- One can express subst in terms of elim.
+
+    subst-elim :
+      ∀ {a p} {A : Set a} {P : A → Set p} {x y} {x≡y : x ≡ y} →
+      subst P x≡y ≡ elim (λ {u v} _ → P u → P v) (λ _ → id) x≡y
+    subst-elim {P = P} = elim
+      (λ x≡y → subst P x≡y ≡ elim (λ {u v} _ → P u → P v) (λ _ → id) x≡y)
+      (λ x →
+         subst P (refl x)                                  ≡⟨ subst-refl≡id _ ⟩
+         id                                                ≡⟨ sym $ elim-refl _ _ ⟩∎
+         elim (λ {u v} _ → P u → P v) (λ _ → id) (refl x)  ∎)
+      _
+
     subst-∘ : ∀ {a b p} {A : Set a} {B : Set b} {x y : A}
               (P : B → Set p) (f : A → B) (x≡y : x ≡ y) {p : P (f x)} →
               subst (P ∘ f) x≡y p ≡ subst P (cong f x≡y) p
-    subst-∘ P f _ =
-      sym $ cong (λ g → g _) $ elim-cong (λ u v → P u → P v) f _
+    subst-∘ P f _ {p} = elim¹
+      (λ x≡y → subst (P ∘ f) x≡y p ≡ subst P (cong f x≡y) p)
+      (subst (P ∘ f) (refl _) p     ≡⟨ subst-refl _ _ ⟩
+       p                            ≡⟨ sym $ subst-refl _ _ ⟩
+       subst P (refl _) p           ≡⟨ cong (flip (subst _) _) $ sym $ cong-refl _ ⟩∎
+       subst P (cong f (refl _)) p  ∎)
+      _
 
     subst-↑ : ∀ {a p ℓ} {A : Set a} {x y}
               (P : A → Set p) {p : ↑ ℓ (P x)} {x≡y : x ≡ y} →
@@ -850,21 +1092,6 @@ module Derived-definitions-and-properties
                                                                              elim-refl _ _ ⟩∎
       cong₂ (flip (subst P)) (subst-refl P p) (sym trans-refl-refl)  ∎
 
-    -- The combinator trans is defined in terms of subst. It could
-    -- have been defined in another way.
-
-    subst-trans :
-      ∀ {a} {A : Set a} {x y z : A} (x≡y : x ≡ y) {y≡z : y ≡ z} →
-      subst (λ x → x ≡ z) (sym x≡y) y≡z ≡ trans x≡y y≡z
-    subst-trans {y = y} {z} x≡y {y≡z} =
-      elim₁ (λ x≡y → subst (λ x → x ≡ z) (sym x≡y) y≡z ≡
-                     trans x≡y y≡z)
-            (subst (λ x → x ≡ z) (sym (refl y)) y≡z  ≡⟨ cong (λ eq → subst (λ x → x ≡ z) eq y≡z) sym-refl ⟩
-             subst (λ x → x ≡ z) (refl y) y≡z        ≡⟨ subst-refl (λ x → x ≡ z) y≡z ⟩
-             y≡z                                     ≡⟨ sym $ trans-reflˡ y≡z ⟩∎
-             trans (refl y) y≡z                      ∎)
-            x≡y
-
     -- Substitutivity and symmetry sometimes cancel each other out.
 
     subst-subst-sym :
@@ -891,7 +1118,11 @@ module Derived-definitions-and-properties
     trans-[trans-sym]- : ∀ {a} {A : Set a} {a b c : A} →
                          (a≡b : a ≡ b) (c≡b : c ≡ b) →
                          trans (trans a≡b (sym c≡b)) c≡b ≡ a≡b
-    trans-[trans-sym]- a≡b c≡b = subst-subst-sym (_≡_ _) c≡b a≡b
+    trans-[trans-sym]- a≡b c≡b =
+      trans (trans a≡b (sym c≡b)) c≡b                ≡⟨ trans-subst ⟩
+      subst (_ ≡_) c≡b (trans a≡b (sym c≡b))         ≡⟨ cong (subst _ _) trans-subst ⟩
+      subst (_ ≡_) c≡b (subst (_ ≡_) (sym c≡b) a≡b)  ≡⟨ subst-subst-sym _ _ _ ⟩∎
+      a≡b                                            ∎
 
     trans-[trans]-sym : ∀ {a} {A : Set a} {a b c : A} →
                         (a≡b : a ≡ b) (b≡c : b ≡ c) →
