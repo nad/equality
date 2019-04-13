@@ -877,6 +877,15 @@ module Derived-definitions-and-properties
       subst P (refl y) p                 ≡⟨ subst-refl P p ⟩∎
       p                                  ∎
 
+    subst-sym-subst :
+      ∀ {a p} {A : Set a} (P : A → Set p) {x y : A}
+      {x≡y : x ≡ y} {p : P x} →
+      subst P (sym x≡y) (subst P x≡y p) ≡ p
+    subst-sym-subst P {x} {x≡y = x≡y} {p = p} =
+      subst P (sym x≡y) (subst P x≡y p)              ≡⟨ cong (λ q → subst P (sym x≡y) (subst P q _)) $ sym $ sym-sym _ ⟩
+      subst P (sym x≡y) (subst P (sym (sym x≡y)) p)  ≡⟨ subst-subst-sym _ _ _ ⟩∎
+      p                                              ∎
+
     -- Some corollaries and variants.
 
     trans-[trans-sym]- : ∀ {a} {A : Set a} {a b c : A} →
