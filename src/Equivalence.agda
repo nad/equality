@@ -186,12 +186,12 @@ record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   open _↔_ bijection public
     hiding (from; to; right-inverse-of; left-inverse-of)
 
+  -- All preimages of an element under the equivalence are equal.
+
+  irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
+  irrelevance y = proj₂ (is-equivalence y)
+
   abstract
-
-    -- All preimages of an element under the equivalence are equal.
-
-    irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-    irrelevance y = proj₂ (is-equivalence y)
 
     -- The two proofs left-inverse-of and right-inverse-of are
     -- related.

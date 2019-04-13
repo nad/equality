@@ -7,7 +7,7 @@
 -- the individual files.
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe --sized-types #-}
+{-# OPTIONS --cubical --safe --sized-types #-}
 
 module README where
 
@@ -21,12 +21,16 @@ import Logical-equivalence
 
 -- Two logically equivalent axiomatisations of equality. Many of the
 -- modules below are parametrised by a definition of equality that
--- satisfies these axioms. The reason for this parametrisation is that
--- I might later want to use a definition of equality where the
--- application elim P r (refl x) does not compute to r x, unlike the
--- equality in Equality.Propositional. (Equality.Tactic also contains
--- a definition of equality which, roughly speaking, computes in this
--- way.)
+-- satisfies these axioms.
+--
+-- The reason for this parametrisation was that I thought that I might
+-- later want to use a definition of equality where the application
+-- elim P r (refl x) did not compute to r x, unlike the equality in
+-- Equality.Propositional. Now, with the advent of cubical type theory
+-- and paths, there is such an equality (see Equality.Path).
+--
+-- (Note that Equality.Tactic contains a definition of equality which,
+-- roughly speaking, computes like the one in Equality.Propositional.)
 
 import Equality
 
@@ -132,6 +136,10 @@ import Double-negation
 -- The univalence axiom.
 
 import Univalence-axiom
+
+-- Paths, extensionality and univalence.
+
+import Equality.Path
 
 -- Truncation.
 
