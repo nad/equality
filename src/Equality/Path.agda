@@ -103,12 +103,13 @@ fill P {φ} u u₀ i =
 -- Filling for transport.
 
 transport-fill :
+  (A : Set ℓ)
   (φ : I)
-  (P : (i : I) → Set p [ φ ↦ (λ _ → A) ])
+  (P : (i : I) → Set ℓ [ φ ↦ (λ _ → A) ])
   (u₀ : outˢ (P 0̲)) →
   [ (λ i → outˢ (P i)) ]
     u₀ ≡ transport (λ i → outˢ (P i)) φ u₀
-transport-fill φ P u₀ i =
+transport-fill _ φ P u₀ i =
   transport (λ j → outˢ (P (min i j))) (max (- i) φ) u₀
 
 ------------------------------------------------------------------------
