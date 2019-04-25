@@ -30,12 +30,12 @@ private
 open import Agda.Primitive.Cubical public
   using (I; Partial; PartialP)
   renaming (i0 to 0̲; i1 to 1̲;
-            IsOne to Is-one; itIsOne to 1̲-is-one;
-            primINeg to -̲_; primIMin to _⊓̲_; primIMax to _⊔̲_;
+            IsOne to Is-one; itIsOne to is-one;
+            primINeg to -_; primIMin to min; primIMax to max;
             primHComp to hcomp; primTransp to transport)
 
 open import Agda.Builtin.Cubical.Sub public
-  renaming (Sub to _[_↦_]; inc to as-sub; primSubOut to forget-sub)
+  renaming (Sub to _[_↦_]; inc to inˢ; primSubOut to outˢ)
 
 ------------------------------------------------------------------------
 -- Equality
@@ -67,25 +67,25 @@ comp :
   P 0̲ [ φ ↦ u 0̲ ] → P 1̲
 comp P {φ = φ} u u₀ =
   hcomp (λ i → λ { (φ = 1̲) →
-           transport (λ j → P (i ⊔̲ j)) i (u i 1̲-is-one) })
-        (transport P 0̲ (forget-sub u₀))
+           transport (λ j → P (max i j)) i (u i is-one) })
+        (transport P 0̲ (outˢ u₀))
 
 -- Filling for homogenous composition.
 
 hfill :
   {φ : I} (u : I → Partial φ A) (u₀ : A [ φ ↦ u 0̲ ]) →
-  forget-sub u₀ ≡ hcomp u (forget-sub u₀)
+  outˢ u₀ ≡ hcomp u (outˢ u₀)
 hfill {φ = φ} u u₀ = λ i →
-  hcomp (λ j → λ { (φ = 1̲) → u (i ⊓̲ j) 1̲-is-one
-                 ; (i = 0̲) → forget-sub u₀
+  hcomp (λ j → λ { (φ = 1̲) → u (min i j) is-one
+                 ; (i = 0̲) → outˢ u₀
                  })
-        (forget-sub u₀)
+        (outˢ u₀)
 
 -- Filling for heterogeneous composition.
 --
 -- Note that if p had been a constant level, then the final line of
 -- the type signature could have been replaced by
--- [ P ] forget-sub u₀ ≡ comp P u u₀.
+-- [ P ] outˢ u₀ ≡ comp P u u₀.
 
 fill :
   {p : I → Level}
@@ -94,22 +94,22 @@ fill :
   (u₀ : P 0̲ [ φ ↦ u 0̲ ]) →
   ∀ i → P i
 fill P {φ} u u₀ i =
-  comp (λ j → P (i ⊓̲ j))
-       (λ j → λ { (φ = 1̲) → u (i ⊓̲ j) 1̲-is-one
-                ; (i = 0̲) → forget-sub u₀
+  comp (λ j → P (min i j))
+       (λ j → λ { (φ = 1̲) → u (min i j) is-one
+                ; (i = 0̲) → outˢ u₀
                 })
-       (as-sub (forget-sub u₀))
+       (inˢ (outˢ u₀))
 
 -- Filling for transport.
 
 transport-fill :
   (φ : I)
   (P : (i : I) → Set p [ φ ↦ (λ _ → A) ])
-  (u₀ : forget-sub (P 0̲)) →
-  [ (λ i → forget-sub (P i)) ]
-    u₀ ≡ transport (λ i → forget-sub (P i)) φ u₀
+  (u₀ : outˢ (P 0̲)) →
+  [ (λ i → outˢ (P i)) ]
+    u₀ ≡ transport (λ i → outˢ (P i)) φ u₀
 transport-fill φ P u₀ i =
-  transport (λ j → forget-sub (P (i ⊓̲ j))) (-̲ i ⊔̲ φ) u₀
+  transport (λ j → outˢ (P (min i j))) (max (- i) φ) u₀
 
 ------------------------------------------------------------------------
 -- Path equality satisfies the axioms of Equality-with-J
@@ -128,8 +128,8 @@ Reflexive-relation.refl (reflexive-relation _) = λ _ → refl
 -- Symmetry.
 
 hsym : ∀ {P : I → Set p} {x y} →
-       [ P ] x ≡ y → [ (λ i → P (-̲ i)) ] y ≡ x
-hsym x≡y = λ i → x≡y (-̲ i)
+       [ P ] x ≡ y → [ (λ i → P (- i)) ] y ≡ x
+hsym x≡y = λ i → x≡y (- i)
 
 -- Transitivity.
 --
@@ -157,8 +157,8 @@ htransʳ-reflʳ {x = x} {y = y} x≡y = λ i j →
   hfill (λ { _ (j = 0̲) → x
            ; _ (j = 1̲) → y
            })
-        (as-sub (x≡y j))
-        (-̲ i)
+        (inˢ (x≡y j))
+        (- i)
 
 htransˡ-reflˡ :
   ∀ {P : I → Set p} {x y}
@@ -195,7 +195,7 @@ elim :
   (∀ x → P (refl {x = x})) →
   ∀ {x y} (x≡y : x ≡ y) → P x≡y
 elim P p {x} x≡y =
-  transport (λ i → P (λ j → x≡y (i ⊓̲ j))) 0̲ (p x)
+  transport (λ i → P (λ j → x≡y (min i j))) 0̲ (p x)
 
 -- Substitutivity.
 
@@ -224,7 +224,7 @@ dependent-cong :
   ∀ (f : (x : A) → B x) {x y} (x≡y : x ≡ y) →
   subst B x≡y (f x) ≡ f y
 dependent-cong {B = B} f {x} {y} x≡y = λ i →
-  transport (λ j → B (x≡y (i ⊔̲ j))) i (f (x≡y i))
+  transport (λ j → B (x≡y (max i j))) i (f (x≡y i))
 
 -- Transporting along reflexivity amounts to doing nothing.
 --
@@ -232,7 +232,7 @@ dependent-cong {B = B} f {x} {y} x≡y = λ i →
 -- by Anders Mörtberg.
 
 transport-refl : ∀ i → transport (λ i → refl {x = A} i) i ≡ id
-transport-refl {A = A} i = λ j → transport (λ _ → A) (i ⊔̲ j)
+transport-refl {A = A} i = λ j → transport (λ _ → A) (max i j)
 
 -- A family of instantiations of Congruence⁺.
 
@@ -286,8 +286,8 @@ heterogeneous⇔homogeneous :
   ∀ (P : I → Set p) {p q} →
   ([ P ] p ≡ q) ⇔ transport P 0̲ p ≡ q
 heterogeneous⇔homogeneous P {p} {q} = record
-  { to   = λ p≡q i → transport (λ j → P (i ⊔̲ j)) i (p≡q i)
-  ; from = λ p≡q → htransʳ (λ i → transport (λ j → P (i ⊓̲ j)) (-̲ i) p)
+  { to   = λ p≡q i → transport (λ j → P (max i j)) i (p≡q i)
+  ; from = λ p≡q → htransʳ (λ i → transport (λ j → P (min i j)) (- i) p)
                            p≡q
   }
 
@@ -313,7 +313,7 @@ ext-is-equivalence f≡g =
     )
   , λ { (f≡g′ , ⟨ext⟩f≡g′≡f≡g) i →
           (λ x → cong (_$ x) (sym ⟨ext⟩f≡g′≡f≡g i))
-        , (λ j → ⟨ext⟩f≡g′≡f≡g (-̲ i ⊔̲ j))
+        , (λ j → ⟨ext⟩f≡g′≡f≡g (max (- i) j))
       }
 
 private
@@ -416,7 +416,7 @@ private
 
 ≃⇒≡-id : ≃⇒≡ Eq.id ≡ refl {x = A}
 ≃⇒≡-id {A = A} = λ i j → primGlue A
-  {φ = i ⊔̲ j ⊔̲ -̲ j}
+  {φ = max i (max j (- j))}
   (λ _ → A)
   (λ _ → ≃⇒≃ Eq.id)
 
@@ -468,13 +468,13 @@ private
     { to             = prim^unglue {φ = φ}
     ; is-equivalence = λ x →
           ( prim^glue (λ p → _≃_.from (f′ p) x) (hcomp (lemma₁ x) x)
-          , (hcomp (lemma₁ x) x  ≡⟨ sym $ hfill (lemma₁ x) (as-sub x) ⟩∎
+          , (hcomp (lemma₁ x) x  ≡⟨ sym $ hfill (lemma₁ x) (inˢ x) ⟩∎
              x                   ∎)
           )
         , λ y i →
-              prim^glue (λ { (φ = 1̲) → proj₁ (lemma₂ 1̲-is-one y i) })
+              prim^glue (λ { (φ = 1̲) → proj₁ (lemma₂ is-one y i) })
                         (hcomp (lemma₃ y i) x)
-            , (hcomp (lemma₃ y i) x  ≡⟨ sym $ hfill (lemma₃ y i) (as-sub x) ⟩∎
+            , (hcomp (lemma₃ y i) x  ≡⟨ sym $ hfill (lemma₃ y i) (inˢ x) ⟩∎
                x                     ∎)
     }
     where
@@ -483,7 +483,7 @@ private
 
     lemma₁ : A → ∀ i → Partial φ A
     lemma₁ x i (φ = 1̲) = (
-      x                                  ≡⟨ sym (_≃_.right-inverse-of (f′ 1̲-is-one) x) ⟩∎
+      x                                  ≡⟨ sym (_≃_.right-inverse-of (f′ is-one) x) ⟩∎
       _≃_.to (f′ _) (_≃_.from (f′ _) x)  ∎) i
 
     lemma₂ : ∀ {x} p (y : _≃_.to (f′ p) ⁻¹ x) →
@@ -491,9 +491,9 @@ private
     lemma₂ {x} p = _≃_.irrelevance (f′ p) x
 
     lemma₃ : ∀ {x} → prim^unglue {e = f} ⁻¹ x →
-             ∀ i → I → Partial (φ ⊔̲ i ⊔̲ -̲ i) A
-    lemma₃     y i j (φ = 1̲) = sym (proj₂ (lemma₂ 1̲-is-one y i)) j
-    lemma₃ {x} _ i j (i = 0̲) = hfill (lemma₁ x) (as-sub x) j
+             ∀ i → I → Partial (max φ (max i (- i))) A
+    lemma₃     y i j (φ = 1̲) = sym (proj₂ (lemma₂ is-one y i)) j
+    lemma₃ {x} _ i j (i = 0̲) = hfill (lemma₁ x) (inˢ x) j
     lemma₃     y i j (i = 1̲) = sym (proj₂ y) j
 
 -- An alternative formulation of univalence.
@@ -502,12 +502,12 @@ other-univ : Other-univalence ℓ
 other-univ {ℓ = ℓ} {B = B} =
     (B , Eq.id)
   , λ { (A , A≃B) i →
-          let C : ∀ i → Partial (i ⊔̲ -̲ i) (Set ℓ)
+          let C : ∀ i → Partial (max i (- i)) (Set ℓ)
               C = λ { i (i = 0̲) → B
                     ; i (i = 1̲) → A
                     }
 
-              f : ∀ i → PartialP (i ⊔̲ -̲ i) (λ j → C i j Glue.≃ B)
+              f : ∀ i → PartialP (max i (- i)) (λ j → C i j Glue.≃ B)
               f = λ { i (i = 0̲) → ≃⇒≃ Eq.id
                     ; i (i = 1̲) → ≃⇒≃ A≃B
                     }
