@@ -33,7 +33,8 @@ open import Agda.Primitive.Cubical public
   renaming (i0 to 0̲; i1 to 1̲;
             IsOne to Is-one; itIsOne to is-one;
             primINeg to -_; primIMin to min; primIMax to max;
-            primHComp to hcomp; primTransp to transport)
+            primComp to comp; primHComp to hcomp;
+            primTransp to transport)
 
 open import Agda.Builtin.Cubical.Sub public
   renaming (Sub to _[_↦_]; inc to inˢ; primSubOut to outˢ)
@@ -53,23 +54,10 @@ infix 4 [_]_≡_
 [_]_≡_ = Agda.Builtin.Cubical.Path.PathP
 
 ------------------------------------------------------------------------
--- Some derived operations
+-- Filling
 
 -- The code in this section is based on code in the cubical library
 -- written by Anders Mörtberg.
-
--- Heterogeneous composition.
-
-comp :
-  {p : I → Level}
-  (P : ∀ i → Set (p i))
-  {φ : I}
-  (u : ∀ i → Partial φ (P i)) →
-  P 0̲ [ φ ↦ u 0̲ ] → P 1̲
-comp P {φ = φ} u u₀ =
-  hcomp (λ i → λ { (φ = 1̲) →
-           transport (λ j → P (max i j)) i (u i is-one) })
-        (transport P 0̲ (outˢ u₀))
 
 -- Filling for homogenous composition.
 
@@ -96,10 +84,11 @@ fill :
   ∀ i → P i
 fill P {φ} u u₀ i =
   comp (λ j → P (min i j))
+       _
        (λ j → λ { (φ = 1̲) → u (min i j) is-one
                 ; (i = 0̲) → outˢ u₀
                 })
-       (inˢ (outˢ u₀))
+       (outˢ u₀)
 
 -- Filling for transport.
 
@@ -371,12 +360,13 @@ heterogeneous↔homogeneous P {p} {q} = record
     htransʳ p≡p′ (to p≡q) ≡ p≡q
   left-inverse-of p≡q = λ j i →
     comp (λ k → P (min i (max (- j) k)))
+         _
          (λ k → λ { (i = 0̲) → p
                   ; (i = 1̲) → to≡id p≡q j k
                   ; (j = 0̲) → p≡p′≡htransʳ-p≡p′-to p≡q k i
                   ; (j = 1̲) → refl≡ p≡q k i
                   })
-         (inˢ (p≡p′≡refl j i))
+         (p≡p′≡refl j i)
 
   -- Here is the open box used for to-p≡p′≡refl below:
   --
@@ -397,12 +387,13 @@ heterogeneous↔homogeneous P {p} {q} = record
   to-p≡p′≡refl : to p≡p′ ≡ refl
   to-p≡p′≡refl = λ j i →
     comp (λ k → P (max (min i (- j)) k))
+         _
          (λ k → λ { (i = 0̲) → p≡p′ k
                   ; (i = 1̲) → hsym (refl≡ (hsym p≡p′)) k j
                   ; (j = 0̲) → hsym (to≡id p≡p′) k i
                   ; (j = 1̲) → p≡p′ k
                   })
-         (inˢ (p≡p′≡refl j i))
+         (p≡p′≡refl j i)
 
 ------------------------------------------------------------------------
 -- Extensionality
