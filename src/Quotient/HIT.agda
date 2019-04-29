@@ -28,6 +28,14 @@ import Quotient equality-with-J as Quotient
 open import Surjection equality-with-J using (_↠_)
 open import Univalence-axiom equality-with-J
 
+private
+  variable
+    a a₁ a₂ p r r₁ r₂ : Level
+    k                 : Isomorphism-kind
+    A B               : Set a
+    P Q R             : A → A → Proposition r
+    x y               : A
+
 ------------------------------------------------------------------------
 -- Quotients
 
@@ -40,22 +48,22 @@ open import Univalence-axiom equality-with-J
 infix 5 _/_
 
 postulate
-  _/_ : ∀ {a r} (A : Set a) → (A → A → Proposition r) → Set (a ⊔ r)
+  _/_ : (A : Set a) → (A → A → Proposition r) → Set (a ⊔ r)
 
-module _ {a r} {A : Set a} {R : A → A → Proposition r} where
+module _ {R : A → A → Proposition r} where
 
   postulate
 
     -- Constructors.
 
     [_]                  : A → A / R
-    []-respects-relation : ∀ {x y} → proj₁ (R x y) → [ x ] ≡ [ y ]
+    []-respects-relation : proj₁ (R x y) → [ x ] ≡ [ y ]
     /-is-set             : Is-set (A / R)
 
     -- Eliminator.
 
     elim :
-      ∀ {p} (P : A / R → Set p) →
+      (P : A / R → Set p) →
       (p-[] : ∀ x → P [ x ]) →
       (∀ {x y} (r : proj₁ (R x y)) →
        subst P ([]-respects-relation r) (p-[] x) ≡ p-[] y) →
@@ -68,8 +76,7 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
 -- rewriting has not been activated for the "computation" rule
 -- corresponding to []-respects-relation.
 
-module _ {a r p}
-         {A : Set a} {R : A → A → Proposition r} {P : A / R → Set p}
+module _ {P : A / R → Set p}
          {p-[] : ∀ x → P [ x ]}
          {p-[]-respects-relation :
             ∀ {x y} (r : proj₁ (R x y)) →
@@ -89,7 +96,7 @@ module _ {a r p}
 
   postulate
     elim-[]-respects-relation :
-      ∀ {x y} (r : proj₁ (R x y)) →
+      (r : proj₁ (R x y)) →
       dependent-cong (elim P p-[] p-[]-respects-relation is-set)
                      ([]-respects-relation r) ≡
       p-[]-respects-relation r
@@ -97,7 +104,7 @@ module _ {a r p}
 -- A non-dependent eliminator.
 
 rec :
-  ∀ {a r p} {A : Set a} {R : A → A → Proposition r} {P : Set p}
+  {P : Set p}
   (f : A → P) →
   (∀ {x y} → proj₁ (R x y) → f x ≡ f y) →
   Is-set P →
@@ -117,7 +124,6 @@ rec {P = P} f resp P-set = elim
 -- I took the idea for this eliminator from Nicolai Kraus.
 
 elim-Prop :
-  ∀ {a r} {A : Set a} {R : A → A → Proposition r} {p}
   (P : A / R → Set p) →
   (p-[] : ∀ x → P [ x ]) →
   (∀ x → Is-proposition (P [ x ])) →
@@ -135,7 +141,7 @@ elim-Prop P p-[] P-prop = elim
 -- A variant of rec that can be used if the motive is a proposition.
 
 rec-Prop :
-  ∀ {a r} {A : Set a} {R : A → A → Proposition r} {p} {P : Set p} →
+  {P : Set p} →
   (A → P) →
   Is-proposition P →
   A / R → P
@@ -147,7 +153,7 @@ rec-Prop p-[] P-prop = elim-Prop (const _) p-[] (const P-prop)
 -- The definition of an equivalence relation.
 
 Is-equivalence-relation :
-  ∀ {a r} {A : Set a} (R : A → A → Proposition r) → Set (a ⊔ r)
+  {A : Set a} (R : A → A → Proposition r) → Set (a ⊔ r)
 Is-equivalence-relation R =
   Quotient.Is-equivalence-relation (λ x y → proj₁ (R x y))
 
@@ -155,14 +161,13 @@ open Quotient public using (module Is-equivalence-relation)
 
 -- A trivial, propositional binary relation.
 
-Trivial : ∀ {a r} {A : Set a} → A → A → Proposition r
+Trivial : A → A → Proposition r
 Trivial _ _ = ↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible)
 
 -- This relation is an equivalence relation.
 
 Trivial-is-equivalence-relation :
-  ∀ {a r} {A : Set a} →
-  Is-equivalence-relation (Trivial {r = r} {A = A})
+  Is-equivalence-relation (Trivial {A = A} {r = r})
 Trivial-is-equivalence-relation = _
 
 ------------------------------------------------------------------------
@@ -176,7 +181,7 @@ Trivial-is-equivalence-relation = _
 infix 0 _→ᴾ_
 
 _→ᴾ_ :
-  ∀ {a b r} (A : Set a) {B : Set b} →
+  (A : Set a) →
   (B → B → Proposition r) →
   ((A → B) → (A → B) → Proposition (a ⊔ r))
 (_ →ᴾ R) f g =
@@ -187,7 +192,6 @@ _→ᴾ_ :
 -- _→ᴾ_ preserves equivalence relations.
 
 →ᴾ-preserves-Is-equivalence-relation :
-  ∀ {a b r} {A : Set a} {B : Set b} {R : B → B → Proposition r} →
   Is-equivalence-relation R →
   Is-equivalence-relation (A →ᴾ R)
 →ᴾ-preserves-Is-equivalence-relation R-equiv = record
@@ -203,7 +207,6 @@ _→ᴾ_ :
 infixr 1 _⊎ᴾ_
 
 _⊎ᴾ_ :
-  ∀ {a b r} {A : Set a} {B : Set b} →
   (A → A → Proposition r) →
   (B → B → Proposition r) →
   (A ⊎ B → A ⊎ B → Proposition r)
@@ -214,8 +217,6 @@ _⊎ᴾ_ :
 -- _⊎ᴾ_ preserves Is-equivalence-relation.
 
 ⊎ᴾ-preserves-Is-equivalence-relation :
-  ∀ {a b r} {A : Set a} {B : Set b}
-    {P : A → A → Proposition r} {Q : B → B → Proposition r} →
   Is-equivalence-relation P →
   Is-equivalence-relation Q →
   Is-equivalence-relation (P ⊎ᴾ Q)
@@ -244,7 +245,6 @@ _⊎ᴾ_ :
 -- Lifts a binary, propositional relation from A to Maybe A.
 
 Maybeᴾ :
-  ∀ {a r} {A : Set a} →
   (A → A → Proposition r) →
   (Maybe A → Maybe A → Proposition r)
 Maybeᴾ R = Trivial ⊎ᴾ R
@@ -252,7 +252,6 @@ Maybeᴾ R = Trivial ⊎ᴾ R
 -- Maybeᴾ preserves Is-equivalence-relation.
 
 Maybeᴾ-preserves-Is-equivalence-relation :
-  ∀ {a r} {A : Set a} {R : A → A → Proposition r} →
   Is-equivalence-relation R →
   Is-equivalence-relation (Maybeᴾ R)
 Maybeᴾ-preserves-Is-equivalence-relation =
@@ -261,59 +260,57 @@ Maybeᴾ-preserves-Is-equivalence-relation =
 ------------------------------------------------------------------------
 -- Some properties
 
-module _ {a r} {A : Set a} {R : A → A → Proposition r} where
+-- [_] is surjective.
 
-  -- [_] is surjective.
+[]-surjective : Surjective ([_] {R = R})
+[]-surjective = elim-Prop
+  _
+  (λ x → ∣ x , refl ∣)
+  (λ _ → truncation-is-proposition)
 
-  []-surjective : Surjective ([_] {R = R})
-  []-surjective = elim-Prop
-    _
-    (λ x → ∣ x , refl ∣)
-    (λ _ → truncation-is-proposition)
+-- If the relation is an equivalence relation, then it is equivalent
+-- to equality under [_].
+--
+-- The basic structure of this proof is that of Proposition 2 in
+-- "Quotienting the Delay Monad by Weak Bisimilarity" by Chapman,
+-- Uustalu and Veltri.
 
-  -- If the relation is an equivalence relation, then it is equivalent
-  -- to equality under [_].
-  --
-  -- The basic structure of this proof is that of Proposition 2 in
-  -- "Quotienting the Delay Monad by Weak Bisimilarity" by Chapman,
-  -- Uustalu and Veltri.
+related≃[equal] :
+  {R : A → A → Proposition r} →
+  Propositional-extensionality r →
+  Is-equivalence-relation R →
+  ∀ {x y} → proj₁ (R x y) ≃ _≡_ {A = A / R} [ x ] [ y ]
+related≃[equal] {A = A} {r = r} {R = R} prop-ext R-equiv {x} {y} =
+  _↠_.from (Eq.≃↠⇔ (proj₂ (R x y)) (/-is-set _ _))
+    (record
+      { to   = []-respects-relation
+      ; from = λ [x]≡[y] →
+                              $⟨ reflexive ⟩
+          proj₁ (R′ x [ x ])  ↝⟨ ≡⇒→ (cong (proj₁ ∘ R′ x) [x]≡[y]) ⟩
+          proj₁ (R′ x [ y ])  ↝⟨ id ⟩□
+          proj₁ (R x y)       □
+      })
+  where
+  open Is-equivalence-relation R-equiv
 
-  related≃[equal] :
-    Propositional-extensionality r →
-    Is-equivalence-relation R →
-    ∀ {x y} → proj₁ (R x y) ≃ _≡_ {A = A / R} [ x ] [ y ]
-  related≃[equal] prop-ext R-equiv {x} {y} =
-    _↠_.from (Eq.≃↠⇔ (proj₂ (R x y)) (/-is-set _ _))
-      (record
-        { to   = []-respects-relation
-        ; from = λ [x]≡[y] →
-                                $⟨ reflexive ⟩
-            proj₁ (R′ x [ x ])  ↝⟨ ≡⇒→ (cong (proj₁ ∘ R′ x) [x]≡[y]) ⟩
-            proj₁ (R′ x [ y ])  ↝⟨ id ⟩□
-            proj₁ (R x y)       □
-        })
-    where
-    open Is-equivalence-relation R-equiv
+  lemma : ∀ {x y z} → proj₁ (R y z) → R x y ≡ R x z
+  lemma {x} {y} {z} r =            $⟨ record
+                                        { to   = flip transitive r
+                                        ; from = flip transitive (symmetric r)
+                                        } ⟩
+    proj₁ (R x y) ⇔ proj₁ (R x z)  ↝⟨ ⇔↔≡″ ext prop-ext ⟩
+    R x y ≡ R x z                  □
 
-    lemma : ∀ {x y z} → proj₁ (R y z) → R x y ≡ R x z
-    lemma {x} {y} {z} r =            $⟨ record
-                                          { to   = flip transitive r
-                                          ; from = flip transitive (symmetric r)
-                                          } ⟩
-      proj₁ (R x y) ⇔ proj₁ (R x z)  ↝⟨ ⇔↔≡″ ext prop-ext ⟩
-      R x y ≡ R x z                  □
-
-    R′ : A → A / R → Proposition r
-    R′ x = rec
-      (λ y → R x y)
-      lemma
-      (Is-set-∃-Is-proposition ext prop-ext)
+  R′ : A → A / R → Proposition r
+  R′ x = rec
+    (λ y → R x y)
+    lemma
+    (Is-set-∃-Is-proposition ext prop-ext)
 
 -- Quotienting with equality (for a set) amounts to the same thing as
 -- not quotienting at all.
 
 /≡↔ :
-  ∀ {a} {A : Set a} →
   (A-set : Is-set A) →
   (A / λ x y → (x ≡ y) , A-set x y) ↔ A
 /≡↔ A-set = record
@@ -331,10 +328,9 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
 -- using the propositional truncation.
 
 /trivial↔∥∥ :
-  ∀ {a r} {A : Set a} {R : A → A → Proposition r} →
   (∀ x y → proj₁ (R x y)) →
   A / R ↔ ∥ A ∥
-/trivial↔∥∥ {A = A} {R} trivial = record
+/trivial↔∥∥ {A = A} {R = R} trivial = record
   { surjection = record
     { logical-equivalence = record
       { to   = rec-Prop ∣_∣ truncation-is-proposition
@@ -365,13 +361,13 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
 -- I don't know if this result can be strengthened to an isomorphism:
 -- I encountered size issues when trying to prove this.
 
-/↠/ : ∀ {a} {A : Set a} {R : A → A → Set a} →
+/↠/ : {A : Set a} {R : A → A → Set a} →
       Univalence a →
       Univalence (# 0) →
       Quotient.Is-equivalence-relation R →
       (R-prop : ∀ x y → Is-proposition (R x y)) →
       A Quotient./ R ↠ A / (λ x y → R x y , R-prop x y)
-/↠/ {a} {A} {R} univ univ₀ R-equiv R-prop = record
+/↠/ {a = a} {A = A} {R} univ univ₀ R-equiv R-prop = record
   { logical-equivalence = record
     { to   = to
     ; from = from
@@ -419,15 +415,15 @@ module _ {a r} {A : Set a} {R : A → A → Proposition r} where
 infix 5 _/-cong_
 
 _/-cong_ :
-  ∀ {k a₁ a₂ r₁ r₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {R₁ : A₁ → A₁ → Proposition r₁}
-    {R₂ : A₂ → A₂ → Proposition r₂} →
+  {A₁ : Set a₁} {A₂ : Set a₂}
+  {R₁ : A₁ → A₁ → Proposition r₁}
+  {R₂ : A₂ → A₂ → Proposition r₂} →
   (A₁↔A₂ : A₁ ↔[ k ] A₂) →
   (∀ x y →
      proj₁ (R₁ x y) ⇔
      proj₁ (R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y))) →
   A₁ / R₁ ↔[ k ] A₂ / R₂
-_/-cong_ {k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (record
+_/-cong_ {k = k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (record
   { surjection = record
     { logical-equivalence = record
       { to   = rec
@@ -474,10 +470,7 @@ _/-cong_ {k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (reco
 
 -- _⊎_ commutes with quotients.
 
-⊎/-comm :
-  ∀ {a b r} {A : Set a} {B : Set b}
-    {P : A → A → Proposition r} {Q : B → B → Proposition r} →
-  (A ⊎ B) / (P ⊎ᴾ Q) ↔ A / P ⊎ B / Q
+⊎/-comm : (A ⊎ B) / (P ⊎ᴾ Q) ↔ A / P ⊎ B / Q
 ⊎/-comm = record
   { surjection = record
     { logical-equivalence = record
@@ -517,10 +510,8 @@ _/-cong_ {k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (reco
 -- Chapman, Uustalu and Veltri mention a similar result in
 -- "Quotienting the Delay Monad by Weak Bisimilarity".
 
-Maybe/-comm :
-  ∀ {a r} {A : Set a} {R : A → A → Proposition r} →
-  Maybe A / Maybeᴾ R ↔ Maybe (A / R)
-Maybe/-comm {A = A} {R} =
+Maybe/-comm : Maybe A / Maybeᴾ R ↔ Maybe (A / R)
+Maybe/-comm {A = A} {R = R} =
   Maybe A / Maybeᴾ R   ↝⟨ ⊎/-comm ⟩
   ⊤ / Trivial ⊎ A / R  ↝⟨ /trivial↔∥∥ _ ⊎-cong F.id ⟩
   ∥ ⊤ ∥ ⊎ A / R        ↝⟨ ∥∥↔ (mono₁ 0 ⊤-contractible) ⊎-cong F.id ⟩□
@@ -528,9 +519,7 @@ Maybe/-comm {A = A} {R} =
 
 -- A simplification lemma for Maybe/-comm.
 
-Maybe/-comm-[] :
-  ∀ {a r} {A : Set a} {R : A → A → Proposition r} →
-  _↔_.to Maybe/-comm ∘ [_] ≡ ⊎-map id ([_] {R = R})
+Maybe/-comm-[] : _↔_.to Maybe/-comm ∘ [_] ≡ ⊎-map id ([_] {R = R})
 Maybe/-comm-[] =
   _↔_.to Maybe/-comm ∘ [_]                             ≡⟨⟩
 
@@ -553,11 +542,10 @@ Maybe/-comm-[] =
 -- that the second projections come from propositional types.
 
 Σ/-comm :
-  ∀ {a r p}
-    {A : Set a} {R : A → A → Proposition r} {P : A / R → Set p} →
+  {P : A / R → Set p} →
   (∀ x → Is-proposition (P x)) →
   Σ (A / R) P ↔ Σ A (P ∘ [_]) / (R on proj₁)
-Σ/-comm {A = A} {R} {P} P-prop = record
+Σ/-comm {A = A} {R = R} {P = P} P-prop = record
   { surjection = record
     { logical-equivalence = record
       { to = uncurry $ elim
@@ -604,9 +592,7 @@ Maybe/-comm-[] =
 -- The forward component of the isomorphism. This component can be
 -- defined without any extra assumptions.
 
-ℕ→/-comm-to :
-  ∀ {a r} {A : Set a} {R : A → A → Proposition r} →
-  (ℕ → A) / (ℕ →ᴾ R) → (ℕ → A / R)
+ℕ→/-comm-to : (ℕ → A) / (ℕ →ᴾ R) → (ℕ → A / R)
 ℕ→/-comm-to = rec
   (λ f n → [ f n ])
   (λ r → ⟨ext⟩ ([]-respects-relation ∘ r))
@@ -616,7 +602,7 @@ Maybe/-comm-[] =
 -- The isomorphism.
 
 ℕ→/-comm :
-  ∀ {a r} {A : Set a} {R : A → A → Proposition r} →
+  {A : Set a} {R : A → A → Proposition r} →
   Propositional-extensionality r →
   Axiom-of-countable-choice (a ⊔ r) →
   Is-equivalence-relation R →
@@ -727,9 +713,8 @@ Maybe/-comm-[] =
 -- by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
 ↠-eliminator :
-  ∀ {a b r} {A : Set a} {R : A → A → Proposition r} {B : Set b}
-  (surj : A / R ↠ B) →
-  ∀ {p} (P : B → Set p) →
+  (surj : A / R ↠ B)
+  (P : B → Set p)
   (p-[] : ∀ x → P (_↠_.to surj [ x ])) →
   (∀ {x y} (r : proj₁ (R x y)) →
    subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x) ≡
@@ -737,10 +722,10 @@ Maybe/-comm-[] =
   (∀ x → Is-set (P x)) →
   ∀ x → P x
 ↠-eliminator surj P p-[] ok P-set x =
-  subst P (_↠_.right-inverse-of surj x) p
+  subst P (_↠_.right-inverse-of surj x) p′
   where
-  p : P (_↠_.to surj (_↠_.from surj x))
-  p = elim
+  p′ : P (_↠_.to surj (_↠_.from surj x))
+  p′ = elim
     (P ∘ _↠_.to surj)
     p-[]
     (λ {x y} r →
@@ -754,9 +739,8 @@ Maybe/-comm-[] =
 -- satisfy a certain property.
 
 ↠-eliminator-[] :
-  ∀ {a b r} {A : Set a} {R : A → A → Proposition r} {B : Set b}
-  (surj : A / R ↠ B) →
-  ∀ {p} (P : B → Set p)
+  ∀ (surj : A / R ↠ B)
+  (P : B → Set p)
   (p-[] : ∀ x → P (_↠_.to surj [ x ]))
   (ok : ∀ {x y} (r : proj₁ (R x y)) →
         subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x) ≡
@@ -792,9 +776,8 @@ Maybe/-comm-[] =
 -- other type.
 
 ↔-eliminator :
-  ∀ {a b r} {A : Set a} {R : A → A → Proposition r} {B : Set b}
-  (bij : A / R ↔ B) →
-  ∀ {p} (P : B → Set p) →
+  (bij : A / R ↔ B)
+  (P : B → Set p)
   (p-[] : ∀ x → P (_↔_.to bij [ x ])) →
   (∀ {x y} (r : proj₁ (R x y)) →
    subst P (cong (_↔_.to bij) ([]-respects-relation r)) (p-[] x) ≡
@@ -806,9 +789,8 @@ Maybe/-comm-[] =
 -- This latter eliminator always "computes" in the "right" way.
 
 ↔-eliminator-[] :
-  ∀ {a b r} {A : Set a} {R : A → A → Proposition r} {B : Set b}
-  (bij : A / R ↔ B) →
-  ∀ {p} (P : B → Set p)
+  ∀ (bij : A / R ↔ B)
+  (P : B → Set p)
   (p-[] : ∀ x → P (_↔_.to bij [ x ]))
   (ok : ∀ {x y} (r : proj₁ (R x y)) →
         subst P (cong (_↔_.to bij) ([]-respects-relation r)) (p-[] x) ≡
@@ -827,7 +809,7 @@ Maybe/-comm-[] =
 -- Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
 ℕ→/-elim :
-  ∀ {a p r} {A : Set a} {R : A → A → Proposition r} →
+  {A : Set a} {R : A → A → Proposition r} →
   Propositional-extensionality r →
   Axiom-of-countable-choice (a ⊔ r) →
   Is-equivalence-relation R →
@@ -843,7 +825,7 @@ Maybe/-comm-[] =
 -- The eliminator "computes" in the "right" way.
 
 ℕ→/-elim-[] :
-  ∀ {a p r} {A : Set a} {R : A → A → Proposition r}
+  ∀ {A : Set a} {R : A → A → Proposition r}
   (prop-ext : Propositional-extensionality r)
   (cc : Axiom-of-countable-choice (a ⊔ r))
   (R-equiv : Is-equivalence-relation R)

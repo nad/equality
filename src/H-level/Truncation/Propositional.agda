@@ -28,25 +28,28 @@ open import Monad equality-with-J
 open import Preimage equality-with-J as Preimage using (_⁻¹_)
 open import Surjection equality-with-J using (_↠_)
 
+private
+  variable
+    a b c d f p ℓ : Level
+    A B C         : Set a
+
 postulate
 
   -- Propositional truncation.
 
-  ∥_∥ : ∀ {a} → Set a → Set a
+  ∥_∥ : Set a → Set a
 
   -- If A is inhabited, then ∥ A ∥ is also inhabited.
 
-  ∣_∣ : ∀ {a} {A : Set a} → A → ∥ A ∥
+  ∣_∣ : A → ∥ A ∥
 
   -- The truncation produces propositions.
 
-  truncation-is-proposition :
-    ∀ {a} {A : Set a} → Is-proposition ∥ A ∥
+  truncation-is-proposition : Is-proposition ∥ A ∥
 
   -- Primitive "recursion" for truncated types.
 
-  rec : ∀ {a b} {A : Set a} {B : Set b} →
-        Is-proposition B →
+  rec : Is-proposition B →
         (A → B) → ∥ A ∥ → B
 
   -- Computation rule for rec.
@@ -55,7 +58,6 @@ postulate
   -- truncation-is-proposition.
 
   rec-∣∣ :
-    ∀ {a b} {A : Set a} {B : Set b}
     (B-prop : Is-proposition B) (f : A → B) (x : A) →
     rec B-prop f ∣ x ∣ ≡ f x
 
@@ -87,15 +89,13 @@ postulate
 
 -- Map function.
 
-∥∥-map : ∀ {a b} {A : Set a} {B : Set b} →
-         (A → B) → ∥ A ∥ → ∥ B ∥
+∥∥-map : (A → B) → ∥ A ∥ → ∥ B ∥
 ∥∥-map f = rec truncation-is-proposition (∣_∣ ∘ f)
 
 -- The function rec can be used to define a dependently typed
 -- eliminator.
 
 elim :
-  ∀ {a p} {A : Set a} →
   (P : ∥ A ∥ → Set p) →
   (∀ x → Is-proposition (P x)) →
   ((x : A) → P ∣ x ∣) →
@@ -113,7 +113,6 @@ elim P P-prop f x =
 -- equality, when applied to ∣ x ∣.
 
 elim-∣∣ :
-  ∀ {a p} {A : Set a}
   (P : ∥ A ∥ → Set p)
   (P-prop : ∀ x → Is-proposition (P x))
   (f : (x : A) → P ∣ x ∣)
@@ -124,8 +123,7 @@ elim-∣∣ P P-prop f x =
 
 -- The truncation operator preserves logical equivalences.
 
-∥∥-cong-⇔ : ∀ {a b} {A : Set a} {B : Set b} →
-            A ⇔ B → ∥ A ∥ ⇔ ∥ B ∥
+∥∥-cong-⇔ : A ⇔ B → ∥ A ∥ ⇔ ∥ B ∥
 ∥∥-cong-⇔ A⇔B = record
   { to   = ∥∥-map (_⇔_.to   A⇔B)
   ; from = ∥∥-map (_⇔_.from A⇔B)
@@ -133,9 +131,9 @@ elim-∣∣ P P-prop f x =
 
 -- The truncation operator preserves bijections.
 
-∥∥-cong : ∀ {k a b} {A : Set a} {B : Set b} →
+∥∥-cong : ∀ {k} {A : Set a} {B : Set b} →
           A ↔[ k ] B → ∥ A ∥ ↔[ k ] ∥ B ∥
-∥∥-cong {a = a} {b} {A} {B} A↔B =
+∥∥-cong {a = a} {b = b} {A = A} {B} A↔B =
   ∥ A ∥                  ↔⟨ ∥∥↔∥∥ b ⟩
   Trunc.∥ A ∥ 1 (a ⊔ b)  ↝⟨ Trunc.∥∥-cong ext A↔B ⟩
   Trunc.∥ B ∥ 1 (a ⊔ b)  ↔⟨ inverse (∥∥↔∥∥ a) ⟩□
@@ -144,7 +142,6 @@ elim-∣∣ P P-prop f x =
 -- A generalised flattening lemma.
 
 flatten′ :
-  ∀ {ℓ f}
   (F : (Set ℓ → Set ℓ) → Set f) →
   (∀ {G H} → (∀ {A} → G A → H A) → F G → F H) →
   (F ∥_∥ → ∥ F id ∥) →
@@ -164,8 +161,7 @@ flatten′ _ map f = record
 
 -- Nested truncations can be flattened.
 
-flatten : ∀ {a} {A : Set a} →
-          ∥ ∥ A ∥ ∥ ↔ ∥ A ∥
+flatten : ∥ ∥ A ∥ ∥ ↔ ∥ A ∥
 flatten {A = A} = flatten′ (λ F → F A) (λ f → f) id
 
 private
@@ -173,7 +169,7 @@ private
   -- Another flattening lemma, given as an example of how flatten′ can
   -- be used.
 
-  ∥∃∥∥∥↔∥∃∥ : ∀ {a b} {A : Set a} {B : A → Set b} →
+  ∥∃∥∥∥↔∥∃∥ : {B : A → Set b} →
               ∥ ∃ (∥_∥ ∘ B) ∥ ↔ ∥ ∃ B ∥
   ∥∃∥∥∥↔∥∃∥ {B = B} =
     flatten′ (λ F → ∃ (F ∘ B))
@@ -184,14 +180,12 @@ private
 
 infixl 5 _>>=′_
 
-_>>=′_ : ∀ {a b} {A : Set a} {B : Set b} →
-         ∥ A ∥ → (A → ∥ B ∥) → ∥ B ∥
+_>>=′_ : ∥ A ∥ → (A → ∥ B ∥) → ∥ B ∥
 x >>=′ f = _↔_.to flatten (∥∥-map f x)
 
 -- The universe-polymorphic variant of bind is associative.
 
 >>=′-associative :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
   (x : ∥ A ∥) {f : A → ∥ B ∥} {g : B → ∥ C ∥} →
   x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
 >>=′-associative x {f} {g} = elim
@@ -219,15 +213,14 @@ instance
 
 -- Surjectivity.
 
-Surjective : ∀ {a b} {A : Set a} {B : Set b} →
-             (A → B) → Set (a ⊔ b)
+Surjective :
+  {A : Set a} {B : Set b} →
+  (A → B) → Set (a ⊔ b)
 Surjective f = ∀ b → ∥ f ⁻¹ b ∥
 
 -- The property Surjective f is a proposition.
 
-Surjective-propositional :
-  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} →
-  Is-proposition (Surjective f)
+Surjective-propositional : {f : A → B} → Is-proposition (Surjective f)
 Surjective-propositional =
   Π-closure ext 1 λ _ →
   truncation-is-proposition
@@ -239,7 +232,7 @@ Surjective-propositional =
 -- (the proof is perhaps not quite identical).
 
 surjective×embedding≃equivalence :
-  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} →
+  {f : A → B} →
   (Surjective f × Is-embedding f) ≃ Is-equivalence f
 surjective×embedding≃equivalence {f = f} =
   (Surjective f × Is-embedding f)          ↔⟨ ∀-cong ext (λ _ → ∥∥↔∥∥ lzero) ×-cong F.id ⟩
@@ -249,8 +242,7 @@ surjective×embedding≃equivalence {f = f} =
 -- If the underlying type is a proposition, then truncations of the
 -- type are isomorphic to the type itself.
 
-∥∥↔ : ∀ {a} {A : Set a} →
-      Is-proposition A → ∥ A ∥ ↔ A
+∥∥↔ : Is-proposition A → ∥ A ∥ ↔ A
 ∥∥↔ A-prop = record
   { surjection = record
     { logical-equivalence = record
@@ -265,7 +257,7 @@ surjective×embedding≃equivalence {f = f} =
 
 -- A simple isomorphism involving propositional truncation.
 
-∥∥×↔ : ∀ {a} {A : Set a} → ∥ A ∥ × A ↔ A
+∥∥×↔ : ∥ A ∥ × A ↔ A
 ∥∥×↔ {A = A} =
   ∥ A ∥ × A  ↝⟨ ×-comm ⟩
   A × ∥ A ∥  ↝⟨ (drop-⊤-right λ a →
@@ -278,8 +270,7 @@ surjective×embedding≃equivalence {f = f} =
 -- A variant of ∥∥×↔, introduced to ensure that the right-inverse-of
 -- proof is, by definition, simple (see right-inverse-of-∥∥×≃ below).
 
-∥∥×≃ :
-  ∀ {a} {A : Set a} → (∥ A ∥ × A) ≃ A
+∥∥×≃ : (∥ A ∥ × A) ≃ A
 ∥∥×≃ =
   ⟨ proj₂
   , (λ a → propositional⇒inhabited⇒contractible
@@ -290,16 +281,12 @@ surjective×embedding≃equivalence {f = f} =
 
 private
 
-  right-inverse-of-∥∥×≃ :
-    ∀ {a} {A : Set a} (x : A) →
-    _≃_.right-inverse-of ∥∥×≃ x ≡ refl
+  right-inverse-of-∥∥×≃ : (x : A) → _≃_.right-inverse-of ∥∥×≃ x ≡ refl
   right-inverse-of-∥∥×≃ _ = refl
 
 -- ∥_∥ commutes with _×_.
 
-∥∥×∥∥↔∥×∥ :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  (∥ A ∥ × ∥ B ∥) ↔ ∥ A × B ∥
+∥∥×∥∥↔∥×∥ : (∥ A ∥ × ∥ B ∥) ↔ ∥ A × B ∥
 ∥∥×∥∥↔∥×∥ = record
   { surjection = record
     { logical-equivalence = record
@@ -324,9 +311,7 @@ private
 -- If A is merely inhabited, then the truncation of A is isomorphic to
 -- the unit type.
 
-inhabited⇒∥∥↔⊤ :
-  ∀ {a} {A : Set a} →
-  ∥ A ∥ → ∥ A ∥ ↔ ⊤
+inhabited⇒∥∥↔⊤ : ∥ A ∥ → ∥ A ∥ ↔ ⊤
 inhabited⇒∥∥↔⊤ ∥a∥ =
   _⇔_.to contractible⇔↔⊤ $
     propositional⇒inhabited⇒contractible
@@ -336,9 +321,7 @@ inhabited⇒∥∥↔⊤ ∥a∥ =
 -- If A is not inhabited, then the propositional truncation of A is
 -- isomorphic to the empty type.
 
-not-inhabited⇒∥∥↔⊥ :
-  ∀ {ℓ a} {A : Set a} →
-  ¬ A → ∥ A ∥ ↔ ⊥ {ℓ = ℓ}
+not-inhabited⇒∥∥↔⊥ : ¬ A → ∥ A ∥ ↔ ⊥ {ℓ = ℓ}
 not-inhabited⇒∥∥↔⊥ {A = A} =
   ¬ A        ↝⟨ (λ ¬a ∥a∥ → rec ⊥-propositional ¬a ∥a∥) ⟩
   ¬ ∥ A ∥    ↝⟨ inverse ∘ Bijection.⊥↔uninhabited ⟩□
@@ -350,10 +333,8 @@ not-inhabited⇒∥∥↔⊥ {A = A} =
 -- Types with constant endofunctions are "h-stable" (meaning that
 -- "mere inhabitance" implies inhabitance).
 
-constant-endofunction⇒h-stable :
-  ∀ {a} {A : Set a} {f : A → A} →
-  Constant f → ∥ A ∥ → A
-constant-endofunction⇒h-stable {a} {A} {f} c =
+constant-endofunction⇒h-stable : {f : A → A} → Constant f → ∥ A ∥ → A
+constant-endofunction⇒h-stable {A = A} {f = f} c =
   ∥ A ∥                    ↝⟨ rec (fixpoint-lemma f c) (λ x → f x , c (f x) x) ⟩
   (∃ λ (x : A) → f x ≡ x)  ↝⟨ proj₁ ⟩□
   A                        □
@@ -362,7 +343,6 @@ constant-endofunction⇒h-stable {a} {A} {f} c =
 -- h-stable.
 
 constant-endofunction⇔h-stable :
-  ∀ {a} {A : Set a} →
   (∃ λ (f : A → A) → Constant f) ⇔ (∥ A ∥ → A)
 constant-endofunction⇔h-stable = record
   { to = λ { (_ , c) → constant-endofunction⇒h-stable c }
@@ -381,12 +361,12 @@ constant-endofunction⇔h-stable = record
 -- A variant of ∥∥×≃.
 
 drop-∥∥ :
-  ∀ {a b} {A : Set a} {B : A → Set b} →
+  {B : A → Set b} →
 
   (∥ A ∥ → ∀ x → B x)
     ↔
   (∀ x → B x)
-drop-∥∥ {A = A} {B} =
+drop-∥∥ {A = A} {B = B} =
   (∥ A ∥ → ∀ x → B x)              ↝⟨ inverse currying ⟩
   ((p : ∥ A ∥ × A) → B (proj₂ p))  ↝⟨ Π-cong ext ∥∥×≃ (λ _ → F.id) ⟩□
   (∀ x → B x)                      □
@@ -394,13 +374,13 @@ drop-∥∥ {A = A} {B} =
 -- Another variant of ∥∥×≃.
 
 push-∥∥ :
-  ∀ {a b c} {A : Set a} {B : A → Set b} {C : (∀ x → B x) → Set c} →
+  {B : A → Set b} {C : (∀ x → B x) → Set c} →
 
   (∥ A ∥ → ∃ λ (f : ∀ x → B x) → C f)
     ↔
   (∃ λ (f : ∀ x → B x) → ∥ A ∥ → C f)
 
-push-∥∥ {b = b} {c} {A} {B} {C} =
+push-∥∥ {A = A} {B = B} {C} =
 
   (∥ A ∥ → ∃ λ (f : ∀ x → B x) → C f)                ↝⟨ ΠΣ-comm ⟩
 
@@ -417,8 +397,7 @@ push-∥∥ {b = b} {c} {A} {B} {C} =
 -- Universal Property of the Propositional Truncation" by Kraus.
 
 drop-∥∥₃ :
-  ∀ {a b c d}
-    {A : Set a} {B : A → Set b} {C : A → (∀ x → B x) → Set c}
+  ∀ {B : A → Set b} {C : A → (∀ x → B x) → Set c}
     {D : A → (f : ∀ x → B x) → (∀ x → C x f) → Set d} →
 
   (∥ A ∥ →
@@ -426,7 +405,7 @@ drop-∥∥₃ :
     ↔
   (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
 
-drop-∥∥₃ {a} {b} {c} {A = A} {B} {C} {D} =
+drop-∥∥₃ {A = A} {B = B} {C} {D} =
   (∥ A ∥ →
    ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  ↝⟨ push-∥∥ ⟩
 
@@ -443,18 +422,18 @@ drop-∥∥₃ {a} {b} {c} {A = A} {B} {C} {D} =
 -- groupoid. This result is Proposition 2.3 in "The General Universal
 -- Property of the Propositional Truncation" by Kraus.
 
-Coherently-constant :
-  ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Coherently-constant : {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
 Coherently-constant f =
   ∃ λ (c : Constant f) →
   ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃
 
 coherently-constant-function≃∥inhabited∥⇒inhabited :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  {A : Set a} {B : Set b} →
   H-level 3 B →
   (∃ λ (f : A → B) → Coherently-constant f) ≃ (∥ A ∥ → B)
-coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} {A} {B}
-                                                   B-groupoid =
+coherently-constant-function≃∥inhabited∥⇒inhabited
+  {a = a} {b = b} {A = A} {B} B-groupoid =
+
   (∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ Trunc.coherently-constant-function≃∥inhabited∥⇒inhabited lzero ext B-groupoid ⟩
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)                ↔⟨ →-cong ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) F.id ⟩□
   (∥ A ∥ → B)                                □
@@ -467,10 +446,12 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} {A} {B}
 -- from Proposition 2.3.
 
 constant-function≃∥inhabited∥⇒inhabited :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  {A : Set a} {B : Set b} →
   Is-set B →
   (∃ λ (f : A → B) → Constant f) ≃ (∥ A ∥ → B)
-constant-function≃∥inhabited∥⇒inhabited {a} {b} {A} {B} B-set =
+constant-function≃∥inhabited∥⇒inhabited
+  {a = a} {b = b} {A = A} {B} B-set =
+
   (∃ λ (f : A → B) → Constant f)  ↝⟨ Trunc.constant-function≃∥inhabited∥⇒inhabited lzero ext B-set ⟩
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)     ↔⟨ →-cong ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) F.id ⟩□
   (∥ A ∥ → B)                     □
@@ -480,7 +461,6 @@ private
   -- One direction of the proposition above computes in the right way.
 
   to-constant-function≃∥inhabited∥⇒inhabited :
-    ∀ {a b} {A : Set a} {B : Set b}
     (B-set : Is-set B)
     (f : ∃ λ (f : A → B) → Constant f) (x : A) →
     _≃_.to (constant-function≃∥inhabited∥⇒inhabited B-set) f ∣ x ∣ ≡
@@ -494,10 +474,10 @@ private
 -- Truncation".
 
 universal-property :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  {A : Set a} {B : Set b} →
   Is-proposition B →
   (∥ A ∥ → B) ≃ (A → B)
-universal-property {a} {b} {A} {B} B-prop =
+universal-property {a = a} {b = b} {A = A} {B} B-prop =
   (∥ A ∥ → B)                  ↔⟨ →-cong ext (∥∥↔∥∥ (a ⊔ b)) F.id ⟩
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)  ↝⟨ Trunc.universal-property lzero ext B-prop ⟩□
   (A → B)                      □
@@ -507,14 +487,12 @@ private
   -- The universal property computes in the right way.
 
   to-universal-property :
-    ∀ {a b} {A : Set a} {B : Set b}
     (B-prop : Is-proposition B)
     (f : ∥ A ∥ → B) →
     _≃_.to (universal-property B-prop) f ≡ f ∘ ∣_∣
   to-universal-property _ _ = refl
 
   from-universal-property :
-    ∀ {a b} {A : Set a} {B : Set b}
     (B-prop : Is-proposition B)
     (f : A → B) (x : A) →
     _≃_.from (universal-property B-prop) f ∣ x ∣ ≡ f x
@@ -531,7 +509,7 @@ Axiom-of-choice a b =
 -- The axiom of choice can be turned into a bijection.
 
 choice-bijection :
-  ∀ {a b} {A : Set a} {B : A → Set b} →
+  {A : Set a} {B : A → Set b} →
   Axiom-of-choice a b → Is-set A →
   (∀ x → ∥ B x ∥) ↔ ∥ (∀ x → B x) ∥
 choice-bijection choice A-set = record
@@ -561,7 +539,7 @@ Axiom-of-countable-choice b =
 -- The axiom of countable choice can be turned into a bijection.
 
 countable-choice-bijection :
-  ∀ {b} {B : ℕ → Set b} →
+  {B : ℕ → Set b} →
   Axiom-of-countable-choice b →
   (∀ x → ∥ B x ∥) ↔ ∥ (∀ x → B x) ∥
 countable-choice-bijection cc = record
