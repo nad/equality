@@ -494,6 +494,21 @@ refl≡ :
   [ (λ i → [ (λ j → P (min i j)) ] x ≡ x≡y i) ] refl {x = x} ≡ x≡y
 refl≡ x≡y = λ i j → x≡y (min i j)
 
+-- Transporting in one direction and then back amounts to doing
+-- nothing.
+
+transport∘transport :
+  ∀ {p : I → Level} (P : ∀ i → Set (p i)) {p} →
+  transport (λ i → P (- i)) 0̲ (transport P 0̲ p) ≡ p
+transport∘transport P {p} = hsym λ i →
+  comp (λ j → P (min i (- j)))
+       _
+       (λ j → λ { (i = 0̲) → p
+                ; (i = 1̲) → transport (λ k → P (- min j k)) (- j)
+                              (transport P 0̲ p)
+                })
+       (transport (λ j → P (min i j)) (- i) p)
+
 -- Heterogeneous equality can be expressed in terms of homogeneous
 -- equality.
 --
