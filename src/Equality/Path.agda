@@ -262,140 +262,6 @@ open Derived-definitions-and-properties equality-with-J public
           reflexive-relation; equality-with-J₀)
 
 ------------------------------------------------------------------------
--- Some properties
-
-open Bijection equality-with-J using (_↔_)
-
--- There is a dependent path from reflexivity for x to any dependent
--- path starting in x.
-
-refl≡ :
-  ∀ {P : I → Set p} {x y}
-  (x≡y : [ P ] x ≡ y) →
-  [ (λ i → [ (λ j → P (min i j)) ] x ≡ x≡y i) ] refl {x = x} ≡ x≡y
-refl≡ x≡y = λ i j → x≡y (min i j)
-
--- Heterogeneous equality can be expressed in terms of homogeneous
--- equality.
---
--- The to and from functions are based on code from the cubical
--- library written by Anders Mörtberg. For the rest of the proof I got
--- some useful hints from Andrea Vezzosi.
-
-heterogeneous↔homogeneous :
-  ∀ (P : I → Set p) {p q} →
-  ([ P ] p ≡ q) ↔ transport P 0̲ p ≡ q
-heterogeneous↔homogeneous P {p} {q} = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = to
-      ; from = λ p≡q →
-          p                ≡⟨ p≡p′ ⟩h
-          transport P 0̲ p  ≡⟨ p≡q ⟩∎
-          q                ∎
-      }
-    ; right-inverse-of = elim¹
-        (λ p≡q → to (htransʳ p≡p′ p≡q) ≡ p≡q)
-        (to (htransʳ p≡p′ refl)  ≡⟨ cong to (htransʳ-reflʳ _) ⟩
-         to p≡p′                 ≡⟨ to-p≡p′≡refl ⟩∎
-         refl                    ∎)
-    }
-  ; left-inverse-of = left-inverse-of
-  }
-  where
-  p′ = transport P 0̲ p
-
-  p≡p′ : [ P ] p ≡ p′
-  p≡p′ = λ i → transport (λ j → P (min i j)) (- i) p
-
-  to : ∀ {q} → [ P ] p ≡ q → p′ ≡ q
-  to p≡q = λ i → transport (λ j → P (max i j)) i (p≡q i)
-
-  -- For the left-inverse-of proof, consider the following open box
-  -- (with i the left-to-right dimension, j the down-to-up dimension
-  -- for the side in the middle, and k the dimension from the side in
-  -- the middle to the missing side):
-  --
-  --   ╭─────⟶┬───────────╴p≡q i╶────────⟶┬⟵─────╮
-  --   │      ↑                           ↑      │
-  --   │      p                         p≡q k    │
-  --   │      ╷                           ╷      │
-  --   │      ├─────────────╴p╶──────────⟶┤      │
-  --   ╵      ↑                           ↑      ╵
-  --   p      p                      p≡p′ (- j)  q
-  --   ╷      ╷                           ╷      ╷
-  --   │      ├──────────╴p≡p′ i╶────────⟶┤      │
-  --   │      ╵                           ╵      │
-  --   │      p                       to p≡q k   │
-  --   │      ↓                           ↓      │
-  --   ╰──────┴─╴htransʳ p≡p′ (to p≡q) i╶⟶┴──────╯
-  --
-  -- If all sides can be filled in, then the side opposite to the side
-  -- in the middle provides the answer. The proof below takes this
-  -- approach.
-
-  p≡p′≡refl :
-    [ (λ i → [ (λ j → P (min (- i) j)) ] p ≡ p≡p′ (- i)) ] p≡p′ ≡ refl
-  p≡p′≡refl = hsym λ i →
-    transport-fill (P 0̲) (- i) (λ j → inˢ (P (min i j))) p
-
-  to≡id :
-    ∀ {q} (p≡q : [ P ] p ≡ q) →
-    [ (λ j → [ (λ k → P (max (- j) k)) ] p≡p′ (- j) ≡ q) ] to p≡q ≡ p≡q
-  to≡id p≡q = λ j k →
-    transport-fill (P k) k (λ j → inˢ (P (max j k))) (p≡q k) (- j)
-
-  p≡p′≡htransʳ-p≡p′-to :
-    (p≡q : [ P ] p ≡ q) →
-    [ (λ k → [ P ] p ≡ to p≡q k) ] p≡p′ ≡ htransʳ p≡p′ (to p≡q)
-  p≡p′≡htransʳ-p≡p′-to p≡q = λ k i →
-    hfill (λ { _ (i = 0̲) → p
-             ; k (i = 1̲) → to p≡q k
-             })
-          (inˢ (p≡p′ i))
-          k
-
-  left-inverse-of :
-    (p≡q : [ P ] p ≡ q) →
-    htransʳ p≡p′ (to p≡q) ≡ p≡q
-  left-inverse-of p≡q = λ j i →
-    comp (λ k → P (min i (max (- j) k)))
-         _
-         (λ k → λ { (i = 0̲) → p
-                  ; (i = 1̲) → to≡id p≡q j k
-                  ; (j = 0̲) → p≡p′≡htransʳ-p≡p′-to p≡q k i
-                  ; (j = 1̲) → refl≡ p≡q k i
-                  })
-         (p≡p′≡refl j i)
-
-  -- Here is the open box used for to-p≡p′≡refl below:
-  --
-  --   ╭─────⟶┬─────╴p′╶───⟶┬⟵─────╮
-  --   │      ↑             ↑      │
-  --   │    p≡p′ k        p≡p′ k   │
-  --   │      ╷             ╷      │
-  --   │      ├─────╴p╶────⟶┤      │
-  --   ╵      ↑             ↑      ╵
-  --   p′     p        p≡p′ (- j)  p′
-  --   ╷      ╷             ╷      ╷
-  --   │      ├──╴p≡p′ i╶──⟶┤      │
-  --   │      ╵             ╵      │
-  --   │    p≡p′ k          p′     │
-  --   │      ↓             ↓      │
-  --   ╰──────┴─╴to p≡p′ i╶⟶┴──────╯
-
-  to-p≡p′≡refl : to p≡p′ ≡ refl
-  to-p≡p′≡refl = λ j i →
-    comp (λ k → P (max (min i (- j)) k))
-         _
-         (λ k → λ { (i = 0̲) → p≡p′ k
-                  ; (i = 1̲) → hsym (refl≡ (hsym p≡p′)) k j
-                  ; (j = 0̲) → hsym (to≡id p≡p′) k i
-                  ; (j = 1̲) → p≡p′ k
-                  })
-         (p≡p′≡refl j i)
-
-------------------------------------------------------------------------
 -- Extensionality
 
 open Equivalence equality-with-J using (Is-equivalence)
@@ -619,3 +485,137 @@ other-univ {ℓ = ℓ} {B = B} =
             primGlue  _ _ (f i)
           , primGlue≃ _ _ (f i)
       }
+
+------------------------------------------------------------------------
+-- Some properties
+
+open Bijection equality-with-J using (_↔_)
+
+-- There is a dependent path from reflexivity for x to any dependent
+-- path starting in x.
+
+refl≡ :
+  ∀ {P : I → Set p} {x y}
+  (x≡y : [ P ] x ≡ y) →
+  [ (λ i → [ (λ j → P (min i j)) ] x ≡ x≡y i) ] refl {x = x} ≡ x≡y
+refl≡ x≡y = λ i j → x≡y (min i j)
+
+-- Heterogeneous equality can be expressed in terms of homogeneous
+-- equality.
+--
+-- The to and from functions are based on code from the cubical
+-- library written by Anders Mörtberg. For the rest of the proof I got
+-- some useful hints from Andrea Vezzosi.
+
+heterogeneous↔homogeneous :
+  ∀ (P : I → Set p) {p q} →
+  ([ P ] p ≡ q) ↔ transport P 0̲ p ≡ q
+heterogeneous↔homogeneous P {p} {q} = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = to
+      ; from = λ p≡q →
+          p                ≡⟨ p≡p′ ⟩h
+          transport P 0̲ p  ≡⟨ p≡q ⟩∎
+          q                ∎
+      }
+    ; right-inverse-of = elim¹
+        (λ p≡q → to (htransʳ p≡p′ p≡q) ≡ p≡q)
+        (to (htransʳ p≡p′ refl)  ≡⟨ cong to (htransʳ-reflʳ _) ⟩
+         to p≡p′                 ≡⟨ to-p≡p′≡refl ⟩∎
+         refl                    ∎)
+    }
+  ; left-inverse-of = left-inverse-of
+  }
+  where
+  p′ = transport P 0̲ p
+
+  p≡p′ : [ P ] p ≡ p′
+  p≡p′ = λ i → transport (λ j → P (min i j)) (- i) p
+
+  to : ∀ {q} → [ P ] p ≡ q → p′ ≡ q
+  to p≡q = λ i → transport (λ j → P (max i j)) i (p≡q i)
+
+  -- For the left-inverse-of proof, consider the following open box
+  -- (with i the left-to-right dimension, j the down-to-up dimension
+  -- for the side in the middle, and k the dimension from the side in
+  -- the middle to the missing side):
+  --
+  --   ╭─────⟶┬───────────╴p≡q i╶────────⟶┬⟵─────╮
+  --   │      ↑                           ↑      │
+  --   │      p                         p≡q k    │
+  --   │      ╷                           ╷      │
+  --   │      ├─────────────╴p╶──────────⟶┤      │
+  --   ╵      ↑                           ↑      ╵
+  --   p      p                      p≡p′ (- j)  q
+  --   ╷      ╷                           ╷      ╷
+  --   │      ├──────────╴p≡p′ i╶────────⟶┤      │
+  --   │      ╵                           ╵      │
+  --   │      p                       to p≡q k   │
+  --   │      ↓                           ↓      │
+  --   ╰──────┴─╴htransʳ p≡p′ (to p≡q) i╶⟶┴──────╯
+  --
+  -- If all sides can be filled in, then the side opposite to the side
+  -- in the middle provides the answer. The proof below takes this
+  -- approach.
+
+  p≡p′≡refl :
+    [ (λ i → [ (λ j → P (min (- i) j)) ] p ≡ p≡p′ (- i)) ] p≡p′ ≡ refl
+  p≡p′≡refl = hsym λ i →
+    transport-fill (P 0̲) (- i) (λ j → inˢ (P (min i j))) p
+
+  to≡id :
+    ∀ {q} (p≡q : [ P ] p ≡ q) →
+    [ (λ j → [ (λ k → P (max (- j) k)) ] p≡p′ (- j) ≡ q) ] to p≡q ≡ p≡q
+  to≡id p≡q = λ j k →
+    transport-fill (P k) k (λ j → inˢ (P (max j k))) (p≡q k) (- j)
+
+  p≡p′≡htransʳ-p≡p′-to :
+    (p≡q : [ P ] p ≡ q) →
+    [ (λ k → [ P ] p ≡ to p≡q k) ] p≡p′ ≡ htransʳ p≡p′ (to p≡q)
+  p≡p′≡htransʳ-p≡p′-to p≡q = λ k i →
+    hfill (λ { _ (i = 0̲) → p
+             ; k (i = 1̲) → to p≡q k
+             })
+          (inˢ (p≡p′ i))
+          k
+
+  left-inverse-of :
+    (p≡q : [ P ] p ≡ q) →
+    htransʳ p≡p′ (to p≡q) ≡ p≡q
+  left-inverse-of p≡q = λ j i →
+    comp (λ k → P (min i (max (- j) k)))
+         _
+         (λ k → λ { (i = 0̲) → p
+                  ; (i = 1̲) → to≡id p≡q j k
+                  ; (j = 0̲) → p≡p′≡htransʳ-p≡p′-to p≡q k i
+                  ; (j = 1̲) → refl≡ p≡q k i
+                  })
+         (p≡p′≡refl j i)
+
+  -- Here is the open box used for to-p≡p′≡refl below:
+  --
+  --   ╭─────⟶┬─────╴p′╶───⟶┬⟵─────╮
+  --   │      ↑             ↑      │
+  --   │    p≡p′ k        p≡p′ k   │
+  --   │      ╷             ╷      │
+  --   │      ├─────╴p╶────⟶┤      │
+  --   ╵      ↑             ↑      ╵
+  --   p′     p        p≡p′ (- j)  p′
+  --   ╷      ╷             ╷      ╷
+  --   │      ├──╴p≡p′ i╶──⟶┤      │
+  --   │      ╵             ╵      │
+  --   │    p≡p′ k          p′     │
+  --   │      ↓             ↓      │
+  --   ╰──────┴─╴to p≡p′ i╶⟶┴──────╯
+
+  to-p≡p′≡refl : to p≡p′ ≡ refl
+  to-p≡p′≡refl = λ j i →
+    comp (λ k → P (max (min i (- j)) k))
+         _
+         (λ k → λ { (i = 0̲) → p≡p′ k
+                  ; (i = 1̲) → hsym (refl≡ (hsym p≡p′)) k j
+                  ; (j = 0̲) → hsym (to≡id p≡p′) k i
+                  ; (j = 1̲) → p≡p′ k
+                  })
+         (p≡p′≡refl j i)
