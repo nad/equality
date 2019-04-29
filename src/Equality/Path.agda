@@ -16,15 +16,6 @@ import Preimage
 open import Prelude
 import Univalence-axiom
 
-private
-  variable
-    a b c p q ℓ : Level
-    A           : Set a
-    B           : A → Set b
-    P           : A → Set p
-    x y z       : A
-    f g h       : (x : A) → B x
-
 ------------------------------------------------------------------------
 -- The interval
 
@@ -38,6 +29,19 @@ open import Agda.Primitive.Cubical public
 
 open import Agda.Builtin.Cubical.Sub public
   renaming (Sub to _[_↦_]; inc to inˢ; primSubOut to outˢ)
+
+------------------------------------------------------------------------
+-- Some local generalisable variables
+
+private
+  variable
+    a b c p q ℓ : Level
+    A           : Set a
+    B           : A → Set b
+    P           : I → Set p
+    x y z       : A
+    f g h       : (x : A) → B x
+    i           : I
 
 ------------------------------------------------------------------------
 -- Equality
@@ -118,8 +122,7 @@ Reflexive-relation.refl (reflexive-relation _) = λ _ → refl
 
 -- Symmetry.
 
-hsym : ∀ {P : I → Set p} {x y} →
-       [ P ] x ≡ y → [ (λ i → P (- i)) ] y ≡ x
+hsym : [ P ] x ≡ y → [ (λ i → P (- i)) ] y ≡ x
 hsym x≡y = λ i → x≡y (- i)
 
 -- Transitivity.
@@ -127,23 +130,17 @@ hsym x≡y = λ i → x≡y (- i)
 -- The proof htransʳ-reflʳ is based on code in Agda's reference manual
 -- written by Anders Mörtberg.
 
-htransʳ :
-  ∀ {P : I → Set p} {x y z} →
-  [ P ] x ≡ y → y ≡ z → [ P ] x ≡ z
+htransʳ : [ P ] x ≡ y → y ≡ z → [ P ] x ≡ z
 htransʳ {x = x} x≡y y≡z = λ i →
   hcomp (λ { _ (i = 0̲) → x
            ; j (i = 1̲) → y≡z j
            })
         (x≡y i)
 
-htransˡ :
-  ∀ {P : I → Set p} {x y z} →
-  x ≡ y → [ P ] y ≡ z → [ P ] x ≡ z
+htransˡ : x ≡ y → [ P ] y ≡ z → [ P ] x ≡ z
 htransˡ x≡y y≡z = hsym (htransʳ (hsym y≡z) (hsym x≡y))
 
-htransʳ-reflʳ :
-  ∀ {P : I → Set p} {x y}
-  (x≡y : [ P ] x ≡ y) → htransʳ x≡y refl ≡ x≡y
+htransʳ-reflʳ : (x≡y : [ P ] x ≡ y) → htransʳ x≡y refl ≡ x≡y
 htransʳ-reflʳ {x = x} {y = y} x≡y = λ i j →
   hfill (λ { _ (j = 0̲) → x
            ; _ (j = 1̲) → y
@@ -151,9 +148,7 @@ htransʳ-reflʳ {x = x} {y = y} x≡y = λ i j →
         (inˢ (x≡y j))
         (- i)
 
-htransˡ-reflˡ :
-  ∀ {P : I → Set p} {x y}
-  (x≡y : [ P ] x ≡ y) → htransˡ refl x≡y ≡ x≡y
+htransˡ-reflˡ : (x≡y : [ P ] x ≡ y) → htransˡ refl x≡y ≡ x≡y
 htransˡ-reflˡ = htransʳ-reflʳ
 
 -- Some equational reasoning combinators.
@@ -161,20 +156,20 @@ htransˡ-reflˡ = htransʳ-reflʳ
 infix  -1 finally
 infixr -2 step-≡ step-≡h _≡⟨⟩_
 
-step-≡ : ∀ {P : I → Set p} x {y z} → [ P ] y ≡ z → x ≡ y → [ P ] x ≡ z
+step-≡ : ∀ x → [ P ] y ≡ z → x ≡ y → [ P ] x ≡ z
 step-≡ _ = flip htransˡ
 
 syntax step-≡ x y≡z x≡y = x ≡⟨ x≡y ⟩ y≡z
 
-step-≡h : ∀ {P : I → Set p} x {y z} → y ≡ z → [ P ] x ≡ y → [ P ] x ≡ z
+step-≡h : ∀ x → y ≡ z → [ P ] x ≡ y → [ P ] x ≡ z
 step-≡h _ = flip htransʳ
 
 syntax step-≡h x y≡z x≡y = x ≡⟨ x≡y ⟩h y≡z
 
-_≡⟨⟩_ : ∀ {P : I → Set p} x {y} → [ P ] x ≡ y → [ P ] x ≡ y
+_≡⟨⟩_ : ∀ x → [ P ] x ≡ y → [ P ] x ≡ y
 _ ≡⟨⟩ x≡y = x≡y
 
-finally : ∀ {P : I → Set p} x y → [ P ] x ≡ y → [ P ] x ≡ y
+finally : ∀ x y → [ P ] x ≡ y → [ P ] x ≡ y
 finally _ _ x≡y = x≡y
 
 syntax finally x y x≡y = x ≡⟨ x≡y ⟩∎ y ∎
@@ -191,7 +186,7 @@ elim P p {x} x≡y =
 -- Substitutivity.
 
 hsubst :
-  ∀ {P : I → Set p} (Q : ∀ {i} → P i → Set q) {x y} →
+  ∀ (Q : ∀ {i} → P i → Set q) {x y} →
   [ P ] x ≡ y → Q x → Q y
 hsubst Q x≡y p = transport (λ i → Q (x≡y i)) 0̲ p
 
@@ -204,7 +199,7 @@ subst P = hsubst P
 -- written by Anders Mörtberg.
 
 hcong :
-  ∀ {B : A → Set b} (f : (x : A) → B x) {x y} →
+  ∀ (f : (x : A) → B x) {x y} →
   (x≡y : x ≡ y) → [ (λ i → B (x≡y i)) ] f x ≡ f y
 hcong f x≡y = λ i → f (x≡y i)
 
@@ -238,14 +233,14 @@ Congruence⁺.hcong-refl         (congruence⁺ _) = λ _ → refl
 
 -- A family of instantiations of Equality-with-J₀.
 
-equality-with-J₀ : ∀ {a p} → Equality-with-J₀ a p reflexive-relation
+equality-with-J₀ : Equality-with-J₀ a p reflexive-relation
 Equality-with-J₀.elim      equality-with-J₀ = elim
 Equality-with-J₀.elim-refl equality-with-J₀ = λ _ r →
   cong (_$ r _) $ transport-refl 0̲
 
 -- A family of instantiations of Equality-with-J.
 
-equality-with-J : ∀ {a p} → Equality-with-J a p congruence⁺
+equality-with-J : Equality-with-J a p congruence⁺
 Equality-with-J.equality-with-J₀          equality-with-J = equality-with-J₀
 Equality-with-J.cong                      equality-with-J = cong
 Equality-with-J.cong-refl                 equality-with-J = λ _ → refl
@@ -301,7 +296,7 @@ private
 
   subst-ext :
     ∀ {p} (f≡g : ∀ x → f x ≡ g x) →
-    subst (λ f → P (f x)) (⟨ext⟩ f≡g) p ≡ subst P (f≡g x) p
+    subst (λ f → B (f x)) (⟨ext⟩ f≡g) p ≡ subst B (f≡g x) p
   subst-ext _ = refl
 
   elim-ext :
@@ -495,7 +490,6 @@ open Bijection equality-with-J using (_↔_)
 -- path starting in x.
 
 refl≡ :
-  ∀ {P : I → Set p} {x y}
   (x≡y : [ P ] x ≡ y) →
   [ (λ i → [ (λ j → P (min i j)) ] x ≡ x≡y i) ] refl {x = x} ≡ x≡y
 refl≡ x≡y = λ i j → x≡y (min i j)
