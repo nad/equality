@@ -11,6 +11,8 @@ open import Agda.Builtin.Cubical.Glue as Glue hiding (_≃_)
 import Bijection
 open import Equality
 import Equivalence
+import Function-universe
+import H-level
 open import Logical-equivalence using (_⇔_)
 import Preimage
 open import Prelude
@@ -42,6 +44,7 @@ private
     x y z       : A
     f g h       : (x : A) → B x
     i           : I
+    n           : ℕ
 
 ------------------------------------------------------------------------
 -- Equality
@@ -485,6 +488,8 @@ other-univ {ℓ = ℓ} {B = B} =
 -- Some properties
 
 open Bijection equality-with-J using (_↔_)
+open Function-universe equality-with-J
+open H-level equality-with-J
 
 -- There is a dependent path from reflexivity for x to any dependent
 -- path starting in x.
@@ -628,3 +633,27 @@ heterogeneous↔homogeneous P {p} {q} = record
                   ; (j = 1̲) → p≡p′ k
                   })
          (p≡p′≡refl j i)
+
+-- Positive h-levels of P i can be expressed in terms of the h-levels
+-- of dependent paths over P.
+
+H-level-suc↔H-level[]≡ :
+  ∀ (P : I → Set p) i →
+  H-level (suc n) (P i) ↔ (∀ x y → H-level n ([ P ] x ≡ y))
+H-level-suc↔H-level[]≡ {n = n} P i =
+  H-level (suc n) (P i)                                            ↝⟨ H-level-cong ext _ (≡⇒≃ λ j → P (max i j)) ⟩
+
+  H-level (suc n) (P 1̲)                                            ↔⟨⟩
+
+  ((x y : P 1̲) → H-level n (x ≡ y))                                ↝⟨ (Π-cong ext (inverse $ ≡⇒≃ λ i → P i) λ x → ∀-cong ext λ _ →
+                                                                       ≡⇒↝ _ $ cong (λ x → H-level _ (x ≡ _)) (
+      x                                                                  ≡⟨ sym $ transport∘transport (λ i → P (- i)) ⟩
+
+      transport P 0̲ (transport (λ i → P (- i)) 0̲ x)                      ≡⟨ cong (λ f → transport P 0̲ (f (transport (λ i → P (- i)) 0̲ x))) $ sym $
+                                                                            transport-refl 0̲ ⟩∎
+      transport P 0̲
+        (transport (λ _ → P 0̲) 0̲ (transport (λ i → P (- i)) 0̲ x))        ∎)) ⟩
+
+  ((x : P 0̲) (y : P 1̲) → H-level n (transport P 0̲ x ≡ y))          ↝⟨ (∀-cong ext λ x → ∀-cong ext λ y → H-level-cong ext n $ inverse $
+                                                                       heterogeneous↔homogeneous P) ⟩□
+  ((x : P 0̲) (y : P 1̲) → H-level n ([ P ] x ≡ y))                  □
