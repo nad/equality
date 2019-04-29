@@ -8,6 +8,11 @@
 {-# OPTIONS --without-K --rewriting #-}
 
 -- Partly following the HoTT book.
+--
+-- Unlike the HoTT book, but following the cubical library (in which
+-- set quotients were implemented by Zesen Qian and Anders Mörtberg),
+-- the quotienting relations are not (always) required to be
+-- propositional.
 
 module Quotient.HIT where
 
@@ -33,7 +38,7 @@ private
     a a₁ a₂ p r r₁ r₂ : Level
     k                 : Isomorphism-kind
     A B               : Set a
-    P Q R             : A → A → Proposition r
+    P Q R             : A → A → Set r
     x y               : A
 
 ------------------------------------------------------------------------
@@ -48,16 +53,16 @@ private
 infix 5 _/_
 
 postulate
-  _/_ : (A : Set a) → (A → A → Proposition r) → Set (a ⊔ r)
+  _/_ : (A : Set a) → (A → A → Set r) → Set (a ⊔ r)
 
-module _ {R : A → A → Proposition r} where
+module _ {R : A → A → Set r} where
 
   postulate
 
     -- Constructors.
 
     [_]                  : A → A / R
-    []-respects-relation : proj₁ (R x y) → [ x ] ≡ [ y ]
+    []-respects-relation : R x y → [ x ] ≡ [ y ]
     /-is-set             : Is-set (A / R)
 
     -- Eliminator.
@@ -65,7 +70,7 @@ module _ {R : A → A → Proposition r} where
     elim :
       (P : A / R → Set p) →
       (p-[] : ∀ x → P [ x ]) →
-      (∀ {x y} (r : proj₁ (R x y)) →
+      (∀ {x y} (r : R x y) →
        subst P ([]-respects-relation r) (p-[] x) ≡ p-[] y) →
       (∀ x → Is-set (P x)) →
       ∀ x → P x
@@ -79,7 +84,7 @@ module _ {R : A → A → Proposition r} where
 module _ {P : A / R → Set p}
          {p-[] : ∀ x → P [ x ]}
          {p-[]-respects-relation :
-            ∀ {x y} (r : proj₁ (R x y)) →
+            ∀ {x y} (r : R x y) →
             subst P ([]-respects-relation r) (p-[] x) ≡ p-[] y}
          {is-set : ∀ x → Is-set (P x)}
          where
@@ -96,7 +101,7 @@ module _ {P : A / R → Set p}
 
   postulate
     elim-[]-respects-relation :
-      (r : proj₁ (R x y)) →
+      (r : R x y) →
       dependent-cong (elim P p-[] p-[]-respects-relation is-set)
                      ([]-respects-relation r) ≡
       p-[]-respects-relation r
@@ -106,7 +111,7 @@ module _ {P : A / R → Set p}
 rec :
   {P : Set p}
   (f : A → P) →
-  (∀ {x y} → proj₁ (R x y) → f x ≡ f y) →
+  (∀ {x y} → R x y → f x ≡ f y) →
   Is-set P →
   A / R → P
 rec {P = P} f resp P-set = elim
@@ -153,16 +158,15 @@ rec-Prop p-[] P-prop = elim-Prop (const _) p-[] (const P-prop)
 -- The definition of an equivalence relation.
 
 Is-equivalence-relation :
-  {A : Set a} (R : A → A → Proposition r) → Set (a ⊔ r)
-Is-equivalence-relation R =
-  Quotient.Is-equivalence-relation (λ x y → proj₁ (R x y))
+  {A : Set a} (R : A → A → Set r) → Set (a ⊔ r)
+Is-equivalence-relation = Quotient.Is-equivalence-relation
 
 open Quotient public using (module Is-equivalence-relation)
 
--- A trivial, propositional binary relation.
+-- A trivial binary relation.
 
-Trivial : A → A → Proposition r
-Trivial _ _ = ↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible)
+Trivial : A → A → Set r
+Trivial _ _ = ↑ _ ⊤
 
 -- This relation is an equivalence relation.
 
@@ -170,24 +174,27 @@ Trivial-is-equivalence-relation :
   Is-equivalence-relation (Trivial {A = A} {r = r})
 Trivial-is-equivalence-relation = _
 
+-- It is also propositional.
+
+Trivial-is-propositional :
+  {x y : A} → Is-proposition (Trivial {r = r} x y)
+Trivial-is-propositional = ↑-closure 1 (mono₁ 0 ⊤-contractible)
+
 ------------------------------------------------------------------------
 -- Pointwise liftings of binary relations
 
 -- The superscript P used in the names of the definitions in this
 -- section stands for "pointwise".
 
--- Lifts binary, propositional relations from B to A → B.
+-- Lifts binary relations from B to A → B.
 
 infix 0 _→ᴾ_
 
 _→ᴾ_ :
   (A : Set a) →
-  (B → B → Proposition r) →
-  ((A → B) → (A → B) → Proposition (a ⊔ r))
-(_ →ᴾ R) f g =
-    (∀ x → proj₁ (R (f x) (g x)))
-  , Π-closure ext 1 λ _ →
-    proj₂ (R _ _)
+  (B → B → Set r) →
+  ((A → B) → (A → B) → Set (a ⊔ r))
+(_ →ᴾ R) f g = ∀ x → R (f x) (g x)
 
 -- _→ᴾ_ preserves equivalence relations.
 
@@ -202,17 +209,26 @@ _→ᴾ_ :
   where
   open Is-equivalence-relation R-equiv
 
--- Lifts binary, propositional relations from A and B to A ⊎ B.
+-- _→ᴾ_ preserves Is-proposition.
+
+→ᴾ-preserves-Is-proposition :
+  (∀ {x y} → Is-proposition (R x y)) →
+  ∀ {f g} → Is-proposition ((A →ᴾ R) f g)
+→ᴾ-preserves-Is-proposition R-prop =
+  Π-closure ext 1 λ _ →
+  R-prop
+
+-- Lifts binary relations from A and B to A ⊎ B.
 
 infixr 1 _⊎ᴾ_
 
 _⊎ᴾ_ :
-  (A → A → Proposition r) →
-  (B → B → Proposition r) →
-  (A ⊎ B → A ⊎ B → Proposition r)
+  (A → A → Set r) →
+  (B → B → Set r) →
+  (A ⊎ B → A ⊎ B → Set r)
 (P ⊎ᴾ Q) (inj₁ x) (inj₁ y) = P x y
 (P ⊎ᴾ Q) (inj₂ x) (inj₂ y) = Q x y
-(P ⊎ᴾ Q) _        _        = ⊥ , ⊥-propositional
+(P ⊎ᴾ Q) _        _        = ⊥
 
 -- _⊎ᴾ_ preserves Is-equivalence-relation.
 
@@ -242,11 +258,23 @@ _⊎ᴾ_ :
   where
   open Is-equivalence-relation
 
--- Lifts a binary, propositional relation from A to Maybe A.
+-- _⊎ᴾ_ preserves Is-proposition.
+
+⊎ᴾ-preserves-Is-proposition :
+  (∀ {x y} → Is-proposition (P x y)) →
+  (∀ {x y} → Is-proposition (Q x y)) →
+  ∀ {x y} → Is-proposition ((P ⊎ᴾ Q) x y)
+⊎ᴾ-preserves-Is-proposition = λ where
+  P-prop Q-prop {inj₁ _} {inj₁ _} → P-prop
+  P-prop Q-prop {inj₁ _} {inj₂ _} → ⊥-propositional
+  P-prop Q-prop {inj₂ _} {inj₁ _} → ⊥-propositional
+  P-prop Q-prop {inj₂ _} {inj₂ _} → Q-prop
+
+-- Lifts a binary relation from A to Maybe A.
 
 Maybeᴾ :
-  (A → A → Proposition r) →
-  (Maybe A → Maybe A → Proposition r)
+  (A → A → Set r) →
+  (Maybe A → Maybe A → Set r)
 Maybeᴾ R = Trivial ⊎ᴾ R
 
 -- Maybeᴾ preserves Is-equivalence-relation.
@@ -256,6 +284,15 @@ Maybeᴾ-preserves-Is-equivalence-relation :
   Is-equivalence-relation (Maybeᴾ R)
 Maybeᴾ-preserves-Is-equivalence-relation =
   ⊎ᴾ-preserves-Is-equivalence-relation Trivial-is-equivalence-relation
+
+-- Maybeᴾ preserves Is-proposition.
+
+Maybeᴾ-preserves-Is-proposition :
+  (∀ {x y} → Is-proposition (R x y)) →
+  ∀ {x y} → Is-proposition (Maybeᴾ R x y)
+Maybeᴾ-preserves-Is-proposition =
+  ⊎ᴾ-preserves-Is-proposition λ {x} →
+  Trivial-is-propositional {x = x}
 
 ------------------------------------------------------------------------
 -- Some properties
@@ -268,51 +305,51 @@ Maybeᴾ-preserves-Is-equivalence-relation =
   (λ x → ∣ x , refl ∣)
   (λ _ → truncation-is-proposition)
 
--- If the relation is an equivalence relation, then it is equivalent
--- to equality under [_].
+-- If the relation is a propositional equivalence relation, then it is
+-- equivalent to equality under [_].
 --
 -- The basic structure of this proof is that of Proposition 2 in
 -- "Quotienting the Delay Monad by Weak Bisimilarity" by Chapman,
 -- Uustalu and Veltri.
 
 related≃[equal] :
-  {R : A → A → Proposition r} →
+  {R : A → A → Set r} →
   Propositional-extensionality r →
   Is-equivalence-relation R →
-  ∀ {x y} → proj₁ (R x y) ≃ _≡_ {A = A / R} [ x ] [ y ]
-related≃[equal] {A = A} {r = r} {R = R} prop-ext R-equiv {x} {y} =
-  _↠_.from (Eq.≃↠⇔ (proj₂ (R x y)) (/-is-set _ _))
+  (∀ {x y} → Is-proposition (R x y)) →
+  ∀ {x y} → R x y ≃ _≡_ {A = A / R} [ x ] [ y ]
+related≃[equal] {A = A} {r = r} {R = R}
+                prop-ext R-equiv R-prop {x} {y} =
+  _↠_.from (Eq.≃↠⇔ R-prop (/-is-set _ _))
     (record
       { to   = []-respects-relation
       ; from = λ [x]≡[y] →
                               $⟨ reflexive ⟩
           proj₁ (R′ x [ x ])  ↝⟨ ≡⇒→ (cong (proj₁ ∘ R′ x) [x]≡[y]) ⟩
           proj₁ (R′ x [ y ])  ↝⟨ id ⟩□
-          proj₁ (R x y)       □
+          R x y               □
       })
   where
   open Is-equivalence-relation R-equiv
 
-  lemma : ∀ {x y z} → proj₁ (R y z) → R x y ≡ R x z
-  lemma {x} {y} {z} r =            $⟨ record
-                                        { to   = flip transitive r
-                                        ; from = flip transitive (symmetric r)
-                                        } ⟩
-    proj₁ (R x y) ⇔ proj₁ (R x z)  ↝⟨ ⇔↔≡″ ext prop-ext ⟩
-    R x y ≡ R x z                  □
+  lemma : ∀ {x y z} → R y z → (R x y , R-prop) ≡ (R x z , R-prop)
+  lemma {x} {y} {z} r =                  $⟨ record
+                                              { to   = flip transitive r
+                                              ; from = flip transitive (symmetric r)
+                                              } ⟩
+    R x y ⇔ R x z                        ↝⟨ ⇔↔≡″ ext prop-ext ⟩
+    (R x y , R-prop) ≡ (R x z , R-prop)  □
 
   R′ : A → A / R → Proposition r
   R′ x = rec
-    (λ y → R x y)
+    (λ y → R x y , R-prop)
     lemma
     (Is-set-∃-Is-proposition ext prop-ext)
 
 -- Quotienting with equality (for a set) amounts to the same thing as
 -- not quotienting at all.
 
-/≡↔ :
-  (A-set : Is-set A) →
-  (A / λ x y → (x ≡ y) , A-set x y) ↔ A
+/≡↔ : Is-set A → A / _≡_ ↔ A
 /≡↔ A-set = record
   { surjection = record
     { logical-equivalence = record
@@ -327,9 +364,7 @@ related≃[equal] {A = A} {r = r} {R = R} prop-ext R-equiv {x} {y} =
 -- Quotienting with a trivial relation amounts to the same thing as
 -- using the propositional truncation.
 
-/trivial↔∥∥ :
-  (∀ x y → proj₁ (R x y)) →
-  A / R ↔ ∥ A ∥
+/trivial↔∥∥ : (∀ x y → R x y) → A / R ↔ ∥ A ∥
 /trivial↔∥∥ {A = A} {R = R} trivial = record
   { surjection = record
     { logical-equivalence = record
@@ -365,8 +400,8 @@ related≃[equal] {A = A} {r = r} {R = R} prop-ext R-equiv {x} {y} =
       Univalence a →
       Univalence (# 0) →
       Quotient.Is-equivalence-relation R →
-      (R-prop : ∀ x y → Is-proposition (R x y)) →
-      A Quotient./ R ↠ A / (λ x y → R x y , R-prop x y)
+      (R-prop : ∀ {x y} → Is-proposition (R x y)) →
+      A Quotient./ R ↠ A / R
 /↠/ {a = a} {A = A} {R} univ univ₀ R-equiv R-prop = record
   { logical-equivalence = record
     { to   = to
@@ -375,19 +410,16 @@ related≃[equal] {A = A} {r = r} {R = R} prop-ext R-equiv {x} {y} =
   ; right-inverse-of = to∘from
   }
   where
-  R′ : A → A → Proposition a
-  R′ x y = R x y , R-prop x y
-
   R-is-strong-equivalence : Quotient.Strong-equivalence R
   R-is-strong-equivalence =
     Quotient.propositional-equivalence⇒strong-equivalence
-      ext univ R-equiv R-prop
+      ext univ R-equiv (λ _ _ → R-prop)
 
   []-respects-R : ∀ {x y} → R x y → Quotient.[ x ] ≡ Quotient.[ y ]
   []-respects-R =
     _↔_.to (Quotient.related↔[equal] ext R-is-strong-equivalence)
 
-  to : A Quotient./ R → A / R′
+  to : A Quotient./ R → A / R
   to = Quotient.rec
     ext
     (Is-equivalence-relation.reflexive R-equiv)
@@ -396,12 +428,12 @@ related≃[equal] {A = A} {r = r} {R = R} prop-ext R-equiv {x} {y} =
     [_]
     []-respects-relation
 
-  from : A / R′ → A Quotient./ R
+  from : A / R → A Quotient./ R
   from = rec
     Quotient.[_]
     []-respects-R
     (Quotient.quotient's-h-level-is-1-+-relation's-h-level
-       ext univ univ₀ 1 R-prop)
+       ext univ univ₀ 1 (λ _ _ → R-prop))
 
   to∘from : ∀ x → to (from x) ≡ x
   to∘from = elim-Prop
@@ -416,12 +448,11 @@ infix 5 _/-cong_
 
 _/-cong_ :
   {A₁ : Set a₁} {A₂ : Set a₂}
-  {R₁ : A₁ → A₁ → Proposition r₁}
-  {R₂ : A₂ → A₂ → Proposition r₂} →
+  {R₁ : A₁ → A₁ → Set r₁}
+  {R₂ : A₂ → A₂ → Set r₂} →
   (A₁↔A₂ : A₁ ↔[ k ] A₂) →
   (∀ x y →
-     proj₁ (R₁ x y) ⇔
-     proj₁ (R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y))) →
+     R₁ x y ⇔ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)) →
   A₁ / R₁ ↔[ k ] A₂ / R₂
 _/-cong_ {k = k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (record
   { surjection = record
@@ -433,12 +464,10 @@ _/-cong_ {k = k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (
       ; from = rec
                  ([_] ∘ from)
                  (λ {x y} →
-                    proj₁ (R₂ x y)                          ↝⟨ ≡⇒↝ _ (sym $ cong₂ (λ x y → proj₁ (R₂ x y))
-                                                                                  (right-inverse-of x)
-                                                                                  (right-inverse-of y)) ⟩
-                    proj₁ (R₂ (to (from x)) (to (from y)))  ↝⟨ _⇔_.from (R₁⇔R₂′ _ _) ⟩
-                    proj₁ (R₁ (from x) (from y))            ↝⟨ []-respects-relation ⟩□
-                    [ from x ] ≡ [ from y ]                 □)
+                    R₂ x y                          ↝⟨ ≡⇒↝ _ (sym $ cong₂ R₂ (right-inverse-of x) (right-inverse-of y)) ⟩
+                    R₂ (to (from x)) (to (from y))  ↝⟨ _⇔_.from (R₁⇔R₂′ _ _) ⟩
+                    R₁ (from x) (from y)            ↝⟨ []-respects-relation ⟩□
+                    [ from x ] ≡ [ from y ]         □)
                  /-is-set
       }
     ; right-inverse-of = elim-Prop
@@ -459,11 +488,11 @@ _/-cong_ {k = k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (
   open _↔_ (from-isomorphism A₁↔A₂)
 
   R₁⇔R₂′ = λ x y →
-    proj₁ (R₁ x y)                                                ↝⟨ R₁⇔R₂ x y ⟩
-    proj₁ (R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y))  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → proj₁ (R₂ (f x) (g y)))
-                                                                                   (to-implication∘from-isomorphism k bijection)
-                                                                                   (to-implication∘from-isomorphism k bijection) ⟩□
-    proj₁ (R₂ (to x) (to y))                                      □
+    R₁ x y                                                ↝⟨ R₁⇔R₂ x y ⟩
+    R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → R₂ (f x) (g y))
+                                                                           (to-implication∘from-isomorphism k bijection)
+                                                                           (to-implication∘from-isomorphism k bijection) ⟩□
+    R₂ (to x) (to y)                                      □
 
 ------------------------------------------------------------------------
 -- Various type formers commute with quotients
@@ -543,7 +572,7 @@ Maybe/-comm-[] =
 
 Σ/-comm :
   {P : A / R → Set p} →
-  (∀ x → Is-proposition (P x)) →
+  (∀ {x} → Is-proposition (P x)) →
   Σ (A / R) P ↔ Σ A (P ∘ [_]) / (R on proj₁)
 Σ/-comm {A = A} {R = R} {P = P} P-prop = record
   { surjection = record
@@ -564,11 +593,11 @@ Maybe/-comm-[] =
       ; from = rec
           (Σ-map [_] id)
           (λ { {x = (x₁ , x₂)} {y = (y₁ , y₂)} →
-               proj₁ (R x₁ y₁)                ↝⟨ []-respects-relation ⟩
-               [ x₁ ] ≡ [ y₁ ]                ↔⟨ ignore-propositional-component (P-prop _) ⟩
+               R x₁ y₁                        ↝⟨ []-respects-relation ⟩
+               [ x₁ ] ≡ [ y₁ ]                ↔⟨ ignore-propositional-component P-prop ⟩
                ([ x₁ ] , x₂) ≡ ([ y₁ ] , y₂)  □
              })
-          (Σ-closure 2 /-is-set (mono₁ 1 ∘ P-prop))
+          (Σ-closure 2 /-is-set (λ _ → mono₁ 1 P-prop))
       }
     ; right-inverse-of = elim-Prop
         _
@@ -579,12 +608,12 @@ Maybe/-comm-[] =
       _
       (λ _ _ → refl)
       (λ _ → Π-closure ext 1 λ _ →
-             (Σ-closure 2 /-is-set (mono₁ 1 ∘ P-prop)) _ _)
+             (Σ-closure 2 /-is-set (λ _ → mono₁ 1 P-prop)) _ _)
   }
 
 -- The type former λ X → ℕ → X commutes with quotients, assuming that
--- the quotient relation is an equivalence relation, and also assuming
--- propositional extensionality and countable choice.
+-- the quotient relation is a propositional equivalence relation, and
+-- also assuming propositional extensionality and countable choice.
 --
 -- This result is very similar to Proposition 5 in "Quotienting the
 -- Delay Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
@@ -602,12 +631,13 @@ Maybe/-comm-[] =
 -- The isomorphism.
 
 ℕ→/-comm :
-  {A : Set a} {R : A → A → Proposition r} →
+  {A : Set a} {R : A → A → Set r} →
   Propositional-extensionality r →
   Axiom-of-countable-choice (a ⊔ r) →
   Is-equivalence-relation R →
+  (∀ {x y} → Is-proposition (R x y)) →
   (ℕ → A) / (ℕ →ᴾ R) ↔ (ℕ → A / R)
-ℕ→/-comm {A = A} {R} prop-ext cc R-equiv = record
+ℕ→/-comm {A = A} {R} prop-ext cc R-equiv R-prop = record
   { surjection = record
     { logical-equivalence = record
       { to   = ℕ→/-comm-to
@@ -655,11 +685,11 @@ Maybe/-comm-[] =
 
     (∀ n → [ g₁ ]→ n ≡ [ g₂ ]→ n)            ↔⟨ Bijection.id ⟩
 
-    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ ∀-cong ext (λ _ → inverse $ related≃[equal] {R = R} prop-ext R-equiv) ⟩
+    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ ∀-cong ext (λ _ → inverse $ related≃[equal] prop-ext R-equiv R-prop) ⟩
 
-    (∀ n → proj₁ (R (g₁ n) (g₂ n)))          ↔⟨ Bijection.id ⟩
+    (∀ n → R (g₁ n) (g₂ n))                  ↔⟨ Bijection.id ⟩
 
-    proj₁ ((ℕ →ᴾ R) g₁ g₂)                   ↝⟨ []-respects-relation ⟩
+    (ℕ →ᴾ R) g₁ g₂                           ↝⟨ []-respects-relation ⟩
 
     [ g₁ ] ≡ [ g₂ ]                          ↔⟨ ignore-propositional-component
                                                   ((Π-closure ext 2 λ _ →
@@ -716,7 +746,7 @@ Maybe/-comm-[] =
   (surj : A / R ↠ B)
   (P : B → Set p)
   (p-[] : ∀ x → P (_↠_.to surj [ x ])) →
-  (∀ {x y} (r : proj₁ (R x y)) →
+  (∀ {x y} (r : R x y) →
    subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x) ≡
    p-[] y) →
   (∀ x → Is-set (P x)) →
@@ -742,7 +772,7 @@ Maybe/-comm-[] =
   ∀ (surj : A / R ↠ B)
   (P : B → Set p)
   (p-[] : ∀ x → P (_↠_.to surj [ x ]))
-  (ok : ∀ {x y} (r : proj₁ (R x y)) →
+  (ok : ∀ {x y} (r : R x y) →
         subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x) ≡
         p-[] y)
   (P-set : ∀ x → Is-set (P x)) x →
@@ -767,7 +797,7 @@ Maybe/-comm-[] =
 
   p-[] x                                                     ∎
   where
-  ok′ : ∀ {x y} (r : proj₁ (R x y)) → _
+  ok′ : ∀ {x y} (r : R x y) → _
   ok′ = λ r →
     trans (subst-∘ P (_↠_.to surj) ([]-respects-relation r)) (ok r)
 
@@ -779,7 +809,7 @@ Maybe/-comm-[] =
   (bij : A / R ↔ B)
   (P : B → Set p)
   (p-[] : ∀ x → P (_↔_.to bij [ x ])) →
-  (∀ {x y} (r : proj₁ (R x y)) →
+  (∀ {x y} (r : R x y) →
    subst P (cong (_↔_.to bij) ([]-respects-relation r)) (p-[] x) ≡
    p-[] y) →
   (∀ x → Is-set (P x)) →
@@ -792,7 +822,7 @@ Maybe/-comm-[] =
   ∀ (bij : A / R ↔ B)
   (P : B → Set p)
   (p-[] : ∀ x → P (_↔_.to bij [ x ]))
-  (ok : ∀ {x y} (r : proj₁ (R x y)) →
+  (ok : ∀ {x y} (r : R x y) →
         subst P (cong (_↔_.to bij) ([]-respects-relation r)) (p-[] x) ≡
         p-[] y)
   (P-set : ∀ x → Is-set (P x)) x →
@@ -802,39 +832,43 @@ Maybe/-comm-[] =
     (_↔_.left-inverse-of bij [ x ])
 
 -- A quotient-like eliminator for functions of type ℕ → A / R, where R
--- is an equivalence relation. Defined using propositional
--- extensionality and countable choice.
+-- is a propositional equivalence relation. Defined using
+-- propositional extensionality and countable choice.
 --
 -- This eliminator is taken from Corollary 1 in "Quotienting the Delay
 -- Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
 ℕ→/-elim :
-  {A : Set a} {R : A → A → Proposition r} →
+  {A : Set a} {R : A → A → Set r} →
   Propositional-extensionality r →
   Axiom-of-countable-choice (a ⊔ r) →
   Is-equivalence-relation R →
+  (∀ {x y} → Is-proposition (R x y)) →
   (P : (ℕ → A / R) → Set p)
   (p-[] : ∀ f → P (λ n → [ f n ])) →
-  (∀ {f g} (r : proj₁ ((ℕ →ᴾ R) f g)) →
+  (∀ {f g} (r : (ℕ →ᴾ R) f g) →
    subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡
    p-[] g) →
   (∀ f → Is-set (P f)) →
   ∀ f → P f
-ℕ→/-elim prop-ext cc R-equiv = ↔-eliminator (ℕ→/-comm prop-ext cc R-equiv)
+ℕ→/-elim prop-ext cc R-equiv R-prop =
+  ↔-eliminator (ℕ→/-comm prop-ext cc R-equiv R-prop)
 
 -- The eliminator "computes" in the "right" way.
 
 ℕ→/-elim-[] :
-  ∀ {A : Set a} {R : A → A → Proposition r}
+  ∀ {A : Set a} {R : A → A → Set r}
   (prop-ext : Propositional-extensionality r)
   (cc : Axiom-of-countable-choice (a ⊔ r))
   (R-equiv : Is-equivalence-relation R)
+  (R-prop : ∀ {x y} → Is-proposition (R x y))
   (P : (ℕ → A / R) → Set p)
   (p-[] : ∀ f → P (λ n → [ f n ]))
-  (ok : ∀ {f g} (r : proj₁ ((ℕ →ᴾ R) f g)) →
+  (ok : ∀ {f g} (r : (ℕ →ᴾ R) f g) →
         subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡
         p-[] g)
   (P-set : ∀ f → Is-set (P f)) f →
-  ℕ→/-elim prop-ext cc R-equiv P p-[] ok P-set (λ n → [ f n ]) ≡ p-[] f
-ℕ→/-elim-[] prop-ext cc R-equiv =
-  ↔-eliminator-[] (ℕ→/-comm prop-ext cc R-equiv)
+  ℕ→/-elim prop-ext cc R-equiv R-prop P p-[] ok P-set (λ n → [ f n ]) ≡
+  p-[] f
+ℕ→/-elim-[] prop-ext cc R-equiv R-prop =
+  ↔-eliminator-[] (ℕ→/-comm prop-ext cc R-equiv R-prop)
