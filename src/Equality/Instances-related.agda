@@ -19,25 +19,37 @@ open import Prelude
 -- All families of equality types that satisfy certain axioms are
 -- pointwise isomorphic. One of the families are used to define what
 -- "isomorphic" means.
+--
+-- The isomorphisms map reflexivity to reflexivity in both directions.
 
 all-equality-types-isomorphic :
   ∀ {refl₁ refl₂}
   (eq₁ : ∀ {a p} → Equality-with-J₀ a p refl₁)
   (eq₂ : ∀ {a p} → Equality-with-J₀ a p refl₂) →
   let open Bijection (J₀⇒J eq₁) in
-  ∀ {a} {A : Set a} {x y : A} →
-  Reflexive-relation′._≡_ refl₁ x y ↔
-  Reflexive-relation′._≡_ refl₂ x y
-all-equality-types-isomorphic {refl₁} {refl₂} eq₁ eq₂ = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = to refl₂ eq₁
-      ; from = to refl₁ eq₂
+  ∀ {a} {A : Set a} →
+  ∃ λ (iso : {x y : A} →
+             Reflexive-relation′._≡_ refl₁ x y ↔
+             Reflexive-relation′._≡_ refl₂ x y) →
+    (∀ {x} → Reflexive-relation′._≡_ refl₂
+               (_↔_.to iso (Reflexive-relation′.refl refl₁ x))
+               (Reflexive-relation′.refl refl₂ x)) ×
+    (∀ {x} → Reflexive-relation′._≡_ refl₁
+               (_↔_.from iso (Reflexive-relation′.refl refl₂ x))
+               (Reflexive-relation′.refl refl₁ x))
+all-equality-types-isomorphic {refl₁} {refl₂} eq₁ eq₂ =
+    record
+      { surjection = record
+        { logical-equivalence = record
+          { to   = to refl₂ eq₁
+          ; from = to refl₁ eq₂
+          }
+        ; right-inverse-of = to refl₁ eq₂ ∘ to∘to _ _ eq₂ eq₁
+        }
+      ; left-inverse-of = to∘to _ _ eq₁ eq₂
       }
-    ; right-inverse-of = λ x≡y → to refl₁ eq₂ (to∘to _ _ eq₂ eq₁ x≡y)
-    }
-  ; left-inverse-of = to∘to _ _ eq₁ eq₂
-  }
+  , to-refl refl₂ eq₁
+  , to-refl refl₁ eq₂
   where
   open Reflexive-relation′
   open module E {refl} (eq : ∀ {a p} → Equality-with-J₀ a p refl) =
@@ -47,6 +59,13 @@ all-equality-types-isomorphic {refl₁} {refl₂} eq₁ eq₂ = record
        {a} {A : Set a} {x y : A} →
        _≡_ refl₁ x y → _≡_ refl₂ x y
   to refl₂ eq₁ {x = x} x≡y = subst eq₁ (_≡_ refl₂ x) x≡y (refl refl₂ x)
+
+  to-refl :
+    ∀ {refl₁} refl₂ (eq₁ : ∀ {a p} → Equality-with-J₀ a p refl₁)
+    {a} {A : Set a} {x : A} →
+    _≡_ refl₂ (to refl₂ eq₁ (refl refl₁ x)) (refl refl₂ x)
+  to-refl refl₂ eq₁ =
+    to refl₂ eq₁ $ subst-refl eq₁ (_≡_ refl₂ _) _
 
   to∘to : ∀ refl₁ refl₂
           (eq₁ : ∀ {a p} → Equality-with-J₀ a p refl₁)
