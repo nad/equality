@@ -16,6 +16,12 @@ import H-level.Closure
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+private
+  module C (c⁺ : ∀ c → Congruence⁺ c) where
+    open Reflexive-relation′
+           (λ c → Congruence⁺.reflexive-relation (c⁺ c))
+         public
+
 -- All families of equality types that satisfy certain axioms are
 -- pointwise isomorphic. One of the families are used to define what
 -- "isomorphic" means.
@@ -23,62 +29,55 @@ open import Prelude
 -- The isomorphisms map reflexivity to reflexivity in both directions.
 
 all-equality-types-isomorphic :
-  ∀ {refl₁ refl₂}
-  (eq₁ : ∀ {a p} → Equality-with-J₀ a p refl₁)
-  (eq₂ : ∀ {a p} → Equality-with-J₀ a p refl₂) →
-  let open Bijection (J₀⇒J eq₁) in
+  ∀ {c₁ c₂}
+  (eq₁ : ∀ {a p} → Equality-with-J a p c₁)
+  (eq₂ : ∀ {a p} → Equality-with-J a p c₂) →
+  let open Bijection eq₁ in
   ∀ {a} {A : Set a} →
-  ∃ λ (iso : {x y : A} →
-             Reflexive-relation′._≡_ refl₁ x y ↔
-             Reflexive-relation′._≡_ refl₂ x y) →
-    (∀ {x} → Reflexive-relation′._≡_ refl₂
-               (_↔_.to iso (Reflexive-relation′.refl refl₁ x))
-               (Reflexive-relation′.refl refl₂ x)) ×
-    (∀ {x} → Reflexive-relation′._≡_ refl₁
-               (_↔_.from iso (Reflexive-relation′.refl refl₂ x))
-               (Reflexive-relation′.refl refl₁ x))
-all-equality-types-isomorphic {refl₁} {refl₂} eq₁ eq₂ =
+  ∃ λ (iso : {x y : A} → C._≡_ c₁ x y ↔ C._≡_ c₂ x y) →
+    (∀ {x} → C._≡_ c₂ (_↔_.to   iso (C.refl c₁ x)) (C.refl c₂ x)) ×
+    (∀ {x} → C._≡_ c₁ (_↔_.from iso (C.refl c₂ x)) (C.refl c₁ x))
+all-equality-types-isomorphic {c₁} {c₂} eq₁ eq₂ =
     record
       { surjection = record
         { logical-equivalence = record
-          { to   = to refl₂ eq₁
-          ; from = to refl₁ eq₂
+          { to   = to c₂ eq₁
+          ; from = to c₁ eq₂
           }
-        ; right-inverse-of = to refl₁ eq₂ ∘ to∘to _ _ eq₂ eq₁
+        ; right-inverse-of = to c₁ eq₂ ∘ to∘to _ _ eq₂ eq₁
         }
       ; left-inverse-of = to∘to _ _ eq₁ eq₂
       }
-  , to-refl refl₂ eq₁
-  , to-refl refl₁ eq₂
+  , to-refl c₂ eq₁
+  , to-refl c₁ eq₂
   where
-  open Reflexive-relation′
-  open module E {refl} (eq : ∀ {a p} → Equality-with-J₀ a p refl) =
-    Equality-with-J′ (J₀⇒J eq) hiding (_≡_; refl)
+  open C
+  open module E {c} (eq : ∀ {a p} → Equality-with-J a p c) =
+    Equality-with-J′ eq hiding (_≡_; refl)
 
-  to : ∀ {refl₁} refl₂ (eq₁ : ∀ {a p} → Equality-with-J₀ a p refl₁)
+  to : ∀ {c₁} c₂ (eq₁ : ∀ {a p} → Equality-with-J a p c₁)
        {a} {A : Set a} {x y : A} →
-       _≡_ refl₁ x y → _≡_ refl₂ x y
-  to refl₂ eq₁ {x = x} x≡y = subst eq₁ (_≡_ refl₂ x) x≡y (refl refl₂ x)
+       _≡_ c₁ x y → _≡_ c₂ x y
+  to c₂ eq₁ {x = x} x≡y = subst eq₁ (_≡_ c₂ x) x≡y (refl c₂ x)
 
   to-refl :
-    ∀ {refl₁} refl₂ (eq₁ : ∀ {a p} → Equality-with-J₀ a p refl₁)
+    ∀ {c₁} c₂ (eq₁ : ∀ {a p} → Equality-with-J a p c₁)
     {a} {A : Set a} {x : A} →
-    _≡_ refl₂ (to refl₂ eq₁ (refl refl₁ x)) (refl refl₂ x)
-  to-refl refl₂ eq₁ =
-    to refl₂ eq₁ $ subst-refl eq₁ (_≡_ refl₂ _) _
+    _≡_ c₂ (to c₂ eq₁ (refl c₁ x)) (refl c₂ x)
+  to-refl c₂ eq₁ = to c₂ eq₁ $ subst-refl eq₁ (_≡_ c₂ _) _
 
-  to∘to : ∀ refl₁ refl₂
-          (eq₁ : ∀ {a p} → Equality-with-J₀ a p refl₁)
-          (eq₂ : ∀ {a p} → Equality-with-J₀ a p refl₂) →
-          ∀ {a} {A : Set a} {x y : A} (x≡y : _≡_ refl₁ x y) →
-          _≡_ refl₁ (to refl₁ eq₂ (to refl₂ eq₁ x≡y)) x≡y
-  to∘to refl₁ refl₂ eq₁ eq₂ = elim eq₁
-    (λ {x y} x≡y → _≡_ refl₁ (to refl₁ eq₂ (to refl₂ eq₁ x≡y)) x≡y)
-    (λ x → to refl₁ eq₂ (to refl₂ eq₁ (refl refl₁ x))  ≡⟨ cong eq₁ (to refl₁ eq₂) (subst-refl eq₁ (_≡_ refl₂ x) (refl refl₂ x)) ⟩
-           to refl₁ eq₂ (refl refl₂ x)                 ≡⟨ to refl₁ eq₂ $ subst-refl eq₂ (_≡_ refl₁ x) (refl refl₁ x) ⟩∎
-           refl refl₁ x                                ∎)
+  to∘to : ∀ c₁ c₂
+          (eq₁ : ∀ {a p} → Equality-with-J a p c₁)
+          (eq₂ : ∀ {a p} → Equality-with-J a p c₂) →
+          ∀ {a} {A : Set a} {x y : A} (x≡y : _≡_ c₁ x y) →
+          _≡_ c₁ (to c₁ eq₂ (to c₂ eq₁ x≡y)) x≡y
+  to∘to c₁ c₂ eq₁ eq₂ = elim eq₁
+    (λ {x y} x≡y → _≡_ c₁ (to c₁ eq₂ (to c₂ eq₁ x≡y)) x≡y)
+    (λ x → to c₁ eq₂ (to c₂ eq₁ (refl c₁ x))  ≡⟨ cong eq₁ (to c₁ eq₂) (subst-refl eq₁ (_≡_ c₂ x) (refl c₂ x)) ⟩
+           to c₁ eq₂ (refl c₂ x)              ≡⟨ to c₁ eq₂ $ subst-refl eq₂ (_≡_ c₁ x) (refl c₁ x) ⟩∎
+           refl c₁ x                          ∎)
     where
-    open Derived-definitions-and-properties (J₀⇒J eq₁)
+    open Derived-definitions-and-properties eq₁
       using (step-≡; finally)
 
 module _ {congruence⁺}
