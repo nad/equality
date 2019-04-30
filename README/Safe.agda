@@ -136,6 +136,12 @@ import Univalence-axiom
 
 import Equality.Path
 
+-- Isomorphisms and equalities relating an arbitrary "equality with J"
+-- to path equality, along with proofs of extensionality and
+-- univalence for the "equality with J".
+
+import Equality.Path.Isomorphisms
+
 -- The "interval".
 
 import Interval
