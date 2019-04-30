@@ -142,6 +142,10 @@ import Equality.Path
 
 import Equality.Path.Isomorphisms
 
+-- The cubical identity type.
+
+import Equality.Id
+
 -- The "interval".
 
 import Interval
