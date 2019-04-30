@@ -662,3 +662,62 @@ H-level-suc↔H-level[]≡ {n = n} P i =
   ((x : P 0̲) (y : P 1̲) → H-level n (transport P 0̲ x ≡ y))          ↝⟨ (∀-cong ext λ x → ∀-cong ext λ y → H-level-cong ext n $ inverse $
                                                                        heterogeneous↔homogeneous P) ⟩□
   ((x : P 0̲) (y : P 1̲) → H-level n ([ P ] x ≡ y))                  □
+
+private
+
+  -- A simple lemma used below.
+
+  H-level-suc→H-level[]≡ : H-level (1 + n) (P 0̲) → H-level n ([ P ] x ≡ y)
+  H-level-suc→H-level[]≡ {n = n} {P = P} {x = x} {y = y} =
+    H-level (1 + n) (P 0̲)              ↔⟨ H-level-suc↔H-level[]≡ P 0̲ ⟩
+    (∀ x y → H-level n ([ P ] x ≡ y))  ↝⟨ (λ f → f _ _) ⟩□
+    H-level n ([ P ] x ≡ y)            □
+
+-- The following two lemmas can be used to implement the truncation
+-- cases of (at least some) eliminators for (at least some) HITs.
+
+-- If P is pointwise propositional, then we get a form of proof
+-- irrelevance.
+--
+-- Note that it would suffice for P x to be propositional. However,
+-- the lemma is intended to be used in a setting in which one has
+-- access to a proof of the more general statement.
+
+heterogeneous-irrelevance :
+  {P : A → Set p} →
+  (∀ x → Is-proposition (P x)) →
+  {x≡y : x ≡ y} {p₁ : P x} {p₂ : P y} →
+  [ (λ i → P (x≡y i)) ] p₁ ≡ p₂
+heterogeneous-irrelevance {x = x} {P = P} P-prop {x≡y} {p₁} {p₂} =
+                                                $⟨ P-prop ⟩
+  (∀ x → Is-proposition (P x))                  ↝⟨ _$ _ ⟩
+  Is-proposition (P x)                          ↔⟨⟩
+  Is-proposition (P (x≡y 0̲))                    ↝⟨ H-level-suc→H-level[]≡ ⟩
+  Contractible ([ (λ i → P (x≡y i)) ] p₁ ≡ p₂)  ↝⟨ proj₁ ⟩□
+  [ (λ i → P (x≡y i)) ] p₁ ≡ p₂                 □
+
+-- If P is a family of sets, then a variant of UIP holds.
+--
+-- Note that it would suffice for P x to be a set. However, the lemma
+-- is intended to be used in settings in which one has access to a
+-- proof of the more general statement.
+--
+-- The cubical library contains a lemma with basically the same type,
+-- but with a seemingly rather different proof, implemented by Zesen
+-- Qian.
+
+heterogeneous-UIP :
+  {P : A → Set p} →
+  (∀ x → Is-set (P x)) →
+  {eq₁ eq₂ : x ≡ y} (eq₃ : eq₁ ≡ eq₂) {p₁ : P x} {p₂ : P y}
+  {eq₄ : [ (λ j → P (eq₁ j)) ] p₁ ≡ p₂}
+  {eq₅ : [ (λ j → P (eq₂ j)) ] p₁ ≡ p₂} →
+  [ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅
+heterogeneous-UIP {x = x} {P = P} P-set eq₃ {p₁} {p₂} {eq₄} {eq₅} =
+                                                                        $⟨ P-set ⟩
+  (∀ x → Is-set (P x))                                                  ↝⟨ _$ _ ⟩
+  Is-set (P x)                                                          ↔⟨⟩
+  Is-set (P (eq₃ 0̲ 0̲))                                                  ↝⟨ H-level-suc→H-level[]≡ ⟩
+  Is-proposition ([ (λ j → P (eq₃ 0̲ j)) ] p₁ ≡ p₂)                      ↝⟨ H-level-suc→H-level[]≡ ⟩
+  Contractible ([ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅)  ↝⟨ proj₁ ⟩□
+  [ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅                 □
