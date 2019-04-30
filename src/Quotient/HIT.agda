@@ -2,10 +2,7 @@
 -- Quotients (set-quotients), defined using a higher inductive type
 ------------------------------------------------------------------------
 
--- Note that this module is experimental: it uses rewrite rules and
--- postulates to encode a higher inductive type.
-
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --cubical --safe #-}
 
 -- Partly following the HoTT book.
 --
@@ -16,8 +13,7 @@
 
 module Quotient.HIT where
 
-open import Equality.Propositional as EP hiding (elim)
-open import Interval using (ext; ⟨ext⟩)
+open import Equality.Path as P hiding (elim)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
@@ -44,84 +40,88 @@ private
 ------------------------------------------------------------------------
 -- Quotients
 
--- I have tried to follow the rules for HITs specified in the
--- HoTT-Agda library
--- (https://github.com/HoTT/HoTT-Agda/blob/master/lib/types/HIT_README.txt).
-
 -- The quotient type constructor.
 
 infix 5 _/_
 
-postulate
-  _/_ : (A : Set a) → (A → A → Set r) → Set (a ⊔ r)
+data _/_ (A : Set a) (R : A → A → Set r) : Set (a ⊔ r) where
+  [_]                  : A → A / R
+  []-respects-relation : R x y → [ x ] ≡ [ y ]
+  /-UIP                : Uniqueness-of-identity-proofs (A / R)
 
-module _ {R : A → A → Set r} where
+-- Quotients are sets.
 
-  postulate
+/-is-set : Is-set (A / R)
+/-is-set = _⇔_.from set⇔UIP /-UIP
 
-    -- Constructors.
+-- An eliminator.
 
-    [_]                  : A → A / R
-    []-respects-relation : R x y → [ x ] ≡ [ y ]
-    /-is-set             : Is-set (A / R)
+module _
+  (P : A / R → Set p)
+  (p-[] : ∀ x → P [ x ])
+  (p-[]-respects-relation :
+     ∀ {x y} (r : R x y) →
+     subst P ([]-respects-relation r) (p-[] x) ≡ p-[] y)
+  (P-set : ∀ x → Is-set (P x))
+  where
 
-    -- Eliminator.
+  elim : ∀ x → P x
+  elim [ x ] = p-[] x
 
-    elim :
-      (P : A / R → Set p) →
-      (p-[] : ∀ x → P [ x ]) →
-      (∀ {x y} (r : R x y) →
-       subst P ([]-respects-relation r) (p-[] x) ≡ p-[] y) →
-      (∀ x → Is-set (P x)) →
-      ∀ x → P x
+  elim ([]-respects-relation {x = x} {y = y} r i) = lemma i
+    where
+    lemma : P.[ (λ i → P ([]-respects-relation r i)) ] p-[] x ≡ p-[] y
+    lemma = _↔_.from (heterogeneous↔homogeneous _)
+              (p-[]-respects-relation r)
 
--- Computation rules.
---
--- NOTE: There is no computation rule corresponding to /-is-set, and
--- rewriting has not been activated for the "computation" rule
--- corresponding to []-respects-relation.
-
-module _ {P : A / R → Set p}
-         {p-[] : ∀ x → P [ x ]}
-         {p-[]-respects-relation :
-            ∀ {x y} (r : R x y) →
-            subst P ([]-respects-relation r) (p-[] x) ≡ p-[] y}
-         {is-set : ∀ x → Is-set (P x)}
-         where
-
-  -- Computation rule for [_].
-
-  postulate
-    elim-[] :
-      ∀ x → elim P p-[] p-[]-respects-relation is-set [ x ] ≡ p-[] x
-
-  {-# REWRITE elim-[] #-}
+  elim (/-UIP {x = x} {y = y} p q i j) = lemma i j
+    where
+    lemma :
+      P.[ (λ i → P.[ (λ j → P (/-UIP p q i j)) ] elim x ≡ elim y) ]
+        (λ i → elim (p i)) ≡ (λ i → elim (q i))
+    lemma = heterogeneous-UIP P-set _
 
   -- "Computation" rule for []-respects-relation.
 
-  postulate
-    elim-[]-respects-relation :
-      (r : R x y) →
-      dependent-cong (elim P p-[] p-[]-respects-relation is-set)
-                     ([]-respects-relation r) ≡
-      p-[]-respects-relation r
+  elim-[]-respects-relation :
+    (r : R x y) →
+    dependent-cong elim ([]-respects-relation r) ≡
+    p-[]-respects-relation r
+  elim-[]-respects-relation r =
+    dependent-cong elim ([]-respects-relation r)          ≡⟨⟩
+    _↔_.to h↔h (_↔_.from h↔h (p-[]-respects-relation r))  ≡⟨ _↔_.right-inverse-of h↔h _ ⟩∎
+    p-[]-respects-relation r                              ∎
+    where
+    h↔h = heterogeneous↔homogeneous (λ i → P ([]-respects-relation r i))
 
 -- A non-dependent eliminator.
 
-rec :
+module _
   {P : Set p}
-  (f : A → P) →
-  (∀ {x y} → R x y → f x ≡ f y) →
-  Is-set P →
-  A / R → P
-rec {P = P} f resp P-set = elim
-  _
-  f
-  (λ {x y} r →
-     subst (const P) ([]-respects-relation r) (f x)  ≡⟨ subst-const ([]-respects-relation r) ⟩
-     f x                                             ≡⟨ resp r ⟩∎
-     f y                                             ∎)
-  (λ _ → P-set)
+  (p-[] : A → P)
+  (p-[]-respects-relation : ∀ {x y} → R x y → p-[] x ≡ p-[] y)
+  (P-set : Is-set P)
+  where
+
+  rec : A / R → P
+  rec [ x ]                      = p-[] x
+  rec ([]-respects-relation x i) = p-[]-respects-relation x i
+  rec (/-UIP p q i j)            = lemma i j
+    where
+    lemma : (λ i → rec (p i)) ≡ (λ i → rec (q i))
+    lemma = heterogeneous-UIP (λ _ → P-set) (/-UIP p q)
+
+  private
+
+    -- Some computation rules for rec.
+
+    rec-[] : ∀ x → rec [ x ] ≡ p-[] x
+    rec-[] _ = refl
+
+    rec-[]-respects-relation :
+      (r : R x y) →
+      cong rec ([]-respects-relation r) ≡ p-[]-respects-relation r
+    rec-[]-respects-relation _ = refl
 
 -- A variant of elim that can be used if the motive composed with [_]
 -- is a family of propositions.
@@ -487,7 +487,8 @@ _/-cong_ {k = k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (
   where
   open _↔_ (from-isomorphism A₁↔A₂)
 
-  R₁⇔R₂′ = λ x y →
+  R₁⇔R₂′ : ∀ _ _ → _
+  R₁⇔R₂′ x y =
     R₁ x y                                                ↝⟨ R₁⇔R₂ x y ⟩
     R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → R₂ (f x) (g y))
                                                                            (to-implication∘from-isomorphism k bijection)
@@ -583,7 +584,8 @@ Maybe/-comm-[] =
           (λ {x y} r → ⟨ext⟩ λ P[y] →
              subst (λ x → P x → Σ A (P ∘ [_]) / (R on proj₁))
                    ([]-respects-relation r)
-                   (curry [_] x) P[y]                               ≡⟨ cong (_$ P[y]) $ subst-→-domain _ ([]-respects-relation r) ⟩
+                   (curry [_] x) P[y]                               ≡⟨ cong (_$ P[y]) $
+                                                                       subst-→-domain P {f = curry [_] _} ([]-respects-relation r) ⟩
 
              [ (x , subst P (sym $ []-respects-relation r) P[y]) ]  ≡⟨ []-respects-relation r ⟩∎
 
@@ -660,7 +662,7 @@ Maybe/-comm-[] =
 
       []→-surjective : Surjective [_]→
       []→-surjective f =                    $⟨ []-surjective ⟩
-        Surjective [_]                      ↝⟨ (λ surj → surj ∘ f) ⟩
+        Surjective [_]                      ↝⟨ (λ surj → surj ∘ f) ⦂ (_ → _) ⟩
         (∀ n → ∥ (∃ λ x → [ x ] ≡ f n) ∥)   ↔⟨ countable-choice-bijection cc ⟩
         ∥ (∀ n → ∃ λ x → [ x ] ≡ f n) ∥     ↔⟨ ∥∥-cong ΠΣ-comm ⟩
         ∥ (∃ λ g → ∀ n → [ g n ] ≡ f n) ∥   ↔⟨ Bijection.id ⟩
@@ -760,7 +762,7 @@ Maybe/-comm-[] =
     p-[]
     (λ {x y} r →
        subst (P ∘ _↠_.to surj) ([]-respects-relation r) (p-[] x)       ≡⟨ subst-∘ P (_↠_.to surj) ([]-respects-relation r) ⟩
-       subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x)  ≡⟨ ok r ⟩
+       subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x)  ≡⟨ ok r ⟩∎
        p-[] y                                                          ∎)
     (λ _ → P-set _)
     (_↠_.from surj x)
@@ -781,21 +783,29 @@ Maybe/-comm-[] =
 ↠-eliminator-[] {R = R} surj P p-[] ok P-set x hyp =
   subst P (_↠_.right-inverse-of surj (_↠_.to surj [ x ]))
     (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _)
-          (_↠_.from surj (_↠_.to surj [ x ])))               ≡⟨ cong (λ p → subst P p (elim (P ∘ _↠_.to surj) _ ok′ _ _)) $
-                                                                  _⇔_.to set⇔UIP (H-level.respects-surjection surj 2 /-is-set)
-                                                                    (_↠_.right-inverse-of surj (_↠_.to surj [ x ]))
-                                                                    (cong (_↠_.to surj) hyp) ⟩
+          (_↠_.from surj (_↠_.to surj [ x ])))                          ≡⟨ cong (λ p → subst P p (elim (P ∘ _↠_.to surj) _ ok′ _ _)) $
+                                                                           _⇔_.to set⇔UIP (H-level.respects-surjection surj 2 /-is-set)
+                                                                             (_↠_.right-inverse-of surj (_↠_.to surj [ x ]))
+                                                                             (cong (_↠_.to surj) hyp) ⟩
   subst P (cong (_↠_.to surj) hyp)
     (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _)
-          (_↠_.from surj (_↠_.to surj [ x ])))               ≡⟨ EP.elim
-                                                                  (λ {x y} p → subst P (cong (_↠_.to surj) p)
-                                                                                 (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) x) ≡
-                                                                               elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) y)
-                                                                  (λ _ → refl)
-                                                                  hyp ⟩
-  elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) [ x ]      ≡⟨⟩
+          (_↠_.from surj (_↠_.to surj [ x ])))                          ≡⟨ P.elim
+                                                                             (λ {x y} p → subst P (cong (_↠_.to surj) p)
+                                                                                            (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) x) ≡
+                                                                                          elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) y)
+                                                                             (λ y →
+      subst P (cong (_↠_.to surj) refl)
+        (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) y)                     ≡⟨ cong (λ p → subst P p
+                                                                                                 (elim (P ∘ _↠_.to surj) _ ok′ (λ _ → P-set _) _)) $
+                                                                                   cong-refl (_↠_.to surj) ⟩
 
-  p-[] x                                                     ∎
+      subst P refl (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) y)          ≡⟨ subst-refl P _ ⟩∎
+
+      elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) y                         ∎)
+                                                                             hyp ⟩
+  elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) [ x ]                 ≡⟨⟩
+
+  p-[] x                                                                ∎
   where
   ok′ : ∀ {x y} (r : R x y) → _
   ok′ = λ r →

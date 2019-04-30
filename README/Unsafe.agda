@@ -18,18 +18,3 @@ import IO
 -- Strings.
 
 import String
-
--- The following modules use postulates and rewrite rules to encode
--- higher inductive types.
-
--- The "interval".
-
-import Interval
-
--- Propositional truncation.
-
-import H-level.Truncation.Propositional
-
--- Quotients, defined using a higher inductive type.
-
-import Quotient.HIT

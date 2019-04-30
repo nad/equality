@@ -674,7 +674,9 @@ private
     H-level n ([ P ] x ≡ y)            □
 
 -- The following two lemmas can be used to implement the truncation
--- cases of (at least some) eliminators for (at least some) HITs.
+-- cases of (at least some) eliminators for (at least some) HITs. For
+-- some examples, see H-level.Truncation.Propositional and
+-- Quotient.HIT.
 
 -- If P is pointwise propositional, then we get a form of proof
 -- irrelevance.

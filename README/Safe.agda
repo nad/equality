@@ -136,9 +136,17 @@ import Univalence-axiom
 
 import Equality.Path
 
+-- The "interval".
+
+import Interval
+
 -- Truncation.
 
 import H-level.Truncation
+
+-- Propositional truncation.
+
+import H-level.Truncation.Propositional
 
 -- The "circle".
 
@@ -196,6 +204,10 @@ import Tactic.By
 -- Quotients.
 
 import Quotient
+
+-- Quotients, defined using a higher inductive type.
+
+import Quotient.HIT
 
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).

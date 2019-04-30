@@ -2,20 +2,18 @@
 -- The "interval"
 ------------------------------------------------------------------------
 
--- Note that this module is experimental: it uses rewrite rules and
--- postulates to encode a higher inductive type.
-
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --cubical --safe #-}
 
 -- Partly based on the HoTT book.
 
 module Interval where
 
-open import Equality.Propositional as Eq hiding (elim)
-import Equality.Propositional.Rewriting
+open import Equality.Path as Eq
+  hiding (elim; ext; ⟨ext⟩; ext-is-equivalence)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+open import Bijection equality-with-J using (_↔_)
 open import Equivalence equality-with-J hiding (_∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J using (ext⁻¹)
@@ -23,98 +21,81 @@ open import H-level.Closure equality-with-J using (ext⁻¹)
 ------------------------------------------------------------------------
 -- The interval
 
-postulate
+-- The interval, defined as a higher inductive type.
 
-  -- The interval type constructor.
-
-  I : Set
-
-  -- Constructors.
-
-  [0] [1] : I
+data Interval : Set where
+  [0] [1] : Interval
   0≡1     : [0] ≡ [1]
 
--- Eliminator.
+-- An eliminator.
 
-module _ {p}
-         (P : I → Set p)
-         (p₀ : P [0])
-         (p₁ : P [1])
-         (p₀≡p₁ : subst P 0≡1 p₀ ≡ p₁)
-         where
+elim :
+  ∀ {p}
+  (P : Interval → Set p)
+  (p₀ : P [0])
+  (p₁ : P [1]) →
+  subst P 0≡1 p₀ ≡ p₁ →
+  (x : Interval) → P x
+elim P p₀ p₁ p₀≡p₁ = λ where
+  [0]     → p₀
+  [1]     → p₁
+  (0≡1 i) → _↔_.from (heterogeneous↔homogeneous (λ i → P (0≡1 i)))
+              p₀≡p₁ i
 
-  postulate
+-- A "computation" rule for elim.
 
-    elim : (x : I) → P x
-
-    -- Computation rules.
-    --
-    -- NOTE: Rewriting has not been activated for the "computation" rule
-    -- corresponding to 0≡1.
-
-    elim-[0] : elim [0] ≡ p₀
-    elim-[1] : elim [1] ≡ p₁
-
-  {-# REWRITE elim-[0] #-}
-  {-# REWRITE elim-[1] #-}
-
-  postulate
-
-    elim-0≡1 : dependent-cong elim 0≡1 ≡ p₀≡p₁
-
-------------------------------------------------------------------------
--- Non-dependent eliminator
+elim-0≡1 :
+  ∀ {p} {P : Interval → Set p} {p₀ p₁} (p₀≡p₁ : subst P 0≡1 p₀ ≡ p₁) →
+  dependent-cong (elim P p₀ p₁ p₀≡p₁) 0≡1 ≡ p₀≡p₁
+elim-0≡1 {P = P} {p₀} {p₁} p₀≡p₁ =
+  dependent-cong (elim P p₀ p₁ p₀≡p₁) 0≡1  ≡⟨⟩
+  _↔_.to h↔h (_↔_.from h↔h p₀≡p₁)          ≡⟨ _↔_.right-inverse-of h↔h _ ⟩∎
+  p₀≡p₁                                    ∎
+  where
+  h↔h = heterogeneous↔homogeneous (λ i → P (0≡1 i))
 
 -- A non-dependent eliminator.
 
 rec : ∀ {p} {P : Set p}
       (p₀ p₁ : P)
       (p₀≡p₁ : p₀ ≡ p₁) →
-      I → P
-rec p₀ p₁ p₀≡p₁ =
-  elim _ p₀ p₁ (
-    subst (const _) 0≡1 p₀  ≡⟨ subst-const 0≡1 ⟩
-    p₀                      ≡⟨ p₀≡p₁ ⟩∎
-    p₁                      ∎)
+      Interval → P
+rec {P = P} p₀ p₁ p₀≡p₁ = λ where
+  [0]     → p₀
+  [1]     → p₁
+  (0≡1 i) → p₀≡p₁ i
 
--- A "computation rule" for rec.
+private
 
-rec-0≡1 :
-  ∀ {p} {P : Set p}
-  (p₀ p₁ : P)
-  (p₀≡p₁ : p₀ ≡ p₁) →
-  cong (rec p₀ p₁ p₀≡p₁) 0≡1 ≡ p₀≡p₁
-rec-0≡1 p₀ p₁ p₀≡p₁ =
-  cong (rec p₀ p₁ p₀≡p₁) 0≡1                                             ≡⟨⟩
+  -- A computation rule for rec.
 
-  cong (elim _ p₀ p₁ (trans (subst-const 0≡1) p₀≡p₁)) 0≡1                ≡⟨ sym $ trans-sym-[trans] _ _ ⟩
-
-  trans (sym $ subst-const 0≡1)
-    (trans (subst-const 0≡1)
-           (cong (elim _ p₀ p₁ (trans (subst-const 0≡1) p₀≡p₁)) 0≡1))    ≡⟨ cong (trans _) $ sym $ dependent-cong-subst-const-cong _ 0≡1 ⟩
-
-  trans (sym $ subst-const 0≡1)
-    (dependent-cong (elim _ p₀ p₁ (trans (subst-const 0≡1) p₀≡p₁)) 0≡1)  ≡⟨ cong (trans _) $ elim-0≡1 _ _ _ _ ⟩
-
-  trans (sym $ subst-const 0≡1) (trans (subst-const 0≡1) p₀≡p₁)          ≡⟨ trans-sym-[trans] _ _ ⟩∎
-
-  p₀≡p₁                                                                  ∎
+  rec-0≡1 :
+    ∀ {p} {P : Set p} {p₀ p₁ : P} {p₀≡p₁ : p₀ ≡ p₁} →
+    cong (rec p₀ p₁ p₀≡p₁) 0≡1 ≡ p₀≡p₁
+  rec-0≡1 = refl
 
 ------------------------------------------------------------------------
 -- Contractibility
 
 -- The interval is contractible.
 
-interval-contractible : Contractible I
+interval-contractible : Contractible Interval
 interval-contractible = [1] , sym ∘ f
   where
-  f : (x : I) → x ≡ [1]
+  f : (x : Interval) → x ≡ [1]
   f = elim (_≡ [1]) 0≡1 refl
         (subst (_≡ [1]) 0≡1 0≡1              ≡⟨ cong (λ p → subst (_≡ [1]) p 0≡1)
                                                      (sym $ sym-sym 0≡1) ⟩
          subst (_≡ [1]) (sym (sym 0≡1)) 0≡1  ≡⟨ subst-trans (sym 0≡1) ⟩
          trans (sym 0≡1) 0≡1                 ≡⟨ trans-symˡ 0≡1 ⟩∎
          refl                                ∎)
+
+  -- An alternative proof.
+
+  f′ : (x : Interval) → x ≡ [1]
+  f′ [0]     = 0≡1
+  f′ [1]     = refl
+  f′ (0≡1 i) = λ j → 0≡1 (max i j)
 
 -- A simplification lemma for rec p p.
 
@@ -151,7 +132,7 @@ private
 
       ext-helper :
         ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
-        (∀ x → f x ≡ g x) → I → (x : A) → B x
+        (∀ x → f x ≡ g x) → Interval → (x : A) → B x
       ext-helper {f = f} {g} f≡g i =
         λ x → rec (f x) (g x) (f≡g x) i
 
@@ -230,7 +211,7 @@ abstract
       {f g : (x : A) → B x} {h : ∀ {x} → B x → C x}
     (f≡g : ∀ x → f x ≡ g x) →
     cong (h ∘_) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (cong h ∘ f≡g)
-  cong-post-∘-ext = cong-post-∘-good-ext bad-ext bad-ext
+  cong-post-∘-ext {h = h} = cong-post-∘-good-ext {h = h} bad-ext bad-ext
 
   cong-pre-∘-ext :
     ∀ {a b c} {A : Set a} {B : Set b} {C : B → Set c}

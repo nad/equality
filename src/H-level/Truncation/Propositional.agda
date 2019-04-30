@@ -2,17 +2,13 @@
 -- Propositional truncation
 ------------------------------------------------------------------------
 
--- Note that this module is experimental: it uses rewrite rules and
--- postulates to encode a higher inductive type.
-
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --cubical --safe #-}
 
 -- Partly following the HoTT book.
 
 module H-level.Truncation.Propositional where
 
-open import Equality.Propositional as EP hiding (elim)
-open import Interval using (ext; ⟨ext⟩)
+open import Equality.Path as EP hiding (elim)
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
@@ -33,35 +29,25 @@ private
     a b c d f p ℓ : Level
     A B C         : Set a
 
-postulate
+-- Propositional truncation.
 
-  -- Propositional truncation.
+data ∥_∥ (A : Set a) : Set a where
+  ∣_∣                      : A → ∥ A ∥
+  truncation-is-irrelevant : Proof-irrelevant ∥ A ∥
 
-  ∥_∥ : Set a → Set a
+-- The truncation produces propositions.
 
-  -- If A is inhabited, then ∥ A ∥ is also inhabited.
+truncation-is-proposition : Is-proposition ∥ A ∥
+truncation-is-proposition =
+  _⇔_.from propositional⇔irrelevant truncation-is-irrelevant
 
-  ∣_∣ : A → ∥ A ∥
+-- Primitive "recursion" for truncated types.
 
-  -- The truncation produces propositions.
-
-  truncation-is-proposition : Is-proposition ∥ A ∥
-
-  -- Primitive "recursion" for truncated types.
-
-  rec : Is-proposition B →
-        (A → B) → ∥ A ∥ → B
-
-  -- Computation rule for rec.
-  --
-  -- NOTE: There is no computation rule corresponding to
-  -- truncation-is-proposition.
-
-  rec-∣∣ :
-    (B-prop : Is-proposition B) (f : A → B) (x : A) →
-    rec B-prop f ∣ x ∣ ≡ f x
-
-  {-# REWRITE rec-∣∣ #-}
+rec : Is-proposition B → (A → B) → ∥ A ∥ → B
+rec B-prop f ∣ x ∣                            = f x
+rec B-prop f (truncation-is-irrelevant x y i) =
+  (rec B-prop f x  ≡⟨ _⇔_.to propositional⇔irrelevant B-prop _ _ ⟩∎
+   rec B-prop f y  ∎) i
 
 -- The propositional truncation defined here is isomorphic to the one
 -- defined in H-level.Truncation.
@@ -92,34 +78,19 @@ postulate
 ∥∥-map : (A → B) → ∥ A ∥ → ∥ B ∥
 ∥∥-map f = rec truncation-is-proposition (∣_∣ ∘ f)
 
--- The function rec can be used to define a dependently typed
--- eliminator.
+-- A dependently typed eliminator.
 
 elim :
   (P : ∥ A ∥ → Set p) →
   (∀ x → Is-proposition (P x)) →
   ((x : A) → P ∣ x ∣) →
   (x : ∥ A ∥) → P x
-elim P P-prop f x =
-  rec (Π-closure ext 1 P-prop)
-      (λ x _ → subst P
-                     (_⇔_.to propositional⇔irrelevant
-                        truncation-is-proposition _ _)
-                     (f x))
-      x
-      x
-
--- The eliminator gives the right result, up to propositional
--- equality, when applied to ∣ x ∣.
-
-elim-∣∣ :
-  (P : ∥ A ∥ → Set p)
-  (P-prop : ∀ x → Is-proposition (P x))
-  (f : (x : A) → P ∣ x ∣)
-  (x : A) →
-  elim P P-prop f ∣ x ∣ ≡ f x
-elim-∣∣ P P-prop f x =
-  _⇔_.to propositional⇔irrelevant (P-prop _) _ _
+elim P P-prop f ∣ x ∣                            = f x
+elim P P-prop f (truncation-is-irrelevant x y i) = lemma i
+  where
+  lemma : [ (λ i → P (truncation-is-irrelevant x y i)) ]
+            elim P P-prop f x ≡ elim P P-prop f y
+  lemma = heterogeneous-irrelevance P-prop
 
 -- The truncation operator preserves logical equivalences.
 
@@ -388,8 +359,11 @@ push-∥∥ {A = A} {B = B} {C} =
                                                         ∀-cong ext λ ∥x∥ →
                                                         ≡⇒↝ _ $ cong C $ ⟨ext⟩ λ x →
       f ∥x∥ x                                             ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $
-                                                             _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _ ⟩∎
-      f ∣ x ∣ x                                           ∎) ⟩□
+                                                             _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _ ⟩
+
+      f ∣ x ∣ x                                           ≡⟨ sym $ subst-refl (λ _ → B x) {x = x} _ ⟩∎
+
+      subst (λ _ → B x) (refl {x = x}) (f ∣ x ∣ x)        ∎) ⟩□
 
   (∃ λ (f : ∀ x → B x) → ∥ A ∥ → C (λ x → f x))      □
 
