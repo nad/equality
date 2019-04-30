@@ -224,13 +224,18 @@ transport-refl : ∀ i → transport (λ i → refl {x = A} i) i ≡ id
 transport-refl {A = A} i = λ j → transport (λ _ → A) (max i j)
 
 -- A family of instantiations of Congruence⁺.
+--
+-- Note that htransˡ is used to implement trans. The reason htransˡ is
+-- used, rather than htransʳ, is that htransˡ is also used to
+-- implement the commonly used equational reasoning combinator step-≡,
+-- and I'd like this combinator to match trans.
 
 congruence⁺ : ∀ ℓ → Congruence⁺ ℓ
 Congruence⁺.reflexive-relation (congruence⁺ _) = reflexive-relation _
 Congruence⁺.sym                (congruence⁺ _) = hsym
 Congruence⁺.sym-refl           (congruence⁺ _) = refl
-Congruence⁺.trans              (congruence⁺ _) = htransʳ
-Congruence⁺.trans-refl-refl    (congruence⁺ _) = htransʳ-reflʳ _
+Congruence⁺.trans              (congruence⁺ _) = htransˡ
+Congruence⁺.trans-refl-refl    (congruence⁺ _) = htransˡ-reflˡ _
 Congruence⁺.hcong              (congruence⁺ _) = cong
 Congruence⁺.hcong-refl         (congruence⁺ _) = λ _ → refl
 
