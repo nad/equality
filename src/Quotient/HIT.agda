@@ -319,12 +319,11 @@ Maybeᴾ-preserves-Is-proposition =
 
 related≃[equal] :
   {R : A → A → Set r} →
-  Propositional-extensionality r →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   ∀ {x y} → R x y ≃ _≡_ {A = A / R} [ x ] [ y ]
 related≃[equal] {A = A} {r = r} {R = R}
-                prop-ext R-equiv R-prop {x} {y} =
+                R-equiv R-prop {x} {y} =
   _↠_.from (Eq.≃↠⇔ R-prop (/-is-set _ _))
     (record
       { to   = []-respects-relation
@@ -342,7 +341,7 @@ related≃[equal] {A = A} {r = r} {R = R}
                                               { to   = flip transitive r
                                               ; from = flip transitive (symmetric r)
                                               } ⟩
-    R x y ⇔ R x z                        ↝⟨ ⇔↔≡″ ext prop-ext ⟩
+    R x y ⇔ R x z                        ↝⟨ ⇔↔≡′ ext univ ⟩
     (R x y , R-prop) ≡ (R x z , R-prop)  □
 
   R′ : A → A / R → Proposition r
@@ -395,19 +394,16 @@ related≃[equal] {A = A} {r = r} {R = R}
 
 -- If the relation is a propositional equivalence relation of a
 -- certain size, then there is a split surjection from the definition
--- of quotients given in Quotient to the one given here (assuming
--- extensionality and univalence).
+-- of quotients given in Quotient to the one given here.
 --
 -- I don't know if this result can be strengthened to an isomorphism:
 -- I encountered size issues when trying to prove this.
 
 /↠/ : {A : Set a} {R : A → A → Set a} →
-      Univalence a →
-      Univalence (# 0) →
       Quotient.Is-equivalence-relation R →
       (R-prop : ∀ {x y} → Is-proposition (R x y)) →
       A Quotient./ R ↠ A / R
-/↠/ {a = a} {A = A} {R} univ univ₀ R-equiv R-prop = record
+/↠/ {a = a} {A = A} {R} R-equiv R-prop = record
   { logical-equivalence = record
     { to   = to
     ; from = from
@@ -438,7 +434,7 @@ related≃[equal] {A = A} {r = r} {R = R}
     Quotient.[_]
     []-respects-R
     (Quotient.quotient's-h-level-is-1-+-relation's-h-level
-       ext univ univ₀ 1 (λ _ _ → R-prop))
+       ext univ univ 1 (λ _ _ → R-prop))
 
   to∘from : ∀ x → to (from x) ≡ x
   to∘from = elim-Prop
@@ -620,7 +616,7 @@ Maybe/-comm-[] =
 
 -- The type former λ X → ℕ → X commutes with quotients, assuming that
 -- the quotient relation is a propositional equivalence relation, and
--- also assuming propositional extensionality and countable choice.
+-- also assuming countable choice.
 --
 -- This result is very similar to Proposition 5 in "Quotienting the
 -- Delay Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
@@ -639,12 +635,11 @@ Maybe/-comm-[] =
 
 ℕ→/-comm :
   {A : Set a} {R : A → A → Set r} →
-  Propositional-extensionality r →
   Axiom-of-countable-choice (a ⊔ r) →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   (ℕ → A) / (ℕ →ᴾ R) ↔ (ℕ → A / R)
-ℕ→/-comm {A = A} {R} prop-ext cc R-equiv R-prop = record
+ℕ→/-comm {A = A} {R} cc R-equiv R-prop = record
   { surjection = record
     { logical-equivalence = record
       { to   = ℕ→/-comm-to
@@ -692,7 +687,7 @@ Maybe/-comm-[] =
 
     (∀ n → [ g₁ ]→ n ≡ [ g₂ ]→ n)            ↔⟨⟩
 
-    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ ∀-cong ext (λ _ → inverse $ related≃[equal] prop-ext R-equiv R-prop) ⟩
+    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ ∀-cong ext (λ _ → inverse $ related≃[equal] R-equiv R-prop) ⟩
 
     (∀ n → R (g₁ n) (g₂ n))                  ↔⟨⟩
 
@@ -847,15 +842,14 @@ Maybe/-comm-[] =
     (_↔_.left-inverse-of bij [ x ])
 
 -- A quotient-like eliminator for functions of type ℕ → A / R, where R
--- is a propositional equivalence relation. Defined using
--- propositional extensionality and countable choice.
+-- is a propositional equivalence relation. Defined using countable
+-- choice.
 --
 -- This eliminator is taken from Corollary 1 in "Quotienting the Delay
 -- Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
 ℕ→/-elim :
   {A : Set a} {R : A → A → Set r} →
-  Propositional-extensionality r →
   Axiom-of-countable-choice (a ⊔ r) →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
@@ -866,14 +860,13 @@ Maybe/-comm-[] =
    p-[] g) →
   (∀ f → Is-set (P f)) →
   ∀ f → P f
-ℕ→/-elim prop-ext cc R-equiv R-prop =
-  ↔-eliminator (ℕ→/-comm prop-ext cc R-equiv R-prop)
+ℕ→/-elim cc R-equiv R-prop =
+  ↔-eliminator (ℕ→/-comm cc R-equiv R-prop)
 
 -- The eliminator "computes" in the "right" way.
 
 ℕ→/-elim-[] :
   ∀ {A : Set a} {R : A → A → Set r}
-  (prop-ext : Propositional-extensionality r)
   (cc : Axiom-of-countable-choice (a ⊔ r))
   (R-equiv : Is-equivalence-relation R)
   (R-prop : ∀ {x y} → Is-proposition (R x y))
@@ -883,7 +876,7 @@ Maybe/-comm-[] =
         subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡
         p-[] g)
   (P-set : ∀ f → Is-set (P f)) f →
-  ℕ→/-elim prop-ext cc R-equiv R-prop P p-[] ok P-set (λ n → [ f n ]) ≡
+  ℕ→/-elim cc R-equiv R-prop P p-[] ok P-set (λ n → [ f n ]) ≡
   p-[] f
-ℕ→/-elim-[] prop-ext cc R-equiv R-prop =
-  ↔-eliminator-[] (ℕ→/-comm prop-ext cc R-equiv R-prop)
+ℕ→/-elim-[] cc R-equiv R-prop =
+  ↔-eliminator-[] (ℕ→/-comm cc R-equiv R-prop)
