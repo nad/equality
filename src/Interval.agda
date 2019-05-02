@@ -6,17 +6,32 @@
 
 -- Partly based on the HoTT book.
 
-module Interval where
+-- The module is parametrised by a notion of equality. The higher
+-- constructor of the HIT defining the interval uses path equality,
+-- but the supplied notion of equality is used for many other things.
 
-open import Equality.Path as Eq
-  hiding (elim; ext; ⟨ext⟩; ext-is-equivalence)
+open import Equality
+
+module Interval
+  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+private
+  open module D = Derived-definitions-and-properties eq hiding (elim)
+
+import Equality.Path as P
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection equality-with-J using (_↔_)
-open import Equivalence equality-with-J hiding (_∘_)
-open import H-level equality-with-J
-open import H-level.Closure equality-with-J using (ext⁻¹)
+private
+  import Bijection
+  module PB = Bijection P.equality-with-J
+open import Function-universe eq hiding (_∘_)
+
+open import Bijection eq using (_↔_)
+import Equality.Path.Isomorphisms eq as I
+open import Equivalence eq hiding (_∘_)
+open import H-level eq
+open import H-level.Closure eq using (ext⁻¹)
 
 ------------------------------------------------------------------------
 -- The interval
@@ -25,54 +40,58 @@ open import H-level.Closure equality-with-J using (ext⁻¹)
 
 data Interval : Set where
   [0] [1] : Interval
-  0≡1     : [0] ≡ [1]
+  0≡1′    : [0] P.≡ [1]
+
+-- [0] is equal to [1].
+
+0≡1 : [0] ≡ [1]
+0≡1 = _↔_.from I.≡↔≡ 0≡1′
 
 -- An eliminator.
 
-elim :
-  ∀ {p}
+module Elim
+  {p}
   (P : Interval → Set p)
   (p₀ : P [0])
-  (p₁ : P [1]) →
-  subst P 0≡1 p₀ ≡ p₁ →
-  (x : Interval) → P x
-elim P p₀ p₁ p₀≡p₁ = λ where
-  [0]     → p₀
-  [1]     → p₁
-  (0≡1 i) → _↔_.from (heterogeneous↔homogeneous (λ i → P (0≡1 i)))
-              p₀≡p₁ i
-
--- A "computation" rule for elim.
-
-elim-0≡1 :
-  ∀ {p} {P : Interval → Set p} {p₀ p₁} (p₀≡p₁ : subst P 0≡1 p₀ ≡ p₁) →
-  dependent-cong (elim P p₀ p₁ p₀≡p₁) 0≡1 ≡ p₀≡p₁
-elim-0≡1 {P = P} {p₀} {p₁} p₀≡p₁ =
-  dependent-cong (elim P p₀ p₁ p₀≡p₁) 0≡1  ≡⟨⟩
-  _↔_.to h↔h (_↔_.from h↔h p₀≡p₁)          ≡⟨ _↔_.right-inverse-of h↔h _ ⟩∎
-  p₀≡p₁                                    ∎
+  (p₁ : P [1])
+  (p₀≡p₁ : subst P 0≡1 p₀ ≡ p₁)
   where
-  h↔h = heterogeneous↔homogeneous (λ i → P (0≡1 i))
+
+  -- The eliminator.
+
+  elim : (x : Interval) → P x
+  elim [0]      = p₀
+  elim [1]      = p₁
+  elim (0≡1′ i) = I.subst≡→[]≡ p₀≡p₁ i
+
+  -- A "computation" rule for elim.
+
+  elim-0≡1 : dependent-cong elim 0≡1 ≡ p₀≡p₁
+  elim-0≡1 = I.dependent-cong-subst≡→[]≡ (refl _)
+
+open Elim public
 
 -- A non-dependent eliminator.
 
-rec : ∀ {p} {P : Set p}
-      (p₀ p₁ : P)
-      (p₀≡p₁ : p₀ ≡ p₁) →
-      Interval → P
-rec {P = P} p₀ p₁ p₀≡p₁ = λ where
-  [0]     → p₀
-  [1]     → p₁
-  (0≡1 i) → p₀≡p₁ i
+module Rec
+  {p} {P : Set p}
+  (p₀ p₁ : P)
+  (p₀≡p₁ : p₀ ≡ p₁)
+  where
 
-private
+  -- The eliminator.
+
+  rec : Interval → P
+  rec [0]      = p₀
+  rec [1]      = p₁
+  rec (0≡1′ i) = _↔_.to I.≡↔≡ p₀≡p₁ i
 
   -- A computation rule for rec.
 
-  rec-0≡1 :
-    ∀ {p} {P : Set p} {p₀ p₁ : P} {p₀≡p₁ : p₀ ≡ p₁} →
-    cong (rec p₀ p₁ p₀≡p₁) 0≡1 ≡ p₀≡p₁
-  rec-0≡1 = refl
+  rec-0≡1 : cong rec 0≡1 ≡ p₀≡p₁
+  rec-0≡1 = I.cong-≡↔≡ (refl _)
+
+open Rec public
 
 ------------------------------------------------------------------------
 -- Contractibility
@@ -83,19 +102,12 @@ interval-contractible : Contractible Interval
 interval-contractible = [1] , sym ∘ f
   where
   f : (x : Interval) → x ≡ [1]
-  f = elim (_≡ [1]) 0≡1 refl
+  f = elim (_≡ [1]) 0≡1 (refl _)
         (subst (_≡ [1]) 0≡1 0≡1              ≡⟨ cong (λ p → subst (_≡ [1]) p 0≡1)
                                                      (sym $ sym-sym 0≡1) ⟩
          subst (_≡ [1]) (sym (sym 0≡1)) 0≡1  ≡⟨ subst-trans (sym 0≡1) ⟩
          trans (sym 0≡1) 0≡1                 ≡⟨ trans-symˡ 0≡1 ⟩∎
-         refl                                ∎)
-
-  -- An alternative proof.
-
-  f′ : (x : Interval) → x ≡ [1]
-  f′ [0]     = 0≡1
-  f′ [1]     = refl
-  f′ (0≡1 i) = λ j → 0≡1 (max i j)
+         refl _                              ∎)
 
 -- A simplification lemma for rec p p.
 
@@ -163,7 +175,7 @@ abstract
 
   ext-refl :
     ∀ {a b} {A : Set a} {B : A → Set b} (f : (x : A) → B x) →
-    ⟨ext⟩ (λ x → refl {x = f x}) ≡ refl {x = f}
+    ⟨ext⟩ (λ x → refl (f x)) ≡ refl f
   ext-refl = good-ext-refl bad-ext
 
   cong-ext :
@@ -184,8 +196,8 @@ abstract
     (p : (y : B x) → P y y)
     {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) →
-    Eq.elim (λ {f g} _ → P (f x) (g x)) (p ∘ (_$ x)) (⟨ext⟩ f≡g) ≡
-    Eq.elim (λ {x y} _ → P x y) p (f≡g x)
+    D.elim (λ {f g} _ → P (f x) (g x)) (p ∘ (_$ x)) (⟨ext⟩ f≡g) ≡
+    D.elim (λ {x y} _ → P x y) p (f≡g x)
   elim-ext = elim-good-ext bad-ext
 
   -- I based the statements of the following three lemmas on code in

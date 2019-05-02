@@ -6,23 +6,34 @@
 
 -- Partly following the HoTT book.
 
-module H-level.Truncation.Propositional where
+-- The module is parametrised by a notion of equality. The higher
+-- constructor of the HIT defining the propositional truncation uses
+-- path equality, but the supplied notion of equality is used for many
+-- other things.
 
-open import Equality.Path as EP hiding (elim)
+open import Equality
+
+module H-level.Truncation.Propositional
+  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+open Derived-definitions-and-properties eq hiding (elim)
+
+import Equality.Path as P
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
-open import Bijection equality-with-J as Bijection using (_↔_)
-open import Embedding equality-with-J hiding (id; _∘_)
-open import Equality.Decidable-UIP equality-with-J
-open import Equivalence equality-with-J as Eq hiding (id; _∘_; inverse)
-open import Function-universe equality-with-J as F hiding (id; _∘_)
-open import H-level equality-with-J
-open import H-level.Closure equality-with-J
-import H-level.Truncation equality-with-J as Trunc
-open import Monad equality-with-J
-open import Preimage equality-with-J as Preimage using (_⁻¹_)
-open import Surjection equality-with-J using (_↠_)
+open import Bijection eq as Bijection using (_↔_)
+open import Embedding eq hiding (id; _∘_)
+open import Equality.Decidable-UIP eq
+open import Equality.Path.Isomorphisms eq
+open import Equivalence eq as Eq hiding (id; _∘_; inverse)
+open import Function-universe eq as F hiding (id; _∘_)
+open import H-level eq
+open import H-level.Closure eq
+import H-level.Truncation eq as Trunc
+open import Monad eq
+open import Preimage eq as Preimage using (_⁻¹_)
+open import Surjection eq using (_↠_)
 
 private
   variable
@@ -33,21 +44,23 @@ private
 
 data ∥_∥ (A : Set a) : Set a where
   ∣_∣                      : A → ∥ A ∥
-  truncation-is-irrelevant : Proof-irrelevant ∥ A ∥
+  truncation-is-irrelevant : P.Proof-irrelevant ∥ A ∥
 
 -- The truncation produces propositions.
 
 truncation-is-proposition : Is-proposition ∥ A ∥
 truncation-is-proposition =
-  _⇔_.from propositional⇔irrelevant truncation-is-irrelevant
+  _↔_.from propositional↔irrelevant truncation-is-irrelevant
 
 -- Primitive "recursion" for truncated types.
 
 rec : Is-proposition B → (A → B) → ∥ A ∥ → B
 rec B-prop f ∣ x ∣                            = f x
 rec B-prop f (truncation-is-irrelevant x y i) =
-  (rec B-prop f x  ≡⟨ _⇔_.to propositional⇔irrelevant B-prop _ _ ⟩∎
-   rec B-prop f y  ∎) i
+  _↔_.to ≡↔≡
+    (rec B-prop f x  ≡⟨ _⇔_.to propositional⇔irrelevant B-prop _ _ ⟩∎
+     rec B-prop f y  ∎)
+    i
 
 -- The propositional truncation defined here is isomorphic to the one
 -- defined in H-level.Truncation.
@@ -88,9 +101,10 @@ elim :
 elim P P-prop f ∣ x ∣                            = f x
 elim P P-prop f (truncation-is-irrelevant x y i) = lemma i
   where
-  lemma : [ (λ i → P (truncation-is-irrelevant x y i)) ]
+  lemma : P.[ (λ i → P (truncation-is-irrelevant x y i)) ]
             elim P P-prop f x ≡ elim P P-prop f y
-  lemma = heterogeneous-irrelevance P-prop
+  lemma = P.heterogeneous-irrelevance
+            (_↔_.to (H-level↔H-level _) ∘ P-prop)
 
 -- The truncation operator preserves logical equivalences.
 
@@ -162,7 +176,7 @@ x >>=′ f = _↔_.to flatten (∥∥-map f x)
 >>=′-associative x {f} {g} = elim
   (λ x → x >>=′ (λ x₁ → f x₁ >>=′ g) ≡ x >>=′ f >>=′ g)
   (λ _ → mono₁ 1 truncation-is-proposition _ _)
-  (λ _ → refl)
+  (λ _ → refl _)
   x
 
 instance
@@ -175,12 +189,12 @@ instance
 
   monad : ∀ {ℓ} → Monad (∥_∥ {a = ℓ})
   Monad.raw-monad monad           = raw-monad
-  Monad.left-identity monad x f   = refl
+  Monad.left-identity monad x f   = refl _
   Monad.associativity monad x _ _ = >>=′-associative x
   Monad.right-identity monad      = elim
     _
     (λ _ → mono₁ 1 truncation-is-proposition _ _)
-    (λ _ → refl)
+    (λ _ → refl _)
 
 -- Surjectivity.
 
@@ -220,7 +234,7 @@ surjective×embedding≃equivalence {f = f} =
       { to   = rec A-prop id
       ; from = ∣_∣
       }
-    ; right-inverse-of = λ _ → refl
+    ; right-inverse-of = λ _ → refl _
     }
   ; left-inverse-of = λ _ →
       _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _
@@ -247,13 +261,13 @@ surjective×embedding≃equivalence {f = f} =
   , (λ a → propositional⇒inhabited⇒contractible
              (mono₁ 0 $
                 Preimage.bijection⁻¹-contractible ∥∥×↔ a)
-             ((∣ a ∣ , a) , refl))
+             ((∣ a ∣ , a) , refl _))
   ⟩
 
 private
 
-  right-inverse-of-∥∥×≃ : (x : A) → _≃_.right-inverse-of ∥∥×≃ x ≡ refl
-  right-inverse-of-∥∥×≃ _ = refl
+  right-inverse-of-∥∥×≃ : (x : A) → _≃_.right-inverse-of ∥∥×≃ x ≡ refl _
+  right-inverse-of-∥∥×≃ _ = refl _
 
 -- ∥_∥ commutes with _×_.
 
@@ -361,9 +375,11 @@ push-∥∥ {A = A} {B = B} {C} =
       f ∥x∥ x                                             ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $
                                                              _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _ ⟩
 
-      f ∣ x ∣ x                                           ≡⟨ sym $ subst-refl (λ _ → B x) {x = x} _ ⟩∎
+      f ∣ x ∣ x                                           ≡⟨ sym $ subst-refl B _ ⟩
 
-      subst (λ _ → B x) (refl {x = x}) (f ∣ x ∣ x)        ∎) ⟩□
+      subst B (refl x) (f ∣ x ∣ x)                        ≡⟨⟩
+
+      _↔_.to drop-∥∥ f x                                  ∎) ⟩□
 
   (∃ λ (f : ∀ x → B x) → ∥ A ∥ → C (λ x → f x))      □
 
@@ -439,7 +455,7 @@ private
     (f : ∃ λ (f : A → B) → Constant f) (x : A) →
     _≃_.to (constant-function≃∥inhabited∥⇒inhabited B-set) f ∣ x ∣ ≡
     proj₁ f x
-  to-constant-function≃∥inhabited∥⇒inhabited _ _ _ = refl
+  to-constant-function≃∥inhabited∥⇒inhabited _ _ _ = refl _
 
 -- The propositional truncation's universal property.
 --
@@ -464,13 +480,13 @@ private
     (B-prop : Is-proposition B)
     (f : ∥ A ∥ → B) →
     _≃_.to (universal-property B-prop) f ≡ f ∘ ∣_∣
-  to-universal-property _ _ = refl
+  to-universal-property _ _ = refl _
 
   from-universal-property :
     (B-prop : Is-proposition B)
     (f : A → B) (x : A) →
     _≃_.from (universal-property B-prop) f ∣ x ∣ ≡ f x
-  from-universal-property _ _ _ = refl
+  from-universal-property _ _ _ = refl _
 
 -- The axiom of choice, in one of the alternative forms given in the
 -- HoTT book (§3.8).

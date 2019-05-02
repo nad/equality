@@ -337,7 +337,8 @@ dependent-cong≡dependent-cong {B = B} {f = f} {x≡y} = P.elim
      _↔_.from ≡↔≡ $ P.subst-refl B _                                    ∎
 
 -- Three corollaries, intended to be used in the implementation of
--- eliminators for HITs.
+-- eliminators for HITs. For some examples, see Interval and
+-- Quotient.HIT.
 
 subst≡→[]≡ :
   {eq : x P.≡ y} →
