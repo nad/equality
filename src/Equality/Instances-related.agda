@@ -27,6 +27,9 @@ private
 -- "isomorphic" means.
 --
 -- The isomorphisms map reflexivity to reflexivity in both directions.
+--
+-- Hofmann and Streicher prove something similar in "The groupoid
+-- interpretation of type theory".
 
 all-equality-types-isomorphic :
   ∀ {c₁ c₂}
