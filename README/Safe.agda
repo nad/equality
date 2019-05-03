@@ -198,6 +198,10 @@ import Vec
 
 import Vec.Data
 
+-- Vectors, defined as functions from finite sets.
+
+import Vec.Function
+
 -- Some properties related to the const function.
 
 import Const
