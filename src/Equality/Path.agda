@@ -648,7 +648,7 @@ H-level-suc↔H-level[]≡ :
 H-level-suc↔H-level[]≡ {n = n} P i =
   H-level (suc n) (P i)                                            ↝⟨ H-level-cong ext _ (≡⇒≃ λ j → P (max i j)) ⟩
 
-  H-level (suc n) (P 1̲)                                            ↔⟨⟩
+  H-level (suc n) (P 1̲)                                            ↝⟨ inverse $ ≡↔+ _ ext ⟩
 
   ((x y : P 1̲) → H-level n (x ≡ y))                                ↝⟨ (Π-cong ext (inverse $ ≡⇒≃ λ i → P i) λ x → ∀-cong ext λ _ →
                                                                        ≡⇒↝ _ $ cong (λ x → H-level _ (x ≡ _)) (
@@ -667,8 +667,9 @@ private
 
   -- A simple lemma used below.
 
-  H-level-suc→H-level[]≡ : H-level (1 + n) (P 0̲) → H-level n ([ P ] x ≡ y)
-  H-level-suc→H-level[]≡ {n = n} {P = P} {x = x} {y = y} =
+  H-level-suc→H-level[]≡ :
+    ∀ n → H-level (1 + n) (P 0̲) → H-level n ([ P ] x ≡ y)
+  H-level-suc→H-level[]≡ {P = P} {x = x} {y = y} n =
     H-level (1 + n) (P 0̲)              ↔⟨ H-level-suc↔H-level[]≡ P 0̲ ⟩
     (∀ x y → H-level n ([ P ] x ≡ y))  ↝⟨ (λ f → f _ _) ⟩□
     H-level n ([ P ] x ≡ y)            □
@@ -694,7 +695,7 @@ heterogeneous-irrelevance {x = x} {P = P} P-prop {x≡y} {p₁} {p₂} =
                                                 $⟨ P-prop ⟩
   (∀ x → Is-proposition (P x))                  ↝⟨ _$ _ ⟩
   Is-proposition (P x)                          ↔⟨⟩
-  Is-proposition (P (x≡y 0̲))                    ↝⟨ H-level-suc→H-level[]≡ ⟩
+  Is-proposition (P (x≡y 0̲))                    ↝⟨ H-level-suc→H-level[]≡ _ ⟩
   Contractible ([ (λ i → P (x≡y i)) ] p₁ ≡ p₂)  ↝⟨ proj₁ ⟩□
   [ (λ i → P (x≡y i)) ] p₁ ≡ p₂                 □
 
@@ -719,7 +720,7 @@ heterogeneous-UIP {x = x} {P = P} P-set eq₃ {p₁} {p₂} {eq₄} {eq₅} =
                                                                         $⟨ P-set ⟩
   (∀ x → Is-set (P x))                                                  ↝⟨ _$ _ ⟩
   Is-set (P x)                                                          ↔⟨⟩
-  Is-set (P (eq₃ 0̲ 0̲))                                                  ↝⟨ H-level-suc→H-level[]≡ ⟩
-  Is-proposition ([ (λ j → P (eq₃ 0̲ j)) ] p₁ ≡ p₂)                      ↝⟨ H-level-suc→H-level[]≡ ⟩
+  Is-set (P (eq₃ 0̲ 0̲))                                                  ↝⟨ H-level-suc→H-level[]≡ 1 ⟩
+  Is-proposition ([ (λ j → P (eq₃ 0̲ j)) ] p₁ ≡ p₂)                      ↝⟨ H-level-suc→H-level[]≡ _ ⟩
   Contractible ([ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅)  ↝⟨ proj₁ ⟩□
   [ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅                 □

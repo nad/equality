@@ -110,19 +110,17 @@ propositional-equivalence⇒strong-equivalence
                            R x y  □
         }
       ; right-inverse-of = λ _ →
-          _⇔_.to propositional⇔irrelevant
-            (H-level.respects-surjection
-               (_≃_.surjection $ Eq.extensionality-isomorphism
-                                   (lower-extensionality r lzero ext))
-               1 $
-             Π-closure (lower-extensionality r lzero ext) 1 λ z →
+          H-level.respects-surjection
+            (_≃_.surjection $ Eq.extensionality-isomorphism
+                                (lower-extensionality r lzero ext))
+            1
+            (Π-closure (lower-extensionality r lzero ext) 1 λ z →
              H-level-H-level-≡ˡ
                (lower-extensionality a _ ext)
                univ 0 (R-prop x z))
             _ _
       }
-    ; left-inverse-of = λ _ →
-        _⇔_.to propositional⇔irrelevant (R-prop x y) _ _
+    ; left-inverse-of = λ _ → R-prop x y _ _
     })
   where
   open Is-equivalence-relation R-equiv
@@ -232,9 +230,7 @@ strong-equivalence-that-is-neither-propositional-nor-≡ ext univ =
      ⊎.inj₁≢inj₂ (
        fzero                                 ≡⟨ sym $ _≃_.left-inverse-of eq _ ⟩
        _≃_.from eq (_≃_.to eq fzero)         ≡⟨ cong (_≃_.from eq) $
-                                                _⇔_.to propositional⇔irrelevant
-                                                  (mono (zero≤ 2) ⊤-contractible _ _)
-                                                  _ _ ⟩
+                                                mono (zero≤ 2) ⊤-contractible _ _ ⟩
        _≃_.from eq (_≃_.to eq (fsuc fzero))  ≡⟨ _≃_.left-inverse-of eq _ ⟩∎
        fsuc fzero                            ∎))
 
@@ -431,7 +427,7 @@ A / R = ∃ λ (P : A → Set _) → P is-equivalence-class-of R
   Univalence a →
   A / _≡_ ↔ A
 /≡↔ {A = A} ext univ =
-  (∃ λ P → ∥ (∃ λ x → (x ≡_) ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → ∥∥↔ lzero ext $ _⇔_.from propositional⇔irrelevant irr) ⟩
+  (∃ λ P → ∥ (∃ λ x → (x ≡_) ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → ∥∥↔ lzero ext irr) ⟩
   (∃ λ P → ∃ λ x → (x ≡_) ≡ P)            ↝⟨ ∃-comm ⟩
   (∃ λ x → ∃ λ P → (x ≡_) ≡ P)            ↝⟨ drop-⊤-right (λ _ → _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _) ⟩□
   A                                       □
@@ -527,7 +523,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
 
     (∃ λ (eq : proj₁ x ≡ proj₁ y) →
        subst (_is-equivalence-class-of R) eq (proj₂ x) ≡ proj₂ y)  ↝⟨ (drop-⊤-right λ _ → _⇔_.to contractible⇔↔⊤ $
-                                                                       truncation-has-correct-h-level 1 ext _ _) ⟩□
+                                                                       +⇒≡ $ truncation-has-correct-h-level 1 ext) ⟩□
     proj₁ x ≡ proj₁ y                                              □
 
   equality-characterisation₂ :
@@ -560,7 +556,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
   -- Constructor for the quotient type.
 
   [_] : A → A / R
-  [ a ] = R a , ∣ (a , refl (R a)) ∣
+  [ a ] = R a , ∣ (a , refl (R a)) ∣₁
 
   -- [_] is surjective (assuming extensionality).
 
@@ -569,6 +565,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
     Surjective (lsuc a) [_]
   []-surjective ext (P , P-is-class) =
     ∥∥-map
+      1
       (Σ-map
          F.id
          (λ {x} Rx≡P →
@@ -589,13 +586,14 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
     ext n h (P , P-is-class) y =
 
     Trunc.rec
+      1
       (H-level-propositional ext n)
       (λ { (z , Rz≡P) → H-level.respects-surjection
                           (≡⇒↝ _ (R z y  ≡⟨ cong (_$ y) Rz≡P ⟩∎
                                   P y    ∎))
                           n
                           (h z y) })
-      (with-lower-level _ P-is-class)
+      (with-lower-level _ 1 P-is-class)
 
   -- If R is a family of types of h-level n, then A / R has h-level
   -- 1 + n (assuming extensionality and univalence).
@@ -613,7 +611,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
       ∀ n →
       (∀ x y z → H-level n (proj₁ x z ≡ proj₁ y z)) →
       H-level (1 + n) (A / R)
-    lemma₁ n h x y =                             $⟨ h x y ⟩
+    lemma₁ n h = ≡↔+ _ _ λ x y →                 $⟨ h x y ⟩
       (∀ z → H-level n (proj₁ x z ≡ proj₁ y z))  ↝⟨ Π-closure (lower-extensionality _ lzero ext) n ⟩
       H-level n (∀ z → proj₁ x z ≡ proj₁ y z)    ↝⟨ H-level.respects-surjection
                                                       (_↔_.surjection (inverse $ equality-characterisation₂ ext))
@@ -896,7 +894,7 @@ module ⊤/2 where
     Univalence (# 0) →
     ¬ Is-set ⊤/2
   not-a-set ext univ =
-    Is-set ⊤/2                              ↝⟨ F.id ⟩
+    Is-set ⊤/2                              ↝⟨ _⇔_.from (≡↔+ 1 _) ⟩
     ((x y : ⊤/2) → Is-proposition (x ≡ y))  ↝⟨ (λ prop → prop _ _) ⟩
     Is-proposition ([ tt ] ≡ [ tt ])        ↝⟨ H-level.respects-surjection
                                                  (_↔_.surjection $ inverse $
@@ -925,7 +923,7 @@ module ⊤/2 where
     Extensionality (# 2) (# 1) →
     (x : ⊤/2) → ∥ x ≡ [ tt ] ∥ 1 (# 1)
   ∥≡[tt]∥ ext x =           $⟨ []-surjective ext x ⟩
-    ∥ ⊤ × [ tt ] ≡ x ∥ 1 _  ↝⟨ ∥∥-map (sym ∘ proj₂) ⟩□
+    ∥ ⊤ × [ tt ] ≡ x ∥ 1 _  ↝⟨ ∥∥-map 1 (sym ∘ proj₂) ⟩□
     ∥ x ≡ [ tt ] ∥ 1 _      □
 
   -- The type is merely single-valued (assuming extensionality and a
@@ -937,8 +935,10 @@ module ⊤/2 where
     (x y : ⊤/2) → ∥ x ≡ y ∥ 1 (# 1)
   merely-single-valued ext resize x y =
     Trunc.rec
+      1
       (truncation-has-correct-h-level 1 ext)
-      (λ x≡[tt] → ∥∥-map (λ y≡[tt] → x       ≡⟨ x≡[tt] ⟩
+      (λ x≡[tt] → ∥∥-map 1
+                         (λ y≡[tt] → x       ≡⟨ x≡[tt] ⟩
                                      [ tt ]  ≡⟨ sym y≡[tt] ⟩∎
                                      y       ∎)
                          (∥≡[tt]∥ ext′ y))
@@ -957,9 +957,11 @@ module ⊤/2 where
     (x y : ⊤/2) → ∥ x ≡ y ↔ Fin 2 ∥ 1 (# 1)
   ∥≡↔2∥ ext univ resize x y =
     Trunc.rec
+      1
       (truncation-has-correct-h-level 1 ext)
       (λ x≡[tt] →
          ∥∥-map
+           1
            (λ y≡[tt] →
               x ≡ y            ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ x≡[tt] y≡[tt] ⟩
               [ tt ] ≡ [ tt ]  ↝⟨ inverse $

@@ -91,7 +91,7 @@ isomorphism-is-equality′ Univ ass
           {x : El a (Type C)} {y : El a (Type D)}
           (f : Bij.Hom C D) →
           Is-proposition (Is-isomorphism a (≅⇒≃ C D f) x y)
-        H-prop′ _ D _ = El-set (proj₂ D) _ _
+        H-prop′ _ D _ = El-set (proj₂ D)
 
         H-id′ :
           (C : SET (# 1)) {x : El a (Type C)} →
@@ -166,24 +166,25 @@ isomorphism-is-equality′ Univ ass
     isomorphic : Isomorphic (a , P) (C , x , p) (D , y , q) ↔
                  ((C , x , p) ≡ (D , y , q))
     isomorphic =
-      Σ (C ≃ D) (λ eq → Is-isomorphism a eq x y)     ↝⟨ (let ≃≃≅-CD = ≃≃≅-Set (# 1) ext (C , C-set) (D , D-set) in
-                                                         Σ-cong ≃≃≅-CD (λ eq →
-                                                           let eq′ = _≃_.from ≃≃≅-CD (_≃_.to ≃≃≅-CD eq) in
-                                                           Is-isomorphism a eq  x y  ↝⟨ ≡⇒↝ _ $ cong (λ eq → Is-isomorphism a eq x y) $ sym $
-                                                                                          _≃_.left-inverse-of ≃≃≅-CD eq ⟩
-                                                           Is-isomorphism a eq′ x y  □)) ⟩
-      ∃ (H {X = C , C-set} {Y = D , D-set} x y)      ↝⟨ inverse ×-right-identity ⟩
-      ∃ (H {X = C , C-set} {Y = D , D-set} x y) × ⊤  ↝⟨ ∃-cong (λ X≅Y → inverse $ _⇔_.to contractible⇔↔⊤ $
-                                                                        propositional⇒inhabited⇒contractible
-                                                                          (Str.Is-isomorphism-propositional X≅Y)
-                                                                          (Str-homs-are-isos X≅Y)) ⟩
-      (((C , C-set) , x) Str.≅ ((D , D-set) , y))    ↔⟨ inverse ⟨ _ , structure-identity-principle ext Bij S
-                                                                        {X = (C , C-set) , x} {Y = (D , D-set) , y} ⟩ ⟩
-      (((C , C-set) , x) ≡ ((D , D-set) , y))        ↔⟨ ≃-≡ $ ↔⇒≃ (Σ-assoc ⊚ ∃-cong (λ _ → ×-comm) ⊚ inverse Σ-assoc) ⟩
-      (((C , x) , C-set) ≡ ((D , y) , D-set))        ↝⟨ inverse $ ignore-propositional-component (H-level-propositional ext 2) ⟩
-      ((C , x) ≡ (D , y))                            ↝⟨ ignore-propositional-component (proj₂ (P D y) ass) ⟩
-      (((C , x) , p) ≡ ((D , y) , q))                ↔⟨ ≃-≡ $ ↔⇒≃ Σ-assoc ⟩□
-      ((C , x , p) ≡ (D , y , q))                    □
+      Σ (C ≃ D) (λ eq → Is-isomorphism a eq x y)                   ↝⟨ (let ≃≃≅-CD = ≃≃≅-Set (# 1) ext (C , C-set) (D , D-set) in
+                                                                       Σ-cong ≃≃≅-CD (λ eq →
+                                                                         let eq′ = _≃_.from ≃≃≅-CD (_≃_.to ≃≃≅-CD eq) in
+                                                                         Is-isomorphism a eq  x y  ↝⟨ ≡⇒↝ _ $
+                                                                                                      cong (λ eq → Is-isomorphism a eq x y) $ sym $
+                                                                                                      _≃_.left-inverse-of ≃≃≅-CD eq ⟩
+                                                                         Is-isomorphism a eq′ x y  □)) ⟩
+      ∃ (H {X = C , C-set} {Y = D , D-set} x y)                    ↝⟨ inverse ×-right-identity ⟩
+      ∃ (H {X = C , C-set} {Y = D , D-set} x y) × ⊤                ↝⟨ ∃-cong (λ X≅Y → inverse $ _⇔_.to contractible⇔↔⊤ $
+                                                                                      propositional⇒inhabited⇒contractible
+                                                                                        (Str.Is-isomorphism-propositional X≅Y)
+                                                                                        (Str-homs-are-isos X≅Y)) ⟩
+      (((C , C-set) , x) Str.≅ ((D , D-set) , y))                  ↔⟨ inverse ⟨ _ , structure-identity-principle ext Bij S
+                                                                                      {X = (C , C-set) , x} {Y = (D , D-set) , y} ⟩ ⟩
+      (((C , λ {_ _} → C-set) , x) ≡ ((D , λ {_ _} → D-set) , y))  ↔⟨ ≃-≡ $ ↔⇒≃ (Σ-assoc ⊚ ∃-cong (λ _ → ×-comm) ⊚ inverse Σ-assoc) ⟩
+      (((C , x) , λ {_ _} → C-set) ≡ ((D , y) , λ {_ _} → D-set))  ↝⟨ inverse $ ignore-propositional-component (H-level-propositional ext 2) ⟩
+      ((C , x) ≡ (D , y))                                          ↝⟨ ignore-propositional-component (proj₂ (P D y) ass) ⟩
+      (((C , x) , p) ≡ ((D , y) , q))                              ↔⟨ ≃-≡ $ ↔⇒≃ Σ-assoc ⟩□
+      ((C , x , p) ≡ (D , y , q))                                  □
 
     -- A simplification lemma.
 
@@ -210,92 +211,93 @@ isomorphism-is-equality′ Univ ass
         cong (λ { ((C , x) , C-set) → (C , C-set) , x }) $
         Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡
                    (cong (λ { (C , (x , p)) → (C , x) , p }) X≡Y)))
-                (proj₁ (H-level-propositional ext 2 _ _))
+                (proj₁ (+⇒≡ $ H-level-propositional ext 2))
 
       lemma :
         cast C-set D-set X≡Y ≡
         _≃_.to (elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y) (λ _ → Eq.id) X≡Y)
       lemma = elim¹
-        (λ X≡Y → ∀ D-set → cast C-set D-set X≡Y ≡
-                           _≃_.to (elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y)
-                                        (λ _ → Eq.id) X≡Y))
+        (λ X≡Y → (D-set : Is-set _) →
+                 cast C-set D-set X≡Y ≡
+                 _≃_.to (elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y)
+                              (λ _ → Eq.id) X≡Y))
         (λ C-set′ →
 
-           cast C-set C-set′ (refl (C , x , p))                      ≡⟨ cong (λ eq →
-                                                                                proj₁ $ proj₁ $ proj₁ $
-                                                                                Str.≡→≅ {X = (C , C-set) , x} {Y = (C , C-set′) , x} $
-                                                                                cong (λ { ((C , x) , C-set) → (C , C-set) , x }) $
-                                                                                Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ {B = proj₁ ∘ uncurry P} eq))
-                                                                                        (proj₁ (H-level-propositional ext 2 _ _)))
-                                                                             (cong-refl (λ { (C , (x , p)) → (C , x) , p })) ⟩
+           cast C-set C-set′ (refl (C , x , p))                           ≡⟨ cong (λ eq →
+                                                                                     proj₁ $ proj₁ $ proj₁ $
+                                                                                     Str.≡→≅ {X = (C , C-set) , x} {Y = (C , C-set′) , x} $
+                                                                                     cong (λ { ((C , x) , C-set) → (C , C-set) , x }) $
+                                                                                     Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ {B = proj₁ ∘ uncurry P} eq))
+                                                                                             (proj₁ (+⇒≡ $ H-level-propositional ext 2)))
+                                                                                  (cong-refl (λ { (C , (x , p)) → (C , x) , p })) ⟩
            (proj₁ $ proj₁ $ proj₁ $
             Str.≡→≅ {X = (C , C-set) , x} {Y = (C , C-set′) , x} $
             cong (λ { ((C , x) , C-set) → (C , C-set) , x }) $
             Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
-                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ cong proj₁ (S.proj₁-≡→≅-¹ _) ⟩
+                    (proj₁ (+⇒≡ $ H-level-propositional ext 2)))          ≡⟨ cong proj₁ (S.proj₁-≡→≅-¹ _) ⟩
 
            (proj₁ $
             Fun.≡→≅ $
             cong proj₁ $
             cong (λ { ((C , x) , C-set) → (C , C-set) , x }) $
             Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
-                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ cong (proj₁ ∘ Fun.≡→≅) $
-                                                                          cong-∘ proj₁ (λ { ((C , x) , C-set) → (C , C-set) , x }) _ ⟩
+                    (proj₁ (+⇒≡ $ H-level-propositional ext 2)))          ≡⟨ cong (proj₁ ∘ Fun.≡→≅) $
+                                                                               cong-∘ proj₁ (λ { ((C , x) , C-set) → (C , C-set) , x }) _ ⟩
            (proj₁ $
             Fun.≡→≅ $
             cong (λ { ((C , _) , C-set) → C , C-set }) $
             Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
-                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ Fun.≡→≅-¹ _ ⟩
+                    (proj₁ (+⇒≡ $ H-level-propositional ext 2)))          ≡⟨ Fun.≡→≅-¹ _ ⟩
 
            (elim (λ {X Y} _ → Fun.Hom X Y) (λ _ → P.id) $
             cong (λ { ((C , _) , C-set) → C , C-set }) $
             Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
-                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ elim¹ (λ eq → elim (λ {X Y} _ → Fun.Hom X Y) (λ _ → P.id) eq ≡
-                                                                                      ≡⇒↝ implication (cong proj₁ eq))
-                        (elim (λ {X Y} _ → Fun.Hom X Y) (λ _ → P.id)
-                              (refl (C , C-set))                          ≡⟨ elim-refl (λ {X Y} _ → Fun.Hom X Y) _ ⟩
-                         P.id                                             ≡⟨ sym $ elim-refl (λ {A B} _ → A → B) _ ⟩
-                         ≡⇒↝ implication (refl C)                         ≡⟨ cong (≡⇒↝ implication) (sym $ cong-refl proj₁) ⟩∎
-                         ≡⇒↝ implication (cong proj₁ (refl (C , C-set)))  ∎) _ ⟩
+                    (proj₁ (+⇒≡ $ H-level-propositional ext 2)))          ≡⟨ elim¹ (λ eq → elim (λ {X Y} _ → Fun.Hom X Y) (λ _ → P.id) eq ≡
+                                                                                      ≡⇒↝ implication (cong proj₁ eq)) (
+               elim (λ {X Y} _ → Fun.Hom X Y) (λ _ → P.id)
+                    (refl (C , λ {_ _} → C-set))                                        ≡⟨ elim-refl (λ {X Y} _ → Fun.Hom X Y) _ ⟩
+               P.id                                                                     ≡⟨ sym $ elim-refl (λ {A B} _ → A → B) _ ⟩
+               ≡⇒↝ implication (refl C)                                                 ≡⟨ cong (≡⇒↝ implication) (sym $ cong-refl proj₁) ⟩∎
+               ≡⇒↝ implication (cong proj₁ (refl (C , λ {_ _} → C-set)))                ∎) _ ⟩
 
            (≡⇒↝ implication $
             cong proj₁ $
             cong (λ { ((C , _) , C-set) → C , C-set }) $
             Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
-                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ cong (≡⇒↝ implication)
-                                                                             (cong-∘ proj₁ (λ { ((C , _) , C-set) → C , C-set }) _) ⟩
+                    (proj₁ (+⇒≡ $ H-level-propositional ext 2)))          ≡⟨ cong (≡⇒↝ implication)
+                                                                                  (cong-∘ proj₁ (λ { ((C , _) , C-set) → C , C-set }) _) ⟩
            (≡⇒↝ implication $
             cong (λ { ((C , _) , _) → C }) $
             Σ-≡,≡→≡ (proj₁ (Σ-≡,≡←≡ (refl ((C , x) , p))))
-                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ cong (λ eq →
-                                                                                ≡⇒↝ implication $
-                                                                                cong (λ { ((C , _) , _) → C }) $
-                                                                                Σ-≡,≡→≡ (proj₁ {B = λ q → subst (proj₁ ∘ uncurry P) q p ≡ p} eq)
-                                                                                        (proj₁ (H-level-propositional ext 2 _ C-set′)))
-                                                                             (Σ-≡,≡←≡-refl {B = λ { (C , x) → proj₁ (P C x)}}) ⟩
+                    (proj₁ (+⇒≡ $ H-level-propositional ext 2)))          ≡⟨ cong (λ (eq : ∃ λ q → subst (proj₁ ∘ uncurry P) q p ≡ p) →
+                                                                                     ≡⇒↝ implication $
+                                                                                     cong (λ { ((C , _) , _) → C }) $
+                                                                                     Σ-≡,≡→≡ (proj₁ eq)
+                                                                                             (proj₁ (+⇒≡ $ H-level-propositional ext 2)))
+                                                                                  (Σ-≡,≡←≡-refl {B = λ { (C , x) → proj₁ (P C x)}}) ⟩
            (≡⇒↝ implication $
             cong (λ { ((C , _) , _) → C }) $
             Σ-≡,≡→≡ (refl (C , x))
-                    (proj₁ (H-level-propositional ext 2 _ _)))       ≡⟨ cong (≡⇒↝ implication ∘ cong (λ { ((C , _) , _) → C }))
-                                                                             (Σ-≡,≡→≡-reflˡ (proj₁ (H-level-propositional ext 2 _ _))) ⟩
+                    (proj₁ (+⇒≡ $ H-level-propositional ext 2)))          ≡⟨ cong (≡⇒↝ implication ∘ cong (λ { ((C , _) , _) → C }))
+                                                                                  (Σ-≡,≡→≡-reflˡ (proj₁ (+⇒≡ $ H-level-propositional ext 2))) ⟩
            (≡⇒↝ implication $
             cong (λ { ((C , _) , _) → C }) $
             cong (_,_ (C , x))
                  (trans (sym $ subst-refl (Is-set ∘ proj₁) C-set)
-                        (proj₁ (H-level-propositional ext 2 _ _))))  ≡⟨ cong (≡⇒↝ implication)
-                                                                             (cong-∘ (λ { ((C , _) , _) → C }) (_,_ (C , x)) _) ⟩
+                        (proj₁ (+⇒≡ $ H-level-propositional ext 2))))     ≡⟨ cong (≡⇒↝ implication)
+                                                                                  (cong-∘ (λ { ((C , _) , _) → C }) (_,_ (C , x)) _) ⟩
            (≡⇒↝ implication $
             cong (const C)
                  (trans (sym $ subst-refl (Is-set ∘ proj₁) C-set)
-                        (proj₁ (H-level-propositional ext 2 _ _))))  ≡⟨ cong (≡⇒↝ implication) (cong-const _) ⟩
+                        (proj₁ (+⇒≡ $ H-level-propositional ext 2))))     ≡⟨ cong (≡⇒↝ implication) (cong-const _) ⟩
 
-           ≡⇒↝ implication (refl C)                                  ≡⟨ ≡⇒↝-refl ⟩
+           ≡⇒↝ implication (refl C)                                       ≡⟨ ≡⇒↝-refl ⟩
 
-           P.id                                                      ≡⟨ sym $ cong _≃_.to $ elim-refl (λ {X Y} _ → proj₁ X ≃ proj₁ Y) _ ⟩∎
+           P.id                                                           ≡⟨ sym $ cong _≃_.to $ elim-refl (λ {X Y} _ → proj₁ X ≃ proj₁ Y) _ ⟩∎
 
            _≃_.to (elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y)
                         (λ _ → Eq.id)
-                        (refl (C , x , p)))                          ∎)
+                        (refl (C , x , p)))                               ∎)
 
         X≡Y D-set
 
@@ -307,14 +309,14 @@ abstract
   from-isomorphism-is-equality′ :
     ∀ Univ ass c X Y → let open Universe Univ; open Class Univ in
     (El-set : ∀ {B} → Is-set B → Is-set (El (proj₁ c) B)) →
-    ∀ I-set J-set →
+    (X-set : Is-set (proj₁ X)) (Y-set : Is-set (proj₁ Y)) →
     _↔_.from (isomorphism-is-equality′
-                Univ ass c X Y El-set I-set J-set) ≡
+                Univ ass c X Y El-set X-set Y-set) ≡
     elim (λ {X Y} _ → Isomorphic c X Y)
          (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
-  from-isomorphism-is-equality′ Univ ass c X Y El-set I-set J-set =
+  from-isomorphism-is-equality′ Univ ass c X Y El-set X-set Y-set =
     apply-ext ext λ eq →
-      Σ-≡,≡→≡ (lemma eq) (_⇔_.to set⇔UIP (El-set J-set) _ _)
+      Σ-≡,≡→≡ (lemma eq) (El-set Y-set _ _)
     where
     open Assumptions ass
     open Universe Univ
@@ -323,14 +325,14 @@ abstract
     lemma :
       ∀ eq →
       proj₁ (_↔_.from (isomorphism-is-equality′
-                         Univ ass c X Y El-set I-set J-set) eq) ≡
+                         Univ ass c X Y El-set X-set Y-set) eq) ≡
       proj₁ (elim (λ {X Y} _ → Isomorphic c X Y)
                   (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })
                   eq)
     lemma eq =
       proj₁ (_↔_.from (isomorphism-is-equality′
-                         Univ ass c X Y El-set I-set J-set) eq)          ≡⟨ Isomorphism-is-equality′.proj₁-from-isomorphic
-                                                                              Univ ass _ _ _ _ _ _ _ _ El-set I-set J-set eq ⟩
+                         Univ ass c X Y El-set X-set Y-set) eq)          ≡⟨ Isomorphism-is-equality′.proj₁-from-isomorphic
+                                                                              Univ ass _ _ _ _ _ _ _ _ El-set X-set Y-set eq ⟩
       elim (λ {X Y} _ → proj₁ X ≃ proj₁ Y) (λ _ → Eq.id) eq              ≡⟨ sym $ elim-∘ (λ {X Y} _ → Isomorphic c X Y) _ proj₁ _ ⟩∎
       proj₁ (elim (λ {X Y} _ → Isomorphic c X Y)
                   (λ { (_ , x , _) → Eq.id , resp-id ass (proj₁ c) x })

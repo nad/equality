@@ -44,13 +44,13 @@ private
 
 data ∥_∥ (A : Set a) : Set a where
   ∣_∣                      : A → ∥ A ∥
-  truncation-is-irrelevant : P.Proof-irrelevant ∥ A ∥
+  truncation-is-irrelevant : P.Is-proposition ∥ A ∥
 
 -- The truncation produces propositions.
 
 truncation-is-proposition : Is-proposition ∥ A ∥
 truncation-is-proposition =
-  _↔_.from propositional↔irrelevant truncation-is-irrelevant
+  _↔_.from (H-level↔H-level 1) truncation-is-irrelevant
 
 -- Primitive "recursion" for truncated types.
 
@@ -58,7 +58,7 @@ rec : Is-proposition B → (A → B) → ∥ A ∥ → B
 rec B-prop f ∣ x ∣                            = f x
 rec B-prop f (truncation-is-irrelevant x y i) =
   _↔_.to ≡↔≡
-    (rec B-prop f x  ≡⟨ _⇔_.to propositional⇔irrelevant B-prop _ _ ⟩∎
+    (rec B-prop f x  ≡⟨ B-prop _ _ ⟩∎
      rec B-prop f y  ∎)
     i
 
@@ -72,18 +72,16 @@ rec B-prop f (truncation-is-irrelevant x y i) =
   { surjection = record
     { logical-equivalence = record
       { to   = rec (Trunc.truncation-has-correct-h-level 1 ext)
-                   Trunc.∣_∣
+                   Trunc.∣_∣₁
       ; from = lower {ℓ = ℓ} ∘
-               Trunc.rec (↑-closure 1 truncation-is-proposition)
+               Trunc.rec 1
+                         (↑-closure 1 truncation-is-proposition)
                          (lift ∘ ∣_∣)
       }
     ; right-inverse-of = λ _ →
-        _⇔_.to propositional⇔irrelevant
-          (Trunc.truncation-has-correct-h-level 1 ext) _ _
+        Trunc.truncation-has-correct-h-level 1 ext _ _
     }
-  ; left-inverse-of = λ _ →
-      _⇔_.to propositional⇔irrelevant
-        truncation-is-proposition _ _
+  ; left-inverse-of = λ _ → truncation-is-proposition _ _
   }
 
 -- Map function.
@@ -104,7 +102,7 @@ elim P P-prop f (truncation-is-irrelevant x y i) = lemma i
   lemma : P.[ (λ i → P (truncation-is-irrelevant x y i)) ]
             elim P P-prop f x ≡ elim P P-prop f y
   lemma = P.heterogeneous-irrelevance
-            (_↔_.to (H-level↔H-level _) ∘ P-prop)
+            (_↔_.to (H-level↔H-level 1) ∘ P-prop)
 
 -- The truncation operator preserves logical equivalences.
 
@@ -120,7 +118,7 @@ elim P P-prop f (truncation-is-irrelevant x y i) = lemma i
           A ↔[ k ] B → ∥ A ∥ ↔[ k ] ∥ B ∥
 ∥∥-cong {a = a} {b = b} {A = A} {B} A↔B =
   ∥ A ∥                  ↔⟨ ∥∥↔∥∥ b ⟩
-  Trunc.∥ A ∥ 1 (a ⊔ b)  ↝⟨ Trunc.∥∥-cong ext A↔B ⟩
+  Trunc.∥ A ∥ 1 (a ⊔ b)  ↝⟨ Trunc.∥∥-cong {n = 1} ext A↔B ⟩
   Trunc.∥ B ∥ 1 (a ⊔ b)  ↔⟨ inverse (∥∥↔∥∥ a) ⟩□
   ∥ B ∥                  □
 
@@ -137,11 +135,9 @@ flatten′ _ map f = record
       { to   = rec truncation-is-proposition f
       ; from = ∥∥-map (map ∣_∣)
       }
-    ; right-inverse-of = λ _ →
-        _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _
+    ; right-inverse-of = λ _ → truncation-is-proposition _ _
     }
-  ; left-inverse-of = λ _ →
-      _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _
+  ; left-inverse-of = λ _ → truncation-is-proposition _ _
   }
 
 -- Nested truncations can be flattened.
@@ -175,7 +171,7 @@ x >>=′ f = _↔_.to flatten (∥∥-map f x)
   x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
 >>=′-associative x {f} {g} = elim
   (λ x → x >>=′ (λ x₁ → f x₁ >>=′ g) ≡ x >>=′ f >>=′ g)
-  (λ _ → mono₁ 1 truncation-is-proposition _ _)
+  (λ _ → +⇒≡ {n = 1} $ mono₁ 1 truncation-is-proposition)
   (λ _ → refl _)
   x
 
@@ -193,7 +189,7 @@ instance
   Monad.associativity monad x _ _ = >>=′-associative x
   Monad.right-identity monad      = elim
     _
-    (λ _ → mono₁ 1 truncation-is-proposition _ _)
+    (λ _ → +⇒≡ {n = 1} $ mono₁ 1 truncation-is-proposition)
     (λ _ → refl _)
 
 -- Surjectivity.
@@ -236,8 +232,7 @@ surjective×embedding≃equivalence {f = f} =
       }
     ; right-inverse-of = λ _ → refl _
     }
-  ; left-inverse-of = λ _ →
-      _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _
+  ; left-inverse-of = λ _ → truncation-is-proposition _ _
   }
 
 -- A simple isomorphism involving propositional truncation.
@@ -283,13 +278,11 @@ private
                                   y)
                        x }
       }
-    ; right-inverse-of = λ _ →
-        _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _
+    ; right-inverse-of = λ _ → truncation-is-proposition _ _
     }
   ; left-inverse-of = λ _ →
-      _⇔_.to propositional⇔irrelevant
-        (×-closure 1 truncation-is-proposition
-                     truncation-is-proposition)
+      ×-closure 1 truncation-is-proposition
+                  truncation-is-proposition
         _ _
   }
 
@@ -333,8 +326,7 @@ constant-endofunction⇔h-stable = record
   { to = λ { (_ , c) → constant-endofunction⇒h-stable c }
   ; from = λ f → f ∘ ∣_∣ , λ x y →
 
-      f ∣ x ∣  ≡⟨ cong f $ _⇔_.to propositional⇔irrelevant
-                             truncation-is-proposition _ _ ⟩∎
+      f ∣ x ∣  ≡⟨ cong f $ truncation-is-proposition _ _ ⟩∎
       f ∣ y ∣  ∎
   }
 
@@ -372,13 +364,9 @@ push-∥∥ {A = A} {B = B} {C} =
   (∃ λ (f : ∥ A ∥ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↝⟨ Σ-cong drop-∥∥ (λ f →
                                                         ∀-cong ext λ ∥x∥ →
                                                         ≡⇒↝ _ $ cong C $ ⟨ext⟩ λ x →
-      f ∥x∥ x                                             ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $
-                                                             _⇔_.to propositional⇔irrelevant truncation-is-proposition _ _ ⟩
-
+      f ∥x∥ x                                             ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $ truncation-is-proposition _ _ ⟩
       f ∣ x ∣ x                                           ≡⟨ sym $ subst-refl B _ ⟩
-
       subst B (refl x) (f ∣ x ∣ x)                        ≡⟨⟩
-
       _↔_.to drop-∥∥ f x                                  ∎) ⟩□
 
   (∃ λ (f : ∀ x → B x) → ∥ A ∥ → C (λ x → f x))      □
@@ -508,16 +496,11 @@ choice-bijection choice A-set = record
       { to   = choice A-set
       ; from = λ f x → ∥∥-map (_$ x) f
       }
-    ; right-inverse-of = λ _ →
-        _⇔_.to propositional⇔irrelevant
-          truncation-is-proposition
-          _ _
+    ; right-inverse-of = λ _ → truncation-is-proposition _ _
     }
   ; left-inverse-of = λ _ →
-      _⇔_.to propositional⇔irrelevant
-          (Π-closure ext 1 λ _ →
-           truncation-is-proposition)
-          _ _
+      (Π-closure ext 1 λ _ →
+       truncation-is-proposition) _ _
   }
 
 -- The axiom of countable choice, stated in a corresponding way.
@@ -538,14 +521,9 @@ countable-choice-bijection cc = record
       { to   = cc
       ; from = λ f x → ∥∥-map (_$ x) f
       }
-    ; right-inverse-of = λ _ →
-        _⇔_.to propositional⇔irrelevant
-          truncation-is-proposition
-          _ _
+    ; right-inverse-of = λ _ → truncation-is-proposition _ _
     }
   ; left-inverse-of = λ _ →
-      _⇔_.to propositional⇔irrelevant
-          (Π-closure ext 1 λ _ →
-           truncation-is-proposition)
-          _ _
+      (Π-closure ext 1 λ _ →
+       truncation-is-proposition) _ _
   }

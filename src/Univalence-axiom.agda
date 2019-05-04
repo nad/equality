@@ -119,20 +119,14 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
     (record
        { to   = λ prop-ext A-prop B-prop A≃B →
                   ( prop-ext A-prop B-prop (_≃_.logical-equivalence A≃B)
-                  , _⇔_.to propositional⇔irrelevant
-                      (Eq.left-closure (lower-extensionality _ _ ext)
-                                       0 A-prop)
-                      _ _
+                  , Eq.left-closure (lower-extensionality _ _ ext)
+                      0 A-prop _ _
                   ) , λ _ → Σ-≡,≡→≡
-                        (_⇔_.to propositional⇔irrelevant
-                           (≡-closure prop-ext A-prop B-prop)
-                           _ _)
-                        (_⇔_.to propositional⇔irrelevant
-                           (mono₁ 1 (Eq.left-closure
-                                       (lower-extensionality _ _ ext)
+                        (≡-closure prop-ext A-prop B-prop _ _)
+                        (mono₁ 1 (Eq.left-closure
+                                    (lower-extensionality _ _ ext)
                                        0 A-prop)
-                                  _ _)
-                           _ _)
+                               _ _)
        ; from = λ univ {A B} A-prop B-prop →
                   A ⇔ B  ↔⟨ ⇔↔≃ (lower-extensionality _ _ ext) A-prop B-prop ⟩
                   A ≃ B  ↔⟨ inverse ⟨ _ , univ A-prop B-prop ⟩ ⟩□
@@ -153,10 +147,8 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
                                              (λ _ → F.id)
                                              (λ { (A , A-prop) (B , B-prop) A⇔B →
                                                   Σ-≡,≡→≡ (prop-ext A-prop B-prop A⇔B)
-                                                          (_⇔_.to propositional⇔irrelevant
-                                                             (H-level-propositional
-                                                                (lower-extensionality _ _ ext) 1)
-                                                             _ _) }))
+                                                          (H-level-propositional
+                                                             (lower-extensionality _ _ ext) 1 _ _) }))
                                           ext ⟩
     (A , A-prop) ≡ (B , B-prop)  ↔⟨ inverse $ ignore-propositional-component
                                                 (H-level-propositional
@@ -387,10 +379,9 @@ module _ (univ : Univalence′ Bool Bool) where
 
     ¬-Set-set : ¬ Is-set Set
     ¬-Set-set =
-      Is-set Set                         ↝⟨ _⇔_.to set⇔UIP ⟩
-      Uniqueness-of-identity-proofs Set  ↝⟨ (λ uip → uip _ _) ⟩
-      swap-as-an-equality ≡ refl Bool    ↝⟨ swap≢refl ⟩□
-      ⊥                                  □
+      Is-set Set                       ↝⟨ (λ h → h _ _) ⟩
+      swap-as-an-equality ≡ refl Bool  ↝⟨ swap≢refl ⟩□
+      ⊥                                □
 
 abstract
 
@@ -400,8 +391,7 @@ abstract
                 Univalence′ (↑ ℓ Bool) (↑ ℓ Bool) →
                 ¬ Is-set (Set ℓ)
   ¬-Set-set-↑ {ℓ} univ =
-    Is-set (Set ℓ)                           ↝⟨ _⇔_.to set⇔UIP ⟩
-    Uniqueness-of-identity-proofs (Set ℓ)    ↝⟨ (λ uip → uip _ _) ⟩
+    Is-set (Set ℓ)                           ↝⟨ (λ h → h _ _) ⟩
     swap-as-an-equality-↑ ≡ refl (↑ ℓ Bool)  ↝⟨ swap-↑≢refl ⟩□
     ⊥                                        □
     where
@@ -1210,13 +1200,13 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
   Extensionality a a →
   Univalence a →
   ∀ n → H-level (1 + n) (∃ λ (A : Set a) → H-level n A)
-∃-H-level-H-level-1+ ext univ n (A₁ , h₁) (A₂ , h₂) =
+∃-H-level-H-level-1+ ext univ n = ≡↔+ _ _ λ { (A₁ , h₁) (A₂ , h₂) →
                                      $⟨ h₁ , h₂ ⟩
   H-level n A₁ × H-level n A₂        ↝⟨ uncurry (H-level-H-level-≡ ext univ n) ⟩
   H-level n (A₁ ≡ A₂)                ↝⟨ H-level.respects-surjection
                                           (_↔_.surjection $ ignore-propositional-component
                                                               (H-level-propositional ext _)) n ⟩□
-  H-level n ((A₁ , h₁) ≡ (A₂ , h₂))  □
+  H-level n ((A₁ , h₁) ≡ (A₂ , h₂))  □ }
 
 -- ∃ λ A → Is-proposition A is a set (assuming extensionality and
 -- propositional extensionality).
@@ -1226,13 +1216,14 @@ Is-set-∃-Is-proposition :
   Extensionality (lsuc a) (lsuc a) →
   Propositional-extensionality a →
   Is-set (∃ λ (A : Set a) → Is-proposition A)
-Is-set-∃-Is-proposition {a} ext prop-ext (A₁ , A₁-prop) (A₂ , A₂-prop) =
+Is-set-∃-Is-proposition {a} ext prop-ext
+                        {x = A₁ , A₁-prop} {y = A₂ , A₂-prop} =
                                                     $⟨ _≃_.to (Propositional-extensionality-is-univalence-for-propositions ext)
                                                             prop-ext A₁-prop A₂-prop ⟩
   Univalence′ A₁ A₂                                 ↝⟨ (λ univ → H-level-H-level-≡ ext′ univ 1 A₁-prop A₂-prop) ⟩
   Is-proposition (A₁ ≡ A₂)                          ↝⟨ H-level.respects-surjection
                                                          (_↔_.surjection $ ignore-propositional-component
-                                                                             (H-level-propositional ext′ _)) 1 ⟩□
+                                                                             (H-level-propositional ext′ 1)) 1 ⟩□
   Is-proposition ((A₁ , A₁-prop) ≡ (A₂ , A₂-prop))  □
   where
   ext′ = lower-extensionality _ _ ext
@@ -1249,7 +1240,7 @@ Is-set-∃-Is-proposition {a} ext prop-ext (A₁ , A₁-prop) (A₂ , A₂-prop)
   ∃ λ n → ¬ H-level n (∃ λ (A : Set a) → H-level n A)
 ¬-∃-H-level-H-level =
   1 ,
-  ( Is-proposition (∃ λ A → Is-proposition A)               ↝⟨ _⇔_.to propositional⇔irrelevant ⟩
+  ( Is-proposition (∃ λ A → Is-proposition A)               ↔⟨⟩
     ((p q : ∃ λ A → Is-proposition A) → p ≡ q)              ↝⟨ (λ f p q → cong proj₁ (f p q)) ⟩
     ((p q : ∃ λ A → Is-proposition A) → proj₁ p ≡ proj₁ q)  ↝⟨ (_$ (⊥ , ⊥-propositional)) ∘
                                                                (_$ (↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible))) ⟩
@@ -1323,10 +1314,9 @@ Is-set-∃-Is-proposition {a} ext prop-ext (A₁ , A₁-prop) (A₂ , A₂-prop)
 ¬-type-of-refl-propositional ext univ =
   let A , f , f≢refl = ∃≢refl ext univ in
   A ,
-  (Is-proposition (∀ x → x ≡ x)    ↝⟨ _⇔_.to propositional⇔irrelevant ⟩
-   Proof-irrelevant (∀ x → x ≡ x)  ↝⟨ (λ irr → irr _ _) ⟩
-   f ≡ refl                        ↝⟨ f≢refl ⟩□
-   ⊥                               □)
+  (Is-proposition (∀ x → x ≡ x)  ↝⟨ (λ irr → irr _ _) ⟩
+   f ≡ refl                      ↝⟨ f≢refl ⟩□
+   ⊥                             □)
 
 -- Set₁ does not have h-level 3 (assuming extensionality and
 -- univalence).
@@ -1339,9 +1329,9 @@ Is-set-∃-Is-proposition {a} ext prop-ext (A₁ , A₁-prop) (A₂ , A₂-prop)
 ¬-Set₁-groupoid ext univ₁ univ₀ =
   let L = _ in
 
-  H-level 3 Set₁                        ↝⟨ (λ h → h _ _) ⟩
+  H-level 3 Set₁                        ↝⟨ (λ h → h) ⟩
   Is-set (L ≡ L)                        ↝⟨ H-level.respects-surjection (_≃_.surjection $ ≡≃≃ univ₁) 2 ⟩
-  Is-set (L ≃ L)                        ↝⟨ (λ h → h _ _) ⟩
+  Is-set (L ≃ L)                        ↝⟨ (λ h → h) ⟩
   Is-proposition (F.id ≡ F.id)          ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≃-≡ $ ↔⇒≃ ≃-as-Σ) 1 ⟩
   Is-proposition ((id , _) ≡ (id , _))  ↝⟨ H-level.respects-surjection
                                              (_↔_.surjection $ inverse $ ignore-propositional-component (Eq.propositional ext id)) 1 ⟩

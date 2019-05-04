@@ -92,7 +92,7 @@ T↔≡true {false} =   $⟨ Bool.true≢false ⟩
   false ≢ true      ↝⟨ Bijection.⊥↔uninhabited ⟩□
   ⊥ ↔ false ≡ true  □
 T↔≡true {true} =              $⟨ refl true ⟩
-  true ≡ true                 ↝⟨ propositional⇒inhabited⇒contractible (Bool-set _ _) ⟩
+  true ≡ true                 ↝⟨ propositional⇒inhabited⇒contractible Bool-set ⟩
   Contractible (true ≡ true)  ↝⟨ _⇔_.to contractible⇔↔⊤ ⟩
   true ≡ true ↔ ⊤             ↝⟨ inverse ⟩□
   ⊤ ↔ true ≡ true             □

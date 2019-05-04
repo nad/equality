@@ -39,7 +39,7 @@ WLPO-propositional ext =
   Π-closure ext 1 λ f →
   Dec-closure-propositional ext
     (Π-closure ext 1 λ _ →
-     Bool-set _ _)
+     Bool-set)
 
 -- LPO implies WLPO.
 
@@ -59,7 +59,7 @@ LPO→WLPO LPO f =
 
 LEM→WLPO : Extensionality lzero lzero → Excluded-middle lzero → WLPO
 LEM→WLPO ext em = λ _ → em (Π-closure ext 1 λ _ →
-                            Bool-set _ _)
+                            Bool-set)
 
 mutual
 
@@ -103,27 +103,24 @@ mutual
           ∃ λ n → f n ≡ true × ∀ {m} → m < n → f m ≡ false
 
     P-prop : ∀ f → Is-proposition (P f)
-    P-prop f =
-      _⇔_.from propositional⇔irrelevant λ where
-        (n₁ , fn₁≡true , <n₁→≡false) (n₂ , fn₂≡true , <n₂→≡false) →
-          Σ-≡,≡→≡
-            (case n₁ <⊎≡⊎> n₂ of λ where
-              (inj₁ n₁<n₂)        → ⊥-elim (Bool.true≢false (
-                                      true   ≡⟨ sym fn₁≡true ⟩
-                                      f n₁   ≡⟨ <n₂→≡false n₁<n₂ ⟩∎
-                                      false  ∎))
-              (inj₂ (inj₁ n₁≡n₂)) → n₁≡n₂
-              (inj₂ (inj₂ n₁>n₂)) → ⊥-elim (Bool.true≢false (
-                                      true   ≡⟨ sym fn₂≡true ⟩
-                                      f n₂   ≡⟨ <n₁→≡false n₁>n₂ ⟩∎
-                                      false  ∎)))
-            (_⇔_.to propositional⇔irrelevant
-               (×-closure 1
-                  (Bool-set _ _)
-                  (implicit-Π-closure ext 1 λ _ →
-                   Π-closure ext 1 λ _ →
-                   Bool-set _ _))
-               _ _)
+    P-prop f (n₁ , fn₁≡true , <n₁→≡false) (n₂ , fn₂≡true , <n₂→≡false) =
+      Σ-≡,≡→≡
+        (case n₁ <⊎≡⊎> n₂ of λ where
+          (inj₁ n₁<n₂)        → ⊥-elim (Bool.true≢false (
+                                  true   ≡⟨ sym fn₁≡true ⟩
+                                  f n₁   ≡⟨ <n₂→≡false n₁<n₂ ⟩∎
+                                  false  ∎))
+          (inj₂ (inj₁ n₁≡n₂)) → n₁≡n₂
+          (inj₂ (inj₂ n₁>n₂)) → ⊥-elim (Bool.true≢false (
+                                  true   ≡⟨ sym fn₂≡true ⟩
+                                  f n₂   ≡⟨ <n₁→≡false n₁>n₂ ⟩∎
+                                  false  ∎)))
+        (×-closure 1
+           (Bool-set)
+           (implicit-Π-closure ext 1 λ _ →
+            Π-closure ext 1 λ _ →
+            Bool-set)
+           _ _)
 
     ¬P→≡false : ∀ {f} → ¬ (P f) → (∀ n → f n ≡ false)
     ¬P→≡false {f} ¬Pf =

@@ -93,7 +93,7 @@ module Σ {a b} {A : Set a} {B : A → Set b} where
     ...   | yes cast-y₁≡y₂ = yes (Σ-≡,≡→≡ x₁≡x₂ cast-y₁≡y₂)
     ...   | no  cast-y₁≢y₂ =
       no (cast-y₁≢y₂ ∘
-          subst (λ p → subst B p y₁ ≡ y₂) (decidable⇒UIP _≟A_ _ _) ∘
+          subst (λ p → subst B p y₁ ≡ y₂) (decidable⇒set _≟A_ _ _) ∘
           proj₂ ∘ Σ-≡,≡←≡)
 
 ------------------------------------------------------------------------

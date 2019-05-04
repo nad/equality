@@ -115,7 +115,7 @@ rec-const :
   ∀ {p} {P : Set p} (p : P) (p≡p : p ≡ p) i →
   rec p p p≡p i ≡ p
 rec-const p p≡p i =
-  rec p p p≡p i    ≡⟨ cong (rec p p p≡p) (_⇔_.to propositional⇔irrelevant (mono₁ 0 interval-contractible) i [0]) ⟩∎
+  rec p p p≡p i    ≡⟨ cong (rec p p p≡p) (mono₁ 0 interval-contractible i [0]) ⟩∎
   rec p p p≡p [0]  ∎
 
 ------------------------------------------------------------------------

@@ -54,8 +54,8 @@ import Nat
 
 import H-level
 
--- A proof which shows that sets with decidable equality have unique
--- identity proofs.
+-- Types with decidable equality have unique identity proofs, and
+-- related results.
 
 import Equality.Decidable-UIP
 

@@ -38,6 +38,11 @@ open import Surjection eq using (_↠_)
 ∣_∣ : ∀ {n ℓ a} {A : Set a} → A → ∥ A ∥ n ℓ
 ∣ x ∣ = λ _ _ f → f x
 
+-- A special case of ∣_∣.
+
+∣_∣₁ : ∀ {ℓ a} {A : Set a} → A → ∥ A ∥ 1 ℓ
+∣ x ∣₁ = ∣_∣ {n = 1} x
+
 -- The truncation produces types of the right h-level (assuming
 -- extensionality).
 
@@ -54,10 +59,10 @@ truncation-has-correct-h-level n {ℓ} {a} ext =
 -- Primitive "recursion" for truncated types.
 
 rec :
-  ∀ {n a b} {A : Set a} {B : Set b} →
+  ∀ n {a b} {A : Set a} {B : Set b} →
   H-level n B →
   (A → B) → ∥ A ∥ n b → B
-rec h f x = x _ h f
+rec _ h f x = x _ h f
 
 private
 
@@ -66,23 +71,23 @@ private
   rec-∣∣ :
     ∀ {n a b} {A : Set a} {B : Set b}
     (h : H-level n B) (f : A → B) (x : A) →
-    rec h f ∣ x ∣ ≡ f x
+    rec _ h f ∣ x ∣ ≡ f x
   rec-∣∣ _ _ _ = refl _
 
 -- Map function.
 
-∥∥-map : ∀ {n a b ℓ} {A : Set a} {B : Set b} →
+∥∥-map : ∀ n {a b ℓ} {A : Set a} {B : Set b} →
          (A → B) →
          ∥ A ∥ n ℓ → ∥ B ∥ n ℓ
-∥∥-map f x = λ P h g → x P h (g ∘ f)
+∥∥-map _ f x = λ P h g → x P h (g ∘ f)
 
 -- The truncation operator preserves logical equivalences.
 
 ∥∥-cong-⇔ : ∀ {n a b ℓ} {A : Set a} {B : Set b} →
             A ⇔ B → ∥ A ∥ n ℓ ⇔ ∥ B ∥ n ℓ
 ∥∥-cong-⇔ A⇔B = record
-  { to   = ∥∥-map (_⇔_.to   A⇔B)
-  ; from = ∥∥-map (_⇔_.from A⇔B)
+  { to   = ∥∥-map _ (_⇔_.to   A⇔B)
+  ; from = ∥∥-map _ (_⇔_.from A⇔B)
   }
 
 -- The truncation operator preserves bijections (assuming
@@ -94,8 +99,8 @@ private
 ∥∥-cong {k} {n} {a} {b} {ℓ} ext A↝B = from-bijection (record
   { surjection = record
     { logical-equivalence = record
-      { to   = ∥∥-map (_↔_.to   A↔B)
-      ; from = ∥∥-map (_↔_.from A↔B)
+      { to   = ∥∥-map _ (_↔_.to   A↔B)
+      ; from = ∥∥-map _ (_↔_.from A↔B)
       }
     ; right-inverse-of = lemma (lower-extensionality a a ext) A↔B
     }
@@ -108,7 +113,7 @@ private
     ∀ {c d} {C : Set c} {D : Set d} →
     Extensionality (d ⊔ lsuc ℓ) (d ⊔ ℓ) →
     (C↔D : C ↔ D) (∥d∥ : ∥ D ∥ n ℓ) →
-    ∥∥-map (_↔_.to C↔D) (∥∥-map (_↔_.from C↔D) ∥d∥) ≡ ∥d∥
+    ∥∥-map _ (_↔_.to C↔D) (∥∥-map _ (_↔_.from C↔D) ∥d∥) ≡ ∥d∥
   lemma {d = d} ext C↔D ∥d∥ =
     apply-ext (lower-extensionality d        lzero ext) λ P →
     apply-ext (lower-extensionality _        lzero ext) λ h →
@@ -122,9 +127,9 @@ private
 -- The universe level can be decreased (unless it is zero).
 
 with-lower-level :
-  ∀ ℓ₁ {ℓ₂ a n} {A : Set a} →
+  ∀ ℓ₁ {ℓ₂ a} n {A : Set a} →
   ∥ A ∥ n (ℓ₁ ⊔ ℓ₂) → ∥ A ∥ n ℓ₂
-with-lower-level ℓ₁ x =
+with-lower-level ℓ₁ _ x =
   λ P h f → lower (x (↑ ℓ₁ P) (↑-closure _ h) (lift ∘ f))
 
 private
@@ -133,7 +138,7 @@ private
 
   with-lower-level-∣∣ :
     ∀ {ℓ₁ ℓ₂ a n} {A : Set a} (x : A) →
-    with-lower-level ℓ₁ {ℓ₂ = ℓ₂} {n = n} ∣ x ∣ ≡ ∣ x ∣
+    with-lower-level ℓ₁ {ℓ₂ = ℓ₂} n ∣ x ∣ ≡ ∣ x ∣
   with-lower-level-∣∣ _ = refl _
 
 -- ∥_∥ is downwards closed in the h-level.
@@ -162,16 +167,14 @@ prop-elim :
   Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a ⊔ p) →
   (P : ∥ A ∥ 1 ℓ → Set p) →
   (∀ x → Is-proposition (P x)) →
-  ((x : A) → P ∣ x ∣) →
+  ((x : A) → P ∣ x ∣₁) →
   ∥ A ∥ 1 (lsuc ℓ ⊔ a ⊔ p) → (x : ∥ A ∥ 1 ℓ) → P x
-prop-elim {ℓ} {a} {p} {A} ext P P-prop f =
-  rec {A = A}
-      {B = ∀ x → P x}
+prop-elim {ℓ} {a} {p} ext P P-prop f =
+  rec 1
       (Π-closure (lower-extensionality lzero (ℓ ⊔ a) ext) 1 P-prop)
       (λ x _ → subst P
-                     (_⇔_.to propositional⇔irrelevant
-                        (truncation-has-correct-h-level 1
-                           (lower-extensionality lzero p ext)) _ _)
+                     (truncation-has-correct-h-level 1
+                        (lower-extensionality lzero p ext) _ _)
                      (f x))
 
 abstract
@@ -184,10 +187,9 @@ abstract
     (ext : Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a ⊔ p))
     (P : ∥ A ∥ 1 ℓ → Set p)
     (P-prop : ∀ x → Is-proposition (P x))
-    (f : (x : A) → P ∣ x ∣) (x : A) →
-    prop-elim ext P P-prop f ∣ x ∣ ∣ x ∣ ≡ f x
-  prop-elim-∣∣ _ _ P-prop _ _ =
-    _⇔_.to propositional⇔irrelevant (P-prop _) _ _
+    (f : (x : A) → P ∣ x ∣₁) (x : A) →
+    prop-elim ext P P-prop f ∣ x ∣₁ ∣ x ∣₁ ≡ f x
+  prop-elim-∣∣ _ _ P-prop _ _ = P-prop _ _ _
 
 -- Nested truncations can sometimes be flattened.
 
@@ -198,7 +200,8 @@ flatten↠ :
   ∥ ∥ A ∥ m ℓ ∥ n (a ⊔ lsuc ℓ) ↠ ∥ A ∥ m ℓ
 flatten↠ ext m≤n = record
   { logical-equivalence = record
-    { to   = rec (H-level.mono m≤n
+    { to   = rec _
+                 (H-level.mono m≤n
                     (truncation-has-correct-h-level _ ext))
                  F.id
     ; from = ∣_∣
@@ -213,17 +216,17 @@ flatten↔ :
    ∥ ∥ A ∥ 1 ℓ ∥ 1 (lsuc (a ⊔ lsuc ℓ))) →
   ∥ ∥ A ∥ 1 ℓ ∥ 1 (a ⊔ lsuc ℓ) ↔ ∥ A ∥ 1 ℓ
 flatten↔ ext resize = record
-  { surjection      = flatten↠ ext′ ≤-refl
+  { surjection      = flatten↠ {m = 1} ext′ ≤-refl
   ; left-inverse-of = λ x →
       prop-elim
         ext
-        (λ x → ∣ rec (H-level.mono ≤-refl
-                        (truncation-has-correct-h-level _ ext′))
-                     F.id x ∣ ≡ x)
-        (λ _ → mono₁ 0 (truncation-has-correct-h-level
-                          1 (lower-extensionality lzero _ ext)
-                          _ _))
-        (λ x → refl ∣ x ∣)
+        (λ x → ∣ rec 1
+                     (H-level.mono (≤-refl {n = 1})
+                        (truncation-has-correct-h-level 1 ext′))
+                     F.id x ∣₁ ≡ x)
+        (λ _ → mono₁ 0 (+⇒≡ $ truncation-has-correct-h-level
+                                1 (lower-extensionality lzero _ ext)))
+        (λ _ → refl _)
         (resize x)
         x
   }
@@ -271,7 +274,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
 
                     (λ y →                        $⟨ is-eq y ⟩
                        Contractible (f ⁻¹ y)      ↝⟨ proj₁ ⟩
-                       f ⁻¹ y                     ↝⟨ ∣_∣ ⟩□
+                       f ⁻¹ y                     ↝⟨ ∣_∣₁ ⟩□
                        ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)   □)
 
                   ,                  ($⟨ is-eq ⟩
@@ -280,8 +283,9 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
 
        ; to = λ { (is-surj , is-emb) y →
                                              $⟨ is-surj y ⟩
-                  ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)   ↝⟨ with-lower-level ℓ ⟩
-                  ∥ f ⁻¹ y ∥ 1 (a ⊔ b)       ↝⟨ rec (Contractible-propositional
+                  ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)   ↝⟨ with-lower-level ℓ 1 ⟩
+                  ∥ f ⁻¹ y ∥ 1 (a ⊔ b)       ↝⟨ rec 1
+                                                    (Contractible-propositional
                                                        (lower-extensionality _ _ ext))
                       (f ⁻¹ y                       ↝⟨ propositional⇒inhabited⇒contractible
                                                          (embedding→⁻¹-propositional is-emb y) ⟩□
@@ -298,7 +302,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
       H-level n A → ∥ A ∥ n (a ⊔ ℓ) ↠ A
 ∥∥↠ ℓ _ h = record
   { logical-equivalence = record
-    { to   = rec h F.id ∘ with-lower-level ℓ
+    { to   = rec _ h F.id ∘ with-lower-level ℓ _
     ; from = ∣_∣
     }
   ; right-inverse-of = refl
@@ -314,8 +318,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
 ∥∥↔ ℓ ext A-prop = record
   { surjection      = ∥∥↠ ℓ 1 A-prop
   ; left-inverse-of = λ _ →
-      _⇔_.to propositional⇔irrelevant
-        (truncation-has-correct-h-level 1 ext) _ _
+      truncation-has-correct-h-level 1 ext _ _
   }
 
 -- A simple isomorphism involving propositional truncation.
@@ -330,7 +333,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
                      _⇔_.to contractible⇔↔⊤ $
                        propositional⇒inhabited⇒contractible
                          (truncation-has-correct-h-level 1 ext)
-                         ∣ a ∣) ⟩□
+                         ∣ a ∣₁) ⟩□
   A              □
 
 -- A variant of ∥∥×↔, introduced to ensure that the right-inverse-of
@@ -345,7 +348,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
   , (λ a → propositional⇒inhabited⇒contractible
              (mono₁ 0 $
                 Preimage.bijection⁻¹-contractible (∥∥×↔ ext) a)
-             ((∣ a ∣ , a) , refl a))
+             ((∣ a ∣₁ , a) , refl a))
   ⟩
 
 private
@@ -370,24 +373,22 @@ private
 ∥∥×∥∥↔∥×∥ _ ext resize = record
   { surjection = record
     { logical-equivalence = record
-      { from = λ p → ∥∥-map proj₁ p , ∥∥-map proj₂ p
+      { from = λ p → ∥∥-map 1 proj₁ p , ∥∥-map 1 proj₂ p
       ; to   = λ { (x , y) →
-                   rec (truncation-has-correct-h-level 1 ext)
-                       (λ x → rec (truncation-has-correct-h-level 1 ext)
-                                  (λ y → ∣ x , y ∣)
+                   rec 1
+                       (truncation-has-correct-h-level 1 ext)
+                       (λ x → rec 1
+                                  (truncation-has-correct-h-level 1 ext)
+                                  (λ y → ∣ x , y ∣₁)
                                   (resize y))
                        (resize x) }
       }
-    ; right-inverse-of = λ _ →
-        _⇔_.to propositional⇔irrelevant
-          (truncation-has-correct-h-level 1 ext)
-          _ _
+    ; right-inverse-of = λ _ → truncation-has-correct-h-level 1 ext _ _
     }
   ; left-inverse-of = λ _ →
-      _⇔_.to propositional⇔irrelevant
-        (×-closure 1
-           (truncation-has-correct-h-level 1 ext)
-           (truncation-has-correct-h-level 1 ext))
+      ×-closure 1
+        (truncation-has-correct-h-level 1 ext)
+        (truncation-has-correct-h-level 1 ext)
         _ _
   }
 
@@ -412,7 +413,7 @@ not-inhabited⇒∥∥↔⊥ :
   ∀ {ℓ₁ ℓ₂ a} {A : Set a} →
   ¬ A → ∥ A ∥ 1 ℓ₁ ↔ ⊥ {ℓ = ℓ₂}
 not-inhabited⇒∥∥↔⊥ {A = A} =
-  ¬ A            ↝⟨ (λ ¬a ∥a∥ → rec ⊥-propositional ¬a (with-lower-level _ ∥a∥)) ⟩
+  ¬ A            ↝⟨ (λ ¬a ∥a∥ → rec 1 ⊥-propositional ¬a (with-lower-level _ 1 ∥a∥)) ⟩
   ¬ ∥ A ∥ 1 _    ↝⟨ inverse ∘ Bijection.⊥↔uninhabited ⟩□
   ∥ A ∥ 1 _ ↔ ⊥  □
 
@@ -426,7 +427,7 @@ constant-endofunction⇒h-stable :
   ∀ {a} {A : Set a} {f : A → A} →
   Constant f → ∥ A ∥ 1 a → A
 constant-endofunction⇒h-stable {a} {A} {f} c =
-  ∥ A ∥ 1 a                ↝⟨ rec (fixpoint-lemma f c) (λ x → f x , c (f x) x) ⟩
+  ∥ A ∥ 1 a                ↝⟨ rec 1 (fixpoint-lemma f c) (λ x → f x , c (f x) x) ⟩
   (∃ λ (x : A) → f x ≡ x)  ↝⟨ proj₁ ⟩□
   A                        □
 
@@ -439,11 +440,10 @@ constant-endofunction⇔h-stable :
   (∃ λ (f : A → A) → Constant f) ⇔ (∥ A ∥ 1 a → A)
 constant-endofunction⇔h-stable ext = record
   { to = λ { (_ , c) → constant-endofunction⇒h-stable c }
-  ; from = λ f → f ∘ ∣_∣ , λ x y →
+  ; from = λ f → f ∘ ∣_∣₁ , λ x y →
 
-      f ∣ x ∣  ≡⟨ cong f $ _⇔_.to propositional⇔irrelevant
-                             (truncation-has-correct-h-level 1 ext) _ _ ⟩∎
-      f ∣ y ∣  ∎
+      f ∣ x ∣₁  ≡⟨ cong f $ truncation-has-correct-h-level 1 ext _ _ ⟩∎
+      f ∣ y ∣₁  ∎
   }
 
 -- The following three lemmas were communicated to me by Nicolai
@@ -487,12 +487,12 @@ push-∥∥ ℓ {a} {b} {c} {A} {B} {C} ext =
                                                             ∀-cong (lower-extensionality lzero (a ⊔ b ⊔ ℓ) ext) λ ∥x∥ →
                                                             ≡⇒↝ _ $ cong C $ apply-ext (lower-extensionality _ (a ⊔ c ⊔ ℓ) ext) λ x →
       f ∥x∥ x                                                 ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $
-                                                                 _⇔_.to propositional⇔irrelevant
-                                                                   (truncation-has-correct-h-level 1
-                                                                      (lower-extensionality lzero (b ⊔ c) ext))
+                                                                 truncation-has-correct-h-level 1
+                                                                   (lower-extensionality lzero (b ⊔ c) ext)
                                                                    _ _ ⟩
-      f ∣ x ∣ x                                               ≡⟨ sym $ subst-refl _ _ ⟩∎
-      subst B (refl x) (f ∣ x ∣ x)                            ∎) ⟩□
+      f ∣ x ∣₁ x                                              ≡⟨ sym $ subst-refl _ _ ⟩∎
+
+      subst B (refl x) (f ∣ x ∣₁ x)                           ∎) ⟩□
 
   (∃ λ (f : ∀ x → B x) → ∥ A ∥ 1 _ → C (λ x → f x))      □
 
@@ -707,7 +707,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
                                                                                  (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
                                                                                   Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
                                                                                   Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
-                                                                                  B-groupoid _ _ _ _)
+                                                                                  B-groupoid)
                                                                                  (λ a₁ a₂ a₃ →
          trans (c a₁ a₂) (c a₂ a₃)                                                  ≡⟨ cong₂ trans (≡⇒↝ implication
                                                                                                         ([trans≡]≡[≡trans-symʳ] _ _ _) (d₁ _ _))
@@ -733,7 +733,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
                                                                              _⇔_.to contractible⇔↔⊤ $
                                                                                propositional⇒inhabited⇒contractible
                                                                                  (Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
-                                                                                  B-groupoid _ _ _ _)
+                                                                                  B-groupoid)
                                                                                  (λ a →
          trans (c a₀ a) (c₁ a)                                                      ≡⟨ cong (λ x → trans x _) $ sym $ d _ _ _ ⟩
          trans (trans (c a₀ a₀) (c a₀ a)) (c₁ a)                                    ≡⟨ trans-assoc _ _ _ ⟩
@@ -759,7 +759,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
                                                                              ∃-cong λ _ → ∃-cong λ d₂ → drop-⊤-right λ _ →
                                                                              _⇔_.to contractible⇔↔⊤ $
                                                                                propositional⇒inhabited⇒contractible
-                                                                                 (B-groupoid _ _ _ _)
+                                                                                 (B-groupoid)
                                                                                  (d₂ _)) ⟩
     (∃ λ (f : A → B) → ∃ λ (c : Constant f) →
      ∃ λ (d : ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃) →
@@ -772,7 +772,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
                                                                                propositional⇒inhabited⇒contractible
                                                                                  (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
                                                                                   Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
-                                                                                  B-groupoid _ _ _ _)
+                                                                                  B-groupoid)
                                                                                  (λ a₁ a₂ →
          trans (c a₁ a₂) (c₁ a₂)                                                    ≡⟨ cong₂ trans (sym $ d _ _ _)
                                                                                                    (≡⇒↝ implication
@@ -838,12 +838,10 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
                                                                     apply-ext (lower-extensionality _ (a ⊔ ℓ) ext) λ _ →
                                                                     trans-symʳ _) ⟩∎
             (λ _ _ → refl b)                                    ∎)
-           (_⇔_.to propositional⇔irrelevant
-              (Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
-               Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
-               Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
-               B-groupoid _ _ _ _)
-              _ _))
+           ((Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
+             Π-closure (lower-extensionality _ ℓ       ext) 1 λ _ →
+             Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 1 λ _ →
+             B-groupoid) _ _))
       (_≃_.is-equivalence (equivalence₁ a₀))
 
   -- The forward component of the equivalence above does not depend on
@@ -854,9 +852,10 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
     ∥ A ∥ 1 ℓ′ → (B ≃ ∃ λ (f : A → B) → Coherently-constant f)
   equivalence₂ ∥a∥ =
     ⟨ to
-    , rec (Eq.propositional (lower-extensionality _ ℓ ext) _)
+    , rec 1
+          (Eq.propositional (lower-extensionality _ ℓ ext) _)
           to-is-an-equivalence
-          (with-lower-level ℓ ∥a∥)
+          (with-lower-level ℓ 1 ∥a∥)
     ⟩
 
 -- Having a constant function into a set is equivalent to having a
@@ -877,7 +876,7 @@ constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B} ext B-set =
                                                    Π-closure (lower-extensionality _ ℓ       ext) 0 λ _ →
                                                    Π-closure (lower-extensionality _ ℓ       ext) 0 λ _ →
                                                    Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
-                                                   B-set _ _ _ _) ⟩
+                                                   +⇒≡ B-set) ⟩
   (∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ coherently-constant-function≃∥inhabited∥⇒inhabited ℓ ext (mono₁ 2 B-set) ⟩□
   (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)                  □
 
@@ -891,7 +890,7 @@ private
     (B-set : Is-set B)
     (f : ∃ λ (f : A → B) → Constant f) (x : A) →
     _≃_.to (constant-function≃∥inhabited∥⇒inhabited ℓ ext B-set)
-      f ∣ x ∣ ≡ proj₁ f x
+      f ∣ x ∣₁ ≡ proj₁ f x
   to-constant-function≃∥inhabited∥⇒inhabited _ _ _ _ _ = refl _
 
 -- The propositional truncation's universal property (defined using
@@ -913,14 +912,14 @@ universal-property {a = a} {b} ℓ {A} {B} ext B-prop =
                                          _⇔_.to contractible⇔↔⊤ $
                                          Π-closure (lower-extensionality _ ℓ       ext) 0 λ _ →
                                          Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
-                                         B-prop _ _) ⟩□
+                                         +⇒≡ B-prop) ⟩□
      (A → B)                         □)
 
-    (_∘ ∣_∣)
+    (_∘ ∣_∣₁)
 
     (λ f → apply-ext (lower-extensionality _ (a ⊔ ℓ) ext) λ x →
-       subst (const B) (refl x) (f ∣ x ∣)  ≡⟨ subst-refl _ _ ⟩∎
-       f ∣ x ∣                             ∎)
+       subst (const B) (refl x) (f ∣ x ∣₁)  ≡⟨ subst-refl _ _ ⟩∎
+       f ∣ x ∣₁                             ∎)
 
 private
 
@@ -931,7 +930,7 @@ private
     (ext : Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ))
     (B-prop : Is-proposition B)
     (f : ∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B) →
-    _≃_.to (universal-property ℓ ext B-prop) f ≡ f ∘ ∣_∣
+    _≃_.to (universal-property ℓ ext B-prop) f ≡ f ∘ ∣_∣₁
   to-universal-property _ _ _ _ = refl _
 
   from-universal-property :
@@ -939,7 +938,7 @@ private
     (ext : Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ))
     (B-prop : Is-proposition B)
     (f : A → B) (x : A) →
-    _≃_.from (universal-property ℓ ext B-prop) f ∣ x ∣ ≡ f x
+    _≃_.from (universal-property ℓ ext B-prop) f ∣ x ∣₁ ≡ f x
   from-universal-property _ _ _ _ _ = refl _
 
 -- Some properties of an imagined "real" /propositional/ truncation.
@@ -970,8 +969,7 @@ module Real-propositional-truncation
          {B = ∀ x → P x}
          (Π-closure ext 1 P-prop)
          (λ x _ → subst P
-                        (_⇔_.to propositional⇔irrelevant
-                           truncation-is-proposition _ _)
+                        (truncation-is-proposition _ _)
                         (f x))
          x
          x
@@ -988,7 +986,7 @@ module Real-propositional-truncation
     (x : A) →
     elimʳ ext P P-prop f ∣ x ∣ʳ ≡ f x
   elimʳ-∣∣ʳ ext P P-prop f x =
-    _⇔_.to propositional⇔irrelevant (P-prop _) _ _
+    P-prop _ _ _
 
   -- The "real" propositional truncation is isomorphic to the one
   -- defined above (assuming extensionality).
@@ -1000,18 +998,16 @@ module Real-propositional-truncation
   isomorphic {ℓ} ext = record
     { surjection = record
       { logical-equivalence = record
-        { to   = recʳ (truncation-has-correct-h-level 1 ext) ∣_∣
+        { to   = recʳ (truncation-has-correct-h-level 1 ext) ∣_∣₁
         ; from = lower {ℓ = ℓ} ∘
-                 rec (↑-closure 1 truncation-is-proposition)
+                 rec 1
+                     (↑-closure 1 truncation-is-proposition)
                      (lift ∘ ∣_∣ʳ)
         }
       ; right-inverse-of = λ _ →
-          _⇔_.to propositional⇔irrelevant
-            (truncation-has-correct-h-level 1 ext) _ _
+          truncation-has-correct-h-level 1 ext _ _
       }
-    ; left-inverse-of = λ _ →
-        _⇔_.to propositional⇔irrelevant
-          truncation-is-proposition _ _
+    ; left-inverse-of = λ _ → truncation-is-proposition _ _
     }
 
 -- The axiom of choice, in one of the alternative forms given in the

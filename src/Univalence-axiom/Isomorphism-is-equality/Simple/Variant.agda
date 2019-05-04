@@ -198,13 +198,14 @@ module Class (Univ : Universe) where
   instances-equal↔ ass (a , P)
                    {(C₁ , S₁) , x₁ , p₁} {(C₂ , S₂) , x₂ , p₂} =
 
-    (((C₁ , S₁) , x₁ , p₁) ≡ ((C₂ , S₂) , x₂ , p₂))      ↔⟨ inverse $ ≃-≡ $ ↔⇒≃ bij ⟩
+    ((C₁ , λ {_ _} → S₁) , x₁ , p₁) ≡ ((C₂ , λ {_ _} → S₂) , x₂ , p₂)  ↔⟨ inverse $ ≃-≡ $ ↔⇒≃ bij ⟩
 
-    (((C₁ , x₁) , (S₁ , p₁)) ≡ ((C₂ , x₂) , (S₂ , p₂)))  ↝⟨ inverse $ ignore-propositional-component prop ⟩
+    ((C₁ , x₁) , ((λ {_ _} → S₁) , p₁)) ≡
+    ((C₂ , x₂) , ((λ {_ _} → S₂) , p₂))                                ↝⟨ inverse $ ignore-propositional-component prop ⟩
 
-    ((C₁ , x₁) ≡ (C₂ , x₂))                              ↝⟨ inverse Σ-≡,≡↔≡ ⟩□
+    ((C₁ , x₁) ≡ (C₂ , x₂))                                            ↝⟨ inverse Σ-≡,≡↔≡ ⟩□
 
-    (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq x₁ ≡ x₂)   □
+    (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq x₁ ≡ x₂)                 □
 
     where
     bij : Instance (a , P) ↔
@@ -533,13 +534,13 @@ monoid =
        -- The laws are propositional (assuming extensionality).
       λ ass → let open Assumptions ass in
         ×-closure 1  (Π-closure ext 1 λ _ →
-                      ↑-closure 2 M-set _ _)
+                      ↑-closure 2 M-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      ↑-closure 2 M-set _ _)
+                      ↑-closure 2 M-set)
                      (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 M-set _ _)) }
+                      ↑-closure 2 M-set)) }
 
 -- The interpretation of the code is reasonable.
 
@@ -558,7 +559,8 @@ Instance-monoid = refl _
 -- The notion of isomorphism that we get is also reasonable.
 
 Isomorphic-monoid :
-  ∀ {M₁ S₁ _∙₁_ e₁ laws₁ M₂ S₂ _∙₂_ e₂ laws₂} →
+  ∀ {M₁} {S₁ : Is-set M₁} {_∙₁_ e₁ laws₁}
+    {M₂} {S₂ : Is-set M₂} {_∙₂_ e₂ laws₂} →
 
   Isomorphic monoid ((M₁ , S₁) , (_∙₁_ , e₁) , laws₁)
                     ((M₂ , S₂) , (_∙₂_ , e₂) , laws₂)
@@ -574,7 +576,8 @@ Isomorphic-monoid = refl _
 
 Isomorphism-monoid-isomorphic-to-standard :
   Extensionality (# 1) (# 1) →
-  ∀ {M₁ S₁ _∙₁_ e₁ laws₁ M₂ S₂ _∙₂_ e₂ laws₂} →
+  ∀ {M₁} {S₁ : Is-set M₁} {_∙₁_ e₁ laws₁}
+    {M₂} {S₂ : Is-set M₂} {_∙₂_ e₂ laws₂} →
 
   Isomorphic monoid ((M₁ , S₁) , (_∙₁_ , e₁) , laws₁)
                     ((M₂ , S₂) , (_∙₂_ , e₂) , laws₂)
@@ -636,7 +639,7 @@ poset =
                     Π-closure ext                     1 λ _ →
                     Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
                     Π-closure (lower-ext _ (# 0) ext) 1 λ _ →
-                    ↑-closure 2 P-set _ _)) }
+                    ↑-closure 2 P-set)) }
 
 -- The interpretation of the code is reasonable.
 
@@ -659,7 +662,8 @@ Instance-poset = refl _
 -- usual notion of "order isomorphism".
 
 Isomorphic-poset :
-  ∀ {P₁ S₁ Le₁ laws₁ P₂ S₂ Le₂ laws₂} →
+  ∀ {P₁} {S₁ : Is-set P₁} {Le₁ laws₁}
+    {P₂} {S₂ : Is-set P₂} {Le₂ laws₂} →
   let _≤₁_ : ↑ _ P₁ → ↑ _ P₁ → Set
       _≤₁_ x y = proj₁ (Le₁ x y)
 
@@ -728,36 +732,36 @@ discrete-field =
         ×-closure 1  (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 F-set _ _)
+                      ↑-closure 2 F-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 F-set _ _)
+                      ↑-closure 2 F-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 F-set _ _)
+                      ↑-closure 2 F-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 F-set _ _)
+                      ↑-closure 2 F-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 F-set _ _)
+                      ↑-closure 2 F-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      ↑-closure 2 F-set _ _)
+                      ↑-closure 2 F-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      ↑-closure 2 F-set _ _)
+                      ↑-closure 2 F-set)
         (×-closure 1 (Π-closure (lower-ext (# 0) (# 1) ext) 1 λ _ →
                       ⊥-propositional)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      ↑-closure 2 F-set _ _)
+                      ↑-closure 2 F-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 F-set _ _)
+                      ↑-closure 2 F-set)
                      (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 F-set _ _)))))))))) }
+                      ↑-closure 2 F-set)))))))))) }
 
 -- The interpretation of the code is reasonable.
 
@@ -786,8 +790,8 @@ Instance-discrete-field = refl _
 -- The notion of isomorphism that we get is also reasonable.
 
 Isomorphic-discrete-field :
-  ∀ {F₁ S₁ _+₁_ 0₁ _*₁_ 1₁ -₁_ _⁻¹₁ laws₁
-     F₂ S₂ _+₂_ 0₂ _*₂_ 1₂ -₂_ _⁻¹₂ laws₂} →
+  ∀ {F₁} {S₁ : Is-set F₁} {_+₁_ 0₁ _*₁_ 1₁ -₁_ _⁻¹₁ laws₁}
+    {F₂} {S₂ : Is-set F₂} {_+₂_ 0₂ _*₂_ 1₂ -₂_ _⁻¹₂ laws₂} →
 
   Isomorphic discrete-field
     ((F₁ , S₁) , (_+₁_ , 0₁ , _*₁_ , 1₁ , -₁_ , _⁻¹₁) , laws₁)
@@ -848,33 +852,33 @@ vector-space ((F , _) , (_+F_ , _ , _*F_ , 1F , _ , _) , _) =
         ×-closure 1  (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 V-set _ _)
+                      ↑-closure 2 V-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 V-set _ _)
+                      ↑-closure 2 V-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 V-set _ _)
-        (×-closure 1 (Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      Π-closure ext 1 λ _ →
-                      ↑-closure 2 V-set _ _)
+                      ↑-closure 2 V-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
                       Π-closure ext 1 λ _ →
-                      ↑-closure 2 V-set _ _)
+                      ↑-closure 2 V-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      ↑-closure 2 V-set _ _)
+                      Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      ↑-closure 2 V-set)
         (×-closure 1 (Π-closure ext 1 λ _ →
-                      ↑-closure 2 V-set _ _)
+                      ↑-closure 2 V-set)
+        (×-closure 1 (Π-closure ext 1 λ _ →
+                      ↑-closure 2 V-set)
                      (Π-closure ext 1 λ _ →
-                      ↑-closure 2 V-set _ _))))))) }
+                      ↑-closure 2 V-set))))))) }
 
 -- The interpretation of the code is reasonable.
 
 Instance-vector-space :
-  ∀ {F S _+F_ 0F _*F_ 1F -F_ _⁻¹F laws} →
+  ∀ {F} {S : Is-set F} {_+F_ 0F _*F_ 1F -F_ _⁻¹F laws} →
 
   Instance (vector-space
               ((F , S) , (_+F_ , 0F , _*F_ , 1F , -F_ , _⁻¹F) , laws))
@@ -897,8 +901,8 @@ Instance-vector-space = refl _
 -- The notion of isomorphism that we get is also reasonable.
 
 Isomorphic-vector-space :
-  ∀ {F V₁ S₁ _+₁_ _*₁_ 0₁ -₁_ laws₁
-       V₂ S₂ _+₂_ _*₂_ 0₂ -₂_ laws₂} →
+  ∀ {F V₁} {S₁ : Is-set V₁} {_+₁_ _*₁_ 0₁ -₁_ laws₁}
+      {V₂} {S₂ : Is-set V₂} {_+₂_ _*₂_ 0₂ -₂_ laws₂} →
 
   Isomorphic (vector-space F)
              ((V₁ , S₁) , (_+₁_ , _*₁_ , 0₁ , -₁_) , laws₁)
@@ -926,7 +930,7 @@ set-with-fixpoint-operator =
 
     λ ass → let open Assumptions ass in
       Π-closure ext 1 λ _ →
-      ↑-closure 2 F-set _ _ }
+      ↑-closure 2 F-set }
 
 -- The usual unfolding lemmas.
 
@@ -941,7 +945,8 @@ Instance-set-with-fixpoint-operator :
 Instance-set-with-fixpoint-operator = refl _
 
 Isomorphic-set-with-fixpoint-operator :
-  ∀ {F₁ S₁ fix₁ law₁ F₂ S₂ fix₂ law₂} →
+  ∀ {F₁} {S₁ : Is-set F₁} {fix₁ law₁}
+    {F₂} {S₂ : Is-set F₂} {fix₂ law₂} →
 
   Isomorphic set-with-fixpoint-operator
              ((F₁ , S₁) , fix₁ , law₁) ((F₂ , S₂) , fix₂ , law₂)

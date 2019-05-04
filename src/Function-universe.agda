@@ -1230,7 +1230,7 @@ currying = record
   B x (refl x)                                              ↝⟨ ∃-intro (uncurry B) _ ⟩
   (∃ λ { (y , x≡y) → B y x≡y × (y , x≡y) ≡ (x , refl x) })  ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
                                                                   _⇔_.to contractible⇔↔⊤ $
-                                                                  mono₁ 0 (other-singleton-contractible x) _ _) ⟩
+                                                                  +⇒≡ (mono₁ 0 (other-singleton-contractible x))) ⟩
   (∃ λ { (y , x≡y) → B y x≡y × ⊤ })                         ↝⟨ (∃-cong λ _ → ×-right-identity) ⟩
   (∃ λ { (y , x≡y) → B y x≡y })                             ↝⟨ inverse Σ-assoc ⟩□
   (∃ λ y → ∃ λ x≡y → B y x≡y)                               □
@@ -1270,7 +1270,7 @@ ignore-propositional-component :
   (proj₁ p ≡ proj₁ q) ↔ (p ≡ q)
 ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
   (p₁ ≡ q₁)                                  ↝⟨ inverse ×-right-identity ⟩
-  (p₁ ≡ q₁ × ⊤)                              ↝⟨ ∃-cong (λ _ → inverse $ _⇔_.to contractible⇔↔⊤ (Bq₁-prop _ _)) ⟩
+  (p₁ ≡ q₁ × ⊤)                              ↝⟨ ∃-cong (λ _ → inverse $ _⇔_.to contractible⇔↔⊤ (+⇒≡ Bq₁-prop)) ⟩
   (∃ λ (eq : p₁ ≡ q₁) → subst B eq p₂ ≡ q₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
   ((p₁ , p₂) ≡ (q₁ , q₂))                    □
 
@@ -1384,9 +1384,7 @@ contractible↔≃⊤ ext = record
     ; right-inverse-of = λ _ →
         Eq.lift-equality ext (refl _)
     }
-  ; left-inverse-of = λ _ →
-      _⇔_.to propositional⇔irrelevant
-        (Contractible-propositional ext) _ _
+  ; left-inverse-of = λ _ → Contractible-propositional ext _ _
   }
 
 -- Equivalence to the empty type is equivalent to not being inhabited
@@ -2354,13 +2352,11 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
                                        h X Y f id) ⟩∎
          (λ Y f → γ Y f)           ∎)
 
-        (_⇔_.to propositional⇔irrelevant
-           (Π-closure                                      ext  1 λ _  →
-            Π-closure (lower-extensionality lzero (lsuc a) ext) 1 λ Y₂ →
-            Π-closure (lower-extensionality _     (lsuc a) ext) 1 λ _  →
-            Π-closure (lower-extensionality _     (lsuc a) ext) 1 λ _  →
-            proj₂ (F Y₂) _ _)
-           _ _) }
+        ((Π-closure                                      ext  1 λ _  →
+          Π-closure (lower-extensionality lzero (lsuc a) ext) 1 λ Y₂ →
+          Π-closure (lower-extensionality _     (lsuc a) ext) 1 λ _  →
+          Π-closure (lower-extensionality _     (lsuc a) ext) 1 λ _  →
+          proj₂ (F Y₂)) _ _) }
     }
   ; left-inverse-of = λ x →
       map id x  ≡⟨ map-id ⟩∎
@@ -2544,11 +2540,9 @@ private
       ; from = λ f x → f x x
       }
     ; right-inverse-of = λ _ →
-        _⇔_.to propositional⇔irrelevant
-          (Π-closure ext                            1 λ _ →
-           Π-closure (lower-extensionality a a ext) 1 λ _ →
-           P-prop _)
-          _ _
+        (Π-closure ext                            1 λ _ →
+         Π-closure (lower-extensionality a a ext) 1 λ _ →
+         P-prop _) _ _
     }
   ; left-inverse-of = refl
   }
@@ -2711,7 +2705,7 @@ private
 tt≡tt↔⊤ : tt ≡ tt ↔ ⊤
 tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
             propositional⇒inhabited⇒contractible
-              (mono (zero≤ 2) ⊤-contractible _ _) (refl _)
+              (mono (zero≤ 2) ⊤-contractible) (refl _)
 
 ------------------------------------------------------------------------
 -- Lemmas related to ⊥
@@ -2760,37 +2754,37 @@ H-level-cong {a = a} {b} ext n A↔B′ =
   where
   A↔B = from-isomorphism A↔B′
 
--- Being propositional is equivalent to having at most one element
--- (assuming extensionality).
-
-propositional≃irrelevant :
-  ∀ {a} {A : Set a} →
-  Extensionality a a →
-  Is-proposition A ≃ Proof-irrelevant A
-propositional≃irrelevant ext =
-  _↔_.to (Eq.⇔↔≃ ext
-                 (H-level-propositional ext 1)
-                 (Proof-irrelevant-propositional ext))
-         propositional⇔irrelevant
-
--- Being a set is equivalent to satisfying UIP (assuming
+-- H-level and H-level′ are pointwise isomorphic (assuming
 -- extensionality).
 
-set≃UIP :
-  ∀ {a} {A : Set a} →
-  Extensionality a a →
-  Is-set A ≃ Uniqueness-of-identity-proofs A
-set≃UIP ext =
-  _↔_.to (Eq.⇔↔≃ ext
-                 (H-level-propositional ext 2)
-                 (UIP-propositional ext))
-         set⇔UIP
+H-level↔H-level′ :
+  ∀ {k a} {A : Set a} {n} →
+  Extensionality? k a a →
+  H-level n A ↝[ k ] H-level′ n A
+H-level↔H-level′ =
+  generalise-ext?-prop
+    H-level⇔H-level′
+    (λ ext → H-level-propositional  ext _)
+    (λ ext → H-level′-propositional ext _)
+
+-- There is an isomorphism between (x y : A) → H-level n (x ≡ y) and
+-- H-level (suc n) A (assuming extensionality).
+
+≡↔+ :
+  ∀ {k a} {A : Set a} n →
+  Extensionality? k a a →
+  ((x y : A) → H-level n (x ≡ y)) ↝[ k ] H-level (suc n) A
+≡↔+ {A = A} n ext =
+  ((x y : A) → H-level  n (x ≡ y))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level↔H-level′ ext) ⟩
+  ((x y : A) → H-level′ n (x ≡ y))  ↔⟨⟩
+  H-level′ (suc n) A                ↝⟨ inverse-ext? H-level↔H-level′ ext ⟩□
+  H-level  (suc n) A                □
 
 -- Some lemmas relating equivalences A ≃ B with types of the form
 -- ∀ C → H-level n C → (A → C) ≃ (B → C).
 
 →≃→↠≃ :
-  ∀ {n ℓ} {A B : Set ℓ} →
+  ∀ n {ℓ} {A B : Set ℓ} →
   Extensionality ℓ ℓ →
   (hA : H-level n A) (hB : H-level n B) →
   (∃ λ (f : (C : Set ℓ) → H-level n C → (A → C) ≃ (B → C)) →
@@ -2800,7 +2794,7 @@ set≃UIP ext =
         g ∘ _≃_.from (f B hB) id ≡ _≃_.from (f C hC) g))
     ↠
   (A ≃ B)
-→≃→↠≃ {A = A} {B} ext hA hB = record
+→≃→↠≃ _ {A = A} {B} ext hA hB = record
   { logical-equivalence = record
     { from = λ A≃B → (λ _ _ → →-cong ext A≃B id)
                    , (λ _ _ g → refl (g ∘ _≃_.from A≃B))
@@ -2842,25 +2836,23 @@ set≃UIP ext =
     ↔
   (A ≃ B)
 →≃→↔≃ {A = A} {B} ext hA hB = record
-  { surjection      = →≃→↠≃ ext′ hA hB
+  { surjection      = →≃→↠≃ 2 ext′ hA hB
   ; left-inverse-of = λ { (A→≃B→ , ∘to≡ , _) →
       Σ-≡,≡→≡
         (apply-ext ext  λ C  →
          apply-ext ext′ λ hC →
          _↔_.to (≃-to-≡↔≡ ext′) λ f →
-           f ∘ _≃_.to (A→≃B→ A hA) id  ≡⟨ ∘to≡ _ _ _ ⟩∎
-           _≃_.to (A→≃B→ C hC) f       ∎)
-        (_⇔_.to propositional⇔irrelevant
-           (×-closure 1
-              (Π-closure ext  1 λ _  →
-               Π-closure ext′ 1 λ hC →
-               Π-closure ext′ 1 λ _ →
-               (Π-closure ext′ 2 λ _ → hC) _ _)
-              (Π-closure ext  1 λ _  →
-               Π-closure ext′ 1 λ hC →
-               Π-closure ext′ 1 λ _ →
-               (Π-closure ext′ 2 λ _ → hC) _ _))
-           _ _) }
+           f ∘ _≃_.to (A→≃B→ A hA) id   ≡⟨ ∘to≡ _ _ _ ⟩∎
+           _≃_.to (A→≃B→ C (hC {_})) f  ∎)
+        ((×-closure 1
+            (Π-closure ext  1 λ _  →
+             Π-closure ext′ 1 λ hC →
+             Π-closure ext′ 1 λ _ →
+             Π-closure ext′ 2 λ _ → hC {_})
+            (Π-closure ext  1 λ _  →
+             Π-closure ext′ 1 λ hC →
+             Π-closure ext′ 1 λ _ →
+             Π-closure ext′ 2 λ _ → hC {_})) _ _) }
   }
   where
   ext′ = lower-extensionality _ lzero ext
@@ -3010,7 +3002,7 @@ if-encoding {A = A} {B} =
   from′-irr : ∀ m {n sum₁ eq₁ sum₂ eq₂} →
               from′ m n sum₁ eq₁ ≡ from′ m n sum₂ eq₂
   from′-irr m {n} {sum₁} {eq₁} {sum₂} {eq₂} =
-    from′ m n sum₁ eq₁  ≡⟨ cong (uncurry (from′ m n)) (Σ-≡,≡→≡ lemma (_⇔_.to set⇔UIP ℕ-set _ _)) ⟩∎
+    from′ m n sum₁ eq₁  ≡⟨ cong (uncurry (from′ m n)) (Σ-≡,≡→≡ lemma (ℕ-set _ _)) ⟩∎
     from′ m n sum₂ eq₂  ∎
     where
     lemma =
@@ -3073,7 +3065,7 @@ suc≤suc↔ =
   _≃_.bijection $
   _↠_.from (Eq.≃↠⇔ ≤-propositional
                    (⊎-closure-propositional
-                      <→≢ ≤-propositional (ℕ-set _ _))) $
+                      <→≢ ≤-propositional ℕ-set)) $
   record { to = ≤→<⊎≡; from = [ <→≤ , ≤-refl′ ] }
 
 ≤↔≡0⊎0<×≤ : ∀ {m n} → m ≤ n ↔ m ≡ 0 ⊎ 0 < m × m ≤ n
@@ -3081,7 +3073,7 @@ suc≤suc↔ =
   0 ≤ n                  ↝⟨ zero≤↔ ⟩
   ⊤                      ↝⟨ inverse ⊎-right-identity ⟩
   ⊤ ⊎ ⊥₀                 ↝⟨ id ⊎-cong inverse ×-left-zero ⟩
-  ⊤ ⊎ (⊥ × 0 ≤ n)        ↝⟨ inverse (_⇔_.to contractible⇔↔⊤ (propositional⇒inhabited⇒contractible (ℕ-set _ _) (refl _)))
+  ⊤ ⊎ (⊥ × 0 ≤ n)        ↝⟨ inverse (_⇔_.to contractible⇔↔⊤ (propositional⇒inhabited⇒contractible ℕ-set (refl _)))
                               ⊎-cong
                             inverse <zero↔ ×-cong id ⟩□
   0 ≡ 0 ⊎ 0 < 0 × 0 ≤ n  □
@@ -3112,7 +3104,7 @@ suc≤suc↔ =
         Σ-≡,≡→≡ (refl _)
           (trans (subst-refl _ _)
              (_↔_.to ≡×≡↔≡
-                ( _⇔_.to propositional⇔irrelevant ≤-propositional _ _
+                ( ≤-propositional _ _
                 , refl _
                 )))
   }
@@ -3132,7 +3124,7 @@ suc≤suc↔ =
   propositional⇒inhabited⇒contractible
     (⊎-closure-propositional
        (λ m≡n m≢n → _⇔_.to Distinct⇔≢ m≢n m≡n)
-       (ℕ-set _ _)
+       ℕ-set
        (Distinct-propositional m n))
     (≡⊎Distinct m n)
 

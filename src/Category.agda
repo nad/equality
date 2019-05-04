@@ -139,17 +139,14 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
     Is-isomorphism-propositional :
       ∀ {X Y} (f : Hom X Y) →
       Is-proposition (Is-isomorphism f)
-    Is-isomorphism-propositional f =
-      _⇔_.from propositional⇔irrelevant
-        λ { (g , fg , gf) (g′ , fg′ , g′f) →
-            Σ-≡,≡→≡ (g             ≡⟨ sym left-identity ⟩
-                     id ∙ g        ≡⟨ cong (λ h → h ∙ g) $ sym g′f ⟩
-                     (g′ ∙ f) ∙ g  ≡⟨ sym assoc ⟩
-                     g′ ∙ (f ∙ g)  ≡⟨ cong (_∙_ g′) fg ⟩
-                     g′ ∙ id       ≡⟨ right-identity ⟩∎
-                     g′            ∎)
-                    (Σ-≡,≡→≡ (_⇔_.to set⇔UIP Hom-is-set _ _)
-                             (_⇔_.to set⇔UIP Hom-is-set _ _)) }
+    Is-isomorphism-propositional f (g , fg , gf) (g′ , fg′ , g′f) =
+      Σ-≡,≡→≡ (g             ≡⟨ sym left-identity ⟩
+               id ∙ g        ≡⟨ cong (λ h → h ∙ g) $ sym g′f ⟩
+               (g′ ∙ f) ∙ g  ≡⟨ sym assoc ⟩
+               g′ ∙ (f ∙ g)  ≡⟨ cong (_∙_ g′) fg ⟩
+               g′ ∙ id       ≡⟨ right-identity ⟩∎
+               g′            ∎)
+              (Σ-≡,≡→≡ (Hom-is-set _ _) (Hom-is-set _ _))
 
     -- Isomorphism equality is equivalent to "forward morphism"
     -- equality.
@@ -535,11 +532,11 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                               ×-closure 1 (implicit-Π-closure ext₁₁₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₁₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₂₂ 1 λ _ →
-                                                                                           D.Hom-is-set _ _) $
+                                                                                           D.Hom-is-set) $
                                                                               ×-closure 1 (implicit-Π-closure ext₁₁₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₁₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₂₂ 1 λ _ →
-                                                                                           D.Hom-is-set _ _)
+                                                                                           D.Hom-is-set)
                                                                                           (implicit-Π-closure ext₁₁₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₁₁₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₁₁₂ 1 λ _ →
@@ -547,7 +544,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                            implicit-Π-closure ext₂₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₂₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₂₂ 1 λ _ →
-                                                                                           D.Hom-is-set _ _)) ⟩
+                                                                                           D.Hom-is-set)) ⟩
   ((C.Obj , C.HOM , (λ {_} → C.id) , λ {_ _ _} → C._∙_) , _) ≡
   ((D.Obj , D.HOM , (λ {_} → D.id) , λ {_ _ _} → D._∙_) , _)             ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩□
 
@@ -1134,7 +1131,7 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
   -- Obj has h-level 3.
 
   Obj-3 : H-level 3 Obj
-  Obj-3 X Y =
+  Obj-3 =
     respects-surjection
       (_≃_.surjection (Eq.inverse ≡≃≅))
       2 ≅-set
@@ -1162,7 +1159,7 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
                      P≅.id≅           ≡⟨ Σ-≡,≡→≡ (id≅           ≡⟨ sym ≡→≅-refl ⟩
                                                   ≡→≅ (refl X)  ≡⟨ ≡→≅[refl]≡X≅X ⟩∎
                                                   X≅X           ∎)
-                                                 (_⇔_.to propositional⇔irrelevant (P≅.Is-isomorphism-propositional _) _ _) ⟩∎
+                                                 (P≅.Is-isomorphism-propositional _ _ _) ⟩∎
                      (X≅X , X≅X-iso)  ∎)
                   X≡Y X≅Y X≅Y-iso
                   ≡→≅[X≡Y]≡X≅Y))
@@ -1175,8 +1172,7 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
                                                 X≡Y′ ⟩
                    proj₁ (P≅.≡→≅ X≡Y′)  ≡⟨ cong proj₁ ≡→≅[X≡Y′]≡X≅Y ⟩∎
                    X≅Y                  ∎ in
-             (X≡Y , _)   ≡⟨ Σ-≡,≡→≡ (cong proj₁ (∀y→≡y (X≡Y′ , lemma)))
-                                    (_⇔_.to set⇔UIP P≅.≅-set _ _) ⟩∎
+             (X≡Y , _)   ≡⟨ Σ-≡,≡→≡ (cong proj₁ (∀y→≡y (X≡Y′ , lemma))) (P≅.≅-set _ _) ⟩∎
              (X≡Y′ , _)  ∎ } })
           (≡→≅-equivalence X≅Y)
 
@@ -1321,11 +1317,11 @@ Unit ℓ₁ ℓ₂ =
   (refl _)
   where
   ↑⊤-set : ∀ {ℓ} → Is-set (↑ ℓ ⊤)
-  ↑⊤-set = mono (Nat.zero≤ _) (↑-closure 0 ⊤-contractible)
+  ↑⊤-set = mono (Nat.zero≤ 2) (↑-closure 0 ⊤-contractible)
 
   ≡↔⊤ : ∀ {ℓ} {x y : ↑ ℓ ⊤} → (x ≡ y) ↔ ⊤
   ≡↔⊤ = _⇔_.to contractible⇔↔⊤ $
-          propositional⇒inhabited⇒contractible (↑⊤-set _ _) (refl _)
+          propositional⇒inhabited⇒contractible ↑⊤-set (refl _)
 
 -- An "empty" category, without objects.
 

@@ -148,9 +148,9 @@ loop≢refl {p} univ C loop≡refl = ¬-Set-set-↑ univ Set-set
     A≡A                                              ∎
 
   Set-set : Is-set (Set p)
-  Set-set A B = _⇔_.from propositional⇔irrelevant
-    (elim¹ (λ p → ∀ q → p ≡ q)
-           (refl≡ A))
+  Set-set {x = A} {y = B} =
+    elim¹ (λ p → ∀ q → p ≡ q)
+          (refl≡ A)
 
 -- Thus circles that eliminate into universes with positive universe
 -- levels are not sets (assuming univalence).
@@ -162,8 +162,8 @@ loop≢refl {p} univ C loop≡refl = ¬-Set-set-↑ univ Set-set
   let open Circle C in
   ¬ Is-set S¹
 ¬-S¹-set univ C =
-  Is-set S¹                     ↝⟨ (λ h → h _ _) ⟩
-  Is-proposition (base ≡ base)  ↝⟨ (λ h → _⇔_.to propositional⇔irrelevant h _ _) ⟩
+  Is-set S¹                     ↝⟨ (λ h → h) ⟩
+  Is-proposition (base ≡ base)  ↝⟨ (λ h → h _ _) ⟩
   loop ≡ refl base              ↝⟨ loop≢refl univ C ⟩□
   ⊥                             □
   where
@@ -184,10 +184,8 @@ all-points-on-the-circle-are-merely-equal :
   (x : S¹) → ∥ x ≡ base ∥ 1 ℓ
 all-points-on-the-circle-are-merely-equal ext C =
   proj₁ $
-  elim _ ∣ refl base ∣
-       (_⇔_.to propositional⇔irrelevant
-          (truncation-has-correct-h-level 1 ext)
-          _ _)
+  elim _ ∣ refl base ∣₁
+       (truncation-has-correct-h-level 1 ext _ _)
   where
   open Circle C
 
@@ -205,7 +203,6 @@ all-points-on-the-circle-are-merely-equal ext C =
   ((x : S¹) → x ≡ base)  ↝⟨ (λ hyp x y → x     ≡⟨ hyp x ⟩
                                          base  ≡⟨ sym (hyp y) ⟩∎
                                          y     ∎) ⟩
-  Proof-irrelevant S¹    ↝⟨ _⇔_.from propositional⇔irrelevant ⟩
   Is-proposition S¹      ↝⟨ mono₁ 1 ⟩
   Is-set S¹              ↝⟨ ¬-S¹-set univ C ⟩□
   ⊥                      □

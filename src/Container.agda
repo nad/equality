@@ -431,8 +431,8 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
         f-eq′ = _
 
         irr : f-eq′ ≡ f-eq
-        irr = proj₁ $
-          Eq.propositional (lower-extensionality a a ext) f _ _
+        irr = proj₁ $ +⇒≡ $
+          Eq.propositional (lower-extensionality a a ext) f
 
         f≡f : ⟨ f , f-eq′ ⟩ ≡ ⟨ f , f-eq ⟩
         f≡f = cong (⟨_,_⟩ f) irr

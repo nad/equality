@@ -58,7 +58,7 @@ abstract
     Contractible (Is-equivalence f)
   sometimes-contractible {a} ext A-contr B-prop =
     Π-closure (lower-extensionality a lzero ext) 0 λ _ →
-      cojoin ext (Σ-closure 0 A-contr (λ _ → B-prop _ _))
+      cojoin ext (Σ-closure 0 A-contr (λ _ → +⇒≡ B-prop))
 
   -- Is-equivalence f is not always contractible.
 
@@ -815,10 +815,7 @@ abstract
   lift-equality {a} {b} ext {p = ⟨ f , f-eq ⟩} {q = ⟨ g , g-eq ⟩} f≡g =
     elim (λ {f g} f≡g → ∀ f-eq g-eq → ⟨ f , f-eq ⟩ ≡ ⟨ g , g-eq ⟩)
          (λ f f-eq g-eq →
-            cong (⟨_,_⟩ f)
-              (_⇔_.to {To = Proof-irrelevant _}
-                      propositional⇔irrelevant
-                      (propositional ext f) f-eq g-eq))
+            cong (⟨_,_⟩ f) (propositional ext f f-eq g-eq))
          f≡g f-eq g-eq
 
   -- Two proofs of equivalence are equal if the /inverses/ of the
@@ -943,10 +940,8 @@ private
                }
              ; left-inverse-of = l
              })
-          (apply-ext (lower-extensionality b b ext) λ _ →
-             _⇔_.to set⇔UIP A-set _ _)
-          (apply-ext (lower-extensionality a a ext) λ _ →
-             _⇔_.to set⇔UIP B-set _ _)
+          (apply-ext (lower-extensionality b b ext) λ _ → A-set _ _)
+          (apply-ext (lower-extensionality a a ext) λ _ → B-set _ _)
     where
     B-set : Is-set B
     B-set = respects-surjection (_↔_.surjection A↔B) 2 A-set
@@ -1019,10 +1014,10 @@ private
     abstract
 
       to∘from : ∀ x → to (from x) ≡ x
-      to∘from _ = _⇔_.to propositional⇔irrelevant B-prop _ _
+      to∘from _ = B-prop _ _
 
       from∘to : ∀ x → from (to x) ≡ x
-      from∘to _ = _⇔_.to propositional⇔irrelevant A-prop _ _
+      from∘to _ = A-prop _ _
 
 -- For propositional types logical equivalence is isomorphic to
 -- equivalence (assuming extensionality).
@@ -1057,7 +1052,7 @@ propositional-identity≃≡ :
 propositional-identity≃≡ B B-prop B-refl f =
     A-set
   , λ ext →
-      _↔_.to (⇔↔≃ ext (B-prop _ _) (A-set _ _))
+      _↔_.to (⇔↔≃ ext (B-prop _ _) A-set)
         (record
            { to   = f _ _
            ; from = λ x≡y → subst (B _) x≡y (B-refl _)

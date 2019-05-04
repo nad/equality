@@ -18,22 +18,38 @@ open import Nat eq
 open import Prelude
 open import Surjection eq hiding (id; _∘_)
 
+private
+  variable
+    a ℓ : Level
+    m n : ℕ
+    A B : Set a
+
 ------------------------------------------------------------------------
 -- H-levels
 
 -- H-levels ("homotopy levels").
 
-H-level : ℕ → ∀ {ℓ} → Set ℓ → Set ℓ
-H-level zero    A = Contractible A
-H-level (suc n) A = (x y : A) → H-level n (x ≡ y)
+H-level : ℕ → Set ℓ → Set ℓ
+H-level zero          A = Contractible A
+H-level (suc zero)    A = Is-proposition A
+H-level (suc (suc n)) A = {x y : A} → H-level (suc n) (x ≡ y)
 
--- Some named levels.
+private
 
-Is-proposition : ∀ {ℓ} → Set ℓ → Set ℓ
-Is-proposition = H-level 1
+  -- Note that H-level 2 is a synonym for Is-set.
 
-Is-set : ∀ {ℓ} → Set ℓ → Set ℓ
-Is-set = H-level 2
+  H-level-2≡Is-set : H-level 2 A ≡ Is-set A
+  H-level-2≡Is-set = refl _
+
+-- An alternative definition.
+--
+-- In some cases this definition, with only two cases, is easier to
+-- use. In other cases the definition above, which is less complicated
+-- for positive h-levels, is easier to use.
+
+H-level′ : ℕ → Set ℓ → Set ℓ
+H-level′ zero    A = Contractible A
+H-level′ (suc n) A = (x y : A) → H-level′ n (x ≡ y)
 
 -- Propositions are propositional types.
 
@@ -47,17 +63,17 @@ SET _ = ∃ Is-set
 
 -- The underlying type.
 
-Type : ∀ {ℓ} → SET ℓ → Set ℓ
+Type : SET ℓ → Set ℓ
 Type A = proj₁ A
 
 ------------------------------------------------------------------------
 -- General properties
 
--- H-level is upwards closed in its first argument.
+-- H-level′ is upwards closed in its first argument.
 
-mono₁ : ∀ {a} {A : Set a} n → H-level n A → H-level (1 + n) A
-mono₁         (suc n) h x y = mono₁ n (h x y)
-mono₁ {A = A} zero    h x y = (trivial x y , irr)
+mono₁′ : ∀ n → H-level′ n A → H-level′ (1 + n) A
+mono₁′         (suc n) h x y = mono₁′ n (h x y)
+mono₁′ {A = A} zero    h x y = trivial x y , irr
   where
   trivial : (x y : A) → x ≡ y
   trivial x y =
@@ -65,13 +81,42 @@ mono₁ {A = A} zero    h x y = (trivial x y , irr)
     proj₁ h  ≡⟨ proj₂ h y ⟩∎
     y        ∎
 
-  irr : ∀ {x y} (x≡y : x ≡ y) → trivial x y ≡ x≡y
+  irr : (x≡y : x ≡ y) → trivial x y ≡ x≡y
   irr = elim (λ {x y} x≡y → trivial x y ≡ x≡y)
              (λ x → trans-symˡ (proj₂ h x))
 
+-- H-level and H-level′ are pointwise logically equivalent.
+
+H-level⇔H-level′ : H-level n A ⇔ H-level′ n A
+H-level⇔H-level′ = record { to = to _; from = from _ }
+  where
+  to : ∀ n → H-level n A → H-level′ n A
+  to zero          h = h
+  to (suc zero)    h = λ x → mono₁′ 0 (x , h x) x
+  to (suc (suc n)) h = λ x y → to (suc n) h
+
+  from : ∀ n → H-level′ n A → H-level n A
+  from zero          h = h
+  from (suc zero)    h x y = proj₁ (h x y)
+  from (suc (suc n)) h {x = x} {y = y} = from (suc n) (h x y)
+
+-- If A has h-level 1 + n, then the types of equality proofs between
+-- elements of type A have h-level n.
+
++⇒≡ : {x y : A} → H-level (suc n) A → H-level n (x ≡ y)
++⇒≡ h = _⇔_.from H-level⇔H-level′ $ _⇔_.to H-level⇔H-level′ h _ _
+
+-- H-level is upwards closed in its first argument.
+
+mono₁ : ∀ n → H-level n A → H-level (1 + n) A
+mono₁ n =
+  _⇔_.from H-level⇔H-level′ ∘
+  mono₁′ n ∘
+  _⇔_.to H-level⇔H-level′
+
 abstract
 
-  mono : ∀ {a m n} {A : Set a} → m ≤ n → H-level m A → H-level n A
+  mono : m ≤ n → H-level m A → H-level n A
   mono (≤-refl′ eq)     = subst (λ n → H-level n _) eq
   mono (≤-step′ m≤n eq) =
     subst (λ n → H-level n _) eq ∘
@@ -82,55 +127,27 @@ abstract
   -- inhabited, then it is propositional.
 
   [inhabited⇒contractible]⇒propositional :
-    ∀ {a} {A : Set a} → (A → Contractible A) → Is-proposition A
+    (A → Contractible A) → Is-proposition A
   [inhabited⇒contractible]⇒propositional h x = mono₁ 0 (h x) x
 
   -- If something has h-level (1 + n) given the assumption that it is
   -- inhabited, then it has h-level (1 + n).
 
-  [inhabited⇒+]⇒+ :
-    ∀ {a} {A : Set a} n → (A → H-level (1 + n) A) → H-level (1 + n) A
-  [inhabited⇒+]⇒+ n h x = h x x
-
-  -- Being propositional is logically equivalent to having at most one
-  -- element.
-
-  propositional⇔irrelevant :
-    ∀ {a} {A : Set a} → Is-proposition A ⇔ Proof-irrelevant A
-  propositional⇔irrelevant {A} = record
-    { to   = λ h x y → proj₁ (h x y)
-    ; from = λ irr →
-        [inhabited⇒contractible]⇒propositional (λ x → (x , irr x))
-    }
+  [inhabited⇒+]⇒+ : ∀ n → (A → H-level (1 + n) A) → H-level (1 + n) A
+  [inhabited⇒+]⇒+ n h =
+    _⇔_.from H-level⇔H-level′ λ x → _⇔_.to H-level⇔H-level′ (h x) x
 
 -- If a propositional type is inhabited, then it is contractible.
 
 propositional⇒inhabited⇒contractible :
-  ∀ {a} {A : Set a} → Is-proposition A → A → Contractible A
-propositional⇒inhabited⇒contractible p x =
-  (x , _⇔_.to propositional⇔irrelevant p x)
+  Is-proposition A → A → Contractible A
+propositional⇒inhabited⇒contractible p x = (x , p x)
 
-abstract
+-- H-level′ n respects (split) surjections.
 
-  -- Being a set is logically equivalent to having unique identity
-  -- proofs. Note that this means that, assuming that Agda is
-  -- consistent, I cannot prove (inside non-cubical Agda) that there
-  -- is any type whose minimal h-level is at least three.
-
-  set⇔UIP : ∀ {a} {A : Set a} →
-            Is-set A ⇔ Uniqueness-of-identity-proofs A
-  set⇔UIP {A = A} = record
-    { to   = λ h {x} {y} x≡y x≡y′ → proj₁ (h x y x≡y x≡y′)
-    ; from = λ UIP x y →
-        [inhabited⇒contractible]⇒propositional (λ x≡y → (x≡y , UIP x≡y))
-    }
-
--- H-level n respects (split) surjections.
-
-respects-surjection :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  A ↠ B → ∀ n → H-level n A → H-level n B
-respects-surjection A↠B zero (x , irr) = (to x , irr′)
+respects-surjection′ :
+  A ↠ B → ∀ n → H-level′ n A → H-level′ n B
+respects-surjection′ A↠B zero (x , irr) = (to x , irr′)
   where
   open _↠_ A↠B
 
@@ -140,6 +157,15 @@ respects-surjection A↠B zero (x , irr) = (to x , irr′)
     to (from y)  ≡⟨ right-inverse-of y ⟩∎
     y            ∎
 
-respects-surjection A↠B (suc n) h = λ x y →
-  respects-surjection (↠-≡ A↠B) n (h (from x) (from y))
+respects-surjection′ A↠B (suc n) h = λ x y →
+  respects-surjection′ (↠-≡ A↠B) n (h (from x) (from y))
   where open _↠_ A↠B
+
+-- H-level n respects (split) surjections.
+
+respects-surjection :
+  A ↠ B → ∀ n → H-level n A → H-level n B
+respects-surjection A↠B n =
+  _⇔_.from H-level⇔H-level′ ∘
+  respects-surjection′ A↠B n ∘
+  _⇔_.to H-level⇔H-level′

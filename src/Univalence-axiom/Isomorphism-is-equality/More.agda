@@ -116,7 +116,7 @@ mutual
   isomorphism≃equality _ ε =
 
       ↑ _ ⊤              ↔⟨ contractible-isomorphic (↑-closure 0 ⊤-contractible)
-                                                    (↑-closure 1 (mono₁ 0 ⊤-contractible) _ _) ⟩□
+                                                    (+⇒≡ $ ↑-closure 1 (mono₁ 0 ⊤-contractible)) ⟩□
       lift tt ≡ lift tt  □
 
   isomorphism≃equality ass (c ▻ e) {I , x} {J , y} =
@@ -533,7 +533,7 @@ Proposition {c} P prop = record
   ; Iso≃Iso′ = λ ass I≅J {_ p} →
                  ↑ _ ⊤    ↔⟨ contractible-isomorphic
                                (↑-closure 0 ⊤-contractible)
-                               (mono₁ 0 (propositional⇒inhabited⇒contractible (prop ass _) p) _ _) ⟩□
+                               (+⇒≡ $ mono₁ 0 (propositional⇒inhabited⇒contractible (prop ass _) p)) ⟩□
                  (_ ≡ _)  □
   }
 

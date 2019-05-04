@@ -233,7 +233,7 @@ abstract
 
     lemma (s +axiom (P , P-prop)) (s₁ , ax₁) (s₂ , ax₂) is =
       subst (λ A → Σ (⟦ s ⟧ A) (P A)) A₁≡A₂ (s₁ , ax₁)  ≡⟨ push-subst-pair′ ⟦ s ⟧ (uncurry P) (lemma s s₁ s₂ is) ⟩
-      (s₂ , _)                                          ≡⟨ cong (_,_ s₂) $ _⇔_.to propositional⇔irrelevant (P-prop _ _) _ _ ⟩∎
+      (s₂ , _)                                          ≡⟨ cong (_,_ s₂) $ P-prop _ _ _ _ ⟩∎
       (s₂ , ax₂)                                        ∎
 
     lemma (s +operator n) (s₁ , op₁) (s₂ , op₂) (is-s , is-o) =
@@ -292,7 +292,7 @@ semigroup ext =
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
-      A-set _ _
+      A-set
     }
 
 Semigroup : Extensionality lzero lzero → Set₁
@@ -381,7 +381,7 @@ abelian-group ext =
     λ { _ ((_ , A-set) , _) →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
-      A-set _ _
+      A-set
     }
 
   assoc-prop =
@@ -389,31 +389,31 @@ abelian-group ext =
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
       Π-closure ext 1 λ _ →
-      A-set _ _
+      A-set
     }
 
   left-identity-prop =
     λ { _ (((((_ , A-set) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
-      A-set _ _
+      A-set
     }
 
   right-identity-prop =
     λ { _ ((((((_ , A-set) , _) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
-      A-set _ _
+      A-set
     }
 
   left-inverse-prop =
     λ { _ ((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
-      A-set _ _
+      A-set
     }
 
   right-inverse-prop =
     λ { _ (((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
       Π-closure ext 1 λ _ →
-      A-set _ _
+      A-set
     }
 
 Abelian-group : Extensionality lzero lzero → Set₁
@@ -533,7 +533,7 @@ semigroupʳ ext A =
         (Π-closure ext 1 λ _ →
          Π-closure ext 1 λ _ →
          Π-closure ext 1 λ _ →
-         A-set _ _)
+         A-set)
 
         λ _ →
 

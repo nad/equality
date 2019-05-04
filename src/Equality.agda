@@ -50,17 +50,20 @@ module Reflexive-relation′
   Contractible : ∀ {ℓ} → Set ℓ → Set ℓ
   Contractible A = ∃ λ (x : A) → ∀ y → x ≡ y
 
-  -- Proof irrelevance (or maybe "data irrelevance", depending on what
-  -- the type is used for).
+  -- The property of being a proposition.
 
-  Proof-irrelevant : ∀ {ℓ} → Set ℓ → Set ℓ
-  Proof-irrelevant A = (x y : A) → x ≡ y
+  Is-proposition : ∀ {ℓ} → Set ℓ → Set ℓ
+  Is-proposition A = (x y : A) → x ≡ y
 
-  -- Uniqueness of identity proofs (for a particular type).
+  -- The property of being a set.
 
-  Uniqueness-of-identity-proofs : ∀ {ℓ} → Set ℓ → Set ℓ
-  Uniqueness-of-identity-proofs A =
-    {x y : A} → Proof-irrelevant (x ≡ y)
+  Is-set : ∀ {ℓ} → Set ℓ → Set ℓ
+  Is-set A = {x y : A} → Is-proposition (x ≡ y)
+
+  -- Uniqueness of identity proofs (for a specific universe level).
+
+  Uniqueness-of-identity-proofs : ∀ ℓ → Set (lsuc ℓ)
+  Uniqueness-of-identity-proofs ℓ = {A : Set ℓ} → Is-set A
 
   -- The K rule (without computational content).
 
@@ -731,8 +734,7 @@ module Derived-definitions-and-properties
   -- The K rule is logically equivalent to uniqueness of identity
   -- proofs (at least for certain combinations of levels).
 
-  K⇔UIP : ∀ {ℓ} →
-          K-rule ℓ ℓ ⇔ ({A : Set ℓ} → Uniqueness-of-identity-proofs A)
+  K⇔UIP : ∀ {ℓ} → K-rule ℓ ℓ ⇔ Uniqueness-of-identity-proofs ℓ
   K⇔UIP = record
     { from = λ UIP P r {x} x≡x → subst P (UIP (refl x) x≡x) (r x)
     ; to   = λ K {_} →
@@ -1830,7 +1832,7 @@ module Derived-definitions-and-properties
          trans (f≡g x px) (cong g (refl x))   ∎)
       _
       where
-      T-irr : (b : Bool) → Proof-irrelevant (T b)
+      T-irr : (b : Bool) → Is-proposition (T b)
       T-irr true  _ _ = refl _
       T-irr false ()
 

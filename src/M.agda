@@ -229,16 +229,14 @@ abstract
     ({x y : M A B ∞} → [ ∞ ] x ≡M y → x ≡ y) →
     Is-proposition A → Is-proposition (M A B ∞)
   M-closure-propositional {A = A} {B} ext p =
-    _⇔_.from propositional⇔irrelevant
-             (λ x y → ext $ irrelevant x y)
+    λ x y → ext $ irrelevant x y
     where
     irrelevant : ∀ {i} (x y : M A B ∞) → [ i ] x ≡M y
-    irrelevant {i} (dns x f) (dns y g) =
-      dns (proj₁ (p x y)) helper
+    irrelevant {i} (dns x f) (dns y g) = dns (p x y) helper
       where
       helper :
         (y′ : B x) →
-        [ i ] force (f y′) ≡M′ force (g (subst B (proj₁ (p x y)) y′))
+        [ i ] force (f y′) ≡M′ force (g (subst B (p x y) y′))
       force (helper _) = irrelevant _ _
 
   -- If we assume that we have another notion of extensionality, then
@@ -249,16 +247,15 @@ abstract
     ({x y : M A B ∞} {p q : x ≡ y} → [ ∞ ] ≡⇒≡M p ≡≡M ≡⇒≡M q → p ≡ q) →
     Is-set A → Is-set (M A B ∞)
   M-closure-set {A = A} {B} ext s =
-    _⇔_.from set⇔UIP (λ p q → ext $ uip (≡⇒≡M p) (≡⇒≡M q))
+    λ p q → ext $ uip (≡⇒≡M p) (≡⇒≡M q)
     where
     uip : ∀ {i} {x y : M A B ∞} (p q : [ ∞ ] x ≡M y) → [ i ] p ≡≡M q
-    uip {i} {x} {y} (dns p f) (dns q g) =
-      dns (proj₁ (s _ _ p q)) helper
+    uip {i} {x} {y} (dns p f) (dns q g) = dns (s p q) helper
       where
       helper :
         (b : B (pɐǝɥ x)) →
         [ i ] force (f b) ≡≡M′
               subst (λ eq → [ ∞ ] lıɐʇ x b ≡M lıɐʇ y (subst B eq b))
-                    (sym (proj₁ (s (pɐǝɥ x) (pɐǝɥ y) p q)))
+                    (sym (s p q))
                     (force (g b))
       force (helper _) = uip _ _

@@ -98,13 +98,13 @@ laws-propositional :
 laws-propositional ext M =
   ×-closure 1 (H-level-propositional ext 2)
   (×-closure 1 (Π-closure ext 1 λ _ →
-                is-set _ _)
+                is-set)
   (×-closure 1 (Π-closure ext 1 λ _ →
-                is-set _ _)
+                is-set)
                (Π-closure ext 1 λ _ →
                 Π-closure ext 1 λ _ →
                 Π-closure ext 1 λ _ →
-                is-set _ _)))
+                is-set)))
   where is-set = proj₁ (laws M)
 
 -- Monoid equality is isomorphic to equality of the carrier sets,

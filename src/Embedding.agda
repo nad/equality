@@ -94,29 +94,27 @@ embedding→⁻¹-propositional :
   ∀ {a b} {A : Set a} {B : Set b} {f : A → B} →
   Is-embedding f →
   ∀ y → Is-proposition (f ⁻¹ y)
-embedding→⁻¹-propositional {f = f} is-emb y =
-  _⇔_.from propositional⇔irrelevant
-    λ { (x₁ , eq₁) (x₂ , eq₂) →
-        let
-          equiv : (x₁ ≡ x₂) ≃ (f x₁ ≡ f x₂)
-          equiv = ⟨ _ , is-emb _ _ ⟩
+embedding→⁻¹-propositional {f = f} is-emb y (x₁ , eq₁) (x₂ , eq₂) =
+  let
+    equiv : (x₁ ≡ x₂) ≃ (f x₁ ≡ f x₂)
+    equiv = ⟨ _ , is-emb _ _ ⟩
 
-          x₁≡x₂ : x₁ ≡ x₂
-          x₁≡x₂ = _≃_.from equiv
-            (f x₁  ≡⟨ eq₁ ⟩
-             y     ≡⟨ sym eq₂ ⟩∎
-             f x₂  ∎)
-        in
-        Σ-≡,≡→≡
-          x₁≡x₂
-          (subst (λ z → f z ≡ y) x₁≡x₂ eq₁              ≡⟨ subst-∘ (_≡ y) f x₁≡x₂ ⟩
-           subst (_≡ y) (cong f x₁≡x₂) eq₁              ≡⟨ cong (λ eq → subst (_≡ y) eq eq₁) $ sym $ sym-sym (cong f x₁≡x₂) ⟩
-           subst (_≡ y) (sym $ sym $ cong f x₁≡x₂) eq₁  ≡⟨ subst-trans (sym $ cong f x₁≡x₂) ⟩
-           trans (sym $ cong f x₁≡x₂) eq₁               ≡⟨ cong (λ eq → trans (sym eq) eq₁) $ _≃_.right-inverse-of equiv _ ⟩
-           trans (sym $ trans eq₁ (sym eq₂)) eq₁        ≡⟨ cong (flip trans eq₁) $ sym-trans eq₁ (sym eq₂) ⟩
-           trans (trans (sym (sym eq₂)) (sym eq₁)) eq₁  ≡⟨ trans-[trans-sym]- _ eq₁ ⟩
-           sym (sym eq₂)                                ≡⟨ sym-sym _ ⟩∎
-           eq₂                                          ∎) }
+    x₁≡x₂ : x₁ ≡ x₂
+    x₁≡x₂ = _≃_.from equiv
+      (f x₁  ≡⟨ eq₁ ⟩
+       y     ≡⟨ sym eq₂ ⟩∎
+       f x₂  ∎)
+  in
+  Σ-≡,≡→≡
+    x₁≡x₂
+    (subst (λ z → f z ≡ y) x₁≡x₂ eq₁              ≡⟨ subst-∘ (_≡ y) f x₁≡x₂ ⟩
+     subst (_≡ y) (cong f x₁≡x₂) eq₁              ≡⟨ cong (λ eq → subst (_≡ y) eq eq₁) $ sym $ sym-sym (cong f x₁≡x₂) ⟩
+     subst (_≡ y) (sym $ sym $ cong f x₁≡x₂) eq₁  ≡⟨ subst-trans (sym $ cong f x₁≡x₂) ⟩
+     trans (sym $ cong f x₁≡x₂) eq₁               ≡⟨ cong (λ eq → trans (sym eq) eq₁) $ _≃_.right-inverse-of equiv _ ⟩
+     trans (sym $ trans eq₁ (sym eq₂)) eq₁        ≡⟨ cong (flip trans eq₁) $ sym-trans eq₁ (sym eq₂) ⟩
+     trans (trans (sym (sym eq₂)) (sym eq₁)) eq₁  ≡⟨ trans-[trans-sym]- _ eq₁ ⟩
+     sym (sym eq₂)                                ≡⟨ sym-sym _ ⟩∎
+     eq₂                                          ∎)
 
 ------------------------------------------------------------------------
 -- Injections
@@ -149,7 +147,7 @@ private
     implicit-Π-closure (lower-extensionality b lzero ext) 1 λ _ →
     implicit-Π-closure (lower-extensionality b lzero ext) 1 λ _ →
     Π-closure (lower-extensionality a b ext)              1 λ _ →
-    A-set _ _
+    A-set
 
 -- For functions between sets the property of being injective is
 -- equivalent to the property of being an embedding (assuming
@@ -167,7 +165,7 @@ Injective≃Is-embedding ext A-set B-set f =
          (Is-embedding-propositional ext))
     (record { to   = λ cong-f⁻¹ _ _ →
                          _≃_.is-equivalence $
-                         _↔_.to (⇔↔≃ ext (A-set _ _) (B-set _ _))
+                         _↔_.to (⇔↔≃ ext A-set B-set)
                                 (record { from = cong-f⁻¹ })
             ; from = injective
             })
@@ -196,13 +194,11 @@ Injective≃Is-embedding ext A-set B-set f =
         cong (uncurry λ to (emb : Is-embedding to) →
                         record { to = to; is-embedding = emb })
              (Σ-≡,≡→≡ (refl _)
-                      (_⇔_.to propositional⇔irrelevant
-                         (Is-embedding-propositional ext) _ _))
+                      (Is-embedding-propositional ext _ _))
     }
   ; left-inverse-of = λ f →
       cong (uncurry λ to (inj : Injective to) →
                       record { to = to; injective = inj })
            (Σ-≡,≡→≡ (refl _)
-                    (_⇔_.to propositional⇔irrelevant
-                       (Injective-propositional ext A-set) _ _))
+                    (Injective-propositional ext A-set _ _))
   }

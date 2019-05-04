@@ -97,13 +97,13 @@ private
 
    functor-properties-propositional {ℓ₁} {ℓ₂} ext {D = D} _ = ×-closure 1
      (implicit-Π-closure (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
-      Precategory.Hom-is-set D _ _)
+      Precategory.Hom-is-set D)
      (implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
       implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
       implicit-Π-closure (lower-extensionality ℓ₂ ℓ₁        ext) 1 λ _ →
       implicit-Π-closure (lower-extensionality ℓ₁ ℓ₁        ext) 1 λ _ →
       implicit-Π-closure (lower-extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
-      Precategory.Hom-is-set D _ _)
+      Precategory.Hom-is-set D)
 
 open Dummy₁ public
 
@@ -229,11 +229,11 @@ private
      eq₁ ≡ eq₂                                              ↝⟨ inverse $ Eq.≃-≡ (equality-characterisation⇨ ext) ⟩
 
      _≃_.to (equality-characterisation⇨ ext) eq₁ ≡
-     _≃_.to (equality-characterisation⇨ ext) eq₂            ↔⟨ inverse $ ignore-propositional-component $
+     _≃_.to (equality-characterisation⇨ ext) eq₂            ↔⟨ inverse $ ignore-propositional-component
                                                                  (implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 2 λ _ →
                                                                   implicit-Π-closure (lower-extensionality ℓ₂ ℓ₁        ext) 2 λ _ →
                                                                   Π-closure          (lower-extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂) ext) 2 λ _ →
-                                                                  Precategory.Hom-is-set D) _ _ ⟩
+                                                                  Precategory.Hom-is-set D) ⟩
      proj₁ (_≃_.to (equality-characterisation⇨ ext) eq₁) ≡
      proj₁ (_≃_.to (equality-characterisation⇨ ext) eq₂)    ↝⟨ ≡⇒↝ _ (cong₂ _≡_ (proj₁-to-equality-characterisation⇨ _ _)
                                                                                 (proj₁-to-equality-characterisation⇨ _ _)) ⟩□
@@ -374,7 +374,7 @@ private
      implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
      implicit-Π-closure (lower-extensionality ℓ₂ ℓ₁        ext) 1 λ _ →
      implicit-Π-closure (lower-extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
-     Precategory.Hom-is-set D _ _
+     Precategory.Hom-is-set D
 
    -- Natural transformation equality is equivalent to pointwise
    -- equality of the corresponding "transformations" (assuming

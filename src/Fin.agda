@@ -217,8 +217,7 @@ largest≡Fin↔< {n} =
   largest n                                                      ≡⟨ sym (_↔_.left-inverse-of (Fin↔< (suc n)) _) ⟩
   _↔_.from (Fin↔< (suc n)) (_↔_.to (Fin↔< (suc n)) (largest n))  ≡⟨ cong (_↔_.from (Fin↔< (suc n))) (Σ-≡,≡→≡ (Fin↔<≡⌞⌟ (largest n)) (refl _)) ⟩
   _↔_.from (Fin↔< (suc n)) (⌞ largest n ⌟ , p₁)                  ≡⟨ cong (_↔_.from (Fin↔< (suc n)))
-                                                                      (Σ-≡,≡→≡ (largest-correct n)
-                                                                         (_⇔_.to propositional⇔irrelevant ≤-propositional p₂ ≤-refl)) ⟩∎
+                                                                      (Σ-≡,≡→≡ (largest-correct n) (≤-propositional p₂ ≤-refl)) ⟩∎
   _↔_.from (Fin↔< (suc n)) (n , ≤-refl)                          ∎
   where
   p₁ = subst (_< suc n) (Fin↔<≡⌞⌟ (largest n))

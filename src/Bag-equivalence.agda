@@ -392,7 +392,7 @@ module Dec-∈ {a} {A : Set a} (A-set : Is-set A) where
   infix 4 _≟_
 
   _≟_ : ∀ {x xs} → Decidable-equality (x ∈ xs)
-  _≟_ = Dec._≟_ λ _ _ → yes (_⇔_.to set⇔UIP A-set _ _)
+  _≟_ = Dec._≟_ λ _ _ → yes (A-set _ _)
 
 -- Bind distributes from the left over append.
 

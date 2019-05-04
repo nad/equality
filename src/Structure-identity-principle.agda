@@ -55,8 +55,7 @@ record Standard-notion-of-structure
 
   lift-equality : {X Y : ∃ P} {f g : ∃ (H (proj₂ X) (proj₂ Y))} →
                   proj₁ f ≡ proj₁ g → f ≡ g
-  lift-equality eq =
-    Σ-≡,≡→≡ eq (_⇔_.to propositional⇔irrelevant (H-prop _) _ _)
+  lift-equality eq = Σ-≡,≡→≡ eq (H-prop _ _ _)
 
   -- A derived precategory.
 
@@ -147,14 +146,14 @@ abstract
       to∘from ((f , Hf) , (f⁻¹ , Hf⁻¹) , f∙f⁻¹ , f⁻¹∙f) =
         cong₂ (λ f∙f⁻¹ f⁻¹∙f →
                  (f , Hf) , (f⁻¹ , Hf⁻¹) , f∙f⁻¹ , f⁻¹∙f)
-              (_⇔_.to set⇔UIP Str.Hom-is-set _ _)
-              (_⇔_.to set⇔UIP Str.Hom-is-set _ _)
+              (Str.Hom-is-set _ _)
+              (Str.Hom-is-set _ _)
 
       from∘to : ∀ p → from (≅HH≃≅.to p) ≡ p
       from∘to ((f , f⁻¹ , f∙f⁻¹ , f⁻¹∙f) , Hf , Hf⁻¹) =
         cong₂ (λ f∙f⁻¹ f⁻¹∙f → (f , f⁻¹ , f∙f⁻¹ , f⁻¹∙f) , Hf , Hf⁻¹)
-              (_⇔_.to set⇔UIP C.Hom-is-set _ _)
-              (_⇔_.to set⇔UIP C.Hom-is-set _ _)
+              (C.Hom-is-set _ _)
+              (C.Hom-is-set _ _)
 
     module ≡≡≃≅HH where
 
@@ -189,17 +188,14 @@ abstract
                       C.≡→≅-refl
                       (to (refl X) (subst-refl P p)) ≡
                 (H-id , H-id)
-      to-refl =
-        cong₂ _,_ (_⇔_.to propositional⇔irrelevant (H-prop _) _ _)
-                  (_⇔_.to propositional⇔irrelevant (H-prop _) _ _)
+      to-refl = cong₂ _,_ (H-prop _ _ _) (H-prop _ _ _)
 
     ≡≡≃≅HH : ∀ {X Y} {p : P X} {q : P Y} →
              (∃ λ (eq : X ≡ Y) → subst P eq p ≡ q) ≃
              (∃ λ (f : X C.≅ Y) → H p q (f C.¹) × H q p (f C.⁻¹))
     ≡≡≃≅HH {X} {p = p} {q} =
       Σ-preserves C.≡≃≅ λ X≡Y →
-        _↔_.to (⇔↔≃ ext (P-set _ _ _)
-                        (×-closure 1 (H-prop _) (H-prop _)))
+        _↔_.to (⇔↔≃ ext (P-set _) (×-closure 1 (H-prop _) (H-prop _)))
                (record { to = ≡≡≃≅HH.to X≡Y ; from = from X≡Y })
       where
       from : ∀ X≡Y → H p q (C.≡→≅ X≡Y C.¹) × H q p (C.≡→≅ X≡Y C.⁻¹) →

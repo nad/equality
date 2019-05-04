@@ -757,13 +757,13 @@ monoid =
         [inhabited⇒+]⇒+ 0 λ { (C-set , _) →
           ×-closure 1  (H-level-propositional ext₁ 2)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
                        (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _))) }}
+                        C-set))) }}
 
 -- The interpretation of the code is reasonable.
 
@@ -883,7 +883,7 @@ poset =
                       Π-closure ext₁                     1 λ _ →
                       Π-closure ext                      1 λ _ →
                       Π-closure ext                      1 λ _ →
-                      C-set _ _)))) }
+                      C-set)))) }
 
 -- The interpretation of the code is reasonable. (Except, perhaps,
 -- that the carrier type lives in Set₁ but the codomain of the
@@ -1213,7 +1213,7 @@ private
     ×-closure 1 (Π-closure ext 1 λ _ →
                  Π-closure ext 1 λ _ →
                  Dec-closure-propositional (lower-ext (# 0) _ ext)
-                                           (C-set _ _))
+                                           C-set)
                 (Π-closure ext 1 λ x →
                  Π-closure ext 1 λ _ →
                  inverse-propositional _*_ 1# *-assoc *-comm *1
@@ -1244,7 +1244,7 @@ private
     Π-closure ext 1 λ x →
     Xor-closure-propositional (lower-ext (# 0) _ ext)
       (inverse-propositional _*_ 1# *-assoc *-comm *1 C-set x)
-      (C-set _ _)
+      C-set
 
   proposition-lemma₃ :
     Extensionality (# 1) (# 1) →
@@ -1267,45 +1267,42 @@ private
                       (∀ x → (x ⁻¹) ≡ inj₁ (lift tt) → x ≡ 0#) ×
                       (∀ x y → (x ⁻¹) ≡ inj₂ y → (x * y) ≡ 1#))
   proposition-lemma₃ ext {C} _+_ 0# _*_ 1# -_ +-assoc *-assoc
-                     +-comm *-comm *+ +0 *1 +- 0≢1 =
-    _⇔_.from propositional⇔irrelevant irr
+                     +-comm *-comm *+ +0 *1 +- 0≢1
+                     (inv , inv₁ , inv₂) (inv′ , inv₁′ , inv₂′) =
+    _↔_.to (ignore-propositional-component
+              (×-closure 1 (Π-closure ext 1 λ _ →
+                            Π-closure ext 1 λ _ →
+                            C-set)
+                           (Π-closure ext 1 λ _ →
+                            Π-closure ext 1 λ _ →
+                            Π-closure ext 1 λ _ →
+                            C-set)))
+           (apply-ext ext inv≡inv′)
     where
-    irr : (x y : ∃ λ _ → _ × _) → x ≡ y
-    irr (inv , inv₁ , inv₂) (inv′ , inv₁′ , inv₂′) =
-      _↔_.to (ignore-propositional-component
-                (×-closure 1 (Π-closure ext 1 λ _ →
-                              Π-closure ext 1 λ _ →
-                              C-set _ _)
-                             (Π-closure ext 1 λ _ →
-                              Π-closure ext 1 λ _ →
-                              Π-closure ext 1 λ _ →
-                              C-set _ _)))
-             (apply-ext ext inv≡inv′)
-      where
-      C-set : Is-set C
-      C-set = decidable⇒set $
-        dec-lemma₂ _+_ 0# _*_ 1# -_ inv +-assoc +-comm
-                   *-comm *+ +0 *1 +- 0≢1 inv₁ inv₂
+    C-set : Is-set C
+    C-set = decidable⇒set $
+      dec-lemma₂ _+_ 0# _*_ 1# -_ inv +-assoc +-comm
+                 *-comm *+ +0 *1 +- 0≢1 inv₁ inv₂
 
-      01-lemma : ∀ x y → x ≡ 0# → (x * y) ≡ 1# → ⊥
-      01-lemma x y x≡0 xy≡1 = 0≢1 (
-        0#        ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
-        (0# * y)  ≡⟨ cong (λ x → x * _) $ sym x≡0 ⟩
-        (x * y)   ≡⟨ xy≡1 ⟩∎
-        1#        ∎)
+    01-lemma : ∀ x y → x ≡ 0# → (x * y) ≡ 1# → ⊥
+    01-lemma x y x≡0 xy≡1 = 0≢1 (
+      0#        ≡⟨ sym $ 0* _+_ 0# _*_ 1# -_ +-assoc +-comm *-comm *+ +0 *1 +- _ ⟩
+      (0# * y)  ≡⟨ cong (λ x → x * _) $ sym x≡0 ⟩
+      (x * y)   ≡⟨ xy≡1 ⟩∎
+      1#        ∎)
 
-      inv≡inv′ : ∀ x → inv x ≡ inv′ x
-      inv≡inv′ x with inv  x | inv₁  x | inv₂  x
-                    | inv′ x | inv₁′ x | inv₂′ x
-      ... | inj₁ _   | _ | _   | inj₁ _    | _    | _ = refl _
-      ... | inj₂ x⁻¹ | _ | hyp | inj₁ _    | hyp′ | _ = ⊥-elim $ 01-lemma x x⁻¹ (hyp′ (refl _)) (hyp x⁻¹ (refl _))
-      ... | inj₁ _   | hyp | _ | inj₂ x⁻¹  | _ | hyp′ = ⊥-elim $ 01-lemma x x⁻¹ (hyp (refl _)) (hyp′ x⁻¹ (refl _))
-      ... | inj₂ x⁻¹ | _ | hyp | inj₂ x⁻¹′ | _ | hyp′ =
-        cong inj₂ $ *-injective _*_ 1# *-assoc *-comm *1 x
-                                (x⁻¹ , hyp x⁻¹ (refl _))
-          ((x * x⁻¹)   ≡⟨ hyp x⁻¹ (refl _) ⟩
-           1#          ≡⟨ sym $ hyp′ x⁻¹′ (refl _) ⟩∎
-           (x * x⁻¹′)  ∎)
+    inv≡inv′ : ∀ x → inv x ≡ inv′ x
+    inv≡inv′ x with inv  x | inv₁  x | inv₂  x
+                  | inv′ x | inv₁′ x | inv₂′ x
+    ... | inj₁ _   | _ | _   | inj₁ _    | _    | _ = refl _
+    ... | inj₂ x⁻¹ | _ | hyp | inj₁ _    | hyp′ | _ = ⊥-elim $ 01-lemma x x⁻¹ (hyp′ (refl _)) (hyp x⁻¹ (refl _))
+    ... | inj₁ _   | hyp | _ | inj₂ x⁻¹  | _ | hyp′ = ⊥-elim $ 01-lemma x x⁻¹ (hyp (refl _)) (hyp′ x⁻¹ (refl _))
+    ... | inj₂ x⁻¹ | _ | hyp | inj₂ x⁻¹′ | _ | hyp′ =
+      cong inj₂ $ *-injective _*_ 1# *-assoc *-comm *1 x
+                              (x⁻¹ , hyp x⁻¹ (refl _))
+        ((x * x⁻¹)   ≡⟨ hyp x⁻¹ (refl _) ⟩
+         1#          ≡⟨ sym $ hyp′ x⁻¹′ (refl _) ⟩∎
+         (x * x⁻¹′)  ∎)
 
 -- Discrete fields.
 
@@ -1367,36 +1364,36 @@ discrete-field =
           ×-closure  1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure (lower-ext (# 0) (# 1) ext₁) 1 λ _ →
                         ⊥-propositional)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
                        (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)))))))))) }}
+                        C-set)))))))))) }}
 
 -- The interpretation of the code is reasonable.
 
@@ -1496,7 +1493,7 @@ Isomorphic-discrete-field-isomorphic-to-one-without-⁻¹ ext
                                                               ∃-cong λ 1-homo →
                                                               ∃-cong λ _ →
                                                               _⇔_.to contractible⇔↔⊤ $ propositional⇒inhabited⇒contractible
-                                                                (⁻¹-set _ _)
+                                                                ⁻¹-set
                                                                 (⁻¹-homo eq 0-homo *-homo 1-homo)) ⟩
   ((λ x y → to (from x +₁ from y)) ≡ _+₂_ ×
    to 0₁ ≡ 0₂ ×
@@ -1537,41 +1534,40 @@ Isomorphic-discrete-field-isomorphic-to-one-without-⁻¹ ext
     (λ x y → to (from x *₁ from y)) ≡ _*₂_ →
     to 1₁ ≡ 1₂ →
     (λ x → ⊎-map P.id to (from x ⁻¹₁)) ≡ _⁻¹₂
-  ⁻¹-homo eq 0-homo *-homo 1-homo =
-    cong proj₁ $
-    _⇔_.to propositional⇔irrelevant
-           (proposition-lemma₃ ext _+₂_ 0₂ _*₂_ 1₂ -₂_
-                               +₂-assoc *₂-assoc +₂-comm *₂-comm
-                               *₂+₂ +₂0₂ *₂1₂ +₂-₂ 0₂≢1₂)
-           ( (λ x → ⊎-map P.id to (from x ⁻¹₁))
-           , (λ x x⁻¹₁≡₁ →
-                let lemma =
-                      (from x ⁻¹₁)                                  ≡⟨ [_,_] {C = λ z → z ≡ ⊎-map P.id from (⊎-map P.id to z)}
-                                                                             (λ _ → refl _)
-                                                                             (λ _ → cong inj₂ $ sym $ left-inverse-of _)
-                                                                             (from x ⁻¹₁) ⟩
-                      ⊎-map P.id from (⊎-map P.id to (from x ⁻¹₁))  ≡⟨ cong (⊎-map P.id from) x⁻¹₁≡₁ ⟩∎
-                      inj₁ (lift tt)                                ∎
-                in
-                x            ≡⟨ sym $ right-inverse-of x ⟩
-                to (from x)  ≡⟨ cong to (⁻¹₁₁ (from x) lemma) ⟩
-                to 0₁        ≡⟨ 0-homo ⟩∎
-                0₂           ∎)
-           , (λ x y x⁻¹₁≡y →
-                let lemma =
-                      (from x ⁻¹₁)                                  ≡⟨ [_,_] {C = λ z → z ≡ ⊎-map P.id from (⊎-map P.id to z)}
-                                                                             (λ _ → refl _)
-                                                                             (λ _ → cong inj₂ $ sym $ left-inverse-of _)
-                                                                             (from x ⁻¹₁) ⟩
-                      ⊎-map P.id from (⊎-map P.id to (from x ⁻¹₁))  ≡⟨ cong (⊎-map P.id from) x⁻¹₁≡y ⟩∎
-                      inj₂ (from y)                                 ∎
-                in
-                (x *₂ y)               ≡⟨ sym $ cong (λ _*_ → x * y) *-homo ⟩
-                to (from x *₁ from y)  ≡⟨ cong to $ ⁻¹₁₂ (from x) (from y) lemma ⟩
-                to 1₁                  ≡⟨ 1-homo ⟩∎
-                1₂                     ∎)
-           )
-           (_⁻¹₂ , ⁻¹₂₁ , ⁻¹₂₂)
+  ⁻¹-homo eq 0-homo *-homo 1-homo = cong proj₁ $
+    proposition-lemma₃
+      ext _+₂_ 0₂ _*₂_ 1₂ -₂_
+      +₂-assoc *₂-assoc +₂-comm *₂-comm
+      *₂+₂ +₂0₂ *₂1₂ +₂-₂ 0₂≢1₂
+      ( (λ x → ⊎-map P.id to (from x ⁻¹₁))
+      , (λ x x⁻¹₁≡₁ →
+           let lemma =
+                 (from x ⁻¹₁)                                  ≡⟨ [_,_] {C = λ z → z ≡ ⊎-map P.id from (⊎-map P.id to z)}
+                                                                        (λ _ → refl _)
+                                                                        (λ _ → cong inj₂ $ sym $ left-inverse-of _)
+                                                                        (from x ⁻¹₁) ⟩
+                 ⊎-map P.id from (⊎-map P.id to (from x ⁻¹₁))  ≡⟨ cong (⊎-map P.id from) x⁻¹₁≡₁ ⟩∎
+                 inj₁ (lift tt)                                ∎
+           in
+           x            ≡⟨ sym $ right-inverse-of x ⟩
+           to (from x)  ≡⟨ cong to (⁻¹₁₁ (from x) lemma) ⟩
+           to 0₁        ≡⟨ 0-homo ⟩∎
+           0₂           ∎)
+      , (λ x y x⁻¹₁≡y →
+           let lemma =
+                 (from x ⁻¹₁)                                  ≡⟨ [_,_] {C = λ z → z ≡ ⊎-map P.id from (⊎-map P.id to z)}
+                                                                        (λ _ → refl _)
+                                                                        (λ _ → cong inj₂ $ sym $ left-inverse-of _)
+                                                                        (from x ⁻¹₁) ⟩
+                 ⊎-map P.id from (⊎-map P.id to (from x ⁻¹₁))  ≡⟨ cong (⊎-map P.id from) x⁻¹₁≡y ⟩∎
+                 inj₂ (from y)                                 ∎
+           in
+           (x *₂ y)               ≡⟨ sym $ cong (λ _*_ → x * y) *-homo ⟩
+           to (from x *₁ from y)  ≡⟨ cong to $ ⁻¹₁₂ (from x) (from y) lemma ⟩
+           to 1₁                  ≡⟨ 1-homo ⟩∎
+           1₂                     ∎)
+      )
+      (_⁻¹₂ , ⁻¹₂₁ , ⁻¹₂₂)
     where open _≃_ eq
 
 -- In "Varieties of Constructive Mathematics" Bridges and Richman
@@ -1638,27 +1634,27 @@ discrete-field-à-la-Bridges-and-Richman =
           ×-closure  1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure (lower-ext (# 0) (# 1) ext₁) 1 λ _ →
                         ⊥-propositional)
           (proposition-lemma₁ ext₁ 0# _*_ 1#
@@ -1899,27 +1895,27 @@ discrete-field-à-la-nLab =
           ×-closure  1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        C-set _ _)
+                        C-set)
           (proposition-lemma₂ ext₁ _+_ 0# -_ _*_ 1#
                               +-assoc *-assoc +-comm *-comm
                               +0 *1 +-)))))))) }}
@@ -2066,28 +2062,28 @@ vector-space (F , (_+F_ , _ , _*F_ , 1F , _ , _) , _) =
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        V-set _ _)
+                        V-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        V-set _ _)
+                        V-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        V-set _ _)
-          (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        Π-closure ext₁ 1 λ _ →
-                        Π-closure ext₁ 1 λ _ →
-                        V-set _ _)
+                        V-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
                         Π-closure ext₁ 1 λ _ →
-                        V-set _ _)
+                        V-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        V-set _ _)
+                        Π-closure ext₁ 1 λ _ →
+                        Π-closure ext₁ 1 λ _ →
+                        V-set)
           (×-closure 1 (Π-closure ext₁ 1 λ _ →
-                        V-set _ _)
+                        V-set)
+          (×-closure 1 (Π-closure ext₁ 1 λ _ →
+                        V-set)
                        (Π-closure ext₁ 1 λ _ →
-                        V-set _ _)))))))) }}
+                        V-set)))))))) }}
 
 -- The interpretation of the code is reasonable.
 
@@ -2150,7 +2146,7 @@ set-with-fixpoint-operator =
       [inhabited⇒+]⇒+ 0 λ { (C-set , _) →
         ×-closure 1 (H-level-propositional ext₁ 2)
                     (Π-closure ext₁ 1 λ _ →
-                     C-set _ _) }
+                     C-set) }
 
 -- Some unfolding lemmas.
 

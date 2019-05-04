@@ -16,7 +16,6 @@ open import Equality.Propositional renaming (equality-with-J to eq)
 
 open import Equivalence eq hiding (id)
 open import Function-universe eq hiding (id)
-open import H-level eq using (Is-proposition; Is-set)
 open import H-level.Closure eq
 open import Prelude hiding (id)
 open import Univalence-axiom.Isomorphism-is-equality.More
@@ -78,7 +77,7 @@ semigroup =
     Π-closure ext₁ 1 λ _ →
     Π-closure ext₁ 1 λ _ →
     Π-closure ext₁ 1 λ _ →
-    A-set _ _ }
+    A-set }
 
 Semigroup : Set₁
 Semigroup = ⟦ semigroup ⟧
@@ -98,7 +97,8 @@ private
   -- An unfolding of Isomorphic semigroup.
 
   Isomorphic-semigroup-unfolded :
-    ∀ {ass A₁ is₁ _∙₁_ assoc₁ A₂ is₂ _∙₂_ assoc₂} →
+    ∀ {ass A₁} {is₁ : Is-set (↑ _ A₁)} {_∙₁_ assoc₁}
+          {A₂} {is₂ : Is-set (↑ _ A₂)} {_∙₂_ assoc₂} →
     Isomorphic ass semigroup ((((_ , A₁) , is₁) , _∙₁_) , assoc₁)
                              ((((_ , A₂) , is₂) , _∙₂_) , assoc₂) ≡
     Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
@@ -131,7 +131,7 @@ set-with-fixed-point-operator =
   fix-point-prop = λ { ass ((_ , A-set) , _) →
     let open Assumptions ass in
     Π-closure ext₁ 1 λ _ →
-    A-set _ _ }
+    A-set }
 
 Set-with-fixed-point-operator : Set₁
 Set-with-fixed-point-operator = ⟦ set-with-fixed-point-operator ⟧
@@ -151,7 +151,8 @@ private
   -- An unfolding of Isomorphic set-with-fixed-point-operator.
 
   Isomorphic-set-with-fixed-point-operator-unfolded :
-    ∀ {ass A₁ is₁ fix₁ fixed-point₁ A₂ is₂ fix₂ fixed-point₂} →
+    ∀ {ass A₁} {is₁ : Is-set (↑ _ A₁)} {fix₁ fixed-point₁}
+          {A₂} {is₂ : Is-set (↑ _ A₂)} {fix₂ fixed-point₂} →
     Isomorphic ass set-with-fixed-point-operator
                ((((_ , A₁) , is₁) , fix₁) , fixed-point₁)
                ((((_ , A₂) , is₂) , fix₂) , fixed-point₂) ≡
@@ -214,7 +215,7 @@ abelian-group =
        let open Assumptions ass in
        Π-closure ext₁ 1 λ _ →
        Π-closure ext₁ 1 λ _ →
-       A-set _ _
+       A-set
      })
 
   Assoc = Proposition
@@ -226,7 +227,7 @@ abelian-group =
        Π-closure ext₁ 1 λ _ →
        Π-closure ext₁ 1 λ _ →
        Π-closure ext₁ 1 λ _ →
-       A-set _ _
+       A-set
      })
 
   Left-identity = Proposition
@@ -236,7 +237,7 @@ abelian-group =
     (λ { ass (((((_ , A-set) , _) , _) , _) , _) →
        let open Assumptions ass in
        Π-closure ext₁ 1 λ _ →
-       A-set _ _
+       A-set
      })
 
   Right-identity = Proposition
@@ -246,7 +247,7 @@ abelian-group =
     (λ { ass ((((((_ , A-set) , _) , _) , _) , _) , _) →
        let open Assumptions ass in
        Π-closure ext₁ 1 λ _ →
-       A-set _ _
+       A-set
      })
 
   Left-inverse = Proposition
@@ -256,7 +257,7 @@ abelian-group =
     (λ { ass ((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) →
        let open Assumptions ass in
        Π-closure ext₁ 1 λ _ →
-       A-set _ _
+       A-set
      })
 
   Right-inverse = Proposition
@@ -266,7 +267,7 @@ abelian-group =
     (λ { ass (((((((((_ , A-set) , _) , _) , _) , _) , _) , _) , _) , _) →
        let open Assumptions ass in
        Π-closure ext₁ 1 λ _ →
-       A-set _ _
+       A-set
      })
 
 Abelian-group : Set₁
@@ -295,8 +296,10 @@ private
   -- An unfolding of Isomorphic abelian-group.
 
   Isomorphic-abelian-group-unfolded :
-    ∀ {ass A₁ is₁ _∙₁_ comm₁ assoc₁ e₁ lid₁ rid₁ _⁻¹₁ linv₁ rinv₁
-           A₂ is₂ _∙₂_ comm₂ assoc₂ e₂ lid₂ rid₂ _⁻¹₂ linv₂ rinv₂} →
+    ∀ {ass A₁} {is₁ : Is-set (↑ _ A₁)}
+      {_∙₁_ comm₁ assoc₁ e₁ lid₁ rid₁ _⁻¹₁ linv₁ rinv₁}
+      {A₂} {is₂ : Is-set (↑ _ A₂)}
+      {_∙₂_ comm₂ assoc₂ e₂ lid₂ rid₂ _⁻¹₂ linv₂ rinv₂} →
     Isomorphic ass abelian-group
       (((((((((((_ , A₁) , is₁) , _∙₁_) , comm₁) ,
        assoc₁) , e₁) , lid₁) , rid₁) , _⁻¹₁) , linv₁) , rinv₁)

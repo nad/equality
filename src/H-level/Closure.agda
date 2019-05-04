@@ -55,8 +55,7 @@ abstract
   -- The empty type is propositional.
 
   ⊥-propositional : ∀ {ℓ} → Is-proposition (⊥ {ℓ = ℓ})
-  ⊥-propositional =
-    _⇔_.from propositional⇔irrelevant (λ x → ⊥-elim x)
+  ⊥-propositional x = ⊥-elim x
 
   -- Thus any uninhabited type is also propositional.
 
@@ -76,7 +75,7 @@ abstract
   ¬-Bool-propositional : ¬ Is-proposition Bool
   ¬-Bool-propositional propositional =
     Bool.true≢false $
-    (_⇔_.to propositional⇔irrelevant propositional) true false
+    propositional true false
 
   -- The booleans form a set.
 
@@ -91,8 +90,7 @@ abstract
   -- ℕ is not propositional.
 
   ¬-ℕ-propositional : ¬ Is-proposition ℕ
-  ¬-ℕ-propositional ℕ-prop =
-    0≢+ $ _⇔_.to propositional⇔irrelevant ℕ-prop 0 1
+  ¬-ℕ-propositional ℕ-prop = 0≢+ $ ℕ-prop 0 1
 
   -- ℕ is a set.
 
@@ -109,7 +107,7 @@ abstract
   -- Nat._≤_ is a family of propositions.
 
   ≤-propositional : ∀ {m n} → Is-proposition (m Nat.≤ n)
-  ≤-propositional = _⇔_.from propositional⇔irrelevant irr
+  ≤-propositional = irr
     where
     lemma : ∀ {m n k} → m ≡ n → m ≤ k → suc k ≡ n → ⊥₀
     lemma {m} {n} {k} m≡n m≤k 1+k≡n = <-irreflexive (
@@ -134,9 +132,8 @@ abstract
             (subst (_ ≤_) k₁≡k₂ p₁ , subst (λ k → suc k ≡ _) k₁≡k₂ q₁)  ≡⟨ cong₂ _,_ p-eq q-eq ⟩∎
             (p₂ , q₂)                                                   ∎))
 
-    irr : ∀ {m n} → Proof-irrelevant (m Nat.≤ n)
-    irr (≤-refl′ q₁)    (≤-refl′ q₂)    = cong ≤-refl′ $
-                                            _⇔_.to set⇔UIP ℕ-set q₁ q₂
+    irr : ∀ {m n} → Is-proposition (m Nat.≤ n)
+    irr (≤-refl′ q₁)    (≤-refl′ q₂)    = cong ≤-refl′ $ ℕ-set q₁ q₂
     irr (≤-refl′ q₁)    (≤-step′ p₂ q₂) = ⊥-elim (lemma q₁ p₂ q₂)
     irr (≤-step′ p₁ q₁) (≤-refl′ q₂)    = ⊥-elim (lemma q₂ p₁ q₁)
 
@@ -146,7 +143,7 @@ abstract
                                 n       ≡⟨ sym q₂ ⟩∎
                                 suc k₂  ∎))
                    (irr _ p₂)
-                   (_⇔_.to set⇔UIP ℕ-set _ _)
+                   (ℕ-set _ _)
 
   -- Nat.Distinct is not a family of contractible types.
 
@@ -254,16 +251,26 @@ abstract
     to : {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
     to = proj₁ ext′
 
+-- H-level′ is closed under Π A (assuming extensionality).
+
+Π-closure′ :
+  ∀ {a b} {A : Set a} {B : A → Set b} →
+  Extensionality a b →
+  ∀ n → (∀ x → H-level′ n (B x)) → H-level′ n ((x : A) → B x)
+Π-closure′ ext zero =
+  _⇔_.from Π-closure-contractible⇔extensionality (apply-ext ext)
+Π-closure′ ext (suc n) = λ h f g →
+  respects-surjection′ (ext-surj ext) n $
+    Π-closure′ ext n (λ x → h x (f x) (g x))
+
 -- H-level is closed under Π A (assuming extensionality).
 
 Π-closure : ∀ {a b} {A : Set a} {B : A → Set b} →
             Extensionality a b →
             ∀ n → (∀ x → H-level n (B x)) → H-level n ((x : A) → B x)
-Π-closure ext zero =
-  _⇔_.from Π-closure-contractible⇔extensionality (apply-ext ext)
-Π-closure ext (suc n) = λ h f g →
-  respects-surjection (ext-surj ext) n $
-    Π-closure ext n (λ x → h x (f x) (g x))
+Π-closure ext n h =
+  _⇔_.from H-level⇔H-level′ $
+  Π-closure′ ext n (λ x → _⇔_.to H-level⇔H-level′ (h x))
 
 -- This also applies to the implicit function space.
 
@@ -291,11 +298,12 @@ abstract
 
 abstract
 
-  -- H-level is closed under Σ.
+  -- H-level′ is closed under Σ.
 
-  Σ-closure : ∀ {a b} {A : Set a} {B : A → Set b} n →
-              H-level n A → (∀ x → H-level n (B x)) → H-level n (Σ A B)
-  Σ-closure {A = A} {B} zero (x , irrA) hB =
+  Σ-closure′ :
+    ∀ {a b} {A : Set a} {B : A → Set b} n →
+    H-level′ n A → (∀ x → H-level′ n (B x)) → H-level′ n (Σ A B)
+  Σ-closure′ {A = A} {B} zero (x , irrA) hB =
     ((x , proj₁ (hB x)) , λ p →
        (x       , proj₁ (hB x))          ≡⟨ elim (λ {x y} _ → _≡_ {A = Σ A B} (x , proj₁ (hB x))
                                                                               (y , proj₁ (hB y)))
@@ -303,11 +311,20 @@ abstract
                                                  (irrA (proj₁ p)) ⟩
        (proj₁ p , proj₁ (hB (proj₁ p)))  ≡⟨ cong (_,_ (proj₁ p)) (proj₂ (hB (proj₁ p)) (proj₂ p)) ⟩∎
        p                                 ∎)
-  Σ-closure {B = B} (suc n) hA hB = λ p₁ p₂ →
-    respects-surjection (_↔_.surjection Σ-≡,≡↔≡) n $
-      Σ-closure n (hA (proj₁ p₁) (proj₁ p₂))
+  Σ-closure′ {B = B} (suc n) hA hB = λ p₁ p₂ →
+    respects-surjection′ (_↔_.surjection Σ-≡,≡↔≡) n $
+      Σ-closure′ n (hA (proj₁ p₁) (proj₁ p₂))
         (λ pr₁p₁≡pr₁p₂ →
            hB (proj₁ p₂) (subst B pr₁p₁≡pr₁p₂ (proj₂ p₁)) (proj₂ p₂))
+
+  -- H-level is closed under Σ.
+
+  Σ-closure : ∀ {a b} {A : Set a} {B : A → Set b} n →
+              H-level n A → (∀ x → H-level n (B x)) → H-level n (Σ A B)
+  Σ-closure n hA hB =
+    _⇔_.from H-level⇔H-level′
+      (Σ-closure′ n (_⇔_.to H-level⇔H-level′ hA)
+                    (_⇔_.to H-level⇔H-level′ ∘ hB))
 
   -- In the case of contractibility the codomain only needs to have
   -- the right h-level (0) for a single index.
@@ -411,7 +428,7 @@ abstract
     n
     (Σ-closure n (⇔-closure ext n hA hB) λ _ →
      Π-closure (lower-extensionality a a ext) n λ _ →
-     mono₁ n hB _ _)
+     +⇒≡ (mono₁ n hB))
 
 ↔-closure :
   ∀ {a b} {A : Set a} {B : Set b} →
@@ -430,7 +447,7 @@ abstract
     n
     (Σ-closure n (↠-closure ext n hA hB) λ _ →
      Π-closure (lower-extensionality b b ext) n λ _ →
-     mono₁ n hA _ _)
+     +⇒≡ (mono₁ n hA))
 
 ------------------------------------------------------------------------
 -- Lifted types
@@ -523,17 +540,25 @@ abstract
   -- However, all positive h-levels are closed under W (assuming
   -- extensionality).
 
+  W-closure′ :
+    ∀ {a b} {A : Set a} {B : A → Set b} →
+    Extensionality b (a ⊔ b) →
+    ∀ n → H-level′ (1 + n) A → H-level′ (1 + n) (W A B)
+  W-closure′ {A = A} {B} ext n h = closure
+    where
+    closure : (x y : W A B) → H-level′ n (x ≡ y)
+    closure (sup x f) (sup y g) =
+      respects-surjection′ (W-≡,≡↠≡ ext) n $
+        Σ-closure′ n (h x y) (λ _ →
+          Π-closure′ ext n (λ i → closure (f _) (g _)))
+
   W-closure :
     ∀ {a b} {A : Set a} {B : A → Set b} →
     Extensionality b (a ⊔ b) →
     ∀ n → H-level (1 + n) A → H-level (1 + n) (W A B)
-  W-closure {A = A} {B} ext n h = closure
-    where
-    closure : (x y : W A B) → H-level n (x ≡ y)
-    closure (sup x f) (sup y g) =
-      respects-surjection (W-≡,≡↠≡ ext) n $
-        Σ-closure n (h x y) (λ _ →
-          Π-closure ext n (λ i → closure (f _) (g _)))
+  W-closure ext n h =
+    _⇔_.from H-level⇔H-level′
+      (W-closure′ ext n (_⇔_.to H-level⇔H-level′ h))
 
 ------------------------------------------------------------------------
 -- H-levels
@@ -556,7 +581,7 @@ abstract
     x = proj₁ contr
 
     contr₁ : Contractible (∀ y → x ≡ y)
-    contr₁ = Π-closure ext 0 (mono₁ 0 contr x)
+    contr₁ = Π-closure′ ext 0 (mono₁′ 0 contr x)
 
     contr₂ : (x : A) → Contractible (∀ y → x ≡ y)
     contr₂ x =
@@ -580,41 +605,57 @@ abstract
   Contractible-propositional ext =
     [inhabited⇒contractible]⇒propositional (cojoin ext)
 
-  -- All h-levels are propositional (assuming extensionality).
+  -- H-level′ is pointwise propositional (assuming extensionality).
 
-  H-level-propositional :
+  H-level′-propositional :
     ∀ {a} → Extensionality a a →
-    ∀ {A : Set a} n → Is-proposition (H-level n A)
-  H-level-propositional     ext zero    = Contractible-propositional ext
-  H-level-propositional {A} ext (suc n) =
-    Π-closure ext 1 λ x →
-    Π-closure ext 1 λ y →
-    H-level-propositional ext {A = x ≡ y} n
+    ∀ {A : Set a} n → Is-proposition (H-level′ n A)
+  H-level′-propositional ext zero =
+    Contractible-propositional ext
+  H-level′-propositional {A} ext (suc n) =
+    _⇔_.from H-level⇔H-level′ $
+    Π-closure′ ext 1 λ x →
+    Π-closure′ ext 1 λ y →
+    _⇔_.to H-level⇔H-level′ $
+    H-level′-propositional ext {A = x ≡ y} n
 
-  -- The property Proof-irrelevant A is a proposition (assuming
+  -- The property Is-proposition A is a proposition (assuming
   -- extensionality).
   --
   -- This result is proved in the HoTT book (first edition,
   -- Lemma 3.3.5).
 
-  Proof-irrelevant-propositional :
+  Is-proposition-propositional :
     ∀ {a} {A : Set a} → Extensionality a a →
-    Is-proposition (Proof-irrelevant A)
-  Proof-irrelevant-propositional ext = [inhabited⇒+]⇒+ 0 λ irr →
-    Π-closure ext 1 λ x →
-    Π-closure ext 1 λ y →
-    mono₁ 0 (_⇔_.from propositional⇔irrelevant irr x y)
+    Is-proposition (Is-proposition A)
+  Is-proposition-propositional ext = [inhabited⇒+]⇒+ 0 λ p →
+    Π-closure ext 1 λ _ →
+    Π-closure ext 1 λ _ →
+    mono₁ 0 (+⇒≡ p)
 
-  -- The property Uniqueness-of-identity-proofs A is a proposition
+  -- All h-levels are propositional (assuming extensionality).
+
+  H-level-propositional :
+    ∀ {a} → Extensionality a a →
+    ∀ {A : Set a} n → Is-proposition (H-level n A)
+  H-level-propositional ext zero =
+    Contractible-propositional ext
+  H-level-propositional ext (suc zero) =
+    Is-proposition-propositional ext
+  H-level-propositional {A} ext (suc (suc n)) =
+    implicit-Π-closure ext 1 λ x →
+    implicit-Π-closure ext 1 λ y →
+    H-level-propositional ext {A = x ≡ y} (suc n)
+
+  -- Uniqueness-of-identity-proofs is pointwise propositional
   -- (assuming extensionality).
 
   UIP-propositional :
-    ∀ {a} {A : Set a} → Extensionality a a →
-    Is-proposition (Uniqueness-of-identity-proofs A)
-  UIP-propositional ext = [inhabited⇒+]⇒+ 0 λ irr →
-    implicit-Π-closure ext 1 λ x →
-    implicit-Π-closure ext 1 λ y →
-    Proof-irrelevant-propositional ext
+    ∀ {ℓ} → Extensionality (lsuc ℓ) ℓ →
+    Is-proposition (Uniqueness-of-identity-proofs ℓ)
+  UIP-propositional ext =
+    implicit-Π-closure ext 1 λ A →
+    H-level-propositional (lower-extensionality _ lzero ext) 2
 
 ------------------------------------------------------------------------
 -- Binary sums
@@ -653,8 +694,7 @@ abstract
 
   ¬-⊎-propositional : ∀ {a b} {A : Set a} {B : Set b} →
                       A → B → ¬ Is-proposition (A ⊎ B)
-  ¬-⊎-propositional {A = A} {B} x y hA⊎B =
-    ⊎.inj₁≢inj₂ {A = A} {B = B} $ proj₁ $ hA⊎B (inj₁ x) (inj₂ y)
+  ¬-⊎-propositional x y hA⊎B = ⊎.inj₁≢inj₂ $ hA⊎B (inj₁ x) (inj₂ y)
 
   ¬-⊎-closure : ∀ {a b} →
     ¬ (∀ {A : Set a} {B : Set b} n →
@@ -695,14 +735,11 @@ abstract
     ∀ {a b} {A : Set a} {B : Set b} →
     (A → B → ⊥₀) →
     Is-proposition A → Is-proposition B → Is-proposition (A ⊎ B)
-  ⊎-closure-propositional A→B→⊥ A-prop B-prop =
-    _⇔_.from propositional⇔irrelevant λ where
-      (inj₁ a₁) (inj₁ a₂) → cong inj₁ (_⇔_.to propositional⇔irrelevant
-                                         A-prop a₁ a₂)
-      (inj₁ a₁) (inj₂ b₂) → ⊥-elim (A→B→⊥ a₁ b₂)
-      (inj₂ b₁) (inj₁ a₂) → ⊥-elim (A→B→⊥ a₂ b₁)
-      (inj₂ b₁) (inj₂ b₂) → cong inj₂ (_⇔_.to propositional⇔irrelevant
-                                         B-prop b₁ b₂)
+  ⊎-closure-propositional A→B→⊥ A-prop B-prop = λ where
+    (inj₁ a₁) (inj₁ a₂) → cong inj₁ (A-prop a₁ a₂)
+    (inj₁ a₁) (inj₂ b₂) → ⊥-elim (A→B→⊥ a₁ b₂)
+    (inj₂ b₁) (inj₁ a₂) → ⊥-elim (A→B→⊥ a₂ b₁)
+    (inj₂ b₁) (inj₂ b₂) → cong inj₂ (B-prop b₁ b₂)
 
   -- All levels greater than or equal to 2 are also closed under
   -- Maybe.
@@ -720,15 +757,11 @@ abstract
     ∀ {a} {A : Set a} →
     Extensionality a lzero →
     Is-proposition A → Is-proposition (Dec A)
-  Dec-closure-propositional {A = A} ext p =
-    _⇔_.from propositional⇔irrelevant irrelevant
-    where
-    irrelevant : Proof-irrelevant (Dec A)
-    irrelevant (yes  a) (yes  a′) = cong yes $ proj₁ $ p a a′
-    irrelevant (yes  a) (no  ¬a)  = ⊥-elim (¬a a)
-    irrelevant (no  ¬a) (yes  a)  = ⊥-elim (¬a a)
-    irrelevant (no  ¬a) (no  ¬a′) =
-      cong no $ proj₁ $ ¬-propositional ext ¬a ¬a′
+  Dec-closure-propositional {A = A} ext p = λ where
+    (yes  a) (yes  a′) → cong yes $ p a a′
+    (yes  a) (no  ¬a)  → ⊥-elim (¬a a)
+    (no  ¬a) (yes  a)  → ⊥-elim (¬a a)
+    (no  ¬a) (no  ¬a′) → cong no $ ¬-propositional ext ¬a ¬a′
 
   -- Is-proposition is also closed under _Xor_ (assuming
   -- extensionality).
@@ -738,20 +771,17 @@ abstract
     Extensionality (a ⊔ b) (# 0) →
     Is-proposition A → Is-proposition B →
     Is-proposition (A Xor B)
-  Xor-closure-propositional {ℓa} {ℓb} {A} {B} ext pA pB =
-    _⇔_.from propositional⇔irrelevant irr
-    where
-    irr : (x y : A Xor B) → x ≡ y
-    irr (inj₁ (a , ¬b)) (inj₂ (¬a  , b))   = ⊥-elim (¬a a)
-    irr (inj₂ (¬a , b)) (inj₁ (a   , ¬b))  = ⊥-elim (¬b b)
-    irr (inj₁ (a , ¬b)) (inj₁ (a′  , ¬b′)) =
+  Xor-closure-propositional {ℓa} {ℓb} {A} {B} ext pA pB = λ where
+    (inj₁ (a , ¬b)) (inj₂ (¬a  , b))   → ⊥-elim (¬a a)
+    (inj₂ (¬a , b)) (inj₁ (a   , ¬b))  → ⊥-elim (¬b b)
+    (inj₁ (a , ¬b)) (inj₁ (a′  , ¬b′)) →
       cong₂ (λ x y → inj₁ (x , y))
-        (_⇔_.to propositional⇔irrelevant pA a a′)
+        (pA a a′)
         (apply-ext (lower-extensionality ℓa _ ext) λ b → ⊥-elim (¬b b))
-    irr (inj₂ (¬a , b)) (inj₂ (¬a′ , b′)) =
+    (inj₂ (¬a , b)) (inj₂ (¬a′ , b′)) →
       cong₂ (λ x y → inj₂ (x , y))
         (apply-ext (lower-extensionality ℓb _ ext) λ a → ⊥-elim (¬a a))
-        (_⇔_.to propositional⇔irrelevant pB b b′)
+        (pB b b′)
 
   -- However, H-level is not closed under _Xor_.
 
@@ -774,12 +804,11 @@ abstract
 
     ⊎-closure-set : {A B : Set} →
                     Is-set A → Is-set B → Is-set (A ⊎ B)
-    ⊎-closure-set {A} {B} A-set B-set =
-      _⇔_.from set⇔UIP (DUIP.constant⇒UIP c)
+    ⊎-closure-set {A} {B} A-set B-set = DUIP.constant⇒set c
       where
       c : (x y : A ⊎ B) → ∃ λ (f : x ≡ y → x ≡ y) → DUIP.Constant f
-      c (inj₁ x) (inj₁ y) = (cong inj₁ ∘ ⊎.cancel-inj₁ , λ p q → cong (cong inj₁) $ proj₁ $ A-set x y (⊎.cancel-inj₁ p) (⊎.cancel-inj₁ q))
-      c (inj₂ x) (inj₂ y) = (cong inj₂ ∘ ⊎.cancel-inj₂ , λ p q → cong (cong inj₂) $ proj₁ $ B-set x y (⊎.cancel-inj₂ p) (⊎.cancel-inj₂ q))
+      c (inj₁ x) (inj₁ y) = (cong inj₁ ∘ ⊎.cancel-inj₁ , λ p q → cong (cong inj₁) $ A-set (⊎.cancel-inj₁ p) (⊎.cancel-inj₁ q))
+      c (inj₂ x) (inj₂ y) = (cong inj₂ ∘ ⊎.cancel-inj₂ , λ p q → cong (cong inj₂) $ B-set (⊎.cancel-inj₂ p) (⊎.cancel-inj₂ q))
       c (inj₁ x) (inj₂ y) = (⊥-elim ∘ ⊎.inj₁≢inj₂       , λ _ → ⊥-elim ∘ ⊎.inj₁≢inj₂)
       c (inj₂ x) (inj₁ y) = (⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym , λ _ → ⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym)
 
@@ -793,7 +822,7 @@ abstract
     ⊎-closure′ {A} {B} (suc n) = clos
       where
       clos : H-level (3 + n) A → H-level (3 + n) B → H-level (3 + n) (A ⊎ B)
-      clos hA hB (inj₁ x) (inj₁ y) = respects-surjection (_↔_.surjection ≡↔inj₁≡inj₁) (2 + n) (hA x y)
-      clos hA hB (inj₂ x) (inj₂ y) = respects-surjection (_↔_.surjection ≡↔inj₂≡inj₂) (2 + n) (hB x y)
-      clos hA hB (inj₁ x) (inj₂ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂
-      clos hA hB (inj₂ x) (inj₁ y) = ⊥-elim ∘ ⊎.inj₁≢inj₂ ∘ sym
+      clos hA hB {x = inj₁ x} {y = inj₁ y}         = respects-surjection (_↔_.surjection ≡↔inj₁≡inj₁) (2 + n) hA
+      clos hA hB {x = inj₂ x} {y = inj₂ y}         = respects-surjection (_↔_.surjection ≡↔inj₂≡inj₂) (2 + n) hB
+      clos hA hB {x = inj₁ x} {y = inj₂ y} {x = p} = ⊥-elim (⊎.inj₁≢inj₂ p)
+      clos hA hB {x = inj₂ x} {y = inj₁ y} {x = p} = ⊥-elim (⊎.inj₁≢inj₂ (sym p))

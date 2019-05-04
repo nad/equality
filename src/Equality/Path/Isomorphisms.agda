@@ -180,10 +180,10 @@ H-level↔H-level {A = A} zero =
   PH.H-level 0 A                 □
 
 H-level↔H-level {A = A} (suc n) =
-  H-level (suc n) A                 ↔⟨⟩
+  H-level (suc n) A                 ↝⟨ inverse $ ≡↔+ _ ext ⟩
   (∀ x y → H-level n (x ≡ y))       ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level-cong ext _ ≡↔≡) ⟩
   (∀ x y → H-level n (x P.≡ y))     ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level↔H-level n) ⟩
-  (∀ x y → PH.H-level n (x P.≡ y))  ↔⟨⟩
+  (∀ x y → PH.H-level n (x P.≡ y))  ↝⟨ ↔→↔ $ PF.≡↔+ _ P.ext ⟩
   PH.H-level (suc n) A              □
 
 abstract
@@ -382,26 +382,6 @@ cong-≡↔≡ {f = f} {eq₁ = eq₁} {eq₂} hyp =
   _↔_.from ≡↔≡ $ P.cong f eq₁    ≡⟨ cong (_↔_.from ≡↔≡) hyp ⟩
   _↔_.from ≡↔≡ $ _↔_.to ≡↔≡ eq₂  ≡⟨ _↔_.left-inverse-of ≡↔≡ _ ⟩∎
   eq₂                            ∎
-
--- There is an isomorphism between Is-proposition A (as defined using
--- equality) and Proof-irrelevant A (as defined using paths).
-
-propositional↔irrelevant :
-  Is-proposition A ↔ P.Proof-irrelevant A
-propositional↔irrelevant {A = A} =
-  Is-proposition A      ↝⟨ H-level↔H-level _ ⟩
-  PH.Is-proposition A   ↝⟨ ↔→↔ $ PE._≃_.bijection $ PF.propositional≃irrelevant P.ext ⟩□
-  P.Proof-irrelevant A  □
-
--- There is an isomorphism between Is-set A (as defined using
--- equality) and Uniqueness-of-identity-proofs A (as defined using
--- paths).
-
-set↔UIP : Is-set A ↔ P.Uniqueness-of-identity-proofs A
-set↔UIP {A = A} =
-  Is-set A                           ↝⟨ H-level↔H-level _ ⟩
-  PH.Is-set A                        ↝⟨ ↔→↔ $ PE._≃_.bijection $ PF.set≃UIP P.ext ⟩□
-  P.Uniqueness-of-identity-proofs A  □
 
 ------------------------------------------------------------------------
 -- Univalence
