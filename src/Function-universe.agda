@@ -2160,6 +2160,36 @@ private
   helper bijection           ext = Π-cong-contra-↔ ext      A₂↝A₁ ⊚ (_$ equivalence)
   helper equivalence         ext = Π-cong-contra-≃ ext      A₂↝A₁ ⊚ (_$ equivalence)
 
+-- A variant of Π-cong for implicit Πs.
+
+implicit-Π-cong :
+  ∀ {k₁ k₂ a₁ a₂ b₁ b₂} →
+  Extensionality? k₂ (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+  {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
+  (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
+  ({x : A₁} → B₁ x) ↝[ k₂ ] ({x : A₂} → B₂ x)
+implicit-Π-cong ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ =
+  ({x : A₁} → B₁ x)  ↔⟨ Bijection.implicit-Π↔Π ⟩
+  ((x : A₁) → B₁ x)  ↝⟨ Π-cong ext A₁↔A₂ B₁↝B₂ ⟩
+  ((x : A₂) → B₂ x)  ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
+  ({x : A₂} → B₂ x)  □
+
+-- A variant of Π-cong-contra for implicit Πs.
+
+implicit-Π-cong-contra :
+  ∀ {k₁ k₂ a₁ a₂ b₁ b₂} →
+  Extensionality? k₂ (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+  {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₂↔A₁ : A₂ ↔[ k₁ ] A₁) →
+  (∀ x → B₁ (to-implication A₂↔A₁ x) ↝[ k₂ ] B₂ x) →
+  ({x : A₁} → B₁ x) ↝[ k₂ ] ({x : A₂} → B₂ x)
+implicit-Π-cong-contra ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ =
+  ({x : A₁} → B₁ x)  ↔⟨ Bijection.implicit-Π↔Π ⟩
+  ((x : A₁) → B₁ x)  ↝⟨ Π-cong-contra ext A₁↔A₂ B₁↝B₂ ⟩
+  ((x : A₂) → B₂ x)  ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
+  ({x : A₂} → B₂ x)  □
+
 Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
 Π-left-identity = record
   { surjection = record
