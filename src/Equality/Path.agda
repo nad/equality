@@ -91,7 +91,6 @@ fill :
   ∀ i → P i
 fill P {φ} u u₀ i =
   comp (λ j → P (min i j))
-       _
        (λ j → λ { (φ = 1̲) → u (min i j) is-one
                 ; (i = 0̲) → outˢ u₀
                 })
@@ -512,7 +511,6 @@ transport∘transport :
   transport (λ i → P (- i)) 0̲ (transport P 0̲ p) ≡ p
 transport∘transport P {p} = hsym λ i →
   comp (λ j → P (min i (- j)))
-       _
        (λ j → λ { (i = 0̲) → p
                 ; (i = 1̲) → transport (λ k → P (- min j k)) (- j)
                               (transport P 0̲ p)
@@ -604,7 +602,6 @@ heterogeneous↔homogeneous P {p} {q} = record
     htransʳ p≡p′ (to p≡q) ≡ p≡q
   left-inverse-of p≡q = λ j i →
     comp (λ k → P (min i (max (- j) k)))
-         _
          (λ k → λ { (i = 0̲) → p
                   ; (i = 1̲) → to≡id p≡q j k
                   ; (j = 0̲) → p≡p′≡htransʳ-p≡p′-to p≡q k i
@@ -631,7 +628,6 @@ heterogeneous↔homogeneous P {p} {q} = record
   to-p≡p′≡refl : to p≡p′ ≡ refl
   to-p≡p′≡refl = λ j i →
     comp (λ k → P (max (min i (- j)) k))
-         _
          (λ k → λ { (i = 0̲) → p≡p′ k
                   ; (i = 1̲) → hsym (refl≡ (hsym p≡p′)) k j
                   ; (j = 0̲) → hsym (to≡id p≡p′) k i
