@@ -1188,6 +1188,20 @@ module Derived-definitions-and-properties
                                                                   (sym $ cong-refl f) ⟩∎
         trans (subst-const (refl x)) (cong f (refl x))   ∎)
 
+    -- A corollary.
+
+    dependent-cong≡→cong≡ :
+      ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {x y} {x≡y : x ≡ y} {fx≡fy : f x ≡ f y} →
+      dependent-cong f x≡y ≡ trans (subst-const _) fx≡fy →
+      cong f x≡y ≡ fx≡fy
+    dependent-cong≡→cong≡ {f = f} {x≡y = x≡y} {fx≡fy} hyp =
+      cong f x≡y                                                        ≡⟨ sym $ trans-sym-[trans] _ _ ⟩
+      trans (sym $ subst-const _) (trans (subst-const _) $ cong f x≡y)  ≡⟨ cong (trans (sym $ subst-const _)) $ sym $
+                                                                           dependent-cong-subst-const-cong _ _ ⟩
+      trans (sym $ subst-const _) (dependent-cong f x≡y)                ≡⟨ cong (trans (sym $ subst-const _)) hyp ⟩
+      trans (sym $ subst-const _) (trans (subst-const _) fx≡fy)         ≡⟨ trans-sym-[trans] _ _ ⟩∎
+      fx≡fy                                                             ∎
+
   -- An equality between pairs can be proved using a pair of
   -- equalities.
 
