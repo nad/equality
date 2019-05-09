@@ -934,6 +934,35 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
 
         _↔_.from (equality-characterisation₁ ext) Ry≡P                  ∎
 
+  -- A variant of elim that can be used if the motive composed with
+  -- [_] is a family of propositions.
+  --
+  -- I took the idea for this eliminator from Nicolai Kraus.
+
+  elim-Prop :
+    (ext : Extensionality (lsuc (lsuc a)) (lsuc a))
+    (strong-equivalence : Strong-equivalence-with surjection R)
+    (B : A / R → Set (lsuc a)) →
+    (∀ x → Is-proposition (B [ x ])) →
+    (f : ∀ x → B [ x ]) →
+    ∀ x → B x
+  elim-Prop ext strong-equivalence B B-prop f x = elim
+    ext
+    strong-equivalence
+    B
+    (elim
+        ext
+        strong-equivalence
+        _
+        (λ _ → mono₁ 1 $ H-level-propositional ext′ 2)
+        (mono₁ 1 ∘ B-prop)
+        (λ _ → H-level-propositional ext′ 2 _ _))
+    f
+    (λ _ → B-prop _ _ _)
+    x
+    where
+    ext′ = lower-extensionality _ lzero ext
+
 ------------------------------------------------------------------------
 -- An example
 
