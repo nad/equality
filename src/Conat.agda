@@ -9,7 +9,7 @@ module Conat where
 open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (_+_; _∸_; _*_)
-open import Size
+open import Prelude.Size
 
 open import Function-universe equality-with-J hiding (_∘_)
 open import Nat equality-with-J as Nat using (_≤_)

@@ -15,7 +15,7 @@ open import Prelude
 
 open import List equality-with-J
 open import Monad equality-with-J
-open import Reflection equality-with-J
+open import TC-monad equality-with-J
 
 ------------------------------------------------------------------------
 -- The by tactic

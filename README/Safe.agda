@@ -12,7 +12,7 @@ import Prelude
 
 -- Support for sized types.
 
-import Size
+import Prelude.Size
 
 -- Logical equivalences.
 
@@ -212,7 +212,7 @@ import Const
 
 -- Support for reflection.
 
-import Reflection
+import TC-monad
 
 -- Some tactics aimed at making equational reasoning proofs more
 -- readable.
@@ -307,7 +307,7 @@ import Container.Stream
 
 -- Record types with manifest fields and "with".
 
-import Record
+import Records-with-with
 
 -- Overview of code related to some papers.
 

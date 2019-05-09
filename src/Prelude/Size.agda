@@ -4,7 +4,7 @@
 
 {-# OPTIONS --without-K --safe --sized-types #-}
 
-module Size where
+module Prelude.Size where
 
 open import Agda.Builtin.Size public
   using (Size; Size<_; ∞)

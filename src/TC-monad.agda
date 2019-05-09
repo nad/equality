@@ -6,7 +6,7 @@
 
 open import Equality
 
-module Reflection
+module TC-monad
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 import Agda.Builtin.Bool as B

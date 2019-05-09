@@ -13,7 +13,7 @@ import Equality.Propositional.Rewriting
 
 -- IO.
 
-import IO
+import IO-monad
 
 -- Strings.
 

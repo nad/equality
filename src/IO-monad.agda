@@ -4,7 +4,7 @@
 
 {-# OPTIONS --without-K #-}
 
-module IO where
+module IO-monad where
 
 open import Equality.Propositional
 open import Prelude

@@ -15,7 +15,8 @@ open import List equality-with-J using (foldr)
 -- The module is parametrised by the type of labels, which should come
 -- with decidable equality.
 
-module Record (Label : Set) (_≟_ : Decidable-equality Label) where
+module Records-with-with
+  (Label : Set) (_≟_ : Decidable-equality Label) where
 
 ------------------------------------------------------------------------
 -- A Σ-type with a manifest field
