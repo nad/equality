@@ -35,6 +35,7 @@ open import H-level eq as H-level
 open import H-level.Closure eq
 open import H-level.Truncation eq as Trunc hiding (rec)
 open import Nat eq as Nat
+open import Surjection eq using (_↠_)
 open import Univalence-axiom eq
 
 ------------------------------------------------------------------------
@@ -52,11 +53,55 @@ record Is-equivalence-relation
 ------------------------------------------------------------------------
 -- Strong equivalence relations
 
--- A strengthening of the concept of "equivalence relation".
+mutual
 
-Strong-equivalence : ∀ {a r} {A : Set a} →
-                     (A → A → Set r) → Set (a ⊔ lsuc r)
-Strong-equivalence R = ∀ {x y} → R x y ≃ (R x ≡ R y)
+  -- A strengthening of the concept of "equivalence relation".
+
+  Strong-equivalence :
+    ∀ {a r} {A : Set a} →
+    (A → A → Set r) → Set (a ⊔ lsuc r)
+  Strong-equivalence = Strong-equivalence-with equivalence
+
+  -- A generalisation of "strong equivalence".
+
+  Strong-equivalence-with :
+    ∀ {a r} {A : Set a} →
+    Kind → (A → A → Set r) → Set (a ⊔ lsuc r)
+  Strong-equivalence-with k R = ∀ {x y} → R x y ↝[ k ] (R x ≡ R y)
+
+-- Strong equivalence relations (with equivalence) are strong
+-- equivalence relations with any kind.
+
+strong-equivalence⇒strong-equivalence-with :
+  ∀ {k a r} {A : Set a} {R : A → A → Set r} →
+  Strong-equivalence R → Strong-equivalence-with k R
+strong-equivalence⇒strong-equivalence-with strong-equivalence =
+  from-equivalence strong-equivalence
+
+-- Strong equivalence relations with logical equivalence are
+-- equivalence relations.
+
+strong-equivalence-with-⇔⇒equivalence :
+  ∀ {a r} {A : Set a} {R : A → A → Set r} →
+  Strong-equivalence-with logical-equivalence R →
+  Is-equivalence-relation R
+strong-equivalence-with-⇔⇒equivalence {R = R} strong-equivalence =
+  record
+    { reflexive = λ {x} →
+                   $⟨ refl (R x) ⟩
+        R x ≡ R x  ↝⟨ to-implication $ inverse strong-equivalence ⟩□
+        R x x      □
+    ; symmetric = λ {x y} →
+        R x y      ↝⟨ to-implication strong-equivalence ⟩
+        R x ≡ R y  ↝⟨ sym ⟩
+        R y ≡ R x  ↝⟨ to-implication $ inverse strong-equivalence ⟩□
+        R y x      □
+    ; transitive = λ {x y z} Rxy Ryz →
+       to-implication (inverse strong-equivalence) (
+         R x  ≡⟨ to-implication strong-equivalence Rxy ⟩
+         R y  ≡⟨ to-implication strong-equivalence Ryz ⟩∎
+         R z  ∎)
+    }
 
 -- Strong equivalence relations are equivalence relations.
 
@@ -64,22 +109,9 @@ strong-equivalence⇒equivalence :
   ∀ {a r} {A : Set a} {R : A → A → Set r} →
   Strong-equivalence R →
   Is-equivalence-relation R
-strong-equivalence⇒equivalence {R = R} strong-equivalence = record
-  { reflexive = λ {x} →
-                 $⟨ refl (R x) ⟩
-      R x ≡ R x  ↝⟨ _≃_.from strong-equivalence ⟩□
-      R x x      □
-  ; symmetric = λ {x y} →
-      R x y      ↝⟨ _≃_.to strong-equivalence ⟩
-      R x ≡ R y  ↝⟨ sym ⟩
-      R y ≡ R x  ↝⟨ _≃_.from strong-equivalence ⟩□
-      R y x      □
-  ; transitive = λ {x y z} Rxy Ryz →
-     _≃_.from strong-equivalence (
-       R x  ≡⟨ _≃_.to strong-equivalence Rxy ⟩
-       R y  ≡⟨ _≃_.to strong-equivalence Ryz ⟩∎
-       R z  ∎)
-  }
+strong-equivalence⇒equivalence =
+  strong-equivalence-with-⇔⇒equivalence ∘
+  strong-equivalence⇒strong-equivalence-with
 
 -- A relation that is an equivalence relation, and a family of
 -- propositions, is a strong equivalence relation (assuming
@@ -272,27 +304,27 @@ strong-equivalence-not-closed-under-on ext univ₁ univ₀ =
     contradiction : ⊥
     contradiction = from-⊎ ((3 !) Nat.≟ (3 ! !)) 3!≡3!!
 
--- However, Strong-equivalence is closed under _on f when f is an
--- equivalence (assuming extensionality).
+-- However, Strong-equivalence-with k is closed under _on f when f is
+-- an equivalence (assuming extensionality).
 
-strong-equivalence-closed-under-on :
-  ∀ {a b r} {A : Set a} {B : Set b} {R : A → A → Set r} →
+strong-equivalence-with-closed-under-on :
+  ∀ {k a b r} {A : Set a} {B : Set b} {R : A → A → Set r} →
   Extensionality (a ⊔ b) (lsuc r) →
   (B≃A : B ≃ A) →
-  Strong-equivalence R →
-  Strong-equivalence (R on _≃_.to B≃A)
-strong-equivalence-closed-under-on
-  {a} {b} {R = R} ext B≃A strong-equivalence {x} {y} =
+  Strong-equivalence-with k R →
+  Strong-equivalence-with k (R on _≃_.to B≃A)
+strong-equivalence-with-closed-under-on
+  {a = a} {b} {R = R} ext B≃A strong-equivalence {x} {y} =
 
   R (f x) (f y)                                  ↝⟨ strong-equivalence ⟩
-  R (f x) ≡ R (f y)                              ↝⟨ F.id ⟩
-  (λ z → R (f x)    z)  ≡ (λ z → R (f y)    z)   ↝⟨ inverse $ Eq.extensionality-isomorphism
+  R (f x) ≡ R (f y)                              ↔⟨⟩
+  (λ z → R (f x)    z)  ≡ (λ z → R (f y)    z)   ↔⟨ inverse $ Eq.extensionality-isomorphism
                                                                 (lower-extensionality b lzero ext) ⟩
-  (∀ z → R (f x)    z   ≡        R (f y)    z)   ↝⟨ (Π-cong ext (inverse B≃A) λ z →
+  (∀ z → R (f x)    z   ≡        R (f y)    z)   ↔⟨ (Π-cong ext (inverse B≃A) λ z →
                                                      ≡⇒≃ $ cong₂ _≡_ (lemma x z) (lemma y z)) ⟩
-  (∀ z → R (f x) (f z)  ≡        R (f y) (f z))  ↝⟨ Eq.extensionality-isomorphism
+  (∀ z → R (f x) (f z)  ≡        R (f y) (f z))  ↔⟨ Eq.extensionality-isomorphism
                                                       (lower-extensionality a lzero ext) ⟩
-  (λ z → R (f x) (f z)) ≡ (λ z → R (f y) (f z))  ↝⟨ F.id ⟩□
+  (λ z → R (f x) (f z)) ≡ (λ z → R (f y) (f z))  ↔⟨⟩
   (R on f) x ≡ (R on f) y                        □
   where
   f   = _≃_.to   B≃A
@@ -651,39 +683,43 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
         ⊤ ↔ proj₁ x z             ↝⟨ Eq.↔⇒≃ ⟩□
         ⊤ ≃ proj₁ x z             □
 
-  -- If the relation is a strong equivalence relation, then it is
-  -- isomorphic to equality under [_] (assuming extensionality).
+  -- If the relation is a strong equivalence relation with k, then it
+  -- is k-related to equality under [_] (assuming extensionality).
 
-  related↔[equal] :
+  related↝[equal] :
+    ∀ {k} →
     Extensionality (lsuc (lsuc a)) (lsuc a) →
-    Strong-equivalence R →
-    ∀ {x y} → R x y ↔ [ x ] ≡ [ y ]
-  related↔[equal] ext strong-equivalence {x} {y} =
-    R x y          ↔⟨ strong-equivalence ⟩
-    R x ≡ R y      ↝⟨ inverse $ equality-characterisation₁ ext ⟩□
+    Strong-equivalence-with k R →
+    ∀ {x y} → R x y ↝[ k ] [ x ] ≡ [ y ]
+  related↝[equal] ext strong-equivalence {x} {y} =
+    R x y          ↝⟨ strong-equivalence ⟩
+    R x ≡ R y      ↔⟨ inverse $ equality-characterisation₁ ext ⟩□
     [ x ] ≡ [ y ]  □
 
-  -- If the relation is a strong equivalence relation, then functions
-  -- from quotients to sets are isomorphic to relation-respecting
-  -- functions (assuming extensionality).
+  -- If the relation is a strong equivalence relation with a symmetric
+  -- kind k, then functions from quotients to sets are k-related to
+  -- relation-respecting functions (assuming extensionality).
 
-  /→set↔relation-respecting :
+  /→set↝relation-respecting :
+    ∀ {k} →
     Extensionality (lsuc (lsuc a)) (lsuc (lsuc a)) →
-    Strong-equivalence R →
+    Strong-equivalence-with ⌊ k ⌋-sym R →
     {B : Set a} →
     Is-set B →
-    (A / R → B) ↔ ∃ λ (f : A → B) → ∀ x y → R x y → f x ≡ f y
-  /→set↔relation-respecting ext strong-equivalence {B = B} B-set =
+    (A / R → B)
+      ↝[ ⌊ k ⌋-sym ]
+    ∃ λ (f : A → B) → ∀ x y → R x y → f x ≡ f y
+  /→set↝relation-respecting {k} ext strong-equivalence {B = B} B-set =
 
-    ((∃ λ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _) → B)             ↝⟨ currying ⟩
+    ((∃ λ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _) → B)             ↔⟨ currying ⟩
 
     (∀ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _ → B)                 ↔⟨ (∀-cong (lower-extensionality _ lzero ext) λ P → inverse $
                                                               constant-function≃∥inhabited∥⇒inhabited
                                                                 lzero (lower-extensionality lzero _ ext) B-set) ⟩
-    (∀ P → ∃ λ (f : (∃ λ x → R x ≡ P) → B) → Constant f)  ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                              Σ-cong currying λ _ → F.id) ⟩
+    (∀ P → ∃ λ (f : (∃ λ x → R x ≡ P) → B) → Constant f)  ↔⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                              Σ-cong currying λ _ → Bij.id) ⟩
     (∀ P → ∃ λ (f : (x : A) → R x ≡ P → B) →
-               Constant (uncurry f))                      ↝⟨ ΠΣ-comm ⟩
+               Constant (uncurry f))                      ↔⟨ ΠΣ-comm ⟩
 
     (∃ λ (f : ∀ P → (x : A) → R x ≡ P → B) →
        ∀ P → Constant (uncurry (f P)))                    ↝⟨ Σ-cong Π-comm (λ _ → F.id) ⟩
@@ -705,48 +741,70 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
     where
 
     lemma = λ f →
-      (∀ x y → R x y → f x ≡ f y)                                    ↔⟨ (∀-cong (lower-extensionality _ _ ext) λ x →
-                                                                         ∀-cong (lower-extensionality _ _ ext) λ y →
-                                                                         →-cong (lower-extensionality _ _ ext) strong-equivalence F.id) ⟩
-      (∀ x y → R x ≡ R y → f x ≡ f y)                                ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+      (∀ x y → R x y → f x ≡ f y)                                    ↝⟨ (∀-cong (forget-ext? ⌊ k ⌋-sym $ lower-extensionality _ _ ext) λ x →
+                                                                         ∀-cong (forget-ext? ⌊ k ⌋-sym $ lower-extensionality _ _ ext) λ y →
+                                                                         →-cong (forget-ext? ⌊ k ⌋-sym $ lower-extensionality _ _ ext)
+                                                                                strong-equivalence
+                                                                                F.id) ⟩
+      (∀ x y → R x ≡ R y → f x ≡ f y)                                ↔⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                          ∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                          →-cong (lower-extensionality _ _ ext)
                                                                                 (Groupoid.⁻¹-bijection (EG.groupoid _))
                                                                                 F.id) ⟩
-      (∀ x y → R y ≡ R x → f x ≡ f y)                                ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+      (∀ x y → R y ≡ R x → f x ≡ f y)                                ↔⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                          inverse currying) ⟩
-      (∀ x (q : ∃ λ y → R y ≡ R x) → f x ≡ f (proj₁ q))              ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                         inverse $ drop-⊤-left-Π (lower-extensionality _ _ ext) $
+      (∀ x (q : ∃ λ y → R y ≡ R x) → f x ≡ f (proj₁ q))              ↔⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                                         inverse $ drop-⊤-left-Π {k = bijection} (lower-extensionality _ _ ext) $
                                                                          _⇔_.to contractible⇔↔⊤ $
                                                                          other-singleton-contractible _) ⟩
       (∀ x (Q : ∃ λ P → R x ≡ P) (q : ∃ λ x → R x ≡ proj₁ Q) →
-       f x ≡ f (proj₁ q))                                            ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+       f x ≡ f (proj₁ q))                                            ↔⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                          currying) ⟩
-      (∀ x P → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↝⟨ Π-comm ⟩
+      (∀ x P → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↔⟨ Π-comm ⟩
 
-      (∀ P x → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+      (∀ P x → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↔⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
                                                                          inverse currying) ⟩
-      (∀ P (p q : ∃ λ x → R x ≡ P) → f (proj₁ p) ≡ f (proj₁ q))      ↝⟨ F.id ⟩
+      (∀ P (p q : ∃ λ x → R x ≡ P) → f (proj₁ p) ≡ f (proj₁ q))      ↔⟨⟩
 
-      (∀ P → Constant (uncurry λ x _ → f x))                         ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                         ≡⇒↝ _ $ cong Constant $ apply-ext (lower-extensionality _ _ ext) λ _ →
+      (∀ P → Constant (uncurry λ x _ → f x))                         ↔⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
+                                                                         ≡⇒↝ bijection $ cong Constant $
+                                                                         apply-ext (lower-extensionality _ _ ext) λ _ →
                                                                          sym $ subst-const _) ⟩□
       (∀ P → Constant (uncurry λ x _ → subst (const B) _ (f x)))     □
 
-  -- "Computation rule" for /→set↔relation-respecting.
+  -- "Computation rule" for /→set↝relation-respecting.
 
-  proj₁-to-/→set↔relation-respecting :
+  proj₁-to-/→set↝relation-respecting :
+    ∀ {k}
     (ext : Extensionality (lsuc (lsuc a)) (lsuc (lsuc a)))
-    (strong-equivalence : Strong-equivalence R)
+    (strong-equivalence : Strong-equivalence-with ⌊ k ⌋-sym R)
     {B : Set a}
     (B-set : Is-set B)
     (f : A / R → B) →
-    proj₁ (_↔_.to (/→set↔relation-respecting
-                     ext strong-equivalence B-set) f)
+    proj₁ (to-implication
+             (/→set↝relation-respecting ext strong-equivalence B-set) f)
       ≡
     f ∘ [_]
-  proj₁-to-/→set↔relation-respecting ext _ {B} _ f =
-    apply-ext (lower-extensionality _ _ ext) λ x →
+  proj₁-to-/→set↝relation-respecting ext eq {B} B-set f =
+    apply-ext (lower-extensionality _ _ ext) (lemma _ eq)
+    where
+    lemma :
+      ∀ k (eq : Strong-equivalence-with ⌊ k ⌋-sym R) x →
+      proj₁
+        (to-implication (/→set↝relation-respecting ext eq B-set) f)
+        x
+        ≡
+      f [ x ]
+
+    lemma logical-equivalence _ x =
+      subst (const B) (refl _) (f [ x ])  ≡⟨ subst-refl _ _ ⟩∎
+      f [ x ]                             ∎
+
+    lemma bijection _ x =
+      subst (const B) (refl _) (f [ x ])  ≡⟨ subst-refl _ _ ⟩∎
+      f [ x ]                             ∎
+
+    lemma equivalence _ x =
       subst (const B) (refl _) (f [ x ])  ≡⟨ subst-refl _ _ ⟩∎
       f [ x ]                             ∎
 
@@ -792,18 +850,17 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
     rec-[] _ _ _ _ _ _ _ = refl _
 
   -- Eliminator (used to eliminate into sets). The eliminator uses
-  -- extensionality, and the assumption that the relation is a strong
-  -- equivalence relation. (The latter assumption could perhaps be
-  -- weakened.)
+  -- extensionality, and the assumption that the relation is a "strong
+  -- equivalence relation with split surjections".
 
   elim :
     (ext : Extensionality (lsuc (lsuc a)) (lsuc a))
-    (strong-equivalence : Strong-equivalence R)
+    (strong-equivalence : Strong-equivalence-with surjection R)
     (B : A / R → Set (lsuc a)) →
     (∀ x → Is-set (B x)) →
     (f : ∀ x → B [ x ]) →
     (∀ {x y} (Rxy : R x y) →
-       subst B (_↔_.to (related↔[equal]
+       subst B (_↠_.to (related↝[equal]
                           ext strong-equivalence) Rxy) (f x) ≡
        f y) →
     ∀ x → B x
@@ -827,12 +884,12 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
 
       subst B
             (_↔_.from (equality-characterisation₁ ext) Rx≡P)
-            (subst B (_↔_.to (related↔[equal]
+            (subst B (_↠_.to (related↝[equal]
                                 ext strong-equivalence) lemma₁)
                    (f y))                                             ≡⟨ subst-subst _ _ _ _ ⟩
 
       subst B
-            (trans (_↔_.to (related↔[equal]
+            (trans (_↠_.to (related↝[equal]
                               ext strong-equivalence) lemma₁)
                    (_↔_.from (equality-characterisation₁ ext) Rx≡P))
             (f y)                                                     ≡⟨ cong (λ eq → subst B eq _) lemma₄ ⟩∎
@@ -841,7 +898,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
             (_↔_.from (equality-characterisation₁ ext) Ry≡P)
             (f y)                                                     ∎
       where
-      lemma₁ = _≃_.from strong-equivalence (
+      lemma₁ = _↠_.from strong-equivalence (
          R y  ≡⟨ Ry≡P ⟩
          P    ≡⟨ sym Rx≡P ⟩∎
          R x  ∎)
@@ -853,27 +910,27 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
         refl (proj₁ x)                                    ∎
 
       lemma₃ =
-        trans (_≃_.to strong-equivalence lemma₁) Rx≡P                    ≡⟨⟩
+        trans (_↠_.to strong-equivalence lemma₁) Rx≡P                    ≡⟨⟩
 
-        trans (_≃_.to strong-equivalence
-                 (_≃_.from strong-equivalence (trans Ry≡P (sym Rx≡P))))
-              Rx≡P                                                       ≡⟨ cong (flip trans _) $ _≃_.right-inverse-of strong-equivalence _ ⟩
+        trans (_↠_.to strong-equivalence
+                 (_↠_.from strong-equivalence (trans Ry≡P (sym Rx≡P))))
+              Rx≡P                                                       ≡⟨ cong (flip trans _) $ _↠_.right-inverse-of strong-equivalence _ ⟩
 
         trans (trans Ry≡P (sym Rx≡P)) Rx≡P                               ≡⟨ trans-[trans-sym]- _ _ ⟩∎
 
         Ry≡P                                                             ∎
 
       lemma₄ =
-        trans (_↔_.to (related↔[equal] ext strong-equivalence) lemma₁)
+        trans (_↠_.to (related↝[equal] ext strong-equivalence) lemma₁)
               (_↔_.from (equality-characterisation₁ ext) Rx≡P)          ≡⟨⟩
 
         trans (_↔_.from (equality-characterisation₁ ext)
-                        (_≃_.to strong-equivalence lemma₁))
+                        (_↠_.to strong-equivalence lemma₁))
               (_↔_.from (equality-characterisation₁ ext) Rx≡P)          ≡⟨ Bij.trans-to-to≡to-trans
                                                                              (λ _ _ → inverse $ equality-characterisation₁ ext)
                                                                              lemma₂ ⟩
         _↔_.from (equality-characterisation₁ ext)
-                 (trans (_≃_.to strong-equivalence lemma₁) Rx≡P)        ≡⟨ cong (_↔_.from (equality-characterisation₁ ext)) lemma₃ ⟩∎
+                 (trans (_↠_.to strong-equivalence lemma₁) Rx≡P)        ≡⟨ cong (_↔_.from (equality-characterisation₁ ext)) lemma₃ ⟩∎
 
         _↔_.from (equality-characterisation₁ ext) Ry≡P                  ∎
 
@@ -898,8 +955,8 @@ module ⊤/2 where
     Is-set ⊤/2                              ↝⟨ _⇔_.from (≡↔+ 1 _) ⟩
     ((x y : ⊤/2) → Is-proposition (x ≡ y))  ↝⟨ (λ prop → prop _ _) ⟩
     Is-proposition ([ tt ] ≡ [ tt ])        ↝⟨ H-level.respects-surjection
-                                                 (_↔_.surjection $ inverse $
-                                                    related↔[equal] ext
+                                                 (_≃_.surjection $ inverse $
+                                                    related↝[equal] ext
                                                       (const-Fin-2-strong-equivalence
                                                          (lower-extensionality _ lzero ext) univ))
                                                  1 ⟩
@@ -965,8 +1022,8 @@ module ⊤/2 where
            1
            (λ y≡[tt] →
               x ≡ y            ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ x≡[tt] y≡[tt] ⟩
-              [ tt ] ≡ [ tt ]  ↝⟨ inverse $
-                                  related↔[equal]
+              [ tt ] ≡ [ tt ]  ↔⟨ inverse $
+                                  related↝[equal]
                                     (lower-extensionality lzero _ ext)
                                     (const-Fin-2-strong-equivalence
                                        (lower-extensionality _ _ ext) univ) ⟩□
