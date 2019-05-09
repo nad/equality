@@ -10,6 +10,10 @@ module README.Safe where
 
 import Prelude
 
+-- Support for sized types.
+
+import Size
+
 -- Logical equivalences.
 
 import Logical-equivalence
