@@ -123,6 +123,12 @@ abstract
     mono₁ _ ∘
     mono m≤n
 
+  -- If A has h-level n, then the types of equality proofs between
+  -- elements of type A also have h-level n.
+
+  ⇒≡ : {x y : A} → ∀ n → H-level n A → H-level n (x ≡ y)
+  ⇒≡ _ = +⇒≡ ∘ mono₁ _
+
   -- If something is contractible given the assumption that it is
   -- inhabited, then it is propositional.
 

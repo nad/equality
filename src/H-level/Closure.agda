@@ -428,7 +428,7 @@ abstract
     n
     (Σ-closure n (⇔-closure ext n hA hB) λ _ →
      Π-closure (lower-extensionality a a ext) n λ _ →
-     +⇒≡ (mono₁ n hB))
+     ⇒≡ _ hB)
 
 ↔-closure :
   ∀ {a b} {A : Set a} {B : Set b} →
@@ -447,7 +447,7 @@ abstract
     n
     (Σ-closure n (↠-closure ext n hA hB) λ _ →
      Π-closure (lower-extensionality b b ext) n λ _ →
-     +⇒≡ (mono₁ n hA))
+     ⇒≡ _ hA)
 
 ------------------------------------------------------------------------
 -- Lifted types
@@ -631,7 +631,7 @@ abstract
   Is-proposition-propositional ext = [inhabited⇒+]⇒+ 0 λ p →
     Π-closure ext 1 λ _ →
     Π-closure ext 1 λ _ →
-    mono₁ 0 (+⇒≡ p)
+    ⇒≡ 1 p
 
   -- All h-levels are propositional (assuming extensionality).
 

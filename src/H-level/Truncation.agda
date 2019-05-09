@@ -224,8 +224,8 @@ flatten↔ ext resize = record
                      (H-level.mono (≤-refl {n = 1})
                         (truncation-has-correct-h-level 1 ext′))
                      F.id x ∣₁ ≡ x)
-        (λ _ → mono₁ 0 (+⇒≡ $ truncation-has-correct-h-level
-                                1 (lower-extensionality lzero _ ext)))
+        (λ _ → ⇒≡ 1 $ truncation-has-correct-h-level
+                        1 (lower-extensionality lzero _ ext))
         (λ _ → refl _)
         (resize x)
         x

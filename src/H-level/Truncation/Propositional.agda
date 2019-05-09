@@ -171,7 +171,7 @@ x >>=′ f = _↔_.to flatten (∥∥-map f x)
   x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
 >>=′-associative x {f} {g} = elim
   (λ x → x >>=′ (λ x₁ → f x₁ >>=′ g) ≡ x >>=′ f >>=′ g)
-  (λ _ → +⇒≡ {n = 1} $ mono₁ 1 truncation-is-proposition)
+  (λ _ → ⇒≡ 1 truncation-is-proposition)
   (λ _ → refl _)
   x
 
@@ -189,7 +189,7 @@ instance
   Monad.associativity monad x _ _ = >>=′-associative x
   Monad.right-identity monad      = elim
     _
-    (λ _ → +⇒≡ {n = 1} $ mono₁ 1 truncation-is-proposition)
+    (λ _ → ⇒≡ 1 truncation-is-proposition)
     (λ _ → refl _)
 
 -- Surjectivity.

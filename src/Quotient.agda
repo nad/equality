@@ -376,7 +376,7 @@ related≃[equal] {A = A} {r = r} {R = R}
       }
     ; right-inverse-of = Trunc.elim
         _
-        (λ _ → mono₁ 0 (+⇒≡ truncation-is-proposition))
+        (λ _ → ⇒≡ 1 truncation-is-proposition)
         (λ _ → refl _)
     }
   ; left-inverse-of = elim-Prop _ (λ _ → refl _) (λ _ → /-is-set)

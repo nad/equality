@@ -1230,7 +1230,7 @@ currying = record
   B x (refl x)                                              ↝⟨ ∃-intro (uncurry B) _ ⟩
   (∃ λ { (y , x≡y) → B y x≡y × (y , x≡y) ≡ (x , refl x) })  ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
                                                                   _⇔_.to contractible⇔↔⊤ $
-                                                                  +⇒≡ (mono₁ 0 (other-singleton-contractible x))) ⟩
+                                                                  ⇒≡ 0 (other-singleton-contractible x)) ⟩
   (∃ λ { (y , x≡y) → B y x≡y × ⊤ })                         ↝⟨ (∃-cong λ _ → ×-right-identity) ⟩
   (∃ λ { (y , x≡y) → B y x≡y })                             ↝⟨ inverse Σ-assoc ⟩□
   (∃ λ y → ∃ λ x≡y → B y x≡y)                               □
