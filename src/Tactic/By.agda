@@ -22,8 +22,8 @@ open import TC-monad equality-with-J
 
 private
 
-  -- Constructs a "cong" function (like cong and cong₂ in Equality)
-  -- for functions with the given name and the given number of
+  -- Constructs a "cong" function (like cong and cong₂ in Equality),
+  -- with the given name, for functions with the given number of
   -- arguments.
 
   make-cong-called : Name → ℕ → TC ⊤
