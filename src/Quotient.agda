@@ -1,974 +1,877 @@
 ------------------------------------------------------------------------
--- Quotients
+-- Quotients (set-quotients), defined using a higher inductive type
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical --safe #-}
 
--- Partly based on the presentation of quotients in the HoTT book.
--- Perhaps that presentation is partly based on work by Voevodsky.
+-- Partly following the HoTT book.
+--
+-- Unlike the HoTT book, but following the cubical library (in which
+-- set quotients were implemented by Zesen Qian and Anders Mörtberg),
+-- the quotienting relations are not (always) required to be
+-- propositional.
 
--- The generalisation from propositional equivalence relations to
--- "strong" equivalence relations is my own. In light of the results
--- below I see little use for this generalisation…
+-- The module is parametrised by a notion of equality. The higher
+-- constructors of the HIT defining quotients use path equality, but
+-- the supplied notion of equality is used for many other things.
 
 open import Equality
 
-module Quotient {r} (eq : ∀ {a p} → Equality-with-J a p r) where
+module Quotient
+  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
 
+private
+  open module D = Derived-definitions-and-properties eq hiding (elim)
+
+import Equality.Path as P
+import H-level
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq as Bij using (_↔_)
-open import Bool eq
-private
-  module D = Derived-definitions-and-properties eq
-  open D hiding (elim)
-open import Equality.Decidable-UIP eq using (Constant)
-open import Equality.Decision-procedures eq
-import Equality.Groupoid eq as EG
+open import Bijection eq using (_↔_)
+open import Equality.Decidable-UIP eq
+open import Equality.Path.Isomorphisms eq
 open import Equivalence eq as Eq using (_≃_)
-open import Fin eq
-open import Function-universe eq as F hiding (_∘_)
-open import Groupoid
-open import H-level eq as H-level
+open import Function-universe eq as F hiding (_∘_; id)
 open import H-level.Closure eq
-open import H-level.Truncation eq as Trunc hiding (rec)
-open import Nat eq as Nat
+open import H-level.Truncation.Propositional eq as Trunc
+  hiding (rec; elim)
+open import Preimage eq using (_⁻¹_)
+import Quotient.Families-of-equivalence-classes eq as Quotient
+open import Surjection eq using (_↠_)
 open import Univalence-axiom eq
+
+private
+  module PH = H-level P.equality-with-J
+  open module H = H-level eq
+
+private
+  variable
+    a a₁ a₂ p r r₁ r₂ : Level
+    k                 : Isomorphism-kind
+    A B               : Set a
+    P Q R             : A → A → Set r
+    x y               : A
+
+------------------------------------------------------------------------
+-- Quotients
+
+-- The quotient type constructor.
+
+infix 5 _/_
+
+data _/_ (A : Set a) (R : A → A → Set r) : Set (a ⊔ r) where
+  [_]                   : A → A / R
+  []-respects-relation′ : R x y → [ x ] P.≡ [ y ]
+  /-is-set′             : P.Is-set (A / R)
+
+-- [_] respects the quotient relation.
+
+[]-respects-relation : R x y → _≡_ {A = A / R} [ x ] [ y ]
+[]-respects-relation = _↔_.from ≡↔≡ ∘ []-respects-relation′
+
+-- Quotients are sets.
+
+/-is-set : Is-set (A / R)
+/-is-set = _↔_.from (H-level↔H-level 2) /-is-set′
+
+-- An eliminator.
+
+module _
+  (P : A / R → Set p)
+  (p-[] : ∀ x → P [ x ])
+  (p-[]-respects-relation :
+     ∀ {x y} (r : R x y) →
+     subst P ([]-respects-relation r) (p-[] x) ≡ p-[] y)
+  (P-set : ∀ x → Is-set (P x))
+  where
+
+  elim : ∀ x → P x
+  elim [ x ] = p-[] x
+
+  elim ([]-respects-relation′ r i) =
+    subst≡→[]≡ (p-[]-respects-relation r) i
+
+  elim (/-is-set′ {x = x} {y = y} p q i j) = lemma i j
+    where
+    lemma :
+      P.[ (λ i → P.[ (λ j → P (/-is-set′ p q i j)) ] elim x ≡ elim y) ]
+        (λ i → elim (p i)) ≡ (λ i → elim (q i))
+    lemma = P.heterogeneous-UIP (_↔_.to (H-level↔H-level 2) ∘ P-set) _
+
+  -- "Computation" rule for []-respects-relation.
+  --
+  -- (This result is perhaps not very useful, because P is assumed to
+  -- be a family of sets. It is included here to illustrate how
+  -- dependent-cong-subst≡→[]≡ can be used.)
+
+  elim-[]-respects-relation :
+    (r : R x y) →
+    dependent-cong elim ([]-respects-relation r) ≡
+    p-[]-respects-relation r
+  elim-[]-respects-relation _ = dependent-cong-subst≡→[]≡ (refl _)
+
+-- A non-dependent eliminator.
+
+rec :
+  {P : Set p}
+  (p-[] : A → P) →
+  (∀ {x y} → R x y → p-[] x ≡ p-[] y) →
+  Is-set P →
+  A / R → P
+rec {P = P} p-[] p-[]-respects-relation P-set = elim
+  (λ _ → P)
+  p-[]
+  (λ {x y} r →
+     subst (λ _ → P) ([]-respects-relation r) (p-[] x)  ≡⟨ subst-const _ ⟩
+     p-[] x                                             ≡⟨ p-[]-respects-relation r ⟩∎
+     p-[] y                                             ∎)
+  (λ _ → P-set)
+
+-- A variant of elim that can be used if the motive composed with [_]
+-- is a family of propositions.
+--
+-- I took the idea for this eliminator from Nicolai Kraus.
+
+elim-Prop :
+  (P : A / R → Set p) →
+  (p-[] : ∀ x → P [ x ]) →
+  (∀ x → Is-proposition (P [ x ])) →
+  ∀ x → P x
+elim-Prop P p-[] P-prop = elim
+  P p-[]
+  (λ _ → P-prop _ _ _)
+  (elim
+     _
+     (mono₁ 1 ∘ P-prop)
+     (λ _ → H-level-propositional ext 2 _ _)
+     (λ _ → mono₁ 1 (H-level-propositional ext 2)))
+
+-- A variant of rec that can be used if the motive is a proposition.
+
+rec-Prop :
+  {P : Set p} →
+  (A → P) →
+  Is-proposition P →
+  A / R → P
+rec-Prop p-[] P-prop = elim-Prop (const _) p-[] (const P-prop)
 
 ------------------------------------------------------------------------
 -- Equivalence relations
 
 -- The definition of an equivalence relation.
 
-record Is-equivalence-relation
-         {a r} {A : Set a} (R : A → A → Set r) : Set (a ⊔ r) where
-  field
-    reflexive  : ∀ {x} → R x x
-    symmetric  : ∀ {x y} → R x y → R y x
-    transitive : ∀ {x y z} → R x y → R y z → R x z
+Is-equivalence-relation :
+  {A : Set a} (R : A → A → Set r) → Set (a ⊔ r)
+Is-equivalence-relation = Quotient.Is-equivalence-relation
+
+open Quotient public using (module Is-equivalence-relation)
+
+-- A trivial binary relation.
+
+Trivial : A → A → Set r
+Trivial _ _ = ↑ _ ⊤
+
+-- This relation is an equivalence relation.
+
+Trivial-is-equivalence-relation :
+  Is-equivalence-relation (Trivial {A = A} {r = r})
+Trivial-is-equivalence-relation = _
+
+-- It is also propositional.
+
+Trivial-is-propositional :
+  {x y : A} → Is-proposition (Trivial {r = r} x y)
+Trivial-is-propositional = ↑-closure 1 (mono₁ 0 ⊤-contractible)
 
 ------------------------------------------------------------------------
--- Strong equivalence relations
+-- Pointwise liftings of binary relations
 
--- A strengthening of the concept of "equivalence relation".
+-- The superscript P used in the names of the definitions in this
+-- section stands for "pointwise".
 
-Strong-equivalence : ∀ {a r} {A : Set a} →
-                     (A → A → Set r) → Set (a ⊔ lsuc r)
-Strong-equivalence R = ∀ {x y} → R x y ≃ (R x ≡ R y)
+-- Lifts binary relations from B to A → B.
 
--- Strong equivalence relations are equivalence relations.
+infix 0 _→ᴾ_
 
-strong-equivalence⇒equivalence :
-  ∀ {a r} {A : Set a} {R : A → A → Set r} →
-  Strong-equivalence R →
-  Is-equivalence-relation R
-strong-equivalence⇒equivalence {R = R} strong-equivalence = record
-  { reflexive = λ {x} →
-                 $⟨ refl (R x) ⟩
-      R x ≡ R x  ↝⟨ _≃_.from strong-equivalence ⟩□
-      R x x      □
-  ; symmetric = λ {x y} →
-      R x y      ↝⟨ _≃_.to strong-equivalence ⟩
-      R x ≡ R y  ↝⟨ sym ⟩
-      R y ≡ R x  ↝⟨ _≃_.from strong-equivalence ⟩□
-      R y x      □
-  ; transitive = λ {x y z} Rxy Ryz →
-     _≃_.from strong-equivalence (
-       R x  ≡⟨ _≃_.to strong-equivalence Rxy ⟩
-       R y  ≡⟨ _≃_.to strong-equivalence Ryz ⟩∎
-       R z  ∎)
-  }
+_→ᴾ_ :
+  (A : Set a) →
+  (B → B → Set r) →
+  ((A → B) → (A → B) → Set (a ⊔ r))
+(_ →ᴾ R) f g = ∀ x → R (f x) (g x)
 
--- A relation that is an equivalence relation, and a family of
--- propositions, is a strong equivalence relation (assuming
--- extensionality and univalence).
+-- _→ᴾ_ preserves equivalence relations.
 
-propositional-equivalence⇒strong-equivalence :
-  ∀ {a r} {A : Set a} {R : A → A → Set r} →
-  Extensionality (a ⊔ r) (lsuc r) →
-  Univalence r →
+→ᴾ-preserves-Is-equivalence-relation :
   Is-equivalence-relation R →
-  (∀ x y → Is-proposition (R x y)) →
-  Strong-equivalence R
-propositional-equivalence⇒strong-equivalence
-  {a} {r} {R = R} ext univ R-equiv R-prop {x = x} {y = y} =
-
-  Eq.↔⇒≃ (record
-    { surjection = record
-      { logical-equivalence = record
-        { to = λ Rxy → apply-ext (lower-extensionality r lzero ext) λ z →
-                 ≃⇒≡ univ $
-                 _↔_.to (Eq.⇔↔≃ (lower-extensionality a _ ext)
-                                (R-prop x z) (R-prop y z))
-                 (R x z  ↝⟨ record { to   = transitive (symmetric Rxy)
-                                   ; from = transitive Rxy
-                                   } ⟩□
-                  R y z  □)
-        ; from = λ Rx≡Ry →        $⟨ reflexive ⟩
-                           R y y  ↝⟨ subst (_$ y) (sym Rx≡Ry) ⟩□
-                           R x y  □
-        }
-      ; right-inverse-of = λ _ →
-          H-level.respects-surjection
-            (_≃_.surjection $ Eq.extensionality-isomorphism
-                                (lower-extensionality r lzero ext))
-            1
-            (Π-closure (lower-extensionality r lzero ext) 1 λ z →
-             H-level-H-level-≡ˡ
-               (lower-extensionality a _ ext)
-               univ 0 (R-prop x z))
-            _ _
-      }
-    ; left-inverse-of = λ _ → R-prop x y _ _
-    })
+  Is-equivalence-relation (A →ᴾ R)
+→ᴾ-preserves-Is-equivalence-relation R-equiv = record
+  { reflexive  = λ _ → reflexive
+  ; symmetric  = λ f∼g x → symmetric (f∼g x)
+  ; transitive = λ f∼g g∼h x → transitive (f∼g x) (g∼h x)
+  }
   where
   open Is-equivalence-relation R-equiv
 
--- _≡_ is a strong equivalence relation (assuming extensionality and
--- univalence).
+-- _→ᴾ_ preserves Is-proposition.
 
-equality-strong-equivalence :
-  ∀ {a} {A : Set a} →
-  Extensionality a (lsuc a) →
-  Univalence a →
-  Strong-equivalence (_≡_ {A = A})
-equality-strong-equivalence ext univ {x = x} {y = y} =
-  x ≡ y                      ↝⟨ inverse $ Π≡≃≡-↔-≡ (lower-extensionality lzero _ ext) _ _ ⟩
-  (∀ z → (z ≡ x) ≃ (z ≡ y))  ↝⟨ (∀-cong (lower-extensionality lzero _ ext) λ _ → Eq.↔⇒≃ $
-                                 Eq.≃-preserves-bijections (lower-extensionality lzero _ ext)
-                                   (Groupoid.⁻¹-bijection (EG.groupoid _))
-                                   (Groupoid.⁻¹-bijection (EG.groupoid _))) ⟩
-  (∀ z → (x ≡ z) ≃ (y ≡ z))  ↝⟨ (∀-cong ext λ _ → inverse $ ≡≃≃ univ) ⟩
-  (∀ z → (x ≡ z) ≡ (y ≡ z))  ↝⟨ Eq.extensionality-isomorphism ext ⟩□
-  (x ≡_) ≡ (y ≡_)            □
+→ᴾ-preserves-Is-proposition :
+  (∀ {x y} → Is-proposition (R x y)) →
+  ∀ {f g} → Is-proposition ((A →ᴾ R) f g)
+→ᴾ-preserves-Is-proposition R-prop =
+  Π-closure ext 1 λ _ →
+  R-prop
 
--- If λ (_ _ : ⊤) → Fin n is a strong equivalence relation, then n is
--- equal to n ! (assuming extensionality and univalence).
+-- Lifts binary relations from A and B to A ⊎ B.
 
-const-Fin-strong-equivalence⇒≡! :
-  Extensionality (# 0) (# 1) →
-  Univalence (# 0) →
-  ∀ n → Strong-equivalence (λ (_ _ : ⊤) → Fin n) → n ≡ n !
-const-Fin-strong-equivalence⇒≡! ext univ n strong-equivalence =
-  _⇔_.to isomorphic-same-size (
-    Fin n                          ↔⟨ strong-equivalence ⟩
-    const (Fin n) ≡ const (Fin n)  ↔⟨ inverse $ Eq.extensionality-isomorphism ext ⟩
-    (⊤ → Fin n ≡ Fin n)            ↝⟨ Π-left-identity ⟩
-    Fin n ≡ Fin n                  ↝⟨ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ n ⟩
-    Fin (n !)                      □)
+infixr 1 _⊎ᴾ_
 
--- Thus there is at least one equivalence relation that is not a
--- strong equivalence relation (assuming extensionality and
--- univalence).
+_⊎ᴾ_ :
+  (A → A → Set r) →
+  (B → B → Set r) →
+  (A ⊎ B → A ⊎ B → Set r)
+(P ⊎ᴾ Q) (inj₁ x) (inj₁ y) = P x y
+(P ⊎ᴾ Q) (inj₂ x) (inj₂ y) = Q x y
+(P ⊎ᴾ Q) _        _        = ⊥
 
-equivalence-but-not-strong-equivalence :
-  Extensionality (# 0) (# 1) →
-  Univalence (# 0) →
-  ∃ λ (A : Set) →
-  ∃ λ (R : A → A → Set) →
-    (∀ {x} → R x x) ×
-    (∀ {x y} → R x y → R y x) ×
-    (∀ {x y z} → R x y → R y z → R x z) ×
-    ¬ Strong-equivalence R
-equivalence-but-not-strong-equivalence ext univ =
-  A , R , rfl , sm , trns , not-strong-equivalence
+-- _⊎ᴾ_ preserves Is-equivalence-relation.
+
+⊎ᴾ-preserves-Is-equivalence-relation :
+  Is-equivalence-relation P →
+  Is-equivalence-relation Q →
+  Is-equivalence-relation (P ⊎ᴾ Q)
+⊎ᴾ-preserves-Is-equivalence-relation P-equiv Q-equiv = record
+  { reflexive  = λ { {x = inj₁ _} → reflexive P-equiv
+                   ; {x = inj₂ _} → reflexive Q-equiv
+                   }
+    ; symmetric  = λ { {x = inj₁ _} {y = inj₁ _} → symmetric P-equiv
+                     ; {x = inj₂ _} {y = inj₂ _} → symmetric Q-equiv
+                     ; {x = inj₁ _} {y = inj₂ _} ()
+                     ; {x = inj₂ _} {y = inj₁ _} ()
+                     }
+  ; transitive = λ
+     { {x = inj₁ _} {y = inj₁ _} {z = inj₁ _} → transitive P-equiv
+     ; {x = inj₂ _} {y = inj₂ _} {z = inj₂ _} → transitive Q-equiv
+
+     ; {x = inj₁ _} {y = inj₂ _} ()
+     ; {x = inj₂ _} {y = inj₁ _} ()
+     ; {y = inj₁ _} {z = inj₂ _} _ ()
+     ; {y = inj₂ _} {z = inj₁ _} _ ()
+     }
+  }
   where
-  A : Set
-  A = ⊤
+  open Is-equivalence-relation
 
-  R : A → A → Set
-  R _ _ = Fin 3
+-- _⊎ᴾ_ preserves Is-proposition.
 
-  rfl : ∀ {x} → R x x
-  rfl = fzero
+⊎ᴾ-preserves-Is-proposition :
+  (∀ {x y} → Is-proposition (P x y)) →
+  (∀ {x y} → Is-proposition (Q x y)) →
+  ∀ {x y} → Is-proposition ((P ⊎ᴾ Q) x y)
+⊎ᴾ-preserves-Is-proposition = λ where
+  P-prop Q-prop {inj₁ _} {inj₁ _} → P-prop
+  P-prop Q-prop {inj₁ _} {inj₂ _} → ⊥-propositional
+  P-prop Q-prop {inj₂ _} {inj₁ _} → ⊥-propositional
+  P-prop Q-prop {inj₂ _} {inj₂ _} → Q-prop
 
-  sm : ∀ {x y} → R x y → R y x
-  sm _ = fzero
+-- Lifts a binary relation from A to Maybe A.
 
-  trns : ∀ {x y z} → R x y → R y z → R x z
-  trns _ _ = fzero
+Maybeᴾ :
+  (A → A → Set r) →
+  (Maybe A → Maybe A → Set r)
+Maybeᴾ R = Trivial ⊎ᴾ R
 
-  not-strong-equivalence : ¬ Strong-equivalence R
-  not-strong-equivalence =
-    Strong-equivalence R  ↝⟨ const-Fin-strong-equivalence⇒≡! ext univ 3 ⟩
-    3 ≡ 3 !               ↝⟨ from-⊎ (3 Nat.≟ (3 !)) ⟩□
-    ⊥                     □
+-- Maybeᴾ preserves Is-equivalence-relation.
 
--- On the other hand, if n is 2, then λ (_ _ : ⊤) → Fin n is a strong
--- equivalence relation (assuming extensionality and univalence).
+Maybeᴾ-preserves-Is-equivalence-relation :
+  Is-equivalence-relation R →
+  Is-equivalence-relation (Maybeᴾ R)
+Maybeᴾ-preserves-Is-equivalence-relation =
+  ⊎ᴾ-preserves-Is-equivalence-relation Trivial-is-equivalence-relation
 
-const-Fin-2-strong-equivalence :
-  Extensionality (# 0) (# 1) →
-  Univalence (# 0) →
-  Strong-equivalence (λ (_ _ : ⊤) → Fin 2)
-const-Fin-2-strong-equivalence ext univ =
-  Fin 2                          ↔⟨ inverse $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ 2 ⟩
-  Fin 2 ≡ Fin 2                  ↔⟨ inverse Π-left-identity ⟩
-  (⊤ → Fin 2 ≡ Fin 2)            ↝⟨ Eq.extensionality-isomorphism ext ⟩□
-  const (Fin 2) ≡ const (Fin 2)  □
+-- Maybeᴾ preserves Is-proposition.
 
--- Thus there is at least one example of a strong equivalence relation
--- that is neither propositional nor the identity type (assuming
--- extensionality and univalence).
-
-strong-equivalence-that-is-neither-propositional-nor-≡ :
-  Extensionality (# 0) (# 1) →
-  Univalence (# 0) →
-  ∃ λ (A : Set) →
-  ∃ λ (R : A → A → Set) →
-    Strong-equivalence R ×
-    ¬ (∀ x y → Is-proposition (R x y)) ×
-    ¬ (∀ x y → R x y ≃ (x ≡ y))
-strong-equivalence-that-is-neither-propositional-nor-≡ ext univ =
-  ⊤ , (λ _ _ → Fin 2) , const-Fin-2-strong-equivalence ext univ ,
-  (λ is-prop →                   $⟨ is-prop _ _ ⟩
-     Is-proposition (⊤ ⊎ ⊤ ⊎ ⊥)  ↝⟨ H-level.respects-surjection (_↔_.surjection $ inverse Bool↔Fin2) 1 ⟩
-     Is-proposition Bool         ↝⟨ ¬-Bool-propositional ⟩□
-     ⊥                           □) ,
-  (λ ≃≡ → let eq = ≃≡ tt tt in
-     ⊎.inj₁≢inj₂ (
-       fzero                                 ≡⟨ sym $ _≃_.left-inverse-of eq _ ⟩
-       _≃_.from eq (_≃_.to eq fzero)         ≡⟨ cong (_≃_.from eq) $
-                                                mono (zero≤ 2) ⊤-contractible _ _ ⟩
-       _≃_.from eq (_≃_.to eq (fsuc fzero))  ≡⟨ _≃_.left-inverse-of eq _ ⟩∎
-       fsuc fzero                            ∎))
-
--- It is not in general the case that, if R is a strong equivalence
--- relation, then R on f is a strong equivalence relation (assuming
--- extensionality and univalence).
-
-strong-equivalence-not-closed-under-on :
-  Extensionality (# 1) (# 2) →
-  Univalence (# 1) →
-  Univalence (# 0) →
-  ∃ λ (A : Set₁) →
-  ∃ λ (B : Set₁) →
-  ∃ λ (R : A → A → Set₁) →
-  ∃ λ (f : B → A) →
-    Strong-equivalence R ×
-    ¬ Strong-equivalence (R on f)
-strong-equivalence-not-closed-under-on ext univ₁ univ₀ =
-  Set , ↑ _ ⊤ , _≡_ , const (Fin 3) ,
-  equality-strong-equivalence ext univ₁ ,
-  not-strong-equivalence
-  where
-  not-strong-equivalence : ¬ Strong-equivalence (_≡_ on const (Fin 3))
-  not-strong-equivalence strong-equivalence = contradiction
-    where
-    3!≡3!! = _⇔_.to isomorphic-same-size (
-      Fin (3 !)                                      ↝⟨ inverse $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 3 ⟩
-      Fin 3 ≡ Fin 3                                  ↔⟨ strong-equivalence ⟩
-      const (Fin 3 ≡ Fin 3) ≡ const (Fin 3 ≡ Fin 3)  ↔⟨ inverse $ Eq.extensionality-isomorphism ext ⟩
-      (↑ _ ⊤ → (Fin 3 ≡ Fin 3) ≡ (Fin 3 ≡ Fin 3))    ↝⟨ →-cong ext Bij.↑↔ F.id ⟩
-      (⊤ → (Fin 3 ≡ Fin 3) ≡ (Fin 3 ≡ Fin 3))        ↝⟨ Π-left-identity ⟩
-      (Fin 3 ≡ Fin 3) ≡ (Fin 3 ≡ Fin 3)              ↔⟨ ≡-preserves-≃ (lower-extensionality lzero _ ext) univ₁ univ₀
-                                                                      (Eq.↔⇒≃ $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 3)
-                                                                      (Eq.↔⇒≃ $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 3) ⟩
-      Fin (3 !) ≡ Fin (3 !)                          ↝⟨ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ (3 !) ⟩□
-      Fin (3 ! !)                                    □)
-
-    contradiction : ⊥
-    contradiction = from-⊎ ((3 !) Nat.≟ (3 ! !)) 3!≡3!!
-
--- However, Strong-equivalence is closed under _on f when f is an
--- equivalence (assuming extensionality).
-
-strong-equivalence-closed-under-on :
-  ∀ {a b r} {A : Set a} {B : Set b} {R : A → A → Set r} →
-  Extensionality (a ⊔ b) (lsuc r) →
-  (B≃A : B ≃ A) →
-  Strong-equivalence R →
-  Strong-equivalence (R on _≃_.to B≃A)
-strong-equivalence-closed-under-on
-  {a} {b} {R = R} ext B≃A strong-equivalence {x} {y} =
-
-  R (f x) (f y)                                  ↝⟨ strong-equivalence ⟩
-  R (f x) ≡ R (f y)                              ↝⟨ F.id ⟩
-  (λ z → R (f x)    z)  ≡ (λ z → R (f y)    z)   ↝⟨ inverse $ Eq.extensionality-isomorphism
-                                                                (lower-extensionality b lzero ext) ⟩
-  (∀ z → R (f x)    z   ≡        R (f y)    z)   ↝⟨ (Π-cong ext (inverse B≃A) λ z →
-                                                     ≡⇒≃ $ cong₂ _≡_ (lemma x z) (lemma y z)) ⟩
-  (∀ z → R (f x) (f z)  ≡        R (f y) (f z))  ↝⟨ Eq.extensionality-isomorphism
-                                                      (lower-extensionality a lzero ext) ⟩
-  (λ z → R (f x) (f z)) ≡ (λ z → R (f y) (f z))  ↝⟨ F.id ⟩□
-  (R on f) x ≡ (R on f) y                        □
-  where
-  f   = _≃_.to   B≃A
-  f⁻¹ = _≃_.from B≃A
-
-  lemma = λ x z →
-    R (f x) z            ≡⟨ cong (R (f x)) $ sym $ _≃_.right-inverse-of B≃A _ ⟩∎
-    R (f x) (f (f⁻¹ z))  ∎
-
--- Various closure properties related to _×_ and _⊎_ fail to hold for
--- Strong-equivalence (assuming extensionality and univalence).
-
-strong-equivalence-not-closed-under-×-or-⊎ :
-  Extensionality (# 0) (# 1) →
-  Univalence (# 0) →
-  ∃ λ (A : Set) →
-  ∃ λ (R₁ : A → A → Set) →
-  ∃ λ (R₂ : A → A → Set) →
-    Strong-equivalence R₁ ×
-    Strong-equivalence R₂ ×
-    ¬ Strong-equivalence (λ x y → R₁ x y × R₂ x y) ×
-    ¬ Strong-equivalence (λ x y → R₁ x y ⊎ R₂ x y) ×
-    ¬ Strong-equivalence (λ x y → R₁ (proj₁ x) (proj₁ y) ×
-                                  R₂ (proj₂ x) (proj₂ y)) ×
-    ¬ Strong-equivalence (λ x y → R₁ (proj₁ x) (proj₁ y) ⊎
-                                  R₂ (proj₂ x) (proj₂ y))
-strong-equivalence-not-closed-under-×-or-⊎ ext univ =
-  ⊤ , R , R ,
-  strong-equivalence , strong-equivalence ,
-  not-strong-equivalence  (Fin×Fin↔Fin* 2 2) ,
-  not-strong-equivalence  (Fin⊎Fin↔Fin+ 2 2) ,
-  not-strong-equivalence′ (Fin×Fin↔Fin* 2 2) ,
-  not-strong-equivalence′ (Fin⊎Fin↔Fin+ 2 2)
-  where
-  R : ⊤ → ⊤ → Set
-  R = λ _ _ → Fin 2
-
-  strong-equivalence : Strong-equivalence R
-  strong-equivalence =
-    proj₁ $ proj₂ $ proj₂ $
-      strong-equivalence-that-is-neither-propositional-nor-≡ ext univ
-
-  not-strong-equivalence :
-    {B : Set} →
-    B ↔ Fin 4 →
-    ¬ Strong-equivalence (λ (_ _ : ⊤) → B)
-  not-strong-equivalence {B} B↔Fin4 =
-    Strong-equivalence (λ _ _ → B)      ↝⟨ (≡⇒↝ _ $ cong Strong-equivalence $ apply-ext ext λ _ → apply-ext ext λ _ →
-                                            ≃⇒≡ univ $ Eq.↔⇒≃ B↔Fin4) ⟩
-    Strong-equivalence (λ _ _ → Fin 4)  ↝⟨ const-Fin-strong-equivalence⇒≡! ext univ 4 ⟩
-    4 ≡ 4 !                             ↝⟨ from-⊎ (4 Nat.≟ (4 !)) ⟩□
-    ⊥                                   □
-
-  not-strong-equivalence′ :
-    {B : Set} →
-    B ↔ Fin 4 →
-    ¬ Strong-equivalence (λ (_ _ : ⊤ × ⊤) → B)
-  not-strong-equivalence′ {B} B↔Fin4 =
-    Strong-equivalence (λ (_ _ : ⊤ × ⊤) → B)  ↝⟨ (λ se {_ _} →
-        B                                           ↝⟨ se {y = _} ⟩
-        const B ≡ const B                           ↝⟨ inverse $ Eq.extensionality-isomorphism ext ⟩
-        (⊤ × ⊤ → B ≡ B)                             ↔⟨ →-cong ext ×-right-identity F.id ⟩
-        (⊤ → B ≡ B)                                 ↝⟨ Eq.extensionality-isomorphism ext ⟩□
-        const B ≡ const B                           □) ⟩
-    Strong-equivalence (λ (_ _ : ⊤)     → B)  ↝⟨ not-strong-equivalence B↔Fin4 ⟩□
-    ⊥                                         □
-
--- Is the following a strong equivalence relation?
---
---   R (x , _) (y , _) = x ≡ y
---
--- (This is a combination of equality and the trivial relation, both
--- of which are strong equivalence relations.)
---
--- Answer: No, not in general (assuming extensionality and
--- univalence).
-
-another-negative-result :
-  Extensionality (# 1) (# 2) →
-  Univalence (# 1) →
-  Univalence (# 0) →
-  ∃ λ (A : Set₁) →
-  ∃ λ (B : Set) →
-    ¬ Strong-equivalence {A = A × B} (_≡_ on proj₁)
-another-negative-result ext univ₁ univ₀ =
-  Set , Fin 2 , not-strong-equivalence
-  where
-  not-strong-equivalence : ¬ Strong-equivalence (_≡_ on proj₁)
-  not-strong-equivalence strong-equivalence = contradiction
-    where
-    4≡2 = _⇔_.to isomorphic-same-size (
-      Fin 4                                                        ↝⟨ inverse $ [Fin→Fin]↔Fin^ (lower-extensionality _ _ ext) 2 2 ⟩
-      (Fin 2 → Fin 2)                                              ↝⟨ →-cong (lower-extensionality _ _ ext) F.id $ inverse $
-                                                                      [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 2 ⟩
-      (Fin 2 → Fin 2 ≡ Fin 2)                                      ↔⟨ →-cong (lower-extensionality _ lzero ext) F.id $
-                                                                      equality-strong-equivalence ext univ₁ ⟩
-      (Fin 2 → (λ A → Fin 2 ≡       A) ≡ (λ A → Fin 2 ≡       A))  ↔⟨ →-cong (lower-extensionality _ lzero ext) F.id $ inverse $
-                                                                      Eq.extensionality-isomorphism ext ⟩
-      (Fin 2 → ∀ A → (Fin 2 ≡       A) ≡       (Fin 2 ≡       A))  ↝⟨ Π-comm ⟩
-      (∀ A → Fin 2 → (Fin 2 ≡       A) ≡       (Fin 2 ≡       A))  ↝⟨ inverse currying ⟩
-      (∀ A →         (Fin 2 ≡ proj₁ A) ≡       (Fin 2 ≡ proj₁ A))  ↔⟨ Eq.extensionality-isomorphism ext ⟩
-      (λ A →          Fin 2 ≡ proj₁ A) ≡ (λ A → Fin 2 ≡ proj₁ A)   ↔⟨ inverse $ strong-equivalence {x = _ , fzero} {y = _ , fzero} ⟩
-      Fin 2 ≡ Fin 2                                                ↝⟨ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 2 ⟩□
-      Fin 2                                                        □)
-
-    contradiction : ⊥
-    contradiction = from-⊎ (4 Nat.≟ 2) 4≡2
+Maybeᴾ-preserves-Is-proposition :
+  (∀ {x y} → Is-proposition (R x y)) →
+  ∀ {x y} → Is-proposition (Maybeᴾ R x y)
+Maybeᴾ-preserves-Is-proposition =
+  ⊎ᴾ-preserves-Is-proposition λ {x} →
+  Trivial-is-propositional {x = x}
 
 ------------------------------------------------------------------------
--- Quotients
+-- Some properties
 
--- Equivalence classes.
+-- [_] is surjective.
 
-_is-equivalence-class-of_ :
-  ∀ {a} {A : Set a} →
-  (A → Set a) → (A → A → Set a) → Set (lsuc (lsuc a))
-_is-equivalence-class-of_ {a} P R =
-  ∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a)
+[]-surjective : Surjective ([_] {R = R})
+[]-surjective = elim-Prop
+  _
+  (λ x → ∣ x , refl _ ∣)
+  (λ _ → truncation-is-proposition)
 
--- Quotients.
+-- If the relation is a propositional equivalence relation, then it is
+-- equivalent to equality under [_].
+--
+-- The basic structure of this proof is that of Proposition 2 in
+-- "Quotienting the Delay Monad by Weak Bisimilarity" by Chapman,
+-- Uustalu and Veltri.
 
-infix 5 _/_
-
-_/_ : ∀ {a} (A : Set a) → (A → A → Set a) → Set (lsuc (lsuc a))
-A / R = ∃ λ (P : A → Set _) → P is-equivalence-class-of R
-
--- Quotienting with equality amounts to the same thing as not
--- quotienting at all (assuming extensionality and univalence).
-
-/≡↔ :
-  ∀ {a} {A : Set a} →
-  Extensionality (lsuc (lsuc a)) (lsuc a) →
-  Univalence a →
-  A / _≡_ ↔ A
-/≡↔ {A = A} ext univ =
-  (∃ λ P → ∥ (∃ λ x → (x ≡_) ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → ∥∥↔ lzero ext irr) ⟩
-  (∃ λ P → ∃ λ x → (x ≡_) ≡ P)            ↝⟨ ∃-comm ⟩
-  (∃ λ x → ∃ λ P → (x ≡_) ≡ P)            ↝⟨ drop-⊤-right (λ _ → _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _) ⟩□
-  A                                       □
+related≃[equal] :
+  {R : A → A → Set r} →
+  Is-equivalence-relation R →
+  (∀ {x y} → Is-proposition (R x y)) →
+  ∀ {x y} → R x y ≃ _≡_ {A = A / R} [ x ] [ y ]
+related≃[equal] {A = A} {r = r} {R = R}
+                R-equiv R-prop {x} {y} =
+  _↠_.from (Eq.≃↠⇔ R-prop /-is-set)
+    (record
+      { to   = []-respects-relation
+      ; from = λ [x]≡[y] →
+                              $⟨ reflexive ⟩
+          proj₁ (R′ x [ x ])  ↝⟨ ≡⇒→ (cong (proj₁ ∘ R′ x) [x]≡[y]) ⟩
+          proj₁ (R′ x [ y ])  ↝⟨ id ⟩□
+          R x y               □
+      })
   where
-  se = equality-strong-equivalence
-         (lower-extensionality _ lzero ext) univ
+  open Is-equivalence-relation R-equiv
 
-  se-refl :
-    ∀ x → _≃_.to se (refl x) ≡ refl (x ≡_)
-  se-refl x = _≃_.from-to se (
-    sym (_≃_.to (≡⇒↝ _ (cong (_$ x) (refl (x ≡_)))) (sym (refl x)))  ≡⟨ cong (λ p → sym (_≃_.to (≡⇒↝ _ p) (sym (refl x)))) $ cong-refl _ ⟩
-    sym (_≃_.to (≡⇒↝ _ (refl (x ≡ x))) (sym (refl x)))               ≡⟨ cong (λ eq → sym (_≃_.to eq (sym (refl x)))) ≡⇒↝-refl ⟩
-    sym (sym (refl x))                                               ≡⟨ sym-sym _ ⟩∎
-    refl x                                                           ∎)
+  lemma : ∀ {x y z} → R y z → (R x y , R-prop) ≡ (R x z , R-prop)
+  lemma {x} {y} {z} r =                  $⟨ record
+                                              { to   = flip transitive r
+                                              ; from = flip transitive (symmetric r)
+                                              } ⟩
+    R x y ⇔ R x z                        ↝⟨ ⇔↔≡′ ext univ ⟩
+    (R x y , R-prop) ≡ (R x z , R-prop)  □
 
-  lemma :
-    {x y : A} (p : (x ≡_) ≡ (y ≡_)) →
-    cong _≡_ (subst (_$ x) p (refl x)) ≡ sym p
-  lemma {x = x} p =
-    cong _≡_ (subst (_$ x) p (refl x))                            ≡⟨ cong (λ p → cong _≡_ (subst (_$ x) p (refl x))) $ sym $
-                                                                       _≃_.right-inverse-of se _ ⟩
-    cong _≡_ (subst (_$ x) (_≃_.to se (_≃_.from se p)) (refl x))  ≡⟨ D.elim (λ p → cong _≡_ (subst (_$ _) (_≃_.to se p) (refl _)) ≡
-                                                                                   sym (_≃_.to se p))
-                                                                            (λ x →
-        cong _≡_ (subst (_$ x) (_≃_.to se (refl x)) (refl x))                  ≡⟨ cong (λ p → cong _≡_ (subst (_$ x) p (refl x))) $ se-refl x ⟩
-        cong _≡_ (subst (_$ x) (refl (x ≡_)) (refl x))                         ≡⟨ cong (cong _≡_) $ subst-refl _ _ ⟩
-        cong _≡_ (refl x)                                                      ≡⟨ cong-refl _ ⟩
-        refl (x ≡_ )                                                           ≡⟨ sym sym-refl ⟩
-        sym (refl (x ≡_ ))                                                     ≡⟨ cong sym $ sym $ se-refl x ⟩∎
-        sym (_≃_.to se (refl x))                                               ∎)
-                                                                            (_≃_.from se p) ⟩
-    sym (_≃_.to se (_≃_.from se p))                               ≡⟨ cong sym $ _≃_.right-inverse-of se _ ⟩∎
-    sym p                                                         ∎
+  R′ : A → A / R → Proposition r
+  R′ x = rec
+    (λ y → R x y , R-prop)
+    lemma
+    (Is-set-∃-Is-proposition ext prop-ext)
 
-  irr : ∀ {P} (p q : ∃ λ x → (x ≡_) ≡ P) → p ≡ q
-  irr {P} (x , x≡≡) (y , y≡≡) =
-    Σ-≡,≡→≡
-      (_≃_.from se ((x ≡_)  ≡⟨ x≡≡ ⟩
-                    P       ≡⟨ sym y≡≡ ⟩∎
-                    (y ≡_)  ∎))
+-- Quotienting with equality (for a set) amounts to the same thing as
+-- not quotienting at all.
 
-      (subst (λ x → (x ≡_) ≡ P)
-             (_≃_.from se (trans x≡≡ (sym y≡≡)))
-             x≡≡                                                        ≡⟨⟩
+/≡↔ : Is-set A → A / _≡_ ↔ A
+/≡↔ A-set = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = rec id id A-set
+      ; from = [_]
+      }
+    ; right-inverse-of = λ _ → refl _
+    }
+  ; left-inverse-of = elim-Prop _ (λ _ → refl _) (λ _ → /-is-set)
+  }
 
-       subst (λ x → (x ≡_) ≡ P)
-             (sym $ _≃_.to (≡⇒↝ _ (cong (_$ x) (trans x≡≡ (sym y≡≡))))
-                           (sym (refl x)))
-             x≡≡                                                        ≡⟨ cong (λ eq → subst (λ x → (x ≡_) ≡ P) (sym eq) x≡≡) $ sym $
-                                                                             subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
-       subst (λ x → (x ≡_) ≡ P)
-             (sym $ subst (_$ x) (trans x≡≡ (sym y≡≡)) (sym (refl x)))
-             x≡≡                                                        ≡⟨ cong (λ eq → subst (λ x → (x ≡_) ≡ P)
-                                                                                              (sym (subst (_$ x) (trans x≡≡ (sym y≡≡)) eq)) _)
-                                                                             sym-refl ⟩
-       subst (λ x → (x ≡_) ≡ P)
-             (sym $ subst (_$ x) (trans x≡≡ (sym y≡≡)) (refl x))
-             x≡≡                                                        ≡⟨ subst-∘ _ _ _ ⟩
+-- Quotienting with a trivial relation amounts to the same thing as
+-- using the propositional truncation.
 
-       subst (λ Q → Q ≡ P)
-             (cong _≡_ $
-                sym $ subst (_$ x) (trans x≡≡ (sym y≡≡)) (refl x))
-             x≡≡                                                        ≡⟨ cong (λ eq → subst (λ Q → Q ≡ P) eq _) $ cong-sym _ _ ⟩
+/trivial↔∥∥ : (∀ x y → R x y) → A / R ↔ ∥ A ∥
+/trivial↔∥∥ {A = A} {R = R} trivial = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = rec-Prop ∣_∣ truncation-is-proposition
+      ; from = Trunc.rec /-prop [_]
+      }
+    ; right-inverse-of = Trunc.elim
+        _
+        (λ _ → mono₁ 0 (+⇒≡ truncation-is-proposition))
+        (λ _ → refl _)
+    }
+  ; left-inverse-of = elim-Prop _ (λ _ → refl _) (λ _ → /-is-set)
+  }
+  where
+  /-prop : Is-proposition (A / R)
+  /-prop =
+    elim-Prop _
+      (λ x → elim-Prop _
+         (λ y → []-respects-relation (trivial x y))
+         (λ _ → /-is-set))
+      (λ _ → Π-closure ext 1 λ _ →
+             /-is-set)
 
-       subst (λ Q → Q ≡ P)
-             (sym $ cong _≡_ $
-                subst (_$ x) (trans x≡≡ (sym y≡≡)) (refl x))
-             x≡≡                                                        ≡⟨ subst-trans _ ⟩
+-- If the relation is a propositional equivalence relation of a
+-- certain size, then there is a split surjection from the definition
+-- of quotients given in Quotient to the one given here.
+--
+-- I don't know if this result can be strengthened to an isomorphism:
+-- I encountered size issues when trying to prove this.
 
-       trans (cong _≡_ $ subst (_$ x) (trans x≡≡ (sym y≡≡)) (refl x))
-             x≡≡                                                        ≡⟨ cong (flip trans x≡≡) $ lemma _ ⟩
+/↠/ : {A : Set a} {R : A → A → Set a} →
+      Quotient.Is-equivalence-relation R →
+      (R-prop : ∀ {x y} → Is-proposition (R x y)) →
+      A Quotient./ R ↠ A / R
+/↠/ {a = a} {A = A} {R} R-equiv R-prop = record
+  { logical-equivalence = record
+    { to   = to
+    ; from = from
+    }
+  ; right-inverse-of = to∘from
+  }
+  where
+  R-is-strong-equivalence : Quotient.Strong-equivalence R
+  R-is-strong-equivalence =
+    Quotient.propositional-equivalence⇒strong-equivalence
+      ext univ R-equiv (λ _ _ → R-prop)
 
-       trans (sym (trans x≡≡ (sym y≡≡))) x≡≡                            ≡⟨ cong (flip trans x≡≡) $ sym-trans _ _ ⟩
+  []-respects-R : ∀ {x y} → R x y → Quotient.[ x ] ≡ Quotient.[ y ]
+  []-respects-R =
+    _↔_.to (Quotient.related↔[equal] ext R-is-strong-equivalence)
 
-       trans (trans (sym (sym y≡≡)) (sym x≡≡)) x≡≡                      ≡⟨ trans-[trans-sym]- _ _ ⟩
+  to : A Quotient./ R → A / R
+  to = Quotient.rec
+    ext
+    (Is-equivalence-relation.reflexive R-equiv)
+    _
+    /-is-set
+    [_]
+    []-respects-relation
 
-       sym (sym y≡≡)                                                    ≡⟨ sym-sym _ ⟩∎
+  from : A / R → A Quotient./ R
+  from = rec
+    Quotient.[_]
+    []-respects-R
+    (Quotient.quotient's-h-level-is-1-+-relation's-h-level
+       ext univ univ 1 (λ _ _ → R-prop))
 
-       y≡≡                                                              ∎)
+  to∘from : ∀ x → to (from x) ≡ x
+  to∘from = elim-Prop
+    _
+    (λ _ → refl _)
+    (λ _ → /-is-set)
 
-module _ {a} {A : Set a} {R : A → A → Set a} where
+-- Two applications of _/_ are isomorphic if the underlying types are
+-- isomorphic and the relations are pointwise logically equivalent.
 
-  -- Equality characterisation lemmas for the quotient type.
+infix 5 _/-cong_
 
-  equality-characterisation₁ :
-    Extensionality (lsuc (lsuc a)) (lsuc a) →
-    {x y : A / R} →
-    x ≡ y
-      ↔
-    proj₁ x ≡ proj₁ y
-  equality-characterisation₁ ext {x} {y} =
-    x ≡ y                                                          ↝⟨ inverse Bij.Σ-≡,≡↔≡ ⟩
+_/-cong_ :
+  {A₁ : Set a₁} {A₂ : Set a₂}
+  {R₁ : A₁ → A₁ → Set r₁}
+  {R₂ : A₂ → A₂ → Set r₂} →
+  (A₁↔A₂ : A₁ ↔[ k ] A₂) →
+  (∀ x y →
+     R₁ x y ⇔ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)) →
+  A₁ / R₁ ↔[ k ] A₂ / R₂
+_/-cong_ {k = k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = rec
+                 ([_] ∘ to)
+                 ([]-respects-relation ∘ _⇔_.to (R₁⇔R₂′ _ _))
+                 /-is-set
+      ; from = rec
+                 ([_] ∘ from)
+                 (λ {x y} →
+                    R₂ x y                          ↝⟨ ≡⇒↝ _ (sym $ cong₂ R₂ (right-inverse-of x) (right-inverse-of y)) ⟩
+                    R₂ (to (from x)) (to (from y))  ↝⟨ _⇔_.from (R₁⇔R₂′ _ _) ⟩
+                    R₁ (from x) (from y)            ↝⟨ []-respects-relation ⟩□
+                    [ from x ] ≡ [ from y ]         □)
+                 /-is-set
+      }
+    ; right-inverse-of = elim-Prop
+        _
+        (λ x →
+          [ to (from x) ]  ≡⟨ cong [_] $ right-inverse-of x ⟩∎
+          [ x ]            ∎)
+        (λ _ → /-is-set)
+    }
+  ; left-inverse-of = elim-Prop
+      _
+      (λ x →
+        [ from (to x) ]  ≡⟨ cong [_] $ left-inverse-of x ⟩∎
+        [ x ]            ∎)
+      (λ _ → /-is-set)
+  })
+  where
+  open _↔_ (from-isomorphism A₁↔A₂)
 
-    (∃ λ (eq : proj₁ x ≡ proj₁ y) →
-       subst (_is-equivalence-class-of R) eq (proj₂ x) ≡ proj₂ y)  ↝⟨ (drop-⊤-right λ _ → _⇔_.to contractible⇔↔⊤ $
-                                                                       +⇒≡ $ truncation-has-correct-h-level 1 ext) ⟩□
-    proj₁ x ≡ proj₁ y                                              □
+  R₁⇔R₂′ : ∀ _ _ → _
+  R₁⇔R₂′ x y =
+    R₁ x y                                                ↝⟨ R₁⇔R₂ x y ⟩
+    R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → R₂ (f x) (g y))
+                                                                           (to-implication∘from-isomorphism k bijection)
+                                                                           (to-implication∘from-isomorphism k bijection) ⟩□
+    R₂ (to x) (to y)                                      □
 
-  equality-characterisation₂ :
-    Extensionality (lsuc (lsuc a)) (lsuc a) →
-    {x y : A / R} →
-    x ≡ y
-      ↔
-    (∀ z → proj₁ x z ≡ proj₁ y z)
-  equality-characterisation₂ ext {x} {y} =
-    x ≡ y                          ↝⟨ equality-characterisation₁ ext ⟩
+------------------------------------------------------------------------
+-- Various type formers commute with quotients
 
-    proj₁ x ≡ proj₁ y              ↔⟨ inverse $ Eq.extensionality-isomorphism
-                                                  (lower-extensionality _ lzero ext) ⟩□
-    (∀ z → proj₁ x z ≡ proj₁ y z)  □
+-- _⊎_ commutes with quotients.
 
-  equality-characterisation₃ :
-    Extensionality (lsuc (lsuc a)) (lsuc a) →
-    Univalence a →
-    {x y : A / R} →
-    x ≡ y
-      ↔
-    (∀ z → proj₁ x z ≃ proj₁ y z)
-  equality-characterisation₃ ext univ {x} {y} =
-    x ≡ y                          ↝⟨ equality-characterisation₂ ext ⟩
+⊎/-comm : (A ⊎ B) / (P ⊎ᴾ Q) ↔ A / P ⊎ B / Q
+⊎/-comm = record
+  { surjection = record
+    { logical-equivalence = record
+      { to = rec
+          (⊎-map [_] [_])
+          (λ { {x = inj₁ _} {y = inj₁ _} → cong inj₁ ∘
+                                           []-respects-relation
+             ; {x = inj₂ _} {y = inj₂ _} → cong inj₂ ∘
+                                           []-respects-relation
+             ; {x = inj₁ _} {y = inj₂ _} ()
+             ; {x = inj₂ _} {y = inj₁ _} ()
+             })
+          (⊎-closure 0 /-is-set /-is-set)
+      ; from = Prelude.[ rec ([_] ∘ inj₁) []-respects-relation /-is-set
+                       , rec ([_] ∘ inj₂) []-respects-relation /-is-set
+                       ]
+      }
+    ; right-inverse-of =
+        Prelude.[ elim-Prop
+                    _
+                    (λ _ → refl _)
+                    (λ _ → ⊎-closure 0 /-is-set /-is-set)
+                , elim-Prop
+                    _
+                    (λ _ → refl _)
+                    (λ _ → ⊎-closure 0 /-is-set /-is-set)
+                ]
+    }
+  ; left-inverse-of = elim-Prop
+      _
+      Prelude.[ (λ _ → refl _) , (λ _ → refl _) ]
+      (λ _ → /-is-set)
+  }
 
-    (∀ z → proj₁ x z ≡ proj₁ y z)  ↔⟨ (∀-cong (lower-extensionality _ lzero ext) λ _ →
-                                       ≡≃≃ univ) ⟩□
-    (∀ z → proj₁ x z ≃ proj₁ y z)  □
+-- Maybe commutes with quotients.
+--
+-- Chapman, Uustalu and Veltri mention a similar result in
+-- "Quotienting the Delay Monad by Weak Bisimilarity".
 
-  -- Constructor for the quotient type.
+Maybe/-comm : Maybe A / Maybeᴾ R ↔ Maybe (A / R)
+Maybe/-comm {A = A} {R = R} =
+  Maybe A / Maybeᴾ R   ↝⟨ ⊎/-comm ⟩
+  ⊤ / Trivial ⊎ A / R  ↝⟨ /trivial↔∥∥ _ ⊎-cong F.id ⟩
+  ∥ ⊤ ∥ ⊎ A / R        ↝⟨ ∥∥↔ (mono₁ 0 ⊤-contractible) ⊎-cong F.id ⟩□
+  Maybe (A / R)        □
 
-  [_] : A → A / R
-  [ a ] = R a , ∣ (a , refl (R a)) ∣₁
+-- A simplification lemma for Maybe/-comm.
 
-  -- [_] is surjective (assuming extensionality).
+Maybe/-comm-[] : _↔_.to Maybe/-comm ∘ [_] ≡ ⊎-map id ([_] {R = R})
+Maybe/-comm-[] =
+  _↔_.to Maybe/-comm ∘ [_]                             ≡⟨⟩
 
-  []-surjective :
-    Extensionality (lsuc (lsuc a)) (lsuc a) →
-    Surjective (lsuc a) [_]
-  []-surjective ext (P , P-is-class) =
-    ∥∥-map
-      1
-      (Σ-map
-         F.id
-         (λ {x} Rx≡P →
-            [ x ]             ≡⟨ _↔_.from (equality-characterisation₁ ext) Rx≡P ⟩∎
-            (P , P-is-class)  ∎))
-      P-is-class
+  ⊎-map _ id ∘
+  ⊎-map (rec-Prop ∣_∣ truncation-is-proposition) id ∘
+  ⊎-map [_] [_]                                        ≡⟨ cong (_∘ ⊎-map [_] [_]) ⊎-map-∘ ⟩
 
-  -- If the relation is a family of types of h-level n, then the
-  -- equivalence classes are also families of types of h-level n
-  -- (assuming extensionality).
+  ⊎-map _ id ∘ ⊎-map [_] [_]                           ≡⟨ ⊎-map-∘ ⟩∎
 
-  equivalence-classes-have-same-h-level-as-relation :
-    Extensionality a a →
-    ∀ n →
-    (∀ x y → H-level n (R x y)) →
-    (x : A / R) → ∀ y → H-level n (proj₁ x y)
-  equivalence-classes-have-same-h-level-as-relation
-    ext n h (P , P-is-class) y =
+  ⊎-map id [_]                                         ∎
+  where
+  ⊎-map-∘ : ∀ {a₁ b₁ c₁} {A₁ : Set a₁} {B₁ : Set b₁} {C₁ : Set c₁}
+              {a₂ b₂ c₂} {A₂ : Set a₂} {B₂ : Set b₂} {C₂ : Set c₂}
+              {f₁ : B₁ → C₁} {g₁ : A₁ → B₁}
+              {f₂ : B₂ → C₂} {g₂ : A₂ → B₂} →
+            ⊎-map f₁ f₂ ∘ ⊎-map g₁ g₂ ≡ ⊎-map (f₁ ∘ g₁) (f₂ ∘ g₂)
+  ⊎-map-∘ = ⟨ext⟩ Prelude.[ (λ _ → refl _) , (λ _ → refl _) ]
 
-    Trunc.rec
-      1
-      (H-level-propositional ext n)
-      (λ { (z , Rz≡P) → H-level.respects-surjection
-                          (≡⇒↝ _ (R z y  ≡⟨ cong (_$ y) Rz≡P ⟩∎
-                                  P y    ∎))
-                          n
-                          (h z y) })
-      (with-lower-level _ 1 P-is-class)
+-- The sigma type former commutes (kind of) with quotients, assuming
+-- that the second projections come from propositional types.
 
-  -- If R is a family of types of h-level n, then A / R has h-level
-  -- 1 + n (assuming extensionality and univalence).
+Σ/-comm :
+  {P : A / R → Set p} →
+  (∀ {x} → Is-proposition (P x)) →
+  Σ (A / R) P ↔ Σ A (P ∘ [_]) / (R on proj₁)
+Σ/-comm {A = A} {R = R} {P = P} P-prop = record
+  { surjection = record
+    { logical-equivalence = record
+      { to = uncurry $ elim
+          (λ x → P x → Σ A (P ∘ [_]) / (R on proj₁))
+          (curry [_])
+          (λ {x y} r → ⟨ext⟩ λ P[y] →
+             subst (λ x → P x → Σ A (P ∘ [_]) / (R on proj₁))
+                   ([]-respects-relation r)
+                   (curry [_] x) P[y]                               ≡⟨ cong (_$ P[y]) $
+                                                                       subst-→-domain P {f = curry [_] _} ([]-respects-relation r) ⟩
 
-  quotient's-h-level-is-1-+-relation's-h-level :
-    Extensionality (lsuc (lsuc a)) (lsuc a) →
-    Univalence a →
-    Univalence (# 0) →
-    ∀ n →
-    (∀ x y → H-level n (R x y)) →
-    H-level (1 + n) (A / R)
-  quotient's-h-level-is-1-+-relation's-h-level ext univ univ₀ = h′
-    where
-    lemma₁ :
-      ∀ n →
-      (∀ x y z → H-level n (proj₁ x z ≡ proj₁ y z)) →
-      H-level (1 + n) (A / R)
-    lemma₁ n h = ≡↔+ _ _ λ x y →                 $⟨ h x y ⟩
-      (∀ z → H-level n (proj₁ x z ≡ proj₁ y z))  ↝⟨ Π-closure (lower-extensionality _ lzero ext) n ⟩
-      H-level n (∀ z → proj₁ x z ≡ proj₁ y z)    ↝⟨ H-level.respects-surjection
-                                                      (_↔_.surjection (inverse $ equality-characterisation₂ ext))
-                                                      n ⟩□
-      H-level n (x ≡ y)                          □
+             [ (x , subst P (sym $ []-respects-relation r) P[y]) ]  ≡⟨ []-respects-relation r ⟩∎
 
-    lemma₂ :
-      ∀ n →
-      (∀ x y → H-level (1 + n) (R x y)) →
-      ∀ x y z → H-level (1 + n) (proj₁ x z ≡ proj₁ y z)
-    lemma₂ n h x _ z =
-      H-level-H-level-≡ˡ
-        (lower-extensionality _ _ ext) univ n
-        (equivalence-classes-have-same-h-level-as-relation
-           (lower-extensionality _ _ ext) (1 + n) h x z)
+             [ (y , P[y]) ]                                         ∎)
+          (λ _ → Π-closure ext 2 λ _ →
+                 /-is-set)
+      ; from = rec
+          (Σ-map [_] id)
+          (λ { {x = (x₁ , x₂)} {y = (y₁ , y₂)} →
+               R x₁ y₁                        ↝⟨ []-respects-relation ⟩
+               [ x₁ ] ≡ [ y₁ ]                ↔⟨ ignore-propositional-component P-prop ⟩
+               ([ x₁ ] , x₂) ≡ ([ y₁ ] , y₂)  □
+             })
+          (Σ-closure 2 /-is-set (λ _ → mono₁ 1 P-prop))
+      }
+    ; right-inverse-of = elim-Prop
+        _
+        (λ _ → refl _)
+        (λ _ → /-is-set)
+    }
+  ; left-inverse-of = uncurry $ elim-Prop
+      _
+      (λ _ _ → refl _)
+      (λ _ → Π-closure ext 1 λ _ →
+             Σ-closure 2 /-is-set (λ _ → mono₁ 1 P-prop))
+  }
 
-    h′ : ∀ n →
-         (∀ x y → H-level n (R x y)) →
-         H-level (1 + n) (A / R)
-    h′ (suc n) h = lemma₁ (suc n) (lemma₂ n h)
-    h′ zero    h =
-      lemma₁ zero λ x y z →
-        propositional⇒inhabited⇒contractible
-          (lemma₂ 0 (λ x y → mono₁ 0 (h x y)) x y z)
-          (                       $⟨ refl _ ⟩
-           ⊤ ≡ ⊤                  ↝⟨ ≡-preserves-≃ (lower-extensionality _ _ ext) univ₀ univ
-                                       (lemma₃ x z) (lemma₃ y z) ⟩
-           proj₁ x z ≡ proj₁ y z  □)
-      where
-      lemma₃ : ∀ x z → ⊤ ≃ proj₁ x z
-      lemma₃ x z =                $⟨ equivalence-classes-have-same-h-level-as-relation
-                                       (lower-extensionality _ _ ext)
-                                       0 h x z ⟩
-        Contractible (proj₁ x z)  ↝⟨ _⇔_.to contractible⇔↔⊤ ⟩
-        proj₁ x z ↔ ⊤             ↝⟨ inverse ⟩
-        ⊤ ↔ proj₁ x z             ↝⟨ Eq.↔⇒≃ ⟩□
-        ⊤ ≃ proj₁ x z             □
+-- The type former λ X → ℕ → X commutes with quotients, assuming that
+-- the quotient relation is a propositional equivalence relation, and
+-- also assuming countable choice.
+--
+-- This result is very similar to Proposition 5 in "Quotienting the
+-- Delay Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
-  -- If the relation is a strong equivalence relation, then it is
-  -- isomorphic to equality under [_] (assuming extensionality).
+-- The forward component of the isomorphism. This component can be
+-- defined without any extra assumptions.
 
-  related↔[equal] :
-    Extensionality (lsuc (lsuc a)) (lsuc a) →
-    Strong-equivalence R →
-    ∀ {x y} → R x y ↔ [ x ] ≡ [ y ]
-  related↔[equal] ext strong-equivalence {x} {y} =
-    R x y          ↔⟨ strong-equivalence ⟩
-    R x ≡ R y      ↝⟨ inverse $ equality-characterisation₁ ext ⟩□
-    [ x ] ≡ [ y ]  □
+ℕ→/-comm-to : (ℕ → A) / (ℕ →ᴾ R) → (ℕ → A / R)
+ℕ→/-comm-to = rec
+  (λ f n → [ f n ])
+  (λ r → ⟨ext⟩ ([]-respects-relation ∘ r))
+  (Π-closure ext 2 λ _ →
+   /-is-set)
 
-  -- If the relation is a strong equivalence relation, then functions
-  -- from quotients to sets are isomorphic to relation-respecting
-  -- functions (assuming extensionality).
+-- The isomorphism.
 
-  /→set↔relation-respecting :
-    Extensionality (lsuc (lsuc a)) (lsuc (lsuc a)) →
-    Strong-equivalence R →
-    {B : Set a} →
-    Is-set B →
-    (A / R → B) ↔ ∃ λ (f : A → B) → ∀ x y → R x y → f x ≡ f y
-  /→set↔relation-respecting ext strong-equivalence {B = B} B-set =
+ℕ→/-comm :
+  {A : Set a} {R : A → A → Set r} →
+  Axiom-of-countable-choice (a ⊔ r) →
+  Is-equivalence-relation R →
+  (∀ {x y} → Is-proposition (R x y)) →
+  (ℕ → A) / (ℕ →ᴾ R) ↔ (ℕ → A / R)
+ℕ→/-comm {A = A} {R} cc R-equiv R-prop = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = ℕ→/-comm-to
+      ; from = from unit
+      }
+    ; right-inverse-of = to∘from unit
+    }
+  ; left-inverse-of = from∘to unit
+  }
+  where
+  [_]→ : (ℕ → A) → (ℕ → A / R)
+  [ f ]→ n = [ f n ]
 
-    ((∃ λ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _) → B)             ↝⟨ currying ⟩
+  -- A module that is introduced to ensure that []→-surjective is not
+  -- in the same abstract block as the abstract definitions below.
 
-    (∀ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _ → B)                 ↔⟨ (∀-cong (lower-extensionality _ lzero ext) λ P → inverse $
-                                                              constant-function≃∥inhabited∥⇒inhabited
-                                                                lzero (lower-extensionality lzero _ ext) B-set) ⟩
-    (∀ P → ∃ λ (f : (∃ λ x → R x ≡ P) → B) → Constant f)  ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                              Σ-cong currying λ _ → F.id) ⟩
-    (∀ P → ∃ λ (f : (x : A) → R x ≡ P → B) →
-               Constant (uncurry f))                      ↝⟨ ΠΣ-comm ⟩
+  module Dummy where
 
-    (∃ λ (f : ∀ P → (x : A) → R x ≡ P → B) →
-       ∀ P → Constant (uncurry (f P)))                    ↝⟨ Σ-cong Π-comm (λ _ → F.id) ⟩
+    abstract
 
-    (∃ λ (f : (x : A) → ∀ P → R x ≡ P → B) →
-       ∀ P → Constant (uncurry (flip f P)))               ↝⟨ Σ-cong (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                     inverse currying) (λ _ →
-                                                             F.id) ⟩
-    (∃ λ (f : (x : A) → (∃ λ P → R x ≡ P) → B) →
-       ∀ P → Constant (uncurry λ x eq → f x (P , eq)))    ↝⟨ inverse $
-                                                             Σ-cong (Bij.inverse $
-                                                                     ∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                     drop-⊤-left-Π (lower-extensionality _ _ ext) $
-                                                                     _⇔_.to contractible⇔↔⊤ $
-                                                                     other-singleton-contractible _)
-                                                             lemma ⟩□
-    (∃ λ (f : A → B) → ∀ x y → R x y → f x ≡ f y)         □
+      []→-surjective : Surjective [_]→
+      []→-surjective f =                    $⟨ []-surjective ⟩
+        Surjective [_]                      ↝⟨ (λ surj → surj ∘ f) ⦂ (_ → _) ⟩
+        (∀ n → ∥ (∃ λ x → [ x ] ≡ f n) ∥)   ↔⟨ countable-choice-bijection cc ⟩
+        ∥ (∀ n → ∃ λ x → [ x ] ≡ f n) ∥     ↔⟨ ∥∥-cong ΠΣ-comm ⟩
+        ∥ (∃ λ g → ∀ n → [ g n ] ≡ f n) ∥   ↔⟨⟩
+        ∥ (∃ λ g → ∀ n → [ g ]→ n ≡ f n) ∥  ↔⟨ ∥∥-cong (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩□
+        ∥ (∃ λ g → [ g ]→ ≡ f) ∥            □
 
-    where
+  open Dummy
 
-    lemma = λ f →
-      (∀ x y → R x y → f x ≡ f y)                                    ↔⟨ (∀-cong (lower-extensionality _ _ ext) λ x →
-                                                                         ∀-cong (lower-extensionality _ _ ext) λ y →
-                                                                         →-cong (lower-extensionality _ _ ext) strong-equivalence F.id) ⟩
-      (∀ x y → R x ≡ R y → f x ≡ f y)                                ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                         ∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                         →-cong (lower-extensionality _ _ ext)
-                                                                                (Groupoid.⁻¹-bijection (EG.groupoid _))
-                                                                                F.id) ⟩
-      (∀ x y → R y ≡ R x → f x ≡ f y)                                ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                         inverse currying) ⟩
-      (∀ x (q : ∃ λ y → R y ≡ R x) → f x ≡ f (proj₁ q))              ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                         inverse $ drop-⊤-left-Π (lower-extensionality _ _ ext) $
-                                                                         _⇔_.to contractible⇔↔⊤ $
-                                                                         other-singleton-contractible _) ⟩
-      (∀ x (Q : ∃ λ P → R x ≡ P) (q : ∃ λ x → R x ≡ proj₁ Q) →
-       f x ≡ f (proj₁ q))                                            ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                         currying) ⟩
-      (∀ x P → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↝⟨ Π-comm ⟩
+  from₁ : ∀ f → [_]→ ⁻¹ f → ℕ→/-comm-to ⁻¹ f
+  from₁ f (g , [g]→≡f) =
+      [ g ]
+    , (ℕ→/-comm-to [ g ]  ≡⟨⟩
+       [ g ]→             ≡⟨ [g]→≡f ⟩∎
+       f                  ∎)
 
-      (∀ P x → R x ≡ P → (q : ∃ λ x → R x ≡ P) → f x ≡ f (proj₁ q))  ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                         inverse currying) ⟩
-      (∀ P (p q : ∃ λ x → R x ≡ P) → f (proj₁ p) ≡ f (proj₁ q))      ↝⟨ F.id ⟩
+  from₁-constant : ∀ f → Constant (from₁ f)
+  from₁-constant f (g₁ , [g₁]→≡f) (g₂ , [g₂]→≡f) =
+                                             $⟨ (λ n → cong (_$ n) (
+        [ g₁ ]→                                    ≡⟨ [g₁]→≡f ⟩
+        f                                          ≡⟨ sym [g₂]→≡f ⟩∎
+        [ g₂ ]→                                    ∎)) ⟩
 
-      (∀ P → Constant (uncurry λ x _ → f x))                         ↝⟨ (∀-cong (lower-extensionality _ _ ext) λ _ →
-                                                                         ≡⇒↝ _ $ cong Constant $ apply-ext (lower-extensionality _ _ ext) λ _ →
-                                                                         sym $ subst-const _) ⟩□
-      (∀ P → Constant (uncurry λ x _ → subst (const B) _ (f x)))     □
+    (∀ n → [ g₁ ]→ n ≡ [ g₂ ]→ n)            ↔⟨⟩
 
-  -- "Computation rule" for /→set↔relation-respecting.
+    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ ∀-cong ext (λ _ → inverse $ related≃[equal] R-equiv R-prop) ⟩
 
-  proj₁-to-/→set↔relation-respecting :
-    (ext : Extensionality (lsuc (lsuc a)) (lsuc (lsuc a)))
-    (strong-equivalence : Strong-equivalence R)
-    {B : Set a}
-    (B-set : Is-set B)
-    (f : A / R → B) →
-    proj₁ (_↔_.to (/→set↔relation-respecting
-                     ext strong-equivalence B-set) f)
-      ≡
-    f ∘ [_]
-  proj₁-to-/→set↔relation-respecting ext _ {B} _ f =
-    apply-ext (lower-extensionality _ _ ext) λ x →
-      subst (const B) (refl _) (f [ x ])  ≡⟨ subst-refl _ _ ⟩∎
-      f [ x ]                             ∎
+    (∀ n → R (g₁ n) (g₂ n))                  ↔⟨⟩
 
-  -- Recursor (used to eliminate into sets). The recursor uses
-  -- extensionality and reflexivity.
+    (ℕ →ᴾ R) g₁ g₂                           ↝⟨ []-respects-relation ⟩
 
-  rec :
-    Extensionality (lsuc (lsuc a)) (lsuc a) →
-    (∀ {x} → R x x) →
-    (B : Set a) →
-    Is-set B →
-    (f : A → B) →
-    (∀ {x y} → R x y → f x ≡ f y) →
-    A / R → B
-  rec ext refl B B-set f R⇒≡ (P , P-is-class) =
-    _≃_.to (constant-function≃∥inhabited∥⇒inhabited lzero ext B-set)
-      (f′ , f′-constant)
-      P-is-class
-    where
-    f′ : (∃ λ x → R x ≡ P) → B
-    f′ (x , _) = f x
+    [ g₁ ] ≡ [ g₂ ]                          ↔⟨ ignore-propositional-component
+                                                  (Π-closure ext 2 λ _ →
+                                                   /-is-set) ⟩□
+    ([ g₁ ] , [g₁]→≡f) ≡ ([ g₂ ] , [g₂]→≡f)  □
 
-    f′-constant : Constant f′
-    f′-constant (x₁ , Rx₁≡P) (x₂ , Rx₂≡P) = R⇒≡ (
-               $⟨ refl ⟩
-      R x₂ x₂  ↝⟨ ≡⇒→ $ cong (λ Q → Q x₂) Rx₂≡P ⟩
-      P x₂     ↝⟨ ≡⇒→ $ cong (λ Q → Q x₂) $ sym Rx₁≡P ⟩□
-      R x₁ x₂  □)
-
-  private
-
-    -- The recursor's computation rule holds definitionally.
-
-    rec-[] :
-      (ext : Extensionality (lsuc (lsuc a)) (lsuc a))
-      (refl : ∀ {x} → R x x)
-      (B : Set a)
-      (B-set : Is-set B)
-      (f : A → B)
-      (R⇒≡ : ∀ {x y} → R x y → f x ≡ f y)
-      (x : A) →
-      rec ext refl B B-set f R⇒≡ [ x ] ≡ f x
-    rec-[] _ _ _ _ _ _ _ = refl _
-
-  -- Eliminator (used to eliminate into sets). The eliminator uses
-  -- extensionality, and the assumption that the relation is a strong
-  -- equivalence relation. (The latter assumption could perhaps be
-  -- weakened.)
-
-  elim :
-    (ext : Extensionality (lsuc (lsuc a)) (lsuc a))
-    (strong-equivalence : Strong-equivalence R)
-    (B : A / R → Set (lsuc a)) →
-    (∀ x → Is-set (B x)) →
-    (f : ∀ x → B [ x ]) →
-    (∀ {x y} (Rxy : R x y) →
-       subst B (_↔_.to (related↔[equal]
-                          ext strong-equivalence) Rxy) (f x) ≡
-       f y) →
-    ∀ x → B x
-  elim ext strong-equivalence B B-set f R⇒≡ (P , P-is-class) =
+  from₂ : Unit → ∀ f → ∥ [_]→ ⁻¹ f ∥ → ℕ→/-comm-to ⁻¹ f
+  from₂ unit f =
     _≃_.to (constant-function≃∥inhabited∥⇒inhabited
-              lzero ext (B-set _))
-      (f′ , f′-constant)
-      P-is-class
-    where
-    f′ : (∃ λ x → R x ≡ P) → B (P , P-is-class)
-    f′ (x , Rx≡P) =
-      subst B
-            (_↔_.from (equality-characterisation₁ ext) Rx≡P)
-            (f x)
+              (Σ-closure 2 /-is-set λ _ →
+               mono₁ 1 (Π-closure ext 2 (λ _ → /-is-set))))
+           (from₁ f , from₁-constant f)
 
-    f′-constant : Constant f′
-    f′-constant (x , Rx≡P) (y , Ry≡P) =
-      subst B
-            (_↔_.from (equality-characterisation₁ ext) Rx≡P)
-            (f x)                                                     ≡⟨ cong (subst _ _) $ sym $ R⇒≡ _ ⟩
+  unblock-from₂ : ∀ x f p → from₂ x f ∣ p ∣ ≡ from₁ f p
+  unblock-from₂ unit _ _ = refl _
 
-      subst B
-            (_↔_.from (equality-characterisation₁ ext) Rx≡P)
-            (subst B (_↔_.to (related↔[equal]
-                                ext strong-equivalence) lemma₁)
-                   (f y))                                             ≡⟨ subst-subst _ _ _ _ ⟩
+  abstract
 
-      subst B
-            (trans (_↔_.to (related↔[equal]
-                              ext strong-equivalence) lemma₁)
-                   (_↔_.from (equality-characterisation₁ ext) Rx≡P))
-            (f y)                                                     ≡⟨ cong (λ eq → subst B eq _) lemma₄ ⟩∎
+    from₃ : Unit → ∀ f → ℕ→/-comm-to ⁻¹ f
+    from₃ x f = from₂ x f ([]→-surjective f)
 
-      subst B
-            (_↔_.from (equality-characterisation₁ ext) Ry≡P)
-            (f y)                                                     ∎
-      where
-      lemma₁ = _≃_.from strong-equivalence (
-         R y  ≡⟨ Ry≡P ⟩
-         P    ≡⟨ sym Rx≡P ⟩∎
-         R x  ∎)
+    from : Unit → (ℕ → A / R) → (ℕ → A) / (ℕ →ᴾ R)
+    from x f = proj₁ (from₃ x f)
 
-      lemma₂ = λ x →
-        _↔_.to (equality-characterisation₁ ext) (refl x)  ≡⟨⟩
-        proj₁ (Σ-≡,≡←≡ (refl x))                          ≡⟨ proj₁-Σ-≡,≡←≡ _ ⟩
-        cong proj₁ (refl x)                               ≡⟨ cong-refl _ ⟩∎
-        refl (proj₁ x)                                    ∎
+    to∘from : ∀ x f → ℕ→/-comm-to (from x f) ≡ f
+    to∘from x f = proj₂ (from₃ x f)
 
-      lemma₃ =
-        trans (_≃_.to strong-equivalence lemma₁) Rx≡P                    ≡⟨⟩
-
-        trans (_≃_.to strong-equivalence
-                 (_≃_.from strong-equivalence (trans Ry≡P (sym Rx≡P))))
-              Rx≡P                                                       ≡⟨ cong (flip trans _) $ _≃_.right-inverse-of strong-equivalence _ ⟩
-
-        trans (trans Ry≡P (sym Rx≡P)) Rx≡P                               ≡⟨ trans-[trans-sym]- _ _ ⟩∎
-
-        Ry≡P                                                             ∎
-
-      lemma₄ =
-        trans (_↔_.to (related↔[equal] ext strong-equivalence) lemma₁)
-              (_↔_.from (equality-characterisation₁ ext) Rx≡P)          ≡⟨⟩
-
-        trans (_↔_.from (equality-characterisation₁ ext)
-                        (_≃_.to strong-equivalence lemma₁))
-              (_↔_.from (equality-characterisation₁ ext) Rx≡P)          ≡⟨ Bij.trans-to-to≡to-trans
-                                                                             (λ _ _ → inverse $ equality-characterisation₁ ext)
-                                                                             lemma₂ ⟩
-        _↔_.from (equality-characterisation₁ ext)
-                 (trans (_≃_.to strong-equivalence lemma₁) Rx≡P)        ≡⟨ cong (_↔_.from (equality-characterisation₁ ext)) lemma₃ ⟩∎
-
-        _↔_.from (equality-characterisation₁ ext) Ry≡P                  ∎
+    from∘to : ∀ x f → from x (ℕ→/-comm-to f) ≡ f
+    from∘to x = elim-Prop
+      (λ f → from x (ℕ→/-comm-to f) ≡ f)
+      (λ f →
+         from x (ℕ→/-comm-to [ f ])                      ≡⟨⟩
+         proj₁ (from₂ x [ f ]→ ([]→-surjective [ f ]→))  ≡⟨ cong (proj₁ ∘ from₂ x [ f ]→) $ truncation-is-proposition _ _ ⟩
+         proj₁ (from₂ x [ f ]→ ∣ f , refl _ ∣)           ≡⟨ cong proj₁ $ unblock-from₂ x _ (f , refl _) ⟩
+         proj₁ (from₁ [ f ]→ (f , refl _))               ≡⟨⟩
+         [ f ]                                           ∎)
+      (λ _ → /-is-set)
 
 ------------------------------------------------------------------------
--- An example
+-- Quotient-like eliminators
 
-module ⊤/2 where
+-- If there is a split surjection from a quotient type to some other
+-- type, then one can construct a quotient-like eliminator for the
+-- other type.
+--
+-- This kind of construction is used in "Quotienting the Delay Monad
+-- by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
-  -- What happens if we quotient the unit type by the "binary-valued
-  -- trivial relation"?
+↠-eliminator :
+  (surj : A / R ↠ B)
+  (P : B → Set p)
+  (p-[] : ∀ x → P (_↠_.to surj [ x ])) →
+  (∀ {x y} (r : R x y) →
+   subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x) ≡
+   p-[] y) →
+  (∀ x → Is-set (P x)) →
+  ∀ x → P x
+↠-eliminator surj P p-[] ok P-set x =
+  subst P (_↠_.right-inverse-of surj x) p′
+  where
+  p′ : P (_↠_.to surj (_↠_.from surj x))
+  p′ = elim
+    (P ∘ _↠_.to surj)
+    p-[]
+    (λ {x y} r →
+       subst (P ∘ _↠_.to surj) ([]-respects-relation r) (p-[] x)       ≡⟨ subst-∘ P (_↠_.to surj) ([]-respects-relation r) ⟩
+       subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x)  ≡⟨ ok r ⟩∎
+       p-[] y                                                          ∎)
+    (λ _ → P-set _)
+    (_↠_.from surj x)
 
-  ⊤/2 : Set₂
-  ⊤/2 = ⊤ / λ _ _ → Fin 2
+-- The eliminator "computes" in the "right" way for elements that
+-- satisfy a certain property.
 
-  -- The type is not a set (assuming extensionality and univalence).
+↠-eliminator-[] :
+  ∀ (surj : A / R ↠ B)
+  (P : B → Set p)
+  (p-[] : ∀ x → P (_↠_.to surj [ x ]))
+  (ok : ∀ {x y} (r : R x y) →
+        subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x) ≡
+        p-[] y)
+  (P-set : ∀ x → Is-set (P x)) x →
+  _↠_.from surj (_↠_.to surj [ x ]) ≡ [ x ] →
+  ↠-eliminator surj P p-[] ok P-set (_↠_.to surj [ x ]) ≡ p-[] x
+↠-eliminator-[] {R = R} surj P p-[] ok P-set x hyp =
+  subst P (_↠_.right-inverse-of surj (_↠_.to surj [ x ]))
+    (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _)
+          (_↠_.from surj (_↠_.to surj [ x ])))                          ≡⟨ cong (λ p → subst P p (elim (P ∘ _↠_.to surj) _ ok′ _ _)) $
+                                                                           H.respects-surjection surj 2 /-is-set
+                                                                             (_↠_.right-inverse-of surj (_↠_.to surj [ x ]))
+                                                                             (cong (_↠_.to surj) hyp) ⟩
+  subst P (cong (_↠_.to surj) hyp)
+    (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _)
+          (_↠_.from surj (_↠_.to surj [ x ])))                          ≡⟨ D.elim
+                                                                             (λ {x y} p → subst P (cong (_↠_.to surj) p)
+                                                                                            (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) x) ≡
+                                                                                          elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) y)
+                                                                             (λ y →
+      subst P (cong (_↠_.to surj) (refl _))
+        (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) y)                     ≡⟨ cong (λ p → subst P p
+                                                                                                 (elim (P ∘ _↠_.to surj) _ ok′ (λ _ → P-set _) _)) $
+                                                                                   cong-refl (_↠_.to surj) ⟩
+      subst P (refl _)
+        (elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) y)                     ≡⟨ subst-refl P _ ⟩∎
 
-  not-a-set :
-    Extensionality (# 2) (# 1) →
-    Univalence (# 0) →
-    ¬ Is-set ⊤/2
-  not-a-set ext univ =
-    Is-set ⊤/2                              ↝⟨ _⇔_.from (≡↔+ 1 _) ⟩
-    ((x y : ⊤/2) → Is-proposition (x ≡ y))  ↝⟨ (λ prop → prop _ _) ⟩
-    Is-proposition ([ tt ] ≡ [ tt ])        ↝⟨ H-level.respects-surjection
-                                                 (_↔_.surjection $ inverse $
-                                                    related↔[equal] ext
-                                                      (const-Fin-2-strong-equivalence
-                                                         (lower-extensionality _ lzero ext) univ))
-                                                 1 ⟩
-    Is-proposition (Fin 2)                  ↝⟨ H-level.respects-surjection (_↔_.surjection $ inverse Bool↔Fin2) 1 ⟩
-    Is-proposition Bool                     ↝⟨ ¬-Bool-propositional ⟩□
-    ⊥                                       □
+      elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) y                         ∎)
+                                                                             hyp ⟩
+  elim (P ∘ _↠_.to surj) p-[] ok′ (λ _ → P-set _) [ x ]                 ≡⟨⟩
 
-  -- The type is a groupoid (assuming extensionality and univalence).
+  p-[] x                                                                ∎
+  where
+  ok′ : ∀ {x y} (r : R x y) → _
+  ok′ = λ r →
+    trans (subst-∘ P (_↠_.to surj) ([]-respects-relation r)) (ok r)
 
-  is-groupoid :
-    Extensionality (# 2) (# 1) →
-    Univalence (# 0) →
-    H-level 3 ⊤/2
-  is-groupoid ext univ =
-    quotient's-h-level-is-1-+-relation's-h-level
-      ext univ univ 2 (λ _ _ → Fin-set 2)
+-- If there is a bijection from a quotient type to some other type,
+-- then one can also construct a quotient-like eliminator for the
+-- other type.
 
-  -- Every value in the quotient is merely equal to [ tt ] (assuming
-  -- extensionality).
+↔-eliminator :
+  (bij : A / R ↔ B)
+  (P : B → Set p)
+  (p-[] : ∀ x → P (_↔_.to bij [ x ])) →
+  (∀ {x y} (r : R x y) →
+   subst P (cong (_↔_.to bij) ([]-respects-relation r)) (p-[] x) ≡
+   p-[] y) →
+  (∀ x → Is-set (P x)) →
+  ∀ x → P x
+↔-eliminator bij = ↠-eliminator (_↔_.surjection bij)
 
-  ∥≡[tt]∥ :
-    Extensionality (# 2) (# 1) →
-    (x : ⊤/2) → ∥ x ≡ [ tt ] ∥ 1 (# 1)
-  ∥≡[tt]∥ ext x =           $⟨ []-surjective ext x ⟩
-    ∥ ⊤ × [ tt ] ≡ x ∥ 1 _  ↝⟨ ∥∥-map 1 (sym ∘ proj₂) ⟩□
-    ∥ x ≡ [ tt ] ∥ 1 _      □
+-- This latter eliminator always "computes" in the "right" way.
 
-  -- The type is merely single-valued (assuming extensionality and a
-  -- resizing function for the propositional truncation).
+↔-eliminator-[] :
+  ∀ (bij : A / R ↔ B)
+  (P : B → Set p)
+  (p-[] : ∀ x → P (_↔_.to bij [ x ]))
+  (ok : ∀ {x y} (r : R x y) →
+        subst P (cong (_↔_.to bij) ([]-respects-relation r)) (p-[] x) ≡
+        p-[] y)
+  (P-set : ∀ x → Is-set (P x)) x →
+  ↔-eliminator bij P p-[] ok P-set (_↔_.to bij [ x ]) ≡ p-[] x
+↔-eliminator-[] bij P p-[] ok P-set x =
+  ↠-eliminator-[] (_↔_.surjection bij) P p-[] ok P-set x
+    (_↔_.left-inverse-of bij [ x ])
 
-  merely-single-valued :
-    Extensionality (# 2) (# 2) →
-    ({A : Set₂} → ∥ A ∥ 1 (# 1) → ∥ A ∥ 1 (# 2)) →
-    (x y : ⊤/2) → ∥ x ≡ y ∥ 1 (# 1)
-  merely-single-valued ext resize x y =
-    Trunc.rec
-      1
-      (truncation-has-correct-h-level 1 ext)
-      (λ x≡[tt] → ∥∥-map 1
-                         (λ y≡[tt] → x       ≡⟨ x≡[tt] ⟩
-                                     [ tt ]  ≡⟨ sym y≡[tt] ⟩∎
-                                     y       ∎)
-                         (∥≡[tt]∥ ext′ y))
-      (resize (∥≡[tt]∥ ext′ x))
-    where
-    ext′ = lower-extensionality lzero _ ext
+-- A quotient-like eliminator for functions of type ℕ → A / R, where R
+-- is a propositional equivalence relation. Defined using countable
+-- choice.
+--
+-- This eliminator is taken from Corollary 1 in "Quotienting the Delay
+-- Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
-  -- Every instance of the type's equality type is merely isomorphic
-  -- to Fin 2 (assuming extensionality, univalence, and a resizing
-  -- function for the propositional truncation).
+ℕ→/-elim :
+  {A : Set a} {R : A → A → Set r} →
+  Axiom-of-countable-choice (a ⊔ r) →
+  Is-equivalence-relation R →
+  (∀ {x y} → Is-proposition (R x y)) →
+  (P : (ℕ → A / R) → Set p)
+  (p-[] : ∀ f → P (λ n → [ f n ])) →
+  (∀ {f g} (r : (ℕ →ᴾ R) f g) →
+   subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡
+   p-[] g) →
+  (∀ f → Is-set (P f)) →
+  ∀ f → P f
+ℕ→/-elim cc R-equiv R-prop =
+  ↔-eliminator (ℕ→/-comm cc R-equiv R-prop)
 
-  ∥≡↔2∥ :
-    Extensionality (# 2) (# 2) →
-    Univalence (# 0) →
-    ({A : Set₂} → ∥ A ∥ 1 (# 1) → ∥ A ∥ 1 (# 2)) →
-    (x y : ⊤/2) → ∥ x ≡ y ↔ Fin 2 ∥ 1 (# 1)
-  ∥≡↔2∥ ext univ resize x y =
-    Trunc.rec
-      1
-      (truncation-has-correct-h-level 1 ext)
-      (λ x≡[tt] →
-         ∥∥-map
-           1
-           (λ y≡[tt] →
-              x ≡ y            ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ x≡[tt] y≡[tt] ⟩
-              [ tt ] ≡ [ tt ]  ↝⟨ inverse $
-                                  related↔[equal]
-                                    (lower-extensionality lzero _ ext)
-                                    (const-Fin-2-strong-equivalence
-                                       (lower-extensionality _ _ ext) univ) ⟩□
-              Fin 2            □)
-           (∥≡[tt]∥ (lower-extensionality lzero _ ext) y))
-      (resize (∥≡[tt]∥ (lower-extensionality lzero _ ext) x))
+-- The eliminator "computes" in the "right" way.
+
+ℕ→/-elim-[] :
+  ∀ {A : Set a} {R : A → A → Set r}
+  (cc : Axiom-of-countable-choice (a ⊔ r))
+  (R-equiv : Is-equivalence-relation R)
+  (R-prop : ∀ {x y} → Is-proposition (R x y))
+  (P : (ℕ → A / R) → Set p)
+  (p-[] : ∀ f → P (λ n → [ f n ]))
+  (ok : ∀ {f g} (r : (ℕ →ᴾ R) f g) →
+        subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡
+        p-[] g)
+  (P-set : ∀ f → Is-set (P f)) f →
+  ℕ→/-elim cc R-equiv R-prop P p-[] ok P-set (λ n → [ f n ]) ≡
+  p-[] f
+ℕ→/-elim-[] cc R-equiv R-prop =
+  ↔-eliminator-[] (ℕ→/-comm cc R-equiv R-prop)

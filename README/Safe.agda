@@ -219,13 +219,13 @@ import TC-monad
 
 import Tactic.By
 
--- Quotients.
+-- Quotients, defined as families of equivalence classes.
+
+import Quotient.Families-of-equivalence-classes
+
+-- Quotients (set-quotients), defined using a higher inductive type.
 
 import Quotient
-
--- Quotients, defined using a higher inductive type.
-
-import Quotient.HIT
 
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
