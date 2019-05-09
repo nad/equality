@@ -34,7 +34,8 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq as F hiding (_∘_; id)
 open import H-level.Closure eq
-open import H-level.Truncation.Propositional eq as Trunc
+import H-level.Truncation eq as Trunc
+open import H-level.Truncation.Propositional eq as TruncP
   hiding (rec; elim)
 open import Preimage eq using (_⁻¹_)
 import Quotient.Families-of-equivalence-classes eq as Quotient
@@ -372,9 +373,9 @@ related≃[equal] {A = A} {r = r} {R = R}
   { surjection = record
     { logical-equivalence = record
       { to   = rec-Prop ∣_∣ truncation-is-proposition
-      ; from = Trunc.rec /-prop [_]
+      ; from = TruncP.rec /-prop [_]
       }
-    ; right-inverse-of = Trunc.elim
+    ; right-inverse-of = TruncP.elim
         _
         (λ _ → ⇒≡ 1 truncation-is-proposition)
         (λ _ → refl _)
@@ -391,23 +392,73 @@ related≃[equal] {A = A} {r = r} {R = R}
       (λ _ → Π-closure ext 1 λ _ →
              /-is-set)
 
--- If the relation is a propositional equivalence relation of a
--- certain size, then there is a split surjection from the definition
--- of quotients given in Quotient to the one given here.
---
--- I don't know if this result can be strengthened to an isomorphism:
--- I encountered size issues when trying to prove this.
+private
 
-/↠/ : {A : Set a} {R : A → A → Set a} →
-      Quotient.Is-equivalence-relation R →
-      (R-prop : ∀ {x y} → Is-proposition (R x y)) →
-      A Quotient./ R ↠ A / R
-/↠/ {a = a} {A = A} {R} R-equiv R-prop = record
-  { logical-equivalence = record
-    { to   = to
-    ; from = from
+  -- An alternative definition of the quotients from
+  -- Quotient.Families-of-equivalence-classes.
+
+  infix 5 _/′_
+
+  _/′_ : (A : Set a) → (A → A → Set a) → Set (lsuc a)
+  _/′_ {a = a} A R = ∃ λ (P : A → Set a) → ∥ (∃ λ x → R x ≡ P) ∥
+
+  /↔/′ : A Quotient./ R ↔ A /′ R
+  /↔/′ {A = A} {R = R} =
+    A Quotient./ R                                           ↔⟨⟩
+    (∃ λ (P : A → Set _) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → inverse $ ∥∥↔∥∥ lzero) ⟩
+    (∃ λ (P : A → Set _) → ∥ (∃ λ x → R x ≡ P) ∥)            ↔⟨⟩
+    A /′ R                                                   □
+
+  [_]′ : A → A /′ R
+  [_]′ = _↔_.to /↔/′ ∘ Quotient.[_]
+
+  rec′ :
+    {A : Set a} {R : A → A → Set a} →
+    (∀ {x} → R x x) →
+    (B : Set a) →
+    Is-set B →
+    (f : A → B) →
+    (∀ {x y} → R x y → f x ≡ f y) →
+    A /′ R → B
+  rec′ refl B B-set f R⇒≡ =
+    Quotient.rec ext refl B B-set f R⇒≡ ∘
+    _↔_.from /↔/′
+
+  elim-Prop′ :
+    {A : Set a} {R : A → A → Set a} →
+    Quotient.Strong-equivalence-with surjection R →
+    (B : A /′ R → Set (lsuc a)) →
+    (∀ x → Is-proposition (B [ x ]′)) →
+    (f : ∀ x → B [ x ]′) →
+    ∀ x → B x
+  elim-Prop′ strong-equivalence B B-prop f x =
+    subst B (_↔_.right-inverse-of /↔/′ _) $
+      Quotient.elim-Prop
+        ext
+        strong-equivalence
+        (B ∘ _↔_.to /↔/′)
+        B-prop
+        f
+        (_↔_.from /↔/′ x)
+
+-- If the relation is a propositional equivalence relation of a
+-- certain size, then the quotients defined above are isomorphic to
+-- families of equivalence relations, defined in a certain way.
+
+/↔ :
+  {A : Set a} {R : A → A → Set a} →
+  Is-equivalence-relation R →
+  (∀ {x y} → Is-proposition (R x y)) →
+  A / R ↔ ∃ λ (P : A → Set a) → ∥ (∃ λ x → R x ≡ P) ∥
+/↔ {a = a} {A = A} {R} R-equiv R-prop = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
     }
-  ; right-inverse-of = to∘from
+  ; left-inverse-of = from∘to
   }
   where
   R-is-strong-equivalence : Quotient.Strong-equivalence R
@@ -415,31 +466,58 @@ related≃[equal] {A = A} {r = r} {R = R}
     Quotient.propositional-equivalence⇒strong-equivalence
       ext univ R-equiv (λ _ _ → R-prop)
 
-  []-respects-R : ∀ {x y} → R x y → Quotient.[ x ] ≡ Quotient.[ y ]
-  []-respects-R =
-    _↔_.to (Quotient.related↔[equal] ext R-is-strong-equivalence)
+  to : A / R → A /′ R
+  to = rec
+    [_]′
+    (λ {x y} →
+       R x y                            ↝⟨ _≃_.to (Quotient.related↝[equal] ext R-is-strong-equivalence) ⟩
+       Quotient.[ x ] ≡ Quotient.[ y ]  ↝⟨ cong (_↔_.to /↔/′) ⟩□
+       [ x ]′ ≡ [ y ]′                  □)
+    (                         $⟨ (λ {_ _} → Quotient.quotient's-h-level-is-1-+-relation's-h-level
+                                              ext univ univ 1 (λ _ _ → R-prop)) ⟩
+     Is-set (A Quotient./ R)  ↝⟨ H.respects-surjection (_↔_.surjection /↔/′) 2 ⟩□
+     Is-set (A /′ R)          □)
 
-  to : A Quotient./ R → A / R
-  to = Quotient.rec
-    ext
-    (Is-equivalence-relation.reflexive R-equiv)
+  from : A /′ R → A / R
+  from = rec′
+    (Quotient.Is-equivalence-relation.reflexive R-equiv)
     _
     /-is-set
     [_]
     []-respects-relation
 
-  from : A / R → A Quotient./ R
-  from = rec
-    Quotient.[_]
-    []-respects-R
-    (Quotient.quotient's-h-level-is-1-+-relation's-h-level
-       ext univ univ 1 (λ _ _ → R-prop))
-
   to∘from : ∀ x → to (from x) ≡ x
-  to∘from = elim-Prop
+  to∘from = elim-Prop′
+    (Quotient.strong-equivalence⇒strong-equivalence-with
+       R-is-strong-equivalence)
+    _
+    (λ x →                                         $⟨ (λ {_ _} → Quotient.quotient's-h-level-is-1-+-relation's-h-level
+                                                                   ext univ univ 1 λ _ _ → R-prop) ⟩
+       Is-set (A Quotient./ R)                     ↝⟨ H.respects-surjection (_↔_.surjection /↔/′) 2 ⟩
+       Is-set (A /′ R)                             ↝⟨ +⇒≡ {n = 1} ⟩□
+       Is-proposition (to (from [ x ]′) ≡ [ x ]′)  □)
+    (λ _ → refl _)
+
+  from∘to : ∀ x → from (to x) ≡ x
+  from∘to = elim-Prop
     _
     (λ _ → refl _)
     (λ _ → /-is-set)
+
+-- If the relation is a propositional equivalence relation of a
+-- certain size, then the definition of quotients given in
+-- Quotient.Families-of-equivalence-classes is isomorphic to the one
+-- given here.
+
+/↔/ : {A : Set a} {R : A → A → Set a} →
+      Is-equivalence-relation R →
+      (R-prop : ∀ {x y} → Is-proposition (R x y)) →
+      A Quotient./ R ↔ A / R
+/↔/ {a = a} {A = A} {R} R-equiv R-prop =
+  A Quotient./ R                                                  ↔⟨⟩
+  (∃ λ (P : A → Set a) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a))  ↝⟨ (∃-cong λ _ → inverse $ ∥∥↔∥∥ lzero) ⟩
+  (∃ λ (P : A → Set a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ R-equiv R-prop ⟩□
+  A / R                                                           □
 
 -- Two applications of _/_ are isomorphic if the underlying types are
 -- isomorphic and the relations are pointwise logically equivalent.
