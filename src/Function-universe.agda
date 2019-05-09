@@ -1016,6 +1016,50 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
   helper bijection           = Eq.∃-preserves-bijections           A₁≃A₂
   helper equivalence         = Eq.Σ-preserves                      A₁≃A₂
 
+-- A variant of Σ-cong.
+
+Σ-cong-contra :
+  ∀ {k₁ k₂ a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₂↔A₁ : A₂ ↔[ k₁ ] A₁) →
+  (∀ x → B₁ (to-implication A₂↔A₁ x) ↝[ k₂ ] B₂ x) →
+  Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
+Σ-cong-contra {k₁} {k₂} {A₁ = A₁} {A₂} {B₁} {B₂} A₂↔A₁ B₁↝B₂ =
+  Σ-cong A₁↔A₂ B₁↝B₂′
+  where
+  A₁↔A₂ : A₁ ↔ A₂
+  A₁↔A₂ = inverse $ from-isomorphism A₂↔A₁
+
+  B₁↝B₂′ : ∀ x → B₁ x ↝[ k₂ ] B₂ (_↔_.to A₁↔A₂ x)
+  B₁↝B₂′ x =
+    B₁ x                                        ↝⟨ ≡⇒↝ _ $ cong B₁ $ sym $ _↔_.left-inverse-of A₁↔A₂ _ ⟩
+    B₁ (_↔_.from A₁↔A₂ (_↔_.to A₁↔A₂ x))        ↝⟨ ≡⇒↝ _ $ cong (λ f → B₁ (f (_↔_.to A₁↔A₂ x))) $ sym $
+                                                     to-implication∘from-isomorphism k₁ bijection ⟩
+    B₁ (to-implication A₂↔A₁ (_↔_.to A₁↔A₂ x))  ↝⟨ B₁↝B₂ (_↔_.to A₁↔A₂ x) ⟩□
+    B₂ (_↔_.to A₁↔A₂ x)                         □
+
+-- Variants of special cases of Σ-cong-contra.
+
+Σ-cong-contra-→ :
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₂↠A₁ : A₂ ↠ A₁) →
+  (∀ x → B₁ (_↠_.to A₂↠A₁ x) → B₂ x) →
+  Σ A₁ B₁ → Σ A₂ B₂
+Σ-cong-contra-→ {B₁ = B₁} A₂↠A₁ B₁→B₂ =
+  Σ-map (_↠_.from A₂↠A₁)
+        (B₁→B₂ _ ∘ subst B₁ (sym $ _↠_.right-inverse-of A₂↠A₁ _))
+
+Σ-cong-contra-⇔ :
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  (A₂↠A₁ : A₂ ↠ A₁) →
+  (∀ x → B₁ (_↠_.to A₂↠A₁ x) ⇔ B₂ x) →
+  Σ A₁ B₁ ⇔ Σ A₂ B₂
+Σ-cong-contra-⇔ A₂↠A₁ B₁⇔B₂ =
+  inverse $
+  Eq.∃-preserves-logical-equivalences A₂↠A₁ (inverse ⊚ B₁⇔B₂)
+
 -- ∃ preserves all kinds of functions. One could define
 -- ∃-cong = Σ-cong Bijection.id, but the resulting "from" functions
 -- would contain an unnecessary use of substitutivity, and I want to
