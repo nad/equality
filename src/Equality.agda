@@ -941,11 +941,11 @@ module Derived-definitions-and-properties
       _
 
     cong-≡id :
-      ∀ {a b} {A : Set a} (B : A → Set b) {x} {y : B x} {f : B x → B x}
+      ∀ {a} {A : Set a} {x : A} {f : A → A}
       (f≡id : f ≡ id) →
-      cong (λ g → g (f y)) f≡id ≡
-      cong (λ g → f (g y)) f≡id
-    cong-≡id B = elim₁
+      cong (λ g → g (f x)) f≡id ≡
+      cong (λ g → f (g x)) f≡id
+    cong-≡id = elim₁
       (λ {f} p → cong (λ g → g (f _)) p ≡ cong (λ g → f (g _)) p)
       (refl _)
 
@@ -1368,7 +1368,7 @@ module Derived-definitions-and-properties
                      sym (subst-refl B (subst B (refl x) y))          ≡⟨⟩
 
                      sym (cong (λ f → f (subst B (refl x) y))
-                               (subst-refl≡id B))                     ≡⟨ cong sym $ cong-≡id B _ ⟩
+                               (subst-refl≡id B))                     ≡⟨ cong sym $ cong-≡id _ ⟩
 
                      sym (cong (λ f → subst B (refl x) (f y))
                                (subst-refl≡id B))                     ≡⟨ cong sym $ sym $ cong-∘ _ _ _ ⟩∎
