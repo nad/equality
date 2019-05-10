@@ -9,6 +9,14 @@ module Equality where
 open import Logical-equivalence hiding (id; _∘_)
 open import Prelude
 
+private
+  variable
+    ℓ                                      : Level
+    A B C D                                : Set ℓ
+    P                                      : A → Set ℓ
+    a a₁ a₂ a₃ b c p u v x x₁ x₂ y y₁ y₂ z : A
+    f g                                    : (x : A) → P x
+
 ------------------------------------------------------------------------
 -- Reflexive relations
 
@@ -22,7 +30,7 @@ record Reflexive-relation a : Set (lsuc a) where
 
     -- Reflexivity.
 
-    refl : ∀ {A} (x : A) → x ≡ x
+    refl : (x : A) → x ≡ x
 
 -- Some definitions.
 
@@ -36,28 +44,28 @@ module Reflexive-relation′
 
   infix 4 _≢_
 
-  _≢_ : ∀ {a} {A : Set a} → A → A → Set a
+  _≢_ : {A : Set a} → A → A → Set a
   x ≢ y = ¬ (x ≡ y)
 
   -- The property of having decidable equality.
 
-  Decidable-equality : ∀ {ℓ} → Set ℓ → Set ℓ
+  Decidable-equality : Set ℓ → Set ℓ
   Decidable-equality A = Decidable (_≡_ {A = A})
 
   -- A type is contractible if it is inhabited and all elements are
   -- equal.
 
-  Contractible : ∀ {ℓ} → Set ℓ → Set ℓ
+  Contractible : Set ℓ → Set ℓ
   Contractible A = ∃ λ (x : A) → ∀ y → x ≡ y
 
   -- The property of being a proposition.
 
-  Is-proposition : ∀ {ℓ} → Set ℓ → Set ℓ
+  Is-proposition : Set ℓ → Set ℓ
   Is-proposition A = (x y : A) → x ≡ y
 
   -- The property of being a set.
 
-  Is-set : ∀ {ℓ} → Set ℓ → Set ℓ
+  Is-set : Set ℓ → Set ℓ
   Is-set A = {x y : A} → Is-proposition (x ≡ y)
 
   -- Uniqueness of identity proofs (for a specific universe level).
@@ -75,22 +83,22 @@ module Reflexive-relation′
   -- Singleton x is a set which contains all elements which are equal
   -- to x.
 
-  Singleton : ∀ {a} → {A : Set a} → A → Set a
+  Singleton : {A : Set a} → A → Set a
   Singleton x = ∃ λ y → y ≡ x
 
   -- A variant of Singleton.
 
-  Other-singleton : ∀ {a} {A : Set a} → A → Set a
+  Other-singleton : {A : Set a} → A → Set a
   Other-singleton x = ∃ λ y → x ≡ y
 
   -- The inspect idiom.
 
-  inspect : ∀ {a} {A : Set a} (x : A) → Other-singleton x
+  inspect : (x : A) → Other-singleton x
   inspect x = x , refl x
 
   -- Extensionality for functions of a certain type.
 
-  Extensionality′ : ∀ {a b} (A : Set a) → (A → Set b) → Set (a ⊔ b)
+  Extensionality′ : (A : Set a) → (A → Set b) → Set (a ⊔ b)
   Extensionality′ A B =
     {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
 
@@ -110,7 +118,7 @@ module Reflexive-relation′
   -- reflexivity.
 
   Well-behaved-extensionality :
-    ∀ {a b} (A : Set a) → (A → Set b) → Set (a ⊔ b)
+    (A : Set a) → (A → Set b) → Set (a ⊔ b)
   Well-behaved-extensionality A B =
     ∃ λ (ext : Extensionality′ A B) →
       ∀ f → ext (λ x → refl (f x)) ≡ refl f
@@ -243,41 +251,37 @@ J₀⇒Congruence⁺ {ℓ} {r} eq = record
   open Reflexive-relation (r ℓ)
   open Equality-with-J₀ eq
 
-  hcong : {A B : Set ℓ} {x y : A} (f : A → B) → x ≡ y → f x ≡ f y
+  hcong : (f : A → B) → x ≡ y → f x ≡ f y
   hcong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
 
   abstract
 
-    hcong-refl : {A B : Set ℓ} {x : A} (f : A → B) →
-                 hcong f (refl x) ≡ refl (f x)
+    hcong-refl : (f : A → B) → hcong f (refl x) ≡ refl (f x)
     hcong-refl f = elim-refl (λ {u v} _ → f u ≡ f v) (refl ∘ f)
 
-  subst : {A : Set ℓ} {x y : A} (P : A → Set ℓ) →
-          x ≡ y → P x → P y
+  subst : (P : A → Set ℓ) → x ≡ y → P x → P y
   subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
 
-  subst-refl : ∀ {A : Set ℓ} {x} (P : A → Set ℓ) (p : P x) →
-               subst P (refl x) p ≡ p
+  subst-refl : (P : A → Set ℓ) (p : P x) → subst P (refl x) p ≡ p
   subst-refl P p =
     hcong (_$ p) $ elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
 
-  sym : {A : Set ℓ} {x y : A} → x ≡ y → y ≡ x
+  sym : x ≡ y → y ≡ x
   sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
 
   abstract
 
-    sym-refl : {A : Set ℓ} {x : A} → sym (refl x) ≡ refl x
+    sym-refl : sym (refl x) ≡ refl x
     sym-refl {x = x} =
       hcong (λ f → f (refl x)) $
         subst-refl (λ z → x ≡ z → z ≡ x) id
 
-  trans : {A : Set ℓ} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  trans : x ≡ y → y ≡ z → x ≡ z
   trans {x = x} = flip (subst (x ≡_))
 
   abstract
 
-    trans-refl-refl : {A : Set ℓ} {x : A} →
-                      trans (refl x) (refl x) ≡ refl x
+    trans-refl-refl : trans (refl x) (refl x) ≡ refl x
     trans-refl-refl {x = x} = subst-refl (x ≡_) (refl x)
 
 -- Equality-with-J (for arbitrary universe levels) can be derived from
@@ -300,33 +304,27 @@ J₀⇒J {r} eq {a} {b} = record
   open module R {ℓ}     = Reflexive-relation (r ℓ)
   open module E {a} {b} = Equality-with-J₀ (eq {a} {b})
 
-  cong : ∀ {a} {A : Set a} {B : Set b} {x y : A}
-         (f : A → B) → x ≡ y → f x ≡ f y
+  cong : (f : A → B) → x ≡ y → f x ≡ f y
   cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
 
   abstract
 
-    cong-refl : {A : Set a} {B : Set b} {x : A} (f : A → B) →
-                cong f (refl x) ≡ refl (f x)
+    cong-refl : (f : A → B) → cong f (refl x) ≡ refl (f x)
     cong-refl f = elim-refl (λ {u v} _ → f u ≡ f v) (refl ∘ f)
 
-  subst : {A : Set a} {x y : A} (P : A → Set b) →
-          x ≡ y → P x → P y
+  subst : (P : A → Set b) → x ≡ y → P x → P y
   subst P = elim (λ {u v} _ → P u → P v) (λ x p → p)
 
-  subst-refl≡id : ∀ {A : Set a} {x} (P : A → Set b) →
-                  subst P (refl x) ≡ id
+  subst-refl≡id : (P : A → Set b) → subst P (refl x) ≡ id
   subst-refl≡id P = elim-refl (λ {u v} _ → P u → P v) (λ x p → p)
 
-  subst-refl : ∀ {A : Set a} {x} (P : A → Set b) p →
-               subst P (refl x) p ≡ p
+  subst-refl : ∀ (P : A → Set b) p → subst P (refl x) p ≡ p
   subst-refl P p = cong (_$ p) (subst-refl≡id P)
 
   dependent-cong :
-    ∀ {A : Set a} {P : A → Set b} {x y}
     (f : (x : A) → P x) (x≡y : x ≡ y) →
     subst P x≡y (f x) ≡ f y
-  dependent-cong {A} {P} f x≡y = elim
+  dependent-cong {A = A} {P = P} f x≡y = elim
     (λ {x y} (x≡y : x ≡ y) → (f : (x : A) → P x) →
        subst P x≡y (f x) ≡ f y)
     (λ f y → subst-refl _ _)
@@ -336,7 +334,6 @@ J₀⇒J {r} eq {a} {b} = record
   abstract
 
     dependent-cong-refl :
-      ∀ {A : Set a} {P : A → Set b} {x}
       (f : (x : A) → P x) →
       dependent-cong f (refl x) ≡
       subst-refl P (f x)
@@ -359,32 +356,27 @@ module Equality-with-J′
 
   -- Substitutivity.
 
-  subst : ∀ {a p} {A : Set a} {x y : A} (P : A → Set p) →
-          x ≡ y → P x → P y
+  subst : (P : A → Set p) → x ≡ y → P x → P y
   subst = E.subst
 
-  subst-refl≡id : ∀ {a p} {A : Set a} {x} (P : A → Set p) →
-                  subst P (refl x) ≡ id
+  subst-refl≡id : (P : A → Set p) → subst P (refl x) ≡ id
   subst-refl≡id = E.subst-refl≡id
 
-  subst-refl : ∀ {a p} {A : Set a} {x} (P : A → Set p) (p : P x) →
-               subst P (refl x) p ≡ p
+  subst-refl : (P : A → Set p) (p : P x) → subst P (refl x) p ≡ p
   subst-refl P p = cong (_$ p) (subst-refl≡id P)
 
   -- Singleton types are contractible.
 
   private
 
-    irr : ∀ {a} {A : Set a} {x : A}
-          (p : Singleton x) → (x , refl x) ≡ p
+    irr : (p : Singleton x) → (x , refl x) ≡ p
     irr p =
       elim (λ {u v} u≡v → _≡_ {A = Singleton v}
                               (v , refl v) (u , u≡v))
            (λ _ → refl _)
            (proj₂ p)
 
-  singleton-contractible :
-    ∀ {a} {A : Set a} (x : A) → Contractible (Singleton x)
+  singleton-contractible : (x : A) → Contractible (Singleton x)
   singleton-contractible x = ((x , refl x) , irr)
 
   abstract
@@ -392,7 +384,7 @@ module Equality-with-J′
     -- "Evaluation rule" for singleton-contractible.
 
     singleton-contractible-refl :
-      ∀ {a} {A : Set a} (x : A) →
+      (x : A) →
       proj₂ (singleton-contractible x) (x , refl x) ≡ refl (x , refl x)
     singleton-contractible-refl x =
       elim-refl (λ {u v} u≡v → _≡_ {A = Singleton v}
@@ -446,47 +438,44 @@ module Equality-with-substitutivity-and-contractibility′
 
     -- Congruence.
 
-    cong : ∀ {a b} {A : Set a} {B : Set b} {x y : A}
-           (f : A → B) → x ≡ y → f x ≡ f y
+    cong : (f : A → B) → x ≡ y → f x ≡ f y
     cong {x = x} f x≡y =
       subst (λ y → x ≡ y → f x ≡ f y) x≡y (λ _ → refl (f x)) x≡y
 
   -- Symmetry.
 
-  sym : ∀ {a} {A : Set a} {x y : A} → x ≡ y → y ≡ x
+  sym : x ≡ y → y ≡ x
   sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
 
   abstract
 
     -- "Evaluation rule" for sym.
 
-    sym-refl : ∀ {a} {A : Set a} {x : A} → sym (refl x) ≡ refl x
+    sym-refl : sym (refl x) ≡ refl x
     sym-refl {x = x} =
       cong (λ f → f (refl x)) $
         subst-refl (λ z → x ≡ z → z ≡ x) id
 
   -- Transitivity.
 
-  trans : ∀ {a} {A : Set a} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  trans : x ≡ y → y ≡ z → x ≡ z
   trans {x = x} = flip (subst (_≡_ x))
 
   abstract
 
     -- "Evaluation rule" for trans.
 
-    trans-refl-refl : ∀ {a} {A : Set a} {x : A} →
-                      trans (refl x) (refl x) ≡ refl x
+    trans-refl-refl : trans (refl x) (refl x) ≡ refl x
     trans-refl-refl {x = x} = subst-refl (_≡_ x) (refl x)
 
   abstract
 
     -- The J rule.
 
-    elim : ∀ {a p} {A : Set a} {x y}
-           (P : {x y : A} → x ≡ y → Set p) →
+    elim : (P : {x y : A} → x ≡ y → Set p) →
            (∀ x → P (refl x)) →
            (x≡y : x ≡ y) → P x≡y
-    elim {x = x} {y} P p x≡y =
+    elim {x = x} {y = y} P p x≡y =
       let lemma = proj₂ (singleton-contractible y) in
       subst (P ∘ proj₂)
             (trans (sym (lemma (y , refl y))) (lemma (x , x≡y)))
@@ -494,8 +483,7 @@ module Equality-with-substitutivity-and-contractibility′
 
     -- Transitivity and symmetry sometimes cancel each other out.
 
-    trans-sym : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
-                trans (sym x≡y) x≡y ≡ refl y
+    trans-sym : (x≡y : x ≡ y) → trans (sym x≡y) x≡y ≡ refl y
     trans-sym =
       elim (λ {x y} (x≡y : x ≡ y) → trans (sym x≡y) x≡y ≡ refl y)
            (λ _ → trans (cong (λ p → trans p _) sym-refl)
@@ -503,8 +491,7 @@ module Equality-with-substitutivity-and-contractibility′
 
     -- "Evaluation rule" for elim.
 
-    elim-refl : ∀ {a p} {A : Set a} {x}
-                (P : {x y : A} → x ≡ y → Set p)
+    elim-refl : (P : {x y : A} → x ≡ y → Set p)
                 (p : ∀ x → P (refl x)) →
                 elim P p (refl x) ≡ p x
     elim-refl {x = x} _ _ =
@@ -543,20 +530,24 @@ subst+contr⇒J eq = record
 
 module Derived-definitions-and-properties
   {congruence}
-  (eq : ∀ {a p} → Equality-with-J a p congruence)
+  (equality-with-J : ∀ {a p} → Equality-with-J a p congruence)
   where
 
   -- This module reexports most of the definitions and properties
   -- introduced above.
 
-  open Equality-with-J′ eq public
+  open Equality-with-J′ equality-with-J public
+
+  private
+    variable
+      eq x≡y y≡z x₁≡x₂ : x ≡ y
 
   -- Equational reasoning combinators.
 
   infix  -1 finally _∎
   infixr -2 step-≡ _≡⟨⟩_
 
-  _∎ : ∀ {a} {A : Set a} (x : A) → x ≡ x
+  _∎ : (x : A) → x ≡ x
   x ∎ = refl x
 
   -- It can be easier for Agda to type-check typical equational
@@ -567,15 +558,15 @@ module Derived-definitions-and-properties
   -- The idea behind this optimisation came up in discussions with Ulf
   -- Norell.
 
-  step-≡ : ∀ {a} {A : Set a} x {y z : A} → y ≡ z → x ≡ y → x ≡ z
+  step-≡ : ∀ x → y ≡ z → x ≡ y → x ≡ z
   step-≡ _ = flip trans
 
   syntax step-≡ x y≡z x≡y = x ≡⟨ x≡y ⟩ y≡z
 
-  _≡⟨⟩_ : ∀ {a} {A : Set a} x {y : A} → x ≡ y → x ≡ y
+  _≡⟨⟩_ : ∀ x → x ≡ y → x ≡ y
   _ ≡⟨⟩ x≡y = x≡y
 
-  finally : ∀ {a} {A : Set a} (x y : A) → x ≡ y → x ≡ y
+  finally : (x y : A) → x ≡ y → x ≡ y
   finally _ _ x≡y = x≡y
 
   syntax finally x y x≡y = x ≡⟨ x≡y ⟩∎ y ∎
@@ -588,11 +579,10 @@ module Derived-definitions-and-properties
   -- also very similar to the definition of
   -- Equality-with-substitutivity-and-contractibility.elim.
 
-  elim₁ : ∀ {a p} {A : Set a} {x y : A}
-          (P : ∀ {x} → x ≡ y → Set p) →
+  elim₁ : (P : ∀ {x} → x ≡ y → Set p) →
           P (refl y) →
           (x≡y : x ≡ y) → P x≡y
-  elim₁ {x = x} {y} P p x≡y =
+  elim₁ {y = y} {x = x} P p x≡y =
     subst {A = Singleton y}
           (P ∘ proj₂)
           (proj₂ (singleton-contractible y) (x , x≡y))
@@ -602,8 +592,7 @@ module Derived-definitions-and-properties
 
     -- "Evaluation rule" for elim₁.
 
-    elim₁-refl : ∀ {a p} {A : Set a} {y : A}
-                 (P : ∀ {x} → x ≡ y → Set p) (p : P (refl y)) →
+    elim₁-refl : (P : ∀ {x} → x ≡ y → Set p) (p : P (refl y)) →
                  elim₁ P p (refl y) ≡ p
     elim₁-refl {y = y} P p =
       subst {A = Singleton y} (P ∘ proj₂)
@@ -616,8 +605,7 @@ module Derived-definitions-and-properties
 
   private
 
-    irr : ∀ {a} {A : Set a} {x : A}
-          (p : Other-singleton x) → (x , refl x) ≡ p
+    irr : (p : Other-singleton x) → (x , refl x) ≡ p
     irr p =
       elim (λ {u v} u≡v → _≡_ {A = Other-singleton u}
                               (u , refl u) (v , u≡v))
@@ -625,7 +613,7 @@ module Derived-definitions-and-properties
            (proj₂ p)
 
   other-singleton-contractible :
-    ∀ {a} {A : Set a} (x : A) → Contractible (Other-singleton x)
+    (x : A) → Contractible (Other-singleton x)
   other-singleton-contractible x = ((x , refl x) , irr)
 
   abstract
@@ -633,7 +621,7 @@ module Derived-definitions-and-properties
     -- "Evaluation rule" for other-singleton-contractible.
 
     other-singleton-contractible-refl :
-      ∀ {a} {A : Set a} (x : A) →
+      (x : A) →
       proj₂ (other-singleton-contractible x) (x , refl x) ≡
       refl (x , refl x)
     other-singleton-contractible-refl x =
@@ -643,11 +631,10 @@ module Derived-definitions-and-properties
 
   -- Christine Paulin-Mohring's version of the J rule.
 
-  elim¹ : ∀ {a p} {A : Set a} {x y : A}
-          (P : ∀ {y} → x ≡ y → Set p) →
+  elim¹ : (P : ∀ {y} → x ≡ y → Set p) →
           P (refl x) →
           (x≡y : x ≡ y) → P x≡y
-  elim¹ {x = x} {y} P p x≡y =
+  elim¹ {x = x} {y = y} P p x≡y =
     subst {A = Other-singleton x}
           (P ∘ proj₂)
           (proj₂ (other-singleton-contractible x) (y , x≡y))
@@ -657,8 +644,7 @@ module Derived-definitions-and-properties
 
     -- "Evaluation rule" for elim¹.
 
-    elim¹-refl : ∀ {a p} {A : Set a} {x : A}
-                 (P : ∀ {y} → x ≡ y → Set p) (p : P (refl x)) →
+    elim¹-refl : (P : ∀ {y} → x ≡ y → Set p) (p : P (refl x)) →
                  elim¹ P p (refl x) ≡ p
     elim¹-refl {x = x} P p =
       subst {A = Other-singleton x} (P ∘ proj₂)
@@ -669,9 +655,7 @@ module Derived-definitions-and-properties
 
     -- The homogeneous variant of cong is pointwise equal to cong.
 
-    hcong-cong :
-      ∀ {ℓ} {A B : Set ℓ} {f : A → B} {x y : A} {x≡y : x ≡ y} →
-      hcong f x≡y ≡ cong f x≡y
+    hcong-cong : hcong f x≡y ≡ cong f x≡y
     hcong-cong {f = f} = elim
       (λ x≡y → hcong f x≡y ≡ cong f x≡y)
       (λ x →
@@ -683,9 +667,9 @@ module Derived-definitions-and-properties
     -- "Evaluation rule" for dependent-cong.
 
     dependent-cong-refl :
-      ∀ {a b} {A : Set a} {P : A → Set b} {x} (f : (x : A) → P x) →
+      (f : (x : A) → P x) →
       dependent-cong f (refl x) ≡ subst-refl P (f x)
-    dependent-cong-refl {P = P} {x} f =
+    dependent-cong-refl {P = P} {x = x} f =
       dependent-cong f (refl x)         ≡⟨ dependent-cong-refl-hcong _ ⟩
       hcong (_$ f x) (subst-refl≡id P)  ≡⟨ hcong-cong ⟩
       cong (_$ f x) (subst-refl≡id P)   ≡⟨⟩
@@ -694,10 +678,9 @@ module Derived-definitions-and-properties
   -- A generalisation of dependent-cong.
 
   dependent-cong′ :
-    ∀ {a b} {A : Set a} {P : A → Set b} {x y}
     (f : (x : A) → x ≡ y → P x) (x≡y : x ≡ y) →
     subst P x≡y (f x x≡y) ≡ f y (refl y)
-  dependent-cong′ {P = P} {y = y} f x≡y = elim₁
+  dependent-cong′ {y = y} {P = P} f x≡y = elim₁
     (λ {x} (x≡y : x ≡ y) →
        (f : ∀ x → x ≡ y → P x) →
        subst P x≡y (f x x≡y) ≡ f y (refl y))
@@ -710,18 +693,14 @@ module Derived-definitions-and-properties
     -- "Evaluation rule" for dependent-cong′.
 
     dependent-cong′-refl :
-      ∀ {a b} {A : Set a} {P : A → Set b} {y}
       (f : (x : A) → x ≡ y → P x) →
       dependent-cong′ f (refl y) ≡ subst-refl P (f y (refl y))
     dependent-cong′-refl f = cong (_$ f) $ elim₁-refl _ _
 
   -- Binary congruence.
 
-  cong₂ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
-            {x y : A} {u v : B}
-          (f : A → B → C) →
-          x ≡ y → u ≡ v → f x u ≡ f y v
-  cong₂ {x = x} {y} {u} {v} f x≡y u≡v =
+  cong₂ : (f : A → B → C) → x ≡ y → u ≡ v → f x u ≡ f y v
+  cong₂ {x = x} {y = y} {u = u} {v = v} f x≡y u≡v =
     f x u  ≡⟨ cong (flip f u) x≡y ⟩
     f y u  ≡⟨ cong (f y)      u≡v ⟩∎
     f y v  ∎
@@ -730,11 +709,9 @@ module Derived-definitions-and-properties
 
     -- "Evaluation rule" for cong₂.
 
-    cong₂-refl : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
-                   {x : A} {y : B}
-                 (f : A → B → C) →
+    cong₂-refl : (f : A → B → C) →
                  cong₂ f (refl x) (refl y) ≡ refl (f x y)
-    cong₂-refl {x = x} {y} f =
+    cong₂-refl {x = x} {y = y} f =
       trans (cong (flip f y) (refl x)) (cong (f x) (refl y))  ≡⟨ cong₂ trans (cong-refl (flip f y)) (cong-refl (f x)) ⟩
       trans (refl (f x y)) (refl (f x y))                     ≡⟨ trans-refl-refl ⟩∎
       refl (f x y)                                            ∎
@@ -742,7 +719,7 @@ module Derived-definitions-and-properties
   -- The K rule is logically equivalent to uniqueness of identity
   -- proofs (at least for certain combinations of levels).
 
-  K⇔UIP : ∀ {ℓ} → K-rule ℓ ℓ ⇔ Uniqueness-of-identity-proofs ℓ
+  K⇔UIP : K-rule ℓ ℓ ⇔ Uniqueness-of-identity-proofs ℓ
   K⇔UIP = record
     { from = λ UIP P r {x} x≡x → subst P (UIP (refl x) x≡x) (r x)
     ; to   = λ K {_} →
@@ -755,8 +732,7 @@ module Derived-definitions-and-properties
     -- Extensionality at given levels works at lower levels as well.
 
     lower-extensionality :
-      ∀ {a} â {b} b̂ →
-      Extensionality (a ⊔ â) (b ⊔ b̂) → Extensionality a b
+      ∀ â b̂ → Extensionality (a ⊔ â) (b ⊔ b̂) → Extensionality a b
     apply-ext (lower-extensionality â b̂ ext) f≡g =
       cong (λ h → lower ∘ h ∘ lift) $
         apply-ext ext
@@ -766,7 +742,6 @@ module Derived-definitions-and-properties
   -- function types as well.
 
   implicit-extensionality :
-    ∀ {a b} →
     Extensionality a b →
     {A : Set a} {B : A → Set b} {f g : {x : A} → B x} →
     (∀ x → f {x} ≡ g {x}) → (λ {x} → f {x}) ≡ g
@@ -777,20 +752,17 @@ module Derived-definitions-and-properties
 
   abstract
 
-    trans-reflʳ : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
-                  trans x≡y (refl y) ≡ x≡y
+    trans-reflʳ : (x≡y : x ≡ y) → trans x≡y (refl y) ≡ x≡y
     trans-reflʳ =
       elim (λ {u v} u≡v → trans u≡v (refl v) ≡ u≡v)
            (λ _ → trans-refl-refl)
 
-    trans-reflˡ : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
-                  trans (refl x) x≡y ≡ x≡y
+    trans-reflˡ : (x≡y : x ≡ y) → trans (refl x) x≡y ≡ x≡y
     trans-reflˡ =
       elim (λ {u v} u≡v → trans (refl u) u≡v ≡ u≡v)
            (λ _ → trans-refl-refl)
 
-    trans-assoc : ∀ {a} {A : Set a} {x y z u : A}
-                  (x≡y : x ≡ y) (y≡z : y ≡ z) (z≡u : z ≡ u) →
+    trans-assoc : (x≡y : x ≡ y) (y≡z : y ≡ z) (z≡u : z ≡ u) →
                   trans (trans x≡y y≡z) z≡u ≡ trans x≡y (trans y≡z z≡u)
     trans-assoc =
       elim (λ x≡y → ∀ y≡z z≡u → trans (trans x≡y y≡z) z≡u ≡
@@ -800,41 +772,36 @@ module Derived-definitions-and-properties
               trans y≡z z≡u                  ≡⟨ sym $ trans-reflˡ (trans y≡z z≡u) ⟩∎
               trans (refl y) (trans y≡z z≡u) ∎)
 
-    sym-sym : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
-              sym (sym x≡y) ≡ x≡y
+    sym-sym : (x≡y : x ≡ y) → sym (sym x≡y) ≡ x≡y
     sym-sym = elim (λ {u v} u≡v → sym (sym u≡v) ≡ u≡v)
                    (λ x → sym (sym (refl x))  ≡⟨ cong sym (sym-refl {x = x}) ⟩
                           sym (refl x)        ≡⟨ sym-refl ⟩∎
                           refl x              ∎)
 
-    sym-trans : ∀ {a} {A : Set a} {x y z : A}
-                (x≡y : x ≡ y) (y≡z : y ≡ z) →
+    sym-trans : (x≡y : x ≡ y) (y≡z : y ≡ z) →
                 sym (trans x≡y y≡z) ≡ trans (sym y≡z) (sym x≡y)
-    sym-trans {a} =
+    sym-trans =
       elim (λ x≡y → ∀ y≡z → sym (trans x≡y y≡z) ≡ trans (sym y≡z) (sym x≡y))
            (λ y y≡z → sym (trans (refl y) y≡z)        ≡⟨ cong sym (trans-reflˡ y≡z) ⟩
                       sym y≡z                         ≡⟨ sym $ trans-reflʳ (sym y≡z) ⟩
-                      trans (sym y≡z) (refl y)        ≡⟨ cong {a = a} {b = a} (trans (sym y≡z)) (sym sym-refl)  ⟩∎
+                      trans (sym y≡z) (refl y)        ≡⟨ cong (trans (sym y≡z)) (sym sym-refl)  ⟩∎
                       trans (sym y≡z) (sym (refl y))  ∎)
 
-    trans-symˡ : ∀ {a} {A : Set a} {x y : A} (p : x ≡ y) →
-                 trans (sym p) p ≡ refl y
+    trans-symˡ : (p : x ≡ y) → trans (sym p) p ≡ refl y
     trans-symˡ =
       elim (λ p → trans (sym p) p ≡ refl _)
            (λ x → trans (sym (refl x)) (refl x)  ≡⟨ trans-reflʳ _ ⟩
                   sym (refl x)                   ≡⟨ sym-refl ⟩∎
                   refl x                         ∎)
 
-    trans-symʳ : ∀ {a} {A : Set a} {x y : A} (p : x ≡ y) →
-                 trans p (sym p) ≡ refl _
+    trans-symʳ : (p : x ≡ y) → trans p (sym p) ≡ refl _
     trans-symʳ =
       elim (λ p → trans p (sym p) ≡ refl _)
            (λ x → trans (refl x) (sym (refl x))  ≡⟨ trans-reflˡ _ ⟩
                   sym (refl x)                   ≡⟨ sym-refl ⟩∎
                   refl x                         ∎)
 
-    cong-trans : ∀ {a b} {A : Set a} {B : Set b} {x y z : A}
-                 (f : A → B) (x≡y : x ≡ y) (y≡z : y ≡ z) →
+    cong-trans : (f : A → B) (x≡y : x ≡ y) (y≡z : y ≡ z) →
                  cong f (trans x≡y y≡z) ≡ trans (cong f x≡y) (cong f y≡z)
     cong-trans f =
       elim (λ x≡y → ∀ y≡z → cong f (trans x≡y y≡z) ≡
@@ -844,22 +811,18 @@ module Derived-definitions-and-properties
                       trans (refl (f y)) (cong f y≡z)       ≡⟨ cong₂ trans (sym (cong-refl f)) (refl (cong f y≡z)) ⟩∎
                       trans (cong f (refl y)) (cong f y≡z)  ∎)
 
-    cong-id : ∀ {a} {A : Set a} {x y : A} (x≡y : x ≡ y) →
-              x≡y ≡ cong id x≡y
+    cong-id : (x≡y : x ≡ y) → x≡y ≡ cong id x≡y
     cong-id = elim (λ u≡v → u≡v ≡ cong id u≡v)
                    (λ x → refl x            ≡⟨ sym (cong-refl id) ⟩∎
                           cong id (refl x)  ∎)
 
-    cong-const : ∀ {a b} {A : Set a} {B : Set b} {x y : A} {z : B}
-                 (x≡y : x ≡ y) →
-                 cong (const z) x≡y ≡ refl z
+    cong-const : (x≡y : x ≡ y) → cong (const z) x≡y ≡ refl z
     cong-const {z = z} =
       elim (λ u≡v → cong (const z) u≡v ≡ refl z)
            (λ x → cong (const z) (refl x)  ≡⟨ cong-refl (const z) ⟩∎
                   refl z                   ∎)
 
-    cong-∘ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} {x y : A}
-             (f : B → C) (g : A → B) (x≡y : x ≡ y) →
+    cong-∘ : (f : B → C) (g : A → B) (x≡y : x ≡ y) →
              cong f (cong g x≡y) ≡ cong (f ∘ g) x≡y
     cong-∘ f g = elim (λ x≡y → cong f (cong g x≡y) ≡ cong (f ∘ g) x≡y)
                       (λ x → cong f (cong g (refl x))  ≡⟨ cong (cong f) (cong-refl g) ⟩
@@ -868,10 +831,9 @@ module Derived-definitions-and-properties
                              cong (f ∘ g) (refl x)     ∎)
 
     cong-proj₁-cong₂-, :
-      ∀ {a b} {A : Set a} {B : Set b} {x y : A} {u v : B}
       (x≡y : x ≡ y) (u≡v : u ≡ v) →
       cong proj₁ (cong₂ _,_ x≡y u≡v) ≡ x≡y
-    cong-proj₁-cong₂-, {x = x} {y} {u} {v} x≡y u≡v =
+    cong-proj₁-cong₂-, {x = x} {y = y} {u = u} {v = v} x≡y u≡v =
       cong proj₁ (trans (cong (flip _,_ u) x≡y) (cong (_,_ y) u≡v))  ≡⟨ cong-trans proj₁ _ _ ⟩
 
       trans (cong proj₁ (cong (flip _,_ u) x≡y))
@@ -884,10 +846,9 @@ module Derived-definitions-and-properties
       x≡y                                                            ∎
 
     cong-proj₂-cong₂-, :
-      ∀ {a b} {A : Set a} {B : Set b} {x y : A} {u v : B}
       (x≡y : x ≡ y) (u≡v : u ≡ v) →
       cong proj₂ (cong₂ _,_ x≡y u≡v) ≡ u≡v
-    cong-proj₂-cong₂-, {x = x} {y} {u} {v} x≡y u≡v =
+    cong-proj₂-cong₂-, {x = x} {y = y} {u = u} {v = v} x≡y u≡v =
       cong proj₂ (trans (cong (flip _,_ u) x≡y) (cong (_,_ y) u≡v))  ≡⟨ cong-trans proj₂ _ _ ⟩
 
       trans (cong proj₂ (cong (flip _,_ u) x≡y))
@@ -899,8 +860,7 @@ module Derived-definitions-and-properties
 
       u≡v                                                            ∎
 
-    cong-sym : ∀ {a b} {A : Set a} {B : Set b} {x y : A}
-               (f : A → B) (x≡y : x ≡ y) →
+    cong-sym : (f : A → B) (x≡y : x ≡ y) →
                cong f (sym x≡y) ≡ sym (cong f x≡y)
     cong-sym f = elim (λ x≡y → cong f (sym x≡y) ≡ sym (cong f x≡y))
                       (λ x → cong f (sym (refl x))  ≡⟨ cong (cong f) sym-refl ⟩
@@ -909,25 +869,22 @@ module Derived-definitions-and-properties
                              sym (refl (f x))       ≡⟨ cong sym $ sym (cong-refl f) ⟩∎
                              sym (cong f (refl x))  ∎)
 
-    cong₂-reflˡ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
-                  (f : A → B → C) {x : A} {u v : B} {u≡v : u ≡ v} →
+    cong₂-reflˡ : {u≡v : u ≡ v}
+                  (f : A → B → C) →
                   cong₂ f (refl x) u≡v ≡ cong (f x) u≡v
-    cong₂-reflˡ f {x} {u} {u≡v = u≡v} =
+    cong₂-reflˡ {u = u} {x = x} {u≡v = u≡v} f =
       trans (cong (flip f u) (refl x)) (cong (f x) u≡v)  ≡⟨ cong₂ trans (cong-refl (flip f u)) (refl _) ⟩
       trans (refl (f x u)) (cong (f x) u≡v)              ≡⟨ trans-reflˡ _ ⟩∎
       cong (f x) u≡v                                     ∎
 
-    cong₂-reflʳ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
-                  (f : A → B → C) {x y : A} {u : B} {x≡y : x ≡ y} →
+    cong₂-reflʳ : (f : A → B → C) {x≡y : x ≡ y} →
                   cong₂ f x≡y (refl u) ≡ cong (flip f u) x≡y
-    cong₂-reflʳ f {y = y} {u} {x≡y} =
+    cong₂-reflʳ {y = y} {u = u} f {x≡y} =
       trans (cong (flip f u) x≡y) (cong (f y) (refl u))  ≡⟨ cong (trans _) (cong-refl (f y)) ⟩
       trans (cong (flip f u) x≡y) (refl (f y u))         ≡⟨ trans-reflʳ _ ⟩∎
       cong (flip f u) x≡y                                ∎
 
     cong₂-cong-cong :
-      ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d}
-        {x₁ x₂} {eq : x₁ ≡ x₂}
       (f : A → B) (g : A → C) (h : B → C → D) →
       cong₂ h (cong f eq) (cong g eq) ≡
       cong (λ x → h (f x) (g x)) eq
@@ -941,7 +898,6 @@ module Derived-definitions-and-properties
       _
 
     cong-≡id :
-      ∀ {a} {A : Set a} {x : A} {f : A → A}
       (f≡id : f ≡ id) →
       cong (λ g → g (f x)) f≡id ≡
       cong (λ g → f (g x)) f≡id
@@ -950,7 +906,6 @@ module Derived-definitions-and-properties
       (refl _)
 
     elim-∘ :
-      ∀ {a p} {A : Set a} {x y : A}
       (P Q : ∀ {x y} → x ≡ y → Set p)
       (f : ∀ {x y} {x≡y : x ≡ y} → P x≡y → Q x≡y)
       (r : ∀ x → P (refl x)) {x≡y : x ≡ y} →
@@ -964,7 +919,6 @@ module Derived-definitions-and-properties
       x≡y
 
     elim-cong :
-      ∀ {a b p} {A : Set a} {B : Set b} {x y : A}
       (P : B → B → Set p) (f : A → B)
       (r : ∀ x → P x x) {x≡y : x ≡ y} →
       elim (λ {x y} _ → P x y) r (cong f x≡y) ≡
@@ -978,21 +932,18 @@ module Derived-definitions-and-properties
        elim (λ {x y} _ → P (f x) (f y)) (r ∘ f) (refl x)  ∎)
       x≡y
 
-  subst-const : ∀ {a p} {A : Set a} {x₁ x₂ : A} (x₁≡x₂ : x₁ ≡ x₂)
-                  {P : Set p} {p} →
-                subst (const P) x₁≡x₂ p ≡ p
-  subst-const x₁≡x₂ {P = P} {p} =
-    elim¹ (λ x₁≡x₂ → subst (const P) x₁≡x₂ p ≡ p)
-          (subst-refl (const P) _)
+  subst-const : ∀ (x₁≡x₂ : x₁ ≡ x₂) {b} →
+                subst (const B) x₁≡x₂ b ≡ b
+  subst-const {B = B} x₁≡x₂ {b} =
+    elim¹ (λ x₁≡x₂ → subst (const B) x₁≡x₂ b ≡ b)
+          (subst-refl (const B) _)
           x₁≡x₂
 
   abstract
 
     -- One can express sym in terms of subst.
 
-    sym-subst :
-      ∀ {a} {A : Set a} {x y : A} {x≡y : x ≡ y} →
-      sym x≡y ≡ subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
+    sym-subst : sym x≡y ≡ subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
     sym-subst = elim
       (λ {x} x≡y → sym x≡y ≡ subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y)
       (λ x →
@@ -1004,7 +955,7 @@ module Derived-definitions-and-properties
     -- One can express trans in terms of subst (in several ways).
 
     trans-subst :
-      ∀ {a} {A : Set a} {x y z : A} {x≡y : x ≡ y} {y≡z : y ≡ z} →
+      {x≡y : x ≡ y} {y≡z : y ≡ z} →
       trans x≡y y≡z ≡ subst (x ≡_) y≡z x≡y
     trans-subst {z = z} = elim
       (λ {x y} x≡y → (y≡z : y ≡ z) → trans x≡y y≡z ≡ subst (x ≡_) y≡z x≡y)
@@ -1018,7 +969,7 @@ module Derived-definitions-and-properties
       _
 
     subst-trans :
-      ∀ {a} {A : Set a} {x y z : A} (x≡y : x ≡ y) {y≡z : y ≡ z} →
+      (x≡y : x ≡ y) {y≡z : y ≡ z} →
       subst (_≡ z) (sym x≡y) y≡z ≡ trans x≡y y≡z
     subst-trans {y = y} {z} x≡y {y≡z} =
       elim₁ (λ x≡y → subst (λ x → x ≡ z) (sym x≡y) y≡z ≡
@@ -1032,7 +983,6 @@ module Derived-definitions-and-properties
     -- One can express subst in terms of elim.
 
     subst-elim :
-      ∀ {a p} {A : Set a} {P : A → Set p} {x y} {x≡y : x ≡ y} →
       subst P x≡y ≡ elim (λ {u v} _ → P u → P v) (λ _ → id) x≡y
     subst-elim {P = P} = elim
       (λ x≡y → subst P x≡y ≡ elim (λ {u v} _ → P u → P v) (λ _ → id) x≡y)
@@ -1042,8 +992,7 @@ module Derived-definitions-and-properties
          elim (λ {u v} _ → P u → P v) (λ _ → id) (refl x)  ∎)
       _
 
-    subst-∘ : ∀ {a b p} {A : Set a} {B : Set b} {x y : A}
-              (P : B → Set p) (f : A → B) (x≡y : x ≡ y) {p : P (f x)} →
+    subst-∘ : (P : B → Set p) (f : A → B) (x≡y : x ≡ y) {p : P (f x)} →
               subst (P ∘ f) x≡y p ≡ subst P (cong f x≡y) p
     subst-∘ P f _ {p} = elim¹
       (λ x≡y → subst (P ∘ f) x≡y p ≡ subst P (cong f x≡y) p)
@@ -1053,8 +1002,7 @@ module Derived-definitions-and-properties
        subst P (cong f (refl _)) p  ∎)
       _
 
-    subst-↑ : ∀ {a p ℓ} {A : Set a} {x y}
-              (P : A → Set p) {p : ↑ ℓ (P x)} {x≡y : x ≡ y} →
+    subst-↑ : (P : A → Set p) {p : ↑ ℓ (P x)} →
               subst (↑ ℓ ∘ P) x≡y p ≡ lift (subst P x≡y (lower p))
     subst-↑ {ℓ = ℓ} P {p} = elim¹
       (λ x≡y → subst (↑ ℓ ∘ P) x≡y p ≡ lift (subst P x≡y (lower p)))
@@ -1066,8 +1014,7 @@ module Derived-definitions-and-properties
     -- A fusion law for subst.
 
     subst-subst :
-      ∀ {a p} {A : Set a} (P : A → Set p)
-      {x y z : A} (x≡y : x ≡ y) (y≡z : y ≡ z) (p : P x) →
+      (P : A → Set p) (x≡y : x ≡ y) (y≡z : y ≡ z) (p : P x) →
       subst P y≡z (subst P x≡y p) ≡ subst P (trans x≡y y≡z) p
     subst-subst P x≡y y≡z p =
       elim (λ {x y} x≡y → ∀ {z} (y≡z : y ≡ z) p →
@@ -1081,7 +1028,7 @@ module Derived-definitions-and-properties
     -- "Computation rules" for subst-subst.
 
     subst-subst-reflˡ :
-      ∀ {a p} {A : Set a} (P : A → Set p) {x y p} {x≡y : x ≡ y} →
+      ∀ (P : A → Set p) {p} →
       subst-subst P (refl x) x≡y p ≡
       cong₂ (flip (subst P)) (subst-refl P p) (sym $ trans-reflˡ x≡y)
     subst-subst-reflˡ P =
@@ -1091,10 +1038,10 @@ module Derived-definitions-and-properties
                   _
 
     subst-subst-refl-refl :
-      ∀ {a p} {A : Set a} (P : A → Set p) {x p} →
+      ∀ (P : A → Set p) {p} →
       subst-subst P (refl x) (refl x) p ≡
       cong₂ (flip (subst P)) (subst-refl P p) (sym trans-refl-refl)
-    subst-subst-refl-refl P {x} {p} =
+    subst-subst-refl-refl {x = x} P {p} =
       subst-subst P (refl x) (refl x) p                              ≡⟨ subst-subst-reflˡ _ ⟩
 
       cong₂ (flip (subst P)) (subst-refl P p)
@@ -1105,28 +1052,25 @@ module Derived-definitions-and-properties
     -- Substitutivity and symmetry sometimes cancel each other out.
 
     subst-subst-sym :
-      ∀ {a p} {A : Set a} (P : A → Set p) {x y : A}
-      (x≡y : x ≡ y) (p : P y) →
+      (P : A → Set p) (x≡y : x ≡ y) (p : P y) →
       subst P x≡y (subst P (sym x≡y) p) ≡ p
-    subst-subst-sym {A = A} P {y = y} x≡y p =
+    subst-subst-sym {A = A} {y = y} P x≡y p =
       subst P x≡y (subst P (sym x≡y) p)  ≡⟨ subst-subst P _ _ _ ⟩
       subst P (trans (sym x≡y) x≡y) p    ≡⟨ cong (λ q → subst P q p) (trans-symˡ x≡y) ⟩
       subst P (refl y) p                 ≡⟨ subst-refl P p ⟩∎
       p                                  ∎
 
     subst-sym-subst :
-      ∀ {a p} {A : Set a} (P : A → Set p) {x y : A}
-      {x≡y : x ≡ y} {p : P x} →
+      (P : A → Set p) {x≡y : x ≡ y} {p : P x} →
       subst P (sym x≡y) (subst P x≡y p) ≡ p
-    subst-sym-subst P {x} {x≡y = x≡y} {p = p} =
+    subst-sym-subst {x = x} P {x≡y = x≡y} {p = p} =
       subst P (sym x≡y) (subst P x≡y p)              ≡⟨ cong (λ q → subst P (sym x≡y) (subst P q _)) $ sym $ sym-sym _ ⟩
       subst P (sym x≡y) (subst P (sym (sym x≡y)) p)  ≡⟨ subst-subst-sym _ _ _ ⟩∎
       p                                              ∎
 
     -- Some corollaries and variants.
 
-    trans-[trans-sym]- : ∀ {a} {A : Set a} {a b c : A} →
-                         (a≡b : a ≡ b) (c≡b : c ≡ b) →
+    trans-[trans-sym]- : (a≡b : a ≡ b) (c≡b : c ≡ b) →
                          trans (trans a≡b (sym c≡b)) c≡b ≡ a≡b
     trans-[trans-sym]- a≡b c≡b =
       trans (trans a≡b (sym c≡b)) c≡b                ≡⟨ trans-subst ⟩
@@ -1134,16 +1078,14 @@ module Derived-definitions-and-properties
       subst (_ ≡_) c≡b (subst (_ ≡_) (sym c≡b) a≡b)  ≡⟨ subst-subst-sym _ _ _ ⟩∎
       a≡b                                            ∎
 
-    trans-[trans]-sym : ∀ {a} {A : Set a} {a b c : A} →
-                        (a≡b : a ≡ b) (b≡c : b ≡ c) →
+    trans-[trans]-sym : (a≡b : a ≡ b) (b≡c : b ≡ c) →
                         trans (trans a≡b b≡c) (sym b≡c) ≡ a≡b
     trans-[trans]-sym a≡b b≡c =
       trans (trans a≡b b≡c)             (sym b≡c)  ≡⟨ sym $ cong (λ eq → trans (trans _ eq) (sym b≡c)) $ sym-sym _ ⟩
       trans (trans a≡b (sym (sym b≡c))) (sym b≡c)  ≡⟨ trans-[trans-sym]- _ _ ⟩∎
       a≡b                                          ∎
 
-    trans--[trans-sym] : ∀ {a} {A : Set a} {a b c : A} →
-                         (b≡a : b ≡ a) (b≡c : b ≡ c) →
+    trans--[trans-sym] : (b≡a : b ≡ a) (b≡c : b ≡ c) →
                          trans b≡a (trans (sym b≡a) b≡c) ≡ b≡c
     trans--[trans-sym] b≡a b≡c =
       trans b≡a (trans (sym b≡a) b≡c)  ≡⟨ sym $ trans-assoc _ _ _ ⟩
@@ -1151,8 +1093,7 @@ module Derived-definitions-and-properties
       trans (refl _) b≡c               ≡⟨ trans-reflˡ _ ⟩∎
       b≡c                              ∎
 
-    trans-sym-[trans] : ∀ {a} {A : Set a} {a b c : A} →
-                        (a≡b : a ≡ b) (b≡c : b ≡ c) →
+    trans-sym-[trans] : (a≡b : a ≡ b) (b≡c : b ≡ c) →
                         trans (sym a≡b) (trans a≡b b≡c) ≡ b≡c
     trans-sym-[trans] a≡b b≡c =
       trans (sym a≡b) (trans a≡b b≡c)              ≡⟨ cong (λ p → trans (sym _) (trans p _)) $ sym $ sym-sym _ ⟩
@@ -1163,15 +1104,14 @@ module Derived-definitions-and-properties
     -- out.
 
     subst-refl-subst-const :
-      ∀ {a p} {A : Set a} {x : A} {P : Set p} {p} →
-      trans (sym $ subst-refl (λ _ → P) p) (subst-const (refl x)) ≡
-      refl p
-    subst-refl-subst-const {x = x} {P} {p} =
-      trans (sym $ subst-refl (λ _ → P) p)
-            (elim¹ (λ eq → subst (λ _ → P) eq p ≡ p)
-                   (subst-refl (λ _ → P) _) _)        ≡⟨ cong (trans _) (elim¹-refl (λ eq → subst (λ _ → P) eq p ≡ p) _) ⟩
-      trans (sym $ subst-refl (λ _ → P) p)
-            (subst-refl (λ _ → P) _)                  ≡⟨ trans-symˡ _ ⟩∎
+      trans (sym $ subst-refl (λ _ → B) b) (subst-const (refl x)) ≡
+      refl b
+    subst-refl-subst-const {B = B} {b = b} {x = x} =
+      trans (sym $ subst-refl (λ _ → B) b)
+            (elim¹ (λ eq → subst (λ _ → B) eq b ≡ b)
+                   (subst-refl (λ _ → B) _) _)        ≡⟨ cong (trans _) (elim¹-refl (λ eq → subst (λ _ → B) eq b ≡ b) _) ⟩
+      trans (sym $ subst-refl (λ _ → B) b)
+            (subst-refl (λ _ → B) _)                  ≡⟨ trans-symˡ _ ⟩∎
       refl _                                          ∎
 
     -- In non-dependent cases one can express dependent-cong using
@@ -1180,7 +1120,7 @@ module Derived-definitions-and-properties
     -- This is (similar to) Lemma 2.3.8 in the HoTT book.
 
     dependent-cong-subst-const-cong :
-      ∀ {a b} {A : Set a} {B : Set b} (f : A → B) {x y} (x≡y : x ≡ y) →
+      (f : A → B) (x≡y : x ≡ y) →
       dependent-cong f x≡y ≡
       (subst (const B) x≡y (f x)  ≡⟨ subst-const x≡y ⟩
        f x                        ≡⟨ cong f x≡y ⟩∎
@@ -1199,7 +1139,7 @@ module Derived-definitions-and-properties
     -- A corollary.
 
     dependent-cong≡→cong≡ :
-      ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {x y} {x≡y : x ≡ y} {fx≡fy : f x ≡ f y} →
+      {x≡y : x ≡ y} {fx≡fy : f x ≡ f y} →
       dependent-cong f x≡y ≡ trans (subst-const _) fx≡fy →
       cong f x≡y ≡ fx≡fy
     dependent-cong≡→cong≡ {f = f} {x≡y = x≡y} {fx≡fy} hyp =
@@ -1213,7 +1153,7 @@ module Derived-definitions-and-properties
   -- An equality between pairs can be proved using a pair of
   -- equalities.
 
-  Σ-≡,≡→≡ : ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B} →
+  Σ-≡,≡→≡ : {B : A → Set b} {p₁ p₂ : Σ A B} →
             (p : proj₁ p₁ ≡ proj₁ p₂) →
             subst B p (proj₂ p₁) ≡ proj₂ p₂ →
             p₁ ≡ p₂
@@ -1229,11 +1169,11 @@ module Derived-definitions-and-properties
   -- The uncurried form of Σ-≡,≡→≡ has an inverse, Σ-≡,≡←≡. (For a
   -- proof, see Bijection.Σ-≡,≡↔≡.)
 
-  Σ-≡,≡←≡ : ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B} →
+  Σ-≡,≡←≡ : {B : A → Set b} {p₁ p₂ : Σ A B} →
             p₁ ≡ p₂ →
             ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
               subst B p (proj₂ p₁) ≡ proj₂ p₂
-  Σ-≡,≡←≡ {A = A} {B} = elim
+  Σ-≡,≡←≡ {A = A} {B = B} = elim
     (λ {p₁ p₂ : Σ A B} _ →
        ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) → subst B p (proj₂ p₁) ≡ proj₂ p₂)
     (λ p → refl _ , subst-refl B _)
@@ -1243,7 +1183,7 @@ module Derived-definitions-and-properties
     -- "Evaluation rules" for Σ-≡,≡→≡.
 
     Σ-≡,≡→≡-reflˡ :
-      ∀ {a b} {A : Set a} {B : A → Set b} {x y₁ y₂} →
+      ∀ {B : A → Set b} {y₁ y₂} →
       (y₁≡y₂ : subst B (refl x) y₁ ≡ y₂) →
       Σ-≡,≡→≡ {B = B} (refl x) y₁≡y₂ ≡
       cong (_,_ x) (trans (sym $ subst-refl B y₁) y₁≡y₂)
@@ -1254,18 +1194,18 @@ module Derived-definitions-and-properties
                   _
 
     Σ-≡,≡→≡-refl-refl :
-      ∀ {a b} {A : Set a} {B : A → Set b} {x y} →
+      ∀ {B : A → Set b} {y} →
       Σ-≡,≡→≡ {B = B} (refl x) (refl (subst B (refl x) y)) ≡
       cong (_,_ x) (sym (subst-refl B y))
-    Σ-≡,≡→≡-refl-refl {B = B} {x} {y} =
+    Σ-≡,≡→≡-refl-refl {x = x} {B = B} {y} =
       Σ-≡,≡→≡ (refl x) (refl _)                             ≡⟨ Σ-≡,≡→≡-reflˡ (refl _) ⟩
       cong (_,_ x) (trans (sym $ subst-refl B y) (refl _))  ≡⟨ cong (cong (_,_ x)) (trans-reflʳ _) ⟩∎
       cong (_,_ x) (sym (subst-refl B y))                   ∎
 
     Σ-≡,≡→≡-refl-subst-refl :
-      ∀ {a b} {A : Set a} {B : A → Set b} {x y} →
+      ∀ {B : A → Set b} {y} →
       Σ-≡,≡→≡ (refl x) (subst-refl B y) ≡ refl (x , y)
-    Σ-≡,≡→≡-refl-subst-refl {B = B} {x} {y} =
+    Σ-≡,≡→≡-refl-subst-refl {x = x} {B = B} {y} =
       Σ-≡,≡→≡ (refl x) (subst-refl B y)                             ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
       cong (_,_ x) (trans (sym $ subst-refl B y) (subst-refl B y))  ≡⟨ cong (cong _) (trans-symˡ _) ⟩
       cong (_,_ x) (refl y)                                         ≡⟨ cong-refl _ ⟩∎
@@ -1274,9 +1214,9 @@ module Derived-definitions-and-properties
     -- "Evaluation rule" for Σ-≡,≡←≡.
 
     Σ-≡,≡←≡-refl :
-      ∀ {a b} {A : Set a} {B : A → Set b} {p : Σ A B} →
+      {B : A → Set b} {p : Σ A B} →
       Σ-≡,≡←≡ (refl p) ≡ (refl (proj₁ p) , subst-refl B (proj₂ p))
-    Σ-≡,≡←≡-refl {A = A} {B} = elim-refl
+    Σ-≡,≡←≡-refl {A = A} {B = B} = elim-refl
       (λ {p₁ p₂ : Σ A B} _ →
          ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
            subst B p (proj₂ p₁) ≡ proj₂ p₂)
@@ -1285,7 +1225,7 @@ module Derived-definitions-and-properties
     -- Proof transformation rules for Σ-≡,≡→≡.
 
     proj₁-Σ-≡,≡→≡ :
-      ∀ {a b} {A : Set a} {B : A → Set b} {x₁ x₂ y₁ y₂}
+      ∀ {B : A → Set b} {y₁ y₂}
       (x₁≡x₂ : x₁ ≡ x₂) (y₁≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂) →
       cong proj₁ (Σ-≡,≡→≡ {B = B} x₁≡x₂ y₁≡y₂) ≡ x₁≡x₂
     proj₁-Σ-≡,≡→≡ {B = B} {y₁ = y₁} x₁≡x₂ y₁≡y₂ = elim¹
@@ -1299,7 +1239,7 @@ module Derived-definitions-and-properties
       x₁≡x₂ y₁≡y₂
 
     Σ-≡,≡→≡-cong :
-      ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B}
+      {B : A → Set b} {p₁ p₂ : Σ A B}
       {q₁ q₂ : proj₁ p₁ ≡ proj₁ p₂}
       (q₁≡q₂ : q₁ ≡ q₂)
       {r₁ : subst B q₁ (proj₂ p₁) ≡ proj₂ p₂}
@@ -1323,7 +1263,7 @@ module Derived-definitions-and-properties
          r₂                                                 ∎))
 
     trans-Σ-≡,≡→≡ :
-      ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ p₃ : Σ A B} →
+      {B : A → Set b} {p₁ p₂ p₃ : Σ A B} →
       (q₁₂ : proj₁ p₁ ≡ proj₁ p₂) (q₂₃ : proj₁ p₂ ≡ proj₁ p₃)
       (r₁₂ : subst B q₁₂ (proj₂ p₁) ≡ proj₂ p₂)
       (r₂₃ : subst B q₂₃ (proj₂ p₂) ≡ proj₂ p₃) →
@@ -1454,10 +1394,10 @@ module Derived-definitions-and-properties
       q₂₃ q₁₂ r₁₂ r₂₃
 
     Σ-≡,≡→≡-subst-const :
-      ∀ {a b} {A : Set a} {B : Set b} {p₁ p₂ : A × B} →
+      {p₁ p₂ : A × B} →
       (p : proj₁ p₁ ≡ proj₁ p₂) (q : proj₂ p₁ ≡ proj₂ p₂) →
       Σ-≡,≡→≡ p (trans (subst-const p) q) ≡ cong₂ _,_ p q
-    Σ-≡,≡→≡-subst-const {B = B} {_ , y₁} {_ , y₂} p q = elim
+    Σ-≡,≡→≡-subst-const {B = B} {p₁ = _ , y₁} {_ , y₂} p q = elim
       (λ {x₁ y₁} (p : x₁ ≡ y₁) →
          Σ-≡,≡→≡ p (trans (subst-const _) q) ≡ cong₂ _,_ p q)
       (λ x →
@@ -1480,7 +1420,7 @@ module Derived-definitions-and-properties
     -- Proof simplification rule for Σ-≡,≡←≡.
 
     proj₁-Σ-≡,≡←≡ :
-      ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B}
+      {B : A → Set b} {p₁ p₂ : Σ A B}
       (p₁≡p₂ : p₁ ≡ p₂) →
       proj₁ (Σ-≡,≡←≡ p₁≡p₂) ≡ cong proj₁ p₁≡p₂
     proj₁-Σ-≡,≡←≡ = elim
@@ -1492,8 +1432,7 @@ module Derived-definitions-and-properties
 
   -- A binary variant of subst.
 
-  subst₂ : ∀ {a b p} {A : Set a} {B : A → Set b}
-           (P : Σ A B → Set p) {x₁ x₂ y₁ y₂} →
+  subst₂ : ∀ {B : A → Set b} (P : Σ A B → Set p) {x₁ x₂ y₁ y₂} →
            (x₁≡x₂ : x₁ ≡ x₂) → subst B x₁≡x₂ y₁ ≡ y₂ →
            P (x₁ , y₁) → P (x₂ , y₂)
   subst₂ P x₁≡x₂ y₁≡y₂ = subst P (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂)
@@ -1503,11 +1442,10 @@ module Derived-definitions-and-properties
     -- "Evaluation rule" for subst₂.
 
     subst₂-refl-refl :
-      ∀ {a b p} {A : Set a} {B : A → Set b}
-      (P : Σ A B → Set p) {x y p} →
+      ∀ {B : A → Set b} (P : Σ A B → Set p) {y p} →
       subst₂ P (refl _) (refl _) p ≡
       subst (curry P x) (sym $ subst-refl B y) p
-    subst₂-refl-refl {B = B} P {x} {y} {p} =
+    subst₂-refl-refl {x = x} {B = B} P {y} {p} =
       subst P (Σ-≡,≡→≡ (refl x) (refl _)) p            ≡⟨ cong (λ eq₁ → subst P eq₁ p) Σ-≡,≡→≡-refl-refl ⟩
       subst P (cong (_,_ x) (sym (subst-refl B y))) p  ≡⟨ sym $ subst-∘ P (_,_ x) _ ⟩∎
       subst (curry P x) (sym $ subst-refl B y) p       ∎
@@ -1515,8 +1453,7 @@ module Derived-definitions-and-properties
     -- The subst function can be "pushed" inside pairs.
 
     push-subst-pair :
-      ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
-      (B : A → Set b) (C : Σ A B → Set c) {p} →
+      ∀ (B : A → Set b) (C : Σ A B → Set c) {p} →
       subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
       (subst B y≡z (proj₁ p) , subst₂ C y≡z (refl _) (proj₂ p))
     push-subst-pair {y≡z = y≡z} B C {p} = elim¹
@@ -1532,8 +1469,7 @@ module Derived-definitions-and-properties
     -- A corollary of push-subst-pair.
 
     push-subst-pair′ :
-      ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
-      (B : A → Set b) (C : Σ A B → Set c) {p p₁} →
+      ∀ (B : A → Set b) (C : Σ A B → Set c) {p p₁} →
       (p₁≡p₁ : subst B y≡z (proj₁ p) ≡ p₁) →
       subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
       (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p))
@@ -1546,7 +1482,7 @@ module Derived-definitions-and-properties
     -- A proof simplification rule for subst₂.
 
     subst₂-proj₁ :
-      ∀ {a b p} {A : Set a} {B : A → Set b} {x₁ x₂ y₁ y₂}
+      ∀ {B : A → Set b} {y₁ y₂}
         {x₁≡x₂ : x₁ ≡ x₂} {y₁≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂}
       (P : A → Set p) {p} →
       subst₂ {B = B} (P ∘ proj₁) x₁≡x₂ y₁≡y₂ p ≡ subst P x₁≡x₂ p
@@ -1558,8 +1494,7 @@ module Derived-definitions-and-properties
     -- The subst function can be "pushed" inside non-dependent pairs.
 
     push-subst-, :
-      ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
-      (B : A → Set b) (C : A → Set c) {p} →
+      ∀ (B : A → Set b) (C : A → Set c) {p} →
       subst (λ x → B x × C x) y≡z p ≡
       (subst B y≡z (proj₁ p) , subst C y≡z (proj₂ p))
     push-subst-, {y≡z = y≡z} B C {x , y} =
@@ -1570,8 +1505,7 @@ module Derived-definitions-and-properties
     -- The subst function can be "pushed" inside inj₁ and inj₂.
 
     push-subst-inj₁ :
-      ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
-      (B : A → Set b) (C : A → Set c) {x} →
+      ∀ (B : A → Set b) (C : A → Set c) {x} →
       subst (λ x → B x ⊎ C x) y≡z (inj₁ x) ≡ inj₁ (subst B y≡z x)
     push-subst-inj₁ {y≡z = y≡z} B C {x} = elim¹
       (λ y≡z → subst (λ x → B x ⊎ C x) y≡z (inj₁ x) ≡
@@ -1582,8 +1516,7 @@ module Derived-definitions-and-properties
       y≡z
 
     push-subst-inj₂ :
-      ∀ {a b c} {A : Set a} {y z : A} {y≡z : y ≡ z}
-      (B : A → Set b) (C : A → Set c) {x} →
+      ∀ (B : A → Set b) (C : A → Set c) {x} →
       subst (λ x → B x ⊎ C x) y≡z (inj₂ x) ≡ inj₂ (subst C y≡z x)
     push-subst-inj₂ {y≡z = y≡z} B C {x} = elim¹
       (λ y≡z → subst (λ x → B x ⊎ C x) y≡z (inj₂ x) ≡
@@ -1596,7 +1529,7 @@ module Derived-definitions-and-properties
     -- The subst function can be "pushed" inside applications.
 
     push-subst-application :
-      ∀ {a b c} {A : Set a} {B : A → Set b} {x₁ x₂ : A}
+      {B : A → Set b}
       (x₁≡x₂ : x₁ ≡ x₂) (C : (x : A) → B x → Set c)
       {f : (x : A) → B x} {g : (y : B x₁) → C x₁ y} →
       subst (λ x → C x (f x)) x₁≡x₂ (g (f x₁)) ≡
@@ -1611,7 +1544,7 @@ module Derived-definitions-and-properties
       x₁≡x₂
 
     push-subst-implicit-application :
-      ∀ {a b c} {A : Set a} {B : A → Set b} {x₁ x₂ : A}
+      {B : A → Set b}
       (x₁≡x₂ : x₁ ≡ x₂) (C : (x : A) → B x → Set c)
       {f : (x : A) → B x} {g : {y : B x₁} → C x₁ y} →
       subst (λ x → C x (f x)) x₁≡x₂ (g {y = f x₁}) ≡
@@ -1626,7 +1559,7 @@ module Derived-definitions-and-properties
       x₁≡x₂
 
     subst-∀ :
-      ∀ {a b c} {A : Set a} {B : A → Set b} {x₁ x₂ : A} {y : B x₁}
+      ∀ {B : A → Set b} {y : B x₁}
         {C : (x : A) → B x → Set c} {f : (y : B x₂) → C x₂ y}
         {x₁≡x₂ : x₁ ≡ x₂} →
       subst (λ x → (y : B x) → C x y) (sym x₁≡x₂) f y ≡
@@ -1661,12 +1594,10 @@ module Derived-definitions-and-properties
       x₁≡x₂ _
 
     subst-→ :
-      ∀ {a b c} {A : Set a} {B : A → Set b} {x₁ x₂ : A} {y : B x₂}
-      {C : A → Set c} {f : B x₁ → C x₁}
-      {x₁≡x₂ : x₁ ≡ x₂} →
+      {B : A → Set b} {y : B x₂} {C : A → Set c} {f : B x₁ → C x₁} →
       subst (λ x → B x → C x) x₁≡x₂ f y ≡
       subst C x₁≡x₂ (f (subst B (sym x₁≡x₂) y))
-    subst-→ {B = B} {y = y} {C} {f} {x₁≡x₂} =
+    subst-→ {x₁≡x₂ = x₁≡x₂} {B = B} {y = y} {C} {f} =
       subst (λ x → B x → C x) x₁≡x₂ f y                          ≡⟨ cong (λ eq → subst (λ x → B x → C x) eq f y) $ sym $
                                                                       sym-sym _ ⟩
       subst (λ x → B x → C x) (sym $ sym x₁≡x₂) f y              ≡⟨ subst-∀ ⟩
@@ -1685,11 +1616,9 @@ module Derived-definitions-and-properties
       subst C x₁≡x₂ (f (subst B (sym x₁≡x₂) y))                  ∎
 
     subst-→-domain :
-      ∀ {a b c} {A : Set a} {x y : A}
-      (B : A → Set b) {C : Set c} {f : B x → C}
-      (x≡y : x ≡ y) →
+      (B : A → Set b) {f : B x → C} (x≡y : x ≡ y) →
       subst (λ x → B x → C) x≡y f ≡ f ∘ subst B (sym x≡y)
-    subst-→-domain B {C} x≡y = elim
+    subst-→-domain {C = C} B x≡y = elim
       (λ {x y} x≡y → (f : B x → C) →
                      subst (λ x → B x → C) x≡y f ≡
                      f ∘ subst B (sym x≡y))
@@ -1704,11 +1633,10 @@ module Derived-definitions-and-properties
     -- Hedberg's Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
     subst-in-terms-of-trans-and-cong :
-      ∀ {a b} {A : Set a} {B : Set b} {f g : A → B} {x y}
-        {x≡y : x ≡ y} {fx≡gx : f x ≡ g x} →
+      {x≡y : x ≡ y} {fx≡gx : f x ≡ g x} →
       subst (λ z → f z ≡ g z) x≡y fx≡gx ≡
       trans (sym (cong f x≡y)) (trans fx≡gx (cong g x≡y))
-    subst-in-terms-of-trans-and-cong {f = f} {g} = elim
+    subst-in-terms-of-trans-and-cong {f = f} {g = g} = elim
       (λ {x y} x≡y →
            (fx≡gx : f x ≡ g x) →
            subst (λ z → f z ≡ g z) x≡y fx≡gx ≡
@@ -1727,8 +1655,8 @@ module Derived-definitions-and-properties
     -- lemma provides one example.
 
     cong-subst :
-      ∀ {a b c} {A : Set a} {B : A → Set b} {C : A → Set c}
-        {f : ∀ {x} → B x → C x} {g h : (x : A) → B x} {x y}
+      {B : A → Set b} {C : A → Set c}
+      {f : ∀ {x} → B x → C x} {g h : (x : A) → B x}
       (eq₁ : x ≡ y) (eq₂ : g x ≡ h x) →
       cong f (subst (λ x → g x ≡ h x) eq₁ eq₂) ≡
       subst (λ x → f (g x) ≡ f (h x)) eq₁ (cong f eq₂)
@@ -1744,7 +1672,6 @@ module Derived-definitions-and-properties
     -- Some rearrangement lemmas for equalities between equalities.
 
     [trans≡]≡[≡trans-symʳ] :
-      ∀ {a} {A : Set a} {a₁ a₂ a₃ : A}
       (p₁₂ : a₁ ≡ a₂) (p₁₃ : a₁ ≡ a₃) (p₂₃ : a₂ ≡ a₃) →
       (trans p₁₂ p₂₃ ≡ p₁₃)
         ≡
@@ -1762,7 +1689,6 @@ module Derived-definitions-and-properties
       p₂₃ p₁₂ p₁₃
 
     [trans≡]≡[≡trans-symˡ] :
-      ∀ {a} {A : Set a} {a₁ a₂ a₃ : A}
       (p₁₂ : a₁ ≡ a₂) (p₁₃ : a₁ ≡ a₃) (p₂₃ : a₂ ≡ a₃) →
       (trans p₁₂ p₂₃ ≡ p₁₃)
         ≡
@@ -1784,7 +1710,7 @@ module Derived-definitions-and-properties
     -- types, rather than an equality between equality types).
 
     [subst≡]≡[trans≡trans] :
-      ∀ {a} {A : Set a} {x y : A} {p : x ≡ y} {q : x ≡ x} {r : y ≡ y} →
+      {p : x ≡ y} {q : x ≡ x} {r : y ≡ y} →
       (subst (λ z → z ≡ z) p q ≡ r)
         ≡
       (trans q p ≡ trans p r)
@@ -1802,7 +1728,7 @@ module Derived-definitions-and-properties
     -- "Evaluation rule" for [subst≡]≡[trans≡trans].
 
     [subst≡]≡[trans≡trans]-refl :
-      ∀ {a} {A : Set a} {x : A} {q : x ≡ x} {r : x ≡ x} →
+      {q r : x ≡ x} →
       [subst≡]≡[trans≡trans] {p = refl x} {q = q} {r = r} ≡
       trans (cong (_≡ r) (subst-refl (λ z → z ≡ z) q))
             (sym $ cong₂ _≡_ (trans-reflʳ q) (trans-reflˡ r))
@@ -1814,7 +1740,6 @@ module Derived-definitions-and-properties
     -- one.
 
     trans-cong-cong :
-      ∀ {a b} {A : Set a} {B : Set b} {x y : A}
       (f : A → A → B) (p : x ≡ y) →
       trans (cong (λ z → f z x) p)
             (cong (λ z → f y z) p) ≡
@@ -1837,7 +1762,7 @@ module Derived-definitions-and-properties
     -- for proofs eq between elements in this subset.
 
     cong-respects-relevant-equality :
-      ∀ {a b} {A : Set a} {B : Set b} {x y} {x≡y : x ≡ y} {f g : A → B}
+      {f g : A → B}
       (p : A → Bool) (f≡g : ∀ x → T (p x) → f x ≡ g x)
       {px : T (p x)} {py : T (p y)} →
       trans (cong f x≡y) (f≡g y py) ≡ trans (f≡g x px) (cong g x≡y)
@@ -1867,12 +1792,12 @@ module Derived-definitions-and-properties
     -- is a variable, but the approximation below can be proved.
 
     cong-roughly-id :
-      ∀ {a} {A : Set a} (f : A → A) (p : A → Bool) {x y : A}
+      (f : A → A) (p : A → Bool)
       (x≡y : x ≡ y) (px : T (p x)) (py : T (p y))
       (f≡id : ∀ z → T (p z) → f z ≡ z) →
       cong f x≡y ≡
       trans (f≡id x px) (trans x≡y $ sym (f≡id y py))
-    cong-roughly-id f p {x} {y} x≡y px py f≡id =
+    cong-roughly-id {x = x} {y = y} f p x≡y px py f≡id =
       let lemma =
             trans (cong id x≡y) (sym (f≡id y py))  ≡⟨ cong-respects-relevant-equality p (λ x → sym ∘ f≡id x) ⟩∎
             trans (sym (f≡id x px)) (cong f x≡y)   ∎

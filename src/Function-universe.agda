@@ -336,7 +336,7 @@ forget-ext? k with extensionality? k
 -- A variant of lower-extensionality.
 
 lower-extensionality? :
-  ∀ k {a} â {b} b̂ →
+  ∀ k {a b} â b̂ →
   Extensionality? k (a ⊔ â) (b ⊔ b̂) → Extensionality? k a b
 lower-extensionality? k with extensionality? k
 ... | without-extensionality _ = _
