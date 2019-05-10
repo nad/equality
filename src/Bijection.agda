@@ -184,7 +184,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
       to (from (refl x))                          ≡⟨ cong to (elim-refl from-P _) ⟩
       to (refl (proj₁ x) , lem)                   ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
       cong (_,_ (proj₁ x)) (trans (sym lem) lem)  ≡⟨ cong (cong (_,_ (proj₁ x))) $ trans-symˡ lem ⟩
-      cong (_,_ (proj₁ x)) (refl (proj₂ x))       ≡⟨ cong-refl (_,_ (proj₁ x)) {x = proj₂ x} ⟩∎
+      cong (_,_ (proj₁ x)) (refl (proj₂ x))       ≡⟨ cong-refl (_,_ (proj₁ x)) ⟩∎
       refl x                                      ∎
 
     from∘to : ∀ p → from (to {p₁ = p₁} {p₂ = p₂} p) ≡ p
@@ -201,7 +201,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
           let lem = subst-refl B y in
           from (to (refl x , y′≡y))                   ≡⟨ cong from $ Σ-≡,≡→≡-reflˡ _ ⟩
           from (cong (_,_ x) (trans (sym lem) y′≡y))  ≡⟨ cong (from ⊚ cong (_,_ x)) $ sym eq ⟩
-          from (cong (_,_ x) (refl y))                ≡⟨ cong from $ cong-refl (_,_ x) {x = y} ⟩
+          from (cong (_,_ x) (refl y))                ≡⟨ cong from $ cong-refl (_,_ x) ⟩
           from (refl (x , y))                         ≡⟨ elim-refl from-P _ ⟩
           (refl x , lem)                              ≡⟨ cong (_,_ (refl x)) (
              lem                                           ≡⟨ sym $ trans-reflʳ _ ⟩

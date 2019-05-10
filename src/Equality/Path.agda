@@ -181,18 +181,18 @@ syntax finally x y x≡y = x ≡⟨ x≡y ⟩∎ y ∎
 elim :
   (P : {x y : A} → x ≡ y → Set p) →
   (∀ x → P (refl {x = x})) →
-  ∀ {x y} (x≡y : x ≡ y) → P x≡y
-elim P p {x} x≡y =
+  (x≡y : x ≡ y) → P x≡y
+elim {x = x} P p x≡y =
   transport (λ i → P (λ j → x≡y (min i j))) 0̲ (p x)
 
 -- Substitutivity.
 
 hsubst :
-  ∀ (Q : ∀ {i} → P i → Set q) {x y} →
+  ∀ (Q : ∀ {i} → P i → Set q) →
   [ P ] x ≡ y → Q x → Q y
 hsubst Q x≡y p = transport (λ i → Q (x≡y i)) 0̲ p
 
-subst : ∀ (P : A → Set p) {x y} → x ≡ y → P x → P y
+subst : (P : A → Set p) → x ≡ y → P x → P y
 subst P = hsubst P
 
 -- Congruence.
@@ -201,17 +201,17 @@ subst P = hsubst P
 -- written by Anders Mörtberg.
 
 hcong :
-  ∀ (f : (x : A) → B x) {x y} →
-  (x≡y : x ≡ y) → [ (λ i → B (x≡y i)) ] f x ≡ f y
+  (f : (x : A) → B x) (x≡y : x ≡ y) →
+  [ (λ i → B (x≡y i)) ] f x ≡ f y
 hcong f x≡y = λ i → f (x≡y i)
 
-cong : ∀ {B : Set b} (f : A → B) {x y} → x ≡ y → f x ≡ f y
+cong : {B : Set b} (f : A → B) → x ≡ y → f x ≡ f y
 cong f = hcong f
 
 dependent-cong :
-  ∀ (f : (x : A) → B x) {x y} (x≡y : x ≡ y) →
+  (f : (x : A) → B x) (x≡y : x ≡ y) →
   subst B x≡y (f x) ≡ f y
-dependent-cong {B = B} f {x} {y} x≡y = λ i →
+dependent-cong {B = B} f x≡y = λ i →
   transport (λ j → B (x≡y (max i j))) i (f (x≡y i))
 
 -- Transporting along reflexivity amounts to doing nothing.

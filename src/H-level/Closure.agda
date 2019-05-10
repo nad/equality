@@ -223,7 +223,7 @@ abstract
   ext⁻¹-refl : ∀ {a b} {A : Set a} {B : A → Set b}
                (f : (x : A) → B x) {x} →
                ext⁻¹ (refl f) x ≡ refl (f x)
-  ext⁻¹-refl f {x} = cong-refl (λ h → h x) {x = f}
+  ext⁻¹-refl f {x} = cong-refl (λ h → h x)
 
   -- Given extensionality there is a (split) surjection from
   -- ∀ x → f x ≡ g x to f ≡ g.

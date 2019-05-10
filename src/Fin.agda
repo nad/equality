@@ -144,7 +144,7 @@ isomorphic-same-size {m} {n} = record
 
 ⌞subst⌟ : ∀ {m n} (p : m ≡ n) (i : Fin m) → ⌞ subst Fin p i ⌟ ≡ ⌞ i ⌟
 ⌞subst⌟ {m} p i =
-  ⌞ subst Fin p i ⌟         ≡⟨ cong (uncurry λ n p → ⌞ subst Fin {y = n} p i ⌟) (Σ-≡,≡→≡ (sym p) (
+  ⌞ subst Fin p i ⌟         ≡⟨ cong (uncurry λ n p → ⌞ subst Fin p i ⌟) (Σ-≡,≡→≡ (sym p) (
 
       subst (m ≡_) (sym p) p     ≡⟨ sym trans-subst ⟩
       trans p (sym p)            ≡⟨ trans-symʳ p ⟩∎

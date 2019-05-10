@@ -28,7 +28,7 @@ open import Preimage eq using (_⁻¹_)
 -- The property of being an embedding.
 
 Is-embedding : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
-Is-embedding f = ∀ x y → Is-equivalence (cong f {x = x} {y = y})
+Is-embedding f = ∀ x y → Is-equivalence (cong {x = x} {y = y} f)
 
 -- Is-embedding is propositional (assuming extensionality).
 

@@ -22,9 +22,9 @@ open import TC-monad equality-with-J
 
 private
 
-  -- Constructs a "cong" function (like cong and cong₂ in Equality),
-  -- with the given name, for functions with the given number of
-  -- arguments.
+  -- Constructs a "cong" function (similar to cong and cong₂ in
+  -- Equality), with the given name, for functions with the given
+  -- number of arguments.
 
   make-cong-called : Name → ℕ → TC ⊤
   make-cong-called cong n =
@@ -83,12 +83,12 @@ private
   unquoteDecl cong₉  = make-cong-called cong₉   9
   unquoteDecl cong₁₀ = make-cong-called cong₁₀ 10
 
-  -- Constructs a "cong" function (like cong and cong₂ in Equality)
-  -- for functions with the given number of arguments. The name of the
-  -- constructed function is returned (for 1 and 2 the functions in
-  -- Equality are returned). The cong functions for functions with 3
-  -- up to 10 arguments are cached to avoid creating lots of copies of
-  -- the same functions.
+  -- Constructs a "cong" function (similar to cong and cong₂ in
+  -- Equality) for functions with the given number of arguments. The
+  -- name of the constructed function is returned (for 1 and 2 the
+  -- functions in Equality are returned). The cong functions for
+  -- functions with 3 up to 10 arguments are cached to avoid creating
+  -- lots of copies of the same functions.
 
   make-cong : ℕ → TC Name
   make-cong  1 = return (quote cong)
@@ -361,14 +361,15 @@ private
       (def (quote _≡_) (harg b ∷ harg B ∷ _))
       (def (quote _≡_) (harg a ∷ harg A ∷ varg lhs ∷ varg rhs ∷ []))
       t f =
-      return ( term (harg lhs ∷ harg rhs ∷ varg t ∷ [])
-             , term (harg rhs ∷ harg lhs ∷
-                     varg (def (quote sym) (varg t ∷ [])) ∷ [])
+      return ( term (harg lhs ∷ harg rhs ∷ []) t
+             , term (harg rhs ∷ harg lhs ∷ [])
+                    (def (quote sym) (varg t ∷ []))
              )
       where
-      term = λ args → def (quote cong)
-                          (harg a ∷ harg b ∷ harg A ∷ harg B ∷
-                           varg f ∷ args)
+      term = λ args arg →
+        def (quote cong)
+            (harg a ∷ harg b ∷ harg A ∷ harg B ∷
+             args ++ varg f ∷ varg arg ∷ [])
 
     construct-terms _ (meta m _) _ _ = blockOnMeta m
     construct-terms _ _          _ _ =

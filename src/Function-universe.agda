@@ -773,6 +773,7 @@ _⊎-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
   where
   open Embedding using (to)
 
+  lemma₁ : ∀ {x₁ y₁} (_ : x₁ ≡ y₁) → _
   lemma₁ = elim
     (λ {x₁ y₁} eq → (x₂ : B₁ x₁) (y₂ : B₁ y₁) →
        to (B₁↣B₂ y₁) (subst B₁ eq x₂) ≡

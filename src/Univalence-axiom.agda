@@ -176,7 +176,7 @@ flip-subst-is-equivalence↔∃-is-contractible :
   ∀ {k a p} {A : Set a} {P : A → Set p} →
   Extensionality? k (a ⊔ p) (a ⊔ p) →
   {x : A} {p : P x} →
-  (∀ y → Is-equivalence (flip (subst P {y = y}) p))
+  (∀ y → Is-equivalence (flip (subst {y = y} P) p))
     ↝[ k ]
   Contractible (∃ P)
 flip-subst-is-equivalence↔∃-is-contractible {p = p′} {P = P}
@@ -189,7 +189,7 @@ flip-subst-is-equivalence↔∃-is-contractible {p = p′} {P = P}
     ext
   where
   lemma :
-    (∀ y → Is-equivalence (flip (subst P {y = y}) p))
+    (∀ y → Is-equivalence (flip (subst {y = y} P) p))
       ⇔
     Contractible (∃ P)
   lemma = record
@@ -302,8 +302,8 @@ Univalence↔Other-univalence {k} {ℓ} ext =
       subst (_≃ B) (sym (sym B≡A)) Eq.id                                     ≡⟨ cong (flip (subst _) _) $ sym-sym _ ⟩∎
       subst (_≃ B) B≡A Eq.id                                                 ∎)) ⟩
 
-  ((A B : Set ℓ) → Is-equivalence (flip (subst (_≃ B) {y = A}) F.id))  ↔⟨ Π-comm ⟩
-  ((B A : Set ℓ) → Is-equivalence (flip (subst (_≃ B) {y = A}) F.id))  ↝⟨ (∀-cong ext λ _ → flip-subst-is-equivalence↔∃-is-contractible ext) ⟩
+  ((A B : Set ℓ) → Is-equivalence (flip (subst {y = A} (_≃ B)) F.id))  ↔⟨ Π-comm ⟩
+  ((B A : Set ℓ) → Is-equivalence (flip (subst {y = A} (_≃ B)) F.id))  ↝⟨ (∀-cong ext λ _ → flip-subst-is-equivalence↔∃-is-contractible ext) ⟩
   ((B : Set ℓ) → Contractible (∃ λ (A : Set ℓ) → A ≃ B))               ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
   ({B : Set ℓ} → Contractible (∃ λ (A : Set ℓ) → A ≃ B))               □
 

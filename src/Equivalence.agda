@@ -131,7 +131,7 @@ abstract
              (elim¹ to-P (y , refl (f y)) (cong (_,_ x) eq))
              (y , eq))
       (elim¹ to-P (y , refl (f y)) (cong (_,_ x) (refl (f y)))  ≡⟨ cong (elim¹ to-P (y , refl (f y))) $
-                                                                        cong-refl (_,_ x) {x = f y} ⟩
+                                                                        cong-refl (_,_ x) ⟩
        elim¹ to-P (y , refl (f y)) (refl (x , f y))             ≡⟨ elim¹-refl to-P _ ⟩∎
        (y , refl (f y))                                         ∎)
       eq
