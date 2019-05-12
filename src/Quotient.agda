@@ -100,18 +100,6 @@ module _
         (λ i → elim (p i)) ≡ (λ i → elim (q i))
     lemma = P.heterogeneous-UIP (_↔_.to (H-level↔H-level 2) ∘ P-set) _
 
-  -- "Computation" rule for []-respects-relation.
-  --
-  -- (This result is perhaps not very useful, because P is assumed to
-  -- be a family of sets. It is included here to illustrate how
-  -- dcong-subst≡→[]≡ can be used.)
-
-  elim-[]-respects-relation :
-    (r : R x y) →
-    dcong elim ([]-respects-relation r) ≡
-    p-[]-respects-relation r
-  elim-[]-respects-relation _ = dcong-subst≡→[]≡ (refl _)
-
 -- A non-dependent eliminator.
 
 rec :
