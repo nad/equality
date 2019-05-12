@@ -208,10 +208,10 @@ hcong f x≡y = λ i → f (x≡y i)
 cong : {B : Set b} (f : A → B) → x ≡ y → f x ≡ f y
 cong f = hcong f
 
-dependent-cong :
+dcong :
   (f : (x : A) → B x) (x≡y : x ≡ y) →
   subst B x≡y (f x) ≡ f y
-dependent-cong {B = B} f x≡y = λ i →
+dcong {B = B} f x≡y = λ i →
   transport (λ j → B (x≡y (max i j))) i (f (x≡y i))
 
 -- Transporting along reflexivity amounts to doing nothing.
@@ -248,18 +248,18 @@ Equality-with-J₀.elim-refl equality-with-J₀ = λ _ r →
 -- A family of instantiations of Equality-with-J.
 
 equality-with-J : Equality-with-J a p congruence⁺
-Equality-with-J.equality-with-J₀          equality-with-J = equality-with-J₀
-Equality-with-J.cong                      equality-with-J = cong
-Equality-with-J.cong-refl                 equality-with-J = λ _ → refl
-Equality-with-J.subst                     equality-with-J = subst
-Equality-with-J.subst-refl≡id             equality-with-J = λ _ → transport-refl 0̲
-Equality-with-J.dependent-cong            equality-with-J = dependent-cong
-Equality-with-J.dependent-cong-refl-hcong equality-with-J = λ _ → refl
+Equality-with-J.equality-with-J₀ equality-with-J = equality-with-J₀
+Equality-with-J.cong             equality-with-J = cong
+Equality-with-J.cong-refl        equality-with-J = λ _ → refl
+Equality-with-J.subst            equality-with-J = subst
+Equality-with-J.subst-refl≡id    equality-with-J = λ _ → transport-refl 0̲
+Equality-with-J.dcong            equality-with-J = dcong
+Equality-with-J.dcong-refl-hcong equality-with-J = λ _ → refl
 
 -- Various derived definitions and properties.
 
 open Derived-definitions-and-properties equality-with-J public
-  hiding (_≡_; refl; elim; subst; cong; hcong; dependent-cong;
+  hiding (_≡_; refl; elim; subst; cong; hcong; dcong;
           step-≡; _≡⟨⟩_; finally;
           reflexive-relation; equality-with-J₀)
 

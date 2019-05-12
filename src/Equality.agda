@@ -224,13 +224,13 @@ record Equality-with-J
     -- (Below hcong is used instead of cong because using cong would
     -- lead to a universe level mismatch.)
 
-    dependent-cong :
+    dcong :
       ∀ {A : Set a} {P : A → Set b} {x y}
       (f : (x : A) → P x) (x≡y : x ≡ y) →
       subst P x≡y (f x) ≡ f y
-    dependent-cong-refl-hcong :
+    dcong-refl-hcong :
       ∀ {A : Set a} {P : A → Set b} {x} (f : (x : A) → P x) →
-      dependent-cong f (refl x) ≡ hcong (_$ f x) (subst-refl≡id P)
+      dcong f (refl x) ≡ hcong (_$ f x) (subst-refl≡id P)
 
 -- Congruence⁺ can be derived from Equality-with-J₀.
 
@@ -292,13 +292,13 @@ J₀⇒J :
   (eq : ∀ {a p} → Equality-with-J₀ a p reflexive) →
   ∀ {a p} → Equality-with-J a p (λ _ → J₀⇒Congruence⁺ eq)
 J₀⇒J {r} eq {a} {b} = record
-  { equality-with-J₀          = eq
-  ; cong                      = cong
-  ; cong-refl                 = cong-refl
-  ; subst                     = subst
-  ; subst-refl≡id             = subst-refl≡id
-  ; dependent-cong            = dependent-cong
-  ; dependent-cong-refl-hcong = dependent-cong-refl
+  { equality-with-J₀ = eq
+  ; cong             = cong
+  ; cong-refl        = cong-refl
+  ; subst            = subst
+  ; subst-refl≡id    = subst-refl≡id
+  ; dcong            = dcong
+  ; dcong-refl-hcong = dcong-refl
   }
   where
   open module R {ℓ}     = Reflexive-relation (r ℓ)
@@ -321,10 +321,9 @@ J₀⇒J {r} eq {a} {b} = record
   subst-refl : ∀ (P : A → Set b) p → subst P (refl x) p ≡ p
   subst-refl P p = cong (_$ p) (subst-refl≡id P)
 
-  dependent-cong :
-    (f : (x : A) → P x) (x≡y : x ≡ y) →
-    subst P x≡y (f x) ≡ f y
-  dependent-cong {A = A} {P = P} f x≡y = elim
+  dcong : (f : (x : A) → P x) (x≡y : x ≡ y) →
+          subst P x≡y (f x) ≡ f y
+  dcong {A = A} {P = P} f x≡y = elim
     (λ {x y} (x≡y : x ≡ y) → (f : (x : A) → P x) →
        subst P x≡y (f x) ≡ f y)
     (λ f y → subst-refl _ _)
@@ -333,11 +332,9 @@ J₀⇒J {r} eq {a} {b} = record
 
   abstract
 
-    dependent-cong-refl :
-      (f : (x : A) → P x) →
-      dependent-cong f (refl x) ≡
-      subst-refl P (f x)
-    dependent-cong-refl f = cong (_$ f) $ elim-refl _ _
+    dcong-refl : (f : (x : A) → P x) →
+                 dcong f (refl x) ≡ subst-refl P (f x)
+    dcong-refl f = cong (_$ f) $ elim-refl _ _
 
 -- Some derived properties.
 
@@ -664,23 +661,23 @@ module Derived-definitions-and-properties
          cong f (refl x)   ∎)
       _
 
-    -- "Evaluation rule" for dependent-cong.
+    -- "Evaluation rule" for dcong.
 
-    dependent-cong-refl :
+    dcong-refl :
       (f : (x : A) → P x) →
-      dependent-cong f (refl x) ≡ subst-refl P (f x)
-    dependent-cong-refl {P = P} {x = x} f =
-      dependent-cong f (refl x)         ≡⟨ dependent-cong-refl-hcong _ ⟩
+      dcong f (refl x) ≡ subst-refl P (f x)
+    dcong-refl {P = P} {x = x} f =
+      dcong f (refl x)                  ≡⟨ dcong-refl-hcong _ ⟩
       hcong (_$ f x) (subst-refl≡id P)  ≡⟨ hcong-cong ⟩
       cong (_$ f x) (subst-refl≡id P)   ≡⟨⟩
       subst-refl P (f x)                ∎
 
-  -- A generalisation of dependent-cong.
+  -- A generalisation of dcong.
 
-  dependent-cong′ :
+  dcong′ :
     (f : (x : A) → x ≡ y → P x) (x≡y : x ≡ y) →
     subst P x≡y (f x x≡y) ≡ f y (refl y)
-  dependent-cong′ {y = y} {P = P} f x≡y = elim₁
+  dcong′ {y = y} {P = P} f x≡y = elim₁
     (λ {x} (x≡y : x ≡ y) →
        (f : ∀ x → x ≡ y → P x) →
        subst P x≡y (f x x≡y) ≡ f y (refl y))
@@ -690,12 +687,12 @@ module Derived-definitions-and-properties
 
   abstract
 
-    -- "Evaluation rule" for dependent-cong′.
+    -- "Evaluation rule" for dcong′.
 
-    dependent-cong′-refl :
+    dcong′-refl :
       (f : (x : A) → x ≡ y → P x) →
-      dependent-cong′ f (refl y) ≡ subst-refl P (f y (refl y))
-    dependent-cong′-refl f = cong (_$ f) $ elim₁-refl _ _
+      dcong′ f (refl y) ≡ subst-refl P (f y (refl y))
+    dcong′-refl f = cong (_$ f) $ elim₁-refl _ _
 
   -- Binary congruence.
 
@@ -1114,22 +1111,22 @@ module Derived-definitions-and-properties
             (subst-refl (λ _ → B) _)                  ≡⟨ trans-symˡ _ ⟩∎
       refl _                                          ∎
 
-    -- In non-dependent cases one can express dependent-cong using
-    -- subst-const and cong.
+    -- In non-dependent cases one can express dcong using subst-const
+    -- and cong.
     --
     -- This is (similar to) Lemma 2.3.8 in the HoTT book.
 
-    dependent-cong-subst-const-cong :
+    dcong-subst-const-cong :
       (f : A → B) (x≡y : x ≡ y) →
-      dependent-cong f x≡y ≡
+      dcong f x≡y ≡
       (subst (const B) x≡y (f x)  ≡⟨ subst-const x≡y ⟩
        f x                        ≡⟨ cong f x≡y ⟩∎
        f y                        ∎)
-    dependent-cong-subst-const-cong f = elim
-      (λ {x y} x≡y → dependent-cong f x≡y ≡
+    dcong-subst-const-cong f = elim
+      (λ {x y} x≡y → dcong f x≡y ≡
                      trans (subst-const x≡y) (cong f x≡y))
       (λ x →
-        dependent-cong f (refl x)                        ≡⟨ dependent-cong-refl f ⟩
+        dcong f (refl x)                                 ≡⟨ dcong-refl f ⟩
         subst-refl (const _) (f x)                       ≡⟨ sym $ trans-reflʳ _ ⟩
         trans (subst-refl (const _) (f x)) (refl (f x))  ≡⟨ cong₂ trans
                                                                   (sym $ elim¹-refl _ _)
@@ -1138,15 +1135,15 @@ module Derived-definitions-and-properties
 
     -- A corollary.
 
-    dependent-cong≡→cong≡ :
+    dcong≡→cong≡ :
       {x≡y : x ≡ y} {fx≡fy : f x ≡ f y} →
-      dependent-cong f x≡y ≡ trans (subst-const _) fx≡fy →
+      dcong f x≡y ≡ trans (subst-const _) fx≡fy →
       cong f x≡y ≡ fx≡fy
-    dependent-cong≡→cong≡ {f = f} {x≡y = x≡y} {fx≡fy} hyp =
+    dcong≡→cong≡ {f = f} {x≡y = x≡y} {fx≡fy} hyp =
       cong f x≡y                                                        ≡⟨ sym $ trans-sym-[trans] _ _ ⟩
       trans (sym $ subst-const _) (trans (subst-const _) $ cong f x≡y)  ≡⟨ cong (trans (sym $ subst-const _)) $ sym $
-                                                                           dependent-cong-subst-const-cong _ _ ⟩
-      trans (sym $ subst-const _) (dependent-cong f x≡y)                ≡⟨ cong (trans (sym $ subst-const _)) hyp ⟩
+                                                                           dcong-subst-const-cong _ _ ⟩
+      trans (sym $ subst-const _) (dcong f x≡y)                         ≡⟨ cong (trans (sym $ subst-const _)) hyp ⟩
       trans (sym $ subst-const _) (trans (subst-const _) fx≡fy)         ≡⟨ trans-sym-[trans] _ _ ⟩∎
       fx≡fy                                                             ∎
 
@@ -1582,7 +1579,7 @@ module Derived-definitions-and-properties
 
          subst (λ x → (y : B x) → C x y) (refl x) f y           ≡⟨ cong (_$ y) $ subst-refl _ _ ⟩
 
-         f y                                                    ≡⟨ sym $ dependent-cong f _ ⟩
+         f y                                                    ≡⟨ sym $ dcong f _ ⟩
 
          subst (C x) (subst-refl B _) (f (subst B (refl x) y))  ≡⟨ subst-∘ _ _ _ ⟩
 

@@ -104,13 +104,13 @@ module _
   --
   -- (This result is perhaps not very useful, because P is assumed to
   -- be a family of sets. It is included here to illustrate how
-  -- dependent-cong-subst≡→[]≡ can be used.)
+  -- dcong-subst≡→[]≡ can be used.)
 
   elim-[]-respects-relation :
     (r : R x y) →
-    dependent-cong elim ([]-respects-relation r) ≡
+    dcong elim ([]-respects-relation r) ≡
     p-[]-respects-relation r
-  elim-[]-respects-relation _ = dependent-cong-subst≡→[]≡ (refl _)
+  elim-[]-respects-relation _ = dcong-subst≡→[]≡ (refl _)
 
 -- A non-dependent eliminator.
 

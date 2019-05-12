@@ -789,7 +789,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                                   (λ H → Type (H X X))
                                                                                                   (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
                                                                                                   f)) $
-                                                                                   dependent-cong (λ f → id (f X)) ≡⇒←-refl ⟩
+                                                                                   dcong (λ f → id (f X)) ≡⇒←-refl ⟩
           subst (λ H → Type (H X X)) eqH
             (subst (λ H → Type (H X X))
                    (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) F)
@@ -934,7 +934,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                            (subst (λ H → Type (H X Y)) (sym eqH) g))))))          ≡⟨ cong (subst (λ H → Type (H X Z)) eqH ∘
                                                                                            subst (λ H → Type (H X Z))
                                                                                              (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)) $
-                                                                                       dependent-cong′
+                                                                                       dcong′
                                                                                          (λ h eq →
                                                                                             comp (h X) (h Y) (h Z)
                                                                                               (subst (λ f → Type (F (f Y) (f Z))) (sym eq)

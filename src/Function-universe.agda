@@ -1848,7 +1848,7 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
               (f (_↠_.to A₁↠A₂ (_↠_.from A₁↠A₂ x)))))  ≡⟨ cong (subst B₂ (_↠_.right-inverse-of A₁↠A₂ x)) $ _↠_.right-inverse-of (B₁↠B₂ _) _ ⟩
 
       subst B₂ (_↠_.right-inverse-of A₁↠A₂ x)
-        (f (_↠_.to A₁↠A₂ (_↠_.from A₁↠A₂ x)))          ≡⟨ dependent-cong f _ ⟩∎
+        (f (_↠_.to A₁↠A₂ (_↠_.from A₁↠A₂ x)))          ≡⟨ dcong f _ ⟩∎
 
       f x                                              ∎
 
@@ -1925,7 +1925,7 @@ private
           (subst (B₁ ∘ _≃_.to A₂≃A₁) (_≃_.left-inverse-of A₂≃A₁ x)
              (_↠_.from (B₁↠B₂ (_≃_.from A₂≃A₁ (_≃_.to A₂≃A₁ x)))
                 (f (_≃_.from A₂≃A₁ (_≃_.to A₂≃A₁ x)))))                  ≡⟨ cong (_↠_.to (B₁↠B₂ x)) $
-                                                                              dependent-cong (λ x → _↠_.from (B₁↠B₂ x) (f x)) _ ⟩
+                                                                              dcong (λ x → _↠_.from (B₁↠B₂ x) (f x)) _ ⟩
 
         _↠_.to (B₁↠B₂ x) (_↠_.from (B₁↠B₂ x) (f x))                      ≡⟨ _↠_.right-inverse-of (B₁↠B₂ x) _ ⟩∎
 

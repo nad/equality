@@ -256,85 +256,84 @@ subst≡↔subst≡ {B = B} {u = u} {v = v} {eq = eq} =
   P.subst B eq u ≡ v               ↝⟨ ≡↔≡ ⟩□
   P.subst B eq u P.≡ v             □
 
--- The dependent-cong function for paths can be expressed using
--- dependent-cong for equality.
+-- The dcong function for paths can be expressed using dcong for
+-- equality.
 
-dependent-cong≡dependent-cong :
+dcong≡dcong :
   {f : (x : A) → B x} {x≡y : x P.≡ y} →
-  _↔_.to subst≡↔subst≡ (dependent-cong f (_↔_.from ≡↔≡ x≡y)) ≡
-  P.dependent-cong f x≡y
-dependent-cong≡dependent-cong {B = B} {f = f} {x≡y} = P.elim
-  (λ x≡y → _↔_.to subst≡↔subst≡
-             (dependent-cong f (_↔_.from ≡↔≡ x≡y)) ≡
-           P.dependent-cong f x≡y)
+  _↔_.to subst≡↔subst≡ (dcong f (_↔_.from ≡↔≡ x≡y)) ≡
+  P.dcong f x≡y
+dcong≡dcong {B = B} {f = f} {x≡y} = P.elim
+  (λ x≡y → _↔_.to subst≡↔subst≡ (dcong f (_↔_.from ≡↔≡ x≡y)) ≡
+           P.dcong f x≡y)
   (λ x →
-     _↔_.to subst≡↔subst≡ (dependent-cong f (_↔_.from ≡↔≡ P.refl))  ≡⟨⟩
+     _↔_.to subst≡↔subst≡ (dcong f (_↔_.from ≡↔≡ P.refl))    ≡⟨⟩
 
      _↔_.to ≡↔≡ (_↔_.to (≡⇒↝ _ $ cong (_≡ _) subst≡subst) $
-       dependent-cong f (_↔_.from ≡↔≡ P.refl))                      ≡⟨ cong (_↔_.to ≡↔≡) $ lemma x ⟩
+       dcong f (_↔_.from ≡↔≡ P.refl))                        ≡⟨ cong (_↔_.to ≡↔≡) $ lemma x ⟩
 
-     _↔_.to ≡↔≡ (_↔_.from ≡↔≡ $ P.subst-refl B (f x))               ≡⟨ _↔_.right-inverse-of ≡↔≡ _ ⟩
+     _↔_.to ≡↔≡ (_↔_.from ≡↔≡ $ P.subst-refl B (f x))        ≡⟨ _↔_.right-inverse-of ≡↔≡ _ ⟩
 
-     P.subst-refl B (f x)                                           ≡⟨ sym $ _↔_.from ≡↔≡ $ P.dependent-cong-refl f ⟩∎
+     P.subst-refl B (f x)                                    ≡⟨ sym $ _↔_.from ≡↔≡ $ P.dcong-refl f ⟩∎
 
-     P.dependent-cong f P.refl                                      ∎)
+     P.dcong f P.refl                                        ∎)
   x≡y
   where
   lemma : ∀ _ → _
   lemma _ =
      _↔_.to (≡⇒↝ _ $ cong (_≡ _) subst≡subst)
-       (dependent-cong f (_↔_.from ≡↔≡ P.refl))                         ≡⟨ sym $ subst-in-terms-of-≡⇒↝ bijection _ _ _ ⟩
+       (dcong f (_↔_.from ≡↔≡ P.refl))                         ≡⟨ sym $ subst-in-terms-of-≡⇒↝ bijection _ _ _ ⟩
 
-     subst (_≡ _) subst≡subst (dependent-cong f (_↔_.from ≡↔≡ P.refl))  ≡⟨ cong (λ p → subst (_≡ _) p $ dependent-cong f _) $ sym $ sym-sym _ ⟩
+     subst (_≡ _) subst≡subst (dcong f (_↔_.from ≡↔≡ P.refl))  ≡⟨ cong (λ p → subst (_≡ _) p $ dcong f _) $ sym $ sym-sym _ ⟩
 
      subst (_≡ _) (sym $ sym subst≡subst)
-       (dependent-cong f (_↔_.from ≡↔≡ P.refl))                         ≡⟨ subst-trans _ ⟩
+       (dcong f (_↔_.from ≡↔≡ P.refl))                         ≡⟨ subst-trans _ ⟩
 
      trans (sym (subst≡subst {x≡y = P.refl}))
-       (dependent-cong f (_↔_.from ≡↔≡ P.refl))                         ≡⟨ cong (λ p → trans (sym p) (dependent-cong f (_↔_.from ≡↔≡ P.refl)))
-                                                                           subst≡subst-refl ⟩
+       (dcong f (_↔_.from ≡↔≡ P.refl))                         ≡⟨ cong (λ p → trans (sym p) (dcong f (_↔_.from ≡↔≡ P.refl)))
+                                                                  subst≡subst-refl ⟩
      trans
        (sym $ trans (cong (λ eq → subst B eq _) from-≡↔≡-refl)
                 (trans (subst-refl _ _)
                    (sym $ _↔_.from ≡↔≡ $ P.subst-refl B _)))
-       (dependent-cong f (_↔_.from ≡↔≡ P.refl))                         ≡⟨ elim₁ (λ {x} p →
-                                                                                    trans (sym $ trans (cong (λ eq → subst B eq _) p)
-                                                                                                   (trans (subst-refl _ _)
-                                                                                                      (sym $ _↔_.from ≡↔≡ $ P.subst-refl B _)))
-                                                                                      (dependent-cong f x) ≡
-                                                                                    trans (sym $ trans (cong (λ eq → subst B eq _) (refl _))
-                                                                                                   (trans (subst-refl _ _)
-                                                                                                      (sym $ _↔_.from ≡↔≡ $ P.subst-refl B _)))
-                                                                                      (dependent-cong f (refl _)))
-                                                                                 (refl _)
-                                                                                 from-≡↔≡-refl ⟩
+       (dcong f (_↔_.from ≡↔≡ P.refl))                         ≡⟨ elim₁ (λ {x} p →
+                                                                           trans (sym $ trans (cong (λ eq → subst B eq _) p)
+                                                                                          (trans (subst-refl _ _)
+                                                                                             (sym $ _↔_.from ≡↔≡ $ P.subst-refl B _)))
+                                                                             (dcong f x) ≡
+                                                                           trans (sym $ trans (cong (λ eq → subst B eq _) (refl _))
+                                                                                          (trans (subst-refl _ _)
+                                                                                             (sym $ _↔_.from ≡↔≡ $ P.subst-refl B _)))
+                                                                             (dcong f (refl _)))
+                                                                        (refl _)
+                                                                        from-≡↔≡-refl ⟩
      trans
        (sym $ trans (cong (λ eq → subst B eq _) (refl _))
                 (trans (subst-refl _ _)
                    (sym $ _↔_.from ≡↔≡ $ P.subst-refl B _)))
-       (dependent-cong f (refl _))                                      ≡⟨ cong₂ (λ p → trans $ sym $ trans p $ trans (subst-refl _ _) $ sym $
-                                                                                          _↔_.from ≡↔≡ $ P.subst-refl B _)
-                                                                             (cong-refl _)
-                                                                             (dependent-cong-refl _) ⟩
+       (dcong f (refl _))                                      ≡⟨ cong₂ (λ p → trans $ sym $ trans p $ trans (subst-refl _ _) $ sym $
+                                                                                 _↔_.from ≡↔≡ $ P.subst-refl B _)
+                                                                    (cong-refl _)
+                                                                    (dcong-refl _) ⟩
      trans
        (sym $ trans (refl _)
                 (trans (subst-refl _ _)
                    (sym $ _↔_.from ≡↔≡ $ P.subst-refl B _)))
-       (subst-refl B _)                                                 ≡⟨ cong (λ p → trans (sym p) (subst-refl _ _)) $ trans-reflˡ _ ⟩
+       (subst-refl B _)                                        ≡⟨ cong (λ p → trans (sym p) (subst-refl _ _)) $ trans-reflˡ _ ⟩
 
      trans
        (sym $ trans (subst-refl _ _)
                 (sym $ _↔_.from ≡↔≡ $ P.subst-refl B _))
-       (subst-refl B _)                                                 ≡⟨ cong (λ p → trans p (subst-refl _ _)) $ sym-trans _ _ ⟩
+       (subst-refl B _)                                        ≡⟨ cong (λ p → trans p (subst-refl _ _)) $ sym-trans _ _ ⟩
 
      trans
        (trans (sym $ sym $ _↔_.from ≡↔≡ $ P.subst-refl B _)
               (sym $ subst-refl _ _))
-       (subst-refl B _)                                                 ≡⟨ trans-[trans-sym]- _ _ ⟩
+       (subst-refl B _)                                        ≡⟨ trans-[trans-sym]- _ _ ⟩
 
-     sym $ sym $ _↔_.from ≡↔≡ $ P.subst-refl B _                        ≡⟨ sym-sym _ ⟩∎
+     sym $ sym $ _↔_.from ≡↔≡ $ P.subst-refl B _               ≡⟨ sym-sym _ ⟩∎
 
-     _↔_.from ≡↔≡ $ P.subst-refl B _                                    ∎
+     _↔_.from ≡↔≡ $ P.subst-refl B _                           ∎
 
 -- Three corollaries, intended to be used in the implementation of
 -- eliminators for HITs. For some examples, see Interval and
@@ -349,17 +348,17 @@ subst≡→[]≡ {B = B} {u = u} {v = v} {eq = eq} =
   P.subst B eq u P.≡ v             ↝⟨ PB._↔_.from (P.heterogeneous↔homogeneous _) ⟩□
   P.[ (λ i → B (eq i)) ] u ≡ v     □
 
-dependent-cong-subst≡→[]≡ :
+dcong-subst≡→[]≡ :
   {eq₁ : x P.≡ y} {eq₂ : subst B (_↔_.from ≡↔≡ eq₁) (f x) ≡ f y} →
   P.hcong f eq₁ ≡ subst≡→[]≡ eq₂ →
-  dependent-cong f (_↔_.from ≡↔≡ eq₁) ≡ eq₂
-dependent-cong-subst≡→[]≡ {B = B} {f = f} {eq₁} {eq₂} hyp =
-  dependent-cong f (_↔_.from ≡↔≡ eq₁)                         ≡⟨ sym $ _↔_.left-inverse-of subst≡↔subst≡ _ ⟩
+  dcong f (_↔_.from ≡↔≡ eq₁) ≡ eq₂
+dcong-subst≡→[]≡ {B = B} {f = f} {eq₁} {eq₂} hyp =
+  dcong f (_↔_.from ≡↔≡ eq₁)                                  ≡⟨ sym $ _↔_.left-inverse-of subst≡↔subst≡ _ ⟩
 
   _↔_.from subst≡↔subst≡ $ _↔_.to subst≡↔subst≡ $
-    dependent-cong f (_↔_.from ≡↔≡ eq₁)                       ≡⟨ cong (_↔_.from subst≡↔subst≡) dependent-cong≡dependent-cong ⟩
+    dcong f (_↔_.from ≡↔≡ eq₁)                                ≡⟨ cong (_↔_.from subst≡↔subst≡) dcong≡dcong ⟩
 
-  _↔_.from subst≡↔subst≡ $ P.dependent-cong f eq₁             ≡⟨⟩
+  _↔_.from subst≡↔subst≡ $ P.dcong f eq₁                      ≡⟨⟩
 
   _↔_.from subst≡↔subst≡ $ PB._↔_.to h↔h $ P.hcong f eq₁      ≡⟨ cong (_↔_.from subst≡↔subst≡ ∘ PB._↔_.to h↔h) hyp ⟩
 

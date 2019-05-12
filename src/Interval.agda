@@ -66,8 +66,8 @@ module Elim
 
   -- A "computation" rule for elim.
 
-  elim-0≡1 : dependent-cong elim 0≡1 ≡ p₀≡p₁
-  elim-0≡1 = I.dependent-cong-subst≡→[]≡ (refl _)
+  elim-0≡1 : dcong elim 0≡1 ≡ p₀≡p₁
+  elim-0≡1 = I.dcong-subst≡→[]≡ (refl _)
 
 open Elim public
 

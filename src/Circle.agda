@@ -47,8 +47,8 @@ module Elim
 
   -- "Computation" rule for loop.
 
-  elim-loop : dependent-cong elim loop ≡ ℓ
-  elim-loop = dependent-cong-subst≡→[]≡ (refl _)
+  elim-loop : dcong elim loop ≡ ℓ
+  elim-loop = dcong-subst≡→[]≡ (refl _)
 
 open Elim public
 
@@ -72,7 +72,7 @@ module Rec
   rec = E.elim
 
   rec-loop : cong rec loop ≡ ℓ
-  rec-loop = dependent-cong≡→cong≡ E.elim-loop
+  rec-loop = dcong≡→cong≡ E.elim-loop
 
 open Rec public
 
