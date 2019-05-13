@@ -2311,13 +2311,47 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
   ; right-inverse-of = refl
   }
 
-→→⊥↔→⊥ :
-  ∀ {a ℓ} {A : Set a} →
-  Extensionality a (a ⊔ ℓ) →
-  (A → A → ⊥ {ℓ = ℓ}) ↔ (A → ⊥ {ℓ = ℓ})
-→→⊥↔→⊥ ext = record
+→→proposition↔→ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality a (a ⊔ b) →
+  Is-proposition B →
+  (A → A → B) ↔ (A → B)
+→→proposition↔→ {a} ext B-prop = record
   { surjection      = →→↠→
-  ; left-inverse-of = λ f → apply-ext ext λ x → ⊥-elim (f x x)
+  ; left-inverse-of = λ f →
+      apply-ext ext λ x →
+        (Π-closure (lower-extensionality lzero a ext) 1 λ _ →
+         B-prop) _ _
+  }
+
+-- If A is inhabited, then there is a split surjection from A → B to
+-- B.
+
+inhabited→↠ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  A → (A → B) ↠ B
+inhabited→↠ x = record
+  { logical-equivalence = record
+    { to   = _$ x
+    ; from = const
+    }
+  ; right-inverse-of = refl
+  }
+
+-- If A is inhabited and B is a proposition, then A → B and B are
+-- isomorphic (assuming extensionality).
+
+inhabited→proposition↔ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality a b →
+  Is-proposition B →
+  A → (A → B) ↔ B
+inhabited→proposition↔ ext B-prop x = record
+  { surjection      = inhabited→↠ x
+  ; left-inverse-of = λ f →
+      apply-ext ext λ y →
+        f x  ≡⟨ B-prop _ _ ⟩∎
+        f y  ∎
   }
 
 -- Π is "commutative".
