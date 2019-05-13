@@ -25,8 +25,8 @@ open import Univalence-axiom eq
 
 -- The circle.
 
-data S¹ : Set where
-  base  : S¹
+data 𝕊¹ : Set where
+  base  : 𝕊¹
   loop′ : base P.≡ base
 
 loop : base ≡ base
@@ -36,12 +36,12 @@ loop = _↔_.from ≡↔≡ loop′
 
 module Elim
   {p}
-  (P : S¹ → Set p)
+  (P : 𝕊¹ → Set p)
   (b : P base)
   (ℓ : subst P loop b ≡ b)
   where
 
-  elim : (x : S¹) → P x
+  elim : (x : 𝕊¹) → P x
   elim base      = b
   elim (loop′ i) = subst≡→[]≡ ℓ i
 
@@ -68,7 +68,7 @@ module Rec
        b                       ≡⟨ ℓ ⟩∎
        b                       ∎)
 
-  rec : S¹ → P
+  rec : 𝕊¹ → P
   rec = E.elim
 
   rec-loop : cong rec loop ≡ ℓ
@@ -98,9 +98,9 @@ loop≢refl loop≡refl = ¬-Set-set univ Set-set
 
 -- Thus the circle is not a set.
 
-¬-S¹-set : ¬ Is-set S¹
-¬-S¹-set =
-  Is-set S¹                     ↝⟨ (λ h → h) ⟩
+¬-𝕊¹-set : ¬ Is-set 𝕊¹
+¬-𝕊¹-set =
+  Is-set 𝕊¹                     ↝⟨ (λ h → h) ⟩
   Is-proposition (base ≡ base)  ↝⟨ (λ h → h _ _) ⟩
   loop ≡ refl base              ↝⟨ loop≢refl ⟩□
   ⊥                             □
@@ -111,7 +111,7 @@ loop≢refl loop≡refl = ¬-Set-set univ Set-set
 -- (http://homotopytypetheory.org/2013/07/24/cohomology/).
 
 all-points-on-the-circle-are-merely-equal :
-  (x : S¹) → ∥ x ≡ base ∥
+  (x : 𝕊¹) → ∥ x ≡ base ∥
 all-points-on-the-circle-are-merely-equal =
   elim _
        ∣ refl base ∣
@@ -121,13 +121,13 @@ all-points-on-the-circle-are-merely-equal =
 -- /equal/ to the base point.
 
 ¬-all-points-on-the-circle-are-equal :
-  ¬ ((x : S¹) → x ≡ base)
+  ¬ ((x : 𝕊¹) → x ≡ base)
 ¬-all-points-on-the-circle-are-equal =
-  ((x : S¹) → x ≡ base)  ↝⟨ (λ hyp x y → x     ≡⟨ hyp x ⟩
+  ((x : 𝕊¹) → x ≡ base)  ↝⟨ (λ hyp x y → x     ≡⟨ hyp x ⟩
                                          base  ≡⟨ sym (hyp y) ⟩∎
                                          y     ∎) ⟩
-  Is-proposition S¹      ↝⟨ mono₁ 1 ⟩
-  Is-set S¹              ↝⟨ ¬-S¹-set ⟩□
+  Is-proposition 𝕊¹      ↝⟨ mono₁ 1 ⟩
+  Is-set 𝕊¹              ↝⟨ ¬-𝕊¹-set ⟩□
   ⊥                      □
 
 -- H-level.Closure.proj₁-closure cannot be generalised by replacing
@@ -141,9 +141,9 @@ all-points-on-the-circle-are-merely-equal =
      ∀ n → H-level n (Σ A B) → H-level n A)
 ¬-generalised-proj₁-closure generalised-proj₁-closure =
                                  $⟨ singleton-contractible _ ⟩
-  Contractible (Σ S¹ (_≡ base))  ↝⟨ generalised-proj₁-closure
+  Contractible (Σ 𝕊¹ (_≡ base))  ↝⟨ generalised-proj₁-closure
                                       all-points-on-the-circle-are-merely-equal
                                       0 ⟩
-  Contractible S¹                ↝⟨ mono (zero≤ 2) ⟩
-  Is-set S¹                      ↝⟨ ¬-S¹-set ⟩□
+  Contractible 𝕊¹                ↝⟨ mono (zero≤ 2) ⟩
+  Is-set 𝕊¹                      ↝⟨ ¬-𝕊¹-set ⟩□
   ⊥                              □
