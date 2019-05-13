@@ -37,8 +37,7 @@ import Equality
 
 import Equality.Propositional
 
--- A simple tactic for proving equality of equality proofs (at the
--- time of writing only used in Equality.Groupoid).
+-- A simple tactic for proving equality of equality proofs.
 
 import Equality.Tactic
 
@@ -169,6 +168,10 @@ import H-level.Truncation.Propositional
 -- The "circle".
 
 import Circle
+
+-- Suspensions.
+
+import Suspension
 
 -- Some omniscience principles.
 
