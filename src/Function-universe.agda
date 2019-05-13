@@ -2622,6 +2622,22 @@ private
   ; left-inverse-of = refl
   }
 
+-- Logical equivalences can be expressed as pairs of functions.
+
+⇔↔→×→ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (A ⇔ B) ↔ (A → B) × (B → A)
+⇔↔→×→ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ f → _⇔_.to f , _⇔_.from f
+      ; from = λ { (to , from) → record { to = to; from = from } }
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
 -- Equality expression rearrangement lemmas.
 
 from≡↔≡to : ∀ {a b k} →
