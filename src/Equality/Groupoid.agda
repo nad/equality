@@ -13,6 +13,7 @@ module Equality.Groupoid
 open Derived-definitions-and-properties eq
 open import Equality.Tactic eq
 open import Groupoid eq
+open import Pointed-type eq
 open import Prelude hiding (id; _∘_)
 
 ------------------------------------------------------------------------
@@ -156,23 +157,14 @@ module Transitivity-commutative
               (Trans Refl (Sym (Lift ri)))
               (refl _)
 
--- In particular, groupoid (Ω n X x) is commutative for n greater than
--- or equal to 2.
+-- In particular, groupoid (proj₁ $ Ω[ n ] X) is commutative for n
+-- greater than or equal to 2.
 
-mutual
-
-  Ω : ℕ → ∀ {x} (X : Set x) → X → Set x
-  Ω zero    X x = X
-  Ω (suc n) X x = Ω-elem n x ≡ Ω-elem n x
-
-  Ω-elem : ∀ n {x} {X : Set x} (x : X) → Ω n X x
-  Ω-elem zero    x = x
-  Ω-elem (suc n) x = refl (Ω-elem n x)
-
-Ω[2+n]-commutative : ∀ {ℓ} {X : Set ℓ} {x : X} {n} →
-  let open Groupoid (groupoid (Ω (2 + n) X x)) in
-  (p q : Ω (3 + n) X x) → p ∘ q ≡ q ∘ p
-Ω[2+n]-commutative {X = X} {x} {n} p q =
+Ω[2+n]-commutative :
+  ∀ {x} {X : Pointed-type x} {n} →
+  let open Groupoid (groupoid (proj₁ $ Ω[ 2 + n ] X)) in
+  ∀ p q → p ∘ q ≡ q ∘ p
+Ω[2+n]-commutative {X = X} {n} p q =
   Transitivity-commutative.commutative
     id _∘_ left-identity right-identity p q
-  where open Groupoid (groupoid (Ω (1 + n) X x))
+  where open Groupoid (groupoid (proj₁ $ Ω[ 1 + n ] X))

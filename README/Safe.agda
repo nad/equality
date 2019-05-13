@@ -75,11 +75,6 @@ import Bijection
 
 import Groupoid
 
--- Equalities can be turned into groupoids which are sometimes
--- commutative.
-
-import Equality.Groupoid
-
 -- Closure properties for h-levels.
 
 import H-level.Closure
@@ -101,6 +96,15 @@ import Embedding
 -- surjections, bijections and equivalences).
 
 import Function-universe
+
+-- Pointed types and loop spaces.
+
+import Pointed-type
+
+-- Equalities can be turned into groupoids which are sometimes
+-- commutative.
+
+import Equality.Groupoid
 
 -- Results relating different instances of certain axioms related to
 -- equality.
