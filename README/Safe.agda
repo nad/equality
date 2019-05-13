@@ -173,6 +173,10 @@ import Circle
 
 import Suspension
 
+-- Spheres.
+
+import Sphere
+
 -- Some omniscience principles.
 
 import Omniscience
