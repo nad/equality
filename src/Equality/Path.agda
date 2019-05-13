@@ -525,7 +525,7 @@ transport∘transport P {p} = hsym λ i →
 -- some useful hints from Andrea Vezzosi.
 
 heterogeneous↔homogeneous :
-  ∀ (P : I → Set p) {p q} →
+  (P : I → Set p) {p : P 0̲} {q : P 1̲} →
   ([ P ] p ≡ q) ↔ transport P 0̲ p ≡ q
 heterogeneous↔homogeneous P {p} {q} = record
   { surjection = record
