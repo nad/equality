@@ -143,6 +143,18 @@ abstract
   [inhabited⇒+]⇒+ n h =
     _⇔_.from H-level⇔H-level′ λ x → _⇔_.to H-level⇔H-level′ (h x) x
 
+  -- An alternative characterisation of sets and higher h-levels.
+  --
+  -- This is Theorem 7.2.7 from the HoTT book.
+
+  2+⇔∀1+≡ :
+    ∀ n → H-level (2 + n) A ⇔ ((x : A) → H-level (1 + n) (x ≡ x))
+  2+⇔∀1+≡ n = record
+    { to   = λ h _ → h
+    ; from = λ h → [inhabited⇒+]⇒+ _
+                     (elim (λ {x y} _ → H-level (1 + n) (x ≡ y)) h)
+    }
+
 -- If a propositional type is inhabited, then it is contractible.
 
 propositional⇒inhabited⇒contractible :
