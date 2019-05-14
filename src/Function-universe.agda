@@ -2672,6 +2672,44 @@ private
   ; left-inverse-of = refl
   }
 
+------------------------------------------------------------------------
+-- Lemmas related to _≡_
+
+-- The following two lemmas are based on Example 2.4.8 in the HoTT
+-- book.
+
+-- The function trans x≡y is the to component of an isomorphism.
+
+trans-isomorphism :
+  ∀ {a} {A : Set a} {x y z : A} →
+  x ≡ y → y ≡ z ↔ x ≡ z
+trans-isomorphism x≡y = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = trans x≡y
+      ; from = trans (sym x≡y)
+      }
+    ; right-inverse-of = trans--[trans-sym] _
+    }
+  ; left-inverse-of = trans-sym-[trans] _
+  }
+
+-- The function flip trans x≡y is the to component of an isomorphism.
+
+flip-trans-isomorphism :
+  ∀ {a} {A : Set a} {x y z : A} →
+  x ≡ y → z ≡ x ↔ z ≡ y
+flip-trans-isomorphism x≡y = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = flip trans x≡y
+      ; from = flip trans (sym x≡y)
+      }
+    ; right-inverse-of = λ _ → trans-[trans-sym]- _ _
+    }
+  ; left-inverse-of = λ _ → trans-[trans]-sym _ _
+  }
+
 -- Equality expression rearrangement lemmas.
 
 from≡↔≡to : ∀ {a b k} →
