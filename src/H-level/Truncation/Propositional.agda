@@ -30,7 +30,7 @@ open import Equivalence eq as Eq hiding (id; _∘_; inverse)
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
-import H-level.Truncation eq as Trunc
+import H-level.Truncation.Church eq as Trunc
 open import Monad eq
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq using (_↠_)
@@ -83,7 +83,7 @@ rec B-prop f (truncation-is-proposition′ x y i) =
 ∥∥-map f = rec truncation-is-proposition (∣_∣ ∘ f)
 
 -- The propositional truncation defined here is isomorphic to the one
--- defined in H-level.Truncation.
+-- defined in H-level.Truncation.Church.
 
 ∥∥↔∥∥ :
   ∀ ℓ {a} {A : Set a} →

@@ -34,7 +34,7 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq as F hiding (_∘_; id)
 open import H-level.Closure eq
-import H-level.Truncation eq as Trunc
+import H-level.Truncation.Church eq as Trunc
 open import H-level.Truncation.Propositional eq as TruncP
   hiding (rec; elim)
 open import Preimage eq using (_⁻¹_)

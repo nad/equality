@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- Truncation
+-- Truncation, defined using a kind of Church encoding
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K --safe #-}
@@ -8,7 +8,7 @@
 
 open import Equality
 
-module H-level.Truncation
+module H-level.Truncation.Church
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open import Prelude

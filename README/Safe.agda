@@ -157,9 +157,9 @@ import Equality.Id
 
 import Interval
 
--- Truncation.
+-- Truncation, defined using a kind of Church encoding.
 
-import H-level.Truncation
+import H-level.Truncation.Church
 
 -- Propositional truncation.
 
