@@ -6,6 +6,10 @@
 
 -- Partly following the HoTT book.
 
+-- The module is parametrised by a notion of equality. The higher
+-- constructor of the HIT defining the circle uses path equality, but
+-- the supplied notion of equality is used for many other things.
+
 open import Equality
 
 module Circle
