@@ -177,6 +177,10 @@ import Suspension
 
 import Sphere
 
+-- Truncation, defined as a HIT.
+
+import H-level.Truncation
+
 -- Some omniscience principles.
 
 import Omniscience
