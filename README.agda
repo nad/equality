@@ -11,10 +11,10 @@
 
 module README where
 
--- Safe code.
+-- "Safe" code.
 
 import README.Safe
 
--- Potentially unsafe code.
+-- Code which might depend on potentially unsafe features.
 
 import README.Unsafe
