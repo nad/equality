@@ -794,6 +794,36 @@ max≡+∸ (suc m) zero    = suc m        ≡⟨ cong suc (sym +-right-identity)
                          suc (m + 0)  ∎
 max≡+∸ (suc m) (suc n) = cong suc (max≡+∸ m n)
 
+-- The _≤_ relation can be expressed in terms of the min function.
+
+≤⇔min≡ : ∀ {m n} → m ≤ n ⇔ min m n ≡ m
+≤⇔min≡ = record { to = to _ _ ∘ ≤→≤→ _ _; from = from _ _ }
+  where
+  to : ∀ m n → m ≤→ n → min m n ≡ m
+  to zero    n       = const (refl zero)
+  to (suc m) zero    = λ ()
+  to (suc m) (suc n) = cong suc ∘ to m n
+
+  from : ∀ m n → min m n ≡ m → m ≤ n
+  from zero    n       = const (zero≤ n)
+  from (suc m) zero    = ⊥-elim ∘ 0≢+
+  from (suc m) (suc n) = suc≤suc ∘ from m n ∘ cancel-suc
+
+-- The _≤_ relation can be expressed in terms of the max function.
+
+≤⇔max≡ : ∀ {m n} → m ≤ n ⇔ max m n ≡ n
+≤⇔max≡ {m} = record { to = to m _ ∘ ≤→≤→ _ _; from = from _ _ }
+  where
+  to : ∀ m n → m ≤→ n → max m n ≡ n
+  to zero    n       = const (refl n)
+  to (suc m) zero    = λ ()
+  to (suc m) (suc n) = cong suc ∘ to m n
+
+  from : ∀ m n → max m n ≡ n → m ≤ n
+  from zero    n       = const (zero≤ n)
+  from (suc m) zero    = ⊥-elim ∘ 0≢+ ∘ sym
+  from (suc m) (suc n) = suc≤suc ∘ from m n ∘ cancel-suc
+
 -- Given two numbers one is the minimum and the other is the maximum.
 
 min-and-max :

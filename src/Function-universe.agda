@@ -3248,6 +3248,18 @@ suc≤suc↔ =
   ⊥₀ ⊎ 0 ≤ m × m < n             ↝⟨ Bijection.⊥↔uninhabited (0≢+ ∘ sym) ⊎-cong inverse suc≤suc↔ ×-cong id ⟩□
   1 + m ≡ 0 ⊎ 0 < 1 + m × m < n  □
 
+≤↔min≡ : ∀ {m n} → m ≤ n ↔ min m n ≡ m
+≤↔min≡ =
+  _≃_.bijection $
+  _↠_.from (Eq.≃↠⇔ ≤-propositional ℕ-set) $
+  ≤⇔min≡
+
+≤↔max≡ : ∀ {m n} → m ≤ n ↔ max m n ≡ n
+≤↔max≡ =
+  _≃_.bijection $
+  _↠_.from (Eq.≃↠⇔ ≤-propositional ℕ-set) $
+  ≤⇔max≡
+
 ∃0<↔∃suc :
   ∀ {p} {P : ℕ → Set p} →
   (∃ λ n → 0 < n × P n) ↔ (∃ λ n → P (suc n))
