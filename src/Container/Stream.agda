@@ -45,7 +45,7 @@ head (tt , lkup) = lkup 0
 tail : {A : Set} → ⟦ Stream ⟧ A → ⟦ Stream ⟧ A
 tail (tt , lkup) = (tt , lkup ∘ suc)
 
--- Appending a list to a stream.
+-- Appending a stream to a list.
 
 infixr 5 _++_
 
