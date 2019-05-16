@@ -64,19 +64,32 @@ open Elim public
 
 module Rec (b : A) (ℓ : b ≡ b) where
 
-  private
-    module E = Elim
-      (const A)
-      b
-      (subst (const A) loop b  ≡⟨ subst-const _ ⟩
-       b                       ≡⟨ ℓ ⟩∎
-       b                       ∎)
-
   rec : 𝕊¹ → A
-  rec = E.elim
+  rec base      = b
+  rec (loop′ i) = _↔_.to ≡↔≡ ℓ i
 
   rec-loop : cong rec loop ≡ ℓ
-  rec-loop = dcong≡→cong≡ E.elim-loop
+  rec-loop = cong-≡↔≡ (refl _)
+
+private
+
+  -- An alternative non-dependent eliminator.
+
+  module Rec′ (b : A) (ℓ : b ≡ b) where
+
+    private
+      module E = Elim
+        (const A)
+        b
+        (subst (const A) loop b  ≡⟨ subst-const _ ⟩
+         b                       ≡⟨ ℓ ⟩∎
+         b                       ∎)
+
+    rec : 𝕊¹ → A
+    rec = E.elim
+
+    rec-loop : cong rec loop ≡ ℓ
+    rec-loop = dcong≡→cong≡ E.elim-loop
 
 open Rec public
 
