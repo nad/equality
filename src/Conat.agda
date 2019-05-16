@@ -71,7 +71,7 @@ transitive-∼ (suc p) (suc q) =
 -- Equational reasoning combinators.
 
 infix  -1 finally-∼ _∎∼
-infixr -2 step-∼ _≡⟨⟩∼_
+infixr -2 step-∼ step-≡∼ _≡⟨⟩∼_
 
 _∎∼ : ∀ {i} n → [ i ] n ∼ n
 _∎∼ = reflexive-∼
@@ -83,6 +83,11 @@ step-∼ : ∀ {i} m {n o} → [ i ] n ∼ o → [ i ] m ∼ n → [ i ] m ∼ o
 step-∼ _ n∼o m∼n = transitive-∼ m∼n n∼o
 
 syntax step-∼ m n∼o m∼n = m ∼⟨ m∼n ⟩ n∼o
+
+step-≡∼ : ∀ {i} m {n o} → [ i ] n ∼ o → m ≡ n → [ i ] m ∼ o
+step-≡∼ {i} _ n∼o m≡n = subst ([ i ]_∼ _) (sym m≡n) n∼o
+
+syntax step-≡∼ m n∼o m≡n = m ≡⟨ m≡n ⟩∼ n∼o
 
 _≡⟨⟩∼_ : ∀ {i} m {n} → [ i ] m ∼ n → [ i ] m ∼ n
 _ ≡⟨⟩∼ m∼n = m∼n
