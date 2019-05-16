@@ -982,40 +982,26 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
 
 -- Σ preserves isomorphisms in its first argument and all kinds of
 -- functions in its second argument.
---
--- The first two clauses are included as an optimisation intended to
--- make some proof terms easier to work with.
 
 Σ-cong : ∀ {k₁ k₂ a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
            {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
          (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
          (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
          Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
-Σ-cong {equivalence} {equivalence} A₁≃A₂ B₁≃B₂ =
-  Eq.Σ-preserves A₁≃A₂ B₁≃B₂
-Σ-cong {equivalence} {bijection} A₁≃A₂ B₁↔B₂ =
-  Eq.∃-preserves-bijections A₁≃A₂ B₁↔B₂
-Σ-cong {k₁} {k₂} {A₁ = A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ = helper k₂ B₁↝B₂′
-  where
-  A₁≃A₂ : A₁ ≃ A₂
-  A₁≃A₂ = from-isomorphism A₁↔A₂
-
-  B₁↝B₂′ : ∀ x → B₁ x ↝[ k₂ ] B₂ (_≃_.to A₁≃A₂ x)
-  B₁↝B₂′ x =
-    B₁ x                                    ↝⟨ B₁↝B₂ x ⟩
-    B₂ (to-implication A₁↔A₂ x)             ↝⟨ ≡⇒↝ _ $ cong (λ f → B₂ (f x)) $
-                                                 to-implication∘from-isomorphism k₁ equivalence ⟩
-    B₂ (_≃_.to (from-isomorphism A₁↔A₂) x)  □
-
-  helper : ∀ k₂ → (∀ x → B₁ x ↝[ k₂ ] B₂ (_≃_.to A₁≃A₂ x)) →
-           Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
-  helper implication         = Eq.∃-preserves-functions            (from-equivalence A₁≃A₂)
-  helper logical-equivalence = Eq.∃-preserves-logical-equivalences (from-equivalence A₁≃A₂)
-  helper injection           = Eq.∃-preserves-injections           A₁≃A₂
-  helper embedding           = Σ-preserves-embeddings              (from-equivalence A₁≃A₂)
-  helper surjection          = Eq.∃-preserves-surjections          (from-equivalence A₁≃A₂)
-  helper bijection           = Eq.∃-preserves-bijections           A₁≃A₂
-  helper equivalence         = Eq.Σ-preserves                      A₁≃A₂
+Σ-cong {equivalence} {implication}         = Eq.∃-preserves-functions            ⊚ from-isomorphism
+Σ-cong {equivalence} {logical-equivalence} = Eq.∃-preserves-logical-equivalences ⊚ from-isomorphism
+Σ-cong {equivalence} {injection}           = Eq.∃-preserves-injections
+Σ-cong {equivalence} {embedding}           = Σ-preserves-embeddings              ⊚ from-isomorphism
+Σ-cong {equivalence} {surjection}          = Eq.∃-preserves-surjections          ⊚ from-isomorphism
+Σ-cong {equivalence} {bijection}           = Eq.∃-preserves-bijections
+Σ-cong {equivalence} {equivalence}         = Eq.Σ-preserves
+Σ-cong {bijection}   {implication}         = Eq.∃-preserves-functions            ⊚ from-isomorphism
+Σ-cong {bijection}   {logical-equivalence} = Eq.∃-preserves-logical-equivalences ⊚ from-isomorphism
+Σ-cong {bijection}   {injection}           = Eq.∃-preserves-injections           ⊚ from-isomorphism
+Σ-cong {bijection}   {embedding}           = Σ-preserves-embeddings              ⊚ from-isomorphism
+Σ-cong {bijection}   {surjection}          = Eq.∃-preserves-surjections          ⊚ from-isomorphism
+Σ-cong {bijection}   {bijection}           = Eq.∃-preserves-bijections           ⊚ from-isomorphism
+Σ-cong {bijection}   {equivalence}         = Eq.Σ-preserves                      ⊚ from-isomorphism
 
 -- A variant of Σ-cong.
 
