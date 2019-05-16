@@ -18,6 +18,7 @@ open import Fin equality-with-J
 open import Function-universe equality-with-J
 open import H-level.Closure equality-with-J
 import List equality-with-J as L
+open import Surjection equality-with-J using (_↠_)
 
 ------------------------------------------------------------------------
 -- The type
@@ -32,17 +33,26 @@ List = ℕ ▷ Fin
 -- Container/Container.List and in Prelude/Bag-equivalence are closely
 -- related
 
--- The two definitions of lists are logically equivalent.
+-- There is a split surjection from ⟦ List ⟧ A to P.List A.
 
-List⇔List : {A : Set} → ⟦ List ⟧ A ⇔ P.List A
-List⇔List {A} = record
-  { to   = uncurry to
-  ; from = λ xs → (L.length xs , L.index xs)
+List↠List : {A : Set} → ⟦ List ⟧ A ↠ P.List A
+List↠List {A} = record
+  { logical-equivalence = record
+    { to   = uncurry to
+    ; from = from
+    }
+  ; right-inverse-of = to∘from
   }
   where
   to : (n : ℕ) → (Fin n → A) → P.List A
   to zero    f = P.[]
   to (suc n) f = P._∷_ (f fzero) (to n (f ∘ fsuc))
+
+  from = λ xs → (L.length xs , L.index xs)
+
+  to∘from : ∀ xs → uncurry to (from xs) ≡ xs
+  to∘from P.[]         = refl
+  to∘from (P._∷_ x xs) = cong (P._∷_ x) (to∘from xs)
 
 -- If we assume that equality of functions is extensional, then we can
 -- also prove that the two definitions are isomorphic.
@@ -50,78 +60,56 @@ List⇔List {A} = record
 List↔List : Extensionality lzero lzero →
             {A : Set} → ⟦ List ⟧ A ↔ P.List A
 List↔List ext {A} = record
-  { surjection = record
-    { logical-equivalence = List⇔List
-    ; right-inverse-of    = to∘from
-    }
+  { surjection      = List↠List
   ; left-inverse-of = uncurry from∘to
   }
   where
-  open _⇔_ List⇔List
-
-  to∘from : ∀ xs → to (from xs) ≡ xs
-  to∘from P.[]         = refl
-  to∘from (P._∷_ x xs) = cong (P._∷_ x) (to∘from xs)
+  open _↠_ List↠List
 
   from∘to : ∀ n f → from (to (n , f)) ≡ (n , f)
   from∘to zero    f = cong (_,_ _) (apply-ext ext λ ())
   from∘to (suc n) f =
-    (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))  ≡⟨ lemma₃ (from∘to n (f ∘ inj₂)) ⟩
-    (suc n                  , [ (λ _ → x) , f ∘ inj₂ ])   ≡⟨ lemma₁ ⟩∎
+    (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))  ≡⟨ lemma (from∘to n (f ∘ inj₂)) ⟩
+    (suc n                  , [ (λ _ → x) , f ∘ inj₂ ])   ≡⟨ cong (_,_ _) (apply-ext ext [ (λ _ → refl) , (λ _ → refl) ]) ⟩∎
     (suc n                  , f)                          ∎
     where
     x  = f (inj₁ tt)
     xs = (n , f ∘ inj₂)
 
-    lemma₁ : ∀ {n f} →
-             _≡_ {A = ⟦ List ⟧ A}
-                 (suc n , [ (λ _ → f (inj₁ tt)) , f ∘ inj₂ ])
-                 (suc n , f)
-    lemma₁ =
-      cong (_,_ _) (apply-ext ext [ (λ { tt → refl }) , (λ _ → refl) ])
-
-    lemma₂ : {n : ℕ} {lkup : Fin n → A} →
-             (≡n : L.length (to xs) ≡ n) →
-             subst (λ n → Fin n → A) ≡n (L.index (to xs)) ≡ lkup →
-             _≡_ {A = ⟦ List ⟧ A}
-                 (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))
-                 (suc n , [ (λ _ → x) , lkup ])
-    lemma₂ refl refl = sym lemma₁
-
-    lemma₃ : {ys : ⟦ List ⟧ A} →
-             (L.length (to xs) , L.index (to xs)) ≡ ys →
-             _≡_ {A = ⟦ List ⟧ A}
-                 (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))
-                 (suc (proj₁ ys) , [ (λ _ → x) , proj₂ ys ])
-    lemma₃ ≡ys = lemma₂ (proj₁ ≡,≡) (proj₂ ≡,≡)
-      where ≡,≡ = Σ-≡,≡←≡ ≡ys
+    lemma : {ys : ⟦ List ⟧ A} →
+            (L.length (to xs) , L.index (to xs)) ≡ ys →
+            _≡_ {A = ⟦ List ⟧ A}
+                (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))
+                (suc (proj₁ ys) , [ (λ _ → x) , proj₂ ys ])
+    lemma refl = cong (suc (L.length (to xs)) ,_) $
+      apply-ext ext [ (λ _ → refl) , (λ _ → refl) ]
 
 -- The two definitions of Any are isomorphic (both via "to" and
 -- "from").
 
 Any↔Any-to : {A : Set} (P : A → Set) (xs : ⟦ List ⟧ A) →
-             Any P xs ↔ AnyL P (_⇔_.to List⇔List xs)
+             Any P xs ↔ AnyL P (_↠_.to List↠List xs)
 Any↔Any-to {A} P = uncurry Any↔Any-to′
   where
   Any↔Any-to′ : (n : ℕ) (lkup : Fin n → A) →
                 Any {C = List} P (n , lkup) ↔
-                AnyL P (_⇔_.to List⇔List (n , lkup))
+                AnyL P (_↠_.to List↠List (n , lkup))
   Any↔Any-to′ zero lkup =
     (∃ λ (p : Fin zero) → P (lkup p))  ↔⟨ ∃-Fin-zero _ ⟩
     ⊥                                  □
   Any↔Any-to′ (suc n) lkup =
     (∃ λ (p : Fin (suc n)) → P (lkup p))                          ↔⟨ ∃-Fin-suc _ ⟩
     P (lkup fzero) ⊎ Any {C = List} P (n , lkup ∘ fsuc)           ↔⟨ id ⊎-cong Any↔Any-to′ n (lkup ∘ fsuc) ⟩
-    P (lkup fzero) ⊎ AnyL P (_⇔_.to List⇔List (n , lkup ∘ fsuc))  □
+    P (lkup fzero) ⊎ AnyL P (_↠_.to List↠List (n , lkup ∘ fsuc))  □
 
 Any-from↔Any : {A : Set} (P : A → Set) (xs : P.List A) →
-               Any P (_⇔_.from List⇔List xs) ↔ AnyL P xs
+               Any P (_↠_.from List↠List xs) ↔ AnyL P xs
 Any-from↔Any P P.[] =
   (∃ λ (p : Fin zero) → P (L.index P.[] p))  ↔⟨ ∃-Fin-zero _ ⟩
   ⊥                                          □
 Any-from↔Any P (P._∷_ x xs) =
   (∃ λ (p : Fin (suc (L.length xs))) → P (L.index (P._∷_ x xs) p))  ↔⟨ ∃-Fin-suc _ ⟩
-  P x ⊎ Any {C = List} P (_⇔_.from List⇔List xs)                    ↔⟨ id ⊎-cong Any-from↔Any P xs ⟩
+  P x ⊎ Any {C = List} P (_↠_.from List↠List xs)                    ↔⟨ id ⊎-cong Any-from↔Any P xs ⟩
   P x ⊎ AnyL P xs                                                   □
 
 -- The definition of bag equivalence in Bag-equivalence and the one in
@@ -130,33 +118,33 @@ Any-from↔Any P (P._∷_ x xs) =
 
 ≈-⇔-to-≈-to :
   {A : Set} {xs ys : ⟦ List ⟧ A} →
-  xs ≈-bag ys ⇔ _⇔_.to List⇔List xs ≈-bagL _⇔_.to List⇔List ys
+  xs ≈-bag ys ⇔ _↠_.to List↠List xs ≈-bagL _↠_.to List↠List ys
 ≈-⇔-to-≈-to {xs = xs} {ys} = record
   { to   = λ xs≈ys z →
-             z ∈L (_⇔_.to List⇔List xs)  ↔⟨ inverse $ Any↔Any-to _ xs ⟩
+             z ∈L (_↠_.to List↠List xs)  ↔⟨ inverse $ Any↔Any-to _ xs ⟩
              z ∈ xs                      ↔⟨ xs≈ys z ⟩
              z ∈ ys                      ↔⟨ Any↔Any-to _ ys ⟩
-             z ∈L (_⇔_.to List⇔List ys)  □
+             z ∈L (_↠_.to List↠List ys)  □
   ; from = λ xs≈ys z →
              z ∈ xs                      ↔⟨ Any↔Any-to _ xs ⟩
-             z ∈L (_⇔_.to List⇔List xs)  ↔⟨ xs≈ys z ⟩
-             z ∈L (_⇔_.to List⇔List ys)  ↔⟨ inverse $ Any↔Any-to _ ys ⟩
+             z ∈L (_↠_.to List↠List xs)  ↔⟨ xs≈ys z ⟩
+             z ∈L (_↠_.to List↠List ys)  ↔⟨ inverse $ Any↔Any-to _ ys ⟩
              z ∈ ys                      □
   }
 
 ≈-⇔-from-≈-from :
   {A : Set} {xs ys : P.List A} →
-  xs ≈-bagL ys ⇔ _⇔_.from List⇔List xs ≈-bag _⇔_.from List⇔List ys
+  xs ≈-bagL ys ⇔ _↠_.from List↠List xs ≈-bag _↠_.from List↠List ys
 ≈-⇔-from-≈-from {xs = xs} {ys} = record
   { to   = λ xs≈ys z →
-             z ∈ (_⇔_.from List⇔List xs)  ↔⟨ Any-from↔Any _ xs ⟩
+             z ∈ (_↠_.from List↠List xs)  ↔⟨ Any-from↔Any _ xs ⟩
              z ∈L xs                      ↔⟨ xs≈ys z ⟩
              z ∈L ys                      ↔⟨ inverse $ Any-from↔Any _ ys ⟩
-             z ∈ (_⇔_.from List⇔List ys)  □
+             z ∈ (_↠_.from List↠List ys)  □
   ; from = λ xs≈ys z →
              z ∈L xs                      ↔⟨ inverse $ Any-from↔Any _ xs ⟩
-             z ∈ (_⇔_.from List⇔List xs)  ↔⟨ xs≈ys z ⟩
-             z ∈ (_⇔_.from List⇔List ys)  ↔⟨ Any-from↔Any _ ys ⟩
+             z ∈ (_↠_.from List↠List xs)  ↔⟨ xs≈ys z ⟩
+             z ∈ (_↠_.from List↠List ys)  ↔⟨ Any-from↔Any _ ys ⟩
              z ∈L ys                      □
   }
 
