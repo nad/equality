@@ -27,6 +27,11 @@ open import H-level.Truncation.Propositional eq hiding (elim; rec)
 open import Nat eq
 open import Univalence-axiom eq
 
+private
+  variable
+    p : Level
+    A : Set p
+
 -- The circle.
 
 data 𝕊¹ : Set where
@@ -39,7 +44,6 @@ loop = _↔_.from ≡↔≡ loop′
 -- A dependent eliminator.
 
 module Elim
-  {p}
   (P : 𝕊¹ → Set p)
   (b : P base)
   (ℓ : subst P loop b ≡ b)
@@ -58,21 +62,17 @@ open Elim public
 
 -- A non-dependent eliminator.
 
-module Rec
-  {p} {P : Set p}
-  (b : P)
-  (ℓ : b ≡ b)
-  where
+module Rec (b : A) (ℓ : b ≡ b) where
 
   private
     module E = Elim
-      (λ _ → P)
+      (const A)
       b
-      (subst (λ _ → P) loop b  ≡⟨ subst-const _ ⟩
+      (subst (const A) loop b  ≡⟨ subst-const _ ⟩
        b                       ≡⟨ ℓ ⟩∎
        b                       ∎)
 
-  rec : 𝕊¹ → P
+  rec : 𝕊¹ → A
   rec = E.elim
 
   rec-loop : cong rec loop ≡ ℓ
