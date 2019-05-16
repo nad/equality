@@ -4,21 +4,25 @@
 
 {-# OPTIONS --without-K --safe #-}
 
-module Container.List where
+open import Equality
 
-open import Bag-equivalence
-  using () renaming (_≈-bag_ to _≈-bagL_; _∈_ to _∈L_; Any to AnyL)
-open import Container
-open import Equality.Propositional
+module Container.List
+  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+open Derived-definitions-and-properties eq
+
 open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Prelude as P hiding (List; []; _∷_; id; _∘_)
 
-open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
-open import Fin equality-with-J
-open import Function-universe equality-with-J
-open import H-level.Closure equality-with-J
-import List equality-with-J as L
-open import Surjection equality-with-J using (_↠_)
+open import Bag-equivalence eq
+  using () renaming (_≈-bag_ to _≈-bagL_; _∈_ to _∈L_; Any to AnyL)
+open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
+open import Container eq
+open import Fin eq
+open import Function-universe eq
+open import H-level.Closure eq
+import List eq as L
+open import Surjection eq using (_↠_)
 
 ------------------------------------------------------------------------
 -- The type
@@ -51,7 +55,7 @@ List↠List {A} = record
   from = λ xs → (L.length xs , L.index xs)
 
   to∘from : ∀ xs → uncurry to (from xs) ≡ xs
-  to∘from P.[]         = refl
+  to∘from P.[]         = refl _
   to∘from (P._∷_ x xs) = cong (P._∷_ x) (to∘from xs)
 
 -- If we assume that equality of functions is extensional, then we can
@@ -69,20 +73,17 @@ List↔List ext {A} = record
   from∘to : ∀ n f → from (to (n , f)) ≡ (n , f)
   from∘to zero    f = cong (_,_ _) (apply-ext ext λ ())
   from∘to (suc n) f =
-    (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))  ≡⟨ lemma (from∘to n (f ∘ inj₂)) ⟩
-    (suc n                  , [ (λ _ → x) , f ∘ inj₂ ])   ≡⟨ cong (_,_ _) (apply-ext ext [ (λ _ → refl) , (λ _ → refl) ]) ⟩∎
+    (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))  ≡⟨ elim¹ (λ {ys} _ → _≡_ {A = ⟦ List ⟧ A}
+                                                                                   (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))
+                                                                                   (suc (proj₁ ys) , [ (λ _ → x) , proj₂ ys ]))
+                                                                   (cong (suc (L.length (to xs)) ,_) $ apply-ext ext
+                                                                      [ (λ _ → refl _) , (λ _ → refl _) ])
+                                                                   (from∘to n (f ∘ inj₂)) ⟩
+    (suc n                  , [ (λ _ → x) , f ∘ inj₂ ])   ≡⟨ cong (_,_ _) (apply-ext ext [ (λ _ → refl _) , (λ _ → refl _) ]) ⟩∎
     (suc n                  , f)                          ∎
     where
     x  = f (inj₁ tt)
     xs = (n , f ∘ inj₂)
-
-    lemma : {ys : ⟦ List ⟧ A} →
-            (L.length (to xs) , L.index (to xs)) ≡ ys →
-            _≡_ {A = ⟦ List ⟧ A}
-                (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))
-                (suc (proj₁ ys) , [ (λ _ → x) , proj₂ ys ])
-    lemma refl = cong (suc (L.length (to xs)) ,_) $
-      apply-ext ext [ (λ _ → refl) , (λ _ → refl) ]
 
 -- The two definitions of Any are isomorphic (both via "to" and
 -- "from").
@@ -190,12 +191,12 @@ x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
                  ; (inj₂ s  , eq) → (inj₂ s  , eq)
                  }
       }
-    ; right-inverse-of = λ { (inj₁ tt , eq) → refl
-                           ; (inj₂ s  , eq) → refl
+    ; right-inverse-of = λ { (inj₁ tt , eq) → refl _
+                           ; (inj₂ s  , eq) → refl _
                            }
     }
-  ; left-inverse-of = λ { (inj₁ tt , eq) → refl
-                        ; (inj₂ s  , eq) → refl
+  ; left-inverse-of = λ { (inj₁ tt , eq) → refl _
+                        ; (inj₂ s  , eq) → refl _
                         }
   }
 
@@ -226,12 +227,12 @@ Any-∷ _ = record
                  ; (inj₂ (s , eq)) → (inj₂ s  , eq)
                  }
       }
-    ; right-inverse-of = λ { (inj₁ eq)       → refl
-                           ; (inj₂ (s , eq)) → refl
+    ; right-inverse-of = λ { (inj₁ eq)       → refl _
+                           ; (inj₂ (s , eq)) → refl _
                            }
     }
-  ; left-inverse-of = λ { (inj₁ tt , eq) → refl
-                        ; (inj₂ s  , eq) → refl
+  ; left-inverse-of = λ { (inj₁ tt , eq) → refl _
+                        ; (inj₂ s  , eq) → refl _
                         }
   }
 

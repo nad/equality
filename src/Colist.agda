@@ -4,16 +4,20 @@
 
 {-# OPTIONS --without-K --safe --sized-types #-}
 
-module Colist where
+open import Equality
 
-open import Conat using (Conat; zero; suc; force; infinity)
-open import Equality.Propositional as E using (_≡_; refl)
+module Colist {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+private
+  open module E = Derived-definitions-and-properties eq using (_≡_)
+
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 open import Prelude.Size
 
-open import Function-universe E.equality-with-J hiding (id; _∘_)
-import Nat E.equality-with-J as Nat
+open import Conat eq as Conat using (Conat; zero; suc; force; infinity)
+open import Function-universe eq hiding (id; _∘_)
+import Nat eq as Nat
 
 ------------------------------------------------------------------------
 -- The type
@@ -143,7 +147,8 @@ module _ {a} {A : Set a} where
 
   reflexive-∼ : ∀ {i} xs → [ i ] xs ∼ xs
   reflexive-∼ []       = []
-  reflexive-∼ (x ∷ xs) = refl ∷ λ { .force → reflexive-∼ (force xs) }
+  reflexive-∼ (x ∷ xs) =
+    E.refl _ ∷ λ { .force → reflexive-∼ (force xs) }
 
   symmetric-∼ : ∀ {i xs ys} →
                 [ i ] xs ∼ ys → [ i ] ys ∼ xs
@@ -172,7 +177,7 @@ module _ {a} {A : Set a} where
   syntax step-∼ xs ys∼zs xs∼ys = xs ∼⟨ xs∼ys ⟩ ys∼zs
 
   step-≡ : ∀ {i} xs {ys zs} → [ i ] ys ∼ zs → xs ≡ ys → [ i ] xs ∼ zs
-  step-≡ _ ys∼zs refl = ys∼zs
+  step-≡ {i} _ ys∼zs xs≡ys = E.subst ([ i ]_∼ _) (E.sym xs≡ys) ys∼zs
 
   syntax step-≡ xs ys∼zs xs≡ys = xs ≡⟨ xs≡ys ⟩ ys∼zs
 
@@ -183,7 +188,7 @@ module _ {a} {A : Set a} where
 
   ∷∼∷′ : ∀ {i} {x : A} {xs} →
          [ i ] x ∷ xs ∼ x ∷′ force xs
-  ∷∼∷′ = refl ∷ λ { .force → reflexive-∼ _ }
+  ∷∼∷′ = E.refl _ ∷ λ { .force → reflexive-∼ _ }
 
 -- Functor laws.
 
@@ -191,7 +196,7 @@ map-id :
   ∀ {a i} {A : Set a} (xs : Colist A ∞) →
   [ i ] map id xs ∼ xs
 map-id []       = []
-map-id (_ ∷ xs) = refl ∷ λ { .force → map-id (force xs) }
+map-id (_ ∷ xs) = E.refl _ ∷ λ { .force → map-id (force xs) }
 
 map-∘ :
   ∀ {a b c i} {A : Set a} {B : Set b} {C : Set c}
@@ -199,7 +204,7 @@ map-∘ :
   (xs : Colist A ∞) →
   [ i ] map (f ∘ g) xs ∼ map f (map g xs)
 map-∘ []       = []
-map-∘ (_ ∷ xs) = refl ∷ λ { .force → map-∘ (force xs) }
+map-∘ (_ ∷ xs) = E.refl _ ∷ λ { .force → map-∘ (force xs) }
 
 -- If two non-empty colists are bisimilar, then their heads are
 -- bisimilar.
@@ -219,9 +224,12 @@ tail-cong (_ ∷ ps) = ps
 map-cong :
   ∀ {a b i} {A : Set a} {B : Set b} {f g : A → B} {xs ys} →
   (∀ x → f x ≡ g x) → [ i ] xs ∼ ys → [ i ] map f xs ∼ map g ys
-map-cong f≡g []          = []
-map-cong f≡g (refl ∷ ps) =
-  f≡g _ ∷ λ { .force → map-cong f≡g (force ps) }
+map-cong             f≡g []                           = []
+map-cong {f = f} {g} f≡g (_∷_ {x = x} {y = y} x≡y ps) =
+  (f x  E.≡⟨ E.cong f x≡y ⟩
+   f y  E.≡⟨ f≡g y ⟩∎
+   g y  ∎) ∷ λ { .force →
+  map-cong f≡g (force ps) }
 
 length-cong :
   ∀ {a i} {A : Set a} {xs ys : Colist A ∞} →
@@ -233,7 +241,8 @@ replicate-cong :
   ∀ {a i} {A : Set a} {m n} {x : A} →
   Conat.[ i ] m ∼ n → [ i ] replicate m x ∼ replicate n x
 replicate-cong zero    = []
-replicate-cong (suc p) = refl ∷ λ { .force → replicate-cong (force p) }
+replicate-cong (suc p) =
+  E.refl _ ∷ λ { .force → replicate-cong (force p) }
 
 infixr 5 _++-cong_
 
@@ -246,19 +255,25 @@ _++-cong_ :
 cycle-cong :
   ∀ {a i} {A : Set a} {x : A} {xs ys} →
   [ i ] force xs ∼′ force ys → [ i ] cycle x xs ∼ cycle x ys
-cycle-cong p = refl ∷ λ { .force → force p ++-cong cycle-cong p }
+cycle-cong p = E.refl _ ∷ λ { .force → force p ++-cong cycle-cong p }
 
 scanl-cong :
   ∀ {a b i} {A : Set a} {B : Set b} {c : A → B → A} {n : A} {xs ys} →
   [ i ] xs ∼ ys → [ i ] scanl c n xs ∼ scanl c n ys
-scanl-cong []          = refl ∷ λ { .force → [] }
-scanl-cong (refl ∷ ps) = refl ∷ λ { .force → scanl-cong (force ps) }
+scanl-cong [] = E.refl _ ∷ λ { .force → [] }
+
+scanl-cong {c = c} {n}
+           (_∷_ {x = x} {y = y} {xs = xs} {ys = ys} x≡y ps) =
+  E.refl n ∷ λ { .force →
+    scanl c (c n x) (force xs)  ≡⟨ E.cong (λ x → scanl _ (c _ x) _) x≡y ⟩
+    scanl c (c n y) (force xs)  ∼⟨ scanl-cong (force ps) ⟩
+    scanl c (c n y) (force ys)  ∎ }
 
 take-cong :
   ∀ {a} {A : Set a} n {xs ys : Colist A ∞} →
   [ ∞ ] xs ∼ ys → take n xs ≡ take n ys
-take-cong n       []       = refl
-take-cong zero    (p ∷ ps) = refl
+take-cong n       []       = E.refl _
+take-cong zero    (p ∷ ps) = E.refl _
 take-cong (suc n) (p ∷ ps) = E.cong₂ _∷_ p (take-cong n (force ps))
 
 -- The length of replicate n x is bisimilar to n.
@@ -304,8 +319,8 @@ data ◇ {a p} {A : Set a} (i : Size)
 ◇-∼ :
   ∀ {a p i} {A : Set a} {P : A → Set p} {xs ys} →
   [ ∞ ] xs ∼ ys → ◇ i P xs → ◇ i P ys
-◇-∼ (refl ∷ _) (here p)  = here p
-◇-∼ (_    ∷ b) (there p) = there (◇-∼ (force b) p)
+◇-∼ (x≡y ∷ _) (here p)  = here (E.subst _ x≡y p)
+◇-∼ (_   ∷ b) (there p) = there (◇-∼ (force b) p)
 
 -- A map function for ◇.
 
@@ -355,11 +370,11 @@ infix 4 [_]_∈_
 ◇⇔∈× {P = P} = record { to = to; from = from }
   where
   to : ∀ {i xs} → ◇ i P xs → ∃ λ x → [ i ] x ∈ xs × P x
-  to (here p)  = _ , here refl , p
+  to (here p)  = _ , here (E.refl _) , p
   to (there p) = Σ-map id (Σ-map there id) (to p)
 
   from : ∀ {i xs} → (∃ λ x → [ i ] x ∈ xs × P x) → ◇ i P xs
-  from (x , here refl  , p) = here p
+  from (x , here eq   , p) = here (E.subst P eq p)
   from (x , there x∈xs , p) = there (from (x , x∈xs , p))
 
 -- If P holds for some element in replicate (suc n) x, then it also
@@ -440,8 +455,10 @@ open □′ public
 □-∼ :
   ∀ {i a p} {A : Set a} {P : A → Set p} {xs ys} →
   [ i ] xs ∼ ys → □ i P xs → □ i P ys
-□-∼ []         _        = []
-□-∼ (refl ∷ b) (p ∷ ps) = p ∷ λ { .force → □-∼ (force b) (force ps) }
+□-∼ []       _        = []
+□-∼ (eq ∷ b) (p ∷ ps) =
+  E.subst _ eq p ∷ λ { .force →
+  □-∼ (force b) (force ps) }
 
 -- A generalisation of "□ ∞ P xs holds iff P is true for every element
 -- in xs".
@@ -451,13 +468,14 @@ open □′ public
 □⇔∈→ {P = P} = record { to = to; from = from _ }
   where
   to : ∀ {i xs} → □ i P xs → (∀ x → [ i ] x ∈ xs → P x)
-  to (p ∷ ps) x (here refl)  = p
+  to (p ∷ ps) x (here eq)    = E.subst P (E.sym eq) p
   to (p ∷ ps) x (there x∈xs) = to (force ps) x x∈xs
 
   from : ∀ {i} xs → (∀ x → [ i ] x ∈ xs → P x) → □ i P xs
   from []       f = []
   from (x ∷ xs) f =
-    f x (here refl) ∷ λ { .force → from (force xs) (λ x → f x ∘ there) }
+    f x (here (E.refl _)) ∷ λ { .force →
+    from (force xs) (λ x → f x ∘ there) }
 
 -- If P is universally true, then □ i P is also universally true.
 
@@ -563,8 +581,8 @@ data ◇ˢ {a p} {A : Set a} (i : Size)
 ◇ˢ-∼ :
   ∀ {a p i} {A : Set a} {P : Size → A → Set p} {xs ys} →
   [ ∞ ] xs ∼ ys → ◇ˢ i P xs → ◇ˢ i P ys
-◇ˢ-∼ (refl ∷ _) (here p)  = here p
-◇ˢ-∼ (_    ∷ b) (there p) = there (◇ˢ-∼ (force b) p)
+◇ˢ-∼ (eq ∷ _) (here p)  = here (E.subst _ eq p)
+◇ˢ-∼ (_  ∷ b) (there p) = there (◇ˢ-∼ (force b) p)
 
 -- If P is upwards closed, then flip ◇ˢ P is upwards closed.
 
@@ -619,7 +637,7 @@ data ◇ˢ {a p} {A : Set a} (i : Size)
 
 ∈×∞→◇ˢ : ∀ {a p} {A : Set a} {P : Size → A → Set p} {x xs} →
          [ ∞ ] x ∈ xs → P ∞ x → ◇ˢ ∞ P xs
-∈×∞→◇ˢ (here refl)  p = here p
+∈×∞→◇ˢ (here eq)    p = here (E.subst _ eq p)
 ∈×∞→◇ˢ (there x∈xs) p = there (∈×∞→◇ˢ x∈xs p)
 
 -- If P i x implies P ∞ x for any i and x, then ◇ˢ ∞ P xs holds iff
@@ -634,7 +652,7 @@ data ◇ˢ {a p} {A : Set a} (i : Size)
   }
   where
   to : ∀ {i xs} → ◇ˢ i P xs → ∃ λ x → [ ∞ ] x ∈ xs × P ∞ x
-  to (here p)  = _ , here refl , →∞ p
+  to (here p)  = _ , here (E.refl _) , →∞ p
   to (there p) = Σ-map id (Σ-map there id) (to p)
 
 -- Sized variants of the previous lemma.
@@ -642,13 +660,13 @@ data ◇ˢ {a p} {A : Set a} (i : Size)
 ◇ˢ→∈× : ∀ {a p} {A : Set a} {P : Size → A → Set p} →
         (∀ {i} {j : Size< i} {x} → P j x → P i x) →
         ∀ {i xs} → ◇ˢ i P xs → ∃ λ x → [ i ] x ∈ xs × P i x
-◇ˢ→∈× closed (here p)  = _ , here refl , p
+◇ˢ→∈× closed (here p)  = _ , here (E.refl _) , p
 ◇ˢ→∈× closed (there p) = Σ-map id (Σ-map there closed) (◇ˢ→∈× closed p)
 
 ∈×→◇ˢ : ∀ {a p} {A : Set a} {P : Size → A → Set p} →
         (∀ {i} {j : Size< i} {x} → P i x → P j x) →
         ∀ {i x xs} → [ i ] x ∈ xs → P i x → ◇ˢ i P xs
-∈×→◇ˢ closed (here refl)  p = here p
+∈×→◇ˢ closed (here eq)    p = here (E.subst _ eq p)
 ∈×→◇ˢ closed (there x∈xs) p = there (∈×→◇ˢ closed x∈xs (closed p))
 
 -- ◇ ∞ (P ∞) is "contained in" ◇ˢ ∞ P.
@@ -759,8 +777,10 @@ open □ˢ′ public
 □ˢ-∼ :
   ∀ {i a p} {A : Set a} {P : Size → A → Set p} {xs ys} →
   [ i ] xs ∼ ys → □ˢ i P xs → □ˢ i P ys
-□ˢ-∼ []         _        = []
-□ˢ-∼ (refl ∷ b) (p ∷ ps) = p ∷ λ { .force → □ˢ-∼ (force b) (force ps) }
+□ˢ-∼ []       _        = []
+□ˢ-∼ (eq ∷ b) (p ∷ ps) =
+  E.subst _ eq p ∷ λ { .force →
+  □ˢ-∼ (force b) (force ps) }
 
 -- If P is downwards closed, then flip □ˢ P is downwards closed.
 
@@ -787,7 +807,7 @@ open □ˢ′ public
 
 □ˢ∞∈→ : ∀ {a p} {A : Set a} {P : Size → A → Set p} {xs x} →
         □ˢ ∞ P xs → [ ∞ ] x ∈ xs → P ∞ x
-□ˢ∞∈→ (p ∷ ps) (here refl)  = p
+□ˢ∞∈→ (p ∷ ps) (here eq)    = E.subst _ (E.sym eq) p
 □ˢ∞∈→ (p ∷ ps) (there x∈xs) = □ˢ∞∈→ (force ps) x∈xs
 
 -- If P ∞ x implies P i x for any i and x, then □ˢ ∞ P xs holds iff P ∞
@@ -801,7 +821,7 @@ open □ˢ′ public
   from : ∀ {i} xs → (∀ x → [ ∞ ] x ∈ xs → P ∞ x) → □ˢ i P xs
   from []       f = []
   from (x ∷ xs) f =
-    ∞→ (f x (here refl)) ∷ λ { .force →
+    ∞→ (f x (here (E.refl _))) ∷ λ { .force →
     from (force xs) (λ x → f x ∘ there) }
 
 -- Sized variants of the previous lemma.
@@ -809,7 +829,7 @@ open □ˢ′ public
 □ˢ∈→ : ∀ {a p} {A : Set a} {P : Size → A → Set p} →
        (∀ {i} {j : Size< i} {x} → P j x → P i x) →
        ∀ {i x xs} → □ˢ i P xs → [ i ] x ∈ xs → P i x
-□ˢ∈→ closed (p ∷ ps) (here refl)  = p
+□ˢ∈→ closed (p ∷ ps) (here eq)    = E.subst _ (E.sym eq) p
 □ˢ∈→ closed (p ∷ ps) (there x∈xs) = closed (□ˢ∈→ closed (force ps) x∈xs)
 
 ∈→→□ˢ : ∀ {a p} {A : Set a} {P : Size → A → Set p} →
@@ -817,7 +837,7 @@ open □ˢ′ public
         ∀ {i} xs → (∀ x → [ i ] x ∈ xs → P i x) → □ˢ i P xs
 ∈→→□ˢ closed []       f = []
 ∈→→□ˢ closed (x ∷ xs) f =
-  f x (here refl) ∷ λ { .force →
+  f x (here (E.refl _)) ∷ λ { .force →
   ∈→→□ˢ closed (force xs) (λ x → closed ∘ f x ∘ there) }
 
 -- □ˢ ∞ P is "contained in" □ ∞ (P ∞).

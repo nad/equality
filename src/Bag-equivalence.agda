@@ -4,26 +4,27 @@
 
 {-# OPTIONS --without-K --safe #-}
 
--- Note that this module is not parametrised by a definition of
--- equality; it uses ordinary propositional equality.
+open import Equality
 
-module Bag-equivalence where
+module Bag-equivalence
+  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
 
-open import Equality.Propositional hiding (trans)
+open Derived-definitions-and-properties eq hiding (trans)
+
 open import Logical-equivalence hiding (id; _∘_; inverse)
 open import Prelude as P hiding (id; swap)
 
-open import Bijection equality-with-J using (_↔_; module _↔_; Σ-≡,≡↔≡)
-open import Equality.Decision-procedures equality-with-J
-open import Fin equality-with-J as Finite
-open import Function-universe equality-with-J as Function-universe
+open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
+open import Equality.Decision-procedures eq
+open import Fin eq as Finite
+open import Function-universe eq as Function-universe
   hiding (_∘_; Kind; module Kind; bijection)
-open import H-level equality-with-J
-open import H-level.Closure equality-with-J
-open import Injection equality-with-J using (_↣_)
-open import List equality-with-J
-open import Monad equality-with-J hiding (map)
-open import Nat equality-with-J hiding (_≟_)
+open import H-level eq
+open import H-level.Closure eq
+open import Injection eq using (_↣_)
+open import List eq
+open import Monad eq hiding (map)
+open import Nat eq hiding (_≟_)
 
 ------------------------------------------------------------------------
 -- Any
@@ -66,11 +67,11 @@ Any′-∷ = record
                  (here p)  → inj₁ p
                  (there p) → inj₂ p
         }
-    ; right-inverse-of = [ (λ _ → refl) , (λ _ → refl) ]
+    ; right-inverse-of = [ (λ _ → refl _) , (λ _ → refl _) ]
     }
   ; left-inverse-of = λ where
-      (here _)  → refl
-      (there _) → refl
+      (here _)  → refl _
+      (there _) → refl _
   }
 
 Any↔Any′ : ∀ {a p} {A : Set a} {P : A → Set p} {xs} →
@@ -180,9 +181,9 @@ map-cong-∈ :
   (f g : A → B) (xs : List A) →
   (∀ {x} → x ∈ xs → f x ≡ g x) →
   map f xs ≡ map g xs
-map-cong-∈ p q []       p≡q = refl
+map-cong-∈ p q []       p≡q = refl _
 map-cong-∈ p q (x ∷ xs) p≡q =
-  cong₂ _∷_ (p≡q (inj₁ refl)) (map-cong-∈ p q xs (p≡q ∘ inj₂))
+  cong₂ _∷_ (p≡q (inj₁ (refl _))) (map-cong-∈ p q xs (p≡q ∘ inj₂))
 
 -- If p and q are pointwise equal for elements in xs, then filter p xs
 -- and filter q xs are equal.
@@ -192,14 +193,14 @@ filter-cong-∈ :
   (p q : A → Bool) (xs : List A) →
   (∀ {x} → x ∈ xs → p x ≡ q x) →
   filter p xs ≡ filter q xs
-filter-cong-∈ p q []       p≡q = refl
+filter-cong-∈ p q []       p≡q = refl _
 filter-cong-∈ p q (x ∷ xs) p≡q
-  with p x | q x | p≡q (inj₁ refl)
+  with p x | q x | p≡q (inj₁ (refl _))
      | filter-cong-∈ p q xs (p≡q ∘ inj₂)
 ... | true  | true  | _   | ih = cong (x ∷_) ih
 ... | false | false | _   | ih = ih
-... | true  | false | ()  | _
-... | false | true  | ()  | _
+... | true  | false | t≡f | _  = ⊥-elim $ Bool.true≢false t≡f
+... | false | true  | f≡t | _  = ⊥-elim $ Bool.true≢false $ sym f≡t
 
 -- The ordering of natural numbers can be related to list membership
 -- and nats-<.
@@ -382,12 +383,12 @@ module Dec-∈ {a} {A : Set a} (A-set : Is-set A) where
   f  = λ x → x ∷ []
   g  = f
 
-  eq : true ∷ true ∷ false ∷ false ∷ [] ≡
-       true ∷ false ∷ true ∷ false ∷ []
-  eq = distrib xs f g
+  ttff≡tftf : true ∷ true ∷ false ∷ false ∷ [] ≡
+              true ∷ false ∷ true ∷ false ∷ []
+  ttff≡tftf = distrib xs f g
 
   true≡false : true ≡ false
-  true≡false = List.cancel-∷-head (List.cancel-∷-tail eq)
+  true≡false = List.cancel-∷-head (List.cancel-∷-tail ttff≡tftf)
 
 -- _++_ is commutative.
 
@@ -442,7 +443,7 @@ range-disjunction p q xs = λ z →
   z ∈ filter p xs ++ filter q xs                                   □
   where
   inj : (b₁ b₂ : Bool) → T (b₁ ∨ b₂) ↣ T b₁ ⊎ T b₂
-  inj true  true  = record { to = inj₁; injective = λ _ → refl    }
+  inj true  true  = record { to = inj₁; injective = λ _ → refl _  }
   inj true  false = record { to = inj₁; injective = ⊎.cancel-inj₁ }
   inj false true  = record { to = inj₂; injective = ⊎.cancel-inj₂ }
   inj false false = record { to = λ (); injective = λ {}          }
@@ -524,11 +525,11 @@ abstract
     ∀ {a} {A : Set a} {xs ys : List A} (xs≈ys : xs ≈-bag ys) →
     xs And ys Are-related-by Fin-length-cong xs≈ys
   Fin-length-cong-relates {xs = xs} {ys} xs≈ys i =
-    index xs i                               ≡⟨ proj₂ $ to (∈-index _) $ to (xs≈ys _) (from (∈-index _) (i , refl)) ⟩
+    index xs i                                ≡⟨ proj₂ $ to (∈-index _) $ to (xs≈ys _) (from (∈-index _) (i , refl _)) ⟩
     index ys (proj₁ $ to (∈-index _) $
               to (xs≈ys _) $
-              from (∈-index _) (i , refl))   ≡⟨ refl ⟩∎
-    index ys (to (Fin-length-cong xs≈ys) i)  ∎
+              from (∈-index _) (i , refl _))  ≡⟨⟩
+    index ys (to (Fin-length-cong xs≈ys) i)   ∎
     where open _↔_
 
 -- We get that the two definitions of bag equivalence are logically
@@ -545,7 +546,7 @@ abstract
   where
   equality-lemma : ∀ {a} {A : Set a} {x y z : A} →
                    y ≡ z → (x ≡ y) ↔ (x ≡ z)
-  equality-lemma refl = id
+  equality-lemma = flip-trans-isomorphism
 
   from : ∀ {xs ys} → xs ≈-bag′ ys → xs ≈-bag ys
   from {xs} {ys} xs≈ys z =
@@ -638,11 +639,11 @@ abstract
     lemma : ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) →
             Well-behaved (_↔_.to (inv z))
     lemma {xs} inv {b = z∈xs} {a = p} {a′ = q} hyp₁ hyp₂ = ⊎.inj₁≢inj₂ (
-      fzero                                   ≡⟨ refl ⟩
+      fzero                                   ≡⟨⟩
       index-of {xs = x ∷ xs} (inj₁ p)         ≡⟨ cong index-of $ sym $ to-from hyp₂ ⟩
-      index-of {xs = x ∷ xs} (from (inj₁ q))  ≡⟨ index-equality-preserved (inverse ∘ inv) refl ⟩
+      index-of {xs = x ∷ xs} (from (inj₁ q))  ≡⟨ index-equality-preserved (inverse ∘ inv) (refl _) ⟩
       index-of {xs = x ∷ xs} (from (inj₁ p))  ≡⟨ cong index-of $ to-from hyp₁ ⟩
-      index-of {xs = x ∷ xs} (inj₂ z∈xs)      ≡⟨ refl ⟩∎
+      index-of {xs = x ∷ xs} (inj₂ z∈xs)      ≡⟨⟩
       fsuc (index-of {xs = xs} z∈xs)          ∎)
       where open _↔_ (inv z)
 
@@ -652,7 +653,7 @@ abstract
   ¬ (∀ {A : Set} {x : A} {xs ys} →
      x ∷ xs ∼[ set ] x ∷ ys → xs ∼[ set ] ys)
 ∷-not-left-cancellative cancel =
-  _⇔_.to (cancel (++-idempotent (tt ∷ [])) tt) (inj₁ refl)
+  _⇔_.to (cancel (++-idempotent (tt ∷ [])) tt) (inj₁ (refl _))
 
 -- _++_ is left and right cancellative (for bag equivalence).
 
@@ -681,9 +682,9 @@ infixr 5 _∷-cong_
 
 _∷-cong_ : ∀ {a} {A : Set a} {x y : A} {xs ys} →
            x ≡ y → xs ≈-bag ys → x ∷ xs ≈-bag y ∷ ys
-_∷-cong_ {x = x} {xs = xs} {ys} refl xs≈ys = λ z →
-  z ≡ x ⊎ z ∈ xs  ↔⟨ id ⊎-cong xs≈ys z ⟩
-  z ≡ x ⊎ z ∈ ys  □
+_∷-cong_ {x = x} {y} {xs} {ys} x≡y xs≈ys = λ z →
+  z ≡ x ⊎ z ∈ xs  ↔⟨ flip-trans-isomorphism x≡y ⊎-cong xs≈ys z ⟩
+  z ≡ y ⊎ z ∈ ys  □
 
 -- We can swap the first two elements of a list.
 
@@ -700,7 +701,7 @@ swap-first-two {x = x} {y} {xs} = λ z →
 
 ≈″⇒≈ : ∀ {a} {A : Set a} {xs ys : List A} → xs ≈-bag″ ys → xs ≈-bag ys
 ≈″⇒≈ []                  = λ _ → id
-≈″⇒≈ (x ∷ xs≈ys)         = refl ∷-cong ≈″⇒≈ xs≈ys
+≈″⇒≈ (x ∷ xs≈ys)         = refl _ ∷-cong ≈″⇒≈ xs≈ys
 ≈″⇒≈ swap                = swap-first-two
 ≈″⇒≈ (trans xs≈ys ys≈zs) = λ z → _ ↔⟨ ≈″⇒≈ xs≈ys z ⟩ ≈″⇒≈ ys≈zs z
 

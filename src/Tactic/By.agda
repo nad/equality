@@ -5,6 +5,9 @@
 
 {-# OPTIONS --without-K --safe #-}
 
+-- Note that this module is not parametrised by a definition of
+-- equality, it uses propositional equality.
+
 module Tactic.By where
 
 import Agda.Builtin.Bool as B

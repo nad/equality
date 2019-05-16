@@ -5,18 +5,24 @@
 
 {-# OPTIONS --without-K --safe #-}
 
-open import Equality.Propositional
-open import Prelude hiding (id; proj₁; proj₂)
-
-open import Bijection equality-with-J using (_↔_; ↑↔)
-open import Function-universe equality-with-J hiding (_∘_)
-open import List equality-with-J using (foldr)
-
 -- The module is parametrised by the type of labels, which should come
 -- with decidable equality.
 
+open import Equality
+
 module Records-with-with
-  (Label : Set) (_≟_ : Decidable-equality Label) where
+  {c⁺}
+  (eq : ∀ {a p} → Equality-with-J a p c⁺)
+  (open Derived-definitions-and-properties eq)
+  (Label : Set)
+  (_≟_ : Decidable-equality Label)
+  where
+
+open import Prelude hiding (id; proj₁; proj₂)
+
+open import Bijection eq using (_↔_; ↑↔)
+open import Function-universe eq hiding (_∘_)
+open import List eq using (foldr)
 
 ------------------------------------------------------------------------
 -- A Σ-type with a manifest field
@@ -195,9 +201,9 @@ Manifest-Σ↔ = record
       { to   = Manifest-Σ.proj₁
       ; from = _,
       }
-    ; right-inverse-of = λ _ → refl
+    ; right-inverse-of = λ _ → refl _
     }
-  ; left-inverse-of = λ _ → refl
+  ; left-inverse-of = λ _ → refl _
   }
 
 -- Record is pointwise isomorphic to Record-fun.
@@ -207,9 +213,9 @@ Record↔Record-fun :
 Record↔Record-fun = record
   { surjection = record
     { logical-equivalence = record { to = Record.fun ; from = rec }
-    ; right-inverse-of    = λ _ → refl
+    ; right-inverse-of    = λ _ → refl _
     }
-  ; left-inverse-of = λ _ → refl
+  ; left-inverse-of = λ _ → refl _
   }
 
 -- Record and Recordʳ are, in a certain sense, isomorphic.

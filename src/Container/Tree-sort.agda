@@ -5,21 +5,25 @@
 
 {-# OPTIONS --without-K --safe #-}
 
+open import Equality
 open import Prelude hiding (id; _∘_; List; module List; []; _∷_)
 
 module Container.Tree-sort
+  {c⁺}
+  (eq : ∀ {a p} → Equality-with-J a p c⁺)
   {A : Set}
   (_≤_ : A → A → Bool) -- A comparison function.
   where
 
-open import Container
-open import Container.List as List
-open import Container.Tree as Tree
-open import Equality.Propositional
+open Derived-definitions-and-properties eq
+
 open import Logical-equivalence using (module _⇔_)
 
-open import Bijection equality-with-J using (_↔_; module _↔_)
-open import Function-universe equality-with-J
+open import Bijection eq using (_↔_; module _↔_)
+open import Container eq
+open import Container.List eq as List
+open import Container.Tree eq as Tree
+open import Function-universe eq
 
 ------------------------------------------------------------------------
 -- Boring lemmas

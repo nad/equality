@@ -4,15 +4,18 @@
 
 {-# OPTIONS --without-K --safe --sized-types #-}
 
-module Conat where
+open import Equality
 
-open import Equality.Propositional
+module Conat {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+open Derived-definitions-and-properties eq
+
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (_+_; _∸_; _*_)
 open import Prelude.Size
 
-open import Function-universe equality-with-J hiding (_∘_)
-open import Nat equality-with-J as Nat using (_≤_)
+open import Function-universe eq hiding (_∘_)
+open import Nat eq as Nat using (_≤_)
 
 ------------------------------------------------------------------------
 -- The type
@@ -119,7 +122,9 @@ mutual
 -- ⌜_⌝ maps equal numbers to bisimilar numbers.
 
 ⌜⌝-cong : ∀ {i m n} → m ≡ n → [ i ] ⌜ m ⌝ ∼ ⌜ n ⌝
-⌜⌝-cong refl = reflexive-∼ _
+⌜⌝-cong {m = m} {n} m≡n =
+  ⌜ m ⌝  ≡⟨ cong ⌜_⌝ m≡n ⟩∼
+  ⌜ n ⌝  ∎∼
 
 -- Truncated predecessor.
 
@@ -240,9 +245,22 @@ infixl 6 _∸-cong_
 _∸-cong_ :
   ∀ {i m₁ m₂ n₁ n₂} →
   [ ∞ ] m₁ ∼ m₂ → n₁ ≡ n₂ → [ i ] m₁ ∸ n₁ ∼ m₂ ∸ n₂
-_∸-cong_ {n₁ = zero}  p       refl = p
-_∸-cong_ {n₁ = suc _} zero    refl = reflexive-∼ _
-_∸-cong_ {n₁ = suc n} (suc p) refl = force p ∸-cong (n ∎)
+_∸-cong_ {m₁ = m₁} {m₂} {zero} {n₂} p eq =
+  m₁         ∼⟨ p ⟩
+  m₂         ≡⟨⟩∼
+  m₂ ∸ zero  ≡⟨ cong (_ ∸_) eq ⟩∼
+  m₂ ∸ n₂    ∎∼
+
+_∸-cong_ {n₁ = suc n₁} {n₂} zero eq =
+  zero           ≡⟨⟩∼
+  zero ∸ suc n₁  ≡⟨ cong (_ ∸_) eq ⟩∼
+  zero ∸ n₂      ∎∼
+
+_∸-cong_ {n₁ = suc n₁} {n₂} (suc {m = m₁} {n = m₂} p) eq =
+  force m₁ ∸ n₁    ∼⟨ force p ∸-cong refl n₁ ⟩
+  force m₂ ∸ n₁    ≡⟨⟩∼
+  suc m₂ ∸ suc n₁  ≡⟨ cong (_ ∸_) eq ⟩∼
+  suc m₂ ∸ n₂      ∎∼
 
 -- ⌜_⌝ is homomorphic with respect to subtraction.
 
@@ -540,7 +558,7 @@ cancel-∸-suc-≤ {suc m} {suc n} {suc o} (suc o<n) =
 -- The successor of a number is greater than or equal to the number.
 
 ≤suc : ∀ {i n} → [ i ] force n ≤ suc n
-≤suc = helper _ refl
+≤suc = helper _ (refl _)
   where
   helper : ∀ {i} m {n} → m ≡ force n → [ i ] m ≤ suc n
   helper zero    _    = zero
@@ -592,7 +610,7 @@ m≤m+n {m} {n} =
   m + n        ≡⟨⟩∼
   m + (n ∸ 0)  ∎∼
 +-∸-assoc {m} {suc n} {suc k} (suc k≤n) =
-  m + suc n ∸ suc k            ∼⟨ symmetric-∼ (1++∼+suc m) ∸-cong refl {x = suc k} ⟩
+  m + suc n ∸ suc k            ∼⟨ symmetric-∼ (1++∼+suc m) ∸-cong refl (suc k) ⟩
   ⌜ 1 ⌝ + m + force n ∸ suc k  ≡⟨⟩∼
   m + force n ∸ k              ∼⟨ +-∸-assoc (force k≤n) ⟩
   m + (force n ∸ k)            ≡⟨⟩∼

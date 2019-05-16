@@ -5,20 +5,23 @@
 
 {-# OPTIONS --without-K --safe #-}
 
+open import Equality
 open import Prelude hiding (id)
 
 module Tree-sort.Partial
+  {c⁺}
+  (eq : ∀ {a p} → Equality-with-J a p c⁺)
   {A : Set}
   (_≤_ : A → A → Bool) -- A comparison function.
   where
 
-open import Bag-equivalence
-open import Equality.Propositional
-open import Tree
+open Derived-definitions-and-properties eq
 
-open import Bijection equality-with-J using (_↔_)
-open import Function-universe equality-with-J hiding (_∘_)
-open import List equality-with-J
+open import Bag-equivalence eq
+open import Bijection eq using (_↔_)
+open import Function-universe eq hiding (_∘_)
+open import List eq
+open import Tree eq
 
 ------------------------------------------------------------------------
 -- Insertion into trees

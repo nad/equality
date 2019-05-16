@@ -4,12 +4,17 @@
 
 {-# OPTIONS --without-K --safe #-}
 
-module Container.Tree-sort.Example where
+open import Equality
 
-open import Container
-open import Container.List
-open import Equality.Propositional
+module Container.Tree-sort.Example
+  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+open Derived-definitions-and-properties eq
+
 open import Prelude using (ℕ; zero; suc; Bool; true; false)
+
+open import Container eq
+open import Container.List eq
 
 -- Comparison function for natural numbers.
 
@@ -18,12 +23,12 @@ zero  ≤ _     = true
 suc _ ≤ zero  = false
 suc m ≤ suc n = m ≤ n
 
-open import Container.Tree-sort _≤_
+open import Container.Tree-sort eq _≤_
 
 -- The sort function seems to return an ordered list.
 
 ordered : sort (3 ∷ 1 ∷ 2 ∷ []) ≡ 1 ∷ 2 ∷ 3 ∷ []
-ordered = refl
+ordered = refl _
 
 -- The sort function definitely returns a list which is bag equivalent
 -- to the input. This property can be used to establish bag

@@ -9,20 +9,23 @@
 
 -- The module is parametrised by a total relation.
 
+open import Equality
 open import Prelude hiding (id; _∘_; lower)
 
 module Tree-sort.Full
+  {c⁺}
+  (eq : ∀ {a p} → Equality-with-J a p c⁺)
   {A : Set}
   (le : A → A → Set)
   (total : ∀ x y → le x y ⊎ le y x)
   where
 
-open import Bag-equivalence using () renaming (Any to AnyL)
-open import Equality.Propositional
+open Derived-definitions-and-properties eq
 
-open import Bijection equality-with-J using (_↔_)
-open import Function-universe equality-with-J hiding (Kind; module Kind)
-open import List equality-with-J
+open import Bag-equivalence eq using () renaming (Any to AnyL)
+open import Bijection eq using (_↔_)
+open import Function-universe eq hiding (Kind; module Kind)
+open import List eq
 
 ------------------------------------------------------------------------
 -- Extending the order with new minimum and maximum elements

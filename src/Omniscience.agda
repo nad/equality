@@ -4,18 +4,21 @@
 
 {-# OPTIONS --without-K --safe #-}
 
-module Omniscience where
+open import Equality
 
-open import Equality.Propositional
+module Omniscience {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+open Derived-definitions-and-properties eq
+
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Double-negation equality-with-J
-open import Equality.Decision-procedures equality-with-J
-open import Function-universe equality-with-J hiding (id; _∘_)
-open import H-level equality-with-J
-open import H-level.Closure equality-with-J
-open import Nat equality-with-J
+open import Double-negation eq
+open import Equality.Decision-procedures eq
+open import Function-universe eq hiding (id; _∘_)
+open import H-level eq
+open import H-level.Closure eq
+open import Nat eq
 
 -- I don't know who first stated LPO and WLPO, or who first proved
 -- various properties about these principles.
@@ -140,12 +143,17 @@ mutual
       helper (≤→≤↑ (zero≤ _)) (λ o<0 → ⊥-elim (≮0 _ o<0))
       where
       helper : ∀ {m} → m ≤↑ n → (∀ {o} → o < m → f o ≡ false) → P f
-      helper     (≤↑-refl refl) <→≡false = n , fn≡true , <→≡false
-      helper {m} (≤↑-step m<n)  <→≡false with inspect (f m)
+      helper {m} (≤↑-refl m≡n) <→≡false = n , fn≡true , λ {o} →
+                                            o < n        ↝⟨ subst (o <_) (sym m≡n) ⟩
+                                            o < m        ↝⟨ <→≡false ⟩□
+                                            f o ≡ false  □
+      helper {m} (≤↑-step m<n) <→≡false with inspect (f m)
       ... | true  , fm≡true  = m , fm≡true , <→≡false
-      ... | false , fm≡false = helper m<n λ o<1+m →
+      ... | false , fm≡false = helper m<n λ {o} o<1+m →
         case ≤→≤↑ o<1+m of λ where
-          (≤↑-refl refl)    → fm≡false
+          (≤↑-refl 1+o≡1+m) → f o    ≡⟨ cong f (cancel-suc 1+o≡1+m) ⟩
+                              f m    ≡⟨ fm≡false ⟩∎
+                              false  ∎
           (≤↑-step 1+o<1+m) → <→≡false (pred-mono (≤↑→≤ 1+o<1+m))
 
 -- LPO follows from excluded middle (assuming extensionality).

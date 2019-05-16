@@ -4,16 +4,20 @@
 
 {-# OPTIONS --without-K --safe #-}
 
-module Container.Stream where
+open import Equality
 
-open import Container
-open import Container.List as L hiding (_∷_; _++_; Any-∷; Any-++)
-open import Equality.Propositional
+module Container.Stream
+  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+open Derived-definitions-and-properties eq
+
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (id; List; []; _∷_)
 
-open import Bijection equality-with-J using (_↔_; module _↔_)
-open import Function-universe equality-with-J hiding (_∘_)
+open import Bijection eq using (_↔_; module _↔_)
+open import Container eq
+open import Container.List eq as L hiding (_∷_; _++_; Any-∷; Any-++)
+open import Function-universe eq hiding (_∘_)
 
 ------------------------------------------------------------------------
 -- Streams
@@ -77,12 +81,12 @@ Any-head-tail P = record
                  ; (inj₂ (n , p)) → (suc n , p)
                  }
       }
-    ; right-inverse-of = λ { (inj₁ p)       → refl
-                           ; (inj₂ (n , p)) → refl
+    ; right-inverse-of = λ { (inj₁ p)       → refl _
+                           ; (inj₂ (n , p)) → refl _
                            }
     }
-  ; left-inverse-of = λ { (zero  , p) → refl
-                        ; (suc n , p) → refl
+  ; left-inverse-of = λ { (zero  , p) → refl _
+                        ; (suc n , p) → refl _
                         }
   }
 

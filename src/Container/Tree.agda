@@ -5,16 +5,20 @@
 
 {-# OPTIONS --without-K --safe #-}
 
-module Container.Tree where
+open import Equality
 
-open import Container hiding (Shape; Position)
-open import Container.List hiding (fold; fold-lemma)
-open import Equality.Propositional
+module Container.Tree
+  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+open Derived-definitions-and-properties eq
+
 open import Prelude hiding (id; _∘_; List; []; _∷_)
-import Tree
 
-open import Bijection equality-with-J using (_↔_; module _↔_)
-open import Function-universe equality-with-J
+open import Bijection eq using (_↔_; module _↔_)
+open import Container eq hiding (Shape; Position)
+open import Container.List eq hiding (fold; fold-lemma)
+open import Function-universe eq
+import Tree eq as Tree
 
 ------------------------------------------------------------------------
 -- The type
@@ -66,12 +70,12 @@ Shape↔Tree-⊤ = record
   from (Tree.node l tt r) = nd (from l) (from r)
 
   to∘from : ∀ t → to (from t) ≡ t
-  to∘from Tree.leaf          = refl
+  to∘from Tree.leaf          = refl _
   to∘from (Tree.node l tt r) =
     cong₂ (λ l r → Tree.node l tt r) (to∘from l) (to∘from r)
 
   from∘to : ∀ s → from (to s) ≡ s
-  from∘to lf       = refl
+  from∘to lf       = refl _
   from∘to (nd l r) = cong₂ nd (from∘to l) (from∘to r)
 
 ------------------------------------------------------------------------
@@ -126,14 +130,14 @@ node≈ _ = record
                  ; (right p , eq) → (right p , eq)
                  }
       }
-    ; right-inverse-of = λ { (root    , eq) → refl
-                           ; (left p  , eq) → refl
-                           ; (right p , eq) → refl
+    ; right-inverse-of = λ { (root    , eq) → refl _
+                           ; (left p  , eq) → refl _
+                           ; (right p , eq) → refl _
                            }
     }
-  ; left-inverse-of = λ { (root    , eq) → refl
-                        ; (left p  , eq) → refl
-                        ; (right p , eq) → refl
+  ; left-inverse-of = λ { (root    , eq) → refl _
+                        ; (left p  , eq) → refl _
+                        ; (right p , eq) → refl _
                         }
   }
 
@@ -166,14 +170,14 @@ Any-node _ {l = _ , _} {r = _ , _} = record
                  ; (inj₂ (inj₂ (p , eq))) → (right p , eq)
                  }
       }
-    ; right-inverse-of = λ { (inj₁ (p , eq))        → refl
-                           ; (inj₂ (inj₁ eq))       → refl
-                           ; (inj₂ (inj₂ (p , eq))) → refl
+    ; right-inverse-of = λ { (inj₁ (p , eq))        → refl _
+                           ; (inj₂ (inj₁ eq))       → refl _
+                           ; (inj₂ (inj₂ (p , eq))) → refl _
                            }
     }
-  ; left-inverse-of = λ { (root    , eq) → refl
-                        ; (left p  , eq) → refl
-                        ; (right p , eq) → refl
+  ; left-inverse-of = λ { (root    , eq) → refl _
+                        ; (left p  , eq) → refl _
+                        ; (right p , eq) → refl _
                         }
   }
 

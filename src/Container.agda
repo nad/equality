@@ -4,22 +4,24 @@
 
 {-# OPTIONS --without-K --safe #-}
 
-module Container where
+open import Equality
 
-open import Bag-equivalence using (Kind); open Bag-equivalence.Kind
-open import Equality.Propositional
+module Container {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+open Derived-definitions-and-properties eq
+
 open import Logical-equivalence hiding (id; _∘_; inverse)
 open import Prelude hiding (id; List)
 
-open import Bijection equality-with-J as Bijection
-  using (_↔_; module _↔_)
-open import Equivalence equality-with-J as Eq
+open import Bag-equivalence eq using (Kind); open Kind
+open import Bijection eq as Bijection using (_↔_; module _↔_)
+open import Equivalence eq as Eq
   using (Is-equivalence; _≃_; ⟨_,_⟩; module _≃_)
-open import Function-universe equality-with-J as Function-universe
+open import Function-universe eq as Function-universe
   hiding (inverse; Kind) renaming (_∘_ to _⟨∘⟩_)
-open import H-level equality-with-J
-open import H-level.Closure equality-with-J
-open import Surjection equality-with-J using (module _↠_)
+open import H-level eq
+open import H-level.Closure eq
+open import Surjection eq using (module _↠_)
 
 ------------------------------------------------------------------------
 -- Containers
@@ -64,13 +66,13 @@ module Map where
 
   identity : ∀ {c x} {C : Container c} {X : Set x}
              (xs : ⟦ C ⟧ X) → map id xs ≡ xs
-  identity xs = refl
+  identity xs = refl _
 
   composition : ∀ {c x y z}
                   {C : Container c} {X : Set x} {Y : Set y} {Z : Set z}
                 (f : Y → Z) (g : X → Y) (xs : ⟦ C ⟧ X) →
                 map f (map g xs) ≡ map (f ∘ g) xs
-  composition f g xs = refl
+  composition f g xs = refl _
 
 -- Naturality.
 
@@ -261,7 +263,7 @@ expressed-in-terms-of-interpretation-and-Any C = record
   { isomorphism = λ {A} →
       (∃ λ (s : Shape C) → Position C s → A)                ↔⟨ Σ-cong (Shape-⟦⟧ C) (λ _ → lemma) ⟩
       (∃ λ (s : Shape′ ⟦ C ⟧) → Position′ ⟦ C ⟧ Any s → A)  □
-  ; natural = λ _ _ → refl
+  ; natural = λ _ _ → refl _
   }
   where
   -- If equality of functions had been extensional, then the following
@@ -274,9 +276,9 @@ expressed-in-terms-of-interpretation-and-Any C = record
         { to   = λ { f (p , tt) → f p }
         ; from = λ f p → f (p , tt)
         }
-      ; right-inverse-of = λ _ → refl
+      ; right-inverse-of = λ _ → refl _
       }
-    ; left-inverse-of = λ _ → refl
+    ; left-inverse-of = λ _ → refl _
     }
 
 ------------------------------------------------------------------------
@@ -355,9 +357,9 @@ Position-shape-cong-relates :
   index xs p ≡
     index ys (to-implication (Position-shape-cong xs ys xs≈ys) p)
 Position-shape-cong-relates {bag} xs ys xs≈ys p =
-  index xs p                                                     ≡⟨ proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl) ⟩
+  index xs p                                                     ≡⟨ proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _) ⟩
   index ys (proj₁ $ to-implication (xs≈ys (index xs p))
-                                   (p , refl))                   ≡⟨⟩
+                                   (p , refl _))                 ≡⟨⟩
   index ys (_↔_.to (Position-shape ys) $
             Σ-map id (λ {z} → to-implication (xs≈ys z)) $
             _↔_.from (Position-shape xs) $ p)                    ≡⟨⟩
@@ -368,21 +370,21 @@ Position-shape-cong-relates {bag} xs ys xs≈ys p =
               ((from-bijection (Position-shape ys) ⟨∘⟩
                 ∃-cong xs≈ys) ⟨∘⟩
                from-bijection (inverse $ Position-shape xs))
-              p)                                                 ≡⟨ refl ⟩∎
+              p)                                                 ≡⟨⟩
   index ys (to-implication (Position-shape-cong xs ys xs≈ys) p)  ∎
 
 Position-shape-cong-relates {bag-with-equivalence} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
 Position-shape-cong-relates {subbag} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
 Position-shape-cong-relates {set} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
 Position-shape-cong-relates {subset} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
 Position-shape-cong-relates {embedding} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
 Position-shape-cong-relates {surjection} xs ys xs≈ys p =
-  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl)
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
 
 -- We get that the two definitions of bag equivalence are logically
 -- equivalent.
@@ -437,19 +439,19 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
         f≡f : ⟨ f , f-eq′ ⟩ ≡ ⟨ f , f-eq ⟩
         f≡f = cong (⟨_,_⟩ f) irr
 
-        cong-to-f≡f : cong _≃_.to f≡f ≡ refl {x = f}
+        cong-to-f≡f : cong _≃_.to f≡f ≡ refl f
         cong-to-f≡f =
           cong _≃_.to f≡f              ≡⟨ cong-∘ _≃_.to (⟨_,_⟩ f) irr ⟩
           cong (_≃_.to ∘ ⟨_,_⟩ f) irr  ≡⟨ cong-const irr ⟩∎
-          refl                         ∎
+          refl _                       ∎
       in
       Σ-≡,≡→≡ f≡f
-        (subst (P ∘ _≃_.to) f≡f (trans refl ∘ related)  ≡⟨ cong (subst (P ∘ _≃_.to) f≡f)
-                                                                (apply-ext (lower-extensionality (a ⊔ d) (c ⊔ d) ext) λ _ → trans-reflˡ _) ⟩
-         subst (P ∘ _≃_.to) f≡f related                 ≡⟨ subst-∘ P _≃_.to f≡f ⟩
-         subst P (cong _≃_.to f≡f) related              ≡⟨ cong (λ eq → subst P eq related) cong-to-f≡f ⟩
-         subst P refl related                           ≡⟨ subst-refl P related ⟩∎
-         related                                        ∎) }
+        (subst (P ∘ _≃_.to) f≡f (trans (refl _) ∘ related)  ≡⟨ cong (subst (P ∘ _≃_.to) f≡f)
+                                                                    (apply-ext (lower-extensionality (a ⊔ d) (c ⊔ d) ext) λ _ → trans-reflˡ _) ⟩
+         subst (P ∘ _≃_.to) f≡f related                     ≡⟨ subst-∘ P _≃_.to f≡f ⟩
+         subst P (cong _≃_.to f≡f) related                  ≡⟨ cong (λ eq → subst P eq related) cong-to-f≡f ⟩
+         subst P (refl _) related                           ≡⟨ subst-refl P related ⟩∎
+         related                                            ∎) }
     }
   ; left-inverse-of = λ xs≈ys →
       apply-ext (lower-extensionality (c ⊔ d) a ext) λ z →
@@ -457,11 +459,12 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
           apply-ext (lower-extensionality d c ext) λ { (p , z≡xs[p]) →
 
               let xs[p]≡ys[-] : ∃ λ p′ → index xs p ≡ index ys p′
-                  xs[p]≡ys[-] = _≃_.to (xs≈ys (index xs p)) (p , refl) in
+                  xs[p]≡ys[-] = _≃_.to (xs≈ys (index xs p)) (p , refl _)
+              in
 
             Σ-map id (trans z≡xs[p]) xs[p]≡ys[-]      ≡⟨ elim₁ (λ {z} z≡xs[p] → Σ-map id (trans z≡xs[p]) xs[p]≡ys[-] ≡
                                                                           _≃_.to (xs≈ys z) (p , z≡xs[p]))
-              (Σ-map id (trans refl) xs[p]≡ys[-]               ≡⟨ cong (_,_ _) (trans-reflˡ _) ⟩∎
+              (Σ-map id (trans (refl _)) xs[p]≡ys[-]              ≡⟨ cong (_,_ _) (trans-reflˡ _) ⟩∎
                xs[p]≡ys[-]                                        ∎)
                                                                z≡xs[p] ⟩∎
             _≃_.to (xs≈ys z) (p , z≡xs[p])            ∎ }
@@ -526,7 +529,11 @@ _∼[_]″_ {a} {A = A} xs k ys =
   (R : A → A → Set r) →
   (∀ x → R x x) →
   (∀ x → ⟦ C ⟧₂ R x x)
-⟦⟧₂-reflexive _ r _ = refl , λ _ → r _
+⟦⟧₂-reflexive {C = C} R r (xs , f) =
+    refl _
+  , λ p →                                           $⟨ r _ ⟩
+      R (f p) (f p)                                 ↝⟨ subst (R _ ∘ f) (sym $ subst-refl _ _) ⟩□
+      R (f p) (f (subst (Position C) (refl xs) p))  □
 
 -- ⟦_⟧₂ preserves symmetry.
 
@@ -535,7 +542,15 @@ _∼[_]″_ {a} {A = A} xs k ys =
   (R : A → A → Set r) →
   (∀ {x y} → R x y → R y x) →
   (∀ {x y} → ⟦ C ⟧₂ R x y → ⟦ C ⟧₂ R y x)
-⟦⟧₂-symmetric _ r (refl , f) = refl , r ∘ f
+⟦⟧₂-symmetric {C = C} R r {_ , f} {_ , g} (eq , h) =
+    sym eq
+  , λ p →                                                            $⟨ h (subst (Position C) (sym eq) p) ⟩
+      R (f (subst (Position C) (sym eq) p))
+        (g (subst (Position C) eq (subst (Position C) (sym eq) p)))  ↝⟨ subst (R (f (subst (Position C) (sym eq) p)) ∘ g) $ subst-subst-sym _ _ _ ⟩
+
+      R (f (subst (Position C) (sym eq) p)) (g p)                    ↝⟨ r ⟩□
+
+      R (g p) (f (subst (Position C) (sym eq) p))                    □
 
 -- ⟦_⟧₂ preserves transitivity.
 
@@ -544,4 +559,18 @@ _∼[_]″_ {a} {A = A} xs k ys =
   (R : A → A → Set r) →
   (∀ {x y z} → R x y → R y z → R x z) →
   (∀ {x y z} → ⟦ C ⟧₂ R x y → ⟦ C ⟧₂ R y z → ⟦ C ⟧₂ R x z)
-⟦⟧₂-transitive _ r (refl , f) (refl , g) = refl , λ p → r (f p) (g p)
+⟦⟧₂-transitive {C = C}
+               R r {_ , f} {_ , g} {_ , h} (eq₁ , f₁) (eq₂ , f₂) =
+    trans eq₁ eq₂
+  , λ p →                                                             $⟨ f₂ _ ⟩
+      R (g (subst (Position C) eq₁ p))
+        (h (subst (Position C) eq₂ (subst (Position C) eq₁ p)))       ↝⟨ subst (R (g (subst (Position C) _ _)) ∘ h) $ subst-subst _ _ _ _ ⟩
+
+      R (g (subst (Position C) eq₁ p))
+        (h (subst (Position C) (trans eq₁ eq₂) p))                    ↝⟨ f₁ _ ,_ ⟩
+
+      R (f p) (g (subst (Position C) eq₁ p)) ×
+      R (g (subst (Position C) eq₁ p))
+        (h (subst (Position C) (trans eq₁ eq₂) p))                    ↝⟨ uncurry r ⟩□
+
+      R (f p) (h (subst (Position C) (trans eq₁ eq₂) p))              □

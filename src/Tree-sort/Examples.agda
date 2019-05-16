@@ -4,12 +4,17 @@
 
 {-# OPTIONS --without-K --safe #-}
 
-module Tree-sort.Examples where
+open import Equality
 
-open import Bag-equivalence
-open import Equality.Propositional
-import Nat equality-with-J as Nat
+module Tree-sort.Examples
+  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+open Derived-definitions-and-properties eq
+
 open import Prelude
+
+open import Bag-equivalence eq
+import Nat eq as Nat
 
 -- Comparison functions for natural numbers.
 
@@ -18,17 +23,17 @@ m ≤? n with Nat.total m n
 ... | inj₁ m≤n = true
 ... | inj₂ n<m = false
 
-import Tree-sort.Partial _≤?_ as P
-open import Tree-sort.Full Nat._≤_ Nat.total as F using (cons; nil)
+import Tree-sort.Partial eq _≤?_ as P
+open import Tree-sort.Full eq Nat._≤_ Nat.total as F using (cons; nil)
 
 -- The sort functions return ordered lists.
 
 orderedP : P.tree-sort (3 ∷ 1 ∷ 2 ∷ []) ≡ 1 ∷ 2 ∷ 3 ∷ []
-orderedP = refl
+orderedP = refl _
 
 orderedF : F.tree-sort (3 ∷ 1 ∷ 2 ∷ []) ≡
            cons 1 (cons 2 (cons 3 (nil _) _) _) _
-orderedF = refl
+orderedF = refl _
 
 -- The sort functions return lists which are bag equivalent to the
 -- input. This property can be used to establish bag equivalences

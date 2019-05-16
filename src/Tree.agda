@@ -4,15 +4,18 @@
 
 {-# OPTIONS --without-K --safe #-}
 
-module Tree where
+open import Equality
 
-open import Bag-equivalence
-open import Equality.Propositional
+module Tree {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+
+open Derived-definitions-and-properties eq
+
 open import Prelude hiding (id)
 
-open import Bijection equality-with-J using (_↔_)
-open import Function-universe equality-with-J
-open import List equality-with-J
+open import Bag-equivalence eq
+open import Bijection eq using (_↔_)
+open import Function-universe eq
+open import List eq
 
 ------------------------------------------------------------------------
 -- Binary trees
