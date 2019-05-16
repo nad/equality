@@ -6,11 +6,6 @@
 
 module README.Unsafe where
 
--- Support for using propositional equality with the rewriting
--- machinery.
-
-import Equality.Propositional.Rewriting
-
 -- IO.
 
 import IO-monad
