@@ -45,69 +45,33 @@ data Any′ {a p} {A : Set a}
 
 Any′-[] : ∀ {a p ℓ} {A : Set a} {P : A → Set p} →
           Any′ P [] ↔ ⊥ {ℓ = ℓ}
-Any′-[] {ℓ = ℓ} {P = P} = record
+Any′-[] = record
   { surjection = record
     { logical-equivalence = record
-      { to   = to
-      ; from = from
+      { from = λ ()
+      ; to   = λ ()
       }
-    ; right-inverse-of = λ p → ⊥-elim p
+    ; right-inverse-of = λ ()
     }
-  ; left-inverse-of = from∘to
+  ; left-inverse-of = λ ()
   }
-  where
-  to′ : ∀ {xs} → Any′ P xs → [] ≡ xs → ⊥ {ℓ = ℓ}
-  to′ (here  p) = ⊥-elim ∘ List.[]≢∷
-  to′ (there p) = ⊥-elim ∘ List.[]≢∷
-
-  to : Any′ P [] → ⊥
-  to p = to′ p refl
-
-  from = ⊥-elim
-
-  from∘to′ : ∀ {xs} (p : Any′ P xs) ([]≡xs : [] ≡ xs) →
-             subst (Any′ P) []≡xs (from (to′ p []≡xs)) ≡ p
-  from∘to′ (here  p) = ⊥-elim ∘ List.[]≢∷
-  from∘to′ (there p) = ⊥-elim ∘ List.[]≢∷
-
-  from∘to : ∀ p → from (to p) ≡ p
-  from∘to p = from∘to′ p refl
 
 Any′-∷ : ∀ {a p} {A : Set a} {P : A → Set p} {x xs} →
         Any′ P (x ∷ xs) ↔ P x ⊎ Any′ P xs
-Any′-∷ {P = P} {x} {xs} = record
+Any′-∷ = record
   { surjection = record
     { logical-equivalence = record
-      { to   = to
-      ; from = from
-      }
+      { from = [ here , there ]
+      ; to   = λ where
+                 (here p)  → inj₁ p
+                 (there p) → inj₂ p
+        }
     ; right-inverse-of = [ (λ _ → refl) , (λ _ → refl) ]
     }
-  ; left-inverse-of = from∘to
+  ; left-inverse-of = λ where
+      (here _)  → refl
+      (there _) → refl
   }
-  where
-  to′ : ∀ {ys} → Any′ P ys → ys ≡ x ∷ xs → P x ⊎ Any′ P xs
-  to′ (here  p) ≡∷ = inj₁ (subst P (List.cancel-∷-head ≡∷) p)
-  to′ (there p) ≡∷ = inj₂ (subst (Any′ P) (List.cancel-∷-tail ≡∷) p)
-
-  to : Any′ P (x ∷ xs) → P x ⊎ Any′ P xs
-  to p = to′ p refl
-
-  from = [ here , there ]
-
-  from∘to′ : ∀ {ys} (p : Any′ P ys) ≡∷ →
-             from (to′ p ≡∷) ≡ subst (Any′ P) ≡∷ p
-  from∘to′ (here p)  ≡∷ with List.cancel-∷-head ≡∷
-                           | List.cancel-∷-tail ≡∷
-                           | sym (List.unfold-∷ ≡∷)
-  from∘to′ (here p)  .refl | refl | refl | refl = refl
-  from∘to′ (there p) ≡∷ with List.cancel-∷-head ≡∷
-                           | List.cancel-∷-tail ≡∷
-                           | sym (List.unfold-∷ ≡∷)
-  from∘to′ (there p) .refl | refl | refl | refl = refl
-
-  from∘to : ∀ p → from (to p) ≡ p
-  from∘to p = from∘to′ p refl
 
 Any↔Any′ : ∀ {a p} {A : Set a} {P : A → Set p} {xs} →
            Any P xs ↔ Any′ P xs
@@ -624,27 +588,19 @@ abstract
     index-of (_↔_.to (xs≈ys z) p) ≡
     _↔_.to (Fin-length-cong xs≈ys) (index-of p)
   index-of-commutes {z = z} {xs} {ys} xs≈ys p =
-    (index-of $ to (xs≈ys z) p)                          ≡⟨ lemma z p ⟩
-    (index-of $ to (xs≈ys _) $ proj₂ $
-     from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
-    (index-of $ proj₂ $ Σ-map P.id (to (xs≈ys _)) $
-     from (Fin-length xs) $ to (Fin-length xs) (z , p))  ≡⟨ refl ⟩
-    (to (Fin-length ys) $ Σ-map P.id (to (xs≈ys _)) $
-     from (Fin-length xs) $ index-of p)                  ≡⟨ refl ⟩∎
-    (to (Fin-length-cong xs≈ys) $ index-of p)            ∎
+    index-of $ to (xs≈ys z) p                                     ≡⟨⟩
+
+    index-of $ proj₂ $ Σ-map P.id (λ {x} → to (xs≈ys x)) (z , p)  ≡⟨ cong (index-of ∘ proj₂ ∘ Σ-map P.id (to (xs≈ys _))) $ sym $
+                                                                     left-inverse-of (Fin-length xs) (z , p) ⟩
+    index-of $ proj₂ $ Σ-map P.id (λ {x} → to (xs≈ys x)) $
+    from (Fin-length xs) $ to (Fin-length xs) (z , p)             ≡⟨⟩
+
+    to (Fin-length ys) $ Σ-map P.id (λ {x} → to (xs≈ys x)) $
+    from (Fin-length xs) $ index-of p                             ≡⟨⟩
+
+    to (Fin-length-cong xs≈ys) $ index-of p                       ∎
     where
     open _↔_
-
-    lemma : ∀ z p →
-            (index-of $ to (xs≈ys z) p) ≡
-            (index-of $
-             to (xs≈ys (index xs (to (Fin-length xs) (z , p)))) $
-             proj₂ $ from (Fin-length xs) $
-             to (Fin-length xs) (z , p))
-    lemma z p with to (Fin-length xs) (z , p)
-                 | Σ-≡,≡←≡ (left-inverse-of (Fin-length xs) (z , p))
-    lemma .(index xs i) .(from (∈-index xs) (i , refl))
-          | i | refl , refl = refl
 
   -- Bag equivalence isomorphisms preserve index equality. Note that
   -- this means that, even if the underlying equality is proof
