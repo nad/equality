@@ -14,6 +14,8 @@ import Agda.Builtin.Cubical.Id as Id
 ------------------------------------------------------------------------
 -- Equality
 
+infix 4 _≡_
+
 _≡_ : ∀ {a} {A : Set a} → A → A → Set a
 _≡_ = Id.Id
 
