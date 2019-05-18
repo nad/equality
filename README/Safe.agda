@@ -229,10 +229,31 @@ import Const
 
 import TC-monad
 
--- Some tactics aimed at making equational reasoning proofs more
--- readable.
+-- Code used to construct tactics aimed at making equational reasoning
+-- proofs more readable.
 
 import Tactic.By
+
+-- A tactic aimed at making equational reasoning proofs more readable
+-- in modules that are parametrised by an implementation of equality.
+
+import Tactic.By.Parametrised
+import Tactic.By.Parametrised.Tests
+
+-- Some tactics aimed at making equational reasoning proofs more
+-- readable for propositional equality.
+
+import Tactic.By.Propositional
+
+-- Some tactics aimed at making equational reasoning proofs more
+-- readable for path equality.
+
+import Tactic.By.Path
+
+-- Some tactics aimed at making equational reasoning proofs more
+-- readable for the cubical identity type.
+
+import Tactic.By.Id
 
 -- Quotients, defined as families of equivalence classes.
 
