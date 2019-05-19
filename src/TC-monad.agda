@@ -12,13 +12,14 @@ module TC-monad
 import Agda.Builtin.Bool as B
 open import Agda.Builtin.Char
 open import Agda.Builtin.Float
-open import Agda.Builtin.Nat using (_==_)
+open import Agda.Builtin.Nat as N using (_==_)
 import Agda.Builtin.Reflection
 open import Agda.Builtin.String
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+import Maybe eq as _
 open import Monad eq
 open import Nat eq
 
@@ -318,3 +319,99 @@ mutual
     (set t) → set (strengthen-term from by t)
     (lit n) → lit n
     unknown → unknown
+
+mutual
+
+  -- The result of any-term and similar functions.
+  --
+  -- Note that "definitely true" can be returned even if the term
+  -- contains meta-variables, the term unknown, the sort unknown, or
+  -- pattern-matching lambdas.
+
+  Any-result : Set
+  Any-result = Any-result′ Bool
+
+  -- A generalisation of Any-result. (Without the type parameter the
+  -- raw monad instance below would not work.)
+
+  data Any-result′ (A : Set) : Set where
+    definitely : A → Any-result′ A
+    -- The result is definitely true or false.
+    meta : Meta → Any-result′ A
+    -- There is no positive evidence that the result is true. At least
+    -- one meta-variable (the given one) was encountered, and if this
+    -- meta-variable is instantiated in a certain way, then the
+    -- predicate might hold (depending on what the predicate is,
+    -- any-term does not analyse the predicate).
+    unknown : Any-result′ A
+    -- There is no positive evidence that the result is true. The term
+    -- contains the term unknown, the sort unknown, or a
+    -- pattern-matching lambda (and pattern-matching lambdas are not
+    -- analysed).
+
+instance
+
+  -- Any-result′ is a raw monad.
+
+  Any-result-raw-monad : Raw-monad Any-result′
+  Raw-monad.return Any-result-raw-monad = definitely
+  Raw-monad._>>=_  Any-result-raw-monad = λ where
+    (definitely x) f → f x
+    (meta m)       f → meta m
+    unknown        f → unknown
+
+mutual
+
+  -- Tries to figure out if the given predicate holds for some free
+  -- variable in the given term. The predicate is adjusted when
+  -- any-term goes under a binder.
+
+  any-term : (ℕ → Bool) → Term → Any-result
+  any-term p = λ where
+    (var x args)  → (any-var p x ∨_) ⟨$⟩ any-args p args
+    (con _ args)  → any-args p args
+    (def _ args)  → any-args p args
+    (lam _ t)     → any-abs p t
+    (pat-lam _ _) → unknown
+    (pi a b)      → _∨_ ⟨$⟩ any-arg p a ⊛ any-abs p b
+    (agda-sort s) → any-sort p s
+    (lit l)       → definitely false
+    (meta m args) → case any-args p args of λ where
+                      (definitely false) → meta m
+                      r                  → r
+    unknown       → unknown
+
+  any-var : (ℕ → Bool) → ℕ → Bool
+  any-var p x = p x
+
+  any-abs : (ℕ → Bool) → Abs Term → Any-result
+  any-abs p (abs _ t) =
+    any-term (λ where
+                zero    → false
+                (suc n) → p n)
+             t
+
+  any-arg : (ℕ → Bool) → Arg Term → Any-result
+  any-arg p (arg i t) = any-term p t
+
+  any-args : (ℕ → Bool) → List (Arg Term) → Any-result
+  any-args p = λ where
+    []       → definitely false
+    (a ∷ as) → _∨_ ⟨$⟩ any-arg p a ⊛ any-args p as
+
+  any-sort : (ℕ → Bool) → Sort → Any-result
+  any-sort p = λ where
+    (set t) → any-term p t
+    (lit n) → definitely false
+    unknown → unknown
+
+-- Figures out if the given variable is bound in the given term.
+
+bound? : ℕ → Term → Any-result
+bound? x = any-term (eq-ℕ x)
+
+-- Figures out if variables less than the given variable are bound
+-- in the given term.
+
+<bound? : ℕ → Term → Any-result
+<bound? x = any-term (λ y → _⇔_.to Bool⇔Bool (y N.< x))
