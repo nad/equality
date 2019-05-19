@@ -17,6 +17,7 @@ open import Equality.Propositional
 open import Prelude
 
 open import List equality-with-J
+open import Maybe equality-with-J
 open import Monad equality-with-J
 open import TC-monad equality-with-J
 
@@ -484,6 +485,22 @@ private
                fst (f (12 , 73)) ≡ fst {B = λ _ → ℕ} (12 , 73)
       test₁₁ _ hyp = by hyp
 
+      -- Two test cases for the extra check in try-refl.
+
+      test₁₂ : (h : ℕ → Maybe ℕ) →
+               ((n : ℕ) → h n ≡ just n) →
+               (n : ℕ) → suc ⟨$⟩ h n ≡ suc ⟨$⟩ return n
+      test₁₂ h hyp n =
+        suc ⟨$⟩ h n       ≡⟨ by (hyp n) ⟩∎
+        suc ⟨$⟩ return n  ∎
+
+      test₁₃ : (h : List ⊤ → Maybe (List ⊤)) →
+               ((xs : List ⊤) → h xs ≡ just xs) →
+               (x : ⊤) (xs : List ⊤) → _
+      test₁₃ h hyp x xs =
+        _∷_ ⟨$⟩ return x ⊛ h xs       ≡⟨ by (hyp xs) ⟩∎
+        _∷_ ⟨$⟩ return x ⊛ return xs  ∎
+
     -- Tests for ⟨by⟩.
 
     module ⟨By⟩ where
@@ -522,6 +539,27 @@ private
                fst ⟨ f (12 , 73) ⟩ ≡ fst {B = λ _ → ℕ} (12 , 73)
       test₁₁ _ hyp = ⟨by⟩ hyp
 
-      test₁₂ : 48 ≡ 42 →
+      test₁₂ : (h : ℕ → Maybe ℕ) →
+               ((n : ℕ) → h n ≡ just n) →
+               (n : ℕ) → suc ⟨$⟩ h n ≡ suc ⟨$⟩ return n
+      test₁₂ h hyp n =
+        suc ⟨$⟩ ⟨ h n ⟩   ≡⟨ ⟨by⟩ (hyp n) ⟩∎
+        suc ⟨$⟩ return n  ∎
+
+      test₁₃ : (h : List ⊤ → Maybe (List ⊤)) →
+               ((xs : List ⊤) → h xs ≡ just xs) →
+               (x : ⊤) (xs : List ⊤) → _
+      test₁₃ h hyp x xs =
+        _∷_ ⟨$⟩ return x ⊛ ⟨ h xs ⟩   ≡⟨ ⟨by⟩ (hyp xs) ⟩∎
+        _∷_ ⟨$⟩ return x ⊛ return xs  ∎
+
+      test₁₄ : (h : List ℕ → Maybe (List ℕ)) →
+               ((xs : List ℕ) → h xs ≡ just xs) →
+               (x : ℕ) (xs : List ℕ) → _
+      test₁₄ h hyp x xs =
+        _∷_ ⟨$⟩ ⟨ h xs ⟩   ≡⟨ ⟨by⟩ (hyp xs) ⟩∎
+        _∷_ ⟨$⟩ return xs  ∎
+
+      test₁₅ : 48 ≡ 42 →
                _≡_ {A = ℕ → ℕ} (λ x → x + ⟨ 42 ⟩) (λ x → x + 48)
-      test₁₂ hyp = ⟨by⟩ hyp
+      test₁₅ hyp = ⟨by⟩ hyp
