@@ -121,6 +121,21 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
 ≢1+ zero    p = 0≢+ p
 ≢1+ (suc m) p = ≢1+ m (cancel-suc p)
 
+-- Addition is left cancellative.
+
++-cancellativeˡ : ∀ {m n₁ n₂} → m + n₁ ≡ m + n₂ → n₁ ≡ n₂
++-cancellativeˡ {zero}  = id
++-cancellativeˡ {suc m} = +-cancellativeˡ ∘ cancel-suc
+
+-- Addition is right cancellative.
+
++-cancellativeʳ : ∀ {m₁ m₂ n} → m₁ + n ≡ m₂ + n → m₁ ≡ m₂
++-cancellativeʳ {m₁} {m₂} {n} hyp = +-cancellativeˡ (
+  n + m₁  ≡⟨ +-comm n ⟩
+  m₁ + n  ≡⟨ hyp ⟩
+  m₂ + n  ≡⟨ +-comm m₂ ⟩∎
+  n + m₂  ∎)
+
 ------------------------------------------------------------------------
 -- Properties related to _*_
 
@@ -182,6 +197,26 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
   o * (m + n)    ≡⟨ *-+-distribˡ o ⟩
   o * m + o * n  ≡⟨ cong₂ _+_ (*-comm o) (*-comm o) ⟩∎
   m * o + n * o  ∎
+
+-- Multiplication is right cancellative for positive numbers.
+
+*-cancellativeʳ : ∀ {m₁ m₂ n} → m₁ * suc n ≡ m₂ * suc n → m₁ ≡ m₂
+*-cancellativeʳ {zero}   {zero}   = λ _ → zero  ∎
+*-cancellativeʳ {zero}   {suc _}  = ⊥-elim ∘ 0≢+
+*-cancellativeʳ {suc _}  {zero}   = ⊥-elim ∘ 0≢+ ∘ sym
+*-cancellativeʳ {suc m₁} {suc m₂} =
+  cong suc ∘
+  *-cancellativeʳ ∘
+  +-cancellativeˡ
+
+-- Multiplication is left cancellative for positive numbers.
+
+*-cancellativeˡ : ∀ m {n₁ n₂} → suc m * n₁ ≡ suc m * n₂ → n₁ ≡ n₂
+*-cancellativeˡ m {n₁} {n₂} hyp = *-cancellativeʳ (
+  n₁ * suc m  ≡⟨ *-comm n₁ ⟩
+  suc m * n₁  ≡⟨ hyp ⟩
+  suc m * n₂  ≡⟨ *-comm (suc m) ⟩∎
+  n₂ * suc m  ∎)
 
 ------------------------------------------------------------------------
 -- Properties related to _^_
