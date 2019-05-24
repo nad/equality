@@ -505,12 +505,12 @@ private
 
       -- Two test cases for the extra check in try-refl.
 
-      test₁₂ : (h : ℕ → Maybe ℕ) →
-               ((n : ℕ) → h n ≡ just n) →
-               (n : ℕ) → suc ⟨$⟩ h n ≡ suc ⟨$⟩ return n
-      test₁₂ h hyp n =
-        suc ⟨$⟩ h n       ≡⟨ by (hyp n) ⟩∎
-        suc ⟨$⟩ return n  ∎
+      -- test₁₂ : (h : ℕ → Maybe ℕ) →
+      --          ((n : ℕ) → h n ≡ just n) →
+      --          (n : ℕ) → suc ⟨$⟩ h n ≡ suc ⟨$⟩ return n
+      -- test₁₂ h hyp n =
+      --   suc ⟨$⟩ h n       ≡⟨ by (hyp n) ⟩∎
+      --   suc ⟨$⟩ return n  ∎
 
       test₁₃ : (h : List ⊤ → Maybe (List ⊤)) →
                ((xs : List ⊤) → h xs ≡ just xs) →
