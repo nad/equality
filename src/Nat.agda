@@ -765,6 +765,13 @@ suc m ≤→ suc n = m ≤→ n
 ∸≤ zero    (suc _) = ≤-refl
 ∸≤ (suc m) (suc n) = ≤-step (∸≤ m n)
 
+-- A kind of commutativity for _+ n and _∸ k.
+
++-∸-comm : ∀ {m n k} → k ≤ m → (m + n) ∸ k ≡ (m ∸ k) + n
++-∸-comm {m} {n} {k = zero}  = const (m + n  ∎)
++-∸-comm {zero}  {k = suc k} = ⊥-elim ∘ ≮0 k
++-∸-comm {suc _} {k = suc _} = +-∸-comm ∘ suc≤suc⁻¹
+
 -- _∸_ is monotone in its first argument and antitone in its second
 -- argument.
 
