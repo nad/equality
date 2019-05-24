@@ -263,6 +263,14 @@ import Quotient.Families-of-equivalence-classes
 
 import Quotient
 
+-- Integers.
+
+import Integer
+
+-- Integers, defined using a quotient type.
+
+import Integer.Quotient
+
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
 
