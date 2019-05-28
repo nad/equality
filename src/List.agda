@@ -54,6 +54,22 @@ map f = foldr (λ x ys → f x ∷ ys) []
 concat : ∀ {a} {A : Set a} → List (List A) → List A
 concat = foldr _++_ []
 
+-- "Zips" two lists, using the given function to combine elementsw.
+
+zip-with :
+  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+  (A → B → C) → List A → List B → List C
+zip-with f []       _        = []
+zip-with f _        []       = []
+zip-with f (x ∷ xs) (y ∷ ys) = f x y ∷ zip-with f xs ys
+
+-- "Zips" two lists.
+
+zip :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  List A → List B → List (A × B)
+zip = zip-with _,_
+
 -- Reverses a list.
 
 reverse : ∀ {a} {A : Set a} → List A → List A
