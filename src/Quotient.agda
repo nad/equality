@@ -325,11 +325,12 @@ related≃[equal] {A = A} {r = r} {R = R}
   open Is-equivalence-relation R-equiv
 
   lemma : ∀ {x y z} → R y z → (R x y , R-prop) ≡ (R x z , R-prop)
-  lemma {x} {y} {z} r =                  $⟨ record
-                                              { to   = flip transitive r
-                                              ; from = flip transitive (symmetric r)
-                                              } ⟩
-    R x y ⇔ R x z                        ↝⟨ ⇔↔≡′ ext univ ⟩
+  lemma {x} {y} {z} =
+    R y z                                ↝⟨ (λ r → record
+                                               { to   = flip transitive r
+                                               ; from = flip transitive (symmetric r)
+                                               }) ⟩
+    R x y ⇔ R x z                        ↔⟨ ⇔↔≡″ ext prop-ext ⟩□
     (R x y , R-prop) ≡ (R x z , R-prop)  □
 
   R′ : A → A / R → Proposition r
