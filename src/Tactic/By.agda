@@ -160,6 +160,11 @@ module _
     (cong : Term → Term → Term → Term → Term)
     -- An implementation of cong. Arguments: left-hand side,
     -- right-hand side, function, equality.
+    (cong-with-lhs-and-rhs : Bool)
+    -- Should the cong function be applied to the "left-hand side" and
+    -- the "right-hand side" (the two sides of the inferred type of
+    -- the constructed equality proof), or should those arguments be
+    -- left for Agda's unification machinery?
     where
 
     private
@@ -172,18 +177,31 @@ module _
         A                 ← reduce =<< quoteTC A
         t                 ← quoteTC t
         A , t             ← apply-to-metas A t
-        A                 ← reduce A
         goal-type         ← reduce =<< inferType goal
         _ , _ , lhs , _   ← deconstruct-equality′ err₁ goal-type
         f                 ← construct-context lhs
-        _ , _ , lhs , rhs ← deconstruct-equality′ err₂ A
-        let t₁ = cong lhs rhs f t
-            t₂ = cong rhs lhs f (sym t)
-        catchTC (unify t₁ goal) (unify t₂ goal)
-        return t₁
+        if not cong-with-lhs-and-rhs
+          then conclude unknown unknown f t
+          else do
+            A                 ← reduce A
+            _ , _ , lhs , rhs ← deconstruct-equality′ err₂ A
+            conclude lhs rhs f t
         where
         err₁ = strErr "⟨by⟩: ill-formed goal"  ∷ []
         err₂ = strErr "⟨by⟩: ill-formed proof" ∷ []
+
+        try : Term → TC ⊤
+        try t = do
+          debugPrint "⟨by⟩" 10 $
+            strErr "Term tried by ⟨by⟩:" ∷ termErr t ∷ []
+          unify t goal
+
+        conclude : Term → Term → Term → Term → TC Term
+        conclude lhs rhs f t = do
+          let t₁ = cong lhs rhs f t
+              t₂ = cong rhs lhs f (sym t)
+          catchTC (try t₁) (try t₂)
+          return t₁
 
         mutual
 
@@ -470,10 +488,11 @@ module Tactics
   (refl : Term → Term → Term → Term)
   (sym : Term → Term)
   (cong : Term → Term → Term → Term → Term)
+  (cong-with-lhs-and-rhs : Bool)
   (make-cong : ℕ → TC Name)
   (extra-check-in-try-refl : Bool)
   where
 
-  open ⟨By⟩ deconstruct-equality sym cong public
+  open ⟨By⟩ deconstruct-equality sym cong cong-with-lhs-and-rhs public
   open By deconstruct-equality sym equality refl make-cong
           extra-check-in-try-refl public

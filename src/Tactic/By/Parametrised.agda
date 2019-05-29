@@ -48,4 +48,5 @@ module _
                          (varg eq-term ∷
                           replicate 4 (harg unknown) ++
                           harg lhs ∷ harg rhs ∷ varg f ∷ varg p ∷ []))
+    false
     public

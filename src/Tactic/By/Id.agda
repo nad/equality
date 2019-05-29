@@ -114,6 +114,7 @@ open Tactics
   (λ lhs rhs f p → def (quote cong)
                        (replicate 4 (harg unknown) ++
                         harg lhs ∷ harg rhs ∷ varg f ∷ varg p ∷ []))
+  false
   make-cong
   true
   public
@@ -207,6 +208,25 @@ private
         G false (F (G false A) A)  ≡⟨ by hyp ⟩∎
         G false (G false (F A A))  ∎
 
+      test₁₇ :
+        (P : ℕ → Set)
+        (f : ∀ {n} → P n → P n)
+        (p : P 0) →
+        f (subst P refl p) ≡ f p
+      test₁₇ P _ _ = by (subst-refl P)
+
+      test₁₈ :
+        (subst′ :
+           ∀ {a p} {A : Set a} {x y : A}
+           (P : A → Set p) → x ≡ y → P x → P y) →
+        (∀ {a p} {A : Set a} {x : A} (P : A → Set p) (p : P x) →
+         subst′ P refl p ≡ p) →
+        (P : ℕ → Set)
+        (f : ∀ {n} → P n → P n)
+        (p : P 0) →
+        f (subst′ P refl p) ≡ f p
+      test₁₈ _ subst′-refl P _ _ = by (subst′-refl P)
+
     -- Tests for ⟨by⟩.
 
     module ⟨By⟩-tests where
@@ -280,3 +300,22 @@ private
       test₁₆ : 48 ≡ 42 →
                _≡_ {A = ℕ → ℕ} (λ x → x + ⟨ 42 ⟩) (λ x → x + 48)
       test₁₆ hyp = ⟨by⟩ hyp
+
+      test₁₇ :
+        (P : ℕ → Set)
+        (f : ∀ {n} → P n → P n)
+        (p : P 0) →
+        f ⟨ subst P refl p ⟩ ≡ f p
+      test₁₇ P _ _ = ⟨by⟩ (subst-refl P)
+
+      test₁₈ :
+        (subst′ :
+           ∀ {a p} {A : Set a} {x y : A}
+           (P : A → Set p) → x ≡ y → P x → P y) →
+        (∀ {a p} {A : Set a} {x : A} (P : A → Set p) (p : P x) →
+         subst′ P refl p ≡ p) →
+        (P : ℕ → Set)
+        (f : ∀ {n} → P n → P n)
+        (p : P 0) →
+        f ⟨ subst′ P refl p ⟩ ≡ f p
+      test₁₈ _ subst′-refl _ _ _ = ⟨by⟩ subst′-refl

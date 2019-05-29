@@ -111,3 +111,22 @@ private
     test₁₆ : 48 ≡ 42 →
              _≡_ {A = ℕ → ℕ} (λ x → x + ⟨ 42 ⟩) (λ x → x + 48)
     test₁₆ hyp = ⟨by⟩ 4 hyp
+
+    test₁₇ :
+      (P : ℕ → Set)
+      (f : ∀ {n} → P n → P n)
+      (p : P 0) →
+      f ⟨ subst P (refl _) p ⟩ ≡ f p
+    test₁₇ _ _ _ = ⟨by⟩ 6 subst-refl
+
+    test₁₈ :
+      (subst′ :
+         ∀ {a p} {A : Set a} {x y : A}
+         (P : A → Set p) → x ≡ y → P x → P y) →
+      (∀ {a p} {A : Set a} {x : A} (P : A → Set p) (p : P x) →
+       subst′ P (refl x) p ≡ p) →
+      (P : ℕ → Set)
+      (f : ∀ {n} → P n → P n)
+      (p : P 0) →
+      f ⟨ subst′ P (refl 0) p ⟩ ≡ f p
+    test₁₈ _ subst′-refl _ _ _ = ⟨by⟩ 8 subst′-refl
