@@ -174,7 +174,7 @@ module _
 
       ⟨by⟩-tactic : ∀ {a} {A : Set a} → A → Term → TC Term
       ⟨by⟩-tactic {A = A} t goal = do
-        A                 ← reduce =<< quoteTC A
+        A                 ← quoteTC A
         t                 ← quoteTC t
         A , t             ← apply-to-metas A t
         goal-type         ← reduce =<< inferType goal
