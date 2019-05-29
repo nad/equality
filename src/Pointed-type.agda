@@ -183,40 +183,21 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
   ((x : A) → Contractible (x ≡ x))    □
 
 +⇔∀contractible-Ω[] {A = A} (suc (suc n)) =
-  H-level (3 + n) A                                                 ↝⟨ 2+⇔∀1+≡ (1 + n) ⟩
+  H-level (3 + n) A                                                  ↝⟨ 2+⇔∀1+≡ (1 + n) ⟩
 
-  ((x : A) → H-level (2 + n) (x ≡ x))                               ↝⟨ (∀-cong _ λ _ → +⇔∀contractible-Ω[] (suc n)) ⟩
+  ((x : A) → H-level (2 + n) (x ≡ x))                                ↝⟨ (∀-cong _ λ _ → +⇔∀contractible-Ω[] (suc n)) ⟩
 
   ((x : A) (p : x ≡ x) →
-   Contractible (proj₁ $ Ω[ 1 + n ] ((x ≡ x) , p)))                 ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → ≡⇒↝ _ $ cong (Contractible ∘ proj₁) $
-                                                                        Ω∘Ω[]≡Ω[]∘Ω n) ⟩
-  ((x : A) (p : x ≡ x) →
-   Contractible (proj₁ $ Ω[ n ] (Ω ((x ≡ x) , p))))                 ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → H-level-cong _ _ $ proj₁ $
-                                                                        Ω[ n ]-cong (lemma _)) ⟩
-  ((x : A) → x ≡ x →
-   Contractible (proj₁ $ Ω[ n ] (Ω[ 2 ] (A , x))))                  ↝⟨ (∀-cong _ λ x → _↠_.logical-equivalence $ inhabited→↠ (refl x)) ⟩
+   Contractible (proj₁ $ Ω[ 1 + n ] ((x ≡ x) , p)))                  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → H-level-cong _ _ $ proj₁ $
+                                                                         Ω[ 1 + n ]-cong $ lemma _) ⟩
 
-  ((x : A) → Contractible (proj₁ $ Ω[ n ] (Ω[ 2 ] (A , x))))        ↝⟨ (∀-cong _ λ _ → ≡⇒↝ _ $ cong (Contractible ∘ proj₁) $ sym $
-                                                                        Ω∘Ω[]≡Ω[]∘Ω n) ⟩
+  ((x : A) → x ≡ x → Contractible (proj₁ $ Ω[ 1 + n ] (Ω (A , x))))  ↝⟨ (∀-cong _ λ x → _↠_.logical-equivalence $ inhabited→↠ (refl x)) ⟩
 
-  ((x : A) → Contractible (proj₁ $ Ω[ 1 + n ] (Ω (A , x))))         ↝⟨ (∀-cong _ λ _ → ≡⇒↝ _ $ cong (Contractible ∘ proj₁) $ sym $
-                                                                        Ω∘Ω[]≡Ω[]∘Ω (1 + n)) ⟩□
-  ((x : A) → Contractible (proj₁ $ Ω[ 2 + n ] (A , x)))             □
+  ((x : A) → Contractible (proj₁ $ Ω[ 1 + n ] (Ω (A , x))))          ↝⟨ (∀-cong _ λ _ → ≡⇒↝ _ $ cong (Contractible ∘ proj₁) $ sym $
+                                                                         Ω∘Ω[]≡Ω[]∘Ω (1 + n)) ⟩□
+  ((x : A) → Contractible (proj₁ $ Ω[ 2 + n ] (A , x)))              □
   where
-  lemma : (p : x ≡ x) → Ω ((x ≡ x) , p) ≃ᴮ Ω[ 2 ] (A , x)
-  lemma {x = x} p =
-      (p ≡ p                              ↔⟨ inverse $ E.≃-≡ $ E.↔⇒≃ $ inverse $ flip-trans-isomorphism p ⟩
-       trans p (sym p) ≡ trans p (sym p)  ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ (trans-symʳ _) (trans-symʳ _) ⟩□
-       refl x ≡ refl x                    □)
-    , (_≃_.to (≡⇒↝ _ $ cong₂ _≡_ (trans-symʳ _) (trans-symʳ _))
-         (cong (flip trans (sym p)) (refl p))                     ≡⟨ cong (λ p → _≃_.to (≡⇒↝ _ $ cong₂ _≡_ (trans-symʳ _) (trans-symʳ _)) p) $
-                                                                     cong-refl _ ⟩
-       _≃_.to (≡⇒↝ _ $ cong₂ _≡_ (trans-symʳ _) (trans-symʳ _))
-         (refl (trans p (sym p)))                                 ≡⟨ elim¹
-                                                                       (λ eq → _≃_.to (≡⇒↝ _ $ cong₂ _≡_ eq eq) (refl _) ≡ refl _)
-                                                                       (
-           _≃_.to (≡⇒↝ _ (cong₂ _≡_ (refl _) (refl _))) (refl _)        ≡⟨ cong (λ eq → _≃_.to (≡⇒↝ _ eq) (refl _)) $ cong₂-refl _≡_ ⟩
-           _≃_.to (≡⇒↝ _ (refl _)) (refl _)                             ≡⟨ cong (λ eq → _≃_.to eq (refl _)) ≡⇒↝-refl ⟩∎
-           refl _                                                       ∎)
-                                                                       _ ⟩∎
-       refl (refl x)                                              ∎)
+  lemma : (p : x ≡ x) → ((x ≡ x) , p) ≃ᴮ Ω (A , x)
+  lemma p = E.↔⇒≃ (inverse $ flip-trans-isomorphism p)
+          , (trans p (sym p)  ≡⟨ trans-symʳ _ ⟩∎
+             refl _           ∎)
