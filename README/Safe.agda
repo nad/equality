@@ -312,6 +312,14 @@ import
 
 import Bag-equivalence
 
+-- The All predicate, defined using _∈_.
+
+import List.All
+
+-- The All predicate, defined recursively.
+
+import List.All.Recursive
+
 -- Binary trees.
 
 import Tree
