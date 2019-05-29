@@ -63,7 +63,7 @@ private
 
 -- The isomorphism maps reflexivity to reflexivity.
 
-to-≡↔≡-refl : _↔_.to ≡↔≡ (refl c) ≡ P.refl
+to-≡↔≡-refl : _↔_.to ≡↔≡ (refl x) ≡ P.refl
 to-≡↔≡-refl = _↔_.from ≡↔≡ $ proj₁ $ proj₂ ≡↔≡′
 
 from-≡↔≡-refl : _↔_.from ≡↔≡ P.refl ≡ refl x
