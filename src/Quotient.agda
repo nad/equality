@@ -37,6 +37,7 @@ open import H-level.Closure eq
 import H-level.Truncation.Church eq as Trunc
 open import H-level.Truncation.Propositional eq as TruncP
   hiding (rec; elim)
+open import Monad eq
 open import Preimage eq using (_⁻¹_)
 import Quotient.Families-of-equivalence-classes eq as Quotient
 open import Surjection eq using (_↠_)
@@ -172,6 +173,19 @@ Trivial-is-equivalence-relation = _
 Trivial-is-propositional :
   {x y : A} → Is-proposition (Trivial {r = r} x y)
 Trivial-is-propositional = ↑-closure 1 (mono₁ 0 ⊤-contractible)
+
+-- The function λ R x y → ∥ R x y ∥ preserves Is-equivalence-relation.
+
+∥∥-preserves-Is-equivalence-relation :
+  Is-equivalence-relation R →
+  Is-equivalence-relation (λ x y → ∥ R x y ∥)
+∥∥-preserves-Is-equivalence-relation R-equiv = record
+  { reflexive  = ∣ reflexive ∣
+  ; symmetric  = symmetric ⟨$⟩_
+  ; transitive = λ p q → transitive ⟨$⟩ p ⊛ q
+  }
+  where
+  open Is-equivalence-relation R-equiv
 
 ------------------------------------------------------------------------
 -- Pointwise liftings of binary relations
