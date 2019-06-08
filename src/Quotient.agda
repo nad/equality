@@ -312,6 +312,91 @@ Maybeᴾ-preserves-Is-proposition =
   (λ x → ∣ x , refl _ ∣)
   (λ _ → truncation-is-proposition)
 
+-- Two applications of _/_ are isomorphic if the underlying types are
+-- isomorphic and the relations are pointwise "logically equivalent
+-- after propositional truncation".
+
+infix 5 _/-cong-∥∥_
+
+_/-cong-∥∥_ :
+  {A₁ : Set a₁} {A₂ : Set a₂}
+  {R₁ : A₁ → A₁ → Set r₁}
+  {R₂ : A₂ → A₂ → Set r₂} →
+  (A₁↔A₂ : A₁ ↔[ k ] A₂) →
+  (∀ x y →
+     ∥ R₁ x y ∥ ⇔
+     ∥ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y) ∥) →
+  A₁ / R₁ ↔[ k ] A₂ / R₂
+_/-cong-∥∥_ {k = k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = rec
+                 ([_] ∘ to)
+                 (λ {x y} →
+                   R₁ x y                ↝⟨ ∣_∣ ⟩
+                   ∥ R₁ x y ∥            ↝⟨ _⇔_.to (R₁⇔R₂′ _ _) ⟩
+                   ∥ R₂ (to x) (to y) ∥  ↝⟨ TruncP.rec /-is-set []-respects-relation ⟩□
+                   [ to x ] ≡ [ to y ]   □)
+                 /-is-set
+      ; from = rec
+                 ([_] ∘ from)
+                 (λ {x y} →
+                    R₂ x y                              ↝⟨ ≡⇒↝ _ (sym $ cong₂ R₂ (right-inverse-of x) (right-inverse-of y)) ⟩
+                    R₂ (to (from x)) (to (from y))      ↝⟨ ∣_∣ ⟩
+                    ∥ R₂ (to (from x)) (to (from y)) ∥  ↝⟨ _⇔_.from (R₁⇔R₂′ _ _) ⟩
+                    ∥ R₁ (from x) (from y) ∥            ↝⟨ TruncP.rec /-is-set []-respects-relation ⟩□
+                    [ from x ] ≡ [ from y ]             □)
+                 /-is-set
+      }
+    ; right-inverse-of = elim-Prop
+        _
+        (λ x →
+          [ to (from x) ]  ≡⟨ cong [_] $ right-inverse-of x ⟩∎
+          [ x ]            ∎)
+        (λ _ → /-is-set)
+    }
+  ; left-inverse-of = elim-Prop
+      _
+      (λ x →
+        [ from (to x) ]  ≡⟨ cong [_] $ left-inverse-of x ⟩∎
+        [ x ]            ∎)
+      (λ _ → /-is-set)
+  })
+  where
+  open _↔_ (from-isomorphism A₁↔A₂)
+
+  R₁⇔R₂′ : ∀ x y → ∥ R₁ x y ∥ ⇔ ∥ R₂ (to x) (to y) ∥
+  R₁⇔R₂′ x y =
+    ∥ R₁ x y ∥                                                ↝⟨ R₁⇔R₂ x y ⟩
+    ∥ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y) ∥  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → ∥ R₂ (f x) (g y) ∥)
+                                                                               (to-implication∘from-isomorphism k bijection)
+                                                                               (to-implication∘from-isomorphism k bijection) ⟩□
+    ∥ R₂ (to x) (to y) ∥                                      □
+
+-- Two applications of _/_ are isomorphic if the underlying types are
+-- isomorphic and the relations are pointwise logically equivalent.
+
+infix 5 _/-cong_
+
+_/-cong_ :
+  {A₁ : Set a₁} {A₂ : Set a₂}
+  {R₁ : A₁ → A₁ → Set r₁}
+  {R₂ : A₂ → A₂ → Set r₂} →
+  (A₁↔A₂ : A₁ ↔[ k ] A₂) →
+  (∀ x y →
+     R₁ x y ⇔ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)) →
+  A₁ / R₁ ↔[ k ] A₂ / R₂
+_/-cong_ A₁↔A₂ R₁⇔R₂ =
+  A₁↔A₂ /-cong-∥∥ λ x y → ∥∥-cong-⇔ (R₁⇔R₂ x y)
+
+-- Quotienting by the propositional truncation of a relation is
+-- equivalent to quotienting by the relation itself.
+
+/-∥∥≃/ : A / (λ x y → ∥ R x y ∥) ≃ A / R
+/-∥∥≃/ {R = R} = F.id /-cong-∥∥ λ x y →
+  ∥ ∥ R x y ∥ ∥  ↔⟨ flatten ⟩□
+  ∥ R x y ∥      □
+
 -- If the relation is a propositional equivalence relation, then it is
 -- equivalent to equality under [_].
 --
@@ -352,6 +437,17 @@ related≃[equal] {A = A} {r = r} {R = R}
     (λ y → R x y , R-prop)
     lemma
     (Is-set-∃-Is-proposition ext prop-ext)
+
+-- A variant of related≃[equal].
+
+∥related∥≃[equal] :
+  {R : A → A → Set r} →
+  Is-equivalence-relation R →
+  ∀ {x y} → ∥ R x y ∥ ≃ _≡_ {A = A / R} [ x ] [ y ]
+∥related∥≃[equal] {A = A} {R = R} R-equiv {x} {y} =
+  ∥ R x y ∥                                    ↝⟨ related≃[equal] (∥∥-preserves-Is-equivalence-relation R-equiv) truncation-is-proposition ⟩
+  _≡_ {A = A / λ x y → ∥ R x y ∥} [ x ] [ y ]  ↝⟨ Eq.≃-≡ (inverse /-∥∥≃/) ⟩□
+  _≡_ {A = A / R} [ x ] [ y ]                  □
 
 -- Quotienting with equality (for a set) amounts to the same thing as
 -- not quotienting at all.
@@ -521,60 +617,6 @@ private
   (∃ λ (P : A → Set a) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a))  ↝⟨ (∃-cong λ _ → inverse $ ∥∥↔∥∥ lzero) ⟩
   (∃ λ (P : A → Set a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ R-equiv R-prop ⟩□
   A / R                                                           □
-
--- Two applications of _/_ are isomorphic if the underlying types are
--- isomorphic and the relations are pointwise logically equivalent.
-
-infix 5 _/-cong_
-
-_/-cong_ :
-  {A₁ : Set a₁} {A₂ : Set a₂}
-  {R₁ : A₁ → A₁ → Set r₁}
-  {R₂ : A₂ → A₂ → Set r₂} →
-  (A₁↔A₂ : A₁ ↔[ k ] A₂) →
-  (∀ x y →
-     R₁ x y ⇔ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)) →
-  A₁ / R₁ ↔[ k ] A₂ / R₂
-_/-cong_ {k = k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = rec
-                 ([_] ∘ to)
-                 ([]-respects-relation ∘ _⇔_.to (R₁⇔R₂′ _ _))
-                 /-is-set
-      ; from = rec
-                 ([_] ∘ from)
-                 (λ {x y} →
-                    R₂ x y                          ↝⟨ ≡⇒↝ _ (sym $ cong₂ R₂ (right-inverse-of x) (right-inverse-of y)) ⟩
-                    R₂ (to (from x)) (to (from y))  ↝⟨ _⇔_.from (R₁⇔R₂′ _ _) ⟩
-                    R₁ (from x) (from y)            ↝⟨ []-respects-relation ⟩□
-                    [ from x ] ≡ [ from y ]         □)
-                 /-is-set
-      }
-    ; right-inverse-of = elim-Prop
-        _
-        (λ x →
-          [ to (from x) ]  ≡⟨ cong [_] $ right-inverse-of x ⟩∎
-          [ x ]            ∎)
-        (λ _ → /-is-set)
-    }
-  ; left-inverse-of = elim-Prop
-      _
-      (λ x →
-        [ from (to x) ]  ≡⟨ cong [_] $ left-inverse-of x ⟩∎
-        [ x ]            ∎)
-      (λ _ → /-is-set)
-  })
-  where
-  open _↔_ (from-isomorphism A₁↔A₂)
-
-  R₁⇔R₂′ : ∀ _ _ → _
-  R₁⇔R₂′ x y =
-    R₁ x y                                                ↝⟨ R₁⇔R₂ x y ⟩
-    R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → R₂ (f x) (g y))
-                                                                           (to-implication∘from-isomorphism k bijection)
-                                                                           (to-implication∘from-isomorphism k bijection) ⟩□
-    R₂ (to x) (to y)                                      □
 
 ------------------------------------------------------------------------
 -- Various type formers commute with quotients
