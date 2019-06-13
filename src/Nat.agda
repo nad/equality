@@ -990,3 +990,47 @@ max-∸ (suc m) zero    (suc o) =
   2 + ⌊ n /2⌋  ≤⟨ ≤-refl +-mono ⌊/2⌋≤⌈/2⌉ n ⟩
   2 + ⌈ n /2⌉  ≤⟨ ⌈/2⌉< n ⟩∎
   2 + n        ∎≤
+
+⌈2*/2⌉≡ : ∀ n → ⌈ 2 * n /2⌉ ≡ n
+⌈2*/2⌉≡ zero          = refl _
+⌈2*/2⌉≡ (suc zero)    = refl _
+⌈2*/2⌉≡ (suc (suc n)) =
+  ⌈ 2 * (2 + n) /2⌉                ≡⟨⟩
+  1 + ⌈ n + (2 + (n + 0)) /2⌉      ≡⟨ cong (suc ∘ ⌈_/2⌉) (sym $ suc+≡+suc n) ⟩
+  1 + ⌈ 1 + n + (1 + (n + 0)) /2⌉  ≡⟨ cong (suc ∘ ⌈_/2⌉ ∘ suc) (sym $ suc+≡+suc n) ⟩
+  1 + ⌈ 2 + n + (n + 0) /2⌉        ≡⟨⟩
+  2 + ⌈ 2 * n /2⌉                  ≡⟨ cong (suc ∘ suc) (⌈2*/2⌉≡ n) ⟩∎
+  2 + n                            ∎
+
+⌈1+2*/2⌉≡ : ∀ n → ⌈ 1 + 2 * n /2⌉ ≡ 1 + n
+⌈1+2*/2⌉≡ zero          = refl _
+⌈1+2*/2⌉≡ (suc zero)    = refl _
+⌈1+2*/2⌉≡ (suc (suc n)) =
+  ⌈ 1 + 2 * (2 + n) /2⌉            ≡⟨⟩
+  1 + ⌈ 1 + n + (2 + (n + 0)) /2⌉  ≡⟨ cong (suc ∘ ⌈_/2⌉ ∘ suc) (sym $ suc+≡+suc n) ⟩
+  1 + ⌈ 2 + n + (1 + (n + 0)) /2⌉  ≡⟨ cong (suc ∘ ⌈_/2⌉ ∘ (2 +_)) (sym $ suc+≡+suc n) ⟩
+  1 + ⌈ 3 + n + (n + 0) /2⌉        ≡⟨⟩
+  2 + ⌈ 1 + 2 * n /2⌉              ≡⟨ cong (suc ∘ suc) (⌈1+2*/2⌉≡ n) ⟩∎
+  3 + n                            ∎
+
+⌊2*/2⌋≡ : ∀ n → ⌊ 2 * n /2⌋ ≡ n
+⌊2*/2⌋≡ zero          = refl _
+⌊2*/2⌋≡ (suc zero)    = refl _
+⌊2*/2⌋≡ (suc (suc n)) =
+  ⌊ 2 * (2 + n) /2⌋                ≡⟨⟩
+  1 + ⌊ n + (2 + (n + 0)) /2⌋      ≡⟨ cong (suc ∘ ⌊_/2⌋) (sym $ suc+≡+suc n) ⟩
+  1 + ⌊ 1 + n + (1 + (n + 0)) /2⌋  ≡⟨ cong (suc ∘ ⌊_/2⌋ ∘ suc) (sym $ suc+≡+suc n) ⟩
+  1 + ⌊ 2 + n + (n + 0) /2⌋        ≡⟨⟩
+  2 + ⌊ 2 * n /2⌋                  ≡⟨ cong (suc ∘ suc) (⌊2*/2⌋≡ n) ⟩∎
+  2 + n                            ∎
+
+⌊1+2*/2⌋≡ : ∀ n → ⌊ 1 + 2 * n /2⌋ ≡ n
+⌊1+2*/2⌋≡ zero          = refl _
+⌊1+2*/2⌋≡ (suc zero)    = refl _
+⌊1+2*/2⌋≡ (suc (suc n)) =
+  ⌊ 1 + 2 * (2 + n) /2⌋            ≡⟨⟩
+  1 + ⌊ 1 + n + (2 + (n + 0)) /2⌋  ≡⟨ cong (suc ∘ ⌊_/2⌋ ∘ suc) (sym $ suc+≡+suc n) ⟩
+  1 + ⌊ 2 + n + (1 + (n + 0)) /2⌋  ≡⟨ cong (suc ∘ ⌊_/2⌋ ∘ (2 +_)) (sym $ suc+≡+suc n) ⟩
+  1 + ⌊ 3 + n + (n + 0) /2⌋        ≡⟨⟩
+  2 + ⌊ 1 + 2 * n /2⌋              ≡⟨ cong (suc ∘ suc) (⌊1+2*/2⌋≡ n) ⟩∎
+  2 + n                            ∎
