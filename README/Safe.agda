@@ -115,6 +115,10 @@ import Equality.Instances-related
 
 import Nat.Eliminator
 
+-- A solver for certain natural number equalities.
+
+import Nat.Solver
+
 -- Some definitions related to and properties of booleans.
 
 import Bool
