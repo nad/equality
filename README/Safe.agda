@@ -2,7 +2,7 @@
 -- Safe modules
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe --sized-types #-}
+{-# OPTIONS --cubical --prop --safe --sized-types #-}
 
 module README.Safe where
 
@@ -164,6 +164,10 @@ import H-level.Truncation.Church
 -- Propositional truncation.
 
 import H-level.Truncation.Propositional
+
+-- Squashing.
+
+import Squash
 
 -- The "circle".
 
