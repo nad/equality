@@ -53,7 +53,7 @@ private
     k                 : Isomorphism-kind
     A B               : Set a
     P Q R             : A → A → Set r
-    x y               : A
+    f x y             : A
 
 ------------------------------------------------------------------------
 -- Quotients
@@ -490,6 +490,54 @@ related≃[equal] {A = A} {r = r} {R = R}
          (λ _ → /-is-set))
       (λ _ → Π-closure ext 1 λ _ →
              /-is-set)
+
+-- The previous property gives us an alternative to
+-- constant-function≃∥inhabited∥⇒inhabited.
+
+constant-function↔∥inhabited∥⇒inhabited :
+  Is-set B →
+  (∃ λ (f : A → B) → Constant f) ↔ (∥ A ∥ → B)
+constant-function↔∥inhabited∥⇒inhabited {B = B} {A = A} B-set =
+  (∃ λ (f : A → B) → Constant f)  ↝⟨ record
+                                       { surjection = record
+                                         { logical-equivalence = record
+                                           { to   = λ { (f , c) → rec f (λ _ → c _ _) B-set }
+                                           ; from = λ f → (f ∘ [_])
+                                                        , (λ _ _ → cong f ([]-respects-relation _))
+                                           }
+                                         ; right-inverse-of = λ f → ⟨ext⟩ $ elim _
+                                             (λ _ → refl _)
+                                             (λ _ → B-set _ _)
+                                             (λ _ → mono₁ 2 B-set)
+                                         }
+                                       ; left-inverse-of = λ _ → Σ-≡,≡→≡
+                                           (refl _)
+                                           ((Π-closure ext 1 λ _ →
+                                             Π-closure ext 1 λ _ →
+                                             B-set) _ _)
+                                       } ⟩
+  (A / (λ _ _ → ⊤) → B)           ↝⟨ →-cong ext (/trivial↔∥∥ _) F.id ⟩□
+  (∥ A ∥ → B)                     □
+
+private
+
+  -- The two directions of the proposition above compute in the
+  -- "right" way. Note that (at the time of writing) an analogue of
+  -- the second property below fails to hold definitionally for
+  -- constant-function≃∥inhabited∥⇒inhabited.
+
+  to-constant-function↔∥inhabited∥⇒inhabited :
+    (B-set : Is-set B) →
+    _↔_.to (constant-function↔∥inhabited∥⇒inhabited B-set) f ∣ x ∣ ≡
+    proj₁ f x
+  to-constant-function↔∥inhabited∥⇒inhabited _ = refl _
+
+  from-constant-function↔∥inhabited∥⇒inhabited :
+    (B-set : Is-set B) →
+    proj₁ (_↔_.from (constant-function↔∥inhabited∥⇒inhabited B-set) f)
+          x ≡
+    f ∣ x ∣
+  from-constant-function↔∥inhabited∥⇒inhabited _ = refl _
 
 private
 
