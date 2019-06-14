@@ -279,6 +279,10 @@ import Integer
 
 import Integer.Quotient
 
+-- A binary representation of natural numbers.
+
+import Nat.Binary
+
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
 
