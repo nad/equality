@@ -18,23 +18,26 @@ import Equality.Path as P
 open import Prelude
 
 import Bijection
+import Embedding
 import Equivalence
 import Function-universe
 import H-level
 import Univalence-axiom
 
-open Bijection eq using (_↔_)
-open Equivalence eq hiding (id; _∘_; inverse)
-open Function-universe eq hiding (id; _∘_)
-open H-level eq
-open Univalence-axiom eq
-
 private
   module PB = Bijection P.equality-with-J
+  module PM = Embedding P.equality-with-J
   module PE = Equivalence P.equality-with-J
   module PF = Function-universe P.equality-with-J
   module PH = H-level P.equality-with-J
   module PU = Univalence-axiom P.equality-with-J
+
+open Bijection eq using (_↔_)
+open Embedding eq hiding (id; _∘_)
+open Equivalence eq hiding (id; _∘_; inverse)
+open Function-universe eq hiding (id; _∘_)
+open H-level eq
+open Univalence-axiom eq
 
 private
   variable
@@ -186,19 +189,45 @@ H-level↔H-level {A = A} (suc n) =
   (∀ x y → PH.H-level n (x P.≡ y))  ↝⟨ ↔→↔ $ PF.≡↔+ _ P.ext ⟩
   PH.H-level (suc n) A              □
 
-abstract
+-- Is-equivalence expressed using equality is isomorphic to
+-- Is-equivalence expressed using paths.
 
-  -- Is-equivalence expressed using equality is isomorphic to
-  -- Is-equivalence expressed using paths.
+Is-equivalence↔Is-equivalence :
+  Is-equivalence f ↔ PE.Is-equivalence f
+Is-equivalence↔Is-equivalence {f = f} =
+  Is-equivalence f                            ↔⟨⟩
+  (∀ y →   Contractible (∃ λ x → f x   ≡ y))  ↝⟨ (∀-cong ext λ _ → H-level-cong ext _ $ ∃-cong λ _ → ≡↔≡) ⟩
+  (∀ y →   Contractible (∃ λ x → f x P.≡ y))  ↝⟨ (∀-cong ext λ _ → H-level↔H-level _) ⟩
+  (∀ y → P.Contractible (∃ λ x → f x P.≡ y))  ↔⟨⟩
+  PE.Is-equivalence f                         □
 
-  Is-equivalence↔Is-equivalence :
-    Is-equivalence f ↔ PE.Is-equivalence f
-  Is-equivalence↔Is-equivalence {f = f} =
-    Is-equivalence f                            ↔⟨⟩
-    (∀ y →   Contractible (∃ λ x → f x   ≡ y))  ↝⟨ (∀-cong ext λ _ → H-level-cong ext _ $ ∃-cong λ _ → ≡↔≡) ⟩
-    (∀ y →   Contractible (∃ λ x → f x P.≡ y))  ↝⟨ (∀-cong ext λ _ → H-level↔H-level _) ⟩
-    (∀ y → P.Contractible (∃ λ x → f x P.≡ y))  ↔⟨⟩
-    PE.Is-equivalence f                         □
+-- The type of equivalences, expressed using equality, is isomorphic
+-- to the type of equivalences, expressed using paths.
+
+≃↔≃ :
+  {A : Set a} {B : Set b} →
+  A ≃ B ↔ A PE.≃ B
+≃↔≃ {A = A} {B = B} =
+  A ≃ B                ↝⟨ ≃-as-Σ ⟩
+  ∃ Is-equivalence     ↝⟨ (∃-cong λ _ → Is-equivalence↔Is-equivalence) ⟩
+  ∃ PE.Is-equivalence  ↝⟨ inverse $ ↔→↔ PE.≃-as-Σ ⟩□
+  A PE.≃ B             □
+
+private
+
+  -- ≃↔≃ computes in the "right" way.
+
+  to-≃↔≃ :
+    {A : Set a} {B : Set b} {A≃B : A ≃ B} →
+    PE._≃_.logical-equivalence (_↔_.to ≃↔≃ A≃B) ≡
+    _≃_.logical-equivalence A≃B
+  to-≃↔≃ = refl _
+
+  from-≃↔≃ :
+    {A : Set a} {B : Set b} {A≃B : A PE.≃ B} →
+    _≃_.logical-equivalence (_↔_.from ≃↔≃ A≃B) ≡
+    PE._≃_.logical-equivalence A≃B
+  from-≃↔≃ = refl _
 
 -- The cong function for paths can be expressed in terms of the cong
 -- function for equality.
@@ -215,6 +244,45 @@ cong≡cong {f = f} {x≡y = x≡y} = P.elim
      _↔_.from ≡↔≡ P.refl             ≡⟨ cong (_↔_.from ≡↔≡) $ sym $ _↔_.from ≡↔≡ $ P.cong-refl f ⟩∎
      _↔_.from ≡↔≡ (P.cong f P.refl)  ∎)
   x≡y
+
+-- The type of embeddings, expressed using equality, is isomorphic to
+-- the type of embeddings, expressed using paths.
+
+Embedding↔Embedding :
+  {A : Set a} {B : Set b} →
+  Embedding A B ↔ PM.Embedding A B
+Embedding↔Embedding {A = A} {B = B} =
+  Embedding A B                                   ↝⟨ Embedding-as-Σ ⟩
+  (∃ λ f → ∀ x y → Is-equivalence (cong f))       ↔⟨ (∃-cong λ f → ∀-cong ext λ x → ∀-cong ext λ y →
+                                                      _↔_.to (⇔↔≃ ext (propositional ext _) (propositional ext _)) $
+                                                        record { to   = λ is → _≃_.is-equivalence $
+                                                                               with-other-function
+                                                                                 (
+      x P.≡ y                                                                      ↔⟨ inverse ≡↔≡ ⟩
+      x ≡ y                                                                        ↝⟨ ⟨ _ , is ⟩ ⟩
+      f x ≡ f y                                                                    ↔⟨ ≡↔≡ ⟩□
+      f x P.≡ f y                                                                  □)
+                                                                                 (P.cong f)
+                                                                                 (λ eq →
+      _↔_.to ≡↔≡ (cong f (_↔_.from ≡↔≡ eq))                                         ≡⟨ cong (_↔_.to ≡↔≡) cong≡cong ⟩
+      _↔_.to ≡↔≡ (_↔_.from ≡↔≡ (P.cong f eq))                                       ≡⟨ _↔_.right-inverse-of ≡↔≡ _ ⟩∎
+      P.cong f eq                                                                   ∎)
+                                                               ; from = λ is → _≃_.is-equivalence $
+                                                                               with-other-function
+                                                                                 (
+      x ≡ y                                                                        ↔⟨ ≡↔≡ ⟩
+      x P.≡ y                                                                      ↝⟨ ⟨ _ , is ⟩ ⟩
+      f x P.≡ f y                                                                  ↔⟨ inverse ≡↔≡ ⟩□
+      f x ≡ f y                                                                    □)
+                                                                                 (cong f)
+                                                                                 (λ eq →
+      _↔_.from ≡↔≡ (P.cong f (_↔_.to ≡↔≡ eq))                                       ≡⟨ sym cong≡cong ⟩
+      cong f (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ eq))                                         ≡⟨ cong (cong f) $ _↔_.left-inverse-of ≡↔≡ _ ⟩∎
+      cong f eq                                                                     ∎)
+                                                               }) ⟩
+  (∃ λ f → ∀ x y → Is-equivalence (P.cong f))     ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence↔Is-equivalence) ⟩
+  (∃ λ f → ∀ x y → PE.Is-equivalence (P.cong f))  ↝⟨ inverse $ ↔→↔ PM.Embedding-as-Σ ⟩□
+  PM.Embedding A B                                □
 
 -- The subst function for paths can be expressed in terms of the subst
 -- function for equality.
