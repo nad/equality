@@ -52,6 +52,22 @@ record Embedding {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
   equivalence : ∀ {x y} → (x ≡ y) ≃ (to x ≡ to y)
   equivalence = ⟨ _ , is-embedding _ _ ⟩
 
+-- The type family above could have been defined using Σ.
+
+Embedding-as-Σ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Embedding A B ↔ ∃ λ (f : A → B) → Is-embedding f
+Embedding-as-Σ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ emb → Embedding.to emb , Embedding.is-embedding emb
+      ; from = λ { (f , is) → record { to = f; is-embedding = is } }
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
 ------------------------------------------------------------------------
 -- Preorder
 
