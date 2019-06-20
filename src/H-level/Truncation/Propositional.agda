@@ -104,13 +104,17 @@ rec B-prop f (truncation-is-proposition′ x y i) =
   ; left-inverse-of = λ _ → truncation-is-proposition _ _
   }
 
--- The truncation operator preserves logical equivalences.
+-- If A and B are logically equivalent, then functions of any kind can
+-- be constructed from ∥ A ∥ to ∥ B ∥.
 
-∥∥-cong-⇔ : A ⇔ B → ∥ A ∥ ⇔ ∥ B ∥
-∥∥-cong-⇔ A⇔B = record
-  { to   = ∥∥-map (_⇔_.to   A⇔B)
-  ; from = ∥∥-map (_⇔_.from A⇔B)
-  }
+∥∥-cong-⇔ : ∀ {k} → A ⇔ B → ∥ A ∥ ↝[ k ] ∥ B ∥
+∥∥-cong-⇔ A⇔B =
+  from-equivalence $
+  _↠_.from (≃↠⇔ truncation-is-proposition truncation-is-proposition)
+    (record
+       { to   = ∥∥-map (_⇔_.to   A⇔B)
+       ; from = ∥∥-map (_⇔_.from A⇔B)
+       })
 
 -- The truncation operator preserves bijections.
 
