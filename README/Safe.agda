@@ -271,6 +271,10 @@ import Quotient.Families-of-equivalence-classes
 
 import Quotient
 
+-- A type for values that should be erased at run-time.
+
+import Erased
+
 -- Integers.
 
 import Integer
