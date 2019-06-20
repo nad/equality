@@ -36,6 +36,8 @@ private
     open Prelude public using (suc; _+_)
 
   variable
+    A      : Set
+    bs p   : A
     @0 m n : ℕ
 
 ------------------------------------------------------------------------
@@ -122,88 +124,63 @@ Bin n = ∥ (∃ λ (b : Bin′) → Erased (to-ℕ′ b ≡ n)) ∥
 ------------------------------------------------------------------------
 -- Conversion functions
 
--- Converts unary natural numbers to binary natural numbers.
-
-from-ℕ : ∀ n → Bin n
-from-ℕ n = ∣ _↠_.from Bin′↠ℕ n , [ _↠_.right-inverse-of Bin′↠ℕ n ] ∣
-
--- Converts binary natural numbers to unary natural numbers.
-
-to-ℕ : Bin n → ℕ
-to-ℕ {n = n} =
-  _↔_.to (constant-function↔∥inhabited∥⇒inhabited ℕ-set)
-    ( to-ℕ′ ∘ proj₁
-    , (λ { (bs₁ , [ p₁ ]) (bs₂ , [ p₂ ]) →
-           Dec→Stable (to-ℕ′ bs₁ Nat.≟ to-ℕ′ bs₂)
-             [ to-ℕ′ bs₁  ≡⟨ p₁ ⟩
-               n          ≡⟨ sym p₂ ⟩∎
-               to-ℕ′ bs₂  ∎
-             ]
-         })
-    )
-
--- The conversion function maps elements in Bin n to n.
-
-to-ℕ≡ : {n : ℕ} (b : Bin n) → to-ℕ b ≡ n
-to-ℕ≡ {n = n} b =      $⟨ Trunc.elim (λ b → Erased (to-ℕ b ≡ n))
-                                     (λ _ → H-level-Erased 1 ℕ-set)
-                                     proj₂ b ⟩
-  Erased (to-ℕ b ≡ n)  ↝⟨ Dec→Stable (to-ℕ b Nat.≟ n) ⟩□
-  to-ℕ b ≡ n           □
-
 -- Bin n is isomorphic to the type of natural numbers equal (with
 -- erased equality proofs) to n.
 
 Bin↔Σℕ : Bin n ↔ ∃ λ m → Erased (m ≡ n)
-Bin↔Σℕ {n = n} = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ b → to-ℕ b , [ to-ℕ≡ b ]
-      ; from = λ { (m , m≡n) → cast m≡n (from-ℕ m) }
-      }
-    ; right-inverse-of = λ _ →                            $⟨ [ singleton-contractible _ ] ⟩
-        Erased (Contractible (Singleton n))               ↝⟨ (λ { [ hyp ] → [ H-level-cong _ 0 (∃-cong λ _ → inverse $ erased Erased↔) hyp ] }) ⟩
-        Erased (Contractible (∃ λ m → Erased (m ≡ n)))    ↝⟨ Erased-cong (mono₁ 0) ⟩
-        Erased (Is-proposition (∃ λ m → Erased (m ≡ n)))  ↝⟨ Erased-cong (λ hyp → hyp _ _) ⟩
-        Erased (_ ≡ _)                                    ↝⟨ Dec→Stable $
-                                                               Σ.Dec._≟_ Nat._≟_ (λ _ _ → yes (H-level-Erased 1 ℕ-set _ _)) _ _ ⟩□
-        _ ≡ _                                             □
-    }
-  ; left-inverse-of = λ _ → truncation-is-proposition _ _
-  }
+Bin↔Σℕ {n = n} =
+  ∥ (∃ λ (b : Bin′) → Erased (to-ℕ′ b ≡ n)) ∥  ↝⟨ ∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences Bin′↠ℕ λ _ → F.id) ⟩
+  ∥ (∃ λ m → Erased (m ≡ n)) ∥                 ↝⟨ ∥∥↔ lemma ⟩□
+  (∃ λ m → Erased (m ≡ n))                     □
   where
-  cast : Erased (m ≡ n) → Bin m → Bin n
-  cast [ m≡n ] = ∥∥-map (Σ-map id λ { [ eq ] → [ trans eq m≡n ] })
-
-private
+  lemma : Is-proposition (∃ λ m → Erased (m ≡ n))
+  lemma (m₁ , [ m₁≡n ]) (m₂ , [ m₂≡n ]) = Σ-≡,≡→≡
+    (Dec→Stable (m₁ Nat.≟ m₂)
+       [ m₁  ≡⟨ m₁≡n ⟩
+         n   ≡⟨ sym m₂≡n ⟩∎
+         m₂  ∎
+       ])
+    (H-level-Erased 1 ℕ-set _ _)
 
   -- An alternative proof.
 
-  Bin↔Σℕ′ : Bin n ↔ ∃ λ m → Erased (m ≡ n)
-  Bin↔Σℕ′ {n = n} =
-    ∥ (∃ λ (b : Bin′) → Erased (to-ℕ′ b ≡ n)) ∥  ↝⟨ ∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences Bin′↠ℕ λ _ → F.id) ⟩
-    ∥ (∃ λ m → Erased (m ≡ n)) ∥                 ↝⟨ ∥∥↔ lemma ⟩□
-    (∃ λ m → Erased (m ≡ n))                     □
-    where
-    lemma : Is-proposition (∃ λ m → Erased (m ≡ n))
-    lemma (m₁ , [ m₁≡n ]) (m₂ , [ m₂≡n ]) = Σ-≡,≡→≡
-      (Dec→Stable (m₁ Nat.≟ m₂)
-         [ m₁  ≡⟨ m₁≡n ⟩
-           n   ≡⟨ sym m₂≡n ⟩∎
-           m₂  ∎
-         ])
-      (H-level-Erased 1 ℕ-set _ _)
+  lemma′ : Is-proposition (∃ λ m → Erased (m ≡ n))
+  lemma′ =                                             $⟨ [ singleton-contractible _ ] ⟩
+    Erased (Contractible (Singleton n))                ↝⟨ (λ { [ hyp ] → [ H-level-cong _ 0 (∃-cong λ _ → inverse $ erased Erased↔) hyp ] }) ⟩
+    Erased (Contractible (∃ λ m → Erased (m ≡ n)))     ↝⟨ Erased-cong (mono₁ 0) ⟩
+    Erased (Is-proposition (∃ λ m → Erased (m ≡ n)))   ↝⟨ (λ hyp p q → (_$ q) ∘ (_$ p) ⟨$⟩ hyp) ⟩
+    ((p q : ∃ λ m → Erased (m ≡ n)) → Erased (p ≡ q))  ↝⟨ (∀-cong _ λ p → ∀-cong _ λ q → Dec→Stable $
+                                                           Σ.Dec._≟_ Nat._≟_ (λ _ _ → yes (H-level-Erased 1 ℕ-set _ _)) p q) ⟩□
+    Is-proposition (∃ λ m → Erased (m ≡ n))            □
 
-    -- An alternative proof.
+-- Converts binary natural numbers to unary natural numbers.
 
-    lemma′ : Is-proposition (∃ λ m → Erased (m ≡ n))
-    lemma′ =                                             $⟨ [ singleton-contractible _ ] ⟩
-      Erased (Contractible (Singleton n))                ↝⟨ (λ { [ hyp ] → [ H-level-cong _ 0 (∃-cong λ _ → inverse $ erased Erased↔) hyp ] }) ⟩
-      Erased (Contractible (∃ λ m → Erased (m ≡ n)))     ↝⟨ Erased-cong (mono₁ 0) ⟩
-      Erased (Is-proposition (∃ λ m → Erased (m ≡ n)))   ↝⟨ (λ hyp p q → (_$ q) ∘ (_$ p) ⟨$⟩ hyp) ⟩
-      ((p q : ∃ λ m → Erased (m ≡ n)) → Erased (p ≡ q))  ↝⟨ (∀-cong _ λ p → ∀-cong _ λ q → Dec→Stable $
-                                                             Σ.Dec._≟_ Nat._≟_ (λ _ _ → yes (H-level-Erased 1 ℕ-set _ _)) p q) ⟩□
-      Is-proposition (∃ λ m → Erased (m ≡ n))            □
+to-ℕ : Bin n → ℕ
+to-ℕ = proj₁ ∘ _↔_.to Bin↔Σℕ
+
+-- The conversion function maps elements in Bin n to n.
+
+to-ℕ≡ : {n : ℕ} (b : Bin n) → to-ℕ b ≡ n
+to-ℕ≡ {n = n} b =      $⟨ proj₂ (_↔_.to Bin↔Σℕ b) ⟩
+  Erased (to-ℕ b ≡ n)  ↝⟨ Dec→Stable (to-ℕ b Nat.≟ n) ⟩□
+  to-ℕ b ≡ n           □
+
+-- Converts unary natural numbers to binary natural numbers.
+
+from-ℕ : ∀ n → Bin n
+from-ℕ n = _↔_.from Bin↔Σℕ (n , [ refl n ])
+
+private
+
+  -- The function to-ℕ computes in a reasonable way.
+
+  to-ℕ-∣∣≡ : to-ℕ ∣ bs , p ∣ ≡ _↠_.to Bin′↠ℕ bs
+  to-ℕ-∣∣≡ = refl _
+
+  -- The function from-ℕ computes in a reasonable way.
+
+  from-ℕ≡ : ∃ λ p → from-ℕ n ≡ ∣ _↠_.from Bin′↠ℕ n , p ∣
+  from-ℕ≡ = _ , refl _
 
 -- ∃ λ (n : Erased ℕ) → Bin (erased n) is isomorphic to the type of
 -- unary natural numbers.
