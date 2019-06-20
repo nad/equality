@@ -15,13 +15,16 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (suc) renaming (_+_ to _⊕_; _*_ to _⊛_)
 
 open import Bijection eq using (_↔_)
-open import Equality.Path.Isomorphisms eq using (ext)
+open import Equality.Decision-procedures eq
+open import Equality.Path.Isomorphisms eq
 import Equivalence eq as Eq
+open import Erased eq as Erased
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional eq as Trunc
 open import List eq
+open import Monad eq hiding (_⊛_)
 open import Nat.Solver eq
 open import Quotient eq
 open import Surjection eq using (_↠_)
@@ -33,9 +36,7 @@ private
     open Prelude public using (suc; _+_)
 
   variable
-    A   : Set
-    p   : A
-    m n : ℕ
+    @0 m n : ℕ
 
 ------------------------------------------------------------------------
 -- The underlying representation
@@ -115,12 +116,8 @@ private
 -- and truncated so that any two binary natural numbers that stand for
 -- the same natural number are seen as equal.
 
-Bin : ℕ → Set
-Bin n = ∥ (∃ λ (b : Bin′) → to-ℕ′ b ≡ n) ∥
-
-private
-  variable
-    bs : Bin′
+Bin : @0 ℕ → Set
+Bin n = ∥ (∃ λ (b : Bin′) → Erased (to-ℕ′ b ≡ n)) ∥
 
 ------------------------------------------------------------------------
 -- Conversion functions
@@ -128,91 +125,96 @@ private
 -- Converts unary natural numbers to binary natural numbers.
 
 from-ℕ : ∀ n → Bin n
-from-ℕ n = ∣ _↠_.from Bin′↠ℕ n , _↠_.right-inverse-of Bin′↠ℕ n ∣
+from-ℕ n = ∣ _↠_.from Bin′↠ℕ n , [ _↠_.right-inverse-of Bin′↠ℕ n ] ∣
 
 -- Converts binary natural numbers to unary natural numbers.
 
 to-ℕ : Bin n → ℕ
 to-ℕ {n = n} =
   _↔_.to (constant-function↔∥inhabited∥⇒inhabited ℕ-set)
-    (to-ℕ′ ∘ proj₁ , λ { (bs₁ , p₁) (bs₂ , p₂) →
-       to-ℕ′ bs₁  ≡⟨ p₁ ⟩
-       n          ≡⟨ sym p₂ ⟩∎
-       to-ℕ′ bs₂  ∎ })
-
-private
-
-  -- The function to-ℕ does not simply return the unary natural
-  -- number, it converts the binary natural number (at least if it is
-  -- applied to ∣ something ∣).
-
-  to-ℕ-∣∣ : to-ℕ ∣ bs , p ∣ ≡ to-ℕ′ bs
-  to-ℕ-∣∣ = refl _
+    ( to-ℕ′ ∘ proj₁
+    , (λ { (bs₁ , [ p₁ ]) (bs₂ , [ p₂ ]) →
+           Dec→Stable (to-ℕ′ bs₁ Nat.≟ to-ℕ′ bs₂)
+             [ to-ℕ′ bs₁  ≡⟨ p₁ ⟩
+               n          ≡⟨ sym p₂ ⟩∎
+               to-ℕ′ bs₂  ∎
+             ]
+         })
+    )
 
 -- The conversion function maps elements in Bin n to n.
 
-to-ℕ≡ : (b : Bin n) → to-ℕ b ≡ n
-to-ℕ≡ = Trunc.elim _
-  (λ _ → ℕ-set)
-  proj₂
+to-ℕ≡ : {n : ℕ} (b : Bin n) → to-ℕ b ≡ n
+to-ℕ≡ {n = n} b =      $⟨ Trunc.elim (λ b → Erased (to-ℕ b ≡ n))
+                                     (λ _ → H-level-Erased 1 ℕ-set)
+                                     proj₂ b ⟩
+  Erased (to-ℕ b ≡ n)  ↝⟨ Dec→Stable (to-ℕ b Nat.≟ n) ⟩□
+  to-ℕ b ≡ n           □
 
--- Bin n is isomorphic to the type of natural numbers equal to n.
+-- Bin n is isomorphic to the type of natural numbers equal (with
+-- erased equality proofs) to n.
 
-Bin↔Σℕ : Bin n ↔ ∃ (_≡ n)
-Bin↔Σℕ = record
+Bin↔Σℕ : Bin n ↔ ∃ λ m → Erased (m ≡ n)
+Bin↔Σℕ {n = n} = record
   { surjection = record
     { logical-equivalence = record
-      { to   = λ b → to-ℕ b , to-ℕ≡ b
-      ; from = λ { (m , m≡n) → subst Bin m≡n (from-ℕ m) }
+      { to   = λ b → to-ℕ b , [ to-ℕ≡ b ]
+      ; from = λ { (m , m≡n) → cast m≡n (from-ℕ m) }
       }
-    ; right-inverse-of = λ _ → mono₁ 0 (singleton-contractible _) _ _
+    ; right-inverse-of = λ _ →                            $⟨ [ singleton-contractible _ ] ⟩
+        Erased (Contractible (Singleton n))               ↝⟨ (λ { [ hyp ] → [ H-level-cong _ 0 (∃-cong λ _ → inverse $ erased Erased↔) hyp ] }) ⟩
+        Erased (Contractible (∃ λ m → Erased (m ≡ n)))    ↝⟨ Erased-cong (mono₁ 0) ⟩
+        Erased (Is-proposition (∃ λ m → Erased (m ≡ n)))  ↝⟨ Erased-cong (λ hyp → hyp _ _) ⟩
+        Erased (_ ≡ _)                                    ↝⟨ Dec→Stable $
+                                                               Σ.Dec._≟_ Nat._≟_ (λ _ _ → yes (H-level-Erased 1 ℕ-set _ _)) _ _ ⟩□
+        _ ≡ _                                             □
     }
   ; left-inverse-of = λ _ → truncation-is-proposition _ _
   }
+  where
+  cast : Erased (m ≡ n) → Bin m → Bin n
+  cast [ m≡n ] = ∥∥-map (Σ-map id λ { [ eq ] → [ trans eq m≡n ] })
 
 private
-
-  -- The forward direction of Bin↔Σℕ does not simply return the unary
-  -- natural number (along with a reflexivity proof), it converts the
-  -- binary natural number (at least if it is applied to
-  -- ∣ something ∣).
-
-  to-Bin↔Σℕ : proj₁ (_↔_.to Bin↔Σℕ ∣ bs , p ∣) ≡ to-ℕ′ bs
-  to-Bin↔Σℕ = refl _
 
   -- An alternative proof.
 
-  Bin↔Σℕ′ : Bin n ↔ ∃ (_≡ n)
+  Bin↔Σℕ′ : Bin n ↔ ∃ λ m → Erased (m ≡ n)
   Bin↔Σℕ′ {n = n} =
-    ∥ (∃ λ (b : Bin′) → to-ℕ′ b ≡ n) ∥  ↝⟨ ∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences Bin′↠ℕ λ _ → F.id) ⟩
-    ∥ (∃ λ m → m ≡ n) ∥                 ↝⟨ ∥∥↔ $ mono₁ 0 $ singleton-contractible _ ⟩□
-    (∃ λ m → m ≡ n)                     □
+    ∥ (∃ λ (b : Bin′) → Erased (to-ℕ′ b ≡ n)) ∥  ↝⟨ ∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences Bin′↠ℕ λ _ → F.id) ⟩
+    ∥ (∃ λ m → Erased (m ≡ n)) ∥                 ↝⟨ ∥∥↔ lemma ⟩□
+    (∃ λ m → Erased (m ≡ n))                     □
+    where
+    lemma : Is-proposition (∃ λ m → Erased (m ≡ n))
+    lemma (m₁ , [ m₁≡n ]) (m₂ , [ m₂≡n ]) = Σ-≡,≡→≡
+      (Dec→Stable (m₁ Nat.≟ m₂)
+         [ m₁  ≡⟨ m₁≡n ⟩
+           n   ≡⟨ sym m₂≡n ⟩∎
+           m₂  ∎
+         ])
+      (H-level-Erased 1 ℕ-set _ _)
 
-  -- The forward direction of Bin↔Σℕ′ does not simply return the unary
-  -- natural number (along with a reflexivity proof), it converts the
-  -- binary natural number (at least if it is applied to
-  -- ∣ something ∣).
+    -- An alternative proof.
 
-  to-Bin↔Σℕ′ : proj₁ (_↔_.to Bin↔Σℕ′ ∣ bs , p ∣) ≡ to-ℕ′ bs
-  to-Bin↔Σℕ′ = refl _
+    lemma′ : Is-proposition (∃ λ m → Erased (m ≡ n))
+    lemma′ =                                             $⟨ [ singleton-contractible _ ] ⟩
+      Erased (Contractible (Singleton n))                ↝⟨ (λ { [ hyp ] → [ H-level-cong _ 0 (∃-cong λ _ → inverse $ erased Erased↔) hyp ] }) ⟩
+      Erased (Contractible (∃ λ m → Erased (m ≡ n)))     ↝⟨ Erased-cong (mono₁ 0) ⟩
+      Erased (Is-proposition (∃ λ m → Erased (m ≡ n)))   ↝⟨ (λ hyp p q → (_$ q) ∘ (_$ p) ⟨$⟩ hyp) ⟩
+      ((p q : ∃ λ m → Erased (m ≡ n)) → Erased (p ≡ q))  ↝⟨ (∀-cong _ λ p → ∀-cong _ λ q → Dec→Stable $
+                                                             Σ.Dec._≟_ Nat._≟_ (λ _ _ → yes (H-level-Erased 1 ℕ-set _ _)) p q) ⟩□
+      Is-proposition (∃ λ m → Erased (m ≡ n))            □
 
--- ∃ Bin is isomorphic to the type of natural numbers.
+-- ∃ λ (n : Erased ℕ) → Bin (erased n) is isomorphic to the type of
+-- unary natural numbers.
 
-∃Bin↔ℕ : ∃ Bin ↔ ℕ
-∃Bin↔ℕ =
-  ∃ Bin                    ↝⟨ (∃-cong λ _ → Bin↔Σℕ) ⟩
-  (∃ λ n → ∃ λ m → m ≡ n)  ↝⟨ ∃-comm ⟩
-  (∃ λ m → ∃ λ n → m ≡ n)  ↝⟨ drop-⊤-right (λ _ → _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _)) ⟩□
-  ℕ                        □
-
-private
-
-  -- The forward direction of ∃Bin↔ℕ does not simply return the unary
-  -- natural number, it converts the binary natural number (at least
-  -- if it is applied to (something , ∣ something ∣)).
-
-  to-∃Bin↔ℕ : _↔_.to ∃Bin↔ℕ (n , ∣ bs , p ∣) ≡ to-ℕ′ bs
-  to-∃Bin↔ℕ = refl _
+∃Bin∘erased↔ℕ : (∃ λ (n : Erased ℕ) → Bin (erased n)) ↔ ℕ
+∃Bin∘erased↔ℕ =
+  (∃ λ (n : Erased ℕ) → Bin (erased n))                 ↝⟨ (∃-cong λ _ → Bin↔Σℕ) ⟩
+  (∃ λ (n : Erased ℕ) → ∃ λ m → Erased (m ≡ erased n))  ↝⟨ ∃-comm ⟩
+  (∃ λ m → ∃ λ (n : Erased ℕ) → Erased (m ≡ erased n))  ↝⟨ (∃-cong λ _ → ∃-cong λ _ → Erased-≡↔[]≡[]) ⟩
+  (∃ λ m → ∃ λ (n : Erased ℕ) → [ m ] ≡ n)              ↝⟨ drop-⊤-right (λ _ → _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _)) ⟩□
+  ℕ                                                     □
 
 ------------------------------------------------------------------------
 -- Arithmetic
@@ -222,25 +224,26 @@ private
   -- A helper function that can be used to define unary operators.
 
   unary :
-    {f : ℕ → ℕ}
+    {@0 f : ℕ → ℕ}
     (g : Bin′ → Bin′) →
-    (∀ b → to-ℕ′ (g b) ≡ f (to-ℕ′ b)) →
+    @0 (∀ b → to-ℕ′ (g b) ≡ f (to-ℕ′ b)) →
     Bin n → Bin (f n)
   unary {n = n} {f = f} g hyp = Trunc.rec
     truncation-is-proposition
     (uncurry λ b p →
        ∣ g b
-       , (to-ℕ′ (g b)  ≡⟨ hyp _ ⟩
-          f (to-ℕ′ b)  ≡⟨ cong f p ⟩∎
-          f n          ∎)
+       , [ to-ℕ′ (g b)  ≡⟨ hyp _ ⟩
+           f (to-ℕ′ b)  ≡⟨ cong f (erased p) ⟩∎
+           f n          ∎
+         ]
        ∣)
 
   -- A helper function that can be used to define binary operators.
 
   binary :
-    {f : ℕ → ℕ → ℕ}
+    {@0 f : ℕ → ℕ → ℕ}
     (g : Bin′ → Bin′ → Bin′) →
-    (∀ b c → to-ℕ′ (g b c) ≡ f (to-ℕ′ b) (to-ℕ′ c)) →
+    @0 (∀ b c → to-ℕ′ (g b c) ≡ f (to-ℕ′ b) (to-ℕ′ c)) →
     Bin m → Bin n → Bin (f m n)
   binary {m = m} {n = n} {f = f} g hyp = Trunc.rec
     (Π-closure ext 1 λ _ →
@@ -249,9 +252,10 @@ private
        truncation-is-proposition
        (uncurry λ c q →
           ∣ g b c
-          , (to-ℕ′ (g b c)          ≡⟨ hyp _ _ ⟩
-             f (to-ℕ′ b) (to-ℕ′ c)  ≡⟨ cong₂ f p q ⟩∎
-             f m n                  ∎)
+          , [ to-ℕ′ (g b c)          ≡⟨ hyp _ _ ⟩
+              f (to-ℕ′ b) (to-ℕ′ c)  ≡⟨ cong₂ f (erased p) (erased q) ⟩∎
+              f m n                  ∎
+            ]
           ∣))
 
 -- The number's successor.
