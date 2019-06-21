@@ -2659,6 +2659,27 @@ private
   }
 
 ------------------------------------------------------------------------
+-- Lemmas related to _⇔_
+
+-- _⇔_ preserves logical equivalences.
+
+⇔-cong-⇔ :
+  ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+  A ⇔ B → C ⇔ D → (A ⇔ C) ⇔ (B ⇔ D)
+⇔-cong-⇔ {A = A} {B = B} {C = C} {D = D} A⇔B C⇔D = record
+  { to   = λ A⇔C →
+             B  ↝⟨ inverse A⇔B ⟩
+             A  ↝⟨ A⇔C ⟩
+             C  ↝⟨ C⇔D ⟩□
+             D  □
+  ; from = λ B⇔D →
+             A  ↝⟨ A⇔B ⟩
+             B  ↝⟨ B⇔D ⟩
+             D  ↝⟨ inverse C⇔D ⟩□
+             C  □
+  }
+
+------------------------------------------------------------------------
 -- Lemmas related to _≡_
 
 -- The following two lemmas are based on Example 2.4.8 in the HoTT
