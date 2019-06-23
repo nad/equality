@@ -601,7 +601,7 @@ Very-stable-⊥ =
 Stable-Π : (∀ x → Stable-[ k ] (P x)) → Stable-[ k ] ((x : A) → P x)
 Stable-Π {k = k} {P = P} s =
   Erased (∀ x → P x)    ↔⟨ Erased-Π↔Π ⟩
-  (∀ x → Erased (P x))  ↝⟨ (∀-cong (forget-ext? k ext) s) ⟩□
+  (∀ x → Erased (P x))  ↝⟨ ∀-cong (forget-ext? k ext) s ⟩□
   (∀ x → P x)           □
 
 -- Very-stable is closed under Π A.
@@ -775,7 +775,7 @@ Very-stable-H-level {A = A} {n = n} =
 
 Is-proposition→Is-embedding-[] :
   Is-proposition A → Is-embedding ([_] {A = A})
-Is-proposition→Is-embedding-[] {A = A} prop =
+Is-proposition→Is-embedding-[] prop =
   _≃_.to (Emb.Injective≃Is-embedding ext set (H-level-Erased 2 set) [_])
     (λ _ → prop _ _)
   where
