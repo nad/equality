@@ -15,7 +15,7 @@ import Equality.Path as P
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding ([_,_])
 
-open import Bijection eq using (_↔_)
+open import Bijection eq as Bijection using (_↔_)
 open import Embedding eq as Emb using (Embedding; Is-embedding)
 import Embedding P.equality-with-J as PE
 open import Equality.Decidable-UIP eq
@@ -630,11 +630,33 @@ Stable-Π {k = k} {P = P} s =
   (∀ x → Erased (P x))  ↝⟨ ∀-cong (forget-ext? k ext) s ⟩□
   (∀ x → P x)           □
 
+-- A variant for equality.
+
+Stable-Π-≡ :
+  {f g : (x : A) → P x} →
+  (∀ x → Stable-[ k ] (f x ≡ g x)) →
+  Stable-[ k ] (f ≡ g)
+Stable-Π-≡ {k = k} {f = f} {g = g} =
+  (∀ x → Stable-[ k ] (f x ≡ g x))  ↝⟨ Stable-Π ⟩
+  Stable-[ k ] (∀ x → f x ≡ g x)    ↝⟨ Stable-map-↔ (_≃_.bijection $ Eq.extensionality-isomorphism ext) ⟩□
+  Stable-[ k ] (f ≡ g)              □
+
 -- Very-stable is closed under Π A.
 
 Very-stable-Π : (∀ x → Very-stable (P x)) → Very-stable ((x : A) → P x)
 Very-stable-Π s = _≃_.is-equivalence $
   inverse $ Stable-Π $ λ x → inverse Eq.⟨ _ , s x ⟩
+
+-- A variant for equality.
+
+Very-stable-Π-≡ :
+  {f g : (x : A) → P x} →
+  (∀ x → Very-stable (f x ≡ g x)) →
+  Very-stable (f ≡ g)
+Very-stable-Π-≡ {f = f} {g = g} =
+  (∀ x → Very-stable (f x ≡ g x))  ↝⟨ Very-stable-Π ⟩
+  Very-stable (∀ x → f x ≡ g x)    ↔⟨ Very-stable-cong (Eq.extensionality-isomorphism ext) ⟩□
+  Very-stable (f ≡ g)              □
 
 -- Some closure properties for Σ.
 
@@ -647,6 +669,20 @@ Very-stable-Stable-Σ {A = A} {P = P} s s′ =
   Σ (Erased A) (λ x → Erased (P (erased x)))  ↝⟨ Σ-cong-contra Eq.⟨ _ , s ⟩ s′ ⟩□
   Σ A P                                       □
 
+Very-stable-Stable-Σ-≡ :
+  {p q : Σ A P} →
+  Very-stable (proj₁ p ≡ proj₁ q) →
+  (∀ eq → Stable-[ k ] (subst P eq (proj₂ p) ≡ proj₂ q)) →
+  Stable-[ k ] (p ≡ q)
+Very-stable-Stable-Σ-≡ {P = P} {k = k} {p = p} {q = q} = curry (
+  Very-stable (proj₁ p ≡ proj₁ q) ×
+  (∀ eq → Stable-[ k ] (subst P eq (proj₂ p) ≡ proj₂ q))  ↝⟨ uncurry Very-stable-Stable-Σ ⟩
+
+  Stable-[ k ] (∃ λ (eq : proj₁ p ≡ proj₁ q) →
+                    subst P eq (proj₂ p) ≡ proj₂ q)       ↝⟨ Stable-map-↔ Bijection.Σ-≡,≡↔≡ ⟩□
+
+  Stable-[ k ] (p ≡ q)                                    □)
+
 Stable-Σ :
   (s : Stable A) →
   (∀ x → Erased (P (erased x)) → P (s x)) →
@@ -655,6 +691,23 @@ Stable-Σ {A = A} {P = P} s s′ =
   Erased (Σ A P)                              ↔⟨ Erased-Σ↔Σ ⟩
   Σ (Erased A) (λ x → Erased (P (erased x)))  ↝⟨ Σ-map s (s′ _) ⟩□
   Σ A P                                       □
+
+Stable-Σ-≡ :
+  {p q : Σ A P} →
+  (s : Stable (proj₁ p ≡ proj₁ q)) →
+  (∀ eq →
+   Erased (subst P (erased eq) (proj₂ p) ≡ proj₂ q) →
+   subst P (s eq) (proj₂ p) ≡ proj₂ q) →
+  Stable (p ≡ q)
+Stable-Σ-≡ {P = P} {p = p} {q = q} = curry (
+  (∃ λ (s : Stable (proj₁ p ≡ proj₁ q)) →
+     ∀ eq → Erased (subst P (erased eq) (proj₂ p) ≡ proj₂ q) →
+            subst P (s eq) (proj₂ p) ≡ proj₂ q)                 ↝⟨ uncurry Stable-Σ ⟩
+
+  Stable (∃ λ (eq : proj₁ p ≡ proj₁ q) →
+              subst P eq (proj₂ p) ≡ proj₂ q)                   ↝⟨ Stable-map-↔ Bijection.Σ-≡,≡↔≡ ⟩□
+
+  Stable (p ≡ q)                                                □)
 
 -- Very-stable is closed under Σ.
 
@@ -667,6 +720,22 @@ Very-stable-Σ {A = A} {P = P} s s′ = _≃_.is-equivalence (
   Σ (Erased A) (λ x → Erased (P (erased x)))  ↔⟨ inverse Erased-Σ↔Σ ⟩□
   Erased (Σ A P)                              □)
 
+-- A variant for equality.
+
+Very-stable-Σ-≡ :
+  {p q : Σ A P} →
+  Very-stable (proj₁ p ≡ proj₁ q) →
+  (∀ eq → Very-stable (subst P eq (proj₂ p) ≡ proj₂ q)) →
+  Very-stable (p ≡ q)
+Very-stable-Σ-≡ {P = P} {p = p} {q = q} = curry (
+  Very-stable (proj₁ p ≡ proj₁ q) ×
+  (∀ eq → Very-stable (subst P eq (proj₂ p) ≡ proj₂ q))  ↝⟨ uncurry Very-stable-Σ ⟩
+
+  Very-stable (∃ λ (eq : proj₁ p ≡ proj₁ q) →
+                   subst P eq (proj₂ p) ≡ proj₂ q)       ↔⟨ Very-stable-cong $ Eq.↔⇒≃ Bijection.Σ-≡,≡↔≡ ⟩□
+
+  Very-stable (p ≡ q)                                    □)
+
 -- Stable-[ k ] is closed under _×_.
 
 Stable-× : Stable-[ k ] A → Stable-[ k ] B → Stable-[ k ] (A × B)
@@ -675,11 +744,35 @@ Stable-× {A = A} {B = B} s s′ =
   Erased A × Erased B  ↝⟨ s ×-cong s′ ⟩□
   A × B                □
 
+-- A variant for equality.
+
+Stable-×-≡ :
+  {p q : A × B} →
+  Stable-[ k ] (proj₁ p ≡ proj₁ q) →
+  Stable-[ k ] (proj₂ p ≡ proj₂ q) →
+  Stable-[ k ] (p ≡ q)
+Stable-×-≡ {k = k} {p = p} {q = q} = curry (
+  Stable-[ k ] (proj₁ p ≡ proj₁ q) × Stable-[ k ] (proj₂ p ≡ proj₂ q)  ↝⟨ uncurry Stable-× ⟩
+  Stable-[ k ] (proj₁ p ≡ proj₁ q × proj₂ p ≡ proj₂ q)                 ↝⟨ Stable-map-↔ ≡×≡↔≡ ⟩□
+  Stable-[ k ] (p ≡ q)                                                 □)
+
 -- Very-stable is closed under _×_.
 
 Very-stable-× : Very-stable A → Very-stable B → Very-stable (A × B)
 Very-stable-× s s′ = _≃_.is-equivalence $
   inverse $ Stable-× (inverse Eq.⟨ _ , s ⟩) (inverse Eq.⟨ _ , s′ ⟩)
+
+-- A variant for equality.
+
+Very-stable-×-≡ :
+  {p q : A × B} →
+  Very-stable (proj₁ p ≡ proj₁ q) →
+  Very-stable (proj₂ p ≡ proj₂ q) →
+  Very-stable (p ≡ q)
+Very-stable-×-≡ {p = p} {q = q} = curry (
+  Very-stable (proj₁ p ≡ proj₁ q) × Very-stable (proj₂ p ≡ proj₂ q)  ↝⟨ uncurry Very-stable-× ⟩
+  Very-stable (proj₁ p ≡ proj₁ q × proj₂ p ≡ proj₂ q)                ↔⟨ Very-stable-cong $ Eq.↔⇒≃ ≡×≡↔≡ ⟩□
+  Very-stable (p ≡ q)                                                □)
 
 -- Very-stable is closed under W.
 
@@ -712,6 +805,21 @@ Very-stable-W {A = A} {P = P} s =
   []∘from : ∀ x → [ from x ] ≡ x
   []∘from [ x ] = []-cong [ from∘[] x ]
 
+-- A variant for equality.
+
+Very-stable-W-≡ :
+  {x y : W A P} →
+  Very-stable (headᵂ x ≡ headᵂ y) →
+  (∀ eq → Very-stable (∀ i → tailᵂ x i ≡ tailᵂ y (subst P eq i))) →
+  Very-stable (x ≡ y)
+Very-stable-W-≡ {P = P} {x = sup x f} {y = sup y g} = curry (
+  Very-stable (x ≡ y) ×
+  (∀ eq → Very-stable (∀ i → f i ≡ g (subst P eq i)))            ↝⟨ uncurry Very-stable-Σ ⟩
+
+  Very-stable (∃ λ (eq : x ≡ y) → ∀ i → f i ≡ g (subst P eq i))  ↔⟨ Very-stable-cong $ Eq.W-≡,≡≃≡ ext ⟩□
+
+  Very-stable (sup x f ≡ sup y g)                                □)
+
 -- Stable-[ k ] is closed under ↑ ℓ.
 
 Stable-↑ : Stable-[ k ] A → Stable-[ k ] (↑ ℓ A)
@@ -720,11 +828,42 @@ Stable-↑ {A = A} s =
   ↑ _ (Erased A)  ↝⟨ ↑-cong s ⟩□
   ↑ _ A           □
 
+-- A variant for equality.
+
+Stable-↑-≡ :
+  Stable-[ k ] (lower {ℓ = ℓ} x ≡ lower y) →
+  Stable-[ k ] (x ≡ y)
+Stable-↑-≡ {k = k} {x = x} {y = y} =
+  Stable-[ k ] (lower x ≡ lower y)  ↝⟨ Stable-map-↔ (_≃_.bijection $ Eq.≃-≡ $ Eq.↔⇒≃ $ Bijection.↑↔) ⟩□
+  Stable-[ k ] (x ≡ y)              □
+
 -- Very-stable is closed under ↑ ℓ.
 
 Very-stable-↑ : Very-stable A → Very-stable (↑ ℓ A)
 Very-stable-↑ s = _≃_.is-equivalence $
   inverse $ Stable-↑ $ inverse Eq.⟨ _ , s ⟩
+
+-- A variant for equality.
+
+Very-stable-↑-≡ :
+  Very-stable (lower {ℓ = ℓ} x ≡ lower y) →
+  Very-stable (x ≡ y)
+Very-stable-↑-≡ {x = x} {y = y} =
+  Very-stable (lower x ≡ lower y)  ↔⟨ Very-stable-cong (Eq.≃-≡ $ Eq.↔⇒≃ $ Bijection.↑↔) ⟩□
+  Very-stable (x ≡ y)              □
+
+-- A closure property for _≡_.
+
+Stable-≡ :
+  {x y : A} →
+  (s : Stable A) →
+  (∀ x → s [ x ] ≡ x) →
+  Stable (x ≡ y)
+Stable-≡ {x = x} {y = y} s hyp =
+  Erased (x ≡ y)     ↔⟨ Erased-≡↔[]≡[] ⟩
+  [ x ] ≡ [ y ]      ↝⟨ cong s ⟩
+  s [ x ] ≡ s [ y ]  ↝⟨ (λ eq → trans (sym (hyp x)) (trans eq (hyp y))) ⟩□
+  x ≡ y              □
 
 private
 
