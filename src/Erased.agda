@@ -1079,3 +1079,28 @@ erased-singleton-with-erased-center-contractible {x = x} s =
   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  ↝⟨ Trunc.∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences A↠B λ _ → F.id) ⟩
   ∥ Erased-singleton y ∥                         ↝⟨ Trunc.∥∥↔ (erased-singleton-with-erased-center-propositional s) ⟩□
   Erased-singleton y                             □
+
+------------------------------------------------------------------------
+-- Another lemma
+
+-- [_] can be "pushed" through subst.
+
+push-subst-[] :
+  {@0 P : A → Set p} {@0 p : P x} {x≡y : x ≡ y} →
+  subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ subst P x≡y p ]
+push-subst-[] {P = P} {p = p} = elim¹
+  (λ x≡y → subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ subst P x≡y p ])
+  (subst (λ x → Erased (P x)) (refl _) [ p ]  ≡⟨ subst-refl _ _ ⟩
+   [ p ]                                      ≡⟨ []-cong [ sym $ subst-refl _ _ ] ⟩∎
+   [ subst P (refl _) p ]                     ∎)
+  _
+
+private
+
+  -- One can prove the previous lemma very easily when path equality
+  -- is used.
+
+  push-subst-[]′ :
+    {@0 P : A → Set p} {@0 p : P x} {x≡y : x P.≡ y} →
+    P.subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ P.subst P x≡y p ]
+  push-subst-[]′ = refl _
