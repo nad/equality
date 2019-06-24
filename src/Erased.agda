@@ -534,6 +534,21 @@ Decidable-equality→Very-stable dec =
 ------------------------------------------------------------------------
 -- Preservation lemmas related to Stable, Stable-[_] and Very-stable
 
+-- A kind of map function for Stable-[_].
+
+Stable-map : A ↝[ k ] B → B ↝[ k ] A → Stable-[ k ] A → Stable-[ k ] B
+Stable-map {A = A} {B = B} A↝B B↝A s =
+  Erased B  ↝⟨ Erased-cong B↝A ⟩
+  Erased A  ↝⟨ s ⟩
+  A         ↝⟨ A↝B ⟩□
+  B         □
+
+-- A variant of Stable-map.
+
+Stable-map-↔ : A ↔ B → Stable-[ k ] A → Stable-[ k ] B
+Stable-map-↔ A↔B =
+  Stable-map (from-isomorphism A↔B) (from-isomorphism $ inverse A↔B)
+
 -- Stable preserves some kinds of functions (those that are
 -- "symmetric").
 
