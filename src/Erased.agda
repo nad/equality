@@ -286,6 +286,25 @@ Erased-≡↔[]≡[] {x = x} {y = y} =
   [ x ] P.≡ [ y ]   ↝⟨ inverse ≡↔≡ ⟩□
   [ x ] ≡ [ y ]     □
 
+-- Some lemmas related to Erased-≡↔[]≡[].
+
+to-Erased-≡↔[]≡[] :
+  {A : Set a} {x y : A} {x≡y : x ≡ y} →
+  _↔_.to Erased-≡↔[]≡[] [ x≡y ] ≡ cong [_] x≡y
+to-Erased-≡↔[]≡[] {x≡y = x≡y} =
+  _↔_.from ≡↔≡ (P.cong [_] (_↔_.to ≡↔≡ x≡y))  ≡⟨ sym cong≡cong ⟩
+  cong [_] (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ x≡y))    ≡⟨ cong (cong [_]) $ _↔_.left-inverse-of ≡↔≡ x≡y ⟩∎
+  cong [_] x≡y                                ∎
+
+from-Erased-≡↔[]≡[] :
+  {@0 A : Set a} {@0 x y : A} {@0 x≡y : [ x ] ≡ [ y ]} →
+  _↔_.from Erased-≡↔[]≡[] x≡y ≡ [ cong erased x≡y ]
+from-Erased-≡↔[]≡[] {x≡y = x≡y} = []-cong
+  [ _↔_.from ≡↔≡ (P.cong erased (_↔_.to ≡↔≡ x≡y))  ≡⟨ sym cong≡cong ⟩
+    cong erased (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ x≡y))    ≡⟨ cong (cong erased) $ _↔_.left-inverse-of ≡↔≡ x≡y ⟩∎
+    cong erased x≡y                                ∎
+  ]
+
 module _ {@0 A : Set a} {@0 B : Set b} where
 
   private
