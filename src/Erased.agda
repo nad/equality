@@ -22,11 +22,11 @@ open import Equality.Decidable-UIP eq
 open import Equality.Path.Isomorphisms eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
-open import Function-universe eq hiding (id; _∘_)
+open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional eq as Trunc
-  using (Surjective; ∣_∣)
+  using (∥_∥; Surjective)
 open import Injection eq using (_↣_)
 open import Monad eq
 open import Surjection eq using (_↠_)
@@ -985,3 +985,78 @@ Very-stable→Surjective-[] {A = A} =
 Erased-Surjective-[] : Erased (Surjective ([_] {A = A}))
 Erased-Surjective-[] =
   [ Very-stable→Surjective-[] (erased Erased-Very-stable) ]
+
+------------------------------------------------------------------------
+-- Erased singletons
+
+-- A variant of the Singleton type family with erased equality proofs.
+
+Erased-singleton : {A : Set a} → @0 A → Set a
+Erased-singleton x = ∃ λ y → Erased (y ≡ x)
+
+-- The type of triples consisting of two values of type A, one erased,
+-- and an erased proof of equality of the two values is isomorphic to
+-- A.
+
+Σ-Erased-Erased-singleton↔ :
+  (∃ λ (x : Erased A) → Erased-singleton (erased x)) ↔ A
+Σ-Erased-Erased-singleton↔ {A = A} =
+  (∃ λ (x : Erased A) → ∃ λ y → Erased (y ≡ erased x))  ↝⟨ ∃-comm ⟩
+  (∃ λ y → ∃ λ (x : Erased A) → Erased (y ≡ erased x))  ↝⟨ (∃-cong λ _ → inverse Erased-Σ↔Σ) ⟩
+  (∃ λ y → Erased (∃ λ (x : A) → y ≡ x))                ↝⟨ (∃-cong λ _ → Erased-cong (_⇔_.to contractible⇔↔⊤ (other-singleton-contractible _))) ⟩
+  A × Erased ⊤                                          ↝⟨ drop-⊤-right (λ _ → Erased-⊤↔⊤) ⟩□
+  A                                                     □
+
+-- If equality is very stable for A, then Erased-singleton x is
+-- contractible for x : A.
+
+erased-singleton-contractible :
+  {x : A} →
+  ({u v : A} → Very-stable (u ≡ v)) →
+  Contractible (Erased-singleton x)
+erased-singleton-contractible {x = x} s =
+                                     $⟨ singleton-contractible x ⟩
+  Contractible (Singleton x)         ↝⟨ H-level-cong _ 0 (∃-cong λ _ → Eq.⟨ _ , s ⟩) ⦂ (_ → _) ⟩□
+  Contractible (Erased-singleton x)  □
+
+-- If equality is very stable for A, and x : A is erased, then
+-- Erased-singleton x is a proposition.
+
+erased-singleton-with-erased-center-propositional :
+  {@0 x : A} →
+  ({u v : A} → Very-stable (u ≡ v)) →
+  Is-proposition (Erased-singleton x)
+erased-singleton-with-erased-center-propositional {x = x} s =
+                                                 $⟨ [ erased-singleton-contractible s ] ⟩
+  Erased (Contractible (Erased-singleton x))     ↝⟨ Erased-cong (mono₁ 0) ⟩
+  Erased (Is-proposition (Erased-singleton x))   ↝⟨ (λ hyp p q → (_$ q) ∘ (_$ p) ⟨$⟩ hyp) ⟩
+  ((p q : Erased-singleton x) → Erased (p ≡ q))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → Very-stable→Stable $
+                                                     Very-stable-Σ-≡ s λ _ → Very-stable-≡ Very-stable-Erased) ⟩□
+  Is-proposition (Erased-singleton x)            □
+
+-- If A is very stable, and x : A is erased, then Erased-singleton x
+-- is contractible.
+
+erased-singleton-with-erased-center-contractible :
+  {@0 x : A} →
+  Very-stable A →
+  Contractible (Erased-singleton x)
+erased-singleton-with-erased-center-contractible {x = x} s =
+                                     $⟨ [ x , [ refl _ ] ] ⟩
+  Erased (Erased-singleton x)        ↝⟨ Very-stable→Stable (Very-stable-Σ s λ _ → Very-stable-Erased) ⟩
+  Erased-singleton x                 ↝⟨ propositional⇒inhabited⇒contractible $
+                                        erased-singleton-with-erased-center-propositional $
+                                        Very-stable-≡ s ⟩□
+  Contractible (Erased-singleton x)  □
+
+-- A corollary of erased-singleton-with-erased-center-propositional.
+
+↠→↔Erased-singleton :
+  {@0 y : B}
+  (A↠B : A ↠ B) →
+  ({u v : B} → Very-stable (u ≡ v)) →
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ ↔ Erased-singleton y
+↠→↔Erased-singleton {A = A} {y = y} A↠B s =
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  ↝⟨ Trunc.∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences A↠B λ _ → F.id) ⟩
+  ∥ Erased-singleton y ∥                         ↝⟨ Trunc.∥∥↔ (erased-singleton-with-erased-center-propositional s) ⟩□
+  Erased-singleton y                             □

@@ -162,30 +162,9 @@ abstract
   -- erased equality proofs) to n.
 
   Bin↔Σℕ : Bin n ↔ ∃ λ m → Erased (m ≡ n)
-  Bin↔Σℕ {n = n} =
-    ∥ (∃ λ (b : Bin′) → Erased (to-ℕ′ b ≡ n)) ∥  ↝⟨ ∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences Bin′↠ℕ λ _ → F.id) ⟩
-    ∥ (∃ λ m → Erased (m ≡ n)) ∥                 ↝⟨ ∥∥↔ lemma ⟩□
-    (∃ λ m → Erased (m ≡ n))                     □
-    where
-    lemma : Is-proposition (∃ λ m → Erased (m ≡ n))
-    lemma (m₁ , [ m₁≡n ]) (m₂ , [ m₂≡n ]) = Σ-≡,≡→≡
-      (Dec→Stable (m₁ N.≟ m₂)
-         [ m₁  ≡⟨ m₁≡n ⟩
-           n   ≡⟨ sym m₂≡n ⟩∎
-           m₂  ∎
-         ])
-      (H-level-Erased 1 ℕ-set _ _)
-
-    -- An alternative proof.
-
-    lemma′ : Is-proposition (∃ λ m → Erased (m ≡ n))
-    lemma′ =                                             $⟨ [ singleton-contractible _ ] ⟩
-      Erased (Contractible (Singleton n))                ↝⟨ (λ { [ hyp ] → [ H-level-cong _ 0 (∃-cong λ _ → inverse $ erased Erased↔) hyp ] }) ⟩
-      Erased (Contractible (∃ λ m → Erased (m ≡ n)))     ↝⟨ Erased-cong (mono₁ 0) ⟩
-      Erased (Is-proposition (∃ λ m → Erased (m ≡ n)))   ↝⟨ (λ hyp p q → (_$ q) ∘ (_$ p) ⟨$⟩ hyp) ⟩
-      ((p q : ∃ λ m → Erased (m ≡ n)) → Erased (p ≡ q))  ↝⟨ (∀-cong _ λ p → ∀-cong _ λ q → Dec→Stable $
-                                                             Σ.Dec._≟_ N._≟_ (λ _ _ → yes (H-level-Erased 1 ℕ-set _ _)) p q) ⟩□
-      Is-proposition (∃ λ m → Erased (m ≡ n))            □
+  Bin↔Σℕ = ↠→↔Erased-singleton
+    Bin′↠ℕ
+    (Decidable-equality→Very-stable N._≟_)
 
 -- Nat is isomorphic to the type of unary natural numbers.
 
@@ -193,9 +172,7 @@ Nat↔ℕ : Nat ↔ ℕ
 Nat↔ℕ =
   Nat                                                   ↔⟨⟩
   (∃ λ (n : Erased ℕ) → Bin (erased n))                 ↝⟨ (∃-cong λ _ → Bin↔Σℕ) ⟩
-  (∃ λ (n : Erased ℕ) → ∃ λ m → Erased (m ≡ erased n))  ↝⟨ ∃-comm ⟩
-  (∃ λ m → ∃ λ (n : Erased ℕ) → Erased (m ≡ erased n))  ↝⟨ (∃-cong λ _ → ∃-cong λ _ → Erased-≡↔[]≡[]) ⟩
-  (∃ λ m → ∃ λ (n : Erased ℕ) → [ m ] ≡ n)              ↝⟨ drop-⊤-right (λ _ → _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _)) ⟩□
+  (∃ λ (n : Erased ℕ) → ∃ λ m → Erased (m ≡ erased n))  ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
   ℕ                                                     □
 
 -- Converts from ℕ to Nat.
