@@ -18,6 +18,7 @@ open import Prelude hiding ([_,_])
 open import Bijection eq using (_↔_)
 open import Embedding eq as Emb using (Embedding; Is-embedding)
 import Embedding P.equality-with-J as PE
+open import Equality.Decidable-UIP eq
 open import Equality.Path.Isomorphisms eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
@@ -474,32 +475,6 @@ Erased-Very-stable {A = A} =
       A ≃ Erased A          □)
   ]
 
--- Erased A implies ¬ ¬ A.
-
-Erased→¬¬ : Erased A → ¬ ¬ A
-Erased→¬¬ {A = A} = curry (
-  Erased A × ¬ A  ↝⟨ (λ { (x , f) → x >>=′ return ∘ f }) ⟩
-  Erased ⊥        ↔⟨ Erased-⊥↔⊥ ⟩□
-  ⊥               □)
-
--- Types for which it is known whether or not they are inhabited are
--- stable.
-
-Dec→Stable : Dec A → Stable A
-Dec→Stable {A = A} = curry (
-  Dec A × Erased A  ↝⟨ Σ-map id Erased→¬¬ ⟩
-  Dec A × ¬ ¬ A     ↝⟨ uncurry (⊎-map id) ∘ swap ⟩
-  A ⊎ ⊥             ↝⟨ Prelude.[ id , ⊥-elim ] ⟩□
-  A                 □)
-
--- Types that are stable for double negation are stable for Erased.
-
-¬¬-Stable→Stable : (¬ ¬ A → A) → Stable A
-¬¬-Stable→Stable {A = A} ¬¬-Stable =
-  Erased A  ↝⟨ Erased→¬¬ ⟩
-  ¬ ¬ A     ↝⟨ ¬¬-Stable ⟩□
-  A         □
-
 -- If A is stable, then A is "logical equivalence stable".
 
 Stable→Stable⇔ : Stable A → Stable-[ logical-equivalence ] A
@@ -519,6 +494,42 @@ Stable-proposition→Very-stable {A = A} s prop =
     Stable A                          ↝⟨ Stable→Stable⇔ ⟩
     Stable-[ logical-equivalence ] A  ↝⟨ _↠_.from (Eq.≃↠⇔ (H-level-Erased 1 prop) prop) ⟩□
     Stable-[ equivalence ] A          □
+
+-- Erased A implies ¬ ¬ A.
+
+Erased→¬¬ : Erased A → ¬ ¬ A
+Erased→¬¬ {A = A} = curry (
+  Erased A × ¬ A  ↝⟨ (λ { (x , f) → x >>=′ return ∘ f }) ⟩
+  Erased ⊥        ↔⟨ Erased-⊥↔⊥ ⟩□
+  ⊥               □)
+
+-- Types that are stable for double negation are stable for Erased.
+
+¬¬-Stable→Stable : (¬ ¬ A → A) → Stable A
+¬¬-Stable→Stable {A = A} ¬¬-Stable =
+  Erased A  ↝⟨ Erased→¬¬ ⟩
+  ¬ ¬ A     ↝⟨ ¬¬-Stable ⟩□
+  A         □
+
+-- Types for which it is known whether or not they are inhabited are
+-- stable.
+
+Dec→Stable : Dec A → Stable A
+Dec→Stable {A = A} = curry (
+  Dec A × Erased A  ↝⟨ Σ-map id Erased→¬¬ ⟩
+  Dec A × ¬ ¬ A     ↝⟨ uncurry (⊎-map id) ∘ swap ⟩
+  A ⊎ ⊥             ↝⟨ Prelude.[ id , ⊥-elim ] ⟩□
+  A                 □)
+
+-- If equality is decidable for A, then equality between elements of
+-- type A is very stable.
+
+Decidable-equality→Very-stable :
+  {x y : A} → Decidable-equality A → Very-stable (x ≡ y)
+Decidable-equality→Very-stable dec =
+  Stable-proposition→Very-stable
+    (Dec→Stable (dec _ _))
+    (decidable⇒set dec)
 
 ------------------------------------------------------------------------
 -- Preservation lemmas related to Stable, Stable-[_] and Very-stable
