@@ -11,6 +11,7 @@ module List
 
 open import Prelude
 
+open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Monad eq hiding (map)
@@ -268,3 +269,22 @@ instance
       concat (map g (f x) ++ map g (concat (map f xs)))             ≡⟨ cong concat (sym $ map-++ g (f x) _) ⟩
       concat (map g (f x ++ concat (map f xs)))                     ≡⟨ refl _ ⟩∎
       concat (map g (concat (map f (x ∷ xs))))                      ∎
+
+------------------------------------------------------------------------
+-- An isomorphism
+
+-- An unfolding lemma for List.
+
+List↔Maybe[×List] :
+  ∀ {a} {A : Set a} →
+  List A ↔ Maybe (A × List A)
+List↔Maybe[×List] = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ { [] → inj₁ tt; (x ∷ xs) → inj₂ (x , xs) }
+      ; from = [ (λ _ → []) , uncurry _∷_ ]
+      }
+    ; right-inverse-of = [ (λ _ → refl _) , (λ _ → refl _) ]
+    }
+  ; left-inverse-of = λ { [] → refl _; (_ ∷ _) → refl _ }
+  }
