@@ -19,6 +19,12 @@ open import Monad eq hiding (map)
 ------------------------------------------------------------------------
 -- Some functions
 
+-- The tail of a list. Returns [] if the list is empty.
+
+tail : ∀ {a} {A : Set a} → List A → List A
+tail []       = []
+tail (_ ∷ xs) = xs
+
 -- Right fold.
 
 foldr : ∀ {a b} {A : Set a} {B : Set b} →
