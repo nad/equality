@@ -485,6 +485,25 @@ Very-stable→Stable {A = A} {k = k} =
   Stable-[ equivalence ] A  ↝⟨ from-equivalence ⟩□
   Stable-[ k ] A            □
 
+-- The function obtained from Very-stable→Stable (for k = implication)
+-- maps [ x ] to x.
+--
+-- This seems to imply that (say) the natural numbers can not be
+-- proved to be very stable (assuming that Agda is consistent),
+-- because implementing a function that resurrects a natural number,
+-- given no information about what the number was, is impossible.
+-- However, the natural numbers are stable: this follows from
+-- Dec→Stable below. Thus it seems as if one can not prove that
+-- Very-stable and Stable are logically equivalent.
+
+Very-stable→Stable-[]≡id :
+  (s : Very-stable A) →
+  Very-stable→Stable s [ x ] ≡ x
+Very-stable→Stable-[]≡id {x = x} s =
+  Very-stable→Stable s [ x ]   ≡⟨⟩
+  _≃_.from Eq.⟨ _ , s ⟩ [ x ]  ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s ⟩ x ⟩∎
+  x                            ∎
+
 -- Erased A is very stable.
 
 Very-stable-Erased :
