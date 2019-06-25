@@ -215,6 +215,57 @@ length-++ :
 length-++ []       = refl _
 length-++ (_ ∷ xs) = cong suc (length-++ xs)
 
+-- Some lemmas related to reverse.
+
+++-reverse :
+  ∀ {a} {A : Set a} xs {ys : List A} →
+  reverse xs ++ ys ≡ foldl (flip _∷_) ys xs
+++-reverse {A = A} xs = lemma xs
+  where
+  lemma :
+    ∀ xs {ys zs : List A} →
+    foldl (flip _∷_) ys xs ++ zs ≡
+    foldl (flip _∷_) (ys ++ zs) xs
+  lemma [] = refl _
+  lemma (x ∷ xs) {ys = ys} {zs = zs} =
+    foldl (flip _∷_) ys (x ∷ xs) ++ zs    ≡⟨⟩
+    foldl (flip _∷_) (x ∷ ys) xs ++ zs    ≡⟨ lemma xs ⟩
+    foldl (flip _∷_) (x ∷ ys ++ zs) xs    ≡⟨⟩
+    foldl (flip _∷_) (ys ++ zs) (x ∷ xs)  ∎
+
+reverse-∷ :
+  ∀ {a} {A : Set a} {x : A} xs →
+  reverse (x ∷ xs) ≡ reverse xs ++ x ∷ []
+reverse-∷ {x = x} xs =
+  reverse (x ∷ xs)              ≡⟨⟩
+  foldl (flip _∷_) (x ∷ []) xs  ≡⟨ sym $ ++-reverse xs ⟩∎
+  reverse xs ++ x ∷ []          ∎
+
+reverse-++ :
+  ∀ {a} {A : Set a} xs {ys : List A} →
+  reverse (xs ++ ys) ≡ reverse ys ++ reverse xs
+reverse-++ [] {ys = ys} =
+  reverse ys        ≡⟨ sym $ ++-right-identity _ ⟩∎
+  reverse ys ++ []  ∎
+reverse-++ (x ∷ xs) {ys = ys} =
+  reverse (x ∷ xs ++ ys)                ≡⟨ reverse-∷ (xs ++ _) ⟩
+  reverse (xs ++ ys) ++ x ∷ []          ≡⟨ cong (_++ _) $ reverse-++ xs ⟩
+  (reverse ys ++ reverse xs) ++ x ∷ []  ≡⟨ sym $ ++-associative (reverse ys) _ _ ⟩
+  reverse ys ++ (reverse xs ++ x ∷ [])  ≡⟨ cong (reverse ys ++_) $ sym $ reverse-∷ xs ⟩∎
+  reverse ys ++ reverse (x ∷ xs)        ∎
+
+map-reverse :
+  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} (xs : List A) →
+  map f (reverse xs) ≡ reverse (map f xs)
+map-reverse [] = refl _
+map-reverse {f = f} (x ∷ xs) =
+  map f (reverse (x ∷ xs))        ≡⟨ cong (map f) $ reverse-∷ xs ⟩
+  map f (reverse xs ++ x ∷ [])    ≡⟨ map-++ _ (reverse xs) _ ⟩
+  map f (reverse xs) ++ f x ∷ []  ≡⟨ cong (_++ _) $ map-reverse xs ⟩
+  reverse (map f xs) ++ f x ∷ []  ≡⟨ sym $ reverse-∷ (map f xs) ⟩
+  reverse (f x ∷ map f xs)        ≡⟨⟩
+  reverse (map f (x ∷ xs))        ∎
+
 -- The functions filter and map commute (kind of).
 
 filter∘map :
