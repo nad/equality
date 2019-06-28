@@ -260,10 +260,8 @@ private
       }
 
     Erased-cong-≃ : @0 A ≃ B → Erased A ≃ Erased B
-    Erased-cong-≃ =
-      from-isomorphism ∘
-      Erased-cong-↔ ∘
-      from-isomorphism
+    Erased-cong-≃ A≃B =
+      from-isomorphism (Erased-cong-↔ (from-isomorphism A≃B))
 
 -- There is a bijection between erased equality proofs and equalities
 -- between erased values.
