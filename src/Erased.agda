@@ -59,7 +59,9 @@ open Erased public
 
 infixl 5 _>>=′_
 
-_>>=′_ : Erased A → (A → Erased B) → Erased B
+_>>=′_ :
+  {@0 A : Set a} {@0 B : Set b} →
+  Erased A → (A → Erased B) → Erased B
 [ x ] >>=′ f = [ erased (f x) ]
 
 instance
@@ -81,7 +83,7 @@ instance
 
 -- In an erased context Erased A is always isomorphic to A.
 
-Erased↔ : Erased (Erased A ↔ A)
+Erased↔ : {@0 A : Set a} → Erased (Erased A ↔ A)
 Erased↔ = [ record
   { surjection = record
     { logical-equivalence = record
@@ -119,7 +121,9 @@ Erased-⊥↔⊥ = record
 
 -- Erased commutes with Π A.
 
-Erased-Π↔Π : Erased ((x : A) → P x) ↔ ((x : A) → Erased (P x))
+Erased-Π↔Π :
+  {@0 P : A → Set p} →
+  Erased ((x : A) → P x) ↔ ((x : A) → Erased (P x))
 Erased-Π↔Π = record
   { surjection = record
     { logical-equivalence = record
@@ -133,7 +137,9 @@ Erased-Π↔Π = record
 
 -- Erased commutes with Σ.
 
-Erased-Σ↔Σ : Erased (Σ A P) ↔ Σ (Erased A) (λ x → Erased (P (erased x)))
+Erased-Σ↔Σ :
+  {@0 A : Set a} {@0 P : A → Set p} →
+  Erased (Σ A P) ↔ Σ (Erased A) (λ x → Erased (P (erased x)))
 Erased-Σ↔Σ = record
   { surjection = record
     { logical-equivalence = record
@@ -180,8 +186,10 @@ private
 
 -- Erased commutes with W.
 
-Erased-W↔W : Erased (W A P) ↔ W (Erased A) (λ x → Erased (P (erased x)))
-Erased-W↔W = record
+Erased-W↔W :
+  {@0 A : Set a} {@0 P : A → Set p} →
+  Erased (W A P) ↔ W (Erased A) (λ x → Erased (P (erased x)))
+Erased-W↔W {A = A} {P = P} = record
   { surjection = record
     { logical-equivalence = record
       { to   = to
@@ -212,7 +220,9 @@ Erased-W↔W = record
 
 -- Erased commutes with ↑ ℓ.
 
-Erased-↑↔↑ : Erased (↑ ℓ A) ↔ ↑ ℓ (Erased A)
+Erased-↑↔↑ :
+  {@0 A : Set a} →
+  Erased (↑ ℓ A) ↔ ↑ ℓ (Erased A)
 Erased-↑↔↑ = record
   { surjection = record
     { logical-equivalence = record
@@ -458,7 +468,8 @@ Very-stable→Stable {A = A} {k = k} =
 
 -- Erased A is very stable.
 
-Very-stable-Erased : Very-stable (Erased A)
+Very-stable-Erased :
+  {@0 A : Set a} → Very-stable (Erased A)
 Very-stable-Erased {A = A} =
   _≃_.is-equivalence (            $⟨ Erased↔ ⟩
     Erased (Erased A ↔ A)         ↝⟨ (λ hyp → Erased-cong (erased hyp)) ⟩
@@ -467,7 +478,8 @@ Very-stable-Erased {A = A} =
 
 -- In an erased context every type is very stable.
 
-Erased-Very-stable : Erased (Very-stable A)
+Erased-Very-stable :
+  {@0 A : Set a} → Erased (Very-stable A)
 Erased-Very-stable {A = A} =
   [ _≃_.is-equivalence (    $⟨ Erased↔ ⟩
       Erased (Erased A ↔ A) ↝⟨ erased ⟩
@@ -477,7 +489,8 @@ Erased-Very-stable {A = A} =
 
 -- If A is stable, then A is "logical equivalence stable".
 
-Stable→Stable⇔ : Stable A → Stable-[ logical-equivalence ] A
+Stable→Stable⇔ :
+  {@0 A : Set a} → Stable A → Stable-[ logical-equivalence ] A
 Stable→Stable⇔ stable = record
   { from = [_]
   ; to   = stable
@@ -497,29 +510,21 @@ Stable-proposition→Very-stable {A = A} s prop =
 
 -- Erased A implies ¬ ¬ A.
 
-Erased→¬¬ : Erased A → ¬ ¬ A
-Erased→¬¬ {A = A} = curry (
-  Erased A × ¬ A  ↝⟨ (λ { (x , f) → x >>=′ return ∘ f }) ⟩
-  Erased ⊥        ↔⟨ Erased-⊥↔⊥ ⟩□
-  ⊥               □)
+Erased→¬¬ : {@0 A : Set a} → Erased A → ¬ ¬ A
+Erased→¬¬ [ x ] f = _↔_.to Erased-⊥↔⊥ [ f x ]
 
 -- Types that are stable for double negation are stable for Erased.
 
-¬¬-Stable→Stable : (¬ ¬ A → A) → Stable A
-¬¬-Stable→Stable {A = A} ¬¬-Stable =
-  Erased A  ↝⟨ Erased→¬¬ ⟩
-  ¬ ¬ A     ↝⟨ ¬¬-Stable ⟩□
-  A         □
+¬¬-Stable→Stable : {@0 A : Set a} → (¬ ¬ A → A) → Stable A
+¬¬-Stable→Stable ¬¬-Stable x = ¬¬-Stable (Erased→¬¬ x)
 
 -- Types for which it is known whether or not they are inhabited are
 -- stable.
 
-Dec→Stable : Dec A → Stable A
-Dec→Stable {A = A} = curry (
-  Dec A × Erased A  ↝⟨ Σ-map id Erased→¬¬ ⟩
-  Dec A × ¬ ¬ A     ↝⟨ uncurry (⊎-map id) ∘ swap ⟩
-  A ⊎ ⊥             ↝⟨ Prelude.[ id , ⊥-elim ] ⟩□
-  A                 □)
+Dec→Stable : {@0 A : Set a} → Dec A → Stable A
+Dec→Stable (yes x) _ = x
+Dec→Stable (no ¬x) x with Erased→¬¬ x ¬x
+... | ()
 
 -- If equality is decidable for A, then equality between elements of
 -- type A is very stable.
@@ -536,7 +541,8 @@ Decidable-equality→Very-stable dec =
 
 -- A kind of map function for Stable-[_].
 
-Stable-map : A ↝[ k ] B → B ↝[ k ] A → Stable-[ k ] A → Stable-[ k ] B
+Stable-map :
+  A ↝[ k ] B → @0 B ↝[ k ] A → Stable-[ k ] A → Stable-[ k ] B
 Stable-map {A = A} {B = B} A↝B B↝A s =
   Erased B  ↝⟨ Erased-cong B↝A ⟩
   Erased A  ↝⟨ s ⟩
@@ -684,13 +690,12 @@ Very-stable-Stable-Σ-≡ {P = P} {k = k} {p = p} {q = q} = curry (
   Stable-[ k ] (p ≡ q)                                    □)
 
 Stable-Σ :
+  {@0 A : Set a} {@0 P : A → Set p}
   (s : Stable A) →
   (∀ x → Erased (P (erased x)) → P (s x)) →
   Stable (Σ A P)
-Stable-Σ {A = A} {P = P} s s′ =
-  Erased (Σ A P)                              ↔⟨ Erased-Σ↔Σ ⟩
-  Σ (Erased A) (λ x → Erased (P (erased x)))  ↝⟨ Σ-map s (s′ _) ⟩□
-  Σ A P                                       □
+Stable-Σ s₁ s₂ [ p ] =
+  s₁ [ proj₁ p ] , s₂ [ proj₁ p ] [ proj₂ p ]
 
 Stable-Σ-≡ :
   {p q : Σ A P} →
@@ -898,14 +903,15 @@ private
 
   -- Equalities between erased values are very stable.
 
-  Very-stable-≡₀ : {x y : Erased A} → Very-stable (x ≡ y)
+  Very-stable-≡₀ :
+    {@0 A : Set a} {x y : Erased A} → Very-stable (x ≡ y)
   Very-stable-≡₀ = Very-stable-≡ Very-stable-Erased
 
   -- Equalities between equalities between erased values are very
   -- stable.
 
   Very-stable-≡₁ :
-    {x y : Erased A} {p q : x ≡ y} →
+    {@0 A : Set a} {x y : Erased A} {p q : x ≡ y} →
     Very-stable (p ≡ q)
   Very-stable-≡₁ = Very-stable-≡ Very-stable-≡₀
 
@@ -957,11 +963,10 @@ Very-stable→Is-embedding-[] {A = A} =
 
 -- In an erased context [_] is always an embedding.
 
-Erased-Is-embedding-[] : Erased (Is-embedding ([_] {A = A}))
-Erased-Is-embedding-[] {A = A} =
-                             $⟨ Erased-Very-stable ⟩
-  Erased (Very-stable A)     ↝⟨ Very-stable→Is-embedding-[] ⟨$⟩_ ⦂ (_ → _) ⟩□
-  Erased (Is-embedding [_])  □
+Erased-Is-embedding-[] :
+  {@0 A : Set a} → Erased (Is-embedding ([_] {A = A}))
+Erased-Is-embedding-[] =
+  [ Very-stable→Is-embedding-[] (erased Erased-Very-stable) ]
 
 ------------------------------------------------------------------------
 -- [_] is sometimes surjective
@@ -978,7 +983,5 @@ Very-stable→Surjective-[] {A = A} =
 -- In an erased context [_] is always surjective.
 
 Erased-Surjective-[] : Erased (Surjective ([_] {A = A}))
-Erased-Surjective-[] {A = A} =
-                           $⟨ Erased-Very-stable ⟩
-  Erased (Very-stable A)   ↝⟨ Very-stable→Surjective-[] ⟨$⟩_ ⦂ (_ → _) ⟩□
-  Erased (Surjective [_])  □
+Erased-Surjective-[] =
+  [ Very-stable→Surjective-[] (erased Erased-Very-stable) ]
