@@ -1712,7 +1712,9 @@ module Derived-definitions-and-properties
             (sym $ cong₂ _≡_ (trans-reflʳ q) (trans-reflˡ r))
     [subst≡]≡[trans≡trans]-refl {q = q} {r = r} =
       cong (λ f → f {q = q} {r = r}) $
-        elim-refl (λ {x y} _ → {q : x ≡ x} {r : y ≡ y} → _) _
+        elim-refl
+          (λ {x y} p → {q : x ≡ x} {r : y ≡ y} → _ ≡ (trans _ p ≡ _))
+          _
 
     -- Sometimes one can turn two ("modified") copies of a proof into
     -- one.

@@ -45,7 +45,7 @@ isomorphism-is-equality′ Univ ass
 
   open Assumptions ass
   open Universe Univ
-  open Class Univ using (Isomorphic; Carrier)
+  open Class Univ using (Carrier; Instance; Isomorphic)
 
   -- The category of sets and functions.
 
@@ -164,7 +164,7 @@ isomorphism-is-equality′ Univ ass
     -- The isomorphism that should be constructed.
 
     isomorphic : Isomorphic (a , P) (C , x , p) (D , y , q) ↔
-                 ((C , x , p) ≡ (D , y , q))
+                 _≡_ {A = Instance (a , P)} (C , x , p) (D , y , q)
     isomorphic =
       Σ (C ≃ D) (λ eq → Is-isomorphism a eq x y)                   ↝⟨ (let ≃≃≅-CD = ≃≃≅-Set (# 1) ext (C , C-set) (D , D-set) in
                                                                        Σ-cong ≃≃≅-CD (λ eq →
