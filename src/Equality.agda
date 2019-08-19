@@ -863,12 +863,12 @@ module Derived-definitions-and-properties
       trans (refl (f x u)) (cong (f x) u≡v)              ≡⟨ trans-reflˡ _ ⟩∎
       cong (f x) u≡v                                     ∎
 
-  --   cong₂-reflʳ : (f : A → B → C) {x≡y : x ≡ y} →
-  --                 cong₂ f x≡y (refl u) ≡ cong (flip f u) x≡y
-  --   cong₂-reflʳ {y = y} {u = u} f {x≡y} =
-  --     trans (cong (flip f u) x≡y) (cong (f y) (refl u))  ≡⟨ cong (trans _) (cong-refl _) ⟩
-  --     trans (cong (flip f u) x≡y) (refl (f y u))         ≡⟨ trans-reflʳ _ ⟩∎
-  --     cong (flip f u) x≡y                                ∎
+    cong₂-reflʳ : (f : A → B → C) {x≡y : x ≡ y} →
+                  cong₂ f x≡y (refl u) ≡ cong (flip f u) x≡y
+    cong₂-reflʳ {y = y} {u = u} f {x≡y} =
+      trans (cong (flip f u) x≡y) (cong (f y) (refl u))  ≡⟨ cong (trans _) (cong-refl _) ⟩
+      trans (cong (flip f u) x≡y) (refl (f y u))         ≡⟨ trans-reflʳ _ ⟩∎
+      cong (flip f u) x≡y                                ∎
 
     cong₂-cong-cong :
       (f : A → B) (g : A → C) (h : B → C → D) →
