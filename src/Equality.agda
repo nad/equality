@@ -816,35 +816,37 @@ module Derived-definitions-and-properties
                              refl (f (g x))            ≡⟨ sym (cong-refl _) ⟩∎
                              cong (f ∘ g) (refl x)     ∎)
 
+    cong-uncurry-cong₂-, :
+      {x≡y : x ≡ y} {u≡v : u ≡ v} →
+      cong (uncurry f) (cong₂ _,_ x≡y u≡v) ≡ cong₂ f x≡y u≡v
+    cong-uncurry-cong₂-, {y = y} {u = u} {f = f} {x≡y = x≡y} {u≡v} =
+      cong (uncurry f)
+           (trans (cong (flip _,_ u) x≡y) (cong (_,_ y) u≡v))  ≡⟨ cong-trans _ _ _ ⟩
+
+      trans (cong (uncurry f) (cong (flip _,_ u) x≡y))
+            (cong (uncurry f) (cong (_,_ y) u≡v))              ≡⟨ cong₂ trans (cong-∘ _ _ _) (cong-∘ _ _ _) ⟩∎
+
+      trans (cong (flip f u) x≡y) (cong (f y) u≡v)             ∎
+
     cong-proj₁-cong₂-, :
       (x≡y : x ≡ y) (u≡v : u ≡ v) →
       cong proj₁ (cong₂ _,_ x≡y u≡v) ≡ x≡y
-    cong-proj₁-cong₂-, {x = x} {y = y} {u = u} {v = v} x≡y u≡v =
-      cong proj₁ (trans (cong (flip _,_ u) x≡y) (cong (_,_ y) u≡v))  ≡⟨ cong-trans _ _ _ ⟩
-
-      trans (cong proj₁ (cong (flip _,_ u) x≡y))
-            (cong proj₁ (cong (_,_ y) u≡v))                          ≡⟨ cong₂ trans (cong-∘ _ _ _) (cong-∘ _ _ _) ⟩
-
-      trans (cong id x≡y) (cong (const y) u≡v)                       ≡⟨ cong₂ trans (sym $ cong-id _) (cong-const _) ⟩
-
-      trans x≡y (refl y)                                             ≡⟨ trans-reflʳ _ ⟩∎
-
-      x≡y                                                            ∎
+    cong-proj₁-cong₂-, {y = y} x≡y u≡v =
+      cong proj₁ (cong₂ _,_ x≡y u≡v)            ≡⟨ cong-uncurry-cong₂-, ⟩
+      cong₂ const x≡y u≡v                       ≡⟨⟩
+      trans (cong id x≡y) (cong (const y) u≡v)  ≡⟨ cong₂ trans (sym $ cong-id _) (cong-const _) ⟩
+      trans x≡y (refl y)                        ≡⟨ trans-reflʳ _ ⟩∎
+      x≡y                                       ∎
 
     cong-proj₂-cong₂-, :
       (x≡y : x ≡ y) (u≡v : u ≡ v) →
       cong proj₂ (cong₂ _,_ x≡y u≡v) ≡ u≡v
-    cong-proj₂-cong₂-, {x = x} {y = y} {u = u} {v = v} x≡y u≡v =
-      cong proj₂ (trans (cong (flip _,_ u) x≡y) (cong (_,_ y) u≡v))  ≡⟨ cong-trans _ _ _ ⟩
-
-      trans (cong proj₂ (cong (flip _,_ u) x≡y))
-            (cong proj₂ (cong (_,_ y) u≡v))                          ≡⟨ cong₂ trans (cong-∘ _ _ _) (cong-∘ _ _ _) ⟩
-
-      trans (cong (const u) x≡y) (cong id u≡v)                       ≡⟨ cong₂ trans (cong-const _) (sym $ cong-id _) ⟩
-
-      trans (refl u) u≡v                                             ≡⟨ trans-reflˡ _ ⟩∎
-
-      u≡v                                                            ∎
+    cong-proj₂-cong₂-, {u = u} x≡y u≡v =
+      cong proj₂ (cong₂ _,_ x≡y u≡v)            ≡⟨ cong-uncurry-cong₂-, ⟩
+      cong₂ (const id) x≡y u≡v                  ≡⟨⟩
+      trans (cong (const u) x≡y) (cong id u≡v)  ≡⟨ cong₂ trans (cong-const _) (sym $ cong-id _) ⟩
+      trans (refl u) u≡v                        ≡⟨ trans-reflˡ _ ⟩∎
+      u≡v                                       ∎
 
     cong-sym : (f : A → B) (x≡y : x ≡ y) →
                cong f (sym x≡y) ≡ sym (cong f x≡y)
