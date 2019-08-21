@@ -11,9 +11,12 @@ module List
 
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
+open import Equality.Groupoid eq
+import Equivalence eq as Eq
+open import Function-universe eq hiding (_∘_)
 open import Monad eq hiding (map)
 
 ------------------------------------------------------------------------
@@ -328,7 +331,7 @@ instance
       concat (map g (concat (map f (x ∷ xs))))                      ∎
 
 ------------------------------------------------------------------------
--- An isomorphism
+-- Some isomorphisms
 
 -- An unfolding lemma for List.
 
@@ -345,3 +348,40 @@ List↔Maybe[×List] = record
     }
   ; left-inverse-of = λ { [] → refl _; (_ ∷ _) → refl _ }
   }
+
+-- Some isomorphisms related to list equality.
+
+[]≡[]↔⊤ :
+  ∀ {a} {A : Set a} →
+  [] ≡ ([] ⦂ List A) ↔ ⊤
+[]≡[]↔⊤ =
+  [] ≡ []            ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
+  nothing ≡ nothing  ↝⟨ inverse Bijection.≡↔inj₁≡inj₁ ⟩
+  tt ≡ tt            ↝⟨ tt≡tt↔⊤ ⟩□
+  ⊤                  □
+
+[]≡∷↔⊥ :
+  ∀ {a} {A : Set a} {x : A} {xs} →
+  [] ≡ x ∷ xs ↔ ⊥₀
+[]≡∷↔⊥ {x = x} {xs} =
+  [] ≡ x ∷ xs              ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
+  nothing ≡ just (x , xs)  ↝⟨ Bijection.≡↔⊎ ⟩
+  ⊥                        ↝⟨ ⊥↔⊥ ⟩□
+  ⊥                        □
+
+∷≡[]↔⊥ :
+  ∀ {a} {A : Set a} {x : A} {xs} →
+  x ∷ xs ≡ [] ↔ ⊥₀
+∷≡[]↔⊥ {x = x} {xs} =
+  x ∷ xs ≡ []  ↝⟨ ≡-comm ⟩
+  [] ≡ x ∷ xs  ↝⟨ []≡∷↔⊥ ⟩□
+  ⊥            □
+
+∷≡∷↔≡×≡ :
+  ∀ {a} {A : Set a} {x y : A} {xs ys : List A} →
+  x ∷ xs ≡ y ∷ ys ↔ x ≡ y × xs ≡ ys
+∷≡∷↔≡×≡ {x = x} {y} {xs} {ys} =
+  x ∷ xs ≡ y ∷ ys                ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
+  just (x , xs) ≡ just (y , ys)  ↝⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
+  (x , xs) ≡ (y , ys)            ↝⟨ inverse ≡×≡↔≡ ⟩□
+  x ≡ y × xs ≡ ys                □
