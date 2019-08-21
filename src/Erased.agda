@@ -488,13 +488,13 @@ Very-stable→Stable {A = A} {k = k} =
 -- The function obtained from Very-stable→Stable (for k = implication)
 -- maps [ x ] to x.
 --
--- This seems to imply that (say) the natural numbers can not be
--- proved to be very stable (assuming that Agda is consistent),
--- because implementing a function that resurrects a natural number,
--- given no information about what the number was, is impossible.
--- However, the natural numbers are stable: this follows from
--- Dec→Stable below. Thus it seems as if one can not prove that
--- Very-stable and Stable are logically equivalent.
+-- This seems to imply that (say) the booleans can not be proved to be
+-- very stable (assuming that Agda is consistent), because
+-- implementing a function that resurrects a boolean, given no
+-- information about what the boolean was, is impossible. However, the
+-- booleans are stable: this follows from Dec→Stable below. Thus it
+-- seems as if one can not prove that all stable types are very
+-- stable.
 
 Very-stable→Stable-[]≡id :
   (s : Very-stable A) →
@@ -515,6 +515,11 @@ Very-stable-Erased {A = A} =
     Erased A ≃ Erased (Erased A)  □)
 
 -- In an erased context every type is very stable.
+--
+-- Presumably "not in an erased context" is not expressible
+-- internally, so it seems as if it should not be possible to prove
+-- that any type is /not/ very stable (in an empty, non-erased
+-- context).
 
 Erased-Very-stable :
   {@0 A : Set a} → Erased (Very-stable A)
