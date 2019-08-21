@@ -17,7 +17,10 @@ open import Equality.Decision-procedures eq
 open import Equality.Groupoid eq
 import Equivalence eq as Eq
 open import Function-universe eq hiding (_∘_)
+open import H-level eq as H-level
+open import H-level.Closure eq
 open import Monad eq hiding (map)
+open import Nat eq
 
 ------------------------------------------------------------------------
 -- Some functions
@@ -385,3 +388,40 @@ List↔Maybe[×List] = record
   just (x , xs) ≡ just (y , ys)  ↝⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
   (x , xs) ≡ (y , ys)            ↝⟨ inverse ≡×≡↔≡ ⟩□
   x ≡ y × xs ≡ ys                □
+
+------------------------------------------------------------------------
+-- H-levels
+
+-- If A is inhabited, then List A is not a proposition.
+
+¬-List-propositional :
+  ∀ {a} {A : Set a} →
+  A → ¬ Is-proposition (List A)
+¬-List-propositional x h = List.[]≢∷ $ h [] (x ∷ [])
+
+-- H-levels greater than or equal to two are closed under List.
+
+H-level-List :
+  ∀ {a} {A : Set a} →
+  ∀ n → H-level (2 + n) A → H-level (2 + n) (List A)
+H-level-List n _ {[]} {[]} =
+                             $⟨ ⊤-contractible ⟩
+  Contractible ⊤             ↝⟨ H-level-cong _ 0 (inverse []≡[]↔⊤) ⟩
+  Contractible ([] ≡ [])     ↝⟨ H-level.mono (zero≤ (1 + n)) ⟩□
+  H-level (1 + n) ([] ≡ [])  □
+
+H-level-List n h {[]} {y ∷ ys} =
+                                 $⟨ ⊥-propositional ⟩
+  Is-proposition ⊥               ↝⟨ H-level-cong _ 1 (inverse []≡∷↔⊥) ⟩
+  Is-proposition ([] ≡ y ∷ ys)   ↝⟨ H-level.mono (suc≤suc (zero≤ n)) ⟩□
+  H-level (1 + n) ([] ≡ y ∷ ys)  □
+
+H-level-List n h {x ∷ xs} {[]} =
+                                 $⟨ ⊥-propositional ⟩
+  Is-proposition ⊥               ↝⟨ H-level-cong _ 1 (inverse ∷≡[]↔⊥) ⟩
+  Is-proposition (x ∷ xs ≡ [])   ↝⟨ H-level.mono (suc≤suc (zero≤ n)) ⟩□
+  H-level (1 + n) (x ∷ xs ≡ [])  □
+
+H-level-List n h {x ∷ xs} {y ∷ ys} =
+  H-level-cong _ (1 + n) (inverse ∷≡∷↔≡×≡)
+    (×-closure (1 + n) h (H-level-List n h))
