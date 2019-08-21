@@ -51,8 +51,8 @@ private
   variable
     a a₁ a₂ p r r₁ r₂ : Level
     k                 : Isomorphism-kind
-    A B               : Set a
-    P Q R             : A → A → Set r
+    A A₁ A₂ B         : Set a
+    P Q R R₁ R₂       : A → A → Set r
     f x y             : A
 
 ------------------------------------------------------------------------
@@ -312,11 +312,74 @@ Maybeᴾ-preserves-Is-proposition =
   (λ x → ∣ x , refl _ ∣)
   (λ _ → truncation-is-proposition)
 
--- Two applications of _/_ are isomorphic if the underlying types are
--- isomorphic and the relations are pointwise "logically equivalent
--- after propositional truncation".
+-- Some preservation lemmas.
 
-infix 5 _/-cong-∥∥_
+infix 5 _/-map-∥∥_ _/-map_ _/-cong-∥∥-↠_ _/-cong-↠_ _/-cong-∥∥_ _/-cong_
+
+_/-map-∥∥_ :
+  (A₁→A₂ : A₁ → A₂) →
+  (∀ x y → ∥ R₁ x y ∥ → ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥) →
+  A₁ / R₁ → A₂ / R₂
+_/-map-∥∥_ {R₁ = R₁} {R₂ = R₂} A₁→A₂ R₁→R₂ = rec
+  ([_] ∘ A₁→A₂)
+  (λ {x y} →
+     R₁ x y                      ↝⟨ ∣_∣ ⟩
+     ∥ R₁ x y ∥                  ↝⟨ R₁→R₂ _ _ ⟩
+     ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥  ↝⟨ TruncP.rec /-is-set []-respects-relation ⟩□
+     [ A₁→A₂ x ] ≡ [ A₁→A₂ y ]   □)
+  /-is-set
+
+_/-map_ :
+  (A₁→A₂ : A₁ → A₂) →
+  (∀ x y → R₁ x y → R₂ (A₁→A₂ x) (A₁→A₂ y)) →
+  A₁ / R₁ → A₂ / R₂
+A₁→A₂ /-map R₁→R₂ = A₁→A₂ /-map-∥∥ λ x y → ∥∥-map (R₁→R₂ x y)
+
+/-cong-∥∥-⇔ :
+  (A₁⇔A₂ : A₁ ⇔ A₂) →
+  (∀ x y → ∥ R₁ x y ∥ → ∥ R₂ (_⇔_.to   A₁⇔A₂ x) (_⇔_.to   A₁⇔A₂ y) ∥) →
+  (∀ x y → ∥ R₂ x y ∥ → ∥ R₁ (_⇔_.from A₁⇔A₂ x) (_⇔_.from A₁⇔A₂ y) ∥) →
+  A₁ / R₁ ⇔ A₂ / R₂
+/-cong-∥∥-⇔ A₁⇔A₂ R₁→R₂ R₂→R₁ = record
+  { to   = _⇔_.to   A₁⇔A₂ /-map-∥∥ R₁→R₂
+  ; from = _⇔_.from A₁⇔A₂ /-map-∥∥ R₂→R₁
+  }
+
+/-cong-⇔ :
+  (A₁⇔A₂ : A₁ ⇔ A₂) →
+  (∀ x y → R₁ x y → R₂ (_⇔_.to   A₁⇔A₂ x) (_⇔_.to   A₁⇔A₂ y)) →
+  (∀ x y → R₂ x y → R₁ (_⇔_.from A₁⇔A₂ x) (_⇔_.from A₁⇔A₂ y)) →
+  A₁ / R₁ ⇔ A₂ / R₂
+/-cong-⇔ A₁⇔A₂ R₁→R₂ R₂→R₁ =
+  /-cong-∥∥-⇔ A₁⇔A₂ (λ x y → ∥∥-map (R₁→R₂ x y))
+                    (λ x y → ∥∥-map (R₂→R₁ x y))
+
+_/-cong-∥∥-↠_ :
+  (A₁↠A₂ : A₁ ↠ A₂) →
+  (∀ x y → ∥ R₁ x y ∥ ⇔ ∥ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y) ∥) →
+  A₁ / R₁ ↠ A₂ / R₂
+_/-cong-∥∥-↠_ {R₁ = R₁} {R₂ = R₂} A₁↠A₂ R₁⇔R₂ = record
+  { logical-equivalence = /-cong-∥∥-⇔
+      (_↠_.logical-equivalence A₁↠A₂)
+      (λ x y → _⇔_.to (R₁⇔R₂ x y))
+      (λ x y → ∥ R₂ x y ∥                          ↝⟨ ≡⇒↝ _ (sym $ cong₂ (λ x y → ∥ R₂ x y ∥) (right-inverse-of x) (right-inverse-of y)) ⟩
+               ∥ R₂ (to (from x)) (to (from y)) ∥  ↝⟨ _⇔_.from (R₁⇔R₂ _ _) ⟩□
+               ∥ R₁ (from x) (from y) ∥            □)
+  ; right-inverse-of = elim-Prop
+      _
+      (λ x →
+        [ to (from x) ]  ≡⟨ cong [_] $ right-inverse-of x ⟩∎
+        [ x ]            ∎)
+      (λ _ → /-is-set)
+  }
+  where
+  open _↠_ A₁↠A₂
+
+_/-cong-↠_ :
+  (A₁↠A₂ : A₁ ↠ A₂) →
+  (∀ x y → R₁ x y ⇔ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y)) →
+  A₁ / R₁ ↠ A₂ / R₂
+A₁↠A₂ /-cong-↠ R₁⇔R₂ = A₁↠A₂ /-cong-∥∥-↠ λ x y → ∥∥-cong-⇔ (R₁⇔R₂ x y)
 
 _/-cong-∥∥_ :
   {A₁ : Set a₁} {A₂ : Set a₂}
@@ -327,56 +390,25 @@ _/-cong-∥∥_ :
      ∥ R₁ x y ∥ ⇔
      ∥ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y) ∥) →
   A₁ / R₁ ↔[ k ] A₂ / R₂
-_/-cong-∥∥_ {k = k} {R₁ = R₁} {R₂} A₁↔A₂ R₁⇔R₂ = from-bijection (record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = rec
-                 ([_] ∘ to)
-                 (λ {x y} →
-                   R₁ x y                ↝⟨ ∣_∣ ⟩
-                   ∥ R₁ x y ∥            ↝⟨ _⇔_.to (R₁⇔R₂′ _ _) ⟩
-                   ∥ R₂ (to x) (to y) ∥  ↝⟨ TruncP.rec /-is-set []-respects-relation ⟩□
-                   [ to x ] ≡ [ to y ]   □)
-                 /-is-set
-      ; from = rec
-                 ([_] ∘ from)
-                 (λ {x y} →
-                    R₂ x y                              ↝⟨ ≡⇒↝ _ (sym $ cong₂ R₂ (right-inverse-of x) (right-inverse-of y)) ⟩
-                    R₂ (to (from x)) (to (from y))      ↝⟨ ∣_∣ ⟩
-                    ∥ R₂ (to (from x)) (to (from y)) ∥  ↝⟨ _⇔_.from (R₁⇔R₂′ _ _) ⟩
-                    ∥ R₁ (from x) (from y) ∥            ↝⟨ TruncP.rec /-is-set []-respects-relation ⟩□
-                    [ from x ] ≡ [ from y ]             □)
-                 /-is-set
-      }
-    ; right-inverse-of = elim-Prop
+_/-cong-∥∥_ {k = k} {R₁ = R₁} {R₂ = R₂} A₁↔A₂′ R₁⇔R₂ =
+  from-bijection (record
+    { surjection = from-isomorphism A₁↔A₂ /-cong-∥∥-↠ λ x y →
+        ∥ R₁ x y ∥                                                  ↝⟨ R₁⇔R₂ x y ⟩
+        ∥ R₂ (to-implication A₁↔A₂′ x) (to-implication A₁↔A₂′ y) ∥  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → ∥ R₂ (f x) (g y) ∥)
+                                                                                     (to-implication∘from-isomorphism k bijection)
+                                                                                     (to-implication∘from-isomorphism k bijection) ⟩□
+        ∥ R₂ (to x) (to y) ∥                                        □
+    ; left-inverse-of = elim-Prop
         _
         (λ x →
-          [ to (from x) ]  ≡⟨ cong [_] $ right-inverse-of x ⟩∎
+          [ from (to x) ]  ≡⟨ cong [_] $ left-inverse-of x ⟩∎
           [ x ]            ∎)
         (λ _ → /-is-set)
-    }
-  ; left-inverse-of = elim-Prop
-      _
-      (λ x →
-        [ from (to x) ]  ≡⟨ cong [_] $ left-inverse-of x ⟩∎
-        [ x ]            ∎)
-      (λ _ → /-is-set)
-  })
+    })
   where
-  open _↔_ (from-isomorphism A₁↔A₂)
+  A₁↔A₂ = from-isomorphism A₁↔A₂′
 
-  R₁⇔R₂′ : ∀ x y → ∥ R₁ x y ∥ ⇔ ∥ R₂ (to x) (to y) ∥
-  R₁⇔R₂′ x y =
-    ∥ R₁ x y ∥                                                ↝⟨ R₁⇔R₂ x y ⟩
-    ∥ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y) ∥  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → ∥ R₂ (f x) (g y) ∥)
-                                                                               (to-implication∘from-isomorphism k bijection)
-                                                                               (to-implication∘from-isomorphism k bijection) ⟩□
-    ∥ R₂ (to x) (to y) ∥                                      □
-
--- Two applications of _/_ are isomorphic if the underlying types are
--- isomorphic and the relations are pointwise logically equivalent.
-
-infix 5 _/-cong_
+  open _↔_ A₁↔A₂
 
 _/-cong_ :
   {A₁ : Set a₁} {A₂ : Set a₂}
