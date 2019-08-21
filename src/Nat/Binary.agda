@@ -164,7 +164,7 @@ abstract
   Bin↔Σℕ : Bin n ↔ ∃ λ m → Erased (m ≡ n)
   Bin↔Σℕ = ↠→↔Erased-singleton
     Bin′↠ℕ
-    (Decidable-equality→Very-stable N._≟_)
+    (Decidable-equality→Very-stable-≡ N._≟_)
 
 -- Nat is isomorphic to the type of unary natural numbers.
 
