@@ -41,6 +41,7 @@ private
     P       : A → Set p
     k x y   : A
     n       : ℕ
+    A↠B     : A ↠ B
 
 ------------------------------------------------------------------------
 -- The type
@@ -1280,6 +1281,85 @@ erased-singleton-with-erased-center-contractible {x = x} s =
   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  ↝⟨ Trunc.∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences A↠B λ _ → F.id) ⟩
   ∥ Erased-singleton y ∥                         ↝⟨ Trunc.∥∥↔ (erased-singleton-with-erased-center-propositional s) ⟩□
   Erased-singleton y                             □
+
+-- The right-to-left direction of the previous lemma does not depend
+-- on the assumption of stability.
+
+↠→Erased-singleton→ :
+  {@0 y : B}
+  (A↠B : A ↠ B) →
+  Erased-singleton y →
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥
+↠→Erased-singleton→ {A = A} {y = y} A↠B =
+  Erased-singleton y                             ↝⟨ Trunc.∣_∣ ⟩
+  ∥ Erased-singleton y ∥                         ↝⟨ _≃_.from $ Trunc.∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences A↠B λ _ → F.id) ⟩□
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  □
+
+private
+
+  -- The function that is obtained from ↠→↔Erased-singleton is
+  -- definitionally equal to the corresponding application of
+  -- ↠→Erased-singleton→.
+
+  from-↠→↔Erased-singleton≡↠→Erased-singleton→ :
+    {s : Very-stable-≡ B} →
+    _↔_.from (↠→↔Erased-singleton A↠B s) x ≡ ↠→Erased-singleton→ A↠B x
+  from-↠→↔Erased-singleton≡↠→Erased-singleton→ = refl _
+
+-- A corollary of Σ-Erased-Erased-singleton↔ and ↠→↔Erased-singleton.
+
+Σ-Erased-∥-Σ-Erased-≡-∥↔ :
+  (A↠B : A ↠ B) →
+  Very-stable-≡ B →
+  (∃ λ (x : Erased B) →
+     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥) ↔
+  B
+Σ-Erased-∥-Σ-Erased-≡-∥↔ {A = A} {B = B} A↠B s =
+  (∃ λ (x : Erased B) →
+     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥)  ↝⟨ (∃-cong λ _ → ↠→↔Erased-singleton A↠B s) ⟩
+
+  (∃ λ (x : Erased B) → Erased-singleton (erased x))        ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
+
+  B                                                         □
+
+-- Again the right-to-left direction of the previous lemma does not
+-- depend on the assumption of stability.
+
+→Σ-Erased-∥-Σ-Erased-≡-∥ :
+  (A↠B : A ↠ B) →
+  B →
+  ∃ λ (x : Erased B) →
+    ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥
+→Σ-Erased-∥-Σ-Erased-≡-∥ {A = A} {B = B} A↠B =
+  B                                                         ↔⟨ inverse Σ-Erased-Erased-singleton↔ ⟩
+
+  (∃ λ (x : Erased B) → Erased-singleton (erased x))        ↝⟨ (∃-cong λ _ → ↠→Erased-singleton→ A↠B) ⟩□
+
+  (∃ λ (x : Erased B) →
+     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥)  □
+
+private
+
+  -- The function that is obtained from Σ-Erased-∥-Σ-Erased-≡-∥↔ is
+  -- definitionally equal to the corresponding application of
+  -- →Σ-Erased-∥-Σ-Erased-≡-∥.
+
+  from-Σ-Erased-∥-Σ-Erased-≡-∥↔≡→Σ-Erased-∥-Σ-Erased-≡-∥ :
+    {s : Very-stable-≡ B} →
+    _↔_.from (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡
+    →Σ-Erased-∥-Σ-Erased-≡-∥ A↠B x
+  from-Σ-Erased-∥-Σ-Erased-≡-∥↔≡→Σ-Erased-∥-Σ-Erased-≡-∥ = refl _
+
+-- In an erased context the left-to-right direction of
+-- Σ-Erased-∥-Σ-Erased-≡-∥↔ returns the erased first component.
+
+@0 to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ :
+  ∀ (A↠B : A ↠ B) (s : Very-stable-≡ B) x →
+  _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡ erased (proj₁ x)
+to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ A↠B s (x , y) =
+  _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) (x , y)  ≡⟨⟩
+  proj₁ (_↔_.to (↠→↔Erased-singleton A↠B s) y)     ≡⟨ erased (proj₂ (_↔_.to (↠→↔Erased-singleton A↠B s) y)) ⟩∎
+  erased x                                         ∎
 
 ------------------------------------------------------------------------
 -- Another lemma

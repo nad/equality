@@ -180,13 +180,14 @@ Nat↔ℕ =
 ⌈_⌉ : ℕ → Nat
 ⌈_⌉ = _↔_.from Nat↔ℕ
 
--- The index matches the result of _↔_.to Nat↔ℕ.
+abstract
 
-@0 ≡⌊⌋ : ∀ {n} → _↔_.to Nat↔ℕ n ≡ ⌊ n ⌋
-≡⌊⌋ {n = n} =
-  _↔_.to Nat↔ℕ n                   ≡⟨⟩
-  proj₁ (_↔_.to Bin↔Σℕ (proj₂ n))  ≡⟨ erased (proj₂ (_↔_.to Bin↔Σℕ (proj₂ n))) ⟩∎
-  ⌊ n ⌋                            ∎
+  -- The index matches the result of _↔_.to Nat↔ℕ.
+
+  @0 ≡⌊⌋ : ∀ {n} → _↔_.to Nat↔ℕ n ≡ ⌊ n ⌋
+  ≡⌊⌋ {n = n} =
+    to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡
+      Bin′↠ℕ (Decidable-equality→Very-stable-≡ N._≟_) n
 
 ------------------------------------------------------------------------
 -- Arithmetic with Bin
