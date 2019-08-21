@@ -619,7 +619,7 @@ N-ary {c} extractor n = Extension-with-resp.extension record
                                                                             Iso≃Iso″ ext A≃B n (f x) (g (_≃_.to A≃B x))) ⟩
     (∀ x → cast n A≃B (f x) ≡ g (_≃_.to A≃B x))                        ↝⟨ Eq.extensionality-isomorphism ext ⟩
 
-    (cast n A≃B ∘ f ≡ g ∘ _≃_.to A≃B)                                  ↝⟨ inverse $ ∘from≡↔≡∘to ext A≃B ⟩□
+    (cast n A≃B ∘ f ≡ g ∘ _≃_.to A≃B)                                  ↔⟨ inverse $ ∘from≡↔≡∘to ext A≃B ⟩□
 
     (cast n A≃B ∘ f ∘ _≃_.from A≃B ≡ g)                                □
 
@@ -706,7 +706,7 @@ Simple {c} σ = Extension-with-resp.extension record
                                                                         ∀-intro ext₁ (λ y _ → to (cast ass τ I≅J) (f x) ≡ g y)) ⟩
     (∀ x → to (cast ass τ I≅J) (f x) ≡ g (to (cast ass σ I≅J) x))  ↝⟨ extensionality-isomorphism ext₁ ⟩
 
-    (to (cast ass τ I≅J) ∘ f ≡ g ∘ to (cast ass σ I≅J))            ↝⟨ inverse $ ∘from≡↔≡∘to ext₁ (cast ass σ I≅J) ⟩□
+    (to (cast ass τ I≅J) ∘ f ≡ g ∘ to (cast ass σ I≅J))            ↔⟨ inverse $ ∘from≡↔≡∘to ext₁ (cast ass σ I≅J) ⟩□
 
     (to (cast ass τ I≅J) ∘ f ∘ from (cast ass σ I≅J) ≡ g)          □
 
@@ -883,7 +883,7 @@ module Dependent where
     (∀ x → resp τ ass (I≅J , iso-to-itself x) (f x) ≡
            g (resp σ ass I≅J x))                                     ↔⟨ extensionality-isomorphism ext₁ ⟩
 
-    (resp τ ass (I≅J , iso-to-itself _) ∘ f ≡ g ∘ resp σ ass I≅J)    ↝⟨ to∘≡↔≡from∘ ext₁ (cast ass τ (I≅J , iso-to-itself _)) ⟩
+    (resp τ ass (I≅J , iso-to-itself _) ∘ f ≡ g ∘ resp σ ass I≅J)    ↔⟨ to∘≡↔≡from∘ ext₁ (cast ass τ (I≅J , iso-to-itself _)) ⟩
 
     (f ≡ from (cast ass τ (I≅J , iso-to-itself _)) ∘
          g ∘ resp σ ass I≅J)                                         □
@@ -899,7 +899,7 @@ module Dependent where
     Iso≃Iso″ ass σ I≅J {f} {g} =
       Iso ass σ I≅J f g                  ↝⟨ Iso≃Iso‴ ass σ I≅J ⟩
 
-      (f ≡ _≃_.from (cast ass σ I≅J) g)  ↝⟨ inverse $ from≡↔≡to (inverse $ cast ass σ I≅J) ⟩□
+      (f ≡ _≃_.from (cast ass σ I≅J) g)  ↔⟨ inverse $ from≡↔≡to (inverse $ cast ass σ I≅J) ⟩□
 
       (_≃_.to (cast ass σ I≅J) f ≡ g)    □
 
@@ -915,7 +915,7 @@ module Dependent where
       reflexivityE ass c (Dep set) I A ≡ lift Eq.id
     reflexivityE-set ass {c} {I} {A} =
 
-      reflexivityE ass c (Dep set) I A                                 ≡⟨⟩
+      reflexivityE ass c (Dep set) I A                                ≡⟨⟩
 
       lift (≡⇒≃ (to (from≡↔≡to (inverse Eq.id))
               (from (≡⇒≃ $ cong (λ B → B ≡ A) $
@@ -925,29 +925,33 @@ module Dependent where
                            (sym $ right-inverse-of
                                     (isomorphism≃equality ass c)
                                     (refl I))
-                           (refl A)))))                                ≡⟨ cong (λ eq → lift (≡⇒≃ (to (from≡↔≡to (inverse Eq.id)) eq))) $ sym $
-                                                                            resp-refl-lemma set ass I A ⟩
+                           (refl A)))))                               ≡⟨ cong (λ eq → lift (≡⇒≃ (to (from≡↔≡to (inverse Eq.id)) eq))) $ sym $
+                                                                           resp-refl-lemma set ass I A ⟩
       lift (≡⇒≃ (to (from≡↔≡to (inverse Eq.id))
-                    (resp-refl set ass {I = I} A)))                    ≡⟨⟩
+                    (resp-refl set ass {I = I} A)))                   ≡⟨⟩
 
-      lift (≡⇒≃ (to (from≡↔≡to (inverse Eq.id)) (refl A)))             ≡⟨⟩
+      lift (≡⇒≃ (to (from≡↔≡to (inverse Eq.id)) (refl A)))            ≡⟨⟩
 
-      lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A)
-                           (right-inverse-of (inverse Eq.id) A))
-                     (cong id (refl A))))                              ≡⟨⟩
+      lift (≡⇒≃ (≡⇒→′ (cong (λ B → B ≡ A)
+                            (right-inverse-of (inverse Eq.id) A))
+                      (cong id (refl A))))                            ≡⟨⟩
 
-      lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A) (left-inverse-of Eq.id A))
-                     (cong id (refl A))))                              ≡⟨ cong (λ eq → lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A) eq) (refl A))))
-                                                                          left-inverse-of-id  ⟩
-      lift (≡⇒≃ (≡⇒→ (cong (λ B → B ≡ A) (refl A)) (refl A)))          ≡⟨⟩
+      lift (≡⇒≃ (≡⇒→′ (cong (λ B → B ≡ A) (left-inverse-of Eq.id A))
+                      (cong id (refl A))))                            ≡⟨ cong (λ eq → lift (≡⇒≃ (≡⇒→′ (cong (λ B → B ≡ A) eq) (refl A))))
+                                                                         left-inverse-of-id  ⟩
+      lift (≡⇒≃ (≡⇒→′ (cong (λ B → B ≡ A) (refl A)) (refl A)))        ≡⟨⟩
 
-      lift (≡⇒≃ (≡⇒→ (refl (A ≡ A)) (refl A)))                         ≡⟨⟩
+      lift (≡⇒≃ (≡⇒→′ (refl (A ≡ A)) (refl A)))                       ≡⟨⟩
 
-      lift (≡⇒≃ (refl A))                                              ≡⟨ refl _ ⟩∎
+      lift (≡⇒≃ (refl A))                                             ≡⟨ refl _ ⟩∎
 
-      lift Eq.id                                                       ∎
+      lift Eq.id                                                      ∎
 
-      where open _≃_
+      where
+      open _↔_ using  (to)
+      open _≃_ hiding (to)
+
+      ≡⇒→′ = _↔_.to ∘ ≡⇒↝ _
 
   ⟨0⟩ : ∀ {c} → Extractor (c ▻ Dep set)
   ⟨0⟩ {c} = record

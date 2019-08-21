@@ -2719,28 +2719,28 @@ flip-trans-isomorphism x≡y = record
 
 -- Equality expression rearrangement lemmas.
 
-from≡↔≡to : ∀ {a b k} →
+from≡↔≡to : ∀ {a b} →
             {A : Set a} {B : Set b}
             (A≃B : A ≃ B) {x : B} {y : A} →
-            (_≃_.from A≃B x ≡ y) ↔[ k ] (x ≡ _≃_.to A≃B y)
+            (_≃_.from A≃B x ≡ y) ↔ (x ≡ _≃_.to A≃B y)
 from≡↔≡to A≃B {x} {y} =
   (_≃_.from A≃B x ≡ y)                          ↔⟨ inverse $ Eq.≃-≡ A≃B ⟩
   (_≃_.to A≃B (_≃_.from A≃B x) ≡ _≃_.to A≃B y)  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ _≃_.to A≃B y) $ _≃_.right-inverse-of A≃B x ⟩□
   (x ≡ _≃_.to A≃B y)                            □
 
-∘from≡↔≡∘to : ∀ {a b c k} →
+∘from≡↔≡∘to : ∀ {a b c} →
               Extensionality (a ⊔ b) c →
               {A : Set a} {B : Set b} {C : Set c}
               (A≃B : A ≃ B) {f : A → C} {g : B → C} →
-              (f ∘ _≃_.from A≃B ≡ g) ↔[ k ] (f ≡ g ∘ _≃_.to A≃B)
+              (f ∘ _≃_.from A≃B ≡ g) ↔ (f ≡ g ∘ _≃_.to A≃B)
 ∘from≡↔≡∘to ext A≃B = from≡↔≡to (→-cong ext (inverse A≃B) Eq.id)
 
-to∘≡↔≡from∘ : ∀ {a b c k} →
+to∘≡↔≡from∘ : ∀ {a b c} →
               Extensionality a (b ⊔ c) →
               {A : Set a} {B : A → Set b} {C : A → Set c}
               (B≃C : ∀ {x} → B x ≃ C x)
               {f : (x : A) → B x} {g : (x : A) → C x} →
-              (_≃_.to B≃C ⊚ f ≡ g) ↔[ k ] (f ≡ _≃_.from B≃C ⊚ g)
+              (_≃_.to B≃C ⊚ f ≡ g) ↔ (f ≡ _≃_.from B≃C ⊚ g)
 to∘≡↔≡from∘ ext B≃C =
   from≡↔≡to (∀-cong ext (λ _ → inverse B≃C))
 
