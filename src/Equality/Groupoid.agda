@@ -10,6 +10,7 @@ open import Equality
 module Equality.Groupoid
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
+open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Tactic eq
 open import Groupoid eq
@@ -34,6 +35,13 @@ groupoid A = record
   ; left-inverse   = trans-symʳ
   ; right-inverse  = trans-symˡ
   }
+
+-- A corollary.
+
+≡-comm :
+  ∀ {a} {A : Set a} {x y : A} →
+  x ≡ y ↔ y ≡ x
+≡-comm = Groupoid.⁻¹-bijection (groupoid _)
 
 ------------------------------------------------------------------------
 -- In some cases transitivity is commutative
