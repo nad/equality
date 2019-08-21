@@ -1201,7 +1201,8 @@ Very-stable→Surjective-[] {A = A} =
 
 -- In an erased context [_] is always surjective.
 
-Erased-Surjective-[] : Erased (Surjective ([_] {A = A}))
+Erased-Surjective-[] :
+  {@0 A : Set a} → Erased (Surjective ([_] {A = A}))
 Erased-Surjective-[] =
   [ Very-stable→Surjective-[] (erased Erased-Very-stable) ]
 
