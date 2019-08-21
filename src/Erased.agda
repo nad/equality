@@ -491,6 +491,19 @@ mutual
 Very-stable-≡ : Set a → Set a
 Very-stable-≡ A = {x y : A} → Very-stable (x ≡ y)
 
+-- Very-stable is propositional.
+
+Very-stable-propositional : Is-proposition (Very-stable A)
+Very-stable-propositional = Eq.propositional ext _
+
+-- Very-stable-≡ is propositional.
+
+Very-stable-≡-propositional : Is-proposition (Very-stable-≡ A)
+Very-stable-≡-propositional =
+  implicit-Π-closure ext 1 λ _ →
+  implicit-Π-closure ext 1 λ _ →
+  Very-stable-propositional
+
 -- Very stable types are stable.
 
 Very-stable→Stable : Very-stable A → Stable-[ k ] A
