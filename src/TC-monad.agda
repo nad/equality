@@ -14,6 +14,7 @@ open import Agda.Builtin.Char
 open import Agda.Builtin.Float
 open import Agda.Builtin.Nat as N using (_==_)
 import Agda.Builtin.Reflection
+open import Agda.Builtin.Strict
 open import Agda.Builtin.String
 
 open import Logical-equivalence using (_⇔_)
@@ -213,9 +214,6 @@ mutual
 mutual
 
   -- Renames the first variable to the second.
-  --
-  -- Applications of pattern-matching lambdas are replaced by
-  -- "unknown".
 
   rename-term : ℕ → ℕ → Term → Term
   rename-term old new = λ where
@@ -224,7 +222,8 @@ mutual
     (con c args)      → con c (rename-args old new args)
     (def f args)      → def f (rename-args old new args)
     (lam v t)         → lam v (rename-abs old new t)
-    (pat-lam cs args) → unknown
+    (pat-lam cs args) → pat-lam (rename-clauses old new cs)
+                                (rename-args old new args)
     (pi a b)          → pi (rename-arg old new a) (rename-abs old new b)
     (agda-sort s)     → agda-sort (rename-sort old new s)
     (lit l)           → lit l
@@ -252,11 +251,21 @@ mutual
     (lit n) → lit n
     unknown → unknown
 
+  rename-clause : ℕ → ℕ → Clause → Clause
+  rename-clause old new c@(absurd-clause _) = c
+  rename-clause old new (clause ps t)       =
+    primForce (bound-in-patterns ps) λ b →
+    clause ps (rename-term (b + old) (b + new) t)
+
+  rename-clauses : ℕ → ℕ → List Clause → List Clause
+  rename-clauses old new = λ where
+    []       → []
+    (c ∷ cs) → rename-clause old new c ∷ rename-clauses old new cs
+
 mutual
 
   -- Weakening: weaken-term from by increases variables "from" and
-  -- higher by "by". Applications of pattern-matching lambdas are
-  -- replaced by "unknown".
+  -- higher by "by".
 
   weaken-term : ℕ → ℕ → Term → Term
   weaken-term from by = λ where
@@ -265,7 +274,8 @@ mutual
     (con c args)      → con c (weaken-args from by args)
     (def f args)      → def f (weaken-args from by args)
     (lam v t)         → lam v (weaken-abs from by t)
-    (pat-lam cs args) → unknown
+    (pat-lam cs args) → pat-lam (weaken-clauses from by cs)
+                                (weaken-args from by args)
     (pi a b)          → pi (weaken-arg from by a) (weaken-abs from by b)
     (agda-sort s)     → agda-sort (weaken-sort from by s)
     (lit l)           → lit l
@@ -293,12 +303,22 @@ mutual
     (lit n) → lit n
     unknown → unknown
 
+  weaken-clause : ℕ → ℕ → Clause → Clause
+  weaken-clause from by = λ where
+    c@(absurd-clause _) → c
+    (clause ps t)       →
+      clause ps (weaken-term (bound-in-patterns ps + from) by t)
+
+  weaken-clauses : ℕ → ℕ → List Clause → List Clause
+  weaken-clauses from by = λ where
+    []       → []
+    (c ∷ cs) → weaken-clause from by c ∷ weaken-clauses from by cs
+
 mutual
 
   -- Strengthening: strengthen-term from by subtracts "by" from
   -- variables "from" and higher. Applications of variable x, where
-  -- from ≤ x and x < from + by, as well as applications of
-  -- pattern-matching lambdas, are replaced by "unknown".
+  -- from ≤ x and x < from + by, are replaced by "unknown".
 
   strengthen-term : ℕ → ℕ → Term → Term
   strengthen-term from by = λ where
@@ -311,7 +331,8 @@ mutual
     (con c args)      → con c (strengthen-args from by args)
     (def f args)      → def f (strengthen-args from by args)
     (lam v t)         → lam v (strengthen-abs from by t)
-    (pat-lam cs args) → unknown
+    (pat-lam cs args) → pat-lam (strengthen-clauses from by cs)
+                                (strengthen-args from by args)
     (pi a b)          → pi (strengthen-arg from by a)
                            (strengthen-abs from by b)
     (agda-sort s)     → agda-sort (strengthen-sort from by s)
@@ -336,6 +357,18 @@ mutual
     (set t) → set (strengthen-term from by t)
     (lit n) → lit n
     unknown → unknown
+
+  strengthen-clause : ℕ → ℕ → Clause → Clause
+  strengthen-clause from by = λ where
+    c@(absurd-clause _) → c
+    (clause ps t)       →
+      clause ps (strengthen-term (bound-in-patterns ps + from) by t)
+
+  strengthen-clauses : ℕ → ℕ → List Clause → List Clause
+  strengthen-clauses from by = λ where
+    []       → []
+    (c ∷ cs) →
+      strengthen-clause from by c ∷ strengthen-clauses from by cs
 
 mutual
 
@@ -385,18 +418,18 @@ mutual
 
   any-term : (ℕ → Bool) → Term → Any-result
   any-term p = λ where
-    (var x args)  → (any-var p x ∨_) ⟨$⟩ any-args p args
-    (con _ args)  → any-args p args
-    (def _ args)  → any-args p args
-    (lam _ t)     → any-abs p t
-    (pat-lam _ _) → unknown
-    (pi a b)      → _∨_ ⟨$⟩ any-arg p a ⊛ any-abs p b
-    (agda-sort s) → any-sort p s
-    (lit l)       → definitely false
-    (meta m args) → case any-args p args of λ where
-                      (definitely false) → meta m
-                      r                  → r
-    unknown       → unknown
+    (var x args)      → (any-var p x ∨_) ⟨$⟩ any-args p args
+    (con _ args)      → any-args p args
+    (def _ args)      → any-args p args
+    (lam _ t)         → any-abs p t
+    (pat-lam cs args) → _∨_ ⟨$⟩ any-clauses p cs ⊛ any-args p args
+    (pi a b)          → _∨_ ⟨$⟩ any-arg p a ⊛ any-abs p b
+    (agda-sort s)     → any-sort p s
+    (lit l)           → definitely false
+    (meta m args)     → case any-args p args of λ where
+                          (definitely false) → meta m
+                          r                  → r
+    unknown           → unknown
 
   any-var : (ℕ → Bool) → ℕ → Bool
   any-var p x = p x
@@ -421,6 +454,21 @@ mutual
     (set t) → any-term p t
     (lit n) → definitely false
     unknown → unknown
+
+  any-clause : (ℕ → Bool) → Clause → Any-result
+  any-clause p = λ where
+    (absurd-clause _) → definitely false
+    (clause ps t)     →
+      primForce (bound-in-patterns ps) λ b →
+      any-term (λ n → if suc n ≤? b
+                      then false
+                      else p (n ∸ b))
+               t
+
+  any-clauses : (ℕ → Bool) → List Clause → Any-result
+  any-clauses p = λ where
+    []       → definitely false
+    (c ∷ cs) → _∨_ ⟨$⟩ any-clause p c ⊛ any-clauses p cs
 
 -- Figures out if the given variable is bound in the given term.
 
