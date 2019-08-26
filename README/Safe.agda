@@ -119,6 +119,10 @@ import Nat.Eliminator
 
 import Nat.Solver
 
+-- Some definitions related to the binary sum type former.
+
+import Sum
+
 -- Some definitions related to and properties of booleans.
 
 import Bool
