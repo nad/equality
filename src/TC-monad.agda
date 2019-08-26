@@ -195,6 +195,23 @@ apply A t (a ∷ as) =
 
 mutual
 
+  -- The number of variables bound in the pattern(s).
+
+  bound-in-pattern : Pattern → ℕ
+  bound-in-pattern (con _ ps) = bound-in-patterns ps
+  bound-in-pattern dot        = 0
+  bound-in-pattern (var _)    = 1
+  bound-in-pattern (lit _)    = 0
+  bound-in-pattern (proj _)   = 0
+  bound-in-pattern absurd     = 0
+
+  bound-in-patterns : List (Arg Pattern) → ℕ
+  bound-in-patterns []             = 0
+  bound-in-patterns (arg _ p ∷ ps) =
+    bound-in-pattern p + bound-in-patterns ps
+
+mutual
+
   -- Renames the first variable to the second.
   --
   -- Applications of pattern-matching lambdas are replaced by
