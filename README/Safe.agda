@@ -291,6 +291,23 @@ import Integer.Quotient
 
 import Nat.Binary
 
+-- Simple queues, implemented in the usual way using two lists
+-- (following Hood and Melville).
+
+import Queue.Simple
+
+-- Quotiented simple queues: any two queues representing the same
+-- sequence are equal.
+
+import Queue.Simple.Quotiented
+
+-- Truncated simple queues: any two queues representing the same
+-- sequence are equal, and things are set up so that at compile-time
+-- (but not at run-time) some queue operations compute in roughly the
+-- same way as the corresponding list operations.
+
+import Queue.Simple.Truncated
+
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
 
