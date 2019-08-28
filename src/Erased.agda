@@ -581,6 +581,24 @@ Stable-proposition→Very-stable {A = A} s prop =
     Stable-[ logical-equivalence ] A  ↝⟨ _↠_.from (Eq.≃↠⇔ (H-level-Erased 1 prop) prop) ⟩□
     Stable-[ equivalence ] A          □
 
+-- It is not the case that every very stable type is a proposition.
+
+¬-Very-stable→Is-proposition :
+  ¬ ({A : Set a} → Very-stable A → Is-proposition A)
+¬-Very-stable→Is-proposition {a = a} hyp =
+  not-proposition (hyp very-stable)
+  where
+  very-stable : Very-stable (Erased (↑ a Bool))
+  very-stable = Very-stable-Erased
+
+  not-proposition : ¬ Is-proposition (Erased (↑ a Bool))
+  not-proposition =
+    Is-proposition (Erased (↑ a Bool))  ↝⟨ H-level-cong _ 1 (Erased-cong Bijection.↑↔) ⟩
+    Is-proposition (Erased Bool)        ↔⟨ inverse (Erased-H-level↔H-level {n = 1}) ⟩
+    Erased (Is-proposition Bool)        ↝⟨ Erased-cong ¬-Bool-propositional ⟩
+    Erased ⊥                            ↔⟨ Erased-⊥↔⊥ ⟩□
+    ⊥                                   □
+
 -- Erased A implies ¬ ¬ A.
 
 Erased→¬¬ : {@0 A : Set a} → Erased A → ¬ ¬ A
