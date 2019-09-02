@@ -94,7 +94,7 @@ abstract
   -- Queue-[ ys ] is isomorphic to the type of lists equal (with
   -- erased equality proofs) to ys.
   --
-  -- Note that equality is very stable for A if A comes with decidable
+  -- Note that equality is very stable for A if A has decidable
   -- equality.
 
   Queue-[]↔Σ-List :
@@ -127,8 +127,7 @@ Queue↔List {A = A} s =
   (∃ λ (xs : Erased (List A)) → ∃ λ ys → Erased (ys ≡ erased xs))  ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
   List A                                                           □
 
--- The forward direction of Queue↔List s. (Equality is required to be
--- very stable for the carrier type.)
+-- The forward direction of Queue↔List s.
 
 to-List : Very-stable-≡ A → Queue A → List A
 to-List s = _↔_.to (Queue↔List s)
@@ -143,8 +142,8 @@ abstract
     to-List-, : to-List s ([ xs ] , ∣ q , p ∣) ≡ Q.to-List q
     to-List-, = refl _
 
--- Converts lists to queues. (Equality is not required to be very
--- stable for the carrier type.)
+-- Converts lists to queues. (Note that equality is not required to be
+-- very stable for the carrier type.)
 
 from-List : List A → Queue A
 from-List {A = A} =
