@@ -738,7 +738,7 @@ module Dependent where
     open module E {c} (σ : Ty c) =
       Extension-with-resp (ext-with-resp σ)
       hiding (Iso; Iso≃Iso″; extension)
-    open E public using () renaming (extension to Dep)
+  open E public using () renaming (extension to Dep)
 
   data Ty c where
     set  : Ty c
