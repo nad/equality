@@ -3223,6 +3223,56 @@ if-encoding {A = A} {B} =
   to∘from : ∀ p → to (from p) ≡ p
   to∘from _ = to∘from′ _ _ _ _
 
+-- Some isomorphisms related to equality of natural numbers.
+
+zero≡zero↔ : zero ≡ zero ↔ ⊤
+zero≡zero↔ =
+  _≃_.bijection $
+  _↠_.from (Eq.≃↠⇔ ℕ-set (mono₁ 0 ⊤-contractible)) $
+  record { to = _; from = λ _ → refl _ }
+
+zero≡suc↔ : ∀ {n} → zero ≡ suc n ↔ ⊥₀
+zero≡suc↔ =
+  _≃_.bijection $
+  _↠_.from (Eq.≃↠⇔ ℕ-set ⊥-propositional) $
+  record { to = 0≢+; from = ⊥-elim }
+
+suc≡zero↔ : ∀ {m} → suc m ≡ zero ↔ ⊥₀
+suc≡zero↔ {m} =
+  suc m ≡ zero  ↝⟨ ≡-comm ⟩
+  zero ≡ suc m  ↝⟨ zero≡suc↔ ⟩□
+  ⊥             □
+
+suc≡suc↔ : ∀ {m n} → suc m ≡ suc n ↔ m ≡ n
+suc≡suc↔ =
+  _≃_.bijection $
+  _↠_.from (Eq.≃↠⇔ ℕ-set ℕ-set) $
+  record { to = cancel-suc; from = cong suc }
+
+-- The equality test Nat._==_ gives the right result.
+
+T[==]↔≡ : {m n : ℕ} → T (m == n) ↔ m ≡ n
+T[==]↔≡ {m = zero} {n = zero} =
+  T (zero == zero)  ↔⟨⟩
+  ⊤                 ↝⟨ inverse zero≡zero↔ ⟩□
+  zero ≡ zero       □
+
+T[==]↔≡ {m = zero} {n = suc n} =
+  T (zero == suc n)  ↔⟨⟩
+  ⊥                  ↝⟨ inverse zero≡suc↔ ⟩□
+  zero ≡ suc n       □
+
+T[==]↔≡ {m = suc m} {n = zero} =
+  T (suc m == zero)  ↔⟨⟩
+  ⊥                  ↝⟨ inverse suc≡zero↔ ⟩□
+  suc m ≡ zero       □
+
+T[==]↔≡ {m = suc m} {n = suc n} =
+  T (suc m == suc n)  ↔⟨⟩
+  T (m == n)          ↝⟨ T[==]↔≡ ⟩
+  m ≡ n               ↝⟨ inverse suc≡suc↔ ⟩□
+  suc m ≡ suc n       □
+
 -- Some isomorphisms related to the ordering of natural numbers.
 
 zero≤↔ : ∀ {n} → zero ≤ n ↔ ⊤
