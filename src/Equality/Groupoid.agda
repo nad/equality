@@ -36,13 +36,6 @@ groupoid A = record
   ; right-inverse  = trans-symˡ
   }
 
--- A corollary.
-
-≡-comm :
-  ∀ {a} {A : Set a} {x y : A} →
-  x ≡ y ↔ y ≡ x
-≡-comm = Groupoid.⁻¹-bijection (groupoid _)
-
 ------------------------------------------------------------------------
 -- In some cases transitivity is commutative
 

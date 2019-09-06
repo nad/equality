@@ -2682,6 +2682,19 @@ private
 ------------------------------------------------------------------------
 -- Lemmas related to _≡_
 
+-- Equality is commutative.
+
+≡-comm :
+  ∀ {a} {A : Set a} {x y : A} →
+  x ≡ y ↔ y ≡ x
+≡-comm = record
+  { surjection = record
+    { logical-equivalence = record { to = sym }
+    ; right-inverse-of    = sym-sym
+    }
+  ; left-inverse-of = sym-sym
+  }
+
 -- The following two lemmas are based on Example 2.4.8 in the HoTT
 -- book.
 
