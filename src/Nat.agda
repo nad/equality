@@ -9,6 +9,9 @@ open import Equality
 module Nat
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
+import Agda.Builtin.Bool
+import Agda.Builtin.Nat
+
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
@@ -50,6 +53,15 @@ zero  ≟ zero  = yes (refl _)
 suc m ≟ suc n = ⊎-map (cong suc) (λ m≢n → m≢n ∘ cancel-suc) (m ≟ n)
 zero  ≟ suc n = no 0≢+
 suc m ≟ zero  = no (0≢+ ∘ sym)
+
+-- An equality test that is likely to be more efficient.
+
+infix 4 _==_
+
+_==_ : ℕ → ℕ → Bool
+m == n = case m Agda.Builtin.Nat.== n of λ where
+  Agda.Builtin.Bool.true  → true
+  Agda.Builtin.Bool.false → false
 
 ------------------------------------------------------------------------
 -- Inequality

@@ -12,7 +12,7 @@ module TC-monad
 import Agda.Builtin.Bool as B
 open import Agda.Builtin.Char
 open import Agda.Builtin.Float
-open import Agda.Builtin.Nat as N using (_==_)
+import Agda.Builtin.Nat as N
 import Agda.Builtin.Reflection
 open import Agda.Builtin.Strict
 open import Agda.Builtin.String
@@ -97,7 +97,7 @@ mutual
   eq-Name x₁ x₂ = _⇔_.to Bool⇔Bool (primQNameEquality x₁ x₂)
 
   eq-ℕ : ℕ → ℕ → Bool
-  eq-ℕ n₁ n₂ = _⇔_.to Bool⇔Bool (n₁ == n₂)
+  eq-ℕ = _==_
 
   eq-Meta : Meta → Meta → Bool
   eq-Meta x₁ x₂ = _⇔_.to Bool⇔Bool (primMetaEquality x₁ x₂)
