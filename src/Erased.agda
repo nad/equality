@@ -549,7 +549,7 @@ Very-stable-Erased {A = A} =
 -- Presumably "not in an erased context" is not expressible
 -- internally, so it seems as if it should not be possible to prove
 -- that any type is /not/ very stable (in an empty, non-erased
--- context).
+-- context, assuming that Agda is consistent).
 
 Erased-Very-stable :
   {@0 A : Set a} → Erased (Very-stable A)
