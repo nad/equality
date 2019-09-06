@@ -272,6 +272,17 @@ map-reverse {f = f} (x ∷ xs) =
   reverse (f x ∷ map f xs)        ≡⟨⟩
   reverse (map f (x ∷ xs))        ∎
 
+length-reverse :
+  ∀ {a} {A : Set a} (xs : List A) →
+  length (reverse xs) ≡ length xs
+length-reverse []       = refl _
+length-reverse (x ∷ xs) =
+  length (reverse (x ∷ xs))      ≡⟨ cong length (reverse-∷ xs) ⟩
+  length (reverse xs ++ x ∷ [])  ≡⟨ length-++ (reverse xs) ⟩
+  length (reverse xs) + 1        ≡⟨ cong (_+ 1) (length-reverse xs) ⟩
+  length xs + 1                  ≡⟨ +-comm (length xs) ⟩∎
+  length (x ∷ xs)                ∎
+
 -- The functions filter and map commute (kind of).
 
 filter∘map :
