@@ -388,10 +388,10 @@ private
   Is-set-closure :
     {@0 A : Set a} →
     @0 Is-set A → Is-set (Erased A)
-  Is-set-closure {A = A} prop =
+  Is-set-closure {A = A} set =
     _↔_.from (H-level↔H-level 2)
       (Is-set-closure′
-         (_↔_.to (H-level↔H-level 2) prop))
+         (_↔_.to (H-level↔H-level 2) set))
     where
     Is-set-closure′ : @0 P.Is-set A → P.Is-set (Erased A)
     Is-set-closure′ set p q = λ i j →
