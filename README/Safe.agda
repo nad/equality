@@ -296,6 +296,10 @@ import Nat.Binary
 
 import Queue.Simple
 
+-- Banker's queues (following Okasaki).
+
+import Queue.Bankers
+
 -- Quotiented simple queues: any two queues representing the same
 -- sequence are equal.
 
