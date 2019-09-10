@@ -18,7 +18,7 @@ open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
 open import Equality.Path.Isomorphisms eq
 import Equivalence eq as Eq
-open import Erased eq as Erased
+open import Erased eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
