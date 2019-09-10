@@ -13,7 +13,7 @@ open Derived-definitions-and-properties eq
 
 import Equality.Path as P
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding ([_,_])
+open import Prelude
 
 open import Bijection eq using (_↔_)
 open import Embedding eq as Emb using (Embedding; Is-embedding)
@@ -26,8 +26,13 @@ open import H-level.Closure eq
 open import H-level.Truncation.Propositional eq as Trunc
   using (Surjective)
 open import Injection eq using (_↣_)
-open import Monad eq
 open import Surjection eq using (_↠_)
+
+-- Some definitions related to Erased that do not require Cubical Agda
+-- are defined in a separate module.
+
+open import Erased.Without-K eq as Erased public
+  hiding (Erased-cong-→; Erased-cong-⇔)
 
 private
   variable
@@ -37,116 +42,7 @@ private
     n       : ℕ
 
 ------------------------------------------------------------------------
--- The type
-
--- Erased A is like A, but the values are (supposed to be) erased at
--- run-time.
-
-record Erased (@0 A : Set a) : Set a where
-  constructor [_]
-  field
-    @0 erased : A
-
-open Erased public
-
-------------------------------------------------------------------------
--- Erased is a monad
-
--- A universe-polymorphic variant of bind.
-
-infixl 5 _>>=′_
-
-_>>=′_ :
-  {@0 A : Set a} {@0 B : Set b} →
-  Erased A → (A → Erased B) → Erased B
-[ x ] >>=′ f = [ erased (f x) ]
-
-instance
-
-  -- Erased is a monad.
-
-  raw-monad : Raw-monad {c = ℓ} Erased
-  Raw-monad.return raw-monad = [_]
-  Raw-monad._>>=_  raw-monad = _>>=′_
-
-  monad : Monad {c = ℓ} Erased
-  Monad.raw-monad      monad = raw-monad
-  Monad.left-identity  monad = λ _ _ → refl _
-  Monad.right-identity monad = λ _ → refl _
-  Monad.associativity  monad = λ _ _ _ → refl _
-
-------------------------------------------------------------------------
 -- Some isomorphisms
-
--- In an erased context Erased A is always isomorphic to A.
-
-Erased↔ : {@0 A : Set a} → Erased (Erased A ↔ A)
-Erased↔ = [ record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = erased
-      ; from = [_]
-      }
-    ; right-inverse-of = λ _ → refl _
-    }
-  ; left-inverse-of = λ _ → refl _
-  } ]
-
--- Erased ⊤ is isomorphic to ⊤.
-
-Erased-⊤↔⊤ : Erased ⊤ ↔ ⊤
-Erased-⊤↔⊤ = record
-  { surjection = record
-    { right-inverse-of = λ _ → refl _
-    }
-  ; left-inverse-of = λ _ → refl _
-  }
-
--- Erased ⊥ is isomorphic to ⊥.
-
-Erased-⊥↔⊥ : Erased (⊥ {ℓ = ℓ}) ↔ ⊥ {ℓ = ℓ}
-Erased-⊥↔⊥ = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { [ () ] }
-      ; from = λ ()
-      }
-    ; right-inverse-of = λ ()
-    }
-  ; left-inverse-of = λ { [ () ] }
-  }
-
--- Erased commutes with Π A.
-
-Erased-Π↔Π :
-  {@0 P : A → Set p} →
-  Erased ((x : A) → P x) ↔ ((x : A) → Erased (P x))
-Erased-Π↔Π = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { [ f ] x → [ f x ] }
-      ; from = λ f → [ (λ x → erased (f x)) ]
-      }
-    ; right-inverse-of = λ _ → refl _
-    }
-  ; left-inverse-of = λ _ → refl _
-  }
-
--- Erased commutes with Σ.
-
-Erased-Σ↔Σ :
-  {@0 A : Set a} {@0 P : A → Set p} →
-  Erased (Σ A P) ↔ Σ (Erased A) (λ x → Erased (P (erased x)))
-Erased-Σ↔Σ = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { [ p ] → [ proj₁ p ] , [ proj₂ p ] }
-      ; from = λ { ([ x ] , [ y ]) → [ x , y ] }
-      }
-    ; right-inverse-of = λ _ → refl _
-    }
-  ; left-inverse-of = λ _ → refl _
-  }
 
 -- There is a bijection between erased paths and paths between
 -- erased values.
@@ -210,24 +106,8 @@ Erased-W↔W {A = A} {P = P} = record
     []-cong [ cong (sup x) (⟨ext⟩ λ y →
       cong erased (from∘to [ f y ])) ]
 
--- Erased commutes with ↑ ℓ.
-
-Erased-↑↔↑ :
-  {@0 A : Set a} →
-  Erased (↑ ℓ A) ↔ ↑ ℓ (Erased A)
-Erased-↑↔↑ = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { [ x ] → lift [ lower x ] }
-      ; from = λ { (lift [ x ]) → [ lift x ] }
-      }
-    ; right-inverse-of = λ _ → refl _
-    }
-  ; left-inverse-of = λ _ → refl _
-  }
-
 ------------------------------------------------------------------------
--- Erased preserves all kinds of functions
+-- Erased preserves some kinds of functions
 
 private
 
@@ -236,20 +116,9 @@ private
 
   module _ {@0 A : Set a} {@0 B : Set b} where
 
-    Erased-cong-→ : @0 (A → B) → Erased A → Erased B
-    Erased-cong-→ A→B [ x ] = [ A→B x ]
-
-  module _ {@0 A : Set a} {@0 B : Set b} where
-
-    Erased-cong-⇔ : @0 (A ⇔ B) → Erased A ⇔ Erased B
-    Erased-cong-⇔ A⇔B = record
-      { to   = Erased-cong-→ (_⇔_.to   A⇔B)
-      ; from = Erased-cong-→ (_⇔_.from A⇔B)
-      }
-
     Erased-cong-↠ : @0 A ↠ B → Erased A ↠ Erased B
     Erased-cong-↠ A↠B = record
-      { logical-equivalence = Erased-cong-⇔
+      { logical-equivalence = Erased.Erased-cong-⇔
                                 (_↠_.logical-equivalence A↠B)
       ; right-inverse-of    = λ { [ x ] →
           []-cong [ _↠_.right-inverse-of A↠B x ] }
@@ -265,6 +134,9 @@ private
     Erased-cong-≃ : @0 A ≃ B → Erased A ≃ Erased B
     Erased-cong-≃ A≃B =
       from-isomorphism (Erased-cong-↔ (from-isomorphism A≃B))
+
+------------------------------------------------------------------------
+-- A family of isomorphisms
 
 -- There is a bijection between erased equality proofs and equalities
 -- between erased values.
@@ -297,6 +169,9 @@ from-Erased-≡↔[]≡[] {x≡y = x≡y} = []-cong
     cong erased x≡y                                ∎
   ]
 
+------------------------------------------------------------------------
+-- Erased preserves all kinds of functions
+
 module _ {@0 A : Set a} {@0 B : Set b} where
 
   private
@@ -306,10 +181,10 @@ module _ {@0 A : Set a} {@0 B : Set b} where
 
     Erased-cong-↣ : @0 A ↣ B → Erased A ↣ Erased B
     Erased-cong-↣ A↣B = record
-      { to        = Erased-cong-→ (_↣_.to A↣B)
+      { to        = Erased.Erased-cong-→ (_↣_.to A↣B)
       ; injective = λ { {x = [ x ]} {y = [ y ]} →
           [ _↣_.to A↣B x ] ≡ [ _↣_.to A↣B y ]   ↔⟨ inverse Erased-≡↔[]≡[] ⟩
-          Erased (_↣_.to A↣B x ≡ _↣_.to A↣B y)  ↝⟨ Erased-cong-→ (_↣_.injective A↣B) ⟩
+          Erased (_↣_.to A↣B x ≡ _↣_.to A↣B y)  ↝⟨ Erased.Erased-cong-→ (_↣_.injective A↣B) ⟩
           Erased (x ≡ y)                        ↔⟨ Erased-≡↔[]≡[] ⟩□
           [ x ] ≡ [ y ]                         □ }
       }
@@ -324,7 +199,7 @@ module _ {@0 A : Set a} {@0 B : Set b} where
       Erased-cong-Embedding′ :
         @0 PE.Embedding A B → PE.Embedding (Erased A) (Erased B)
       Erased-cong-Embedding′ A↣B = record
-        { to           = Erased-cong-→ (M.to A↣B)
+        { to           = Erased.Erased-cong-→ (M.to A↣B)
         ; is-embedding = λ { [ x ] [ y ] →
             _↔_.to Is-equivalence↔Is-equivalence $
             _≃_.is-equivalence (
@@ -339,8 +214,8 @@ module _ {@0 A : Set a} {@0 B : Set b} where
   -- Erased preserves all kinds of functions.
 
   Erased-cong : @0 A ↝[ k ] B → Erased A ↝[ k ] Erased B
-  Erased-cong {k = implication}         = Erased-cong-→
-  Erased-cong {k = logical-equivalence} = Erased-cong-⇔
+  Erased-cong {k = implication}         = Erased.Erased-cong-→
+  Erased-cong {k = logical-equivalence} = Erased.Erased-cong-⇔
   Erased-cong {k = injection}           = Erased-cong-↣
   Erased-cong {k = embedding}           = Erased-cong-Embedding
   Erased-cong {k = surjection}          = Erased-cong-↠

@@ -275,6 +275,10 @@ import Quotient.Families-of-equivalence-classes
 
 import Quotient
 
+-- Some parts of Erased that do not require --cubical to be active.
+
+import Erased.Without-K
+
 -- A type for values that should be erased at run-time.
 
 import Erased
