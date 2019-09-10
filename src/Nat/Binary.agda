@@ -19,6 +19,7 @@ open import Equality.Decision-procedures eq
 open import Equality.Path.Isomorphisms eq
 import Equivalence eq as Eq
 open import Erased eq
+open import Erased.Singleton eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq

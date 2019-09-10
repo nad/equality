@@ -279,6 +279,10 @@ import Quotient
 
 import Erased
 
+-- Erased singletons.
+
+import Erased.Singleton
+
 -- Integers.
 
 import Integer
