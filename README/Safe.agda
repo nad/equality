@@ -279,6 +279,10 @@ import Quotient
 
 import Erased
 
+-- Stability for Erased.
+
+import Erased.Stability
+
 -- Erased singletons.
 
 import Erased.Singleton

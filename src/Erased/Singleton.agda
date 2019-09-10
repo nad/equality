@@ -17,6 +17,7 @@ open import Prelude hiding ([_,_])
 open import Bijection eq using (_↔_)
 open import Equivalence eq as Eq using (_≃_)
 open import Erased eq
+open import Erased.Stability eq
 open import Function-universe eq as F hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
