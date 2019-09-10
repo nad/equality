@@ -180,6 +180,22 @@ Stable-proposition→Very-stable {A = A} s prop =
     Erased ⊥                            ↔⟨ Erased-⊥↔⊥ ⟩□
     ⊥                                   □
 
+-- Contractible types are very stable.
+
+Contractible→Very-stable :
+  Contractible A → Very-stable A
+Contractible→Very-stable c =
+  Stable-proposition→Very-stable
+    (λ _ → proj₁ c)
+    (mono₁ 0 c)
+
+-- Equality is very stable for propositions.
+
+Is-proposition→Very-stable-≡ :
+  Is-proposition A → Very-stable-≡ A
+Is-proposition→Very-stable-≡ prop =
+  Contractible→Very-stable (+⇒≡ prop)
+
 -- Erased A implies ¬ ¬ A.
 
 Erased→¬¬ : {@0 A : Set a} → Erased A → ¬ ¬ A
