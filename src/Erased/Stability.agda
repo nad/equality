@@ -30,7 +30,7 @@ open import H-level.Truncation.Propositional eq as Trunc
   using (Surjective)
 import List eq as L
 import Nat eq as Nat
-open import Surjection eq using (_↠_)
+open import Surjection eq using (_↠_; Split-surjective)
 
 private
   variable
@@ -76,24 +76,6 @@ Very-stable-≡ A = {x y : A} → Very-stable (x ≡ y)
 ------------------------------------------------------------------------
 -- Some lemmas related to stability
 
--- If A is very stable, then [_] {A = A} is an embedding.
-
-Very-stable→Is-embedding-[] :
-  Very-stable A → Is-embedding ([_] {A = A})
-Very-stable→Is-embedding-[] {A = A} =
-  Very-stable A                      ↔⟨ inverse Trunc.surjective×embedding≃equivalence ⟩
-  Surjective [_] × Is-embedding [_]  ↝⟨ proj₂ ⟩□
-  Is-embedding [_]                   □
-
--- If A is very stable, then [_] {A = A} is surjective.
-
-Very-stable→Surjective-[] :
-  Very-stable A → Surjective ([_] {A = A})
-Very-stable→Surjective-[] {A = A} =
-  Very-stable A                      ↔⟨ inverse Trunc.surjective×embedding≃equivalence ⟩
-  Surjective [_] × Is-embedding [_]  ↝⟨ proj₁ ⟩□
-  Surjective [_]                     □
-
 -- Very-stable is propositional.
 
 Very-stable-propositional : Is-proposition (Very-stable A)
@@ -135,6 +117,24 @@ Very-stable→Stable-[]≡id {x = x} s =
   Very-stable→Stable s [ x ]   ≡⟨⟩
   _≃_.from Eq.⟨ _ , s ⟩ [ x ]  ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s ⟩ x ⟩∎
   x                            ∎
+
+-- If A is very stable, then [_] {A = A} is split surjective.
+
+Very-stable→Split-surjective-[] :
+  Very-stable A → Split-surjective ([_] {A = A})
+Very-stable→Split-surjective-[] s x =
+    Very-stable→Stable s x
+  , ([ Very-stable→Stable s x ]  ≡⟨ []-cong [ Very-stable→Stable-[]≡id s ] ⟩∎
+     x                           ∎)
+
+-- If A is very stable, then [_] {A = A} is an embedding.
+
+Very-stable→Is-embedding-[] :
+  Very-stable A → Is-embedding ([_] {A = A})
+Very-stable→Is-embedding-[] {A = A} =
+  Very-stable A                      ↔⟨ inverse Trunc.surjective×embedding≃equivalence ⟩
+  Surjective [_] × Is-embedding [_]  ↝⟨ proj₂ ⟩□
+  Is-embedding [_]                   □
 
 -- Erased A is very stable.
 

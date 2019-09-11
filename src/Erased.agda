@@ -23,10 +23,8 @@ open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq
 open import H-level eq as H-level
 open import H-level.Closure eq
-open import H-level.Truncation.Propositional eq as Trunc
-  using (Surjective)
 open import Injection eq using (_↣_)
-open import Surjection eq using (_↠_)
+open import Surjection eq using (_↠_; Split-surjective)
 
 -- Some definitions related to Erased that do not require Cubical Agda
 -- are defined in a separate module.
@@ -323,10 +321,10 @@ Erased-H-level↔H-level {n = n} {A = A} =
   H-level n (Erased A)   □
 
 ------------------------------------------------------------------------
--- [_] is sometimes an embedding and/or surjective
+-- [_] is sometimes an embedding and/or split surjective
 
--- See also Very-stable→Is-embedding-[] and Very-stable→Surjective-[]
--- in Erased.Stability.
+-- See also Very-stable→Is-embedding-[] and
+-- Very-stable→Split-surjective-[] in Erased.Stability.
 
 -- If A is a proposition, then [_] {A = A} is an embedding.
 
@@ -348,12 +346,11 @@ Erased-Is-embedding-[] =
        [ x ] ≡ [ y ]  □))
   ]
 
--- In an erased context [_] is always surjective.
+-- In an erased context [_] is always split surjective.
 
-Erased-Surjective-[] :
-  {@0 A : Set a} → Erased (Surjective ([_] {A = A}))
-Erased-Surjective-[] =
-  [ (λ { [ x ] → Trunc.∣ x , refl _ ∣ }) ]
+Erased-Split-surjective-[] :
+  {@0 A : Set a} → Erased (Split-surjective ([_] {A = A}))
+Erased-Split-surjective-[] = [ (λ { [ x ] → x , refl _ }) ]
 
 ------------------------------------------------------------------------
 -- Another lemma
