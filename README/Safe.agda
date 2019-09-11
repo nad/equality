@@ -275,26 +275,21 @@ import Quotient.Families-of-equivalence-classes
 
 import Quotient
 
--- Some parts of Erased that do not require --cubical to be active.
-
-import Erased.Without-K
-
 -- A type for values that should be erased at run-time.
 
 import Erased
-
--- Some parts of Erased.Stability that do not require --cubical to be
--- active.
-
-import Erased.Stability.Without-K
 
 -- Stability for Erased.
 
 import Erased.Stability
 
+-- Some theory of Erased, developed using Cubical Agda.
+
+import Erased.Cubical
+
 -- Erased singletons.
 
-import Erased.Singleton
+import Erased.Cubical.Singleton
 
 -- Integers.
 

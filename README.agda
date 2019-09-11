@@ -7,13 +7,17 @@
 -- the individual files.
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --prop #-}
+{-# OPTIONS --cubical --with-K --prop #-}
 
 module README where
 
--- "Safe" code.
+-- "Safe" code that does not use --with-K.
 
 import README.Safe
+
+-- "Safe" code that uses --with-K.
+
+import README.Safe.With-K
 
 -- Code which might depend on potentially unsafe features.
 

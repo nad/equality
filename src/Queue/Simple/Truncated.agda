@@ -19,9 +19,8 @@ open import Prelude
 
 open import Bijection eq using (_↔_)
 open import Equality.Path.Isomorphisms eq
-open import Erased eq
-open import Erased.Singleton eq
-open import Erased.Stability eq
+open import Erased.Cubical eq
+open import Erased.Cubical.Singleton eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import List eq as L hiding (map)
 open import Maybe eq
