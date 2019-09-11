@@ -645,17 +645,15 @@ Very-stable-≡-↑ {x = x} {y = y} =
 -- A variant of Very-stable-W for equality.
 
 Very-stable-≡-W :
-  {x y : W A P} →
-  Very-stable (headᵂ x ≡ headᵂ y) →
-  (∀ eq → Very-stable (∀ i → tailᵂ x i ≡ tailᵂ y (subst P eq i))) →
-  Very-stable (x ≡ y)
-Very-stable-≡-W {P = P} {x = sup x f} {y = sup y g} = curry (
+  Very-stable-≡ A →
+  Very-stable-≡ (W A P)
+Very-stable-≡-W {P = P} s {x = sup x f} {y = sup y g} =          $⟨ s , (λ _ → Very-stable-Π λ _ → Very-stable-≡-W s) ⟩
   Very-stable (x ≡ y) ×
   (∀ eq → Very-stable (∀ i → f i ≡ g (subst P eq i)))            ↝⟨ uncurry Very-stable-Σ ⟩
 
   Very-stable (∃ λ (eq : x ≡ y) → ∀ i → f i ≡ g (subst P eq i))  ↔⟨ Very-stable-cong $ Eq.W-≡,≡≃≡ ext ⟩□
 
-  Very-stable (sup x f ≡ sup y g)                                □)
+  Very-stable (sup x f ≡ sup y g)                                □
 
 -- If equality is stable for A and B, then it is stable for A ⊎ B.
 
