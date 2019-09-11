@@ -26,7 +26,7 @@ open import H-level eq as H-level
 open import H-level.Closure eq
 open import Nat eq
 open import Preimage eq as Preimage using (_⁻¹_)
-open import Surjection eq using (_↠_)
+open import Surjection eq using (_↠_; Split-surjective)
 
 -- Truncation.
 
@@ -253,6 +253,13 @@ Surjective-propositional {ℓ} {a} ext =
   Π-closure (lower-extensionality (a ⊔ lsuc ℓ) lzero ext) 1 λ _ →
   truncation-has-correct-h-level 1
     (lower-extensionality lzero (lsuc ℓ) ext)
+
+-- Split surjective functions are surjective.
+
+Split-surjective→Surjective :
+  ∀ {a b ℓ} {A : Set a} {B : Set b} {f : A → B} →
+  Split-surjective f → Surjective ℓ f
+Split-surjective→Surjective s = λ b → ∣ s b ∣₁
 
 -- Being both surjective and an embedding is equivalent to being an
 -- equivalence.

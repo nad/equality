@@ -22,7 +22,7 @@ open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Nat eq hiding (_≟_)
 open import Preimage eq using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
-open import Surjection eq as Surjection using (_↠_; module _↠_)
+open import Surjection eq as Surjection using (_↠_; Split-surjective)
 
 ------------------------------------------------------------------------
 -- The universe
@@ -2677,6 +2677,31 @@ private
              B  ↝⟨ B⇔D ⟩
              D  ↝⟨ inverse C⇔D ⟩□
              C  □
+  }
+
+------------------------------------------------------------------------
+-- Lemmas related to _↠_
+
+-- An alternative characterisation of split surjections.
+
+↠↔∃-Split-surjective :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (A ↠ B) ↔ ∃ λ (f : A → B) → Split-surjective f
+↠↔∃-Split-surjective = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ f → _↠_.to f , _↠_.split-surjective f
+      ; from = λ { (f , s) → record
+          { logical-equivalence = record
+            { to   = f
+            ; from = proj₁ ⊚ s
+            }
+          ; right-inverse-of = proj₂ ⊚ s
+          } }
+      }
+    ; right-inverse-of = λ _ → refl _
+    }
+  ; left-inverse-of = λ _ → refl _
   }
 
 ------------------------------------------------------------------------

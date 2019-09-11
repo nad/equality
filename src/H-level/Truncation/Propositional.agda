@@ -33,7 +33,7 @@ open import H-level.Closure eq
 import H-level.Truncation.Church eq as Trunc
 open import Monad eq
 open import Preimage eq as Preimage using (_⁻¹_)
-open import Surjection eq using (_↠_)
+open import Surjection eq using (_↠_; Split-surjective)
 
 private
   variable
@@ -209,6 +209,12 @@ Surjective-propositional : {f : A → B} → Is-proposition (Surjective f)
 Surjective-propositional =
   Π-closure ext 1 λ _ →
   truncation-is-proposition
+
+-- Split surjective functions are surjective.
+
+Split-surjective→Surjective :
+  {f : A → B} → Split-surjective f → Surjective f
+Split-surjective→Surjective s = λ b → ∣ s b ∣
 
 -- Being both surjective and an embedding is equivalent to being an
 -- equivalence.

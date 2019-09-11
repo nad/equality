@@ -17,6 +17,12 @@ open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 ------------------------------------------------------------------------
 -- Split surjections
 
+-- The property of being a split surjection.
+
+Split-surjective :
+  ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Split-surjective f = ∀ y → ∃ λ x → f x ≡ y
+
 infix 0 _↠_
 
 -- Split surjections. Note that in this development split surjections
@@ -38,6 +44,11 @@ record _↠_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
     to y         ≡⟨ cong to $ sym from-x≡y ⟩
     to (from x)  ≡⟨ right-inverse-of x ⟩∎
     x            ∎
+
+  -- The to function is split surjective.
+
+  split-surjective : Split-surjective to
+  split-surjective = λ y → from y , right-inverse-of y
 
   open _⇔_ logical-equivalence public
 
