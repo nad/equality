@@ -24,7 +24,7 @@ open import Function-universe eq
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_)
-open import Surjection eq using (_↠_; Split-surjective)
+open import Surjection eq using (_↠_)
 
 -- Some definitions related to Erased that do not require Cubical Agda
 -- are defined in a separate module.
@@ -321,12 +321,13 @@ Erased-H-level↔H-level {n = n} {A = A} =
   H-level n (Erased A)   □
 
 ------------------------------------------------------------------------
--- [_] is sometimes an embedding and/or split surjective
-
--- See also Very-stable→Is-embedding-[] and
--- Very-stable→Split-surjective-[] in Erased.Stability.
+-- Some lemmas
 
 -- If A is a proposition, then [_] {A = A} is an embedding.
+--
+-- See also Erased-Is-embedding-[] and Erased-Split-surjective-[] in
+-- Erased.Without-K as well as Very-stable→Is-embedding-[] and
+-- Very-stable→Split-surjective-[] in Erased.Stability.
 
 Is-proposition→Is-embedding-[] :
   Is-proposition A → Is-embedding ([_] {A = A})
@@ -335,25 +336,6 @@ Is-proposition→Is-embedding-[] prop =
     (λ _ → prop _ _)
   where
   set = mono₁ 1 prop
-
--- In an erased context [_] is always an embedding.
-
-Erased-Is-embedding-[] :
-  {@0 A : Set a} → Erased (Is-embedding ([_] {A = A}))
-Erased-Is-embedding-[] =
-  [ (λ x y → _≃_.is-equivalence (
-       x ≡ y          ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔ ⟩□
-       [ x ] ≡ [ y ]  □))
-  ]
-
--- In an erased context [_] is always split surjective.
-
-Erased-Split-surjective-[] :
-  {@0 A : Set a} → Erased (Split-surjective ([_] {A = A}))
-Erased-Split-surjective-[] = [ (λ { [ x ] → x , refl _ }) ]
-
-------------------------------------------------------------------------
--- Another lemma
 
 -- [_] can be "pushed" through subst.
 

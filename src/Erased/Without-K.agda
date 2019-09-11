@@ -15,7 +15,11 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude hiding ([_,_])
 
 open import Bijection eq using (_↔_)
+open import Embedding eq using (Is-embedding)
+open import Equivalence eq as Eq using (_≃_)
+open import Function-universe eq
 open import Monad eq
+open import Surjection eq using (Split-surjective)
 
 private
   variable
@@ -169,3 +173,22 @@ Erased-cong-⇔ A⇔B = record
   { to   = Erased-cong-→ (_⇔_.to   A⇔B)
   ; from = Erased-cong-→ (_⇔_.from A⇔B)
   }
+
+------------------------------------------------------------------------
+-- Some lemmas
+
+-- In an erased context [_] is always an embedding.
+
+Erased-Is-embedding-[] :
+  {@0 A : Set a} → Erased (Is-embedding ([_] {A = A}))
+Erased-Is-embedding-[] =
+  [ (λ x y → _≃_.is-equivalence (
+       x ≡ y          ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔ ⟩□
+       [ x ] ≡ [ y ]  □))
+  ]
+
+-- In an erased context [_] is always split surjective.
+
+Erased-Split-surjective-[] :
+  {@0 A : Set a} → Erased (Split-surjective ([_] {A = A}))
+Erased-Split-surjective-[] = [ (λ { [ x ] → x , refl _ }) ]
