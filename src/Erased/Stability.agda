@@ -12,25 +12,28 @@ module Erased.Stability
 open Derived-definitions-and-properties eq
 
 import Equality.Path as P
-open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection eq as Bijection using (_↔_)
-open import Embedding eq using (Is-embedding)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equality.Path.Isomorphisms eq
-open import Equivalence eq as Eq using (_≃_; Is-equivalence)
+open import Equivalence eq as Eq using (_≃_)
 import Equivalence P.equality-with-J as PEq
 open import Erased eq
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
-open import H-level.Truncation.Propositional eq as Trunc
-  using (Surjective)
 import List eq as L
 import Nat eq as Nat
-open import Surjection eq using (_↠_; Split-surjective)
+open import Surjection eq using (_↠_)
+
+-- Some definitions that do not require Cubical Agda are defined in a
+-- separate module.
+
+open import Erased.Stability.Without-K eq as Stability public
+  hiding (Very-stable-propositional; Very-stable-≡-propositional;
+          Stable-Π; Very-stable-Π)
 
 private
   variable
@@ -41,137 +44,23 @@ private
     n     : ℕ
 
 ------------------------------------------------------------------------
--- Stability
-
-mutual
-
-  -- A type is stable if Erased A implies A.
-
-  Stable : Set a → Set a
-  Stable = Stable-[ implication ]
-
-  -- A generalisation of Stable.
-
-  Stable-[_] : Kind → Set a → Set a
-  Stable-[ k ] A = Erased A ↝[ k ] A
-
--- A special case of Stable-[ equivalence ].
-
-Very-stable : Set a → Set a
-Very-stable A = Is-equivalence ([_] {A = A})
-
--- Variants of the definitions above for equality.
-
-mutual
-
-  Stable-≡ : Set a → Set a
-  Stable-≡ A = Stable-≡-[ implication ] A
-
-  Stable-≡-[_] : Kind → Set a → Set a
-  Stable-≡-[ k ] A = {x y : A} → Stable-[ k ] (x ≡ y)
-
-Very-stable-≡ : Set a → Set a
-Very-stable-≡ A = {x y : A} → Very-stable (x ≡ y)
-
-------------------------------------------------------------------------
 -- Some lemmas related to stability
 
 -- Very-stable is propositional.
 
 Very-stable-propositional : Is-proposition (Very-stable A)
-Very-stable-propositional = Eq.propositional ext _
+Very-stable-propositional = Stability.Very-stable-propositional ext
 
 -- Very-stable-≡ is propositional.
 
 Very-stable-≡-propositional : Is-proposition (Very-stable-≡ A)
-Very-stable-≡-propositional =
-  implicit-Π-closure ext 1 λ _ →
-  implicit-Π-closure ext 1 λ _ →
-  Very-stable-propositional
-
--- Very stable types are stable.
-
-Very-stable→Stable : Very-stable A → Stable-[ k ] A
-Very-stable→Stable {A = A} {k = k} =
-  Very-stable A             ↝⟨ Eq.⟨ _ ,_⟩ ⟩
-  A ≃ Erased A              ↝⟨ inverse ⟩
-  Erased A ≃ A              ↔⟨⟩
-  Stable-[ equivalence ] A  ↝⟨ from-equivalence ⟩□
-  Stable-[ k ] A            □
-
--- The function obtained from Very-stable→Stable (for k = implication)
--- maps [ x ] to x.
---
--- This seems to imply that (say) the booleans can not be proved to be
--- very stable (assuming that Agda is consistent), because
--- implementing a function that resurrects a boolean, given no
--- information about what the boolean was, is impossible. However, the
--- booleans are stable: this follows from Dec→Stable below. Thus it
--- seems as if one can not prove that all stable types are very
--- stable.
-
-Very-stable→Stable-[]≡id :
-  (s : Very-stable A) →
-  Very-stable→Stable s [ x ] ≡ x
-Very-stable→Stable-[]≡id {x = x} s =
-  Very-stable→Stable s [ x ]   ≡⟨⟩
-  _≃_.from Eq.⟨ _ , s ⟩ [ x ]  ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s ⟩ x ⟩∎
-  x                            ∎
-
--- If A is very stable, then [_] {A = A} is split surjective.
-
-Very-stable→Split-surjective-[] :
-  Very-stable A → Split-surjective ([_] {A = A})
-Very-stable→Split-surjective-[] s x =
-    Very-stable→Stable s x
-  , ([ Very-stable→Stable s x ]  ≡⟨ []-cong [ Very-stable→Stable-[]≡id s ] ⟩∎
-     x                           ∎)
-
--- If A is very stable, then [_] {A = A} is an embedding.
-
-Very-stable→Is-embedding-[] :
-  Very-stable A → Is-embedding ([_] {A = A})
-Very-stable→Is-embedding-[] {A = A} =
-  Very-stable A                      ↔⟨ inverse Trunc.surjective×embedding≃equivalence ⟩
-  Surjective [_] × Is-embedding [_]  ↝⟨ proj₂ ⟩□
-  Is-embedding [_]                   □
-
--- Erased A is very stable.
-
-Very-stable-Erased :
-  {@0 A : Set a} → Very-stable (Erased A)
-Very-stable-Erased {A = A} =
-  _≃_.is-equivalence (            $⟨ Erased↔ ⟩
-    Erased (Erased A ↔ A)         ↝⟨ (λ hyp → Erased-cong (erased hyp)) ⟩
-    Erased (Erased A) ↔ Erased A  ↝⟨ Eq.↔⇒≃ ∘ inverse ⟩□
-    Erased A ≃ Erased (Erased A)  □)
-
--- In an erased context every type is very stable.
---
--- Presumably "not in an erased context" is not expressible
--- internally, so it seems as if it should not be possible to prove
--- that any type is /not/ very stable (in an empty, non-erased
--- context, assuming that Agda is consistent).
-
-Erased-Very-stable :
-  {@0 A : Set a} → Erased (Very-stable A)
-Erased-Very-stable {A = A} =
-  [ _≃_.is-equivalence (    $⟨ Erased↔ ⟩
-      Erased (Erased A ↔ A) ↝⟨ erased ⟩
-      Erased A ↔ A          ↝⟨ Eq.↔⇒≃ ∘ inverse ⟩□
-      A ≃ Erased A          □)
-  ]
-
--- If A is stable, then A is "logical equivalence stable".
-
-Stable→Stable⇔ :
-  {@0 A : Set a} → Stable A → Stable-[ logical-equivalence ] A
-Stable→Stable⇔ stable = record
-  { from = [_]
-  ; to   = stable
-  }
+Very-stable-≡-propositional = Stability.Very-stable-≡-propositional ext
 
 -- If A is a stable proposition, then A is very stable.
+--
+-- Note that it is not the case that every very stable type is a
+-- proposition, see
+-- Erased.Stability.Without-K.¬-Very-stable→Is-proposition.
 
 Stable-proposition→Very-stable :
   Stable A → Is-proposition A → Very-stable A
@@ -182,24 +71,6 @@ Stable-proposition→Very-stable {A = A} s prop =
     Stable A                          ↝⟨ Stable→Stable⇔ ⟩
     Stable-[ logical-equivalence ] A  ↝⟨ _↠_.from (Eq.≃↠⇔ (H-level-Erased 1 prop) prop) ⟩□
     Stable-[ equivalence ] A          □
-
--- It is not the case that every very stable type is a proposition.
-
-¬-Very-stable→Is-proposition :
-  ¬ ({A : Set a} → Very-stable A → Is-proposition A)
-¬-Very-stable→Is-proposition {a = a} hyp =
-  not-proposition (hyp very-stable)
-  where
-  very-stable : Very-stable (Erased (↑ a Bool))
-  very-stable = Very-stable-Erased
-
-  not-proposition : ¬ Is-proposition (Erased (↑ a Bool))
-  not-proposition =
-    Is-proposition (Erased (↑ a Bool))  ↝⟨ H-level-cong _ 1 (Erased-cong Bijection.↑↔) ⟩
-    Is-proposition (Erased Bool)        ↔⟨ inverse (Erased-H-level↔H-level {n = 1}) ⟩
-    Erased (Is-proposition Bool)        ↝⟨ Erased-cong ¬-Bool-propositional ⟩
-    Erased ⊥                            ↔⟨ Erased-⊥↔⊥ ⟩□
-    ⊥                                   □
 
 -- Contractible types are very stable.
 
@@ -217,24 +88,6 @@ Is-proposition→Very-stable-≡ :
 Is-proposition→Very-stable-≡ prop =
   Contractible→Very-stable (+⇒≡ prop)
 
--- Erased A implies ¬ ¬ A.
-
-Erased→¬¬ : {@0 A : Set a} → Erased A → ¬ ¬ A
-Erased→¬¬ [ x ] f = _↔_.to Erased-⊥↔⊥ [ f x ]
-
--- Types that are stable for double negation are stable for Erased.
-
-¬¬-Stable→Stable : {@0 A : Set a} → (¬ ¬ A → A) → Stable A
-¬¬-Stable→Stable ¬¬-Stable x = ¬¬-Stable (Erased→¬¬ x)
-
--- Types for which it is known whether or not they are inhabited are
--- stable.
-
-Dec→Stable : {@0 A : Set a} → Dec A → Stable A
-Dec→Stable (yes x) _ = x
-Dec→Stable (no ¬x) x with Erased→¬¬ x ¬x
-... | ()
-
 -- If equality is decidable for A, then equality is very stable for A.
 
 Decidable-equality→Very-stable-≡ :
@@ -246,6 +99,8 @@ Decidable-equality→Very-stable-≡ dec =
 
 ------------------------------------------------------------------------
 -- Preservation lemmas
+
+-- See also Erased.Stability.Without-K.Stable-⇔-cong.
 
 -- A kind of map function for Stable-[_].
 
@@ -272,17 +127,6 @@ Stable-cong {A = A} {k = k} {B = B} A↝B =
   (Erased A → A)  ↝⟨ →-cong (forget-ext? ⌊ k ⌋-sym ext) (Erased-cong A↝B) A↝B ⟩
   (Erased B → B)  ↔⟨⟩
   Stable B        □
-
--- Stable-[ logical-equivalence ] preserves logical equivalences.
-
-Stable-⇔-cong :
-  A ⇔ B →
-  Stable-[ logical-equivalence ] A ⇔ Stable-[ logical-equivalence ] B
-Stable-⇔-cong {A = A} {B = B} A⇔B =
-  Stable-[ logical-equivalence ] A  ↔⟨⟩
-  Erased A ⇔ A                      ↝⟨ ⇔-cong-⇔ (Erased-cong A⇔B) A⇔B ⟩
-  Erased B ⇔ B                      ↔⟨⟩
-  Stable-[ logical-equivalence ] B  □
 
 -- Stable-[ equivalence ] preserves equivalences.
 
@@ -318,98 +162,17 @@ Very-stable-cong A≃B =
          [ x ]                            ∎)
 
 ------------------------------------------------------------------------
--- Closure properties
-
--- ⊤ is very stable.
-
-Very-stable-⊤ : Very-stable ⊤
-Very-stable-⊤ =
-  Stable-proposition→Very-stable
-    (Dec→Stable (yes tt))
-    (mono₁ 0 ⊤-contractible)
-
--- ⊥ is very stable.
-
-Very-stable-⊥ : Very-stable (⊥ {ℓ = ℓ})
-Very-stable-⊥ =
-  Stable-proposition→Very-stable
-    (Dec→Stable (no λ ()))
-    ⊥-propositional
+-- Some closure properties
 
 -- Stable-[ k ] is closed under Π A.
 
 Stable-Π : (∀ x → Stable-[ k ] (P x)) → Stable-[ k ] ((x : A) → P x)
-Stable-Π {k = k} {P = P} s =
-  Erased (∀ x → P x)    ↔⟨ Erased-Π↔Π ⟩
-  (∀ x → Erased (P x))  ↝⟨ ∀-cong (forget-ext? k ext) s ⟩□
-  (∀ x → P x)           □
+Stable-Π {k = k} = Stability.Stable-Π (forget-ext? k ext)
 
 -- Very-stable is closed under Π A.
 
 Very-stable-Π : (∀ x → Very-stable (P x)) → Very-stable ((x : A) → P x)
-Very-stable-Π s = _≃_.is-equivalence $
-  inverse $ Stable-Π $ λ x → inverse Eq.⟨ _ , s x ⟩
-
--- Stable is closed under Σ A if A is very stable.
-
-Very-stable-Stable-Σ :
-  Very-stable A →
-  (∀ x → Stable-[ k ] (P x)) →
-  Stable-[ k ] (Σ A P)
-Very-stable-Stable-Σ {A = A} {P = P} s s′ =
-  Erased (Σ A P)                              ↔⟨ Erased-Σ↔Σ ⟩
-  Σ (Erased A) (λ x → Erased (P (erased x)))  ↝⟨ Σ-cong-contra Eq.⟨ _ , s ⟩ s′ ⟩□
-  Σ A P                                       □
-
--- If A is stable and something resembling stability holds for P, then
--- Σ A P is stable.
-
-Stable-Σ :
-  {@0 A : Set a} {@0 P : A → Set p}
-  (s : Stable A) →
-  (∀ x → Erased (P (erased x)) → P (s x)) →
-  Stable (Σ A P)
-Stable-Σ s₁ s₂ [ p ] =
-  s₁ [ proj₁ p ] , s₂ [ proj₁ p ] [ proj₂ p ]
-
--- Very-stable is closed under Σ.
-
-Very-stable-Σ :
-  Very-stable A →
-  (∀ x → Very-stable (P x)) →
-  Very-stable (Σ A P)
-Very-stable-Σ {A = A} {P = P} s s′ = _≃_.is-equivalence (
-  Σ A P                                       ↝⟨ Σ-cong Eq.⟨ _ , s ⟩ (λ x → Eq.⟨ _ , s′ x ⟩) ⟩
-  Σ (Erased A) (λ x → Erased (P (erased x)))  ↔⟨ inverse Erased-Σ↔Σ ⟩□
-  Erased (Σ A P)                              □)
-
--- Stable-[ k ] is closed under _×_.
-
-Stable-× : Stable-[ k ] A → Stable-[ k ] B → Stable-[ k ] (A × B)
-Stable-× {A = A} {B = B} s s′ =
-  Erased (A × B)       ↔⟨ Erased-Σ↔Σ ⟩
-  Erased A × Erased B  ↝⟨ s ×-cong s′ ⟩□
-  A × B                □
-
--- Very-stable is closed under _×_.
-
-Very-stable-× : Very-stable A → Very-stable B → Very-stable (A × B)
-Very-stable-× s s′ = _≃_.is-equivalence $
-  inverse $ Stable-× (inverse Eq.⟨ _ , s ⟩) (inverse Eq.⟨ _ , s′ ⟩)
-
--- Stable-[ k ] is closed under ↑ ℓ.
-
-Stable-↑ : Stable-[ k ] A → Stable-[ k ] (↑ ℓ A)
-Stable-↑ {A = A} s =
-  Erased (↑ _ A)  ↔⟨ Erased-↑↔↑ ⟩
-  ↑ _ (Erased A)  ↝⟨ ↑-cong s ⟩□
-  ↑ _ A           □
-
--- Very-stable is closed under ↑ ℓ.
-
-Very-stable-↑ : Very-stable A → Very-stable (↑ ℓ A)
-Very-stable-↑ s = _≃_.is-equivalence $
-  inverse $ Stable-↑ $ inverse Eq.⟨ _ , s ⟩
+Very-stable-Π = Stability.Very-stable-Π ext
 
 -- Very-stable is closed under W. In fact, W A P is very stable if A
 -- is very stable, P does not need to be (pointwise) very stable.

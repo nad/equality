@@ -283,6 +283,11 @@ import Erased.Without-K
 
 import Erased
 
+-- Some parts of Erased.Stability that do not require --cubical to be
+-- active.
+
+import Erased.Stability.Without-K
+
 -- Stability for Erased.
 
 import Erased.Stability
