@@ -12,7 +12,7 @@ open import Equality
 module Equivalence
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq as Bijection hiding (id; _∘_; inverse)
+open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decidable-UIP eq using (propositional-identity⇒set)
 open import Equality.Decision-procedures eq
@@ -1321,7 +1321,7 @@ abstract
   abstract
     injective′ : Injective to′
     injective′ {x = (x₁ , x₂)} {y = (y₁ , y₂)} =
-      _↔_.to Σ-≡,≡↔≡ ⊚
+      _↔_.to Bijection.Σ-≡,≡↔≡ ⊚
       Σ-map (_≃_.injective A₁≃A₂) (λ {eq₁} eq₂ →
         let lemma =
               to (B₁↣B₂ y₁) (subst B₁ (_≃_.injective A₁≃A₂ eq₁) x₂)      ≡⟨ refl _ ⟩
@@ -1526,7 +1526,7 @@ abstract
             (sup x f ≡ sup y g)
   W-≡,≡≃≡ {a} {A = A} {B} ext {x} {y} {f} {g} =
     (∃ λ p → ∀ i → f i ≡ g (subst B p i))        ≃⟨ Σ-preserves id lemma ⟩
-    (∃ λ p → subst (λ x → B x → W A B) p f ≡ g)  ≃⟨ ↔⇒≃ Σ-≡,≡↔≡ ⟩
+    (∃ λ p → subst (λ x → B x → W A B) p f ≡ g)  ≃⟨ ↔⇒≃ Bijection.Σ-≡,≡↔≡ ⟩
     ((x , f) ≡ (y , g))                          ≃⟨ ≃-≡ (↔⇒≃ W-unfolding) ⟩□
     (sup x f ≡ sup y g)                          □
     where

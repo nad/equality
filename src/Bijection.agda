@@ -113,6 +113,72 @@ finally-↔ _ _ A↔B = A↔B
 syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
 
 ------------------------------------------------------------------------
+-- One can replace either of the functions with an extensionally equal
+-- function
+
+with-other-function :
+  ∀ {a b} {A : Set a} {B : Set b}
+  (A↔B : A ↔ B) (f : A → B) →
+  (∀ x → _↔_.to A↔B x ≡ f x) →
+  A ↔ B
+with-other-function A↔B f ≡f = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = f
+      ; from = _↔_.from A↔B
+      }
+    ; right-inverse-of = λ x →
+        f (_↔_.from A↔B x)           ≡⟨ sym $ ≡f _ ⟩
+        _↔_.to A↔B (_↔_.from A↔B x)  ≡⟨ _↔_.right-inverse-of A↔B _ ⟩∎
+        x                            ∎
+    }
+  ; left-inverse-of = λ x →
+      _↔_.from A↔B (f x)           ≡⟨ cong (_↔_.from A↔B) $ sym $ ≡f _ ⟩
+      _↔_.from A↔B (_↔_.to A↔B x)  ≡⟨ _↔_.left-inverse-of A↔B _ ⟩∎
+      x                            ∎
+  }
+
+with-other-inverse :
+  ∀ {a b} {A : Set a} {B : Set b}
+  (A↔B : A ↔ B) (f : B → A) →
+  (∀ x → _↔_.from A↔B x ≡ f x) →
+  A ↔ B
+with-other-inverse A↔B f ≡f =
+  inverse $ with-other-function (inverse A↔B) f ≡f
+
+private
+
+  -- The two functions above compute in the right way.
+
+  to∘with-other-function :
+    ∀ {a b} {A : Set a} {B : Set b}
+    (A↔B : A ↔ B) (f : A → B)
+    (to≡f : ∀ x → _↔_.to A↔B x ≡ f x) →
+    _↔_.to (with-other-function A↔B f to≡f) ≡ f
+  to∘with-other-function _ _ _ = refl _
+
+  from∘with-other-function :
+    ∀ {a b} {A : Set a} {B : Set b}
+    (A↔B : A ↔ B) (f : A → B)
+    (to≡f : ∀ x → _↔_.to A↔B x ≡ f x) →
+    _↔_.from (with-other-function A↔B f to≡f) ≡ _↔_.from A↔B
+  from∘with-other-function _ _ _ = refl _
+
+  to∘with-other-inverse :
+    ∀ {a b} {A : Set a} {B : Set b}
+    (A↔B : A ↔ B) (g : B → A)
+    (from≡g : ∀ x → _↔_.from A↔B x ≡ g x) →
+    _↔_.to (with-other-inverse A↔B g from≡g) ≡ _↔_.to A↔B
+  to∘with-other-inverse _ _ _ = refl _
+
+  from∘with-other-inverse :
+    ∀ {a b} {A : Set a} {B : Set b}
+    (A↔B : A ↔ B) (g : B → A)
+    (from≡g : ∀ x → _↔_.from A↔B x ≡ g x) →
+    _↔_.from (with-other-inverse A↔B g from≡g) ≡ g
+  from∘with-other-inverse _ _ _ = refl _
+
+------------------------------------------------------------------------
 -- More lemmas
 
 -- Uninhabited types are isomorphic to the empty type.
