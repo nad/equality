@@ -30,6 +30,7 @@ private
     A B : Set a
     x   : A
     A↠B : A ↠ B
+    s   : Very-stable-≡ A
 
 -- A variant of the Singleton type family with erased equality proofs.
 
@@ -103,29 +104,21 @@ erased-singleton-with-erased-center-contractible {x = x} s =
   ∥ Erased-singleton y ∥                         ↝⟨ Trunc.∥∥↔ (erased-singleton-with-erased-center-propositional s) ⟩□
   Erased-singleton y                             □
 
--- The right-to-left direction of the previous lemma does not depend
--- on the assumption of stability.
+mutual
 
-↠→Erased-singleton→ :
-  {@0 y : B}
-  (A↠B : A ↠ B) →
-  Erased-singleton y →
-  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥
-↠→Erased-singleton→ {A = A} {y = y} A↠B =
-  Erased-singleton y                             ↝⟨ Trunc.∣_∣ ⟩
-  ∥ Erased-singleton y ∥                         ↝⟨ _≃_.from $ Trunc.∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences A↠B λ _ → F.id) ⟩□
-  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  □
+  -- The right-to-left direction of the previous lemma does not depend
+  -- on the assumption of stability.
 
-private
+  ↠→Erased-singleton→ :
+    {@0 y : B}
+    (A↠B : A ↠ B) →
+    Erased-singleton y →
+    ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥
+  ↠→Erased-singleton→ = _  -- Agda can infer the definition.
 
-  -- The function that is obtained from ↠→↔Erased-singleton is
-  -- definitionally equal to the corresponding application of
-  -- ↠→Erased-singleton→.
-
-  from-↠→↔Erased-singleton≡↠→Erased-singleton→ :
-    {s : Very-stable-≡ B} →
-    _↔_.from (↠→↔Erased-singleton A↠B s) x ≡ ↠→Erased-singleton→ A↠B x
-  from-↠→↔Erased-singleton≡↠→Erased-singleton→ = refl _
+  _ : _↔_.from (↠→↔Erased-singleton A↠B s) x ≡
+      ↠→Erased-singleton→ A↠B x
+  _ = refl _
 
 -- A corollary of Σ-Erased-Erased-singleton↔ and ↠→↔Erased-singleton.
 
@@ -143,33 +136,21 @@ private
 
   B                                                         □
 
--- Again the right-to-left direction of the previous lemma does not
--- depend on the assumption of stability.
+mutual
 
-→Σ-Erased-∥-Σ-Erased-≡-∥ :
-  (A↠B : A ↠ B) →
-  B →
-  ∃ λ (x : Erased B) →
-    ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥
-→Σ-Erased-∥-Σ-Erased-≡-∥ {A = A} {B = B} A↠B =
-  B                                                         ↔⟨ inverse Σ-Erased-Erased-singleton↔ ⟩
+  -- Again the right-to-left direction of the previous lemma does not
+  -- depend on the assumption of stability.
 
-  (∃ λ (x : Erased B) → Erased-singleton (erased x))        ↝⟨ (∃-cong λ _ → ↠→Erased-singleton→ A↠B) ⟩□
+  →Σ-Erased-∥-Σ-Erased-≡-∥ :
+    (A↠B : A ↠ B) →
+    B →
+    ∃ λ (x : Erased B) →
+      ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥
+  →Σ-Erased-∥-Σ-Erased-≡-∥ = _  -- Agda can infer the definition.
 
-  (∃ λ (x : Erased B) →
-     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥)  □
-
-private
-
-  -- The function that is obtained from Σ-Erased-∥-Σ-Erased-≡-∥↔ is
-  -- definitionally equal to the corresponding application of
-  -- →Σ-Erased-∥-Σ-Erased-≡-∥.
-
-  from-Σ-Erased-∥-Σ-Erased-≡-∥↔≡→Σ-Erased-∥-Σ-Erased-≡-∥ :
-    {s : Very-stable-≡ B} →
-    _↔_.from (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡
-    →Σ-Erased-∥-Σ-Erased-≡-∥ A↠B x
-  from-Σ-Erased-∥-Σ-Erased-≡-∥↔≡→Σ-Erased-∥-Σ-Erased-≡-∥ = refl _
+  _ : _↔_.from (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡
+      →Σ-Erased-∥-Σ-Erased-≡-∥ A↠B x
+  _ = refl _
 
 -- In an erased context the left-to-right direction of
 -- Σ-Erased-∥-Σ-Erased-≡-∥↔ returns the erased first component.

@@ -17,7 +17,7 @@ open Derived-definitions-and-properties eq
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection eq as Bijection using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Erased.Cubical eq
 open import Erased.Cubical.Singleton eq
@@ -89,7 +89,17 @@ Queue A = ∃ λ (xs : Erased (List A)) → Queue-[ erased xs ]
 ------------------------------------------------------------------------
 -- Conversion functions
 
-abstract
+mutual
+
+  abstract
+
+    -- The right-to-left direction of Queue-[]↔Σ-List (defined below).
+    -- Note that there is no assumption of stability.
+
+    Σ-List→Queue-[] :
+      {@0 ys : List A} →
+      (∃ λ xs → Erased (xs ≡ ys)) → Queue-[ ys ]
+    Σ-List→Queue-[] = _  -- Agda can infer the definition.
 
   -- If ys : List A and equality is very stable for A, then
   -- Queue-[ ys ] is isomorphic to the type of lists equal (with
@@ -102,21 +112,23 @@ abstract
     {@0 ys : List A} →
     Very-stable-≡ A →
     Queue-[ ys ] ↔ ∃ λ xs → Erased (xs ≡ ys)
-  Queue-[]↔Σ-List s = ↠→↔Erased-singleton
-    Q.Queue↠List
-    (Very-stable-≡-List s)
+  Queue-[]↔Σ-List {ys = ys} s = Bijection.with-other-inverse
+    Queue-[]↔Σ-List′
+    Σ-List→Queue-[]
+    (λ _ → from-Queue-[]↔Σ-List′)
+    where
+    abstract
 
-  -- The right-to-left direction of the previous lemma does not depend
-  -- on the assumption of stability.
+      Queue-[]↔Σ-List′ : Queue-[ ys ] ↔ ∃ λ xs → Erased (xs ≡ ys)
+      Queue-[]↔Σ-List′ = ↠→↔Erased-singleton
+        Q.Queue↠List
+        (Very-stable-≡-List s)
 
-  Σ-List→Queue-[] :
-    {@0 ys : List A} →
-    (∃ λ xs → Erased (xs ≡ ys)) → Queue-[ ys ]
-  Σ-List→Queue-[] = ↠→Erased-singleton→ Q.Queue↠List
-
-  from-Queue-[]↔Σ-List :
-    _↔_.from (Queue-[]↔Σ-List s) p ≡ Σ-List→Queue-[] p
-  from-Queue-[]↔Σ-List = refl _
+      from-Queue-[]↔Σ-List′ :
+        _≡_ {A = Queue-[ ys ]}
+            (_↔_.from Queue-[]↔Σ-List′ p)
+            (Σ-List→Queue-[] p)
+      from-Queue-[]↔Σ-List′ = refl _
 
 -- If equality is very stable for A, then Queue A is isomorphic to
 -- List A.
@@ -127,6 +139,17 @@ Queue↔List {A = A} s =
   (∃ λ (xs : Erased (List A)) → Queue-[ erased xs ])               ↝⟨ (∃-cong λ _ → Queue-[]↔Σ-List s) ⟩
   (∃ λ (xs : Erased (List A)) → ∃ λ ys → Erased (ys ≡ erased xs))  ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
   List A                                                           □
+
+mutual
+
+  -- The right-to-left direction of Queue↔List. (Note that equality is
+  -- not required to be very stable for the carrier type.)
+
+  from-List : List A → Queue A
+  from-List = _  -- Agda can infer the definition.
+
+  _ : _↔_.from (Queue↔List s) ≡ from-List
+  _ = refl _
 
 -- The forward direction of Queue↔List s.
 
@@ -140,32 +163,12 @@ abstract
     -- The function to-List converts the queue representation to a
     -- list.
 
-    to-List-, : to-List s ([ xs ] , ∣ q , p ∣) ≡ Q.to-List q
+    to-List-, :
+      ∀ {A : Set a} {s : Very-stable-≡ A} {xs q p} →
+      to-List s ([ xs ] , ∣ q , p ∣) ≡ Q.to-List q
     to-List-, = refl _
 
--- Converts lists to queues. (Note that equality is not required to be
--- very stable for the carrier type.)
-
-from-List : List A → Queue A
-from-List {A = A} =
-  List A                                                           ↔⟨ inverse Σ-Erased-Erased-singleton↔ ⟩
-  (∃ λ (xs : Erased (List A)) → ∃ λ ys → Erased (ys ≡ erased xs))  ↝⟨ (∃-cong λ _ → Σ-List→Queue-[]) ⟩
-  (∃ λ (xs : Erased (List A)) → Queue-[ erased xs ])               ↔⟨⟩
-  Queue A                                                          □
-
--- The function from-List matches the right-to-left direction of
--- Queue↔List s.
-
-from-Queue↔List : _↔_.from (Queue↔List s) xs ≡ from-List xs
-from-Queue↔List {s = s} {xs = xs} =
-  Σ-map id (_↔_.from (Queue-[]↔Σ-List s))
-    (_↔_.from Σ-Erased-Erased-singleton↔ xs)                         ≡⟨ cong (_ ,_) from-Queue-[]↔Σ-List ⟩∎
-
-  Σ-map id Σ-List→Queue-[] (_↔_.from Σ-Erased-Erased-singleton↔ xs)  ∎
-
-abstract
-
-  -- The forward direction of Queue↔List s returns the index.
+  -- The function to-List returns the index.
 
   @0 ≡⌊⌋ : to-List s q ≡ ⌊ q ⌋
   ≡⌊⌋ {s = s} {q = q} =
@@ -445,17 +448,16 @@ module Non-indexed where
   dequeue : Very-stable-≡ A → Queue A → Maybe (A × Queue A)
   dequeue s = _↔_.to (Queue↔Maybe[×Queue] s)
 
-  -- The inverse of the dequeue operation. This operation does not
-  -- depend on stability.
+  mutual
 
-  dequeue⁻¹ : Maybe (A × Queue A) → Queue A
-  dequeue⁻¹ q = _ , Indexed.dequeue⁻¹ (q , [ refl _ ])
+    -- The inverse of the dequeue operation. This operation does not
+    -- depend on stability.
 
-  private
+    dequeue⁻¹ : Maybe (A × Queue A) → Queue A
+    dequeue⁻¹ q = _  -- Agda can infer the definition.
 
-    from-Queue↔Maybe[×Queue] :
-      _↔_.from (Queue↔Maybe[×Queue] s) ≡ dequeue⁻¹
-    from-Queue↔Maybe[×Queue] = refl _
+    _ : _↔_.from (Queue↔Maybe[×Queue] s) ≡ dequeue⁻¹
+    _ = refl _
 
   -- A special case of dequeue⁻¹.
 
@@ -490,8 +492,7 @@ module Non-indexed where
     to-List s (foldl (flip enqueue) empty xs) ≡ xs
   to-List-foldl-enqueue-empty {s = s} {xs = xs} =
     to-List s ⟨ foldl (flip enqueue) empty xs ⟩  ≡⟨ ⟨by⟩ 4 from-List≡foldl-enqueue-empty ⟩
-    to-List s ⟨ from-List xs ⟩                   ≡⟨ ⟨by⟩ 4 from-Queue↔List ⟩
-    to-List s (_↔_.from (Queue↔List s) xs)       ≡⟨ _↔_.right-inverse-of (Queue↔List _) _ ⟩∎
+    to-List s (from-List xs)                     ≡⟨ _↔_.right-inverse-of (Queue↔List _) _ ⟩∎
     xs                                           ∎
 
 ------------------------------------------------------------------------
