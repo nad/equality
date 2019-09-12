@@ -214,8 +214,7 @@ Erased→¬¬ [ x ] f = _↔_.to Erased-⊥↔⊥ [ f x ]
 
 Dec→Stable : {@0 A : Set a} → Dec A → Stable A
 Dec→Stable (yes x) _ = x
-Dec→Stable (no ¬x) x with Erased→¬¬ x ¬x
-... | ()
+Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 
 ------------------------------------------------------------------------
 -- A preservation lemma
