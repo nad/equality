@@ -22,11 +22,12 @@ open import Tactic.By.Parametrised eq
 
 private
   variable
-    a     : Level
-    A B   : Set a
-    p q x : A
-    b     : Bool
-    f     : A → B
+    a ℓ ℓ₁ ℓ₂ : Level
+    A B       : Set a
+    p q x     : A
+    f         : A → B
+    b         : Bool
+    xs        : List A
 
 ------------------------------------------------------------------------
 -- Queues
@@ -66,18 +67,12 @@ from-List xs = record
   ; length-rear≡     = refl _
   }
 
--- There is a split surjection from Queue A to List A.
+-- The function from-List is a right inverse of to-List.
 
-Queue↠List : Queue A ↠ List A
-Queue↠List = record
-  { logical-equivalence = record
-    { to   = to-List
-    ; from = from-List
-    }
-  ; right-inverse-of = λ xs →
-      xs ++ []  ≡⟨ ++-right-identity _ ⟩∎
-      xs        ∎
-  }
+to-List-from-List : to-List (from-List xs) ≡ xs
+to-List-from-List {xs = xs} =
+  xs ++ []  ≡⟨ ++-right-identity _ ⟩∎
+  xs        ∎
 
 ------------------------------------------------------------------------
 -- Queues with broken invariants

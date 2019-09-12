@@ -22,7 +22,7 @@ private
   variable
     a     : Level
     A B   : Set a
-    q x   : A
+    x     : A
     f     : A → B
     xs ys : List A
 
@@ -80,18 +80,12 @@ to-List q = front q ++ reverse (rear q)
 from-List : List A → Queue A
 from-List xs = ⟨ xs , [] , -[] ⟩
 
--- There is a split surjection from Queue A to List A.
+-- The function from-List is a right inverse of to-List.
 
-Queue↠List : Queue A ↠ List A
-Queue↠List = record
-  { logical-equivalence = record
-    { to   = to-List
-    ; from = from-List
-    }
-  ; right-inverse-of = λ xs →
-      xs ++ []  ≡⟨ ++-right-identity _ ⟩∎
-      xs        ∎
-  }
+to-List-from-List : to-List (from-List xs) ≡ xs
+to-List-from-List {xs = xs} =
+  xs ++ []  ≡⟨ ++-right-identity _ ⟩∎
+  xs        ∎
 
 -- If the carrier type is inhabited, then the function from-List is
 -- not, in general, a left inverse of to-List.
@@ -119,7 +113,7 @@ representation-not-unique :
   A → ¬ ({q₁ q₂ : Queue A} → to-List q₁ ≡ to-List q₂ → q₁ ≡ q₂)
 representation-not-unique x hyp =
   ¬-from-List-to-List x λ q → hyp (
-    to-List (from-List (to-List q))  ≡⟨ _↠_.right-inverse-of Queue↠List _ ⟩∎
+    to-List (from-List (to-List q))  ≡⟨ to-List-from-List ⟩∎
     to-List q                        ∎)
 
 -- If the carrier type is inhabited, then the type

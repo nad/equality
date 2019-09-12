@@ -303,26 +303,47 @@ import Integer.Quotient
 
 import Nat.Binary
 
+-- Specifications of output-restricted deques (single-ended queues
+-- with cons).
+
+import Queue
+
 -- Simple queues, implemented in the usual way using two lists
 -- (following Hood and Melville).
 
 import Queue.Simple
 
+-- Queue instances for the queues in Queue.Simple.
+
+import Queue.Simple.Instances
+
 -- Banker's queues (following Okasaki).
 
 import Queue.Bankers
 
--- Quotiented simple queues: any two queues representing the same
--- sequence are equal.
+-- Queue instances for the queues in Queue.Bankers.
 
-import Queue.Simple.Quotiented
+import Queue.Bankers.Instances
 
--- Truncated simple queues: any two queues representing the same
--- sequence are equal, and things are set up so that at compile-time
--- (but not at run-time) some queue operations compute in roughly the
--- same way as the corresponding list operations.
+-- Quotiented queues: any two queues representing the same sequence
+-- are equal.
 
-import Queue.Simple.Truncated
+import Queue.Quotiented
+
+-- Queue instances for the queues in Queue.Quotiented.
+
+import Queue.Quotiented.Instances
+
+-- Truncated queues: any two queues representing the same sequence are
+-- equal, and things are set up so that at compile-time (but not at
+-- run-time) some queue operations compute in roughly the same way as
+-- the corresponding list operations.
+
+import Queue.Truncated
+
+-- Queue instances for the queues in Queue.Truncated.
+
+import Queue.Truncated.Instances
 
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
