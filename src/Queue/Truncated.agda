@@ -114,6 +114,21 @@ module _
     proj₁ xs ≡ proj₁ ys       ↝⟨ ignore-propositional-component Queue-⟪⟫-propositional ⟩□
     xs ≡ ys                   □
 
+  -- If a queue equality holds under the (non-dependent) assumption
+  -- that equality is very stable for the carrier type, then it also
+  -- holds without this assumption.
+  --
+  -- For an example of a lemma which has this kind of assumption, see
+  -- Queue.from-List≡foldl-enqueue-empty.
+
+  strengthen-queue-equality :
+    {q₁ q₂ : Queue Q A} → (Very-stable-≡ A → q₁ ≡ q₂) → q₁ ≡ q₂
+  strengthen-queue-equality {q₁ = q₁} {q₂ = q₂} eq =
+    _↔_.to ≡-for-indices↔≡
+      [ ⌊ q₁ ⌋  ≡⟨ cong ⌊_⌋ (eq (erased Erased-Very-stable)) ⟩∎
+        ⌊ q₂ ⌋  ∎
+      ]
+
 ------------------------------------------------------------------------
 -- Conversion functions
 
@@ -530,30 +545,3 @@ module _
       _↔_.to List↔Maybe[×List] (to-List s (dequeue⁻¹ (dequeue s q)))  ≡⟨ cong (_↔_.to List↔Maybe[×List] ∘ to-List s) $
                                                                          _↔_.left-inverse-of (Queue↔Maybe[×Queue] _) _ ⟩∎
       _↔_.to List↔Maybe[×List] (to-List s q)                          ∎
-
-    -- The function from-List can be expressed using enqueue and
-    -- dequeue⁻¹ nothing.
-    --
-    -- Note that, unlike the correspondingly named lemma in Queue, this
-    -- lemma does not require the predicate (in this case Very-stable-≡)
-    -- to hold for the carrier type.
-
-    from-List≡foldl-enqueue-empty :
-      from-List xs ≡ foldl (flip enqueue) (dequeue⁻¹ nothing) xs
-    from-List≡foldl-enqueue-empty {xs = xs} = _↔_.to ≡-for-indices↔≡
-      [ ⌊ from-List xs ⌋                                 ≡⟨ _↔_.right-inverse-of Queue↔Listⁱ _ ⟩
-        xs                                               ≡⟨⟩
-        ⌊ dequeue⁻¹ nothing ⌋ ++ xs                      ≡⟨ lemma xs _ ⟩∎
-        ⌊ foldl (flip enqueue) (dequeue⁻¹ nothing) xs ⌋  ∎
-      ]
-      where
-      @0 lemma : ∀ xs q → ⌊ q ⌋ ++ xs ≡ ⌊ foldl (flip enqueue) q xs ⌋
-      lemma [] q =
-        ⌊ q ⌋ ++ []  ≡⟨ ++-right-identity _ ⟩∎
-        ⌊ q ⌋        ∎
-      lemma (x ∷ xs) q =
-        ⟨ ⌊ q ⌋ ++ x ∷ xs ⟩                        ≡⟨ ⟨by⟩ 9 (++-associative ⌊ q ⌋) ⟩
-        (⌊ q ⌋ ++ x ∷ []) ++ xs                    ≡⟨⟩
-        ⌊ enqueue x q ⌋ ++ xs                      ≡⟨ lemma xs _ ⟩
-        ⌊ foldl (flip enqueue) (enqueue x q) xs ⌋  ≡⟨⟩
-        ⌊ foldl (flip enqueue) q (x ∷ xs) ⌋        ∎
