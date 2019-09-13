@@ -24,7 +24,7 @@ open import Monad eq
 
 infix 3 ¬¬_
 
-record ¬¬_ {a} (A : Set a) : Set a where
+record ¬¬_ {a} (@0 A : Set a) : Set a where
   constructor wrap
   field
     run : ¬ ¬ A
@@ -33,7 +33,7 @@ open ¬¬_ public
 
 -- An extra universe-polymorphic variant of map.
 
-map′ : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → ¬¬ A → ¬¬ B
+map′ : ∀ {a b} {@0 A : Set a} {@0 B : Set b} → (A → B) → ¬¬ A → ¬¬ B
 run (map′ f ¬¬a) = λ ¬b → run ¬¬a (λ a → ¬b (f a))
 
 -- Instances.
@@ -65,12 +65,12 @@ Monad.associativity  (monad ext) _ _ _ = proof-irrelevant ext
 
 -- The following variant of excluded middle is provable.
 
-excluded-middle : ∀ {a} {A : Set a} → ¬¬ Dec A
+excluded-middle : ∀ {a} {@0 A : Set a} → ¬¬ Dec A
 run excluded-middle ¬[a⊎¬a] = ¬[a⊎¬a] (no λ a → ¬[a⊎¬a] (yes a))
 
 -- The following variant of Peirce's law is provable.
 
-call/cc : ∀ {a w} {A : Set a} {Whatever : Set w} →
+call/cc : ∀ {a w} {@0 A : Set a} {Whatever : Set w} →
           ((A → Whatever) → ¬¬ A) → ¬¬ A
 run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
 
