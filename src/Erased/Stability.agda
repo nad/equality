@@ -15,6 +15,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection eq as Bijection using (_↔_)
+open import Double-negation eq as DN
 open import Embedding eq using (Is-embedding)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
@@ -215,6 +216,11 @@ Erased→¬¬ [ x ] f = _↔_.to Erased-⊥↔⊥ [ f x ]
 Dec→Stable : {@0 A : Set a} → Dec A → Stable A
 Dec→Stable (yes x) _ = x
 Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
+
+-- Every type is stable in the double negation monad.
+
+¬¬-Stable : {@0 A : Set a} → ¬¬ Stable A
+¬¬-Stable = DN.map′ Dec→Stable excluded-middle
 
 ------------------------------------------------------------------------
 -- A preservation lemma
