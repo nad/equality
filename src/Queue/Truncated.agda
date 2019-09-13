@@ -291,11 +291,6 @@ module _
                ]
              ∣)
 
-      -- An empty queue.
-
-      empty : Queue Q ⟪ [] {A = A} ⟫
-      empty = ∣ Q.empty , [ Q.to-List-empty ] ∣
-
       -- Enqueues an element.
 
       enqueue :
@@ -429,14 +424,6 @@ module _
 
   module Non-indexed where
 
-    -- An empty queue.
-
-    empty : Queue Q A
-    empty = _ , Indexed.empty
-
-    to-List-empty : to-List s empty ≡ ([] ⦂ List A)
-    to-List-empty = ⌊⌋≡→to-List≡ [ refl _ ]
-
     -- Enqueues an element.
 
     enqueue : A → Queue Q A → Queue Q A
@@ -519,13 +506,12 @@ module _
       _ : _↔_.from (Queue↔Maybe[×Queue] s) ≡ dequeue⁻¹
       _ = refl _
 
-    -- A special case of dequeue⁻¹.
+    to-List-dequeue⁻¹ :
+      to-List s (dequeue⁻¹ x) ≡
+      _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id (to-List s)) x)
+    to-List-dequeue⁻¹ {x = nothing} = ⌊⌋≡→to-List≡ [ refl _ ]
 
-    cons : A → Queue Q A → Queue Q A
-    cons = curry (dequeue⁻¹ ∘ just)
-
-    to-List-cons : to-List s (cons x q) ≡ x ∷ to-List s q
-    to-List-cons {s = s} {x = x} {q = q} = ⌊⌋≡→to-List≡
+    to-List-dequeue⁻¹ {s = s} {x = just (x , q)} = ⌊⌋≡→to-List≡
       [ x ∷ ⌊ q ⌋        ≡⟨ cong (_ ∷_) $ sym ≡⌊⌋ ⟩∎
         x ∷ to-List s q  ∎
       ]
@@ -539,34 +525,26 @@ module _
       ⊎-map id (Σ-map id (to-List s)) (dequeue s q) ≡
       _↔_.to List↔Maybe[×List] (to-List s q)
     to-List-dequeue {s = s} {q = q} =
-      ⊎-map id (Σ-map id (to-List s)) (dequeue s q)                   ≡⟨ _↔_.to (from≡↔≡to (from-isomorphism List↔Maybe[×List])) $ sym $
-                                                                         ⌊⌋≡→to-List≡ [ lemma (dequeue s q) ] ⟩
+      ⊎-map id (Σ-map id (to-List s)) (dequeue s q)                   ≡⟨ _↔_.to (from≡↔≡to (from-isomorphism List↔Maybe[×List])) $
+                                                                         sym to-List-dequeue⁻¹ ⟩
       _↔_.to List↔Maybe[×List] (to-List s (dequeue⁻¹ (dequeue s q)))  ≡⟨ cong (_↔_.to List↔Maybe[×List] ∘ to-List s) $
                                                                          _↔_.left-inverse-of (Queue↔Maybe[×Queue] _) _ ⟩∎
       _↔_.to List↔Maybe[×List] (to-List s q)                          ∎
-      where
-      @0 lemma :
-        ∀ x →
-        ⌊ dequeue⁻¹ x ⌋ ≡
-        _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id (to-List s)) x)
-      lemma nothing        = refl _
-      lemma (just (x , q)) =
-        x ∷ ⌊ q ⌋        ≡⟨ cong (_ ∷_) $ sym ≡⌊⌋ ⟩∎
-        x ∷ to-List s q  ∎
 
-    -- The function from-List can be expressed using enqueue and empty.
+    -- The function from-List can be expressed using enqueue and
+    -- dequeue⁻¹ nothing.
     --
     -- Note that, unlike the correspondingly named lemma in Queue, this
     -- lemma does not require the predicate (in this case Very-stable-≡)
     -- to hold for the carrier type.
 
     from-List≡foldl-enqueue-empty :
-      from-List xs ≡ foldl (flip enqueue) empty xs
+      from-List xs ≡ foldl (flip enqueue) (dequeue⁻¹ nothing) xs
     from-List≡foldl-enqueue-empty {xs = xs} = _↔_.to ≡-for-indices↔≡
-      [ ⌊ from-List xs ⌋                   ≡⟨ _↔_.right-inverse-of Queue↔Listⁱ _ ⟩
-        xs                                 ≡⟨⟩
-        ⌊ empty ⌋ ++ xs                    ≡⟨ lemma xs _ ⟩∎
-        ⌊ foldl (flip enqueue) empty xs ⌋  ∎
+      [ ⌊ from-List xs ⌋                                 ≡⟨ _↔_.right-inverse-of Queue↔Listⁱ _ ⟩
+        xs                                               ≡⟨⟩
+        ⌊ dequeue⁻¹ nothing ⌋ ++ xs                      ≡⟨ lemma xs _ ⟩∎
+        ⌊ foldl (flip enqueue) (dequeue⁻¹ nothing) xs ⌋  ∎
       ]
       where
       @0 lemma : ∀ xs q → ⌊ q ⌋ ++ xs ≡ ⌊ foldl (flip enqueue) q xs ⌋

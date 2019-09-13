@@ -48,16 +48,6 @@ record Is-queue
     from-List         : {A : Set ℓ} → List A → Q A
     to-List-from-List : to-List p (from-List xs) ≡ xs
 
-    -- An empty queue.
-
-    empty         : {A : Set ℓ} → Q A
-    to-List-empty : to-List p empty ≡ ([] ⦂ List A)
-
-    -- Adds an element to the front of a queue.
-
-    cons         : {A : Set ℓ} → A → Q A → Q A
-    to-List-cons : to-List p (cons x q) ≡ x ∷ to-List p q
-
     -- Enqueues an element.
 
     enqueue         : {A : Set ℓ} → A → Q A → Q A
@@ -68,6 +58,13 @@ record Is-queue
     dequeue         : {A : Set ℓ} → P A → Q A → Maybe (A × Q A)
     to-List-dequeue : ⊎-map id (Σ-map id (to-List p)) (dequeue p q) ≡
                       _↔_.to List↔Maybe[×List] (to-List p q)
+
+    -- The "inverse" of the dequeue operation.
+
+    dequeue⁻¹         : {A : Set ℓ} → Maybe (A × Q A) → Q A
+    to-List-dequeue⁻¹ :
+      to-List p (dequeue⁻¹ x) ≡
+      _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id (to-List p)) x)
 
 -- This module exports universe-polymorphic queue
 -- operations/properties.
@@ -88,6 +85,34 @@ module Is-queue⁺ ⦃ is-queue : ∀ {ℓ} → Is-queue Q P ℓ ⦄ where
       }
     ; right-inverse-of = λ _ → to-List-from-List
     }
+
+  -- An empty queue.
+
+  empty : Q A
+  empty = dequeue⁻¹ nothing
+
+  to-List-empty : to-List p empty ≡ ([] ⦂ List A)
+  to-List-empty {p = p} =
+    to-List p empty                                                       ≡⟨⟩
+    to-List p (dequeue⁻¹ nothing)                                         ≡⟨ to-List-dequeue⁻¹ ⟩
+    _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id (to-List p)) nothing)  ≡⟨⟩
+    []                                                                    ∎
+
+  -- Adds an element to the front of a queue.
+
+  cons : A → Q A → Q A
+  cons x q = dequeue⁻¹ (just (x , q))
+
+  to-List-cons : to-List p (cons x q) ≡ x ∷ to-List p q
+  to-List-cons {p = p} {x = x} {q = q} =
+    to-List p (cons x q)                                ≡⟨⟩
+
+    to-List p (dequeue⁻¹ (just (x , q)))                ≡⟨ to-List-dequeue⁻¹ ⟩
+
+    _↔_.from List↔Maybe[×List]
+      (⊎-map id (Σ-map id (to-List p)) (just (x , q)))  ≡⟨⟩
+
+    x ∷ to-List p q                                     ∎
 
 open Is-queue⁺ public
 
@@ -172,81 +197,68 @@ module Is-queue-with-unique-representations⁺
     to-List p q₁ ≡ to-List p q₂  ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ $ Queue↔List _ ⟩□
     q₁ ≡ q₂                      □
 
-  -- The dequeue function is an inverse of a variant of cons.
+  -- The function dequeue can be expressed using to-List and
+  -- from-List.
+
+  dequeue≡from-List-to-List :
+    {A : Set a} {p : P A} {q : Q A} →
+    dequeue p q ≡
+    ⊎-map id (Σ-map id from-List)
+      (_↔_.to List↔Maybe[×List] (to-List p q))
+  dequeue≡from-List-to-List {p = p} {q = q} =
+    dequeue p q                                        ≡⟨ sym $ _↔_.left-inverse-of (F.id ⊎-cong ∃-cong λ _ → Queue↔List _) _ ⟩
+
+    ⊎-map id (Σ-map id from-List)
+      (⊎-map id (Σ-map id (to-List p)) (dequeue p q))  ≡⟨ cong (⊎-map id (Σ-map id from-List)) to-List-dequeue ⟩∎
+
+    ⊎-map id (Σ-map id from-List)
+      (_↔_.to List↔Maybe[×List] (to-List p q))         ∎
+
+  -- The function dequeue p is an inverse of dequeue⁻¹.
 
   Queue↔Maybe[×Queue] : P A → Q A ↔ Maybe (A × Q A)
   Queue↔Maybe[×Queue] p = record
     { surjection = record
       { logical-equivalence = record
         { to   = dequeue p
-        ; from = maybe (uncurry cons) empty
+        ; from = dequeue⁻¹
         }
       ; right-inverse-of = λ x →
-          dequeue p (maybe (uncurry cons) empty x)          ≡⟨ lemma₀ _ ⟩
+          dequeue p (dequeue⁻¹ x)                        ≡⟨ dequeue≡from-List-to-List ⟩
 
           ⊎-map id (Σ-map id from-List)
             (_↔_.to List↔Maybe[×List]
-               (to-List p (maybe (uncurry cons) empty x)))  ≡⟨ lemma₁ _ ⟩∎
+               (to-List p (dequeue⁻¹ x)))                ≡⟨ cong (⊎-map id (Σ-map id from-List) ∘ _↔_.to List↔Maybe[×List])
+                                                            to-List-dequeue⁻¹ ⟩
+          ⊎-map id (Σ-map id from-List)
+            (_↔_.to List↔Maybe[×List]
+               (_↔_.from List↔Maybe[×List]
+                  (⊎-map id (Σ-map id (to-List p)) x)))  ≡⟨ cong (⊎-map id (Σ-map id from-List)) $
+                                                            _↔_.right-inverse-of List↔Maybe[×List] (⊎-map id (Σ-map id (to-List p)) x) ⟩
+          ⊎-map id (Σ-map id from-List)
+            (⊎-map id (Σ-map id (to-List p)) x)          ≡⟨ _↔_.left-inverse-of (F.id ⊎-cong ∃-cong λ _ → Queue↔List _) _ ⟩∎
 
-          x                                                 ∎
+          x                                              ∎
       }
     ; left-inverse-of = λ q →
         _↔_.to ≡-for-lists↔≡ (
-          to-List p (maybe (uncurry cons) empty (dequeue p q))  ≡⟨ cong (λ x → to-List p (maybe (uncurry cons) empty x)) $ lemma₀ _ ⟩
+          to-List p (dequeue⁻¹ (dequeue p q))                ≡⟨ cong (λ x → to-List p (dequeue⁻¹ x)) dequeue≡from-List-to-List ⟩
 
-          to-List p (maybe (uncurry cons) empty
+          to-List p (dequeue⁻¹
             (⊎-map id (Σ-map id from-List)
-               (_↔_.to List↔Maybe[×List] (to-List p q))))       ≡⟨ lemma₂ _ ⟩∎
+               (_↔_.to List↔Maybe[×List] (to-List p q))))    ≡⟨ to-List-dequeue⁻¹ ⟩
 
-          to-List p q                                           ∎)
+          _↔_.from List↔Maybe[×List]
+            (⊎-map id (Σ-map id (to-List p))
+              (⊎-map id (Σ-map id from-List)
+                 (_↔_.to List↔Maybe[×List] (to-List p q))))  ≡⟨ cong (_↔_.from List↔Maybe[×List]) $
+                                                                _↔_.right-inverse-of (F.id ⊎-cong ∃-cong λ _ → Queue↔List _)
+                                                                  (_↔_.to List↔Maybe[×List] (to-List p q)) ⟩
+          _↔_.from List↔Maybe[×List]
+            (_↔_.to List↔Maybe[×List] (to-List p q))         ≡⟨ _↔_.left-inverse-of List↔Maybe[×List] _ ⟩∎
+
+          to-List p q                                        ∎)
     }
-    where
-    lemma₀ : ∀ (_ : Q _) → _
-    lemma₀ q =
-      dequeue p q                                        ≡⟨ sym $ _↔_.left-inverse-of (F.id ⊎-cong ∃-cong λ _ → Queue↔List _) _ ⟩
-
-      ⊎-map id (Σ-map id from-List)
-        (⊎-map id (Σ-map id (to-List p)) (dequeue p q))  ≡⟨ cong (⊎-map id (Σ-map id from-List)) to-List-dequeue ⟩∎
-
-      ⊎-map id (Σ-map id from-List)
-        (_↔_.to List↔Maybe[×List] (to-List p q))         ∎
-
-    lemma₁ :
-      ∀ x →
-      ⊎-map id (Σ-map id from-List)
-        (_↔_.to List↔Maybe[×List]
-           (to-List p (maybe (uncurry cons) empty x))) ≡
-      x
-    lemma₁ nothing =
-      ⊎-map id (Σ-map id from-List)
-        (_↔_.to List↔Maybe[×List] (to-List p empty))               ≡⟨ cong (⊎-map id (Σ-map id from-List) ∘ _↔_.to List↔Maybe[×List])
-                                                                      to-List-empty ⟩
-      ⊎-map id (Σ-map id from-List) (_↔_.to List↔Maybe[×List] [])  ≡⟨⟩
-
-      nothing                                                      ∎
-
-    lemma₁ (just (x , q)) =
-      ⊎-map id (Σ-map id from-List)
-        (_↔_.to List↔Maybe[×List] (to-List p (cons x q)))  ≡⟨ cong (⊎-map id (Σ-map id from-List) ∘ _↔_.to List↔Maybe[×List])
-                                                              to-List-cons ⟩
-      ⊎-map id (Σ-map id from-List)
-        (_↔_.to List↔Maybe[×List] (x ∷ to-List p q))       ≡⟨⟩
-
-      just (x , from-List (to-List p q))                   ≡⟨ cong (just ∘ (x ,_)) from-List-to-List ⟩∎
-
-      just (x , q)                                         ∎
-
-    lemma₂ :
-      ∀ xs →
-      to-List p (maybe (uncurry cons) empty
-        (⊎-map id (Σ-map id from-List)
-           (_↔_.to List↔Maybe[×List] xs))) ≡
-      xs
-    lemma₂ []       = to-List-empty
-    lemma₂ (x ∷ xs) =
-      to-List p (cons x (from-List xs))  ≡⟨ to-List-cons ⟩
-      x ∷ to-List p (from-List xs)       ≡⟨ cong (x ∷_) to-List-from-List ⟩∎
-      x ∷ xs                             ∎
 
   -- The function from-List can be expressed using enqueue and empty.
 
@@ -293,17 +305,16 @@ instance
   List-is-queue : Is-queue List (λ _ → ↑ _ ⊤) ℓ
   List-is-queue .Is-queue.to-List   = λ _ → id
   List-is-queue .Is-queue.from-List = id
-  List-is-queue .Is-queue.empty     = []
-  List-is-queue .Is-queue.cons      = _∷_
   List-is-queue .Is-queue.enqueue   = λ x xs → xs ++ x ∷ []
   List-is-queue .Is-queue.dequeue   = λ _ → _↔_.to List↔Maybe[×List]
+  List-is-queue .Is-queue.dequeue⁻¹ = _↔_.from List↔Maybe[×List]
 
-  List-is-queue .Is-queue.to-List-from-List           = refl _
-  List-is-queue .Is-queue.to-List-empty               = refl _
-  List-is-queue .Is-queue.to-List-cons                = refl _
-  List-is-queue .Is-queue.to-List-enqueue             = refl _
-  List-is-queue .Is-queue.to-List-dequeue {q = []}    = refl _
-  List-is-queue .Is-queue.to-List-dequeue {q = _ ∷ _} = refl _
+  List-is-queue .Is-queue.to-List-from-List               = refl _
+  List-is-queue .Is-queue.to-List-enqueue                 = refl _
+  List-is-queue .Is-queue.to-List-dequeue {q = []}        = refl _
+  List-is-queue .Is-queue.to-List-dequeue {q = _ ∷ _}     = refl _
+  List-is-queue .Is-queue.to-List-dequeue⁻¹ {x = nothing} = refl _
+  List-is-queue .Is-queue.to-List-dequeue⁻¹ {x = just _}  = refl _
 
   List-is-queue-with-map : Is-queue-with-map List ℓ₁ ℓ₂
   List-is-queue-with-map .Is-queue-with-map.map         = L.map

@@ -49,14 +49,12 @@ instance
   Queue-is-queue .Is-queue.from-List         = Q.from-List
   Queue-is-queue .Is-queue.to-List-from-List = _↔_.right-inverse-of
                                                  (Q.Queue↔List _) _
-  Queue-is-queue .Is-queue.empty             = N.empty
-  Queue-is-queue .Is-queue.to-List-empty     = N.to-List-empty
-  Queue-is-queue .Is-queue.cons              = N.cons
-  Queue-is-queue .Is-queue.to-List-cons      = N.to-List-cons
   Queue-is-queue .Is-queue.enqueue           = N.enqueue
   Queue-is-queue .Is-queue.to-List-enqueue   = N.to-List-enqueue
   Queue-is-queue .Is-queue.dequeue           = N.dequeue
   Queue-is-queue .Is-queue.to-List-dequeue   = N.to-List-dequeue
+  Queue-is-queue .Is-queue.dequeue⁻¹         = N.dequeue⁻¹
+  Queue-is-queue .Is-queue.to-List-dequeue⁻¹ = N.to-List-dequeue⁻¹
 
   Queue-is-queue-with-map : Is-queue-with-map (Queue Q) ℓ₁ ℓ₂
   Queue-is-queue-with-map .Is-queue-with-map.map         = N.map

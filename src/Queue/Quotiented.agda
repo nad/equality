@@ -249,22 +249,6 @@ module _
              f (to-List s′ [ q ])                               ∎)
           (λ _ → F-set (H-level-List 0 s))
 
-    -- An empty queue.
-
-    empty : Queue Q A
-    empty = [ Q.empty ]
-
-    to-List-empty : to-List s empty ≡ ([] ⦂ List A)
-    to-List-empty = Q.to-List-empty
-
-    -- Adds an element to the front of a queue.
-
-    cons : A → Queue Q A → Queue Q A
-    cons x = unary (x ∷_) (Q.cons x) Q.to-List-cons
-
-    to-List-cons : to-List s (cons x q) ≡ x ∷ to-List s q
-    to-List-cons {q = q} = to-List-unary q
-
     -- Enqueues an element.
 
     enqueue : A → Queue Q A → Queue Q A
@@ -300,6 +284,18 @@ module _
       _
       _
       q
+
+    -- The "inverse" of the dequeue operation.
+
+    dequeue⁻¹ : Maybe (A × Queue Q A) → Queue Q A
+    dequeue⁻¹ nothing        = [ Q.empty ]
+    dequeue⁻¹ (just (x , q)) = unary (x ∷_) (Q.cons x) Q.to-List-cons q
+
+    to-List-dequeue⁻¹ :
+      to-List s (dequeue⁻¹ x) ≡
+      _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id (to-List s)) x)
+    to-List-dequeue⁻¹ {x = nothing}      = Q.to-List-empty
+    to-List-dequeue⁻¹ {x = just (_ , q)} = to-List-unary q
 
     -- A map function.
 

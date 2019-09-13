@@ -158,27 +158,6 @@ private
 ------------------------------------------------------------------------
 -- Queue operations
 
--- An empty queue.
-
-empty : Queue A
-empty = from-List []
-
-to-List-empty : to-List empty ≡ ([] ⦂ List A)
-to-List-empty = refl _
-
--- Adds an element to the front of a queue.
-
-cons : A → Queue A → Queue A
-cons x q = record q
-  { front            = x ∷ q .front
-  ; length-front     = suc (q .length-front)
-  ; length-invariant = ≤-step (q .length-invariant)
-  ; length-front≡    = cong suc (q .length-front≡)
-  }
-
-to-List-cons : ∀ q → to-List (cons x q) ≡ x ∷ to-List q
-to-List-cons _ = refl _
-
 -- Enqueues an element.
 
 enqueue : A → Queue A → Queue A
@@ -251,6 +230,24 @@ to-List-dequeue q@(record { front        = x ∷ front
   Erased ⊥                            ↔⟨ Erased-⊥↔⊥ ⟩
   ⊥                                   ↝⟨ ⊥-elim ⟩□
   _                                   □
+
+-- The "inverse" of the dequeue operation.
+
+dequeue⁻¹ : Maybe (A × Queue A) → Queue A
+dequeue⁻¹ nothing        = from-List []
+dequeue⁻¹ (just (x , q)) = record q
+  { front            = x ∷ q .front
+  ; length-front     = suc (q .length-front)
+  ; length-invariant = ≤-step (q .length-invariant)
+  ; length-front≡    = cong suc (q .length-front≡)
+  }
+
+to-List-dequeue⁻¹ :
+  (x : Maybe (A × Queue A)) →
+  to-List (dequeue⁻¹ x) ≡
+  _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id to-List) x)
+to-List-dequeue⁻¹ nothing  = refl _
+to-List-dequeue⁻¹ (just _) = refl _
 
 -- A map function.
 

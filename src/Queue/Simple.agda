@@ -133,22 +133,6 @@ representation-not-unique x hyp =
 ------------------------------------------------------------------------
 -- Queue operations
 
--- An empty queue.
-
-empty : Queue A
-empty = ⟨ [] , [] , []-[] ⟩
-
-to-List-empty : to-List empty ≡ ([] ⦂ List A)
-to-List-empty = refl _
-
--- Adds an element to the front of a queue.
-
-cons : A → Queue A → Queue A
-cons x ⟨ front , rear , _ ⟩ = ⟨ x ∷ front , rear , ∷- ⟩
-
-to-List-cons : ∀ q → to-List (cons x q) ≡ x ∷ to-List q
-to-List-cons _ = refl _
-
 -- Enqueues an element.
 
 enqueue : A → Queue A → Queue A
@@ -184,6 +168,19 @@ to-List-dequeue ⟨ x ∷ [] , rear , _ ⟩ = cong (just ∘ (x ,_)) (
   reverse rear        ∎)
 
 to-List-dequeue ⟨ _ ∷ _ ∷ _ , _ , _ ⟩ = refl _
+
+-- The "inverse" of the dequeue operation.
+
+dequeue⁻¹ : Maybe (A × Queue A) → Queue A
+dequeue⁻¹ nothing                           = ⟨ [] , [] , []-[] ⟩
+dequeue⁻¹ (just (x , ⟨ front , rear , _ ⟩)) = ⟨ x ∷ front , rear , ∷- ⟩
+
+to-List-dequeue⁻¹ :
+  (x : Maybe (A × Queue A)) →
+  to-List (dequeue⁻¹ x) ≡
+  _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id to-List) x)
+to-List-dequeue⁻¹ nothing  = refl _
+to-List-dequeue⁻¹ (just _) = refl _
 
 -- A map function.
 
