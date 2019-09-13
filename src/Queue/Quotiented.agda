@@ -142,19 +142,6 @@ module _
     ; left-inverse-of = from-List-to-List
     }
 
-  abstract
-
-    -- The type ∃ λ (q : Queue Q A) → to-List s q ≡ xs is
-    -- contractible.
-
-    Σ-Queue-contractible :
-      Contractible (∃ λ (q : Queue Q A) → to-List s q ≡ xs)
-    Σ-Queue-contractible {A = A} {s = s} {xs = xs} =         $⟨ singleton-contractible _ ⟩
-      Contractible (Singleton (from-List xs))                ↝⟨ id ⟩
-      Contractible (∃ λ (q : Queue Q A) → q ≡ from-List xs)  ↝⟨ H-level-cong _ 0 $
-                                                                ∃-cong (λ _ → inverse $ from≡↔≡to $ inverse $ Eq.↔⇒≃ $ Queue↔List s) ⟩□
-      Contractible (∃ λ (q : Queue Q A) → to-List s q ≡ xs)  □
-
 ------------------------------------------------------------------------
 -- Queue operations
 
