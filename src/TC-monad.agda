@@ -12,7 +12,6 @@ module TC-monad
 import Agda.Builtin.Bool as B
 open import Agda.Builtin.Char
 open import Agda.Builtin.Float
-import Agda.Builtin.Nat as N
 import Agda.Builtin.Reflection
 open import Agda.Builtin.Strict
 open import Agda.Builtin.String
@@ -283,7 +282,7 @@ mutual
     unknown           → unknown
 
   weaken-var : ℕ → ℕ → ℕ → ℕ
-  weaken-var from by x = if from ≤? x then x + by else x
+  weaken-var from by x = if from <= x then x + by else x
 
   weaken-abs : ℕ → ℕ → Abs Term → Abs Term
   weaken-abs from by (abs s t) =
@@ -323,9 +322,9 @@ mutual
   strengthen-term : ℕ → ℕ → Term → Term
   strengthen-term from by = λ where
     (var x args)      → let args′ = strengthen-args from by args in
-                        if from + by ≤? x
+                        if from + by <= x
                         then var (x ∸ by) args′
-                        else if from ≤? x
+                        else if from <= x
                         then unknown
                         else var x args′
     (con c args)      → con c (strengthen-args from by args)
@@ -460,7 +459,7 @@ mutual
     (absurd-clause _) → definitely false
     (clause ps t)     →
       primForce (bound-in-patterns ps) λ b →
-      any-term (λ n → if suc n ≤? b
+      any-term (λ n → if suc n <= b
                       then false
                       else p (n ∸ b))
                t
@@ -479,4 +478,4 @@ bound? x = any-term (eq-ℕ x)
 -- in the given term.
 
 <bound? : ℕ → Term → Any-result
-<bound? x = any-term (λ y → _⇔_.to Bool⇔Bool (y N.< x))
+<bound? x = any-term (λ y → suc y <= x)

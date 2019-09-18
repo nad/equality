@@ -3385,6 +3385,25 @@ suc≤suc↔ =
   (∃ λ m → suc m ≤ n)      ↝⟨ inverse ∃0<↔∃suc ⟩□
   (∃ λ m → 0 < m × m ≤ n)  □
 
+-- The ordering test Nat._<=_ gives the right result.
+
+T[<=]↔≤ : {m n : ℕ} → T (m <= n) ↔ m ≤ n
+T[<=]↔≤ {m = zero} {n = n} =
+  T (zero <= n)  ↔⟨⟩
+  ⊤              ↝⟨ inverse zero≤↔ ⟩□
+  zero ≤ n       □
+
+T[<=]↔≤ {m = suc m} {n = zero} =
+  T (suc m <= zero)  ↔⟨⟩
+  ⊥                  ↝⟨ inverse <zero↔ ⟩□
+  suc m ≤ zero       □
+
+T[<=]↔≤ {m = suc m} {n = suc n} =
+  T (suc m <= suc n)  ↔⟨⟩
+  T (m <= n)          ↝⟨ T[<=]↔≤ ⟩
+  m ≤ n               ↝⟨ inverse suc≤suc↔ ⟩□
+  suc m ≤ suc n       □
+
 -- Equality or distinctness of two natural numbers is isomorphic to
 -- the unit type.
 
