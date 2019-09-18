@@ -54,7 +54,7 @@ infixl 5 _>>=′_
 _>>=′_ :
   {@0 A : Set a} {@0 B : Set b} →
   Erased A → (A → Erased B) → Erased B
-[ x ] >>=′ f = [ erased (f x) ]
+x >>=′ f = [ erased (f (erased x)) ]
 
 instance
 
@@ -173,7 +173,7 @@ Erased-cong-→ A→B [ x ] = [ A→B x ]
 
 Erased-cong-⇔ :
   {@0 A : Set a} {@0 B : Set b} →
-  @0 (A ⇔ B) → Erased A ⇔ Erased B
+  @0 A ⇔ B → Erased A ⇔ Erased B
 Erased-cong-⇔ A⇔B = record
   { to   = Erased-cong-→ (_⇔_.to   A⇔B)
   ; from = Erased-cong-→ (_⇔_.from A⇔B)

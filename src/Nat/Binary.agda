@@ -141,7 +141,7 @@ Nat = ∃ λ (n : Erased ℕ) → Bin (erased n)
 -- Returns the (erased) index.
 
 @0 ⌊_⌋ : Nat → ℕ
-⌊_⌋ = erased ∘ proj₁
+⌊ [ n ] , _ ⌋ = n
 
 -- There is a bijection between equality of two values of type Nat and
 -- erased equality of the corresponding unary natural number indices.

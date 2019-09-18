@@ -783,7 +783,7 @@ module Erased-≡↔[]≡[]
   Stable-≡-List :
     Stable-≡-[ k ] A →
     Stable-≡-[ k ] (List A)
-  Stable-≡-List {k = k} s {x = []} {y = []} =
+  Stable-≡-List _ {x = []} {y = []} =
     Erased ([] ≡ [])            ↔⟨ Erased-cong $ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩
     Erased (inj₁ tt ≡ inj₁ tt)  ↔⟨ Erased-cong $ inverse Bijection.≡↔inj₁≡inj₁ ⟩
     Erased (tt ≡ tt)            ↝⟨ Very-stable→Stable $ Very-stable→Very-stable-≡ Very-stable-⊤ ⟩
@@ -791,7 +791,7 @@ module Erased-≡↔[]≡[]
     inj₁ tt ≡ inj₁ tt           ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩□
     [] ≡ []                     □
 
-  Stable-≡-List s {x = []} {y = y ∷ ys} =
+  Stable-≡-List _ {x = []} {y = y ∷ ys} =
     Erased ([] ≡ y ∷ ys)              ↔⟨ Erased-cong $ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩
     Erased (inj₁ tt ≡ inj₂ (y , ys))  ↔⟨ Erased-cong Bijection.≡↔⊎ ⟩
     Erased ⊥                          ↝⟨ Very-stable→Stable Very-stable-⊥ ⟩
@@ -799,7 +799,7 @@ module Erased-≡↔[]≡[]
     inj₁ tt ≡ inj₂ (y , ys)           ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩□
     [] ≡ y ∷ ys                       □
 
-  Stable-≡-List s {x = x ∷ xs} {y = []} =
+  Stable-≡-List _ {x = x ∷ xs} {y = []} =
     Erased (x ∷ xs ≡ [])              ↔⟨ Erased-cong $ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩
     Erased (inj₂ (x , xs) ≡ inj₁ tt)  ↔⟨ Erased-cong Bijection.≡↔⊎ ⟩
     Erased ⊥                          ↝⟨ Very-stable→Stable Very-stable-⊥ ⟩
