@@ -33,7 +33,7 @@ open import Erased eq as Erased public
 -- Some definitions from Erased.Stability are reexported.
 
 open import Erased.Stability eq as Stability public
-  hiding (module Very-stable→Very-stable-≡)
+  hiding (module Erased-≡↔[]≡[])
 
 private
   variable
@@ -151,56 +151,7 @@ private
 ------------------------------------------------------------------------
 -- Code related to the module Erased.Stability
 
-private
-
-  -- If A is very stable, then the types of paths between values of
-  -- type A are very stable.
-
-  Very-stable→Very-stable-Path :
-    {x y : A} → Very-stable A → Very-stable (x P.≡ y)
-  Very-stable→Very-stable-Path {x = x} {y = y} s = _≃_.is-equivalence (
-    x P.≡ y           ↝⟨ inverse $ _↔_.from ≃↔≃ $ PEq.≃-≡ $ _↔_.to ≃↔≃ $ Eq.⟨ _ , s ⟩ ⟩
-    [ x ] P.≡ [ y ]   ↔⟨ inverse Erased-Path↔Path-[]-[] ⟩□
-    Erased (x P.≡ y)  □)
-
--- If A is very stable, then the types of equalities between values
--- of type A are very stable.
-
-Very-stable→Very-stable-≡ : Very-stable A → Very-stable-≡ A
-Very-stable→Very-stable-≡ s {x = x} {y = y} =
-  _≃_.is-equivalence $
-  Eq.with-other-function
-    (x ≡ y             ↔⟨ ≡↔≡ ⟩
-     x P.≡ y           ↝⟨ inverse $ Very-stable→Stable (Very-stable→Very-stable-Path s) ⟩
-     Erased (x P.≡ y)  ↔⟨ Erased-cong (inverse ≡↔≡) ⟩□
-     Erased (x ≡ y)    □)
-    [_]
-    (λ eq →
-      [ _↔_.from ≡↔≡ (_↔_.to ≡↔≡ eq) ]  ≡⟨ cong [_] (_↔_.left-inverse-of ≡↔≡ eq) ⟩∎
-      [ eq ]                            ∎)
-
-private
-
-  -- Some examples showing how Very-stable→Very-stable-≡ can be
-  -- used.
-
-  -- Equalities between erased values are very stable.
-
-  Very-stable-≡₀ : {@0 A : Set a} → Very-stable-≡ (Erased A)
-  Very-stable-≡₀ = Very-stable→Very-stable-≡ Very-stable-Erased
-
-  -- Equalities between equalities between erased values are very
-  -- stable.
-
-  Very-stable-≡₁ :
-    {@0 A : Set a} {x y : Erased A} →
-    Very-stable-≡ (x ≡ y)
-  Very-stable-≡₁ = Very-stable→Very-stable-≡ Very-stable-≡₀
-
-  -- And so on…
-
 -- Reexported definitions.
 
-open Stability.Very-stable→Very-stable-≡
-  Erased-≡↔[]≡[] to-Erased-≡↔[]≡[]-[refl] Very-stable→Very-stable-≡
+open Stability.Erased-≡↔[]≡[] Erased-≡↔[]≡[] to-Erased-≡↔[]≡[]-[refl]
   public

@@ -334,18 +334,15 @@ Very-stable-↑ s = _≃_.is-equivalence $
 
 ------------------------------------------------------------------------
 -- Some results that follow if "Erased-≡↔[]≡[]" can be defined in a
--- certain way and very stable types have very stable equality
+-- certain way
 
-module Very-stable→Very-stable-≡
+module Erased-≡↔[]≡[]
   (Erased-≡↔[]≡[] :
     ∀ {a} {@0 A : Set a} {@0 x y : A} →
     Erased (x ≡ y) ↔ [ x ] ≡ [ y ])
   (to-Erased-≡↔[]≡[]-[refl] :
     ∀ {a} {A : Set a} {x : A} →
     _↔_.to Erased-≡↔[]≡[] [ refl x ] ≡ refl [ x ])
-  (Very-stable→Very-stable-≡ :
-     ∀ {a} {A : Set a} →
-     Very-stable A → Very-stable-≡ A)
   where
 
   open Erased-≡↔[]≡[]₂ Erased-≡↔[]≡[] to-Erased-≡↔[]≡[]-[refl]
@@ -523,6 +520,44 @@ module Very-stable→Very-stable-≡
     [ x ] ≡ [ y ]      ↝⟨ cong s ⟩
     s [ x ] ≡ s [ y ]  ↝⟨ (λ eq → trans (sym (hyp x)) (trans eq (hyp y))) ⟩□
     x ≡ y              □
+
+  -- If A is very stable, then the types of equalities between values
+  -- of type A are very stable.
+
+  Very-stable→Very-stable-≡ : Very-stable A → Very-stable-≡ A
+  Very-stable→Very-stable-≡ s {x = x} {y = y} =
+    _≃_.is-equivalence $
+    Eq.with-other-function
+      (x ≡ y           ↝⟨ inverse $ Eq.≃-≡ Eq.⟨ _ , s ⟩ ⟩
+       [ x ] ≡ [ y ]   ↔⟨ inverse Erased-≡↔[]≡[] ⟩□
+       Erased (x ≡ y)  □)
+      [_]
+      (λ eq →
+        _↔_.from Erased-≡↔[]≡[] (cong [_] eq)  ≡⟨ from-Erased-≡↔[]≡[] ⟩
+        [ cong erased (cong [_] eq) ]          ≡⟨ []-cong [ cong-∘ _ _ _ ] ⟩
+        [ cong (erased ∘ [_]) eq ]             ≡⟨⟩
+        [ cong id eq ]                         ≡⟨ []-cong [ sym $ cong-id _ ] ⟩∎
+        [ eq ]                                 ∎)
+
+  private
+
+    -- Some examples showing how Very-stable→Very-stable-≡ can be
+    -- used.
+
+    -- Equalities between erased values are very stable.
+
+    Very-stable-≡₀ : {@0 A : Set a} → Very-stable-≡ (Erased A)
+    Very-stable-≡₀ = Very-stable→Very-stable-≡ Very-stable-Erased
+
+    -- Equalities between equalities between erased values are very
+    -- stable.
+
+    Very-stable-≡₁ :
+      {@0 A : Set a} {x y : Erased A} →
+      Very-stable-≡ (x ≡ y)
+    Very-stable-≡₁ = Very-stable→Very-stable-≡ Very-stable-≡₀
+
+    -- And so on…
 
   -- If A is very stable, then H-level′ n A is very stable (assuming
   -- extensionality).

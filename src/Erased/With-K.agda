@@ -28,7 +28,7 @@ open import Erased equality-with-J as Erased public
 -- Some definitions from Erased.Stability are reexported.
 
 open import Erased.Stability equality-with-J as Stability public
-  hiding (module Very-stable→Very-stable-≡)
+  hiding (module Erased-≡↔[]≡[])
 
 private
   variable
@@ -77,29 +77,9 @@ open Erased.Erased-≡↔[]≡[]₂ Erased-≡↔[]≡[] refl public
 ------------------------------------------------------------------------
 -- Code related to the module Erased.Stability
 
--- Equality is always very stable.
-
-Very-stable-≡-trivial : Very-stable-≡ A
-Very-stable-≡-trivial = _≃_.is-equivalence (Eq.↔⇒≃ (record
-  { surjection = record
-    { logical-equivalence = record
-      { from = λ { [ refl ] → refl }
-      }
-    ; right-inverse-of = λ { [ refl ] → refl }
-    }
-  ; left-inverse-of = λ { refl → refl }
-  }))
-
--- Thus, if A is very stable, then the types of equalities between
--- values of type A are very stable.
-
-Very-stable→Very-stable-≡ : Very-stable A → Very-stable-≡ A
-Very-stable→Very-stable-≡ _ = Very-stable-≡-trivial
-
 -- Reexported definitions.
 
-open Stability.Very-stable→Very-stable-≡
-  Erased-≡↔[]≡[] to-Erased-≡↔[]≡[]-[refl] Very-stable→Very-stable-≡
+open Stability.Erased-≡↔[]≡[] Erased-≡↔[]≡[] to-Erased-≡↔[]≡[]-[refl]
   public
 
 ------------------------------------------------------------------------
@@ -130,3 +110,16 @@ Is-proposition-Erased→Is-proposition :
   Is-proposition (Erased A) → Is-proposition A
 Is-proposition-Erased→Is-proposition prop x y =
   Injective-[] (prop [ x ] [ y ])
+
+-- Equality is always very stable.
+
+Very-stable-≡-trivial : Very-stable-≡ A
+Very-stable-≡-trivial = _≃_.is-equivalence (Eq.↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { from = λ { [ refl ] → refl }
+      }
+    ; right-inverse-of = λ { [ refl ] → refl }
+    }
+  ; left-inverse-of = λ { refl → refl }
+  }))
