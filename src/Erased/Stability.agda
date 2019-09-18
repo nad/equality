@@ -587,38 +587,52 @@ module Erased-≡↔[]≡[]
     Very-stable (H-level′ n A)  ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
     Very-stable (H-level n A)   □
 
-  -- A variant of Stable-Π for equality.
+  -- Variants of Stable-Π for equality.
 
-  Stable-≡-Π :
+  Stable-≡-Π′ :
     {A : Set a} {P : A → Set p} {f g : (x : A) → P x} →
     Extensionality a p →
     (∀ x → Stable-[ k ] (f x ≡ g x)) →
     Stable-[ k ] (f ≡ g)
-  Stable-≡-Π {k = k} {f = f} {g = g} ext =
+  Stable-≡-Π′ {k = k} {f = f} {g = g} ext =
     (∀ x → Stable-[ k ] (f x ≡ g x))  ↝⟨ Stable-Π (forget-ext? k ext) ⟩
     Stable-[ k ] (∀ x → f x ≡ g x)    ↝⟨ Stable-map-↔ (_≃_.bijection $ Eq.extensionality-isomorphism ext) ⟩□
     Stable-[ k ] (f ≡ g)              □
 
-  -- A variant of Very-stable-Π for equality.
+  Stable-≡-Π :
+    {A : Set a} {P : A → Set p} →
+    Extensionality a p →
+    (∀ x → Stable-≡-[ k ] (P x)) →
+    Stable-≡-[ k ] ((x : A) → P x)
+  Stable-≡-Π ext s = Stable-≡-Π′ ext (λ x → s x)
 
-  Very-stable-≡-Π :
+  -- Variants of Very-stable-Π for equality.
+
+  Very-stable-≡-Π′ :
     {A : Set a} {P : A → Set p} {f g : (x : A) → P x} →
     Extensionality a p →
     (∀ x → Very-stable (f x ≡ g x)) →
     Very-stable (f ≡ g)
-  Very-stable-≡-Π {f = f} {g = g} ext =
+  Very-stable-≡-Π′ {f = f} {g = g} ext =
     (∀ x → Very-stable (f x ≡ g x))  ↝⟨ Very-stable-Π ext ⟩
     Very-stable (∀ x → f x ≡ g x)    ↝⟨ Very-stable-cong _ (Eq.extensionality-isomorphism ext) ⟩□
     Very-stable (f ≡ g)              □
 
-  -- A variant of Very-stable-Stable-Σ for equality.
+  Very-stable-≡-Π :
+    {A : Set a} {P : A → Set p} →
+    Extensionality a p →
+    (∀ x → Very-stable-≡ (P x)) →
+    Very-stable-≡ ((x : A) → P x)
+  Very-stable-≡-Π ext s = Very-stable-≡-Π′ ext (λ x → s x)
 
-  Very-stable-Stable-≡-Σ :
+  -- Variants of Very-stable-Stable-Σ for equality.
+
+  Very-stable-Stable-≡-Σ′ :
     {p q : Σ A P} →
     Very-stable (proj₁ p ≡ proj₁ q) →
     (∀ eq → Stable-[ k ] (subst P eq (proj₂ p) ≡ proj₂ q)) →
     Stable-[ k ] (p ≡ q)
-  Very-stable-Stable-≡-Σ {P = P} {k = k} {p = p} {q = q} = curry (
+  Very-stable-Stable-≡-Σ′ {P = P} {k = k} {p = p} {q = q} = curry (
     Very-stable (proj₁ p ≡ proj₁ q) ×
     (∀ eq → Stable-[ k ] (subst P eq (proj₂ p) ≡ proj₂ q))  ↝⟨ uncurry Very-stable-Stable-Σ ⟩
 
@@ -626,6 +640,13 @@ module Erased-≡↔[]≡[]
                       subst P eq (proj₂ p) ≡ proj₂ q)       ↝⟨ Stable-map-↔ Bijection.Σ-≡,≡↔≡ ⟩□
 
     Stable-[ k ] (p ≡ q)                                    □)
+
+  Very-stable-Stable-≡-Σ :
+    Very-stable-≡ A →
+    (∀ x → Stable-≡-[ k ] (P x)) →
+    Stable-≡-[ k ] (Σ A P)
+  Very-stable-Stable-≡-Σ s₁ s₂ =
+    Very-stable-Stable-≡-Σ′ s₁ (λ _ → s₂ _)
 
   -- A variant of Stable-Σ for equality.
 
@@ -646,14 +667,14 @@ module Erased-≡↔[]≡[]
 
     Stable (p ≡ q)                                                □)
 
-  -- A variant of Very-stable-Σ for equality.
+  -- Variants of Very-stable-Σ for equality.
 
-  Very-stable-≡-Σ :
+  Very-stable-≡-Σ′ :
     {p q : Σ A P} →
     Very-stable (proj₁ p ≡ proj₁ q) →
     (∀ eq → Very-stable (subst P eq (proj₂ p) ≡ proj₂ q)) →
     Very-stable (p ≡ q)
-  Very-stable-≡-Σ {P = P} {p = p} {q = q} = curry (
+  Very-stable-≡-Σ′ {P = P} {p = p} {q = q} = curry (
     Very-stable (proj₁ p ≡ proj₁ q) ×
     (∀ eq → Very-stable (subst P eq (proj₂ p) ≡ proj₂ q))  ↝⟨ uncurry Very-stable-Σ ⟩
 
@@ -662,47 +683,75 @@ module Erased-≡↔[]≡[]
 
     Very-stable (p ≡ q)                                    □)
 
-  -- A variant of Stable-× for equality.
+  Very-stable-≡-Σ :
+    Very-stable-≡ A →
+    (∀ x → Very-stable-≡ (P x)) →
+    Very-stable-≡ (Σ A P)
+  Very-stable-≡-Σ s₁ s₂ = Very-stable-≡-Σ′ s₁ (λ _ → s₂ _)
 
-  Stable-≡-× :
+  -- Variants of Stable-× for equality.
+
+  Stable-≡-×′ :
     {p q : A × B} →
     Stable-[ k ] (proj₁ p ≡ proj₁ q) →
     Stable-[ k ] (proj₂ p ≡ proj₂ q) →
     Stable-[ k ] (p ≡ q)
-  Stable-≡-× {k = k} {p = p} {q = q} = curry (
+  Stable-≡-×′ {k = k} {p = p} {q = q} = curry (
     Stable-[ k ] (proj₁ p ≡ proj₁ q) × Stable-[ k ] (proj₂ p ≡ proj₂ q)  ↝⟨ uncurry Stable-× ⟩
     Stable-[ k ] (proj₁ p ≡ proj₁ q × proj₂ p ≡ proj₂ q)                 ↝⟨ Stable-map-↔ ≡×≡↔≡ ⟩□
     Stable-[ k ] (p ≡ q)                                                 □)
 
-  -- A variant of Very-stable-× for equality.
+  Stable-≡-× :
+    Stable-≡-[ k ] A →
+    Stable-≡-[ k ] B →
+    Stable-≡-[ k ] (A × B)
+  Stable-≡-× s₁ s₂ = Stable-≡-×′ s₁ s₂
 
-  Very-stable-≡-× :
+  -- Variants of Very-stable-× for equality.
+
+  Very-stable-≡-×′ :
     {p q : A × B} →
     Very-stable (proj₁ p ≡ proj₁ q) →
     Very-stable (proj₂ p ≡ proj₂ q) →
     Very-stable (p ≡ q)
-  Very-stable-≡-× {p = p} {q = q} = curry (
+  Very-stable-≡-×′ {p = p} {q = q} = curry (
     Very-stable (proj₁ p ≡ proj₁ q) × Very-stable (proj₂ p ≡ proj₂ q)  ↝⟨ uncurry Very-stable-× ⟩
     Very-stable (proj₁ p ≡ proj₁ q × proj₂ p ≡ proj₂ q)                ↝⟨ Very-stable-cong _ $ Eq.↔⇒≃ ≡×≡↔≡ ⟩□
     Very-stable (p ≡ q)                                                □)
 
-  -- A variant of Stable-↑ for equality.
+  Very-stable-≡-× :
+    Very-stable-≡ A →
+    Very-stable-≡ B →
+    Very-stable-≡ (A × B)
+  Very-stable-≡-× s₁ s₂ = Very-stable-≡-×′ s₁ s₂
 
-  Stable-≡-↑ :
+  -- Variants of Stable-↑ for equality.
+
+  Stable-≡-↑′ :
     Stable-[ k ] (lower {ℓ = ℓ} x ≡ lower y) →
     Stable-[ k ] (x ≡ y)
-  Stable-≡-↑ {k = k} {x = x} {y = y} =
+  Stable-≡-↑′ {k = k} {x = x} {y = y} =
     Stable-[ k ] (lower x ≡ lower y)  ↝⟨ Stable-map-↔ (_≃_.bijection $ Eq.≃-≡ $ Eq.↔⇒≃ $ Bijection.↑↔) ⟩□
     Stable-[ k ] (x ≡ y)              □
 
-  -- A variant of Very-stable-↑ for equality.
+  Stable-≡-↑ :
+    Stable-≡-[ k ] A →
+    Stable-≡-[ k ] (↑ ℓ A)
+  Stable-≡-↑ s = Stable-≡-↑′ s
 
-  Very-stable-≡-↑ :
+  -- Variants of Very-stable-↑ for equality.
+
+  Very-stable-≡-↑′ :
     Very-stable (lower {ℓ = ℓ} x ≡ lower y) →
     Very-stable (x ≡ y)
-  Very-stable-≡-↑ {x = x} {y = y} =
+  Very-stable-≡-↑′ {x = x} {y = y} =
     Very-stable (lower x ≡ lower y)  ↝⟨ Very-stable-cong _ (Eq.≃-≡ $ Eq.↔⇒≃ $ Bijection.↑↔) ⟩□
     Very-stable (x ≡ y)              □
+
+  Very-stable-≡-↑ :
+    Very-stable-≡ A →
+    Very-stable-≡ (↑ ℓ A)
+  Very-stable-≡-↑ s = Very-stable-≡-↑′ s
 
   -- A variant of Very-stable-W for equality.
 
@@ -810,7 +859,7 @@ module Erased-≡↔[]≡[]
   Stable-≡-List s {x = x ∷ xs} {y = y ∷ ys} =
     Erased (x ∷ xs ≡ y ∷ ys)                ↔⟨ Erased-cong $ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩
     Erased (inj₂ (x , xs) ≡ inj₂ (y , ys))  ↔⟨ Erased-cong $ inverse Bijection.≡↔inj₂≡inj₂ ⟩
-    Erased ((x , xs) ≡ (y , ys))            ↝⟨ Stable-≡-× s (Stable-≡-List s) ⟩
+    Erased ((x , xs) ≡ (y , ys))            ↝⟨ Stable-≡-×′ s (Stable-≡-List s) ⟩
     (x , xs) ≡ (y , ys)                     ↔⟨ Bijection.≡↔inj₂≡inj₂ ⟩
     inj₂ (x , xs) ≡ inj₂ (y , ys)           ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩□
     x ∷ xs ≡ y ∷ ys                         □
