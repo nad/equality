@@ -15,20 +15,19 @@ open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 open import Embedding equality-with-J as Emb using (Is-embedding)
-open import Equivalence equality-with-J as Eq using (_≃_)
+open import Equivalence equality-with-J as Eq
+  using (_≃_; Is-equivalence)
 open import Injection equality-with-J using (Injective)
 
 -- Some definitions from Erased are reexported.
 
 open import Erased equality-with-J as Erased public
-  hiding (module []-cong;
-          module Erased-≡↔[]≡[]₁;
-          module Erased-≡↔[]≡[]₂)
+  hiding (module []-cong₁; module []-cong₂; module []-cong₃)
 
 -- Some definitions from Erased.Stability are reexported.
 
 open import Erased.Stability equality-with-J as Stability public
-  hiding (module Erased-≡↔[]≡[])
+  hiding (module []-cong)
 
 private
   variable
@@ -45,13 +44,12 @@ private
           Erased (x ≡ y) → [ x ] ≡ [ y ]
 []-cong [ refl ] = refl
 
--- There is a bijection between erased equality proofs and equalities
--- between erased values.
+-- []-cong is an equivalence.
 
-Erased-≡↔[]≡[] :
+[]-cong-equivalence :
   {@0 A : Set a} {@0 x y : A} →
-  Erased (x ≡ y) ↔ [ x ] ≡ [ y ]
-Erased-≡↔[]≡[] = record
+  Is-equivalence ([]-cong {x = x} {y = y})
+[]-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (Eq.↔⇒≃ (record
   { surjection = record
     { logical-equivalence = record
       { to   = []-cong
@@ -60,27 +58,18 @@ Erased-≡↔[]≡[] = record
     ; right-inverse-of = λ { refl → refl }
     }
   ; left-inverse-of = λ { [ refl ] → refl }
-  }
-
--- A rearrangement lemma for Erased-≡↔[]≡[].
-
-to-Erased-≡↔[]≡[]-[refl] :
-  {@0 A : Set a} {@0 x : A} →
-  _↔_.to Erased-≡↔[]≡[] [ refl ] ≡ refl {x = [ x ]}
-to-Erased-≡↔[]≡[]-[refl] = refl
+  }))
 
 -- Some reexported definitions.
 
-open Erased.Erased-≡↔[]≡[]₂ Erased-≡↔[]≡[] refl public
-  hiding ([]-cong)
+open Erased.[]-cong₃ []-cong []-cong-equivalence refl public
 
 ------------------------------------------------------------------------
 -- Code related to the module Erased.Stability
 
 -- Reexported definitions.
 
-open Stability.Erased-≡↔[]≡[] Erased-≡↔[]≡[] to-Erased-≡↔[]≡[]-[refl]
-  public
+open Stability.[]-cong []-cong []-cong-equivalence refl public
 
 ------------------------------------------------------------------------
 -- Other code

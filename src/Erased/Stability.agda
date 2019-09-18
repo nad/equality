@@ -333,19 +333,22 @@ Very-stable-↑ s = _≃_.is-equivalence $
   inverse $ Stable-↑ $ inverse Eq.⟨ _ , s ⟩
 
 ------------------------------------------------------------------------
--- Some results that follow if "Erased-≡↔[]≡[]" can be defined in a
--- certain way
+-- Some results that follow if "[]-cong" is an equivalence that maps
+-- [ refl x ] to refl [ x ]
 
-module Erased-≡↔[]≡[]
-  (Erased-≡↔[]≡[] :
-    ∀ {a} {@0 A : Set a} {@0 x y : A} →
-    Erased (x ≡ y) ↔ [ x ] ≡ [ y ])
-  (to-Erased-≡↔[]≡[]-[refl] :
+module []-cong
+  ([]-cong :
+     ∀ {a} {@0 A : Set a} {@0 x y : A} →
+     Erased (x ≡ y) → [ x ] ≡ [ y ])
+  ([]-cong-equivalence :
+     ∀ {a} {@0 A : Set a} {@0 x y : A} →
+     Is-equivalence ([]-cong {x = x} {y = y}))
+  ([]-cong-[refl]′ :
     ∀ {a} {A : Set a} {x : A} →
-    _↔_.to Erased-≡↔[]≡[] [ refl x ] ≡ refl [ x ])
+    []-cong [ refl x ] ≡ refl [ x ])
   where
 
-  open Erased-≡↔[]≡[]₂ Erased-≡↔[]≡[] to-Erased-≡↔[]≡[]-[refl]
+  open []-cong₃ []-cong []-cong-equivalence []-cong-[refl]′
 
   ----------------------------------------------------------------------
   -- Some lemmas related to stability

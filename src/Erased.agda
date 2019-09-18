@@ -16,7 +16,7 @@ open import Prelude hiding ([_,_])
 
 open import Bijection eq using (_↔_)
 open import Embedding eq as Emb using (Embedding; Is-embedding)
-open import Equivalence eq as Eq using (_≃_)
+open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -182,9 +182,10 @@ Erased-cong-⇔ A⇔B = record
 ------------------------------------------------------------------------
 -- Some results that follow if "[]-cong" can be defined
 
-module []-cong
-  ([]-cong : ∀ {a} {@0 A : Set a} {@0 x y : A} →
-             Erased (x ≡ y) → [ x ] ≡ [ y ])
+module []-cong₁
+  ([]-cong :
+     ∀ {a} {@0 A : Set a} {@0 x y : A} →
+     Erased (x ≡ y) → [ x ] ≡ [ y ])
   where
 
   -- Erased commutes with W (assuming extensionality).
@@ -258,25 +259,26 @@ module []-cong
       from-isomorphism (Erased-cong-↔ (from-isomorphism A≃B))
 
 ------------------------------------------------------------------------
--- Some results that follow if "Erased-≡↔[]≡[]" can be defined
+-- Some results that follow if "[]-cong" is an equivalence
 
-module Erased-≡↔[]≡[]₁
-  (Erased-≡↔[]≡[] :
-    ∀ {a} {@0 A : Set a} {@0 x y : A} →
-    Erased (x ≡ y) ↔ [ x ] ≡ [ y ])
+module []-cong₂
+  ([]-cong :
+     ∀ {a} {@0 A : Set a} {@0 x y : A} →
+     Erased (x ≡ y) → [ x ] ≡ [ y ])
+  ([]-cong-equivalence :
+     ∀ {a} {@0 A : Set a} {@0 x y : A} →
+     Is-equivalence ([]-cong {x = x} {y = y}))
   where
 
-  -- Given an erased proof of equality of x and y one can show that
-  -- [ x ] is equal to [ y ].
+  -- There is a bijection between erased equality proofs and
+  -- equalities between erased values.
 
-  []-cong :
+  Erased-≡↔[]≡[] :
     {@0 A : Set a} {@0 x y : A} →
-    Erased (x ≡ y) → [ x ] ≡ [ y ]
-  []-cong = _↔_.to Erased-≡↔[]≡[]
+    Erased (x ≡ y) ↔ [ x ] ≡ [ y ]
+  Erased-≡↔[]≡[] = _≃_.bijection Eq.⟨ _ , []-cong-equivalence ⟩
 
-  private
-    module []-cong′ = []-cong []-cong
-  open []-cong′ public
+  open []-cong₁ []-cong public
 
   -- Erased preserves injections.
 
@@ -406,19 +408,22 @@ Erased-Split-surjective-[] :
 Erased-Split-surjective-[] = [ (λ { [ x ] → x , refl _ }) ]
 
 ------------------------------------------------------------------------
--- Some results that follow if "Erased-≡↔[]≡[]" can be defined in a
--- certain way
+-- Some results that follow if "[]-cong" is an equivalence that maps
+-- [ refl x ] to refl [ x ]
 
-module Erased-≡↔[]≡[]₂
-  (Erased-≡↔[]≡[] :
-    ∀ {a} {@0 A : Set a} {@0 x y : A} →
-    Erased (x ≡ y) ↔ [ x ] ≡ [ y ])
-  (to-Erased-≡↔[]≡[]-[refl] :
+module []-cong₃
+  ([]-cong :
+     ∀ {a} {@0 A : Set a} {@0 x y : A} →
+     Erased (x ≡ y) → [ x ] ≡ [ y ])
+  ([]-cong-equivalence :
+     ∀ {a} {@0 A : Set a} {@0 x y : A} →
+     Is-equivalence ([]-cong {x = x} {y = y}))
+  ([]-cong-[refl]′ :
     ∀ {a} {A : Set a} {x : A} →
-    _↔_.to Erased-≡↔[]≡[] [ refl x ] ≡ refl [ x ])
+    []-cong [ refl x ] ≡ refl [ x ])
   where
 
-  open Erased-≡↔[]≡[]₁ Erased-≡↔[]≡[] public
+  open []-cong₂ []-cong []-cong-equivalence public
 
   ----------------------------------------------------------------------
   -- Some definitions directly related to Erased-≡↔[]≡[]
@@ -430,7 +435,8 @@ module Erased-≡↔[]≡[]₂
     _↔_.to Erased-≡↔[]≡[] [ x≡y ] ≡ cong [_] x≡y
   to-Erased-≡↔[]≡[] {x = x} {x≡y = x≡y} = elim¹
     (λ x≡y → _↔_.to Erased-≡↔[]≡[] [ x≡y ] ≡ cong [_] x≡y)
-    (_↔_.to Erased-≡↔[]≡[] [ refl x ]  ≡⟨ to-Erased-≡↔[]≡[]-[refl] ⟩
+    (_↔_.to Erased-≡↔[]≡[] [ refl x ]  ≡⟨⟩
+     []-cong [ refl x ]                ≡⟨ []-cong-[refl]′ ⟩
      refl [ x ]                        ≡⟨ sym $ cong-refl _ ⟩∎
      cong [_] (refl x)                 ∎)
     x≡y
@@ -452,12 +458,12 @@ module Erased-≡↔[]≡[]₂
       cong [_] (cong erased x≡y)   ≡⟨ sym to-Erased-≡↔[]≡[] ⟩∎
       []-cong [ cong erased x≡y ]  ∎
 
-  -- A "computation rule" for []-cong.
+  -- A stronger variant of []-cong-[refl]′.
 
-  []-cong-refl :
+  []-cong-[refl] :
     {@0 A : Set a} {@0 x : A} →
     []-cong [ refl x ] ≡ refl [ x ]
-  []-cong-refl {A = A} {x = x} =
+  []-cong-[refl] {A = A} {x = x} =
     sym $ _↔_.to (from≡↔≡to $ Eq.↔⇒≃ Erased-≡↔[]≡[]) (
       _↔_.from Erased-≡↔[]≡[] (refl [ x ])  ≡⟨ from-Erased-≡↔[]≡[] ⟩
       [ cong erased (refl [ x ]) ]          ≡⟨ []-cong [ cong-refl _ ] ⟩∎
@@ -498,7 +504,7 @@ module Erased-≡↔[]≡[]₂
         []-cong [ cong (M.to A↣B ∘ erased) eq ]                      ≡⟨ elim₁ (λ eq → []-cong [ cong (M.to A↣B ∘ erased) eq ] ≡ _)
                                                                               (
             []-cong [ cong (M.to A↣B ∘ erased) (refl _) ]                       ≡⟨ cong []-cong $ []-cong [ cong-refl _ ] ⟩
-            []-cong [ refl _ ]                                                  ≡⟨ []-cong-refl ⟩
+            []-cong [ refl _ ]                                                  ≡⟨ []-cong-[refl] ⟩
             refl _                                                              ≡⟨ sym $ cong-refl _ ⟩∎
             cong (Erased-cong-→ (M.to A↣B)) (refl _)                            ∎)
                                                                               eq ⟩∎

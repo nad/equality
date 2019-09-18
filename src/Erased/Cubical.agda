@@ -19,21 +19,19 @@ open import Prelude
 
 open import Bijection eq using (_↔_)
 open import Equality.Path.Isomorphisms eq
-open import Equivalence eq as Eq using (_≃_)
+open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
 open import Function-universe eq
 
 -- Some definitions from Erased are reexported.
 
 open import Erased eq as Erased public
-  hiding (module []-cong;
-          module Erased-≡↔[]≡[]₁;
-          module Erased-≡↔[]≡[]₂)
+  hiding (module []-cong₁; module []-cong₂; module []-cong₃)
 
 -- Some definitions from Erased.Stability are reexported.
 
 open import Erased.Stability eq as Stability public
-  hiding (module Erased-≡↔[]≡[])
+  hiding (module []-cong)
 
 private
   variable
@@ -61,48 +59,42 @@ Erased-Path↔Path-[]-[] = record
   ; left-inverse-of = λ _ → refl _
   }
 
-private
+-- Given an erased proof of equality of x and y one can show that
+-- [ x ] is equal to [ y ].
 
-  -- The following lemma is not exported, but a lemma []-cong with the
-  -- same type is reexported below.
-
-  -- Given an erased proof of equality of x and y one can show that
-  -- [ x ] is equal to [ y ].
-
-  []-cong′ : {@0 A : Set a} {@0 x y : A} →
-             Erased (x ≡ y) → [ x ] ≡ [ y ]
-  []-cong′ {x = x} {y = y} =
-    Erased (x ≡ y)    ↝⟨ (λ { [ eq ] → [ _↔_.to ≡↔≡ eq ] }) ⟩
-    Erased (x P.≡ y)  ↔⟨ Erased-Path↔Path-[]-[] ⟩
-    [ x ] P.≡ [ y ]   ↔⟨ inverse ≡↔≡ ⟩□
-    [ x ] ≡ [ y ]     □
-
--- There is a bijection between erased equality proofs and equalities
--- between erased values.
-
-Erased-≡↔[]≡[] :
-  {@0 A : Set a} {@0 x y : A} →
-  Erased (x ≡ y) ↔ [ x ] ≡ [ y ]
-Erased-≡↔[]≡[] {x = x} {y = y} =
-  Erased (x ≡ y)    ↝⟨ Erased.[]-cong.Erased-cong-↔ []-cong′ ≡↔≡ ⟩
-  Erased (x P.≡ y)  ↝⟨ Erased-Path↔Path-[]-[] ⟩
-  [ x ] P.≡ [ y ]   ↝⟨ inverse ≡↔≡ ⟩□
+[]-cong : {@0 A : Set a} {@0 x y : A} →
+          Erased (x ≡ y) → [ x ] ≡ [ y ]
+[]-cong {x = x} {y = y} =
+  Erased (x ≡ y)    ↝⟨ (λ { [ eq ] → [ _↔_.to ≡↔≡ eq ] }) ⟩
+  Erased (x P.≡ y)  ↔⟨ Erased-Path↔Path-[]-[] ⟩
+  [ x ] P.≡ [ y ]   ↔⟨ inverse ≡↔≡ ⟩□
   [ x ] ≡ [ y ]     □
 
--- A rearrangement lemma for Erased-≡↔[]≡[].
+-- []-cong is an equivalence.
 
-to-Erased-≡↔[]≡[]-[refl] :
-  _↔_.to Erased-≡↔[]≡[] [ refl x ] ≡ refl [ x ]
-to-Erased-≡↔[]≡[]-[refl] {x = x} =
-  _↔_.from ≡↔≡ (P.cong [_] (_↔_.to ≡↔≡ (refl x)))  ≡⟨ sym cong≡cong ⟩
-  cong [_] (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ (refl x)))    ≡⟨ cong (cong [_]) $ _↔_.left-inverse-of ≡↔≡ _ ⟩
-  cong [_] (refl x)                                ≡⟨ cong-refl _ ⟩∎
-  refl [ x ]                                       ∎
+[]-cong-equivalence :
+  {@0 A : Set a} {@0 x y : A} →
+  Is-equivalence ([]-cong {x = x} {y = y})
+[]-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (
+  Erased (x ≡ y)    ↔⟨ Erased.[]-cong₁.Erased-cong-↔ []-cong ≡↔≡ ⟩
+  Erased (x P.≡ y)  ↔⟨ Erased-Path↔Path-[]-[] ⟩
+  [ x ] P.≡ [ y ]   ↔⟨ inverse ≡↔≡ ⟩□
+  [ x ] ≡ [ y ]     □)
+
+private
+
+  -- A rearrangement lemma for []-cong.
+
+  []-cong-[refl]′ : []-cong [ refl x ] ≡ refl [ x ]
+  []-cong-[refl]′ {x = x} =
+    _↔_.from ≡↔≡ (P.cong [_] (_↔_.to ≡↔≡ (refl x)))  ≡⟨ sym cong≡cong ⟩
+    cong [_] (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ (refl x)))    ≡⟨ cong (cong [_]) $ _↔_.left-inverse-of ≡↔≡ _ ⟩
+    cong [_] (refl x)                                ≡⟨ cong-refl _ ⟩∎
+    refl [ x ]                                       ∎
 
 -- Some reexported definitions.
 
-open Erased.Erased-≡↔[]≡[]₂ Erased-≡↔[]≡[] to-Erased-≡↔[]≡[]-[refl]
-  public
+open Erased.[]-cong₃ []-cong []-cong-equivalence []-cong-[refl]′ public
 
 private
 
@@ -153,5 +145,5 @@ private
 
 -- Reexported definitions.
 
-open Stability.Erased-≡↔[]≡[] Erased-≡↔[]≡[] to-Erased-≡↔[]≡[]-[refl]
+open Stability.[]-cong []-cong []-cong-equivalence []-cong-[refl]′
   public
