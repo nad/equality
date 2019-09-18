@@ -125,33 +125,33 @@ abstract
   -- representation (for instance a variant of Bin′ without leading
   -- zeroes) does not break code that uses this module.
 
-  Bin : @0 ℕ → Set
-  Bin n = ∥ (∃ λ (b : Bin′) → Erased (to-ℕ′ b ≡ n)) ∥
+  Bin-[_] : @0 ℕ → Set
+  Bin-[ n ] = ∥ (∃ λ (b : Bin′) → Erased (to-ℕ′ b ≡ n)) ∥
 
-  -- Bin n is a proposition.
+  -- Bin-[ n ] is a proposition.
 
-  Bin-propositional : Is-proposition (Bin n)
-  Bin-propositional = truncation-is-proposition
+  Bin-[]-propositional : Is-proposition Bin-[ n ]
+  Bin-[]-propositional = truncation-is-proposition
 
--- A non-indexed variant of Bin.
+-- A non-indexed variant of Bin-[_].
 
-Nat : Set
-Nat = ∃ λ (n : Erased ℕ) → Bin (erased n)
+Bin : Set
+Bin = ∃ λ (n : Erased ℕ) → Bin-[ erased n ]
 
 -- Returns the (erased) index.
 
-@0 ⌊_⌋ : Nat → ℕ
+@0 ⌊_⌋ : Bin → ℕ
 ⌊ [ n ] , _ ⌋ = n
 
--- There is a bijection between equality of two values of type Nat and
+-- There is a bijection between equality of two values of type Bin and
 -- erased equality of the corresponding unary natural number indices.
 
 ≡-for-indices↔≡ :
-  {m n : Nat} →
+  {m n : Bin} →
   Erased (⌊ m ⌋ ≡ ⌊ n ⌋) ↔ m ≡ n
 ≡-for-indices↔≡ {m = m} {n = n} =
   Erased (⌊ m ⌋ ≡ ⌊ n ⌋)  ↝⟨ Erased-≡↔[]≡[] ⟩
-  proj₁ m ≡ proj₁ n       ↝⟨ ignore-propositional-component Bin-propositional ⟩□
+  proj₁ m ≡ proj₁ n       ↝⟨ ignore-propositional-component Bin-[]-propositional ⟩□
   m ≡ n                   □
 
 ------------------------------------------------------------------------
@@ -159,41 +159,41 @@ Nat = ∃ λ (n : Erased ℕ) → Bin (erased n)
 
 abstract
 
-  -- Bin n is isomorphic to the type of natural numbers equal (with
-  -- erased equality proofs) to n.
+  -- Bin-[ n ] is isomorphic to the type of natural numbers equal
+  -- (with erased equality proofs) to n.
 
-  Bin↔Σℕ : Bin n ↔ ∃ λ m → Erased (m ≡ n)
-  Bin↔Σℕ = ↠→↔Erased-singleton
+  Bin-[]↔Σℕ : Bin-[ n ] ↔ ∃ λ m → Erased (m ≡ n)
+  Bin-[]↔Σℕ = ↠→↔Erased-singleton
     Bin′↠ℕ
     (Decidable-equality→Very-stable-≡ N._≟_)
 
--- Nat is isomorphic to the type of unary natural numbers.
+-- Bin is isomorphic to the type of unary natural numbers.
 
-Nat↔ℕ : Nat ↔ ℕ
-Nat↔ℕ =
-  Nat                                                   ↔⟨⟩
-  (∃ λ (n : Erased ℕ) → Bin (erased n))                 ↝⟨ (∃-cong λ _ → Bin↔Σℕ) ⟩
+Bin↔ℕ : Bin ↔ ℕ
+Bin↔ℕ =
+  Bin                                                   ↔⟨⟩
+  (∃ λ (n : Erased ℕ) → Bin-[ erased n ])               ↝⟨ (∃-cong λ _ → Bin-[]↔Σℕ) ⟩
   (∃ λ (n : Erased ℕ) → ∃ λ m → Erased (m ≡ erased n))  ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
   ℕ                                                     □
 
--- Converts from ℕ to Nat.
+-- Converts from ℕ to Bin.
 
-⌈_⌉ : ℕ → Nat
-⌈_⌉ = _↔_.from Nat↔ℕ
+⌈_⌉ : ℕ → Bin
+⌈_⌉ = _↔_.from Bin↔ℕ
 
 abstract
 
-  -- The index matches the result of _↔_.to Nat↔ℕ.
+  -- The index matches the result of _↔_.to Bin↔ℕ.
 
-  @0 ≡⌊⌋ : ∀ {n} → _↔_.to Nat↔ℕ n ≡ ⌊ n ⌋
+  @0 ≡⌊⌋ : ∀ {n} → _↔_.to Bin↔ℕ n ≡ ⌊ n ⌋
   ≡⌊⌋ {n = n} =
     to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡
       Bin′↠ℕ (Decidable-equality→Very-stable-≡ N._≟_) n
 
 ------------------------------------------------------------------------
--- Arithmetic with Bin
+-- Arithmetic with Bin-[_]
 
-module Bin where
+module Bin-[] where
 
   abstract
 
@@ -205,7 +205,7 @@ module Bin where
         {@0 f : ℕ → ℕ}
         (g : Bin′ → Bin′) →
         @0 (∀ b → to-ℕ′ (g b) ≡ f (to-ℕ′ b)) →
-        Bin n → Bin (f n)
+        Bin-[ n ] → Bin-[ f n ]
       unary {n = n} {f = f} g hyp = Trunc.rec
         truncation-is-proposition
         (uncurry λ b p →
@@ -223,7 +223,7 @@ module Bin where
         {@0 f : ℕ → ℕ → ℕ}
         (g : Bin′ → Bin′ → Bin′) →
         @0 (∀ b c → to-ℕ′ (g b c) ≡ f (to-ℕ′ b) (to-ℕ′ c)) →
-        Bin m → Bin n → Bin (f m n)
+        Bin-[ m ] → Bin-[ n ] → Bin-[ f m n ]
       binary {m = m} {n = n} {f = f} g hyp = Trunc.rec
         (Π-closure ext 1 λ _ →
          truncation-is-proposition)
@@ -239,14 +239,14 @@ module Bin where
 
     -- The number's successor.
 
-    suc : Bin n → Bin (N.suc n)
+    suc : Bin-[ n ] → Bin-[ N.suc n ]
     suc = unary suc′ to-ℕ′∘suc′
 
     -- Addition.
 
     infixl 6 _+_
 
-    _+_ : Bin m → Bin n → Bin (m N.+ n)
+    _+_ : Bin-[ m ] → Bin-[ n ] → Bin-[ m N.+ n ]
     _+_ = binary (add-with-carry₂ false) (to-ℕ′-add-with-carry₂ false)
       where
       add-with-carryᴮ : Bool → Bool → Bool → Bool × Bool
@@ -372,7 +372,7 @@ module Bin where
 
     -- Division by two, rounded downwards.
 
-    ⌊_/2⌋ : Bin n → Bin N.⌊ n /2⌋
+    ⌊_/2⌋ : Bin-[ n ] → Bin-[ N.⌊ n /2⌋ ]
     ⌊_/2⌋ = unary div-by-2 to-ℕ′∘div-by-2
       where
       div-by-2 : Bin′ → Bin′
@@ -391,7 +391,7 @@ module Bin where
 
     -- Division by two, rounded upwards.
 
-    ⌈_/2⌉ : Bin n → Bin N.⌈ n /2⌉
+    ⌈_/2⌉ : Bin-[ n ] → Bin-[ N.⌈ n /2⌉ ]
     ⌈_/2⌉ = unary div-by-2 to-ℕ′∘div-by-2
       where
       div-by-2 : Bin′ → Bin′
@@ -411,66 +411,66 @@ module Bin where
         N.⌈ 1 ⊕ 2 ⊛ to-ℕ′ bs /2⌉  ∎
 
 ------------------------------------------------------------------------
--- Arithmetic with Nat
+-- Arithmetic with Bin
 
-module Nat where
+module Bin where
 
   -- The number's successor.
 
-  suc : Nat → Nat
-  suc = Σ-map _ Bin.suc
+  suc : Bin → Bin
+  suc = Σ-map _ Bin-[].suc
 
   -- Addition.
 
   infixl 6 _+_
 
-  _+_ : Nat → Nat → Nat
-  _+_ = Σ-zip _ Bin._+_
+  _+_ : Bin → Bin → Bin
+  _+_ = Σ-zip _ Bin-[]._+_
 
   -- Division by two, rounded downwards.
 
-  ⌊_/2⌋ : Nat → Nat
-  ⌊_/2⌋ = Σ-map _ Bin.⌊_/2⌋
+  ⌊_/2⌋ : Bin → Bin
+  ⌊_/2⌋ = Σ-map _ Bin-[].⌊_/2⌋
 
   -- Division by two, rounded upwards.
 
-  ⌈_/2⌉ : Nat → Nat
-  ⌈_/2⌉ = Σ-map _ Bin.⌈_/2⌉
+  ⌈_/2⌉ : Bin → Bin
+  ⌈_/2⌉ = Σ-map _ Bin-[].⌈_/2⌉
 
 ------------------------------------------------------------------------
 -- Some examples
 
 private
 
-  module Bin-examples where
+  module Bin-[]-examples where
 
-    open Bin
+    open Bin-[]
 
     -- Converts unary natural numbers to binary natural numbers.
 
-    from-ℕ : ∀ n → Bin n
-    from-ℕ = proj₂ ∘ _↔_.from Nat↔ℕ
+    from-ℕ : ∀ n → Bin-[ n ]
+    from-ℕ = proj₂ ∘ _↔_.from Bin↔ℕ
 
     -- Bin n is a proposition, so it is easy to prove that two values
     -- of this type are equal.
 
     example₁ : from-ℕ 4 + ⌊ from-ℕ 12 /2⌋ ≡ from-ℕ 10
-    example₁ = Bin-propositional _ _
+    example₁ = Bin-[]-propositional _ _
 
     -- However, stating that two values of type Bin m and Bin n are
     -- equal, for equal natural numbers m and n, can be awkward.
 
     @0 example₂ :
-      (b : Bin m) (c : Bin n) →
-      subst Bin (N.+-comm m) (b + c) ≡ c + b
-    example₂ _ _ = Bin-propositional _ _
+      (b : Bin-[ m ]) (c : Bin-[ n ]) →
+      subst Bin-[_] (N.+-comm m) (b + c) ≡ c + b
+    example₂ _ _ = Bin-[]-propositional _ _
 
-  module Nat-examples where
+  module Bin-examples where
 
-    open Nat
+    open Bin
 
-    -- If Nat is used instead of Bin, then it can be easier to state
-    -- that two values are equal.
+    -- If Bin is used instead of Bin-[_], then it can be easier to
+    -- state that two values are equal.
 
     example₁ : ⌈ 4 ⌉ + ⌊ ⌈ 12 ⌉ /2⌋ ≡ ⌈ 10 ⌉
     example₁ = _↔_.to ≡-for-indices↔≡ [ refl _ ]
