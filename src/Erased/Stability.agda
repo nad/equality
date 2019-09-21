@@ -562,21 +562,44 @@ module []-cong
 
     -- And so on…
 
-  -- If A is very stable, then H-level′ n A is very stable (assuming
-  -- extensionality).
+  -- If equality is stable for A, then Is-proposition A is stable.
 
-  Very-stable-H-level′ :
+  Stable-Is-proposition :
     {A : Set a} →
-    Extensionality a a →
-    Very-stable A → Very-stable (H-level′ n A)
-  Very-stable-H-level′ {n = zero} ext s =
-    Very-stable-Σ s λ _ →
-    Very-stable-Π ext λ _ →
-    Very-stable→Very-stable-≡ s
-  Very-stable-H-level′ {n = suc n} ext s =
-    Very-stable-Π ext λ _ →
-    Very-stable-Π ext λ _ →
-    Very-stable-H-level′ ext (Very-stable→Very-stable-≡ s)
+    Extensionality? k a a →
+    Stable-≡-[ k ] A → Stable-[ k ] (Is-proposition A)
+  Stable-Is-proposition ext s =
+    Stable-Π ext λ _ →
+    Stable-Π ext λ _ →
+    s
+
+  mutual
+
+    -- If A is very stable, then H-level′ n A is very stable (assuming
+    -- extensionality).
+
+    Very-stable-H-level′ :
+      {A : Set a} →
+      Extensionality a a →
+      Very-stable A → Very-stable (H-level′ n A)
+    Very-stable-H-level′ {n = zero} ext s =
+      Very-stable-Σ s λ _ →
+      Very-stable-Π ext λ _ →
+      Very-stable→Very-stable-≡ s
+    Very-stable-H-level′ {n = suc n} ext s =
+      Very-stable-H-level′-suc ext (Very-stable→Very-stable-≡ s)
+
+    -- If equality is very stable for A, then H-level′ (suc n) A is
+    -- very stable (assuming extensionality).
+
+    Very-stable-H-level′-suc :
+      {A : Set a} →
+      Extensionality a a →
+      Very-stable-≡ A → Very-stable (H-level′ (suc n) A)
+    Very-stable-H-level′-suc ext s =
+      Very-stable-Π ext λ _ →
+      Very-stable-Π ext λ _ →
+      Very-stable-H-level′ ext s
 
   -- If A is very stable, then H-level n A is very stable (assuming
   -- extensionality).
@@ -589,6 +612,18 @@ module []-cong
     Very-stable A               ↝⟨ Very-stable-H-level′ ext ⟩
     Very-stable (H-level′ n A)  ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
     Very-stable (H-level n A)   □
+
+  -- If equality is very stable for A, then H-level (suc n) A is
+  -- very stable (assuming extensionality).
+
+  Very-stable-H-level-suc :
+    {A : Set a} →
+    Extensionality a a →
+    ∀ n → Very-stable-≡ A → Very-stable (H-level (suc n) A)
+  Very-stable-H-level-suc {A = A} ext n =
+    Very-stable-≡ A                   ↝⟨ Very-stable-H-level′-suc ext ⟩
+    Very-stable (H-level′ (suc n) A)  ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
+    Very-stable (H-level (suc n) A)   □
 
   -- Variants of Stable-Π for equality.
 

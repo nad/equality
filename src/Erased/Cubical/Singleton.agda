@@ -72,8 +72,7 @@ erased-singleton-with-erased-center-propositional :
 erased-singleton-with-erased-center-propositional {x = x} s =
                                                  $⟨ [ erased-singleton-contractible s ] ⟩
   Erased (Contractible (Erased-singleton x))     ↝⟨ Erased-cong (mono₁ 0) ⟩
-  Erased (Is-proposition (Erased-singleton x))   ↝⟨ (λ hyp p q → (_$ q) ∘ (_$ p) ⟨$⟩ hyp) ⟩
-  ((p q : Erased-singleton x) → Erased (p ≡ q))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → Very-stable→Stable $
+  Erased (Is-proposition (Erased-singleton x))   ↝⟨ (Stable-Is-proposition _ $ Very-stable→Stable $
                                                      Very-stable-≡-Σ s λ _ → Very-stable→Very-stable-≡ Very-stable-Erased) ⟩□
   Is-proposition (Erased-singleton x)            □
 
