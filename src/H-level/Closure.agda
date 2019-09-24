@@ -605,19 +605,73 @@ abstract
   Contractible-propositional ext =
     [inhabited⇒contractible]⇒propositional (cojoin ext)
 
+  -- H-level′ is closed under λ P → For-iterated-equality n P A.
+
+  H-level′-For-iterated-equality :
+    ∀ {p A} {P : Set p → Set p} →
+    Extensionality p p →
+    ∀ m n →
+    (∀ {A} → H-level′ m (P A)) →
+    H-level′ m (For-iterated-equality n P A)
+  H-level′-For-iterated-equality ext m zero    hyp = hyp
+  H-level′-For-iterated-equality ext m (suc n) hyp =
+    Π-closure′ ext m λ _ →
+    Π-closure′ ext m λ _ →
+    H-level′-For-iterated-equality ext m n hyp
+
+  -- A variant of the previous result.
+
+  H-level′-For-iterated-equality′ :
+    ∀ {p A} {P : Set p → Set p} →
+    Extensionality p p →
+    ∀ m n {o} →
+    H-level′ (n + o) A →
+    (∀ {A} → H-level′ o A → H-level′ m (P A)) →
+    H-level′ m (For-iterated-equality n P A)
+  H-level′-For-iterated-equality′ ext m zero    hyp₁ hyp₂ = hyp₂ hyp₁
+  H-level′-For-iterated-equality′ ext m (suc n) hyp₁ hyp₂ =
+    Π-closure′ ext m λ _ →
+    Π-closure′ ext m λ _ →
+    H-level′-For-iterated-equality′ ext m n (hyp₁ _ _) hyp₂
+
+  -- H-level is closed under λ P → For-iterated-equality n P A.
+
+  H-level-For-iterated-equality :
+    ∀ {p A} {P : Set p → Set p} →
+    Extensionality p p →
+    ∀ m n →
+    (∀ {A} → H-level m (P A)) →
+    H-level m (For-iterated-equality n P A)
+  H-level-For-iterated-equality ext m n hyp =
+    _⇔_.from H-level⇔H-level′ $
+    H-level′-For-iterated-equality ext m n $
+    _⇔_.to H-level⇔H-level′ hyp
+
+  -- A variant of the previous result.
+
+  H-level-For-iterated-equality′ :
+    ∀ {p A} {P : Set p → Set p} →
+    Extensionality p p →
+    ∀ m n {o} →
+    H-level (n + o) A →
+    (∀ {A} → H-level o A → H-level m (P A)) →
+    H-level m (For-iterated-equality n P A)
+  H-level-For-iterated-equality′ ext m n hyp₁ hyp₂ =
+    _⇔_.from (H-level⇔H-level′ {n = m}) $
+    H-level′-For-iterated-equality′ ext m n
+      (_⇔_.to H-level⇔H-level′ hyp₁)
+      (_⇔_.to H-level⇔H-level′ ∘ hyp₂ ∘ _⇔_.from H-level⇔H-level′)
+
   -- H-level′ is pointwise propositional (assuming extensionality).
 
   H-level′-propositional :
     ∀ {a} → Extensionality a a →
     ∀ {A : Set a} n → Is-proposition (H-level′ n A)
-  H-level′-propositional ext zero =
+  H-level′-propositional ext n =
+    _⇔_.from (H-level⇔H-level′ {n = 1}) $
+    H-level′-For-iterated-equality ext 1 n $
+    _⇔_.to (H-level⇔H-level′ {n = 1}) $
     Contractible-propositional ext
-  H-level′-propositional {A} ext (suc n) =
-    _⇔_.from H-level⇔H-level′ $
-    Π-closure′ ext 1 λ x →
-    Π-closure′ ext 1 λ y →
-    _⇔_.to H-level⇔H-level′ $
-    H-level′-propositional ext {A = x ≡ y} n
 
   -- The property Is-proposition A is a proposition (assuming
   -- extensionality).

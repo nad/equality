@@ -2969,11 +2969,11 @@ H-level↔H-level′ :
   ∀ {k a} {A : Set a} {n} →
   Extensionality? k a a →
   H-level n A ↝[ k ] H-level′ n A
-H-level↔H-level′ =
+H-level↔H-level′ {n = n} =
   generalise-ext?-prop
     H-level⇔H-level′
     (λ ext → H-level-propositional  ext _)
-    (λ ext → H-level′-propositional ext _)
+    (λ ext → H-level′-propositional ext n)
 
 -- There is an isomorphism between (x y : A) → H-level n (x ≡ y) and
 -- H-level (suc n) A (assuming extensionality).

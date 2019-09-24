@@ -581,13 +581,13 @@ module []-cong
     Very-stable-H-level′ :
       {A : Set a} →
       Extensionality a a →
-      Very-stable A → Very-stable (H-level′ n A)
-    Very-stable-H-level′ {n = zero} ext s =
+      ∀ n → Very-stable A → Very-stable (H-level′ n A)
+    Very-stable-H-level′ ext zero s =
       Very-stable-Σ s λ _ →
       Very-stable-Π ext λ _ →
       Very-stable→Very-stable-≡ s
-    Very-stable-H-level′ {n = suc n} ext s =
-      Very-stable-H-level′-suc ext (Very-stable→Very-stable-≡ s)
+    Very-stable-H-level′ ext (suc n) s =
+      Very-stable-H-level′-suc ext n (Very-stable→Very-stable-≡ s)
 
     -- If equality is very stable for A, then H-level′ (suc n) A is
     -- very stable (assuming extensionality).
@@ -595,11 +595,11 @@ module []-cong
     Very-stable-H-level′-suc :
       {A : Set a} →
       Extensionality a a →
-      Very-stable-≡ A → Very-stable (H-level′ (suc n) A)
-    Very-stable-H-level′-suc ext s =
+      ∀ n → Very-stable-≡ A → Very-stable (H-level′ (suc n) A)
+    Very-stable-H-level′-suc ext n s =
       Very-stable-Π ext λ _ →
       Very-stable-Π ext λ _ →
-      Very-stable-H-level′ ext s
+      Very-stable-H-level′ ext n s
 
   -- If A is very stable, then H-level n A is very stable (assuming
   -- extensionality).
@@ -609,7 +609,7 @@ module []-cong
     Extensionality a a →
     Very-stable A → Very-stable (H-level n A)
   Very-stable-H-level {n = n} {A = A} ext =
-    Very-stable A               ↝⟨ Very-stable-H-level′ ext ⟩
+    Very-stable A               ↝⟨ Very-stable-H-level′ ext n ⟩
     Very-stable (H-level′ n A)  ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
     Very-stable (H-level n A)   □
 
@@ -621,7 +621,7 @@ module []-cong
     Extensionality a a →
     ∀ n → Very-stable-≡ A → Very-stable (H-level (suc n) A)
   Very-stable-H-level-suc {A = A} ext n =
-    Very-stable-≡ A                   ↝⟨ Very-stable-H-level′-suc ext ⟩
+    Very-stable-≡ A                   ↝⟨ Very-stable-H-level′-suc ext n ⟩
     Very-stable (H-level′ (suc n) A)  ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
     Very-stable (H-level (suc n) A)   □
 

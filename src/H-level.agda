@@ -41,15 +41,22 @@ private
   H-level-2≡Is-set : H-level 2 A ≡ Is-set A
   H-level-2≡Is-set = refl _
 
--- An alternative definition.
+-- For-iterated-equality n P A means that P holds for (equalities
+-- over)^n A.
+
+For-iterated-equality : ℕ → (Set ℓ → Set ℓ) → (Set ℓ → Set ℓ)
+For-iterated-equality zero    P A = P A
+For-iterated-equality (suc n) P A =
+  (x y : A) → For-iterated-equality n P (x ≡ y)
+
+-- An alternative definition of h-levels.
 --
 -- In some cases this definition, with only two cases, is easier to
 -- use. In other cases the definition above, which is less complicated
 -- for positive h-levels, is easier to use.
 
 H-level′ : ℕ → Set ℓ → Set ℓ
-H-level′ zero    A = Contractible A
-H-level′ (suc n) A = (x y : A) → H-level′ n (x ≡ y)
+H-level′ = flip For-iterated-equality Contractible
 
 -- Propositions are propositional types.
 

@@ -303,12 +303,12 @@ module []-cong₂
 
     Erased-H-level′ :
       {@0 A : Set a} →
-      Erased (H-level′ n A) → H-level′ n (Erased A)
-    Erased-H-level′ {n = zero} [ h ] =
+      ∀ n → Erased (H-level′ n A) → H-level′ n (Erased A)
+    Erased-H-level′ zero [ h ] =
         [ proj₁ h ]
       , λ { [ x ] → []-cong [ proj₂ h x ] }
-    Erased-H-level′ {n = suc n} [ h ] [ x ] [ y ] =
-                                   $⟨ Erased-H-level′ [ h x y ] ⟩
+    Erased-H-level′ (suc n) [ h ] [ x ] [ y ] =
+                                   $⟨ Erased-H-level′ n [ h x y ] ⟩
       H-level′ n (Erased (x ≡ y))  ↝⟨ H-level.respects-surjection′ (_↔_.surjection Erased-≡↔[]≡[]) n ⟩□
       H-level′ n ([ x ] ≡ [ y ])   □
 
@@ -319,7 +319,7 @@ module []-cong₂
       Erased (H-level n A) → H-level n (Erased A)
     Erased-H-level {n = n} {A = A} =
       Erased (H-level n A)   ↝⟨ _⇔_.to $ Erased-cong-⇔ H-level⇔H-level′ ⟩
-      Erased (H-level′ n A)  ↝⟨ Erased-H-level′ ⟩
+      Erased (H-level′ n A)  ↝⟨ Erased-H-level′ n ⟩
       H-level′ n (Erased A)  ↝⟨ _⇔_.from H-level⇔H-level′ ⟩□
       H-level n (Erased A)   □
 
@@ -335,11 +335,11 @@ module []-cong₂
   Erased-H-level′↔H-level′ :
     {@0 A : Set a} →
     Extensionality? k a a →
-    Erased (H-level′ n A) ↝[ k ] H-level′ n (Erased A)
-  Erased-H-level′↔H-level′ {n = n} {A = A} =
+    ∀ n → Erased (H-level′ n A) ↝[ k ] H-level′ n (Erased A)
+  Erased-H-level′↔H-level′ {A = A} ext n =
     generalise-ext?-prop
       (record
-         { to   = Erased-H-level′
+         { to   = Erased-H-level′ n
          ; from = λ h →
             [                        $⟨ h ⟩
               H-level′ n (Erased A)  ↝⟨ _⇔_.from H-level⇔H-level′ ⟩
@@ -350,6 +350,7 @@ module []-cong₂
          })
       (λ ext → H-level-Erased 1 (H-level′-propositional ext n))
       (λ ext → H-level′-propositional ext n)
+      ext
 
   -- Erased commutes with H-level n (assuming extensionality).
 
@@ -362,7 +363,7 @@ module []-cong₂
                                 (Erased-cong-⇔ (H-level↔H-level′ _))
                                 (λ ext → Erased-cong-↔ (H-level↔H-level′ ext))
                                 ext ⟩
-    Erased (H-level′ n A)  ↝⟨ Erased-H-level′↔H-level′ ext ⟩
+    Erased (H-level′ n A)  ↝⟨ Erased-H-level′↔H-level′ ext n ⟩
     H-level′ n (Erased A)  ↝⟨ inverse-ext? H-level↔H-level′ ext ⟩□
     H-level n (Erased A)   □
 

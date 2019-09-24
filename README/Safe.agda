@@ -237,6 +237,11 @@ import Vec.Function
 
 import Const
 
+-- Some results related to the For-iterated-equality predicate
+-- transformer.
+
+import For-iterated-equality
+
 -- Support for reflection.
 
 import TC-monad
