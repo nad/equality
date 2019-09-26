@@ -375,8 +375,8 @@ List↔Maybe[×List] = record
   ⊤                  □
 
 []≡∷↔⊥ :
-  ∀ {a} {A : Set a} {x : A} {xs} →
-  [] ≡ x ∷ xs ↔ ⊥₀
+  ∀ {a ℓ} {A : Set a} {x : A} {xs} →
+  [] ≡ x ∷ xs ↔ ⊥ {ℓ = ℓ}
 []≡∷↔⊥ {x = x} {xs} =
   [] ≡ x ∷ xs              ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
   nothing ≡ just (x , xs)  ↝⟨ Bijection.≡↔⊎ ⟩
@@ -384,8 +384,8 @@ List↔Maybe[×List] = record
   ⊥                        □
 
 ∷≡[]↔⊥ :
-  ∀ {a} {A : Set a} {x : A} {xs} →
-  x ∷ xs ≡ [] ↔ ⊥₀
+  ∀ {a ℓ} {A : Set a} {x : A} {xs} →
+  x ∷ xs ≡ [] ↔ ⊥ {ℓ = ℓ}
 ∷≡[]↔⊥ {x = x} {xs} =
   x ∷ xs ≡ []  ↝⟨ ≡-comm ⟩
   [] ≡ x ∷ xs  ↝⟨ []≡∷↔⊥ ⟩□
@@ -423,13 +423,13 @@ H-level-List n _ {[]} {[]} =
 
 H-level-List n h {[]} {y ∷ ys} =
                                  $⟨ ⊥-propositional ⟩
-  Is-proposition ⊥               ↝⟨ H-level-cong _ 1 (inverse []≡∷↔⊥) ⟩
+  Is-proposition ⊥₀              ↝⟨ H-level-cong _ 1 (inverse []≡∷↔⊥) ⟩
   Is-proposition ([] ≡ y ∷ ys)   ↝⟨ H-level.mono (suc≤suc (zero≤ n)) ⟩□
   H-level (1 + n) ([] ≡ y ∷ ys)  □
 
 H-level-List n h {x ∷ xs} {[]} =
                                  $⟨ ⊥-propositional ⟩
-  Is-proposition ⊥               ↝⟨ H-level-cong _ 1 (inverse ∷≡[]↔⊥) ⟩
+  Is-proposition ⊥₀              ↝⟨ H-level-cong _ 1 (inverse ∷≡[]↔⊥) ⟩
   Is-proposition (x ∷ xs ≡ [])   ↝⟨ H-level.mono (suc≤suc (zero≤ n)) ⟩□
   H-level (1 + n) (x ∷ xs ≡ [])  □
 
