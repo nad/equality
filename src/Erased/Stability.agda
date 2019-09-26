@@ -11,7 +11,6 @@ module Erased.Stability
 
 open Derived-definitions-and-properties eq
 
-open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection eq as Bijection using (_↔_)
@@ -174,15 +173,6 @@ Erased-Very-stable {A = A} =
       A ≃ Erased A          □)
   ]
 
--- If A is stable, then A is "logical equivalence stable".
-
-Stable→Stable⇔ :
-  {@0 A : Set a} → Stable A → Stable-[ logical-equivalence ] A
-Stable→Stable⇔ stable = record
-  { from = [_]
-  ; to   = stable
-  }
-
 -- It is not the case that every very stable type is a proposition.
 
 ¬-Very-stable→Is-proposition :
@@ -222,20 +212,6 @@ Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 
 ¬¬-Stable : {@0 A : Set a} → ¬¬ Stable A
 ¬¬-Stable = DN.map′ Dec→Stable excluded-middle
-
-------------------------------------------------------------------------
--- A preservation lemma
-
--- Stable-[ logical-equivalence ] preserves logical equivalences.
-
-Stable-⇔-cong :
-  A ⇔ B →
-  Stable-[ logical-equivalence ] A ⇔ Stable-[ logical-equivalence ] B
-Stable-⇔-cong {A = A} {B = B} A⇔B =
-  Stable-[ logical-equivalence ] A  ↔⟨⟩
-  Erased A ⇔ A                      ↝⟨ ⇔-cong-⇔ (Erased-cong-⇔ A⇔B) A⇔B ⟩
-  Erased B ⇔ B                      ↔⟨⟩
-  Stable-[ logical-equivalence ] B  □
 
 ------------------------------------------------------------------------
 -- Closure properties
@@ -361,13 +337,10 @@ module []-cong
 
   Stable-proposition→Very-stable :
     Stable A → Is-proposition A → Very-stable A
-  Stable-proposition→Very-stable {A = A} s prop =
-    _≃_.is-equivalence (inverse lemma)
-    where
-    lemma =                             $⟨ s ⟩
-      Stable A                          ↝⟨ Stable→Stable⇔ ⟩
-      Stable-[ logical-equivalence ] A  ↝⟨ _↠_.from (Eq.≃↠⇔ (H-level-Erased 1 prop) prop) ⟩□
-      Stable-[ equivalence ] A          □
+  Stable-proposition→Very-stable s prop =
+    _≃_.is-equivalence $
+    _↠_.from (Eq.≃↠⇔ prop (H-level-Erased 1 prop))
+      (record { to = [_]; from = s })
 
   -- Contractible types are very stable.
 
@@ -442,8 +415,6 @@ module []-cong
 
   ----------------------------------------------------------------------
   -- Preservation lemmas
-
-  -- See also Stable-⇔-cong above.
 
   -- A kind of map function for Stable-[_].
 
