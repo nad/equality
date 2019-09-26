@@ -367,6 +367,12 @@ generalise-ext?-prop f⇔ A-prop B-prop =
     (λ ext → _≃_.bijection $
                _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
 
+generalise-ext?-sym :
+  ∀ {a b c d} {A : Set a} {B : Set b} {k} →
+  (∀ {k} → Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
+  Extensionality? k c d → A ↝[ k ] B
+generalise-ext?-sym hyp = generalise-ext? (hyp _) hyp
+
 -- General results of the kind produced by generalise-ext? are
 -- symmetric.
 
@@ -374,7 +380,7 @@ inverse-ext? :
   ∀ {a b c d} {A : Set a} {B : Set b} →
   (∀ {k} → Extensionality? k c d → A ↝[ k ] B) →
   (∀ {k} → Extensionality? k c d → B ↝[ k ] A)
-inverse-ext? hyp = generalise-ext? (inverse $ hyp _) (inverse ⊚ hyp)
+inverse-ext? hyp = generalise-ext?-sym (inverse ⊚ hyp)
 
 ------------------------------------------------------------------------
 -- Lots of properties
