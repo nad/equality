@@ -11,6 +11,7 @@
 module Erased.With-K where
 
 open import Equality.Propositional
+open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
@@ -103,12 +104,6 @@ Is-proposition-Erased→Is-proposition prop x y =
 -- Equality is always very stable.
 
 Very-stable-≡-trivial : Very-stable-≡ A
-Very-stable-≡-trivial = _≃_.is-equivalence (Eq.↔⇒≃ (record
-  { surjection = record
-    { logical-equivalence = record
-      { from = λ { [ refl ] → refl }
-      }
-    ; right-inverse-of = λ { [ refl ] → refl }
-    }
-  ; left-inverse-of = λ { refl → refl }
-  }))
+Very-stable-≡-trivial =
+  _⇔_.from (Very-stable-≡↔Is-embedding-[] _)
+           Is-embedding-[]

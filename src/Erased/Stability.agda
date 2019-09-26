@@ -21,9 +21,10 @@ open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Erased eq
-open import Function-universe eq hiding (id; _∘_)
+open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
+open import Injection eq using (Injective)
 import List eq as L
 import Nat eq as Nat
 open import Surjection eq using (_↠_; Split-surjective)
@@ -393,6 +394,52 @@ module []-cong
       (Dec→Stable (dec _ _))
       (decidable⇒set dec)
 
+  -- Equality is stable for A if and only if [_] is injective for A.
+
+  Stable-≡↔Injective-[] :
+    {A : Set a} →
+    Extensionality? k a a →
+    Stable-≡ A ↝[ k ] Injective ([_] {A = A})
+  Stable-≡↔Injective-[] ext =
+    (∀ {x y} → Erased (x ≡ y) → x ≡ y)  ↝⟨ (implicit-∀-cong ext $ implicit-∀-cong ext $
+                                            Π-cong ext Erased-≡↔[]≡[] λ _ → F.id) ⟩□
+    (∀ {x y} → [ x ] ≡ [ y ] → x ≡ y)   □
+
+  -- Equality is very stable for A if and only if [_] is an embedding
+  -- for A.
+
+  Very-stable-≡↔Is-embedding-[] :
+    {A : Set a} →
+    Extensionality? k a a →
+    Very-stable-≡ A ↝[ k ] Is-embedding ([_] {A = A})
+  Very-stable-≡↔Is-embedding-[] ext =
+    (∀ {x y} → Is-equivalence ([_] {A = x ≡ y}))          ↔⟨ Bijection.implicit-Π↔Π ⟩
+    (∀ x {y} → Is-equivalence ([_] {A = x ≡ y}))          ↝⟨ (∀-cong ext λ _ → from-isomorphism Bijection.implicit-Π↔Π) ⟩
+    (∀ x y → Is-equivalence ([_] {A = x ≡ y}))            ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
+                                                              generalise-ext?-prop
+                                                                (record { to = to; from = from })
+                                                                (λ ext → Eq.propositional ext _)
+                                                                (λ ext → Eq.propositional ext _)
+                                                                ext) ⟩
+    (∀ x y → Is-equivalence ([]-cong ∘ [_] {A = x ≡ y}))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence-cong ext λ _ →
+                                                              to-Erased-≡↔[]≡[]) ⟩□
+    (∀ x y → Is-equivalence (cong {x = x} {y = y} [_]))   □
+    where
+    to :
+      Is-equivalence ([_] {A = x ≡ y}) →
+      Is-equivalence ([]-cong ∘ [_] {A = x ≡ y})
+    to hyp = Eq.Two-out-of-three.f-g
+      (Eq.two-out-of-three _ _)
+      hyp
+      []-cong-equivalence
+
+    from :
+      Is-equivalence ([]-cong ∘ [_] {A = x ≡ y}) →
+      Is-equivalence ([_] {A = x ≡ y})
+    from = Eq.Two-out-of-three.g-g∘f
+      (Eq.two-out-of-three _ _)
+      []-cong-equivalence
+
   ----------------------------------------------------------------------
   -- Preservation lemmas
 
@@ -512,35 +559,13 @@ module []-cong
   ----------------------------------------------------------------------
   -- Closure properties related to equality
 
-  -- A closure property for _≡_.
-
-  Stable→Stable-≡ :
-    (s : Stable A) →
-    (∀ x → s [ x ] ≡ x) →
-    Stable-≡ A
-  Stable→Stable-≡ s hyp {x = x} {y = y} =
-    Erased (x ≡ y)     ↔⟨ Erased-≡↔[]≡[] ⟩
-    [ x ] ≡ [ y ]      ↝⟨ cong s ⟩
-    s [ x ] ≡ s [ y ]  ↝⟨ (λ eq → trans (sym (hyp x)) (trans eq (hyp y))) ⟩□
-    x ≡ y              □
-
-  -- If A is very stable, then the types of equalities between values
-  -- of type A are very stable.
+  -- If A is very stable, then equality is very stable for A.
 
   Very-stable→Very-stable-≡ : Very-stable A → Very-stable-≡ A
-  Very-stable→Very-stable-≡ s {x = x} {y = y} =
-    _≃_.is-equivalence $
-    Eq.with-other-function
-      (x ≡ y           ↝⟨ inverse $ Eq.≃-≡ Eq.⟨ _ , s ⟩ ⟩
-       [ x ] ≡ [ y ]   ↔⟨ inverse Erased-≡↔[]≡[] ⟩□
-       Erased (x ≡ y)  □)
-      [_]
-      (λ eq →
-        _↔_.from Erased-≡↔[]≡[] (cong [_] eq)  ≡⟨ from-Erased-≡↔[]≡[] ⟩
-        [ cong erased (cong [_] eq) ]          ≡⟨ []-cong [ cong-∘ _ _ _ ] ⟩
-        [ cong (erased ∘ [_]) eq ]             ≡⟨⟩
-        [ cong id eq ]                         ≡⟨ []-cong [ sym $ cong-id _ ] ⟩∎
-        [ eq ]                                 ∎)
+  Very-stable→Very-stable-≡ {A = A} =
+    Very-stable A               ↝⟨ Very-stable→Is-embedding-[] ⟩
+    Is-embedding ([_] {A = A})  ↝⟨ inverse-ext? Very-stable-≡↔Is-embedding-[] _ ⟩□
+    Very-stable-≡ A             □
 
   private
 
