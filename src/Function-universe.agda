@@ -2931,11 +2931,11 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
 
 -- All instances of A → ⊥ are isomorphic to ¬ A.
 
-¬↔→⊥ : ∀ {a ℓ} {A : Set a} →
-       Extensionality a ℓ →
-       ¬ A ↔ (A → ⊥ {ℓ = ℓ})
+¬↔→⊥ : ∀ {k a ℓ} {A : Set a} →
+       Extensionality? k a ℓ →
+       ¬ A ↝[ k ] (A → ⊥ {ℓ = ℓ})
 ¬↔→⊥ {A = A} ext =
-  (A → ⊥₀)  ↝⟨ →-cong ext id ⊥↔⊥ ⟩□
+  (A → ⊥₀)  ↝⟨ (∀-cong ext λ _ → from-isomorphism ⊥↔⊥) ⟩□
   (A → ⊥)   □
 
 -- A type cannot be logically equivalent to its own negation.
