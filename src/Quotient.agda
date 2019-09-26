@@ -548,7 +548,7 @@ constant-function↔∥inhabited∥⇒inhabited {B = B} {A = A} B-set =
                                              Π-closure ext 1 λ _ →
                                              B-set) _ _)
                                        } ⟩
-  (A / (λ _ _ → ⊤) → B)           ↝⟨ →-cong ext (/trivial↔∥∥ _) F.id ⟩□
+  (A / (λ _ _ → ⊤) → B)           ↝⟨ →-cong₁ ext (/trivial↔∥∥ _) ⟩□
   (∥ A ∥ → B)                     □
 
 private

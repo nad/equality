@@ -1589,6 +1589,17 @@ private
                   (from y , right-inverse-of y) ≡ p
     irrelevance = _≃_.irrelevance A→B≃C→D
 
+-- A variant of →-cong.
+
+→-cong₁ :
+  ∀ {k₁ k₂ a b c} →
+  Extensionality? k₂ (a ⊔ b) c →
+  {A : Set a} {B : Set b} {C : Set c} →
+  A ↔[ k₁ ] B → (A → C) ↝[ k₂ ] (B → C)
+→-cong₁ ext hyp = generalise-ext?-sym
+  (λ ext → →-cong ext (from-bijection (from-isomorphism hyp)) id)
+  ext
+
 private
 
   -- Lemmas used in the implementation of ∀-cong.
@@ -2777,7 +2788,7 @@ from≡↔≡to A≃B {x} {y} =
               {A : Set a} {B : Set b} {C : Set c}
               (A≃B : A ≃ B) {f : A → C} {g : B → C} →
               (f ∘ _≃_.from A≃B ≡ g) ↔ (f ≡ g ∘ _≃_.to A≃B)
-∘from≡↔≡∘to ext A≃B = from≡↔≡to (→-cong ext (inverse A≃B) Eq.id)
+∘from≡↔≡∘to ext A≃B = from≡↔≡to (→-cong₁ ext (inverse A≃B))
 
 to∘≡↔≡from∘ : ∀ {a b c} →
               Extensionality a (b ⊔ c) →
@@ -3010,7 +3021,7 @@ H-level↔H-level′ {n = n} =
   (A ≃ B)
 →≃→↠≃ _ {A = A} {B} ext hA hB = record
   { logical-equivalence = record
-    { from = λ A≃B → (λ _ _ → →-cong ext A≃B id)
+    { from = λ A≃B → (λ _ _ → →-cong₁ ext A≃B)
                    , (λ _ _ g → refl (g ∘ _≃_.from A≃B))
                    , (λ _ _ g → refl (g ∘ _≃_.to   A≃B))
     ; to   = λ { (A→≃B→ , ∘to≡ , ∘from≡) → Eq.↔⇒≃ (record

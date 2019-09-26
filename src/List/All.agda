@@ -71,70 +71,61 @@ All-[] {a = a} {k = k} {A} P ext =
 module _ {k} {A : Set a} {P : A → Set p}
          (ext : Extensionality? k a (a ⊔ p)) where
 
+  private
+    ext′ : Extensionality? k a p
+    ext′ = lower-extensionality? k a a ext
+
   All-∷ : All P (x ∷ xs) ↝[ k ] P x × All P xs
   All-∷ {x = x} {xs = xs} =
-    flip generalise-ext?-sym ext λ {k} ext →
-      let ext′ = lower-extensionality? ⌊ k ⌋-sym a a ext in
-
-      All P (x ∷ xs)                              ↔⟨⟩
-      (∀ y → y ∈ x ∷ xs → P y)                    ↔⟨⟩
-      (∀ y → y ≡ x ⊎ y ∈ xs → P y)                ↝⟨ ∀-cong ext (λ _ → Π⊎↔Π×Π ext′) ⟩
-      (∀ y → (y ≡ x → P y) × (y ∈ xs → P y))      ↔⟨ ΠΣ-comm ⟩
-      (∀ y → y ≡ x → P y) × (∀ y → y ∈ xs → P y)  ↝⟨ (×-cong₁ λ _ → ∀-cong ext λ _ → flip (→-cong ext′) F.id $
-                                                      from-bijection (Groupoid.⁻¹-bijection (EG.groupoid _))) ⟩
-      (∀ y → x ≡ y → P y) × (∀ y → y ∈ xs → P y)  ↝⟨ inverse (∀-intro ext _) ×-cong F.id ⟩□
-      P x × All P xs                              □
+    All P (x ∷ xs)                              ↔⟨⟩
+    (∀ y → y ∈ x ∷ xs → P y)                    ↔⟨⟩
+    (∀ y → y ≡ x ⊎ y ∈ xs → P y)                ↝⟨ ∀-cong ext (λ _ → Π⊎↔Π×Π ext′) ⟩
+    (∀ y → (y ≡ x → P y) × (y ∈ xs → P y))      ↔⟨ ΠΣ-comm ⟩
+    (∀ y → y ≡ x → P y) × (∀ y → y ∈ xs → P y)  ↝⟨ (×-cong₁ λ _ → ∀-cong ext λ _ → →-cong₁ ext′ ≡-comm) ⟩
+    (∀ y → x ≡ y → P y) × (∀ y → y ∈ xs → P y)  ↝⟨ inverse-ext? (λ ext → ∀-intro ext _) ext ×-cong F.id ⟩□
+    P x × All P xs                              □
 
   All-++ : All P (xs ++ ys) ↝[ k ] All P xs × All P ys
   All-++ {xs = xs} {ys = ys} =
-    flip generalise-ext?-sym ext λ {k} ext →
-      let ext′ = lower-extensionality? ⌊ k ⌋-sym a a ext in
-
-      All P (xs ++ ys)                             ↔⟨⟩
-      (∀ x → x ∈ xs ++ ys → P x)                   ↝⟨ (∀-cong ext λ _ → →-cong ext′ (from-bijection (Any-++ _ _ _)) F.id) ⟩
-      (∀ x → x ∈ xs ⊎ x ∈ ys → P x)                ↝⟨ (∀-cong ext λ _ → Π⊎↔Π×Π ext′) ⟩
-      (∀ x → (x ∈ xs → P x) × (x ∈ ys → P x))      ↔⟨ ΠΣ-comm ⟩
-      (∀ x → x ∈ xs → P x) × (∀ x → x ∈ ys → P x)  ↔⟨⟩
-      All P xs × All P ys                          □
+    All P (xs ++ ys)                             ↔⟨⟩
+    (∀ x → x ∈ xs ++ ys → P x)                   ↝⟨ (∀-cong ext λ _ → →-cong₁ ext′ (Any-++ _ _ _)) ⟩
+    (∀ x → x ∈ xs ⊎ x ∈ ys → P x)                ↝⟨ (∀-cong ext λ _ → Π⊎↔Π×Π ext′) ⟩
+    (∀ x → (x ∈ xs → P x) × (x ∈ ys → P x))      ↔⟨ ΠΣ-comm ⟩
+    (∀ x → x ∈ xs → P x) × (∀ x → x ∈ ys → P x)  ↔⟨⟩
+    All P xs × All P ys                          □
 
   All-concat : All P (L.concat xs) ↝[ k ] All (All P) xs
   All-concat {xs = xss} =
-    flip generalise-ext?-sym ext λ {k} ext →
-      let ext′ = lower-extensionality? ⌊ k ⌋-sym a a ext in
-
-      (∀ x → x ∈ L.concat xss → P x)              ↝⟨ ∀-cong ext (λ _ → →-cong ext′ (from-bijection (Any-concat _ _)) F.id) ⟩
-      (∀ x → Any (x ∈_) xss → P x)                ↝⟨ ∀-cong ext (λ _ → →-cong ext′ (from-bijection (Any-∈ _ _)) F.id) ⟩
-      (∀ x → (∃ λ xs → x ∈ xs × xs ∈ xss) → P x)  ↝⟨ ∀-cong ext (λ _ → from-bijection currying) ⟩
-      (∀ x → ∀ xs → x ∈ xs × xs ∈ xss → P x)      ↔⟨ Π-comm ⟩
-      (∀ xs → ∀ x → x ∈ xs × xs ∈ xss → P x)      ↝⟨ ∀-cong ext (λ _ → ∀-cong ext λ _ → from-bijection currying) ⟩
-      (∀ xs → ∀ x → x ∈ xs → xs ∈ xss → P x)      ↝⟨ ∀-cong ext (λ _ → ∀-cong ext λ _ → from-bijection Π-comm) ⟩
-      (∀ xs → ∀ x → xs ∈ xss → x ∈ xs → P x)      ↝⟨ ∀-cong ext (λ _ → from-bijection Π-comm) ⟩□
-      (∀ xs → xs ∈ xss → ∀ x → x ∈ xs → P x)      □
+    (∀ x → x ∈ L.concat xss → P x)              ↝⟨ ∀-cong ext (λ _ → →-cong₁ ext′ (Any-concat _ _)) ⟩
+    (∀ x → Any (x ∈_) xss → P x)                ↝⟨ ∀-cong ext (λ _ → →-cong₁ ext′ (Any-∈ _ _)) ⟩
+    (∀ x → (∃ λ xs → x ∈ xs × xs ∈ xss) → P x)  ↝⟨ ∀-cong ext (λ _ → from-bijection currying) ⟩
+    (∀ x → ∀ xs → x ∈ xs × xs ∈ xss → P x)      ↔⟨ Π-comm ⟩
+    (∀ xs → ∀ x → x ∈ xs × xs ∈ xss → P x)      ↝⟨ ∀-cong ext (λ _ → ∀-cong ext λ _ → from-bijection currying) ⟩
+    (∀ xs → ∀ x → x ∈ xs → xs ∈ xss → P x)      ↝⟨ ∀-cong ext (λ _ → ∀-cong ext λ _ → from-bijection Π-comm) ⟩
+    (∀ xs → ∀ x → xs ∈ xss → x ∈ xs → P x)      ↝⟨ ∀-cong ext (λ _ → from-bijection Π-comm) ⟩□
+    (∀ xs → xs ∈ xss → ∀ x → x ∈ xs → P x)      □
 
 All-map :
   ∀ {k} {A : Set a} {B : Set b} {P : B → Set p}
     {f : A → B} {xs : List A} →
   (ext : Extensionality? k (a ⊔ b) (a ⊔ b ⊔ p)) →
   All P (L.map f xs) ↝[ k ] All (P ∘ f) xs
-All-map {a = a} {b = b} {p = p} {P = P} {f} {xs} =
-  generalise-ext?-sym λ {k} ext →
-    let ext₁ = lower-extensionality? ⌊ k ⌋-sym a     a       ext
-        ext₂ = lower-extensionality? ⌊ k ⌋-sym a     (a ⊔ b) ext
-        ext₃ = lower-extensionality? ⌊ k ⌋-sym a     lzero   ext
-        ext₄ = lower-extensionality? ⌊ k ⌋-sym lzero (a ⊔ b) ext
-        ext₅ = lower-extensionality? ⌊ k ⌋-sym b     lzero   ext
-        ext₆ = lower-extensionality? ⌊ k ⌋-sym a     b       ext
-    in
-
-    (∀ x → x ∈ L.map f xs → P x)              ↝⟨ (∀-cong ext₁ λ _ → →-cong ext₂ (from-bijection (Any-map _ _ _)) F.id) ⟩
-    (∀ x → Any (λ y → x ≡ f y) xs → P x)      ↝⟨ (∀-cong ext₃ λ _ → →-cong ext₄ (from-bijection (Any-∈ _ _)) F.id) ⟩
-    (∀ x → (∃ λ y → x ≡ f y × y ∈ xs) → P x)  ↝⟨ (∀-cong ext₃ λ _ → from-bijection currying) ⟩
-    (∀ x → ∀ y → x ≡ f y × y ∈ xs → P x)      ↝⟨ (∀-cong ext₃ λ _ → ∀-cong ext₅ λ _ → from-bijection currying) ⟩
-    (∀ x → ∀ y → x ≡ f y → y ∈ xs → P x)      ↔⟨ Π-comm ⟩
-    (∀ x → ∀ y → y ≡ f x → x ∈ xs → P y)      ↝⟨ (∀-cong ext₅ λ _ → ∀-cong ext₃ λ _ → flip (→-cong ext₆) F.id $
-                                                  from-bijection (Groupoid.⁻¹-bijection (EG.groupoid _))) ⟩
-    (∀ x → ∀ y → f x ≡ y → x ∈ xs → P y)      ↝⟨ (∀-cong ext₅ λ _ → inverse-ext? (λ ext → ∀-intro ext _) ext₃) ⟩□
-    (∀ x → x ∈ xs → P (f x))                  □
+All-map {a = a} {b = b} {p = p} {k = k} {P = P} {f} {xs} ext =
+  (∀ x → x ∈ L.map f xs → P x)              ↝⟨ (∀-cong ext₁ λ _ → →-cong₁ ext₂ (Any-map _ _ _)) ⟩
+  (∀ x → Any (λ y → x ≡ f y) xs → P x)      ↝⟨ (∀-cong ext₃ λ _ → →-cong₁ ext₄ (Any-∈ _ _)) ⟩
+  (∀ x → (∃ λ y → x ≡ f y × y ∈ xs) → P x)  ↝⟨ (∀-cong ext₃ λ _ → from-bijection currying) ⟩
+  (∀ x → ∀ y → x ≡ f y × y ∈ xs → P x)      ↝⟨ (∀-cong ext₃ λ _ → ∀-cong ext₅ λ _ → from-bijection currying) ⟩
+  (∀ x → ∀ y → x ≡ f y → y ∈ xs → P x)      ↔⟨ Π-comm ⟩
+  (∀ x → ∀ y → y ≡ f x → x ∈ xs → P y)      ↝⟨ (∀-cong ext₅ λ _ → ∀-cong ext₃ λ _ → →-cong₁ ext₆ ≡-comm) ⟩
+  (∀ x → ∀ y → f x ≡ y → x ∈ xs → P y)      ↝⟨ (∀-cong ext₅ λ _ → inverse-ext? (λ ext → ∀-intro ext _) ext₃) ⟩□
+  (∀ x → x ∈ xs → P (f x))                  □
+  where
+  ext₁ = lower-extensionality? k a     a       ext
+  ext₂ = lower-extensionality? k a     (a ⊔ b) ext
+  ext₃ = lower-extensionality? k a     lzero   ext
+  ext₄ = lower-extensionality? k lzero (a ⊔ b) ext
+  ext₅ = lower-extensionality? k b     lzero   ext
+  ext₆ = lower-extensionality? k a     b       ext
 
 All->>= :
   ∀ {k} {A B : Set ℓ} {P : B → Set p} {f : A → List B} {xs : List A} →
@@ -149,11 +140,10 @@ All-const :
   ∀ {k} {A : Set a} {B : Set b} {xs : List B} →
   Extensionality? k b a →
   All (const A) xs ↝[ k ] (Fin (L.length xs) → A)
-All-const {a = a} {b = b} {A = A} {xs = xs} =
-  generalise-ext?-sym λ {k} ext →
-    (∀ x → x ∈ xs → A)       ↔⟨ inverse currying ⟩
-    (∃ (_∈ xs) → A)          ↝⟨ →-cong ext (from-bijection (Fin-length _)) F.id ⟩□
-    (Fin (L.length xs) → A)  □
+All-const {a = a} {b = b} {A = A} {xs = xs} ext =
+  (∀ x → x ∈ xs → A)       ↔⟨ inverse currying ⟩
+  (∃ (_∈ xs) → A)          ↝⟨ →-cong₁ ext (Fin-length _) ⟩□
+  (Fin (L.length xs) → A)  □
 
 private
 

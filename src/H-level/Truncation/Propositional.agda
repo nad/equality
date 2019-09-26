@@ -423,7 +423,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited
   {a = a} {b = b} {A = A} {B} B-groupoid =
 
   (∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ Trunc.coherently-constant-function≃∥inhabited∥⇒inhabited lzero ext B-groupoid ⟩
-  (Trunc.∥ A ∥ 1 (a ⊔ b) → B)                ↔⟨ →-cong ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) F.id ⟩□
+  (Trunc.∥ A ∥ 1 (a ⊔ b) → B)                ↝⟨ →-cong₁ ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) ⟩□
   (∥ A ∥ → B)                                □
 
 -- Having a constant function into a set is equivalent to having a
@@ -441,7 +441,7 @@ constant-function≃∥inhabited∥⇒inhabited
   {a = a} {b = b} {A = A} {B} B-set =
 
   (∃ λ (f : A → B) → Constant f)  ↝⟨ Trunc.constant-function≃∥inhabited∥⇒inhabited lzero ext B-set ⟩
-  (Trunc.∥ A ∥ 1 (a ⊔ b) → B)     ↔⟨ →-cong ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) F.id ⟩□
+  (Trunc.∥ A ∥ 1 (a ⊔ b) → B)     ↝⟨ →-cong₁ ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) ⟩□
   (∥ A ∥ → B)                     □
 
 private
@@ -466,7 +466,7 @@ universal-property :
   Is-proposition B →
   (∥ A ∥ → B) ≃ (A → B)
 universal-property {a = a} {b = b} {A = A} {B} B-prop =
-  (∥ A ∥ → B)                  ↔⟨ →-cong ext (∥∥↔∥∥ (a ⊔ b)) F.id ⟩
+  (∥ A ∥ → B)                  ↝⟨ →-cong₁ ext (∥∥↔∥∥ (a ⊔ b)) ⟩
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)  ↝⟨ Trunc.universal-property lzero ext B-prop ⟩□
   (A → B)                      □
 

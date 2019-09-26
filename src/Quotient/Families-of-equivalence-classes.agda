@@ -293,7 +293,7 @@ strong-equivalence-not-closed-under-on ext univ₁ univ₀ =
       Fin (3 !)                                      ↝⟨ inverse $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 3 ⟩
       Fin 3 ≡ Fin 3                                  ↔⟨ strong-equivalence ⟩
       const (Fin 3 ≡ Fin 3) ≡ const (Fin 3 ≡ Fin 3)  ↔⟨ inverse $ Eq.extensionality-isomorphism ext ⟩
-      (↑ _ ⊤ → (Fin 3 ≡ Fin 3) ≡ (Fin 3 ≡ Fin 3))    ↝⟨ →-cong ext Bij.↑↔ F.id ⟩
+      (↑ _ ⊤ → (Fin 3 ≡ Fin 3) ≡ (Fin 3 ≡ Fin 3))    ↝⟨ →-cong₁ ext Bij.↑↔ ⟩
       (⊤ → (Fin 3 ≡ Fin 3) ≡ (Fin 3 ≡ Fin 3))        ↝⟨ Π-left-identity ⟩
       (Fin 3 ≡ Fin 3) ≡ (Fin 3 ≡ Fin 3)              ↔⟨ ≡-preserves-≃ (lower-extensionality lzero _ ext) univ₁ univ₀
                                                                       (Eq.↔⇒≃ $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 3)
@@ -386,7 +386,7 @@ strong-equivalence-not-closed-under-×-or-⊎ ext univ =
     Strong-equivalence (λ (_ _ : ⊤ × ⊤) → B)  ↝⟨ (λ se {_ _} →
         B                                           ↝⟨ se {y = _} ⟩
         const B ≡ const B                           ↝⟨ inverse $ Eq.extensionality-isomorphism ext ⟩
-        (⊤ × ⊤ → B ≡ B)                             ↔⟨ →-cong ext ×-right-identity F.id ⟩
+        (⊤ × ⊤ → B ≡ B)                             ↝⟨ →-cong₁ ext ×-right-identity ⟩
         (⊤ → B ≡ B)                                 ↝⟨ Eq.extensionality-isomorphism ext ⟩□
         const B ≡ const B                           □) ⟩
     Strong-equivalence (λ (_ _ : ⊤)     → B)  ↝⟨ not-strong-equivalence B↔Fin4 ⟩□

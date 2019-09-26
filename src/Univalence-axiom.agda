@@ -708,11 +708,11 @@ Pow↔Fam ℓ {A = A} ext univ = record
   Univalence (a ⊔ b ⊔ ℓ) →
   (A → B) ↔ ∃ λ (P : B → Set (a ⊔ b ⊔ ℓ)) → A ≃ Σ B P
 →↔Σ≃Σ ℓ {a} {b} {A} {B} ext univ =
-  (A → B)                                                   ↝⟨ →-cong (lower-extensionality lzero _ ext) (inverse Bijection.↑↔) F.id ⟩
+  (A → B)                                                   ↝⟨ →-cong₁ (lower-extensionality lzero _ ext) (inverse Bijection.↑↔) ⟩
   (↑ (b ⊔ ℓ) A → B)                                         ↝⟨ inverse ×-left-identity ⟩
   ⊤ × (↑ _ A → B)                                           ↝⟨ inverse $ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ×-cong F.id ⟩
   (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A) × (↑ _ A → B)            ↝⟨ inverse Σ-assoc ⟩
-  (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A × (↑ _ A → B))            ↝⟨ (∃-cong λ _ → ∃-cong λ eq → →-cong (lower-extensionality lzero _ ext) (≡⇒↝ _ (sym eq)) F.id) ⟩
+  (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A × (↑ _ A → B))            ↝⟨ (∃-cong λ _ → ∃-cong λ eq → →-cong₁ (lower-extensionality lzero _ ext) (≡⇒≃ (sym eq))) ⟩
   (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A × (A′ → B))               ↝⟨ (∃-cong λ _ → ×-comm) ⟩
   (∃ λ (A′ : Set ℓ′) → (A′ → B) × A′ ≡ ↑ _ A)               ↝⟨ Σ-assoc ⟩
   (∃ λ (p : ∃ λ (A′ : Set ℓ′) → A′ → B) → proj₁ p ≡ ↑ _ A)  ↝⟨ inverse $ Σ-cong (Pow↔Fam (a ⊔ ℓ) (lower-extensionality ℓ′ lzero ext) univ) (λ _ → F.id) ⟩
