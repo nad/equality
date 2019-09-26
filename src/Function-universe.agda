@@ -345,22 +345,22 @@ lower-extensionality? k with extensionality? k
 -- Some functions that can be used to generalise results.
 
 generalise-ext? :
-  ∀ {a b c d} {A : Set a} {B : Set b} →
+  ∀ {k a b c d} {A : Set a} {B : Set b} →
   A ⇔ B →
   (Extensionality c d → A ↔ B) →
-  ∀ {k} → Extensionality? k c d → A ↝[ k ] B
-generalise-ext? f⇔ f↔ {k} with extensionality? k
+  Extensionality? k c d → A ↝[ k ] B
+generalise-ext? {k} f⇔ f↔ with extensionality? k
 ... | without-extensionality implication         = λ _ → _⇔_.to f⇔
 ... | without-extensionality logical-equivalence = λ _ → f⇔
 ... | with-extensionality    _                   = λ ext →
   from-isomorphism (f↔ ext)
 
 generalise-ext?-prop :
-  ∀ {a b c d} {A : Set a} {B : Set b} →
+  ∀ {k a b c d} {A : Set a} {B : Set b} →
   A ⇔ B →
   (Extensionality c d → Is-proposition A) →
   (Extensionality c d → Is-proposition B) →
-  ∀ {k} → Extensionality? k c d → A ↝[ k ] B
+  Extensionality? k c d → A ↝[ k ] B
 generalise-ext?-prop f⇔ A-prop B-prop =
   generalise-ext?
     f⇔
@@ -377,9 +377,9 @@ generalise-ext?-sym hyp = generalise-ext? (hyp _) hyp
 -- symmetric.
 
 inverse-ext? :
-  ∀ {a b c d} {A : Set a} {B : Set b} →
+  ∀ {k a b c d} {A : Set a} {B : Set b} →
   (∀ {k} → Extensionality? k c d → A ↝[ k ] B) →
-  (∀ {k} → Extensionality? k c d → B ↝[ k ] A)
+  Extensionality? k c d → B ↝[ k ] A
 inverse-ext? hyp = generalise-ext?-sym (inverse ⊚ hyp)
 
 ------------------------------------------------------------------------
