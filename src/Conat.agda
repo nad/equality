@@ -132,6 +132,14 @@ pred : ∀ {i} {j : Size< i} → Conat i → Conat j
 pred zero    = zero
 pred (suc n) = force n
 
+-- The pred function preserves bisimilarity.
+
+pred-cong :
+  ∀ {n₁ n₂ i} {j : Size< i} →
+  [ i ] n₁ ∼ n₂ → [ j ] pred n₁ ∼ pred n₂
+pred-cong zero    = zero
+pred-cong (suc p) = force p
+
 -- ⌜_⌝ is homomorphic with respect to pred.
 
 ⌜⌝-pred : ∀ n {i} → [ i ] ⌜ Nat.pred n ⌝ ∼ pred ⌜ n ⌝
@@ -802,6 +810,23 @@ min≤ʳ (suc m) (suc n) = suc λ { .force → min≤ʳ (force m) (force n) }
 ʳ≤max zero    _       = reflexive-≤ _
 ʳ≤max (suc _) zero    = zero
 ʳ≤max (suc m) (suc n) = suc λ { .force → ʳ≤max (force m) (force n) }
+
+-- The min and max functions preserve bisimilarity.
+
+min-cong :
+  ∀ {i m₁ m₂ n₁ n₂} →
+  [ i ] m₁ ∼ m₂ → [ i ] n₁ ∼ n₂ → [ i ] min m₁ n₁ ∼ min m₂ n₂
+min-cong zero    q       = zero
+min-cong (suc p) zero    = zero
+min-cong (suc p) (suc q) =
+  suc λ { .force → min-cong (force p) (force q) }
+
+max-cong :
+  ∀ {i m₁ m₂ n₁ n₂} →
+  [ i ] m₁ ∼ m₂ → [ i ] n₁ ∼ n₂ → [ i ] max m₁ n₁ ∼ max m₂ n₂
+max-cong zero    q = q
+max-cong (suc p) q =
+  suc λ { .force → max-cong (force p) (pred-cong q) }
 
 ------------------------------------------------------------------------
 -- Finite and infinite numbers
