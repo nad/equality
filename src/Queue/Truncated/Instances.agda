@@ -72,8 +72,8 @@ instance
 private
 
   ns       = Decidable-equality→Very-stable-≡ Nat._≟_
-  dequeue′ = dequeue (λ {_ _} → ns)
-  to-List′ = to-List (λ {_ _} → ns)
+  dequeue′ = dequeue ns
+  to-List′ = to-List ns
   empty′   = empty ⦂ Queue Q ℕ
 
   example₁ : map suc (enqueue 3 empty) ≡ enqueue 4 empty′

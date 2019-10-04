@@ -11,6 +11,7 @@ module Erased.Stability
 
 open Derived-definitions-and-properties eq
 
+open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection eq as Bijection using (_↔_)
@@ -20,6 +21,7 @@ open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Erased eq
+open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
@@ -58,16 +60,14 @@ Very-stable A = Is-equivalence ([_] {A = A})
 
 -- Variants of the definitions above for equality.
 
-mutual
+Stable-≡ : Set a → Set a
+Stable-≡ = For-iterated-equality 1 Stable
 
-  Stable-≡ : Set a → Set a
-  Stable-≡ A = Stable-≡-[ implication ] A
-
-  Stable-≡-[_] : Kind → Set a → Set a
-  Stable-≡-[ k ] A = {x y : A} → Stable-[ k ] (x ≡ y)
+Stable-≡-[_] : Kind → Set a → Set a
+Stable-≡-[ k ] = For-iterated-equality 1 Stable-[ k ]
 
 Very-stable-≡ : Set a → Set a
-Very-stable-≡ A = {x y : A} → Very-stable (x ≡ y)
+Very-stable-≡ = For-iterated-equality 1 Very-stable
 
 ------------------------------------------------------------------------
 -- Some lemmas related to stability
@@ -102,28 +102,33 @@ Very-stable-propositional :
   Is-proposition (Very-stable A)
 Very-stable-propositional ext = Eq.propositional ext _
 
--- Very-stable-≡ is propositional (assuming extensionality).
+private
 
-Very-stable-≡-propositional :
-  {A : Set a} →
-  Extensionality a a →
-  Is-proposition (Very-stable-≡ A)
-Very-stable-≡-propositional ext =
-  implicit-Π-closure ext 1 λ _ →
-  implicit-Π-closure ext 1 λ _ →
-  Very-stable-propositional ext
+  -- The previous result can be generalised.
+
+  For-iterated-equality-Very-stable-propositional :
+    {A : Set a} →
+    Extensionality a a →
+    ∀ n → Is-proposition (For-iterated-equality n Very-stable A)
+  For-iterated-equality-Very-stable-propositional ext n =
+    H-level-For-iterated-equality ext 1 n
+      (Very-stable-propositional ext)
 
 -- Very stable types are stable.
 
-Very-stable→Stable : Very-stable A → Stable-[ k ] A
-Very-stable→Stable {A = A} {k = k} =
-  Very-stable A             ↝⟨ Eq.⟨ _ ,_⟩ ⟩
-  A ≃ Erased A              ↝⟨ inverse ⟩
-  Erased A ≃ A              ↔⟨⟩
-  Stable-[ equivalence ] A  ↝⟨ from-equivalence ⟩□
-  Stable-[ k ] A            □
+Very-stable→Stable :
+  ∀ n →
+  For-iterated-equality n Very-stable A →
+  For-iterated-equality n Stable-[ k ] A
+Very-stable→Stable {k = k} n =
+  For-iterated-equality-cong₁ _ n λ {A} →
+    Very-stable A             ↝⟨ Eq.⟨ _ ,_⟩ ⟩
+    A ≃ Erased A              ↝⟨ inverse ⟩
+    Erased A ≃ A              ↔⟨⟩
+    Stable-[ equivalence ] A  ↝⟨ from-equivalence ⟩□
+    Stable-[ k ] A            □
 
--- The function obtained from Very-stable→Stable (for k = implication)
+-- The function obtained from Very-stable→Stable {k = implication} 0
 -- maps [ x ] to x.
 --
 -- This seems to imply that (say) the booleans can not be proved to be
@@ -136,11 +141,11 @@ Very-stable→Stable {A = A} {k = k} =
 
 Very-stable→Stable-[]≡id :
   (s : Very-stable A) →
-  Very-stable→Stable s [ x ] ≡ x
+  Very-stable→Stable 0 s [ x ] ≡ x
 Very-stable→Stable-[]≡id {x = x} s =
-  Very-stable→Stable s [ x ]   ≡⟨⟩
-  _≃_.from Eq.⟨ _ , s ⟩ [ x ]  ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s ⟩ x ⟩∎
-  x                            ∎
+  Very-stable→Stable 0 s [ x ]  ≡⟨⟩
+  _≃_.from Eq.⟨ _ , s ⟩ [ x ]   ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s ⟩ x ⟩∎
+  x                             ∎
 
 -- Erased A is very stable.
 
@@ -342,6 +347,30 @@ module []-cong
     _↠_.from (Eq.≃↠⇔ prop (H-level-Erased 1 prop))
       (record { to = [_]; from = s })
 
+  -- The previous result can be generalised.
+
+  Stable→H-level-suc→Very-stable :
+    ∀ n →
+    For-iterated-equality n Stable A → H-level (suc n) A →
+    For-iterated-equality n Very-stable A
+  Stable→H-level-suc→Very-stable {A = A} n = curry (
+    For-iterated-equality n Stable A × H-level (suc n) A            ↝⟨ (∃-cong λ _ → lemma) ⟩
+
+    For-iterated-equality n Stable A ×
+    For-iterated-equality n Is-proposition A                        ↝⟨ For-iterated-equality-commutes-× _ n ⟩
+
+    For-iterated-equality n (λ A → Stable A × Is-proposition A) A   ↝⟨ For-iterated-equality-cong₁ _ n $
+                                                                       uncurry Stable-proposition→Very-stable ⟩
+    For-iterated-equality n Very-stable A                           □)
+    where
+    lemma =
+      H-level (suc n) A                         ↝⟨ _⇔_.to H-level⇔H-level′ ⟩
+      H-level′ (suc n) A                        ↝⟨ (flip inverse-ext? _ λ ext →
+                                                    For-iterated-equality-For-iterated-equality ext n 1) ⟩
+      For-iterated-equality n (H-level′ 1) A    ↝⟨ For-iterated-equality-cong₁ _ n $
+                                                   _⇔_.from (H-level⇔H-level′ {n = 1}) ⟩□
+      For-iterated-equality n Is-proposition A  □
+
   -- Contractible types are very stable.
 
   Contractible→Very-stable :
@@ -355,14 +384,14 @@ module []-cong
 
   Is-proposition→Very-stable-≡ :
     Is-proposition A → Very-stable-≡ A
-  Is-proposition→Very-stable-≡ prop =
+  Is-proposition→Very-stable-≡ prop _ _ =
     Contractible→Very-stable (+⇒≡ prop)
 
   -- If equality is decidable for A, then equality is very stable for A.
 
   Decidable-equality→Very-stable-≡ :
     Decidable-equality A → Very-stable-≡ A
-  Decidable-equality→Very-stable-≡ dec =
+  Decidable-equality→Very-stable-≡ dec _ _ =
     Stable-proposition→Very-stable
       (Dec→Stable (dec _ _))
       (decidable⇒set dec)
@@ -374,6 +403,8 @@ module []-cong
     Extensionality? k a a →
     Stable-≡ A ↝[ k ] Injective ([_] {A = A})
   Stable-≡↔Injective-[] ext =
+    (∀ x y → Erased (x ≡ y) → x ≡ y)    ↝⟨ (∀-cong ext λ _ → from-isomorphism $ inverse Bijection.implicit-Π↔Π) ⟩
+    (∀ x {y} → Erased (x ≡ y) → x ≡ y)  ↔⟨ inverse Bijection.implicit-Π↔Π ⟩
     (∀ {x y} → Erased (x ≡ y) → x ≡ y)  ↝⟨ (implicit-∀-cong ext $ implicit-∀-cong ext $
                                             Π-cong ext Erased-≡↔[]≡[] λ _ → F.id) ⟩□
     (∀ {x y} → [ x ] ≡ [ y ] → x ≡ y)   □
@@ -386,8 +417,6 @@ module []-cong
     Extensionality? k a a →
     Very-stable-≡ A ↝[ k ] Is-embedding ([_] {A = A})
   Very-stable-≡↔Is-embedding-[] ext =
-    (∀ {x y} → Is-equivalence ([_] {A = x ≡ y}))          ↔⟨ Bijection.implicit-Π↔Π ⟩
-    (∀ x {y} → Is-equivalence ([_] {A = x ≡ y}))          ↝⟨ (∀-cong ext λ _ → from-isomorphism Bijection.implicit-Π↔Π) ⟩
     (∀ x y → Is-equivalence ([_] {A = x ≡ y}))            ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                               generalise-ext?-prop
                                                                 (record { to = to; from = from })
@@ -412,6 +441,22 @@ module []-cong
     from = Eq.Two-out-of-three.g-g∘f
       (Eq.two-out-of-three _ _)
       []-cong-equivalence
+
+  private
+
+    -- The previous result can be generalised.
+
+    Very-stable-≡↔Is-embedding-[]′ :
+      {A : Set a} →
+      Extensionality? k a a →
+      ∀ n →
+      For-iterated-equality (suc n) Very-stable A ↝[ k ]
+      For-iterated-equality n (λ A → Is-embedding ([_] {A = A})) A
+    Very-stable-≡↔Is-embedding-[]′ {A = A} ext n =
+      For-iterated-equality (suc n) Very-stable A                   ↝⟨ (flip inverse-ext? ext λ ext →
+                                                                        For-iterated-equality-For-iterated-equality ext n 1) ⟩
+      For-iterated-equality n Very-stable-≡ A                       ↝⟨ For-iterated-equality-cong₁ ext n (Very-stable-≡↔Is-embedding-[] ext) ⟩□
+      For-iterated-equality n (λ A → Is-embedding ([_] {A = A})) A  □
 
   ----------------------------------------------------------------------
   -- Preservation lemmas
@@ -498,45 +543,66 @@ module []-cong
   Very-stable-W :
     {A : Set a} {P : A → Set p} →
     Extensionality p (a ⊔ p) →
-    Very-stable A → Very-stable (W A P)
-  Very-stable-W {A = A} {P = P} ext s =
-    _≃_.is-equivalence $
-    Eq.↔⇒≃ (record
-      { surjection = record
-        { logical-equivalence = record
-          { to   = [_]
-          ; from = from
-          }
-        ; right-inverse-of = []∘from
-        }
-      ; left-inverse-of = from∘[]
-      })
+    ∀ n →
+    For-iterated-equality n Very-stable A →
+    For-iterated-equality n Very-stable (W A P)
+  Very-stable-W {A = A} {P = P} ext n =
+    For-iterated-equality-W
+      ext
+      n
+      (Very-stable-cong _ ∘ from-isomorphism)
+      (Very-stable-Π ext)
+      Very-stable-Σ
+      lemma
     where
-    module E = _≃_ Eq.⟨ _ , s ⟩
+    lemma : Very-stable A → Very-stable (W A P)
+    lemma s =
+      _≃_.is-equivalence $
+      Eq.↔⇒≃ (record
+        { surjection = record
+          { logical-equivalence = record
+            { to   = [_]
+            ; from = from
+            }
+          ; right-inverse-of = []∘from
+          }
+        ; left-inverse-of = from∘[]
+        })
+      where
+      module E = _≃_ Eq.⟨ _ , s ⟩
 
-    from : Erased (W A P) → W A P
-    from [ sup x f ] = sup
-      (E.from [ x ])
-      (λ y → from [ f (subst P (E.left-inverse-of x) y) ])
+      from : Erased (W A P) → W A P
+      from [ sup x f ] = sup
+        (E.from [ x ])
+        (λ y → from [ f (subst P (E.left-inverse-of x) y) ])
 
-    from∘[] : ∀ x → from [ x ] ≡ x
-    from∘[] (sup x f) = curry (_↠_.to (W-≡,≡↠≡ ext))
-      (E.left-inverse-of x)
-      (λ y → from∘[] (f (subst P (E.left-inverse-of x) y)))
+      from∘[] : ∀ x → from [ x ] ≡ x
+      from∘[] (sup x f) = curry (_↠_.to (W-≡,≡↠≡ ext))
+        (E.left-inverse-of x)
+        (λ y → from∘[] (f (subst P (E.left-inverse-of x) y)))
 
-    []∘from : ∀ x → [ from x ] ≡ x
-    []∘from [ x ] = []-cong [ from∘[] x ]
+      []∘from : ∀ x → [ from x ] ≡ x
+      []∘from [ x ] = []-cong [ from∘[] x ]
 
   ----------------------------------------------------------------------
   -- Closure properties related to equality
 
   -- If A is very stable, then equality is very stable for A.
 
-  Very-stable→Very-stable-≡ : Very-stable A → Very-stable-≡ A
-  Very-stable→Very-stable-≡ {A = A} =
-    Very-stable A               ↝⟨ Very-stable→Is-embedding-[] ⟩
-    Is-embedding ([_] {A = A})  ↝⟨ inverse-ext? Very-stable-≡↔Is-embedding-[] _ ⟩□
-    Very-stable-≡ A             □
+  Very-stable→Very-stable-≡ :
+    ∀ n →
+    For-iterated-equality n       Very-stable A →
+    For-iterated-equality (suc n) Very-stable A
+  Very-stable→Very-stable-≡ {A = A} n =
+    For-iterated-equality n Very-stable A        ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
+    For-iterated-equality n Very-stable-≡ A      ↝⟨ For-iterated-equality-For-iterated-equality _ n 1 ⟩□
+    For-iterated-equality (suc n) Very-stable A  □
+    where
+    lemma : ∀ {A} → Very-stable A → Very-stable-≡ A
+    lemma {A = A} =
+      Very-stable A               ↝⟨ Very-stable→Is-embedding-[] ⟩
+      Is-embedding ([_] {A = A})  ↝⟨ inverse-ext? Very-stable-≡↔Is-embedding-[] _ ⟩□
+      Very-stable-≡ A             □
 
   private
 
@@ -545,122 +611,209 @@ module []-cong
 
     -- Equalities between erased values are very stable.
 
-    Very-stable-≡₀ : {@0 A : Set a} → Very-stable-≡ (Erased A)
-    Very-stable-≡₀ = Very-stable→Very-stable-≡ Very-stable-Erased
+    Very-stable-≡₀ :
+      {@0 A : Set a} →
+      Very-stable-≡ (Erased A)
+    Very-stable-≡₀ = Very-stable→Very-stable-≡ 0 Very-stable-Erased
 
     -- Equalities between equalities between erased values are very
     -- stable.
 
     Very-stable-≡₁ :
-      {@0 A : Set a} {x y : Erased A} →
-      Very-stable-≡ (x ≡ y)
-    Very-stable-≡₁ = Very-stable→Very-stable-≡ Very-stable-≡₀
+      {@0 A : Set a} →
+      For-iterated-equality 2 Very-stable (Erased A)
+    Very-stable-≡₁ = Very-stable→Very-stable-≡ 1 Very-stable-≡₀
 
     -- And so on…
 
-  -- If equality is stable for A, then Is-proposition A is stable.
+  -- If A is "stable 1 + n levels up", then H-level′ (suc n) A is
+  -- stable.
 
-  Stable-Is-proposition :
+  Stable-H-level′ :
     {A : Set a} →
     Extensionality? k a a →
-    Stable-≡-[ k ] A → Stable-[ k ] (Is-proposition A)
-  Stable-Is-proposition ext s =
-    Stable-Π ext λ _ →
-    Stable-Π ext λ _ →
-    s
+    ∀ n →
+    For-iterated-equality (suc n) Stable-[ k ] A →
+    Stable-[ k ] (H-level′ (suc n) A)
+  Stable-H-level′ {a = a} {k = k} {A = A} ext n =
+    For-iterated-equality (suc n) Stable-[ k ] A               ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality ext n 1) _ ⟩
+    For-iterated-equality n Stable-≡-[ k ] A                   ↝⟨ For-iterated-equality-cong₁ _ n lemma₁ ⟩
+    For-iterated-equality n (Stable-[ k ] ∘ Is-proposition) A  ↝⟨ For-iterated-equality-commutes-← _ Stable-[ k ] n (Stable-Π ext) ⟩
+    Stable-[ k ] (For-iterated-equality n Is-proposition A)    ↝⟨ Stable-map (lemma₂ ext) (inverse-ext? lemma₂ ext) ⟩□
+    Stable-[ k ] (H-level′ (suc n) A)                          □
+    where
+    lemma₁ : ∀ {A} → Stable-≡-[ k ] A → Stable-[ k ] (Is-proposition A)
+    lemma₁ s =
+      Stable-Π ext λ _ →
+      Stable-Π ext λ _ →
+      s _ _
 
-  mutual
+    lemma₂ :
+      ∀ {k} →
+      Extensionality? k a a →
+      For-iterated-equality n Is-proposition A ↝[ k ]
+      H-level′ (suc n) A
+    lemma₂ ext =
+      For-iterated-equality n Is-proposition A  ↝⟨ For-iterated-equality-cong₁ ext n (H-level↔H-level′ {n = 1} ext) ⟩
+      For-iterated-equality n (H-level′ 1) A    ↝⟨ For-iterated-equality-For-iterated-equality ext n 1 ⟩□
+      H-level′ (suc n) A                        □
 
-    -- If A is very stable, then H-level′ n A is very stable (assuming
-    -- extensionality).
+  -- If A is "stable 1 + n levels up", then H-level (suc n) A is
+  -- stable.
 
-    Very-stable-H-level′ :
-      {A : Set a} →
-      Extensionality a a →
-      ∀ n → Very-stable A → Very-stable (H-level′ n A)
-    Very-stable-H-level′ ext zero s =
+  Stable-H-level :
+    {A : Set a} →
+    Extensionality? k a a →
+    ∀ n →
+    For-iterated-equality (suc n) Stable-[ k ] A →
+    Stable-[ k ] (H-level (suc n) A)
+  Stable-H-level {k = k} {A = A} ext n =
+    For-iterated-equality (suc n) Stable-[ k ] A  ↝⟨ Stable-H-level′ ext n ⟩
+    Stable-[ k ] (H-level′ (suc n) A)             ↝⟨ Stable-map (inverse-ext? H-level↔H-level′ ext) (H-level↔H-level′ ext) ⟩□
+    Stable-[ k ] (H-level (suc n) A)              □
+
+  -- If A is "very stable n levels up", then H-level′ n A is very
+  -- stable (assuming extensionality).
+
+  Very-stable-H-level′ :
+    {A : Set a} →
+    Extensionality a a →
+    ∀ n →
+    For-iterated-equality n Very-stable A →
+    Very-stable (H-level′ n A)
+  Very-stable-H-level′ {A = A} ext n =
+    For-iterated-equality n Very-stable A                   ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
+    For-iterated-equality n (Very-stable ∘ Contractible) A  ↝⟨ For-iterated-equality-commutes-← _ Very-stable n (Very-stable-Π ext) ⟩□
+    Very-stable (H-level′ n A)                              □
+    where
+    lemma : ∀ {A} → Very-stable A → Very-stable (Contractible A)
+    lemma s =
       Very-stable-Σ s λ _ →
       Very-stable-Π ext λ _ →
-      Very-stable→Very-stable-≡ s
-    Very-stable-H-level′ ext (suc n) s =
-      Very-stable-H-level′-suc ext n (Very-stable→Very-stable-≡ s)
+      Very-stable→Very-stable-≡ 0 s _ _
 
-    -- If equality is very stable for A, then H-level′ (suc n) A is
-    -- very stable (assuming extensionality).
-
-    Very-stable-H-level′-suc :
-      {A : Set a} →
-      Extensionality a a →
-      ∀ n → Very-stable-≡ A → Very-stable (H-level′ (suc n) A)
-    Very-stable-H-level′-suc ext n s =
-      Very-stable-Π ext λ _ →
-      Very-stable-Π ext λ _ →
-      Very-stable-H-level′ ext n s
-
-  -- If A is very stable, then H-level n A is very stable (assuming
-  -- extensionality).
+  -- If A is "very stable n levels up", then H-level n A is very
+  -- stable (assuming extensionality).
 
   Very-stable-H-level :
     {A : Set a} →
     Extensionality a a →
-    Very-stable A → Very-stable (H-level n A)
-  Very-stable-H-level {n = n} {A = A} ext =
-    Very-stable A               ↝⟨ Very-stable-H-level′ ext n ⟩
-    Very-stable (H-level′ n A)  ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
-    Very-stable (H-level n A)   □
+    ∀ n →
+    For-iterated-equality n Very-stable A →
+    Very-stable (H-level n A)
+  Very-stable-H-level {A = A} ext n =
+    For-iterated-equality n Very-stable A  ↝⟨ Very-stable-H-level′ ext n ⟩
+    Very-stable (H-level′ n A)             ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
+    Very-stable (H-level n A)              □
 
-  -- If equality is very stable for A, then H-level (suc n) A is
-  -- very stable (assuming extensionality).
+  -- If equality is stable for A and B, then it is stable for A ⊎ B.
 
-  Very-stable-H-level-suc :
-    {A : Set a} →
-    Extensionality a a →
-    ∀ n → Very-stable-≡ A → Very-stable (H-level (suc n) A)
-  Very-stable-H-level-suc {A = A} ext n =
-    Very-stable-≡ A                   ↝⟨ Very-stable-H-level′-suc ext n ⟩
-    Very-stable (H-level′ (suc n) A)  ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
-    Very-stable (H-level (suc n) A)   □
+  Stable-≡-⊎ :
+    ∀ n →
+    For-iterated-equality (suc n) Stable-[ k ] A →
+    For-iterated-equality (suc n) Stable-[ k ] B →
+    For-iterated-equality (suc n) Stable-[ k ] (A ⊎ B)
+  Stable-≡-⊎ n sA sB =
+    For-iterated-equality-⊎-suc
+      n
+      Stable-map-↔
+      (Very-stable→Stable 0 Very-stable-⊥)
+      (For-iterated-equality-↑ _ (suc n) Stable-map-↔ sA)
+      (For-iterated-equality-↑ _ (suc n) Stable-map-↔ sB)
 
-  -- A variant of Stable-Π for equality.
+  -- If equality is very stable for A and B, then it is very stable
+  -- for A ⊎ B.
 
-  Stable-≡-Π :
+  Very-stable-≡-⊎ :
+    ∀ n →
+    For-iterated-equality (suc n) Very-stable A →
+    For-iterated-equality (suc n) Very-stable B →
+    For-iterated-equality (suc n) Very-stable (A ⊎ B)
+  Very-stable-≡-⊎ n sA sB =
+    For-iterated-equality-⊎-suc
+      n
+      lemma
+      Very-stable-⊥
+      (For-iterated-equality-↑ _ (suc n) lemma sA)
+      (For-iterated-equality-↑ _ (suc n) lemma sB)
+    where
+    lemma : A ↔ B → Very-stable A → Very-stable B
+    lemma = Very-stable-cong _ ∘ from-isomorphism
+
+  -- If equality is stable for A, then it is stable for List A.
+
+  Stable-≡-List :
+    ∀ n →
+    For-iterated-equality (suc n) Stable-[ k ] A →
+    For-iterated-equality (suc n) Stable-[ k ] (List A)
+  Stable-≡-List n =
+    For-iterated-equality-List-suc
+      n
+      Stable-map-↔
+      (Very-stable→Stable 0 $ Very-stable-↑ Very-stable-⊤)
+      (Very-stable→Stable 0 Very-stable-⊥)
+      Stable-×
+
+  -- If equality is very stable for A, then it is very stable for
+  -- List A.
+
+  Very-stable-≡-List :
+    ∀ n →
+    For-iterated-equality (suc n) Very-stable A →
+    For-iterated-equality (suc n) Very-stable (List A)
+  Very-stable-≡-List n =
+    For-iterated-equality-List-suc
+      n
+      (Very-stable-cong _ ∘ from-isomorphism)
+      (Very-stable-↑ Very-stable-⊤)
+      Very-stable-⊥
+      Very-stable-×
+
+  ----------------------------------------------------------------------
+  -- Simple corollaries or variants of results above
+
+  -- A generalisation of Stable-Π.
+
+  Stable-Πⁿ :
     {A : Set a} {P : A → Set p} →
     Extensionality a p →
-    (∀ x → Stable-≡-[ k ] (P x)) →
-    Stable-≡-[ k ] ((x : A) → P x)
-  Stable-≡-Π {k = k} ext s {x = f} {y = g} =
-                                      $⟨ (λ _ → s _) ⟩
-    (∀ x → Stable-[ k ] (f x ≡ g x))  ↝⟨ Stable-Π (forget-ext? k ext) ⟩
-    Stable-[ k ] (∀ x → f x ≡ g x)    ↝⟨ Stable-map-↔ (_≃_.bijection $ Eq.extensionality-isomorphism ext) ⟩□
-    Stable-[ k ] (f ≡ g)              □
+    ∀ n →
+    (∀ x → For-iterated-equality n Stable-[ k ] (P x)) →
+    For-iterated-equality n Stable-[ k ] ((x : A) → P x)
+  Stable-Πⁿ {k = k} ext n =
+    For-iterated-equality-Π
+      ext
+      n
+      Stable-map-↔
+      (Stable-Π (forget-ext? k ext))
 
-  -- A variant of Very-stable-Π for equality.
+  -- A generalisation of Very-stable-Π.
 
-  Very-stable-≡-Π :
+  Very-stable-Πⁿ :
     {A : Set a} {P : A → Set p} →
     Extensionality a p →
-    (∀ x → Very-stable-≡ (P x)) →
-    Very-stable-≡ ((x : A) → P x)
-  Very-stable-≡-Π ext s {x = f} {y = g} =  $⟨ (λ _ → s _) ⟩
-    (∀ x → Very-stable (f x ≡ g x))        ↝⟨ Very-stable-Π ext ⟩
-    Very-stable (∀ x → f x ≡ g x)          ↝⟨ Very-stable-cong _ (Eq.extensionality-isomorphism ext) ⟩□
-    Very-stable (f ≡ g)                    □
+    ∀ n →
+    (∀ x → For-iterated-equality n Very-stable (P x)) →
+    For-iterated-equality n Very-stable ((x : A) → P x)
+  Very-stable-Πⁿ ext n =
+    For-iterated-equality-Π
+      ext
+      n
+      (Very-stable-cong _ ∘ from-isomorphism)
+      (Very-stable-Π ext)
 
-  -- A variant of Very-stable-Stable-Σ for equality.
+  -- A generalisation of Very-stable-Stable-Σ.
 
-  Very-stable-Stable-≡-Σ :
-    Very-stable-≡ A →
-    (∀ x → Stable-≡-[ k ] (P x)) →
-    Stable-≡-[ k ] (Σ A P)
-  Very-stable-Stable-≡-Σ {k = k} {P = P} s₁ s₂ {x = p} {y = q} =
-                                                            $⟨ s₁ , (λ _ → s₂ _) ⟩
-    Very-stable (proj₁ p ≡ proj₁ q) ×
-    (∀ eq → Stable-[ k ] (subst P eq (proj₂ p) ≡ proj₂ q))  ↝⟨ uncurry Very-stable-Stable-Σ ⟩
-
-    Stable-[ k ] (∃ λ (eq : proj₁ p ≡ proj₁ q) →
-                      subst P eq (proj₂ p) ≡ proj₂ q)       ↝⟨ Stable-map-↔ Bijection.Σ-≡,≡↔≡ ⟩□
-
-    Stable-[ k ] (p ≡ q)                                    □
+  Very-stable-Stable-Σⁿ :
+    ∀ n →
+    For-iterated-equality n Very-stable A →
+    (∀ x → For-iterated-equality n Stable-[ k ] (P x)) →
+    For-iterated-equality n Stable-[ k ] (Σ A P)
+  Very-stable-Stable-Σⁿ {k = k} n =
+    For-iterated-equality-Σ
+      n
+      Stable-map-↔
+      Very-stable-Stable-Σ
 
   -- A variant of Stable-Σ for equality.
 
@@ -681,224 +834,62 @@ module []-cong
 
     Stable (p ≡ q)                                                □)
 
-  -- A variant of Very-stable-Σ for equality.
+  -- A generalisation of Very-stable-Σ.
 
-  Very-stable-≡-Σ :
-    Very-stable-≡ A →
-    (∀ x → Very-stable-≡ (P x)) →
-    Very-stable-≡ (Σ A P)
-  Very-stable-≡-Σ {P = P} s₁ s₂ {x = p} {y = q} =          $⟨ s₁ , (λ _ → s₂ _) ⟩
-    Very-stable (proj₁ p ≡ proj₁ q) ×
-    (∀ eq → Very-stable (subst P eq (proj₂ p) ≡ proj₂ q))  ↝⟨ uncurry Very-stable-Σ ⟩
+  Very-stable-Σⁿ :
+    ∀ n →
+    For-iterated-equality n Very-stable A →
+    (∀ x → For-iterated-equality n Very-stable (P x)) →
+    For-iterated-equality n Very-stable (Σ A P)
+  Very-stable-Σⁿ n =
+    For-iterated-equality-Σ
+      n
+      (Very-stable-cong _ ∘ from-isomorphism)
+      Very-stable-Σ
 
-    Very-stable (∃ λ (eq : proj₁ p ≡ proj₁ q) →
-                     subst P eq (proj₂ p) ≡ proj₂ q)       ↝⟨ Very-stable-cong _ $ Eq.↔⇒≃ Bijection.Σ-≡,≡↔≡ ⟩□
+  -- A generalisation of Stable-×.
 
-    Very-stable (p ≡ q)                                    □
+  Stable-×ⁿ :
+    ∀ n →
+    For-iterated-equality n Stable-[ k ] A →
+    For-iterated-equality n Stable-[ k ] B →
+    For-iterated-equality n Stable-[ k ] (A × B)
+  Stable-×ⁿ n =
+    For-iterated-equality-×
+      n
+      Stable-map-↔
+      Stable-×
 
-  -- A variant of Stable-× for equality.
+  -- A generalisation of Very-stable-×.
 
-  Stable-≡-× :
-    Stable-≡-[ k ] A →
-    Stable-≡-[ k ] B →
-    Stable-≡-[ k ] (A × B)
-  Stable-≡-× {k = k} s₁ s₂ {x = p} {y = q} =                             $⟨ s₁ , s₂ ⟩
-    Stable-[ k ] (proj₁ p ≡ proj₁ q) × Stable-[ k ] (proj₂ p ≡ proj₂ q)  ↝⟨ uncurry Stable-× ⟩
-    Stable-[ k ] (proj₁ p ≡ proj₁ q × proj₂ p ≡ proj₂ q)                 ↝⟨ Stable-map-↔ ≡×≡↔≡ ⟩□
-    Stable-[ k ] (p ≡ q)                                                 □
+  Very-stable-×ⁿ :
+    ∀ n →
+    For-iterated-equality n Very-stable A →
+    For-iterated-equality n Very-stable B →
+    For-iterated-equality n Very-stable (A × B)
+  Very-stable-×ⁿ n =
+    For-iterated-equality-×
+      n
+      (Very-stable-cong _ ∘ from-isomorphism)
+      Very-stable-×
 
-  -- A variant of Very-stable-× for equality.
+  -- A generalisation of Stable-↑.
 
-  Very-stable-≡-× :
-    Very-stable-≡ A →
-    Very-stable-≡ B →
-    Very-stable-≡ (A × B)
-  Very-stable-≡-× s₁ s₂ {x = p} {y = q} =                              $⟨ s₁ , s₂ ⟩
-    Very-stable (proj₁ p ≡ proj₁ q) × Very-stable (proj₂ p ≡ proj₂ q)  ↝⟨ uncurry Very-stable-× ⟩
-    Very-stable (proj₁ p ≡ proj₁ q × proj₂ p ≡ proj₂ q)                ↝⟨ Very-stable-cong _ $ Eq.↔⇒≃ ≡×≡↔≡ ⟩□
-    Very-stable (p ≡ q)                                                □
+  Stable-↑ⁿ :
+    ∀ n →
+    For-iterated-equality n Stable-[ k ] A →
+    For-iterated-equality n Stable-[ k ] (↑ ℓ A)
+  Stable-↑ⁿ n =
+    For-iterated-equality-↑ _ n Stable-map-↔
 
-  -- A variant of Stable-↑ for equality.
+  -- A generalisation of Very-stable-↑.
 
-  Stable-≡-↑ :
-    Stable-≡-[ k ] A →
-    Stable-≡-[ k ] (↑ ℓ A)
-  Stable-≡-↑ {k = k} s {x = x} {y = y} =
-                                      $⟨ s ⟩
-    Stable-[ k ] (lower x ≡ lower y)  ↝⟨ Stable-map-↔ (_≃_.bijection $ Eq.≃-≡ $ Eq.↔⇒≃ $ Bijection.↑↔) ⟩□
-    Stable-[ k ] (x ≡ y)              □
-
-  -- A variant of Very-stable-↑ for equality.
-
-  Very-stable-≡-↑ :
-    Very-stable-≡ A →
-    Very-stable-≡ (↑ ℓ A)
-  Very-stable-≡-↑ s {x = x} {y = y} =
-                                     $⟨ s ⟩
-    Very-stable (lower x ≡ lower y)  ↝⟨ Very-stable-cong _ (Eq.≃-≡ $ Eq.↔⇒≃ $ Bijection.↑↔) ⦂ (_ → _) ⟩□
-    Very-stable (x ≡ y)              □
-
-  -- A variant of Very-stable-W for equality.
-
-  Very-stable-≡-W :
-    {A : Set a} {P : A → Set p} →
-    Extensionality p (a ⊔ p) →
-    Very-stable-≡ A →
-    Very-stable-≡ (W A P)
-  Very-stable-≡-W {P = P} ext s {x = sup x f} {y = sup y g} =      $⟨ s , (λ _ → Very-stable-Π ext λ _ → Very-stable-≡-W ext s) ⟩
-    Very-stable (x ≡ y) ×
-    (∀ eq → Very-stable (∀ i → f i ≡ g (subst P eq i)))            ↝⟨ uncurry Very-stable-Σ ⟩
-
-    Very-stable (∃ λ (eq : x ≡ y) → ∀ i → f i ≡ g (subst P eq i))  ↝⟨ Very-stable-cong _ $ Eq.W-≡,≡≃≡ ext ⟩□
-
-    Very-stable (sup x f ≡ sup y g)                                □
-
-  -- If equality is stable for A and B, then it is stable for A ⊎ B.
-
-  Stable-≡-⊎ :
-    Stable-≡-[ k ] A →
-    Stable-≡-[ k ] B →
-    Stable-≡-[ k ] (A ⊎ B)
-  Stable-≡-⊎ s₁ s₂ {x = inj₁ x} {y = inj₁ y} =
-    Erased (inj₁ x ≡ inj₁ y)  ↔⟨ Erased-cong $ inverse Bijection.≡↔inj₁≡inj₁ ⟩
-    Erased (x ≡ y)            ↝⟨ s₁ ⟩
-    x ≡ y                     ↔⟨ Bijection.≡↔inj₁≡inj₁ ⟩□
-    inj₁ x ≡ inj₁ y           □
-
-  Stable-≡-⊎ s₁ s₂ {x = inj₁ x} {y = inj₂ y} =
-    Erased (inj₁ x ≡ inj₂ y)  ↔⟨ Erased-cong Bijection.≡↔⊎ ⟩
-    Erased ⊥                  ↝⟨ Very-stable→Stable Very-stable-⊥ ⟩
-    ⊥                         ↔⟨ inverse Bijection.≡↔⊎ ⟩□
-    inj₁ x ≡ inj₂ y           □
-
-  Stable-≡-⊎ s₁ s₂ {x = inj₂ x} {y = inj₁ y} =
-    Erased (inj₂ x ≡ inj₁ y)  ↔⟨ Erased-cong Bijection.≡↔⊎ ⟩
-    Erased ⊥                  ↝⟨ Very-stable→Stable Very-stable-⊥ ⟩
-    ⊥                         ↔⟨ inverse Bijection.≡↔⊎ ⟩□
-    inj₂ x ≡ inj₁ y           □
-
-  Stable-≡-⊎ s₁ s₂ {x = inj₂ x} {y = inj₂ y} =
-    Erased (inj₂ x ≡ inj₂ y)  ↔⟨ Erased-cong $ inverse Bijection.≡↔inj₂≡inj₂ ⟩
-    Erased (x ≡ y)            ↝⟨ s₂ ⟩
-    x ≡ y                     ↔⟨ Bijection.≡↔inj₂≡inj₂ ⟩□
-    inj₂ x ≡ inj₂ y           □
-
-  -- If equality is very stable for A and B, then it is very stable
-  -- for A ⊎ B.
-
-  Very-stable-≡-⊎ :
-    Very-stable-≡ A →
-    Very-stable-≡ B →
-    Very-stable-≡ (A ⊎ B)
-  Very-stable-≡-⊎ s₁ s₂ =
-    _≃_.is-equivalence $
-    Eq.with-other-function
-      (inverse $ Stable-≡-⊎ (inverse Eq.⟨ _ , s₁ ⟩)
-                            (inverse Eq.⟨ _ , s₂ ⟩))
-      [_]
-      (lemma _ _)
-    where
-    lemma :
-      ∀ x y (eq : x ≡ y) →
-      _≃_.from (Stable-≡-⊎ (inverse Eq.⟨ _ , s₁ ⟩)
-                           (inverse Eq.⟨ _ , s₂ ⟩)) eq ≡
-      [ eq ]
-    lemma (inj₁ _) (inj₁ _) eq =
-      [ cong inj₁ (⊎.cancel-inj₁ eq) ]  ≡⟨ cong [_] $ _↔_.right-inverse-of Bijection.≡↔inj₁≡inj₁ eq ⟩∎
-      [ eq ]                            ∎
-    lemma (inj₁ _) (inj₂ _) eq = ⊥-elim (⊎.inj₁≢inj₂ eq)
-    lemma (inj₂ _) (inj₁ _) eq = ⊥-elim (⊎.inj₁≢inj₂ (sym eq))
-    lemma (inj₂ _) (inj₂ _) eq =
-      [ cong inj₂ (⊎.cancel-inj₂ eq) ]  ≡⟨ cong [_] $ _↔_.right-inverse-of Bijection.≡↔inj₂≡inj₂ eq ⟩∎
-      [ eq ]                            ∎
-
-  -- If equality is stable for A, then it is stable for List A.
-
-  Stable-≡-List :
-    Stable-≡-[ k ] A →
-    Stable-≡-[ k ] (List A)
-  Stable-≡-List _ {x = []} {y = []} =
-    Erased ([] ≡ [])            ↔⟨ Erased-cong $ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩
-    Erased (inj₁ tt ≡ inj₁ tt)  ↔⟨ Erased-cong $ inverse Bijection.≡↔inj₁≡inj₁ ⟩
-    Erased (tt ≡ tt)            ↝⟨ Very-stable→Stable $ Very-stable→Very-stable-≡ Very-stable-⊤ ⟩
-    tt ≡ tt                     ↔⟨ Bijection.≡↔inj₁≡inj₁ ⟩
-    inj₁ tt ≡ inj₁ tt           ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩□
-    [] ≡ []                     □
-
-  Stable-≡-List _ {x = []} {y = y ∷ ys} =
-    Erased ([] ≡ y ∷ ys)              ↔⟨ Erased-cong $ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩
-    Erased (inj₁ tt ≡ inj₂ (y , ys))  ↔⟨ Erased-cong Bijection.≡↔⊎ ⟩
-    Erased ⊥                          ↝⟨ Very-stable→Stable Very-stable-⊥ ⟩
-    ⊥                                 ↔⟨ inverse Bijection.≡↔⊎ ⟩
-    inj₁ tt ≡ inj₂ (y , ys)           ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩□
-    [] ≡ y ∷ ys                       □
-
-  Stable-≡-List _ {x = x ∷ xs} {y = []} =
-    Erased (x ∷ xs ≡ [])              ↔⟨ Erased-cong $ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩
-    Erased (inj₂ (x , xs) ≡ inj₁ tt)  ↔⟨ Erased-cong Bijection.≡↔⊎ ⟩
-    Erased ⊥                          ↝⟨ Very-stable→Stable Very-stable-⊥ ⟩
-    ⊥                                 ↔⟨ inverse Bijection.≡↔⊎ ⟩
-    inj₂ (x , xs) ≡ inj₁ tt           ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩□
-    x ∷ xs ≡ []                       □
-
-  Stable-≡-List s {x = x ∷ xs} {y = y ∷ ys} =
-    Erased (x ∷ xs ≡ y ∷ ys)  ↔⟨ Erased-cong $ inverse lemma ⟩
-    Erased (x ≡ y × xs ≡ ys)  ↝⟨ Stable-× s (Stable-≡-List s) ⟩
-    x ≡ y × xs ≡ ys           ↔⟨ lemma ⟩
-    x ∷ xs ≡ y ∷ ys           □
-    where
-    lemma =
-      x ≡ y × xs ≡ ys                ↝⟨ ≡×≡↔≡ ⟩
-      (x , xs) ≡ (y , ys)            ↝⟨ Bijection.≡↔inj₂≡inj₂ ⟩
-      inj₂ (x , xs) ≡ inj₂ (y , ys)  ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ L.List↔Maybe[×List] ⟩□
-      x ∷ xs ≡ y ∷ ys                □
-
-  -- If equality is very stable for A, then it is very stable for
-  -- List A.
-
-  Very-stable-≡-List : Very-stable-≡ A → Very-stable-≡ (List A)
-  Very-stable-≡-List {A = A} s =
-    _≃_.is-equivalence $
-    Eq.with-other-function
-      (inverse s′)
-      [_]
-      (lemma _ _)
-    where
-    s′ : Stable-≡-[ equivalence ] (List A)
-    s′ = Stable-≡-List (inverse Eq.⟨ _ , s ⟩)
-
-    lemma :
-      ∀ xs ys (eq : xs ≡ ys) →
-      _≃_.from s′ eq ≡ [ eq ]
-    lemma [] [] _ = cong [_] (prop _ _)
-      where
-      prop : Is-proposition ([] ≡ [])
-      prop =                                $⟨ mono (Nat.zero≤ 2) ⊤-contractible ⟩
-        Is-proposition (tt ≡ tt)            ↝⟨ H-level-cong _ 1 Bijection.≡↔inj₁≡inj₁ ⟩
-        Is-proposition (inj₁ tt ≡ inj₁ tt)  ↝⟨ H-level-cong _ 1 (Eq.≃-≡ (Eq.↔⇒≃ L.List↔Maybe[×List])) ⦂ (_ → _) ⟩□
-        Is-proposition ([] ≡ [])            □
-
-    lemma [] (_ ∷ _) = ⊥-elim ∘ List.[]≢∷
-
-    lemma (_ ∷ _) [] = ⊥-elim ∘ List.[]≢∷ ∘ sym
-
-    lemma (_ ∷ xs) (_ ∷ ys) eq = []-cong [
-      _≃_.to iso₁ (_↔_.to iso₂ (_↔_.to iso₃
-        (Σ-map id (erased ∘ _≃_.from s′)
-           (_↔_.from iso₃ (_↔_.from iso₂ (_≃_.from iso₁ eq))))))    ≡⟨ cong (λ x → _≃_.to iso₁ (_↔_.to iso₂ (_↔_.to iso₃
-                                                                                     (proj₁ (_↔_.from iso₃ (_↔_.from iso₂ _)) , erased x)))) $
-                                                                       lemma xs ys _ ⟩
-      _≃_.to iso₁ (_↔_.to iso₂ (_↔_.to iso₃
-        (_↔_.from iso₃ (_↔_.from iso₂ (_≃_.from iso₁ eq)))))
-                                                                    ≡⟨ cong (λ eq → _≃_.to iso₁ (_↔_.to iso₂ eq)) $
-                                                                       _↔_.right-inverse-of iso₃ _ ⟩
-
-      _≃_.to iso₁ (_↔_.to iso₂ (_↔_.from iso₂ (_≃_.from iso₁ eq)))  ≡⟨ cong (_≃_.to iso₁) $ _↔_.right-inverse-of iso₂ _ ⟩
-
-      _≃_.to iso₁ (_≃_.from iso₁ eq)                                ≡⟨ _≃_.right-inverse-of iso₁ _ ⟩∎
-
-      eq                                                            ∎ ]
-      where
-      iso₁ = Eq.≃-≡ (Eq.↔⇒≃ L.List↔Maybe[×List])
-      iso₂ = Bijection.≡↔inj₂≡inj₂
-      iso₃ = ≡×≡↔≡
+  Very-stable-↑ⁿ :
+    ∀ n →
+    For-iterated-equality n Very-stable A →
+    For-iterated-equality n Very-stable (↑ ℓ A)
+  Very-stable-↑ⁿ n =
+    For-iterated-equality-↑
+      _
+      n
+      (Very-stable-cong _ ∘ from-isomorphism)

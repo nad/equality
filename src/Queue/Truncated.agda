@@ -125,7 +125,7 @@ module _
     {q₁ q₂ : Queue Q A} → (Very-stable-≡ A → q₁ ≡ q₂) → q₁ ≡ q₂
   strengthen-queue-equality {q₁ = q₁} {q₂ = q₂} eq =
     _↔_.to ≡-for-indices↔≡
-      [ ⌊ q₁ ⌋  ≡⟨ cong ⌊_⌋ (eq (erased Erased-Very-stable)) ⟩∎
+      [ ⌊ q₁ ⌋  ≡⟨ cong ⌊_⌋ (eq (Very-stable→Very-stable-≡ 0 (erased Erased-Very-stable))) ⟩∎
         ⌊ q₂ ⌋  ∎
       ]
 
@@ -165,7 +165,7 @@ module _
         Queue-⟪⟫↔Σ-List′ : Queue Q ⟪ ys ⟫ ↔ ∃ λ xs → Erased (xs ≡ ys)
         Queue-⟪⟫↔Σ-List′ = ↠→↔Erased-singleton
           (Q.Queue↠List _)
-          (Very-stable-≡-List s)
+          (Very-stable-≡-List 0 s)
 
         from-Queue-⟪⟫↔Σ-List′ :
           _≡_ {A = Queue Q ⟪ ys ⟫}
@@ -216,7 +216,7 @@ module _
     @0 ≡⌊⌋ : to-List s q ≡ ⌊ q ⌋
     ≡⌊⌋ {s = s} {q = q} =
       to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡
-        (Q.Queue↠List _) (Very-stable-≡-List s) q
+        (Q.Queue↠List _) (Very-stable-≡-List 0 s) q
 
   -- Queue Q A is isomorphic to List A in an erased context. The
   -- forward direction of this isomorphism returns the index directly.
@@ -226,8 +226,9 @@ module _
     Queue Q A                                             ↔⟨⟩
     (∃ λ (xs : Erased (List A)) → Queue Q ⟪ erased xs ⟫)  ↝⟨ drop-⊤-right (λ _ → _⇔_.to contractible⇔↔⊤ $
                                                              propositional⇒inhabited⇒contractible Queue-⟪⟫-propositional $
-                                                             _↔_.from (Queue-⟪⟫↔Σ-List (erased Erased-Very-stable)) (_ , [ refl _ ])) ⟩
-    Erased (List A)                                       ↝⟨ Very-stable→Stable $ erased Erased-Very-stable ⟩□
+                                                             _↔_.from (Queue-⟪⟫↔Σ-List (Very-stable→Very-stable-≡ 0 $ erased Erased-Very-stable))
+                                                                      (_ , [ refl _ ])) ⟩
+    Erased (List A)                                       ↝⟨ Very-stable→Stable 0 $ erased Erased-Very-stable ⟩□
     List A                                                □
 
   private
@@ -339,7 +340,7 @@ module _
       Very-stable-≡ A →
       Is-proposition Result-⟪ xs ⟫
     Result-⟪⟫-propositional {A = A} {xs = xs} s =
-                                            $⟨ erased-singleton-with-erased-center-propositional (Very-stable-≡-List s) ⟩
+                                            $⟨ erased-singleton-with-erased-center-propositional (Very-stable-≡-List 0 s) ⟩
       Is-proposition (Erased-singleton xs)  ↝⟨ H-level-cong _ 1 (inverse lemma) ⦂ (_ → _) ⟩□
       Is-proposition Result-⟪ xs ⟫          □
       where

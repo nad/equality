@@ -59,7 +59,7 @@ erased-singleton-contractible :
   Contractible (Erased-singleton x)
 erased-singleton-contractible {x = x} s =
                                      $⟨ singleton-contractible x ⟩
-  Contractible (Singleton x)         ↝⟨ H-level-cong _ 0 (∃-cong λ _ → Eq.⟨ _ , s ⟩) ⦂ (_ → _) ⟩□
+  Contractible (Singleton x)         ↝⟨ H-level-cong _ 0 (∃-cong λ _ → Eq.⟨ _ , s _ _ ⟩) ⦂ (_ → _) ⟩□
   Contractible (Erased-singleton x)  □
 
 -- If equality is very stable for A, and x : A is erased, then
@@ -72,8 +72,8 @@ erased-singleton-with-erased-center-propositional :
 erased-singleton-with-erased-center-propositional {x = x} s =
                                                  $⟨ [ erased-singleton-contractible s ] ⟩
   Erased (Contractible (Erased-singleton x))     ↝⟨ Erased-cong (mono₁ 0) ⟩
-  Erased (Is-proposition (Erased-singleton x))   ↝⟨ (Stable-Is-proposition _ $ Very-stable→Stable $
-                                                     Very-stable-≡-Σ s λ _ → Very-stable→Very-stable-≡ Very-stable-Erased) ⟩□
+  Erased (Is-proposition (Erased-singleton x))   ↝⟨ (Stable-H-level _ 0 $ Very-stable→Stable 1 $
+                                                     Very-stable-Σⁿ 1 s λ _ → Very-stable→Very-stable-≡ 0 Very-stable-Erased) ⟩□
   Is-proposition (Erased-singleton x)            □
 
 -- If A is very stable, and x : A is erased, then Erased-singleton x
@@ -85,10 +85,10 @@ erased-singleton-with-erased-center-contractible :
   Contractible (Erased-singleton x)
 erased-singleton-with-erased-center-contractible {x = x} s =
                                      $⟨ [ x , [ refl _ ] ] ⟩
-  Erased (Erased-singleton x)        ↝⟨ Very-stable→Stable (Very-stable-Σ s λ _ → Very-stable-Erased) ⟩
+  Erased (Erased-singleton x)        ↝⟨ Very-stable→Stable 0 (Very-stable-Σ s λ _ → Very-stable-Erased) ⟩
   Erased-singleton x                 ↝⟨ propositional⇒inhabited⇒contractible $
                                         erased-singleton-with-erased-center-propositional $
-                                        Very-stable→Very-stable-≡ s ⟩□
+                                        Very-stable→Very-stable-≡ 0 s ⟩□
   Contractible (Erased-singleton x)  □
 
 -- A corollary of erased-singleton-with-erased-center-propositional.
