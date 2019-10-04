@@ -92,12 +92,12 @@ private
     just (enqueue 30 (enqueue 6 empty))
   example₃ =
     (do x , q ← ⟨ dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty))) ⟩
-        return (enqueue (3 * x) q))                                        ≡⟨ ⟨by⟩ 3 example₂ ⟩
+        return (enqueue (3 * x) q))                                      ≡⟨ ⟨by⟩ 3 example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
-        return (enqueue (3 * x) (q ⦂ Queue Q ℕ)))                          ≡⟨⟩
+        return (enqueue (3 * x) (q ⦂ Queue Q ℕ)))                        ≡⟨⟩
 
-    just (enqueue 30 (enqueue 6 empty))                                    ∎
+    just (enqueue 30 (enqueue 6 empty))                                  ∎
 
   example₄ :
     (do x , q ← dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))
