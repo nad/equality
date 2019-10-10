@@ -371,21 +371,21 @@ module []-cong
                                                    _⇔_.from (H-level⇔H-level′ {n = 1}) ⟩□
       For-iterated-equality n Is-proposition A  □
 
-  -- Contractible types are very stable.
+  -- Types with h-level n are very stable "n levels up".
 
-  Contractible→Very-stable :
-    Contractible A → Very-stable A
-  Contractible→Very-stable c =
-    Stable-proposition→Very-stable
-      (λ _ → proj₁ c)
-      (mono₁ 0 c)
-
-  -- Equality is very stable for propositions.
-
-  Is-proposition→Very-stable-≡ :
-    Is-proposition A → Very-stable-≡ A
-  Is-proposition→Very-stable-≡ prop _ _ =
-    Contractible→Very-stable (+⇒≡ prop)
+  H-level→Very-stable :
+    ∀ n → H-level n A → For-iterated-equality n Very-stable A
+  H-level→Very-stable {A = A} n =
+    H-level n A                            ↝⟨ _⇔_.to H-level⇔H-level′ ⟩
+    H-level′ n A                           ↝⟨ For-iterated-equality-cong₁ _ n Contractible→Very-stable ⟩□
+    For-iterated-equality n Very-stable A  □
+    where
+    Contractible→Very-stable :
+      ∀ {A} → Contractible A → Very-stable A
+    Contractible→Very-stable c =
+      Stable-proposition→Very-stable
+        (λ _ → proj₁ c)
+        (mono₁ 0 c)
 
   -- If equality is decidable for A, then equality is very stable for A.
 
