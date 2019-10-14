@@ -406,7 +406,7 @@ Erased-Is-embedding-[] =
 
 Erased-Split-surjective-[] :
   {@0 A : Set a} → Erased (Split-surjective ([_] {A = A}))
-Erased-Split-surjective-[] = [ (λ { [ x ] → x , refl _ }) ]
+Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
 
 ------------------------------------------------------------------------
 -- Some results that follow if "[]-cong" is an equivalence that maps

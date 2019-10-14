@@ -233,7 +233,7 @@ module _
 
   private
 
-    to-Queue↔Listⁱ-, : _↔_.to Queue↔Listⁱ q ≡ ⌊ q ⌋
+    @0 to-Queue↔Listⁱ-, : _↔_.to Queue↔Listⁱ q ≡ ⌊ q ⌋
     to-Queue↔Listⁱ-, = refl _
 
   -- The forward directions of Queue↔List and Queue↔Listⁱ match.
