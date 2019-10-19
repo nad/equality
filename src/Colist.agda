@@ -120,6 +120,13 @@ take zero    _        = []
 take _       []       = []
 take (suc n) (x ∷ xs) = x ∷ take n (force xs)
 
+-- The sum of the successor of every element in the list.
+
+sum-of-successors : ∀ {i} → Colist (Conat ∞) i → Conat i
+sum-of-successors []       = zero
+sum-of-successors (n ∷ ns) = suc λ { .force →
+  n Conat.+ sum-of-successors (ns .force) }
+
 ------------------------------------------------------------------------
 -- Bisimilarity
 
@@ -275,6 +282,16 @@ take-cong :
 take-cong n       []       = E.refl _
 take-cong zero    (p ∷ ps) = E.refl _
 take-cong (suc n) (p ∷ ps) = E.cong₂ _∷_ p (take-cong n (force ps))
+
+sum-of-successors-cong :
+  ∀ {i ms ns} →
+  [ i ] ms ∼ ns →
+  Conat.[ i ] sum-of-successors ms ∼ sum-of-successors ns
+sum-of-successors-cong []       = zero
+sum-of-successors-cong (p ∷ ps) = suc λ { .force →
+  E.subst (Conat.[ _ ] _ ∼_) p (Conat.reflexive-∼ _)
+    Conat.+-cong
+  sum-of-successors-cong (ps .force) }
 
 -- The length of replicate n x is bisimilar to n.
 
