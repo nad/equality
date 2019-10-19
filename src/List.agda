@@ -367,6 +367,17 @@ filter∘map p f (x ∷ xs) with p (f x)
 ... | true  = cong (_ ∷_) (filter∘map p f xs)
 ... | false = filter∘map p f xs
 
+-- The length of replicate n x is n.
+
+length-replicate :
+  ∀ {a} {A : Set a} {x : A} n →
+  length (replicate n x) ≡ n
+length-replicate         zero    = refl _
+length-replicate {x = x} (suc n) =
+  length (replicate (suc n) x)  ≡⟨⟩
+  suc (length (replicate n x))  ≡⟨ cong suc $ length-replicate n ⟩∎
+  suc n                         ∎
+
 -- The sum of replicate m n is m * n.
 
 sum-replicate : ∀ m {n} → sum (replicate m n) ≡ m * n
