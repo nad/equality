@@ -31,6 +31,22 @@ tail : ∀ {a} {A : Set a} → List A → List A
 tail []       = []
 tail (_ ∷ xs) = xs
 
+-- The function take n returns the first n elements of a list (or the
+-- entire list, if the list does not contain n elements).
+
+take : ∀ {a} {A : Set a} → ℕ → List A → List A
+take zero    xs       = []
+take (suc n) (x ∷ xs) = x ∷ take n xs
+take (suc n) xs@[]    = xs
+
+-- The function drop n removes the first n elements from a list (or
+-- all elements, if the list does not contain n elements).
+
+drop : ∀ {a} {A : Set a} → ℕ → List A → List A
+drop zero    xs       = xs
+drop (suc n) (x ∷ xs) = drop n xs
+drop (suc n) xs@[]    = xs
+
 -- Right fold.
 
 foldr : ∀ {a b} {A : Set a} {B : Set b} →
@@ -123,6 +139,35 @@ nats-< (suc n) = n ∷ nats-< n
 
 ------------------------------------------------------------------------
 -- Some properties
+
+-- If you take the first n elements from xs and append what you get if
+-- you drop the first n elements from xs, then you get xs (even if n
+-- is larger than the length of xs).
+
+take++drop :
+  ∀ {a} {A : Set a} {xs : List A} n →
+  take n xs ++ drop n xs ≡ xs
+take++drop               zero    = refl _
+take++drop {xs = []}     (suc n) = refl _
+take++drop {xs = x ∷ xs} (suc n) = cong (x ∷_) (take++drop n)
+
+-- The map function commutes with take n.
+
+map-take :
+  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {xs n} →
+  map f (take n xs) ≡ take n (map f xs)
+map-take               {n = zero}  = refl _
+map-take {xs = []}     {n = suc n} = refl _
+map-take {xs = x ∷ xs} {n = suc n} = cong (_ ∷_) map-take
+
+-- The map function commutes with drop n.
+
+map-drop :
+  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {xs} n →
+  map f (drop n xs) ≡ drop n (map f xs)
+map-drop               zero    = refl _
+map-drop {xs = []}     (suc n) = refl _
+map-drop {xs = x ∷ xs} (suc n) = map-drop n
 
 -- The function foldr _∷_ [] is pointwise equal to the identity
 -- function.
