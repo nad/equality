@@ -21,6 +21,7 @@ open import H-level eq as H-level
 open import H-level.Closure eq
 open import Monad eq hiding (map)
 open import Nat eq
+open import Nat.Solver eq
 
 ------------------------------------------------------------------------
 -- Some functions
@@ -65,6 +66,11 @@ foldl _⊕_ ε (x ∷ xs) = foldl _⊕_ (ε ⊕ x) xs
 
 length : ∀ {a} {A : Set a} → List A → ℕ
 length = foldr (const suc) 0
+
+-- The sum of all the elements in a list of natural numbers.
+
+sum : List ℕ → ℕ
+sum = foldr _+_ 0
 
 -- Appends two lists.
 
@@ -266,6 +272,19 @@ length-++ :
 length-++ []       = refl _
 length-++ (_ ∷ xs) = cong suc (length-++ xs)
 
+-- The sum function is homomorphic with respect to _++_/_+_.
+
+sum-++ :
+  ∀ ms {ns : List ℕ} →
+  sum (ms ++ ns) ≡ sum ms + sum ns
+sum-++ []                 = refl _
+sum-++ (m ∷ ms) {ns = ns} =
+  sum (m ∷ ms ++ ns)     ≡⟨⟩
+  m + sum (ms ++ ns)     ≡⟨ cong (m +_) $ sum-++ ms ⟩
+  m + (sum ms + sum ns)  ≡⟨ +-assoc m ⟩
+  (m + sum ms) + sum ns  ≡⟨⟩
+  sum (m ∷ ms) + sum ns  ∎
+
 -- Some lemmas related to reverse.
 
 ++-reverse :
@@ -328,6 +347,15 @@ length-reverse (x ∷ xs) =
   length xs + 1                  ≡⟨ +-comm (length xs) ⟩∎
   length (x ∷ xs)                ∎
 
+sum-reverse : (xs : List ℕ) → sum (reverse xs) ≡ sum xs
+sum-reverse []       = refl _
+sum-reverse (n ∷ ns) =
+  sum (reverse (n ∷ ns))           ≡⟨ cong sum (reverse-∷ ns) ⟩
+  sum (reverse ns ++ n ∷ [])       ≡⟨ sum-++ (reverse ns) ⟩
+  sum (reverse ns) + sum (n ∷ [])  ≡⟨ cong₂ _+_ (sum-reverse ns) +-right-identity ⟩
+  sum ns + n                       ≡⟨ +-comm (sum ns) ⟩∎
+  sum (n ∷ ns)                     ∎
+
 -- The functions filter and map commute (kind of).
 
 filter∘map :
@@ -339,11 +367,36 @@ filter∘map p f (x ∷ xs) with p (f x)
 ... | true  = cong (_ ∷_) (filter∘map p f xs)
 ... | false = filter∘map p f xs
 
+-- The sum of replicate m n is m * n.
+
+sum-replicate : ∀ m {n} → sum (replicate m n) ≡ m * n
+sum-replicate zero            = refl _
+sum-replicate (suc m) {n = n} =
+  sum (replicate (suc m) n)  ≡⟨⟩
+  n + sum (replicate m n)    ≡⟨ cong (n +_) $ sum-replicate m ⟩
+  n + m * n                  ≡⟨⟩
+  suc m * n                  ∎
+
 -- The length of nats-< n is n.
 
 length∘nats-< : ∀ n → length (nats-< n) ≡ n
 length∘nats-< zero    = 0 ∎
 length∘nats-< (suc n) = cong suc (length∘nats-< n)
+
+-- The sum of nats-< n can be expressed without referring to lists.
+
+sum-nats-< : ∀ n → sum (nats-< n) ≡ ⌊ n * pred n /2⌋
+sum-nats-< zero          = refl _
+sum-nats-< (suc zero)    = refl _
+sum-nats-< (suc (suc n)) =
+  sum (suc n ∷ nats-< (suc n))       ≡⟨⟩
+  suc n + sum (nats-< (suc n))       ≡⟨ cong (suc n +_) (sum-nats-< (suc n)) ⟩
+  suc n + ⌊ suc n * n /2⌋            ≡⟨ sym $ ⌊2*+/2⌋≡ (suc n) ⟩
+  ⌊ 2 * suc n + suc n * n /2⌋        ≡⟨ cong ⌊_/2⌋ (solve 1 (λ n → con 2 :* (con 1 :+ n) :+ (con 1 :+ n) :* n :=
+                                                                   con 1 :+ n :+ (con 1 :+ n :+ n :* (con 1 :+ n)))
+                                                          (refl _) n) ⟩
+  ⌊ suc n + (suc n + n * suc n) /2⌋  ≡⟨⟩
+  ⌊ suc (suc n) * suc n /2⌋          ∎
 
 -- If xs ++ ys is equal to [], then both lists are.
 
