@@ -21,6 +21,7 @@ open import H-level eq
 open import H-level.Closure eq
 open import Injection eq as Injection using (Injective; _↣_)
 open import Preimage eq using (_⁻¹_)
+open import Surjection eq using (_↠_)
 
 ------------------------------------------------------------------------
 -- Embeddings
@@ -166,6 +167,21 @@ private
     A-set
 
 -- For functions between sets the property of being injective is
+-- logically equivalent to the property of being an embedding.
+
+Injective⇔Is-embedding :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Is-set A → Is-set B →
+  (f : A → B) → Injective f ⇔ Is-embedding f
+Injective⇔Is-embedding A-set B-set f = record
+  { to   = λ cong-f⁻¹ _ _ →
+               _≃_.is-equivalence $
+               _↠_.from (≃↠⇔ A-set B-set)
+                        (record { from = cong-f⁻¹ })
+  ; from = injective
+  }
+
+-- For functions between sets the property of being injective is
 -- equivalent to the property of being an embedding (assuming
 -- extensionality).
 
@@ -179,12 +195,7 @@ Injective≃Is-embedding ext A-set B-set f =
     (⇔↔≃ ext
          (Injective-propositional ext A-set)
          (Is-embedding-propositional ext))
-    (record { to   = λ cong-f⁻¹ _ _ →
-                         _≃_.is-equivalence $
-                         _↔_.to (⇔↔≃ ext A-set B-set)
-                                (record { from = cong-f⁻¹ })
-            ; from = injective
-            })
+    (Injective⇔Is-embedding A-set B-set f)
 
 -- If A and B are sets, then the type of injections from A to B is
 -- isomorphic to the type of embeddings from A to B (assuming
