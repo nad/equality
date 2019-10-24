@@ -370,8 +370,7 @@ module []-cong₂
   ----------------------------------------------------------------------
   -- A lemma
 
-  -- If A is a proposition, then [_] {A = A} is an embedding (assuming
-  -- extensionality).
+  -- If A is a proposition, then [_] {A = A} is an embedding.
   --
   -- See also Erased-Is-embedding-[] and Erased-Split-surjective-[]
   -- below as well as Very-stable→Is-embedding-[] and
@@ -379,12 +378,10 @@ module []-cong₂
   -- Injective-[] and Is-embedding-[] in Erased.With-K.
 
   Is-proposition→Is-embedding-[] :
-    {A : Set a} →
-    Extensionality a a →
     Is-proposition A → Is-embedding ([_] {A = A})
-  Is-proposition→Is-embedding-[] ext prop =
-    _≃_.to (Emb.Injective≃Is-embedding
-              ext set (H-level-Erased 2 set) [_])
+  Is-proposition→Is-embedding-[] prop =
+    _⇔_.to (Emb.Injective⇔Is-embedding
+              set (H-level-Erased 2 set) [_])
       (λ _ → prop _ _)
     where
     set = mono₁ 1 prop
