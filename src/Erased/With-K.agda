@@ -75,23 +75,23 @@ open Stability.[]-cong []-cong []-cong-equivalence refl public
 ------------------------------------------------------------------------
 -- Other code
 
+-- [_] is injective.
+
+Injective-[] : {@0 A : Set a} → Injective ([_] {A = A})
+Injective-[] refl = refl
+
 -- [_] is an embedding.
 
 Is-embedding-[] : Is-embedding ([_] {A = A})
 Is-embedding-[] x y = _≃_.is-equivalence (Eq.↔⇒≃ (record
   { surjection = record
     { logical-equivalence = record
-      { from = λ { refl → refl }
+      { from = Injective-[]
       }
     ; right-inverse-of = λ { refl → refl }
     }
   ; left-inverse-of = λ { refl → refl }
   }))
-
--- [_] is injective.
-
-Injective-[] : {@0 A : Set a} → Injective ([_] {A = A})
-Injective-[] refl = refl
 
 -- If Erased A is a proposition, then A is a proposition.
 

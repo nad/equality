@@ -92,7 +92,11 @@ Erased↔ = [ record
 Erased-⊤↔⊤ : Erased ⊤ ↔ ⊤
 Erased-⊤↔⊤ = record
   { surjection = record
-    { right-inverse-of = λ _ → refl _
+    { logical-equivalence = record
+      { to   = λ _ → tt
+      ; from = [_]
+      }
+    ; right-inverse-of = λ _ → refl _
     }
   ; left-inverse-of = λ _ → refl _
   }
@@ -206,7 +210,7 @@ module []-cong₁
     }
     where
     to : Erased (W A P) → W (Erased A) (λ x → Erased (P (erased x)))
-    to [ sup x f ] = sup [ x ] λ { [ y ] → to [ f y ] }
+    to [ sup x f ] = sup [ x ] (λ ([ y ]) → to [ f y ])
 
     from : W (Erased A) (λ x → Erased (P (erased x))) → Erased (W A P)
     from (sup [ x ] f) = [ sup x (λ y → erased (from (f [ y ]))) ]
@@ -215,8 +219,8 @@ module []-cong₁
       (x : W (Erased A) (λ x → Erased (P (erased x)))) →
       to (from x) ≡ x
     to∘from (sup [ x ] f) =
-      cong (sup [ x ]) (apply-ext ext λ { [ y ] →
-        to∘from (f [ y ]) })
+      cong (sup [ x ]) (apply-ext ext (λ ([ y ]) →
+        to∘from (f [ y ])))
 
     from∘to : (x : Erased (W A P)) → from (to x) ≡ x
     from∘to [ sup x f ] =
@@ -492,21 +496,26 @@ module []-cong₃
       module M = Embedding
 
       lemma : ∀ {@0 x y} (eq : [ x ] ≡ [ y ]) → _
-      lemma eq =
-        []-cong
-          [ cong (M.to A↣B) (erased (_↔_.from Erased-≡↔[]≡[] eq)) ]  ≡⟨ cong []-cong $
-                                                                        []-cong [ cong (cong (M.to A↣B) ∘ erased) from-Erased-≡↔[]≡[] ] ⟩
+      lemma = elim
+        (λ eq →
+           []-cong
+             [ cong (M.to A↣B) (erased (_↔_.from Erased-≡↔[]≡[] eq)) ] ≡
+           cong (Erased-cong-→ (M.to A↣B)) eq)
+        (λ ([ x ]) →
+           []-cong
+             [ cong (M.to A↣B) (erased
+                 (_↔_.from Erased-≡↔[]≡[] (refl [ x ]))) ]         ≡⟨ cong []-cong $
+                                                                      []-cong [ cong (cong (M.to A↣B) ∘ erased) from-Erased-≡↔[]≡[] ] ⟩
 
-        []-cong [ cong (M.to A↣B) (cong erased eq) ]                 ≡⟨ cong []-cong $ []-cong [ cong-∘ _ _ _ ] ⟩
+           []-cong [ cong (M.to A↣B) (cong erased (refl [ x ])) ]  ≡⟨ cong []-cong $ []-cong [ cong (cong (M.to A↣B)) (cong-refl _) ] ⟩
 
-        []-cong [ cong (M.to A↣B ∘ erased) eq ]                      ≡⟨ elim₁ (λ eq → []-cong [ cong (M.to A↣B ∘ erased) eq ] ≡ _)
-                                                                              (
-            []-cong [ cong (M.to A↣B ∘ erased) (refl _) ]                       ≡⟨ cong []-cong $ []-cong [ cong-refl _ ] ⟩
-            []-cong [ refl _ ]                                                  ≡⟨ []-cong-[refl] ⟩
-            refl _                                                              ≡⟨ sym $ cong-refl _ ⟩∎
-            cong (Erased-cong-→ (M.to A↣B)) (refl _)                            ∎)
-                                                                              eq ⟩∎
-        cong (Erased-cong-→ (M.to A↣B)) eq                           ∎
+           []-cong [ cong (M.to A↣B) (refl x) ]                    ≡⟨ cong []-cong $ []-cong [ cong-refl _ ] ⟩
+
+           []-cong [ refl (M.to A↣B x) ]                           ≡⟨ []-cong-[refl] ⟩
+
+           refl [ M.to A↣B x ]                                     ≡⟨ sym $ cong-refl _ ⟩∎
+
+           cong (Erased-cong-→ (M.to A↣B)) (refl [ x ])            ∎)
 
     -- Erased preserves all kinds of functions.
 
