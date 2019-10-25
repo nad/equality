@@ -82,16 +82,8 @@ Injective-[] refl = refl
 
 -- [_] is an embedding.
 
-Is-embedding-[] : Is-embedding ([_] {A = A})
-Is-embedding-[] x y = _≃_.is-equivalence (Eq.↔⇒≃ (record
-  { surjection = record
-    { logical-equivalence = record
-      { from = Injective-[]
-      }
-    ; right-inverse-of = λ { refl → refl }
-    }
-  ; left-inverse-of = λ { refl → refl }
-  }))
+Is-embedding-[] : {@0 A : Set a} → Is-embedding ([_] {A = A})
+Is-embedding-[] _ _ refl = (refl , refl) , λ { (refl , refl) → refl }
 
 -- If Erased A is a proposition, then A is a proposition.
 
