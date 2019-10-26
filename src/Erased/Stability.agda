@@ -335,6 +335,22 @@ module []-cong
   ----------------------------------------------------------------------
   -- Some lemmas related to stability
 
+  -- If A is stable, with [_] as a right inverse of the proof of
+  -- stability, then A is very stable.
+
+  Stable→Left-inverse→Very-stable :
+    (s : Stable A) → (∀ x → s [ x ] ≡ x) → Very-stable A
+  Stable→Left-inverse→Very-stable s inv =
+    _≃_.is-equivalence (Eq.↔⇒≃ (record
+      { surjection = record
+        { logical-equivalence = record
+          { from = s
+          }
+        ; right-inverse-of = λ ([ x ]) → []-cong [ inv x ]
+        }
+      ; left-inverse-of = inv
+      }))
+
   -- If A is a stable proposition, then A is very stable.
   --
   -- Note that it is not the case that every very stable type is a
