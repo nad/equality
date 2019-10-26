@@ -18,6 +18,7 @@ open import Bijection equality-with-J using (_↔_)
 open import Embedding equality-with-J as Emb using (Is-embedding)
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
+open import H-level equality-with-J
 open import Injection equality-with-J using (Injective)
 
 -- Some definitions from Erased are reexported.
@@ -92,6 +93,15 @@ Is-proposition-Erased→Is-proposition :
   Is-proposition (Erased A) → Is-proposition A
 Is-proposition-Erased→Is-proposition prop x y =
   Injective-[] (prop [ x ] [ y ])
+
+-- A variant of the previous result.
+
+H-level′-1-Erased→H-level′-1 :
+  {@0 A : Set a} →
+  H-level′ 1 (Erased A) → H-level′ 1 A
+H-level′-1-Erased→H-level′-1 prop x y
+  with proj₁ (prop [ x ] [ y ])
+... | refl = refl , λ { refl → refl }
 
 -- Equality is always very stable.
 
