@@ -264,16 +264,27 @@ Very-stable-Stable-Σ {A = A} {P = P} s s′ =
   Σ (Erased A) (λ x → Erased (P (erased x)))  ↝⟨ Σ-cong-contra Eq.⟨ _ , s ⟩ s′ ⟩□
   Σ A P                                       □
 
--- If A is stable and something resembling stability holds for P, then
--- Σ A P is stable.
+-- If A is stable with a stability proof that is a right inverse of
+-- [_], and P is pointwise stable, then Σ A P is stable.
 
 Stable-Σ :
-  {@0 A : Set a} {@0 P : A → Set p}
   (s : Stable A) →
-  (∀ x → Erased (P (erased x)) → P (s x)) →
+  (∀ x → [ s x ] ≡ x) →
+  (∀ x → Stable (P x)) →
   Stable (Σ A P)
-Stable-Σ s₁ s₂ [ p ] =
-  s₁ [ proj₁ p ] , s₂ [ proj₁ p ] [ proj₂ p ]
+Stable-Σ {A = A} {P = P} s₁ hyp s₂ =
+  Erased (Σ A P)                              ↔⟨ Erased-Σ↔Σ ⟩
+  Σ (Erased A) (λ x → Erased (P (erased x)))  ↝⟨ Σ-cong-contra-→ surj s₂ ⟩□
+  Σ A P                                       □
+  where
+  surj : A ↠ Erased A
+  surj = record
+    { logical-equivalence = record
+      { to   = [_]
+      ; from = s₁
+      }
+    ; right-inverse-of = hyp
+    }
 
 -- Very-stable is closed under Σ.
 
@@ -837,19 +848,15 @@ module []-cong
   Stable-≡-Σ :
     {p q : Σ A P} →
     (s : Stable (proj₁ p ≡ proj₁ q)) →
-    (∀ eq →
-     Erased (subst P (erased eq) (proj₂ p) ≡ proj₂ q) →
-     subst P (s eq) (proj₂ p) ≡ proj₂ q) →
+    (∀ eq → [ s eq ] ≡ eq) →
+    (∀ eq → Stable (subst P eq (proj₂ p) ≡ proj₂ q)) →
     Stable (p ≡ q)
-  Stable-≡-Σ {P = P} {p = p} {q = q} = curry (
-    (∃ λ (s : Stable (proj₁ p ≡ proj₁ q)) →
-       ∀ eq → Erased (subst P (erased eq) (proj₂ p) ≡ proj₂ q) →
-              subst P (s eq) (proj₂ p) ≡ proj₂ q)                 ↝⟨ uncurry Stable-Σ ⟩
+  Stable-≡-Σ {P = P} {p = p} {q = q} s₁ hyp s₂ =  $⟨ Stable-Σ s₁ hyp s₂ ⟩
 
     Stable (∃ λ (eq : proj₁ p ≡ proj₁ q) →
-                subst P eq (proj₂ p) ≡ proj₂ q)                   ↝⟨ Stable-map-↔ Bijection.Σ-≡,≡↔≡ ⟩□
+                subst P eq (proj₂ p) ≡ proj₂ q)   ↝⟨ Stable-map-↔ Bijection.Σ-≡,≡↔≡ ⟩□
 
-    Stable (p ≡ q)                                                □)
+    Stable (p ≡ q)                                □
 
   -- A generalisation of Very-stable-Σ.
 
