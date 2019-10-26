@@ -318,23 +318,23 @@ For-iterated-equality-⊎-suc :
   For-iterated-equality (suc n) P (↑ a B) →
   For-iterated-equality (suc n) P (A ⊎ B)
 For-iterated-equality-⊎-suc {P = P} n resp hyp-⊥ fie-A fie-B = λ where
-    (inj₁ x) (inj₁ y) →                            $⟨ fie-A (lift x) (lift y) ⟩
-      For-iterated-equality n P (lift x ≡ lift y)  ↝⟨ For-iterated-equality-cong _ n resp (Bijection.≡↔inj₁≡inj₁ F.∘ lift≡lift↔) ⟩□
-      For-iterated-equality n P (inj₁ x ≡ inj₁ y)  □
+  (inj₁ x) (inj₁ y) →                            $⟨ fie-A (lift x) (lift y) ⟩
+    For-iterated-equality n P (lift x ≡ lift y)  ↝⟨ For-iterated-equality-cong _ n resp (Bijection.≡↔inj₁≡inj₁ F.∘ lift≡lift↔) ⟩□
+    For-iterated-equality n P (inj₁ x ≡ inj₁ y)  □
 
-    (inj₂ x) (inj₂ y) →                            $⟨ fie-B (lift x) (lift y) ⟩
-      For-iterated-equality n P (lift x ≡ lift y)  ↝⟨ For-iterated-equality-cong _ n resp (Bijection.≡↔inj₂≡inj₂ F.∘ lift≡lift↔) ⟩□
-      For-iterated-equality n P (inj₂ x ≡ inj₂ y)  □
+  (inj₂ x) (inj₂ y) →                            $⟨ fie-B (lift x) (lift y) ⟩
+    For-iterated-equality n P (lift x ≡ lift y)  ↝⟨ For-iterated-equality-cong _ n resp (Bijection.≡↔inj₂≡inj₂ F.∘ lift≡lift↔) ⟩□
+    For-iterated-equality n P (inj₂ x ≡ inj₂ y)  □
 
-    (inj₁ x) (inj₂ y) →                            $⟨ hyp-⊥ ⟩
-      P ⊥                                          ↝⟨ (λ hyp → For-iterated-equality-⊥ _ n (λ _ → hyp) _) ⟩
-      For-iterated-equality n P ⊥                  ↝⟨ For-iterated-equality-cong _ n resp (inverse Bijection.≡↔⊎) ⟩□
-      For-iterated-equality n P (inj₁ x ≡ inj₂ y)  □
+  (inj₁ x) (inj₂ y) →                            $⟨ hyp-⊥ ⟩
+    P ⊥                                          ↝⟨ (λ hyp → For-iterated-equality-⊥ _ n (λ _ → hyp) _) ⟩
+    For-iterated-equality n P ⊥                  ↝⟨ For-iterated-equality-cong _ n resp (inverse Bijection.≡↔⊎) ⟩□
+    For-iterated-equality n P (inj₁ x ≡ inj₂ y)  □
 
-    (inj₂ x) (inj₁ y) →                            $⟨ hyp-⊥ ⟩
-      P ⊥                                          ↝⟨ (λ hyp → For-iterated-equality-⊥ _ n (λ _ → hyp) _) ⟩
-      For-iterated-equality n P ⊥                  ↝⟨ For-iterated-equality-cong _ n resp (inverse Bijection.≡↔⊎) ⟩□
-      For-iterated-equality n P (inj₂ x ≡ inj₁ y)  □
+  (inj₂ x) (inj₁ y) →                            $⟨ hyp-⊥ ⟩
+    P ⊥                                          ↝⟨ (λ hyp → For-iterated-equality-⊥ _ n (λ _ → hyp) _) ⟩
+    For-iterated-equality n P ⊥                  ↝⟨ For-iterated-equality-cong _ n resp (inverse Bijection.≡↔⊎) ⟩□
+    For-iterated-equality n P (inj₂ x ≡ inj₁ y)  □
 
 For-iterated-equality-⊎ :
   {A : Set a} {B : Set b} →
@@ -366,7 +366,7 @@ For-iterated-equality-List-suc {P = P} n resp hyp-⊤ hyp-⊥ hyp-× fie = λ wh
     For-iterated-equality n P (↑ _ ⊤)    ↝⟨ For-iterated-equality-cong _ n resp (inverse []≡[]↔⊤ F.∘ Bijection.↑↔) ⟩□
     For-iterated-equality n P ([] ≡ [])  □
 
-  (x ∷ xs) (y ∷ ys) →                            $⟨ For-iterated-equality-List-suc n resp hyp-⊤ hyp-⊥ hyp-× fie _ _ ⟩
+  (x ∷ xs) (y ∷ ys) →                            $⟨ For-iterated-equality-List-suc n resp hyp-⊤ hyp-⊥ hyp-× fie xs ys ⟩
     For-iterated-equality n P (xs ≡ ys)          ↝⟨ fie _ _ ,_ ⟩
 
     For-iterated-equality n P (x ≡ y) ×
