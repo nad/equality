@@ -390,6 +390,37 @@ Stable-≡-⊎ n sA sB =
   lemma : A ↔ B → Stable A → Stable B
   lemma = Stable-map-⇔ ∘ from-isomorphism
 
+private
+
+  -- An alternative, more direct proof, of the "base case" of the
+  -- previous result.
+
+  Stable-≡-⊎₀ : Stable-≡ A → Stable-≡ B → Stable-≡ (A ⊎ B)
+  Stable-≡-⊎₀ sA sB = λ where
+    (inj₁ x) (inj₁ y) →
+      Erased (inj₁ x ≡ inj₁ y)  ↝⟨ Erased-cong-→ $ _↔_.from Bijection.≡↔inj₁≡inj₁ ⟩
+      Erased (x ≡ y)            ↝⟨ sA _ _ ⟩
+      x ≡ y                     ↔⟨ Bijection.≡↔inj₁≡inj₁ ⟩□
+      inj₁ x ≡ inj₁ y           □
+
+    (inj₁ x) (inj₂ y) →
+      Erased (inj₁ x ≡ inj₂ y)  ↝⟨ Erased-cong-→ $ _↔_.to Bijection.≡↔⊎ ⟩
+      Erased ⊥                  ↝⟨ Very-stable→Stable 0 Very-stable-⊥ ⟩
+      ⊥                         ↔⟨ inverse Bijection.≡↔⊎ ⟩□
+      inj₁ x ≡ inj₂ y           □
+
+    (inj₂ x) (inj₁ y) →
+      Erased (inj₂ x ≡ inj₁ y)  ↝⟨ Erased-cong-→ $ _↔_.to Bijection.≡↔⊎ ⟩
+      Erased ⊥                  ↝⟨ Very-stable→Stable 0 Very-stable-⊥ ⟩
+      ⊥                         ↔⟨ inverse Bijection.≡↔⊎ ⟩□
+      inj₂ x ≡ inj₁ y           □
+
+    (inj₂ x) (inj₂ y) →
+      Erased (inj₂ x ≡ inj₂ y)  ↝⟨ Erased-cong-→ $ _↔_.from Bijection.≡↔inj₂≡inj₂ ⟩
+      Erased (x ≡ y)            ↝⟨ sB _ _ ⟩
+      x ≡ y                     ↔⟨ Bijection.≡↔inj₂≡inj₂ ⟩□
+      inj₂ x ≡ inj₂ y           □
+
 -- If equality is stable for A, then it is stable for List A.
 
 Stable-≡-List :
