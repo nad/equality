@@ -218,6 +218,19 @@ Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 ¬¬-Stable : {@0 A : Set a} → ¬¬ Stable A
 ¬¬-Stable = DN.map′ Dec→Stable excluded-middle
 
+-- A kind of map function for Stable.
+
+Stable-map :
+  {@0 A : Set a} {@0 B : Set b} →
+  (A → B) → @0 (B → A) → Stable A → Stable B
+Stable-map A→B B→A s x = A→B (s (Erased-cong-→ B→A x))
+
+-- A variant of Stable-map.
+
+Stable-map-⇔ : A ⇔ B → Stable A → Stable B
+Stable-map-⇔ A⇔B =
+  Stable-map (_⇔_.to A⇔B) (_⇔_.from A⇔B)
+
 ------------------------------------------------------------------------
 -- Closure properties
 
@@ -324,6 +337,72 @@ Stable-↑ {A = A} s =
 Very-stable-↑ : Very-stable A → Very-stable (↑ ℓ A)
 Very-stable-↑ s = _≃_.is-equivalence $
   inverse $ Stable-↑ $ inverse Eq.⟨ _ , s ⟩
+
+-- If A is "stable 1 + n levels up", then H-level′ (1 + n) A is
+-- stable.
+
+Stable-H-level′ :
+  ∀ n →
+  For-iterated-equality (1 + n) Stable A →
+  Stable (H-level′ (1 + n) A)
+Stable-H-level′ {A = A} n =
+  For-iterated-equality (1 + n) Stable A           ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality ext n 1) _ ⟩
+  For-iterated-equality n Stable-≡ A               ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
+  For-iterated-equality n (Stable ∘ H-level′ 1) A  ↝⟨ For-iterated-equality-commutes-← _ Stable n (Stable-Π _) ⟩
+  Stable (For-iterated-equality n (H-level′ 1) A)  ↝⟨ Stable-map-⇔ (For-iterated-equality-For-iterated-equality _ n 1) ⟩□
+  Stable (H-level′ (1 + n) A)                      □
+  where
+  lemma : ∀ {A} → Stable-≡ A → Stable (H-level′ 1 A)
+  lemma s =
+    Stable-map-⇔
+      (H-level↔H-level′ {n = 1} _)
+      (Stable-Π _ λ _ →
+       Stable-Π _ λ _ →
+       s _ _)
+
+-- If A is "stable 1 + n levels up", then H-level (1 + n) A is
+-- stable.
+
+Stable-H-level :
+  ∀ n →
+  For-iterated-equality (1 + n) Stable A →
+  Stable (H-level (1 + n) A)
+Stable-H-level {A = A} n =
+  For-iterated-equality (1 + n) Stable A  ↝⟨ Stable-H-level′ n ⟩
+  Stable (H-level′ (1 + n) A)             ↝⟨ Stable-map-⇔ (inverse-ext? H-level↔H-level′ _) ⟩□
+  Stable (H-level (1 + n) A)              □
+
+-- If equality is stable for A and B, then it is stable for A ⊎ B.
+
+Stable-≡-⊎ :
+  ∀ n →
+  For-iterated-equality (1 + n) Stable A →
+  For-iterated-equality (1 + n) Stable B →
+  For-iterated-equality (1 + n) Stable (A ⊎ B)
+Stable-≡-⊎ n sA sB =
+  For-iterated-equality-⊎-suc
+    n
+    lemma
+    (Very-stable→Stable 0 Very-stable-⊥)
+    (For-iterated-equality-↑ _ (1 + n) lemma sA)
+    (For-iterated-equality-↑ _ (1 + n) lemma sB)
+  where
+  lemma : A ↔ B → Stable A → Stable B
+  lemma = Stable-map-⇔ ∘ from-isomorphism
+
+-- If equality is stable for A, then it is stable for List A.
+
+Stable-≡-List :
+  ∀ n →
+  For-iterated-equality (1 + n) Stable A →
+  For-iterated-equality (1 + n) Stable (List A)
+Stable-≡-List n =
+  For-iterated-equality-List-suc
+    n
+    (Stable-map-⇔ ∘ from-isomorphism)
+    (Very-stable→Stable 0 $ Very-stable-↑ Very-stable-⊤)
+    (Very-stable→Stable 0 Very-stable-⊥)
+    Stable-×
 
 ------------------------------------------------------------------------
 -- Some results that follow if "[]-cong" is an equivalence that maps
@@ -491,19 +570,28 @@ module []-cong
 
   -- A kind of map function for Stable-[_].
 
-  Stable-map :
+  Stable-[]-map :
     A ↝[ k ] B → @0 B ↝[ k ] A → Stable-[ k ] A → Stable-[ k ] B
-  Stable-map {A = A} {B = B} A↝B B↝A s =
+  Stable-[]-map {A = A} {B = B} A↝B B↝A s =
     Erased B  ↝⟨ Erased-cong B↝A ⟩
     Erased A  ↝⟨ s ⟩
     A         ↝⟨ A↝B ⟩□
     B         □
 
-  -- A variant of Stable-map.
+  -- Variants of Stable-[]-map.
 
-  Stable-map-↔ : A ↔ B → Stable-[ k ] A → Stable-[ k ] B
-  Stable-map-↔ A↔B =
-    Stable-map (from-isomorphism A↔B) (from-isomorphism $ inverse A↔B)
+  Stable-[]-map-↔ : A ↔ B → Stable-[ k ] A → Stable-[ k ] B
+  Stable-[]-map-↔ A↔B =
+    Stable-[]-map
+      (from-isomorphism A↔B)
+      (from-isomorphism $ inverse A↔B)
+
+  Stable-[]-map-↝ :
+    {A : Set a} {B : Set b} →
+    (∀ {k} → Extensionality? k a b → A ↝[ k ] B) →
+    Extensionality? k a b → Stable-[ k ] A → Stable-[ k ] B
+  Stable-[]-map-↝ A↝B ext =
+    Stable-[]-map (A↝B ext) (inverse-ext? A↝B ext)
 
   -- Stable preserves some kinds of functions (those that are
   -- "symmetric"), possibly assuming extensionality.
@@ -654,50 +742,41 @@ module []-cong
 
     -- And so on…
 
-  -- If A is "stable 1 + n levels up", then H-level′ (1 + n) A is
-  -- stable.
+  -- A generalisation of Stable-H-level′.
 
-  Stable-H-level′ :
+  Stable-[]-H-level′ :
     {A : Set a} →
     Extensionality? k a a →
     ∀ n →
     For-iterated-equality (1 + n) Stable-[ k ] A →
     Stable-[ k ] (H-level′ (1 + n) A)
-  Stable-H-level′ {a = a} {k = k} {A = A} ext n =
-    For-iterated-equality (1 + n) Stable-[ k ] A               ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality ext n 1) _ ⟩
-    For-iterated-equality n Stable-≡-[ k ] A                   ↝⟨ For-iterated-equality-cong₁ _ n lemma₁ ⟩
-    For-iterated-equality n (Stable-[ k ] ∘ Is-proposition) A  ↝⟨ For-iterated-equality-commutes-← _ Stable-[ k ] n (Stable-Π ext) ⟩
-    Stable-[ k ] (For-iterated-equality n Is-proposition A)    ↝⟨ Stable-map (lemma₂ ext) (inverse-ext? lemma₂ ext) ⟩□
-    Stable-[ k ] (H-level′ (1 + n) A)                          □
+  Stable-[]-H-level′ {a = a} {k = k} {A = A} ext n =
+    For-iterated-equality (1 + n) Stable-[ k ] A           ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality ext n 1) _ ⟩
+    For-iterated-equality n Stable-≡-[ k ] A               ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
+    For-iterated-equality n (Stable-[ k ] ∘ H-level′ 1) A  ↝⟨ For-iterated-equality-commutes-← _ Stable-[ k ] n (Stable-Π ext) ⟩
+    Stable-[ k ] (For-iterated-equality n (H-level′ 1) A)  ↝⟨ Stable-[]-map-↝ (λ ext → For-iterated-equality-For-iterated-equality ext n 1) ext ⟩□
+    Stable-[ k ] (H-level′ (1 + n) A)                      □
     where
-    lemma₁ : ∀ {A} → Stable-≡-[ k ] A → Stable-[ k ] (Is-proposition A)
-    lemma₁ s =
-      Stable-Π ext λ _ →
-      Stable-Π ext λ _ →
-      s _ _
+    lemma : ∀ {A} → Stable-≡-[ k ] A → Stable-[ k ] (H-level′ 1 A)
+    lemma s =
+      Stable-[]-map-↝
+        (H-level↔H-level′ {n = 1})
+        ext
+        (Stable-Π ext λ _ →
+         Stable-Π ext λ _ →
+         s _ _)
 
-    lemma₂ :
-      ∀ {k} →
-      Extensionality? k a a →
-      For-iterated-equality n Is-proposition A ↝[ k ]
-      H-level′ (1 + n) A
-    lemma₂ ext =
-      For-iterated-equality n Is-proposition A  ↝⟨ For-iterated-equality-cong₁ ext n (H-level↔H-level′ {n = 1} ext) ⟩
-      For-iterated-equality n (H-level′ 1) A    ↝⟨ For-iterated-equality-For-iterated-equality ext n 1 ⟩□
-      H-level′ (1 + n) A                        □
+  -- A generalisation of Stable-H-level.
 
-  -- If A is "stable 1 + n levels up", then H-level (1 + n) A is
-  -- stable.
-
-  Stable-H-level :
+  Stable-[]-H-level :
     {A : Set a} →
     Extensionality? k a a →
     ∀ n →
     For-iterated-equality (1 + n) Stable-[ k ] A →
     Stable-[ k ] (H-level (1 + n) A)
-  Stable-H-level {k = k} {A = A} ext n =
-    For-iterated-equality (1 + n) Stable-[ k ] A  ↝⟨ Stable-H-level′ ext n ⟩
-    Stable-[ k ] (H-level′ (1 + n) A)             ↝⟨ Stable-map (inverse-ext? H-level↔H-level′ ext) (H-level↔H-level′ ext) ⟩□
+  Stable-[]-H-level {k = k} {A = A} ext n =
+    For-iterated-equality (1 + n) Stable-[ k ] A  ↝⟨ Stable-[]-H-level′ ext n ⟩
+    Stable-[ k ] (H-level′ (1 + n) A)             ↝⟨ Stable-[]-map-↝ (inverse-ext? H-level↔H-level′) ext ⟩□
     Stable-[ k ] (H-level (1 + n) A)              □
 
   -- If A is "very stable n levels up", then H-level′ n A is very
@@ -734,20 +813,20 @@ module []-cong
     Very-stable (H-level′ n A)             ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
     Very-stable (H-level n A)              □
 
-  -- If equality is stable for A and B, then it is stable for A ⊎ B.
+  -- A generalisation of Stable-≡-⊎.
 
-  Stable-≡-⊎ :
+  Stable-[]-≡-⊎ :
     ∀ n →
     For-iterated-equality (1 + n) Stable-[ k ] A →
     For-iterated-equality (1 + n) Stable-[ k ] B →
     For-iterated-equality (1 + n) Stable-[ k ] (A ⊎ B)
-  Stable-≡-⊎ n sA sB =
+  Stable-[]-≡-⊎ n sA sB =
     For-iterated-equality-⊎-suc
       n
-      Stable-map-↔
+      Stable-[]-map-↔
       (Very-stable→Stable 0 Very-stable-⊥)
-      (For-iterated-equality-↑ _ (1 + n) Stable-map-↔ sA)
-      (For-iterated-equality-↑ _ (1 + n) Stable-map-↔ sB)
+      (For-iterated-equality-↑ _ (1 + n) Stable-[]-map-↔ sA)
+      (For-iterated-equality-↑ _ (1 + n) Stable-[]-map-↔ sB)
 
   -- If equality is very stable for A and B, then it is very stable
   -- for A ⊎ B.
@@ -768,16 +847,16 @@ module []-cong
     lemma : A ↔ B → Very-stable A → Very-stable B
     lemma = Very-stable-cong _ ∘ from-isomorphism
 
-  -- If equality is stable for A, then it is stable for List A.
+  -- A generalisation of Stable-≡-List.
 
-  Stable-≡-List :
+  Stable-[]-≡-List :
     ∀ n →
     For-iterated-equality (1 + n) Stable-[ k ] A →
     For-iterated-equality (1 + n) Stable-[ k ] (List A)
-  Stable-≡-List n =
+  Stable-[]-≡-List n =
     For-iterated-equality-List-suc
       n
-      Stable-map-↔
+      Stable-[]-map-↔
       (Very-stable→Stable 0 $ Very-stable-↑ Very-stable-⊤)
       (Very-stable→Stable 0 Very-stable-⊥)
       Stable-×
@@ -812,7 +891,7 @@ module []-cong
     For-iterated-equality-Π
       ext
       n
-      Stable-map-↔
+      Stable-[]-map-↔
       (Stable-Π (forget-ext? k ext))
 
   -- A generalisation of Very-stable-Π.
@@ -840,7 +919,7 @@ module []-cong
   Very-stable-Stable-Σⁿ {k = k} n =
     For-iterated-equality-Σ
       n
-      Stable-map-↔
+      Stable-[]-map-↔
       Very-stable-Stable-Σ
 
   -- A variant of Stable-Σ for equality.
@@ -854,7 +933,7 @@ module []-cong
   Stable-≡-Σ {P = P} {p = p} {q = q} s₁ hyp s₂ =  $⟨ Stable-Σ s₁ hyp s₂ ⟩
 
     Stable (∃ λ (eq : proj₁ p ≡ proj₁ q) →
-                subst P eq (proj₂ p) ≡ proj₂ q)   ↝⟨ Stable-map-↔ Bijection.Σ-≡,≡↔≡ ⟩□
+                subst P eq (proj₂ p) ≡ proj₂ q)   ↝⟨ Stable-[]-map-↔ Bijection.Σ-≡,≡↔≡ ⟩□
 
     Stable (p ≡ q)                                □
 
@@ -881,7 +960,7 @@ module []-cong
   Stable-×ⁿ n =
     For-iterated-equality-×
       n
-      Stable-map-↔
+      Stable-[]-map-↔
       Stable-×
 
   -- A generalisation of Very-stable-×.
@@ -904,7 +983,7 @@ module []-cong
     For-iterated-equality n Stable-[ k ] A →
     For-iterated-equality n Stable-[ k ] (↑ ℓ A)
   Stable-↑ⁿ n =
-    For-iterated-equality-↑ _ n Stable-map-↔
+    For-iterated-equality-↑ _ n Stable-[]-map-↔
 
   -- A generalisation of Very-stable-↑.
 
