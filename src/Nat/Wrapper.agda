@@ -86,13 +86,18 @@ Nat = ∃ λ (n : Erased ℕ) → Nat-[ erased n ]
 ------------------------------------------------------------------------
 -- Conversion functions
 
+private
+
+  -- Equality is very stable for the natural numbers.
+
+  ℕ-very-stable : Very-stable-≡ ℕ
+  ℕ-very-stable = Decidable-equality→Very-stable-≡ N._≟_
+
 -- Nat-[ n ] is isomorphic to the type of natural numbers equal
 -- (with erased equality proofs) to n.
 
 Nat-[]↔Σℕ : {@0 n : ℕ} → Nat-[ n ] ↔ ∃ λ m → Erased (m ≡ n)
-Nat-[]↔Σℕ = ↠→↔Erased-singleton
-  Nat′↠ℕ
-  (Decidable-equality→Very-stable-≡ N._≟_)
+Nat-[]↔Σℕ = ↠→↔Erased-singleton Nat′↠ℕ ℕ-very-stable
 
 -- Nat is isomorphic to the type of unary natural numbers.
 
@@ -106,10 +111,8 @@ Nat↔ℕ = Σ-Erased-∥-Σ-Erased-≡-∥↔ Nat′↠ℕ ℕ-very-stable
 
 -- The index matches the result of _↔_.to Nat↔ℕ.
 
-@0 ≡⌊⌋ : ∀ {n} → _↔_.to Nat↔ℕ n ≡ ⌊ n ⌋
-≡⌊⌋ {n = n} =
-  to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡
-    Nat′↠ℕ (Decidable-equality→Very-stable-≡ N._≟_) n
+@0 ≡⌊⌋ : ∀ n → _↔_.to Nat↔ℕ n ≡ ⌊ n ⌋
+≡⌊⌋ n = to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ Nat′↠ℕ ℕ-very-stable n
 
 ------------------------------------------------------------------------
 -- Arithmetic with Nat-[_]
@@ -235,6 +238,64 @@ module Arithmetic-for-Nat (a : Arithmetic) where
 
   ⌈_/2⌉ : Nat → Nat
   ⌈_/2⌉ = Σ-map _ Nat-[].⌈_/2⌉
+
+  private
+
+    -- The functions defined above compute correctly for the erased
+    -- indices.
+
+    @0 ⌊suc⌋ : ∀ n → ⌊ suc n ⌋ ≡ N.suc ⌊ n ⌋
+    ⌊suc⌋ n = refl _
+
+    @0 ⌊+⌋ : ∀ m n → ⌊ m + n ⌋ ≡ ⌊ m ⌋ N.+ ⌊ n ⌋
+    ⌊+⌋ m n = refl _
+
+    @0 ⌊⌊/2⌋⌋ : ∀ n → ⌊ ⌊ n /2⌋ ⌋ ≡ N.⌊ ⌊ n ⌋ /2⌋
+    ⌊⌊/2⌋⌋ n = refl _
+
+    @0 ⌊⌈/2⌉⌋ : ∀ n → ⌊ ⌈ n /2⌉ ⌋ ≡ N.⌈ ⌊ n ⌋ /2⌉
+    ⌊⌈/2⌉⌋ n = refl _
+
+  -- It is also easy to prove corresponding correctness statements
+  -- when ⌊_⌋ is replaced by _↔_.to Nat↔ℕ.
+
+  private
+
+    ℕ-stable : {m n : ℕ} → Stable (m ≡ n)
+    ℕ-stable = Very-stable→Stable 1 ℕ-very-stable _ _
+
+  to-ℕ-suc : ∀ n → _↔_.to Nat↔ℕ (suc n) ≡ N.suc (_↔_.to Nat↔ℕ n)
+  to-ℕ-suc n = ℕ-stable
+    [ _↔_.to Nat↔ℕ (suc n)    ≡⟨ ≡⌊⌋ (suc n) ⟩
+      ⌊ suc n ⌋               ≡⟨⟩
+      N.suc ⌊ n ⌋             ≡⟨ sym $ cong N.suc $ ≡⌊⌋ n ⟩∎
+      N.suc (_↔_.to Nat↔ℕ n)  ∎
+    ]
+
+  to-ℕ-+ :
+    ∀ m n → _↔_.to Nat↔ℕ (m + n) ≡ _↔_.to Nat↔ℕ m N.+ _↔_.to Nat↔ℕ n
+  to-ℕ-+ m n = ℕ-stable
+    [ _↔_.to Nat↔ℕ (m + n)               ≡⟨ ≡⌊⌋ (m + n) ⟩
+      ⌊ m + n ⌋                          ≡⟨⟩
+      ⌊ m ⌋ N.+ ⌊ n ⌋                    ≡⟨ sym $ cong₂ N._+_ (≡⌊⌋ m) (≡⌊⌋ n) ⟩∎
+      _↔_.to Nat↔ℕ m N.+ _↔_.to Nat↔ℕ n  ∎
+    ]
+
+  to-ℕ-⌊/2⌋ : ∀ n → _↔_.to Nat↔ℕ ⌊ n /2⌋ ≡ N.⌊ _↔_.to Nat↔ℕ n /2⌋
+  to-ℕ-⌊/2⌋ n = ℕ-stable
+    [ _↔_.to Nat↔ℕ ⌊ n /2⌋    ≡⟨ ≡⌊⌋ ⌊ n /2⌋ ⟩
+      ⌊ ⌊ n /2⌋ ⌋             ≡⟨⟩
+      N.⌊ ⌊ n ⌋ /2⌋           ≡⟨ sym $ cong N.⌊_/2⌋ $ ≡⌊⌋ n ⟩∎
+      N.⌊ _↔_.to Nat↔ℕ n /2⌋  ∎
+    ]
+
+  to-ℕ-⌈/2⌉ : ∀ n → _↔_.to Nat↔ℕ ⌈ n /2⌉ ≡ N.⌈ _↔_.to Nat↔ℕ n /2⌉
+  to-ℕ-⌈/2⌉ n = ℕ-stable
+    [ _↔_.to Nat↔ℕ ⌈ n /2⌉    ≡⟨ ≡⌊⌋ ⌈ n /2⌉ ⟩
+      ⌊ ⌈ n /2⌉ ⌋             ≡⟨⟩
+      N.⌈ ⌊ n ⌋ /2⌉           ≡⟨ sym $ cong N.⌈_/2⌉ $ ≡⌊⌋ n ⟩∎
+      N.⌈ _↔_.to Nat↔ℕ n /2⌉  ∎
+    ]
 
 ------------------------------------------------------------------------
 -- Some examples
