@@ -26,9 +26,6 @@ private
     open import Nat eq public
     open Prelude public using (suc)
 
-  variable
-    @0 m n : ℕ
-
 ------------------------------------------------------------------------
 -- The underlying representation
 
@@ -353,6 +350,7 @@ private
     -- equal, for equal natural numbers m and n, can be awkward.
 
     @0 example₂ :
+      {@0 m n : ℕ}
       (b : Bin-[ m ]) (c : Bin-[ n ]) →
       subst Bin-[_] (N.+-comm m) (b + c) ≡ c + b
     example₂ _ _ = Bin-[]-propositional _ _

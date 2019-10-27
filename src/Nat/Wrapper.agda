@@ -39,9 +39,6 @@ private
     open import Nat eq public
     open Prelude public using (suc; _+_)
 
-  variable
-    @0 m n : ℕ
-
 ------------------------------------------------------------------------
 -- The wrapper
 
@@ -62,7 +59,7 @@ Nat-[ m ] = ∥ (∃ λ (n : Nat′) → Erased (to-ℕ′ n ≡ m)) ∥
 
 -- Nat-[ n ] is a proposition.
 
-Nat-[]-propositional : Is-proposition Nat-[ n ]
+Nat-[]-propositional : {@0 n : ℕ} → Is-proposition Nat-[ n ]
 Nat-[]-propositional = truncation-is-proposition
 
 -- A non-indexed variant of Nat-[_].
@@ -92,7 +89,7 @@ Nat = ∃ λ (n : Erased ℕ) → Nat-[ erased n ]
 -- Nat-[ n ] is isomorphic to the type of natural numbers equal
 -- (with erased equality proofs) to n.
 
-Nat-[]↔Σℕ : Nat-[ n ] ↔ ∃ λ m → Erased (m ≡ n)
+Nat-[]↔Σℕ : {@0 n : ℕ} → Nat-[ n ] ↔ ∃ λ m → Erased (m ≡ n)
 Nat-[]↔Σℕ = ↠→↔Erased-singleton
   Nat′↠ℕ
   (Decidable-equality→Very-stable-≡ N._≟_)
@@ -139,7 +136,7 @@ private
   -- A helper function that can be used to define unary operators.
 
   unary :
-    {@0 f : ℕ → ℕ}
+    {@0 n : ℕ} {@0 f : ℕ → ℕ}
     (g : Nat′ → Nat′) →
     @0 (∀ n → to-ℕ′ (g n) ≡ f (to-ℕ′ n)) →
     Nat-[ n ] → Nat-[ f n ]
@@ -157,7 +154,7 @@ private
   -- operators.
 
   binary :
-    {@0 f : ℕ → ℕ → ℕ}
+    {@0 m n : ℕ} {@0 f : ℕ → ℕ → ℕ}
     (g : Nat′ → Nat′ → Nat′) →
     @0 (∀ m n → to-ℕ′ (g m n) ≡ f (to-ℕ′ m) (to-ℕ′ n)) →
     Nat-[ m ] → Nat-[ n ] → Nat-[ f m n ]
@@ -185,24 +182,24 @@ module Arithmetic-for-Nat-[] (a : Arithmetic) where
 
   -- The number's successor.
 
-  suc : Nat-[ n ] → Nat-[ N.suc n ]
+  suc : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.suc n ]
   suc = unary A.suc A.to-ℕ-suc
 
   -- Addition.
 
   infixl 6 _+_
 
-  _+_ : Nat-[ m ] → Nat-[ n ] → Nat-[ m N.+ n ]
+  _+_ : {@0 m n : ℕ} → Nat-[ m ] → Nat-[ n ] → Nat-[ m N.+ n ]
   _+_ = binary A._+_ A.to-ℕ-+
 
   -- Division by two, rounded downwards.
 
-  ⌊_/2⌋ : Nat-[ n ] → Nat-[ N.⌊ n /2⌋ ]
+  ⌊_/2⌋ : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.⌊ n /2⌋ ]
   ⌊_/2⌋ = unary A.⌊_/2⌋ A.to-ℕ-⌊/2⌋
 
   -- Division by two, rounded upwards.
 
-  ⌈_/2⌉ : Nat-[ n ] → Nat-[ N.⌈ n /2⌉ ]
+  ⌈_/2⌉ : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.⌈ n /2⌉ ]
   ⌈_/2⌉ = unary A.⌈_/2⌉ A.to-ℕ-⌈/2⌉
 
 ------------------------------------------------------------------------
@@ -263,6 +260,7 @@ private
     -- equal, for equal natural numbers m and n, can be awkward.
 
     @0 example₂ :
+      {@0 m n : ℕ} →
       (b : Nat-[ m ]) (c : Nat-[ n ]) →
       subst Nat-[_] (N.+-comm m) (b + c) ≡ c + b
     example₂ _ _ = Nat-[]-propositional _ _
