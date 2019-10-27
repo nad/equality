@@ -117,6 +117,44 @@ Nat↔ℕ = Σ-Erased-∥-Σ-Erased-≡-∥↔ Nat′↠ℕ ℕ-very-stable
 ------------------------------------------------------------------------
 -- Arithmetic with Nat-[_]
 
+-- A helper function that can be used to define unary operators.
+
+unary-[] :
+  {@0 n : ℕ} {@0 f : ℕ → ℕ}
+  (g : Nat′ → Nat′) →
+  @0 (∀ n → to-ℕ′ (g n) ≡ f (to-ℕ′ n)) →
+  Nat-[ n ] → Nat-[ f n ]
+unary-[] {n = n} {f = f} g hyp = Trunc.rec
+  truncation-is-proposition
+  (uncurry λ n′ p →
+     ∣ g n′
+     , [ to-ℕ′ (g n′)  ≡⟨ hyp _ ⟩
+         f (to-ℕ′ n′)  ≡⟨ cong f (erased p) ⟩∎
+         f n           ∎
+       ]
+     ∣)
+
+-- A helper function that can be used to define binary
+-- operators.
+
+binary-[] :
+  {@0 m n : ℕ} {@0 f : ℕ → ℕ → ℕ}
+  (g : Nat′ → Nat′ → Nat′) →
+  @0 (∀ m n → to-ℕ′ (g m n) ≡ f (to-ℕ′ m) (to-ℕ′ n)) →
+  Nat-[ m ] → Nat-[ n ] → Nat-[ f m n ]
+binary-[] {m = m} {n = n} {f = f} g hyp = Trunc.rec
+  (Π-closure ext 1 λ _ →
+   truncation-is-proposition)
+  (uncurry λ m′ p → Trunc.rec
+     truncation-is-proposition
+     (uncurry λ n′ q →
+        ∣ g m′ n′
+        , [ to-ℕ′ (g m′ n′)          ≡⟨ hyp _ _ ⟩
+            f (to-ℕ′ m′) (to-ℕ′ n′)  ≡⟨ cong₂ f (erased p) (erased q) ⟩∎
+            f m n                    ∎
+          ]
+        ∣))
+
 -- The code below is parametrised by implementations of (and
 -- correctness properties for) certain arithmetic operations for Nat′.
 
@@ -134,46 +172,6 @@ record Arithmetic : Set where
     ⌈_/2⌉     : Nat′ → Nat′
     to-ℕ-⌈/2⌉ : ∀ n → to-ℕ′ ⌈ n /2⌉ ≡ N.⌈ to-ℕ′ n /2⌉
 
-private
-
-  -- A helper function that can be used to define unary operators.
-
-  unary :
-    {@0 n : ℕ} {@0 f : ℕ → ℕ}
-    (g : Nat′ → Nat′) →
-    @0 (∀ n → to-ℕ′ (g n) ≡ f (to-ℕ′ n)) →
-    Nat-[ n ] → Nat-[ f n ]
-  unary {n = n} {f = f} g hyp = Trunc.rec
-    truncation-is-proposition
-    (uncurry λ n′ p →
-       ∣ g n′
-       , [ to-ℕ′ (g n′)  ≡⟨ hyp _ ⟩
-           f (to-ℕ′ n′)  ≡⟨ cong f (erased p) ⟩∎
-           f n           ∎
-         ]
-       ∣)
-
-  -- A helper function that can be used to define binary
-  -- operators.
-
-  binary :
-    {@0 m n : ℕ} {@0 f : ℕ → ℕ → ℕ}
-    (g : Nat′ → Nat′ → Nat′) →
-    @0 (∀ m n → to-ℕ′ (g m n) ≡ f (to-ℕ′ m) (to-ℕ′ n)) →
-    Nat-[ m ] → Nat-[ n ] → Nat-[ f m n ]
-  binary {m = m} {n = n} {f = f} g hyp = Trunc.rec
-    (Π-closure ext 1 λ _ →
-     truncation-is-proposition)
-    (uncurry λ m′ p → Trunc.rec
-       truncation-is-proposition
-       (uncurry λ n′ q →
-          ∣ g m′ n′
-          , [ to-ℕ′ (g m′ n′)          ≡⟨ hyp _ _ ⟩
-              f (to-ℕ′ m′) (to-ℕ′ n′)  ≡⟨ cong₂ f (erased p) (erased q) ⟩∎
-              f m n                    ∎
-            ]
-          ∣))
-
 -- If certain arithmetic operations are defined for Nat′, then they
 -- can be defined for Nat-[_] as well.
 
@@ -186,27 +184,76 @@ module Arithmetic-for-Nat-[] (a : Arithmetic) where
   -- The number's successor.
 
   suc : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.suc n ]
-  suc = unary A.suc A.to-ℕ-suc
+  suc = unary-[] A.suc A.to-ℕ-suc
 
   -- Addition.
 
   infixl 6 _+_
 
   _+_ : {@0 m n : ℕ} → Nat-[ m ] → Nat-[ n ] → Nat-[ m N.+ n ]
-  _+_ = binary A._+_ A.to-ℕ-+
+  _+_ = binary-[] A._+_ A.to-ℕ-+
 
   -- Division by two, rounded downwards.
 
   ⌊_/2⌋ : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.⌊ n /2⌋ ]
-  ⌊_/2⌋ = unary A.⌊_/2⌋ A.to-ℕ-⌊/2⌋
+  ⌊_/2⌋ = unary-[] A.⌊_/2⌋ A.to-ℕ-⌊/2⌋
 
   -- Division by two, rounded upwards.
 
   ⌈_/2⌉ : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.⌈ n /2⌉ ]
-  ⌈_/2⌉ = unary A.⌈_/2⌉ A.to-ℕ-⌈/2⌉
+  ⌈_/2⌉ = unary-[] A.⌈_/2⌉ A.to-ℕ-⌈/2⌉
 
 ------------------------------------------------------------------------
 -- Arithmetic with Nat
+
+-- A helper function that can be used to define unary operators,
+-- along with correctness results.
+--
+-- Note that the first of the correctness results holds by
+-- definition.
+
+unary :
+  (f : ℕ → ℕ) (g : Nat′ → Nat′) →
+  @0 (∀ n → to-ℕ′ (g n) ≡ f (to-ℕ′ n)) →
+  ∃ λ (h : Nat → Nat) →
+    (∀ n → Erased (⌊ h n ⌋ ≡ f ⌊ n ⌋)) ×
+    (∀ n → _↔_.to Nat↔ℕ (h n) ≡ f (_↔_.to Nat↔ℕ n))
+unary f g hyp =
+    h
+  , (λ _ → [ refl _ ])
+  , (λ n → Very-stable→Stable 1 ℕ-very-stable _ _
+       [ _↔_.to Nat↔ℕ (h n)  ≡⟨ ≡⌊⌋ (h n) ⟩
+         ⌊ h n ⌋             ≡⟨⟩
+         f ⌊ n ⌋             ≡⟨ sym $ cong f $ ≡⌊⌋ n ⟩∎
+         f (_↔_.to Nat↔ℕ n)  ∎
+       ])
+  where
+  h = Σ-map _ (unary-[] g hyp)
+
+-- A helper function that can be used to define binary operators,
+-- along with correctness results.
+--
+-- Note that the first of the correctness results holds by
+-- definition.
+
+binary :
+  (f : ℕ → ℕ → ℕ) (g : Nat′ → Nat′ → Nat′) →
+  @0 (∀ m n → to-ℕ′ (g m n) ≡ f (to-ℕ′ m) (to-ℕ′ n)) →
+  ∃ λ (h : Nat → Nat → Nat) →
+    (∀ m n → Erased (⌊ h m n ⌋ ≡ f ⌊ m ⌋ ⌊ n ⌋)) ×
+    (∀ m n →
+       _↔_.to Nat↔ℕ (h m n) ≡ f (_↔_.to Nat↔ℕ m) (_↔_.to Nat↔ℕ n))
+binary f g hyp =
+    h
+  , (λ _ _ → [ refl _ ])
+  , (λ m n → Very-stable→Stable 1 ℕ-very-stable _ _
+       [ _↔_.to Nat↔ℕ (h m n)                 ≡⟨ ≡⌊⌋ (h m n) ⟩
+         ⌊ h m n ⌋                            ≡⟨⟩
+         f ⌊ m ⌋ ⌊ n ⌋                        ≡⟨ sym $ cong₂ f (≡⌊⌋ m) (≡⌊⌋ n) ⟩∎
+         f (_↔_.to Nat↔ℕ m) (_↔_.to Nat↔ℕ n)  ∎
+       ])
+  where
+  h = Σ-zip _ (binary-[] g hyp)
 
 -- If certain arithmetic operations are defined for Nat′, then they
 -- can be defined for Nat-[_] as well.
@@ -215,87 +262,58 @@ module Arithmetic-for-Nat (a : Arithmetic) where
 
   private
 
-    module Nat-[] = Arithmetic-for-Nat-[] a
+    module A = Arithmetic a
 
   -- The number's successor.
 
+  private
+
+    suc′ = unary N.suc A.suc A.to-ℕ-suc
+
   suc : Nat → Nat
-  suc = Σ-map _ Nat-[].suc
+  suc = proj₁ suc′
+
+  to-ℕ-suc : ∀ n → _↔_.to Nat↔ℕ (suc n) ≡ N.suc (_↔_.to Nat↔ℕ n)
+  to-ℕ-suc = proj₂ (proj₂ suc′)
 
   -- Addition.
+
+  private
+
+    +′ = binary N._+_ A._+_ A.to-ℕ-+
 
   infixl 6 _+_
 
   _+_ : Nat → Nat → Nat
-  _+_ = Σ-zip _ Nat-[]._+_
-
-  -- Division by two, rounded downwards.
-
-  ⌊_/2⌋ : Nat → Nat
-  ⌊_/2⌋ = Σ-map _ Nat-[].⌊_/2⌋
-
-  -- Division by two, rounded upwards.
-
-  ⌈_/2⌉ : Nat → Nat
-  ⌈_/2⌉ = Σ-map _ Nat-[].⌈_/2⌉
-
-  private
-
-    -- The functions defined above compute correctly for the erased
-    -- indices.
-
-    @0 ⌊suc⌋ : ∀ n → ⌊ suc n ⌋ ≡ N.suc ⌊ n ⌋
-    ⌊suc⌋ n = refl _
-
-    @0 ⌊+⌋ : ∀ m n → ⌊ m + n ⌋ ≡ ⌊ m ⌋ N.+ ⌊ n ⌋
-    ⌊+⌋ m n = refl _
-
-    @0 ⌊⌊/2⌋⌋ : ∀ n → ⌊ ⌊ n /2⌋ ⌋ ≡ N.⌊ ⌊ n ⌋ /2⌋
-    ⌊⌊/2⌋⌋ n = refl _
-
-    @0 ⌊⌈/2⌉⌋ : ∀ n → ⌊ ⌈ n /2⌉ ⌋ ≡ N.⌈ ⌊ n ⌋ /2⌉
-    ⌊⌈/2⌉⌋ n = refl _
-
-  -- It is also easy to prove corresponding correctness statements
-  -- when ⌊_⌋ is replaced by _↔_.to Nat↔ℕ.
-
-  private
-
-    ℕ-stable : {m n : ℕ} → Stable (m ≡ n)
-    ℕ-stable = Very-stable→Stable 1 ℕ-very-stable _ _
-
-  to-ℕ-suc : ∀ n → _↔_.to Nat↔ℕ (suc n) ≡ N.suc (_↔_.to Nat↔ℕ n)
-  to-ℕ-suc n = ℕ-stable
-    [ _↔_.to Nat↔ℕ (suc n)    ≡⟨ ≡⌊⌋ (suc n) ⟩
-      ⌊ suc n ⌋               ≡⟨⟩
-      N.suc ⌊ n ⌋             ≡⟨ sym $ cong N.suc $ ≡⌊⌋ n ⟩∎
-      N.suc (_↔_.to Nat↔ℕ n)  ∎
-    ]
+  _+_ = proj₁ +′
 
   to-ℕ-+ :
     ∀ m n → _↔_.to Nat↔ℕ (m + n) ≡ _↔_.to Nat↔ℕ m N.+ _↔_.to Nat↔ℕ n
-  to-ℕ-+ m n = ℕ-stable
-    [ _↔_.to Nat↔ℕ (m + n)               ≡⟨ ≡⌊⌋ (m + n) ⟩
-      ⌊ m + n ⌋                          ≡⟨⟩
-      ⌊ m ⌋ N.+ ⌊ n ⌋                    ≡⟨ sym $ cong₂ N._+_ (≡⌊⌋ m) (≡⌊⌋ n) ⟩∎
-      _↔_.to Nat↔ℕ m N.+ _↔_.to Nat↔ℕ n  ∎
-    ]
+  to-ℕ-+ = proj₂ (proj₂ +′)
+
+  -- Division by two, rounded downwards.
+
+  private
+
+    ⌊/2⌋ = unary N.⌊_/2⌋ A.⌊_/2⌋ A.to-ℕ-⌊/2⌋
+
+  ⌊_/2⌋ : Nat → Nat
+  ⌊_/2⌋ = proj₁ ⌊/2⌋
 
   to-ℕ-⌊/2⌋ : ∀ n → _↔_.to Nat↔ℕ ⌊ n /2⌋ ≡ N.⌊ _↔_.to Nat↔ℕ n /2⌋
-  to-ℕ-⌊/2⌋ n = ℕ-stable
-    [ _↔_.to Nat↔ℕ ⌊ n /2⌋    ≡⟨ ≡⌊⌋ ⌊ n /2⌋ ⟩
-      ⌊ ⌊ n /2⌋ ⌋             ≡⟨⟩
-      N.⌊ ⌊ n ⌋ /2⌋           ≡⟨ sym $ cong N.⌊_/2⌋ $ ≡⌊⌋ n ⟩∎
-      N.⌊ _↔_.to Nat↔ℕ n /2⌋  ∎
-    ]
+  to-ℕ-⌊/2⌋ = proj₂ (proj₂ ⌊/2⌋)
+
+  -- Division by two, rounded upwards.
+
+  private
+
+    ⌈/2⌉ = unary N.⌈_/2⌉ A.⌈_/2⌉ A.to-ℕ-⌈/2⌉
+
+  ⌈_/2⌉ : Nat → Nat
+  ⌈_/2⌉ = proj₁ ⌈/2⌉
 
   to-ℕ-⌈/2⌉ : ∀ n → _↔_.to Nat↔ℕ ⌈ n /2⌉ ≡ N.⌈ _↔_.to Nat↔ℕ n /2⌉
-  to-ℕ-⌈/2⌉ n = ℕ-stable
-    [ _↔_.to Nat↔ℕ ⌈ n /2⌉    ≡⟨ ≡⌊⌋ ⌈ n /2⌉ ⟩
-      ⌊ ⌈ n /2⌉ ⌋             ≡⟨⟩
-      N.⌈ ⌊ n ⌋ /2⌉           ≡⟨ sym $ cong N.⌈_/2⌉ $ ≡⌊⌋ n ⟩∎
-      N.⌈ _↔_.to Nat↔ℕ n /2⌉  ∎
-    ]
+  to-ℕ-⌈/2⌉ = proj₂ (proj₂ ⌈/2⌉)
 
 ------------------------------------------------------------------------
 -- Some examples

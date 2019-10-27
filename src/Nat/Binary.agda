@@ -293,7 +293,8 @@ private
 -- Some definitions from Nat.Wrapper are reexported.
 
 open Bin-wrapper public
-  using (⌊_⌋; ≡-for-indices↔≡; ⌈_⌉; ≡⌊⌋)
+  using (⌊_⌋; ≡-for-indices↔≡; ⌈_⌉; ≡⌊⌋;
+         unary; unary-[]; binary; binary-[])
   renaming
     ( Nat-[_] to Bin-[_]
     ; Nat-[]-propositional to Bin-[]-propositional
