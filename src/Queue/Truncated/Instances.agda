@@ -92,7 +92,7 @@ private
     just (enqueue 30 (enqueue 6 empty))
   example₃ =
     (do x , q ← ⟨ dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty))) ⟩
-        return (enqueue (3 * x) q))                                      ≡⟨ ⟨by⟩ 3 example₂ ⟩
+        return (enqueue (3 * x) q ⦂ Queue Q ℕ))                          ≡⟨ ⟨by⟩ 3 example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
         return (enqueue (3 * x) (q ⦂ Queue Q ℕ)))                        ≡⟨⟩
@@ -106,18 +106,17 @@ private
     just (6 ∷ 30 ∷ [])
   example₄ =
     (do x , q ← ⟨ dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty))) ⟩
-        let q = enqueue (3 * x) q
-        return (to-List′ q))                                             ≡⟨ ⟨by⟩ 3 example₂ ⟩
+        return (to-List′ (enqueue (3 * x) q)))                           ≡⟨ ⟨by⟩ 3 example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
-        let q = enqueue (3 * x) (q ⦂ Queue Q ℕ)
-        return (to-List′ q))                                             ≡⟨⟩
+        return (to-List′ (enqueue (3 * x) (q ⦂ Queue Q ℕ))))             ≡⟨⟩
 
     just ⟨ to-List′ (enqueue 30 (enqueue 6 empty)) ⟩                     ≡⟨ ⟨by⟩ 3 to-List-foldl-enqueue-empty ⟩∎
 
     just (6 ∷ 30 ∷ [])                                                   ∎
 
   example₅ :
+    ∀ {xs} →
     dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs)) ≡
     just (1 , from-List (2 ∷ 3 ∷ xs))
   example₅ {xs = xs} =

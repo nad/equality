@@ -125,6 +125,7 @@ private
     just (6 ∷ 30 ∷ [])                                                   ∎
 
   example₅ :
+    ∀ {xs} →
     dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs)) ≡
     just (1 , from-List (2 ∷ 3 ∷ xs))
   example₅ {xs = xs} =
