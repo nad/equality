@@ -32,6 +32,8 @@ open import Erased.Cubical.Singleton eq
 open import Function-universe eq hiding (_∘_)
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional eq as Trunc
+open import List.All.Recursive eq
+open import Vec eq as Vec
 
 private
 
@@ -121,48 +123,74 @@ Nat↔ℕ = Σ-Erased-∥-Σ-Erased-≡-∥↔ Nat′↠ℕ ℕ-very-stable
 
 nullary-[] :
   {@0 n : ℕ}
-  (m : Nat′) →
-  @0 to-ℕ m ≡ n →
+  (n′ : Nat′) →
+  @0 to-ℕ n′ ≡ n →
   Nat-[ n ]
-nullary-[] m hyp = ∣ m , [ hyp ] ∣
+nullary-[] n′ hyp = ∣ n′ , [ hyp ] ∣
 
 -- A helper function that can be used to define unary operators.
 
 unary-[] :
   {@0 n : ℕ} {@0 f : ℕ → ℕ}
-  (g : Nat′ → Nat′) →
-  @0 (∀ n → to-ℕ (g n) ≡ f (to-ℕ n)) →
+  (f′ : Nat′ → Nat′) →
+  @0 (∀ n → to-ℕ (f′ n) ≡ f (to-ℕ n)) →
   Nat-[ n ] → Nat-[ f n ]
-unary-[] {n = n} {f = f} g hyp = Trunc.rec
+unary-[] {n = n} {f = f} f′ hyp = Trunc.rec
   truncation-is-proposition
   (uncurry λ n′ p →
-     ∣ g n′
-     , [ to-ℕ (g n′)  ≡⟨ hyp _ ⟩
-         f (to-ℕ n′)  ≡⟨ cong f (erased p) ⟩∎
-         f n          ∎
+     ∣ f′ n′
+     , [ to-ℕ (f′ n′)  ≡⟨ hyp _ ⟩
+         f (to-ℕ n′)   ≡⟨ cong f (erased p) ⟩∎
+         f n           ∎
        ]
      ∣)
+
+-- A helper function that can be used to define n-ary operators.
+
+n-ary-[] :
+  (n : ℕ)
+  {@0 ms : Vec (Erased ℕ) n}
+  (@0 f : Vec ℕ n → ℕ)
+  (f′ : Vec Nat′ n → Nat′) →
+  @0 (∀ ms → to-ℕ (f′ ms) ≡ f (Vec.map to-ℕ ms)) →
+  All (Nat-[_] ∘ erased) (Vec.to-list ms) →
+  Nat-[ f (Vec.map erased ms) ]
+n-ary-[] N.zero _ f′ hyp _ =
+  nullary-[] (f′ _) (hyp _)
+n-ary-[] (N.suc n) {ms = ms} f f′ hyp (m′ , ms′) =
+  Trunc.rec
+    truncation-is-proposition
+    (uncurry λ m′ p →
+       n-ary-[]
+         n
+         (f ∘ (erased (Vec.head ms) ,_))
+         (λ ms′ → f′ (m′ , ms′))
+         (λ ms′ →
+            to-ℕ (f′ (m′ , ms′))                         ≡⟨ hyp (m′ , ms′) ⟩
+            f (to-ℕ m′              , Vec.map to-ℕ ms′)  ≡⟨ cong (λ x → f (x , _)) (erased p) ⟩∎
+            f (erased (Vec.head ms) , Vec.map to-ℕ ms′)  ∎)
+         ms′)
+    m′
+
+-- The function n-ary-[] should be normalised by the compiler.
+
+{-# STATIC n-ary-[] #-}
 
 -- A helper function that can be used to define binary
 -- operators.
 
 binary-[] :
   {@0 m n : ℕ} {@0 f : ℕ → ℕ → ℕ}
-  (g : Nat′ → Nat′ → Nat′) →
-  @0 (∀ m n → to-ℕ (g m n) ≡ f (to-ℕ m) (to-ℕ n)) →
+  (f′ : Nat′ → Nat′ → Nat′) →
+  @0 (∀ m n → to-ℕ (f′ m n) ≡ f (to-ℕ m) (to-ℕ n)) →
   Nat-[ m ] → Nat-[ n ] → Nat-[ f m n ]
-binary-[] {m = m} {n = n} {f = f} g hyp = Trunc.rec
-  (Π-closure ext 1 λ _ →
-   truncation-is-proposition)
-  (uncurry λ m′ p → Trunc.rec
-     truncation-is-proposition
-     (uncurry λ n′ q →
-        ∣ g m′ n′
-        , [ to-ℕ (g m′ n′)         ≡⟨ hyp _ _ ⟩
-            f (to-ℕ m′) (to-ℕ n′)  ≡⟨ cong₂ f (erased p) (erased q) ⟩∎
-            f m n                  ∎
-          ]
-        ∣))
+binary-[] f′ hyp m n =
+  n-ary-[]
+    2
+    _
+    (λ (m , n , _) → f′ m n)
+    (λ (m , n , _) → hyp m n)
+    (m , n , _)
 
 -- The code below is parametrised by implementations of (and
 -- correctness properties for) certain arithmetic operations for Nat′.
@@ -230,21 +258,21 @@ module Arithmetic-for-Nat-[] (a : Arithmetic) where
 -- definition.
 
 nullary :
-  (n : ℕ) (m : Nat′) →
-  @0 to-ℕ m ≡ n →
-  ∃ λ (o : Nat) →
-    Erased (⌊ o ⌋ ≡ n) ×
-    _↔_.to Nat↔ℕ o ≡ n
-nullary n m hyp =
-    o
+  (n : ℕ) (n′ : Nat′) →
+  @0 to-ℕ n′ ≡ n →
+  ∃ λ (n″ : Nat) →
+    Erased (⌊ n″ ⌋ ≡ n) ×
+    _↔_.to Nat↔ℕ n″ ≡ n
+nullary n n′ hyp =
+    n″
   , [ refl _ ]
   , Very-stable→Stable 1 ℕ-very-stable _ _
-       [ _↔_.to Nat↔ℕ o  ≡⟨ ≡⌊⌋ o ⟩
-         ⌊ o ⌋           ≡⟨⟩
-         n               ∎
+       [ _↔_.to Nat↔ℕ n″  ≡⟨ ≡⌊⌋ n″ ⟩
+         ⌊ n″ ⌋           ≡⟨⟩
+         n                ∎
        ]
   where
-  o = _ , nullary-[] m hyp
+  n″ = _ , nullary-[] n′ hyp
 
 -- A helper function that can be used to define unary operators,
 -- along with correctness results.
@@ -253,22 +281,52 @@ nullary n m hyp =
 -- definition.
 
 unary :
-  (f : ℕ → ℕ) (g : Nat′ → Nat′) →
-  @0 (∀ n → to-ℕ (g n) ≡ f (to-ℕ n)) →
-  ∃ λ (h : Nat → Nat) →
-    (∀ n → Erased (⌊ h n ⌋ ≡ f ⌊ n ⌋)) ×
-    (∀ n → _↔_.to Nat↔ℕ (h n) ≡ f (_↔_.to Nat↔ℕ n))
-unary f g hyp =
-    h
+  (f : ℕ → ℕ) (f′ : Nat′ → Nat′) →
+  @0 (∀ n → to-ℕ (f′ n) ≡ f (to-ℕ n)) →
+  ∃ λ (f″ : Nat → Nat) →
+    (∀ n → Erased (⌊ f″ n ⌋ ≡ f ⌊ n ⌋)) ×
+    (∀ n → _↔_.to Nat↔ℕ (f″ n) ≡ f (_↔_.to Nat↔ℕ n))
+unary f f′ hyp =
+    f″
   , (λ _ → [ refl _ ])
   , (λ n → Very-stable→Stable 1 ℕ-very-stable _ _
-       [ _↔_.to Nat↔ℕ (h n)  ≡⟨ ≡⌊⌋ (h n) ⟩
-         ⌊ h n ⌋             ≡⟨⟩
-         f ⌊ n ⌋             ≡⟨ sym $ cong f $ ≡⌊⌋ n ⟩∎
-         f (_↔_.to Nat↔ℕ n)  ∎
+       [ _↔_.to Nat↔ℕ (f″ n)  ≡⟨ ≡⌊⌋ (f″ n) ⟩
+         ⌊ f″ n ⌋             ≡⟨⟩
+         f ⌊ n ⌋              ≡⟨ sym $ cong f $ ≡⌊⌋ n ⟩∎
+         f (_↔_.to Nat↔ℕ n)   ∎
        ])
   where
-  h = Σ-map _ (unary-[] g hyp)
+  f″ = λ ([ n ] , n′) → [ f n ] , unary-[] f′ hyp n′
+
+-- A helper function that can be used to define n-ary operators, along
+-- with corresponding correctness results.
+
+n-ary :
+  (n : ℕ)
+  (f : Vec ℕ n → ℕ)
+  (f′ : Vec Nat′ n → Nat′) →
+  @0 (∀ ms → to-ℕ (f′ ms) ≡ f (Vec.map to-ℕ ms)) →
+  ∃ λ (f″ : Vec Nat n → Nat) →
+    ∀ ms → _↔_.to Nat↔ℕ (f″ ms) ≡ f (Vec.map (_↔_.to Nat↔ℕ) ms)
+n-ary n f f′ hyp =
+    f″
+  , λ ms → Very-stable→Stable 1 ℕ-very-stable _ _
+      [ _↔_.to Nat↔ℕ (f″ ms)                          ≡⟨ ≡⌊⌋ (f″ ms) ⟩
+        ⌊ f″ ms ⌋                                     ≡⟨⟩
+        f (Vec.map erased (proj₁ (_↔_.to Vec-Σ ms)))  ≡⟨ cong (f ∘ Vec.map _) proj₁-Vec-Σ ⟩
+        f (Vec.map erased (Vec.map proj₁ ms))         ≡⟨ cong f $ sym Vec.map-∘ ⟩
+        f (Vec.map ⌊_⌋ ms)                            ≡⟨ cong (λ g → f (Vec.map g ms)) $ sym $ ⟨ext⟩ ≡⌊⌋ ⟩∎
+        f (Vec.map (_↔_.to Nat↔ℕ) ms)                 ∎
+      ]
+  where
+  f″ : Vec Nat n → Nat
+  f″ ms =
+      [ f (Vec.map erased (proj₁ (_↔_.to Vec-Σ ms))) ]
+    , n-ary-[] n f f′ hyp (proj₂ (_↔_.to Vec-Σ ms))
+
+-- The function n-ary should be normalised by the compiler.
+
+{-# STATIC n-ary #-}
 
 -- A helper function that can be used to define binary operators,
 -- along with correctness results.
@@ -277,23 +335,23 @@ unary f g hyp =
 -- definition.
 
 binary :
-  (f : ℕ → ℕ → ℕ) (g : Nat′ → Nat′ → Nat′) →
-  @0 (∀ m n → to-ℕ (g m n) ≡ f (to-ℕ m) (to-ℕ n)) →
-  ∃ λ (h : Nat → Nat → Nat) →
-    (∀ m n → Erased (⌊ h m n ⌋ ≡ f ⌊ m ⌋ ⌊ n ⌋)) ×
+  (f : ℕ → ℕ → ℕ) (f′ : Nat′ → Nat′ → Nat′) →
+  @0 (∀ m n → to-ℕ (f′ m n) ≡ f (to-ℕ m) (to-ℕ n)) →
+  ∃ λ (f″ : Nat → Nat → Nat) →
+    (∀ m n → Erased (⌊ f″ m n ⌋ ≡ f ⌊ m ⌋ ⌊ n ⌋)) ×
     (∀ m n →
-       _↔_.to Nat↔ℕ (h m n) ≡ f (_↔_.to Nat↔ℕ m) (_↔_.to Nat↔ℕ n))
+       _↔_.to Nat↔ℕ (f″ m n) ≡ f (_↔_.to Nat↔ℕ m) (_↔_.to Nat↔ℕ n))
 binary f g hyp =
-    h
+  let f″ , p =
+        n-ary
+          2
+          (λ (m , n , _) → f m n)
+          (λ (m , n , _) → g m n)
+          (λ (m , n , _) → hyp m n)
+  in
+    (λ m n → f″ (m , n , _))
   , (λ _ _ → [ refl _ ])
-  , (λ m n → Very-stable→Stable 1 ℕ-very-stable _ _
-       [ _↔_.to Nat↔ℕ (h m n)                 ≡⟨ ≡⌊⌋ (h m n) ⟩
-         ⌊ h m n ⌋                            ≡⟨⟩
-         f ⌊ m ⌋ ⌊ n ⌋                        ≡⟨ sym $ cong₂ f (≡⌊⌋ m) (≡⌊⌋ n) ⟩∎
-         f (_↔_.to Nat↔ℕ m) (_↔_.to Nat↔ℕ n)  ∎
-       ])
-  where
-  h = Σ-zip _ (binary-[] g hyp)
+  , (λ m n → p (m , n , _))
 
 -- If certain arithmetic operations are defined for Nat′, then they
 -- can be defined for Nat-[_] as well.
