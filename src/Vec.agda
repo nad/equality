@@ -17,12 +17,19 @@ open import Function-universe eq hiding (_∘_)
 open import List eq using (length)
 open import Surjection eq using (_↠_; ↠-≡)
 
+private
+
+  variable
+    a   : Level
+    A B : Set a
+    n   : ℕ
+
 ------------------------------------------------------------------------
 -- The type
 
 -- Vectors.
 
-Vec : ∀ {a} → Set a → ℕ → Set a
+Vec : Set a → ℕ → Set a
 Vec A zero    = ↑ _ ⊤
 Vec A (suc n) = A × Vec A n
 
@@ -31,40 +38,40 @@ Vec A (suc n) = A × Vec A n
 
 -- Finds the element at the given position.
 
-index : ∀ {n} {a} {A : Set a} → Vec A n → Fin n → A
-index {suc _} (x , _)  fzero    = x
-index {suc _} (_ , xs) (fsuc i) = index xs i
+index : Vec A n → Fin n → A
+index {n = suc _} (x , _)  fzero    = x
+index {n = suc _} (_ , xs) (fsuc i) = index xs i
 
 -- Updates the element at the given position.
 
 infix 3 _[_≔_]
 
-_[_≔_] : ∀ {n} {a} {A : Set a} → Vec A n → Fin n → A → Vec A n
-_[_≔_] {zero}  _        ()       _
-_[_≔_] {suc _} (x , xs) fzero    y = y , xs
-_[_≔_] {suc _} (x , xs) (fsuc i) y = x , (xs [ i ≔ y ])
+_[_≔_] : Vec A n → Fin n → A → Vec A n
+_[_≔_] {n = zero}  _        ()       _
+_[_≔_] {n = suc _} (x , xs) fzero    y = y , xs
+_[_≔_] {n = suc _} (x , xs) (fsuc i) y = x , (xs [ i ≔ y ])
 
 -- Applies the function to every element in the vector.
 
-map : ∀ {n a b} {A : Set a} {B : Set b} → (A → B) → Vec A n → Vec B n
-map {zero}  f _        = _
-map {suc _} f (x , xs) = f x , map f xs
+map : (A → B) → Vec A n → Vec B n
+map {n = zero}  f _        = _
+map {n = suc _} f (x , xs) = f x , map f xs
 
 -- Constructs a vector containing a certain number of copies of the
 -- given element.
 
-replicate : ∀ {n a} {A : Set a} → A → Vec A n
-replicate {zero}  _ = _
-replicate {suc _} x = x , replicate x
+replicate : A → Vec A n
+replicate {n = zero}  _ = _
+replicate {n = suc _} x = x , replicate x
 
 -- The head of the vector.
 
-head : ∀ {n a} {A : Set a} → Vec A (suc n) → A
+head : Vec A (suc n) → A
 head = proj₁
 
 -- The tail of the vector.
 
-tail : ∀ {n a} {A : Set a} → Vec A (suc n) → Vec A n
+tail : Vec A (suc n) → Vec A n
 tail = proj₂
 
 ------------------------------------------------------------------------
@@ -72,19 +79,19 @@ tail = proj₂
 
 -- Vectors can be converted to lists.
 
-to-list : ∀ {n} {a} {A : Set a} → Vec A n → List A
-to-list {zero}  _        = []
-to-list {suc n} (x , xs) = x ∷ to-list xs
+to-list : Vec A n → List A
+to-list {n = zero}  _        = []
+to-list {n = suc n} (x , xs) = x ∷ to-list xs
 
 -- Lists can be converted to vectors.
 
-from-list : ∀ {a} {A : Set a} (xs : List A) → Vec A (length xs)
+from-list : (xs : List A) → Vec A (length xs)
 from-list []       = _
 from-list (x ∷ xs) = x , from-list xs
 
 -- ∃ (Vec A) is isomorphic to List A.
 
-∃Vec↔List : ∀ {a} {A : Set a} → ∃ (Vec A) ↔ List A
+∃Vec↔List : ∃ (Vec A) ↔ List A
 ∃Vec↔List {A = A} = record
   { surjection = record
     { logical-equivalence = record
