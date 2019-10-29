@@ -13,16 +13,16 @@ open import Prelude
 
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
-open import Function-universe eq hiding (_∘_)
+open import Function-universe eq hiding (id; _∘_)
 open import List eq using (length)
 open import Surjection eq using (_↠_; ↠-≡)
 
 private
 
   variable
-    a   : Level
-    A B : Set a
-    n   : ℕ
+    a b c : Level
+    A B   : Set a
+    n     : ℕ
 
 ------------------------------------------------------------------------
 -- The type
@@ -128,3 +128,20 @@ from-list (x ∷ xs) = x , from-list xs
     (length (to-list (x , xs)) , from-list (to-list (x , xs)))
       ≡
     (suc n , x , xs)                                            □
+
+------------------------------------------------------------------------
+-- Some properties
+
+-- The map function satisfies the functor laws.
+
+map-id :
+  {A : Set a} {xs : Vec A n} → map id xs ≡ xs
+map-id {n = zero}  = refl _
+map-id {n = suc n} = cong (_ ,_) map-id
+
+map-∘ :
+  {A : Set a} {B : Set b} {C : Set c} {f : B → C} {g : A → B}
+  {xs : Vec A n} →
+  map (f ∘ g) xs ≡ map f (map g xs)
+map-∘ {n = zero}  = refl _
+map-∘ {n = suc n} = cong (_ ,_) map-∘
