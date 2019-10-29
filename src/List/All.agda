@@ -30,7 +30,7 @@ private
     A B       : Set a
     P         : A → Set p
     Q         : A → Set q
-    x y       : A
+    k x y     : A
     xs ys     : List A
 
 -- All P xs means that P holds for every element of xs.
@@ -155,6 +155,24 @@ private
     All-const _ bs i ≡
     uncurry bs (_↔_.from (Fin-length xs) i)
   All-const-Fin-length = refl _
+
+All-Σ :
+  {A : Set a} {P : A → Set p} {Q : ∀ x → P x → Set q} {xs : List A} →
+  Extensionality? k a (a ⊔ p ⊔ q) →
+  All (λ x → Σ (P x) (Q x)) xs ↝[ k ]
+  ∃ λ (ps : All P xs) → ∀ x (x∈xs : x ∈ xs) → Q x (ps x x∈xs)
+All-Σ {P = P} {Q = Q} {xs = xs} ext =
+  All (λ x → Σ (P x) (Q x)) xs                                   ↔⟨⟩
+
+  (∀ x → x ∈ xs → Σ (P x) (Q x))                                 ↝⟨ (∀-cong ext λ _ → from-isomorphism ΠΣ-comm) ⟩
+
+  (∀ x → ∃ λ (ps : x ∈ xs → P x) →
+     (x∈xs : x ∈ xs) → Q x (ps x∈xs))                            ↔⟨ ΠΣ-comm ⟩
+
+  (∃ λ (ps : ∀ x → x ∈ xs → P x) →
+     ∀ x (x∈xs : x ∈ xs) → Q x (ps x x∈xs))                      ↔⟨⟩
+
+  (∃ λ (ps : All P xs) → ∀ x (x∈xs : x ∈ xs) → Q x (ps x x∈xs))  □
 
 -- Some abbreviations.
 

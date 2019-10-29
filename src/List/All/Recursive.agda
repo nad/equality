@@ -153,6 +153,36 @@ All-const {A = A} {xs = x ∷ xs} =
   A × All (const A) xs     ↝⟨ (∃-cong λ _ → All-const) ⟩□
   A × Vec A (L.length xs)  □
 
+All-Σ :
+  {A : Set a} {P : A → Set p} {Q : ∃ P → Set q} {xs : List A} →
+  All (λ x → Σ (P x) (curry Q x)) xs ↔
+  ∃ λ (ps : All P xs) → All Q (_↔_.to ∃-All↔List-∃ (xs , ps))
+All-Σ {P = P} {Q = Q} {xs = []} =
+  All (λ x → Σ (P x) (curry Q x)) []                             ↔⟨⟩
+  ↑ _ ⊤                                                          ↝⟨ Bijection.↑↔ ⟩
+  ⊤                                                              ↝⟨ inverse Bijection.↑↔ ⟩
+  ↑ _ ⊤                                                          ↝⟨ inverse (drop-⊤-right λ _ → Bijection.↑↔) ⟩
+  ↑ _ ⊤ × ↑ _ ⊤                                                  ↔⟨⟩
+  (∃ λ (ps : All P []) → All Q (_↔_.to ∃-All↔List-∃ ([] , ps)))  □
+All-Σ {P = P} {Q = Q} {xs = x ∷ xs} =
+  All (λ x → Σ (P x) (curry Q x)) (x ∷ xs)                            ↔⟨⟩
+
+  Σ (P x) (curry Q x) × All (λ x → Σ (P x) (curry Q x)) xs            ↝⟨ ∃-cong (λ _ → All-Σ) ⟩
+
+  Σ (P x) (curry Q x) ×
+  (∃ λ (ps : All P xs) → All Q (_↔_.to ∃-All↔List-∃ (_ , ps)))        ↝⟨ inverse Σ-assoc ⟩
+
+  (∃ λ p → Q (x , p) ×
+   ∃ λ (ps : All P xs) → All Q (_↔_.to ∃-All↔List-∃ (_ , ps)))        ↝⟨ ∃-cong (λ _ → ∃-comm) ⟩
+
+  (∃ λ p → ∃ λ (ps : All P xs) →
+   Q (x , p) × All Q (_↔_.to ∃-All↔List-∃ (_ , ps)))                  ↝⟨ Σ-assoc ⟩
+
+  (∃ λ (p , ps) → Q (x , p) × All Q (_↔_.to ∃-All↔List-∃ (xs , ps)))  ↔⟨⟩
+
+  (∃ λ (ps : All P (x ∷ xs)) →
+     All Q (_↔_.to ∃-All↔List-∃ (x ∷ xs , ps)))                       □
+
 -- Concatenation.
 
 append : All P xs → All P ys → All P (xs ++ ys)
