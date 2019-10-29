@@ -75,6 +75,37 @@ head = proj₁
 tail : All P (x ∷ xs) → All P xs
 tail = proj₂
 
+-- All can be expressed using List and ∃.
+
+∃-All↔List-∃ : (∃ λ xs → All P xs) ↔ List (∃ P)
+∃-All↔List-∃ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  to : (∃ λ xs → All P xs) → List (∃ P)
+  to ([]     , _)      = []
+  to (x ∷ xs , p , ps) = (x , p) ∷ to (xs , ps)
+
+  from : List (∃ P) → (∃ λ xs → All P xs)
+  from []              = [] , _
+  from ((x , p) ∷ xps) = Σ-map (x ∷_) (p ,_) (from xps)
+
+  to∘from : ∀ xps → to (from xps) ≡ xps
+  to∘from []         = refl _
+  to∘from (xp ∷ xps) = cong (xp ∷_) (to∘from xps)
+
+  from∘to : ∀ xsps → from (to xsps) ≡ xsps
+  from∘to ([]     , _)      = refl _
+  from∘to (x ∷ xs , p , ps) =
+    cong (Σ-map (x ∷_) (p ,_)) (from∘to (xs , ps))
+
 -- Some rearrangement lemmas.
 
 All-[] : (P : A → Set p) → All P [] ↔ ⊤
