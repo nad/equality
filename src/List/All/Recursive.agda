@@ -190,6 +190,62 @@ All-Σ {P = P} {Q = Q} {xs = x ∷ xs} =
   (∃ λ (ps : All P (x ∷ xs)) →
      All Q (_↔_.to ∃-All↔List-∃ (x ∷ xs , ps)))                       □
 
+Vec-Σ :
+  {A : Set a} {P : A → Set p} →
+  Vec (Σ A P) n ↔
+  ∃ λ (xs : Vec A n) → All P (Vec.to-list xs)
+Vec-Σ {n = zero} {A = A} {P = P} =
+  Vec (Σ A P) zero                                  ↔⟨⟩
+  ↑ _ ⊤                                             ↝⟨ Bijection.↑↔ ⟩
+  ⊤                                                 ↝⟨ inverse Bijection.↑↔ ⟩
+  ↑ _ ⊤                                             ↝⟨ inverse (drop-⊤-right λ _ → Bijection.↑↔) ⟩
+  ↑ _ ⊤ × ↑ _ ⊤                                     ↔⟨⟩
+  (∃ λ (xs : Vec A zero) → All P (Vec.to-list xs))  □
+Vec-Σ {n = suc n} {A = A} {P = P} =
+  Vec (Σ A P) (suc n)                                                ↔⟨⟩
+
+  Σ A P × Vec (Σ A P) n                                              ↝⟨ ∃-cong (λ _ → Vec-Σ) ⟩
+
+  (Σ A P × ∃ λ (xs : Vec A n) → All P (Vec.to-list xs))              ↝⟨ inverse Σ-assoc ⟩
+
+  (∃ λ (x : A) → P x × ∃ λ (xs : Vec A n) → All P (Vec.to-list xs))  ↝⟨ ∃-cong (λ _ → ∃-comm) ⟩
+
+  (∃ λ (x : A) → ∃ λ (xs : Vec A n) → P x × All P (Vec.to-list xs))  ↝⟨ Σ-assoc ⟩
+
+  (∃ λ ((x , xs) : A × Vec A n) → P x × All P (Vec.to-list xs))      ↔⟨⟩
+
+  (∃ λ ((x , xs) : Vec A (suc n)) → P x × All P (Vec.to-list xs))    □
+
+private
+
+  -- The following alternative proof, which makes use of All-Σ, might
+  -- compute less well if the J rule does not compute.
+
+  Vec-Σ′ :
+    {A : Set a} {P : A → Set p} →
+    Vec (Σ A P) n ↔
+    ∃ λ (xs : Vec A n) → All P (Vec.to-list xs)
+  Vec-Σ′ {n = n} {A = A} {P = P} =
+    Vec (Σ A P) n                                           ↝⟨ inverse All-const-replicate ⟩
+
+    All (const (Σ A P)) (L.replicate n tt)                  ↝⟨ All-Σ ⟩
+
+    (∃ λ (xs : All (const A) (L.replicate n tt)) →
+       All (P ∘ proj₂) (_↔_.to ∃-All↔List-∃ (_ , xs)))      ↝⟨ (∃-cong λ _ → inverse All-map) ⟩
+
+    (∃ λ (xs : All (const A) (L.replicate n tt)) →
+       All P (L.map proj₂ (_↔_.to ∃-All↔List-∃ (_ , xs))))  ↝⟨ inverse (Σ-cong (inverse All-const-replicate) λ _ →
+                                                               ≡⇒↝ _ (cong (All P) lemma)) ⟩□
+    (∃ λ (xs : Vec A n) → All P (Vec.to-list xs))           □
+    where
+    lemma :
+      ∀ {n} {xs : Vec A n} →
+      Vec.to-list xs ≡
+      L.map proj₂
+        (_↔_.to ∃-All↔List-∃ (_ , _↔_.from All-const-replicate xs))
+    lemma {n = zero}  = refl _
+    lemma {n = suc n} = cong (_ ∷_) lemma
+
 -- Concatenation.
 
 append : All P xs → All P ys → All P (xs ++ ys)
@@ -431,6 +487,14 @@ index-All-const (_ ∷ xs)    {i = fsuc i} = index-All-const xs
 index-All-const (_ ∷ _) {b , _} {fzero}  =
   b                                 ≡⟨ sym subst-sym-refl ⟩∎
   subst (const _) (sym (refl _)) b  ∎
+
+-- A rearrangement lemma for Vec-Σ.
+
+proj₁-Vec-Σ :
+  {A : Set a} {P : A → Set p} {xs : Vec (Σ A P) n} →
+  proj₁ (_↔_.to Vec-Σ xs) ≡ Vec.map proj₁ xs
+proj₁-Vec-Σ {n = zero}  = refl _
+proj₁-Vec-Σ {n = suc n} = cong (_ ,_) proj₁-Vec-Σ
 
 -- A fusion lemma for map₂.
 
