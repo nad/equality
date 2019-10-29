@@ -37,6 +37,7 @@ private
     Q       : A → Set q
     x y     : A
     xs ys   : List A
+    n       : ℕ
 
 -- All P xs means that P holds for every element of xs.
 
@@ -152,6 +153,12 @@ All-const         {xs = []}     = F.id
 All-const {A = A} {xs = x ∷ xs} =
   A × All (const A) xs     ↝⟨ (∃-cong λ _ → All-const) ⟩□
   A × Vec A (L.length xs)  □
+
+All-const-replicate : All (const A) (L.replicate n tt) ↔ Vec A n
+All-const-replicate         {n = zero}  = F.id
+All-const-replicate {A = A} {n = suc n} =
+  A × All (const A) (L.replicate n tt)  ↝⟨ (∃-cong λ _ → All-const-replicate) ⟩□
+  A × Vec A n                           □
 
 All-Σ :
   {A : Set a} {P : A → Set p} {Q : ∃ P → Set q} {xs : List A} →

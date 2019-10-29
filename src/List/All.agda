@@ -31,6 +31,7 @@ private
     P         : A → Set p
     Q         : A → Set q
     k x y     : A
+    n         : ℕ
     xs ys     : List A
 
 -- All P xs means that P holds for every element of xs.
@@ -137,10 +138,10 @@ All->>= {P = P} {f = f} {xs = xs} ext =
   All (All P ∘ f) xs             □
 
 All-const :
-  ∀ {k} {A : Set a} {B : Set b} {xs : List B} →
+  {A : Set a} {B : Set b} {xs : List B} →
   Extensionality? k b a →
-  All (const A) xs ↝[ k ] (Fin (L.length xs) → A)
-All-const {a = a} {b = b} {A = A} {xs = xs} ext =
+  All (const A) xs ↝[ k ] Vec A (L.length xs)
+All-const {A = A} {xs = xs} ext =
   (∀ x → x ∈ xs → A)       ↔⟨ inverse currying ⟩
   (∃ (_∈ xs) → A)          ↝⟨ →-cong₁ ext (Fin-length _) ⟩□
   (Fin (L.length xs) → A)  □
@@ -155,6 +156,15 @@ private
     All-const _ bs i ≡
     uncurry bs (_↔_.from (Fin-length xs) i)
   All-const-Fin-length = refl _
+
+All-const-replicate :
+  {A : Set a} →
+  Extensionality? k lzero a →
+  All (const A) (L.replicate n tt) ↝[ k ] Vec A n
+All-const-replicate {n = n} {A = A} ext =
+  All (const A) (L.replicate n tt)     ↝⟨ All-const ext ⟩
+  Vec A (L.length (L.replicate n tt))  ↝⟨ →-cong₁ ext $ ≡⇒↝ bijection $ cong Fin (L.length-replicate _) ⟩□
+  Vec A n                              □
 
 All-Σ :
   {A : Set a} {P : A → Set p} {Q : ∀ x → P x → Set q} {xs : List A} →
