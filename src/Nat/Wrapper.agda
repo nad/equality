@@ -47,15 +47,15 @@ private
   -- Converts from the underlying representation to unary natural
   -- numbers.
 
-  to-ℕ′ : Nat′ → ℕ
-  to-ℕ′ = _↠_.to Nat′↠ℕ
+  to-ℕ : Nat′ → ℕ
+  to-ℕ = _↠_.to Nat′↠ℕ
 
 -- Natural numbers built on top of Nat′, indexed by corresponding
 -- unary natural numbers, and truncated so that any two numbers that
 -- stand for the same unary natural number are seen as equal.
 
 Nat-[_] : @0 ℕ → Set
-Nat-[ m ] = ∥ (∃ λ (n : Nat′) → Erased (to-ℕ′ n ≡ m)) ∥
+Nat-[ m ] = ∥ (∃ λ (n : Nat′) → Erased (to-ℕ n ≡ m)) ∥
 
 -- Nat-[ n ] is a proposition.
 
@@ -122,15 +122,15 @@ Nat↔ℕ = Σ-Erased-∥-Σ-Erased-≡-∥↔ Nat′↠ℕ ℕ-very-stable
 unary-[] :
   {@0 n : ℕ} {@0 f : ℕ → ℕ}
   (g : Nat′ → Nat′) →
-  @0 (∀ n → to-ℕ′ (g n) ≡ f (to-ℕ′ n)) →
+  @0 (∀ n → to-ℕ (g n) ≡ f (to-ℕ n)) →
   Nat-[ n ] → Nat-[ f n ]
 unary-[] {n = n} {f = f} g hyp = Trunc.rec
   truncation-is-proposition
   (uncurry λ n′ p →
      ∣ g n′
-     , [ to-ℕ′ (g n′)  ≡⟨ hyp _ ⟩
-         f (to-ℕ′ n′)  ≡⟨ cong f (erased p) ⟩∎
-         f n           ∎
+     , [ to-ℕ (g n′)  ≡⟨ hyp _ ⟩
+         f (to-ℕ n′)  ≡⟨ cong f (erased p) ⟩∎
+         f n          ∎
        ]
      ∣)
 
@@ -140,7 +140,7 @@ unary-[] {n = n} {f = f} g hyp = Trunc.rec
 binary-[] :
   {@0 m n : ℕ} {@0 f : ℕ → ℕ → ℕ}
   (g : Nat′ → Nat′ → Nat′) →
-  @0 (∀ m n → to-ℕ′ (g m n) ≡ f (to-ℕ′ m) (to-ℕ′ n)) →
+  @0 (∀ m n → to-ℕ (g m n) ≡ f (to-ℕ m) (to-ℕ n)) →
   Nat-[ m ] → Nat-[ n ] → Nat-[ f m n ]
 binary-[] {m = m} {n = n} {f = f} g hyp = Trunc.rec
   (Π-closure ext 1 λ _ →
@@ -149,9 +149,9 @@ binary-[] {m = m} {n = n} {f = f} g hyp = Trunc.rec
      truncation-is-proposition
      (uncurry λ n′ q →
         ∣ g m′ n′
-        , [ to-ℕ′ (g m′ n′)          ≡⟨ hyp _ _ ⟩
-            f (to-ℕ′ m′) (to-ℕ′ n′)  ≡⟨ cong₂ f (erased p) (erased q) ⟩∎
-            f m n                    ∎
+        , [ to-ℕ (g m′ n′)         ≡⟨ hyp _ _ ⟩
+            f (to-ℕ m′) (to-ℕ n′)  ≡⟨ cong₂ f (erased p) (erased q) ⟩∎
+            f m n                  ∎
           ]
         ∣))
 
@@ -161,16 +161,16 @@ binary-[] {m = m} {n = n} {f = f} g hyp = Trunc.rec
 record Arithmetic : Set where
   field
     suc       : Nat′ → Nat′
-    to-ℕ-suc  : ∀ n → to-ℕ′ (suc n) ≡ N.suc (to-ℕ′ n)
+    to-ℕ-suc  : ∀ n → to-ℕ (suc n) ≡ N.suc (to-ℕ n)
 
     _+_       : Nat′ → Nat′ → Nat′
-    to-ℕ-+    : ∀ m n → to-ℕ′ (m + n) ≡ to-ℕ′ m N.+ to-ℕ′ n
+    to-ℕ-+    : ∀ m n → to-ℕ (m + n) ≡ to-ℕ m N.+ to-ℕ n
 
     ⌊_/2⌋     : Nat′ → Nat′
-    to-ℕ-⌊/2⌋ : ∀ n → to-ℕ′ ⌊ n /2⌋ ≡ N.⌊ to-ℕ′ n /2⌋
+    to-ℕ-⌊/2⌋ : ∀ n → to-ℕ ⌊ n /2⌋ ≡ N.⌊ to-ℕ n /2⌋
 
     ⌈_/2⌉     : Nat′ → Nat′
-    to-ℕ-⌈/2⌉ : ∀ n → to-ℕ′ ⌈ n /2⌉ ≡ N.⌈ to-ℕ′ n /2⌉
+    to-ℕ-⌈/2⌉ : ∀ n → to-ℕ ⌈ n /2⌉ ≡ N.⌈ to-ℕ n /2⌉
 
 -- If certain arithmetic operations are defined for Nat′, then they
 -- can be defined for Nat-[_] as well.
@@ -214,7 +214,7 @@ module Arithmetic-for-Nat-[] (a : Arithmetic) where
 
 unary :
   (f : ℕ → ℕ) (g : Nat′ → Nat′) →
-  @0 (∀ n → to-ℕ′ (g n) ≡ f (to-ℕ′ n)) →
+  @0 (∀ n → to-ℕ (g n) ≡ f (to-ℕ n)) →
   ∃ λ (h : Nat → Nat) →
     (∀ n → Erased (⌊ h n ⌋ ≡ f ⌊ n ⌋)) ×
     (∀ n → _↔_.to Nat↔ℕ (h n) ≡ f (_↔_.to Nat↔ℕ n))
@@ -238,7 +238,7 @@ unary f g hyp =
 
 binary :
   (f : ℕ → ℕ → ℕ) (g : Nat′ → Nat′ → Nat′) →
-  @0 (∀ m n → to-ℕ′ (g m n) ≡ f (to-ℕ′ m) (to-ℕ′ n)) →
+  @0 (∀ m n → to-ℕ (g m n) ≡ f (to-ℕ m) (to-ℕ n)) →
   ∃ λ (h : Nat → Nat → Nat) →
     (∀ m n → Erased (⌊ h m n ⌋ ≡ f ⌊ m ⌋ ⌊ n ⌋)) ×
     (∀ m n →
