@@ -24,7 +24,7 @@ private
 
   module N where
     open import Nat eq public
-    open Prelude public using (suc)
+    open Prelude public using (zero; suc)
 
 ------------------------------------------------------------------------
 -- The underlying representation
@@ -59,6 +59,16 @@ private
 
       to-ℕ′ : Bin′ → ℕ
       to-ℕ′ = foldr (λ b n → from-Bool b ⊕ 2 ⊛ n) 0
+
+      -- One representation of zero.
+
+      zero′ : Bin′
+      zero′ = []
+
+      -- A lemma relating zero′ and N.zero.
+
+      to-ℕ′-zero′ : to-ℕ′ zero′ ≡ N.zero
+      to-ℕ′-zero′ = refl _
 
       -- One of the number's successors.
 
@@ -294,7 +304,7 @@ private
 
 open Bin-wrapper public
   using (⌊_⌋; ≡-for-indices↔≡; ⌈_⌉; ≡⌊⌋;
-         unary; unary-[]; binary; binary-[])
+         nullary; nullary-[]; unary; unary-[]; binary; binary-[])
   renaming
     ( Nat-[_] to Bin-[_]
     ; Nat-[]-propositional to Bin-[]-propositional
@@ -308,6 +318,8 @@ private
   -- Arithmetic for Bin′.
 
   Arithmetic-for-Bin′ : Arithmetic
+  Arithmetic.zero      Arithmetic-for-Bin′ = Bin′.zero′
+  Arithmetic.to-ℕ-zero Arithmetic-for-Bin′ = Bin′.to-ℕ′-zero′
   Arithmetic.suc       Arithmetic-for-Bin′ = Bin′.suc′
   Arithmetic.to-ℕ-suc  Arithmetic-for-Bin′ = Bin′.to-ℕ′-suc′
   Arithmetic._+_       Arithmetic-for-Bin′ = Bin′.add-with-carry

@@ -8,7 +8,7 @@
 {-# OPTIONS --cubical --safe #-}
 
 open import Equality
-open import Prelude hiding (suc; _+_)
+open import Prelude hiding (zero; suc; _+_)
 import Surjection
 
 module Nat.Wrapper
@@ -37,7 +37,7 @@ private
 
   module N where
     open import Nat eq public
-    open Prelude public using (suc; _+_)
+    open Prelude public using (zero; suc; _+_)
 
 ------------------------------------------------------------------------
 -- The wrapper
@@ -117,6 +117,15 @@ Nat↔ℕ = Σ-Erased-∥-Σ-Erased-≡-∥↔ Nat′↠ℕ ℕ-very-stable
 ------------------------------------------------------------------------
 -- Arithmetic with Nat-[_]
 
+-- A helper function that can be used to define constants.
+
+nullary-[] :
+  {@0 n : ℕ}
+  (m : Nat′) →
+  @0 to-ℕ m ≡ n →
+  Nat-[ n ]
+nullary-[] m hyp = ∣ m , [ hyp ] ∣
+
 -- A helper function that can be used to define unary operators.
 
 unary-[] :
@@ -160,6 +169,9 @@ binary-[] {m = m} {n = n} {f = f} g hyp = Trunc.rec
 
 record Arithmetic : Set where
   field
+    zero      : Nat′
+    to-ℕ-zero : to-ℕ zero ≡ N.zero
+
     suc       : Nat′ → Nat′
     to-ℕ-suc  : ∀ n → to-ℕ (suc n) ≡ N.suc (to-ℕ n)
 
@@ -180,6 +192,11 @@ module Arithmetic-for-Nat-[] (a : Arithmetic) where
   private
 
     module A = Arithmetic a
+
+  -- Zero.
+
+  zero : Nat-[ N.zero ]
+  zero = nullary-[] A.zero A.to-ℕ-zero
 
   -- The number's successor.
 
@@ -205,6 +222,29 @@ module Arithmetic-for-Nat-[] (a : Arithmetic) where
 
 ------------------------------------------------------------------------
 -- Arithmetic with Nat
+
+-- A helper function that can be used to define constants,
+-- along with correctness results.
+--
+-- Note that the first of the correctness results holds by
+-- definition.
+
+nullary :
+  (n : ℕ) (m : Nat′) →
+  @0 to-ℕ m ≡ n →
+  ∃ λ (o : Nat) →
+    Erased (⌊ o ⌋ ≡ n) ×
+    _↔_.to Nat↔ℕ o ≡ n
+nullary n m hyp =
+    o
+  , [ refl _ ]
+  , Very-stable→Stable 1 ℕ-very-stable _ _
+       [ _↔_.to Nat↔ℕ o  ≡⟨ ≡⌊⌋ o ⟩
+         ⌊ o ⌋           ≡⟨⟩
+         n               ∎
+       ]
+  where
+  o = _ , nullary-[] m hyp
 
 -- A helper function that can be used to define unary operators,
 -- along with correctness results.
@@ -263,6 +303,18 @@ module Arithmetic-for-Nat (a : Arithmetic) where
   private
 
     module A = Arithmetic a
+
+  -- Zero.
+
+  private
+
+    zero′ = nullary N.zero A.zero A.to-ℕ-zero
+
+  zero : Nat
+  zero = proj₁ zero′
+
+  to-ℕ-zero : _↔_.to Nat↔ℕ zero ≡ N.zero
+  to-ℕ-zero = proj₂ (proj₂ zero′)
 
   -- The number's successor.
 
