@@ -70,7 +70,7 @@ erased-singleton-with-erased-center-propositional :
   Very-stable-≡ A →
   Is-proposition (Erased-singleton x)
 erased-singleton-with-erased-center-propositional {x = x} s =
-                                                 $⟨ [ erased-singleton-contractible s ] ⟩
+                                                 $⟨ [ erased-singleton-contractible (λ _ _ → erased Erased-Very-stable) ] ⟩
   Erased (Contractible (Erased-singleton x))     ↝⟨ Erased-cong (mono₁ 0) ⟩
   Erased (Is-proposition (Erased-singleton x))   ↝⟨ (Stable-H-level 0 $ Very-stable→Stable 1 $
                                                      Very-stable-Σⁿ 1 s λ _ → Very-stable→Very-stable-≡ 0 Very-stable-Erased) ⟩□
@@ -157,7 +157,7 @@ mutual
 @0 to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ :
   ∀ (A↠B : A ↠ B) (s : Very-stable-≡ B) x →
   _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡ erased (proj₁ x)
-to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ A↠B s (x , y) =
-  _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) (x , y)  ≡⟨⟩
-  proj₁ (_↔_.to (↠→↔Erased-singleton A↠B s) y)     ≡⟨ erased (proj₂ (_↔_.to (↠→↔Erased-singleton A↠B s) y)) ⟩∎
-  erased x                                         ∎
+to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ A↠B s ([ x ] , y) =
+  _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) ([ x ] , y)  ≡⟨⟩
+  proj₁ (_↔_.to (↠→↔Erased-singleton A↠B s) y)         ≡⟨ erased (proj₂ (_↔_.to (↠→↔Erased-singleton A↠B s) y)) ⟩∎
+  x                                                    ∎
