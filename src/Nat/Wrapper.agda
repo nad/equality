@@ -41,6 +41,10 @@ private
     open import Nat eq public
     open Prelude public using (zero; suc; _+_)
 
+  variable
+    A               : Set
+    f f′ m n n′ hyp : A
+
 ------------------------------------------------------------------------
 -- The wrapper
 
@@ -251,107 +255,127 @@ module Arithmetic-for-Nat-[] (a : Arithmetic) where
 ------------------------------------------------------------------------
 -- Arithmetic with Nat
 
--- A helper function that can be used to define constants,
--- along with correctness results.
---
--- Note that the first of the correctness results holds by
--- definition.
+-- A helper function that can be used to define constants.
 
 nullary :
-  (n : ℕ) (n′ : Nat′) →
+  (@0 n : ℕ) (n′ : Nat′) →
   @0 to-ℕ n′ ≡ n →
-  ∃ λ (n″ : Nat) →
-    Erased (⌊ n″ ⌋ ≡ n) ×
-    _↔_.to Nat↔ℕ n″ ≡ n
-nullary n n′ hyp =
-    n″
-  , [ refl _ ]
-  , Very-stable→Stable 1 ℕ-very-stable _ _
-       [ _↔_.to Nat↔ℕ n″  ≡⟨ ≡⌊⌋ n″ ⟩
-         ⌊ n″ ⌋           ≡⟨⟩
-         n                ∎
-       ]
-  where
-  n″ = _ , nullary-[] n′ hyp
+  Nat
+nullary n n′ hyp = [ n ] , nullary-[] n′ hyp
 
--- A helper function that can be used to define unary operators,
--- along with correctness results.
+-- The function nullary is correct.
 --
--- Note that the first of the correctness results holds by
--- definition.
+-- Note that the first of the correctness results holds by definition.
+
+private
+
+  @0 nullary-correct′ : ⌊ nullary n n′ hyp ⌋ ≡ n
+  nullary-correct′ = refl _
+
+nullary-correct :
+  (@0 hyp : to-ℕ n′ ≡ n) →
+  _↔_.to Nat↔ℕ (nullary n n′ hyp) ≡ n
+nullary-correct {n′ = n′} {n = n} hyp =
+  Very-stable→Stable 1 ℕ-very-stable _ _
+     [ _↔_.to Nat↔ℕ (nullary n n′ hyp)  ≡⟨ ≡⌊⌋ (nullary n n′ hyp) ⟩
+       ⌊ nullary n n′ hyp ⌋             ≡⟨⟩
+       n                                ∎
+     ]
+
+-- A helper function that can be used to define unary operators.
 
 unary :
-  (f : ℕ → ℕ) (f′ : Nat′ → Nat′) →
+  (@0 f : ℕ → ℕ) (f′ : Nat′ → Nat′) →
   @0 (∀ n → to-ℕ (f′ n) ≡ f (to-ℕ n)) →
-  ∃ λ (f″ : Nat → Nat) →
-    (∀ n → Erased (⌊ f″ n ⌋ ≡ f ⌊ n ⌋)) ×
-    (∀ n → _↔_.to Nat↔ℕ (f″ n) ≡ f (_↔_.to Nat↔ℕ n))
-unary f f′ hyp =
-    f″
-  , (λ _ → [ refl _ ])
-  , (λ n → Very-stable→Stable 1 ℕ-very-stable _ _
-       [ _↔_.to Nat↔ℕ (f″ n)  ≡⟨ ≡⌊⌋ (f″ n) ⟩
-         ⌊ f″ n ⌋             ≡⟨⟩
-         f ⌊ n ⌋              ≡⟨ sym $ cong f $ ≡⌊⌋ n ⟩∎
-         f (_↔_.to Nat↔ℕ n)   ∎
-       ])
-  where
-  f″ = λ ([ n ] , n′) → [ f n ] , unary-[] f′ hyp n′
+  Nat → Nat
+unary f f′ hyp ([ n ] , n′) = ([ f n ] , unary-[] f′ hyp n′)
 
--- A helper function that can be used to define n-ary operators, along
--- with corresponding correctness results.
+-- The function unary is correct.
+--
+-- Note that the first of the correctness results holds by definition.
+
+private
+
+  @0 unary-correct′ : ⌊ unary f f′ hyp n ⌋ ≡ f ⌊ n ⌋
+  unary-correct′ = refl _
+
+unary-correct :
+  {@0 hyp : ∀ n → to-ℕ (f′ n) ≡ f (to-ℕ n)} →
+  ∀ n → _↔_.to Nat↔ℕ (unary f f′ hyp n) ≡ f (_↔_.to Nat↔ℕ n)
+unary-correct {f′ = f′} {f = f} {hyp = hyp} n =
+  Very-stable→Stable 1 ℕ-very-stable _ _
+    [ _↔_.to Nat↔ℕ (unary f f′ hyp n)  ≡⟨ ≡⌊⌋ (unary f f′ hyp n) ⟩
+      ⌊ unary f f′ hyp n ⌋             ≡⟨⟩
+      f ⌊ n ⌋                          ≡⟨ sym $ cong f $ ≡⌊⌋ n ⟩∎
+      f (_↔_.to Nat↔ℕ n)               ∎
+    ]
+
+-- A helper function that can be used to define n-ary operators.
 
 n-ary :
   (n : ℕ)
-  (f : Vec ℕ n → ℕ)
+  (@0 f : Vec ℕ n → ℕ)
   (f′ : Vec Nat′ n → Nat′) →
   @0 (∀ ms → to-ℕ (f′ ms) ≡ f (Vec.map to-ℕ ms)) →
-  ∃ λ (f″ : Vec Nat n → Nat) →
-    ∀ ms → _↔_.to Nat↔ℕ (f″ ms) ≡ f (Vec.map (_↔_.to Nat↔ℕ) ms)
-n-ary n f f′ hyp =
-    f″
-  , λ ms → Very-stable→Stable 1 ℕ-very-stable _ _
-      [ _↔_.to Nat↔ℕ (f″ ms)                          ≡⟨ ≡⌊⌋ (f″ ms) ⟩
-        ⌊ f″ ms ⌋                                     ≡⟨⟩
-        f (Vec.map erased (proj₁ (_↔_.to Vec-Σ ms)))  ≡⟨ cong (f ∘ Vec.map _) proj₁-Vec-Σ ⟩
-        f (Vec.map erased (Vec.map proj₁ ms))         ≡⟨ cong f $ sym Vec.map-∘ ⟩
-        f (Vec.map ⌊_⌋ ms)                            ≡⟨ cong (λ g → f (Vec.map g ms)) $ sym $ ⟨ext⟩ ≡⌊⌋ ⟩∎
-        f (Vec.map (_↔_.to Nat↔ℕ) ms)                 ∎
-      ]
-  where
-  f″ : Vec Nat n → Nat
-  f″ ms =
-      [ f (Vec.map erased (proj₁ (_↔_.to Vec-Σ ms))) ]
-    , n-ary-[] n f f′ hyp (proj₂ (_↔_.to Vec-Σ ms))
+  Vec Nat n → Nat
+n-ary n f f′ hyp ms =
+    [ f (Vec.map erased (proj₁ (_↔_.to Vec-Σ ms))) ]
+  , n-ary-[] n f f′ hyp (proj₂ (_↔_.to Vec-Σ ms))
 
 -- The function n-ary should be normalised by the compiler.
 
 {-# STATIC n-ary #-}
 
--- A helper function that can be used to define binary operators,
--- along with correctness results.
---
--- Note that the first of the correctness results holds by
--- definition.
+-- The function n-ary is correct.
+
+n-ary-correct :
+  ∀ (n : ℕ) {f f′}
+  (@0 hyp : ∀ ms → to-ℕ (f′ ms) ≡ f (Vec.map to-ℕ ms)) →
+  ∀ ms →
+  _↔_.to Nat↔ℕ (n-ary n f f′ hyp ms) ≡ f (Vec.map (_↔_.to Nat↔ℕ) ms)
+n-ary-correct n {f = f} {f′ = f′} hyp ms =
+  Very-stable→Stable 1 ℕ-very-stable _ _
+    [ _↔_.to Nat↔ℕ (n-ary n f f′ hyp ms)            ≡⟨ ≡⌊⌋ (n-ary n f f′ hyp ms) ⟩
+      ⌊ n-ary n f f′ hyp ms ⌋                       ≡⟨⟩
+      f (Vec.map erased (proj₁ (_↔_.to Vec-Σ ms)))  ≡⟨ cong (f ∘ Vec.map _) proj₁-Vec-Σ ⟩
+      f (Vec.map erased (Vec.map proj₁ ms))         ≡⟨ cong f $ sym Vec.map-∘ ⟩
+      f (Vec.map ⌊_⌋ ms)                            ≡⟨ cong (λ g → f (Vec.map g ms)) $ sym $ ⟨ext⟩ ≡⌊⌋ ⟩∎
+      f (Vec.map (_↔_.to Nat↔ℕ) ms)                 ∎
+    ]
+
+-- A helper function that can be used to define binary operators
 
 binary :
-  (f : ℕ → ℕ → ℕ) (f′ : Nat′ → Nat′ → Nat′) →
+  (@0 f : ℕ → ℕ → ℕ) (f′ : Nat′ → Nat′ → Nat′) →
   @0 (∀ m n → to-ℕ (f′ m n) ≡ f (to-ℕ m) (to-ℕ n)) →
-  ∃ λ (f″ : Nat → Nat → Nat) →
-    (∀ m n → Erased (⌊ f″ m n ⌋ ≡ f ⌊ m ⌋ ⌊ n ⌋)) ×
-    (∀ m n →
-       _↔_.to Nat↔ℕ (f″ m n) ≡ f (_↔_.to Nat↔ℕ m) (_↔_.to Nat↔ℕ n))
-binary f g hyp =
-  let f″ , p =
-        n-ary
-          2
-          (λ (m , n , _) → f m n)
-          (λ (m , n , _) → g m n)
-          (λ (m , n , _) → hyp m n)
-  in
-    (λ m n → f″ (m , n , _))
-  , (λ _ _ → [ refl _ ])
-  , (λ m n → p (m , n , _))
+  Nat → Nat → Nat
+binary f g hyp m n =
+  n-ary
+    2
+    (λ (m , n , _) → f m n)
+    (λ (m , n , _) → g m n)
+    (λ (m , n , _) → hyp m n)
+    (m , n , _)
+
+-- The function binary is correct.
+--
+-- Note that the first of the correctness results holds by definition.
+
+private
+
+  @0 binary-correct′ : ⌊ binary f f′ hyp m n ⌋ ≡ f ⌊ m ⌋ ⌊ n ⌋
+  binary-correct′ = refl _
+
+binary-correct :
+  {@0 hyp : ∀ m n → to-ℕ (f′ m n) ≡ f (to-ℕ m) (to-ℕ n)} →
+  ∀ m n →
+  _↔_.to Nat↔ℕ (binary f f′ hyp m n) ≡
+  f (_↔_.to Nat↔ℕ m) (_↔_.to Nat↔ℕ n)
+binary-correct {hyp = hyp} m n =
+  n-ary-correct
+    2
+    (λ (m , n , _) → hyp m n)
+    (m , n , _)
 
 -- If certain arithmetic operations are defined for Nat′, then they
 -- can be defined for Nat-[_] as well.
@@ -364,66 +388,46 @@ module Arithmetic-for-Nat (a : Arithmetic) where
 
   -- Zero.
 
-  private
-
-    zero′ = nullary N.zero A.zero A.to-ℕ-zero
-
   zero : Nat
-  zero = proj₁ zero′
+  zero = nullary N.zero A.zero A.to-ℕ-zero
 
   to-ℕ-zero : _↔_.to Nat↔ℕ zero ≡ N.zero
-  to-ℕ-zero = proj₂ (proj₂ zero′)
+  to-ℕ-zero = nullary-correct A.to-ℕ-zero
 
   -- The number's successor.
 
-  private
-
-    suc′ = unary N.suc A.suc A.to-ℕ-suc
-
   suc : Nat → Nat
-  suc = proj₁ suc′
+  suc = unary N.suc A.suc A.to-ℕ-suc
 
   to-ℕ-suc : ∀ n → _↔_.to Nat↔ℕ (suc n) ≡ N.suc (_↔_.to Nat↔ℕ n)
-  to-ℕ-suc = proj₂ (proj₂ suc′)
+  to-ℕ-suc = unary-correct
 
   -- Addition.
-
-  private
-
-    +′ = binary N._+_ A._+_ A.to-ℕ-+
 
   infixl 6 _+_
 
   _+_ : Nat → Nat → Nat
-  _+_ = proj₁ +′
+  _+_ = binary N._+_ A._+_ A.to-ℕ-+
 
   to-ℕ-+ :
     ∀ m n → _↔_.to Nat↔ℕ (m + n) ≡ _↔_.to Nat↔ℕ m N.+ _↔_.to Nat↔ℕ n
-  to-ℕ-+ = proj₂ (proj₂ +′)
+  to-ℕ-+ = binary-correct
 
   -- Division by two, rounded downwards.
 
-  private
-
-    ⌊/2⌋ = unary N.⌊_/2⌋ A.⌊_/2⌋ A.to-ℕ-⌊/2⌋
-
   ⌊_/2⌋ : Nat → Nat
-  ⌊_/2⌋ = proj₁ ⌊/2⌋
+  ⌊_/2⌋ = unary N.⌊_/2⌋ A.⌊_/2⌋ A.to-ℕ-⌊/2⌋
 
   to-ℕ-⌊/2⌋ : ∀ n → _↔_.to Nat↔ℕ ⌊ n /2⌋ ≡ N.⌊ _↔_.to Nat↔ℕ n /2⌋
-  to-ℕ-⌊/2⌋ = proj₂ (proj₂ ⌊/2⌋)
+  to-ℕ-⌊/2⌋ = unary-correct
 
   -- Division by two, rounded upwards.
 
-  private
-
-    ⌈/2⌉ = unary N.⌈_/2⌉ A.⌈_/2⌉ A.to-ℕ-⌈/2⌉
-
   ⌈_/2⌉ : Nat → Nat
-  ⌈_/2⌉ = proj₁ ⌈/2⌉
+  ⌈_/2⌉ = unary N.⌈_/2⌉ A.⌈_/2⌉ A.to-ℕ-⌈/2⌉
 
   to-ℕ-⌈/2⌉ : ∀ n → _↔_.to Nat↔ℕ ⌈ n /2⌉ ≡ N.⌈ _↔_.to Nat↔ℕ n /2⌉
-  to-ℕ-⌈/2⌉ = proj₂ (proj₂ ⌈/2⌉)
+  to-ℕ-⌈/2⌉ = unary-correct
 
 ------------------------------------------------------------------------
 -- Some examples

@@ -304,10 +304,10 @@ private
 
 open Bin-wrapper public
   using (⌊_⌋; ≡-for-indices↔≡; ⌈_⌉; ≡⌊⌋;
-         nullary; nullary-[];
-         unary; unary-[];
-         binary; binary-[];
-         n-ary; n-ary-[])
+         nullary-[]; nullary; nullary-correct;
+         unary-[]; unary; unary-correct;
+         binary-[]; binary; binary-correct;
+         n-ary-[]; n-ary; n-ary-correct)
   renaming
     ( Nat-[_] to Bin-[_]
     ; Nat-[]-propositional to Bin-[]-propositional
