@@ -133,8 +133,10 @@ flip f = λ x y → f y x
 -- Applies the unary function to each argument and combines the
 -- results using the binary function.
 
-_on_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
-       (B → B → C) → (A → B) → (A → A → C)
+_on_ : ∀ {a b c} {A : Set a} {B : Set b} {C : B → B → Set c} →
+       ((x y : B) → C x y) →
+       (f : A → B) →
+       ((x y : A) → C (f x) (f y))
 _*_ on f = λ x y → f x * f y
 
 -- A term's type.
