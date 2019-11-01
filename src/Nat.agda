@@ -230,6 +230,16 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
   suc m * n₂  ≡⟨ *-comm (suc m) ⟩∎
   n₂ * suc m  ∎)
 
+-- Even numbers are not equal to odd numbers.
+
+even≢odd : ∀ m n → 2 * m ≢ 1 + 2 * n
+even≢odd zero    n eq = 0≢+ eq
+even≢odd (suc m) n eq =
+  even≢odd n m (
+    2 * n            ≡⟨ sym $ cancel-suc eq ⟩
+    m + 1 * (1 + m)  ≡⟨ sym $ suc+≡+suc m ⟩∎
+    1 + 2 * m        ∎)
+
 ------------------------------------------------------------------------
 -- Properties related to _^_
 
