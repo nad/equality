@@ -418,6 +418,16 @@ sum-nats-< (suc (suc n)) =
 ++≡[]→≡[]×≡[] []      {_ ∷ _} ∷≡[] = ⊥-elim (List.[]≢∷ (sym ∷≡[]))
 ++≡[]→≡[]×≡[] (_ ∷ _)         ∷≡[] = ⊥-elim (List.[]≢∷ (sym ∷≡[]))
 
+-- Empty lists are not equal to non-empty lists.
+
+[]≢++∷ :
+  ∀ {a} {A : Set a} (xs : List A) {y ys} →
+  [] ≢ xs ++ y ∷ ys
+[]≢++∷ xs {y} {ys} =
+  [] ≡ xs ++ y ∷ ys  ↝⟨ sym ∘ proj₂ ∘ ++≡[]→≡[]×≡[] xs ∘ sym ⟩
+  [] ≡ y ∷ ys        ↝⟨ List.[]≢∷ ⟩□
+  ⊥                  □
+
 ------------------------------------------------------------------------
 -- The list monad
 
