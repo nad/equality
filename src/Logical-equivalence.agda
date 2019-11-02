@@ -66,16 +66,23 @@ finally-⇔ _ _ A⇔B = A⇔B
 syntax finally-⇔ A B A⇔B = A ⇔⟨ A⇔B ⟩□ B □
 
 ------------------------------------------------------------------------
--- A lemma
+-- Some lemmas
+
+-- A map function for Dec.
+
+Dec-map :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  A ⇔ B → Dec A → Dec B
+Dec-map A⇔B = ⊎-map to (_⊚ from)
+  where
+  open _⇔_ A⇔B
 
 -- Dec preserves logical equivalences.
 
-Dec-preserves : {A B : Set} → A ⇔ B → Dec A ⇔ Dec B
+Dec-preserves :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  A ⇔ B → Dec A ⇔ Dec B
 Dec-preserves A⇔B = record
-  { to   = lemma A⇔B
-  ; from = lemma (inverse A⇔B)
+  { to   = Dec-map A⇔B
+  ; from = Dec-map (inverse A⇔B)
   }
-  where
-  lemma : {A B : Set} → A ⇔ B → Dec A → Dec B
-  lemma A⇔B = ⊎-map to (λ ¬A → ¬A ⊚ from)
-    where open _⇔_ A⇔B
