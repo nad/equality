@@ -307,7 +307,8 @@ import Integer.Quotient
 -- A wrapper that turns a representation of natural numbers, possibly
 -- with several representations for some numbers, into a
 -- representation with unique representatives, that additionally
--- computes roughly like the unary natural numbers.
+-- computes roughly like the unary natural numbers (at least for some
+-- operations).
 
 import Nat.Wrapper
 

@@ -11,11 +11,15 @@ module Nat.Binary
 
 open Derived-definitions-and-properties eq
 
+open import Logical-equivalence using (_⇔_; Dec-map)
 open import Prelude hiding (suc) renaming (_+_ to _⊕_; _*_ to _⊛_)
 
 open import Bijection eq using (_↔_)
+open import Equality.Decision-procedures eq
 open import Erased.Cubical eq
+open import Function-universe eq hiding (_∘_)
 open import List eq
+import Nat eq as Nat
 open import Nat.Solver eq
 import Nat.Wrapper eq as Wrapper
 open import Surjection eq using (_↠_)
@@ -248,6 +252,10 @@ private
           1 ⊕ to-ℕ′ (true ∷ cs) ⊕ to-ℕ′ (true ∷ ds)   ∎
 
       -- Addition.
+      --
+      -- Note that this function can return a number with leading
+      -- zeros even if the input does not contain leading zeros. It
+      -- might make sense to change the implementation.
 
       add-with-carry : Bin′ → Bin′ → Bin′
       add-with-carry = add-with-carry₂ false
@@ -292,13 +300,215 @@ private
         1 ⊕ to-ℕ′ bs              ≡⟨ sym $ N.⌈1+2*/2⌉≡ _ ⟩∎
         N.⌈ 1 ⊕ 2 ⊛ to-ℕ′ bs /2⌉  ∎
 
+      private
+
+        -- A helper function used in strip-leading-zeros.
+
+        maybe-cons : Bool → Bin′ → Bin′
+        maybe-cons false [] = []
+        maybe-cons b     bs = b ∷ bs
+
+        -- Removes leading zeros.
+
+        strip-leading-zeros : Bin′ → Bin′
+        strip-leading-zeros = foldr maybe-cons []
+
+        -- Removing leading zeros does not affect the "semantics" of a
+        -- number.
+
+        to-ℕ′-strip-leading-zeros :
+          ∀ bs → to-ℕ′ (strip-leading-zeros bs) ≡ to-ℕ′ bs
+        to-ℕ′-strip-leading-zeros []           = refl _
+        to-ℕ′-strip-leading-zeros (true ∷ bs)  =
+          to-ℕ′ (true ∷ strip-leading-zeros bs)   ≡⟨⟩
+          1 ⊕ 2 ⊛ to-ℕ′ (strip-leading-zeros bs)  ≡⟨ cong (λ n → 1 ⊕ 2 ⊛ n) $ to-ℕ′-strip-leading-zeros bs ⟩
+          1 ⊕ 2 ⊛ to-ℕ′ bs                        ≡⟨⟩
+          to-ℕ′ (true ∷ bs)                       ∎
+        to-ℕ′-strip-leading-zeros (false ∷ bs)
+          with strip-leading-zeros bs
+             | to-ℕ′-strip-leading-zeros bs
+        ... | [] | eq =
+          to-ℕ′ []            ≡⟨⟩
+          0                   ≡⟨ cong (2 ⊛_) eq ⟩
+          2 ⊛ to-ℕ′ bs        ≡⟨⟩
+          to-ℕ′ (false ∷ bs)  ∎
+        ... | bs′@(_ ∷ _) | eq =
+          to-ℕ′ (false ∷ bs′)  ≡⟨⟩
+          2 ⊛ to-ℕ′ bs′        ≡⟨ cong (2 ⊛_) eq ⟩
+          2 ⊛ to-ℕ′ bs         ≡⟨⟩
+          to-ℕ′ (false ∷ bs)   ∎
+
+        -- If the "semantics" of a stripped list is zero, then the
+        -- stripped list is equal to zero′.
+
+        zero′-unique :
+            ∀ bs →
+            to-ℕ′ (strip-leading-zeros bs) ≡ 0 →
+            strip-leading-zeros bs ≡ zero′
+        zero′-unique []           eq = refl _
+        zero′-unique (true  ∷ bs) eq = ⊥-elim $ Nat.0≢+ $ sym eq
+        zero′-unique (false ∷ bs) eq =
+          maybe-cons false (strip-leading-zeros bs)         ≡⟨ cong (maybe-cons false) $ zero′-unique bs (
+
+              to-ℕ′ (strip-leading-zeros bs)                     ≡⟨ Nat.*-cancellativeˡ 1 (
+
+                  2 ⊛ to-ℕ′ (strip-leading-zeros bs)               ≡⟨ cong (2 ⊛_) $ to-ℕ′-strip-leading-zeros bs ⟩
+                  2 ⊛ to-ℕ′ bs                                     ≡⟨⟩
+                  to-ℕ′ (false ∷ bs)                               ≡⟨ sym $ to-ℕ′-strip-leading-zeros (false ∷ bs) ⟩
+                  to-ℕ′ (strip-leading-zeros (false ∷ bs))         ≡⟨ eq ⟩
+                  0                                                ≡⟨⟩
+                  2 ⊛ 0                                            ∎) ⟩∎
+
+              0                                                  ∎) ⟩
+
+          maybe-cons false []                               ≡⟨⟩
+          []                                                ∎
+
+        -- Doubles the number.
+        --
+        -- This operation is not exported, it is only used in the type
+        -- signatures of some lemmas. Note that this function can
+        -- return a number with leading zeros even if the input does
+        -- not contain leading zeros.
+
+        double′ : Bin′ → Bin′
+        double′ = false ∷_
+
+        -- Doubles the number and adds one.
+        --
+        -- This operation is not exported, it is only used in the type
+        -- signatures of some lemmas.
+
+        suc-double′ : Bin′ → Bin′
+        suc-double′ = true ∷_
+
+        -- It is impossible that lists starting with true and false
+        -- have the same semantics.
+
+        distinct-heads→distinct-semantics :
+          ∀ bs₁ bs₂ → to-ℕ′ (suc-double′ bs₁) ≢ to-ℕ′ (double′ bs₂)
+        distinct-heads→distinct-semantics bs₁ bs₂ eq =
+          Nat.even≢odd (to-ℕ′ bs₂) (to-ℕ′ bs₁) (sym eq)
+
+        -- A variant of the previous lemma.
+
+        distinct-heads→distinct-semantics′ :
+          ∀ bs₁ bs₂ →
+          to-ℕ′ (suc-double′ bs₁) ≢
+          to-ℕ′ (strip-leading-zeros (double′ bs₂))
+        distinct-heads→distinct-semantics′ bs₁ bs₂ eq
+          with strip-leading-zeros bs₂
+        ... | []           = Nat.0≢+ $ sym eq
+        ... | bs₂′@(_ ∷ _) =
+          distinct-heads→distinct-semantics bs₁ bs₂′ eq
+
+      -- The function to-ℕ′ is, in a certain sense, injective on the
+      -- image of strip-leading-zeros.
+
+      to-ℕ′-injective :
+        ∀ bs₁ bs₂ →
+        to-ℕ′ (strip-leading-zeros bs₁) ≡
+        to-ℕ′ (strip-leading-zeros bs₂) →
+        strip-leading-zeros bs₁ ≡ strip-leading-zeros bs₂
+      to-ℕ′-injective [] [] eq = refl _
+
+      to-ℕ′-injective [] (true ∷ bs₂) eq = ⊥-elim $ Nat.0≢+ eq
+
+      to-ℕ′-injective [] (false ∷ bs₂) eq =
+        strip-leading-zeros []             ≡⟨⟩
+        []                                 ≡⟨ sym $ zero′-unique (false ∷ bs₂) (sym eq) ⟩∎
+        strip-leading-zeros (false ∷ bs₂)  ∎
+
+      to-ℕ′-injective (true ∷ bs₁) [] eq = ⊥-elim $ Nat.0≢+ $ sym eq
+
+      to-ℕ′-injective (false ∷ bs₁) [] eq =
+        strip-leading-zeros (false ∷ bs₁)  ≡⟨ zero′-unique (false ∷ bs₁) eq ⟩
+        []                                 ≡⟨⟩
+        strip-leading-zeros []             ∎
+
+      to-ℕ′-injective (true ∷ bs₁) (true ∷ bs₂) eq =
+        cong (true ∷_) $ to-ℕ′-injective bs₁ bs₂ (
+          to-ℕ′ (strip-leading-zeros bs₁)  ≡⟨ Nat.*-cancellativeˡ 1 $ Nat.cancel-suc eq ⟩∎
+          to-ℕ′ (strip-leading-zeros bs₂)  ∎)
+
+      to-ℕ′-injective (true ∷ bs₁) (false ∷ bs₂) eq =
+        ⊥-elim $
+          distinct-heads→distinct-semantics′
+            (strip-leading-zeros bs₁) bs₂ eq
+      to-ℕ′-injective (false ∷ bs₁) (true ∷ bs₂) eq =
+        ⊥-elim $
+          distinct-heads→distinct-semantics′
+            (strip-leading-zeros bs₂) bs₁ (sym eq)
+
+      to-ℕ′-injective (false ∷ bs₁) (false ∷ bs₂) eq =
+        cong-false-∷ bs₁ bs₂ $ to-ℕ′-injective bs₁ bs₂ (
+          to-ℕ′ (strip-leading-zeros bs₁)                ≡⟨ Nat.*-cancellativeˡ 1 (
+
+              2 ⊛ to-ℕ′ (strip-leading-zeros bs₁)             ≡⟨ cong (2 ⊛_) $ to-ℕ′-strip-leading-zeros bs₁ ⟩
+              to-ℕ′ (false ∷ bs₁)                             ≡⟨ sym $ to-ℕ′-strip-leading-zeros (false ∷ bs₁) ⟩
+              to-ℕ′ (strip-leading-zeros (false ∷ bs₁))       ≡⟨ eq ⟩
+              to-ℕ′ (strip-leading-zeros (false ∷ bs₂))       ≡⟨ to-ℕ′-strip-leading-zeros (false ∷ bs₂) ⟩
+              to-ℕ′ (false ∷ bs₂)                             ≡⟨ cong (2 ⊛_) $ sym $ to-ℕ′-strip-leading-zeros bs₂ ⟩∎
+              2 ⊛ to-ℕ′ (strip-leading-zeros bs₂)             ∎) ⟩∎
+
+          to-ℕ′ (strip-leading-zeros bs₂)                ∎)
+        where
+        cong-false-∷ :
+          ∀ bs₁ bs₂ →
+          strip-leading-zeros bs₁ ≡ strip-leading-zeros bs₂ →
+          strip-leading-zeros (false ∷ bs₁) ≡
+          strip-leading-zeros (false ∷ bs₂)
+        cong-false-∷ bs₁ bs₂ eq
+          with strip-leading-zeros bs₁
+             | strip-leading-zeros bs₂
+        ... | []    | []    = refl _
+        ... | []    | _ ∷ _ = ⊥-elim $ List.[]≢∷ eq
+        ... | _ ∷ _ | []    = ⊥-elim $ List.[]≢∷ $ sym eq
+        ... | _ ∷ _ | _ ∷ _ = cong (false ∷_) eq
+
+
+      -- An equality test.
+
+      private
+
+        equal? :
+          (bs₁ bs₂ : Bin′) →
+          Dec ((_≡_ on strip-leading-zeros) bs₁ bs₂)
+        equal? = List.Dec._≟_ Bool._≟_ on strip-leading-zeros
+
+      _==_ : Bin′ → Bin′ → Bool
+      bs₁ == bs₂ = ⊎-map _ _ (equal? bs₁ bs₂)
+
+      to-ℕ′-== : ∀ bs₁ bs₂ → T (bs₁ == bs₂) ⇔ (to-ℕ′ bs₁ ≡ to-ℕ′ bs₂)
+      to-ℕ′-== bs₁ bs₂ with equal? bs₁ bs₂
+      ... | yes p = record
+        { to = λ _ →
+            to-ℕ′ bs₁                        ≡⟨ sym $ to-ℕ′-strip-leading-zeros bs₁ ⟩
+            to-ℕ′ (strip-leading-zeros bs₁)  ≡⟨ cong to-ℕ′ p ⟩
+            to-ℕ′ (strip-leading-zeros bs₂)  ≡⟨ to-ℕ′-strip-leading-zeros bs₂ ⟩∎
+            to-ℕ′ bs₂                        ∎
+        }
+      ... | no p = record
+        { to   = λ ()
+        ; from =
+            to-ℕ′ bs₁ ≡ to-ℕ′ bs₂              ↝⟨ (λ eq → trans (to-ℕ′-strip-leading-zeros bs₁)
+                                                            (trans eq (sym $ to-ℕ′-strip-leading-zeros bs₂))) ⟩
+            to-ℕ′ (strip-leading-zeros bs₁) ≡
+            to-ℕ′ (strip-leading-zeros bs₂)    ↝⟨ to-ℕ′-injective bs₁ bs₂ ⟩
+
+            strip-leading-zeros bs₁ ≡
+            strip-leading-zeros bs₂            ↝⟨ p ⟩□
+
+            ⊥                                  □
+        }
+
 ------------------------------------------------------------------------
 -- Binary natural numbers
 
 private
 
   module Bin-wrapper = Wrapper Bin′.Bin′ Bin′.Bin′↠ℕ
-  open Bin-wrapper using (Arithmetic)
+  open Bin-wrapper using (Operations)
 
 -- Some definitions from Nat.Wrapper are reexported.
 
@@ -318,29 +528,31 @@ open Bin-wrapper public
 
 private
 
-  -- Arithmetic for Bin′.
+  -- An implementation of some operations for Bin′.
 
-  Arithmetic-for-Bin′ : Arithmetic
-  Arithmetic.zero      Arithmetic-for-Bin′ = Bin′.zero′
-  Arithmetic.to-ℕ-zero Arithmetic-for-Bin′ = Bin′.to-ℕ′-zero′
-  Arithmetic.suc       Arithmetic-for-Bin′ = Bin′.suc′
-  Arithmetic.to-ℕ-suc  Arithmetic-for-Bin′ = Bin′.to-ℕ′-suc′
-  Arithmetic._+_       Arithmetic-for-Bin′ = Bin′.add-with-carry
-  Arithmetic.to-ℕ-+    Arithmetic-for-Bin′ = Bin′.to-ℕ′-add-with-carry
-  Arithmetic.⌊_/2⌋     Arithmetic-for-Bin′ = Bin′.⌊_/2⌋
-  Arithmetic.to-ℕ-⌊/2⌋ Arithmetic-for-Bin′ = Bin′.to-ℕ′-⌊/2⌋
-  Arithmetic.⌈_/2⌉     Arithmetic-for-Bin′ = Bin′.⌈_/2⌉
-  Arithmetic.to-ℕ-⌈/2⌉ Arithmetic-for-Bin′ = Bin′.to-ℕ′-⌈/2⌉
+  Operations-for-Bin′ : Operations
+  Operations.zero      Operations-for-Bin′ = Bin′.zero′
+  Operations.to-ℕ-zero Operations-for-Bin′ = Bin′.to-ℕ′-zero′
+  Operations.suc       Operations-for-Bin′ = Bin′.suc′
+  Operations.to-ℕ-suc  Operations-for-Bin′ = Bin′.to-ℕ′-suc′
+  Operations._+_       Operations-for-Bin′ = Bin′.add-with-carry
+  Operations.to-ℕ-+    Operations-for-Bin′ = Bin′.to-ℕ′-add-with-carry
+  Operations.⌊_/2⌋     Operations-for-Bin′ = Bin′.⌊_/2⌋
+  Operations.to-ℕ-⌊/2⌋ Operations-for-Bin′ = Bin′.to-ℕ′-⌊/2⌋
+  Operations.⌈_/2⌉     Operations-for-Bin′ = Bin′.⌈_/2⌉
+  Operations.to-ℕ-⌈/2⌉ Operations-for-Bin′ = Bin′.to-ℕ′-⌈/2⌉
+  Operations._==_      Operations-for-Bin′ = Bin′._==_
+  Operations.to-ℕ-==   Operations-for-Bin′ = Bin′.to-ℕ′-==
 
--- Arithmetic for Bin-[_].
+-- Operations for Bin-[_].
 
-module Arithmetic-for-Bin-[] =
-  Bin-wrapper.Arithmetic-for-Nat-[] Arithmetic-for-Bin′
+module Operations-for-Bin-[] =
+  Bin-wrapper.Operations-for-Nat-[] Operations-for-Bin′
 
--- Arithmetic for Bin.
+-- Operations for Bin.
 
-module Arithmetic-for-Bin =
-  Bin-wrapper.Arithmetic-for-Nat Arithmetic-for-Bin′
+module Operations-for-Bin =
+  Bin-wrapper.Operations-for-Nat Operations-for-Bin′
 
 ------------------------------------------------------------------------
 -- Some examples
@@ -349,7 +561,7 @@ private
 
   module Bin-[]-examples where
 
-    open Arithmetic-for-Bin-[]
+    open Operations-for-Bin-[]
 
     -- Converts unary natural numbers to binary natural numbers.
 
@@ -373,7 +585,7 @@ private
 
   module Bin-examples where
 
-    open Arithmetic-for-Bin
+    open Operations-for-Bin
 
     -- If Bin is used instead of Bin-[_], then it can be easier to
     -- state that two values are equal.
@@ -386,3 +598,12 @@ private
       [ ⌊ m ⌋ ⊕ ⌊ n ⌋  ≡⟨ N.+-comm ⌊ m ⌋ ⟩∎
         ⌊ n ⌋ ⊕ ⌊ m ⌋  ∎
       ]
+
+    -- One can construct a proof showing that ⌈ 5 ⌉ is either equal or
+    -- not equal to ⌈ 2 ⌉ + ⌈ 3 ⌉, but the proof does not compute to
+    -- "inj₁ something" at compile-time.
+
+    example₃ : Dec (⌈ 5 ⌉ ≡ ⌈ 2 ⌉ + ⌈ 3 ⌉)
+    example₃ =
+      Dec-map (_↔_.logical-equivalence ≡-for-indices↔≡)
+        (⌈ 5 ⌉ ≟ ⌈ 2 ⌉ + ⌈ 3 ⌉)

@@ -2,7 +2,8 @@
 -- A wrapper that turns a representation of natural numbers, possibly
 -- with several representations for some numbers, into a
 -- representation with unique representatives, that additionally
--- computes roughly like the unary natural numbers
+-- computes roughly like the unary natural numbers (at least for some
+-- operations)
 ------------------------------------------------------------------------
 
 {-# OPTIONS --cubical --safe #-}
@@ -24,6 +25,8 @@ module Nat.Wrapper
   where
 
 open Derived-definitions-and-properties eq
+
+open import Logical-equivalence using (_⇔_; Dec-map)
 
 open import Bijection eq using (_↔_)
 open import Equality.Path.Isomorphisms eq
@@ -121,7 +124,7 @@ Nat↔ℕ = Σ-Erased-∥-Σ-Erased-≡-∥↔ Nat′↠ℕ ℕ-very-stable
 ≡⌊⌋ n = to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ Nat′↠ℕ ℕ-very-stable n
 
 ------------------------------------------------------------------------
--- Arithmetic with Nat-[_]
+-- Some operations for Nat-[_]
 
 -- A helper function that can be used to define constants.
 
@@ -197,9 +200,11 @@ binary-[] f′ hyp m n =
     (m , n , _)
 
 -- The code below is parametrised by implementations of (and
--- correctness properties for) certain arithmetic operations for Nat′.
+-- correctness properties for) certain operations for Nat′.
 
-record Arithmetic : Set where
+record Operations : Set where
+  infix 4 _==_
+
   field
     zero      : Nat′
     to-ℕ-zero : to-ℕ zero ≡ N.zero
@@ -216,44 +221,88 @@ record Arithmetic : Set where
     ⌈_/2⌉     : Nat′ → Nat′
     to-ℕ-⌈/2⌉ : ∀ n → to-ℕ ⌈ n /2⌉ ≡ N.⌈ to-ℕ n /2⌉
 
--- If certain arithmetic operations are defined for Nat′, then they
--- can be defined for Nat-[_] as well.
+    _==_      : Nat′ → Nat′ → Bool
+    to-ℕ-==   : ∀ m n → T (m == n) ⇔ (to-ℕ m ≡ to-ℕ n)
 
-module Arithmetic-for-Nat-[] (a : Arithmetic) where
+  -- A variant of decidable equality.
+
+  infix 4 _≟_
+
+  _≟_ : ∀ m n → Dec (Erased (to-ℕ m ≡ to-ℕ n))
+  m ≟ n with m == n | [ to-ℕ-== m n ]
+  ... | true  | [ hyp ] = yes [ _⇔_.to hyp _ ]
+  ... | false | [ hyp ] = no (
+    Erased (to-ℕ m ≡ to-ℕ n)  ↝⟨ Erased-cong (_⇔_.from hyp) ⟩
+    Erased ⊥                  ↔⟨ Erased-⊥↔⊥ ⟩□
+    ⊥                         □)
+
+-- If certain operations are defined for Nat′, then they can be
+-- defined for Nat-[_] as well.
+
+module Operations-for-Nat-[] (o : Operations) where
 
   private
 
-    module A = Arithmetic a
+    module O = Operations o
 
   -- Zero.
 
   zero : Nat-[ N.zero ]
-  zero = nullary-[] A.zero A.to-ℕ-zero
+  zero = nullary-[] O.zero O.to-ℕ-zero
 
   -- The number's successor.
 
   suc : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.suc n ]
-  suc = unary-[] A.suc A.to-ℕ-suc
+  suc = unary-[] O.suc O.to-ℕ-suc
 
   -- Addition.
 
   infixl 6 _+_
 
   _+_ : {@0 m n : ℕ} → Nat-[ m ] → Nat-[ n ] → Nat-[ m N.+ n ]
-  _+_ = binary-[] A._+_ A.to-ℕ-+
+  _+_ = binary-[] O._+_ O.to-ℕ-+
 
   -- Division by two, rounded downwards.
 
   ⌊_/2⌋ : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.⌊ n /2⌋ ]
-  ⌊_/2⌋ = unary-[] A.⌊_/2⌋ A.to-ℕ-⌊/2⌋
+  ⌊_/2⌋ = unary-[] O.⌊_/2⌋ O.to-ℕ-⌊/2⌋
 
   -- Division by two, rounded upwards.
 
   ⌈_/2⌉ : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.⌈ n /2⌉ ]
-  ⌈_/2⌉ = unary-[] A.⌈_/2⌉ A.to-ℕ-⌈/2⌉
+  ⌈_/2⌉ = unary-[] O.⌈_/2⌉ O.to-ℕ-⌈/2⌉
+
+  -- Equality is decidable (in a certain sense).
+
+  infix 4 _≟_
+
+  _≟_ :
+    {@0 m n : ℕ} →
+    Nat-[ m ] → Nat-[ n ] →
+    Dec (Erased (m ≡ n))
+  _≟_ {m = m} {n = n} m′ n′ = Trunc.rec
+    erased-decidable-equality-propositional
+    (uncurry λ m′ ([ m≡m′ ]) → Trunc.rec
+       erased-decidable-equality-propositional
+       (uncurry λ n′ ([ n≡n′ ]) →
+          Dec-map
+            (Erased-cong (
+               to-ℕ m′ ≡ to-ℕ n′  ↝⟨ ≡⇒↝ _ (cong₂ _≡_ m≡m′ n≡n′) ⟩□
+               m ≡ n              □))
+            (m′ O.≟ n′))
+       n′)
+    m′
+    where
+    erased-decidable-equality-propositional :
+      {@0 m n : ℕ} →
+      Is-proposition (Dec (Erased (m ≡ n)))
+    erased-decidable-equality-propositional {m = m} {n = n} =
+      Dec-closure-propositional
+        ext
+        (H-level-Erased 1 ℕ-set)
 
 ------------------------------------------------------------------------
--- Arithmetic with Nat
+-- Operations for Nat
 
 -- A helper function that can be used to define constants.
 
@@ -377,27 +426,28 @@ binary-correct {hyp = hyp} m n =
     (λ (m , n , _) → hyp m n)
     (m , n , _)
 
--- If certain arithmetic operations are defined for Nat′, then they
--- can be defined for Nat-[_] as well.
+-- If certain operations are defined for Nat′, then they can be
+-- defined for Nat-[_] as well.
 
-module Arithmetic-for-Nat (a : Arithmetic) where
+module Operations-for-Nat (o : Operations) where
 
   private
 
-    module A = Arithmetic a
+    module O    = Operations o
+    module O-[] = Operations-for-Nat-[] o
 
   -- Zero.
 
   zero : Nat
-  zero = nullary N.zero A.zero A.to-ℕ-zero
+  zero = nullary N.zero O.zero O.to-ℕ-zero
 
   to-ℕ-zero : _↔_.to Nat↔ℕ zero ≡ N.zero
-  to-ℕ-zero = nullary-correct A.to-ℕ-zero
+  to-ℕ-zero = nullary-correct O.to-ℕ-zero
 
   -- The number's successor.
 
   suc : Nat → Nat
-  suc = unary N.suc A.suc A.to-ℕ-suc
+  suc = unary N.suc O.suc O.to-ℕ-suc
 
   to-ℕ-suc : ∀ n → _↔_.to Nat↔ℕ (suc n) ≡ N.suc (_↔_.to Nat↔ℕ n)
   to-ℕ-suc = unary-correct
@@ -407,7 +457,7 @@ module Arithmetic-for-Nat (a : Arithmetic) where
   infixl 6 _+_
 
   _+_ : Nat → Nat → Nat
-  _+_ = binary N._+_ A._+_ A.to-ℕ-+
+  _+_ = binary N._+_ O._+_ O.to-ℕ-+
 
   to-ℕ-+ :
     ∀ m n → _↔_.to Nat↔ℕ (m + n) ≡ _↔_.to Nat↔ℕ m N.+ _↔_.to Nat↔ℕ n
@@ -416,7 +466,7 @@ module Arithmetic-for-Nat (a : Arithmetic) where
   -- Division by two, rounded downwards.
 
   ⌊_/2⌋ : Nat → Nat
-  ⌊_/2⌋ = unary N.⌊_/2⌋ A.⌊_/2⌋ A.to-ℕ-⌊/2⌋
+  ⌊_/2⌋ = unary N.⌊_/2⌋ O.⌊_/2⌋ O.to-ℕ-⌊/2⌋
 
   to-ℕ-⌊/2⌋ : ∀ n → _↔_.to Nat↔ℕ ⌊ n /2⌋ ≡ N.⌊ _↔_.to Nat↔ℕ n /2⌋
   to-ℕ-⌊/2⌋ = unary-correct
@@ -424,19 +474,26 @@ module Arithmetic-for-Nat (a : Arithmetic) where
   -- Division by two, rounded upwards.
 
   ⌈_/2⌉ : Nat → Nat
-  ⌈_/2⌉ = unary N.⌈_/2⌉ A.⌈_/2⌉ A.to-ℕ-⌈/2⌉
+  ⌈_/2⌉ = unary N.⌈_/2⌉ O.⌈_/2⌉ O.to-ℕ-⌈/2⌉
 
   to-ℕ-⌈/2⌉ : ∀ n → _↔_.to Nat↔ℕ ⌈ n /2⌉ ≡ N.⌈ _↔_.to Nat↔ℕ n /2⌉
   to-ℕ-⌈/2⌉ = unary-correct
+
+  -- Equality is decidable (in a certain sense).
+
+  infix 4 _≟_
+
+  _≟_ : (m n : Nat) → Dec (Erased (⌊ m ⌋ ≡ ⌊ n ⌋))
+  (_ , m′) ≟ (_ , n′) = m′ O-[].≟ n′
 
 ------------------------------------------------------------------------
 -- Some examples
 
 private
 
-  module Nat-[]-examples (a : Arithmetic) where
+  module Nat-[]-examples (o : Operations) where
 
-    open Arithmetic-for-Nat-[] a
+    open Operations-for-Nat-[] o
 
     -- Converts unary natural numbers to binary natural numbers.
 
@@ -458,9 +515,9 @@ private
       subst Nat-[_] (N.+-comm m) (b + c) ≡ c + b
     example₂ _ _ = Nat-[]-propositional _ _
 
-  module Nat-examples (a : Arithmetic) where
+  module Nat-examples (o : Operations) where
 
-    open Arithmetic-for-Nat a
+    open Operations-for-Nat o
 
     -- If Nat is used instead of Nat-[_], then it can be easier to
     -- state that two values are equal.
@@ -473,3 +530,12 @@ private
       [ ⌊ m ⌋ N.+ ⌊ n ⌋  ≡⟨ N.+-comm ⌊ m ⌋ ⟩∎
         ⌊ n ⌋ N.+ ⌊ m ⌋  ∎
       ]
+
+    -- One can construct a proof showing that ⌈ 5 ⌉ is either equal or
+    -- not equal to ⌈ 2 ⌉ + ⌈ 3 ⌉, but the proof does not compute to
+    -- "inj₁ something" at compile-time.
+
+    example₃ : Dec (⌈ 5 ⌉ ≡ ⌈ 2 ⌉ + ⌈ 3 ⌉)
+    example₃ =
+      Dec-map (_↔_.logical-equivalence ≡-for-indices↔≡)
+        (⌈ 5 ⌉ ≟ ⌈ 2 ⌉ + ⌈ 3 ⌉)
