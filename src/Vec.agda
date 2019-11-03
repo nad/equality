@@ -22,6 +22,7 @@ private
   variable
     a b c : Level
     A B   : Set a
+    f g   : A → B
     n     : ℕ
 
 ------------------------------------------------------------------------
@@ -145,3 +146,12 @@ map-∘ :
   map (f ∘ g) xs ≡ map f (map g xs)
 map-∘ {n = zero}  = refl _
 map-∘ {n = suc n} = cong (_ ,_) map-∘
+
+-- If f and g are pointwise equal, then map f xs and map g xs are
+-- equal.
+
+map-cong :
+  ∀ {n} {xs : Vec A n} →
+  (∀ x → f x ≡ g x) → map f xs ≡ map g xs
+map-cong {n = zero}  _   = refl _
+map-cong {n = suc n} hyp = cong₂ _,_ (hyp _) (map-cong hyp)
