@@ -338,6 +338,26 @@ Very-stable-↑ : Very-stable A → Very-stable (↑ ℓ A)
 Very-stable-↑ s = _≃_.is-equivalence $
   inverse $ Stable-↑ $ inverse Eq.⟨ _ , s ⟩
 
+-- ¬ A is stable (possibly assuming extensionality).
+
+Stable-¬ :
+  {A : Set a} →
+  Extensionality? k a lzero →
+  Stable-[ k ] (¬ A)
+Stable-¬ ext =
+  Stable-Π ext λ _ →
+  Very-stable→Stable 0 Very-stable-⊥
+
+-- ¬ A is very stable (assuming extensionality).
+
+Very-stable-¬ :
+  {A : Set a} →
+  Extensionality a lzero →
+  Very-stable (¬ A)
+Very-stable-¬ {A = A} ext =
+  Very-stable-Π ext λ _ →
+  Very-stable-⊥
+
 -- If A is "stable 1 + n levels up", then H-level′ (1 + n) A is
 -- stable.
 

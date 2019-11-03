@@ -131,6 +131,22 @@ Erased-Π↔Π = record
   ; left-inverse-of = λ _ → refl _
   }
 
+-- Erased commutes with Π.
+
+Erased-Π↔Π-Erased :
+  {@0 A : Set a} {@0 P : A → Set p} →
+  Erased ((x : A) → P x) ↔ ((x : Erased A) → Erased (P (erased x)))
+Erased-Π↔Π-Erased = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ ([ f ]) ([ x ]) → [ f x ]
+      ; from = λ f → [ (λ x → erased (f [ x ])) ]
+      }
+    ; right-inverse-of = λ _ → refl _
+    }
+  ; left-inverse-of = λ _ → refl _
+  }
+
 -- Erased commutes with Σ.
 
 Erased-Σ↔Σ :
@@ -162,6 +178,17 @@ Erased-↑↔↑ = record
     }
   ; left-inverse-of = λ _ → refl _
   }
+
+-- Erased commutes with ¬_ (assuming extensionality).
+
+Erased-¬↔¬ :
+  {@0 A : Set a} →
+  Extensionality? k a lzero →
+  Erased (¬ A) ↝[ k ] ¬ Erased A
+Erased-¬↔¬ {A = A} ext =
+  Erased (A → ⊥)         ↔⟨ Erased-Π↔Π-Erased ⟩
+  (Erased A → Erased ⊥)  ↝⟨ (∀-cong ext λ _ → from-isomorphism Erased-⊥↔⊥) ⟩□
+  (Erased A → ⊥)         □
 
 ------------------------------------------------------------------------
 -- Erased preserves some kinds of functions
