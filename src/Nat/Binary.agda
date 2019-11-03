@@ -17,7 +17,7 @@ open import Prelude hiding (suc) renaming (_+_ to _⊕_; _*_ to _⊛_)
 open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
 open import Erased.Cubical eq
-open import Function-universe eq hiding (_∘_)
+open import Function-universe eq hiding (id; _∘_)
 open import List eq
 open import Nat.Solver eq
 import Nat.Wrapper eq as Wrapper
@@ -441,34 +441,79 @@ private
 
       private
 
-        -- Equality is stable for List Bool.
+        -- The empty list is not equal to any non-empty list.
 
-        List-Bool-stable : Stable-≡ (List Bool)
-        List-Bool-stable =
-          Stable-≡-List 0 $
-          Stable-≡-⊎ 0 ⊤-stable ⊤-stable
+        []≢∷ : [] ≢ b ∷ n ⟨ inv ⟩
+        []≢∷ {b = b} {n = n} {inv = inv} =
+          [] ≡ b ∷ n ⟨ inv ⟩  ↝⟨ cong to-List ⟩
+          [] ≡ b ∷ to-List n  ↝⟨ List.[]≢∷ ⟩□
+          ⊥                   □
+
+        -- Equality is decidable for Bin′.
+
+        equal? : (m n : Bin′) → Dec (Erased (m ≡ n))
+        equal? [] [] = yes [ refl _ ]
+
+        equal? [] (b ∷ n ⟨ _ ⟩) = no (
+          Erased ([] ≡ b ∷ n ⟨ _ ⟩)  ↝⟨ Erased-cong []≢∷ ⟩
+          Erased ⊥                   ↔⟨ Erased-⊥↔⊥ ⟩□
+          ⊥                          □)
+
+        equal? (b ∷ n ⟨ _ ⟩) [] = no (
+          Erased (b ∷ n ⟨ _ ⟩ ≡ [])  ↝⟨ Erased-cong ([]≢∷ ∘ sym) ⟩
+          Erased ⊥                   ↔⟨ Erased-⊥↔⊥ ⟩□
+          ⊥                          □)
+
+        equal? (b₁ ∷ n₁ ⟨ inv₁ ⟩) (b₂ ∷ n₂ ⟨ inv₂ ⟩) =
+          helper₁ _ _ (b₁ Bool.≟ b₂)
           where
-          ⊤-stable : Stable-≡ ⊤
-          ⊤-stable =
-            Very-stable→Stable 1 $
-            Very-stable→Very-stable-≡ 0 Very-stable-⊤
+          helper₂ :
+            ∀ n₁ n₂
+            (@0 inv₁ : Invariant b₁ n₁) (@0 inv₂ : Invariant b₂ n₂) →
+            b₁ ≡ b₂ →
+            Dec (Erased (n₁ ≡ n₂)) →
+            Dec (Erased (b₁ ∷ n₁ ⟨ inv₁ ⟩ ≡ b₂ ∷ n₂ ⟨ inv₂ ⟩))
+          helper₂ n₁ n₂ _ _ _ (no n₁≢n₂) = no (
+            Erased (b₁ ∷ n₁ ⟨ _ ⟩ ≡ b₂ ∷ n₂ ⟨ _ ⟩)      ↝⟨ Erased-cong (cong to-List) ⟩
+            Erased (b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂)  ↝⟨ Erased-cong List.cancel-∷-tail ⟩
+            Erased (to-List n₁ ≡ to-List n₂)            ↝⟨ Erased-cong (cong List-to-ℕ) ⟩
+            Erased (to-ℕ′ n₁ ≡ to-ℕ′ n₂)                ↝⟨ Erased-cong (_↔_.injective Bin′↔ℕ) ⟩
+            Erased (n₁ ≡ n₂)                            ↝⟨ n₁≢n₂ ⟩□
+            ⊥                                           □)
+
+          helper₂ n₁ n₂ inv₁ inv₂ b₁≡b₂ (yes [ n₁≡n₂ ]) = yes [  $⟨ b₁≡b₂ , n₁≡n₂ ⟩
+            b₁ ≡ b₂ × n₁ ≡ n₂                                    ↝⟨ Σ-map id (cong to-List) ⟩
+            b₁ ≡ b₂ × to-List n₁ ≡ to-List n₂                    ↔⟨ inverse ∷≡∷↔≡×≡ ⟩
+            b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂                    ↝⟨ cong List-to-ℕ ⟩
+            to-ℕ′ (b₁ ∷ n₁ ⟨ inv₁ ⟩) ≡ to-ℕ′ (b₂ ∷ n₂ ⟨ inv₂ ⟩)  ↝⟨ _↔_.injective Bin′↔ℕ ⟩□
+            b₁ ∷ n₁ ⟨ _ ⟩ ≡ b₂ ∷ n₂ ⟨ _ ⟩                        □ ]
+
+          helper₁ :
+            ∀ n₁ n₂
+              {@0 inv₁ : Invariant b₁ n₁} {@0 inv₂ : Invariant b₂ n₂} →
+            Dec (b₁ ≡ b₂) →
+            Dec (Erased (b₁ ∷ n₁ ⟨ inv₁ ⟩ ≡ b₂ ∷ n₂ ⟨ inv₂ ⟩))
+          helper₁ n₁ n₂ (yes b₁≡b₂) =
+            helper₂ _ _ _ _ b₁≡b₂ (equal? n₁ n₂)
+
+          helper₁ n₁ n₂ (no b₁≢b₂) = no (
+            Erased (b₁ ∷ n₁ ⟨ _ ⟩ ≡ b₂ ∷ n₂ ⟨ _ ⟩)      ↝⟨ Erased-cong (cong to-List) ⟩
+            Erased (b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂)  ↝⟨ Erased-cong List.cancel-∷-head ⟩
+            Erased (b₁ ≡ b₂)                            ↝⟨ Erased-cong b₁≢b₂ ⟩
+            Erased ⊥                                    ↔⟨ Erased-⊥↔⊥ ⟩□
+            ⊥                                           □)
 
       -- An equality test.
 
       infix 4 _≟_
 
       _≟_ : (m n : Bin′) → Dec (Erased (to-ℕ′ m ≡ to-ℕ′ n))
-      m ≟ n =                                 $⟨ (List.Dec._≟_ Bool._≟_ on to-List) m n ⟩
-        Dec (to-List m ≡ to-List n)           ↝⟨ Dec-map (record { to = [_]; from = List-Bool-stable _ _ }) ⟩
-        Dec (Erased (to-List m ≡ to-List n))  ↝⟨ Dec-map (Erased-cong lemma) ⟩□
-        Dec (Erased (to-ℕ′ m ≡ to-ℕ′ n))      □
+      m ≟ n =                             $⟨ equal? m n ⟩
+        Dec (Erased (m ≡ n))              ↝⟨ Dec-map (Erased-cong lemma) ⟩□
+        Dec (Erased (to-ℕ′ m ≡ to-ℕ′ n))  □
         where
-        lemma : to-List m ≡ to-List n ⇔ to-ℕ′ m ≡ to-ℕ′ n
-        lemma ._⇔_.to   = cong List-to-ℕ
-        lemma ._⇔_.from =
-          to-ℕ′ m ≡ to-ℕ′ n      ↝⟨ _↔_.injective Bin′↔ℕ ⟩
-          m ≡ n                  ↝⟨ cong to-List ⟩□
-          to-List m ≡ to-List n  □
+        lemma : m ≡ n ⇔ to-ℕ′ m ≡ to-ℕ′ n
+        lemma = record { to = cong to-ℕ′; from = _↔_.injective Bin′↔ℕ }
 
 ------------------------------------------------------------------------
 -- Binary natural numbers
