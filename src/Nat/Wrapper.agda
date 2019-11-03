@@ -388,7 +388,7 @@ n-ary-correct n {f = f} {f′ = f′} hyp ms =
       ⌊ n-ary n f f′ hyp ms ⌋                       ≡⟨⟩
       f (Vec.map erased (proj₁ (_↔_.to Vec-Σ ms)))  ≡⟨ cong (f ∘ Vec.map _) proj₁-Vec-Σ ⟩
       f (Vec.map erased (Vec.map proj₁ ms))         ≡⟨ cong f $ sym Vec.map-∘ ⟩
-      f (Vec.map ⌊_⌋ ms)                            ≡⟨ cong (λ g → f (Vec.map g ms)) $ sym $ ⟨ext⟩ ≡⌊⌋ ⟩∎
+      f (Vec.map ⌊_⌋ ms)                            ≡⟨ cong f $ sym $ Vec.map-cong ≡⌊⌋ ⟩∎
       f (Vec.map (_↔_.to Nat↔ℕ) ms)                 ∎
     ]
 
