@@ -17,7 +17,7 @@ open import Prelude hiding ([_,_])
 open import Bijection eq using (_↔_)
 open import Embedding eq as Emb using (Embedding; Is-embedding)
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
-open import Function-universe eq hiding (id; _∘_)
+open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_)
@@ -208,6 +208,45 @@ Erased-cong-⇔ :
 Erased-cong-⇔ A⇔B = record
   { to   = Erased-cong-→ (_⇔_.to   A⇔B)
   ; from = Erased-cong-→ (_⇔_.from A⇔B)
+  }
+
+------------------------------------------------------------------------
+-- A variant of Dec ∘ Erased
+
+-- Dec-Erased A means that either we have A (erased), or we have ¬ A
+-- (also erased).
+
+Dec-Erased : @0 Set ℓ → Set ℓ
+Dec-Erased A = Erased A ⊎ Erased (¬ A)
+
+-- Dec-Erased A is isomorphic to Dec (Erased A) (assuming
+-- extensionality).
+
+Dec-Erased↔Dec-Erased :
+  {@0 A : Set a} →
+  Extensionality? k a lzero →
+  Dec-Erased A ↝[ k ] Dec (Erased A)
+Dec-Erased↔Dec-Erased {A = A} ext =
+  Erased A ⊎ Erased (¬ A)  ↝⟨ F.id ⊎-cong Erased-¬↔¬ ext ⟩□
+  Erased A ⊎ ¬ Erased A    □
+
+-- A map function for Dec-Erased.
+
+Dec-Erased-map :
+  {@0 A : Set a} {@0 B : Set b} →
+  @0 A ⇔ B → Dec-Erased A → Dec-Erased B
+Dec-Erased-map A⇔B =
+  ⊎-map (Erased-cong-→ (_⇔_.to A⇔B))
+        (Erased-cong-→ (_∘ _⇔_.from A⇔B))
+
+-- Dec-Erased preserves logical equivalences.
+
+Dec-Erased-cong-⇔ :
+  {@0 A : Set a} {@0 B : Set b} →
+  @0 A ⇔ B → Dec-Erased A ⇔ Dec-Erased B
+Dec-Erased-cong-⇔ A⇔B = record
+  { to   = Dec-Erased-map A⇔B
+  ; from = Dec-Erased-map (inverse A⇔B)
   }
 
 ------------------------------------------------------------------------
@@ -554,3 +593,14 @@ module []-cong₃
     Erased-cong {k = surjection}          = Erased-cong-↠
     Erased-cong {k = bijection}           = Erased-cong-↔
     Erased-cong {k = equivalence}         = Erased-cong-≃
+
+  -- Dec-Erased preserves symmetric kinds of functions (in some cases
+  -- assuming extensionality).
+
+  Dec-Erased-cong :
+    {@0 A : Set a} {@0 B : Set b} →
+    Extensionality? ⌊ k ⌋-sym (a ⊔ b) lzero →
+    @0 A ↝[ ⌊ k ⌋-sym ] B →
+    Dec-Erased A ↝[ ⌊ k ⌋-sym ] Dec-Erased B
+  Dec-Erased-cong ext A↝B =
+    Erased-cong A↝B ⊎-cong Erased-cong (→-cong ext A↝B F.id)

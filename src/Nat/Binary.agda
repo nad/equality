@@ -450,19 +450,17 @@ private
           ⊥                   □
 
         -- Equality is decidable for Bin′.
+        --
+        -- This definition uses Dec-Erased instead of Dec ∘ Erased
+        -- because I thought this made the code a little less
+        -- complicated.
 
-        equal? : (m n : Bin′) → Dec (Erased (m ≡ n))
+        equal? : (m n : Bin′) → Dec-Erased (m ≡ n)
         equal? [] [] = yes [ refl _ ]
 
-        equal? [] (b ∷ n ⟨ _ ⟩) = no (
-          Erased ([] ≡ b ∷ n ⟨ _ ⟩)  ↝⟨ Erased-cong []≢∷ ⟩
-          Erased ⊥                   ↔⟨ Erased-⊥↔⊥ ⟩□
-          ⊥                          □)
+        equal? [] (b ∷ n ⟨ _ ⟩) = no [ []≢∷ ]
 
-        equal? (b ∷ n ⟨ _ ⟩) [] = no (
-          Erased (b ∷ n ⟨ _ ⟩ ≡ [])  ↝⟨ Erased-cong ([]≢∷ ∘ sym) ⟩
-          Erased ⊥                   ↔⟨ Erased-⊥↔⊥ ⟩□
-          ⊥                          □)
+        equal? (b ∷ n ⟨ _ ⟩) [] = no [ []≢∷ ∘ sym ]
 
         equal? (b₁ ∷ n₁ ⟨ inv₁ ⟩) (b₂ ∷ n₂ ⟨ inv₂ ⟩) =
           helper₁ _ _ (b₁ Bool.≟ b₂)
@@ -471,15 +469,15 @@ private
             ∀ n₁ n₂
             (@0 inv₁ : Invariant b₁ n₁) (@0 inv₂ : Invariant b₂ n₂) →
             b₁ ≡ b₂ →
-            Dec (Erased (n₁ ≡ n₂)) →
-            Dec (Erased (b₁ ∷ n₁ ⟨ inv₁ ⟩ ≡ b₂ ∷ n₂ ⟨ inv₂ ⟩))
-          helper₂ n₁ n₂ _ _ _ (no n₁≢n₂) = no (
-            Erased (b₁ ∷ n₁ ⟨ _ ⟩ ≡ b₂ ∷ n₂ ⟨ _ ⟩)      ↝⟨ Erased-cong (cong to-List) ⟩
-            Erased (b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂)  ↝⟨ Erased-cong List.cancel-∷-tail ⟩
-            Erased (to-List n₁ ≡ to-List n₂)            ↝⟨ Erased-cong (cong List-to-ℕ) ⟩
-            Erased (to-ℕ′ n₁ ≡ to-ℕ′ n₂)                ↝⟨ Erased-cong (_↔_.injective Bin′↔ℕ) ⟩
-            Erased (n₁ ≡ n₂)                            ↝⟨ n₁≢n₂ ⟩□
-            ⊥                                           □)
+            Dec-Erased (n₁ ≡ n₂) →
+            Dec-Erased (b₁ ∷ n₁ ⟨ inv₁ ⟩ ≡ b₂ ∷ n₂ ⟨ inv₂ ⟩)
+          helper₂ n₁ n₂ _ _ _ (no [ n₁≢n₂ ]) = no [
+            b₁ ∷ n₁ ⟨ _ ⟩ ≡ b₂ ∷ n₂ ⟨ _ ⟩      ↝⟨ cong to-List ⟩
+            b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂  ↝⟨ List.cancel-∷-tail ⟩
+            to-List n₁ ≡ to-List n₂            ↝⟨ cong List-to-ℕ ⟩
+            to-ℕ′ n₁ ≡ to-ℕ′ n₂                ↝⟨ _↔_.injective Bin′↔ℕ ⟩
+            n₁ ≡ n₂                            ↝⟨ n₁≢n₂ ⟩□
+            ⊥                                  □ ]
 
           helper₂ n₁ n₂ inv₁ inv₂ b₁≡b₂ (yes [ n₁≡n₂ ]) = yes [  $⟨ b₁≡b₂ , n₁≡n₂ ⟩
             b₁ ≡ b₂ × n₁ ≡ n₂                                    ↝⟨ Σ-map id (cong to-List) ⟩
@@ -492,16 +490,15 @@ private
             ∀ n₁ n₂
               {@0 inv₁ : Invariant b₁ n₁} {@0 inv₂ : Invariant b₂ n₂} →
             Dec (b₁ ≡ b₂) →
-            Dec (Erased (b₁ ∷ n₁ ⟨ inv₁ ⟩ ≡ b₂ ∷ n₂ ⟨ inv₂ ⟩))
+            Dec-Erased (b₁ ∷ n₁ ⟨ inv₁ ⟩ ≡ b₂ ∷ n₂ ⟨ inv₂ ⟩)
           helper₁ n₁ n₂ (yes b₁≡b₂) =
             helper₂ _ _ _ _ b₁≡b₂ (equal? n₁ n₂)
 
-          helper₁ n₁ n₂ (no b₁≢b₂) = no (
-            Erased (b₁ ∷ n₁ ⟨ _ ⟩ ≡ b₂ ∷ n₂ ⟨ _ ⟩)      ↝⟨ Erased-cong (cong to-List) ⟩
-            Erased (b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂)  ↝⟨ Erased-cong List.cancel-∷-head ⟩
-            Erased (b₁ ≡ b₂)                            ↝⟨ Erased-cong b₁≢b₂ ⟩
-            Erased ⊥                                    ↔⟨ Erased-⊥↔⊥ ⟩□
-            ⊥                                           □)
+          helper₁ n₁ n₂ (no b₁≢b₂) = no [
+            b₁ ∷ n₁ ⟨ _ ⟩ ≡ b₂ ∷ n₂ ⟨ _ ⟩      ↝⟨ cong to-List ⟩
+            b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂  ↝⟨ List.cancel-∷-head ⟩
+            b₁ ≡ b₂                            ↝⟨ b₁≢b₂ ⟩□
+            ⊥                                  □ ]
 
       -- An equality test.
 
@@ -509,7 +506,8 @@ private
 
       _≟_ : (m n : Bin′) → Dec (Erased (to-ℕ′ m ≡ to-ℕ′ n))
       m ≟ n =                             $⟨ equal? m n ⟩
-        Dec (Erased (m ≡ n))              ↝⟨ Dec-map (Erased-cong lemma) ⟩□
+        Dec-Erased (m ≡ n)                ↝⟨ Dec-Erased-map lemma ⟩
+        Dec-Erased (to-ℕ′ m ≡ to-ℕ′ n)    ↝⟨ Dec-Erased↔Dec-Erased _ ⟩□
         Dec (Erased (to-ℕ′ m ≡ to-ℕ′ n))  □
         where
         lemma : m ≡ n ⇔ to-ℕ′ m ≡ to-ℕ′ n
