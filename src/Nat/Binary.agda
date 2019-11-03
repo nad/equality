@@ -439,29 +439,36 @@ private
         1 ⊕ to-ℕ′ n              ≡⟨ sym $ N.⌈1+2*/2⌉≡ _ ⟩∎
         N.⌈ 1 ⊕ 2 ⊛ to-ℕ′ n /2⌉  ∎
 
-      -- An equality test.
-
       private
 
-        equal? : (m n : Bin′) → Dec ((_≡_ on to-List) m n)
-        equal? = List.Dec._≟_ Bool._≟_ on to-List
+        -- Equality is stable for List Bool.
 
-      _==_ : Bin′ → Bin′ → Bool
-      m == n = ⊎-map _ _ (equal? m n)
+        List-Bool-stable : Stable-≡ (List Bool)
+        List-Bool-stable =
+          Stable-≡-List 0 $
+          Stable-≡-⊎ 0 ⊤-stable ⊤-stable
+          where
+          ⊤-stable : Stable-≡ ⊤
+          ⊤-stable =
+            Very-stable→Stable 1 $
+            Very-stable→Very-stable-≡ 0 Very-stable-⊤
 
-      to-ℕ′-== : ∀ m n → T (m == n) ⇔ (to-ℕ′ m ≡ to-ℕ′ n)
-      to-ℕ′-== m n with equal? m n
-      ... | yes p = record
-        { to = λ _ → cong List-to-ℕ p
-        }
-      ... | no p = record
-        { to   = λ ()
-        ; from =
-            to-ℕ′ m ≡ to-ℕ′ n      ↝⟨ _↔_.injective Bin′↔ℕ ⟩
-            m ≡ n                  ↝⟨ cong to-List ⟩
-            to-List m ≡ to-List n  ↝⟨ p ⟩□
-            ⊥                      □
-        }
+      -- An equality test.
+
+      infix 4 _≟_
+
+      _≟_ : (m n : Bin′) → Dec (Erased (to-ℕ′ m ≡ to-ℕ′ n))
+      m ≟ n =                                 $⟨ (List.Dec._≟_ Bool._≟_ on to-List) m n ⟩
+        Dec (to-List m ≡ to-List n)           ↝⟨ Dec-map (record { to = [_]; from = List-Bool-stable _ _ }) ⟩
+        Dec (Erased (to-List m ≡ to-List n))  ↝⟨ Dec-map (Erased-cong lemma) ⟩□
+        Dec (Erased (to-ℕ′ m ≡ to-ℕ′ n))      □
+        where
+        lemma : to-List m ≡ to-List n ⇔ to-ℕ′ m ≡ to-ℕ′ n
+        lemma ._⇔_.to   = cong List-to-ℕ
+        lemma ._⇔_.from =
+          to-ℕ′ m ≡ to-ℕ′ n      ↝⟨ _↔_.injective Bin′↔ℕ ⟩
+          m ≡ n                  ↝⟨ cong to-List ⟩□
+          to-List m ≡ to-List n  □
 
 ------------------------------------------------------------------------
 -- Binary natural numbers
@@ -502,8 +509,7 @@ private
   Operations.to-ℕ-⌊/2⌋ Operations-for-Bin′ = Bin′.to-ℕ′-⌊/2⌋
   Operations.⌈_/2⌉     Operations-for-Bin′ = Bin′.⌈_/2⌉
   Operations.to-ℕ-⌈/2⌉ Operations-for-Bin′ = Bin′.to-ℕ′-⌈/2⌉
-  Operations._==_      Operations-for-Bin′ = Bin′._==_
-  Operations.to-ℕ-==   Operations-for-Bin′ = Bin′.to-ℕ′-==
+  Operations._≟_       Operations-for-Bin′ = Bin′._≟_
 
 -- Operations for Bin-[_].
 

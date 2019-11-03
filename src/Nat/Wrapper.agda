@@ -203,7 +203,7 @@ binary-[] f′ hyp m n =
 -- correctness properties for) certain operations for Nat′.
 
 record Operations : Set where
-  infix 4 _==_
+  infix 4 _≟_
 
   field
     zero      : Nat′
@@ -221,20 +221,7 @@ record Operations : Set where
     ⌈_/2⌉     : Nat′ → Nat′
     to-ℕ-⌈/2⌉ : ∀ n → to-ℕ ⌈ n /2⌉ ≡ N.⌈ to-ℕ n /2⌉
 
-    _==_      : Nat′ → Nat′ → Bool
-    to-ℕ-==   : ∀ m n → T (m == n) ⇔ (to-ℕ m ≡ to-ℕ n)
-
-  -- A variant of decidable equality.
-
-  infix 4 _≟_
-
-  _≟_ : ∀ m n → Dec (Erased (to-ℕ m ≡ to-ℕ n))
-  m ≟ n with m == n | [ to-ℕ-== m n ]
-  ... | true  | [ hyp ] = yes [ _⇔_.to hyp _ ]
-  ... | false | [ hyp ] = no (
-    Erased (to-ℕ m ≡ to-ℕ n)  ↝⟨ Erased-cong (_⇔_.from hyp) ⟩
-    Erased ⊥                  ↔⟨ Erased-⊥↔⊥ ⟩□
-    ⊥                         □)
+    _≟_       : ∀ m n → Dec (Erased (to-ℕ m ≡ to-ℕ n))
 
 -- If certain operations are defined for Nat′, then they can be
 -- defined for Nat-[_] as well.
