@@ -22,6 +22,8 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
 open import Function-universe eq
+open import H-level.Closure eq
+open import Quotient eq as Quotient
 
 -- Some definitions from Erased are reexported.
 
@@ -35,9 +37,10 @@ open import Erased.Stability eq as Stability public
 
 private
   variable
-    a p : Level
-    A   : Set a
-    x y : A
+    a p r : Level
+    A     : Set a
+    R     : A → A → Set r
+    x y   : A
 
 ------------------------------------------------------------------------
 -- Code related to the module Erased
@@ -147,3 +150,25 @@ private
 
 open Stability.[]-cong []-cong []-cong-equivalence []-cong-[refl]′
   public
+
+-- If R is a propositional equivalence relation that is pointwise
+-- stable, then equality is very stable for A / R.
+
+Very-stable-≡-/ :
+  Is-equivalence-relation R →
+  (∀ x y → Is-proposition (R x y)) →
+  (∀ x y → Stable (R x y)) →
+  Very-stable-≡ (A / R)
+Very-stable-≡-/ {A = A} {R = R} equiv prop s =
+  Quotient.elim-Prop
+    _
+    (λ x → Quotient.elim-Prop
+       _
+       (λ y →                          $⟨ s _ _ ⟩
+          Stable (R x y)               ↝⟨ flip Stable-proposition→Very-stable (prop _ _) ⟩
+          Very-stable (R x y)          ↝⟨ Very-stable-cong _ (related≃[equal] equiv (prop _ _)) ⟩□
+          Very-stable ([ x ] ≡ [ y ])  □)
+       (λ _ → Very-stable-propositional ext))
+    (λ _ →
+       Π-closure ext 1 λ _ →
+       Very-stable-propositional ext)
