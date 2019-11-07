@@ -12,7 +12,7 @@ module Queue.Truncated.Instances
   {c⁺}
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
 
-  {Q : ∀ {ℓ} → Set ℓ → Set ℓ}
+  {Q : ∀ {ℓ} → @0 Set ℓ → Set ℓ}
   ⦃ is-queue : ∀ {ℓ} → Queue.Is-queue eq Q (λ _ → ↑ _ ⊤) ℓ ⦄
   ⦃ is-queue-with-map : ∀ {ℓ₁ ℓ₂} → Queue.Is-queue-with-map eq Q ℓ₁ ℓ₂ ⦄
   where
