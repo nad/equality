@@ -88,6 +88,25 @@ Erased↔ = [ record
   ; left-inverse-of = λ _ → refl _
   } ]
 
+-- The following result is based on a result in Mishra-Linger's PhD
+-- thesis (see Section 5.4.4).
+
+-- Erased (Erased A) is isomorphic to Erased A.
+
+Erased-Erased↔Erased :
+  {@0 A : Set a} →
+  Erased (Erased A) ↔ Erased A
+Erased-Erased↔Erased = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ x → [ erased (erased x) ]
+      ; from = [_]
+      }
+    ; right-inverse-of = λ _ → refl _
+    }
+  ; left-inverse-of = λ _ → refl _
+  }
+
 -- Erased ⊤ is isomorphic to ⊤.
 
 Erased-⊤↔⊤ : Erased ⊤ ↔ ⊤
