@@ -28,6 +28,7 @@ private
   variable
     a b ℓ p : Level
     A B     : Set a
+    P       : A → Set p
     k x y   : A
     n       : ℕ
 
@@ -189,6 +190,35 @@ Erased-¬↔¬ {A = A} ext =
   Erased (A → ⊥)         ↔⟨ Erased-Π↔Π-Erased ⟩
   (Erased A → Erased ⊥)  ↝⟨ (∀-cong ext λ _ → from-isomorphism Erased-⊥↔⊥) ⟩□
   (Erased A → ⊥)         □
+
+-- The following two results are inspired by a result in
+-- Mishra-Linger's PhD thesis (see Section 5.4.1).
+--
+-- See also Π-Erased↔Π0[], Π-Erased≃Π0[], Π-Erased↔Π0 and Π-Erased≃Π0
+-- in Erased.Cubical and Erased.With-K.
+
+-- There is a logical equivalence between
+-- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
+
+Π-Erased⇔Π0 :
+  {@0 A : Set a} {@0 P : A → Set p} →
+  ((x : Erased A) → P (erased x)) ⇔ ((@0 x : A) → P x)
+Π-Erased⇔Π0 = record
+  { to   = λ f x → f [ x ]
+  ; from = λ f ([ x ]) → f x
+  }
+
+-- There is a bijection between (x : Erased A) → P x and
+-- (@0 x : A) → P [ x ].
+
+Π-Erased↔Π0[] : ((x : Erased A) → P x) ↔ ((@0 x : A) → P [ x ])
+Π-Erased↔Π0[] = record
+  { surjection = record
+    { logical-equivalence = Π-Erased⇔Π0
+    ; right-inverse-of = λ _ → refl _
+    }
+  ; left-inverse-of = λ _ → refl _
+  }
 
 ------------------------------------------------------------------------
 -- Erased preserves some kinds of functions

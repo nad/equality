@@ -18,6 +18,7 @@ import Equality.Path as P
 open import Prelude
 
 open import Bijection eq using (_↔_)
+import Bijection P.equality-with-J as PB
 open import Equality.Path.Isomorphisms eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
@@ -28,7 +29,8 @@ open import Quotient eq as Quotient
 -- Some definitions from Erased are reexported.
 
 open import Erased eq as Erased public
-  hiding (module []-cong₁; module []-cong₂; module []-cong₃)
+  hiding (module []-cong₁; module []-cong₂; module []-cong₃;
+          Π-Erased↔Π0[])
 
 -- Some definitions from Erased.Stability are reexported.
 
@@ -142,6 +144,63 @@ private
     Is-set-Erased′ : @0 P.Is-set A → P.Is-set (Erased A)
     Is-set-Erased′ set p q = λ i j →
       [ set (P.cong erased p) (P.cong erased q) i j ]
+
+-- The following four results are inspired by a result in
+-- Mishra-Linger's PhD thesis (see Section 5.4.1).
+
+-- There is a bijection (with paths for equality, not _≡_) between
+-- (x : Erased A) → P x and (@0 x : A) → P [ x ].
+--
+-- This is a strengthening of the result of the same name from Erased.
+
+Π-Erased↔Π0[] :
+  {@0 A : Set a} {@0 P : Erased A → Set p} →
+  ((x : Erased A) → P x) PB.↔ ((@0 x : A) → P [ x ])
+Π-Erased↔Π0[] = record
+  { surjection = record
+    { logical-equivalence = Π-Erased⇔Π0
+    ; right-inverse-of = λ f _ → f
+    }
+  ; left-inverse-of = λ f _ → f
+  }
+
+-- There is an equivalence (with paths for equality, not _≡_) between
+-- (x : Erased A) → P x and (@0 x : A) → P [ x ].
+--
+-- This is not proved by converting Π-Erased↔Π0[] to an equivalence,
+-- because the type arguments of the conversion function in
+-- Equivalence are not erased, and A and P can only be used in erased
+-- contexts.
+
+Π-Erased≃Π0[] :
+  {@0 A : Set a} {@0 P : Erased A → Set p} →
+  ((x : Erased A) → P x) PEq.≃ ((@0 x : A) → P [ x ])
+Π-Erased≃Π0[] = record
+  { to             = λ f x → f [ x ]
+  ; is-equivalence = λ f →
+      ( (λ ([ x ]) → f x)
+      , (λ _ → f)
+      )
+      , λ (g , eq) i →
+            (λ ([ x ]) → eq (P.- i) x)
+          , (λ j → eq (P.max (P.- i) j))
+  }
+
+-- There is a bijection (with paths for equality, not _≡_) between
+-- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
+
+Π-Erased↔Π0 :
+  {@0 A : Set a} {@0 P : A → Set p} →
+  ((x : Erased A) → P (erased x)) PB.↔ ((@0 x : A) → P x)
+Π-Erased↔Π0 = Π-Erased↔Π0[]
+
+-- There is an equivalence (with paths for equality, not _≡_) between
+-- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
+
+Π-Erased≃Π0 :
+  {@0 A : Set a} {@0 P : A → Set p} →
+  ((x : Erased A) → P (erased x)) PEq.≃ ((@0 x : A) → P x)
+Π-Erased≃Π0 = Π-Erased≃Π0[]
 
 ------------------------------------------------------------------------
 -- Code related to the module Erased.Stability

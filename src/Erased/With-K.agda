@@ -24,7 +24,8 @@ open import Injection equality-with-J using (Injective)
 -- Some definitions from Erased are reexported.
 
 open import Erased equality-with-J as Erased public
-  hiding (module []-cong₁; module []-cong₂; module []-cong₃)
+  hiding (module []-cong₁; module []-cong₂; module []-cong₃;
+          Π-Erased↔Π0[])
 
 -- Some definitions from Erased.Stability are reexported.
 
@@ -33,8 +34,8 @@ open import Erased.Stability equality-with-J as Stability public
 
 private
   variable
-    a : Level
-    A : Set a
+    a p : Level
+    A   : Set a
 
 ------------------------------------------------------------------------
 -- Code related to the module Erased
@@ -109,3 +110,174 @@ Very-stable-≡-trivial : Very-stable-≡ A
 Very-stable-≡-trivial =
   _⇔_.from (Very-stable-≡↔Is-embedding-[] _)
            Is-embedding-[]
+
+-- The following four results are inspired by a result in
+-- Mishra-Linger's PhD thesis (see Section 5.4.1).
+
+-- There is a bijection between (x : Erased A) → P x and
+-- (@0 x : A) → P [ x ].
+--
+-- This is a strengthening of the result of the same name from Erased.
+
+Π-Erased↔Π0[] :
+  {@0 A : Set a} {@0 P : Erased A → Set p} →
+  ((x : Erased A) → P x) ↔ ((@0 x : A) → P [ x ])
+Π-Erased↔Π0[] = record
+  { surjection = record
+    { logical-equivalence = Π-Erased⇔Π0
+    ; right-inverse-of = λ _ → refl
+    }
+  ; left-inverse-of = λ _ → refl
+  }
+
+-- There is an equivalence between (x : Erased A) → P x and
+-- (@0 x : A) → P [ x ].
+--
+-- This is not proved by converting Π-Erased↔Π0[] to an equivalence,
+-- because the type arguments of the conversion function in
+-- Equivalence are not erased, and A and P can only be used in erased
+-- contexts.
+
+Π-Erased≃Π0[] :
+  {@0 A : Set a} {@0 P : Erased A → Set p} →
+  ((x : Erased A) → P x) ≃ ((@0 x : A) → P [ x ])
+Π-Erased≃Π0[] = record
+  { to             = λ f x → f [ x ]
+  ; is-equivalence = λ f →
+      ( (λ ([ x ]) → f x)
+      , refl
+      )
+      , λ { (_ , refl) → refl }
+  }
+
+-- There is a bijection between (x : Erased A) → P (erased x) and
+-- (@0 x : A) → P x.
+
+Π-Erased↔Π0 :
+  {@0 A : Set a} {@0 P : A → Set p} →
+  ((x : Erased A) → P (erased x)) ↔ ((@0 x : A) → P x)
+Π-Erased↔Π0 = Π-Erased↔Π0[]
+
+-- There is an equivalence between (x : Erased A) → P (erased x) and
+-- (@0 x : A) → P x.
+
+Π-Erased≃Π0 :
+  {@0 A : Set a} {@0 P : A → Set p} →
+  ((x : Erased A) → P (erased x)) ≃ ((@0 x : A) → P x)
+Π-Erased≃Π0 = Π-Erased≃Π0[]
+
+private
+
+  -- As an aside it is possible to prove the four previous results
+  -- without relying on eta-equality for Erased. However, the code
+  -- makes use of extensionality, and it also makes use of
+  -- eta-equality for Π. (The use of η-equality for Π could perhaps be
+  -- avoided, but Agda does not, at the time of writing, provide a
+  -- simple way to turn off this kind of η-equality.)
+
+  data Erased-no-η (@0 A : Set a) : Set a where
+    [_] : @0 A → Erased-no-η A
+
+  @0 erased-no-η : Erased-no-η A → A
+  erased-no-η [ x ] = x
+
+  -- Some lemmas.
+
+  Π-Erased-no-η→Π0[] :
+    {@0 A : Set a} {@0 P : Erased-no-η A → Set p} →
+    ((x : Erased-no-η A) → P x) → (@0 x : A) → P [ x ]
+  Π-Erased-no-η→Π0[] f x = f [ x ]
+
+  Π0[]→Π-Erased-no-η :
+    {@0 A : Set a} (@0 P : Erased-no-η A → Set p) →
+    ((@0 x : A) → P [ x ]) → (x : Erased-no-η A) → P x
+  Π0[]→Π-Erased-no-η _ f [ x ] = f x
+
+  Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] :
+    {@0 A : Set a} {@0 P : Erased-no-η A → Set p}
+    (f : (x : Erased-no-η A) → P x) (x : Erased-no-η A) →
+    Π0[]→Π-Erased-no-η P (Π-Erased-no-η→Π0[] f) x ≡ f x
+  Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] f [ x ] = refl
+
+  -- There is a bijection between (x : Erased-no-η A) → P x and
+  -- (@0 x : A) → P [ x ] (assuming extensionality).
+
+  Π-Erased-no-η↔Π0[] :
+    {@0 A : Set a} {@0 P : Erased-no-η A → Set p} →
+    Extensionality′ (Erased-no-η A) P →
+    ((x : Erased-no-η A) → P x) ↔ ((@0 x : A) → P [ x ])
+  Π-Erased-no-η↔Π0[] {P = P} ext = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = Π-Erased-no-η→Π0[]
+        ; from = Π0[]→Π-Erased-no-η _
+        }
+      ; right-inverse-of    = λ _ → refl
+      }
+    ; left-inverse-of = λ f →
+        ext (Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] f)
+    }
+
+  -- There is an equivalence between (x : Erased-no-η A) → P x and
+  -- (@0 x : A) → P [ x ] (assuming extensionality).
+  --
+  -- This is not proved by converting Π-Erased-no-η↔Π0[] to an
+  -- equivalence, because the type arguments of the conversion
+  -- function in Equivalence are not erased, and A and P can only be
+  -- used in erased contexts.
+
+  Π-Erased-no-η≃Π0[] :
+    {@0 A : Set a} {@0 P : Erased-no-η A → Set p} →
+    Extensionality′ (Erased-no-η A) P →
+    ((x : Erased-no-η A) → P x) ≃ ((@0 x : A) → P [ x ])
+  Π-Erased-no-η≃Π0[] {A = A} {P = P} ext = record
+    { to             = λ f x → f [ x ]
+    ; is-equivalence = λ f →
+        ( Π0[]→Π-Erased-no-η _ f
+        , refl
+        )
+        , λ { (g , refl) → lemma g }
+    }
+    where
+    Σ-≡,≡→≡′ :
+      {@0 A : Set a} {@0 P : A → Set p} {p₁ p₂ : Σ A P} →
+      (p : proj₁ p₁ ≡ proj₁ p₂) →
+      subst P p (proj₂ p₁) ≡ proj₂ p₂ →
+      p₁ ≡ p₂
+    Σ-≡,≡→≡′ refl refl = refl
+
+    subst-lemma :
+      ({g} g′ : (x : Erased-no-η A) → P x)
+      (eq₁ : Π0[]→Π-Erased-no-η P (λ (@0 x) → g′ [ x ]) ≡ g)
+      (eq₂ : (λ (@0 x) → g′ [ x ]) ≡ (λ (@0 x) → g [ x ])) →
+      subst (λ f → (λ (@0 x) → f [ x ]) ≡ (λ (@0 x) → g [ x ]))
+            eq₁ eq₂ ≡
+      refl
+    subst-lemma _ refl refl = refl
+
+    lemma :
+      (g : (x : Erased-no-η A) → P x) →
+      (Π0[]→Π-Erased-no-η P (λ (@0 x) → g [ x ]) , refl) ≡ (g , refl)
+    lemma g = Σ-≡,≡→≡′ eq (subst-lemma g eq refl)
+      where
+      eq = ext (Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] g)
+
+  -- There is a bijection between
+  -- (x : Erased-no-η A) → P (erased-no-η x) and (@0 x : A) → P x
+  -- (assuming extensionality).
+
+  Π-Erased-no-η↔Π0 :
+    {@0 A : Set a} {@0 P : A → Set p} →
+    Extensionality′ (Erased-no-η A) (P ∘ erased-no-η) →
+    ((x : Erased-no-η A) → P (erased-no-η x)) ↔ ((@0 x : A) → P x)
+  Π-Erased-no-η↔Π0 = Π-Erased-no-η↔Π0[]
+
+  -- There is an equivalence between
+  -- (x : Erased-no-η A) → P (erased-no-η x) and (@0 x : A) → P x
+  -- (assuming extensionality).
+
+  Π-Erased-no-η≃Π0 :
+    {@0 A : Set a} {@0 P : A → Set p} →
+    Extensionality′ (Erased-no-η A) (P ∘ erased-no-η) →
+    ((x : Erased-no-η A) → P (erased-no-η x)) ≃ ((@0 x : A) → P x)
+  Π-Erased-no-η≃Π0 = Π-Erased-no-η≃Π0[]
