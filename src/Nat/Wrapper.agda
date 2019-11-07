@@ -32,10 +32,12 @@ open import Bijection eq using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Erased.Cubical eq
 open import Erased.Cubical.Singleton eq
-open import Function-universe eq hiding (_∘_)
+open import Function-universe eq as F hiding (_∘_)
+open import H-level eq
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional eq as Trunc
 open import List.All.Recursive eq
+open import Univalence-axiom eq
 open import Vec eq as Vec
 
 private
@@ -526,3 +528,50 @@ private
     example₃ =
       Dec-map (_↔_.logical-equivalence ≡-for-indices↔≡)
         (⌈ 5 ⌉ ≟ ⌈ 2 ⌉ + ⌈ 3 ⌉)
+
+------------------------------------------------------------------------
+-- Could Nat have been defined using the propositional truncation
+-- instead of Erased?
+
+module Nat-with-∥∥ where
+
+  -- Could Nat have been defined using ∥_∥ instead of Erased? Let us
+  -- try.
+
+  -- Given a truncated natural number we can kind of apply Nat-[_] to
+  -- it, because Nat-[_] is a family of contractible types. (The code
+  -- uses univalence.)
+
+  Nat-[]′ : ∥ ℕ ∥ → ∃ λ (A : Set) → Contractible A
+  Nat-[]′ = Trunc.rec
+    (∃-H-level-H-level-1+ ext univ 0)
+    (λ n → Nat-[ n ]
+         , propositional⇒inhabited⇒contractible
+             Nat-[]-propositional
+             ∣ _↠_.from Nat′↠ℕ n
+             , [ _↠_.right-inverse-of Nat′↠ℕ n ]
+             ∣)
+
+  -- Thus we can form a variant of Nat.
+
+  Nat-with-∥∥ : Set
+  Nat-with-∥∥ = ∃ λ (n : ∥ ℕ ∥) → proj₁ (Nat-[]′ n)
+
+  -- However, this variant is isomorphic to the unit type.
+
+  Nat-with-∥∥↔⊤ : Nat-with-∥∥ ↔ ⊤
+  Nat-with-∥∥↔⊤ =
+    _⇔_.to contractible⇔↔⊤ $
+    Σ-closure 0
+      (propositional⇒inhabited⇒contractible
+         truncation-is-proposition ∣ 0 ∣)
+      (proj₂ ∘ Nat-[]′)
+
+  -- And thus it is not isomorphic to the natural numbers.
+
+  ¬-Nat-with-∥∥↔ℕ : ¬ (Nat-with-∥∥ ↔ ℕ)
+  ¬-Nat-with-∥∥↔ℕ =
+    Nat-with-∥∥ ↔ ℕ  ↝⟨ F._∘ inverse Nat-with-∥∥↔⊤ ⟩
+    ⊤ ↔ ℕ            ↝⟨ (λ hyp → _↔_.injective (inverse hyp) (refl _)) ⟩
+    0 ≡ 1            ↝⟨ N.0≢+ ⟩□
+    ⊥                □
