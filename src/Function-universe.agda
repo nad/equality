@@ -1344,7 +1344,8 @@ Contractible-commutes-with-× {x} {y} ext =
     proj₁ (x′ , y)  ∎
 
 ------------------------------------------------------------------------
--- Some lemmas related to _≃_
+-- Some lemmas relating equality of certain kinds of functions to
+-- pointwise equality of the underlying functions
 
 -- Equality of equivalences is isomorphic to pointwise equality of the
 -- underlying functions (assuming extensionality).
@@ -1359,6 +1360,19 @@ Contractible-commutes-with-× {x} {y} ext =
   _≃_.to p ≡ _≃_.to q                                                    ↝⟨ ignore-propositional-component (Eq.propositional ext _) ⟩
   (_≃_.to p , _≃_.is-equivalence p) ≡ (_≃_.to q , _≃_.is-equivalence q)  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Eq.≃-as-Σ) ⟩□
   p ≡ q                                                                  □
+
+-- Equality of equivalences is isomorphic to pointwise equality of the
+-- underlying /inverse/ functions (assuming extensionality).
+
+≃-from-≡↔≡ :
+  ∀ {a b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  {A : Set a} {B : Set b} {p q : A ≃ B} →
+  (∀ x → _≃_.from p x ≡ _≃_.from q x) ↔ p ≡ q
+≃-from-≡↔≡ ext {p = p} {q} =
+  (∀ x → _≃_.from p x ≡ _≃_.from q x)  ↝⟨ ≃-to-≡↔≡ ext ⟩
+  inverse p ≡ inverse q                ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.inverse-isomorphism ext)) ⟩□
+  p ≡ q                                □
 
 -- Equality of bijections between a set and a type is isomorphic to
 -- pointwise equality of the underlying functions (assuming
@@ -1376,19 +1390,6 @@ Contractible-commutes-with-× {x} {y} ext =
   Eq.↔⇒≃ p ≡ Eq.↔⇒≃ q                                ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.↔↔≃ ext A-set)) ⟩□
   p ≡ q                                              □
 
--- Equality of equivalences is isomorphic to pointwise equality of the
--- underlying /inverse/ functions (assuming extensionality).
-
-≃-from-≡↔≡ :
-  ∀ {a b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
-  {A : Set a} {B : Set b} {p q : A ≃ B} →
-  (∀ x → _≃_.from p x ≡ _≃_.from q x) ↔ p ≡ q
-≃-from-≡↔≡ ext {p = p} {q} =
-  (∀ x → _≃_.from p x ≡ _≃_.from q x)  ↝⟨ ≃-to-≡↔≡ ext ⟩
-  inverse p ≡ inverse q                ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.inverse-isomorphism ext)) ⟩□
-  p ≡ q                                □
-
 -- Equality of bijections between a set and a type is isomorphic to
 -- pointwise equality of the underlying /inverse/ functions (assuming
 -- extensionality).
@@ -1404,6 +1405,27 @@ Contractible-commutes-with-× {x} {y} ext =
   (∀ x → _≃_.from (Eq.↔⇒≃ p) x ≡ _≃_.from (Eq.↔⇒≃ q) x)  ↝⟨ ≃-from-≡↔≡ ext ⟩
   Eq.↔⇒≃ p ≡ Eq.↔⇒≃ q                                    ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.↔↔≃ ext A-set)) ⟩□
   p ≡ q                                                  □
+
+-- Equality of embeddings is isomorphic to pointwise equality of the
+-- underlying functions (assuming extensionality).
+
+Embedding-to-≡↔≡ :
+  ∀ {a b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  {A : Set a} {B : Set b} {p q : Embedding A B} →
+  (∀ x → Embedding.to p x ≡ Embedding.to q x) ↔ p ≡ q
+Embedding-to-≡↔≡ {a} {b} ext {p = p} {q} =
+  (∀ x → Embedding.to p x ≡ Embedding.to q x)    ↔⟨ Eq.extensionality-isomorphism (lower-extensionality b a ext) ⟩
+
+  Embedding.to p ≡ Embedding.to q                ↝⟨ ignore-propositional-component (Emb.Is-embedding-propositional ext) ⟩
+
+  (Embedding.to p , Embedding.is-embedding p) ≡
+  (Embedding.to q , Embedding.is-embedding q)    ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Emb.Embedding-as-Σ) ⟩□
+
+  p ≡ q                                          □
+
+------------------------------------------------------------------------
+-- Some lemmas related to _≃_
 
 -- Contractibility is isomorphic to equivalence to the unit type
 -- (assuming extensionality).
