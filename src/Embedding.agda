@@ -23,20 +23,25 @@ open import Injection eq as Injection using (Injective; _↣_)
 open import Preimage eq using (_⁻¹_)
 open import Surjection eq using (_↠_)
 
+private
+  variable
+    a b t : Level
+    A B C : Set a
+    f x y : A
+
 ------------------------------------------------------------------------
 -- Embeddings
 
 -- The property of being an embedding.
 
-Is-embedding : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Is-embedding : {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
 Is-embedding f = ∀ x y → Is-equivalence (cong {x = x} {y = y} f)
 
 -- Is-embedding is propositional (assuming extensionality).
 
 Is-embedding-propositional :
-  ∀ {a b} →
+  {A : Set a} {B : Set b} {f : A → B} →
   Extensionality (a ⊔ b) (a ⊔ b) →
-  ∀ {A : Set a} {B : Set b} {f : A → B} →
   Is-proposition (Is-embedding f)
 Is-embedding-propositional {b = b} ext =
   Π-closure (lower-extensionality b lzero ext) 1 λ _ →
@@ -45,19 +50,17 @@ Is-embedding-propositional {b = b} ext =
 
 -- Embeddings.
 
-record Embedding {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
+record Embedding (From : Set f) (To : Set t) : Set (f ⊔ t) where
   field
     to           : From → To
     is-embedding : Is-embedding to
 
-  equivalence : ∀ {x y} → (x ≡ y) ≃ (to x ≡ to y)
+  equivalence : (x ≡ y) ≃ (to x ≡ to y)
   equivalence = ⟨ _ , is-embedding _ _ ⟩
 
 -- The type family above could have been defined using Σ.
 
-Embedding-as-Σ :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  Embedding A B ↔ ∃ λ (f : A → B) → Is-embedding f
+Embedding-as-Σ : Embedding A B ↔ ∃ λ (f : A → B) → Is-embedding f
 Embedding-as-Σ = record
   { surjection = record
     { logical-equivalence = record
@@ -74,7 +77,7 @@ Embedding-as-Σ = record
 
 -- Embedding is a preorder.
 
-id : ∀ {a} {A : Set a} → Embedding A A
+id : Embedding A A
 id {A = A} = record
   { to           = P.id
   ; is-embedding = λ x y →
@@ -85,8 +88,7 @@ id {A = A} = record
 
 infixr 9 _∘_
 
-_∘_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
-      Embedding B C → Embedding A B → Embedding A C
+_∘_ : Embedding B C → Embedding A B → Embedding A C
 f ∘ g = record
   { to           = to f ⊚ to g
   ; is-embedding = λ _ _ →
@@ -108,7 +110,6 @@ f ∘ g = record
 -- Theorem 4.6.3 in the HoTT book (first edition).
 
 embedding→⁻¹-propositional :
-  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} →
   Is-embedding f →
   ∀ y → Is-proposition (f ⁻¹ y)
 embedding→⁻¹-propositional {f = f} is-emb y (x₁ , eq₁) (x₂ , eq₂) =
@@ -138,13 +139,12 @@ embedding→⁻¹-propositional {f = f} is-emb y (x₁ , eq₁) (x₂ , eq₂) =
 
 -- Functions that are embeddings are injective.
 
-injective : ∀ {a b} {A : Set a} {B : Set b} {f : A → B} →
-            Is-embedding f → Injective f
+injective : Is-embedding f → Injective f
 injective is-emb = _≃_.from ⟨ _ , is-emb _ _ ⟩
 
 -- Embeddings are injections.
 
-injection : ∀ {a b} {A : Set a} {B : Set b} → Embedding A B → A ↣ B
+injection : Embedding A B → A ↣ B
 injection f = record
   { to        = Embedding.to f
   ; injective = injective (Embedding.is-embedding f)
@@ -156,11 +156,10 @@ private
   -- (assuming extensionality).
 
   Injective-propositional :
-    ∀ {a b} →
+    {A : Set a} {B : Set b} {f : A → B} →
     Extensionality (a ⊔ b) (a ⊔ b) →
-    ∀ {A : Set a} {B : Set b} {f : A → B} →
     Is-set A → Is-proposition (Injective f)
-  Injective-propositional {a} {b} ext A-set =
+  Injective-propositional {a = a} {b = b} ext A-set =
     implicit-Π-closure (lower-extensionality b lzero ext) 1 λ _ →
     implicit-Π-closure (lower-extensionality b lzero ext) 1 λ _ →
     Π-closure (lower-extensionality a b ext)              1 λ _ →
@@ -170,7 +169,6 @@ private
 -- logically equivalent to the property of being an embedding.
 
 Injective⇔Is-embedding :
-  ∀ {a b} {A : Set a} {B : Set b} →
   Is-set A → Is-set B →
   (f : A → B) → Injective f ⇔ Is-embedding f
 Injective⇔Is-embedding A-set B-set f = record
@@ -186,7 +184,7 @@ Injective⇔Is-embedding A-set B-set f = record
 -- extensionality).
 
 Injective≃Is-embedding :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  {A : Set a} {B : Set b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-set A → Is-set B →
   (f : A → B) → Injective f ≃ Is-embedding f
@@ -202,11 +200,11 @@ Injective≃Is-embedding ext A-set B-set f =
 -- extensionality).
 
 ↣↔Embedding :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  {A : Set a} {B : Set b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-set A → Is-set B →
   (A ↣ B) ↔ Embedding A B
-↣↔Embedding {A = A} {B} ext A-set B-set = record
+↣↔Embedding {A = A} {B = B} ext A-set B-set = record
   { surjection = record
     { logical-equivalence = record
       { to   = λ f → record
