@@ -155,7 +155,7 @@ Very-stable-Erased =
   _≃_.is-equivalence (Eq.↔⇒≃ (record
     { surjection = record
       { logical-equivalence = record
-        { from = λ ([ [ x ] ]) → [ x ]
+        { from = λ ([ x ]) → [ erased x ]
         }
       ; right-inverse-of = refl
       }
@@ -667,8 +667,8 @@ module []-cong
   Stable-≃-cong {A = A} {B = B} ext A≃B =
     Stable-[ equivalence ] A  ↔⟨⟩
     Erased A ≃ A              ↝⟨ generalise-ext?
-                                   (Eq.≃-preserves-⇔ (Erased-cong-≃ A≃B) A≃B)
-                                   (λ ext → from-isomorphism $ Eq.≃-preserves ext (Erased-cong-≃ A≃B) A≃B)
+                                   (Eq.≃-preserves-⇔ (Erased-cong A≃B) A≃B)
+                                   (λ ext → from-isomorphism $ Eq.≃-preserves ext (Erased-cong A≃B) A≃B)
                                    ext ⟩
     Erased B ≃ B              ↔⟨⟩
     Stable-[ equivalence ] B  □
@@ -694,7 +694,7 @@ module []-cong
       Eq.with-other-function
         (B         ↝⟨ inverse A≃B ⟩
          A         ↝⟨ Eq.⟨ [_] , s ⟩ ⟩
-         Erased A  ↝⟨ Erased-cong-≃ A≃B ⟩□
+         Erased A  ↝⟨ Erased-cong A≃B ⟩□
          Erased B  □)
         [_]
         (λ x →

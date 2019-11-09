@@ -456,9 +456,8 @@ module []-cong₂
     Erased-H-level′ :
       {@0 A : Set a} →
       ∀ n → Erased (H-level′ n A) → H-level′ n (Erased A)
-    Erased-H-level′ zero [ h ] =
-        [ proj₁ h ]
-      , λ { [ x ] → []-cong [ proj₂ h x ] }
+    Erased-H-level′ zero [ (x , p) ] =
+      [ x ] , λ ([ y ]) → []-cong [ p y ]
     Erased-H-level′ (suc n) [ h ] [ x ] [ y ] =
                                    $⟨ Erased-H-level′ n [ h x y ] ⟩
       H-level′ n (Erased (x ≡ y))  ↝⟨ H-level.respects-surjection′ (_↔_.surjection Erased-≡↔[]≡[]) n ⟩□
