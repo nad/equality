@@ -26,11 +26,11 @@ open import Surjection eq using (_↠_; Split-surjective)
 
 private
   variable
-    a b ℓ p : Level
-    A B     : Set a
-    P       : A → Set p
-    k x y   : A
-    n       : ℕ
+    a b c ℓ p : Level
+    A B       : Set a
+    P         : A → Set p
+    k x y     : A
+    n         : ℕ
 
 ------------------------------------------------------------------------
 -- The type
@@ -249,6 +249,18 @@ Erased-cong-→ :
   @0 (A → B) → Erased A → Erased B
 Erased-cong-→ A→B [ x ] = [ A→B x ]
 
+-- Erased is functorial for functions.
+
+Erased-cong-→-id :
+  {@0 A : Set a} → Erased-cong-→ id ≡ id {A = Erased A}
+Erased-cong-→-id = refl _
+
+Erased-cong-→-∘ :
+  {@0 A : Set a} {@0 B : Set b} {@0 C : Set c}
+  (@0 f : B → C) (@0 g : A → B) →
+  Erased-cong-→ (f ∘ g) ≡ Erased-cong-→ f ∘ Erased-cong-→ g
+Erased-cong-→-∘ _ _ = refl _
+
 -- Erased preserves logical equivalences.
 
 Erased-cong-⇔ :
@@ -258,6 +270,19 @@ Erased-cong-⇔ A⇔B = record
   { to   = Erased-cong-→ (_⇔_.to   A⇔B)
   ; from = Erased-cong-→ (_⇔_.from A⇔B)
   }
+
+-- Erased is functorial for logical equivalences.
+
+Erased-cong-⇔-id :
+  {@0 A : Set a} →
+  Erased-cong-⇔ F.id ≡ F.id {A = Erased A}
+Erased-cong-⇔-id = refl _
+
+Erased-cong-⇔-∘ :
+  {@0 A : Set a} {@0 B : Set b} {@0 C : Set c}
+  (@0 f : B ⇔ C) (@0 g : A ⇔ B) →
+  Erased-cong-⇔ (f F.∘ g) ≡ Erased-cong-⇔ f F.∘ Erased-cong-⇔ g
+Erased-cong-⇔-∘ _ _ = refl _
 
 ------------------------------------------------------------------------
 -- A variant of Dec ∘ Erased

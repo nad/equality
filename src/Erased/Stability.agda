@@ -16,7 +16,7 @@ open import Prelude
 
 open import Bijection eq as Bijection using (_↔_)
 open import Double-negation eq as DN
-open import Embedding eq using (Is-embedding)
+open import Embedding eq using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
@@ -25,18 +25,18 @@ open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
-open import Injection eq using (Injective)
+open import Injection eq using (_↣_; Injective)
 import List eq as L
 import Nat eq as Nat
 open import Surjection eq using (_↠_; Split-surjective)
 
 private
   variable
-    a b ℓ p : Level
-    A B     : Set a
-    P       : A → Set p
-    k x y   : A
-    n       : ℕ
+    a b c ℓ p : Level
+    A B       : Set a
+    P         : A → Set p
+    k x y     : A
+    n         : ℕ
 
 ------------------------------------------------------------------------
 -- Stability
@@ -1088,3 +1088,263 @@ module []-cong
            cong (Erased-cong-→ f) ([]-cong [ refl _ ])  ∎)
           _
       ]
+
+  ----------------------------------------------------------------------
+  -- Erased is functorial for all kinds of functions (in some cases
+  -- assuming extensionality)
+
+  private
+
+    -- Erased is functorial for equivalences (assuming
+    -- extensionality).
+
+    Erased-cong-≃-id :
+      {@0 A : Set a} →
+      Extensionality a a →
+      Erased-cong {k = equivalence} F.id ≡ F.id {A = Erased A}
+    Erased-cong-≃-id ext = Eq.lift-equality ext (refl _)
+
+    Erased-cong-≃-∘ :
+      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      Extensionality (a ⊔ c) (a ⊔ c) →
+      (@0 f : B ≃ C) (@0 g : A ≃ B) →
+      Erased-cong {k = equivalence} (f F.∘ g) ≡
+      Erased-cong f F.∘ Erased-cong g
+    Erased-cong-≃-∘ ext _ _ = Eq.lift-equality ext (refl _)
+
+    -- Erased is functorial for embeddings (assuming extensionality).
+
+    Erased-cong-Embedding-id :
+      {@0 A : Set a} →
+      Extensionality a a →
+      Erased-cong {k = embedding} F.id ≡ F.id {A = Erased A}
+    Erased-cong-Embedding-id ext =
+      _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _
+
+    Erased-cong-Embedding-∘ :
+      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      Extensionality (a ⊔ c) (a ⊔ c) →
+      (@0 f : Embedding B C) (@0 g : Embedding A B) →
+      Erased-cong {k = embedding} (f F.∘ g) ≡
+      Erased-cong f F.∘ Erased-cong g
+    Erased-cong-Embedding-∘ ext _ _ =
+      _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _
+
+    -- A lemma.
+
+    right-inverse-of-cong-∘ :
+      ∀ {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} {x} →
+      (@0 f : B ↠ C) (@0 g : A ↠ B) →
+      _↠_.right-inverse-of (Erased-cong (f F.∘ g)) x ≡
+      _↠_.right-inverse-of (Erased-cong f F.∘ Erased-cong g) x
+    right-inverse-of-cong-∘ {x = [ x ]} f g =
+      []-cong [ trans (cong (_↠_.to f)
+                              (_↠_.right-inverse-of g
+                                 (_↠_.from f x)))
+                           (_↠_.right-inverse-of f x)
+              ]                                          ≡⟨ []-cong-trans ⟩
+
+      trans ([]-cong [ cong (_↠_.to f)
+                         (_↠_.right-inverse-of g
+                            (_↠_.from f x)) ])
+        ([]-cong [ _↠_.right-inverse-of f x ])           ≡⟨ cong (λ p → trans p _) []-cong-cong ⟩∎
+
+      trans (cong (Erased-cong-→ (_↠_.to f))
+                    ([]-cong [ _↠_.right-inverse-of g
+                                 (_↠_.from f x) ]))
+                 ([]-cong [ _↠_.right-inverse-of f x ])  ∎
+
+    -- Erased is functorial for split surjections (assuming
+    -- extensionality).
+
+    Erased-cong-↠-id :
+      {@0 A : Set a} →
+      Extensionality a a →
+      Erased-cong {k = surjection} F.id ≡ F.id {A = Erased A}
+    Erased-cong-↠-id ext =                              $⟨ lemma ⟩
+      _↔_.to ↠↔∃-Split-surjective (Erased-cong F.id) ≡
+      _↔_.to ↠↔∃-Split-surjective F.id                  ↝⟨ Eq.≃-≡ (from-isomorphism ↠↔∃-Split-surjective) ⟩□
+
+      Erased-cong F.id ≡ F.id                           □
+      where
+      lemma :
+        (Erased-cong-→ id , λ x → [ erased x ] , []-cong [ refl _ ]) ≡
+        (id , λ x → x , refl _)
+      lemma =
+        cong (_ ,_) $ apply-ext ext λ _ → cong (_ ,_) []-cong-[refl]
+
+    Erased-cong-↠-∘ :
+      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      Extensionality c (a ⊔ c) →
+      (@0 f : B ↠ C) (@0 g : A ↠ B) →
+      Erased-cong {k = surjection} (f F.∘ g) ≡
+      Erased-cong f F.∘ Erased-cong g
+    Erased-cong-↠-∘ ext f g =                                        $⟨ lemma ⟩
+      _↔_.to ↠↔∃-Split-surjective (Erased-cong (f F.∘ g)) ≡
+      _↔_.to ↠↔∃-Split-surjective (Erased-cong f F.∘ Erased-cong g)  ↝⟨ Eq.≃-≡ (from-isomorphism ↠↔∃-Split-surjective) ⟩□
+
+      Erased-cong (f F.∘ g) ≡ Erased-cong f F.∘ Erased-cong g        □
+      where
+      lemma :
+        ( Erased-cong-→ (_↠_.to f ∘ _↠_.to g)
+        , (λ x →
+               [ _↠_.from g (_↠_.from f (erased x)) ]
+             , _↠_.right-inverse-of (Erased-cong (f F.∘ g)) x)
+        )
+        ≡
+        ( (λ x → [ _↠_.to f (_↠_.to g (erased x)) ])
+        , (λ x →
+               [ _↠_.from g (_↠_.from f (erased x)) ]
+             , _↠_.right-inverse-of (Erased-cong f F.∘ Erased-cong g) x)
+        )
+      lemma =
+        cong (_ ,_) $ apply-ext ext λ ([ x ]) →
+          cong ([ _↠_.from g (_↠_.from f x) ] ,_)
+            (right-inverse-of-cong-∘ f g)
+
+    -- Erased is functorial for bijections (assuming extensionality).
+
+    Erased-cong-↔-id :
+      {@0 A : Set a} →
+      Extensionality a a →
+      Erased-cong {k = bijection} F.id ≡ F.id {A = Erased A}
+    Erased-cong-↔-id ext =                          $⟨ lemma ⟩
+      _↔_.to Bijection.↔-as-Σ (Erased-cong F.id) ≡
+      _↔_.to Bijection.↔-as-Σ F.id                  ↝⟨ Eq.≃-≡ (from-isomorphism Bijection.↔-as-Σ) ⟩□
+
+      Erased-cong F.id ≡ F.id                       □
+      where
+      lemma :
+        ( Erased-cong-→ id
+        , Erased-cong-→ id
+        , (λ { [ x ] → []-cong [ refl x ] })
+        , (λ { [ x ] → []-cong [ refl x ] })
+        ) ≡
+        (id , id , refl , refl)
+      lemma = cong (λ p → id , id , p) $ cong₂ _,_
+        (apply-ext ext λ _ → []-cong-[refl])
+        (apply-ext ext λ _ → []-cong-[refl])
+
+    Erased-cong-↔-∘ :
+      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      Extensionality (a ⊔ c) (a ⊔ c) →
+      (@0 f : B ↔ C) (@0 g : A ↔ B) →
+      Erased-cong {k = bijection} (f F.∘ g) ≡
+      Erased-cong f F.∘ Erased-cong g
+    Erased-cong-↔-∘ {a = a} {c = c} ext f g =                    $⟨ lemma ⟩
+      _↔_.to Bijection.↔-as-Σ (Erased-cong (f F.∘ g)) ≡
+      _↔_.to Bijection.↔-as-Σ (Erased-cong f F.∘ Erased-cong g)  ↝⟨ Eq.≃-≡ (from-isomorphism Bijection.↔-as-Σ) ⟩□
+
+      Erased-cong (f F.∘ g) ≡ Erased-cong f F.∘ Erased-cong g    □
+      where
+      lemma :
+        ( Erased-cong-→ (_↔_.to f ∘ _↔_.to g)
+        , Erased-cong-→ (_↔_.from g ∘ _↔_.from f)
+        , _↔_.right-inverse-of (Erased-cong (f F.∘ g))
+        , _↔_.left-inverse-of (Erased-cong (f F.∘ g))
+        )
+        ≡
+        ( (λ x → [ _↔_.to f (_↔_.to g (erased x)) ])
+        , (λ x → [ _↔_.from g (_↔_.from f (erased x)) ])
+        , _↔_.right-inverse-of (Erased-cong f F.∘ Erased-cong g)
+        , _↔_.left-inverse-of (Erased-cong f F.∘ Erased-cong g)
+        )
+      lemma =
+        cong (λ p → Erased-cong-→ (_↔_.to f ∘ _↔_.to g)
+                  , Erased-cong-→ (_↔_.from g ∘ _↔_.from f) , p) $
+        cong₂ _,_
+          (apply-ext (lower-extensionality a a ext) λ _ →
+             right-inverse-of-cong-∘
+               (_↔_.surjection f) (_↔_.surjection g))
+          (apply-ext (lower-extensionality c c ext) λ _ →
+           right-inverse-of-cong-∘
+              (_↔_.surjection $ inverse g) (_↔_.surjection $ inverse f))
+
+    -- Erased is functorial for injections (assuming extensionality).
+
+    Erased-cong-↣-id :
+      {@0 A : Set a} →
+      Extensionality a a →
+      Erased-cong {k = injection} F.id ≡ F.id {A = Erased A}
+    Erased-cong-↣-id ext =                       $⟨ lemma ⟩
+      _↔_.to ↣↔∃-Injective (Erased-cong F.id) ≡
+      _↔_.to ↣↔∃-Injective F.id                  ↝⟨ Eq.≃-≡ (from-isomorphism ↣↔∃-Injective) ⟩□
+
+      Erased-cong F.id ≡ F.id                    □
+      where
+      lemma :
+        ( Erased-cong-→ id
+        , λ {_ _} → _↣_.injective (Erased-cong F.id)
+        ) ≡
+        (id , λ {_ _} → _↣_.injective F.id)
+      lemma =
+        cong (_ ,_) $
+        implicit-extensionality ext λ _ →
+        implicit-extensionality ext λ _ →
+        apply-ext ext λ eq →
+          []-cong (_↔_.from Erased-≡↔[]≡[] eq)  ≡⟨ _↔_.right-inverse-of Erased-≡↔[]≡[] _ ⟩∎
+          eq                                    ∎
+
+    Erased-cong-↣-∘ :
+      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      Extensionality (a ⊔ c) (a ⊔ c) →
+      (@0 f : B ↣ C) (@0 g : A ↣ B) →
+      Erased-cong {k = injection} (f F.∘ g) ≡
+      Erased-cong f F.∘ Erased-cong g
+    Erased-cong-↣-∘ {a = a} {c = c} ext f g =                  $⟨ lemma ⟩
+      _↔_.to ↣↔∃-Injective (Erased-cong (f F.∘ g)) ≡
+      _↔_.to ↣↔∃-Injective (Erased-cong f F.∘ Erased-cong g)   ↝⟨ Eq.≃-≡ (from-isomorphism ↣↔∃-Injective) ⟩□
+
+      Erased-cong (f F.∘ g) ≡ Erased-cong f F.∘ Erased-cong g  □
+      where
+      lemma :
+        ( Erased-cong-→ (_↣_.to f ∘ _↣_.to g)
+        , λ {_ _} → _↣_.injective (Erased-cong (f F.∘ g))
+        )
+        ≡
+        ( (λ x → [ _↣_.to f (_↣_.to g (erased x)) ])
+        , λ {_ _} → _↣_.injective (Erased-cong f F.∘ Erased-cong g)
+        )
+      lemma =
+        cong (_ ,_) $
+        implicit-extensionality (lower-extensionality c lzero ext) λ _ →
+        implicit-extensionality (lower-extensionality c lzero ext) λ _ →
+        apply-ext (lower-extensionality a c ext) λ eq →
+          let eq′ = [ _↣_.injective f
+                        (erased (_↔_.from Erased-≡↔[]≡[] eq)) ]
+          in
+          []-cong [ _↣_.injective g (erased eq′) ]              ≡⟨ cong []-cong $ []-cong [ cong (_↣_.injective g ∘ erased) $ sym $
+                                                                   _↔_.left-inverse-of Erased-≡↔[]≡[] _ ] ⟩∎
+          []-cong [ _↣_.injective g (erased
+                      (_↔_.from Erased-≡↔[]≡[] ([]-cong eq′)))
+                  ]                                             ∎
+
+  -- Erased is functorial for all kinds of functions (in some cases
+  -- assuming extensionality).
+
+  Erased-cong-id :
+    {@0 A : Set a} →
+    Extensionality? k a a →
+    Erased-cong F.id ≡ F.id {k = k} {A = Erased A}
+  Erased-cong-id {k = implication}         = λ _ → Erased-cong-→-id
+  Erased-cong-id {k = logical-equivalence} = λ _ → Erased-cong-⇔-id
+  Erased-cong-id {k = injection}           = Erased-cong-↣-id
+  Erased-cong-id {k = embedding}           = Erased-cong-Embedding-id
+  Erased-cong-id {k = surjection}          = Erased-cong-↠-id
+  Erased-cong-id {k = bijection}           = Erased-cong-↔-id
+  Erased-cong-id {k = equivalence}         = Erased-cong-≃-id
+
+  Erased-cong-∘ :
+    {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+    Extensionality? k (a ⊔ c) (a ⊔ c) →
+    (@0 f : B ↝[ k ] C) (@0 g : A  ↝[ k ] B) →
+    Erased-cong (f F.∘ g) ≡ Erased-cong f F.∘ Erased-cong g
+  Erased-cong-∘         {k = implication}         = λ _ → Erased-cong-→-∘
+  Erased-cong-∘         {k = logical-equivalence} = λ _ → Erased-cong-⇔-∘
+  Erased-cong-∘         {k = injection}           = Erased-cong-↣-∘
+  Erased-cong-∘         {k = embedding}           = Erased-cong-Embedding-∘
+  Erased-cong-∘ {a = a} {k = surjection}          = λ ext →
+                                                      Erased-cong-↠-∘
+                                                        (lower-extensionality a lzero ext)
+  Erased-cong-∘         {k = bijection}           = Erased-cong-↔-∘
+  Erased-cong-∘         {k = equivalence}         = Erased-cong-≃-∘

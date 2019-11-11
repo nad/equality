@@ -53,9 +53,8 @@ f ∘ g = record
 
   to′ = to f ⊚ to g
 
-  abstract
-    injective′ : Injective to′
-    injective′ = injective g ⊚ injective f
+  injective′ : Injective to′
+  injective′ = injective g ⊚ injective f
 
 -- "Equational" reasoning combinators.
 

@@ -74,12 +74,11 @@ f ∘ g = record
   where
   open _↠_
 
-  abstract
-    to∘from : ∀ x → to f (to g (from g (from f x))) ≡ x
-    to∘from = λ x →
-      to f (to g (from g (from f x)))  ≡⟨ cong (to f) (right-inverse-of g (from f x)) ⟩
-      to f (from f x)                  ≡⟨ right-inverse-of f x ⟩∎
-      x                                ∎
+  to∘from : ∀ x → to f (to g (from g (from f x))) ≡ x
+  to∘from = λ x →
+    to f (to g (from g (from f x)))  ≡⟨ cong (to f) (right-inverse-of g (from f x)) ⟩
+    to f (from f x)                  ≡⟨ right-inverse-of f x ⟩∎
+    x                                ∎
 
 -- "Equational" reasoning combinators.
 
