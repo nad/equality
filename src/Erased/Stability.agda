@@ -702,7 +702,19 @@ module []-cong
            [ x ]                            ∎)
 
   ----------------------------------------------------------------------
-  -- A closure property
+  -- Some lemmas related to Very-stable
+
+  -- All kinds of functions between erased types are very stable (in
+  -- some cases assuming extensionality).
+
+  Very-stable-Erased↝Erased :
+    {@0 A : Set a} {@0 B : Set b} →
+    Extensionality? k (a ⊔ b) (a ⊔ b) →
+    Very-stable (Erased A ↝[ k ] Erased B)
+  Very-stable-Erased↝Erased {k = k} {A = A} {B = B} ext =
+                                            $⟨ Very-stable-Erased ⟩
+    Very-stable (Erased (A ↝[ k ] B))       ↝⟨ Very-stable-cong _ (from-isomorphism $ Erased-↝↔↝ ext) ⦂ (_ → _) ⟩□
+    Very-stable (Erased A ↝[ k ] Erased B)  □
 
   -- If A is very stable, then W A P is very stable (assuming
   -- extensionality).
