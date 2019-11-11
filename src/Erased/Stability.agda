@@ -1047,3 +1047,44 @@ module []-cong
       _
       n
       (Very-stable-cong _ ∘ from-isomorphism)
+
+  ----------------------------------------------------------------------
+  -- Rearrangement lemmas for []-cong, proved using stability
+
+  -- []-cong kind of commutes with trans.
+
+  []-cong-trans :
+    {@0 A : Set a} {@0 x y z : A} {@0 p : x ≡ y} {@0 q : y ≡ z} →
+    []-cong [ trans p q ] ≡ trans ([]-cong [ p ]) ([]-cong [ q ])
+  []-cong-trans =
+    Very-stable→Stable 0 (Very-stable-≡₁ _ _ _ _)
+      [ elim¹
+          (λ p → ∀ (@0 q) → []-cong [ trans p q ] ≡
+                            trans ([]-cong [ p ]) ([]-cong [ q ]))
+          (λ q →
+             []-cong [ trans (refl _) q ]                ≡⟨ cong []-cong ([]-cong [ trans-reflˡ _ ]) ⟩
+             []-cong [ q ]                               ≡⟨ sym $ trans-reflˡ _ ⟩
+             trans (refl _) ([]-cong [ q ])              ≡⟨ sym $ cong (flip trans _) []-cong-[refl] ⟩∎
+             trans ([]-cong [ refl _ ]) ([]-cong [ q ])  ∎)
+          _
+          _
+      ]
+
+  -- []-cong kind of commutes with cong.
+
+  []-cong-cong :
+    {@0 A : Set a} {@0 B : Set b}
+    {@0 f : A → B} {@0 x y : A} {@0 p : x ≡ y} →
+    []-cong [ cong f p ] ≡ cong (Erased-cong-→ f) ([]-cong [ p ])
+  []-cong-cong {f = f} =
+    Very-stable→Stable 0 (Very-stable-≡₁ _ _ _ _)
+      [ elim¹
+          (λ p → []-cong [ cong f p ] ≡
+                 cong (Erased-cong-→ f) ([]-cong [ p ]))
+          ([]-cong [ cong f (refl _) ]                  ≡⟨ cong []-cong ([]-cong [ cong-refl _ ]) ⟩
+           []-cong [ refl _ ]                           ≡⟨ []-cong-[refl] ⟩
+           refl _                                       ≡⟨ sym $ cong-refl _ ⟩
+           cong (Erased-cong-→ f) (refl _)              ≡⟨ sym $ cong (cong (Erased-cong-→ f)) []-cong-[refl] ⟩∎
+           cong (Erased-cong-→ f) ([]-cong [ refl _ ])  ∎)
+          _
+      ]
