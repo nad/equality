@@ -54,6 +54,45 @@ record _↔_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
 
   open _↠_ surjection public
 
+-- The type of quasi-inverses of a function (as defined in the HoTT
+-- book).
+
+Has-quasi-inverse :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (A → B) → Set (a ⊔ b)
+Has-quasi-inverse {A = A} {B = B} to =
+  ∃ λ (from : B → A) →
+    (∀ x → to (from x) ≡ x) ×
+    (∀ x → from (to x) ≡ x)
+
+-- An alternative characterisation of bijections.
+
+↔-as-Σ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (A ↔ B) ↔ ∃ λ (f : A → B) → Has-quasi-inverse f
+↔-as-Σ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ A↔B → _↔_.to A↔B
+                     , _↔_.from A↔B
+                     , _↔_.right-inverse-of A↔B
+                     , _↔_.left-inverse-of A↔B
+      ; from = λ (t , f , r , l) → record
+          { surjection = record
+            { logical-equivalence = record
+              { to   = t
+              ; from = f
+              }
+            ; right-inverse-of = r
+            }
+          ; left-inverse-of = l
+          }
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
 ------------------------------------------------------------------------
 -- Equivalence
 

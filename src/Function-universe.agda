@@ -2744,6 +2744,28 @@ private
   }
 
 ------------------------------------------------------------------------
+-- Lemmas related to _↣_
+
+-- An alternative characterisation of injections.
+
+↣↔∃-Injective :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (A ↣ B) ↔ ∃ λ (f : A → B) → Injective f
+↣↔∃-Injective = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ f → _↣_.to f , _↣_.injective f
+      ; from = λ (f , i) → record
+          { to        = f
+          ; injective = i
+          }
+      }
+    ; right-inverse-of = λ _ → refl _
+    }
+  ; left-inverse-of = λ _ → refl _
+  }
+
+------------------------------------------------------------------------
 -- Lemmas related to _≡_
 
 -- Equality is commutative.
