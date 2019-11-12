@@ -402,6 +402,15 @@ module []-cong₁
     Erased-cong-≃ A≃B =
       from-isomorphism (Erased-cong-↔ (from-isomorphism A≃B))
 
+    -- A variant of Erased-cong (which is defined below).
+
+    Erased-cong? :
+      @0 (∀ {k} → Extensionality? k a b → A ↝[ k ] B) →
+      Extensionality? k a b → Erased A ↝[ k ] Erased B
+    Erased-cong? hyp = generalise-ext?
+      (Erased-cong-⇔ (hyp _))
+      (λ ext → Erased-cong-↔ (hyp ext))
+
 ------------------------------------------------------------------------
 -- Some results that follow if "[]-cong" is an equivalence
 
@@ -503,10 +512,7 @@ module []-cong₂
     Extensionality? k a a →
     Erased (H-level n A) ↝[ k ] H-level n (Erased A)
   Erased-H-level↔H-level {n = n} {A = A} ext =
-    Erased (H-level n A)   ↝⟨ generalise-ext?
-                                (Erased-cong-⇔ (H-level↔H-level′ _))
-                                (λ ext → Erased-cong-↔ (H-level↔H-level′ ext))
-                                ext ⟩
+    Erased (H-level n A)   ↝⟨ Erased-cong? H-level↔H-level′ ext ⟩
     Erased (H-level′ n A)  ↝⟨ Erased-H-level′↔H-level′ ext n ⟩
     H-level′ n (Erased A)  ↝⟨ inverse-ext? H-level↔H-level′ ext ⟩□
     H-level n (Erased A)   □
