@@ -3005,6 +3005,19 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
 ------------------------------------------------------------------------
 -- Lemmas related to H-level
 
+-- H-level and H-level′ are pointwise isomorphic (assuming
+-- extensionality).
+
+H-level↔H-level′ :
+  ∀ {k a} {A : Set a} {n} →
+  Extensionality? k a a →
+  H-level n A ↝[ k ] H-level′ n A
+H-level↔H-level′ {n = n} =
+  generalise-ext?-prop
+    H-level⇔H-level′
+    (λ ext → H-level-propositional  ext _)
+    (λ ext → H-level′-propositional ext n)
+
 -- H-level n preserves isomorphisms (assuming extensionality).
 
 H-level-cong :
@@ -3023,18 +3036,17 @@ H-level-cong {a = a} {b} ext n A↔B′ =
   where
   A↔B = from-isomorphism A↔B′
 
--- H-level and H-level′ are pointwise isomorphic (assuming
--- extensionality).
+-- H-level′ n preserves isomorphisms (assuming extensionality).
 
-H-level↔H-level′ :
-  ∀ {k a} {A : Set a} {n} →
-  Extensionality? k a a →
-  H-level n A ↝[ k ] H-level′ n A
-H-level↔H-level′ {n = n} =
-  generalise-ext?-prop
-    H-level⇔H-level′
-    (λ ext → H-level-propositional  ext _)
-    (λ ext → H-level′-propositional ext n)
+H-level′-cong :
+  ∀ {k₁ k₂ a b} {A : Set a} {B : Set b} →
+  Extensionality? k₂ (a ⊔ b) (a ⊔ b) →
+  ∀ n → A ↔[ k₁ ] B → H-level′ n A ↝[ k₂ ] H-level′ n B
+H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
+  H-level′ n A  ↝⟨ inverse-ext? H-level↔H-level′ (lower-extensionality? k₂ b b ext) ⟩
+  H-level n A   ↝⟨ H-level-cong ext n A↔B ⟩
+  H-level n B   ↝⟨ H-level↔H-level′ (lower-extensionality? k₂ a a ext) ⟩□
+  H-level′ n B  □
 
 -- There is an isomorphism between (x y : A) → H-level n (x ≡ y) and
 -- H-level (suc n) A (assuming extensionality).
