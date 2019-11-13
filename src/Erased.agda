@@ -449,71 +449,46 @@ module []-cong₂
   ----------------------------------------------------------------------
   -- All h-levels are closed under Erased
 
-  private
-
-    -- Erased commutes with H-level′ n (in one direction).
-
-    Erased-H-level′ :
-      {@0 A : Set a} →
-      ∀ n → Erased (H-level′ n A) → H-level′ n (Erased A)
-    Erased-H-level′ zero [ (x , p) ] =
-      [ x ] , λ ([ y ]) → []-cong [ p y ]
-    Erased-H-level′ (suc n) [ h ] [ x ] [ y ] =
-                                   $⟨ Erased-H-level′ n [ h x y ] ⟩
-      H-level′ n (Erased (x ≡ y))  ↝⟨ H-level.respects-surjection′ (_↔_.surjection Erased-≡↔[]≡[]) n ⟩□
-      H-level′ n ([ x ] ≡ [ y ])   □
-
-    -- Erased commutes with H-level n (in one direction).
-
-    Erased-H-level :
-      {@0 A : Set a} →
-      Erased (H-level n A) → H-level n (Erased A)
-    Erased-H-level {n = n} {A = A} =
-      Erased (H-level n A)   ↝⟨ _⇔_.to $ Erased-cong-⇔ H-level⇔H-level′ ⟩
-      Erased (H-level′ n A)  ↝⟨ Erased-H-level′ n ⟩
-      H-level′ n (Erased A)  ↝⟨ _⇔_.from H-level⇔H-level′ ⟩□
-      H-level n (Erased A)   □
-
-  -- H-level n is closed under Erased.
-
-  H-level-Erased :
-    {@0 A : Set a} →
-    ∀ n → @0 H-level n A → H-level n (Erased A)
-  H-level-Erased _ h = Erased-H-level [ h ]
-
   -- Erased commutes with H-level′ n (assuming extensionality).
 
   Erased-H-level′↔H-level′ :
     {@0 A : Set a} →
     Extensionality? k a a →
     ∀ n → Erased (H-level′ n A) ↝[ k ] H-level′ n (Erased A)
-  Erased-H-level′↔H-level′ {A = A} ext n =
-    generalise-ext?-prop
-      (record
-         { to   = Erased-H-level′ n
-         ; from = λ h →
-            [                        $⟨ h ⟩
-              H-level′ n (Erased A)  ↝⟨ _⇔_.from H-level⇔H-level′ ⟩
-              H-level n (Erased A)   ↝⟨ H-level-cong _ n (erased Erased↔) ⟩
-              H-level n A            ↝⟨ _⇔_.to H-level⇔H-level′ ⟩□
-              H-level′ n A           □
-            ]
-         })
-      (λ ext → H-level-Erased 1 (H-level′-propositional ext n))
-      (λ ext → H-level′-propositional ext n)
-      ext
+  Erased-H-level′↔H-level′ {A = A} ext zero =
+    Erased (H-level′ zero A)                                              ↔⟨⟩
+    Erased (∃ λ (x : A) → (y : A) → x ≡ y)                                ↔⟨ Erased-Σ↔Σ ⟩
+    (∃ λ (x : Erased A) → Erased ((y : A) → erased x ≡ y))                ↔⟨ (∃-cong λ _ → Erased-Π↔Π-Erased) ⟩
+    (∃ λ (x : Erased A) → (y : Erased A) → Erased (erased x ≡ erased y))  ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → from-isomorphism Erased-≡↔[]≡[]) ⟩
+    (∃ λ (x : Erased A) → (y : Erased A) → x ≡ y)                         ↔⟨⟩
+    H-level′ zero (Erased A)                                              □
+  Erased-H-level′↔H-level′ {A = A} ext (suc n) =
+    Erased (H-level′ (suc n) A)                                      ↔⟨⟩
+    Erased ((x y : A) → H-level′ n (x ≡ y))                          ↔⟨ Erased-Π↔Π-Erased ⟩
+    ((x : Erased A) → Erased ((y : A) → H-level′ n (erased x ≡ y)))  ↝⟨ (∀-cong ext λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
+    ((x y : Erased A) → Erased (H-level′ n (erased x ≡ erased y)))   ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Erased-H-level′↔H-level′ ext n) ⟩
+    ((x y : Erased A) → H-level′ n (Erased (erased x ≡ erased y)))   ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level′-cong ext n Erased-≡↔[]≡[]) ⟩
+    ((x y : Erased A) → H-level′ n (x ≡ y))                          ↔⟨⟩
+    H-level′ (suc n) (Erased A)                                      □
 
   -- Erased commutes with H-level n (assuming extensionality).
 
   Erased-H-level↔H-level :
     {@0 A : Set a} →
     Extensionality? k a a →
-    Erased (H-level n A) ↝[ k ] H-level n (Erased A)
-  Erased-H-level↔H-level {n = n} {A = A} ext =
+    ∀ n → Erased (H-level n A) ↝[ k ] H-level n (Erased A)
+  Erased-H-level↔H-level {A = A} ext n =
     Erased (H-level n A)   ↝⟨ Erased-cong? H-level↔H-level′ ext ⟩
     Erased (H-level′ n A)  ↝⟨ Erased-H-level′↔H-level′ ext n ⟩
     H-level′ n (Erased A)  ↝⟨ inverse-ext? H-level↔H-level′ ext ⟩□
     H-level n (Erased A)   □
+
+  -- H-level n is closed under Erased.
+
+  H-level-Erased :
+    {@0 A : Set a} →
+    ∀ n → @0 H-level n A → H-level n (Erased A)
+  H-level-Erased n h = Erased-H-level↔H-level _ n [ h ]
 
   ----------------------------------------------------------------------
   -- Some isomorphisms
@@ -536,7 +511,7 @@ module []-cong₂
     Erased (Is-equivalence f) ↝[ k ] Is-equivalence (Erased-cong-→ f)
   Erased-Is-equivalence↔Is-equivalence {a = a} {k = k} {f = f} ext =
     Erased (∀ x → Contractible (f ⁻¹ x))           ↔⟨ Erased-Π↔Π-Erased ⟩
-    (∀ x → Erased (Contractible (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → Erased-H-level↔H-level ext) ⟩
+    (∀ x → Erased (Contractible (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → Erased-H-level↔H-level ext 0) ⟩
     (∀ x → Contractible (Erased (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 Erased-⁻¹) ⟩□
     (∀ x → Contractible (Erased-cong-→ f ⁻¹ x))    □
     where
