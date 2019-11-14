@@ -435,6 +435,8 @@ module []-cong₂
      Is-equivalence ([]-cong {x = x} {y = y}))
   where
 
+  open []-cong₁ []-cong public
+
   -- There is a bijection between erased equality proofs and
   -- equalities between erased values.
 
@@ -443,7 +445,12 @@ module []-cong₂
     Erased (x ≡ y) ↔ [ x ] ≡ [ y ]
   Erased-≡↔[]≡[] = _≃_.bijection Eq.⟨ _ , []-cong-equivalence ⟩
 
-  open []-cong₁ []-cong public
+  -- The inverse of []-cong.
+
+  []-cong⁻¹ :
+    {@0 A : Set a} {@0 x y : A} →
+    [ x ] ≡ [ y ] → Erased (x ≡ y)
+  []-cong⁻¹ = _↔_.from Erased-≡↔[]≡[]
 
   ----------------------------------------------------------------------
   -- All h-levels are closed under Erased
@@ -664,28 +671,27 @@ module []-cong₃
   open []-cong₂ []-cong []-cong-equivalence public
 
   ----------------------------------------------------------------------
-  -- Some definitions directly related to Erased-≡↔[]≡[]
+  -- Some definitions directly related to []-cong and []-cong⁻¹
 
-  -- Rearrangement lemmas for Erased-≡↔[]≡[].
+  -- Rearrangement lemmas for []-cong and []-cong⁻¹.
 
-  to-Erased-≡↔[]≡[] :
+  []-cong-[]≡cong-[] :
     ∀ {a} {A : Set a} {x y : A} {x≡y : x ≡ y} →
-    _↔_.to Erased-≡↔[]≡[] [ x≡y ] ≡ cong [_] x≡y
-  to-Erased-≡↔[]≡[] {x = x} {x≡y = x≡y} = elim¹
-    (λ x≡y → _↔_.to Erased-≡↔[]≡[] [ x≡y ] ≡ cong [_] x≡y)
-    (_↔_.to Erased-≡↔[]≡[] [ refl x ]  ≡⟨⟩
-     []-cong [ refl x ]                ≡⟨ []-cong-[refl]′ ⟩
-     refl [ x ]                        ≡⟨ sym $ cong-refl _ ⟩∎
-     cong [_] (refl x)                 ∎)
+    []-cong [ x≡y ] ≡ cong [_] x≡y
+  []-cong-[]≡cong-[] {x = x} {x≡y = x≡y} = elim¹
+    (λ x≡y → []-cong [ x≡y ] ≡ cong [_] x≡y)
+    ([]-cong [ refl x ]  ≡⟨ []-cong-[refl]′ ⟩
+     refl [ x ]          ≡⟨ sym $ cong-refl _ ⟩∎
+     cong [_] (refl x)   ∎)
     x≡y
 
-  from-Erased-≡↔[]≡[] :
+  []-cong⁻¹≡[cong-erased] :
     {@0 A : Set a} {@0 x y : A} {@0 x≡y : [ x ] ≡ [ y ]} →
-    _↔_.from Erased-≡↔[]≡[] x≡y ≡ [ cong erased x≡y ]
-  from-Erased-≡↔[]≡[] {x≡y = x≡y} = []-cong
-    [ erased (_↔_.from Erased-≡↔[]≡[] x≡y)  ≡⟨ cong erased (_↔_.from (from≡↔≡to $ Eq.↔⇒≃ Erased-≡↔[]≡[]) lemma) ⟩
-      erased [ cong erased x≡y ]            ≡⟨⟩
-      cong erased x≡y                       ∎
+    []-cong⁻¹ x≡y ≡ [ cong erased x≡y ]
+  []-cong⁻¹≡[cong-erased] {x≡y = x≡y} = []-cong
+    [ erased ([]-cong⁻¹ x≡y)      ≡⟨ cong erased (_↔_.from (from≡↔≡to $ Eq.↔⇒≃ Erased-≡↔[]≡[]) lemma) ⟩
+      erased [ cong erased x≡y ]  ≡⟨⟩
+      cong erased x≡y             ∎
     ]
     where
     @0 lemma : _
@@ -693,8 +699,18 @@ module []-cong₃
       x≡y                          ≡⟨ cong-id _ ⟩
       cong id x≡y                  ≡⟨⟩
       cong ([_] ∘ erased) x≡y      ≡⟨ sym $ cong-∘ _ _ _ ⟩
-      cong [_] (cong erased x≡y)   ≡⟨ sym to-Erased-≡↔[]≡[] ⟩∎
+      cong [_] (cong erased x≡y)   ≡⟨ sym []-cong-[]≡cong-[] ⟩∎
       []-cong [ cong erased x≡y ]  ∎
+
+  -- A "computation rule" for []-cong⁻¹.
+
+  []-cong⁻¹-refl :
+    {@0 A : Set a} {@0 x : A} →
+    []-cong⁻¹ (refl [ x ]) ≡ [ refl x ]
+  []-cong⁻¹-refl {x = x} =
+    []-cong⁻¹ (refl [ x ])        ≡⟨ []-cong⁻¹≡[cong-erased] ⟩
+    [ cong erased (refl [ x ]) ]  ≡⟨ []-cong [ cong-refl _ ] ⟩∎
+    [ refl x ]                    ∎
 
   -- A stronger variant of []-cong-[refl]′.
 
@@ -703,9 +719,23 @@ module []-cong₃
     []-cong [ refl x ] ≡ refl [ x ]
   []-cong-[refl] {A = A} {x = x} =
     sym $ _↔_.to (from≡↔≡to $ Eq.↔⇒≃ Erased-≡↔[]≡[]) (
-      _↔_.from Erased-≡↔[]≡[] (refl [ x ])  ≡⟨ from-Erased-≡↔[]≡[] ⟩
-      [ cong erased (refl [ x ]) ]          ≡⟨ []-cong [ cong-refl _ ] ⟩∎
-      [ refl x ]                            ∎)
+      []-cong⁻¹ (refl [ x ])  ≡⟨ []-cong⁻¹-refl ⟩∎
+      [ refl x ]              ∎)
+
+  -- The function map (cong f) can be expressed in terms of
+  -- cong (map f) (up to pointwise equality).
+
+  map-cong≡cong-map :
+    {@0 A : Set a} {@0 B : Set b} {@0 x y : A}
+    {@0 f : A → B} {x≡y : Erased (x ≡ y)} →
+    map (cong f) x≡y ≡ []-cong⁻¹ (cong (map f) ([]-cong x≡y))
+  map-cong≡cong-map {f = f} {x≡y = [ x≡y ]} =
+    [ cong f x≡y ]                                    ≡⟨⟩
+    [ cong (erased ∘ map f ∘ [_]) x≡y ]               ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
+    [ cong (erased ∘ map f) (cong [_] x≡y) ]          ≡⟨ []-cong [ cong (cong _) $ sym []-cong-[]≡cong-[] ] ⟩
+    [ cong (erased ∘ map f) ([]-cong [ x≡y ]) ]       ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
+    [ cong erased (cong (map f) ([]-cong [ x≡y ])) ]  ≡⟨ sym []-cong⁻¹≡[cong-erased] ⟩∎
+    []-cong⁻¹ (cong (map f) ([]-cong [ x≡y ]))        ∎
 
   ----------------------------------------------------------------------
   -- Erased commutes with all kinds of functions (in some cases
@@ -718,41 +748,29 @@ module []-cong₃
     Extensionality? k (a ⊔ b) (a ⊔ b) →
     Erased (Is-embedding f) ↝[ k ] Is-embedding (map f)
   Erased-Is-embedding↔Is-embedding {b = b} {k = k} {f = f} ext =
-    Erased (∀ x y → Is-equivalence (cong f))                        ↔⟨ Erased-Π↔Π-Erased ⟩
+    Erased (∀ x y → Is-equivalence (cong f))                       ↔⟨ Erased-Π↔Π-Erased ⟩
 
-    (∀ x → Erased (∀ y → Is-equivalence (cong f)))                  ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
+    (∀ x → Erased (∀ y → Is-equivalence (cong f)))                 ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
 
-    (∀ x y → Erased (Is-equivalence (cong f)))                      ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
-                                                                        Erased-Is-equivalence↔Is-equivalence ext) ⟩
+    (∀ x y → Erased (Is-equivalence (cong f)))                     ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+                                                                       Erased-Is-equivalence↔Is-equivalence ext) ⟩
 
-    (∀ x y → Is-equivalence (map (cong f)))                         ↝⟨ (∀-cong ext′ λ x → ∀-cong ext′ λ y → Is-equivalence-cong ext lemma) ⟩
+    (∀ x y → Is-equivalence (map (cong f)))                        ↝⟨ (∀-cong ext′ λ x → ∀-cong ext′ λ y →
+                                                                       Is-equivalence-cong ext λ _ → map-cong≡cong-map) ⟩
 
-    (∀ x y → Is-equivalence
-               (_↔_.from Erased-≡↔[]≡[] ∘ cong (map f) ∘ []-cong))  ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
-                                                                        generalise-ext?-prop
-                                                                          (record { to = to; from = from })
-                                                                          (λ ext → Eq.propositional ext _)
-                                                                          (λ ext → Eq.propositional ext _)
-                                                                          ext) ⟩□
-    (∀ x y → Is-equivalence (cong (map f)))                         □
+    (∀ x y → Is-equivalence ([]-cong⁻¹ ∘ cong (map f) ∘ []-cong))  ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+                                                                       generalise-ext?-prop
+                                                                         (record { to = to; from = from })
+                                                                         (λ ext → Eq.propositional ext _)
+                                                                         (λ ext → Eq.propositional ext _)
+                                                                         ext) ⟩□
+    (∀ x y → Is-equivalence (cong (map f)))                        □
     where
     ext′ = lower-extensionality? k b lzero ext
 
-    lemma :
-      ∀ {@0 x y} (eq : Erased (x ≡ y)) →
-      map (cong f) eq ≡
-      _↔_.from Erased-≡↔[]≡[] (cong (map f) ([]-cong eq))
-    lemma [ eq ] =
-      [ cong f eq ]                                            ≡⟨⟩
-      [ cong (erased ∘ map f ∘ [_]) eq ]                       ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
-      [ cong (erased ∘ map f) (cong [_] eq) ]                  ≡⟨ []-cong [ cong (cong _) $ sym to-Erased-≡↔[]≡[] ] ⟩
-      [ cong (erased ∘ map f) ([]-cong [ eq ]) ]               ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
-      [ cong erased (cong (map f) ([]-cong [ eq ])) ]          ≡⟨ sym from-Erased-≡↔[]≡[] ⟩∎
-      _↔_.from Erased-≡↔[]≡[] (cong (map f) ([]-cong [ eq ]))  ∎
-
     to :
       {g : x ≡ y → map f x ≡ map f y} →
-      Is-equivalence (_↔_.from Erased-≡↔[]≡[] ∘ g ∘ []-cong) →
+      Is-equivalence ([]-cong⁻¹ ∘ g ∘ []-cong) →
       Is-equivalence g
     to hyp =
       Eq.Two-out-of-three.g∘f-f
@@ -767,7 +785,7 @@ module []-cong₃
     from :
       {g : x ≡ y → map f x ≡ map f y} →
       Is-equivalence g →
-      Is-equivalence (_↔_.from Erased-≡↔[]≡[] ∘ g ∘ []-cong)
+      Is-equivalence ([]-cong⁻¹ ∘ g ∘ []-cong)
     from hyp =
       Eq.Two-out-of-three.f-g
         (Eq.two-out-of-three _ _)

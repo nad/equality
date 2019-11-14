@@ -581,8 +581,7 @@ module []-cong
                                                                 (λ ext → Eq.propositional ext _)
                                                                 (λ ext → Eq.propositional ext _)
                                                                 ext) ⟩
-    (∀ x y → Is-equivalence ([]-cong ∘ [_] {A = x ≡ y}))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence-cong ext λ _ →
-                                                              to-Erased-≡↔[]≡[]) ⟩□
+    (∀ x y → Is-equivalence ([]-cong ∘ [_] {A = x ≡ y}))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence-cong ext λ _ → []-cong-[]≡cong-[]) ⟩□
     (∀ x y → Is-equivalence (cong {x = x} {y = y} [_]))   □
     where
     to :
@@ -1293,8 +1292,8 @@ module []-cong
         implicit-extensionality ext λ _ →
         implicit-extensionality ext λ _ →
         apply-ext ext λ eq →
-          []-cong (_↔_.from Erased-≡↔[]≡[] eq)  ≡⟨ _↔_.right-inverse-of Erased-≡↔[]≡[] _ ⟩∎
-          eq                                    ∎
+          []-cong ([]-cong⁻¹ eq)  ≡⟨ _↔_.right-inverse-of Erased-≡↔[]≡[] _ ⟩∎
+          eq                      ∎
 
     Erased-cong-↣-∘ :
       {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
@@ -1321,14 +1320,11 @@ module []-cong
         implicit-extensionality (lower-extensionality c lzero ext) λ _ →
         implicit-extensionality (lower-extensionality c lzero ext) λ _ →
         apply-ext (lower-extensionality a c ext) λ eq →
-          let eq′ = [ _↣_.injective f
-                        (erased (_↔_.from Erased-≡↔[]≡[] eq)) ]
+          let eq′ = [ _↣_.injective f (erased ([]-cong⁻¹ eq)) ]
           in
-          []-cong [ _↣_.injective g (erased eq′) ]              ≡⟨ cong []-cong $ []-cong [ cong (_↣_.injective g ∘ erased) $ sym $
-                                                                   _↔_.left-inverse-of Erased-≡↔[]≡[] _ ] ⟩∎
-          []-cong [ _↣_.injective g (erased
-                      (_↔_.from Erased-≡↔[]≡[] ([]-cong eq′)))
-                  ]                                             ∎
+          []-cong [ _↣_.injective g (erased eq′) ]                        ≡⟨ cong []-cong $ []-cong [ cong (_↣_.injective g ∘ erased) $ sym $
+                                                                             _↔_.left-inverse-of Erased-≡↔[]≡[] _ ] ⟩∎
+          []-cong [ _↣_.injective g (erased ([]-cong⁻¹ ([]-cong eq′))) ]  ∎
 
   -- Erased is functorial for all kinds of functions (in some cases
   -- assuming extensionality).
