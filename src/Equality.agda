@@ -639,16 +639,38 @@ module Derived-definitions-and-properties
       subst (P ∘ proj₂) (refl (x , refl x)) p                          ≡⟨ subst-refl _ _ ⟩∎
       p                                                                ∎
 
-    -- The homogeneous variant of cong is pointwise equal to cong.
+    -- Every conceivable alternative implementation of cong (for two
+    -- specific types) is pointwise equal to cong.
 
-    hcong-cong : hcong f x≡y ≡ cong f x≡y
-    hcong-cong {f = f} = elim
-      (λ x≡y → hcong f x≡y ≡ cong f x≡y)
+    monomorphic-cong-canonical :
+      (cong′ : {x y : A} (f : A → B) → x ≡ y → f x ≡ f y) →
+      ({x : A} (f : A → B) → cong′ f (refl x) ≡ refl (f x)) →
+      cong′ f x≡y ≡ cong f x≡y
+    monomorphic-cong-canonical {f = f} cong′ cong′-refl = elim
+      (λ x≡y → cong′ f x≡y ≡ cong f x≡y)
       (λ x →
-         hcong f (refl x)  ≡⟨ hcong-refl _ ⟩
+         cong′ f (refl x)  ≡⟨ cong′-refl _ ⟩
          refl (f x)        ≡⟨ sym $ cong-refl _ ⟩∎
          cong f (refl x)   ∎)
       _
+
+    -- Every conceivable alternative implementation of cong (for
+    -- arbitrary types) is pointwise equal to cong.
+
+    cong-canonical :
+      (cong′ :
+         ∀ {a b} {A : Set a} {B : Set b} {x y : A}
+         (f : A → B) → x ≡ y → f x ≡ f y) →
+      (∀ {a b} {A : Set a} {B : Set b} {x : A}
+       (f : A → B) → cong′ f (refl x) ≡ refl (f x)) →
+      cong′ f x≡y ≡ cong f x≡y
+    cong-canonical cong′ cong′-refl =
+      monomorphic-cong-canonical cong′ cong′-refl
+
+    -- The homogeneous variant of cong is pointwise equal to cong.
+
+    hcong-cong : hcong f x≡y ≡ cong f x≡y
+    hcong-cong = monomorphic-cong-canonical hcong hcong-refl
 
     -- "Evaluation rule" for dcong.
 
