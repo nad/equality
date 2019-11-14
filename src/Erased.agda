@@ -497,6 +497,35 @@ module []-cong₂
   H-level-Erased n h = Erased-H-level↔H-level _ n [ h ]
 
   ----------------------------------------------------------------------
+  -- Erased is a modality
+
+  -- The terminology here roughly follows that of "Modalities in
+  -- Homotopy Type Theory" by Rijke, Shulman and Spitters.
+
+  -- Erased is the modal operator of a uniquely eliminating modality
+  -- with [_] as the modal unit.
+
+  uniquely-eliminating-modality :
+    Is-equivalence
+      (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [_] {A = A})
+  uniquely-eliminating-modality {A = A} {P = P} =
+    _≃_.is-equivalence
+      (((x : Erased A) → Erased (P x))  ↔⟨ inverse Erased-Π↔Π-Erased ⟩
+       Erased ((x : A) → (P [ x ]))     ↔⟨ Erased-Π↔Π ⟩
+       ((x : A) → Erased (P [ x ]))     □)
+
+  -- Erased is a lex modality (see Theorem 3.1, case (i) in the paper
+  -- by Rijke et al. for the definition used here).
+
+  lex-modality :
+    {x y : A} → Contractible (Erased A) → Contractible (Erased (x ≡ y))
+  lex-modality {A = A} {x = x} {y = y} =
+    Contractible (Erased A)        ↝⟨ _⇔_.from (Erased-H-level↔H-level _ 0) ⟩
+    Erased (Contractible A)        ↝⟨ map (⇒≡ 0) ⟩
+    Erased (Contractible (x ≡ y))  ↝⟨ Erased-H-level↔H-level _ 0 ⟩□
+    Contractible (Erased (x ≡ y))  □
+
+  ----------------------------------------------------------------------
   -- Some isomorphisms
 
   -- Erased "commutes" with _⁻¹_.
