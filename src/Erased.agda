@@ -21,7 +21,7 @@ open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
-open import Monad eq
+open import Monad eq hiding (map; map-id; map-∘)
 open import Preimage eq using (_⁻¹_)
 open import Surjection eq using (_↠_; Split-surjective)
 
@@ -71,6 +71,50 @@ instance
   Monad.left-identity  monad = λ _ _ → refl _
   Monad.right-identity monad = λ _ → refl _
   Monad.associativity  monad = λ _ _ _ → refl _
+
+------------------------------------------------------------------------
+-- Erased preserves some kinds of functions
+
+-- Erased preserves dependent functions.
+
+map :
+  {@0 A : Set a} {@0 P : A → Set b} →
+  @0 ((x : A) → P x) → (x : Erased A) → Erased (P (erased x))
+map f [ x ] = [ f x ]
+
+-- Erased is functorial for dependent functions.
+
+map-id : {@0 A : Set a} → map id ≡ id {A = Erased A}
+map-id = refl _
+
+map-∘ :
+  {@0 A : Set a} {@0 P : A → Set b} {@0 Q : {x : A} → P x → Set c}
+  (@0 f : ∀ {x} (y : P x) → Q y) (@0 g : (x : A) → P x) →
+  map (f ∘ g) ≡ map f ∘ map g
+map-∘ _ _ = refl _
+
+-- Erased preserves logical equivalences.
+
+Erased-cong-⇔ :
+  {@0 A : Set a} {@0 B : Set b} →
+  @0 A ⇔ B → Erased A ⇔ Erased B
+Erased-cong-⇔ A⇔B = record
+  { to   = map (_⇔_.to   A⇔B)
+  ; from = map (_⇔_.from A⇔B)
+  }
+
+-- Erased is functorial for logical equivalences.
+
+Erased-cong-⇔-id :
+  {@0 A : Set a} →
+  Erased-cong-⇔ F.id ≡ F.id {A = Erased A}
+Erased-cong-⇔-id = refl _
+
+Erased-cong-⇔-∘ :
+  {@0 A : Set a} {@0 B : Set b} {@0 C : Set c}
+  (@0 f : B ⇔ C) (@0 g : A ⇔ B) →
+  Erased-cong-⇔ (f F.∘ g) ≡ Erased-cong-⇔ f F.∘ Erased-cong-⇔ g
+Erased-cong-⇔-∘ _ _ = refl _
 
 ------------------------------------------------------------------------
 -- Some isomorphisms
@@ -160,7 +204,7 @@ Erased-Π↔Π-Erased :
 Erased-Π↔Π-Erased = record
   { surjection = record
     { logical-equivalence = record
-      { to   = λ ([ f ]) ([ x ]) → [ f x ]
+      { to   = λ ([ f ]) → map f
       ; from = λ f → [ (λ x → erased (f [ x ])) ]
       }
     ; right-inverse-of = λ _ → refl _
@@ -241,51 +285,6 @@ Erased-¬↔¬ {A = A} ext =
   }
 
 ------------------------------------------------------------------------
--- Erased preserves some kinds of functions
-
--- Erased preserves functions.
-
-Erased-cong-→ :
-  {@0 A : Set a} {@0 B : Set b} →
-  @0 (A → B) → Erased A → Erased B
-Erased-cong-→ A→B [ x ] = [ A→B x ]
-
--- Erased is functorial for functions.
-
-Erased-cong-→-id :
-  {@0 A : Set a} → Erased-cong-→ id ≡ id {A = Erased A}
-Erased-cong-→-id = refl _
-
-Erased-cong-→-∘ :
-  {@0 A : Set a} {@0 B : Set b} {@0 C : Set c}
-  (@0 f : B → C) (@0 g : A → B) →
-  Erased-cong-→ (f ∘ g) ≡ Erased-cong-→ f ∘ Erased-cong-→ g
-Erased-cong-→-∘ _ _ = refl _
-
--- Erased preserves logical equivalences.
-
-Erased-cong-⇔ :
-  {@0 A : Set a} {@0 B : Set b} →
-  @0 A ⇔ B → Erased A ⇔ Erased B
-Erased-cong-⇔ A⇔B = record
-  { to   = Erased-cong-→ (_⇔_.to   A⇔B)
-  ; from = Erased-cong-→ (_⇔_.from A⇔B)
-  }
-
--- Erased is functorial for logical equivalences.
-
-Erased-cong-⇔-id :
-  {@0 A : Set a} →
-  Erased-cong-⇔ F.id ≡ F.id {A = Erased A}
-Erased-cong-⇔-id = refl _
-
-Erased-cong-⇔-∘ :
-  {@0 A : Set a} {@0 B : Set b} {@0 C : Set c}
-  (@0 f : B ⇔ C) (@0 g : A ⇔ B) →
-  Erased-cong-⇔ (f F.∘ g) ≡ Erased-cong-⇔ f F.∘ Erased-cong-⇔ g
-Erased-cong-⇔-∘ _ _ = refl _
-
-------------------------------------------------------------------------
 -- A variant of Dec ∘ Erased
 
 -- Dec-Erased A means that either we have A (erased), or we have ¬ A
@@ -311,8 +310,8 @@ Dec-Erased-map :
   {@0 A : Set a} {@0 B : Set b} →
   @0 A ⇔ B → Dec-Erased A → Dec-Erased B
 Dec-Erased-map A⇔B =
-  ⊎-map (Erased-cong-→ (_⇔_.to A⇔B))
-        (Erased-cong-→ (_∘ _⇔_.from A⇔B))
+  ⊎-map (map (_⇔_.to A⇔B))
+        (map (_∘ _⇔_.from A⇔B))
 
 -- Dec-Erased preserves logical equivalences.
 
@@ -497,23 +496,23 @@ module []-cong₂
 
   Erased-⁻¹ :
     {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} {@0 y : B} →
-    Erased (f ⁻¹ y) ↔ Erased-cong-→ f ⁻¹ [ y ]
+    Erased (f ⁻¹ y) ↔ map f ⁻¹ [ y ]
   Erased-⁻¹ {f = f} {y = y} =
     Erased (∃ λ x → f x ≡ y)             ↝⟨ Erased-Σ↔Σ ⟩
     (∃ λ x → Erased (f (erased x) ≡ y))  ↝⟨ (∃-cong λ _ → Erased-≡↔[]≡[]) ⟩□
-    (∃ λ x → Erased-cong-→ f x ≡ [ y ])  □
+    (∃ λ x → map f x ≡ [ y ])            □
 
   -- Erased "commutes" with Is-equivalence.
 
   Erased-Is-equivalence↔Is-equivalence :
     {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
-    Erased (Is-equivalence f) ↝[ k ] Is-equivalence (Erased-cong-→ f)
+    Erased (Is-equivalence f) ↝[ k ] Is-equivalence (map f)
   Erased-Is-equivalence↔Is-equivalence {a = a} {k = k} {f = f} ext =
     Erased (∀ x → Contractible (f ⁻¹ x))           ↔⟨ Erased-Π↔Π-Erased ⟩
     (∀ x → Erased (Contractible (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → Erased-H-level↔H-level ext 0) ⟩
     (∀ x → Contractible (Erased (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 Erased-⁻¹) ⟩□
-    (∀ x → Contractible (Erased-cong-→ f ⁻¹ x))    □
+    (∀ x → Contractible (map f ⁻¹ x))              □
     where
     ext′ = lower-extensionality? k a lzero ext
 
@@ -523,13 +522,13 @@ module []-cong₂
     {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} →
     Extensionality? k b (a ⊔ b) →
     Erased (Split-surjective f) ↝[ k ]
-    Split-surjective (Erased-cong-→ f)
+    Split-surjective (map f)
   Erased-Split-surjective↔Split-surjective {f = f} ext =
     Erased (∀ y → ∃ λ x → f x ≡ y)                    ↔⟨ Erased-Π↔Π-Erased ⟩
     (∀ y → Erased (∃ λ x → f x ≡ erased y))           ↝⟨ (∀-cong ext λ _ → from-isomorphism Erased-Σ↔Σ) ⟩
     (∀ y → ∃ λ x → Erased (f (erased x) ≡ erased y))  ↝⟨ (∀-cong ext λ _ → ∃-cong λ _ → from-isomorphism Erased-≡↔[]≡[]) ⟩
     (∀ y → ∃ λ x → [ f (erased x) ] ≡ y)              ↔⟨⟩
-    (∀ y → ∃ λ x → Erased-cong-→ f x ≡ y)             □
+    (∀ y → ∃ λ x → map f x ≡ y)                       □
 
   -- Erased "commutes" with Has-quasi-inverse.
 
@@ -537,7 +536,7 @@ module []-cong₂
     {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
     Erased (Has-quasi-inverse f) ↝[ k ]
-    Has-quasi-inverse (Erased-cong-→ f)
+    Has-quasi-inverse (map f)
   Erased-Has-quasi-inverse↔Has-quasi-inverse
     {A = A} {B = B} {f = f} ext =
 
@@ -550,9 +549,7 @@ module []-cong₂
        Erased (∀ x → f (erased g x) ≡ x) ×
        Erased (∀ x → erased g (f x) ≡ x))                                 ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ g →
                                                                              lemma ext f (erased g) ×-cong lemma ext (erased g) f) ⟩□
-    (∃ λ g →
-       (∀ x → Erased-cong-→ f (g x) ≡ x) ×
-       (∀ x → g (Erased-cong-→ f x) ≡ x))                                 □
+    (∃ λ g → (∀ x → map f (g x) ≡ x) × (∀ x → g (map f x) ≡ x))           □
     where
     lemma :
       {@0 A : Set a} {@0 B : Set b} →
@@ -562,14 +559,14 @@ module []-cong₂
       Erased (∀ x → f (g x) ≡ x)                    ↔⟨ Erased-Π↔Π-Erased ⟩
       (∀ x → Erased (f (g (erased x)) ≡ erased x))  ↝⟨ (∀-cong (lower-extensionality? k a a ext) λ _ → from-isomorphism Erased-≡↔[]≡[]) ⟩
       (∀ x → [ f (g (erased x)) ] ≡ x)              ↔⟨⟩
-      (∀ x → Erased-cong-→ (f ∘ g) x ≡ x)           □
+      (∀ x → map (f ∘ g) x ≡ x)                     □
 
   -- Erased "commutes" with Injective.
 
   Erased-Injective↔Injective :
     {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
-    Erased (Injective f) ↝[ k ] Injective (Erased-cong-→ f)
+    Erased (Injective f) ↝[ k ] Injective (map f)
   Erased-Injective↔Injective {a = a} {b = b} {k = k} {f = f} ext =
     Erased (∀ {x y} → f x ≡ f y → x ≡ y)                          ↔⟨ Erased-cong-↔ Bijection.implicit-Π↔Π ⟩
 
@@ -606,10 +603,10 @@ module []-cong₂
     {@0 A : Set a} {@0 B : Set b} →
     @0 A ↣ B → Erased A ↣ Erased B
   Erased-cong-↣ A↣B = record
-    { to        = Erased-cong-→ (_↣_.to A↣B)
+    { to        = map (_↣_.to A↣B)
     ; injective = λ { {x = [ x ]} {y = [ y ]} →
         [ _↣_.to A↣B x ] ≡ [ _↣_.to A↣B y ]   ↔⟨ inverse Erased-≡↔[]≡[] ⟩
-        Erased (_↣_.to A↣B x ≡ _↣_.to A↣B y)  ↝⟨ Erased-cong-→ (_↣_.injective A↣B) ⟩
+        Erased (_↣_.to A↣B x ≡ _↣_.to A↣B y)  ↝⟨ map (_↣_.injective A↣B) ⟩
         Erased (x ≡ y)                        ↔⟨ Erased-≡↔[]≡[] ⟩□
         [ x ] ≡ [ y ]                         □ }
     }
@@ -622,7 +619,7 @@ module []-cong₂
       {@0 A : Set a} {@0 B : Set b} →
       @0 A ↣ B → Erased A ↣ Erased B
     Erased-cong-↣′ A↣B = record
-      { to        = Erased-cong-→ (_↣_.to A↣B)
+      { to        = map (_↣_.to A↣B)
       ; injective = Erased-Injective↔Injective _ [ _↣_.injective A↣B ]
       }
 
@@ -736,7 +733,7 @@ module []-cong₃
     Erased-cong-Embedding :
       @0 Embedding A B → Embedding (Erased A) (Erased B)
     Erased-cong-Embedding A↣B = record
-      { to           = Erased-cong-→ (M.to A↣B)
+      { to           = map (M.to A↣B)
       ; is-embedding = λ { [ x ] [ y ] →
           _≃_.is-equivalence $
           Eq.with-other-function
@@ -744,7 +741,7 @@ module []-cong₃
              Erased (x ≡ y)                    ↝⟨ Erased-cong-≃ (M.equivalence A↣B) ⟩
              Erased (M.to A↣B x ≡ M.to A↣B y)  ↔⟨ Erased-≡↔[]≡[] ⟩□
              [ M.to A↣B x ] ≡ [ M.to A↣B y ]   □)
-            (cong (Erased-cong-→ (M.to A↣B)))
+            (cong (map (M.to A↣B)))
             lemma }
       }
       where
@@ -755,7 +752,7 @@ module []-cong₃
         (λ eq →
            []-cong
              [ cong (M.to A↣B) (erased (_↔_.from Erased-≡↔[]≡[] eq)) ] ≡
-           cong (Erased-cong-→ (M.to A↣B)) eq)
+           cong (map (M.to A↣B)) eq)
         (λ ([ x ]) →
            []-cong
              [ cong (M.to A↣B) (erased
@@ -770,12 +767,12 @@ module []-cong₃
 
            refl [ M.to A↣B x ]                                     ≡⟨ sym $ cong-refl _ ⟩∎
 
-           cong (Erased-cong-→ (M.to A↣B)) (refl [ x ])            ∎)
+           cong (map (M.to A↣B)) (refl [ x ])                      ∎)
 
     -- Erased preserves all kinds of functions.
 
     Erased-cong : @0 A ↝[ k ] B → Erased A ↝[ k ] Erased B
-    Erased-cong {k = implication}         = Erased-cong-→
+    Erased-cong {k = implication}         = map
     Erased-cong {k = logical-equivalence} = Erased-cong-⇔
     Erased-cong {k = injection}           = Erased-cong-↣
     Erased-cong {k = embedding}           = Erased-cong-Embedding
@@ -803,41 +800,42 @@ module []-cong₃
   Erased-Is-embedding↔Is-embedding :
     {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
-    Erased (Is-embedding f) ↝[ k ] Is-embedding (Erased-cong f)
+    Erased (Is-embedding f) ↝[ k ] Is-embedding (map f)
   Erased-Is-embedding↔Is-embedding {b = b} {k = k} {f = f} ext =
-    Erased (∀ x y → Is-equivalence (cong f))                   ↔⟨ Erased-Π↔Π-Erased ⟩
+    Erased (∀ x y → Is-equivalence (cong f))                        ↔⟨ Erased-Π↔Π-Erased ⟩
 
-    (∀ x → Erased (∀ y → Is-equivalence (cong f)))             ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
+    (∀ x → Erased (∀ y → Is-equivalence (cong f)))                  ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
 
-    (∀ x y → Erased (Is-equivalence (cong f)))                 ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ → Erased-Is-equivalence↔Is-equivalence ext) ⟩
+    (∀ x y → Erased (Is-equivalence (cong f)))                      ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+                                                                        Erased-Is-equivalence↔Is-equivalence ext) ⟩
 
-    (∀ x y → Is-equivalence (Erased-cong (cong f)))            ↝⟨ (∀-cong ext′ λ x → ∀-cong ext′ λ y → Is-equivalence-cong ext lemma) ⟩
+    (∀ x y → Is-equivalence (map (cong f)))                         ↝⟨ (∀-cong ext′ λ x → ∀-cong ext′ λ y → Is-equivalence-cong ext lemma) ⟩
 
-    (∀ x y → Is-equivalence (_↔_.from Erased-≡↔[]≡[] ∘
-                             cong (Erased-cong f) ∘ []-cong))  ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
-                                                                   generalise-ext?-prop
-                                                                     (record { to = to; from = from })
-                                                                     (λ ext → Eq.propositional ext _)
-                                                                     (λ ext → Eq.propositional ext _)
-                                                                     ext) ⟩□
-    (∀ x y → Is-equivalence (cong (Erased-cong f)))            □
+    (∀ x y → Is-equivalence
+               (_↔_.from Erased-≡↔[]≡[] ∘ cong (map f) ∘ []-cong))  ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+                                                                        generalise-ext?-prop
+                                                                          (record { to = to; from = from })
+                                                                          (λ ext → Eq.propositional ext _)
+                                                                          (λ ext → Eq.propositional ext _)
+                                                                          ext) ⟩□
+    (∀ x y → Is-equivalence (cong (map f)))                         □
     where
     ext′ = lower-extensionality? k b lzero ext
 
     lemma :
       ∀ {@0 x y} (eq : Erased (x ≡ y)) →
-      Erased-cong (cong f) eq ≡
-      _↔_.from Erased-≡↔[]≡[] (cong (Erased-cong f) ([]-cong eq))
+      map (cong f) eq ≡
+      _↔_.from Erased-≡↔[]≡[] (cong (map f) ([]-cong eq))
     lemma [ eq ] =
-      [ cong f eq ]                                                    ≡⟨⟩
-      [ cong (erased ∘ Erased-cong f ∘ [_]) eq ]                       ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
-      [ cong (erased ∘ Erased-cong f) (cong [_] eq) ]                  ≡⟨ []-cong [ cong (cong _) $ sym to-Erased-≡↔[]≡[] ] ⟩
-      [ cong (erased ∘ Erased-cong f) ([]-cong [ eq ]) ]               ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
-      [ cong erased (cong (Erased-cong f) ([]-cong [ eq ])) ]          ≡⟨ sym from-Erased-≡↔[]≡[] ⟩∎
-      _↔_.from Erased-≡↔[]≡[] (cong (Erased-cong f) ([]-cong [ eq ]))  ∎
+      [ cong f eq ]                                            ≡⟨⟩
+      [ cong (erased ∘ map f ∘ [_]) eq ]                       ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
+      [ cong (erased ∘ map f) (cong [_] eq) ]                  ≡⟨ []-cong [ cong (cong _) $ sym to-Erased-≡↔[]≡[] ] ⟩
+      [ cong (erased ∘ map f) ([]-cong [ eq ]) ]               ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
+      [ cong erased (cong (map f) ([]-cong [ eq ])) ]          ≡⟨ sym from-Erased-≡↔[]≡[] ⟩∎
+      _↔_.from Erased-≡↔[]≡[] (cong (map f) ([]-cong [ eq ]))  ∎
 
     to :
-      {g : x ≡ y → Erased-cong f x ≡ Erased-cong f y} →
+      {g : x ≡ y → map f x ≡ map f y} →
       Is-equivalence (_↔_.from Erased-≡↔[]≡[] ∘ g ∘ []-cong) →
       Is-equivalence g
     to hyp =
@@ -851,7 +849,7 @@ module []-cong₃
         []-cong-equivalence
 
     from :
-      {g : x ≡ y → Erased-cong f x ≡ Erased-cong f y} →
+      {g : x ≡ y → map f x ≡ map f y} →
       Is-equivalence g →
       Is-equivalence (_↔_.from Erased-≡↔[]≡[] ∘ g ∘ []-cong)
     from hyp =

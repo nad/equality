@@ -192,7 +192,7 @@ Erased-Very-stable {A = A} =
   not-proposition =
     Is-proposition (Erased (↑ a Bool))  ↝⟨ (λ prop → prop _ _) ⟩
     [ lift true ] ≡ [ lift false ]      ↝⟨ (λ hyp → [ cong (lower ∘ erased) hyp ]) ⟩
-    Erased (true ≡ false)               ↝⟨ Erased-cong-→ Bool.true≢false ⟩
+    Erased (true ≡ false)               ↝⟨ map Bool.true≢false ⟩
     Erased ⊥                            ↔⟨ Erased-⊥↔⊥ ⟩□
     ⊥                                   □
 
@@ -223,7 +223,7 @@ Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 Stable-map :
   {@0 A : Set a} {@0 B : Set b} →
   (A → B) → @0 (B → A) → Stable A → Stable B
-Stable-map A→B B→A s x = A→B (s (Erased-cong-→ B→A x))
+Stable-map A→B B→A s x = A→B (s (map B→A x))
 
 -- A variant of Stable-map.
 
@@ -418,25 +418,25 @@ private
   Stable-≡-⊎₀ : Stable-≡ A → Stable-≡ B → Stable-≡ (A ⊎ B)
   Stable-≡-⊎₀ sA sB = λ where
     (inj₁ x) (inj₁ y) →
-      Erased (inj₁ x ≡ inj₁ y)  ↝⟨ Erased-cong-→ $ _↔_.from Bijection.≡↔inj₁≡inj₁ ⟩
+      Erased (inj₁ x ≡ inj₁ y)  ↝⟨ map $ _↔_.from Bijection.≡↔inj₁≡inj₁ ⟩
       Erased (x ≡ y)            ↝⟨ sA _ _ ⟩
       x ≡ y                     ↔⟨ Bijection.≡↔inj₁≡inj₁ ⟩□
       inj₁ x ≡ inj₁ y           □
 
     (inj₁ x) (inj₂ y) →
-      Erased (inj₁ x ≡ inj₂ y)  ↝⟨ Erased-cong-→ $ _↔_.to Bijection.≡↔⊎ ⟩
+      Erased (inj₁ x ≡ inj₂ y)  ↝⟨ map $ _↔_.to Bijection.≡↔⊎ ⟩
       Erased ⊥                  ↝⟨ Very-stable→Stable 0 Very-stable-⊥ ⟩
       ⊥                         ↔⟨ inverse Bijection.≡↔⊎ ⟩□
       inj₁ x ≡ inj₂ y           □
 
     (inj₂ x) (inj₁ y) →
-      Erased (inj₂ x ≡ inj₁ y)  ↝⟨ Erased-cong-→ $ _↔_.to Bijection.≡↔⊎ ⟩
+      Erased (inj₂ x ≡ inj₁ y)  ↝⟨ map $ _↔_.to Bijection.≡↔⊎ ⟩
       Erased ⊥                  ↝⟨ Very-stable→Stable 0 Very-stable-⊥ ⟩
       ⊥                         ↔⟨ inverse Bijection.≡↔⊎ ⟩□
       inj₂ x ≡ inj₁ y           □
 
     (inj₂ x) (inj₂ y) →
-      Erased (inj₂ x ≡ inj₂ y)  ↝⟨ Erased-cong-→ $ _↔_.from Bijection.≡↔inj₂≡inj₂ ⟩
+      Erased (inj₂ x ≡ inj₂ y)  ↝⟨ map $ _↔_.from Bijection.≡↔inj₂≡inj₂ ⟩
       Erased (x ≡ y)            ↝⟨ sB _ _ ⟩
       x ≡ y                     ↔⟨ Bijection.≡↔inj₂≡inj₂ ⟩□
       inj₂ x ≡ inj₂ y           □
@@ -1087,17 +1087,16 @@ module []-cong
   []-cong-cong :
     {@0 A : Set a} {@0 B : Set b}
     {@0 f : A → B} {@0 x y : A} {@0 p : x ≡ y} →
-    []-cong [ cong f p ] ≡ cong (Erased-cong-→ f) ([]-cong [ p ])
+    []-cong [ cong f p ] ≡ cong (map f) ([]-cong [ p ])
   []-cong-cong {f = f} =
     Very-stable→Stable 0 (Very-stable-≡₁ _ _ _ _)
       [ elim¹
-          (λ p → []-cong [ cong f p ] ≡
-                 cong (Erased-cong-→ f) ([]-cong [ p ]))
-          ([]-cong [ cong f (refl _) ]                  ≡⟨ cong []-cong ([]-cong [ cong-refl _ ]) ⟩
-           []-cong [ refl _ ]                           ≡⟨ []-cong-[refl] ⟩
-           refl _                                       ≡⟨ sym $ cong-refl _ ⟩
-           cong (Erased-cong-→ f) (refl _)              ≡⟨ sym $ cong (cong (Erased-cong-→ f)) []-cong-[refl] ⟩∎
-           cong (Erased-cong-→ f) ([]-cong [ refl _ ])  ∎)
+          (λ p → []-cong [ cong f p ] ≡ cong (map f) ([]-cong [ p ]))
+          ([]-cong [ cong f (refl _) ]        ≡⟨ cong []-cong ([]-cong [ cong-refl _ ]) ⟩
+           []-cong [ refl _ ]                 ≡⟨ []-cong-[refl] ⟩
+           refl _                             ≡⟨ sym $ cong-refl _ ⟩
+           cong (map f) (refl _)              ≡⟨ sym $ cong (cong (map f)) []-cong-[refl] ⟩∎
+           cong (map f) ([]-cong [ refl _ ])  ∎)
           _
       ]
 
@@ -1161,7 +1160,7 @@ module []-cong
                             (_↠_.from f x)) ])
         ([]-cong [ _↠_.right-inverse-of f x ])           ≡⟨ cong (λ p → trans p _) []-cong-cong ⟩∎
 
-      trans (cong (Erased-cong-→ (_↠_.to f))
+      trans (cong (map (_↠_.to f))
                     ([]-cong [ _↠_.right-inverse-of g
                                  (_↠_.from f x) ]))
                  ([]-cong [ _↠_.right-inverse-of f x ])  ∎
@@ -1180,7 +1179,7 @@ module []-cong
       Erased-cong F.id ≡ F.id                           □
       where
       lemma :
-        (Erased-cong-→ id , λ x → [ erased x ] , []-cong [ refl _ ]) ≡
+        (map id , λ x → [ erased x ] , []-cong [ refl _ ]) ≡
         (id , λ x → x , refl _)
       lemma =
         cong (_ ,_) $ apply-ext ext λ _ → cong (_ ,_) []-cong-[refl]
@@ -1198,7 +1197,7 @@ module []-cong
       Erased-cong (f F.∘ g) ≡ Erased-cong f F.∘ Erased-cong g        □
       where
       lemma :
-        ( Erased-cong-→ (_↠_.to f ∘ _↠_.to g)
+        ( map (_↠_.to f ∘ _↠_.to g)
         , (λ x →
                [ _↠_.from g (_↠_.from f (erased x)) ]
              , _↠_.right-inverse-of (Erased-cong (f F.∘ g)) x)
@@ -1227,8 +1226,8 @@ module []-cong
       Erased-cong F.id ≡ F.id                       □
       where
       lemma :
-        ( Erased-cong-→ id
-        , Erased-cong-→ id
+        ( map id
+        , map id
         , (λ { [ x ] → []-cong [ refl x ] })
         , (λ { [ x ] → []-cong [ refl x ] })
         ) ≡
@@ -1250,8 +1249,8 @@ module []-cong
       Erased-cong (f F.∘ g) ≡ Erased-cong f F.∘ Erased-cong g    □
       where
       lemma :
-        ( Erased-cong-→ (_↔_.to f ∘ _↔_.to g)
-        , Erased-cong-→ (_↔_.from g ∘ _↔_.from f)
+        ( map (_↔_.to f ∘ _↔_.to g)
+        , map (_↔_.from g ∘ _↔_.from f)
         , _↔_.right-inverse-of (Erased-cong (f F.∘ g))
         , _↔_.left-inverse-of (Erased-cong (f F.∘ g))
         )
@@ -1262,8 +1261,8 @@ module []-cong
         , _↔_.left-inverse-of (Erased-cong f F.∘ Erased-cong g)
         )
       lemma =
-        cong (λ p → Erased-cong-→ (_↔_.to f ∘ _↔_.to g)
-                  , Erased-cong-→ (_↔_.from g ∘ _↔_.from f) , p) $
+        cong (λ p → map (_↔_.to f ∘ _↔_.to g)
+                  , map (_↔_.from g ∘ _↔_.from f) , p) $
         cong₂ _,_
           (apply-ext (lower-extensionality a a ext) λ _ →
              right-inverse-of-cong-∘
@@ -1285,7 +1284,7 @@ module []-cong
       Erased-cong F.id ≡ F.id                    □
       where
       lemma :
-        ( Erased-cong-→ id
+        ( map id
         , λ {_ _} → _↣_.injective (Erased-cong F.id)
         ) ≡
         (id , λ {_ _} → _↣_.injective F.id)
@@ -1310,7 +1309,7 @@ module []-cong
       Erased-cong (f F.∘ g) ≡ Erased-cong f F.∘ Erased-cong g  □
       where
       lemma :
-        ( Erased-cong-→ (_↣_.to f ∘ _↣_.to g)
+        ( map (_↣_.to f ∘ _↣_.to g)
         , λ {_ _} → _↣_.injective (Erased-cong (f F.∘ g))
         )
         ≡
@@ -1338,7 +1337,7 @@ module []-cong
     {@0 A : Set a} →
     Extensionality? k a a →
     Erased-cong F.id ≡ F.id {k = k} {A = Erased A}
-  Erased-cong-id {k = implication}         = λ _ → Erased-cong-→-id
+  Erased-cong-id {k = implication}         = λ _ → map-id
   Erased-cong-id {k = logical-equivalence} = λ _ → Erased-cong-⇔-id
   Erased-cong-id {k = injection}           = Erased-cong-↣-id
   Erased-cong-id {k = embedding}           = Erased-cong-Embedding-id
@@ -1351,7 +1350,7 @@ module []-cong
     Extensionality? k (a ⊔ c) (a ⊔ c) →
     (@0 f : B ↝[ k ] C) (@0 g : A  ↝[ k ] B) →
     Erased-cong (f F.∘ g) ≡ Erased-cong f F.∘ Erased-cong g
-  Erased-cong-∘         {k = implication}         = λ _ → Erased-cong-→-∘
+  Erased-cong-∘         {k = implication}         = λ _ f → map-∘ f
   Erased-cong-∘         {k = logical-equivalence} = λ _ → Erased-cong-⇔-∘
   Erased-cong-∘         {k = injection}           = Erased-cong-↣-∘
   Erased-cong-∘         {k = embedding}           = Erased-cong-Embedding-∘

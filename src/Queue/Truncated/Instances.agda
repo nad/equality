@@ -23,7 +23,7 @@ open Queue eq
 open import Queue.Truncated eq as Q using (Queue)
 
 open import Bijection eq using (_↔_)
-open import Erased.Cubical eq
+open import Erased.Cubical eq hiding (map)
 open import H-level.Closure eq
 open import List eq as L hiding (map)
 open import Maybe eq

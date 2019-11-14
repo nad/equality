@@ -13,7 +13,7 @@ open Derived-definitions-and-properties eq
 open import Prelude
 
 open import Bijection eq using (_↔_)
-open import Erased eq
+open import Erased eq as Erased hiding (map)
 open import Function-universe eq hiding (id; _∘_)
 open import List eq as L hiding (map)
 open import Nat eq
@@ -197,7 +197,7 @@ dequeue {A = A}
         q@(record { front        = x ∷ front
                   ; length-front = zero
                   }) =                $⟨ [ q .length-front≡ ] ⟩
-  Erased (zero ≡ suc (length front))  ↝⟨ Erased-cong-→ 0≢+ ⟩
+  Erased (zero ≡ suc (length front))  ↝⟨ Erased.map 0≢+ ⟩
   Erased ⊥                            ↔⟨ Erased-⊥↔⊥ ⟩
   ⊥                                   ↝⟨ ⊥-elim ⟩□
   Maybe (A × Queue A)                 □
@@ -210,9 +210,9 @@ to-List-dequeue (record { front = []; rear = [] }) = refl _
 
 to-List-dequeue q@(record { front = []; rear = _ ∷ _ }) =
                                              $⟨ [ q .length-invariant ] ⟩
-  Erased (q .length-rear ≤ q .length-front)  ↝⟨ Erased-cong-→ (subst (_ ≤_) (q .length-front≡)) ⟩
-  Erased (q .length-rear ≤ 0)                ↝⟨ Erased-cong-→ (subst (_≤ _) (q .length-rear≡)) ⟩
-  Erased (suc _ ≤ 0)                         ↝⟨ Erased-cong-→ (≮0 _) ⟩
+  Erased (q .length-rear ≤ q .length-front)  ↝⟨ Erased.map (subst (_ ≤_) (q .length-front≡)) ⟩
+  Erased (q .length-rear ≤ 0)                ↝⟨ Erased.map (subst (_≤ _) (q .length-rear≡)) ⟩
+  Erased (suc _ ≤ 0)                         ↝⟨ Erased.map (≮0 _) ⟩
   Erased ⊥                                   ↔⟨ Erased-⊥↔⊥ ⟩
   ⊥                                          ↝⟨ ⊥-elim ⟩□
   _                                          □
@@ -226,7 +226,7 @@ to-List-dequeue q@(record { front        = x ∷ front
 to-List-dequeue q@(record { front        = x ∷ front
                           ; length-front = zero
                   }) =                $⟨ [ q .length-front≡ ] ⟩
-  Erased (zero ≡ suc (length front))  ↝⟨ Erased-cong-→ 0≢+ ⟩
+  Erased (zero ≡ suc (length front))  ↝⟨ Erased.map 0≢+ ⟩
   Erased ⊥                            ↔⟨ Erased-⊥↔⊥ ⟩
   ⊥                                   ↝⟨ ⊥-elim ⟩□
   _                                   □
