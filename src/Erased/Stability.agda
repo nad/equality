@@ -9,7 +9,7 @@ open import Equality
 module Erased.Stability
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open Derived-definitions-and-properties eq
+open Derived-definitions-and-properties eq hiding (elim)
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude
@@ -28,6 +28,7 @@ open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
 import List eq as L
 import Nat eq as Nat
+open import Preimage eq using (_⁻¹_)
 open import Surjection eq using (_↠_; Split-surjective)
 
 private
@@ -702,6 +703,66 @@ module []-cong
         (λ x →
            [ _≃_.to A≃B (_≃_.from A≃B x) ]  ≡⟨ cong [_] (_≃_.right-inverse-of A≃B x) ⟩∎
            [ x ]                            ∎)
+
+  ----------------------------------------------------------------------
+  -- Erased is a modality
+
+  -- The terminology here roughly follows that of "Modalities in
+  -- Homotopy Type Theory" by Rijke, Shulman and Spitters.
+
+  -- Erased is the modal operator of a higher modality with [_] as the
+  -- modal unit.
+
+  -- A kind of restricted eliminator for Erased (called "ind" by Rijke
+  -- et al.).
+
+  elim :
+    {@0 A : Set a} (@0 P : Erased A → Set p) →
+    @0 ((x : A) → Erased (P [ x ])) →
+    ((x : Erased A) → Erased (P x))
+  elim _ f [ x ] = [ erased (f x) ]
+
+  -- A computation rule for elim (called "comp" by Rijke
+  -- et al.).
+
+  elim-[] :
+    {@0 A : Set a} (@0 P : Erased A → Set p) {@0 x : A} →
+    (@0 f : (x : A) → Erased (P [ x ])) →
+    elim P f [ x ] ≡ f x
+  elim-[] _ _ = refl _
+
+  -- The modal unit is an equivalence for equalities between erased
+  -- values.
+
+  []-≡-is-equivalence :
+    {@0 A : Set a} (x y : Erased A) →
+    Is-equivalence ([_] {A = x ≡ y})
+  []-≡-is-equivalence [ x ] [ y ] =
+                                              $⟨ Very-stable-Erased ⟩
+    Very-stable (Erased (x ≡ y))              ↝⟨ Very-stable-cong _ (from-isomorphism Erased-≡↔[]≡[]) ⦂ (_ ⇔ _) ⟩
+    Very-stable ([ x ] ≡ [ y ])               ↔⟨⟩
+    Is-equivalence ([_] {A = [ x ] ≡ [ y ]})  □
+
+  -- The property of being Erased-connected (for types).
+
+  Erased-connected : Set ℓ → Set ℓ
+  Erased-connected A = Contractible (Erased A)
+
+  -- If A is Erased-connected, then equality between elements of type
+  -- A is Erased-connected.
+  --
+  -- This means that Erased is a lex modality (see Theorem 3.1 in the
+  -- paper by Rijke et al.).
+
+  lex-modality :
+    {x y : A} → Erased-connected A → Erased-connected (x ≡ y)
+  lex-modality {A = A} {x = x} {y = y} =
+    Erased-connected A             ↔⟨⟩
+    Contractible (Erased A)        ↝⟨ _⇔_.from (Erased-H-level↔H-level _ 0) ⟩
+    Erased (Contractible A)        ↝⟨ map (⇒≡ 0) ⟩
+    Erased (Contractible (x ≡ y))  ↝⟨ Erased-H-level↔H-level _ 0 ⟩
+    Contractible (Erased (x ≡ y))  ↔⟨⟩
+    Erased-connected (x ≡ y)       □
 
   ----------------------------------------------------------------------
   -- Some lemmas related to Stable or Very-stable
