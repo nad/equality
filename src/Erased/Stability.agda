@@ -630,6 +630,9 @@ module []-cong
 
   -- Variants of Stable-[]-map.
 
+  Stable-[]-map-⇔ : A ⇔ B → Stable A → Stable B
+  Stable-[]-map-⇔ A⇔B = Stable-[]-map (_⇔_.to A⇔B) (_⇔_.from A⇔B)
+
   Stable-[]-map-↔ : A ↔ B → Stable-[ k ] A → Stable-[ k ] B
   Stable-[]-map-↔ A↔B =
     Stable-[]-map
@@ -701,7 +704,18 @@ module []-cong
            [ x ]                            ∎)
 
   ----------------------------------------------------------------------
-  -- Some lemmas related to Very-stable
+  -- Some lemmas related to Stable or Very-stable
+
+  -- All kinds of functions between erased types are stable.
+
+  Stable-Erased↝Erased :
+    {@0 A : Set a} {@0 B : Set b} →
+    Stable (Erased A ↝[ k ] Erased B)
+  Stable-Erased↝Erased {k = k} {A = A} {B = B} =
+                                       $⟨ Very-stable-Erased ⟩
+    Very-stable (Erased (A ↝[ k ] B))  ↝⟨ Very-stable→Stable 0 ⟩
+    Stable (Erased (A ↝[ k ] B))       ↝⟨ Stable-[]-map-⇔ (Erased-↝↝↝ _) ⟩□
+    Stable (Erased A ↝[ k ] Erased B)  □
 
   -- All kinds of functions between erased types are very stable (in
   -- some cases assuming extensionality).
