@@ -193,7 +193,7 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
     (F↔G : ∀ x → F x ↔ G x) (F-monad : Raw-monad F) →
     let eq = ⇔→raw⇔raw (_↔_.logical-equivalence ∘ F↔G) in
     _⇔_.from eq (_⇔_.to eq F-monad) ≡ F-monad
-  to∘to {f} ext F↔G (mk return _>>=_) = cong₂ Raw-monad.mk
+  to∘to {f} ext F↔G (mk return _>>=_) = cong₂ mk
     (implicit-extensionality (lower-extensionality f (lsuc a) ext) λ _ →
      apply-ext (lower-extensionality _ (lsuc a) ext) λ x →
 
