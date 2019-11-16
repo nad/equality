@@ -63,9 +63,17 @@ private
   ; left-inverse-of = λ { [ refl ] → refl }
   }))
 
+-- []-cong maps [ refl ] to refl (by definition).
+
+[]-cong-[refl] :
+  {@0 A : Set a} {@0 x : A} →
+  []-cong [ refl {x = x} ] ≡ refl {x = [ x ]}
+[]-cong-[refl] = refl
+
 -- Some reexported definitions.
 
-open Erased.[]-cong₃ []-cong []-cong-equivalence refl public
+open Erased.[]-cong₃ []-cong []-cong-equivalence []-cong-[refl] public
+  hiding ([]-cong-[refl])
 
 ------------------------------------------------------------------------
 -- Code related to the module Erased.Stability

@@ -24,7 +24,7 @@ open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
 open import Function-universe eq
 open import H-level.Closure eq
-open import Quotient eq as Quotient
+open import Quotient eq as Quotient hiding ([_])
 
 -- Some definitions from Erased are reexported.
 
@@ -47,22 +47,36 @@ private
 ------------------------------------------------------------------------
 -- Code related to the module Erased
 
--- There is a bijection between erased paths and paths between
--- erased values.
+-- Given an erased path from x to y there is a path from [ x ] to
+-- [ y ].
 
-Erased-Path↔Path-[]-[] :
+[]-cong-Path :
   {@0 A : Set a} {@0 x y : A} →
-  Erased (x P.≡ y) ↔ [ x ] P.≡ [ y ]
-Erased-Path↔Path-[]-[] = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { [ eq ] i → [ eq i ] }
-      ; from = λ eq → [ P.cong erased eq ]
+  Erased (x P.≡ y) → [ x ] P.≡ [ y ]
+[]-cong-Path [ eq ] = λ i → [ eq i ]
+
+-- []-cong-Path is an equivalence.
+
+[]-cong-Path-equivalence :
+  {@0 A : Set a} {@0 x y : A} →
+  Is-equivalence ([]-cong-Path {x = x} {y = y})
+[]-cong-Path-equivalence =
+  _≃_.is-equivalence $ Eq.↔⇒≃ (record
+    { surjection = record
+      { logical-equivalence = record
+        { from = λ eq → [ P.cong erased eq ]
+        }
+      ; right-inverse-of = λ _ → refl _
       }
-    ; right-inverse-of = λ _ → refl _
-    }
-  ; left-inverse-of = λ _ → refl _
-  }
+    ; left-inverse-of = λ _ → refl _
+    })
+
+-- A rearrangement lemma for []-cong-Path (which holds by definition).
+
+[]-cong-Path-[refl] :
+  {@0 A : Set a} {@0 x : A} →
+  []-cong-Path [ P.refl {x = x} ] P.≡ P.refl {x = [ x ]}
+[]-cong-Path-[refl] = P.refl
 
 -- Given an erased proof of equality of x and y one can show that
 -- [ x ] is equal to [ y ].
@@ -70,8 +84,8 @@ Erased-Path↔Path-[]-[] = record
 []-cong : {@0 A : Set a} {@0 x y : A} →
           Erased (x ≡ y) → [ x ] ≡ [ y ]
 []-cong {x = x} {y = y} =
-  Erased (x ≡ y)    ↝⟨ (λ { [ eq ] → [ _↔_.to ≡↔≡ eq ] }) ⟩
-  Erased (x P.≡ y)  ↔⟨ Erased-Path↔Path-[]-[] ⟩
+  Erased (x ≡ y)    ↝⟨ map (_↔_.to ≡↔≡) ⟩
+  Erased (x P.≡ y)  ↝⟨ []-cong-Path ⟩
   [ x ] P.≡ [ y ]   ↔⟨ inverse ≡↔≡ ⟩□
   [ x ] ≡ [ y ]     □
 
@@ -82,24 +96,26 @@ Erased-Path↔Path-[]-[] = record
   Is-equivalence ([]-cong {x = x} {y = y})
 []-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (
   Erased (x ≡ y)    ↔⟨ Erased.[]-cong₁.Erased-cong-↔ []-cong ≡↔≡ ⟩
-  Erased (x P.≡ y)  ↔⟨ Erased-Path↔Path-[]-[] ⟩
+  Erased (x P.≡ y)  ↔⟨ Eq.⟨ _ , []-cong-Path-equivalence ⟩ ⟩
   [ x ] P.≡ [ y ]   ↔⟨ inverse ≡↔≡ ⟩□
   [ x ] ≡ [ y ]     □)
 
-private
+-- A rearrangement lemma for []-cong.
 
-  -- A rearrangement lemma for []-cong.
-
-  []-cong-[refl]′ : []-cong [ refl x ] ≡ refl [ x ]
-  []-cong-[refl]′ {x = x} =
-    _↔_.from ≡↔≡ (P.cong [_] (_↔_.to ≡↔≡ (refl x)))  ≡⟨ sym cong≡cong ⟩
-    cong [_] (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ (refl x)))    ≡⟨ cong (cong [_]) $ _↔_.left-inverse-of ≡↔≡ _ ⟩
-    cong [_] (refl x)                                ≡⟨ cong-refl _ ⟩∎
-    refl [ x ]                                       ∎
+[]-cong-[refl] :
+  {@0 A : Set a} {@0 x : A} →
+  []-cong [ refl x ] ≡ refl [ x ]
+[]-cong-[refl] {x = x} =
+  sym $ _↔_.to (from≡↔≡to Eq.⟨ _ , []-cong-equivalence ⟩) (
+    [ _↔_.from ≡↔≡ (P.cong erased (_↔_.to ≡↔≡ (refl [ x ]))) ]  ≡⟨ []-cong [ sym cong≡cong ] ⟩
+    [ cong erased (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ (refl [ x ]))) ]    ≡⟨ []-cong [ cong (cong erased) (_↔_.left-inverse-of ≡↔≡ _) ] ⟩
+    [ cong erased (refl [ x ]) ]                                ≡⟨ []-cong [ cong-refl _ ] ⟩∎
+    [ refl x ]                                                  ∎)
 
 -- Some reexported definitions.
 
-open Erased.[]-cong₃ []-cong []-cong-equivalence []-cong-[refl]′ public
+open Erased.[]-cong₃ []-cong []-cong-equivalence []-cong-[refl] public
+  hiding ([]-cong-[refl])
 
 private
 
@@ -207,7 +223,7 @@ private
 
 -- Reexported definitions.
 
-open Stability.[]-cong []-cong []-cong-equivalence []-cong-[refl]′
+open Stability.[]-cong []-cong []-cong-equivalence []-cong-[refl]
   public
 
 -- If R is a propositional equivalence relation that is pointwise
@@ -223,10 +239,10 @@ Very-stable-≡-/ {A = A} {R = R} equiv prop s =
     _
     (λ x → Quotient.elim-Prop
        _
-       (λ y →                          $⟨ s _ _ ⟩
-          Stable (R x y)               ↝⟨ flip Stable-proposition→Very-stable (prop _ _) ⟩
-          Very-stable (R x y)          ↝⟨ Very-stable-cong _ (related≃[equal] equiv (prop _ _)) ⟩□
-          Very-stable ([ x ] ≡ [ y ])  □)
+       (λ y →                                            $⟨ s _ _ ⟩
+          Stable (R x y)                                 ↝⟨ flip Stable-proposition→Very-stable (prop _ _) ⟩
+          Very-stable (R x y)                            ↝⟨ Very-stable-cong _ (related≃[equal] equiv (prop _ _)) ⟩□
+          Very-stable (Quotient.[ x ] ≡ Quotient.[ y ])  □)
        (λ _ → Very-stable-propositional ext))
     (λ _ →
        Π-closure ext 1 λ _ →
