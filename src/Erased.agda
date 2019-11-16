@@ -6,8 +6,7 @@
 
 open import Equality
 
-module Erased
-  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
+module Erased {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
 
 open Derived-definitions-and-properties eq
 

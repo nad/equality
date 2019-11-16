@@ -10,7 +10,7 @@
 open import Equality
 
 module Erased.Cubical
-  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
+  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
 
 open Derived-definitions-and-properties eq
 

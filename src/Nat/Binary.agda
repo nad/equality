@@ -6,8 +6,7 @@
 
 open import Equality
 
-module Nat.Binary
-  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
+module Nat.Binary {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
 
 open Derived-definitions-and-properties eq
 

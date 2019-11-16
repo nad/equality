@@ -13,8 +13,8 @@ open import Prelude hiding (zero; suc; _+_)
 import Surjection
 
 module Nat.Wrapper
-  {reflexive}
-  (eq : ∀ {a p} → Equality-with-J a p reflexive)
+  {c⁺}
+  (eq : ∀ {a p} → Equality-with-J a p c⁺)
   (open Surjection eq using (_↠_))
 
   -- The underlying representation of natural numbers.
