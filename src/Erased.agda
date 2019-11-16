@@ -283,6 +283,19 @@ Erased-¬↔¬ {A = A} ext =
   ; left-inverse-of = λ _ → refl _
   }
 
+-- Erased commutes with W up to logical equivalence.
+
+Erased-W⇔W :
+  {@0 A : Set a} {@0 P : A → Set p} →
+  Erased (W A P) ⇔ W (Erased A) (λ x → Erased (P (erased x)))
+Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
+  where
+  to : Erased (W A P) → W (Erased A) (λ x → Erased (P (erased x)))
+  to [ sup x f ] = sup [ x ] (λ ([ y ]) → to [ f y ])
+
+  from : W (Erased A) (λ x → Erased (P (erased x))) → Erased (W A P)
+  from (sup [ x ] f) = [ sup x (λ y → erased (from (f [ y ]))) ]
+
 ------------------------------------------------------------------------
 -- A variant of Dec ∘ Erased
 
@@ -335,36 +348,34 @@ module []-cong₁
 
   Erased-W↔W :
     {@0 A : Set a} {@0 P : A → Set p} →
-    Extensionality p (a ⊔ p) →
-    Erased (W A P) ↔ W (Erased A) (λ x → Erased (P (erased x)))
-  Erased-W↔W {A = A} {P = P} ext = record
-    { surjection = record
-      { logical-equivalence = record
-        { to   = to
-        ; from = from
-        }
-      ; right-inverse-of = to∘from
-      }
-    ; left-inverse-of = from∘to
-    }
+    Extensionality? k p (a ⊔ p) →
+    Erased (W A P) ↝[ k ] W (Erased A) (λ x → Erased (P (erased x)))
+  Erased-W↔W {a = a} {p = p} {A = A} {P = P} =
+    generalise-ext?
+      Erased-W⇔W
+      (λ ext → record
+         { surjection = record
+           { logical-equivalence = Erased-W⇔W
+           ; right-inverse-of    = to∘from ext }
+         ; left-inverse-of = from∘to ext
+         })
     where
-    to : Erased (W A P) → W (Erased A) (λ x → Erased (P (erased x)))
-    to [ sup x f ] = sup [ x ] (λ ([ y ]) → to [ f y ])
-
-    from : W (Erased A) (λ x → Erased (P (erased x))) → Erased (W A P)
-    from (sup [ x ] f) = [ sup x (λ y → erased (from (f [ y ]))) ]
+    open _⇔_ Erased-W⇔W
 
     to∘from :
+      Extensionality p (a ⊔ p) →
       (x : W (Erased A) (λ x → Erased (P (erased x)))) →
       to (from x) ≡ x
-    to∘from (sup [ x ] f) =
+    to∘from ext (sup [ x ] f) =
       cong (sup [ x ]) (apply-ext ext (λ ([ y ]) →
-        to∘from (f [ y ])))
+        to∘from ext (f [ y ])))
 
-    from∘to : (x : Erased (W A P)) → from (to x) ≡ x
-    from∘to [ sup x f ] =
+    from∘to :
+      Extensionality p (a ⊔ p) →
+      (x : Erased (W A P)) → from (to x) ≡ x
+    from∘to ext [ sup x f ] =
       []-cong [ cong (sup x) (apply-ext ext λ y →
-        cong erased (from∘to [ f y ])) ]
+        cong erased (from∘to ext [ f y ])) ]
 
   -- [_] can be "pushed" through subst.
 
