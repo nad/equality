@@ -19,6 +19,13 @@ import README.Safe
 
 import README.Safe.With-K
 
+-- Code related to the paper "Logical properties of a modality for
+-- erasure". This code uses both --cubical and --with-K, but not at
+-- the same time, except in the module README.Erased, which for that
+-- reason cannot use --safe.
+
+import README.Erased
+
 -- Code which might depend on potentially unsafe features.
 
 import README.Unsafe
