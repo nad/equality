@@ -552,10 +552,13 @@ module Nat-with-∥∥ where
              , [ _↠_.right-inverse-of Nat′↠ℕ n ]
              ∣)
 
+  Nat-[_]′ : ∥ ℕ ∥ → Set
+  Nat-[ n ]′ = proj₁ (Nat-[]′ n)
+
   -- Thus we can form a variant of Nat.
 
   Nat-with-∥∥ : Set
-  Nat-with-∥∥ = ∃ λ (n : ∥ ℕ ∥) → proj₁ (Nat-[]′ n)
+  Nat-with-∥∥ = Σ ∥ ℕ ∥ Nat-[_]′
 
   -- However, this variant is isomorphic to the unit type.
 
