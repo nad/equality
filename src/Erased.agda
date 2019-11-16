@@ -296,6 +296,24 @@ Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
   from : W (Erased A) (λ x → Erased (P (erased x))) → Erased (W A P)
   from (sup [ x ] f) = [ sup x (λ y → erased (from (f [ y ]))) ]
 
+----------------------------------------------------------------------
+-- Erased is a modality
+
+-- Erased is the modal operator of a uniquely eliminating modality
+-- with [_] as the modal unit.
+--
+-- The terminology here roughly follows that of "Modalities in
+-- Homotopy Type Theory" by Rijke, Shulman and Spitters.
+
+uniquely-eliminating-modality :
+  Is-equivalence
+    (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [_] {A = A})
+uniquely-eliminating-modality {A = A} {P = P} =
+  _≃_.is-equivalence
+    (((x : Erased A) → Erased (P x))  ↔⟨ inverse Erased-Π↔Π-Erased ⟩
+     Erased ((x : A) → (P [ x ]))     ↔⟨ Erased-Π↔Π ⟩
+     ((x : A) → Erased (P [ x ]))     □)
+
 ------------------------------------------------------------------------
 -- A variant of Dec ∘ Erased
 
@@ -507,25 +525,11 @@ module []-cong₂
   H-level-Erased n h = Erased-H-level↔H-level _ n [ h ]
 
   ----------------------------------------------------------------------
-  -- Erased is a modality
+  -- Erased is a lex modality
 
-  -- The terminology here roughly follows that of "Modalities in
-  -- Homotopy Type Theory" by Rijke, Shulman and Spitters.
-
-  -- Erased is the modal operator of a uniquely eliminating modality
-  -- with [_] as the modal unit.
-
-  uniquely-eliminating-modality :
-    Is-equivalence
-      (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [_] {A = A})
-  uniquely-eliminating-modality {A = A} {P = P} =
-    _≃_.is-equivalence
-      (((x : Erased A) → Erased (P x))  ↔⟨ inverse Erased-Π↔Π-Erased ⟩
-       Erased ((x : A) → (P [ x ]))     ↔⟨ Erased-Π↔Π ⟩
-       ((x : A) → Erased (P [ x ]))     □)
-
-  -- Erased is a lex modality (see Theorem 3.1, case (i) in the paper
-  -- by Rijke et al. for the definition used here).
+  -- Erased is a lex modality (see Theorem 3.1, case (i) in
+  -- "Modalities in Homotopy Type Theory" by Rijke, Shulman and
+  -- Spitters for the definition used here).
 
   lex-modality :
     {x y : A} → Contractible (Erased A) → Contractible (Erased (x ≡ y))
