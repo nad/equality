@@ -70,17 +70,25 @@ private
   []-cong [ refl {x = x} ] ≡ refl {x = [ x ]}
 []-cong-[refl] = refl
 
+-- The []-cong axioms can be instantiated.
+
+instance-of-[]-cong-axiomatisation : []-cong-axiomatisation a
+instance-of-[]-cong-axiomatisation = λ where
+  .Erased.[]-cong-axiomatisation.[]-cong             → []-cong
+  .Erased.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
+  .Erased.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
+
 -- Some reexported definitions.
 
-open Erased.[]-cong₃ []-cong []-cong-equivalence []-cong-[refl] public
-  hiding ([]-cong-[refl])
+open Erased.[]-cong₃ instance-of-[]-cong-axiomatisation public
+  hiding ([]-cong; []-cong-equivalence; []-cong-[refl])
 
 ------------------------------------------------------------------------
 -- Code related to the module Erased.Stability
 
 -- Reexported definitions.
 
-open Stability.[]-cong []-cong []-cong-equivalence refl public
+open Stability.[]-cong instance-of-[]-cong-axiomatisation public
 
 ------------------------------------------------------------------------
 -- Other code

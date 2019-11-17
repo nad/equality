@@ -459,19 +459,9 @@ Stable-≡-List n =
 -- Some results that follow if "[]-cong" is an equivalence that maps
 -- [ refl x ] to refl [ x ]
 
-module []-cong
-  ([]-cong :
-     ∀ {a} {@0 A : Set a} {@0 x y : A} →
-     Erased (x ≡ y) → [ x ] ≡ [ y ])
-  ([]-cong-equivalence :
-     ∀ {a} {@0 A : Set a} {@0 x y : A} →
-     Is-equivalence ([]-cong {x = x} {y = y}))
-  ([]-cong-[refl]′ :
-    ∀ {a} {A : Set a} {x : A} →
-    []-cong [ refl x ] ≡ refl [ x ])
-  where
+module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
-  open []-cong₃ []-cong []-cong-equivalence []-cong-[refl]′
+  open []-cong₃ ax
 
   ----------------------------------------------------------------------
   -- Some lemmas related to stability

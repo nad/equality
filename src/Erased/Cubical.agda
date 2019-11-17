@@ -112,10 +112,18 @@ private
     [ cong erased (refl [ x ]) ]                                ≡⟨ []-cong [ cong-refl _ ] ⟩∎
     [ refl x ]                                                  ∎)
 
+-- The []-cong axioms can be instantiated.
+
+instance-of-[]-cong-axiomatisation : []-cong-axiomatisation a
+instance-of-[]-cong-axiomatisation = λ where
+  .Erased.[]-cong-axiomatisation.[]-cong             → []-cong
+  .Erased.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
+  .Erased.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
+
 -- Some reexported definitions.
 
-open Erased.[]-cong₃ []-cong []-cong-equivalence []-cong-[refl] public
-  hiding ([]-cong-[refl])
+open Erased.[]-cong₃ instance-of-[]-cong-axiomatisation public
+  hiding ([]-cong; []-cong-equivalence; []-cong-[refl])
 
 private
 
@@ -223,8 +231,7 @@ private
 
 -- Reexported definitions.
 
-open Stability.[]-cong []-cong []-cong-equivalence []-cong-[refl]
-  public
+open Stability.[]-cong instance-of-[]-cong-axiomatisation public
 
 -- If R is a propositional equivalence relation that is pointwise
 -- stable, then equality is very stable for A / R.

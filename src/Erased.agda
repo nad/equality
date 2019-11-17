@@ -699,17 +699,28 @@ Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
 -- Some results that follow if "[]-cong" is an equivalence that maps
 -- [ refl x ] to refl [ x ]
 
-module []-cong₃
-  ([]-cong :
-     ∀ {a} {@0 A : Set a} {@0 x y : A} →
-     Erased (x ≡ y) → [ x ] ≡ [ y ])
-  ([]-cong-equivalence :
-     ∀ {a} {@0 A : Set a} {@0 x y : A} →
-     Is-equivalence ([]-cong {x = x} {y = y}))
-  ([]-cong-[refl]′ :
-    ∀ {a} {A : Set a} {x : A} →
-    []-cong [ refl x ] ≡ refl [ x ])
-  where
+-- An axiomatisation for []-cong.
+
+record []-cong-axiomatisation a : Set (lsuc a) where
+  field
+    []-cong :
+      {@0 A : Set a} {@0 x y : A} →
+      Erased (x ≡ y) → [ x ] ≡ [ y ]
+    []-cong-equivalence :
+       {@0 A : Set a} {@0 x y : A} →
+       Is-equivalence ([]-cong {x = x} {y = y})
+    []-cong-[refl] :
+      {A : Set a} {x : A} →
+      []-cong [ refl x ] ≡ refl [ x ]
+
+-- Some consequences of the axiomatisation.
+
+module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
+
+  private
+    module A {a} = []-cong-axiomatisation (ax {a = a})
+  open A public hiding ([]-cong-[refl])
+  open A renaming ([]-cong-[refl] to []-cong-[refl]′)
 
   open []-cong₂ []-cong []-cong-equivalence public
 
