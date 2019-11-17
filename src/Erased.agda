@@ -730,8 +730,7 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Rearrangement lemmas for []-cong and []-cong⁻¹.
 
   []-cong-[]≡cong-[] :
-    ∀ {a} {A : Set a} {x y : A} {x≡y : x ≡ y} →
-    []-cong [ x≡y ] ≡ cong [_] x≡y
+    {x≡y : x ≡ y} → []-cong [ x≡y ] ≡ cong [_] x≡y
   []-cong-[]≡cong-[] {x = x} {x≡y = x≡y} = elim¹
     (λ x≡y → []-cong [ x≡y ] ≡ cong [_] x≡y)
     ([]-cong [ refl x ]  ≡⟨ []-cong-[refl]′ ⟩
