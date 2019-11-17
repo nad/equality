@@ -35,7 +35,7 @@ private
     a b c ℓ p : Level
     A B       : Set a
     P         : A → Set p
-    k x y     : A
+    k k′ x y  : A
     n         : ℕ
 
 ------------------------------------------------------------------------
@@ -944,6 +944,22 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   ----------------------------------------------------------------------
   -- Simple corollaries or variants of results above
+
+  -- A generalisation of Very-stable-cong.
+
+  Very-stable-congⁿ :
+    {A : Set a} {B : Set b} →
+    Extensionality? k′ (a ⊔ b) (a ⊔ b) →
+    ∀ n →
+    A ↔[ k ] B →
+    For-iterated-equality n Very-stable A ↝[ k′ ]
+    For-iterated-equality n Very-stable B
+  Very-stable-congⁿ ext n A↔B =
+    For-iterated-equality-cong
+      ext
+      n
+      (Very-stable-cong ext ∘ from-isomorphism)
+      (from-isomorphism A↔B)
 
   -- A generalisation of Stable-Π.
 
