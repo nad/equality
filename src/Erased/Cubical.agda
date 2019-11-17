@@ -22,9 +22,11 @@ import Bijection P.equality-with-J as PB
 open import Equality.Path.Isomorphisms eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
-open import Function-universe eq
+open import Function-universe eq as F
 open import H-level.Closure eq
+open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)
 open import Quotient eq as Quotient hiding ([_])
+open import Surjection eq using (_↠_)
 
 -- Some definitions from Erased are reexported.
 
@@ -40,12 +42,14 @@ open import Erased.Stability eq as Stability public
 private
   variable
     a p r : Level
-    A     : Set a
+    A B   : Set a
     R     : A → A → Set r
     x y   : A
+    A↠B   : A ↠ B
+    s     : Very-stable-≡ A
 
 ------------------------------------------------------------------------
--- Code related to the module Erased
+-- []-cong
 
 -- Given an erased path from x to y there is a path from [ x ] to
 -- [ y ].
@@ -125,6 +129,9 @@ instance-of-[]-cong-axiomatisation = λ where
 open Erased.[]-cong₃ instance-of-[]-cong-axiomatisation public
   hiding ([]-cong; []-cong-equivalence; []-cong-[refl])
 
+------------------------------------------------------------------------
+-- Variants of some of the reexported definitions
+
 private
 
   -- The lemma push-subst-[], which is reexported above, can be proved
@@ -168,6 +175,9 @@ private
     Is-set-Erased′ : @0 P.Is-set A → P.Is-set (Erased A)
     Is-set-Erased′ set p q = λ i j →
       [ set (P.cong erased p) (P.cong erased q) i j ]
+
+------------------------------------------------------------------------
+-- Some isomorphisms/equivalences
 
 -- The following four results are inspired by a result in
 -- Mishra-Linger's PhD thesis (see Section 5.4.1).
@@ -227,11 +237,14 @@ private
 Π-Erased≃Π0 = Π-Erased≃Π0[]
 
 ------------------------------------------------------------------------
--- Code related to the module Erased.Stability
+-- Stability
 
 -- Reexported definitions.
 
 open Stability.[]-cong instance-of-[]-cong-axiomatisation public
+
+------------------------------------------------------------------------
+-- A closure property
 
 -- If R is a propositional equivalence relation that is pointwise
 -- stable, then equality is very stable for A / R.
@@ -254,3 +267,77 @@ Very-stable-≡-/ {A = A} {R = R} equiv prop s =
     (λ _ →
        Π-closure ext 1 λ _ →
        Very-stable-propositional ext)
+
+------------------------------------------------------------------------
+-- Code related to Erased-singleton
+
+-- A corollary of erased-singleton-with-erased-center-propositional.
+
+↠→↔Erased-singleton :
+  {@0 y : B}
+  (A↠B : A ↠ B) →
+  Very-stable-≡ B →
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ ↔ Erased-singleton y
+↠→↔Erased-singleton {A = A} {y = y} A↠B s =
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  ↝⟨ Trunc.∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences A↠B λ _ → F.id) ⟩
+  ∥ Erased-singleton y ∥                         ↝⟨ Trunc.∥∥↔ (erased-singleton-with-erased-center-propositional s) ⟩□
+  Erased-singleton y                             □
+
+mutual
+
+  -- The right-to-left direction of the previous lemma does not depend
+  -- on the assumption of stability.
+
+  ↠→Erased-singleton→ :
+    {@0 y : B}
+    (A↠B : A ↠ B) →
+    Erased-singleton y →
+    ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥
+  ↠→Erased-singleton→ = _  -- Agda can infer the definition.
+
+  _ : _↔_.from (↠→↔Erased-singleton A↠B s) x ≡
+      ↠→Erased-singleton→ A↠B x
+  _ = refl _
+
+-- A corollary of Σ-Erased-Erased-singleton↔ and ↠→↔Erased-singleton.
+
+Σ-Erased-∥-Σ-Erased-≡-∥↔ :
+  (A↠B : A ↠ B) →
+  Very-stable-≡ B →
+  (∃ λ (x : Erased B) →
+     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥) ↔
+  B
+Σ-Erased-∥-Σ-Erased-≡-∥↔ {A = A} {B = B} A↠B s =
+  (∃ λ (x : Erased B) →
+     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥)  ↝⟨ (∃-cong λ _ → ↠→↔Erased-singleton A↠B s) ⟩
+
+  (∃ λ (x : Erased B) → Erased-singleton (erased x))        ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
+
+  B                                                         □
+
+mutual
+
+  -- Again the right-to-left direction of the previous lemma does not
+  -- depend on the assumption of stability.
+
+  →Σ-Erased-∥-Σ-Erased-≡-∥ :
+    (A↠B : A ↠ B) →
+    B →
+    ∃ λ (x : Erased B) →
+      ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥
+  →Σ-Erased-∥-Σ-Erased-≡-∥ = _  -- Agda can infer the definition.
+
+  _ : _↔_.from (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡
+      →Σ-Erased-∥-Σ-Erased-≡-∥ A↠B x
+  _ = refl _
+
+-- In an erased context the left-to-right direction of
+-- Σ-Erased-∥-Σ-Erased-≡-∥↔ returns the erased first component.
+
+@0 to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ :
+  ∀ (A↠B : A ↠ B) (s : Very-stable-≡ B) x →
+  _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡ erased (proj₁ x)
+to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ A↠B s ([ x ] , y) =
+  _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) ([ x ] , y)  ≡⟨⟩
+  proj₁ (_↔_.to (↠→↔Erased-singleton A↠B s) y)         ≡⟨ erased (proj₂ (_↔_.to (↠→↔Erased-singleton A↠B s) y)) ⟩∎
+  x                                                    ∎

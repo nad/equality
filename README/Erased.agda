@@ -30,7 +30,6 @@ import Equality.Path
 import Equality.Propositional
 import Erased
 import Erased.Cubical
-import Erased.Cubical.Singleton
 import Erased.Stability
 import Erased.With-K
 import Function-universe
@@ -447,9 +446,9 @@ n-ary    = Nat.Wrapper.n-ary
 
 -- Some lemmas.
 
-Lemma-98 = Erased.Cubical.Singleton.erased-singleton-contractible
+Lemma-98 = Erased.Stability.[]-cong.erased-singleton-contractible
 Lemma-99 =
-  Erased.Cubical.Singleton.erased-singleton-with-erased-center-propositional
+  Erased.Stability.[]-cong.erased-singleton-with-erased-center-propositional
 
 -- The generalisation of Lemma 79 used in the proof of Lemma 99.
 
@@ -457,8 +456,8 @@ Lemma-79-generalised = Erased.Stability.[]-cong.Very-stable-Σⁿ
 
 -- More lemmas.
 
-Lemma-100 = Erased.Cubical.Singleton.↠→↔Erased-singleton
-Lemma-101 = Erased.Cubical.Singleton.Σ-Erased-Erased-singleton↔
+Lemma-100 = Erased.Cubical.↠→↔Erased-singleton
+Lemma-101 = Erased.Stability.[]-cong.Σ-Erased-Erased-singleton↔
 
 ------------------------------------------------------------------------
 -- 5.3: Converting Nat to ℕ

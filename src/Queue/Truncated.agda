@@ -20,7 +20,6 @@ open import Prelude
 open import Bijection eq as Bijection using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Erased.Cubical eq hiding (map)
-open import Erased.Cubical.Singleton eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import List eq as L hiding (map)
 open import H-level eq

@@ -1359,3 +1359,65 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                                         (lower-extensionality a lzero ext)
   Erased-cong-∘         {k = bijection}           = Erased-cong-↔-∘
   Erased-cong-∘         {k = equivalence}         = Erased-cong-≃-∘
+
+  ----------------------------------------------------------------------
+  -- Erased singletons
+
+  -- A variant of the Singleton type family with erased equality proofs.
+
+  Erased-singleton : {A : Set a} → @0 A → Set a
+  Erased-singleton x = ∃ λ y → Erased (y ≡ x)
+
+  -- The type of triples consisting of two values of type A, one erased,
+  -- and an erased proof of equality of the two values is isomorphic to
+  -- A.
+
+  Σ-Erased-Erased-singleton↔ :
+    (∃ λ (x : Erased A) → Erased-singleton (erased x)) ↔ A
+  Σ-Erased-Erased-singleton↔ {A = A} =
+    (∃ λ (x : Erased A) → ∃ λ y → Erased (y ≡ erased x))  ↝⟨ ∃-comm ⟩
+    (∃ λ y → ∃ λ (x : Erased A) → Erased (y ≡ erased x))  ↝⟨ (∃-cong λ _ → inverse Erased-Σ↔Σ) ⟩
+    (∃ λ y → Erased (∃ λ (x : A) → y ≡ x))                ↝⟨ (∃-cong λ _ → Erased-cong (_⇔_.to contractible⇔↔⊤ (other-singleton-contractible _))) ⟩
+    A × Erased ⊤                                          ↝⟨ drop-⊤-right (λ _ → Erased-⊤↔⊤) ⟩□
+    A                                                     □
+
+  -- If equality is very stable for A, then Erased-singleton x is
+  -- contractible for x : A.
+
+  erased-singleton-contractible :
+    {x : A} →
+    Very-stable-≡ A →
+    Contractible (Erased-singleton x)
+  erased-singleton-contractible {x = x} s =
+                                       $⟨ singleton-contractible x ⟩
+    Contractible (Singleton x)         ↝⟨ H-level-cong _ 0 (∃-cong λ _ → Eq.⟨ _ , s _ _ ⟩) ⦂ (_ → _) ⟩□
+    Contractible (Erased-singleton x)  □
+
+  -- If equality is very stable for A, and x : A is erased, then
+  -- Erased-singleton x is a proposition.
+
+  erased-singleton-with-erased-center-propositional :
+    {@0 x : A} →
+    Very-stable-≡ A →
+    Is-proposition (Erased-singleton x)
+  erased-singleton-with-erased-center-propositional {x = x} s =
+                                                   $⟨ [ erased-singleton-contractible (λ _ _ → erased Erased-Very-stable) ] ⟩
+    Erased (Contractible (Erased-singleton x))     ↝⟨ Erased-cong (mono₁ 0) ⟩
+    Erased (Is-proposition (Erased-singleton x))   ↝⟨ (Stable-H-level 0 $ Very-stable→Stable 1 $
+                                                       Very-stable-Σⁿ 1 s λ _ → Very-stable→Very-stable-≡ 0 Very-stable-Erased) ⟩□
+    Is-proposition (Erased-singleton x)            □
+
+  -- If A is very stable, and x : A is erased, then Erased-singleton x
+  -- is contractible.
+
+  erased-singleton-with-erased-center-contractible :
+    {@0 x : A} →
+    Very-stable A →
+    Contractible (Erased-singleton x)
+  erased-singleton-with-erased-center-contractible {x = x} s =
+                                       $⟨ [ (x , [ refl _ ]) ] ⟩
+    Erased (Erased-singleton x)        ↝⟨ Very-stable→Stable 0 (Very-stable-Σ s λ _ → Very-stable-Erased) ⟩
+    Erased-singleton x                 ↝⟨ propositional⇒inhabited⇒contractible $
+                                          erased-singleton-with-erased-center-propositional $
+                                          Very-stable→Very-stable-≡ 0 s ⟩□
+    Contractible (Erased-singleton x)  □

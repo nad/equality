@@ -292,10 +292,6 @@ import Erased.Stability
 
 import Erased.Cubical
 
--- Erased singletons.
-
-import Erased.Cubical.Singleton
-
 -- Integers.
 
 import Integer
