@@ -210,6 +210,14 @@ Surjective-propositional =
   Π-closure ext 1 λ _ →
   truncation-is-proposition
 
+-- The function ∣_∣ is surjective.
+
+∣∣-surjective : Surjective (∣_∣ {A = A})
+∣∣-surjective = elim
+  _
+  (λ _ → truncation-is-proposition)
+  (λ x → ∣ x , refl _ ∣)
+
 -- Split surjective functions are surjective.
 
 Split-surjective→Surjective :
