@@ -178,6 +178,16 @@ Erased-Very-stable {A = A} =
       A ≃ Erased A          □)
   ]
 
+-- If Very-stable A is very stable, then A is very stable.
+--
+-- See also Very-stable-Very-stable≃Very-stable below.
+
+Very-stable-Very-stable→Very-stable :
+  Very-stable (Very-stable A) →
+  Very-stable A
+Very-stable-Very-stable→Very-stable s =
+  Very-stable→Stable 0 s Erased-Very-stable
+
 -- It is not the case that every very stable type is a proposition.
 
 ¬-Very-stable→Is-proposition :
@@ -878,6 +888,24 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     For-iterated-equality n Very-stable A  ↝⟨ Very-stable-H-level′ ext n ⟩
     Very-stable (H-level′ n A)             ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
     Very-stable (H-level n A)              □
+
+  -- There is an equivalence between Very-stable (Very-stable A) and
+  -- Very-stable A (assuming extensionality).
+
+  Very-stable-Very-stable≃Very-stable :
+    {A : Set a} →
+    Extensionality a a →
+    Very-stable (Very-stable A) ≃ Very-stable A
+  Very-stable-Very-stable≃Very-stable ext =
+    _↠_.from (Eq.≃↠⇔ (Very-stable-propositional ext)
+                     (Very-stable-propositional ext))
+      (record
+         { to   = Very-stable-Very-stable→Very-stable
+         ; from = λ s →
+             Very-stable-Π ext λ _ →
+             Very-stable-H-level ext 0 $
+             Very-stable-Σ s (λ _ → Very-stable-≡₀ _ _)
+         })
 
   -- A generalisation of Stable-≡-⊎.
 
