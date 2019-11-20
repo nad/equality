@@ -21,9 +21,11 @@ open import Prelude
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq hiding (elim)
 open import Equality.Path.Isomorphisms eq
-open import Function-universe eq
+open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
-open import H-level.Truncation.Propositional eq hiding (elim; rec)
+open import H-level.Closure eq
+open import H-level.Truncation.Propositional eq as Trunc
+  hiding (elim; rec)
 open import Nat eq
 open import Univalence-axiom eq
 
@@ -134,6 +136,16 @@ all-points-on-the-circle-are-merely-equal =
        ∣ refl base ∣
        (truncation-is-proposition _ _)
 
+-- Thus every element of the circle is not not equal to the base
+-- point.
+
+all-points-on-the-circle-are-¬¬-equal :
+  (x : 𝕊¹) → ¬ ¬ x ≡ base
+all-points-on-the-circle-are-¬¬-equal x =
+  x ≢ base        ↝⟨ Trunc.rec ⊥-propositional ⟩
+  ¬ ∥ x ≡ base ∥  ↝⟨ _$ all-points-on-the-circle-are-merely-equal x ⟩□
+  ⊥               □
+
 -- However, it is not the case that every point on the circle is
 -- /equal/ to the base point.
 
@@ -146,6 +158,26 @@ all-points-on-the-circle-are-merely-equal =
   Is-proposition 𝕊¹      ↝⟨ mono₁ 1 ⟩
   Is-set 𝕊¹              ↝⟨ ¬-𝕊¹-set ⟩□
   ⊥                      □
+
+-- Thus double-negation shift for Set-valued predicates over 𝕊¹ does
+-- not hold in general.
+
+¬-double-negation-shift :
+  ¬ ({P : 𝕊¹ → Set} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))
+¬-double-negation-shift =
+  ({P : 𝕊¹ → Set} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))  ↝⟨ _$ all-points-on-the-circle-are-¬¬-equal ⟩
+  ¬ ¬ ((x : 𝕊¹) → x ≡ base)                                       ↝⟨ _$ ¬-all-points-on-the-circle-are-equal ⟩□
+  ⊥                                                               □
+
+-- Furthermore excluded middle for arbitrary types (in Set) does not
+-- hold.
+
+¬-excluded-middle : ¬ ({A : Set} → Dec A)
+¬-excluded-middle =
+  ({A : Set} → Dec A)                                             ↝⟨ (λ em ¬¬a → [ id , ⊥-elim ∘ ¬¬a ] em) ⟩
+  ({A : Set} → ¬ ¬ A → A)                                         ↝⟨ (λ dne → flip _$_ ∘ (dne ∘_)) ⟩
+  ({P : 𝕊¹ → Set} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))  ↝⟨ ¬-double-negation-shift ⟩□
+  ⊥                                                               □
 
 -- H-level.Closure.proj₁-closure cannot be generalised by replacing
 -- the assumption ∀ a → B a with ∀ a → ∥ B a ∥.
