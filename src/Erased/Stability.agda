@@ -147,6 +147,13 @@ Very-stable→Stable-[]≡id {x = x} s =
   _≃_.from Eq.⟨ _ , s ⟩ [ x ]   ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s ⟩ x ⟩∎
   x                             ∎
 
+-- If one can prove that A is very stable given that Erased A is
+-- inhabited, then A is very stable.
+
+[Erased→Very-stable]→Very-stable :
+  (Erased A → Very-stable A) → Very-stable A
+[Erased→Very-stable]→Very-stable hyp x = hyp x x
+
 -- Erased A is very stable.
 
 Very-stable-Erased :
