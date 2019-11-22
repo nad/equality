@@ -43,7 +43,7 @@ private
     P           : I → Set p
     x y z       : A
     f g h       : (x : A) → B x
-    i           : I
+    i j         : I
     n           : ℕ
 
 ------------------------------------------------------------------------
@@ -668,6 +668,12 @@ dcong≡hcong :
   _↔_.to (heterogeneous↔homogeneous (λ i → B (x≡y i))) (hcong f x≡y)
 dcong≡hcong _ = refl
 
+-- All instances of an interval-indexed family are equal.
+
+index-irrelevant : (P : I → Set p) → P i ≡ P j
+index-irrelevant {i = i} {j = j} P =
+  λ k → P (max (min i (- k)) (min j k))
+
 -- Positive h-levels of P i can be expressed in terms of the h-levels
 -- of dependent paths over P.
 
@@ -675,11 +681,11 @@ H-level-suc↔H-level[]≡ :
   ∀ (P : I → Set p) i →
   H-level (suc n) (P i) ↔ (∀ x y → H-level n ([ P ] x ≡ y))
 H-level-suc↔H-level[]≡ {n = n} P i =
-  H-level (suc n) (P i)                                            ↝⟨ H-level-cong ext _ (≡⇒≃ λ j → P (max i j)) ⟩
+  H-level (suc n) (P i)                                            ↝⟨ H-level-cong ext _ (≡⇒≃ $ index-irrelevant P) ⟩
 
   H-level (suc n) (P 1̲)                                            ↝⟨ inverse $ ≡↔+ _ ext ⟩
 
-  ((x y : P 1̲) → H-level n (x ≡ y))                                ↝⟨ (Π-cong ext (inverse $ ≡⇒≃ λ i → P i) λ x → ∀-cong ext λ _ →
+  ((x y : P 1̲) → H-level n (x ≡ y))                                ↝⟨ (Π-cong ext (inverse $ ≡⇒≃ $ index-irrelevant P) λ x → ∀-cong ext λ _ →
                                                                        ≡⇒↝ _ $ cong (λ x → H-level _ (x ≡ _)) (
       x                                                                  ≡⟨ sym $ transport∘transport (λ i → P (- i)) ⟩
 
