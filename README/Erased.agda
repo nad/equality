@@ -35,6 +35,7 @@ import Erased.With-K
 import Function-universe
 import H-level
 import Nat.Wrapper
+import Nat.Wrapper.Cubical
 import Prelude
 import Queue.Truncated
 
@@ -507,19 +508,19 @@ dequeue = Queue.Truncated.Non-indexed.dequeue
 
 -- Nat-[_]′.
 
-Nat-[_]′ = Nat.Wrapper.Nat-with-∥∥.Nat-[_]′
+Nat-[_]′ = Nat.Wrapper.Cubical.Nat-[_]′
 
 -- An alternative implementation of Nat.
 
-Alternative-Nat = Nat.Wrapper.Nat-with-∥∥.Nat-with-∥∥
+Alternative-Nat = Nat.Wrapper.Cubical.Nat-with-∥∥
 
 -- The alternative implementation of Nat is isomorphic to the unit
 -- type.
 
-Alternative-Nat-isomorphic-to-⊤ = Nat.Wrapper.Nat-with-∥∥.Nat-with-∥∥↔⊤
+Alternative-Nat-isomorphic-to-⊤ = Nat.Wrapper.Cubical.Nat-with-∥∥↔⊤
 
 -- The alternative implementation of Nat is not isomorphic to the
 -- natural numbers.
 
 Alternative-Nat-not-isomorphic-to-ℕ =
-  Nat.Wrapper.Nat-with-∥∥.¬-Nat-with-∥∥↔ℕ
+  Nat.Wrapper.Cubical.¬-Nat-with-∥∥↔ℕ

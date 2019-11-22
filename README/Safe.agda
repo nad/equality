@@ -325,6 +325,10 @@ import Integer.Quotient
 
 import Nat.Wrapper
 
+-- An example related to Nat.Wrapper, defined in Cubical Agda.
+
+import Nat.Wrapper.Cubical
+
 -- A binary representation of natural numbers.
 
 import Nat.Binary

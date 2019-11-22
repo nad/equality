@@ -2,11 +2,19 @@
 -- A binary representation of natural numbers
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --without-K --safe #-}
 
 open import Equality
+import Erased
 
-module Nat.Binary {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+module Nat.Binary
+  {c⁺}
+  (eq : ∀ {a p} → Equality-with-J a p c⁺)
+
+  -- An instantiation of the []-cong axioms.
+  (open Erased eq)
+  (ax : ∀ {a} → []-cong-axiomatisation a)
+  where
 
 open Derived-definitions-and-properties eq
 
@@ -15,11 +23,10 @@ open import Prelude hiding (suc) renaming (_+_ to _⊕_; _*_ to _⊛_)
 
 open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
-open import Erased.Cubical eq
 open import Function-universe eq hiding (id; _∘_)
 open import List eq
 open import Nat.Solver eq
-import Nat.Wrapper eq as Wrapper
+import Nat.Wrapper eq ax as Wrapper
 open import Surjection eq using (_↠_)
 
 private
@@ -49,8 +56,7 @@ private
       -- not allowed.
       --
       -- The type is abstract to ensure that a change to a different
-      -- representation (for instance a variant in which leading zeros
-      -- are allowed) does not break code that uses this module.
+      -- representation does not break code that uses this module.
 
       mutual
 
@@ -187,32 +193,6 @@ private
         from-ℕ′ zero      = []
         from-ℕ′ (N.suc n) = suc′ (from-ℕ′ n)
 
-    -- There is a split surjection from Bin′ to ℕ.
-
-    Bin′↠ℕ : Bin′ ↠ ℕ
-    Bin′↠ℕ = record
-      { logical-equivalence = record
-        { to   = to-ℕ′
-        ; from = from-ℕ′
-        }
-      ; right-inverse-of = to-ℕ′∘from-ℕ′
-      }
-      where
-
-      abstract
-
-        to-ℕ′∘from-ℕ′ : ∀ n → to-ℕ′ (from-ℕ′ n) ≡ n
-        to-ℕ′∘from-ℕ′ zero      = refl _
-        to-ℕ′∘from-ℕ′ (N.suc n) =
-          to-ℕ′ (from-ℕ′ (N.suc n))  ≡⟨⟩
-          to-ℕ′ (suc′ (from-ℕ′ n))   ≡⟨ to-ℕ′-suc′ (from-ℕ′ n) ⟩
-          N.suc (to-ℕ′ (from-ℕ′ n))  ≡⟨ cong N.suc (to-ℕ′∘from-ℕ′ n) ⟩∎
-          N.suc n                    ∎
-
-    abstract
-
-      private
-
         -- The function from-ℕ′ commutes with "multiplication by two".
 
         from-ℕ′-2-⊛ : ∀ n → from-ℕ′ (2 ⊛ n) ≡ false ∷ˢ from-ℕ′ n
@@ -227,36 +207,53 @@ private
           false ∷ˢ suc′ (from-ℕ′ n)           ≡⟨⟩
           false ∷ˢ from-ℕ′ (N.suc n)          ∎
 
-        -- There is a bijection from Bin′ to ℕ. (This result is not
-        -- exported.)
+    -- There is a bijection from Bin′ to ℕ.
 
-        Bin′↔ℕ : Bin′ ↔ ℕ
-        Bin′↔ℕ = record
-          { surjection      = Bin′↠ℕ
-          ; left-inverse-of = from-ℕ′∘to-ℕ′
+    Bin′↔ℕ : Bin′ ↔ ℕ
+    Bin′↔ℕ = record
+      { surjection = record
+        { logical-equivalence = record
+          { to   = to-ℕ′
+          ; from = from-ℕ′
           }
-          where
+        ; right-inverse-of = to-ℕ′∘from-ℕ′
+        }
+      ; left-inverse-of = from-ℕ′∘to-ℕ′
+      }
+      where
 
-          abstract
+      abstract
 
-            from-ℕ′∘to-ℕ′ : ∀ n → from-ℕ′ (to-ℕ′ n) ≡ n
-            from-ℕ′∘to-ℕ′ [] = refl _
+        to-ℕ′∘from-ℕ′ : ∀ n → to-ℕ′ (from-ℕ′ n) ≡ n
+        to-ℕ′∘from-ℕ′ zero      = refl _
+        to-ℕ′∘from-ℕ′ (N.suc n) =
+          to-ℕ′ (from-ℕ′ (N.suc n))  ≡⟨⟩
+          to-ℕ′ (suc′ (from-ℕ′ n))   ≡⟨ to-ℕ′-suc′ (from-ℕ′ n) ⟩
+          N.suc (to-ℕ′ (from-ℕ′ n))  ≡⟨ cong N.suc (to-ℕ′∘from-ℕ′ n) ⟩∎
+          N.suc n                    ∎
 
-            from-ℕ′∘to-ℕ′ n@(true ∷ n′ ⟨ true-inv ⟩) =
-              from-ℕ′ (to-ℕ′ n)                   ≡⟨⟩
-              from-ℕ′ (1 ⊕ 2 ⊛ to-ℕ′ n′)          ≡⟨⟩
-              suc′ (from-ℕ′ (2 ⊛ to-ℕ′ n′))       ≡⟨ cong suc′ (from-ℕ′-2-⊛ (to-ℕ′ n′)) ⟩
-              suc′ (false ∷ˢ from-ℕ′ (to-ℕ′ n′))  ≡⟨ cong (suc′ ∘ (false ∷ˢ_)) (from-ℕ′∘to-ℕ′ n′) ⟩
-              suc′ (false ∷ˢ n′)                  ≡⟨ suc′-false-∷ˢ n′ ⟩
-              true ∷ˢ n′                          ≡⟨⟩
-              n                                   ∎
+        from-ℕ′∘to-ℕ′ : ∀ n → from-ℕ′ (to-ℕ′ n) ≡ n
+        from-ℕ′∘to-ℕ′ [] = refl _
 
-            from-ℕ′∘to-ℕ′ n@(false ∷ n′ ⟨ false-inv ⟩) =
-              from-ℕ′ (to-ℕ′ n)            ≡⟨⟩
-              from-ℕ′ (2 ⊛ to-ℕ′ n′)       ≡⟨ from-ℕ′-2-⊛ (to-ℕ′ n′) ⟩
-              false ∷ˢ from-ℕ′ (to-ℕ′ n′)  ≡⟨ cong (false ∷ˢ_) (from-ℕ′∘to-ℕ′ n′) ⟩
-              false ∷ˢ n′                  ≡⟨⟩
-              n                            ∎
+        from-ℕ′∘to-ℕ′ n@(true ∷ n′ ⟨ true-inv ⟩) =
+          from-ℕ′ (to-ℕ′ n)                   ≡⟨⟩
+          from-ℕ′ (1 ⊕ 2 ⊛ to-ℕ′ n′)          ≡⟨⟩
+          suc′ (from-ℕ′ (2 ⊛ to-ℕ′ n′))       ≡⟨ cong suc′ (from-ℕ′-2-⊛ (to-ℕ′ n′)) ⟩
+          suc′ (false ∷ˢ from-ℕ′ (to-ℕ′ n′))  ≡⟨ cong (suc′ ∘ (false ∷ˢ_)) (from-ℕ′∘to-ℕ′ n′) ⟩
+          suc′ (false ∷ˢ n′)                  ≡⟨ suc′-false-∷ˢ n′ ⟩
+          true ∷ˢ n′                          ≡⟨⟩
+          n                                   ∎
+
+        from-ℕ′∘to-ℕ′ n@(false ∷ n′ ⟨ false-inv ⟩) =
+          from-ℕ′ (to-ℕ′ n)            ≡⟨⟩
+          from-ℕ′ (2 ⊛ to-ℕ′ n′)       ≡⟨ from-ℕ′-2-⊛ (to-ℕ′ n′) ⟩
+          false ∷ˢ from-ℕ′ (to-ℕ′ n′)  ≡⟨ cong (false ∷ˢ_) (from-ℕ′∘to-ℕ′ n′) ⟩
+          false ∷ˢ n′                  ≡⟨⟩
+          n                            ∎
+
+    abstract
+
+      private
 
         -- Helper functions used to implement addition.
 
@@ -517,7 +514,7 @@ private
 
 private
 
-  module Bin-wrapper = Wrapper Bin′.Bin′ Bin′.Bin′↠ℕ
+  module Bin-wrapper = Wrapper Bin′.Bin′ Bin′.Bin′↔ℕ
   open Bin-wrapper using (Operations)
 
 -- Some definitions from Nat.Wrapper are reexported.
