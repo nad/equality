@@ -313,7 +313,7 @@ subst≡subst-refl {P = P} = cong (λ f → f {p = _}) $ _↔_.from ≡↔≡ $
              (trans (subst-refl _ _)
                 (sym $ _↔_.from ≡↔≡ $ P.subst-refl P _)))
 
--- A corollary.
+-- Some corollaries.
 
 subst≡↔subst≡ :
   ∀ {eq : x P.≡ y} →
@@ -323,6 +323,15 @@ subst≡↔subst≡ {B = B} {u = u} {v = v} {eq = eq} =
   subst B (_↔_.from ≡↔≡ eq) u ≡ v  ↝⟨ ≡⇒↝ _ $ cong (_≡ _) subst≡subst ⟩
   P.subst B eq u ≡ v               ↝⟨ ≡↔≡ ⟩□
   P.subst B eq u P.≡ v             □
+
+subst≡↔[]≡ :
+  {eq : x P.≡ y} →
+  subst B (_↔_.from ≡↔≡ eq) u ≡ v ↔
+  P.[ (λ i → B (eq i)) ] u ≡ v
+subst≡↔[]≡ {B = B} {u = u} {v = v} {eq = eq} =
+  subst B (_↔_.from ≡↔≡ eq) u ≡ v  ↝⟨ subst≡↔subst≡ ⟩
+  P.subst B eq u P.≡ v             ↝⟨ ↔→↔ $ PB.inverse $ P.heterogeneous↔homogeneous _ ⟩□
+  P.[ (λ i → B (eq i)) ] u ≡ v     □
 
 -- The dcong function for paths can be expressed using dcong for
 -- equality.
@@ -411,10 +420,7 @@ subst≡→[]≡ :
   {eq : x P.≡ y} →
   subst B (_↔_.from ≡↔≡ eq) u ≡ v →
   P.[ (λ i → B (eq i)) ] u ≡ v
-subst≡→[]≡ {B = B} {u = u} {v = v} {eq = eq} =
-  subst B (_↔_.from ≡↔≡ eq) u ≡ v  ↝⟨ _↔_.to subst≡↔subst≡ ⟩
-  P.subst B eq u P.≡ v             ↝⟨ PB._↔_.from (P.heterogeneous↔homogeneous _) ⟩□
-  P.[ (λ i → B (eq i)) ] u ≡ v     □
+subst≡→[]≡ = _↔_.to subst≡↔[]≡
 
 dcong-subst≡→[]≡ :
   {eq₁ : x P.≡ y} {eq₂ : subst B (_↔_.from ≡↔≡ eq₁) (f x) ≡ f y} →
