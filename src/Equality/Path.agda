@@ -678,21 +678,21 @@ index-irrelevant {i = i} {j = j} P =
 -- of dependent paths over P.
 
 H-level-suc↔H-level[]≡ :
-  ∀ (P : I → Set p) i →
+  {P : I → Set p} →
   H-level (suc n) (P i) ↔ (∀ x y → H-level n ([ P ] x ≡ y))
-H-level-suc↔H-level[]≡ {n = n} P i =
+H-level-suc↔H-level[]≡ {n = n} {i = i} {P = P} =
   H-level (suc n) (P i)                                            ↝⟨ H-level-cong ext _ (≡⇒≃ $ index-irrelevant P) ⟩
 
   H-level (suc n) (P 1̲)                                            ↝⟨ inverse $ ≡↔+ _ ext ⟩
 
-  ((x y : P 1̲) → H-level n (x ≡ y))                                ↝⟨ (Π-cong ext (inverse $ ≡⇒≃ $ index-irrelevant P) λ x → ∀-cong ext λ _ →
+  ((x y : P 1̲) → H-level n (x ≡ y))                                ↝⟨ (Π-cong ext (≡⇒≃ $ index-irrelevant P) λ x → ∀-cong ext λ _ →
                                                                        ≡⇒↝ _ $ cong (λ x → H-level _ (x ≡ _)) (
       x                                                                  ≡⟨ sym $ transport∘transport (λ i → P (- i)) ⟩
 
-      transport P 0̲ (transport (λ i → P (- i)) 0̲ x)                      ≡⟨ cong (λ f → transport P 0̲ (f (transport (λ i → P (- i)) 0̲ x))) $ sym $
+      transport P 0̲ (transport (λ i → P (- i)) 0̲ x)                      ≡⟨ cong (λ f → transport P 0̲ (transport (λ i → P (- i)) 0̲ (f x))) $ sym $
                                                                             transport-refl 0̲ ⟩∎
       transport P 0̲
-        (transport (λ _ → P 0̲) 0̲ (transport (λ i → P (- i)) 0̲ x))        ∎)) ⟩
+        (transport (λ i → P (- i)) 0̲ (transport (λ _ → P 1̲) 0̲ x))        ∎)) ⟩
 
   ((x : P 0̲) (y : P 1̲) → H-level n (transport P 0̲ x ≡ y))          ↝⟨ (∀-cong ext λ x → ∀-cong ext λ y → H-level-cong ext n $ inverse $
                                                                        heterogeneous↔homogeneous P) ⟩□
@@ -705,7 +705,7 @@ private
   H-level-suc→H-level[]≡ :
     ∀ n → H-level (1 + n) (P 0̲) → H-level n ([ P ] x ≡ y)
   H-level-suc→H-level[]≡ {P = P} {x = x} {y = y} n =
-    H-level (1 + n) (P 0̲)              ↔⟨ H-level-suc↔H-level[]≡ P 0̲ ⟩
+    H-level (1 + n) (P 0̲)              ↔⟨ H-level-suc↔H-level[]≡ ⟩
     (∀ x y → H-level n ([ P ] x ≡ y))  ↝⟨ (λ f → f _ _) ⟩□
     H-level n ([ P ] x ≡ y)            □
 
