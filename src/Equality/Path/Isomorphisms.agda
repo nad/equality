@@ -334,7 +334,7 @@ subst≡↔[]≡ {B = B} {u = u} {v = v} {eq = eq} =
   P.[ (λ i → B (eq i)) ] u ≡ v     □
 
 -- The dcong function for paths can be expressed using dcong for
--- equality.
+-- equality (up to pointwise equality).
 
 dcong≡dcong :
   {f : (x : A) → B x} {x≡y : x P.≡ y} →
