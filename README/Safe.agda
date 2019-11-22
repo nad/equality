@@ -189,6 +189,10 @@ import Suspension
 
 import Sphere
 
+-- Pushouts, defined using a HIT.
+
+import Pushout
+
 -- Truncation, defined as a HIT.
 
 import H-level.Truncation
