@@ -25,75 +25,79 @@ open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional eq as Trunc
-  hiding (elim; rec)
+  using (∥_∥; ∣_∣)
 open import Nat eq
 open import Univalence-axiom eq
 
 private
   variable
-    p : Level
-    A : Set p
+    p   : Level
+    A   : Set p
+    P   : A → Set p
+    b ℓ : A
 
 -- The circle.
 
 data 𝕊¹ : Set where
   base  : 𝕊¹
-  loop′ : base P.≡ base
+  loopᴾ : base P.≡ base
 
 loop : base ≡ base
-loop = _↔_.from ≡↔≡ loop′
+loop = _↔_.from ≡↔≡ loopᴾ
+
+-- A dependent eliminator, expressed using paths.
+
+elimᴾ :
+  (P : 𝕊¹ → Set p)
+  (b : P base) →
+  P.[ (λ i → P (loopᴾ i)) ] b ≡ b →
+  (x : 𝕊¹) → P x
+elimᴾ P b ℓ base      = b
+elimᴾ P b ℓ (loopᴾ i) = ℓ i
+
+-- A non-dependent eliminator, expressed using paths.
+
+recᴾ : (b : A) → b P.≡ b → 𝕊¹ → A
+recᴾ = elimᴾ _
 
 -- A dependent eliminator.
 
-module Elim
+elim :
   (P : 𝕊¹ → Set p)
-  (b : P base)
-  (ℓ : subst P loop b ≡ b)
-  where
+  (b : P base) →
+  subst P loop b ≡ b →
+  (x : 𝕊¹) → P x
+elim P b ℓ = elimᴾ P b (subst≡→[]≡ ℓ)
 
-  elim : (x : 𝕊¹) → P x
-  elim base      = b
-  elim (loop′ i) = subst≡→[]≡ ℓ i
+-- A "computation" rule.
 
-  -- "Computation" rule for loop.
-
-  elim-loop : dcong elim loop ≡ ℓ
-  elim-loop = dcong-subst≡→[]≡ (refl _)
-
-open Elim public
+elim-loop : dcong (elim P b ℓ) loop ≡ ℓ
+elim-loop = dcong-subst≡→[]≡ (refl _)
 
 -- A non-dependent eliminator.
 
-module Rec (b : A) (ℓ : b ≡ b) where
+rec : (b : A) → b ≡ b → 𝕊¹ → A
+rec b ℓ = recᴾ b (_↔_.to ≡↔≡ ℓ)
 
-  rec : 𝕊¹ → A
-  rec base      = b
-  rec (loop′ i) = _↔_.to ≡↔≡ ℓ i
+-- A "computation" rule.
 
-  rec-loop : cong rec loop ≡ ℓ
-  rec-loop = cong-≡↔≡ (refl _)
+rec-loop : cong (rec b ℓ) loop ≡ ℓ
+rec-loop = cong-≡↔≡ (refl _)
 
-private
+-- An alternative non-dependent eliminator.
 
-  -- An alternative non-dependent eliminator.
+rec′ :  (b : A) → b ≡ b → 𝕊¹ → A
+rec′ {A = A} b ℓ = elim
+  (const A)
+  b
+  (subst (const A) loop b  ≡⟨ subst-const _ ⟩
+   b                       ≡⟨ ℓ ⟩∎
+   b                       ∎)
 
-  module Rec′ (b : A) (ℓ : b ≡ b) where
+-- A "computation" rule.
 
-    private
-      module E = Elim
-        (const A)
-        b
-        (subst (const A) loop b  ≡⟨ subst-const _ ⟩
-         b                       ≡⟨ ℓ ⟩∎
-         b                       ∎)
-
-    rec : 𝕊¹ → A
-    rec = E.elim
-
-    rec-loop : cong rec loop ≡ ℓ
-    rec-loop = dcong≡→cong≡ E.elim-loop
-
-open Rec public
+rec′-loop : cong (rec′ b ℓ) loop ≡ ℓ
+rec′-loop = dcong≡→cong≡ elim-loop
 
 -- The equality loop is not equal to refl base.
 
@@ -102,13 +106,11 @@ loop≢refl loop≡refl = ¬-Set-set univ Set-set
   where
   refl≡ : (A : Set) (A≡A : A ≡ A) → refl A ≡ A≡A
   refl≡ A A≡A =
-    refl A                  ≡⟨⟩
-    refl (R.rec base)       ≡⟨ sym $ cong-refl _ ⟩
-    cong R.rec (refl base)  ≡⟨ cong (cong R.rec) $ sym loop≡refl ⟩
-    cong R.rec loop         ≡⟨ R.rec-loop ⟩∎
-    A≡A                     ∎
-    where
-    module R = Rec A A≡A
+    refl A                        ≡⟨⟩
+    refl (rec A A≡A base)         ≡⟨ sym $ cong-refl _ ⟩
+    cong (rec A A≡A) (refl base)  ≡⟨ cong (cong (rec A A≡A)) $ sym loop≡refl ⟩
+    cong (rec A A≡A) loop         ≡⟨ rec-loop ⟩∎
+    A≡A                           ∎
 
   Set-set : Is-set Set
   Set-set {x = A} {y = B} =
@@ -134,7 +136,7 @@ all-points-on-the-circle-are-merely-equal :
 all-points-on-the-circle-are-merely-equal =
   elim _
        ∣ refl base ∣
-       (truncation-is-proposition _ _)
+       (Trunc.truncation-is-proposition _ _)
 
 -- Thus every element of the circle is not not equal to the base
 -- point.

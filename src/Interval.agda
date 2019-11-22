@@ -33,6 +33,11 @@ open import Equivalence eq hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq using (ext⁻¹)
 
+private
+  variable
+    a p : Level
+    A   : Set a
+
 ------------------------------------------------------------------------
 -- The interval
 
@@ -40,17 +45,34 @@ open import H-level.Closure eq using (ext⁻¹)
 
 data Interval : Set where
   [0] [1] : Interval
-  0≡1′    : [0] P.≡ [1]
+  0≡1ᴾ    : [0] P.≡ [1]
 
 -- [0] is equal to [1].
 
 0≡1 : [0] ≡ [1]
-0≡1 = _↔_.from I.≡↔≡ 0≡1′
+0≡1 = _↔_.from I.≡↔≡ 0≡1ᴾ
+
+-- An eliminator, expressed using paths.
+
+elimᴾ :
+  (P : Interval → Set p)
+  (p₀ : P [0])
+  (p₁ : P [1]) →
+  P.[ (λ i → P (0≡1ᴾ i)) ] p₀ ≡ p₁ →
+  (x : Interval) → P x
+elimᴾ P p₀ p₁ p₀≡p₁ = λ where
+  [0]      → p₀
+  [1]      → p₁
+  (0≡1ᴾ i) → p₀≡p₁ i
+
+-- A non-dependent eliminator, expressed using paths.
+
+recᴾ : (p₀ p₁ : A) → p₀ P.≡ p₁ → Interval → A
+recᴾ = elimᴾ _
 
 -- An eliminator.
 
 module Elim
-  {p}
   (P : Interval → Set p)
   (p₀ : P [0])
   (p₁ : P [1])
@@ -60,9 +82,7 @@ module Elim
   -- The eliminator.
 
   elim : (x : Interval) → P x
-  elim [0]      = p₀
-  elim [1]      = p₁
-  elim (0≡1′ i) = I.subst≡→[]≡ p₀≡p₁ i
+  elim = elimᴾ P p₀ p₁ (I.subst≡→[]≡ p₀≡p₁)
 
   -- A "computation" rule for elim.
 
@@ -74,17 +94,14 @@ open Elim public
 -- A non-dependent eliminator.
 
 module Rec
-  {p} {P : Set p}
-  (p₀ p₁ : P)
+  (p₀ p₁ : A)
   (p₀≡p₁ : p₀ ≡ p₁)
   where
 
   -- The eliminator.
 
-  rec : Interval → P
-  rec [0]      = p₀
-  rec [1]      = p₁
-  rec (0≡1′ i) = _↔_.to I.≡↔≡ p₀≡p₁ i
+  rec : Interval → A
+  rec = recᴾ p₀ p₁ (_↔_.to I.≡↔≡ p₀≡p₁)
 
   -- A computation rule for rec.
 

@@ -748,10 +748,10 @@ heterogeneous-UIP :
   {P : A → Set p} →
   (∀ x → Is-set (P x)) →
   {eq₁ eq₂ : x ≡ y} (eq₃ : eq₁ ≡ eq₂) {p₁ : P x} {p₂ : P y}
-  {eq₄ : [ (λ j → P (eq₁ j)) ] p₁ ≡ p₂}
-  {eq₅ : [ (λ j → P (eq₂ j)) ] p₁ ≡ p₂} →
+  (eq₄ : [ (λ j → P (eq₁ j)) ] p₁ ≡ p₂)
+  (eq₅ : [ (λ j → P (eq₂ j)) ] p₁ ≡ p₂) →
   [ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅
-heterogeneous-UIP {x = x} {P = P} P-set eq₃ {p₁} {p₂} {eq₄} {eq₅} =
+heterogeneous-UIP {x = x} {P = P} P-set eq₃ {p₁} {p₂} eq₄ eq₅ =
                                                                         $⟨ P-set ⟩
   (∀ x → Is-set (P x))                                                  ↝⟨ _$ _ ⟩
   Is-set (P x)                                                          ↔⟨⟩

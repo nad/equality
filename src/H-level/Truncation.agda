@@ -48,12 +48,12 @@ private
 data ∥_∥[1+_] (A : Set a) (n : ℕ) : Set a where
   ∣_∣    : A → ∥ A ∥[1+ n ]
   hub    : (r : 𝕊 n → ∥ A ∥[1+ n ]) → ∥ A ∥[1+ n ]
-  spoke′ : (r : 𝕊 n → ∥ A ∥[1+ n ]) (x : 𝕊 n) → r x P.≡ hub r
+  spokeᴾ : (r : 𝕊 n → ∥ A ∥[1+ n ]) (x : 𝕊 n) → r x P.≡ hub r
 
 -- Spoke equalities.
 
 spoke : (r : 𝕊 n → ∥ A ∥[1+ n ]) (x : 𝕊 n) → r x ≡ hub r
-spoke r x = _↔_.from ≡↔≡ (spoke′ r x)
+spoke r x = _↔_.from ≡↔≡ (spokeᴾ r x)
 
 -- The truncation operator produces types of the right h-level.
 
@@ -92,6 +92,33 @@ truncation-has-correct-h-level {A = A} n =
              fn≡x                                                       ∎)
         }
 
+-- A dependent eliminator, expressed using paths.
+
+elimᴾ :
+  (P : ∥ A ∥[1+ n ] → Set p)
+  (f : ∀ x → P ∣ x ∣)
+  (h : (r : 𝕊 n → ∥ A ∥[1+ n ]) →
+       (∀ x → P (r x)) →
+       P (hub r)) →
+  ((r : 𝕊 n → ∥ A ∥[1+ n ])
+   (p : ∀ x → P (r x))
+   (x : 𝕊 n) →
+   P.[ (λ i → P (spokeᴾ r x i)) ] p x ≡ h r p) →
+  ∀ x → P x
+elimᴾ P f h s = λ where
+  ∣ x ∣          → f x
+  (hub r)        → h r (λ x → elimᴾ P f h s (r x))
+  (spokeᴾ r x i) → s r (λ x → elimᴾ P f h s (r x)) x i
+
+-- A non-dependent eliminator, expressed using paths.
+
+recᴾ :
+  (f : A → B)
+  (h : (r : 𝕊 n → ∥ A ∥[1+ n ]) → (𝕊 n → B) → B) →
+  ((r : 𝕊 n → ∥ A ∥[1+ n ]) (p : 𝕊 n → B) (x : 𝕊 n) → p x P.≡ h r p) →
+  ∥ A ∥[1+ n ] → B
+recᴾ = elimᴾ _
+
 -- A dependent eliminator.
 
 module Elim′
@@ -107,9 +134,7 @@ module Elim′
   where
 
   elim′ : ∀ x → P x
-  elim′ ∣ x ∣          = f x
-  elim′ (hub r)        = h r (λ x → elim′ (r x))
-  elim′ (spoke′ r x i) = subst≡→[]≡ (s r (λ x → elim′ (r x)) x) i
+  elim′ = elimᴾ P f h (λ r p x → subst≡→[]≡ (s r p x))
 
   elim′-spoke : dcong elim′ (spoke r x) ≡ s r (λ x → elim′ (r x)) x
   elim′-spoke = dcong-subst≡→[]≡ (refl _)
@@ -124,18 +149,11 @@ module Rec′
   (s : (r : 𝕊 n → ∥ A ∥[1+ n ]) (p : 𝕊 n → B) (x : 𝕊 n) → p x ≡ h r p)
   where
 
-  private
-    module E = Elim′ (const B) f h
-      (λ r p x →
-        subst (λ _ → B) (spoke r x) (p x)  ≡⟨ subst-const _ ⟩
-        p x                                ≡⟨ s r p x ⟩∎
-        h r p                              ∎)
-
   rec′ : ∥ A ∥[1+ n ] → B
-  rec′ = E.elim′
+  rec′ = recᴾ f h (λ r p x → _↔_.to ≡↔≡ (s r p x))
 
   rec′-spoke : cong rec′ (spoke r x) ≡ s r (λ x → rec′ (r x)) x
-  rec′-spoke = dcong≡→cong≡ E.elim′-spoke
+  rec′-spoke = cong-≡↔≡ (refl _)
 
 open Rec′ public
 

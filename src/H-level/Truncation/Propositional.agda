@@ -44,13 +44,39 @@ private
 
 data ∥_∥ (A : Set a) : Set a where
   ∣_∣                        : A → ∥ A ∥
-  truncation-is-proposition′ : P.Is-proposition ∥ A ∥
+  truncation-is-propositionᴾ : P.Is-proposition ∥ A ∥
 
 -- The truncation produces propositions.
 
 truncation-is-proposition : Is-proposition ∥ A ∥
 truncation-is-proposition =
-  _↔_.from (H-level↔H-level 1) truncation-is-proposition′
+  _↔_.from (H-level↔H-level 1) truncation-is-propositionᴾ
+
+-- A dependent eliminator, expressed using paths.
+
+elimᴾ′ :
+  (P : ∥ A ∥ → Set p) →
+  ((x : A) → P ∣ x ∣) →
+  ({x y : ∥ A ∥} (p : P x) (q : P y) →
+   P.[ (λ i → P (truncation-is-propositionᴾ x y i)) ] p ≡ q) →
+  (x : ∥ A ∥) → P x
+elimᴾ′ P f p ∣ x ∣                             = f x
+elimᴾ′ P f p (truncation-is-propositionᴾ x y i) =
+  p (elimᴾ′ P f p x) (elimᴾ′ P f p y) i
+
+-- A possibly more useful dependent eliminator, expressed using paths.
+
+elimᴾ :
+  (P : ∥ A ∥ → Set p) →
+  (∀ x → P.Is-proposition (P x)) →
+  ((x : A) → P ∣ x ∣) →
+  (x : ∥ A ∥) → P x
+elimᴾ P p f = elimᴾ′ P f (λ _ _ → P.heterogeneous-irrelevance p)
+
+-- A non-dependent eliminator, expressed using paths.
+
+recᴾ : P.Is-proposition B → (A → B) → ∥ A ∥ → B
+recᴾ p = elimᴾ _ (λ _ → p)
 
 -- A dependently typed eliminator.
 
@@ -59,23 +85,12 @@ elim :
   (∀ x → Is-proposition (P x)) →
   ((x : A) → P ∣ x ∣) →
   (x : ∥ A ∥) → P x
-elim P P-prop f ∣ x ∣                              = f x
-elim P P-prop f (truncation-is-proposition′ x y i) = lemma i
-  where
-  lemma : P.[ (λ i → P (truncation-is-proposition′ x y i)) ]
-            elim P P-prop f x ≡ elim P P-prop f y
-  lemma = P.heterogeneous-irrelevance
-            (_↔_.to (H-level↔H-level 1) ∘ P-prop)
+elim P p = elimᴾ P (_↔_.to (H-level↔H-level 1) ∘ p)
 
 -- Primitive "recursion".
 
 rec : Is-proposition B → (A → B) → ∥ A ∥ → B
-rec B-prop f ∣ x ∣                              = f x
-rec B-prop f (truncation-is-proposition′ x y i) =
-  _↔_.to ≡↔≡
-    (rec B-prop f x  ≡⟨ B-prop _ _ ⟩∎
-     rec B-prop f y  ∎)
-    i
+rec p = recᴾ (_↔_.to (H-level↔H-level 1) p)
 
 -- A map function.
 

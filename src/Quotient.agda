@@ -36,7 +36,7 @@ open import Function-universe eq as F hiding (_∘_; id)
 open import H-level.Closure eq
 import H-level.Truncation.Church eq as Trunc
 open import H-level.Truncation.Propositional eq as TruncP
-  hiding (rec; elim)
+  using (∥_∥; ∣_∣; Surjective; Axiom-of-countable-choice)
 open import Monad eq
 open import Preimage eq using (_⁻¹_)
 import Quotient.Families-of-equivalence-classes eq as Quotient
@@ -64,59 +64,99 @@ infix 5 _/_
 
 data _/_ (A : Set a) (R : A → A → Set r) : Set (a ⊔ r) where
   [_]                   : A → A / R
-  []-respects-relation′ : R x y → [ x ] P.≡ [ y ]
-  /-is-set′             : P.Is-set (A / R)
+  []-respects-relationᴾ : R x y → [ x ] P.≡ [ y ]
+  /-is-setᴾ             : P.Is-set (A / R)
 
 -- [_] respects the quotient relation.
 
 []-respects-relation : R x y → _≡_ {A = A / R} [ x ] [ y ]
-[]-respects-relation = _↔_.from ≡↔≡ ∘ []-respects-relation′
+[]-respects-relation = _↔_.from ≡↔≡ ∘ []-respects-relationᴾ
 
 -- Quotients are sets.
 
 /-is-set : Is-set (A / R)
-/-is-set = _↔_.from (H-level↔H-level 2) /-is-set′
+/-is-set = _↔_.from (H-level↔H-level 2) /-is-setᴾ
+
+-- An eliminator, expressed using paths.
+
+elimᴾ′ :
+  (P : A / R → Set p)
+  (f : ∀ x → P [ x ])
+  (g : ∀ {x y} (r : R x y) →
+       P.[ (λ i → P ([]-respects-relationᴾ r i)) ] f x ≡ f y) →
+  (∀ {x y} {eq₁ eq₂ : x P.≡ y} {p : P x} {q : P y}
+   (eq₃ : P.[ (λ i → P (eq₁ i)) ] p ≡ q)
+   (eq₄ : P.[ (λ i → P (eq₂ i)) ] p ≡ q) →
+   P.[ (λ i → P.[ (λ j → P (/-is-setᴾ eq₁ eq₂ i j)) ] p ≡ q) ]
+     eq₃ ≡ eq₄) →
+  (x : A / R) → P x
+elimᴾ′ P f g h [ x ]                       = f x
+elimᴾ′ P f g h ([]-respects-relationᴾ r i) = g r i
+elimᴾ′ P f g h (/-is-setᴾ p q i j)         =
+  h (λ i → elimᴾ′ P f g h (p i)) (λ i → elimᴾ′ P f g h (q i)) i j
+
+-- A possibly more useful eliminator, expressed using paths.
+
+elimᴾ :
+  (P : A / R → Set p)
+  (f : ∀ x → P [ x ]) →
+  (∀ {x y} (r : R x y) →
+   P.[ (λ i → P ([]-respects-relationᴾ r i)) ] f x ≡ f y) →
+  (∀ x → P.Is-set (P x)) →
+  (x : A / R) → P x
+elimᴾ P f g s = elimᴾ′ P f g (P.heterogeneous-UIP s _)
+
+-- A non-dependent eliminator, expressed using paths.
+
+recᴾ :
+  (f : A → B) →
+  (∀ {x y} → R x y → f x P.≡ f y) →
+  P.Is-set B →
+  A / R → B
+recᴾ f g s = elimᴾ _ f g (λ _ → s)
 
 -- An eliminator.
+--
+-- The eliminator is not implemented in terms of elimᴾ. I tried this,
+-- but it seems to have made Agda slower for some code below.
 
-module _
+elim :
   (P : A / R → Set p)
-  (p-[] : ∀ x → P [ x ])
-  (p-[]-respects-relation :
-     ∀ {x y} (r : R x y) →
-     subst P ([]-respects-relation r) (p-[] x) ≡ p-[] y)
-  (P-set : ∀ x → Is-set (P x))
+  (f : ∀ x → P [ x ]) →
+  (∀ {x y} (r : R x y) →
+   subst P ([]-respects-relation r) (f x) ≡ f y) →
+  (∀ x → Is-set (P x)) →
+  (x : A / R) → P x
+elim P f g s [ x ]                       = f x
+elim P f g s ([]-respects-relationᴾ r i) = subst≡→[]≡ (g r) i
+elim P f g s (/-is-setᴾ p q i j)         = lemma i j
   where
-
-  elim : ∀ x → P x
-  elim [ x ] = p-[] x
-
-  elim ([]-respects-relation′ r i) =
-    subst≡→[]≡ (p-[]-respects-relation r) i
-
-  elim (/-is-set′ {x = x} {y = y} p q i j) = lemma i j
-    where
-    lemma :
-      P.[ (λ i → P.[ (λ j → P (/-is-set′ p q i j)) ] elim x ≡ elim y) ]
-        (λ i → elim (p i)) ≡ (λ i → elim (q i))
-    lemma = P.heterogeneous-UIP (_↔_.to (H-level↔H-level 2) ∘ P-set) _
+  lemma :
+    P.[ _ ] (λ i → elim P f g s (p i)) ≡ (λ i → elim P f g s (q i))
+  lemma =
+    P.heterogeneous-UIP
+      (_↔_.to (H-level↔H-level 2) ∘ s)
+      (/-is-setᴾ p q)
+      _ _
 
 -- A non-dependent eliminator.
+--
+-- The eliminator is not implemented in terms of recᴾ. I tried this,
+-- but it seems to have made Agda slower for some code below.
 
 rec :
-  {P : Set p}
-  (p-[] : A → P) →
-  (∀ {x y} → R x y → p-[] x ≡ p-[] y) →
-  Is-set P →
-  A / R → P
-rec {P = P} p-[] p-[]-respects-relation P-set = elim
-  (λ _ → P)
-  p-[]
-  (λ {x y} r →
-     subst (λ _ → P) ([]-respects-relation r) (p-[] x)  ≡⟨ subst-const _ ⟩
-     p-[] x                                             ≡⟨ p-[]-respects-relation r ⟩∎
-     p-[] y                                             ∎)
-  (λ _ → P-set)
+  (f : A → B) →
+  (∀ {x y} → R x y → f x ≡ f y) →
+  Is-set B →
+  A / R → B
+rec f g s [ x ]                       = f x
+rec f g s ([]-respects-relationᴾ r i) = _↔_.to ≡↔≡ (g r) i
+rec f g s (/-is-setᴾ p q i j)         = lemma i j
+  where
+  lemma : (λ i → rec f g s (p i)) P.≡ (λ i → rec f g s (q i))
+  lemma = P.heterogeneous-UIP
+    (λ _ → _↔_.to (H-level↔H-level 2) s)
+    (/-is-setᴾ p q) _ _
 
 -- A variant of elim that can be used if the motive composed with [_]
 -- is a family of propositions.
@@ -310,7 +350,7 @@ Maybeᴾ-preserves-Is-proposition =
 []-surjective = elim-Prop
   _
   (λ x → ∣ x , refl _ ∣)
-  (λ _ → truncation-is-proposition)
+  (λ _ → TruncP.truncation-is-proposition)
 
 -- Some preservation lemmas.
 
@@ -333,7 +373,7 @@ _/-map_ :
   (A₁→A₂ : A₁ → A₂) →
   (∀ x y → R₁ x y → R₂ (A₁→A₂ x) (A₁→A₂ y)) →
   A₁ / R₁ → A₂ / R₂
-A₁→A₂ /-map R₁→R₂ = A₁→A₂ /-map-∥∥ λ x y → ∥∥-map (R₁→R₂ x y)
+A₁→A₂ /-map R₁→R₂ = A₁→A₂ /-map-∥∥ λ x y → TruncP.∥∥-map (R₁→R₂ x y)
 
 /-cong-∥∥-⇔ :
   (A₁⇔A₂ : A₁ ⇔ A₂) →
@@ -351,8 +391,8 @@ A₁→A₂ /-map R₁→R₂ = A₁→A₂ /-map-∥∥ λ x y → ∥∥-map (
   (∀ x y → R₂ x y → R₁ (_⇔_.from A₁⇔A₂ x) (_⇔_.from A₁⇔A₂ y)) →
   A₁ / R₁ ⇔ A₂ / R₂
 /-cong-⇔ A₁⇔A₂ R₁→R₂ R₂→R₁ =
-  /-cong-∥∥-⇔ A₁⇔A₂ (λ x y → ∥∥-map (R₁→R₂ x y))
-                    (λ x y → ∥∥-map (R₂→R₁ x y))
+  /-cong-∥∥-⇔ A₁⇔A₂ (λ x y → TruncP.∥∥-map (R₁→R₂ x y))
+                    (λ x y → TruncP.∥∥-map (R₂→R₁ x y))
 
 _/-cong-∥∥-↠_ :
   (A₁↠A₂ : A₁ ↠ A₂) →
@@ -379,7 +419,8 @@ _/-cong-↠_ :
   (A₁↠A₂ : A₁ ↠ A₂) →
   (∀ x y → R₁ x y ⇔ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y)) →
   A₁ / R₁ ↠ A₂ / R₂
-A₁↠A₂ /-cong-↠ R₁⇔R₂ = A₁↠A₂ /-cong-∥∥-↠ λ x y → ∥∥-cong-⇔ (R₁⇔R₂ x y)
+A₁↠A₂ /-cong-↠ R₁⇔R₂ =
+  A₁↠A₂ /-cong-∥∥-↠ λ x y → TruncP.∥∥-cong-⇔ (R₁⇔R₂ x y)
 
 _/-cong-∥∥_ :
   {A₁ : Set a₁} {A₂ : Set a₂}
@@ -419,14 +460,14 @@ _/-cong_ :
      R₁ x y ⇔ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)) →
   A₁ / R₁ ↔[ k ] A₂ / R₂
 _/-cong_ A₁↔A₂ R₁⇔R₂ =
-  A₁↔A₂ /-cong-∥∥ λ x y → ∥∥-cong-⇔ (R₁⇔R₂ x y)
+  A₁↔A₂ /-cong-∥∥ λ x y → TruncP.∥∥-cong-⇔ (R₁⇔R₂ x y)
 
 -- Quotienting by the propositional truncation of a relation is
 -- equivalent to quotienting by the relation itself.
 
 /-∥∥≃/ : A / (λ x y → ∥ R x y ∥) ≃ A / R
 /-∥∥≃/ {R = R} = F.id /-cong-∥∥ λ x y →
-  ∥ ∥ R x y ∥ ∥  ↔⟨ flatten ⟩□
+  ∥ ∥ R x y ∥ ∥  ↔⟨ TruncP.flatten ⟩□
   ∥ R x y ∥      □
 
 -- If the relation is a propositional equivalence relation, then it is
@@ -477,7 +518,8 @@ related≃[equal] {A = A} {r = r} {R = R}
   Is-equivalence-relation R →
   ∀ {x y} → ∥ R x y ∥ ≃ _≡_ {A = A / R} [ x ] [ y ]
 ∥related∥≃[equal] {A = A} {R = R} R-equiv {x} {y} =
-  ∥ R x y ∥                                    ↝⟨ related≃[equal] (∥∥-preserves-Is-equivalence-relation R-equiv) truncation-is-proposition ⟩
+  ∥ R x y ∥                                    ↝⟨ related≃[equal] (∥∥-preserves-Is-equivalence-relation R-equiv)
+                                                                  TruncP.truncation-is-proposition ⟩
   _≡_ {A = A / λ x y → ∥ R x y ∥} [ x ] [ y ]  ↝⟨ Eq.≃-≡ (inverse /-∥∥≃/) ⟩□
   _≡_ {A = A / R} [ x ] [ y ]                  □
 
@@ -503,12 +545,12 @@ related≃[equal] {A = A} {r = r} {R = R}
 /trivial↔∥∥ {A = A} {R = R} trivial = record
   { surjection = record
     { logical-equivalence = record
-      { to   = rec-Prop ∣_∣ truncation-is-proposition
+      { to   = rec-Prop ∣_∣ TruncP.truncation-is-proposition
       ; from = TruncP.rec /-prop [_]
       }
     ; right-inverse-of = TruncP.elim
         _
-        (λ _ → ⇒≡ 1 truncation-is-proposition)
+        (λ _ → ⇒≡ 1 TruncP.truncation-is-proposition)
         (λ _ → refl _)
     }
   ; left-inverse-of = elim-Prop _ (λ _ → refl _) (λ _ → /-is-set)
@@ -584,7 +626,7 @@ private
   /↔/′ : A Quotient./ R ↔ A /′ R
   /↔/′ {A = A} {R = R} =
     A Quotient./ R                                           ↔⟨⟩
-    (∃ λ (P : A → Set _) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → inverse $ ∥∥↔∥∥ lzero) ⟩
+    (∃ λ (P : A → Set _) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
     (∃ λ (P : A → Set _) → ∥ (∃ λ x → R x ≡ P) ∥)            ↔⟨⟩
     A /′ R                                                   □
 
@@ -694,7 +736,7 @@ private
       A Quotient./ R ↔ A / R
 /↔/ {a = a} {A = A} {R} R-equiv R-prop =
   A Quotient./ R                                                  ↔⟨⟩
-  (∃ λ (P : A → Set a) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a))  ↝⟨ (∃-cong λ _ → inverse $ ∥∥↔∥∥ lzero) ⟩
+  (∃ λ (P : A → Set a) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a))  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
   (∃ λ (P : A → Set a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ R-equiv R-prop ⟩□
   A / R                                                           □
 
@@ -747,22 +789,22 @@ Maybe/-comm : Maybe A / Maybeᴾ R ↔ Maybe (A / R)
 Maybe/-comm {A = A} {R = R} =
   Maybe A / Maybeᴾ R   ↝⟨ ⊎/-comm ⟩
   ⊤ / Trivial ⊎ A / R  ↝⟨ /trivial↔∥∥ _ ⊎-cong F.id ⟩
-  ∥ ⊤ ∥ ⊎ A / R        ↝⟨ ∥∥↔ (mono₁ 0 ⊤-contractible) ⊎-cong F.id ⟩□
+  ∥ ⊤ ∥ ⊎ A / R        ↝⟨ TruncP.∥∥↔ (mono₁ 0 ⊤-contractible) ⊎-cong F.id ⟩□
   Maybe (A / R)        □
 
 -- A simplification lemma for Maybe/-comm.
 
 Maybe/-comm-[] : _↔_.to Maybe/-comm ∘ [_] ≡ ⊎-map id ([_] {R = R})
 Maybe/-comm-[] =
-  _↔_.to Maybe/-comm ∘ [_]                             ≡⟨⟩
+  _↔_.to Maybe/-comm ∘ [_]                                    ≡⟨⟩
 
   ⊎-map _ id ∘
-  ⊎-map (rec-Prop ∣_∣ truncation-is-proposition) id ∘
-  ⊎-map [_] [_]                                        ≡⟨ cong (_∘ ⊎-map [_] [_]) ⊎-map-∘ ⟩
+  ⊎-map (rec-Prop ∣_∣ TruncP.truncation-is-proposition) id ∘
+  ⊎-map [_] [_]                                               ≡⟨ cong (_∘ ⊎-map [_] [_]) ⊎-map-∘ ⟩
 
-  ⊎-map _ id ∘ ⊎-map [_] [_]                           ≡⟨ ⊎-map-∘ ⟩∎
+  ⊎-map _ id ∘ ⊎-map [_] [_]                                  ≡⟨ ⊎-map-∘ ⟩∎
 
-  ⊎-map id [_]                                         ∎
+  ⊎-map id [_]                                                ∎
   where
   ⊎-map-∘ : ∀ {a₁ b₁ c₁} {A₁ : Set a₁} {B₁ : Set b₁} {C₁ : Set c₁}
               {a₂ b₂ c₂} {A₂ : Set a₂} {B₂ : Set b₂} {C₂ : Set c₂}
@@ -865,10 +907,10 @@ Maybe/-comm-[] =
       []→-surjective : Surjective [_]→
       []→-surjective f =                    $⟨ []-surjective ⟩
         Surjective [_]                      ↝⟨ (λ surj → surj ∘ f) ⦂ (_ → _) ⟩
-        (∀ n → ∥ (∃ λ x → [ x ] ≡ f n) ∥)   ↔⟨ countable-choice-bijection cc ⟩
-        ∥ (∀ n → ∃ λ x → [ x ] ≡ f n) ∥     ↔⟨ ∥∥-cong ΠΣ-comm ⟩
+        (∀ n → ∥ (∃ λ x → [ x ] ≡ f n) ∥)   ↔⟨ TruncP.countable-choice-bijection cc ⟩
+        ∥ (∀ n → ∃ λ x → [ x ] ≡ f n) ∥     ↔⟨ TruncP.∥∥-cong ΠΣ-comm ⟩
         ∥ (∃ λ g → ∀ n → [ g n ] ≡ f n) ∥   ↔⟨⟩
-        ∥ (∃ λ g → ∀ n → [ g ]→ n ≡ f n) ∥  ↔⟨ ∥∥-cong (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩□
+        ∥ (∃ λ g → ∀ n → [ g ]→ n ≡ f n) ∥  ↔⟨ TruncP.∥∥-cong (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩□
         ∥ (∃ λ g → [ g ]→ ≡ f) ∥            □
 
   open Dummy
@@ -902,7 +944,7 @@ Maybe/-comm-[] =
 
   from₂ : Unit → ∀ f → ∥ [_]→ ⁻¹ f ∥ → ℕ→/-comm-to ⁻¹ f
   from₂ unit f =
-    _≃_.to (constant-function≃∥inhabited∥⇒inhabited
+    _≃_.to (TruncP.constant-function≃∥inhabited∥⇒inhabited
               (Σ-closure 2 /-is-set λ _ →
                mono₁ 1 (Π-closure ext 2 (λ _ → /-is-set))))
            (from₁ f , from₁-constant f)
@@ -926,7 +968,7 @@ Maybe/-comm-[] =
       (λ f → from x (ℕ→/-comm-to f) ≡ f)
       (λ f →
          from x (ℕ→/-comm-to [ f ])                      ≡⟨⟩
-         proj₁ (from₂ x [ f ]→ ([]→-surjective [ f ]→))  ≡⟨ cong (proj₁ ∘ from₂ x [ f ]→) $ truncation-is-proposition _ _ ⟩
+         proj₁ (from₂ x [ f ]→ ([]→-surjective [ f ]→))  ≡⟨ cong (proj₁ ∘ from₂ x [ f ]→) $ TruncP.truncation-is-proposition _ _ ⟩
          proj₁ (from₂ x [ f ]→ ∣ f , refl _ ∣)           ≡⟨ cong proj₁ $ unblock-from₂ x _ (f , refl _) ⟩
          proj₁ (from₁ [ f ]→ (f , refl _))               ≡⟨⟩
          [ f ]                                           ∎)

@@ -50,12 +50,30 @@ private
 
 data Susp (A : Set a) : Set a where
   north south : Susp A
-  meridian′   : A → north P.≡ south
+  meridianᴾ   : A → north P.≡ south
 
 -- Meridians.
 
 meridian : A → _≡_ {A = Susp A} north south
-meridian = _↔_.from ≡↔≡ ∘ meridian′
+meridian = _↔_.from ≡↔≡ ∘ meridianᴾ
+
+-- A dependent eliminator, expressed using paths.
+
+elimᴾ :
+  (P : Susp A → Set p)
+  (n : P north)
+  (s : P south) →
+  (∀ x → P.[ (λ i → P (meridianᴾ x i)) ] n ≡ s) →
+  (x : Susp A) → P x
+elimᴾ _ n s n≡s = λ where
+  north           → n
+  south           → s
+  (meridianᴾ x i) → n≡s x i
+
+-- A non-dependent eliminator, expressed using paths.
+
+recᴾ : (n s : B) → (A → n P.≡ s) → Susp A → B
+recᴾ = elimᴾ _
 
 -- A dependent eliminator.
 
@@ -67,9 +85,7 @@ module Elim
   where
 
   elim : ∀ x → P x
-  elim north           = n
-  elim south           = s
-  elim (meridian′ x i) = subst≡→[]≡ (n≡s x) i
+  elim = elimᴾ P n s (subst≡→[]≡ ∘ n≡s)
 
   -- "Computation" rule for meridians.
 
@@ -86,21 +102,11 @@ module Rec
   (n≡s : A → n ≡ s)
   where
 
-  private
-    module E = Elim
-      (λ _ → B)
-      n
-      s
-      (λ x →
-         subst (λ _ → B) (meridian x) n  ≡⟨ subst-const _ ⟩
-         n                               ≡⟨ n≡s x ⟩∎
-         s                               ∎)
-
   rec : Susp A → B
-  rec = E.elim
+  rec = recᴾ n s (_↔_.to ≡↔≡ ∘ n≡s)
 
   rec-meridian : cong rec (meridian x) ≡ n≡s x
-  rec-meridian = dcong≡→cong≡ E.elim-meridian
+  rec-meridian = cong-≡↔≡ (refl _)
 
 open Rec public
 
@@ -207,10 +213,8 @@ private
     south  ≡⟨ sym $ meridian true ⟩∎
     north  ∎
 
-  module To = Circle.Rec north north≡north
-
   to : 𝕊¹ → Susp Bool
-  to = To.rec
+  to = Circle.rec north north≡north
 
   module From = Rec base base (if_then refl base else loop)
 
@@ -248,7 +252,7 @@ private
       trans (sym (cong to (if false ⦂ Bool then refl base else loop)))
             (meridian false)                                            ≡⟨⟩
 
-      trans (sym (cong to loop)) (meridian false)                       ≡⟨ cong (λ p → trans (sym p) (meridian false)) To.rec-loop ⟩
+      trans (sym (cong to loop)) (meridian false)                       ≡⟨ cong (λ p → trans (sym p) (meridian false)) Circle.rec-loop ⟩
 
       trans (sym north≡north) (meridian false)                          ≡⟨ prove (Trans (Sym (Trans (Lift _) (Sym (Lift _)))) (Lift _))
                                                                                  (Trans (Trans (Lift _) (Sym (Lift _))) (Lift _))
@@ -265,7 +269,8 @@ private
     (subst (λ x → from (to x) ≡ x) loop (refl base)                  ≡⟨ subst-in-terms-of-trans-and-cong′ ⟩
 
      trans (sym (cong from (cong to loop)))
-           (trans (refl base) loop)                                  ≡⟨ cong₂ (λ p q → trans (sym (cong from p)) q) To.rec-loop (trans-reflˡ _) ⟩
+           (trans (refl base) loop)                                  ≡⟨ cong₂ (λ p q → trans (sym (cong from p)) q)
+                                                                        Circle.rec-loop (trans-reflˡ _) ⟩
 
      trans (sym (cong from north≡north)) loop                        ≡⟨ prove (Trans (Sym (Cong _ (Trans (Lift _) (Sym (Lift _))))) (Lift _))
                                                                               (Trans (Trans (Cong from (Lift (meridian true)))
