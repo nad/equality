@@ -659,6 +659,15 @@ heterogeneous↔homogeneous P {p} {q} = record
                     })
            (base i j)
 
+-- The function dcong is pointwise definitionally equal to an
+-- expression involving hcong.
+
+dcong≡hcong :
+  {x≡y : x ≡ y} (f : (x : A) → B x) →
+  dcong f x≡y ≡
+  _↔_.to (heterogeneous↔homogeneous (λ i → B (x≡y i))) (hcong f x≡y)
+dcong≡hcong _ = refl
+
 -- Positive h-levels of P i can be expressed in terms of the h-levels
 -- of dependent paths over P.
 

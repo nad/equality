@@ -412,6 +412,16 @@ dcong≡dcong {B = B} {f = f} {x≡y} = P.elim
 
      _↔_.from ≡↔≡ $ P.subst-refl B _                           ∎
 
+-- A lemma relating dcong and hcong (for paths).
+
+dcong≡hcong :
+  {x≡y : x P.≡ y} (f : (x : A) → B x) →
+  dcong f (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from subst≡↔[]≡ (P.hcong f x≡y)
+dcong≡hcong {x≡y = x≡y} f =
+  dcong f (_↔_.from ≡↔≡ x≡y)              ≡⟨ sym $ _↔_.from-to (inverse subst≡↔subst≡) dcong≡dcong ⟩
+  _↔_.from subst≡↔subst≡ (P.dcong f x≡y)  ≡⟨⟩
+  _↔_.from subst≡↔[]≡ (P.hcong f x≡y)     ∎
+
 -- Three corollaries, intended to be used in the implementation of
 -- eliminators for HITs. For some examples, see Interval and
 -- Quotient.HIT.
@@ -427,24 +437,10 @@ dcong-subst≡→[]≡ :
   P.hcong f eq₁ ≡ subst≡→[]≡ eq₂ →
   dcong f (_↔_.from ≡↔≡ eq₁) ≡ eq₂
 dcong-subst≡→[]≡ {B = B} {f = f} {eq₁} {eq₂} hyp =
-  dcong f (_↔_.from ≡↔≡ eq₁)                                  ≡⟨ sym $ _↔_.left-inverse-of subst≡↔subst≡ _ ⟩
-
-  _↔_.from subst≡↔subst≡ $ _↔_.to subst≡↔subst≡ $
-    dcong f (_↔_.from ≡↔≡ eq₁)                                ≡⟨ cong (_↔_.from subst≡↔subst≡) dcong≡dcong ⟩
-
-  _↔_.from subst≡↔subst≡ $ P.dcong f eq₁                      ≡⟨⟩
-
-  _↔_.from subst≡↔subst≡ $ PB._↔_.to h↔h $ P.hcong f eq₁      ≡⟨ cong (_↔_.from subst≡↔subst≡ ∘ PB._↔_.to h↔h) hyp ⟩
-
-  _↔_.from subst≡↔subst≡ $ PB._↔_.to h↔h $ PB._↔_.from h↔h $
-    _↔_.to subst≡↔subst≡ eq₂                                  ≡⟨ cong (_↔_.from subst≡↔subst≡) $ _↔_.from ≡↔≡ $
-                                                                 PB._↔_.right-inverse-of h↔h _ ⟩
-
-  _↔_.from subst≡↔subst≡ $ _↔_.to subst≡↔subst≡ eq₂           ≡⟨ _↔_.left-inverse-of subst≡↔subst≡ _ ⟩∎
-
-  eq₂                                                         ∎
-  where
-  h↔h = P.heterogeneous↔homogeneous (λ i → B (eq₁ i))
+  dcong f (_↔_.from ≡↔≡ eq₁)                   ≡⟨ dcong≡hcong f ⟩
+  _↔_.from subst≡↔[]≡ (P.hcong f eq₁)          ≡⟨ cong (_↔_.from subst≡↔[]≡) hyp ⟩
+  _↔_.from subst≡↔[]≡ (_↔_.to subst≡↔[]≡ eq₂)  ≡⟨ _↔_.left-inverse-of subst≡↔[]≡ _ ⟩∎
+  eq₂                                          ∎
 
 cong-≡↔≡ :
   {eq₁ : x P.≡ y} {eq₂ : f x ≡ f y} →
