@@ -245,6 +245,37 @@ cong≡cong {f = f} {x≡y = x≡y} = P.elim
      _↔_.from ≡↔≡ (P.cong f P.refl)  ∎)
   x≡y
 
+-- The sym function for paths can be expressed in terms of the sym
+-- function for equality.
+
+sym≡sym :
+  {x≡y : x P.≡ y} →
+  sym (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from ≡↔≡ (P.sym x≡y)
+sym≡sym {x≡y = x≡y} = P.elim₁
+  (λ x≡y → sym (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from ≡↔≡ (P.sym x≡y))
+  (sym (_↔_.from ≡↔≡ P.refl)    ≡⟨ cong sym from-≡↔≡-refl ⟩
+   sym (refl _)                 ≡⟨ sym-refl ⟩
+   refl _                       ≡⟨ sym from-≡↔≡-refl ⟩
+   _↔_.from ≡↔≡ P.refl          ≡⟨ cong (_↔_.from ≡↔≡) $ sym $ _↔_.from ≡↔≡ P.sym-refl ⟩∎
+   _↔_.from ≡↔≡ (P.sym P.refl)  ∎)
+  x≡y
+
+-- The trans function for paths can be expressed in terms of the trans
+-- function for equality.
+
+trans≡trans :
+  {x≡y : x P.≡ y} {y≡z : y P.≡ z} →
+  trans (_↔_.from ≡↔≡ x≡y) (_↔_.from ≡↔≡ y≡z) ≡
+  _↔_.from ≡↔≡ (P.trans x≡y y≡z)
+trans≡trans {x≡y = x≡y} {y≡z = y≡z} = P.elim₁
+  (λ x≡y → trans (_↔_.from ≡↔≡ x≡y) (_↔_.from ≡↔≡ y≡z) ≡
+           _↔_.from ≡↔≡ (P.trans x≡y y≡z))
+  (trans (_↔_.from ≡↔≡ P.refl) (_↔_.from ≡↔≡ y≡z)  ≡⟨ cong (flip trans _) from-≡↔≡-refl ⟩
+   trans (refl _) (_↔_.from ≡↔≡ y≡z)               ≡⟨ trans-reflˡ _ ⟩
+   _↔_.from ≡↔≡ y≡z                                ≡⟨ cong (_↔_.from ≡↔≡) $ sym $ _↔_.from ≡↔≡ $ P.trans-reflˡ _ ⟩∎
+   _↔_.from ≡↔≡ (P.trans P.refl y≡z)               ∎)
+  x≡y
+
 -- The type of embeddings, expressed using equality, is isomorphic to
 -- the type of embeddings, expressed using paths.
 
