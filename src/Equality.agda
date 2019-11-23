@@ -1174,6 +1174,235 @@ module Derived-definitions-and-properties
       trans (sym $ subst-const _) (trans (subst-const _) fx≡fy)         ≡⟨ trans-sym-[trans] _ _ ⟩∎
       fx≡fy                                                             ∎
 
+    -- A kind of symmetry for "dependent paths".
+
+    dsym :
+      {x≡y : x ≡ y} {P : A → Set p} {p : P x} {q : P y} →
+      subst P x≡y p ≡ q → subst P (sym x≡y) q ≡ p
+    dsym {x≡y = x≡y} {P = P} p≡q = elim
+      (λ {x y} x≡y →
+         ∀ {p : P x} {q : P y} →
+         subst P x≡y p ≡ q →
+         subst P (sym x≡y) q ≡ p)
+      (λ _ {p q} p≡q →
+         subst P (sym (refl _)) q  ≡⟨ cong (flip (subst P) _) sym-refl ⟩
+         subst P (refl _) q        ≡⟨ subst-refl _ _ ⟩
+         q                         ≡⟨ sym p≡q ⟩
+         subst P (refl _) p        ≡⟨ subst-refl _ _ ⟩∎
+         p                         ∎)
+      x≡y
+      p≡q
+
+    -- A "computation rule" for dsym.
+
+    dsym-subst-refl :
+      {P : A → Set p} {p : P x} →
+      dsym (subst-refl P p) ≡
+      trans (cong (flip (subst P) _) sym-refl) (subst-refl _ _)
+    dsym-subst-refl {P = P} =
+      dsym (subst-refl _ _)                                      ≡⟨ cong (λ f → f (subst-refl _ _)) $
+                                                                    elim-refl
+                                                                      (λ {x y} x≡y →
+                                                                         ∀ {p : P x} {q : P y} →
+                                                                         subst P x≡y p ≡ q →
+                                                                         subst P (sym x≡y) q ≡ p)
+                                                                      _ ⟩
+      trans (cong (flip (subst P) _) sym-refl)
+        (trans (subst-refl _ _)
+           (trans (sym (subst-refl P _)) (subst-refl _ _)))      ≡⟨ cong (trans (cong (flip (subst P) _) sym-refl)) $ trans--[trans-sym] _ _ ⟩∎
+
+      trans (cong (flip (subst P) _) sym-refl) (subst-refl _ _)  ∎
+
+    -- A kind of transitivity for "dependent paths".
+    --
+    -- This lemma is suggested in the HoTT book (first version,
+    -- Exercise 6.1).
+
+    dtrans :
+      {x≡y : x ≡ y} {y≡z : y ≡ z}
+      (P : A → Set p) {p : P x} {q : P y} {r : P z} →
+      subst P x≡y p ≡ q →
+      subst P y≡z q ≡ r →
+      subst P (trans x≡y y≡z) p ≡ r
+    dtrans {x≡y = x≡y} {y≡z = y≡z} P {p = p} {q = q} {r = r} p≡q q≡r =
+      subst P (trans x≡y y≡z) p    ≡⟨ sym $ subst-subst _ _ _ _ ⟩
+      subst P y≡z (subst P x≡y p)  ≡⟨ cong (subst P y≡z) p≡q ⟩
+      subst P y≡z q                ≡⟨ q≡r ⟩∎
+      r                            ∎
+
+    -- "Computation rules" for dtrans.
+
+    dtrans-reflˡ :
+      {x≡y : x ≡ y} {y≡z : y ≡ z}
+      {P : A → Set p} {p : P x} {r : P z}
+      {p≡r : subst P y≡z (subst P x≡y p) ≡ r} →
+      dtrans P (refl _) p≡r ≡
+      trans (sym $ subst-subst _ _ _ _) p≡r
+    dtrans-reflˡ {y≡z = y≡z} {P = P} {p≡r = p≡r} =
+      trans (sym $ subst-subst _ _ _ _)
+        (trans (cong (subst P y≡z) (refl _)) p≡r)             ≡⟨ cong (trans (sym $ subst-subst _ _ _ _) ∘ flip trans _) $ cong-refl _ ⟩
+
+      trans (sym $ subst-subst _ _ _ _) (trans (refl _) p≡r)  ≡⟨ cong (trans (sym $ subst-subst _ _ _ _)) $ trans-reflˡ _ ⟩∎
+
+      trans (sym $ subst-subst _ _ _ _) p≡r                   ∎
+
+    dtrans-reflʳ :
+      {x≡y : x ≡ y} {y≡z : y ≡ z}
+      {P : A → Set p} {p : P x} {q : P y}
+      {p≡q : subst P x≡y p ≡ q} →
+      dtrans P p≡q (refl (subst P y≡z q)) ≡
+      trans (sym $ subst-subst _ _ _ _) (cong (subst P y≡z) p≡q)
+    dtrans-reflʳ {x≡y = x≡y} {y≡z = y≡z} {P = P} {p≡q = p≡q} =
+      trans (sym $ subst-subst _ _ _ _)
+        (trans (cong (subst P y≡z) p≡q) (refl _))                 ≡⟨ cong (trans _) $ trans-reflʳ _ ⟩∎
+
+      trans (sym $ subst-subst _ _ _ _) (cong (subst P y≡z) p≡q)  ∎
+
+    dtrans-subst-reflˡ :
+      {x≡y : x ≡ y} {P : A → Set p} {p : P x} {q : P y}
+      {p≡q : subst P x≡y p ≡ q} →
+      dtrans P (subst-refl _ _) p≡q ≡
+      trans (cong (flip (subst P) _) (trans-reflˡ _)) p≡q
+    dtrans-subst-reflˡ {x≡y = x≡y} {P = P} {p≡q = p≡q} =
+      trans (sym $ subst-subst _ _ _ _)
+        (trans (cong (subst P x≡y) (subst-refl _ _)) p≡q)              ≡⟨ cong (λ eq → trans (sym eq)
+                                                                                         (trans (cong (subst P x≡y) (subst-refl _ _)) _)) $
+                                                                          subst-subst-reflˡ _ ⟩
+      trans (sym $ trans (cong (subst P _) (subst-refl _ _))
+                     (cong (flip (subst P) _) (sym $ trans-reflˡ _)))
+        (trans (cong (subst P _) (subst-refl _ _)) p≡q)                ≡⟨ cong (flip trans _) $ sym-trans _ _ ⟩
+
+      trans (trans
+               (sym $ cong (flip (subst P) _) (sym $ trans-reflˡ _))
+               (sym $ cong (subst P _) (subst-refl _ _)))
+        (trans (cong (subst P _) (subst-refl _ _)) p≡q)                ≡⟨ trans-assoc _ _ _ ⟩
+
+      trans (sym $ cong (flip (subst P) _) (sym $ trans-reflˡ _))
+        (trans (sym $ cong (subst P _) (subst-refl _ _))
+           (trans (cong (subst P _) (subst-refl _ _)) p≡q))            ≡⟨ cong (trans _) $ trans-sym-[trans] _ _ ⟩
+
+      trans (sym $ cong (flip (subst P) _) (sym $ trans-reflˡ _)) p≡q  ≡⟨ cong (flip trans _ ∘ sym) $ cong-sym _ _ ⟩
+
+      trans (sym $ sym $ cong (flip (subst P) _) (trans-reflˡ _)) p≡q  ≡⟨ cong (flip trans _) $ sym-sym _ ⟩∎
+
+      trans (cong (flip (subst P) _) (trans-reflˡ _)) p≡q              ∎
+
+    dtrans-subst-reflʳ :
+      {x≡y : x ≡ y} {P : A → Set p} {p : P x} {q : P y}
+      {p≡q : subst P x≡y p ≡ q} →
+      dtrans P p≡q (subst-refl _ _) ≡
+      trans (cong (flip (subst P) _) (trans-reflʳ _)) p≡q
+    dtrans-subst-reflʳ {x≡y = x≡y} {P = P} {p = p} {p≡q = p≡q} = elim¹
+      (λ x≡y → ∀ {q} (p≡q : subst P x≡y p ≡ q) →
+               dtrans P p≡q (subst-refl _ _) ≡
+               trans (cong (flip (subst P) _) (trans-reflʳ _)) p≡q)
+      (λ p≡q →
+         trans (sym $ subst-subst _ _ _ _)
+           (trans (cong (subst P (refl _)) p≡q) (subst-refl _ _))         ≡⟨ cong (λ eq → trans (sym eq) (trans (cong (subst P (refl _)) _)
+                                                                                                            (subst-refl _ _))) $
+                                                                             subst-subst-refl-refl _ ⟩
+         trans (sym $ cong₂ (flip (subst P)) (subst-refl _ _) $
+                        sym trans-refl-refl)
+           (trans (cong (subst P (refl _)) p≡q) (subst-refl _ _))         ≡⟨⟩
+
+         trans (sym $ trans (cong (subst P _) (subst-refl _ _))
+                        (cong (flip (subst P) _) (sym trans-refl-refl)))
+           (trans (cong (subst P (refl _)) p≡q) (subst-refl _ _))         ≡⟨ cong (flip trans _) $ sym-trans _ _ ⟩
+
+         trans (trans (sym $ cong (flip (subst P) _)
+                               (sym trans-refl-refl))
+                  (sym $ cong (subst P _) (subst-refl _ _)))
+           (trans (cong (subst P (refl _)) p≡q) (subst-refl _ _))         ≡⟨ lemma₁ p≡q ⟩
+
+         trans (cong (flip (subst P) _) trans-refl-refl) p≡q              ≡⟨ cong (λ eq → trans (cong (flip (subst P) _) eq) _) $ sym $
+                                                                             elim-refl _ _ ⟩∎
+         trans (cong (flip (subst P) _) (trans-reflʳ _)) p≡q              ∎)
+      x≡y
+      p≡q
+      where
+      lemma₂ :
+        cong (subst P (refl _)) (subst-refl P p) ≡
+        cong id (subst-refl P (subst P (refl _) p))
+      lemma₂ =
+        cong (subst P (refl _)) (subst-refl P p)                 ≡⟨⟩
+        cong (subst P (refl _)) (cong (_$ p) (subst-refl≡id P))  ≡⟨ cong-∘ _ _ _ ⟩
+        cong (subst P (refl _) ∘ (_$ p)) (subst-refl≡id P)       ≡⟨⟩
+        cong (λ f → subst P (refl _) (f p)) (subst-refl≡id P)    ≡⟨ elim₁
+                                                                      (λ {g} eq → cong (λ f → g (f p)) eq ≡ cong (λ f → f (g p)) eq)
+                                                                      (refl _)
+                                                                      (subst-refl≡id P) ⟩
+        cong (λ f → f (subst P (refl _) p)) (subst-refl≡id P)    ≡⟨⟩
+        subst-refl P (subst P (refl _) p)                        ≡⟨ cong-id _ ⟩∎
+        cong id (subst-refl P (subst P (refl _) p))              ∎
+
+      lemma₁ : ∀ {q} (p≡q : subst P (refl _) p ≡ q) → _
+      lemma₁ = elim¹
+        (λ p≡q →
+           trans (trans (sym $ cong (flip (subst P) _)
+                                (sym trans-refl-refl))
+                   (sym $ cong (subst P (refl _)) (subst-refl _ _)))
+            (trans (cong (subst P (refl _)) p≡q) (subst-refl _ _)) ≡
+          trans (cong (flip (subst P) _) trans-refl-refl) p≡q)
+        (trans (trans (sym $ cong (flip (subst P) _)
+                               (sym trans-refl-refl))
+                  (sym $ cong (subst P (refl _)) (subst-refl _ _)))
+           (trans (cong (subst P (refl _)) (refl _)) (subst-refl _ _))  ≡⟨ cong (λ eq → trans (trans (sym $ cong (flip (subst P) _)
+                                                                                                              (sym trans-refl-refl))
+                                                                                                 (sym $ cong (subst P _) (subst-refl _ _)))
+                                                                                          (trans eq (subst-refl _ _))) $
+                                                                           cong-refl (subst P (refl _)) ⟩
+         trans (trans (sym $ cong (flip (subst P) _)
+                               (sym trans-refl-refl))
+                  (sym $ cong (subst P (refl _)) (subst-refl _ _)))
+           (trans (refl _) (subst-refl _ _))                            ≡⟨ cong (trans _) $ trans-reflˡ _ ⟩
+
+         trans (trans (sym $ cong (flip (subst P) _)
+                               (sym trans-refl-refl))
+                  (sym $ cong (subst P (refl _)) (subst-refl _ _)))
+           (subst-refl _ _)                                             ≡⟨ cong (λ eq → trans (trans (sym $ cong (flip (subst P) _) _) (sym eq))
+                                                                                                 (subst-refl _ _))
+                                                                           lemma₂ ⟩
+         trans (trans (sym $ cong (flip (subst P) _)
+                               (sym trans-refl-refl))
+                  (sym $ cong id (subst-refl _ _)))
+           (subst-refl _ _)                                             ≡⟨ cong (λ eq → trans (trans (sym $ cong (flip (subst P) _)
+                                                                                                              (sym trans-refl-refl)) (sym eq))
+                                                                                                 (subst-refl _ _)) $ sym $
+                                                                           cong-id _ ⟩
+         trans (trans (sym $ cong (flip (subst P) _)
+                               (sym trans-refl-refl))
+                  (sym $ subst-refl _ _))
+           (subst-refl _ _)                                             ≡⟨ trans-[trans-sym]- _ _ ⟩
+
+         sym (cong (flip (subst P) _) (sym trans-refl-refl))            ≡⟨ cong sym $ cong-sym _ _ ⟩
+
+         sym (sym (cong (flip (subst P) _) trans-refl-refl))            ≡⟨ sym-sym _ ⟩
+
+         cong (flip (subst P) _) trans-refl-refl                        ≡⟨ sym $ trans-reflʳ _ ⟩∎
+
+         trans (cong (flip (subst P) _) trans-refl-refl) (refl _)       ∎)
+
+    -- A lemma relating dcong, trans and dtrans.
+    --
+    -- This lemma is suggested in the HoTT book (first version,
+    -- Exercise 6.1).
+
+    dcong-trans :
+      {f : (x : A) → P x} {x≡y : x ≡ y} {y≡z : y ≡ z} →
+      dcong f (trans x≡y y≡z) ≡ dtrans P (dcong f x≡y) (dcong f y≡z)
+    dcong-trans {P = P} {f = f} {x≡y = x≡y} {y≡z = y≡z} = elim₁
+      (λ x≡y → dcong f (trans x≡y y≡z) ≡ dtrans P (dcong f x≡y) (dcong f y≡z))
+      (dcong f (trans (refl _) y≡z)                                   ≡⟨ elim₁ (λ {p} eq → dcong f p ≡
+                                                                                           trans (cong (flip (subst P) _) eq) (dcong f y≡z)) (
+           dcong f y≡z                                                     ≡⟨ sym $ trans-reflˡ _ ⟩
+           trans (refl _) (dcong f y≡z)                                    ≡⟨ cong (flip trans _) $ sym $ cong-refl _ ⟩∎
+           trans (cong (flip (subst P) _) (refl _)) (dcong f y≡z)          ∎)
+                                                                           (trans-reflˡ _) ⟩
+       trans (cong (flip (subst P) _) (trans-reflˡ _)) (dcong f y≡z)  ≡⟨ sym dtrans-subst-reflˡ ⟩
+       dtrans P (subst-refl _ _) (dcong f y≡z)                        ≡⟨ cong (λ eq → dtrans P eq (dcong f y≡z)) $ sym $ dcong-refl _ ⟩∎
+       dtrans P (dcong f (refl _)) (dcong f y≡z)                      ∎)
+      x≡y
+
   -- An equality between pairs can be proved using a pair of
   -- equalities.
 
