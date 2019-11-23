@@ -181,6 +181,10 @@ import Squash
 
 import Circle
 
+-- The torus, defined as a HIT.
+
+import Torus
+
 -- Suspensions.
 
 import Suspension
