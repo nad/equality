@@ -181,7 +181,7 @@ private
                ((xs : ℕ) → h xs ≡ just xs) →
                (xs : ℕ) → suc ⟨$⟩ h xs ≡ suc ⟨$⟩ return xs
       test₁₂ h hyp xs =
-        suc ⟨$⟩ h xs       ≡⟨ by (hyp xs) ⟩∎
+        suc ⟨$⟩ h xs       ≡⟨ by (hyp xs) ⟩∎h
         suc ⟨$⟩ return xs  ∎
 
       -- test₁₃ : (h : List ⊤ → Maybe (List ⊤)) →

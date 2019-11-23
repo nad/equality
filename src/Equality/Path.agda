@@ -131,6 +131,9 @@ hsym x≡y = λ i → x≡y (- i)
 --
 -- The proof htransʳ-reflʳ is based on code in Agda's reference manual
 -- written by Anders Mörtberg.
+--
+-- The proof htrans is suggested in the HoTT book (first version,
+-- Exercise 6.1).
 
 htransʳ : [ P ] x ≡ y → y ≡ z → [ P ] x ≡ z
 htransʳ {x = x} x≡y y≡z = λ i →
@@ -153,10 +156,31 @@ htransʳ-reflʳ {x = x} {y = y} x≡y = λ i j →
 htransˡ-reflˡ : (x≡y : [ P ] x ≡ y) → htransˡ refl x≡y ≡ x≡y
 htransˡ-reflˡ = htransʳ-reflʳ
 
+htrans :
+  {x≡y : x ≡ y} {y≡z : y ≡ z}
+  (P : A → Set p) {p : P x} {q : P y} {r : P z} →
+  [ (λ i → P (x≡y i)) ] p ≡ q →
+  [ (λ i → P (y≡z i)) ] q ≡ r →
+  [ (λ i → P (htransˡ x≡y y≡z i)) ] p ≡ r
+htrans {z = z} {x≡y = x≡y} {y≡z = y≡z} P {r = r} p≡q q≡r = λ i →
+  comp (λ j → P (eq j i))
+       (λ { j (i = 0̲) → p≡q (- j)
+          ; j (i = 1̲) → r
+          })
+       (q≡r i)
+  where
+  eq : [ (λ i → x≡y (- i) ≡ z) ] y≡z ≡ htransˡ x≡y y≡z
+  eq = λ i j →
+    hfill (λ { i (j = 0̲) → x≡y (- i)
+             ; _ (j = 1̲) → z
+             })
+          (inˢ (y≡z j))
+          i
+
 -- Some equational reasoning combinators.
 
-infix  -1 finally
-infixr -2 step-≡ step-≡h _≡⟨⟩_
+infix  -1 finally finally-h
+infixr -2 step-≡ step-≡h step-≡hh _≡⟨⟩_
 
 step-≡ : ∀ x → [ P ] y ≡ z → x ≡ y → [ P ] x ≡ z
 step-≡ _ = flip htransˡ
@@ -168,13 +192,28 @@ step-≡h _ = flip htransʳ
 
 syntax step-≡h x y≡z x≡y = x ≡⟨ x≡y ⟩h y≡z
 
+step-≡hh :
+  {x≡y : x ≡ y} {y≡z : y ≡ z}
+  (P : A → Set p) (p : P x) {q : P y} {r : P z} →
+  [ (λ i → P (y≡z i)) ] q ≡ r →
+  [ (λ i → P (x≡y i)) ] p ≡ q →
+  [ (λ i → P (htransˡ x≡y y≡z i)) ] p ≡ r
+step-≡hh P _ = flip (htrans P)
+
+syntax step-≡hh P p q≡r p≡q = p ≡⟨ p≡q ⟩[ P ] q≡r
+
 _≡⟨⟩_ : ∀ x → [ P ] x ≡ y → [ P ] x ≡ y
 _ ≡⟨⟩ x≡y = x≡y
 
-finally : ∀ x y → [ P ] x ≡ y → [ P ] x ≡ y
+finally : (x y : A) → x ≡ y → x ≡ y
 finally _ _ x≡y = x≡y
 
 syntax finally x y x≡y = x ≡⟨ x≡y ⟩∎ y ∎
+
+finally-h : ∀ x y → [ P ] x ≡ y → [ P ] x ≡ y
+finally-h _ _ x≡y = x≡y
+
+syntax finally-h x y x≡y = x ≡⟨ x≡y ⟩∎h y ∎
 
 -- The J rule.
 
