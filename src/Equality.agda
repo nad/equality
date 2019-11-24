@@ -929,6 +929,22 @@ module Derived-definitions-and-properties
       (λ {f} p → cong (λ g → g (f _)) p ≡ cong (λ g → f (g _)) p)
       (refl _)
 
+    cong-≡id-≡-≡id :
+      (f≡id : ∀ x → f x ≡ x) →
+      cong f (f≡id x) ≡ f≡id (f x)
+    cong-≡id-≡-≡id {f = f} {x = x} f≡id =
+      cong f (f≡id x)                                             ≡⟨ elim¹
+                                                                       (λ {y} (p : f x ≡ y) →
+                                                                          cong f p ≡ trans (f≡id (f x)) (trans p (sym (f≡id y)))) (
+          cong f (refl _)                                              ≡⟨ cong-refl _ ⟩
+          refl _                                                       ≡⟨ sym $ trans-symʳ _ ⟩
+          trans (f≡id (f x)) (sym (f≡id (f x)))                        ≡⟨ cong (trans (f≡id (f x))) $ sym $ trans-reflˡ _ ⟩∎
+          trans (f≡id (f x)) (trans (refl _) (sym (f≡id (f x))))       ∎)
+                                                                       (f≡id x)⟩
+      trans (f≡id (f x)) (trans (f≡id x) (sym (f≡id x)))          ≡⟨ cong (trans (f≡id (f x))) $ trans-symʳ _ ⟩
+      trans (f≡id (f x)) (refl _)                                 ≡⟨ trans-reflʳ _ ⟩
+      f≡id (f x)                                                  ∎
+
     elim-∘ :
       (P Q : ∀ {x y} → x ≡ y → Set p)
       (f : ∀ {x y} {x≡y : x ≡ y} → P x≡y → Q x≡y)
@@ -1324,16 +1340,9 @@ module Derived-definitions-and-properties
         cong (subst P (refl _)) (subst-refl P p) ≡
         cong id (subst-refl P (subst P (refl _) p))
       lemma₂ =
-        cong (subst P (refl _)) (subst-refl P p)                 ≡⟨⟩
-        cong (subst P (refl _)) (cong (_$ p) (subst-refl≡id P))  ≡⟨ cong-∘ _ _ _ ⟩
-        cong (subst P (refl _) ∘ (_$ p)) (subst-refl≡id P)       ≡⟨⟩
-        cong (λ f → subst P (refl _) (f p)) (subst-refl≡id P)    ≡⟨ elim₁
-                                                                      (λ {g} eq → cong (λ f → g (f p)) eq ≡ cong (λ f → f (g p)) eq)
-                                                                      (refl _)
-                                                                      (subst-refl≡id P) ⟩
-        cong (λ f → f (subst P (refl _) p)) (subst-refl≡id P)    ≡⟨⟩
-        subst-refl P (subst P (refl _) p)                        ≡⟨ cong-id _ ⟩∎
-        cong id (subst-refl P (subst P (refl _) p))              ∎
+        cong (subst P (refl _)) (subst-refl P p)     ≡⟨ cong-≡id-≡-≡id (subst-refl P) ⟩
+        subst-refl P (subst P (refl _) p)            ≡⟨ cong-id _ ⟩∎
+        cong id (subst-refl P (subst P (refl _) p))  ∎
 
       lemma₁ : ∀ {q} (p≡q : subst P (refl _) p ≡ q) → _
       lemma₁ = elim¹
@@ -1554,16 +1563,6 @@ module Derived-definitions-and-properties
                                 (trans (cong (subst _ _) (refl _))
                                        r₂₃)))
               (let lemma₁ =
-                     sym (subst-refl _ _)                            ≡⟨⟩
-
-                     sym (cong (_$ _) (subst-refl≡id _))             ≡⟨ cong sym $ cong-≡id _ ⟩
-
-                     sym (cong (λ f → subst B (refl _) (f y))
-                               (subst-refl≡id _))                    ≡⟨ cong sym $ sym $ cong-∘ _ _ _ ⟩∎
-
-                     sym (cong (subst B (refl _)) (subst-refl _ _))  ∎
-
-                   lemma₂ =
                      sym (cong (subst B _) (subst-refl _ _))          ≡⟨ sym $ trans-sym-[trans] _ _ ⟩
 
                      trans (sym $ cong (flip (subst B) _)
@@ -1580,7 +1579,7 @@ module Derived-definitions-and-properties
                                   (sym (cong (subst B _)
                                              (subst-refl _ _))))      ∎
 
-                   lemma₃ =
+                   lemma₂ =
                      trans (cong (flip (subst B) _) trans-refl-refl)
                            (sym (cong (subst B _) (subst-refl _ _)))     ≡⟨ cong (λ e → trans (cong (flip (subst B) _) e)
                                                                                               (sym $ cong (subst B _) (subst-refl _ _))) $
@@ -1617,14 +1616,14 @@ module Derived-definitions-and-properties
                      (cong (_ ,_) (sym (subst-refl B _)))                 ≡⟨ sym $ cong-trans _ _ _ ⟩
 
                cong (_ ,_) (trans (sym (subst-refl _ _))
-                                  (sym (subst-refl _ _)))                 ≡⟨ cong (cong (_ ,_) ∘ trans _) lemma₁ ⟩
-
+                                  (sym (subst-refl _ _)))                 ≡⟨ cong (cong (_ ,_) ∘ trans (sym (subst-refl _ _)) ∘ sym) $ sym $
+                                                                                  cong-≡id-≡-≡id (subst-refl B) ⟩
                cong (_ ,_)
                     (trans (sym (subst-refl _ _))
                            (sym (cong (subst B _) (subst-refl _ _))))     ≡⟨ sym $ Σ-≡,≡→≡-reflˡ _ ⟩
 
                Σ-≡,≡→≡ (refl _)
-                       (sym (cong (subst B _) (subst-refl _ _)))          ≡⟨ cong (Σ-≡,≡→≡ _) lemma₂ ⟩
+                       (sym (cong (subst B _) (subst-refl _ _)))          ≡⟨ cong (Σ-≡,≡→≡ _) lemma₁ ⟩
 
                Σ-≡,≡→≡ (refl _)
                  (trans (cong (flip (subst B) _) (sym trans-refl-refl))
@@ -1633,7 +1632,7 @@ module Derived-definitions-and-properties
 
                Σ-≡,≡→≡ (trans (refl _) (refl _))
                        (trans (cong (flip (subst B) _) trans-refl-refl)
-                              (sym (cong (subst B _) (subst-refl _ _))))  ≡⟨ cong (Σ-≡,≡→≡ (trans (refl _) (refl _))) lemma₃ ⟩∎
+                              (sym (cong (subst B _) (subst-refl _ _))))  ≡⟨ cong (Σ-≡,≡→≡ (trans (refl _) (refl _))) lemma₂ ⟩∎
 
                Σ-≡,≡→≡ (trans (refl _) (refl _))
                        (trans (sym $ subst-subst _ _ _ _)
