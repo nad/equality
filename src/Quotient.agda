@@ -829,8 +829,7 @@ Maybe/-comm-[] =
           (λ {x y} r → ⟨ext⟩ λ P[y] →
              subst (λ x → P x → Σ A (P ∘ [_]) / (R on proj₁))
                    ([]-respects-relation r)
-                   (curry [_] x) P[y]                               ≡⟨ cong (_$ P[y]) $
-                                                                       subst-→-domain P {f = curry [_] _} ([]-respects-relation r) ⟩
+                   (curry [_] x) P[y]                               ≡⟨ subst-→-domain P {f = curry [_] _} ([]-respects-relation r) ⟩
 
              [ (x , subst P (sym $ []-respects-relation r) P[y]) ]  ≡⟨ []-respects-relation r ⟩∎
 

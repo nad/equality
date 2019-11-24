@@ -208,12 +208,18 @@ module _ {congruence⁺}
              (P : A → Set p)
              {x : A} (y : P x) where
 
+      subst′ : {x y : A} (P : A → Set p) → x ≡ y → P x → P y
+      subst′ P = elim (λ {u v} _ → P u → P v) (λ _ p → p)
+
+      subst′-refl≡id : {x : A} (P : A → Set p) → subst′ P (refl x) ≡ id
+      subst′-refl≡id P = elim-refl (λ {u v} _ → P u → P v) (λ _ p → p)
+
       proof₁ proof₂ :
-        subst P (refl x) (subst P (refl x) y) ≡ subst P (refl x) y
+        subst′ P (refl x) (subst′ P (refl x) y) ≡ subst′ P (refl x) y
 
-      proof₁ = cong (_$ subst P (refl x) y) (subst-refl≡id P)
+      proof₁ = cong (_$ subst′ P (refl x) y) (subst′-refl≡id P)
 
-      proof₂ = cong (subst P (refl x)) (cong (_$ y) (subst-refl≡id P))
+      proof₂ = cong (subst′ P (refl x)) (cong (_$ y) (subst′-refl≡id P))
 
       proof₁≡proof₂ : proof₁ ≡ proof₂
       proof₁≡proof₂ =
@@ -221,8 +227,8 @@ module _ {congruence⁺}
                  ∀ y → cong (_$ proj₁ s y) (proj₂ s) ≡
                        cong (proj₁ s) (cong (_$ y) (proj₂ s)))
 
-              (id               , refl id          ≡⟨ proj₂ (singleton-contractible _) _ ⟩∎
-               subst P (refl x) , subst-refl≡id P  ∎)
+              (id                , refl id           ≡⟨ proj₂ (singleton-contractible _) _ ⟩∎
+               subst′ P (refl x) , subst′-refl≡id P  ∎)
 
               (λ y →
                  cong (_$ y) (refl id)            ≡⟨ cong-id _ ⟩∎

@@ -287,13 +287,15 @@ Equality-with-J₀.elim-refl equality-with-J₀ = λ _ r →
 -- A family of instantiations of Equality-with-J.
 
 equality-with-J : Equality-with-J a p congruence⁺
-Equality-with-J.equality-with-J₀ equality-with-J = equality-with-J₀
-Equality-with-J.cong             equality-with-J = cong
-Equality-with-J.cong-refl        equality-with-J = λ _ → refl
-Equality-with-J.subst            equality-with-J = subst
-Equality-with-J.subst-refl≡id    equality-with-J = λ _ → transport-refl 0̲
-Equality-with-J.dcong            equality-with-J = dcong
-Equality-with-J.dcong-refl-hcong equality-with-J = λ _ → refl
+equality-with-J = λ where
+  .Equality-with-J.equality-with-J₀ → equality-with-J₀
+  .Equality-with-J.cong             → cong
+  .Equality-with-J.cong-refl        → λ _ → refl
+  .Equality-with-J.subst            → subst
+  .Equality-with-J.subst-refl       → λ _ p →
+                                        cong (_$ p) $ transport-refl 0̲
+  .Equality-with-J.dcong            → dcong
+  .Equality-with-J.dcong-refl       → λ _ → refl
 
 -- Various derived definitions and properties.
 

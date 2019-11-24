@@ -214,23 +214,20 @@ record Equality-with-J
 
     -- Substitutivity.
 
-    subst :         {A : Set a} {x y : A} (P : A → Set b) →
-                    x ≡ y → P x → P y
-    subst-refl≡id : ∀ {A : Set a} {x} (P : A → Set b) →
-                    subst P (refl x) ≡ id
+    subst      : {A : Set a} {x y : A} (P : A → Set b) →
+                 x ≡ y → P x → P y
+    subst-refl : ∀ {A : Set a} {x} (P : A → Set b) p →
+                 subst P (refl x) p ≡ p
 
     -- A dependent variant of cong.
-    --
-    -- (Below hcong is used instead of cong because using cong would
-    -- lead to a universe level mismatch.)
 
     dcong :
       ∀ {A : Set a} {P : A → Set b} {x y}
       (f : (x : A) → P x) (x≡y : x ≡ y) →
       subst P x≡y (f x) ≡ f y
-    dcong-refl-hcong :
+    dcong-refl :
       ∀ {A : Set a} {P : A → Set b} {x} (f : (x : A) → P x) →
-      dcong f (refl x) ≡ hcong (_$ f x) (subst-refl≡id _)
+      dcong f (refl x) ≡ subst-refl _ _
 
 -- Congruence⁺ can be derived from Equality-with-J₀.
 
@@ -293,9 +290,9 @@ J₀⇒J {r} eq {a} {b} = record
   ; cong             = cong
   ; cong-refl        = cong-refl
   ; subst            = subst
-  ; subst-refl≡id    = subst-refl≡id
+  ; subst-refl       = subst-refl
   ; dcong            = dcong
-  ; dcong-refl-hcong = dcong-refl
+  ; dcong-refl       = dcong-refl
   }
   where
   open module R {ℓ}     = Reflexive-relation (r ℓ)
@@ -343,7 +340,7 @@ module Equality-with-J′
   private
     open module Eq {ℓ}   = Congruence⁺ (congruence ℓ) public
     open module E  {a b} = Equality-with-J (eq {a} {b}) public
-                             hiding (subst; subst-refl≡id)
+                             hiding (subst; subst-refl)
     open module E₀ {a p} = Equality-with-J₀ (equality-with-J₀ {a} {p})
                              public
   open Reflexive-relation′ (λ ℓ → reflexive-relation {ℓ}) public
@@ -353,11 +350,8 @@ module Equality-with-J′
   subst : (P : A → Set p) → x ≡ y → P x → P y
   subst = E.subst
 
-  subst-refl≡id : (P : A → Set p) → subst P (refl x) ≡ id
-  subst-refl≡id = E.subst-refl≡id
-
   subst-refl : (P : A → Set p) (p : P x) → subst P (refl x) p ≡ p
-  subst-refl P p = cong (_$ p) (subst-refl≡id P)
+  subst-refl = E.subst-refl
 
   -- Singleton types are contractible.
 
@@ -671,17 +665,6 @@ module Derived-definitions-and-properties
 
     hcong-cong : hcong f x≡y ≡ cong f x≡y
     hcong-cong = monomorphic-cong-canonical hcong hcong-refl
-
-    -- "Evaluation rule" for dcong.
-
-    dcong-refl :
-      (f : (x : A) → P x) →
-      dcong f (refl x) ≡ subst-refl _ _
-    dcong-refl {P = P} {x = x} f =
-      dcong f (refl x)                  ≡⟨ dcong-refl-hcong _ ⟩
-      hcong (_$ f x) (subst-refl≡id _)  ≡⟨ hcong-cong ⟩
-      cong (_$ f x) (subst-refl≡id _)   ≡⟨⟩
-      subst-refl _ _                    ∎
 
   -- A generalisation of dcong.
 
@@ -1023,13 +1006,15 @@ module Derived-definitions-and-properties
     -- One can express subst in terms of elim.
 
     subst-elim :
-      subst P x≡y ≡ elim (λ {u v} _ → P u → P v) (λ _ → id) x≡y
+      subst P x≡y p ≡ elim (λ {u v} _ → P u → P v) (λ _ → id) x≡y p
     subst-elim {P = P} = elim
-      (λ x≡y → subst P x≡y ≡ elim (λ {u v} _ → P u → P v) (λ _ → id) x≡y)
-      (λ x →
-         subst P (refl x)                                  ≡⟨ subst-refl≡id _ ⟩
-         id                                                ≡⟨ sym $ elim-refl _ _ ⟩∎
-         elim (λ {u v} _ → P u → P v) (λ _ → id) (refl x)  ∎)
+      (λ x≡y → ∀ p →
+         subst P x≡y p ≡ elim (λ {u v} _ → P u → P v) (λ _ → id) x≡y p)
+      (λ x p →
+         subst P (refl x) p                                  ≡⟨ subst-refl _ _ ⟩
+         p                                                   ≡⟨ cong (_$ p) $ sym $ elim-refl _ _ ⟩∎
+         elim (λ {u v} _ → P u → P v) (λ _ → id) (refl x) p  ∎)
+      _
       _
 
     subst-∘ : (P : B → Set p) (f : A → B) (x≡y : x ≡ y) {p : P (f x)} →
@@ -1860,17 +1845,17 @@ module Derived-definitions-and-properties
       subst C x₁≡x₂ (f (subst B (sym x₁≡x₂) y))                  ∎
 
     subst-→-domain :
-      (B : A → Set b) {f : B x → C} (x≡y : x ≡ y) →
-      subst (λ x → B x → C) x≡y f ≡ f ∘ subst B (sym x≡y)
-    subst-→-domain {C = C} B x≡y = elim
-      (λ {x y} x≡y → (f : B x → C) →
-                     subst (λ x → B x → C) x≡y f ≡
-                     f ∘ subst B (sym x≡y))
-      (λ x f →
-         subst (λ x → B x → C) (refl x) f  ≡⟨ subst-refl _ _ ⟩
-         f                                 ≡⟨ cong (f ∘_) $ sym $ subst-refl≡id _ ⟩
-         f ∘ subst B (refl x)              ≡⟨ cong (λ p → f ∘ subst B p) $ sym sym-refl ⟩∎
-         f ∘ subst B (sym (refl x))        ∎)
+      (B : A → Set b) {f : B x → C} (x≡y : x ≡ y) {u : B y} →
+      subst (λ x → B x → C) x≡y f u ≡ f (subst B (sym x≡y) u)
+    subst-→-domain {C = C} B x≡y {u = u} = elim₁
+      (λ {x} x≡y → (f : B x → C) →
+                   subst (λ x → B x → C) x≡y f u ≡
+                   f (subst B (sym x≡y) u))
+      (λ f →
+         subst (λ x → B x → C) (refl _) f u  ≡⟨ cong (_$ u) $ subst-refl _ _ ⟩
+         f u                                 ≡⟨ cong f $ sym $ subst-refl _ _ ⟩
+         f (subst B (refl _) u)              ≡⟨ cong (λ p → f (subst B p u)) $ sym sym-refl ⟩∎
+         f (subst B (sym (refl _)) u)        ∎)
       x≡y _
 
     -- The following lemma is Proposition 2 from "Generalizations of
