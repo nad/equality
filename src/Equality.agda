@@ -152,15 +152,15 @@ record Equality-with-J₀
 
 -- Extended variants of Reflexive-relation and Equality-with-J₀ with
 -- some extra fields. These fields can be derived from
--- Equality-with-J₀ (see J₀⇒Congruence and J₀⇒J below), but those
--- derived definitions may not have the intended computational
+-- Equality-with-J₀ (see J₀⇒Equivalence-relation⁺ and J₀⇒J below), but
+-- those derived definitions may not have the intended computational
 -- behaviour (in particular, not when the paths of Cubical Agda are
 -- used).
 
--- A variant of Reflexive-relation: congruences with some extra
--- structure.
+-- A variant of Reflexive-relation: equivalence relations with some
+-- extra structure.
 
-record Congruence⁺ a : Set (lsuc a) where
+record Equivalence-relation⁺ a : Set (lsuc a) where
   field
     reflexive-relation : Reflexive-relation a
 
@@ -179,23 +179,14 @@ record Congruence⁺ a : Set (lsuc a) where
     trans-refl-refl : {A : Set a} {x : A} →
                       trans (refl x) (refl x) ≡ refl x
 
-    -- The relation is compatible with all non-dependent functions
-    -- between types in Set a. (The letter h stands for "homogeneous",
-    -- as opposed to a more general variant that would allow functions
-    -- between types in different universes.)
-
-    hcong      : {A B : Set a} {x y : A} (f : A → B) → x ≡ y → f x ≡ f y
-    hcong-refl : {A B : Set a} {x : A} (f : A → B) →
-                 hcong f (refl x) ≡ refl (f x)
-
 -- A variant of Equality-with-J₀.
 
 record Equality-with-J
-         a b (congruence : ∀ ℓ → Congruence⁺ ℓ) :
+         a b (e⁺ : ∀ ℓ → Equivalence-relation⁺ ℓ) :
          Set (lsuc (a ⊔ b)) where
 
   private
-    open module R  {ℓ} = Congruence⁺ (congruence ℓ)
+    open module R  {ℓ} = Equivalence-relation⁺ (e⁺ ℓ)
     open module R₀ {ℓ} = Reflexive-relation (reflexive-relation {ℓ})
 
   field
@@ -229,38 +220,31 @@ record Equality-with-J
       ∀ {A : Set a} {P : A → Set b} {x} (f : (x : A) → P x) →
       dcong f (refl x) ≡ subst-refl _ _
 
--- Congruence⁺ can be derived from Equality-with-J₀.
+-- Equivalence-relation⁺ can be derived from Equality-with-J₀.
 
-J₀⇒Congruence⁺ :
+J₀⇒Equivalence-relation⁺ :
   ∀ {ℓ reflexive} →
   Equality-with-J₀ ℓ ℓ reflexive →
-  Congruence⁺ ℓ
-J₀⇒Congruence⁺ {ℓ} {r} eq = record
+  Equivalence-relation⁺ ℓ
+J₀⇒Equivalence-relation⁺ {ℓ} {r} eq = record
   { reflexive-relation = r ℓ
   ; sym                = sym
   ; sym-refl           = sym-refl
   ; trans              = trans
   ; trans-refl-refl    = trans-refl-refl
-  ; hcong              = hcong
-  ; hcong-refl         = hcong-refl
   }
   where
   open Reflexive-relation (r ℓ)
   open Equality-with-J₀ eq
 
-  hcong : (f : A → B) → x ≡ y → f x ≡ f y
-  hcong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
-
-  abstract
-
-    hcong-refl : (f : A → B) → hcong f (refl x) ≡ refl (f x)
-    hcong-refl _ = elim-refl _ _
+  cong : (f : A → B) → x ≡ y → f x ≡ f y
+  cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
 
   subst : (P : A → Set ℓ) → x ≡ y → P x → P y
   subst P = elim (λ {u v} _ → P u → P v) (λ _ p → p)
 
   subst-refl : (P : A → Set ℓ) (p : P x) → subst P (refl x) p ≡ p
-  subst-refl _ p = hcong (_$ p) $ elim-refl _ _
+  subst-refl _ p = cong (_$ p) $ elim-refl _ _
 
   sym : x ≡ y → y ≡ x
   sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
@@ -268,7 +252,7 @@ J₀⇒Congruence⁺ {ℓ} {r} eq = record
   abstract
 
     sym-refl : sym (refl x) ≡ refl x
-    sym-refl = hcong (_$ _) $ subst-refl (λ z → _ ≡ z → z ≡ _) _
+    sym-refl = cong (_$ _) $ subst-refl (λ z → _ ≡ z → z ≡ _) _
 
   trans : x ≡ y → y ≡ z → x ≡ z
   trans {x = x} = flip (subst (x ≡_))
@@ -284,7 +268,7 @@ J₀⇒Congruence⁺ {ℓ} {r} eq = record
 J₀⇒J :
   ∀ {reflexive} →
   (eq : ∀ {a p} → Equality-with-J₀ a p reflexive) →
-  ∀ {a p} → Equality-with-J a p (λ _ → J₀⇒Congruence⁺ eq)
+  ∀ {a p} → Equality-with-J a p (λ _ → J₀⇒Equivalence-relation⁺ eq)
 J₀⇒J {r} eq {a} {b} = record
   { equality-with-J₀ = eq
   ; cong             = cong
@@ -333,12 +317,12 @@ J₀⇒J {r} eq {a} {b} = record
 -- Some derived properties.
 
 module Equality-with-J′
-  {congruence : ∀ ℓ → Congruence⁺ ℓ}
-  (eq : ∀ {a p} → Equality-with-J a p congruence)
+  {e⁺ : ∀ ℓ → Equivalence-relation⁺ ℓ}
+  (eq : ∀ {a p} → Equality-with-J a p e⁺)
   where
 
   private
-    open module Eq {ℓ}   = Congruence⁺ (congruence ℓ) public
+    open module E⁺ {ℓ}   = Equivalence-relation⁺ (e⁺ ℓ) public
     open module E  {a b} = Equality-with-J (eq {a} {b}) public
                              hiding (subst; subst-refl)
     open module E₀ {a p} = Equality-with-J₀ (equality-with-J₀ {a} {p})
@@ -513,8 +497,8 @@ subst+contr⇒J eq = record
 -- Some derived definitions and properties
 
 module Derived-definitions-and-properties
-  {congruence}
-  (equality-with-J : ∀ {a p} → Equality-with-J a p congruence)
+  {e⁺}
+  (equality-with-J : ∀ {a p} → Equality-with-J a p e⁺)
   where
 
   -- This module reexports most of the definitions and properties
@@ -660,11 +644,6 @@ module Derived-definitions-and-properties
       cong′ f x≡y ≡ cong f x≡y
     cong-canonical cong′ cong′-refl =
       monomorphic-cong-canonical cong′ cong′-refl
-
-    -- The homogeneous variant of cong is pointwise equal to cong.
-
-    hcong-cong : hcong f x≡y ≡ cong f x≡y
-    hcong-cong = monomorphic-cong-canonical hcong hcong-refl
 
   -- A generalisation of dcong.
 

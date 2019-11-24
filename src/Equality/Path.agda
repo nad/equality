@@ -261,21 +261,20 @@ dcong {B = B} f x≡y = λ i →
 transport-refl : ∀ i → transport (λ i → refl {x = A} i) i ≡ id
 transport-refl {A = A} i = λ j → transport (λ _ → A) (max i j)
 
--- A family of instantiations of Congruence⁺.
+-- A family of instantiations of Equivalence-relation⁺.
 --
 -- Note that htransˡ is used to implement trans. The reason htransˡ is
 -- used, rather than htransʳ, is that htransˡ is also used to
 -- implement the commonly used equational reasoning combinator step-≡,
 -- and I'd like this combinator to match trans.
 
-congruence⁺ : ∀ ℓ → Congruence⁺ ℓ
-Congruence⁺.reflexive-relation (congruence⁺ _) = reflexive-relation _
-Congruence⁺.sym                (congruence⁺ _) = hsym
-Congruence⁺.sym-refl           (congruence⁺ _) = refl
-Congruence⁺.trans              (congruence⁺ _) = htransˡ
-Congruence⁺.trans-refl-refl    (congruence⁺ _) = htransˡ-reflˡ _
-Congruence⁺.hcong              (congruence⁺ _) = cong
-Congruence⁺.hcong-refl         (congruence⁺ _) = λ _ → refl
+equivalence-relation⁺ : ∀ ℓ → Equivalence-relation⁺ ℓ
+equivalence-relation⁺ _ = λ where
+  .Equivalence-relation⁺.reflexive-relation → reflexive-relation _
+  .Equivalence-relation⁺.sym                → hsym
+  .Equivalence-relation⁺.sym-refl           → refl
+  .Equivalence-relation⁺.trans              → htransˡ
+  .Equivalence-relation⁺.trans-refl-refl    → htransˡ-reflˡ _
 
 -- A family of instantiations of Equality-with-J₀.
 
@@ -286,7 +285,7 @@ Equality-with-J₀.elim-refl equality-with-J₀ = λ _ r →
 
 -- A family of instantiations of Equality-with-J.
 
-equality-with-J : Equality-with-J a p congruence⁺
+equality-with-J : Equality-with-J a p equivalence-relation⁺
 equality-with-J = λ where
   .Equality-with-J.equality-with-J₀ → equality-with-J₀
   .Equality-with-J.cong             → cong
@@ -300,7 +299,7 @@ equality-with-J = λ where
 -- Various derived definitions and properties.
 
 open Derived-definitions-and-properties equality-with-J public
-  hiding (_≡_; refl; elim; subst; cong; hcong; dcong;
+  hiding (_≡_; refl; elim; subst; cong; dcong;
           step-≡; _≡⟨⟩_; finally;
           reflexive-relation; equality-with-J₀)
 

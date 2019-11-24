@@ -98,8 +98,8 @@ J-J-refl = Equality.Equality-with-J₀
 
 -- Extended variants of the two definitions above.
 
-Congruence⁺     = Equality.Congruence⁺
-Equality-with-J = Equality.Equality-with-J
+Equivalence-relation⁺ = Equality.Equivalence-relation⁺
+Equality-with-J       = Equality.Equality-with-J
 
 -- To see how the code is axiomatised, see the module header of, say,
 -- Erased.

@@ -12,8 +12,7 @@
 
 open import Equality
 
-module Circle
-  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
+module Circle {e⁺} (eq : ∀ {a p} → Equality-with-J a p e⁺) where
 
 import Equality.Path as P
 open import Prelude

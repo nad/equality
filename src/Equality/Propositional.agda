@@ -43,10 +43,10 @@ equality-with-J₀ : ∀ {a p} → Equality-with-J₀ a p reflexive-relation
 Equality-with-J₀.elim      equality-with-J₀ = elim
 Equality-with-J₀.elim-refl equality-with-J₀ = elim-refl
 
-congruence⁺ : ∀ ℓ → Congruence⁺ ℓ
-congruence⁺ _ = J₀⇒Congruence⁺ equality-with-J₀
+equivalence-relation⁺ : ∀ ℓ → Equivalence-relation⁺ ℓ
+equivalence-relation⁺ _ = J₀⇒Equivalence-relation⁺ equality-with-J₀
 
-equality-with-J : ∀ {a p} → Equality-with-J a p congruence⁺
+equality-with-J : ∀ {a p} → Equality-with-J a p equivalence-relation⁺
 equality-with-J = J₀⇒J equality-with-J₀
 
 open Derived-definitions-and-properties (J₀⇒J equality-with-J₀) public

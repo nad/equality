@@ -17,9 +17,9 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 private
-  module C (c⁺ : ∀ c → Congruence⁺ c) where
+  module E (e⁺ : ∀ e → Equivalence-relation⁺ e) where
     open Reflexive-relation′
-           (λ c → Congruence⁺.reflexive-relation (c⁺ c))
+           (λ e → Equivalence-relation⁺.reflexive-relation (e⁺ e))
          public
 
 -- All families of equality types that satisfy certain axioms are
@@ -32,14 +32,14 @@ private
 -- interpretation of type theory".
 
 all-equality-types-isomorphic :
-  ∀ {c₁ c₂}
-  (eq₁ : ∀ {a p} → Equality-with-J a p c₁)
-  (eq₂ : ∀ {a p} → Equality-with-J a p c₂) →
+  ∀ {e₁ e₂}
+  (eq₁ : ∀ {a p} → Equality-with-J a p e₁)
+  (eq₂ : ∀ {a p} → Equality-with-J a p e₂) →
   let open Bijection eq₁ in
   ∀ {a} {A : Set a} →
-  ∃ λ (iso : {x y : A} → C._≡_ c₁ x y ↔ C._≡_ c₂ x y) →
-    (∀ {x} → C._≡_ c₂ (_↔_.to   iso (C.refl c₁ x)) (C.refl c₂ x)) ×
-    (∀ {x} → C._≡_ c₁ (_↔_.from iso (C.refl c₂ x)) (C.refl c₁ x))
+  ∃ λ (iso : {x y : A} → E._≡_ e₁ x y ↔ E._≡_ e₂ x y) →
+    (∀ {x} → E._≡_ e₂ (_↔_.to   iso (E.refl e₁ x)) (E.refl e₂ x)) ×
+    (∀ {x} → E._≡_ e₁ (_↔_.from iso (E.refl e₂ x)) (E.refl e₁ x))
 all-equality-types-isomorphic {c₁} {c₂} eq₁ eq₂ =
     record
       { surjection = record
@@ -54,8 +54,8 @@ all-equality-types-isomorphic {c₁} {c₂} eq₁ eq₂ =
   , to-refl c₂ eq₁
   , to-refl c₁ eq₂
   where
-  open C
-  open module E {c} (eq : ∀ {a p} → Equality-with-J a p c) =
+  open E
+  open module Eq {c} (eq : ∀ {a p} → Equality-with-J a p c) =
     Equality-with-J′ eq hiding (_≡_; refl)
 
   to : ∀ {c₁} c₂ (eq₁ : ∀ {a p} → Equality-with-J a p c₁)
