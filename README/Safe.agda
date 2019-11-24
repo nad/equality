@@ -457,3 +457,4 @@ import Records-with-with
 import README.Bag-equivalence
 import README.Isomorphism-is-equality
 import README.Weak-J
+import README.HITs-without-paths
