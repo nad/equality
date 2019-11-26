@@ -100,29 +100,20 @@ module ∥_∥ where
 
   elimᴾ = H-level.Truncation.Propositional.elimᴾ′
 
-------------------------------------------------------------------------
--- 3.1: An Equivalence
+-- Pathᴴ≡Path and Pathᴴ≃Path.
 
--- The equivalence.
-
+Pathᴴ≡Path = Equality.Path.heterogeneous≡homogeneous
 Pathᴴ≃Path = Equality.Path.heterogeneous↔homogeneous
-
--- A variant of transitivity.
-
-transᴴᵣ = Equality.Path.htransʳ
-
-------------------------------------------------------------------------
--- 3.2: Consequences of the Equivalence
-
--- The lemmas subst and subst-refl from the axiomatisation.
-
-subst      = Equality.Equality-with-J.subst
-subst-refl = Equality.Equality-with-J.subst-refl
 
 -- The lemmas substᴴ and substᴾ.
 
 substᴴ = Equality.Path.hsubst
 substᴾ = Equality.Path.subst
+
+-- The lemmas subst and subst-refl from the axiomatisation.
+
+subst      = Equality.Equality-with-J.subst
+subst-refl = Equality.Equality-with-J.subst-refl
 
 -- A pointwise isomorphism between the arbitrary notion of equality
 -- and paths (used instead of from-path and to-path).
