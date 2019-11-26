@@ -532,7 +532,7 @@ other-univ {ℓ = ℓ} {B = B} =
 -- Some properties
 
 open Bijection equality-with-J using (_↔_)
-open Function-universe equality-with-J
+open Function-universe equality-with-J hiding (id; _∘_)
 open H-level equality-with-J
 
 -- There is a dependent path from reflexivity for x to any dependent
@@ -557,147 +557,32 @@ transport∘transport P {p} = hsym λ i →
                 })
        (transport (λ j → P (min i j)) (- i) p)
 
+-- The following two lemmas are due to Anders Mörtberg.
+--
+-- Previously Andrea Vezzosi and I had each proved the second lemma in
+-- much more convoluted ways (starting from a logical equivalence
+-- proved by Anders; I had also gotten some useful hints from Andrea
+-- for my proof).
+
 -- Heterogeneous equality can be expressed in terms of homogeneous
 -- equality.
---
--- The to and from functions are based on code from the cubical
--- library written by Anders Mörtberg. For the rest of the proof I got
--- some useful hints from Andrea Vezzosi.
+
+heterogeneous≡homogeneous :
+  {P : I → Set p} {p : P 0̲} {q : P 1̲} →
+  ([ P ] p ≡ q) ≡ (transport P 0̲ p ≡ q)
+heterogeneous≡homogeneous {P = P} {p = p} {q = q} = λ i →
+  [ (λ j → P (max i j)) ] transport (λ j → P (min i j)) (- i) p ≡ q
+
+-- A variant of the previous lemma.
 
 heterogeneous↔homogeneous :
   (P : I → Set p) {p : P 0̲} {q : P 1̲} →
   ([ P ] p ≡ q) ↔ transport P 0̲ p ≡ q
-heterogeneous↔homogeneous P {p} {q} = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = to
-      ; from = from
-      }
-    ; right-inverse-of = to-from
-    }
-  ; left-inverse-of = from-to
-  }
-  where
-  p′ = transport P 0̲ p
-
-  p≡p′ : [ P ] p ≡ p′
-  p≡p′ = λ i → transport (λ j → P (min i j)) (- i) p
-
-  to : ∀ {q} → [ P ] p ≡ q → p′ ≡ q
-  to p≡q = λ i → transport (λ j → P (max i j)) i (p≡q i)
-
-  from : ∀ {q} → p′ ≡ q → [ P ] p ≡ q
-  from {q = q} p′≡q =
-    p   ≡⟨ p≡p′ ⟩h
-    p′  ≡⟨ p′≡q ⟩∎
-    q   ∎
-
-  -- For the proof of top, consider the following open box (with i the
-  -- down-to-up dimension for the side in the middle, j the
-  -- left-to-right dimension, and k the dimension from the side in the
-  -- middle to the missing side):
-  --
-  --   ╭─────⟶┬─────╴p′╶───⟶┬⟵─────╮
-  --   │      ↑             ↑      │
-  --   │    p≡p′ k        p≡p′ k   │
-  --   │      ╷             ╷      │
-  --   │      ├─────╴p╶────⟶┤      │
-  --   ╵      ↑             ↑      ╵
-  --   p′     p        p≡p′ (- i)  p′
-  --   ╷      ╷             ╷      ╷
-  --   │      ├──╴p≡p′ j╶──⟶┤      │
-  --   │      ╵             ╵      │
-  --   │    p≡p′ k          p′     │
-  --   │      ↓             ↓      │
-  --   ╰──────┴─╴to p≡p′ j╶⟶┴──────╯
-  --
-  -- If all sides can be filled in, then the side opposite to the side
-  -- in the middle provides the answer. The proof below takes this
-  -- approach.
-
-  base :
-    [ (λ i → [ (λ j → P (min (- i) j)) ] p ≡ p≡p′ (- i)) ] p≡p′ ≡ refl
-  base = λ i j →
-    transport (λ k → P (min (- i) (min j k))) (max (- j) i) p
-
-  front-lemma :
-    ∀ {q} (p≡q : [ P ] p ≡ q) →
-    [ (λ k → [ (λ j → P (max j k)) ] p≡p′ k ≡ q) ] p≡q ≡ to p≡q
-  front-lemma p≡q = λ k j →
-    transport (λ i → P (max (min i k) j)) (max j (- k)) (p≡q j)
-
-  rear-left : [ (λ k → p≡p′ k ≡ p≡p′ k) ] refl ≡ refl
-  rear-left = λ _ → refl
-
-  right :
-    [ (λ k → [ (λ i → P (max (- i) k)) ] p′ ≡ p≡p′ k) ]
-      (λ i → p≡p′ (- i)) ≡ refl
-  right = λ k i → p≡p′ (max (- i) k)
-
-  top : to p≡p′ ≡ refl
-  top = λ i j →
-    comp (λ k → P (max (min (- i) j) k))
-         (λ k → λ { (i = 0̲) → front-lemma p≡p′ k j
-                  ; (i = 1̲) → rear-left k j
-                  ; (j = 0̲) → rear-left k i
-                  ; (j = 1̲) → right k i
-                  })
-         (base i j)
-
-  to-from : ∀ p′≡q → to (from p′≡q) ≡ p′≡q
-  to-from = elim¹
-    (λ p′≡q → to (from p′≡q) ≡ p′≡q)
-    (to (from refl)          ≡⟨⟩
-     to (htransʳ p≡p′ refl)  ≡⟨ cong to (htransʳ-reflʳ _) ⟩
-     to p≡p′                 ≡⟨ top ⟩∎
-     refl                    ∎)
-
-  module _ (p≡q : [ P ] p ≡ q) where
-
-    -- Here is the open box used for from-to below:
-    --
-    --   ╭─────⟶┬───────────╴p≡q j╶────────⟶┬⟵─────╮
-    --   │      ↑                           ↑      │
-    --   │      p                         p≡q k    │
-    --   │      ╷                           ╷      │
-    --   │      ├─────────────╴p╶──────────⟶┤      │
-    --   ╵      ↑                           ↑      ╵
-    --   p      p                      p≡p′ (- i)  q
-    --   ╷      ╷                           ╷      ╷
-    --   │      ├──────────╴p≡p′ j╶────────⟶┤      │
-    --   │      ╵                           ╵      │
-    --   │      p                       to p≡q k   │
-    --   │      ↓                           ↓      │
-    --   ╰──────┴─────╴from (to p≡q) j╶────⟶┴──────╯
-
-    front : [ (λ k → [ P ] p ≡ to p≡q k) ] p≡p′ ≡ from (to p≡q)
-    front = λ k j →
-      hfill (λ { _ (j = 0̲) → p
-               ; k (j = 1̲) → to p≡q k
-               })
-            (inˢ (p≡p′ j))
-            k
-
-    rear : [ (λ k → [ (λ j → P (min k j)) ] p ≡ p≡q k) ] refl ≡ p≡q
-    rear = λ k j → p≡q (min k j)
-
-    left : refl ≡ refl {x = p}
-    left = refl
-
-    right′ :
-      [ (λ k → [ (λ i → P (max (- i) k)) ] to p≡q k ≡ p≡q k) ]
-        (λ i → p≡p′ (- i)) ≡ refl
-    right′ = λ k i → front-lemma p≡q (- i) k
-
-    from-to : from (to p≡q) ≡ p≡q
-    from-to = λ i j →
-      comp (λ k → P (min j (max (- i) k)))
-           (λ k → λ { (i = 0̲) → front k j
-                    ; (i = 1̲) → rear k j
-                    ; (j = 0̲) → left k i
-                    ; (j = 1̲) → right′ k i
-                    })
-           (base i j)
+heterogeneous↔homogeneous P =
+  subst
+    ([ P ] _ ≡ _ ↔_)
+    heterogeneous≡homogeneous
+    (Bijection.id equality-with-J)
 
 -- The function dcong is pointwise definitionally equal to an
 -- expression involving hcong.
@@ -706,7 +591,27 @@ dcong≡hcong :
   {x≡y : x ≡ y} (f : (x : A) → B x) →
   dcong f x≡y ≡
   _↔_.to (heterogeneous↔homogeneous (λ i → B (x≡y i))) (hcong f x≡y)
-dcong≡hcong _ = refl
+dcong≡hcong {x = x} {y = y} {B = B} {x≡y = x≡y} f = elim¹
+  (λ x≡y →
+     dcong f x≡y ≡
+     _↔_.to (heterogeneous↔homogeneous (λ i → B (x≡y i))) (hcong f x≡y))
+
+  ((λ i → transport (λ _ → B x) i (f x))                             ≡⟨ (λ i → comp
+                                                                           (λ j → transport (λ _ → B x) (- j) (f x) ≡ f x)
+                                                                           (λ { j (i = 0̲) → (λ i → transport (λ _ → B x) (max i (- j)) (f x))
+                                                                              ; j (i = 1̲) → transport
+                                                                                              (λ i → transport (λ _ → B x) (- min i j) (f x) ≡ f x)
+                                                                                              0̲ refl
+                                                                              })
+                                                                           (transport (λ _ → f x ≡ f x) (- i) refl)) ⟩
+
+   transport (λ i → transport (λ _ → B x) (- i) (f x) ≡ f x) 0̲ refl  ≡⟨ cong (transport (λ i → transport (λ _ → B x) (- i) (f x) ≡ f x) 0̲ ∘
+                                                                              (_$ refl)) $ sym $
+                                                                        transport-refl 0̲ ⟩∎
+   transport (λ i → transport (λ _ → B x) (- i) (f x) ≡ f x) 0̲
+     (transport (λ _ → f x ≡ f x) 0̲ refl)                            ∎)
+
+  x≡y
 
 -- All instances of an interval-indexed family are equal.
 

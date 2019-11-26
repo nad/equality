@@ -449,9 +449,14 @@ dcong≡hcong :
   {x≡y : x P.≡ y} (f : (x : A) → B x) →
   dcong f (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from subst≡↔[]≡ (P.hcong f x≡y)
 dcong≡hcong {x≡y = x≡y} f =
-  dcong f (_↔_.from ≡↔≡ x≡y)              ≡⟨ sym $ _↔_.from-to (inverse subst≡↔subst≡) dcong≡dcong ⟩
-  _↔_.from subst≡↔subst≡ (P.dcong f x≡y)  ≡⟨⟩
-  _↔_.from subst≡↔[]≡ (P.hcong f x≡y)     ∎
+  dcong f (_↔_.from ≡↔≡ x≡y)                                     ≡⟨ sym $ _↔_.from-to (inverse subst≡↔subst≡) dcong≡dcong ⟩
+
+  _↔_.from subst≡↔subst≡ (P.dcong f x≡y)                         ≡⟨ cong (_↔_.from subst≡↔subst≡) $ _↔_.from ≡↔≡ $ P.dcong≡hcong f ⟩
+
+  _↔_.from subst≡↔subst≡
+    (PB._↔_.to (P.heterogeneous↔homogeneous _) (P.hcong f x≡y))  ≡⟨⟩
+
+  _↔_.from subst≡↔[]≡ (P.hcong f x≡y)                            ∎
 
 -- Three corollaries, intended to be used in the implementation of
 -- eliminators for HITs. For some examples, see Interval and
