@@ -859,14 +859,14 @@ module Derived-definitions-and-properties
     cong₂-∘ˡ :
       {x≡y : x ≡ y} {u≡v : u ≡ v} →
       cong₂ (f ∘ g) x≡y u≡v ≡ cong₂ f (cong g x≡y) u≡v
-    cong₂-∘ˡ {y = y} {u = u} {g = g} {f = f} {x≡y = x≡y} {u≡v} =
+    cong₂-∘ˡ {y = y} {u = u} {f = f} {g = g} {x≡y = x≡y} {u≡v} =
       trans (cong (flip (f ∘ g) u) x≡y) (cong (f (g y)) u≡v)     ≡⟨ cong (flip trans _) $ sym $ cong-∘ _ _ _ ⟩∎
       trans (cong (flip f u) (cong g x≡y)) (cong (f (g y)) u≡v)  ∎
 
     cong₂-∘ʳ :
       {x≡y : x ≡ y} {u≡v : u ≡ v} →
       cong₂ (λ x → f x ∘ g) x≡y u≡v ≡ cong₂ f x≡y (cong g u≡v)
-    cong₂-∘ʳ {y = y} {u = u} {g = g} {f = f} {x≡y = x≡y} {u≡v} =
+    cong₂-∘ʳ {y = y} {u = u} {f = f} {g = g} {x≡y = x≡y} {u≡v} =
       trans (cong (flip f (g u)) x≡y) (cong (f y ∘ g) u≡v)       ≡⟨ cong (trans _) $ sym $ cong-∘ _ _ _ ⟩∎
       trans (cong (flip f (g u)) x≡y) (cong (f y) (cong g u≡v))  ∎
 

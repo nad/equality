@@ -143,7 +143,7 @@ module Cocone (c : Cocone S A) where
 -- A universal property for pushouts.
 
 Pushout→↔Cocone : (Pushout S → A) ↔ Cocone S A
-Pushout→↔Cocone {A = A} {S = S} = record
+Pushout→↔Cocone {S = S} {A = A} = record
   { surjection = record
     { logical-equivalence = record
       { to   = to
