@@ -3653,20 +3653,21 @@ private
 -- extensionality).
 
 [⊤⊎↔⊤⊎]↔[⊤⊎×↔] :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
+  ∀ {k a b} {A : Set a} {B : Set b} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
   Decidable-equality B →
-  ((⊤ ⊎ A) ↔ (⊤ ⊎ B)) ↔ (⊤ ⊎ B) × (A ↔ B)
-[⊤⊎↔⊤⊎]↔[⊤⊎×↔] {A = A} {B} ext _≟B_ = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = to
-      ; from = from
-      }
-    ; right-inverse-of = to∘from
-    }
-  ; left-inverse-of = from∘to
-  }
+  ((⊤ ⊎ A) ↔ (⊤ ⊎ B)) ↝[ k ] (⊤ ⊎ B) × (A ↔ B)
+[⊤⊎↔⊤⊎]↔[⊤⊎×↔] {a = a} {b = b} {A = A} {B = B} ext _≟B_ =
+  generalise-ext?
+    [⊤⊎↔⊤⊎]⇔[⊤⊎×↔]
+    (λ ext → record
+       { surjection = record
+         { logical-equivalence = [⊤⊎↔⊤⊎]⇔[⊤⊎×↔]
+         ; right-inverse-of    = to∘from ext
+         }
+       ; left-inverse-of = from∘to ext
+       })
+    ext
   where
   _≟_ : Decidable-equality (⊤ ⊎ B)
   _≟_ = ⊎.Dec._≟_ ⊤._≟_ _≟B_
@@ -3697,9 +3698,9 @@ private
     where
     t : ⊤ ⊎ B → ⊤ ⊎ A → ⊤ ⊎ B
     t ⊤⊎B (inj₁ tt) = ⊤⊎B
-    t ⊤⊎B (inj₂ a)  = if⌊ b ≟ ⊤⊎B ⌋then inj₁ tt else b
-      where
-      b = inj₂ (_↔_.to A↔B a)
+    t ⊤⊎B (inj₂ a)  =
+      let b = inj₂ (_↔_.to A↔B a) in
+      if⌊ b ≟ ⊤⊎B ⌋then inj₁ tt else b
 
     f : ⊤ ⊎ B → ⊤ ⊎ B → ⊤ ⊎ A
     f ⊤⊎B (inj₁ tt) = [ const (inj₁ tt) , inj₂ ∘ _↔_.from A↔B ] ⊤⊎B
@@ -3748,8 +3749,16 @@ private
         inj₂ (_↔_.from A↔B (_↔_.to A↔B a))  ≡⟨ cong inj₂ $ _↔_.left-inverse-of A↔B _ ⟩∎
         inj₂ a                              ∎
 
-  to∘from : ∀ x → to (from x) ≡ x
-  to∘from (⊤⊎B , A↔B) =
+  [⊤⊎↔⊤⊎]⇔[⊤⊎×↔] : ((⊤ ⊎ A) ↔ (⊤ ⊎ B)) ⇔ (⊤ ⊎ B) × (A ↔ B)
+  [⊤⊎↔⊤⊎]⇔[⊤⊎×↔] = record
+    { to   = to
+    ; from = from
+    }
+
+  to∘from :
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    ∀ x → to (from x) ≡ x
+  to∘from ext (⊤⊎B , A↔B) =
     cong (⊤⊎B ,_) (_↔_.to (↔-to-≡↔≡ ext A-set) (lemma ⊤⊎B))
     where
     A-set : Is-set A
@@ -3772,8 +3781,10 @@ private
     lemma (inj₂ b)  a | (inj₂ _  , eq) | yes _ = ⊥-elim $ ⊎.inj₁≢inj₂ eq
     lemma (inj₂ b)  a | (inj₂ _  , eq) | no  _ = ⊎.cancel-inj₂ $ sym eq
 
-  from∘to : ∀ x → from (to x) ≡ x
-  from∘to ⊤⊎A↔⊤⊎B = _↔_.to (↔-to-≡↔≡ ext ⊤⊎A-set) lemma₁
+  from∘to :
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    ∀ x → from (to x) ≡ x
+  from∘to ext ⊤⊎A↔⊤⊎B = _↔_.to (↔-to-≡↔≡ ext ⊤⊎A-set) lemma₁
     where
     open ⊎-left-cancellative
 
