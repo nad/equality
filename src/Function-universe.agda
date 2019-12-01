@@ -3672,12 +3672,8 @@ private
   _≟_ : Decidable-equality (⊤ ⊎ B)
   _≟_ = ⊎.Dec._≟_ ⊤._≟_ _≟B_
 
-  if⌊_⌋then_else_ : ∀ {a p} {A : Set a} {P : Set p} → Dec P → A → A → A
-  if⌊ yes _ ⌋then t else e = t
-  if⌊ no  _ ⌋then t else e = e
-
   if-not : ∀ {a p} {A : Set a} {P : Set p} (d : Dec P) (t e : A) →
-           ¬ P → if⌊ d ⌋then t else e ≡ e
+           ¬ P → if d then t else e ≡ e
   if-not (yes p) t e ¬p = ⊥-elim (¬p p)
   if-not (no  _) t e ¬p = refl _
 
@@ -3700,12 +3696,12 @@ private
     t ⊤⊎B (inj₁ tt) = ⊤⊎B
     t ⊤⊎B (inj₂ a)  =
       let b = inj₂ (_↔_.to A↔B a) in
-      if⌊ b ≟ ⊤⊎B ⌋then inj₁ tt else b
+      if b ≟ ⊤⊎B then inj₁ tt else b
 
     f : ⊤ ⊎ B → ⊤ ⊎ B → ⊤ ⊎ A
     f ⊤⊎B (inj₁ tt) = [ const (inj₁ tt) , inj₂ ∘ _↔_.from A↔B ] ⊤⊎B
     f ⊤⊎B (inj₂ b)  =
-      if⌊ ⊤⊎B ≟ inj₂ b ⌋then inj₁ tt else inj₂ (_↔_.from A↔B b)
+      if ⊤⊎B ≟ inj₂ b then inj₁ tt else inj₂ (_↔_.from A↔B b)
 
     abstract
 
@@ -3722,14 +3718,14 @@ private
       t∘f (inj₂ b)  (inj₂ b′) | yes b≡b′ = inj₂ b  ≡⟨ cong inj₂ b≡b′ ⟩∎
                                            inj₂ b′ ∎
       t∘f (inj₂ b)  (inj₂ b′) | no  b≢b′ =
-        t (inj₂ b) (inj₂ (_↔_.from A↔B b′))                             ≡⟨⟩
+        t (inj₂ b) (inj₂ (_↔_.from A↔B b′))                           ≡⟨⟩
 
-        if⌊ inj₂ (_↔_.to A↔B (_↔_.from A↔B b′)) ≟ inj₂ b ⌋then inj₁ tt
-          else inj₂ (_↔_.to A↔B (_↔_.from A↔B b′))                      ≡⟨ cong (λ b′ → if⌊ inj₂ b′ ≟ inj₂ b ⌋then inj₁ tt else inj₂ b′) $
-                                                                             _↔_.right-inverse-of A↔B _ ⟩
-        if⌊ inj₂ b′ ≟ inj₂ b ⌋then inj₁ tt else inj₂ b′                 ≡⟨ if-not (inj₂ b′ ≟ inj₂ b) (inj₁ tt) _ (b≢b′ ∘ sym ∘ ⊎.cancel-inj₂) ⟩∎
+        if inj₂ (_↔_.to A↔B (_↔_.from A↔B b′)) ≟ inj₂ b then inj₁ tt
+          else inj₂ (_↔_.to A↔B (_↔_.from A↔B b′))                    ≡⟨ cong (λ b′ → if inj₂ b′ ≟ inj₂ b then inj₁ tt else inj₂ b′) $
+                                                                           _↔_.right-inverse-of A↔B _ ⟩
+        if inj₂ b′ ≟ inj₂ b then inj₁ tt else inj₂ b′                 ≡⟨ if-not (inj₂ b′ ≟ inj₂ b) (inj₁ tt) _ (b≢b′ ∘ sym ∘ ⊎.cancel-inj₂) ⟩∎
 
-        inj₂ b′                                                         ∎
+        inj₂ b′                                                       ∎
 
       f∘t : ∀ ⊤⊎B x → f ⊤⊎B (t ⊤⊎B x) ≡ x
       f∘t (inj₁ tt) (inj₁ tt) = refl _
@@ -3808,7 +3804,7 @@ private
         (x : Other-singleton (_↔_.to ⊤⊎A↔⊤⊎B (inj₂ a)))
         (y : Other-singleton (_↔_.to ⊤⊎A↔⊤⊎B (inj₁ tt))) →
         let b = g′ (_↔_.to ⊤⊎A↔⊤⊎B) wb x in
-        if⌊ inj₂ b ≟ proj₁ y ⌋then inj₁ tt else inj₂ b ≡ proj₁ x
+        if inj₂ b ≟ proj₁ y then inj₁ tt else inj₂ b ≡ proj₁ x
       lemma₂ {a} (inj₁ tt , eq₁) (inj₁ tt , eq₂) = ⊥-elim $ ⊎.inj₁≢inj₂ (
         inj₁ tt                                      ≡⟨ sym $ _↔_.left-inverse-of ⊤⊎A↔⊤⊎B _ ⟩
         _↔_.from ⊤⊎A↔⊤⊎B (_↔_.to ⊤⊎A↔⊤⊎B (inj₁ tt))  ≡⟨ cong (_↔_.from ⊤⊎A↔⊤⊎B) eq₂ ⟩
@@ -3835,7 +3831,7 @@ private
         proj₁ x ≡ inj₂ b′ →
         let b = g″ (_↔_.to ⊤⊎A↔⊤⊎B) wb eq x in
         (d : Dec (inj₂ {A = ⊤} b ≡ inj₂ b′)) →
-        if⌊ d ⌋then inj₁ tt else inj₂ b ≡ inj₁ tt
+        if d then inj₁ tt else inj₂ b ≡ inj₁ tt
       lemma₃ eq₁ (inj₁ _  , eq₂) eq₃ _           = ⊥-elim $ ⊎.inj₁≢inj₂ eq₃
       lemma₃ eq₁ (inj₂ b″ , eq₂) eq₃ (yes b″≡b′) = refl _
       lemma₃ eq₁ (inj₂ b″ , eq₂) eq₃ (no  b″≢b′) = ⊥-elim $ b″≢b′ eq₃
