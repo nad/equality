@@ -864,6 +864,7 @@ module Derived-definitions-and-properties
       trans (cong (flip f u) (cong g x≡y)) (cong (f (g y)) u≡v)  ∎
 
     cong₂-∘ʳ :
+      {f : A → C → D} {g : B → C}
       {x≡y : x ≡ y} {u≡v : u ≡ v} →
       cong₂ (λ x → f x ∘ g) x≡y u≡v ≡ cong₂ f x≡y (cong g u≡v)
     cong₂-∘ʳ {y = y} {u = u} {f = f} {g = g} {x≡y = x≡y} {u≡v} =

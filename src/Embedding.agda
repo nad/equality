@@ -110,6 +110,7 @@ f ∘ g = record
 -- Theorem 4.6.3 in the HoTT book (first edition).
 
 embedding→⁻¹-propositional :
+  {f : A → B} →
   Is-embedding f →
   ∀ y → Is-proposition (f ⁻¹ y)
 embedding→⁻¹-propositional {f = f} is-emb y (x₁ , eq₁) (x₂ , eq₂) =
@@ -139,7 +140,7 @@ embedding→⁻¹-propositional {f = f} is-emb y (x₁ , eq₁) (x₂ , eq₂) =
 
 -- Functions that are embeddings are injective.
 
-injective : Is-embedding f → Injective f
+injective : {f : A → B} → Is-embedding f → Injective f
 injective is-emb = _≃_.from ⟨ _ , is-emb _ _ ⟩
 
 -- Embeddings are injections.
