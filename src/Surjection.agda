@@ -50,6 +50,25 @@ record _↠_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
   split-surjective : Split-surjective to
   split-surjective = λ y → from y , right-inverse-of y
 
+  -- Every left inverse of to is pointwise equal to from.
+
+  left-inverse-unique :
+    (f : To → From) →
+    (∀ x → f (to x) ≡ x) →
+    (∀ x → f x ≡ from x)
+  left-inverse-unique f left x =
+    f x              ≡⟨ cong f $ sym $ right-inverse-of _ ⟩
+    f (to (from x))  ≡⟨ left _ ⟩∎
+    from x           ∎
+
+  -- Every right inverse of from is pointwise equal to to.
+
+  right-inverse-of-from-unique :
+    (f : From → To) →
+    (∀ x → from (f x) ≡ x) →
+    (∀ x → f x ≡ to x)
+  right-inverse-of-from-unique _ right x = sym $ from-to (right x)
+
   open _⇔_ logical-equivalence public
 
 ------------------------------------------------------------------------

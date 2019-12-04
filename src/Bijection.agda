@@ -52,6 +52,25 @@ record _↔_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
     from (to x)  ≡⟨ left-inverse-of x ⟩∎
     x            ∎
 
+  -- Every right inverse of to is pointwise equal to from.
+
+  right-inverse-unique :
+    (f : To → From) →
+    (∀ x → to (f x) ≡ x) →
+    (∀ x → f x ≡ from x)
+  right-inverse-unique _ right x = sym $ to-from (right x)
+
+  -- Every left inverse of from is pointwise equal to to.
+
+  left-inverse-of-from-unique :
+    (f : From → To) →
+    (∀ x → f (from x) ≡ x) →
+    (∀ x → f x ≡ to x)
+  left-inverse-of-from-unique f left x =
+    f x              ≡⟨ cong f $ sym $ left-inverse-of _ ⟩
+    f (from (to x))  ≡⟨ left _ ⟩∎
+    to x             ∎
+
   open _↠_ surjection public
 
 -- The type of quasi-inverses of a function (as defined in the HoTT
