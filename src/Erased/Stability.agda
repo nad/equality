@@ -1024,6 +1024,33 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       Very-stable-⊥
       Very-stable-×
 
+  -- A generalisation of Very-stable-Σ.
+  --
+  -- Based on a lemma called inO_unsigma, implemented by Mike Shulman
+  -- in the file ReflectiveSubuniverse.v in the Coq HoTT library.
+
+  Very-stable-Σ↔Π :
+    {A : Set a} {P : A → Set p} →
+    Extensionality? k (a ⊔ p) (a ⊔ p) →
+    Very-stable A →
+    Very-stable (Σ A P) ↝[ k ]
+    (∀ x → Very-stable (P x))
+  Very-stable-Σ↔Π {a = a} {p = p} {k = k} {A = A} {P = P} ext s =
+    generalise-ext?-prop
+      (record
+         { from = Very-stable-Σ s
+         ; to   = flip λ x →
+             Very-stable (Σ A P)                          ↝⟨ flip Very-stable-Σ (λ _ → Very-stable→Very-stable-≡ 0 s _ _) ⟩
+             Very-stable (∃ λ ((y , _) : Σ A P) → y ≡ x)  ↝⟨ Very-stable-cong _ $ from-bijection $ inverse Σ-assoc ⟩
+             Very-stable (∃ λ (y : A) → P y × y ≡ x)      ↝⟨ Very-stable-cong _ $ from-bijection $ inverse $ ∃-intro _ _ ⟩□
+             Very-stable (P x)                            □
+         })
+      Very-stable-propositional
+      (λ ext →
+         Π-closure (lower-extensionality p a ext) 1 λ _ →
+         Very-stable-propositional (lower-extensionality a a ext))
+      ext
+
   ----------------------------------------------------------------------
   -- Simple corollaries or variants of results above
 
