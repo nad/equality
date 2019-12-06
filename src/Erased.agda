@@ -525,11 +525,12 @@ module []-cong₂
   H-level-Erased n h = Erased-H-level↔H-level _ n [ h ]
 
   ----------------------------------------------------------------------
-  -- Erased is a lex modality
+  -- Some properties related to "Modalities in Homotopy Type Theory"
+  -- by Rijke, Shulman and Spitters
 
   -- Erased is a lex modality (see Theorem 3.1, case (i) in
-  -- "Modalities in Homotopy Type Theory" by Rijke, Shulman and
-  -- Spitters for the definition used here).
+  -- "Modalities in Homotopy Type Theory" for the definition used
+  -- here).
 
   lex-modality :
     {x y : A} → Contractible (Erased A) → Contractible (Erased (x ≡ y))
@@ -538,6 +539,24 @@ module []-cong₂
     Erased (Contractible A)        ↝⟨ map (⇒≡ 0) ⟩
     Erased (Contractible (x ≡ y))  ↝⟨ Erased-H-level↔H-level _ 0 ⟩□
     Contractible (Erased (x ≡ y))  □
+
+  -- A function f is Erased-connected in the sense of Rijke et al.
+  -- exactly when there is an erased proof showing that f is an
+  -- equivalence (assuming extensionality).
+  --
+  -- See also Erased-Is-equivalence↔Is-equivalence below.
+
+  Erased-connected↔Erased-Is-equivalence :
+    {A : Set a} {B : Set b} {f : A → B} →
+    Extensionality? k (a ⊔ b) (a ⊔ b) →
+    (∀ y → Contractible (Erased (f ⁻¹ y))) ↝[ k ]
+    Erased (Is-equivalence f)
+  Erased-connected↔Erased-Is-equivalence {a = a} {k = k} {f = f} ext =
+    (∀ y → Contractible (Erased (f ⁻¹ y)))  ↝⟨ (∀-cong (lower-extensionality? k a lzero ext) λ _ →
+                                                inverse-ext? (λ ext → Erased-H-level↔H-level ext 0) ext) ⟩
+    (∀ y → Erased (Contractible (f ⁻¹ y)))  ↔⟨ inverse Erased-Π↔Π ⟩
+    Erased (∀ y → Contractible (f ⁻¹ y))    ↔⟨⟩
+    Erased (Is-equivalence f)               □
 
   ----------------------------------------------------------------------
   -- Some isomorphisms
