@@ -994,20 +994,22 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
          (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
          (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
          Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
-Σ-cong {equivalence} {implication}         = Eq.∃-preserves-functions            ⊚ from-isomorphism
-Σ-cong {equivalence} {logical-equivalence} = Eq.∃-preserves-logical-equivalences ⊚ from-isomorphism
+Σ-cong {equivalence} {implication}         = λ A₁≃A₂ B₁→B₂ →
+                                               Σ-map (from-isomorphism A₁≃A₂) (B₁→B₂ _)
+Σ-cong {bijection}   {implication}         = λ A₁↔A₂ B₁→B₂ →
+                                               Σ-map (from-isomorphism A₁↔A₂) (B₁→B₂ _)
+Σ-cong {equivalence} {logical-equivalence} = Surjection.Σ-cong-⇔       ⊚ from-isomorphism
+Σ-cong {bijection}   {logical-equivalence} = Surjection.Σ-cong-⇔       ⊚ from-isomorphism
 Σ-cong {equivalence} {injection}           = Eq.∃-preserves-injections
-Σ-cong {equivalence} {embedding}           = Σ-preserves-embeddings              ⊚ from-isomorphism
-Σ-cong {equivalence} {surjection}          = Eq.∃-preserves-surjections          ⊚ from-isomorphism
+Σ-cong {bijection}   {injection}           = Eq.∃-preserves-injections ⊚ from-isomorphism
+Σ-cong {equivalence} {embedding}           = Σ-preserves-embeddings    ⊚ from-isomorphism
+Σ-cong {bijection}   {embedding}           = Σ-preserves-embeddings    ⊚ from-isomorphism
+Σ-cong {equivalence} {surjection}          = Surjection.Σ-cong         ⊚ from-isomorphism
+Σ-cong {bijection}   {surjection}          = Surjection.Σ-cong         ⊚ from-isomorphism
 Σ-cong {equivalence} {bijection}           = Eq.∃-preserves-bijections
+Σ-cong {bijection}   {bijection}           = Eq.∃-preserves-bijections ⊚ from-isomorphism
 Σ-cong {equivalence} {equivalence}         = Eq.Σ-preserves
-Σ-cong {bijection}   {implication}         = Eq.∃-preserves-functions            ⊚ from-isomorphism
-Σ-cong {bijection}   {logical-equivalence} = Eq.∃-preserves-logical-equivalences ⊚ from-isomorphism
-Σ-cong {bijection}   {injection}           = Eq.∃-preserves-injections           ⊚ from-isomorphism
-Σ-cong {bijection}   {embedding}           = Σ-preserves-embeddings              ⊚ from-isomorphism
-Σ-cong {bijection}   {surjection}          = Eq.∃-preserves-surjections          ⊚ from-isomorphism
-Σ-cong {bijection}   {bijection}           = Eq.∃-preserves-bijections           ⊚ from-isomorphism
-Σ-cong {bijection}   {equivalence}         = Eq.Σ-preserves                      ⊚ from-isomorphism
+Σ-cong {bijection}   {equivalence}         = Eq.Σ-preserves            ⊚ from-isomorphism
 
 -- A variant of Σ-cong.
 
@@ -1051,7 +1053,7 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
   Σ A₁ B₁ ⇔ Σ A₂ B₂
 Σ-cong-contra-⇔ A₂↠A₁ B₁⇔B₂ =
   inverse $
-  Eq.∃-preserves-logical-equivalences A₂↠A₁ (inverse ⊚ B₁⇔B₂)
+  Surjection.Σ-cong-⇔ A₂↠A₁ (inverse ⊚ B₁⇔B₂)
 
 -- ∃ preserves all kinds of functions. One could define
 -- ∃-cong = Σ-cong Bijection.id, but the resulting "from" functions

@@ -26,7 +26,7 @@ open import Injection eq using (Injective)
 open import Logical-equivalence hiding (id; _∘_; inverse)
 import Nat eq as Nat
 open import Prelude hiding (swap)
-open import Surjection eq hiding (id; _∘_; ∃-cong)
+open import Surjection eq using (_↠_)
 
 ------------------------------------------------------------------------
 -- The univalence axiom

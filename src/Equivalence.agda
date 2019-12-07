@@ -1278,30 +1278,7 @@ abstract
         g x y                                       ∎
 
 -- If the first component is instantiated to the identity, then the
--- following lemmas state that ∃ preserves functions, logical
--- equivalences, injections, surjections and bijections.
-
-∃-preserves-functions :
-  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
-  (A₁→A₂ : A₁ → A₂) → (∀ x → B₁ x → B₂ (A₁→A₂ x)) →
-  Σ A₁ B₁ → Σ A₂ B₂
-∃-preserves-functions A₁→A₂ B₁→B₂ = Σ-map A₁→A₂ (B₁→B₂ _)
-
-∃-preserves-logical-equivalences :
-  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
-  (A₁↠A₂ : A₁ ↠ A₂) → (∀ x → B₁ x ⇔ B₂ (_↠_.to A₁↠A₂ x)) →
-  Σ A₁ B₁ ⇔ Σ A₂ B₂
-∃-preserves-logical-equivalences {B₂ = B₂} A₁↠A₂ B₁⇔B₂ = record
-  { to   = ∃-preserves-functions (_↠_.to A₁↠A₂) (_⇔_.to ⊚ B₁⇔B₂)
-  ; from =
-     ∃-preserves-functions
-       (_↠_.from A₁↠A₂)
-       (λ x y → _⇔_.from
-                  (B₁⇔B₂ (_↠_.from A₁↠A₂ x))
-                  (subst B₂ (sym (_↠_.right-inverse-of A₁↠A₂ x)) y))
-  }
+-- following lemmas state that ∃ preserves injections and bijections.
 
 ∃-preserves-injections :
   ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
@@ -1316,7 +1293,7 @@ abstract
   open _↣_
 
   to′ : Σ A₁ B₁ → Σ A₂ B₂
-  to′ = ∃-preserves-functions (_≃_.to A₁≃A₂) (_↣_.to ⊚ B₁↣B₂)
+  to′ = Σ-map (_≃_.to A₁≃A₂) (_↣_.to (B₁↣B₂ _))
 
   abstract
     injective′ : Injective to′
@@ -1361,37 +1338,6 @@ abstract
         y₂                                     ∎) ⊚
       Σ-≡,≡←≡
 
-∃-preserves-surjections :
-  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
-  (A₁↠A₂ : A₁ ↠ A₂) → (∀ x → B₁ x ↠ B₂ (_↠_.to A₁↠A₂ x)) →
-  Σ A₁ B₁ ↠ Σ A₂ B₂
-∃-preserves-surjections {A₁ = A₁} {A₂} {B₁} {B₂} A₁↠A₂ B₁↠B₂ = record
-  { logical-equivalence = logical-equivalence′
-  ; right-inverse-of    = right-inverse-of′
-  }
-  where
-  open _↠_
-
-  logical-equivalence′ : Σ A₁ B₁ ⇔ Σ A₂ B₂
-  logical-equivalence′ =
-    ∃-preserves-logical-equivalences A₁↠A₂ (logical-equivalence ⊚ B₁↠B₂)
-
-  abstract
-    right-inverse-of′ :
-      ∀ p →
-      _⇔_.to logical-equivalence′ (_⇔_.from logical-equivalence′ p) ≡ p
-    right-inverse-of′ = λ p → Σ-≡,≡→≡
-      (_↠_.right-inverse-of A₁↠A₂ (proj₁ p))
-      (subst B₂ (_↠_.right-inverse-of A₁↠A₂ (proj₁ p))
-         (to (B₁↠B₂ _) (from (B₁↠B₂ _)
-            (subst B₂ (sym (_↠_.right-inverse-of A₁↠A₂ (proj₁ p)))
-               (proj₂ p))))                                         ≡⟨ cong (subst B₂ _) $ right-inverse-of (B₁↠B₂ _) _ ⟩
-       subst B₂ (_↠_.right-inverse-of A₁↠A₂ (proj₁ p))
-         (subst B₂ (sym (_↠_.right-inverse-of A₁↠A₂ (proj₁ p)))
-            (proj₂ p))                                              ≡⟨ subst-subst-sym B₂ _ _ ⟩∎
-       proj₂ p ∎)
-
 ∃-preserves-bijections :
   ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
     {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
@@ -1406,7 +1352,7 @@ abstract
 
   surjection′ : Σ A₁ B₁ ↠ Σ A₂ B₂
   surjection′ =
-    ∃-preserves-surjections (_≃_.surjection A₁≃A₂) (surjection ⊚ B₁↔B₂)
+    Surjection.Σ-cong (_≃_.surjection A₁≃A₂) (surjection ⊚ B₁↔B₂)
 
   abstract
     left-inverse-of′ :

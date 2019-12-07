@@ -146,6 +146,55 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
     right-inverse-of′ = λ p →
       cong (_,_ (proj₁ p)) (right-inverse-of (B₁↠B₂ (proj₁ p)) _)
 
+-- A preservation lemma involving Σ, _↠_ and _⇔_.
+
+Σ-cong-⇔ :
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
+  (A₁↠A₂ : A₁ ↠ A₂) → (∀ x → B₁ x ⇔ B₂ (_↠_.to A₁↠A₂ x)) →
+  Σ A₁ B₁ ⇔ Σ A₂ B₂
+Σ-cong-⇔ {B₂ = B₂} A₁↠A₂ B₁⇔B₂ = record
+  { to   = Σ-map (_↠_.to A₁↠A₂) (_⇔_.to (B₁⇔B₂ _))
+  ; from =
+     Σ-map
+       (_↠_.from A₁↠A₂)
+       (λ {x} y → _⇔_.from
+                    (B₁⇔B₂ (_↠_.from A₁↠A₂ x))
+                    (subst B₂ (sym (_↠_.right-inverse-of A₁↠A₂ x)) y))
+  }
+
+-- A generalisation of ∃-cong.
+
+Σ-cong :
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
+  (A₁↠A₂ : A₁ ↠ A₂) → (∀ x → B₁ x ↠ B₂ (_↠_.to A₁↠A₂ x)) →
+  Σ A₁ B₁ ↠ Σ A₂ B₂
+Σ-cong {A₁ = A₁} {A₂} {B₁} {B₂} A₁↠A₂ B₁↠B₂ = record
+  { logical-equivalence = logical-equivalence′
+  ; right-inverse-of    = right-inverse-of′
+  }
+  where
+  open _↠_
+
+  logical-equivalence′ : Σ A₁ B₁ ⇔ Σ A₂ B₂
+  logical-equivalence′ = Σ-cong-⇔ A₁↠A₂ (logical-equivalence ⊚ B₁↠B₂)
+
+  abstract
+    right-inverse-of′ :
+      ∀ p →
+      _⇔_.to logical-equivalence′ (_⇔_.from logical-equivalence′ p) ≡ p
+    right-inverse-of′ = λ p → Σ-≡,≡→≡
+      (_↠_.right-inverse-of A₁↠A₂ (proj₁ p))
+      (subst B₂ (_↠_.right-inverse-of A₁↠A₂ (proj₁ p))
+         (to (B₁↠B₂ _) (from (B₁↠B₂ _)
+            (subst B₂ (sym (_↠_.right-inverse-of A₁↠A₂ (proj₁ p)))
+               (proj₂ p))))                                         ≡⟨ cong (subst B₂ _) $ right-inverse-of (B₁↠B₂ _) _ ⟩
+       subst B₂ (_↠_.right-inverse-of A₁↠A₂ (proj₁ p))
+         (subst B₂ (sym (_↠_.right-inverse-of A₁↠A₂ (proj₁ p)))
+            (proj₂ p))                                              ≡⟨ subst-subst-sym B₂ _ _ ⟩∎
+       proj₂ p ∎)
+
 -- A lemma relating surjections and equality.
 
 ↠-≡ : ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) {x y : B} →

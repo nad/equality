@@ -26,7 +26,7 @@ open import Function-universe eq as F
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)
 open import Quotient eq as Quotient hiding ([_])
-open import Surjection eq using (_↠_)
+open import Surjection eq as Surjection using (_↠_)
 
 -- Some definitions from Erased are reexported.
 
@@ -279,7 +279,7 @@ Very-stable-≡-/ {A = A} {R = R} equiv prop s =
   Very-stable-≡ B →
   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ ↔ Erased-singleton y
 ↠→↔Erased-singleton {A = A} {y = y} A↠B s =
-  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  ↝⟨ Trunc.∥∥-cong-⇔ (Eq.∃-preserves-logical-equivalences A↠B λ _ → F.id) ⟩
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  ↝⟨ Trunc.∥∥-cong-⇔ (Surjection.Σ-cong-⇔ A↠B λ _ → F.id) ⟩
   ∥ Erased-singleton y ∥                         ↝⟨ Trunc.∥∥↔ (erased-singleton-with-erased-center-propositional s) ⟩□
   Erased-singleton y                             □
 
