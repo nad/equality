@@ -2274,6 +2274,21 @@ implicit-Π-cong-contra ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ 
   ; left-inverse-of = refl
   }
 
+-- A variant of Π-left-identity.
+
+Π-left-identity-↑ :
+  ∀ {a ℓ} {A : ↑ ℓ ⊤ → Set a} → ((x : ↑ ℓ ⊤) → A x) ↔ A (lift tt)
+Π-left-identity-↑ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ f → f (lift tt)
+      ; from = λ x _ → x
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
 -- A lemma that can be used to simplify a pi type where the domain is
 -- isomorphic to the unit type.
 
