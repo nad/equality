@@ -26,11 +26,12 @@ open import Surjection eq using (_↠_; Split-surjective)
 
 private
   variable
-    a b c ℓ p : Level
-    A B       : Set a
-    P         : A → Set p
-    k k′ x y  : A
-    n         : ℕ
+    a b c ℓ    : Level
+    A B        : Set a
+    k k′ p x y : A
+    P          : A → Set p
+    f g        : A → B
+    n          : ℕ
 
 ------------------------------------------------------------------------
 -- The type
@@ -306,6 +307,7 @@ Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
 -- Homotopy Type Theory" by Rijke, Shulman and Spitters.
 
 uniquely-eliminating-modality :
+  {@0 P : Erased A → Set p} →
   Is-equivalence
     (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [_] {A = A})
 uniquely-eliminating-modality {A = A} {P = P} =
@@ -313,6 +315,39 @@ uniquely-eliminating-modality {A = A} {P = P} =
     (((x : Erased A) → Erased (P x))  ↔⟨ inverse Erased-Π↔Π-Erased ⟩
      Erased ((x : A) → (P [ x ]))     ↔⟨ Erased-Π↔Π ⟩
      ((x : A) → Erased (P [ x ]))     □)
+
+-- Two results that are closely related to
+-- uniquely-eliminating-modality.
+--
+-- These results are based on the Coq source code accompanying
+-- "Modalities in Homotopy Type Theory" by Rijke, Shulman and
+-- Spitters.
+
+-- Precomposition with [_] is injective for functions from Erased A to
+-- Erased B.
+
+∘-[]-injective :
+  {@0 B : Set b} →
+  Injective (λ (f : Erased A → Erased B) → f ∘ [_])
+∘-[]-injective = _≃_.injective Eq.⟨ _ , uniquely-eliminating-modality ⟩
+
+-- A rearrangement lemma for ext⁻¹ and ∘-[]-injective.
+
+ext⁻¹-∘-[]-injective :
+  {@0 B : Set b} {f g : Erased A → Erased B} {p : f ∘ [_] ≡ g ∘ [_]} →
+  ext⁻¹ (∘-[]-injective {x = f} {y = g} p) [ x ] ≡ ext⁻¹ p x
+ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
+  ext⁻¹ (∘-[]-injective p) [ x ]               ≡⟨ elim₁
+                                                    (λ p → ext⁻¹ p [ x ] ≡ ext⁻¹ (_≃_.from equiv p) x) (
+      ext⁻¹ (refl g) [ x ]                            ≡⟨ cong-refl (_$ [ x ]) ⟩
+      refl (g [ x ])                                  ≡⟨ sym $ cong-refl _ ⟩
+      ext⁻¹ (refl (g ∘ [_])) x                        ≡⟨ cong (λ p → ext⁻¹ p x) $ sym $ cong-refl _ ⟩∎
+      ext⁻¹ (_≃_.from equiv (refl g)) x               ∎)
+                                                    (∘-[]-injective p) ⟩
+  ext⁻¹ (_≃_.from equiv (∘-[]-injective p)) x  ≡⟨ cong (flip ext⁻¹ x) $ _≃_.left-inverse-of equiv _ ⟩∎
+  ext⁻¹ p x                                    ∎
+  where
+  equiv = Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating-modality ⟩
 
 ------------------------------------------------------------------------
 -- A variant of Dec ∘ Erased
