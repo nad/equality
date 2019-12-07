@@ -96,6 +96,11 @@ import Embedding
 
 import Function-universe
 
+-- Some alternative definitions of the concept of being an
+-- equivalence: n-path-split and ∞-path-split.
+
+import Equivalence.Path-split
+
 -- Pointed types and loop spaces.
 
 import Pointed-type
