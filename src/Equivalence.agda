@@ -1204,6 +1204,15 @@ abstract
         right-inverse-of (to y)))                  ≡⟨ _↠_.right-inverse-of (Surjection.↠-≡ $ _≃_.surjection A≃B) to-x≡to-y ⟩∎
       to-x≡to-y                                    ∎
 
+-- A "computation rule" for ≃-≡.
+
+to-≃-≡-refl :
+  ∀ {a b} {A : Set a} {B : Set b} (A≃B : A ≃ B) {x : A} →
+  _≃_.to (≃-≡ A≃B) (refl (_≃_.to A≃B x)) ≡ refl x
+to-≃-≡-refl A≃B =
+  Surjection.to-↠-≡-refl
+    (_↔_.surjection $ Bijection.inverse $ _≃_.bijection A≃B)
+
 abstract
   private
 

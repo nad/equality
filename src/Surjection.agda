@@ -239,6 +239,25 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
              trans (sym (right-inverse-of x)) (right-inverse-of x)  ≡⟨ trans-symˡ _ ⟩∎
              refl x                                                 ∎)
 
+-- A "computation rule" for ↠-≡.
+
+to-↠-≡-refl :
+  ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) {x : B} →
+  _↠_.to (↠-≡ A↠B) (refl (_↠_.from A↠B x)) ≡ refl x
+to-↠-≡-refl A↠B {x = x} =
+  trans (sym $ _↠_.right-inverse-of A↠B x)
+    (trans (cong (_↠_.to A↠B) (refl (_↠_.from A↠B x)))
+       (_↠_.right-inverse-of A↠B x))                    ≡⟨ cong (λ p → trans _ (trans p _)) $ cong-refl _ ⟩
+
+  trans (sym $ _↠_.right-inverse-of A↠B x)
+    (trans (refl (_↠_.to A↠B (_↠_.from A↠B x)))
+       (_↠_.right-inverse-of A↠B x))                    ≡⟨ cong (trans _) $ trans-reflˡ _ ⟩
+
+  trans (sym $ _↠_.right-inverse-of A↠B x)
+    (_↠_.right-inverse-of A↠B x)                        ≡⟨ trans-symˡ _ ⟩∎
+
+  refl x                                                ∎
+
 -- Decidable-equality respects surjections.
 
 Decidable-equality-respects :
