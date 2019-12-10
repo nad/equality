@@ -19,7 +19,7 @@ module Nat.Binary
 open Derived-definitions-and-properties eq
 
 open import Logical-equivalence using (_⇔_; Dec-map)
-open import Prelude hiding (suc) renaming (_+_ to _⊕_; _*_ to _⊛_)
+open import Prelude hiding (suc; _^_) renaming (_+_ to _⊕_; _*_ to _⊛_)
 
 open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
@@ -33,7 +33,7 @@ private
 
   module N where
     open import Nat eq public
-    open Prelude public using (zero; suc)
+    open Prelude public using (zero; suc; _^_)
 
   variable
     A     : Set
@@ -423,6 +423,87 @@ private
         1 ⊕ to-ℕ′ n              ≡⟨ sym $ N.⌈1+2*/2⌉≡ _ ⟩∎
         N.⌈ 1 ⊕ 2 ⊛ to-ℕ′ n /2⌉  ∎
 
+      -- Multiplication.
+
+      infixl 7 _*_
+
+      _*_ : Bin′ → Bin′ → Bin′
+      []            * n = zero′
+      (b ∷ m ⟨ _ ⟩) * n =
+        (if b then add-with-carry n else id)
+          (false ∷ˢ m * n)
+
+      to-ℕ′-* : ∀ m n → to-ℕ′ (m * n) ≡ to-ℕ′ m ⊛ to-ℕ′ n
+      to-ℕ′-* []                  n = refl _
+      to-ℕ′-* (false ∷ m ⟨ inv ⟩) n =
+        to-ℕ′ (false ∷ˢ m * n)               ≡⟨ to-ℕ′-∷ˢ false (m * n) ⟩
+        2 ⊛ to-ℕ′ (m * n)                    ≡⟨ cong (2 ⊛_) (to-ℕ′-* m _) ⟩
+        2 ⊛ (to-ℕ′ m ⊛ to-ℕ′ n)              ≡⟨ N.*-assoc 2 {n = to-ℕ′ m} ⟩
+        (2 ⊛ to-ℕ′ m) ⊛ to-ℕ′ n              ≡⟨⟩
+        to-ℕ′ (false ∷ m ⟨ inv ⟩) ⊛ to-ℕ′ n  ∎
+      to-ℕ′-* (true ∷ m ⟨ inv ⟩) n =
+        to-ℕ′ (add-with-carry n (false ∷ˢ m * n))  ≡⟨ to-ℕ′-add-with-carry n _ ⟩
+        to-ℕ′ n ⊕ to-ℕ′ (false ∷ˢ m * n)           ≡⟨ cong (to-ℕ′ n ⊕_) (to-ℕ′-∷ˢ false (m * n)) ⟩
+        to-ℕ′ n ⊕ 2 ⊛ to-ℕ′ (m * n)                ≡⟨ cong (λ x → to-ℕ′ n ⊕ 2 ⊛ x) (to-ℕ′-* m _) ⟩
+        to-ℕ′ n ⊕ 2 ⊛ (to-ℕ′ m ⊛ to-ℕ′ n)          ≡⟨ solve 2 (λ m n → n :+ con 2 :* (m :* n) :=
+                                                                       (con 1 :+ con 2 :* m) :* n)
+                                                            (refl _) (to-ℕ′ m) _ ⟩
+        (1 ⊕ 2 ⊛ to-ℕ′ m) ⊛ to-ℕ′ n                ≡⟨⟩
+        to-ℕ′ (true ∷ m ⟨ inv ⟩) ⊛ to-ℕ′ n         ∎
+
+      -- Exponentiation.
+
+      infixr 8 _^_
+
+      _^_ : Bin′ → Bin′ → Bin′
+      m ^ []            = suc′ zero′
+      m ^ (b ∷ n ⟨ _ ⟩) =
+        (if b then (m *_) else id)
+          ((m * m) ^ n)
+
+      to-ℕ′-^ : ∀ m n → to-ℕ′ (m ^ n) ≡ to-ℕ′ m N.^ to-ℕ′ n
+      to-ℕ′-^ m []                  = refl _
+      to-ℕ′-^ m (false ∷ n ⟨ inv ⟩) =
+        to-ℕ′ (m ^ (false ∷ n ⟨ inv ⟩))        ≡⟨⟩
+        to-ℕ′ ((m * m) ^ n)                    ≡⟨ to-ℕ′-^ (m * m) n ⟩
+        to-ℕ′ (m * m) N.^ to-ℕ′ n              ≡⟨ cong (N._^ to-ℕ′ n) (to-ℕ′-* m m) ⟩
+        (to-ℕ′ m ⊛ to-ℕ′ m) N.^ to-ℕ′ n        ≡⟨ cong (λ x → (to-ℕ′ m ⊛ x) N.^ to-ℕ′ n) (sym (N.*-right-identity (to-ℕ′ m))) ⟩
+        (to-ℕ′ m N.^ 2) N.^ to-ℕ′ n            ≡⟨ N.^^≡^* 2 {k = to-ℕ′ n} ⟩
+        to-ℕ′ m N.^ (2 ⊛ to-ℕ′ n)              ≡⟨⟩
+        to-ℕ′ m N.^ to-ℕ′ (false ∷ n ⟨ inv ⟩)  ∎
+      to-ℕ′-^ m (true ∷ n ⟨ inv ⟩) =
+        to-ℕ′ (m ^ (true ∷ n ⟨ inv ⟩))             ≡⟨⟩
+        to-ℕ′ (m * (m * m) ^ n)                    ≡⟨ to-ℕ′-* m ((m * m) ^ n) ⟩
+        to-ℕ′ m ⊛ to-ℕ′ ((m * m) ^ n)              ≡⟨ cong (to-ℕ′ m ⊛_) (to-ℕ′-^ (m * m) n) ⟩
+        to-ℕ′ m ⊛ to-ℕ′ (m * m) N.^ to-ℕ′ n        ≡⟨ cong (λ x → to-ℕ′ m ⊛ x N.^ to-ℕ′ n) (to-ℕ′-* m m) ⟩
+        to-ℕ′ m ⊛ (to-ℕ′ m ⊛ to-ℕ′ m) N.^ to-ℕ′ n  ≡⟨ cong (λ x → to-ℕ′ m ⊛ (to-ℕ′ m ⊛ x) N.^ to-ℕ′ n) (sym (N.*-right-identity (to-ℕ′ m))) ⟩
+        to-ℕ′ m ⊛ (to-ℕ′ m N.^ 2) N.^ to-ℕ′ n      ≡⟨ cong₂ _⊛_ (sym (N.^-right-identity {n = to-ℕ′ m})) (N.^^≡^* 2 {k = to-ℕ′ n}) ⟩
+        to-ℕ′ m N.^ 1 ⊛ to-ℕ′ m N.^ (2 ⊛ to-ℕ′ n)  ≡⟨ sym $ N.^+≡^*^ {m = to-ℕ′ m} 1 {k = 2 ⊛ to-ℕ′ n} ⟩
+        to-ℕ′ m N.^ (1 ⊕ 2 ⊛ to-ℕ′ n)              ≡⟨⟩
+        to-ℕ′ m N.^ to-ℕ′ (true ∷ n ⟨ inv ⟩)       ∎
+
+      -- "Left shift".
+
+      infixl 8 _*2^_
+
+      _*2^_ : Bin′ → ℕ → Bin′
+      m *2^ zero    = m
+      m *2^ N.suc n = (false ∷ˢ m) *2^ n
+
+      to-ℕ′-*2^ :
+        ∀ m n →
+        to-ℕ′ (m *2^ n) ≡
+        to-ℕ′ m ⊛ 2 N.^ n
+      to-ℕ′-*2^ m zero =
+        to-ℕ′ m      ≡⟨ sym $ N.*-right-identity _ ⟩∎
+        to-ℕ′ m ⊛ 1  ∎
+      to-ℕ′-*2^ m (N.suc n) =
+        to-ℕ′ ((false ∷ˢ m) *2^ n)    ≡⟨ to-ℕ′-*2^ (false ∷ˢ m) n ⟩
+        to-ℕ′ (false ∷ˢ m) ⊛ 2 N.^ n  ≡⟨ cong (_⊛ _) $ to-ℕ′-∷ˢ false m ⟩
+        2 ⊛ to-ℕ′ m ⊛ 2 N.^ n         ≡⟨ cong (_⊛ (2 N.^ n)) $ N.*-comm 2 {n = to-ℕ′ m} ⟩
+        to-ℕ′ m ⊛ 2 ⊛ 2 N.^ n         ≡⟨ sym $ N.*-assoc (to-ℕ′ m) ⟩∎
+        to-ℕ′ m ⊛ 2 N.^ N.suc n       ∎
+
       private
 
         -- The empty list is not equal to any non-empty list.
@@ -497,6 +578,53 @@ private
         lemma : m ≡ n ⇔ to-ℕ′ m ≡ to-ℕ′ n
         lemma = record { to = cong to-ℕ′; from = _↔_.injective Bin′↔ℕ }
 
+      private
+
+        -- A lemma used to prove that from-bits and to-bits are
+        -- correct.
+
+        to-ℕ′-foldr-∷ˢ-[] :
+          ∀ bs →
+          to-ℕ′ (foldr _∷ˢ_ [] bs) ≡
+          foldr (λ b n → from-Bool b ⊕ 2 ⊛ n) 0 bs
+        to-ℕ′-foldr-∷ˢ-[] []       = refl _
+        to-ℕ′-foldr-∷ˢ-[] (b ∷ bs) =
+          to-ℕ′ (foldr _∷ˢ_ [] (b ∷ bs))                              ≡⟨⟩
+          to-ℕ′ (b ∷ˢ foldr _∷ˢ_ [] bs)                               ≡⟨ to-ℕ′-∷ˢ b _ ⟩
+          from-Bool b ⊕ 2 ⊛ to-ℕ′ (foldr _∷ˢ_ [] bs)                  ≡⟨ cong (λ n → from-Bool b ⊕ 2 ⊛ n) (to-ℕ′-foldr-∷ˢ-[] bs) ⟩
+          from-Bool b ⊕ 2 ⊛ foldr (λ b n → from-Bool b ⊕ 2 ⊛ n) 0 bs  ≡⟨⟩
+          foldr (λ b n → from-Bool b ⊕ 2 ⊛ n) 0 (b ∷ bs)              ∎
+
+      -- Converts from lists of bits. (The most significant bit comes
+      -- first.)
+
+      from-bits : List Bool → Bin′
+      from-bits = foldr _∷ˢ_ [] ∘ reverse
+
+      to-ℕ′-from-bits :
+        ∀ bs →
+        to-ℕ′ (from-bits bs) ≡
+        foldl (λ n b → (if b then 1 else 0) ⊕ 2 ⊛ n) 0 bs
+      to-ℕ′-from-bits bs =
+        to-ℕ′ (from-bits bs)                                ≡⟨⟩
+        to-ℕ′ (foldr _∷ˢ_ [] (reverse bs))                  ≡⟨ to-ℕ′-foldr-∷ˢ-[] (reverse bs) ⟩
+        foldr (λ b n → from-Bool b ⊕ 2 ⊛ n) 0 (reverse bs)  ≡⟨ foldr-reverse bs ⟩∎
+        foldl (λ n b → from-Bool b ⊕ 2 ⊛ n) 0 bs            ∎
+
+      -- Converts to lists of bits. (The most significant bit comes
+      -- first.)
+
+      to-bits : Bin′ → List Bool
+      to-bits = reverse ∘ to-List
+
+      to-ℕ′-from-bits-to-bits :
+        ∀ n → to-ℕ′ (from-bits (to-bits n)) ≡ to-ℕ′ n
+      to-ℕ′-from-bits-to-bits n =
+        to-ℕ′ (foldr _∷ˢ_ [] (reverse (reverse (to-List n))))  ≡⟨ cong (to-ℕ′ ∘ foldr _∷ˢ_ []) (reverse-reverse (to-List n)) ⟩
+        to-ℕ′ (foldr _∷ˢ_ [] (to-List n))                      ≡⟨ to-ℕ′-foldr-∷ˢ-[] (to-List n) ⟩
+        foldr (λ b n → from-Bool b ⊕ 2 ⊛ n) 0 (to-List n)      ≡⟨⟩
+        to-ℕ′ n                                                ∎
+
 ------------------------------------------------------------------------
 -- Binary natural numbers
 
@@ -526,17 +654,28 @@ private
   -- An implementation of some operations for Bin′.
 
   Operations-for-Bin′ : Operations
-  Operations.zero      Operations-for-Bin′ = Bin′.zero′
-  Operations.to-ℕ-zero Operations-for-Bin′ = Bin′.to-ℕ′-zero′
-  Operations.suc       Operations-for-Bin′ = Bin′.suc′
-  Operations.to-ℕ-suc  Operations-for-Bin′ = Bin′.to-ℕ′-suc′
-  Operations._+_       Operations-for-Bin′ = Bin′.add-with-carry
-  Operations.to-ℕ-+    Operations-for-Bin′ = Bin′.to-ℕ′-add-with-carry
-  Operations.⌊_/2⌋     Operations-for-Bin′ = Bin′.⌊_/2⌋
-  Operations.to-ℕ-⌊/2⌋ Operations-for-Bin′ = Bin′.to-ℕ′-⌊/2⌋
-  Operations.⌈_/2⌉     Operations-for-Bin′ = Bin′.⌈_/2⌉
-  Operations.to-ℕ-⌈/2⌉ Operations-for-Bin′ = Bin′.to-ℕ′-⌈/2⌉
-  Operations._≟_       Operations-for-Bin′ = Bin′._≟_
+  Operations-for-Bin′ = λ where
+    .Operations.zero                   → Bin′.zero′
+    .Operations.to-ℕ-zero              → Bin′.to-ℕ′-zero′
+    .Operations.suc                    → Bin′.suc′
+    .Operations.to-ℕ-suc               → Bin′.to-ℕ′-suc′
+    .Operations._+_                    → Bin′.add-with-carry
+    .Operations.to-ℕ-+                 → Bin′.to-ℕ′-add-with-carry
+    .Operations._*_                    → Bin′._*_
+    .Operations.to-ℕ-*                 → Bin′.to-ℕ′-*
+    .Operations._^_                    → Bin′._^_
+    .Operations.to-ℕ-^                 → Bin′.to-ℕ′-^
+    .Operations.⌊_/2⌋                  → Bin′.⌊_/2⌋
+    .Operations.to-ℕ-⌊/2⌋              → Bin′.to-ℕ′-⌊/2⌋
+    .Operations.⌈_/2⌉                  → Bin′.⌈_/2⌉
+    .Operations.to-ℕ-⌈/2⌉              → Bin′.to-ℕ′-⌈/2⌉
+    .Operations._*2^_                  → Bin′._*2^_
+    .Operations.to-ℕ-*2^               → Bin′.to-ℕ′-*2^
+    .Operations._≟_                    → Bin′._≟_
+    .Operations.from-bits              → Bin′.from-bits
+    .Operations.to-ℕ-from-bits         → Bin′.to-ℕ′-from-bits
+    .Operations.to-bits                → Bin′.to-bits
+    .Operations.to-ℕ-from-bits-to-bits → Bin′.to-ℕ′-from-bits-to-bits
 
 -- Operations for Bin-[_].
 

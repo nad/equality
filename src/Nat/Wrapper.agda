@@ -10,7 +10,7 @@
 import Bijection
 open import Equality
 import Erased
-open import Prelude hiding (zero; suc; _+_)
+open import Prelude hiding (zero; suc; _+_; _*_; _^_)
 
 module Nat.Wrapper
   {c⁺}
@@ -37,6 +37,7 @@ open import Erased.Stability eq
 open import Function-universe eq as F hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
+open import List eq
 open import List.All.Recursive eq
 open import Vec eq as Vec
 
@@ -46,7 +47,7 @@ private
 
   module N where
     open import Nat eq public
-    open Prelude public using (zero; suc; _+_)
+    open Prelude public using (zero; suc; _+_; _*_; _^_)
 
   variable
     A               : Set
@@ -211,7 +212,11 @@ binary-[] f′ hyp m n =
 -- correctness properties for) certain operations for Nat′.
 
 record Operations : Set where
-  infix 4 _≟_
+  infixl 8 _*2^_
+  infixr 8 _^_
+  infixl 7 _*_
+  infixl 6 _+_
+  infix  4 _≟_
 
   field
     zero      : Nat′
@@ -223,13 +228,32 @@ record Operations : Set where
     _+_       : Nat′ → Nat′ → Nat′
     to-ℕ-+    : ∀ m n → to-ℕ (m + n) ≡ to-ℕ m N.+ to-ℕ n
 
+    _*_       : Nat′ → Nat′ → Nat′
+    to-ℕ-*    : ∀ m n → to-ℕ (m * n) ≡ to-ℕ m N.* to-ℕ n
+
+    _^_       : Nat′ → Nat′ → Nat′
+    to-ℕ-^    : ∀ m n → to-ℕ (m ^ n) ≡ to-ℕ m N.^ to-ℕ n
+
     ⌊_/2⌋     : Nat′ → Nat′
     to-ℕ-⌊/2⌋ : ∀ n → to-ℕ ⌊ n /2⌋ ≡ N.⌊ to-ℕ n /2⌋
 
     ⌈_/2⌉     : Nat′ → Nat′
     to-ℕ-⌈/2⌉ : ∀ n → to-ℕ ⌈ n /2⌉ ≡ N.⌈ to-ℕ n /2⌉
 
+    _*2^_     : Nat′ → ℕ → Nat′
+    to-ℕ-*2^  : ∀ m n → to-ℕ (m *2^ n) ≡ to-ℕ m N.* 2 N.^ n
+
     _≟_       : ∀ m n → Dec (Erased (to-ℕ m ≡ to-ℕ n))
+
+    from-bits      : List Bool → Nat′
+    to-ℕ-from-bits :
+      ∀ bs →
+      to-ℕ (from-bits bs) ≡
+      foldl (λ n b → (if b then 1 else 0) N.+ 2 N.* n) 0 bs
+
+    to-bits                : Nat′ → List Bool
+    to-ℕ-from-bits-to-bits :
+      ∀ n → to-ℕ (from-bits (to-bits n)) ≡ to-ℕ n
 
 -- If certain operations are defined for Nat′, then they can be
 -- defined for Nat-[_] as well.
@@ -257,6 +281,20 @@ module Operations-for-Nat-[] (o : Operations) where
   _+_ : {@0 m n : ℕ} → Nat-[ m ] → Nat-[ n ] → Nat-[ m N.+ n ]
   _+_ = binary-[] O._+_ O.to-ℕ-+
 
+  -- Multiplication.
+
+  infixl 7 _*_
+
+  _*_ : {@0 m n : ℕ} → Nat-[ m ] → Nat-[ n ] → Nat-[ m N.* n ]
+  _*_ = binary-[] O._*_ O.to-ℕ-*
+
+  -- Exponentiation.
+
+  infixr 8 _^_
+
+  _^_ : {@0 m n : ℕ} → Nat-[ m ] → Nat-[ n ] → Nat-[ m N.^ n ]
+  _^_ = binary-[] O._^_ O.to-ℕ-^
+
   -- Division by two, rounded downwards.
 
   ⌊_/2⌋ : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.⌊ n /2⌋ ]
@@ -266,6 +304,13 @@ module Operations-for-Nat-[] (o : Operations) where
 
   ⌈_/2⌉ : {@0 n : ℕ} → Nat-[ n ] → Nat-[ N.⌈ n /2⌉ ]
   ⌈_/2⌉ = unary-[] O.⌈_/2⌉ O.to-ℕ-⌈/2⌉
+
+  -- Left shift.
+
+  infixl 8 _*2^_
+
+  _*2^_ : {@0 m : ℕ} → Nat-[ m ] → ∀ n → Nat-[ m N.* 2 N.^ n ]
+  m *2^ n = unary-[] (O._*2^ n) (flip O.to-ℕ-*2^ n) m
 
   -- Equality is decidable (in a certain sense).
 
@@ -281,6 +326,32 @@ module Operations-for-Nat-[] (o : Operations) where
          to-ℕ m′ ≡ to-ℕ n′  ↝⟨ ≡⇒↝ _ (cong₂ _≡_ m≡m′ n≡n′) ⟩□
          m ≡ n              □))
       (m′ O.≟ n′)
+
+  -- Conversion from bits. (The most significant bit comes first.)
+
+  from-bits :
+    (bs : List Bool) →
+    Nat-[ foldl (λ n b → (if b then 1 else 0) N.+ 2 N.* n) 0 bs ]
+  from-bits bs = nullary-[] (O.from-bits bs) (O.to-ℕ-from-bits bs)
+
+  -- Conversion to bits. (The most significant bit comes first.)
+
+  to-bits :
+    {@0 n : ℕ} →
+    Nat-[ n ] →
+    ∃ λ (bs : List Bool) →
+      Erased (foldl (λ n b → (if b then 1 else 0) N.+ 2 N.* n) 0 bs ≡ n)
+  to-bits {n = n} (n′ , [ n′≡n ]) =
+      O.to-bits n′
+    , [ foldl (λ n b → (if b then 1 else 0) N.+ 2 N.* n) 0
+          (O.to-bits n′)                                    ≡⟨ sym $ O.to-ℕ-from-bits _ ⟩
+
+        to-ℕ (O.from-bits (O.to-bits n′))                   ≡⟨ O.to-ℕ-from-bits-to-bits _ ⟩
+
+        to-ℕ n′                                             ≡⟨ n′≡n ⟩∎
+
+        n                                                   ∎
+      ]
 
 ------------------------------------------------------------------------
 -- Operations for Nat
@@ -446,6 +517,28 @@ module Operations-for-Nat (o : Operations) where
     ∀ m n → _↔_.to Nat↔ℕ (m + n) ≡ _↔_.to Nat↔ℕ m N.+ _↔_.to Nat↔ℕ n
   to-ℕ-+ = binary-correct N._+_ O.to-ℕ-+
 
+  -- Multiplication.
+
+  infixl 7 _*_
+
+  _*_ : Nat → Nat → Nat
+  _*_ = binary N._*_ O._*_ O.to-ℕ-*
+
+  to-ℕ-* :
+    ∀ m n → _↔_.to Nat↔ℕ (m * n) ≡ _↔_.to Nat↔ℕ m N.* _↔_.to Nat↔ℕ n
+  to-ℕ-* = binary-correct N._*_ O.to-ℕ-*
+
+  -- Multiplication.
+
+  infixr 8 _^_
+
+  _^_ : Nat → Nat → Nat
+  _^_ = binary N._^_ O._^_ O.to-ℕ-^
+
+  to-ℕ-^ :
+    ∀ m n → _↔_.to Nat↔ℕ (m ^ n) ≡ _↔_.to Nat↔ℕ m N.^ _↔_.to Nat↔ℕ n
+  to-ℕ-^ = binary-correct N._^_ O.to-ℕ-^
+
   -- Division by two, rounded downwards.
 
   ⌊_/2⌋ : Nat → Nat
@@ -462,12 +555,54 @@ module Operations-for-Nat (o : Operations) where
   to-ℕ-⌈/2⌉ : ∀ n → _↔_.to Nat↔ℕ ⌈ n /2⌉ ≡ N.⌈ _↔_.to Nat↔ℕ n /2⌉
   to-ℕ-⌈/2⌉ = unary-correct N.⌈_/2⌉ O.to-ℕ-⌈/2⌉
 
+  -- Left shift.
+
+  infixl 8 _*2^_
+
+  _*2^_ : Nat → ℕ → Nat
+  m *2^ n =
+    unary (λ m → m N.* 2 N.^ n) (O._*2^ n) (flip O.to-ℕ-*2^ n) m
+
+  to-ℕ-*2^ :
+    ∀ m n → _↔_.to Nat↔ℕ (m *2^ n) ≡ _↔_.to Nat↔ℕ m N.* 2 N.^ n
+  to-ℕ-*2^ m n =
+    unary-correct (λ m → m N.* 2 N.^ n) (flip O.to-ℕ-*2^ n) m
+
   -- Equality is decidable (in a certain sense).
 
   infix 4 _≟_
 
   _≟_ : (m n : Nat) → Dec (Erased (⌊ m ⌋ ≡ ⌊ n ⌋))
   (_ , m′) ≟ (_ , n′) = m′ O-[].≟ n′
+
+  -- Conversion from bits. (The most significant bit comes first.)
+
+  from-bits : List Bool → Nat
+  from-bits bs =
+    nullary
+      (foldl (λ n b → (if b then 1 else 0) N.+ 2 N.* n) 0 bs)
+      (O.from-bits bs)
+      (O.to-ℕ-from-bits bs)
+
+  to-ℕ-from-bits :
+    ∀ bs →
+    _↔_.to Nat↔ℕ (from-bits bs) ≡
+    foldl (λ n b → (if b then 1 else 0) N.+ 2 N.* n) 0 bs
+  to-ℕ-from-bits bs = nullary-correct (O.to-ℕ-from-bits bs)
+
+  -- Conversion to bits. (The most significant bit comes first.)
+
+  to-bits : Nat → List Bool
+  to-bits (_ , n′) = proj₁ (O-[].to-bits n′)
+
+  to-ℕ-from-bits-to-bits :
+    ∀ n → _↔_.to Nat↔ℕ (from-bits (to-bits n)) ≡ _↔_.to Nat↔ℕ n
+  to-ℕ-from-bits-to-bits n@(_ , n′) =
+    cong (_↔_.to Nat↔ℕ) $
+      _↔_.to (≡-for-indices↔≡ {m = from-bits (to-bits n)} {n = n})
+        [ ⌊ from-bits (to-bits n) ⌋  ≡⟨ erased (proj₂ (O-[].to-bits n′)) ⟩∎
+          ⌊ n ⌋                      ∎
+        ]
 
 ------------------------------------------------------------------------
 -- Some examples
