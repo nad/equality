@@ -210,6 +210,15 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
   o * m + o * n  ≡⟨ cong₂ _+_ (*-comm o) (*-comm o) ⟩∎
   m * o + n * o  ∎
 
+-- Multiplication is associative.
+
+*-assoc : ∀ m {n k} → m * (n * k) ≡ (m * n) * k
+*-assoc zero                    = refl _
+*-assoc (suc m) {n = n} {k = k} =
+  n * k + m * (n * k)  ≡⟨ cong (n * k +_) $ *-assoc m ⟩
+  n * k + (m * n) * k  ≡⟨ sym $ *-+-distribʳ n ⟩∎
+  (n + m * n) * k      ∎
+
 -- Multiplication is right cancellative for positive numbers.
 
 *-cancellativeʳ : ∀ {m₁ m₂ n} → m₁ * suc n ≡ m₂ * suc n → m₁ ≡ m₂
@@ -250,6 +259,53 @@ even≢odd (suc m) n eq =
   n ^ 1  ≡⟨⟩
   n * 1  ≡⟨ *-right-identity _ ⟩∎
   n      ∎
+
+-- One is a left zero for exponentiation.
+
+^-left-zero : ∀ n → 1 ^ n ≡ 1
+^-left-zero zero    = refl _
+^-left-zero (suc n) =
+  1 ^ suc n  ≡⟨⟩
+  1 * 1 ^ n  ≡⟨ *-left-identity ⟩
+  1 ^ n      ≡⟨ ^-left-zero n ⟩∎
+  1          ∎
+
+-- Some rearrangement lemmas for exponentiation.
+
+^+≡^*^ : ∀ {m} n {k} → m ^ (n + k) ≡ m ^ n * m ^ k
+^+≡^*^ {m} zero {k} =
+  m ^ k          ≡⟨ sym *-left-identity ⟩
+  1 * m ^ k      ≡⟨⟩
+  m ^ 0 * m ^ k  ∎
+^+≡^*^ {m} (suc n) {k} =
+  m ^ (1 + n + k)      ≡⟨⟩
+  m * m ^ (n + k)      ≡⟨ cong (m *_) $ ^+≡^*^ n ⟩
+  m * (m ^ n * m ^ k)  ≡⟨ *-assoc m ⟩
+  m * m ^ n * m ^ k    ≡⟨⟩
+  m ^ (1 + n) * m ^ k  ∎
+
+*^≡^*^ : ∀ {m n} k → (m * n) ^ k ≡ m ^ k * n ^ k
+*^≡^*^ {m} {n} zero = refl _
+*^≡^*^ {m} {n} (suc k) =
+  (m * n) ^ suc k            ≡⟨⟩
+  m * n * (m * n) ^ k        ≡⟨ cong (m * n *_) $ *^≡^*^ k ⟩
+  m * n * (m ^ k * n ^ k)    ≡⟨ sym $ *-assoc m ⟩
+  m * (n * (m ^ k * n ^ k))  ≡⟨ cong (m *_) $ *-assoc n ⟩
+  m * (n * m ^ k * n ^ k)    ≡⟨ cong (λ x → m * (x * n ^ k)) $ *-comm n ⟩
+  m * (m ^ k * n * n ^ k)    ≡⟨ cong (m *_) $ sym $ *-assoc (m ^ k) ⟩
+  m * (m ^ k * (n * n ^ k))  ≡⟨ *-assoc m ⟩
+  m * m ^ k * (n * n ^ k)    ≡⟨⟩
+  m ^ suc k * n ^ suc k      ∎
+
+^^≡^* : ∀ {m} n {k} → (m ^ n) ^ k ≡ m ^ (n * k)
+^^≡^* {m} zero    {k} = ^-left-zero k
+^^≡^* {m} (suc n) {k} =
+  (m ^ (1 + n)) ^ k    ≡⟨⟩
+  (m * m ^ n) ^ k      ≡⟨ *^≡^*^ k ⟩
+  m ^ k * (m ^ n) ^ k  ≡⟨ cong (m ^ k *_) $ ^^≡^* n ⟩
+  m ^ k * m ^ (n * k)  ≡⟨ sym $ ^+≡^*^ k ⟩
+  m ^ (k + n * k)      ≡⟨⟩
+  m ^ ((1 + n) * k)    ∎
 
 ------------------------------------------------------------------------
 -- The usual ordering of the natural numbers, along with some
