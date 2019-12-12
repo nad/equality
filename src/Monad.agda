@@ -53,6 +53,12 @@ record Raw-monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
   _⊛_ : ∀ {A B} → M (A → B) → M A → M B
   f ⊛ x = f >>= λ f → x >>= λ x → return (f x)
 
+  -- The sequence function (for lists).
+
+  sequence : ∀ {A} → List (M A) → M (List A)
+  sequence []       = return []
+  sequence (x ∷ xs) = _∷_ ⟨$⟩ x ⊛ sequence xs
+
 open Raw-monad ⦃ … ⦄ public
 
 -- Monads.
