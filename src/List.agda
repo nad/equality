@@ -215,6 +215,18 @@ concat-++ (xs ∷ xss) yss =
   (xs ++ concat xss) ++ concat yss  ≡⟨ refl _ ⟩∎
   concat (xs ∷ xss) ++ concat yss   ∎
 
+-- A lemma relating foldr and _++_.
+
+foldr-++ :
+  ∀ {a b} {A : Set a} {B : Set b} {c : A → B → B} {n : B} →
+  ∀ xs {ys} → foldr c n (xs ++ ys) ≡ foldr c (foldr c n ys) xs
+foldr-++                 []                 = refl _
+foldr-++ {c = c} {n = n} (x ∷ xs) {ys = ys} =
+  foldr c n (x ∷ xs ++ ys)         ≡⟨⟩
+  c x (foldr c n (xs ++ ys))       ≡⟨ cong (c x) (foldr-++ xs) ⟩
+  c x (foldr c (foldr c n ys) xs)  ≡⟨⟩
+  foldr c (foldr c n ys) (x ∷ xs)  ∎
+
 -- A fusion lemma for foldr and map.
 
 foldr∘map :
@@ -324,6 +336,17 @@ reverse-++ (x ∷ xs) {ys = ys} =
   reverse ys ++ (reverse xs ++ x ∷ [])  ≡⟨ cong (reverse ys ++_) $ sym $ reverse-∷ xs ⟩∎
   reverse ys ++ reverse (x ∷ xs)        ∎
 
+reverse-reverse :
+  ∀ {a} {A : Set a} (xs : List A) →
+  reverse (reverse xs) ≡ xs
+reverse-reverse [] = refl _
+reverse-reverse (x ∷ xs) =
+  reverse (reverse (x ∷ xs))                ≡⟨ cong reverse (reverse-∷ xs) ⟩
+  reverse (reverse xs ++ x ∷ [])            ≡⟨ reverse-++ (reverse xs) ⟩
+  reverse (x ∷ []) ++ reverse (reverse xs)  ≡⟨⟩
+  x ∷ reverse (reverse xs)                  ≡⟨ cong (x ∷_) (reverse-reverse xs) ⟩∎
+  x ∷ xs                                    ∎
+
 map-reverse :
   ∀ {a b} {A : Set a} {B : Set b} {f : A → B} (xs : List A) →
   map f (reverse xs) ≡ reverse (map f xs)
@@ -335,6 +358,25 @@ map-reverse {f = f} (x ∷ xs) =
   reverse (map f xs) ++ f x ∷ []  ≡⟨ sym $ reverse-∷ (map f xs) ⟩
   reverse (f x ∷ map f xs)        ≡⟨⟩
   reverse (map f (x ∷ xs))        ∎
+
+foldr-reverse :
+  ∀ {a b} {A : Set a} {B : Set b} {c : A → B → B} {n : B} →
+  ∀ xs → foldr c n (reverse xs) ≡ foldl (flip c) n xs
+foldr-reverse                 []       = refl _
+foldr-reverse {c = c} {n = n} (x ∷ xs) =
+  foldr c n (reverse (x ∷ xs))      ≡⟨ cong (foldr c n) (reverse-++ (x ∷ []) {ys = xs}) ⟩
+  foldr c n (reverse xs ++ x ∷ [])  ≡⟨ foldr-++ (reverse xs) ⟩
+  foldr c (c x n) (reverse xs)      ≡⟨ foldr-reverse xs ⟩
+  foldl (flip c) (c x n) xs         ≡⟨⟩
+  foldl (flip c) n (x ∷ xs)         ∎
+
+foldl-reverse :
+  ∀ {a b} {A : Set a} {B : Set b} {c : B → A → B} {n : B} →
+  ∀ xs → foldl c n (reverse xs) ≡ foldr (flip c) n xs
+foldl-reverse {c = c} {n = n} xs =
+  foldl c n (reverse xs)                   ≡⟨ sym (foldr-reverse (reverse xs)) ⟩
+  foldr (flip c) n (reverse (reverse xs))  ≡⟨ cong (foldr (flip c) n) (reverse-reverse xs) ⟩∎
+  foldr (flip c) n xs                      ∎
 
 length-reverse :
   ∀ {a} {A : Set a} (xs : List A) →
