@@ -65,8 +65,8 @@ private
 
   -- Equality is very stable for the natural numbers.
 
-  ℕ-very-stable : Very-stable-≡ ℕ
-  ℕ-very-stable = Decidable-equality→Very-stable-≡ N._≟_
+  Very-stable-≡-ℕ : Very-stable-≡ ℕ
+  Very-stable-≡-ℕ = Decidable-equality→Very-stable-≡ N._≟_
 
 -- Natural numbers built on top of Nat′, indexed by corresponding
 -- unary natural numbers.
@@ -77,10 +77,11 @@ Nat-[ m ] = ∃ λ (n : Nat′) → Erased (to-ℕ n ≡ m)
 -- Nat-[ n ] is a proposition.
 
 Nat-[]-propositional : {@0 n : ℕ} → Is-proposition Nat-[ n ]
-Nat-[]-propositional {n = n} =                                      $⟨ erased-singleton-with-erased-center-propositional
-                                                                         (Very-stable-congⁿ _ 1 (inverse Nat′↔ℕ) ℕ-very-stable) ⟩
+Nat-[]-propositional {n = n} =                                      $⟨ Very-stable-≡-ℕ ⟩
+  Very-stable-≡ ℕ                                                   ↝⟨ Very-stable-congⁿ _ 1 (inverse Nat′↔ℕ) ⟩
+  Very-stable-≡ Nat′                                                ↝⟨ erased-singleton-with-erased-center-propositional ⟩
   Is-proposition (∃ λ (m : Nat′) → Erased (m ≡ _↔_.from Nat′↔ℕ n))  ↝⟨ (H-level-cong _ 1 $ ∃-cong λ _ → Erased-cong (inverse $
-                                                                        from≡↔≡to (from-isomorphism $ inverse Nat′↔ℕ))) ⦂ (_ → _) ⟩□
+                                                                        from≡↔≡to (from-isomorphism $ inverse Nat′↔ℕ))) ⟩□
   Is-proposition (∃ λ (m : Nat′) → Erased (to-ℕ m ≡ n))             □
 
 -- A non-indexed variant of Nat-[_].
@@ -132,9 +133,10 @@ Nat↔ℕ =
 -- The index matches the result of _↔_.to Nat↔ℕ.
 
 @0 ≡⌊⌋ : ∀ n → _↔_.to Nat↔ℕ n ≡ ⌊ n ⌋
-≡⌊⌋ ([ m ] , m′) =
-  _↔_.to Nat′↔ℕ (proj₁ m′)  ≡⟨ erased (proj₂ m′) ⟩∎
-  m                         ∎
+≡⌊⌋ ([ m ] , n , eq) =
+  _↔_.to Nat↔ℕ ([ m ] , n , eq)  ≡⟨⟩
+  _↔_.to Nat′↔ℕ n                ≡⟨ erased eq ⟩∎
+  m                              ∎
 
 ------------------------------------------------------------------------
 -- Some operations for Nat-[_]
@@ -304,7 +306,7 @@ nullary-correct :
   (@0 hyp : to-ℕ n′ ≡ n) →
   _↔_.to Nat↔ℕ (nullary n n′ hyp) ≡ n
 nullary-correct {n′ = n′} {n = n} hyp =
-  Very-stable→Stable 1 ℕ-very-stable _ _
+  Very-stable→Stable 1 Very-stable-≡-ℕ _ _
      [ _↔_.to Nat↔ℕ (nullary n n′ hyp)  ≡⟨ ≡⌊⌋ (nullary n n′ hyp) ⟩
        ⌊ nullary n n′ hyp ⌋             ≡⟨⟩
        n                                ∎
@@ -331,7 +333,7 @@ unary-correct :
   (f : ℕ → ℕ) (@0 hyp : ∀ n → to-ℕ (f′ n) ≡ f (to-ℕ n)) →
   ∀ n → _↔_.to Nat↔ℕ (unary f f′ hyp n) ≡ f (_↔_.to Nat↔ℕ n)
 unary-correct {f′ = f′} f hyp n =
-  Very-stable→Stable 1 ℕ-very-stable _ _
+  Very-stable→Stable 1 Very-stable-≡-ℕ _ _
     [ _↔_.to Nat↔ℕ (unary f f′ hyp n)  ≡⟨ ≡⌊⌋ (unary f f′ hyp n) ⟩
       ⌊ unary f f′ hyp n ⌋             ≡⟨⟩
       f ⌊ n ⌋                          ≡⟨ sym $ cong f $ ≡⌊⌋ n ⟩∎
@@ -362,7 +364,7 @@ n-ary-correct :
   ∀ ms →
   _↔_.to Nat↔ℕ (n-ary n f f′ hyp ms) ≡ f (Vec.map (_↔_.to Nat↔ℕ) ms)
 n-ary-correct n f {f′ = f′} hyp ms =
-  Very-stable→Stable 1 ℕ-very-stable _ _
+  Very-stable→Stable 1 Very-stable-≡-ℕ _ _
     [ _↔_.to Nat↔ℕ (n-ary n f f′ hyp ms)            ≡⟨ ≡⌊⌋ (n-ary n f f′ hyp ms) ⟩
       ⌊ n-ary n f f′ hyp ms ⌋                       ≡⟨⟩
       f (Vec.map erased (proj₁ (_↔_.to Vec-Σ ms)))  ≡⟨ cong (f ∘ Vec.map _) proj₁-Vec-Σ ⟩
