@@ -268,11 +268,8 @@ private
         add-with-carryᴮ true  true  true  = true  , true
 
         add-with-carry₁ : Bool → Bin′ → Bin′
-        add-with-carry₁ b     []                = b ∷ˢ []
-        add-with-carry₁ false n@(_ ∷ _ ⟨ _ ⟩)   = n
-        add-with-carry₁ true  (false ∷ n ⟨ _ ⟩) = true ∷ˢ n
-        add-with-carry₁ true  (true  ∷ n ⟨ _ ⟩) =
-          false ∷ˢ add-with-carry₁ true n
+        add-with-carry₁ false = id
+        add-with-carry₁ true  = suc′
 
         add-with-carry₂ : Bool → Bin′ → Bin′ → Bin′
         add-with-carry₂ b []              n  = add-with-carry₁ b n
@@ -286,17 +283,8 @@ private
           ∀ b cs →
           to-ℕ′ (add-with-carry₁ b cs) ≡
           from-Bool b ⊕ to-ℕ′ cs
-        to-ℕ′-add-with-carry₁ false []                  = refl _
-        to-ℕ′-add-with-carry₁ true  []                  = refl _
-        to-ℕ′-add-with-carry₁ false (_ ∷ _ ⟨ _ ⟩)       = refl _
-        to-ℕ′-add-with-carry₁ true  (false ∷ n′ ⟨ _ ⟩)  = to-ℕ′-∷ˢ
-                                                            true n′
-        to-ℕ′-add-with-carry₁ true  n@(true ∷ n′ ⟨ _ ⟩) =
-          to-ℕ′ (add-with-carry₁ true n)       ≡⟨ to-ℕ′-∷ˢ false (add-with-carry₁ true n′) ⟩
-          2 ⊛ to-ℕ′ (add-with-carry₁ true n′)  ≡⟨ cong (2 ⊛_) (to-ℕ′-add-with-carry₁ true n′) ⟩
-          2 ⊛ (1 ⊕ to-ℕ′ n′)                   ≡⟨ solve 1 (λ n → con 2 :* (con 1 :+ n) := con 2 :+ con 2 :* n) (refl _) _ ⟩
-          2 ⊕ 2 ⊛ to-ℕ′ n′                     ≡⟨⟩
-          from-Bool true ⊕ to-ℕ′ n             ∎
+        to-ℕ′-add-with-carry₁ false n = refl _
+        to-ℕ′-add-with-carry₁ true  n = to-ℕ′-suc′ n
 
         to-ℕ′-add-with-carry₂ :
           ∀ b m n →
