@@ -2844,13 +2844,6 @@ from≡↔≡to A≃B {x} {y} =
   (_≃_.to A≃B (_≃_.from A≃B x) ≡ _≃_.to A≃B y)  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ _≃_.to A≃B y) $ _≃_.right-inverse-of A≃B x ⟩□
   (x ≡ _≃_.to A≃B y)                            □
 
-∘from≡↔≡∘to : ∀ {a b c} →
-              Extensionality (a ⊔ b) c →
-              {A : Set a} {B : Set b} {C : Set c}
-              (A≃B : A ≃ B) {f : A → C} {g : B → C} →
-              (f ∘ _≃_.from A≃B ≡ g) ↔ (f ≡ g ∘ _≃_.to A≃B)
-∘from≡↔≡∘to ext A≃B = from≡↔≡to (→-cong₁ ext (inverse A≃B))
-
 to∘≡↔≡from∘ : ∀ {a b c} →
               Extensionality a (b ⊔ c) →
               {A : Set a} {B : A → Set b} {C : A → Set c}
@@ -2859,6 +2852,52 @@ to∘≡↔≡from∘ : ∀ {a b c} →
               (_≃_.to B≃C ⊚ f ≡ g) ↔ (f ≡ _≃_.from B≃C ⊚ g)
 to∘≡↔≡from∘ ext B≃C =
   from≡↔≡to (∀-cong ext (λ _ → inverse B≃C))
+
+∘from≡↔≡∘to : ∀ {a b c} →
+              Extensionality (a ⊔ b) c →
+              {A : Set a} {B : Set b} {C : Set c}
+              (A≃B : A ≃ B) {f : A → C} {g : B → C} →
+              (f ∘ _≃_.from A≃B ≡ g) ↔ (f ≡ g ∘ _≃_.to A≃B)
+∘from≡↔≡∘to ext A≃B = from≡↔≡to (→-cong₁ ext (inverse A≃B))
+
+∘from≡↔≡∘to′ :
+  ∀ {a b c} →
+  Extensionality (a ⊔ b) c →
+  {A : Set a} {B : Set b} {C : A → Set c}
+  (A≃B : A ≃ B)
+  {f : (x : A) → C x} {g : (x : B) → C (_≃_.from A≃B x)} →
+  (f ⊚ _≃_.from A≃B ≡ g) ↔
+  (f ≡ subst C (_≃_.left-inverse-of A≃B _) ⊚ g ⊚ _≃_.to A≃B)
+∘from≡↔≡∘to′ {a = a} {b = b} ext {C = C} A≃B {f = f} {g = g} =
+  f ⊚ _≃_.from A≃B ≡ g                                                  ↝⟨ ≡⇒↝ _ $ cong (_≡ g) $ apply-ext (lower-extensionality a lzero ext)
+                                                                           lemma ⟩
+  subst (C ⊚ _≃_.from A≃B) (_≃_.right-inverse-of A≃B _) ⊚
+    _≃_.from (≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B _)) ⊚
+    f ⊚ _≃_.from A≃B ≡
+  g                                                                     ↝⟨ from≡↔≡to
+                                                                             (Π-cong-contra ext A≃B λ x →
+                                                                                ≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B x)) ⟩
+  f ≡
+  _≃_.to (≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B _)) ⊚ g ⊚ _≃_.to A≃B  ↝⟨ (≡⇒↝ _ $ cong (f ≡_) $ apply-ext (lower-extensionality b lzero ext) λ _ →
+                                                                            sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _) ⟩□
+  f ≡ subst C (_≃_.left-inverse-of A≃B _) ⊚ g ⊚ _≃_.to A≃B              □
+  where
+  lemma : ∀ _ → _
+  lemma x =
+    f (_≃_.from A≃B x)                                          ≡⟨ sym $ _≃_.right-inverse-of equiv _ ⟩
+
+    _≃_.to equiv (_≃_.from equiv (f (_≃_.from A≃B x)))          ≡⟨ sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
+
+    subst C (_≃_.left-inverse-of A≃B (_≃_.from A≃B x))
+      (_≃_.from equiv (f (_≃_.from A≃B x)))                     ≡⟨ cong (λ eq → subst C eq (_≃_.from equiv (f (_≃_.from A≃B x)))) $ sym $
+                                                                   _≃_.right-left-lemma A≃B _ ⟩
+    subst C (cong (_≃_.from A≃B) (_≃_.right-inverse-of A≃B x))
+      (_≃_.from equiv (f (_≃_.from A≃B x)))                     ≡⟨ sym $ subst-∘ _ _ (_≃_.right-inverse-of A≃B x) ⟩∎
+
+    subst (C ⊚ _≃_.from A≃B) (_≃_.right-inverse-of A≃B x)
+      (_≃_.from equiv (f (_≃_.from A≃B x)))                     ∎
+    where
+    equiv = ≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B (_≃_.from A≃B x))
 
 ------------------------------------------------------------------------
 -- Lemmas related to ↑
