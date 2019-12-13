@@ -557,6 +557,14 @@ Very-stable-¬ {A = A} ext =
   Very-stable-Π ext λ _ →
   Very-stable-⊥
 
+-- ∃ λ (A : Set a) → Very-stable A is stable.
+--
+-- This result is based on Theorem 3.11 in "Modalities in Homotopy
+-- Type Theory" by Rijke, Shulman and Spitters.
+
+Stable-∃-Very-stable : Stable (∃ λ (A : Set a) → Very-stable A)
+Stable-∃-Very-stable [ A ] = Erased (proj₁ A) , Very-stable-Erased
+
 -- If A is "stable 1 + n levels up", then H-level′ (1 + n) A is
 -- stable.
 
@@ -1128,38 +1136,11 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     Extensionality a a →
     Univalence a →
     Very-stable (∃ λ (A : Set a) → Very-stable A)
-  Very-stable-∃-Very-stable {a = a} ext univ = _≃_.is-equivalence (
-    (∃ λ (A : Set a) → Very-stable A)                             ↝⟨ Eq.↔⇒≃ (record
-                                                                       { surjection = record
-                                                                         { logical-equivalence = record
-                                                                           { to   = to
-                                                                           ; from = from
-                                                                           }
-                                                                         ; right-inverse-of = to∘from
-                                                                         }
-                                                                       ; left-inverse-of = from∘to
-                                                                       }) ⟩
-    (∃ λ (A : Erased (Set a)) → Erased (Very-stable (erased A)))  ↔⟨ inverse Erased-Σ↔Σ ⟩□
-    Erased (∃ λ (A : Set a) → Very-stable A)                      □)
+  Very-stable-∃-Very-stable ext univ =
+    Stable→Left-inverse→Very-stable Stable-∃-Very-stable inv
     where
-    to :
-      (∃ λ (A : Set a) → Very-stable A) →
-      (∃ λ (A : Erased (Set a)) → Erased (Very-stable (erased A)))
-    to (A , s) = [ A ] , [ s ]
-
-    from :
-      (∃ λ (A : Erased (Set a)) → Erased (Very-stable (erased A))) →
-      (∃ λ (A : Set a) → Very-stable A)
-    from ([ A ] , _) = Erased A , Very-stable-Erased
-
-    to∘from : ∀ p → to (from p) ≡ p
-    to∘from ([ A ] , [ s ]) = Σ-≡,≡→≡
-      ([ Erased A ]  ≡⟨ []-cong [ ≃⇒≡ univ (Very-stable→Stable 0 s) ] ⟩∎
-       [ A ]         ∎)
-      (H-level-Erased 1 (Very-stable-propositional ext) _ _)
-
-    from∘to : ∀ p → from (to p) ≡ p
-    from∘to (A , s) = Σ-≡,≡→≡
+    inv : ∀ p → Stable-∃-Very-stable [ p ] ≡ p
+    inv (A , s) = Σ-≡,≡→≡
       (Erased A  ≡⟨ ≃⇒≡ univ (Very-stable→Stable 0 s) ⟩∎
        A         ∎)
       (Very-stable-propositional ext _ _)
