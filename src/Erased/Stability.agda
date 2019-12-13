@@ -655,6 +655,159 @@ Stable-≡-List n =
     Stable-×
 
 ------------------------------------------------------------------------
+-- Some properties related to "Modalities in Homotopy Type Theory"
+-- by Rijke, Shulman and Spitters
+
+-- The following two definitions are taken from Shulman's blog post
+-- "Universal properties without function extensionality"
+-- (https://homotopytypetheory.org/2014/11/02/universal-properties-without-function-extensionality/).
+
+-- Is-[ n ]-extendable-along-[ f ] P means that P is n-extendable
+-- along f.
+
+Is-[_]-extendable-along-[_] :
+  {A : Set a} {B : Set b} →
+  ℕ → (A → B) → (B → Set c) → Set (a ⊔ b ⊔ c)
+Is-[ zero  ]-extendable-along-[ f ] P = ↑ _ ⊤
+Is-[ suc n ]-extendable-along-[ f ] P =
+  ((g : ∀ x → P (f x)) →
+     ∃ λ (h : ∀ x → P x) → ∀ x → h (f x) ≡ g x) ×
+  ((g h : ∀ x → P x) →
+     Is-[ n ]-extendable-along-[ f ] (λ x → g x ≡ h x))
+
+-- Is-∞-extendable-along-[ f ] P means that P is ∞-extendable along f.
+
+Is-∞-extendable-along-[_] :
+  {A : Set a} {B : Set b} →
+  (A → B) → (B → Set c) → Set (a ⊔ b ⊔ c)
+Is-∞-extendable-along-[ f ] P =
+  ∀ n → Is-[ n ]-extendable-along-[ f ] P
+
+-- If f is an equivalence, then n-extendability along f is
+-- contractible (assuming extensionality).
+
+Is-extendable-along-contractible-for-equivalences :
+  {A : Set a} {B : Set b} {f : A → B} {P : B → Set p} →
+  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
+  Is-equivalence f →
+  ∀ n → Contractible (Is-[ n ]-extendable-along-[ f ] P)
+Is-extendable-along-contractible-for-equivalences _ _ zero =
+  ↑-closure 0 ⊤-contractible
+
+Is-extendable-along-contractible-for-equivalences
+  {a = a} {b = b} {p = p} {f = f} {P = P} ext eq (suc n) =
+
+  ×-closure 0
+    (Π-closure (lower-extensionality b lzero ext) 0 λ g →
+                                                             $⟨ singleton-contractible _ ⟩
+       Contractible (∃ λ h → h ≡ subst P (inv _) ∘ g ∘ f⁻¹)  ↝⟨ H-level-cong _ 0 (lemma g) ⦂ (_ → _) ⟩□
+       Contractible (∃ λ h → ∀ x → h (f x) ≡ g x)            □)
+    (Π-closure (lower-extensionality a lzero ext) 0 λ _ →
+     Π-closure (lower-extensionality a lzero ext) 0 λ _ →
+     Is-extendable-along-contractible-for-equivalences ext eq n)
+  where
+  f⁻¹ = _≃_.from Eq.⟨ _ , eq ⟩
+  inv = _≃_.left-inverse-of (inverse Eq.⟨ _ , eq ⟩)
+
+  lemma : ∀ _ → _ ≃ _
+  lemma g =
+    (∃ λ h → h ≡ subst P (inv _) ∘ g ∘ f⁻¹)  ↔⟨ (∃-cong λ h → inverse $
+                                                 ∘from≡↔≡∘to′ (lower-extensionality p (a ⊔ b) ext) (inverse Eq.⟨ _ , eq ⟩)) ⟩
+    (∃ λ h → h ∘ f ≡ g)                      ↝⟨ (∃-cong λ _ → inverse $
+                                                 Eq.extensionality-isomorphism (lower-extensionality (b ⊔ p) (a ⊔ b) ext)) ⟩□
+    (∃ λ h → ∀ x → h (f x) ≡ g x)            □
+
+-- If f is an equivalence, then ∞-extendability along f is
+-- contractible (assuming extensionality).
+
+Is-∞-extendable-along-contractible-for-equivalences :
+  {A : Set a} {B : Set b} {f : A → B} {P : B → Set p} →
+  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
+  Is-equivalence f →
+  Contractible (Is-∞-extendable-along-[ f ] P)
+Is-∞-extendable-along-contractible-for-equivalences ext eq =
+  Π-closure (lower-extensionality _ lzero ext) 0 λ n →
+  Is-extendable-along-contractible-for-equivalences ext eq n
+
+-- If we assume that equality is extensional for functions, then
+-- Erased is the modal operator of a Σ-closed reflective subuniverse
+-- with [_] as the modal unit and Very-stable as the modality
+-- predicate:
+--
+-- * Very-stable is propositional (assuming extensionality), see
+--   Very-stable-propositional.
+-- * Erased A is very stable, see Very-stable-Erased.
+-- * Very-stable is Σ-closed, see Very-stable-Σ.
+-- * Finally precomposition with [_] is an equivalence for functions
+--   with very stable codomains (assuming extensionality):
+
+∘[]-equivalence :
+  {A : Set a} {B : Set b} →
+  Extensionality a b →
+  Very-stable B →
+  Is-equivalence (λ (f : Erased A → B) → f ∘ [_])
+∘[]-equivalence ext s =
+  _≃_.is-equivalence (Eq.↔⇒≃ (record
+    { surjection = record
+      { logical-equivalence = record
+        { from = λ f x → _≃_.from Eq.⟨ _ , s ⟩ (map f x)
+        }
+      ; right-inverse-of = λ f → apply-ext ext λ x →
+          _≃_.left-inverse-of Eq.⟨ _ , s ⟩ (f x)
+      }
+    ; left-inverse-of = λ f → apply-ext ext λ x →
+        _≃_.left-inverse-of Eq.⟨ _ , s ⟩ (f x)
+    }))
+
+-- The Coq code accompanying "Modalities in Homotopy Type Theory" uses
+-- a somewhat different definition of reflective subuniverses than the
+-- paper:
+-- * Instead of defining what a reflective subuniverse is it defines
+--   what a family of reflective subuniverses is.
+-- * The definition has been adapted to Coq's notion of universe
+--   polymorphism. (I'm not sure exactly how universe polymorphism
+--   works in Coq, so I'm not sure if or how the code differs from the
+--   paper in this respect.)
+-- * The proof showing that the modality predicate is propositional is
+--   allowed to make use of extensionality for functions.
+-- * One extra property is assumed: if A and B are equivalent and A is
+--   modal, then B is modal. Such a property is proved below, assuming
+--   that the []-cong axioms can be instantiated (Very-stable-cong).
+-- * The property corresponding to ∘[]-equivalence is replaced by a
+--   property that is intended to avoid uses of extensionality. This
+--   property is stated using Is-∞-extendable-along-[_]. Such a
+--   property is proved below, assuming that the []-cong axioms can be
+--   instantiated (const-extendable).
+--
+-- Here is a definition of Σ-closed reflective subuniverses that is
+-- based on, but not identical to, the definition of reflective
+-- subuniverses in the Coq code of Rijke et al. The main changes are
+-- perhaps that this definition defines what a single reflective
+-- subuniverse is, not a family of them, and that the code uses a
+-- single universe level. Below it is proved that Erased, [_] and
+-- Very-stable form a Σ-closed reflective subuniverse of this kind
+-- (Erased-Σ-closed-reflective-subuniverse).
+
+record Σ-closed-reflective-subuniverse a : Set (lsuc a) where
+  field
+    ◯        : Set a → Set a
+    η        : A → ◯ A
+    Is-modal : Set a → Set a
+
+    Is-modal-propositional :
+      Extensionality a a →
+      Is-proposition (Is-modal A)
+
+    Is-modal-◯ : Is-modal (◯ A)
+
+    Is-modal-respects-≃ : A ≃ B → Is-modal A → Is-modal B
+
+    extendable-along-η :
+      Is-modal B → Is-∞-extendable-along-[ η ] (λ (_ : ◯ A) → B)
+
+    Σ-closed : Is-modal A → (∀ x → Is-modal (P x)) → Is-modal (Σ A P)
+
+------------------------------------------------------------------------
 -- Some results that follow if "[]-cong" is an equivalence that maps
 -- [ refl x ] to refl [ x ]
 
@@ -1368,6 +1521,57 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       _
       n
       (Very-stable-cong _ ∘ from-isomorphism)
+
+  ----------------------------------------------------------------------
+  -- Erased, [_] and Very-stable form a Σ-closed reflective
+  -- subuniverse
+
+  -- As a consequence of Very-stable→Very-stable-≡ we get that every
+  -- family of very stable types, indexed by Erased A, is ∞-extendable
+  -- along [_].
+
+  extendable :
+    {@0 A : Set a} {P : Erased A → Set b} →
+    (∀ x → Very-stable (P x)) →
+    Is-∞-extendable-along-[ [_] ] P
+  extendable s zero    = _
+  extendable s (suc n) =
+      (λ f →
+           (λ x → _≃_.from Eq.⟨ _ , s x ⟩ (map f x))
+         , λ x →
+             _≃_.from Eq.⟨ _ , s [ x ] ⟩ (map f [ x ])  ≡⟨⟩
+             _≃_.from Eq.⟨ _ , s [ x ] ⟩ [ f x ]        ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s [ x ] ⟩ _ ⟩∎
+             f x                                        ∎)
+    , λ g h →
+        extendable (λ x → Very-stable→Very-stable-≡ 0 (s x) _ _) n
+
+  -- As a special case we get the following property, which is based
+  -- on one part of the definition of a reflective subuniverse used in
+  -- the Coq code accompanying "Modalities in Homotopy Type Theory" by
+  -- Rijke, Shulman and Spitters.
+
+  const-extendable :
+    {@0 A : Set a} {B : Set b} →
+    Very-stable B →
+    Is-∞-extendable-along-[ [_] ] (λ (_ : Erased A) → B)
+  const-extendable s = extendable (λ _ → s)
+
+  -- Erased, [_] and Very-stable form a Σ-closed reflective
+  -- subuniverse.
+
+  Erased-Σ-closed-reflective-subuniverse :
+    Σ-closed-reflective-subuniverse a
+  Erased-Σ-closed-reflective-subuniverse = λ where
+      .◯                      → Erased
+      .η                      → [_]
+      .Is-modal               → Very-stable
+      .Is-modal-propositional → Very-stable-propositional
+      .Is-modal-◯             → Very-stable-Erased
+      .Is-modal-respects-≃    → Very-stable-cong _
+      .extendable-along-η     → const-extendable
+      .Σ-closed               → Very-stable-Σ
+    where
+    open Σ-closed-reflective-subuniverse
 
   ----------------------------------------------------------------------
   -- Rearrangement lemmas for []-cong, proved using stability
