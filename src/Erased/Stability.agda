@@ -294,15 +294,15 @@ private
     s′ : Stable-[ equivalence ] A
     s′ = Very-stable→Stable 0 s
 
-    s″ : {x y : A} → Stable (x ≡ y)
-    s″ {x = x} {y = y} eq =
+    s″ : Stable-≡ A
+    s″ x y eq =
       x                ≡⟨ sym $ _≃_.right-inverse-of s′ _ ⟩
       _≃_.to s′ [ x ]  ≡⟨ cong (λ (f : Erased (x ≡ y) → Erased A) → _≃_.to s′ (f eq)) $
-                          ∘-[]-injective $ apply-ext ext $ cong [_] ⟩
+                          ∘-[]-injective {x = λ (_ : Erased (x ≡ y)) → [ x ]} {y = λ (_ : Erased (x ≡ y)) → [ y ]} $ apply-ext ext $ cong [_] ⟩
       _≃_.to s′ [ y ]  ≡⟨ _≃_.right-inverse-of s′ _ ⟩∎
       y                ∎
 
-    s″-[refl] : s″ [ refl x ] ≡ refl x
+    s″-[refl] : s″ x x [ refl x ] ≡ refl x
     s″-[refl] {x = x} =
       trans (sym $ _≃_.right-inverse-of s′ x)
         (trans (cong {x = const [ x ]}
@@ -354,8 +354,8 @@ Extensionality→Very-stable→Very-stable-≡ :
   Extensionality a a →
   Very-stable A → Very-stable-≡ A
 Extensionality→Very-stable→Very-stable-≡ {a = a} {A = A} ext′ s x y =
-  Extensionality→Stable→Left-inverse→Very-stable ext s″
-    (elim¹ (λ eq → s″ [ eq ] ≡ eq) s″-[refl])
+  Extensionality→Stable→Left-inverse→Very-stable ext (s″ _ _)
+    (elim¹ (λ eq → s″ _ _ [ eq ] ≡ eq) s″-[refl])
   where
   open Extensionality→Very-stable→Very-stable-≡ ext′ s
 
@@ -420,11 +420,12 @@ Extensionality→[]-cong {a = a} ext = record
   []-cong-[refl] {A = A} {x = x} =
     _≃_.to []-cong-≃ [ refl x ]                                         ≡⟨⟩
 
-    s″ [ _≃_.to
+    s″ _ _
+       [ _≃_.to
            (Eq.≃-≡ (Very-stable→Stable 0 (erased Erased-Very-stable)))
-           (refl x) ]                                                   ≡⟨ cong s″ $ []-cong [ Eq.to-≃-≡-refl _ ] ⟩
+           (refl x) ]                                                   ≡⟨ cong (s″ _ _) $ []-cong [ Eq.to-≃-≡-refl _ ] ⟩
 
-    s″ [ refl [ x ] ]                                                   ≡⟨ s″-[refl] ⟩∎
+    s″ _ _ [ refl [ x ] ]                                               ≡⟨ s″-[refl] ⟩∎
 
     refl [ x ]                                                          ∎
     where
