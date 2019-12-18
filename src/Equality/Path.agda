@@ -654,17 +654,37 @@ private
     (∀ x y → H-level n ([ P ] x ≡ y))  ↝⟨ (λ f → f _ _) ⟩□
     H-level n ([ P ] x ≡ y)            □
 
+-- A form of proof irrelevance for paths that are propositional at one
+-- end-point.
+
+heterogeneous-irrelevance₀ :
+  Is-proposition (P 0̲) → [ P ] x ≡ y
+heterogeneous-irrelevance₀ {P = P} {x = x} {y = y} =
+  Is-proposition (P 0̲)        ↝⟨ H-level-suc→H-level[]≡ _ ⟩
+  Contractible ([ P ] x ≡ y)  ↝⟨ proj₁ ⟩□
+  [ P ] x ≡ y                 □
+
+-- A form of UIP for squares that are sets on one corner.
+
+heterogeneous-UIP₀₀ :
+  {P : I → I → Set p}
+  {x : ∀ i → P i 0̲} {y : ∀ i → P i 1̲}
+  {p : [ (λ j → P 0̲ j) ] x 0̲ ≡ y 0̲}
+  {q : [ (λ j → P 1̲ j) ] x 1̲ ≡ y 1̲} →
+  Is-set (P 0̲ 0̲) →
+  [ (λ i → [ (λ j → P i j) ] x i ≡ y i) ] p ≡ q
+heterogeneous-UIP₀₀ {P = P} {x = x} {y = y} {p = p} {q = q} =
+  Is-set (P 0̲ 0̲)                                                ↝⟨ H-level-suc→H-level[]≡ 1 ⟩
+  Is-proposition ([ (λ j → P 0̲ j) ] x 0̲ ≡ y 0̲)                  ↝⟨ H-level-suc→H-level[]≡ _ ⟩
+  Contractible ([ (λ i → [ (λ j → P i j) ] x i ≡ y i) ] p ≡ q)  ↝⟨ proj₁ ⟩□
+  [ (λ i → [ (λ j → P i j) ] x i ≡ y i) ] p ≡ q                 □
+
 -- The following two lemmas can be used to implement the truncation
 -- cases of (at least some) eliminators for (at least some) HITs. For
 -- some examples, see H-level.Truncation.Propositional and
 -- Quotient.HIT.
 
--- If P is pointwise propositional, then we get a form of proof
--- irrelevance.
---
--- Note that it would suffice for P x to be propositional. However,
--- the lemma is intended to be used in a setting in which one has
--- access to a proof of the more general statement.
+-- A variant of heterogeneous-irrelevance₀.
 
 heterogeneous-irrelevance :
   {P : A → Set p} →
@@ -672,22 +692,16 @@ heterogeneous-irrelevance :
   {x≡y : x ≡ y} {p₁ : P x} {p₂ : P y} →
   [ (λ i → P (x≡y i)) ] p₁ ≡ p₂
 heterogeneous-irrelevance {x = x} {P = P} P-prop {x≡y} {p₁} {p₂} =
-                                                $⟨ P-prop ⟩
-  (∀ x → Is-proposition (P x))                  ↝⟨ _$ _ ⟩
-  Is-proposition (P x)                          ↔⟨⟩
-  Is-proposition (P (x≡y 0̲))                    ↝⟨ H-level-suc→H-level[]≡ _ ⟩
-  Contractible ([ (λ i → P (x≡y i)) ] p₁ ≡ p₂)  ↝⟨ proj₁ ⟩□
-  [ (λ i → P (x≡y i)) ] p₁ ≡ p₂                 □
+                                 $⟨ P-prop ⟩
+  (∀ x → Is-proposition (P x))   ↝⟨ _$ _ ⟩
+  Is-proposition (P x)           ↝⟨ heterogeneous-irrelevance₀ ⟩□
+  [ (λ i → P (x≡y i)) ] p₁ ≡ p₂  □
 
--- If P is a family of sets, then a variant of UIP holds.
+-- A variant of heterogeneous-UIP₀₀.
 --
--- Note that it would suffice for P x to be a set. However, the lemma
--- is intended to be used in settings in which one has access to a
--- proof of the more general statement.
---
--- The cubical library contains a lemma with basically the same type,
--- but with a seemingly rather different proof, implemented by Zesen
--- Qian.
+-- The cubical library contains (or used to contain) a lemma with
+-- basically the same type, but with a seemingly rather different
+-- proof, implemented by Zesen Qian.
 
 heterogeneous-UIP :
   {P : A → Set p} →
@@ -697,10 +711,7 @@ heterogeneous-UIP :
   (eq₅ : [ (λ j → P (eq₂ j)) ] p₁ ≡ p₂) →
   [ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅
 heterogeneous-UIP {x = x} {P = P} P-set eq₃ {p₁} {p₂} eq₄ eq₅ =
-                                                                        $⟨ P-set ⟩
-  (∀ x → Is-set (P x))                                                  ↝⟨ _$ _ ⟩
-  Is-set (P x)                                                          ↔⟨⟩
-  Is-set (P (eq₃ 0̲ 0̲))                                                  ↝⟨ H-level-suc→H-level[]≡ 1 ⟩
-  Is-proposition ([ (λ j → P (eq₃ 0̲ j)) ] p₁ ≡ p₂)                      ↝⟨ H-level-suc→H-level[]≡ _ ⟩
-  Contractible ([ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅)  ↝⟨ proj₁ ⟩□
-  [ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅                 □
+                                                         $⟨ P-set ⟩
+  (∀ x → Is-set (P x))                                   ↝⟨ _$ _ ⟩
+  Is-set (P x)                                           ↝⟨ heterogeneous-UIP₀₀ ⟩□
+  [ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅  □
