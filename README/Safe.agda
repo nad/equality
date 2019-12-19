@@ -309,6 +309,10 @@ import Erased.Stability
 
 import Erased.Cubical
 
+-- Very stable booleans.
+
+import Bool.Very-stable
+
 -- Integers.
 
 import Integer
