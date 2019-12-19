@@ -12,6 +12,8 @@ open import Equality
 module Functor
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
+import Surjection
+
 open import Bijection eq hiding (id; _∘_; inverse; step-↔; finally-↔)
 open import Category eq
 open Derived-definitions-and-properties eq

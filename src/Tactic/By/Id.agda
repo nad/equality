@@ -208,12 +208,12 @@ private
         G false (F (G false A) A)  ≡⟨ by hyp ⟩∎
         G false (G false (F A A))  ∎
 
-      test₁₇ :
-        (P : ℕ → Set)
-        (f : ∀ {n} → P n → P n)
-        (p : P 0) →
-        f (subst P refl p) ≡ f p
-      test₁₇ P _ _ = by (subst-refl P)
+      -- test₁₇ :
+      --   (P : ℕ → Set)
+      --   (f : ∀ {n} → P n → P n)
+      --   (p : P 0) →
+      --   f (subst P refl p) ≡ f p
+      -- test₁₇ P _ _ = by (subst-refl P)
 
       test₁₈ :
         (subst′ :

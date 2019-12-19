@@ -15,6 +15,7 @@ import H-level
 import H-level.Closure
 open import Logical-equivalence using (_⇔_)
 open import Prelude
+import Surjection
 
 private
   module E (e⁺ : ∀ e → Equivalence-relation⁺ e) where
