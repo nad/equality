@@ -178,10 +178,6 @@ import H-level.Truncation.Church
 
 import H-level.Truncation.Propositional
 
--- Squashing.
-
-import Squash
-
 -- The "circle".
 
 import Circle
@@ -259,6 +255,10 @@ import Const
 
 import For-iterated-equality
 
+-- Squashing.
+
+import Squash
+
 -- Support for reflection.
 
 import TC-monad
@@ -288,6 +288,18 @@ import Tactic.By.Path
 -- readable for the cubical identity type.
 
 import Tactic.By.Id
+
+-- Bag equivalence for lists.
+
+import Bag-equivalence
+
+-- The All predicate, defined using _∈_.
+
+import List.All
+
+-- The All predicate, defined recursively.
+
+import List.All.Recursive
 
 -- Quotients, defined as families of equivalence classes.
 
@@ -415,18 +427,6 @@ import Structure-identity-principle
 
 import
   Univalence-axiom.Isomorphism-is-equality.Structure-identity-principle
-
--- Bag equivalence for lists.
-
-import Bag-equivalence
-
--- The All predicate, defined using _∈_.
-
-import List.All
-
--- The All predicate, defined recursively.
-
-import List.All.Recursive
 
 -- Binary trees.
 
