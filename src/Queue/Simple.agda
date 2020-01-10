@@ -32,25 +32,26 @@ private
 -- The queue invariant: if the first list is empty, then the second
 -- list is empty.
 
-data Invariant {A : Set a} : List A → List A → Set a where
-  ∷-    : Invariant (x ∷ xs) ys
-  []-[] : Invariant [] []
+Invariant : {A : Set a} → List A → List A → Set a
+Invariant (_ ∷ _) _       = ↑ _ ⊤
+Invariant []      []      = ↑ _ ⊤
+Invariant []      (_ ∷ _) = ⊥
 
 -- The invariant is propositional.
 
 Invariant-propositional : Is-proposition (Invariant xs ys)
-Invariant-propositional ∷-    ∷-    = refl _
-Invariant-propositional []-[] []-[] = refl _
+Invariant-propositional {xs = []}    {ys = []} _ _ = refl _
+Invariant-propositional {xs = _ ∷ _}           _ _ = refl _
 
 -- Some lemmas related to the invariant.
 
 -[] : Invariant xs []
--[] {xs = []}    = []-[]
--[] {xs = _ ∷ _} = ∷-
+-[] {xs = []}    = _
+-[] {xs = _ ∷ _} = _
 
 map-map : Invariant xs ys → Invariant (L.map f xs) (L.map f ys)
-map-map ∷-    = ∷-
-map-map []-[] = []-[]
+map-map {xs = _ ∷ _}           _ = _
+map-map {xs = []}    {ys = []} _ = _
 
 ------------------------------------------------------------------------
 -- Queues
@@ -60,12 +61,20 @@ map-map []-[] = []-[]
 -- Note that the invariant is erased.
 
 record Queue (@0 A : Set a) : Set a where
-  constructor ⟨_,_,_⟩
+  constructor ⟨_,_⟩
   field
-    front rear   : List A
-    @0 invariant : Invariant front rear
+    front rear     : List A
+    @0 {invariant} : Invariant front rear
 
 open Queue public
+
+-- A variant of ⟨_,_⟩ with three explicit arguments.
+
+pattern ⟨_,_⟩[_] f r i =
+  record { front     = f
+         ; rear      = r
+         ; invariant = i
+         }
 
 ------------------------------------------------------------------------
 -- Conversion functions
@@ -78,7 +87,7 @@ to-List q = front q ++ reverse (rear q)
 -- Converts lists to queues.
 
 from-List : List A → Queue A
-from-List xs = ⟨ xs , [] , -[] ⟩
+from-List xs = ⟨ xs , [] ⟩[ -[] ]
 
 -- The function from-List is a right inverse of to-List.
 
@@ -95,7 +104,7 @@ to-List-from-List {xs = xs} =
 ¬-from-List-to-List {A = A} x hyp = not-equal equal
   where
   counter-example : Queue A
-  counter-example = ⟨ x ∷ [] , x ∷ [] , ∷- ⟩
+  counter-example = ⟨ x ∷ [] , x ∷ [] ⟩
 
   not-equal : from-List (to-List counter-example) ≢ counter-example
   not-equal eq = List.[]≢∷ (cong rear eq)
@@ -136,12 +145,12 @@ representation-not-unique x hyp =
 -- Enqueues an element.
 
 enqueue : A → Queue A → Queue A
-enqueue x ⟨ []            , rear , []-[] ⟩ = ⟨ x ∷ [] , rear     , ∷- ⟩
-enqueue x ⟨ front@(_ ∷ _) , rear , _     ⟩ = ⟨ front  , x ∷ rear , ∷- ⟩
+enqueue x ⟨ []            , rear ⟩ = ⟨ x ∷ [] , rear     ⟩
+enqueue x ⟨ front@(_ ∷ _) , rear ⟩ = ⟨ front  , x ∷ rear ⟩
 
 to-List-enqueue : ∀ q → to-List (enqueue x q) ≡ to-List q ++ x ∷ []
-to-List-enqueue         ⟨ []            , .[]  , []-[] ⟩ = refl _
-to-List-enqueue {x = x} ⟨ front@(_ ∷ _) , rear , _     ⟩ =
+to-List-enqueue         ⟨ []            , []   ⟩ = refl _
+to-List-enqueue {x = x} ⟨ front@(_ ∷ _) , rear ⟩ =
   front ++ reverse (x ∷ rear)        ≡⟨ cong (front ++_) $ reverse-∷ rear ⟩
   front ++ reverse rear ++ x ∷ []    ≡⟨ ++-associative front _ _ ⟩∎
   (front ++ reverse rear) ++ x ∷ []  ∎
@@ -149,31 +158,31 @@ to-List-enqueue {x = x} ⟨ front@(_ ∷ _) , rear , _     ⟩ =
 -- Dequeues an element, if possible.
 
 dequeue : Queue A → Maybe (A × Queue A)
-dequeue ⟨ [] , .[] , []-[] ⟩ = nothing
+dequeue ⟨ [] , [] ⟩ = nothing
 
-dequeue ⟨ x ∷ [] , rear , _ ⟩ =
-  just (x , ⟨ reverse rear , [] , -[] ⟩)
+dequeue ⟨ x ∷ [] , rear ⟩ =
+  just (x , ⟨ reverse rear , [] ⟩[ -[] ])
 
-dequeue ⟨ x ∷ front@(_ ∷ _) , rear , _ ⟩ =
-  just (x , ⟨ front , rear , ∷- ⟩)
+dequeue ⟨ x ∷ front@(_ ∷ _) , rear ⟩ =
+  just (x , ⟨ front , rear ⟩)
 
 to-List-dequeue :
   {A : Set a} (q : Queue A) →
   ⊎-map id (Σ-map id to-List) (dequeue q) ≡
   _↔_.to List↔Maybe[×List] (to-List q)
-to-List-dequeue ⟨ [] , _ , []-[] ⟩ = refl _
+to-List-dequeue ⟨ [] , [] ⟩ = refl _
 
-to-List-dequeue ⟨ x ∷ [] , rear , _ ⟩ = cong (just ∘ (x ,_)) (
+to-List-dequeue ⟨ x ∷ [] , rear ⟩ = cong (just ∘ (x ,_)) (
   reverse rear ++ []  ≡⟨ ++-right-identity _ ⟩∎
   reverse rear        ∎)
 
-to-List-dequeue ⟨ _ ∷ _ ∷ _ , _ , _ ⟩ = refl _
+to-List-dequeue ⟨ _ ∷ _ ∷ _ , _ ⟩ = refl _
 
 -- The "inverse" of the dequeue operation.
 
 dequeue⁻¹ : Maybe (A × Queue A) → Queue A
-dequeue⁻¹ nothing                           = ⟨ [] , [] , []-[] ⟩
-dequeue⁻¹ (just (x , ⟨ front , rear , _ ⟩)) = ⟨ x ∷ front , rear , ∷- ⟩
+dequeue⁻¹ nothing                       = ⟨ [] , [] ⟩
+dequeue⁻¹ (just (x , ⟨ front , rear ⟩)) = ⟨ x ∷ front , rear ⟩
 
 to-List-dequeue⁻¹ :
   (x : Maybe (A × Queue A)) →
@@ -185,11 +194,11 @@ to-List-dequeue⁻¹ (just _) = refl _
 -- A map function.
 
 map : (A → B) → Queue A → Queue B
-map f ⟨ front , rear , inv ⟩ =
-  ⟨ L.map f front , L.map f rear , map-map inv ⟩
+map f ⟨ front , rear ⟩[ inv ] =
+  ⟨ L.map f front , L.map f rear ⟩[ map-map inv ]
 
 to-List-map : ∀ q → to-List (map f q) ≡ L.map f (to-List q)
-to-List-map {f = f} ⟨ front , rear , _ ⟩ =
+to-List-map {f = f} ⟨ front , rear ⟩ =
   L.map f front ++ reverse (L.map f rear)  ≡⟨ cong (L.map f front ++_) $ sym $ map-reverse rear ⟩
   L.map f front ++ L.map f (reverse rear)  ≡⟨ sym $ map-++ _ front _ ⟩∎
   L.map f (front ++ reverse rear)          ∎

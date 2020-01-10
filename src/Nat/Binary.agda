@@ -60,25 +60,31 @@ private
 
       mutual
 
-        infix 5 _∷_⟨_⟩
+        infixr 5 _∷_
 
         data Bin′ : Set where
-          []     : Bin′
-          _∷_⟨_⟩ : (b : Bool) (n : Bin′) → @0 Invariant b n → Bin′
+          []  : Bin′
+          _∷_ : (b : Bool) (n : Bin′)
+                { @0 invariant : Invariant b n } → Bin′
 
         private
 
-          data Invariant : Bool → Bin′ → Set where
-            true-inv  : Invariant true  n
-            false-inv : Invariant false (b ∷ n ⟨ inv ⟩)
+          Invariant : Bool → Bin′ → Set
+          Invariant true  _       = ⊤
+          Invariant false (_ ∷ _) = ⊤
+          Invariant false []      = ⊥
+
+          -- A variant of _∷_ with three explicit arguments.
+
+          pattern _∷_⟨_⟩ b n inv = _∷_ b n {invariant = inv}
 
       private
 
         -- The underlying list.
 
         to-List : Bin′ → List Bool
-        to-List []             = []
-        to-List (b ∷ bs ⟨ _ ⟩) = b ∷ to-List bs
+        to-List []       = []
+        to-List (b ∷ bs) = b ∷ to-List bs
 
         -- The invariant implies that the last element in the
         -- underlying list, if any, is not false, so there are no
@@ -88,15 +94,15 @@ private
         invariant-correct [] bs =
           [] ≡ bs ++ false ∷ []  ↝⟨ []≢++∷ bs ⟩□
           ⊥                      □
-        invariant-correct (true ∷ n ⟨ _ ⟩) [] =
+        invariant-correct (true ∷ n) [] =
           true ∷ to-List n ≡ false ∷ []  ↝⟨ List.cancel-∷-head ⟩
           true ≡ false                   ↝⟨ Bool.true≢false ⟩□
           ⊥                              □
-        invariant-correct (false ∷ n@(_ ∷ _ ⟨ _ ⟩) ⟨ _ ⟩) [] =
+        invariant-correct (false ∷ n@(_ ∷ _)) [] =
           false ∷ to-List n ≡ false ∷ []  ↝⟨ List.cancel-∷-tail ⟩
           to-List n ≡ []                  ↝⟨ List.[]≢∷ ∘ sym ⟩□
           ⊥                               □
-        invariant-correct (b ∷ n ⟨ _ ⟩) (b′ ∷ bs) =
+        invariant-correct (b ∷ n) (b′ ∷ bs) =
           b ∷ to-List n ≡ b′ ∷ bs ++ false ∷ []  ↝⟨ List.cancel-∷-tail ⟩
           to-List n ≡ bs ++ false ∷ []           ↝⟨ invariant-correct n bs ⟩□
           ⊥                                      □
@@ -105,8 +111,8 @@ private
 
         Invariant-propositional :
           {b : Bool} {n : Bin′} → Is-proposition (Invariant b n)
-        Invariant-propositional false-inv false-inv = refl _
-        Invariant-propositional true-inv  true-inv  = refl _
+        Invariant-propositional {b = true}              _ _ = refl _
+        Invariant-propositional {b = false} {n = _ ∷ _} _ _ = refl _
 
         -- Converts from Bool to ℕ.
 
@@ -130,16 +136,16 @@ private
         infixr 5 _∷ˢ_
 
         _∷ˢ_ : Bool → Bin′ → Bin′
-        true  ∷ˢ n               = true ∷ n ⟨ true-inv ⟩
-        false ∷ˢ []              = []
-        false ∷ˢ n@(_ ∷ _ ⟨ _ ⟩) = false ∷ n ⟨ false-inv ⟩
+        true  ∷ˢ n         = true ∷ n
+        false ∷ˢ []        = []
+        false ∷ˢ n@(_ ∷ _) = false ∷ n
 
         -- A lemma relating to-ℕ′ and _∷ˢ_.
 
         to-ℕ′-∷ˢ : ∀ b n → to-ℕ′ (b ∷ˢ n) ≡ from-Bool b ⊕ 2 ⊛ to-ℕ′ n
-        to-ℕ′-∷ˢ true  _             = refl _
-        to-ℕ′-∷ˢ false []            = refl _
-        to-ℕ′-∷ˢ false (_ ∷ _ ⟨ _ ⟩) = refl _
+        to-ℕ′-∷ˢ true  _       = refl _
+        to-ℕ′-∷ˢ false []      = refl _
+        to-ℕ′-∷ˢ false (_ ∷ _) = refl _
 
       -- Zero.
 
@@ -154,9 +160,9 @@ private
       -- The number's successor.
 
       suc′ : Bin′ → Bin′
-      suc′ []                = true ∷ˢ []
-      suc′ (false ∷ n ⟨ _ ⟩) = true ∷ˢ n
-      suc′ (true  ∷ n ⟨ _ ⟩) = false ∷ˢ suc′ n
+      suc′ []          = true ∷ˢ []
+      suc′ (false ∷ n) = true ∷ˢ n
+      suc′ (true  ∷ n) = false ∷ˢ suc′ n
 
       private
 
@@ -165,19 +171,19 @@ private
         -- and n.
 
         suc′-false-∷ˢ : ∀ n → suc′ (false ∷ˢ n) ≡ true ∷ˢ n
-        suc′-false-∷ˢ []            = refl _
-        suc′-false-∷ˢ (_ ∷ _ ⟨ _ ⟩) = refl _
+        suc′-false-∷ˢ []      = refl _
+        suc′-false-∷ˢ (_ ∷ _) = refl _
 
       -- A lemma relating suc′ and N.suc.
 
       to-ℕ′-suc′ : ∀ bs → to-ℕ′ (suc′ bs) ≡ N.suc (to-ℕ′ bs)
-      to-ℕ′-suc′ []                   = refl _
-      to-ℕ′-suc′ n@(false ∷ n′ ⟨ _ ⟩) =
+      to-ℕ′-suc′ []             = refl _
+      to-ℕ′-suc′ n@(false ∷ n′) =
         to-ℕ′ (suc′ n)      ≡⟨⟩
         to-ℕ′ (true ∷ˢ n′)  ≡⟨ to-ℕ′-∷ˢ true n′ ⟩
         1 ⊕ 2 ⊛ to-ℕ′ n′    ≡⟨⟩
         N.suc (to-ℕ′ n)     ∎
-      to-ℕ′-suc′ n@(true ∷ n′ ⟨ _ ⟩) =
+      to-ℕ′-suc′ n@(true ∷ n′) =
         to-ℕ′ (suc′ n)            ≡⟨⟩
         to-ℕ′ (false ∷ˢ suc′ n′)  ≡⟨ to-ℕ′-∷ˢ false (suc′ n′) ⟩
         2 ⊛ to-ℕ′ (suc′ n′)       ≡⟨ cong (2 ⊛_) (to-ℕ′-suc′ n′) ⟩
@@ -235,7 +241,7 @@ private
         from-ℕ′∘to-ℕ′ : ∀ n → from-ℕ′ (to-ℕ′ n) ≡ n
         from-ℕ′∘to-ℕ′ [] = refl _
 
-        from-ℕ′∘to-ℕ′ n@(true ∷ n′ ⟨ true-inv ⟩) =
+        from-ℕ′∘to-ℕ′ n@(true ∷ n′) =
           from-ℕ′ (to-ℕ′ n)                   ≡⟨⟩
           from-ℕ′ (1 ⊕ 2 ⊛ to-ℕ′ n′)          ≡⟨⟩
           suc′ (from-ℕ′ (2 ⊛ to-ℕ′ n′))       ≡⟨ cong suc′ (from-ℕ′-2-⊛ (to-ℕ′ n′)) ⟩
@@ -244,7 +250,7 @@ private
           true ∷ˢ n′                          ≡⟨⟩
           n                                   ∎
 
-        from-ℕ′∘to-ℕ′ n@(false ∷ n′ ⟨ false-inv ⟩) =
+        from-ℕ′∘to-ℕ′ n@(false ∷ n′@(_ ∷ _)) =
           from-ℕ′ (to-ℕ′ n)            ≡⟨⟩
           from-ℕ′ (2 ⊛ to-ℕ′ n′)       ≡⟨ from-ℕ′-2-⊛ (to-ℕ′ n′) ⟩
           false ∷ˢ from-ℕ′ (to-ℕ′ n′)  ≡⟨ cong (false ∷ˢ_) (from-ℕ′∘to-ℕ′ n′) ⟩
@@ -272,10 +278,10 @@ private
         add-with-carry₁ true  = suc′
 
         add-with-carry₂ : Bool → Bin′ → Bin′ → Bin′
-        add-with-carry₂ b []              n  = add-with-carry₁ b n
-        add-with-carry₂ b m@(_ ∷ _ ⟨ _ ⟩) [] = add-with-carry₁ b m
+        add-with-carry₂ b []        n  = add-with-carry₁ b n
+        add-with-carry₂ b m@(_ ∷ _) [] = add-with-carry₁ b m
 
-        add-with-carry₂ b (c ∷ m ⟨ _ ⟩) (d ∷ n ⟨ _ ⟩) =
+        add-with-carry₂ b (c ∷ m) (d ∷ n) =
           case add-with-carryᴮ b c d of λ where
             (e , f) → e ∷ˢ add-with-carry₂ f m n
 
@@ -292,14 +298,13 @@ private
           from-Bool b ⊕ (to-ℕ′ m ⊕ to-ℕ′ n)
         to-ℕ′-add-with-carry₂ b [] n = to-ℕ′-add-with-carry₁ b n
 
-        to-ℕ′-add-with-carry₂ b m@(_ ∷ _ ⟨ _ ⟩) [] =
+        to-ℕ′-add-with-carry₂ b m@(_ ∷ _) [] =
           to-ℕ′ (add-with-carry₁ b m)         ≡⟨ to-ℕ′-add-with-carry₁ b m ⟩
           from-Bool b ⊕ to-ℕ′ m               ≡⟨ solve 2 (λ b c → b :+ c := b :+ (c :+ con 0)) (refl _) (from-Bool b) _ ⟩
           from-Bool b ⊕ (to-ℕ′ m ⊕ 0)         ≡⟨⟩
           from-Bool b ⊕ (to-ℕ′ m ⊕ to-ℕ′ [])  ∎
 
-        to-ℕ′-add-with-carry₂ false m@(false ∷ m′ ⟨ _ ⟩)
-                                    n@(false ∷ n′ ⟨ _ ⟩) =
+        to-ℕ′-add-with-carry₂ false m@(false ∷ m′) n@(false ∷ n′) =
           to-ℕ′ (false ∷ˢ add-with-carry₂ false m′ n′)  ≡⟨ to-ℕ′-∷ˢ false (add-with-carry₂ false m′ n′) ⟩
           2 ⊛ to-ℕ′ (add-with-carry₂ false m′ n′)       ≡⟨ cong (2 ⊛_) (to-ℕ′-add-with-carry₂ false m′ n′) ⟩
           2 ⊛ (to-ℕ′ m′ ⊕ to-ℕ′ n′)                     ≡⟨ solve 2 (λ c d → con 2 :* (c :+ d) :=
@@ -308,8 +313,7 @@ private
           2 ⊛ to-ℕ′ m′ ⊕ 2 ⊛ to-ℕ′ n′                   ≡⟨⟩
           to-ℕ′ m ⊕ to-ℕ′ n       ∎
 
-        to-ℕ′-add-with-carry₂ false m@(false ∷ m′ ⟨ _ ⟩)
-                                    n@(true  ∷ n′ ⟨ _ ⟩) =
+        to-ℕ′-add-with-carry₂ false m@(false ∷ m′) n@(true  ∷ n′) =
           to-ℕ′ (true ∷ˢ add-with-carry₂ false m′ n′)  ≡⟨ to-ℕ′-∷ˢ true (add-with-carry₂ false m′ n′) ⟩
           1 ⊕ 2 ⊛ to-ℕ′ (add-with-carry₂ false m′ n′)  ≡⟨ cong ((1 ⊕_) ∘ (2 ⊛_)) (to-ℕ′-add-with-carry₂ false m′ n′) ⟩
           1 ⊕ 2 ⊛ (to-ℕ′ m′ ⊕ to-ℕ′ n′)                ≡⟨ solve 2 (λ c d → con 1 :+ con 2 :* (c :+ d) :=
@@ -318,8 +322,7 @@ private
           2 ⊛ to-ℕ′ m′ ⊕ (1 ⊕ 2 ⊛ to-ℕ′ n′)            ≡⟨⟩
           to-ℕ′ m ⊕ to-ℕ′ n       ∎
 
-        to-ℕ′-add-with-carry₂ false m@(true  ∷ m′ ⟨ _ ⟩)
-                                    n@(false ∷ n′ ⟨ _ ⟩) =
+        to-ℕ′-add-with-carry₂ false m@(true  ∷ m′) n@(false ∷ n′) =
           to-ℕ′ (true ∷ˢ add-with-carry₂ false m′ n′)  ≡⟨ to-ℕ′-∷ˢ true (add-with-carry₂ false m′ n′) ⟩
           1 ⊕ 2 ⊛ to-ℕ′ (add-with-carry₂ false m′ n′)  ≡⟨ cong ((1 ⊕_) ∘ (2 ⊛_)) (to-ℕ′-add-with-carry₂ false m′ n′) ⟩
           1 ⊕ 2 ⊛ (to-ℕ′ m′ ⊕ to-ℕ′ n′)                ≡⟨ solve 2 (λ c d → con 1 :+ con 2 :* (c :+ d) :=
@@ -328,8 +331,7 @@ private
           1 ⊕ 2 ⊛ to-ℕ′ m′ ⊕ 2 ⊛ to-ℕ′ n′              ≡⟨⟩
           to-ℕ′ m ⊕ to-ℕ′ n                            ∎
 
-        to-ℕ′-add-with-carry₂ false m@(true ∷ m′ ⟨ _ ⟩)
-                                    n@(true ∷ n′ ⟨ _ ⟩) =
+        to-ℕ′-add-with-carry₂ false m@(true ∷ m′) n@(true ∷ n′) =
           to-ℕ′ (false ∷ˢ add-with-carry₂ true m′ n′)  ≡⟨ to-ℕ′-∷ˢ false (add-with-carry₂ true m′ n′) ⟩
           2 ⊛ to-ℕ′ (add-with-carry₂ true m′ n′)       ≡⟨ cong (2 ⊛_) (to-ℕ′-add-with-carry₂ true m′ n′) ⟩
           2 ⊛ (1 ⊕ to-ℕ′ m′ ⊕ to-ℕ′ n′)                ≡⟨ solve 2 (λ c d → con 2 :* (con 1 :+ c :+ d) :=
@@ -338,8 +340,7 @@ private
           1 ⊕ 2 ⊛ to-ℕ′ m′ ⊕ (1 ⊕ 2 ⊛ to-ℕ′ n′)        ≡⟨⟩
           to-ℕ′ m ⊕ to-ℕ′ n                            ∎
 
-        to-ℕ′-add-with-carry₂ true m@(false ∷ m′ ⟨ _ ⟩)
-                                   n@(false ∷ n′ ⟨ _ ⟩) =
+        to-ℕ′-add-with-carry₂ true m@(false ∷ m′) n@(false ∷ n′) =
           to-ℕ′ (true ∷ˢ add-with-carry₂ false m′ n′)  ≡⟨ to-ℕ′-∷ˢ true (add-with-carry₂ false m′ n′) ⟩
           1 ⊕ 2 ⊛ to-ℕ′ (add-with-carry₂ false m′ n′)  ≡⟨ cong ((1 ⊕_) ∘ (2 ⊛_)) (to-ℕ′-add-with-carry₂ false m′ n′) ⟩
           1 ⊕ 2 ⊛ (to-ℕ′ m′ ⊕ to-ℕ′ n′)                ≡⟨ solve 2 (λ c d → con 1 :+ con 2 :* (c :+ d) :=
@@ -348,8 +349,7 @@ private
           1 ⊕ 2 ⊛ to-ℕ′ m′ ⊕ 2 ⊛ to-ℕ′ n′              ≡⟨⟩
           1 ⊕ to-ℕ′ m ⊕ to-ℕ′ n                        ∎
 
-        to-ℕ′-add-with-carry₂ true m@(false ∷ m′ ⟨ _ ⟩)
-                                   n@(true  ∷ n′ ⟨ _ ⟩) =
+        to-ℕ′-add-with-carry₂ true m@(false ∷ m′) n@(true  ∷ n′) =
           to-ℕ′ (false ∷ˢ add-with-carry₂ true m′ n′)  ≡⟨ to-ℕ′-∷ˢ false (add-with-carry₂ true m′ n′) ⟩
           2 ⊛ to-ℕ′ (add-with-carry₂ true m′ n′)       ≡⟨ cong (2 ⊛_) (to-ℕ′-add-with-carry₂ true m′ n′) ⟩
           2 ⊛ (1 ⊕ to-ℕ′ m′ ⊕ to-ℕ′ n′)                ≡⟨ solve 2 (λ c d → con 2 :* (con 1 :+ c :+ d) :=
@@ -358,8 +358,7 @@ private
           1 ⊕ 2 ⊛ to-ℕ′ m′ ⊕ (1 ⊕ 2 ⊛ to-ℕ′ n′)        ≡⟨⟩
           1 ⊕ to-ℕ′ m ⊕ to-ℕ′ n                        ∎
 
-        to-ℕ′-add-with-carry₂ true m@(true  ∷ m′ ⟨ _ ⟩)
-                                   n@(false ∷ n′ ⟨ _ ⟩) =
+        to-ℕ′-add-with-carry₂ true m@(true  ∷ m′) n@(false ∷ n′) =
           to-ℕ′ (false ∷ˢ add-with-carry₂ true m′ n′)  ≡⟨ to-ℕ′-∷ˢ false (add-with-carry₂ true m′ n′) ⟩
           2 ⊛ to-ℕ′ (add-with-carry₂ true m′ n′)       ≡⟨ cong (2 ⊛_) (to-ℕ′-add-with-carry₂ true m′ n′) ⟩
           2 ⊛ (1 ⊕ to-ℕ′ m′ ⊕ to-ℕ′ n′)                ≡⟨ solve 2 (λ c d → con 2 :* (con 1 :+ c :+ d) :=
@@ -368,8 +367,7 @@ private
           2 ⊕ 2 ⊛ to-ℕ′ m′ ⊕ 2 ⊛ to-ℕ′ n′              ≡⟨⟩
           1 ⊕ to-ℕ′ m ⊕ to-ℕ′ n                        ∎
 
-        to-ℕ′-add-with-carry₂ true m@(true ∷ m′ ⟨ _ ⟩)
-                                   n@(true ∷ n′ ⟨ _ ⟩) =
+        to-ℕ′-add-with-carry₂ true m@(true ∷ m′) n@(true ∷ n′) =
           to-ℕ′ (true ∷ˢ add-with-carry₂ true m′ n′)  ≡⟨ to-ℕ′-∷ˢ true (add-with-carry₂ true m′ n′) ⟩
           1 ⊕ 2 ⊛ to-ℕ′ (add-with-carry₂ true m′ n′)  ≡⟨ cong ((1 ⊕_) ∘ (2 ⊛_)) (to-ℕ′-add-with-carry₂ true m′ n′) ⟩
           1 ⊕ 2 ⊛ (1 ⊕ to-ℕ′ m′ ⊕ to-ℕ′ n′)           ≡⟨ solve 2 (λ c d → con 1 :+ con 2 :* (con 1 :+ c :+ d) :=
@@ -392,33 +390,33 @@ private
       -- Division by two, rounded downwards.
 
       ⌊_/2⌋ : Bin′ → Bin′
-      ⌊ []          /2⌋ = []
-      ⌊ _ ∷ n ⟨ _ ⟩ /2⌋ = n
+      ⌊ []    /2⌋ = []
+      ⌊ _ ∷ n /2⌋ = n
 
       to-ℕ′-⌊/2⌋ : ∀ n → to-ℕ′ ⌊ n /2⌋ ≡ N.⌊ to-ℕ′ n /2⌋
-      to-ℕ′-⌊/2⌋ []                = refl _
-      to-ℕ′-⌊/2⌋ (false ∷ n ⟨ _ ⟩) =
+      to-ℕ′-⌊/2⌋ []          = refl _
+      to-ℕ′-⌊/2⌋ (false ∷ n) =
         to-ℕ′ n              ≡⟨ sym $ N.⌊2*/2⌋≡ _ ⟩∎
         N.⌊ 2 ⊛ to-ℕ′ n /2⌋  ∎
 
-      to-ℕ′-⌊/2⌋ (true ∷ n ⟨ _ ⟩) =
+      to-ℕ′-⌊/2⌋ (true ∷ n) =
         to-ℕ′ n                  ≡⟨ sym $ N.⌊1+2*/2⌋≡ _ ⟩∎
         N.⌊ 1 ⊕ 2 ⊛ to-ℕ′ n /2⌋  ∎
 
       -- Division by two, rounded upwards.
 
       ⌈_/2⌉ : Bin′ → Bin′
-      ⌈ []              /2⌉ = []
-      ⌈ false ∷ n ⟨ _ ⟩ /2⌉ = n
-      ⌈ true  ∷ n ⟨ _ ⟩ /2⌉ = suc′ n
+      ⌈ []        /2⌉ = []
+      ⌈ false ∷ n /2⌉ = n
+      ⌈ true  ∷ n /2⌉ = suc′ n
 
       to-ℕ′-⌈/2⌉ : ∀ n → to-ℕ′ ⌈ n /2⌉ ≡ N.⌈ to-ℕ′ n /2⌉
-      to-ℕ′-⌈/2⌉ []                = refl _
-      to-ℕ′-⌈/2⌉ (false ∷ n ⟨ _ ⟩) =
+      to-ℕ′-⌈/2⌉ []          = refl _
+      to-ℕ′-⌈/2⌉ (false ∷ n) =
         to-ℕ′ n              ≡⟨ sym $ N.⌈2*/2⌉≡ _ ⟩∎
         N.⌈ 2 ⊛ to-ℕ′ n /2⌉  ∎
 
-      to-ℕ′-⌈/2⌉ (true ∷ n ⟨ _ ⟩) =
+      to-ℕ′-⌈/2⌉ (true ∷ n) =
         to-ℕ′ (suc′ n)           ≡⟨ to-ℕ′-suc′ n ⟩
         1 ⊕ to-ℕ′ n              ≡⟨ sym $ N.⌈1+2*/2⌉≡ _ ⟩∎
         N.⌈ 1 ⊕ 2 ⊛ to-ℕ′ n /2⌉  ∎
@@ -428,8 +426,8 @@ private
       infixl 7 _*_
 
       _*_ : Bin′ → Bin′ → Bin′
-      []            * n = zero′
-      (b ∷ m ⟨ _ ⟩) * n =
+      []      * n = zero′
+      (b ∷ m) * n =
         (if b then add-with-carry n else id)
           (false ∷ˢ m * n)
 
@@ -441,7 +439,7 @@ private
         2 ⊛ (to-ℕ′ m ⊛ to-ℕ′ n)              ≡⟨ N.*-assoc 2 {n = to-ℕ′ m} ⟩
         (2 ⊛ to-ℕ′ m) ⊛ to-ℕ′ n              ≡⟨⟩
         to-ℕ′ (false ∷ m ⟨ inv ⟩) ⊛ to-ℕ′ n  ∎
-      to-ℕ′-* (true ∷ m ⟨ inv ⟩) n =
+      to-ℕ′-* (true ∷ m) n =
         to-ℕ′ (add-with-carry n (false ∷ˢ m * n))  ≡⟨ to-ℕ′-add-with-carry n _ ⟩
         to-ℕ′ n ⊕ to-ℕ′ (false ∷ˢ m * n)           ≡⟨ cong (to-ℕ′ n ⊕_) (to-ℕ′-∷ˢ false (m * n)) ⟩
         to-ℕ′ n ⊕ 2 ⊛ to-ℕ′ (m * n)                ≡⟨ cong (λ x → to-ℕ′ n ⊕ 2 ⊛ x) (to-ℕ′-* m _) ⟩
@@ -449,15 +447,15 @@ private
                                                                        (con 1 :+ con 2 :* m) :* n)
                                                             (refl _) (to-ℕ′ m) _ ⟩
         (1 ⊕ 2 ⊛ to-ℕ′ m) ⊛ to-ℕ′ n                ≡⟨⟩
-        to-ℕ′ (true ∷ m ⟨ inv ⟩) ⊛ to-ℕ′ n         ∎
+        to-ℕ′ (true ∷ m) ⊛ to-ℕ′ n                 ∎
 
       -- Exponentiation.
 
       infixr 8 _^_
 
       _^_ : Bin′ → Bin′ → Bin′
-      m ^ []            = suc′ zero′
-      m ^ (b ∷ n ⟨ _ ⟩) =
+      m ^ []      = suc′ zero′
+      m ^ (b ∷ n) =
         (if b then (m *_) else id)
           ((m * m) ^ n)
 
@@ -471,8 +469,8 @@ private
         (to-ℕ′ m N.^ 2) N.^ to-ℕ′ n            ≡⟨ N.^^≡^* 2 {k = to-ℕ′ n} ⟩
         to-ℕ′ m N.^ (2 ⊛ to-ℕ′ n)              ≡⟨⟩
         to-ℕ′ m N.^ to-ℕ′ (false ∷ n ⟨ inv ⟩)  ∎
-      to-ℕ′-^ m (true ∷ n ⟨ inv ⟩) =
-        to-ℕ′ (m ^ (true ∷ n ⟨ inv ⟩))             ≡⟨⟩
+      to-ℕ′-^ m (true ∷ n) =
+        to-ℕ′ (m ^ (true ∷ n))                     ≡⟨⟩
         to-ℕ′ (m * (m * m) ^ n)                    ≡⟨ to-ℕ′-* m ((m * m) ^ n) ⟩
         to-ℕ′ m ⊛ to-ℕ′ ((m * m) ^ n)              ≡⟨ cong (to-ℕ′ m ⊛_) (to-ℕ′-^ (m * m) n) ⟩
         to-ℕ′ m ⊛ to-ℕ′ (m * m) N.^ to-ℕ′ n        ≡⟨ cong (λ x → to-ℕ′ m ⊛ x N.^ to-ℕ′ n) (to-ℕ′-* m m) ⟩
@@ -480,7 +478,7 @@ private
         to-ℕ′ m ⊛ (to-ℕ′ m N.^ 2) N.^ to-ℕ′ n      ≡⟨ cong₂ _⊛_ (sym (N.^-right-identity {n = to-ℕ′ m})) (N.^^≡^* 2 {k = to-ℕ′ n}) ⟩
         to-ℕ′ m N.^ 1 ⊛ to-ℕ′ m N.^ (2 ⊛ to-ℕ′ n)  ≡⟨ sym $ N.^+≡^*^ {m = to-ℕ′ m} 1 {k = 2 ⊛ to-ℕ′ n} ⟩
         to-ℕ′ m N.^ (1 ⊕ 2 ⊛ to-ℕ′ n)              ≡⟨⟩
-        to-ℕ′ m N.^ to-ℕ′ (true ∷ n ⟨ inv ⟩)       ∎
+        to-ℕ′ m N.^ to-ℕ′ (true ∷ n)               ∎
 
       -- "Left shift".
 
@@ -508,9 +506,9 @@ private
 
         -- The empty list is not equal to any non-empty list.
 
-        []≢∷ : [] ≢ b ∷ n ⟨ inv ⟩
-        []≢∷ {b = b} {n = n} {inv = inv} =
-          [] ≡ b ∷ n ⟨ inv ⟩  ↝⟨ cong to-List ⟩
+        []≢∷ : ([] ⦂ Bin′) ≢ b ∷ n ⟨ inv ⟩
+        []≢∷ {b = b} {n = n} =
+          [] ≡ b ∷ n          ↝⟨ cong to-List ⟩
           [] ≡ b ∷ to-List n  ↝⟨ List.[]≢∷ ⟩□
           ⊥                   □
 
@@ -523,11 +521,11 @@ private
         equal? : (m n : Bin′) → Dec-Erased (m ≡ n)
         equal? [] [] = yes [ refl _ ]
 
-        equal? [] (b ∷ n ⟨ _ ⟩) = no [ []≢∷ ]
+        equal? [] (b ∷ n) = no [ []≢∷ ]
 
-        equal? (b ∷ n ⟨ _ ⟩) [] = no [ []≢∷ ∘ sym ]
+        equal? (b ∷ n) [] = no [ []≢∷ ∘ sym ]
 
-        equal? (b₁ ∷ n₁ ⟨ inv₁ ⟩) (b₂ ∷ n₂ ⟨ inv₂ ⟩) =
+        equal? (b₁ ∷ n₁) (b₂ ∷ n₂) =
           helper₁ _ _ (b₁ Bool.≟ b₂)
           where
           helper₂ :
@@ -535,9 +533,9 @@ private
             (@0 inv₁ : Invariant b₁ n₁) (@0 inv₂ : Invariant b₂ n₂) →
             b₁ ≡ b₂ →
             Dec-Erased (n₁ ≡ n₂) →
-            Dec-Erased (b₁ ∷ n₁ ⟨ inv₁ ⟩ ≡ b₂ ∷ n₂ ⟨ inv₂ ⟩)
+            Dec-Erased ((b₁ ∷ n₁ ⟨ inv₁ ⟩) ≡ (b₂ ∷ n₂ ⟨ inv₂ ⟩))
           helper₂ n₁ n₂ _ _ _ (no [ n₁≢n₂ ]) = no [
-            b₁ ∷ n₁ ⟨ _ ⟩ ≡ b₂ ∷ n₂ ⟨ _ ⟩      ↝⟨ cong to-List ⟩
+            (b₁ ∷ n₁ ⟨ _ ⟩) ≡ (b₂ ∷ n₂ ⟨ _ ⟩)  ↝⟨ cong to-List ⟩
             b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂  ↝⟨ List.cancel-∷-tail ⟩
             to-List n₁ ≡ to-List n₂            ↝⟨ cong List-to-ℕ ⟩
             to-ℕ′ n₁ ≡ to-ℕ′ n₂                ↝⟨ _↔_.injective Bin′↔ℕ ⟩
@@ -549,18 +547,18 @@ private
             b₁ ≡ b₂ × to-List n₁ ≡ to-List n₂                    ↔⟨ inverse ∷≡∷↔≡×≡ ⟩
             b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂                    ↝⟨ cong List-to-ℕ ⟩
             to-ℕ′ (b₁ ∷ n₁ ⟨ inv₁ ⟩) ≡ to-ℕ′ (b₂ ∷ n₂ ⟨ inv₂ ⟩)  ↝⟨ _↔_.injective Bin′↔ℕ ⟩□
-            b₁ ∷ n₁ ⟨ _ ⟩ ≡ b₂ ∷ n₂ ⟨ _ ⟩                        □ ]
+            b₁ ∷ n₁ ≡ b₂ ∷ n₂                                    □ ]
 
           helper₁ :
             ∀ n₁ n₂
               {@0 inv₁ : Invariant b₁ n₁} {@0 inv₂ : Invariant b₂ n₂} →
             Dec (b₁ ≡ b₂) →
-            Dec-Erased (b₁ ∷ n₁ ⟨ inv₁ ⟩ ≡ b₂ ∷ n₂ ⟨ inv₂ ⟩)
+            Dec-Erased ((b₁ ∷ n₁ ⟨ inv₁ ⟩) ≡ (b₂ ∷ n₂ ⟨ inv₂ ⟩))
           helper₁ n₁ n₂ (yes b₁≡b₂) =
             helper₂ _ _ _ _ b₁≡b₂ (equal? n₁ n₂)
 
           helper₁ n₁ n₂ (no b₁≢b₂) = no [
-            b₁ ∷ n₁ ⟨ _ ⟩ ≡ b₂ ∷ n₂ ⟨ _ ⟩      ↝⟨ cong to-List ⟩
+            b₁ ∷ n₁ ≡ b₂ ∷ n₂                  ↝⟨ cong to-List ⟩
             b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂  ↝⟨ List.cancel-∷-head ⟩
             b₁ ≡ b₂                            ↝⟨ b₁≢b₂ ⟩□
             ⊥                                  □ ]
