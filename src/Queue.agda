@@ -13,7 +13,7 @@ open Derived-definitions-and-properties eq
 
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection eq as Bijection using (_↔_)
 import Equivalence eq as Eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import List eq as L hiding (map)
@@ -197,68 +197,47 @@ module Is-queue-with-unique-representations⁺
     to-List p q₁ ≡ to-List p q₂  ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ $ Queue↔List _ ⟩□
     q₁ ≡ q₂                      □
 
-  -- The function dequeue can be expressed using to-List and
-  -- from-List.
+  -- A variant of Queue↔List.
 
-  dequeue≡from-List-to-List :
-    {A : Set a} {p : P A} {q : Q A} →
-    dequeue p q ≡
-    ⊎-map id (Σ-map id from-List)
-      (_↔_.to List↔Maybe[×List] (to-List p q))
-  dequeue≡from-List-to-List {p = p} {q = q} =
-    dequeue p q                                        ≡⟨ sym $ _↔_.left-inverse-of (F.id ⊎-cong ∃-cong λ _ → Queue↔List _) _ ⟩
-
-    ⊎-map id (Σ-map id from-List)
-      (⊎-map id (Σ-map id (to-List p)) (dequeue p q))  ≡⟨ cong (⊎-map id (Σ-map id from-List)) to-List-dequeue ⟩∎
-
-    ⊎-map id (Σ-map id from-List)
-      (_↔_.to List↔Maybe[×List] (to-List p q))         ∎
+  Maybe[×Queue]↔List : P A → Maybe (A × Q A) ↔ List A
+  Maybe[×Queue]↔List {A = A} p =
+    Maybe (A × Q A)     ↝⟨ F.id ⊎-cong F.id ×-cong Queue↔List p ⟩
+    Maybe (A × List A)  ↝⟨ inverse List↔Maybe[×List] ⟩□
+    List A              □
 
   -- The function dequeue p is an inverse of dequeue⁻¹.
 
   Queue↔Maybe[×Queue] : P A → Q A ↔ Maybe (A × Q A)
-  Queue↔Maybe[×Queue] p = record
-    { surjection = record
-      { logical-equivalence = record
-        { to   = dequeue p
-        ; from = dequeue⁻¹
-        }
-      ; right-inverse-of = λ x →
-          dequeue p (dequeue⁻¹ x)                        ≡⟨ dequeue≡from-List-to-List ⟩
+  Queue↔Maybe[×Queue] {A = A} p =
+    Bijection.with-other-function
+      (Bijection.with-other-inverse
+         (Q A              ↝⟨ Queue↔List p ⟩
+          List A           ↝⟨ inverse (Maybe[×Queue]↔List p) ⟩□
+          Maybe (A × Q A)  □)
+         dequeue⁻¹
+         (λ x →
+            _↔_.from-to (inverse $ Queue↔List p) (
+              to-List p (dequeue⁻¹ x)          ≡⟨ to-List-dequeue⁻¹ ⟩∎
+              _↔_.to (Maybe[×Queue]↔List p) x  ∎)))
+      (dequeue p)
+      (λ q → _↔_.to-from (Maybe[×Queue]↔List p) (
+         _↔_.to (Maybe[×Queue]↔List p) (dequeue p q)        ≡⟨⟩
 
-          ⊎-map id (Σ-map id from-List)
-            (_↔_.to List↔Maybe[×List]
-               (to-List p (dequeue⁻¹ x)))                ≡⟨ cong (⊎-map id (Σ-map id from-List) ∘ _↔_.to List↔Maybe[×List])
-                                                            to-List-dequeue⁻¹ ⟩
-          ⊎-map id (Σ-map id from-List)
-            (_↔_.to List↔Maybe[×List]
-               (_↔_.from List↔Maybe[×List]
-                  (⊎-map id (Σ-map id (to-List p)) x)))  ≡⟨ cong (⊎-map id (Σ-map id from-List)) $
-                                                            _↔_.right-inverse-of List↔Maybe[×List] (⊎-map id (Σ-map id (to-List p)) x) ⟩
-          ⊎-map id (Σ-map id from-List)
-            (⊎-map id (Σ-map id (to-List p)) x)          ≡⟨ _↔_.left-inverse-of (F.id ⊎-cong ∃-cong λ _ → Queue↔List _) _ ⟩∎
+         _↔_.from List↔Maybe[×List]
+           (⊎-map id (Σ-map id (to-List p)) (dequeue p q))  ≡⟨ cong (_↔_.from List↔Maybe[×List]) to-List-dequeue ⟩
 
-          x                                              ∎
-      }
-    ; left-inverse-of = λ q →
-        _↔_.to ≡-for-lists↔≡ (
-          to-List p (dequeue⁻¹ (dequeue p q))                ≡⟨ cong (λ x → to-List p (dequeue⁻¹ x)) dequeue≡from-List-to-List ⟩
+         _↔_.from List↔Maybe[×List]
+           (_↔_.to List↔Maybe[×List] (to-List p q))         ≡⟨ _↔_.left-inverse-of List↔Maybe[×List] _ ⟩∎
 
-          to-List p (dequeue⁻¹
-            (⊎-map id (Σ-map id from-List)
-               (_↔_.to List↔Maybe[×List] (to-List p q))))    ≡⟨ to-List-dequeue⁻¹ ⟩
+         to-List p q                                        ∎))
 
-          _↔_.from List↔Maybe[×List]
-            (⊎-map id (Σ-map id (to-List p))
-              (⊎-map id (Σ-map id from-List)
-                 (_↔_.to List↔Maybe[×List] (to-List p q))))  ≡⟨ cong (_↔_.from List↔Maybe[×List]) $
-                                                                _↔_.right-inverse-of (F.id ⊎-cong ∃-cong λ _ → Queue↔List _)
-                                                                  (_↔_.to List↔Maybe[×List] (to-List p q)) ⟩
-          _↔_.from List↔Maybe[×List]
-            (_↔_.to List↔Maybe[×List] (to-List p q))         ≡⟨ _↔_.left-inverse-of List↔Maybe[×List] _ ⟩∎
+  _ : {A : Set a} {p : P A} →
+      _↔_.to (Queue↔Maybe[×Queue] p) ≡ dequeue p
+  _ = refl _
 
-          to-List p q                                        ∎)
-    }
+  _ : {A : Set a} {p : P A} →
+      _↔_.from (Queue↔Maybe[×Queue] p) ≡ dequeue⁻¹
+  _ = refl _
 
   -- The function from-List can be expressed using enqueue and empty.
 
