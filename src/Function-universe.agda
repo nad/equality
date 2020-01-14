@@ -1316,16 +1316,11 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
 -- Contractible commutes with _×_ (assuming extensionality).
 
 Contractible-commutes-with-× :
-  ∀ {x y} {X : Set x} {Y : Set y} →
-  Extensionality (x ⊔ y) (x ⊔ y) →
-  Contractible (X × Y) ≃ (Contractible X × Contractible Y)
-Contractible-commutes-with-× {x} {y} ext =
-  _↔_.to (Eq.⇔↔≃ ext
-                 (Contractible-propositional ext)
-                 (×-closure 1 (Contractible-propositional
-                                 (lower-extensionality y y ext))
-                              (Contractible-propositional
-                                 (lower-extensionality x x ext))))
+  ∀ {k x y} {X : Set x} {Y : Set y} →
+  Extensionality? k (x ⊔ y) (x ⊔ y) →
+  Contractible (X × Y) ↝[ k ] (Contractible X × Contractible Y)
+Contractible-commutes-with-× {x = x} {y} =
+  generalise-ext?-prop
     (record
        { to = λ cX×Y →
            lemma cX×Y ,
@@ -1337,6 +1332,11 @@ Contractible-commutes-with-× {x} {y} ext =
              (x  , y)   ≡⟨ cong₂ _,_ (eq₁ x′) (eq₂ y′) ⟩∎
              (x′ , y′)  ∎ } }
        })
+    Contractible-propositional
+    (λ ext → ×-closure 1 (Contractible-propositional
+                            (lower-extensionality y y ext))
+                         (Contractible-propositional
+                            (lower-extensionality x x ext)))
   where
   lemma : ∀ {x y} {X : Set x} {Y : Set y} →
           Contractible (X × Y) → Contractible X
