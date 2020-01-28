@@ -141,6 +141,11 @@ rec p = recᴾ (_↔_.to (H-level↔H-level 1) p)
   Trunc.∥ B ∥ 1 (a ⊔ b)  ↔⟨ inverse (∥∥↔∥∥ a) ⟩□
   ∥ B ∥                  □
 
+-- A form of idempotence for binary sums.
+
+idempotent : ∥ A ⊎ A ∥ ↔ ∥ A ∥
+idempotent = ∥∥-cong-⇔ (record { to = [ id , id ]; from = inj₁ })
+
 -- A generalised flattening lemma.
 
 flatten′ :
