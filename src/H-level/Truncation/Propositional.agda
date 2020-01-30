@@ -343,6 +343,21 @@ not-inhabited⇒∥∥↔⊥ {A = A} =
   ¬ ∥ A ∥    ↝⟨ inverse ∘ Bijection.⊥↔uninhabited ⟩□
   ∥ A ∥ ↔ ⊥  □
 
+-- The negation of the truncation of A is isomorphic to the negation
+-- of A.
+
+¬∥∥↔¬ : ¬ ∥ A ∥ ↔ ¬ A
+¬∥∥↔¬ {A = A} = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ f → f ∘ ∣_∣
+      ; from = rec ⊥-propositional
+      }
+    ; right-inverse-of = λ _ → ¬-propositional ext _ _
+    }
+  ; left-inverse-of = λ _ → ¬-propositional ext _ _
+  }
+
 -- The following two results come from "Generalizations of Hedberg's
 -- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
