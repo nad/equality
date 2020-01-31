@@ -206,6 +206,10 @@ import Pushout
 
 import H-level.Truncation
 
+-- Finite subsets.
+
+import Finite-subset
+
 -- Some omniscience principles.
 
 import Omniscience
