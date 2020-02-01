@@ -206,10 +206,6 @@ import Pushout
 
 import H-level.Truncation
 
--- Finite subsets.
-
-import Finite-subset
-
 -- Some omniscience principles.
 
 import Omniscience
@@ -312,6 +308,14 @@ import Quotient.Families-of-equivalence-classes
 -- Quotients (set-quotients), defined using a higher inductive type.
 
 import Quotient
+
+-- Listed finite subsets.
+
+import Finite-subset.Listed
+
+-- Kuratowski finite subsets.
+
+import Finite-subset.Kuratowski
 
 -- A type for values that should be erased at run-time.
 
