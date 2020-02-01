@@ -661,13 +661,13 @@ abstract
 -- The third definition of bag equivalence is sound with respect to
 -- the other two
 
--- _∷_ preserves bag equivalence.
+-- _∷_ preserves _∼[ k ]_.
 
 infixr 5 _∷-cong_
 
-_∷-cong_ : x ≡ y → xs ≈-bag ys → x ∷ xs ≈-bag y ∷ ys
+_∷-cong_ : x ≡ y → xs ∼[ k ] ys → x ∷ xs ∼[ k ] y ∷ ys
 _∷-cong_ {x = x} {y = y} {xs = xs} {ys = ys} x≡y xs≈ys = λ z →
-  z ≡ x ⊎ z ∈ xs  ↔⟨ flip-trans-isomorphism x≡y ⊎-cong xs≈ys z ⟩
+  z ≡ x ⊎ z ∈ xs  ↝⟨ from-bijection (flip-trans-isomorphism x≡y) ⊎-cong xs≈ys z ⟩□
   z ≡ y ⊎ z ∈ ys  □
 
 -- We can swap the first two elements of a list.
