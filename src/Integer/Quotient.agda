@@ -179,25 +179,28 @@ infix 8 +_
     m₁ ⊕ n₂        ∎≤)
 
   to : ℤ → Data.ℤ
-  to = Q.rec
-    (λ { (m , n) → Data.+ m Data.- Data.+ n })
-    (λ { {m₁ , zero} {m₂ , zero} m₁+0≡m₂ →
-           Data.+ (m₁ ⊕ 0)  ≡⟨ cong Data.+_ m₁+0≡m₂ ⟩
-           Data.+ m₂        ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
-           Data.+ (m₂ ⊕ 0)  ∎
-       ; {m₁ , zero} {m₂ , suc n₂} m₁+1+n₂≡m₂ →
-           Data.+ (m₁ ⊕ 0)       ≡⟨ cong Data.+_ Nat.+-right-identity ⟩
-           Data.+ m₁             ≡⟨ to-lemma₁ m₁+1+n₂≡m₂ ⟩∎
-           Data.+ m₂ +-[1+ n₂ ]  ∎
-       ; {m₁ , suc n₁} {m₂ , zero} m₁+0≡1+n₁+m₂ →
-           Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₂ m₁+0≡1+n₁+m₂ ⟩
-           Data.+ m₂             ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
-           Data.+ (m₂ ⊕ 0)       ∎
-       ; {m₁ , suc n₁} {m₂ , suc n₂} m₁+1+n₂≡n₁+1+m₂ →
-           Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₃ m₁+1+n₂≡n₁+1+m₂  ⟩∎
-           Data.+ m₂ +-[1+ n₂ ]  ∎
-       })
-    Data.ℤ-set
+  to = Q.rec λ where
+    .[]ʳ (m , n) → Data.+ m Data.- Data.+ n
+    .[]-respects-relationʳ
+      {x = m₁ , zero} {y = m₂ , zero} m₁+0≡m₂ →
+        Data.+ (m₁ ⊕ 0)  ≡⟨ cong Data.+_ m₁+0≡m₂ ⟩
+        Data.+ m₂        ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
+        Data.+ (m₂ ⊕ 0)  ∎
+    .[]-respects-relationʳ
+      {x = m₁ , zero} {y = m₂ , suc n₂} m₁+1+n₂≡m₂ →
+        Data.+ (m₁ ⊕ 0)       ≡⟨ cong Data.+_ Nat.+-right-identity ⟩
+        Data.+ m₁             ≡⟨ to-lemma₁ m₁+1+n₂≡m₂ ⟩∎
+        Data.+ m₂ +-[1+ n₂ ]  ∎
+    .[]-respects-relationʳ
+      {x = m₁ , suc n₁} {y = m₂ , zero} m₁+0≡1+n₁+m₂ →
+        Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₂ m₁+0≡1+n₁+m₂ ⟩
+        Data.+ m₂             ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
+        Data.+ (m₂ ⊕ 0)       ∎
+    .[]-respects-relationʳ
+      {x = m₁ , suc n₁} {y = m₂ , suc n₂} m₁+1+n₂≡n₁+1+m₂ →
+        Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₃ m₁+1+n₂≡n₁+1+m₂  ⟩∎
+        Data.+ m₂ +-[1+ n₂ ]  ∎
+    .is-setʳ → Data.ℤ-set
 
   from : Data.ℤ → ℤ
   from (Data.+ n)    = + n
@@ -223,18 +226,16 @@ infix 8 +_
     m                  ∎)
 
   from∘to : ∀ i → from (to i) ≡ i
-  from∘to = Q.elim-Prop
-    _
-    (λ { (m , zero) →
-         from (to (+ m))  ≡⟨⟩
-         + (m ⊕ 0)        ≡⟨ cong +_ Nat.+-right-identity ⟩∎
-         + m              ∎
-       ; (m , suc n) →
-         from (to [ (m , suc n) ])  ≡⟨⟩
-         from (Data.+ m +-[1+ n ])  ≡⟨ from-+ m +-[1+ n ] ⟩∎
-         [ (m , suc n) ]            ∎
-       })
-    (λ _ → ℤ-set)
+  from∘to = Q.elim-prop λ where
+    .[]ʳ (m , zero) →
+      from (to (+ m))  ≡⟨⟩
+      + (m ⊕ 0)        ≡⟨ cong +_ Nat.+-right-identity ⟩∎
+      + m              ∎
+    .[]ʳ (m , suc n) →
+      from (to [ (m , suc n) ])  ≡⟨⟩
+      from (Data.+ m +-[1+ n ])  ≡⟨ from-+ m +-[1+ n ] ⟩∎
+      [ (m , suc n) ]            ∎
+    .is-propositionʳ _ → ℤ-set
 
 -- The bijection is homomorphic with respect to +_/Data.+_.
 
@@ -266,7 +267,10 @@ module _ where
       (∀ {p q} (s : Same-difference p q) →
        subst P ([]-respects-relation s) (uncurry f p) ≡ uncurry f q) →
       ∀ i → P i
-    elim P P-set f resp = Q.elim P (uncurry f) resp P-set
+    elim _ P-set f resp = Q.elim λ where
+      .[]ʳ                   → uncurry f
+      .[]-respects-relationʳ → resp
+      .is-setʳ               → P-set
 
     -- The following computation rule holds by definition.
 
@@ -419,10 +423,10 @@ unary-operator :
    Same-difference i j →
    Same-difference (f i) (f j)) →
   ℤ → ℤ
-unary-operator f resp = Q.rec
-  (λ i → [ f i ])
-  (λ s → []-respects-relation (resp s))
-  ℤ-set
+unary-operator f resp = Q.rec λ where
+  .[]ʳ i                   → [ f i ]
+  .[]-respects-relationʳ s → []-respects-relation (resp s)
+  .is-setʳ                 → ℤ-set
 
 private
 
@@ -450,16 +454,23 @@ binary-operator :
    Same-difference j₁ j₂ →
    Same-difference (f i₁ j₁) (f i₂ j₂)) →
   ℤ → ℤ → ℤ
-binary-operator f resp = Q.rec
-  (λ i → Q.rec (λ j → [ f i j ])
-               (λ s → []-respects-relation
-                        (resp (Nat.+-comm (proj₁ i)) s))
-               ℤ-set)
-  (λ s → ⟨ext⟩ $ Q.elim-Prop _
-     (λ i → []-respects-relation (resp s (Nat.+-comm (proj₁ i))))
-     (λ _ → +⇒≡ {n = 1} ℤ-set))
-  (Π-closure ext 2 λ _ →
-   ℤ-set)
+binary-operator f resp = Q.rec λ where
+  .[]ʳ i → Q.rec λ where
+    .[]ʳ j → [ f i j ]
+
+    .[]-respects-relationʳ s →
+      []-respects-relation (resp (Nat.+-comm (proj₁ i)) s)
+
+    .is-setʳ → ℤ-set
+
+  .[]-respects-relationʳ s → ⟨ext⟩ $ Q.elim-prop λ where
+    .[]ʳ i → []-respects-relation (resp s (Nat.+-comm (proj₁ i)))
+
+    .is-propositionʳ _ → +⇒≡ {n = 1} ℤ-set
+
+  .is-setʳ →
+    Π-closure ext 2 λ _ →
+    ℤ-set
 
 private
 
@@ -619,13 +630,14 @@ Same-difference≃[]≡[] =
 infix 4 _≟_
 
 _≟_ : Decidable-equality ℤ
-_≟_ = Q.elim-Prop
-  _
-  (λ i → Q.elim-Prop
-     _
-     (λ _ → ⊎-map (_≃_.to Same-difference≃[]≡[])
-                  (_∘ _≃_.from Same-difference≃[]≡[])
-                  (Same-difference-decidable i))
-     (λ _ → Dec-closure-propositional ext ℤ-set))
-  (λ _ → Π-closure ext 1 λ _ →
-         Dec-closure-propositional ext ℤ-set)
+_≟_ = Q.elim-prop λ where
+  .[]ʳ i → Q.elim-prop λ where
+     .[]ʳ _ →
+       ⊎-map (_≃_.to Same-difference≃[]≡[])
+             (_∘ _≃_.from Same-difference≃[]≡[])
+             (Same-difference-decidable i)
+     .is-propositionʳ _ →
+       Dec-closure-propositional ext ℤ-set
+  .is-propositionʳ _ →
+    Π-closure ext 1 λ _ →
+    Dec-closure-propositional ext ℤ-set

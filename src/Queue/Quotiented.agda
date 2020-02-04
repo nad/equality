@@ -99,10 +99,10 @@ module _
     -- set.)
 
     to-List : Is-set A → Queue Q A → List A
-    to-List s = Quotient.rec
-      (Q.to-List _)
-      id
-      (H-level-List 0 s)
+    to-List s = Quotient.rec λ where
+      .[]ʳ                   → Q.to-List _
+      .[]-respects-relationʳ → id
+      .is-setʳ               → H-level-List 0 s
 
     -- Converts lists to queues.
 
@@ -118,14 +118,13 @@ module _
 
     from-List-to-List :
       (q : Queue Q A) → _≡_ {A = Queue Q A} (from-List (to-List s q)) q
-    from-List-to-List = Quotient.elim-Prop
-        _
-        (λ q → []-respects-relation (
-           Q.to-List ⦃ is-queue = is-queue ⦄ _
-             (Q.from-List (Q.to-List _ q))      ≡⟨ Q.to-List-from-List ⟩∎
+    from-List-to-List = Quotient.elim-prop λ where
+      .[]ʳ q → []-respects-relation (
+        Q.to-List ⦃ is-queue = is-queue ⦄ _
+          (Q.from-List (Q.to-List _ q))      ≡⟨ Q.to-List-from-List ⟩∎
 
-           Q.to-List _ q                        ∎))
-        (λ _ → Queue-is-set)
+        Q.to-List _ q                        ∎)
+      .is-propositionʳ _ → Queue-is-set
 
   -- If A is a set, then there is a bijection between Queue Q A and
   -- List A.
@@ -169,14 +168,13 @@ module _
         ∀ {h : ∀ {q} → _} q →
         to-List s₁ (unary f g (λ {q} → h {q = q}) q) ≡ f (to-List s₂ q)
       to-List-unary {s₁ = s₁} {f = f} {g = g} {s₂ = s₂} {h = h} =
-        elim-Prop
-          _
-          (λ q →
-             to-List s₁ (unary f g h [ q ])  ≡⟨⟩
-             Q.to-List _ (g q)               ≡⟨ h ⟩
-             f (Q.to-List _ q)               ≡⟨⟩
-             f (to-List s₂ [ q ])            ∎)
-          (λ _ → H-level-List 0 s₁)
+        Quotient.elim-prop λ where
+          .[]ʳ q →
+            to-List s₁ (unary f g h [ q ])  ≡⟨⟩
+            Q.to-List _ (g q)               ≡⟨ h ⟩
+            f (Q.to-List _ q)               ≡⟨⟩
+            f (to-List s₂ [ q ])            ∎
+          .is-propositionʳ _ → H-level-List 0 s₁
 
       -- Generalisations of the functions above.
 
@@ -192,16 +190,18 @@ module _
         (∀ {q} → map (Q.to-List _) (g q) ≡ f (Q.to-List _ q)) →
         Is-set B →
         Queue Q A → F (Queue Q B)
-      unary′ F-set map map-id map-∘ f g h s = Quotient.rec
-        (map [_] ∘ g)
-        (λ {q₁ q₂} q₁∼q₂ → lemma₂ (
-           map (to-List s) (map [_] (g q₁))  ≡⟨ sym $ map-∘ _ ⟩
-           map (Q.to-List _) (g q₁)          ≡⟨ h ⟩
-           f (Q.to-List _ q₁)                ≡⟨ cong f q₁∼q₂ ⟩
-           f (Q.to-List _ q₂)                ≡⟨ sym h ⟩
-           map (Q.to-List _) (g q₂)          ≡⟨ map-∘ _ ⟩∎
-           map (to-List s) (map [_] (g q₂))  ∎))
-        (F-set Queue-is-set)
+      unary′ F-set map map-id map-∘ f g h s = Quotient.rec λ where
+          .[]ʳ → map [_] ∘ g
+
+          .[]-respects-relationʳ {x = q₁} {y = q₂} q₁∼q₂ → lemma₂ (
+            map (to-List s) (map [_] (g q₁))  ≡⟨ sym $ map-∘ _ ⟩
+            map (Q.to-List _) (g q₁)          ≡⟨ h ⟩
+            f (Q.to-List _ q₁)                ≡⟨ cong f q₁∼q₂ ⟩
+            f (Q.to-List _ q₂)                ≡⟨ sym h ⟩
+            map (Q.to-List _) (g q₂)          ≡⟨ map-∘ _ ⟩∎
+            map (to-List s) (map [_] (g q₂))  ∎)
+
+          .is-setʳ → F-set Queue-is-set
         where
         lemma₁ : map from-List (map (to-List s) x) ≡ x
         lemma₁ {x = x} =
@@ -234,20 +234,19 @@ module _
         map (to-List s) (unary′ F-set map map-id map-∘ f g h s q) ≡
         f (to-List s′ q)
       to-List-unary′ {s′ = s′} F-set map map-id map-∘ f g h s =
-        Quotient.elim-Prop
-          _
-          (λ q →
-             map (to-List s)
-                 (unary′ F-set map map-id map-∘ f g h s [ q ])  ≡⟨⟩
+        Quotient.elim-prop λ where
+          .[]ʳ q →
+            map (to-List s)
+                (unary′ F-set map map-id map-∘ f g h s [ q ])  ≡⟨⟩
 
-             map (to-List s) (map [_] (g q))                    ≡⟨ sym $ map-∘ _ ⟩
+            map (to-List s) (map [_] (g q))                    ≡⟨ sym $ map-∘ _ ⟩
 
-             map (Q.to-List _) (g q)                            ≡⟨ h ⟩
+            map (Q.to-List _) (g q)                            ≡⟨ h ⟩
 
-             f (Q.to-List _ q)                                  ≡⟨⟩
+            f (Q.to-List _ q)                                  ≡⟨⟩
 
-             f (to-List s′ [ q ])                               ∎)
-          (λ _ → F-set (H-level-List 0 s))
+            f (to-List s′ [ q ])                               ∎
+          .is-propositionʳ _ → F-set (H-level-List 0 s)
 
     -- Enqueues an element.
 

@@ -1363,30 +1363,35 @@ private
     r .[]ʳ       = Q.[ [] ]
     r .∷ʳ x _ y  = ((x ∷_) Q./-map λ _ _ → refl _ BE.∷-cong_) y
     r .is-setʳ   = Q./-is-set
-    r .dropʳ x _ = Q.elim-Prop _
-      (λ xs → Q.[]-respects-relation λ z →
-         z BE.∈ x ∷ x ∷ xs      ↝⟨ record { to = [ inj₁ , id ]; from = inj₂ } ⟩□
-         z BE.∈ x ∷ xs          □)
-      (λ _ → Q./-is-set)
+    r .dropʳ x _ = Q.elim-prop λ where
+      .Q.[]ʳ xs → Q.[]-respects-relation λ z →
+        z BE.∈ x ∷ x ∷ xs      ↝⟨ record { to = [ inj₁ , id ]; from = inj₂ } ⟩□
+        z BE.∈ x ∷ xs          □
+      .Q.is-propositionʳ _ → Q./-is-set
 
-    r .swapʳ x y _ = Q.elim-Prop _
-      (λ xs → Q.[]-respects-relation λ z →
-         z BE.∈ x ∷ y ∷ xs  ↔⟨ BE.swap-first-two z ⟩□
-         z BE.∈ y ∷ x ∷ xs  □)
-      (λ _ → Q./-is-set)
+    r .swapʳ x y _ = Q.elim-prop λ where
+      .Q.[]ʳ xs → Q.[]-respects-relation λ z →
+        z BE.∈ x ∷ y ∷ xs  ↔⟨ BE.swap-first-two z ⟩□
+        z BE.∈ y ∷ x ∷ xs  □
+      .Q.is-propositionʳ _ → Q./-is-set
 
   from : List A / _∼[ set ]_ → Finite-subset-of A
-  from {A = A} = Q.rec
-    (L.foldr _∷_ [])
-    (λ {xs ys} xs∼ys → _≃_.from extensionality λ z →
-       z ∈ L.foldr _∷_ [] xs  ↔⟨ inverse ∥∈∥≃∈′ ⟩
-       ∥ z BE.∈ xs ∥          ↔⟨ Trunc.∥∥-cong-⇔ {k = bijection} (xs∼ys z) ⟩
-       ∥ z BE.∈ ys ∥          ↔⟨ ∥∈∥≃∈′ ⟩□
-       z ∈ L.foldr _∷_ [] ys  □)
-    is-set
+  from {A = A} = Q.rec λ where
+    .Q.[]ʳ → L.foldr _∷_ []
+
+    .Q.[]-respects-relationʳ {x = xs} {y = ys} xs∼ys →
+      _≃_.from extensionality λ z →
+        z ∈ L.foldr _∷_ [] xs  ↔⟨ inverse ∥∈∥≃∈′ ⟩
+        ∥ z BE.∈ xs ∥          ↔⟨ Trunc.∥∥-cong-⇔ {k = bijection} (xs∼ys z) ⟩
+        ∥ z BE.∈ ys ∥          ↔⟨ ∥∈∥≃∈′ ⟩□
+        z ∈ L.foldr _∷_ [] ys  □
+
+    .Q.is-setʳ → is-set
 
   to∘from : ∀ x → to (from x) ≡ x
-  to∘from = Q.elim-Prop _ lemma (λ _ → Q./-is-set)
+  to∘from = Q.elim-prop λ where
+      .Q.[]ʳ               → lemma
+      .Q.is-propositionʳ _ → Q./-is-set
     where
     lemma : ∀ xs → to (L.foldr _∷_ [] xs) ≡ Q.[ xs ]
     lemma []       = refl _
@@ -1404,10 +1409,12 @@ private
 
     e .∷ʳ {y = y} x hyp =
       from (to (x ∷ y))                                         ≡⟨⟩
-      from (((x ∷_) Q./-map λ _ _ → refl _ BE.∷-cong_) (to y))  ≡⟨ Q.elim-Prop (λ y → from (((x ∷_) Q./-map λ _ _ → refl _ BE.∷-cong_) y) ≡
-                                                                                      x ∷ from y)
-                                                                     (λ _ → refl _)
-                                                                     (λ _ → is-set)
+      from (((x ∷_) Q./-map λ _ _ → refl _ BE.∷-cong_) (to y))  ≡⟨ Q.elim-prop
+                                                                     {P = λ y → from (((x ∷_) Q./-map λ _ _ → refl _ BE.∷-cong_) y) ≡
+                                                                                x ∷ from y}
+                                                                     (λ where
+                                                                        .Q.[]ʳ _             → refl _
+                                                                        .Q.is-propositionʳ _ → is-set)
                                                                      (to y) ⟩
       x ∷ from (to y)                                           ≡⟨ cong (x ∷_) hyp ⟩∎
       x ∷ y                                                     ∎

@@ -255,18 +255,16 @@ Very-stable-≡-/ :
   (∀ x y → Stable (R x y)) →
   Very-stable-≡ (A / R)
 Very-stable-≡-/ {A = A} {R = R} equiv prop s =
-  Quotient.elim-Prop
-    _
-    (λ x → Quotient.elim-Prop
-       _
-       (λ y →                                            $⟨ s _ _ ⟩
-          Stable (R x y)                                 ↝⟨ flip Stable-proposition→Very-stable (prop _ _) ⟩
-          Very-stable (R x y)                            ↝⟨ Very-stable-cong _ (related≃[equal] equiv (prop _ _)) ⟩□
-          Very-stable (Quotient.[ x ] ≡ Quotient.[ y ])  □)
-       (λ _ → Very-stable-propositional ext))
-    (λ _ →
-       Π-closure ext 1 λ _ →
-       Very-stable-propositional ext)
+  Quotient.elim-prop λ where
+    .[]ʳ x → Quotient.elim-prop λ where
+       .[]ʳ y →                                         $⟨ s _ _ ⟩
+         Stable (R x y)                                 ↝⟨ flip Stable-proposition→Very-stable (prop _ _) ⟩
+         Very-stable (R x y)                            ↝⟨ Very-stable-cong _ (related≃[equal] equiv (prop _ _)) ⟩□
+         Very-stable (Quotient.[ x ] ≡ Quotient.[ y ])  □
+       .is-propositionʳ _ → Very-stable-propositional ext
+    .is-propositionʳ _ →
+      Π-closure ext 1 λ _ →
+      Very-stable-propositional ext
 
 ------------------------------------------------------------------------
 -- Code related to Erased-singleton
