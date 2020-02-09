@@ -6,10 +6,10 @@
 
 module README.Unsafe where
 
--- IO.
-
-import IO-monad
-
 -- Strings.
 
 import String
+
+-- IO.
+
+import IO-monad
