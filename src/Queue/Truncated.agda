@@ -51,7 +51,7 @@ module _
   -- Note that the predicate is required to be trivial. Perhaps the
   -- code could be made more general, but I have not found a use for
   -- such generality.
-  ⦃ is-queue : ∀ {ℓ} → Q.Is-queue Q (λ _ → ↑ _ ⊤) ℓ ⦄
+  ⦃ is-queue : ∀ {ℓ} → Q.Is-queue (λ A → Q A) (λ _ → ↑ _ ⊤) ℓ ⦄
   where
 
   abstract
@@ -84,8 +84,9 @@ module _
 
 module _
   {Q : ∀ {ℓ} → @0 Set ℓ → Set ℓ}
-  ⦃ is-queue : ∀ {ℓ} → Q.Is-queue Q (λ _ → ↑ _ ⊤) ℓ ⦄
-  ⦃ is-queue-with-map : ∀ {ℓ₁ ℓ₂} → Q.Is-queue-with-map Q ℓ₁ ℓ₂ ⦄
+  ⦃ is-queue : ∀ {ℓ} → Q.Is-queue (λ A → Q A) (λ _ → ↑ _ ⊤) ℓ ⦄
+  ⦃ is-queue-with-map :
+      ∀ {ℓ₁ ℓ₂} → Q.Is-queue-with-map (λ A → Q A) ℓ₁ ℓ₂ ⦄
   where
 
   abstract

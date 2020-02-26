@@ -173,7 +173,7 @@ n-ary-[] :
   (@0 f : Vec ℕ n → ℕ)
   (f′ : Vec Nat′ n → Nat′) →
   @0 (∀ ms → to-ℕ (f′ ms) ≡ f (Vec.map to-ℕ ms)) →
-  All (Nat-[_] ∘ erased) (Vec.to-list ms) →
+  All (λ m → Nat-[ erased m ]) (Vec.to-list ms) →
   Nat-[ f (Vec.map erased ms) ]
 n-ary-[] N.zero _ f′ hyp _ =
   nullary-[] (f′ _) (hyp _)
@@ -630,7 +630,7 @@ private
     @0 example₂ :
       {@0 m n : ℕ} →
       (b : Nat-[ m ]) (c : Nat-[ n ]) →
-      subst Nat-[_] (N.+-comm m) (b + c) ≡ c + b
+      subst (λ n → Nat-[ n ]) (N.+-comm m) (b + c) ≡ c + b
     example₂ _ _ = Nat-[]-propositional _ _
 
   module Nat-examples (o : Operations) where

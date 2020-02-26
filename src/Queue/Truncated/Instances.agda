@@ -13,8 +13,9 @@ module Queue.Truncated.Instances
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
 
   {Q : ∀ {ℓ} → @0 Set ℓ → Set ℓ}
-  ⦃ is-queue : ∀ {ℓ} → Queue.Is-queue eq Q (λ _ → ↑ _ ⊤) ℓ ⦄
-  ⦃ is-queue-with-map : ∀ {ℓ₁ ℓ₂} → Queue.Is-queue-with-map eq Q ℓ₁ ℓ₂ ⦄
+  ⦃ is-queue : ∀ {ℓ} → Queue.Is-queue eq (λ A → Q A) (λ _ → ↑ _ ⊤) ℓ ⦄
+  ⦃ is-queue-with-map :
+      ∀ {ℓ₁ ℓ₂} → Queue.Is-queue-with-map eq (λ A → Q A) ℓ₁ ℓ₂ ⦄
   where
 
 open Derived-definitions-and-properties eq

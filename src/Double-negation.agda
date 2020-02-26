@@ -40,7 +40,7 @@ run (map′ f ¬¬a) = λ ¬b → run ¬¬a (λ a → ¬b (f a))
 
 instance
 
-  double-negation-monad : ∀ {ℓ} → Raw-monad (¬¬_ {a = ℓ})
+  double-negation-monad : ∀ {ℓ} → Raw-monad (λ (A : Set ℓ) → ¬¬ A)
   run (Raw-monad.return double-negation-monad x)   = _$ x
   run (Raw-monad._>>=_  double-negation-monad x f) =
     join (map′ (run ∘ f) x)
@@ -57,7 +57,7 @@ private
 
 monad : ∀ {ℓ} →
         Extensionality ℓ lzero →
-        Monad (¬¬_ {a = ℓ})
+        Monad (λ (A : Set ℓ) → ¬¬ A)
 Monad.raw-monad      (monad _)         = double-negation-monad
 Monad.left-identity  (monad ext) _ _   = proof-irrelevant ext
 Monad.right-identity (monad ext) _     = proof-irrelevant ext

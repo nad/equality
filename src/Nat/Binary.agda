@@ -711,7 +711,7 @@ private
     @0 example₂ :
       {@0 m n : ℕ}
       (b : Bin-[ m ]) (c : Bin-[ n ]) →
-      subst Bin-[_] (N.+-comm m) (b + c) ≡ c + b
+      subst (λ n → Bin-[ n ]) (N.+-comm m) (b + c) ≡ c + b
     example₂ _ _ = Bin-[]-propositional _ _
 
   module Bin-examples where

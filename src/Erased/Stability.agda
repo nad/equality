@@ -57,7 +57,7 @@ mutual
 -- A special case of Stable-[ equivalence ].
 
 Very-stable : Set a → Set a
-Very-stable A = Is-equivalence ([_] {A = A})
+Very-stable A = Is-equivalence ([_]→ {A = A})
 
 -- Variants of the definitions above for equality.
 
@@ -73,10 +73,10 @@ Very-stable-≡ = For-iterated-equality 1 Very-stable
 ------------------------------------------------------------------------
 -- Some lemmas related to stability
 
--- If A is very stable, then [_] {A = A} is an embedding.
+-- If A is very stable, then [_]→ {A = A} is an embedding.
 
 Very-stable→Is-embedding-[] :
-  Very-stable A → Is-embedding ([_] {A = A})
+  Very-stable A → Is-embedding ([_]→ {A = A})
 Very-stable→Is-embedding-[] {A = A} s x y =
   _≃_.is-equivalence ≡≃[]≡[]
   where
@@ -86,14 +86,14 @@ Very-stable→Is-embedding-[] {A = A} s x y =
   ≡≃[]≡[] : (x ≡ y) ≃ ([ x ] ≡ [ y ])
   ≡≃[]≡[] = inverse $ Eq.≃-≡ A≃Erased-A
 
--- If A is very stable, then [_] {A = A} is split surjective.
+-- If A is very stable, then [_]→ {A = A} is split surjective.
 
 Very-stable→Split-surjective-[] :
-  Very-stable A → Split-surjective ([_] {A = A})
+  Very-stable A → Split-surjective ([_]→ {A = A})
 Very-stable→Split-surjective-[] {A = A} =
-  Very-stable A         ↔⟨⟩
-  Is-equivalence [_]    ↝⟨ (λ hyp → _↠_.split-surjective $ _≃_.surjection $ Eq.⟨ _ , hyp ⟩) ⟩
-  Split-surjective [_]  □
+  Very-stable A          ↔⟨⟩
+  Is-equivalence [_]→    ↝⟨ (λ hyp → _↠_.split-surjective $ _≃_.surjection $ Eq.⟨ _ , hyp ⟩) ⟩
+  Split-surjective [_]→  □
 
 -- Very-stable is propositional (assuming extensionality).
 
@@ -167,7 +167,7 @@ Very-stable-Erased =
         }
       ; right-inverse-of = refl
       }
-    ; left-inverse-of = refl
+    ; left-inverse-of = λ x → refl [ erased x ]
     }))
 
 -- In an erased context every type is very stable.
@@ -249,7 +249,7 @@ Stable-map-⇔ : A ⇔ B → Stable A → Stable B
 Stable-map-⇔ A⇔B =
   Stable-map (_⇔_.to A⇔B) (_⇔_.from A⇔B)
 
--- If A is stable, with [_] as a right inverse of the proof of
+-- If A is stable, with [_]→ as a right inverse of the proof of
 -- stability, then A is very stable (assuming extensionality).
 --
 -- Note that one can prove this result without using extensionality if
@@ -269,10 +269,10 @@ Extensionality→Stable→Left-inverse→Very-stable {A = A} ext s inv =
         { from = s
         }
       ; right-inverse-of =             $⟨ inv ⟩
-          (∀ x → s [ x ] ≡ x)          ↝⟨ (λ hyp x → cong [_] (hyp x)) ⟩
+          (∀ x → s [ x ] ≡ x)          ↝⟨ (λ hyp x → cong [_]→ (hyp x)) ⟩
           (∀ x → [ s [ x ] ] ≡ [ x ])  ↔⟨ Eq.extensionality-isomorphism ext ⟩
-          [_] ∘ s ∘ [_] ≡ [_]          ↔⟨ Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating-modality ⟩ ⟩
-          [_] ∘ s ≡ id                 ↔⟨ inverse $ Eq.extensionality-isomorphism ext ⟩□
+          [_]→ ∘ s ∘ [_]→ ≡ [_]→       ↔⟨ Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating-modality ⟩ ⟩
+          [_]→ ∘ s ≡ id                ↔⟨ inverse $ Eq.extensionality-isomorphism ext ⟩□
           (∀ x → [ s x ] ≡ x)          □
       }
     ; left-inverse-of = inv
@@ -298,7 +298,7 @@ private
     s″ x y eq =
       x                ≡⟨ sym $ _≃_.right-inverse-of s′ _ ⟩
       _≃_.to s′ [ x ]  ≡⟨ cong (λ (f : Erased (x ≡ y) → Erased A) → _≃_.to s′ (f eq)) $
-                          ∘-[]-injective {x = λ (_ : Erased (x ≡ y)) → [ x ]} {y = λ (_ : Erased (x ≡ y)) → [ y ]} $ apply-ext ext $ cong [_] ⟩
+                          ∘-[]-injective {x = λ (_ : Erased (x ≡ y)) → [ x ]} {y = λ (_ : Erased (x ≡ y)) → [ y ]} $ apply-ext ext $ cong [_]→ ⟩
       _≃_.to s′ [ y ]  ≡⟨ _≃_.right-inverse-of s′ _ ⟩∎
       y                ∎
 
@@ -307,37 +307,39 @@ private
       trans (sym $ _≃_.right-inverse-of s′ x)
         (trans (cong {x = const [ x ]}
                      (λ f → _≃_.to s′ (f [ refl x ]))
-                     (∘-[]-injective (apply-ext ext $ cong [_])))
-               (_≃_.right-inverse-of s′ x))                        ≡⟨ cong (λ p → trans (sym $ _≃_.right-inverse-of s′ x)
-                                                                                    (trans p (_≃_.right-inverse-of s′ x)))
-                                                                      lemma ⟩
+                     (∘-[]-injective (apply-ext ext $ cong [_]→)))
+               (_≃_.right-inverse-of s′ x))                         ≡⟨ cong (λ p → trans (sym $ _≃_.right-inverse-of s′ x)
+                                                                                     (trans p (_≃_.right-inverse-of s′ x)))
+                                                                       lemma ⟩
       trans (sym $ _≃_.right-inverse-of s′ x)
-        (trans (refl _) (_≃_.right-inverse-of s′ x))               ≡⟨ cong (trans (sym $ _≃_.right-inverse-of s′ x)) $
-                                                                      trans-reflˡ _ ⟩
+        (trans (refl _) (_≃_.right-inverse-of s′ x))                ≡⟨ cong (trans (sym $ _≃_.right-inverse-of s′ x)) $
+                                                                       trans-reflˡ _ ⟩
       trans (sym $ _≃_.right-inverse-of s′ x)
-        (_≃_.right-inverse-of s′ x)                                ≡⟨ trans-symˡ _ ⟩∎
+        (_≃_.right-inverse-of s′ x)                                 ≡⟨ trans-symˡ _ ⟩∎
 
-      refl _                                                       ∎
+      refl _                                                        ∎
       where
       lemma =
         cong {x = const [ x ]} {y = const [ x ]}
           (λ f → _≃_.to s′ (f [ refl x ]))
-          (∘-[]-injective (apply-ext ext $ cong [_]))                         ≡⟨ sym $ cong-∘ _ _ _ ⟩
+          (∘-[]-injective (apply-ext ext $ cong [_]→))                 ≡⟨ sym $ cong-∘ _ _ _ ⟩
 
         cong (_≃_.to s′)
-          (cong (_$ [ refl x ]) (∘-[]-injective (apply-ext ext $ cong [_])))  ≡⟨⟩
+          (cong (_$ [ refl x ])
+             (∘-[]-injective (apply-ext ext $ cong [_]→)))             ≡⟨⟩
 
         cong (_≃_.to s′)
-          (ext⁻¹ (∘-[]-injective (apply-ext ext $ cong [_])) [ refl x ])      ≡⟨ cong (cong (_≃_.to s′)) ext⁻¹-∘-[]-injective ⟩
+          (ext⁻¹ (∘-[]-injective (apply-ext ext $ cong [_]→))
+             [ refl x ])                                               ≡⟨ cong (cong (_≃_.to s′)) ext⁻¹-∘-[]-injective ⟩
 
-        cong (_≃_.to s′) (ext⁻¹ (apply-ext ext $ cong [_]) (refl x))          ≡⟨ cong (λ f → cong (_≃_.to s′) (f (refl x))) $
-                                                                                 _≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) (cong [_]) ⟩
+        cong (_≃_.to s′) (ext⁻¹ (apply-ext ext $ cong [_]→) (refl x))  ≡⟨ cong (λ f → cong (_≃_.to s′) (f (refl x))) $
+                                                                          _≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) (cong [_]→) ⟩
 
-        cong (_≃_.to s′) (cong [_] (refl x))                                  ≡⟨ cong-∘ _ _ _ ⟩
+        cong (_≃_.to s′) (cong [_]→ (refl x))                          ≡⟨ cong-∘ _ _ _ ⟩
 
-        cong (_≃_.to s′ ∘ [_]) (refl x)                                       ≡⟨ cong-refl _ ⟩∎
+        cong (_≃_.to s′ ∘ [_]→) (refl x)                               ≡⟨ cong-refl _ ⟩∎
 
-        refl (_≃_.to s′ [ x ])                                                ∎
+        refl (_≃_.to s′ [ x ])                                         ∎
 
 -- If A is very stable, then equality is very stable for A (assuming
 -- extensionality).
@@ -378,7 +380,7 @@ Extensionality→[]-cong {a = a} ext = record
     {@0 A : Set a} {@0 x y : A} →
     Erased (x ≡ y) → [ x ] ≡ [ y ]
   []-cong {x = x} {y = y} =
-    Erased (x ≡ y)          ↝⟨ map (cong [_]) ⟩
+    Erased (x ≡ y)          ↝⟨ map (cong [_]→) ⟩
     Erased ([ x ] ≡ [ y ])  ↝⟨ Very-stable→Stable 0 $ Extensionality→Very-stable→Very-stable-≡ ext Very-stable-Erased _ _ ⟩□
     [ x ] ≡ [ y ]           □
 
@@ -478,7 +480,7 @@ Very-stable-Stable-Σ {A = A} {P = P} s s′ =
   Σ A P                                       □
 
 -- If A is stable with a stability proof that is a right inverse of
--- [_], and P is pointwise stable, then Σ A P is stable.
+-- [_]→, and P is pointwise stable, then Σ A P is stable.
 
 Stable-Σ :
   (s : Stable A) →
@@ -493,7 +495,7 @@ Stable-Σ {A = A} {P = P} s₁ hyp s₂ =
   surj : A ↠ Erased A
   surj = record
     { logical-equivalence = record
-      { to   = [_]
+      { to   = [_]→
       ; from = s₁
       }
     ; right-inverse-of = hyp
@@ -626,25 +628,25 @@ private
   Stable-≡-⊎₀ : Stable-≡ A → Stable-≡ B → Stable-≡ (A ⊎ B)
   Stable-≡-⊎₀ sA sB = λ where
     (inj₁ x) (inj₁ y) →
-      Erased (inj₁ x ≡ inj₁ y)  ↝⟨ map $ _↔_.from Bijection.≡↔inj₁≡inj₁ ⟩
+      Erased (inj₁ x ≡ inj₁ y)  ↝⟨ map (_↔_.from Bijection.≡↔inj₁≡inj₁) ⟩
       Erased (x ≡ y)            ↝⟨ sA _ _ ⟩
       x ≡ y                     ↔⟨ Bijection.≡↔inj₁≡inj₁ ⟩□
       inj₁ x ≡ inj₁ y           □
 
     (inj₁ x) (inj₂ y) →
-      Erased (inj₁ x ≡ inj₂ y)  ↝⟨ map $ _↔_.to Bijection.≡↔⊎ ⟩
+      Erased (inj₁ x ≡ inj₂ y)  ↝⟨ map (_↔_.to Bijection.≡↔⊎) ⟩
       Erased ⊥                  ↝⟨ Very-stable→Stable 0 Very-stable-⊥ ⟩
       ⊥                         ↔⟨ inverse Bijection.≡↔⊎ ⟩□
       inj₁ x ≡ inj₂ y           □
 
     (inj₂ x) (inj₁ y) →
-      Erased (inj₂ x ≡ inj₁ y)  ↝⟨ map $ _↔_.to Bijection.≡↔⊎ ⟩
+      Erased (inj₂ x ≡ inj₁ y)  ↝⟨ map (_↔_.to Bijection.≡↔⊎) ⟩
       Erased ⊥                  ↝⟨ Very-stable→Stable 0 Very-stable-⊥ ⟩
       ⊥                         ↔⟨ inverse Bijection.≡↔⊎ ⟩□
       inj₂ x ≡ inj₁ y           □
 
     (inj₂ x) (inj₂ y) →
-      Erased (inj₂ x ≡ inj₂ y)  ↝⟨ map $ _↔_.from Bijection.≡↔inj₂≡inj₂ ⟩
+      Erased (inj₂ x ≡ inj₂ y)  ↝⟨ map (_↔_.from Bijection.≡↔inj₂≡inj₂) ⟩
       Erased (x ≡ y)            ↝⟨ sB _ _ ⟩
       x ≡ y                     ↔⟨ Bijection.≡↔inj₂≡inj₂ ⟩□
       inj₂ x ≡ inj₂ y           □
@@ -739,22 +741,22 @@ Is-∞-extendable-along-contractible-for-equivalences ext eq =
   Is-extendable-along-contractible-for-equivalences ext eq n
 
 -- If we assume that equality is extensional for functions, then
--- Erased is the modal operator of a Σ-closed reflective subuniverse
--- with [_] as the modal unit and Very-stable as the modality
--- predicate:
+-- λ A → Erased A is the modal operator of a Σ-closed reflective
+-- subuniverse with [_]→ as the modal unit and Very-stable as the
+-- modality predicate:
 --
 -- * Very-stable is propositional (assuming extensionality), see
 --   Very-stable-propositional.
 -- * Erased A is very stable, see Very-stable-Erased.
 -- * Very-stable is Σ-closed, see Very-stable-Σ.
--- * Finally precomposition with [_] is an equivalence for functions
+-- * Finally precomposition with [_]→ is an equivalence for functions
 --   with very stable codomains (assuming extensionality):
 
 ∘[]-equivalence :
   {A : Set a} {B : Set b} →
   Extensionality a b →
   Very-stable B →
-  Is-equivalence (λ (f : Erased A → B) → f ∘ [_])
+  Is-equivalence (λ (f : Erased A → B) → f ∘ [_]→)
 ∘[]-equivalence ext s =
   _≃_.is-equivalence (Eq.↔⇒≃ (record
     { surjection = record
@@ -793,8 +795,8 @@ Is-∞-extendable-along-contractible-for-equivalences ext eq =
 -- subuniverses in the Coq code of Rijke et al. The main changes are
 -- perhaps that this definition defines what a single reflective
 -- subuniverse is, not a family of them, and that the code uses a
--- single universe level. Below it is proved that Erased, [_] and
--- Very-stable form a Σ-closed reflective subuniverse of this kind
+-- single universe level. Below it is proved that λ A → Erased A, [_]→
+-- and Very-stable form a Σ-closed reflective subuniverse of this kind
 -- (Erased-Σ-closed-reflective-subuniverse).
 
 record Σ-closed-reflective-subuniverse a : Set (lsuc a) where
@@ -827,7 +829,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   ----------------------------------------------------------------------
   -- Some lemmas related to stability
 
-  -- If A is stable, with [_] as a right inverse of the proof of
+  -- If A is stable, with [_]→ as a right inverse of the proof of
   -- stability, then A is very stable.
 
   Stable→Left-inverse→Very-stable :
@@ -853,7 +855,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   Stable-proposition→Very-stable s prop =
     _≃_.is-equivalence $
     _↠_.from (Eq.≃↠⇔ prop (H-level-Erased 1 prop))
-      (record { to = [_]; from = s })
+      (record { to = [_]→; from = s })
 
   -- The previous result can be generalised.
 
@@ -905,12 +907,12 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
         (λ _ → proj₁ c)
         (mono₁ 0 c)
 
-  -- Equality is stable for A if and only if [_] is injective for A.
+  -- Equality is stable for A if and only if [_]→ is injective for A.
 
   Stable-≡↔Injective-[] :
     {A : Set a} →
     Extensionality? k a a →
-    Stable-≡ A ↝[ k ] Injective ([_] {A = A})
+    Stable-≡ A ↝[ k ] Injective ([_]→ {A = A})
   Stable-≡↔Injective-[] ext =
     (∀ x y → Erased (x ≡ y) → x ≡ y)    ↝⟨ (∀-cong ext λ _ → from-isomorphism $ inverse Bijection.implicit-Π↔Π) ⟩
     (∀ x {y} → Erased (x ≡ y) → x ≡ y)  ↔⟨ inverse Bijection.implicit-Π↔Π ⟩
@@ -918,34 +920,34 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                             Π-cong ext Erased-≡↔[]≡[] λ _ → F.id) ⟩□
     (∀ {x y} → [ x ] ≡ [ y ] → x ≡ y)   □
 
-  -- Equality is very stable for A if and only if [_] is an embedding
+  -- Equality is very stable for A if and only if [_]→ is an embedding
   -- for A.
 
   Very-stable-≡↔Is-embedding-[] :
     {A : Set a} →
     Extensionality? k a a →
-    Very-stable-≡ A ↝[ k ] Is-embedding ([_] {A = A})
+    Very-stable-≡ A ↝[ k ] Is-embedding ([_]→ {A = A})
   Very-stable-≡↔Is-embedding-[] ext =
-    (∀ x y → Is-equivalence ([_] {A = x ≡ y}))            ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
-                                                              generalise-ext?-prop
-                                                                (record { to = to; from = from })
-                                                                (λ ext → Eq.propositional ext _)
-                                                                (λ ext → Eq.propositional ext _)
-                                                                ext) ⟩
-    (∀ x y → Is-equivalence ([]-cong ∘ [_] {A = x ≡ y}))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence-cong ext λ _ → []-cong-[]≡cong-[]) ⟩□
-    (∀ x y → Is-equivalence (cong {x = x} {y = y} [_]))   □
+    (∀ x y → Is-equivalence ([_]→ {A = x ≡ y}))            ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
+                                                               generalise-ext?-prop
+                                                                 (record { to = to; from = from })
+                                                                 (λ ext → Eq.propositional ext _)
+                                                                 (λ ext → Eq.propositional ext _)
+                                                                 ext) ⟩
+    (∀ x y → Is-equivalence ([]-cong ∘ [_]→ {A = x ≡ y}))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence-cong ext λ _ → []-cong-[]≡cong-[]) ⟩□
+    (∀ x y → Is-equivalence (cong {x = x} {y = y} [_]→))   □
     where
     to :
-      Is-equivalence ([_] {A = x ≡ y}) →
-      Is-equivalence ([]-cong ∘ [_] {A = x ≡ y})
+      Is-equivalence ([_]→ {A = x ≡ y}) →
+      Is-equivalence ([]-cong ∘ [_]→ {A = x ≡ y})
     to hyp = Eq.Two-out-of-three.f-g
       (Eq.two-out-of-three _ _)
       hyp
       []-cong-equivalence
 
     from :
-      Is-equivalence ([]-cong ∘ [_] {A = x ≡ y}) →
-      Is-equivalence ([_] {A = x ≡ y})
+      Is-equivalence ([]-cong ∘ [_]→ {A = x ≡ y}) →
+      Is-equivalence ([_]→ {A = x ≡ y})
     from = Eq.Two-out-of-three.g-g∘f
       (Eq.two-out-of-three _ _)
       []-cong-equivalence
@@ -954,17 +956,17 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
     -- The previous result can be generalised.
 
-    Very-stable-≡↔Is-embedding-[]′ :
+    Very-stable-≡↔Is-embedding-[]→ :
       {A : Set a} →
       Extensionality? k a a →
       ∀ n →
       For-iterated-equality (1 + n) Very-stable A ↝[ k ]
-      For-iterated-equality n (λ A → Is-embedding ([_] {A = A})) A
-    Very-stable-≡↔Is-embedding-[]′ {A = A} ext n =
-      For-iterated-equality (1 + n) Very-stable A                   ↝⟨ (flip inverse-ext? ext λ ext →
-                                                                        For-iterated-equality-For-iterated-equality ext n 1) ⟩
-      For-iterated-equality n Very-stable-≡ A                       ↝⟨ For-iterated-equality-cong₁ ext n (Very-stable-≡↔Is-embedding-[] ext) ⟩□
-      For-iterated-equality n (λ A → Is-embedding ([_] {A = A})) A  □
+      For-iterated-equality n (λ A → Is-embedding ([_]→ {A = A})) A
+    Very-stable-≡↔Is-embedding-[]→ {A = A} ext n =
+      For-iterated-equality (1 + n) Very-stable A                    ↝⟨ (flip inverse-ext? ext λ ext →
+                                                                         For-iterated-equality-For-iterated-equality ext n 1) ⟩
+      For-iterated-equality n Very-stable-≡ A                        ↝⟨ For-iterated-equality-cong₁ ext n (Very-stable-≡↔Is-embedding-[] ext) ⟩□
+      For-iterated-equality n (λ A → Is-embedding ([_]→ {A = A})) A  □
 
   ----------------------------------------------------------------------
   -- Preservation lemmas
@@ -1046,12 +1048,12 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     lemma {A = A} {B = B} A≃B s = _≃_.is-equivalence $
       Eq.with-other-function
         (B         ↝⟨ inverse A≃B ⟩
-         A         ↝⟨ Eq.⟨ [_] , s ⟩ ⟩
+         A         ↝⟨ Eq.⟨ [_]→ , s ⟩ ⟩
          Erased A  ↝⟨ Erased-cong A≃B ⟩□
          Erased B  □)
-        [_]
+        [_]→
         (λ x →
-           [ _≃_.to A≃B (_≃_.from A≃B x) ]  ≡⟨ cong [_] (_≃_.right-inverse-of A≃B x) ⟩∎
+           [ _≃_.to A≃B (_≃_.from A≃B x) ]  ≡⟨ cong [_]→ (_≃_.right-inverse-of A≃B x) ⟩∎
            [ x ]                            ∎)
 
   ----------------------------------------------------------------------
@@ -1104,7 +1106,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       Eq.↔⇒≃ (record
         { surjection = record
           { logical-equivalence = record
-            { to   = [_]
+            { to   = [_]→
             ; from = from
             }
           ; right-inverse-of = []∘from
@@ -1162,9 +1164,9 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     where
     lemma : ∀ {A} → Very-stable A → Very-stable-≡ A
     lemma {A = A} =
-      Very-stable A               ↝⟨ Very-stable→Is-embedding-[] ⟩
-      Is-embedding ([_] {A = A})  ↝⟨ inverse-ext? Very-stable-≡↔Is-embedding-[] _ ⟩□
-      Very-stable-≡ A             □
+      Very-stable A                ↝⟨ Very-stable→Is-embedding-[] ⟩
+      Is-embedding ([_]→ {A = A})  ↝⟨ inverse-ext? Very-stable-≡↔Is-embedding-[] _ ⟩□
+      Very-stable-≡ A              □
 
   private
 
@@ -1505,17 +1507,17 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       (Very-stable-cong _ ∘ from-isomorphism)
 
   ----------------------------------------------------------------------
-  -- Erased, [_] and Very-stable form a Σ-closed reflective
-  -- subuniverse
+  -- The function λ A → Erased A, [_]→ and Very-stable form a Σ-closed
+  -- reflective subuniverse
 
   -- As a consequence of Very-stable→Very-stable-≡ we get that every
   -- family of very stable types, indexed by Erased A, is ∞-extendable
-  -- along [_].
+  -- along [_]→.
 
   extendable :
     {@0 A : Set a} {P : Erased A → Set b} →
     (∀ x → Very-stable (P x)) →
-    Is-∞-extendable-along-[ [_] ] P
+    Is-∞-extendable-along-[ [_]→ ] P
   extendable s zero    = _
   extendable s (suc n) =
       (λ f →
@@ -1535,17 +1537,17 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   const-extendable :
     {@0 A : Set a} {B : Set b} →
     Very-stable B →
-    Is-∞-extendable-along-[ [_] ] (λ (_ : Erased A) → B)
+    Is-∞-extendable-along-[ [_]→ ] (λ (_ : Erased A) → B)
   const-extendable s = extendable (λ _ → s)
 
-  -- Erased, [_] and Very-stable form a Σ-closed reflective
-  -- subuniverse.
+  -- The function λ A → Erased A, [_]→ and Very-stable form a Σ-closed
+  -- reflective subuniverse.
 
   Erased-Σ-closed-reflective-subuniverse :
     Σ-closed-reflective-subuniverse a
   Erased-Σ-closed-reflective-subuniverse = λ where
-      .◯                      → Erased
-      .η                      → [_]
+      .◯                      → λ A → Erased A
+      .η                      → [_]→
       .Is-modal               → Very-stable
       .Is-modal-propositional → Very-stable-propositional
       .Is-modal-◯             → Very-stable-Erased
@@ -1596,8 +1598,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       ]
 
   ----------------------------------------------------------------------
-  -- Erased is functorial for all kinds of functions (in some cases
-  -- assuming extensionality)
+  -- Erased (or rather λ A → Erased A) is functorial for all kinds of
+  -- functions (in some cases assuming extensionality)
 
   private
 

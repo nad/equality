@@ -93,14 +93,14 @@ open Stability.[]-cong instance-of-[]-cong-axiomatisation public
 ------------------------------------------------------------------------
 -- Other code
 
--- [_] is injective.
+-- [_]→ is injective.
 
-Injective-[] : {@0 A : Set a} → Injective ([_] {A = A})
+Injective-[] : {@0 A : Set a} → Injective ([_]→ {A = A})
 Injective-[] refl = refl
 
--- [_] is an embedding.
+-- [_]→ is an embedding.
 
-Is-embedding-[] : {@0 A : Set a} → Is-embedding ([_] {A = A})
+Is-embedding-[] : {@0 A : Set a} → Is-embedding ([_]→ {A = A})
 Is-embedding-[] _ _ refl = (refl , refl) , λ { (refl , refl) → refl }
 
 -- If Erased A is a proposition, then A is a proposition.

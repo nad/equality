@@ -46,6 +46,11 @@ record Erased (@0 A : Set a) : Set a where
 
 open Erased public
 
+-- A variant of [_] that does not take an erased argument.
+
+[_]→ : {@0 A : Set a} → A → Erased A
+[ x ]→ = [ x ]
+
 ------------------------------------------------------------------------
 -- Erased is a monad
 
@@ -62,11 +67,11 @@ instance
 
   -- Erased is a monad.
 
-  raw-monad : Raw-monad {c = ℓ} Erased
-  Raw-monad.return raw-monad = [_]
+  raw-monad : Raw-monad (λ (A : Set a) → Erased A)
+  Raw-monad.return raw-monad = [_]→
   Raw-monad._>>=_  raw-monad = _>>=′_
 
-  monad : Monad {c = ℓ} Erased
+  monad : Monad (λ (A : Set a) → Erased A)
   Monad.raw-monad      monad = raw-monad
   Monad.left-identity  monad = λ _ _ → refl _
   Monad.right-identity monad = λ _ → refl _
@@ -126,7 +131,7 @@ Erased↔ = [ record
   { surjection = record
     { logical-equivalence = record
       { to   = erased
-      ; from = [_]
+      ; from = [_]→
       }
     ; right-inverse-of = λ _ → refl _
     }
@@ -145,7 +150,7 @@ Erased-Erased↔Erased = record
   { surjection = record
     { logical-equivalence = record
       { to   = λ x → [ erased (erased x) ]
-      ; from = [_]
+      ; from = [_]→
       }
     ; right-inverse-of = λ _ → refl _
     }
@@ -159,7 +164,7 @@ Erased-⊤↔⊤ = record
   { surjection = record
     { logical-equivalence = record
       { to   = λ _ → tt
-      ; from = [_]
+      ; from = [_]→
       }
     ; right-inverse-of = λ _ → refl _
     }
@@ -173,7 +178,7 @@ Erased-⊥↔⊥ = record
   { surjection = record
     { logical-equivalence = record
       { to   = λ { [ () ] }
-      ; from = [_]
+      ; from = [_]→
       }
     ; right-inverse-of = λ ()
     }
@@ -301,7 +306,7 @@ Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
 -- Erased is a modality
 
 -- Erased is the modal operator of a uniquely eliminating modality
--- with [_] as the modal unit.
+-- with [_]→ as the modal unit.
 --
 -- The terminology here roughly follows that of "Modalities in
 -- Homotopy Type Theory" by Rijke, Shulman and Spitters.
@@ -309,7 +314,7 @@ Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
 uniquely-eliminating-modality :
   {@0 P : Erased A → Set p} →
   Is-equivalence
-    (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [_] {A = A})
+    (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [_]→ {A = A})
 uniquely-eliminating-modality {A = A} {P = P} =
   _≃_.is-equivalence
     (((x : Erased A) → Erased (P x))  ↔⟨ inverse Erased-Π↔Π-Erased ⟩
@@ -323,25 +328,25 @@ uniquely-eliminating-modality {A = A} {P = P} =
 -- "Modalities in Homotopy Type Theory" by Rijke, Shulman and
 -- Spitters.
 
--- Precomposition with [_] is injective for functions from Erased A to
--- Erased B.
+-- Precomposition with [_]→ is injective for functions from Erased A
+-- to Erased B.
 
 ∘-[]-injective :
   {@0 B : Set b} →
-  Injective (λ (f : Erased A → Erased B) → f ∘ [_])
+  Injective (λ (f : Erased A → Erased B) → f ∘ [_]→)
 ∘-[]-injective = _≃_.injective Eq.⟨ _ , uniquely-eliminating-modality ⟩
 
 -- A rearrangement lemma for ext⁻¹ and ∘-[]-injective.
 
 ext⁻¹-∘-[]-injective :
-  {@0 B : Set b} {f g : Erased A → Erased B} {p : f ∘ [_] ≡ g ∘ [_]} →
+  {@0 B : Set b} {f g : Erased A → Erased B} {p : f ∘ [_]→ ≡ g ∘ [_]→} →
   ext⁻¹ (∘-[]-injective {x = f} {y = g} p) [ x ] ≡ ext⁻¹ p x
 ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
   ext⁻¹ (∘-[]-injective p) [ x ]               ≡⟨ elim₁
                                                     (λ p → ext⁻¹ p [ x ] ≡ ext⁻¹ (_≃_.from equiv p) x) (
       ext⁻¹ (refl g) [ x ]                            ≡⟨ cong-refl (_$ [ x ]) ⟩
       refl (g [ x ])                                  ≡⟨ sym $ cong-refl _ ⟩
-      ext⁻¹ (refl (g ∘ [_])) x                        ≡⟨ cong (λ p → ext⁻¹ p x) $ sym $ cong-refl _ ⟩∎
+      ext⁻¹ (refl (g ∘ [_]→)) x                       ≡⟨ cong (λ p → ext⁻¹ p x) $ sym $ cong-refl _ ⟩∎
       ext⁻¹ (_≃_.from equiv (refl g)) x               ∎)
                                                     (∘-[]-injective p) ⟩
   ext⁻¹ (_≃_.from equiv (∘-[]-injective p)) x  ≡⟨ cong (flip ext⁻¹ x) $ _≃_.left-inverse-of equiv _ ⟩∎
@@ -714,7 +719,7 @@ module []-cong₂
   ----------------------------------------------------------------------
   -- A lemma
 
-  -- If A is a proposition, then [_] {A = A} is an embedding.
+  -- If A is a proposition, then [_]→ {A = A} is an embedding.
   --
   -- See also Erased-Is-embedding-[] and Erased-Split-surjective-[]
   -- below as well as Very-stable→Is-embedding-[] and
@@ -722,10 +727,10 @@ module []-cong₂
   -- Injective-[] and Is-embedding-[] in Erased.With-K.
 
   Is-proposition→Is-embedding-[] :
-    Is-proposition A → Is-embedding ([_] {A = A})
+    Is-proposition A → Is-embedding ([_]→ {A = A})
   Is-proposition→Is-embedding-[] prop =
     _⇔_.to (Emb.Injective⇔Is-embedding
-              set (H-level-Erased 2 set) [_])
+              set (H-level-Erased 2 set) [_]→)
       (λ _ → prop _ _)
     where
     set = mono₁ 1 prop
@@ -733,20 +738,20 @@ module []-cong₂
 ------------------------------------------------------------------------
 -- More lemmas
 
--- In an erased context [_] is always an embedding.
+-- In an erased context [_]→ is always an embedding.
 
 Erased-Is-embedding-[] :
-  {@0 A : Set a} → Erased (Is-embedding ([_] {A = A}))
+  {@0 A : Set a} → Erased (Is-embedding ([_]→ {A = A}))
 Erased-Is-embedding-[] =
   [ (λ x y → _≃_.is-equivalence (
        x ≡ y          ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔ ⟩□
        [ x ] ≡ [ y ]  □))
   ]
 
--- In an erased context [_] is always split surjective.
+-- In an erased context [_]→ is always split surjective.
 
 Erased-Split-surjective-[] :
-  {@0 A : Set a} → Erased (Split-surjective ([_] {A = A}))
+  {@0 A : Set a} → Erased (Split-surjective ([_]→ {A = A}))
 Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
 
 ------------------------------------------------------------------------
@@ -784,12 +789,12 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Rearrangement lemmas for []-cong and []-cong⁻¹.
 
   []-cong-[]≡cong-[] :
-    {x≡y : x ≡ y} → []-cong [ x≡y ] ≡ cong [_] x≡y
+    {x≡y : x ≡ y} → []-cong [ x≡y ] ≡ cong [_]→ x≡y
   []-cong-[]≡cong-[] {x = x} {x≡y = x≡y} = elim¹
-    (λ x≡y → []-cong [ x≡y ] ≡ cong [_] x≡y)
+    (λ x≡y → []-cong [ x≡y ] ≡ cong [_]→ x≡y)
     ([]-cong [ refl x ]  ≡⟨ []-cong-[refl]′ ⟩
      refl [ x ]          ≡⟨ sym $ cong-refl _ ⟩∎
-     cong [_] (refl x)   ∎)
+     cong [_]→ (refl x)  ∎)
     x≡y
 
   []-cong⁻¹≡[cong-erased] :
@@ -805,8 +810,8 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
     lemma =
       x≡y                          ≡⟨ cong-id _ ⟩
       cong id x≡y                  ≡⟨⟩
-      cong ([_] ∘ erased) x≡y      ≡⟨ sym $ cong-∘ _ _ _ ⟩
-      cong [_] (cong erased x≡y)   ≡⟨ sym []-cong-[]≡cong-[] ⟩∎
+      cong ([_]→ ∘ erased) x≡y     ≡⟨ sym $ cong-∘ _ _ _ ⟩
+      cong [_]→ (cong erased x≡y)  ≡⟨ sym []-cong-[]≡cong-[] ⟩∎
       []-cong [ cong erased x≡y ]  ∎
 
   -- A "computation rule" for []-cong⁻¹.
@@ -838,8 +843,8 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
     map (cong f) x≡y ≡ []-cong⁻¹ (cong (map f) ([]-cong x≡y))
   map-cong≡cong-map {f = f} {x≡y = [ x≡y ]} =
     [ cong f x≡y ]                                    ≡⟨⟩
-    [ cong (erased ∘ map f ∘ [_]) x≡y ]               ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
-    [ cong (erased ∘ map f) (cong [_] x≡y) ]          ≡⟨ []-cong [ cong (cong _) $ sym []-cong-[]≡cong-[] ] ⟩
+    [ cong (erased ∘ map f ∘ [_]→) x≡y ]              ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
+    [ cong (erased ∘ map f) (cong [_]→ x≡y) ]         ≡⟨ []-cong [ cong (cong _) $ sym []-cong-[]≡cong-[] ] ⟩
     [ cong (erased ∘ map f) ([]-cong [ x≡y ]) ]       ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
     [ cong erased (cong (map f) ([]-cong [ x≡y ])) ]  ≡⟨ sym []-cong⁻¹≡[cong-erased] ⟩∎
     []-cong⁻¹ (cong (map f) ([]-cong [ x≡y ]))        ∎
