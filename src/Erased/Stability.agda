@@ -249,156 +249,89 @@ Stable-map-⇔ : A ⇔ B → Stable A → Stable B
 Stable-map-⇔ A⇔B =
   Stable-map (_⇔_.to A⇔B) (_⇔_.from A⇔B)
 
--- If A is stable, with [_]→ as a right inverse of the proof of
--- stability, then A is very stable (assuming extensionality).
---
--- Note that one can prove this result without using extensionality if
--- []-cong is available (see Stable→Left-inverse→Very-stable below).
---
--- This result is based on Lemma 1.20 in "Modalities in Homotopy Type
--- Theory" by Rijke, Shulman and Spitters.
-
-Extensionality→Stable→Left-inverse→Very-stable :
-  {A : Set a} →
-  Extensionality a a →
-  (s : Stable A) → (∀ x → s [ x ] ≡ x) → Very-stable A
-Extensionality→Stable→Left-inverse→Very-stable {A = A} ext s inv =
-  _≃_.is-equivalence $ Eq.↔⇒≃ (record
-    { surjection = record
-      { logical-equivalence = record
-        { from = s
-        }
-      ; right-inverse-of =             $⟨ inv ⟩
-          (∀ x → s [ x ] ≡ x)          ↝⟨ (λ hyp x → cong [_]→ (hyp x)) ⟩
-          (∀ x → [ s [ x ] ] ≡ [ x ])  ↔⟨ Eq.extensionality-isomorphism ext ⟩
-          [_]→ ∘ s ∘ [_]→ ≡ [_]→       ↔⟨ Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating-modality ⟩ ⟩
-          [_]→ ∘ s ≡ id                ↔⟨ inverse $ Eq.extensionality-isomorphism ext ⟩□
-          (∀ x → [ s x ] ≡ x)          □
-      }
-    ; left-inverse-of = inv
-    })
-
-private
-
-  -- Some lemmas used in the proof of
-  -- Extensionality→Very-stable→Very-stable-≡ below.
-
-  module Extensionality→Very-stable→Very-stable-≡
-    {A : Set a}
-    (ext′ : Extensionality a a)
-    (s : Very-stable A)
-    where
-
-    private
-
-      ext = Eq.good-ext ext′
-
-      -- A variant of []-cong. Note that x and y are not assumed to be
-      -- erased.
-
-      []-cong′ : {x y : A} → Erased (x ≡ y) → [ x ] ≡ [ y ]
-      []-cong′ {x = x} {y = y} eq =
-        [ x ]                               ≡⟨ cong (_$ eq) (
-
-          (λ (_ : Erased (x ≡ y)) → [ x ])       ≡⟨ ∘-[]-injective (
-
-            (λ (_ : x ≡ y) → [ x ])                   ≡⟨ apply-ext ext (λ (eq : x ≡ y) →
-
-              [ x ]                                        ≡⟨ cong [_]→ eq ⟩∎
-              [ y ]                                        ∎) ⟩∎
-
-            (λ (_ : x ≡ y) → [ y ])                   ∎) ⟩∎
-
-          (λ (_ : Erased (x ≡ y)) → [ y ])       ∎) ⟩∎
-
-        [ y ]                               ∎
-
-      s′ : Stable-[ equivalence ] A
-      s′ = Very-stable→Stable 0 s
-
-    s″ : Stable-≡ A
-    s″ x y eq =
-      x                ≡⟨ sym $ _≃_.right-inverse-of s′ _ ⟩
-      _≃_.to s′ [ x ]  ≡⟨ cong (_≃_.to s′) ([]-cong′ eq) ⟩
-      _≃_.to s′ [ y ]  ≡⟨ _≃_.right-inverse-of s′ _ ⟩∎
-      y                ∎
-
-    s″-[refl] : s″ x x [ refl x ] ≡ refl x
-    s″-[refl] {x = x} =
-      trans (sym $ _≃_.right-inverse-of s′ x)
-        (trans (cong (_≃_.to s′) ([]-cong′ [ refl x ]))
-               (_≃_.right-inverse-of s′ x))                          ≡⟨ cong (λ p → trans (sym $ _≃_.right-inverse-of s′ x)
-                                                                                      (trans p (_≃_.right-inverse-of s′ x)))
-                                                                        lemma ⟩
-      trans (sym $ _≃_.right-inverse-of s′ x)
-        (trans (refl _) (_≃_.right-inverse-of s′ x))                 ≡⟨ cong (trans (sym $ _≃_.right-inverse-of s′ x)) $
-                                                                        trans-reflˡ _ ⟩
-      trans (sym $ _≃_.right-inverse-of s′ x)
-        (_≃_.right-inverse-of s′ x)                                  ≡⟨ trans-symˡ _ ⟩∎
-
-      refl _                                                         ∎
-      where
-      lemma =
-        cong (_≃_.to s′) ([]-cong′ [ refl x ])                         ≡⟨⟩
-
-        cong (_≃_.to s′)
-          (ext⁻¹ (∘-[]-injective (apply-ext ext $ cong [_]→))
-             [ refl x ])                                               ≡⟨ cong (cong (_≃_.to s′)) ext⁻¹-∘-[]-injective ⟩
-
-        cong (_≃_.to s′) (ext⁻¹ (apply-ext ext $ cong [_]→) (refl x))  ≡⟨ cong (λ f → cong (_≃_.to s′) (f (refl x))) $
-                                                                          _≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) (cong [_]→) ⟩
-
-        cong (_≃_.to s′) (cong [_]→ (refl x))                          ≡⟨ cong-∘ _ _ _ ⟩
-
-        cong (_≃_.to s′ ∘ [_]→) (refl x)                               ≡⟨ cong-refl _ ⟩∎
-
-        refl (_≃_.to s′ [ x ])                                         ∎
-
--- If A is very stable, then equality is very stable for A (assuming
--- extensionality).
---
--- Note that one can prove this result without using extensionality if
--- []-cong is available (see Very-stable→Very-stable-≡ below).
---
--- This result is based on Lemma 1.25 in "Modalities in Homotopy Type
--- Theory" by Rijke, Shulman and Spitters, and the corresponding Coq
--- source code.
-
-Extensionality→Very-stable→Very-stable-≡ :
-  {A : Set a} →
-  Extensionality a a →
-  Very-stable A → Very-stable-≡ A
-Extensionality→Very-stable→Very-stable-≡ {a = a} {A = A} ext s x y =
-  Extensionality→Stable→Left-inverse→Very-stable ext (s″ _ _)
-    (elim¹ (λ eq → s″ _ _ [ eq ] ≡ eq) s″-[refl])
-  where
-  open Extensionality→Very-stable→Very-stable-≡ ext s
-
 -- If we have extensionality, then []-cong can be implemented.
 --
--- The idea for this result (but not the proof) comes from "Modalities
--- in Homotopy Type Theory" in which Rijke, Shulman and Spitters state
--- that []-cong can be implemented for every modality, and that it is
--- an equivalence for lex modalities (Theorem 3.1 (ix)).
+-- The idea for this result comes from "Modalities in Homotopy Type
+-- Theory" in which Rijke, Shulman and Spitters state that []-cong can
+-- be implemented for every modality, and that it is an equivalence
+-- for lex modalities (Theorem 3.1 (ix)). The proof of Stable-≡-Erased
+-- is based on the proof of Lemma 1.25 in that paper, and the
+-- corresponding Coq source code.
 
 Extensionality→[]-cong :
   Extensionality a a →
   []-cong-axiomatisation a
-Extensionality→[]-cong {a = a} ext = record
-  { []-cong-equivalence = _≃_.is-equivalence []-cong-≃
+Extensionality→[]-cong {a = a} ext′ = record
+  { []-cong             = []-cong
+  ; []-cong-equivalence = []-cong-equivalence
   ; []-cong-[refl]      = []-cong-[refl]
   }
   where
+  ext = Eq.good-ext ext′
+
+  Stable-≡-Erased : {@0 A : Set a} → Stable-≡ (Erased A)
+  Stable-≡-Erased [ x ] [ y ] eq =
+    [ x ]                                       ≡⟨ cong (_$ eq) (
+
+      (λ (_ : Erased ([ x ] ≡ [ y ])) → [ x ])       ≡⟨ ∘-[]-injective (
+
+        (λ (_ : [ x ] ≡ [ y ]) → [ x ])                   ≡⟨ apply-ext ext (λ (eq : [ x ] ≡ [ y ]) →
+
+          [ x ]                                                ≡⟨ eq ⟩∎
+          [ y ]                                                ∎) ⟩∎
+
+        (λ (_ : [ x ] ≡ [ y ]) → [ y ])                   ∎) ⟩∎
+
+      (λ (_ : Erased ([ x ] ≡ [ y ])) → [ y ])       ∎) ⟩∎
+
+    [ y ]                                       ∎
+
   []-cong :
     {@0 A : Set a} {@0 x y : A} →
     Erased (x ≡ y) → [ x ] ≡ [ y ]
   []-cong {x = x} {y = y} =
     Erased (x ≡ y)          ↝⟨ map (cong [_]→) ⟩
-    Erased ([ x ] ≡ [ y ])  ↝⟨ Very-stable→Stable 0 $ Extensionality→Very-stable→Very-stable-≡ ext Very-stable-Erased _ _ ⟩□
+    Erased ([ x ] ≡ [ y ])  ↝⟨ Stable-≡-Erased _ _ ⟩□
     [ x ] ≡ [ y ]           □
 
+  Stable-≡-Erased-[refl] :
+    {@0 A : Set a} {x : Erased A} →
+    Stable-≡-Erased x x [ refl x ] ≡ refl x
+  Stable-≡-Erased-[refl] {x = [ x ]} =
+    Stable-≡-Erased [ x ] [ x ] [ refl [ x ] ]                ≡⟨⟩
+    ext⁻¹ (∘-[]-injective (apply-ext ext id)) [ refl [ x ] ]  ≡⟨ ext⁻¹-∘-[]-injective ⟩
+    ext⁻¹ (apply-ext ext id) (refl [ x ])                     ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) _ ⟩∎
+    refl [ x ]                                                ∎
+
+  []-cong-[refl] :
+    {@0 A : Set a} {@0 x : A} →
+    []-cong [ refl x ] ≡ refl [ x ]
+  []-cong-[refl] {x = x} =
+    []-cong [ refl x ]                          ≡⟨⟩
+    Stable-≡-Erased _ _ [ cong [_]→ (refl x) ]  ≡⟨ cong (Stable-≡-Erased _ _) ([]-cong [ cong-refl _ ]) ⟩
+    Stable-≡-Erased _ _ [ refl [ x ] ]          ≡⟨ Stable-≡-Erased-[refl] ⟩∎
+    refl [ x ]                                  ∎
+
+  Very-stable-≡-Erased :
+    {@0 A : Set a} → Very-stable-≡ (Erased A)
+  Very-stable-≡-Erased [ x ] [ y ] =
+    _≃_.is-equivalence (Eq.↔⇒≃ (record
+      { surjection = record
+        { logical-equivalence = record
+          { from = Stable-≡-Erased [ x ] [ y ]
+          }
+        ; right-inverse-of = λ ([ eq ]) → []-cong [ lemma eq ]
+        }
+      ; left-inverse-of = lemma
+      }))
+    where
+    lemma = elim¹
+      (λ eq → Stable-≡-Erased _ _ [ eq ] ≡ eq)
+      Stable-≡-Erased-[refl]
+
   -- The following reimplementations of functions from Erased.[]-cong₁
-  -- are restricted to types in Set a.
+  -- are restricted to types in Set a (where a is the universe level
+  -- for which extensionality is assumed to hold).
 
   module _ {@0 A B : Set a} where
 
@@ -421,30 +354,13 @@ Extensionality→[]-cong {a = a} ext = record
     Erased-cong-≃ A≃B =
       from-isomorphism (Erased-cong-↔ (from-isomorphism A≃B))
 
-  []-cong-≃ :
+  []-cong-equivalence :
     {@0 A : Set a} {@0 x y : A} →
-    Erased (x ≡ y) ≃ ([ x ] ≡ [ y ])
-  []-cong-≃ {x = x} {y = y} =
-    Erased (x ≡ y)          ↝⟨ Erased-cong-≃ (Eq.≃-≡ (Very-stable→Stable 0 (erased Erased-Very-stable))) ⟩
-    Erased ([ x ] ≡ [ y ])  ↝⟨ Very-stable→Stable 0 $ Extensionality→Very-stable→Very-stable-≡ ext Very-stable-Erased _ _ ⟩□
-    [ x ] ≡ [ y ]           □
-
-  []-cong-[refl] :
-    {@0 A : Set a} {@0 x : A} →
-    _≃_.to []-cong-≃ [ refl x ] ≡ refl [ x ]
-  []-cong-[refl] {A = A} {x = x} =
-    _≃_.to []-cong-≃ [ refl x ]                                         ≡⟨⟩
-
-    s″ _ _
-       [ _≃_.to
-           (Eq.≃-≡ (Very-stable→Stable 0 (erased Erased-Very-stable)))
-           (refl x) ]                                                   ≡⟨ cong (s″ _ _) $ []-cong [ Eq.to-≃-≡-refl _ ] ⟩
-
-    s″ _ _ [ refl [ x ] ]                                               ≡⟨ s″-[refl] ⟩∎
-
-    refl [ x ]                                                          ∎
-    where
-    open Extensionality→Very-stable→Very-stable-≡ ext Very-stable-Erased
+    Is-equivalence ([]-cong {x = x} {y = y})
+  []-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (
+    Erased (x ≡ y)          ↝⟨ inverse $ Erased-cong-≃ (Eq.≃-≡ (inverse $ Very-stable→Stable 0 (erased Erased-Very-stable))) ⟩
+    Erased ([ x ] ≡ [ y ])  ↝⟨ inverse Eq.⟨ _ , Very-stable-≡-Erased _ _ ⟩ ⟩□
+    [ x ] ≡ [ y ]           □)
 
 ------------------------------------------------------------------------
 -- Closure properties

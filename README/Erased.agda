@@ -433,12 +433,11 @@ Lemma-94         = Erased.Cubical.Very-stable-≡-/
 ------------------------------------------------------------------------
 -- 4.6: []‐cong can be proved using extensionality
 
--- Some lemmas.
+-- The proof has been changed. Lemmas 95 and 97 have been removed.
 
-Lemma-95 =
-  Erased.Stability.Extensionality→Stable→Left-inverse→Very-stable
+-- A lemma.
+
 Lemma-96 = Equivalence.≃-≡
-Lemma-97 = Erased.Stability.Extensionality→Very-stable→Very-stable-≡
 
 -- []-cong, proved using extensionality, along with proofs showing
 -- that it is an equivalence and that it satisfies the computation
