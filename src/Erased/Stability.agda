@@ -289,44 +289,57 @@ private
     (s : Very-stable A)
     where
 
-    ext = Eq.good-ext ext′
+    private
 
-    s′ : Stable-[ equivalence ] A
-    s′ = Very-stable→Stable 0 s
+      ext = Eq.good-ext ext′
+
+      -- A variant of []-cong. Note that x and y are not assumed to be
+      -- erased.
+
+      []-cong′ : {x y : A} → Erased (x ≡ y) → [ x ] ≡ [ y ]
+      []-cong′ {x = x} {y = y} eq =
+        [ x ]                               ≡⟨ cong (_$ eq) (
+
+          (λ (_ : Erased (x ≡ y)) → [ x ])       ≡⟨ ∘-[]-injective (
+
+            (λ (_ : x ≡ y) → [ x ])                   ≡⟨ apply-ext ext (λ (eq : x ≡ y) →
+
+              [ x ]                                        ≡⟨ cong [_]→ eq ⟩∎
+              [ y ]                                        ∎) ⟩∎
+
+            (λ (_ : x ≡ y) → [ y ])                   ∎) ⟩∎
+
+          (λ (_ : Erased (x ≡ y)) → [ y ])       ∎) ⟩∎
+
+        [ y ]                               ∎
+
+      s′ : Stable-[ equivalence ] A
+      s′ = Very-stable→Stable 0 s
 
     s″ : Stable-≡ A
     s″ x y eq =
       x                ≡⟨ sym $ _≃_.right-inverse-of s′ _ ⟩
-      _≃_.to s′ [ x ]  ≡⟨ cong (λ (f : Erased (x ≡ y) → Erased A) → _≃_.to s′ (f eq)) $
-                          ∘-[]-injective {x = λ (_ : Erased (x ≡ y)) → [ x ]} {y = λ (_ : Erased (x ≡ y)) → [ y ]} $ apply-ext ext $ cong [_]→ ⟩
+      _≃_.to s′ [ x ]  ≡⟨ cong (_≃_.to s′) ([]-cong′ eq) ⟩
       _≃_.to s′ [ y ]  ≡⟨ _≃_.right-inverse-of s′ _ ⟩∎
       y                ∎
 
     s″-[refl] : s″ x x [ refl x ] ≡ refl x
     s″-[refl] {x = x} =
       trans (sym $ _≃_.right-inverse-of s′ x)
-        (trans (cong {x = const [ x ]}
-                     (λ f → _≃_.to s′ (f [ refl x ]))
-                     (∘-[]-injective (apply-ext ext $ cong [_]→)))
-               (_≃_.right-inverse-of s′ x))                         ≡⟨ cong (λ p → trans (sym $ _≃_.right-inverse-of s′ x)
-                                                                                     (trans p (_≃_.right-inverse-of s′ x)))
-                                                                       lemma ⟩
+        (trans (cong (_≃_.to s′) ([]-cong′ [ refl x ]))
+               (_≃_.right-inverse-of s′ x))                          ≡⟨ cong (λ p → trans (sym $ _≃_.right-inverse-of s′ x)
+                                                                                      (trans p (_≃_.right-inverse-of s′ x)))
+                                                                        lemma ⟩
       trans (sym $ _≃_.right-inverse-of s′ x)
-        (trans (refl _) (_≃_.right-inverse-of s′ x))                ≡⟨ cong (trans (sym $ _≃_.right-inverse-of s′ x)) $
-                                                                       trans-reflˡ _ ⟩
+        (trans (refl _) (_≃_.right-inverse-of s′ x))                 ≡⟨ cong (trans (sym $ _≃_.right-inverse-of s′ x)) $
+                                                                        trans-reflˡ _ ⟩
       trans (sym $ _≃_.right-inverse-of s′ x)
-        (_≃_.right-inverse-of s′ x)                                 ≡⟨ trans-symˡ _ ⟩∎
+        (_≃_.right-inverse-of s′ x)                                  ≡⟨ trans-symˡ _ ⟩∎
 
-      refl _                                                        ∎
+      refl _                                                         ∎
       where
       lemma =
-        cong {x = const [ x ]} {y = const [ x ]}
-          (λ f → _≃_.to s′ (f [ refl x ]))
-          (∘-[]-injective (apply-ext ext $ cong [_]→))                 ≡⟨ sym $ cong-∘ _ _ _ ⟩
-
-        cong (_≃_.to s′)
-          (cong (_$ [ refl x ])
-             (∘-[]-injective (apply-ext ext $ cong [_]→)))             ≡⟨⟩
+        cong (_≃_.to s′) ([]-cong′ [ refl x ])                         ≡⟨⟩
 
         cong (_≃_.to s′)
           (ext⁻¹ (∘-[]-injective (apply-ext ext $ cong [_]→))
@@ -355,11 +368,11 @@ Extensionality→Very-stable→Very-stable-≡ :
   {A : Set a} →
   Extensionality a a →
   Very-stable A → Very-stable-≡ A
-Extensionality→Very-stable→Very-stable-≡ {a = a} {A = A} ext′ s x y =
+Extensionality→Very-stable→Very-stable-≡ {a = a} {A = A} ext s x y =
   Extensionality→Stable→Left-inverse→Very-stable ext (s″ _ _)
     (elim¹ (λ eq → s″ _ _ [ eq ] ≡ eq) s″-[refl])
   where
-  open Extensionality→Very-stable→Very-stable-≡ ext′ s
+  open Extensionality→Very-stable→Very-stable-≡ ext s
 
 -- If we have extensionality, then []-cong can be implemented.
 --
