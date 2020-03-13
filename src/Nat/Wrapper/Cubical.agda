@@ -1,44 +1,40 @@
 ------------------------------------------------------------------------
--- An example related to Nat.Wrapper, defined in Cubical Agda
+-- Some examples related to Nat.Wrapper, defined in Cubical Agda
 ------------------------------------------------------------------------
 
 {-# OPTIONS --cubical --safe #-}
 
-import Bijection
-open import Equality
-import Erased
+open import Equality.Path as P
 open import Prelude hiding (zero; suc; _+_)
 
+open import Bijection equality-with-J using (_↔_)
+
 module Nat.Wrapper.Cubical
-  {e⁺}
-  (eq : ∀ {a p} → Equality-with-J a p e⁺)
-
-  -- An instantiation of the []-cong axioms.
-  (open Erased eq)
-  (ax : ∀ {a} → []-cong-axiomatisation a)
-
   -- The underlying representation of natural numbers.
   (Nat′ : Set)
   -- A bijection between this representation and the unary natural
   -- numbers.
-  (open Bijection eq using (_↔_))
   (Nat′↔ℕ : Nat′ ↔ ℕ)
   where
 
-open Derived-definitions-and-properties eq
-
 open import Logical-equivalence using (_⇔_)
-open import Prelude
 
-open import Equality.Path.Isomorphisms eq
-open import Function-universe eq as F hiding (_∘_)
-open import H-level eq
-open import H-level.Closure eq
-open import H-level.Truncation.Propositional eq as Trunc
-open import Nat eq
-open import Univalence-axiom eq
+import Equivalence equality-with-J as Eq
+open import Erased.Cubical equality-with-J
+open import Function-universe equality-with-J as F hiding (_∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional equality-with-J as Trunc
+import Nat equality-with-J as Nat
+import Univalence-axiom equality-with-J as U
 
-open import Nat.Wrapper eq ax Nat′ Nat′↔ℕ
+open import Nat.Wrapper
+  equality-with-J instance-of-[]-cong-axiomatisation Nat′ Nat′↔ℕ
+
+private
+  variable
+    A   : Set
+    m n : A
 
 ------------------------------------------------------------------------
 -- Could Nat have been defined using the propositional truncation
@@ -53,7 +49,7 @@ open import Nat.Wrapper eq ax Nat′ Nat′↔ℕ
 
 Nat-[]′ : ∥ ℕ ∥ → ∃ λ (A : Set) → Contractible A
 Nat-[]′ = Trunc.rec
-  (∃-H-level-H-level-1+ ext univ 0)
+  (U.∃-H-level-H-level-1+ ext univ 0)
   (λ n → Nat-[ n ]
        , propositional⇒inhabited⇒contractible
            Nat-[]-propositional
@@ -84,6 +80,113 @@ Nat-with-∥∥↔⊤ =
 ¬-Nat-with-∥∥↔ℕ : ¬ (Nat-with-∥∥ ↔ ℕ)
 ¬-Nat-with-∥∥↔ℕ =
   Nat-with-∥∥ ↔ ℕ  ↝⟨ F._∘ inverse Nat-with-∥∥↔⊤ ⟩
-  ⊤ ↔ ℕ            ↝⟨ (λ hyp → _↔_.injective (inverse hyp) (refl _)) ⟩
-  0 ≡ 1            ↝⟨ 0≢+ ⟩□
+  ⊤ ↔ ℕ            ↝⟨ (λ hyp → _↔_.injective (inverse hyp) refl) ⟩
+  0 ≡ 1            ↝⟨ Nat.0≢+ ⟩□
   ⊥                □
+
+------------------------------------------------------------------------
+-- Addition of binary numbers is commutative and associative
+
+module _ (o : Operations) where
+
+  open Operations-for-Nat o
+
+  private
+
+    -- A lemma used several times below.
+
+    from[to+to]≡+ :
+      ∀ m →
+      _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n) ≡ m + n
+    from[to+to]≡+ {n = n} m =
+      _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)  ≡⟨ cong (_↔_.from Nat↔ℕ) $ sym $ to-ℕ-+ m n ⟩
+      _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ (m + n))                     ≡⟨ _↔_.left-inverse-of Nat↔ℕ _ ⟩∎
+      m + n                                                     ∎
+
+  -- First two "traditional" proofs.
+
+  -- Addition is commutative.
+
+  +-comm-traditional : ∀ m {n} → m + n ≡ n + m
+  +-comm-traditional m {n = n} =
+    m + n                                                     ≡⟨ sym $ from[to+to]≡+ m ⟩
+    _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)  ≡⟨ cong (_↔_.from Nat↔ℕ) $ Nat.+-comm (_↔_.to Nat↔ℕ m) ⟩
+    _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ n Prelude.+ _↔_.to Nat↔ℕ m)  ≡⟨ from[to+to]≡+ n ⟩∎
+    n + m                                                     ∎
+
+  -- Addition is associative.
+
+  +-assoc-traditional : ∀ m {n o} → m + (n + o) ≡ (m + n) + o
+  +-assoc-traditional m {n = n} {o = o} =
+    m + (n + o)                                                     ≡⟨ cong (m +_) $ sym $ from[to+to]≡+ n ⟩
+
+    m + (_↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ n Prelude.+ _↔_.to Nat↔ℕ o))  ≡⟨ sym $ from[to+to]≡+ m ⟩
+
+    _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m
+                      Prelude.+
+                    _↔_.to Nat↔ℕ (_↔_.from Nat↔ℕ
+                      (_↔_.to Nat↔ℕ n Prelude.+ _↔_.to Nat↔ℕ o)))   ≡⟨ cong (λ n → _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ n)) $
+                                                                       _↔_.right-inverse-of Nat↔ℕ _ ⟩
+    _↔_.from Nat↔ℕ
+      (_↔_.to Nat↔ℕ m
+         Prelude.+
+       (_↔_.to Nat↔ℕ n Prelude.+ _↔_.to Nat↔ℕ o))                   ≡⟨ cong (_↔_.from Nat↔ℕ) $ Nat.+-assoc (_↔_.to Nat↔ℕ m) ⟩
+
+    _↔_.from Nat↔ℕ
+      ((_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)
+         Prelude.+
+       _↔_.to Nat↔ℕ o)                                              ≡⟨ cong (λ n → _↔_.from Nat↔ℕ (n Prelude.+ _↔_.to Nat↔ℕ o)) $ sym $
+                                                                       _↔_.right-inverse-of Nat↔ℕ _ ⟩
+    _↔_.from Nat↔ℕ
+      (_↔_.to Nat↔ℕ (_↔_.from Nat↔ℕ
+         (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n))
+         Prelude.+
+       _↔_.to Nat↔ℕ o)                                              ≡⟨ from[to+to]≡+ (_↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)) ⟩
+
+    (_↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)) + o  ≡⟨ cong (_+ o) $ from[to+to]≡+ {n = n} m ⟩∎
+
+    (m + n) + o                                                     ∎
+
+  -- The following proofs are instead based on a technique used by
+  -- Vezzosi, Mörtberg and Abel in "Cubical Agda: A Dependently Typed
+  -- Programming Language with Univalence and Higher Inductive Types".
+
+  -- The type of unary natural numbers is equal to that of binary
+  -- natural numbers.
+
+  ℕ≡Nat : ℕ ≡ Nat
+  ℕ≡Nat = sym (≃⇒≡ (Eq.↔⇒≃ Nat↔ℕ))
+
+  -- Addition of unary natural numbers is, in a certain sense, equal
+  -- to addition of binary natural numbers.
+
+  +≡+ : P.[ (λ i → ℕ≡Nat i → ℕ≡Nat i → ℕ≡Nat i) ] Prelude._+_ ≡ _+_
+  +≡+ =
+    Prelude._+_                                                         ≡⟨ (λ i → transport
+                                                                                    (λ j → ℕ≡Nat (min i j) → ℕ≡Nat (min i j) → ℕ≡Nat (min i j))
+                                                                                    (- i) Prelude._+_) ⟩h
+    transport (λ i → ℕ≡Nat i → ℕ≡Nat i → ℕ≡Nat i) 0̲ Prelude._+_         ≡⟨⟩
+    (λ m n → _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n))  ≡⟨ (⟨ext⟩ λ m → ⟨ext⟩ λ _ → from[to+to]≡+ m) ⟩∎
+    _+_                                                                 ∎
+
+  -- Addition is commutative.
+
+  +-comm-cubical : ∀ m {n} → m + n ≡ n + m
+  +-comm-cubical =
+    transport
+      (λ i → (m {n} : ℕ≡Nat i) → +≡+ i m n ≡ +≡+ i n m)
+      0̲
+      Nat.+-comm
+
+  -- Addition is associative.
+
+  +-assoc-cubical : ∀ m {n o} → m + (n + o) ≡ (m + n) + o
+  +-assoc-cubical =
+    transport
+      (λ i → (m {n o} : ℕ≡Nat i) →
+             +≡+ i m (+≡+ i n o) ≡ +≡+ i (+≡+ i m n) o)
+      0̲
+      Nat.+-assoc
+
+  -- This proof technique seems to scale better than the one used
+  -- above, at least for examples of the kind used here.
