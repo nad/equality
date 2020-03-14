@@ -85,7 +85,7 @@ Nat-with-∥∥↔⊤ =
   ⊥                □
 
 ------------------------------------------------------------------------
--- Addition of binary numbers is commutative and associative
+-- Addition of "wrapped" numbers is commutative and associative
 
 module _ (o : Operations) where
 
@@ -151,14 +151,14 @@ module _ (o : Operations) where
   -- Vezzosi, Mörtberg and Abel in "Cubical Agda: A Dependently Typed
   -- Programming Language with Univalence and Higher Inductive Types".
 
-  -- The type of unary natural numbers is equal to that of binary
+  -- The type of unary natural numbers is equal to the type of wrapped
   -- natural numbers.
 
   ℕ≡Nat : ℕ ≡ Nat
   ℕ≡Nat = sym (≃⇒≡ (Eq.↔⇒≃ Nat↔ℕ))
 
   -- Addition of unary natural numbers is, in a certain sense, equal
-  -- to addition of binary natural numbers.
+  -- to addition of wrapped natural numbers.
 
   +≡+ : P.[ (λ i → ℕ≡Nat i → ℕ≡Nat i → ℕ≡Nat i) ] Prelude._+_ ≡ _+_
   +≡+ =
