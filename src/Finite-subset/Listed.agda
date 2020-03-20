@@ -971,6 +971,24 @@ size equal? = elim-prop e
             (∣∣≡-propositional x _ _)
 
 ------------------------------------------------------------------------
+-- Finite types
+
+-- A type is finite if there is some finite subset of the type for
+-- which every element of the type is a member of the subset.
+
+is-finite : Set a → Set a
+is-finite A = ∃ λ (s : Finite-subset-of A) → ∀ x → x ∈ s
+
+-- The is-finite predicate is propositional.
+
+is-finite-propositional : Is-proposition (is-finite A)
+is-finite-propositional (x , p) (y , q) =
+                         $⟨ (λ z → record { to = λ _ → q z; from = λ _ → p z }) ⟩
+  (∀ z → z ∈ x ⇔ z ∈ y)  ↔⟨ inverse extensionality ⟩
+  x ≡ y                  ↝⟨ ignore-propositional-component (Π-closure ext 1 (λ _ → ∈-propositional y)) ⟩□
+  (x , p) ≡ (y , q)      □
+
+------------------------------------------------------------------------
 -- Some definitions related to the definitions in Bag-equivalence
 
 private
