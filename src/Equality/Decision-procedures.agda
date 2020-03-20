@@ -79,6 +79,30 @@ module Bool where
 
 module Σ {a b} {A : Set a} {B : A → Set b} where
 
+  -- Two variants of Dec._≟_ (which is defined below).
+
+  set⇒dec⇒dec⇒dec :
+    {x₁ x₂ : A} {y₁ : B x₁} {y₂ : B x₂} →
+    Is-set A →
+    Dec (x₁ ≡ x₂) →
+    (∀ eq → Dec (subst B eq y₁ ≡ y₂)) →
+    Dec ((x₁ , y₁) ≡ (x₂ , y₂))
+  set⇒dec⇒dec⇒dec set₁ (no  x₁≢x₂) dec₂ = no (x₁≢x₂ ∘ cong proj₁)
+  set⇒dec⇒dec⇒dec set₁ (yes x₁≡x₂) dec₂ with dec₂ x₁≡x₂
+  … | yes cast-y₁≡y₂ = yes (Σ-≡,≡→≡ x₁≡x₂ cast-y₁≡y₂)
+  … | no  cast-y₁≢y₂ =
+    no (cast-y₁≢y₂ ∘
+        subst (λ p → subst B p _ ≡ _) (set₁ _ _) ∘
+        proj₂ ∘ Σ-≡,≡←≡)
+
+  decidable⇒dec⇒dec :
+    {x₁ x₂ : A} {y₁ : B x₁} {y₂ : B x₂} →
+    Decidable-equality A →
+    (∀ eq → Dec (subst B eq y₁ ≡ y₂)) →
+    Dec ((x₁ , y₁) ≡ (x₂ , y₂))
+  decidable⇒dec⇒dec dec =
+    set⇒dec⇒dec⇒dec (decidable⇒set dec) (dec _ _)
+
   -- Σ preserves decidability of equality.
 
   module Dec (_≟A_ : Decidable-equality A)
@@ -87,19 +111,23 @@ module Σ {a b} {A : Set a} {B : A → Set b} where
     infix 4 _≟_
 
     _≟_ : Decidable-equality (Σ A B)
-    (x₁ , y₁) ≟ (x₂ , y₂) with x₁ ≟A x₂
-    ... | no  x₁≢x₂ = no (x₁≢x₂ ∘ cong proj₁)
-    ... | yes x₁≡x₂ with subst B x₁≡x₂ y₁ ≟B y₂
-    ...   | yes cast-y₁≡y₂ = yes (Σ-≡,≡→≡ x₁≡x₂ cast-y₁≡y₂)
-    ...   | no  cast-y₁≢y₂ =
-      no (cast-y₁≢y₂ ∘
-          subst (λ p → subst B p y₁ ≡ y₂) (decidable⇒set _≟A_ _ _) ∘
-          proj₂ ∘ Σ-≡,≡←≡)
+    _ ≟ _ = decidable⇒dec⇒dec _≟A_ (λ _ → _ ≟B _)
 
 ------------------------------------------------------------------------
 -- Binary products
 
 module × {a b} {A : Set a} {B : Set b} where
+
+  -- _,_ preserves decided equality.
+
+  dec⇒dec⇒dec :
+    {x₁ x₂ : A} {y₁ y₂ : B} →
+    Dec (x₁ ≡ x₂) →
+    Dec (y₁ ≡ y₂) →
+    Dec ((x₁ , y₁) ≡ (x₂ , y₂))
+  dec⇒dec⇒dec (no  x₁≢x₂) _           = no (x₁≢x₂ ∘ cong proj₁)
+  dec⇒dec⇒dec _           (no  y₁≢y₂) = no (y₁≢y₂ ∘ cong proj₂)
+  dec⇒dec⇒dec (yes x₁≡x₂) (yes y₁≡y₂) = yes (cong₂ _,_ x₁≡x₂ y₁≡y₂)
 
   -- _×_ preserves decidability of equality.
 
@@ -109,7 +137,7 @@ module × {a b} {A : Set a} {B : Set b} where
     infix 4 _≟_
 
     _≟_ : Decidable-equality (A × B)
-    _≟_ = Σ.Dec._≟_ _≟A_ _≟B_
+    _ ≟ _ = dec⇒dec⇒dec (_ ≟A _) (_ ≟B _)
 
 ------------------------------------------------------------------------
 -- Binary sums
