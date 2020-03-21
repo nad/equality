@@ -35,12 +35,12 @@ import Univalence-axiom eq as Univ
 
 private
   variable
-    a b p         : Level
-    A B           : Set a
-    P             : A → Set p
-    f g           : (x : A) → P x
-    H x xs y ys z : A
-    m n           : ℕ
+    a b             : Level
+    A B             : Set a
+    H p x xs y ys z : A
+    P               : A → Set p
+    f g             : (x : A) → P x
+    m n             : ℕ
 
 ------------------------------------------------------------------------
 -- Listed finite subsets
@@ -725,6 +725,52 @@ extensionality {x = x} {y = y} =
            x ∪ y ≡ y × y ∪ x ≡ x  ↝⟨ (λ (p , q) → trans (sym q) (trans (comm y) p)) ⟩□
            x ≡ y                  □
        })
+
+-- A lemma characterising filter.
+
+∈filter≃∈×T :
+  ∀ y → (x ∈ filter p y) ≃ (T (p x) × x ∈ y)
+∈filter≃∈×T {x = x} {p = p} = elim-prop e
+  where
+  e : Elim-prop _
+  e .[]ʳ =
+    x ∈ filter p []   ↔⟨⟩
+    ⊥                 ↔⟨ inverse ×-right-zero ⟩
+    T (p x) × ⊥       ↔⟨⟩
+    T (p x) × x ∈ []  □
+
+  e .∷ʳ {y = y} z hyp =
+    x ∈ if p z then z ∷ filter p y else filter p y  ↔⟨ lemma _ (refl _) ⟩
+    ∥ T (p z) × x ≡ z ⊎ x ∈ filter p y ∥            ↝⟨ Trunc.∥∥-cong $ (×-cong₁ λ eq → ≡⇒↝ _ $ cong (T ∘ p) (sym eq)) ⊎-cong hyp ⟩
+    ∥ T (p x) × x ≡ z ⊎ T (p x) × x ∈ y ∥           ↔⟨ inverse $ Trunc.∥∥-cong ×-⊎-distrib-left ⟩
+    ∥ T (p x) × (x ≡ z ⊎ x ∈ y) ∥                   ↔⟨ inverse Trunc.∥∥×∥∥↔∥×∥ ⟩
+    ∥ T (p x) ∥ × ∥ x ≡ z ⊎ x ∈ y ∥                 ↔⟨ Trunc.∥∥↔ (T-propositional (p x)) ×-cong F.id ⟩
+    T (p x) × ∥ x ≡ z ⊎ x ∈ y ∥                     ↔⟨⟩
+    T (p x) × x ∈ z ∷ y                             □
+    where
+    lemma :
+      ∀ b → p z ≡ b →
+      (x ∈ if b then z ∷ filter p y else filter p y) ↔
+      ∥ T b × x ≡ z ⊎ x ∈ filter p y ∥
+    lemma true eq =
+      x ∈ z ∷ filter p y              ↔⟨⟩
+      ∥ x ≡ z ⊎ x ∈ filter p y ∥      ↝⟨ inverse $ Trunc.∥∥-cong $ ×-left-identity ⊎-cong F.id ⟩
+      ∥ ⊤ × x ≡ z ⊎ x ∈ filter p y ∥  □
+    lemma false eq =
+      x ∈ filter p y                  ↝⟨ inverse $ Trunc.∥∥↔ $ ∈-propositional (filter p y) ⟩
+      ∥ x ∈ filter p y ∥              ↝⟨ inverse $ Trunc.∥∥-cong $ drop-⊥-left ×-left-zero ⟩□
+      ∥ ⊥ × x ≡ z ⊎ x ∈ filter p y ∥  □
+
+  e .is-propositionʳ y =
+    Eq.left-closure ext 0 (∈-propositional (filter p y))
+
+-- The result of filtering is a subset of the original subset.
+
+filter⊆ : ∀ x → filter p x ⊆ x
+filter⊆ {p = p} x z =
+  z ∈ filter p x   ↔⟨ ∈filter≃∈×T x ⟩
+  T (p z) × z ∈ x  ↝⟨ proj₂ ⟩□
+  z ∈ x            □
 
 ------------------------------------------------------------------------
 -- Size
