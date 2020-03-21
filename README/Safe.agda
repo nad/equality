@@ -399,6 +399,11 @@ import Queue.Truncated
 
 import Queue.Truncated.Instances
 
+-- Abstract binding trees, based on Harper's "Practical Foundations
+-- for Programming Languages".
+
+import Abstract-binding-tree
+
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
 
