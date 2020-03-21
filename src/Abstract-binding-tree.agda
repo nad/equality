@@ -63,8 +63,16 @@ private
       arity : Op → Arity
 
       -- A sort-indexed type of variables with decidable equality.
-      Var  : Sort → Set ℓ
-      _≟V_ : ∀ {s} → Decidable-equality (Var s)
+      Var : @0 Sort → Set ℓ
+
+    -- Non-indexed variables
+
+    ∃Var : Set ℓ
+    ∃Var = ∃ λ (s : Erased Sort) → Var (erased s)
+
+    field
+      -- Decidable equality for non-indexed variables.
+      _≟V_ : Decidable-equality ∃Var
 
     -- An operator's argument valences.
 
@@ -104,7 +112,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     -- Raw (possibly ill-scoped) terms.
 
     data Tm (@0 s : Sort) : Set ℓ where
-      var : ∀ {s′} → Var s′ → @0 s′ ≡ s → Tm s
+      var : Var s′ → @0 s′ ≡ s → Tm s
       op  : (o : Op) → Args (domain o) → @0 codomain o ≡ s → Tm s
 
     -- Sequences of raw arguments.
@@ -122,10 +130,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     data Arg (@0 v : Valence) : Set ℓ where
       nil  : Tm s → @0 ([] , s) ≡ v → Arg v
-      cons : ∀ {s} → Var s → Arg (ss , s′) →
+      cons : Var s → Arg (ss , s′) →
              @0 (s ∷ ss , s′) ≡ v → Arg v
 
-  module _ {s} (x y : Var s) where
+  module _ (x y : Var s) where
 
     mutual
 
@@ -136,14 +144,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
       rename (var z eq)   = var (rename-Var z) eq
       rename (op o as eq) = op o (rename-Args as) eq
 
-      rename-Var : ∀ {s′} → Var s′ → Var s′
-      rename-Var {s′ = s′} z = case s ≟S s′ of λ where
-        (no _)     → z
-        (yes s≡s′) →
-          let cast = subst Var s≡s′ in
-          if   cast x ≟V z
-          then cast y
-          else z
+      rename-Var : Var s′ → Var s′
+      rename-Var z = case (_ , x) ≟V (_ , z) of λ where
+        (no _)    → z
+        (yes x≡z) → subst (λ ([ s ] , _) → Var s) x≡z y
 
       rename-Args : Args vs → Args vs
       rename-Args (nil eq)       = nil eq
@@ -158,10 +162,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
   ----------------------------------------------------------------------
   -- Well-formed terms
 
-  -- Finite subsets of variables of each sort.
+  -- A finite subset of variables.
 
   Vars : Set ℓ
-  Vars = {s : Sort} → Finite-subset-of (Var s)
+  Vars = Finite-subset-of ∃Var
 
   private
     variable
@@ -170,19 +174,12 @@ module Signature {ℓ} (sig : Signature ℓ) where
       @0 as as′ as₁ as₂ as′₁ as′₂ : Args vs
       @0 xs                       : Vars
 
-  -- Extends one subset with a potentially new element.
-
-  snoc : ∀ {s′} → Vars → Var s′ → Vars
-  snoc {s′ = s′} xs x {s = s} = case s′ ≟S s of λ where
-    (yes s′≡s) → subst Var s′≡s x ∷ xs
-    (no  _)    → xs
-
   -- Predicates for well-formed terms and arguments.
 
   mutual
 
     data Wf-tm (xs : Vars) (t : Tm s) : Set ℓ where
-      var : x ∈ xs → var x eq ≡ t → Wf-tm xs t
+      var : (_ , x) ∈ xs → var x eq ≡ t → Wf-tm xs t
       op  : Wf-args xs as → op o as eq ≡ t → Wf-tm xs t
 
     data Wf-args (xs : Vars) (as : Args vs) : Set ℓ where
@@ -192,8 +189,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     data Wf-arg (xs : Vars) (a : Arg v) : Set ℓ where
       nil  : Wf-tm xs t → nil t eq ≡ a → Wf-arg xs a
-      cons : ((y : Var s) → ¬ y ∈ xs →
-              Wf-arg (snoc xs y) (rename-Arg x y a′)) →
+      cons : ((y : Var s) → ¬ (_ , y) ∈ xs →
+              Wf-arg ((_ , y) ∷ xs) (rename-Arg x y a′)) →
              cons {s = s} x a′ eq ≡ a →
              Wf-arg xs a
 
@@ -238,7 +235,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   Tm≃ :
     Tm s ≃
-    ((∃ λ ((s′ , _) : ∃ λ s′ → Var s′) → Erased (s′ ≡ s)) ⊎
+    ((∃ λ (([ s′ ] , _) : ∃Var) → Erased (s′ ≡ s)) ⊎
      (∃ λ ((o , _) : ∃ λ (o : Op) → Args (domain o)) →
         Erased (codomain o ≡ s)))
   Tm≃ = Eq.↔⇒≃ (record
@@ -290,8 +287,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Arg v ≃
     ((∃ λ (([ s ] , _) : ∃ λ s → Tm (erased s)) →
         Erased (([] , s) ≡ v)) ⊎
-     (∃ λ (((s , _) , [ ss , s′ ] , _) :
-           ∃ Var × ∃ λ v → Arg (erased v)) →
+     (∃ λ ((([ s ] , _) , [ ss , s′ ] , _) :
+           ∃Var × ∃ λ v → Arg (erased v)) →
       Erased ((s ∷ ss , s′) ≡ v)))
   Arg≃ = Eq.↔⇒≃ (record
     { surjection = record
@@ -319,7 +316,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     infix 4 _≟Tm_ _≟Args_ _≟Arg_
 
     _≟Tm_ : Decidable-equality (Tm s)
-    var {s′ = s′₁} x₁ eq₁ ≟Tm var {s′ = s′₂} x₂ eq₂ =    $⟨ Σ.Dec._≟_ _≟S_ _≟V_ _ _ ⟩
+    var {s′ = s′₁} x₁ eq₁ ≟Tm var {s′ = s′₂} x₂ eq₂ =    $⟨ _ ≟V _ ⟩
       Dec ((_ , x₁) ≡ (_ , x₂))                          ↝⟨ Dec-map $ from-isomorphism $ ignore-propositional-component $
                                                             H-level-Erased 1 Sort-set ⟩
       Dec (((_ , x₁) , [ eq₁ ]) ≡ ((_ , x₂) , [ eq₂ ]))  ↝⟨ Dec-map $ from-isomorphism (Eq.≃-≡ Tm≃) F.∘ from-isomorphism Bijection.≡↔inj₁≡inj₁ ⟩□
@@ -390,7 +387,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       Dec (cons _ _ _ ≡ nil _ _)  □
 
     cons x₁ a₁ eq₁ ≟Arg cons x₂ a₂ eq₂ =               $⟨ ×.dec⇒dec⇒dec
-                                                           (Σ.Dec._≟_ _≟S_ _≟V_ _ _)
+                                                           (_ ≟V _)
                                                            (Σ.set⇒dec⇒dec⇒dec
                                                               (H-level-Erased 2 Valence-set)
                                                               (yes ([]-cong [ (let eq = trans eq₁ (sym eq₂) in
@@ -424,7 +421,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   @0 Wf-tm≃ :
     Wf-tm xs t ≃
-    ((∃ λ (((_ , x) , _) : ∃ λ ((_ , x) : ∃ λ s → Var s) → x ∈ xs) →
+    ((∃ λ (((_ , x) , _) : ∃ λ x → x ∈ xs) →
         ∃ λ eq → var x eq ≡ t) ⊎
      (∃ λ (((o , as) , _) :
            ∃ λ ((_ , as) : ∃ λ o → Args (domain o)) → Wf-args xs as) →
@@ -499,10 +496,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
              Wf-tm xs t) →
         ∃ λ eq → nil t eq ≡ a) ⊎
      (∃ λ ((((_ , x) , _ , a′) , _) :
-           ∃ λ (((s , x) , _ , a′) :
-                (∃ Var) × (∃ λ v → Arg (erased v))) →
-             ((y : Var s) →
-              ¬ y ∈ xs → Wf-arg (snoc xs y) (rename-Arg x y a′))) →
+           ∃ λ ((([ s ] , x) , _ , a′) :
+                ∃Var × (∃ λ v → Arg (erased v))) →
+             ((y : Var s) → ¬ (_ , y) ∈ xs →
+              Wf-arg ((_ , y) ∷ xs) (rename-Arg x y a′))) →
         ∃ λ eq → cons x a′ eq ≡ a))
   Wf-arg≃ = Eq.↔⇒≃ (record
     { surjection = record
