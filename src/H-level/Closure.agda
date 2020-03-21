@@ -804,6 +804,14 @@ abstract
   Maybe-closure n h =
     ⊎-closure n (mono (zero≤ (2 + n)) ⊤-contractible) h
 
+  -- T is pointwise propositional.
+
+  T-propositional :
+    ∀ {a b} {A : Set a} {B : Set b} →
+    (x : A ⊎ B) → Is-proposition (T x)
+  T-propositional (inj₁ _) = mono₁ 0 ⊤-contractible
+  T-propositional (inj₂ _) = ⊥-propositional
+
   -- Furthermore Is-proposition is closed under Dec (assuming
   -- extensionality).
 
