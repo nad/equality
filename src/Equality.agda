@@ -1437,6 +1437,15 @@ module Derived-definitions-and-properties
       cong (_ ,_) (refl _)                                         ≡⟨ cong-refl _ ⟩∎
       refl _                                                       ∎
 
+    Σ-≡,≡→≡-refl-subst-const :
+      {p : A × B} →
+      Σ-≡,≡→≡ (refl _) (subst-const _) ≡ refl p
+    Σ-≡,≡→≡-refl-subst-const =
+      Σ-≡,≡→≡ (refl _) (subst-const _)                            ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
+      cong (_ ,_) (trans (sym $ subst-refl _ _) (subst-const _))  ≡⟨ cong (cong _) subst-refl-subst-const ⟩
+      cong (_ ,_) (refl _)                                        ≡⟨ cong-refl _ ⟩∎
+      refl _                                                      ∎
+
     -- "Evaluation rule" for Σ-≡,≡←≡.
 
     Σ-≡,≡←≡-refl :
@@ -1674,7 +1683,7 @@ module Derived-definitions-and-properties
         subst₂ C (refl _) (refl _) (proj₂ p))        ∎)
       y≡z
 
-    -- A corollary of push-subst-pair.
+    -- Corollaries of push-subst-pair.
 
     push-subst-pair′ :
       ∀ (B : A → Set b) (C : Σ A B → Set c) {p p₁} →
@@ -1686,6 +1695,25 @@ module Derived-definitions-and-properties
                subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
                (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p)))
             (push-subst-pair _ _)
+
+    push-subst-pair-× :
+      ∀ {y≡z : y ≡ z} (B : Set b) (C : A × B → Set c) {p} →
+      subst (λ x → Σ B (curry C x)) y≡z p ≡
+      (proj₁ p , subst (λ x → C (x , proj₁ p)) y≡z (proj₂ p))
+    push-subst-pair-× {y≡z = y≡z} B C {p} =
+      subst (λ x → Σ B (curry C x)) y≡z p                       ≡⟨ push-subst-pair′ _ C (subst-const _) ⟩
+      (proj₁ p , subst₂ C y≡z (subst-const _) (proj₂ p))        ≡⟨ cong (_ ,_) $
+                                                                   elim¹
+                                                                     (λ y≡z → subst₂ C y≡z (subst-const y≡z) (proj₂ p) ≡
+                                                                              subst (λ x → C (x , proj₁ p)) y≡z (proj₂ p))
+                                                                     (
+          subst₂ C (refl _) (subst-const _) (proj₂ p)                 ≡⟨⟩
+          subst C (Σ-≡,≡→≡ (refl _) (subst-const _)) (proj₂ p)        ≡⟨ cong (λ eq → subst C eq _) Σ-≡,≡→≡-refl-subst-const ⟩
+          subst C (refl _) (proj₂ p)                                  ≡⟨ subst-refl _ _ ⟩
+          proj₂ p                                                     ≡⟨ sym $ subst-refl _ _ ⟩∎
+          subst (λ x → C (x , _)) (refl _) (proj₂ p)                  ∎)
+                                                                     y≡z ⟩
+      (proj₁ p , subst (λ x → C (x , _)) y≡z (proj₂ p))         ∎
 
     -- A proof simplification rule for subst₂.
 
