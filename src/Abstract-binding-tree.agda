@@ -51,16 +51,12 @@ private
     Valence : Set ℓ
     Valence = List Sort × Sort
 
-    -- Arities.
-
-    Arity : Set ℓ
-    Arity = List Valence × Sort
-
     field
-      -- Operators with decidable equality and arities.
-      Op    : Set ℓ
-      _≟O_  : Decidable-equality Op
-      arity : Op → Arity
+      -- Codomain-indexed operators with decidable equality and
+      -- domains.
+      Op     : @0 Sort → Set ℓ
+      _≟O_   : ∀ {@0 s} → Decidable-equality (Op s)
+      domain : ∀ {@0 s} → Op s → List Valence
 
       -- A sort-indexed type of variables with decidable equality.
       Var : @0 Sort → Set ℓ
@@ -74,15 +70,15 @@ private
       -- Decidable equality for non-indexed variables.
       _≟V_ : Decidable-equality ∃Var
 
-    -- An operator's argument valences.
+    -- Arities.
 
-    domain : Op → List Valence
-    domain = proj₁ ∘ arity
+    Arity : Set ℓ
+    Arity = List Valence × Sort
 
-    -- An operator's target sort.
+    -- An operator's arity.
 
-    codomain : Op → Sort
-    codomain = proj₂ ∘ arity
+    arity : ∀ {s} → Op s → Arity
+    arity {s = s} o = domain o , s
 
 open Dummy public using (Signature) hiding (module Signature)
 
@@ -102,7 +98,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       @0 ss           : List Sort
       @0 v            : Valence
       @0 vs vs′       : List Valence
-      @0 o            : Op
+      @0 o            : Op s
 
   ----------------------------------------------------------------------
   -- Raw terms
@@ -113,7 +109,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     data Tm (@0 s : Sort) : Set ℓ where
       var : Var s′ → @0 s′ ≡ s → Tm s
-      op  : (o : Op) → Args (domain o) → @0 codomain o ≡ s → Tm s
+      op  : (o : Op s′) → Args (domain o) → @0 s′ ≡ s → Tm s
 
     -- Sequences of raw arguments.
     --
@@ -236,17 +232,18 @@ module Signature {ℓ} (sig : Signature ℓ) where
   Tm≃ :
     Tm s ≃
     ((∃ λ (([ s′ ] , _) : ∃Var) → Erased (s′ ≡ s)) ⊎
-     (∃ λ ((o , _) : ∃ λ (o : Op) → Args (domain o)) →
-        Erased (codomain o ≡ s)))
+     (∃ λ (([ s′ ] , _) :
+           ∃ λ s′ → ∃ λ (o : Op (erased s′)) → Args (domain o)) →
+        Erased (s′ ≡ s)))
   Tm≃ = Eq.↔⇒≃ (record
     { surjection = record
       { logical-equivalence = record
         { to   = λ where
                    (var s eq)   → inj₁ ((_ , s) , [ eq ])
-                   (op o as eq) → inj₂ ((o , as) , [ eq ])
+                   (op o as eq) → inj₂ ((_ , o , as) , [ eq ])
         ; from = λ where
-                   (inj₁ ((_ , s) , [ eq ]))  → var s eq
-                   (inj₂ ((o , as) , [ eq ])) → op o as eq
+                   (inj₁ ((_ , s) , [ eq ]))      → var s eq
+                   (inj₂ ((_ , o , as) , [ eq ])) → op o as eq
         }
       ; right-inverse-of = λ where
           (inj₁ _) → refl _
@@ -330,12 +327,15 @@ module Signature {ℓ} (sig : Signature ℓ) where
       Dec ⊥                     ↝⟨ Dec-map $ from-isomorphism (Eq.≃-≡ Tm≃) F.∘ from-isomorphism (inverse Bijection.≡↔⊎) ⟩□
       Dec (op _ _ _ ≡ var _ _)  □
 
-    op o₁ as₁ eq₁ ≟Tm op o₂ as₂ eq₂ =                        $⟨ Σ.decidable⇒dec⇒dec _≟O_ (λ _ → _ ≟Args as₂) ⟩
-      Dec ((o₁ , as₁) ≡ (o₂ , as₂))                          ↝⟨ Dec-map $ from-isomorphism $ ignore-propositional-component $
-                                                                H-level-Erased 1 Sort-set ⟩
-      Dec (((o₁ , as₁) , [ eq₁ ]) ≡ ((o₂ , as₂) , [ eq₂ ]))  ↝⟨ Dec-map $ from-isomorphism (Eq.≃-≡ Tm≃) F.∘
-                                                                          from-isomorphism Bijection.≡↔inj₂≡inj₂ ⟩□
-      Dec (op o₁ as₁ eq₁ ≡ op o₂ as₂ eq₂)                    □
+    op o₁ as₁ eq₁ ≟Tm op o₂ as₂ eq₂ =                                $⟨ Σ.set⇒dec⇒dec⇒dec
+                                                                          (H-level-Erased 2 Sort-set)
+                                                                          (yes ([]-cong [ trans eq₁ (sym eq₂) ]))
+                                                                          (λ _ → Σ.decidable⇒dec⇒dec _≟O_ (λ _ → _ ≟Args as₂)) ⟩
+      Dec ((_ , o₁ , as₁) ≡ (_ , o₂ , as₂))                          ↝⟨ Dec-map $ from-isomorphism $ ignore-propositional-component $
+                                                                        H-level-Erased 1 Sort-set ⟩
+      Dec (((_ , o₁ , as₁) , [ eq₁ ]) ≡ ((_ , o₂ , as₂) , [ eq₂ ]))  ↝⟨ Dec-map $ from-isomorphism (Eq.≃-≡ Tm≃) F.∘
+                                                                                  from-isomorphism Bijection.≡↔inj₂≡inj₂ ⟩□
+      Dec (op o₁ as₁ eq₁ ≡ op o₂ as₂ eq₂)                            □
 
     _≟Args_ : Decidable-equality (Args vs)
     nil eq₁ ≟Args nil eq₂ =    $⟨ yes (H-level-Erased 1 (H-level-List 0 Valence-set) _ _) ⟩
@@ -423,8 +423,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Wf-tm xs t ≃
     ((∃ λ (((_ , x) , _) : ∃ λ x → x ∈ xs) →
         ∃ λ eq → var x eq ≡ t) ⊎
-     (∃ λ (((o , as) , _) :
-           ∃ λ ((_ , as) : ∃ λ o → Args (domain o)) → Wf-args xs as) →
+     (∃ λ (((_ , o , as) , _) :
+           ∃ λ ((_ , _ , as) :
+                ∃ λ s → ∃ λ (o : Op (erased s)) → Args (domain o)) →
+             Wf-args xs as) →
         ∃ λ eq → op o as eq ≡ t))
   Wf-tm≃ = Eq.↔⇒≃ (record
     { surjection = record
@@ -561,10 +563,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ((_ , wfs₁) , _ , eq₁) ≡ ((_ , wfs₂) , _ , eq₂)  ↔⟨ from-isomorphism (Eq.≃-≡ Wf-tm≃) F.∘ Bijection.≡↔inj₂≡inj₂ ⟩□
       op wfs₁ eq₁ ≡ op wfs₂ eq₂                        □
       where
-      lemma =                                $⟨ trans eq₁ (sym eq₂) ⟩
-        op o₁ as₁ _ ≡ op o₂ as₂ _            ↝⟨ inverse $ from-isomorphism (Eq.≃-≡ Tm≃) F.∘ Bijection.≡↔inj₂≡inj₂ ⟩
-        ((o₁ , as₁) , _) ≡ ((o₂ , as₂) , _)  ↝⟨ inverse $ ignore-propositional-component (H-level-Erased 1 Sort-set) ⟩□
-        (o₁ , as₁) ≡ (o₂ , as₂)              □
+      lemma =                                        $⟨ trans eq₁ (sym eq₂) ⟩
+        op o₁ as₁ _ ≡ op o₂ as₂ _                    ↝⟨ inverse $ from-isomorphism (Eq.≃-≡ Tm≃) F.∘ Bijection.≡↔inj₂≡inj₂ ⟩
+        ((_ , o₁ , as₁) , _) ≡ ((_ , o₂ , as₂) , _)  ↝⟨ inverse $ ignore-propositional-component (H-level-Erased 1 Sort-set) ⟩□
+        (_ , o₁ , as₁) ≡ (_ , o₂ , as₂)              □
 
     Wf-tm-propositional (var _ _) (op _ eq₁) _ =
                           $⟨ eq₁ ⟩
