@@ -79,6 +79,7 @@ is-set =
 
 record Elimᴾ {A : Set a} (P : Finite-subset-of A → Set p) :
              Set (a ⊔ p) where
+  no-eta-equality
   field
     []ʳ     : P []
     ∷ʳ      : ∀ x → P y → P (x ∷ y)
@@ -115,6 +116,7 @@ elimᴾ {A = A} {P = P} e = helper
 -- A non-dependent eliminator, expressed using paths.
 
 record Recᴾ (A : Set a) (B : Set b) : Set (a ⊔ b) where
+  no-eta-equality
   field
     []ʳ     : B
     ∷ʳ      : A → Finite-subset-of A → B → B
@@ -142,6 +144,7 @@ recᴾ r = elimᴾ e
 
 record Elim {A : Set a} (P : Finite-subset-of A → Set p) :
             Set (a ⊔ p) where
+  no-eta-equality
   field
     []ʳ     : P []
     ∷ʳ      : ∀ x → P y → P (x ∷ y)
@@ -169,6 +172,7 @@ elim e = elimᴾ e′
 -- A non-dependent eliminator, expressed using equality.
 
 record Rec (A : Set a) (B : Set b) : Set (a ⊔ b) where
+  no-eta-equality
   field
     []ʳ     : B
     ∷ʳ      : A → Finite-subset-of A → B → B
@@ -197,6 +201,7 @@ rec r = recᴾ r′
 record Elim-prop
          {A : Set a} (P : Finite-subset-of A → Set p) :
          Set (a ⊔ p) where
+  no-eta-equality
   field
     []ʳ             : P []
     ∷ʳ              : ∀ x → P y → P (x ∷ y)
@@ -219,6 +224,7 @@ elim-prop e = elim e′
 -- A non-dependent eliminator for propositions.
 
 record Rec-prop (A : Set a) (B : Set b) : Set (a ⊔ b) where
+  no-eta-equality
   field
     []ʳ             : B
     ∷ʳ              : A → Finite-subset-of A → B → B
