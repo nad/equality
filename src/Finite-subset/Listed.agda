@@ -369,34 +369,6 @@ map f = recᴾ r
   r .swapʳ _ _ _ _ = swapᴾ
   r .is-setʳ       = is-setᴾ
 
--- A filter function.
-
-filter : (A → Bool) → Finite-subset-of A → Finite-subset-of A
-filter p = rec r
-  where
-  r : Rec _ _
-  r .[]ʳ         = []
-  r .∷ʳ x _ y    = if p x then x ∷ y else y
-  r .is-setʳ     = is-set
-  r .dropʳ x _ y = lemma (p x)
-    where
-    lemma :
-      ∀ b →
-      if b then x ∷ if b then x ∷ y else y else if b then x ∷ y else y ≡
-      if b then x ∷ y else y
-    lemma true  = drop
-    lemma false = refl _
-
-  r .swapʳ x y _ z = lemma (p x) (p y)
-    where
-    lemma :
-      ∀ b₁ b₂ →
-      (let u = if b₂ then y ∷ z else z in if b₁ then x ∷ u else u) ≡
-      (let u = if b₁ then x ∷ z else z in if b₂ then y ∷ u else u)
-    lemma true  true  = swap
-    lemma _     false = refl _
-    lemma false _     = refl _
-
 -- Join.
 
 join : Finite-subset-of (Finite-subset-of A) → Finite-subset-of A
@@ -748,6 +720,37 @@ extensionality {x = x} {y = y} =
            x ≡ y                  □
        })
 
+------------------------------------------------------------------------
+-- The functions filter, minus and delete
+
+-- A filter function.
+
+filter : (A → Bool) → Finite-subset-of A → Finite-subset-of A
+filter p = rec r
+  where
+  r : Rec _ _
+  r .[]ʳ         = []
+  r .∷ʳ x _ y    = if p x then x ∷ y else y
+  r .is-setʳ     = is-set
+  r .dropʳ x _ y = lemma (p x)
+    where
+    lemma :
+      ∀ b →
+      if b then x ∷ if b then x ∷ y else y else if b then x ∷ y else y ≡
+      if b then x ∷ y else y
+    lemma true  = drop
+    lemma false = refl _
+
+  r .swapʳ x y _ z = lemma (p x) (p y)
+    where
+    lemma :
+      ∀ b₁ b₂ →
+      (let u = if b₂ then y ∷ z else z in if b₁ then x ∷ u else u) ≡
+      (let u = if b₁ then x ∷ z else z in if b₂ then y ∷ u else u)
+    lemma true  true  = swap
+    lemma _     false = refl _
+    lemma false _     = refl _
+
 -- A lemma characterising filter.
 
 ∈filter≃∈×T :
@@ -793,6 +796,71 @@ filter⊆ {p = p} x z =
   z ∈ filter p x   ↔⟨ ∈filter≃∈×T x ⟩
   T (p z) × z ∈ x  ↝⟨ proj₂ ⟩□
   z ∈ x            □
+
+-- If truncated equality is decidable, then one subset can be removed
+-- from another.
+
+minus :
+  ((x y : A) → Dec ∥ x ≡ y ∥) →
+  Finite-subset-of A → Finite-subset-of A → Finite-subset-of A
+minus _≟_ x y =
+  filter (λ z → if member? _≟_ z y then false else true) x
+
+-- A lemma characterising minus.
+
+∈minus≃∈×∉ :
+  ∀ _≟_ y z → (x ∈ minus _≟_ y z) ≃ (x ∈ y × ¬ x ∈ z)
+∈minus≃∈×∉ {x = x} _≟_ y z =
+  x ∈ minus _≟_ y z                                    ↝⟨ ∈filter≃∈×T y ⟩
+  T (if member? _≟_ x z then false else true) × x ∈ y  ↔⟨ lemma (member? _≟_ x z) ×-cong F.id ⟩
+  ¬ x ∈ z × x ∈ y                                      ↔⟨ ×-comm ⟩□
+  x ∈ y × ¬ x ∈ z                                      □
+  where
+  lemma :
+    (d : Dec A) →
+    T (if d then false else true) ↔ ¬ A
+  lemma (yes a) = Bijection.⊥↔uninhabited (_$ a)
+  lemma (no ¬a) =
+    inverse $
+    _⇔_.to contractible⇔↔⊤ $
+    propositional⇒inhabited⇒contractible
+      (¬-propositional ext)
+      ¬a
+
+-- The result of minus is a subset of the original subset.
+
+minus⊆ :
+  ∀ _≟_ (x y : Finite-subset-of A) →
+  minus _≟_ x y ⊆ x
+minus⊆ _≟_ x y =
+  filter⊆ {p = λ z → if member? _≟_ z y then false else true} x
+
+-- If truncated equality is decidable, then elements can be removed
+-- from a subset.
+
+delete :
+  ((x y : A) → Dec ∥ x ≡ y ∥) →
+  A → Finite-subset-of A → Finite-subset-of A
+delete _≟_ x y = minus _≟_ y (singleton x)
+
+-- A lemma characterising delete.
+
+∈delete≃≢×∈ :
+  ∀ _≟_ z → (x ∈ delete _≟_ y z) ≃ (x ≢ y × x ∈ z)
+∈delete≃≢×∈ {x = x} {y = y} _≟_ z =
+  x ∈ delete _≟_ y z         ↝⟨ ∈minus≃∈×∉ _≟_ z (singleton y) ⟩
+  x ∈ z × ¬ x ∈ singleton y  ↝⟨ F.id ×-cong →-cong₁ ext ∈singleton≃ ⟩
+  x ∈ z × ¬ ∥ x ≡ y ∥        ↔⟨ F.id ×-cong Trunc.¬∥∥↔¬ ⟩
+  x ∈ z × x ≢ y              ↔⟨ ×-comm ⟩□
+  x ≢ y × x ∈ z              □
+
+-- A deleted element is no longer a member of the set.
+
+∉delete : ∀ _≟_ y → ¬ x ∈ delete _≟_ x y
+∉delete {x = x} _≟_ y =
+  x ∈ delete _≟_ x y  ↔⟨ ∈delete≃≢×∈ _≟_ y ⟩
+  x ≢ x × x ∈ y       ↝⟨ (_$ refl _) ∘ proj₁ ⟩□
+  ⊥                   □
 
 ------------------------------------------------------------------------
 -- Size
