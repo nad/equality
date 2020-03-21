@@ -3077,6 +3077,19 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
   ¬ A × A          ↝⟨ uncurry _$_ ⟩□
   ⊥                □
 
+-- If two types are logically equivalent, then their negations are
+-- equivalent (assuming extensionality).
+
+¬-cong :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) lzero →
+  A ⇔ B → (¬ A) ≃ (¬ B)
+¬-cong {a} {b} ext A⇔B =
+  _↠_.from
+    (Eq.≃↠⇔ (¬-propositional (lower-extensionality b lzero ext))
+            (¬-propositional (lower-extensionality a lzero ext)))
+    (→-cong _ A⇔B id)
+
 ------------------------------------------------------------------------
 -- Lemmas related to H-level
 
