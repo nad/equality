@@ -35,12 +35,12 @@ import Univalence-axiom eq as Univ
 
 private
   variable
-    a b             : Level
-    A B             : Set a
-    H p x xs y ys z : A
-    P               : A → Set p
-    f g             : (x : A) → P x
-    m n             : ℕ
+    a b                     : Level
+    A B                     : Set a
+    H p q x xs y y₁ y₂ ys z : A
+    P                       : A → Set p
+    f g                     : (x : A) → P x
+    m n                     : ℕ
 
 ------------------------------------------------------------------------
 -- Listed finite subsets
@@ -640,11 +640,6 @@ member? equal? x = elim-prop e
   e .is-propositionʳ y =
     Dec-closure-propositional ext (∈-propositional y)
 
--- Subsets.
-
-_⊆_ : {A : Set a} → Finite-subset-of A → Finite-subset-of A → Set a
-x ⊆ y = ∀ z → z ∈ x → z ∈ y
-
 -- If x is a member of y, then x ∷ y is equal to y.
 
 ∈→∷≡ : x ∈ y → x ∷ y ≡ y
@@ -666,6 +661,16 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
   e .is-propositionʳ _ =
     Π-closure ext 1 λ _ →
     is-set
+
+------------------------------------------------------------------------
+-- Subsets of subsets
+
+-- Subsets.
+
+infix 4 _⊆_
+
+_⊆_ : {A : Set a} → Finite-subset-of A → Finite-subset-of A → Set a
+x ⊆ y = ∀ z → z ∈ x → z ∈ y
 
 -- The subset property can be expressed using _∪_ and _≡_.
 
@@ -719,6 +724,21 @@ extensionality {x = x} {y = y} =
            x ∪ y ≡ y × y ∪ x ≡ x  ↝⟨ (λ (p , q) → trans (sym q) (trans (comm y) p)) ⟩□
            x ≡ y                  □
        })
+
+-- _⊆_ is a partial order.
+
+⊆-refl : (x : Finite-subset-of A) → x ⊆ x
+⊆-refl x _ = id
+
+⊆-trans :
+  (x y z : Finite-subset-of A) →
+  x ⊆ y → y ⊆ z → x ⊆ z
+⊆-trans _ _ _ x⊆y y⊆z _ = y⊆z _ ∘ x⊆y _
+
+⊆-antisymmetric : x ⊆ y → y ⊆ x → x ≡ y
+⊆-antisymmetric x⊆y y⊆x =
+  _≃_.from extensionality λ z →
+    record { to = x⊆y z; from = y⊆x z }
 
 ------------------------------------------------------------------------
 -- The functions filter, minus and delete
@@ -861,6 +881,50 @@ delete _≟_ x y = minus _≟_ y (singleton x)
   x ∈ delete _≟_ x y  ↔⟨ ∈delete≃≢×∈ _≟_ y ⟩
   x ≢ x × x ∈ y       ↝⟨ (_$ refl _) ∘ proj₁ ⟩□
   ⊥                   □
+
+------------------------------------------------------------------------
+-- Some preservation lemmas for _⊆_
+
+-- Various operations preserve _⊆_.
+
+∷-cong-⊆ : ∀ y z → y ⊆ z → x ∷ y ⊆ x ∷ z
+∷-cong-⊆ {x = x} y z y⊆z u =
+  u ∈ x ∷ y          ↔⟨⟩
+  ∥ u ≡ x ⊎ u ∈ y ∥  ↝⟨ Trunc.∥∥-map (⊎-map id (y⊆z _)) ⟩
+  ∥ u ≡ x ⊎ u ∈ z ∥  ↔⟨⟩
+  u ∈ x ∷ z          □
+
+∪-cong-⊆ : ∀ x₁ x₂ → x₁ ⊆ x₂ → y₁ ⊆ y₂ → x₁ ∪ y₁ ⊆ x₂ ∪ y₂
+∪-cong-⊆ {y₁ = y₁} {y₂ = y₂} x₁ x₂ x₁⊆x₂ y₁⊆y₂ z =
+  z ∈ x₁ ∪ y₁          ↔⟨ ∈∪≃∥∈⊎∈∥ x₁ ⟩
+  ∥ z ∈ x₁ ⊎ z ∈ y₁ ∥  ↝⟨ Trunc.∥∥-map (⊎-map (x₁⊆x₂ _) (y₁⊆y₂ _)) ⟩
+  ∥ z ∈ x₂ ⊎ z ∈ y₂ ∥  ↔⟨ inverse $ ∈∪≃∥∈⊎∈∥ x₂ ⟩□
+  z ∈ x₂ ∪ y₂          □
+
+filter-cong-⊆ :
+  ∀ x y →
+  (∀ z → T (p z) → T (q z)) →
+  x ⊆ y → filter p x ⊆ filter q y
+filter-cong-⊆ {p = p} {q = q} x y p⇒q x⊆y z =
+  z ∈ filter p x   ↔⟨ ∈filter≃∈×T x ⟩
+  T (p z) × z ∈ x  ↝⟨ Σ-map (p⇒q _) (x⊆y _) ⟩
+  T (q z) × z ∈ y  ↔⟨ inverse $ ∈filter≃∈×T y ⟩□
+  z ∈ filter q y   □
+
+minus-cong-⊆ :
+  ∀ _≟_ (x₁ x₂ y₁ y₂ : Finite-subset-of A) →
+ x₁ ⊆ x₂ → y₂ ⊆ y₁ → minus _≟_ x₁ y₁ ⊆ minus _≟_ x₂ y₂
+minus-cong-⊆ _≟_ x₁ x₂ y₁ y₂ x₁⊆x₂ y₂⊆y₁ z =
+  z ∈ minus _≟_ x₁ y₁  ↔⟨ ∈minus≃∈×∉ _≟_ x₁ y₁ ⟩
+  z ∈ x₁ × ¬ z ∈ y₁    ↝⟨ Σ-map (x₁⊆x₂ _) (_∘ y₂⊆y₁ _) ⟩
+  z ∈ x₂ × ¬ z ∈ y₂    ↔⟨ inverse $ ∈minus≃∈×∉ _≟_ x₂ y₂ ⟩□
+  z ∈ minus _≟_ x₂ y₂  □
+
+delete-cong-⊆ : ∀ _≟_ y z → y ⊆ z → delete _≟_ x y ⊆ delete _≟_ x z
+delete-cong-⊆ {x = x} _≟_ y z y⊆z =
+  minus-cong-⊆
+    _≟_ y z (singleton x) (singleton x)
+    y⊆z (⊆-refl (singleton x))
 
 ------------------------------------------------------------------------
 -- Size
