@@ -566,7 +566,31 @@ _ = refl _
 _ : (x ∈ y ∷ z) ≡ ∥ x ≡ y ⊎ x ∈ z ∥
 _ = refl _
 
--- If x is a member of y, then x is a member of y ∪ z.
+-- A lemma characterising singleton.
+
+∈singleton≃ :
+  (x ∈ singleton y) ≃ ∥ x ≡ y ∥
+∈singleton≃ {x = x} {y = y} =
+  x ∈ singleton y  ↔⟨⟩
+  ∥ x ≡ y ⊎ ⊥ ∥    ↔⟨ Trunc.∥∥-cong ⊎-right-identity ⟩□
+  ∥ x ≡ y ∥        □
+
+-- Some "introduction rules" for _∈_.
+
+∈→∈∷ : ∀ z → x ∈ z → x ∈ y ∷ z
+∈→∈∷ _ = ∣_∣ ∘ inj₂
+
+∥≡∥→∈∷ : ∀ z → ∥ x ≡ y ∥ → x ∈ y ∷ z
+∥≡∥→∈∷ _ = Trunc.∥∥-map inj₁
+
+≡→∈∷ : ∀ z → x ≡ y → x ∈ y ∷ z
+≡→∈∷ z = ∥≡∥→∈∷ z ∘ ∣_∣
+
+∥≡∥→∈singleton : ∥ x ≡ y ∥ → x ∈ singleton y
+∥≡∥→∈singleton = ∥≡∥→∈∷ []
+
+≡→∈singleton : x ≡ y → x ∈ singleton y
+≡→∈singleton = ≡→∈∷ []
 
 ∈→∈∪ˡ : ∀ y → x ∈ y → x ∈ y ∪ z
 ∈→∈∪ˡ {x = x} {z = z} = elim-prop e
@@ -583,8 +607,6 @@ _ = refl _
   e .is-propositionʳ y =
     Π-closure ext 1 λ _ →
     ∈-propositional (y ∪ z)
-
--- If x is a member of z, then x is a member of y ∪ z.
 
 ∈→∈∪ʳ : ∀ y → x ∈ z → x ∈ y ∪ z
 ∈→∈∪ʳ {x = x} {z = z} y =
