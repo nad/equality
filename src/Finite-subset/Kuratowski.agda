@@ -517,26 +517,24 @@ x ∈ y = x L.∈ _≃_.from Listed≃Kuratowski y
 -- Membership is propositional.
 
 ∈-propositional : ∀ y → Is-proposition (x ∈ y)
-∈-propositional y = L.∈-propositional (_≃_.from Listed≃Kuratowski y)
+∈-propositional _ = L.∈-propositional
 
--- Unit tests documenting some of the computational behaviour of _∈_.
+-- A lemma characterising ∅.
 
-_ : (x ∈ ∅) ≡ ⊥
-_ = refl _
+∈∅≃ : (x ∈ ∅) ≃ ⊥₀
+∈∅≃ = L.∈[]≃
 
-_ : {A : Set a} {x y : A} →
-    (x ∈ singleton y) ≡ ∥ x ≡ y ⊎ ⊥ ∥
-_ = refl _
+-- A lemma characterising singleton.
 
-_ : (x ∈ singleton y ∪ z) ≡ ∥ x ≡ y ⊎ x ∈ z ∥
-_ = refl _
+∈singleton≃ : (x ∈ singleton y) ≃ ∥ x ≡ y ∥
+∈singleton≃ = L.∈singleton≃
 
 -- If x is a member of y, then x is a member of y ∪ z.
 
 ∈→∈∪ˡ : ∀ y z → x ∈ y → x ∈ y ∪ z
 ∈→∈∪ˡ {x = x} y z =
   x ∈ y                                                                ↔⟨⟩
-  x L.∈ _≃_.from Listed≃Kuratowski y                                   ↝⟨ L.∈→∈∪ˡ (_≃_.from Listed≃Kuratowski y) ⟩
+  x L.∈ _≃_.from Listed≃Kuratowski y                                   ↝⟨ L.∈→∈∪ˡ ⟩
   x L.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↔⟨⟩
   x L.∈ _≃_.from Listed≃Kuratowski (y ∪ z)                             ↔⟨⟩
   x ∈ y ∪ z                                                            □
@@ -557,7 +555,7 @@ _ = refl _
 ∈∪≃∥∈⊎∈∥ {x = x} y z =
   x ∈ y ∪ z                                                            ↔⟨⟩
 
-  x L.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↝⟨ L.∈∪≃∥∈⊎∈∥ (_≃_.from Listed≃Kuratowski y) ⟩
+  x L.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↝⟨ L.∈∪≃∥∈⊎∈∥ ⟩
 
   ∥ x L.∈ _≃_.from Listed≃Kuratowski y ⊎
     x L.∈ _≃_.from Listed≃Kuratowski z ∥                               ↔⟨⟩

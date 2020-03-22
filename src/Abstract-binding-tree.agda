@@ -534,7 +534,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     @0 Wf-tm-propositional :
       (t : Tm s) → Is-proposition (Wf-tm xs t)
     Wf-tm-propositional {xs = xs} (var x) (var p₁) (var p₂) =
-      cong var (∈-propositional xs p₁ p₂)
+      cong var (∈-propositional p₁ p₂)
     Wf-tm-propositional (op o as) (op wfs₁) (op wfs₂) =
       cong op (Wf-args-propositional as wfs₁ wfs₂)
 
