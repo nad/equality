@@ -222,7 +222,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   private
     variable
-      @0 xs : Vars
+      @0 xs ys : Vars
 
   -- Predicates for well-formed variables, terms and arguments.
 
@@ -768,3 +768,36 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     wf-elim-Argument : (a : Argument xs v) → P-arg a
     wf-elim-Argument (aˢ , a , [ wf ]) = wf-elim-Argument′ aˢ a wf
+
+  ----------------------------------------------------------------------
+  -- Weakening of the Wf predicates
+
+  -- If a term is well-formed for a given set, then it is well-formed
+  -- for all supersets.
+
+  @0 weaken-Wf-var : xs ⊆ ys → Wf-var xs x → Wf-var ys x
+  weaken-Wf-var xs⊆ys = xs⊆ys _
+
+  mutual
+
+    @0 weaken-Wf-tm :
+      xs ⊆ ys → ∀ (tˢ : Tmˢ s) {t} →
+      Wf-tm xs tˢ t → Wf-tm ys tˢ t
+    weaken-Wf-tm xs⊆ys var        = weaken-Wf-var xs⊆ys
+    weaken-Wf-tm xs⊆ys (op o asˢ) = weaken-Wf-args xs⊆ys asˢ
+
+    @0 weaken-Wf-args :
+      xs ⊆ ys → ∀ (asˢ : Argsˢ vs) {as} →
+      Wf-args xs asˢ as → Wf-args ys asˢ as
+    weaken-Wf-args xs⊆ys nil           = id
+    weaken-Wf-args xs⊆ys (cons aˢ asˢ) =
+      Σ-map (weaken-Wf-arg xs⊆ys aˢ)
+            (weaken-Wf-args xs⊆ys asˢ)
+
+    @0 weaken-Wf-arg :
+      xs ⊆ ys → ∀ (aˢ : Argˢ v) {a} →
+      Wf-arg xs aˢ a → Wf-arg ys aˢ a
+    weaken-Wf-arg xs⊆ys (nil tˢ)  = weaken-Wf-tm xs⊆ys tˢ
+    weaken-Wf-arg xs⊆ys (cons aˢ) =
+      λ wf y y∉ys →
+        weaken-Wf-arg (∷-cong-⊆ xs⊆ys) aˢ (wf y (y∉ys ∘ xs⊆ys _))
