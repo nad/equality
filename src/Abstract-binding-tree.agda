@@ -31,6 +31,10 @@ open import H-level.Closure eq-J
 open import H-level.Truncation.Propositional eq-J as Trunc
 open import List eq-J hiding (tail)
 
+private
+  variable
+    @0 p₁ p₂ p₃ : Level
+
 ------------------------------------------------------------------------
 -- Signatures
 
@@ -675,3 +679,92 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   Argument-set : Is-set (Argument xs v)
   Argument-set = decidable⇒set _≟Argument_
+
+  ----------------------------------------------------------------------
+  -- An elimination principle for well-formed terms ("structural
+  -- induction modulo fresh renaming")
+
+  -- The eliminators' arguments.
+
+  record Wf-elim
+           (P-tm   : ∀ {@0 xs s}  → Term xs s       → Set p₁)
+           (P-args : ∀ {@0 xs vs} → Arguments xs vs → Set p₂)
+           (P-arg  : ∀ {@0 xs v}  → Argument xs v   → Set p₃)
+           : Set (ℓ ⊔ p₁ ⊔ p₂ ⊔ p₃) where
+    no-eta-equality
+    field
+      varʳ : (x : Var s) (@0 x∈ : (_ , x) ∈ xs) →
+             P-tm (var , x , [ x∈ ])
+      opʳ  : ∀ (o : Op s) asˢ as (@0 wfs : Wf-args xs asˢ as) →
+             P-args (asˢ , as , [ wfs ]) →
+             P-tm (op o asˢ , as , [ wfs ])
+
+      nilʳ  : P-args {xs = xs} (nil , _ , [ _ ])
+      consʳ : ∀ aˢ a asˢ as
+              (@0 wf : Wf-arg {v = v} xs aˢ a)
+              (@0 wfs : Wf-args {vs = vs} xs asˢ as) →
+              P-arg (aˢ , a , [ wf ]) → P-args (asˢ , as , [ wfs ]) →
+              P-args (cons aˢ asˢ , (a , as) , [ (wf , wfs) ])
+
+      nilʳ′  : ∀ tˢ t (@0 wf : Wf-tm {s = s} xs tˢ t) →
+               P-tm (tˢ , t , [ wf ]) →
+               P-arg (nil tˢ , t , [ wf ])
+      consʳ′ : ∀ (aˢ : Argˢ v) (x : Var s) a (@0 wf) →
+               (∀ y (@0 y∉ : ¬ (_ , y) ∈ xs) →
+                P-arg (aˢ , rename-Arg x y aˢ a , [ wf y y∉ ])) →
+               P-arg (cons aˢ , (x , a) , [ wf ])
+
+  -- The eliminators.
+
+  -- TODO: Can one define a more efficient eliminator that collects up
+  -- all the renamings?
+
+  module _
+    {P-tm   : ∀ {@0 xs s}  → Term xs s       → Set p₁}
+    {P-args : ∀ {@0 xs vs} → Arguments xs vs → Set p₂}
+    {P-arg  : ∀ {@0 xs v}  → Argument xs v   → Set p₃}
+    (e : Wf-elim P-tm P-args P-arg)
+    where
+
+    open Wf-elim
+
+    private
+
+     mutual
+
+      wf-elim-Term′ :
+        (tˢ : Tmˢ s) (t : Tm tˢ) (@0 wf : Wf-tm xs tˢ t) →
+        P-tm (tˢ , t , [ wf ])
+      wf-elim-Term′ var        x  wf  = e .varʳ x wf
+      wf-elim-Term′ (op o asˢ) as wfs =
+        e .opʳ o asˢ as wfs (wf-elim-Arguments′ asˢ as wfs)
+
+      wf-elim-Arguments′ :
+        (asˢ : Argsˢ vs) (as : Args asˢ) (@0 wfs : Wf-args xs asˢ as) →
+        P-args (asˢ , as , [ wfs ])
+      wf-elim-Arguments′ nil _ _ = e .nilʳ
+
+      wf-elim-Arguments′ (cons aˢ asˢ) (a , as) (wf , wfs) =
+        e .consʳ aˢ a asˢ as wf wfs
+          (wf-elim-Argument′ aˢ a wf)
+          (wf-elim-Arguments′ asˢ as wfs)
+
+      wf-elim-Argument′ :
+        (aˢ : Argˢ v) (a : Arg aˢ) (@0 wf : Wf-arg xs aˢ a) →
+        P-arg (aˢ , a , [ wf ])
+      wf-elim-Argument′ (nil tˢ) t wf =
+        e .nilʳ′ tˢ t wf (wf-elim-Term′ tˢ t wf)
+
+      wf-elim-Argument′ (cons aˢ) (x , a) wf =
+        e .consʳ′ aˢ x a wf λ y y∉ →
+          wf-elim-Argument′ aˢ (rename-Arg x y aˢ a) (wf y y∉)
+
+    wf-elim-Term : (t : Term xs s) → P-tm t
+    wf-elim-Term (tˢ , t , [ wf ]) = wf-elim-Term′ tˢ t wf
+
+    wf-elim-Arguments : (as : Arguments xs vs) → P-args as
+    wf-elim-Arguments (asˢ , as , [ wfs ]) =
+      wf-elim-Arguments′ asˢ as wfs
+
+    wf-elim-Argument : (a : Argument xs v) → P-arg a
+    wf-elim-Argument (aˢ , a , [ wf ]) = wf-elim-Argument′ aˢ a wf
