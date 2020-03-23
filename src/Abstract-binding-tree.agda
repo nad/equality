@@ -12,8 +12,7 @@ open import Equality
 module Abstract-binding-tree
   {e⁺} (eq-J : ∀ {a p} → Equality-with-J a p e⁺) where
 
-private
-  open module D = Derived-definitions-and-properties eq-J
+open Derived-definitions-and-properties eq-J
 
 open import Logical-equivalence using (_⇔_; Dec-map)
 open import Prelude
@@ -23,13 +22,12 @@ open import Equality.Decidable-UIP eq-J
 open import Equality.Decision-procedures eq-J
 open import Equality.Path.Isomorphisms eq-J
 open import Equivalence eq-J as Eq using (_≃_)
-open import Erased.Cubical eq-J as E
-open import Finite-subset.Listed eq-J as L
+open import Erased.Cubical eq-J
+open import Finite-subset.Listed eq-J
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J
 open import H-level.Closure eq-J
-open import H-level.Truncation.Propositional eq-J as Trunc
-open import List eq-J hiding (tail)
+open import List eq-J
 
 private
   variable
@@ -334,7 +332,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∀ {vs₁ vs₂ as} (eq : vs₁ ≡ vs₂) →
       to (subst (λ vs → Argsˢ (erased vs)) eq as) ≡
       subst RHS eq (to as)
-    lemma₁ {as = as} = D.elim¹ _
+    lemma₁ {as = as} = elim¹ _
       (to (subst (λ vs → Argsˢ (erased vs)) (refl _) as)  ≡⟨ cong to $ subst-refl _ _ ⟩
        to as                                              ≡⟨ sym $ subst-refl _ _ ⟩∎
        subst RHS (refl _) (to as)                         ∎)
@@ -426,7 +424,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∀ {v₁ v₂ a} (eq : v₁ ≡ v₂) →
       to (subst (λ v → Argˢ (erased v)) eq a) ≡
       subst RHS eq (to a)
-    lemma₁ {a = a} = D.elim¹ _
+    lemma₁ {a = a} = elim¹ _
       (to (subst (λ v → Argˢ (erased v)) (refl _) a)  ≡⟨ cong to $ subst-refl _ _ ⟩
        to a                                           ≡⟨ sym $ subst-refl _ _ ⟩∎
        subst RHS (refl _) (to a)                      ∎)
@@ -826,7 +824,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   rename-Var-cast-Var :
     ∀ {x y : Var s} {z : Var s₁} {eq : [ s₁ ] ≡ [ s₂ ]} →
     rename-Var x y (cast-Var eq z) ≡ cast-Var eq (rename-Var x y z)
-  rename-Var-cast-Var {x = x} {y = y} {z = z} = D.elim¹
+  rename-Var-cast-Var {x = x} {y = y} {z = z} = elim¹
     (λ eq → rename-Var x y (cast-Var eq z) ≡
             cast-Var eq (rename-Var x y z))
     (rename-Var x y (cast-Var (refl _) z)  ≡⟨ cong (rename-Var _ _) $ subst-refl _ _ ⟩
