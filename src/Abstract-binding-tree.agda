@@ -96,14 +96,11 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   private
     variable
-      @0 A                   : Set ℓ
-      @0 wf wfs x x′ y x₁ x₂ : A
-      @0 eq eq₁ eq₂          : x ≡ y
-      @0 s s′                : Sort
-      @0 ss                  : List Sort
-      @0 v v₁ v₂             : Valence
-      @0 vs vs′ vs₁ vs₂      : List Valence
-      @0 o                   : Op s
+      @0 s s′ s₁ s₂ s₃ : Sort
+      @0 ss            : List Sort
+      @0 v             : Valence
+      @0 vs            : List Valence
+      @0 x             : Var s
 
   ----------------------------------------------------------------------
   -- Some types are sets
@@ -801,3 +798,204 @@ module Signature {ℓ} (sig : Signature ℓ) where
     weaken-Wf-arg xs⊆ys (cons aˢ) =
       λ wf y y∉ys →
         weaken-Wf-arg (∷-cong-⊆ xs⊆ys) aˢ (wf y (y∉ys ∘ xs⊆ys _))
+
+  ----------------------------------------------------------------------
+  -- Some renaming lemmas
+
+  -- Two "computation rules".
+
+  rename-Var-≡ :
+    {x y : Var s} {z : Var s′} →
+    (x≡z : _≡_ {A = ∃Var} (_ , x) (_ , z)) →
+    rename-Var x y z ≡ cast-Var (cong proj₁ x≡z) y
+  rename-Var-≡ {x = x} {y = y} {z = z} x≡z with (_ , x) ≟∃V (_ , z)
+  … | no x≢z   = ⊥-elim (x≢z x≡z)
+  … | yes x≡z′ =
+    cast-Var (cong proj₁ x≡z′) y  ≡⟨ cong (λ eq → cast-Var eq _) (H-level-Erased 2 Sort-set _ _) ⟩∎
+    cast-Var (cong proj₁ x≡z)  y  ∎
+
+  rename-Var-≢ :
+    {x y : Var s} {z : Var s′} →
+    _≢_ {A = ∃Var} (_ , x) (_ , z) → rename-Var x y z ≡ z
+  rename-Var-≢ {x = x} {z = z} x≢z with (_ , x) ≟∃V (_ , z)
+  … | no _    = refl _
+  … | yes x≡z = ⊥-elim (x≢z x≡z)
+
+  -- The functions rename-Var and cast-Var commute.
+
+  rename-Var-cast-Var :
+    ∀ {x y : Var s} {z : Var s₁} {eq : [ s₁ ] ≡ [ s₂ ]} →
+    rename-Var x y (cast-Var eq z) ≡ cast-Var eq (rename-Var x y z)
+  rename-Var-cast-Var {x = x} {y = y} {z = z} = D.elim¹
+    (λ eq → rename-Var x y (cast-Var eq z) ≡
+            cast-Var eq (rename-Var x y z))
+    (rename-Var x y (cast-Var (refl _) z)  ≡⟨ cong (rename-Var _ _) $ subst-refl _ _ ⟩
+     rename-Var x y z                      ≡⟨ sym $ subst-refl _ _ ⟩∎
+     cast-Var (refl _) (rename-Var x y z)  ∎)
+    _
+
+  -- A fusion lemma for cast-Var.
+
+  cast-Var-cast-Var :
+    {x : Var s₁} {eq₁ : [ s₁ ] ≡ [ s₂ ]} {eq₂ : [ s₂ ] ≡ [ s₃ ]} →
+    cast-Var eq₂ (cast-Var eq₁ x) ≡ cast-Var (trans eq₁ eq₂) x
+  cast-Var-cast-Var = subst-subst _ _ _ _
+
+  -- The proof given to cast-Var can be replaced.
+
+  cast-Var-irrelevance :
+    {x : Var s₁} {eq₁ eq₂ : [ s₁ ] ≡ [ s₂ ]} →
+    cast-Var eq₁ x ≡ cast-Var eq₂ x
+  cast-Var-irrelevance =
+    cong (λ eq → cast-Var eq _) (H-level-Erased 2 Sort-set _ _)
+
+  -- Renamings can sometimes be reordered in a certain way.
+
+  module _
+    {x₁ y₁ : Var s₁} {x₂ y₂ : Var s₂}
+    (hyp : ¬ ((_≡_ {A = ∃Var} (_ , x₂) (_ , x₁) ×
+               _≢_ {A = ∃Var} (_ , x₂) (_ , y₁)
+                 ⊎
+               _≡_ {A = ∃Var} (_ , x₂) (_ , y₁) ×
+               _≢_ {A = ∃Var} (_ , x₂) (_ , x₁))
+                ×
+              _≢_ {A = ∃Var} (_ , x₁) (_ , y₂))
+             ⊎
+           _≡_ {A = ∃Var} (_ , y₁) (_ , y₂))
+    where
+
+    rename-Var-swap :
+      {z : Var s} →
+      rename-Var x₁ y₁ (rename-Var x₂ y₂ z) ≡
+      rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)
+    rename-Var-swap {z = z} =
+      lemma ((_ , x₁) ≟∃V (_ , z))
+            ((_ , x₂) ≟∃V (_ , z))
+            ((_ , x₂) ≟∃V (_ , y₁))
+            ((_ , x₁) ≟∃V (_ , y₂))
+      where
+      lemma :
+        Dec (_≡_ {A = ∃Var} (_ , x₁) (_ , z)) →
+        Dec (_≡_ {A = ∃Var} (_ , x₂) (_ , z)) →
+        Dec (_≡_ {A = ∃Var} (_ , x₂) (_ , y₁)) →
+        Dec (_≡_ {A = ∃Var} (_ , x₁) (_ , y₂)) →
+        rename-Var x₁ y₁ (rename-Var x₂ y₂ z) ≡
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)
+      lemma (no x₁≢z) (no x₂≢z) _ _ =
+        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
+        rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≢ x₁≢z ⟩
+        z                                                         ≡⟨ sym $ rename-Var-≢ x₂≢z ⟩
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) z                     ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≢ x₁≢z ⟩∎
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+
+      lemma (no x₁≢z) (yes x₂≡z) _ _ =
+        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
+        rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
+        cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ sym $ rename-Var-≡ x₂≡z ⟩
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) z                     ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≢ x₁≢z ⟩∎
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+
+      lemma (yes x₁≡z) (yes x₂≡z) (yes x₂≡y₁) _ =
+        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
+        rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
+        cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ cast-Var-irrelevance ⟩
+        cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ sym cast-Var-cast-Var ⟩
+        cast-Var _ (cast-Var _ (rename-Var x₁ y₁ y₂))             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≡ x₂≡y₁ ⟩
+        cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+
+      lemma (yes x₁≡z) (yes x₂≡z) (no x₂≢y₁) (yes x₁≡y₂) =
+        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
+        rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
+        cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ cong (cast-Var _) $ rename-Var-≡ x₁≡y₂ ⟩
+        cast-Var _ (cast-Var _ y₁)                                ≡⟨ cast-Var-cast-Var ⟩
+        cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
+        cast-Var _ y₁                                             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≢ x₂≢y₁ ⟩
+        cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+
+      lemma (yes x₁≡z) (yes x₂≡z) (no x₂≢y₁) (no x₁≢y₂) =
+        case hyp of λ where
+          (inj₁ hyp) → ⊥-elim $ hyp
+                         (inj₁ (trans x₂≡z (sym x₁≡z) , x₂≢y₁) , x₁≢y₂)
+          (inj₂ hyp) →
+            rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
+            rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
+            cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ cong (cast-Var _) $ rename-Var-≢ x₁≢y₂ ⟩
+            cast-Var _ y₂                                             ≡⟨ cong (cast-Var _) $ sym $ proj₂ (Σ-≡,≡←≡ hyp) ⟩
+            cast-Var _ (cast-Var _ y₁)                                ≡⟨ cast-Var-cast-Var ⟩
+            cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
+            cast-Var _ y₁                                             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≢ x₂≢y₁ ⟩
+            cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+            rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+            rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+
+      lemma (yes x₁≡z) (no x₂≢z) (no x₂≢y₁) _ =
+        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
+        rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≡ x₁≡z ⟩
+        cast-Var _ y₁                                             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≢ x₂≢y₁ ⟩
+        cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+
+      lemma (yes x₁≡z) (no x₂≢z) (yes x₂≡y₁) (yes x₁≡y₂) =
+        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
+        rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≡ x₁≡z ⟩
+        cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
+        cast-Var _ y₁                                             ≡⟨ sym cast-Var-cast-Var ⟩
+        cast-Var _ (cast-Var _ y₁)                                ≡⟨ sym cast-Var-cast-Var ⟩
+        cast-Var _ (cast-Var _ (cast-Var _ y₁))                   ≡⟨ sym $ cong (cast-Var _ ∘ cast-Var _) $ rename-Var-≡ x₁≡y₂ ⟩
+        cast-Var _ (cast-Var _ (rename-Var x₁ y₁ y₂))             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≡ x₂≡y₁ ⟩
+        cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+
+      lemma (yes x₁≡z) (no x₂≢z) (yes x₂≡y₁) (no x₁≢y₂) =
+        case hyp of λ where
+          (inj₁ hyp) → ⊥-elim $ hyp
+                         (inj₂ (x₂≡y₁ , x₂≢z ∘ flip trans x₁≡z) , x₁≢y₂)
+          (inj₂ hyp) →
+            rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
+            rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≡ x₁≡z ⟩
+            cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
+            cast-Var _ y₁                                             ≡⟨ sym cast-Var-cast-Var ⟩
+            cast-Var _ (cast-Var _ y₁)                                ≡⟨ cong (cast-Var _) $ proj₂ (Σ-≡,≡←≡ hyp) ⟩
+            cast-Var _ y₂                                             ≡⟨ sym cast-Var-cast-Var ⟩
+            cast-Var _ (cast-Var _ y₂)                                ≡⟨ sym $ cong (cast-Var _ ∘ cast-Var _) $ rename-Var-≢ x₁≢y₂ ⟩
+            cast-Var _ (cast-Var _ (rename-Var x₁ y₁ y₂))             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≡ x₂≡y₁ ⟩
+            cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+            rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+            rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+
+    mutual
+
+      rename-Tm-swap :
+        ∀ (tˢ : Tmˢ s) {t} →
+        rename-Tm x₁ y₁ tˢ (rename-Tm x₂ y₂ tˢ t) ≡
+        rename-Tm x₂ (rename-Var x₁ y₁ y₂) tˢ (rename-Tm x₁ y₁ tˢ t)
+      rename-Tm-swap var        = rename-Var-swap
+      rename-Tm-swap (op o asˢ) = rename-Args-swap asˢ
+
+      rename-Args-swap :
+        ∀ (asˢ : Argsˢ vs) {as} →
+        rename-Args x₁ y₁ asˢ (rename-Args x₂ y₂ asˢ as) ≡
+        rename-Args x₂ (rename-Var x₁ y₁ y₂) asˢ
+          (rename-Args x₁ y₁ asˢ as)
+      rename-Args-swap nil           = refl _
+      rename-Args-swap (cons aˢ asˢ) =
+        cong₂ _,_
+          (rename-Arg-swap aˢ)
+          (rename-Args-swap asˢ)
+
+      rename-Arg-swap :
+        ∀ (aˢ : Argˢ v) {a} →
+        rename-Arg x₁ y₁ aˢ (rename-Arg x₂ y₂ aˢ a) ≡
+        rename-Arg x₂ (rename-Var x₁ y₁ y₂) aˢ
+          (rename-Arg x₁ y₁ aˢ a)
+      rename-Arg-swap (nil tˢ)  = rename-Tm-swap tˢ
+      rename-Arg-swap (cons aˢ) =
+        cong₂ _,_
+          rename-Var-swap
+          (rename-Arg-swap aˢ)
