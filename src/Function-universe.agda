@@ -713,21 +713,21 @@ _⊎-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
   }
 
 -- Lemmas that can be used to simplify binary sums where one of the
--- two type arguments is isomorphic to the empty type.
+-- two type arguments is related to the empty type.
 
 drop-⊥-right :
   ∀ {k a b} {A : Set a} {B : Set b} →
-  B ↔[ k ] ⊥₀ → A ⊎ B ↔ A
+  B ↝[ k ] ⊥₀ → A ⊎ B ↝[ k ] A
 drop-⊥-right {A = A} {B} B↔⊥ =
-  A ⊎ B  ↔⟨ id ⊎-cong B↔⊥ ⟩
-  A ⊎ ⊥  ↝⟨ ⊎-right-identity ⟩□
+  A ⊎ B  ↝⟨ id ⊎-cong B↔⊥ ⟩
+  A ⊎ ⊥  ↔⟨ ⊎-right-identity ⟩□
   A      □
 
 drop-⊥-left :
   ∀ {k a b} {A : Set a} {B : Set b} →
-  A ↔[ k ] ⊥₀ → A ⊎ B ↔ B
+  A ↝[ k ] ⊥₀ → A ⊎ B ↝[ k ] B
 drop-⊥-left {A = A} {B} A↔⊥ =
-  A ⊎ B  ↝⟨ ⊎-comm ⟩
+  A ⊎ B  ↔⟨ ⊎-comm ⟩
   B ⊎ A  ↝⟨ drop-⊥-right A↔⊥ ⟩□
   B      □
 
