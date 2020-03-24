@@ -23,7 +23,7 @@ open import Prelude
 open import Logical-equivalence using (_⇔_)
 
 open import Bijection eq as Bijection using (_↔_)
-open import Embedding eq hiding (id; _∘_)
+open import Embedding eq as Embedding hiding (id; _∘_)
 open import Equality.Decidable-UIP eq
 open import Equality.Path.Isomorphisms eq
 open import Equivalence eq as Eq hiding (id; _∘_; inverse)
@@ -31,6 +31,7 @@ open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
 import H-level.Truncation.Church eq as Trunc
+open import Injection eq using (_↣_)
 open import Monad eq
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq using (_↠_; Split-surjective)
@@ -39,6 +40,7 @@ private
   variable
     a b c d f p ℓ : Level
     A B C         : Set a
+    k             : A
 
 -- Propositional truncation.
 
@@ -131,15 +133,28 @@ rec p = recᴾ (_↔_.to (H-level↔H-level 1) p)
        ; from = ∥∥-map (_⇔_.from A⇔B)
        })
 
--- The truncation operator preserves bijections.
+-- The truncation operator preserves all kinds of functions.
 
-∥∥-cong : ∀ {k} {A : Set a} {B : Set b} →
-          A ↔[ k ] B → ∥ A ∥ ↔[ k ] ∥ B ∥
-∥∥-cong {a = a} {b = b} {A = A} {B} A↔B =
-  ∥ A ∥                  ↔⟨ ∥∥↔∥∥ b ⟩
-  Trunc.∥ A ∥ 1 (a ⊔ b)  ↝⟨ Trunc.∥∥-cong {n = 1} ext A↔B ⟩
-  Trunc.∥ B ∥ 1 (a ⊔ b)  ↔⟨ inverse (∥∥↔∥∥ a) ⟩□
-  ∥ B ∥                  □
+private
+
+  ∥∥-cong-↣ : A ↣ B → ∥ A ∥ ↣ ∥ B ∥
+  ∥∥-cong-↣ f = record
+    { to        = ∥∥-map (_↣_.to f)
+    ; injective = λ _ → truncation-is-proposition _ _
+    }
+
+∥∥-cong : A ↝[ k ] B → ∥ A ∥ ↝[ k ] ∥ B ∥
+∥∥-cong {k = implication}         = ∥∥-map
+∥∥-cong {k = logical-equivalence} = ∥∥-cong-⇔
+∥∥-cong {k = surjection}          = ∥∥-cong-⇔ ∘ _↠_.logical-equivalence
+∥∥-cong {k = bijection}           = ∥∥-cong-⇔ ∘ from-isomorphism
+∥∥-cong {k = equivalence}         = ∥∥-cong-⇔ ∘ from-isomorphism
+∥∥-cong {k = injection}           = ∥∥-cong-↣
+∥∥-cong {k = embedding}           =
+  _↔_.to (↣↔Embedding ext
+            (mono₁ 1 truncation-is-proposition)
+            (mono₁ 1 truncation-is-proposition)) ∘
+  ∥∥-cong-↣ ∘ Embedding.injection
 
 -- A form of idempotence for binary sums.
 
