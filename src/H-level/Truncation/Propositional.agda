@@ -38,10 +38,10 @@ open import Surjection eq using (_↠_; Split-surjective)
 
 private
   variable
-    a b c d f p ℓ : Level
-    A B C         : Set a
-    P             : A → Set p
-    k             : A
+    a b c d f p ℓ     : Level
+    A A₁ A₂ B B₁ B₂ C : Set a
+    P Q               : A → Set p
+    k                 : A
 
 -- Propositional truncation.
 
@@ -605,3 +605,156 @@ countable-choice-bijection cc = record
       (Π-closure ext 1 λ _ →
        truncation-is-proposition) _ _
   }
+
+------------------------------------------------------------------------
+-- Definitions related to truncated binary sums
+
+-- Truncated binary sums.
+
+infixr 1 _∥⊎∥_
+
+_∥⊎∥_ : Set a → Set b → Set (a ⊔ b)
+A ∥⊎∥ B = ∥ A ⊎ B ∥
+
+-- Introduction rules.
+
+∣inj₁∣ : A → A ∥⊎∥ B
+∣inj₁∣ = ∣_∣ ∘ inj₁
+
+∣inj₂∣ : B → A ∥⊎∥ B
+∣inj₂∣ = ∣_∣ ∘ inj₂
+
+-- _∥⊎∥_ is pointwise propositional.
+
+∥⊎∥-propositional : Is-proposition (A ∥⊎∥ B)
+∥⊎∥-propositional = truncation-is-proposition
+
+-- _∥⊎∥_ preserves all kinds of functions.
+
+infixr 1 _∥⊎∥-cong_
+
+_∥⊎∥-cong_ : A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ ∥⊎∥ B₁ ↝[ k ] A₂ ∥⊎∥ B₂
+A₁↝A₂ ∥⊎∥-cong B₁↝B₂ = ∥∥-cong (A₁↝A₂ ⊎-cong B₁↝B₂)
+
+-- _∥⊎∥_ is commutative.
+
+∥⊎∥-comm : A ∥⊎∥ B ↔ B ∥⊎∥ A
+∥⊎∥-comm = ∥∥-cong ⊎-comm
+
+-- If one truncates the types to the left or right of _∥⊎∥_, then one
+-- ends up with an isomorphic type.
+
+truncate-left-∥⊎∥ : A ∥⊎∥ B ↔ ∥ A ∥ ∥⊎∥ B
+truncate-left-∥⊎∥ =
+  inverse $ flatten′ (λ F → F _ ⊎ _) (λ f → ⊎-map f id) [ ∥∥-map inj₁ , ∣inj₂∣ ]
+
+truncate-right-∥⊎∥ : A ∥⊎∥ B ↔ A ∥⊎∥ ∥ B ∥
+truncate-right-∥⊎∥ {A = A} {B = B} =
+  A ∥⊎∥ B      ↝⟨ ∥⊎∥-comm ⟩
+  B ∥⊎∥ A      ↝⟨ truncate-left-∥⊎∥ ⟩
+  ∥ B ∥ ∥⊎∥ A  ↝⟨ ∥⊎∥-comm ⟩□
+  A ∥⊎∥ ∥ B ∥  □
+
+-- _∥⊎∥_ is associative.
+
+∥⊎∥-assoc : A ∥⊎∥ (B ∥⊎∥ C) ↔ (A ∥⊎∥ B) ∥⊎∥ C
+∥⊎∥-assoc {A = A} {B = B} {C = C} =
+  ∥ A ⊎ ∥ B ⊎ C ∥ ∥  ↝⟨ inverse truncate-right-∥⊎∥ ⟩
+  ∥ A ⊎ B ⊎ C ∥      ↝⟨ ∥∥-cong ⊎-assoc ⟩
+  ∥ (A ⊎ B) ⊎ C ∥    ↝⟨ truncate-left-∥⊎∥ ⟩□
+  ∥ ∥ A ⊎ B ∥ ⊎ C ∥  □
+
+-- ⊥ is a left and right identity of _∥⊎∥_ if the other argument is a
+-- proposition.
+
+∥⊎∥-left-identity : Is-proposition A → ⊥ {ℓ = ℓ} ∥⊎∥ A ↔ A
+∥⊎∥-left-identity {A = A} A-prop =
+  ∥ ⊥ ⊎ A ∥  ↝⟨ ∥∥-cong ⊎-left-identity ⟩
+  ∥ A ∥      ↝⟨ ∥∥↔ A-prop ⟩□
+  A          □
+
+∥⊎∥-right-identity : Is-proposition A → A ∥⊎∥ ⊥ {ℓ = ℓ} ↔ A
+∥⊎∥-right-identity {A = A} A-prop =
+  A ∥⊎∥ ⊥  ↔⟨ ∥⊎∥-comm ⟩
+  ⊥ ∥⊎∥ A  ↔⟨ ∥⊎∥-left-identity A-prop ⟩□
+  A        □
+
+-- _∥⊎∥_ is idempotent for propositions.
+
+∥⊎∥-idempotent : Is-proposition A → A ∥⊎∥ A ↔ A
+∥⊎∥-idempotent {A = A} A-prop =
+  ∥ A ⊎ A ∥  ↝⟨ idempotent ⟩
+  ∥ A ∥      ↝⟨ ∥∥↔ A-prop ⟩□
+  A          □
+
+-- Sometimes a truncated binary sum is isomorphic to one of its
+-- summands.
+
+drop-left-∥⊎∥ :
+  Is-proposition B → (A → B) → A ∥⊎∥ B ↔ B
+drop-left-∥⊎∥ B-prop A→B =
+  _≃_.bijection $
+  _↠_.from (≃↠⇔ ∥⊎∥-propositional B-prop)
+    (record
+      { to   = rec B-prop [ to-implication A→B , id ]
+      ; from = ∣inj₂∣
+      })
+
+drop-right-∥⊎∥ :
+  Is-proposition A → (B → A) → A ∥⊎∥ B ↔ A
+drop-right-∥⊎∥ {A = A} {B = B} A-prop B→A =
+  A ∥⊎∥ B  ↝⟨ ∥⊎∥-comm ⟩
+  B ∥⊎∥ A  ↝⟨ drop-left-∥⊎∥ A-prop B→A ⟩□
+  A        □
+
+drop-⊥-right-∥⊎∥ :
+  Is-proposition A → ¬ B → A ∥⊎∥ B ↔ A
+drop-⊥-right-∥⊎∥ A-prop ¬B =
+  drop-right-∥⊎∥ A-prop (⊥-elim ∘ ¬B)
+
+drop-⊥-left-∥⊎∥ :
+  Is-proposition B → ¬ A → A ∥⊎∥ B ↔ B
+drop-⊥-left-∥⊎∥ B-prop ¬A =
+  drop-left-∥⊎∥ B-prop (⊥-elim ∘ ¬A)
+
+-- A type of functions from a truncated binary sum to a family of
+-- propositions can be expressed as a binary product of function
+-- types.
+
+Π∥⊎∥↔Π×Π :
+  (∀ x → Is-proposition (P x)) →
+  ((x : A ∥⊎∥ B) → P x)
+    ↔
+  ((x : A) → P (∣inj₁∣ x)) × ((y : B) → P (∣inj₂∣ y))
+Π∥⊎∥↔Π×Π {A = A} {B = B} {P = P} P-prop =
+  ((x : A ∥⊎∥ B) → P x)                                ↔⟨ universal-property-Π P-prop ⟩
+  ((x : A ⊎ B) → P ∣ x ∣)                              ↝⟨ Π⊎↔Π×Π ext ⟩□
+  ((x : A) → P (∣inj₁∣ x)) × ((y : B) → P (∣inj₂∣ y))  □
+
+-- Two distributivity laws for Σ and _∥⊎∥_.
+
+Σ-∥⊎∥-distrib-left :
+  Is-proposition A →
+  Σ A (λ x → P x ∥⊎∥ Q x) ↔ Σ A P ∥⊎∥ Σ A Q
+Σ-∥⊎∥-distrib-left {P = P} {Q = Q} A-prop =
+  (∃ λ x → ∥ P x ⊎ Q x ∥)      ↝⟨ inverse $ ∥∥↔ (Σ-closure 1 A-prop λ _ → ∥⊎∥-propositional) ⟩
+  ∥ (∃ λ x → ∥ P x ⊎ Q x ∥) ∥  ↝⟨ flatten′ (λ F → (∃ λ x → F (P x ⊎ Q x))) (λ f → Σ-map id f) (uncurry λ x → ∥∥-map (x ,_)) ⟩
+  ∥ (∃ λ x → P x ⊎ Q x) ∥      ↝⟨ ∥∥-cong ∃-⊎-distrib-left ⟩□
+  ∥ ∃ P ⊎ ∃ Q ∥                □
+
+Σ-∥⊎∥-distrib-right :
+  (∀ x → Is-proposition (P x)) →
+  Σ (A ∥⊎∥ B) P ↔ Σ A (P ∘ ∣inj₁∣) ∥⊎∥ Σ B (P ∘ ∣inj₂∣)
+Σ-∥⊎∥-distrib-right {A = A} {B = B} {P = P} P-prop =
+  _≃_.bijection $
+  _↠_.from (≃↠⇔ prop₂ prop₁)
+    (record
+      { to   = uncurry $
+               elim _ (λ _ → Π-closure ext 1 λ _ → prop₁) λ where
+                 (inj₁ x) y → ∣ inj₁ (x , y) ∣
+                 (inj₂ x) y → ∣ inj₂ (x , y) ∣
+      ; from = rec prop₂ [ Σ-map ∣inj₁∣ id , Σ-map ∣inj₂∣ id ]
+      })
+  where
+  prop₁ = ∥⊎∥-propositional
+  prop₂ = Σ-closure 1 ∥⊎∥-propositional P-prop
