@@ -846,6 +846,28 @@ filter⊆ {p = p} {x = x} z =
   T (p z) × z ∈ x  ↝⟨ proj₂ ⟩□
   z ∈ x            □
 
+-- Filtering commutes with itself.
+
+filter-comm :
+  ∀ x → filter p (filter q x) ≡ filter q (filter p x)
+filter-comm {p = p} {q = q} x = _≃_.from extensionality λ y →
+  y ∈ filter p (filter q x)    ↔⟨ from-isomorphism Σ-assoc F.∘ (F.id ×-cong ∈filter≃∈×T) F.∘ ∈filter≃∈×T ⟩
+  (T (p y) × T (q y)) × y ∈ x  ↔⟨ ×-comm ×-cong F.id ⟩
+  (T (q y) × T (p y)) × y ∈ x  ↔⟨ inverse $ from-isomorphism Σ-assoc F.∘ (F.id ×-cong ∈filter≃∈×T) F.∘ ∈filter≃∈×T ⟩□
+  y ∈ filter q (filter p x)    □
+
+-- Filtering commutes with union.
+
+filter-∪ :
+  ∀ x → filter p (x ∪ y) ≡ filter p x ∪ filter p y
+filter-∪ {p = p} {y = y} x = _≃_.from extensionality λ z →
+  z ∈ filter p (x ∪ y)                   ↔⟨ (F.id ×-cong ∈∪≃∥∈⊎∈∥) F.∘ ∈filter≃∈×T ⟩
+  T (p z) × ∥ z ∈ x ⊎ z ∈ y ∥            ↔⟨ inverse (Trunc.∥∥↔ (T-propositional (p z))) ×-cong F.id ⟩
+  ∥ T (p z) ∥ × ∥ z ∈ x ⊎ z ∈ y ∥        ↔⟨ Trunc.∥∥×∥∥↔∥×∥ ⟩
+  ∥ T (p z) × (z ∈ x ⊎ z ∈ y) ∥          ↔⟨ Trunc.∥∥-cong ×-⊎-distrib-left ⟩
+  ∥ T (p z) × z ∈ x ⊎ T (p z) × z ∈ y ∥  ↔⟨ inverse $ Trunc.∥∥-cong (∈filter≃∈×T ⊎-cong ∈filter≃∈×T) F.∘ ∈∪≃∥∈⊎∈∥ ⟩□
+  z ∈ filter p x ∪ filter p y            □
+
 -- If truncated equality is decidable, then one subset can be removed
 -- from another.
 
@@ -880,6 +902,20 @@ minus _≟_ x y =
 minus⊆ : minus _≟_ x y ⊆ x
 minus⊆ = filter⊆
 
+-- Minus commutes with itself (in a certain sense).
+
+minus-comm :
+  ∀ x y z →
+  minus _≟_ (minus _≟_ x y) z ≡ minus _≟_ (minus _≟_ x z) y
+minus-comm x _ _ = filter-comm x
+
+-- Minus commutes with union (in a certain sense).
+
+minus-∪ :
+  ∀ x z →
+  minus _≟_ (x ∪ y) z ≡ minus _≟_ x z ∪ minus _≟_ y z
+minus-∪ x _ = filter-∪ x
+
 -- If truncated equality is decidable, then elements can be removed
 -- from a subset.
 
@@ -905,6 +941,21 @@ delete _≟_ x y = minus _≟_ y (singleton x)
   x ∈ delete _≟_ x y  ↔⟨ ∈delete≃≢×∈ _≟_ ⟩
   x ≢ x × x ∈ y       ↝⟨ (_$ refl _) ∘ proj₁ ⟩□
   ⊥                   □
+
+-- Deletion commutes with itself (in a certain sense).
+
+delete-comm :
+  ∀ _≟_ z →
+  delete _≟_ x (delete _≟_ y z) ≡ delete _≟_ y (delete _≟_ x z)
+delete-comm _≟_ z =
+  minus-comm {_≟_ = _≟_} z (singleton _) (singleton _)
+
+-- Deletion commutes with union.
+
+delete-∪ :
+  ∀ _≟_ y →
+  delete _≟_ x (y ∪ z) ≡ delete _≟_ x y ∪ delete _≟_ x z
+delete-∪ _≟_ y = minus-∪ {_≟_ = _≟_} y (singleton _)
 
 ------------------------------------------------------------------------
 -- Some preservation lemmas for _⊆_
