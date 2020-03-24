@@ -40,6 +40,7 @@ private
   variable
     a b c d f p ℓ : Level
     A B C         : Set a
+    P             : A → Set p
     k             : A
 
 -- Propositional truncation.
@@ -373,6 +374,46 @@ not-inhabited⇒∥∥↔⊥ {A = A} =
   ; left-inverse-of = λ _ → ¬-propositional ext _ _
   }
 
+mutual
+
+  -- The propositional truncation's universal property.
+
+  universal-property :
+    Is-proposition B →
+    (∥ A ∥ → B) ≃ (A → B)
+  universal-property B-prop = universal-property-Π (λ _ → B-prop)
+
+  -- A generalisation of the universal property.
+
+  universal-property-Π :
+    (∀ x → Is-proposition (P x)) →
+    ((x : ∥ A ∥) → P x) ≃ ((x : A) → P ∣ x ∣)
+  universal-property-Π {A = A} {P = P} P-prop =
+    ((x : ∥ A ∥) → P x)      ↝⟨ _↠_.from (≃↠⇔ prop truncation-is-proposition)
+                                  (record { to   = λ f → ∣ f ∘ ∣_∣ ∣
+                                          ; from = rec prop (elim _ P-prop)
+                                          }) ⟩
+    ∥ ((x : A) → P ∣ x ∣) ∥  ↔⟨ ∥∥↔ (Π-closure ext 1 λ _ → P-prop _) ⟩□
+    ((x : A) → P ∣ x ∣)      □
+    where
+    prop = Π-closure ext 1 λ _ → P-prop _
+
+private
+
+  -- The universal property computes in the right way.
+
+  _ :
+    (B-prop : Is-proposition B)
+    (f : ∥ A ∥ → B) →
+    _≃_.to (universal-property B-prop) f ≡ f ∘ ∣_∣
+  _ = λ _ _ → refl _
+
+  _ :
+    (B-prop : Is-proposition B)
+    (f : A → B) (x : A) →
+    _≃_.from (universal-property B-prop) f ∣ x ∣ ≡ f x
+  _ = λ _ _ _ → refl _
+
 -- The following two results come from "Generalizations of Hedberg's
 -- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
@@ -512,37 +553,6 @@ private
     _≃_.to (constant-function≃∥inhabited∥⇒inhabited B-set) f ∣ x ∣ ≡
     proj₁ f x
   to-constant-function≃∥inhabited∥⇒inhabited _ _ _ = refl _
-
--- The propositional truncation's universal property.
---
--- As observed by Kraus this result follows from Proposition 2.2 in
--- his "The General Universal Property of the Propositional
--- Truncation".
-
-universal-property :
-  {A : Set a} {B : Set b} →
-  Is-proposition B →
-  (∥ A ∥ → B) ≃ (A → B)
-universal-property {a = a} {b = b} {A = A} {B} B-prop =
-  (∥ A ∥ → B)                  ↝⟨ →-cong₁ ext (∥∥↔∥∥ (a ⊔ b)) ⟩
-  (Trunc.∥ A ∥ 1 (a ⊔ b) → B)  ↝⟨ Trunc.universal-property lzero ext B-prop ⟩□
-  (A → B)                      □
-
-private
-
-  -- The universal property computes in the right way.
-
-  to-universal-property :
-    (B-prop : Is-proposition B)
-    (f : ∥ A ∥ → B) →
-    _≃_.to (universal-property B-prop) f ≡ f ∘ ∣_∣
-  to-universal-property _ _ = refl _
-
-  from-universal-property :
-    (B-prop : Is-proposition B)
-    (f : A → B) (x : A) →
-    _≃_.from (universal-property B-prop) f ∣ x ∣ ≡ f x
-  from-universal-property _ _ _ = refl _
 
 -- The axiom of choice, in one of the alternative forms given in the
 -- HoTT book (§3.8).
