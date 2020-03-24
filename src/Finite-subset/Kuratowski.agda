@@ -24,7 +24,8 @@ open import Equivalence eq as Eq using (_≃_)
 import Finite-subset.Listed eq as L
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
-open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)
+open import H-level.Truncation.Propositional eq as Trunc
+  using (∥_∥; _∥⊎∥_)
 open import Monad eq as M using (Raw-monad; Monad)
 
 private
@@ -551,16 +552,16 @@ x ∈ y = x L.∈ _≃_.from Listed≃Kuratowski y
 -- Membership of a union of two subsets can be expressed in terms of
 -- membership of the subsets.
 
-∈∪≃ : ∀ y z → (x ∈ y ∪ z) ≃ ∥ x ∈ y ⊎ x ∈ z ∥
+∈∪≃ : ∀ y z → (x ∈ y ∪ z) ≃ (x ∈ y ∥⊎∥ x ∈ z)
 ∈∪≃ {x = x} y z =
   x ∈ y ∪ z                                                            ↔⟨⟩
 
   x L.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↝⟨ L.∈∪≃ ⟩
 
-  ∥ x L.∈ _≃_.from Listed≃Kuratowski y ⊎
-    x L.∈ _≃_.from Listed≃Kuratowski z ∥                               ↔⟨⟩
+  x L.∈ _≃_.from Listed≃Kuratowski y ∥⊎∥
+  x L.∈ _≃_.from Listed≃Kuratowski z                                   ↔⟨⟩
 
-  ∥ x ∈ y ⊎ x ∈ z ∥                                                    □
+  x ∈ y ∥⊎∥ x ∈ z                                                      □
 
 -- If truncated equality is decidable, then membership is also
 -- decidable.
@@ -604,10 +605,10 @@ extensionality {x = x} {y = y} =
 
 idem : x ∪ x ≡ x
 idem {x = x} = _≃_.from extensionality λ y →
-  y ∈ x ∪ x          ↔⟨ ∈∪≃ x x ⟩
-  ∥ y ∈ x ⊎ y ∈ x ∥  ↔⟨ Trunc.idempotent ⟩
-  ∥ y ∈ x ∥          ↔⟨ Trunc.∥∥↔ (∈-propositional x) ⟩□
-  y ∈ x              □
+  y ∈ x ∪ x        ↔⟨ ∈∪≃ x x ⟩
+  y ∈ x ∥⊎∥ y ∈ x  ↔⟨ Trunc.idempotent ⟩
+  ∥ y ∈ x ∥        ↔⟨ Trunc.∥∥↔ (∈-propositional x) ⟩□
+  y ∈ x            □
 
 ------------------------------------------------------------------------
 -- Some operations
