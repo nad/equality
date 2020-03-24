@@ -609,8 +609,8 @@ private
 -- Membership of a union of two subsets can be expressed in terms of
 -- membership of the subsets.
 
-∈∪≃∥∈⊎∈∥ : (x ∈ y ∪ z) ≃ ∥ x ∈ y ⊎ x ∈ z ∥
-∈∪≃∥∈⊎∈∥ {x = x} {y = y} {z = z} = elim-prop e y
+∈∪≃ : (x ∈ y ∪ z) ≃ ∥ x ∈ y ⊎ x ∈ z ∥
+∈∪≃ {x = x} {y = y} {z = z} = elim-prop e y
   where
   e : Elim-prop (λ y → (x ∈ y ∪ z) ≃ ∥ x ∈ y ⊎ x ∈ z ∥)
   e .[]ʳ =
@@ -636,7 +636,7 @@ private
 ∈→∈∪ˡ : x ∈ y → x ∈ y ∪ z
 ∈→∈∪ˡ {x = x} {y = y} {z = z} =
   x ∈ y              ↝⟨ ∣_∣ ∘ inj₁ ⟩
-  ∥ x ∈ y ⊎ x ∈ z ∥  ↔⟨ inverse ∈∪≃∥∈⊎∈∥ ⟩□
+  ∥ x ∈ y ⊎ x ∈ z ∥  ↔⟨ inverse ∈∪≃ ⟩□
   x ∈ y ∪ z          □
 
 ∈→∈∪ʳ : ∀ y → x ∈ z → x ∈ y ∪ z
@@ -803,8 +803,8 @@ filter p = rec r
 
 -- A lemma characterising filter.
 
-∈filter≃∈×T : (x ∈ filter p y) ≃ (T (p x) × x ∈ y)
-∈filter≃∈×T {x = x} {p = p} = elim-prop e _
+∈filter≃ : (x ∈ filter p y) ≃ (T (p x) × x ∈ y)
+∈filter≃ {x = x} {p = p} = elim-prop e _
   where
   e : Elim-prop _
   e .[]ʳ =
@@ -842,7 +842,7 @@ filter p = rec r
 
 filter⊆ : filter p x ⊆ x
 filter⊆ {p = p} {x = x} z =
-  z ∈ filter p x   ↔⟨ ∈filter≃∈×T ⟩
+  z ∈ filter p x   ↔⟨ ∈filter≃ ⟩
   T (p z) × z ∈ x  ↝⟨ proj₂ ⟩□
   z ∈ x            □
 
@@ -851,9 +851,9 @@ filter⊆ {p = p} {x = x} z =
 filter-comm :
   ∀ x → filter p (filter q x) ≡ filter q (filter p x)
 filter-comm {p = p} {q = q} x = _≃_.from extensionality λ y →
-  y ∈ filter p (filter q x)    ↔⟨ from-isomorphism Σ-assoc F.∘ (F.id ×-cong ∈filter≃∈×T) F.∘ ∈filter≃∈×T ⟩
+  y ∈ filter p (filter q x)    ↔⟨ from-isomorphism Σ-assoc F.∘ (F.id ×-cong ∈filter≃) F.∘ ∈filter≃ ⟩
   (T (p y) × T (q y)) × y ∈ x  ↔⟨ ×-comm ×-cong F.id ⟩
-  (T (q y) × T (p y)) × y ∈ x  ↔⟨ inverse $ from-isomorphism Σ-assoc F.∘ (F.id ×-cong ∈filter≃∈×T) F.∘ ∈filter≃∈×T ⟩□
+  (T (q y) × T (p y)) × y ∈ x  ↔⟨ inverse $ from-isomorphism Σ-assoc F.∘ (F.id ×-cong ∈filter≃) F.∘ ∈filter≃ ⟩□
   y ∈ filter q (filter p x)    □
 
 -- Filtering commutes with union.
@@ -861,11 +861,11 @@ filter-comm {p = p} {q = q} x = _≃_.from extensionality λ y →
 filter-∪ :
   ∀ x → filter p (x ∪ y) ≡ filter p x ∪ filter p y
 filter-∪ {p = p} {y = y} x = _≃_.from extensionality λ z →
-  z ∈ filter p (x ∪ y)                   ↔⟨ (F.id ×-cong ∈∪≃∥∈⊎∈∥) F.∘ ∈filter≃∈×T ⟩
+  z ∈ filter p (x ∪ y)                   ↔⟨ (F.id ×-cong ∈∪≃) F.∘ ∈filter≃ ⟩
   T (p z) × ∥ z ∈ x ⊎ z ∈ y ∥            ↔⟨ inverse (Trunc.∥∥↔ (T-propositional (p z))) ×-cong F.id ⟩
   ∥ T (p z) ∥ × ∥ z ∈ x ⊎ z ∈ y ∥        ↔⟨ Trunc.∥∥×∥∥↔∥×∥ ⟩
   ∥ T (p z) × (z ∈ x ⊎ z ∈ y) ∥          ↔⟨ Trunc.∥∥-cong ×-⊎-distrib-left ⟩
-  ∥ T (p z) × z ∈ x ⊎ T (p z) × z ∈ y ∥  ↔⟨ inverse $ Trunc.∥∥-cong (∈filter≃∈×T ⊎-cong ∈filter≃∈×T) F.∘ ∈∪≃∥∈⊎∈∥ ⟩□
+  ∥ T (p z) × z ∈ x ⊎ T (p z) × z ∈ y ∥  ↔⟨ inverse $ Trunc.∥∥-cong (∈filter≃ ⊎-cong ∈filter≃) F.∘ ∈∪≃ ⟩□
   z ∈ filter p x ∪ filter p y            □
 
 -- If truncated equality is decidable, then one subset can be removed
@@ -879,9 +879,9 @@ minus _≟_ x y =
 
 -- A lemma characterising minus.
 
-∈minus≃∈×∉ : (x ∈ minus _≟_ y z) ≃ (x ∈ y × ¬ x ∈ z)
-∈minus≃∈×∉ {x = x} {_≟_ = _≟_} {y = y} {z = z} =
-  x ∈ minus _≟_ y z                                    ↝⟨ ∈filter≃∈×T ⟩
+∈minus≃ : (x ∈ minus _≟_ y z) ≃ (x ∈ y × ¬ x ∈ z)
+∈minus≃ {x = x} {_≟_ = _≟_} {y = y} {z = z} =
+  x ∈ minus _≟_ y z                                    ↝⟨ ∈filter≃ ⟩
   T (if member? _≟_ x z then false else true) × x ∈ y  ↔⟨ lemma (member? _≟_ x z) ×-cong F.id ⟩
   ¬ x ∈ z × x ∈ y                                      ↔⟨ ×-comm ⟩□
   x ∈ y × ¬ x ∈ z                                      □
@@ -926,9 +926,9 @@ delete _≟_ x y = minus _≟_ y (singleton x)
 
 -- A lemma characterising delete.
 
-∈delete≃≢×∈ : ∀ _≟_ → (x ∈ delete _≟_ y z) ≃ (x ≢ y × x ∈ z)
-∈delete≃≢×∈ {x = x} {y = y} {z = z} _≟_ =
-  x ∈ delete _≟_ y z         ↝⟨ ∈minus≃∈×∉ {_≟_ = _≟_} ⟩
+∈delete≃ : ∀ _≟_ → (x ∈ delete _≟_ y z) ≃ (x ≢ y × x ∈ z)
+∈delete≃ {x = x} {y = y} {z = z} _≟_ =
+  x ∈ delete _≟_ y z         ↝⟨ ∈minus≃ {_≟_ = _≟_} ⟩
   x ∈ z × ¬ x ∈ singleton y  ↝⟨ F.id ×-cong →-cong₁ ext ∈singleton≃ ⟩
   x ∈ z × ¬ ∥ x ≡ y ∥        ↔⟨ F.id ×-cong Trunc.¬∥∥↔¬ ⟩
   x ∈ z × x ≢ y              ↔⟨ ×-comm ⟩□
@@ -938,7 +938,7 @@ delete _≟_ x y = minus _≟_ y (singleton x)
 
 ∉delete : ∀ _≟_ y → ¬ x ∈ delete _≟_ x y
 ∉delete {x = x} _≟_ y =
-  x ∈ delete _≟_ x y  ↔⟨ ∈delete≃≢×∈ _≟_ ⟩
+  x ∈ delete _≟_ x y  ↔⟨ ∈delete≃ _≟_ ⟩
   x ≢ x × x ∈ y       ↝⟨ (_$ refl _) ∘ proj₁ ⟩□
   ⊥                   □
 
@@ -971,26 +971,26 @@ delete-∪ _≟_ y = minus-∪ {_≟_ = _≟_} y (singleton _)
 
 ∪-cong-⊆ : x₁ ⊆ x₂ → y₁ ⊆ y₂ → x₁ ∪ y₁ ⊆ x₂ ∪ y₂
 ∪-cong-⊆ {x₁ = x₁} {x₂ = x₂} {y₁ = y₁} {y₂ = y₂} x₁⊆x₂ y₁⊆y₂ z =
-  z ∈ x₁ ∪ y₁          ↔⟨ ∈∪≃∥∈⊎∈∥ ⟩
+  z ∈ x₁ ∪ y₁          ↔⟨ ∈∪≃ ⟩
   ∥ z ∈ x₁ ⊎ z ∈ y₁ ∥  ↝⟨ Trunc.∥∥-map (⊎-map (x₁⊆x₂ _) (y₁⊆y₂ _)) ⟩
-  ∥ z ∈ x₂ ⊎ z ∈ y₂ ∥  ↔⟨ inverse ∈∪≃∥∈⊎∈∥ ⟩□
+  ∥ z ∈ x₂ ⊎ z ∈ y₂ ∥  ↔⟨ inverse ∈∪≃ ⟩□
   z ∈ x₂ ∪ y₂          □
 
 filter-cong-⊆ :
   (∀ z → T (p z) → T (q z)) →
   x ⊆ y → filter p x ⊆ filter q y
 filter-cong-⊆ {p = p} {q = q} {x = x} {y = y} p⇒q x⊆y z =
-  z ∈ filter p x   ↔⟨ ∈filter≃∈×T ⟩
+  z ∈ filter p x   ↔⟨ ∈filter≃ ⟩
   T (p z) × z ∈ x  ↝⟨ Σ-map (p⇒q _) (x⊆y _) ⟩
-  T (q z) × z ∈ y  ↔⟨ inverse ∈filter≃∈×T ⟩□
+  T (q z) × z ∈ y  ↔⟨ inverse ∈filter≃ ⟩□
   z ∈ filter q y   □
 
 minus-cong-⊆ : x₁ ⊆ x₂ → y₂ ⊆ y₁ → minus _≟_ x₁ y₁ ⊆ minus _≟_ x₂ y₂
 minus-cong-⊆ {x₁ = x₁} {x₂ = x₂} {y₂ = y₂} {y₁ = y₁} {_≟_ = _≟_}
              x₁⊆x₂ y₂⊆y₁ z =
-  z ∈ minus _≟_ x₁ y₁  ↔⟨ ∈minus≃∈×∉ ⟩
+  z ∈ minus _≟_ x₁ y₁  ↔⟨ ∈minus≃ ⟩
   z ∈ x₁ × ¬ z ∈ y₁    ↝⟨ Σ-map (x₁⊆x₂ _) (_∘ y₂⊆y₁ _) ⟩
-  z ∈ x₂ × ¬ z ∈ y₂    ↔⟨ inverse ∈minus≃∈×∉ ⟩□
+  z ∈ x₂ × ¬ z ∈ y₂    ↔⟨ inverse ∈minus≃ ⟩□
   z ∈ minus _≟_ x₂ y₂  □
 
 delete-cong-⊆ : ∀ _≟_ → y ⊆ z → delete _≟_ x y ⊆ delete _≟_ x z

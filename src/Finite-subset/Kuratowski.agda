@@ -551,11 +551,11 @@ x ∈ y = x L.∈ _≃_.from Listed≃Kuratowski y
 -- Membership of a union of two subsets can be expressed in terms of
 -- membership of the subsets.
 
-∈∪≃∥∈⊎∈∥ : ∀ y z → (x ∈ y ∪ z) ≃ ∥ x ∈ y ⊎ x ∈ z ∥
-∈∪≃∥∈⊎∈∥ {x = x} y z =
+∈∪≃ : ∀ y z → (x ∈ y ∪ z) ≃ ∥ x ∈ y ⊎ x ∈ z ∥
+∈∪≃ {x = x} y z =
   x ∈ y ∪ z                                                            ↔⟨⟩
 
-  x L.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↝⟨ L.∈∪≃∥∈⊎∈∥ ⟩
+  x L.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↝⟨ L.∈∪≃ ⟩
 
   ∥ x L.∈ _≃_.from Listed≃Kuratowski y ⊎
     x L.∈ _≃_.from Listed≃Kuratowski z ∥                               ↔⟨⟩
@@ -604,7 +604,7 @@ extensionality {x = x} {y = y} =
 
 idem : x ∪ x ≡ x
 idem {x = x} = _≃_.from extensionality λ y →
-  y ∈ x ∪ x          ↔⟨ ∈∪≃∥∈⊎∈∥ x x ⟩
+  y ∈ x ∪ x          ↔⟨ ∈∪≃ x x ⟩
   ∥ y ∈ x ⊎ y ∈ x ∥  ↔⟨ Trunc.idempotent ⟩
   ∥ y ∈ x ∥          ↔⟨ Trunc.∥∥↔ (∈-propositional x) ⟩□
   y ∈ x              □
