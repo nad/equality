@@ -28,3 +28,9 @@ private
 ⊎-map-∘ :
   ∀ x → ⊎-map (f₁ ∘ g₁) (f₂ ∘ g₂) x ≡ ⊎-map f₁ f₂ (⊎-map g₁ g₂ x)
 ⊎-map-∘ = [ (λ _ → refl _) , (λ _ → refl _) ]
+
+-- If A can be decided, then ¬ A can be decided.
+
+dec-¬ : Dec A → Dec (¬ A)
+dec-¬ (yes p) = no (_$ p)
+dec-¬ (no  p) = yes p
