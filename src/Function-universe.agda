@@ -2458,6 +2458,63 @@ implicit-ΠΣ-comm {A = A} {B} {C} =
   (∃ λ (f : ∀ x → B x) → ∀ x → C x (f x))  ↝⟨ inverse $ Σ-cong Bijection.implicit-Π↔Π (λ _ → Bijection.implicit-Π↔Π) ⟩□
   (∃ λ (f : ∀ {x} → B x) → ∀ {x} → C x f)  □
 
+-- Some variants of De Morgan's laws.
+
+¬⊎↠¬×¬ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  ¬ (A ⊎ B) ↠ ¬ A × ¬ B
+¬⊎↠¬×¬ = record
+  { logical-equivalence = record
+    { to   = λ ¬[A⊎B] → ¬[A⊎B] ∘ inj₁ , ¬[A⊎B] ∘ inj₂
+    ; from = λ (¬A , ¬B) → [ ¬A , ¬B ]
+    }
+  ; right-inverse-of = refl
+  }
+
+¬⊎↔¬×¬ :
+  ∀ {k a b} {A : Set a} {B : Set b} →
+  Extensionality? k (a ⊔ b) lzero →
+  ¬ (A ⊎ B) ↝[ k ] ¬ A × ¬ B
+¬⊎↔¬×¬ = generalise-ext?
+  (_↠_.logical-equivalence ¬⊎↠¬×¬)
+  (λ ext → record
+     { surjection      = ¬⊎↠¬×¬
+     ; left-inverse-of = λ _ →
+         apply-ext ext [ (λ _ → refl _) , (λ _ → refl _) ]
+     })
+
+¬⊎¬→×¬ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  ¬ A ⊎ ¬ B → ¬ (A × B)
+¬⊎¬→×¬ = [ (_∘ proj₁) , (_∘ proj₂) ]
+
+¬⊎¬⇔¬× :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Dec A → Dec B →
+  ¬ A ⊎ ¬ B ⇔ ¬ (A × B)
+¬⊎¬⇔¬× (no ¬A) _ = record
+  { to   = ¬⊎¬→×¬
+  ; from = λ _ → inj₁ ¬A
+  }
+¬⊎¬⇔¬× _ (no ¬B) = record
+  { to   = ¬⊎¬→×¬
+  ; from = λ _ → inj₂ ¬B
+  }
+¬⊎¬⇔¬× (yes a) (yes b) = record
+  { to   = ¬⊎¬→×¬
+  ; from = λ ¬[A×B] → ⊥-elim $ ¬[A×B] (a , b)
+  }
+
+¬⊎¬↠¬× :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) lzero →
+  Dec A → Dec B →
+  ¬ A ⊎ ¬ B ↠ ¬ (A × B)
+¬⊎¬↠¬× ext dec-A dec-B = record
+  { logical-equivalence = ¬⊎¬⇔¬× dec-A dec-B
+  ; right-inverse-of    = λ _ → ¬-propositional ext _ _
+  }
+
 -- A variant of extensionality-isomorphism for functions with implicit
 -- arguments.
 
