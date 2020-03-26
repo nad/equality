@@ -1252,71 +1252,120 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
           ⊥                                  □
 
-  -- An inductive definition of what it means for a variable to be
+  -- An alternative definition of what it means for a variable to be
   -- free in a term.
   --
-  -- This definition is based on Harper's. However, Harper's
-  -- definition is perhaps not intended to be proof-relevant.
+  -- This definition is based on Harper's.
 
-  mutual
+  module _ (x : Var s) where
 
-    data Free-term {@0 xs : Vars} (@0 x : Var s′) :
-           Term ((_ , x) ∷ xs) s → Set ℓ where
-      var : Free-term x (var-wf x wf)
-      op  : ∀ {o : Op s} {asˢ as} {@0 wfs} →
-            Free-arguments x (asˢ , as , [ wfs ]) →
-            Free-term x (op-wf o asˢ as wfs)
+    mutual
 
-    data Free-arguments {@0 xs : Vars} (@0 x : Var s′) :
-           Arguments ((_ , x) ∷ xs) vs → Set ℓ where
-      head : ∀ {aˢ : Argˢ v} {asˢ : Argsˢ vs} {a as} {@0 wf wfs} →
-             Free-argument x (aˢ , a , [ wf ]) →
-             Free-arguments x (cons-wfs aˢ asˢ a as wf wfs)
-      tail : ∀ {aˢ : Argˢ v} {asˢ : Argsˢ vs} {a as} {@0 wf wfs} →
-             Free-arguments x (asˢ , as , [ wfs ]) →
-             Free-arguments x (cons-wfs aˢ asˢ a as wf wfs)
+      Free-in-term′ :
+        ∀ {xs} (tˢ : Tmˢ s′) t →
+        @0 Wf-tm ((_ , x) ∷ xs) tˢ t → Proposition ℓ
+      Free-in-term′ var y _ =
+          _≡_ {A = ∃Var} (_ , x) (_ , y)
+        , ∃Var-set
 
-    data Free-argument {@0 xs : Vars} (@0 x : Var s′) :
-           Argument ((_ , x) ∷ xs) v → Set ℓ where
-      nil  : ∀ {tˢ : Tmˢ s} {t} {@0 wf} →
-             Free-term x (tˢ , t , [ wf ]) →
-             Free-argument x (nil-wf tˢ t wf)
-      cons : ∀ {aˢ : Argˢ v} {y : Var s} {a} {@0 wf} →
-             (∀ z (z∉ : ¬ (_ , z) ∈ (_ , x) ∷ xs) →
-              Free-argument x
-                ( aˢ
-                , rename-Arg y z aˢ a
-                , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
-                          swap
-                          (wf z z∉) ]
-                )) →
-             Free-argument x (cons-wf aˢ y a wf)
+      Free-in-term′ (op o asˢ) as wf =
+        Free-in-arguments′ asˢ as wf
 
-  -- Variables that are free according to the inductive definition are
-  -- in the set of free variables.
+      Free-in-arguments′ :
+        ∀ {xs} (asˢ : Argsˢ vs) as →
+        @0 Wf-args ((_ , x) ∷ xs) asˢ as → Proposition ℓ
+      Free-in-arguments′ nil _ _ = ⊥ , ⊥-propositional
+
+      Free-in-arguments′ (cons aˢ asˢ) (a , as) (wf , wfs) =
+          (proj₁ (Free-in-argument′ aˢ a wf) ∥⊎∥
+           proj₁ (Free-in-arguments′ asˢ as wfs))
+        , ∥⊎∥-propositional
+
+      Free-in-argument′ :
+        ∀ {xs} (aˢ : Argˢ v) a →
+        @0 Wf-arg ((_ , x) ∷ xs) aˢ a → Proposition ℓ
+      Free-in-argument′ (nil tˢ) t wf = Free-in-term′ tˢ t wf
+
+      Free-in-argument′ {xs = xs} (cons aˢ) (y , a) wf =
+          Π _ λ z → Π (¬ (_ , z) ∈ (_ , x) ∷ xs) λ z∉ →
+          Free-in-argument′
+            aˢ
+            (rename-Arg y z aˢ a)
+            (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
+                   swap
+                   (wf z z∉))
+        where
+        Π : (A : Set ℓ) → (A → Proposition ℓ) → Proposition ℓ
+        Π A B =
+            (∀ x → proj₁ (B x))
+          , Π-closure ext 1 λ x →
+            proj₂ (B x)
+
+    Free-in-term : ∀ {xs} → Term ((_ , x) ∷ xs) s′ → Set ℓ
+    Free-in-term (t , tˢ , [ wf ]) =
+      proj₁ (Free-in-term′ t tˢ wf)
+
+    Free-in-arguments : ∀ {xs} → Arguments ((_ , x) ∷ xs) vs → Set ℓ
+    Free-in-arguments (as , asˢ , [ wfs ]) =
+      proj₁ (Free-in-arguments′ as asˢ wfs)
+
+    Free-in-argument : ∀ {xs} → Argument ((_ , x) ∷ xs) v → Set ℓ
+    Free-in-argument (a , aˢ , [ wf ]) =
+      proj₁ (Free-in-argument′ a aˢ wf)
+
+  -- The alternative definition of what it means for a variable to be
+  -- free in a term is propositional.
+
+  module _ {x : Var s} {xs} where
+
+    Free-in-term-propositional :
+      (t : Term ((_ , x) ∷ xs) s′) →
+      Is-proposition (Free-in-term x t)
+    Free-in-term-propositional (t , tˢ , [ wf ]) =
+      proj₂ (Free-in-term′ _ t tˢ wf)
+
+    Free-in-arguments-propositional :
+      (as : Arguments ((_ , x) ∷ xs) vs) →
+      Is-proposition (Free-in-arguments x as)
+    Free-in-arguments-propositional (as , asˢ , [ wfs ]) =
+      proj₂ (Free-in-arguments′ _ as asˢ wfs)
+
+    Free-in-argument-propositional :
+      (a : Argument ((_ , x) ∷ xs) v) →
+      Is-proposition (Free-in-argument x a)
+    Free-in-argument-propositional (a , aˢ , [ wf ]) =
+      proj₂ (Free-in-argument′ _ a aˢ wf)
+
+  -- Variables that are free according to the alternative definition
+  -- are in the set of free variables.
 
   mutual
 
     @0 Free-free-Tm :
-      {tw@(tˢ , t , [ wf ]) : Term ((_ , x) ∷ xs) s} →
-      Free-term x tw → (_ , x) ∈ free-Tm tˢ t
-    Free-free-Tm var    = ≡→∈singleton (refl _)
-    Free-free-Tm (op p) = Free-free-Args p
+      ∀ (tˢ : Tmˢ s) {t} (@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
+      Free-in-term x (tˢ , t , [ wf ]) → (_ , x) ∈ free-Tm tˢ t
+    Free-free-Tm var _ = ≡→∈singleton
+
+    Free-free-Tm (op o asˢ) = Free-free-Args asˢ
 
     @0 Free-free-Args :
-      {asw@(asˢ , as , [ wfs ]) : Arguments ((_ , x) ∷ xs) vs} →
-      Free-arguments x asw → (_ , x) ∈ free-Args asˢ as
-    Free-free-Args (head p) = ∈→∈∪ˡ (Free-free-Arg p)
+      ∀ (asˢ : Argsˢ vs) {as} (@0 wf : Wf-args ((_ , x) ∷ xs) asˢ as) →
+      Free-in-arguments x (asˢ , as , [ wf ]) →
+      (_ , x) ∈ free-Args asˢ as
+    Free-free-Args {x = x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
+      Free-in-argument x (aˢ , a , [ wf ]) ∥⊎∥
+      Free-in-arguments x (asˢ , as , [ wfs ])                ↝⟨ Free-free-Arg aˢ wf ∥⊎∥-cong Free-free-Args asˢ wfs ⟩
 
-    Free-free-Args {asw = cons-wfs aˢ _ a _ _ _} (tail p) =
-      ∈→∈∪ʳ (free-Arg aˢ a) (Free-free-Args p)
+      (_ , x) ∈ free-Arg aˢ a ∥⊎∥ (_ , x) ∈ free-Args asˢ as  ↔⟨ inverse ∈∪≃ ⟩□
+
+      (_ , x) ∈ free-Arg aˢ a ∪ free-Args asˢ as              □
 
     @0 Free-free-Arg :
-      {aw@(aˢ , a , [ wf ]) : Argument ((_ , x) ∷ xs) v} →
-      Free-argument x aw → (_ , x) ∈ free-Arg aˢ a
-    Free-free-Arg (nil p) = Free-free-Tm p
+      ∀ (aˢ : Argˢ v) {a} (@0 wf : Wf-arg ((_ , x) ∷ xs) aˢ a) →
+      Free-in-argument x (aˢ , a , [ wf ]) → (_ , x) ∈ free-Arg aˢ a
+    Free-free-Arg (nil tˢ) = Free-free-Tm tˢ
 
-    Free-free-Arg {x = x} {xs = xs} {aw = cons-wf aˢ y a wf} (cons p) =
+    Free-free-Arg {x = x} {xs = xs} (cons aˢ) {a = y , a} wf =
       let xxs              = (_ , x) ∷ xs
           x₁ ,         x₁∉ = fresh xxs
           x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh ((_ , x₁) ∷ xxs) ⟩
@@ -1324,7 +1373,19 @@ module Signature {ℓ} (sig : Signature ℓ) where
             (∃ λ x₂ → ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xxs))  ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
             (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × ¬ (_ , x₂) ∈ xxs)      □
       in
-                                                            $⟨ (λ z z∉ → Free-free-Arg (p z z∉)) ⟩
+      (∀ z (z∉ : ¬ (_ , z) ∈ (_ , x) ∷ xs) →
+       Free-in-argument x
+         ( aˢ
+         , rename-Arg y z aˢ a
+         , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
+                   swap
+                   (wf z z∉) ]
+         ))                                                 ↝⟨ (λ hyp z z∉ → Free-free-Arg
+                                                                               aˢ
+                                                                               (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
+                                                                                      swap
+                                                                                      (wf z z∉))
+                                                                               (hyp z z∉)) ⟩
       (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
        (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))         ↝⟨ (λ hyp z z∉ → free-rename-⊆-Arg aˢ _ (hyp z z∉)) ⦂ (_ → _) ⟩
 
@@ -1348,82 +1409,68 @@ module Signature {ℓ} (sig : Signature ℓ) where
       fs = delete merely-equal?-∃Var (_ , y) (free-Arg aˢ a)
 
   -- Every member of the set of free variables is free according to
-  -- the inductive definition, assuming that the axiom of choice
-  -- holds.
+  -- the alternative definition.
 
-  module _ (choice : Axiom-of-choice ℓ ℓ) where
+  mutual
 
-    mutual
+    free-Free-Tm :
+      ∀ {x : Var s′} {xs}
+      (tˢ : Tmˢ s) {t} (@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
+      (_ , x) ∈ free-Tm tˢ t → Free-in-term x (tˢ , t , [ wf ])
+    free-Free-Tm {x = x} var {t = y} _ =
+      (_ , x) ∈ singleton (_ , y)  ↔⟨ ∈singleton≃ ⟩
+      ∥ (_ , x) ≡ (_ , y) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩□
+      (_ , x) ≡ (_ , y)            □
 
-      free-Free-Tm :
-        ∀ {x : Var s′} {xs}
-        (tˢ : Tmˢ s) {t} {@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t} →
-        (_ , x) ∈ free-Tm tˢ t → ∥ Free-term x (tˢ , t , [ wf ]) ∥
-      free-Free-Tm {x = x} {xs = xs} var {t = y} {wf = wf} =
-        (_ , x) ∈ singleton (_ , y)    ↔⟨ ∈singleton≃ ⟩
-        ∥ (_ , x) ≡ (_ , y) ∥          ↔⟨ ∥∥↔ ∃Var-set ⟩
-        (_ , x) ≡ (_ , y)              ↝⟨ (λ x≡y → subst (λ (_ , y) → (([ wf ]) : Erased (Wf-tm ((_ , x) ∷ xs) var y)) → Free-term x (var-wf y wf))
-                                                         x≡y (λ _ → var) [ wf ]) ⟩
-        Free-term x (var-wf y wf)      ↝⟨ ∣_∣ ⟩□
-        ∥ Free-term x (var-wf y wf) ∥  □
+    free-Free-Tm (op o asˢ) = free-Free-Args asˢ
 
-      free-Free-Tm (op o asˢ) = ∥∥-map op ∘ free-Free-Args asˢ
+    free-Free-Args :
+      ∀ {x : Var s′} {xs}
+      (asˢ : Argsˢ vs) {as} (@0 wf : Wf-args ((_ , x) ∷ xs) asˢ as) →
+      (_ , x) ∈ free-Args asˢ as →
+      Free-in-arguments x (asˢ , as , [ wf ])
+    free-Free-Args
+      {x = x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
 
-      free-Free-Args :
-        ∀ {x : Var s′} {xs}
-        (asˢ : Argsˢ vs) {as} {@0 wf : Wf-args ((_ , x) ∷ xs) asˢ as} →
-        (_ , x) ∈ free-Args asˢ as →
-        ∥ Free-arguments x (asˢ , as , [ wf ]) ∥
-      free-Free-Args
-        {x = x} (cons aˢ asˢ) {as = a , as} {wf = wf , wfs} =
+      (_ , x) ∈ free-Arg aˢ a ∪ free-Args asˢ as              ↔⟨ ∈∪≃ ⟩
 
-        (_ , x) ∈ free-Arg aˢ a ∪ free-Args asˢ as              ↔⟨ ∈∪≃ ⟩
-        (_ , x) ∈ free-Arg aˢ a ∥⊎∥ (_ , x) ∈ free-Args asˢ as  ↝⟨ Trunc.rec truncation-is-proposition
-                                                                     [ ∥∥-map head ∘ free-Free-Arg aˢ , ∥∥-map tail ∘ free-Free-Args asˢ ]′ ⟩
-        ∥ Free-arguments x (cons-wfs aˢ asˢ a as wf wfs) ∥      □
+      (_ , x) ∈ free-Arg aˢ a ∥⊎∥ (_ , x) ∈ free-Args asˢ as  ↝⟨ free-Free-Arg aˢ wf ∥⊎∥-cong free-Free-Args asˢ wfs ⟩□
 
-      free-Free-Arg :
-        ∀ {x : Var s′} {xs}
-        (aˢ : Argˢ v) {a} {@0 wf : Wf-arg ((_ , x) ∷ xs) aˢ a} →
-        (_ , x) ∈ free-Arg aˢ a → ∥ Free-argument x (aˢ , a , [ wf ]) ∥
-      free-Free-Arg (nil tˢ) = ∥∥-map nil ∘ free-Free-Tm tˢ
+      Free-in-argument x (aˢ , a , [ wf ]) ∥⊎∥
+      Free-in-arguments x (asˢ , as , [ wfs ])                □
 
-      free-Free-Arg {x = x} {xs = xs} (cons aˢ) {a = y , a} {wf = wf} =
-        (_ , x) ∈ del (_ , y) (free-Arg aˢ a)                       ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+    free-Free-Arg :
+      ∀ {x : Var s′} {xs}
+      (aˢ : Argˢ v) {a} (@0 wf : Wf-arg ((_ , x) ∷ xs) aˢ a) →
+      (_ , x) ∈ free-Arg aˢ a → Free-in-argument x (aˢ , a , [ wf ])
+    free-Free-Arg (nil tˢ) = free-Free-Tm tˢ
 
-        (_ , x) ≢ (_ , y) × (_ , x) ∈ free-Arg aˢ a                 ↝⟨ Σ-map id (λ x∈ _ → ⊆-free-rename-Arg aˢ _ x∈) ⟩
+    free-Free-Arg {x = x} {xs = xs} (cons aˢ) {a = y , a} wf =
+      (_ , x) ∈ del (_ , y) (free-Arg aˢ a)                     ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
 
-        (_ , x) ≢ (_ , y) ×
-        (∀ z → (_ , x) ∈ (_ , y) ∷ (_ , z) ∷
-                         free-Arg aˢ (rename-Arg y z aˢ a))         ↝⟨ (uncurry λ x≢y →
-                                                                        ∀-cong _ λ _ x∈ z∉ →
-                                                                        to-implication (∈≢∷≃ (z∉ ∘ ≡→∈∷ ∘ sym) F.∘ ∈≢∷≃ x≢y) x∈) ⟩
-        (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
-               (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))         ↝⟨ (λ x∈ z z∉ → free-Free-Arg aˢ (x∈ z z∉)) ⟩
+      (_ , x) ≢ (_ , y) × (_ , x) ∈ free-Arg aˢ a               ↝⟨ Σ-map id (λ x∈ _ → ⊆-free-rename-Arg aˢ _ x∈) ⟩
 
-        (∀ z (z∉ : ¬ (_ , z) ∈ (_ , x) ∷ xs) →
-         ∥ Free-argument x
-             ( aˢ
-             , rename-Arg y z aˢ a
-             , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
-                       swap
-                       (wf z z∉) ]
-             )
-         ∥)                                                         ↝⟨ choice (decidable⇒set _≟V_) ∘
-                                                                       ∀-cong _ (λ _ → choice (mono₁ 1 $ ¬-propositional ext)) ⟩
-        ∥ (∀ z (z∉ : ¬ (_ , z) ∈ (_ , x) ∷ xs) →
-           Free-argument x
-             ( aˢ
-             , rename-Arg y z aˢ a
-             , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
-                       swap
-                       (wf z z∉) ]
-             ))
-        ∥                                                           ↝⟨ ∥∥-map cons ⟩□
-
-        ∥ Free-argument x (cons-wf aˢ y a wf) ∥                     □
-        where
-        del = delete merely-equal?-∃Var
+      (_ , x) ≢ (_ , y) ×
+      (∀ z → (_ , x) ∈ (_ , y) ∷ (_ , z) ∷
+                       free-Arg aˢ (rename-Arg y z aˢ a))       ↝⟨ (uncurry λ x≢y →
+                                                                    ∀-cong _ λ _ x∈ z∉ →
+                                                                    to-implication (∈≢∷≃ (z∉ ∘ ≡→∈∷ ∘ sym) F.∘ ∈≢∷≃ x≢y) x∈) ⟩
+      (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
+             (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))       ↝⟨ (λ x∈ z z∉ → free-Free-Arg aˢ
+                                                                                  (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
+                                                                                         swap
+                                                                                         (wf z z∉))
+                                                                                  (x∈ z z∉)) ⟩□
+      (∀ z (z∉ : ¬ (_ , z) ∈ (_ , x) ∷ xs) →
+       Free-in-argument x
+         ( aˢ
+         , rename-Arg y z aˢ a
+         , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
+                   swap
+                   (wf z z∉) ]
+         ))                                                     □
+      where
+      del = delete merely-equal?-∃Var
 
   ----------------------------------------------------------------------
   -- Lemmas related to the Wf predicates
