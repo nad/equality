@@ -587,6 +587,14 @@ private
   x ≡ y ∥⊎∥ proj₁ (Membership x z)  ↝⟨ F.id Trunc.∥⊎∥-cong inverse ∈≃ ⟩□
   x ≡ y ∥⊎∥ x ∈ z                   □
 
+-- A variant.
+
+∈≢∷≃ : x ≢ y → (x ∈ y ∷ z) ≃ (x ∈ z)
+∈≢∷≃ {x = x} {y = y} {z = z} x≢y =
+  x ∈ y ∷ z        ↝⟨ ∈∷≃ ⟩
+  x ≡ y ∥⊎∥ x ∈ z  ↔⟨ Trunc.drop-⊥-left-∥⊎∥ ∈-propositional x≢y ⟩□
+  x ∈ z            □
+
 -- A lemma characterising singleton.
 
 ∈singleton≃ :
