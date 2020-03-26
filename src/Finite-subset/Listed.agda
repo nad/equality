@@ -695,6 +695,14 @@ infix 4 _⊆_
 _⊆_ : {A : Set a} → Finite-subset-of A → Finite-subset-of A → Set a
 x ⊆ y = ∀ z → z ∈ x → z ∈ y
 
+-- _⊆_ is pointwise propositional.
+
+⊆-propositional : Is-proposition (x ⊆ y)
+⊆-propositional =
+  Π-closure ext 1 λ _ →
+  Π-closure ext 1 λ _ →
+  ∈-propositional
+
 -- The subset property can be expressed using _∪_ and _≡_.
 
 ⊆≃∪≡ : ∀ x → (x ⊆ y) ≃ (x ∪ y ≡ y)
