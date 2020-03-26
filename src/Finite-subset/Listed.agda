@@ -357,6 +357,25 @@ idem = elim-prop e
 
   e .is-propositionʳ = λ _ → is-set
 
+-- Union distributes from the left and right over union.
+
+∪-distrib-left : ∀ x → x ∪ (y ∪ z) ≡ (x ∪ y) ∪ (x ∪ z)
+∪-distrib-left {y = y} {z = z} x =
+  x ∪ (y ∪ z)        ≡⟨ cong (_∪ _) $ sym (idem x) ⟩
+  (x ∪ x) ∪ (y ∪ z)  ≡⟨ sym $ assoc x ⟩
+  x ∪ (x ∪ (y ∪ z))  ≡⟨ cong (x ∪_) $ assoc x ⟩
+  x ∪ ((x ∪ y) ∪ z)  ≡⟨ cong ((x ∪_) ∘ (_∪ _)) $ comm x ⟩
+  x ∪ ((y ∪ x) ∪ z)  ≡⟨ cong (x ∪_) $ sym $ assoc y ⟩
+  x ∪ (y ∪ (x ∪ z))  ≡⟨ assoc x ⟩∎
+  (x ∪ y) ∪ (x ∪ z)  ∎
+
+∪-distrib-right : ∀ x → (x ∪ y) ∪ z ≡ (x ∪ z) ∪ (y ∪ z)
+∪-distrib-right {y = y} {z = z} x =
+  (x ∪ y) ∪ z        ≡⟨ comm (x ∪ _) ⟩
+  z ∪ (x ∪ y)        ≡⟨ ∪-distrib-left z ⟩
+  (z ∪ x) ∪ (z ∪ y)  ≡⟨ cong₂ _∪_ (comm z) (comm z) ⟩∎
+  (x ∪ z) ∪ (y ∪ z)  ∎
+
 -- A map function.
 
 map : (A → B) → Finite-subset-of A → Finite-subset-of B
