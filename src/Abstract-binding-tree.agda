@@ -70,9 +70,18 @@ private
     ∃Var : Set ℓ
     ∃Var = ∃ λ (s : Erased Sort) → Var (erased s)
 
+    -- Finite subsets of variables.
+
+    Vars : Set ℓ
+    Vars = Finite-subset-of ∃Var
+
     field
       -- Decidable equality for non-indexed variables.
       _≟∃V_ : Decidable-equality ∃Var
+
+      -- One can always find a fresh variable.
+      @0 fresh : ∀ {s} (xs : Vars) →
+                 ∃ λ (x : Var s) → ¬ (_ , x) ∈ xs
 
     -- Arities.
 
@@ -99,7 +108,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       @0 ss            : List Sort
       @0 v             : Valence
       @0 vs            : List Valence
-      @0 x             : Var s
+      @0 x y           : Var s
 
   ----------------------------------------------------------------------
   -- Some types are sets
@@ -210,11 +219,6 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   ----------------------------------------------------------------------
   -- Well-formed terms
-
-  -- Finite subsets of variables.
-
-  Vars : Set ℓ
-  Vars = Finite-subset-of ∃Var
 
   private
     variable
@@ -773,39 +777,6 @@ module Signature {ℓ} (sig : Signature ℓ) where
     wf-elim-Argument (aˢ , a , [ wf ]) = wf-elim-Argument′ aˢ a wf
 
   ----------------------------------------------------------------------
-  -- Weakening of the Wf predicates
-
-  -- If a term is well-formed for a given set, then it is well-formed
-  -- for all supersets.
-
-  @0 weaken-Wf-var : xs ⊆ ys → Wf-var xs x → Wf-var ys x
-  weaken-Wf-var xs⊆ys = xs⊆ys _
-
-  mutual
-
-    @0 weaken-Wf-tm :
-      xs ⊆ ys → ∀ (tˢ : Tmˢ s) {t} →
-      Wf-tm xs tˢ t → Wf-tm ys tˢ t
-    weaken-Wf-tm xs⊆ys var        = weaken-Wf-var xs⊆ys
-    weaken-Wf-tm xs⊆ys (op o asˢ) = weaken-Wf-args xs⊆ys asˢ
-
-    @0 weaken-Wf-args :
-      xs ⊆ ys → ∀ (asˢ : Argsˢ vs) {as} →
-      Wf-args xs asˢ as → Wf-args ys asˢ as
-    weaken-Wf-args xs⊆ys nil           = id
-    weaken-Wf-args xs⊆ys (cons aˢ asˢ) =
-      Σ-map (weaken-Wf-arg xs⊆ys aˢ)
-            (weaken-Wf-args xs⊆ys asˢ)
-
-    @0 weaken-Wf-arg :
-      xs ⊆ ys → ∀ (aˢ : Argˢ v) {a} →
-      Wf-arg xs aˢ a → Wf-arg ys aˢ a
-    weaken-Wf-arg xs⊆ys (nil tˢ)  = weaken-Wf-tm xs⊆ys tˢ
-    weaken-Wf-arg xs⊆ys (cons aˢ) =
-      λ wf y y∉ys →
-        weaken-Wf-arg (∷-cong-⊆ xs⊆ys) aˢ (wf y (y∉ys ∘ xs⊆ys _))
-
-  ----------------------------------------------------------------------
   -- Some renaming lemmas
 
   -- Two "computation rules".
@@ -1268,3 +1239,191 @@ module Signature {ℓ} (sig : Signature ℓ) where
           ⊥ ⊎ ⊥                              ↔⟨ ⊎-right-identity ⟩□
 
           ⊥                                  □
+
+  ----------------------------------------------------------------------
+  -- Lemmas related to the Wf predicates
+
+  -- Weakening of the Wf predicates.
+
+  @0 weaken-Wf-var : xs ⊆ ys → Wf-var xs x → Wf-var ys x
+  weaken-Wf-var xs⊆ys = xs⊆ys _
+
+  mutual
+
+    @0 weaken-Wf-tm :
+      xs ⊆ ys → ∀ (tˢ : Tmˢ s) {t} →
+      Wf-tm xs tˢ t → Wf-tm ys tˢ t
+    weaken-Wf-tm xs⊆ys var        = weaken-Wf-var xs⊆ys
+    weaken-Wf-tm xs⊆ys (op o asˢ) = weaken-Wf-args xs⊆ys asˢ
+
+    @0 weaken-Wf-args :
+      xs ⊆ ys → ∀ (asˢ : Argsˢ vs) {as} →
+      Wf-args xs asˢ as → Wf-args ys asˢ as
+    weaken-Wf-args xs⊆ys nil           = id
+    weaken-Wf-args xs⊆ys (cons aˢ asˢ) =
+      Σ-map (weaken-Wf-arg xs⊆ys aˢ)
+            (weaken-Wf-args xs⊆ys asˢ)
+
+    @0 weaken-Wf-arg :
+      xs ⊆ ys → ∀ (aˢ : Argˢ v) {a} →
+      Wf-arg xs aˢ a → Wf-arg ys aˢ a
+    weaken-Wf-arg xs⊆ys (nil tˢ)  = weaken-Wf-tm xs⊆ys tˢ
+    weaken-Wf-arg xs⊆ys (cons aˢ) =
+      λ wf y y∉ys →
+        weaken-Wf-arg (∷-cong-⊆ xs⊆ys) aˢ (wf y (y∉ys ∘ xs⊆ys _))
+
+  -- A term is well-formed for its set of free variables.
+
+  mutual
+
+    @0 wf-free-Tm :
+      ∀ (tˢ : Tmˢ s) {t} → Wf-tm (free-Tm tˢ t) tˢ t
+    wf-free-Tm var        = ≡→∈∷ (refl _)
+    wf-free-Tm (op o asˢ) = wf-free-Args asˢ
+
+    @0 wf-free-Args :
+      ∀ (asˢ : Argsˢ vs) {as} →
+      Wf-args (free-Args asˢ as) asˢ as
+    wf-free-Args nil           = _
+    wf-free-Args (cons aˢ asˢ) =
+        weaken-Wf-arg (λ _ → ∈→∈∪ˡ) aˢ (wf-free-Arg aˢ)
+      , weaken-Wf-args (λ _ → ∈→∈∪ʳ (free-Arg aˢ _))
+                       asˢ (wf-free-Args asˢ)
+
+    @0 wf-free-Arg :
+      ∀ (aˢ : Argˢ v) {a : Arg aˢ} → Wf-arg (free-Arg aˢ a) aˢ a
+    wf-free-Arg (nil tˢ)              = wf-free-Tm tˢ
+    wf-free-Arg (cons aˢ) {a = x , a} = λ y y∉ →
+                                                      $⟨ wf-free-Arg aˢ ⟩
+      Wf-arg (free-Arg aˢ (rename-Arg x y aˢ a))
+        aˢ (rename-Arg x y aˢ a)                      ↝⟨ weaken-Wf-arg (free-rename-⊆-Arg aˢ) aˢ ⟩□
+
+      Wf-arg ((_ , y) ∷ del (_ , x) (free-Arg aˢ a))
+        aˢ (rename-Arg x y aˢ a)                      □
+      where
+      del = delete merely-equal?-∃Var
+
+  -- If a term is well-formed with respect to a set of variables xs,
+  -- then xs is a superset of the term's set of free variables.
+
+  mutual
+
+    @0 free-⊆-Tm :
+      ∀ (tˢ : Tmˢ s) {t} → Wf-tm xs tˢ t → free-Tm tˢ t ⊆ xs
+    free-⊆-Tm {xs = xs} var {t = x} wf y =
+      y ∈ singleton (_ , x)  ↔⟨ ∈singleton≃ ⟩
+      ∥ y ≡ (_ , x) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩
+      y ≡ (_ , x)            ↝⟨ (λ eq → subst (_∈ xs) (sym eq) wf) ⟩□
+      y ∈ xs                 □
+    free-⊆-Tm (op o asˢ) = free-⊆-Args asˢ
+
+    @0 free-⊆-Args :
+      ∀ (asˢ : Argsˢ vs) {as} →
+      Wf-args xs asˢ as → free-Args asˢ as ⊆ xs
+    free-⊆-Args           nil           _          _ = λ ()
+    free-⊆-Args {xs = xs} (cons aˢ asˢ) (wf , wfs) y =
+      y ∈ free-Arg aˢ _ ∪ free-Args asˢ _        ↔⟨ ∈∪≃ ⟩
+      y ∈ free-Arg aˢ _ ∥⊎∥ y ∈ free-Args asˢ _  ↝⟨ free-⊆-Arg aˢ wf y ∥⊎∥-cong free-⊆-Args asˢ wfs y ⟩
+      y ∈ xs ∥⊎∥ y ∈ xs                          ↔⟨ ∥⊎∥-idempotent ∈-propositional ⟩□
+      y ∈ xs                                     □
+
+    @0 free-⊆-Arg :
+      ∀ (aˢ : Argˢ v) {a} → Wf-arg xs aˢ a → free-Arg aˢ a ⊆ xs
+    free-⊆-Arg (nil tˢ) = free-⊆-Tm tˢ
+
+    free-⊆-Arg {xs = xs} (cons {s = s} aˢ) {a = x , a} wf y =
+      y ∈ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a)  ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+      y ≢ (_ , x) × y ∈ free-Arg aˢ a                        ↝⟨ uncurry lemma ⟩□
+      y ∈ xs                                                 □
+      where
+      lemma : y ≢ (_ , x) → _
+      lemma y≢x =
+        let fs               = free-Arg aˢ a
+            x₁ ,         x₁∉ = fresh (xs ∪ fs)
+            x₂ , x₂≢x₁ , x₂∉ =                                           $⟨ fresh ((_ , x₁) ∷ xs ∪ fs) ⟩
+              (∃ λ x₂ → ¬ (_ , x₂) ∈ (_ , x₁) ∷ xs ∪ fs)                 ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
+              (∃ λ x₂ → ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xs ∪ fs))  ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
+              (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × ¬ (_ , x₂) ∈ xs ∪ fs)      □
+        in
+        y ∈ free-Arg aˢ a                                            ↝⟨ (λ y∈ _ z∉ → (λ y≡z → z∉ (subst (_∈ _) y≡z y∈))
+                                                                                   , ⊆-free-rename-Arg aˢ _ y∈) ⟩
+        (∀ z → ¬ (_ , z) ∈ free-Arg aˢ a →
+         y ≢ (_ , z) ×
+         y ∈ (_ , x) ∷ (_ , z) ∷ free-Arg aˢ (rename-Arg x z aˢ a))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → uncurry λ y≢z →
+                                                                         to-implication (∈≢∷≃ y≢z F.∘ ∈≢∷≃ y≢x)) ⟩
+        (∀ z → ¬ (_ , z) ∈ free-Arg aˢ a →
+         y ∈ free-Arg aˢ (rename-Arg x z aˢ a))                      ↝⟨ (λ hyp → free-⊆-Arg aˢ (wf x₁ (x₁∉ ∘ ∈→∈∪ˡ)) y (hyp x₁ (x₁∉ ∘ ∈→∈∪ʳ xs))
+                                                                               , free-⊆-Arg aˢ (wf x₂ (x₂∉ ∘ ∈→∈∪ˡ)) y (hyp x₂ (x₂∉ ∘ ∈→∈∪ʳ xs))) ⟩
+
+        y ∈ (_ , x₁) ∷ xs × y ∈ (_ , x₂) ∷ xs                        ↔⟨ ∈∷≃ ×-cong ∈∷≃ ⟩
+
+        (y ≡ (_ , x₁) ∥⊎∥ y ∈ xs) ×
+        (y ≡ (_ , x₂) ∥⊎∥ y ∈ xs)                                    ↔⟨ (Σ-∥⊎∥-distrib-right (λ _ → ∃Var-set) ∥⊎∥-cong F.id) F.∘
+                                                                        Σ-∥⊎∥-distrib-left ∥⊎∥-propositional ⟩
+        (y ≡ (_ , x₁) × y ≡ (_ , x₂) ∥⊎∥ y ∈ xs × y ≡ (_ , x₂)) ∥⊎∥
+        (y ≡ (_ , x₁) ∥⊎∥ y ∈ xs) × y ∈ xs                           ↝⟨ ((λ (y≡x₁ , y≡x₂) → x₂≢x₁ (trans (sym y≡x₂) y≡x₁)) ∥⊎∥-cong proj₁)
+                                                                          ∥⊎∥-cong
+                                                                        proj₂ ⟩
+
+        (⊥ ∥⊎∥ y ∈ xs) ∥⊎∥ y ∈ xs                                    ↔⟨ ∥⊎∥-idempotent ∈-propositional F.∘
+                                                                        (∥⊎∥-left-identity ∈-propositional ∥⊎∥-cong F.id) ⟩□
+        y ∈ xs                                                       □
+
+  private
+
+    -- A lemma used to prove strengthening below.
+
+    ∉→⊆∷→⊆ :
+      ∀ {x : ∃Var} {xs ys : Vars} →
+      ¬ x ∈ xs → xs ⊆ x ∷ ys → xs ⊆ ys
+    ∉→⊆∷→⊆ {x = x} {xs = xs} {ys = ys} x∉ xs⊆x∷ys z =
+      z ∈ xs              ↝⟨ (λ z∈ → x∉ ∘ flip (subst (_∈ _)) z∈ , z∈) ⟩
+      z ≢ x × z ∈ xs      ↝⟨ Σ-map id (xs⊆x∷ys _) ⟩
+      z ≢ x × z ∈ x ∷ ys  ↔⟨ ∃-cong ∈≢∷≃ ⟩
+      z ≢ x × z ∈ ys      ↝⟨ proj₂ ⟩□
+      z ∈ ys              □
+
+  -- Strengthening of the Wf predicates.
+
+  @0 strengthen-Wf-var :
+    ¬ (_ , x) ∈ singleton {A = ∃Var} (_ , y) →
+    Wf-var ((_ , x) ∷ xs) y → Wf-var xs y
+  strengthen-Wf-var {x = x} {y = y} {xs = xs} x∉ =
+    (_ , y) ∈ (_ , x) ∷ xs                        ↔⟨ ∈∷≃ ⟩
+    (_ , y) ≡ (_ , x) ∥⊎∥ (_ , y) ∈ xs            ↔⟨ ≡-comm ∥⊎∥-cong F.id ⟩
+    (_ , x) ≡ (_ , y) ∥⊎∥ (_ , y) ∈ xs            ↝⟨ ≡→∈singleton ∥⊎∥-cong id ⟩
+    (_ , x) ∈ singleton (_ , y) ∥⊎∥ (_ , y) ∈ xs  ↔⟨ drop-⊥-left-∥⊎∥ ∈-propositional x∉ ⟩□
+    (_ , y) ∈ xs                                  □
+
+  @0 strengthen-Wf-tm :
+    ∀ (tˢ : Tmˢ s) {t} →
+    ¬ (_ , x) ∈ free-Tm tˢ t →
+    Wf-tm ((_ , x) ∷ xs) tˢ t → Wf-tm xs tˢ t
+  strengthen-Wf-tm {x = x} {xs = xs} tˢ {t = t} x∉ =
+    Wf-tm ((_ , x) ∷ xs) tˢ t                      ↝⟨ free-⊆-Tm tˢ ⟩
+    free-Tm tˢ t ⊆ (_ , x) ∷ xs                    ↝⟨ ∉→⊆∷→⊆ x∉ ⟩
+    free-Tm tˢ t ⊆ xs                              ↝⟨ _, wf-free-Tm tˢ ⟩
+    free-Tm tˢ t ⊆ xs × Wf-tm (free-Tm tˢ t) tˢ t  ↝⟨ (λ (sub , wf) → weaken-Wf-tm sub tˢ wf) ⟩□
+    Wf-tm xs tˢ t                                  □
+
+  @0 strengthen-Wf-args :
+    ∀ (asˢ : Argsˢ vs) {as} →
+    ¬ (_ , x) ∈ free-Args asˢ as →
+    Wf-args ((_ , x) ∷ xs) asˢ as → Wf-args xs asˢ as
+  strengthen-Wf-args {x = x} {xs = xs} asˢ {as = as} x∉ =
+    Wf-args ((_ , x) ∷ xs) asˢ as                              ↝⟨ free-⊆-Args asˢ ⟩
+    free-Args asˢ as ⊆ (_ , x) ∷ xs                            ↝⟨ ∉→⊆∷→⊆ x∉ ⟩
+    free-Args asˢ as ⊆ xs                                      ↝⟨ _, wf-free-Args asˢ ⟩
+    free-Args asˢ as ⊆ xs × Wf-args (free-Args asˢ as) asˢ as  ↝⟨ (λ (sub , wf) → weaken-Wf-args sub asˢ wf) ⟩□
+    Wf-args xs asˢ as                                          □
+
+  @0 strengthen-Wf-arg :
+    ∀ (aˢ : Argˢ v) {a} →
+    ¬ (_ , x) ∈ free-Arg aˢ a →
+    Wf-arg ((_ , x) ∷ xs) aˢ a → Wf-arg xs aˢ a
+  strengthen-Wf-arg {x = x} {xs = xs} aˢ {a = a} x∉ =
+    Wf-arg ((_ , x) ∷ xs) aˢ a                        ↝⟨ free-⊆-Arg aˢ ⟩
+    free-Arg aˢ a ⊆ (_ , x) ∷ xs                      ↝⟨ ∉→⊆∷→⊆ x∉ ⟩
+    free-Arg aˢ a ⊆ xs                                ↝⟨ _, wf-free-Arg aˢ ⟩
+    free-Arg aˢ a ⊆ xs × Wf-arg (free-Arg aˢ a) aˢ a  ↝⟨ (λ (sub , wf) → weaken-Wf-arg sub aˢ wf) ⟩□
+    Wf-arg xs aˢ a                                    □
