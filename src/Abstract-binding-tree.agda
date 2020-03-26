@@ -15,7 +15,7 @@ module Abstract-binding-tree
 open Derived-definitions-and-properties eq-J
 
 open import Logical-equivalence using (_⇔_; Dec-map)
-open import Prelude
+open import Prelude renaming ([_,_] to [_,_]′)
 
 import Bijection eq-J as Bijection
 open import Equality.Decidable-UIP eq-J
@@ -27,6 +27,7 @@ open import Finite-subset.Listed eq-J
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J
 open import H-level.Closure eq-J
+open import H-level.Truncation.Propositional eq-J as Trunc
 open import List eq-J
 
 private
@@ -487,6 +488,13 @@ module Signature {ℓ} (sig : Signature ℓ) where
   ----------------------------------------------------------------------
   -- Equality is decidable
 
+  -- "Mere equality" is decidable for ∃Var.
+
+  merely-equal?-∃Var : (x y : ∃Var) → Dec ∥ x ≡ y ∥
+  merely-equal?-∃Var x y = case x ≟∃V y of λ where
+    (yes x≡y) → yes ∣ x≡y ∣
+    (no x≢y)  → no (x≢y ∘ Trunc.rec ∃Var-set id)
+
   -- Equality is decidable for Var.
 
   infix 4 _≟V_
@@ -819,6 +827,50 @@ module Signature {ℓ} (sig : Signature ℓ) where
   … | no _    = refl _
   … | yes x≡z = ⊥-elim (x≢z x≡z)
 
+  -- Equality to a pair of a certain form involving rename-Var can be
+  -- expressed without reference to rename-Var.
+
+  ≡,rename-Var≃ :
+    {x y : Var s} {z : Var s′} {p : ∃Var} →
+    (p ≡ (_ , rename-Var x y z))
+      ≃
+    ((_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
+     (_ , x) ≢ (_ , z) × p ≡ (_ , z))
+  ≡,rename-Var≃ {x = x} {y = y} {z = z} {p = p} =
+    p ≡ (_ , rename-Var x y z)                        ↔⟨ ×-⊎-distrib-right F.∘
+                                                         (inverse $ drop-⊤-left-Σ $ _⇔_.to contractible⇔↔⊤ $
+                                                          propositional⇒inhabited⇒contractible
+                                                            (Dec-closure-propositional ext ∃Var-set)
+                                                            (_ ≟∃V _)) ⟩
+    (_ , x) ≡ (_ , z) × p ≡ (_ , rename-Var x y z) ⊎
+    (_ , x) ≢ (_ , z) × p ≡ (_ , rename-Var x y z)    ↝⟨ (∃-cong λ eq → ≡⇒↝ _ $ cong (p ≡_) (
+
+        _ , rename-Var x y z                                                      ≡⟨ cong (_ ,_) $ rename-Var-≡ eq ⟩
+        _ , cast-Var _ y                                                          ≡⟨ Σ-≡,≡→≡ (sym $ cong proj₁ eq)
+                                                                                             (subst-sym-subst _) ⟩∎
+        _ , y                                                                     ∎))
+                                                            ⊎-cong
+                                                         (∃-cong λ neq → ≡⇒↝ _ $ cong (λ x → _ ≡ (_ , x)) $ rename-Var-≢ neq) ⟩
+    (_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
+    (_ , x) ≢ (_ , z) × p ≡ (_ , z)                   □
+
+  -- A variant of the previous lemma.
+
+  ≡,rename-Var≃′ :
+    {x y : Var s} {z : Var s′} {p : ∃Var} →
+    (p ≡ (_ , rename-Var x y z))
+      ≃
+    (p ≡ (_ , y) × (_ , x) ≡ (_ , z) ⊎
+     p ≢ (_ , x) × p ≡ (_ , z))
+  ≡,rename-Var≃′ {x = x} {y = y} {z = z} {p = p} =
+    p ≡ (_ , rename-Var x y z)         ↝⟨ ≡,rename-Var≃ ⟩
+
+    (_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
+    (_ , x) ≢ (_ , z) × p ≡ (_ , z)    ↔⟨ (×-comm ⊎-cong ×-cong₁ λ p≡z → →-cong₁ ext ≡-comm F.∘ ≡⇒↝ _ (cong (_ ≢_) (sym p≡z))) ⟩□
+
+    p ≡ (_ , y) × (_ , x) ≡ (_ , z) ⊎
+    p ≢ (_ , x) × p ≡ (_ , z)          □
+
   -- The functions rename-Var and cast-Var commute.
 
   rename-Var-cast-Var :
@@ -997,3 +1049,222 @@ module Signature {ℓ} (sig : Signature ℓ) where
         cong₂ _,_
           rename-Var-swap
           (rename-Arg-swap aˢ)
+
+  ----------------------------------------------------------------------
+  -- Free variables
+
+  -- These functions return sets containing exactly the free
+  -- variables.
+  --
+  -- Note that this code is not intended to be used at run-time.
+
+  mutual
+
+    free-Tm : (tˢ : Tmˢ s) → Tm tˢ → Vars
+    free-Tm var        x  = singleton (_ , x)
+    free-Tm (op o asˢ) as = free-Args asˢ as
+
+    free-Args : (asˢ : Argsˢ vs) → Args asˢ → Vars
+    free-Args nil           _        = []
+    free-Args (cons aˢ asˢ) (a , as) =
+      free-Arg aˢ a ∪ free-Args asˢ as
+
+    free-Arg : (aˢ : Argˢ v) → Arg aˢ → Vars
+    free-Arg (nil tˢ)  t       = free-Tm tˢ t
+    free-Arg (cons aˢ) (x , a) =
+      delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a)
+
+  -- Some lemmas relating the set of free variables of a term to the
+  -- set of free variables of the term after renaming.
+
+  module _ {x y : Var s} where
+
+    mutual
+
+      free-rename-⊆-Tm :
+        ∀ (tˢ : Tmˢ s′) {t} →
+        free-Tm tˢ (rename-Tm x y tˢ t) ⊆
+        (_ , y) ∷ delete merely-equal?-∃Var (_ , x) (free-Tm tˢ t)
+      free-rename-⊆-Tm var {t = z} p =
+        p ∈ singleton (_ , rename-Var x y z)                         ↔⟨ ∥∥↔ ∃Var-set F.∘ from-isomorphism ∈singleton≃ ⟩
+
+        p ≡ (_ , rename-Var x y z)                                   ↔⟨ ≡,rename-Var≃′ ⟩
+
+        p ≡ (_ , y) × (_ , x) ≡ (_ , z) ⊎
+        p ≢ (_ , x) × p ≡ (_ , z)                                    ↝⟨ ∣_∣ ∘ [ inj₁ ∘ proj₁ , inj₂ ∘ Σ-map id ≡→∈∷ ]′ ⟩
+
+        p ≡ (_ , y) ∥⊎∥ p ≢ (_ , x) × p ∈ singleton (_ , z)          ↔⟨ F.id ∥⊎∥-cong inverse (∈delete≃ merely-equal?-∃Var) ⟩
+
+        p ≡ (_ , y) ∥⊎∥
+        p ∈ delete merely-equal?-∃Var (_ , x) (singleton (_ , z))    ↔⟨ inverse ∈∷≃ ⟩□
+
+        p ∈ (_ , y) ∷
+            delete merely-equal?-∃Var (_ , x) (singleton (_ , z))    □
+
+      free-rename-⊆-Tm (op o asˢ) = free-rename-⊆-Args asˢ
+
+      free-rename-⊆-Args :
+        ∀ (asˢ : Argsˢ vs) {as} →
+        free-Args asˢ (rename-Args x y asˢ as) ⊆
+        (_ , y) ∷ delete merely-equal?-∃Var (_ , x) (free-Args asˢ as)
+      free-rename-⊆-Args nil _ ()
+
+      free-rename-⊆-Args (cons aˢ asˢ) {as = a , as} p =
+        p ∈ free-Arg aˢ (rename-Arg x y aˢ a) ∪
+            free-Args asˢ (rename-Args x y asˢ as)                ↔⟨ ∈∪≃ ⟩
+
+        p ∈ free-Arg aˢ (rename-Arg x y aˢ a) ∥⊎∥
+        p ∈ free-Args asˢ (rename-Args x y asˢ as)                ↝⟨ free-rename-⊆-Arg aˢ p ∥⊎∥-cong free-rename-⊆-Args asˢ p ⟩
+
+        p ∈ (_ , y) ∷ del (free-Arg aˢ a) ∥⊎∥
+        p ∈ (_ , y) ∷ del (free-Args asˢ as)                      ↔⟨ ∈∷≃ ∥⊎∥-cong ∈∷≃ ⟩
+
+        (p ≡ (_ , y) ∥⊎∥ p ∈ del (free-Arg aˢ a)) ∥⊎∥
+        (p ≡ (_ , y) ∥⊎∥ p ∈ del (free-Args asˢ as))              ↔⟨ (∥⊎∥-idempotent ∃Var-set ∥⊎∥-cong F.id) F.∘
+                                                                     ∥⊎∥-assoc F.∘
+                                                                     (F.id
+                                                                        ∥⊎∥-cong
+                                                                      (inverse ∥⊎∥-assoc F.∘ (∥⊎∥-comm ∥⊎∥-cong F.id) F.∘ ∥⊎∥-assoc)) F.∘
+                                                                     inverse ∥⊎∥-assoc ⟩
+        p ≡ (_ , y) ∥⊎∥
+        p ∈ del (free-Arg aˢ a) ∥⊎∥ p ∈ del (free-Args asˢ as)    ↔⟨ inverse $
+                                                                     (F.id
+                                                                        ∥⊎∥-cong
+                                                                      (∈∪≃ F.∘
+                                                                       ≡⇒↝ _ (cong (_ ∈_) $ delete-∪ merely-equal?-∃Var (free-Arg aˢ a)))) F.∘
+                                                                     ∈∷≃ ⟩□
+        p ∈ (_ , y) ∷ del (free-Arg aˢ a ∪ free-Args asˢ as)      □
+        where
+        del = delete merely-equal?-∃Var (_ , x)
+
+      free-rename-⊆-Arg :
+        ∀ (aˢ : Argˢ v) {a} →
+        free-Arg aˢ (rename-Arg x y aˢ a) ⊆
+        (_ , y) ∷ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a)
+      free-rename-⊆-Arg (nil tˢ) = free-rename-⊆-Tm tˢ
+
+      free-rename-⊆-Arg (cons aˢ) {a = z , a} p =
+        p ∈ delete merely-equal?-∃Var (_ , rename-Var x y z)
+              (free-Arg aˢ (rename-Arg x y aˢ a))                        ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+
+        p ≢ (_ , rename-Var x y z) ×
+        p ∈ free-Arg aˢ (rename-Arg x y aˢ a)                            ↝⟨ Σ-map id (free-rename-⊆-Arg aˢ p) ⟩
+
+        p ≢ (_ , rename-Var x y z) ×
+        p ∈ (_ , y) ∷ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a)  ↔⟨ F.id ×-cong ∈∷≃ ⟩
+
+        p ≢ (_ , rename-Var x y z) ×
+        (p ≡ (_ , y) ∥⊎∥
+         p ∈ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a))          ↔⟨ (Π⊎↔Π×Π ext F.∘ →-cong₁ ext ≡,rename-Var≃) ×-cong Eq.id ⟩
+
+        (¬ (((_ , x) ≡ (_ , z)) × p ≡ (_ , y)) ×
+         ¬ (((_ , x) ≢ (_ , z)) × p ≡ (_ , z))) ×
+        (p ≡ (_ , y) ∥⊎∥
+         p ∈ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a))          ↝⟨ (uncurry λ (_ , hyp) → id ∥⊎∥-cong λ u∈ → lemma hyp u∈ , u∈) ⟩
+
+        p ≡ (_ , y) ∥⊎∥
+        p ≢ (_ , z) ×
+        p ∈ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a)            ↔⟨ inverse $ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
+
+        p ∈ (_ , y) ∷
+            delete merely-equal?-∃Var (_ , z)
+              (delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a))        ↔⟨ ≡⇒↝ equivalence $ cong (λ x → p ∈ (_ , y) ∷ x) $
+                                                                            delete-comm merely-equal?-∃Var (free-Arg aˢ a) ⟩□
+        p ∈ (_ , y) ∷
+            delete merely-equal?-∃Var (_ , x)
+              (delete merely-equal?-∃Var (_ , z) (free-Arg aˢ a))        □
+        where
+        lemma :
+          ¬ (((_ , x) ≢ (_ , z)) × p ≡ (_ , z)) →
+          p ∈ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a) →
+          p ≢ (_ , z)
+        lemma hyp p∈ =
+          p ≡ (_ , z)                        ↝⟨ (λ eq → eq , hyp ∘ (_, eq)) ⟩
+          p ≡ (_ , z) × ¬ (_ , x) ≢ (_ , z)  ↝⟨ Σ-map id (λ eq → case (_ ≟∃V _) of [ id , ⊥-elim ∘ eq ]′) ⟩
+          p ≡ (_ , z) × (_ , x) ≡ (_ , z)    ↝⟨ (uncurry λ eq₁ eq₂ → trans eq₁ (sym eq₂)) ⟩
+          p ≡ (_ , x)                        ↝⟨ proj₁ (_≃_.to (∈delete≃ {z = free-Arg aˢ a} merely-equal?-∃Var) p∈) ⟩□
+          ⊥                                  □
+
+    mutual
+
+      ⊆-free-rename-Tm :
+        ∀ (tˢ : Tmˢ s′) {t} →
+        free-Tm tˢ t ⊆
+        (_ , x) ∷ (_ , y) ∷ free-Tm tˢ (rename-Tm x y tˢ t)
+      ⊆-free-rename-Tm var {t = z} p =
+        p ∈ singleton (_ , z)                                           ↔⟨ ∈singleton≃ ⟩
+
+        ∥ p ≡ (_ , z) ∥                                                 ↝⟨ (Trunc.rec ∥⊎∥-propositional λ p≡z → case p ≟∃V (_ , x) of
+                                                                            [ ∣inj₁∣ , ∣inj₂∣ ∘ ∣inj₂∣ ∘ ∣inj₂∣ ∘ (_, p≡z) ]′) ⟩
+        p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥
+        (p ≡ (_ , y) × (_ , x) ≡ (_ , z) ∥⊎∥
+         p ≢ (_ , x) × p ≡ (_ , z))                                     ↔⟨ inverse $ F.id ∥⊎∥-cong F.id ∥⊎∥-cong ∥∥-cong ≡,rename-Var≃′ ⟩
+
+        p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥ ∥ p ≡ (_ , rename-Var x y z) ∥  ↔⟨ inverse $ (F.id ∥⊎∥-cong (F.id ∥⊎∥-cong ∈singleton≃) F.∘ ∈∷≃) F.∘ ∈∷≃ ⟩□
+
+        p ∈ (_ , x) ∷ (_ , y) ∷ singleton (_ , rename-Var x y z)        □
+
+      ⊆-free-rename-Tm (op o asˢ) = ⊆-free-rename-Args asˢ
+
+      ⊆-free-rename-Args :
+        ∀ (asˢ : Argsˢ vs) {as} →
+        free-Args asˢ as ⊆
+        (_ , x) ∷ (_ , y) ∷ free-Args asˢ (rename-Args x y asˢ as)
+      ⊆-free-rename-Args nil _ ()
+
+      ⊆-free-rename-Args (cons aˢ asˢ) {as = a , as} p =
+        p ∈ free-Arg aˢ a ∪ free-Args asˢ as                            ↔⟨ ∈∪≃ ⟩
+
+        p ∈ free-Arg aˢ a ∥⊎∥ p ∈ free-Args asˢ as                      ↝⟨ ⊆-free-rename-Arg aˢ p ∥⊎∥-cong ⊆-free-rename-Args asˢ p ⟩
+
+        p ∈ (_ , x) ∷ (_ , y) ∷ free-Arg aˢ (rename-Arg x y aˢ a) ∥⊎∥
+        p ∈ (_ , x) ∷ (_ , y) ∷ free-Args asˢ (rename-Args x y asˢ as)  ↔⟨ inverse $
+                                                                           ∈∪≃ F.∘
+                                                                           ≡⇒↝ _ (cong (p ∈_) $
+                                                                                  ∪-distrib-left {y = free-Arg aˢ (rename-Arg x y aˢ a)}
+                                                                                                 ((_ , x) ∷ (_ , y) ∷ [])) ⟩□
+        p ∈ (_ , x) ∷ (_ , y) ∷
+            free-Arg aˢ (rename-Arg x y aˢ a) ∪
+            free-Args asˢ (rename-Args x y asˢ as)                      □
+
+      ⊆-free-rename-Arg :
+        ∀ (aˢ : Argˢ v) {a} →
+        free-Arg aˢ a ⊆
+        (_ , x) ∷ (_ , y) ∷ free-Arg aˢ (rename-Arg x y aˢ a)
+      ⊆-free-rename-Arg (nil tˢ) = ⊆-free-rename-Tm tˢ
+
+      ⊆-free-rename-Arg (cons aˢ) {a = z , a} p =
+        p ∈ del (_ , z) (free-Arg aˢ a)            ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+
+        p ≢ (_ , z) × p ∈ free-Arg aˢ a            ↝⟨ Σ-map id (⊆-free-rename-Arg aˢ p) ⟩
+
+        p ≢ (_ , z) ×
+        p ∈ (_ , x) ∷ (_ , y) ∷
+            free-Arg aˢ (rename-Arg x y aˢ a)      ↔⟨ F.id ×-cong (F.id ∥⊎∥-cong ∈∷≃) F.∘ ∈∷≃ ⟩
+
+        p ≢ (_ , z) ×
+        (p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥
+         p ∈ free-Arg aˢ (rename-Arg x y aˢ a))    ↝⟨ case p ≟∃V (_ , y) of
+                                                        [ (λ p≡y _ → ∣inj₂∣ (∣inj₁∣ p≡y))
+                                                        , (λ p≢y → uncurry λ p≢z → id ∥⊎∥-cong id ∥⊎∥-cong (lemma p≢y p≢z ,_))
+                                                        ]′ ⟩
+        p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥
+        p ≢ (_ , rename-Var x y z) ×
+        p ∈ free-Arg aˢ (rename-Arg x y aˢ a)      ↔⟨ inverse $ (F.id ∥⊎∥-cong (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃) F.∘ ∈∷≃ ⟩□
+
+        p ∈ (_ , x) ∷ (_ , y) ∷
+            del (_ , rename-Var x y z)
+              (free-Arg aˢ (rename-Arg x y aˢ a))  □
+        where
+        del = delete merely-equal?-∃Var
+
+        lemma : p ≢ (_ , y) → p ≢ (_ , z) → p ≢ (_ , rename-Var x y z)
+        lemma p≢y p≢z =
+          p ≡ (_ , rename-Var x y z)         ↔⟨ ≡,rename-Var≃ ⟩
+
+          (_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
+          (_ , x) ≢ (_ , z) × p ≡ (_ , z)    ↝⟨ p≢y ∘ proj₂ ⊎-cong p≢z ∘ proj₂ ⟩
+
+          ⊥ ⊎ ⊥                              ↔⟨ ⊎-right-identity ⟩□
+
+          ⊥                                  □
