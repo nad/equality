@@ -665,17 +665,16 @@ member? equal? x = elim-prop e
   where
   e : Elim-prop _
   e .[]ʳ          = no λ ()
-  e .∷ʳ {y = z} y = case equal? x y of
-    [ (λ  ∥x≡y∥ _ → yes (∥≡∥→∈∷ ∥x≡y∥))
-    , (λ ¬∥x≡y∥ →
-         [ (λ x∈z → yes (∈→∈∷ x∈z))
-         , (λ x∉z → no (
-              x ∈ y ∷ z        ↔⟨ ∈∷≃ ⟩
-              x ≡ y ∥⊎∥ x ∈ z  ↝⟨ Trunc.∥∥-map [ ¬∥x≡y∥ ∘ ∣_∣ , x∉z ] ⟩
-              ∥ ⊥ ∥            ↔⟨ Trunc.not-inhabited⇒∥∥↔⊥ id ⟩□
-              ⊥                □))
-         ])
-    ]
+  e .∷ʳ {y = z} y = case equal? x y of λ where
+    (yes ∥x≡y∥) _ → yes (∥≡∥→∈∷ ∥x≡y∥)
+    (no ¬∥x≡y∥)   →
+      [ (λ x∈z → yes (∈→∈∷ x∈z))
+      , (λ x∉z → no (
+           x ∈ y ∷ z        ↔⟨ ∈∷≃ ⟩
+           x ≡ y ∥⊎∥ x ∈ z  ↝⟨ Trunc.∥∥-map [ ¬∥x≡y∥ ∘ ∣_∣ , x∉z ] ⟩
+           ∥ ⊥ ∥            ↔⟨ Trunc.not-inhabited⇒∥∥↔⊥ id ⟩□
+           ⊥                □))
+      ]
   e .is-propositionʳ y =
     Dec-closure-propositional ext ∈-propositional
 
