@@ -257,6 +257,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
   Term xs s =
     ∃ λ (tˢ : Tmˢ s) → ∃ λ (t : Tm tˢ) → Erased (Wf-tm xs tˢ t)
 
+  pattern var-wf x wf        = var , x , [ wf ]
+  pattern op-wf o asˢ as wfs = op o asˢ , as , [ wfs ]
+
   -- Well-formed sequences of arguments.
 
   Arguments : @0 Vars → @0 List Valence → Set ℓ
@@ -264,11 +267,18 @@ module Signature {ℓ} (sig : Signature ℓ) where
     ∃ λ (asˢ : Argsˢ vs) → ∃ λ (as : Args asˢ) →
     Erased (Wf-args xs asˢ as)
 
+  pattern nil-wfs                     = nil , lift tt , [ lift tt ]
+  pattern cons-wfs aˢ asˢ a as wf wfs =
+    cons aˢ asˢ , (a , as) , [ wf , wfs ]
+
   -- Well-formed arguments.
 
   Argument : @0 Vars → @0 Valence → Set ℓ
   Argument xs v =
     ∃ λ (aˢ : Argˢ v) → ∃ λ (a : Arg aˢ) → Erased (Wf-arg xs aˢ a)
+
+  pattern nil-wf tˢ t wf    = nil tˢ , t , [ wf ]
+  pattern cons-wf aˢ x a wf = cons aˢ , (x , a) , [ wf ]
 
   ----------------------------------------------------------------------
   -- Some rearrangement lemmas
@@ -701,25 +711,25 @@ module Signature {ℓ} (sig : Signature ℓ) where
     no-eta-equality
     field
       varʳ : (x : Var s) (@0 x∈ : (_ , x) ∈ xs) →
-             P-tm (var , x , [ x∈ ])
+             P-tm (var-wf x x∈)
       opʳ  : ∀ (o : Op s) asˢ as (@0 wfs : Wf-args xs asˢ as) →
              P-args (asˢ , as , [ wfs ]) →
-             P-tm (op o asˢ , as , [ wfs ])
+             P-tm (op-wf o asˢ as wfs)
 
-      nilʳ  : P-args {xs = xs} (nil , _ , [ _ ])
+      nilʳ  : P-args {xs = xs} nil-wfs
       consʳ : ∀ aˢ a asˢ as
               (@0 wf : Wf-arg {v = v} xs aˢ a)
               (@0 wfs : Wf-args {vs = vs} xs asˢ as) →
               P-arg (aˢ , a , [ wf ]) → P-args (asˢ , as , [ wfs ]) →
-              P-args (cons aˢ asˢ , (a , as) , [ (wf , wfs) ])
+              P-args (cons-wfs aˢ asˢ a as wf wfs)
 
       nilʳ′  : ∀ tˢ t (@0 wf : Wf-tm {s = s} xs tˢ t) →
                P-tm (tˢ , t , [ wf ]) →
-               P-arg (nil tˢ , t , [ wf ])
+               P-arg (nil-wf tˢ t wf)
       consʳ′ : ∀ (aˢ : Argˢ v) (x : Var s) a (@0 wf) →
                (∀ y (@0 y∉ : ¬ (_ , y) ∈ xs) →
                 P-arg (aˢ , rename-Arg x y aˢ a , [ wf y y∉ ])) →
-               P-arg (cons aˢ , (x , a) , [ wf ])
+               P-arg (cons-wf aˢ x a wf)
 
   -- The eliminators.
 
