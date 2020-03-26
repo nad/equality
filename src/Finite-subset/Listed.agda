@@ -910,6 +910,30 @@ minus-∪ :
   minus _≟_ (x ∪ y) z ≡ minus _≟_ x z ∪ minus _≟_ y z
 minus-∪ x _ = filter-∪ x
 
+-- A lemma relating minus, _⊆_ and _∪_.
+
+minus⊆≃ : ∀ y → (minus _≟_ x y ⊆ z) ≃ (x ⊆ y ∪ z)
+minus⊆≃ {_≟_ = _≟_} {x = x} {z = z} y =
+  _↠_.from (Eq.≃↠⇔ ⊆-propositional ⊆-propositional) $ record
+    { to = λ x-y⊆z u → case member? _≟_ u y of
+        [ curry (
+            u ∈ y × u ∈ x  ↝⟨ ∈→∈∪ˡ ∘ proj₁ ⟩□
+            u ∈ y ∪ z      □)
+        , curry (
+            ¬ u ∈ y × u ∈ x    ↔⟨ inverse ∈minus≃ F.∘ from-isomorphism ×-comm ⟩
+            u ∈ minus _≟_ x y  ↝⟨ x-y⊆z _ ⟩
+            u ∈ z              ↝⟨ ∈→∈∪ʳ y ⟩□
+            u ∈ y ∪ z          □)
+        ]
+    ; from = λ x⊆y∪z u →
+        u ∈ minus _≟_ x y            ↔⟨ ∈minus≃ ⟩
+        u ∈ x × ¬ u ∈ y              ↝⟨ Σ-map (x⊆y∪z _) id ⟩
+        u ∈ y ∪ z × ¬ u ∈ y          ↔⟨ ∈∪≃ ×-cong F.id ⟩
+        (u ∈ y ∥⊎∥ u ∈ z) × ¬ u ∈ y  ↔⟨ (×-cong₁ λ u∉y → Trunc.drop-⊥-left-∥⊎∥ ∈-propositional u∉y) ⟩
+        u ∈ z × ¬ u ∈ y              ↝⟨ proj₁ ⟩□
+        u ∈ z                        □
+    }
+
 -- If truncated equality is decidable, then elements can be removed
 -- from a subset.
 
@@ -950,6 +974,11 @@ delete-∪ :
   ∀ _≟_ y →
   delete _≟_ x (y ∪ z) ≡ delete _≟_ x y ∪ delete _≟_ x z
 delete-∪ _≟_ y = minus-∪ {_≟_ = _≟_} y (singleton _)
+
+-- A lemma relating delete, _⊆_ and _∷_.
+
+delete⊆≃ : ∀ _≟_ → (delete _≟_ x y ⊆ z) ≃ (y ⊆ x ∷ z)
+delete⊆≃ _≟_ = minus⊆≃ {_≟_ = _≟_} (singleton _)
 
 ------------------------------------------------------------------------
 -- Some preservation lemmas for _⊆_
