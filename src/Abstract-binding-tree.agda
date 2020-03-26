@@ -1659,3 +1659,70 @@ module Signature {ℓ} (sig : Signature ℓ) where
     free-Arg aˢ a ⊆ xs                                ↝⟨ _, wf-free-Arg aˢ ⟩
     free-Arg aˢ a ⊆ xs × Wf-arg (free-Arg aˢ a) aˢ a  ↝⟨ (λ (sub , wf) → weaken-Wf-arg sub aˢ wf) ⟩□
     Wf-arg xs aˢ a                                    □
+
+  private
+
+    -- A lemma used below.
+
+    ⊆∷delete→⊆∷→⊆∷ :
+      ∀ {x y : ∃Var} {xs ys zs} →
+      xs ⊆ x ∷ delete merely-equal?-∃Var y ys →
+      ys ⊆ y ∷ zs →
+      xs ⊆ x ∷ zs
+    ⊆∷delete→⊆∷→⊆∷ {x = x} {y = y} {xs = xs} {ys = ys} {zs = zs}
+                   xs⊆ ys⊆ z =
+      z ∈ xs                                  ↝⟨ xs⊆ z ⟩
+      z ∈ x ∷ delete merely-equal?-∃Var y ys  ↔⟨ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
+      z ≡ x ∥⊎∥ z ≢ y × z ∈ ys                ↝⟨ id ∥⊎∥-cong id ×-cong ys⊆ z ⟩
+      z ≡ x ∥⊎∥ z ≢ y × z ∈ y ∷ zs            ↔⟨ (F.id ∥⊎∥-cong ∃-cong λ z≢y → ∈≢∷≃ z≢y) ⟩
+      z ≡ x ∥⊎∥ z ≢ y × z ∈ zs                ↝⟨ id ∥⊎∥-cong proj₂ ⟩
+      z ≡ x ∥⊎∥ z ∈ zs                        ↔⟨ inverse ∈∷≃ ⟩□
+      z ∈ x ∷ zs                              □
+
+  -- Renaming preserves well-formedness.
+
+  @0 rename-Wf-var :
+    Wf-var ((_ , x) ∷ xs) z →
+    Wf-var ((_ , y) ∷ xs) (rename-Var x y z)
+  rename-Wf-var {x = x} {xs = xs} {z = z} {y = y} z∈
+    with (_ , x) ≟∃V (_ , z)
+  … | no x≢z =                $⟨ z∈ ⟩
+      (_ , z) ∈ (_ , x) ∷ xs  ↔⟨ ∈≢∷≃ (x≢z ∘ sym) ⟩
+      (_ , z) ∈ xs            ↝⟨ ∈→∈∷ ⟩□
+      (_ , z) ∈ (_ , y) ∷ xs  □
+
+  … | yes x≡z =
+    ≡→∈∷ $ Σ-≡,≡→≡
+      (sym (cong proj₁ x≡z))
+      (cast-Var (sym (cong proj₁ x≡z)) (cast-Var (cong proj₁ x≡z) y)  ≡⟨ subst-sym-subst _ ⟩∎
+       y                                                              ∎)
+
+  @0 rename-Wf-tm :
+    ∀ (tˢ : Tmˢ s) {t} →
+    Wf-tm ((_ , x) ∷ xs) tˢ t →
+    Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)
+  rename-Wf-tm {x = x} {xs = xs} {y = y} tˢ {t = t} wf =             $⟨ wf-free-Tm tˢ ⟩
+    Wf-tm (free-Tm tˢ (rename-Tm x y tˢ t)) tˢ (rename-Tm x y tˢ t)  ↝⟨ weaken-Wf-tm (⊆∷delete→⊆∷→⊆∷ (free-rename-⊆-Tm tˢ) (free-⊆-Tm tˢ wf)) tˢ ⟩□
+    Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)                     □
+
+  @0 rename-Wf-args :
+    ∀ (asˢ : Argsˢ vs) {as} →
+    Wf-args ((_ , x) ∷ xs) asˢ as →
+    Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)
+  rename-Wf-args {x = x} {xs = xs} {y = y} asˢ {as = as} wfs =
+                                                         $⟨ wf-free-Args asˢ ⟩
+    Wf-args (free-Args asˢ (rename-Args x y asˢ as)) asˢ
+            (rename-Args x y asˢ as)                     ↝⟨ weaken-Wf-args (⊆∷delete→⊆∷→⊆∷ (free-rename-⊆-Args asˢ) (free-⊆-Args asˢ wfs)) asˢ ⟩□
+
+    Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)  □
+
+  @0 rename-Wf-arg :
+    ∀ (aˢ : Argˢ v) {a} →
+    Wf-arg ((_ , x) ∷ xs) aˢ a →
+    Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)
+  rename-Wf-arg {x = x} {xs = xs} {y = y} aˢ {a = a} wf =
+                                                    $⟨ wf-free-Arg aˢ ⟩
+    Wf-arg (free-Arg aˢ (rename-Arg x y aˢ a)) aˢ
+           (rename-Arg x y aˢ a)                    ↝⟨ weaken-Wf-arg (⊆∷delete→⊆∷→⊆∷ (free-rename-⊆-Arg aˢ) (free-⊆-Arg aˢ wf)) aˢ ⟩□
+
+    Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)  □
