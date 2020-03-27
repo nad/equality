@@ -80,8 +80,8 @@ private
       _≟∃V_ : Decidable-equality ∃Var
 
       -- One can always find a fresh variable.
-      @0 fresh : ∀ {s} (xs : Vars) →
-                 ∃ λ (x : Var s) → ¬ (_ , x) ∈ xs
+      fresh : ∀ {s} (xs : Vars) →
+              ∃ λ (x : Var s) → ¬ (_ , x) ∈ xs
 
     -- Arities.
 
@@ -162,7 +162,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     data Argˢ : @0 Valence → Set ℓ where
       nil  : Tmˢ s → Argˢ ([] , s)
-      cons : Argˢ (ss , s′) → Argˢ (s ∷ ss , s′)
+      cons : ∀ {s} → Argˢ (ss , s′) → Argˢ (s ∷ ss , s′)
 
   ----------------------------------------------------------------------
   -- Raw terms
@@ -405,8 +405,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Argˢ v ≃
     ((∃ λ (([ s ] , _) : ∃ λ s → Tmˢ (erased s)) →
         Erased (([] , s) ≡ v)) ⊎
-     (∃ λ (([ s ] , [ ss , s′ ] , _) :
-           Erased Sort × ∃ λ v → Argˢ (erased v)) →
+     (∃ λ ((s , [ ss , s′ ] , _) : Sort × ∃ λ v → Argˢ (erased v)) →
       Erased ((s ∷ ss , s′) ≡ v)))
   Argˢ≃ = Eq.↔⇒≃ (record
     { surjection = record
@@ -423,18 +422,17 @@ module Signature {ℓ} (sig : Signature ℓ) where
     RHS [ v ] =
       (∃ λ (([ s ] , _) : ∃ λ s → Tmˢ (erased s)) →
          Erased (([] , s) ≡ v)) ⊎
-      (∃ λ (([ s ] , [ ss , s′ ] , _) :
-            Erased Sort × ∃ λ v → Argˢ (erased v)) →
+      (∃ λ ((s , [ ss , s′ ] , _) : Sort × ∃ λ v → Argˢ (erased v)) →
        Erased ((s ∷ ss , s′) ≡ v))
 
     to : Argˢ v → RHS [ v ]
     to (nil t)          = inj₁ ((_ , t) , [ refl _ ])
-    to (cons {s = s} a) = inj₂ (([ s ] , _ , a) , [ refl _ ])
+    to (cons {s = s} a) = inj₂ ((s , _ , a) , [ refl _ ])
 
     from : RHS [ v ] → Argˢ v
     from (inj₁ ((_ , t) , [ eq ])) =
       subst (λ v → Argˢ (erased v)) ([]-cong [ eq ]) (nil t)
-    from (inj₂ (([ s ] , _ , a) , [ eq ])) =
+    from (inj₂ ((s , _ , a) , [ eq ])) =
       subst (λ v → Argˢ (erased v)) ([]-cong [ eq ]) (cons {s = s} a)
 
     lemma₁ :
@@ -467,7 +465,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
                                                                           H-level-Erased 1 Valence-set _ _ ⟩∎
       inj₁ ((_ , t) , [ eq ])                                          ∎
 
-    to∘from (inj₂ (([ s ] , [ ss , s′ ] , a) , [ eq ])) =
+    to∘from (inj₂ ((s , [ ss , s′ ] , a) , [ eq ])) =
       to (subst (λ v → Argˢ (erased v))
                 ([]-cong [ eq ])
                 (cons {s = s} a))                            ≡⟨ lemma₁ _ ⟩
@@ -475,19 +473,19 @@ module Signature {ℓ} (sig : Signature ℓ) where
       subst RHS ([]-cong [ eq ]) (to (cons {s = s} a))       ≡⟨⟩
 
       subst RHS ([]-cong [ eq ])
-            (inj₂ (([ s ] , _ , a) , [ refl _ ]))            ≡⟨ push-subst-inj₂ _ _ ⟩
+            (inj₂ ((s , _ , a) , [ refl _ ]))                ≡⟨ push-subst-inj₂ _ _ ⟩
 
       inj₂ (subst _
                   ([]-cong [ eq ])
-                  (([ s ] , _ , a) , [ refl _ ]))            ≡⟨ cong inj₂ (push-subst-pair-× _ _) ⟩
+                  ((s , _ , a) , [ refl _ ]))                ≡⟨ cong inj₂ (push-subst-pair-× _ _) ⟩
 
-      inj₂ ( ([ s ] , _ , a)
+      inj₂ ( (s , _ , a)
            , subst (λ ([ v ]) → Erased ((s ∷ ss , s′) ≡ v))
                    ([]-cong [ eq ])
                    [ refl _ ]
-           )                                                 ≡⟨ cong (λ eq → inj₂ (([ s ] , _ , a) , eq)) $
+           )                                                 ≡⟨ cong (λ eq → inj₂ ((s , _ , a) , eq)) $
                                                                 H-level-Erased 1 Valence-set _ _ ⟩∎
-      inj₂ (([ s ] , _ , a) , [ eq ])                        ∎
+      inj₂ ((s , _ , a) , [ eq ])                            ∎
 
     lemma₂ :
       {a : Argˢ v} →
@@ -728,7 +726,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       nilʳ′  : ∀ tˢ t (@0 wf : Wf-tm {s = s} xs tˢ t) →
                P-tm (tˢ , t , [ wf ]) →
                P-arg (nil-wf tˢ t wf)
-      consʳ′ : ∀ (aˢ : Argˢ v) (x : Var s) a (@0 wf) →
+      consʳ′ : ∀ {s} (aˢ : Argˢ v) (x : Var s) a (@0 wf) →
                (∀ y (@0 y∉ : ¬ (_ , y) ∈ xs) →
                 P-arg (aˢ , rename-Arg x y aˢ a , [ wf y y∉ ])) →
                P-arg (cons-wf aˢ x a wf)
@@ -1341,15 +1339,17 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   mutual
 
-    @0 Free-free-Tm :
-      ∀ (tˢ : Tmˢ s) {t} (@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
+    Free-free-Tm :
+      ∀ {x : Var s} {xs}
+      (tˢ : Tmˢ s′) {t} (@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
       Free-in-term x (tˢ , t , [ wf ]) → (_ , x) ∈ free-Tm tˢ t
     Free-free-Tm var _ = ≡→∈singleton
 
     Free-free-Tm (op o asˢ) = Free-free-Args asˢ
 
-    @0 Free-free-Args :
-      ∀ (asˢ : Argsˢ vs) {as} (@0 wf : Wf-args ((_ , x) ∷ xs) asˢ as) →
+    Free-free-Args :
+      ∀ {x : Var s} {xs}
+      (asˢ : Argsˢ vs) {as} (@0 wf : Wf-args ((_ , x) ∷ xs) asˢ as) →
       Free-in-arguments x (asˢ , as , [ wf ]) →
       (_ , x) ∈ free-Args asˢ as
     Free-free-Args {x = x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
@@ -1360,8 +1360,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       (_ , x) ∈ free-Arg aˢ a ∪ free-Args asˢ as              □
 
-    @0 Free-free-Arg :
-      ∀ (aˢ : Argˢ v) {a} (@0 wf : Wf-arg ((_ , x) ∷ xs) aˢ a) →
+    Free-free-Arg :
+      ∀ {x : Var s} {xs}
+      (aˢ : Argˢ v) {a} (@0 wf : Wf-arg ((_ , x) ∷ xs) aˢ a) →
       Free-in-argument x (aˢ , a , [ wf ]) → (_ , x) ∈ free-Arg aˢ a
     Free-free-Arg (nil tˢ) = Free-free-Tm tˢ
 
