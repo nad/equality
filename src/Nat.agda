@@ -991,6 +991,22 @@ max-comm zero    (suc _) = refl _
 max-comm (suc _) zero    = refl _
 max-comm (suc m) (suc n) = cong suc (max-comm m n)
 
+-- The min operation is associative.
+
+min-assoc : ∀ m {n o} → min m (min n o) ≡ min (min m n) o
+min-assoc zero                            = refl _
+min-assoc (suc m) {n = zero}              = refl _
+min-assoc (suc m) {n = suc n} {o = zero}  = refl _
+min-assoc (suc m) {n = suc n} {o = suc o} = cong suc (min-assoc m)
+
+-- The max operation is associative.
+
+max-assoc : ∀ m {n o} → max m (max n o) ≡ max (max m n) o
+max-assoc zero                            = refl _
+max-assoc (suc m) {n = zero}              = refl _
+max-assoc (suc m) {n = suc n} {o = zero}  = refl _
+max-assoc (suc m) {n = suc n} {o = suc o} = cong suc (max-assoc m)
+
 -- The minimum is less than or equal to both arguments.
 
 min≤ˡ : ∀ m n → min m n ≤ m
