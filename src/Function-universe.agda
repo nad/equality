@@ -3284,6 +3284,64 @@ H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
   ext′ = lower-extensionality _ lzero ext
 
 ------------------------------------------------------------------------
+-- Lemmas related to Dec
+
+-- A preservation lemma for Dec.
+
+Dec-cong :
+  ∀ {k a b} {A : Set a} {B : Set b} →
+  Extensionality? ⌊ k ⌋-sym (a ⊔ b) lzero →
+  A ↝[ ⌊ k ⌋-sym ] B →
+  Dec A ↝[ ⌊ k ⌋-sym ] Dec B
+Dec-cong {A = A} {B = B} ext A↝B =
+  A ⊎ ¬ A  ↝⟨ A↝B ⊎-cong →-cong ext A↝B id ⟩□
+  B ⊎ ¬ B  □
+
+-- A preservation lemma for Decidable.
+
+Decidable-cong :
+  ∀ {k₁ k₂ k₃ a₁ b₁ p₁ a₂ b₂ p₂}
+    {A₁ : Set a₁} {B₁ : Set b₁} {P₁ : A₁ → B₁ → Set p₁}
+    {A₂ : Set a₂} {B₂ : Set b₂} {P₂ : A₂ → B₂ → Set p₂} →
+  Extensionality? ⌊ k₃ ⌋-sym (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂ ⊔ p₁ ⊔ p₂)
+                             (b₁ ⊔ b₂ ⊔ p₁ ⊔ p₂) →
+  (A₁↔A₂ : A₁ ↔[ k₁ ] A₂)
+  (B₁↔B₂ : B₁ ↔[ k₂ ] B₂) →
+  (∀ x y →
+     P₁ x y
+       ↝[ ⌊ k₃ ⌋-sym ]
+     P₂ (to-implication A₁↔A₂ x) (to-implication B₁↔B₂ y)) →
+  Decidable P₁ ↝[ ⌊ k₃ ⌋-sym ] Decidable P₂
+Decidable-cong
+  {k₃ = k₃} {a₁} {b₁} {p₁} {a₂} {b₂} {p₂} {P₁ = P₁} {P₂ = P₂}
+  ext A₁↔A₂ B₁↔B₂ P₁↝P₂ =
+
+  (∀ x y → Dec (P₁ x y))  ↝⟨ (Π-cong   (lower-extensionality? ⌊ k₃ ⌋-sym (b₁ ⊔ b₂ ⊔ p₁ ⊔ p₂) lzero     ext) A₁↔A₂ λ x →
+                              Π-cong   (lower-extensionality? ⌊ k₃ ⌋-sym (a₁ ⊔ a₂ ⊔ p₁ ⊔ p₂) (b₁ ⊔ b₂) ext) B₁↔B₂ λ y →
+                              Dec-cong (lower-extensionality? ⌊ k₃ ⌋-sym (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) _         ext) (P₁↝P₂ x y)) ⟩□
+  (∀ x y → Dec (P₂ x y))  □
+
+-- A preservation lemma for Decidable-equality.
+
+Decidable-equality-cong :
+  ∀ {k₁ k₂ a b} {A : Set a} {B : Set b} →
+  Extensionality? k₂ (a ⊔ b) (a ⊔ b) →
+  A ↔[ k₁ ] B →
+  Decidable-equality A ↝[ k₂ ] Decidable-equality B
+Decidable-equality-cong ext A↔B =
+  generalise-ext?
+    (Decidable-cong _ A≃B A≃B lemma)
+    (λ ext → Decidable-cong ext A≃B A≃B lemma)
+    ext
+  where
+  A≃B = from-isomorphism A↔B
+
+  lemma : ∀ {k} _ _ → _ ↝[ k ] _
+  lemma x y =
+    x ≡ y                        ↔⟨ inverse $ Eq.≃-≡ A≃B ⟩□
+    _≃_.to A≃B x ≡ _≃_.to A≃B y  □
+
+------------------------------------------------------------------------
 -- Lemmas related to if
 
 -- A generalisation of if-encoding (which is defined below).
