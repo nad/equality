@@ -509,6 +509,13 @@ module Signature {ℓ} (sig : Signature ℓ) where
     (yes x≡y) → yes ∣ x≡y ∣
     (no x≢y)  → no (x≢y ∘ Trunc.rec ∃Var-set id)
 
+  private
+
+    -- An instance of delete.
+
+    del : ∃Var → Finite-subset-of ∃Var → Finite-subset-of ∃Var
+    del = delete merely-equal?-∃Var
+
   -- Equality is decidable for Var.
 
   infix 4 _≟V_
@@ -1052,8 +1059,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     free-Arg : (aˢ : Argˢ v) → Arg aˢ → Vars
     free-Arg (nil tˢ)  t       = free-Tm tˢ t
-    free-Arg (cons aˢ) (x , a) =
-      delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a)
+    free-Arg (cons aˢ) (x , a) = del (_ , x) (free-Arg aˢ a)
 
   -- Some lemmas relating the set of free variables of a term to the
   -- set of free variables of the term after renaming.
@@ -1065,99 +1071,92 @@ module Signature {ℓ} (sig : Signature ℓ) where
       free-rename-⊆-Tm :
         ∀ (tˢ : Tmˢ s′) {t} →
         free-Tm tˢ (rename-Tm x y tˢ t) ⊆
-        (_ , y) ∷ delete merely-equal?-∃Var (_ , x) (free-Tm tˢ t)
+        (_ , y) ∷ del (_ , x) (free-Tm tˢ t)
       free-rename-⊆-Tm var {t = z} p =
-        p ∈ singleton (_ , rename-Var x y z)                         ↔⟨ ∥∥↔ ∃Var-set F.∘ from-isomorphism ∈singleton≃ ⟩
+        p ∈ singleton (_ , rename-Var x y z)                 ↔⟨ ∥∥↔ ∃Var-set F.∘ from-isomorphism ∈singleton≃ ⟩
 
-        p ≡ (_ , rename-Var x y z)                                   ↔⟨ ≡,rename-Var≃′ ⟩
+        p ≡ (_ , rename-Var x y z)                           ↔⟨ ≡,rename-Var≃′ ⟩
 
         p ≡ (_ , y) × (_ , x) ≡ (_ , z) ⊎
-        p ≢ (_ , x) × p ≡ (_ , z)                                    ↝⟨ ∣_∣ ∘ [ inj₁ ∘ proj₁ , inj₂ ∘ Σ-map id ≡→∈∷ ]′ ⟩
+        p ≢ (_ , x) × p ≡ (_ , z)                            ↝⟨ ∣_∣ ∘ [ inj₁ ∘ proj₁ , inj₂ ∘ Σ-map id ≡→∈∷ ]′ ⟩
 
-        p ≡ (_ , y) ∥⊎∥ p ≢ (_ , x) × p ∈ singleton (_ , z)          ↔⟨ F.id ∥⊎∥-cong inverse (∈delete≃ merely-equal?-∃Var) ⟩
+        p ≡ (_ , y) ∥⊎∥ p ≢ (_ , x) × p ∈ singleton (_ , z)  ↔⟨ F.id ∥⊎∥-cong inverse (∈delete≃ merely-equal?-∃Var) ⟩
 
-        p ≡ (_ , y) ∥⊎∥
-        p ∈ delete merely-equal?-∃Var (_ , x) (singleton (_ , z))    ↔⟨ inverse ∈∷≃ ⟩□
+        p ≡ (_ , y) ∥⊎∥ p ∈ del (_ , x) (singleton (_ , z))  ↔⟨ inverse ∈∷≃ ⟩□
 
-        p ∈ (_ , y) ∷
-            delete merely-equal?-∃Var (_ , x) (singleton (_ , z))    □
+        p ∈ (_ , y) ∷ del (_ , x) (singleton (_ , z))        □
 
       free-rename-⊆-Tm (op o asˢ) = free-rename-⊆-Args asˢ
 
       free-rename-⊆-Args :
         ∀ (asˢ : Argsˢ vs) {as} →
         free-Args asˢ (rename-Args x y asˢ as) ⊆
-        (_ , y) ∷ delete merely-equal?-∃Var (_ , x) (free-Args asˢ as)
+        (_ , y) ∷ del (_ , x) (free-Args asˢ as)
       free-rename-⊆-Args nil _ ()
 
       free-rename-⊆-Args (cons aˢ asˢ) {as = a , as} p =
         p ∈ free-Arg aˢ (rename-Arg x y aˢ a) ∪
-            free-Args asˢ (rename-Args x y asˢ as)                ↔⟨ ∈∪≃ ⟩
+            free-Args asˢ (rename-Args x y asˢ as)                    ↔⟨ ∈∪≃ ⟩
 
         p ∈ free-Arg aˢ (rename-Arg x y aˢ a) ∥⊎∥
-        p ∈ free-Args asˢ (rename-Args x y asˢ as)                ↝⟨ free-rename-⊆-Arg aˢ p ∥⊎∥-cong free-rename-⊆-Args asˢ p ⟩
+        p ∈ free-Args asˢ (rename-Args x y asˢ as)                    ↝⟨ free-rename-⊆-Arg aˢ p ∥⊎∥-cong free-rename-⊆-Args asˢ p ⟩
 
-        p ∈ (_ , y) ∷ del (free-Arg aˢ a) ∥⊎∥
-        p ∈ (_ , y) ∷ del (free-Args asˢ as)                      ↔⟨ ∈∷≃ ∥⊎∥-cong ∈∷≃ ⟩
+        p ∈ (_ , y) ∷ del (_ , x) (free-Arg aˢ a) ∥⊎∥
+        p ∈ (_ , y) ∷ del (_ , x) (free-Args asˢ as)                  ↔⟨ ∈∷≃ ∥⊎∥-cong ∈∷≃ ⟩
 
-        (p ≡ (_ , y) ∥⊎∥ p ∈ del (free-Arg aˢ a)) ∥⊎∥
-        (p ≡ (_ , y) ∥⊎∥ p ∈ del (free-Args asˢ as))              ↔⟨ (∥⊎∥-idempotent ∃Var-set ∥⊎∥-cong F.id) F.∘
-                                                                     ∥⊎∥-assoc F.∘
-                                                                     (F.id
-                                                                        ∥⊎∥-cong
-                                                                      (inverse ∥⊎∥-assoc F.∘ (∥⊎∥-comm ∥⊎∥-cong F.id) F.∘ ∥⊎∥-assoc)) F.∘
-                                                                     inverse ∥⊎∥-assoc ⟩
+        (p ≡ (_ , y) ∥⊎∥ p ∈ del (_ , x) (free-Arg aˢ a)) ∥⊎∥
+        (p ≡ (_ , y) ∥⊎∥ p ∈ del (_ , x) (free-Args asˢ as))          ↔⟨ (∥⊎∥-idempotent ∃Var-set ∥⊎∥-cong F.id) F.∘
+                                                                          ∥⊎∥-assoc F.∘
+                                                                          (F.id
+                                                                             ∥⊎∥-cong
+                                                                           (inverse ∥⊎∥-assoc F.∘ (∥⊎∥-comm ∥⊎∥-cong F.id) F.∘ ∥⊎∥-assoc)) F.∘
+                                                                          inverse ∥⊎∥-assoc ⟩
         p ≡ (_ , y) ∥⊎∥
-        p ∈ del (free-Arg aˢ a) ∥⊎∥ p ∈ del (free-Args asˢ as)    ↔⟨ inverse $
-                                                                     (F.id
-                                                                        ∥⊎∥-cong
-                                                                      (∈∪≃ F.∘
-                                                                       ≡⇒↝ _ (cong (_ ∈_) $ delete-∪ merely-equal?-∃Var (free-Arg aˢ a)))) F.∘
-                                                                     ∈∷≃ ⟩□
-        p ∈ (_ , y) ∷ del (free-Arg aˢ a ∪ free-Args asˢ as)      □
-        where
-        del = delete merely-equal?-∃Var (_ , x)
+        p ∈ del (_ , x) (free-Arg aˢ a) ∥⊎∥
+        p ∈ del (_ , x) (free-Args asˢ as)                            ↔⟨ inverse $
+                                                                         (F.id
+                                                                            ∥⊎∥-cong
+                                                                          (∈∪≃ F.∘
+                                                                           ≡⇒↝ _ (cong (_ ∈_) $ delete-∪ merely-equal?-∃Var (free-Arg aˢ a)))) F.∘
+                                                                         ∈∷≃ ⟩□
+        p ∈ (_ , y) ∷ del (_ , x) (free-Arg aˢ a ∪ free-Args asˢ as)  □
 
       free-rename-⊆-Arg :
         ∀ (aˢ : Argˢ v) {a} →
         free-Arg aˢ (rename-Arg x y aˢ a) ⊆
-        (_ , y) ∷ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a)
+        (_ , y) ∷ del (_ , x) (free-Arg aˢ a)
       free-rename-⊆-Arg (nil tˢ) = free-rename-⊆-Tm tˢ
 
       free-rename-⊆-Arg (cons aˢ) {a = z , a} p =
-        p ∈ delete merely-equal?-∃Var (_ , rename-Var x y z)
-              (free-Arg aˢ (rename-Arg x y aˢ a))                        ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+        p ∈ del (_ , rename-Var x y z)
+              (free-Arg aˢ (rename-Arg x y aˢ a))                ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
 
         p ≢ (_ , rename-Var x y z) ×
-        p ∈ free-Arg aˢ (rename-Arg x y aˢ a)                            ↝⟨ Σ-map id (free-rename-⊆-Arg aˢ p) ⟩
+        p ∈ free-Arg aˢ (rename-Arg x y aˢ a)                    ↝⟨ Σ-map id (free-rename-⊆-Arg aˢ p) ⟩
 
         p ≢ (_ , rename-Var x y z) ×
-        p ∈ (_ , y) ∷ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a)  ↔⟨ F.id ×-cong ∈∷≃ ⟩
+        p ∈ (_ , y) ∷ del (_ , x) (free-Arg aˢ a)                ↔⟨ F.id ×-cong ∈∷≃ ⟩
 
         p ≢ (_ , rename-Var x y z) ×
         (p ≡ (_ , y) ∥⊎∥
-         p ∈ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a))          ↔⟨ (Π⊎↔Π×Π ext F.∘ →-cong₁ ext ≡,rename-Var≃) ×-cong Eq.id ⟩
+         p ∈ del (_ , x) (free-Arg aˢ a))                        ↔⟨ (Π⊎↔Π×Π ext F.∘ →-cong₁ ext ≡,rename-Var≃) ×-cong Eq.id ⟩
 
         (¬ (((_ , x) ≡ (_ , z)) × p ≡ (_ , y)) ×
          ¬ (((_ , x) ≢ (_ , z)) × p ≡ (_ , z))) ×
         (p ≡ (_ , y) ∥⊎∥
-         p ∈ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a))          ↝⟨ (uncurry λ (_ , hyp) → id ∥⊎∥-cong λ u∈ → lemma hyp u∈ , u∈) ⟩
+         p ∈ del (_ , x) (free-Arg aˢ a))                        ↝⟨ (uncurry λ (_ , hyp) → id ∥⊎∥-cong λ u∈ → lemma hyp u∈ , u∈) ⟩
 
         p ≡ (_ , y) ∥⊎∥
         p ≢ (_ , z) ×
-        p ∈ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a)            ↔⟨ inverse $ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
+        p ∈ del (_ , x) (free-Arg aˢ a)                          ↔⟨ inverse $ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
 
-        p ∈ (_ , y) ∷
-            delete merely-equal?-∃Var (_ , z)
-              (delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a))        ↔⟨ ≡⇒↝ equivalence $ cong (λ x → p ∈ (_ , y) ∷ x) $
-                                                                            delete-comm merely-equal?-∃Var (free-Arg aˢ a) ⟩□
-        p ∈ (_ , y) ∷
-            delete merely-equal?-∃Var (_ , x)
-              (delete merely-equal?-∃Var (_ , z) (free-Arg aˢ a))        □
+        p ∈ (_ , y) ∷ del (_ , z) (del (_ , x) (free-Arg aˢ a))  ↔⟨ ≡⇒↝ equivalence $ cong (λ x → p ∈ (_ , y) ∷ x) $
+                                                                    delete-comm merely-equal?-∃Var (free-Arg aˢ a) ⟩□
+        p ∈ (_ , y) ∷ del (_ , x) (del (_ , z) (free-Arg aˢ a))  □
         where
         lemma :
           ¬ (((_ , x) ≢ (_ , z)) × p ≡ (_ , z)) →
-          p ∈ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a) →
+          p ∈ del (_ , x) (free-Arg aˢ a) →
           p ≢ (_ , z)
         lemma hyp p∈ =
           p ≡ (_ , z)                        ↝⟨ (λ eq → eq , hyp ∘ (_, eq)) ⟩
@@ -1237,8 +1236,6 @@ module Signature {ℓ} (sig : Signature ℓ) where
             del (_ , rename-Var x y z)
               (free-Arg aˢ (rename-Arg x y aˢ a))  □
         where
-        del = delete merely-equal?-∃Var
-
         lemma : p ≢ (_ , y) → p ≢ (_ , z) → p ≢ (_ , rename-Var x y z)
         lemma p≢y p≢z =
           p ≡ (_ , rename-Var x y z)         ↔⟨ ≡,rename-Var≃ ⟩
@@ -1407,7 +1404,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
                                                                (∥⊎∥-left-identity ∈-propositional ∥⊎∥-cong F.id) ⟩□
       (_ , x) ∈ fs                                          □
       where
-      fs = delete merely-equal?-∃Var (_ , y) (free-Arg aˢ a)
+      fs = del (_ , y) (free-Arg aˢ a)
 
   -- Every member of the set of free variables is free according to
   -- the alternative definition.
@@ -1470,8 +1467,6 @@ module Signature {ℓ} (sig : Signature ℓ) where
                    swap
                    (wf z z∉) ]
          ))                                                     □
-      where
-      del = delete merely-equal?-∃Var
 
   ----------------------------------------------------------------------
   -- Lemmas related to the Wf predicates
@@ -1533,8 +1528,6 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       Wf-arg ((_ , y) ∷ del (_ , x) (free-Arg aˢ a))
         aˢ (rename-Arg x y aˢ a)                      □
-      where
-      del = delete merely-equal?-∃Var
 
   -- If a term is well-formed with respect to a set of variables xs,
   -- then xs is a superset of the term's set of free variables.
@@ -1565,9 +1558,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
     free-⊆-Arg (nil tˢ) = free-⊆-Tm tˢ
 
     free-⊆-Arg {xs = xs} (cons {s = s} aˢ) {a = x , a} wf y =
-      y ∈ delete merely-equal?-∃Var (_ , x) (free-Arg aˢ a)  ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
-      y ≢ (_ , x) × y ∈ free-Arg aˢ a                        ↝⟨ uncurry lemma ⟩□
-      y ∈ xs                                                 □
+      y ∈ del (_ , x) (free-Arg aˢ a)  ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+      y ≢ (_ , x) × y ∈ free-Arg aˢ a  ↝⟨ uncurry lemma ⟩□
+      y ∈ xs                           □
       where
       lemma : y ≢ (_ , x) → _
       lemma y≢x =
@@ -1667,18 +1660,18 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     ⊆∷delete→⊆∷→⊆∷ :
       ∀ {x y : ∃Var} {xs ys zs} →
-      xs ⊆ x ∷ delete merely-equal?-∃Var y ys →
+      xs ⊆ x ∷ del y ys →
       ys ⊆ y ∷ zs →
       xs ⊆ x ∷ zs
     ⊆∷delete→⊆∷→⊆∷ {x = x} {y = y} {xs = xs} {ys = ys} {zs = zs}
                    xs⊆ ys⊆ z =
-      z ∈ xs                                  ↝⟨ xs⊆ z ⟩
-      z ∈ x ∷ delete merely-equal?-∃Var y ys  ↔⟨ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
-      z ≡ x ∥⊎∥ z ≢ y × z ∈ ys                ↝⟨ id ∥⊎∥-cong id ×-cong ys⊆ z ⟩
-      z ≡ x ∥⊎∥ z ≢ y × z ∈ y ∷ zs            ↔⟨ (F.id ∥⊎∥-cong ∃-cong λ z≢y → ∈≢∷≃ z≢y) ⟩
-      z ≡ x ∥⊎∥ z ≢ y × z ∈ zs                ↝⟨ id ∥⊎∥-cong proj₂ ⟩
-      z ≡ x ∥⊎∥ z ∈ zs                        ↔⟨ inverse ∈∷≃ ⟩□
-      z ∈ x ∷ zs                              □
+      z ∈ xs                        ↝⟨ xs⊆ z ⟩
+      z ∈ x ∷ del y ys              ↔⟨ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
+      z ≡ x ∥⊎∥ z ≢ y × z ∈ ys      ↝⟨ id ∥⊎∥-cong id ×-cong ys⊆ z ⟩
+      z ≡ x ∥⊎∥ z ≢ y × z ∈ y ∷ zs  ↔⟨ (F.id ∥⊎∥-cong ∃-cong λ z≢y → ∈≢∷≃ z≢y) ⟩
+      z ≡ x ∥⊎∥ z ≢ y × z ∈ zs      ↝⟨ id ∥⊎∥-cong proj₂ ⟩
+      z ≡ x ∥⊎∥ z ∈ zs              ↔⟨ inverse ∈∷≃ ⟩□
+      z ∈ x ∷ zs                    □
 
   -- Renaming preserves well-formedness.
 
