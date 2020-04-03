@@ -715,7 +715,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
            (P-args : ∀ {@0 xs vs} → Arguments xs vs → Set p₂)
            (P-arg  : ∀ {@0 xs v}  → Argument xs v   → Set p₃)
            : Set (ℓ ⊔ p₁ ⊔ p₂ ⊔ p₃) where
-    no-eta-equality
+    coinductive
     field
       varʳ : (x : Var s) (@0 x∈ : (_ , x) ∈ xs) →
              P-tm (var-wf x x∈)
