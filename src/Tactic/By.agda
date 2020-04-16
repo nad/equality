@@ -13,6 +13,7 @@ open Derived-definitions-and-properties eq
 
 import Agda.Builtin.Bool as B
 open import Agda.Builtin.Nat using (_==_)
+open import Agda.Builtin.String
 
 open import Prelude
 
@@ -103,6 +104,15 @@ module _
 
   private
 
+    -- A variant of blockOnMeta which can print a debug message.
+
+    blockOnMeta′ : {A : Set} → String → Meta → TC A
+    blockOnMeta′ s m = do
+      debugPrint "by" 20
+        (strErr "by/⟨by⟩ is blocking on meta" ∷
+         strErr (primShowMeta m) ∷ strErr "in" ∷ strErr s ∷ [])
+      blockOnMeta m
+
     -- A variant of deconstruct-equality with the following
     -- differences:
     -- * If the type is a meta-variable, then the computation blocks.
@@ -112,8 +122,9 @@ module _
 
     deconstruct-equality′ :
       List ErrorPart → Type → TC (Term × Type × Term × Term)
-    deconstruct-equality′ err (meta m _) = blockOnMeta m
-    deconstruct-equality′ err t          = do
+    deconstruct-equality′ err (meta m _) =
+      blockOnMeta′ "deconstruct-equality′" m
+    deconstruct-equality′ err t = do
       just r ← deconstruct-equality t
         where nothing → typeError err
       return r
@@ -144,8 +155,9 @@ module _
         compute-args′ n args (pi a@(arg i _) (abs _ τ)) =
           extendContext a $
           compute-args n (arg i unknown ∷ args) τ
-        compute-args′ n args (meta x _) = blockOnMeta x
-        compute-args′ n args _          = return (reverse args)
+        compute-args′ n args (meta x _) =
+          blockOnMeta′ "apply-to-metas" x
+        compute-args′ n args _ = return (reverse args)
 
   -- The ⟨by⟩ tactic.
   --
@@ -192,7 +204,7 @@ module _
 
         try : Term → TC ⊤
         try t = do
-          debugPrint "⟨by⟩" 10 $
+          debugPrint "by" 10 $
             strErr "Term tried by ⟨by⟩:" ∷ termErr t ∷ []
           unify t goal
 
@@ -220,7 +232,7 @@ module _
             (con c args)  → con c ⟨$⟩ context-args n args
             (lam v t)     → lam v ⟨$⟩ context-abs n t
             (pi a b)      → pi ⟨$⟩ context-arg n a ⊛ context-abs n b
-            (meta m _)    → liftʳ $ blockOnMeta m
+            (meta m _)    → liftʳ $ blockOnMeta′ "construct-context" m
             t             → return (weaken-term n 1 t)
 
           context-abs : ℕ → Abs Term → StateT ℕ TC (Abs Term)
@@ -237,6 +249,9 @@ module _
 
         construct-context : Term → TC Term
         construct-context lhs = do
+          debugPrint "by" 20
+            (strErr "⟨by⟩ was given the left-hand side" ∷
+             termErr lhs ∷ [])
           body , n ← run (context-term 0 lhs) 0
           case n of λ where
             (suc _) → return (lam visible (abs "x" body))
@@ -353,8 +368,10 @@ module _
           block-if-meta type = do
             eq ← deconstruct-equality′ ill-formed type
             case eq of λ where
-              (_ , _ , meta m _ , _) → blockOnMeta m
-              (_ , _ , _ , meta m _) → blockOnMeta m
+              (_ , _ , meta m _ , _) → blockOnMeta′
+                                         "block-if-meta (left)"  m
+              (_ , _ , _ , meta m _) → blockOnMeta′
+                                         "block-if-meta (right)" m
               _                      → return _
 
           -- Tries to solve the goal using reflexivity.
