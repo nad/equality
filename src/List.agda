@@ -146,6 +146,13 @@ nats-< : ℕ → List ℕ
 nats-< zero    = []
 nats-< (suc n) = n ∷ nats-< n
 
+-- A list that includes every tail of the given list (including the
+-- list itself) exactly once. Longer tails precede shorter ones.
+
+tails : List A → List (List A)
+tails []           = [] ∷ []
+tails xxs@(_ ∷ xs) = xxs ∷ tails xs
+
 ------------------------------------------------------------------------
 -- Some properties
 
