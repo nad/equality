@@ -186,12 +186,17 @@ module _
 
       ⟨by⟩-tactic : ∀ {a} {A : Set a} → A → Term → TC Term
       ⟨by⟩-tactic {A = A} t goal = do
-        A                 ← quoteTC A
-        t                 ← quoteTC t
-        A , t             ← apply-to-metas A t
-        goal-type         ← reduce =<< inferType goal
-        _ , _ , lhs , _   ← deconstruct-equality′ err₁ goal-type
-        f                 ← construct-context lhs
+        -- To avoid wasted work the first block below, which can block
+        -- the tactic, is run before the second one.
+
+        goal-type       ← reduce =<< inferType goal
+        _ , _ , lhs , _ ← deconstruct-equality′ err₁ goal-type
+        f               ← construct-context lhs
+
+        A     ← quoteTC A
+        t     ← quoteTC t
+        A , t ← apply-to-metas A t
+
         if not cong-with-lhs-and-rhs
           then conclude unknown unknown f t
           else do
@@ -222,6 +227,13 @@ module _
           -- the number of occurrences of the marker that have been
           -- found.
 
+          -- The code traverses arguments from right to left: in some
+          -- cases it is better to block on the last meta-variable
+          -- than the first one (because the first one might get
+          -- instantiated before the last one, so when the last one is
+          -- instantiated all the others have hopefully already been
+          -- instantiated).
+
           context-term : ℕ → Term → StateT ℕ TC Term
           context-term n = λ where
             (def f args)  → if eq-Name f (quote ⟨_⟩)
@@ -231,7 +243,7 @@ module _
                             context-args n args
             (con c args)  → con c ⟨$⟩ context-args n args
             (lam v t)     → lam v ⟨$⟩ context-abs n t
-            (pi a b)      → pi ⟨$⟩ context-arg n a ⊛ context-abs n b
+            (pi a b)      → flip pi ⟨$⟩ context-abs n b ⊛ context-arg n a
             (meta m _)    → liftʳ $ blockOnMeta′ "construct-context" m
             t             → return (weaken-term n 1 t)
 
@@ -245,7 +257,7 @@ module _
             ℕ → List (Arg Term) → StateT ℕ TC (List (Arg Term))
           context-args n = λ where
             []       → return []
-            (a ∷ as) → _∷_ ⟨$⟩ context-arg n a ⊛ context-args n as
+            (a ∷ as) → flip _∷_ ⟨$⟩ context-args n as ⊛ context-arg n a
 
         construct-context : Term → TC Term
         construct-context lhs = do
