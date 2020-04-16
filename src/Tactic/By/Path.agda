@@ -259,15 +259,12 @@ private
                fst ⟨ f (12 , 73) ⟩ ≡ fst {B = λ _ → ℕ} (12 , 73)
       test₁₁ _ hyp = ⟨by⟩ hyp
 
-      -- This test case fails (at least at the time of writing)
-      -- because the tactic fails to find the marker ⟨_⟩.
-
-      -- test₁₂ : (h : ℕ → Maybe ℕ) →
-      --          ((xs : ℕ) → h xs ≡ just xs) →
-      --          (xs : ℕ) → suc ⟨$⟩ h xs ≡ suc ⟨$⟩ return xs
-      -- test₁₂ h hyp xs =
-      --   suc ⟨$⟩ ⟨ h xs ⟩   ≡⟨ ⟨by⟩ (hyp xs) ⟩∎
-      --   suc ⟨$⟩ return xs  ∎
+      test₁₂ : (h : ℕ → Maybe ℕ) →
+               ((xs : ℕ) → h xs ≡ just xs) →
+               (xs : ℕ) → suc ⟨$⟩ h xs ≡ suc ⟨$⟩ return xs
+      test₁₂ h hyp xs =
+        suc ⟨$⟩ ⟨ h xs ⟩   ≡⟨ ⟨by⟩ (hyp xs) ⟩∎
+        suc ⟨$⟩ return xs  ∎
 
       test₁₃ : (h : List ⊤ → Maybe (List ⊤)) →
                ((xs : List ⊤) → h xs ≡ just xs) →
@@ -283,19 +280,16 @@ private
         _∷_ ⟨$⟩ ⟨ h xs ⟩   ≡⟨ ⟨by⟩ (hyp xs) ⟩∎
         _∷_ ⟨$⟩ return xs  ∎
 
-      -- This test case fails (at least at the time of writing)
-      -- because the tactic fails to find the marker ⟨_⟩.
-
-      -- test₁₅ :
-      --   (F : Set → Set → Set)
-      --   (G : Bool → Set → Set) →
-      --   ((A : Set) → F (G false A) A ≡ G false (F A A)) →
-      --   (A : Set) →
-      --   G false (F (G false A) A) ≡
-      --   G false (G false (F A A))
-      -- test₁₅ F G hyp A =
-      --   G false ⟨ F (G false A) A ⟩  ≡⟨ ⟨by⟩ hyp ⟩∎
-      --   G false (G false (F A A))    ∎
+      test₁₅ :
+        (F : Set → Set → Set)
+        (G : Bool → Set → Set) →
+        ((A : Set) → F (G false A) A ≡ G false (F A A)) →
+        (A : Set) →
+        G false (F (G false A) A) ≡
+        G false (G false (F A A))
+      test₁₅ F G hyp A =
+        G false ⟨ F (G false A) A ⟩  ≡⟨ ⟨by⟩ hyp ⟩∎
+        G false (G false (F A A))    ∎
 
       test₁₆ : 48 ≡ 42 →
                _≡_ {A = ℕ → ℕ} (λ x → x + ⟨ 42 ⟩) (λ x → x + 48)
