@@ -23,19 +23,29 @@ open import Monad eq hiding (map)
 open import Nat eq
 open import Nat.Solver eq
 
+private
+  variable
+    a ℓ      : Level
+    A B C    : Set a
+    x y      : A
+    f        : A → B
+    n        : ℕ
+    xs ys zs : List A
+    ns       : List ℕ
+
 ------------------------------------------------------------------------
 -- Some functions
 
 -- The tail of a list. Returns [] if the list is empty.
 
-tail : ∀ {a} {A : Set a} → List A → List A
+tail : List A → List A
 tail []       = []
 tail (_ ∷ xs) = xs
 
 -- The function take n returns the first n elements of a list (or the
 -- entire list, if the list does not contain n elements).
 
-take : ∀ {a} {A : Set a} → ℕ → List A → List A
+take : ℕ → List A → List A
 take zero    xs       = []
 take (suc n) (x ∷ xs) = x ∷ take n xs
 take (suc n) xs@[]    = xs
@@ -43,28 +53,26 @@ take (suc n) xs@[]    = xs
 -- The function drop n removes the first n elements from a list (or
 -- all elements, if the list does not contain n elements).
 
-drop : ∀ {a} {A : Set a} → ℕ → List A → List A
+drop : ℕ → List A → List A
 drop zero    xs       = xs
 drop (suc n) (x ∷ xs) = drop n xs
 drop (suc n) xs@[]    = xs
 
 -- Right fold.
 
-foldr : ∀ {a b} {A : Set a} {B : Set b} →
-        (A → B → B) → B → List A → B
+foldr : (A → B → B) → B → List A → B
 foldr _⊕_ ε []       = ε
 foldr _⊕_ ε (x ∷ xs) = x ⊕ foldr _⊕_ ε xs
 
 -- Left fold.
 
-foldl : ∀ {a b} {A : Set a} {B : Set b} →
-        (B → A → B) → B → List A → B
+foldl : (B → A → B) → B → List A → B
 foldl _⊕_ ε []       = ε
 foldl _⊕_ ε (x ∷ xs) = foldl _⊕_ (ε ⊕ x) xs
 
 -- The length of a list.
 
-length : ∀ {a} {A : Set a} → List A → ℕ
+length : List A → ℕ
 length = foldr (const suc) 0
 
 -- The sum of all the elements in a list of natural numbers.
@@ -76,62 +84,57 @@ sum = foldr _+_ 0
 
 infixr 5 _++_
 
-_++_ : ∀ {a} {A : Set a} → List A → List A → List A
+_++_ : List A → List A → List A
 xs ++ ys = foldr _∷_ ys xs
 
 -- Maps a function over a list.
 
-map : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → List A → List B
+map : (A → B) → List A → List B
 map f = foldr (λ x ys → f x ∷ ys) []
 
 -- Concatenates a list of lists.
 
-concat : ∀ {a} {A : Set a} → List (List A) → List A
+concat : List (List A) → List A
 concat = foldr _++_ []
 
 -- "Zips" two lists, using the given function to combine elementsw.
 
-zip-with :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
-  (A → B → C) → List A → List B → List C
+zip-with : (A → B → C) → List A → List B → List C
 zip-with f []       _        = []
 zip-with f _        []       = []
 zip-with f (x ∷ xs) (y ∷ ys) = f x y ∷ zip-with f xs ys
 
 -- "Zips" two lists.
 
-zip :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  List A → List B → List (A × B)
+zip : List A → List B → List (A × B)
 zip = zip-with _,_
 
 -- Reverses a list.
 
-reverse : ∀ {a} {A : Set a} → List A → List A
+reverse : List A → List A
 reverse = foldl (λ xs x → x ∷ xs) []
 
 -- Replicates the given value the given number of times.
 
-replicate : ∀ {a} {A : Set a} → ℕ → A → List A
+replicate : ℕ → A → List A
 replicate zero    x = []
 replicate (suc n) x = x ∷ replicate n x
 
 -- A filter function.
 
-filter : ∀ {a} {A : Set a} → (A → Bool) → List A → List A
+filter : (A → Bool) → List A → List A
 filter p = foldr (λ x xs → if p x then x ∷ xs else xs) []
 
 -- Finds the element at the given position.
 
-index : ∀ {a} {A : Set a} (xs : List A) → Fin (length xs) → A
+index : (xs : List A) → Fin (length xs) → A
 index []       ()
 index (x ∷ xs) fzero    = x
 index (x ∷ xs) (fsuc i) = index xs i
 
 -- A lookup function.
 
-lookup : ∀ {a b} {A : Set a} {B : Set b} →
-         (A → A → Bool) → A → List (A × B) → Maybe B
+lookup : (A → A → Bool) → A → List (A × B) → Maybe B
 lookup _≟_ x []             = nothing
 lookup _≟_ x ((y , z) ∷ ps) =
   if x ≟ y then just z else lookup _≟_ x ps
@@ -150,27 +153,21 @@ nats-< (suc n) = n ∷ nats-< n
 -- you drop the first n elements from xs, then you get xs (even if n
 -- is larger than the length of xs).
 
-take++drop :
-  ∀ {a} {A : Set a} {xs : List A} n →
-  take n xs ++ drop n xs ≡ xs
+take++drop : ∀ n → take n xs ++ drop n xs ≡ xs
 take++drop               zero    = refl _
 take++drop {xs = []}     (suc n) = refl _
 take++drop {xs = x ∷ xs} (suc n) = cong (x ∷_) (take++drop n)
 
 -- The map function commutes with take n.
 
-map-take :
-  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {xs n} →
-  map f (take n xs) ≡ take n (map f xs)
-map-take               {n = zero}  = refl _
-map-take {xs = []}     {n = suc n} = refl _
-map-take {xs = x ∷ xs} {n = suc n} = cong (_ ∷_) map-take
+map-take : map f (take n xs) ≡ take n (map f xs)
+map-take {n = zero}                = refl _
+map-take {n = suc n} {xs = []}     = refl _
+map-take {n = suc n} {xs = x ∷ xs} = cong (_ ∷_) map-take
 
 -- The map function commutes with drop n.
 
-map-drop :
-  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {xs} n →
-  map f (drop n xs) ≡ drop n (map f xs)
+map-drop : ∀ n → map f (drop n xs) ≡ drop n (map f xs)
 map-drop               zero    = refl _
 map-drop {xs = []}     (suc n) = refl _
 map-drop {xs = x ∷ xs} (suc n) = map-drop n
@@ -178,34 +175,33 @@ map-drop {xs = x ∷ xs} (suc n) = map-drop n
 -- The function foldr _∷_ [] is pointwise equal to the identity
 -- function.
 
-foldr-∷-[] : ∀ {a} {A : Set a} (xs : List A) → foldr _∷_ [] xs ≡ xs
+foldr-∷-[] : (xs : List A) → foldr _∷_ [] xs ≡ xs
 foldr-∷-[] []       = refl _
 foldr-∷-[] (x ∷ xs) = cong (x ∷_) (foldr-∷-[] xs)
 
 -- The empty list is a right identity for the append function.
 
-++-right-identity :
-  ∀ {a} {A : Set a} (xs : List A) → xs ++ [] ≡ xs
+++-right-identity : (xs : List A) → xs ++ [] ≡ xs
 ++-right-identity []       = refl _
 ++-right-identity (x ∷ xs) = cong (x ∷_) (++-right-identity xs)
 
 -- The append function is associative.
 
-++-associative : ∀ {a} {A : Set a} (xs ys zs : List A) →
+++-associative : (xs ys zs : List A) →
                  xs ++ (ys ++ zs) ≡ (xs ++ ys) ++ zs
 ++-associative []       ys zs = refl _
 ++-associative (x ∷ xs) ys zs = cong (x ∷_) (++-associative xs ys zs)
 
 -- The map function commutes with _++_.
 
-map-++ : ∀ {a b} {A : Set a} {B : Set b} (f : A → B) (xs ys : List A) →
+map-++ : (f : A → B) (xs ys : List A) →
          map f (xs ++ ys) ≡ map f xs ++ map f ys
 map-++ f []       ys = refl _
 map-++ f (x ∷ xs) ys = cong (f x ∷_) (map-++ f xs ys)
 
 -- The concat function commutes with _++_.
 
-concat-++ : ∀ {a} {A : Set a} (xss yss : List (List A)) →
+concat-++ : (xss yss : List (List A)) →
             concat (xss ++ yss) ≡ concat xss ++ concat yss
 concat-++ []         yss = refl _
 concat-++ (xs ∷ xss) yss =
@@ -218,10 +214,10 @@ concat-++ (xs ∷ xss) yss =
 -- A lemma relating foldr and _++_.
 
 foldr-++ :
-  ∀ {a b} {A : Set a} {B : Set b} {c : A → B → B} {n : B} →
-  ∀ xs {ys} → foldr c n (xs ++ ys) ≡ foldr c (foldr c n ys) xs
-foldr-++                 []                 = refl _
-foldr-++ {c = c} {n = n} (x ∷ xs) {ys = ys} =
+  {c : A → B → B} {n : B} →
+  ∀ xs → foldr c n (xs ++ ys) ≡ foldr c (foldr c n ys) xs
+foldr-++                           []       = refl _
+foldr-++ {ys = ys} {c = c} {n = n} (x ∷ xs) =
   foldr c n (x ∷ xs ++ ys)         ≡⟨⟩
   c x (foldr c n (xs ++ ys))       ≡⟨ cong (c x) (foldr-++ xs) ⟩
   c x (foldr c (foldr c n ys) xs)  ≡⟨⟩
@@ -230,7 +226,6 @@ foldr-++ {c = c} {n = n} (x ∷ xs) {ys = ys} =
 -- A fusion lemma for foldr and map.
 
 foldr∘map :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
   (_⊕_ : B → C → C) (ε : C) (f : A → B) (xs : List A) →
   (foldr _⊕_ ε ∘ map f) xs ≡ foldr (_⊕_ ∘ f) ε xs
 foldr∘map _⊕_ ε f []       = ε ∎
@@ -239,7 +234,6 @@ foldr∘map _⊕_ ε f (x ∷ xs) = cong (f x ⊕_) (foldr∘map _⊕_ ε f xs)
 -- A fusion lemma for length and map.
 
 length∘map :
-  ∀ {a b} {A : Set a} {B : Set b} →
   (f : A → B) (xs : List A) →
   (length ∘ map f) xs ≡ length xs
 length∘map = foldr∘map _ _
@@ -247,7 +241,7 @@ length∘map = foldr∘map _ _
 -- A lemma relating index, map and length∘map.
 
 index∘map :
-  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} xs {i} →
+  ∀ xs {i} →
   index (map f xs) i ≡
   f (index xs (subst Fin (length∘map f xs) i))
 index∘map {f = f} (x ∷ xs) {i} =
@@ -278,19 +272,15 @@ index∘map {f = f} (x ∷ xs) {i} =
 
 -- The length function is homomorphic with respect to _++_/_+_.
 
-length-++ :
-  ∀ {a} {A : Set a} xs {ys : List A} →
-  length (xs ++ ys) ≡ length xs + length ys
+length-++ : ∀ xs → length (xs ++ ys) ≡ length xs + length ys
 length-++ []       = refl _
 length-++ (_ ∷ xs) = cong suc (length-++ xs)
 
 -- The sum function is homomorphic with respect to _++_/_+_.
 
-sum-++ :
-  ∀ ms {ns : List ℕ} →
-  sum (ms ++ ns) ≡ sum ms + sum ns
-sum-++ []                 = refl _
-sum-++ (m ∷ ms) {ns = ns} =
+sum-++ : ∀ ms → sum (ms ++ ns) ≡ sum ms + sum ns
+sum-++           []       = refl _
+sum-++ {ns = ns} (m ∷ ms) =
   sum (m ∷ ms ++ ns)     ≡⟨⟩
   m + sum (ms ++ ns)     ≡⟨ cong (m +_) $ sum-++ ms ⟩
   m + (sum ms + sum ns)  ≡⟨ +-assoc m ⟩
@@ -299,47 +289,39 @@ sum-++ (m ∷ ms) {ns = ns} =
 
 -- Some lemmas related to reverse.
 
-++-reverse :
-  ∀ {a} {A : Set a} xs {ys : List A} →
-  reverse xs ++ ys ≡ foldl (flip _∷_) ys xs
-++-reverse {A = A} xs = lemma xs
+++-reverse : ∀ xs → reverse xs ++ ys ≡ foldl (flip _∷_) ys xs
+++-reverse xs = lemma xs
   where
   lemma :
-    ∀ xs {ys zs : List A} →
+    ∀ xs →
     foldl (flip _∷_) ys xs ++ zs ≡
     foldl (flip _∷_) (ys ++ zs) xs
-  lemma [] = refl _
-  lemma (x ∷ xs) {ys = ys} {zs = zs} =
+  lemma                     []       = refl _
+  lemma {ys = ys} {zs = zs} (x ∷ xs) =
     foldl (flip _∷_) ys (x ∷ xs) ++ zs    ≡⟨⟩
     foldl (flip _∷_) (x ∷ ys) xs ++ zs    ≡⟨ lemma xs ⟩
     foldl (flip _∷_) (x ∷ ys ++ zs) xs    ≡⟨⟩
     foldl (flip _∷_) (ys ++ zs) (x ∷ xs)  ∎
 
-reverse-∷ :
-  ∀ {a} {A : Set a} {x : A} xs →
-  reverse (x ∷ xs) ≡ reverse xs ++ x ∷ []
+reverse-∷ : ∀ xs → reverse (x ∷ xs) ≡ reverse xs ++ x ∷ []
 reverse-∷ {x = x} xs =
   reverse (x ∷ xs)              ≡⟨⟩
   foldl (flip _∷_) (x ∷ []) xs  ≡⟨ sym $ ++-reverse xs ⟩∎
   reverse xs ++ x ∷ []          ∎
 
-reverse-++ :
-  ∀ {a} {A : Set a} xs {ys : List A} →
-  reverse (xs ++ ys) ≡ reverse ys ++ reverse xs
-reverse-++ [] {ys = ys} =
+reverse-++ : ∀ xs → reverse (xs ++ ys) ≡ reverse ys ++ reverse xs
+reverse-++ {ys = ys} [] =
   reverse ys        ≡⟨ sym $ ++-right-identity _ ⟩∎
   reverse ys ++ []  ∎
-reverse-++ (x ∷ xs) {ys = ys} =
+reverse-++ {ys = ys} (x ∷ xs) =
   reverse (x ∷ xs ++ ys)                ≡⟨ reverse-∷ (xs ++ _) ⟩
   reverse (xs ++ ys) ++ x ∷ []          ≡⟨ cong (_++ _) $ reverse-++ xs ⟩
   (reverse ys ++ reverse xs) ++ x ∷ []  ≡⟨ sym $ ++-associative (reverse ys) _ _ ⟩
   reverse ys ++ (reverse xs ++ x ∷ [])  ≡⟨ cong (reverse ys ++_) $ sym $ reverse-∷ xs ⟩∎
   reverse ys ++ reverse (x ∷ xs)        ∎
 
-reverse-reverse :
-  ∀ {a} {A : Set a} (xs : List A) →
-  reverse (reverse xs) ≡ xs
-reverse-reverse [] = refl _
+reverse-reverse : (xs : List A) → reverse (reverse xs) ≡ xs
+reverse-reverse []       = refl _
 reverse-reverse (x ∷ xs) =
   reverse (reverse (x ∷ xs))                ≡⟨ cong reverse (reverse-∷ xs) ⟩
   reverse (reverse xs ++ x ∷ [])            ≡⟨ reverse-++ (reverse xs) ⟩
@@ -347,10 +329,8 @@ reverse-reverse (x ∷ xs) =
   x ∷ reverse (reverse xs)                  ≡⟨ cong (x ∷_) (reverse-reverse xs) ⟩∎
   x ∷ xs                                    ∎
 
-map-reverse :
-  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} (xs : List A) →
-  map f (reverse xs) ≡ reverse (map f xs)
-map-reverse [] = refl _
+map-reverse : ∀ xs → map f (reverse xs) ≡ reverse (map f xs)
+map-reverse         []       = refl _
 map-reverse {f = f} (x ∷ xs) =
   map f (reverse (x ∷ xs))        ≡⟨ cong (map f) $ reverse-∷ xs ⟩
   map f (reverse xs ++ x ∷ [])    ≡⟨ map-++ _ (reverse xs) _ ⟩
@@ -360,27 +340,25 @@ map-reverse {f = f} (x ∷ xs) =
   reverse (map f (x ∷ xs))        ∎
 
 foldr-reverse :
-  ∀ {a b} {A : Set a} {B : Set b} {c : A → B → B} {n : B} →
+  {c : A → B → B} {n : B} →
   ∀ xs → foldr c n (reverse xs) ≡ foldl (flip c) n xs
 foldr-reverse                 []       = refl _
 foldr-reverse {c = c} {n = n} (x ∷ xs) =
-  foldr c n (reverse (x ∷ xs))      ≡⟨ cong (foldr c n) (reverse-++ (x ∷ []) {ys = xs}) ⟩
+  foldr c n (reverse (x ∷ xs))      ≡⟨ cong (foldr c n) (reverse-++ {ys = xs} (x ∷ [])) ⟩
   foldr c n (reverse xs ++ x ∷ [])  ≡⟨ foldr-++ (reverse xs) ⟩
   foldr c (c x n) (reverse xs)      ≡⟨ foldr-reverse xs ⟩
   foldl (flip c) (c x n) xs         ≡⟨⟩
   foldl (flip c) n (x ∷ xs)         ∎
 
 foldl-reverse :
-  ∀ {a b} {A : Set a} {B : Set b} {c : B → A → B} {n : B} →
+  {c : B → A → B} {n : B} →
   ∀ xs → foldl c n (reverse xs) ≡ foldr (flip c) n xs
 foldl-reverse {c = c} {n = n} xs =
   foldl c n (reverse xs)                   ≡⟨ sym (foldr-reverse (reverse xs)) ⟩
   foldr (flip c) n (reverse (reverse xs))  ≡⟨ cong (foldr (flip c) n) (reverse-reverse xs) ⟩∎
   foldr (flip c) n xs                      ∎
 
-length-reverse :
-  ∀ {a} {A : Set a} (xs : List A) →
-  length (reverse xs) ≡ length xs
+length-reverse : (xs : List A) → length (reverse xs) ≡ length xs
 length-reverse []       = refl _
 length-reverse (x ∷ xs) =
   length (reverse (x ∷ xs))      ≡⟨ cong length (reverse-∷ xs) ⟩
@@ -389,7 +367,7 @@ length-reverse (x ∷ xs) =
   length xs + 1                  ≡⟨ +-comm (length xs) ⟩∎
   length (x ∷ xs)                ∎
 
-sum-reverse : (xs : List ℕ) → sum (reverse xs) ≡ sum xs
+sum-reverse : ∀ ns → sum (reverse ns) ≡ sum ns
 sum-reverse []       = refl _
 sum-reverse (n ∷ ns) =
   sum (reverse (n ∷ ns))           ≡⟨ cong sum (reverse-∷ ns) ⟩
@@ -401,7 +379,6 @@ sum-reverse (n ∷ ns) =
 -- The functions filter and map commute (kind of).
 
 filter∘map :
-  ∀ {a b} {A : Set a} {B : Set b}
   (p : B → Bool) (f : A → B) (xs : List A) →
   (filter p ∘ map f) xs ≡ (map f ∘ filter (p ∘ f)) xs
 filter∘map p f []       = refl _
@@ -411,9 +388,7 @@ filter∘map p f (x ∷ xs) with p (f x)
 
 -- The length of replicate n x is n.
 
-length-replicate :
-  ∀ {a} {A : Set a} {x : A} n →
-  length (replicate n x) ≡ n
+length-replicate : ∀ n → length (replicate n x) ≡ n
 length-replicate         zero    = refl _
 length-replicate {x = x} (suc n) =
   length (replicate (suc n) x)  ≡⟨⟩
@@ -422,9 +397,9 @@ length-replicate {x = x} (suc n) =
 
 -- The sum of replicate m n is m * n.
 
-sum-replicate : ∀ m {n} → sum (replicate m n) ≡ m * n
-sum-replicate zero            = refl _
-sum-replicate (suc m) {n = n} =
+sum-replicate : ∀ m → sum (replicate m n) ≡ m * n
+sum-replicate         zero    = refl _
+sum-replicate {n = n} (suc m) =
   sum (replicate (suc m) n)  ≡⟨⟩
   n + sum (replicate m n)    ≡⟨ cong (n +_) $ sum-replicate m ⟩
   n + m * n                  ≡⟨⟩
@@ -453,19 +428,15 @@ sum-nats-< (suc (suc n)) =
 
 -- If xs ++ ys is equal to [], then both lists are.
 
-++≡[]→≡[]×≡[] :
-  ∀ {a} {A : Set a} (xs {ys} : List A) →
-  xs ++ ys ≡ [] → xs ≡ [] × ys ≡ []
-++≡[]→≡[]×≡[] []      {[]}    _    = refl _ , refl _
-++≡[]→≡[]×≡[] []      {_ ∷ _} ∷≡[] = ⊥-elim (List.[]≢∷ (sym ∷≡[]))
-++≡[]→≡[]×≡[] (_ ∷ _)         ∷≡[] = ⊥-elim (List.[]≢∷ (sym ∷≡[]))
+++≡[]→≡[]×≡[] : ∀ xs → xs ++ ys ≡ [] → xs ≡ [] × ys ≡ []
+++≡[]→≡[]×≡[] {ys = []}    []      _    = refl _ , refl _
+++≡[]→≡[]×≡[] {ys = _ ∷ _} []      ∷≡[] = ⊥-elim (List.[]≢∷ (sym ∷≡[]))
+++≡[]→≡[]×≡[]              (_ ∷ _) ∷≡[] = ⊥-elim (List.[]≢∷ (sym ∷≡[]))
 
 -- Empty lists are not equal to non-empty lists.
 
-[]≢++∷ :
-  ∀ {a} {A : Set a} (xs : List A) {y ys} →
-  [] ≢ xs ++ y ∷ ys
-[]≢++∷ xs {y} {ys} =
+[]≢++∷ : ∀ xs → [] ≢ xs ++ y ∷ ys
+[]≢++∷ {y = y} {ys = ys} xs =
   [] ≡ xs ++ y ∷ ys  ↝⟨ sym ∘ proj₂ ∘ ++≡[]→≡[]×≡[] xs ∘ sym ⟩
   [] ≡ y ∷ ys        ↝⟨ List.[]≢∷ ⟩□
   ⊥                  □
@@ -477,11 +448,11 @@ instance
 
   -- The list monad.
 
-  raw-monad : ∀ {ℓ} → Raw-monad (List {a = ℓ})
+  raw-monad : Raw-monad (List {a = ℓ})
   Raw-monad.return raw-monad x    = x ∷ []
   Raw-monad._>>=_  raw-monad xs f = concat (map f xs)
 
-  monad : ∀ {ℓ} → Monad (List {a = ℓ})
+  monad : Monad (List {a = ℓ})
   Monad.raw-monad      monad     = raw-monad
   Monad.left-identity  monad x f = foldr-∷-[] (f x)
   Monad.right-identity monad xs  = lemma xs
@@ -510,9 +481,7 @@ instance
 
 -- An unfolding lemma for List.
 
-List↔Maybe[×List] :
-  ∀ {a} {A : Set a} →
-  List A ↔ Maybe (A × List A)
+List↔Maybe[×List] : List A ↔ Maybe (A × List A)
 List↔Maybe[×List] = record
   { surjection = record
     { logical-equivalence = record
@@ -526,36 +495,28 @@ List↔Maybe[×List] = record
 
 -- Some isomorphisms related to list equality.
 
-[]≡[]↔⊤ :
-  ∀ {a} {A : Set a} →
-  [] ≡ ([] ⦂ List A) ↔ ⊤
+[]≡[]↔⊤ : [] ≡ ([] ⦂ List A) ↔ ⊤
 []≡[]↔⊤ =
   [] ≡ []            ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
   nothing ≡ nothing  ↝⟨ inverse Bijection.≡↔inj₁≡inj₁ ⟩
   tt ≡ tt            ↝⟨ tt≡tt↔⊤ ⟩□
   ⊤                  □
 
-[]≡∷↔⊥ :
-  ∀ {a ℓ} {A : Set a} {x : A} {xs} →
-  [] ≡ x ∷ xs ↔ ⊥ {ℓ = ℓ}
-[]≡∷↔⊥ {x = x} {xs} =
+[]≡∷↔⊥ : [] ≡ x ∷ xs ↔ ⊥ {ℓ = ℓ}
+[]≡∷↔⊥ {x = x} {xs = xs} =
   [] ≡ x ∷ xs              ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
   nothing ≡ just (x , xs)  ↝⟨ Bijection.≡↔⊎ ⟩
   ⊥                        ↝⟨ ⊥↔⊥ ⟩□
   ⊥                        □
 
-∷≡[]↔⊥ :
-  ∀ {a ℓ} {A : Set a} {x : A} {xs} →
-  x ∷ xs ≡ [] ↔ ⊥ {ℓ = ℓ}
-∷≡[]↔⊥ {x = x} {xs} =
+∷≡[]↔⊥ : x ∷ xs ≡ [] ↔ ⊥ {ℓ = ℓ}
+∷≡[]↔⊥ {x = x} {xs = xs} =
   x ∷ xs ≡ []  ↝⟨ ≡-comm ⟩
   [] ≡ x ∷ xs  ↝⟨ []≡∷↔⊥ ⟩□
   ⊥            □
 
-∷≡∷↔≡×≡ :
-  ∀ {a} {A : Set a} {x y : A} {xs ys : List A} →
-  x ∷ xs ≡ y ∷ ys ↔ x ≡ y × xs ≡ ys
-∷≡∷↔≡×≡ {x = x} {y} {xs} {ys} =
+∷≡∷↔≡×≡ : x ∷ xs ≡ y ∷ ys ↔ x ≡ y × xs ≡ ys
+∷≡∷↔≡×≡ {x = x} {xs = xs} {y = y} {ys = ys} =
   x ∷ xs ≡ y ∷ ys                ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
   just (x , xs) ≡ just (y , ys)  ↝⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
   (x , xs) ≡ (y , ys)            ↝⟨ inverse ≡×≡↔≡ ⟩□
@@ -566,16 +527,12 @@ List↔Maybe[×List] = record
 
 -- If A is inhabited, then List A is not a proposition.
 
-¬-List-propositional :
-  ∀ {a} {A : Set a} →
-  A → ¬ Is-proposition (List A)
+¬-List-propositional : A → ¬ Is-proposition (List A)
 ¬-List-propositional x h = List.[]≢∷ $ h [] (x ∷ [])
 
 -- H-levels greater than or equal to two are closed under List.
 
-H-level-List :
-  ∀ {a} {A : Set a} →
-  ∀ n → H-level (2 + n) A → H-level (2 + n) (List A)
+H-level-List : ∀ n → H-level (2 + n) A → H-level (2 + n) (List A)
 H-level-List n _ {[]} {[]} =
                              $⟨ ⊤-contractible ⟩
   Contractible ⊤             ↝⟨ H-level-cong _ 0 (inverse []≡[]↔⊤) ⟩
