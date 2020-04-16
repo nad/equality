@@ -212,7 +212,7 @@ module _
         conclude lhs rhs f t = do
           let t₁ = cong lhs rhs f t
               t₂ = cong rhs lhs f (sym t)
-          catchTC (try t₁) (try t₂)
+          try t₁ -- catchTC (try t₁) (try t₂)
           return t₁
 
         mutual
