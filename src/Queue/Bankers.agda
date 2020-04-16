@@ -121,10 +121,10 @@ private
     ; length-invariant = zero≤ _
     ; length-rear≡     = refl _
     ; length-front≡    =
-        ⟨ q .length-front ⟩ + q .length-rear                ≡⟨ ⟨by⟩ 4 (q .length-front≡) ⟩
-        length (q .front) + ⟨ q .length-rear ⟩              ≡⟨ ⟨by⟩ 4 (q .length-rear≡) ⟩
-        length (q .front) + ⟨ length (q .rear) ⟩            ≡⟨ ⟨by⟩ 4 (length-reverse (q .rear)) ⟩
-        ⟨ length (q .front) + length (reverse (q .rear)) ⟩  ≡⟨ ⟨by⟩ 4 (length-++ (q .front)) ⟩∎
+        ⟨ q .length-front ⟩ + q .length-rear                ≡⟨ ⟨by⟩ (q .length-front≡) ⟩
+        length (q .front) + ⟨ q .length-rear ⟩              ≡⟨ ⟨by⟩ (q .length-rear≡) ⟩
+        length (q .front) + ⟨ length (q .rear) ⟩            ≡⟨ ⟨by⟩ (length-reverse (q .rear)) ⟩
+        ⟨ length (q .front) + length (reverse (q .rear)) ⟩  ≡⟨ ⟨by⟩ (length-++ (q .front)) ⟩∎
         length (q .front ++ reverse (q .rear))              ∎
     }
   rotate′ q false 1+f≢r = record
@@ -174,7 +174,7 @@ to-List-enqueue {x = x} q =
   to-List (enqueue x q)                      ≡⟨ to-List-rotate (record
                                                   { length-invariant = suc≤suc (q .length-invariant)
                                                   }) ⟩
-  q .front ++ ⟨ reverse (x ∷ q .rear) ⟩      ≡⟨ ⟨by⟩ 4 (reverse-∷ (q .rear)) ⟩
+  q .front ++ ⟨ reverse (x ∷ q .rear) ⟩      ≡⟨ ⟨by⟩ (reverse-∷ (q .rear)) ⟩
   q .front ++ (reverse (q .rear) ++ x ∷ [])  ≡⟨ ++-associative (q .front) _ _ ⟩∎
   (q .front ++ reverse (q .rear)) ++ x ∷ []  ∎
 
@@ -260,16 +260,16 @@ map f q = record
   ; length-invariant = q .length-invariant
   ; length-front≡    =
       q .length-front              ≡⟨ q .length-front≡ ⟩
-      ⟨ length (q .front) ⟩        ≡⟨ ⟨by⟩ 6 (length∘map _ (q .front)) ⟩∎
+      ⟨ length (q .front) ⟩        ≡⟨ ⟨by⟩ (length∘map _ (q .front)) ⟩∎
       length (L.map f (q .front))  ∎
   ; length-rear≡     =
       q .length-rear              ≡⟨ q .length-rear≡ ⟩
-      ⟨ length (q .rear) ⟩        ≡⟨ ⟨by⟩ 6 (length∘map _ (q .rear)) ⟩∎
+      ⟨ length (q .rear) ⟩        ≡⟨ ⟨by⟩ (length∘map _ (q .rear)) ⟩∎
       length (L.map f (q .rear))  ∎
   }
 
 to-List-map : ∀ q → to-List (map f q) ≡ L.map f (to-List q)
 to-List-map {f = f} q =
-  L.map f (q .front) ++ ⟨ reverse (L.map f (q .rear)) ⟩  ≡⟨ ⟨by⟩ 6 (map-reverse (q .rear)) ⟩
+  L.map f (q .front) ++ ⟨ reverse (L.map f (q .rear)) ⟩  ≡⟨ ⟨by⟩ (map-reverse (q .rear)) ⟩
   L.map f (q .front) ++ L.map f (reverse (q .rear))      ≡⟨ sym $ map-++ _ (q .front) _ ⟩∎
   L.map f (q .front ++ reverse (q .rear))                ∎

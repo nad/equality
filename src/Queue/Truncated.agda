@@ -381,10 +381,10 @@ module _
                _↔_.from List↔Maybe[×List]
                  ⟨ ⊎-map id (Σ-map id (_↔_.to Queue↔Listⁱ))
                      (⊎-map id (Σ-map id (λ q → _ , ∣ q , [ refl _ ] ∣))
-                        (Q.dequeue _ q)) ⟩                                ≡⟨ ⟨by⟩ 8 (sym $ ⊎-map-∘ (Q.dequeue _ q)) ⟩
+                        (Q.dequeue _ q)) ⟩                                ≡⟨ ⟨by⟩ (sym $ ⊎-map-∘ (Q.dequeue _ q)) ⟩
 
                _↔_.from List↔Maybe[×List]
-                 ⟨ ⊎-map id (Σ-map id (Q.to-List _)) (Q.dequeue _ q) ⟩    ≡⟨ ⟨by⟩ 8 (Q.to-List-dequeue {q = q}) ⟩
+                 ⟨ ⊎-map id (Σ-map id (Q.to-List _)) (Q.dequeue _ q) ⟩    ≡⟨ ⟨by⟩ (Q.to-List-dequeue {q = q}) ⟩
 
                _↔_.from List↔Maybe[×List]
                  (_↔_.to List↔Maybe[×List] (Q.to-List _ q))               ≡⟨ _↔_.left-inverse-of List↔Maybe[×List] _ ⟩

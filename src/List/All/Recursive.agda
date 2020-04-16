@@ -257,8 +257,8 @@ private
 
   subst-sym-refl : {p : P x} → subst P (sym (refl x)) p ≡ p
   subst-sym-refl {P = P} {x = x} {p = p} =
-    subst P ⟨ sym (refl x) ⟩ p  ≡⟨ ⟨by⟩ 6 sym-refl ⟩
-    ⟨ subst P (refl x) p ⟩      ≡⟨ ⟨by⟩ 6 subst-refl ⟩∎
+    subst P ⟨ sym (refl x) ⟩ p  ≡⟨ ⟨by⟩ sym-refl ⟩
+    ⟨ subst P (refl x) p ⟩      ≡⟨ ⟨by⟩ subst-refl ⟩∎
     p                           ∎
 
 -- The functions index and tabulate are inverses (roughly).
@@ -444,7 +444,7 @@ index∘index {xs = _ ∷ _} {x∈xs = inj₂ _}  (_ , ⊆ys) =
 index∘index {P = P} {xs = _ ∷ _} {ys} {ps} {inj₁ eq} (∈ys , _) = elim₁
   (λ eq → index ps (subst (_∈ ys) (sym eq) ∈ys) ≡
           subst P (sym eq) (index ps ∈ys))
-  (index ps ⟨ subst (_∈ ys) (sym (refl _)) ∈ys ⟩  ≡⟨ ⟨by⟩ 12 subst-sym-refl ⟩
+  (index ps ⟨ subst (_∈ ys) (sym (refl _)) ∈ys ⟩  ≡⟨ ⟨by⟩ subst-sym-refl ⟩
    index ps ∈ys                                   ≡⟨ sym subst-sym-refl ⟩∎
    subst P (sym (refl _)) (index ps ∈ys)          ∎)
   eq
@@ -460,7 +460,7 @@ index-map₁ {P = P} {Q = Q} (_ ∷ _) {f} {p , _} {q = inj₁ eq} = elim₁
   (λ eq → subst Q (sym eq) (f p) ≡
           f (subst P (sym eq) p))
   (subst Q (sym (refl _)) (f p)  ≡⟨ subst-sym-refl ⟩
-   f ⟨ p ⟩                       ≡⟨ ⟨by⟩ 13 subst-sym-refl ⟩∎
+   f ⟨ p ⟩                       ≡⟨ ⟨by⟩ subst-sym-refl ⟩∎
    f (subst P (sym (refl _)) p)  ∎)
   eq
 
@@ -507,7 +507,7 @@ map₂∘map₂′ {xs = _ ∷ _} {xs⊆ys = q , _} {f} {ps} =
   where
   lemma =
     index (map₂ (tabulate f) ps) q     ≡⟨ sym $ index∘index (tabulate f) ⟩
-    index ps ⟨ index (tabulate f) q ⟩  ≡⟨ ⟨by⟩ 12 (index∘tabulate f q) ⟩∎
+    index ps ⟨ index (tabulate f) q ⟩  ≡⟨ ⟨by⟩ (index∘tabulate f q) ⟩∎
     index ps (f q)                     ∎
 
 -- Some rearrangement lemmas for map₂′.
@@ -593,7 +593,7 @@ map₂′-++-cong (_ ∷ _) {ps = ps} {qs} f {g} = cong₂ _,_
     ++-cong (λ _ → f) (λ _ → g) _ (inj₂ p)                                  ≡⟨⟩
 
     _↔_.from (Any-++ _ _ _)
-      ⟨ ⊎-map f g (_↔_.to ⊎-assoc (inj₂ (_↔_.to (Any-++ _ _ _) p))) ⟩       ≡⟨ ⟨by⟩ 24 (lemma (_↔_.to (Any-++ _ _ _) p)) ⟩
+      ⟨ ⊎-map f g (_↔_.to ⊎-assoc (inj₂ (_↔_.to (Any-++ _ _ _) p))) ⟩       ≡⟨ ⟨by⟩ (lemma (_↔_.to (Any-++ _ _ _) p)) ⟩
 
     _↔_.from (Any-++ _ _ _) (⊎-map (f ∘ inj₂) g (_↔_.to (Any-++ _ _ _) p))  ≡⟨⟩
 

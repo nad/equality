@@ -84,7 +84,7 @@ private
              just (10 , enqueue 6 empty)
   example₂ =
     dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))  ≡⟨ cong dequeue′ (_↔_.to Q.≡-for-indices↔≡ [ refl _ ]) ⟩
-    ⟨ dequeue′ (cons 10 (enqueue 6 empty)) ⟩             ≡⟨ ⟨by⟩ 3 (_↔_.right-inverse-of (Queue↔Maybe[×Queue] _)) ⟩∎
+    ⟨ dequeue′ (cons 10 (enqueue 6 empty)) ⟩             ≡⟨ ⟨by⟩ (_↔_.right-inverse-of (Queue↔Maybe[×Queue] _)) ⟩∎
     just (10 , enqueue 6 empty)                          ∎
 
   example₃ :
@@ -93,7 +93,7 @@ private
     just (enqueue 30 (enqueue 6 empty))
   example₃ =
     (do x , q ← ⟨ dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty))) ⟩
-        return (enqueue (3 * x) q ⦂ Queue Q ℕ))                          ≡⟨ ⟨by⟩ 3 example₂ ⟩
+        return (enqueue (3 * x) q ⦂ Queue Q ℕ))                          ≡⟨ ⟨by⟩ example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
         return (enqueue (3 * x) (q ⦂ Queue Q ℕ)))                        ≡⟨⟩
@@ -107,12 +107,12 @@ private
     just (6 ∷ 30 ∷ [])
   example₄ =
     (do x , q ← ⟨ dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty))) ⟩
-        return (to-List′ (enqueue (3 * x) q)))                           ≡⟨ ⟨by⟩ 3 example₂ ⟩
+        return (to-List′ (enqueue (3 * x) q)))                           ≡⟨ ⟨by⟩ example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
         return (to-List′ (enqueue (3 * x) (q ⦂ Queue Q ℕ))))             ≡⟨⟩
 
-    just ⟨ to-List′ (enqueue 30 (enqueue 6 empty)) ⟩                     ≡⟨ ⟨by⟩ 3 to-List-foldl-enqueue-empty ⟩∎
+    just ⟨ to-List′ (enqueue 30 (enqueue 6 empty)) ⟩                     ≡⟨ ⟨by⟩ to-List-foldl-enqueue-empty ⟩∎
 
     just (6 ∷ 30 ∷ [])                                                   ∎
 
@@ -122,7 +122,7 @@ private
     just (1 , from-List (2 ∷ 3 ∷ xs))
   example₅ {xs = xs} =
     dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs))           ≡⟨ cong dequeue′ (_↔_.to Q.≡-for-indices↔≡ [ refl _ ]) ⟩
-    ⟨ dequeue′ (cons 1 (from-List (2 ∷ 3 ∷ xs))) ⟩  ≡⟨ ⟨by⟩ 4 (_↔_.right-inverse-of (Queue↔Maybe[×Queue] _)) ⟩∎
+    ⟨ dequeue′ (cons 1 (from-List (2 ∷ 3 ∷ xs))) ⟩  ≡⟨ ⟨by⟩ (_↔_.right-inverse-of (Queue↔Maybe[×Queue] _)) ⟩∎
     just (1 , from-List (2 ∷ 3 ∷ xs))               ∎
 
   example₆ :

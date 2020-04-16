@@ -71,10 +71,10 @@ private
 
   example₁ : map suc (enqueue 3 empty) ≡ enqueue 4 empty′
   example₁ = _↔_.to ≡-for-lists↔≡ (
-    ⟨ ⌊ map suc (enqueue 3 empty) ⌋ ⟩    ≡⟨ ⟨by⟩ 3 to-List-map ⟩
-    L.map suc ⟨ ⌊ enqueue 3 empty ⌋ ⟩    ≡⟨ ⟨by⟩ 3 (to-List-foldl-enqueue-empty (_ ∷ [])) ⟩
+    ⟨ ⌊ map suc (enqueue 3 empty) ⌋ ⟩    ≡⟨ ⟨by⟩ to-List-map ⟩
+    L.map suc ⟨ ⌊ enqueue 3 empty ⌋ ⟩    ≡⟨ ⟨by⟩ (to-List-foldl-enqueue-empty (_ ∷ [])) ⟩
     L.map suc (3 ∷ [])                   ≡⟨⟩
-    ⟨ 4 ∷ [] ⟩                           ≡⟨ ⟨by⟩ 3 (to-List-foldl-enqueue-empty (_ ∷ [])) ⟩∎
+    ⟨ 4 ∷ [] ⟩                           ≡⟨ ⟨by⟩ (to-List-foldl-enqueue-empty (_ ∷ [])) ⟩∎
     ⌊ enqueue 4 empty ⌋                  ∎)
 
   example₂ :
@@ -82,15 +82,15 @@ private
     just (10 , enqueue 6 empty)
   example₂ =
     dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))  ≡⟨ cong dequeue′ lemma ⟩
-    ⟨ dequeue′ (cons 10 (enqueue 6 empty)) ⟩             ≡⟨ ⟨by⟩ 3 (_↔_.right-inverse-of (Queue↔Maybe[×Queue] _)) ⟩∎
+    ⟨ dequeue′ (cons 10 (enqueue 6 empty)) ⟩             ≡⟨ ⟨by⟩ (_↔_.right-inverse-of (Queue↔Maybe[×Queue] _)) ⟩∎
     just (10 , enqueue 6 empty)                          ∎
     where
     lemma = _↔_.to ≡-for-lists↔≡ (
-      ⟨ ⌊ map (_* 2) (enqueue 3 (enqueue 5 empty)) ⌋ ⟩  ≡⟨ ⟨by⟩ 3 to-List-map ⟩
-      L.map (_* 2) ⟨ ⌊ enqueue 3 (enqueue 5 empty) ⌋ ⟩  ≡⟨ ⟨by⟩ 3 (to-List-foldl-enqueue-empty (_ ∷ _ ∷ [])) ⟩
+      ⟨ ⌊ map (_* 2) (enqueue 3 (enqueue 5 empty)) ⌋ ⟩  ≡⟨ ⟨by⟩ to-List-map ⟩
+      L.map (_* 2) ⟨ ⌊ enqueue 3 (enqueue 5 empty) ⌋ ⟩  ≡⟨ ⟨by⟩ (to-List-foldl-enqueue-empty (_ ∷ _ ∷ [])) ⟩
       L.map (_* 2) (5 ∷ 3 ∷ [])                         ≡⟨⟩
-      10 ∷ ⟨ 6 ∷ [] ⟩                                   ≡⟨ ⟨by⟩ 3 (to-List-foldl-enqueue-empty (_ ∷ [])) ⟩
-      ⟨ 10 ∷ ⌊ enqueue 6 empty ⌋ ⟩                      ≡⟨ ⟨by⟩ 3 to-List-cons ⟩∎
+      10 ∷ ⟨ 6 ∷ [] ⟩                                   ≡⟨ ⟨by⟩ (to-List-foldl-enqueue-empty (_ ∷ [])) ⟩
+      ⟨ 10 ∷ ⌊ enqueue 6 empty ⌋ ⟩                      ≡⟨ ⟨by⟩ to-List-cons ⟩∎
       ⌊ cons 10 (enqueue 6 empty) ⌋                     ∎)
 
   example₃ :
@@ -99,7 +99,7 @@ private
     just (enqueue 30 (enqueue 6 empty))
   example₃ =
     (do x , q ← ⟨ dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty))) ⟩
-        return (enqueue (3 * x) q))                                      ≡⟨ ⟨by⟩ 3 example₂ ⟩
+        return (enqueue (3 * x) q))                                      ≡⟨ ⟨by⟩ example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
         return (enqueue (3 * x) (q ⦂ Queue Q ℕ)))                        ≡⟨⟩
@@ -114,13 +114,13 @@ private
   example₄ =
     (do x , q ← ⟨ dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty))) ⟩
         let q = enqueue (3 * x) q
-        return ⌊ q ⌋)                                                    ≡⟨ ⟨by⟩ 3 example₂ ⟩
+        return ⌊ q ⌋)                                                    ≡⟨ ⟨by⟩ example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
         let q = enqueue (3 * x) (q ⦂ Queue Q ℕ)
         return ⌊ q ⌋)                                                    ≡⟨⟩
 
-    just ⟨ ⌊ enqueue 30 (enqueue 6 empty) ⌋ ⟩                            ≡⟨ ⟨by⟩ 3 (to-List-foldl-enqueue-empty (_ ∷ _ ∷ [])) ⟩∎
+    just ⟨ ⌊ enqueue 30 (enqueue 6 empty) ⌋ ⟩                            ≡⟨ ⟨by⟩ (to-List-foldl-enqueue-empty (_ ∷ _ ∷ [])) ⟩∎
 
     just (6 ∷ 30 ∷ [])                                                   ∎
 
@@ -130,13 +130,13 @@ private
     just (1 , from-List (2 ∷ 3 ∷ xs))
   example₅ {xs = xs} =
     dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs))           ≡⟨ cong dequeue′ lemma ⟩
-    ⟨ dequeue′ (cons 1 (from-List (2 ∷ 3 ∷ xs))) ⟩  ≡⟨ ⟨by⟩ 4 (_↔_.right-inverse-of (Queue↔Maybe[×Queue] _)) ⟩∎
+    ⟨ dequeue′ (cons 1 (from-List (2 ∷ 3 ∷ xs))) ⟩  ≡⟨ ⟨by⟩ (_↔_.right-inverse-of (Queue↔Maybe[×Queue] _)) ⟩∎
     just (1 , from-List (2 ∷ 3 ∷ xs))               ∎
     where
     lemma = _↔_.to ≡-for-lists↔≡ (
-      ⟨ ⌊ from-List (1 ∷ 2 ∷ 3 ∷ xs) ⌋ ⟩   ≡⟨ ⟨by⟩ 4 (_↔_.right-inverse-of (Queue↔List _)) ⟩
-      1 ∷ ⟨ 2 ∷ 3 ∷ xs ⟩                   ≡⟨ ⟨by⟩ 4 (sym ∘ _↔_.right-inverse-of (Queue↔List _)) ⟩
-      ⟨ 1 ∷ ⌊ from-List (2 ∷ 3 ∷ xs) ⌋ ⟩   ≡⟨ ⟨by⟩ 4 to-List-cons ⟩∎
+      ⟨ ⌊ from-List (1 ∷ 2 ∷ 3 ∷ xs) ⌋ ⟩   ≡⟨ ⟨by⟩ (_↔_.right-inverse-of (Queue↔List _)) ⟩
+      1 ∷ ⟨ 2 ∷ 3 ∷ xs ⟩                   ≡⟨ ⟨by⟩ (sym ∘ _↔_.right-inverse-of (Queue↔List _)) ⟩
+      ⟨ 1 ∷ ⌊ from-List (2 ∷ 3 ∷ xs) ⌋ ⟩   ≡⟨ ⟨by⟩ to-List-cons ⟩∎
       ⌊ cons 1 (from-List (2 ∷ 3 ∷ xs)) ⌋  ∎)
 
   example₆ :

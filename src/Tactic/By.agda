@@ -98,8 +98,6 @@ module _
   -- side y are returned. If it is hard to determine a or A, then
   -- unknown can be returned instead. If the type does not have the
   -- right form, then nothing is returned.
-  (sym : Term → Term)
-  -- An implementation of symmetry.
   where
 
   private
@@ -169,7 +167,14 @@ module _
   -- cong (λ x → C [ x ]) (sym t′) is generated instead.
 
   module ⟨By⟩
-    (cong : Term → Term → Term → Term → Term)
+    {Ctxt : Set}
+    (context : TC Ctxt)
+    -- A "context" type and a computation that computes some information
+    -- related to the current context. The information is only
+    -- guaranteed to be valid in the current context.
+    (sym : Ctxt → Term → Term)
+    -- An implementation of symmetry.
+    (cong : Ctxt → Term → Term → Term → Term → Term)
     -- An implementation of cong. Arguments: left-hand side,
     -- right-hand side, function, equality.
     (cong-with-lhs-and-rhs : Bool)
@@ -215,8 +220,9 @@ module _
 
         conclude : Term → Term → Term → Term → TC Term
         conclude lhs rhs f t = do
-          let t₁ = cong lhs rhs f t
-              t₂ = cong rhs lhs f (sym t)
+          ctxt ← context
+          let t₁ = cong ctxt lhs rhs f t
+              t₂ = cong ctxt rhs lhs f (sym ctxt t)
           catchTC (try t₁) (try t₂)
           return t₁
 
@@ -294,6 +300,8 @@ module _
   -- The by tactic.
 
   module By
+    (sym : Term → Term)
+    -- An implementation of symmetry.
     (equality : Term → Term → Type)
     -- Constructs the type of equalities between its two arguments.
     (refl : Term → Term → Term → Term)
@@ -498,7 +506,8 @@ module _
     definition : ⊤
     definition = _
 
--- A module that exports both tactics.
+-- A module that exports both tactics. The "context" type is not
+-- supported.
 
 module Tactics
   (deconstruct-equality : Type → TC (Maybe (Term × Type × Term × Term)))
@@ -511,6 +520,7 @@ module Tactics
   (extra-check-in-try-refl : Bool)
   where
 
-  open ⟨By⟩ deconstruct-equality sym cong cong-with-lhs-and-rhs public
+  open ⟨By⟩ deconstruct-equality (return tt) (λ _ → sym) (λ _ → cong)
+            cong-with-lhs-and-rhs public
   open By deconstruct-equality sym equality refl make-cong
           extra-check-in-try-refl public
