@@ -315,26 +315,6 @@ module _
 
     private
 
-      -- The tactic refine A t goal tries to use the term t (of type
-      -- A), applied to as many fresh meta-variables as possible
-      -- (based on its type), to solve the given goal. If this fails,
-      -- then an attempt is made to solve the goal using
-      -- "sym (t metas)" instead.
-
-      refine : Type → Term → Term → TC Term
-      refine A t goal = do
-        _ , t ← apply-to-metas A t
-        catchTC (try false t) $
-          catchTC (try true t) $
-            typeError (strErr "refine failed" ∷ [])
-        where
-        try : Bool → Term → TC Term
-        try use-sym t = do
-          unify t′ goal
-          return t′
-          where
-          t′ = if use-sym then sym t else t
-
       -- The call by-tactic t goal tries to use (non-dependent) "cong"
       -- functions, reflexivity and t (via refine) to solve the given
       -- goal (which must be an equality).
@@ -345,7 +325,8 @@ module _
       by-tactic {A = A} t goal = do
         A ← quoteTC A
         t ← quoteTC t
-        by-tactic′ fuel A t goal
+        _ , t ← apply-to-metas A t
+        by-tactic′ fuel t goal
         where
         -- Fuel, used to ensure termination. (Termination could
         -- perhaps be proved in some way, but using fuel was easier.)
@@ -355,15 +336,16 @@ module _
 
         -- The tactic's main loop.
 
-        by-tactic′ : ℕ → Type → Term → Term → TC Term
-        by-tactic′ zero    _ _ _    = typeError
-                                        (strErr "by: no more fuel" ∷ [])
-        by-tactic′ (suc n) A t goal = do
+        by-tactic′ : ℕ → Term → Term → TC Term
+        by-tactic′ zero    _ _    = typeError
+                                      (strErr "by: no more fuel" ∷ [])
+        by-tactic′ (suc n) t goal = do
           goal-type ← reduce =<< inferType goal
           block-if-meta goal-type
           catchTC (try-refl goal-type) $
-            catchTC (refine A t goal) $
-              try-cong goal-type
+            catchTC (try t) $
+              catchTC (try (sym t)) $
+                try-cong goal-type
           where
           -- Error messages.
 
@@ -408,6 +390,13 @@ module _
               case goal of λ where
                 (meta _ _) → failure
                 _          → return t′
+
+          -- Tries to solve the goal using the given term.
+
+          try : Term → TC Term
+          try t = do
+            unify t goal
+            return t
 
           -- Tries to solve the goal using one of the "cong"
           -- functions.
@@ -467,7 +456,7 @@ module _
                        -- Relevance is ignored.
 
               goal ← checkType unknown (equality y z)
-              t    ← by-tactic′ n A t goal
+              t    ← by-tactic′ n t goal
               args ← arguments ys zs
               return (varg t ∷ args)
 
