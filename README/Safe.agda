@@ -341,9 +341,8 @@ import Integer
 
 import Integer.Quotient
 
--- A wrapper that turns a representation of natural numbers, possibly
--- with several representations for some numbers, into a
--- representation with unique representatives, that additionally
+-- A wrapper that turns a representation of natural numbers (with a
+-- unique representative for every number) into a representation that
 -- computes roughly like the unary natural numbers (at least for some
 -- operations).
 

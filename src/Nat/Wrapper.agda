@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- A wrapper that turns a representation of natural numbe (th a
+-- A wrapper that turns a representation of natural numbers (with a
 -- unique representative for every number) into a representation that
 -- computes roughly like the unary natural numbers (at least for some
 -- operations)
