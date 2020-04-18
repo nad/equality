@@ -42,6 +42,12 @@ private
 
     {-# NOINLINE fst #-}
 
+    record R (F : Set → Set) : Set₁ where
+      field
+        p : {A : Set} {x : F A} → x ≡ x
+
+    open R ⦃ … ⦄ public
+
     test₁ : ⟨ 40 + 2 ⟩ ≡ 42
     test₁ = ⟨by⟩ refl
 
@@ -130,3 +136,12 @@ private
       (p : P 0) →
       f ⟨ subst′ P (refl 0) p ⟩ ≡ f p
     test₁₈ _ subst′-refl _ _ _ = ⟨by⟩ subst′-refl
+
+    -- test₁₉ :
+    --   {F : Set → Set} ⦃ r : R F ⦄ {A : Set} {x₁ x₂ : F A}
+    --   (p₁ p₂ : x₁ ≡ x₂) (assumption : p₁ ≡ p₂) →
+    --   trans p p₁ ≡ trans p p₂
+    -- test₁₉ p₁ p₂ assumption =
+    --   trans p p₁      ≡⟨⟩
+    --   trans p ⟨ p₁ ⟩  ≡⟨ ⟨by⟩ assumption ⟩∎
+    --   trans p p₂      ∎
