@@ -65,7 +65,7 @@ private
       -- A sort-indexed type of variables with decidable equality.
       Var : @0 Sort → Set ℓ
 
-    -- Non-indexed variables
+    -- Non-indexed variables.
 
     ∃Var : Set ℓ
     ∃Var = ∃ λ (s : Erased Sort) → Var (erased s)
