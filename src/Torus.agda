@@ -27,7 +27,8 @@ open import Circle eq as Circle using (𝕊¹; base; loopᴾ)
 
 private
   variable
-    p : Level
+    a p : Level
+    A   : Set a
 
 mutual
 
@@ -154,6 +155,16 @@ module _
     elimᴾ-rimᴾ≡elimᴾ-rimᴾ : (x : 𝕊¹) → elimᴾ (rimᴾ x) ≡ elimᴾ-rimᴾ x
     elimᴾ-rimᴾ≡elimᴾ-rimᴾ = Circle.elimᴾ _ (refl _) (λ _ → refl _)
 
+-- A non-dependent eliminator, expressed using paths.
+
+recᴾ :
+  (b : A)
+  (ℓ₁ ℓ₂ : b P.≡ b)
+  (h : A)
+  (s : (x : 𝕊¹) → elimᴾ-rimᴾ _ b ℓ₁ ℓ₂ x P.≡ h) →
+  T² → A
+recᴾ = elimᴾ _
+
 -- A dependent eliminator.
 
 module _
@@ -188,10 +199,12 @@ module _
     elim-rimᴾ≡elim-rimᴾ : (x : 𝕊¹) → elim (rimᴾ x) ≡ elim-rimᴾ x
     elim-rimᴾ≡elim-rimᴾ = elimᴾ-rimᴾ≡elimᴾ-rimᴾ _ _ _ _ _ _
 
-    -- A variant of s with a slightly different type.
+    private
 
-    s′ : (x : 𝕊¹) → subst P (spoke x) (elim (rimᴾ x)) ≡ h
-    s′ = Circle.elimᴾ _ (s base) (λ i → s (loopᴾ i))
+      -- A variant of s with a slightly different type.
+
+      s′ : (x : 𝕊¹) → subst P (spoke x) (elim (rimᴾ x)) ≡ h
+      s′ = Circle.elimᴾ _ (s base) (λ i → s (loopᴾ i))
 
     -- Computation rules.
 
@@ -205,3 +218,55 @@ module _
     elim-spoke = Circle.elimᴾ _
       (dcong-subst≡→[]≡ (refl _))
       (λ _ → dcong-subst≡→[]≡ (refl _))
+
+-- A non-dependent eliminator.
+
+module _
+  (b : A)
+  (ℓ₁ ℓ₂ : b ≡ b)
+  where
+
+  -- A special case of rec, used in the type of rec.
+
+  rec-rimᴾ : 𝕊¹ → A
+  rec-rimᴾ = elimᴾ-rimᴾ _ b (_↔_.to ≡↔≡ ℓ₁) (_↔_.to ≡↔≡ ℓ₂)
+
+  module _
+    (h : A)
+    (s : (x : 𝕊¹) → rec-rimᴾ x ≡ h)
+    where
+
+    -- The eliminator.
+
+    rec : T² → A
+    rec =
+      recᴾ b
+        (_↔_.to ≡↔≡ ℓ₁)
+        (_↔_.to ≡↔≡ ℓ₂)
+        h
+        (_↔_.to ≡↔≡ ∘ s)
+
+    -- The special case is a special case.
+
+    rec-rimᴾ≡rec-rimᴾ : (x : 𝕊¹) → rec (rimᴾ x) ≡ rec-rimᴾ x
+    rec-rimᴾ≡rec-rimᴾ = elimᴾ-rimᴾ≡elimᴾ-rimᴾ _ _ _ _ _ _
+
+    private
+
+      -- A variant of s with a slightly different type.
+
+      s′ : (x : 𝕊¹) → rec (rimᴾ x) ≡ h
+      s′ = Circle.elimᴾ _ (s base) (λ i → s (loopᴾ i))
+
+    -- Computation rules.
+
+    rec-loop₁ : cong rec loop₁ ≡ ℓ₁
+    rec-loop₁ = cong-≡↔≡ (refl _)
+
+    rec-loop₂ : cong rec loop₂ ≡ ℓ₂
+    rec-loop₂ = cong-≡↔≡ (refl _)
+
+    rec-spoke : (x : 𝕊¹) → cong rec (spoke x) ≡ s′ x
+    rec-spoke = Circle.elimᴾ _
+      (cong-≡↔≡ (refl _))
+      (λ _ → cong-≡↔≡ (refl _))
