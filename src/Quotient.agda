@@ -134,6 +134,25 @@ elimᴾ e = elimᴾ′ λ where
   where
   module E = Elimᴾ e
 
+private
+
+  -- One can define elimᴾ′ using elimᴾ.
+
+  elimᴾ′₂ : Elimᴾ′ P → (x : A / R) → P x
+  elimᴾ′₂ {P = P} e = elimᴾ λ where
+      .[]ʳ                   → E.[]ʳ
+      .[]-respects-relationʳ → E.[]-respects-relationʳ
+      .is-setʳ x {y} {z} p q →                                         $⟨ E.is-setʳ p q ⟩
+        P.[ (λ i →
+               P.[ (λ j → P (/-is-setᴾ P.refl P.refl i j)) ] y ≡ z) ]
+          p ≡ q                                                        ↝⟨ P.subst (λ eq → P.[ (λ i → P.[ (λ j → P (eq i j)) ] y ≡ z) ] p ≡ q)
+                                                                                  (PH.mono₁ 2 /-is-setᴾ _ _) ⟩
+        P.[ (λ _ → P.[ (λ _ → P x) ] y ≡ z) ] p ≡ q                    ↔⟨⟩
+
+        p P.≡ q                                                        □
+    where
+    module E = Elimᴾ′ e
+
 -- A non-dependent eliminator, expressed using paths.
 
 record Recᴾ {A : Set a} (R : A → A → Set r) (B : Set b) :
