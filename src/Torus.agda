@@ -29,6 +29,10 @@ private
   variable
     a p : Level
     A   : Set a
+    P   : A → Set p
+
+------------------------------------------------------------------------
+-- The torus
 
 mutual
 
@@ -106,167 +110,185 @@ rim≡rimᴾ = Circle.elim
      _↔_.from ≡↔≡ loop₁₂₋₁₋₂ᴾ          ≡⟨⟩
      loop₁₂₋₁₋₂                        ∎
 
+------------------------------------------------------------------------
+-- Eliminators expressed using paths
+
 -- A dependent eliminator, expressed using paths.
 
-module _
-  (P  : T² → Set p)
-  (b  : P base)
-  (ℓ₁ : P.[ (λ i → P (loop₁ᴾ i)) ] b ≡ b)
-  (ℓ₂ : P.[ (λ i → P (loop₂ᴾ i)) ] b ≡ b)
-  where
+record Elimᴾ₀ (P : T² → Set p) : Set p where
+  no-eta-equality
+  field
+    baseʳ  : P base
+    loop₁ʳ : P.[ (λ i → P (loop₁ᴾ i)) ] baseʳ ≡ baseʳ
+    loop₂ʳ : P.[ (λ i → P (loop₂ᴾ i)) ] baseʳ ≡ baseʳ
 
   -- A dependent path.
 
-  ℓ₁₂₋₁₋₂ : P.[ (λ i → P (loop₁₂₋₁₋₂ᴾ i)) ] b ≡ b
-  ℓ₁₂₋₁₋₂ =
-    b  P.≡⟨        ℓ₁ ⟩[ P ]
-    b  P.≡⟨        ℓ₂ ⟩[ P ]
-    b  P.≡⟨ P.hsym ℓ₁ ⟩[ P ]
-    b  P.≡⟨ P.hsym ℓ₂ ⟩∎h
-    b  ∎
+  loop₁₂₋₁₋₂ʳ : P.[ (λ i → P (loop₁₂₋₁₋₂ᴾ i)) ] baseʳ ≡ baseʳ
+  loop₁₂₋₁₋₂ʳ =
+    baseʳ  P.≡⟨        loop₁ʳ ⟩[ P ]
+    baseʳ  P.≡⟨        loop₂ʳ ⟩[ P ]
+    baseʳ  P.≡⟨ P.hsym loop₁ʳ ⟩[ P ]
+    baseʳ  P.≡⟨ P.hsym loop₂ʳ ⟩∎h
+    baseʳ  ∎
 
   -- A special case of elimᴾ, used in the type of elimᴾ.
 
   elimᴾ-rimᴾ : (x : 𝕊¹) → P (rimᴾ x)
-  elimᴾ-rimᴾ = Circle.elimᴾ (P ∘ rimᴾ) b ℓ₁₂₋₁₋₂
+  elimᴾ-rimᴾ = Circle.elimᴾ (P ∘ rimᴾ) baseʳ loop₁₂₋₁₋₂ʳ
 
-  module _
-    (h : P hub)
-    (s : (x : 𝕊¹) → P.[ (λ i → P (spokeᴾ x i)) ] elimᴾ-rimᴾ x ≡ h)
-    where
+record Elimᴾ (P : T² → Set p) : Set p where
+  no-eta-equality
+  field
+    elimᴾ₀ : Elimᴾ₀ P
 
-    -- The dependent eliminator.
-    --
-    -- Note that the eliminator matches on circle constructors. If the
-    -- case "(spokeᴾ x i) → s x i" is used instead, then the side
-    -- condition elimᴾ (rimᴾ x) = elimᴾ-rimᴾ x fails to hold.
+  open Elimᴾ₀ elimᴾ₀ public
 
-    elimᴾ : (x : T²) → P x
-    elimᴾ = λ where
-      base                 → b
-      hub                  → h
-      (loop₁ᴾ i)           → ℓ₁ i
-      (loop₂ᴾ i)           → ℓ₂ i
-      (spokeᴾ base i)      → s base i
-      (spokeᴾ (loopᴾ j) i) → s (loopᴾ j) i
+  field
+    hubʳ   : P hub
+    spokeʳ : (x : 𝕊¹) → P.[ (λ i → P (spokeᴾ x i)) ] elimᴾ-rimᴾ x ≡ hubʳ
 
-    -- The special case is a special case.
+elimᴾ : Elimᴾ P → (x : T²) → P x
+elimᴾ {P = P} e = helper
+  where
+  module E = Elimᴾ e
 
-    elimᴾ-rimᴾ≡elimᴾ-rimᴾ : (x : 𝕊¹) → elimᴾ (rimᴾ x) ≡ elimᴾ-rimᴾ x
-    elimᴾ-rimᴾ≡elimᴾ-rimᴾ = Circle.elimᴾ _ (refl _) (λ _ → refl _)
+  helper : (x : T²) → P x
+  helper = λ where
+    base                 → E.baseʳ
+    hub                  → E.hubʳ
+    (loop₁ᴾ i)           → E.loop₁ʳ i
+    (loop₂ᴾ i)           → E.loop₂ʳ i
+    (spokeᴾ base i)      → E.spokeʳ base i
+    (spokeᴾ (loopᴾ j) i) → E.spokeʳ (loopᴾ j) i
+
+-- The special case is a special case.
+
+elimᴾ-rimᴾ≡elimᴾ-rimᴾ :
+  (e : Elimᴾ P) (x : 𝕊¹) → elimᴾ e (rimᴾ x) ≡ Elimᴾ.elimᴾ-rimᴾ e x
+elimᴾ-rimᴾ≡elimᴾ-rimᴾ _ = Circle.elimᴾ _ (refl _) (λ _ → refl _)
 
 -- A non-dependent eliminator, expressed using paths.
 
-recᴾ :
-  (b : A)
-  (ℓ₁ ℓ₂ : b P.≡ b)
-  (h : A)
-  (s : (x : 𝕊¹) → elimᴾ-rimᴾ _ b ℓ₁ ℓ₂ x P.≡ h) →
-  T² → A
-recᴾ = elimᴾ _
+Recᴾ : Set a → Set a
+Recᴾ A = Elimᴾ (λ _ → A)
+
+recᴾ : Recᴾ A → T² → A
+recᴾ = elimᴾ
+
+------------------------------------------------------------------------
+-- Eliminators
 
 -- A dependent eliminator.
 
-module _
-  (P : T² → Set p)
-  (b : P base)
-  (ℓ₁ : subst P loop₁ b ≡ b)
-  (ℓ₂ : subst P loop₂ b ≡ b)
-  where
+record Elim (P : T² → Set p) : Set p where
+  no-eta-equality
+  field
+    baseʳ  : P base
+    loop₁ʳ : subst P loop₁ baseʳ ≡ baseʳ
+    loop₂ʳ : subst P loop₂ baseʳ ≡ baseʳ
+
+  -- An instance of Elimᴾ₀ P.
+
+  elimᴾ₀ : Elimᴾ₀ P
+  elimᴾ₀ = λ where
+    .Elimᴾ₀.baseʳ  → baseʳ
+    .Elimᴾ₀.loop₁ʳ → subst≡→[]≡ loop₁ʳ
+    .Elimᴾ₀.loop₂ʳ → subst≡→[]≡ loop₂ʳ
 
   -- A special case of elim, used in the type of elim.
 
   elim-rimᴾ : (x : 𝕊¹) → P (rimᴾ x)
-  elim-rimᴾ = elimᴾ-rimᴾ P b (subst≡→[]≡ ℓ₁) (subst≡→[]≡ ℓ₂)
+  elim-rimᴾ = Elimᴾ₀.elimᴾ-rimᴾ elimᴾ₀
 
-  module _
-    (h : P hub)
-    (s : (x : 𝕊¹) → subst P (spoke x) (elim-rimᴾ x) ≡ h)
-    where
+  field
+    hubʳ   : P hub
+    spokeʳ : (x : 𝕊¹) → subst P (spoke x) (elim-rimᴾ x) ≡ hubʳ
 
-    -- The eliminator.
+  -- The eliminator.
 
-    elim : (x : T²) → P x
-    elim =
-      elimᴾ P b
-        (subst≡→[]≡ ℓ₁)
-        (subst≡→[]≡ ℓ₂)
-        h
-        (subst≡→[]≡ ∘ s)
+  elim : (x : T²) → P x
+  elim = elimᴾ λ where
+    .Elimᴾ.elimᴾ₀ → elimᴾ₀
+    .Elimᴾ.hubʳ   → hubʳ
+    .Elimᴾ.spokeʳ → subst≡→[]≡ ∘ spokeʳ
 
-    -- The special case is a special case.
+  -- The special case is a special case.
 
-    elim-rimᴾ≡elim-rimᴾ : (x : 𝕊¹) → elim (rimᴾ x) ≡ elim-rimᴾ x
-    elim-rimᴾ≡elim-rimᴾ = elimᴾ-rimᴾ≡elimᴾ-rimᴾ _ _ _ _ _ _
+  elim-rimᴾ≡elim-rimᴾ : (x : 𝕊¹) → elim (rimᴾ x) ≡ elim-rimᴾ x
+  elim-rimᴾ≡elim-rimᴾ = elimᴾ-rimᴾ≡elimᴾ-rimᴾ _
 
-    private
+  -- A variant of spokeʳ with a slightly different type.
 
-      -- A variant of s with a slightly different type.
+  spokeʳ′ : (x : 𝕊¹) → subst P (spoke x) (elim (rimᴾ x)) ≡ hubʳ
+  spokeʳ′ = Circle.elimᴾ _ (spokeʳ base) (λ i → spokeʳ (loopᴾ i))
 
-      s′ : (x : 𝕊¹) → subst P (spoke x) (elim (rimᴾ x)) ≡ h
-      s′ = Circle.elimᴾ _ (s base) (λ i → s (loopᴾ i))
+  -- Computation rules.
 
-    -- Computation rules.
+  elim-loop₁ : dcong elim loop₁ ≡ loop₁ʳ
+  elim-loop₁ = dcong-subst≡→[]≡ (refl _)
 
-    elim-loop₁ : dcong elim loop₁ ≡ ℓ₁
-    elim-loop₁ = dcong-subst≡→[]≡ (refl _)
+  elim-loop₂ : dcong elim loop₂ ≡ loop₂ʳ
+  elim-loop₂ = dcong-subst≡→[]≡ (refl _)
 
-    elim-loop₂ : dcong elim loop₂ ≡ ℓ₂
-    elim-loop₂ = dcong-subst≡→[]≡ (refl _)
-
-    elim-spoke : (x : 𝕊¹) → dcong elim (spoke x) ≡ s′ x
-    elim-spoke = Circle.elimᴾ _
-      (dcong-subst≡→[]≡ (refl _))
-      (λ _ → dcong-subst≡→[]≡ (refl _))
+  elim-spoke : (x : 𝕊¹) → dcong elim (spoke x) ≡ spokeʳ′ x
+  elim-spoke = Circle.elimᴾ _
+    (dcong-subst≡→[]≡ (refl _))
+    (λ _ → dcong-subst≡→[]≡ (refl _))
 
 -- A non-dependent eliminator.
 
-module _
-  (b : A)
-  (ℓ₁ ℓ₂ : b ≡ b)
-  where
+record Rec (A : Set a) : Set a where
+  no-eta-equality
+  field
+    baseʳ  : A
+    loop₁ʳ : baseʳ ≡ baseʳ
+    loop₂ʳ : baseʳ ≡ baseʳ
 
-  -- A special case of rec, used in the type of rec.
+  -- An instance of Elimᴾ₀ P.
+
+  elimᴾ₀ : Elimᴾ₀ (λ _ → A)
+  elimᴾ₀ = λ where
+    .Elimᴾ₀.baseʳ  → baseʳ
+    .Elimᴾ₀.loop₁ʳ → _↔_.to ≡↔≡ loop₁ʳ
+    .Elimᴾ₀.loop₂ʳ → _↔_.to ≡↔≡ loop₂ʳ
+
+  -- A special case of recᴾ, used in the type of rec.
 
   rec-rimᴾ : 𝕊¹ → A
-  rec-rimᴾ = elimᴾ-rimᴾ _ b (_↔_.to ≡↔≡ ℓ₁) (_↔_.to ≡↔≡ ℓ₂)
+  rec-rimᴾ = Elimᴾ₀.elimᴾ-rimᴾ elimᴾ₀
 
-  module _
-    (h : A)
-    (s : (x : 𝕊¹) → rec-rimᴾ x ≡ h)
-    where
+  field
+    hubʳ   : A
+    spokeʳ : (x : 𝕊¹) → rec-rimᴾ x ≡ hubʳ
 
-    -- The eliminator.
+  -- The eliminator.
 
-    rec : T² → A
-    rec =
-      recᴾ b
-        (_↔_.to ≡↔≡ ℓ₁)
-        (_↔_.to ≡↔≡ ℓ₂)
-        h
-        (_↔_.to ≡↔≡ ∘ s)
+  rec : T² → A
+  rec = recᴾ λ where
+    .Elimᴾ.elimᴾ₀ → elimᴾ₀
+    .Elimᴾ.hubʳ   → hubʳ
+    .Elimᴾ.spokeʳ → _↔_.to ≡↔≡ ∘ spokeʳ
 
-    -- The special case is a special case.
+  -- The special case is a special case.
 
-    rec-rimᴾ≡rec-rimᴾ : (x : 𝕊¹) → rec (rimᴾ x) ≡ rec-rimᴾ x
-    rec-rimᴾ≡rec-rimᴾ = elimᴾ-rimᴾ≡elimᴾ-rimᴾ _ _ _ _ _ _
+  rec-rimᴾ≡rec-rimᴾ : (x : 𝕊¹) → rec (rimᴾ x) ≡ rec-rimᴾ x
+  rec-rimᴾ≡rec-rimᴾ = elimᴾ-rimᴾ≡elimᴾ-rimᴾ _
 
-    private
+  -- A variant of spokeʳ with a slightly different type.
 
-      -- A variant of s with a slightly different type.
+  spokeʳ′ : (x : 𝕊¹) → rec (rimᴾ x) ≡ hubʳ
+  spokeʳ′ = Circle.elimᴾ _ (spokeʳ base) (λ i → spokeʳ (loopᴾ i))
 
-      s′ : (x : 𝕊¹) → rec (rimᴾ x) ≡ h
-      s′ = Circle.elimᴾ _ (s base) (λ i → s (loopᴾ i))
+  -- Computation rules.
 
-    -- Computation rules.
+  rec-loop₁ : cong rec loop₁ ≡ loop₁ʳ
+  rec-loop₁ = cong-≡↔≡ (refl _)
 
-    rec-loop₁ : cong rec loop₁ ≡ ℓ₁
-    rec-loop₁ = cong-≡↔≡ (refl _)
+  rec-loop₂ : cong rec loop₂ ≡ loop₂ʳ
+  rec-loop₂ = cong-≡↔≡ (refl _)
 
-    rec-loop₂ : cong rec loop₂ ≡ ℓ₂
-    rec-loop₂ = cong-≡↔≡ (refl _)
-
-    rec-spoke : (x : 𝕊¹) → cong rec (spoke x) ≡ s′ x
-    rec-spoke = Circle.elimᴾ _
-      (cong-≡↔≡ (refl _))
-      (λ _ → cong-≡↔≡ (refl _))
+  rec-spoke : (x : 𝕊¹) → cong rec (spoke x) ≡ spokeʳ′ x
+  rec-spoke = Circle.elimᴾ _
+    (cong-≡↔≡ (refl _))
+    (λ _ → cong-≡↔≡ (refl _))
