@@ -591,25 +591,31 @@ dcong≡hcong :
   {x≡y : x ≡ y} (f : (x : A) → B x) →
   dcong f x≡y ≡
   _↔_.to (heterogeneous↔homogeneous (λ i → B (x≡y i))) (hcong f x≡y)
-dcong≡hcong {x = x} {y = y} {B = B} {x≡y = x≡y} f = elim¹
+dcong≡hcong {B = B} {x≡y = x≡y} f = elim
   (λ x≡y →
      dcong f x≡y ≡
      _↔_.to (heterogeneous↔homogeneous (λ i → B (x≡y i))) (hcong f x≡y))
 
-  ((λ i → transport (λ _ → B x) i (f x))                             ≡⟨ (λ i → comp
-                                                                           (λ j → transport (λ _ → B x) (- j) (f x) ≡ f x)
-                                                                           (λ { j (i = 0̲) → (λ i → transport (λ _ → B x) (max i (- j)) (f x))
-                                                                              ; j (i = 1̲) → transport
-                                                                                              (λ i → transport (λ _ → B x) (- min i j) (f x) ≡ f x)
-                                                                                              0̲ refl
-                                                                              })
-                                                                           (transport (λ _ → f x ≡ f x) (- i) refl)) ⟩
+  (λ x →
+     dcong f (refl {x = x})                                            ≡⟨⟩
 
-   transport (λ i → transport (λ _ → B x) (- i) (f x) ≡ f x) 0̲ refl  ≡⟨ cong (transport (λ i → transport (λ _ → B x) (- i) (f x) ≡ f x) 0̲ ∘
-                                                                              (_$ refl)) $ sym $
-                                                                        transport-refl 0̲ ⟩∎
-   transport (λ i → transport (λ _ → B x) (- i) (f x) ≡ f x) 0̲
-     (transport (λ _ → f x ≡ f x) 0̲ refl)                            ∎)
+     (λ i → transport (λ _ → B x) i (f x))                             ≡⟨ (λ i → comp
+                                                                             (λ j → transport (λ _ → B x) (- j) (f x) ≡ f x)
+                                                                             (λ { j (i = 0̲) → (λ k → transport (λ _ → B x) (max k (- j)) (f x))
+                                                                                ; j (i = 1̲) → transport
+                                                                                                (λ k → transport (λ _ → B x) (- min k j) (f x) ≡ f x)
+                                                                                                0̲ refl
+                                                                                })
+                                                                             (transport (λ _ → f x ≡ f x) (- i) refl)) ⟩
+
+     transport (λ i → transport (λ _ → B x) (- i) (f x) ≡ f x) 0̲ refl  ≡⟨ cong (transport (λ i → transport (λ _ → B x) (- i) (f x) ≡ f x) 0̲ ∘
+                                                                                (_$ refl)) $ sym $
+                                                                          transport-refl 0̲ ⟩
+     transport (λ i → transport (λ _ → B x) (- i) (f x) ≡ f x) 0̲
+       (transport (λ _ → f x ≡ f x) 0̲ refl)                            ≡⟨⟩
+
+     _↔_.to (heterogeneous↔homogeneous (λ i → B (refl {x = x} i)))
+       (hcong f (refl {x = x}))                                        ∎)
 
   x≡y
 
