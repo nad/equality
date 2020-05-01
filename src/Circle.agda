@@ -18,14 +18,17 @@ import Equality.Path as P
 open import Prelude
 
 open import Bijection eq using (_↔_)
+import Bijection P.equality-with-J as PB
 open Derived-definitions-and-properties eq hiding (elim)
 open import Equality.Path.Isomorphisms eq
-open import Function-universe eq hiding (id; _∘_)
+open import Equivalence eq as Eq using (_≃_)
+open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
 open import Nat eq
+open import Tactic.By.Parametrised eq
 open import Univalence-axiom eq
 
 private
@@ -197,3 +200,244 @@ all-points-on-the-circle-are-¬¬-equal x =
   Contractible 𝕊¹                ↝⟨ mono (zero≤ 2) ⟩
   Is-set 𝕊¹                      ↝⟨ ¬-𝕊¹-set ⟩□
   ⊥                              □
+
+------------------------------------------------------------------------
+-- An alternative approach to defining eliminators and proving
+-- computation rules for arbitrary notions of equality, based on an
+-- anonymous reviewer's suggestion
+
+-- Circle eq p is an axiomatisation of the circle, for the given
+-- notion of equality eq, eliminating into Set p.
+--
+-- Note that the statement of the computation rule for "loop" is more
+-- complicated than above (elim-loop). The reason is that the
+-- computation rule for "base" does not hold definitionally.
+
+Circle :
+  ∀ {e⁺} →
+  (∀ {a p} → Equality-with-J a p e⁺) → (p : Level) → Set (lsuc p)
+Circle eq p =
+  ∃ λ (𝕊¹ : Set) →
+  ∃ λ (base : 𝕊¹) →
+  ∃ λ (loop : base E.≡ base) →
+    (P : 𝕊¹ → Set p)
+    (b : P base)
+    (ℓ : E.subst P loop b E.≡ b) →
+    ∃ λ (elim : (x : 𝕊¹) → P x) →
+    ∃ λ (elim-base : elim base E.≡ b) →
+      E.subst (λ b → E.subst P loop b E.≡ b)
+              elim-base
+              (E.dcong elim loop)
+        E.≡
+      ℓ
+  where
+  module E = Derived-definitions-and-properties eq
+
+-- A circle defined for paths (P.equality-with-J) is equivalent to one
+-- defined for eq.
+
+Circle≃Circle : Circle P.equality-with-J p ≃ Circle eq p
+Circle≃Circle =
+  ∃-cong λ _ →
+  ∃-cong λ _ →
+  Σ-cong (inverse ≡↔≡) λ loop →
+  ∀-cong ext λ P →
+  ∀-cong ext λ b →
+  Π-cong-contra ext subst≡↔subst≡ λ ℓ →
+  ∃-cong λ f →
+  Σ-cong (inverse ≡↔≡) λ f-base →
+  let lemma = P.elim¹
+        (λ eq → _↔_.from subst≡↔subst≡
+                  (P.subst
+                     (λ b → P.subst P loop b P.≡ b)
+                     eq
+                     (P.dcong f loop)) ≡
+                P.subst
+                  (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b)
+                  eq
+                  (_↔_.from subst≡↔subst≡ (P.dcong f loop)))
+        (_↔_.from subst≡↔subst≡
+           (P.subst
+              (λ b → P.subst P loop b P.≡ b)
+              P.refl
+              (P.dcong f loop))                       ≡⟨ cong (_↔_.from subst≡↔subst≡) $ _↔_.from ≡↔≡ $
+                                                         P.subst-refl (λ b → P.subst P loop b P.≡ b) _ ⟩
+
+         _↔_.from subst≡↔subst≡ (P.dcong f loop)      ≡⟨ sym $ _↔_.from ≡↔≡ $
+                                                         P.subst-refl (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b) _ ⟩∎
+         P.subst
+           (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b)
+           P.refl
+           (_↔_.from subst≡↔subst≡ (P.dcong f loop))  ∎)
+        _
+  in
+  P.subst
+    (λ b → P.subst P loop b P.≡ b)
+    f-base
+    (P.dcong f loop) P.≡
+  _↔_.to subst≡↔subst≡ ℓ                           ↔⟨ ≡↔≡ F.∘ inverse (from≡↔≡to (Eq.↔⇒≃ subst≡↔subst≡)) F.∘ inverse ≡↔≡ ⟩
+
+  _↔_.from subst≡↔subst≡
+    (P.subst
+       (λ b → P.subst P loop b P.≡ b)
+       f-base
+       (P.dcong f loop)) P.≡
+  ℓ                                                ↝⟨ ≡⇒↝ _ (cong (P._≡ _) lemma) ⟩
+
+  P.subst
+    (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b)
+    f-base
+    (_↔_.from subst≡↔subst≡ (P.dcong f loop)) P.≡
+  ℓ                                                ↝⟨ ≡⇒↝ _ $ cong (λ eq → P.subst (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b) f-base eq P.≡ ℓ) $
+                                                      _↔_.from-to (inverse subst≡↔subst≡) dcong≡dcong ⟩
+  P.subst
+    (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b)
+    f-base
+    (dcong f (_↔_.from ≡↔≡ loop)) P.≡
+  ℓ                                                ↔⟨ inverse subst≡↔subst≡ ⟩□
+
+  subst
+    (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b)
+    (_↔_.from ≡↔≡ f-base)
+    (dcong f (_↔_.from ≡↔≡ loop)) ≡
+  ℓ                                                □
+
+-- An implemention of the circle for paths (P.equality-with-J).
+
+circleᴾ : Circle P.equality-with-J p
+circleᴾ =
+    𝕊¹
+  , base
+  , loopᴾ
+  , λ P b ℓ →
+      let h↔h = P.heterogeneous↔homogeneous _
+          f   = elimᴾ P b ∘ PB._↔_.from h↔h
+      in
+        f ℓ
+      , P.refl
+      , (P.subst (λ b → P.subst P loopᴾ b P.≡ b) P.refl
+           (P.dcong (f ℓ) loopᴾ)                         P.≡⟨ P.subst-refl (λ b → P.subst P loopᴾ b P.≡ b) _ ⟩
+
+         P.dcong (f ℓ) loopᴾ                             P.≡⟨ P.dcong≡hcong (f ℓ) ⟩
+
+         PB._↔_.to h↔h (P.hcong (f ℓ) loopᴾ)             P.≡⟨⟩
+
+         PB._↔_.to h↔h (PB._↔_.from h↔h ℓ)               P.≡⟨ PB._↔_.right-inverse-of h↔h _ ⟩∎
+
+         ℓ                                               ∎)
+
+-- An implementation of the circle for eq.
+
+circle : Circle eq p
+circle = _≃_.to Circle≃Circle circleᴾ
+
+-- The latter implementation computes in the right way for "base".
+
+_ :
+  let _ , base′ , _ , elim′ = circle {p = p} in
+  ∀ {P b ℓ} →
+  proj₁ (elim′ P b ℓ) base′ ≡ b
+_ = refl _
+
+-- The usual computation rule for "loop" can be derived.
+
+elim-loop-circle :
+  let _ , _ , loop′ , elim′ = circle {p = p} in
+  ∀ {P b ℓ} →
+  dcong (proj₁ (elim′ P b ℓ)) loop′ ≡ ℓ
+elim-loop-circle {P = P} {b = b} {ℓ = ℓ} =
+  let _ , _ , loop′ , elim′           = circle
+      elim″ , elim″-base , elim″-loop = elim′ P b ℓ
+
+      lemma =
+        refl _                                  ≡⟨ cong (_$ refl _) $ sym $ _↔_.from ≡↔≡ $ P.transport-refl P.0̲ ⟩
+        P.transport (λ _ → b ≡ b) P.0̲ (refl _)  ≡⟨⟩
+        elim″-base                              ∎
+  in
+  dcong elim″ loop′                                                 ≡⟨ sym $ subst-refl _ _ ⟩
+  subst (λ b → subst P loop′ b ≡ b) ⟨ refl _ ⟩ (dcong elim″ loop′)  ≡⟨ ⟨by⟩ lemma ⟩
+  subst (λ b → subst P loop′ b ≡ b) elim″-base (dcong elim″ loop′)  ≡⟨ elim″-loop ⟩∎
+  ℓ                                                                 ∎
+
+-- An alternative to Circle≃Circle that does not give the "right"
+-- computational behaviour for circle′ below.
+
+Circle≃Circle′ : Circle P.equality-with-J p ≃ Circle eq p
+Circle≃Circle′ =
+  ∃-cong λ _ →
+  ∃-cong λ _ →
+  Σ-cong (inverse ≡↔≡) λ loop →
+  ∀-cong ext λ P →
+  ∀-cong ext λ b →
+  Π-cong ext (inverse subst≡↔subst≡) λ ℓ →
+  ∃-cong λ f →
+  Σ-cong (inverse ≡↔≡) λ f-base →
+  let lemma = P.elim¹
+        (λ eq → _↔_.from subst≡↔subst≡
+                  (P.subst
+                     (λ b → P.subst P loop b P.≡ b)
+                     eq
+                     (P.dcong f loop)) ≡
+                P.subst
+                  (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b)
+                  eq
+                  (_↔_.from subst≡↔subst≡ (P.dcong f loop)))
+        (_↔_.from subst≡↔subst≡
+           (P.subst
+              (λ b → P.subst P loop b P.≡ b)
+              P.refl
+              (P.dcong f loop))                       ≡⟨ cong (_↔_.from subst≡↔subst≡) $ _↔_.from ≡↔≡ $
+                                                         P.subst-refl (λ b → P.subst P loop b P.≡ b) _ ⟩
+
+         _↔_.from subst≡↔subst≡ (P.dcong f loop)      ≡⟨ sym $ _↔_.from ≡↔≡ $
+                                                         P.subst-refl (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b) _ ⟩∎
+         P.subst
+           (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b)
+           P.refl
+           (_↔_.from subst≡↔subst≡ (P.dcong f loop))  ∎)
+        _
+  in
+  P.subst
+    (λ b → P.subst P loop b P.≡ b)
+    f-base
+    (P.dcong f loop) P.≡
+  ℓ                                                ↔⟨ ≡↔≡ F.∘ from-isomorphism (inverse $ Eq.≃-≡ $ Eq.↔⇒≃ $ inverse subst≡↔subst≡) F.∘ inverse ≡↔≡ ⟩
+
+  _↔_.from subst≡↔subst≡
+    (P.subst
+       (λ b → P.subst P loop b P.≡ b)
+       f-base
+       (P.dcong f loop)) P.≡
+  _↔_.from subst≡↔subst≡ ℓ                         ↝⟨ ≡⇒↝ _ (cong (P._≡ _↔_.from subst≡↔subst≡ ℓ) lemma) ⟩
+
+  P.subst
+    (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b)
+    f-base
+    (_↔_.from subst≡↔subst≡ (P.dcong f loop)) P.≡
+  _↔_.from subst≡↔subst≡ ℓ                         ↝⟨ ≡⇒↝ _ $ cong (λ eq → P.subst (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b) f-base eq P.≡ _↔_.from subst≡↔subst≡ ℓ) $
+                                                      _↔_.from-to (inverse subst≡↔subst≡) dcong≡dcong ⟩
+  P.subst
+    (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b)
+    f-base
+    (dcong f (_↔_.from ≡↔≡ loop)) P.≡
+  _↔_.from subst≡↔subst≡ ℓ                         ↔⟨ inverse subst≡↔subst≡ ⟩□
+
+  subst
+    (λ b → subst P (_↔_.from ≡↔≡ loop) b ≡ b)
+    (_↔_.from ≡↔≡ f-base)
+    (dcong f (_↔_.from ≡↔≡ loop)) ≡
+  _↔_.from subst≡↔subst≡ ℓ                         □
+
+-- An alternative implementation of the circle for eq.
+
+circle′ : Circle eq p
+circle′ = _≃_.to Circle≃Circle′ circleᴾ
+
+-- This implementation does not compute in the right way for "base".
+-- The following code is (at the time of writing) rejected by Agda.
+
+-- _ :
+--   let _ , base′ , _ , elim′ = circle′ {p = p} in
+--   ∀ {P b ℓ} →
+--   proj₁ (elim′ P b ℓ) base′ ≡ b
+-- _ = refl _
