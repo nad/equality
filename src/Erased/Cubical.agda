@@ -7,36 +7,36 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-open import Equality
+import Equality.Path as P
 
 module Erased.Cubical
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq
+open P.Derived-definitions-and-properties eq
 
-import Equality.Path as P
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 import Bijection P.equality-with-J as PB
 open import Equality.Path.Isomorphisms eq
-open import Equivalence eq as Eq using (_≃_; Is-equivalence)
+open import Equivalence equality-with-J as Eq
+  using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
-open import Function-universe eq as F
-open import H-level.Closure eq
+open import Function-universe equality-with-J as F
+open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)
 open import Quotient eq as Quotient hiding ([_])
-open import Surjection eq as Surjection using (_↠_)
+open import Surjection equality-with-J as Surjection using (_↠_)
 
 -- Some definitions from Erased are reexported.
 
-open import Erased eq as Erased public
+open import Erased equality-with-J as Erased public
   hiding (module []-cong₁; module []-cong₂; module []-cong₃;
           Π-Erased↔Π0[])
 
 -- Some definitions from Erased.Stability are reexported.
 
-open import Erased.Stability eq as Stability public
+open import Erased.Stability equality-with-J as Stability public
   hiding (module []-cong)
 
 private

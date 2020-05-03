@@ -59,12 +59,15 @@ J-J-refl = Equality.Equality-with-J₀
 
 Equivalence-relation⁺ = Equality.Equivalence-relation⁺
 Equality-with-J       = Equality.Equality-with-J
+Equality-with-paths   = Equality.Path.Equality-with-paths
 
 -- The extended variants are inhabited for all universe levels if the
 -- basic ones are inhabited for all universe levels.
 
-J₀⇒Equivalence-relation⁺ = Equality.J₀⇒Equivalence-relation⁺
-J₀⇒J                     = Equality.J₀⇒J
+J₀⇒Equivalence-relation⁺             = Equality.J₀⇒Equivalence-relation⁺
+J₀⇒J                                 = Equality.J₀⇒J
+Equality-with-J₀⇒Equality-with-paths =
+  Equality.Path.Equality-with-J₀⇒Equality-with-paths
 
 -- To see how the code is axiomatised, see the module header of, say,
 -- Circle.
@@ -80,10 +83,13 @@ instances-isomorphic =
 
 -- Cubical Agda paths, the Cubical Agda identity type family, and a
 -- definition of equality as an inductive family with a single
--- constructor refl are instances of the axioms.
+-- constructor refl are instances of the axioms. (The last instance is
+-- for Equality-with-J rather than Equality-with-paths, because the
+-- latter definition is defined in Cubical Agda, and the instance is
+-- not.)
 
-paths-instance            = Equality.Path.equality-with-J
-id-instance               = Equality.Id.equality-with-J
+paths-instance            = Equality.Path.equality-with-paths
+id-instance               = Equality.Id.equality-with-paths
 inductive-family-instance = Equality.Propositional.equality-with-J
 
 ------------------------------------------------------------------------
@@ -115,10 +121,16 @@ substᴾ = Equality.Path.subst
 subst      = Equality.Equality-with-J.subst
 subst-refl = Equality.Equality-with-J.subst-refl
 
--- A pointwise isomorphism between the arbitrary notion of equality
--- and paths (used instead of from-path and to-path).
+-- The axiomatisation makes it possible to choose the implementations
+-- of to-path and from-path.
 
-≡↔≡ = Equality.Path.Isomorphisms.≡↔≡
+to-path   = Equality.Path.Equality-with-paths.to-path
+from-path = Equality.Path.Equality-with-paths.from-path
+
+-- The code mostly uses a pointwise isomorphism between the arbitrary
+-- notion of equality and paths instead of from-path and to-path.
+
+≡↔≡ = Equality.Path.Derived-definitions-and-properties.≡↔≡
 
 -- The lemmas subst≡substᴾ, subst≡≃Pathᴴ and subst≡→Pathᴴ.
 

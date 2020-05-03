@@ -15,37 +15,37 @@
 -- constructors of the HIT defining quotients use path equality, but
 -- the supplied notion of equality is used for many other things.
 
-open import Equality
+import Equality.Path as P
 
 module Quotient
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
 private
-  open module D = Derived-definitions-and-properties eq hiding (elim)
+  open module D = P.Derived-definitions-and-properties eq hiding (elim)
 
-import Equality.Path as P
 import H-level
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq using (_↔_)
-open import Equality.Decidable-UIP eq
+open import Bijection equality-with-J using (_↔_)
+open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
-open import Equivalence eq as Eq using (_≃_)
-open import Function-universe eq as F hiding (_∘_; id)
-open import H-level.Closure eq
-import H-level.Truncation.Church eq as Trunc
+open import Equivalence equality-with-J as Eq using (_≃_)
+open import Function-universe equality-with-J as F hiding (_∘_; id)
+open import H-level.Closure equality-with-J
+import H-level.Truncation.Church equality-with-J as Trunc
 open import H-level.Truncation.Propositional eq as TruncP
   using (∥_∥; ∣_∣; Surjective; Axiom-of-countable-choice)
-open import Monad eq
-open import Preimage eq using (_⁻¹_)
-import Quotient.Families-of-equivalence-classes eq as Quotient
-open import Surjection eq using (_↠_)
-open import Univalence-axiom eq
+open import Monad equality-with-J
+open import Preimage equality-with-J using (_⁻¹_)
+import Quotient.Families-of-equivalence-classes equality-with-J
+  as Quotient
+open import Surjection equality-with-J using (_↠_)
+open import Univalence-axiom equality-with-J
 
 private
   module PH = H-level P.equality-with-J
-  open module H = H-level eq
+  open module H = H-level equality-with-J
 
 private
   variable

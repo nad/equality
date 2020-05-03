@@ -5,24 +5,24 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-open import Equality
+import Equality.Path as P
 
 module Queue.Quotiented
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq
+open P.Derived-definitions-and-properties eq
 
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
-import Equivalence eq as Eq
-open import Function-universe eq hiding (id; _∘_)
-open import H-level.Closure eq
-open import List eq as L hiding (map)
-import Queue eq as Q
+import Equivalence equality-with-J as Eq
+open import Function-universe equality-with-J hiding (id; _∘_)
+open import H-level.Closure equality-with-J
+open import List equality-with-J as L hiding (map)
+import Queue equality-with-J as Q
 open import Quotient eq as Quotient
-open import Sum eq
+open import Sum equality-with-J
 
 private
   variable

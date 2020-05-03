@@ -7,31 +7,30 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-open import Equality
+import Equality.Path as P
 
 module Finite-subset.Listed
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq hiding (elim)
+open P.Derived-definitions-and-properties eq hiding (elim)
 
-import Equality.Path as P
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (swap)
 
-open import Bag-equivalence eq as BE using (_∼[_]_; set)
-open import Bijection eq as Bijection using (_↔_)
+open import Bag-equivalence equality-with-J as BE using (_∼[_]_; set)
+open import Bijection equality-with-J as Bijection using (_↔_)
 open import Equality.Path.Isomorphisms eq
-open import Equivalence eq as Eq using (_≃_)
-open import Function-universe eq as F hiding (id; _∘_)
-open import H-level eq
-open import H-level.Closure eq
+open import Equivalence equality-with-J as Eq using (_≃_)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣; _∥⊎∥_)
-import List eq as L
-open import Monad eq as M using (Raw-monad; Monad)
+import List equality-with-J as L
+open import Monad equality-with-J as M using (Raw-monad; Monad)
 open import Quotient eq as Q using (_/_)
-open import Surjection eq using (_↠_)
-import Univalence-axiom eq as Univ
+open import Surjection equality-with-J using (_↠_)
+import Univalence-axiom equality-with-J as Univ
 
 private
   variable

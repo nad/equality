@@ -4,23 +4,23 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-open import Equality
+import Equality.Path as P
 
 module Integer.Quotient
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq hiding (elim)
+open P.Derived-definitions-and-properties eq hiding (elim)
 
 open import Prelude renaming (_+_ to _⊕_)
 
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
-open import Equivalence eq using (_≃_)
-open import Function-universe eq hiding (_∘_)
-open import H-level eq
-open import H-level.Closure eq
-import Integer eq as Data
-import Nat eq as Nat
+open import Equivalence equality-with-J using (_≃_)
+open import Function-universe equality-with-J hiding (_∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
+import Integer equality-with-J as Data
+import Nat equality-with-J as Nat
 open import Quotient eq as Q hiding (elim; rec)
 
 private

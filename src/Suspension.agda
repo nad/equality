@@ -10,32 +10,31 @@
 -- constructor of the HIT defining suspensions uses path equality, but
 -- the supplied notion of equality is used for many other things.
 
-open import Equality
+import Equality.Path as P
 
 module Suspension
-  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq hiding (elim)
+open P.Derived-definitions-and-properties eq hiding (elim)
 
-import Equality.Path as P
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq as Bijection using (_↔_)
+open import Bijection equality-with-J as Bijection using (_↔_)
 open import Circle eq as Circle using (𝕊¹; base; loop)
-open import Embedding eq as Embedding using (Embedding)
-open import Equality.Decision-procedures eq
+open import Embedding equality-with-J as Embedding using (Embedding)
+open import Equality.Decision-procedures equality-with-J
 open import Equality.Path.Isomorphisms eq
-open import Equality.Tactic eq
-open import Equivalence eq using (_≃_)
-open import Function-universe eq as F hiding (id; _∘_)
-open import H-level eq
-open import H-level.Closure eq
-open import Injection eq using (_↣_)
+open import Equality.Tactic equality-with-J
+open import Equivalence equality-with-J using (_≃_)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
+open import Injection equality-with-J using (_↣_)
 open import Interval eq as Interval using (Interval; [0]; [1]; 0≡1)
-import Nat eq as Nat
-open import Pointed-type eq
-open import Surjection eq using (_↠_)
+import Nat equality-with-J as Nat
+open import Pointed-type equality-with-J
+open import Surjection equality-with-J using (_↠_)
 
 private
   variable

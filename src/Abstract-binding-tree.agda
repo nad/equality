@@ -7,28 +7,31 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-open import Equality
+import Equality.Path as P
 
 module Abstract-binding-tree
-  {e⁺} (eq-J : ∀ {a p} → Equality-with-J a p e⁺) where
+  {e⁺}
+  (equality-with-paths : ∀ {a p} → P.Equality-with-paths a p e⁺)
+  where
 
-open Derived-definitions-and-properties eq-J
+open P.Derived-definitions-and-properties equality-with-paths
 
 open import Logical-equivalence using (_⇔_; Dec-map)
 open import Prelude hiding (swap) renaming ([_,_] to [_,_]′)
 
-import Bijection eq-J as Bijection
-open import Equality.Decidable-UIP eq-J
-open import Equality.Decision-procedures eq-J
-open import Equality.Path.Isomorphisms eq-J
-open import Equivalence eq-J as Eq using (_≃_)
-open import Erased.Cubical eq-J as E
-open import Finite-subset.Listed eq-J
-open import Function-universe eq-J as F hiding (id; _∘_)
-open import H-level eq-J
-open import H-level.Closure eq-J
-open import H-level.Truncation.Propositional eq-J as Trunc
-open import List eq-J using (H-level-List)
+import Bijection equality-with-J as Bijection
+open import Equality.Decidable-UIP equality-with-J
+open import Equality.Decision-procedures equality-with-J
+open import Equality.Path.Isomorphisms equality-with-paths
+open import Equivalence equality-with-J as Eq using (_≃_)
+open import Erased.Cubical equality-with-paths as E
+open import Finite-subset.Listed equality-with-paths
+open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional equality-with-paths
+  as Trunc
+open import List equality-with-J using (H-level-List)
 
 private
   variable

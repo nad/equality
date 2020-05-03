@@ -10,26 +10,26 @@
 -- constructor of the HIT defining the circle uses path equality, but
 -- the supplied notion of equality is used for many other things.
 
-open import Equality
-
-module Circle {e⁺} (eq : ∀ {a p} → Equality-with-J a p e⁺) where
-
 import Equality.Path as P
+
+module Circle {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
+
+open P.Derived-definitions-and-properties eq hiding (elim)
+
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 import Bijection P.equality-with-J as PB
-open Derived-definitions-and-properties eq hiding (elim)
 open import Equality.Path.Isomorphisms eq
-open import Equivalence eq as Eq using (_≃_)
-open import Function-universe eq as F hiding (id; _∘_)
-open import H-level eq
-open import H-level.Closure eq
+import Equality.Path.Isomorphisms P.equality-with-paths as PI
+open import Equivalence equality-with-J as Eq using (_≃_)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
-open import Nat eq
-open import Tactic.By.Parametrised eq
-open import Univalence-axiom eq
+open import Nat equality-with-J
+open import Univalence-axiom equality-with-J
 
 private
   variable
@@ -215,7 +215,8 @@ all-points-on-the-circle-are-¬¬-equal x =
 
 Circle :
   ∀ {e⁺} →
-  (∀ {a p} → Equality-with-J a p e⁺) → (p : Level) → Set (lsuc p)
+  (∀ {a p} → P.Equality-with-paths a p e⁺) →
+  (p : Level) → Set (lsuc p)
 Circle eq p =
   ∃ λ (𝕊¹ : Set) →
   ∃ λ (base : 𝕊¹) →
@@ -231,12 +232,12 @@ Circle eq p =
         E.≡
       ℓ
   where
-  module E = Derived-definitions-and-properties eq
+  module E = P.Derived-definitions-and-properties eq
 
 -- A circle defined for paths (P.equality-with-J) is equivalent to one
 -- defined for eq.
 
-Circle≃Circle : Circle P.equality-with-J p ≃ Circle eq p
+Circle≃Circle : Circle P.equality-with-paths p ≃ Circle eq p
 Circle≃Circle =
   ∃-cong λ _ →
   ∃-cong λ _ →
@@ -302,27 +303,22 @@ Circle≃Circle =
     (dcong f (_↔_.from ≡↔≡ loop)) ≡
   ℓ                                                □
 
--- An implemention of the circle for paths (P.equality-with-J).
+-- An implemention of the circle for paths (P.equality-with-paths).
 
-circleᴾ : Circle P.equality-with-J p
+circleᴾ : Circle P.equality-with-paths p
 circleᴾ =
     𝕊¹
   , base
   , loopᴾ
   , λ P b ℓ →
-      let h↔h = P.heterogeneous↔homogeneous _
-          f   = elimᴾ P b ∘ PB._↔_.from h↔h
+      let elim = elimᴾ P b (PI.subst≡→[]≡ {B = P} ℓ)
       in
-        f ℓ
+        elim
       , P.refl
       , (P.subst (λ b → P.subst P loopᴾ b P.≡ b) P.refl
-           (P.dcong (f ℓ) loopᴾ)                         P.≡⟨ P.subst-refl (λ b → P.subst P loopᴾ b P.≡ b) _ ⟩
+           (P.dcong elim loopᴾ)                          P.≡⟨ P.subst-refl (λ b → P.subst P loopᴾ b P.≡ b) _ ⟩
 
-         P.dcong (f ℓ) loopᴾ                             P.≡⟨ P.dcong≡hcong (f ℓ) ⟩
-
-         PB._↔_.to h↔h (P.hcong (f ℓ) loopᴾ)             P.≡⟨⟩
-
-         PB._↔_.to h↔h (PB._↔_.from h↔h ℓ)               P.≡⟨ PB._↔_.right-inverse-of h↔h _ ⟩∎
+         P.dcong elim loopᴾ                              P.≡⟨ PI.dcong-subst≡→[]≡ {f = elim} P.refl ⟩∎
 
          ℓ                                               ∎)
 
@@ -350,19 +346,19 @@ elim-loop-circle {P = P} {b = b} {ℓ = ℓ} =
       elim″ , elim″-base , elim″-loop = elim′ P b ℓ
 
       lemma =
-        refl _                                  ≡⟨ cong (_$ refl _) $ sym $ _↔_.from ≡↔≡ $ P.transport-refl P.0̲ ⟩
-        P.transport (λ _ → b ≡ b) P.0̲ (refl _)  ≡⟨⟩
-        elim″-base                              ∎
+        refl _               ≡⟨ sym from-≡↔≡-refl ⟩
+        _↔_.from ≡↔≡ P.refl  ≡⟨⟩
+        elim″-base           ∎
   in
   dcong elim″ loop′                                                 ≡⟨ sym $ subst-refl _ _ ⟩
-  subst (λ b → subst P loop′ b ≡ b) ⟨ refl _ ⟩ (dcong elim″ loop′)  ≡⟨ ⟨by⟩ lemma ⟩
+  subst (λ b → subst P loop′ b ≡ b) (refl _) (dcong elim″ loop′)    ≡⟨ cong (λ eq → subst (λ b → subst P loop′ b ≡ b) eq (dcong elim″ loop′)) lemma ⟩
   subst (λ b → subst P loop′ b ≡ b) elim″-base (dcong elim″ loop′)  ≡⟨ elim″-loop ⟩∎
   ℓ                                                                 ∎
 
 -- An alternative to Circle≃Circle that does not give the "right"
 -- computational behaviour for circle′ below.
 
-Circle≃Circle′ : Circle P.equality-with-J p ≃ Circle eq p
+Circle≃Circle′ : Circle P.equality-with-paths p ≃ Circle eq p
 Circle≃Circle′ =
   ∃-cong λ _ →
   ∃-cong λ _ →

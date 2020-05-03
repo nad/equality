@@ -20,11 +20,12 @@ module Nat.Wrapper.Cubical
 open import Logical-equivalence using (_⇔_)
 
 import Equivalence equality-with-J as Eq
-open import Erased.Cubical equality-with-J
+open import Erased.Cubical equality-with-paths
 open import Function-universe equality-with-J as F hiding (_∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional equality-with-J as Trunc
+open import H-level.Truncation.Propositional equality-with-paths
+  as Trunc
 import Nat equality-with-J as Nat
 import Univalence-axiom equality-with-J as U
 

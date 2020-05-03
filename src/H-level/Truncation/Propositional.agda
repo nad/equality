@@ -11,30 +11,29 @@
 -- path equality, but the supplied notion of equality is used for many
 -- other things.
 
-open import Equality
+import Equality.Path as P
 
 module H-level.Truncation.Propositional
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq hiding (elim)
+open P.Derived-definitions-and-properties eq hiding (elim)
 
-import Equality.Path as P
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
-open import Bijection eq as Bijection using (_↔_)
-open import Embedding eq as Embedding hiding (id; _∘_)
-open import Equality.Decidable-UIP eq
+open import Bijection equality-with-J as Bijection using (_↔_)
+open import Embedding equality-with-J as Embedding hiding (id; _∘_)
+open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
-open import Equivalence eq as Eq hiding (id; _∘_; inverse)
-open import Function-universe eq as F hiding (id; _∘_)
-open import H-level eq
-open import H-level.Closure eq
-import H-level.Truncation.Church eq as Trunc
-open import Injection eq using (_↣_)
-open import Monad eq
-open import Preimage eq as Preimage using (_⁻¹_)
-open import Surjection eq using (_↠_; Split-surjective)
+open import Equivalence equality-with-J as Eq hiding (id; _∘_; inverse)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
+import H-level.Truncation.Church equality-with-J as Trunc
+open import Injection equality-with-J using (_↣_)
+open import Monad equality-with-J
+open import Preimage equality-with-J as Preimage using (_⁻¹_)
+open import Surjection equality-with-J using (_↠_; Split-surjective)
 
 private
   variable

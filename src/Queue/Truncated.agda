@@ -7,28 +7,27 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-open import Equality
+import Equality.Path as P
 
 module Queue.Truncated
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq
+open P.Derived-definitions-and-properties eq
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq as Bijection using (_↔_)
+open import Bijection equality-with-J as Bijection using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Erased.Cubical eq hiding (map)
-open import Function-universe eq as F hiding (id; _∘_)
-open import List eq as L hiding (map)
-open import H-level eq
-open import H-level.Closure eq
+open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import List equality-with-J as L hiding (map)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc
-import Queue eq as Q
-open import Sum eq
-open import Surjection eq using (_↠_)
-open import Tactic.By.Parametrised eq
+import Queue equality-with-J as Q
+open import Sum equality-with-J
+open import Surjection equality-with-J using (_↠_)
 
 private
   variable
@@ -376,22 +375,22 @@ module _
 
            , [ _↔_.to Maybe[×Queue]↔Listⁱ
                  (⊎-map id (Σ-map id (λ q → _ , ∣ q , [ refl _ ] ∣))
-                    (Q.dequeue _ q))                                      ≡⟨⟩
+                    (Q.dequeue _ q))                                     ≡⟨⟩
 
                _↔_.from List↔Maybe[×List]
-                 ⟨ ⊎-map id (Σ-map id (_↔_.to Queue↔Listⁱ))
-                     (⊎-map id (Σ-map id (λ q → _ , ∣ q , [ refl _ ] ∣))
-                        (Q.dequeue _ q)) ⟩                                ≡⟨ ⟨by⟩ (sym $ ⊎-map-∘ (Q.dequeue _ q)) ⟩
+                 (⊎-map id (Σ-map id (_↔_.to Queue↔Listⁱ))
+                    (⊎-map id (Σ-map id (λ q → _ , ∣ q , [ refl _ ] ∣))
+                       (Q.dequeue _ q)))                                 ≡⟨ cong (_↔_.from List↔Maybe[×List]) $ sym $ ⊎-map-∘ (Q.dequeue _ q) ⟩
 
                _↔_.from List↔Maybe[×List]
-                 ⟨ ⊎-map id (Σ-map id (Q.to-List _)) (Q.dequeue _ q) ⟩    ≡⟨ ⟨by⟩ (Q.to-List-dequeue {q = q}) ⟩
+                 (⊎-map id (Σ-map id (Q.to-List _)) (Q.dequeue _ q))     ≡⟨ cong (_↔_.from List↔Maybe[×List]) $ Q.to-List-dequeue {q = q} ⟩
 
                _↔_.from List↔Maybe[×List]
-                 (_↔_.to List↔Maybe[×List] (Q.to-List _ q))               ≡⟨ _↔_.left-inverse-of List↔Maybe[×List] _ ⟩
+                 (_↔_.to List↔Maybe[×List] (Q.to-List _ q))              ≡⟨ _↔_.left-inverse-of List↔Maybe[×List] _ ⟩
 
-               Q.to-List _ q                                              ≡⟨ eq ⟩∎
+               Q.to-List _ q                                             ≡⟨ eq ⟩∎
 
-               xs                                                         ∎
+               xs                                                        ∎
              ])
 
       -- The inverse of the dequeue operation. This operation does not

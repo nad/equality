@@ -4,33 +4,34 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-open import Equality
+import Equality.Path as P
 open import Prelude
 import Queue
 
 module Queue.Truncated.Instances
-  {c⁺}
-  (eq : ∀ {a p} → Equality-with-J a p c⁺)
+  {e⁺}
+  (eq : ∀ {a p} → P.Equality-with-paths a p e⁺)
+  (open P.Derived-definitions-and-properties eq)
 
   {Q : ∀ {ℓ} → @0 Set ℓ → Set ℓ}
-  ⦃ is-queue : ∀ {ℓ} → Queue.Is-queue eq (λ A → Q A) (λ _ → ↑ _ ⊤) ℓ ⦄
+  ⦃ is-queue :
+      ∀ {ℓ} →
+      Queue.Is-queue equality-with-J (λ A → Q A) (λ _ → ↑ _ ⊤) ℓ ⦄
   ⦃ is-queue-with-map :
-      ∀ {ℓ₁ ℓ₂} → Queue.Is-queue-with-map eq (λ A → Q A) ℓ₁ ℓ₂ ⦄
+      ∀ {ℓ₁ ℓ₂} →
+      Queue.Is-queue-with-map equality-with-J (λ A → Q A) ℓ₁ ℓ₂ ⦄
   where
 
-open Derived-definitions-and-properties eq
-
-open Queue eq
+open Queue equality-with-J
 open import Queue.Truncated eq as Q using (Queue)
 
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 open import Erased.Cubical eq hiding (map)
-open import H-level.Closure eq
-open import List eq as L hiding (map)
-open import Maybe eq
-open import Monad eq hiding (map)
-import Nat eq as Nat
-open import Tactic.By.Parametrised eq
+open import H-level.Closure equality-with-J
+open import List equality-with-J as L hiding (map)
+open import Maybe equality-with-J
+open import Monad equality-with-J hiding (map)
+import Nat equality-with-J as Nat
 
 private
 
@@ -84,7 +85,7 @@ private
              just (10 , enqueue 6 empty)
   example₂ =
     dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))  ≡⟨ cong dequeue′ (_↔_.to Q.≡-for-indices↔≡ [ refl _ ]) ⟩
-    ⟨ dequeue′ (cons 10 (enqueue 6 empty)) ⟩             ≡⟨ ⟨by⟩ (_↔_.right-inverse-of (Queue↔Maybe[×Queue] _)) ⟩∎
+    dequeue′ (cons 10 (enqueue 6 empty))                 ≡⟨ _↔_.right-inverse-of (Queue↔Maybe[×Queue] _) _ ⟩∎
     just (10 , enqueue 6 empty)                          ∎
 
   example₃ :
@@ -92,13 +93,13 @@ private
         return (enqueue (3 * x) q)) ≡
     just (enqueue 30 (enqueue 6 empty))
   example₃ =
-    (do x , q ← ⟨ dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty))) ⟩
-        return (enqueue (3 * x) q ⦂ Queue Q ℕ))                          ≡⟨ ⟨by⟩ example₂ ⟩
+    (do x , q ← dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))
+        return (enqueue (3 * x) q ⦂ Queue Q ℕ))                      ≡⟨ cong (_>>= λ _ → return (enqueue _ _)) example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
-        return (enqueue (3 * x) (q ⦂ Queue Q ℕ)))                        ≡⟨⟩
+        return (enqueue (3 * x) (q ⦂ Queue Q ℕ)))                    ≡⟨⟩
 
-    just (enqueue 30 (enqueue 6 empty))                                  ∎
+    just (enqueue 30 (enqueue 6 empty))                              ∎
 
   example₄ :
     (do x , q ← dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))
@@ -106,24 +107,24 @@ private
         return (to-List′ q)) ≡
     just (6 ∷ 30 ∷ [])
   example₄ =
-    (do x , q ← ⟨ dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty))) ⟩
-        return (to-List′ (enqueue (3 * x) q)))                           ≡⟨ ⟨by⟩ example₂ ⟩
+    (do x , q ← dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))
+        return (to-List′ (enqueue (3 * x) q)))                       ≡⟨ cong (_>>= λ _ → return (to-List′ (enqueue _ _))) example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
-        return (to-List′ (enqueue (3 * x) (q ⦂ Queue Q ℕ))))             ≡⟨⟩
+        return (to-List′ (enqueue (3 * x) (q ⦂ Queue Q ℕ))))         ≡⟨⟩
 
-    just ⟨ to-List′ (enqueue 30 (enqueue 6 empty)) ⟩                     ≡⟨ ⟨by⟩ to-List-foldl-enqueue-empty ⟩∎
+    just (to-List′ (enqueue 30 (enqueue 6 empty)))                   ≡⟨ cong just $ to-List-foldl-enqueue-empty _ ⟩∎
 
-    just (6 ∷ 30 ∷ [])                                                   ∎
+    just (6 ∷ 30 ∷ [])                                               ∎
 
   example₅ :
     ∀ {xs} →
     dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs)) ≡
     just (1 , from-List (2 ∷ 3 ∷ xs))
   example₅ {xs = xs} =
-    dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs))           ≡⟨ cong dequeue′ (_↔_.to Q.≡-for-indices↔≡ [ refl _ ]) ⟩
-    ⟨ dequeue′ (cons 1 (from-List (2 ∷ 3 ∷ xs))) ⟩  ≡⟨ ⟨by⟩ (_↔_.right-inverse-of (Queue↔Maybe[×Queue] _)) ⟩∎
-    just (1 , from-List (2 ∷ 3 ∷ xs))               ∎
+    dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs))       ≡⟨ cong dequeue′ (_↔_.to Q.≡-for-indices↔≡ [ refl _ ]) ⟩
+    dequeue′ (cons 1 (from-List (2 ∷ 3 ∷ xs)))  ≡⟨ _↔_.right-inverse-of (Queue↔Maybe[×Queue] _) _ ⟩∎
+    just (1 , from-List (2 ∷ 3 ∷ xs))           ∎
 
   example₆ :
     foldr enqueue empty′ (3 ∷ 2 ∷ 1 ∷ []) ≡

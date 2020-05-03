@@ -9,7 +9,8 @@ module Equality.Path where
 open import Agda.Builtin.Cubical.Glue as Glue hiding (_≃_)
 
 import Bijection
-open import Equality
+open import Equality hiding (module Derived-definitions-and-properties)
+open import Equality.Instances-related
 import Equivalence
 import Function-universe
 import H-level
@@ -283,25 +284,154 @@ Equality-with-J₀.elim      equality-with-J₀ = elim
 Equality-with-J₀.elim-refl equality-with-J₀ = λ _ r →
   cong (_$ r _) $ transport-refl 0̲
 
--- A family of instantiations of Equality-with-J.
+private
+ module Temporarily-local where
 
-equality-with-J : Equality-with-J a p equivalence-relation⁺
-equality-with-J = λ where
-  .Equality-with-J.equality-with-J₀ → equality-with-J₀
-  .Equality-with-J.cong             → cong
-  .Equality-with-J.cong-refl        → λ _ → refl
-  .Equality-with-J.subst            → subst
-  .Equality-with-J.subst-refl       → λ _ p →
-                                        cong (_$ p) $ transport-refl 0̲
-  .Equality-with-J.dcong            → dcong
-  .Equality-with-J.dcong-refl       → λ _ → refl
+  -- A family of instantiations of Equality-with-J.
+
+  equality-with-J : Equality-with-J a p equivalence-relation⁺
+  equality-with-J = λ where
+    .Equality-with-J.equality-with-J₀ → equality-with-J₀
+    .Equality-with-J.cong             → cong
+    .Equality-with-J.cong-refl        → λ _ → refl
+    .Equality-with-J.subst            → subst
+    .Equality-with-J.subst-refl       → λ _ p →
+                                          cong (_$ p) $ transport-refl 0̲
+    .Equality-with-J.dcong            → dcong
+    .Equality-with-J.dcong-refl       → λ _ → refl
 
 -- Various derived definitions and properties.
 
-open Derived-definitions-and-properties equality-with-J public
+open Equality.Derived-definitions-and-properties
+       Temporarily-local.equality-with-J public
   hiding (_≡_; refl; elim; subst; cong; dcong;
           step-≡; _≡⟨⟩_; finally;
           reflexive-relation; equality-with-J₀)
+
+------------------------------------------------------------------------
+-- An extended variant of Equality-with-J
+
+-- The following variant of Equality-with-J includes functions mapping
+-- equalities to and from paths. The purpose of this definition is to
+-- make it possible to instantiate these functions with identity
+-- functions when paths are used as equalities (see
+-- equality-with-paths below).
+
+record Equality-with-paths
+         a b (e⁺ : ∀ ℓ → Equivalence-relation⁺ ℓ) :
+         Set (lsuc (a ⊔ b)) where
+
+  field
+    equality-with-J : Equality-with-J a b e⁺
+
+  private
+    module R =
+      Reflexive-relation
+        (Equivalence-relation⁺.reflexive-relation (e⁺ a))
+
+  field
+
+    -- A bijection between equality at level a and paths.
+
+    to-path           : x R.≡ y → x ≡ y
+    from-path         : x ≡ y → x R.≡ y
+    to-path∘from-path : (x≡y : x ≡ y) → to-path (from-path x≡y) R.≡ x≡y
+    from-path∘to-path :
+      (x≡y : x R.≡ y) → from-path (to-path x≡y) R.≡ x≡y
+
+    -- The bijection maps reflexivity to reflexivity.
+
+    to-path-refl   : to-path (R.refl x) R.≡ refl
+    from-path-refl : from-path refl R.≡ R.refl x
+
+-- A family of instantiations of Equality-with-paths.
+
+equality-with-paths :
+  Equality-with-paths a p equivalence-relation⁺
+equality-with-paths = λ where
+    .E.equality-with-J   → Temporarily-local.equality-with-J
+    .E.to-path           → id
+    .E.from-path         → id
+    .E.to-path∘from-path → λ _ → refl
+    .E.from-path∘to-path → λ _ → refl
+    .E.to-path-refl      → refl
+    .E.from-path-refl    → refl
+  where
+  module E = Equality-with-paths
+
+-- Equality-with-paths (for arbitrary universe levels) can be derived
+-- from Equality-with-J (for arbitrary universe levels).
+
+Equality-with-J⇒Equality-with-paths :
+  ∀ {e⁺} →
+  (∀ {a p} → Equality-with-J a p e⁺) →
+  (∀ {a p} → Equality-with-paths a p e⁺)
+Equality-with-J⇒Equality-with-paths eq = λ where
+    .E.equality-with-J   → eq
+    .E.to-path           → B._↔_.to (proj₁ ≡↔≡′)
+    .E.from-path         → B._↔_.from (proj₁ ≡↔≡′)
+    .E.to-path∘from-path → B._↔_.right-inverse-of (proj₁ ≡↔≡′)
+    .E.from-path∘to-path → B._↔_.left-inverse-of (proj₁ ≡↔≡′)
+    .E.to-path-refl      → B._↔_.from (proj₁ ≡↔≡′) (proj₁ (proj₂ ≡↔≡′))
+    .E.from-path-refl    → proj₂ (proj₂ ≡↔≡′)
+  where
+  module E = Equality-with-paths
+  module B = Bijection eq
+
+  ≡↔≡′ =
+    all-equality-types-isomorphic eq Temporarily-local.equality-with-J
+
+-- Equality-with-paths (for arbitrary universe levels) can be derived
+-- from Equality-with-J₀ (for arbitrary universe levels).
+
+Equality-with-J₀⇒Equality-with-paths :
+  ∀ {reflexive} →
+  (eq : ∀ {a p} → Equality-with-J₀ a p reflexive) →
+  ∀ {a p} → Equality-with-paths a p (λ _ → J₀⇒Equivalence-relation⁺ eq)
+Equality-with-J₀⇒Equality-with-paths eq =
+  Equality-with-J⇒Equality-with-paths (J₀⇒J eq)
+
+module Derived-definitions-and-properties
+  {e⁺}
+  (equality-with-paths : ∀ {a p} → Equality-with-paths a p e⁺)
+  where
+
+  private
+    module EP {a} {p} =
+      Equality-with-paths (equality-with-paths {a = a} {p = p})
+
+  open EP public using (equality-with-J)
+
+  private
+    module E =
+      Equality.Derived-definitions-and-properties
+        equality-with-J
+
+  open Bijection equality-with-J
+
+  ≡↔≡ : {A : Set a} {x y : A} → x E.≡ y ↔ x ≡ y
+  ≡↔≡ {a = a} = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = EP.to-path {p = a}
+        ; from = EP.from-path
+        }
+      ; right-inverse-of = EP.to-path∘from-path
+      }
+    ; left-inverse-of = EP.from-path∘to-path
+    }
+
+  -- The isomorphism maps reflexivity to reflexivity.
+
+  to-≡↔≡-refl : _↔_.to ≡↔≡ (E.refl x) E.≡ refl
+  to-≡↔≡-refl = EP.to-path-refl
+
+  from-≡↔≡-refl : _↔_.from ≡↔≡ refl E.≡ E.refl x
+  from-≡↔≡-refl = EP.from-path-refl
+
+  open E public
+
+open Temporarily-local public
 
 ------------------------------------------------------------------------
 -- Extensionality

@@ -6,15 +6,13 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-open import Equality
+import Equality.Path as P
 
 module Equality.Path.Isomorphisms
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq
+open P.Derived-definitions-and-properties eq
 
-open import Equality.Instances-related
-import Equality.Path as P
 open import Prelude
 
 import Bijection
@@ -32,12 +30,12 @@ private
   module PH = H-level P.equality-with-J
   module PU = Univalence-axiom P.equality-with-J
 
-open Bijection eq using (_↔_)
-open Embedding eq hiding (id; _∘_)
-open Equivalence eq hiding (id; _∘_; inverse)
-open Function-universe eq hiding (id; _∘_)
-open H-level eq
-open Univalence-axiom eq
+open Bijection equality-with-J using (_↔_)
+open Embedding equality-with-J hiding (id; _∘_)
+open Equivalence equality-with-J hiding (id; _∘_; inverse)
+open Function-universe equality-with-J hiding (id; _∘_)
+open H-level equality-with-J
+open Univalence-axiom equality-with-J
 
 private
   variable
@@ -47,30 +45,6 @@ private
     u v x y z   : A
     f g h       : (x : A) → B x
     n           : ℕ
-
-------------------------------------------------------------------------
--- An isomorphism
-
-private
-
-  ≡↔≡′ :
-    ∃ λ (iso : {x y : A} → x ≡ y ↔ x P.≡ y) →
-      (∀ {x} → _↔_.to   iso (refl x) P.≡ P.refl) ×
-      (∀ {x} → _↔_.from iso P.refl     ≡ refl x)
-  ≡↔≡′ = all-equality-types-isomorphic _ P.equality-with-J
-
--- Equality is pointwise isomorphic to path equality.
-
-≡↔≡ : x ≡ y ↔ x P.≡ y
-≡↔≡ = proj₁ ≡↔≡′
-
--- The isomorphism maps reflexivity to reflexivity.
-
-to-≡↔≡-refl : _↔_.to ≡↔≡ (refl x) ≡ P.refl
-to-≡↔≡-refl = _↔_.from ≡↔≡ $ proj₁ $ proj₂ ≡↔≡′
-
-from-≡↔≡-refl : _↔_.from ≡↔≡ P.refl ≡ refl x
-from-≡↔≡-refl = proj₂ $ proj₂ ≡↔≡′
 
 ------------------------------------------------------------------------
 -- Extensionality
@@ -506,11 +480,11 @@ univ {ℓ} {A = A} {B = B} = lemma P.univ
   lemma₃ : ∀ A≡B → _≃_.to lemma₄ (PU.≡⇒≃ A≡B) ≡ ≡⇒≃ (_↔_.from ≡↔≡ A≡B)
   lemma₃ = P.elim¹
     (λ A≡B → _≃_.to lemma₄ (PU.≡⇒≃ A≡B) ≡ ≡⇒≃ (_↔_.from ≡↔≡ A≡B))
-    (_≃_.to lemma₄ (PU.≡⇒≃ P.refl)  ≡⟨ cong (_≃_.to lemma₄) (_↔_.from ≡↔≡ PU.≡⇒≃-refl) ⟩
-     _≃_.to lemma₄ PE.id            ≡⟨ lift-equality ext (refl _) ⟩
-     Equivalence.id eq              ≡⟨ sym ≡⇒≃-refl ⟩
-     ≡⇒≃ (refl _)                   ≡⟨ sym $ cong ≡⇒≃ from-≡↔≡-refl ⟩∎
-     ≡⇒≃ (_↔_.from ≡↔≡ P.refl)      ∎)
+    (_≃_.to lemma₄ (PU.≡⇒≃ P.refl)   ≡⟨ cong (_≃_.to lemma₄) (_↔_.from ≡↔≡ PU.≡⇒≃-refl) ⟩
+     _≃_.to lemma₄ PE.id             ≡⟨ lift-equality ext (refl _) ⟩
+     Equivalence.id equality-with-J  ≡⟨ sym ≡⇒≃-refl ⟩
+     ≡⇒≃ (refl _)                    ≡⟨ sym $ cong ≡⇒≃ from-≡↔≡-refl ⟩∎
+     ≡⇒≃ (_↔_.from ≡↔≡ P.refl)       ∎)
 
   lemma₂ : ∀ _ _ → _ ≃ _
   lemma₂ A≡B (f , f-eq) =

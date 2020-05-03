@@ -6,27 +6,26 @@
 
 -- This module follows the HoTT book rather closely.
 
-open import Equality
+import Equality.Path as P
 
 module Sphere
-  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq hiding (elim)
+open P.Derived-definitions-and-properties eq hiding (elim)
 
-import Equality.Path as P
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 open import Circle eq using (𝕊¹)
 open import Equality.Path.Isomorphisms eq
-open import Equality.Tactic eq
-import Equivalence eq as Equiv
-open import Function-universe eq as F hiding (_∘_)
-open import H-level eq
-open import H-level.Closure eq
-open import Nat eq as Nat
-open import Pointed-type eq
+open import Equality.Tactic equality-with-J
+import Equivalence equality-with-J as Equiv
+open import Function-universe equality-with-J as F hiding (_∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
+open import Nat equality-with-J as Nat
+open import Pointed-type equality-with-J
 open import Suspension eq as Suspension
 
 private

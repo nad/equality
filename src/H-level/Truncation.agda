@@ -10,26 +10,25 @@
 -- constructor of the HIT defining the truncation uses path equality,
 -- but the supplied notion of equality is used for many other things.
 
-open import Equality
+import Equality.Path as P
 
 module H-level.Truncation
-  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq hiding (elim)
+open P.Derived-definitions-and-properties eq hiding (elim)
 
-import Equality.Path as P
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
-import Equivalence eq as Eq
-open import Function-universe eq hiding (id; _∘_)
-open import H-level eq
+import Equivalence equality-with-J as Eq
+open import Function-universe equality-with-J hiding (id; _∘_)
+open import H-level equality-with-J
 open import H-level.Truncation.Propositional eq as TP using (∥_∥)
-open import Monad eq
-open import Nat eq as Nat using (_≤_; min)
-open import Pointed-type eq
+open import Monad equality-with-J
+open import Nat equality-with-J as Nat using (_≤_; min)
+open import Pointed-type equality-with-J
 open import Sphere eq
 open import Suspension eq as Susp using (north)
 

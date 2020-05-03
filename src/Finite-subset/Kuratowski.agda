@@ -7,26 +7,25 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-open import Equality
+import Equality.Path as P
 
 module Finite-subset.Kuratowski
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq hiding (elim)
+open P.Derived-definitions-and-properties eq hiding (elim)
 
-import Equality.Path as P
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
-open import Equivalence eq as Eq using (_≃_)
+open import Equivalence equality-with-J as Eq using (_≃_)
 import Finite-subset.Listed eq as L
-open import Function-universe eq hiding (id; _∘_)
-open import H-level eq
+open import Function-universe equality-with-J hiding (id; _∘_)
+open import H-level equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; _∥⊎∥_)
-open import Monad eq as M using (Raw-monad; Monad)
+open import Monad equality-with-J as M using (Raw-monad; Monad)
 
 private
   variable

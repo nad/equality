@@ -10,17 +10,16 @@
 -- constructor of the HIT defining pushouts uses path equality, but
 -- the supplied notion of equality is used for many other things.
 
-open import Equality
+import Equality.Path as P
 
 module Pushout
-  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq hiding (elim)
+open P.Derived-definitions-and-properties eq hiding (elim)
 
-import Equality.Path as P
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
 
 private

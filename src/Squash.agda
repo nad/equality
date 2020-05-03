@@ -4,29 +4,30 @@
 
 {-# OPTIONS --cubical --prop --safe #-}
 
-open import Equality
+import Equality.Path as P
 
-module Squash {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+module Squash {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq
+open P.Derived-definitions-and-properties eq
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq using (_↔_)
-open import Equality.Decidable-UIP eq
-open import Double-negation eq as DN using (¬¬_)
-open import Embedding eq using (Embedding; Is-embedding)
-open import Equality.Decision-procedures eq
-open import Equivalence eq as Eq using (_≃_; Is-equivalence)
-open import For-iterated-equality eq
-open import Function-universe eq hiding (id; _∘_)
-open import H-level eq as H-level
-open import H-level.Closure eq
+open import Bijection equality-with-J using (_↔_)
+open import Equality.Decidable-UIP equality-with-J
+open import Double-negation equality-with-J as DN using (¬¬_)
+open import Embedding equality-with-J using (Embedding; Is-embedding)
+open import Equality.Decision-procedures equality-with-J
+open import Equivalence equality-with-J as Eq
+  using (_≃_; Is-equivalence)
+open import For-iterated-equality equality-with-J
+open import Function-universe equality-with-J hiding (id; _∘_)
+open import H-level equality-with-J as H-level
+open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)
-open import Injection eq using (_↣_)
-open import Monad eq
-open import Surjection eq using (_↠_; Split-surjective)
+open import Injection equality-with-J using (_↣_)
+open import Monad equality-with-J
+open import Surjection equality-with-J using (_↠_; Split-surjective)
 
 private
   variable

@@ -10,28 +10,23 @@
 -- constructor of the HIT defining the interval uses path equality,
 -- but the supplied notion of equality is used for many other things.
 
-open import Equality
+import Equality.Path as P
 
 module Interval
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {c⁺} (eq : ∀ {a p} → P.Equality-with-paths a p c⁺) where
 
 private
-  open module D = Derived-definitions-and-properties eq hiding (elim)
+  open module D = P.Derived-definitions-and-properties eq hiding (elim)
 
-import Equality.Path as P
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-private
-  import Bijection
-  module PB = Bijection P.equality-with-J
-open import Function-universe eq hiding (_∘_)
-
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 import Equality.Path.Isomorphisms eq as I
-open import Equivalence eq hiding (_∘_)
-open import H-level eq
-open import H-level.Closure eq using (ext⁻¹)
+open import Equivalence equality-with-J hiding (_∘_)
+open import Function-universe equality-with-J hiding (_∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J using (ext⁻¹)
 
 private
   variable
@@ -50,7 +45,7 @@ data Interval : Set where
 -- [0] is equal to [1].
 
 0≡1 : [0] ≡ [1]
-0≡1 = _↔_.from I.≡↔≡ 0≡1ᴾ
+0≡1 = _↔_.from ≡↔≡ 0≡1ᴾ
 
 -- An eliminator, expressed using paths.
 
@@ -101,7 +96,7 @@ module Rec
   -- The eliminator.
 
   rec : Interval → A
-  rec = recᴾ p₀ p₁ (_↔_.to I.≡↔≡ p₀≡p₁)
+  rec = recᴾ p₀ p₁ (_↔_.to ≡↔≡ p₀≡p₁)
 
   -- A computation rule for rec.
 

@@ -37,10 +37,12 @@ Equality-with-J₀.elim-refl equality-with-J₀ = λ _ _ → refl
 equivalence-relation⁺ : ∀ ℓ → Equivalence-relation⁺ ℓ
 equivalence-relation⁺ _ = J₀⇒Equivalence-relation⁺ equality-with-J₀
 
-equality-with-J : ∀ {a p} → Equality-with-J a p equivalence-relation⁺
-equality-with-J = J₀⇒J equality-with-J₀
+equality-with-paths :
+  ∀ {a p} → P.Equality-with-paths a p equivalence-relation⁺
+equality-with-paths =
+  P.Equality-with-J₀⇒Equality-with-paths equality-with-J₀
 
-open Derived-definitions-and-properties (J₀⇒J equality-with-J₀) public
+open P.Derived-definitions-and-properties equality-with-paths public
   hiding (_≡_; refl; reflexive-relation; equality-with-J₀)
 
-open import Equality.Path.Isomorphisms equality-with-J public
+open import Equality.Path.Isomorphisms equality-with-paths public

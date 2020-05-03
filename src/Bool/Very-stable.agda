@@ -9,25 +9,24 @@
 -- equality, but the supplied notion of equality is used for other
 -- things.
 
-open import Equality
+import Equality.Path as P
 
 module Bool.Very-stable
-  {e⁺} (eq : ∀ {a p} → Equality-with-J a p e⁺) where
+  {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open Derived-definitions-and-properties eq hiding (elim)
+open P.Derived-definitions-and-properties eq hiding (elim)
 
-import Equality.Path as P
 open import Prelude as Bool hiding (true; false)
 
-open import Bijection eq using (_↔_)
+open import Bijection equality-with-J using (_↔_)
 import Bijection P.equality-with-J as PB
-open import Equality.Decision-procedures eq
+open import Equality.Decision-procedures equality-with-J
 open import Equality.Path.Isomorphisms eq
-open import Equivalence eq as Eq using (_≃_)
+open import Equivalence equality-with-J as Eq using (_≃_)
 open import Erased.Cubical eq as Erased
-import Erased.Cubical P.equality-with-J as PE
-open import Function-universe eq hiding (_∘_)
-open import Injection eq using (Injective)
+import Erased.Cubical P.equality-with-paths as PE
+open import Function-universe equality-with-J hiding (_∘_)
+open import Injection equality-with-J using (Injective)
 
 private
   variable
