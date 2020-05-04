@@ -1,5 +1,6 @@
 ------------------------------------------------------------------------
--- Code related to the paper "Higher Inductive Types Without Paths"
+-- Code related to the paper "Higher Inductive Type Eliminators
+-- Without Paths"
 --
 -- Nils Anders Danielsson
 ------------------------------------------------------------------------
@@ -8,7 +9,7 @@
 -- some definitions use bijections (functions with quasi-inverses)
 -- instead of equivalences.
 
-{-# OPTIONS  --cubical --safe #-}
+{-# OPTIONS --cubical --safe #-}
 
 module README.HITs-without-paths where
 
@@ -22,11 +23,12 @@ import Function-universe
 import H-level
 import H-level.Truncation.Propositional
 import Quotient
+import Suspension
 
 ------------------------------------------------------------------------
 -- 1: Introduction
 
--- The propositional truncation.
+-- The propositional truncation operator.
 
 ∥_∥ = H-level.Truncation.Propositional.∥_∥
 
@@ -77,6 +79,9 @@ import Circle
 -- Any two notions of equality satisfying the axioms are pointwise
 -- isomorphic, and the isomorphisms map canonical proofs of
 -- reflexivity to canonical proofs of reflexivity.
+--
+-- Note that in some cases the code uses bijections (_↔_) instead of
+-- equivalences (_≃_).
 
 instances-isomorphic =
   Equality.Instances-related.all-equality-types-isomorphic
@@ -93,14 +98,48 @@ id-instance               = Equality.Id.equality-with-paths
 inductive-family-instance = Equality.Propositional.equality-with-J
 
 ------------------------------------------------------------------------
--- 3: Heterogeneous Paths
+-- 3: Homogeneous Paths
 
--- Pathᴴ and Path.
+-- The path type constructor.
+
+Path = Equality.Path._≡_
+
+-- Zero and one.
+
+0̲ = Equality.Path.0̲
+1̲ = Equality.Path.1̲
+
+-- Reflexivity.
+
+reflᴾ = Equality.Path.refl
+
+-- Minimum, maximum and negation.
+
+min = Equality.Path.min
+max = Equality.Path.max
+-_  = Equality.Path.-_
+
+-- The primitive transport operation.
+
+open Equality.Path using (transport)
+
+-- The J rule and transport-refl.
+
+Jᴾ             = Equality.Path.elim
+transport-refl = Equality.Path.transport-refl
+
+-- Transitivity (more general than in the paper).
+
+transᴾ = Equality.Path.htransʳ
+
+------------------------------------------------------------------------
+-- 4: Heterogeneous Paths
+
+-- Pathᴴ.
 
 Pathᴴ = Equality.Path.[_]_≡_
-Path  = Equality.Path._≡_
 
--- The eliminator elimᴾ for the propositional truncation.
+-- The eliminator elimᴾ for the propositional truncation operator.
 
 module ∥_∥ where
 
@@ -111,9 +150,8 @@ module ∥_∥ where
 Pathᴴ≡Path = Equality.Path.heterogeneous≡homogeneous
 Pathᴴ≃Path = Equality.Path.heterogeneous↔homogeneous
 
--- The lemmas substᴴ and substᴾ.
+-- The lemma substᴾ.
 
-substᴴ = Equality.Path.hsubst
 substᴾ = Equality.Path.subst
 
 -- The lemmas subst and subst-refl from the axiomatisation.
@@ -132,29 +170,35 @@ from-path = Equality.Path.Equality-with-paths.from-path
 
 ≡↔≡ = Equality.Path.Derived-definitions-and-properties.≡↔≡
 
--- The lemmas subst≡substᴾ, subst≡≃Pathᴴ and subst≡→Pathᴴ.
+-- The lemmas subst≡substᴾ, subst≡≃Pathᴴ, subst≡→Pathᴴ and
+-- subst≡→substᴾ≡ (which is formulated as a bijection).
 
-subst≡substᴾ = Equality.Path.Isomorphisms.subst≡subst
-subst≡≃Pathᴴ = Equality.Path.Isomorphisms.subst≡↔[]≡
-subst≡→Pathᴴ = Equality.Path.Isomorphisms.subst≡→[]≡
+subst≡substᴾ   = Equality.Path.Isomorphisms.subst≡subst
+subst≡≃Pathᴴ   = Equality.Path.Isomorphisms.subst≡↔[]≡
+subst≡→Pathᴴ   = Equality.Path.Isomorphisms.subst≡→[]≡
+subst≡→substᴾ≡ = Equality.Path.Isomorphisms.subst≡↔subst≡
 
 -- The lemmas congᴰ and congᴰ-refl from the axiomatisation.
 
 congᴰ      = Equality.Equality-with-J.dcong
 congᴰ-refl = Equality.Equality-with-J.dcong-refl
 
--- The lemma congᴴ.
+-- The lemmas congᴴ and congᴰᴾ.
 
-congᴴ = Equality.Path.hcong
+congᴴ  = Equality.Path.hcong
+congᴰᴾ = Equality.Path.dcong
 
--- The proofs congᴰ≡congᴴ and dependent‐computation‐rule‐lemma.
+-- The proofs congᴰ≡congᴰᴾ, congᴰᴾ≡congᴴ, congᴰ≡congᴴ and
+-- dependent‐computation‐rule‐lemma.
 
+congᴰ≡congᴰᴾ = Equality.Path.Isomorphisms.dcong≡dcong
+congᴰᴾ≡congᴴ = Equality.Path.dcong≡hcong
 congᴰ≡congᴴ = Equality.Path.Isomorphisms.dcong≡hcong
 dependent‐computation‐rule‐lemma =
   Equality.Path.Isomorphisms.dcong-subst≡→[]≡
 
 ------------------------------------------------------------------------
--- 4: The Circle Without Paths
+-- 5: The Circle Without Paths
 
 -- The circle and loop.
 
@@ -172,9 +216,10 @@ non-dependent-computation-rule-lemma =
   Equality.Path.Isomorphisms.cong-≡↔≡
 
 -- The lemma trans, which is actually a part of the axiomatisation
--- that I use (but which can be proved using J).
+-- that I use, but which can be proved using the J rule.
 
-trans = Equality.Equivalence-relation⁺.trans
+trans    = Equality.Equivalence-relation⁺.trans
+J₀⇒trans = Equality.J₀⇒Equivalence-relation⁺
 
 -- The lemma subst-const.
 
@@ -198,7 +243,7 @@ module 𝕊¹ where
   rec′-loop = Circle.rec′-loop
 
 ------------------------------------------------------------------------
--- 5: Set Quotients Without Paths
+-- 6: Set Quotients Without Paths
 
 -- The definition of h-levels.
 
@@ -215,14 +260,13 @@ _/_ = Quotient._/_
 
 H-levelᴾ-suc≃H-levelᴾ-Pathᴴ = Equality.Path.H-level-suc↔H-level[]≡
 index-irrelevant            = Equality.Path.index-irrelevant
-transport-refl              = Equality.Path.transport-refl
 transport-transport         = Equality.Path.transport∘transport
 heterogeneous-irrelevance   = Equality.Path.heterogeneous-irrelevance
 heterogeneous-UIP           = Equality.Path.heterogeneous-UIP
 H-level≃H-levelᴾ            = Equality.Path.Isomorphisms.H-level↔H-level
 
 -- A generalisation of Π-cong. Note that equality is provably
--- extensionality in Cubical Agda.
+-- extensional in Cubical Agda.
 
 Π-cong         = Function-universe.Π-cong
 extensionality = Equality.Path.ext
@@ -243,15 +287,62 @@ module _/_ where
   rec    = Quotient.rec
 
 ------------------------------------------------------------------------
--- 6: Discussion
+-- 7: More Examples
+
+-- Suspensions.
+
+module Susp where
+
+  Susp          = Suspension.Susp
+  elimᴾ         = Suspension.elimᴾ
+  recᴾ          = Suspension.recᴾ
+  meridian      = Suspension.meridian
+  elim          = Suspension.elim
+  elim-meridian = Suspension.elim-meridian
+  rec           = Suspension.rec
+  rec-meridian  = Suspension.rec-meridian
+
+-- The propositional truncation operator.
+
+module Propositional-truncation where
+
+  elimᴾ′  = H-level.Truncation.Propositional.elimᴾ′
+  elimᴾ   = H-level.Truncation.Propositional.elimᴾ
+  recᴾ    = H-level.Truncation.Propositional.recᴾ
+  trivial = H-level.Truncation.Propositional.truncation-is-proposition
+  elim    = H-level.Truncation.Propositional.elim
+  rec     = H-level.Truncation.Propositional.rec
+
+------------------------------------------------------------------------
+-- 8: An Alternative Approach
+
+-- Circle and Circleᴾ, combined into a single definition.
+
+Circle = Circle.Circle
+
+-- Circleᴾ≃Circle, circleᴾ and circle.
+
+Circleᴾ≃Circle = Circle.Circle≃Circle
+circleᴾ        = Circle.circleᴾ
+circle         = Circle.circle
+
+-- The computation rule for the higher constructor.
+
+elim-loop-circle = Circle.elim-loop-circle
+
+-- Alternative definitions of Circleᴾ≃Circle and circle that (at the
+-- time of writing) do not give the "correct" computational behaviour
+-- for the point constructor.
+
+Circleᴾ≃Circle′ = Circle.Circle≃Circle′
+circle′         = Circle.circle′
+
+------------------------------------------------------------------------
+-- 9: Discussion
 
 -- The interval.
 
 import Interval
-
--- Suspensions.
-
-import Suspension
 
 -- Pushouts.
 
@@ -260,10 +351,6 @@ import Pushout
 -- A general truncation operator.
 
 import H-level.Truncation
-
--- The propositional truncation.
-
-import H-level.Truncation.Propositional
 
 -- The torus.
 
