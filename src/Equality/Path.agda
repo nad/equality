@@ -50,16 +50,11 @@ private
 ------------------------------------------------------------------------
 -- Equality
 
--- Homogeneous equality.
+-- Homogeneous and heterogeneous equality.
 
-open import Agda.Builtin.Cubical.Path public using (_≡_)
-
--- Heterogeneous equality.
-
-infix 4 [_]_≡_
-
-[_]_≡_ : (P : I → Set p) → P 0̲ → P 1̲ → Set p
-[_]_≡_ = Agda.Builtin.Cubical.Path.PathP
+open import Agda.Builtin.Cubical.Path public
+  using (_≡_)
+  renaming (PathP to infix 4 [_]_≡_)
 
 ------------------------------------------------------------------------
 -- Filling
