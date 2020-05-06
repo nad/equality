@@ -78,6 +78,10 @@ import Groupoid
 
 import H-level.Closure
 
+-- Equivalence relations
+
+import Equivalence-relation
+
 -- Preimages.
 
 import Preimage

@@ -28,6 +28,7 @@ open import Equality.Decidable-UIP eq using (Constant)
 open import Equality.Decision-procedures eq
 import Equality.Groupoid eq as EG
 open import Equivalence eq as Eq using (_≃_)
+open import Equivalence-relation eq
 open import Fin eq
 open import Function-universe eq as F hiding (_∘_)
 open import Groupoid
@@ -37,18 +38,6 @@ open import H-level.Truncation.Church eq as Trunc hiding (rec)
 open import Nat eq as Nat
 open import Surjection eq using (_↠_)
 open import Univalence-axiom eq
-
-------------------------------------------------------------------------
--- Equivalence relations
-
--- The definition of an equivalence relation.
-
-record Is-equivalence-relation
-         {a r} {A : Set a} (R : A → A → Set r) : Set (a ⊔ r) where
-  field
-    reflexive  : ∀ {x} → R x x
-    symmetric  : ∀ {x y} → R x y → R y x
-    transitive : ∀ {x y z} → R x y → R y z → R x z
 
 ------------------------------------------------------------------------
 -- Strong equivalence relations

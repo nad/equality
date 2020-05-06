@@ -16,6 +16,7 @@ open import Prelude renaming (_+_ to _⊕_)
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J using (_≃_)
+open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J hiding (_∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J

@@ -22,6 +22,7 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
+open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J as F
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)

@@ -26,6 +26,7 @@ open import Embedding equality-with-J as Embedding hiding (id; _∘_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq hiding (id; _∘_; inverse)
+open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -37,9 +38,10 @@ open import Surjection equality-with-J using (_↠_; Split-surjective)
 
 private
   variable
-    a b c d f p ℓ     : Level
+    a b c d f p r ℓ   : Level
     A A₁ A₂ B B₁ B₂ C : Set a
     P Q               : A → Set p
+    R                 : A → A → Set r
     k                 : A
 
 -- Propositional truncation.
@@ -372,6 +374,19 @@ not-inhabited⇒∥∥↔⊥ {A = A} =
     }
   ; left-inverse-of = λ _ → ¬-propositional ext _ _
   }
+
+-- The function λ R x y → ∥ R x y ∥ preserves Is-equivalence-relation.
+
+∥∥-preserves-Is-equivalence-relation :
+  Is-equivalence-relation R →
+  Is-equivalence-relation (λ x y → ∥ R x y ∥)
+∥∥-preserves-Is-equivalence-relation R-equiv = record
+  { reflexive  = ∣ reflexive ∣
+  ; symmetric  = symmetric ⟨$⟩_
+  ; transitive = λ p q → transitive ⟨$⟩ p ⊛ q
+  }
+  where
+  open Is-equivalence-relation R-equiv
 
 mutual
 
