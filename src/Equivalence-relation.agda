@@ -84,11 +84,11 @@ _→ᴾ_ :
 -- _→ᴾ_ preserves Is-proposition (assuming extensionality).
 
 →ᴾ-preserves-Is-proposition :
-  {A : Set a} {R : A → A → Set r} →
+  {A : Set a} (R : B → B → Set r) →
   Extensionality a r →
   (∀ {x y} → Is-proposition (R x y)) →
   ∀ {f g} → Is-proposition ((A →ᴾ R) f g)
-→ᴾ-preserves-Is-proposition ext R-prop =
+→ᴾ-preserves-Is-proposition _ ext R-prop =
   Π-closure ext 1 λ _ →
   R-prop
 
