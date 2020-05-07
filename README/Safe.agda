@@ -313,6 +313,11 @@ import Quotient.Families-of-equivalence-classes
 
 import Quotient
 
+-- Two variants of the set quotients from Quotient.
+
+import Quotient.Set-truncated-if-propositional
+import Quotient.Higher-constructors-if-propositional
+
 -- Listed finite subsets.
 
 import Finite-subset.Listed
