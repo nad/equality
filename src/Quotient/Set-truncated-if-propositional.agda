@@ -66,7 +66,7 @@ infix 5 _/_
 data _/_ (A : Set a) (R : A → A → Set r) : Set (a ⊔ r) where
   [_]                   : A → A / R
   []-respects-relationᴾ : R x y → [ x ] P.≡ [ y ]
-  /-is-setᴾ             : (∀ x y → P.Is-proposition (R x y)) →
+  /-is-setᴾ             : (∀ x y → Is-proposition (R x y)) →
                           P.Is-set (A / R)
 
 -- [_] respects the quotient relation.
@@ -77,9 +77,7 @@ data _/_ (A : Set a) (R : A → A → Set r) : Set (a ⊔ r) where
 -- If R is pointwise propositional, then A / R is a set.
 
 /-is-set : (∀ x y → Is-proposition (R x y)) → Is-set (A / R)
-/-is-set prop =
-  _↔_.from (H-level↔H-level 2) $
-    /-is-setᴾ (λ x y → _↔_.to (H-level↔H-level 1) (prop x y))
+/-is-set = _↔_.from (H-level↔H-level 2) ∘ /-is-setᴾ
 
 ------------------------------------------------------------------------
 -- Eliminators
@@ -97,7 +95,7 @@ record Elimᴾ′ {A : Set a} {R : A → A → Set r} (P : A / R → Set p) :
       P.[ (λ i → P ([]-respects-relationᴾ r i)) ] []ʳ x ≡ []ʳ y
 
     is-setʳ :
-      (prop : ∀ x y → P.Is-proposition (R x y))
+      (prop : ∀ x y → Is-proposition (R x y))
       {eq₁ eq₂ : x P.≡ y} {p : P x} {q : P y}
       (eq₃ : P.[ (λ i → P (eq₁ i)) ] p ≡ q)
       (eq₄ : P.[ (λ i → P (eq₂ i)) ] p ≡ q) →
@@ -130,7 +128,7 @@ record Elimᴾ {A : Set a} {R : A → A → Set r} (P : A / R → Set p) :
       P.[ (λ i → P ([]-respects-relationᴾ r i)) ] []ʳ x ≡ []ʳ y
 
     is-setʳ :
-      (∀ x y → P.Is-proposition (R x y)) →
+      (∀ x y → Is-proposition (R x y)) →
       ∀ x → P.Is-set (P x)
 
 open Elimᴾ public
@@ -171,7 +169,7 @@ record Recᴾ {A : Set a} (R : A → A → Set r) (B : Set b) :
   field
     []ʳ                   : A → B
     []-respects-relationʳ : (r : R x y) → []ʳ x P.≡ []ʳ y
-    is-setʳ               : (∀ x y → P.Is-proposition (R x y)) →
+    is-setʳ               : (∀ x y → Is-proposition (R x y)) →
                             P.Is-set B
 
 open Recᴾ public
@@ -205,8 +203,7 @@ elim e = elimᴾ λ where
     .[]ʳ                   → E.[]ʳ
     .[]-respects-relationʳ → subst≡→[]≡ ∘ E.[]-respects-relationʳ
     .is-setʳ prop          →
-      _↔_.to (H-level↔H-level 2) ∘
-      E.is-setʳ (λ x y → _↔_.from (H-level↔H-level 1) (prop x y))
+      _↔_.to (H-level↔H-level 2) ∘ E.is-setʳ prop
   where
   module E = Elim e
 
@@ -232,9 +229,7 @@ rec : Rec R B → A / R → B
 rec r = recᴾ λ where
     .[]ʳ                   → R.[]ʳ
     .[]-respects-relationʳ → _↔_.to ≡↔≡ ∘ R.[]-respects-relationʳ
-    .is-setʳ prop          →
-      _↔_.to (H-level↔H-level 2) $
-      R.is-setʳ (λ x y → _↔_.from (H-level↔H-level 1) (prop x y))
+    .is-setʳ               → _↔_.to (H-level↔H-level 2) ∘ R.is-setʳ
   where
   module R = Rec r
 
