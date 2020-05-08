@@ -237,41 +237,10 @@ elim {P = P} e = elimᴾ λ where
 -- A computation rule.
 
 elim-[]-respects-relation :
-  dcong (elim {P = P} e) ([]-respects-relation prop r) ≡
+  dcong (elim e) ([]-respects-relation prop r) ≡
   e .[]-respects-relationʳ prop r
-elim-[]-respects-relation {P = P} {e = e} {prop = prop} {r = r} =
-  dcong-subst≡→[]≡ (
-    P.hcong (elim e) ([]-respects-relationᴾ prop′ r)                  ≡⟨⟩
-
-    subst
-      (λ prop → P.[ (λ i → P ([]-respects-relationᴾ prop r i)) ]
-                  e .[]ʳ _ ≡ e .[]ʳ _)
-      (_≃_.right-inverse-of eq′ prop′)
-      (subst≡→[]≡ (e .[]-respects-relationʳ (_≃_.from eq′ prop′) r))  ≡⟨ cong (λ eq →
-                                                                                 subst (λ prop → P.[ (λ i → P ([]-respects-relationᴾ prop r i)) ]
-                                                                                                   e .[]ʳ _ ≡ e .[]ʳ _)
-                                                                                   eq
-                                                                                   (subst≡→[]≡ (e .[]-respects-relationʳ (_≃_.from eq′ prop′) r))) $
-                                                                         sym $ _≃_.left-right-lemma eq′ _ ⟩
-    subst
-      (λ prop → P.[ (λ i → P ([]-respects-relationᴾ prop r i)) ]
-                  e .[]ʳ _ ≡ e .[]ʳ _)
-      (cong (_≃_.to eq′) (_≃_.left-inverse-of eq′ prop))
-      (subst≡→[]≡ (e .[]-respects-relationʳ (_≃_.from eq′ prop′) r))  ≡⟨ sym $ subst-∘ _ _ _ ⟩
-
-    subst
-      (λ prop → P.[ (λ i → P ([]-respects-relationᴾ
-                                (_≃_.to eq′ prop) r i)) ]
-                  e .[]ʳ _ ≡ e .[]ʳ _)
-      (_≃_.left-inverse-of eq′ prop)
-      (subst≡→[]≡ (e .[]-respects-relationʳ (_≃_.from eq′ prop′) r))  ≡⟨ dcong (λ prop → subst≡→[]≡ (e .[]-respects-relationʳ prop r)) _ ⟩∎
-
-    subst≡→[]≡ (e .[]-respects-relationʳ prop r)                      ∎)
-  where
-  module E = Elim e
-
-  eq′   = ∀-cong ext λ _ → ∀-cong ext λ _ → Eq.↔⇒≃ (H-level↔H-level 1)
-  prop′ = _≃_.to eq′ prop
+elim-[]-respects-relation {e = e} {prop = prop} =
+  e .is-setʳ prop _ _ _
 
 -- A non-dependent eliminator.
 
@@ -308,15 +277,8 @@ rec-[]-respects-relation :
   cong (rec {R = R} {B = B} r₁)
        ([]-respects-relation {x = x} {y = y} prop r₂) ≡
   r₁ .[]-respects-relationʳ prop r₂
-rec-[]-respects-relation {r₁ = r₁} {prop = prop} {r₂ = r₂} = cong-≡↔≡ (
-  P.cong (rec r₁) ([]-respects-relationᴾ (_≃_.to eq′ prop) r₂)  ≡⟨⟩
-
-  _↔_.to ≡↔≡ (r₁ .[]-respects-relationʳ
-                (_≃_.from eq′ (_≃_.to eq′ prop)) r₂)            ≡⟨ cong (λ prop → _↔_.to ≡↔≡ (r₁ .[]-respects-relationʳ prop r₂)) $
-                                                                   _≃_.left-inverse-of eq′ _ ⟩∎
-  _↔_.to ≡↔≡ (r₁ .[]-respects-relationʳ prop r₂)                ∎)
-  where
-  eq′ = ∀-cong ext λ _ → ∀-cong ext λ _ → Eq.↔⇒≃ (H-level↔H-level 1)
+rec-[]-respects-relation {r₁ = r₁} {prop = prop} =
+  r₁ .is-setʳ prop _ _
 
 -- A variant of elim that can be used if the motive composed with [_]
 -- is a family of propositions (assuming that the quotienting relation
