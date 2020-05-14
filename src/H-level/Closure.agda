@@ -353,6 +353,10 @@ abstract
 
   -- If B a is inhabited for all a, and Σ A B has h-level n, then A
   -- also has h-level n.
+  --
+  -- One cannot, in general, replace ∀ a → B a with ∀ a → ∥ B a ∥ (see
+  -- Circle.¬-generalised-proj₁-closure). However, this is possible if
+  -- B is constant (see H-level.Truncation.Propositional.H-level-×₁).
 
   proj₁-closure :
     ∀ {a b} {A : Set a} {B : A → Set b} →

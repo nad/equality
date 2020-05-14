@@ -28,7 +28,7 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq hiding (id; _∘_; inverse)
 open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J as F hiding (id; _∘_)
-open import H-level equality-with-J
+open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 import H-level.Truncation.Church equality-with-J as Trunc
 open import Injection equality-with-J using (_↣_)
@@ -340,6 +340,37 @@ private
                   truncation-is-proposition
         _ _
   }
+
+-- Variants of proj₁-closure.
+
+private
+
+  H-level-×₁-lemma :
+    (A → ∥ B ∥) →
+    ∀ n → H-level (suc n) (A × B) → H-level (suc n) A
+  H-level-×₁-lemma inhabited n h =
+    [inhabited⇒+]⇒+ n λ a →
+    rec (H-level-propositional ext (suc n))
+        (λ b → proj₁-closure (λ _ → b) (suc n) h)
+        (inhabited a)
+
+H-level-×₁ :
+  (A → ∥ B ∥) →
+  ∀ n → H-level n (A × B) → H-level n A
+H-level-×₁ inhabited zero h =
+  propositional⇒inhabited⇒contractible
+    (H-level-×₁-lemma inhabited 0 (mono₁ 0 h))
+    (proj₁ (proj₁ h))
+H-level-×₁ inhabited (suc n) =
+  H-level-×₁-lemma inhabited n
+
+H-level-×₂ :
+  (B → ∥ A ∥) →
+  ∀ n → H-level n (A × B) → H-level n B
+H-level-×₂ {B = B} {A = A} inhabited n =
+  H-level n (A × B)  ↝⟨ H-level.respects-surjection (from-bijection ×-comm) n ⟩
+  H-level n (B × A)  ↝⟨ H-level-×₁ inhabited n ⟩□
+  H-level n B        □
 
 -- If A is merely inhabited, then the truncation of A is isomorphic to
 -- the unit type.
