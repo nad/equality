@@ -170,6 +170,11 @@ import Equality.Path.Isomorphisms
 
 import Equality.Id
 
+-- Propositional equality, with some extra bells and whistles
+-- definable in Cubical Agda.
+
+import Equality.Propositional.Cubical
+
 -- The "interval".
 
 import Interval
