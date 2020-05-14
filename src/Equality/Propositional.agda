@@ -46,8 +46,17 @@ Equality-with-J₀.elim-refl equality-with-J₀ = elim-refl
 equivalence-relation⁺ : ∀ ℓ → Equivalence-relation⁺ ℓ
 equivalence-relation⁺ _ = J₀⇒Equivalence-relation⁺ equality-with-J₀
 
-equality-with-J : ∀ {a p} → Equality-with-J a p equivalence-relation⁺
-equality-with-J = J₀⇒J equality-with-J₀
+-- The following definition has been expanded in order to ensure that
+-- it does not reduce (unless a projection is applied to it).
 
-open Derived-definitions-and-properties (J₀⇒J equality-with-J₀) public
+equality-with-J : ∀ {a p} → Equality-with-J a p equivalence-relation⁺
+equality-with-J .Equality-with-J.equality-with-J₀ = J₀⇒J equality-with-J₀ .Equality-with-J.equality-with-J₀
+equality-with-J .Equality-with-J.cong             = J₀⇒J equality-with-J₀ .Equality-with-J.cong
+equality-with-J .Equality-with-J.cong-refl        = J₀⇒J equality-with-J₀ .Equality-with-J.cong-refl
+equality-with-J .Equality-with-J.subst            = J₀⇒J equality-with-J₀ .Equality-with-J.subst
+equality-with-J .Equality-with-J.subst-refl       = J₀⇒J equality-with-J₀ .Equality-with-J.subst-refl
+equality-with-J .Equality-with-J.dcong            = J₀⇒J equality-with-J₀ .Equality-with-J.dcong
+equality-with-J .Equality-with-J.dcong-refl       = J₀⇒J equality-with-J₀ .Equality-with-J.dcong-refl
+
+open Derived-definitions-and-properties equality-with-J public
   hiding (_≡_; refl; reflexive-relation; equality-with-J₀)
