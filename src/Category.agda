@@ -27,11 +27,12 @@ open import Univalence-axiom eq
 ------------------------------------------------------------------------
 -- Precategories
 
-Precategory′ : (ℓ₁ ℓ₂ : Level) → Set (lsuc (ℓ₁ ⊔ ℓ₂))
-Precategory′ ℓ₁ ℓ₂ =
-  -- Objects.
-  ∃ λ (Obj : Set ℓ₁) →
+-- This definition of precategories takes the type of objects as a
+-- parameter.
 
+Precategory-with-Obj :
+  ∀ {ℓ₁} → Set ℓ₁ → (ℓ₂ : Level) → Set (ℓ₁ ⊔ lsuc ℓ₂)
+Precategory-with-Obj Obj ℓ₂ =
   -- Morphisms (a /set/).
   ∃ λ (HOM : Obj → Obj → SET ℓ₂) →
   let Hom = λ X Y → proj₁ (HOM X Y) in
@@ -49,6 +50,15 @@ Precategory′ ℓ₁ ℓ₂ =
   -- Associativity.
   (∀ {X Y Z U} {f : Hom X Y} {g : Hom Y Z} {h : Hom Z U} →
      (h ∙ (g ∙ f)) ≡ ((h ∙ g) ∙ f))
+
+-- Precategories.
+
+Precategory′ : (ℓ₁ ℓ₂ : Level) → Set (lsuc (ℓ₁ ⊔ ℓ₂))
+Precategory′ ℓ₁ ℓ₂ =
+  -- Objects.
+  ∃ λ (Obj : Set ℓ₁) →
+
+  Precategory-with-Obj Obj ℓ₂
 
 -- A wrapper.
 
@@ -1224,6 +1234,44 @@ precategory-to-category C ≡≃≅ ≡≃≅-refl = record
   { category = C , Precategory.≡→≅-equivalence-lemma C ≡≃≅ ≡≃≅-refl
   }
 
+-- A variant of the previous lemma for precategories with SET c₁ as
+-- the type of objects. (The lemma is defined using extensionality and
+-- univalence for sets.)
+
+precategory-with-SET-to-category :
+  ∀ {c₁ c₂} →
+  Extensionality c₁ c₁ →
+  ((A B : SET c₁) → Univalence′ (Type A) (Type B)) →
+  (C : Precategory-with-Obj (SET c₁) c₂) →
+  let open Precategory (record { precategory = _ , C }) in
+  (≃≃≅ : ∀ X Y → (Type X ≃ Type Y) ≃ (X ≅ Y)) →
+  (∀ X → _≃_.to (≃≃≅ X X) Eq.id ¹ ≡ id) →
+  Category (lsuc c₁) c₂
+precategory-with-SET-to-category ext univ C ≃≃≅ ≃≃≅-id =
+  precategory-to-category C′ ≡≃≅ ≡≃≅-refl
+  where
+  C′ = record { precategory = _ , C }
+  open Precategory C′
+
+  -- _≡_ and _≅_ are pointwise equivalent…
+
+  cong-Type : {X Y : Obj} → (X ≡ Y) ≃ (Type X ≡ Type Y)
+  cong-Type = Eq.↔⇒≃ $ inverse $
+    ignore-propositional-component (H-level-propositional ext 2)
+
+  ≡≃≅ : ∀ {X Y} → (X ≡ Y) ≃ (X ≅ Y)
+  ≡≃≅ {X} {Y} = ≃≃≅ X Y ⊚ ≡≃≃ (univ X Y) ⊚ cong-Type
+
+  -- …and the proof maps reflexivity to the identity isomorphism.
+
+  ≡≃≅-refl :
+    ∀ {X} → _¹ {X = X} {Y = X} (_≃_.to ≡≃≅ (refl X)) ≡ id
+  ≡≃≅-refl {X} = cong (_¹ {X = X} {Y = X}) (
+    _≃_.to (≃≃≅ X X) (≡⇒≃ (proj₁ (Σ-≡,≡←≡ (refl X))))  ≡⟨ cong (_≃_.to (≃≃≅ X X) ∘ ≡⇒≃ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
+    _≃_.to (≃≃≅ X X) (≡⇒≃ (refl (Type X)))             ≡⟨ cong (_≃_.to (≃≃≅ X X)) ≡⇒≃-refl ⟩
+    _≃_.to (≃≃≅ X X) Eq.id                             ≡⟨ _≃_.from (≡≃≡¹ {X = X} {Y = X}) $ ≃≃≅-id X ⟩∎
+    id≅                                                ∎)
+
 -- An example: sets and functions. (Defined using extensionality and
 -- univalence for sets.)
 
@@ -1233,34 +1281,15 @@ category-Set :
   ((A B : SET ℓ) → Univalence′ (Type A) (Type B)) →
   Category (lsuc ℓ) ℓ
 category-Set ℓ ext univ =
-  precategory-to-category precategory ≡≃≅ ≡≃≅-refl-is-id≅
+  precategory-with-SET-to-category
+    ext
+    univ
+    (proj₂ precategory)
+    (≃≃≅-Set ℓ ext)
+    (λ _ → refl P.id)
   where
-  precategory = precategory-Set ℓ ext
-  open Precategory precategory hiding (precategory)
-
-  abstract
-
-    -- _≡_ and _≅_ are pointwise equivalent…
-
-    cong-Type : {X Y : Obj} → (X ≡ Y) ≃ (Type X ≡ Type Y)
-    cong-Type = Eq.↔⇒≃ $ inverse $
-      ignore-propositional-component (H-level-propositional ext 2)
-
-    ≃≃≅ : (X Y : Obj) → (Type X ≃ Type Y) ≃ (X ≅ Y)
-    ≃≃≅ = ≃≃≅-Set ℓ ext
-
-    ≡≃≅ : ∀ {X Y} → (X ≡ Y) ≃ (X ≅ Y)
-    ≡≃≅ {X} {Y} = ≃≃≅ X Y ⊚ ≡≃≃ (univ X Y) ⊚ cong-Type
-
-    -- …and the proof maps reflexivity to the identity isomorphism.
-
-    ≡≃≅-refl-is-id≅ :
-      ∀ {X} → _¹ {X = X} {Y = X} (_≃_.to ≡≃≅ (refl X)) ≡ P.id
-    ≡≃≅-refl-is-id≅ {X} = cong (_¹ {X = X} {Y = X}) (
-      _≃_.to (≃≃≅ X X) (≡⇒≃ (proj₁ (Σ-≡,≡←≡ (refl X))))  ≡⟨ cong (_≃_.to (≃≃≅ X X) ∘ ≡⇒≃ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
-      _≃_.to (≃≃≅ X X) (≡⇒≃ (refl (Type X)))             ≡⟨ cong (_≃_.to (≃≃≅ X X)) ≡⇒≃-refl ⟩
-      _≃_.to (≃≃≅ X X) Eq.id                             ≡⟨ _≃_.from (≡≃≡¹ {X = X} {Y = X}) (refl P.id) ⟩∎
-      id≅ {X = X}                                        ∎)
+  C = precategory-Set ℓ ext
+  open Precategory C
 
 -- An example: sets and bijections. (Defined using extensionality and
 -- univalence for sets.)
