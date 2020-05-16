@@ -123,17 +123,24 @@ rec p = recᴾ (_↔_.to (H-level↔H-level 1) p)
   ; left-inverse-of = λ _ → truncation-is-proposition _ _
   }
 
--- If A and B are logically equivalent, then functions of any kind can
--- be constructed from ∥ A ∥ to ∥ B ∥.
+mutual
 
-∥∥-cong-⇔ : ∀ {k} → A ⇔ B → ∥ A ∥ ↝[ k ] ∥ B ∥
-∥∥-cong-⇔ A⇔B =
-  from-equivalence $
-  _↠_.from (≃↠⇔ truncation-is-proposition truncation-is-proposition)
-    (record
-       { to   = ∥∥-map (_⇔_.to   A⇔B)
-       ; from = ∥∥-map (_⇔_.from A⇔B)
-       })
+  -- If A and B are logically equivalent, then functions of any kind can
+  -- be constructed from ∥ A ∥ to ∥ B ∥.
+
+  ∥∥-cong-⇔ : ∀ {k} → A ⇔ B → ∥ A ∥ ↝[ k ] ∥ B ∥
+  ∥∥-cong-⇔ A⇔B = ∥∥-cong-⇔′ (∣_∣ ∘ _⇔_.to A⇔B) (∣_∣ ∘ _⇔_.from A⇔B)
+
+  -- A variant of the previous result.
+
+  ∥∥-cong-⇔′ : ∀ {k} → (A → ∥ B ∥) → (B → ∥ A ∥) → ∥ A ∥ ↝[ k ] ∥ B ∥
+  ∥∥-cong-⇔′ A→∥B∥ B→∥A∥ =
+    from-equivalence $
+    _↠_.from (≃↠⇔ truncation-is-proposition truncation-is-proposition)
+      (record
+         { to   = rec truncation-is-proposition A→∥B∥
+         ; from = rec truncation-is-proposition B→∥A∥
+         })
 
 -- The truncation operator preserves all kinds of functions.
 
