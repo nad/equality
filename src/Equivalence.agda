@@ -1019,6 +1019,17 @@ private
       from∘to : ∀ x → from (to x) ≡ x
       from∘to _ = A-prop _ _
 
+-- A corollary.
+
+⇔→≃ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Is-proposition A → Is-proposition B →
+  (A → B) → (B → A) →
+  A ≃ B
+⇔→≃ A-prop B-prop to from =
+  _↠_.from (≃↠⇔ A-prop B-prop)
+    (record { to = to; from = from })
+
 -- For propositional types logical equivalence is isomorphic to
 -- equivalence (assuming extensionality).
 
