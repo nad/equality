@@ -454,6 +454,10 @@ import Structure-identity-principle
 import
   Univalence-axiom.Isomorphism-is-equality.Structure-identity-principle
 
+-- Bi-invertibility.
+
+import Bi-invertibility
+
 -- Binary trees.
 
 import Tree
