@@ -190,6 +190,12 @@ abstract
     ⟨ext⟩ (λ x → refl (f x)) ≡ refl f
   ext-refl = good-ext-refl bad-ext
 
+  ext-const :
+    ∀ {a b} {A : Set a} {B : Set b} {x y : B}
+    (x≡y : x ≡ y) →
+    ⟨ext⟩ (const {B = A} x≡y) ≡ cong const x≡y
+  ext-const = good-ext-const bad-ext
+
   cong-ext :
     ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) {x} →

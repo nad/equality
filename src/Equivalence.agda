@@ -651,6 +651,20 @@ abstract
     _≃_.to (extensionality-isomorphism ext) (ext⁻¹ (refl f))    ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
     refl f                                                      ∎
 
+  good-ext-const :
+    ∀ {a b} (ext : Extensionality a b)
+    {A : Set a} {B : Set b} {x y : B}
+    (x≡y : x ≡ y) →
+    apply-ext (good-ext ext) (const {B = A} x≡y) ≡
+    cong const x≡y
+  good-ext-const ext x≡y =
+    apply-ext (good-ext ext) (const x≡y)                        ≡⟨ cong (apply-ext (good-ext ext) ⊚ const) $ cong-id _ ⟩
+    apply-ext (good-ext ext) (const (cong P.id x≡y))            ≡⟨⟩
+    apply-ext (good-ext ext) (λ z → cong ((_$ z) ⊚ const) x≡y)  ≡⟨ cong (apply-ext (good-ext ext)) $
+                                                                   apply-ext (good-ext ext) (λ _ → sym $ cong-∘ _ _ _) ⟩
+    apply-ext (good-ext ext) (ext⁻¹ (cong const x≡y))           ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
+    cong const x≡y                                              ∎
+
   cong-good-ext :
     ∀ {a b} (ext : Extensionality a b)
     {A : Set a} {B : A → Set b} {f g : (x : A) → B x}

@@ -80,6 +80,11 @@ abstract
   ext-refl : ⟨ext⟩ (λ x → refl (f x)) ≡ refl f
   ext-refl = good-ext-refl bad-ext _
 
+  ext-const :
+    (x≡y : x ≡ y) →
+    ⟨ext⟩ (const {B = A} x≡y) ≡ cong const x≡y
+  ext-const = good-ext-const bad-ext
+
   cong-ext :
     ∀ (f≡g : ∀ x → f x ≡ g x) {x} →
     cong (_$ x) (⟨ext⟩ f≡g) ≡ f≡g x

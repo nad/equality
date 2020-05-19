@@ -461,6 +461,11 @@ private
   ext-refl : ⟨ext⟩ (λ x → refl {x = f x}) ≡ refl
   ext-refl = refl
 
+  ext-const :
+    (x≡y : x ≡ y) →
+    ⟨ext⟩ (const {B = A} x≡y) ≡ cong const x≡y
+  ext-const _ = refl
+
   cong-ext :
     (f≡g : ∀ x → f x ≡ g x) →
     cong (_$ x) (⟨ext⟩ f≡g) ≡ f≡g x
