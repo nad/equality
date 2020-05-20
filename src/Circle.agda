@@ -18,7 +18,7 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 
 open import Prelude
 
-open import Bijection equality-with-J using (_↔_)
+open import Bijection equality-with-J as Bijection using (_↔_)
 import Bijection P.equality-with-J as PB
 open import Equality.Path.Isomorphisms eq
 import Equality.Path.Isomorphisms P.equality-with-paths as PI
@@ -29,11 +29,11 @@ open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
 open import Nat equality-with-J
-open import Univalence-axiom equality-with-J
+open import Univalence-axiom equality-with-J using (¬-Set-set)
 
 private
   variable
-    p   : Level
+    a p : Level
     A   : Set p
     P   : A → Set p
     b ℓ : A
@@ -127,6 +127,43 @@ loop≢refl loop≡refl = ¬-Set-set univ Set-set
   Is-proposition (base ≡ base)  ↝⟨ (λ h → h _ _) ⟩
   loop ≡ refl base              ↝⟨ loop≢refl ⟩□
   ⊥                             □
+
+-- There is a value with the type of refl that is not equal to refl.
+
+∃≢refl : ∃ λ (f : (x : 𝕊¹) → x ≡ x) → f ≢ refl
+∃≢refl =
+    f
+  , (f ≡ refl          ↝⟨ cong (_$ _) ⟩
+     loop ≡ refl base  ↝⟨ loop≢refl ⟩□
+     ⊥                 □)
+  where
+  f : (x : 𝕊¹) → x ≡ x
+  f = elim _
+    loop
+    (subst (λ z → z ≡ z) loop loop  ≡⟨ ≡⇒↝ _ (sym [subst≡]≡[trans≡trans]) (refl _) ⟩∎
+     loop                           ∎)
+
+-- For every universe level there is a type A such that
+-- (x : A) → x ≡ x is not a proposition.
+
+¬-type-of-refl-propositional :
+  ∃ λ (A : Set a) → ¬ Is-proposition ((x : A) → x ≡ x)
+¬-type-of-refl-propositional {a = a} =
+    ↑ _ 𝕊¹
+  , (Is-proposition (∀ x → x ≡ x)                                 ↝⟨ (λ prop → prop _ _) ⟩
+
+     cong lift ∘ proj₁ ∃≢refl ∘ lower ≡ cong lift ∘ refl ∘ lower  ↝⟨ cong (_∘ lift) ⟩
+
+     cong lift ∘ proj₁ ∃≢refl ≡ cong lift ∘ refl                  ↝⟨ cong (cong lower ∘_) ⟩
+
+     cong lower ∘ cong lift ∘ proj₁ ∃≢refl ≡
+     cong lower ∘ cong lift ∘ refl                                ↝⟨ ≡⇒↝ _ (cong₂ _≡_ (⟨ext⟩ λ _ → cong-∘ _ _ _) (⟨ext⟩ λ _ → cong-∘ _ _ _)) ⟩
+
+     cong id ∘ proj₁ ∃≢refl ≡ cong id ∘ refl                      ↝⟨ ≡⇒↝ _ (sym $ cong₂ _≡_ (⟨ext⟩ λ _ → cong-id _) (⟨ext⟩ λ _ → cong-id _)) ⟩
+
+     proj₁ ∃≢refl ≡ refl                                          ↝⟨ proj₂ ∃≢refl ⟩□
+
+     ⊥                                                            □)
 
 -- Every element of the circle is /merely/ equal to the base point.
 --
