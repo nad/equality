@@ -1095,6 +1095,39 @@ equality-characterisation-Precategory {ℓ₁} {ℓ₂} {C} {D}
     ; left-inverse-of = λ _ → refl _
     }
 
+-- Lifts a precategory's object type.
+
+lift-precategory-Obj :
+  ∀ {ℓ₁} ℓ₁′ {ℓ₂} →
+  Precategory ℓ₁ ℓ₂ → Precategory (ℓ₁ ⊔ ℓ₁′) ℓ₂
+lift-precategory-Obj ℓ₁′ C .Precategory.precategory =
+    ↑ ℓ₁′ C.Obj
+  , (λ (lift A) (lift B) → C.HOM A B)
+  , C.id
+  , C._∙_
+  , C.left-identity
+  , C.right-identity
+  , C.assoc
+  where
+  module C = Precategory C
+
+-- Lifts a precategory's morphism type family.
+
+lift-precategory-Hom :
+  ∀ {ℓ₁ ℓ₂} ℓ₂′ →
+  Precategory ℓ₁ ℓ₂ → Precategory ℓ₁ (ℓ₂ ⊔ ℓ₂′)
+lift-precategory-Hom ℓ₂′ C .Precategory.precategory =
+    C.Obj
+  , (λ A B → ↑ ℓ₂′ (C.Hom A B)
+           , ↑-closure 2 C.Hom-is-set)
+  , lift C.id
+  , (λ (lift f) (lift g) → lift (f C.∙ g))
+  , cong lift C.left-identity
+  , cong lift C.right-identity
+  , cong lift C.assoc
+  where
+  module C = Precategory C
+
 ------------------------------------------------------------------------
 -- Categories
 
@@ -1467,3 +1500,75 @@ Empty ℓ₁ ℓ₂ =
     }
   (λ {x} → ⊥-elim x)
   (λ {x} → ⊥-elim x)
+
+-- Lifts a category's object type.
+
+lift-category-Obj :
+  ∀ {ℓ₁} ℓ₁′ {ℓ₂} →
+  Category ℓ₁ ℓ₂ → Category (ℓ₁ ⊔ ℓ₁′) ℓ₂
+lift-category-Obj ℓ₁′ C .Category.category =
+    C′
+  , ≡→≅-equivalence
+  where
+  C′ = lift-precategory-Obj ℓ₁′ (Category.precategory C)
+
+  module C  = Category C
+  module C′ = Precategory C′
+
+  ≡→≅-equivalence :
+    {X Y : Precategory.Obj C′} →
+    Is-equivalence (C′.≡→≅ {X = X} {Y = Y})
+  ≡→≅-equivalence {X = X} {Y = Y} =
+    _≃_.is-equivalence $
+    Eq.with-other-function
+      (X ≡ Y                ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ Bijection.↑↔ ⟩
+       lower X ≡ lower Y    ↝⟨ Eq.⟨ _ , C.≡→≅-equivalence ⟩ ⟩
+       lower X C.≅ lower Y  ↔⟨⟩
+       X C′.≅ Y             □)
+      C′.≡→≅
+      (elim (λ X≡Y → C.≡→≅ (cong lower X≡Y) ≡ C′.≡→≅ X≡Y)
+         (λ X →
+            C.≡→≅ (cong lower (refl X))  ≡⟨ cong C.≡→≅ $ cong-refl _ ⟩
+            C.≡→≅ (refl (lower X))       ≡⟨ C.≡→≅-refl ⟩
+            C.id≅                        ≡⟨⟩
+            C′.id≅                       ≡⟨ sym C′.≡→≅-refl ⟩∎
+            C′.≡→≅ (refl X)              ∎))
+
+-- Lifts a category's morphism type family.
+
+lift-category-Hom :
+  ∀ {ℓ₁ ℓ₂} ℓ₂′ →
+  Category ℓ₁ ℓ₂ → Category ℓ₁ (ℓ₂ ⊔ ℓ₂′)
+lift-category-Hom ℓ₂′ C .Category.category =
+    C′
+  , ≡→≅-equivalence
+  where
+  C′ = lift-precategory-Hom ℓ₂′ (Category.precategory C)
+
+  module C  = Category C
+  module C′ = Precategory C′
+
+  ≡→≅-equivalence :
+    {X Y : Precategory.Obj C′} →
+    Is-equivalence (C′.≡→≅ {X = X} {Y = Y})
+  ≡→≅-equivalence {X = X} {Y = Y} =
+    _≃_.is-equivalence $
+    Eq.with-other-function
+      (X ≡ Y     ↝⟨ Eq.⟨ _ , C.≡→≅-equivalence ⟩ ⟩
+       X C.≅ Y   ↝⟨ equiv ⟩□
+       X C′.≅ Y  □)
+      C′.≡→≅
+      (elim (λ X≡Y → _≃_.to equiv (C.≡→≅ X≡Y) ≡ C′.≡→≅ X≡Y)
+         (λ X →
+            _≃_.to equiv (C.≡→≅ (refl X))  ≡⟨ cong (_≃_.to equiv) C.≡→≅-refl ⟩
+            _≃_.to equiv C.id≅             ≡⟨ _≃_.from C′.≡≃≡¹ (refl _) ⟩
+            C′.id≅                         ≡⟨ sym C′.≡→≅-refl ⟩∎
+            C′.≡→≅ (refl X)                ∎))
+    where
+    equiv : ∀ {X Y} → (X C.≅ Y) ≃ (X C′.≅ Y)
+    equiv =
+      Σ-cong (inverse Bijection.↑↔) λ _ →
+      Σ-cong (inverse Bijection.↑↔) λ _ →
+      (Eq.≃-≡ $ Eq.↔⇒≃ Bijection.↑↔)
+        ×-cong
+      (Eq.≃-≡ $ Eq.↔⇒≃ Bijection.↑↔)
