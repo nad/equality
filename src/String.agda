@@ -9,11 +9,6 @@ module String where
 open import Prelude
 
 ------------------------------------------------------------------------
--- The String type
-
-open import Agda.Builtin.String public using (String)
-
-------------------------------------------------------------------------
 -- Helper code used below
 
 private

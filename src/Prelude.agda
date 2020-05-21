@@ -24,6 +24,11 @@ record ↑ {a} ℓ (A : Set a) : Set (a ⊔ ℓ) where
 open ↑ public
 
 ------------------------------------------------------------------------
+-- Strings
+
+open import Agda.Builtin.String public using (String)
+
+------------------------------------------------------------------------
 -- The unit type
 
 -- A variant of the unit type with η-equality.
