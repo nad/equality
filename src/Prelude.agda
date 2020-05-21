@@ -40,6 +40,24 @@ open import Agda.Builtin.Unit public using (⊤; tt)
 data Unit : Set where
   unit : Unit
 
+-- Block s is used to block unfolding (for performance reasons). The
+-- string can be used to indicate what it is that is blocked.
+
+Block : String → Set
+Block _ = Unit
+
+pattern ⊠ = unit
+
+-- A function that can be used to locally block something.
+
+block : ∀ {a} {A : Set a} → (Unit → A) → A
+block f = f ⊠
+
+-- A function that can be used to unblock something.
+
+unblock : ∀ {p} (b : Unit) (P : Unit → Set p) → P ⊠ → P b
+unblock ⊠ _ p = p
+
 ------------------------------------------------------------------------
 -- The empty type
 
