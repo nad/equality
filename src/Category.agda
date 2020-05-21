@@ -1221,6 +1221,105 @@ record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
         id≅ ∙≅ id≅                     ≡⟨ sym $ cong₂ _∙≅_ ≡→≅-refl ≡→≅-refl ⟩∎
         ≡→≅ (refl X) ∙≅ ≡→≅ (refl X)   ∎))
 
+-- Equality of categories is isomorphic to equality of the underlying
+-- precategories (assuming extensionality).
+
+≡↔precategory≡precategory′ :
+  ∀ {ℓ₁ ℓ₂} {C D : Category′ ℓ₁ ℓ₂} →
+  Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+  C ≡ D ↔ proj₁ C ≡ proj₁ D
+≡↔precategory≡precategory′ {ℓ₂ = ℓ₂} ext =
+  inverse $
+  ignore-propositional-component
+    (implicit-Π-closure (lower-extensionality ℓ₂ lzero ext) 1 λ _ →
+     implicit-Π-closure (lower-extensionality ℓ₂ lzero ext) 1 λ _ →
+     Eq.propositional ext _)
+
+-- Equality of categories is isomorphic to equality of the underlying
+-- precategories (assuming extensionality).
+
+≡↔precategory≡precategory :
+  ∀ {ℓ₁ ℓ₂} {C D : Category ℓ₁ ℓ₂} →
+  Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+  C ≡ D ↔ Category.precategory C ≡ Category.precategory D
+≡↔precategory≡precategory {C = C} {D = D} ext =
+  C ≡ D                          ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩
+  C.category ≡ D.category        ↝⟨ ≡↔precategory≡precategory′ ext ⟩□
+  C.precategory ≡ D.precategory  □
+  where
+  module C = Category C
+  module D = Category D
+
+  rearrange : Category′ _ _ ↔ Category _ _
+  rearrange = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = λ C → record { category = C }
+        ; from = Category.category
+        }
+      ; right-inverse-of = λ _ → refl _
+      }
+    ; left-inverse-of = λ _ → refl _
+    }
+
+-- Equality characterisation lemma for Category′.
+
+equality-characterisation-Category′ :
+  ∀ {ℓ₁ ℓ₂} {C D : Category′ ℓ₁ ℓ₂} →
+  Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ lsuc ℓ₂) →
+  Univalence ℓ₁ →
+  Univalence ℓ₂ →
+  let module C = Category (record { category = C })
+      module D = Category (record { category = D })
+  in
+  (∃ λ (eqO : C.Obj ≃ D.Obj) →
+   ∃ λ (eqH : ∀ X Y → C.Hom (_≃_.from eqO X) (_≃_.from eqO Y) ≃
+                      D.Hom X Y) →
+     (∀ X → _≃_.to (eqH X X) C.id ≡ D.id)
+       ×
+     (∀ X Y Z (f : D.Hom Y Z) (g : D.Hom X Y) →
+        _≃_.to (eqH X Z) (C._∙_ (_≃_.from (eqH Y Z) f)
+                                (_≃_.from (eqH X Y) g)) ≡
+        f D.∙ g))
+    ↔
+  C ≡ D
+equality-characterisation-Category′ {ℓ₂ = ℓ₂} {C} {D} ext univ₁ univ₂ =
+  _                              ↝⟨ equality-characterisation-Precategory ext univ₁ univ₂ ⟩
+  C.precategory ≡ D.precategory  ↝⟨ inverse $ ≡↔precategory≡precategory′ (lower-extensionality lzero (lsuc ℓ₂) ext) ⟩□
+  C ≡ D                          □
+  where
+  module C = Category (record { category = C })
+  module D = Category (record { category = D })
+
+-- Equality characterisation lemma for Category.
+
+equality-characterisation-Category :
+  ∀ {ℓ₁ ℓ₂} {C D : Category ℓ₁ ℓ₂} →
+  Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ lsuc ℓ₂) →
+  Univalence ℓ₁ →
+  Univalence ℓ₂ →
+  let module C = Category C
+      module D = Category D
+  in
+  (∃ λ (eqO : C.Obj ≃ D.Obj) →
+   ∃ λ (eqH : ∀ X Y → C.Hom (_≃_.from eqO X) (_≃_.from eqO Y) ≃
+                      D.Hom X Y) →
+     (∀ X → _≃_.to (eqH X X) C.id ≡ D.id)
+       ×
+     (∀ X Y Z (f : D.Hom Y Z) (g : D.Hom X Y) →
+        _≃_.to (eqH X Z) (C._∙_ (_≃_.from (eqH Y Z) f)
+                                (_≃_.from (eqH X Y) g)) ≡
+        f D.∙ g))
+    ↔
+  C ≡ D
+equality-characterisation-Category {ℓ₂ = ℓ₂} {C} {D} ext univ₁ univ₂ =
+  _                              ↝⟨ equality-characterisation-Precategory ext univ₁ univ₂ ⟩
+  C.precategory ≡ D.precategory  ↝⟨ inverse $ ≡↔precategory≡precategory (lower-extensionality lzero (lsuc ℓ₂) ext) ⟩□
+  C ≡ D                          □
+  where
+  module C = Category C
+  module D = Category D
+
 -- A lemma that can be used to turn a precategory into a category.
 
 precategory-to-category :
