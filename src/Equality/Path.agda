@@ -42,7 +42,7 @@ private
     A           : Set a
     B           : A → Set b
     P           : I → Set p
-    x y z       : A
+    u v x y z   : A
     f g h       : (x : A) → B x
     i j         : I
     n           : ℕ
@@ -686,6 +686,22 @@ transport∘transport P {p} = hsym λ i →
                               (transport P 0̲ p)
                 })
        (transport (λ j → P (min i j)) (- i) p)
+
+-- One form of transporting can be expressed using trans and sym.
+
+transport-≡ :
+  {p : x ≡ y} {q : u ≡ v} (r : x ≡ u) →
+  transport (λ i → p i ≡ q i) 0̲ r ≡
+  trans (sym p) (trans r q)
+transport-≡ {x = x} {p = p} {q = q} r = elim¹
+  (λ p → transport (λ i → p i ≡ q i) 0̲ r ≡
+         trans (sym p) (trans r q))
+  (transport (λ i → x ≡ q i) 0̲ r  ≡⟨⟩
+   subst (x ≡_) q r               ≡⟨ sym trans-subst ⟩
+   trans r q                      ≡⟨ sym $ trans-reflˡ _ ⟩
+   trans refl (trans r q)         ≡⟨⟩
+   trans (sym refl) (trans r q)   ∎)
+  p
 
 -- The following two lemmas are due to Anders Mörtberg.
 --
