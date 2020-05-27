@@ -211,6 +211,10 @@ import Pullback
 
 import Pushout
 
+-- The figure of eight.
+
+import Figure-of-eight
+
 -- Truncation, defined as a HIT.
 
 import H-level.Truncation
