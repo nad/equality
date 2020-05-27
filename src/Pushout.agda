@@ -21,12 +21,15 @@ open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
+open import Equivalence equality-with-J as Eq using (_≃_)
+open import Pointed-type equality-with-J
+import Suspension eq as S
 
 private
   variable
-    a l m p r : Level
-    A         : Set a
-    S         : A
+    a b l m p r : Level
+    A           : Set a
+    S           : A
 
 -- Spans.
 
@@ -187,3 +190,77 @@ Pushout→↔Cocone {S = S} {A = A} = record
        trans (sym (cong f (glue x))) (cong f (glue x))                        ≡⟨ trans-symˡ _ ⟩∎
 
        refl _                                                                 ∎)
+
+-- Joins.
+
+Join : Set a → Set b → Set (a ⊔ b)
+Join A B = Pushout (record
+  { Middle = A × B
+  ; left   = proj₁
+  ; right  = proj₂
+  })
+
+-- Cones.
+
+Cone : {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Cone f = Pushout (record
+  { Left  = ⊤
+  ; right = f
+  })
+
+-- Wedges.
+
+Wedge : Pointed-type a → Pointed-type b → Set (a ⊔ b)
+Wedge (A , a) (B , b) =
+  Pushout (record
+    { Middle = ⊤
+    ; left   = const a
+    ; right  = const b
+    })
+
+-- Smash products.
+
+Smash-product : Pointed-type a → Pointed-type b → Set (a ⊔ b)
+Smash-product PA@(A , a) PB@(B , b) = Cone f
+  where
+  f : Wedge PA PB → A × B
+  f = rec (_, b) (a ,_) (λ _ → refl _)
+
+-- Suspensions.
+
+Susp : Set a → Set a
+Susp A = Pushout (record
+  { Left   = ⊤
+  ; Middle = A
+  ; Right  = ⊤
+  })
+
+-- These suspensions are equivalent to the ones defined in Suspension.
+
+Susp≃Susp : Susp A ≃ S.Susp A
+Susp≃Susp = Eq.↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  })
+  where
+  to : Susp A → S.Susp A
+  to = recᴾ (λ _ → S.north) (λ _ → S.south) S.meridianᴾ
+
+  from : S.Susp A → Susp A
+  from = S.recᴾ (inl _) (inr _) glueᴾ
+
+  to∘from : ∀ x → to (from x) ≡ x
+  to∘from =
+    _↔_.from ≡↔≡ ∘
+    S.elimᴾ _ P.refl P.refl (λ a i _ → S.meridianᴾ a i)
+
+  from∘to : ∀ x → from (to x) ≡ x
+  from∘to =
+    _↔_.from ≡↔≡ ∘
+    elimᴾ _ (λ _ → P.refl) (λ _ → P.refl) (λ a i _ → glueᴾ a i)
