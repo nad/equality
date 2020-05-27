@@ -158,14 +158,14 @@ module Transitivity-commutative
               (Trans Refl (Sym (Lift ri)))
               (refl _)
 
--- In particular, groupoid (proj₁ $ Ω[ n ] X) is commutative for n
--- greater than or equal to 2.
+-- In particular, transitivity is commutative for proofs in
+-- proj₁ (Ω[ 2 + n ] X).
 
 Ω[2+n]-commutative :
-  ∀ {x} {X : Pointed-type x} {n} →
-  let open Groupoid (groupoid (proj₁ $ Ω[ 2 + n ] X)) in
-  ∀ p q → p ∘ q ≡ q ∘ p
-Ω[2+n]-commutative {X = X} {n} p q =
+  ∀ {x} {X : Pointed-type x} n →
+  (p q : proj₁ (Ω[ 2 + n ] X)) → trans p q ≡ trans q p
+Ω[2+n]-commutative {X = X} n p q =
   Transitivity-commutative.commutative
-    id _∘_ left-identity right-identity p q
-  where open Groupoid (groupoid (proj₁ $ Ω[ 1 + n ] X))
+    id _∘_ left-identity right-identity q p
+  where
+  open Groupoid (groupoid (proj₁ (Ω[ n ] X)))
