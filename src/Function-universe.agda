@@ -2158,7 +2158,7 @@ private
        ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ =
   helper k₂ ext (B₁↝B₂′ k₁ A₁↔A₂ B₁↝B₂)
   where
-  -- The first six clauses are included as optimisations intended to
+  -- The first four clauses are included as optimisations intended to
   -- make some proof terms easier to work with. These clauses cover
   -- every possible use of B₁↝B₂′ in the expression above.
 
