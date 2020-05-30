@@ -6,32 +6,32 @@
 
 open import Equality
 
-module Erased {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+module Erased {c⁺} (eq-J : ∀ {a p} → Equality-with-J a p c⁺) where
 
-open Derived-definitions-and-properties eq
+open Derived-definitions-and-properties eq-J
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding ([_,_])
 
-open import Bijection eq as Bijection using (_↔_; Has-quasi-inverse)
-open import Embedding eq as Emb using (Embedding; Is-embedding)
-open import Equivalence eq as Eq using (_≃_; Is-equivalence)
-open import Function-universe eq as F hiding (id; _∘_)
-open import H-level eq as H-level
-open import H-level.Closure eq
-open import Injection eq using (_↣_; Injective)
-open import Monad eq hiding (map; map-id; map-∘)
-open import Preimage eq using (_⁻¹_)
-open import Surjection eq using (_↠_; Split-surjective)
+open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
+open import Embedding eq-J as Emb using (Embedding; Is-embedding)
+open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
+open import Function-universe eq-J as F hiding (id; _∘_)
+open import H-level eq-J as H-level
+open import H-level.Closure eq-J
+open import Injection eq-J using (_↣_; Injective)
+open import Monad eq-J hiding (map; map-id; map-∘)
+open import Preimage eq-J using (_⁻¹_)
+open import Surjection eq-J using (_↠_; Split-surjective)
 
 private
   variable
-    a b c ℓ    : Level
-    A B        : Set a
-    k k′ p x y : A
-    P          : A → Set p
-    f g        : A → B
-    n          : ℕ
+    a b c ℓ       : Level
+    A B           : Set a
+    eq k k′ p x y : A
+    P             : A → Set p
+    f g           : A → B
+    n             : ℕ
 
 ------------------------------------------------------------------------
 -- The type
@@ -833,6 +833,48 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
     sym $ _↔_.to (from≡↔≡to $ Eq.↔⇒≃ Erased-≡↔[]≡[]) (
       []-cong⁻¹ (refl [ x ])  ≡⟨ []-cong⁻¹-refl ⟩∎
       [ refl x ]              ∎)
+
+  -- In an erased context there is an equivalence between equality of
+  -- values and equality of "boxed" values.
+
+  @0 ≡≃[]≡[] : (x ≡ y) ≃ ([ x ] ≡ [ y ])
+  ≡≃[]≡[] = Eq.↔⇒≃ (record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = []-cong ∘ [_]→
+        ; from = cong erased
+        }
+      ; right-inverse-of = λ eq →
+          []-cong [ cong erased eq ]  ≡⟨ []-cong-[]≡cong-[] ⟩
+          cong [_]→ (cong erased eq)  ≡⟨ cong-∘ _ _ _ ⟩
+          cong id eq                  ≡⟨ sym $ cong-id _ ⟩∎
+          eq                          ∎
+      }
+    ; left-inverse-of = λ eq →
+        cong erased ([]-cong [ eq ])  ≡⟨ cong (cong erased) []-cong-[]≡cong-[] ⟩
+        cong erased (cong [_]→ eq)    ≡⟨ cong-∘ _ _ _ ⟩
+        cong id eq                    ≡⟨ sym $ cong-id _ ⟩∎
+        eq                            ∎
+    })
+
+  -- The left-to-right and right-to-left directions of the equivalence
+  -- are definitionally equal to certain functions.
+
+  _ : _≃_.to (≡≃[]≡[] {x = x} {y = y}) ≡ []-cong ∘ [_]→
+  _ = refl _
+
+  @0 _ : _≃_.from (≡≃[]≡[] {x = x} {y = y}) ≡ cong erased
+  _ = refl _
+
+  -- Another rearrangement lemma.
+
+  @0 subst-[]-cong-[] :
+    subst (λ ([ x ]) → P x) ([]-cong [ eq ]) p ≡
+    subst (λ x → P x) eq p
+  subst-[]-cong-[] {P = P} {eq = eq} {p = p} =
+    subst (λ ([ x ]) → P x) ([]-cong [ eq ]) p          ≡⟨ subst-∘ _ _ _ ⟩
+    subst (λ x → P x) (cong erased ([]-cong [ eq ])) p  ≡⟨ cong (λ eq → subst (λ x → P x) eq p) $ _≃_.left-inverse-of ≡≃[]≡[] _ ⟩∎
+    subst (λ x → P x) eq p                              ∎
 
   -- The function map (cong f) can be expressed in terms of
   -- cong (map f) (up to pointwise equality).
