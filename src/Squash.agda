@@ -20,6 +20,7 @@ open import Embedding equality-with-J using (Embedding; Is-embedding)
 open import Equality.Decision-procedures equality-with-J
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
+open import Equivalence.Erased equality-with-J using (_≃ᴱ_)
 open import For-iterated-equality equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J as H-level
@@ -136,6 +137,10 @@ private
   Squash-cong-≃ : A ≃ B → Squash A ≃ Squash B
   Squash-cong-≃ = Squash-cong-⇔ ∘ _≃_.logical-equivalence
 
+  Squash-cong-≃ᴱ : A ≃ᴱ B → Squash A ≃ᴱ Squash B
+  Squash-cong-≃ᴱ =
+    from-isomorphism ∘ Squash-cong-⇔ ∘ _≃ᴱ_.logical-equivalence
+
   Squash-cong-↣ : A ↣ B → Squash A ↣ Squash B
   Squash-cong-↣ A↣B = record
     { to        = Squash-cong-→ (_↣_.to A↣B)
@@ -161,6 +166,7 @@ Squash-cong {k = embedding}           = Squash-cong-Embedding
 Squash-cong {k = surjection}          = from-isomorphism ∘ Squash-cong-↠
 Squash-cong {k = bijection}           = Squash-cong-↔
 Squash-cong {k = equivalence}         = Squash-cong-≃
+Squash-cong {k = equivalenceᴱ}        = Squash-cong-≃ᴱ
 
 ------------------------------------------------------------------------
 -- Some isomorphisms

@@ -15,6 +15,7 @@ open import Embedding eq as Emb using (Is-embedding; Embedding)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; module _≃_; Is-equivalence)
+open import Equivalence.Erased.Basics eq as EEq using (_≃ᴱ_)
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
@@ -28,7 +29,8 @@ open import Surjection eq as Surjection using (_↠_; Split-surjective)
 -- The universe
 
 -- The universe includes implications, logical equivalences,
--- injections, embeddings, surjections, bijections and equivalences.
+-- injections, embeddings, surjections, bijections, equivalences, and
+-- equivalences with erased proofs.
 
 data Kind : Set where
   implication
@@ -37,7 +39,8 @@ data Kind : Set where
     embedding
     surjection
     bijection
-    equivalence : Kind
+    equivalence
+    equivalenceᴱ : Kind
 
 -- The interpretation of the universe.
 
@@ -51,6 +54,7 @@ A ↝[ embedding           ] B = Embedding A B
 A ↝[ surjection          ] B = A ↠ B
 A ↝[ bijection           ] B = A ↔ B
 A ↝[ equivalence         ] B = A ≃ B
+A ↝[ equivalenceᴱ        ] B = A ≃ᴱ B
 
 -- Equivalences can be converted to all kinds of functions.
 
@@ -68,6 +72,7 @@ from-equivalence {embedding}           = λ f → record
 from-equivalence {surjection}          = _≃_.surjection
 from-equivalence {bijection}           = _≃_.bijection
 from-equivalence {equivalence}         = P.id
+from-equivalence {equivalenceᴱ}        = EEq.≃→≃ᴱ
 
 -- Bijections can be converted to all kinds of functions.
 
@@ -80,6 +85,7 @@ from-bijection {embedding}           = from-equivalence ⊚ Eq.↔⇒≃
 from-bijection {surjection}          = _↔_.surjection
 from-bijection {bijection}           = P.id
 from-bijection {equivalence}         = Eq.↔⇒≃
+from-bijection {equivalenceᴱ}        = EEq.≃→≃ᴱ ⊚ Eq.↔⇒≃
 
 -- All kinds of functions can be converted to implications.
 
@@ -92,23 +98,27 @@ to-implication {embedding}           = Embedding.to
 to-implication {surjection}          = _↠_.to
 to-implication {bijection}           = _↔_.to
 to-implication {equivalence}         = _≃_.to
+to-implication {equivalenceᴱ}        = _≃ᴱ_.to
 
 ------------------------------------------------------------------------
 -- A sub-universe of symmetric kinds of functions
 
 data Symmetric-kind : Set where
-  logical-equivalence bijection equivalence : Symmetric-kind
+  logical-equivalence bijection equivalence equivalenceᴱ :
+    Symmetric-kind
 
 ⌊_⌋-sym : Symmetric-kind → Kind
 ⌊ logical-equivalence ⌋-sym = logical-equivalence
 ⌊ bijection           ⌋-sym = bijection
 ⌊ equivalence         ⌋-sym = equivalence
+⌊ equivalenceᴱ        ⌋-sym = equivalenceᴱ
 
 inverse : ∀ {k a b} {A : Set a} {B : Set b} →
           A ↝[ ⌊ k ⌋-sym ] B → B ↝[ ⌊ k ⌋-sym ] A
 inverse {logical-equivalence} = Logical-equivalence.inverse
 inverse {bijection}           = Bijection.inverse
 inverse {equivalence}         = Eq.inverse
+inverse {equivalenceᴱ}        = EEq.inverse
 
 ------------------------------------------------------------------------
 -- A sub-universe of isomorphisms
@@ -149,6 +159,7 @@ to-implication∘from-isomorphism {A = A} {B} = t∘f
   t∘f bijection   surjection          = refl _
   t∘f bijection   bijection           = refl _
   t∘f bijection   equivalence         = refl _
+  t∘f bijection   equivalenceᴱ        = refl _
   t∘f equivalence implication         = refl _
   t∘f equivalence logical-equivalence = refl _
   t∘f equivalence injection           = refl _
@@ -156,6 +167,7 @@ to-implication∘from-isomorphism {A = A} {B} = t∘f
   t∘f equivalence surjection          = refl _
   t∘f equivalence bijection           = refl _
   t∘f equivalence equivalence         = refl _
+  t∘f equivalence equivalenceᴱ        = refl _
 
 ------------------------------------------------------------------------
 -- Preorder
@@ -175,6 +187,7 @@ _∘_ {embedding}           = Emb._∘_
 _∘_ {surjection}          = Surjection._∘_
 _∘_ {bijection}           = Bijection._∘_
 _∘_ {equivalence}         = Eq._∘_
+_∘_ {equivalenceᴱ}        = EEq._∘_
 
 -- Identity.
 
@@ -186,6 +199,7 @@ id {embedding}           = Emb.id
 id {surjection}          = Surjection.id
 id {bijection}           = Bijection.id
 id {equivalence}         = Eq.id
+id {equivalenceᴱ}        = EEq.id
 
 -- "Equational" reasoning combinators.
 
@@ -244,6 +258,7 @@ to-implication-id embedding           = refl _
 to-implication-id surjection          = refl _
 to-implication-id bijection           = refl _
 to-implication-id equivalence         = refl _
+to-implication-id equivalenceᴱ        = refl _
 
 -- Lemma: to-implication is homomorphic with respect to _∘_.
 
@@ -258,6 +273,7 @@ to-implication-∘ embedding           = refl _
 to-implication-∘ surjection          = refl _
 to-implication-∘ bijection           = refl _
 to-implication-∘ equivalence         = refl _
+to-implication-∘ equivalenceᴱ        = refl _
 
 -- Lemma: to-implication maps inverse id to the identity function.
 
@@ -267,6 +283,7 @@ to-implication-inverse-id :
 to-implication-inverse-id logical-equivalence = refl _
 to-implication-inverse-id bijection           = refl _
 to-implication-inverse-id equivalence         = refl _
+to-implication-inverse-id equivalenceᴱ        = refl _
 
 ------------------------------------------------------------------------
 -- Conditional extensionality
@@ -288,15 +305,16 @@ data Without-extensionality : Set where
 -- Kinds for which extensionality is provided.
 
 data With-extensionality : Set where
-  injection embedding surjection bijection equivalence :
+  injection embedding surjection bijection equivalence equivalenceᴱ :
     With-extensionality
 
 ⌊_⌋-with : With-extensionality → Kind
-⌊ injection   ⌋-with = injection
-⌊ embedding   ⌋-with = embedding
-⌊ surjection  ⌋-with = surjection
-⌊ bijection   ⌋-with = bijection
-⌊ equivalence ⌋-with = equivalence
+⌊ injection    ⌋-with = injection
+⌊ embedding    ⌋-with = embedding
+⌊ surjection   ⌋-with = surjection
+⌊ bijection    ⌋-with = bijection
+⌊ equivalence  ⌋-with = equivalence
+⌊ equivalenceᴱ ⌋-with = equivalenceᴱ
 
 -- Kinds annotated with information about whether extensionality is
 -- provided or not.
@@ -318,6 +336,7 @@ extensionality? embedding           = with-extensionality embedding
 extensionality? surjection          = with-extensionality surjection
 extensionality? bijection           = with-extensionality bijection
 extensionality? equivalence         = with-extensionality equivalence
+extensionality? equivalenceᴱ        = with-extensionality equivalenceᴱ
 
 -- Extensionality, but only for certain kinds of functions.
 
@@ -637,6 +656,21 @@ private
         ]
     }
 
+  ⊎-cong-≃ :
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : Set b₁} {B₂ : Set b₂} →
+    A₁ ≃ A₂ → B₁ ≃ B₂ → (A₁ ⊎ B₁) ≃ (A₂ ⊎ B₂)
+  ⊎-cong-≃ A₁≃A₂ B₁≃B₂ =
+    from-bijection $ ⊎-cong-bij (from-equivalence A₁≃A₂)
+                                (from-equivalence B₁≃B₂)
+
+  ⊎-cong-≃ᴱ :
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : Set b₁} {B₂ : Set b₂} →
+    A₁ ≃ᴱ A₂ → B₁ ≃ᴱ B₂ → (A₁ ⊎ B₁) ≃ᴱ (A₂ ⊎ B₂)
+  ⊎-cong-≃ᴱ f g =
+    EEq.[≃]→≃ᴱ (EEq.[proofs] (⊎-cong-≃ (EEq.≃ᴱ→≃ f) (EEq.≃ᴱ→≃ g)))
+
 infixr 1 _⊎-cong_
 
 _⊎-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
@@ -648,9 +682,8 @@ _⊎-cong_ {injection}           = ⊎-cong-inj
 _⊎-cong_ {embedding}           = ⊎-cong-emb
 _⊎-cong_ {surjection}          = ⊎-cong-surj
 _⊎-cong_ {bijection}           = ⊎-cong-bij
-_⊎-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
-  from-bijection $ ⊎-cong-bij (from-equivalence A₁≃A₂)
-                              (from-equivalence B₁≃B₂)
+_⊎-cong_ {equivalence}         = ⊎-cong-≃
+_⊎-cong_ {equivalenceᴱ}        = ⊎-cong-≃ᴱ
 
 -- _⊎_ is commutative.
 
@@ -900,6 +933,21 @@ private
                   (_↔_.left-inverse-of B₁↔B₂ y)
     }
 
+  ×-cong-≃ :
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : Set b₁} {B₂ : Set b₂} →
+    A₁ ≃ A₂ → B₁ ≃ B₂ → (A₁ × B₁) ≃ (A₂ × B₂)
+  ×-cong-≃ A₁≃A₂ B₁≃B₂ =
+    from-bijection $ ×-cong-bij (from-equivalence A₁≃A₂)
+                                (from-equivalence B₁≃B₂)
+
+  ×-cong-≃ᴱ :
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : Set b₁} {B₂ : Set b₂} →
+    A₁ ≃ᴱ A₂ → B₁ ≃ᴱ B₂ → (A₁ × B₁) ≃ᴱ (A₂ × B₂)
+  ×-cong-≃ᴱ f g =
+    EEq.[≃]→≃ᴱ (EEq.[proofs] (×-cong-≃ (EEq.≃ᴱ→≃ f) (EEq.≃ᴱ→≃ g)))
+
 infixr 2 _×-cong_
 
 _×-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
@@ -913,9 +961,8 @@ _×-cong_ {embedding}           = λ A₁↣A₂ B₁↣B₂ →
                                      A₁↣A₂ (λ _ → B₁↣B₂)
 _×-cong_ {surjection}          = ×-cong-surj
 _×-cong_ {bijection}           = ×-cong-bij
-_×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
-  from-bijection $ ×-cong-bij (from-equivalence A₁≃A₂)
-                              (from-equivalence B₁≃B₂)
+_×-cong_ {equivalence}         = ×-cong-≃
+_×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 
 -- _×_ is commutative.
 
@@ -1029,6 +1076,13 @@ _×-cong_ {equivalence}         = λ A₁≃A₂ B₁≃B₂ →
 Σ-cong {bijection}   {bijection}           = Eq.∃-preserves-bijections ⊚ from-isomorphism
 Σ-cong {equivalence} {equivalence}         = Eq.Σ-preserves
 Σ-cong {bijection}   {equivalence}         = Eq.Σ-preserves            ⊚ from-isomorphism
+Σ-cong {equivalence} {equivalenceᴱ}        = λ f g → EEq.[≃]→≃ᴱ
+                                                       (EEq.[proofs]
+                                                          (Eq.Σ-preserves f (EEq.≃ᴱ→≃ ⊚ g)))
+Σ-cong {bijection}   {equivalenceᴱ}        = λ f g → EEq.[≃]→≃ᴱ
+                                                       (EEq.[proofs]
+                                                          (Eq.Σ-preserves (from-isomorphism f)
+                                                             (EEq.≃ᴱ→≃ ⊚ g)))
 
 -- A variant of Σ-cong.
 
@@ -1112,6 +1166,19 @@ private
         cong (_,_ x) (_↔_.left-inverse-of (B₁↔B₂ x) y)
     }
 
+  ∃-cong-≃ :
+    ∀ {a b₁ b₂}
+      {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    (∀ x → B₁ x ≃ B₂ x) → ∃ B₁ ≃ ∃ B₂
+  ∃-cong-≃ B₁≃B₂ =
+    from-bijection $ ∃-cong-bij (from-equivalence ⊚ B₁≃B₂)
+
+  ∃-cong-≃ᴱ :
+    ∀ {a b₁ b₂}
+      {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    (∀ x → B₁ x ≃ᴱ B₂ x) → ∃ B₁ ≃ᴱ ∃ B₂
+  ∃-cong-≃ᴱ f = EEq.[≃]→≃ᴱ (EEq.[proofs] (∃-cong-≃ (EEq.≃ᴱ→≃ ⊚ f)))
+
 ∃-cong : ∀ {k a b₁ b₂}
            {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
          (∀ x → B₁ x ↝[ k ] B₂ x) → ∃ B₁ ↝[ k ] ∃ B₂
@@ -1121,8 +1188,8 @@ private
 ∃-cong {embedding}           = Σ-preserves-embeddings Emb.id
 ∃-cong {surjection}          = ∃-cong-surj
 ∃-cong {bijection}           = ∃-cong-bij
-∃-cong {equivalence}         = λ B₁≃B₂ →
-  from-bijection $ ∃-cong-bij (from-equivalence ⊚ B₁≃B₂)
+∃-cong {equivalence}         = ∃-cong-≃
+∃-cong {equivalenceᴱ}        = ∃-cong-≃ᴱ
 
 private
 
@@ -1577,7 +1644,7 @@ private
 
 private
 
-  -- A lemma used in the implementation of →-cong.
+  -- Lemmas used in the implementation of →-cong.
 
   →-cong-↔ : ∀ {a b c d}
                {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
@@ -1602,6 +1669,39 @@ private
         f (from A↔B (to A↔B x))                      ≡⟨ cong f $ left-inverse-of A↔B _ ⟩∎
         f x                                          ∎
 
+  →-cong-≃ :
+    ∀ {a b c d}
+      {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+    Extensionality (a ⊔ b) (c ⊔ d) →
+    A ≃ B → C ≃ D → (A → C) ≃ (B → D)
+  →-cong-≃ ext A≃B C≃D = record
+    { to             = to
+    ; is-equivalence = λ y →
+        ((from y , right-inverse-of y) , irrelevance y)
+    }
+    where
+    A→B≃C→D =
+      Eq.↔⇒≃ (→-cong-↔ ext (_≃_.bijection A≃B) (_≃_.bijection C≃D))
+
+    to   = _≃_.to   A→B≃C→D
+    from = _≃_.from A→B≃C→D
+
+    abstract
+      right-inverse-of : ∀ x → to (from x) ≡ x
+      right-inverse-of = _≃_.right-inverse-of A→B≃C→D
+
+      irrelevance : ∀ y (p : to ⁻¹ y) →
+                    (from y , right-inverse-of y) ≡ p
+      irrelevance = _≃_.irrelevance A→B≃C→D
+
+  →-cong-≃ᴱ :
+    ∀ {a b c d}
+      {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+    Extensionality (a ⊔ b) (c ⊔ d) →
+    A ≃ᴱ B → C ≃ᴱ D → (A → C) ≃ᴱ (B → D)
+  →-cong-≃ᴱ ext f g =
+    EEq.[≃]→≃ᴱ (EEq.[proofs] (→-cong-≃ ext (EEq.≃ᴱ→≃ f) (EEq.≃ᴱ→≃ g)))
+
 -- The non-dependent function space preserves symmetric kinds of
 -- functions (in some cases assuming extensionality).
 
@@ -1610,27 +1710,10 @@ private
          {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
          A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
          (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
-→-cong {logical-equivalence} _   A⇔B C⇔D = →-cong-⇔ A⇔B C⇔D
-→-cong {bijection}           ext A↔B C↔D = →-cong-↔ ext A↔B C↔D
-→-cong {equivalence}         ext A≃B C≃D = record
-  { to             = to
-  ; is-equivalence = λ y →
-      ((from y , right-inverse-of y) , irrelevance y)
-  }
-  where
-  A→B≃C→D =
-    Eq.↔⇒≃ (→-cong-↔ ext (_≃_.bijection A≃B) (_≃_.bijection C≃D))
-
-  to   = _≃_.to   A→B≃C→D
-  from = _≃_.from A→B≃C→D
-
-  abstract
-    right-inverse-of : ∀ x → to (from x) ≡ x
-    right-inverse-of = _≃_.right-inverse-of A→B≃C→D
-
-    irrelevance : ∀ y (p : to ⁻¹ y) →
-                  (from y , right-inverse-of y) ≡ p
-    irrelevance = _≃_.irrelevance A→B≃C→D
+→-cong {logical-equivalence} _   = →-cong-⇔
+→-cong {bijection}           ext = →-cong-↔  ext
+→-cong {equivalence}         ext = →-cong-≃  ext
+→-cong {equivalenceᴱ}        ext = →-cong-≃ᴱ ext
 
 -- A variant of →-cong.
 
@@ -1709,6 +1792,15 @@ private
     (∀ x → B₁ x ≃ B₂ x) →
     ((x : A) → B₁ x) ≃ ((x : A) → B₂ x)
   ∀-cong-eq ext = Eq.↔⇒≃ ⊚ ∀-cong-bij ext ⊚ (_≃_.bijection ⊚_)
+
+  ∀-cong-eqᴱ :
+    ∀ {a b₁ b₂} →
+    Extensionality a (b₁ ⊔ b₂) →
+    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    (∀ x → B₁ x ≃ᴱ B₂ x) →
+    ((x : A) → B₁ x) ≃ᴱ ((x : A) → B₂ x)
+  ∀-cong-eqᴱ ext f =
+    EEq.[≃]→≃ᴱ (EEq.[proofs] (∀-cong-eq ext (EEq.≃ᴱ→≃ ⊚ f)))
 
   ∀-cong-inj :
     ∀ {a b₁ b₂} →
@@ -1798,6 +1890,7 @@ private
 ∀-cong {surjection}          = ∀-cong-surj
 ∀-cong {bijection}           = ∀-cong-bij
 ∀-cong {equivalence}         = ∀-cong-eq
+∀-cong {equivalenceᴱ}        = ∀-cong-eqᴱ
 
 -- The implicit variant of Π preserves all kinds of functions in its
 -- second argument (in some cases assuming extensionality).
@@ -2039,6 +2132,17 @@ private
   Π-cong-≃ ext A₁≃A₂ =
     from-isomorphism ⊚ Π-cong-↔ ext A₁≃A₂ ⊚ (from-isomorphism ⊚_)
 
+  Π-cong-≃ᴱ :
+    ∀ {a₁ a₂ b₁ b₂} →
+    Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    (A₁≃A₂ : A₁ ≃ A₂) →
+    (∀ x → B₁ x ≃ᴱ B₂ (_≃_.to A₁≃A₂ x)) →
+    ((x : A₁) → B₁ x) ≃ᴱ ((x : A₂) → B₂ x)
+  Π-cong-≃ᴱ ext f g =
+    EEq.[≃]→≃ᴱ (EEq.[proofs] (Π-cong-≃ ext f (EEq.≃ᴱ→≃ ⊚ g)))
+
   Π-cong-contra-≃ :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
@@ -2049,6 +2153,17 @@ private
     ((x : A₁) → B₁ x) ≃ ((x : A₂) → B₂ x)
   Π-cong-contra-≃ ext A₂≃A₁ =
     from-isomorphism ⊚ Π-cong-contra-↔ ext A₂≃A₁ ⊚ (from-isomorphism ⊚_)
+
+  Π-cong-contra-≃ᴱ :
+    ∀ {a₁ a₂ b₁ b₂} →
+    Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
+      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    (A₂≃A₁ : A₂ ≃ A₁) →
+    (∀ x → B₁ (_≃_.to A₂≃A₁ x) ≃ᴱ B₂ x) →
+    ((x : A₁) → B₁ x) ≃ᴱ ((x : A₂) → B₂ x)
+  Π-cong-contra-≃ᴱ ext f g =
+    EEq.[≃]→≃ᴱ (EEq.[proofs] (Π-cong-contra-≃ ext f (EEq.≃ᴱ→≃ ⊚ g)))
 
   Π-cong-↣ :
     ∀ {a₁ a₂ b₁ b₂} →
@@ -2194,8 +2309,9 @@ private
   helper injection           ext = Π-cong-↣ (l₂ ext) A₁↝A₂ ⊚ (_$ equivalence)
   helper embedding           ext = Π-cong-Emb ext    A₁↝A₂ ⊚ (_$ equivalence)
   helper surjection          ext = Π-cong-↠ (l₁ ext) A₁↝A₂ ⊚ (_$ surjection)
-  helper bijection           ext = Π-cong-↔ ext      A₁↝A₂ ⊚ (_$ equivalence)
-  helper equivalence         ext = Π-cong-≃ ext      A₁↝A₂ ⊚ (_$ equivalence)
+  helper bijection           ext = Π-cong-↔  ext     A₁↝A₂ ⊚ (_$ equivalence)
+  helper equivalence         ext = Π-cong-≃  ext     A₁↝A₂ ⊚ (_$ equivalence)
+  helper equivalenceᴱ        ext = Π-cong-≃ᴱ ext     A₁↝A₂ ⊚ (_$ equivalence)
 
 -- A variant of Π-cong.
 
@@ -2248,8 +2364,9 @@ private
   helper injection           ext = Π-cong-contra-↣ (l₂ ext) A₂↝A₁ ⊚ (_$ surjection)
   helper embedding           ext = Π-cong-contra-Emb ext    A₂↝A₁ ⊚ (_$ equivalence)
   helper surjection          ext = Π-cong-contra-↠ (l₁ ext) A₂↝A₁ ⊚ (_$ equivalence)
-  helper bijection           ext = Π-cong-contra-↔ ext      A₂↝A₁ ⊚ (_$ equivalence)
-  helper equivalence         ext = Π-cong-contra-≃ ext      A₂↝A₁ ⊚ (_$ equivalence)
+  helper bijection           ext = Π-cong-contra-↔  ext     A₂↝A₁ ⊚ (_$ equivalence)
+  helper equivalence         ext = Π-cong-contra-≃  ext     A₂↝A₁ ⊚ (_$ equivalence)
+  helper equivalenceᴱ        ext = Π-cong-contra-≃ᴱ ext     A₂↝A₁ ⊚ (_$ equivalence)
 
 -- A variant of Π-cong for implicit Πs.
 
@@ -3087,6 +3204,16 @@ private
         ∀ x → _↠_.from surjection′ (_↠_.to surjection′ x) ≡ x
       left-inverse-of′ = cong lift ⊚ left-inverse-of ⊚ lower
 
+  ↑-cong-≃ :
+    ∀ {a b c} {B : Set b} {C : Set c} →
+    B ≃ C → ↑ a B ≃ ↑ a C
+  ↑-cong-≃ = from-bijection ∘ ↑-cong-↔ ∘ from-equivalence
+
+  ↑-cong-≃ᴱ :
+    ∀ {a b c} {B : Set b} {C : Set c} →
+    B ≃ᴱ C → ↑ a B ≃ᴱ ↑ a C
+  ↑-cong-≃ᴱ f = EEq.[≃]→≃ᴱ (EEq.[proofs] (↑-cong-≃ (EEq.≃ᴱ→≃ f)))
+
 ↑-cong : ∀ {k a b c} {B : Set b} {C : Set c} →
            B ↝[ k ] C → ↑ a B ↝[ k ] ↑ a C
 ↑-cong {implication}         = ↑-cong-→
@@ -3095,8 +3222,8 @@ private
 ↑-cong {embedding}           = ↑-cong-Embedding
 ↑-cong {surjection}          = ↑-cong-↠
 ↑-cong {bijection}           = ↑-cong-↔
-↑-cong {equivalence}         =
-  from-bijection ∘ ↑-cong-↔ ∘ from-equivalence
+↑-cong {equivalence}         = ↑-cong-≃
+↑-cong {equivalenceᴱ}        = ↑-cong-≃ᴱ
 
 ------------------------------------------------------------------------
 -- A lemma related to ⊤

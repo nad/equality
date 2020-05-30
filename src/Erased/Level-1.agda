@@ -5,6 +5,8 @@
 -- Most of the definitions in this module are reexported, in one way
 -- or another, from Erased.
 
+-- This module imports Function-universe, but not Equivalence.Erased.
+
 {-# OPTIONS --without-K --safe #-}
 
 open import Equality

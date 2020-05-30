@@ -241,6 +241,7 @@ module Kind where
              ; injection           to subbag
              ; bijection           to bag
              ; equivalence         to bag-with-equivalence
+             ; equivalenceᴱ        to bag-with-equivalenceᴱ
              )
 
 open Kind public

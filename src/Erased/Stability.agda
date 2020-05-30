@@ -20,7 +20,7 @@ open import Embedding eq using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
-open import Erased eq
+open import Equivalence.Erased eq as EEq using (_≃ᴱ_)
 open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
@@ -1553,6 +1553,25 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       Erased-cong f F.∘ Erased-cong g
     Erased-cong-≃-∘ ext _ _ = Eq.lift-equality ext (refl _)
 
+    -- Erased is functorial for equivalences with erased proofs
+    -- (assuming extensionality).
+
+    Erased-cong-≃ᴱ-id :
+      {@0 A : Set a} →
+      Extensionality a a →
+      Erased-cong {k = equivalenceᴱ} F.id ≡ F.id {A = Erased A}
+    Erased-cong-≃ᴱ-id ext =
+      EEq.[]-cong.to≡to→≡-Erased ax ext (refl _)
+
+    Erased-cong-≃ᴱ-∘ :
+      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      Extensionality (a ⊔ c) (a ⊔ c) →
+      (@0 f : B ≃ᴱ C) (@0 g : A ≃ᴱ B) →
+      Erased-cong {k = equivalenceᴱ} (f F.∘ g) ≡
+      Erased-cong f F.∘ Erased-cong g
+    Erased-cong-≃ᴱ-∘ ext _ _ =
+      EEq.[]-cong.to≡to→≡-Erased ax ext (refl _)
+
     -- Erased is functorial for embeddings (assuming extensionality).
 
     Erased-cong-Embedding-id :
@@ -1771,6 +1790,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   Erased-cong-id {k = surjection}          = Erased-cong-↠-id
   Erased-cong-id {k = bijection}           = Erased-cong-↔-id
   Erased-cong-id {k = equivalence}         = Erased-cong-≃-id
+  Erased-cong-id {k = equivalenceᴱ}        = Erased-cong-≃ᴱ-id
 
   Erased-cong-∘ :
     {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
@@ -1786,6 +1806,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                                         (lower-extensionality a lzero ext)
   Erased-cong-∘         {k = bijection}           = Erased-cong-↔-∘
   Erased-cong-∘         {k = equivalence}         = Erased-cong-≃-∘
+  Erased-cong-∘         {k = equivalenceᴱ}        = Erased-cong-≃ᴱ-∘
 
   ----------------------------------------------------------------------
   -- Erased singletons

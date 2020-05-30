@@ -797,6 +797,10 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
       subst (const B) (refl _) (f [ x ])  ≡⟨ subst-refl _ _ ⟩∎
       f [ x ]                             ∎
 
+    lemma equivalenceᴱ _ x =
+      subst (const B) (refl _) (f [ x ])  ≡⟨ subst-refl _ _ ⟩∎
+      f [ x ]                             ∎
+
   -- Recursor (used to eliminate into sets). The recursor uses
   -- extensionality and reflexivity.
 

@@ -375,6 +375,8 @@ Position-shape-cong-relates {bag} xs ys xs≈ys p =
 
 Position-shape-cong-relates {bag-with-equivalence} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
+Position-shape-cong-relates {bag-with-equivalenceᴱ} xs ys xs≈ys p =
+  proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
 Position-shape-cong-relates {subbag} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
 Position-shape-cong-relates {set} xs ys xs≈ys p =

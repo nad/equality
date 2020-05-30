@@ -4,6 +4,8 @@
 
 -- The definitions in this module are reexported from Erased.
 
+-- This module imports Equivalence.Erased.
+
 {-# OPTIONS --without-K --safe #-}
 
 open import Equality
@@ -25,6 +27,8 @@ open import Prelude hiding ([_,_])
 open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq-J as Emb using (Embedding; Is-embedding)
 open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
+open import Equivalence.Erased eq-J as EEq
+  using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
 open import H-level.Closure eq-J
@@ -34,6 +38,8 @@ open import Preimage eq-J using (_⁻¹_)
 open import Surjection eq-J using (_↠_; Split-surjective)
 
 private
+
+  module EEq′ = EEq.[]-cong ax
 
   variable
     a b c ℓ       : Level
@@ -151,6 +157,14 @@ Erased-↝↝↝ {k = equivalence} {A = A} {B = B} ext =
   (∃ λ (f : Erased A → Erased B) → Is-equivalence f)               ↔⟨ inverse Eq.≃-as-Σ ⟩□
   Erased A ≃ Erased B                                              □
 
+Erased-↝↝↝ {k = equivalenceᴱ} {A = A} {B = B} ext =
+  Erased (A ≃ᴱ B)                                                   ↔⟨ Erased-cong-≃ EEq.≃ᴱ-as-Σ ⟩
+  Erased (∃ λ (f : A → B) → Is-equivalenceᴱ f)                      ↔⟨ Erased-Σ↔Σ ⟩
+  (∃ λ (f : Erased (A → B)) → Erased (Is-equivalenceᴱ (erased f)))  ↝⟨ (Σ-cong Erased-Π↔Π-Erased λ _ →
+                                                                        EEq′.Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ ext) ⟩
+  (∃ λ (f : Erased A → Erased B) → Is-equivalenceᴱ f)               ↔⟨ inverse EEq.≃ᴱ-as-Σ ⟩□
+  Erased A ≃ᴱ Erased B                                              □
+
 -- Erased commutes with all kinds of functions (in some cases
 -- assuming extensionality).
 
@@ -223,6 +237,14 @@ to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = surj
 to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = bijection}           _   _ = refl _
 to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = equivalence}         _   _ = refl _
 to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = equivalenceᴱ}        _   _ = refl _
+to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = implication}         ext _ = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
+to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = logical-equivalence} ext _ = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
+to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = injection}           ext _ = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
+to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = embedding}           ext _ = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
+to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = surjection}          ext _ = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
+to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = bijection}           ext _ = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
+to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = equivalence}         ext _ = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
+to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = equivalenceᴱ}        ext _ = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
 to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = embedding} {k′ = implication}         ext _ = apply-ext ext λ _ → _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _
 to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = embedding} {k′ = logical-equivalence} ext _ = apply-ext ext λ _ → _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _
 to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = embedding} {k′ = injection}           ext _ = apply-ext ext λ _ → _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _

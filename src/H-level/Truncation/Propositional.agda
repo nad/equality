@@ -26,6 +26,7 @@ open import Embedding equality-with-J as Embedding hiding (id; _∘_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq hiding (id; _∘_; inverse)
+open import Equivalence.Erased equality-with-J using (_≃ᴱ_)
 open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
@@ -158,6 +159,7 @@ private
 ∥∥-cong {k = surjection}          = ∥∥-cong-⇔ ∘ _↠_.logical-equivalence
 ∥∥-cong {k = bijection}           = ∥∥-cong-⇔ ∘ from-isomorphism
 ∥∥-cong {k = equivalence}         = ∥∥-cong-⇔ ∘ from-isomorphism
+∥∥-cong {k = equivalenceᴱ}        = ∥∥-cong-⇔ ∘ _≃ᴱ_.logical-equivalence
 ∥∥-cong {k = injection}           = ∥∥-cong-↣
 ∥∥-cong {k = embedding}           =
   _↔_.to (↣↔Embedding ext
