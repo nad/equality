@@ -2,8 +2,7 @@
 -- Some theory of Erased, developed using Cubical Agda
 ------------------------------------------------------------------------
 
--- This module instantiates and reexports code from Erased and
--- Erased.Stability.
+-- This module instantiates and reexports code from Erased.
 
 {-# OPTIONS --cubical --safe #-}
 
@@ -23,22 +22,13 @@ open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
 open import Equivalence-relation equality-with-J
+import Erased.Basics equality-with-J as EB
+import Erased.Level-1 equality-with-J as E₁
 open import Function-universe equality-with-J as F
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)
 open import Quotient eq as Quotient hiding ([_])
 open import Surjection equality-with-J as Surjection using (_↠_)
-
--- Some definitions from Erased are reexported.
-
-open import Erased equality-with-J as Erased public
-  hiding (module []-cong₁; module []-cong₂; module []-cong₃;
-          Π-Erased↔Π0[])
-
--- Some definitions from Erased.Stability are reexported.
-
-open import Erased.Stability equality-with-J as Stability public
-  hiding (module []-cong)
 
 private
   variable
@@ -47,7 +37,6 @@ private
     R     : A → A → Set r
     x y   : A
     A↠B   : A ↠ B
-    s     : Very-stable-≡ A
 
 ------------------------------------------------------------------------
 -- []-cong
@@ -57,8 +46,8 @@ private
 
 []-cong-Path :
   {@0 A : Set a} {@0 x y : A} →
-  Erased (x P.≡ y) → [ x ] P.≡ [ y ]
-[]-cong-Path [ eq ] = λ i → [ eq i ]
+  EB.Erased (x P.≡ y) → EB.[ x ] P.≡ EB.[ y ]
+[]-cong-Path EB.[ eq ] = λ i → EB.[ eq i ]
 
 -- []-cong-Path is an equivalence.
 
@@ -69,7 +58,7 @@ private
   _≃_.is-equivalence $ Eq.↔⇒≃ (record
     { surjection = record
       { logical-equivalence = record
-        { from = λ eq → [ P.cong erased eq ]
+        { from = λ eq → EB.[ P.cong EB.erased eq ]
         }
       ; right-inverse-of = λ _ → refl _
       }
@@ -80,19 +69,19 @@ private
 
 []-cong-Path-[refl] :
   {@0 A : Set a} {@0 x : A} →
-  []-cong-Path [ P.refl {x = x} ] P.≡ P.refl {x = [ x ]}
+  []-cong-Path EB.[ P.refl {x = x} ] P.≡ P.refl {x = EB.[ x ]}
 []-cong-Path-[refl] = P.refl
 
 -- Given an erased proof of equality of x and y one can show that
--- [ x ] is equal to [ y ].
+-- EB.[ x ] is equal to EB.[ y ].
 
 []-cong : {@0 A : Set a} {@0 x y : A} →
-          Erased (x ≡ y) → [ x ] ≡ [ y ]
+          EB.Erased (x ≡ y) → EB.[ x ] ≡ EB.[ y ]
 []-cong {x = x} {y = y} =
-  Erased (x ≡ y)    ↝⟨ map (_↔_.to ≡↔≡) ⟩
-  Erased (x P.≡ y)  ↝⟨ []-cong-Path ⟩
-  [ x ] P.≡ [ y ]   ↔⟨ inverse ≡↔≡ ⟩□
-  [ x ] ≡ [ y ]     □
+  EB.Erased (x ≡ y)      ↝⟨ (λ (EB.[ eq ]) → EB.[ _↔_.to ≡↔≡ eq ]) ⟩
+  EB.Erased (x P.≡ y)    ↝⟨ []-cong-Path ⟩
+  EB.[ x ] P.≡ EB.[ y ]  ↔⟨ inverse ≡↔≡ ⟩□
+  EB.[ x ] ≡ EB.[ y ]    □
 
 -- []-cong is an equivalence.
 
@@ -100,35 +89,40 @@ private
   {@0 A : Set a} {@0 x y : A} →
   Is-equivalence ([]-cong {x = x} {y = y})
 []-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (
-  Erased (x ≡ y)    ↔⟨ Erased.[]-cong₁.Erased-cong-↔ []-cong ≡↔≡ ⟩
-  Erased (x P.≡ y)  ↔⟨ Eq.⟨ _ , []-cong-Path-equivalence ⟩ ⟩
-  [ x ] P.≡ [ y ]   ↔⟨ inverse ≡↔≡ ⟩□
-  [ x ] ≡ [ y ]     □)
+  EB.Erased (x ≡ y)      ↔⟨ E₁.[]-cong₁.Erased-cong-↔ []-cong ≡↔≡ ⟩
+  EB.Erased (x P.≡ y)    ↔⟨ Eq.⟨ _ , []-cong-Path-equivalence ⟩ ⟩
+  EB.[ x ] P.≡ EB.[ y ]  ↔⟨ inverse ≡↔≡ ⟩□
+  EB.[ x ] ≡ EB.[ y ]    □)
 
 -- A rearrangement lemma for []-cong.
 
 []-cong-[refl] :
   {@0 A : Set a} {@0 x : A} →
-  []-cong [ refl x ] ≡ refl [ x ]
+  []-cong EB.[ refl x ] ≡ refl EB.[ x ]
 []-cong-[refl] {x = x} =
   sym $ _↔_.to (from≡↔≡to Eq.⟨ _ , []-cong-equivalence ⟩) (
-    [ _↔_.from ≡↔≡ (P.cong erased (_↔_.to ≡↔≡ (refl [ x ]))) ]  ≡⟨ []-cong [ sym cong≡cong ] ⟩
-    [ cong erased (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ (refl [ x ]))) ]    ≡⟨ []-cong [ cong (cong erased) (_↔_.left-inverse-of ≡↔≡ _) ] ⟩
-    [ cong erased (refl [ x ]) ]                                ≡⟨ []-cong [ cong-refl _ ] ⟩∎
-    [ refl x ]                                                  ∎)
+    EB.[ _↔_.from ≡↔≡ (P.cong EB.erased (_↔_.to ≡↔≡ (refl EB.[ x ]))) ]  ≡⟨ []-cong EB.[ sym cong≡cong ] ⟩
+    EB.[ cong EB.erased (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ (refl EB.[ x ]))) ]    ≡⟨ []-cong EB.[ cong (cong EB.erased) (_↔_.left-inverse-of ≡↔≡ _) ] ⟩
+    EB.[ cong EB.erased (refl EB.[ x ]) ]                                ≡⟨ []-cong EB.[ cong-refl _ ] ⟩∎
+    EB.[ refl x ]                                                        ∎)
 
 -- The []-cong axioms can be instantiated.
 
-instance-of-[]-cong-axiomatisation : []-cong-axiomatisation a
+instance-of-[]-cong-axiomatisation : EB.[]-cong-axiomatisation a
 instance-of-[]-cong-axiomatisation = λ where
-  .Erased.[]-cong-axiomatisation.[]-cong             → []-cong
-  .Erased.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
-  .Erased.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
+  .EB.[]-cong-axiomatisation.[]-cong             → []-cong
+  .EB.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
+  .EB.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
 
 -- Some reexported definitions.
 
-open Erased.[]-cong₃ instance-of-[]-cong-axiomatisation public
-  hiding ([]-cong; []-cong-equivalence; []-cong-[refl])
+open import Erased equality-with-J instance-of-[]-cong-axiomatisation
+  public
+  hiding ([]-cong; []-cong-equivalence; []-cong-[refl]; Π-Erased↔Π0[])
+
+private
+  variable
+    s : Very-stable-≡ A
 
 ------------------------------------------------------------------------
 -- Variants of some of the reexported definitions
@@ -236,13 +230,6 @@ private
   {@0 A : Set a} {@0 P : A → Set p} →
   ((x : Erased A) → P (erased x)) PEq.≃ ((@0 x : A) → P x)
 Π-Erased≃Π0 = Π-Erased≃Π0[]
-
-------------------------------------------------------------------------
--- Stability
-
--- Reexported definitions.
-
-open Stability.[]-cong instance-of-[]-cong-axiomatisation public
 
 ------------------------------------------------------------------------
 -- A closure property

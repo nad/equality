@@ -90,6 +90,10 @@ import Preimage
 
 import Equivalence
 
+-- A type for values that should be erased at run-time.
+
+import Erased.Basics
+
 -- Embeddings.
 
 import Embedding
@@ -337,11 +341,17 @@ import Finite-subset.Kuratowski
 
 -- A type for values that should be erased at run-time.
 
-import Erased
+import Erased.Level-1
+import Erased.Level-2
 
 -- Stability for Erased.
 
 import Erased.Stability
+
+-- A type for values that should be erased at run-time.
+
+import Erased
+import Erased.Without-box-cong
 
 -- Some theory of Erased, developed using Cubical Agda.
 

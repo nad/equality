@@ -9,7 +9,7 @@
 
 import Bijection
 open import Equality
-import Erased
+import Erased.Basics
 open import Prelude hiding (zero; suc; _+_; _*_; _^_)
 
 module Nat.Wrapper
@@ -17,8 +17,7 @@ module Nat.Wrapper
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
 
   -- An instantiation of the []-cong axioms.
-  (open Erased eq)
-  (ax : ∀ {a} → []-cong-axiomatisation a)
+  (ax : ∀ {a} → Erased.Basics.[]-cong-axiomatisation eq a)
 
   -- The underlying representation of natural numbers.
   (Nat′ : Set)
@@ -29,19 +28,16 @@ module Nat.Wrapper
   where
 
 open Derived-definitions-and-properties eq
-open []-cong₃ ax
 
 open import Logical-equivalence using (_⇔_; Dec-map)
 
-open import Erased.Stability eq
+open import Erased eq ax
 open import Function-universe eq as F hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
 open import List eq
 open import List.All.Recursive eq
 open import Vec eq as Vec
-
-open []-cong ax
 
 private
 

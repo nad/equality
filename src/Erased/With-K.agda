@@ -3,8 +3,7 @@
 -- equality
 ------------------------------------------------------------------------
 
--- This module instantiates and reexports code from Erased and
--- Erased.Stability.
+-- This module instantiates and reexports code from Erased.
 
 {-# OPTIONS --with-K --safe #-}
 
@@ -18,19 +17,9 @@ open import Bijection equality-with-J using (_↔_)
 open import Embedding equality-with-J as Emb using (Is-embedding)
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
+import Erased.Basics equality-with-J as EB
 open import H-level equality-with-J
 open import Injection equality-with-J using (Injective)
-
--- Some definitions from Erased are reexported.
-
-open import Erased equality-with-J as Erased public
-  hiding (module []-cong₁; module []-cong₂; module []-cong₃;
-          Π-Erased↔Π0[])
-
--- Some definitions from Erased.Stability are reexported.
-
-open import Erased.Stability equality-with-J as Stability public
-  hiding (module []-cong)
 
 private
   variable
@@ -44,8 +33,8 @@ private
 -- [ x ] is equal to [ y ].
 
 []-cong : {@0 A : Set a} {@0 x y : A} →
-          Erased (x ≡ y) → [ x ] ≡ [ y ]
-[]-cong [ refl ] = refl
+          EB.Erased (x ≡ y) → EB.[ x ] ≡ EB.[ y ]
+[]-cong EB.[ refl ] = refl
 
 -- []-cong is an equivalence.
 
@@ -56,39 +45,33 @@ private
   { surjection = record
     { logical-equivalence = record
       { to   = []-cong
-      ; from = λ eq → [ cong erased eq ]
+      ; from = λ eq → EB.[ cong EB.erased eq ]
       }
     ; right-inverse-of = λ { refl → refl }
     }
-  ; left-inverse-of = λ { [ refl ] → refl }
+  ; left-inverse-of = λ { EB.[ refl ] → refl }
   }))
 
 -- []-cong maps [ refl ] to refl (by definition).
 
 []-cong-[refl] :
   {@0 A : Set a} {@0 x : A} →
-  []-cong [ refl {x = x} ] ≡ refl {x = [ x ]}
+  []-cong EB.[ refl {x = x} ] ≡ refl {x = EB.[ x ]}
 []-cong-[refl] = refl
 
 -- The []-cong axioms can be instantiated.
 
-instance-of-[]-cong-axiomatisation : []-cong-axiomatisation a
+instance-of-[]-cong-axiomatisation : EB.[]-cong-axiomatisation a
 instance-of-[]-cong-axiomatisation = λ where
-  .Erased.[]-cong-axiomatisation.[]-cong             → []-cong
-  .Erased.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
-  .Erased.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
+  .EB.[]-cong-axiomatisation.[]-cong             → []-cong
+  .EB.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
+  .EB.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
 
 -- Some reexported definitions.
 
-open Erased.[]-cong₃ instance-of-[]-cong-axiomatisation public
-  hiding ([]-cong; []-cong-equivalence; []-cong-[refl])
-
-------------------------------------------------------------------------
--- Code related to the module Erased.Stability
-
--- Reexported definitions.
-
-open Stability.[]-cong instance-of-[]-cong-axiomatisation public
+open import Erased equality-with-J instance-of-[]-cong-axiomatisation
+  public
+  hiding ([]-cong; []-cong-equivalence; []-cong-[refl]; Π-Erased↔Π0[])
 
 ------------------------------------------------------------------------
 -- Other code

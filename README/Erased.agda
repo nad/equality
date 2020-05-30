@@ -31,7 +31,6 @@ import Equality.Propositional
 import Equivalence
 import Erased
 import Erased.Cubical
-import Erased.Stability
 import Erased.With-K
 import Function-universe
 import H-level
@@ -154,7 +153,7 @@ Lemma-14 = Erased.Erased-W⇔W
 -- other ways). This lemma, and several others, are stated in that
 -- way.
 
-Lemma-14′ = Erased.[]-cong₁.Erased-W↔W
+Lemma-14′ = Erased.Erased-W↔W
 
 ------------------------------------------------------------------------
 -- 3.4: The []-cong property
@@ -216,7 +215,7 @@ H-level≃H-level′ = Function-universe.H-level↔H-level′
 
 -- There is a single statement for Lemmas 22 and 23.
 
-Lemmas-22-and-23 = Erased.[]-cong₂.Erased-H-level′↔H-level′
+Lemmas-22-and-23 = Erased.Erased-H-level′↔H-level′
 
 ------------------------------------------------------------------------
 -- 3.6: Erased is a modality
@@ -224,7 +223,7 @@ Lemmas-22-and-23 = Erased.[]-cong₂.Erased-H-level′↔H-level′
 -- Some lemmas.
 
 Lemma-24 = Erased.uniquely-eliminating-modality
-Lemma-25 = Erased.[]-cong₂.lex-modality
+Lemma-25 = Erased.lex-modality
 
 -- The map function.
 
@@ -233,11 +232,11 @@ map = Erased.map
 -- Erased is a Σ-closed reflective subuniverse.
 
 Σ-closed-reflective-subuniverse =
-  Erased.Stability.[]-cong.Erased-Σ-closed-reflective-subuniverse
+  Erased.Erased-Σ-closed-reflective-subuniverse
 
 -- Another lemma.
 
-Lemma-27 = Erased.[]-cong₂.Erased-connected↔Erased-Is-equivalence
+Lemma-27 = Erased.Erased-connected↔Erased-Is-equivalence
 
 ------------------------------------------------------------------------
 -- 3.7: Is [_] an embedding?
@@ -259,7 +258,7 @@ embeddings-are-injective = Embedding.injective
 
 -- Some lemmas.
 
-Lemma-29 = Erased.[]-cong₂.Is-proposition→Is-embedding-[]
+Lemma-29 = Erased.Is-proposition→Is-embedding-[]
 Lemma-30 = Erased.With-K.Injective-[]
 Lemma-31 = Erased.With-K.Is-embedding-[]
 Lemma-32 = Erased.With-K.Is-proposition-Erased→Is-proposition
@@ -269,18 +268,18 @@ Lemma-32 = Erased.With-K.Is-proposition-Erased→Is-proposition
 
 -- There is a single statement for Lemmas 33–38 (and more).
 
-Lemmas-33-to-38 = Erased.[]-cong₃.Erased-↝↔↝
+Lemmas-33-to-38 = Erased.Erased-↝↔↝
 
 -- There is also a single statement for the variants of Lemmas 33–38,
 -- stated as logical equivalences instead of equivalences, that can be
 -- proved without using extensionality.
 
-Lemmas-33-to-38-with-⇔ = Erased.[]-cong₃.Erased-↝↝↝
+Lemmas-33-to-38-with-⇔ = Erased.Erased-↝↝↝
 
 -- Some lemmas.
 
-Lemma-39 = Erased.[]-cong₁.Erased-cong-≃
-Lemma-40 = Erased.[]-cong₂.Erased-Is-equivalence↔Is-equivalence
+Lemma-39 = Erased.Erased-cong-≃
+Lemma-40 = Erased.Erased-Is-equivalence↔Is-equivalence
 
 -- A generalisation of Lemma 41.
 
@@ -288,15 +287,15 @@ Lemma-41 = Function-universe.Σ-cong
 
 -- More lemmas.
 
-Lemma-42 = Erased.[]-cong₂.Erased-Split-surjective↔Split-surjective
-Lemma-43 = Erased.[]-cong₂.Erased-Has-quasi-inverse↔Has-quasi-inverse
-Lemma-44 = Erased.[]-cong₂.Erased-Injective↔Injective
-Lemma-45 = Erased.[]-cong₃.Erased-Is-embedding↔Is-embedding
-Lemma-46 = Erased.[]-cong₃.map-cong≡cong-map
+Lemma-42 = Erased.Erased-Split-surjective↔Split-surjective
+Lemma-43 = Erased.Erased-Has-quasi-inverse↔Has-quasi-inverse
+Lemma-44 = Erased.Erased-Injective↔Injective
+Lemma-45 = Erased.Erased-Is-embedding↔Is-embedding
+Lemma-46 = Erased.map-cong≡cong-map
 
 -- There is a single statement for Lemmas 47–52 (and more).
 
-Lemmas-47-to-52 = Erased.[]-cong₃.Erased-cong
+Lemmas-47-to-52 = Erased.Erased-cong
 
 -- The map function is functorial.
 
@@ -306,82 +305,80 @@ map-∘  = Erased.map-∘
 -- All preservation lemmas (47–52) map identity to identity (assuming
 -- extensionality, except for logical equivalences).
 
-Erased-cong-id = Erased.Stability.[]-cong.Erased-cong-id
+Erased-cong-id = Erased.Erased-cong-id
 
 -- All preservation lemmas (47–52) commute with composition (assuming
 -- extensionality, except for logical equivalences).
 
-Erased-cong-∘ = Erased.Stability.[]-cong.Erased-cong-∘
+Erased-cong-∘ = Erased.Erased-cong-∘
 
 ------------------------------------------------------------------------
 -- 4.1: Stable types
 
 -- Stable.
 
-Stable = Erased.Stability.Stable
+Stable = Erased.Stable
 
 -- Some lemmas.
 
-Lemma-54 = Erased.Stability.¬¬-Stable→Stable
-Lemma-55 = Erased.Stability.Erased→¬¬
-Lemma-56 = Erased.Stability.Dec→Stable
+Lemma-54 = Erased.¬¬-Stable→Stable
+Lemma-55 = Erased.Erased→¬¬
+Lemma-56 = Erased.Dec→Stable
 
 ------------------------------------------------------------------------
 -- 4.2: Very stable types
 
 -- Very-stable.
 
-Very-stable = Erased.Stability.Very-stable
+Very-stable = Erased.Very-stable
 
 -- A generalisation of Very-stable′.
 
-Very-stable′ = Erased.Stability.Stable-[_]
+Very-stable′ = Erased.Stable-[_]
 
 -- Very stable types are stable (and Very-stable A implies
 -- Very-stable′ A, and more).
 
-Very-stable→Stable = Erased.Stability.Very-stable→Stable
+Very-stable→Stable = Erased.Very-stable→Stable
 
 -- [_] is an embedding for very stable types.
 
-Very-stable→Is-embedding-[] =
-  Erased.Stability.Very-stable→Is-embedding-[]
+Very-stable→Is-embedding-[] = Erased.Very-stable→Is-embedding-[]
 
 -- Some lemmas.
 
-Lemma-59 = Erased.Stability.[]-cong.Stable→Left-inverse→Very-stable
-Lemma-60 = Erased.Stability.[]-cong.Stable-proposition→Very-stable
-Lemma-61 = Erased.Stability.Very-stable-Erased
+Lemma-59 = Erased.Stable→Left-inverse→Very-stable
+Lemma-60 = Erased.Stable-proposition→Very-stable
+Lemma-61 = Erased.Very-stable-Erased
 
 -- It is not the case that every very stable type is a proposition.
 
-¬-Very-stable→Is-proposition =
-  Erased.Stability.¬-Very-stable→Is-proposition
+¬-Very-stable→Is-proposition = Erased.¬-Very-stable→Is-proposition
 
 -- More lemmas.
 
-Lemma-62 = Erased.Stability.[]-cong.Very-stable-∃-Very-stable
-Lemma-63 = Erased.Stability.Stable-∃-Very-stable
+Lemma-62 = Erased.Very-stable-∃-Very-stable
+Lemma-63 = Erased.Stable-∃-Very-stable
 
 ------------------------------------------------------------------------
 -- 4.3: Stability for equality types
 
 -- Stable-≡ and Very-stable-≡.
 
-Stable-≡      = Erased.Stability.Stable-≡
-Very-stable-≡ = Erased.Stability.Very-stable-≡
+Stable-≡      = Erased.Stable-≡
+Very-stable-≡ = Erased.Very-stable-≡
 
 -- Some lemmas.
 
-Lemma-66 = Erased.Stability.[]-cong.Stable→H-level-suc→Very-stable
-Lemma-67 = Erased.Stability.[]-cong.Decidable-equality→Very-stable-≡
-Lemma-68 = Erased.Stability.[]-cong.H-level→Very-stable
+Lemma-66 = Erased.Stable→H-level-suc→Very-stable
+Lemma-67 = Erased.Decidable-equality→Very-stable-≡
+Lemma-68 = Erased.H-level→Very-stable
 
 -- Lemmas 69 and 70, stated both as logical equivalences, and as
 -- equivalences depending on extensionality.
 
-Lemma-69 = Erased.Stability.[]-cong.Stable-≡↔Injective-[]
-Lemma-70 = Erased.Stability.[]-cong.Very-stable-≡↔Is-embedding-[]
+Lemma-69 = Erased.Stable-≡↔Injective-[]
+Lemma-70 = Erased.Very-stable-≡↔Is-embedding-[]
 
 -- Equality is always very stable in traditional Agda.
 
@@ -392,42 +389,42 @@ Very-stable-≡-trivial = Erased.With-K.Very-stable-≡-trivial
 
 -- Lemma 71.
 
-Lemma-71 = Erased.Stability.Stable-map-⇔
+Lemma-71 = Erased.Stable-map-⇔
 
 -- There is a single statement for Lemmas 72 and 73.
 
-Lemmas-72-and-73 = Erased.Stability.[]-cong.Very-stable-cong
+Lemmas-72-and-73 = Erased.Very-stable-cong
 
 -- Lemma 74.
 
-Lemma-74 = Erased.Stability.[]-cong.Very-stable-Erased↝Erased
+Lemma-74 = Erased.Very-stable-Erased↝Erased
 
 -- Lemma 74, with Stable instead of Very-stable, and no assumption of
 -- extensionality.
 
-Lemma-74-Stable = Erased.Stability.[]-cong.Stable-Erased↝Erased
+Lemma-74-Stable = Erased.Stable-Erased↝Erased
 
 ------------------------------------------------------------------------
 -- 4.5: Closure properties
 
 -- Lots of lemmas.
 
-Lemmas-75-and-76 = Erased.Stability.[]-cong.Very-stable→Very-stable-≡
-Lemma-77         = Erased.Stability.Very-stable-⊤
-Lemma-78         = Erased.Stability.Very-stable-⊥
-Lemma-79         = Erased.Stability.Stable-Π
-Lemma-80         = Erased.Stability.Very-stable-Π
-Lemma-81         = Erased.Stability.Very-stable-Stable-Σ
-Lemma-82         = Erased.Stability.Very-stable-Σ
-Lemma-83         = Erased.Stability.Stable-×
-Lemma-84         = Erased.Stability.Very-stable-×
-Lemma-85         = Erased.Stability.[]-cong.Very-stable-W
-Lemmas-86-and-87 = Erased.Stability.Stable-H-level′
-Lemmas-88-and-89 = Erased.Stability.[]-cong.Very-stable-H-level′
-Lemma-90         = Erased.Stability.Stable-≡-⊎
-Lemma-91         = Erased.Stability.[]-cong.Very-stable-≡-⊎
-Lemma-92         = Erased.Stability.Stable-≡-List
-Lemma-93         = Erased.Stability.[]-cong.Very-stable-≡-List
+Lemmas-75-and-76 = Erased.Very-stable→Very-stable-≡
+Lemma-77         = Erased.Very-stable-⊤
+Lemma-78         = Erased.Very-stable-⊥
+Lemma-79         = Erased.Stable-Π
+Lemma-80         = Erased.Very-stable-Π
+Lemma-81         = Erased.Very-stable-Stable-Σ
+Lemma-82         = Erased.Very-stable-Σ
+Lemma-83         = Erased.Stable-×
+Lemma-84         = Erased.Very-stable-×
+Lemma-85         = Erased.Very-stable-W
+Lemmas-86-and-87 = Erased.Stable-H-level′
+Lemmas-88-and-89 = Erased.Very-stable-H-level′
+Lemma-90         = Erased.Stable-≡-⊎
+Lemma-91         = Erased.Very-stable-≡-⊎
+Lemma-92         = Erased.Stable-≡-List
+Lemma-93         = Erased.Very-stable-≡-List
 Lemma-94         = Erased.Cubical.Very-stable-≡-/
 
 ------------------------------------------------------------------------
@@ -443,24 +440,23 @@ Lemma-96 = Equivalence.≃-≡
 -- that it is an equivalence and that it satisfies the computation
 -- rule of []-cong.
 
-Extensionality→[]-cong = Erased.Stability.Extensionality→[]-cong
+Extensionality→[]-cong = Erased.Extensionality→[]-cong
 
 ------------------------------------------------------------------------
 -- 5.1: Singleton types with erased equality proofs
 
 -- Some lemmas.
 
-Lemma-99  = Erased.Stability.[]-cong.erased-singleton-contractible
-Lemma-100 =
-  Erased.Stability.[]-cong.erased-singleton-with-erased-center-propositional
+Lemma-99  = Erased.erased-singleton-contractible
+Lemma-100 = Erased.erased-singleton-with-erased-center-propositional
 
 -- The generalisation of Lemma 82 used in the proof of Lemma 100.
 
-Lemma-82-generalised = Erased.Stability.[]-cong.Very-stable-Σⁿ
+Lemma-82-generalised = Erased.Very-stable-Σⁿ
 
 -- Another lemma.
 
-Lemma-101 = Erased.Stability.[]-cong.Σ-Erased-Erased-singleton↔
+Lemma-101 = Erased.Σ-Erased-Erased-singleton↔
 
 ------------------------------------------------------------------------
 -- 5.2: Efficient natural numbers

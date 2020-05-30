@@ -31,6 +31,9 @@ import Nat eq as Nat
 open import Surjection eq using (_↠_; Split-surjective)
 open import Univalence-axiom eq
 
+open import Erased.Level-1 eq
+import Erased.Level-2
+
 private
   variable
     a b c ℓ p : Level
@@ -754,6 +757,7 @@ record Σ-closed-reflective-subuniverse a : Set (lsuc a) where
 module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   open []-cong₃ ax
+  open Erased.Level-2 eq ax
 
   ----------------------------------------------------------------------
   -- Some lemmas related to stability

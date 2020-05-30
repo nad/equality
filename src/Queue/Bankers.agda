@@ -13,7 +13,7 @@ open Derived-definitions-and-properties eq
 open import Prelude
 
 open import Bijection eq using (_↔_)
-open import Erased eq as Erased hiding (map)
+open import Erased.Without-box-cong eq as Erased hiding (map)
 open import Function-universe eq hiding (id; _∘_)
 open import List eq as L hiding (map)
 open import Nat eq
