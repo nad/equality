@@ -94,6 +94,10 @@ import Equivalence
 
 import Erased.Basics
 
+-- Equivalences with erased "proofs".
+
+import Equivalence.Erased.Basics
+
 -- Embeddings.
 
 import Embedding
@@ -342,6 +346,13 @@ import Finite-subset.Kuratowski
 -- A type for values that should be erased at run-time.
 
 import Erased.Level-1
+
+-- Equivalences with erased "proofs".
+
+import Equivalence.Erased
+
+-- A type for values that should be erased at run-time.
+
 import Erased.Level-2
 
 -- Stability for Erased.
