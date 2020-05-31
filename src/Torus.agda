@@ -291,3 +291,40 @@ record Rec (A : Set a) : Set a where
   rec-spoke = Circle.elimᴾ _
     (cong-≡↔≡ (refl _))
     (λ _ → cong-≡↔≡ (refl _))
+
+------------------------------------------------------------------------
+-- Some lemmas
+
+-- The remaining results are not taken from the HoTT book.
+
+-- One can express loop₁₂₋₁₋₂ using loop₁ and loop₂.
+
+loop₁₂₋₁₋₂≡ :
+  loop₁₂₋₁₋₂ ≡ trans (trans loop₁ loop₂) (sym (trans loop₂ loop₁))
+loop₁₂₋₁₋₂≡ =
+  _↔_.from ≡↔≡ loop₁₂₋₁₋₂ᴾ                                        ≡⟨⟩
+
+  _↔_.from ≡↔≡
+    (P.trans loop₁ᴾ (P.trans loop₂ᴾ
+                       (P.trans (P.sym loop₁ᴾ) (P.sym loop₂ᴾ))))  ≡⟨ sym trans≡trans ⟩
+
+  trans loop₁
+    (_↔_.from ≡↔≡ (P.trans loop₂ᴾ
+                     (P.trans (P.sym loop₁ᴾ) (P.sym loop₂ᴾ))))    ≡⟨ cong (trans _) $ sym trans≡trans ⟩
+
+  trans loop₁
+    (trans loop₂
+       (_↔_.from ≡↔≡ (P.trans (P.sym loop₁ᴾ) (P.sym loop₂ᴾ))))    ≡⟨ cong (λ eq → trans loop₁ (trans loop₂ eq)) $ sym trans≡trans ⟩
+
+  trans loop₁
+    (trans loop₂
+       (trans (_↔_.from ≡↔≡ (P.sym loop₁ᴾ))
+          (_↔_.from ≡↔≡ (P.sym loop₂ᴾ))))                         ≡⟨ cong₂ (λ p q → trans loop₁ (trans loop₂ (trans p q)))
+                                                                       (sym sym≡sym)
+                                                                       (sym sym≡sym) ⟩
+
+  trans loop₁ (trans loop₂ (trans (sym loop₁) (sym loop₂)))       ≡⟨ sym $ trans-assoc _ _ _ ⟩
+
+  trans (trans loop₁ loop₂) (trans (sym loop₁) (sym loop₂))       ≡⟨ cong (trans _) $ sym $ sym-trans _ _ ⟩∎
+
+  trans (trans loop₁ loop₂) (sym (trans loop₂ loop₁))             ∎
