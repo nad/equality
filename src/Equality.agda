@@ -21,6 +21,7 @@ private
 -- Reflexive relations
 
 record Reflexive-relation a : Set (lsuc a) where
+  no-eta-equality
   infix 4 _≡_
   field
 
@@ -109,6 +110,7 @@ module Reflexive-relation′
   -- arguments.
 
   record Extensionality (a b : Level) : Set (lsuc (a ⊔ b)) where
+    no-eta-equality
     field
       apply-ext : {A : Set a} {B : A → Set b} → Extensionality′ A B
 
@@ -161,6 +163,7 @@ record Equality-with-J₀
 -- extra structure.
 
 record Equivalence-relation⁺ a : Set (lsuc a) where
+  no-eta-equality
   field
     reflexive-relation : Reflexive-relation a
 
@@ -184,6 +187,7 @@ record Equivalence-relation⁺ a : Set (lsuc a) where
 record Equality-with-J
          a b (e⁺ : ∀ ℓ → Equivalence-relation⁺ ℓ) :
          Set (lsuc (a ⊔ b)) where
+  no-eta-equality
 
   private
     open module R  {ℓ} = Equivalence-relation⁺ (e⁺ ℓ)
@@ -366,6 +370,7 @@ module Equality-with-J′
 record Equality-with-substitutivity-and-contractibility
          a p (reflexive : ∀ ℓ → Reflexive-relation ℓ) :
          Set (lsuc (a ⊔ p)) where
+  no-eta-equality
 
   open Reflexive-relation′ reflexive
 
