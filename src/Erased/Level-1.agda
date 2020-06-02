@@ -386,6 +386,49 @@ Dec-Erased-cong-⇔ A⇔B = record
   }
 
 ------------------------------------------------------------------------
+-- Some results that hold in erased contexts
+
+-- In an erased context there is an equivalence between equality of
+-- "boxed" values and equality of values.
+
+@0 []≡[]≃≡ : ([ x ] ≡ [ y ]) ≃ (x ≡ y)
+[]≡[]≃≡ = Eq.↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = cong erased
+      ; from = cong [_]→
+      }
+    ; right-inverse-of = λ eq →
+        cong erased (cong [_]→ eq)  ≡⟨ cong-∘ _ _ _ ⟩
+        cong id eq                  ≡⟨ sym $ cong-id _ ⟩∎
+        eq                          ∎
+    }
+  ; left-inverse-of = λ eq →
+      cong [_]→ (cong erased eq)  ≡⟨ cong-∘ _ _ _ ⟩
+      cong id eq                  ≡⟨ sym $ cong-id _ ⟩∎
+      eq                          ∎
+  })
+
+-- The []-cong axioms can be instantiated in erased contexts.
+
+@0 erased-instance-of-[]-cong-axiomatisation :
+  []-cong-axiomatisation a
+erased-instance-of-[]-cong-axiomatisation
+  .[]-cong-axiomatisation.[]-cong =
+  cong [_]→ ∘ erased
+erased-instance-of-[]-cong-axiomatisation
+  .[]-cong-axiomatisation.[]-cong-equivalence {x = x} {y = y} =
+  _≃_.is-equivalence
+    (Erased (x ≡ y)  ↔⟨ erased Erased↔ ⟩
+     x ≡ y           ↝⟨ inverse []≡[]≃≡ ⟩□
+     [ x ] ≡ [ y ]   □)
+erased-instance-of-[]-cong-axiomatisation
+  .[]-cong-axiomatisation.[]-cong-[refl] {x = x} =
+  cong [_]→ (erased [ refl x ])  ≡⟨⟩
+  cong [_]→ (refl x)             ≡⟨ cong-refl _ ⟩∎
+  refl [ x ]                     ∎
+
+------------------------------------------------------------------------
 -- Some results that follow if "[]-cong" can be defined
 
 module []-cong₁
