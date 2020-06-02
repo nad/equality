@@ -72,6 +72,23 @@ Embedding-as-Σ = record
   ; left-inverse-of = refl
   }
 
+-- Equivalences are embeddings.
+
+Is-equivalence→Is-embedding :
+  Is-equivalence f → Is-embedding f
+Is-equivalence→Is-embedding is-equiv _ _ =
+  _≃_.is-equivalence (Eq.inverse (Eq.≃-≡ Eq.⟨ _ , is-equiv ⟩))
+
+-- Equivalences can be converted to embeddings.
+
+≃→Embedding :
+  A ≃ B → Embedding A B
+≃→Embedding A≃B = record
+  { to           = _≃_.to A≃B
+  ; is-embedding =
+      Is-equivalence→Is-embedding (_≃_.is-equivalence A≃B)
+  }
+
 ------------------------------------------------------------------------
 -- Preorder
 

@@ -63,12 +63,7 @@ from-equivalence : ∀ {k a b} {A : Set a} {B : Set b} →
 from-equivalence {implication}         = _≃_.to
 from-equivalence {logical-equivalence} = _≃_.logical-equivalence
 from-equivalence {injection}           = _≃_.injection
-from-equivalence {embedding}           = λ f → record
-                                           { to           = _≃_.to f
-                                           ; is-embedding = λ _ _ →
-                                               _≃_.is-equivalence
-                                                 (Eq.inverse (Eq.≃-≡ f))
-                                           }
+from-equivalence {embedding}           = Emb.≃→Embedding
 from-equivalence {surjection}          = _≃_.surjection
 from-equivalence {bijection}           = _≃_.bijection
 from-equivalence {equivalence}         = P.id
