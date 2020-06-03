@@ -376,6 +376,11 @@ import Erased.Cubical
 
 import Bool.Very-stable
 
+-- A variant of the propositional truncation operator with an erased
+-- truncation constructor.
+
+import H-level.Truncation.Propositional.Erased
+
 -- Integers.
 
 import Integer
