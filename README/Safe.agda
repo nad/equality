@@ -351,6 +351,10 @@ import Erased.Level-1
 
 import Equivalence.Erased
 
+-- Embeddings with erased "proofs".
+
+import Embedding.Erased
+
 -- A type for values that should be erased at run-time.
 
 import Erased.Level-2
