@@ -300,6 +300,8 @@ idempotent = ∥∥ᴱ-cong-⇔ (record { to = P.[ id , id ]; from = inj₁ })
 mutual
 
   -- The propositional truncation operator's universal property.
+  --
+  -- See also Quotient.Erased.Σ→Erased-Constant≃∥∥ᴱ→.
 
   universal-property :
     @0 Is-proposition B →
