@@ -381,6 +381,10 @@ import Bool.Very-stable
 
 import H-level.Truncation.Propositional.Erased
 
+-- A variant of set quotients with erased higher constructors.
+
+import Quotient.Erased
+
 -- Integers.
 
 import Integer
