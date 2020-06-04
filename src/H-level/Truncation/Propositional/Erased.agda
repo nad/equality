@@ -219,18 +219,40 @@ mutual
        .∣∣ʳ                        → B→∥A∥
        .truncation-is-propositionʳ → truncation-is-proposition)
 
--- The following lemma implies, among other things, that the
--- truncation operator preserves equivalences with erased proofs.
+private
 
-∥∥ᴱ-cong : A ↝[ ⌊ k ⌋-sym ] B → ∥ A ∥ᴱ ≃ᴱ ∥ B ∥ᴱ
-∥∥ᴱ-cong {k = logical-equivalence} = ∥∥ᴱ-cong-⇔
-∥∥ᴱ-cong {k = bijection}           = ∥∥ᴱ-cong-⇔ ∘ from-isomorphism
-∥∥ᴱ-cong {k = equivalence}         = ∥∥ᴱ-cong-⇔ ∘ from-isomorphism
-∥∥ᴱ-cong {k = equivalenceᴱ}        =
-  ∥∥ᴱ-cong-⇔ ∘ _≃ᴱ_.logical-equivalence
+  ∥∥ᴱ-cong-↔ : A ↔ B → ∥ A ∥ᴱ ↔ ∥ B ∥ᴱ
+  ∥∥ᴱ-cong-↔ A↔B = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = ∥∥ᴱ-map (_↔_.to   A↔B)
+        ; from = ∥∥ᴱ-map (_↔_.from A↔B)
+        }
+      ; right-inverse-of = elim λ where
+          .∣∣ʳ x →
+            ∣ _↔_.to A↔B (_↔_.from A↔B x) ∣  ≡⟨ cong ∣_∣ (_↔_.right-inverse-of A↔B x) ⟩∎
+            ∣ x ∣                            ∎
+          .truncation-is-propositionʳ _ →
+            mono₁ 1 truncation-is-proposition
+      }
+    ; left-inverse-of = elim λ where
+        .∣∣ʳ x →
+          ∣ _↔_.from A↔B (_↔_.to A↔B x) ∣  ≡⟨ cong ∣_∣ (_↔_.left-inverse-of A↔B x) ⟩∎
+          ∣ x ∣                            ∎
+        .truncation-is-propositionʳ _ →
+          mono₁ 1 truncation-is-proposition
+    }
 
-_ : A ≃ᴱ B → ∥ A ∥ᴱ ≃ᴱ ∥ B ∥ᴱ
-_ = ∥∥ᴱ-cong
+-- The truncation operator preserves "symmetric" functions.
+
+∥∥ᴱ-cong : A ↝[ ⌊ k ⌋-sym ] B → ∥ A ∥ᴱ ↝[ ⌊ k ⌋-sym ] ∥ B ∥ᴱ
+∥∥ᴱ-cong {k = logical-equivalence} = _≃ᴱ_.logical-equivalence ∘
+                                     ∥∥ᴱ-cong-⇔
+∥∥ᴱ-cong {k = bijection}           = ∥∥ᴱ-cong-↔
+∥∥ᴱ-cong {k = equivalence}         = from-isomorphism ∘ ∥∥ᴱ-cong-↔ ∘
+                                     from-isomorphism
+∥∥ᴱ-cong {k = equivalenceᴱ}        = ∥∥ᴱ-cong-⇔ ∘
+                                     _≃ᴱ_.logical-equivalence
 
 ------------------------------------------------------------------------
 -- Some bijections/erased equivalences
@@ -684,44 +706,19 @@ A ∥⊎∥ᴱ B = ∥ A ⊎ B ∥ᴱ
 @0 ∥⊎∥ᴱ-propositional : Is-proposition (A ∥⊎∥ᴱ B)
 ∥⊎∥ᴱ-propositional = truncation-is-proposition
 
--- The following lemma implies, among other things, that _∥⊎∥ᴱ_
--- preserves equivalences with erased proofs.
+-- The _∥⊎∥ᴱ_ operator preserves "symmetric" functions.
 
 infixr 1 _∥⊎∥ᴱ-cong_
 
 _∥⊎∥ᴱ-cong_ :
   A₁ ↝[ ⌊ k ⌋-sym ] A₂ → B₁ ↝[ ⌊ k ⌋-sym ] B₂ →
-  (A₁ ∥⊎∥ᴱ B₁) ≃ᴱ (A₂ ∥⊎∥ᴱ B₂)
+  (A₁ ∥⊎∥ᴱ B₁) ↝[ ⌊ k ⌋-sym ] (A₂ ∥⊎∥ᴱ B₂)
 A₁↝A₂ ∥⊎∥ᴱ-cong B₁↝B₂ = ∥∥ᴱ-cong (A₁↝A₂ ⊎-cong B₁↝B₂)
-
-_ : A₁ ≃ᴱ A₂ → B₁ ≃ᴱ B₂ → (A₁ ∥⊎∥ᴱ B₁) ≃ᴱ (A₂ ∥⊎∥ᴱ B₂)
-_ = _∥⊎∥ᴱ-cong_
 
 -- _∥⊎∥ᴱ_ is commutative.
 
 ∥⊎∥ᴱ-comm : A ∥⊎∥ᴱ B ↔ B ∥⊎∥ᴱ A
-∥⊎∥ᴱ-comm = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = swap′
-      ; from = swap′
-      }
-    ; right-inverse-of = swap′∘swap′
-    }
-  ; left-inverse-of = swap′∘swap′
-  }
-  where
-  swap′ : A ∥⊎∥ᴱ B → B ∥⊎∥ᴱ A
-  swap′ = rec λ where
-    .∣∣ʳ → P.[ ∣inj₂∣ , ∣inj₁∣ ]
-    .truncation-is-propositionʳ →
-      ∥⊎∥ᴱ-propositional
-
-  swap′∘swap′ : (x : A ∥⊎∥ᴱ B) → swap′ (swap′ x) ≡ x
-  swap′∘swap′ = elim λ where
-    .∣∣ʳ → P.[ (λ _ → refl _) , (λ _ → refl _) ]
-    .truncation-is-propositionʳ _ →
-      mono₁ 1 ∥⊎∥ᴱ-propositional
+∥⊎∥ᴱ-comm = ∥∥ᴱ-cong ⊎-comm
 
 -- If one truncates the types to the left or right of _∥⊎∥ᴱ_, then one
 -- ends up with an isomorphic type.
@@ -753,64 +750,18 @@ truncate-right-∥⊎∥ᴱ {A = A} {B = B} =
 ∥⊎∥ᴱ-assoc : A ∥⊎∥ᴱ (B ∥⊎∥ᴱ C) ↔ (A ∥⊎∥ᴱ B) ∥⊎∥ᴱ C
 ∥⊎∥ᴱ-assoc {A = A} {B = B} {C = C} =
   ∥ A ⊎ ∥ B ⊎ C ∥ᴱ ∥ᴱ  ↝⟨ inverse truncate-right-∥⊎∥ᴱ ⟩
-  ∥ A ⊎ B ⊎ C ∥ᴱ       ↝⟨ lemma ⟩
+  ∥ A ⊎ B ⊎ C ∥ᴱ       ↝⟨ ∥∥ᴱ-cong ⊎-assoc ⟩
   ∥ (A ⊎ B) ⊎ C ∥ᴱ     ↝⟨ truncate-left-∥⊎∥ᴱ ⟩□
   ∥ ∥ A ⊎ B ∥ᴱ ⊎ C ∥ᴱ  □
-  where
-  lemma = record
-    { surjection = record
-      { logical-equivalence = record
-        { to = rec λ where
-            .∣∣ʳ → P.[ ∣inj₁∣ ∘ inj₁ , P.[ ∣inj₁∣ ∘ inj₂ , ∣inj₂∣ ] ]
-            .truncation-is-propositionʳ → ∥⊎∥ᴱ-propositional
-        ; from = rec λ where
-            .∣∣ʳ → P.[ P.[ ∣inj₁∣ , ∣inj₂∣ ∘ inj₁ ] , ∣inj₂∣ ∘ inj₂ ]
-            .truncation-is-propositionʳ → ∥⊎∥ᴱ-propositional
-        }
-      ; right-inverse-of = elim λ where
-          .∣∣ʳ → P.[ P.[ (λ _ → refl _) , (λ _ → refl _) ]
-                   , (λ _ → refl _)
-                   ]
-          .truncation-is-propositionʳ _ →
-            mono₁ 1 ∥⊎∥ᴱ-propositional
-      }
-    ; left-inverse-of = elim λ where
-        .∣∣ʳ → P.[ (λ _ → refl _)
-                 , P.[ (λ _ → refl _) , (λ _ → refl _) ]
-                 ]
-        .truncation-is-propositionʳ _ →
-          mono₁ 1 ∥⊎∥ᴱ-propositional
-    }
 
 -- ⊥ is a left and right identity of _∥⊎∥ᴱ_ if the other argument is a
 -- proposition.
 
 ∥⊎∥ᴱ-left-identity : @0 Is-proposition A → ⊥ {ℓ = ℓ} ∥⊎∥ᴱ A ↔ A
 ∥⊎∥ᴱ-left-identity {A = A} A-prop =
-  ∥ ⊥ ⊎ A ∥ᴱ  ↝⟨ lemma ⟩
+  ∥ ⊥ ⊎ A ∥ᴱ  ↝⟨ ∥∥ᴱ-cong ⊎-left-identity ⟩
   ∥ A ∥ᴱ      ↝⟨ ∥∥ᴱ↔ A-prop ⟩□
   A          □
-  where
-  lemma = record
-    { surjection = record
-      { logical-equivalence = record
-        { to = rec λ where
-            .∣∣ʳ → P.[ ⊥-elim , ∣_∣ ]
-            .truncation-is-propositionʳ → truncation-is-proposition
-        ; from = rec λ where
-            .∣∣ʳ → ∣inj₂∣
-            .truncation-is-propositionʳ → ∥⊎∥ᴱ-propositional
-        }
-      ; right-inverse-of = elim λ where
-          .∣∣ʳ _ → refl _
-          .truncation-is-propositionʳ _ →
-            mono₁ 1 truncation-is-proposition
-      }
-    ; left-inverse-of = elim λ where
-        .∣∣ʳ → P.[ (λ x → ⊥-elim x) , (λ _ → refl _) ]
-        .truncation-is-propositionʳ _ →
-          mono₁ 1 ∥⊎∥ᴱ-propositional
-    }
 
 ∥⊎∥ᴱ-right-identity : @0 Is-proposition A → A ∥⊎∥ᴱ ⊥ {ℓ = ℓ} ↔ A
 ∥⊎∥ᴱ-right-identity {A = A} A-prop =
@@ -916,31 +867,8 @@ drop-⊥-left-∥⊎∥ᴱ B-prop ¬A = record
                                          .∣∣ʳ _ → refl _
                                          .truncation-is-propositionʳ _ →
                                            mono₁ 1 truncation-is-proposition) ⟩
-  ∥ (∃ λ x → P x ⊎ Q x) ∥ᴱ       ↝⟨ lemma ⟩□
+  ∥ (∃ λ x → P x ⊎ Q x) ∥ᴱ       ↝⟨ ∥∥ᴱ-cong ∃-⊎-distrib-left ⟩□
   ∥ ∃ P ⊎ ∃ Q ∥ᴱ                 □
-  where
-  lemma = record
-    { surjection = record
-      { logical-equivalence = record
-        { to = rec λ where
-            .∣∣ʳ → ∣_∣ ∘ _↔_.to ∃-⊎-distrib-left
-            .truncation-is-propositionʳ →
-              ∥⊎∥ᴱ-propositional
-        ; from = rec λ where
-            .∣∣ʳ → ∣_∣ ∘ _↔_.from ∃-⊎-distrib-left
-            .truncation-is-propositionʳ →
-              truncation-is-proposition
-        }
-      ; right-inverse-of = elim λ where
-        .∣∣ʳ → P.[ (λ _ → refl _) , (λ _ → refl _) ]
-        .truncation-is-propositionʳ _ →
-          mono₁ 1 ∥⊎∥ᴱ-propositional
-      }
-    ; left-inverse-of = elim λ where
-        .∣∣ʳ → uncurry λ _ → P.[ (λ _ → refl _) , (λ _ → refl _) ]
-        .truncation-is-propositionʳ _ →
-          mono₁ 1 truncation-is-proposition
-    }
 
 Σ-∥⊎∥ᴱ-distrib-right :
   @0 (∀ x → Is-proposition (P x)) →
