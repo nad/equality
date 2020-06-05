@@ -1071,13 +1071,29 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 Σ-cong {bijection}   {bijection}           = Eq.∃-preserves-bijections ⊚ from-isomorphism
 Σ-cong {equivalence} {equivalence}         = Eq.Σ-preserves
 Σ-cong {bijection}   {equivalence}         = Eq.Σ-preserves            ⊚ from-isomorphism
-Σ-cong {equivalence} {equivalenceᴱ}        = λ f g → EEq.[≃]→≃ᴱ
-                                                       (EEq.[proofs]
-                                                          (Eq.Σ-preserves f (EEq.≃ᴱ→≃ ⊚ g)))
-Σ-cong {bijection}   {equivalenceᴱ}        = λ f g → EEq.[≃]→≃ᴱ
-                                                       (EEq.[proofs]
-                                                          (Eq.Σ-preserves (from-isomorphism f)
-                                                             (EEq.≃ᴱ→≃ ⊚ g)))
+Σ-cong {equivalence} {equivalenceᴱ}
+       {B₂ = B₂}                           = λ f g →
+  EEq.[≃]→≃ᴱ
+    {to   = λ (x , y) → _≃_.to f x , _≃ᴱ_.to (g x) y}
+    {from = λ (x , y) →
+                _≃_.from f x
+              , _≃ᴱ_.from (g (_≃_.from f x))
+                   (subst B₂ (sym (_≃_.right-inverse-of f x)) y)}
+    (EEq.[proofs]
+       (Eq.Σ-preserves f (EEq.≃ᴱ→≃ ⊚ g)))
+Σ-cong {bijection}   {equivalenceᴱ}
+       {B₂ = B₂}                           = λ f g →
+  EEq.[≃]→≃ᴱ
+    {to   = λ (x , y) → _↔_.to f x , _≃ᴱ_.to (g x) y}
+    {from = λ (x , y) →
+                _↔_.from f x
+              , _≃ᴱ_.from (g (_↔_.from f x))
+                   (subst B₂
+                      (sym (_≃_.right-inverse-of (Eq.↔⇒≃ f) x))
+                      y)}
+    (EEq.[proofs]
+       (Eq.Σ-preserves (from-isomorphism f)
+          (EEq.≃ᴱ→≃ ⊚ g)))
 
 -- A variant of Σ-cong.
 
@@ -2135,8 +2151,12 @@ private
     (A₁≃A₂ : A₁ ≃ A₂) →
     (∀ x → B₁ x ≃ᴱ B₂ (_≃_.to A₁≃A₂ x)) →
     ((x : A₁) → B₁ x) ≃ᴱ ((x : A₂) → B₂ x)
-  Π-cong-≃ᴱ ext f g =
-    EEq.[≃]→≃ᴱ (EEq.[proofs] (Π-cong-≃ ext f (EEq.≃ᴱ→≃ ⊚ g)))
+  Π-cong-≃ᴱ ext {B₂ = B₂} f g =
+    EEq.[≃]→≃ᴱ
+      {to   = λ h x → subst B₂ (_≃_.right-inverse-of f x)
+                        (_≃ᴱ_.to (g (_≃_.from f x)) (h (_≃_.from f x)))}
+      {from = λ h x → _≃ᴱ_.from (g x) (h (_≃_.to f x))}
+      (EEq.[proofs] (Π-cong-≃ ext f (EEq.≃ᴱ→≃ ⊚ g)))
 
   Π-cong-contra-≃ :
     ∀ {a₁ a₂ b₁ b₂} →
@@ -2157,8 +2177,13 @@ private
     (A₂≃A₁ : A₂ ≃ A₁) →
     (∀ x → B₁ (_≃_.to A₂≃A₁ x) ≃ᴱ B₂ x) →
     ((x : A₁) → B₁ x) ≃ᴱ ((x : A₂) → B₂ x)
-  Π-cong-contra-≃ᴱ ext f g =
-    EEq.[≃]→≃ᴱ (EEq.[proofs] (Π-cong-contra-≃ ext f (EEq.≃ᴱ→≃ ⊚ g)))
+  Π-cong-contra-≃ᴱ ext {B₁ = B₁} f g =
+    EEq.[≃]→≃ᴱ
+      {to   = λ h x → _≃ᴱ_.to (g x) (h (_≃_.to f x))}
+      {from = λ h x → subst B₁ (_≃_.right-inverse-of f x)
+                        (_≃ᴱ_.from (g (_≃_.from f x))
+                           (h (_≃_.from f x)))}
+      (EEq.[proofs] (Π-cong-contra-≃ ext f (EEq.≃ᴱ→≃ ⊚ g)))
 
   Π-cong-↣ :
     ∀ {a₁ a₂ b₁ b₂} →
