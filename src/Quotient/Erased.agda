@@ -35,11 +35,11 @@ open import Erased.Cubical eq as Er using (Erased; [_])
 open import Function-universe equality-with-J as F hiding (_∘_; id)
 open H-level equality-with-J
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional eq as PT
-  using (∥_∥; ∣_∣; Surjective)
+-- open import H-level.Truncation.Propositional eq as PT
+--   using (∥_∥; ∣_∣; Surjective)
 open import H-level.Truncation.Propositional.Erased eq as PTᴱ
   using (∥_∥ᴱ; ∣_∣; Surjectiveᴱ)
-open import Quotient eq as Q using (_/_)
+-- open import Quotient eq as Q using (_/_)
 open import Surjection equality-with-J using (_↠_)
 open import Univalence-axiom equality-with-J
 
@@ -269,170 +269,170 @@ rec-prop r = elim-prop λ where
 -- One can convert from quotients with erased higher constructors to
 -- quotients with regular higher constructors.
 
-/ᴱ→/ : A /ᴱ R → A / R
-/ᴱ→/ = rec λ where
-  .[]ʳ                   → Q.[_]
-  .[]-respects-relationʳ → Q.[]-respects-relation
-  .is-setʳ               → Q./-is-set
+-- /ᴱ→/ : A /ᴱ R → A / R
+-- /ᴱ→/ = rec λ where
+--   .[]ʳ                   → Q.[_]
+--   .[]-respects-relationʳ → Q.[]-respects-relation
+--   .is-setʳ               → Q./-is-set
 
 -- In an erased context quotients with erased higher constructors are
 -- equivalent to quotients with regular higher constructors.
 
-@0 /ᴱ≃/ : A /ᴱ R ≃ A / R
-/ᴱ≃/ {A = A} {R = R} = Eq.↔⇒≃ (record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = /ᴱ→/
-      ; from = Q.rec r′
-      }
-    ; right-inverse-of = Q.elim e
-    }
-  ; left-inverse-of = elim λ where
-      .[]ʳ _                   → refl _
-      .[]-respects-relationʳ _ → /ᴱ-is-set _ _
-      .is-setʳ _               → mono₁ 2 /ᴱ-is-set
-  })
-  where
-  r′ : Q.Rec R (A /ᴱ R)
-  r′ .Q.[]ʳ                   = [_]
-  r′ .Q.[]-respects-relationʳ = []-respects-relation
-  r′ .Q.is-setʳ               = /ᴱ-is-set
+-- @0 /ᴱ≃/ : A /ᴱ R ≃ A / R
+-- /ᴱ≃/ {A = A} {R = R} = Eq.↔⇒≃ (record
+--   { surjection = record
+--     { logical-equivalence = record
+--       { to   = /ᴱ→/
+--       ; from = Q.rec r′
+--       }
+--     ; right-inverse-of = Q.elim e
+--     }
+--   ; left-inverse-of = elim λ where
+--       .[]ʳ _                   → refl _
+--       .[]-respects-relationʳ _ → /ᴱ-is-set _ _
+--       .is-setʳ _               → mono₁ 2 /ᴱ-is-set
+--   })
+--   where
+--   r′ : Q.Rec R (A /ᴱ R)
+--   r′ .Q.[]ʳ                   = [_]
+--   r′ .Q.[]-respects-relationʳ = []-respects-relation
+--   r′ .Q.is-setʳ               = /ᴱ-is-set
 
-  e : Q.Elim (λ x → /ᴱ→/ (Q.rec r′ x) ≡ x)
-  e .Q.[]ʳ _                   = refl _
-  e .Q.[]-respects-relationʳ _ = Q./-is-set _ _
-  e .Q.is-setʳ _               = mono₁ 2 Q./-is-set
+--   e : Q.Elim (λ x → /ᴱ→/ (Q.rec r′ x) ≡ x)
+--   e .Q.[]ʳ _                   = refl _
+--   e .Q.[]-respects-relationʳ _ = Q./-is-set _ _
+--   e .Q.is-setʳ _               = mono₁ 2 Q./-is-set
 
 ------------------------------------------------------------------------
 -- Preservation lemmas
 
 -- Two preservation lemmas for functions.
 
-infix 5 _/ᴱ-map-∥∥_ _/ᴱ-map_
+-- infix 5 _/ᴱ-map-∥∥_ _/ᴱ-map_
 
-_/ᴱ-map-∥∥_ :
-  (A₁→A₂ : A₁ → A₂) →
-  @0 (∀ x y → ∥ R₁ x y ∥ → ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥) →
-  A₁ /ᴱ R₁ → A₂ /ᴱ R₂
-_/ᴱ-map-∥∥_ {R₁ = R₁} {R₂ = R₂} A₁→A₂ R₁→R₂ = rec λ where
-  .[]ʳ                                   → [_] ∘ A₁→A₂
-  .is-setʳ                               → /ᴱ-is-set
-  .[]-respects-relationʳ {x = x} {y = y} →
-     R₁ x y                      ↝⟨ ∣_∣ ⟩
-     ∥ R₁ x y ∥                  ↝⟨ R₁→R₂ _ _ ⟩
-     ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥  ↝⟨ PT.rec /ᴱ-is-set []-respects-relation ⟩□
-     [ A₁→A₂ x ] ≡ [ A₁→A₂ y ]   □
+-- _/ᴱ-map-∥∥_ :
+--   (A₁→A₂ : A₁ → A₂) →
+--   @0 (∀ x y → ∥ R₁ x y ∥ → ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥) →
+--   A₁ /ᴱ R₁ → A₂ /ᴱ R₂
+-- _/ᴱ-map-∥∥_ {R₁ = R₁} {R₂ = R₂} A₁→A₂ R₁→R₂ = rec λ where
+--   .[]ʳ                                   → [_] ∘ A₁→A₂
+--   .is-setʳ                               → /ᴱ-is-set
+--   .[]-respects-relationʳ {x = x} {y = y} →
+--      R₁ x y                      ↝⟨ ∣_∣ ⟩
+--      ∥ R₁ x y ∥                  ↝⟨ R₁→R₂ _ _ ⟩
+--      ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥  ↝⟨ PT.rec /ᴱ-is-set []-respects-relation ⟩□
+--      [ A₁→A₂ x ] ≡ [ A₁→A₂ y ]   □
 
-_/ᴱ-map_ :
-  (A₁→A₂ : A₁ → A₂) →
-  @0 (∀ x y → R₁ x y → R₂ (A₁→A₂ x) (A₁→A₂ y)) →
-  A₁ /ᴱ R₁ → A₂ /ᴱ R₂
-A₁→A₂ /ᴱ-map R₁→R₂ = A₁→A₂ /ᴱ-map-∥∥ λ x y → PT.∥∥-map (R₁→R₂ x y)
+-- _/ᴱ-map_ :
+--   (A₁→A₂ : A₁ → A₂) →
+--   @0 (∀ x y → R₁ x y → R₂ (A₁→A₂ x) (A₁→A₂ y)) →
+--   A₁ /ᴱ R₁ → A₂ /ᴱ R₂
+-- A₁→A₂ /ᴱ-map R₁→R₂ = A₁→A₂ /ᴱ-map-∥∥ λ x y → PT.∥∥-map (R₁→R₂ x y)
 
 -- Two preservation lemmas for logical equivalences.
 
-/ᴱ-cong-∥∥-⇔ :
-  (A₁⇔A₂ : A₁ ⇔ A₂) →
-  @0 (∀ x y → ∥ R₁ x y ∥ → ∥ R₂ (_⇔_.to   A₁⇔A₂ x) (_⇔_.to   A₁⇔A₂ y) ∥) →
-  @0 (∀ x y → ∥ R₂ x y ∥ → ∥ R₁ (_⇔_.from A₁⇔A₂ x) (_⇔_.from A₁⇔A₂ y) ∥) →
-  A₁ /ᴱ R₁ ⇔ A₂ /ᴱ R₂
-/ᴱ-cong-∥∥-⇔ A₁⇔A₂ R₁→R₂ R₂→R₁ = record
-  { to   = _⇔_.to   A₁⇔A₂ /ᴱ-map-∥∥ R₁→R₂
-  ; from = _⇔_.from A₁⇔A₂ /ᴱ-map-∥∥ R₂→R₁
-  }
+-- /ᴱ-cong-∥∥-⇔ :
+--   (A₁⇔A₂ : A₁ ⇔ A₂) →
+--   @0 (∀ x y → ∥ R₁ x y ∥ → ∥ R₂ (_⇔_.to   A₁⇔A₂ x) (_⇔_.to   A₁⇔A₂ y) ∥) →
+--   @0 (∀ x y → ∥ R₂ x y ∥ → ∥ R₁ (_⇔_.from A₁⇔A₂ x) (_⇔_.from A₁⇔A₂ y) ∥) →
+--   A₁ /ᴱ R₁ ⇔ A₂ /ᴱ R₂
+-- /ᴱ-cong-∥∥-⇔ A₁⇔A₂ R₁→R₂ R₂→R₁ = record
+--   { to   = _⇔_.to   A₁⇔A₂ /ᴱ-map-∥∥ R₁→R₂
+--   ; from = _⇔_.from A₁⇔A₂ /ᴱ-map-∥∥ R₂→R₁
+--   }
 
-/ᴱ-cong-⇔ :
-  (A₁⇔A₂ : A₁ ⇔ A₂) →
-  @0 (∀ x y → R₁ x y → R₂ (_⇔_.to   A₁⇔A₂ x) (_⇔_.to   A₁⇔A₂ y)) →
-  @0 (∀ x y → R₂ x y → R₁ (_⇔_.from A₁⇔A₂ x) (_⇔_.from A₁⇔A₂ y)) →
-  A₁ /ᴱ R₁ ⇔ A₂ /ᴱ R₂
-/ᴱ-cong-⇔ A₁⇔A₂ R₁→R₂ R₂→R₁ =
-  /ᴱ-cong-∥∥-⇔ A₁⇔A₂ (λ x y → PT.∥∥-map (R₁→R₂ x y))
-                     (λ x y → PT.∥∥-map (R₂→R₁ x y))
+-- /ᴱ-cong-⇔ :
+--   (A₁⇔A₂ : A₁ ⇔ A₂) →
+--   @0 (∀ x y → R₁ x y → R₂ (_⇔_.to   A₁⇔A₂ x) (_⇔_.to   A₁⇔A₂ y)) →
+--   @0 (∀ x y → R₂ x y → R₁ (_⇔_.from A₁⇔A₂ x) (_⇔_.from A₁⇔A₂ y)) →
+--   A₁ /ᴱ R₁ ⇔ A₂ /ᴱ R₂
+-- /ᴱ-cong-⇔ A₁⇔A₂ R₁→R₂ R₂→R₁ =
+--   /ᴱ-cong-∥∥-⇔ A₁⇔A₂ (λ x y → PT.∥∥-map (R₁→R₂ x y))
+--                      (λ x y → PT.∥∥-map (R₂→R₁ x y))
 
 -- Two preservation lemmas for split surjections.
 
-infix 5 _/ᴱ-cong-∥∥-↠_ _/ᴱ-cong-↠_
+-- infix 5 _/ᴱ-cong-∥∥-↠_ _/ᴱ-cong-↠_
 
-_/ᴱ-cong-∥∥-↠_ :
-  (A₁↠A₂ : A₁ ↠ A₂) →
-  @0 (∀ x y → ∥ R₁ x y ∥ ⇔ ∥ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y) ∥) →
-  A₁ /ᴱ R₁ ↠ A₂ /ᴱ R₂
-_/ᴱ-cong-∥∥-↠_ {R₁ = R₁} {R₂ = R₂} A₁↠A₂ R₁⇔R₂ = record
-  { logical-equivalence = /ᴱ-cong-∥∥-⇔
-      (_↠_.logical-equivalence A₁↠A₂)
-      (λ x y → _⇔_.to (R₁⇔R₂ x y))
-      (λ x y → ∥ R₂ x y ∥                          ↝⟨ ≡⇒↝ _ (sym $ cong₂ (λ x y → ∥ R₂ x y ∥) (right-inverse-of x) (right-inverse-of y)) ⟩
-               ∥ R₂ (to (from x)) (to (from y)) ∥  ↝⟨ _⇔_.from (R₁⇔R₂ _ _) ⟩□
-               ∥ R₁ (from x) (from y) ∥            □)
-  ; right-inverse-of = elim-prop λ where
-      .[]ʳ x →
-        [ to (from x) ]  ≡⟨ cong [_] $ right-inverse-of x ⟩∎
-        [ x ]            ∎
-      .is-propositionʳ _ → /ᴱ-is-set
-  }
-  where
-  open _↠_ A₁↠A₂
+-- _/ᴱ-cong-∥∥-↠_ :
+--   (A₁↠A₂ : A₁ ↠ A₂) →
+--   @0 (∀ x y → ∥ R₁ x y ∥ ⇔ ∥ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y) ∥) →
+--   A₁ /ᴱ R₁ ↠ A₂ /ᴱ R₂
+-- _/ᴱ-cong-∥∥-↠_ {R₁ = R₁} {R₂ = R₂} A₁↠A₂ R₁⇔R₂ = record
+--   { logical-equivalence = /ᴱ-cong-∥∥-⇔
+--       (_↠_.logical-equivalence A₁↠A₂)
+--       (λ x y → _⇔_.to (R₁⇔R₂ x y))
+--       (λ x y → ∥ R₂ x y ∥                          ↝⟨ ≡⇒↝ _ (sym $ cong₂ (λ x y → ∥ R₂ x y ∥) (right-inverse-of x) (right-inverse-of y)) ⟩
+--                ∥ R₂ (to (from x)) (to (from y)) ∥  ↝⟨ _⇔_.from (R₁⇔R₂ _ _) ⟩□
+--                ∥ R₁ (from x) (from y) ∥            □)
+--   ; right-inverse-of = elim-prop λ where
+--       .[]ʳ x →
+--         [ to (from x) ]  ≡⟨ cong [_] $ right-inverse-of x ⟩∎
+--         [ x ]            ∎
+--       .is-propositionʳ _ → /ᴱ-is-set
+--   }
+--   where
+--   open _↠_ A₁↠A₂
 
-_/ᴱ-cong-↠_ :
-  (A₁↠A₂ : A₁ ↠ A₂) →
-  @0 (∀ x y → R₁ x y ⇔ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y)) →
-  A₁ /ᴱ R₁ ↠ A₂ /ᴱ R₂
-A₁↠A₂ /ᴱ-cong-↠ R₁⇔R₂ =
-  A₁↠A₂ /ᴱ-cong-∥∥-↠ λ x y → PT.∥∥-cong-⇔ (R₁⇔R₂ x y)
+-- _/ᴱ-cong-↠_ :
+--   (A₁↠A₂ : A₁ ↠ A₂) →
+--   @0 (∀ x y → R₁ x y ⇔ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y)) →
+--   A₁ /ᴱ R₁ ↠ A₂ /ᴱ R₂
+-- A₁↠A₂ /ᴱ-cong-↠ R₁⇔R₂ =
+--   A₁↠A₂ /ᴱ-cong-∥∥-↠ λ x y → PT.∥∥-cong-⇔ (R₁⇔R₂ x y)
 
 -- Two preservation lemmas for isomorphisms.
 
-infix 5 _/ᴱ-cong-∥∥_ _/ᴱ-cong_
+-- infix 5 _/ᴱ-cong-∥∥_ _/ᴱ-cong_
 
-_/ᴱ-cong-∥∥_ :
-  {A₁ : Set a₁} {A₂ : Set a₂}
-  {R₁ : A₁ → A₁ → Set r₁}
-  {R₂ : A₂ → A₂ → Set r₂} →
-  (A₁↔A₂ : A₁ ↔[ k ] A₂) →
-  @0 (∀ x y →
-        ∥ R₁ x y ∥ ⇔
-        ∥ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y) ∥) →
-  A₁ /ᴱ R₁ ↔[ k ] A₂ /ᴱ R₂
-_/ᴱ-cong-∥∥_ {k = k} {R₁ = R₁} {R₂ = R₂} A₁↔A₂′ R₁⇔R₂ =
-  from-bijection (record
-    { surjection = from-isomorphism A₁↔A₂ /ᴱ-cong-∥∥-↠ λ x y →
-        ∥ R₁ x y ∥                                                  ↝⟨ R₁⇔R₂ x y ⟩
-        ∥ R₂ (to-implication A₁↔A₂′ x) (to-implication A₁↔A₂′ y) ∥  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → ∥ R₂ (f x) (g y) ∥)
-                                                                                     (to-implication∘from-isomorphism k bijection)
-                                                                                     (to-implication∘from-isomorphism k bijection) ⟩□
-        ∥ R₂ (to x) (to y) ∥                                        □
-    ; left-inverse-of = elim-prop λ where
-        .[]ʳ x →
-          [ from (to x) ]  ≡⟨ cong [_] $ left-inverse-of x ⟩∎
-          [ x ]            ∎
-        .is-propositionʳ _ → /ᴱ-is-set
-    })
-  where
-  A₁↔A₂ = from-isomorphism A₁↔A₂′
+-- _/ᴱ-cong-∥∥_ :
+--   {A₁ : Set a₁} {A₂ : Set a₂}
+--   {R₁ : A₁ → A₁ → Set r₁}
+--   {R₂ : A₂ → A₂ → Set r₂} →
+--   (A₁↔A₂ : A₁ ↔[ k ] A₂) →
+--   @0 (∀ x y →
+--         ∥ R₁ x y ∥ ⇔
+--         ∥ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y) ∥) →
+--   A₁ /ᴱ R₁ ↔[ k ] A₂ /ᴱ R₂
+-- _/ᴱ-cong-∥∥_ {k = k} {R₁ = R₁} {R₂ = R₂} A₁↔A₂′ R₁⇔R₂ =
+--   from-bijection (record
+--     { surjection = from-isomorphism A₁↔A₂ /ᴱ-cong-∥∥-↠ λ x y →
+--         ∥ R₁ x y ∥                                                  ↝⟨ R₁⇔R₂ x y ⟩
+--         ∥ R₂ (to-implication A₁↔A₂′ x) (to-implication A₁↔A₂′ y) ∥  ↝⟨ ≡⇒↝ _ $ cong₂ (λ f g → ∥ R₂ (f x) (g y) ∥)
+--                                                                                      (to-implication∘from-isomorphism k bijection)
+--                                                                                      (to-implication∘from-isomorphism k bijection) ⟩□
+--         ∥ R₂ (to x) (to y) ∥                                        □
+--     ; left-inverse-of = elim-prop λ where
+--         .[]ʳ x →
+--           [ from (to x) ]  ≡⟨ cong [_] $ left-inverse-of x ⟩∎
+--           [ x ]            ∎
+--         .is-propositionʳ _ → /ᴱ-is-set
+--     })
+--   where
+--   A₁↔A₂ = from-isomorphism A₁↔A₂′
 
-  open _↔_ A₁↔A₂
+--   open _↔_ A₁↔A₂
 
-_/ᴱ-cong_ :
-  {A₁ : Set a₁} {A₂ : Set a₂}
-  {R₁ : A₁ → A₁ → Set r₁}
-  {R₂ : A₂ → A₂ → Set r₂} →
-  (A₁↔A₂ : A₁ ↔[ k ] A₂) →
-  @0 (∀ x y →
-        R₁ x y ⇔ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)) →
-  A₁ /ᴱ R₁ ↔[ k ] A₂ /ᴱ R₂
-_/ᴱ-cong_ A₁↔A₂ R₁⇔R₂ =
-  A₁↔A₂ /ᴱ-cong-∥∥ λ x y → PT.∥∥-cong-⇔ (R₁⇔R₂ x y)
+-- _/ᴱ-cong_ :
+--   {A₁ : Set a₁} {A₂ : Set a₂}
+--   {R₁ : A₁ → A₁ → Set r₁}
+--   {R₂ : A₂ → A₂ → Set r₂} →
+--   (A₁↔A₂ : A₁ ↔[ k ] A₂) →
+--   @0 (∀ x y →
+--         R₁ x y ⇔ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)) →
+--   A₁ /ᴱ R₁ ↔[ k ] A₂ /ᴱ R₂
+-- _/ᴱ-cong_ A₁↔A₂ R₁⇔R₂ =
+--   A₁↔A₂ /ᴱ-cong-∥∥ λ x y → PT.∥∥-cong-⇔ (R₁⇔R₂ x y)
 
 ------------------------------------------------------------------------
 -- Some properties
 
 -- [_] is surjective.
 
-Surjective-[] : Surjective ([_] {R = R})
-Surjective-[] = elim-prop λ where
-  .[]ʳ x             → ∣ x , refl _ ∣
-  .is-propositionʳ _ → PT.truncation-is-proposition
+-- Surjective-[] : Surjective ([_] {R = R})
+-- Surjective-[] = elim-prop λ where
+--   .[]ʳ x             → ∣ x , refl _ ∣
+--   .is-propositionʳ _ → PT.truncation-is-proposition
 
 -- [_] is surjective with erased proofs.
 
@@ -441,37 +441,37 @@ Surjectiveᴱ-[] = elim-prop λ where
   .[]ʳ x             → ∣ x , [ refl _ ] ∣
   .is-propositionʳ _ → PTᴱ.truncation-is-proposition
 
--- Quotienting by the propositional truncation of a relation is
--- equivalent to quotienting by the relation itself.
+-- -- Quotienting by the propositional truncation of a relation is
+-- -- equivalent to quotienting by the relation itself.
 
-/ᴱ-∥∥≃/ᴱ : A /ᴱ (λ x y → ∥ R x y ∥) ≃ A /ᴱ R
-/ᴱ-∥∥≃/ᴱ {R = R} = F.id /ᴱ-cong-∥∥ λ x y →
-  ∥ ∥ R x y ∥ ∥  ↔⟨ PT.flatten ⟩□
-  ∥ R x y ∥      □
+-- /ᴱ-∥∥≃/ᴱ : A /ᴱ (λ x y → ∥ R x y ∥) ≃ A /ᴱ R
+-- /ᴱ-∥∥≃/ᴱ {R = R} = F.id /ᴱ-cong-∥∥ λ x y →
+--   ∥ ∥ R x y ∥ ∥  ↔⟨ PT.flatten ⟩□
+--   ∥ R x y ∥      □
 
 -- If the quotient relation is a propositional equivalence relation,
 -- then it is equivalent to equality under [_] (in erased contexts).
 
-@0 related≃[equal] :
-  {R : A → A → Set r} →
-  Is-equivalence-relation R →
-  (∀ {x y} → Is-proposition (R x y)) →
-  R x y ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
-related≃[equal] {A = A} {r = r} {x = x} {y = y} {R = R}
-                R-equiv R-prop =
-  R x y                             ↝⟨ Q.related≃[equal] R-equiv R-prop ⟩
-  _≡_ {A = A /  R} Q.[ x ] Q.[ y ]  ↝⟨ Eq.≃-≡ /ᴱ≃/ ⟩□
-  _≡_ {A = A /ᴱ R}   [ x ]   [ y ]  □
+-- @0 related≃[equal] :
+--   {R : A → A → Set r} →
+--   Is-equivalence-relation R →
+--   (∀ {x y} → Is-proposition (R x y)) →
+--   R x y ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
+-- related≃[equal] {A = A} {r = r} {x = x} {y = y} {R = R}
+--                 R-equiv R-prop =
+--   R x y                             ↝⟨ Q.related≃[equal] R-equiv R-prop ⟩
+--   _≡_ {A = A /  R} Q.[ x ] Q.[ y ]  ↝⟨ Eq.≃-≡ /ᴱ≃/ ⟩□
+--   _≡_ {A = A /ᴱ R}   [ x ]   [ y ]  □
 
 -- A variant of related≃[equal].
 
-@0 ∥related∥≃[equal] :
-  Is-equivalence-relation R →
-  ∥ R x y ∥ ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
-∥related∥≃[equal] {A = A} {R = R} {x = x} {y = y} R-equiv =
-  ∥ R x y ∥                         ↝⟨ Q.∥related∥≃[equal] R-equiv ⟩
-  _≡_ {A = A /  R} Q.[ x ] Q.[ y ]  ↝⟨ Eq.≃-≡ /ᴱ≃/ ⟩□
-  _≡_ {A = A /ᴱ R}   [ x ]   [ y ]  □
+-- @0 ∥related∥≃[equal] :
+--   Is-equivalence-relation R →
+--   ∥ R x y ∥ ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
+-- ∥related∥≃[equal] {A = A} {R = R} {x = x} {y = y} R-equiv =
+--   ∥ R x y ∥                         ↝⟨ Q.∥related∥≃[equal] R-equiv ⟩
+--   _≡_ {A = A /  R} Q.[ x ] Q.[ y ]  ↝⟨ Eq.≃-≡ /ᴱ≃/ ⟩□
+--   _≡_ {A = A /ᴱ R}   [ x ]   [ y ]  □
 
 -- Quotienting with equality (for a set) amounts to the same thing as
 -- not quotienting at all.

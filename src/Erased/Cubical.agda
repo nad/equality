@@ -26,8 +26,8 @@ import Erased.Basics equality-with-J as EB
 import Erased.Level-1 equality-with-J as E₁
 open import Function-universe equality-with-J as F
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)
-open import Quotient eq as Quotient hiding ([_])
+-- open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)
+-- open import Quotient eq as Quotient hiding ([_])
 open import Surjection equality-with-J as Surjection using (_↠_)
 
 private
@@ -237,93 +237,93 @@ private
 -- If R is a propositional equivalence relation that is pointwise
 -- stable, then equality is very stable for A / R.
 
-Very-stable-≡-/ :
-  Is-equivalence-relation R →
-  (∀ x y → Is-proposition (R x y)) →
-  (∀ x y → Stable (R x y)) →
-  Very-stable-≡ (A / R)
-Very-stable-≡-/ {A = A} {R = R} equiv prop s =
-  Quotient.elim-prop λ where
-    .[]ʳ x → Quotient.elim-prop λ where
-       .[]ʳ y →                                         $⟨ s _ _ ⟩
-         Stable (R x y)                                 ↝⟨ flip Stable-proposition→Very-stable (prop _ _) ⟩
-         Very-stable (R x y)                            ↝⟨ Very-stable-cong _ (related≃[equal] equiv (prop _ _)) ⟩□
-         Very-stable (Quotient.[ x ] ≡ Quotient.[ y ])  □
-       .is-propositionʳ _ → Very-stable-propositional ext
-    .is-propositionʳ _ →
-      Π-closure ext 1 λ _ →
-      Very-stable-propositional ext
+-- Very-stable-≡-/ :
+--   Is-equivalence-relation R →
+--   (∀ x y → Is-proposition (R x y)) →
+--   (∀ x y → Stable (R x y)) →
+--   Very-stable-≡ (A / R)
+-- Very-stable-≡-/ {A = A} {R = R} equiv prop s =
+--   Quotient.elim-prop λ where
+--     .[]ʳ x → Quotient.elim-prop λ where
+--        .[]ʳ y →                                         $⟨ s _ _ ⟩
+--          Stable (R x y)                                 ↝⟨ flip Stable-proposition→Very-stable (prop _ _) ⟩
+--          Very-stable (R x y)                            ↝⟨ Very-stable-cong _ (related≃[equal] equiv (prop _ _)) ⟩□
+--          Very-stable (Quotient.[ x ] ≡ Quotient.[ y ])  □
+--        .is-propositionʳ _ → Very-stable-propositional ext
+--     .is-propositionʳ _ →
+--       Π-closure ext 1 λ _ →
+--       Very-stable-propositional ext
 
 ------------------------------------------------------------------------
 -- Code related to Erased-singleton
 
 -- A corollary of erased-singleton-with-erased-center-propositional.
 
-↠→↔Erased-singleton :
-  {@0 y : B}
-  (A↠B : A ↠ B) →
-  Very-stable-≡ B →
-  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ ↔ Erased-singleton y
-↠→↔Erased-singleton {A = A} {y = y} A↠B s =
-  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  ↝⟨ Trunc.∥∥-cong-⇔ (Surjection.Σ-cong-⇔ A↠B λ _ → F.id) ⟩
-  ∥ Erased-singleton y ∥                         ↝⟨ Trunc.∥∥↔ (erased-singleton-with-erased-center-propositional s) ⟩□
-  Erased-singleton y                             □
+-- ↠→↔Erased-singleton :
+--   {@0 y : B}
+--   (A↠B : A ↠ B) →
+--   Very-stable-≡ B →
+--   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ ↔ Erased-singleton y
+-- ↠→↔Erased-singleton {A = A} {y = y} A↠B s =
+--   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  ↝⟨ Trunc.∥∥-cong-⇔ (Surjection.Σ-cong-⇔ A↠B λ _ → F.id) ⟩
+--   ∥ Erased-singleton y ∥                         ↝⟨ Trunc.∥∥↔ (erased-singleton-with-erased-center-propositional s) ⟩□
+--   Erased-singleton y                             □
 
-mutual
+-- mutual
 
-  -- The right-to-left direction of the previous lemma does not depend
-  -- on the assumption of stability.
+--   -- The right-to-left direction of the previous lemma does not depend
+--   -- on the assumption of stability.
 
-  ↠→Erased-singleton→ :
-    {@0 y : B}
-    (A↠B : A ↠ B) →
-    Erased-singleton y →
-    ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥
-  ↠→Erased-singleton→ = _  -- Agda can infer the definition.
+--   ↠→Erased-singleton→ :
+--     {@0 y : B}
+--     (A↠B : A ↠ B) →
+--     Erased-singleton y →
+--     ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥
+--   ↠→Erased-singleton→ = _  -- Agda can infer the definition.
 
-  _ : _↔_.from (↠→↔Erased-singleton A↠B s) x ≡
-      ↠→Erased-singleton→ A↠B x
-  _ = refl _
+--   _ : _↔_.from (↠→↔Erased-singleton A↠B s) x ≡
+--       ↠→Erased-singleton→ A↠B x
+--   _ = refl _
 
 -- A corollary of Σ-Erased-Erased-singleton↔ and ↠→↔Erased-singleton.
 
-Σ-Erased-∥-Σ-Erased-≡-∥↔ :
-  (A↠B : A ↠ B) →
-  Very-stable-≡ B →
-  (∃ λ (x : Erased B) →
-     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥) ↔
-  B
-Σ-Erased-∥-Σ-Erased-≡-∥↔ {A = A} {B = B} A↠B s =
-  (∃ λ (x : Erased B) →
-     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥)  ↝⟨ (∃-cong λ _ → ↠→↔Erased-singleton A↠B s) ⟩
+-- Σ-Erased-∥-Σ-Erased-≡-∥↔ :
+--   (A↠B : A ↠ B) →
+--   Very-stable-≡ B →
+--   (∃ λ (x : Erased B) →
+--      ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥) ↔
+--   B
+-- Σ-Erased-∥-Σ-Erased-≡-∥↔ {A = A} {B = B} A↠B s =
+--   (∃ λ (x : Erased B) →
+--      ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥)  ↝⟨ (∃-cong λ _ → ↠→↔Erased-singleton A↠B s) ⟩
 
-  (∃ λ (x : Erased B) → Erased-singleton (erased x))        ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
+--   (∃ λ (x : Erased B) → Erased-singleton (erased x))        ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
 
-  B                                                         □
+--   B                                                         □
 
-mutual
+-- mutual
 
-  -- Again the right-to-left direction of the previous lemma does not
-  -- depend on the assumption of stability.
+--   -- Again the right-to-left direction of the previous lemma does not
+--   -- depend on the assumption of stability.
 
-  →Σ-Erased-∥-Σ-Erased-≡-∥ :
-    (A↠B : A ↠ B) →
-    B →
-    ∃ λ (x : Erased B) →
-      ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥
-  →Σ-Erased-∥-Σ-Erased-≡-∥ = _  -- Agda can infer the definition.
+--   →Σ-Erased-∥-Σ-Erased-≡-∥ :
+--     (A↠B : A ↠ B) →
+--     B →
+--     ∃ λ (x : Erased B) →
+--       ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥
+--   →Σ-Erased-∥-Σ-Erased-≡-∥ = _  -- Agda can infer the definition.
 
-  _ : _↔_.from (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡
-      →Σ-Erased-∥-Σ-Erased-≡-∥ A↠B x
-  _ = refl _
+--   _ : _↔_.from (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡
+--       →Σ-Erased-∥-Σ-Erased-≡-∥ A↠B x
+--   _ = refl _
 
 -- In an erased context the left-to-right direction of
 -- Σ-Erased-∥-Σ-Erased-≡-∥↔ returns the erased first component.
 
-@0 to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ :
-  ∀ (A↠B : A ↠ B) (s : Very-stable-≡ B) x →
-  _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡ erased (proj₁ x)
-to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ A↠B s ([ x ] , y) =
-  _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) ([ x ] , y)  ≡⟨⟩
-  proj₁ (_↔_.to (↠→↔Erased-singleton A↠B s) y)         ≡⟨ erased (proj₂ (_↔_.to (↠→↔Erased-singleton A↠B s) y)) ⟩∎
-  x                                                    ∎
+-- @0 to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ :
+--   ∀ (A↠B : A ↠ B) (s : Very-stable-≡ B) x →
+--   _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡ erased (proj₁ x)
+-- to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ A↠B s ([ x ] , y) =
+--   _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) ([ x ] , y)  ≡⟨⟩
+--   proj₁ (_↔_.to (↠→↔Erased-singleton A↠B s) y)         ≡⟨ erased (proj₂ (_↔_.to (↠→↔Erased-singleton A↠B s) y)) ⟩∎
+--   x                                                    ∎

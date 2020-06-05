@@ -35,8 +35,8 @@ open import Erased.Cubical eq as Er using (Erased; [_])
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional eq as PT
-  using (∥_∥; Surjective)
+-- open import H-level.Truncation.Propositional eq as PT
+--   using (∥_∥; Surjective)
 open import Monad equality-with-J
 open import Preimage equality-with-J using (_⁻¹_)
 open import Surjection equality-with-J using (_↠_; Split-surjective)
@@ -169,24 +169,24 @@ rec r = recᴾ λ where
 ------------------------------------------------------------------------
 -- Conversion functions
 
--- If A is merely inhabited (with erased proofs), then A is merely
--- inhabited.
+-- -- If A is merely inhabited (with erased proofs), then A is merely
+-- -- inhabited.
 
-∥∥ᴱ→∥∥ : ∥ A ∥ᴱ → ∥ A ∥
-∥∥ᴱ→∥∥ = rec λ where
-  .∣∣ʳ                        → PT.∣_∣
-  .truncation-is-propositionʳ → PT.truncation-is-proposition
+-- ∥∥ᴱ→∥∥ : ∥ A ∥ᴱ → ∥ A ∥
+-- ∥∥ᴱ→∥∥ = rec λ where
+--   .∣∣ʳ                        → PT.∣_∣
+--   .truncation-is-propositionʳ → PT.truncation-is-proposition
 
--- In an erased context the propositional truncation operator defined
--- here is equivalent to the one defined in
--- H-level.Truncation.Propositional.
+-- -- In an erased context the propositional truncation operator defined
+-- -- here is equivalent to the one defined in
+-- -- H-level.Truncation.Propositional.
 
-@0 ∥∥ᴱ≃∥∥ : ∥ A ∥ᴱ ≃ ∥ A ∥
-∥∥ᴱ≃∥∥ = Eq.⇔→≃
-  truncation-is-proposition
-  PT.truncation-is-proposition
-  ∥∥ᴱ→∥∥
-  (PT.rec truncation-is-proposition ∣_∣)
+-- @0 ∥∥ᴱ≃∥∥ : ∥ A ∥ᴱ ≃ ∥ A ∥
+-- ∥∥ᴱ≃∥∥ = Eq.⇔→≃
+--   truncation-is-proposition
+--   PT.truncation-is-proposition
+--   ∥∥ᴱ→∥∥
+--   (PT.rec truncation-is-proposition ∣_∣)
 
 ------------------------------------------------------------------------
 -- Some preservation lemmas and related results
@@ -441,8 +441,8 @@ _ = refl _
 -- This is, at the time of writing, not the case for the following
 -- proof.
 
-_ : (∥ A ∥ᴱ × A) ≃ᴱ A
-_ = EEq.[≃]→≃ᴱ (EEq.[proofs] (PT.∥∥×≃ Eq.∘ (∥∥ᴱ≃∥∥ ×-cong Eq.id)))
+-- _ : (∥ A ∥ᴱ × A) ≃ᴱ A
+-- _ = EEq.[≃]→≃ᴱ (EEq.[proofs] (PT.∥∥×≃ Eq.∘ (∥∥ᴱ≃∥∥ ×-cong Eq.id)))
 
 -- ∥_∥ᴱ commutes with _×_.
 
@@ -484,15 +484,15 @@ _ = EEq.[≃]→≃ᴱ (EEq.[proofs] (PT.∥∥×≃ Eq.∘ (∥∥ᴱ≃∥∥ 
 
 -- Variants of proj₁-closure.
 
-H-level-×₁ :
-  (A → ∥ B ∥ᴱ) →
-  ∀ n → H-level n (A × B) → H-level n A
-H-level-×₁ inhabited = PT.H-level-×₁ (∥∥ᴱ→∥∥ ∘ inhabited)
+-- H-level-×₁ :
+--   (A → ∥ B ∥ᴱ) →
+--   ∀ n → H-level n (A × B) → H-level n A
+-- H-level-×₁ inhabited = PT.H-level-×₁ (∥∥ᴱ→∥∥ ∘ inhabited)
 
-H-level-×₂ :
-  (B → ∥ A ∥ᴱ) →
-  ∀ n → H-level n (A × B) → H-level n B
-H-level-×₂ inhabited = PT.H-level-×₂ (∥∥ᴱ→∥∥ ∘ inhabited)
+-- H-level-×₂ :
+--   (B → ∥ A ∥ᴱ) →
+--   ∀ n → H-level n (A × B) → H-level n B
+-- H-level-×₂ inhabited = PT.H-level-×₂ (∥∥ᴱ→∥∥ ∘ inhabited)
 
 ------------------------------------------------------------------------
 -- Flattening
@@ -624,11 +624,11 @@ Split-surjective→Surjectiveᴱ s = λ y → ∣ EEq.⁻¹→⁻¹ᴱ (s y) ∣
 -- It appears to me as if neither direction of this equivalence can be
 -- established if the erasure annotation is removed.
 
-@0 Surjectiveᴱ≃Surjective : Surjectiveᴱ f ≃ Surjective f
-Surjectiveᴱ≃Surjective {f = f} =
-  (∀ y → ∥ f ⁻¹ᴱ y ∥ᴱ)  ↝⟨ (∀-cong ext λ _ → ∥∥ᴱ≃∥∥) ⟩
-  (∀ y → ∥ f ⁻¹ᴱ y ∥)   ↝⟨ (∀-cong ext λ _ → PT.∥∥-cong (inverse EEq.⁻¹≃⁻¹ᴱ)) ⟩□
-  (∀ y → ∥ f ⁻¹  y ∥)   □
+-- @0 Surjectiveᴱ≃Surjective : Surjectiveᴱ f ≃ Surjective f
+-- Surjectiveᴱ≃Surjective {f = f} =
+--   (∀ y → ∥ f ⁻¹ᴱ y ∥ᴱ)  ↝⟨ (∀-cong ext λ _ → ∥∥ᴱ≃∥∥) ⟩
+--   (∀ y → ∥ f ⁻¹ᴱ y ∥)   ↝⟨ (∀-cong ext λ _ → PT.∥∥-cong (inverse EEq.⁻¹≃⁻¹ᴱ)) ⟩□
+--   (∀ y → ∥ f ⁻¹  y ∥)   □
 
 -- Being both surjective (with erased proofs) and an embedding
 -- (completely erased) is equivalent to being an equivalence (with
