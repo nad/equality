@@ -13,21 +13,31 @@ import Equality.Path as P
 module Figure-of-eight
   {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
-open P.Derived-definitions-and-properties eq
+open P.Derived-definitions-and-properties eq hiding (elim)
 
 open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 import Bijection P.equality-with-J as PB
-open import Circle eq as Circle
+open import Circle eq as Circle using (𝕊¹; base; loopᴾ)
 open import Equality.Decision-procedures equality-with-J
 open import Equality.Path.Isomorphisms eq
 import Equality.Tactic P.equality-with-J as PT
 open import Equivalence equality-with-J as Eq using (_≃_)
 import Equivalence P.equality-with-J as PE
 open import Function-universe equality-with-J hiding (_∘_)
-open import Pushout eq as Pushout
+open import Pushout eq as Pushout using (Wedge; inl; inr; glueᴾ)
 import Univalence-axiom P.equality-with-J as PU
+
+private
+  variable
+    a p : Level
+    A   : Set a
+    P   : A → Set p
+    e r : A
+
+------------------------------------------------------------------------
+-- The type
 
 -- The figure of eight
 -- (https://topospaces.subwiki.org/wiki/Wedge_of_two_circles).
@@ -43,6 +53,104 @@ loop₁ = _↔_.from ≡↔≡ loop₁ᴾ
 
 loop₂ : base ≡ base
 loop₂ = _↔_.from ≡↔≡ loop₂ᴾ
+
+------------------------------------------------------------------------
+-- Eliminators
+
+-- An eliminator, expressed using paths.
+
+record Elimᴾ (P : ∞ → Set p) : Set p where
+  no-eta-equality
+  field
+    baseʳ  : P base
+    loop₁ʳ : P.[ (λ i → P (loop₁ᴾ i)) ] baseʳ ≡ baseʳ
+    loop₂ʳ : P.[ (λ i → P (loop₂ᴾ i)) ] baseʳ ≡ baseʳ
+
+open Elimᴾ public
+
+elimᴾ : Elimᴾ P → (x : ∞) → P x
+elimᴾ {P = P} e = helper
+  where
+  module E = Elimᴾ e
+
+  helper : (x : ∞) → P x
+  helper base       = E.baseʳ
+  helper (loop₁ᴾ i) = E.loop₁ʳ i
+  helper (loop₂ᴾ i) = E.loop₂ʳ i
+
+-- A non-dependent eliminator, expressed using paths.
+
+record Recᴾ (A : Set a) : Set a where
+  no-eta-equality
+  field
+    baseʳ         : A
+    loop₁ʳ loop₂ʳ : baseʳ P.≡ baseʳ
+
+open Recᴾ public
+
+recᴾ : Recᴾ A → ∞ → A
+recᴾ r = elimᴾ λ where
+    .baseʳ  → R.baseʳ
+    .loop₁ʳ → R.loop₁ʳ
+    .loop₂ʳ → R.loop₂ʳ
+  where
+  module R = Recᴾ r
+
+-- An eliminator.
+
+record Elim (P : ∞ → Set p) : Set p where
+  no-eta-equality
+  field
+    baseʳ  : P base
+    loop₁ʳ : subst P loop₁ baseʳ ≡ baseʳ
+    loop₂ʳ : subst P loop₂ baseʳ ≡ baseʳ
+
+open Elim public
+
+elim : Elim P → (x : ∞) → P x
+elim e = elimᴾ λ where
+    .baseʳ  → E.baseʳ
+    .loop₁ʳ → subst≡→[]≡ E.loop₁ʳ
+    .loop₂ʳ → subst≡→[]≡ E.loop₂ʳ
+  where
+  module E = Elim e
+
+-- Two "computation" rules.
+
+elim-loop₁ : dcong (elim e) loop₁ ≡ e .Elim.loop₁ʳ
+elim-loop₁ = dcong-subst≡→[]≡ (refl _)
+
+elim-loop₂ : dcong (elim e) loop₂ ≡ e .Elim.loop₂ʳ
+elim-loop₂ = dcong-subst≡→[]≡ (refl _)
+
+-- A non-dependent eliminator.
+
+record Rec (A : Set a) : Set a where
+  no-eta-equality
+  field
+    baseʳ         : A
+    loop₁ʳ loop₂ʳ : baseʳ ≡ baseʳ
+
+open Rec public
+
+rec : Rec A → ∞ → A
+rec r = recᴾ λ where
+    .baseʳ  → R.baseʳ
+    .loop₁ʳ → _↔_.to ≡↔≡ R.loop₁ʳ
+    .loop₂ʳ → _↔_.to ≡↔≡ R.loop₂ʳ
+  where
+  module R = Rec r
+
+-- Two "computation" rules.
+
+rec-loop₁ : cong (rec r) loop₁ ≡ r .Rec.loop₁ʳ
+rec-loop₁ = cong-≡↔≡ (refl _)
+
+rec-loop₂ : cong (rec r) loop₂ ≡ r .Rec.loop₂ʳ
+rec-loop₂ = cong-≡↔≡ (refl _)
+
+------------------------------------------------------------------------
+-- Some negative results
 
 -- The two higher constructors are not equal.
 --
@@ -162,6 +270,9 @@ trans-not-commutative =
   lemma₂₁ _ i@fzero               = PE._≃_.to eq₁ (PE._≃_.to eq₂ i)
   lemma₂₁ _ i@(fsuc fzero)        = PE._≃_.to eq₁ (PE._≃_.to eq₂ i)
   lemma₂₁ _ i@(fsuc (fsuc fzero)) = PE._≃_.to eq₁ (PE._≃_.to eq₂ i)
+
+------------------------------------------------------------------------
+-- A positive result
 
 -- The figure of eight can be expressed as a wedge of two circles.
 --
