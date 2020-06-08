@@ -254,6 +254,21 @@ Erased-¬↔¬ {A = A} ext =
   (Erased A → Erased ⊥)  ↝⟨ (∀-cong ext λ _ → from-isomorphism Erased-⊥↔⊥) ⟩□
   (Erased A → ⊥)         □
 
+-- Erased can be dropped under ¬_ (assuming extensionality).
+
+¬-Erased↔¬ :
+  {A : Set a} →
+  Extensionality? k a lzero →
+  ¬ Erased A ↝[ k ] ¬ A
+¬-Erased↔¬ {a = a} {A = A} =
+  generalise-ext?-prop
+    (record
+       { to   = λ ¬[a] a → ¬[a] [ a ]
+       ; from = λ ¬a ([ a ]) → _↔_.to Erased-⊥↔⊥ [ ¬a a ]
+       })
+    ¬-propositional
+    ¬-propositional
+
 -- The following two results are inspired by a result in
 -- Mishra-Linger's PhD thesis (see Section 5.4.1).
 --
