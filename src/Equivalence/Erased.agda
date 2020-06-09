@@ -269,13 +269,13 @@ Contractibleᴱ-respects-surjection {A = A} {B = B} f s h@(x , _) =
 -- "Preimages" (with erased proofs) of an erased function with a
 -- quasi-inverse with erased proofs are contractible.
 
-bijection⁻¹ᴱ-contractible :
+Contractibleᴱ-⁻¹ᴱ :
   (@0 f : A → B)
   (g : B → A)
   (@0 f∘g : ∀ x → f (g x) ≡ x)
   (@0 g∘f : ∀ x → g (f x) ≡ x) →
   ∀ y → Contractibleᴱ (f ⁻¹ᴱ y)
-bijection⁻¹ᴱ-contractible {A = A} {B = B} f g f∘g g∘f y =
+Contractibleᴱ-⁻¹ᴱ {A = A} {B = B} f g f∘g g∘f y =
     (g y , [ proj₂ (proj₁ c)  ])
   , [ cong ⁻¹→⁻¹ᴱ ⊚ proj₂ c ⊚ ⁻¹ᴱ→⁻¹ ]
   where
