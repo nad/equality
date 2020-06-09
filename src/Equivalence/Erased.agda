@@ -10,6 +10,7 @@ module Equivalence.Erased
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
+open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 
 open import Bijection eq using (_↔_)
@@ -196,105 +197,6 @@ Erased-Contractibleᴱ↔Erased-Contractible =
   Erased (∃ λ x → ∀ y → x ≡ y)                    □
 
 ------------------------------------------------------------------------
--- Some type formers are propositional in erased contexts
-
--- In an erased context Contractibleᴱ is propositional (assuming
--- extensionality).
-
-@0 Contractibleᴱ-propositional :
-  {A : Set a} →
-  Extensionality a a →
-  Is-proposition (Contractibleᴱ A)
-Contractibleᴱ-propositional ext =
-  H-level.respects-surjection
-    (_≃_.surjection Contractible≃Contractibleᴱ)
-    1
-    (Contractible-propositional ext)
-
--- In an erased context Is-equivalenceᴱ f is a proposition (assuming
--- extensionality).
---
--- See also Is-equivalenceᴱ-propositional-for-Erased below.
-
-@0 Is-equivalenceᴱ-propositional :
-  {A : Set a} {B : Set b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
-  (f : A → B) → Is-proposition (Is-equivalenceᴱ f)
-Is-equivalenceᴱ-propositional ext f =
-  H-level.respects-surjection
-    (_≃_.surjection $ Is-equivalence≃Is-equivalenceᴱ ext)
-    1
-    (Eq.propositional ext f)
-
-------------------------------------------------------------------------
--- Some results related to Contractibleᴱ
-
--- If an inhabited type comes with an erased proof of
--- propositionality, then it is contractible (with erased proofs).
-
-inhabited→Is-proposition→Contractibleᴱ :
-  A → @0 Is-proposition A → Contractibleᴱ A
-inhabited→Is-proposition→Contractibleᴱ x prop = (x , [ prop x ])
-
--- A variant of the previous result.
-
-inhabited→Is-proposition→≃ᴱ⊤ :
-  A → @0 Is-proposition A → A ≃ᴱ ⊤
-inhabited→Is-proposition→≃ᴱ⊤ x prop = ⇔→≃ᴱ
-  prop
-  (mono₁ 0 ⊤-contractible)
-  _
-  (λ _ → x)
-
--- Contractibleᴱ respects split surjections with erased proofs.
-
-Contractibleᴱ-respects-surjection :
-  (f : A → B) → @0 Split-surjective f →
-  Contractibleᴱ A → Contractibleᴱ B
-Contractibleᴱ-respects-surjection {A = A} {B = B} f s h@(x , _) =
-    f x
-  , [ proj₂ (H-level.respects-surjection surj 0
-               (Contractibleᴱ→Contractible h))
-    ]
-  where
-  @0 surj : A ↠ B
-  surj = record
-    { logical-equivalence = record
-      { to   = f
-      ; from = proj₁ ⊚ s
-      }
-    ; right-inverse-of = proj₂ ⊚ s
-    }
-
--- "Preimages" (with erased proofs) of an erased function with a
--- quasi-inverse with erased proofs are contractible.
-
-Contractibleᴱ-⁻¹ᴱ :
-  (@0 f : A → B)
-  (g : B → A)
-  (@0 f∘g : ∀ x → f (g x) ≡ x)
-  (@0 g∘f : ∀ x → g (f x) ≡ x) →
-  ∀ y → Contractibleᴱ (f ⁻¹ᴱ y)
-Contractibleᴱ-⁻¹ᴱ {A = A} {B = B} f g f∘g g∘f y =
-    (g y , [ proj₂ (proj₁ c)  ])
-  , [ cong ⁻¹→⁻¹ᴱ ⊚ proj₂ c ⊚ ⁻¹ᴱ→⁻¹ ]
-  where
-  @0 A↔B : A ↔ B
-  A↔B = record
-    { surjection = record
-      { logical-equivalence = record
-        { to   = f
-        ; from = g
-        }
-      ; right-inverse-of = f∘g
-      }
-    ; left-inverse-of = g∘f
-    }
-
-  @0 c : Contractible (f ⁻¹ y)
-  c = Preimage.bijection⁻¹-contractible A↔B y
-
-------------------------------------------------------------------------
 -- Some lemmas
 
 -- A preservation lemma related to Σ.
@@ -393,6 +295,143 @@ to≡to→≡ ext p≡q =
       }
     ; right-inverse-of = f∘g
     })
+
+------------------------------------------------------------------------
+-- Some type formers are propositional in erased contexts
+
+-- In an erased context Contractibleᴱ is propositional (assuming
+-- extensionality).
+
+@0 Contractibleᴱ-propositional :
+  {A : Set a} →
+  Extensionality a a →
+  Is-proposition (Contractibleᴱ A)
+Contractibleᴱ-propositional ext =
+  H-level.respects-surjection
+    (_≃_.surjection Contractible≃Contractibleᴱ)
+    1
+    (Contractible-propositional ext)
+
+-- In an erased context Is-equivalenceᴱ f is a proposition (assuming
+-- extensionality).
+--
+-- See also Is-equivalenceᴱ-propositional-for-Erased below.
+
+@0 Is-equivalenceᴱ-propositional :
+  {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  (f : A → B) → Is-proposition (Is-equivalenceᴱ f)
+Is-equivalenceᴱ-propositional ext f =
+  H-level.respects-surjection
+    (_≃_.surjection $ Is-equivalence≃Is-equivalenceᴱ ext)
+    1
+    (Eq.propositional ext f)
+
+------------------------------------------------------------------------
+-- Some results related to Contractibleᴱ
+
+-- Contractibleᴱ respects split surjections with erased proofs.
+
+Contractibleᴱ-respects-surjection :
+  (f : A → B) → @0 Split-surjective f →
+  Contractibleᴱ A → Contractibleᴱ B
+Contractibleᴱ-respects-surjection {A = A} {B = B} f s h@(x , _) =
+    f x
+  , [ proj₂ (H-level.respects-surjection surj 0
+               (Contractibleᴱ→Contractible h))
+    ]
+  where
+  @0 surj : A ↠ B
+  surj = record
+    { logical-equivalence = record
+      { to   = f
+      ; from = proj₁ ⊚ s
+      }
+    ; right-inverse-of = proj₂ ⊚ s
+    }
+
+-- "Preimages" (with erased proofs) of an erased function with a
+-- quasi-inverse with erased proofs are contractible.
+
+Contractibleᴱ-⁻¹ᴱ :
+  (@0 f : A → B)
+  (g : B → A)
+  (@0 f∘g : ∀ x → f (g x) ≡ x)
+  (@0 g∘f : ∀ x → g (f x) ≡ x) →
+  ∀ y → Contractibleᴱ (f ⁻¹ᴱ y)
+Contractibleᴱ-⁻¹ᴱ {A = A} {B = B} f g f∘g g∘f y =
+    (g y , [ proj₂ (proj₁ c)  ])
+  , [ cong ⁻¹→⁻¹ᴱ ⊚ proj₂ c ⊚ ⁻¹ᴱ→⁻¹ ]
+  where
+  @0 A↔B : A ↔ B
+  A↔B = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = f
+        ; from = g
+        }
+      ; right-inverse-of = f∘g
+      }
+    ; left-inverse-of = g∘f
+    }
+
+  @0 c : Contractible (f ⁻¹ y)
+  c = Preimage.bijection⁻¹-contractible A↔B y
+
+-- Two types that are contractible (with erased proofs) are equivalent
+-- (with erased proofs).
+
+Contractibleᴱ→≃ᴱ : Contractibleᴱ A → Contractibleᴱ B → A ≃ᴱ B
+Contractibleᴱ→≃ᴱ (a , [ irrA ]) (b , [ irrB ]) = ↔→≃ᴱ
+  (const b)
+  (const a)
+  irrB
+  irrA
+
+-- There is a logical equivalence between Contractibleᴱ A and A ≃ᴱ ⊤.
+
+Contractibleᴱ⇔≃ᴱ⊤ : Contractibleᴱ A ⇔ A ≃ᴱ ⊤
+Contractibleᴱ⇔≃ᴱ⊤ = record
+  { to   = flip Contractibleᴱ→≃ᴱ Contractibleᴱ-⊤
+  ; from = λ A≃⊤ →
+      Contractibleᴱ-respects-surjection
+        (_≃ᴱ_.from A≃⊤)
+        (λ a → tt
+             , (_≃ᴱ_.from A≃⊤ tt               ≡⟨⟩
+                _≃ᴱ_.from A≃⊤ (_≃ᴱ_.to A≃⊤ a)  ≡⟨ _≃ᴱ_.left-inverse-of A≃⊤ _ ⟩∎
+                a                              ∎))
+        Contractibleᴱ-⊤
+  }
+  where
+  Contractibleᴱ-⊤ = Contractible→Contractibleᴱ ⊤-contractible
+
+-- There is an equivalence with erased proofs between Contractibleᴱ A
+-- and A ≃ᴱ ⊤ (assuming extensionality).
+
+Contractibleᴱ≃ᴱ≃ᴱ⊤ :
+  {A : Set a} →
+  Extensionality a a →
+  Contractibleᴱ A ≃ᴱ (A ≃ᴱ ⊤)
+Contractibleᴱ≃ᴱ≃ᴱ⊤ ext = ↔→≃ᴱ
+  (_⇔_.to   Contractibleᴱ⇔≃ᴱ⊤)
+  (_⇔_.from Contractibleᴱ⇔≃ᴱ⊤)
+  (λ _ → to≡to→≡ ext (refl _))
+  (λ _ → Contractibleᴱ-propositional ext _ _)
+
+-- If an inhabited type comes with an erased proof of
+-- propositionality, then it is contractible (with erased proofs).
+
+inhabited→Is-proposition→Contractibleᴱ :
+  A → @0 Is-proposition A → Contractibleᴱ A
+inhabited→Is-proposition→Contractibleᴱ x prop = (x , [ prop x ])
+
+-- A variant of the previous result.
+
+inhabited→Is-proposition→≃ᴱ⊤ :
+  A → @0 Is-proposition A → A ≃ᴱ ⊤
+inhabited→Is-proposition→≃ᴱ⊤ x prop =
+  _⇔_.to Contractibleᴱ⇔≃ᴱ⊤
+    (inhabited→Is-proposition→Contractibleᴱ x prop)
 
 ------------------------------------------------------------------------
 -- The groupoid laws hold for id and _∘_
