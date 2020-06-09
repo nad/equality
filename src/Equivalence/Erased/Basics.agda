@@ -32,7 +32,7 @@ private
 ------------------------------------------------------------------------
 -- Some basic types
 
--- Contractibility with erased proofs.
+-- Contractibility with an erased proof.
 
 Contractibleᴱ : Set ℓ → Set ℓ
 Contractibleᴱ A = ∃ λ (x : A) → Erased (∀ y → x ≡ y)
