@@ -31,10 +31,10 @@ import Univalence-axiom P.equality-with-J as PU
 
 private
   variable
-    a p : Level
-    A   : Set a
-    P   : A → Set p
-    e r : A
+    a p   : Level
+    A     : Set a
+    P     : A → Set p
+    e r x : A
 
 ------------------------------------------------------------------------
 -- The type
@@ -270,6 +270,77 @@ trans-not-commutative =
   lemma₂₁ _ i@fzero               = PE._≃_.to eq₁ (PE._≃_.to eq₂ i)
   lemma₂₁ _ i@(fsuc fzero)        = PE._≃_.to eq₁ (PE._≃_.to eq₂ i)
   lemma₂₁ _ i@(fsuc (fsuc fzero)) = PE._≃_.to eq₁ (PE._≃_.to eq₂ i)
+
+private
+
+  -- A lemma used below.
+
+  trans-sometimes-commutative′ :
+    {p q : x ≡ x} (f : (x : ∞) → x ≡ x) →
+    f x ≡ p →
+    trans p q ≡ trans q p
+  trans-sometimes-commutative′ {x = x} {p = p} {q = q} f f-x≡p =
+    trans p q      ≡⟨ cong (flip trans _) $ sym f-x≡p ⟩
+    trans (f x) q  ≡⟨ trans-sometimes-commutative f ⟩
+    trans q (f x)  ≡⟨ cong (trans q) f-x≡p ⟩∎
+    trans q p      ∎
+
+-- There is no function of type (x : ∞) → x ≡ x which returns loop₁
+-- when applied to base.
+
+¬-base↦loop₁ : ¬ ∃ λ (f : (x : ∞) → x ≡ x) → f base ≡ loop₁
+¬-base↦loop₁ (f , f-base≡loop₁) =
+  trans-not-commutative (
+    trans loop₁ loop₂  ≡⟨ trans-sometimes-commutative′ f f-base≡loop₁ ⟩∎
+    trans loop₂ loop₁  ∎)
+
+-- There is no function of type (x : ∞) → x ≡ x which returns loop₂
+-- when applied to base.
+
+¬-base↦loop₂ : ¬ ∃ λ (f : (x : ∞) → x ≡ x) → f base ≡ loop₂
+¬-base↦loop₂ (f , f-base≡loop₂) =
+  trans-not-commutative (
+    trans loop₁ loop₂  ≡⟨ sym $ trans-sometimes-commutative′ f f-base≡loop₂ ⟩∎
+    trans loop₂ loop₁  ∎)
+
+-- There is no function of type (x : ∞) → x ≡ x which returns
+-- trans loop₁ loop₂ when applied to base.
+
+¬-base↦trans-loop₁-loop₂ :
+  ¬ ∃ λ (f : (x : ∞) → x ≡ x) → f base ≡ trans loop₁ loop₂
+¬-base↦trans-loop₁-loop₂ (f , f-base≡trans-loop₁-loop₂) =
+  trans-not-commutative (
+    trans loop₁ loop₂                                    ≡⟨ sym $ trans-reflˡ _ ⟩
+    trans (refl _) (trans loop₁ loop₂)                   ≡⟨ cong (flip trans _) $ sym $ trans-symˡ _ ⟩
+    trans (trans (sym loop₁) loop₁) (trans loop₁ loop₂)  ≡⟨ trans-assoc _ _ _ ⟩
+    trans (sym loop₁) (trans loop₁ (trans loop₁ loop₂))  ≡⟨ cong (trans (sym loop₁)) $ sym $
+                                                            trans-sometimes-commutative′ f f-base≡trans-loop₁-loop₂ ⟩
+    trans (sym loop₁) (trans (trans loop₁ loop₂) loop₁)  ≡⟨ cong (trans (sym loop₁)) $ trans-assoc _ _ _ ⟩
+    trans (sym loop₁) (trans loop₁ (trans loop₂ loop₁))  ≡⟨ sym $ trans-assoc _ _ _ ⟩
+    trans (trans (sym loop₁) loop₁) (trans loop₂ loop₁)  ≡⟨ cong (flip trans _) $ trans-symˡ _ ⟩
+    trans (refl _) (trans loop₂ loop₁)                   ≡⟨ trans-reflˡ _ ⟩∎
+    trans loop₂ loop₁                                    ∎)
+
+-- There is no function of type (x : ∞) → x ≡ x which returns
+-- trans loop₂ loop₁ when applied to base.
+
+¬-base↦trans-loop₂-loop₁ :
+  ¬ ∃ λ (f : (x : ∞) → x ≡ x) → f base ≡ trans loop₂ loop₁
+¬-base↦trans-loop₂-loop₁ (f , f-base≡trans-loop₂-loop₁) =
+  trans-not-commutative (
+    trans loop₁ loop₂                                    ≡⟨ sym $ trans-reflˡ _ ⟩
+    trans (refl _) (trans loop₁ loop₂)                   ≡⟨ cong (flip trans _) $ sym $ trans-symˡ _ ⟩
+    trans (trans (sym loop₂) loop₂) (trans loop₁ loop₂)  ≡⟨ trans-assoc _ _ _ ⟩
+    trans (sym loop₂) (trans loop₂ (trans loop₁ loop₂))  ≡⟨ cong (trans (sym loop₂)) $ sym $ trans-assoc _ _ _ ⟩
+    trans (sym loop₂) (trans (trans loop₂ loop₁) loop₂)  ≡⟨ cong (trans (sym loop₂)) $
+                                                            trans-sometimes-commutative′ f f-base≡trans-loop₂-loop₁ ⟩
+    trans (sym loop₂) (trans loop₂ (trans loop₂ loop₁))  ≡⟨ sym $ trans-assoc _ _ _ ⟩
+    trans (trans (sym loop₂) loop₂) (trans loop₂ loop₁)  ≡⟨ cong (flip trans _) $ trans-symˡ _ ⟩
+    trans (refl _) (trans loop₂ loop₁)                   ≡⟨ trans-reflˡ _ ⟩∎
+    trans loop₂ loop₁                                    ∎)
+
+-- TODO: Can one prove that functions of type (x : ∞) → x ≡ x must map
+-- base to refl base?
 
 ------------------------------------------------------------------------
 -- A positive result
