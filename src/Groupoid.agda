@@ -101,6 +101,27 @@ record Groupoid o p : Set (lsuc (o ⊔ p)) where
       id ∘ p                ≡⟨ left-identity p ⟩∎
       p                     ∎
 
+    -- A lemma that can be used to move something from one side of an
+    -- equality to the other.
+
+    ⁻¹∘≡→≡∘ :
+      ∀ {x y z} {p : y ∼ z} {q : x ∼ z} {r : x ∼ y} →
+      p ⁻¹ ∘ q ≡ r → q ≡ p ∘ r
+    ⁻¹∘≡→≡∘ {p = p} {q = q} {r = r} hyp =
+      q               ≡⟨ sym $ left-identity _ ⟩
+      id ∘ q          ≡⟨ cong (_∘ _) $ sym $ right-inverse _ ⟩
+      (p ∘ p ⁻¹) ∘ q  ≡⟨ sym $ assoc _ _ _ ⟩
+      p ∘ (p ⁻¹ ∘ q)  ≡⟨ cong (_ ∘_) hyp ⟩∎
+      p ∘ r           ∎
+
+    -- A corollary.
+
+    ⁻¹∘≡id→≡ : ∀ {x y} {p q : x ∼ y} → p ⁻¹ ∘ q ≡ id → q ≡ p
+    ⁻¹∘≡id→≡ {p = p} {q = q} hyp =
+      q       ≡⟨ ⁻¹∘≡→≡∘ hyp ⟩
+      p ∘ id  ≡⟨ right-identity _ ⟩∎
+      p       ∎
+
   -- The inverse operator is a bijection.
 
   ⁻¹-bijection : ∀ {x y} → x ∼ y ↔ y ∼ x
