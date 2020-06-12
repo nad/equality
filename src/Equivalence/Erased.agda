@@ -433,6 +433,35 @@ inhabited→Is-proposition→≃ᴱ⊤ x prop =
   _⇔_.to Contractibleᴱ⇔≃ᴱ⊤
     (inhabited→Is-proposition→Contractibleᴱ x prop)
 
+-- Some closure properties.
+
+Contractibleᴱ-Σ :
+  Contractibleᴱ A → (∀ x → Contractibleᴱ (P x)) → Contractibleᴱ (Σ A P)
+Contractibleᴱ-Σ cA@(a , _) cB =
+    (a , proj₁ (cB a))
+  , [ proj₂ $ Σ-closure 0 (Contractibleᴱ→Contractible cA)
+                          (Contractibleᴱ→Contractible ⊚ cB)
+    ]
+
+Contractibleᴱ-× :
+  Contractibleᴱ A → Contractibleᴱ B → Contractibleᴱ (A × B)
+Contractibleᴱ-× cA cB = Contractibleᴱ-Σ cA (λ _ → cB)
+
+Contractibleᴱ-Π :
+  {A : Set a} {P : A → Set p} →
+  @0 Extensionality a p →
+  (∀ x → Contractibleᴱ (P x)) → Contractibleᴱ ((x : A) → P x)
+Contractibleᴱ-Π ext c =
+    proj₁ ⊚ c
+  , [ proj₂ $ Π-closure ext 0 (Contractibleᴱ→Contractible ⊚ c)
+    ]
+
+Contractibleᴱ-↑ : Contractibleᴱ A → Contractibleᴱ (↑ ℓ A)
+Contractibleᴱ-↑ c@(a , _) =
+    lift a
+  , [ proj₂ $ ↑-closure 0 (Contractibleᴱ→Contractible c)
+    ]
+
 ------------------------------------------------------------------------
 -- The groupoid laws hold for id and _∘_
 
