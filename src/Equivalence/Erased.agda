@@ -508,6 +508,49 @@ module Groupoid where
     _≃_.right-inverse-of (≃ᴱ→≃ f)
 
 ------------------------------------------------------------------------
+-- Some simplification lemmas
+
+-- Two simplification lemmas for id.
+
+right-inverse-of-id :
+  _≃ᴱ_.right-inverse-of id x ≡ refl x
+right-inverse-of-id = refl _
+
+@0 left-inverse-of-id :
+  _≃ᴱ_.left-inverse-of id x ≡ refl x
+left-inverse-of-id {x = x} =
+  left-inverse-of x               ≡⟨⟩
+  left-inverse-of (P.id x)        ≡⟨ sym $ _≃_.right-left-lemma (≃ᴱ→≃ id) x ⟩
+  cong P.id (right-inverse-of x)  ≡⟨ sym $ cong-id _ ⟩
+  right-inverse-of x              ≡⟨ right-inverse-of-id ⟩∎
+  refl x                          ∎
+  where
+  open _≃ᴱ_ id
+
+-- Two simplification lemmas for inverse.
+
+@0 right-inverse-of∘inverse :
+  (A≃B : A ≃ᴱ B) →
+  _≃ᴱ_.right-inverse-of (inverse A≃B) x ≡
+  _≃ᴱ_.left-inverse-of A≃B x
+right-inverse-of∘inverse _ = refl _
+
+@0 left-inverse-of∘inverse :
+  (A≃B : A ≃ᴱ B) →
+  _≃ᴱ_.left-inverse-of (inverse A≃B) x ≡
+  _≃ᴱ_.right-inverse-of A≃B x
+left-inverse-of∘inverse {A = A} {B = B} {x = x} A≃B =
+  subst (λ x → _≃ᴱ_.left-inverse-of (inverse A≃B) x ≡
+               right-inverse-of x)
+        (right-inverse-of x)
+        (_≃ᴱ_.left-inverse-of (inverse A≃B) (to (from x))        ≡⟨ sym $ _≃_.right-left-lemma (≃ᴱ→≃ (inverse A≃B)) (from x) ⟩
+         cong to (_≃ᴱ_.right-inverse-of (inverse A≃B) (from x))  ≡⟨ cong (cong to) $ right-inverse-of∘inverse A≃B ⟩
+         cong to (left-inverse-of (from x))                      ≡⟨ _≃_.left-right-lemma (≃ᴱ→≃ A≃B) (from x) ⟩∎
+         right-inverse-of (to (from x))                          ∎)
+  where
+  open _≃ᴱ_ A≃B
+
+------------------------------------------------------------------------
 -- Results that depend on an axiomatisation of []-cong
 
 module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
