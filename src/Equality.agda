@@ -1979,6 +1979,20 @@ module Derived-definitions-and-properties
           (λ {x y} p → {q : x ≡ x} {r : y ≡ y} → _ ≡ (trans _ p ≡ _))
           _
 
+    -- The proof trans is commutative when one of the arguments is f x for
+    -- a function f : (x : A) → x ≡ x.
+
+    trans-sometimes-commutative :
+      {p : x ≡ x} (f : (x : A) → x ≡ x) →
+      trans (f x) p ≡ trans p (f x)
+    trans-sometimes-commutative {x = x} {p = p} f =
+      trans (f x) p  ≡⟨ subst id [subst≡]≡[trans≡trans] lemma ⟩∎
+      trans p (f x)  ∎
+      where
+      lemma =
+        subst (λ z → z ≡ z) p (f x)  ≡⟨ dcong f p ⟩∎
+        f x                          ∎
+
     -- Sometimes one can turn two ("modified") copies of a proof into
     -- one.
 
