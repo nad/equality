@@ -77,12 +77,12 @@ Is-equivalence≃Is-equivalenceᴱ {a = a} {k = k} {f = f} ext =
 
 @0 ≃≃≃ᴱ :
   {A : Set a} {B : Set b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
-  (A ≃ B) ≃ (A ≃ᴱ B)
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  (A ≃ B) ↝[ k ] (A ≃ᴱ B)
 ≃≃≃ᴱ {A = A} {B = B} ext =
-  A ≃ B                        ↝⟨ Eq.↔⇒≃ Eq.≃-as-Σ ⟩
+  A ≃ B                        ↔⟨ Eq.↔⇒≃ Eq.≃-as-Σ ⟩
   (∃ λ f → Is-equivalence f)   ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalenceᴱ ext) ⟩
-  (∃ λ f → Is-equivalenceᴱ f)  ↝⟨ Eq.inverse ≃ᴱ-as-Σ ⟩□
+  (∃ λ f → Is-equivalenceᴱ f)  ↔⟨ Eq.inverse ≃ᴱ-as-Σ ⟩□
   A ≃ᴱ B                       □
 
 -- A half adjoint equivalence with erased proofs can be turned into an
