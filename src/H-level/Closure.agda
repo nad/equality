@@ -296,35 +296,35 @@ abstract
 ------------------------------------------------------------------------
 -- Σ-types
 
+-- H-level′ is closed under Σ.
+
+Σ-closure′ :
+  ∀ {a b} {A : Set a} {B : A → Set b} n →
+  H-level′ n A → (∀ x → H-level′ n (B x)) → H-level′ n (Σ A B)
+Σ-closure′ {A = A} {B} zero (x , irrA) hB =
+  ((x , proj₁ (hB x)) , λ p →
+     (x       , proj₁ (hB x))          ≡⟨ elim (λ {x y} _ → _≡_ {A = Σ A B} (x , proj₁ (hB x))
+                                                                            (y , proj₁ (hB y)))
+                                               (λ _ → refl _)
+                                               (irrA (proj₁ p)) ⟩
+     (proj₁ p , proj₁ (hB (proj₁ p)))  ≡⟨ cong (_,_ (proj₁ p)) (proj₂ (hB (proj₁ p)) (proj₂ p)) ⟩∎
+     p                                 ∎)
+Σ-closure′ {B = B} (suc n) hA hB = λ p₁ p₂ →
+  respects-surjection′ (_↔_.surjection Σ-≡,≡↔≡) n $
+    Σ-closure′ n (hA (proj₁ p₁) (proj₁ p₂))
+      (λ pr₁p₁≡pr₁p₂ →
+         hB (proj₁ p₂) (subst B pr₁p₁≡pr₁p₂ (proj₂ p₁)) (proj₂ p₂))
+
+-- H-level is closed under Σ.
+
+Σ-closure : ∀ {a b} {A : Set a} {B : A → Set b} n →
+            H-level n A → (∀ x → H-level n (B x)) → H-level n (Σ A B)
+Σ-closure n hA hB =
+  _⇔_.from H-level⇔H-level′
+    (Σ-closure′ n (_⇔_.to H-level⇔H-level′ hA)
+                  (_⇔_.to H-level⇔H-level′ ∘ hB))
+
 abstract
-
-  -- H-level′ is closed under Σ.
-
-  Σ-closure′ :
-    ∀ {a b} {A : Set a} {B : A → Set b} n →
-    H-level′ n A → (∀ x → H-level′ n (B x)) → H-level′ n (Σ A B)
-  Σ-closure′ {A = A} {B} zero (x , irrA) hB =
-    ((x , proj₁ (hB x)) , λ p →
-       (x       , proj₁ (hB x))          ≡⟨ elim (λ {x y} _ → _≡_ {A = Σ A B} (x , proj₁ (hB x))
-                                                                              (y , proj₁ (hB y)))
-                                                 (λ _ → refl _)
-                                                 (irrA (proj₁ p)) ⟩
-       (proj₁ p , proj₁ (hB (proj₁ p)))  ≡⟨ cong (_,_ (proj₁ p)) (proj₂ (hB (proj₁ p)) (proj₂ p)) ⟩∎
-       p                                 ∎)
-  Σ-closure′ {B = B} (suc n) hA hB = λ p₁ p₂ →
-    respects-surjection′ (_↔_.surjection Σ-≡,≡↔≡) n $
-      Σ-closure′ n (hA (proj₁ p₁) (proj₁ p₂))
-        (λ pr₁p₁≡pr₁p₂ →
-           hB (proj₁ p₂) (subst B pr₁p₁≡pr₁p₂ (proj₂ p₁)) (proj₂ p₂))
-
-  -- H-level is closed under Σ.
-
-  Σ-closure : ∀ {a b} {A : Set a} {B : A → Set b} n →
-              H-level n A → (∀ x → H-level n (B x)) → H-level n (Σ A B)
-  Σ-closure n hA hB =
-    _⇔_.from H-level⇔H-level′
-      (Σ-closure′ n (_⇔_.to H-level⇔H-level′ hA)
-                    (_⇔_.to H-level⇔H-level′ ∘ hB))
 
   -- In the case of contractibility the codomain only needs to have
   -- the right h-level (0) for a single index.
@@ -456,18 +456,16 @@ abstract
 ------------------------------------------------------------------------
 -- Lifted types
 
-abstract
+-- All H-levels are closed under lifting.
 
-  -- All H-levels are closed under lifting.
+↑-closure : ∀ {a b} {A : Set a} n → H-level n A → H-level n (↑ b A)
+↑-closure =
+  respects-surjection (_↔_.surjection (Bijection.inverse ↑↔))
 
-  ↑-closure : ∀ {a b} {A : Set a} n → H-level n A → H-level n (↑ b A)
-  ↑-closure =
-    respects-surjection (_↔_.surjection (Bijection.inverse ↑↔))
+-- All H-levels are also closed under removal of lifting.
 
-  -- All H-levels are also closed under removal of lifting.
-
-  ↑⁻¹-closure : ∀ {a b} {A : Set a} n → H-level n (↑ b A) → H-level n A
-  ↑⁻¹-closure = respects-surjection (_↔_.surjection ↑↔)
+↑⁻¹-closure : ∀ {a b} {A : Set a} n → H-level n (↑ b A) → H-level n A
+↑⁻¹-closure = respects-surjection (_↔_.surjection ↑↔)
 
 ------------------------------------------------------------------------
 -- W-types
