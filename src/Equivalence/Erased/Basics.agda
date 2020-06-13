@@ -126,6 +126,16 @@ record _≃ᴱ_ (A : Set a) (B : Set b) : Set (a ⊔ b) where
   @0 left-inverse-of : ∀ x → from (to x) ≡ x
   left-inverse-of = _≃_.left-inverse-of equivalence
 
+  -- Two coherence properties.
+
+  @0 left-right-lemma :
+    ∀ x → cong to (left-inverse-of x) ≡ right-inverse-of (to x)
+  left-right-lemma = _≃_.left-right-lemma equivalence
+
+  @0 right-left-lemma :
+    ∀ x → cong from (right-inverse-of x) ≡ left-inverse-of (from x)
+  right-left-lemma = _≃_.right-left-lemma equivalence
+
 ------------------------------------------------------------------------
 -- More conversion lemmas
 

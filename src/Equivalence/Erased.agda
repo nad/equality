@@ -520,7 +520,7 @@ right-inverse-of-id = refl _
   _≃ᴱ_.left-inverse-of id x ≡ refl x
 left-inverse-of-id {x = x} =
   left-inverse-of x               ≡⟨⟩
-  left-inverse-of (P.id x)        ≡⟨ sym $ _≃_.right-left-lemma (≃ᴱ→≃ id) x ⟩
+  left-inverse-of (P.id x)        ≡⟨ sym $ right-left-lemma x ⟩
   cong P.id (right-inverse-of x)  ≡⟨ sym $ cong-id _ ⟩
   right-inverse-of x              ≡⟨ right-inverse-of-id ⟩∎
   refl x                          ∎
@@ -543,9 +543,9 @@ left-inverse-of∘inverse {A = A} {B = B} {x = x} A≃B =
   subst (λ x → _≃ᴱ_.left-inverse-of (inverse A≃B) x ≡
                right-inverse-of x)
         (right-inverse-of x)
-        (_≃ᴱ_.left-inverse-of (inverse A≃B) (to (from x))        ≡⟨ sym $ _≃_.right-left-lemma (≃ᴱ→≃ (inverse A≃B)) (from x) ⟩
+        (_≃ᴱ_.left-inverse-of (inverse A≃B) (to (from x))        ≡⟨ sym $ _≃ᴱ_.right-left-lemma (inverse A≃B) (from x) ⟩
          cong to (_≃ᴱ_.right-inverse-of (inverse A≃B) (from x))  ≡⟨ cong (cong to) $ right-inverse-of∘inverse A≃B ⟩
-         cong to (left-inverse-of (from x))                      ≡⟨ _≃_.left-right-lemma (≃ᴱ→≃ A≃B) (from x) ⟩∎
+         cong to (left-inverse-of (from x))                      ≡⟨ left-right-lemma (from x) ⟩∎
          right-inverse-of (to (from x))                          ∎)
   where
   open _≃ᴱ_ A≃B
@@ -617,7 +617,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                 (_≃ᴱ_.from (P≃Q x) y)))                                  ≡⟨ cong (λ eq → subst Q (_≃ᴱ_.left-inverse-of B≃A x)
                                                                                            (_≃ᴱ_.to (P≃Q _)
                                                                                               (subst (λ x → P x) (sym eq) _))) $ sym $
-                                                                            _≃_.left-right-lemma (≃ᴱ→≃ B≃A) _ ⟩
+                                                                            _≃ᴱ_.left-right-lemma B≃A _ ⟩
         subst Q (_≃ᴱ_.left-inverse-of B≃A x)
           (_≃ᴱ_.to (P≃Q (_≃ᴱ_.from B≃A (_≃ᴱ_.to B≃A x)))
              (subst (λ x → P x)
