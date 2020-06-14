@@ -28,6 +28,8 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq hiding (id; _∘_; inverse)
 open import Equivalence.Erased equality-with-J using (_≃ᴱ_)
 open import Equivalence-relation equality-with-J
+open import Erased.Basics equality-with-J as EB using (Erased)
+import Erased.Stability equality-with-J as ES
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
@@ -43,7 +45,7 @@ private
     A A₁ A₂ B B₁ B₂ C : Set a
     P Q               : A → Set p
     R                 : A → A → Set r
-    k                 : A
+    k x               : A
 
 -- Propositional truncation.
 
@@ -302,17 +304,15 @@ surjective×embedding≃equivalence {f = f} =
 -- A simple isomorphism involving propositional truncation.
 
 ∥∥×↔ : ∥ A ∥ × A ↔ A
-∥∥×↔ {A = A} =
-  ∥ A ∥ × A  ↝⟨ ×-comm ⟩
-  A × ∥ A ∥  ↝⟨ (drop-⊤-right λ a →
-                 _⇔_.to contractible⇔↔⊤ $
-                   propositional⇒inhabited⇒contractible
-                     truncation-is-proposition
-                     ∣ a ∣) ⟩□
-  A          □
+∥∥×↔ =
+  drop-⊤-left-× λ a →
+  _⇔_.to contractible⇔↔⊤ $
+    propositional⇒inhabited⇒contractible
+      truncation-is-proposition
+      ∣ a ∣
 
 -- A variant of ∥∥×↔, introduced to ensure that the right-inverse-of
--- proof is, by definition, simple (see right-inverse-of-∥∥×≃ below).
+-- proof is, by definition, simple.
 
 ∥∥×≃ : (∥ A ∥ × A) ≃ A
 ∥∥×≃ =
@@ -323,10 +323,37 @@ surjective×embedding≃equivalence {f = f} =
              ((∣ a ∣ , a) , refl _))
   ⟩
 
-private
+_ : _≃_.right-inverse-of ∥∥×≃ x ≡ refl _
+_ = refl _
 
-  right-inverse-of-∥∥×≃ : (x : A) → _≃_.right-inverse-of ∥∥×≃ x ≡ refl _
-  right-inverse-of-∥∥×≃ _ = refl _
+-- A variant of ∥∥×≃.
+
+Erased-∥∥×≃ : (Erased ∥ A ∥ × A) ≃ A
+Erased-∥∥×≃ =
+  ⟨ proj₂
+  , (λ a → propositional⇒inhabited⇒contractible
+             (mono₁ 0 $
+                Preimage.bijection⁻¹-contractible
+                  (record
+                     { surjection = record
+                       { logical-equivalence = record
+                         { from = λ a → EB.[ ∣ a ∣ ] , a
+                         }
+                       ; right-inverse-of = refl
+                       }
+                     ; left-inverse-of = λ (x , y) →
+                         cong₂ _,_
+                           (EB.[]-cong-axiomatisation.[]-cong
+                              (ES.Extensionality→[]-cong ext)
+                              EB.[ truncation-is-proposition _ _ ])
+                           (refl _)
+                     })
+                  a)
+             ((EB.[ ∣ a ∣ ] , a) , refl _))
+  ⟩
+
+_ : _≃_.right-inverse-of Erased-∥∥×≃ x ≡ refl _
+_ = refl _
 
 -- ∥_∥ commutes with _×_.
 
