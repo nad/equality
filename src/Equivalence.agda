@@ -285,6 +285,25 @@ record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
   irrelevance = proj₂ ⊚ is-equivalence
 
+-- A variant of the previous result.
+
+↔→≃ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (f : A → B) (g : B → A) →
+  (∀ x → f (g x) ≡ x) →
+  (∀ x → g (f x) ≡ x) →
+  A ≃ B
+↔→≃ f g f∘g g∘f = ↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = f
+      ; from = g
+      }
+    ; right-inverse-of = f∘g
+    }
+  ; left-inverse-of = g∘f
+  })
+
 -- There is a logical equivalence between A ↔ B and A ≃ B.
 
 ↔⇔≃ :
