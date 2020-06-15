@@ -482,7 +482,7 @@ Contractibleᴱ-↑ c@(a , _) =
     ]
 
 ------------------------------------------------------------------------
--- The groupoid laws hold for id and _∘_
+-- Groupoid laws and related properties
 
 module Groupoid where
 
@@ -525,6 +525,27 @@ module Groupoid where
   right-inverse ext f =
     to≡to→≡ ext $ apply-ext ext $
     _≃_.right-inverse-of (≃ᴱ→≃ f)
+
+-- Inverse is a logical equivalence.
+
+inverse-logical-equivalence : A ≃ᴱ B ⇔ B ≃ᴱ A
+inverse-logical-equivalence = record
+  { to   = inverse
+  ; from = inverse
+  }
+
+-- Inverse is an equivalence with erased proofs (assuming
+-- extensionality).
+
+inverse-equivalence :
+  {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  (A ≃ᴱ B) ≃ᴱ (B ≃ᴱ A)
+inverse-equivalence ext = ↔→≃ᴱ
+  inverse
+  inverse
+  (λ _ → to≡to→≡ ext (refl _))
+  (λ _ → to≡to→≡ ext (refl _))
 
 ------------------------------------------------------------------------
 -- Some simplification lemmas
