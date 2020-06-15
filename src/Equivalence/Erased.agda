@@ -24,11 +24,11 @@ open import Surjection eq as Surjection using (_↠_; Split-surjective)
 
 private
   variable
-    a b d ℓ q  : Level
-    A B C      : Set a
-    k k′ p x y : A
-    P Q        : A → Set p
-    f g        : (x : A) → P x
+    a b c d ℓ q : Level
+    A B C       : Set a
+    k k′ p x y  : A
+    P Q         : A → Set p
+    f g         : (x : A) → P x
 
 ------------------------------------------------------------------------
 -- Some basic stuff
@@ -226,6 +226,25 @@ Erased-Contractibleᴱ↔Erased-Contractible =
                  Eq.⟨ f , (λ y → (g y , f∘g y) , irr y) ⟩
                  (≃ᴱ→≃ ⊚ P≃Q)))
 
+-- The _≃ᴱ_ operator preserves equivalences with erased proofs
+-- (assuming extensionality).
+
+≃ᴱ-cong :
+  {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+  Extensionality (a ⊔ b ⊔ c ⊔ d) (a ⊔ b ⊔ c ⊔ d) →
+  A ≃ᴱ B → C ≃ᴱ D → (A ≃ᴱ C) ≃ᴱ (B ≃ᴱ D)
+≃ᴱ-cong
+  {a = a} {b = b} {c = c} {d = d}
+  {A = A} {B = B} {C = C} {D = D} ext A≃B C≃D =
+  [≃]→≃ᴱ ([proofs] lemma)
+  where
+  @0 lemma : (A ≃ᴱ C) ≃ (B ≃ᴱ D)
+  lemma =
+    A ≃ᴱ C  ↝⟨ F.inverse $ ≃≃≃ᴱ (lower-extensionality (b ⊔ d) (b ⊔ d) ext) ⟩
+    A ≃ C   ↝⟨ Eq.≃-preserves ext (≃ᴱ→≃ A≃B) (≃ᴱ→≃ C≃D) ⟩
+    B ≃ D   ↝⟨ ≃≃≃ᴱ (lower-extensionality (a ⊔ c) (a ⊔ c) ext) ⟩□
+    B ≃ᴱ D  □
+
 -- In an erased context two equivalences are equal if the underlying
 -- functions are equal (assuming extensionality).
 --
@@ -360,8 +379,8 @@ Contractibleᴱ-⁻¹ᴱ :
   (@0 g∘f : ∀ x → g (f x) ≡ x) →
   ∀ y → Contractibleᴱ (f ⁻¹ᴱ y)
 Contractibleᴱ-⁻¹ᴱ {A = A} {B = B} f g f∘g g∘f y =
-    (g y , [ proj₂ (proj₁ c)  ])
-  , [ cong ⁻¹→⁻¹ᴱ ⊚ proj₂ c ⊚ ⁻¹ᴱ→⁻¹ ]
+    (g y , [ proj₂ (proj₁ c′) ])
+  , [ cong ⁻¹→⁻¹ᴱ ⊚ proj₂ c′ ⊚ ⁻¹ᴱ→⁻¹ ]
   where
   @0 A↔B : A ↔ B
   A↔B = record
@@ -375,8 +394,8 @@ Contractibleᴱ-⁻¹ᴱ {A = A} {B = B} f g f∘g g∘f y =
     ; left-inverse-of = g∘f
     }
 
-  @0 c : Contractible (f ⁻¹ y)
-  c = Preimage.bijection⁻¹-contractible A↔B y
+  @0 c′ : Contractible (f ⁻¹ y)
+  c′ = Preimage.bijection⁻¹-contractible A↔B y
 
 -- Two types that are contractible (with erased proofs) are equivalent
 -- (with erased proofs).
