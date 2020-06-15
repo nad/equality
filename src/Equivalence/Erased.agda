@@ -21,6 +21,7 @@ open import H-level eq as H-level
 open import H-level.Closure eq
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq as Surjection using (_↠_; Split-surjective)
+open import Univalence-axiom eq
 
 private
   variable
@@ -546,6 +547,50 @@ inverse-equivalence ext = ↔→≃ᴱ
   inverse
   (λ _ → to≡to→≡ ext (refl _))
   (λ _ → to≡to→≡ ext (refl _))
+
+------------------------------------------------------------------------
+-- Some results that depend on univalence
+
+-- Singletons expressed using equivalences with erased proofs instead
+-- of equalities are equivalent (with erased proofs) to the unit type
+-- (assuming extensionality and univalence).
+
+singleton-with-≃ᴱ-≃ᴱ-⊤ :
+  ∀ a {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Univalence (a ⊔ b) →
+  (∃ λ (A : Set (a ⊔ b)) → A ≃ᴱ B) ≃ᴱ ⊤
+singleton-with-≃ᴱ-≃ᴱ-⊤ {b = b} a {B = B} ext univ =
+  [≃]→≃ᴱ ([proofs] lemma)
+  where
+  @0 lemma : (∃ λ (A : Set (a ⊔ b)) → A ≃ᴱ B) ≃ ⊤
+  lemma =
+    (∃ λ (A : Set (a ⊔ b)) → A ≃ᴱ B)  ↝⟨ (∃-cong λ _ → F.inverse $ ≃≃≃ᴱ ext) ⟩
+    (∃ λ (A : Set (a ⊔ b)) → A ≃ B)   ↔⟨ singleton-with-≃-↔-⊤ {a = a} ext univ ⟩□
+    ⊤                                 □
+
+other-singleton-with-≃ᴱ-≃ᴱ-⊤ :
+  ∀ b {A : Set a} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Univalence (a ⊔ b) →
+  (∃ λ (B : Set (a ⊔ b)) → A ≃ᴱ B) ≃ᴱ ⊤
+other-singleton-with-≃ᴱ-≃ᴱ-⊤ b {A = A} ext univ =
+  (∃ λ B → A ≃ᴱ B)  ↝⟨ (∃-cong λ _ → inverse-equivalence ext) ⟩
+  (∃ λ B → B ≃ᴱ A)  ↝⟨ singleton-with-≃ᴱ-≃ᴱ-⊤ b ext univ ⟩□
+  ⊤                 □
+
+-- ∃ Contractibleᴱ is equivalent (with erased proofs) to the unit type
+-- (assuming extensionality and univalence).
+
+∃Contractibleᴱ≃ᴱ⊤ :
+  ∀ {a} →
+  Extensionality a a →
+  Univalence a →
+  (∃ λ (A : Set a) → Contractibleᴱ A) ≃ᴱ ⊤
+∃Contractibleᴱ≃ᴱ⊤ ext univ =
+  (∃ λ A → Contractibleᴱ A)  ↝⟨ (∃-cong λ _ → Contractibleᴱ≃ᴱ≃ᴱ⊤ ext) ⟩
+  (∃ λ A → A ≃ᴱ ⊤)           ↝⟨ singleton-with-≃ᴱ-≃ᴱ-⊤ _ ext univ ⟩□
+  ⊤                          □
 
 ------------------------------------------------------------------------
 -- Some simplification lemmas
