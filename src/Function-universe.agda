@@ -1224,20 +1224,20 @@ private
   A₂ × B  □
 
 -- Lemmas that can be used to simplify sigma types where one of the
--- two type arguments is (conditionally) isomorphic to the unit type.
+-- two type arguments is (conditionally) related to the unit type.
 
 drop-⊤-right : ∀ {k a b} {A : Set a} {B : A → Set b} →
-               ((x : A) → B x ↔[ k ] ⊤) → Σ A B ↔ A
-drop-⊤-right {A = A} {B} B↔⊤ =
-  Σ A B  ↔⟨ ∃-cong B↔⊤ ⟩
-  A × ⊤  ↝⟨ ×-right-identity ⟩□
+               ((x : A) → B x ↝[ k ] ⊤) → Σ A B ↝[ k ] A
+drop-⊤-right {A = A} {B} B↝⊤ =
+  Σ A B  ↝⟨ ∃-cong B↝⊤ ⟩
+  A × ⊤  ↔⟨ ×-right-identity ⟩□
   A      □
 
 drop-⊤-left-× : ∀ {k a b} {A : Set a} {B : Set b} →
-                (B → A ↔[ k ] ⊤) → A × B ↔ B
-drop-⊤-left-× {A = A} {B} A↔⊤ =
-  A × B  ↝⟨ ×-comm ⟩
-  B × A  ↝⟨ drop-⊤-right A↔⊤ ⟩□
+                (B → A ↝[ k ] ⊤) → A × B ↝[ k ] B
+drop-⊤-left-× {A = A} {B} A↝⊤ =
+  A × B  ↔⟨ ×-comm ⟩
+  B × A  ↝⟨ drop-⊤-right A↝⊤ ⟩□
   B      □
 
 drop-⊤-left-Σ : ∀ {a b} {A : Set a} {B : A → Set b} →
