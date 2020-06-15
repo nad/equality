@@ -482,6 +482,24 @@ Contractibleᴱ-↑ c@(a , _) =
   , [ proj₂ $ ↑-closure 0 (Contractibleᴱ→Contractible c)
     ]
 
+-- Contractibleᴱ commutes with _×_ (up to _≃ᴱ_, assuming
+-- extensionality).
+
+Contractibleᴱ-commutes-with-× :
+  {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Contractibleᴱ (A × B) ≃ᴱ (Contractibleᴱ A × Contractibleᴱ B)
+Contractibleᴱ-commutes-with-× {a = a} {b = b} {A = A} {B = B} ext =
+  [≃]→≃ᴱ ([proofs] lemma)
+  where
+  @0 lemma : _
+  lemma =
+    Contractibleᴱ (A × B)                ↝⟨ F.inverse Contractible≃Contractibleᴱ ⟩
+    Contractible (A × B)                 ↝⟨ Contractible-commutes-with-× ext ⟩
+    (Contractible A × Contractible B)    ↝⟨ Contractible≃Contractibleᴱ ×-cong
+                                            Contractible≃Contractibleᴱ ⟩□
+    (Contractibleᴱ A × Contractibleᴱ B)  □
+
 ------------------------------------------------------------------------
 -- Groupoid laws and related properties
 
