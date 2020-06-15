@@ -20,7 +20,7 @@ open import Embedding eq using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
-open import Equivalence.Erased eq as EEq using (_≃ᴱ_)
+open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Contractibleᴱ)
 open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
@@ -1840,6 +1840,20 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                        $⟨ singleton-contractible x ⟩
     Contractible (Singleton x)         ↝⟨ H-level-cong _ 0 (∃-cong λ _ → Eq.⟨ _ , s _ _ ⟩) ⦂ (_ → _) ⟩□
     Contractible (Erased-singleton x)  □
+
+  -- Erased-singleton x is contractible with an erased proof.
+
+  Contractibleᴱ-Erased-singleton : Contractibleᴱ (Erased-singleton x)
+  Contractibleᴱ-Erased-singleton {x = x} =
+                                        $⟨ singleton-contractible x ⟩
+    Contractible  (Singleton x)         ↝⟨ EEq.Contractible→Contractibleᴱ ⟩
+    Contractibleᴱ (Singleton x)         ↝⟨ EEq.Contractibleᴱ-respects-surjection
+                                             (Σ-map id [_]→)
+                                             (_≃_.split-surjective $ Eq.↔→≃ _
+                                                (Σ-map id erased)
+                                                (λ _ → refl _)
+                                                (λ _ → refl _)) ⟩□
+    Contractibleᴱ (Erased-singleton x)  □
 
   -- If equality is very stable for A, and x : A is erased, then
   -- Erased-singleton x is a proposition.
