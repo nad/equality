@@ -987,6 +987,14 @@ module Derived-definitions-and-properties
              trans (refl y) y≡z                      ∎)
             x≡y
 
+    subst-trans-sym :
+      {y≡x : y ≡ x} {y≡z : y ≡ z} →
+      subst (_≡ z) y≡x y≡z ≡ trans (sym y≡x) y≡z
+    subst-trans-sym {z = z} {y≡x = y≡x} {y≡z = y≡z} =
+      subst (_≡ z) y≡x y≡z              ≡⟨ cong (flip (subst (_≡ z)) _) $ sym $ sym-sym _ ⟩
+      subst (_≡ z) (sym (sym y≡x)) y≡z  ≡⟨ subst-trans _ ⟩∎
+      trans (sym y≡x) y≡z               ∎
+
     -- One can express subst in terms of elim.
 
     subst-elim :
