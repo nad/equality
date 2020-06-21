@@ -1511,7 +1511,7 @@ abstract
   _≃_.bijection $ ≃-preserves ext (↔⇒≃ A₁↔A₂) (↔⇒≃ B₁↔B₂)
 
 ------------------------------------------------------------------------
--- Another property
+-- More lemmas
 
 abstract
 
@@ -1546,3 +1546,33 @@ abstract
                                                               id ⟩□
          (subst (λ x → B x → W A B) (refl x) f ≡ g)  □)
       p f g
+
+  -- Some equality rearrangement lemmas.
+
+  to-subst :
+    ∀ {a p q} {A : Set a} {P : A → Set p} {Q : A → Set q}
+      {x y : A} {eq : x ≡ y} {f : P x ≃ Q x} →
+    _≃_.to (subst (λ x → P x ≃ Q x) eq f) ≡
+    subst (λ x → P x → Q x) eq (_≃_.to f)
+  to-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+    (λ eq →
+       _≃_.to (subst (λ x → P x ≃ Q x) eq f) ≡
+       subst (λ x → P x → Q x) eq (_≃_.to f))
+    (_≃_.to (subst (λ x → P x ≃ Q x) (refl _) f)  ≡⟨ cong _≃_.to $ subst-refl _ _ ⟩
+     _≃_.to f                                     ≡⟨ sym $ subst-refl _ _ ⟩∎
+     subst (λ x → P x → Q x) (refl _) (_≃_.to f)  ∎)
+    eq
+
+  from-subst :
+    ∀ {a p q} {A : Set a} {P : A → Set p} {Q : A → Set q}
+      {x y : A} {eq : x ≡ y} {f : P x ≃ Q x} →
+    _≃_.from (subst (λ x → P x ≃ Q x) eq f) ≡
+    subst (λ x → Q x → P x) eq (_≃_.from f)
+  from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+    (λ eq →
+       _≃_.from (subst (λ x → P x ≃ Q x) eq f) ≡
+       subst (λ x → Q x → P x) eq (_≃_.from f))
+    (_≃_.from (subst (λ x → P x ≃ Q x) (refl _) f)  ≡⟨ cong _≃_.from $ subst-refl _ _ ⟩
+     _≃_.from f                                     ≡⟨ sym $ subst-refl _ _ ⟩∎
+     subst (λ x → Q x → P x) (refl _) (_≃_.from f)  ∎)
+    eq
