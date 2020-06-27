@@ -495,7 +495,7 @@ private
     _≃_.from (universal-property B-prop) f ∣ x ∣ ≡ f x
   _ = λ _ _ _ → refl _
 
--- The following two results come from "Generalizations of Hedberg's
+-- The following three results come from "Generalizations of Hedberg's
 -- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
 -- Types with constant endofunctions are "h-stable" (meaning that
@@ -518,6 +518,20 @@ constant-endofunction⇔h-stable = record
 
       f ∣ x ∣  ≡⟨ cong f $ truncation-is-proposition _ _ ⟩∎
       f ∣ y ∣  ∎
+  }
+
+-- A type is a set if and only if it is "h-separated" (which means
+-- that all its equality types are h-stable).
+
+Is-set⇔h-separated :
+  Is-set A ⇔ ((x y : A) → ∥ x ≡ y ∥ → x ≡ y)
+Is-set⇔h-separated {A = A} = record
+  { to   = λ A-set _ _ → rec A-set id
+  ; from =
+      ((x y : A) → ∥ x ≡ y ∥ → x ≡ y)                     ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ →
+                                                              _⇔_.from constant-endofunction⇔h-stable) ⟩
+      ((x y : A) → ∃ λ (f : x ≡ y → x ≡ y) → Constant f)  ↝⟨ constant⇒set ⟩□
+      Is-set A                                            □
   }
 
 -- The following three lemmas were communicated to me by Nicolai
