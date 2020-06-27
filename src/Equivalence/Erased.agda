@@ -232,7 +232,7 @@ Erased-Contractibleᴱ↔Erased-Contractible =
 
 ≃ᴱ-cong :
   {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
-  Extensionality (a ⊔ b ⊔ c ⊔ d) (a ⊔ b ⊔ c ⊔ d) →
+  @0 Extensionality (a ⊔ b ⊔ c ⊔ d) (a ⊔ b ⊔ c ⊔ d) →
   A ≃ᴱ B → C ≃ᴱ D → (A ≃ᴱ C) ≃ᴱ (B ≃ᴱ D)
 ≃ᴱ-cong
   {a = a} {b = b} {c = c} {d = d}
@@ -430,7 +430,7 @@ Contractibleᴱ⇔≃ᴱ⊤ = record
 
 Contractibleᴱ≃ᴱ≃ᴱ⊤ :
   {A : Set a} →
-  Extensionality a a →
+  @0 Extensionality a a →
   Contractibleᴱ A ≃ᴱ (A ≃ᴱ ⊤)
 Contractibleᴱ≃ᴱ≃ᴱ⊤ ext = ↔→≃ᴱ
   (_⇔_.to   Contractibleᴱ⇔≃ᴱ⊤)
@@ -487,7 +487,7 @@ Contractibleᴱ-↑ c@(a , _) =
 
 Contractibleᴱ-commutes-with-× :
   {A : Set a} {B : Set b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
   Contractibleᴱ (A × B) ≃ᴱ (Contractibleᴱ A × Contractibleᴱ B)
 Contractibleᴱ-commutes-with-× {a = a} {b = b} {A = A} {B = B} ext =
   [≃]→≃ᴱ ([proofs] lemma)
@@ -558,7 +558,7 @@ inverse-logical-equivalence = record
 
 inverse-equivalence :
   {A : Set a} {B : Set b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
   (A ≃ᴱ B) ≃ᴱ (B ≃ᴱ A)
 inverse-equivalence ext = ↔→≃ᴱ
   inverse
@@ -575,8 +575,8 @@ inverse-equivalence ext = ↔→≃ᴱ
 
 singleton-with-≃ᴱ-≃ᴱ-⊤ :
   ∀ a {B : Set b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
-  Univalence (a ⊔ b) →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
+  @0 Univalence (a ⊔ b) →
   (∃ λ (A : Set (a ⊔ b)) → A ≃ᴱ B) ≃ᴱ ⊤
 singleton-with-≃ᴱ-≃ᴱ-⊤ {b = b} a {B = B} ext univ =
   [≃]→≃ᴱ ([proofs] lemma)
@@ -589,8 +589,8 @@ singleton-with-≃ᴱ-≃ᴱ-⊤ {b = b} a {B = B} ext univ =
 
 other-singleton-with-≃ᴱ-≃ᴱ-⊤ :
   ∀ b {A : Set a} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
-  Univalence (a ⊔ b) →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
+  @0 Univalence (a ⊔ b) →
   (∃ λ (B : Set (a ⊔ b)) → A ≃ᴱ B) ≃ᴱ ⊤
 other-singleton-with-≃ᴱ-≃ᴱ-⊤ b {A = A} ext univ =
   (∃ λ B → A ≃ᴱ B)  ↝⟨ (∃-cong λ _ → inverse-equivalence ext) ⟩
@@ -602,8 +602,8 @@ other-singleton-with-≃ᴱ-≃ᴱ-⊤ b {A = A} ext univ =
 
 ∃Contractibleᴱ≃ᴱ⊤ :
   ∀ {a} →
-  Extensionality a a →
-  Univalence a →
+  @0 Extensionality a a →
+  @0 Univalence a →
   (∃ λ (A : Set a) → Contractibleᴱ A) ≃ᴱ ⊤
 ∃Contractibleᴱ≃ᴱ⊤ ext univ =
   (∃ λ A → Contractibleᴱ A)  ↝⟨ (∃-cong λ _ → Contractibleᴱ≃ᴱ≃ᴱ⊤ ext) ⟩
@@ -780,7 +780,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Π-cong-≃ᴱ-Erased :
     {A : Set a} {B : Set b} {P : A → Set p} {Q : @0 B → Set q} →
-    Extensionality (a ⊔ b) (p ⊔ q) →
+    @0 Extensionality (a ⊔ b) (p ⊔ q) →
     (A≃B : A ≃ᴱ B) →
     (∀ x → P x ≃ᴱ Q (_≃ᴱ_.to A≃B x)) →
     ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
@@ -808,7 +808,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Π-cong-contra-≃ᴱ-Erased :
     {A : Set a} {B : Set b} {P : @0 A → Set p} {Q : B → Set q} →
-    Extensionality (a ⊔ b) (p ⊔ q) →
+    @0 Extensionality (a ⊔ b) (p ⊔ q) →
     (B≃A : B ≃ᴱ A) →
     (∀ x → P (_≃ᴱ_.to B≃A x) ≃ᴱ Q x) →
     ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
@@ -836,7 +836,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Contractibleᴱ-cong :
     {A : Set a} {B : Set b} →
-    Extensionality? k′ (a ⊔ b) (a ⊔ b) →
+    @0 Extensionality? k′ (a ⊔ b) (a ⊔ b) →
     A ↔[ k ] B → Contractibleᴱ A ↝[ k′ ] Contractibleᴱ B
   Contractibleᴱ-cong {A = A} {B = B} ext A↔B =
     (∃ λ (x : A) → Erased ((y : A) → x ≡ y))  ↝⟨ (Σ-cong A≃B′ λ _ →
@@ -917,7 +917,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Erased-Contractibleᴱ↔Contractibleᴱ-Erased :
     {@0 A : Set a} →
-    Extensionality? k a a →
+    @0 Extensionality? k a a →
     Erased (Contractibleᴱ A) ↝[ k ] Contractibleᴱ (Erased A)
   Erased-Contractibleᴱ↔Contractibleᴱ-Erased {A = A} ext =
     Erased (∃ λ x → Erased ((y : A) → x ≡ y))           ↔⟨ Erased-cong-↔ (∃-cong λ _ → erased Erased↔) ⟩
@@ -954,7 +954,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     Extensionality? k a a →
     Contractibleᴱ (Erased A) ↝[ k ] Contractible (Erased A)
   Contractibleᴱ-Erased↔Contractible-Erased {A = A} ext =
-    Contractibleᴱ (Erased A)  ↝⟨ inverse-ext? Erased-Contractibleᴱ↔Contractibleᴱ-Erased ext ⟩
+    Contractibleᴱ (Erased A)  ↝⟨ inverse-erased-ext? Erased-Contractibleᴱ↔Contractibleᴱ-Erased ext ⟩
     Erased (Contractibleᴱ A)  ↔⟨ Erased-Contractibleᴱ↔Erased-Contractible ⟩
     Erased (Contractible A)   ↝⟨ Erased-H-level↔H-level ext 0 ⟩□
     Contractible (Erased A)   □

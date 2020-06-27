@@ -266,7 +266,7 @@ Erased-cong A↝B = Erased-↝↝↝ _ [ A↝B ]
 
 Dec-Erased-cong :
   {@0 A : Set a} {@0 B : Set b} →
-  Extensionality? ⌊ k ⌋-sym (a ⊔ b) lzero →
+  @0 Extensionality? ⌊ k ⌋-sym (a ⊔ b) lzero →
   @0 A ↝[ ⌊ k ⌋-sym ] B →
   Dec-Erased A ↝[ ⌊ k ⌋-sym ] Dec-Erased B
 Dec-Erased-cong ext A↝B =

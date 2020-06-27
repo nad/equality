@@ -527,8 +527,8 @@ module []-cong₁
     Erased-cong? :
       ∀ {a b} →
       @0 (∀ {k} → Extensionality? k a b → A ↝[ k ] B) →
-      Extensionality? k a b → Erased A ↝[ k ] Erased B
-    Erased-cong? hyp = generalise-ext?
+      @0 Extensionality? k a b → Erased A ↝[ k ] Erased B
+    Erased-cong? hyp = generalise-erased-ext?
       (Erased-cong-⇔ (hyp _))
       (λ ext → Erased-cong-↔ (hyp ext))
 
