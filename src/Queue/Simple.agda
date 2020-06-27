@@ -60,7 +60,7 @@ map-map {xs = []}    {ys = []} _ = _
 --
 -- Note that the invariant is erased.
 
-record Queue (@0 A : Set a) : Set a where
+record Queue (A : Set a) : Set a where
   constructor ⟨_,_⟩
   field
     front rear     : List A

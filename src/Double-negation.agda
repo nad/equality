@@ -24,7 +24,7 @@ open import Monad eq
 
 infix 3 ¬¬_
 
-record ¬¬_ {a} (@0 A : Set a) : Set a where
+record ¬¬_ {a} (A : Set a) : Set a where
   constructor wrap
   field
     run : ¬ ¬ A
