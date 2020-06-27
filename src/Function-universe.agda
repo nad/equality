@@ -369,6 +369,17 @@ generalise-ext? {k} f⇔ f↔ with extensionality? k
 ... | with-extensionality    _                   = λ ext →
   from-isomorphism (f↔ ext)
 
+generalise-erased-ext? :
+  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  A ⇔ B →
+  (@0 Extensionality c d → A ↔ B) →
+  @0 Extensionality? k c d → A ↝[ k ] B
+generalise-erased-ext? {k} f⇔ f↔ with extensionality? k
+... | without-extensionality implication         = λ _ → _⇔_.to f⇔
+... | without-extensionality logical-equivalence = λ _ → f⇔
+... | with-extensionality    _                   = λ ext →
+  from-isomorphism (f↔ ext)
+
 generalise-ext?-prop :
   ∀ {k a b c d} {A : Set a} {B : Set b} →
   A ⇔ B →
@@ -381,11 +392,29 @@ generalise-ext?-prop f⇔ A-prop B-prop =
     (λ ext → _≃_.bijection $
                _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
 
+generalise-erased-ext?-prop :
+  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  A ⇔ B →
+  (@0 Extensionality c d → Is-proposition A) →
+  (@0 Extensionality c d → Is-proposition B) →
+  @0 Extensionality? k c d → A ↝[ k ] B
+generalise-erased-ext?-prop f⇔ A-prop B-prop =
+  generalise-erased-ext?
+    f⇔
+    (λ ext → _≃_.bijection $
+               _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
+
 generalise-ext?-sym :
   ∀ {a b c d} {A : Set a} {B : Set b} {k} →
   (∀ {k} → Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
   Extensionality? k c d → A ↝[ k ] B
 generalise-ext?-sym hyp = generalise-ext? (hyp _) hyp
+
+generalise-erased-ext?-sym :
+  ∀ {a b c d} {A : Set a} {B : Set b} {k} →
+  (∀ {k} → @0 Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
+  @0 Extensionality? k c d → A ↝[ k ] B
+generalise-erased-ext?-sym hyp = generalise-erased-ext? (hyp _) hyp
 
 -- General results of the kind produced by generalise-ext? are
 -- symmetric.
@@ -395,6 +424,13 @@ inverse-ext? :
   (∀ {k} → Extensionality? k c d → A ↝[ k ] B) →
   Extensionality? k c d → B ↝[ k ] A
 inverse-ext? hyp = generalise-ext?-sym (inverse ⊚ hyp)
+
+inverse-erased-ext? :
+  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  (∀ {k} → @0 Extensionality? k c d → A ↝[ k ] B) →
+  @0 Extensionality? k c d → B ↝[ k ] A
+inverse-erased-ext? hyp =
+  generalise-erased-ext?-sym (λ ext → inverse (hyp ext))
 
 ------------------------------------------------------------------------
 -- Lots of properties
