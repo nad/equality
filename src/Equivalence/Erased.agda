@@ -25,11 +25,11 @@ open import Univalence-axiom eq
 
 private
   variable
-    a b c d ℓ q : Level
-    A B C       : Set a
-    k k′ p x y  : A
-    P Q         : A → Set p
-    f g         : (x : A) → P x
+    a b d ℓ q        : Level
+    A B C            : Set a
+    c ext k k′ p x y : A
+    P Q              : A → Set p
+    f g              : (x : A) → P x
 
 ------------------------------------------------------------------------
 -- Some basic stuff
@@ -47,8 +47,14 @@ private
 
 @0 ⁻¹≃⁻¹ᴱ : f ⁻¹ y ≃ f ⁻¹ᴱ y
 ⁻¹≃⁻¹ᴱ {f = f} {y = y} =
-  (∃ λ x → f x ≡ y)           Eq.≃⟨ (Eq.Σ-preserves Eq.id λ _ → Eq.inverse $ Eq.↔⇒≃ $ erased Erased↔) ⟩□
+  (∃ λ x → f x ≡ y)           Eq.≃⟨ (∃-cong λ _ → Eq.inverse $ Eq.↔⇒≃ $ erased Erased↔) ⟩□
   (∃ λ x → Erased (f x ≡ y))  □
+
+_ : _≃_.to ⁻¹≃⁻¹ᴱ p ≡ ⁻¹→⁻¹ᴱ p
+_ = refl _
+
+@0 _ : _≃_.from ⁻¹≃⁻¹ᴱ p ≡ ⁻¹ᴱ→⁻¹ p
+_ = refl _
 
 -- In an erased context Contractible and Contractibleᴱ are pointwise
 -- equivalent.
@@ -56,8 +62,69 @@ private
 @0 Contractible≃Contractibleᴱ :
   Contractible A ≃ Contractibleᴱ A
 Contractible≃Contractibleᴱ =
-  (∃ λ x → ∀ y → x ≡ y)           Eq.≃⟨ (Eq.Σ-preserves Eq.id λ _ → Eq.inverse $ Eq.↔⇒≃ $ erased Erased↔) ⟩□
+  (∃ λ x → ∀ y → x ≡ y)           Eq.≃⟨ (∃-cong λ _ → Eq.inverse $ Eq.↔⇒≃ $ erased Erased↔) ⟩□
   (∃ λ x → Erased (∀ y → x ≡ y))  □
+
+_ :
+  _≃_.to Contractible≃Contractibleᴱ c ≡ Contractible→Contractibleᴱ c
+_ = refl _
+
+@0 _ :
+  _≃_.from Contractible≃Contractibleᴱ c ≡ Contractibleᴱ→Contractible c
+_ = refl _
+
+private
+
+  -- In an erased context Is-equivalence and Is-equivalenceᴱ are
+  -- pointwise equivalent (assuming extensionality).
+  --
+  -- This lemma is not exported. See Is-equivalence≃Is-equivalenceᴱ
+  -- below, which computes in a different way.
+
+  @0 Is-equivalence≃Is-equivalenceᴱ′ :
+    {A : Set a} {B : Set b} {f : A → B} →
+    Extensionality? k (a ⊔ b) (a ⊔ b) →
+    Is-equivalence f ↝[ k ] Is-equivalenceᴱ f
+  Is-equivalence≃Is-equivalenceᴱ′ {a = a} {k = k} {f = f} ext =
+    (∀ y → Contractible (f ⁻¹ y))    ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 ⁻¹≃⁻¹ᴱ) ⟩
+    (∀ y → Contractible (f ⁻¹ᴱ y))   ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Contractible≃Contractibleᴱ) ⟩□
+    (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  □
+    where
+    ext′ = lower-extensionality? k a lzero ext
+
+------------------------------------------------------------------------
+-- Some type formers are propositional in erased contexts
+
+-- In an erased context Contractibleᴱ is propositional (assuming
+-- extensionality).
+
+@0 Contractibleᴱ-propositional :
+  {A : Set a} →
+  Extensionality a a →
+  Is-proposition (Contractibleᴱ A)
+Contractibleᴱ-propositional ext =
+  H-level.respects-surjection
+    (_≃_.surjection Contractible≃Contractibleᴱ)
+    1
+    (Contractible-propositional ext)
+
+-- In an erased context Is-equivalenceᴱ f is a proposition (assuming
+-- extensionality).
+--
+-- See also Is-equivalenceᴱ-propositional-for-Erased below.
+
+@0 Is-equivalenceᴱ-propositional :
+  {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  (f : A → B) → Is-proposition (Is-equivalenceᴱ f)
+Is-equivalenceᴱ-propositional ext f =
+  H-level.respects-surjection
+    (_≃_.surjection $ Is-equivalence≃Is-equivalenceᴱ′ ext)
+    1
+    (Eq.propositional ext f)
+
+------------------------------------------------------------------------
+-- Even more conversion lemmas
 
 -- In an erased context Is-equivalence and Is-equivalenceᴱ are
 -- pointwise equivalent (assuming extensionality).
@@ -66,12 +133,25 @@ Contractible≃Contractibleᴱ =
   {A : Set a} {B : Set b} {f : A → B} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Is-equivalence f ↝[ k ] Is-equivalenceᴱ f
-Is-equivalence≃Is-equivalenceᴱ {a = a} {k = k} {f = f} ext =
-  (∀ y → Contractible (f ⁻¹ y))    ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 ⁻¹≃⁻¹ᴱ) ⟩
-  (∀ y → Contractible (f ⁻¹ᴱ y))   ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Contractible≃Contractibleᴱ) ⟩□
-  (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  □
-  where
-  ext′ = lower-extensionality? k a lzero ext
+Is-equivalence≃Is-equivalenceᴱ {k = equivalence} ext =
+  Eq.with-other-function
+    (Eq.with-other-inverse
+       (Is-equivalence≃Is-equivalenceᴱ′ ext)
+       Is-equivalenceᴱ→Is-equivalence
+       (λ _ → Eq.propositional ext _ _ _))
+    Is-equivalence→Is-equivalenceᴱ
+    (λ _ → Is-equivalenceᴱ-propositional ext _ _ _)
+Is-equivalence≃Is-equivalenceᴱ = Is-equivalence≃Is-equivalenceᴱ′
+
+_ :
+  _≃_.to (Is-equivalence≃Is-equivalenceᴱ ext) p ≡
+  Is-equivalence→Is-equivalenceᴱ p
+_ = refl _
+
+@0 _ :
+  _≃_.from (Is-equivalence≃Is-equivalenceᴱ ext) p ≡
+  Is-equivalenceᴱ→Is-equivalence p
+_ = refl _
 
 -- In an erased context _≃_ and _≃ᴱ_ are pointwise equivalent
 -- (assuming extensionality).
@@ -85,6 +165,12 @@ Is-equivalence≃Is-equivalenceᴱ {a = a} {k = k} {f = f} ext =
   (∃ λ f → Is-equivalence f)   ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalenceᴱ ext) ⟩
   (∃ λ f → Is-equivalenceᴱ f)  ↔⟨ Eq.inverse ≃ᴱ-as-Σ ⟩□
   A ≃ᴱ B                       □
+
+_ : _≃_.to (≃≃≃ᴱ ext) p ≡ ≃→≃ᴱ p
+_ = refl _
+
+@0 _ : _≃_.from (≃≃≃ᴱ ext) p ≡ ≃ᴱ→≃ p
+_ = refl _
 
 -- A half adjoint equivalence with erased proofs can be turned into an
 -- equivalence with erased proofs.
@@ -315,37 +401,6 @@ to≡to→≡ ext p≡q =
       }
     ; right-inverse-of = f∘g
     })
-
-------------------------------------------------------------------------
--- Some type formers are propositional in erased contexts
-
--- In an erased context Contractibleᴱ is propositional (assuming
--- extensionality).
-
-@0 Contractibleᴱ-propositional :
-  {A : Set a} →
-  Extensionality a a →
-  Is-proposition (Contractibleᴱ A)
-Contractibleᴱ-propositional ext =
-  H-level.respects-surjection
-    (_≃_.surjection Contractible≃Contractibleᴱ)
-    1
-    (Contractible-propositional ext)
-
--- In an erased context Is-equivalenceᴱ f is a proposition (assuming
--- extensionality).
---
--- See also Is-equivalenceᴱ-propositional-for-Erased below.
-
-@0 Is-equivalenceᴱ-propositional :
-  {A : Set a} {B : Set b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
-  (f : A → B) → Is-proposition (Is-equivalenceᴱ f)
-Is-equivalenceᴱ-propositional ext f =
-  H-level.respects-surjection
-    (_≃_.surjection $ Is-equivalence≃Is-equivalenceᴱ ext)
-    1
-    (Eq.propositional ext f)
 
 ------------------------------------------------------------------------
 -- Some results related to Contractibleᴱ
