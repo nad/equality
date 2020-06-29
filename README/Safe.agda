@@ -486,6 +486,7 @@ import
 -- Bi-invertibility.
 
 import Bi-invertibility
+import Bi-invertibility.Erased
 
 -- Binary trees.
 
