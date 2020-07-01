@@ -620,6 +620,18 @@ coherently-constant-function≃∥inhabited∥⇒inhabited
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)                ↝⟨ →-cong₁ ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) ⟩□
   (∥ A ∥ → B)                                □
 
+private
+
+  -- One direction of the proposition above computes in the right way.
+
+  to-coherently-constant-function≃∥inhabited∥⇒inhabited :
+    (h : H-level 3 B)
+    (f : ∃ λ (f : A → B) → Coherently-constant f) (x : A) →
+    _≃_.to (coherently-constant-function≃∥inhabited∥⇒inhabited h)
+      f ∣ x ∣ ≡
+    proj₁ f x
+  to-coherently-constant-function≃∥inhabited∥⇒inhabited _ _ _ = refl _
+
 -- Having a constant function into a set is equivalent to having a
 -- function from a propositionally truncated type into the set. The
 -- statement of this result is that of Proposition 2.2 in "The General
