@@ -1562,7 +1562,7 @@ abstract
          (subst (λ x → B x → W A B) (refl x) f ≡ g)  □)
       p f g
 
-  -- Some equality rearrangement lemmas.
+  -- Some rearrangement lemmas.
 
   to-subst :
     ∀ {a p q} {A : Set a} {P : A → Set p} {Q : A → Set q}
