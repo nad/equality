@@ -851,6 +851,21 @@ abstract
             cong (⟨_,_⟩ f) (propositional ext f f-eq g-eq))
          f≡g f-eq g-eq
 
+  -- A computation rule for lift-equality.
+
+  lift-equality-refl :
+    ∀ {a b} {A : Set a} {B : Set b}
+      {p : A ≃ B} {q : Is-equivalence (_≃_.to p)}
+    (ext : Extensionality (a ⊔ b) (a ⊔ b)) →
+    lift-equality ext (refl (_≃_.to p)) ≡
+    cong ⟨ _≃_.to p ,_⟩
+      (propositional ext (_≃_.to p) (_≃_.is-equivalence p) q)
+  lift-equality-refl ext =
+    cong (λ f → f _ _) $
+    elim-refl
+      (λ {f g} f≡g → ∀ f-eq g-eq → ⟨ f , f-eq ⟩ ≡ ⟨ g , g-eq ⟩)
+      _
+
   -- Two proofs of equivalence are equal if the /inverses/ of the
   -- function components are equal (assuming extensionality).
   --
