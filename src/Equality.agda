@@ -1696,6 +1696,29 @@ module Derived-definitions-and-properties
         subst₂ C (refl _) (refl _) (proj₂ p))        ∎)
       y≡z
 
+    -- A proof transformation rule for push-subst-pair.
+
+    proj₁-push-subst-pair-refl :
+      ∀ {A : Set a} {y : A} (B : A → Set b) (C : Σ A B → Set c) {p} →
+      cong proj₁ (push-subst-pair {y≡z = refl y} B C {p = p}) ≡
+      trans (cong proj₁ (subst-refl _ _)) (sym $ subst-refl _ _)
+    proj₁-push-subst-pair-refl B C =
+      cong proj₁ (push-subst-pair _ _)                                   ≡⟨ cong (cong proj₁) $
+                                                                            elim¹-refl
+                                                                              (λ y≡z →
+                                                                                 subst (λ x → Σ (B x) (curry C x)) y≡z _ ≡
+                                                                                 (subst B y≡z _ , subst₂ C y≡z (refl _) _))
+                                                                              _ ⟩
+      cong proj₁
+        (trans (subst-refl _ _)
+           (Σ-≡,≡→≡ (sym $ subst-refl _ _) (sym (subst₂-refl-refl _))))  ≡⟨ cong-trans _ _ _ ⟩
+
+      trans (cong proj₁ (subst-refl _ _))
+        (cong proj₁
+           (Σ-≡,≡→≡ (sym $ subst-refl _ _) (sym (subst₂-refl-refl _))))  ≡⟨ cong (trans _) $
+                                                                            proj₁-Σ-≡,≡→≡ _ _ ⟩∎
+      trans (cong proj₁ (subst-refl _ _)) (sym $ subst-refl _ _)         ∎
+
     -- Corollaries of push-subst-pair.
 
     push-subst-pair′ :
@@ -1750,6 +1773,27 @@ module Derived-definitions-and-properties
       subst (λ x → B x × C x) y≡z (x , y)                           ≡⟨ push-subst-pair _ _ ⟩
       (subst B y≡z x , subst (C ∘ proj₁) (Σ-≡,≡→≡ y≡z (refl _)) y)  ≡⟨ cong (_,_ _) $ subst₂-proj₁ _ ⟩∎
       (subst B y≡z x , subst C y≡z y)                               ∎
+
+    -- A proof transformation rule for push-subst-,.
+
+    proj₁-push-subst-,-refl :
+      ∀ {A : Set a} {y : A} (B : A → Set b) (C : A → Set c) {p} →
+      cong proj₁ (push-subst-, {y≡z = refl y} B C {p = p}) ≡
+      trans (cong proj₁ (subst-refl _ _)) (sym $ subst-refl _ _)
+    proj₁-push-subst-,-refl _ _ =
+      cong proj₁ (trans (push-subst-pair _ _)
+                    (cong (_,_ _) $ subst₂-proj₁ _))              ≡⟨ cong-trans _ _ _ ⟩
+
+      trans (cong proj₁ (push-subst-pair _ _))
+        (cong proj₁ (cong (_,_ _) $ subst₂-proj₁ _))              ≡⟨ cong (trans _) $
+                                                                     cong-∘ _ _ _ ⟩
+      trans (cong proj₁ (push-subst-pair _ _))
+        (cong (const _) $ subst₂-proj₁ _)                         ≡⟨ trans (cong (trans _) (cong-const _)) $
+                                                                     trans-reflʳ _ ⟩
+
+      cong proj₁ (push-subst-pair _ _)                            ≡⟨ proj₁-push-subst-pair-refl _ _ ⟩∎
+
+      trans (cong proj₁ (subst-refl _ _)) (sym $ subst-refl _ _)  ∎
 
     -- The subst function can be "pushed" inside inj₁ and inj₂.
 
