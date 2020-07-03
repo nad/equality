@@ -1496,6 +1496,87 @@ Contractible-commutes-with-× {x = x} {y} =
   (_≃_.to p , _≃_.is-equivalence p) ≡ (_≃_.to q , _≃_.is-equivalence q)  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Eq.≃-as-Σ) ⟩□
   p ≡ q                                                                  □
 
+-- A variant of the previous result for which the forward direction
+-- computes in a certain way.
+
+≃-to-≡≃≡ :
+  ∀ {a b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Extensionality a b →
+  {A : Set a} {B : Set b} {p q : A ≃ B} →
+  (∀ x → _≃_.to p x ≡ _≃_.to q x) ≃ (p ≡ q)
+≃-to-≡≃≡ {a} {b} ext₁ ext₂ {p = p} {q} =
+  Eq.with-other-function
+    ((∀ x → _≃_.to p x ≡ _≃_.to q x)      ↝⟨ Eq.extensionality-isomorphism ext₂ ⟩
+
+     _≃_.to p ≡ _≃_.to q                  ↔⟨ ignore-propositional-component (Eq.propositional ext₁ _) ⟩
+
+     (_≃_.to p , _≃_.is-equivalence p) ≡
+     (_≃_.to q , _≃_.is-equivalence q)    ↝⟨ Eq.≃-≡ (Eq.↔⇒≃ Eq.≃-as-Σ) ⟩□
+
+     p ≡ q                                □)
+    (Eq.lift-equality ext₁ ⊚ apply-ext (Eq.good-ext ext₂))
+    (λ hyp → elim¹
+       (λ {f} eq →
+          (is-equiv : Is-equivalence f) →
+          trans (sym (lemma _))
+            (trans (cong (_↔_.from Eq.≃-as-Σ)
+                      (Σ-≡,≡→≡ eq
+                         (proj₁ (+⇒≡ {y = is-equiv}
+                                   (Eq.propositional ext₁ _)))))
+               (lemma _)) ≡
+          Eq.lift-equality ext₁ eq)
+       (λ is-equiv →
+          trans (sym (lemma _))
+            (trans (cong (uncurry Eq.⟨_,_⟩)
+                      (Σ-≡,≡→≡ (refl _)
+                         (proj₁ (+⇒≡ {y = is-equiv}
+                                   (Eq.propositional ext₁ _)))))
+               (lemma _))                                             ≡⟨ cong (λ eq → trans (sym (lemma _))
+                                                                                        (trans (cong (uncurry Eq.⟨_,_⟩) eq)
+                                                                                           (lemma _))) $
+                                                                         Σ-≡,≡→≡-reflˡ _ ⟩
+          trans (sym (lemma _))
+            (trans (cong (uncurry Eq.⟨_,_⟩)
+                      (cong (_ ,_)
+                         (trans (sym (subst-refl _ _))
+                            (proj₁ (+⇒≡ {y = is-equiv}
+                                      (Eq.propositional ext₁ _))))))
+               (lemma _))                                             ≡⟨ cong (λ eq → trans (sym (lemma _))
+                                                                                        (trans eq (lemma _))) $
+                                                                         trans (cong-∘ _ _ _) $
+                                                                         cong (cong Eq.⟨ _ ,_⟩) (mono₁ 1 (Eq.propositional ext₁ _) _ _) ⟩
+          trans (sym (lemma _))
+            (trans (cong Eq.⟨ _ ,_⟩ (Eq.propositional ext₁ _ _ _))
+               (lemma _))                                             ≡⟨ elim¹
+                                                                           (λ {is-equiv} eq →
+                                                                              trans (sym (lemma p))
+                                                                                (trans (cong Eq.⟨ _≃_.to p ,_⟩ eq)
+                                                                                   (lemma Eq.⟨ _≃_.to p , is-equiv ⟩)) ≡
+                                                                              cong Eq.⟨ _≃_.to p ,_⟩ eq)
+                                                                           (
+              trans (sym (lemma _))
+                (trans (cong Eq.⟨ _ ,_⟩ (refl _))
+                   (lemma _))                                               ≡⟨ cong (trans (sym (lemma _))) $
+                                                                               trans (cong (flip trans _) $ cong-refl _) $
+                                                                               trans-reflˡ _ ⟩
+
+              trans (sym (lemma _)) (lemma _)                               ≡⟨ trans-symˡ _ ⟩
+
+              refl _                                                        ≡⟨ sym $ cong-refl _ ⟩∎
+
+              cong Eq.⟨ _ ,_⟩ (refl _)                                      ∎)
+                                                                           (Eq.propositional ext₁ _ _ _) ⟩
+
+          cong Eq.⟨ _ ,_⟩ (Eq.propositional ext₁ _ _ _)               ≡⟨ sym $ Eq.lift-equality-refl ext₁ ⟩∎
+
+          Eq.lift-equality ext₁ (refl _)                              ∎)
+       _
+       _)
+  where
+  lemma  = _≃_.left-inverse-of (Eq.↔⇒≃ Eq.≃-as-Σ)
+  lemma′ = ext⁻¹ (apply-ext (Eq.good-ext ext₁) lemma)
+
 -- Equality of equivalences is isomorphic to pointwise equality of the
 -- underlying /inverse/ functions (assuming extensionality).
 
