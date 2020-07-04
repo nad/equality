@@ -481,27 +481,27 @@ abstract
 ------------------------------------------------------------------------
 -- A consequence: extensionality for functions
 
+-- The transport theorem.
+
+transport-theorem :
+  ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
+  (resp : ∀ {A B} → A ≃ B → P A → P B) →
+  (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
+  ∀ {A B} (univ : Univalence′ A B) →
+  (A≃B : A ≃ B) (p : P A) →
+  resp A≃B p ≡ subst P (≃⇒≡ univ A≃B) p
+transport-theorem P resp resp-id univ A≃B p =
+  resp A≃B p              ≡⟨ sym $ cong (λ q → resp q p) (right-inverse-of A≃B) ⟩
+  resp (to (from A≃B)) p  ≡⟨ elim (λ {A B} A≡B → ∀ p →
+                                     resp (≡⇒≃ A≡B) p ≡ subst P A≡B p)
+                                  (λ A p →
+                                     resp (≡⇒≃ (refl A)) p  ≡⟨ trans (cong (λ q → resp q p) ≡⇒↝-refl) (resp-id p) ⟩
+                                     p                      ≡⟨ sym $ subst-refl P p ⟩∎
+                                     subst P (refl A) p     ∎) _ _ ⟩∎
+  subst P (from A≃B) p    ∎
+  where open _≃_ (≡≃≃ univ)
+
 abstract
-
-  -- The transport theorem.
-
-  transport-theorem :
-    ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
-    (resp : ∀ {A B} → A ≃ B → P A → P B) →
-    (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
-    ∀ {A B} (univ : Univalence′ A B) →
-    (A≃B : A ≃ B) (p : P A) →
-    resp A≃B p ≡ subst P (≃⇒≡ univ A≃B) p
-  transport-theorem P resp resp-id univ A≃B p =
-    resp A≃B p              ≡⟨ sym $ cong (λ q → resp q p) (right-inverse-of A≃B) ⟩
-    resp (to (from A≃B)) p  ≡⟨ elim (λ {A B} A≡B → ∀ p →
-                                       resp (≡⇒≃ A≡B) p ≡ subst P A≡B p)
-                                    (λ A p →
-                                       resp (≡⇒≃ (refl A)) p  ≡⟨ trans (cong (λ q → resp q p) ≡⇒↝-refl) (resp-id p) ⟩
-                                       p                      ≡⟨ sym $ subst-refl P p ⟩∎
-                                       subst P (refl A) p     ∎) _ _ ⟩∎
-    subst P (from A≃B) p    ∎
-    where open _≃_ (≡≃≃ univ)
 
   -- If the univalence axiom holds, then any "resp" function that
   -- preserves identity is an equivalence family.
