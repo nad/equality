@@ -41,11 +41,11 @@ open import Surjection equality-with-J using (_↠_; Split-surjective)
 
 private
   variable
-    a b c d f p r ℓ   : Level
-    A A₁ A₂ B B₁ B₂ C : Set a
-    P Q               : A → Set p
-    R                 : A → A → Set r
-    k x               : A
+    a b c d f p r ℓ     : Level
+    A A₁ A₂ B B₁ B₂ C D : Set a
+    P Q                 : A → Set p
+    R                   : A → A → Set r
+    k x                 : A
 
 -- Propositional truncation.
 
@@ -534,70 +534,37 @@ Is-set⇔h-separated {A = A} = record
       Is-set A                                            □
   }
 
--- The following three lemmas were communicated to me by Nicolai
--- Kraus. (In slightly different form.) They are closely related to
--- Lemma 2.1 in his paper "The General Universal Property of the
--- Propositional Truncation".
+-- Variants of the following two lemmas were communicated to me by
+-- Nicolai Kraus. They are closely related to Lemma 2.1 in his paper
+-- "The General Universal Property of the Propositional Truncation".
 
 -- A variant of ∥∥×≃.
 
 drop-∥∥ :
   {B : A → Set b} →
-
-  (∥ A ∥ → ∀ x → B x)
-    ↔
-  (∀ x → B x)
-drop-∥∥ {A = A} {B = B} =
-  (∥ A ∥ → ∀ x → B x)              ↝⟨ inverse currying ⟩
-  ((p : ∥ A ∥ × A) → B (proj₂ p))  ↝⟨ Π-cong ext ∥∥×≃ (λ _ → F.id) ⟩□
-  (∀ x → B x)                      □
+  (A → ∥ C ∥) →
+  (∥ C ∥ → ∀ x → B x) ≃ (∀ x → B x)
+drop-∥∥ {C = C} {B = B} inh =
+  Eq.with-other-inverse
+    ((∥ C ∥ → ∀ a → B a)  ↔⟨ Π-comm ⟩
+     (∀ a → ∥ C ∥ → B a)  ↝⟨ (∀-cong ext λ a → drop-⊤-left-Π ext (inhabited⇒∥∥↔⊤ (inh a))) ⟩□
+     (∀ a → B a)          □)
+    (λ f _ → f)
+    (λ f → ⟨ext⟩ λ _ → ⟨ext⟩ λ a →
+       _    ≡⟨ subst-const _ ⟩∎
+       f a  ∎)
 
 -- Another variant of ∥∥×≃.
 
 push-∥∥ :
   {B : A → Set b} {C : (∀ x → B x) → Set c} →
-
-  (∥ A ∥ → ∃ λ (f : ∀ x → B x) → C f)
-    ↔
-  (∃ λ (f : ∀ x → B x) → ∥ A ∥ → C f)
-
-push-∥∥ {A = A} {B = B} {C} =
-
-  (∥ A ∥ → ∃ λ (f : ∀ x → B x) → C f)                ↝⟨ ΠΣ-comm ⟩
-
-  (∃ λ (f : ∥ A ∥ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↝⟨ Σ-cong drop-∥∥ (λ f →
-                                                        ∀-cong ext λ ∥x∥ →
-                                                        ≡⇒↝ _ $ cong C $ ⟨ext⟩ λ x →
-      f ∥x∥ x                                             ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $ truncation-is-proposition _ _ ⟩
-      f ∣ x ∣ x                                           ≡⟨ sym $ subst-refl B _ ⟩
-      subst B (refl x) (f ∣ x ∣ x)                        ≡⟨⟩
-      _↔_.to drop-∥∥ f x                                  ∎) ⟩□
-
-  (∃ λ (f : ∀ x → B x) → ∥ A ∥ → C (λ x → f x))      □
-
--- This is an instance of a variant of Lemma 2.1 from "The General
--- Universal Property of the Propositional Truncation" by Kraus.
-
-drop-∥∥₃ :
-  ∀ {B : A → Set b} {C : A → (∀ x → B x) → Set c}
-    {D : A → (f : ∀ x → B x) → (∀ x → C x f) → Set d} →
-
-  (∥ A ∥ →
-   ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
-    ↔
-  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
-
-drop-∥∥₃ {A = A} {B = B} {C} {D} =
-  (∥ A ∥ →
-   ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  ↝⟨ push-∥∥ ⟩
-
-  (∃ λ (f : ∀ x → B x) →
-   ∥ A ∥ → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)                ↝⟨ (∃-cong λ _ → push-∥∥) ⟩
-
-  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) →
-   ∥ A ∥ → ∀ x → D x f g)                                        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → drop-∥∥) ⟩□
-
-  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  □
+  (A → ∥ D ∥) →
+  (∥ D ∥ → ∃ λ (f : ∀ x → B x) → C f) ≃
+  (∃ λ (f : ∀ x → B x) → ∥ D ∥ → C f)
+push-∥∥ {D = D} {B = B} {C = C} inh =
+  (∥ D ∥ → ∃ λ (f : ∀ c → B c) → C f)            ↔⟨ ΠΣ-comm ⟩
+  (∃ λ (f : ∥ D ∥ → ∀ c → B c) → ∀ b → C (f b))  ↝⟨ (Σ-cong-contra (inverse $ drop-∥∥ inh) λ _ → F.id) ⟩□
+  (∃ λ (f : ∀ c → B c) → ∥ D ∥ → C f)            □
 
 -- Having a coherently constant function into a groupoid is equivalent
 -- to having a function from a propositionally truncated type into the
