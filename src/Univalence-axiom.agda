@@ -1116,6 +1116,30 @@ abstract
                                                                                (apply-ext ext₁ $ _≃_.left-inverse-of A₁≃A₂) ⟩∎
         ≡⇒→ A₁≡B₁                                                     ∎))
 
+-- Singletons expressed using equivalences instead of equalities,
+-- where the types are required to live in the same universe, are
+-- contractible (assuming univalence).
+
+singleton-with-≃-contractible :
+  ∀ {b} {B : Set b} →
+  Univalence b →
+  Contractible (∃ λ (A : Set b) → A ≃ B)
+singleton-with-≃-contractible univ =
+  H-level.respects-surjection
+    (∃-cong λ _ → _≃_.surjection (≡≃≃ univ))
+    0
+    (singleton-contractible _)
+
+other-singleton-with-≃-contractible :
+  ∀ {a} {A : Set a} →
+  Univalence a →
+  Contractible (∃ λ (B : Set a) → A ≃ B)
+other-singleton-with-≃-contractible univ =
+  H-level.respects-surjection
+    (∃-cong λ _ → _≃_.surjection (≡≃≃ univ))
+    0
+    (other-singleton-contractible _)
+
 -- Singletons expressed using equivalences instead of equalities are
 -- isomorphic to the unit type (assuming extensionality and
 -- univalence).
