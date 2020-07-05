@@ -1410,3 +1410,73 @@ Is-set-∃-Is-proposition {a} ext prop-ext
                                                            prop-ext (proj₂ A) (proj₂ B)) ⟩
   Univalence′ (proj₁ A) (proj₁ B)  ↝⟨ ⇔↔≡′ (lower-extensionality _ _ ext) ⟩□
   (proj₁ A ⇔ proj₁ B) ↔ (A ≡ B)    □
+
+------------------------------------------------------------------------
+-- Variants of J for equivalences
+
+-- Two variants of the J rule for equivalences, along with
+-- "computation" rules.
+--
+-- The types of the eliminators are similar to the statement of
+-- Corollary 5.8.5 from the HoTT book (where the motive takes two type
+-- arguments). The type and code of ≃-elim₁ are based on code from the
+-- cubical library written by Matthew Yacavone, which was possibly
+-- based on code written by Anders Mörtberg.
+
+≃-elim₁ :
+  ∀ {ℓ p} {A B : Set ℓ} →
+  Univalence ℓ →
+  (P : {A : Set ℓ} → A ≃ B → Set p) →
+  P (Eq.id {A = B}) →
+  (A≃B : A ≃ B) → P A≃B
+≃-elim₁ univ P p A≃B =
+  subst
+    (λ (_ , A≃B) → P A≃B)
+    (mono₁ 0 (singleton-with-≃-contractible univ) _ _)
+    p
+
+≃-elim₁-id :
+  ∀ {ℓ p} {B : Set ℓ}
+  (univ : Univalence ℓ)
+  (P : {A : Set ℓ} → A ≃ B → Set p)
+  (p : P (Eq.id {A = B})) →
+  ≃-elim₁ univ P p Eq.id ≡ p
+≃-elim₁-id univ P p =
+  subst
+    (λ (_ , A≃B) → P A≃B)
+    (mono₁ 0 (singleton-with-≃-contractible univ) _ _)
+    p                                                   ≡⟨ cong (λ eq → subst (λ (_ , A≃B) → P A≃B) eq _) $
+                                                           mono₁ 1 (mono₁ 0 (singleton-with-≃-contractible univ)) _ _ ⟩
+
+  subst (λ (_ , A≃B) → P A≃B) (refl _) p                ≡⟨ subst-refl _ _ ⟩∎
+
+  p                                                     ∎
+
+≃-elim¹ :
+  ∀ {ℓ p} {A B : Set ℓ} →
+  Univalence ℓ →
+  (P : {B : Set ℓ} → A ≃ B → Set p) →
+  P (Eq.id {A = A}) →
+  (A≃B : A ≃ B) → P A≃B
+≃-elim¹ univ P p A≃B =
+  subst
+    (λ (_ , A≃B) → P A≃B)
+    (mono₁ 0 (other-singleton-with-≃-contractible univ) _ _)
+    p
+
+≃-elim¹-id :
+  ∀ {ℓ p} {A : Set ℓ}
+  (univ : Univalence ℓ)
+  (P : {B : Set ℓ} → A ≃ B → Set p)
+  (p : P (Eq.id {A = A})) →
+  ≃-elim¹ univ P p Eq.id ≡ p
+≃-elim¹-id univ P p =
+  subst
+    (λ (_ , A≃B) → P A≃B)
+    (mono₁ 0 (other-singleton-with-≃-contractible univ) _ _)
+    p                                                         ≡⟨ cong (λ eq → subst (λ (_ , A≃B) → P A≃B) eq _) $
+                                                                 mono₁ 1 (mono₁ 0 (other-singleton-with-≃-contractible univ)) _ _ ⟩
+
+  subst (λ (_ , A≃B) → P A≃B) (refl _) p                      ≡⟨ subst-refl _ _ ⟩∎
+
+  p                                                           ∎
