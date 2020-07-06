@@ -128,20 +128,27 @@ loop≢refl loop≡refl = ¬-Set-set univ Set-set
   loop ≡ refl base              ↝⟨ loop≢refl ⟩□
   ⊥                             □
 
+-- A function with the type of refl (for 𝕊¹) that is not equal to
+-- refl.
+
+not-refl : (x : 𝕊¹) → x ≡ x
+not-refl = elim _
+  loop
+  (subst (λ z → z ≡ z) loop loop  ≡⟨ ≡⇒↝ _ (sym [subst≡]≡[trans≡trans]) (refl _) ⟩∎
+   loop                           ∎)
+
+-- The function not-refl is not equal to refl.
+
+not-refl≢refl : not-refl ≢ refl
+not-refl≢refl =
+  not-refl ≡ refl   ↝⟨ cong (_$ _) ⟩
+  loop ≡ refl base  ↝⟨ loop≢refl ⟩□
+  ⊥                 □
+
 -- There is a value with the type of refl that is not equal to refl.
 
 ∃≢refl : ∃ λ (f : (x : 𝕊¹) → x ≡ x) → f ≢ refl
-∃≢refl =
-    f
-  , (f ≡ refl          ↝⟨ cong (_$ _) ⟩
-     loop ≡ refl base  ↝⟨ loop≢refl ⟩□
-     ⊥                 □)
-  where
-  f : (x : 𝕊¹) → x ≡ x
-  f = elim _
-    loop
-    (subst (λ z → z ≡ z) loop loop  ≡⟨ ≡⇒↝ _ (sym [subst≡]≡[trans≡trans]) (refl _) ⟩∎
-     loop                           ∎)
+∃≢refl = not-refl , not-refl≢refl
 
 -- For every universe level there is a type A such that
 -- (x : A) → x ≡ x is not a proposition.
