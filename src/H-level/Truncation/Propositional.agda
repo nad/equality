@@ -495,6 +495,52 @@ private
     _≃_.from (universal-property B-prop) f ∣ x ∣ ≡ f x
   _ = λ _ _ _ → refl _
 
+-- If there is a function f : A → ∥ B ∥, then f is an equivalence if
+-- and only if the second projection from A × B is an equivalence.
+
+equivalence-to-∥∥≃proj₂-equivalence :
+  (f : A → ∥ B ∥) →
+  Is-equivalence f ≃ Is-equivalence (proj₂ ⦂ (A × B → B))
+equivalence-to-∥∥≃proj₂-equivalence {A = A} {B = B} f = Eq.⇔→≃
+  (Eq.propositional ext _)
+  (Eq.propositional ext _)
+  (λ eq → _≃_.is-equivalence
+            (A × B      ↝⟨ (×-cong₁ λ _ → Eq.⟨ _ , eq ⟩) ⟩
+             ∥ B ∥ × B  ↝⟨ ∥∥×≃ ⟩□
+             B          □))
+  from
+  where
+  from : Is-equivalence proj₂ → Is-equivalence f
+  from eq = _≃_.is-equivalence $ Eq.⇔→≃
+    A-prop
+    truncation-is-proposition
+    _
+    (rec A-prop (proj₁ ∘ _≃_.from Eq.⟨ _ , eq ⟩))
+    where
+    A-prop₁ : B → Is-proposition A
+    A-prop₁ b a₁ a₂ =                  $⟨ refl _ ⟩
+      b ≡ b                            ↔⟨⟩
+      proj₂ (a₁ , b) ≡ proj₂ (a₂ , b)  ↔⟨ Eq.≃-≡ Eq.⟨ _ , eq ⟩ ⟩
+      (a₁ , b) ≡ (a₂ , b)              ↝⟨ cong proj₁ ⟩□
+      a₁ ≡ a₂                          □
+
+    A-prop : Is-proposition A
+    A-prop = [inhabited⇒+]⇒+ 0
+      (A                 ↝⟨ f ⟩
+       ∥ B ∥             ↝⟨ rec (H-level-propositional ext 1) A-prop₁ ⟩□
+       Is-proposition A  □)
+
+-- There is an equivalence between "A is equivalent to ∥ B ∥" and
+-- "there is a function from A to ∥ B ∥ and the second projection is
+-- an equivalence from A × B to B".
+
+≃∥∥≃→∥∥×proj₂-equivalence :
+  (A ≃ ∥ B ∥) ≃ ((A → ∥ B ∥) × Is-equivalence (proj₂ ⦂ (A × B → B)))
+≃∥∥≃→∥∥×proj₂-equivalence {A = A} {B = B} =
+  A ≃ ∥ B ∥                                           ↔⟨ Eq.≃-as-Σ ⟩
+  (∃ λ (f : A → ∥ B ∥) → Is-equivalence f)            ↝⟨ ∃-cong equivalence-to-∥∥≃proj₂-equivalence ⟩□
+  (A → ∥ B ∥) × Is-equivalence (proj₂ ⦂ (A × B → B))  □
+
 -- The following three results come from "Generalizations of Hedberg's
 -- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
