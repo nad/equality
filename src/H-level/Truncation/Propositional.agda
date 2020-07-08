@@ -301,6 +301,14 @@ surjective×embedding≃equivalence {f = f} =
   ; left-inverse-of = λ _ → truncation-is-proposition _ _
   }
 
+-- A type is a proposition if it is equivalent to the propositional
+-- truncation of some type.
+
+≃∥∥→Is-proposition : A ≃ ∥ B ∥ → Is-proposition A
+≃∥∥→Is-proposition A≃∥B∥ a₁ a₂ =     $⟨ truncation-is-proposition _ _ ⟩
+  _≃_.to A≃∥B∥ a₁ ≡ _≃_.to A≃∥B∥ a₂  ↝⟨ Eq.≃-≡ A≃∥B∥ ⟩□
+  a₁ ≡ a₂                            □
+
 -- A simple isomorphism involving propositional truncation.
 
 ∥∥×↔ : ∥ A ∥ × A ↔ A
