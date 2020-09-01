@@ -195,6 +195,10 @@ import H-level.Truncation.Church
 
 import H-level.Truncation.Propositional
 
+-- Sequential colimits.
+
+import Colimit.Sequential
+
 -- The "circle".
 
 import Circle
