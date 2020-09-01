@@ -293,6 +293,27 @@ abstract
     Is-proposition (¬ A)
   ¬-propositional ext = Π-closure ext 1 (λ _ → ⊥-propositional)
 
+-- The type ∀ y → x ≡ y is a proposition (assuming extensionality).
+--
+-- This is Lemma 4.1 from van Doorn's "Constructing the Propositional
+-- Truncation using Non-recursive HITs" (perhaps the proof is not
+-- quite identical to van Doorn's).
+
+Π≡-proposition :
+  ∀ {a} {A : Set a} →
+  Extensionality a a →
+  (x : A) → Is-proposition (∀ y → x ≡ y)
+Π≡-proposition {A = A} ext x =
+  [inhabited⇒+]⇒+ 0 λ f →
+  let prop : Is-proposition A
+      prop u v =
+        u  ≡⟨ sym (f u) ⟩
+        x  ≡⟨ f v ⟩∎
+        v  ∎
+  in
+  Π-closure ext 1 λ _ →
+  mono₁ 1 prop
+
 ------------------------------------------------------------------------
 -- Σ-types
 
