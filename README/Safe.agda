@@ -203,6 +203,11 @@ import Colimit.Sequential
 
 import H-level.Truncation.Propositional.One-step
 
+-- A definition of the propositional truncation operator that does not
+-- use recursive higher inductive types.
+
+import H-level.Truncation.Propositional.Non-recursive
+
 -- The "circle".
 
 import Circle
