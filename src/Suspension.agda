@@ -238,7 +238,7 @@ private
 
        meridian true                                            ∎)
     where
-    lemma : (b : Bool) → _
+    lemma : (b : Bool) → _ ≡ _
     lemma true  =
       trans (sym (cong to (if true ⦂ Bool then refl base else loop)))
             (meridian true)                                            ≡⟨⟩
