@@ -199,6 +199,10 @@ import H-level.Truncation.Propositional
 
 import Colimit.Sequential
 
+-- The one-step truncation.
+
+import H-level.Truncation.Propositional.One-step
+
 -- The "circle".
 
 import Circle
