@@ -101,8 +101,8 @@ abstract
                    (subst (λ x → B x → M′ A B i) p f ≡ g))
       (λ x f g →
          (∀ b {j} → force (f b) {j = j} ≡
-                    force (g (subst B (refl x) b)))               ↝⟨ subst (λ h → (∀ b {j} → force (f b) ≡ force (g (h b))) ↔
-                                                                                  (∀ b {j} → force (f b) {j = j} ≡ force (g b)))
+                    force (g (subst B (refl x) b)))               ↝⟨ subst (λ h → (∀ b {j : Size< i} → force (f b) ≡ force (g (h b))) ↔
+                                                                                  (∀ b {j : Size< i} → force (f b) ≡ force (g b)))
                                                                            (sym (apply-ext (lower-extensionality lzero a ext) (subst-refl B)))
                                                                            Bijection.id ⟩
 
