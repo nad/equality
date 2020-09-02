@@ -88,7 +88,7 @@ rec-loop = cong-≡↔≡ (refl _)
 
 -- An alternative non-dependent eliminator.
 
-rec′ :  (b : A) → b ≡ b → 𝕊¹ → A
+rec′ : (b : A) → b ≡ b → 𝕊¹ → A
 rec′ {A = A} b ℓ = elim
   (const A)
   b
