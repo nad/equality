@@ -1208,7 +1208,7 @@ module Derived-definitions-and-properties
 
     -- A kind of transitivity for "dependent paths".
     --
-    -- This lemma is suggested in the HoTT book (first version,
+    -- This lemma is suggested in the HoTT book (first edition,
     -- Exercise 6.1).
 
     dtrans :
@@ -1370,7 +1370,7 @@ module Derived-definitions-and-properties
 
     -- A lemma relating dcong, trans and dtrans.
     --
-    -- This lemma is suggested in the HoTT book (first version,
+    -- This lemma is suggested in the HoTT book (first edition,
     -- Exercise 6.1).
 
     dcong-trans :
