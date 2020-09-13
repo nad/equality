@@ -12,7 +12,7 @@ import Agda.Builtin.Cubical.Id
 open import Equality.Id
 open import Prelude
 
-open import List equality-with-J
+open import List equality-with-J as L
 open import Maybe equality-with-J
 open import Monad equality-with-J
 open import Tactic.By equality-with-J as TB
@@ -67,7 +67,8 @@ private
            [])
 
     the-clause = clause
-      (varg (var "f") ∷ replicate n (varg (var "eq")))
+      (("f" , varg unknown) ∷ replicate n ("eq" , varg unknown))
+      (varg (var n) ∷ L.map (varg ∘ var) (nats-< n))
       (body n)
 
   unquoteDecl cong₃  = make-cong-called cong₃   3
