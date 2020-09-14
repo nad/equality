@@ -278,7 +278,7 @@ strong-equivalence-not-closed-under-on ext univ₁ univ₀ =
   not-strong-equivalence : ¬ Strong-equivalence (_≡_ on const (Fin 3))
   not-strong-equivalence strong-equivalence = contradiction
     where
-    3!≡3!! = _⇔_.to isomorphic-same-size (
+    3!≡3!! = _⇔_.to (isomorphic-same-size { n = 3 ! ! }) (
       Fin (3 !)                                      ↝⟨ inverse $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 3 ⟩
       Fin 3 ≡ Fin 3                                  ↔⟨ strong-equivalence ⟩
       const (Fin 3 ≡ Fin 3) ≡ const (Fin 3 ≡ Fin 3)  ↔⟨ inverse $ Eq.extensionality-isomorphism ext ⟩
