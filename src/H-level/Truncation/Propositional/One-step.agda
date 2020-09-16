@@ -46,8 +46,8 @@ private
 -- This definition is based on that in van Doorn's "Constructing the
 -- Propositional Truncation using Non-recursive HITs".
 
-data ∥_∥₁ (A : Set a) : Set a where
-  ∣_∣          : A → ∥ A ∥₁
+data ∥_∥¹ (A : Set a) : Set a where
+  ∣_∣          : A → ∥ A ∥¹
   ∣∣-constantᴾ : PD.Constant (∣_∣ {A = A})
 
 -- The function ∣_∣ is constant.
@@ -60,7 +60,7 @@ data ∥_∥₁ (A : Set a) : Set a where
 
 -- A dependent eliminator, expressed using paths.
 
-record Elimᴾ {A : Set a} (P : ∥ A ∥₁ → Set p) : Set (a ⊔ p) where
+record Elimᴾ {A : Set a} (P : ∥ A ∥¹ → Set p) : Set (a ⊔ p) where
   no-eta-equality
   field
     ∣∣ʳ          : ∀ x → P ∣ x ∣
@@ -70,12 +70,12 @@ record Elimᴾ {A : Set a} (P : ∥ A ∥₁ → Set p) : Set (a ⊔ p) where
 
 open Elimᴾ public
 
-elimᴾ : Elimᴾ P → (x : ∥ A ∥₁) → P x
+elimᴾ : Elimᴾ P → (x : ∥ A ∥¹) → P x
 elimᴾ {A = A} {P = P} e = helper
   where
   module E = Elimᴾ e
 
-  helper : (x : ∥ A ∥₁) → P x
+  helper : (x : ∥ A ∥¹) → P x
   helper ∣ x ∣                = E.∣∣ʳ x
   helper (∣∣-constantᴾ x y i) = E.∣∣-constantʳ x y i
 
@@ -89,7 +89,7 @@ record Recᴾ (A : Set a) (B : Set b) : Set (a ⊔ b) where
 
 open Recᴾ public
 
-recᴾ : Recᴾ A B → ∥ A ∥₁ → B
+recᴾ : Recᴾ A B → ∥ A ∥¹ → B
 recᴾ r = elimᴾ λ where
     .∣∣ʳ          → R.∣∣ʳ
     .∣∣-constantʳ → R.∣∣-constantʳ
@@ -98,7 +98,7 @@ recᴾ r = elimᴾ λ where
 
 -- A dependent eliminator.
 
-record Elim {A : Set a} (P : ∥ A ∥₁ → Set p) : Set (a ⊔ p) where
+record Elim {A : Set a} (P : ∥ A ∥¹ → Set p) : Set (a ⊔ p) where
   no-eta-equality
   field
     ∣∣ʳ          : ∀ x → P ∣ x ∣
@@ -107,7 +107,7 @@ record Elim {A : Set a} (P : ∥ A ∥₁ → Set p) : Set (a ⊔ p) where
 
 open Elim public
 
-elim : Elim P → (x : ∥ A ∥₁) → P x
+elim : Elim P → (x : ∥ A ∥¹) → P x
 elim e = elimᴾ λ where
     .∣∣ʳ              → E.∣∣ʳ
     .∣∣-constantʳ x y → subst≡→[]≡ (E.∣∣-constantʳ x y)
@@ -130,7 +130,7 @@ record Rec (A : Set a) (B : Set b) : Set (a ⊔ b) where
 
 open Rec public
 
-rec : Rec A B → ∥ A ∥₁ → B
+rec : Rec A B → ∥ A ∥¹ → B
 rec r = recᴾ λ where
     .∣∣ʳ              → R.∣∣ʳ
     .∣∣-constantʳ x y → _↔_.to ≡↔≡ (R.∣∣-constantʳ x y)
@@ -145,7 +145,7 @@ rec-∣∣-constant = cong-≡↔≡ (refl _)
 
 -- A variant of rec.
 
-rec′ : (f : A → B) → Constant f → ∥ A ∥₁ → B
+rec′ : (f : A → B) → Constant f → ∥ A ∥¹ → B
 rec′ f c = rec λ where
   .Rec.∣∣ʳ          → f
   .Rec.∣∣-constantʳ → c
@@ -153,39 +153,39 @@ rec′ f c = rec λ where
 ------------------------------------------------------------------------
 -- Some preservation lemmas
 
--- A map function for ∥_∥₁.
+-- A map function for ∥_∥¹.
 
-∥∥₁-map : (A → B) → ∥ A ∥₁ → ∥ B ∥₁
-∥∥₁-map f = rec λ where
+∥∥¹-map : (A → B) → ∥ A ∥¹ → ∥ B ∥¹
+∥∥¹-map f = rec λ where
   .∣∣ʳ x            → ∣ f x ∣
   .∣∣-constantʳ x y → ∣∣-constant (f x) (f y)
 
 -- The truncation operator preserves logical equivalences.
 
-∥∥₁-cong-⇔ : A ⇔ B → ∥ A ∥₁ ⇔ ∥ B ∥₁
-∥∥₁-cong-⇔ A⇔B = record
-  { to   = ∥∥₁-map (_⇔_.to   A⇔B)
-  ; from = ∥∥₁-map (_⇔_.from A⇔B)
+∥∥¹-cong-⇔ : A ⇔ B → ∥ A ∥¹ ⇔ ∥ B ∥¹
+∥∥¹-cong-⇔ A⇔B = record
+  { to   = ∥∥¹-map (_⇔_.to   A⇔B)
+  ; from = ∥∥¹-map (_⇔_.from A⇔B)
   }
 
 private
 
   -- A lemma used below.
 
-  ∥∥₁-cong-lemma :
+  ∥∥¹-cong-lemma :
     (f : A → B) (g : B → A) (eq : ∀ x → f (g x) ≡ x) →
-    subst (λ z → ∥∥₁-map f (∥∥₁-map g z) ≡ z)
+    subst (λ z → ∥∥¹-map f (∥∥¹-map g z) ≡ z)
       (∣∣-constant x y) (cong ∣_∣ (eq x)) ≡
     cong ∣_∣ (eq y)
-  ∥∥₁-cong-lemma {x = x} {y = y} f g eq =
+  ∥∥¹-cong-lemma {x = x} {y = y} f g eq =
     subst
-      (λ z → ∥∥₁-map f (∥∥₁-map g z) ≡ z)
+      (λ z → ∥∥¹-map f (∥∥¹-map g z) ≡ z)
       (∣∣-constant x y) (cong ∣_∣ (eq x))                         ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
-    trans (sym (cong (∥∥₁-map f ∘ ∥∥₁-map g) (∣∣-constant x y)))
+    trans (sym (cong (∥∥¹-map f ∘ ∥∥¹-map g) (∣∣-constant x y)))
       (trans (cong ∣_∣ (eq x)) (cong id (∣∣-constant x y)))       ≡⟨ cong₂ (λ p q → trans (sym p) (trans (cong ∣_∣ (eq x)) q))
                                                                        (trans (sym $ cong-∘ _ _ _) $
-                                                                        trans (cong (cong (∥∥₁-map f)) rec-∣∣-constant) $
+                                                                        trans (cong (cong (∥∥¹-map f)) rec-∣∣-constant) $
                                                                         rec-∣∣-constant)
                                                                        (sym $ cong-id _) ⟩
     trans (sym (∣∣-constant (f (g x)) (f (g y))))
@@ -217,37 +217,37 @@ private
 
 -- The truncation operator preserves split surjections.
 
-∥∥₁-cong-↠ : A ↠ B → ∥ A ∥₁ ↠ ∥ B ∥₁
-∥∥₁-cong-↠ A↠B = record
-  { logical-equivalence = ∥∥₁-cong-⇔ (_↠_.logical-equivalence A↠B)
+∥∥¹-cong-↠ : A ↠ B → ∥ A ∥¹ ↠ ∥ B ∥¹
+∥∥¹-cong-↠ A↠B = record
+  { logical-equivalence = ∥∥¹-cong-⇔ (_↠_.logical-equivalence A↠B)
   ; right-inverse-of    = elim λ where
       .∣∣ʳ x            → cong ∣_∣ (_↠_.right-inverse-of A↠B x)
       .∣∣-constantʳ x y →
-        ∥∥₁-cong-lemma (_↠_.to A↠B) (_↠_.from A↠B)
+        ∥∥¹-cong-lemma (_↠_.to A↠B) (_↠_.from A↠B)
           (_↠_.right-inverse-of A↠B)
   }
 
 -- The truncation operator preserves bijections.
 
-∥∥₁-cong-↔ : A ↔ B → ∥ A ∥₁ ↔ ∥ B ∥₁
-∥∥₁-cong-↔ A↔B = record
-  { surjection      = ∥∥₁-cong-↠ (_↔_.surjection A↔B)
+∥∥¹-cong-↔ : A ↔ B → ∥ A ∥¹ ↔ ∥ B ∥¹
+∥∥¹-cong-↔ A↔B = record
+  { surjection      = ∥∥¹-cong-↠ (_↔_.surjection A↔B)
   ; left-inverse-of = elim λ where
       .∣∣ʳ x            → cong ∣_∣ (_↔_.left-inverse-of A↔B x)
       .∣∣-constantʳ x y →
-        ∥∥₁-cong-lemma (_↔_.from A↔B) (_↔_.to A↔B)
+        ∥∥¹-cong-lemma (_↔_.from A↔B) (_↔_.to A↔B)
           (_↔_.left-inverse-of A↔B)
   }
 
 -- The truncation operator preserves equivalences.
 
-∥∥₁-cong-≃ : A ≃ B → ∥ A ∥₁ ≃ ∥ B ∥₁
-∥∥₁-cong-≃ = from-isomorphism ∘ ∥∥₁-cong-↔ ∘ from-isomorphism
+∥∥¹-cong-≃ : A ≃ B → ∥ A ∥¹ ≃ ∥ B ∥¹
+∥∥¹-cong-≃ = from-isomorphism ∘ ∥∥¹-cong-↔ ∘ from-isomorphism
 
 -- The truncation operator preserves equivalences with erased proofs.
 
-∥∥₁-cong-≃ᴱ : A ≃ᴱ B → ∥ A ∥₁ ≃ᴱ ∥ B ∥₁
-∥∥₁-cong-≃ᴱ A≃B = EEq.[≃]→≃ᴱ (EEq.[proofs] (∥∥₁-cong-≃ (EEq.≃ᴱ→≃ A≃B)))
+∥∥¹-cong-≃ᴱ : A ≃ᴱ B → ∥ A ∥¹ ≃ᴱ ∥ B ∥¹
+∥∥¹-cong-≃ᴱ A≃B = EEq.[≃]→≃ᴱ (EEq.[proofs] (∥∥¹-cong-≃ (EEq.≃ᴱ→≃ A≃B)))
 
 ------------------------------------------------------------------------
 -- Iterated applications of the one-step truncation operator
@@ -259,31 +259,31 @@ private
 -- "Constructing the Propositional Truncation using Non-recursive
 -- HITs".
 
-∥_∥₁-out-^ : Set a → ℕ → Set a
-∥ A ∥₁-out-^ zero    = A
-∥ A ∥₁-out-^ (suc n) = ∥ ∥ A ∥₁-out-^ n ∥₁
+∥_∥¹-out-^ : Set a → ℕ → Set a
+∥ A ∥¹-out-^ zero    = A
+∥ A ∥¹-out-^ (suc n) = ∥ ∥ A ∥¹-out-^ n ∥¹
 
--- A "constructor" for ∥_∥₁-out-^.
+-- A "constructor" for ∥_∥¹-out-^.
 
-∣_∣-out-^ : A → ∀ n → ∥ A ∥₁-out-^ n
+∣_∣-out-^ : A → ∀ n → ∥ A ∥¹-out-^ n
 ∣ x ∣-out-^ zero    = x
 ∣ x ∣-out-^ (suc n) = ∣ ∣ x ∣-out-^ n ∣
 
 -- A rearrangement lemma.
 
-∥∥₁-out-^+≃ : ∀ m → ∥ A ∥₁-out-^ (m + n) ≃ ∥ ∥ A ∥₁-out-^ n ∥₁-out-^ m
-∥∥₁-out-^+≃                 zero    = F.id
-∥∥₁-out-^+≃ {A = A} {n = n} (suc m) =
-  ∥ ∥ A ∥₁-out-^ (m + n) ∥₁         ↝⟨ ∥∥₁-cong-≃ (∥∥₁-out-^+≃ m) ⟩□
-  ∥ ∥ ∥ A ∥₁-out-^ n ∥₁-out-^ m ∥₁  □
+∥∥¹-out-^+≃ : ∀ m → ∥ A ∥¹-out-^ (m + n) ≃ ∥ ∥ A ∥¹-out-^ n ∥¹-out-^ m
+∥∥¹-out-^+≃                 zero    = F.id
+∥∥¹-out-^+≃ {A = A} {n = n} (suc m) =
+  ∥ ∥ A ∥¹-out-^ (m + n) ∥¹         ↝⟨ ∥∥¹-cong-≃ (∥∥¹-out-^+≃ m) ⟩□
+  ∥ ∥ ∥ A ∥¹-out-^ n ∥¹-out-^ m ∥¹  □
 
--- ∥_∥₁ commutes with ∥_∥₁-out-^ n.
+-- ∥_∥¹ commutes with ∥_∥¹-out-^ n.
 
-∥∥₁-∥∥₁-out-^-commute : ∀ n → ∥ ∥ A ∥₁-out-^ n ∥₁ ↔ ∥ ∥ A ∥₁ ∥₁-out-^ n
-∥∥₁-∥∥₁-out-^-commute         zero    = F.id
-∥∥₁-∥∥₁-out-^-commute {A = A} (suc n) =
-  ∥ ∥ ∥ A ∥₁-out-^ n ∥₁ ∥₁  ↝⟨ ∥∥₁-cong-↔ (∥∥₁-∥∥₁-out-^-commute n) ⟩□
-  ∥ ∥ ∥ A ∥₁ ∥₁-out-^ n ∥₁  □
+∥∥¹-∥∥¹-out-^-commute : ∀ n → ∥ ∥ A ∥¹-out-^ n ∥¹ ↔ ∥ ∥ A ∥¹ ∥¹-out-^ n
+∥∥¹-∥∥¹-out-^-commute         zero    = F.id
+∥∥¹-∥∥¹-out-^-commute {A = A} (suc n) =
+  ∥ ∥ ∥ A ∥¹-out-^ n ∥¹ ∥¹  ↝⟨ ∥∥¹-cong-↔ (∥∥¹-∥∥¹-out-^-commute n) ⟩□
+  ∥ ∥ ∥ A ∥¹ ∥¹-out-^ n ∥¹  □
 
 private
 
@@ -293,74 +293,74 @@ private
 
   _ :
     {x : A} →
-    _↔_.left-inverse-of (∥∥₁-∥∥₁-out-^-commute 0) ∣ x ∣ ≡ refl ∣ x ∣
+    _↔_.left-inverse-of (∥∥¹-∥∥¹-out-^-commute 0) ∣ x ∣ ≡ refl ∣ x ∣
   _ = refl _
 
   _ :
-    {A : Set a} {x : ∥ A ∥₁-out-^ (suc n)} →
-    _↔_.left-inverse-of (∥∥₁-∥∥₁-out-^-commute (1 + n)) ∣ x ∣ ≡
-    cong ∣_∣ (_↔_.left-inverse-of (∥∥₁-∥∥₁-out-^-commute n) x)
+    {A : Set a} {x : ∥ A ∥¹-out-^ (suc n)} →
+    _↔_.left-inverse-of (∥∥¹-∥∥¹-out-^-commute (1 + n)) ∣ x ∣ ≡
+    cong ∣_∣ (_↔_.left-inverse-of (∥∥¹-∥∥¹-out-^-commute n) x)
   _ = refl _
 
--- A variant of ∥_∥₁-out-^ which applies the one-step truncation the
+-- A variant of ∥_∥¹-out-^ which applies the one-step truncation the
 -- given number of times from the "inside".
 
-∥_∥₁-in-^ : Set a → ℕ → Set a
-∥ A ∥₁-in-^ zero    = A
-∥ A ∥₁-in-^ (suc n) = ∥ ∥ A ∥₁ ∥₁-in-^ n
+∥_∥¹-in-^ : Set a → ℕ → Set a
+∥ A ∥¹-in-^ zero    = A
+∥ A ∥¹-in-^ (suc n) = ∥ ∥ A ∥¹ ∥¹-in-^ n
 
--- The two variants of ∥_∥₁^ are pointwise equivalent.
+-- The two variants of ∥_∥¹^ are pointwise equivalent.
 
-∥∥₁-out-^≃∥∥₁-in-^ : ∀ n → ∥ A ∥₁-out-^ n ≃ ∥ A ∥₁-in-^ n
-∥∥₁-out-^≃∥∥₁-in-^         zero    = F.id
-∥∥₁-out-^≃∥∥₁-in-^ {A = A} (suc n) =
-  ∥ ∥ A ∥₁-out-^ n ∥₁  ↔⟨ ∥∥₁-∥∥₁-out-^-commute n ⟩
-  ∥ ∥ A ∥₁ ∥₁-out-^ n  ↝⟨ ∥∥₁-out-^≃∥∥₁-in-^ n ⟩□
-  ∥ ∥ A ∥₁ ∥₁-in-^ n   □
+∥∥¹-out-^≃∥∥¹-in-^ : ∀ n → ∥ A ∥¹-out-^ n ≃ ∥ A ∥¹-in-^ n
+∥∥¹-out-^≃∥∥¹-in-^         zero    = F.id
+∥∥¹-out-^≃∥∥¹-in-^ {A = A} (suc n) =
+  ∥ ∥ A ∥¹-out-^ n ∥¹  ↔⟨ ∥∥¹-∥∥¹-out-^-commute n ⟩
+  ∥ ∥ A ∥¹ ∥¹-out-^ n  ↝⟨ ∥∥¹-out-^≃∥∥¹-in-^ n ⟩□
+  ∥ ∥ A ∥¹ ∥¹-in-^ n   □
 
--- ∥_∥₁ commutes with ∥_∥₁-in-^ n.
+-- ∥_∥¹ commutes with ∥_∥¹-in-^ n.
 
-∥∥₁-∥∥₁-in-^-commute : ∀ n → ∥ ∥ A ∥₁-in-^ n ∥₁ ≃ ∥ ∥ A ∥₁ ∥₁-in-^ n
-∥∥₁-∥∥₁-in-^-commute {A = A} n =
-  ∥ ∥ A ∥₁-in-^ n ∥₁   ↝⟨ ∥∥₁-cong-≃ (inverse $ ∥∥₁-out-^≃∥∥₁-in-^ n) ⟩
-  ∥ ∥ A ∥₁-out-^ n ∥₁  ↔⟨ ∥∥₁-∥∥₁-out-^-commute n ⟩
-  ∥ ∥ A ∥₁ ∥₁-out-^ n  ↝⟨ ∥∥₁-out-^≃∥∥₁-in-^ n ⟩□
-  ∥ ∥ A ∥₁ ∥₁-in-^ n   □
+∥∥¹-∥∥¹-in-^-commute : ∀ n → ∥ ∥ A ∥¹-in-^ n ∥¹ ≃ ∥ ∥ A ∥¹ ∥¹-in-^ n
+∥∥¹-∥∥¹-in-^-commute {A = A} n =
+  ∥ ∥ A ∥¹-in-^ n ∥¹   ↝⟨ ∥∥¹-cong-≃ (inverse $ ∥∥¹-out-^≃∥∥¹-in-^ n) ⟩
+  ∥ ∥ A ∥¹-out-^ n ∥¹  ↔⟨ ∥∥¹-∥∥¹-out-^-commute n ⟩
+  ∥ ∥ A ∥¹ ∥¹-out-^ n  ↝⟨ ∥∥¹-out-^≃∥∥¹-in-^ n ⟩□
+  ∥ ∥ A ∥¹ ∥¹-in-^ n   □
 
--- A "constructor" for ∥_∥₁-in-^.
+-- A "constructor" for ∥_∥¹-in-^.
 
-∣_,_∣-in-^ : ∀ n → ∥ A ∥₁-in-^ n → ∥ A ∥₁-in-^ (suc n)
+∣_,_∣-in-^ : ∀ n → ∥ A ∥¹-in-^ n → ∥ A ∥¹-in-^ (suc n)
 ∣ zero  , x ∣-in-^ = ∣ x ∣
 ∣ suc n , x ∣-in-^ = ∣ n , x ∣-in-^
 
 -- ∣_,_∣-in-^ is related to ∣_∣.
 
 ∣∣≡∣,∣-in-^ :
-  ∀ n {x : ∥ A ∥₁-out-^ n} →
-  _≃_.to (∥∥₁-out-^≃∥∥₁-in-^ (suc n)) ∣ x ∣ ≡
-  ∣ n , _≃_.to (∥∥₁-out-^≃∥∥₁-in-^ n) x ∣-in-^
+  ∀ n {x : ∥ A ∥¹-out-^ n} →
+  _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ (suc n)) ∣ x ∣ ≡
+  ∣ n , _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ n) x ∣-in-^
 ∣∣≡∣,∣-in-^ zero    {x = x} = ∣ x ∣  ∎
 ∣∣≡∣,∣-in-^ (suc n) {x = x} =
-  _≃_.to (∥∥₁-out-^≃∥∥₁-in-^ (2 + n)) ∣ x ∣            ≡⟨⟩
+  _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ (2 + n)) ∣ x ∣            ≡⟨⟩
 
-  _≃_.to (∥∥₁-out-^≃∥∥₁-in-^ (1 + n))
-    ∣ _↔_.to (∥∥₁-∥∥₁-out-^-commute n) x ∣             ≡⟨ ∣∣≡∣,∣-in-^ n ⟩∎
+  _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ (1 + n))
+    ∣ _↔_.to (∥∥¹-∥∥¹-out-^-commute n) x ∣             ≡⟨ ∣∣≡∣,∣-in-^ n ⟩∎
 
-  ∣ n , _≃_.to (∥∥₁-out-^≃∥∥₁-in-^ n)
-          (_↔_.to (∥∥₁-∥∥₁-out-^-commute n) x) ∣-in-^  ∎
+  ∣ n , _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ n)
+          (_↔_.to (∥∥¹-∥∥¹-out-^-commute n) x) ∣-in-^  ∎
 
 -- A variant of ∣∣≡∣,∣-in-^.
 
 ∣,∣-in-^≡∣∣ :
-  ∀ n {x : ∥ A ∥₁-in-^ n} →
-  _≃_.from (∥∥₁-out-^≃∥∥₁-in-^ (suc n)) ∣ n , x ∣-in-^ ≡
-  ∣ _≃_.from (∥∥₁-out-^≃∥∥₁-in-^ n) x ∣
+  ∀ n {x : ∥ A ∥¹-in-^ n} →
+  _≃_.from (∥∥¹-out-^≃∥∥¹-in-^ (suc n)) ∣ n , x ∣-in-^ ≡
+  ∣ _≃_.from (∥∥¹-out-^≃∥∥¹-in-^ n) x ∣
 ∣,∣-in-^≡∣∣ zero    {x = x} = ∣ x ∣  ∎
 ∣,∣-in-^≡∣∣ (suc n) {x = x} =
-  _≃_.from (∥∥₁-out-^≃∥∥₁-in-^ (2 + n)) ∣ 1 + n , x ∣-in-^  ≡⟨⟩
+  _≃_.from (∥∥¹-out-^≃∥∥¹-in-^ (2 + n)) ∣ 1 + n , x ∣-in-^  ≡⟨⟩
 
-  _↔_.from (∥∥₁-∥∥₁-out-^-commute (1 + n))
-    (_≃_.from (∥∥₁-out-^≃∥∥₁-in-^ (1 + n)) ∣ n , x ∣-in-^)  ≡⟨ cong (_↔_.from (∥∥₁-∥∥₁-out-^-commute (1 + n))) $ ∣,∣-in-^≡∣∣ n ⟩∎
+  _↔_.from (∥∥¹-∥∥¹-out-^-commute (1 + n))
+    (_≃_.from (∥∥¹-out-^≃∥∥¹-in-^ (1 + n)) ∣ n , x ∣-in-^)  ≡⟨ cong (_↔_.from (∥∥¹-∥∥¹-out-^-commute (1 + n))) $ ∣,∣-in-^≡∣∣ n ⟩∎
 
-  _↔_.from (∥∥₁-∥∥₁-out-^-commute (1 + n))
-    ∣ _≃_.from (∥∥₁-out-^≃∥∥₁-in-^ n) x ∣                   ∎
+  _↔_.from (∥∥¹-∥∥¹-out-^-commute (1 + n))
+    ∣ _≃_.from (∥∥¹-out-^≃∥∥¹-in-^ n) x ∣                   ∎

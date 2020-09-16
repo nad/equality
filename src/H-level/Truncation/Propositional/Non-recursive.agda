@@ -27,7 +27,7 @@ open import Equivalence equality-with-J as Eq using (_≃_)
 open import H-level.Closure equality-with-J
 import H-level.Truncation.Propositional eq as T
 open import H-level.Truncation.Propositional.One-step eq as O
-  using (∥_∥₁; ∥_∥₁-out-^; ∣_∣-out-^)
+  using (∥_∥¹; ∥_∥¹-out-^; ∣_∣-out-^)
 
 private
   variable
@@ -39,7 +39,7 @@ private
 -- The propositional truncation operator.
 
 ∥_∥ : Set a → Set a
-∥ A ∥ = Colimit ∥ A ∥₁-out-^ O.∣_∣
+∥ A ∥ = Colimit ∥ A ∥¹-out-^ O.∣_∣
 
 -- The point constructor.
 
@@ -63,7 +63,7 @@ elim {A = A} {P = P} e = C.elim λ where
   where
   module E = Elim e
 
-  helper : ∀ n (x : ∥ A ∥₁-out-^ n) → P C.∣ x ∣
+  helper : ∀ n (x : ∥ A ∥¹-out-^ n) → P C.∣ x ∣
   helper zero    = E.∣∣ʳ
   helper (suc n) = O.elim λ where
     .O.Elim.∣∣ʳ x            → subst P (sym (C.∣∣≡∣∣ x)) (helper n x)
@@ -126,7 +126,7 @@ _ = refl _
     C.∣ ∣ x ∣-out-^ n ∣        ≡⟨ lemma₀ n x ⟩∎
     ∣ x ∣                      ∎
 
-  lemma₁ : ∀ n (x : A) (y : ∥ A ∥₁-out-^ n) → ∣ x ∣ ≡ C.∣ y ∣
+  lemma₁ : ∀ n (x : A) (y : ∥ A ∥¹-out-^ n) → ∣ x ∣ ≡ C.∣ y ∣
   lemma₁ n x y =
     ∣ x ∣                      ≡⟨ sym (lemma₀ (suc n) x) ⟩
     C.∣ ∣ x ∣-out-^ (suc n) ∣  ≡⟨⟩
@@ -135,8 +135,8 @@ _ = refl _
     C.∣ y ∣                    ∎
 
   lemma₂ :
-    ∀ n (x y : ∥ A ∥₁-out-^ n) (p : x ≡ y) (q : O.∣ x ∣ ≡ O.∣ y ∣) →
-    trans (C.∣∣≡∣∣ {P = ∥ A ∥₁-out-^} x) (cong C.∣_∣ p) ≡
+    ∀ n (x y : ∥ A ∥¹-out-^ n) (p : x ≡ y) (q : O.∣ x ∣ ≡ O.∣ y ∣) →
+    trans (C.∣∣≡∣∣ {P = ∥ A ∥¹-out-^} x) (cong C.∣_∣ p) ≡
     trans (cong C.∣_∣ q) (C.∣∣≡∣∣ y)
   lemma₂ n x y p q =
     trans (C.∣∣≡∣∣ x) (cong C.∣_∣ p)                        ≡⟨ PD.elim
