@@ -549,6 +549,25 @@ abstract
     to-implication (≡⇒↝ ⌊ k ⌋-sym (sym $ cong P x≡y)) p      ≡⟨ cong (_$ p) (≡⇒↝-sym k) ⟩∎
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong P x≡y))) p  ∎
 
+  -- One can express subst id in terms of ≡⇒↝.
+
+  subst-id-in-terms-of-≡⇒↝ :
+    ∀ k {a} {A B : Set a} {A≡B : A ≡ B} {x} →
+    subst id A≡B x ≡ to-implication (≡⇒↝ k A≡B) x
+  subst-id-in-terms-of-≡⇒↝ k {A≡B = A≡B} {x = x} =
+    subst id A≡B x                          ≡⟨ subst-in-terms-of-≡⇒↝ k _ _ _ ⟩
+    to-implication (≡⇒↝ k (cong id A≡B)) x  ≡⟨ cong (λ eq → to-implication (≡⇒↝ k eq) x) $ sym $ cong-id _ ⟩∎
+    to-implication (≡⇒↝ k A≡B) x            ∎
+
+  subst-id-in-terms-of-inverse∘≡⇒↝ :
+    ∀ k {a} {A B : Set a} {A≡B : A ≡ B} {y} →
+    subst id (sym A≡B) y ≡
+    to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym A≡B)) y
+  subst-id-in-terms-of-inverse∘≡⇒↝ k {A≡B = A≡B} {y = y} =
+    subst id (sym A≡B) y                                      ≡⟨ subst-in-terms-of-inverse∘≡⇒↝ k _ _ _ ⟩
+    to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong id A≡B))) y  ≡⟨ cong (λ eq → to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym eq)) y) $ sym $ cong-id _ ⟩∎
+    to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym A≡B)) y            ∎
+
   to-implication-≡⇒↝ :
     ∀ k {ℓ} {A B : Set ℓ} (eq : A ≡ B) →
     to-implication (≡⇒↝ k eq) ≡ ≡⇒↝ implication eq
