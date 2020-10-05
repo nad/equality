@@ -1071,19 +1071,52 @@ module Derived-definitions-and-properties
     subst-subst-sym :
       (P : A → Set p) (x≡y : x ≡ y) (p : P y) →
       subst P x≡y (subst P (sym x≡y) p) ≡ p
-    subst-subst-sym {y = y} P x≡y p =
-      subst P x≡y (subst P (sym x≡y) p)  ≡⟨ subst-subst P _ _ _ ⟩
-      subst P (trans (sym x≡y) x≡y) p    ≡⟨ cong (λ q → subst P q _) (trans-symˡ _) ⟩
-      subst P (refl y) p                 ≡⟨ subst-refl _ _ ⟩∎
-      p                                  ∎
+    subst-subst-sym P =
+      elim¹
+        (λ x≡y → ∀ p → subst P x≡y (subst P (sym x≡y) p) ≡ p)
+        (λ p →
+           subst P (refl _) (subst P (sym (refl _)) p)  ≡⟨ subst-refl _ _ ⟩
+           subst P (sym (refl _)) p                     ≡⟨ cong (flip (subst P) _) sym-refl ⟩
+           subst P (refl _) p                           ≡⟨ subst-refl _ _ ⟩∎
+           p                                            ∎)
 
     subst-sym-subst :
       (P : A → Set p) {x≡y : x ≡ y} {p : P x} →
       subst P (sym x≡y) (subst P x≡y p) ≡ p
     subst-sym-subst P {x≡y = x≡y} {p = p} =
-      subst P (sym x≡y) (subst P x≡y p)              ≡⟨ cong (λ q → subst P (sym x≡y) (subst P q _)) $ sym $ sym-sym _ ⟩
-      subst P (sym x≡y) (subst P (sym (sym x≡y)) p)  ≡⟨ subst-subst-sym _ _ _ ⟩∎
-      p                                              ∎
+      elim¹
+        (λ x≡y → ∀ p → subst P (sym x≡y) (subst P x≡y p) ≡ p)
+        (λ p →
+           subst P (sym (refl _)) (subst P (refl _) p)  ≡⟨ cong (flip (subst P) _) sym-refl ⟩
+           subst P (refl _) (subst P (refl _) p)        ≡⟨ subst-refl _ _ ⟩
+           subst P (refl _) p                           ≡⟨ subst-refl _ _ ⟩∎
+           p                                            ∎)
+        x≡y p
+
+    -- Some "computation rules".
+
+    subst-subst-sym-refl :
+      (P : A → Set p) {p : P x} →
+      subst-subst-sym P (refl x) p ≡
+      trans (subst-refl _ _)
+        (trans (cong (flip (subst P) _) sym-refl)
+           (subst-refl _ _))
+    subst-subst-sym-refl P {p = p} =
+      cong (_$ _) $
+      elim¹-refl
+        (λ x≡y → ∀ p → subst P x≡y (subst P (sym x≡y) p) ≡ p)
+        _
+
+    subst-sym-subst-refl :
+      (P : A → Set p) {p : P x} →
+      subst-sym-subst P {x≡y = refl x} {p = p} ≡
+      trans (cong (flip (subst P) _) sym-refl)
+         (trans (subst-refl _ _) (subst-refl _ _))
+    subst-sym-subst-refl P =
+      cong (_$ _) $
+      elim¹-refl
+        (λ x≡y → ∀ p → subst P (sym x≡y) (subst P x≡y p) ≡ p)
+        _
 
     -- Some corollaries and variants.
 
@@ -1921,6 +1954,22 @@ module Derived-definitions-and-properties
          f (subst B (refl _) u)              ≡⟨ cong (λ p → f (subst B p u)) $ sym sym-refl ⟩∎
          f (subst B (sym (refl _)) u)        ∎)
       x≡y _
+
+    -- A "computation rule".
+
+    subst-→-domain-refl :
+      {B : A → Set b} {f : B x → C} {u : B x} →
+      subst-→-domain B {f = f} (refl x) {u = u} ≡
+      trans (cong (_$ u) (subst-refl _ _))
+        (trans (cong f (sym (subst-refl _ _)))
+           (cong (f ∘ flip (subst B) u) (sym sym-refl)))
+    subst-→-domain-refl {C = C} {B = B} {u = u} =
+      cong (_$ _) $
+      elim₁-refl
+        (λ {x} x≡y → (f : B x → C) →
+                     subst (λ x → B x → C) x≡y f u ≡
+                     f (subst B (sym x≡y) u))
+        _
 
     -- The following lemma is Proposition 2 from "Generalizations of
     -- Hedberg's Theorem" by Kraus, Escardó, Coquand and Altenkirch.
