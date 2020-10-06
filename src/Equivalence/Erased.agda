@@ -708,6 +708,34 @@ left-inverse-of∘inverse {A = A} {B = B} {x = x} A≃B =
   where
   open _≃ᴱ_ A≃B
 
+-- Two simplification lemmas for subst.
+
+to-subst :
+  {eq : x ≡ y} {f : P x ≃ᴱ Q x} →
+  _≃ᴱ_.to (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
+  subst (λ x → P x → Q x) eq (_≃ᴱ_.to f)
+to-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+  (λ eq →
+     _≃ᴱ_.to (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
+     subst (λ x → P x → Q x) eq (_≃ᴱ_.to f))
+  (_≃ᴱ_.to (subst (λ x → P x ≃ᴱ Q x) (refl _) f)  ≡⟨ cong _≃ᴱ_.to $ subst-refl _ _ ⟩
+   _≃ᴱ_.to f                                      ≡⟨ sym $ subst-refl _ _ ⟩∎
+   subst (λ x → P x → Q x) (refl _) (_≃ᴱ_.to f)   ∎)
+  eq
+
+from-subst :
+  {eq : x ≡ y} {f : P x ≃ᴱ Q x} →
+  _≃ᴱ_.from (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
+  subst (λ x → Q x → P x) eq (_≃ᴱ_.from f)
+from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+  (λ eq →
+     _≃ᴱ_.from (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
+     subst (λ x → Q x → P x) eq (_≃ᴱ_.from f))
+  (_≃ᴱ_.from (subst (λ x → P x ≃ᴱ Q x) (refl _) f)  ≡⟨ cong _≃ᴱ_.from $ subst-refl _ _ ⟩
+   _≃ᴱ_.from f                                      ≡⟨ sym $ subst-refl _ _ ⟩∎
+   subst (λ x → Q x → P x) (refl _) (_≃ᴱ_.from f)   ∎)
+  eq
+
 ------------------------------------------------------------------------
 -- Results that depend on an axiomatisation of []-cong
 
