@@ -61,7 +61,7 @@ private
 
 infix 5 _/ᴱ_
 
-data _/ᴱ_ (@0 A : Set a) (@0 R : A → A → Set r) : Set (a ⊔ r) where
+data _/ᴱ_ (A : Set a) (@0 R : A → A → Set r) : Set (a ⊔ r) where
   [_]                      : A → A /ᴱ R
   @0 []-respects-relationᴾ : {x y : A} → R x y → [ x ] P.≡ [ y ]
   @0 /ᴱ-is-setᴾ            : P.Is-set (A /ᴱ R)
@@ -81,8 +81,8 @@ data _/ᴱ_ (@0 A : Set a) (@0 R : A → A → Set r) : Set (a ⊔ r) where
 
 -- An eliminator, expressed using paths.
 
-record Elimᴾ′ {@0 A : Set a} {@0 R : A → A → Set r}
-              (@0 P : A /ᴱ R → Set p) :
+record Elimᴾ′ {A : Set a} {@0 R : A → A → Set r}
+              (P : A /ᴱ R → Set p) :
               Set (a ⊔ r ⊔ p) where
   no-eta-equality
   field
@@ -102,9 +102,8 @@ record Elimᴾ′ {@0 A : Set a} {@0 R : A → A → Set r}
 open Elimᴾ′ public
 
 elimᴾ′ :
-  {@0 A : Set a}
   {@0 R : A → A → Set r}
-  {@0 P : A /ᴱ R → Set p} →
+  {P : A /ᴱ R → Set p} →
   Elimᴾ′ P → (x : A /ᴱ R) → P x
 elimᴾ′ {A = A} {R = R} {P = P} e = helper
   where
@@ -118,8 +117,8 @@ elimᴾ′ {A = A} {R = R} {P = P} e = helper
 
 -- A possibly more useful eliminator, expressed using paths.
 
-record Elimᴾ {@0 A : Set a} {@0 R : A → A → Set r}
-             (@0 P : A /ᴱ R → Set p) :
+record Elimᴾ {A : Set a} {@0 R : A → A → Set r}
+             (P : A /ᴱ R → Set p) :
              Set (a ⊔ r ⊔ p) where
   no-eta-equality
   field
@@ -134,9 +133,8 @@ record Elimᴾ {@0 A : Set a} {@0 R : A → A → Set r}
 open Elimᴾ public
 
 elimᴾ :
-  {@0 A : Set a}
   {@0 R : A → A → Set r}
-  {@0 P : A /ᴱ R → Set p} →
+  {P : A /ᴱ R → Set p} →
   Elimᴾ P → (x : A /ᴱ R) → P x
 elimᴾ e = elimᴾ′ λ where
     .[]ʳ                   → E.[]ʳ
@@ -150,9 +148,8 @@ private
   -- One can define elimᴾ′ using elimᴾ.
 
   elimᴾ′₂ :
-    {@0 A : Set a}
     {@0 R : A → A → Set r}
-    {@0 P : A /ᴱ R → Set p} →
+    {P : A /ᴱ R → Set p} →
     Elimᴾ′ P → (x : A /ᴱ R) → P x
   elimᴾ′₂ {P = P} e = elimᴾ λ where
       .[]ʳ                   → E.[]ʳ
@@ -170,7 +167,7 @@ private
 
 -- A non-dependent eliminator, expressed using paths.
 
-record Recᴾ {@0 A : Set a} (@0 R : A → A → Set r) (@0 B : Set b) :
+record Recᴾ {A : Set a} (@0 R : A → A → Set r) (B : Set b) :
             Set (a ⊔ r ⊔ b) where
   no-eta-equality
   field
@@ -181,7 +178,7 @@ record Recᴾ {@0 A : Set a} (@0 R : A → A → Set r) (@0 B : Set b) :
 open Recᴾ public
 
 recᴾ :
-  {@0 A : Set a} {@0 B : Set b} {@0 R : A → A → Set r} →
+  {@0 R : A → A → Set r} →
   Recᴾ R B → A /ᴱ R → B
 recᴾ r = elimᴾ λ where
     .[]ʳ                   → R.[]ʳ
@@ -192,8 +189,8 @@ recᴾ r = elimᴾ λ where
 
 -- An eliminator.
 
-record Elim {@0 A : Set a} {@0 R : A → A → Set r}
-            (@0 P : A /ᴱ R → Set p) :
+record Elim {A : Set a} {@0 R : A → A → Set r}
+            (P : A /ᴱ R → Set p) :
             Set (a ⊔ r ⊔ p) where
   no-eta-equality
   field
@@ -208,9 +205,8 @@ record Elim {@0 A : Set a} {@0 R : A → A → Set r}
 open Elim public
 
 elim :
-  {@0 A : Set a}
   {@0 R : A → A → Set r}
-  {@0 P : A /ᴱ R → Set p} →
+  {P : A /ᴱ R → Set p} →
   Elim P → (x : A /ᴱ R) → P x
 elim e = elimᴾ λ where
     .[]ʳ                   → E.[]ʳ
@@ -221,7 +217,7 @@ elim e = elimᴾ λ where
 
 -- A non-dependent eliminator.
 
-record Rec {@0 A : Set a} (@0 R : A → A → Set r) (@0 B : Set b) :
+record Rec {A : Set a} (@0 R : A → A → Set r) (B : Set b) :
            Set (a ⊔ r ⊔ b) where
   no-eta-equality
   field
@@ -232,7 +228,7 @@ record Rec {@0 A : Set a} (@0 R : A → A → Set r) (@0 B : Set b) :
 open Rec public
 
 rec :
-  {@0 A : Set a} {@0 B : Set b} {@0 R : A → A → Set r} →
+  {@0 R : A → A → Set r} →
   Rec R B → A /ᴱ R → B
 rec r = recᴾ λ where
     .[]ʳ                   → R.[]ʳ
@@ -247,8 +243,8 @@ rec r = recᴾ λ where
 -- I took the idea for this eliminator from Nicolai Kraus.
 
 record Elim-prop
-         {@0 A : Set a} {@0 R : A → A → Set r}
-         (@0 P : A /ᴱ R → Set p) :
+         {A : Set a} {@0 R : A → A → Set r}
+         (P : A /ᴱ R → Set p) :
          Set (a ⊔ r ⊔ p) where
   no-eta-equality
   field
@@ -258,9 +254,8 @@ record Elim-prop
 open Elim-prop public
 
 elim-prop :
-  {@0 A : Set a}
   {@0 R : A → A → Set r}
-  {@0 P : A /ᴱ R → Set p} →
+  {P : A /ᴱ R → Set p} →
   Elim-prop P → (x : A /ᴱ R) → P x
 elim-prop {P = P} e = elim λ where
     .[]ʳ                     → E.[]ʳ
@@ -276,7 +271,7 @@ elim-prop {P = P} e = elim λ where
 
 -- A variant of rec that can be used if the motive is a proposition.
 
-record Rec-prop (@0 A : Set a) (@0 B : Set b) : Set (a ⊔ b) where
+record Rec-prop (A : Set a) (B : Set b) : Set (a ⊔ b) where
   no-eta-equality
   field
     []ʳ                : A → B
@@ -285,7 +280,7 @@ record Rec-prop (@0 A : Set a) (@0 B : Set b) : Set (a ⊔ b) where
 open Rec-prop public
 
 rec-prop :
-  {@0 A : Set a} {@0 B : Set b} {@0 R : A → A → Set r} →
+  {@0 R : A → A → Set r} →
   Rec-prop A B → A /ᴱ R → B
 rec-prop r = elim-prop λ where
     .[]ʳ               → R.[]ʳ
