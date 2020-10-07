@@ -415,6 +415,10 @@ import Quotient.Erased
 
 import Colimit.Sequential.Erased
 
+-- The one-step truncation HIT with an erased higher constructor.
+
+import H-level.Truncation.Propositional.One-step.Erased
+
 -- Integers.
 
 import Integer
