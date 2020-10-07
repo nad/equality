@@ -419,6 +419,10 @@ import Colimit.Sequential.Erased
 
 import H-level.Truncation.Propositional.One-step.Erased
 
+-- A non-recursive variant of H-level.Truncation.Propositional.Erased.
+
+import H-level.Truncation.Propositional.Non-recursive.Erased
+
 -- Integers.
 
 import Integer
