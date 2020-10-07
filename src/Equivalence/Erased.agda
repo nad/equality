@@ -737,6 +737,15 @@ from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
   eq
 
 ------------------------------------------------------------------------
+-- One of the two-out-of-three properties
+
+-- If f and g are equivalences with erased proofs, then g ⊚ f is also
+-- an equivalence with erased proofs.
+
+12→3 : Is-equivalenceᴱ f → Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f)
+12→3 p q = _≃ᴱ_.is-equivalence (⟨ _ , q ⟩ ∘ ⟨ _ , p ⟩)
+
+------------------------------------------------------------------------
 -- Results that depend on an axiomatisation of []-cong
 
 module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
@@ -953,6 +962,35 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                          Contractibleᴱ-cong ext $
                                          ⁻¹ᴱ-respects-extensional-equality f≡g) ⟩□
     (∀ y → Contractibleᴱ (g ⁻¹ᴱ y))  □
+
+  ----------------------------------------------------------------------
+  -- The remaining two-out-of-three properties
+
+  -- If g and g ⊚ f are equivalences with erased proofs, then f is
+  -- also an equivalence with erased proofs.
+
+  23→1 :
+    Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f
+  23→1 {g = g} {f = f} q r =
+    Is-equivalenceᴱ-respects-extensional-equality
+      _
+      (λ x →
+         _≃ᴱ_.from ⟨ g , q ⟩ (g (f x))  ≡⟨ _≃ᴱ_.left-inverse-of ⟨ g , q ⟩ (f x) ⟩∎
+         f x                            ∎)
+      (_≃ᴱ_.is-equivalence (inverse ⟨ _ , q ⟩ ∘ ⟨ _ , r ⟩))
+
+  -- If g ⊚ f and f are equivalences with erased proofs, then g is
+  -- also an equivalence with erased proofs.
+
+  31→2 :
+    Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f → Is-equivalenceᴱ g
+  31→2 {g = g} {f = f} r p =
+    Is-equivalenceᴱ-respects-extensional-equality
+      _
+      (λ x →
+         g (f (_≃ᴱ_.from ⟨ f , p ⟩ x))  ≡⟨ cong g (_≃ᴱ_.right-inverse-of ⟨ f , p ⟩ x) ⟩∎
+         g x                            ∎)
+      (_≃ᴱ_.is-equivalence (⟨ _ , r ⟩ ∘ inverse ⟨ _ , p ⟩))
 
   ----------------------------------------------------------------------
   -- The left-to-right and right-to-left components of an equivalence
