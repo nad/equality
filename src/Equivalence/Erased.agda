@@ -994,6 +994,31 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   _ = refl _
 
   ----------------------------------------------------------------------
+  -- Variants of some lemmas from Function-universe
+
+  -- A variant of drop-⊤-left-Σ.
+
+  drop-⊤-left-Σ-≃ᴱ :
+    {P : @0 A → Set p} →
+    (A≃⊤ : A ≃ᴱ ⊤) → Σ A (λ x → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
+  drop-⊤-left-Σ-≃ᴱ {A = A} {P = P} A≃⊤ =
+    Σ A (λ x → P x)                  ↝⟨ inverse $ Σ-cong-≃ᴱ-Erased (inverse A≃⊤) (λ _ → F.id) ⟩
+    Σ ⊤ (λ x → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Σ-left-identity ⟩□
+    P (_≃ᴱ_.from A≃⊤ tt)             □
+
+  -- A variant of drop-⊤-left-Π.
+
+  drop-⊤-left-Π-≃ᴱ :
+    {A : Set a} {P : @0 A → Set p} →
+    @0 Extensionality a p →
+    (A≃⊤ : A ≃ᴱ ⊤) →
+    ((x : A) → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
+  drop-⊤-left-Π-≃ᴱ {A = A} {P = P} ext A≃⊤ =
+    ((x : A) → P x)                  ↝⟨ Π-cong-contra-≃ᴱ-Erased ext (inverse A≃⊤) (λ _ → F.id) ⟩
+    ((x : ⊤) → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Π-left-identity ⟩□
+    P (_≃ᴱ_.from A≃⊤ tt)             □
+
+  ----------------------------------------------------------------------
   -- A lemma
 
   -- Erased commutes with Contractibleᴱ.
