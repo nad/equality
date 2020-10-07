@@ -411,6 +411,10 @@ import H-level.Truncation.Propositional.Erased
 
 import Quotient.Erased
 
+-- The sequential colimit HIT with an erased higher constructor.
+
+import Colimit.Sequential.Erased
+
 -- Integers.
 
 import Integer
