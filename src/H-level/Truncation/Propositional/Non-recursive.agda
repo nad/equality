@@ -165,7 +165,7 @@ _ = refl _
 -- ∥_∥ is pointwise equivalent to T.∥_∥.
 
 ∥∥≃∥∥ : ∥ A ∥ ≃ T.∥ A ∥
-∥∥≃∥∥ {A = A} = Eq.⇔→≃
+∥∥≃∥∥ = Eq.⇔→≃
   ∥∥-proposition
   T.truncation-is-proposition
   (elim λ where
