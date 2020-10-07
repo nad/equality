@@ -385,6 +385,11 @@ import Erased.Without-box-cong
 
 import Erased.Cubical
 
+-- Some theory of equivalences with erased "proofs", developed using
+-- Cubical Agda.
+
+import Equivalence.Erased.Cubical
+
 -- Very stable booleans.
 
 import Bool.Very-stable
