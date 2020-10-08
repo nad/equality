@@ -1816,6 +1816,11 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   Erased-singleton : {A : Set a} → @0 A → Set a
   Erased-singleton x = ∃ λ y → Erased (y ≡ x)
 
+  -- A variant of Other-singleton.
+
+  Erased-other-singleton : {A : Set a} → @0 A → Set a
+  Erased-other-singleton x = ∃ λ y → Erased (x ≡ y)
+
   -- The type of triples consisting of two values of type A, one erased,
   -- and an erased proof of equality of the two values is isomorphic to
   -- A.
@@ -1854,6 +1859,21 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                                 (λ _ → refl _)
                                                 (λ _ → refl _)) ⟩□
     Contractibleᴱ (Erased-singleton x)  □
+
+  -- Erased-other-singleton x is contractible with an erased proof.
+
+  Contractibleᴱ-Erased-other-singleton :
+    Contractibleᴱ (Erased-other-singleton x)
+  Contractibleᴱ-Erased-other-singleton {x = x} =
+                                              $⟨ other-singleton-contractible x ⟩
+    Contractible  (Other-singleton x)         ↝⟨ EEq.Contractible→Contractibleᴱ ⟩
+    Contractibleᴱ (Other-singleton x)         ↝⟨ EEq.Contractibleᴱ-respects-surjection
+                                                   (Σ-map id [_]→)
+                                                   (_≃_.split-surjective $ Eq.↔→≃ _
+                                                      (Σ-map id erased)
+                                                      (λ _ → refl _)
+                                                      (λ _ → refl _)) ⟩□
+    Contractibleᴱ (Erased-other-singleton x)  □
 
   -- If equality is very stable for A, and x : A is erased, then
   -- Erased-singleton x is a proposition.
