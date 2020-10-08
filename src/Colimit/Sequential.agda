@@ -5,8 +5,8 @@
 {-# OPTIONS --cubical --safe #-}
 
 -- The definition of sequential colimits and the statement of the
--- universal property are based on van Doorn's "Constructing the
--- Propositional Truncation using Non-recursive HITs".
+-- universal property are based on those in van Doorn's "Constructing
+-- the Propositional Truncation using Non-recursive HITs".
 
 -- The module is parametrised by a notion of equality. The higher
 -- constructor of the HIT defining sequential colimits uses path
