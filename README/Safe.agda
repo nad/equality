@@ -415,6 +415,11 @@ import Quotient.Erased
 
 import Colimit.Sequential.Erased
 
+-- A sequential colimit for which everything except for the "base
+-- case" is erased.
+
+import Colimit.Sequential.Very-erased
+
 -- The one-step truncation HIT with an erased higher constructor.
 
 import H-level.Truncation.Propositional.One-step.Erased
