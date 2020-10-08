@@ -345,6 +345,22 @@ to≡to→≡ ext p≡q =
   _≃_.to (Eq.≃-≡ (Eq.inverse $ ≃≃≃ᴱ ext))
     (Eq.lift-equality ext p≡q)
 
+-- A variant of ≃-to-≡↔≡.
+
+@0 to≡to≃≡ :
+  {A : Set a} {B : Set b} {p q : A ≃ᴱ B} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  (∀ x → _≃ᴱ_.to p x ≡ _≃ᴱ_.to q x) ≃ (p ≡ q)
+to≡to≃≡ {p = p} {q = q} ext =
+  (∀ x → _≃ᴱ_.to p x ≡ _≃ᴱ_.to q x)              ↔⟨⟩
+
+  (∀ x → _≃_.to (_≃_.from (≃≃≃ᴱ ext) p) x ≡
+         _≃_.to (_≃_.from (≃≃≃ᴱ ext) q) x)       ↔⟨ ≃-to-≡↔≡ ext ⟩
+
+  _≃_.from (≃≃≃ᴱ ext) p ≡ _≃_.from (≃≃≃ᴱ ext) q  ↝⟨ Eq.≃-≡ (Eq.inverse $ ≃≃≃ᴱ ext) ⟩□
+
+  p ≡ q                                          □
+
 -- If f is a half adjoint equivalence with certain erased proofs, then
 -- x ≡ y is equivalent (with erased proofs) to f x ≡ f y.
 --
