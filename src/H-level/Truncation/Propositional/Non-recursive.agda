@@ -3,11 +3,11 @@
 -- use recursive higher inductive types
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
-
 -- The definition does use natural numbers. The code is based on van
 -- Doorn's "Constructing the Propositional Truncation using
 -- Non-recursive HITs".
+
+{-# OPTIONS --cubical --safe #-}
 
 import Equality.Path as P
 
