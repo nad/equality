@@ -19,7 +19,7 @@ private
 
 open import Prelude
 
-open import Colimit.Sequential eq as C using (Colimit)
+open import Colimit.Sequential.Very-erased eq as C using (Colimitᴱ)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
@@ -29,15 +29,15 @@ open import H-level.Closure equality-with-J
 import H-level.Truncation.Propositional.Erased eq as T
 open import H-level.Truncation.Propositional.Non-recursive eq as N
   using (∥_∥)
-open import H-level.Truncation.Propositional.One-step.Erased eq as O
-  using (∥_∥¹ᴱ-out-^)
+open import H-level.Truncation.Propositional.One-step eq as O
+  using (∥_∥¹-out-^)
 
 private
   variable
-    a p : Level
-    A   : Set a
-    P   : A → Set p
-    e x : A
+    a p   : Level
+    A     : Set a
+    P     : A → Set p
+    e x z : A
 
 ------------------------------------------------------------------------
 -- The type
@@ -45,12 +45,12 @@ private
 -- The propositional truncation operator.
 
 ∥_∥ᴱ : Set a → Set a
-∥ A ∥ᴱ = Colimit ∥ A ∥¹ᴱ-out-^ O.∣_∣
+∥ A ∥ᴱ = Colimitᴱ A (∥ A ∥¹-out-^ ∘ suc) O.∣_∣ O.∣_∣
 
 -- The point constructor.
 
 ∣_∣ : A → ∥ A ∥ᴱ
-∣_∣ = C.∣_∣
+∣_∣ = C.∣_∣₀
 
 -- The eliminator.
 
@@ -64,18 +64,31 @@ open Elim public
 
 elim : Elim P → (x : ∥ A ∥ᴱ) → P x
 elim {A = A} {P = P} e = C.elim λ where
-    .C.Elim.∣∣ʳ {n = n}      → helper n
-    .C.Elim.∣∣≡∣∣ʳ {n = n} x →
-      subst P (C.∣∣≡∣∣ x) (subst P (sym (C.∣∣≡∣∣ x)) (helper n x))  ≡⟨ subst-subst-sym _ _ _ ⟩∎
-      helper n x                                                    ∎
+    .C.Elim.∣∣₀ʳ         → E.∣∣ʳ
+    .C.Elim.∣∣₊ʳ {n = n} → helper n
+    .C.Elim.∣∣₊≡∣∣₀ʳ x   →
+      subst P (C.∣∣₊≡∣∣₀ x) (subst P (sym (C.∣∣₊≡∣∣₀ x)) (E.∣∣ʳ x))  ≡⟨ subst-subst-sym _ _ _ ⟩∎
+      E.∣∣ʳ x                                                        ∎
+    .C.Elim.∣∣₊≡∣∣₊ʳ {n = n} x →
+      subst P (C.∣∣₊≡∣∣₊ x) (subst P (sym (C.∣∣₊≡∣∣₊ x)) (helper n x))  ≡⟨ subst-subst-sym _ _ _ ⟩∎
+      helper n x                                                        ∎
   where
   module E = Elim e
 
-  helper : ∀ n (x : ∥ A ∥¹ᴱ-out-^ n) → P C.∣ x ∣
-  helper zero    = E.∣∣ʳ
-  helper (suc n) = O.elim λ where
-    .O.Elim.∣∣ʳ x            → subst P (sym (C.∣∣≡∣∣ x)) (helper n x)
-    .O.Elim.∣∣-constantʳ _ _ → E.is-propositionʳ _ _ _
+  @0 helper : ∀ n (x : ∥ A ∥¹-out-^ (suc n)) → P C.∣ x ∣₊
+
+  helper zero = O.elim e₀
+    where
+    e₀ : O.Elim _
+    e₀ .O.Elim.∣∣ʳ x            = subst P (sym (C.∣∣₊≡∣∣₀ x)) (E.∣∣ʳ x)
+    e₀ .O.Elim.∣∣-constantʳ _ _ = E.is-propositionʳ _ _ _
+
+  helper (suc n) = O.elim e₊
+    where
+    e₊ : O.Elim _
+    e₊ .O.Elim.∣∣ʳ x            = subst P (sym (C.∣∣₊≡∣∣₊ x))
+                                    (helper n x)
+    e₊ .O.Elim.∣∣-constantʳ _ _ = E.is-propositionʳ _ _ _
 
 _ : elim e ∣ x ∣ ≡ e .∣∣ʳ x
 _ = refl _
@@ -84,96 +97,128 @@ _ = refl _
 -- erased contexts).
 
 @0 ∥∥ᴱ-proposition : Is-proposition ∥ A ∥ᴱ
-∥∥ᴱ-proposition {A = A} = elim lemma₄
+∥∥ᴱ-proposition {A = A} = elim lemma₅
   where
-  lemma₀ : ∀ n (x : A) → C.∣ O.∣ x ∣-out-^ n ∣ ≡ ∣ x ∣
-  lemma₀ zero    x = ∣ x ∣  ∎
+  lemma₀ : ∀ n (x : A) → C.∣ O.∣ x ∣-out-^ (1 + n) ∣₊ ≡ ∣ x ∣
+  lemma₀ zero x =
+    C.∣ O.∣ x ∣ ∣₊  ≡⟨ C.∣∣₊≡∣∣₀ x ⟩∎
+    C.∣ x ∣₀        ∎
   lemma₀ (suc n) x =
-    C.∣ O.∣ O.∣ x ∣-out-^ n ∣ ∣  ≡⟨ C.∣∣≡∣∣ (O.∣ x ∣-out-^ n) ⟩
-    C.∣ O.∣ x ∣-out-^ n ∣        ≡⟨ lemma₀ n x ⟩∎
-    ∣ x ∣                        ∎
+    C.∣ O.∣ O.∣ x ∣-out-^ (1 + n) ∣ ∣₊  ≡⟨ C.∣∣₊≡∣∣₊ (O.∣ x ∣-out-^ (1 + n)) ⟩
+    C.∣ O.∣ x ∣-out-^ (1 + n) ∣₊        ≡⟨ lemma₀ n x ⟩∎
+    ∣ x ∣                               ∎
 
-  lemma₁ : ∀ n (x : A) (y : ∥ A ∥¹ᴱ-out-^ n) → ∣ x ∣ ≡ C.∣ y ∣
-  lemma₁ n x y =
-    ∣ x ∣                        ≡⟨ sym (lemma₀ (suc n) x) ⟩
-    C.∣ O.∣ x ∣-out-^ (suc n) ∣  ≡⟨⟩
-    C.∣ O.∣ O.∣ x ∣-out-^ n ∣ ∣  ≡⟨ cong C.∣_∣ (O.∣∣-constant _ _) ⟩
-    C.∣ O.∣ y ∣ ∣                ≡⟨ C.∣∣≡∣∣ y ⟩∎
-    C.∣ y ∣                      ∎
+  lemma₁₀ : ∀ (x y : A) → ∣ x ∣ ≡ C.∣ y ∣₀
+  lemma₁₀ x y =
+    ∣ x ∣                         ≡⟨ sym (lemma₀ 0 x) ⟩
+    C.∣ O.∣ x ∣-out-^ 1 ∣₊        ≡⟨⟩
+    C.∣ O.∣ O.∣ x ∣-out-^ 0 ∣ ∣₊  ≡⟨ cong C.∣_∣₊ (O.∣∣-constant _ _) ⟩
+    C.∣ O.∣ y ∣ ∣₊                ≡⟨ C.∣∣₊≡∣∣₀ y ⟩∎
+    C.∣ y ∣₀                      ∎
+
+  lemma₁₊ : ∀ n (x : A) (y : ∥ A ∥¹-out-^ (1 + n)) → ∣ x ∣ ≡ C.∣ y ∣₊
+  lemma₁₊ n x y =
+    ∣ x ∣                               ≡⟨ sym (lemma₀ (1 + n) x) ⟩
+    C.∣ O.∣ x ∣-out-^ (2 + n) ∣₊        ≡⟨⟩
+    C.∣ O.∣ O.∣ x ∣-out-^ (1 + n) ∣ ∣₊  ≡⟨ cong C.∣_∣₊ (O.∣∣-constant _ _) ⟩
+    C.∣ O.∣ y ∣ ∣₊                      ≡⟨ C.∣∣₊≡∣∣₊ y ⟩∎
+    C.∣ y ∣₊                            ∎
 
   lemma₂ :
-    ∀ n (x y : ∥ A ∥¹ᴱ-out-^ n) (p : x ≡ y) (q : O.∣ x ∣ ≡ O.∣ y ∣) →
-    trans (C.∣∣≡∣∣ {P = ∥ A ∥¹ᴱ-out-^} x) (cong C.∣_∣ p) ≡
-    trans (cong C.∣_∣ q) (C.∣∣≡∣∣ y)
+    ∀ n (x y : ∥ A ∥¹-out-^ (1 + n))
+    (p : x ≡ y) (q : O.∣ x ∣ ≡ O.∣ y ∣) →
+    trans (C.∣∣₊≡∣∣₊ {P₊ = ∥ A ∥¹-out-^ ∘ suc} {step₀ = O.∣_∣} x)
+      (cong C.∣_∣₊ p) ≡
+    trans (cong C.∣_∣₊ q) (C.∣∣₊≡∣∣₊ y)
   lemma₂ n x y p q =
-    trans (C.∣∣≡∣∣ x) (cong C.∣_∣ p)                        ≡⟨ PD.elim
-                                                                 (λ {x y} p → trans (C.∣∣≡∣∣ x) (cong C.∣_∣ p) ≡
-                                                                              trans (cong C.∣_∣ (cong O.∣_∣ p)) (C.∣∣≡∣∣ y))
-                                                                 (λ x →
-      trans (C.∣∣≡∣∣ x) (cong C.∣_∣ (refl _))                       ≡⟨ cong (trans _) $ cong-refl _ ⟩
-      trans (C.∣∣≡∣∣ x) (refl _)                                    ≡⟨ trans-reflʳ _ ⟩
-      C.∣∣≡∣∣ x                                                     ≡⟨ sym $ trans-reflˡ _ ⟩
-      trans (refl _) (C.∣∣≡∣∣ x)                                    ≡⟨ cong (flip trans _) $ sym $
-                                                                       trans (cong (cong C.∣_∣) $ cong-refl _) $
-                                                                       cong-refl _ ⟩∎
-      trans (cong C.∣_∣ (cong O.∣_∣ (refl _))) (C.∣∣≡∣∣ x)          ∎)
-                                                                 p ⟩
+    trans (C.∣∣₊≡∣∣₊ x) (cong C.∣_∣₊ p)                        ≡⟨ PD.elim
+                                                                    (λ {x y} p → trans (C.∣∣₊≡∣∣₊ x) (cong C.∣_∣₊ p) ≡
+                                                                                 trans (cong C.∣_∣₊ (cong O.∣_∣ p)) (C.∣∣₊≡∣∣₊ y))
+                                                                    (λ x →
+      trans (C.∣∣₊≡∣∣₊ x) (cong C.∣_∣₊ (refl _))                       ≡⟨ cong (trans _) $ cong-refl _ ⟩
+      trans (C.∣∣₊≡∣∣₊ x) (refl _)                                     ≡⟨ trans-reflʳ _ ⟩
+      C.∣∣₊≡∣∣₊ x                                                      ≡⟨ sym $ trans-reflˡ _ ⟩
+      trans (refl _) (C.∣∣₊≡∣∣₊ x)                                     ≡⟨ cong (flip trans _) $ sym $
+                                                                          trans (cong (cong C.∣_∣₊) $ cong-refl _) $
+                                                                          cong-refl _ ⟩∎
+      trans (cong C.∣_∣₊ (cong O.∣_∣ (refl _))) (C.∣∣₊≡∣∣₊ x)          ∎)
+                                                                    p ⟩
 
-    trans (cong C.∣_∣ (cong O.∣_∣ p)) (C.∣∣≡∣∣ y)           ≡⟨ cong (flip trans _) $
-                                                               cong-preserves-Constant
-                                                                 (λ u v →
-      C.∣ u ∣                                                       ≡⟨ sym (C.∣∣≡∣∣ u) ⟩
-      C.∣ O.∣ u ∣ ∣                                                 ≡⟨ cong C.∣_∣ (O.∣∣-constant _ _) ⟩
-      C.∣ O.∣ v ∣ ∣                                                 ≡⟨ C.∣∣≡∣∣ v ⟩∎
-      C.∣ v ∣                                                       ∎)
-                                                                 _ _ ⟩∎
-    trans (cong C.∣_∣ q) (C.∣∣≡∣∣ y)                        ∎
+    trans (cong C.∣_∣₊ (cong O.∣_∣ p)) (C.∣∣₊≡∣∣₊ y)           ≡⟨ cong (flip trans _) $
+                                                                  cong-preserves-Constant
+                                                                    (λ u v →
+      C.∣ u ∣₊                                                          ≡⟨ sym (C.∣∣₊≡∣∣₊ u) ⟩
+      C.∣ O.∣ u ∣ ∣₊                                                    ≡⟨ cong C.∣_∣₊ (O.∣∣-constant _ _) ⟩
+      C.∣ O.∣ v ∣ ∣₊                                                    ≡⟨ C.∣∣₊≡∣∣₊ v ⟩∎
+      C.∣ v ∣₊                                                          ∎)
+                                                                    _ _ ⟩∎
+    trans (cong C.∣_∣₊ q) (C.∣∣₊≡∣∣₊ y)                        ∎
 
-  lemma₃ : ∀ _ → C.Elim _
-  lemma₃ x .C.Elim.∣∣ʳ              = lemma₁ _ x
-  lemma₃ x .C.Elim.∣∣≡∣∣ʳ {n = n} y =
-    subst (∣ x ∣ ≡_) (C.∣∣≡∣∣ y) (lemma₁ (suc n) x O.∣ y ∣)     ≡⟨ sym trans-subst ⟩
+  lemma₃ :
+    ∀ n x y (p : C.∣ O.∣ y ∣ ∣₊ ≡ z) →
+    subst (∣ x ∣ ≡_) p (lemma₁₊ n x O.∣ y ∣) ≡
+    trans (sym (lemma₀ n x))
+      (trans (cong C.∣_∣₊ (O.∣∣-constant _ _)) p)
+  lemma₃ n x y p =
+    subst (∣ x ∣ ≡_) p (lemma₁₊ n x O.∣ y ∣)                      ≡⟨ sym trans-subst ⟩
 
-    trans (lemma₁ (1 + n) x O.∣ y ∣) (C.∣∣≡∣∣ y)                ≡⟨⟩
+    trans (lemma₁₊ n x O.∣ y ∣) p                                 ≡⟨⟩
 
-    trans (trans (sym (trans (C.∣∣≡∣∣ (O.∣ x ∣-out-^ (1 + n)))
-                         (lemma₀ (1 + n) x)))
-             (trans (cong C.∣_∣
+    trans (trans (sym (trans (C.∣∣₊≡∣∣₊ (O.∣ x ∣-out-^ (1 + n)))
+                         (lemma₀ n x)))
+             (trans (cong C.∣_∣₊
                        (O.∣∣-constant
                           (O.∣ x ∣-out-^ (1 + n)) O.∣ y ∣))
-                (C.∣∣≡∣∣ O.∣ y ∣)))
-      (C.∣∣≡∣∣ y)                                               ≡⟨ trans (cong (λ eq → trans (trans eq
-                                                                                                (trans (cong C.∣_∣ (O.∣∣-constant _ _))
-                                                                                                   (C.∣∣≡∣∣ _)))
-                                                                                         (C.∣∣≡∣∣ _)) $
-                                                                          sym-trans _ _) $
-                                                                   trans (trans-assoc _ _ _) $
-                                                                   trans (trans-assoc _ _ _) $
-                                                                   cong (trans (sym (lemma₀ (1 + n) _))) $
-                                                                   sym $ trans-assoc _ _ _ ⟩
-    trans (sym (lemma₀ (1 + n) x))
-      (trans (trans (sym (C.∣∣≡∣∣ (O.∣ x ∣-out-^ (1 + n))))
-                (trans (cong C.∣_∣
+                (C.∣∣₊≡∣∣₊ O.∣ y ∣)))
+      p                                                           ≡⟨ trans (cong (λ eq →
+                                                                                    trans (trans eq
+                                                                                             (trans (cong C.∣_∣₊ (O.∣∣-constant _ _))
+                                                                                                (C.∣∣₊≡∣∣₊ _)))
+                                                                                      p) $
+                                                                            sym-trans _ _) $
+                                                                     trans (trans-assoc _ _ _) $
+                                                                     trans (trans-assoc _ _ _) $
+                                                                     cong (trans (sym (lemma₀ n _))) $
+                                                                     sym $ trans-assoc _ _ _ ⟩
+    trans (sym (lemma₀ n x))
+      (trans (trans (sym (C.∣∣₊≡∣∣₊ (O.∣ x ∣-out-^ (1 + n))))
+                (trans (cong C.∣_∣₊
                           (O.∣∣-constant
                              (O.∣ x ∣-out-^ (1 + n)) O.∣ y ∣))
-                   (C.∣∣≡∣∣ O.∣ y ∣)))
-         (C.∣∣≡∣∣ y))                                           ≡⟨ cong (λ eq → trans (sym (lemma₀ (1 + n) _))
-                                                                                  (trans (trans (sym (C.∣∣≡∣∣ _)) eq) (C.∣∣≡∣∣ _))) $ sym $
-                                                                   lemma₂ _ _ _ _ _ ⟩
-    trans (sym (lemma₀ (1 + n) x))
-      (trans (trans (sym (C.∣∣≡∣∣ (O.∣ x ∣-out-^ (1 + n))))
-                (trans (C.∣∣≡∣∣ (O.∣ x ∣-out-^ (1 + n)))
-                   (cong C.∣_∣ (O.∣∣-constant _ _))))
-         (C.∣∣≡∣∣ y))                                           ≡⟨ cong (λ eq → trans (sym (lemma₀ (1 + n) _)) (trans eq (C.∣∣≡∣∣ _))) $
-                                                                   trans-sym-[trans] _ _ ⟩
-    trans (sym (lemma₀ (1 + n) x))
-      (trans (cong C.∣_∣ (O.∣∣-constant _ _)) (C.∣∣≡∣∣ y))      ≡⟨⟩
+                   (C.∣∣₊≡∣∣₊ O.∣ y ∣)))
+         p)                                                       ≡⟨ cong (λ eq → trans (sym (lemma₀ n _))
+                                                                                    (trans (trans (sym (C.∣∣₊≡∣∣₊ _)) eq) p)) $ sym $
+                                                                     lemma₂ _ _ _ _ _ ⟩
+    trans (sym (lemma₀ n x))
+      (trans (trans (sym (C.∣∣₊≡∣∣₊ (O.∣ x ∣-out-^ (1 + n))))
+                (trans (C.∣∣₊≡∣∣₊ (O.∣ x ∣-out-^ (1 + n)))
+                   (cong C.∣_∣₊ (O.∣∣-constant _ _))))
+         p)                                                       ≡⟨ cong (λ eq → trans (sym (lemma₀ n _)) (trans eq p)) $
+                                                                     trans-sym-[trans] _ _ ⟩∎
+    trans (sym (lemma₀ n x))
+      (trans (cong C.∣_∣₊ (O.∣∣-constant _ _)) p)                 ∎
 
-    lemma₁ n x y                                                ∎
+  lemma₄ : ∀ _ → C.Elim _
+  lemma₄ x .C.Elim.∣∣₀ʳ       = lemma₁₀ x
+  lemma₄ x .C.Elim.∣∣₊ʳ       = lemma₁₊ _ x
+  lemma₄ x .C.Elim.∣∣₊≡∣∣₀ʳ y =
+    subst (∣ x ∣ ≡_) (C.∣∣₊≡∣∣₀ y) (lemma₁₊ 0 x O.∣ y ∣)       ≡⟨ lemma₃ _ _ _ _ ⟩
 
-  lemma₄ : Elim _
-  lemma₄ .is-propositionʳ = Π≡-proposition ext
-  lemma₄ .∣∣ʳ x           = C.elim (lemma₃ x)
+    trans (sym (lemma₀ 0 x))
+      (trans (cong C.∣_∣₊ (O.∣∣-constant _ _)) (C.∣∣₊≡∣∣₀ y))  ≡⟨⟩
+
+    lemma₁₀ x y                                                ∎
+  lemma₄ x .C.Elim.∣∣₊≡∣∣₊ʳ {n = n} y =
+    subst (∣ x ∣ ≡_) (C.∣∣₊≡∣∣₊ y) (lemma₁₊ (1 + n) x O.∣ y ∣)  ≡⟨ lemma₃ _ _ _ _ ⟩
+
+    trans (sym (lemma₀ (1 + n) x))
+      (trans (cong C.∣_∣₊ (O.∣∣-constant _ _)) (C.∣∣₊≡∣∣₊ y))   ≡⟨⟩
+
+    lemma₁₊ n x y                                               ∎
+
+  lemma₅ : Elim _
+  lemma₅ .is-propositionʳ = Π≡-proposition ext
+  lemma₅ .∣∣ʳ x           = C.elim (lemma₄ x)
 
 ------------------------------------------------------------------------
 -- Some conversion functions
