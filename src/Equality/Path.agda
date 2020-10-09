@@ -734,7 +734,7 @@ heterogeneous↔homogeneous P =
 -- expression involving hcong.
 
 dcong≡hcong :
-  {x≡y : x ≡ y} (f : (x : A) → B x) →
+  {B : A → Set b} {x≡y : x ≡ y} (f : (x : A) → B x) →
   dcong f x≡y ≡
   _↔_.to (heterogeneous↔homogeneous (λ i → B (x≡y i))) (hcong f x≡y)
 dcong≡hcong {B = B} {x≡y = x≡y} f = elim

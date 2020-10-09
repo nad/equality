@@ -889,6 +889,7 @@ module Derived-definitions-and-properties
       _
 
     cong-≡id :
+      {f : A → A}
       (f≡id : f ≡ id) →
       cong (λ g → g (f x)) f≡id ≡
       cong (λ g → f (g x)) f≡id
