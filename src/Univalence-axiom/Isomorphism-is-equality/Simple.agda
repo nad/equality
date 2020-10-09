@@ -261,7 +261,7 @@ module Class (Univ : Universe) where
                                                                           cong-∘ proj₁ (λ { (x , (y , z)) → (x , y) , z }) _ ⟩
       ≡⇒≃ (proj₁ (Σ-≡,≡←≡ (cong (λ { (x , (y , z)) → x , y }) eq)))  ≡⟨ cong ≡⇒≃ $ proj₁-Σ-≡,≡←≡ _ ⟩
 
-      ≡⇒≃ (cong proj₁ (cong (λ { (x , (y , z)) → x , y }) eq))       ≡⟨ cong ≡⇒≃ $ cong-∘ proj₁ (λ { (x , (y , z)) → x , y }) _ ⟩
+      ≡⇒≃ (cong proj₁ (cong (λ { (x , (y , z)) → x , y }) eq))       ≡⟨ cong ≡⇒≃ $ cong-∘ proj₁ (λ { (x , (y , z)) → x , y }) eq ⟩
 
       ≡⇒≃ (cong proj₁ eq)                                            ≡⟨ elim-cong _≃_ proj₁ _ ⟩∎
 
