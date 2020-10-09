@@ -322,10 +322,11 @@ private
 
 ∥∥¹-∥∥¹-in-^-commute : ∀ n → ∥ ∥ A ∥¹-in-^ n ∥¹ ≃ ∥ ∥ A ∥¹ ∥¹-in-^ n
 ∥∥¹-∥∥¹-in-^-commute {A = A} n =
-  ∥ ∥ A ∥¹-in-^ n ∥¹   ↝⟨ ∥∥¹-cong-≃ (inverse $ ∥∥¹-out-^≃∥∥¹-in-^ n) ⟩
-  ∥ ∥ A ∥¹-out-^ n ∥¹  ↔⟨ ∥∥¹-∥∥¹-out-^-commute n ⟩
-  ∥ ∥ A ∥¹ ∥¹-out-^ n  ↝⟨ ∥∥¹-out-^≃∥∥¹-in-^ n ⟩□
-  ∥ ∥ A ∥¹ ∥¹-in-^ n   □
+  ∥ ∥ A ∥¹-in-^ n ∥¹    ↝⟨ ∥∥¹-cong-≃ (inverse $ ∥∥¹-out-^≃∥∥¹-in-^ n) ⟩
+  ∥ ∥ A ∥¹-out-^ n ∥¹   ↔⟨⟩
+  ∥ A ∥¹-out-^ (suc n)  ↝⟨ ∥∥¹-out-^≃∥∥¹-in-^ (suc n) ⟩
+  ∥ A ∥¹-in-^ (suc n)   ↔⟨⟩
+  ∥ ∥ A ∥¹ ∥¹-in-^ n    □
 
 -- A "constructor" for ∥_∥¹-in-^.
 
