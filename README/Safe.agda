@@ -352,6 +352,10 @@ import Quotient.Higher-constructors-if-propositional
 
 import Finite-subset.Listed
 
+-- An alternative definition of listed finite subsets.
+
+import Finite-subset.Listed.Alternative
+
 -- Kuratowski finite subsets.
 
 import Finite-subset.Kuratowski
