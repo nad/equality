@@ -280,6 +280,15 @@ rec r = elim e
 ------------------------------------------------------------------------
 -- Some lemmas
 
+-- If A is inhabited, then Finite-subset-of A is not a proposition.
+
+¬-proposition : A → ¬ Is-proposition (Finite-subset-of A)
+¬-proposition {A = A} x =
+  Is-proposition (Finite-subset-of A)  ↝⟨ (λ hyp → hyp _ _) ⟩
+  x ∷ [] ≡ []                          ↝⟨ (λ hyp → subst (x ∈_) hyp (Trunc.∣inj₁∣ (refl _))) ⟩
+  x ∈ []                               ↔⟨ ⊥↔⊥ ⟩□
+  ⊥                                    □
+
 abstract
 
   -- Duplicated elements can be dropped.
