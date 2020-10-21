@@ -1165,6 +1165,30 @@ other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
   (∃ λ B → B ≃ A)  ↝⟨ singleton-with-≃-↔-⊤ {a = b} ext univ ⟩□
   ⊤                □
 
+-- Variants of the two lemmas above.
+
+singleton-with-Π-≃-≃-⊤ :
+  ∀ {a q} {A : Set a} {Q : A → Set q} →
+  Extensionality a (lsuc q) →
+  Univalence q →
+  (∃ λ (P : A → Set q) → ∀ x → P x ≃ Q x) ≃ ⊤
+singleton-with-Π-≃-≃-⊤ {a = a} {q = q} {A = A} {Q = Q} ext univ =
+  (∃ λ (P : A → Set q) → ∀ x → P x ≃ Q x)  ↝⟨ (inverse $ ∃-cong λ _ → ∀-cong ext λ _ → ≡≃≃ univ) ⟩
+  (∃ λ (P : A → Set q) → ∀ x → P x ≡ Q x)  ↝⟨ (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩
+  (∃ λ (P : A → Set q) → P ≡ Q)            ↔⟨ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ⟩□
+  ⊤                                        □
+
+other-singleton-with-Π-≃-≃-⊤ :
+  ∀ {a p} {A : Set a} {P : A → Set p} →
+  Extensionality a (lsuc p) →
+  Univalence p →
+  (∃ λ (Q : A → Set p) → ∀ x → P x ≃ Q x) ≃ ⊤
+other-singleton-with-Π-≃-≃-⊤ {a = a} {p = p} {A = A} {P = P} ext univ =
+  (∃ λ (Q : A → Set p) → ∀ x → P x ≃ Q x)  ↝⟨ (inverse $ ∃-cong λ _ → ∀-cong ext λ _ → ≡≃≃ univ) ⟩
+  (∃ λ (Q : A → Set p) → ∀ x → P x ≡ Q x)  ↝⟨ (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩
+  (∃ λ (Q : A → Set p) → P ≡ Q)            ↔⟨ _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _) ⟩□
+  ⊤                                        □
+
 -- ∃ Contractible is isomorphic to the unit type (assuming
 -- extensionality and univalence).
 

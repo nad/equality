@@ -677,6 +677,48 @@ other-singleton-with-≃ᴱ-≃ᴱ-⊤ b {A = A} ext univ =
   (∃ λ B → B ≃ᴱ A)  ↝⟨ singleton-with-≃ᴱ-≃ᴱ-⊤ b ext univ ⟩□
   ⊤                 □
 
+-- Variants of the two lemmas above.
+
+singleton-with-Π-≃ᴱ-≃ᴱ-⊤ :
+  {A : Set a} {Q : A → Set q} →
+  @0 Extensionality (a ⊔ q) (lsuc q) →
+  @0 Univalence q →
+  (∃ λ (P : A → Set q) → ∀ x → P x ≃ᴱ Q x) ≃ᴱ ⊤
+singleton-with-Π-≃ᴱ-≃ᴱ-⊤ {a = a} {q = q} {A = A} {Q = Q} ext univ =
+  [≃]→≃ᴱ ([proofs] lemma)
+  where
+  @0 ext₁ : Extensionality a (lsuc q)
+  ext₁ = lower-extensionality q lzero ext
+
+  @0 ext₂ : Extensionality a q
+  ext₂ = lower-extensionality lzero _ ext₁
+
+  @0 ext₃ : Extensionality q q
+  ext₃ = lower-extensionality a _ ext
+
+  @0 lemma : (∃ λ (P : A → Set q) → ∀ x → P x ≃ᴱ Q x) ≃ ⊤
+  lemma =
+    (∃ λ (P : A → Set q) → ∀ x → P x ≃ᴱ Q x)  ↝⟨ (∃-cong λ _ → ∀-cong ext₂ λ _ → F.inverse $ ≃≃≃ᴱ ext₃) ⟩
+    (∃ λ (P : A → Set q) → ∀ x → P x ≃ Q x)   ↔⟨ singleton-with-Π-≃-≃-⊤ ext₁ univ ⟩□
+    ⊤                                         □
+
+other-singleton-with-Π-≃ᴱ-≃ᴱ-⊤ :
+  {A : Set a} {P : A → Set p} →
+  @0 Extensionality (a ⊔ p) (lsuc p) →
+  @0 Univalence p →
+  (∃ λ (Q : A → Set p) → ∀ x → P x ≃ᴱ Q x) ≃ᴱ ⊤
+other-singleton-with-Π-≃ᴱ-≃ᴱ-⊤ {a = a} {p = p} {A = A} {P = P}
+                               ext univ =
+  (∃ λ (Q : A → Set p) → ∀ x → P x ≃ᴱ Q x)  ↝⟨ (∃-cong λ _ → ∀-cong-≃ᴱ ext₁ λ _ → inverse-equivalence ext₂) ⟩
+  (∃ λ (Q : A → Set p) → ∀ x → Q x ≃ᴱ P x)  ↝⟨ singleton-with-Π-≃ᴱ-≃ᴱ-⊤ ext univ ⟩□
+  ⊤                                         □
+  where
+  @0 ext₁ : Extensionality a p
+  ext₁ = lower-extensionality p _ ext
+
+  @0 ext₂ : Extensionality p p
+  ext₂ = lower-extensionality a _ ext
+
 -- ∃ Contractibleᴱ is equivalent (with erased proofs) to the unit type
 -- (assuming extensionality and univalence).
 
