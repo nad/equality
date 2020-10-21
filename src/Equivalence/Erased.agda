@@ -313,6 +313,15 @@ Erased-Contractibleᴱ↔Erased-Contractible =
                  Eq.⟨ f , (λ y → (g y , f∘g y) , irr y) ⟩
                  (≃ᴱ→≃ ⊚ P≃Q)))
 
+-- A variant of ∀-cong for _≃ᴱ_.
+
+∀-cong-≃ᴱ :
+  {A : Set a} {P : A → Set p} {Q : A → Set q} →
+  @0 Extensionality a (p ⊔ q) →
+  (∀ x → P x ≃ᴱ Q x) →
+  ((x : A) → P x) ≃ᴱ ((x : A) → Q x)
+∀-cong-≃ᴱ ext P≃Q = [≃]→≃ᴱ ([proofs] (∀-cong ext (≃ᴱ→≃ ⊚ P≃Q)))
+
 -- The _≃ᴱ_ operator preserves equivalences with erased proofs
 -- (assuming extensionality).
 
