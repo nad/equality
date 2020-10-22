@@ -293,10 +293,7 @@ Erased-Contractibleᴱ↔Erased-Contractible =
 -- the time of writing) is included explicitly to show where f∘g is
 -- used in a (potentially) non-erased context.
 --
--- Presumably more lemmas of this kind could be proved (for instance a
--- variant for Π), but so far I have not found any use for them.
---
--- See also Σ-cong-≃ᴱ-Erased and Σ-cong-contra-≃ᴱ-Erased below.
+-- See also Σ-cong-≃ᴱ-Erased below.
 
 Σ-cong-≃ᴱ :
   (f : A → B) (g : B → A)
@@ -312,6 +309,50 @@ Erased-Contractibleᴱ↔Erased-Contractible =
     ([proofs] (Σ-cong
                  Eq.⟨ f , (λ y → (g y , f∘g y) , irr y) ⟩
                  (≃ᴱ→≃ ⊚ P≃Q)))
+
+-- Another preservation lemma related to Σ.
+--
+-- See also Σ-cong-contra-≃ᴱ-Erased below.
+
+Σ-cong-contra-≃ᴱ :
+  (f : B → A) (g : A → B)
+  (f∘g : ∀ x → f (g x) ≡ x) →
+  @0 (∀ y (p : f ⁻¹ y) → (g y , f∘g y) ≡ p) →
+  (∀ x → P (f x) ≃ᴱ Q x) →
+  Σ A P ≃ᴱ Σ B Q
+Σ-cong-contra-≃ᴱ f g f∘g irr P≃Q =
+  inverse $ Σ-cong-≃ᴱ f g f∘g irr (inverse ⊚ P≃Q)
+
+-- Two preservation lemmas related to Π.
+--
+-- See also Π-cong-≃ᴱ-Erased and Π-cong-contra-≃ᴱ-Erased below.
+
+Π-cong-≃ᴱ :
+  {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q} →
+  @0 Extensionality (a ⊔ b) (p ⊔ q) →
+  (f : A → B) (g : B → A)
+  (f∘g : ∀ x → f (g x) ≡ x) →
+  @0 (∀ y (p : f ⁻¹ y) → (g y , f∘g y) ≡ p) →
+  (∀ x → P x ≃ᴱ Q (f x)) →
+  ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
+Π-cong-≃ᴱ {Q = Q} ext f g f∘g irr P≃Q =
+  [≃]→≃ᴱ
+    {to = λ h x → subst Q (f∘g x) (_≃ᴱ_.to (P≃Q (g x)) (h (g x)))}
+    ([proofs] (Π-cong
+                 ext
+                 Eq.⟨ f , (λ y → (g y , f∘g y) , irr y) ⟩
+                 (≃ᴱ→≃ ⊚ P≃Q)))
+
+Π-cong-contra-≃ᴱ :
+  {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q} →
+  @0 Extensionality (a ⊔ b) (p ⊔ q) →
+  (f : B → A) (g : A → B)
+  (f∘g : ∀ x → f (g x) ≡ x) →
+  @0 (∀ y (p : f ⁻¹ y) → (g y , f∘g y) ≡ p) →
+  (∀ x → P (f x) ≃ᴱ Q x) →
+  ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
+Π-cong-contra-≃ᴱ ext f g f∘g irr P≃Q =
+  inverse $ Π-cong-≃ᴱ ext f g f∘g irr (inverse ⊚ P≃Q)
 
 -- A variant of ∀-cong for _≃ᴱ_.
 
