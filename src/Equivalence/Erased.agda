@@ -19,6 +19,7 @@ open import Erased.Level-1 eq as Erased
 open import Function-universe eq as F hiding (id; _∘_; inverse)
 open import H-level eq as H-level
 open import H-level.Closure eq
+import Nat eq as Nat
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq as Surjection using (_↠_; Split-surjective)
 open import Univalence-axiom eq
@@ -381,6 +382,52 @@ Erased-Contractibleᴱ↔Erased-Contractible =
     A ≃ C   ↝⟨ Eq.≃-preserves ext (≃ᴱ→≃ A≃B) (≃ᴱ→≃ C≃D) ⟩
     B ≃ D   ↝⟨ ≃≃≃ᴱ (lower-extensionality (a ⊔ c) (a ⊔ c) ext) ⟩□
     B ≃ᴱ D  □
+
+------------------------------------------------------------------------
+-- Variants of some lemmas from Function-universe
+
+-- A variant of drop-⊤-left-Σ.
+--
+-- See also drop-⊤-left-Σ-≃ᴱ-Erased below.
+
+drop-⊤-left-Σ-≃ᴱ :
+  (A≃⊤ : A ≃ᴱ ⊤) →
+  (∀ x y → P x ≃ᴱ P y) →
+  Σ A P ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
+drop-⊤-left-Σ-≃ᴱ {A = A} {P = P} A≃⊤ P≃P =
+  Σ A P                            ↝⟨ Σ-cong-≃ᴱ
+                                        _
+                                        (_≃ᴱ_.from A≃⊤)
+                                        refl
+                                        (λ _ _ → cong₂ _,_
+                                                   (_≃ᴱ_.left-inverse-of A≃⊤ _)
+                                                   (mono (Nat.zero≤ 2) ⊤-contractible _ _))
+                                        (λ _ → P≃P _ _) ⟩
+  Σ ⊤ (λ x → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Σ-left-identity ⟩□
+  P (_≃ᴱ_.from A≃⊤ tt)             □
+
+-- A variant of drop-⊤-left-Π.
+--
+-- See also drop-⊤-left-Π-≃ᴱ-Erased below.
+
+drop-⊤-left-Π-≃ᴱ :
+  {A : Set a} {P : A → Set p} →
+  @0 Extensionality a p →
+  (A≃⊤ : A ≃ᴱ ⊤) →
+  (∀ x y → P x ≃ᴱ P y) →
+  ((x : A) → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
+drop-⊤-left-Π-≃ᴱ {A = A} {P = P} ext A≃⊤ P≃P =
+  ((x : A) → P x)                  ↝⟨ Π-cong-≃ᴱ
+                                        ext
+                                        _
+                                        (_≃ᴱ_.from A≃⊤)
+                                        refl
+                                        (λ _ _ → cong₂ _,_
+                                                   (_≃ᴱ_.left-inverse-of A≃⊤ _)
+                                                   (mono (Nat.zero≤ 2) ⊤-contractible _ _))
+                                        (λ _ → P≃P _ _) ⟩
+  ((x : ⊤) → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Π-left-identity ⟩□
+  P (_≃ᴱ_.from A≃⊤ tt)             □
 
 ------------------------------------------------------------------------
 -- Lemmas relating equality between equivalences (with erased proofs)
@@ -1148,22 +1195,22 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   -- A variant of drop-⊤-left-Σ.
 
-  drop-⊤-left-Σ-≃ᴱ :
+  drop-⊤-left-Σ-≃ᴱ-Erased :
     {P : @0 A → Set p} →
     (A≃⊤ : A ≃ᴱ ⊤) → Σ A (λ x → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
-  drop-⊤-left-Σ-≃ᴱ {A = A} {P = P} A≃⊤ =
+  drop-⊤-left-Σ-≃ᴱ-Erased {A = A} {P = P} A≃⊤ =
     Σ A (λ x → P x)                  ↝⟨ inverse $ Σ-cong-≃ᴱ-Erased (inverse A≃⊤) (λ _ → F.id) ⟩
     Σ ⊤ (λ x → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Σ-left-identity ⟩□
     P (_≃ᴱ_.from A≃⊤ tt)             □
 
   -- A variant of drop-⊤-left-Π.
 
-  drop-⊤-left-Π-≃ᴱ :
+  drop-⊤-left-Π-≃ᴱ-Erased :
     {A : Set a} {P : @0 A → Set p} →
     @0 Extensionality a p →
     (A≃⊤ : A ≃ᴱ ⊤) →
     ((x : A) → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
-  drop-⊤-left-Π-≃ᴱ {A = A} {P = P} ext A≃⊤ =
+  drop-⊤-left-Π-≃ᴱ-Erased {A = A} {P = P} ext A≃⊤ =
     ((x : A) → P x)                  ↝⟨ Π-cong-contra-≃ᴱ-Erased ext (inverse A≃⊤) (λ _ → F.id) ⟩
     ((x : ⊤) → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Π-left-identity ⟩□
     P (_≃ᴱ_.from A≃⊤ tt)             □
