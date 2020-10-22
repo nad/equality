@@ -284,7 +284,7 @@ Erased-Contractibleᴱ↔Erased-Contractible =
   Erased (∃ λ x → ∀ y → x ≡ y)                    □
 
 ------------------------------------------------------------------------
--- Some lemmas
+-- Some preservation lemmas
 
 -- A preservation lemma related to Σ.
 --
@@ -381,6 +381,10 @@ Erased-Contractibleᴱ↔Erased-Contractible =
     A ≃ C   ↝⟨ Eq.≃-preserves ext (≃ᴱ→≃ A≃B) (≃ᴱ→≃ C≃D) ⟩
     B ≃ D   ↝⟨ ≃≃≃ᴱ (lower-extensionality (a ⊔ c) (a ⊔ c) ext) ⟩□
     B ≃ᴱ D  □
+
+------------------------------------------------------------------------
+-- Lemmas relating equality between equivalences (with erased proofs)
+-- to equality between the forward directions of the equivalences
 
 -- In an erased context two equivalences are equal if the underlying
 -- functions are equal (assuming extensionality).
