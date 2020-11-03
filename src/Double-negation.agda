@@ -15,6 +15,7 @@ open import Prelude
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence eq hiding (id; _∘_)
+open import Excluded-middle eq
 open import H-level eq
 open import H-level.Closure eq
 open import Monad eq
@@ -88,23 +89,6 @@ run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
 
 ------------------------------------------------------------------------
 -- Excluded middle and double-negation elimination
-
--- Excluded middle (roughly as stated in the HoTT book).
-
-Excluded-middle : (ℓ : Level) → Set (lsuc ℓ)
-Excluded-middle p = {P : Set p} → Is-proposition P → Dec P
-
--- Excluded middle is pointwise propositional (assuming
--- extensionality).
-
-Excluded-middle-propositional :
-  ∀ {ℓ} →
-  Extensionality (lsuc ℓ) ℓ →
-  Is-proposition (Excluded-middle ℓ)
-Excluded-middle-propositional ext =
-  implicit-Π-closure ext 1 λ _ →
-  Π-closure (lower-extensionality _ lzero ext) 1 λ P-prop →
-  Dec-closure-propositional (lower-extensionality _ _ ext) P-prop
 
 -- Double-negation elimination (roughly as stated in the HoTT book).
 

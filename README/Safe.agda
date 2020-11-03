@@ -78,6 +78,10 @@ import Groupoid
 
 import H-level.Closure
 
+-- Excluded middle.
+
+import Excluded-middle
+
 -- Equivalence relations
 
 import Equivalence-relation
