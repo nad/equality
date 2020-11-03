@@ -17,6 +17,7 @@ open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq hiding (id; _∘_)
+open import Excluded-middle eq
 open import H-level eq
 open import H-level.Closure eq
 open import Injection eq as Injection using (Injective; _↣_)
@@ -244,3 +245,36 @@ Injective≃Is-embedding ext A-set B-set f =
            (Σ-≡,≡→≡ (refl _)
                     (Injective-propositional ext A-set _ _))
   }
+
+------------------------------------------------------------------------
+-- Surjections
+
+-- If excluded middle holds, then an embedding from an inhabited type
+-- can be turned into a (split) surjection in the other direction.
+
+Embedding→↠ :
+  {A : Set a} {B : Set b} →
+  Excluded-middle (a ⊔ b) →
+  A → Embedding A B → B ↠ A
+Embedding→↠ {A = A} {B = B} em a A↣B = record
+  { logical-equivalence = record
+    { to   = from
+    ; from = to
+    }
+  ; right-inverse-of = from-to
+  }
+  where
+  open Embedding A↣B
+
+  prop : ∀ b → Is-proposition (to ⁻¹ b)
+  prop = embedding→⁻¹-propositional is-embedding
+
+  from : B → A
+  from b = case em (prop b) of λ where
+    (yes (a , _)) → a
+    (no _)        → a
+
+  from-to : ∀ a → from (to a) ≡ a
+  from-to a with em (prop (to a))
+  ... | (yes (a′ , to-a′≡to-a)) = injective is-embedding to-a′≡to-a
+  ... | (no  hyp)               = ⊥-elim (hyp (a , refl _))
