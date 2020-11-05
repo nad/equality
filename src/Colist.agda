@@ -709,14 +709,14 @@ data ◇ˢ {a p} {A : Set a} (i : Size)
 -- ◇ˢ i (const P) is pointwise logically equivalent to ◇ i P.
 
 ◇ˢ⇔◇ : ∀ {a p i} {A : Set a} {P : A → Set p} {xs} →
-       ◇ˢ i (const P) xs ⇔ ◇ i P xs
+       ◇ˢ i (λ _ → P) xs ⇔ ◇ i P xs
 ◇ˢ⇔◇ {P = P} {xs} = record { to = to; from = from }
   where
-  to : ∀ {i xs} → ◇ˢ i (const P) xs → ◇ i P xs
+  to : ∀ {i xs} → ◇ˢ i (λ _ → P) xs → ◇ i P xs
   to (here p)  = here p
   to (there p) = there (to p)
 
-  from : ∀ {i xs} → ◇ i P xs → ◇ˢ i (const P) xs
+  from : ∀ {i xs} → ◇ i P xs → ◇ˢ i (λ _ → P) xs
   from (here p)  = here p
   from (there p) = there (from p)
 
@@ -880,14 +880,14 @@ open □ˢ′ public
 -- □ˢ i (const P) is pointwise logically equivalent to □ i P.
 
 □ˢ⇔□ : ∀ {a p i} {A : Set a} {P : A → Set p} {xs} →
-       □ˢ i (const P) xs ⇔ □ i P xs
+       □ˢ i (λ _ → P) xs ⇔ □ i P xs
 □ˢ⇔□ {P = P} {xs} = record { to = to; from = from }
   where
-  to : ∀ {i xs} → □ˢ i (const P) xs → □ i P xs
+  to : ∀ {i xs} → □ˢ i (λ _ → P) xs → □ i P xs
   to []       = []
   to (p ∷ ps) = p ∷ λ { .force → to (force ps) }
 
-  from : ∀ {i xs} → □ i P xs → □ˢ i (const P) xs
+  from : ∀ {i xs} → □ i P xs → □ˢ i (λ _ → P) xs
   from []       = []
   from (p ∷ ps) = p ∷ λ { .force → from (force ps) }
 
