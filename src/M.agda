@@ -15,7 +15,6 @@ import Equivalence eq as Eq
 open import Function-universe eq hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
-open import Logical-equivalence hiding (_∘_)
 open import Prelude
 open import Prelude.Size
 
@@ -64,10 +63,31 @@ M-unfolding = record
   ; left-inverse-of = λ { (dns x f) → refl (dns x f) }
   }
 
+private
+
+  -- Implicit and explicit Πs where the domain lives in the size
+  -- universe are isomorphic.
+  --
+  -- This lemma, which is not exported, is used in M-≡,≡↔≡ below.
+
+  implicit-Π↔Πˢ : ∀ {b} {A : Size-universe} {B : A → Set b} →
+                  ({x : A} → B x) ↔ ((x : A) → B x)
+  implicit-Π↔Πˢ = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = λ f x → f {x}
+        ; from = λ f {x} → f x
+        }
+      ; right-inverse-of = refl
+      }
+    ; left-inverse-of = refl
+    }
+
 abstract
 
   -- Equality between elements of an M-type can be proved using a pair
-  -- of equalities (assuming extensionality and a kind of η law).
+  -- of equalities (assuming two kinds of extensionality and a kind of
+  -- η law).
   --
   -- Note that, because the equality type former is not sized, this
   -- lemma is perhaps not very useful.
@@ -75,6 +95,8 @@ abstract
   M-≡,≡↔≡ :
     ∀ {a b i} {A : Set a} {B : A → Set b} →
     Extensionality b (a ⊔ b) →
+    ({S : Size-universe} {A : S → Set (a ⊔ b)} {f g : (i : S) → A i} →
+     ((i : S) → f i ≡ g i) ↔ (f ≡ g)) →
     (∀ {x} {f g : B x → M′ A B i} →
        _≡_ {A = B x → {j : Size< i} → M A B j}
            (force ∘ f) (force ∘ g) ↔
@@ -83,7 +105,7 @@ abstract
     (∃ λ (p : x ≡ y) → ∀ b {j : Size< i} →
        force (f b) {j = j} ≡ force (g (subst B p b))) ↔
     _≡_ {A = M A B i} (dns x f) (dns y g)
-  M-≡,≡↔≡ {a} {i = i} {A} {B} ext η {x} {y} {f} {g} =
+  M-≡,≡↔≡ {a} {i = i} {A} {B} ext extˢ η {x} {y} {f} {g} =
     (∃ λ (p : x ≡ y) → ∀ b {j : Size< i} →
        force (f b) {j = j} ≡ force (g (subst B p b)))         ↝⟨ ∃-cong lemma ⟩
     (∃ λ (p : x ≡ y) → subst (λ x → B x → M′ A B i) p f ≡ g)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩
@@ -92,33 +114,37 @@ abstract
     where
     lemma : (p : x ≡ y) →
             ((b : B x) {j : Size< i} →
-             force (f b) {j = j} ≡ force (g (subst B p b))) ↔
+             f b .force {j = j} ≡ g (subst B p b) .force) ↔
             (subst (λ x → B x → M′ A B i) p f ≡ g)
     lemma p = elim
       (λ {x y} p → (f : B x → M′ A B i) (g : B y → M′ A B i) →
-                   (∀ b {j} → force (f b) {j = j} ≡
-                              force (g (subst B p b))) ↔
+                   (∀ b {j : Size< i} → f b .force {j = j} ≡
+                                        g (subst B p b) .force) ↔
                    (subst (λ x → B x → M′ A B i) p f ≡ g))
       (λ x f g →
-         (∀ b {j} → force (f b) {j = j} ≡
-                    force (g (subst B (refl x) b)))               ↝⟨ subst (λ h → (∀ b {j} → force (f b) ≡ force (g (h b))) ↔
-                                                                                  (∀ b {j} → force (f b) {j = j} ≡ force (g b)))
-                                                                           (sym (apply-ext (lower-extensionality lzero a ext) (subst-refl B)))
-                                                                           Bijection.id ⟩
+         (∀ b {j : Size< i} → f b .force {j = j} ≡
+                              g (subst B (refl x) b) .force)    ↝⟨ subst (λ h → (∀ b {j : Size< i} → f b .force ≡ g (h b) .force) ↔
+                                                                                (∀ b {j : Size< i} → f b .force ≡ g b .force))
+                                                                         (sym (apply-ext (lower-extensionality lzero a ext) (subst-refl B)))
+                                                                         Bijection.id ⟩
 
-         (∀ b {j : Size< i} → force (f b) {j = j} ≡ force (g b))  ↝⟨ ∀-cong ext (λ _ → Bijection.implicit-Π↔Π) ⟩
+         (∀ b {j : Size< i} → f b .force {j = j} ≡ g b .force)  ↝⟨ ∀-cong ext (λ _ → implicit-Π↔Πˢ) ⟩
 
-         (∀ b (j : Size< i) → force (f b) {j = j} ≡ force (g b))  ↝⟨ ∀-cong ext (λ _ → implicit-extensionality-isomorphism
-                                                                                         (lower-extensionality _ lzero ext)) ⟩
-         ((b : B x) → _≡_ {A = {j : Size< i} → _}
-                          (force (f b)) (force (g b)))            ↔⟨ Eq.extensionality-isomorphism ext ⟩
+         (∀ b (j : Size< i) → f b .force {j = j} ≡ g b .force)  ↝⟨ ∀-cong ext (λ _ → extˢ) ⟩
 
-         (force ∘ f ≡ force ∘ g)                                  ↝⟨ η ⟩
+         ((b : B x) → _≡_ {A = (j : Size< i) → M A B j}
+                          (λ { j → f b .force {j = j} })
+                          (λ { j → g b .force {j = j} }))       ↔⟨ ∀-cong ext (λ _ → Eq.≃-≡ (Eq.↔⇒≃ implicit-Π↔Πˢ)) ⟩
 
-         (f ≡ g)                                                  ↝⟨ subst (λ h → (f ≡ g) ↔ (h ≡ g))
-                                                                           (sym $ subst-refl (λ x' → B x' → M′ A B i) f)
-                                                                           Bijection.id ⟩□
-         (subst (λ x → B x → M′ A B i) (refl x) f ≡ g)            □)
+         ((b : B x) → _≡_ {A = {j : Size< i} → M A B j}
+                          (f b .force) (g b .force))            ↔⟨ Eq.extensionality-isomorphism ext ⟩
+
+         (force ∘ f ≡ force ∘ g)                                ↝⟨ η ⟩
+
+         (f ≡ g)                                                ↝⟨ subst (λ h → (f ≡ g) ↔ (h ≡ g))
+                                                                         (sym $ subst-refl (λ x' → B x' → M′ A B i) f)
+                                                                         Bijection.id ⟩□
+         (subst (λ x → B x → M′ A B i) (refl x) f ≡ g)          □)
       p f g
 
 ------------------------------------------------------------------------

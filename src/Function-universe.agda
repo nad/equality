@@ -369,6 +369,17 @@ generalise-ext? {k} f⇔ f↔ with extensionality? k
 ... | with-extensionality    _                   = λ ext →
   from-isomorphism (f↔ ext)
 
+generalise-erased-ext? :
+  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  A ⇔ B →
+  (@0 Extensionality c d → A ↔ B) →
+  @0 Extensionality? k c d → A ↝[ k ] B
+generalise-erased-ext? {k} f⇔ f↔ with extensionality? k
+... | without-extensionality implication         = λ _ → _⇔_.to f⇔
+... | without-extensionality logical-equivalence = λ _ → f⇔
+... | with-extensionality    _                   = λ ext →
+  from-isomorphism (f↔ ext)
+
 generalise-ext?-prop :
   ∀ {k a b c d} {A : Set a} {B : Set b} →
   A ⇔ B →
@@ -381,11 +392,29 @@ generalise-ext?-prop f⇔ A-prop B-prop =
     (λ ext → _≃_.bijection $
                _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
 
+generalise-erased-ext?-prop :
+  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  A ⇔ B →
+  (@0 Extensionality c d → Is-proposition A) →
+  (@0 Extensionality c d → Is-proposition B) →
+  @0 Extensionality? k c d → A ↝[ k ] B
+generalise-erased-ext?-prop f⇔ A-prop B-prop =
+  generalise-erased-ext?
+    f⇔
+    (λ ext → _≃_.bijection $
+               _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
+
 generalise-ext?-sym :
   ∀ {a b c d} {A : Set a} {B : Set b} {k} →
   (∀ {k} → Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
   Extensionality? k c d → A ↝[ k ] B
 generalise-ext?-sym hyp = generalise-ext? (hyp _) hyp
+
+generalise-erased-ext?-sym :
+  ∀ {a b c d} {A : Set a} {B : Set b} {k} →
+  (∀ {k} → @0 Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
+  @0 Extensionality? k c d → A ↝[ k ] B
+generalise-erased-ext?-sym hyp = generalise-erased-ext? (hyp _) hyp
 
 -- General results of the kind produced by generalise-ext? are
 -- symmetric.
@@ -395,6 +424,13 @@ inverse-ext? :
   (∀ {k} → Extensionality? k c d → A ↝[ k ] B) →
   Extensionality? k c d → B ↝[ k ] A
 inverse-ext? hyp = generalise-ext?-sym (inverse ⊚ hyp)
+
+inverse-erased-ext? :
+  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  (∀ {k} → @0 Extensionality? k c d → A ↝[ k ] B) →
+  @0 Extensionality? k c d → B ↝[ k ] A
+inverse-erased-ext? hyp =
+  generalise-erased-ext?-sym (λ ext → inverse (hyp ext))
 
 ------------------------------------------------------------------------
 -- Lots of properties
@@ -512,6 +548,25 @@ abstract
     to-implication (≡⇒↝ ⌊ k ⌋-sym (cong P (sym x≡y))) p      ≡⟨ cong (λ eq → to-implication (≡⇒↝ ⌊ k ⌋-sym eq) p) (cong-sym P _) ⟩
     to-implication (≡⇒↝ ⌊ k ⌋-sym (sym $ cong P x≡y)) p      ≡⟨ cong (_$ p) (≡⇒↝-sym k) ⟩∎
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong P x≡y))) p  ∎
+
+  -- One can express subst id in terms of ≡⇒↝.
+
+  subst-id-in-terms-of-≡⇒↝ :
+    ∀ k {a} {A B : Set a} {A≡B : A ≡ B} {x} →
+    subst id A≡B x ≡ to-implication (≡⇒↝ k A≡B) x
+  subst-id-in-terms-of-≡⇒↝ k {A≡B = A≡B} {x = x} =
+    subst id A≡B x                          ≡⟨ subst-in-terms-of-≡⇒↝ k _ _ _ ⟩
+    to-implication (≡⇒↝ k (cong id A≡B)) x  ≡⟨ cong (λ eq → to-implication (≡⇒↝ k eq) x) $ sym $ cong-id _ ⟩∎
+    to-implication (≡⇒↝ k A≡B) x            ∎
+
+  subst-id-in-terms-of-inverse∘≡⇒↝ :
+    ∀ k {a} {A B : Set a} {A≡B : A ≡ B} {y} →
+    subst id (sym A≡B) y ≡
+    to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym A≡B)) y
+  subst-id-in-terms-of-inverse∘≡⇒↝ k {A≡B = A≡B} {y = y} =
+    subst id (sym A≡B) y                                      ≡⟨ subst-in-terms-of-inverse∘≡⇒↝ k _ _ _ ⟩
+    to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong id A≡B))) y  ≡⟨ cong (λ eq → to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym eq)) y) $ sym $ cong-id _ ⟩∎
+    to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym A≡B)) y            ∎
 
   to-implication-≡⇒↝ :
     ∀ k {ℓ} {A B : Set ℓ} (eq : A ≡ B) →
@@ -1224,20 +1279,20 @@ private
   A₂ × B  □
 
 -- Lemmas that can be used to simplify sigma types where one of the
--- two type arguments is (conditionally) isomorphic to the unit type.
+-- two type arguments is (conditionally) related to the unit type.
 
 drop-⊤-right : ∀ {k a b} {A : Set a} {B : A → Set b} →
-               ((x : A) → B x ↔[ k ] ⊤) → Σ A B ↔ A
-drop-⊤-right {A = A} {B} B↔⊤ =
-  Σ A B  ↔⟨ ∃-cong B↔⊤ ⟩
-  A × ⊤  ↝⟨ ×-right-identity ⟩□
+               ((x : A) → B x ↝[ k ] ⊤) → Σ A B ↝[ k ] A
+drop-⊤-right {A = A} {B} B↝⊤ =
+  Σ A B  ↝⟨ ∃-cong B↝⊤ ⟩
+  A × ⊤  ↔⟨ ×-right-identity ⟩□
   A      □
 
 drop-⊤-left-× : ∀ {k a b} {A : Set a} {B : Set b} →
-                (B → A ↔[ k ] ⊤) → A × B ↔ B
-drop-⊤-left-× {A = A} {B} A↔⊤ =
-  A × B  ↝⟨ ×-comm ⟩
-  B × A  ↝⟨ drop-⊤-right A↔⊤ ⟩□
+                (B → A ↝[ k ] ⊤) → A × B ↝[ k ] B
+drop-⊤-left-× {A = A} {B} A↝⊤ =
+  A × B  ↔⟨ ×-comm ⟩
+  B × A  ↝⟨ drop-⊤-right A↝⊤ ⟩□
   B      □
 
 drop-⊤-left-Σ : ∀ {a b} {A : Set a} {B : A → Set b} →
@@ -1459,6 +1514,87 @@ Contractible-commutes-with-× {x = x} {y} =
   _≃_.to p ≡ _≃_.to q                                                    ↝⟨ ignore-propositional-component (Eq.propositional ext _) ⟩
   (_≃_.to p , _≃_.is-equivalence p) ≡ (_≃_.to q , _≃_.is-equivalence q)  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Eq.≃-as-Σ) ⟩□
   p ≡ q                                                                  □
+
+-- A variant of the previous result for which the forward direction
+-- computes in a certain way.
+
+≃-to-≡≃≡ :
+  ∀ {a b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Extensionality a b →
+  {A : Set a} {B : Set b} {p q : A ≃ B} →
+  (∀ x → _≃_.to p x ≡ _≃_.to q x) ≃ (p ≡ q)
+≃-to-≡≃≡ {a} {b} ext₁ ext₂ {p = p} {q} =
+  Eq.with-other-function
+    ((∀ x → _≃_.to p x ≡ _≃_.to q x)      ↝⟨ Eq.extensionality-isomorphism ext₂ ⟩
+
+     _≃_.to p ≡ _≃_.to q                  ↔⟨ ignore-propositional-component (Eq.propositional ext₁ _) ⟩
+
+     (_≃_.to p , _≃_.is-equivalence p) ≡
+     (_≃_.to q , _≃_.is-equivalence q)    ↝⟨ Eq.≃-≡ (Eq.↔⇒≃ Eq.≃-as-Σ) ⟩□
+
+     p ≡ q                                □)
+    (Eq.lift-equality ext₁ ⊚ apply-ext (Eq.good-ext ext₂))
+    (λ hyp → elim¹
+       (λ {f} eq →
+          (is-equiv : Is-equivalence f) →
+          trans (sym (lemma _))
+            (trans (cong (_↔_.from Eq.≃-as-Σ)
+                      (Σ-≡,≡→≡ eq
+                         (proj₁ (+⇒≡ {y = is-equiv}
+                                   (Eq.propositional ext₁ _)))))
+               (lemma _)) ≡
+          Eq.lift-equality ext₁ eq)
+       (λ is-equiv →
+          trans (sym (lemma _))
+            (trans (cong (uncurry Eq.⟨_,_⟩)
+                      (Σ-≡,≡→≡ (refl _)
+                         (proj₁ (+⇒≡ {y = is-equiv}
+                                   (Eq.propositional ext₁ _)))))
+               (lemma _))                                             ≡⟨ cong (λ eq → trans (sym (lemma _))
+                                                                                        (trans (cong (uncurry Eq.⟨_,_⟩) eq)
+                                                                                           (lemma _))) $
+                                                                         Σ-≡,≡→≡-reflˡ _ ⟩
+          trans (sym (lemma _))
+            (trans (cong (uncurry Eq.⟨_,_⟩)
+                      (cong (_ ,_)
+                         (trans (sym (subst-refl _ _))
+                            (proj₁ (+⇒≡ {y = is-equiv}
+                                      (Eq.propositional ext₁ _))))))
+               (lemma _))                                             ≡⟨ cong (λ eq → trans (sym (lemma _))
+                                                                                        (trans eq (lemma _))) $
+                                                                         trans (cong-∘ _ _ _) $
+                                                                         cong (cong Eq.⟨ _ ,_⟩) (mono₁ 1 (Eq.propositional ext₁ _) _ _) ⟩
+          trans (sym (lemma _))
+            (trans (cong Eq.⟨ _ ,_⟩ (Eq.propositional ext₁ _ _ _))
+               (lemma _))                                             ≡⟨ elim¹
+                                                                           (λ {is-equiv} eq →
+                                                                              trans (sym (lemma p))
+                                                                                (trans (cong Eq.⟨ _≃_.to p ,_⟩ eq)
+                                                                                   (lemma Eq.⟨ _≃_.to p , is-equiv ⟩)) ≡
+                                                                              cong Eq.⟨ _≃_.to p ,_⟩ eq)
+                                                                           (
+              trans (sym (lemma _))
+                (trans (cong Eq.⟨ _ ,_⟩ (refl _))
+                   (lemma _))                                               ≡⟨ cong (trans (sym (lemma _))) $
+                                                                               trans (cong (flip trans _) $ cong-refl _) $
+                                                                               trans-reflˡ _ ⟩
+
+              trans (sym (lemma _)) (lemma _)                               ≡⟨ trans-symˡ _ ⟩
+
+              refl _                                                        ≡⟨ sym $ cong-refl _ ⟩∎
+
+              cong Eq.⟨ _ ,_⟩ (refl _)                                      ∎)
+                                                                           (Eq.propositional ext₁ _ _ _) ⟩
+
+          cong Eq.⟨ _ ,_⟩ (Eq.propositional ext₁ _ _ _)               ≡⟨ sym $ Eq.lift-equality-refl ext₁ ⟩∎
+
+          Eq.lift-equality ext₁ (refl _)                              ∎)
+       _
+       _)
+  where
+  lemma  = _≃_.left-inverse-of (Eq.↔⇒≃ Eq.≃-as-Σ)
+  lemma′ = ext⁻¹ (apply-ext (Eq.good-ext ext₁) lemma)
 
 -- Equality of equivalences is isomorphic to pointwise equality of the
 -- underlying /inverse/ functions (assuming extensionality).

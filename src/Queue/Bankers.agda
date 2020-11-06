@@ -36,7 +36,7 @@ private
 --
 -- Note that the invariant is erased.
 
-record Queue (@0 A : Set a) : Set a where
+record Queue (A : Set a) : Set a where
   field
     front rear               : List A
     length-front length-rear : ℕ
@@ -81,7 +81,7 @@ private
 
   -- Queues where the invariant may have been broken (slightly).
 
-  record Almost-queue (@0 A : Set a) : Set a where
+  record Almost-queue (A : Set a) : Set a where
     field
       front rear               : List A
       length-front length-rear : ℕ

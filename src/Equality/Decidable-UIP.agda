@@ -108,25 +108,43 @@ abstract
       (λ eq → f x y (subst (B x) eq (B-refl x))) ,
       (λ _ _ → propositional-domain⇒constant (B-prop x y) (f x y) _ _)
 
+  -- The function cong {x = x} {y = y} takes (weakly) constant
+  -- functions to constant functions.
+  --
+  -- This is Lemma 3.1 from van Doorn's "Constructing the
+  -- Propositional Truncation using Non-recursive HITs".
+
+  cong-preserves-Constant :
+    ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {x y : A} →
+    Constant f → Constant (cong {x = x} {y = y} f)
+  cong-preserves-Constant {f = f} {x = x} {y = y} c p q =
+    cong f p                     ≡⟨ lemma p ⟩
+    trans (sym (c x x)) (c x y)  ≡⟨ sym (lemma q) ⟩∎
+    cong f q                     ∎
+    where
+    lemma : ∀ p → cong {x = x} {y = y} f p ≡ trans (sym (c x x)) (c x y)
+    lemma = elim
+      (λ {x y} p → cong {x = x} {y = y} f p ≡ trans (sym (c x x)) (c x y))
+      (λ x →
+         cong f (refl x)              ≡⟨ cong-refl _ ⟩
+         refl (f x)                   ≡⟨ sym $ trans-symˡ _ ⟩∎
+         trans (sym (c x x)) (c x x)  ∎)
+
   -- The following two results come from "Generalizations of Hedberg's
   -- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
   -- Proposition 3.
+  --
+  -- (I proved this result using cong-preserves-Constant.)
 
   cong-constant :
     ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {x} {x≡x : x ≡ x} →
-    (c : Constant f) →
+    Constant f →
     cong f x≡x ≡ refl (f x)
   cong-constant {f = f} {x} {x≡x} c =
-    cong f x≡x                   ≡⟨ elim (λ {x y} x≡y →
-                                              cong f x≡y ≡ trans (sym (c x x)) (c x y))
-                                         (λ x →
-            cong f (refl x)                  ≡⟨ cong-refl _ ⟩
-            refl (f x)                       ≡⟨ sym $ trans-symˡ _ ⟩∎
-            trans (sym (c x x)) (c x x)      ∎)
-                                         _ ⟩
-    trans (sym (c x x)) (c x x)  ≡⟨ trans-symˡ _ ⟩∎
-    refl (f x)                   ∎
+    cong f x≡x       ≡⟨ cong-preserves-Constant c _ _ ⟩
+    cong f (refl x)  ≡⟨ cong-refl _ ⟩∎
+    refl (f x)       ∎
 
   -- The "Fixed Point Lemma".
 

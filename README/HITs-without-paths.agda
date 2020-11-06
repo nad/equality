@@ -7,7 +7,8 @@
 
 -- Note that the code does not follow the paper exactly. For instance,
 -- some definitions use bijections (functions with quasi-inverses)
--- instead of equivalences.
+-- instead of equivalences. Furthermore type universes are called
+-- "Set a" instead of "Type a".
 
 {-# OPTIONS --cubical --safe #-}
 

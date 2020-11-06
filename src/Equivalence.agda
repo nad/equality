@@ -285,6 +285,25 @@ record _≃_ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
   irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
   irrelevance = proj₂ ⊚ is-equivalence
 
+-- A variant of the previous result.
+
+↔→≃ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (f : A → B) (g : B → A) →
+  (∀ x → f (g x) ≡ x) →
+  (∀ x → g (f x) ≡ x) →
+  A ≃ B
+↔→≃ f g f∘g g∘f = ↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = f
+      ; from = g
+      }
+    ; right-inverse-of = f∘g
+    }
+  ; left-inverse-of = g∘f
+  })
+
 -- There is a logical equivalence between A ↔ B and A ≃ B.
 
 ↔⇔≃ :
@@ -831,6 +850,21 @@ abstract
          (λ f f-eq g-eq →
             cong (⟨_,_⟩ f) (propositional ext f f-eq g-eq))
          f≡g f-eq g-eq
+
+  -- A computation rule for lift-equality.
+
+  lift-equality-refl :
+    ∀ {a b} {A : Set a} {B : Set b}
+      {p : A ≃ B} {q : Is-equivalence (_≃_.to p)}
+    (ext : Extensionality (a ⊔ b) (a ⊔ b)) →
+    lift-equality ext (refl (_≃_.to p)) ≡
+    cong ⟨ _≃_.to p ,_⟩
+      (propositional ext (_≃_.to p) (_≃_.is-equivalence p) q)
+  lift-equality-refl ext =
+    cong (λ f → f _ _) $
+    elim-refl
+      (λ {f g} f≡g → ∀ f-eq g-eq → ⟨ f , f-eq ⟩ ≡ ⟨ g , g-eq ⟩)
+      _
 
   -- Two proofs of equivalence are equal if the /inverses/ of the
   -- function components are equal (assuming extensionality).
@@ -1492,7 +1526,7 @@ abstract
   _≃_.bijection $ ≃-preserves ext (↔⇒≃ A₁↔A₂) (↔⇒≃ B₁↔B₂)
 
 ------------------------------------------------------------------------
--- Another property
+-- More lemmas
 
 abstract
 
@@ -1527,3 +1561,33 @@ abstract
                                                               id ⟩□
          (subst (λ x → B x → W A B) (refl x) f ≡ g)  □)
       p f g
+
+  -- Some rearrangement lemmas.
+
+  to-subst :
+    ∀ {a p q} {A : Set a} {P : A → Set p} {Q : A → Set q}
+      {x y : A} {eq : x ≡ y} {f : P x ≃ Q x} →
+    _≃_.to (subst (λ x → P x ≃ Q x) eq f) ≡
+    subst (λ x → P x → Q x) eq (_≃_.to f)
+  to-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+    (λ eq →
+       _≃_.to (subst (λ x → P x ≃ Q x) eq f) ≡
+       subst (λ x → P x → Q x) eq (_≃_.to f))
+    (_≃_.to (subst (λ x → P x ≃ Q x) (refl _) f)  ≡⟨ cong _≃_.to $ subst-refl _ _ ⟩
+     _≃_.to f                                     ≡⟨ sym $ subst-refl _ _ ⟩∎
+     subst (λ x → P x → Q x) (refl _) (_≃_.to f)  ∎)
+    eq
+
+  from-subst :
+    ∀ {a p q} {A : Set a} {P : A → Set p} {Q : A → Set q}
+      {x y : A} {eq : x ≡ y} {f : P x ≃ Q x} →
+    _≃_.from (subst (λ x → P x ≃ Q x) eq f) ≡
+    subst (λ x → Q x → P x) eq (_≃_.from f)
+  from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+    (λ eq →
+       _≃_.from (subst (λ x → P x ≃ Q x) eq f) ≡
+       subst (λ x → Q x → P x) eq (_≃_.from f))
+    (_≃_.from (subst (λ x → P x ≃ Q x) (refl _) f)  ≡⟨ cong _≃_.from $ subst-refl _ _ ⟩
+     _≃_.from f                                     ≡⟨ sym $ subst-refl _ _ ⟩∎
+     subst (λ x → Q x → P x) (refl _) (_≃_.from f)  ∎)
+    eq

@@ -19,16 +19,18 @@ open import Erased.Level-1 eq as Erased
 open import Function-universe eq as F hiding (id; _∘_; inverse)
 open import H-level eq as H-level
 open import H-level.Closure eq
+import Nat eq as Nat
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq as Surjection using (_↠_; Split-surjective)
+open import Univalence-axiom eq
 
 private
   variable
-    a b d ℓ q  : Level
-    A B C      : Set a
-    k k′ p x y : A
-    P Q        : A → Set p
-    f g        : (x : A) → P x
+    a b d ℓ q        : Level
+    A B C            : Set a
+    c ext k k′ p x y : A
+    P Q              : A → Set p
+    f g              : (x : A) → P x
 
 ------------------------------------------------------------------------
 -- Some basic stuff
@@ -46,8 +48,14 @@ private
 
 @0 ⁻¹≃⁻¹ᴱ : f ⁻¹ y ≃ f ⁻¹ᴱ y
 ⁻¹≃⁻¹ᴱ {f = f} {y = y} =
-  (∃ λ x → f x ≡ y)           Eq.≃⟨ (Eq.Σ-preserves Eq.id λ _ → Eq.inverse $ Eq.↔⇒≃ $ erased Erased↔) ⟩□
+  (∃ λ x → f x ≡ y)           Eq.≃⟨ (∃-cong λ _ → Eq.inverse $ Eq.↔⇒≃ $ erased Erased↔) ⟩□
   (∃ λ x → Erased (f x ≡ y))  □
+
+_ : _≃_.to ⁻¹≃⁻¹ᴱ p ≡ ⁻¹→⁻¹ᴱ p
+_ = refl _
+
+@0 _ : _≃_.from ⁻¹≃⁻¹ᴱ p ≡ ⁻¹ᴱ→⁻¹ p
+_ = refl _
 
 -- In an erased context Contractible and Contractibleᴱ are pointwise
 -- equivalent.
@@ -55,8 +63,69 @@ private
 @0 Contractible≃Contractibleᴱ :
   Contractible A ≃ Contractibleᴱ A
 Contractible≃Contractibleᴱ =
-  (∃ λ x → ∀ y → x ≡ y)           Eq.≃⟨ (Eq.Σ-preserves Eq.id λ _ → Eq.inverse $ Eq.↔⇒≃ $ erased Erased↔) ⟩□
+  (∃ λ x → ∀ y → x ≡ y)           Eq.≃⟨ (∃-cong λ _ → Eq.inverse $ Eq.↔⇒≃ $ erased Erased↔) ⟩□
   (∃ λ x → Erased (∀ y → x ≡ y))  □
+
+_ :
+  _≃_.to Contractible≃Contractibleᴱ c ≡ Contractible→Contractibleᴱ c
+_ = refl _
+
+@0 _ :
+  _≃_.from Contractible≃Contractibleᴱ c ≡ Contractibleᴱ→Contractible c
+_ = refl _
+
+private
+
+  -- In an erased context Is-equivalence and Is-equivalenceᴱ are
+  -- pointwise equivalent (assuming extensionality).
+  --
+  -- This lemma is not exported. See Is-equivalence≃Is-equivalenceᴱ
+  -- below, which computes in a different way.
+
+  @0 Is-equivalence≃Is-equivalenceᴱ′ :
+    {A : Set a} {B : Set b} {f : A → B} →
+    Extensionality? k (a ⊔ b) (a ⊔ b) →
+    Is-equivalence f ↝[ k ] Is-equivalenceᴱ f
+  Is-equivalence≃Is-equivalenceᴱ′ {a = a} {k = k} {f = f} ext =
+    (∀ y → Contractible (f ⁻¹ y))    ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 ⁻¹≃⁻¹ᴱ) ⟩
+    (∀ y → Contractible (f ⁻¹ᴱ y))   ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Contractible≃Contractibleᴱ) ⟩□
+    (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  □
+    where
+    ext′ = lower-extensionality? k a lzero ext
+
+------------------------------------------------------------------------
+-- Some type formers are propositional in erased contexts
+
+-- In an erased context Contractibleᴱ is propositional (assuming
+-- extensionality).
+
+@0 Contractibleᴱ-propositional :
+  {A : Set a} →
+  Extensionality a a →
+  Is-proposition (Contractibleᴱ A)
+Contractibleᴱ-propositional ext =
+  H-level.respects-surjection
+    (_≃_.surjection Contractible≃Contractibleᴱ)
+    1
+    (Contractible-propositional ext)
+
+-- In an erased context Is-equivalenceᴱ f is a proposition (assuming
+-- extensionality).
+--
+-- See also Is-equivalenceᴱ-propositional-for-Erased below.
+
+@0 Is-equivalenceᴱ-propositional :
+  {A : Set a} {B : Set b} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  (f : A → B) → Is-proposition (Is-equivalenceᴱ f)
+Is-equivalenceᴱ-propositional ext f =
+  H-level.respects-surjection
+    (_≃_.surjection $ Is-equivalence≃Is-equivalenceᴱ′ ext)
+    1
+    (Eq.propositional ext f)
+
+------------------------------------------------------------------------
+-- Even more conversion lemmas
 
 -- In an erased context Is-equivalence and Is-equivalenceᴱ are
 -- pointwise equivalent (assuming extensionality).
@@ -65,12 +134,25 @@ Contractible≃Contractibleᴱ =
   {A : Set a} {B : Set b} {f : A → B} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Is-equivalence f ↝[ k ] Is-equivalenceᴱ f
-Is-equivalence≃Is-equivalenceᴱ {a = a} {k = k} {f = f} ext =
-  (∀ y → Contractible (f ⁻¹ y))    ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 ⁻¹≃⁻¹ᴱ) ⟩
-  (∀ y → Contractible (f ⁻¹ᴱ y))   ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Contractible≃Contractibleᴱ) ⟩□
-  (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  □
-  where
-  ext′ = lower-extensionality? k a lzero ext
+Is-equivalence≃Is-equivalenceᴱ {k = equivalence} ext =
+  Eq.with-other-function
+    (Eq.with-other-inverse
+       (Is-equivalence≃Is-equivalenceᴱ′ ext)
+       Is-equivalenceᴱ→Is-equivalence
+       (λ _ → Eq.propositional ext _ _ _))
+    Is-equivalence→Is-equivalenceᴱ
+    (λ _ → Is-equivalenceᴱ-propositional ext _ _ _)
+Is-equivalence≃Is-equivalenceᴱ = Is-equivalence≃Is-equivalenceᴱ′
+
+_ :
+  _≃_.to (Is-equivalence≃Is-equivalenceᴱ ext) p ≡
+  Is-equivalence→Is-equivalenceᴱ p
+_ = refl _
+
+@0 _ :
+  _≃_.from (Is-equivalence≃Is-equivalenceᴱ ext) p ≡
+  Is-equivalenceᴱ→Is-equivalence p
+_ = refl _
 
 -- In an erased context _≃_ and _≃ᴱ_ are pointwise equivalent
 -- (assuming extensionality).
@@ -84,6 +166,12 @@ Is-equivalence≃Is-equivalenceᴱ {a = a} {k = k} {f = f} ext =
   (∃ λ f → Is-equivalence f)   ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalenceᴱ ext) ⟩
   (∃ λ f → Is-equivalenceᴱ f)  ↔⟨ Eq.inverse ≃ᴱ-as-Σ ⟩□
   A ≃ᴱ B                       □
+
+_ : _≃_.to (≃≃≃ᴱ ext) p ≡ ≃→≃ᴱ p
+_ = refl _
+
+@0 _ : _≃_.from (≃≃≃ᴱ ext) p ≡ ≃ᴱ→≃ p
+_ = refl _
 
 -- A half adjoint equivalence with erased proofs can be turned into an
 -- equivalence with erased proofs.
@@ -197,7 +285,7 @@ Erased-Contractibleᴱ↔Erased-Contractible =
   Erased (∃ λ x → ∀ y → x ≡ y)                    □
 
 ------------------------------------------------------------------------
--- Some lemmas
+-- Some preservation lemmas
 
 -- A preservation lemma related to Σ.
 --
@@ -206,10 +294,7 @@ Erased-Contractibleᴱ↔Erased-Contractible =
 -- the time of writing) is included explicitly to show where f∘g is
 -- used in a (potentially) non-erased context.
 --
--- Presumably more lemmas of this kind could be proved (for instance a
--- variant for Π), but so far I have not found any use for them.
---
--- See also Σ-cong-≃ᴱ-Erased and Σ-cong-contra-≃ᴱ-Erased below.
+-- See also Σ-cong-≃ᴱ-Erased below.
 
 Σ-cong-≃ᴱ :
   (f : A → B) (g : B → A)
@@ -226,6 +311,128 @@ Erased-Contractibleᴱ↔Erased-Contractible =
                  Eq.⟨ f , (λ y → (g y , f∘g y) , irr y) ⟩
                  (≃ᴱ→≃ ⊚ P≃Q)))
 
+-- Another preservation lemma related to Σ.
+--
+-- See also Σ-cong-contra-≃ᴱ-Erased below.
+
+Σ-cong-contra-≃ᴱ :
+  (f : B → A) (g : A → B)
+  (f∘g : ∀ x → f (g x) ≡ x) →
+  @0 (∀ y (p : f ⁻¹ y) → (g y , f∘g y) ≡ p) →
+  (∀ x → P (f x) ≃ᴱ Q x) →
+  Σ A P ≃ᴱ Σ B Q
+Σ-cong-contra-≃ᴱ f g f∘g irr P≃Q =
+  inverse $ Σ-cong-≃ᴱ f g f∘g irr (inverse ⊚ P≃Q)
+
+-- Two preservation lemmas related to Π.
+--
+-- See also Π-cong-≃ᴱ-Erased and Π-cong-contra-≃ᴱ-Erased below.
+
+Π-cong-≃ᴱ :
+  {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q} →
+  @0 Extensionality (a ⊔ b) (p ⊔ q) →
+  (f : A → B) (g : B → A)
+  (f∘g : ∀ x → f (g x) ≡ x) →
+  @0 (∀ y (p : f ⁻¹ y) → (g y , f∘g y) ≡ p) →
+  (∀ x → P x ≃ᴱ Q (f x)) →
+  ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
+Π-cong-≃ᴱ {Q = Q} ext f g f∘g irr P≃Q =
+  [≃]→≃ᴱ
+    {to = λ h x → subst Q (f∘g x) (_≃ᴱ_.to (P≃Q (g x)) (h (g x)))}
+    ([proofs] (Π-cong
+                 ext
+                 Eq.⟨ f , (λ y → (g y , f∘g y) , irr y) ⟩
+                 (≃ᴱ→≃ ⊚ P≃Q)))
+
+Π-cong-contra-≃ᴱ :
+  {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q} →
+  @0 Extensionality (a ⊔ b) (p ⊔ q) →
+  (f : B → A) (g : A → B)
+  (f∘g : ∀ x → f (g x) ≡ x) →
+  @0 (∀ y (p : f ⁻¹ y) → (g y , f∘g y) ≡ p) →
+  (∀ x → P (f x) ≃ᴱ Q x) →
+  ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
+Π-cong-contra-≃ᴱ ext f g f∘g irr P≃Q =
+  inverse $ Π-cong-≃ᴱ ext f g f∘g irr (inverse ⊚ P≃Q)
+
+-- A variant of ∀-cong for _≃ᴱ_.
+
+∀-cong-≃ᴱ :
+  {A : Set a} {P : A → Set p} {Q : A → Set q} →
+  @0 Extensionality a (p ⊔ q) →
+  (∀ x → P x ≃ᴱ Q x) →
+  ((x : A) → P x) ≃ᴱ ((x : A) → Q x)
+∀-cong-≃ᴱ ext P≃Q = [≃]→≃ᴱ ([proofs] (∀-cong ext (≃ᴱ→≃ ⊚ P≃Q)))
+
+-- The _≃ᴱ_ operator preserves equivalences with erased proofs
+-- (assuming extensionality).
+
+≃ᴱ-cong :
+  {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+  @0 Extensionality (a ⊔ b ⊔ c ⊔ d) (a ⊔ b ⊔ c ⊔ d) →
+  A ≃ᴱ B → C ≃ᴱ D → (A ≃ᴱ C) ≃ᴱ (B ≃ᴱ D)
+≃ᴱ-cong
+  {a = a} {b = b} {c = c} {d = d}
+  {A = A} {B = B} {C = C} {D = D} ext A≃B C≃D =
+  [≃]→≃ᴱ ([proofs] lemma)
+  where
+  @0 lemma : (A ≃ᴱ C) ≃ (B ≃ᴱ D)
+  lemma =
+    A ≃ᴱ C  ↝⟨ F.inverse $ ≃≃≃ᴱ (lower-extensionality (b ⊔ d) (b ⊔ d) ext) ⟩
+    A ≃ C   ↝⟨ Eq.≃-preserves ext (≃ᴱ→≃ A≃B) (≃ᴱ→≃ C≃D) ⟩
+    B ≃ D   ↝⟨ ≃≃≃ᴱ (lower-extensionality (a ⊔ c) (a ⊔ c) ext) ⟩□
+    B ≃ᴱ D  □
+
+------------------------------------------------------------------------
+-- Variants of some lemmas from Function-universe
+
+-- A variant of drop-⊤-left-Σ.
+--
+-- See also drop-⊤-left-Σ-≃ᴱ-Erased below.
+
+drop-⊤-left-Σ-≃ᴱ :
+  (A≃⊤ : A ≃ᴱ ⊤) →
+  (∀ x y → P x ≃ᴱ P y) →
+  Σ A P ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
+drop-⊤-left-Σ-≃ᴱ {A = A} {P = P} A≃⊤ P≃P =
+  Σ A P                            ↝⟨ Σ-cong-≃ᴱ
+                                        _
+                                        (_≃ᴱ_.from A≃⊤)
+                                        refl
+                                        (λ _ _ → cong₂ _,_
+                                                   (_≃ᴱ_.left-inverse-of A≃⊤ _)
+                                                   (mono (Nat.zero≤ 2) ⊤-contractible _ _))
+                                        (λ _ → P≃P _ _) ⟩
+  Σ ⊤ (λ x → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Σ-left-identity ⟩□
+  P (_≃ᴱ_.from A≃⊤ tt)             □
+
+-- A variant of drop-⊤-left-Π.
+--
+-- See also drop-⊤-left-Π-≃ᴱ-Erased below.
+
+drop-⊤-left-Π-≃ᴱ :
+  {A : Set a} {P : A → Set p} →
+  @0 Extensionality a p →
+  (A≃⊤ : A ≃ᴱ ⊤) →
+  (∀ x y → P x ≃ᴱ P y) →
+  ((x : A) → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
+drop-⊤-left-Π-≃ᴱ {A = A} {P = P} ext A≃⊤ P≃P =
+  ((x : A) → P x)                  ↝⟨ Π-cong-≃ᴱ
+                                        ext
+                                        _
+                                        (_≃ᴱ_.from A≃⊤)
+                                        refl
+                                        (λ _ _ → cong₂ _,_
+                                                   (_≃ᴱ_.left-inverse-of A≃⊤ _)
+                                                   (mono (Nat.zero≤ 2) ⊤-contractible _ _))
+                                        (λ _ → P≃P _ _) ⟩
+  ((x : ⊤) → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Π-left-identity ⟩□
+  P (_≃ᴱ_.from A≃⊤ tt)             □
+
+------------------------------------------------------------------------
+-- Lemmas relating equality between equivalences (with erased proofs)
+-- to equality between the forward directions of the equivalences
+
 -- In an erased context two equivalences are equal if the underlying
 -- functions are equal (assuming extensionality).
 --
@@ -238,6 +445,22 @@ Erased-Contractibleᴱ↔Erased-Contractible =
 to≡to→≡ ext p≡q =
   _≃_.to (Eq.≃-≡ (Eq.inverse $ ≃≃≃ᴱ ext))
     (Eq.lift-equality ext p≡q)
+
+-- A variant of ≃-to-≡↔≡.
+
+@0 to≡to≃≡ :
+  {A : Set a} {B : Set b} {p q : A ≃ᴱ B} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  (∀ x → _≃ᴱ_.to p x ≡ _≃ᴱ_.to q x) ≃ (p ≡ q)
+to≡to≃≡ {p = p} {q = q} ext =
+  (∀ x → _≃ᴱ_.to p x ≡ _≃ᴱ_.to q x)              ↔⟨⟩
+
+  (∀ x → _≃_.to (_≃_.from (≃≃≃ᴱ ext) p) x ≡
+         _≃_.to (_≃_.from (≃≃≃ᴱ ext) q) x)       ↔⟨ ≃-to-≡↔≡ ext ⟩
+
+  _≃_.from (≃≃≃ᴱ ext) p ≡ _≃_.from (≃≃≃ᴱ ext) q  ↝⟨ Eq.≃-≡ (Eq.inverse $ ≃≃≃ᴱ ext) ⟩□
+
+  p ≡ q                                          □
 
 -- If f is a half adjoint equivalence with certain erased proofs, then
 -- x ≡ y is equivalent (with erased proofs) to f x ≡ f y.
@@ -297,37 +520,6 @@ to≡to→≡ ext p≡q =
     })
 
 ------------------------------------------------------------------------
--- Some type formers are propositional in erased contexts
-
--- In an erased context Contractibleᴱ is propositional (assuming
--- extensionality).
-
-@0 Contractibleᴱ-propositional :
-  {A : Set a} →
-  Extensionality a a →
-  Is-proposition (Contractibleᴱ A)
-Contractibleᴱ-propositional ext =
-  H-level.respects-surjection
-    (_≃_.surjection Contractible≃Contractibleᴱ)
-    1
-    (Contractible-propositional ext)
-
--- In an erased context Is-equivalenceᴱ f is a proposition (assuming
--- extensionality).
---
--- See also Is-equivalenceᴱ-propositional-for-Erased below.
-
-@0 Is-equivalenceᴱ-propositional :
-  {A : Set a} {B : Set b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
-  (f : A → B) → Is-proposition (Is-equivalenceᴱ f)
-Is-equivalenceᴱ-propositional ext f =
-  H-level.respects-surjection
-    (_≃_.surjection $ Is-equivalence≃Is-equivalenceᴱ ext)
-    1
-    (Eq.propositional ext f)
-
-------------------------------------------------------------------------
 -- Some results related to Contractibleᴱ
 
 -- Contractibleᴱ respects split surjections with erased proofs.
@@ -360,8 +552,8 @@ Contractibleᴱ-⁻¹ᴱ :
   (@0 g∘f : ∀ x → g (f x) ≡ x) →
   ∀ y → Contractibleᴱ (f ⁻¹ᴱ y)
 Contractibleᴱ-⁻¹ᴱ {A = A} {B = B} f g f∘g g∘f y =
-    (g y , [ proj₂ (proj₁ c)  ])
-  , [ cong ⁻¹→⁻¹ᴱ ⊚ proj₂ c ⊚ ⁻¹ᴱ→⁻¹ ]
+    (g y , [ proj₂ (proj₁ c′) ])
+  , [ cong ⁻¹→⁻¹ᴱ ⊚ proj₂ c′ ⊚ ⁻¹ᴱ→⁻¹ ]
   where
   @0 A↔B : A ↔ B
   A↔B = record
@@ -375,8 +567,8 @@ Contractibleᴱ-⁻¹ᴱ {A = A} {B = B} f g f∘g g∘f y =
     ; left-inverse-of = g∘f
     }
 
-  @0 c : Contractible (f ⁻¹ y)
-  c = Preimage.bijection⁻¹-contractible A↔B y
+  @0 c′ : Contractible (f ⁻¹ y)
+  c′ = Preimage.bijection⁻¹-contractible A↔B y
 
 -- Two types that are contractible (with erased proofs) are equivalent
 -- (with erased proofs).
@@ -410,7 +602,7 @@ Contractibleᴱ⇔≃ᴱ⊤ = record
 
 Contractibleᴱ≃ᴱ≃ᴱ⊤ :
   {A : Set a} →
-  Extensionality a a →
+  @0 Extensionality a a →
   Contractibleᴱ A ≃ᴱ (A ≃ᴱ ⊤)
 Contractibleᴱ≃ᴱ≃ᴱ⊤ ext = ↔→≃ᴱ
   (_⇔_.to   Contractibleᴱ⇔≃ᴱ⊤)
@@ -462,8 +654,26 @@ Contractibleᴱ-↑ c@(a , _) =
   , [ proj₂ $ ↑-closure 0 (Contractibleᴱ→Contractible c)
     ]
 
+-- Contractibleᴱ commutes with _×_ (up to _≃ᴱ_, assuming
+-- extensionality).
+
+Contractibleᴱ-commutes-with-× :
+  {A : Set a} {B : Set b} →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
+  Contractibleᴱ (A × B) ≃ᴱ (Contractibleᴱ A × Contractibleᴱ B)
+Contractibleᴱ-commutes-with-× {a = a} {b = b} {A = A} {B = B} ext =
+  [≃]→≃ᴱ ([proofs] lemma)
+  where
+  @0 lemma : _
+  lemma =
+    Contractibleᴱ (A × B)                ↝⟨ F.inverse Contractible≃Contractibleᴱ ⟩
+    Contractible (A × B)                 ↝⟨ Contractible-commutes-with-× ext ⟩
+    (Contractible A × Contractible B)    ↝⟨ Contractible≃Contractibleᴱ ×-cong
+                                            Contractible≃Contractibleᴱ ⟩□
+    (Contractibleᴱ A × Contractibleᴱ B)  □
+
 ------------------------------------------------------------------------
--- The groupoid laws hold for id and _∘_
+-- Groupoid laws and related properties
 
 module Groupoid where
 
@@ -507,6 +717,113 @@ module Groupoid where
     to≡to→≡ ext $ apply-ext ext $
     _≃_.right-inverse-of (≃ᴱ→≃ f)
 
+-- Inverse is a logical equivalence.
+
+inverse-logical-equivalence : A ≃ᴱ B ⇔ B ≃ᴱ A
+inverse-logical-equivalence = record
+  { to   = inverse
+  ; from = inverse
+  }
+
+-- Inverse is an equivalence with erased proofs (assuming
+-- extensionality).
+
+inverse-equivalence :
+  {A : Set a} {B : Set b} →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
+  (A ≃ᴱ B) ≃ᴱ (B ≃ᴱ A)
+inverse-equivalence ext = ↔→≃ᴱ
+  inverse
+  inverse
+  (λ _ → to≡to→≡ ext (refl _))
+  (λ _ → to≡to→≡ ext (refl _))
+
+------------------------------------------------------------------------
+-- Some results that depend on univalence
+
+-- Singletons expressed using equivalences with erased proofs instead
+-- of equalities are equivalent (with erased proofs) to the unit type
+-- (assuming extensionality and univalence).
+
+singleton-with-≃ᴱ-≃ᴱ-⊤ :
+  ∀ a {B : Set b} →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
+  @0 Univalence (a ⊔ b) →
+  (∃ λ (A : Set (a ⊔ b)) → A ≃ᴱ B) ≃ᴱ ⊤
+singleton-with-≃ᴱ-≃ᴱ-⊤ {b = b} a {B = B} ext univ =
+  [≃]→≃ᴱ ([proofs] lemma)
+  where
+  @0 lemma : (∃ λ (A : Set (a ⊔ b)) → A ≃ᴱ B) ≃ ⊤
+  lemma =
+    (∃ λ (A : Set (a ⊔ b)) → A ≃ᴱ B)  ↝⟨ (∃-cong λ _ → F.inverse $ ≃≃≃ᴱ ext) ⟩
+    (∃ λ (A : Set (a ⊔ b)) → A ≃ B)   ↔⟨ singleton-with-≃-↔-⊤ {a = a} ext univ ⟩□
+    ⊤                                 □
+
+other-singleton-with-≃ᴱ-≃ᴱ-⊤ :
+  ∀ b {A : Set a} →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
+  @0 Univalence (a ⊔ b) →
+  (∃ λ (B : Set (a ⊔ b)) → A ≃ᴱ B) ≃ᴱ ⊤
+other-singleton-with-≃ᴱ-≃ᴱ-⊤ b {A = A} ext univ =
+  (∃ λ B → A ≃ᴱ B)  ↝⟨ (∃-cong λ _ → inverse-equivalence ext) ⟩
+  (∃ λ B → B ≃ᴱ A)  ↝⟨ singleton-with-≃ᴱ-≃ᴱ-⊤ b ext univ ⟩□
+  ⊤                 □
+
+-- Variants of the two lemmas above.
+
+singleton-with-Π-≃ᴱ-≃ᴱ-⊤ :
+  {A : Set a} {Q : A → Set q} →
+  @0 Extensionality (a ⊔ q) (lsuc q) →
+  @0 Univalence q →
+  (∃ λ (P : A → Set q) → ∀ x → P x ≃ᴱ Q x) ≃ᴱ ⊤
+singleton-with-Π-≃ᴱ-≃ᴱ-⊤ {a = a} {q = q} {A = A} {Q = Q} ext univ =
+  [≃]→≃ᴱ ([proofs] lemma)
+  where
+  @0 ext₁ : Extensionality a (lsuc q)
+  ext₁ = lower-extensionality q lzero ext
+
+  @0 ext₂ : Extensionality a q
+  ext₂ = lower-extensionality lzero _ ext₁
+
+  @0 ext₃ : Extensionality q q
+  ext₃ = lower-extensionality a _ ext
+
+  @0 lemma : (∃ λ (P : A → Set q) → ∀ x → P x ≃ᴱ Q x) ≃ ⊤
+  lemma =
+    (∃ λ (P : A → Set q) → ∀ x → P x ≃ᴱ Q x)  ↝⟨ (∃-cong λ _ → ∀-cong ext₂ λ _ → F.inverse $ ≃≃≃ᴱ ext₃) ⟩
+    (∃ λ (P : A → Set q) → ∀ x → P x ≃ Q x)   ↔⟨ singleton-with-Π-≃-≃-⊤ ext₁ univ ⟩□
+    ⊤                                         □
+
+other-singleton-with-Π-≃ᴱ-≃ᴱ-⊤ :
+  {A : Set a} {P : A → Set p} →
+  @0 Extensionality (a ⊔ p) (lsuc p) →
+  @0 Univalence p →
+  (∃ λ (Q : A → Set p) → ∀ x → P x ≃ᴱ Q x) ≃ᴱ ⊤
+other-singleton-with-Π-≃ᴱ-≃ᴱ-⊤ {a = a} {p = p} {A = A} {P = P}
+                               ext univ =
+  (∃ λ (Q : A → Set p) → ∀ x → P x ≃ᴱ Q x)  ↝⟨ (∃-cong λ _ → ∀-cong-≃ᴱ ext₁ λ _ → inverse-equivalence ext₂) ⟩
+  (∃ λ (Q : A → Set p) → ∀ x → Q x ≃ᴱ P x)  ↝⟨ singleton-with-Π-≃ᴱ-≃ᴱ-⊤ ext univ ⟩□
+  ⊤                                         □
+  where
+  @0 ext₁ : Extensionality a p
+  ext₁ = lower-extensionality p _ ext
+
+  @0 ext₂ : Extensionality p p
+  ext₂ = lower-extensionality a _ ext
+
+-- ∃ Contractibleᴱ is equivalent (with erased proofs) to the unit type
+-- (assuming extensionality and univalence).
+
+∃Contractibleᴱ≃ᴱ⊤ :
+  ∀ {a} →
+  @0 Extensionality a a →
+  @0 Univalence a →
+  (∃ λ (A : Set a) → Contractibleᴱ A) ≃ᴱ ⊤
+∃Contractibleᴱ≃ᴱ⊤ ext univ =
+  (∃ λ A → Contractibleᴱ A)  ↝⟨ (∃-cong λ _ → Contractibleᴱ≃ᴱ≃ᴱ⊤ ext) ⟩
+  (∃ λ A → A ≃ᴱ ⊤)           ↝⟨ singleton-with-≃ᴱ-≃ᴱ-⊤ _ ext univ ⟩□
+  ⊤                          □
+
 ------------------------------------------------------------------------
 -- Some simplification lemmas
 
@@ -549,6 +866,43 @@ left-inverse-of∘inverse {A = A} {B = B} {x = x} A≃B =
          right-inverse-of (to (from x))                          ∎)
   where
   open _≃ᴱ_ A≃B
+
+-- Two simplification lemmas for subst.
+
+to-subst :
+  {eq : x ≡ y} {f : P x ≃ᴱ Q x} →
+  _≃ᴱ_.to (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
+  subst (λ x → P x → Q x) eq (_≃ᴱ_.to f)
+to-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+  (λ eq →
+     _≃ᴱ_.to (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
+     subst (λ x → P x → Q x) eq (_≃ᴱ_.to f))
+  (_≃ᴱ_.to (subst (λ x → P x ≃ᴱ Q x) (refl _) f)  ≡⟨ cong _≃ᴱ_.to $ subst-refl _ _ ⟩
+   _≃ᴱ_.to f                                      ≡⟨ sym $ subst-refl _ _ ⟩∎
+   subst (λ x → P x → Q x) (refl _) (_≃ᴱ_.to f)   ∎)
+  eq
+
+from-subst :
+  {eq : x ≡ y} {f : P x ≃ᴱ Q x} →
+  _≃ᴱ_.from (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
+  subst (λ x → Q x → P x) eq (_≃ᴱ_.from f)
+from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+  (λ eq →
+     _≃ᴱ_.from (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
+     subst (λ x → Q x → P x) eq (_≃ᴱ_.from f))
+  (_≃ᴱ_.from (subst (λ x → P x ≃ᴱ Q x) (refl _) f)  ≡⟨ cong _≃ᴱ_.from $ subst-refl _ _ ⟩
+   _≃ᴱ_.from f                                      ≡⟨ sym $ subst-refl _ _ ⟩∎
+   subst (λ x → Q x → P x) (refl _) (_≃ᴱ_.from f)   ∎)
+  eq
+
+------------------------------------------------------------------------
+-- One of the two-out-of-three properties
+
+-- If f and g are equivalences with erased proofs, then g ⊚ f is also
+-- an equivalence with erased proofs.
+
+12→3 : Is-equivalenceᴱ f → Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f)
+12→3 p q = _≃ᴱ_.is-equivalence (⟨ _ , q ⟩ ∘ ⟨ _ , p ⟩)
 
 ------------------------------------------------------------------------
 -- Results that depend on an axiomatisation of []-cong
@@ -677,7 +1031,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Π-cong-≃ᴱ-Erased :
     {A : Set a} {B : Set b} {P : A → Set p} {Q : @0 B → Set q} →
-    Extensionality (a ⊔ b) (p ⊔ q) →
+    @0 Extensionality (a ⊔ b) (p ⊔ q) →
     (A≃B : A ≃ᴱ B) →
     (∀ x → P x ≃ᴱ Q (_≃ᴱ_.to A≃B x)) →
     ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
@@ -705,7 +1059,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Π-cong-contra-≃ᴱ-Erased :
     {A : Set a} {B : Set b} {P : @0 A → Set p} {Q : B → Set q} →
-    Extensionality (a ⊔ b) (p ⊔ q) →
+    @0 Extensionality (a ⊔ b) (p ⊔ q) →
     (B≃A : B ≃ᴱ A) →
     (∀ x → P (_≃ᴱ_.to B≃A x) ≃ᴱ Q x) →
     ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
@@ -733,7 +1087,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Contractibleᴱ-cong :
     {A : Set a} {B : Set b} →
-    Extensionality? k′ (a ⊔ b) (a ⊔ b) →
+    @0 Extensionality? k′ (a ⊔ b) (a ⊔ b) →
     A ↔[ k ] B → Contractibleᴱ A ↝[ k′ ] Contractibleᴱ B
   Contractibleᴱ-cong {A = A} {B = B} ext A↔B =
     (∃ λ (x : A) → Erased ((y : A) → x ≡ y))  ↝⟨ (Σ-cong A≃B′ λ _ →
@@ -767,6 +1121,35 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                          Contractibleᴱ-cong ext $
                                          ⁻¹ᴱ-respects-extensional-equality f≡g) ⟩□
     (∀ y → Contractibleᴱ (g ⁻¹ᴱ y))  □
+
+  ----------------------------------------------------------------------
+  -- The remaining two-out-of-three properties
+
+  -- If g and g ⊚ f are equivalences with erased proofs, then f is
+  -- also an equivalence with erased proofs.
+
+  23→1 :
+    Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f
+  23→1 {g = g} {f = f} q r =
+    Is-equivalenceᴱ-respects-extensional-equality
+      _
+      (λ x →
+         _≃ᴱ_.from ⟨ g , q ⟩ (g (f x))  ≡⟨ _≃ᴱ_.left-inverse-of ⟨ g , q ⟩ (f x) ⟩∎
+         f x                            ∎)
+      (_≃ᴱ_.is-equivalence (inverse ⟨ _ , q ⟩ ∘ ⟨ _ , r ⟩))
+
+  -- If g ⊚ f and f are equivalences with erased proofs, then g is
+  -- also an equivalence with erased proofs.
+
+  31→2 :
+    Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f → Is-equivalenceᴱ g
+  31→2 {g = g} {f = f} r p =
+    Is-equivalenceᴱ-respects-extensional-equality
+      _
+      (λ x →
+         g (f (_≃ᴱ_.from ⟨ f , p ⟩ x))  ≡⟨ cong g (_≃ᴱ_.right-inverse-of ⟨ f , p ⟩ x) ⟩∎
+         g x                            ∎)
+      (_≃ᴱ_.is-equivalence (⟨ _ , r ⟩ ∘ inverse ⟨ _ , p ⟩))
 
   ----------------------------------------------------------------------
   -- The left-to-right and right-to-left components of an equivalence
@@ -808,13 +1191,38 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   _ = refl _
 
   ----------------------------------------------------------------------
+  -- Variants of some lemmas from Function-universe
+
+  -- A variant of drop-⊤-left-Σ.
+
+  drop-⊤-left-Σ-≃ᴱ-Erased :
+    {P : @0 A → Set p} →
+    (A≃⊤ : A ≃ᴱ ⊤) → Σ A (λ x → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
+  drop-⊤-left-Σ-≃ᴱ-Erased {A = A} {P = P} A≃⊤ =
+    Σ A (λ x → P x)                  ↝⟨ inverse $ Σ-cong-≃ᴱ-Erased (inverse A≃⊤) (λ _ → F.id) ⟩
+    Σ ⊤ (λ x → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Σ-left-identity ⟩□
+    P (_≃ᴱ_.from A≃⊤ tt)             □
+
+  -- A variant of drop-⊤-left-Π.
+
+  drop-⊤-left-Π-≃ᴱ-Erased :
+    {A : Set a} {P : @0 A → Set p} →
+    @0 Extensionality a p →
+    (A≃⊤ : A ≃ᴱ ⊤) →
+    ((x : A) → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
+  drop-⊤-left-Π-≃ᴱ-Erased {A = A} {P = P} ext A≃⊤ =
+    ((x : A) → P x)                  ↝⟨ Π-cong-contra-≃ᴱ-Erased ext (inverse A≃⊤) (λ _ → F.id) ⟩
+    ((x : ⊤) → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Π-left-identity ⟩□
+    P (_≃ᴱ_.from A≃⊤ tt)             □
+
+  ----------------------------------------------------------------------
   -- A lemma
 
   -- Erased commutes with Contractibleᴱ.
 
   Erased-Contractibleᴱ↔Contractibleᴱ-Erased :
     {@0 A : Set a} →
-    Extensionality? k a a →
+    @0 Extensionality? k a a →
     Erased (Contractibleᴱ A) ↝[ k ] Contractibleᴱ (Erased A)
   Erased-Contractibleᴱ↔Contractibleᴱ-Erased {A = A} ext =
     Erased (∃ λ x → Erased ((y : A) → x ≡ y))           ↔⟨ Erased-cong-↔ (∃-cong λ _ → erased Erased↔) ⟩
@@ -851,7 +1259,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     Extensionality? k a a →
     Contractibleᴱ (Erased A) ↝[ k ] Contractible (Erased A)
   Contractibleᴱ-Erased↔Contractible-Erased {A = A} ext =
-    Contractibleᴱ (Erased A)  ↝⟨ inverse-ext? Erased-Contractibleᴱ↔Contractibleᴱ-Erased ext ⟩
+    Contractibleᴱ (Erased A)  ↝⟨ inverse-erased-ext? Erased-Contractibleᴱ↔Contractibleᴱ-Erased ext ⟩
     Erased (Contractibleᴱ A)  ↔⟨ Erased-Contractibleᴱ↔Erased-Contractible ⟩
     Erased (Contractible A)   ↝⟨ Erased-H-level↔H-level ext 0 ⟩□
     Contractible (Erased A)   □

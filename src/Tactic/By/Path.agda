@@ -12,7 +12,7 @@ import Agda.Builtin.Cubical.Path
 open import Equality.Path
 open import Prelude
 
-open import List equality-with-J
+open import List equality-with-J as L
 open import Maybe equality-with-J
 open import Monad equality-with-J
 open import Tactic.By equality-with-J as TB
@@ -52,7 +52,8 @@ private
                         arguments m
 
     the-clause = clause
-      (varg (var "f") ∷ replicate n (varg (var "eq")))
+      (("f" , varg unknown) ∷ replicate n ("eq" , varg unknown))
+      (varg (var n) ∷ L.map (varg ∘ var) (nats-< n))
       (lam visible $ abs "i" $
        var (n + 1) (arguments n))
 

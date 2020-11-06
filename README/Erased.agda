@@ -14,7 +14,7 @@
 -- --cubical, and some parts use --with-K. However, all files
 -- imported below use --safe.
 
-{-# OPTIONS  --cubical --with-K #-}
+{-# OPTIONS --cubical --with-K #-}
 
 module README.Erased where
 

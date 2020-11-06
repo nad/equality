@@ -1528,7 +1528,7 @@ lift-category-Obj ℓ₁′ C .Category.category =
       C′.≡→≅
       (elim (λ X≡Y → C.≡→≅ (cong lower X≡Y) ≡ C′.≡→≅ X≡Y)
          (λ X →
-            C.≡→≅ (cong lower (refl X))  ≡⟨ cong C.≡→≅ $ cong-refl _ ⟩
+            C.≡→≅ (cong lower (refl X))  ≡⟨ cong C.≡→≅ $ cong-refl lower ⟩
             C.≡→≅ (refl (lower X))       ≡⟨ C.≡→≅-refl ⟩
             C.id≅                        ≡⟨⟩
             C′.id≅                       ≡⟨ sym C′.≡→≅-refl ⟩∎

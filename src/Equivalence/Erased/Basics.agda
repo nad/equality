@@ -86,20 +86,47 @@ Is-equivalenceᴱ→Is-equivalence eq y =
 ------------------------------------------------------------------------
 -- Another basic type
 
--- Equivalences with erased proofs.
+private
+ module Dummy where
 
-infix 4 _≃ᴱ_
+  -- Equivalences with erased proofs.
 
-record _≃ᴱ_ (A : Set a) (B : Set b) : Set (a ⊔ b) where
-  constructor ⟨_,_⟩
-  field
-    to             : A → B
-    is-equivalence : Is-equivalenceᴱ to
+  infix 4 _≃ᴱ_
+
+  record _≃ᴱ_ (A : Set a) (B : Set b) : Set (a ⊔ b) where
+    constructor ⟨_,_⟩
+    field
+      to             : A → B
+      is-equivalence : Is-equivalenceᴱ to
+
+open Dummy public using (_≃ᴱ_; ⟨_,_⟩) hiding (module _≃ᴱ_)
+
+-- A variant of the constructor of _≃ᴱ_ with erased type arguments.
+
+⟨_,_⟩₀ :
+  {@0 A : Set a} {@0 B : Set b}
+  (to : A → B) → Is-equivalenceᴱ to → A ≃ᴱ B
+⟨ to , eq ⟩₀ = ⟨ to , eq ⟩
+
+-- Note that the type arguments A and B are erased. This is not the
+-- case for the record module Dummy._≃ᴱ_.
+
+module _≃ᴱ_ {@0 A : Set a} {@0 B : Set b} (A≃B : A ≃ᴱ B) where
+
+  -- The "left-to-right" direction of the equivalence.
+
+  to : A → B
+  to = let ⟨ to , _ ⟩ = A≃B in to
+
+  -- The function to is an equivalence.
+
+  is-equivalence : Is-equivalenceᴱ to
+  is-equivalence = let ⟨ _ , eq ⟩ = A≃B in eq
 
   -- The "right-to-left" direction of the equivalence.
 
   from : B → A
-  from y = proj₁ (proj₁ (is-equivalence y))
+  from y = let ((x , _) , _) = is-equivalence y in x
 
   -- The underlying logical equivalence.
 

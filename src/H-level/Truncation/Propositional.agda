@@ -28,6 +28,8 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq hiding (id; _∘_; inverse)
 open import Equivalence.Erased equality-with-J using (_≃ᴱ_)
 open import Equivalence-relation equality-with-J
+open import Erased.Basics equality-with-J as EB using (Erased)
+import Erased.Stability equality-with-J as ES
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
@@ -39,11 +41,11 @@ open import Surjection equality-with-J using (_↠_; Split-surjective)
 
 private
   variable
-    a b c d f p r ℓ   : Level
-    A A₁ A₂ B B₁ B₂ C : Set a
-    P Q               : A → Set p
-    R                 : A → A → Set r
-    k                 : A
+    a b c d f p r ℓ     : Level
+    A A₁ A₂ B B₁ B₂ C D : Set a
+    P Q                 : A → Set p
+    R                   : A → A → Set r
+    k x                 : A
 
 -- Propositional truncation.
 
@@ -299,20 +301,26 @@ surjective×embedding≃equivalence {f = f} =
   ; left-inverse-of = λ _ → truncation-is-proposition _ _
   }
 
+-- A type is a proposition if it is equivalent to the propositional
+-- truncation of some type.
+
+≃∥∥→Is-proposition : A ≃ ∥ B ∥ → Is-proposition A
+≃∥∥→Is-proposition A≃∥B∥ a₁ a₂ =     $⟨ truncation-is-proposition _ _ ⟩
+  _≃_.to A≃∥B∥ a₁ ≡ _≃_.to A≃∥B∥ a₂  ↝⟨ Eq.≃-≡ A≃∥B∥ ⟩□
+  a₁ ≡ a₂                            □
+
 -- A simple isomorphism involving propositional truncation.
 
 ∥∥×↔ : ∥ A ∥ × A ↔ A
-∥∥×↔ {A = A} =
-  ∥ A ∥ × A  ↝⟨ ×-comm ⟩
-  A × ∥ A ∥  ↝⟨ (drop-⊤-right λ a →
-                 _⇔_.to contractible⇔↔⊤ $
-                   propositional⇒inhabited⇒contractible
-                     truncation-is-proposition
-                     ∣ a ∣) ⟩□
-  A          □
+∥∥×↔ =
+  drop-⊤-left-× λ a →
+  _⇔_.to contractible⇔↔⊤ $
+    propositional⇒inhabited⇒contractible
+      truncation-is-proposition
+      ∣ a ∣
 
 -- A variant of ∥∥×↔, introduced to ensure that the right-inverse-of
--- proof is, by definition, simple (see right-inverse-of-∥∥×≃ below).
+-- proof is, by definition, simple.
 
 ∥∥×≃ : (∥ A ∥ × A) ≃ A
 ∥∥×≃ =
@@ -323,10 +331,37 @@ surjective×embedding≃equivalence {f = f} =
              ((∣ a ∣ , a) , refl _))
   ⟩
 
-private
+_ : _≃_.right-inverse-of ∥∥×≃ x ≡ refl _
+_ = refl _
 
-  right-inverse-of-∥∥×≃ : (x : A) → _≃_.right-inverse-of ∥∥×≃ x ≡ refl _
-  right-inverse-of-∥∥×≃ _ = refl _
+-- A variant of ∥∥×≃.
+
+Erased-∥∥×≃ : (Erased ∥ A ∥ × A) ≃ A
+Erased-∥∥×≃ =
+  ⟨ proj₂
+  , (λ a → propositional⇒inhabited⇒contractible
+             (mono₁ 0 $
+                Preimage.bijection⁻¹-contractible
+                  (record
+                     { surjection = record
+                       { logical-equivalence = record
+                         { from = λ a → EB.[ ∣ a ∣ ] , a
+                         }
+                       ; right-inverse-of = refl
+                       }
+                     ; left-inverse-of = λ (x , y) →
+                         cong₂ _,_
+                           (EB.[]-cong-axiomatisation.[]-cong
+                              (ES.Extensionality→[]-cong ext)
+                              EB.[ truncation-is-proposition _ _ ])
+                           (refl _)
+                     })
+                  a)
+             ((EB.[ ∣ a ∣ ] , a) , refl _))
+  ⟩
+
+_ : _≃_.right-inverse-of Erased-∥∥×≃ x ≡ refl _
+_ = refl _
 
 -- ∥_∥ commutes with _×_.
 
@@ -468,7 +503,53 @@ private
     _≃_.from (universal-property B-prop) f ∣ x ∣ ≡ f x
   _ = λ _ _ _ → refl _
 
--- The following two results come from "Generalizations of Hedberg's
+-- If there is a function f : A → ∥ B ∥, then f is an equivalence if
+-- and only if the second projection from A × B is an equivalence.
+
+equivalence-to-∥∥≃proj₂-equivalence :
+  (f : A → ∥ B ∥) →
+  Is-equivalence f ≃ Is-equivalence (proj₂ ⦂ (A × B → B))
+equivalence-to-∥∥≃proj₂-equivalence {A = A} {B = B} f = Eq.⇔→≃
+  (Eq.propositional ext _)
+  (Eq.propositional ext _)
+  (λ eq → _≃_.is-equivalence
+            (A × B      ↝⟨ (×-cong₁ λ _ → Eq.⟨ _ , eq ⟩) ⟩
+             ∥ B ∥ × B  ↝⟨ ∥∥×≃ ⟩□
+             B          □))
+  from
+  where
+  from : Is-equivalence proj₂ → Is-equivalence f
+  from eq = _≃_.is-equivalence $ Eq.⇔→≃
+    A-prop
+    truncation-is-proposition
+    _
+    (rec A-prop (proj₁ ∘ _≃_.from Eq.⟨ _ , eq ⟩))
+    where
+    A-prop₁ : B → Is-proposition A
+    A-prop₁ b a₁ a₂ =                  $⟨ refl _ ⟩
+      b ≡ b                            ↔⟨⟩
+      proj₂ (a₁ , b) ≡ proj₂ (a₂ , b)  ↔⟨ Eq.≃-≡ Eq.⟨ _ , eq ⟩ ⟩
+      (a₁ , b) ≡ (a₂ , b)              ↝⟨ cong proj₁ ⟩□
+      a₁ ≡ a₂                          □
+
+    A-prop : Is-proposition A
+    A-prop = [inhabited⇒+]⇒+ 0
+      (A                 ↝⟨ f ⟩
+       ∥ B ∥             ↝⟨ rec (H-level-propositional ext 1) A-prop₁ ⟩□
+       Is-proposition A  □)
+
+-- There is an equivalence between "A is equivalent to ∥ B ∥" and
+-- "there is a function from A to ∥ B ∥ and the second projection is
+-- an equivalence from A × B to B".
+
+≃∥∥≃→∥∥×proj₂-equivalence :
+  (A ≃ ∥ B ∥) ≃ ((A → ∥ B ∥) × Is-equivalence (proj₂ ⦂ (A × B → B)))
+≃∥∥≃→∥∥×proj₂-equivalence {A = A} {B = B} =
+  A ≃ ∥ B ∥                                           ↔⟨ Eq.≃-as-Σ ⟩
+  (∃ λ (f : A → ∥ B ∥) → Is-equivalence f)            ↝⟨ ∃-cong equivalence-to-∥∥≃proj₂-equivalence ⟩□
+  (A → ∥ B ∥) × Is-equivalence (proj₂ ⦂ (A × B → B))  □
+
+-- The following three results come from "Generalizations of Hedberg's
 -- Theorem" by Kraus, Escardó, Coquand and Altenkirch.
 
 -- Types with constant endofunctions are "h-stable" (meaning that
@@ -493,70 +574,51 @@ constant-endofunction⇔h-stable = record
       f ∣ y ∣  ∎
   }
 
--- The following three lemmas were communicated to me by Nicolai
--- Kraus. (In slightly different form.) They are closely related to
--- Lemma 2.1 in his paper "The General Universal Property of the
--- Propositional Truncation".
+-- A type is a set if and only if it is "h-separated" (which means
+-- that all its equality types are h-stable).
+
+Is-set⇔h-separated :
+  Is-set A ⇔ ((x y : A) → ∥ x ≡ y ∥ → x ≡ y)
+Is-set⇔h-separated {A = A} = record
+  { to   = λ A-set _ _ → rec A-set id
+  ; from =
+      ((x y : A) → ∥ x ≡ y ∥ → x ≡ y)                     ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ →
+                                                              _⇔_.from constant-endofunction⇔h-stable) ⟩
+      ((x y : A) → ∃ λ (f : x ≡ y → x ≡ y) → Constant f)  ↝⟨ constant⇒set ⟩□
+      Is-set A                                            □
+  }
+
+-- Variants of the following two lemmas were communicated to me by
+-- Nicolai Kraus. They are closely related to Lemma 2.1 in his paper
+-- "The General Universal Property of the Propositional Truncation".
 
 -- A variant of ∥∥×≃.
 
 drop-∥∥ :
   {B : A → Set b} →
-
-  (∥ A ∥ → ∀ x → B x)
-    ↔
-  (∀ x → B x)
-drop-∥∥ {A = A} {B = B} =
-  (∥ A ∥ → ∀ x → B x)              ↝⟨ inverse currying ⟩
-  ((p : ∥ A ∥ × A) → B (proj₂ p))  ↝⟨ Π-cong ext ∥∥×≃ (λ _ → F.id) ⟩□
-  (∀ x → B x)                      □
+  (A → ∥ C ∥) →
+  (∥ C ∥ → ∀ x → B x) ≃ (∀ x → B x)
+drop-∥∥ {C = C} {B = B} inh =
+  Eq.with-other-inverse
+    ((∥ C ∥ → ∀ a → B a)  ↔⟨ Π-comm ⟩
+     (∀ a → ∥ C ∥ → B a)  ↝⟨ (∀-cong ext λ a → drop-⊤-left-Π ext (inhabited⇒∥∥↔⊤ (inh a))) ⟩□
+     (∀ a → B a)          □)
+    (λ f _ → f)
+    (λ f → ⟨ext⟩ λ _ → ⟨ext⟩ λ a →
+       _    ≡⟨ subst-const _ ⟩∎
+       f a  ∎)
 
 -- Another variant of ∥∥×≃.
 
 push-∥∥ :
   {B : A → Set b} {C : (∀ x → B x) → Set c} →
-
-  (∥ A ∥ → ∃ λ (f : ∀ x → B x) → C f)
-    ↔
-  (∃ λ (f : ∀ x → B x) → ∥ A ∥ → C f)
-
-push-∥∥ {A = A} {B = B} {C} =
-
-  (∥ A ∥ → ∃ λ (f : ∀ x → B x) → C f)                ↝⟨ ΠΣ-comm ⟩
-
-  (∃ λ (f : ∥ A ∥ → ∀ x → B x) → ∀ ∥x∥ → C (f ∥x∥))  ↝⟨ Σ-cong drop-∥∥ (λ f →
-                                                        ∀-cong ext λ ∥x∥ →
-                                                        ≡⇒↝ _ $ cong C $ ⟨ext⟩ λ x →
-      f ∥x∥ x                                             ≡⟨ cong (λ ∥x∥ → f ∥x∥ x) $ truncation-is-proposition _ _ ⟩
-      f ∣ x ∣ x                                           ≡⟨ sym $ subst-refl B _ ⟩
-      subst B (refl x) (f ∣ x ∣ x)                        ≡⟨⟩
-      _↔_.to drop-∥∥ f x                                  ∎) ⟩□
-
-  (∃ λ (f : ∀ x → B x) → ∥ A ∥ → C (λ x → f x))      □
-
--- This is an instance of a variant of Lemma 2.1 from "The General
--- Universal Property of the Propositional Truncation" by Kraus.
-
-drop-∥∥₃ :
-  ∀ {B : A → Set b} {C : A → (∀ x → B x) → Set c}
-    {D : A → (f : ∀ x → B x) → (∀ x → C x f) → Set d} →
-
-  (∥ A ∥ →
-   ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
-    ↔
-  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
-
-drop-∥∥₃ {A = A} {B = B} {C} {D} =
-  (∥ A ∥ →
-   ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  ↝⟨ push-∥∥ ⟩
-
-  (∃ λ (f : ∀ x → B x) →
-   ∥ A ∥ → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)                ↝⟨ (∃-cong λ _ → push-∥∥) ⟩
-
-  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) →
-   ∥ A ∥ → ∀ x → D x f g)                                        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → drop-∥∥) ⟩□
-
-  (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  □
+  (A → ∥ D ∥) →
+  (∥ D ∥ → ∃ λ (f : ∀ x → B x) → C f) ≃
+  (∃ λ (f : ∀ x → B x) → ∥ D ∥ → C f)
+push-∥∥ {D = D} {B = B} {C = C} inh =
+  (∥ D ∥ → ∃ λ (f : ∀ c → B c) → C f)            ↔⟨ ΠΣ-comm ⟩
+  (∃ λ (f : ∥ D ∥ → ∀ c → B c) → ∀ b → C (f b))  ↝⟨ (Σ-cong-contra (inverse $ drop-∥∥ inh) λ _ → F.id) ⟩□
+  (∃ λ (f : ∀ c → B c) → ∥ D ∥ → C f)            □
 
 -- Having a coherently constant function into a groupoid is equivalent
 -- to having a function from a propositionally truncated type into the
@@ -578,6 +640,18 @@ coherently-constant-function≃∥inhabited∥⇒inhabited
   (∃ λ (f : A → B) → Coherently-constant f)  ↝⟨ Trunc.coherently-constant-function≃∥inhabited∥⇒inhabited lzero ext B-groupoid ⟩
   (Trunc.∥ A ∥ 1 (a ⊔ b) → B)                ↝⟨ →-cong₁ ext (inverse $ ∥∥↔∥∥ (a ⊔ b)) ⟩□
   (∥ A ∥ → B)                                □
+
+private
+
+  -- One direction of the proposition above computes in the right way.
+
+  to-coherently-constant-function≃∥inhabited∥⇒inhabited :
+    (h : H-level 3 B)
+    (f : ∃ λ (f : A → B) → Coherently-constant f) (x : A) →
+    _≃_.to (coherently-constant-function≃∥inhabited∥⇒inhabited h)
+      f ∣ x ∣ ≡
+    proj₁ f x
+  to-coherently-constant-function≃∥inhabited∥⇒inhabited _ _ _ = refl _
 
 -- Having a constant function into a set is equivalent to having a
 -- function from a propositionally truncated type into the set. The

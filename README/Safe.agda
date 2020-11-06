@@ -78,6 +78,10 @@ import Groupoid
 
 import H-level.Closure
 
+-- Excluded middle.
+
+import Excluded-middle
+
 -- Equivalence relations
 
 import Equivalence-relation
@@ -194,6 +198,19 @@ import H-level.Truncation.Church
 -- Propositional truncation.
 
 import H-level.Truncation.Propositional
+
+-- Sequential colimits.
+
+import Colimit.Sequential
+
+-- The one-step truncation.
+
+import H-level.Truncation.Propositional.One-step
+
+-- A definition of the propositional truncation operator that does not
+-- use recursive higher inductive types.
+
+import H-level.Truncation.Propositional.Non-recursive
 
 -- The "circle".
 
@@ -339,6 +356,10 @@ import Quotient.Higher-constructors-if-propositional
 
 import Finite-subset.Listed
 
+-- An alternative definition of listed finite subsets.
+
+import Finite-subset.Listed.Alternative
+
 -- Kuratowski finite subsets.
 
 import Finite-subset.Kuratowski
@@ -371,6 +392,11 @@ import Erased.Without-box-cong
 -- Some theory of Erased, developed using Cubical Agda.
 
 import Erased.Cubical
+
+-- Some theory of equivalences with erased "proofs", developed using
+-- Cubical Agda.
+
+import Equivalence.Erased.Cubical
 
 -- Very stable booleans.
 
@@ -495,6 +521,7 @@ import
 -- Bi-invertibility.
 
 import Bi-invertibility
+import Bi-invertibility.Erased
 
 -- Binary trees.
 

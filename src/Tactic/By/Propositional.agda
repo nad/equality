@@ -46,7 +46,8 @@ private
     defineFun cong (the-clause ∷ [])
     where
     the-clause = clause
-      (varg (var "f") ∷ replicate n (varg (con (quote refl) [])))
+      (("f" , varg unknown) ∷ [])
+      (varg (var 0) ∷ replicate n (varg (con (quote refl) [])))
       (con (quote refl) [])
 
   unquoteDecl cong₃  = make-cong-called cong₃   3

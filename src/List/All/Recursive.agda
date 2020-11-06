@@ -452,11 +452,12 @@ index∘index {P = P} {xs = _ ∷ _} {ys} {ps} {inj₁ eq} (∈ys , _) = elim₁
 -- Some rearrangement lemmas for index.
 
 index-map₁ :
-  ∀ xs {f : ∀ {x} → P x → Q x} {ps : All P xs} {q : x ∈ xs} →
+  ∀ {P : A → Set p}
+    xs {f : ∀ {x} → P x → Q x} {ps : All P xs} {q : x ∈ xs} →
   index (map₁ f ps) q ≡ f (index ps q)
 index-map₁ (_ ∷ xs) {q = inj₂ q}  = index-map₁ xs
 
-index-map₁ {P = P} {Q = Q} (_ ∷ _) {f} {p , _} {q = inj₁ eq} = elim₁
+index-map₁ {Q = Q} {P = P} (_ ∷ _) {f} {p , _} {q = inj₁ eq} = elim₁
   (λ eq → subst Q (sym eq) (f p) ≡
           f (subst P (sym eq) p))
   (subst Q (sym (refl _)) (f p)  ≡⟨ subst-sym-refl ⟩
