@@ -68,7 +68,8 @@ abstract
     proposition (constant x y)
                 (left-inverse (λ x y → proj₁ $ constant x y))
 
-  -- Sets which are decidable come with constant endofunctions.
+  -- If it is known whether or not a type is inhabited, then one can
+  -- define a constant endofunction for that type.
 
   decidable⇒constant : ∀ {a} {A : Set a} → Dec A →
                        ∃ λ (f : A → A) → Constant f
