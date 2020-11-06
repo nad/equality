@@ -24,11 +24,11 @@ open import Nat eq as Nat using (_≤_)
 
 mutual
 
-  data Conat (i : Size) : Set where
+  data Conat (i : Size) : Type where
     zero : Conat i
     suc  : Conat′ i → Conat i
 
-  record Conat′ (i : Size) : Set where
+  record Conat′ (i : Size) : Type where
     coinductive
     field
       force : {j : Size< i} → Conat j
@@ -45,11 +45,11 @@ mutual
 
   infix 4 [_]_∼_ [_]_∼′_
 
-  data [_]_∼_ (i : Size) : Conat ∞ → Conat ∞ → Set where
+  data [_]_∼_ (i : Size) : Conat ∞ → Conat ∞ → Type where
     zero : [ i ] zero ∼ zero
     suc  : ∀ {m n} → [ i ] force m ∼′ force n → [ i ] suc m ∼ suc n
 
-  record [_]_∼′_ (i : Size) (m n : Conat ∞) : Set where
+  record [_]_∼′_ (i : Size) (m n : Conat ∞) : Type where
     coinductive
     field
       force : {j : Size< i} → [ j ] m ∼ n
@@ -411,11 +411,11 @@ mutual
 
   infix 4 [_]_≤_ [_]_≤′_
 
-  data [_]_≤_ (i : Size) : Conat ∞ → Conat ∞ → Set where
+  data [_]_≤_ (i : Size) : Conat ∞ → Conat ∞ → Type where
     zero : ∀ {n} → [ i ] zero ≤ n
     suc  : ∀ {m n} → [ i ] force m ≤′ force n → [ i ] suc m ≤ suc n
 
-  record [_]_≤′_ (i : Size) (m n : Conat ∞) : Set where
+  record [_]_≤′_ (i : Size) (m n : Conat ∞) : Type where
     coinductive
     field
       force : {j : Size< i} → [ j ] m ≤ n
@@ -426,7 +426,7 @@ open [_]_≤′_ public
 
 infix 4 [_]_<_
 
-[_]_<_ : Size → Conat′ ∞ → Conat ∞ → Set
+[_]_<_ : Size → Conat′ ∞ → Conat ∞ → Type
 [ i ] m < n = [ i ] suc m ≤ n
 
 -- Every conatural number is less than or equal to infinity.
@@ -833,12 +833,12 @@ max-cong (suc p) q =
 
 -- A number is finite if it is bisimilar to a natural number.
 
-Finite : Conat ∞ → Set
+Finite : Conat ∞ → Type
 Finite m = ∃ λ n → [ ∞ ] m ∼ ⌜ n ⌝
 
 -- Numbers that are not finite are infinite.
 
-Infinite : Conat ∞ → Set
+Infinite : Conat ∞ → Type
 Infinite n = ¬ Finite n
 
 -- The value infinity is infinite.

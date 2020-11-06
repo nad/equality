@@ -43,8 +43,8 @@ import Univalence-axiom P.equality-with-J as PU
 private
   variable
     a b p                 : Level
-    A B                   : Set a
-    P                     : A → Set p
+    A B                   : Type a
+    P                     : A → Type p
     x x∼y y y₁ y₂ z z₁ z₂ : A
 
 ------------------------------------------------------------------------
@@ -57,7 +57,7 @@ mutual
 
   infixr 5 _∷_
 
-  data Finite-subset-of (A : Set a) : Set a where
+  data Finite-subset-of (A : Type a) : Type a where
     []              : Finite-subset-of A
     _∷_             : A → Finite-subset-of A → Finite-subset-of A
     extensionalityᴾ : x ∼ y → x P.≡ y
@@ -66,13 +66,13 @@ mutual
   private
 
     Membership :
-      {A : Set a} → A → Finite-subset-of A → PH.Proposition a
+      {A : Type a} → A → Finite-subset-of A → PH.Proposition a
 
   -- Membership.
 
   infix 4 _∈_
 
-  _∈_ : {A : Set a} → A → Finite-subset-of A → Set a
+  _∈_ : {A : Type a} → A → Finite-subset-of A → Type a
   x ∈ y = proj₁ (Membership x y)
 
   -- Membership is propositional.
@@ -85,7 +85,7 @@ mutual
   infix 4 _∼_
 
   _∼_ :
-    {A : Set a} → Finite-subset-of A → Finite-subset-of A → Set a
+    {A : Type a} → Finite-subset-of A → Finite-subset-of A → Type a
   x ∼ y = ∀ z → z ∈ x ⇔ z ∈ y
 
   Membership x [] =
@@ -148,8 +148,8 @@ private
   -- motive is necessarily pointwise propositional (see
   -- motive-propositional below).
 
-  record Elimᴾ′ {A : Set a} (P : Finite-subset-of A → Set p) :
-                Set (a ⊔ p) where
+  record Elimᴾ′ {A : Type a} (P : Finite-subset-of A → Type p) :
+                Type (a ⊔ p) where
     no-eta-equality
     field
       []ʳ             : P []
@@ -191,8 +191,8 @@ private
 
 -- A dependent eliminator, expressed using paths.
 
-record Elimᴾ {A : Set a} (P : Finite-subset-of A → Set p) :
-             Set (a ⊔ p) where
+record Elimᴾ {A : Type a} (P : Finite-subset-of A → Type p) :
+             Type (a ⊔ p) where
   no-eta-equality
   field
     []ʳ             : P []
@@ -216,7 +216,7 @@ elimᴾ {A = A} {P = P} e = elimᴾ′ e′
 
 -- A non-dependent eliminator, expressed using paths.
 
-record Recᴾ (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Recᴾ (A : Type a) (B : Type b) : Type (a ⊔ b) where
   no-eta-equality
   field
     []ʳ             : B
@@ -238,8 +238,8 @@ recᴾ {A = A} {B = B} r = elimᴾ e
 -- A dependent eliminator, expressed using equality.
 
 record Elim
-         {A : Set a} (P : Finite-subset-of A → Set p) :
-         Set (a ⊔ p) where
+         {A : Type a} (P : Finite-subset-of A → Type p) :
+         Type (a ⊔ p) where
   field
     []ʳ             : P []
     ∷ʳ              : ∀ x → P y → P (x ∷ y)
@@ -259,7 +259,7 @@ elim e = elimᴾ e′
 
 -- A non-dependent eliminator, expressed using equality.
 
-record Rec (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Rec (A : Type a) (B : Type b) : Type (a ⊔ b) where
   field
     []ʳ             : B
     ∷ʳ              : A → Finite-subset-of A → B → B
@@ -379,7 +379,7 @@ private
   -- two subsets.
 
   Is-union-of :
-    {A : Set a} (_ _ _ : Finite-subset-of A) → Set a
+    {A : Type a} (_ _ _ : Finite-subset-of A) → Type a
   Is-union-of x y z = ∀ u → (u ∈ z) ≃ (u ∈ x ∥⊎∥ u ∈ y)
 
   -- Is-union-of x y is functional.
@@ -576,7 +576,7 @@ _ = refl _
 
 infix 4 _⊆_
 
-_⊆_ : {A : Set a} → Finite-subset-of A → Finite-subset-of A → Set a
+_⊆_ : {A : Type a} → Finite-subset-of A → Finite-subset-of A → Type a
 x ⊆ y = ∀ z → z ∈ x → z ∈ y
 
 -- _⊆_ is pointwise propositional.
@@ -829,8 +829,8 @@ Listed≃Listed = Eq.↔→≃ (proj₁ ∘ to) from to-from (proj₂ ∘ to)
 --
 -- Note that the motive is not required to be propositional.
 
-record Elim′ {A : Set a} (P : Finite-subset-of A → Set p) :
-             Set (a ⊔ p) where
+record Elim′ {A : Type a} (P : Finite-subset-of A → Type p) :
+             Type (a ⊔ p) where
   no-eta-equality
   field
     []ʳ     : P []

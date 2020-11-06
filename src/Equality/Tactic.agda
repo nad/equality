@@ -15,7 +15,7 @@ open import Prelude hiding (Level; lift; lower)
 private
   variable
     a       : Prelude.Level
-    A B     : Set a
+    A B     : Type a
     ℓ x y z : A
     x≡y y≡z : x ≡ y
 
@@ -27,12 +27,12 @@ private
 -- Note that the presence of the Refl constructor means that Eq is a
 -- definition of equality with a concrete, evaluating eliminator.
 
-data Eq {A : Set a} : A → A → Set (lsuc a) where
+data Eq {A : Type a} : A → A → Type (lsuc a) where
   Lift  : (x≡y : x ≡ y) → Eq x y
   Refl  : Eq x x
   Sym   : (x≈y : Eq x y) → Eq y x
   Trans : (x≈y : Eq x y) (y≈z : Eq y z) → Eq x z
-  Cong  : ∀ {B : Set a} {x y}
+  Cong  : ∀ {B : Type a} {x y}
           (f : B → A) (x≈y : Eq x y) → Eq (f x) (f y)
 
 -- Semantics.
@@ -46,7 +46,7 @@ data Eq {A : Set a} : A → A → Set (lsuc a) where
 
 -- A derived combinator.
 
-Cong₂ : {A B C : Set a} (f : A → B → C) {x y : A} {u v : B} →
+Cong₂ : {A B C : Type a} (f : A → B → C) {x y : A} {u v : B} →
         Eq x y → Eq u v → Eq (f x u) (f y v)
 Cong₂ f {y = y} {u} x≈y u≈v =
   Trans (Cong (flip f u) x≈y) (Cong (f y) u≈v)
@@ -54,7 +54,7 @@ Cong₂ f {y = y} {u} x≈y u≈v =
 private
 
   Cong₂-correct :
-    {A B C : Set a} (f : A → B → C) {x y : A} {u v : B}
+    {A B C : Type a} (f : A → B → C) {x y : A} {u v : B}
     (x≈y : Eq x y) (u≈v : Eq u v) →
     ⟦ Cong₂ f x≈y u≈v ⟧ ≡ cong₂ f ⟦ x≈y ⟧ ⟦ u≈v ⟧
   Cong₂-correct f x≈y u≈v = refl _
@@ -66,15 +66,15 @@ private
 
   -- The simplified expressions are stratified into three levels.
 
-  data Level : Set where
+  data Level : Type where
     upper middle lower : Level
 
-  data EqS {A : Set a} : Level → A → A → Set (lsuc a) where
+  data EqS {A : Type a} : Level → A → A → Type (lsuc a) where
 
     -- Bottom layer: a single use of congruence applied to an actual
     -- equality.
 
-    Cong : {B : Set a} {x y : B} (f : B → A) (x≡y : x ≡ y) →
+    Cong : {B : Type a} {x y : B} (f : B → A) (x≡y : x ≡ y) →
            EqS lower (f x) (f y)
 
     -- Middle layer: at most one use of symmetry.
@@ -197,7 +197,7 @@ private
                                                              (map-sym-correct x≈y (refl _)) ⟩∎
       ⟦ snoc (reverse y≈z) (map-sym x≈y) ⟧S  ∎
 
-  map-cong : {A B : Set a} {x y : A} (f : A → B) →
+  map-cong : {A B : Type a} {x y : A} (f : A → B) →
              EqS ℓ x y → EqS ℓ (f x) (f y)
   map-cong {ℓ = lower}  f (Cong g x≡y)   = Cong (f ∘ g) x≡y
   map-cong {ℓ = middle} f (No-Sym x≈y)   = No-Sym (map-cong f x≈y)

@@ -31,7 +31,7 @@ open import Surjection eq using (Split-surjective; _↠_)
 private
   variable
     a b : Level
-    A B : Set a
+    A B : Type a
     x y : A
     f   : A → B
     k   : Kind
@@ -39,7 +39,7 @@ private
 
 -- An alternative definition of "Is-equivalence".
 
-Path-split : {A : Set a} {B : Set b} → ℕ → (A → B) → Set (a ⊔ b)
+Path-split : {A : Type a} {B : Type b} → ℕ → (A → B) → Type (a ⊔ b)
 Path-split zero    f = ↑ _ ⊤
 Path-split (suc n) f =
   Split-surjective f ×
@@ -86,7 +86,7 @@ private
 -- (assuming extensionality).
 
 Split-surjective-contractible-for-equivalences :
-  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} →
+  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
   Extensionality b (a ⊔ b) →
   Is-equivalence f →
   Contractible (Split-surjective f)
@@ -113,7 +113,7 @@ Split-surjective-contractible-for-equivalences
 -- (assuming extensionality).
 
 Path-split-contractible-for-equivalences :
-  {A : Set a} {B : Set b} {f : A → B} →
+  {A : Type a} {B : Type b} {f : A → B} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-equivalence f →
   Contractible (Path-split n f)
@@ -136,7 +136,7 @@ Path-split-contractible-for-equivalences
 -- extensionality).
 
 Path-split-propositional :
-  {A : Set a} {B : Set b} {f : A → B} →
+  {A : Type a} {B : Type b} {f : A → B} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-proposition (Path-split (2 + n) f)
 Path-split-propositional ext =
@@ -148,7 +148,7 @@ Path-split-propositional ext =
 -- Is-equivalence f (assuming extensionality).
 
 Path-split↔Is-equivalence :
-  {A : Set a} {B : Set b} {f : A → B} →
+  {A : Type a} {B : Type b} {f : A → B} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Path-split (2 + n) f ↝[ k ] Is-equivalence f
 Path-split↔Is-equivalence =
@@ -159,13 +159,13 @@ Path-split↔Is-equivalence =
 
 -- Another alternative definition of "Is-equivalence".
 
-Path-split-∞ : {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Path-split-∞ : {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
 Path-split-∞ f = ∀ n → Path-split n f
 
 -- Path-split-∞ is pointwise propositional (assuming extensionality).
 
 Path-split-∞-propositional :
-  {A : Set a} {B : Set b} {f : A → B} →
+  {A : Type a} {B : Type b} {f : A → B} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-proposition (Path-split-∞ f)
 Path-split-∞-propositional ext =
@@ -178,7 +178,7 @@ Path-split-∞-propositional ext =
 -- (assuming extensionality).
 
 Path-split-∞↔Is-equivalence :
-  {A : Set a} {B : Set b} {f : A → B} →
+  {A : Type a} {B : Type b} {f : A → B} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Path-split-∞ f ↝[ k ] Is-equivalence f
 Path-split-∞↔Is-equivalence =

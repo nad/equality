@@ -20,7 +20,7 @@ module Nat.Wrapper
   (ax : ∀ {a} → Erased.Basics.[]-cong-axiomatisation eq a)
 
   -- The underlying representation of natural numbers.
-  (Nat′ : Set)
+  (Nat′ : Type)
   -- A bijection between this representation and the unary natural
   -- numbers.
   (open Bijection eq using (_↔_))
@@ -46,7 +46,7 @@ private
     open Prelude public using (zero; suc; _+_; _*_; _^_)
 
   variable
-    A               : Set
+    A               : Type
     f f′ m n n′ hyp : A
 
 ------------------------------------------------------------------------
@@ -68,7 +68,7 @@ private
 -- Natural numbers built on top of Nat′, indexed by corresponding
 -- unary natural numbers.
 
-Nat-[_] : @0 ℕ → Set
+Nat-[_] : @0 ℕ → Type
 Nat-[ m ] = ∃ λ (n : Nat′) → Erased (to-ℕ n ≡ m)
 
 -- Nat-[ n ] is a proposition.
@@ -83,7 +83,7 @@ Nat-[]-propositional {n = n} =                                      $⟨ Very-st
 
 -- A non-indexed variant of Nat-[_].
 
-Nat : Set
+Nat : Type
 Nat = ∃ λ (n : Erased ℕ) → Nat-[ erased n ]
 
 -- Returns the (erased) index.
@@ -207,7 +207,7 @@ binary-[] f′ hyp m n =
 -- The code below is parametrised by implementations of (and
 -- correctness properties for) certain operations for Nat′.
 
-record Operations : Set where
+record Operations : Type where
   infixl 8 _*2^_
   infixr 8 _^_
   infixl 7 _*_

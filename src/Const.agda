@@ -29,7 +29,7 @@ open import Univalence-axiom eq
 
 const-is-injective :
   ∀ {a b} →
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   A → Injective {B = A → B} const
 const-is-injective x {y} {z} =
   const y ≡ const z  ↝⟨ cong (_$ x) ⟩□
@@ -41,7 +41,7 @@ const-is-injective x {y} {z} =
 const-is-embedding :
   ∀ {a b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   Is-set B →
   A → Is-embedding {B = A → B} const
 const-is-embedding {a} {b} ext B-set x =
@@ -63,7 +63,7 @@ const-is-not-embedding :
   Extensionality (a ⊔ b) (lsuc b) →
   Univalence b →
   Univalence (# 0) →
-  ¬ ({A : Set a} {B : Set (lsuc b)} →
+  ¬ ({A : Type a} {B : Type (lsuc b)} →
      A → Is-embedding {B = A → B} const)
 const-is-not-embedding {a} {b} ext univ univ₀ hyp =
   from-⊎ (2 Nat.≟ 4) 2≡4
@@ -80,7 +80,7 @@ const-is-not-embedding {a} {b} ext univ univ₀ hyp =
   ext₀ : Extensionality (# 0) (# 0)
   ext₀ = lower-extensionality _ _ ext
 
-  emb : Is-embedding {B = ↑ a (Fin 2) → Set b} const
+  emb : Is-embedding {B = ↑ a (Fin 2) → Type b} const
   emb = hyp (lift true)
 
   2≡4 : 2 ≡ 4

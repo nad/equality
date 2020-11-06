@@ -17,7 +17,7 @@ open import Agda.Builtin.Strict
 open import Agda.Builtin.String
 
 open import Logical-equivalence using (_⇔_)
-open import Prelude
+open import Prelude as P hiding (Type)
 
 import Maybe eq as _
 open import Monad eq
@@ -53,7 +53,7 @@ Bool⇔Bool = record { to = to; from = from }
 isMacro : Name → TC Bool
 isMacro x = _⇔_.to Bool⇔Bool ⟨$⟩ Agda.Builtin.Reflection.isMacro x
 
-withNormalisation : ∀ {a} {A : Set a} → Bool → TC A → TC A
+withNormalisation : ∀ {a} {A : P.Type a} → Bool → TC A → TC A
 withNormalisation =
   Agda.Builtin.Reflection.withNormalisation ∘ _⇔_.from Bool⇔Bool
 
@@ -172,8 +172,8 @@ apply A t (a ∷ as) =
     else
       bindTC fresh-level                   λ a →
       bindTC fresh-level                   λ b →
-      bindTC (unquoteTC A)                 λ (A : Set a) →
-      bindTC (unquoteTC (lam visible B))   λ (B : A → Set b) →
+      bindTC (unquoteTC A)                 λ (A : P.Type a) →
+      bindTC (unquoteTC (lam visible B))   λ (B : A → P.Type b) →
       bindTC (unquoteTC t₂)                λ (t₂ : A) →
       bindTC (quoteTC (B t₂))              λ Bt₂ →
       case k of λ where
@@ -346,13 +346,13 @@ mutual
   -- contains meta-variables, the term unknown, the sort unknown, or
   -- pattern-matching lambdas.
 
-  Any-result : Set
+  Any-result : P.Type
   Any-result = Any-result′ Bool
 
   -- A generalisation of Any-result. (Without the type parameter the
   -- raw monad instance below would not work.)
 
-  data Any-result′ (A : Set) : Set where
+  data Any-result′ (A : P.Type) : P.Type where
     definitely : A → Any-result′ A
     -- The result is definitely true or false.
     meta : Meta → Any-result′ A

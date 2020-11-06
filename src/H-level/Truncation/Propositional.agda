@@ -42,14 +42,14 @@ open import Surjection equality-with-J using (_↠_; Split-surjective)
 private
   variable
     a b c d f p r ℓ     : Level
-    A A₁ A₂ B B₁ B₂ C D : Set a
-    P Q                 : A → Set p
-    R                   : A → A → Set r
+    A A₁ A₂ B B₁ B₂ C D : Type a
+    P Q                 : A → Type p
+    R                   : A → A → Type r
     k x                 : A
 
 -- Propositional truncation.
 
-data ∥_∥ (A : Set a) : Set a where
+data ∥_∥ (A : Type a) : Type a where
   ∣_∣                        : A → ∥ A ∥
   truncation-is-propositionᴾ : P.Is-proposition ∥ A ∥
 
@@ -62,7 +62,7 @@ truncation-is-proposition =
 -- A dependent eliminator, expressed using paths.
 
 elimᴾ′ :
-  (P : ∥ A ∥ → Set p) →
+  (P : ∥ A ∥ → Type p) →
   ((x : A) → P ∣ x ∣) →
   ({x y : ∥ A ∥} (p : P x) (q : P y) →
    P.[ (λ i → P (truncation-is-propositionᴾ x y i)) ] p ≡ q) →
@@ -74,7 +74,7 @@ elimᴾ′ P f p (truncation-is-propositionᴾ x y i) =
 -- A possibly more useful dependent eliminator, expressed using paths.
 
 elimᴾ :
-  (P : ∥ A ∥ → Set p) →
+  (P : ∥ A ∥ → Type p) →
   (∀ x → P.Is-proposition (P x)) →
   ((x : A) → P ∣ x ∣) →
   (x : ∥ A ∥) → P x
@@ -88,7 +88,7 @@ recᴾ p = elimᴾ _ (λ _ → p)
 -- A dependently typed eliminator.
 
 elim :
-  (P : ∥ A ∥ → Set p) →
+  (P : ∥ A ∥ → Type p) →
   (∀ x → Is-proposition (P x)) →
   ((x : A) → P ∣ x ∣) →
   (x : ∥ A ∥) → P x
@@ -108,7 +108,7 @@ rec p = recᴾ (_↔_.to (H-level↔H-level 1) p)
 -- defined in H-level.Truncation.Church.
 
 ∥∥↔∥∥ :
-  ∀ ℓ {a} {A : Set a} →
+  ∀ ℓ {a} {A : Type a} →
   ∥ A ∥ ↔ Trunc.∥ A ∥ 1 (a ⊔ ℓ)
 ∥∥↔∥∥ ℓ = record
   { surjection = record
@@ -177,7 +177,7 @@ idempotent = ∥∥-cong-⇔ (record { to = [ id , id ]; from = inj₁ })
 -- A generalised flattening lemma.
 
 flatten′ :
-  (F : (Set ℓ → Set ℓ) → Set f) →
+  (F : (Type ℓ → Type ℓ) → Type f) →
   (∀ {G H} → (∀ {A} → G A → H A) → F G → F H) →
   (F ∥_∥ → ∥ F id ∥) →
   ∥ F ∥_∥ ∥ ↔ ∥ F id ∥
@@ -202,7 +202,7 @@ private
   -- Another flattening lemma, given as an example of how flatten′ can
   -- be used.
 
-  ∥∃∥∥∥↔∥∃∥ : {B : A → Set b} →
+  ∥∃∥∥∥↔∥∃∥ : {B : A → Type b} →
               ∥ ∃ (∥_∥ ∘ B) ∥ ↔ ∥ ∃ B ∥
   ∥∃∥∥∥↔∥∃∥ {B = B} =
     flatten′ (λ F → ∃ (F ∘ B))
@@ -247,8 +247,8 @@ instance
 -- Surjectivity.
 
 Surjective :
-  {A : Set a} {B : Set b} →
-  (A → B) → Set (a ⊔ b)
+  {A : Type a} {B : Type b} →
+  (A → B) → Type (a ⊔ b)
 Surjective f = ∀ b → ∥ f ⁻¹ b ∥
 
 -- The property Surjective f is a proposition.
@@ -595,7 +595,7 @@ Is-set⇔h-separated {A = A} = record
 -- A variant of ∥∥×≃.
 
 drop-∥∥ :
-  {B : A → Set b} →
+  {B : A → Type b} →
   (A → ∥ C ∥) →
   (∥ C ∥ → ∀ x → B x) ≃ (∀ x → B x)
 drop-∥∥ {C = C} {B = B} inh =
@@ -611,7 +611,7 @@ drop-∥∥ {C = C} {B = B} inh =
 -- Another variant of ∥∥×≃.
 
 push-∥∥ :
-  {B : A → Set b} {C : (∀ x → B x) → Set c} →
+  {B : A → Type b} {C : (∀ x → B x) → Type c} →
   (A → ∥ D ∥) →
   (∥ D ∥ → ∃ λ (f : ∀ x → B x) → C f) ≃
   (∃ λ (f : ∀ x → B x) → ∥ D ∥ → C f)
@@ -625,13 +625,15 @@ push-∥∥ {D = D} {B = B} {C = C} inh =
 -- groupoid. This result is Proposition 2.3 in "The General Universal
 -- Property of the Propositional Truncation" by Kraus.
 
-Coherently-constant : {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Coherently-constant :
+  {A : Type a} {B : Type b} →
+  (A → B) → Type (a ⊔ b)
 Coherently-constant f =
   ∃ λ (c : Constant f) →
   ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃
 
 coherently-constant-function≃∥inhabited∥⇒inhabited :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   H-level 3 B →
   (∃ λ (f : A → B) → Coherently-constant f) ≃ (∥ A ∥ → B)
 coherently-constant-function≃∥inhabited∥⇒inhabited
@@ -661,7 +663,7 @@ private
 -- from Proposition 2.3.
 
 constant-function≃∥inhabited∥⇒inhabited :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   Is-set B →
   (∃ λ (f : A → B) → Constant f) ≃ (∥ A ∥ → B)
 constant-function≃∥inhabited∥⇒inhabited
@@ -685,15 +687,15 @@ private
 -- The axiom of choice, in one of the alternative forms given in the
 -- HoTT book (§3.8).
 
-Axiom-of-choice : (a b : Level) → Set (lsuc (a ⊔ b))
+Axiom-of-choice : (a b : Level) → Type (lsuc (a ⊔ b))
 Axiom-of-choice a b =
-  {A : Set a} {B : A → Set b} →
+  {A : Type a} {B : A → Type b} →
   Is-set A → (∀ x → ∥ B x ∥) → ∥ (∀ x → B x) ∥
 
 -- The axiom of choice can be turned into a bijection.
 
 choice-bijection :
-  {A : Set a} {B : A → Set b} →
+  {A : Type a} {B : A → Type b} →
   Axiom-of-choice a b → Is-set A →
   (∀ x → ∥ B x ∥) ↔ ∥ (∀ x → B x) ∥
 choice-bijection choice A-set = record
@@ -711,14 +713,14 @@ choice-bijection choice A-set = record
 
 -- The axiom of countable choice, stated in a corresponding way.
 
-Axiom-of-countable-choice : (b : Level) → Set (lsuc b)
+Axiom-of-countable-choice : (b : Level) → Type (lsuc b)
 Axiom-of-countable-choice b =
-  {B : ℕ → Set b} → (∀ x → ∥ B x ∥) → ∥ (∀ x → B x) ∥
+  {B : ℕ → Type b} → (∀ x → ∥ B x ∥) → ∥ (∀ x → B x) ∥
 
 -- The axiom of countable choice can be turned into a bijection.
 
 countable-choice-bijection :
-  {B : ℕ → Set b} →
+  {B : ℕ → Type b} →
   Axiom-of-countable-choice b →
   (∀ x → ∥ B x ∥) ↔ ∥ (∀ x → B x) ∥
 countable-choice-bijection cc = record
@@ -741,7 +743,7 @@ countable-choice-bijection cc = record
 
 infixr 1 _∥⊎∥_
 
-_∥⊎∥_ : Set a → Set b → Set (a ⊔ b)
+_∥⊎∥_ : Type a → Type b → Type (a ⊔ b)
 A ∥⊎∥ B = ∥ A ⊎ B ∥
 
 -- Introduction rules.

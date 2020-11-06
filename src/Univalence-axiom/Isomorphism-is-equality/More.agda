@@ -22,10 +22,10 @@ open Derived-definitions-and-properties eq using (refl)
 open import Bijection eq hiding (id; _∘_; inverse; step-↔; finally-↔)
 open import Equivalence eq as Eq hiding (id; _∘_; inverse)
 open import Function-universe eq hiding (id; _∘_)
-open import H-level eq as H-level hiding (Proposition; Type)
+open import H-level eq as H-level hiding (Proposition)
 open import H-level.Closure eq
 open import Preimage eq
-open import Prelude
+open import Prelude as P hiding (Type)
 open import Univalence-axiom eq
 
 ------------------------------------------------------------------------
@@ -34,7 +34,7 @@ open import Univalence-axiom eq
 -- Use of these or similar assumptions is usually not documented in
 -- comments below (with remarks like "assuming univalence").
 
-record Assumptions : Set₂ where
+record Assumptions : P.Type₂ where
   field
     ext₁  : Extensionality (# 1) (# 1)
     univ  : Univalence (# 0)
@@ -56,31 +56,31 @@ mutual
 
   infixl 5 _▻_
 
-  data Code : Set₂ where
+  data Code : P.Type₂ where
     ε   : Code
     _▻_ : (c : Code) → Extension c → Code
 
   -- Structures can contain arbitrary "extensions".
 
-  record Extension (c : Code) : Set₂ where
+  record Extension (c : Code) : P.Type₂ where
     field
 
       -- An instance-indexed type.
 
-      Ext : ⟦ c ⟧ → Set₁
+      Ext : ⟦ c ⟧ → P.Type₁
 
       -- A predicate specifying when two elements are isomorphic with
       -- respect to an isomorphism.
 
       Iso : (ass : Assumptions) →
             {I J : ⟦ c ⟧} → Isomorphic ass c I J →
-            Ext I → Ext J → Set₁
+            Ext I → Ext J → P.Type₁
 
     -- An alternative definition of Iso.
 
     Iso′ : (ass : Assumptions) →
            ∀ {I J} → Isomorphic ass c I J →
-           Ext I → Ext J → Set₁
+           Ext I → Ext J → P.Type₁
     Iso′ ass I≅J x y =
       subst Ext (_≃_.to (isomorphism≃equality ass c) I≅J) x ≡ y
 
@@ -96,13 +96,13 @@ mutual
   -- Interpretation of the codes. The elements of ⟦ c ⟧ are instances
   -- of the structure encoded by c.
 
-  ⟦_⟧ : Code → Set₁
+  ⟦_⟧ : Code → P.Type₁
   ⟦ ε     ⟧ = ↑ _ ⊤
   ⟦ c ▻ e ⟧ = Σ ⟦ c ⟧ (Extension.Ext e)
 
   -- Isomorphisms.
 
-  Isomorphic : Assumptions → (c : Code) → ⟦ c ⟧ → ⟦ c ⟧ → Set₁
+  Isomorphic : Assumptions → (c : Code) → ⟦ c ⟧ → ⟦ c ⟧ → P.Type₁
   Isomorphic _   ε       _       _       = ↑ _ ⊤
   Isomorphic ass (c ▻ e) (I , x) (J , y) =
     Σ (Isomorphic ass c I J) λ I≅J → Extension.Iso e ass I≅J x y
@@ -185,19 +185,19 @@ reflexivity-▻ = refl _
 
 -- Another kind of extension.
 
-record Extension-with-resp (c : Code) : Set₂ where
+record Extension-with-resp (c : Code) : P.Type₂ where
   field
 
     -- An instance-indexed type.
 
-    Ext : ⟦ c ⟧ → Set₁
+    Ext : ⟦ c ⟧ → P.Type₁
 
     -- A predicate specifying when two elements are isomorphic with
     -- respect to an isomorphism.
 
     Iso : (ass : Assumptions) →
           {I J : ⟦ c ⟧} → Isomorphic ass c I J →
-          Ext I → Ext J → Set₁
+          Ext I → Ext J → P.Type₁
 
     -- Ext, seen as a predicate, respects isomorphisms.
 
@@ -215,7 +215,7 @@ record Extension-with-resp (c : Code) : Set₂ where
 
   Iso″ : (ass : Assumptions) →
          {I J : ⟦ c ⟧} → Isomorphic ass c I J →
-         Ext I → Ext J → Set₁
+         Ext I → Ext J → P.Type₁
   Iso″ ass I≅J x y = resp ass I≅J x ≡ y
 
   field
@@ -231,7 +231,7 @@ record Extension-with-resp (c : Code) : Set₂ where
 
   Iso′ : (ass : Assumptions) →
          ∀ {I J} → Isomorphic ass c I J →
-         Ext I → Ext J → Set₁
+         Ext I → Ext J → P.Type₁
   Iso′ ass I≅J x y =
     subst Ext (_≃_.to (isomorphism≃equality ass c) I≅J) x ≡ y
 
@@ -426,12 +426,12 @@ record Extension-with-resp (c : Code) : Set₂ where
 ------------------------------------------------------------------------
 -- Type extractors
 
-record Extractor (c : Code) : Set₂ where
+record Extractor (c : Code) : P.Type₂ where
   field
 
     -- Extracts a type from an instance.
 
-    Type : ⟦ c ⟧ → Set₁
+    Type : ⟦ c ⟧ → P.Type₁
 
     -- Extracts an equivalence relating types extracted from
     -- isomorphic instances.
@@ -452,7 +452,7 @@ record Extractor (c : Code) : Set₂ where
 
 -- Constant type extractor.
 
-[_] : ∀ {c} → Set₁ → Extractor c
+[_] : ∀ {c} → P.Type₁ → Extractor c
 [_] {c} A = record
   { Type                  = λ _ → A
   ; Type-cong             = λ _ _ → Eq.id
@@ -481,15 +481,15 @@ infix 6 1+_
 
 A-type : ∀ {c} → Extension c
 A-type {c} = record
-  { Ext      = λ _ → Set
+  { Ext      = λ _ → P.Type
   ; Iso      = λ _ _ A B → ↑ _ (A ≃ B)
   ; Iso≃Iso′ = λ ass I≅J {A B} →
                  let I≡J = _≃_.to (isomorphism≃equality ass c) I≅J in
 
-                 ↑ _ (A ≃ B)                    ↔⟨ ↑↔ ⟩
-                 (A ≃ B)                        ↝⟨ inverse $ ≡≃≃ (Assumptions.univ ass) ⟩
-                 (A ≡ B)                        ↝⟨ ≡⇒≃ $ cong (λ C → C ≡ B) $ sym (subst-const I≡J) ⟩
-                 (subst (λ _ → Set) I≡J A ≡ B)  □
+                 ↑ _ (A ≃ B)                       ↔⟨ ↑↔ ⟩
+                 (A ≃ B)                           ↝⟨ inverse $ ≡≃≃ (Assumptions.univ ass) ⟩
+                 (A ≡ B)                           ↝⟨ ≡⇒≃ $ cong (λ C → C ≡ B) $ sym (subst-const I≡J) ⟩
+                 (subst (λ _ → P.Type) I≡J A ≡ B)  □
   }
 
 -- A corresponding type extractor.
@@ -520,7 +520,7 @@ A-type {c} = record
 Proposition : ∀ {c} →
 
               -- The proposition.
-              (P : ⟦ c ⟧ → Set₁) →
+              (P : ⟦ c ⟧ → P.Type₁) →
 
               -- The proposition must be propositional (given some
               -- assumptions).
@@ -550,14 +550,14 @@ Is-a-set extractor =
 
 -- N-ary functions.
 
-_^_⟶_ : Set₁ → ℕ → Set₁ → Set₁
+_^_⟶_ : P.Type₁ → ℕ → P.Type₁ → P.Type₁
 A ^ zero  ⟶ B = B
 A ^ suc n ⟶ B = A → A ^ n ⟶ B
 
 -- N-ary function morphisms.
 
 Is-_-ary-morphism :
-  ∀ (n : ℕ) {A B} → (A ^ n ⟶ A) → (B ^ n ⟶ B) → (A → B) → Set₁
+  ∀ (n : ℕ) {A B} → (A ^ n ⟶ A) → (B ^ n ⟶ B) → (A → B) → P.Type₁
 Is- zero  -ary-morphism x y m = m x ≡ y
 Is- suc n -ary-morphism f g m =
   ∀ x → Is- n -ary-morphism (f x) (g (m x)) m
@@ -631,13 +631,13 @@ N-ary {c} extractor n = Extension-with-resp.extension record
 
 -- Simple types.
 
-data Simple-type (c : Code) : Set₂ where
+data Simple-type (c : Code) : P.Type₂ where
   base : Extractor c → Simple-type c
   _⟶_  : Simple-type c → Simple-type c → Simple-type c
 
 -- Interpretation of a simple type.
 
-⟦_⟧⟶ : ∀ {c} → Simple-type c → ⟦ c ⟧ → Set₁
+⟦_⟧⟶ : ∀ {c} → Simple-type c → ⟦ c ⟧ → P.Type₁
 ⟦ base A ⟧⟶ I = Extractor.Type A I
 ⟦ σ ⟶ τ  ⟧⟶ I = ⟦ σ ⟧⟶ I → ⟦ τ ⟧⟶ I
 
@@ -658,7 +658,7 @@ Simple {c} σ = Extension-with-resp.extension record
 
   Iso : (ass : Assumptions) →
         (σ : Simple-type c) →
-        ∀ {I J} → Isomorphic ass c I J → ⟦ σ ⟧⟶ I → ⟦ σ ⟧⟶ J → Set₁
+        ∀ {I J} → Isomorphic ass c I J → ⟦ σ ⟧⟶ I → ⟦ σ ⟧⟶ J → P.Type₁
   Iso ass (base A) I≅J x y = _≃_.to (Type-cong A ass I≅J) x ≡ y
   Iso ass (σ ⟶ τ)  I≅J f g =
     ∀ x y → Iso ass σ I≅J x y → Iso ass τ I≅J (f x) (g y)
@@ -728,7 +728,7 @@ module Dependent where
 
   -- Dependent types.
 
-  data Ty (c : Code) : Set₂
+  data Ty (c : Code) : P.Type₂
 
   -- Extension: Dependently-typed functions.
 
@@ -747,14 +747,14 @@ module Dependent where
 
   -- Interpretation of a dependent type.
 
-  ⟦_⟧Π : ∀ {c} → Ty c → ⟦ c ⟧ → Set₁
+  ⟦_⟧Π : ∀ {c} → Ty c → ⟦ c ⟧ → P.Type₁
 
   -- Isomorphisms between dependently typed functions.
 
   Iso :
     (ass : Assumptions) →
     ∀ {c} (σ : Ty c) →
-    ∀ {I J} → Isomorphic ass c I J → ⟦ σ ⟧Π I → ⟦ σ ⟧Π J → Set₁
+    ∀ {I J} → Isomorphic ass c I J → ⟦ σ ⟧Π I → ⟦ σ ⟧Π J → P.Type₁
 
   -- A cast function.
 
@@ -786,7 +786,7 @@ module Dependent where
 
   -- Interpretation of a dependent type.
 
-  ⟦ set    ⟧Π _ = Set
+  ⟦ set    ⟧Π _ = P.Type
   ⟦ base A ⟧Π I = Type A I
   ⟦ Π σ τ  ⟧Π I = (x : ⟦ σ ⟧Π I) → ⟦ τ ⟧Π (I , x)
 
@@ -921,7 +921,7 @@ module Dependent where
               (from (≡⇒≃ $ cong (λ B → B ≡ A) $
                        isomorphic-to-itself″ set ass
                          (reflexivity ass c I))
-                    (subst (λ eq → subst (λ _ → Set) eq A ≡ A)
+                    (subst (λ eq → subst (λ _ → P.Type) eq A ≡ A)
                            (sym $ right-inverse-of
                                     (isomorphism≃equality ass c)
                                     (refl I))

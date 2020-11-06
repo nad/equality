@@ -30,14 +30,14 @@ open import Univalence-axiom eq
 
 -- N-ary functions.
 
-_^_⟶_ : Set → ℕ → Set → Set
+_^_⟶_ : Type → ℕ → Type → Type
 A ^ zero  ⟶ B = B
 A ^ suc n ⟶ B = A → A ^ n ⟶ B
 
 -- N-ary function morphisms.
 
 Is-_-ary-morphism :
-  (n : ℕ) {A B : Set} → A ^ n ⟶ A → B ^ n ⟶ B → (A → B) → Set
+  (n : ℕ) {A B : Type} → A ^ n ⟶ A → B ^ n ⟶ B → (A → B) → Type
 Is- zero  -ary-morphism f₁ f₂ m = m f₁ ≡ f₂
 Is- suc n -ary-morphism f₁ f₂ m =
   ∀ x → Is- n -ary-morphism (f₁ x) (f₂ (m x)) m
@@ -47,7 +47,7 @@ abstract
   -- If _↔_.to m is a morphism, then _↔_.from m is also a morphism.
 
   from-also-_-ary-morphism :
-    (n : ℕ) {A B : Set} (f₁ : A ^ n ⟶ A) (f₂ : B ^ n ⟶ B) (m : A ↔ B) →
+    (n : ℕ) {A B : Type} (f₁ : A ^ n ⟶ A) (f₂ : B ^ n ⟶ B) (m : A ↔ B) →
     Is- n -ary-morphism f₁ f₂ (_↔_.to m) →
     Is- n -ary-morphism f₂ f₁ (_↔_.from m)
   from-also- zero  -ary-morphism f₁ f₂ m is = _↔_.to-from m is
@@ -60,7 +60,7 @@ abstract
 
 -- Changes the type of an n-ary function.
 
-cast : {A₁ A₂ : Set} → A₁ ≃ A₂ → ∀ n → A₁ ^ n ⟶ A₁ → A₂ ^ n ⟶ A₂
+cast : {A₁ A₂ : Type} → A₁ ≃ A₂ → ∀ n → A₁ ^ n ⟶ A₁ → A₂ ^ n ⟶ A₂
 cast A₁≃A₂ zero    = _≃_.to A₁≃A₂
 cast A₁≃A₂ (suc n) = λ f x → cast A₁≃A₂ n (f (_≃_.from A₁≃A₂ x))
 
@@ -68,7 +68,7 @@ abstract
 
   -- Cast simplification lemma.
 
-  cast-id : {A : Set} →
+  cast-id : {A : Type} →
             (∀ n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
             ∀ n (f : A ^ n ⟶ A) → cast Eq.id n f ≡ f
   cast-id ext zero    f = refl f
@@ -78,8 +78,8 @@ abstract
   -- extensionality and univalence).
 
   cast-is-subst :
-    (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
-    {A₁ A₂ : Set}
+    (∀ {A : Type} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
+    {A₁ A₂ : Type}
     (univ : Univalence′ A₁ A₂)
     (A₁≃A₂ : A₁ ≃ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
     cast A₁≃A₂ n f ≡ subst (λ C → C ^ n ⟶ C) (≃⇒≡ univ A₁≃A₂) f
@@ -95,7 +95,7 @@ abstract
   -- instance of cast maps f₁ to f₂ (assuming extensionality).
 
   cast-isomorphism :
-    {A₁ A₂ : Set} →
+    {A₁ A₂ : Type} →
     (∀ n → Extensionality′ A₂ (λ _ → A₂ ^ n ⟶ A₂)) →
     (A₁≃A₂ : A₁ ≃ A₂)
     (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
@@ -113,8 +113,8 @@ abstract
   -- subst maps f₁ to f₂ (assuming extensionality and univalence).
 
   subst-isomorphism :
-    (∀ {A : Set} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
-    {A₁ A₂ : Set}
+    (∀ {A : Type} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
+    {A₁ A₂ : Type}
     (univ : Univalence′ A₁ A₂)
     (A₁≃A₂ : A₁ ≃ A₂)
     (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
@@ -136,7 +136,7 @@ mutual
 
   infixl 5 _+operator_ _+axiom_
 
-  data Structure : Set₁ where
+  data Structure : Type₁ where
     empty : Structure
 
     -- N-ary functions.
@@ -144,28 +144,28 @@ mutual
 
     -- Arbitrary /propositional/ axioms.
     _+axiom_ : (s : Structure)
-               (P : ∃ λ (P : (A : Set) → ⟦ s ⟧ A → Set) →
+               (P : ∃ λ (P : (A : Type) → ⟦ s ⟧ A → Type) →
                       ∀ A s → Is-proposition (P A s)) →
                Structure
 
   -- Interpretation of the codes.
 
-  ⟦_⟧ : Structure → Set → Set₁
+  ⟦_⟧ : Structure → Type → Type₁
   ⟦ empty                 ⟧ A = ↑ _ ⊤
   ⟦ s +operator n         ⟧ A = ⟦ s ⟧ A × (A ^ n ⟶ A)
   ⟦ s +axiom (P , P-prop) ⟧ A = Σ (⟦ s ⟧ A) (P A)
 
 -- Top-level interpretation.
 
-⟪_⟫ : Structure → Set₁
+⟪_⟫ : Structure → Type₁
 ⟪ s ⟫ = ∃ ⟦ s ⟧
 
 -- Morphisms.
 
 Is-structure-morphism :
   (s : Structure) →
-  {A B : Set} → ⟦ s ⟧ A → ⟦ s ⟧ B →
-  (A → B) → Set
+  {A B : Type} → ⟦ s ⟧ A → ⟦ s ⟧ B →
+  (A → B) → Type
 Is-structure-morphism empty           _          _          m = ⊤
 Is-structure-morphism (s +axiom _)    (s₁ , _)   (s₂ , _)   m =
   Is-structure-morphism s s₁ s₂ m
@@ -174,7 +174,7 @@ Is-structure-morphism (s +operator n) (s₁ , op₁) (s₂ , op₂) m =
 
 -- Isomorphisms.
 
-Isomorphism : (s : Structure) → ⟪ s ⟫ → ⟪ s ⟫ → Set
+Isomorphism : (s : Structure) → ⟪ s ⟫ → ⟪ s ⟫ → Type
 Isomorphism s (A₁ , s₁) (A₂ , s₂) =
   ∃ λ (m : A₁ ↔ A₂) → Is-structure-morphism s s₁ s₂ (_↔_.to m)
 
@@ -184,7 +184,7 @@ abstract
 
   from-also-structure-morphism :
     (s : Structure) →
-    {A B : Set} {s₁ : ⟦ s ⟧ A} {s₂ : ⟦ s ⟧ B} →
+    {A B : Type} {s₁ : ⟦ s ⟧ A} {s₂ : ⟦ s ⟧ B} →
     (m : A ↔ B) →
     Is-structure-morphism s s₁ s₂ (_↔_.to m) →
     Is-structure-morphism s s₂ s₁ (_↔_.from m)
@@ -198,7 +198,7 @@ abstract
   -- Isomorphic structures are equal (assuming univalence).
 
   isomorphic-equal :
-    Univalence′ (Set ²/≡) Set →
+    Univalence′ (Type ²/≡) Type →
     Univalence lzero →
     (s : Structure) (s₁ s₂ : ⟪ s ⟫) →
     Isomorphism s s₁ s₂ → s₁ ≡ s₂
@@ -213,7 +213,7 @@ abstract
 
     -- Extensionality follows from univalence.
 
-    ext : {A : Set} {B : A → Set} → Extensionality′ A B
+    ext : {A : Type} {B : A → Type} → Extensionality′ A B
     ext = dependent-extensionality′ univ₁ (λ _ → univ₂)
 
     -- The presence of the bijection implies that the structure's
@@ -253,14 +253,14 @@ abstract
 magma : Structure
 magma = empty +operator 2
 
-Magma : Set₁
+Magma : Type₁
 Magma = ⟪ magma ⟫
 
 private
 
   -- An unfolding of Magma.
 
-  Magma-unfolded : Magma ≡ ∃ λ (A : Set) → ↑ _ ⊤ × (A → A → A)
+  Magma-unfolded : Magma ≡ ∃ λ (A : Type) → ↑ _ ⊤ × (A → A → A)
   Magma-unfolded = refl _
 
 -- Example: semigroups. The definition uses extensionality to prove
@@ -295,7 +295,7 @@ semigroup ext =
       A-set
     }
 
-Semigroup : Extensionality lzero lzero → Set₁
+Semigroup : Extensionality lzero lzero → Type₁
 Semigroup ext = ⟪ semigroup ext ⟫
 
 private
@@ -305,7 +305,7 @@ private
   Semigroup-unfolded :
     (ext : Extensionality lzero lzero) →
     Semigroup ext ≡ Σ
-      Set                                        λ A → Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Type                                       λ A → Σ (Σ (Σ (↑ _ ⊤) λ _ →
       Is-set A                                 ) λ _ →
       A → A → A                                ) λ { (_ , _∙_) →
       ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) }
@@ -416,7 +416,7 @@ abelian-group ext =
       A-set
     }
 
-Abelian-group : Extensionality lzero lzero → Set₁
+Abelian-group : Extensionality lzero lzero → Type₁
 Abelian-group ext = ⟪ abelian-group ext ⟫
 
 private
@@ -427,7 +427,7 @@ private
   Abelian-group-unfolded :
     (ext : Extensionality lzero lzero) →
     Abelian-group ext ≡ Σ
-      Set                                        λ A → Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
+      Type                                       λ A → Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
       Is-set A                                 ) λ _ →
       A → A → A                                ) λ {        (_ , _∙_) →
       ∀ x y → (x ∙ y) ≡ (y ∙ x)               }) λ {       ((_ , _∙_) , _) →
@@ -461,7 +461,7 @@ private
 -- Codes. (Note that these structures are defined for a single
 -- underlying type.)
 
-data Structureʳ (A : Set) : Set₁ where
+data Structureʳ (A : Type) : Type₁ where
   empty : Structureʳ A
 
   -- N-ary functions.
@@ -470,34 +470,34 @@ data Structureʳ (A : Set) : Set₁ where
              Structureʳ A
 
   -- Arbitrary /propositional/ axioms.
-  axiom : (P : Set)
+  axiom : (P : Type)
           (P-prop : Is-proposition P)
           (s : P → Structureʳ A) →
           Structureʳ A
 
 -- Interpretation of the codes.
 
-⟦_⟧ʳ : {A : Set} → Structureʳ A → Set₁
+⟦_⟧ʳ : {A : Type} → Structureʳ A → Type₁
 ⟦ empty            ⟧ʳ = ↑ _ ⊤
 ⟦ operator n s     ⟧ʳ = ∃ λ op → ⟦ s op ⟧ʳ
 ⟦ axiom P P-prop s ⟧ʳ = ∃ λ p  → ⟦ s p  ⟧ʳ
 
 -- Top-level interpretation.
 
-⟪_⟫ʳ : (∀ A → Structureʳ A) → Set₁
+⟪_⟫ʳ : (∀ A → Structureʳ A) → Type₁
 ⟪ s ⟫ʳ = ∃ λ A → ⟦ s A ⟧ʳ
 
 -- The property of being an isomorphism.
 
 Is-structure-isomorphismʳ :
   (s : ∀ A → Structureʳ A) →
-  {A B : Set} → ⟦ s A ⟧ʳ → ⟦ s B ⟧ʳ →
-  A ↔ B → Set
+  {A B : Type} → ⟦ s A ⟧ʳ → ⟦ s B ⟧ʳ →
+  A ↔ B → Type
 Is-structure-isomorphismʳ s {A} {B} S₁ S₂ m =
   helper (s A) (s B) S₁ S₂
   where
   helper : (s₁ : Structureʳ A) (s₂ : Structureʳ B) →
-           ⟦ s₁ ⟧ʳ → ⟦ s₂ ⟧ʳ → Set
+           ⟦ s₁ ⟧ʳ → ⟦ s₂ ⟧ʳ → Type
   helper empty            empty            _          _          = ⊤
   helper (operator n₁ s₁) (operator n₂ s₂) (op₁ , S₁) (op₂ , S₂) =
     (∃ λ (eq : n₁ ≡ n₂) →
@@ -539,7 +539,7 @@ semigroupʳ ext A =
 
   empty
 
-Semigroupʳ : Extensionality lzero lzero → Set₁
+Semigroupʳ : Extensionality lzero lzero → Type₁
 Semigroupʳ ext = ⟪ semigroupʳ ext ⟫ʳ
 
 private
@@ -549,7 +549,7 @@ private
   Semigroupʳ-unfolded :
     (ext : Extensionality lzero lzero) →
     Semigroupʳ ext ≡
-    ∃ λ (A   : Set) →
+    ∃ λ (A   : Type) →
     ∃ λ (_   : Is-set A) →
     ∃ λ (_∙_ : A → A → A) →
     ∃ λ (_   : ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z)) →

@@ -30,7 +30,7 @@ private
     ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
       {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄} →
     Extensionality (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₃ ⊔ ℓ₄) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₃ ⊔ ℓ₄) →
-    C ⇨ D → D ⇨ C → Set _
+    C ⇨ D → D ⇨ C → Type _
   Is-left-adjoint-of {ℓ₁} {ℓ₂} {C} {ℓ₃} {ℓ₄} {D} ext F G =
     ∃ λ (η : id⇨ ⇾ G ∙⇨ F) →
     ∃ λ (ε : F ∙⇨ G ⇾ id⇨) →
@@ -65,7 +65,7 @@ private
 _⊣_ :
   ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
     {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄} →
-  C ⇨ D → D ⇨ C → Set _
+  C ⇨ D → D ⇨ C → Type _
 _⊣_ {ℓ₁} {ℓ₂} {C} {ℓ₃} {ℓ₄} {D} F G =
   ∃ λ (η : id⇨ ⇾ G ∙⇨ F) →
   ∃ λ (ε : F ∙⇨ G ⇾ id⇨) →
@@ -81,7 +81,7 @@ _⊣_ {ℓ₁} {ℓ₂} {C} {ℓ₃} {ℓ₄} {D} F G =
 
 Adjunction :
   ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
-  Precategory ℓ₁ ℓ₂ → Precategory ℓ₃ ℓ₄ → Set _
+  Precategory ℓ₁ ℓ₂ → Precategory ℓ₃ ℓ₄ → Type _
 Adjunction C D = ∃ λ (F : C ⇨ D) → ∃ λ (G : D ⇨ C) → F ⊣ G
 
 ------------------------------------------------------------------------
@@ -92,7 +92,7 @@ Adjunction C D = ∃ λ (F : C ⇨ D) → ∃ λ (G : D ⇨ C) → F ⊣ G
 -- This definition is taken from Wikipedia
 -- (https://en.wikipedia.org/wiki/Monad_%28category_theory%29).
 
-Monad : ∀ {ℓ₁ ℓ₂} (C : Precategory ℓ₁ ℓ₂) → Set (ℓ₁ ⊔ ℓ₂)
+Monad : ∀ {ℓ₁ ℓ₂} (C : Precategory ℓ₁ ℓ₂) → Type (ℓ₁ ⊔ ℓ₂)
 Monad C =
   ∃ λ (F : C ⇨ C) →
   ∃ λ (η : id⇨ ⇾ F) →

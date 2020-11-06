@@ -33,8 +33,8 @@ open import Surjection equality-with-J as Surjection using (_↠_)
 private
   variable
     a p r : Level
-    A B   : Set a
-    R     : A → A → Set r
+    A B   : Type a
+    R     : A → A → Type r
     x y   : A
     A↠B   : A ↠ B
 
@@ -45,14 +45,14 @@ private
 -- [ y ].
 
 []-cong-Path :
-  {@0 A : Set a} {@0 x y : A} →
+  {@0 A : Type a} {@0 x y : A} →
   EB.Erased (x P.≡ y) → EB.[ x ] P.≡ EB.[ y ]
 []-cong-Path EB.[ eq ] = λ i → EB.[ eq i ]
 
 -- []-cong-Path is an equivalence.
 
 []-cong-Path-equivalence :
-  {@0 A : Set a} {@0 x y : A} →
+  {@0 A : Type a} {@0 x y : A} →
   Is-equivalence ([]-cong-Path {x = x} {y = y})
 []-cong-Path-equivalence =
   _≃_.is-equivalence $ Eq.↔⇒≃ (record
@@ -68,14 +68,14 @@ private
 -- A rearrangement lemma for []-cong-Path (which holds by definition).
 
 []-cong-Path-[refl] :
-  {@0 A : Set a} {@0 x : A} →
+  {@0 A : Type a} {@0 x : A} →
   []-cong-Path EB.[ P.refl {x = x} ] P.≡ P.refl {x = EB.[ x ]}
 []-cong-Path-[refl] = P.refl
 
 -- Given an erased proof of equality of x and y one can show that
 -- EB.[ x ] is equal to EB.[ y ].
 
-[]-cong : {@0 A : Set a} {@0 x y : A} →
+[]-cong : {@0 A : Type a} {@0 x y : A} →
           EB.Erased (x ≡ y) → EB.[ x ] ≡ EB.[ y ]
 []-cong {x = x} {y = y} =
   EB.Erased (x ≡ y)      ↝⟨ (λ (EB.[ eq ]) → EB.[ _↔_.to ≡↔≡ eq ]) ⟩
@@ -86,7 +86,7 @@ private
 -- []-cong is an equivalence.
 
 []-cong-equivalence :
-  {@0 A : Set a} {@0 x y : A} →
+  {@0 A : Type a} {@0 x y : A} →
   Is-equivalence ([]-cong {x = x} {y = y})
 []-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (
   EB.Erased (x ≡ y)      ↔⟨ E₁.[]-cong₁.Erased-cong-↔ []-cong ≡↔≡ ⟩
@@ -97,7 +97,7 @@ private
 -- A rearrangement lemma for []-cong.
 
 []-cong-[refl] :
-  {@0 A : Set a} {@0 x : A} →
+  {@0 A : Type a} {@0 x : A} →
   []-cong EB.[ refl x ] ≡ refl EB.[ x ]
 []-cong-[refl] {x = x} =
   sym $ _↔_.to (from≡↔≡to Eq.⟨ _ , []-cong-equivalence ⟩) (
@@ -133,7 +133,7 @@ private
   -- very easily when path equality is used.
 
   push-subst-[]-Path :
-    {@0 P : A → Set p} {@0 p : P x} {x≡y : x P.≡ y} →
+    {@0 P : A → Type p} {@0 p : P x} {x≡y : x P.≡ y} →
     P.subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ P.subst P x≡y p ]
   push-subst-[]-Path = refl _
 
@@ -145,7 +145,7 @@ private
   -- Is-proposition is closed under Erased.
 
   Is-proposition-Erased :
-    {@0 A : Set a} →
+    {@0 A : Type a} →
     @0 Is-proposition A → Is-proposition (Erased A)
   Is-proposition-Erased {A = A} prop =
     _↔_.from (H-level↔H-level 1)
@@ -160,7 +160,7 @@ private
   -- Is-set is closed under Erased.
 
   Is-set-Erased :
-    {@0 A : Set a} →
+    {@0 A : Type a} →
     @0 Is-set A → Is-set (Erased A)
   Is-set-Erased {A = A} set =
     _↔_.from (H-level↔H-level 2)
@@ -183,7 +183,7 @@ private
 -- This is a strengthening of the result of the same name from Erased.
 
 Π-Erased↔Π0[] :
-  {@0 A : Set a} {@0 P : Erased A → Set p} →
+  {@0 A : Type a} {@0 P : Erased A → Type p} →
   ((x : Erased A) → P x) PB.↔ ((@0 x : A) → P [ x ])
 Π-Erased↔Π0[] = record
   { surjection = record
@@ -202,7 +202,7 @@ private
 -- contexts.
 
 Π-Erased≃Π0[] :
-  {@0 A : Set a} {@0 P : Erased A → Set p} →
+  {@0 A : Type a} {@0 P : Erased A → Type p} →
   ((x : Erased A) → P x) PEq.≃ ((@0 x : A) → P [ x ])
 Π-Erased≃Π0[] = record
   { to             = λ f x → f [ x ]
@@ -219,7 +219,7 @@ private
 -- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
 
 Π-Erased↔Π0 :
-  {@0 A : Set a} {@0 P : A → Set p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   ((x : Erased A) → P (erased x)) PB.↔ ((@0 x : A) → P x)
 Π-Erased↔Π0 = Π-Erased↔Π0[]
 
@@ -227,7 +227,7 @@ private
 -- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
 
 Π-Erased≃Π0 :
-  {@0 A : Set a} {@0 P : A → Set p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   ((x : Erased A) → P (erased x)) PEq.≃ ((@0 x : A) → P x)
 Π-Erased≃Π0 = Π-Erased≃Π0[]
 

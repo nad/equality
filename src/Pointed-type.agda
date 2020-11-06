@@ -24,13 +24,13 @@ open import Surjection eq using (_↠_)
 
 -- Pointed types.
 
-Pointed-type : ∀ ℓ → Set (lsuc ℓ)
-Pointed-type a = ∃ λ (A : Set a) → A
+Pointed-type : ∀ ℓ → Type (lsuc ℓ)
+Pointed-type a = ∃ λ (A : Type a) → A
 
 private
   variable
     a b ℓ : Level
-    A B   : Set a
+    A B   : Type a
     P Q   : Pointed-type a
     x     : A
     k     : Kind
@@ -40,18 +40,18 @@ private
 
 infix 4 _↝[_]ᴮ_ _→ᴮ_ _≃ᴮ_
 
-_↝[_]ᴮ_ : Pointed-type a → Kind → Pointed-type b → Set (a ⊔ b)
+_↝[_]ᴮ_ : Pointed-type a → Kind → Pointed-type b → Type (a ⊔ b)
 (A , x) ↝[ k ]ᴮ (B , y) =
   ∃ λ (f : A ↝[ k ] B) → to-implication f x ≡ y
 
 -- Based maps.
 
-_→ᴮ_ : Pointed-type a → Pointed-type b → Set (a ⊔ b)
+_→ᴮ_ : Pointed-type a → Pointed-type b → Type (a ⊔ b)
 _→ᴮ_ = _↝[ implication ]ᴮ_
 
 -- Based equivalences.
 
-_≃ᴮ_ : Pointed-type a → Pointed-type b → Set (a ⊔ b)
+_≃ᴮ_ : Pointed-type a → Pointed-type b → Type (a ⊔ b)
 _≃ᴮ_ = _↝[ equivalence ]ᴮ_
 
 -- The loop space of a pointed type.
@@ -99,7 +99,7 @@ Maybe→ᴮ↠→ {A = A} {B = B} {x = x} = record
 -- (assuming extensionality).
 
 Maybe→ᴮ↔→ :
-  ∀ {A : Set a} {B : Set b} {x} →
+  ∀ {A : Type a} {B : Type b} {x} →
   Extensionality? k a b →
   (Maybe A , nothing) →ᴮ (B , x) ↝[ k ] (A → B)
 Maybe→ᴮ↔→ {A = A} {B} {x} = generalise-ext?
@@ -128,7 +128,7 @@ Maybe→ᴮ↔→ {A = A} {B} {x} = generalise-ext?
 -- A corollary.
 
 Bool→ᴮ↔ :
-  ∀ {A : Set a} {x} →
+  ∀ {A : Type a} {x} →
   Extensionality? k lzero a →
   (Bool , true) →ᴮ (A , x) ↝[ k ] A
 Bool→ᴮ↔ {A = A} {x = x} ext =

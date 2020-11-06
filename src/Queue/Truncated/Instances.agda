@@ -13,7 +13,7 @@ module Queue.Truncated.Instances
   (eq : ∀ {a p} → P.Equality-with-paths a p e⁺)
   (open P.Derived-definitions-and-properties eq)
 
-  {Q : ∀ {ℓ} → @0 Set ℓ → Set ℓ}
+  {Q : ∀ {ℓ} → @0 Type ℓ → Type ℓ}
   ⦃ is-queue :
       ∀ {ℓ} →
       Queue.Is-queue equality-with-J (λ A → Q A) (λ _ → ↑ _ ⊤) ℓ ⦄
@@ -37,7 +37,7 @@ private
 
   variable
     a ℓ ℓ₁ ℓ₂ : Level
-    A         : Set a
+    A         : Type a
     xs        : List A
 
   module N = Q.Non-indexed

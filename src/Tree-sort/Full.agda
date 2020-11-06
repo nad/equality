@@ -15,8 +15,8 @@ open import Prelude hiding (id; _∘_; lower)
 module Tree-sort.Full
   {c⁺}
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
-  {A : Set}
-  (le : A → A → Set)
+  {A : Type}
+  (le : A → A → Type)
   (total : ∀ x y → le x y ⊎ le y x)
   where
 
@@ -32,13 +32,13 @@ open import List eq
 
 -- A extended with a new minimum and maximum.
 
-data Extended : Set where
+data Extended : Type where
   min max : Extended
   [_]     : (x : A) → Extended
 
 infix 4 _≤_
 
-_≤_ : Extended → Extended → Set
+_≤_ : Extended → Extended → Type
 min   ≤ y     = ⊤
 [ x ] ≤ [ y ] = le x y
 x     ≤ max   = ⊤
@@ -49,7 +49,7 @@ _     ≤ _     = ⊥
 
 infix 4 _,_
 
-record _≤[_]≤_ (l : Extended) (x : A) (u : Extended) : Set where
+record _≤[_]≤_ (l : Extended) (x : A) (u : Extended) : Type where
   constructor _,_
   field
     lower : l ≤ [ x ]
@@ -58,7 +58,7 @@ record _≤[_]≤_ (l : Extended) (x : A) (u : Extended) : Set where
 ------------------------------------------------------------------------
 -- Ordered lists
 
-data Ordered-list (l u : Extended) : Set where
+data Ordered-list (l u : Extended) : Type where
   nil  : (l≤u : l ≤ u) → Ordered-list l u
   cons : (x : A) (xs : Ordered-list [ x ] u) (l≤x : l ≤ [ x ]) →
          Ordered-list l u
@@ -76,14 +76,14 @@ infix 5 node
 
 syntax node x lx xu = lx -[ x ]- xu
 
-data Search-tree (l u : Extended) : Set where
+data Search-tree (l u : Extended) : Type where
   leaf : (l≤u : l ≤ u) → Search-tree l u
   node : (x : A) (lx : Search-tree l [ x ]) (xu : Search-tree [ x ] u) →
          Search-tree l u
 
 -- Any.
 
-AnyT : ∀ {l u} → (A → Set) → Search-tree l u → Set
+AnyT : ∀ {l u} → (A → Type) → Search-tree l u → Type
 AnyT P (leaf _)     = ⊥
 AnyT P (node x l r) = AnyT P l ⊎ P x ⊎ AnyT P r
 
@@ -96,27 +96,27 @@ AnyT P (node x l r) = AnyT P l ⊎ P x ⊎ AnyT P r
 
 -- Codes.
 
-data Kind : Set where
+data Kind : Type where
   list ordered-list search-tree : Kind
 
 -- Index type.
 --
 -- Note that Agda infers values of type ⊤ automatically.
 
-Index : Kind → Set
+Index : Kind → Type
 Index list = ⊤
 Index _    = Extended
 
 -- Interpretation.
 
-⟦_⟧ : (k : Kind) → (Index k → Index k → Set)
+⟦_⟧ : (k : Kind) → (Index k → Index k → Type)
 ⟦ list         ⟧ _ _ = List A
 ⟦ ordered-list ⟧ l u = Ordered-list l u
 ⟦ search-tree  ⟧ l u = Search-tree l u
 
 -- Any.
 
-Any : ∀ {k l u} → (A → Set) → (⟦ k ⟧ l u → Set)
+Any : ∀ {k l u} → (A → Type) → (⟦ k ⟧ l u → Type)
 Any {list}         = AnyL
 Any {ordered-list} = λ P → AnyL P ∘ to-list
 Any {search-tree}  = AnyT
@@ -125,14 +125,14 @@ Any {search-tree}  = AnyT
 
 infix 4 _∈_
 
-_∈_ : ∀ {k l u} → A → ⟦ k ⟧ l u → Set
+_∈_ : ∀ {k l u} → A → ⟦ k ⟧ l u → Type
 x ∈ xs = Any (λ y → x ≡ y) xs
 
 -- Bag equivalence.
 
 infix 4 _≈-bag_
 
-_≈-bag_ : ∀ {k₁ k₂ l₁ u₁ l₂ u₂} → ⟦ k₁ ⟧ l₁ u₁ → ⟦ k₂ ⟧ l₂ u₂ → Set
+_≈-bag_ : ∀ {k₁ k₂ l₁ u₁ l₂ u₂} → ⟦ k₁ ⟧ l₁ u₁ → ⟦ k₂ ⟧ l₂ u₂ → Type
 xs ≈-bag ys = ∀ z → z ∈ xs ↔ z ∈ ys
 
 ------------------------------------------------------------------------
@@ -143,7 +143,7 @@ singleton x (l≤x , x≤u) = leaf l≤x -[ x ]- leaf x≤u
 
 -- Any lemma for singleton.
 
-Any-singleton : ∀ (P : A → Set) {l u x} (l≤x≤u : l ≤[ x ]≤ u) →
+Any-singleton : ∀ (P : A → Type) {l u x} (l≤x≤u : l ≤[ x ]≤ u) →
                 Any P (singleton x l≤x≤u) ↔ P x
 Any-singleton P {x = x} l≤x≤u =
   Any P (singleton x l≤x≤u)  ↔⟨⟩
@@ -163,7 +163,7 @@ insert x (ly -[ y ]- yu) (l≤x , x≤u) with total x y
 
 -- Any lemma for insert.
 
-Any-insert : ∀ (P : A → Set) {l u} x t (l≤x≤u : l ≤[ x ]≤ u) →
+Any-insert : ∀ (P : A → Type) {l u} x t (l≤x≤u : l ≤[ x ]≤ u) →
              Any P (insert x t l≤x≤u) ↔ P x ⊎ Any P t
 Any-insert P {l} {u} x (leaf l≤u) l≤x≤u =
   Any P (singleton x l≤x≤u)               ↔⟨ Any-singleton P l≤x≤u ⟩
@@ -184,7 +184,7 @@ Any-insert P x (ly -[ y ]- yu) (l≤x , x≤u) with total x y
   -- The following lemma is easy to prove automatically (for
   -- instance by using a ring solver).
 
-  lemma : (A B C D : Set) → A ⊎ B ⊎ C ⊎ D ↔ C ⊎ A ⊎ B ⊎ D
+  lemma : (A B C D : Type) → A ⊎ B ⊎ C ⊎ D ↔ C ⊎ A ⊎ B ⊎ D
   lemma A B C D =
     A ⊎ B ⊎ C ⊎ D      ↔⟨ id ⊎-cong ⊎-assoc ⟩
     A ⊎ (B ⊎ C) ⊎ D    ↔⟨ id ⊎-cong ⊎-comm ⊎-cong id ⟩
@@ -227,7 +227,7 @@ cons y yx l≤y -⁅ x ⁆- xu = cons y (yx -⁅ x ⁆- xu) l≤y
 
 -- Any lemma for append.
 
-Any-append : ∀ (P : A → Set) {l u} x
+Any-append : ∀ (P : A → Type) {l u} x
              (lx : Ordered-list l [ x ]) (xu : Ordered-list [ x ] u) →
              Any P (lx -⁅ x ⁆- xu) ↔ Any P lx ⊎ P x ⊎ Any P xu
 Any-append P x (nil l≤x) xu =

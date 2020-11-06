@@ -19,8 +19,8 @@ open import H-level.Closure eq
 private
   variable
     a r     : Level
-    A B     : Set a
-    R R₁ R₂ : A → A → Set r
+    A B     : Type a
+    R R₁ R₂ : A → A → Type r
 
 ------------------------------------------------------------------------
 -- The definition
@@ -28,7 +28,7 @@ private
 -- The definition of "equivalence relation".
 
 record Is-equivalence-relation
-         {A : Set a} (R : A → A → Set r) : Set (a ⊔ r) where
+         {A : Type a} (R : A → A → Type r) : Type (a ⊔ r) where
   field
     reflexive  : ∀ {x} → R x x
     symmetric  : ∀ {x y} → R x y → R y x
@@ -40,7 +40,7 @@ record Is-equivalence-relation
 
 -- A trivial binary relation.
 
-Trivial : A → A → Set r
+Trivial : A → A → Type r
 Trivial _ _ = ↑ _ ⊤
 
 -- This relation is an equivalence relation.
@@ -63,9 +63,9 @@ Trivial-is-propositional = ↑-closure 1 (mono₁ 0 ⊤-contractible)
 infix 0 _→ᴾ_
 
 _→ᴾ_ :
-  (A : Set a) →
-  (B → B → Set r) →
-  ((A → B) → (A → B) → Set (a ⊔ r))
+  (A : Type a) →
+  (B → B → Type r) →
+  ((A → B) → (A → B) → Type (a ⊔ r))
 (_ →ᴾ R) f g = ∀ x → R (f x) (g x)
 
 -- _→ᴾ_ preserves equivalence relations.
@@ -84,7 +84,7 @@ _→ᴾ_ :
 -- _→ᴾ_ preserves Is-proposition (assuming extensionality).
 
 →ᴾ-preserves-Is-proposition :
-  {A : Set a} (R : B → B → Set r) →
+  {A : Type a} (R : B → B → Type r) →
   Extensionality a r →
   (∀ {x y} → Is-proposition (R x y)) →
   ∀ {f g} → Is-proposition ((A →ᴾ R) f g)
@@ -97,9 +97,9 @@ _→ᴾ_ :
 infixr 1 _⊎ᴾ_
 
 _⊎ᴾ_ :
-  (A → A → Set r) →
-  (B → B → Set r) →
-  (A ⊎ B → A ⊎ B → Set r)
+  (A → A → Type r) →
+  (B → B → Type r) →
+  (A ⊎ B → A ⊎ B → Type r)
 (P ⊎ᴾ Q) (inj₁ x) (inj₁ y) = P x y
 (P ⊎ᴾ Q) (inj₂ x) (inj₂ y) = Q x y
 (P ⊎ᴾ Q) _        _        = ⊥
@@ -147,8 +147,8 @@ _⊎ᴾ_ :
 -- Lifts a binary relation from A to Maybe A.
 
 Maybeᴾ :
-  (A → A → Set r) →
-  (Maybe A → Maybe A → Set r)
+  (A → A → Type r) →
+  (Maybe A → Maybe A → Type r)
 Maybeᴾ R = Trivial ⊎ᴾ R
 
 -- Maybeᴾ preserves Is-equivalence-relation.

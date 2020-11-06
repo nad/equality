@@ -21,7 +21,7 @@ open import Function-universe eq using (inverse)
 
 -- Raw monads.
 
-record Raw-monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
+record Raw-monad {d c} (M : Type d → Type c) : Type (lsuc d ⊔ c) where
   constructor mk
   infixl 6 _⟨$⟩_ _⊛_
   infixl 5 _>>=_ _>>_
@@ -63,7 +63,7 @@ open Raw-monad ⦃ … ⦄ public
 
 -- Monads.
 
-record Monad {d c} (M : Set d → Set c) : Set (lsuc d ⊔ c) where
+record Monad {d c} (M : Type d → Type c) : Type (lsuc d ⊔ c) where
   constructor mk
   field
     ⦃ raw-monad ⦄  : Raw-monad M
@@ -121,8 +121,8 @@ open Monad ⦃ … ⦄ public hiding (raw-monad)
 -- Monad transformers.
 
 record Raw-monad-transformer
-         {d c₁ c₂} (F : (Set d → Set c₁) → (Set d → Set c₂)) :
-         Set (lsuc (c₁ ⊔ d) ⊔ c₂) where
+         {d c₁ c₂} (F : (Type d → Type c₁) → (Type d → Type c₂)) :
+         Type (lsuc (c₁ ⊔ d) ⊔ c₂) where
   constructor mk
   field
     transform : ∀ {M}   ⦃ is-raw-monad : Raw-monad M ⦄ → Raw-monad (F M)
@@ -131,8 +131,8 @@ record Raw-monad-transformer
 open Raw-monad-transformer ⦃ … ⦄ public using (liftʳ)
 
 record Monad-transformer
-         {d c₁ c₂} (F : (Set d → Set c₁) → (Set d → Set c₂)) :
-         Set (lsuc (c₁ ⊔ d) ⊔ c₂) where
+         {d c₁ c₂} (F : (Type d → Type c₁) → (Type d → Type c₂)) :
+         Type (lsuc (c₁ ⊔ d) ⊔ c₂) where
   constructor mk
   field
     transform : ∀ {M}   ⦃ is-monad : Monad M ⦄ → Monad (F M)
@@ -157,14 +157,14 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
 -- If F and G are pointwise logically equivalent, then Raw-monad F and
 -- Raw-monad G are logically equivalent.
 
-⇔→raw⇔raw : ∀ {a f g} {F : Set a → Set f} {G : Set a → Set g} →
+⇔→raw⇔raw : ∀ {a f g} {F : Type a → Type f} {G : Type a → Type g} →
             (∀ x → F x ⇔ G x) → Raw-monad F ⇔ Raw-monad G
 ⇔→raw⇔raw {a} = λ F⇔G → record
   { to   = to F⇔G
   ; from = to (inverse ∘ F⇔G)
   }
   where
-  to : ∀ {f g} {F : Set a → Set f} {G : Set a → Set g} →
+  to : ∀ {f g} {F : Type a → Type f} {G : Type a → Type g} →
        (∀ x → F x ⇔ G x) → Raw-monad F → Raw-monad G
   Raw-monad.return (to F⇔G F-monad) x =
     _⇔_.to (F⇔G _) (F.return x)
@@ -182,7 +182,7 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
 
 ↔→raw↔raw : ∀ {a f g} →
             Extensionality (lsuc a ⊔ f ⊔ g) (lsuc a ⊔ f ⊔ g) →
-            {F : Set a → Set f} {G : Set a → Set g} →
+            {F : Type a → Type f} {G : Type a → Type g} →
             (∀ x → F x ↔ G x) → Raw-monad F ↔ Raw-monad G
 ↔→raw↔raw {a} {f} {g} = λ ext F↔G → record
   { surjection = record
@@ -194,7 +194,7 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
   }
   where
   to∘to :
-    ∀ {f g} {F : Set a → Set f} {G : Set a → Set g} →
+    ∀ {f g} {F : Type a → Type f} {G : Type a → Type g} →
     Extensionality (lsuc a ⊔ f) (lsuc a ⊔ f) →
     (F↔G : ∀ x → F x ↔ G x) (F-monad : Raw-monad F) →
     let eq = ⇔→raw⇔raw (_↔_.logical-equivalence ∘ F↔G) in
@@ -226,14 +226,14 @@ open Monad-transformer ⦃ … ⦄ public using (liftᵐ; lift-return; lift->>=)
 
 ↔→⇔ : ∀ {a f g} →
       Extensionality a (f ⊔ g) →
-      {F : Set a → Set f} {G : Set a → Set g} →
+      {F : Type a → Type f} {G : Type a → Type g} →
       (∀ x → F x ↔ G x) → Monad F ⇔ Monad G
 ↔→⇔ {a} {f} {g} = λ ext F↔G → record
   { to   = to (lower-extensionality lzero g ext) F↔G
   ; from = to (lower-extensionality lzero f ext) (inverse ∘ F↔G)
   }
   where
-  to : ∀ {f g} {F : Set a → Set f} {G : Set a → Set g} →
+  to : ∀ {f g} {F : Type a → Type f} {G : Type a → Type g} →
        Extensionality a f →
        (∀ x → F x ↔ G x) → Monad F → Monad G
   Monad.raw-monad (to ext F↔G F-monad) =
@@ -307,7 +307,7 @@ Monad.associativity  identity-monad x f g             = refl (g (f x))
 -- The identity monad, defined using a wrapper type to make instance
 -- resolution easier.
 
-record Id {a} (A : Set a) : Set a where
+record Id {a} (A : Type a) : Type a where
   constructor wrap
   field
     run : A

@@ -11,7 +11,7 @@
 -- This module is similar to
 -- Univalence-axiom.Isomorphism-is-equality.Simple, but the
 -- definitions of isomorphism used below are perhaps closer to the
--- "standard" ones. Carrier types also live in Set rather than Set₁
+-- "standard" ones. Carrier types also live in Type rather than Type₁
 -- (at the cost of quite a bit of lifting).
 
 -- This module has been developed in collaboration with Thierry
@@ -42,7 +42,7 @@ open import Univalence-axiom eq
 
 -- A record type packing up some assumptions.
 
-record Assumptions : Set₃ where
+record Assumptions : Type₃ where
   field
 
     -- Univalence at three different levels.
@@ -63,21 +63,21 @@ record Assumptions : Set₃ where
 
 -- Universes with some extra stuff.
 
-record Universe : Set₃ where
+record Universe : Type₃ where
   field
 
     -- Codes for something.
 
-    U : Set₁
+    U : Type₁
 
     -- Interpretation of codes.
 
-    El : U → Set → Set₁
+    El : U → Type → Type₁
 
     -- A predicate, possibly specifying what it means for a bijection
     -- to be an isomorphism between two elements.
 
-    Is-isomorphism : ∀ a {B C} → B ↔ C → El a B → El a C → Set₁
+    Is-isomorphism : ∀ a {B C} → B ↔ C → El a B → El a C → Type₁
 
     -- El a, seen as a predicate, respects equivalences (assuming
     -- univalence).
@@ -93,7 +93,7 @@ record Universe : Set₃ where
   -- using univalence.
 
   Is-isomorphism′ : Assumptions →
-                    ∀ a {B C} → B ↔ C → El a B → El a C → Set₁
+                    ∀ a {B C} → B ↔ C → El a B → El a C → Type₁
   Is-isomorphism′ ass a B↔C x y = resp ass a (↔⇒≃ B↔C) x ≡ y
 
   field
@@ -110,7 +110,7 @@ record Universe : Set₃ where
   -- univalence.
 
   Is-isomorphism″ : Assumptions →
-                    ∀ a {B C} → B ↔ C → El a B → El a C → Set₁
+                    ∀ a {B C} → B ↔ C → El a B → El a C → Type₁
   Is-isomorphism″ ass a B↔C x y =
     subst (El a) (≃⇒≡ univ (↔⇒≃ B↔C)) x ≡ y
     where open Assumptions ass
@@ -150,13 +150,13 @@ module Class (Univ : Universe) where
 
   -- Codes for structures.
 
-  Code : Set₃
+  Code : Type₃
   Code =
     -- A code.
     Σ U λ a →
 
     -- A proposition.
-    (C : SET (# 0)) → El a (Type C) → Σ Set₁ λ P →
+    (C : Set (# 0)) → El a ⌞ C ⌟ → Σ Type₁ λ P →
       -- The proposition should be propositional (assuming
       -- univalence).
       Assumptions → Is-proposition P
@@ -164,21 +164,21 @@ module Class (Univ : Universe) where
   -- Interpretation of the codes. The elements of "Instance c" are
   -- instances of the structure encoded by c.
 
-  Instance : Code → Set₁
+  Instance : Code → Type₁
   Instance (a , P) =
     -- A carrier set.
-    Σ (SET (# 0)) λ C →
+    Σ (Set (# 0)) λ C →
 
     -- An element.
-    Σ (El a (Type C)) λ x →
+    Σ (El a ⌞ C ⌟) λ x →
 
     -- The element should satisfy the proposition.
     proj₁ (P C x)
 
   -- The carrier type.
 
-  Carrier : ∀ c → Instance c → Set
-  Carrier _ I = Type (proj₁ I)
+  Carrier : ∀ c → Instance c → Type
+  Carrier _ I = ⌞ proj₁ I ⌟
 
   -- The "element".
 
@@ -209,19 +209,19 @@ module Class (Univ : Universe) where
 
     where
     bij : Instance (a , P) ↔
-          Σ (Σ Set (El a)) λ { (C , x) →
+          Σ (Σ Type (El a)) λ { (C , x) →
           Σ (Is-set C) λ S → proj₁ (P (C , S) x) }
     bij =
-      (Σ (Σ Set Is-set) λ { (C , S) →
+      (Σ (Σ Type Is-set) λ { (C , S) →
          Σ (El a C) λ x → proj₁ (P (C , S) x) })    ↝⟨ inverse Σ-assoc ⟩
 
-      (Σ Set λ C → Σ (Is-set C) λ S →
+      (Σ Type λ C → Σ (Is-set C) λ S →
          Σ (El a C) λ x → proj₁ (P (C , S) x))      ↝⟨ ∃-cong (λ _ → ∃-comm) ⟩
 
-      (Σ Set λ C → Σ (El a C) λ x →
+      (Σ Type λ C → Σ (El a C) λ x →
          Σ (Is-set C) λ S → proj₁ (P (C , S) x))    ↝⟨ Σ-assoc ⟩□
 
-      (Σ (Σ Set (El a)) λ { (C , x) →
+      (Σ (Σ Type (El a)) λ { (C , x) →
          Σ (Is-set C) λ S → proj₁ (P (C , S) x) })  □
 
     prop : Is-proposition
@@ -233,7 +233,7 @@ module Class (Univ : Universe) where
 
   -- Structure isomorphisms.
 
-  Isomorphic : ∀ c → Instance c → Instance c → Set₁
+  Isomorphic : ∀ c → Instance c → Instance c → Type₁
   Isomorphic (a , _) ((C₁ , _) , x₁ , _) ((C₂ , _) , x₂ , _) =
     Σ (C₁ ↔ C₂) λ C₁↔C₂ → Is-isomorphism a C₁↔C₂ x₁ x₂
 
@@ -320,14 +320,14 @@ infixr 20 _⊗_
 infixr 15 _⊕_
 infixr 10 _⇾_
 
-data U : Set₁ where
+data U : Type₁ where
   id prop     : U
-  k           : Set → U
+  k           : Type → U
   _⇾_ _⊕_ _⊗_ : U → U → U
 
 -- Interpretation of types.
 
-El : U → Set₁ → Set₁
+El : U → Type₁ → Type₁
 El id      B = B
 El prop    B = Proposition (# 0)
 El (k A)   B = ↑ _ A
@@ -366,7 +366,7 @@ abstract
 
 -- The property of being an isomorphism between two elements.
 
-Is-isomorphism : ∀ a {B C} → B ↔ C → El a B → El a C → Set₁
+Is-isomorphism : ∀ a {B C} → B ↔ C → El a B → El a C → Type₁
 Is-isomorphism id      B↔C = λ x y → _↔_.to B↔C x ≡ y
 Is-isomorphism prop    B↔C = λ { (P , _) (Q , _) → ↑ _ (P ⇔ Q) }
 Is-isomorphism (k A)   B↔C = λ x y → x ≡ y
@@ -381,7 +381,7 @@ Is-isomorphism (a ⊗ b) B↔C = Is-isomorphism a B↔C ×-rel
 -- extensionality).
 
 Is-isomorphism′ : Extensionality (# 1) (# 1) →
-                  ∀ a {B C} → B ↔ C → El a B → El a C → Set₁
+                  ∀ a {B C} → B ↔ C → El a B → El a C → Type₁
 Is-isomorphism′ ext a B↔C x y = _≃_.to (cast ext a (↔⇒≃ B↔C)) x ≡ y
 
 abstract
@@ -548,7 +548,7 @@ Instance-monoid :
 
   Instance monoid
     ≡
-  Σ (SET (# 0)) λ { (M , _) →
+  Σ (Set (# 0)) λ { (M , _) →
   Σ ((↑ _ M → ↑ _ M → ↑ _ M) × ↑ _ M) λ { (_∙_ , e) →
   (∀ x → (e ∙ x) ≡ x) ×
   (∀ x → (x ∙ e) ≡ x) ×
@@ -613,7 +613,7 @@ poset =
 
   λ { (P , P-set) Le →
 
-    let _≤_ : ↑ _ P → ↑ _ P → Set
+    let _≤_ : ↑ _ P → ↑ _ P → Type
         _≤_ x y = proj₁ (Le x y)
     in
 
@@ -647,9 +647,9 @@ Instance-poset :
 
   Instance poset
     ≡
-  Σ (SET (# 0)) λ { (P , _) →
+  Σ (Set (# 0)) λ { (P , _) →
   Σ (↑ _ P → ↑ _ P → Proposition (# 0)) λ Le →
-  let _≤_ : ↑ _ P → ↑ _ P → Set
+  let _≤_ : ↑ _ P → ↑ _ P → Type
       _≤_ x y = proj₁ (Le x y)
   in
   (∀ x → x ≤ x) ×
@@ -664,10 +664,10 @@ Instance-poset = refl _
 Isomorphic-poset :
   ∀ {P₁} {S₁ : Is-set P₁} {Le₁ laws₁}
     {P₂} {S₂ : Is-set P₂} {Le₂ laws₂} →
-  let _≤₁_ : ↑ _ P₁ → ↑ _ P₁ → Set
+  let _≤₁_ : ↑ _ P₁ → ↑ _ P₁ → Type
       _≤₁_ x y = proj₁ (Le₁ x y)
 
-      _≤₂_ : ↑ _ P₂ → ↑ _ P₂ → Set
+      _≤₂_ : ↑ _ P₂ → ↑ _ P₂ → Type
       _≤₂_ x y = proj₁ (Le₂ x y)
   in
 
@@ -769,7 +769,7 @@ Instance-discrete-field :
 
   Instance discrete-field
     ≡
-  Σ (SET (# 0)) λ { (F , _) →
+  Σ (Set (# 0)) λ { (F , _) →
   Σ ((↑ _ F → ↑ _ F → ↑ _ F) × ↑ _ F × (↑ _ F → ↑ _ F → ↑ _ F) ×
      ↑ _ F × (↑ _ F → ↑ _ F) × (↑ _ F → ↑ (# 1) ⊤ ⊎ ↑ _ F))
     λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
@@ -883,7 +883,7 @@ Instance-vector-space :
   Instance (vector-space
               ((F , S) , (_+F_ , 0F , _*F_ , 1F , -F_ , _⁻¹F) , laws))
     ≡
-  Σ (SET (# 0)) λ { (V , _) →
+  Σ (Set (# 0)) λ { (V , _) →
   Σ ((↑ _ V → ↑ _ V → ↑ _ V) × (↑ _ F → ↑ _ V → ↑ _ V) × ↑ _ V ×
      (↑ _ V → ↑ _ V))
     λ { (_+_ , _*_ , 0V , -_) →
@@ -938,7 +938,7 @@ Instance-set-with-fixpoint-operator :
 
   Instance set-with-fixpoint-operator
     ≡
-  Σ (SET (# 0)) λ { (F , _) →
+  Σ (Set (# 0)) λ { (F , _) →
   Σ ((↑ _ F → ↑ _ F) → ↑ _ F) λ fix →
   ∀ f → f (fix f) ≡ fix f }
 

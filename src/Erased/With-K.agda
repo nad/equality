@@ -24,7 +24,7 @@ open import Injection equality-with-J using (Injective)
 private
   variable
     a p : Level
-    A   : Set a
+    A   : Type a
 
 ------------------------------------------------------------------------
 -- Code related to the module Erased
@@ -32,14 +32,14 @@ private
 -- Given an erased proof of equality of x and y one can show that
 -- [ x ] is equal to [ y ].
 
-[]-cong : {@0 A : Set a} {@0 x y : A} →
+[]-cong : {@0 A : Type a} {@0 x y : A} →
           EB.Erased (x ≡ y) → EB.[ x ] ≡ EB.[ y ]
 []-cong EB.[ refl ] = refl
 
 -- []-cong is an equivalence.
 
 []-cong-equivalence :
-  {@0 A : Set a} {@0 x y : A} →
+  {@0 A : Type a} {@0 x y : A} →
   Is-equivalence ([]-cong {x = x} {y = y})
 []-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (Eq.↔⇒≃ (record
   { surjection = record
@@ -55,7 +55,7 @@ private
 -- []-cong maps [ refl ] to refl (by definition).
 
 []-cong-[refl] :
-  {@0 A : Set a} {@0 x : A} →
+  {@0 A : Type a} {@0 x : A} →
   []-cong EB.[ refl {x = x} ] ≡ refl {x = EB.[ x ]}
 []-cong-[refl] = refl
 
@@ -78,18 +78,18 @@ open import Erased equality-with-J instance-of-[]-cong-axiomatisation
 
 -- [_]→ is injective.
 
-Injective-[] : {@0 A : Set a} → Injective ([_]→ {A = A})
+Injective-[] : {@0 A : Type a} → Injective ([_]→ {A = A})
 Injective-[] refl = refl
 
 -- [_]→ is an embedding.
 
-Is-embedding-[] : {@0 A : Set a} → Is-embedding ([_]→ {A = A})
+Is-embedding-[] : {@0 A : Type a} → Is-embedding ([_]→ {A = A})
 Is-embedding-[] _ _ refl = (refl , refl) , λ { (refl , refl) → refl }
 
 -- If Erased A is a proposition, then A is a proposition.
 
 Is-proposition-Erased→Is-proposition :
-  {@0 A : Set a} →
+  {@0 A : Type a} →
   Is-proposition (Erased A) → Is-proposition A
 Is-proposition-Erased→Is-proposition prop x y =
   Injective-[] (prop [ x ] [ y ])
@@ -97,7 +97,7 @@ Is-proposition-Erased→Is-proposition prop x y =
 -- A variant of the previous result.
 
 H-level′-1-Erased→H-level′-1 :
-  {@0 A : Set a} →
+  {@0 A : Type a} →
   H-level′ 1 (Erased A) → H-level′ 1 A
 H-level′-1-Erased→H-level′-1 prop x y
   with proj₁ (prop [ x ] [ y ])
@@ -119,7 +119,7 @@ Very-stable-≡-trivial =
 -- This is a strengthening of the result of the same name from Erased.
 
 Π-Erased↔Π0[] :
-  {@0 A : Set a} {@0 P : Erased A → Set p} →
+  {@0 A : Type a} {@0 P : Erased A → Type p} →
   ((x : Erased A) → P x) ↔ ((@0 x : A) → P [ x ])
 Π-Erased↔Π0[] = record
   { surjection = record
@@ -138,7 +138,7 @@ Very-stable-≡-trivial =
 -- contexts.
 
 Π-Erased≃Π0[] :
-  {@0 A : Set a} {@0 P : Erased A → Set p} →
+  {@0 A : Type a} {@0 P : Erased A → Type p} →
   ((x : Erased A) → P x) ≃ ((@0 x : A) → P [ x ])
 Π-Erased≃Π0[] = record
   { to             = λ f x → f [ x ]
@@ -153,7 +153,7 @@ Very-stable-≡-trivial =
 -- (@0 x : A) → P x.
 
 Π-Erased↔Π0 :
-  {@0 A : Set a} {@0 P : A → Set p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   ((x : Erased A) → P (erased x)) ↔ ((@0 x : A) → P x)
 Π-Erased↔Π0 = Π-Erased↔Π0[]
 
@@ -161,7 +161,7 @@ Very-stable-≡-trivial =
 -- (@0 x : A) → P x.
 
 Π-Erased≃Π0 :
-  {@0 A : Set a} {@0 P : A → Set p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   ((x : Erased A) → P (erased x)) ≃ ((@0 x : A) → P x)
 Π-Erased≃Π0 = Π-Erased≃Π0[]
 
@@ -174,7 +174,7 @@ private
   -- avoided, but Agda does not, at the time of writing, provide a
   -- simple way to turn off this kind of η-equality.)
 
-  data Erased-no-η (@0 A : Set a) : Set a where
+  data Erased-no-η (@0 A : Type a) : Type a where
     [_] : @0 A → Erased-no-η A
 
   @0 erased-no-η : Erased-no-η A → A
@@ -183,17 +183,17 @@ private
   -- Some lemmas.
 
   Π-Erased-no-η→Π0[] :
-    {@0 A : Set a} {@0 P : Erased-no-η A → Set p} →
+    {@0 A : Type a} {@0 P : Erased-no-η A → Type p} →
     ((x : Erased-no-η A) → P x) → (@0 x : A) → P [ x ]
   Π-Erased-no-η→Π0[] f x = f [ x ]
 
   Π0[]→Π-Erased-no-η :
-    {@0 A : Set a} (@0 P : Erased-no-η A → Set p) →
+    {@0 A : Type a} (@0 P : Erased-no-η A → Type p) →
     ((@0 x : A) → P [ x ]) → (x : Erased-no-η A) → P x
   Π0[]→Π-Erased-no-η _ f [ x ] = f x
 
   Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] :
-    {@0 A : Set a} {@0 P : Erased-no-η A → Set p}
+    {@0 A : Type a} {@0 P : Erased-no-η A → Type p}
     (f : (x : Erased-no-η A) → P x) (x : Erased-no-η A) →
     Π0[]→Π-Erased-no-η P (Π-Erased-no-η→Π0[] f) x ≡ f x
   Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] f [ x ] = refl
@@ -202,7 +202,7 @@ private
   -- (@0 x : A) → P [ x ] (assuming extensionality).
 
   Π-Erased-no-η↔Π0[] :
-    {@0 A : Set a} {@0 P : Erased-no-η A → Set p} →
+    {@0 A : Type a} {@0 P : Erased-no-η A → Type p} →
     Extensionality′ (Erased-no-η A) P →
     ((x : Erased-no-η A) → P x) ↔ ((@0 x : A) → P [ x ])
   Π-Erased-no-η↔Π0[] {P = P} ext = record
@@ -226,7 +226,7 @@ private
   -- used in erased contexts.
 
   Π-Erased-no-η≃Π0[] :
-    {@0 A : Set a} {@0 P : Erased-no-η A → Set p} →
+    {@0 A : Type a} {@0 P : Erased-no-η A → Type p} →
     Extensionality′ (Erased-no-η A) P →
     ((x : Erased-no-η A) → P x) ≃ ((@0 x : A) → P [ x ])
   Π-Erased-no-η≃Π0[] {A = A} {P = P} ext = record
@@ -239,7 +239,7 @@ private
     }
     where
     Σ-≡,≡→≡′ :
-      {@0 A : Set a} {@0 P : A → Set p} {p₁ p₂ : Σ A P} →
+      {@0 A : Type a} {@0 P : A → Type p} {p₁ p₂ : Σ A P} →
       (p : proj₁ p₁ ≡ proj₁ p₂) →
       subst P p (proj₂ p₁) ≡ proj₂ p₂ →
       p₁ ≡ p₂
@@ -266,7 +266,7 @@ private
   -- (assuming extensionality).
 
   Π-Erased-no-η↔Π0 :
-    {@0 A : Set a} {@0 P : A → Set p} →
+    {@0 A : Type a} {@0 P : A → Type p} →
     Extensionality′ (Erased-no-η A) (P ∘ erased-no-η) →
     ((x : Erased-no-η A) → P (erased-no-η x)) ↔ ((@0 x : A) → P x)
   Π-Erased-no-η↔Π0 = Π-Erased-no-η↔Π0[]
@@ -276,7 +276,7 @@ private
   -- (assuming extensionality).
 
   Π-Erased-no-η≃Π0 :
-    {@0 A : Set a} {@0 P : A → Set p} →
+    {@0 A : Type a} {@0 P : A → Type p} →
     Extensionality′ (Erased-no-η A) (P ∘ erased-no-η) →
     ((x : Erased-no-η A) → P (erased-no-η x)) ≃ ((@0 x : A) → P x)
   Π-Erased-no-η≃Π0 = Π-Erased-no-η≃Π0[]

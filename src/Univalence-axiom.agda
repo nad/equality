@@ -33,27 +33,27 @@ open import Surjection eq using (_↠_)
 
 -- If two sets are equal, then they are equivalent.
 
-≡⇒≃ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A ≃ B
+≡⇒≃ : ∀ {ℓ} {A B : Type ℓ} → A ≡ B → A ≃ B
 ≡⇒≃ = ≡⇒↝ equivalence
 
 -- The univalence axiom states that ≡⇒≃ is an equivalence.
 
-Univalence′ : ∀ {ℓ} → Set ℓ → Set ℓ → Set (lsuc ℓ)
+Univalence′ : ∀ {ℓ} → Type ℓ → Type ℓ → Type (lsuc ℓ)
 Univalence′ A B = Is-equivalence (≡⇒≃ {A = A} {B = B})
 
-Univalence : ∀ ℓ → Set (lsuc ℓ)
-Univalence ℓ = {A B : Set ℓ} → Univalence′ A B
+Univalence : ∀ ℓ → Type (lsuc ℓ)
+Univalence ℓ = {A B : Type ℓ} → Univalence′ A B
 
 -- An immediate consequence is that equalities are equivalent to
 -- equivalences.
 
-≡≃≃ : ∀ {ℓ} {A B : Set ℓ} → Univalence′ A B → (A ≡ B) ≃ (A ≃ B)
+≡≃≃ : ∀ {ℓ} {A B : Type ℓ} → Univalence′ A B → (A ≡ B) ≃ (A ≃ B)
 ≡≃≃ univ = ⟨ ≡⇒≃ , univ ⟩
 
 -- In the case of sets equalities are equivalent to bijections (if we
 -- add the assumption of extensionality).
 
-≡≃↔ : ∀ {ℓ} {A B : Set ℓ} →
+≡≃↔ : ∀ {ℓ} {A B : Type ℓ} →
       Univalence′ A B →
       Extensionality ℓ ℓ →
       Is-set A →
@@ -65,13 +65,13 @@ Univalence ℓ = {A B : Set ℓ} → Univalence′ A B
 
 -- Some abbreviations.
 
-≡⇒→ : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → A → B
+≡⇒→ : ∀ {ℓ} {A B : Type ℓ} → A ≡ B → A → B
 ≡⇒→ = _≃_.to ∘ ≡⇒≃
 
-≡⇒← : ∀ {ℓ} {A B : Set ℓ} → A ≡ B → B → A
+≡⇒← : ∀ {ℓ} {A B : Type ℓ} → A ≡ B → B → A
 ≡⇒← = _≃_.from ∘ ≡⇒≃
 
-≃⇒≡ : ∀ {ℓ} {A B : Set ℓ} → Univalence′ A B → A ≃ B → A ≡ B
+≃⇒≡ : ∀ {ℓ} {A B : Type ℓ} → Univalence′ A B → A ≃ B → A ≡ B
 ≃⇒≡ univ = _≃_.from (≡≃≃ univ)
 
 ------------------------------------------------------------------------
@@ -82,9 +82,9 @@ Univalence ℓ = {A B : Set ℓ} → Univalence′ A B
 -- Basically as defined by Chapman, Uustalu and Veltri in "Quotienting
 -- the Delay Monad by Weak Bisimilarity".
 
-Propositional-extensionality : (ℓ : Level) → Set (lsuc ℓ)
+Propositional-extensionality : (ℓ : Level) → Type (lsuc ℓ)
 Propositional-extensionality ℓ =
-  {A B : Set ℓ} → Is-proposition A → Is-proposition B → A ⇔ B → A ≡ B
+  {A B : Type ℓ} → Is-proposition A → Is-proposition B → A ⇔ B → A ≡ B
 
 -- Propositional extensionality is equivalent to univalence restricted
 -- to propositions (assuming extensionality).
@@ -99,7 +99,7 @@ Propositional-extensionality-is-univalence-for-propositions :
 
   Propositional-extensionality ℓ
     ≃
-  ({A B : Set ℓ} →
+  ({A B : Type ℓ} →
    Is-proposition A → Is-proposition B → Univalence′ A B)
 
 Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
@@ -135,7 +135,7 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
   where
   ⇔≃≡ :
     Propositional-extensionality ℓ →
-    {A B : Set ℓ} →
+    {A B : Type ℓ} →
     Is-proposition A → Is-proposition B →
     (A ⇔ B) ≃ (A ≡ B)
   ⇔≃≡ prop-ext {A} {B} A-prop B-prop =
@@ -157,7 +157,7 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
 
   ≡-closure :
     Propositional-extensionality ℓ →
-    {A B : Set ℓ} →
+    {A B : Type ℓ} →
     Is-proposition A → Is-proposition B → Is-proposition (A ≡ B)
   ≡-closure prop-ext A-prop B-prop =
     H-level.respects-surjection
@@ -173,7 +173,7 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
 -- A variant of a part of Theorem 5.8.2 from the HoTT book.
 
 flip-subst-is-equivalence↔∃-is-contractible :
-  ∀ {k a p} {A : Set a} {P : A → Set p} →
+  ∀ {k a p} {A : Type a} {P : A → Type p} →
   Extensionality? k (a ⊔ p) (a ⊔ p) →
   {x : A} {p : P x} →
   (∀ y → Is-equivalence (flip (subst {y = y} P) p))
@@ -239,7 +239,7 @@ flip-subst-is-equivalence↔∃-is-contractible {p = p′} {P = P}
 -- If f is an equivalence, then f ∘ sym is also an equivalence.
 
 ∘-sym-preserves-equivalences :
-  ∀ {k a b} {A : Set a} {B : Set b} {x y : A} {f : x ≡ y → B} →
+  ∀ {k a b} {A : Type a} {B : Type b} {x y : A} {f : x ≡ y → B} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Is-equivalence f ↝[ k ] Is-equivalence (f ∘ sym)
 ∘-sym-preserves-equivalences {A = A} {B} =
@@ -281,9 +281,9 @@ flip-subst-is-equivalence↔∃-is-contractible {p = p′} {P = P}
 -- 2018-04-05:
 -- https://groups.google.com/forum/#!msg/homotopytypetheory/HfCB_b-PNEU/Ibb48LvUMeUJ).
 
-Other-univalence : ∀ ℓ → Set (lsuc ℓ)
+Other-univalence : ∀ ℓ → Type (lsuc ℓ)
 Other-univalence ℓ =
-  {B : Set ℓ} → Contractible (∃ λ (A : Set ℓ) → A ≃ B)
+  {B : Type ℓ} → Contractible (∃ λ (A : Type ℓ) → A ≃ B)
 
 -- Univalence and Other-univalence are pointwise isomorphic (assuming
 -- extensionality).
@@ -293,19 +293,19 @@ Univalence↔Other-univalence :
   Extensionality? k (lsuc ℓ) (lsuc ℓ) →
   Univalence ℓ ↝[ k ] Other-univalence ℓ
 Univalence↔Other-univalence {k} {ℓ} ext =
-  ({A B : Set ℓ} → Is-equivalence (≡⇒≃ {A = A} {B = B}))               ↔⟨ Bijection.implicit-Π↔Π ⟩
-  ((A {B} : Set ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B}))             ↝⟨ (∀-cong ext λ _ → from-bijection Bijection.implicit-Π↔Π) ⟩
-  ((A B : Set ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B}))               ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ∘-sym-preserves-equivalences ext) ⟩
-  ((A B : Set ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B} ∘ sym))         ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ B →
-                                                                           Is-equivalence-cong ext (λ B≡A →
-      ≡⇒≃ (sym B≡A)                                                          ≡⟨ ≡⇒↝-in-terms-of-subst-sym _ _ ⟩
-      subst (_≃ B) (sym (sym B≡A)) Eq.id                                     ≡⟨ cong (flip (subst _) _) $ sym-sym _ ⟩∎
-      subst (_≃ B) B≡A Eq.id                                                 ∎)) ⟩
+  ({A B : Type ℓ} → Is-equivalence (≡⇒≃ {A = A} {B = B}))               ↔⟨ Bijection.implicit-Π↔Π ⟩
+  ((A {B} : Type ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B}))             ↝⟨ (∀-cong ext λ _ → from-bijection Bijection.implicit-Π↔Π) ⟩
+  ((A B : Type ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B}))               ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ∘-sym-preserves-equivalences ext) ⟩
+  ((A B : Type ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B} ∘ sym))         ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ B →
+                                                                            Is-equivalence-cong ext (λ B≡A →
+      ≡⇒≃ (sym B≡A)                                                           ≡⟨ ≡⇒↝-in-terms-of-subst-sym _ _ ⟩
+      subst (_≃ B) (sym (sym B≡A)) Eq.id                                      ≡⟨ cong (flip (subst _) _) $ sym-sym _ ⟩∎
+      subst (_≃ B) B≡A Eq.id                                                  ∎)) ⟩
 
-  ((A B : Set ℓ) → Is-equivalence (flip (subst {y = A} (_≃ B)) F.id))  ↔⟨ Π-comm ⟩
-  ((B A : Set ℓ) → Is-equivalence (flip (subst {y = A} (_≃ B)) F.id))  ↝⟨ (∀-cong ext λ _ → flip-subst-is-equivalence↔∃-is-contractible ext) ⟩
-  ((B : Set ℓ) → Contractible (∃ λ (A : Set ℓ) → A ≃ B))               ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
-  ({B : Set ℓ} → Contractible (∃ λ (A : Set ℓ) → A ≃ B))               □
+  ((A B : Type ℓ) → Is-equivalence (flip (subst {y = A} (_≃ B)) F.id))  ↔⟨ Π-comm ⟩
+  ((B A : Type ℓ) → Is-equivalence (flip (subst {y = A} (_≃ B)) F.id))  ↝⟨ (∀-cong ext λ _ → flip-subst-is-equivalence↔∃-is-contractible ext) ⟩
+  ((B : Type ℓ) → Contractible (∃ λ (A : Type ℓ) → A ≃ B))              ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
+  ({B : Type ℓ} → Contractible (∃ λ (A : Type ℓ) → A ≃ B))              □
 
 ------------------------------------------------------------------------
 -- Some simple lemmas
@@ -314,25 +314,25 @@ abstract
 
   -- "Evaluation rule" for ≡⇒≃.
 
-  ≡⇒≃-refl : ∀ {a} {A : Set a} →
+  ≡⇒≃-refl : ∀ {a} {A : Type a} →
              ≡⇒≃ (refl A) ≡ Eq.id
   ≡⇒≃-refl = ≡⇒↝-refl
 
   -- "Evaluation rule" for ≡⇒→.
 
-  ≡⇒→-refl : ∀ {a} {A : Set a} →
+  ≡⇒→-refl : ∀ {a} {A : Type a} →
              ≡⇒→ (refl A) ≡ id
   ≡⇒→-refl = cong _≃_.to ≡⇒≃-refl
 
   -- "Evaluation rule" for ≡⇒←.
 
-  ≡⇒←-refl : ∀ {a} {A : Set a} →
+  ≡⇒←-refl : ∀ {a} {A : Type a} →
              ≡⇒← (refl A) ≡ id
   ≡⇒←-refl = cong _≃_.from ≡⇒≃-refl
 
   -- "Evaluation rule" (?) for ≃⇒≡.
 
-  ≃⇒≡-id : ∀ {a} {A : Set a}
+  ≃⇒≡-id : ∀ {a} {A : Type a}
            (univ : Univalence′ A A) →
            ≃⇒≡ univ Eq.id ≡ refl A
   ≃⇒≡-id univ =
@@ -342,7 +342,7 @@ abstract
 
   -- A simplification lemma for ≃⇒≡.
 
-  ≡⇒→-≃⇒≡ : ∀ k {ℓ} {A B : Set ℓ} {eq : A ≃ B}
+  ≡⇒→-≃⇒≡ : ∀ k {ℓ} {A B : Type ℓ} {eq : A ≃ B}
             (univ : Univalence′ A B) →
             to-implication (≡⇒↝ k (≃⇒≡ univ eq)) ≡ _≃_.to eq
   ≡⇒→-≃⇒≡ k {eq = eq} univ =
@@ -352,9 +352,9 @@ abstract
     _≃_.to eq                             ∎
 
 ------------------------------------------------------------------------
--- A consequence: Set is not a set
+-- A consequence: Type is not a set
 
--- The univalence axiom implies that Set is not a set. (This was
+-- The univalence axiom implies that Type is not a set. (This was
 -- pointed out to me by Thierry Coquand.)
 
 module _ (univ : Univalence′ Bool Bool) where
@@ -375,11 +375,11 @@ module _ (univ : Univalence′ Bool Bool) where
       true ≡ false                            ↝⟨ Bool.true≢false ⟩□
       ⊥                                       □
 
-    -- This implies that Set is not a set.
+    -- This implies that Type is not a set.
 
-    ¬-Set-set : ¬ Is-set Set
-    ¬-Set-set =
-      Is-set Set                       ↝⟨ (λ h → h _ _) ⟩
+    ¬-Type-set : ¬ Is-set Type
+    ¬-Type-set =
+      Is-set Type                      ↝⟨ (λ h → h _ _) ⟩
       swap-as-an-equality ≡ refl Bool  ↝⟨ swap≢refl ⟩□
       ⊥                                □
 
@@ -387,11 +387,11 @@ abstract
 
   -- The result can be generalised to arbitrary universe levels.
 
-  ¬-Set-set-↑ : ∀ {ℓ} →
-                Univalence′ (↑ ℓ Bool) (↑ ℓ Bool) →
-                ¬ Is-set (Set ℓ)
-  ¬-Set-set-↑ {ℓ} univ =
-    Is-set (Set ℓ)                           ↝⟨ (λ h → h _ _) ⟩
+  ¬-Type-set-↑ : ∀ {ℓ} →
+                 Univalence′ (↑ ℓ Bool) (↑ ℓ Bool) →
+                 ¬ Is-set (Type ℓ)
+  ¬-Type-set-↑ {ℓ} univ =
+    Is-set (Type ℓ)                          ↝⟨ (λ h → h _ _) ⟩
     swap-as-an-equality-↑ ≡ refl (↑ ℓ Bool)  ↝⟨ swap-↑≢refl ⟩□
     ⊥                                        □
     where
@@ -423,7 +423,7 @@ abstract
 
   equality-can-have-infinitely-many-inhabitants :
     Univalence′ ℕ ℕ →
-    ∃ λ (A : Set) → ∃ λ (B : Set) →
+    ∃ λ (A : Type) → ∃ λ (B : Type) →
     ∃ λ (p : ℕ → A ≡ B) → Injective p
   equality-can-have-infinitely-many-inhabitants univ =
     (ℕ , ℕ , cast ∘ p , cast-preserves-injections p p-injective)
@@ -432,7 +432,7 @@ abstract
     cast = ≃⇒≡ univ
 
     cast-preserves-injections :
-      {A : Set} (f : A → ℕ ≃ ℕ) →
+      {A : Type} (f : A → ℕ ≃ ℕ) →
       Injective f → Injective (cast ∘ f)
     cast-preserves-injections f inj {x = x} {y = y} cast-f-x≡cast-f-y =
       inj (f x               ≡⟨ sym $ _≃_.right-inverse-of (≡≃≃ univ) (f x) ⟩
@@ -484,7 +484,7 @@ abstract
 -- The transport theorem.
 
 transport-theorem :
-  ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
+  ∀ {p₁ p₂} (P : Type p₁ → Type p₂) →
   (resp : ∀ {A B} → A ≃ B → P A → P B) →
   (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
   ∀ {A B} (univ : Univalence′ A B) →
@@ -507,7 +507,7 @@ abstract
   -- preserves identity is an equivalence family.
 
   resp-is-equivalence :
-    ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
+    ∀ {p₁ p₂} (P : Type p₁ → Type p₂) →
     (resp : ∀ {A B} → A ≃ B → P A → P B) →
     (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
     ∀ {A B} (univ : Univalence′ A B) →
@@ -521,13 +521,13 @@ abstract
   -- f is also an equivalence (assuming univalence).
 
   precomposition-is-equivalence :
-    ∀ {ℓ c} {A B : Set ℓ} {C : Set c} →
+    ∀ {ℓ c} {A B : Type ℓ} {C : Type c} →
     Univalence′ B A → (A≃B : A ≃ B) →
     Is-equivalence (λ (g : B → C) → g ∘ _≃_.to A≃B)
   precomposition-is-equivalence {ℓ} {c} {C = C} univ A≃B =
     resp-is-equivalence P resp refl univ (Eq.inverse A≃B)
     where
-    P : Set ℓ → Set (ℓ ⊔ c)
+    P : Type ℓ → Type (ℓ ⊔ c)
     P X = X → C
 
     resp : ∀ {A B} → A ≃ B → P A → P B
@@ -537,7 +537,7 @@ abstract
 -- precompositions with h (assuming univalence).
 
 precompositions-cancel :
-  ∀ {ℓ c} {A B : Set ℓ} {C : Set c} →
+  ∀ {ℓ c} {A B : Type ℓ} {C : Type c} →
   Univalence′ B A → (A≃B : A ≃ B) {f g : B → C} →
   let open _≃_ A≃B in
   f ∘ to ≡ g ∘ to → f ≡ g
@@ -550,12 +550,12 @@ precompositions-cancel univ A≃B {f} {g} f∘to≡g∘to =
 
 -- Pairs of equal elements.
 
-_²/≡ : ∀ {ℓ} → Set ℓ → Set ℓ
+_²/≡ : ∀ {ℓ} → Type ℓ → Type ℓ
 A ²/≡ = ∃ λ (x : A) → ∃ λ (y : A) → y ≡ x
 
 -- The set of such pairs is isomorphic to the underlying type.
 
--²/≡↔- : ∀ {a} {A : Set a} → (A ²/≡) ↔ A
+-²/≡↔- : ∀ {a} {A : Type a} → (A ²/≡) ↔ A
 -²/≡↔- {A = A} =
   (∃ λ (x : A) → ∃ λ (y : A) → y ≡ x)  ↝⟨ ∃-cong (λ _ → _⇔_.to contractible⇔↔⊤ (singleton-contractible _)) ⟩
   A × ⊤                                ↝⟨ ×-right-identity ⟩□
@@ -567,7 +567,7 @@ abstract
   -- extensionality.
 
   extensionality :
-    ∀ {a b} {A : Set a} {B : Set b} →
+    ∀ {a b} {A : Type a} {B : Type b} →
     Univalence′ (B ²/≡) B →
     {f g : A → B} → (∀ x → f x ≡ g x) → f ≡ g
   extensionality {A = A} {B} univ {f} {g} f≡g =
@@ -595,8 +595,8 @@ abstract
   -- Π A.
 
   Π-closure-contractible :
-    ∀ {b} → Univalence′ (Set b ²/≡) (Set b) →
-    ∀ {a} {A : Set a} {B : A → Set b} →
+    ∀ {b} → Univalence′ (Type b ²/≡) (Type b) →
+    ∀ {a} {A : Type a} {B : A → Type b} →
     (∀ x → Univalence′ (↑ b ⊤) (B x)) →
     (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)
   Π-closure-contractible {b} univ₁ {A = A} {B} univ₂ contr =
@@ -617,10 +617,10 @@ abstract
   -- Thus we also get extensionality for dependent functions.
 
   dependent-extensionality′ :
-    ∀ {b} → Univalence′ (Set b ²/≡) (Set b) →
-    ∀ {a} {A : Set a} →
-    (∀ {B : A → Set b} x → Univalence′ (↑ b ⊤) (B x)) →
-    {B : A → Set b} → Extensionality′ A B
+    ∀ {b} → Univalence′ (Type b ²/≡) (Type b) →
+    ∀ {a} {A : Type a} →
+    (∀ {B : A → Type b} x → Univalence′ (↑ b ⊤) (B x)) →
+    {B : A → Type b} → Extensionality′ A B
   dependent-extensionality′ univ₁ univ₂ =
     _⇔_.to Π-closure-contractible⇔extensionality
       (Π-closure-contractible univ₁ univ₂)
@@ -646,17 +646,17 @@ abstract
 
 -- Pow.
 
-Pow : ∀ ℓ {a} → Set a → Set (lsuc (a ⊔ ℓ))
-Pow ℓ {a} A = A → Set (a ⊔ ℓ)
+Pow : ∀ ℓ {a} → Type a → Type (lsuc (a ⊔ ℓ))
+Pow ℓ {a} A = A → Type (a ⊔ ℓ)
 
 -- Fam.
 
-Fam : ∀ ℓ {a} → Set a → Set (lsuc (a ⊔ ℓ))
-Fam ℓ {a} A = ∃ λ (I : Set (a ⊔ ℓ)) → I → A
+Fam : ∀ ℓ {a} → Type a → Type (lsuc (a ⊔ ℓ))
+Fam ℓ {a} A = ∃ λ (I : Type (a ⊔ ℓ)) → I → A
 
 -- Pow and Fam are pointwise logically equivalent.
 
-Pow⇔Fam : ∀ ℓ {a} {A : Set a} →
+Pow⇔Fam : ∀ ℓ {a} {A : Type a} →
           Pow ℓ A ⇔ Fam ℓ A
 Pow⇔Fam _ = record
   { to   = λ P → ∃ P , proj₁
@@ -666,7 +666,7 @@ Pow⇔Fam _ = record
 -- Pow and Fam are pointwise isomorphic (assuming extensionality and
 -- univalence).
 
-Pow↔Fam : ∀ ℓ {a} {A : Set a} →
+Pow↔Fam : ∀ ℓ {a} {A : Type a} →
           Extensionality a (lsuc (a ⊔ ℓ)) →
           Univalence (a ⊔ ℓ) →
           Pow ℓ A ↔ Fam ℓ A
@@ -703,23 +703,23 @@ Pow↔Fam ℓ {A = A} ext univ = record
 -- This isomorphism was suggested to me by Paolo Capriotti.
 
 →↔Σ≃Σ :
-  ∀ ℓ {a b} {A : Set a} {B : Set b} →
+  ∀ ℓ {a b} {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b ⊔ ℓ) (lsuc (a ⊔ b ⊔ ℓ)) →
   Univalence (a ⊔ b ⊔ ℓ) →
-  (A → B) ↔ ∃ λ (P : B → Set (a ⊔ b ⊔ ℓ)) → A ≃ Σ B P
+  (A → B) ↔ ∃ λ (P : B → Type (a ⊔ b ⊔ ℓ)) → A ≃ Σ B P
 →↔Σ≃Σ ℓ {a} {b} {A} {B} ext univ =
-  (A → B)                                                   ↝⟨ →-cong₁ (lower-extensionality lzero _ ext) (inverse Bijection.↑↔) ⟩
-  (↑ (b ⊔ ℓ) A → B)                                         ↝⟨ inverse ×-left-identity ⟩
-  ⊤ × (↑ _ A → B)                                           ↝⟨ inverse $ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ×-cong F.id ⟩
-  (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A) × (↑ _ A → B)            ↝⟨ inverse Σ-assoc ⟩
-  (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A × (↑ _ A → B))            ↝⟨ (∃-cong λ _ → ∃-cong λ eq → →-cong₁ (lower-extensionality lzero _ ext) (≡⇒≃ (sym eq))) ⟩
-  (∃ λ (A′ : Set ℓ′) → A′ ≡ ↑ _ A × (A′ → B))               ↝⟨ (∃-cong λ _ → ×-comm) ⟩
-  (∃ λ (A′ : Set ℓ′) → (A′ → B) × A′ ≡ ↑ _ A)               ↝⟨ Σ-assoc ⟩
-  (∃ λ (p : ∃ λ (A′ : Set ℓ′) → A′ → B) → proj₁ p ≡ ↑ _ A)  ↝⟨ inverse $ Σ-cong (Pow↔Fam (a ⊔ ℓ) (lower-extensionality ℓ′ lzero ext) univ) (λ _ → F.id) ⟩
-  (∃ λ (P : B → Set ℓ′) → ∃ P ≡ ↑ _ A)                      ↔⟨ (∃-cong λ _ → ≡≃≃ univ) ⟩
-  (∃ λ (P : B → Set ℓ′) → ∃ P ≃ ↑ _ A)                      ↝⟨ (∃-cong λ _ → Groupoid.⁻¹-bijection (groupoid (lower-extensionality ℓ′ _ ext))) ⟩
-  (∃ λ (P : B → Set ℓ′) → ↑ _ A ≃ ∃ P)                      ↔⟨ (∃-cong λ _ → ≃-preserves (lower-extensionality lzero _ ext) (↔⇒≃ Bijection.↑↔) F.id) ⟩□
-  (∃ λ (P : B → Set ℓ′) → A ≃ ∃ P)                          □
+  (A → B)                                                    ↝⟨ →-cong₁ (lower-extensionality lzero _ ext) (inverse Bijection.↑↔) ⟩
+  (↑ (b ⊔ ℓ) A → B)                                          ↝⟨ inverse ×-left-identity ⟩
+  ⊤ × (↑ _ A → B)                                            ↝⟨ inverse $ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ×-cong F.id ⟩
+  (∃ λ (A′ : Type ℓ′) → A′ ≡ ↑ _ A) × (↑ _ A → B)            ↝⟨ inverse Σ-assoc ⟩
+  (∃ λ (A′ : Type ℓ′) → A′ ≡ ↑ _ A × (↑ _ A → B))            ↝⟨ (∃-cong λ _ → ∃-cong λ eq → →-cong₁ (lower-extensionality lzero _ ext) (≡⇒≃ (sym eq))) ⟩
+  (∃ λ (A′ : Type ℓ′) → A′ ≡ ↑ _ A × (A′ → B))               ↝⟨ (∃-cong λ _ → ×-comm) ⟩
+  (∃ λ (A′ : Type ℓ′) → (A′ → B) × A′ ≡ ↑ _ A)               ↝⟨ Σ-assoc ⟩
+  (∃ λ (p : ∃ λ (A′ : Type ℓ′) → A′ → B) → proj₁ p ≡ ↑ _ A)  ↝⟨ inverse $ Σ-cong (Pow↔Fam (a ⊔ ℓ) (lower-extensionality ℓ′ lzero ext) univ) (λ _ → F.id) ⟩
+  (∃ λ (P : B → Type ℓ′) → ∃ P ≡ ↑ _ A)                      ↔⟨ (∃-cong λ _ → ≡≃≃ univ) ⟩
+  (∃ λ (P : B → Type ℓ′) → ∃ P ≃ ↑ _ A)                      ↝⟨ (∃-cong λ _ → Groupoid.⁻¹-bijection (groupoid (lower-extensionality ℓ′ _ ext))) ⟩
+  (∃ λ (P : B → Type ℓ′) → ↑ _ A ≃ ∃ P)                      ↔⟨ (∃-cong λ _ → ≃-preserves (lower-extensionality lzero _ ext) (↔⇒≃ Bijection.↑↔) F.id) ⟩□
+  (∃ λ (P : B → Type ℓ′) → A ≃ ∃ P)                          □
   where
   ℓ′ = a ⊔ b ⊔ ℓ
 
@@ -732,7 +732,7 @@ abstract
 
   Univalence′-propositional :
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
-    {A B : Set ℓ} → Is-proposition (Univalence′ A B)
+    {A B : Type ℓ} → Is-proposition (Univalence′ A B)
   Univalence′-propositional ext =
     Eq.propositional ext ≡⇒≃
 
@@ -748,7 +748,7 @@ abstract
 
   ≡⇒≃-sym :
     ∀ {ℓ} → Extensionality ℓ ℓ →
-    {A B : Set ℓ} (A≡B : A ≡ B) →
+    {A B : Type ℓ} (A≡B : A ≡ B) →
     ≡⇒≃ (sym A≡B) ≡ Eq.inverse (≡⇒≃ A≡B)
   ≡⇒≃-sym ext = elim¹
 
@@ -764,7 +764,7 @@ abstract
 
   ≃⇒≡-inverse :
     ∀ {ℓ} (univ : Univalence ℓ) → Extensionality ℓ ℓ →
-    {A B : Set ℓ} (A≃B : A ≃ B) →
+    {A B : Type ℓ} (A≃B : A ≃ B) →
     ≃⇒≡ univ (Eq.inverse A≃B) ≡ sym (≃⇒≡ univ A≃B)
   ≃⇒≡-inverse univ ext A≃B =
     ≃⇒≡ univ (Eq.inverse A≃B)                   ≡⟨ sym $ cong (λ p → ≃⇒≡ univ (Eq.inverse p)) (_≃_.right-inverse-of (≡≃≃ univ) _) ⟩
@@ -776,7 +776,7 @@ abstract
 
   ≡⇒≃-trans :
     ∀ {ℓ} → Extensionality ℓ ℓ →
-    {A B C : Set ℓ} (A≡B : A ≡ B) (B≡C : B ≡ C) →
+    {A B C : Type ℓ} (A≡B : A ≡ B) (B≡C : B ≡ C) →
     ≡⇒≃ (trans A≡B B≡C) ≡ ≡⇒≃ B≡C ⊚ ≡⇒≃ A≡B
   ≡⇒≃-trans ext A≡B = elim¹
 
@@ -791,7 +791,7 @@ abstract
 
   ≃⇒≡-∘ :
     ∀ {ℓ} (univ : Univalence ℓ) → Extensionality ℓ ℓ →
-    {A B C : Set ℓ} (A≃B : A ≃ B) (B≃C : B ≃ C) →
+    {A B C : Type ℓ} (A≃B : A ≃ B) (B≃C : B ≃ C) →
     ≃⇒≡ univ (B≃C ⊚ A≃B) ≡ trans (≃⇒≡ univ A≃B) (≃⇒≡ univ B≃C)
   ≃⇒≡-∘ univ ext A≃B B≃C =
     ≃⇒≡ univ (B≃C ⊚ A≃B)                                  ≡⟨ sym $ cong₂ (λ p q → ≃⇒≡ univ (p ⊚ q)) (_≃_.right-inverse-of (≡≃≃ univ) _)
@@ -803,8 +803,8 @@ abstract
   -- A variant of the transport theorem.
 
   transport-theorem′ :
-    ∀ {a p r} {A : Set a}
-    (P : A → Set p) (R : A → A → Set r)
+    ∀ {a p r} {A : Type a}
+    (P : A → Type p) (R : A → A → Type r)
     (≡↠R : ∀ {x y} → (x ≡ y) ↠ R x y)
     (resp : ∀ {x y} → R x y → P x → P y) →
     (∀ x p → resp (_↠_.to ≡↠R (refl x)) p ≡ p) →
@@ -824,8 +824,8 @@ abstract
   -- Simplification (?) lemma for transport-theorem′.
 
   transport-theorem′-refl :
-    ∀ {a p r} {A : Set a}
-    (P : A → Set p) (R : A → A → Set r)
+    ∀ {a p r} {A : Type a}
+    (P : A → Type p) (R : A → A → Type r)
     (≡≃R : ∀ {x y} → (x ≡ y) ≃ R x y)
     (resp : ∀ {x y} → R x y → P x → P y) →
     (resp-refl : ∀ x p → resp (_≃_.to ≡≃R (refl x)) p ≡ p) →
@@ -908,7 +908,7 @@ abstract
   -- Simplification (?) lemma for transport-theorem.
 
   transport-theorem-≡⇒≃-refl :
-    ∀ {p₁ p₂} (P : Set p₁ → Set p₂)
+    ∀ {p₁ p₂} (P : Type p₁ → Type p₂)
     (resp : ∀ {A B} → A ≃ B → P A → P B)
     (resp-id : ∀ {A} (p : P A) → resp Eq.id p ≡ p)
     (univ : Univalence p₁) {A} (p : P A) →
@@ -925,8 +925,8 @@ abstract
   -- A variant of resp-is-equivalence.
 
   resp-is-equivalence′ :
-    ∀ {a p r} {A : Set a}
-    (P : A → Set p) (R : A → A → Set r)
+    ∀ {a p r} {A : Type a}
+    (P : A → Type p) (R : A → A → Type r)
     (≡↠R : ∀ {x y} → (x ≡ y) ↠ R x y)
     (resp : ∀ {x y} → R x y → P x → P y) →
     (∀ x p → resp (_↠_.to ≡↠R (refl x)) p ≡ p) →
@@ -939,7 +939,7 @@ abstract
   -- A lemma relating ≃⇒≡, →-cong and cong₂.
 
   ≃⇒≡-→-cong :
-    ∀ {ℓ} {A₁ A₂ B₁ B₂ : Set ℓ}
+    ∀ {ℓ} {A₁ A₂ B₁ B₂ : Type ℓ}
     (ext : Extensionality ℓ ℓ) →
     (univ : Univalence ℓ)
     (A₁≃A₂ : A₁ ≃ A₂) (B₁≃B₂ : B₁ ≃ B₂) →
@@ -982,11 +982,11 @@ abstract
   -- extensionality).
 
   cong-≃⇒≡ :
-    ∀ {ℓ p} {A B : Set ℓ} {A≃B : A ≃ B} →
+    ∀ {ℓ p} {A B : Type ℓ} {A≃B : A ≃ B} →
     Extensionality p p →
     (univ₁ : Univalence ℓ)
     (univ₂ : Univalence p)
-    (P : Set ℓ → Set p)
+    (P : Type ℓ → Type p)
     (P-cong : ∀ {A B} → A ≃ B → P A ≃ P B) →
     (∀ {A} (p : P A) → _≃_.to (P-cong Eq.id) p ≡ p) →
     cong P (≃⇒≡ univ₁ A≃B) ≡ ≃⇒≡ univ₂ (P-cong A≃B)
@@ -1005,7 +1005,7 @@ abstract
   -- compositions (assuming univalence and extensionality).
 
   resp-preserves-compositions :
-    ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
+    ∀ {p₁ p₂} (P : Type p₁ → Type p₂) →
     (resp : ∀ {A B} → A ≃ B → P A → P B) →
     (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
     Univalence p₁ → Extensionality p₁ p₁ →
@@ -1023,7 +1023,7 @@ abstract
   -- inverses (assuming univalence and extensionality).
 
   resp-preserves-inverses :
-    ∀ {p₁ p₂} (P : Set p₁ → Set p₂) →
+    ∀ {p₁ p₂} (P : Type p₁ → Type p₂) →
     (resp : ∀ {A B} → A ≃ B → P A → P B) →
     (∀ {A} (p : P A) → resp Eq.id p ≡ p) →
     Univalence p₁ → Extensionality p₁ p₁ →
@@ -1047,7 +1047,8 @@ abstract
 -- univalence).
 
 ≡-preserves-≃ :
-  ∀ {ℓ₁ ℓ₂} {A₁ : Set ℓ₁} {A₂ : Set ℓ₂} {B₁ : Set ℓ₁} {B₂ : Set ℓ₂} →
+  ∀ {ℓ₁ ℓ₂}
+    {A₁ : Type ℓ₁} {A₂ : Type ℓ₂} {B₁ : Type ℓ₁} {B₂ : Type ℓ₂} →
   Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
   Univalence′ A₁ B₁ →
   Univalence′ A₂ B₂ →
@@ -1121,9 +1122,9 @@ abstract
 -- contractible (assuming univalence).
 
 singleton-with-≃-contractible :
-  ∀ {b} {B : Set b} →
+  ∀ {b} {B : Type b} →
   Univalence b →
-  Contractible (∃ λ (A : Set b) → A ≃ B)
+  Contractible (∃ λ (A : Type b) → A ≃ B)
 singleton-with-≃-contractible univ =
   H-level.respects-surjection
     (∃-cong λ _ → _≃_.surjection (≡≃≃ univ))
@@ -1131,9 +1132,9 @@ singleton-with-≃-contractible univ =
     (singleton-contractible _)
 
 other-singleton-with-≃-contractible :
-  ∀ {a} {A : Set a} →
+  ∀ {a} {A : Type a} →
   Univalence a →
-  Contractible (∃ λ (B : Set a) → A ≃ B)
+  Contractible (∃ λ (B : Type a) → A ≃ B)
 other-singleton-with-≃-contractible univ =
   H-level.respects-surjection
     (∃-cong λ _ → _≃_.surjection (≡≃≃ univ))
@@ -1145,10 +1146,10 @@ other-singleton-with-≃-contractible univ =
 -- univalence).
 
 singleton-with-≃-↔-⊤ :
-  ∀ {a b} {B : Set b} →
+  ∀ {a b} {B : Type b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Univalence (a ⊔ b) →
-  (∃ λ (A : Set (a ⊔ b)) → A ≃ B) ↔ ⊤
+  (∃ λ (A : Type (a ⊔ b)) → A ≃ B) ↔ ⊤
 singleton-with-≃-↔-⊤ {a} {B = B} ext univ =
   (∃ λ A → A ≃ B)      ↝⟨ inverse (∃-cong λ _ → Eq.≃-preserves-bijections ext F.id Bijection.↑↔) ⟩
   (∃ λ A → A ≃ ↑ a B)  ↔⟨ inverse (∃-cong λ _ → ≡≃≃ univ) ⟩
@@ -1156,10 +1157,10 @@ singleton-with-≃-↔-⊤ {a} {B = B} ext univ =
   ⊤                    □
 
 other-singleton-with-≃-↔-⊤ :
-  ∀ {a b} {A : Set a} →
+  ∀ {a b} {A : Type a} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Univalence (a ⊔ b) →
-  (∃ λ (B : Set (a ⊔ b)) → A ≃ B) ↔ ⊤
+  (∃ λ (B : Type (a ⊔ b)) → A ≃ B) ↔ ⊤
 other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
   (∃ λ B → A ≃ B)  ↝⟨ (∃-cong λ _ → inverse-isomorphism ext) ⟩
   (∃ λ B → B ≃ A)  ↝⟨ singleton-with-≃-↔-⊤ {a = b} ext univ ⟩□
@@ -1168,26 +1169,26 @@ other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
 -- Variants of the two lemmas above.
 
 singleton-with-Π-≃-≃-⊤ :
-  ∀ {a q} {A : Set a} {Q : A → Set q} →
+  ∀ {a q} {A : Type a} {Q : A → Type q} →
   Extensionality a (lsuc q) →
   Univalence q →
-  (∃ λ (P : A → Set q) → ∀ x → P x ≃ Q x) ≃ ⊤
+  (∃ λ (P : A → Type q) → ∀ x → P x ≃ Q x) ≃ ⊤
 singleton-with-Π-≃-≃-⊤ {a = a} {q = q} {A = A} {Q = Q} ext univ =
-  (∃ λ (P : A → Set q) → ∀ x → P x ≃ Q x)  ↝⟨ (inverse $ ∃-cong λ _ → ∀-cong ext λ _ → ≡≃≃ univ) ⟩
-  (∃ λ (P : A → Set q) → ∀ x → P x ≡ Q x)  ↝⟨ (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩
-  (∃ λ (P : A → Set q) → P ≡ Q)            ↔⟨ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ⟩□
-  ⊤                                        □
+  (∃ λ (P : A → Type q) → ∀ x → P x ≃ Q x)  ↝⟨ (inverse $ ∃-cong λ _ → ∀-cong ext λ _ → ≡≃≃ univ) ⟩
+  (∃ λ (P : A → Type q) → ∀ x → P x ≡ Q x)  ↝⟨ (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩
+  (∃ λ (P : A → Type q) → P ≡ Q)            ↔⟨ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ⟩□
+  ⊤                                         □
 
 other-singleton-with-Π-≃-≃-⊤ :
-  ∀ {a p} {A : Set a} {P : A → Set p} →
+  ∀ {a p} {A : Type a} {P : A → Type p} →
   Extensionality a (lsuc p) →
   Univalence p →
-  (∃ λ (Q : A → Set p) → ∀ x → P x ≃ Q x) ≃ ⊤
+  (∃ λ (Q : A → Type p) → ∀ x → P x ≃ Q x) ≃ ⊤
 other-singleton-with-Π-≃-≃-⊤ {a = a} {p = p} {A = A} {P = P} ext univ =
-  (∃ λ (Q : A → Set p) → ∀ x → P x ≃ Q x)  ↝⟨ (inverse $ ∃-cong λ _ → ∀-cong ext λ _ → ≡≃≃ univ) ⟩
-  (∃ λ (Q : A → Set p) → ∀ x → P x ≡ Q x)  ↝⟨ (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩
-  (∃ λ (Q : A → Set p) → P ≡ Q)            ↔⟨ _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _) ⟩□
-  ⊤                                        □
+  (∃ λ (Q : A → Type p) → ∀ x → P x ≃ Q x)  ↝⟨ (inverse $ ∃-cong λ _ → ∀-cong ext λ _ → ≡≃≃ univ) ⟩
+  (∃ λ (Q : A → Type p) → ∀ x → P x ≡ Q x)  ↝⟨ (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩
+  (∃ λ (Q : A → Type p) → P ≡ Q)            ↔⟨ _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _) ⟩□
+  ⊤                                         □
 
 -- ∃ Contractible is isomorphic to the unit type (assuming
 -- extensionality and univalence).
@@ -1196,7 +1197,7 @@ other-singleton-with-Π-≃-≃-⊤ {a = a} {p = p} {A = A} {P = P} ext univ =
   ∀ {a} →
   Extensionality a a →
   Univalence a →
-  (∃ λ (A : Set a) → Contractible A) ↔ ⊤
+  (∃ λ (A : Type a) → Contractible A) ↔ ⊤
 ∃Contractible↔⊤ ext univ =
   (∃ λ A → Contractible A)  ↝⟨ (∃-cong λ _ → contractible↔≃⊤ ext) ⟩
   (∃ λ A → A ≃ ⊤)           ↝⟨ singleton-with-≃-↔-⊤ ext univ ⟩
@@ -1207,7 +1208,7 @@ other-singleton-with-Π-≃-≃-⊤ {a = a} {p = p} {A = A} {P = P} ext univ =
 -- extensionality and univalence).
 
 H-level-H-level-≡ :
-  ∀ {a} {A₁ A₂ : Set a} →
+  ∀ {a} {A₁ A₂ : Type a} →
   Extensionality a a →
   Univalence′ A₁ A₂ →
   ∀ n → H-level n A₁ → H-level n A₂ → H-level n (A₁ ≡ A₂)
@@ -1221,7 +1222,7 @@ H-level-H-level-≡ {A₁ = A₁} {A₂} ext univ n = curry (
 -- h-level (assuming extensionality and univalence).
 
 H-level-H-level-≡ˡ :
-  ∀ {a} {A₁ A₂ : Set a} →
+  ∀ {a} {A₁ A₂ : Type a} →
   Extensionality a a →
   Univalence′ A₁ A₂ →
   ∀ n → H-level (1 + n) A₁ → H-level (1 + n) (A₁ ≡ A₂)
@@ -1231,7 +1232,7 @@ H-level-H-level-≡ˡ {A₁ = A₁} {A₂} ext univ n =
   H-level (1 + n) (A₁ ≡ A₂)  □
 
 H-level-H-level-≡ʳ :
-  ∀ {a} {A₁ A₂ : Set a} →
+  ∀ {a} {A₁ A₂ : Type a} →
   Extensionality a a →
   Univalence′ A₁ A₂ →
   ∀ n → H-level (1 + n) A₂ → H-level (1 + n) (A₁ ≡ A₂)
@@ -1247,7 +1248,7 @@ H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
   ∀ {a} →
   Extensionality a a →
   Univalence a →
-  ∀ n → H-level (1 + n) (∃ λ (A : Set a) → H-level n A)
+  ∀ n → H-level (1 + n) (∃ λ (A : Type a) → H-level n A)
 ∃-H-level-H-level-1+ ext univ n = ≡↔+ _ _ λ { (A₁ , h₁) (A₂ , h₂) →
                                      $⟨ h₁ , h₂ ⟩
   H-level n A₁ × H-level n A₂        ↝⟨ uncurry (H-level-H-level-≡ ext univ n) ⟩
@@ -1263,7 +1264,7 @@ Is-set-∃-Is-proposition :
   ∀ {a} →
   Extensionality (lsuc a) (lsuc a) →
   Propositional-extensionality a →
-  Is-set (∃ λ (A : Set a) → Is-proposition A)
+  Is-set (∃ λ (A : Type a) → Is-proposition A)
 Is-set-∃-Is-proposition {a} ext prop-ext
                         {x = A₁ , A₁-prop} {y = A₂ , A₂-prop} =
                                                     $⟨ _≃_.to (Propositional-extensionality-is-univalence-for-propositions ext)
@@ -1285,7 +1286,7 @@ Is-set-∃-Is-proposition {a} ext prop-ext
 
 ¬-∃-H-level-H-level :
   ∀ {a} →
-  ∃ λ n → ¬ H-level n (∃ λ (A : Set a) → H-level n A)
+  ∃ λ n → ¬ H-level n (∃ λ (A : Type a) → H-level n A)
 ¬-∃-H-level-H-level =
   1 ,
   ( Is-proposition (∃ λ A → Is-proposition A)               ↔⟨⟩
@@ -1303,7 +1304,7 @@ Is-set-∃-Is-proposition {a} ext prop-ext
   ∀ {a} →
   Extensionality a a →
   Univalence a →
-  (∃ λ (A : Set a) → ¬ A) ↔ ⊤
+  (∃ λ (A : Type a) → ¬ A) ↔ ⊤
 ∃¬↔⊤ ext univ =
   (∃ λ A → ¬ A)     ↔⟨ inverse (∃-cong λ _ → ≃⊥≃¬ ext) ⟩
   (∃ λ A → A ≃ ⊥₀)  ↔⟨ singleton-with-≃-↔-⊤ ext univ ⟩
@@ -1320,9 +1321,9 @@ Is-set-∃-Is-proposition {a} ext prop-ext
 ∃≢refl :
   Extensionality (# 1) (# 1) →
   Univalence (# 0) →
-  ∃ λ (A : Set₁) → ∃ λ (f : (x : A) → x ≡ x) → f ≢ refl
+  ∃ λ (A : Type₁) → ∃ λ (f : (x : A) → x ≡ x) → f ≢ refl
 ∃≢refl ext univ =
-    (∃ λ (A : Set) → A ≡ A)
+    (∃ λ (A : Type) → A ≡ A)
   , _↔_.from iso f
   , (_↔_.from iso f ≡ refl                                      ↝⟨ cong (_↔_.to iso) ⟩
 
@@ -1346,10 +1347,10 @@ Is-set-∃-Is-proposition {a} ext prop-ext
 
     (∀ A (p : A ≡ A) → (A , p) ≡ (A , p))              ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                              inverse $ Bijection.Σ-≡,≡↔≡ {a = # 1}) ⟩
-    ((A : Set) (p : A ≡ A) →
+    ((A : Type) (p : A ≡ A) →
        ∃ λ (q : A ≡ A) → subst (λ A → A ≡ A) q p ≡ p)  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                              ∃-cong λ _ → ≡⇒↝ _ [subst≡]≡[trans≡trans]) ⟩□
-    ((A : Set) (p : A ≡ A) →
+    ((A : Type) (p : A ≡ A) →
        ∃ λ (q : A ≡ A) → trans p q ≡ trans q p)        □
 
 -- The type (a : A) → a ≡ a is not necessarily a proposition (assuming
@@ -1358,7 +1359,7 @@ Is-set-∃-Is-proposition {a} ext prop-ext
 ¬-type-of-refl-propositional :
   Extensionality (# 1) (# 1) →
   Univalence (# 0) →
-  ∃ λ (A : Set₁) → ¬ Is-proposition ((a : A) → a ≡ a)
+  ∃ λ (A : Type₁) → ¬ Is-proposition ((a : A) → a ≡ a)
 ¬-type-of-refl-propositional ext univ =
   let A , f , f≢refl = ∃≢refl ext univ in
   A ,
@@ -1366,18 +1367,18 @@ Is-set-∃-Is-proposition {a} ext prop-ext
    f ≡ refl                      ↝⟨ f≢refl ⟩□
    ⊥                             □)
 
--- Set₁ does not have h-level 3 (assuming extensionality and
+-- Type₁ does not have h-level 3 (assuming extensionality and
 -- univalence).
 
-¬-Set₁-groupoid :
+¬-Type₁-groupoid :
   Extensionality (# 1) (# 1) →
   Univalence (# 1) →
   Univalence (# 0) →
-  ¬ H-level 3 Set₁
-¬-Set₁-groupoid ext univ₁ univ₀ =
+  ¬ H-level 3 Type₁
+¬-Type₁-groupoid ext univ₁ univ₀ =
   let L = _ in
 
-  H-level 3 Set₁                        ↝⟨ (λ h → h) ⟩
+  H-level 3 Type₁                       ↝⟨ (λ h → h) ⟩
   Is-set (L ≡ L)                        ↝⟨ H-level.respects-surjection (_≃_.surjection $ ≡≃≃ univ₁) 2 ⟩
   Is-set (L ≃ L)                        ↝⟨ (λ h → h) ⟩
   Is-proposition (F.id ≡ F.id)          ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≃-≡ $ ↔⇒≃ ≃-as-Σ) 1 ⟩
@@ -1390,7 +1391,7 @@ Is-set-∃-Is-proposition {a} ext prop-ext
 -- For propositional types there is a split surjection from equality
 -- to logical equivalence (assuming univalence).
 
-≡↠⇔ : ∀ {ℓ} {A B : Set ℓ} →
+≡↠⇔ : ∀ {ℓ} {A B : Type ℓ} →
       Univalence′ A B →
       Is-proposition A → Is-proposition B →
       (A ≡ B) ↠ (A ⇔ B)
@@ -1402,7 +1403,7 @@ Is-set-∃-Is-proposition {a} ext prop-ext
 -- For propositional types logical equivalence is isomorphic to
 -- equality (assuming extensionality and univalence).
 
-⇔↔≡ : ∀ {ℓ} {A B : Set ℓ} →
+⇔↔≡ : ∀ {ℓ} {A B : Type ℓ} →
       Extensionality ℓ ℓ →
       Univalence′ A B →
       Is-proposition A → Is-proposition B →
@@ -1448,9 +1449,9 @@ Is-set-∃-Is-proposition {a} ext prop-ext
 -- based on code written by Anders Mörtberg.
 
 ≃-elim₁ :
-  ∀ {ℓ p} {A B : Set ℓ} →
+  ∀ {ℓ p} {A B : Type ℓ} →
   Univalence ℓ →
-  (P : {A : Set ℓ} → A ≃ B → Set p) →
+  (P : {A : Type ℓ} → A ≃ B → Type p) →
   P (Eq.id {A = B}) →
   (A≃B : A ≃ B) → P A≃B
 ≃-elim₁ univ P p A≃B =
@@ -1460,9 +1461,9 @@ Is-set-∃-Is-proposition {a} ext prop-ext
     p
 
 ≃-elim₁-id :
-  ∀ {ℓ p} {B : Set ℓ}
+  ∀ {ℓ p} {B : Type ℓ}
   (univ : Univalence ℓ)
-  (P : {A : Set ℓ} → A ≃ B → Set p)
+  (P : {A : Type ℓ} → A ≃ B → Type p)
   (p : P (Eq.id {A = B})) →
   ≃-elim₁ univ P p Eq.id ≡ p
 ≃-elim₁-id univ P p =
@@ -1477,9 +1478,9 @@ Is-set-∃-Is-proposition {a} ext prop-ext
   p                                                     ∎
 
 ≃-elim¹ :
-  ∀ {ℓ p} {A B : Set ℓ} →
+  ∀ {ℓ p} {A B : Type ℓ} →
   Univalence ℓ →
-  (P : {B : Set ℓ} → A ≃ B → Set p) →
+  (P : {B : Type ℓ} → A ≃ B → Type p) →
   P (Eq.id {A = A}) →
   (A≃B : A ≃ B) → P A≃B
 ≃-elim¹ univ P p A≃B =
@@ -1489,9 +1490,9 @@ Is-set-∃-Is-proposition {a} ext prop-ext
     p
 
 ≃-elim¹-id :
-  ∀ {ℓ p} {A : Set ℓ}
+  ∀ {ℓ p} {A : Type ℓ}
   (univ : Univalence ℓ)
-  (P : {B : Set ℓ} → A ≃ B → Set p)
+  (P : {B : Type ℓ} → A ≃ B → Type p)
   (p : P (Eq.id {A = A})) →
   ≃-elim¹ univ P p Eq.id ≡ p
 ≃-elim¹-id univ P p =

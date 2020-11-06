@@ -20,7 +20,7 @@ open import Prelude hiding (id; _∘_)
 ------------------------------------------------------------------------
 -- _≡_ comes with a groupoid structure
 
-groupoid : ∀ {a} (A : Set a) → Groupoid a a
+groupoid : ∀ {a} (A : Type a) → Groupoid a a
 groupoid A = record
   { Object = A
   ; _∼_    = _≡_
@@ -43,7 +43,7 @@ groupoid A = record
 -- based on a result from homotopy theory.
 
 module Transitivity-commutative
-  {a} {A : Set a} (e : A) (_∙_ : A → A → A)
+  {a} {A : Type a} (e : A) (_∙_ : A → A → A)
   (left-identity  : ∀ x → (e ∙ x) ≡ x)
   (right-identity : ∀ x → (x ∙ e) ≡ x)
   where

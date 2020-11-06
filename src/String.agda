@@ -15,7 +15,7 @@ private
 
   -- A variant of Maybe that matches the Haskell Maybe type.
 
-  data HMaybe (A : Set) : Set where
+  data HMaybe (A : Type) : Type where
     Nothing : HMaybe A
     Just    : A → HMaybe A
 

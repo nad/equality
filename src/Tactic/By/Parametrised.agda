@@ -19,7 +19,7 @@ open Derived-definitions-and-properties eq
 open import List eq
 open import Monad eq
 open import Tactic.By eq as TB
-open import TC-monad eq
+open import TC-monad eq as TC
 
 open TB public using (⟨_⟩)
 
@@ -39,7 +39,7 @@ private
     n ← search (reverse c)
     return (var (length c ∸ suc n) [])
     where
-    search : List (Arg Type) → TC ℕ
+    search : List (Arg TC.Type) → TC ℕ
     search [] = typeError (strErr err ∷ [])
       where
       err = "⟨by⟩: No instance of Equality-with-J found in the context."

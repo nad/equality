@@ -30,8 +30,8 @@ open import Monad equality-with-J as M using (Raw-monad; Monad)
 private
   variable
     a b p   : Level
-    A B     : Set a
-    P       : A → Set p
+    A B     : Type a
+    P       : A → Type p
     f g     : (x : A) → P x
     l x y z : A
     m n     : ℕ
@@ -43,7 +43,7 @@ private
 
 infixr 5 _∪_
 
-data Finite-subset-of (A : Set a) : Set a where
+data Finite-subset-of (A : Type a) : Type a where
   ∅         : Finite-subset-of A
   singleton : A → Finite-subset-of A
   _∪_       : Finite-subset-of A → Finite-subset-of A →
@@ -84,8 +84,8 @@ is-set = _↔_.from (H-level↔H-level 2) is-setᴾ
 
 -- A dependent eliminator, expressed using paths.
 
-record Elimᴾ {A : Set a} (P : Finite-subset-of A → Set p) :
-             Set (a ⊔ p) where
+record Elimᴾ {A : Type a} (P : Finite-subset-of A → Type p) :
+             Type (a ⊔ p) where
   field
     ∅ʳ         : P ∅
     singletonʳ : ∀ x → P (singleton x)
@@ -127,7 +127,7 @@ elimᴾ {A = A} {P = P} e = helper
 
 -- A non-dependent eliminator, expressed using paths.
 
-record Recᴾ (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Recᴾ (A : Type a) (B : Type b) : Type (a ⊔ b) where
   field
     ∅ʳ         : B
     singletonʳ : A → B
@@ -162,8 +162,8 @@ recᴾ r = elimᴾ e
 
 -- A dependent eliminator, expressed using equality.
 
-record Elim {A : Set a} (P : Finite-subset-of A → Set p) :
-            Set (a ⊔ p) where
+record Elim {A : Type a} (P : Finite-subset-of A → Type p) :
+            Type (a ⊔ p) where
   field
     ∅ʳ         : P ∅
     singletonʳ : ∀ x → P (singleton x)
@@ -200,7 +200,7 @@ elim e = elimᴾ e′
 
 -- A non-dependent eliminator, expressed using equality.
 
-record Rec (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Rec (A : Type a) (B : Type b) : Type (a ⊔ b) where
   field
     ∅ʳ         : B
     singletonʳ : A → B
@@ -235,8 +235,8 @@ rec r = recᴾ r′
 
 -- A dependent eliminator for propositions.
 
-record Elim-prop {A : Set a} (P : Finite-subset-of A → Set p) :
-                 Set (a ⊔ p) where
+record Elim-prop {A : Type a} (P : Finite-subset-of A → Type p) :
+                 Type (a ⊔ p) where
   field
     ∅ʳ              : P ∅
     singletonʳ      : ∀ x → P (singleton x)
@@ -262,7 +262,7 @@ elim-prop e = elim e′
 
 -- A non-dependent eliminator for propositions.
 
-record Rec-prop (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Rec-prop (A : Type a) (B : Type b) : Type (a ⊔ b) where
   field
     ∅ʳ              : B
     singletonʳ      : A → B
@@ -399,8 +399,8 @@ _ = refl _
 -- propositions.
 
 record List-elim-prop
-         {A : Set a} (P : Finite-subset-of A → Set p) :
-         Set (a ⊔ p) where
+         {A : Type a} (P : Finite-subset-of A → Type p) :
+         Type (a ⊔ p) where
   field
     []ʳ             : P ∅
     ∷ʳ              : ∀ x → P y → P (singleton x ∪ y)
@@ -423,7 +423,7 @@ list-elim-prop {P = P} l x =
 -- A list-like non-dependent eliminator for Finite-subset-of,
 -- expressed using paths.
 
-record List-recᴾ (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record List-recᴾ (A : Type a) (B : Type b) : Type (a ⊔ b) where
   field
     []ʳ     : B
     ∷ʳ      : A → Finite-subset-of A → B → B
@@ -465,7 +465,7 @@ _ = refl _
 -- A list-like non-dependent eliminator for Finite-subset-of,
 -- expressed using equality.
 
-record List-rec (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record List-rec (A : Type a) (B : Type b) : Type (a ⊔ b) where
   field
     []ʳ     : B
     ∷ʳ      : A → Finite-subset-of A → B → B
@@ -511,7 +511,7 @@ _ = refl _
 
 infix 4 _∈_
 
-_∈_ : {A : Set a} → A → Finite-subset-of A → Set a
+_∈_ : {A : Type a} → A → Finite-subset-of A → Type a
 x ∈ y = x L.∈ _≃_.from Listed≃Kuratowski y
 
 -- Membership is propositional.
@@ -572,7 +572,7 @@ member? equal? x = L.member? equal? x ∘ _≃_.from Listed≃Kuratowski
 
 -- Subsets.
 
-_⊆_ : {A : Set a} → Finite-subset-of A → Finite-subset-of A → Set a
+_⊆_ : {A : Type a} → Finite-subset-of A → Finite-subset-of A → Type a
 x ⊆ y = ∀ z → z ∈ x → z ∈ y
 
 -- The subset property can be expressed using _∪_ and _≡_.
@@ -743,7 +743,7 @@ instance
 
 infix 4 ∣_∣≡_
 
-∣_∣≡_ : {A : Set a} → Finite-subset-of A → ℕ → Set a
+∣_∣≡_ : {A : Type a} → Finite-subset-of A → ℕ → Type a
 ∣ x ∣≡ n = L.∣ _≃_.from Listed≃Kuratowski x ∣≡ n
 
 -- The size predicate is propositional.
@@ -758,7 +758,7 @@ infix 4 ∣_∣≡_
 _ : (∣ ∅ {A = A} ∣≡ n) ≡ ↑ _ (n ≡ 0)
 _ = refl _
 
-_ : ∀ {A : Set a} {x : A} {y} →
+_ : ∀ {A : Type a} {x : A} {y} →
     (∣ singleton x ∪ y ∣≡ zero) ≡ (x ∈ y × ∣ y ∣≡ zero ⊎ ⊥)
 _ = refl _
 

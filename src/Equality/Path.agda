@@ -39,9 +39,9 @@ open import Agda.Builtin.Cubical.Sub public
 private
   variable
     a b c p q ℓ : Level
-    A           : Set a
-    B           : A → Set b
-    P           : I → Set p
+    A           : Type a
+    B           : A → Type b
+    P           : I → Type p
     u v x y z   : A
     f g h       : (x : A) → B x
     i j         : I
@@ -81,7 +81,7 @@ hfill {φ = φ} u u₀ = λ i →
 
 fill :
   {p : I → Level}
-  (P : ∀ i → Set (p i)) {φ : I}
+  (P : ∀ i → Type (p i)) {φ : I}
   (u : ∀ i → Partial φ (P i))
   (u₀ : P 0̲ [ φ ↦ u 0̲ ]) →
   ∀ i → P i
@@ -95,9 +95,9 @@ fill P {φ} u u₀ i =
 -- Filling for transport.
 
 transport-fill :
-  (A : Set ℓ)
+  (A : Type ℓ)
   (φ : I)
-  (P : (i : I) → Set ℓ [ φ ↦ (λ _ → A) ])
+  (P : (i : I) → Type ℓ [ φ ↦ (λ _ → A) ])
   (u₀ : outˢ (P 0̲)) →
   [ (λ i → outˢ (P i)) ]
     u₀ ≡ transport (λ i → outˢ (P i)) φ u₀
@@ -154,7 +154,7 @@ htransˡ-reflˡ = htransʳ-reflʳ
 
 htrans :
   {x≡y : x ≡ y} {y≡z : y ≡ z}
-  (P : A → Set p) {p : P x} {q : P y} {r : P z} →
+  (P : A → Type p) {p : P x} {q : P y} {r : P z} →
   [ (λ i → P (x≡y i)) ] p ≡ q →
   [ (λ i → P (y≡z i)) ] q ≡ r →
   [ (λ i → P (htransˡ x≡y y≡z i)) ] p ≡ r
@@ -190,7 +190,7 @@ syntax step-≡h x y≡z x≡y = x ≡⟨ x≡y ⟩h y≡z
 
 step-≡hh :
   {x≡y : x ≡ y} {y≡z : y ≡ z}
-  (P : A → Set p) (p : P x) {q : P y} {r : P z} →
+  (P : A → Type p) (p : P x) {q : P y} {r : P z} →
   [ (λ i → P (y≡z i)) ] q ≡ r →
   [ (λ i → P (x≡y i)) ] p ≡ q →
   [ (λ i → P (htransˡ x≡y y≡z i)) ] p ≡ r
@@ -214,7 +214,7 @@ syntax finally-h x y x≡y = x ≡⟨ x≡y ⟩∎h y ∎
 -- The J rule.
 
 elim :
-  (P : {x y : A} → x ≡ y → Set p) →
+  (P : {x y : A} → x ≡ y → Type p) →
   (∀ x → P (refl {x = x})) →
   (x≡y : x ≡ y) → P x≡y
 elim {x = x} P p x≡y =
@@ -223,11 +223,11 @@ elim {x = x} P p x≡y =
 -- Substitutivity.
 
 hsubst :
-  ∀ (Q : ∀ {i} → P i → Set q) →
+  ∀ (Q : ∀ {i} → P i → Type q) →
   [ P ] x ≡ y → Q x → Q y
 hsubst Q x≡y p = transport (λ i → Q (x≡y i)) 0̲ p
 
-subst : (P : A → Set p) → x ≡ y → P x → P y
+subst : (P : A → Type p) → x ≡ y → P x → P y
 subst P = hsubst P
 
 -- Congruence.
@@ -240,7 +240,7 @@ hcong :
   [ (λ i → B (x≡y i)) ] f x ≡ f y
 hcong f x≡y = λ i → f (x≡y i)
 
-cong : {B : Set b} (f : A → B) → x ≡ y → f x ≡ f y
+cong : {B : Type b} (f : A → B) → x ≡ y → f x ≡ f y
 cong f = hcong f
 
 dcong :
@@ -314,7 +314,7 @@ open Equality.Derived-definitions-and-properties
 
 record Equality-with-paths
          a b (e⁺ : ∀ ℓ → Equivalence-relation⁺ ℓ) :
-         Set (lsuc (a ⊔ b)) where
+         Type (lsuc (a ⊔ b)) where
 
   field
     equality-with-J : Equality-with-J a b e⁺
@@ -404,7 +404,7 @@ module Derived-definitions-and-properties
 
   open Bijection equality-with-J
 
-  ≡↔≡ : {A : Set a} {x y : A} → x E.≡ y ↔ x ≡ y
+  ≡↔≡ : {A : Type a} {x y : A} → x E.≡ y ↔ x ≡ y
   ≡↔≡ {a = a} = record
     { surjection = record
       { logical-equivalence = record
@@ -478,7 +478,7 @@ private
 
   elim-ext :
     {f g : (x : A) → B x}
-    (P : B x → B x → Set p)
+    (P : B x → B x → Type p)
     (p : (y : B x) → P y y)
     (f≡g : ∀ x → f x ≡ g x) →
     elim (λ {f g} _ → P (f x) (g x)) (p ∘ (_$ x)) (⟨ext⟩ f≡g) ≡
@@ -503,14 +503,14 @@ private
   ext-trans _ _ = refl
 
   cong-post-∘-ext :
-    {B : A → Set b} {C : A → Set c} {f g : (x : A) → B x}
+    {B : A → Type b} {C : A → Type c} {f g : (x : A) → B x}
     {h : ∀ {x} → B x → C x}
     (f≡g : ∀ x → f x ≡ g x) →
     cong (h ∘_) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (cong h ∘ f≡g)
   cong-post-∘-ext _ = refl
 
   cong-pre-∘-ext :
-    {B : Set b} {C : B → Set c} {f g : (x : B) → C x} {h : A → B}
+    {B : Type b} {C : B → Type c} {f g : (x : B) → C x} {h : A → B}
     (f≡g : ∀ x → f x ≡ g x) →
     cong (_∘ h) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (f≡g ∘ h)
   cong-pre-∘-ext _ = refl
@@ -531,11 +531,11 @@ private
 
   -- Simple conversion functions.
 
-  ≃⇒≃ : {B : Set b} → A ≃ B → A Glue.≃ B
+  ≃⇒≃ : {B : Type b} → A ≃ B → A Glue.≃ B
   ≃⇒≃ A≃B = _≃_.to A≃B
           , record { equiv-proof = _≃_.is-equivalence A≃B }
 
-  ≃⇒≃⁻¹ : {B : Set b} → A Glue.≃ B → A ≃ B
+  ≃⇒≃⁻¹ : {B : Type b} → A Glue.≃ B → A ≃ B
   ≃⇒≃⁻¹ (f , f-equiv) = record
     { to             = f
     ; is-equivalence = equiv-proof f-equiv
@@ -544,7 +544,7 @@ private
 -- Equivalences can be converted to equalities (if the two types live
 -- in the same universe).
 
-≃⇒≡ : {A B : Set ℓ} → A ≃ B → A ≡ B
+≃⇒≡ : {A B : Type ℓ} → A ≃ B → A ≡ B
 ≃⇒≡ {A = A} {B} A≃B = λ i → primGlue B
   (λ { (i = 0̲) → A
      ; (i = 1̲) → B
@@ -564,7 +564,7 @@ private
 
 -- ≃⇒≡ is a left inverse of ≡⇒≃.
 
-≃⇒≡∘≡⇒≃ : {A B : Set ℓ} (A≡B : A ≡ B) →
+≃⇒≡∘≡⇒≃ : {A B : Type ℓ} (A≡B : A ≡ B) →
           ≃⇒≡ (≡⇒≃ A≡B) ≡ A≡B
 ≃⇒≡∘≡⇒≃ = elim
   (λ A≡B → ≃⇒≡ (≡⇒≃ A≡B) ≡ A≡B)
@@ -575,7 +575,7 @@ private
 
 -- ≃⇒≡ is a right inverse of ≡⇒≃.
 
-≡⇒≃∘≃⇒≡ : {A B : Set ℓ} (A≃B : A ≃ B) →
+≡⇒≃∘≃⇒≡ : {A B : Type ℓ} (A≃B : A ≃ B) →
           ≡⇒≃ (≃⇒≡ A≃B) ≡ A≃B
 ≡⇒≃∘≃⇒≡ {A = A} {B} A≃B = Eq.lift-equality ext (
   ≡⇒→ (≃⇒≡ A≃B)                                     ≡⟨⟩
@@ -603,7 +603,7 @@ private
 
   primGlue≃ :
     (φ : I)
-    (B : Partial φ (Set ℓ))
+    (B : Partial φ (Type ℓ))
     (f : PartialP φ (λ x → B x Glue.≃ A)) →
     primGlue A B f ≃ A
   primGlue≃ {A = A} φ B f = record
@@ -644,7 +644,7 @@ other-univ : Other-univalence ℓ
 other-univ {ℓ = ℓ} {B = B} =
     (B , Eq.id)
   , λ { (A , A≃B) i →
-          let C : ∀ i → Partial (max i (- i)) (Set ℓ)
+          let C : ∀ i → Partial (max i (- i)) (Type ℓ)
               C = λ { i (i = 0̲) → B
                     ; i (i = 1̲) → A
                     }
@@ -677,7 +677,7 @@ refl≡ x≡y = λ i j → x≡y (min i j)
 -- nothing.
 
 transport∘transport :
-  ∀ {p : I → Level} (P : ∀ i → Set (p i)) {p} →
+  ∀ {p : I → Level} (P : ∀ i → Type (p i)) {p} →
   transport (λ i → P (- i)) 0̲ (transport P 0̲ p) ≡ p
 transport∘transport P {p} = hsym λ i →
   comp (λ j → P (min i (- j)))
@@ -714,7 +714,7 @@ transport-≡ {x = x} {p = p} {q = q} r = elim¹
 -- equality.
 
 heterogeneous≡homogeneous :
-  {P : I → Set p} {p : P 0̲} {q : P 1̲} →
+  {P : I → Type p} {p : P 0̲} {q : P 1̲} →
   ([ P ] p ≡ q) ≡ (transport P 0̲ p ≡ q)
 heterogeneous≡homogeneous {P = P} {p = p} {q = q} = λ i →
   [ (λ j → P (max i j)) ] transport (λ j → P (min i j)) (- i) p ≡ q
@@ -722,7 +722,7 @@ heterogeneous≡homogeneous {P = P} {p = p} {q = q} = λ i →
 -- A variant of the previous lemma.
 
 heterogeneous↔homogeneous :
-  (P : I → Set p) {p : P 0̲} {q : P 1̲} →
+  (P : I → Type p) {p : P 0̲} {q : P 1̲} →
   ([ P ] p ≡ q) ↔ transport P 0̲ p ≡ q
 heterogeneous↔homogeneous P =
   subst
@@ -734,7 +734,7 @@ heterogeneous↔homogeneous P =
 -- expression involving hcong.
 
 dcong≡hcong :
-  {B : A → Set b} {x≡y : x ≡ y} (f : (x : A) → B x) →
+  {B : A → Type b} {x≡y : x ≡ y} (f : (x : A) → B x) →
   dcong f x≡y ≡
   _↔_.to (heterogeneous↔homogeneous (λ i → B (x≡y i))) (hcong f x≡y)
 dcong≡hcong {B = B} {x≡y = x≡y} f = elim
@@ -767,7 +767,7 @@ dcong≡hcong {B = B} {x≡y = x≡y} f = elim
 
 -- All instances of an interval-indexed family are equal.
 
-index-irrelevant : (P : I → Set p) → P i ≡ P j
+index-irrelevant : (P : I → Type p) → P i ≡ P j
 index-irrelevant {i = i} {j = j} P =
   λ k → P (max (min i (- k)) (min j k))
 
@@ -775,7 +775,7 @@ index-irrelevant {i = i} {j = j} P =
 -- of dependent paths over P.
 
 H-level-suc↔H-level[]≡ :
-  {P : I → Set p} →
+  {P : I → Type p} →
   H-level (suc n) (P i) ↔ (∀ x y → H-level n ([ P ] x ≡ y))
 H-level-suc↔H-level[]≡ {n = n} {i = i} {P = P} =
   H-level (suc n) (P i)                                            ↝⟨ H-level-cong ext _ (≡⇒≃ $ index-irrelevant P) ⟩
@@ -819,7 +819,7 @@ heterogeneous-irrelevance₀ {P = P} {x = x} {y = y} =
 -- A form of UIP for squares that are sets on one corner.
 
 heterogeneous-UIP₀₀ :
-  {P : I → I → Set p}
+  {P : I → I → Type p}
   {x : ∀ i → P i 0̲} {y : ∀ i → P i 1̲}
   {p : [ (λ j → P 0̲ j) ] x 0̲ ≡ y 0̲}
   {q : [ (λ j → P 1̲ j) ] x 1̲ ≡ y 1̲} →
@@ -839,7 +839,7 @@ heterogeneous-UIP₀₀ {P = P} {x = x} {y = y} {p = p} {q = q} =
 -- A variant of heterogeneous-irrelevance₀.
 
 heterogeneous-irrelevance :
-  {P : A → Set p} →
+  {P : A → Type p} →
   (∀ x → Is-proposition (P x)) →
   {x≡y : x ≡ y} {p₁ : P x} {p₂ : P y} →
   [ (λ i → P (x≡y i)) ] p₁ ≡ p₂
@@ -856,7 +856,7 @@ heterogeneous-irrelevance {x = x} {P = P} P-prop {x≡y} {p₁} {p₂} =
 -- proof, implemented by Zesen Qian.
 
 heterogeneous-UIP :
-  {P : A → Set p} →
+  {P : A → Type p} →
   (∀ x → Is-set (P x)) →
   {eq₁ eq₂ : x ≡ y} (eq₃ : eq₁ ≡ eq₂) {p₁ : P x} {p₂ : P y}
   (eq₄ : [ (λ j → P (eq₁ j)) ] p₁ ≡ p₂)

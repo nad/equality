@@ -31,17 +31,17 @@ open import Vec eq as Vec using (Vec)
 private
   variable
     a ℓ p q : Level
-    A B     : Set a
+    A B     : Type a
     f       : A → B
-    P       : A → Set p
-    Q       : A → Set q
+    P       : A → Type p
+    Q       : A → Type q
     x y     : A
     xs ys   : List A
     n       : ℕ
 
 -- All P xs means that P holds for every element of xs.
 
-All : (A → Set p) → List A → Set p
+All : (A → Type p) → List A → Type p
 All P []       = ↑ _ ⊤
 All P (x ∷ xs) = P x × All P xs
 
@@ -50,7 +50,7 @@ All P (x ∷ xs) = P x × All P xs
 
 infix 4 _⊆_
 
-_⊆_ : {A : Set a} → List A → List A → Set a
+_⊆_ : {A : Type a} → List A → List A → Type a
 xs ⊆ ys = All (_∈ ys) xs
 
 -- If All P xs holds and x is an element of xs, then P x holds.
@@ -109,7 +109,7 @@ tail = proj₂
 
 -- Some rearrangement lemmas.
 
-All-[] : (P : A → Set p) → All P [] ↔ ⊤
+All-[] : (P : A → Type p) → All P [] ↔ ⊤
 All-[] P =
   All P []  ↔⟨⟩
   ↑ _ ⊤     ↝⟨ Bijection.↑↔ ⟩□
@@ -141,7 +141,7 @@ All-concat {P = P} {xs = xs ∷ xss} =
   All P xs × All (All P) xss       □
 
 All->>= :
-  {A : Set ℓ} {f : A → List B} {xs : List A} →
+  {A : Type ℓ} {f : A → List B} {xs : List A} →
   All P (xs >>= f) ↔ All (All P ∘ f) xs
 All->>= {P = P} {f = f} {xs = xs} =
   All P (L.concat (L.map f xs))  ↝⟨ All-concat ⟩
@@ -161,7 +161,7 @@ All-const-replicate {A = A} {n = suc n} =
   A × Vec A n                           □
 
 All-Σ :
-  {A : Set a} {P : A → Set p} {Q : ∃ P → Set q} {xs : List A} →
+  {A : Type a} {P : A → Type p} {Q : ∃ P → Type q} {xs : List A} →
   All (λ x → Σ (P x) (curry Q x)) xs ↔
   ∃ λ (ps : All P xs) → All Q (_↔_.to ∃-All↔List-∃ (xs , ps))
 All-Σ {P = P} {Q = Q} {xs = []} =
@@ -191,7 +191,7 @@ All-Σ {P = P} {Q = Q} {xs = x ∷ xs} =
      All Q (_↔_.to ∃-All↔List-∃ (x ∷ xs , ps)))                       □
 
 Vec-Σ :
-  {A : Set a} {P : A → Set p} →
+  {A : Type a} {P : A → Type p} →
   Vec (Σ A P) n ↔
   ∃ λ (xs : Vec A n) → All P (Vec.to-list xs)
 Vec-Σ {n = zero} {A = A} {P = P} =
@@ -222,7 +222,7 @@ private
   -- compute less well if the J rule does not compute.
 
   Vec-Σ′ :
-    {A : Set a} {P : A → Set p} →
+    {A : Type a} {P : A → Type p} →
     Vec (Σ A P) n ↔
     ∃ λ (xs : Vec A n) → All P (Vec.to-list xs)
   Vec-Σ′ {n = n} {A = A} {P = P} =
@@ -320,7 +320,7 @@ All↠All = record
 -- All and A.All are pointwise equivalent (assuming extensionality).
 
 All↔All :
-  ∀ {k} {A : Set a} {P : A → Set p} {xs : List A} →
+  ∀ {k} {A : Type a} {P : A → Type p} {xs : List A} →
   Extensionality? k a (a ⊔ p) →
   All P xs ↝[ k ] A.All P xs
 All↔All {a = a} = generalise-ext? All⇔All λ ext → record
@@ -368,7 +368,7 @@ H-level-All n h (x ∷ xs) =
 -- The _⊆_ relation matches _∼[ implication ]_.
 
 ⊆↔∼[implication] :
-  ∀ {k} {A : Set a} {xs ys : List A} →
+  ∀ {k} {A : Type a} {xs ys : List A} →
   Extensionality? k a a →
   xs ⊆ ys ↝[ k ] xs ∼[ implication ] ys
 ⊆↔∼[implication] {xs = xs} {ys} ext =
@@ -380,7 +380,7 @@ H-level-All n h (x ∷ xs) =
 
 infix 4 _⊆′_
 
-_⊆′_ : {A : Set a} → List A → List A → Set a
+_⊆′_ : {A : Type a} → List A → List A → Type a
 xs ⊆′ ys = ∀ {z} → z ∈ xs → z ∈ ys
 
 -- Some congruence lemmas.
@@ -421,7 +421,7 @@ All-cong-→ {P = P} {Q = Q} {ys = ys} {xs = xs} P→Q ys∼xs =
   All Q ys    □
 
 All-cong :
-  ∀ {k} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs ys} →
+  ∀ {k} {A : Type a} {P : A → Type p} {Q : A → Type q} {xs ys} →
   Extensionality? ⌊ k ⌋-sym a (a ⊔ p ⊔ q) →
   (∀ x → P x ↝[ ⌊ k ⌋-sym ] Q x) →
   xs ∼[ ⌊ k ⌋-sym ] ys →
@@ -452,7 +452,7 @@ index∘index {P = P} {xs = _ ∷ _} {ys} {ps} {inj₁ eq} (∈ys , _) = elim₁
 -- Some rearrangement lemmas for index.
 
 index-map₁ :
-  ∀ {P : A → Set p}
+  ∀ {P : A → Type p}
     xs {f : ∀ {x} → P x → Q x} {ps : All P xs} {q : x ∈ xs} →
   index (map₁ f ps) q ≡ f (index ps q)
 index-map₁ (_ ∷ xs) {q = inj₂ q}  = index-map₁ xs
@@ -492,7 +492,7 @@ index-All-const (_ ∷ _) {b , _} {fzero}  =
 -- A rearrangement lemma for Vec-Σ.
 
 proj₁-Vec-Σ :
-  {A : Set a} {P : A → Set p} {xs : Vec (Σ A P) n} →
+  {A : Type a} {P : A → Type p} {xs : Vec (Σ A P) n} →
   proj₁ (_↔_.to Vec-Σ xs) ≡ Vec.map proj₁ xs
 proj₁-Vec-Σ {n = zero}  = refl _
 proj₁-Vec-Σ {n = suc n} = cong (_ ,_) proj₁-Vec-Σ

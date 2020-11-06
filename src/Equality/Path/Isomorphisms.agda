@@ -40,8 +40,8 @@ open Univalence-axiom equality-with-J
 private
   variable
     a b c p q ℓ : Level
-    A           : Set a
-    B           : A → Set b
+    A           : Type a
+    B           : A → Type b
     u v x y z   : A
     f g h       : (x : A) → B x
     n           : ℕ
@@ -92,12 +92,12 @@ abstract
 
   subst-ext :
     ∀ {f g : (x : A) → B x}
-    (P : B x → Set p) {p} (f≡g : ∀ x → f x ≡ g x) →
+    (P : B x → Type p) {p} (f≡g : ∀ x → f x ≡ g x) →
     subst (λ f → P (f x)) (⟨ext⟩ f≡g) p ≡ subst P (f≡g x) p
   subst-ext = subst-good-ext bad-ext
 
   elim-ext :
-    (P : B x → B x → Set p)
+    (P : B x → B x → Type p)
     (p : (y : B x) → P y y)
     {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) →
@@ -139,7 +139,7 @@ private
   -- Bijections expressed using paths can be converted into bijections
   -- expressed using equality.
 
-  ↔→↔ : {A B : Set ℓ} → A PB.↔ B → A ↔ B
+  ↔→↔ : {A B : Type ℓ} → A PB.↔ B → A ↔ B
   ↔→↔ A↔B = record
     { surjection = record
       { logical-equivalence = record
@@ -184,7 +184,7 @@ Is-equivalence↔Is-equivalence {f = f} =
 -- to the type of equivalences, expressed using paths.
 
 ≃↔≃ :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   A ≃ B ↔ A PE.≃ B
 ≃↔≃ {A = A} {B = B} =
   A ≃ B                ↝⟨ ≃-as-Σ ⟩
@@ -197,13 +197,13 @@ private
   -- ≃↔≃ computes in the "right" way.
 
   to-≃↔≃ :
-    {A : Set a} {B : Set b} {A≃B : A ≃ B} →
+    {A : Type a} {B : Type b} {A≃B : A ≃ B} →
     PE._≃_.logical-equivalence (_↔_.to ≃↔≃ A≃B) ≡
     _≃_.logical-equivalence A≃B
   to-≃↔≃ = refl _
 
   from-≃↔≃ :
-    {A : Set a} {B : Set b} {A≃B : A PE.≃ B} →
+    {A : Type a} {B : Type b} {A≃B : A PE.≃ B} →
     _≃_.logical-equivalence (_↔_.from ≃↔≃ A≃B) ≡
     PE._≃_.logical-equivalence A≃B
   from-≃↔≃ = refl _
@@ -212,7 +212,7 @@ private
 -- function for equality.
 
 cong≡cong :
-  {A : Set a} {B : Set b} {f : A → B} {x y : A} {x≡y : x P.≡ y} →
+  {A : Type a} {B : Type b} {f : A → B} {x y : A} {x≡y : x P.≡ y} →
   cong f (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from ≡↔≡ (P.cong f x≡y)
 cong≡cong {f = f} {x≡y = x≡y} = P.elim
   (λ x≡y → cong f (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from ≡↔≡ (P.cong f x≡y))
@@ -259,7 +259,7 @@ trans≡trans {x≡y = x≡y} {y≡z = y≡z} = P.elim₁
 -- the type of embeddings, expressed using paths.
 
 Embedding↔Embedding :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   Embedding A B ↔ PM.Embedding A B
 Embedding↔Embedding {A = A} {B = B} =
   Embedding A B                                   ↝⟨ Embedding-as-Σ ⟩
@@ -298,7 +298,7 @@ Embedding↔Embedding {A = A} {B = B} =
 -- function for equality.
 
 subst≡subst :
-  ∀ {P : A → Set p} {x≡y : x P.≡ y} {p} →
+  ∀ {P : A → Type p} {x≡y : x P.≡ y} {p} →
   subst P (_↔_.from ≡↔≡ x≡y) p ≡ P.subst P x≡y p
 subst≡subst {P = P} {x≡y} = P.elim
   (λ x≡y → ∀ {p} → subst P (_↔_.from ≡↔≡ x≡y) p ≡ P.subst P x≡y p)
@@ -312,7 +312,7 @@ subst≡subst {P = P} {x≡y} = P.elim
 -- A "computation" rule for subst≡subst.
 
 subst≡subst-refl :
-  ∀ {P : A → Set p} {p : P x} →
+  ∀ {P : A → Type p} {p : P x} →
   subst≡subst {x≡y = P.refl} ≡
   trans (cong (λ eq → subst P eq p) from-≡↔≡-refl)
     (trans (subst-refl _ _) (sym $ _↔_.from ≡↔≡ $ P.subst-refl P _))
@@ -475,7 +475,7 @@ cong-≡↔≡ {f = f} {eq₁ = eq₁} {eq₂} hyp =
 univ : ∀ {ℓ} → Univalence ℓ
 univ {ℓ} {A = A} {B = B} = lemma P.univ
   where
-  lemma₄ : {A B : Set ℓ} → (A PE.≃ B) ≃ (A ≃ B)
+  lemma₄ : {A B : Type ℓ} → (A PE.≃ B) ≃ (A ≃ B)
   lemma₄ {A} {B} =
     A PE.≃ B                       ↔⟨ ↔→↔ PE.≃-as-Σ ⟩
     (∃ λ f → PE.Is-equivalence f)  ↔⟨ ∃-cong (λ _ → inverse Is-equivalence↔Is-equivalence) ⟩

@@ -28,7 +28,7 @@ open import Prelude as P hiding (id; _^_)
 -- Functors
 
 Functor : ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
-          Precategory ℓ₁ ℓ₂ → Precategory ℓ₃ ℓ₄ → Set _
+          Precategory ℓ₁ ℓ₂ → Precategory ℓ₃ ℓ₄ → Type _
 Functor C D =
   -- Object map.
   ∃ λ (F₀ : Obj C → Obj D) →
@@ -49,7 +49,7 @@ infix 4 _⇨_
 
 record _⇨_ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
            (C : Precategory ℓ₁ ℓ₂) (D : Precategory ℓ₃ ℓ₄) :
-           Set (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₃ ⊔ ℓ₄) where
+           Type (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₃ ⊔ ℓ₄) where
   field
     functor : Functor C D
 
@@ -133,10 +133,10 @@ private
              (_⊙_ G)
 
    equality-characterisation⇨ ext {C} {D} {F} {G} =
-     let P : (Obj C → Obj D) → Set _
+     let P : (Obj C → Obj D) → Type _
          P = λ F₀ → ∀ {X Y} → Hom C X Y → Hom D (F₀ X) (F₀ Y)
 
-         Q : ∃ P → Set _
+         Q : ∃ P → Type _
          Q = λ { (F₀ , F) → (∀ {X} → F (id C {X = X}) ≡ id D) ×
                             (∀ {X Y Z} {f : Hom C X Y} {g : Hom C Y Z} →
                                F (_∙_ C g f) ≡ _∙_ D (F g) (F f)) }
@@ -317,7 +317,7 @@ id⇨∙⇨ ext {F} = _≃_.from (equality-characterisation⇨ ext)
 Natural-transformation :
   ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
     {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄} →
-  C ⇨ D → C ⇨ D → Set _
+  C ⇨ D → C ⇨ D → Type _
 Natural-transformation {C = C} {D = D} F G =
   -- Morphisms.
   ∃ λ (γ : ∀ {X} → Hom D (F ⊚ X) (G ⊚ X)) →
@@ -335,7 +335,7 @@ infix 4 _⇾_
 
 record _⇾_ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
            {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄}
-           (F G : C ⇨ D) : Set (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₃ ⊔ ℓ₄) where
+           (F G : C ⇨ D) : Type (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₃ ⊔ ℓ₄) where
   field
     natural-transformation : Natural-transformation F G
 

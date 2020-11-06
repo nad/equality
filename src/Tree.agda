@@ -20,13 +20,13 @@ open import List eq
 ------------------------------------------------------------------------
 -- Binary trees
 
-data Tree (A : Set) : Set where
+data Tree (A : Type) : Type where
   leaf : Tree A
   node : (l : Tree A) (x : A) (r : Tree A) → Tree A
 
 -- Any.
 
-AnyT : ∀ {A} → (A → Set) → (Tree A → Set)
+AnyT : ∀ {A} → (A → Type) → (Tree A → Type)
 AnyT P leaf         = ⊥
 AnyT P (node l x r) = AnyT P l ⊎ P x ⊎ AnyT P r
 
@@ -34,12 +34,12 @@ AnyT P (node l x r) = AnyT P l ⊎ P x ⊎ AnyT P r
 
 infix 4 _∈T_
 
-_∈T_ : ∀ {A} → A → Tree A → Set
+_∈T_ : ∀ {A} → A → Tree A → Type
 x ∈T t = AnyT (_≡_ x) t
 
 -- Bag equivalence.
 
-_≈-bagT_ : ∀ {A} → Tree A → Tree A → Set
+_≈-bagT_ : ∀ {A} → Tree A → Tree A → Type
 t₁ ≈-bagT t₂ = ∀ x → x ∈T t₁ ↔ x ∈T t₂
 
 ------------------------------------------------------------------------
@@ -47,12 +47,12 @@ t₁ ≈-bagT t₂ = ∀ x → x ∈T t₁ ↔ x ∈T t₂
 
 -- Singleton trees.
 
-singleton : {A : Set} → A → Tree A
+singleton : {A : Type} → A → Tree A
 singleton x = node leaf x leaf
 
 -- Any lemma for singleton.
 
-Any-singleton : ∀ {A : Set} (P : A → Set) {x} →
+Any-singleton : ∀ {A : Type} (P : A → Type) {x} →
                 AnyT P (singleton x) ↔ P x
 Any-singleton P {x} =
   AnyT P (singleton x)  ↔⟨⟩
@@ -65,13 +65,13 @@ Any-singleton P {x} =
 
 -- Inorder flattening of a tree.
 
-flatten : {A : Set} → Tree A → List A
+flatten : {A : Type} → Tree A → List A
 flatten leaf         = []
 flatten (node l x r) = flatten l ++ x ∷ flatten r
 
 -- Flatten does not add or remove any elements.
 
-flatten-lemma : {A : Set} (t : Tree A) → ∀ z → z ∈ flatten t ↔ z ∈T t
+flatten-lemma : {A : Type} (t : Tree A) → ∀ z → z ∈ flatten t ↔ z ∈T t
 flatten-lemma leaf         = λ z → ⊥ □
 flatten-lemma (node l x r) = λ z →
   z ∈ flatten l ++ x ∷ flatten r         ↔⟨ Any-++ (_≡_ z) _ _ ⟩
@@ -89,8 +89,8 @@ flatten-lemma (node l x r) = λ z →
 -- relations _≈A_ and _≈B_ are not /proof-irrelevant/ equivalence
 -- relations.
 
-record _/_↔_/_ (A : Set) (_≈A_ : A → A → Set)
-               (B : Set) (_≈B_ : B → B → Set) : Set where
+record _/_↔_/_ (A : Type) (_≈A_ : A → A → Type)
+               (B : Type) (_≈B_ : B → B → Type) : Type where
   field
     to        : A → B
     to-resp   : ∀ x y → x ≈A y → to x ≈B to y
@@ -104,7 +104,7 @@ record _/_↔_/_ (A : Set) (_≈A_ : A → A → Set)
 -- quotient by bag equivalence, and that the definition of _/_↔_/_
 -- makes sense in this case).
 
-list-bags↔tree-bags : {A : Set} → List A / _≈-bag_ ↔ Tree A / _≈-bagT_
+list-bags↔tree-bags : {A : Type} → List A / _≈-bag_ ↔ Tree A / _≈-bagT_
 list-bags↔tree-bags {A} = record
   { to        = to-tree
   ; to-resp   = λ xs ys xs≈ys z →
@@ -133,7 +133,7 @@ list-bags↔tree-bags {A} = record
     (⊥ ⊎ z ≡ x) ⊎ z ∈ xs           ↔⟨ ⊎-left-identity ⊎-cong id ⟩
     z ≡ x       ⊎ z ∈ xs           □
 
-  to-tree-++ : ∀ {P : A → Set} xs {ys} →
+  to-tree-++ : ∀ {P : A → Type} xs {ys} →
                AnyT P (to-tree (xs ++ ys)) ↔
                AnyT P (to-tree xs) ⊎ AnyT P (to-tree ys)
   to-tree-++ {P} [] {ys} =
@@ -144,7 +144,7 @@ list-bags↔tree-bags {A} = record
     ⊥ ⊎ P x ⊎ AnyT P (to-tree xs) ⊎ AnyT P (to-tree ys)    ↔⟨ lemma _ _ _ _ ⟩
     (⊥ ⊎ P x ⊎ AnyT P (to-tree xs)) ⊎ AnyT P (to-tree ys)  □
     where
-    lemma : (A B C D : Set) → A ⊎ B ⊎ C ⊎ D ↔ (A ⊎ B ⊎ C) ⊎ D
+    lemma : (A B C D : Type) → A ⊎ B ⊎ C ⊎ D ↔ (A ⊎ B ⊎ C) ⊎ D
     lemma A B C D =
       A ⊎ B ⊎ C ⊎ D      ↔⟨ ⊎-assoc ⟩
       (A ⊎ B) ⊎ C ⊎ D    ↔⟨ ⊎-assoc ⟩

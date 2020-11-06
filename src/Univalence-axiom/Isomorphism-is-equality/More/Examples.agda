@@ -26,7 +26,7 @@ open import Univalence-axiom.Isomorphism-is-equality.More
 magma : Code
 magma = ε ▻ A-type ▻ N-ary [0] 2
 
-Magma : Set₁
+Magma : Type₁
 Magma = ⟦ magma ⟧
 
 private
@@ -35,7 +35,7 @@ private
 
   Magma-unfolded :
     Magma ≡ Σ (Σ (↑ _ ⊤) λ _ →
-    Set                    ) λ { (_ , A) →
+    Type                   ) λ { (_ , A) →
     ↑ _ A → ↑ _ A → ↑ _ A }
   Magma-unfolded = refl
 
@@ -79,7 +79,7 @@ semigroup =
     Π-closure ext₁ 1 λ _ →
     A-set }
 
-Semigroup : Set₁
+Semigroup : Type₁
 Semigroup = ⟦ semigroup ⟧
 
 private
@@ -88,7 +88,7 @@ private
 
   Semigroup-unfolded :
     Semigroup ≡ Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                                      ) λ {  (_ , A) →
+      Type                                     ) λ {  (_ , A) →
       Is-set (↑ _ A)                          }) λ { ((_ , A) , _) →
       ↑ _ A → ↑ _ A → ↑ _ A                   }) λ { (_ , _∙_) →
       ∀ x y z → (x ∙ (y ∙ z)) ≡ ((x ∙ y) ∙ z) }
@@ -133,7 +133,7 @@ set-with-fixed-point-operator =
     Π-closure ext₁ 1 λ _ →
     A-set }
 
-Set-with-fixed-point-operator : Set₁
+Set-with-fixed-point-operator : Type₁
 Set-with-fixed-point-operator = ⟦ set-with-fixed-point-operator ⟧
 
 private
@@ -142,7 +142,7 @@ private
 
   Set-with-fixed-point-operator-unfolded :
     Set-with-fixed-point-operator ≡ Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                      ) λ {  (_ , A) →
+      Type                     ) λ {  (_ , A) →
       Is-set (↑ _ A)          }) λ { ((_ , A) , _) →
       (↑ _ A → ↑ _ A) → ↑ _ A }) λ { (_ , fix) →
       ∀ f → fix f ≡ f (fix f) }
@@ -270,7 +270,7 @@ abelian-group =
        A-set
      })
 
-Abelian-group : Set₁
+Abelian-group : Type₁
 Abelian-group = ⟦ abelian-group ⟧
 
 private
@@ -280,7 +280,7 @@ private
 
   Abelian-group-unfolded :
     Abelian-group ≡ Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (Σ (↑ _ ⊤) λ _ →
-      Set                                      ) λ {        (_ , A) →
+      Type                                     ) λ {        (_ , A) →
       Is-set (↑ _ A)                          }) λ {       ((_ , A) , _) →
       ↑ _ A → ↑ _ A → ↑ _ A                   }) λ {                  (_ , _∙_) →
       ∀ x y → (x ∙ y) ≡ (y ∙ x)               }) λ {                 ((_ , _∙_) , _) →
@@ -327,8 +327,8 @@ private
 
 -- Church-encoded natural numbers.
 
-Nat : Set₁
-Nat = (A : Set) → ↑ (# 1) A → (↑ (# 1) A → ↑ (# 1) A) → ↑ (# 1) A
+Nat : Type₁
+Nat = (A : Type) → ↑ (# 1) A → (↑ (# 1) A → ↑ (# 1) A) → ↑ (# 1) A
 
 -- Zero and successor.
 
@@ -350,7 +350,7 @@ inductive-natural-numbers =
 
   ▻ Proposition
       (λ { (_ , n) →
-           (P : Nat → Set) →
+           (P : Nat → Type) →
            Is-proposition (P n) →
            P Zero →
            (∀ m → P m → P (Suc m)) →
@@ -375,7 +375,7 @@ private
       ≡
     Σ (Σ (↑ _ ⊤) λ _ →
       Nat                        ) λ { (_ , n) →
-      (P : Nat → Set) →
+      (P : Nat → Type) →
       Is-proposition (P n) →
       P Zero →
       (∀ m → P m → P (Suc m)) →
@@ -385,16 +385,16 @@ private
   Isomorphic-inductive-natural-numbers :
     ∀ {ass : Assumptions}
       {n₁ n₂ : Nat}
-      {prop₁ : (P : Nat → Set) → Is-proposition (P n₁) →
+      {prop₁ : (P : Nat → Type) → Is-proposition (P n₁) →
                P Zero → (∀ m → P m → P (Suc m)) → P n₁}
-      {prop₂ : (P : Nat → Set) → Is-proposition (P n₂) →
+      {prop₂ : (P : Nat → Type) → Is-proposition (P n₂) →
                P Zero → (∀ m → P m → P (Suc m)) → P n₂} →
 
     Isomorphic ass inductive-natural-numbers
                    ((_ , n₁) , prop₁) ((_ , n₂) , prop₂)
       ≡
     Σ (Σ (↑ (# 1) ⊤) λ _ →
-    ((A₁ A₂ : Set) → (A₁≃A₂ : ↑ (# 1) (A₁ ≃ A₂)) →
+    ((A₁ A₂ : Type) → (A₁≃A₂ : ↑ (# 1) (A₁ ≃ A₂)) →
      let cast = _≃_.from (↑-cong (lower A₁≃A₂)) in
      (z₁ : ↑ (# 1) A₁) (z₂ : ↑ (# 1) A₂) →
        z₁ ≡ cast z₂ →

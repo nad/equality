@@ -11,7 +11,7 @@ open import Prelude hiding (id; _∘_; List; module List; []; _∷_)
 module Container.Tree-sort
   {c⁺}
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
-  {A : Set}
+  {A : Type}
   (_≤_ : A → A → Bool) -- A comparison function.
   where
 
@@ -33,7 +33,7 @@ private
   -- The following lemma is easy to prove automatically (for
   -- instance by using a ring solver).
 
-  lemma₁ : (A B C D : Set) → A ⊎ B ⊎ C ⊎ D ↔ C ⊎ A ⊎ B ⊎ D
+  lemma₁ : (A B C D : Type) → A ⊎ B ⊎ C ⊎ D ↔ C ⊎ A ⊎ B ⊎ D
   lemma₁ A B C D =
     A ⊎ B ⊎ C ⊎ D      ↔⟨ id ⊎-cong ⊎-assoc ⟩
     A ⊎ (B ⊎ C) ⊎ D    ↔⟨ id ⊎-cong ⊎-comm ⊎-cong id ⟩
@@ -45,7 +45,7 @@ private
     C ⊎ (A ⊎ B) ⊎ D    ↔⟨ id ⊎-cong inverse ⊎-assoc ⟩
     C ⊎ A ⊎ B ⊎ D      □
 
-  lemma₂ : {A B C D : Set} (b : Bool) →
+  lemma₂ : {A B C D : Type} (b : Bool) →
            T b × ((A ⊎ B) ⊎ C ⊎ D) ⊎ T (not b) × (B ⊎ C ⊎ A ⊎ D) ↔
            A ⊎ B ⊎ C ⊎ D
   lemma₂ = if-lemma (λ _ → _) (inverse ⊎-assoc) (lemma₁ _ _ _ _)
@@ -64,7 +64,7 @@ insert x = Tree.fold
 
 -- The insert function inserts.
 
-Any-insert : ∀ (P : A → Set) x t →
+Any-insert : ∀ (P : A → Type) x t →
              Any P (insert x t) ↔ P x ⊎ Any P t
 Any-insert P x = Tree.fold-lemma
   (λ t t′ → Any P t′ ↔ P x ⊎ Any P t)

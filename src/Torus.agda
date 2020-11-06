@@ -27,8 +27,8 @@ open import Circle eq as Circle using (𝕊¹; base; loopᴾ)
 private
   variable
     a p : Level
-    A   : Set a
-    P   : A → Set p
+    A   : Type a
+    P   : A → Type p
 
 ------------------------------------------------------------------------
 -- The torus
@@ -37,7 +37,7 @@ mutual
 
   -- The torus.
 
-  data T² : Set where
+  data T² : Type where
     base hub      : T²
     loop₁ᴾ loop₂ᴾ : base P.≡ base
     spokeᴾ        : (x : 𝕊¹) → rimᴾ x P.≡ hub
@@ -114,7 +114,7 @@ rim≡rimᴾ = Circle.elim
 
 -- A dependent eliminator, expressed using paths.
 
-record Elimᴾ₀ (P : T² → Set p) : Set p where
+record Elimᴾ₀ (P : T² → Type p) : Type p where
   no-eta-equality
   field
     baseʳ  : P base
@@ -136,7 +136,7 @@ record Elimᴾ₀ (P : T² → Set p) : Set p where
   elimᴾ-rimᴾ : (x : 𝕊¹) → P (rimᴾ x)
   elimᴾ-rimᴾ = Circle.elimᴾ (P ∘ rimᴾ) baseʳ loop₁₂₋₁₋₂ʳ
 
-record Elimᴾ (P : T² → Set p) : Set p where
+record Elimᴾ (P : T² → Type p) : Type p where
   no-eta-equality
   field
     elimᴾ₀ : Elimᴾ₀ P
@@ -169,7 +169,7 @@ elimᴾ-rimᴾ≡elimᴾ-rimᴾ _ = Circle.elimᴾ _ (refl _) (λ _ → refl _)
 
 -- A non-dependent eliminator, expressed using paths.
 
-Recᴾ : Set a → Set a
+Recᴾ : Type a → Type a
 Recᴾ A = Elimᴾ (λ _ → A)
 
 recᴾ : Recᴾ A → T² → A
@@ -180,7 +180,7 @@ recᴾ = elimᴾ
 
 -- A dependent eliminator.
 
-record Elim (P : T² → Set p) : Set p where
+record Elim (P : T² → Type p) : Type p where
   no-eta-equality
   field
     baseʳ  : P base
@@ -237,7 +237,7 @@ record Elim (P : T² → Set p) : Set p where
 
 -- A non-dependent eliminator.
 
-record Rec (A : Set a) : Set a where
+record Rec (A : Type a) : Type a where
   no-eta-equality
   field
     baseʳ  : A

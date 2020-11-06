@@ -17,36 +17,36 @@ open import Monad eq
 
 -- A dependent eliminator.
 
-maybe : ∀ {a b} {A : Set a} {B : Maybe A → Set b} →
+maybe : ∀ {a b} {A : Type a} {B : Maybe A → Type b} →
         ((x : A) → B (just x)) → B nothing → (x : Maybe A) → B x
 maybe j n (just x) = j x
 maybe j n nothing  = n
 
 -- Is the value just something?
 
-is-just : ∀ {a} {A : Set a} → Maybe A → Bool
+is-just : ∀ {a} {A : Type a} → Maybe A → Bool
 is-just = maybe (const true) false
 
 -- Is the value nothing?
 
-is-nothing : ∀ {a} {A : Set a} → Maybe A → Bool
+is-nothing : ∀ {a} {A : Type a} → Maybe A → Bool
 is-nothing = not ∘ is-just
 
 -- Is-just x is a proposition that is inhabited iff x is
 -- just something.
 
-Is-just : ∀ {a} {A : Set a} → Maybe A → Set
+Is-just : ∀ {a} {A : Type a} → Maybe A → Type
 Is-just = T ∘ is-just
 
 -- Is-nothing x is a proposition that is inhabited iff x is nothing.
 
-Is-nothing : ∀ {a} {A : Set a} → Maybe A → Set
+Is-nothing : ∀ {a} {A : Type a} → Maybe A → Type
 Is-nothing = T ∘ is-nothing
 
 -- Is-just and Is-nothing are mutually exclusive.
 
 not-both-just-and-nothing :
-  ∀ {a} {A : Set a} (x : Maybe A) →
+  ∀ {a} {A : Type a} (x : Maybe A) →
   Is-just x → Is-nothing x → ⊥₀
 not-both-just-and-nothing (just _) _  ()
 not-both-just-and-nothing nothing  () _
@@ -55,7 +55,7 @@ not-both-just-and-nothing nothing  () _
 
 infixl 5 _>>=′_
 
-_>>=′_ : ∀ {a b} {A : Set a} {B : Set b} →
+_>>=′_ : ∀ {a b} {A : Type a} {B : Type b} →
          Maybe A → (A → Maybe B) → Maybe B
 x >>=′ f = maybe f nothing x
 
@@ -77,7 +77,7 @@ instance
 
 -- The maybe monad transformer.
 
-record MaybeT {d c} (M : Set d → Set c) (A : Set d) : Set c where
+record MaybeT {d c} (M : Type d → Type c) (A : Type d) : Type c where
   constructor wrap
   field
     run : M (Maybe A)
@@ -86,13 +86,13 @@ open MaybeT public
 
 -- Failure.
 
-fail : ∀ {d c} {M : Set d → Set c} ⦃ is-monad : Raw-monad M ⦄ {A} →
+fail : ∀ {d c} {M : Type d → Type c} ⦃ is-monad : Raw-monad M ⦄ {A} →
        MaybeT M A
 run fail = return nothing
 
 -- MaybeT id is pointwise isomorphic to Maybe.
 
-MaybeT-id↔Maybe : ∀ {a} {A : Set a} → MaybeT id A ↔ Maybe A
+MaybeT-id↔Maybe : ∀ {a} {A : Type a} → MaybeT id A ↔ Maybe A
 MaybeT-id↔Maybe = record
   { surjection = record
     { logical-equivalence = record { to = run; from = wrap }
@@ -120,7 +120,7 @@ instance
     map just m
 
   transform :
-    ∀ {d c} {M : Set d → Set c} ⦃ is-raw-monad : Raw-monad M ⦄ →
+    ∀ {d c} {M : Type d → Type c} ⦃ is-raw-monad : Raw-monad M ⦄ →
     Raw-monad (MaybeT M)
   transform = Raw-monad-transformer.transform raw-monad-transformer
 

@@ -17,8 +17,8 @@ module Bi-invertibility.Erased
   {e⁺}
   (eq : ∀ {a p} → Equality-with-J a p e⁺)
   {o h}
-  (Obj : Set o)
-  (Hom : Obj → Obj → Set h)
+  (Obj : Type o)
+  (Hom : Obj → Obj → Type h)
   (id : {A : Obj} → Hom A A)
   (_∘′_ : {A B C : Obj} → Hom B C → Hom A B → Hom A C)
   where
@@ -50,26 +50,26 @@ private
 -- Has-left-inverseᴱ f means that f has a left inverse. The proof is
 -- erased.
 
-Has-left-inverseᴱ : @0 Hom A B → Set h
+Has-left-inverseᴱ : @0 Hom A B → Type h
 Has-left-inverseᴱ f = ∃ λ f⁻¹ → Erased (f⁻¹ ∘ f ≡ id)
 
 -- Has-right-inverseᴱ f means that f has a right inverse. The proof is
 -- erased.
 
-Has-right-inverseᴱ : @0 Hom A B → Set h
+Has-right-inverseᴱ : @0 Hom A B → Type h
 Has-right-inverseᴱ f = ∃ λ f⁻¹ → Erased (f ∘ f⁻¹ ≡ id)
 
 -- Is-bi-invertibleᴱ f means that f has a left inverse and a (possibly
 -- distinct) right inverse. The proofs are erased.
 
-Is-bi-invertibleᴱ : @0 Hom A B → Set h
+Is-bi-invertibleᴱ : @0 Hom A B → Type h
 Is-bi-invertibleᴱ f =
   Has-left-inverseᴱ f × Has-right-inverseᴱ f
 
 -- Has-quasi-inverseᴱ f means that f has a left inverse that is also a
 -- right inverse. The proofs are erased.
 
-Has-quasi-inverseᴱ : @0 Hom A B → Set h
+Has-quasi-inverseᴱ : @0 Hom A B → Type h
 Has-quasi-inverseᴱ f =
   ∃ λ f⁻¹ → Erased (f ∘ f⁻¹ ≡ id × f⁻¹ ∘ f ≡ id)
 
@@ -77,10 +77,10 @@ Has-quasi-inverseᴱ f =
 
 infix 4 _≊ᴱ_ _≅ᴱ_
 
-_≊ᴱ_ : Obj → Obj → Set h
+_≊ᴱ_ : Obj → Obj → Type h
 A ≊ᴱ B = ∃ λ (f : Hom A B) → Is-bi-invertibleᴱ f
 
-_≅ᴱ_ : Obj → Obj → Set h
+_≅ᴱ_ : Obj → Obj → Type h
 A ≅ᴱ B = ∃ λ (f : Hom A B) → Has-quasi-inverseᴱ f
 
 -- Morphisms with quasi-inverses are bi-invertible.
@@ -172,7 +172,7 @@ module More
 
   private
 
-    record Proofs : Set (o ⊔ h) where
+    record Proofs : Type (o ⊔ h) where
       field
         lid : {A B : Obj} (f : Hom A B) → id ∘ f ≡ f
         rid : {A B : Obj} (f : Hom A B) → f ∘ id ≡ f

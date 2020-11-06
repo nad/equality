@@ -39,7 +39,7 @@ open import Surjection equality-with-J using (_↠_)
 private
   variable
     a b ℓ ℓ₁ ℓ₂ p : Level
-    A B           : Set a
+    A B           : Type a
     C             : Pointed-type a
     x y           : A
     f g           : A → B
@@ -47,7 +47,7 @@ private
 
 -- Suspensions.
 
-data Susp (A : Set a) : Set a where
+data Susp (A : Type a) : Type a where
   north south : Susp A
   meridianᴾ   : A → north P.≡ south
 
@@ -59,7 +59,7 @@ meridian = _↔_.from ≡↔≡ ∘ meridianᴾ
 -- A dependent eliminator, expressed using paths.
 
 elimᴾ :
-  (P : Susp A → Set p)
+  (P : Susp A → Type p)
   (n : P north)
   (s : P south) →
   (∀ x → P.[ (λ i → P (meridianᴾ x i)) ] n ≡ s) →
@@ -77,7 +77,7 @@ recᴾ = elimᴾ _
 -- A dependent eliminator.
 
 module Elim
-  (P   : Susp A → Set p)
+  (P   : Susp A → Type p)
   (n   : P north)
   (s   : P south)
   (n≡s : ∀ x → subst P (meridian x) n ≡ s)
@@ -96,7 +96,7 @@ open Elim public
 -- A non-dependent eliminator.
 
 module Rec
-  {B : Set b}
+  {B : Type b}
   (n s : B)
   (n≡s : A → n ≡ s)
   where
@@ -413,7 +413,7 @@ private
 -- Some negative preservation results.
 
 ¬-cong-↣ :
-  ¬ (∀ {A : Set a} {B : Set b} → A ↣ B → Susp A ↣ Susp B)
+  ¬ (∀ {A : Type a} {B : Type b} → A ↣ B → Susp A ↣ Susp B)
 ¬-cong-↣ {a = a} {b = b} =
   (∀ {A B} → A ↣ B → Susp A ↣ Susp B)  ↝⟨ (λ hyp → hyp) ⟩
   (⊥ ↣ ↑ _ ⊤ → Susp ⊥ ↣ Susp (↑ _ ⊤))  ↝⟨ _$ ⊥↣⊤ ⟩
@@ -421,7 +421,7 @@ private
   ⊥                                    □
 
 ¬-cong-Embedding :
-  ¬ (∀ {A : Set a} {B : Set b} →
+  ¬ (∀ {A : Type a} {B : Type b} →
      Embedding A B → Embedding (Susp A) (Susp B))
 ¬-cong-Embedding =
   (∀ {A B} → Embedding A B → Embedding (Susp A) (Susp B))    ↝⟨ (λ hyp → hyp) ⟩

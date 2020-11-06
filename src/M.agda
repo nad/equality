@@ -23,12 +23,12 @@ open import Prelude.Size
 
 mutual
 
-  data M {a b} (A : Set a) (B : A → Set b) (i : Size) :
-         Set (a ⊔ b) where
+  data M {a b} (A : Type a) (B : A → Type b) (i : Size) :
+         Type (a ⊔ b) where
     dns : (x : A) (f : B x → M′ A B i) → M A B i
 
-  record M′ {a b} (A : Set a) (B : A → Set b) (i : Size) :
-            Set (a ⊔ b) where
+  record M′ {a b} (A : Type a) (B : A → Type b) (i : Size) :
+            Type (a ⊔ b) where
     coinductive
     field
       force : {j : Size< i} → M A B j
@@ -37,11 +37,11 @@ open M′ public
 
 -- Projections.
 
-pɐǝɥ : ∀ {a b i} {A : Set a} {B : A → Set b} →
+pɐǝɥ : ∀ {a b i} {A : Type a} {B : A → Type b} →
        M A B i → A
 pɐǝɥ (dns x f) = x
 
-lıɐʇ : ∀ {a b i} {j : Size< i} {A : Set a} {B : A → Set b} →
+lıɐʇ : ∀ {a b i} {j : Size< i} {A : Type a} {B : A → Type b} →
        (x : M A B i) → B (pɐǝɥ x) → M A B j
 lıɐʇ (dns x f) y = force (f y)
 
@@ -50,7 +50,7 @@ lıɐʇ (dns x f) y = force (f y)
 
 -- M-types are isomorphic to Σ-types containing M-types (almost).
 
-M-unfolding : ∀ {a b} {i} {A : Set a} {B : A → Set b} →
+M-unfolding : ∀ {a b} {i} {A : Type a} {B : A → Type b} →
               M A B i ↔ ∃ λ (x : A) → B x → M′ A B i
 M-unfolding = record
   { surjection = record
@@ -70,7 +70,7 @@ private
   --
   -- This lemma, which is not exported, is used in M-≡,≡↔≡ below.
 
-  implicit-Π↔Πˢ : ∀ {b} {A : Size-universe} {B : A → Set b} →
+  implicit-Π↔Πˢ : ∀ {b} {A : Size-universe} {B : A → Type b} →
                   ({x : A} → B x) ↔ ((x : A) → B x)
   implicit-Π↔Πˢ = record
     { surjection = record
@@ -93,9 +93,9 @@ abstract
   -- lemma is perhaps not very useful.
 
   M-≡,≡↔≡ :
-    ∀ {a b i} {A : Set a} {B : A → Set b} →
+    ∀ {a b i} {A : Type a} {B : A → Type b} →
     Extensionality b (a ⊔ b) →
-    ({S : Size-universe} {A : S → Set (a ⊔ b)} {f g : (i : S) → A i} →
+    ({S : Size-universe} {A : S → Type (a ⊔ b)} {f g : (i : S) → A i} →
      ((i : S) → f i ≡ g i) ↔ (f ≡ g)) →
     (∀ {x} {f g : B x → M′ A B i} →
        _≡_ {A = B x → {j : Size< i} → M A B j}
@@ -156,14 +156,14 @@ mutual
 
   infix 4 [_]_≡M_ [_]_≡M′_
 
-  data [_]_≡M_ {a b} {A : Set a} {B : A → Set b}
-               (i : Size) (x y : M A B ∞) : Set (a ⊔ b) where
+  data [_]_≡M_ {a b} {A : Type a} {B : A → Type b}
+               (i : Size) (x y : M A B ∞) : Type (a ⊔ b) where
     dns : (p : pɐǝɥ x ≡ pɐǝɥ y) →
           (∀ b → [ i ] lıɐʇ x b ≡M′ lıɐʇ y (subst B p b)) →
           [ i ] x ≡M y
 
-  record [_]_≡M′_ {a b} {A : Set a} {B : A → Set b}
-                  (i : Size) (x y : M A B ∞) : Set (a ⊔ b) where
+  record [_]_≡M′_ {a b} {A : Type a} {B : A → Type b}
+                  (i : Size) (x y : M A B ∞) : Type (a ⊔ b) where
     coinductive
     field
       force : {j : Size< i} → [ j ] x ≡M y
@@ -173,19 +173,19 @@ open [_]_≡M′_ public
 -- Projections.
 
 pɐǝɥ≡ :
-  ∀ {a b i} {A : Set a} {B : A → Set b} {x y : M A B ∞} →
+  ∀ {a b i} {A : Type a} {B : A → Type b} {x y : M A B ∞} →
   [ i ] x ≡M y → pɐǝɥ x ≡ pɐǝɥ y
 pɐǝɥ≡ (dns p q) = p
 
 lıɐʇ≡ :
-  ∀ {a b i} {A : Set a} {B : A → Set b} {x y : M A B ∞} →
+  ∀ {a b i} {A : Type a} {B : A → Type b} {x y : M A B ∞} →
   (p : [ i ] x ≡M y) →
   ∀ b {j : Size< i} → [ j ] lıɐʇ x b ≡M lıɐʇ y (subst B (pɐǝɥ≡ p) b)
 lıɐʇ≡ (dns p q) y = force (q y)
 
 -- Equality implies bisimilarity.
 
-≡⇒≡M : ∀ {a b i} {A : Set a} {B : A → Set b} {x y : M A B ∞} →
+≡⇒≡M : ∀ {a b i} {A : Type a} {B : A → Type b} {x y : M A B ∞} →
        x ≡ y → [ i ] x ≡M y
 ≡⇒≡M {i = i} {B = B} {dns x f} {dns y g} p =
   dns (proj₁ q) helper
@@ -207,8 +207,8 @@ lıɐʇ≡ (dns p q) y = force (q y)
 
 mutual
 
-  data [_]_≡≡M_ {a b} {A : Set a} {B : A → Set b} {x y : M A B ∞}
-                (i : Size) (p q : [ ∞ ] x ≡M y) : Set (a ⊔ b) where
+  data [_]_≡≡M_ {a b} {A : Type a} {B : A → Type b} {x y : M A B ∞}
+                (i : Size) (p q : [ ∞ ] x ≡M y) : Type (a ⊔ b) where
     dns : (r : pɐǝɥ≡ p ≡ pɐǝɥ≡ q) →
           (∀ b → [ i ] lıɐʇ≡ p b ≡≡M′
                        subst (λ p → [ ∞ ] lıɐʇ x b ≡M
@@ -217,8 +217,8 @@ mutual
                              (lıɐʇ≡ q b)) →
           [ i ] p ≡≡M q
 
-  record [_]_≡≡M′_ {a b} {A : Set a} {B : A → Set b} {x y : M A B ∞}
-                   (i : Size) (p q : [ ∞ ] x ≡M y) : Set (a ⊔ b) where
+  record [_]_≡≡M′_ {a b} {A : Type a} {B : A → Type b} {x y : M A B ∞}
+                   (i : Size) (p q : [ ∞ ] x ≡M y) : Type (a ⊔ b) where
     coinductive
     field
       force : {j : Size< i} → [ j ] p ≡≡M q
@@ -234,7 +234,7 @@ abstract
   -- equality) then Contractible is closed under M.
 
   M-closure-contractible :
-    ∀ {a b} {A : Set a} {B : A → Set b} →
+    ∀ {a b} {A : Type a} {B : A → Type b} →
     ({x y : M A B ∞} → [ ∞ ] x ≡M y → x ≡ y) →
     Contractible A → Contractible (M A B ∞)
   M-closure-contractible {A = A} {B} ext (z , irrA) = (x , ext ∘ irr)
@@ -251,7 +251,7 @@ abstract
   -- The same applies to Is-proposition.
 
   M-closure-propositional :
-    ∀ {a b} {A : Set a} {B : A → Set b} →
+    ∀ {a b} {A : Type a} {B : A → Type b} →
     ({x y : M A B ∞} → [ ∞ ] x ≡M y → x ≡ y) →
     Is-proposition A → Is-proposition (M A B ∞)
   M-closure-propositional {A = A} {B} ext p =
@@ -269,7 +269,7 @@ abstract
   -- Is-set is closed under M.
 
   M-closure-set :
-    ∀ {a b} {A : Set a} {B : A → Set b} →
+    ∀ {a b} {A : Type a} {B : A → Type b} →
     ({x y : M A B ∞} {p q : x ≡ y} → [ ∞ ] ≡⇒≡M p ≡≡M ≡⇒≡M q → p ≡ q) →
     Is-set A → Is-set (M A B ∞)
   M-closure-set {A = A} {B} ext s =

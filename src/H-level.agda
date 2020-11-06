@@ -22,14 +22,14 @@ private
   variable
     a ℓ : Level
     m n : ℕ
-    A B : Set a
+    A B : Type a
 
 ------------------------------------------------------------------------
 -- H-levels
 
 -- H-levels ("homotopy levels").
 
-H-level : ℕ → Set ℓ → Set ℓ
+H-level : ℕ → Type ℓ → Type ℓ
 H-level zero          A = Contractible A
 H-level (suc zero)    A = Is-proposition A
 H-level (suc (suc n)) A = {x y : A} → H-level (suc n) (x ≡ y)
@@ -44,7 +44,7 @@ private
 -- For-iterated-equality n P A means that P holds for (equalities
 -- over)^n A.
 
-For-iterated-equality : ℕ → (Set ℓ → Set ℓ) → (Set ℓ → Set ℓ)
+For-iterated-equality : ℕ → (Type ℓ → Type ℓ) → (Type ℓ → Type ℓ)
 For-iterated-equality zero    P A = P A
 For-iterated-equality (suc n) P A =
   (x y : A) → For-iterated-equality n P (x ≡ y)
@@ -55,23 +55,23 @@ For-iterated-equality (suc n) P A =
 -- use. In other cases the definition above, which is less complicated
 -- for positive h-levels, is easier to use.
 
-H-level′ : ℕ → Set ℓ → Set ℓ
+H-level′ : ℕ → Type ℓ → Type ℓ
 H-level′ = flip For-iterated-equality Contractible
 
 -- Propositions are propositional types.
 
-Proposition : (ℓ : Level) → Set (lsuc ℓ)
+Proposition : (ℓ : Level) → Type (lsuc ℓ)
 Proposition _ = ∃ Is-proposition
 
 -- Types that are sets.
 
-SET : (ℓ : Level) → Set (lsuc ℓ)
-SET _ = ∃ Is-set
+Set : (ℓ : Level) → Type (lsuc ℓ)
+Set _ = ∃ Is-set
 
 -- The underlying type.
 
-Type : SET ℓ → Set ℓ
-Type A = proj₁ A
+⌞_⌟ : Set ℓ → Type ℓ
+⌞ A ⌟ = proj₁ A
 
 ------------------------------------------------------------------------
 -- General properties

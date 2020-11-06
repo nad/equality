@@ -47,22 +47,22 @@ mutual
   -- A strengthening of the concept of "equivalence relation".
 
   Strong-equivalence :
-    ∀ {a r} {A : Set a} →
-    (A → A → Set r) → Set (a ⊔ lsuc r)
+    ∀ {a r} {A : Type a} →
+    (A → A → Type r) → Type (a ⊔ lsuc r)
   Strong-equivalence = Strong-equivalence-with equivalence
 
   -- A generalisation of "strong equivalence".
 
   Strong-equivalence-with :
-    ∀ {a r} {A : Set a} →
-    Kind → (A → A → Set r) → Set (a ⊔ lsuc r)
+    ∀ {a r} {A : Type a} →
+    Kind → (A → A → Type r) → Type (a ⊔ lsuc r)
   Strong-equivalence-with k R = ∀ {x y} → R x y ↝[ k ] (R x ≡ R y)
 
 -- Strong equivalence relations (with equivalence) are strong
 -- equivalence relations with any kind.
 
 strong-equivalence⇒strong-equivalence-with :
-  ∀ {k a r} {A : Set a} {R : A → A → Set r} →
+  ∀ {k a r} {A : Type a} {R : A → A → Type r} →
   Strong-equivalence R → Strong-equivalence-with k R
 strong-equivalence⇒strong-equivalence-with strong-equivalence =
   from-equivalence strong-equivalence
@@ -71,7 +71,7 @@ strong-equivalence⇒strong-equivalence-with strong-equivalence =
 -- equivalence relations.
 
 strong-equivalence-with-⇔⇒equivalence :
-  ∀ {a r} {A : Set a} {R : A → A → Set r} →
+  ∀ {a r} {A : Type a} {R : A → A → Type r} →
   Strong-equivalence-with logical-equivalence R →
   Is-equivalence-relation R
 strong-equivalence-with-⇔⇒equivalence {R = R} strong-equivalence =
@@ -95,7 +95,7 @@ strong-equivalence-with-⇔⇒equivalence {R = R} strong-equivalence =
 -- Strong equivalence relations are equivalence relations.
 
 strong-equivalence⇒equivalence :
-  ∀ {a r} {A : Set a} {R : A → A → Set r} →
+  ∀ {a r} {A : Type a} {R : A → A → Type r} →
   Strong-equivalence R →
   Is-equivalence-relation R
 strong-equivalence⇒equivalence =
@@ -107,7 +107,7 @@ strong-equivalence⇒equivalence =
 -- extensionality and univalence).
 
 propositional-equivalence⇒strong-equivalence :
-  ∀ {a r} {A : Set a} {R : A → A → Set r} →
+  ∀ {a r} {A : Type a} {R : A → A → Type r} →
   Extensionality (a ⊔ r) (lsuc r) →
   Univalence r →
   Is-equivalence-relation R →
@@ -151,7 +151,7 @@ propositional-equivalence⇒strong-equivalence
 -- univalence).
 
 equality-strong-equivalence :
-  ∀ {a} {A : Set a} →
+  ∀ {a} {A : Type a} →
   Extensionality a (lsuc a) →
   Univalence a →
   Strong-equivalence (_≡_ {A = A})
@@ -187,8 +187,8 @@ const-Fin-strong-equivalence⇒≡! ext univ n strong-equivalence =
 equivalence-but-not-strong-equivalence :
   Extensionality (# 0) (# 1) →
   Univalence (# 0) →
-  ∃ λ (A : Set) →
-  ∃ λ (R : A → A → Set) →
+  ∃ λ (A : Type) →
+  ∃ λ (R : A → A → Type) →
     (∀ {x} → R x x) ×
     (∀ {x y} → R x y → R y x) ×
     (∀ {x y z} → R x y → R y z → R x z) ×
@@ -196,10 +196,10 @@ equivalence-but-not-strong-equivalence :
 equivalence-but-not-strong-equivalence ext univ =
   A , R , rfl , sm , trns , not-strong-equivalence
   where
-  A : Set
+  A : Type
   A = ⊤
 
-  R : A → A → Set
+  R : A → A → Type
   R _ _ = Fin 3
 
   rfl : ∀ {x} → R x x
@@ -237,8 +237,8 @@ const-Fin-2-strong-equivalence ext univ =
 strong-equivalence-that-is-neither-propositional-nor-≡ :
   Extensionality (# 0) (# 1) →
   Univalence (# 0) →
-  ∃ λ (A : Set) →
-  ∃ λ (R : A → A → Set) →
+  ∃ λ (A : Type) →
+  ∃ λ (R : A → A → Type) →
     Strong-equivalence R ×
     ¬ (∀ x y → Is-proposition (R x y)) ×
     ¬ (∀ x y → R x y ≃ (x ≡ y))
@@ -264,14 +264,14 @@ strong-equivalence-not-closed-under-on :
   Extensionality (# 1) (# 2) →
   Univalence (# 1) →
   Univalence (# 0) →
-  ∃ λ (A : Set₁) →
-  ∃ λ (B : Set₁) →
-  ∃ λ (R : A → A → Set₁) →
+  ∃ λ (A : Type₁) →
+  ∃ λ (B : Type₁) →
+  ∃ λ (R : A → A → Type₁) →
   ∃ λ (f : B → A) →
     Strong-equivalence R ×
     ¬ Strong-equivalence (R on f)
 strong-equivalence-not-closed-under-on ext univ₁ univ₀ =
-  Set , ↑ _ ⊤ , _≡_ , const (Fin 3) ,
+  Type , ↑ _ ⊤ , _≡_ , const (Fin 3) ,
   equality-strong-equivalence ext univ₁ ,
   not-strong-equivalence
   where
@@ -297,7 +297,7 @@ strong-equivalence-not-closed-under-on ext univ₁ univ₀ =
 -- an equivalence (assuming extensionality).
 
 strong-equivalence-with-closed-under-on :
-  ∀ {k a b r} {A : Set a} {B : Set b} {R : A → A → Set r} →
+  ∀ {k a b r} {A : Type a} {B : Type b} {R : A → A → Type r} →
   Extensionality (a ⊔ b) (lsuc r) →
   (B≃A : B ≃ A) →
   Strong-equivalence-with k R →
@@ -329,9 +329,9 @@ strong-equivalence-with-closed-under-on
 strong-equivalence-not-closed-under-×-or-⊎ :
   Extensionality (# 0) (# 1) →
   Univalence (# 0) →
-  ∃ λ (A : Set) →
-  ∃ λ (R₁ : A → A → Set) →
-  ∃ λ (R₂ : A → A → Set) →
+  ∃ λ (A : Type) →
+  ∃ λ (R₁ : A → A → Type) →
+  ∃ λ (R₂ : A → A → Type) →
     Strong-equivalence R₁ ×
     Strong-equivalence R₂ ×
     ¬ Strong-equivalence (λ x y → R₁ x y × R₂ x y) ×
@@ -348,7 +348,7 @@ strong-equivalence-not-closed-under-×-or-⊎ ext univ =
   not-strong-equivalence′ (Fin×Fin↔Fin* 2 2) ,
   not-strong-equivalence′ (Fin⊎Fin↔Fin+ 2 2)
   where
-  R : ⊤ → ⊤ → Set
+  R : ⊤ → ⊤ → Type
   R = λ _ _ → Fin 2
 
   strong-equivalence : Strong-equivalence R
@@ -357,7 +357,7 @@ strong-equivalence-not-closed-under-×-or-⊎ ext univ =
       strong-equivalence-that-is-neither-propositional-nor-≡ ext univ
 
   not-strong-equivalence :
-    {B : Set} →
+    {B : Type} →
     B ↔ Fin 4 →
     ¬ Strong-equivalence (λ (_ _ : ⊤) → B)
   not-strong-equivalence {B} B↔Fin4 =
@@ -368,7 +368,7 @@ strong-equivalence-not-closed-under-×-or-⊎ ext univ =
     ⊥                                   □
 
   not-strong-equivalence′ :
-    {B : Set} →
+    {B : Type} →
     B ↔ Fin 4 →
     ¬ Strong-equivalence (λ (_ _ : ⊤ × ⊤) → B)
   not-strong-equivalence′ {B} B↔Fin4 =
@@ -395,11 +395,11 @@ another-negative-result :
   Extensionality (# 1) (# 2) →
   Univalence (# 1) →
   Univalence (# 0) →
-  ∃ λ (A : Set₁) →
-  ∃ λ (B : Set) →
+  ∃ λ (A : Type₁) →
+  ∃ λ (B : Type) →
     ¬ Strong-equivalence {A = A × B} (_≡_ on proj₁)
 another-negative-result ext univ₁ univ₀ =
-  Set , Fin 2 , not-strong-equivalence
+  Type , Fin 2 , not-strong-equivalence
   where
   not-strong-equivalence : ¬ Strong-equivalence (_≡_ on proj₁)
   not-strong-equivalence strong-equivalence = contradiction
@@ -428,8 +428,8 @@ another-negative-result ext univ₁ univ₀ =
 -- Equivalence classes.
 
 _is-equivalence-class-of_ :
-  ∀ {a} {A : Set a} →
-  (A → Set a) → (A → A → Set a) → Set (lsuc (lsuc a))
+  ∀ {a} {A : Type a} →
+  (A → Type a) → (A → A → Type a) → Type (lsuc (lsuc a))
 _is-equivalence-class-of_ {a} P R =
   ∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a)
 
@@ -437,14 +437,14 @@ _is-equivalence-class-of_ {a} P R =
 
 infix 5 _/_
 
-_/_ : ∀ {a} (A : Set a) → (A → A → Set a) → Set (lsuc (lsuc a))
-A / R = ∃ λ (P : A → Set _) → P is-equivalence-class-of R
+_/_ : ∀ {a} (A : Type a) → (A → A → Type a) → Type (lsuc (lsuc a))
+A / R = ∃ λ (P : A → Type _) → P is-equivalence-class-of R
 
 -- Quotienting with equality amounts to the same thing as not
 -- quotienting at all (assuming extensionality and univalence).
 
 /≡↔ :
-  ∀ {a} {A : Set a} →
+  ∀ {a} {A : Type a} →
   Extensionality (lsuc (lsuc a)) (lsuc a) →
   Univalence a →
   A / _≡_ ↔ A
@@ -530,7 +530,7 @@ A / R = ∃ λ (P : A → Set _) → P is-equivalence-class-of R
 
        y≡≡                                                              ∎)
 
-module _ {a} {A : Set a} {R : A → A → Set a} where
+module _ {a} {A : Type a} {R : A → A → Type a} where
 
   -- Equality characterisation lemmas for the quotient type.
 
@@ -693,7 +693,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
     ∀ {k} →
     Extensionality (lsuc (lsuc a)) (lsuc (lsuc a)) →
     Strong-equivalence-with ⌊ k ⌋-sym R →
-    {B : Set a} →
+    {B : Type a} →
     Is-set B →
     (A / R → B)
       ↝[ ⌊ k ⌋-sym ]
@@ -767,7 +767,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
     ∀ {k}
     (ext : Extensionality (lsuc (lsuc a)) (lsuc (lsuc a)))
     (strong-equivalence : Strong-equivalence-with ⌊ k ⌋-sym R)
-    {B : Set a}
+    {B : Type a}
     (B-set : Is-set B)
     (f : A / R → B) →
     proj₁ (to-implication
@@ -807,7 +807,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
   rec :
     Extensionality (lsuc (lsuc a)) (lsuc a) →
     (∀ {x} → R x x) →
-    (B : Set a) →
+    (B : Type a) →
     Is-set B →
     (f : A → B) →
     (∀ {x y} → R x y → f x ≡ f y) →
@@ -834,7 +834,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
     rec-[] :
       (ext : Extensionality (lsuc (lsuc a)) (lsuc a))
       (refl : ∀ {x} → R x x)
-      (B : Set a)
+      (B : Type a)
       (B-set : Is-set B)
       (f : A → B)
       (R⇒≡ : ∀ {x y} → R x y → f x ≡ f y)
@@ -849,7 +849,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
   elim :
     (ext : Extensionality (lsuc (lsuc a)) (lsuc a))
     (strong-equivalence : Strong-equivalence-with surjection R)
-    (B : A / R → Set (lsuc a)) →
+    (B : A / R → Type (lsuc a)) →
     (∀ x → Is-set (B x)) →
     (f : ∀ x → B [ x ]) →
     (∀ {x y} (Rxy : R x y) →
@@ -935,7 +935,7 @@ module _ {a} {A : Set a} {R : A → A → Set a} where
   elim-Prop :
     (ext : Extensionality (lsuc (lsuc a)) (lsuc a))
     (strong-equivalence : Strong-equivalence-with surjection R)
-    (B : A / R → Set (lsuc a)) →
+    (B : A / R → Type (lsuc a)) →
     (∀ x → Is-proposition (B [ x ])) →
     (f : ∀ x → B [ x ]) →
     ∀ x → B x
@@ -964,7 +964,7 @@ module ⊤/2 where
   -- What happens if we quotient the unit type by the "binary-valued
   -- trivial relation"?
 
-  ⊤/2 : Set₂
+  ⊤/2 : Type₂
   ⊤/2 = ⊤ / λ _ _ → Fin 2
 
   -- The type is not a set (assuming extensionality and univalence).
@@ -1011,7 +1011,7 @@ module ⊤/2 where
 
   merely-single-valued :
     Extensionality (# 2) (# 2) →
-    ({A : Set₂} → ∥ A ∥ 1 (# 1) → ∥ A ∥ 1 (# 2)) →
+    ({A : Type₂} → ∥ A ∥ 1 (# 1) → ∥ A ∥ 1 (# 2)) →
     (x y : ⊤/2) → ∥ x ≡ y ∥ 1 (# 1)
   merely-single-valued ext resize x y =
     Trunc.rec
@@ -1033,7 +1033,7 @@ module ⊤/2 where
   ∥≡↔2∥ :
     Extensionality (# 2) (# 2) →
     Univalence (# 0) →
-    ({A : Set₂} → ∥ A ∥ 1 (# 1) → ∥ A ∥ 1 (# 2)) →
+    ({A : Type₂} → ∥ A ∥ 1 (# 1) → ∥ A ∥ 1 (# 2)) →
     (x y : ⊤/2) → ∥ x ≡ y ↔ Fin 2 ∥ 1 (# 1)
   ∥≡↔2∥ ext univ resize x y =
     Trunc.rec

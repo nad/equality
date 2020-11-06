@@ -20,7 +20,7 @@ open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 -- The property of being a split surjection.
 
 Split-surjective :
-  ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+  ∀ {a b} {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
 Split-surjective f = ∀ y → ∃ λ x → f x ≡ y
 
 infix 0 _↠_
@@ -28,7 +28,7 @@ infix 0 _↠_
 -- Split surjections. Note that in this development split surjections
 -- are often called simply "surjections".
 
-record _↠_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
+record _↠_ {f t} (From : Type f) (To : Type t) : Type (f ⊔ t) where
   field
     logical-equivalence : From ⇔ To
 
@@ -76,7 +76,7 @@ record _↠_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
 
 -- _↠_ is a preorder.
 
-id : ∀ {a} {A : Set a} → A ↠ A
+id : ∀ {a} {A : Type a} → A ↠ A
 id = record
   { logical-equivalence = Logical-equivalence.id
   ; right-inverse-of    = refl
@@ -84,7 +84,7 @@ id = record
 
 infixr 9 _∘_
 
-_∘_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+_∘_ : ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
       B ↠ C → A ↠ B → A ↠ C
 f ∘ g = record
   { logical-equivalence = logical-equivalence f ⊙ logical-equivalence g
@@ -107,13 +107,13 @@ infixr -2 step-↠
 -- For an explanation of why step-↠ is defined in this way, see
 -- Equality.step-≡.
 
-step-↠ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
+step-↠ : ∀ {a b c} (A : Type a) {B : Type b} {C : Type c} →
          B ↠ C → A ↠ B → A ↠ C
 step-↠ _ = _∘_
 
 syntax step-↠ A B↠C A↠B = A ↠⟨ A↠B ⟩ B↠C
 
-finally-↠ : ∀ {a b} (A : Set a) (B : Set b) → A ↠ B → A ↠ B
+finally-↠ : ∀ {a b} (A : Type a) (B : Type b) → A ↠ B → A ↠ B
 finally-↠ _ _ A↠B = A↠B
 
 syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
@@ -123,8 +123,9 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 
 -- ∃ preserves surjections.
 
-∃-cong : ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
-         (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
+∃-cong :
+  ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
+  (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
 ∃-cong {B₁ = B₁} {B₂} B₁↠B₂ = record
   { logical-equivalence = record
     { to   = to′
@@ -149,8 +150,8 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 -- A preservation lemma involving Σ, _↠_ and _⇔_.
 
 Σ-cong-⇔ :
-  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂}
   (A₁↠A₂ : A₁ ↠ A₂) → (∀ x → B₁ x ⇔ B₂ (_↠_.to A₁↠A₂ x)) →
   Σ A₁ B₁ ⇔ Σ A₂ B₂
 Σ-cong-⇔ {B₂ = B₂} A₁↠A₂ B₁⇔B₂ = record
@@ -166,8 +167,8 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 -- A generalisation of ∃-cong.
 
 Σ-cong :
-  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂}
   (A₁↠A₂ : A₁ ↠ A₂) → (∀ x → B₁ x ↠ B₂ (_↠_.to A₁↠A₂ x)) →
   Σ A₁ B₁ ↠ Σ A₂ B₂
 Σ-cong {A₁ = A₁} {A₂} {B₁} {B₂} A₁↠A₂ B₁↠B₂ = record
@@ -197,7 +198,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 
 -- A lemma relating surjections and equality.
 
-↠-≡ : ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) {x y : B} →
+↠-≡ : ∀ {a b} {A : Type a} {B : Type b} (A↠B : A ↠ B) {x y : B} →
       (_↠_.from A↠B x ≡ _↠_.from A↠B y) ↠ (x ≡ y)
 ↠-≡ A↠B {x} {y} = record
   { logical-equivalence = record
@@ -242,7 +243,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 -- A "computation rule" for ↠-≡.
 
 to-↠-≡-refl :
-  ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) {x : B} →
+  ∀ {a b} {A : Type a} {B : Type b} (A↠B : A ↠ B) {x : B} →
   _↠_.to (↠-≡ A↠B) (refl (_↠_.from A↠B x)) ≡ refl x
 to-↠-≡-refl A↠B {x = x} =
   trans (sym $ _↠_.right-inverse-of A↠B x)
@@ -261,7 +262,7 @@ to-↠-≡-refl A↠B {x = x} =
 -- Decidable-equality respects surjections.
 
 Decidable-equality-respects :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   A ↠ B → Decidable-equality A → Decidable-equality B
 Decidable-equality-respects A↠B _≟A_ x y =
   ⊎-map (to (↠-≡ A↠B))

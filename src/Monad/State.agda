@@ -20,9 +20,9 @@ open import Monad eq
 -- The state monad transformer, defined using a wrapper type to make
 -- instance resolution easier.
 
-record StateT {s} (S : Set s)
-              (M : Set s → Set s)
-              (A : Set s) : Set s where
+record StateT {s} (S : Type s)
+              (M : Type s → Type s)
+              (A : Type s) : Type s where
   constructor wrap
   field
     run : S → M (A × S)
@@ -34,7 +34,7 @@ instance
   -- StateT is a "raw monad" transformer.
 
   raw-monad-transformer :
-    ∀ {s} {S : Set s} →
+    ∀ {s} {S : Type s} →
     Raw-monad-transformer (StateT S)
   run (Raw-monad.return (Raw-monad-transformer.transform
                            raw-monad-transformer) x) =
@@ -46,14 +46,14 @@ instance
   run (Raw-monad-transformer.liftʳ raw-monad-transformer m) =
     λ s → map (_, s) m
 
-  transform : ∀ {s} {S : Set s} {M} ⦃ is-raw-monad : Raw-monad M ⦄ →
+  transform : ∀ {s} {S : Type s} {M} ⦃ is-raw-monad : Raw-monad M ⦄ →
               Raw-monad (StateT S M)
   transform = Raw-monad-transformer.transform raw-monad-transformer
 
 -- StateT is a monad transformer (assuming extensionality).
 
 monad-transformer :
-  ∀ {s} {S : Set s} →
+  ∀ {s} {S : Type s} →
   Extensionality s s →
   Monad-transformer (StateT S)
 Monad.raw-monad (Monad-transformer.transform (monad-transformer _)) =
@@ -96,19 +96,19 @@ Monad-transformer.lift->>= (monad-transformer ext) x f =
 
 -- Returns the state.
 
-get : ∀ {s} {S : Set s} {M} ⦃ is-monad : Raw-monad M ⦄ →
+get : ∀ {s} {S : Type s} {M} ⦃ is-monad : Raw-monad M ⦄ →
       StateT S M S
 run get = λ s → return (s , s)
 
--- Sets the state.
+-- Types the state.
 
-set : ∀ {s} {S : Set s} {M} ⦃ is-monad : Raw-monad M ⦄ →
+set : ∀ {s} {S : Type s} {M} ⦃ is-monad : Raw-monad M ⦄ →
       S → StateT S M (↑ _ ⊤)
 run (set s) = λ _ → return (_ , s)
 
 -- Modifies the state.
 
 modify :
-  ∀ {s} {S : Set s} {M} ⦃ is-monad : Raw-monad M ⦄ →
+  ∀ {s} {S : Type s} {M} ⦃ is-monad : Raw-monad M ⦄ →
   (S → S) → StateT S M (↑ _ ⊤)
 modify f = get >>= set ∘ f

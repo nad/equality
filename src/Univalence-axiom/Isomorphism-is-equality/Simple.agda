@@ -40,7 +40,7 @@ open import Univalence-axiom eq
 
 -- A record type packing up some assumptions.
 
-record Assumptions : Set₃ where
+record Assumptions : Type₃ where
   field
 
     -- Univalence at three different levels.
@@ -61,7 +61,7 @@ record Assumptions : Set₃ where
 
 -- Universes with some extra stuff.
 
-record Universe : Set₃ where
+record Universe : Type₃ where
 
   -- Parameters.
 
@@ -69,11 +69,11 @@ record Universe : Set₃ where
 
     -- Codes for something.
 
-    U : Set₂
+    U : Type₂
 
     -- Interpretation of codes.
 
-    El : U → Set₁ → Set₁
+    El : U → Type₁ → Type₁
 
     -- El a, seen as a predicate, respects equivalences.
 
@@ -88,14 +88,14 @@ record Universe : Set₃ where
   -- A predicate that specifies what it means for an equivalence to be
   -- an isomorphism between two elements.
 
-  Is-isomorphism : ∀ a {B C} → B ≃ C → El a B → El a C → Set₁
+  Is-isomorphism : ∀ a {B C} → B ≃ C → El a B → El a C → Type₁
   Is-isomorphism a eq x y = resp a eq x ≡ y
 
   -- An alternative definition of Is-isomorphism, defined using
   -- univalence.
 
   Is-isomorphism′ : Assumptions →
-                    ∀ a {B C} → B ≃ C → El a B → El a C → Set₁
+                    ∀ a {B C} → B ≃ C → El a B → El a C → Type₁
   Is-isomorphism′ ass a eq x y = subst (El a) (≃⇒≡ univ₁ eq) x ≡ y
     where open Assumptions ass
 
@@ -130,13 +130,13 @@ module Class (Univ : Universe) where
 
   -- Codes for structures.
 
-  Code : Set₃
+  Code : Type₃
   Code =
     -- A code.
     Σ U λ a →
 
     -- A proposition.
-    (C : Set₁) → El a C → Σ Set₁ λ P →
+    (C : Type₁) → El a C → Σ Type₁ λ P →
       -- The proposition should be propositional (assuming
       -- univalence).
       Assumptions → Is-proposition P
@@ -144,10 +144,10 @@ module Class (Univ : Universe) where
   -- Interpretation of the codes. The elements of "Instance c" are
   -- instances of the structure encoded by c.
 
-  Instance : Code → Set₂
+  Instance : Code → Type₂
   Instance (a , P) =
     -- A carrier type.
-    Σ Set₁ λ C →
+    Σ Type₁ λ C →
 
     -- An element.
     Σ (El a C) λ x →
@@ -157,7 +157,7 @@ module Class (Univ : Universe) where
 
   -- The carrier type.
 
-  Carrier : ∀ c → Instance c → Set₁
+  Carrier : ∀ c → Instance c → Type₁
   Carrier _ X = proj₁ X
 
   -- The "element".
@@ -189,7 +189,7 @@ module Class (Univ : Universe) where
 
   -- Structure isomorphisms.
 
-  Isomorphic : ∀ c → Instance c → Instance c → Set₁
+  Isomorphic : ∀ c → Instance c → Instance c → Type₁
   Isomorphic (a , _) (C , x , _) (D , y , _) =
     Σ (C ≃ D) λ eq → Is-isomorphism a eq x y
 
@@ -318,7 +318,7 @@ module Class (Univ : Universe) where
            (_↔_.to (≡⇒↝ _ $ sym $ cong (λ eq → subst (El a) eq x ≡ y)
                       (_≃_.left-inverse-of (≡≃≃ univ₁) eq)) eq′)
 
-      lemma₁ : ∀ {ℓ} {A B C : Set ℓ} {x} (eq₁ : B ≡ A) (eq₂ : C ≡ B) →
+      lemma₁ : ∀ {ℓ} {A B C : Type ℓ} {x} (eq₁ : B ≡ A) (eq₂ : C ≡ B) →
                _↔_.from (≡⇒↝ _ eq₂) (_↔_.to (≡⇒↝ _ (sym eq₁)) x) ≡
                _↔_.to (≡⇒↝ _ (sym (trans eq₂ eq₁))) x
       lemma₁ {x = x} eq₁ eq₂ =
@@ -327,7 +327,7 @@ module Class (Univ : Universe) where
         _↔_.to (≡⇒↝ _ (trans (sym eq₁) (sym eq₂))) x           ≡⟨ sym $ cong (λ eq → _↔_.to (≡⇒↝ _ eq) x) $ sym-trans _ _ ⟩∎
         _↔_.to (≡⇒↝ _ (sym (trans eq₂ eq₁))) x                 ∎
 
-      lemma₂ : ∀ {a} {A : Set a} {x y z : A}
+      lemma₂ : ∀ {a} {A : Type a} {x y z : A}
                (x≡y : x ≡ y) (y≡z : y ≡ z) →
                _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (sym x≡y))) y≡z ≡
                trans x≡y y≡z
@@ -458,16 +458,16 @@ infixr 20 _⊗_
 infixr 15 _⊕_
 infixr 10 _⇾_
 
-data U : Set₂ where
-  id set      : U
-  k           : Set₁ → U
+data U : Type₂ where
+  id type     : U
+  k           : Type₁ → U
   _⇾_ _⊗_ _⊕_ : U → U → U
 
 -- Interpretation of types.
 
-El : U → Set₁ → Set₁
+El : U → Type₁ → Type₁
 El id      C = C
-El set     C = Set
+El type    C = Type
 El (k A)   C = A
 El (a ⇾ b) C = El a C → El b C
 El (a ⊗ b) C = El a C × El b C
@@ -477,7 +477,7 @@ El (a ⊕ b) C = El a C ⊎ El b C
 
 cast : ∀ a {B C} → B ⇔ C → El a B ⇔ El a C
 cast id      eq = eq
-cast set     eq = Logical-equivalence.id
+cast type    eq = Logical-equivalence.id
 cast (k A)   eq = Logical-equivalence.id
 cast (a ⇾ b) eq = →-cong _ (cast a eq) (cast b eq)
 cast (a ⊗ b) eq = cast a eq ×-cong cast b eq
@@ -499,7 +499,7 @@ abstract
             ∀ a {B} → cast a (Logical-equivalence.id {A = B}) ≡
                       Logical-equivalence.id
   cast-id ext id      = refl _
-  cast-id ext set     = refl _
+  cast-id ext type    = refl _
   cast-id ext (k A)   = refl _
   cast-id ext (a ⇾ b) = cong₂ (→-cong _) (cast-id ext a) (cast-id ext b)
   cast-id ext (a ⊗ b) = cong₂ _×-cong_ (cast-id ext a) (cast-id ext b)
@@ -534,9 +534,9 @@ open Class simple
 -- This definition is in bijective correspondence with Is-isomorphism
 -- (see below).
 
-Is-isomorphism′ : ∀ a {B C} → B ≃ C → El a B → El a C → Set₁
+Is-isomorphism′ : ∀ a {B C} → B ≃ C → El a B → El a C → Type₁
 Is-isomorphism′ id      eq = λ x y → _≃_.to eq x ≡ y
-Is-isomorphism′ set     eq = λ X Y → ↑ _ (X ≃ Y)
+Is-isomorphism′ type    eq = λ X Y → ↑ _ (X ≃ Y)
 Is-isomorphism′ (k A)   eq = λ x y → x ≡ y
 Is-isomorphism′ (a ⇾ b) eq = Is-isomorphism′ a eq →-rel
                              Is-isomorphism′ b eq
@@ -548,7 +548,7 @@ Is-isomorphism′ (a ⊕ b) eq = Is-isomorphism′ a eq ⊎-rel
 -- An alternative definition of Isomorphic, using Is-isomorphism′
 -- instead of Is-isomorphism.
 
-Isomorphic′ : ∀ c → Instance c → Instance c → Set₁
+Isomorphic′ : ∀ c → Instance c → Instance c → Type₁
 Isomorphic′ (a , _) (C , x , _) (D , y , _) =
   Σ (C ≃ D) λ eq → Is-isomorphism′ a eq x y
 
@@ -572,7 +572,7 @@ cast≃ ext a {B} {C} B≃C = ↔⇒≃ record
 
   cst : ∀ a → El a B ≃ El a C
   cst id      = B≃C
-  cst set     = Eq.id
+  cst type    = Eq.id
   cst (k A)   = Eq.id
   cst (a ⇾ b) = →-cong ext (cst a) (cst b)
   cst (a ⊗ b) = cst a ×-cong cst b
@@ -587,7 +587,7 @@ cast≃ ext a {B} {C} B≃C = ↔⇒≃ record
                     cast a (_≃_.logical-equivalence B≃C) ≡
                     _≃_.logical-equivalence (cst a)
     casts-related id      = refl _
-    casts-related set     = refl _
+    casts-related type    = refl _
     casts-related (k A)   = refl _
     casts-related (a ⇾ b) = cong₂ (→-cong _) (casts-related a)
                                              (casts-related b)
@@ -646,7 +646,7 @@ abstract
 
     (_≃_.to eq x ≡ y)  □
 
-  is-isomorphism-isomorphic ass set {x = X} {Y} eq =
+  is-isomorphism-isomorphic ass type {x = X} {Y} eq =
 
     (X ≡ Y)      ↔⟨ ≡≃≃ univ ⟩
 
@@ -771,7 +771,7 @@ Instance-monoid :
 
   Instance monoid
     ≡
-  Σ Set₁ λ C →
+  Σ Type₁ λ C →
   Σ ((C → C → C) × C) λ { (_∙_ , e) →
   Is-set C ×
   (∀ x → (e ∙ x) ≡ x) ×
@@ -846,7 +846,7 @@ Isomorphism-monoid-isomorphic-to-standard ext
 poset : Code
 poset =
   -- The ordering relation.
-  (id ⇾ id ⇾ set) ,
+  (id ⇾ id ⇾ type) ,
 
   λ C _≤_ →
 
@@ -886,17 +886,17 @@ poset =
                       C-set)))) }
 
 -- The interpretation of the code is reasonable. (Except, perhaps,
--- that the carrier type lives in Set₁ but the codomain of the
--- ordering relation is Set. In the corresponding example in
+-- that the carrier type lives in Type₁ but the codomain of the
+-- ordering relation is Type. In the corresponding example in
 -- Univalence-axiom.Isomorphism-is-equality.Simple.Variant the carrier
--- type lives in Set.)
+-- type lives in Type.)
 
 Instance-poset :
 
   Instance poset
     ≡
-  Σ Set₁ λ C →
-  Σ (C → C → Set) λ _≤_ →
+  Σ Type₁ λ C →
+  Σ (C → C → Type) λ _≤_ →
   Is-set C ×
   (∀ x y → Is-proposition (x ≤ y)) ×
   (∀ x → x ≤ x) ×
@@ -1046,7 +1046,7 @@ private
   -- Some lemmas used below.
 
   0* :
-    {C : Set₁}
+    {C : Type₁}
     (_+_ : C → C → C)
     (0# : C)
     (_*_ : C → C → C)
@@ -1078,7 +1078,7 @@ private
       x                      ∎
 
   dec-lemma₁ :
-    {C : Set₁}
+    {C : Type₁}
     (_+_ : C → C → C)
     (0# : C)
     (-_ : C → C) →
@@ -1103,7 +1103,7 @@ private
           (dec-0 (x + (- y)))
 
   dec-lemma₂ :
-    {C : Set₁}
+    {C : Type₁}
     (_+_ : C → C → C)
     (0# : C)
     (_*_ : C → C → C)
@@ -1135,7 +1135,7 @@ private
            1#          ∎))
 
   dec-lemma₃ :
-    {C : Set₁}
+    {C : Type₁}
     (_+_ : C → C → C)
     (0# : C)
     (-_ : C → C) →
@@ -1156,7 +1156,7 @@ private
                (λ x → [ inj₂ ∘ proj₂ , inj₁ ∘ proj₂ ] (inv-xor x))
 
   *-injective :
-    {C : Set₁}
+    {C : Type₁}
     (_*_ : C → C → C)
     (1# : C) →
     (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) →
@@ -1180,7 +1180,7 @@ private
       (x⁻¹ * (x * y))  ∎
 
   inverse-propositional :
-    {C : Set₁}
+    {C : Type₁}
     (_*_ : C → C → C)
     (1# : C) →
     (∀ x y z → (x * (y * z)) ≡ ((x * y) * z)) →
@@ -1198,7 +1198,7 @@ private
 
   proposition-lemma₁ :
     Extensionality (# 1) (# 1) →
-    {C : Set₁}
+    {C : Type₁}
     (0# : C)
     (_*_ : C → C → C)
     (1# : C) →
@@ -1221,7 +1221,7 @@ private
 
   proposition-lemma₂ :
     Extensionality (# 1) (# 1) →
-    {C : Set₁}
+    {C : Type₁}
     (_+_ : C → C → C)
     (0# : C)
     (-_ : C → C) →
@@ -1248,7 +1248,7 @@ private
 
   proposition-lemma₃ :
     Extensionality (# 1) (# 1) →
-    {C : Set₁}
+    {C : Type₁}
     (_+_ : C → C → C)
     (0# : C)
     (_*_ : C → C → C)
@@ -1401,7 +1401,7 @@ Instance-discrete-field :
 
   Instance discrete-field
     ≡
-  Σ Set₁ λ C →
+  Σ Type₁ λ C →
   Σ ((C → C → C) × C × (C → C → C) × C × (C → C) × (C → ↑ _ ⊤ ⊎ C))
     λ { (_+_ , 0# , _*_ , 1# , -_ , _⁻¹) →
   (∀ x y z → (x + (y + z)) ≡ ((x + y) + z)) ×
@@ -1743,7 +1743,7 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
 
   where
   main-lemma :
-    (C : Set₁)
+    (C : Type₁)
     (_+_ : C → C → C)
     (0# : C)
     (_*_ : C → C → C)
@@ -1812,7 +1812,7 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
         (x * proj₁ (inv x x≢0))  ≡⟨ proj₂ (inv x x≢0) ⟩∎
         1#                       ∎
 
-  lemma₁ : (A B C D E F : Set₁) (G : A × B × C × D × E × F → Set₁) →
+  lemma₁ : (A B C D E F : Type₁) (G : A × B × C × D × E × F → Type₁) →
            Σ (A × B × C × D × E × F) G ↔
            Σ (A × B × C × D × E) λ { (a , b , c , d , e) →
              Σ F λ f → G (a , b , c , d , e , f) }
@@ -1827,7 +1827,7 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
     (Σ (A × B × C × D × E) λ { (a , b , c , d , e) →
       Σ F λ f → G (a , b , c , d , e , f) })          □
 
-  lemma₂ : (A B C D E F G H I J : Set₁) (K : A → Set₁) →
+  lemma₂ : (A B C D E F G H I J : Type₁) (K : A → Type₁) →
            (Σ A λ x → B × C × D × E × F × G × H × I × J × K x) ↔
            (B × C × D × E × F × G × H × I × J × Σ A K)
   lemma₂ A B C D E F G H I J K =
@@ -1947,7 +1947,7 @@ nLab's-isomorphic-to-Bridges-and-Richman's ext =
              +-assoc *-assoc +-comm *-comm *+ +0 *1 +- }
   where
   main-lemma :
-    (C : Set₁)
+    (C : Type₁)
     (_+_ : C → C → C)
     (0# : C)
     (_*_ : C → C → C)
@@ -2093,7 +2093,7 @@ Instance-vector-space :
   Instance (vector-space
               (F , (_+F_ , 0F , _*F_ , 1F , -F_ , _⁻¹F) , laws))
     ≡
-  Σ Set₁ λ V →
+  Σ Type₁ λ V →
   Σ ((V → V → V) × (F → V → V) × V × (V → V))
     λ { (_+_ , _*_ , 0V , -_) →
   Is-set V ×
@@ -2154,7 +2154,7 @@ Instance-set-with-fixpoint-operator :
 
   Instance set-with-fixpoint-operator
     ≡
-  Σ Set₁ λ C →
+  Σ Type₁ λ C →
   Σ ((C → C) → C) λ fix →
   Is-set C ×
   (∀ f → f (fix f) ≡ fix f)

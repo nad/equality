@@ -32,13 +32,13 @@ open import H-level.Truncation.Propositional.One-step eq as O
 private
   variable
     a p : Level
-    A   : Set a
-    P   : A → Set p
+    A   : Type a
+    P   : A → Type p
     e x : A
 
 -- The propositional truncation operator.
 
-∥_∥ : Set a → Set a
+∥_∥ : Type a → Type a
 ∥ A ∥ = Colimit ∥ A ∥¹-out-^ O.∣_∣
 
 -- The point constructor.
@@ -48,7 +48,7 @@ private
 
 -- The eliminator.
 
-record Elim {A : Set a} (P : ∥ A ∥ → Set p) : Set (a ⊔ p) where
+record Elim {A : Type a} (P : ∥ A ∥ → Type p) : Type (a ⊔ p) where
   no-eta-equality
   field
     ∣∣ʳ             : ∀ x → P ∣ x ∣

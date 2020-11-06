@@ -37,7 +37,7 @@ all-equality-types-isomorphic :
   (eq₁ : ∀ {a p} → Equality-with-J a p e₁)
   (eq₂ : ∀ {a p} → Equality-with-J a p e₂) →
   let open Bijection eq₁ in
-  ∀ {a} {A : Set a} →
+  ∀ {a} {A : Type a} →
   ∃ λ (iso : {x y : A} → E._≡_ e₁ x y ↔ E._≡_ e₂ x y) →
     (∀ {x} → E._≡_ e₂ (_↔_.to   iso (E.refl e₁ x)) (E.refl e₂ x)) ×
     (∀ {x} → E._≡_ e₁ (_↔_.from iso (E.refl e₂ x)) (E.refl e₁ x))
@@ -60,20 +60,20 @@ all-equality-types-isomorphic {c₁} {c₂} eq₁ eq₂ =
     Equality-with-J′ eq hiding (_≡_; refl)
 
   to : ∀ {c₁} c₂ (eq₁ : ∀ {a p} → Equality-with-J a p c₁)
-       {a} {A : Set a} {x y : A} →
+       {a} {A : Type a} {x y : A} →
        _≡_ c₁ x y → _≡_ c₂ x y
   to c₂ eq₁ {x = x} x≡y = subst eq₁ (_≡_ c₂ x) x≡y (refl c₂ x)
 
   to-refl :
     ∀ {c₁} c₂ (eq₁ : ∀ {a p} → Equality-with-J a p c₁)
-    {a} {A : Set a} {x : A} →
+    {a} {A : Type a} {x : A} →
     _≡_ c₂ (to c₂ eq₁ (refl c₁ x)) (refl c₂ x)
   to-refl c₂ eq₁ = to c₂ eq₁ $ subst-refl eq₁ (_≡_ c₂ _) _
 
   to∘to : ∀ c₁ c₂
           (eq₁ : ∀ {a p} → Equality-with-J a p c₁)
           (eq₂ : ∀ {a p} → Equality-with-J a p c₂) →
-          ∀ {a} {A : Set a} {x y : A} (x≡y : _≡_ c₁ x y) →
+          ∀ {a} {A : Type a} {x y : A} (x≡y : _≡_ c₁ x y) →
           _≡_ c₁ (to c₁ eq₂ (to c₂ eq₁ x≡y)) x≡y
   to∘to c₁ c₂ eq₁ eq₂ = elim eq₁
     (λ {x y} x≡y → _≡_ c₁ (to c₁ eq₂ (to c₂ eq₁ x≡y)) x≡y)
@@ -108,12 +108,12 @@ module _ {congruence⁺}
       Extensionality (lsuc (a ⊔ p)) (a ⊔ lsuc p) →
       Contractible (Equality-with-J₀ a p (λ _ → reflexive-relation))
     Equality-with-J-contractible {a} {p} ext =                        $⟨ contr ⟩
-      Contractible ((A : Set a) (P : I A → Set p)
+      Contractible ((A : Type a) (P : I A → Type p)
                     (d : ∀ x → P (x , x , refl x)) → Singleton d)     ↝⟨ H-level.respects-surjection eq surj 0 ⟩
 
       Contractible (Equality-with-J₀ a p (λ _ → reflexive-relation))  □
       where
-      I : Set a → Set a
+      I : Type a → Type a
       I A = ∃ λ (x : A) → ∃ λ (y : A) → x ≡ y
 
       ≃I : ∀ {A} → A ≃ I A
@@ -135,7 +135,7 @@ module _ {congruence⁺}
         })
 
       contr :
-        Contractible ((A : Set a) (P : I A → Set p)
+        Contractible ((A : Type a) (P : I A → Type p)
                       (d : ∀ x → P (x , x , refl x)) → Singleton d)
       contr =
         Π-closure          (lower-extensionality (lsuc p) lzero    ext) 0 λ _ →
@@ -144,42 +144,45 @@ module _ {congruence⁺}
         singleton-contractible _
 
       surj =
-        ((A : Set a) (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
-         Singleton d)                                                     ↔⟨⟩
+        ((A : Type a) (P : I A → Type p)
+         (d : ∀ x → P (x , x , refl x)) → Singleton d)                    ↔⟨⟩
 
-        ((A : Set a) (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
+        ((A : Type a) (P : I A → Type p)
+         (d : ∀ x → P (x , x , refl x)) →
          ∃ λ (j : (x : A) → P (x , x , refl x)) → j ≡ d)                  ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
                                                                               ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
                                                                               ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ →
                                                                               ∃-cong λ _ → inverse $
                                                                               extensionality-isomorphism (lower-extensionality _ _ ext)) ⟩
-        ((A : Set a) (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
+        ((A : Type a) (P : I A → Type p)
+         (d : ∀ x → P (x , x , refl x)) →
          ∃ λ (j : (x : A) → P (x , x , refl x)) → (x : A) → j x ≡ d x)    ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
                                                                               ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
                                                                               ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ → inverse $
                                                                               Σ-cong (inverse $ Π-cong (lower-extensionality _ _ ext)
                                                                                                        ≃I λ _ → ⟨id⟩ {k = equivalence}) λ _ →
                                                                               ⟨id⟩ {k = equivalence}) ⟩
-        ((A : Set a) (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
+        ((A : Type a) (P : I A → Type p)
+         (d : ∀ x → P (x , x , refl x)) →
          ∃ λ (j : (q : I A) → P q) → (x : A) → j (x , x , refl x) ≡ d x)  ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
                                                                               ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
                                                                               ΠΣ-comm) ⟩
-        ((A : Set a) (P : I A → Set p) →
+        ((A : Type a) (P : I A → Type p) →
          ∃ λ (j : (d : ∀ x → P (x , x , refl x)) →
                   (q : I A) → P q) →
              (d : ∀ x → P (x , x , refl x))
              (x : A) → j d (x , x , refl x) ≡ d x)                        ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
                                                                               ΠΣ-comm) ⟩
-        ((A : Set a) →
-         ∃ λ (j : (P : I A → Set p) (d : ∀ x → P (x , x , refl x)) →
+        ((A : Type a) →
+         ∃ λ (j : (P : I A → Type p) (d : ∀ x → P (x , x , refl x)) →
                   (q : I A) → P q) →
-             (P : I A → Set p) (d : ∀ x → P (x , x , refl x))
+             (P : I A → Type p) (d : ∀ x → P (x , x , refl x))
              (x : A) → j P d (x , x , refl x) ≡ d x)                      ↔⟨ ΠΣ-comm ⟩
 
-        (∃ λ (J : (A : Set a) (P : I A → Set p)
+        (∃ λ (J : (A : Type a) (P : I A → Type p)
                   (d : ∀ x → P (x , x , refl x)) →
                   (q : I A) → P q) →
-             (A : Set a) (P : I A → Set p)
+             (A : Type a) (P : I A → Type p)
              (d : ∀ x → P (x , x , refl x))
              (x : A) → J A P d (x , x , refl x) ≡ d x)                    ↝⟨ record
                                                                                { logical-equivalence = record
@@ -205,14 +208,14 @@ module _ {congruence⁺}
     -- Huber managed to prove that they are (using a slightly
     -- different type for elim-refl).
 
-    module _ {a p} {A : Set a}
-             (P : A → Set p)
+    module _ {a p} {A : Type a}
+             (P : A → Type p)
              {x : A} (y : P x) where
 
-      subst′ : {x y : A} (P : A → Set p) → x ≡ y → P x → P y
+      subst′ : {x y : A} (P : A → Type p) → x ≡ y → P x → P y
       subst′ P = elim (λ {u v} _ → P u → P v) (λ _ p → p)
 
-      subst′-refl≡id : {x : A} (P : A → Set p) → subst′ P (refl x) ≡ id
+      subst′-refl≡id : {x : A} (P : A → Type p) → subst′ P (refl x) ≡ id
       subst′-refl≡id P = elim-refl (λ {u v} _ → P u → P v) (λ _ p → p)
 
       proof₁ proof₂ :

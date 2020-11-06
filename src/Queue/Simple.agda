@@ -21,7 +21,7 @@ open import Surjection eq using (_↠_)
 private
   variable
     a     : Level
-    A B   : Set a
+    A B   : Type a
     x     : A
     f     : A → B
     xs ys : List A
@@ -32,7 +32,7 @@ private
 -- The queue invariant: if the first list is empty, then the second
 -- list is empty.
 
-Invariant : {A : Set a} → List A → List A → Set a
+Invariant : {A : Type a} → List A → List A → Type a
 Invariant (_ ∷ _) _       = ↑ _ ⊤
 Invariant []      []      = ↑ _ ⊤
 Invariant []      (_ ∷ _) = ⊥
@@ -60,7 +60,7 @@ map-map {xs = []}    {ys = []} _ = _
 --
 -- Note that the invariant is erased.
 
-record Queue (A : Set a) : Set a where
+record Queue (A : Type a) : Type a where
   constructor ⟨_,_⟩
   field
     front rear     : List A
@@ -167,7 +167,7 @@ dequeue ⟨ x ∷ front@(_ ∷ _) , rear ⟩ =
   just (x , ⟨ front , rear ⟩)
 
 to-List-dequeue :
-  {A : Set a} (q : Queue A) →
+  {A : Type a} (q : Queue A) →
   ⊎-map id (Σ-map id to-List) (dequeue q) ≡
   _↔_.to List↔Maybe[×List] (to-List q)
 to-List-dequeue ⟨ [] , [] ⟩ = refl _

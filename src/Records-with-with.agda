@@ -9,16 +9,15 @@
 -- with decidable equality.
 
 open import Equality
+open import Prelude hiding (id; proj₁; proj₂)
 
 module Records-with-with
   {c⁺}
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
   (open Derived-definitions-and-properties eq)
-  (Label : Set)
+  (Label : Type)
   (_≟_ : Decidable-equality Label)
   where
-
-open import Prelude hiding (id; proj₁; proj₂)
 
 open import Bijection eq using (_↔_; ↑↔)
 open import Function-universe eq hiding (_∘_)
@@ -32,8 +31,8 @@ open import List eq using (foldr)
 
 infix 4 _,
 
-record Manifest-Σ {a b} (A : Set a) {B : A → Set b}
-                  (f : (x : A) → B x) : Set a where
+record Manifest-Σ {a b} (A : Type a) {B : A → Type b}
+                  (f : (x : A) → B x) : Type a where
   constructor _,
   field proj₁ : A
 
@@ -47,28 +46,28 @@ mutual
 
   infixl 5 _,_∶_ _,_≔_
 
-  data Signature s : Set (lsuc s) where
+  data Signature s : Type (lsuc s) where
     ∅     : Signature s
     _,_∶_ : (Sig : Signature s)
             (ℓ : Label)
-            (A : Record Sig → Set s) →
+            (A : Record Sig → Type s) →
             Signature s
     _,_≔_ : (Sig : Signature s)
             (ℓ : Label)
-            {A : Record Sig → Set s}
+            {A : Record Sig → Type s}
             (a : (r : Record Sig) → A r) →
             Signature s
 
   -- Record is a record type to ensure that the signature can be
   -- inferred from a value of type Record Sig.
 
-  record Record {s} (Sig : Signature s) : Set s where
+  record Record {s} (Sig : Signature s) : Type s where
     eta-equality
     inductive
     constructor rec
     field fun : Record-fun Sig
 
-  Record-fun : ∀ {s} → Signature s → Set s
+  Record-fun : ∀ {s} → Signature s → Type s
   Record-fun ∅             = ↑ _ ⊤
   Record-fun (Sig , ℓ ∶ A) =          Σ (Record Sig) A
   Record-fun (Sig , ℓ ≔ a) = Manifest-Σ (Record Sig) a
@@ -87,7 +86,7 @@ labels (Sig , ℓ ≔ a) = ℓ ∷ labels Sig
 
 infix 4 _∈_
 
-_∈_ : ∀ {s} → Label → Signature s → Set
+_∈_ : ∀ {s} → Label → Signature s → Type
 ℓ ∈ Sig =
   foldr (λ ℓ′ → if ℓ ≟ ℓ′ then (λ _ → ⊤) else id)
         ⊥
@@ -109,11 +108,11 @@ Restrict (Sig , ℓ′ ≔ a) ℓ ℓ∈ with ℓ ≟ ℓ′
 ... | yes _ = Sig
 ... | no  _ = Restrict Sig ℓ ℓ∈
 
-Restricted : ∀ {s} (Sig : Signature s) (ℓ : Label) → ℓ ∈ Sig → Set s
+Restricted : ∀ {s} (Sig : Signature s) (ℓ : Label) → ℓ ∈ Sig → Type s
 Restricted Sig ℓ ℓ∈ = Record (Restrict Sig ℓ ℓ∈)
 
 Proj : ∀ {s} (Sig : Signature s) (ℓ : Label) (ℓ∈ : ℓ ∈ Sig) →
-       Restricted Sig ℓ ℓ∈ → Set s
+       Restricted Sig ℓ ℓ∈ → Type s
 Proj ∅              ℓ ()
 Proj (Sig , ℓ′ ∶ A) ℓ ℓ∈ with ℓ ≟ ℓ′
 ... | yes _ = A
@@ -185,7 +184,7 @@ mutual
 -- An alternative definition of Record: right-nested, without the
 -- record type, and without Manifest-Σ.
 
-Recordʳ : ∀ {s} (Sig : Signature s) → (Record Sig → Set s) → Set s
+Recordʳ : ∀ {s} (Sig : Signature s) → (Record Sig → Type s) → Type s
 Recordʳ ∅             κ = κ _
 Recordʳ (Sig , ℓ ∶ A) κ = Recordʳ Sig (λ r → Σ (A r) (κ ∘ rec ∘ (r ,_)))
 Recordʳ (Sig , ℓ ≔ a) κ = Recordʳ Sig (λ r → κ (rec (r ,)))
@@ -193,7 +192,7 @@ Recordʳ (Sig , ℓ ≔ a) κ = Recordʳ Sig (λ r → κ (rec (r ,)))
 -- Manifest-Σ A f is isomorphic to A.
 
 Manifest-Σ↔ :
-  ∀ {a b} {A : Set a} {B : A → Set b} {f : (x : A) → B x} →
+  ∀ {a b} {A : Type a} {B : A → Type b} {f : (x : A) → B x} →
   Manifest-Σ A f ↔ A
 Manifest-Σ↔ = record
   { surjection = record
@@ -223,7 +222,7 @@ Record↔Record-fun = record
 mutual
 
   Σ-Record↔Recordʳ :
-    ∀ {s} (Sig : Signature s) (κ : Record Sig → Set s) →
+    ∀ {s} (Sig : Signature s) (κ : Record Sig → Type s) →
     Σ (Record Sig) κ ↔ Recordʳ Sig κ
   Σ-Record↔Recordʳ Sig κ =
     Σ (Record Sig) κ              ↝⟨ Σ-cong Record↔Record-fun (λ _ → id) ⟩
@@ -231,7 +230,7 @@ mutual
     Recordʳ Sig κ                 □
 
   Σ-Record-fun↔Recordʳ :
-    ∀ {s} (Sig : Signature s) (κ : Record Sig → Set s) →
+    ∀ {s} (Sig : Signature s) (κ : Record Sig → Type s) →
     Σ (Record-fun Sig) (κ ∘ rec) ↔ Recordʳ Sig κ
 
   Σ-Record-fun↔Recordʳ ∅ κ =
@@ -266,7 +265,7 @@ Record↔Recordʳ Sig =
 -- non-manifest field, if any, to avoid a pointless innermost unit
 -- type.
 
-Recʳ : ∀ {s} → Signature s → Set s
+Recʳ : ∀ {s} → Signature s → Type s
 Recʳ ∅             = ↑ _ ⊤
 Recʳ (Sig , ℓ ∶ A) = Recordʳ Sig A
 Recʳ (Sig , ℓ ≔ a) = Recʳ Sig

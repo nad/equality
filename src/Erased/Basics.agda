@@ -27,7 +27,7 @@ private
 -- Erased A is like A, but the values are (supposed to be) erased at
 -- run-time.
 
-record Erased (@0 A : Set a) : Set a where
+record Erased (@0 A : Type a) : Type a where
   constructor [_]
   field
     @0 erased : A
@@ -36,19 +36,19 @@ open Erased public
 
 -- A variant of [_] that does not take an erased argument.
 
-[_]→ : {@0 A : Set a} → A → Erased A
+[_]→ : {@0 A : Type a} → A → Erased A
 [ x ]→ = [ x ]
 
 -- An axiomatisation for []-cong.
 
-record []-cong-axiomatisation a : Set (lsuc a) where
+record []-cong-axiomatisation a : Type (lsuc a) where
   field
     []-cong :
-      {@0 A : Set a} {@0 x y : A} →
+      {@0 A : Type a} {@0 x y : A} →
       Erased (x ≡ y) → [ x ] ≡ [ y ]
     []-cong-equivalence :
-       {@0 A : Set a} {@0 x y : A} →
+       {@0 A : Type a} {@0 x y : A} →
        Is-equivalence ([]-cong {x = x} {y = y})
     []-cong-[refl] :
-      {A : Set a} {x : A} →
+      {A : Type a} {x : A} →
       []-cong [ refl x ] ≡ refl [ x ]

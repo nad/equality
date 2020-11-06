@@ -33,8 +33,8 @@ open import Surjection equality-with-J using (_↠_; Split-surjective)
 private
   variable
     a b ℓ p : Level
-    A B     : Set a
-    P       : A → Set p
+    A B     : Type a
+    P       : A → Type p
     k x y   : A
     n       : ℕ
 
@@ -43,13 +43,13 @@ private
 
 -- Any two elements of type Squash′ A are definitionally equal.
 
-data Squash′ (A : Set a) : Prop a where
+data Squash′ (A : Type a) : Prop a where
   squash′ : A → Squash′ A
 
--- However, Squash′ A does not have type Set a. The following wrapper
+-- However, Squash′ A does not have type Type a. The following wrapper
 -- makes it possible to use squashed types in, say, lists.
 
-record Squash (A : Set a) : Set a where
+record Squash (A : Type a) : Type a where
   constructor squash
   field
     squashed : Squash′ A
@@ -263,13 +263,13 @@ Squash→¬¬ {A = A} = curry (
 -- Squash (x ≡ y).
 
 ¬-[]≡[]→Squash-≡ :
-  ¬ ({A : Set a} {x y : A} → [ x ] ≡ [ y ] → Squash (x ≡ y))
+  ¬ ({A : Type a} {x y : A} → [ x ] ≡ [ y ] → Squash (x ≡ y))
 ¬-[]≡[]→Squash-≡ {a = a} =
-  ({A : Set a} {x y : A} → [ x ] ≡ [ y ] → Squash (x ≡ y))  ↝⟨ _$ refl _ ⟩
-  Squash (lift true ≡ lift false)                           ↝⟨ Squash-cong (cong lower) ⟩
-  Squash (true ≡ false)                                     ↝⟨ Squash-cong Bool.true≢false ⟩
-  Squash ⊥                                                  ↔⟨ Squash-⊥↔⊥ ⟩□
-  ⊥                                                         □
+  ({A : Type a} {x y : A} → [ x ] ≡ [ y ] → Squash (x ≡ y))  ↝⟨ _$ refl _ ⟩
+  Squash (lift true ≡ lift false)                            ↝⟨ Squash-cong (cong lower) ⟩
+  Squash (true ≡ false)                                      ↝⟨ Squash-cong Bool.true≢false ⟩
+  Squash ⊥                                                   ↔⟨ Squash-⊥↔⊥ ⟩□
+  ⊥                                                          □
 
 -- [_] is split surjective for decided types.
 
@@ -283,20 +283,20 @@ Split-surjective-[] (no ¬x) x =
 
 -- A type A is stable if Squash A implies A.
 
-Stable : Set a → Set a
+Stable : Type a → Type a
 Stable A = Squash A → A
 
 -- A type A is very stable if Squash A is equivalent to A.
 
-Very-stable : Set a → Set a
+Very-stable : Type a → Type a
 Very-stable A = Squash A ≃ A
 
 -- Variants of the definitions above for equality.
 
-Stable-≡ : Set a → Set a
+Stable-≡ : Type a → Type a
 Stable-≡ = For-iterated-equality 1 Stable
 
-Very-stable-≡ : Set a → Set a
+Very-stable-≡ : Type a → Type a
 Very-stable-≡ = For-iterated-equality 1 Very-stable
 
 ------------------------------------------------------------------------
@@ -314,7 +314,7 @@ Very-stable→Stable n =
 -- Very-stable is propositional (assuming extensionality).
 
 Very-stable-propositional :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality a a →
   Is-proposition (Very-stable A)
 Very-stable-propositional ext =
@@ -325,7 +325,7 @@ private
   -- The previous result can be generalised.
 
   For-iterated-equality-Very-stable-propositional :
-    {A : Set a} →
+    {A : Type a} →
     Extensionality a a →
     ∀ n → Is-proposition (For-iterated-equality n Very-stable A)
   For-iterated-equality-Very-stable-propositional ext n =
@@ -336,7 +336,7 @@ private
 -- type.
 
 Very-stable↔Is-equivalence-[] :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality? k a a →
   Very-stable A ↝[ k ] Is-equivalence {A = A} [_]
 Very-stable↔Is-equivalence-[] =
@@ -355,7 +355,7 @@ Very-stable↔Is-equivalence-[] =
 -- A type is very stable if and only if it is a stable proposition.
 
 Very-stable↔Stable×Is-proposition :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality? k a a →
   Very-stable A ↝[ k ] Stable A × Is-proposition A
 Very-stable↔Stable×Is-proposition =
@@ -475,7 +475,7 @@ Decidable-equality→Very-stable-≡ dec _ _ =
 -- "symmetric"), possibly assuming extensionality.
 
 Stable-cong :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   Extensionality? ⌊ k ⌋-sym (a ⊔ b) (a ⊔ b) →
   A ↝[ ⌊ k ⌋-sym ] B → Stable A ↝[ ⌊ k ⌋-sym ] Stable B
 Stable-cong {k = k} {A = A} {B = B} ext A↝B =
@@ -511,7 +511,7 @@ Very-stable-map {A = A} {B = B} A↠B s =
 -- Very-stable preserves equivalences (assuming extensionality).
 
 Very-stable-cong :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   A ≃ B → Very-stable A ↝[ k ] Very-stable B
 Very-stable-cong {A = A} {B = B} ext A≃B =
@@ -558,7 +558,7 @@ Stable-Π {P = P} s =
 -- Very-stable is closed under Π A (assuming extensionality).
 
 Very-stable-Π :
-  {A : Set a} {P : A → Set p} →
+  {A : Type a} {P : A → Type p} →
   Extensionality a p →
   (∀ x → Very-stable (P x)) →
   Very-stable ((x : A) → P x)
@@ -650,7 +650,7 @@ private
   -- A lemma.
 
   For-iterated-equality-Is-proposition↔H-level′-suc :
-    {A : Set a} →
+    {A : Type a} →
     Extensionality? k a a →
     ∀ n →
     For-iterated-equality n Is-proposition A ↝[ k ]
@@ -696,7 +696,7 @@ Stable-H-level {A = A} n =
 -- very stable (assuming extensionality).
 
 Very-stable-H-level′ :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality a a →
   ∀ n →
   For-iterated-equality (suc n) Very-stable A →
@@ -718,7 +718,7 @@ Very-stable-H-level′ {A = A} ext n =
 -- very stable (assuming extensionality).
 
 Very-stable-H-level :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality a a →
   ∀ n →
   For-iterated-equality (suc n) Very-stable A →
@@ -797,7 +797,7 @@ Very-stable-≡-List n =
 -- A generalisation of Stable-Π.
 
 Stable-Πⁿ :
-  {A : Set a} {P : A → Set p} →
+  {A : Type a} {P : A → Type p} →
   Extensionality a p →
   ∀ n →
   (∀ x → For-iterated-equality n Stable (P x)) →
@@ -812,7 +812,7 @@ Stable-Πⁿ ext n =
 -- A generalisation of Very-stable-Π.
 
 Very-stable-Πⁿ :
-  {A : Set a} {P : A → Set p} →
+  {A : Type a} {P : A → Type p} →
   Extensionality a p →
   ∀ n →
   (∀ x → For-iterated-equality n Very-stable (P x)) →

@@ -16,8 +16,8 @@ module Bi-invertibility
   {e⁺}
   (eq : ∀ {a p} → Equality-with-J a p e⁺)
   {o h}
-  (Obj : Set o)
-  (Hom : Obj → Obj → Set h)
+  (Obj : Type o)
+  (Hom : Obj → Obj → Type h)
   (id : {A : Obj} → Hom A A)
   (_∘′_ : {A B C : Obj} → Hom B C → Hom A B → Hom A C)
   where
@@ -43,25 +43,25 @@ private
 
 -- Has-left-inverse f means that f has a left inverse.
 
-Has-left-inverse : Hom A B → Set h
+Has-left-inverse : Hom A B → Type h
 Has-left-inverse f = ∃ λ f⁻¹ → f⁻¹ ∘ f ≡ id
 
 -- Has-right-inverse f means that f has a right inverse.
 
-Has-right-inverse : Hom A B → Set h
+Has-right-inverse : Hom A B → Type h
 Has-right-inverse f = ∃ λ f⁻¹ → f ∘ f⁻¹ ≡ id
 
 -- Is-bi-invertible f means that f has a left inverse and a (possibly
 -- distinct) right inverse.
 
-Is-bi-invertible : Hom A B → Set h
+Is-bi-invertible : Hom A B → Type h
 Is-bi-invertible f =
   Has-left-inverse f × Has-right-inverse f
 
 -- Has-quasi-inverse f means that f has a left inverse that is also a
 -- right inverse.
 
-Has-quasi-inverse : Hom A B → Set h
+Has-quasi-inverse : Hom A B → Type h
 Has-quasi-inverse f =
   ∃ λ f⁻¹ → f ∘ f⁻¹ ≡ id × f⁻¹ ∘ f ≡ id
 
@@ -69,10 +69,10 @@ Has-quasi-inverse f =
 
 infix 4 _≊_ _≅_
 
-_≊_ : Obj → Obj → Set h
+_≊_ : Obj → Obj → Type h
 A ≊ B = ∃ λ (f : Hom A B) → Is-bi-invertible f
 
-_≅_ : Obj → Obj → Set h
+_≅_ : Obj → Obj → Type h
 A ≅ B = ∃ λ (f : Hom A B) → Has-quasi-inverse f
 
 -- Morphisms with quasi-inverses are bi-invertible.

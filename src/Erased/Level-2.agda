@@ -43,9 +43,9 @@ private
 
   variable
     a b c ℓ       : Level
-    A B           : Set a
+    A B           : Type a
     eq k k′ p x y : A
-    P             : A → Set p
+    P             : A → Type p
     f g           : A → B
     n             : ℕ
 
@@ -56,7 +56,7 @@ private
 -- Erased "commutes" with Is-embedding.
 
 Erased-Is-embedding↔Is-embedding :
-  {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} →
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Erased (Is-embedding f) ↝[ k ] Is-embedding (map f)
 Erased-Is-embedding↔Is-embedding {b = b} {k = k} {f = f} ext =
@@ -112,7 +112,7 @@ Erased-Is-embedding↔Is-embedding {b = b} {k = k} {f = f} ext =
 -- extensionality).
 
 Erased-↝↝↝ :
-  {@0 A : Set a} {@0 B : Set b} →
+  {@0 A : Type a} {@0 B : Type b} →
   Extensionality? k′ (a ⊔ b) (a ⊔ b) →
   Erased (A ↝[ k ] B) ↝[ k′ ] (Erased A ↝[ k ] Erased B)
 Erased-↝↝↝ {k = implication} _ = from-isomorphism Erased-Π↔Π-Erased
@@ -169,7 +169,7 @@ Erased-↝↝↝ {k = equivalenceᴱ} {A = A} {B = B} ext =
 -- assuming extensionality).
 
 Erased-↝↔↝ :
-  {@0 A : Set a} {@0 B : Set b} →
+  {@0 A : Type a} {@0 B : Type b} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Erased (A ↝[ k ] B) ↔ (Erased A ↝[ k ] Erased B)
 Erased-↝↔↝ {k = implication}         = λ _ → Erased-Π↔Π-Erased
@@ -184,7 +184,7 @@ Erased-↝↔↝ {k = equivalenceᴱ}        = Erased-↝↝↝
 -- Erased-↝↔↝ and Erased-↝↝↝ produce equal functions.
 
 to-Erased-↝↔↝≡to-Erased-↝↝↝ :
-  ∀ {@0 A : Set a} {@0 B : Set b}
+  ∀ {@0 A : Type a} {@0 B : Type b}
   (ext : Extensionality? k (a ⊔ b) (a ⊔ b))
   (ext′ : Extensionality? k′ (a ⊔ b) (a ⊔ b)) →
   _↔_.to (Erased-↝↔↝ {k = k} {A = A} {B = B} ext) ≡
@@ -257,7 +257,7 @@ to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = embedding} {k′ = equivalenceᴱ
 -- Erased preserves all kinds of functions.
 
 Erased-cong :
-  {@0 A : Set a} {@0 B : Set b} →
+  {@0 A : Type a} {@0 B : Type b} →
   @0 A ↝[ k ] B → Erased A ↝[ k ] Erased B
 Erased-cong A↝B = Erased-↝↝↝ _ [ A↝B ]
 
@@ -265,7 +265,7 @@ Erased-cong A↝B = Erased-↝↝↝ _ [ A↝B ]
 -- assuming extensionality).
 
 Dec-Erased-cong :
-  {@0 A : Set a} {@0 B : Set b} →
+  {@0 A : Type a} {@0 B : Type b} →
   @0 Extensionality? ⌊ k ⌋-sym (a ⊔ b) lzero →
   @0 A ↝[ ⌊ k ⌋-sym ] B →
   Dec-Erased A ↝[ ⌊ k ⌋-sym ] Dec-Erased B

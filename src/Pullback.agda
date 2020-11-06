@@ -27,17 +27,17 @@ open import H-level.Closure eq
 private
   variable
     a a₁ a₂ b b₁ b₂ l m r : Level
-    A A₁ A₂ B             : Set a
+    A A₁ A₂ B             : Type a
     C                     : A
     k                     : Kind
 
 -- Cospans.
 
-record Cospan l r m : Set (lsuc (l ⊔ r ⊔ m)) where
+record Cospan l r m : Type (lsuc (l ⊔ r ⊔ m)) where
   field
-    {Left}   : Set l
-    {Right}  : Set r
-    {Middle} : Set m
+    {Left}   : Type l
+    {Right}  : Type r
+    {Middle} : Type m
     left     : Left  → Middle
     right    : Right → Middle
 
@@ -45,7 +45,8 @@ record Cospan l r m : Set (lsuc (l ⊔ r ⊔ m)) where
 -- parameter, not a field, so a more accurate name might be something
 -- like Cone-over-cospan-with-given-opposite-corner.
 
-record Cone (A : Set a) (C : Cospan l r m) : Set (a ⊔ l ⊔ r ⊔ m) where
+record Cone (A : Type a) (C : Cospan l r m) :
+            Type (a ⊔ l ⊔ r ⊔ m) where
   field
     left     : A → Cospan.Left C
     right    : A → Cospan.Right C
@@ -126,7 +127,7 @@ composition c f .Cone.commutes = c .Cone.commutes ∘ f
 
 -- The pullback for a given cospan.
 
-Pullback : Cospan l r m → Set (l ⊔ r ⊔ m)
+Pullback : Cospan l r m → Type (l ⊔ r ⊔ m)
 Pullback C = ∃ λ x → ∃ λ y → Cospan.left C x ≡ Cospan.right C y
 
 -- The cone with the pullback as the "opposite corner".
@@ -139,10 +140,10 @@ pullback-cone .Cone.commutes = proj₂ ∘ proj₂
 -- The property of being a homotopy pullback.
 
 Is-homotopy-pullback :
-  {A : Set a} {C : Cospan l r m} →
-  Cone A C → ∀ b → Set (a ⊔ lsuc b ⊔ l ⊔ r ⊔ m)
+  {A : Type a} {C : Cospan l r m} →
+  Cone A C → ∀ b → Type (a ⊔ lsuc b ⊔ l ⊔ r ⊔ m)
 Is-homotopy-pullback c b =
-  (B : Set b) → Is-equivalence (composition {A = B} c)
+  (B : Type b) → Is-equivalence (composition {A = B} c)
 
 -- The pullback is a homotopy pullback for pullback-cone.
 
@@ -176,7 +177,7 @@ universal-property′ {A = A} {C = C} c = _⇔_.from contractible⇔↔⊤ (
 -- A preservation lemma for Cone.
 
 Cone-cong :
-  {A₁ : Set a₁} {A₂ : Set a₂} {C : Cospan l r m} →
+  {A₁ : Type a₁} {A₂ : Type a₂} {C : Cospan l r m} →
   Extensionality? k (a₁ ⊔ a₂) (l ⊔ r ⊔ m) →
   A₁ ≃ A₂ →
   Cone A₁ C ↝[ k ] Cone A₂ C

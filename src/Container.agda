@@ -26,17 +26,17 @@ open import Surjection eq using (module _↠_)
 ------------------------------------------------------------------------
 -- Containers
 
-record Container c : Set (lsuc c) where
+record Container c : Type (lsuc c) where
   constructor _▷_
   field
-    Shape    : Set c
-    Position : Shape → Set c
+    Shape    : Type c
+    Position : Shape → Type c
 
 open Container public
 
 -- Interpretation of containers.
 
-⟦_⟧ : ∀ {c ℓ} → Container c → Set ℓ → Set _
+⟦_⟧ : ∀ {c ℓ} → Container c → Type ℓ → Type _
 ⟦ S ▷ P ⟧ A = ∃ λ (s : S) → (P s → A)
 
 ------------------------------------------------------------------------
@@ -44,12 +44,12 @@ open Container public
 
 -- The shape of something.
 
-shape : ∀ {a c} {A : Set a} {C : Container c} → ⟦ C ⟧ A → Shape C
+shape : ∀ {a c} {A : Type a} {C : Container c} → ⟦ C ⟧ A → Shape C
 shape = proj₁
 
 -- Finds the value at the given position.
 
-index : ∀ {a c} {A : Set a} {C : Container c}
+index : ∀ {a c} {A : Type a} {C : Container c}
         (xs : ⟦ C ⟧ A) → Position C (shape xs) → A
 index = proj₂
 
@@ -58,26 +58,27 @@ index = proj₂
 
 -- Containers are functors.
 
-map : ∀ {c x y} {C : Container c} {X : Set x} {Y : Set y} →
+map : ∀ {c x y} {C : Container c} {X : Type x} {Y : Type y} →
       (X → Y) → ⟦ C ⟧ X → ⟦ C ⟧ Y
 map f = Σ-map id (f ∘_)
 
 module Map where
 
-  identity : ∀ {c x} {C : Container c} {X : Set x}
+  identity : ∀ {c x} {C : Container c} {X : Type x}
              (xs : ⟦ C ⟧ X) → map id xs ≡ xs
   identity xs = refl _
 
-  composition : ∀ {c x y z}
-                  {C : Container c} {X : Set x} {Y : Set y} {Z : Set z}
-                (f : Y → Z) (g : X → Y) (xs : ⟦ C ⟧ X) →
-                map f (map g xs) ≡ map (f ∘ g) xs
+  composition :
+    ∀ {c x y z}
+      {C : Container c} {X : Type x} {Y : Type y} {Z : Type z}
+    (f : Y → Z) (g : X → Y) (xs : ⟦ C ⟧ X) →
+    map f (map g xs) ≡ map (f ∘ g) xs
   composition f g xs = refl _
 
 -- Naturality.
 
 Natural : ∀ {c₁ c₂ a} {C₁ : Container c₁} {C₂ : Container c₂} →
-          ({A : Set a} → ⟦ C₁ ⟧ A → ⟦ C₂ ⟧ A) → Set (c₁ ⊔ c₂ ⊔ lsuc a)
+          ({A : Type a} → ⟦ C₁ ⟧ A → ⟦ C₂ ⟧ A) → Type (c₁ ⊔ c₂ ⊔ lsuc a)
 Natural function =
   ∀ {A B} (f : A → B) xs →
   map f (function xs) ≡ function (map f xs)
@@ -87,17 +88,17 @@ Natural function =
 infixr 4 _[_]⟶_
 
 record _[_]⟶_ {c₁ c₂} (C₁ : Container c₁) ℓ (C₂ : Container c₂) :
-              Set (c₁ ⊔ c₂ ⊔ lsuc ℓ) where
+              Type (c₁ ⊔ c₂ ⊔ lsuc ℓ) where
   field
-    function : {A : Set ℓ} → ⟦ C₁ ⟧ A → ⟦ C₂ ⟧ A
+    function : {A : Type ℓ} → ⟦ C₁ ⟧ A → ⟦ C₂ ⟧ A
     natural  : Natural function
 
 -- Natural isomorphisms.
 
 record _[_]↔_ {c₁ c₂} (C₁ : Container c₁) ℓ (C₂ : Container c₂) :
-              Set (c₁ ⊔ c₂ ⊔ lsuc ℓ) where
+              Type (c₁ ⊔ c₂ ⊔ lsuc ℓ) where
   field
-    isomorphism : {A : Set ℓ} → ⟦ C₁ ⟧ A ↔ ⟦ C₂ ⟧ A
+    isomorphism : {A : Type ℓ} → ⟦ C₁ ⟧ A ↔ ⟦ C₂ ⟧ A
     natural     : Natural (_↔_.to isomorphism)
 
   -- Natural isomorphisms are natural transformations.
@@ -119,7 +120,7 @@ record _[_]↔_ {c₁ c₂} (C₁ : Container c₁) ℓ (C₂ : Container c₂) 
         from (map f (to (from xs)))  ≡⟨ cong (from ∘ map f) $ right-inverse-of _ ⟩∎
         from (map f xs)              ∎
     }
-    where open module I {A : Set ℓ} = _↔_ (isomorphism {A = A})
+    where open module I {A : Type ℓ} = _↔_ (isomorphism {A = A})
 
 open Function-universe using (inverse)
 
@@ -128,15 +129,15 @@ open Function-universe using (inverse)
 
 -- Definition of Any for containers.
 
-Any : ∀ {a c p} {A : Set a} {C : Container c} →
-      (A → Set p) → (⟦ C ⟧ A → Set (c ⊔ p))
+Any : ∀ {a c p} {A : Type a} {C : Container c} →
+      (A → Type p) → (⟦ C ⟧ A → Type (c ⊔ p))
 Any {C = S ▷ P} Q (s , f) = ∃ λ (p : P s) → Q (f p)
 
 -- Membership predicate.
 
 infix 4 _∈_
 
-_∈_ : ∀ {a c} {A : Set a} {C : Container c} → A → ⟦ C ⟧ A → Set _
+_∈_ : ∀ {a c} {A : Type a} {C : Container c} → A → ⟦ C ⟧ A → Type _
 x ∈ xs = Any (λ y → x ≡ y) xs
 
 -- Bag equivalence etc. Note that the containers can be different as
@@ -145,8 +146,8 @@ x ∈ xs = Any (λ y → x ≡ y) xs
 infix 4 _∼[_]_
 
 _∼[_]_ : ∀ {a c₁ c₂}
-           {A : Set a} {C₁ : Container c₁} {C₂ : Container c₂} →
-         ⟦ C₁ ⟧ A → Kind → ⟦ C₂ ⟧ A → Set _
+           {A : Type a} {C₁ : Container c₁} {C₂ : Container c₂} →
+         ⟦ C₁ ⟧ A → Kind → ⟦ C₂ ⟧ A → Type _
 xs ∼[ k ] ys = ∀ z → z ∈ xs ↝[ k ] z ∈ ys
 
 -- Bag equivalence.
@@ -154,8 +155,8 @@ xs ∼[ k ] ys = ∀ z → z ∈ xs ↝[ k ] z ∈ ys
 infix 4 _≈-bag_
 
 _≈-bag_ : ∀ {a c₁ c₂}
-            {A : Set a} {C₁ : Container c₁} {C₂ : Container c₂} →
-          ⟦ C₁ ⟧ A → ⟦ C₂ ⟧ A → Set _
+            {A : Type a} {C₁ : Container c₁} {C₂ : Container c₂} →
+          ⟦ C₁ ⟧ A → ⟦ C₂ ⟧ A → Type _
 xs ≈-bag ys = xs ∼[ bag ] ys
 
 ------------------------------------------------------------------------
@@ -163,15 +164,15 @@ xs ≈-bag ys = xs ∼[ bag ] ys
 
 -- Lemma relating Any to map.
 
-Any-map : ∀ {a b c p} {A : Set a} {B : Set b} {C : Container c}
-          (P : B → Set p) (f : A → B) (xs : ⟦ C ⟧ A) →
+Any-map : ∀ {a b c p} {A : Type a} {B : Type b} {C : Container c}
+          (P : B → Type p) (f : A → B) (xs : ⟦ C ⟧ A) →
           Any P (map f xs) ↔ Any (P ∘ f) xs
 Any-map P f xs = Any P (map f xs) □
 
 -- Any can be expressed using _∈_.
 
-Any-∈ : ∀ {a c p} {A : Set a} {C : Container c}
-        (P : A → Set p) (xs : ⟦ C ⟧ A) →
+Any-∈ : ∀ {a c p} {A : Type a} {C : Container c}
+        (P : A → Type p) (xs : ⟦ C ⟧ A) →
         Any P xs ↔ ∃ λ x → P x × x ∈ xs
 Any-∈ P (s , f) =
   (∃ λ p → P (f p))                ↔⟨ ∃-cong (λ p → ∃-intro P (f p)) ⟩
@@ -181,8 +182,8 @@ Any-∈ P (s , f) =
 
 -- Using this property we can prove that Any and _⊎_ commute.
 
-Any-⊎ : ∀ {a c p q} {A : Set a} {C : Container c}
-        (P : A → Set p) (Q : A → Set q) (xs : ⟦ C ⟧ A) →
+Any-⊎ : ∀ {a c p q} {A : Type a} {C : Container c}
+        (P : A → Type p) (Q : A → Type q) (xs : ⟦ C ⟧ A) →
         Any (λ x → P x ⊎ Q x) xs ↔ Any P xs ⊎ Any Q xs
 Any-⊎ P Q xs =
   Any (λ x → P x ⊎ Q x) xs                         ↔⟨ Any-∈ (λ x → P x ⊎ Q x) xs ⟩
@@ -195,8 +196,8 @@ Any-⊎ P Q xs =
 -- equivalence and similar relations.
 
 Any-cong : ∀ {k a c d p q}
-             {A : Set a} {C : Container c} {D : Container d}
-           (P : A → Set p) (Q : A → Set q)
+             {A : Type a} {C : Container c} {D : Container d}
+           (P : A → Type p) (Q : A → Type q)
            (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
            (∀ x → P x ↝[ k ] Q x) → xs ∼[ k ] ys →
            Any P xs ↝[ k ] Any Q ys
@@ -208,11 +209,12 @@ Any-cong P Q xs ys P↔Q xs∼ys =
 
 -- Map preserves the relations.
 
-map-cong : ∀ {k a b c d}
-             {A : Set a} {B : Set b} {C : Container c} {D : Container d}
-           (f : A → B)
-           (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
-           xs ∼[ k ] ys → map f xs ∼[ k ] map f ys
+map-cong :
+  ∀ {k a b c d}
+    {A : Type a} {B : Type b} {C : Container c} {D : Container d}
+  (f : A → B)
+  (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
+  xs ∼[ k ] ys → map f xs ∼[ k ] map f ys
 map-cong f xs ys xs∼ys = λ z →
   z ∈ map f xs            ↔⟨ Any-map (_≡_ z) f xs ⟩
   Any (λ x → z ≡ f x) xs  ↝⟨ Any-cong _ _ xs ys (λ x → z ≡ f x □) xs∼ys ⟩
@@ -221,8 +223,8 @@ map-cong f xs ys xs∼ys = λ z →
 
 -- Lemma relating Any to if_then_else_.
 
-Any-if : ∀ {a c p} {A : Set a} {C : Container c}
-         (P : A → Set p) (xs ys : ⟦ C ⟧ A) b →
+Any-if : ∀ {a c p} {A : Type a} {C : Container c}
+         (P : A → Type p) (xs ys : ⟦ C ⟧ A) b →
          Any P (if b then xs else ys) ↔
          T b × Any P xs ⊎ T (not b) × Any P ys
 Any-if P xs ys =
@@ -234,7 +236,7 @@ Any-if P xs ys =
 --
 -- (The following lemmas were suggested by an anonymous reviewer.)
 
-Shape′ : ∀ {c} → (Set → Set c) → Set c
+Shape′ : ∀ {c} → (Type → Type c) → Type c
 Shape′ F = F ⊤
 
 Shape-⟦⟧ : ∀ {c} (C : Container c) →
@@ -244,9 +246,9 @@ Shape-⟦⟧ C =
   Shape C × ⊤                             ↔⟨ ∃-cong (λ _ → inverse →-right-zero) ⟩
   (∃ λ (s : Shape C) → Position C s → ⊤)  □
 
-Position′ : ∀ {c} (F : Set → Set c) →
-            ({A : Set} → (A → Set) → (F A → Set c)) →
-            Shape′ F → Set c
+Position′ : ∀ {c} (F : Type → Type c) →
+            ({A : Type} → (A → Type) → (F A → Type c)) →
+            Shape′ F → Type c
 Position′ _ Any = Any (λ (_ : ⊤) → ⊤)
 
 Position-Any : ∀ {c} {C : Container c} (s : Shape C) →
@@ -269,7 +271,7 @@ expressed-in-terms-of-interpretation-and-Any C = record
   -- If equality of functions had been extensional, then the following
   -- lemma could have been replaced by a congruence lemma applied to
   -- Position-Any.
-  lemma : ∀ {a b} {A : Set a} {B : Set b} → (B → A) ↔ (B × ⊤ → A)
+  lemma : ∀ {a b} {A : Type a} {B : Type b} → (B → A) ↔ (B × ⊤ → A)
   lemma = record
     { surjection = record
       { logical-equivalence = record
@@ -289,8 +291,8 @@ expressed-in-terms-of-interpretation-and-Any C = record
 
 infix 4 _≈[_]′_
 
-_≈[_]′_ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
-          ⟦ C ⟧ A → Isomorphism-kind → ⟦ D ⟧ A → Set _
+_≈[_]′_ : ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
+          ⟦ C ⟧ A → Isomorphism-kind → ⟦ D ⟧ A → Type _
 _≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
   ∃ λ (P↔P : Position C s ↔[ k ] Position D s′) →
       (∀ p → f p ≡ f′ (to-implication P↔P p))
@@ -298,7 +300,7 @@ _≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
 -- If the position sets are sets (have H-level two), then the two
 -- instantiations of _≈[_]′_ are isomorphic (assuming extensionality).
 
-≈′↔≈′ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
+≈′↔≈′ : ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
         Extensionality (c ⊔ d) (c ⊔ d) →
         (∀ s → Is-set (Position C s)) →
         (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
@@ -315,21 +317,22 @@ _≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
 -- the element". In fact, membership /is/ expressed in this way, so
 -- this proof is unnecessary.
 
-∈-index : ∀ {a c} {A : Set a} {C : Container c} {z}
+∈-index : ∀ {a c} {A : Type a} {C : Container c} {z}
           (xs : ⟦ C ⟧ A) → z ∈ xs ↔ ∃ λ p → z ≡ index xs p
 ∈-index {z = z} xs = z ∈ xs □
 
 -- The index which points to the element (not used below).
 
-index-of : ∀ {a c} {A : Set a} {C : Container c} {z}
+index-of : ∀ {a c} {A : Type a} {C : Container c} {z}
            (xs : ⟦ C ⟧ A) → z ∈ xs → Position C (shape xs)
 index-of xs = proj₁ ∘ to-implication (∈-index xs)
 
 -- The positions for a given shape can be expressed in terms of the
 -- membership predicate.
 
-Position-shape : ∀ {a c} {A : Set a} {C : Container c} (xs : ⟦ C ⟧ A) →
-                 (∃ λ z → z ∈ xs) ↔ Position C (shape xs)
+Position-shape :
+  ∀ {a c} {A : Type a} {C : Container c} (xs : ⟦ C ⟧ A) →
+  (∃ λ z → z ∈ xs) ↔ Position C (shape xs)
 Position-shape {C = C} (s , f) =
   (∃ λ z → ∃ λ p → z ≡ f p)  ↔⟨ ∃-comm ⟩
   (∃ λ p → ∃ λ z → z ≡ f p)  ↔⟨⟩
@@ -340,7 +343,7 @@ Position-shape {C = C} (s , f) =
 -- Position _ ∘ shape respects the various relations.
 
 Position-shape-cong :
-  ∀ {k a c d} {A : Set a} {C : Container c} {D : Container d}
+  ∀ {k a c d} {A : Type a} {C : Container c} {D : Container d}
   (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
   xs ∼[ k ] ys → Position C (shape xs) ↝[ k ] Position D (shape ys)
 Position-shape-cong {C = C} {D} xs ys xs∼ys =
@@ -352,7 +355,7 @@ Position-shape-cong {C = C} {D} xs ys xs∼ys =
 -- Furthermore Position-shape-cong relates equal elements.
 
 Position-shape-cong-relates :
-  ∀ {k a c d} {A : Set a} {C : Container c} {D : Container d}
+  ∀ {k a c d} {A : Type a} {C : Container c} {D : Container d}
   (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) (xs≈ys : xs ∼[ k ] ys) p →
   index xs p ≡
     index ys (to-implication (Position-shape-cong xs ys xs≈ys) p)
@@ -391,7 +394,7 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
 -- We get that the two definitions of bag equivalence are logically
 -- equivalent.
 
-≈⇔≈′ : ∀ {k a c d} {A : Set a} {C : Container c} {D : Container d}
+≈⇔≈′ : ∀ {k a c d} {A : Type a} {C : Container c} {D : Container d}
        (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
        xs ∼[ ⌊ k ⌋-iso ] ys ⇔ xs ≈[ k ]′ ys
 ≈⇔≈′ {k} xs ys = record
@@ -417,7 +420,7 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
 -- for streams, and finally I could complete a proof of the statement
 -- below.
 
-≈↔≈′ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
+≈↔≈′ : ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
        Extensionality (a ⊔ c ⊔ d) (a ⊔ c ⊔ d) →
        (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
        xs ∼[ bag-with-equivalence ] ys ↔
@@ -428,7 +431,7 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
     ; right-inverse-of    = λ { (⟨ f , f-eq ⟩ , related) →
       let
         P : (Position C (shape xs) → Position D (shape ys)) →
-            Set (a ⊔ c)
+            Type (a ⊔ c)
         P f = ∀ p → index xs p ≡ index ys (f p)
 
         f-eq′ : Is-equivalence f
@@ -484,14 +487,14 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
 
 infix 4 _∼[_]″_
 
-_∼[_]″_ : ∀ {a c d} {A : Set a} {C : Container c} {D : Container d} →
-          ⟦ C ⟧ A → Kind → ⟦ D ⟧ A → Set (lsuc a ⊔ c ⊔ d)
+_∼[_]″_ : ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
+          ⟦ C ⟧ A → Kind → ⟦ D ⟧ A → Type (lsuc a ⊔ c ⊔ d)
 _∼[_]″_ {a} {A = A} xs k ys =
-  (P : A → Set a) → Any P xs ↝[ k ] Any P ys
+  (P : A → Type a) → Any P xs ↝[ k ] Any P ys
 
 -- This definition is logically equivalent to _∼[_]_.
 
-∼⇔∼″ : ∀ {k a c d} {A : Set a} {C : Container c} {D : Container d}
+∼⇔∼″ : ∀ {k a c d} {A : Type a} {C : Container c} {D : Container d}
        (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
        xs ∼[ k ] ys ⇔ xs ∼[ k ]″ ys
 ∼⇔∼″ xs ys = record
@@ -505,9 +508,9 @@ _∼[_]″_ {a} {A = A} xs k ys =
 -- Lifts a family of binary relations from A to ⟦ C ⟧ A.
 
 ⟦_⟧₂ :
-  ∀ {a c r} {A : Set a} (C : Container c) →
-  (A → A → Set r) →
-  ⟦ C ⟧ A → ⟦ C ⟧ A → Set (c ⊔ r)
+  ∀ {a c r} {A : Type a} (C : Container c) →
+  (A → A → Type r) →
+  ⟦ C ⟧ A → ⟦ C ⟧ A → Type (c ⊔ r)
 ⟦ C ⟧₂ R (s , f) (t , g) =
   ∃ λ (eq : s ≡ t) →
   (p : Position C s) →
@@ -518,8 +521,8 @@ _∼[_]″_ {a} {A = A} xs k ys =
 -- A map function for ⟦_⟧₂.
 
 ⟦⟧₂-map :
-  ∀ {a b c r s} {A : Set a} {B : Set b} {C : Container c}
-  (R : A → A → Set r) (S : B → B → Set s) (f : A → B) →
+  ∀ {a b c r s} {A : Type a} {B : Type b} {C : Container c}
+  (R : A → A → Type r) (S : B → B → Type s) (f : A → B) →
   (∀ x y → R x y → S (f x) (f y)) →
   (∀ x y → ⟦ C ⟧₂ R x y → ⟦ C ⟧₂ S (map f x) (map f y))
 ⟦⟧₂-map _ _ _ f _ _ = Σ-map id (f _ _ ∘_)
@@ -527,8 +530,8 @@ _∼[_]″_ {a} {A = A} xs k ys =
 -- ⟦_⟧₂ preserves reflexivity.
 
 ⟦⟧₂-reflexive :
-  ∀ {a c r} {A : Set a} {C : Container c}
-  (R : A → A → Set r) →
+  ∀ {a c r} {A : Type a} {C : Container c}
+  (R : A → A → Type r) →
   (∀ x → R x x) →
   (∀ x → ⟦ C ⟧₂ R x x)
 ⟦⟧₂-reflexive {C = C} R r (xs , f) =
@@ -540,8 +543,8 @@ _∼[_]″_ {a} {A = A} xs k ys =
 -- ⟦_⟧₂ preserves symmetry.
 
 ⟦⟧₂-symmetric :
-  ∀ {a c r} {A : Set a} {C : Container c}
-  (R : A → A → Set r) →
+  ∀ {a c r} {A : Type a} {C : Container c}
+  (R : A → A → Type r) →
   (∀ {x y} → R x y → R y x) →
   (∀ {x y} → ⟦ C ⟧₂ R x y → ⟦ C ⟧₂ R y x)
 ⟦⟧₂-symmetric {C = C} R r {_ , f} {_ , g} (eq , h) =
@@ -557,8 +560,8 @@ _∼[_]″_ {a} {A = A} xs k ys =
 -- ⟦_⟧₂ preserves transitivity.
 
 ⟦⟧₂-transitive :
-  ∀ {a c r} {A : Set a} {C : Container c}
-  (R : A → A → Set r) →
+  ∀ {a c r} {A : Type a} {C : Container c}
+  (R : A → A → Type r) →
   (∀ {x y z} → R x y → R y z → R x z) →
   (∀ {x y z} → ⟦ C ⟧₂ R x y → ⟦ C ⟧₂ R y z → ⟦ C ⟧₂ R x z)
 ⟦⟧₂-transitive {C = C}

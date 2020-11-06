@@ -25,7 +25,7 @@ open import Monad eq
 
 infix 3 ¬¬_
 
-record ¬¬_ {a} (A : Set a) : Set a where
+record ¬¬_ {a} (A : Type a) : Type a where
   constructor wrap
   field
     run : ¬ ¬ A
@@ -34,31 +34,33 @@ open ¬¬_ public
 
 -- An extra universe-polymorphic variant of map.
 
-map′ : ∀ {a b} {@0 A : Set a} {@0 B : Set b} → (A → B) → ¬¬ A → ¬¬ B
+map′ :
+  ∀ {a b} {@0 A : Type a} {@0 B : Type b} →
+  (A → B) → ¬¬ A → ¬¬ B
 run (map′ f ¬¬a) = λ ¬b → run ¬¬a (λ a → ¬b (f a))
 
 -- Instances.
 
 instance
 
-  double-negation-monad : ∀ {ℓ} → Raw-monad (λ (A : Set ℓ) → ¬¬ A)
+  double-negation-monad : ∀ {ℓ} → Raw-monad (λ (A : Type ℓ) → ¬¬ A)
   run (Raw-monad.return double-negation-monad x)   = _$ x
   run (Raw-monad._>>=_  double-negation-monad x f) =
     join (map′ (run ∘ f) x)
     where
-    join : ∀ {a} {A : Set a} → ¬¬ ¬ A → ¬ A
+    join : ∀ {a} {A : Type a} → ¬¬ ¬ A → ¬ A
     join ¬¬¬a = λ a → run ¬¬¬a (λ ¬a → ¬a a)
 
 private
 
-  proof-irrelevant : ∀ {a} {A : Set a} {x y : ¬¬ A} →
+  proof-irrelevant : ∀ {a} {A : Type a} {x y : ¬¬ A} →
                      Extensionality a lzero → x ≡ y
   proof-irrelevant ext =
     cong wrap $ apply-ext ext λ _ → ⊥-propositional _ _
 
 monad : ∀ {ℓ} →
         Extensionality ℓ lzero →
-        Monad (λ (A : Set ℓ) → ¬¬ A)
+        Monad (λ (A : Type ℓ) → ¬¬ A)
 Monad.raw-monad      (monad _)         = double-negation-monad
 Monad.left-identity  (monad ext) _ _   = proof-irrelevant ext
 Monad.right-identity (monad ext) _     = proof-irrelevant ext
@@ -66,12 +68,12 @@ Monad.associativity  (monad ext) _ _ _ = proof-irrelevant ext
 
 -- The following variant of excluded middle is provable.
 
-excluded-middle : ∀ {a} {@0 A : Set a} → ¬¬ Dec A
+excluded-middle : ∀ {a} {@0 A : Type a} → ¬¬ Dec A
 run excluded-middle ¬[a⊎¬a] = ¬[a⊎¬a] (no λ a → ¬[a⊎¬a] (yes a))
 
 -- The following variant of Peirce's law is provable.
 
-call/cc : ∀ {a w} {@0 A : Set a} {Whatever : Set w} →
+call/cc : ∀ {a w} {@0 A : Type a} {Whatever : Type w} →
           ((A → Whatever) → ¬¬ A) → ¬¬ A
 run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
 
@@ -84,7 +86,7 @@ run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
 -- If the double-negation of a negation can be proved, then the
 -- negation itself can be proved.
 
-¬¬¬→¬ : ∀ {a} {A : Set a} → ¬¬ ¬ A → ¬ A
+¬¬¬→¬ : ∀ {a} {A : Type a} → ¬¬ ¬ A → ¬ A
 ¬¬¬→¬ ¬¬¬a = λ a → ¬¬¬⊥ (¬¬¬a >>= λ ¬a → ⊥-elim (¬a a))
 
 ------------------------------------------------------------------------
@@ -92,9 +94,9 @@ run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
 
 -- Double-negation elimination (roughly as stated in the HoTT book).
 
-Double-negation-elimination : (ℓ : Level) → Set (lsuc ℓ)
+Double-negation-elimination : (ℓ : Level) → Type (lsuc ℓ)
 Double-negation-elimination p =
-  {P : Set p} → Is-proposition P → ¬¬ P → P
+  {P : Type p} → Is-proposition P → ¬¬ P → P
 
 -- Double-negation elimination is propositional (assuming
 -- extensionality).

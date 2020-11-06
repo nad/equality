@@ -16,13 +16,13 @@ open Derived-definitions-and-properties eq
 
 -- Groupoids using _≡_ as the underlying equality.
 
-record Groupoid o p : Set (lsuc (o ⊔ p)) where
+record Groupoid o p : Type (lsuc (o ⊔ p)) where
   infix  8 _⁻¹
   infixr 7 _∘_
   infix  4 _∼_
   field
-    Object : Set o
-    _∼_    : Object → Object → Set p
+    Object : Type o
+    _∼_    : Object → Object → Type p
 
     id  : ∀ {x} → x ∼ x
     _∘_ : ∀ {x y z} → y ∼ z → x ∼ y → x ∼ z

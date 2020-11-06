@@ -25,12 +25,12 @@ open import Nat eq
 
 -- The limited principle of omniscience.
 
-LPO : Set
+LPO : Type
 LPO = (f : ℕ → Bool) → (∀ n → f n ≡ false) ⊎ (∃ λ n → f n ≡ true)
 
 -- The weak limited principle of omniscience.
 
-WLPO : Set
+WLPO : Type
 WLPO = (f : ℕ → Bool) → Dec (∀ n → f n ≡ false)
 
 -- WLPO is propositional (assuming extensionality).
@@ -75,7 +75,7 @@ mutual
 
   LPO⇔propositional :
     Extensionality lzero lzero →
-    ∃ λ (P : Set) → Is-proposition P × (LPO ⇔ P)
+    ∃ λ (P : Type) → Is-proposition P × (LPO ⇔ P)
   LPO⇔propositional ext =
     let P , P-prop , LPO⇔ = LPO⇔propositional′ ext in
 
@@ -89,7 +89,7 @@ mutual
 
   LPO⇔propositional′ :
     Extensionality lzero lzero →
-    ∃ λ (P : (ℕ → Bool) → Set) →
+    ∃ λ (P : (ℕ → Bool) → Type) →
       (∀ f → Is-proposition (P f)) ×
       (LPO ⇔ ∀ f → P f ⊎ ¬ P f)
   LPO⇔propositional′ ext =
@@ -162,6 +162,6 @@ LEM→LPO : Extensionality lzero lzero → Excluded-middle lzero → LPO
 LEM→LPO ext =
   let P , P-prop , LPO⇔P = LPO⇔propositional′ ext in
 
-  ({P : Set} → Is-proposition P → Dec P)  ↝⟨ _∘ P-prop ⟩
-  (∀ f → P f ⊎ ¬ P f)                     ↝⟨ _⇔_.from LPO⇔P ⟩□
-  LPO                                     □
+  ({P : Type} → Is-proposition P → Dec P)  ↝⟨ _∘ P-prop ⟩
+  (∀ f → P f ⊎ ¬ P f)                      ↝⟨ _⇔_.from LPO⇔P ⟩□
+  LPO                                      □

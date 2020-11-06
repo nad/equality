@@ -8,6 +8,7 @@ module Equality.Id where
 
 open import Equality
 import Equality.Path as P
+open import Prelude
 
 import Agda.Builtin.Cubical.Id as Id
 
@@ -16,10 +17,10 @@ import Agda.Builtin.Cubical.Id as Id
 
 infix 4 _≡_
 
-_≡_ : ∀ {a} {A : Set a} → A → A → Set a
+_≡_ : ∀ {a} {A : Type a} → A → A → Type a
 _≡_ = Id.Id
 
-refl : ∀ {a} {A : Set a} {x : A} → x ≡ x
+refl : ∀ {a} {A : Type a} {x : A} → x ≡ x
 refl = Id.conid P.1̲ P.refl
 
 ------------------------------------------------------------------------

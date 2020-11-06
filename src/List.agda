@@ -26,7 +26,7 @@ open import Nat.Solver eq
 private
   variable
     a ℓ      : Level
-    A B C    : Set a
+    A B C    : Type a
     x y      : A
     f        : A → B
     n        : ℕ

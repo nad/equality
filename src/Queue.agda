@@ -23,8 +23,8 @@ open import Surjection eq using (_↠_)
 private
   variable
     a ℓ ℓ₁ ℓ₂ : Level
-    A B       : Set a
-    P Q       : ∀ {ℓ} → Set ℓ → Set ℓ
+    A B       : Type a
+    P Q       : ∀ {ℓ} → Type ℓ → Type ℓ
     p q x     : A
     f         : A → B
     xs        : List A
@@ -34,34 +34,34 @@ private
 
 record Is-queue
          -- A family of queue types.
-         (Q : ∀ {ℓ} → Set ℓ → Set ℓ)
+         (Q : ∀ {ℓ} → Type ℓ → Type ℓ)
          -- Some operations are only available for carrier types
          -- satisfying this predicate.
-         (P : ∀ {ℓ} → Set ℓ → Set ℓ)
+         (P : ∀ {ℓ} → Type ℓ → Type ℓ)
          ℓ :
-         Set (lsuc ℓ) where
+         Type (lsuc ℓ) where
   field
 
     -- Conversion functions.
 
-    to-List           : {A : Set ℓ} → P A → Q A → List A
-    from-List         : {A : Set ℓ} → List A → Q A
+    to-List           : {A : Type ℓ} → P A → Q A → List A
+    from-List         : {A : Type ℓ} → List A → Q A
     to-List-from-List : to-List p (from-List xs) ≡ xs
 
     -- Enqueues an element.
 
-    enqueue         : {A : Set ℓ} → A → Q A → Q A
+    enqueue         : {A : Type ℓ} → A → Q A → Q A
     to-List-enqueue : to-List p (enqueue x q) ≡ to-List p q ++ x ∷ []
 
     -- Dequeues an element, if possible.
 
-    dequeue         : {A : Set ℓ} → P A → Q A → Maybe (A × Q A)
+    dequeue         : {A : Type ℓ} → P A → Q A → Maybe (A × Q A)
     to-List-dequeue : ⊎-map id (Σ-map id (to-List p)) (dequeue p q) ≡
                       _↔_.to List↔Maybe[×List] (to-List p q)
 
     -- The "inverse" of the dequeue operation.
 
-    dequeue⁻¹         : {A : Set ℓ} → Maybe (A × Q A) → Q A
+    dequeue⁻¹         : {A : Type ℓ} → Maybe (A × Q A) → Q A
     to-List-dequeue⁻¹ :
       to-List p (dequeue⁻¹ x) ≡
       _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id (to-List p)) x)
@@ -120,15 +120,15 @@ open Is-queue⁺ public
 -- output-restricted deques with a map function.
 
 record Is-queue-with-map
-         (Q : ∀ {ℓ} → Set ℓ → Set ℓ)
+         (Q : ∀ {ℓ} → Type ℓ → Type ℓ)
          ⦃ is-queue : ∀ {ℓ} → Is-queue Q P ℓ ⦄
          ℓ₁ ℓ₂ :
-         Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
+         Type (lsuc (ℓ₁ ⊔ ℓ₂)) where
   field
 
     -- A map function.
 
-    map         : {A : Set ℓ₁} {B : Set ℓ₂} →
+    map         : {A : Type ℓ₁} {B : Type ℓ₂} →
                   (A → B) → Q A → Q B
     to-List-map : {p₁ : P B} {p₂ : P A} →
                   to-List p₁ (map f q) ≡ L.map f (to-List p₂ q)
@@ -152,16 +152,16 @@ open Is-queue-with-map⁺ public
 -- output-restricted deques with unique representations.
 
 record Is-queue-with-unique-representations
-         (Q : ∀ {ℓ} → Set ℓ → Set ℓ)
+         (Q : ∀ {ℓ} → Type ℓ → Type ℓ)
          ⦃ is-queue : ∀ {ℓ} → Is-queue Q P ℓ ⦄
          ℓ :
-         Set (lsuc ℓ) where
+         Type (lsuc ℓ) where
   field
 
     -- The from-List function is a left inverse of to-List.
 
     from-List-to-List :
-      {A : Set ℓ} {p : P A} {q : Q A} →
+      {A : Type ℓ} {p : P A} {q : Q A} →
       from-List (to-List p q) ≡ q
 
 -- This module exports universe-polymorphic queue
@@ -191,7 +191,7 @@ module Is-queue-with-unique-representations⁺
   -- of the corresponding lists.
 
   ≡-for-lists↔≡ :
-    {A : Set a} {p : P A} {q₁ q₂ : Q A} →
+    {A : Type a} {p : P A} {q₁ q₂ : Q A} →
     to-List p q₁ ≡ to-List p q₂ ↔ q₁ ≡ q₂
   ≡-for-lists↔≡ {p = p} {q₁ = q₁} {q₂ = q₂} =
     to-List p q₁ ≡ to-List p q₂  ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ $ Queue↔List _ ⟩□
@@ -231,18 +231,18 @@ module Is-queue-with-unique-representations⁺
 
          to-List p q                                        ∎))
 
-  _ : {A : Set a} {p : P A} →
+  _ : {A : Type a} {p : P A} →
       _↔_.to (Queue↔Maybe[×Queue] p) ≡ dequeue p
   _ = refl _
 
-  _ : {A : Set a} {p : P A} →
+  _ : {A : Type a} {p : P A} →
       _↔_.from (Queue↔Maybe[×Queue] p) ≡ dequeue⁻¹
   _ = refl _
 
   -- The function from-List can be expressed using enqueue and empty.
 
   from-List≡foldl-enqueue-empty :
-    {A : Set a} {xs : List A} →
+    {A : Type a} {xs : List A} →
     P A → from-List xs ≡ foldl (flip enqueue) empty xs
   from-List≡foldl-enqueue-empty {A = A} {xs = xs} p =
     _↔_.to ≡-for-lists↔≡ (
@@ -268,7 +268,7 @@ module Is-queue-with-unique-representations⁺
   -- A corollary.
 
   to-List-foldl-enqueue-empty :
-    {A : Set a} {p : P A} (xs : List A) →
+    {A : Type a} {p : P A} (xs : List A) →
     to-List p (foldl (flip enqueue) empty xs) ≡ xs
   to-List-foldl-enqueue-empty {p = p} xs =
     to-List p (foldl (flip enqueue) empty xs)  ≡⟨ cong (to-List p) $ sym $ from-List≡foldl-enqueue-empty p ⟩

@@ -21,7 +21,7 @@ private
 
   variable
     a b c : Level
-    A B   : Set a
+    A B   : Type a
     f g   : A → B
     n     : ℕ
 
@@ -30,7 +30,7 @@ private
 
 -- Vectors.
 
-Vec : Set a → ℕ → Set a
+Vec : Type a → ℕ → Type a
 Vec A zero    = ↑ _ ⊤
 Vec A (suc n) = A × Vec A n
 
@@ -136,12 +136,12 @@ from-list (x ∷ xs) = x , from-list xs
 -- The map function satisfies the functor laws.
 
 map-id :
-  {A : Set a} {xs : Vec A n} → map id xs ≡ xs
+  {A : Type a} {xs : Vec A n} → map id xs ≡ xs
 map-id {n = zero}  = refl _
 map-id {n = suc n} = cong (_ ,_) map-id
 
 map-∘ :
-  {A : Set a} {B : Set b} {C : Set c} {f : B → C} {g : A → B}
+  {A : Type a} {B : Type b} {C : Type c} {f : B → C} {g : A → B}
   {xs : Vec A n} →
   map (f ∘ g) xs ≡ map f (map g xs)
 map-∘ {n = zero}  = refl _

@@ -36,7 +36,7 @@ private
     open Prelude public using (zero; suc; _^_)
 
   variable
-    A     : Set
+    A     : Type
     inv n : A
     b     : Bool
     bs    : List Bool
@@ -62,14 +62,14 @@ private
 
         infixr 5 _∷_
 
-        data Bin′ : Set where
+        data Bin′ : Type where
           []  : Bin′
           _∷_ : (b : Bool) (n : Bin′)
                 { @0 invariant : Invariant b n } → Bin′
 
         private
 
-          Invariant : Bool → Bin′ → Set
+          Invariant : Bool → Bin′ → Type
           Invariant true  _       = ⊤
           Invariant false (_ ∷ _) = ⊤
           Invariant false []      = ⊥

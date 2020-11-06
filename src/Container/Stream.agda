@@ -32,35 +32,35 @@ Stream = ⊤ ▷ const ℕ
 
 infixr 5 _∷_
 
-_∷_ : {A : Set} → A → ⟦ Stream ⟧ A → ⟦ Stream ⟧ A
+_∷_ : {A : Type} → A → ⟦ Stream ⟧ A → ⟦ Stream ⟧ A
 x ∷ (tt , lkup) = tt , λ { zero → x; (suc n) → lkup n }
 
 -- The head of a stream.
 
-head : {A : Set} → ⟦ Stream ⟧ A → A
+head : {A : Type} → ⟦ Stream ⟧ A → A
 head (tt , lkup) = lkup 0
 
 -- The tail of a stream.
 
-tail : {A : Set} → ⟦ Stream ⟧ A → ⟦ Stream ⟧ A
+tail : {A : Type} → ⟦ Stream ⟧ A → ⟦ Stream ⟧ A
 tail (tt , lkup) = (tt , lkup ∘ suc)
 
 -- Appending a stream to a list.
 
 infixr 5 _++_
 
-_++_ : {A : Set} → ⟦ List ⟧ A → ⟦ Stream ⟧ A → ⟦ Stream ⟧ A
+_++_ : {A : Type} → ⟦ List ⟧ A → ⟦ Stream ⟧ A → ⟦ Stream ⟧ A
 xs ++ ys = fold ys (λ z _ zs → z ∷ zs) xs
 
 -- Taking the first n elements from a stream.
 
-take : {A : Set} → ℕ → ⟦ Stream ⟧ A → ⟦ List ⟧ A
+take : {A : Type} → ℕ → ⟦ Stream ⟧ A → ⟦ List ⟧ A
 take zero    xs = []
 take (suc n) xs = L._∷_ (head xs) (take n (tail xs))
 
 -- Dropping the first n elements from a stream.
 
-drop : {A : Set} → ℕ → ⟦ Stream ⟧ A → ⟦ Stream ⟧ A
+drop : {A : Type} → ℕ → ⟦ Stream ⟧ A → ⟦ Stream ⟧ A
 drop zero    xs = xs
 drop (suc n) xs = drop n (tail xs)
 
@@ -69,7 +69,7 @@ drop (suc n) xs = drop n (tail xs)
 
 -- Any lemma for head/tail.
 
-Any-head-tail : ∀ {A : Set} (P : A → Set) {xs} →
+Any-head-tail : ∀ {A : Type} (P : A → Type) {xs} →
                 Any P xs ↔ P (head xs) ⊎ Any P (tail xs)
 Any-head-tail P = record
   { surjection = record
@@ -92,7 +92,7 @@ Any-head-tail P = record
 
 -- Any lemma for cons.
 
-Any-∷ : ∀ {A : Set} (P : A → Set) {x xs} →
+Any-∷ : ∀ {A : Type} (P : A → Type) {x xs} →
         Any P (x ∷ xs) ↔ P x ⊎ Any P xs
 Any-∷ P = Any-head-tail P
 
@@ -101,7 +101,7 @@ Any-∷ P = Any-head-tail P
 -- (TODO: Generalise. The definitions of _++_ and Any-++ in this
 -- module are almost identical to those in Container.List.)
 
-Any-++ : ∀ {A : Set} (P : A → Set) (xs : ⟦ List ⟧ A) ys →
+Any-++ : ∀ {A : Type} (P : A → Type) (xs : ⟦ List ⟧ A) ys →
          Any P (xs ++ ys) ↔ Any P xs ⊎ Any P ys
 Any-++ P xs ys = fold-lemma
   (λ xs xs++ys → Any P xs++ys ↔ Any P xs ⊎ Any P ys)
@@ -126,7 +126,7 @@ Any-++ P xs ys = fold-lemma
 
 -- Any lemma for take/drop.
 
-Any-take-drop : ∀ {A : Set} (P : A → Set) n {xs} →
+Any-take-drop : ∀ {A : Type} (P : A → Type) n {xs} →
                 Any P xs ↔ Any P (take n xs) ⊎ Any P (drop n xs)
 Any-take-drop P zero {xs} =
   Any P xs             ↔⟨ inverse ⊎-left-identity ⟩

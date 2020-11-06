@@ -35,9 +35,9 @@ import Univalence-axiom equality-with-J as Univ
 private
   variable
     a b                               : Level
-    A B                               : Set a
+    A B                               : Type a
     H p q x x₁ x₂ xs y y₁ y₂ ys z _≟_ : A
-    P                                 : A → Set p
+    P                                 : A → Type p
     f g                               : (x : A) → P x
     m n                               : ℕ
 
@@ -48,7 +48,7 @@ private
 
 infixr 5 _∷_
 
-data Finite-subset-of (A : Set a) : Set a where
+data Finite-subset-of (A : Type a) : Type a where
   []      : Finite-subset-of A
   _∷_     : A → Finite-subset-of A → Finite-subset-of A
   dropᴾ   : x ∷ x ∷ y P.≡ x ∷ y
@@ -76,8 +76,8 @@ is-set =
 
 -- A dependent eliminator, expressed using paths.
 
-record Elimᴾ {A : Set a} (P : Finite-subset-of A → Set p) :
-             Set (a ⊔ p) where
+record Elimᴾ {A : Type a} (P : Finite-subset-of A → Type p) :
+             Type (a ⊔ p) where
   no-eta-equality
   field
     []ʳ     : P []
@@ -114,7 +114,7 @@ elimᴾ {A = A} {P = P} e = helper
 
 -- A non-dependent eliminator, expressed using paths.
 
-record Recᴾ (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Recᴾ (A : Type a) (B : Type b) : Type (a ⊔ b) where
   no-eta-equality
   field
     []ʳ     : B
@@ -141,8 +141,8 @@ recᴾ r = elimᴾ e
 
 -- A dependent eliminator, expressed using equality.
 
-record Elim {A : Set a} (P : Finite-subset-of A → Set p) :
-            Set (a ⊔ p) where
+record Elim {A : Type a} (P : Finite-subset-of A → Type p) :
+            Type (a ⊔ p) where
   no-eta-equality
   field
     []ʳ     : P []
@@ -170,7 +170,7 @@ elim e = elimᴾ e′
 
 -- A non-dependent eliminator, expressed using equality.
 
-record Rec (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Rec (A : Type a) (B : Type b) : Type (a ⊔ b) where
   no-eta-equality
   field
     []ʳ     : B
@@ -198,8 +198,8 @@ rec r = recᴾ r′
 -- A dependent eliminator for propositions.
 
 record Elim-prop
-         {A : Set a} (P : Finite-subset-of A → Set p) :
-         Set (a ⊔ p) where
+         {A : Type a} (P : Finite-subset-of A → Type p) :
+         Type (a ⊔ p) where
   no-eta-equality
   field
     []ʳ             : P []
@@ -222,7 +222,7 @@ elim-prop e = elim e′
 
 -- A non-dependent eliminator for propositions.
 
-record Rec-prop (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Rec-prop (A : Type a) (B : Type b) : Type (a ⊔ b) where
   no-eta-equality
   field
     []ʳ             : B
@@ -501,7 +501,7 @@ private
 
   -- Membership is used to define _∈_ and ∈-propositional below.
 
-  Membership : {A : Set a} → A → Finite-subset-of A → Proposition a
+  Membership : {A : Type a} → A → Finite-subset-of A → Proposition a
   Membership x = rec r
     where
     r : Rec _ _
@@ -540,7 +540,7 @@ private
 
   infix 4 _∈_
 
-  record _∈_ {A : Set a} (x : A) (y : Finite-subset-of A) : Set a where
+  record _∈_ {A : Type a} (x : A) (y : Finite-subset-of A) : Type a where
     constructor box
     field
       unbox : proj₁ (Membership x y)
@@ -717,7 +717,7 @@ member? equal? x = elim-prop e
 
 infix 4 _⊆_
 
-_⊆_ : {A : Set a} → Finite-subset-of A → Finite-subset-of A → Set a
+_⊆_ : {A : Type a} → Finite-subset-of A → Finite-subset-of A → Type a
 x ⊆ y = ∀ z → z ∈ x → z ∈ y
 
 -- _⊆_ is pointwise propositional.
@@ -1056,7 +1056,7 @@ private
   -- This definition is not taken from "Finite Sets in Homotopy Type
   -- Theory", but it is based on the size function in that paper.
 
-  Size : {A : Set a} → Finite-subset-of A → ℕ → Proposition a
+  Size : {A : Type a} → Finite-subset-of A → ℕ → Proposition a
   Size {a = a} {A = A} = rec r
     where
 
@@ -1068,7 +1068,7 @@ private
 
       Cons′ :
         A → Finite-subset-of A →
-        (ℕ → Proposition a) → (ℕ → Set a)
+        (ℕ → Proposition a) → (ℕ → Type a)
       Cons′ x y ∣y∣≡ n =
         x ∈ y × proj₁ (∣y∣≡ n)
           ⊎
@@ -1076,7 +1076,7 @@ private
 
       Cons″ :
         A → Finite-subset-of A →
-        (ℕ → Proposition a) → (ℕ → Set a)
+        (ℕ → Proposition a) → (ℕ → Type a)
       Cons″ x y ∣y∣≡ zero    = ⊥
       Cons″ x y ∣y∣≡ (suc n) = ¬ x ∈ y × proj₁ (∣y∣≡ n)
 
@@ -1217,7 +1217,7 @@ private
 
 infix 4 ∣_∣≡_
 
-∣_∣≡_ : {A : Set a} → Finite-subset-of A → ℕ → Set a
+∣_∣≡_ : {A : Type a} → Finite-subset-of A → ℕ → Type a
 ∣ x ∣≡ n = proj₁ (Size x n)
 
 -- The size predicate is propositional.
@@ -1231,7 +1231,7 @@ infix 4 ∣_∣≡_
 _ : (∣ [] {A = A} ∣≡ n) ≡ ↑ _ (n ≡ 0)
 _ = refl _
 
-_ : ∀ {A : Set a} {x : A} {y} →
+_ : ∀ {A : Type a} {x : A} {y} →
     (∣ x ∷ y ∣≡ zero) ≡ (x ∈ y × ∣ y ∣≡ zero ⊎ ⊥)
 _ = refl _
 
@@ -1301,7 +1301,7 @@ size equal? = elim-prop e
 -- A type is finite if there is some finite subset of the type for
 -- which every element of the type is a member of the subset.
 
-is-finite : Set a → Set a
+is-finite : Type a → Type a
 is-finite A = ∃ λ (s : Finite-subset-of A) → ∀ x → x ∈ s
 
 -- The is-finite predicate is propositional.

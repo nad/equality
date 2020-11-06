@@ -32,8 +32,8 @@ import Univalence-axiom P.equality-with-J as PU
 private
   variable
     a p   : Level
-    A     : Set a
-    P     : A → Set p
+    A     : Type a
+    P     : A → Type p
     e r x : A
 
 ------------------------------------------------------------------------
@@ -42,7 +42,7 @@ private
 -- The figure of eight
 -- (https://topospaces.subwiki.org/wiki/Wedge_of_two_circles).
 
-data ∞ : Set where
+data ∞ : Type where
   base          : ∞
   loop₁ᴾ loop₂ᴾ : base P.≡ base
 
@@ -59,7 +59,7 @@ loop₂ = _↔_.from ≡↔≡ loop₂ᴾ
 
 -- An eliminator, expressed using paths.
 
-record Elimᴾ (P : ∞ → Set p) : Set p where
+record Elimᴾ (P : ∞ → Type p) : Type p where
   no-eta-equality
   field
     baseʳ  : P base
@@ -80,7 +80,7 @@ elimᴾ {P = P} e = helper
 
 -- A non-dependent eliminator, expressed using paths.
 
-record Recᴾ (A : Set a) : Set a where
+record Recᴾ (A : Type a) : Type a where
   no-eta-equality
   field
     baseʳ         : A
@@ -98,7 +98,7 @@ recᴾ r = elimᴾ λ where
 
 -- An eliminator.
 
-record Elim (P : ∞ → Set p) : Set p where
+record Elim (P : ∞ → Type p) : Type p where
   no-eta-equality
   field
     baseʳ  : P base
@@ -125,7 +125,7 @@ elim-loop₂ = dcong-subst≡→[]≡ (refl _)
 
 -- A non-dependent eliminator.
 
-record Rec (A : Set a) : Set a where
+record Rec (A : Type a) : Type a where
   no-eta-equality
   field
     baseʳ         : A
@@ -161,24 +161,24 @@ loop₁≢loop₂ : loop₁ ≢ loop₂
 loop₁≢loop₂ =
   loop₁ ≡ loop₂      ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (inverse ≡↔≡)) ⟩
   loop₁ᴾ ≡ loop₂ᴾ    ↔⟨ ≡↔≡ ⟩
-  loop₁ᴾ P.≡ loop₂ᴾ  ↝⟨ PU.¬-Set-set P.univ ∘ Set-set ⟩□
+  loop₁ᴾ P.≡ loop₂ᴾ  ↝⟨ PU.¬-Type-set P.univ ∘ Type-set ⟩□
   ⊥                  □
   where
   module _ (hyp : loop₁ᴾ P.≡ loop₂ᴾ) where
-    refl≡ : (A : Set) (A≡A : A P.≡ A) → P.refl P.≡ A≡A
+    refl≡ : (A : Type) (A≡A : A P.≡ A) → P.refl P.≡ A≡A
     refl≡ A A≡A =
       P.refl           P.≡⟨⟩
       P.cong F loop₁ᴾ  P.≡⟨ P.cong (P.cong F) hyp ⟩
       P.cong F loop₂ᴾ  P.≡⟨⟩
       A≡A              P.∎
       where
-      F : ∞ → Set
+      F : ∞ → Type
       F base       = A
       F (loop₁ᴾ i) = P.refl i
       F (loop₂ᴾ i) = A≡A i
 
-    Set-set : P.Is-set Set
-    Set-set {x = A} {y = B} =
+    Type-set : P.Is-set Type
+    Type-set {x = A} {y = B} =
       P.elim¹ (λ p → ∀ q → p P.≡ q)
               (refl≡ A)
 
@@ -252,7 +252,7 @@ trans-not-commutative =
         (fsuc (fsuc fzero)) → P.refl
     })
 
-  F : ∞ → Set
+  F : ∞ → Type
   F base       = Fin 3
   F (loop₁ᴾ i) = P.≃⇒≡ eq₁ i
   F (loop₂ᴾ i) = P.≃⇒≡ eq₂ i

@@ -15,7 +15,7 @@ open import Prelude
 private
   variable
     a           : Level
-    A B         : Set a
+    A B         : Type a
     x           : A
     f₁ f₂ g₁ g₂ : A → B
 

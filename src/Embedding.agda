@@ -27,7 +27,7 @@ open import Surjection eq using (_↠_)
 private
   variable
     a b t : Level
-    A B C : Set a
+    A B C : Type a
     f x y : A
 
 ------------------------------------------------------------------------
@@ -35,13 +35,13 @@ private
 
 -- The property of being an embedding.
 
-Is-embedding : {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Is-embedding : {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
 Is-embedding f = ∀ x y → Is-equivalence (cong {x = x} {y = y} f)
 
 -- Is-embedding is propositional (assuming extensionality).
 
 Is-embedding-propositional :
-  {A : Set a} {B : Set b} {f : A → B} →
+  {A : Type a} {B : Type b} {f : A → B} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-proposition (Is-embedding f)
 Is-embedding-propositional {b = b} ext =
@@ -51,7 +51,7 @@ Is-embedding-propositional {b = b} ext =
 
 -- Embeddings.
 
-record Embedding (From : Set f) (To : Set t) : Set (f ⊔ t) where
+record Embedding (From : Type f) (To : Type t) : Type (f ⊔ t) where
   field
     to           : From → To
     is-embedding : Is-embedding to
@@ -174,7 +174,7 @@ private
   -- (assuming extensionality).
 
   Injective-propositional :
-    {A : Set a} {B : Set b} {f : A → B} →
+    {A : Type a} {B : Type b} {f : A → B} →
     Extensionality (a ⊔ b) (a ⊔ b) →
     Is-set A → Is-proposition (Injective f)
   Injective-propositional {a = a} {b = b} ext A-set =
@@ -202,7 +202,7 @@ Injective⇔Is-embedding A-set B-set f = record
 -- extensionality).
 
 Injective≃Is-embedding :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-set A → Is-set B →
   (f : A → B) → Injective f ≃ Is-embedding f
@@ -218,7 +218,7 @@ Injective≃Is-embedding ext A-set B-set f =
 -- extensionality).
 
 ↣↔Embedding :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-set A → Is-set B →
   (A ↣ B) ↔ Embedding A B
@@ -253,7 +253,7 @@ Injective≃Is-embedding ext A-set B-set f =
 -- can be turned into a (split) surjection in the other direction.
 
 Embedding→↠ :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   Excluded-middle (a ⊔ b) →
   A → Embedding A B → B ↠ A
 Embedding→↠ {A = A} {B = B} em a A↣B = record

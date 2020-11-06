@@ -25,13 +25,13 @@ import Tree eq as Tree
 
 -- Shapes.
 
-data Shape : Set where
+data Shape : Type where
   lf : Shape
   nd : Shape → Shape → Shape
 
 -- Positions.
 
-data Position : Shape → Set where
+data Position : Shape → Type where
   root  : ∀ {l r} → Position (nd l r)
   left  : ∀ {l r} → Position l → Position (nd l r)
   right : ∀ {l r} → Position r → Position (nd l r)
@@ -83,12 +83,12 @@ Shape↔Tree-⊤ = record
 
 -- Leaves.
 
-leaf : {A : Set} → ⟦ Tree ⟧ A
+leaf : {A : Type} → ⟦ Tree ⟧ A
 leaf = (lf , λ ())
 
 -- Internal nodes.
 
-node : {A : Set} → ⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → ⟦ Tree ⟧ A
+node : {A : Type} → ⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → ⟦ Tree ⟧ A
 node (l , lkup-l) x (r , lkup-r) =
   ( nd l r
   , λ { root      → x
@@ -101,7 +101,7 @@ node (l , lkup-l) x (r , lkup-r) =
 -- intensionally distinct implementations of the constructors are bag
 -- equivalent.
 
-leaf≈ : {A : Set} {lkup : _ → A} →
+leaf≈ : {A : Type} {lkup : _ → A} →
         _≈-bag_ {C₂ = Tree} leaf (lf , lkup)
 leaf≈ _ = record
   { surjection = record
@@ -114,7 +114,7 @@ leaf≈ _ = record
   ; left-inverse-of = λ { (() , _) }
   }
 
-node≈ : ∀ {A : Set} {l r} {lkup : _ → A} →
+node≈ : ∀ {A : Type} {l r} {lkup : _ → A} →
         _≈-bag_ {C₂ = Tree}
                 (node (l , lkup ∘ left) (lkup root) (r , lkup ∘ right))
                 (nd l r , lkup)
@@ -143,7 +143,7 @@ node≈ _ = record
 
 -- Any lemmas for the constructors.
 
-Any-leaf : ∀ {A : Set} (P : A → Set) →
+Any-leaf : ∀ {A : Type} (P : A → Type) →
            Any P leaf ↔ ⊥₀
 Any-leaf _ = record
   { surjection = record
@@ -156,7 +156,7 @@ Any-leaf _ = record
   ; left-inverse-of = λ { (() , _) }
   }
 
-Any-node : ∀ {A : Set} (P : A → Set) {l x r} →
+Any-node : ∀ {A : Type} (P : A → Type) {l x r} →
            Any P (node l x r) ↔ Any P l ⊎ P x ⊎ Any P r
 Any-node _ {l = _ , _} {r = _ , _} = record
   { surjection = record
@@ -186,12 +186,12 @@ Any-node _ {l = _ , _} {r = _ , _} = record
 
 -- Singleton trees.
 
-singleton : {A : Set} → A → ⟦ Tree ⟧ A
+singleton : {A : Type} → A → ⟦ Tree ⟧ A
 singleton x = node leaf x leaf
 
 -- Any lemma for singleton.
 
-Any-singleton : ∀ {A : Set} (P : A → Set) {x} →
+Any-singleton : ∀ {A : Type} (P : A → Type) {x} →
                 Any P (singleton x) ↔ P x
 Any-singleton P {x} =
   Any P (singleton x)            ↔⟨⟩
@@ -207,7 +207,7 @@ Any-singleton P {x} =
 -- A fold for trees. (Well, this is not a catamorphism, it is a
 -- paramorphism.)
 
-fold : {A B : Set} →
+fold : {A B : Type} →
        B → (⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → B → B → B) → ⟦ Tree ⟧ A → B
 fold {A} {B} fl fn = uncurry fold′
   where
@@ -225,9 +225,9 @@ fold {A} {B} fl fn = uncurry fold′
 -- The "respects bag equivalence" argument could be omitted if
 -- equality of functions were extensional.
 
-fold-lemma : ∀ {A B : Set}
+fold-lemma : ∀ {A B : Type}
                {fl : B} {fn : ⟦ Tree ⟧ A → A → ⟦ Tree ⟧ A → B → B → B}
-             (P : ⟦ Tree ⟧ A → B → Set) →
+             (P : ⟦ Tree ⟧ A → B → Type) →
              (∀ t₁ t₂ → t₁ ≈-bag t₂ → ∀ b → P t₁ b → P t₂ b) →
              P leaf fl →
              (∀ l x r b₁ b₂ →
@@ -245,12 +245,12 @@ fold-lemma {A} {fl = fl} {fn} P resp P-le P-no = uncurry fold-lemma′
 
 -- Inorder flattening of a tree.
 
-flatten : {A : Set} → ⟦ Tree ⟧ A → ⟦ List ⟧ A
+flatten : {A : Type} → ⟦ Tree ⟧ A → ⟦ List ⟧ A
 flatten = fold [] (λ _ x _ xs ys → xs ++ x ∷ ys)
 
 -- Flatten does not add or remove any elements.
 
-flatten≈ : {A : Set} (t : ⟦ Tree ⟧ A) → flatten t ≈-bag t
+flatten≈ : {A : Type} (t : ⟦ Tree ⟧ A) → flatten t ≈-bag t
 flatten≈ = fold-lemma
   (λ t xs → xs ≈-bag t)
 

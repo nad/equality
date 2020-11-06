@@ -26,8 +26,8 @@ open import Surjection eq as Surj using (_↠_)
 private
   variable
     a b ℓ p q : Level
-    A B       : Set a
-    P Q R     : Set p → Set p
+    A B       : Type a
+    P Q R     : Type p → Type p
     x y       : A
     k         : Kind
     n         : ℕ
@@ -38,7 +38,7 @@ private
 -- Nested uses of For-iterated-equality can be merged.
 
 For-iterated-equality-For-iterated-equality′ :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality? k a a →
   ∀ m n →
   For-iterated-equality m (For-iterated-equality n P) A ↝[ k ]
@@ -55,7 +55,7 @@ For-iterated-equality-For-iterated-equality′ {P = P} {A = A}
 -- A variant of the previous result.
 
 For-iterated-equality-For-iterated-equality :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality? k a a →
   ∀ m n →
   For-iterated-equality m (For-iterated-equality n P) A ↝[ k ]
@@ -72,7 +72,7 @@ For-iterated-equality-For-iterated-equality {P = P} {A = A}
 -- A preservation lemma for the predicate.
 
 For-iterated-equality-cong₁ :
-  {P Q : Set ℓ → Set ℓ} →
+  {P Q : Type ℓ → Type ℓ} →
   Extensionality? k ℓ ℓ →
   ∀ n →
   (∀ {A} → P A ↝[ k ] Q A) →
@@ -100,7 +100,7 @@ For-iterated-equality-cong-→ {P = P} {Q = Q} {A = A} {B = B}
   ((x y : B) → For-iterated-equality n Q (x ≡ y))  □
 
 For-iterated-equality-cong :
-  {P : Set p → Set p} {Q : Set q → Set q} →
+  {P : Type p → Type p} {Q : Type q → Type q} →
   Extensionality? k (p ⊔ q) (p ⊔ q) →
   ∀ n →
   (∀ {A B} → A ↔ B → P A ↝[ k ] Q B) →
@@ -156,7 +156,7 @@ For-iterated-equality-⊤ {P = P} ext n resp =
 -- Closure properties for ⊥.
 
 For-iterated-equality-suc-⊥ :
-  {P : Set p → Set p} →
+  {P : Type p → Type p} →
   Extensionality? k p p →
   ∀ n → ⊤ ↝[ k ] For-iterated-equality (suc n) P ⊥
 For-iterated-equality-suc-⊥ {P = P} ext n =
@@ -164,7 +164,7 @@ For-iterated-equality-suc-⊥ {P = P} ext n =
   ((x y : ⊥) → For-iterated-equality n P (x ≡ y))  □
 
 For-iterated-equality-⊥ :
-  {P : Set p → Set p} →
+  {P : Type p → Type p} →
   Extensionality? k p p →
   ∀ n →
   ⊤ ↝[ k ] P ⊥ →
@@ -176,11 +176,11 @@ For-iterated-equality-⊥ ext (suc n) _ =
 -- A closure property for Π.
 
 For-iterated-equality-Π :
-  {A : Set a} {B : A → Set b} →
+  {A : Type a} {B : A → Type b} →
   Extensionality a b →
   ∀ n →
   (∀ {A B} → A ↔ B → Q A → Q B) →
-  ({A : Set a} {B : A → Set b} →
+  ({A : Type a} {B : A → Type b} →
    (∀ x → P (B x)) → Q (∀ x → B x)) →
   (∀ x → For-iterated-equality n P (B x)) →
   For-iterated-equality n Q (∀ x → B x)
@@ -196,10 +196,10 @@ For-iterated-equality-Π {Q = Q} {P = P} {B = B} ext (suc n) resp hyp =
 -- A closure property for Σ.
 
 For-iterated-equality-Σ :
-  {A : Set a} {B : A → Set b} →
+  {A : Type a} {B : A → Type b} →
   ∀ n →
   (∀ {A B} → A ↔ B → R A → R B) →
-  ({A : Set a} {B : A → Set b} →
+  ({A : Type a} {B : A → Type b} →
    P A → (∀ x → Q (B x)) → R (Σ A B)) →
   For-iterated-equality n P A →
   (∀ x → For-iterated-equality n Q (B x)) →
@@ -224,10 +224,10 @@ For-iterated-equality-Σ {R = R} {P = P} {Q = Q} {A = A} {B = B}
 -- A closure property for _×_.
 
 For-iterated-equality-× :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   ∀ n →
   (∀ {A B} → A ↔ B → R A → R B) →
-  ({A : Set a} {B : Set b} → P A → Q B → R (A × B)) →
+  ({A : Type a} {B : Type b} → P A → Q B → R (A × B)) →
   For-iterated-equality n P A →
   For-iterated-equality n Q B →
   For-iterated-equality n R (A × B)
@@ -251,7 +251,7 @@ For-iterated-equality-× {R = R} {P = P} {Q = Q} {A = A} {B = B}
 -- A closure property for ↑.
 
 For-iterated-equality-↑ :
-  {A : Set a} {Q : Set (a ⊔ ℓ) → Set (a ⊔ ℓ)} →
+  {A : Type a} {Q : Type (a ⊔ ℓ) → Type (a ⊔ ℓ)} →
   Extensionality? k (a ⊔ ℓ) (a ⊔ ℓ) →
   ∀ n →
   (∀ {A B} → A ↔ B → P A ↝[ k ] Q B) →
@@ -263,13 +263,13 @@ For-iterated-equality-↑ ext n resp =
 -- Closure properties for W.
 
 For-iterated-equality-W-suc :
-  {A : Set a} {B : A → Set b} →
+  {A : Type a} {B : A → Type b} →
   Extensionality b (a ⊔ b) →
   ∀ n →
   (∀ {A B} → A ↔ B → Q A → Q B) →
-  ({A : Set b} {B : A → Set (a ⊔ b)} →
+  ({A : Type b} {B : A → Type (a ⊔ b)} →
    (∀ x → Q (B x)) → Q (∀ x → B x)) →
-  ({A : Set a} {B : A → Set (a ⊔ b)} →
+  ({A : Type a} {B : A → Type (a ⊔ b)} →
    P A → (∀ x → Q (B x)) → Q (Σ A B)) →
   For-iterated-equality (suc n) P A →
   For-iterated-equality (suc n) Q (W A B)
@@ -292,13 +292,13 @@ For-iterated-equality-W-suc {Q = Q} {P = P} {B = B}
     For-iterated-equality n Q (sup x f ≡ sup y g)                    □
 
 For-iterated-equality-W :
-  {A : Set a} {B : A → Set b} →
+  {A : Type a} {B : A → Type b} →
   Extensionality b (a ⊔ b) →
   ∀ n →
   (∀ {A B} → A ↔ B → Q A → Q B) →
-  ({A : Set b} {B : A → Set (a ⊔ b)} →
+  ({A : Type b} {B : A → Type (a ⊔ b)} →
    (∀ x → Q (B x)) → Q (∀ x → B x)) →
-  ({A : Set a} {B : A → Set (a ⊔ b)} →
+  ({A : Type a} {B : A → Type (a ⊔ b)} →
    P A → (∀ x → Q (B x)) → Q (Σ A B)) →
   (P A → Q (W A B)) →
   For-iterated-equality n P A →
@@ -310,7 +310,7 @@ For-iterated-equality-W ext (suc n) resp hyp-Π hyp-Σ _     =
 -- Closure properties for _⊎_.
 
 For-iterated-equality-⊎-suc :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   ∀ n →
   (∀ {A B} → A ↔ B → P A → P B) →
   P ⊥ →
@@ -337,7 +337,7 @@ For-iterated-equality-⊎-suc {P = P} n resp hyp-⊥ fie-A fie-B = λ where
     For-iterated-equality n P (inj₂ x ≡ inj₁ y)  □
 
 For-iterated-equality-⊎ :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   ∀ n →
   (∀ {A B} → A ↔ B → P A → P B) →
   P ⊥ →
@@ -352,7 +352,7 @@ For-iterated-equality-⊎ (suc n) resp hyp-⊥ _     =
 -- Closure properties for List.
 
 For-iterated-equality-List-suc :
-  {A : Set a} →
+  {A : Type a} →
   ∀ n →
   (∀ {A B} → A ↔ B → P A → P B) →
   P (↑ a ⊤) →
@@ -387,7 +387,7 @@ For-iterated-equality-List-suc {P = P} n resp hyp-⊤ hyp-⊥ hyp-× fie = λ wh
     For-iterated-equality n P (x ∷ xs ≡ [])  □
 
 For-iterated-equality-List :
-  {A : Set a} →
+  {A : Type a} →
   ∀ n →
   (∀ {A B} → A ↔ B → P A → P B) →
   P (↑ a ⊤) →
@@ -409,9 +409,9 @@ For-iterated-equality-List (suc n) resp hyp-⊤ hyp-⊥ hyp-× _ =
 
 For-iterated-equality-commutes :
   Extensionality? k ℓ ℓ →
-  (F : Set ℓ → Set ℓ) →
+  (F : Type ℓ → Type ℓ) →
   ∀ n →
-  ({A : Set ℓ} {P : A → Set ℓ} →
+  ({A : Type ℓ} {P : A → Type ℓ} →
    F (∀ x → P x) ↝[ k ] ∀ x → F (P x)) →
   F (For-iterated-equality n P A) ↝[ k ]
   For-iterated-equality n (F ∘ P) A
@@ -427,9 +427,9 @@ For-iterated-equality-commutes {P = P} {A = A} ext F (suc n) hyp =
 
 For-iterated-equality-commutes-← :
   Extensionality? k ℓ ℓ →
-  (F : Set ℓ → Set ℓ) →
+  (F : Type ℓ → Type ℓ) →
   ∀ n →
-  ({A : Set ℓ} {P : A → Set ℓ} →
+  ({A : Type ℓ} {P : A → Type ℓ} →
    (∀ x → F (P x)) ↝[ k ] F (∀ x → P x)) →
   For-iterated-equality n (F ∘ P) A ↝[ k ]
   F (For-iterated-equality n P A)
@@ -446,9 +446,9 @@ For-iterated-equality-commutes-← {P = P} {A = A} ext F (suc n) hyp =
 
 For-iterated-equality-commutes₂ :
   Extensionality? k ℓ ℓ →
-  (F : Set ℓ → Set ℓ → Set ℓ) →
+  (F : Type ℓ → Type ℓ → Type ℓ) →
   ∀ n →
-  ({A : Set ℓ} {P Q : A → Set ℓ} →
+  ({A : Type ℓ} {P Q : A → Type ℓ} →
    F (∀ x → P x) (∀ x → Q x) ↝[ k ] ∀ x → F (P x) (Q x)) →
   F (For-iterated-equality n P A) (For-iterated-equality n Q A) ↝[ k ]
   For-iterated-equality n (λ A → F (P A) (Q A)) A
@@ -471,9 +471,9 @@ For-iterated-equality-commutes₂ {P = P} {A = A} {Q = Q}
 
 For-iterated-equality-commutes₂-← :
   Extensionality? k ℓ ℓ →
-  (F : Set ℓ → Set ℓ → Set ℓ) →
+  (F : Type ℓ → Type ℓ → Type ℓ) →
   ∀ n →
-  ({A : Set ℓ} {P Q : A → Set ℓ} →
+  ({A : Type ℓ} {P Q : A → Type ℓ} →
    (∀ x → F (P x) (Q x)) ↝[ k ] F (∀ x → P x) (∀ x → Q x)) →
   For-iterated-equality n (λ A → F (P A) (Q A)) A ↝[ k ]
   F (For-iterated-equality n P A) (For-iterated-equality n Q A)
@@ -495,7 +495,7 @@ For-iterated-equality-commutes₂-← {P = P} {Q = Q} {A = A}
 -- Some corollaries of For-iterated-equality-commutes₂.
 
 For-iterated-equality-commutes-× :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality? k a a →
   ∀ n →
   For-iterated-equality n P A × For-iterated-equality n Q A ↝[ k ]

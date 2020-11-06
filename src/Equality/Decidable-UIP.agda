@@ -20,13 +20,13 @@ open import Prelude
 
 -- Weakly constant functions.
 
-Constant : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Constant : ∀ {a b} {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
 Constant f = ∀ x y → f x ≡ f y
 
 -- Left inverses.
 
-_Left-inverse-of_ : ∀ {a b} {A : Set a} {B : Set b} →
-                    (B → A) → (A → B) → Set a
+_Left-inverse-of_ : ∀ {a b} {A : Type a} {B : Type b} →
+                    (B → A) → (A → B) → Type a
 g Left-inverse-of f = ∀ x → g (f x) ≡ x
 
 abstract
@@ -34,7 +34,7 @@ abstract
   -- A set with a constant endofunction with a left inverse is a
   -- proposition.
 
-  proposition : ∀ {a} {A : Set a} →
+  proposition : ∀ {a} {A : Type a} →
                 (f : ∃ λ (f : A → A) → Constant f) →
                 (∃ λ g → g Left-inverse-of (proj₁ f)) →
                 Is-proposition A
@@ -47,7 +47,7 @@ abstract
   -- Endofunction families on _≡_ always have left inverses.
 
   left-inverse :
-    ∀ {a} {A : Set a} (f : (x y : A) → x ≡ y → x ≡ y) →
+    ∀ {a} {A : Type a} (f : (x y : A) → x ≡ y → x ≡ y) →
     ∀ {x y} → ∃ λ g → g Left-inverse-of f x y
   left-inverse {A = A} f {x} {y} =
     (λ x≡y →
@@ -61,7 +61,7 @@ abstract
   -- on _≡_ {A = A}.
 
   constant⇒set :
-    ∀ {a} {A : Set a} →
+    ∀ {a} {A : Type a} →
     ((x y : A) → ∃ λ (f : x ≡ y → x ≡ y) → Constant f) →
     Is-set A
   constant⇒set constant {x} {y} =
@@ -71,21 +71,21 @@ abstract
   -- If it is known whether or not a type is inhabited, then one can
   -- define a constant endofunction for that type.
 
-  decidable⇒constant : ∀ {a} {A : Set a} → Dec A →
+  decidable⇒constant : ∀ {a} {A : Type a} → Dec A →
                        ∃ λ (f : A → A) → Constant f
   decidable⇒constant (yes x) = (const x , λ _ _ → refl x)
   decidable⇒constant (no ¬x) = (id      , λ _ → ⊥-elim ∘ ¬x)
 
   -- Types with decidable equality are sets.
 
-  decidable⇒set : ∀ {a} {A : Set a} → Decidable-equality A → Is-set A
+  decidable⇒set : ∀ {a} {A : Type a} → Decidable-equality A → Is-set A
   decidable⇒set dec =
     constant⇒set (λ x y → decidable⇒constant (dec x y))
 
   -- Non-dependent functions with propositional domains are constant.
 
   propositional-domain⇒constant :
-    ∀ {a b} {A : Set a} {B : Set b} →
+    ∀ {a b} {A : Type a} {B : Type b} →
     Is-proposition A → (f : A → B) → Constant f
   propositional-domain⇒constant A-prop f = λ x y →
     cong f (A-prop x y)
@@ -98,8 +98,8 @@ abstract
   -- Mathematics" (first edition).)
 
   propositional-identity⇒set :
-    ∀ {a b} {A : Set a}
-    (B : A → A → Set b) →
+    ∀ {a b} {A : Type a}
+    (B : A → A → Type b) →
     (∀ x y → Is-proposition (B x y)) →
     (∀ x → B x x) →
     (∀ x y → B x y → x ≡ y) →
@@ -116,7 +116,7 @@ abstract
   -- Propositional Truncation using Non-recursive HITs".
 
   cong-preserves-Constant :
-    ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {x y : A} →
+    ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {x y : A} →
     Constant f → Constant (cong {x = x} {y = y} f)
   cong-preserves-Constant {f = f} {x = x} {y = y} c p q =
     cong f p                     ≡⟨ lemma p ⟩
@@ -139,7 +139,7 @@ abstract
   -- (I proved this result using cong-preserves-Constant.)
 
   cong-constant :
-    ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {x} {x≡x : x ≡ x} →
+    ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {x} {x≡x : x ≡ x} →
     Constant f →
     cong f x≡x ≡ refl (f x)
   cong-constant {f = f} {x} {x≡x} c =
@@ -150,7 +150,7 @@ abstract
   -- The "Fixed Point Lemma".
 
   fixpoint-lemma :
-    ∀ {a} {A : Set a} →
+    ∀ {a} {A : Type a} →
     (f : A → A) →
     Constant f →
     Is-proposition (∃ λ x → f x ≡ x)

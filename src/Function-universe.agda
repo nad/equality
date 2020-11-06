@@ -32,7 +32,7 @@ open import Surjection eq as Surjection using (_↠_; Split-surjective)
 -- injections, embeddings, surjections, bijections, equivalences, and
 -- equivalences with erased proofs.
 
-data Kind : Set where
+data Kind : Type where
   implication
     logical-equivalence
     injection
@@ -46,7 +46,7 @@ data Kind : Set where
 
 infix 0 _↝[_]_
 
-_↝[_]_ : ∀ {ℓ₁ ℓ₂} → Set ℓ₁ → Kind → Set ℓ₂ → Set _
+_↝[_]_ : ∀ {ℓ₁ ℓ₂} → Type ℓ₁ → Kind → Type ℓ₂ → Type _
 A ↝[ implication         ] B = A → B
 A ↝[ logical-equivalence ] B = A ⇔ B
 A ↝[ injection           ] B = A ↣ B
@@ -58,7 +58,7 @@ A ↝[ equivalenceᴱ        ] B = A ≃ᴱ B
 
 -- Equivalences can be converted to all kinds of functions.
 
-from-equivalence : ∀ {k a b} {A : Set a} {B : Set b} →
+from-equivalence : ∀ {k a b} {A : Type a} {B : Type b} →
                    A ≃ B → A ↝[ k ] B
 from-equivalence {implication}         = _≃_.to
 from-equivalence {logical-equivalence} = _≃_.logical-equivalence
@@ -71,7 +71,7 @@ from-equivalence {equivalenceᴱ}        = EEq.≃→≃ᴱ
 
 -- Bijections can be converted to all kinds of functions.
 
-from-bijection : ∀ {k a b} {A : Set a} {B : Set b} →
+from-bijection : ∀ {k a b} {A : Type a} {B : Type b} →
                  A ↔ B → A ↝[ k ] B
 from-bijection {implication}         = _↔_.to
 from-bijection {logical-equivalence} = _↔_.logical-equivalence
@@ -84,7 +84,7 @@ from-bijection {equivalenceᴱ}        = EEq.≃→≃ᴱ ⊚ Eq.↔⇒≃
 
 -- All kinds of functions can be converted to implications.
 
-to-implication : ∀ {k a b} {A : Set a} {B : Set b} →
+to-implication : ∀ {k a b} {A : Type a} {B : Type b} →
                  A ↝[ k ] B → A → B
 to-implication {implication}         = P.id
 to-implication {logical-equivalence} = _⇔_.to
@@ -98,7 +98,7 @@ to-implication {equivalenceᴱ}        = _≃ᴱ_.to
 ------------------------------------------------------------------------
 -- A sub-universe of symmetric kinds of functions
 
-data Symmetric-kind : Set where
+data Symmetric-kind : Type where
   logical-equivalence bijection equivalence equivalenceᴱ :
     Symmetric-kind
 
@@ -108,7 +108,7 @@ data Symmetric-kind : Set where
 ⌊ equivalence         ⌋-sym = equivalence
 ⌊ equivalenceᴱ        ⌋-sym = equivalenceᴱ
 
-inverse : ∀ {k a b} {A : Set a} {B : Set b} →
+inverse : ∀ {k a b} {A : Type a} {B : Type b} →
           A ↝[ ⌊ k ⌋-sym ] B → B ↝[ ⌊ k ⌋-sym ] A
 inverse {logical-equivalence} = Logical-equivalence.inverse
 inverse {bijection}           = Bijection.inverse
@@ -118,7 +118,7 @@ inverse {equivalenceᴱ}        = EEq.inverse
 ------------------------------------------------------------------------
 -- A sub-universe of isomorphisms
 
-data Isomorphism-kind : Set where
+data Isomorphism-kind : Type where
   bijection equivalence : Isomorphism-kind
 
 ⌊_⌋-iso : Isomorphism-kind → Kind
@@ -127,10 +127,10 @@ data Isomorphism-kind : Set where
 
 infix 0 _↔[_]_
 
-_↔[_]_ : ∀ {ℓ₁ ℓ₂} → Set ℓ₁ → Isomorphism-kind → Set ℓ₂ → Set _
+_↔[_]_ : ∀ {ℓ₁ ℓ₂} → Type ℓ₁ → Isomorphism-kind → Type ℓ₂ → Type _
 A ↔[ k ] B = A ↝[ ⌊ k ⌋-iso ] B
 
-from-isomorphism : ∀ {k₁ k₂ a b} {A : Set a} {B : Set b} →
+from-isomorphism : ∀ {k₁ k₂ a b} {A : Type a} {B : Type b} →
                    A ↔[ k₁ ] B → A ↝[ k₂ ] B
 from-isomorphism {bijection}   = from-bijection
 from-isomorphism {equivalence} = from-equivalence
@@ -139,7 +139,7 @@ from-isomorphism {equivalence} = from-equivalence
 -- to-implication.
 
 to-implication∘from-isomorphism :
-  ∀ {a b} {A : Set a} {B : Set b} k₁ k₂ {A↔B : A ↔[ k₁ ] B} →
+  ∀ {a b} {A : Type a} {B : Type b} k₁ k₂ {A↔B : A ↔[ k₁ ] B} →
   to-implication A↔B ≡
   to-implication (from-isomorphism {k₂ = k₂} A↔B)
 to-implication∘from-isomorphism {A = A} {B} = t∘f
@@ -173,7 +173,7 @@ to-implication∘from-isomorphism {A = A} {B} = t∘f
 
 infixr 9 _∘_
 
-_∘_ : ∀ {k a b c} {A : Set a} {B : Set b} {C : Set c} →
+_∘_ : ∀ {k a b c} {A : Type a} {B : Type b} {C : Type c} →
       B ↝[ k ] C → A ↝[ k ] B → A ↝[ k ] C
 _∘_ {implication}         = λ f g → f ⊚ g
 _∘_ {logical-equivalence} = Logical-equivalence._∘_
@@ -186,7 +186,7 @@ _∘_ {equivalenceᴱ}        = EEq._∘_
 
 -- Identity.
 
-id : ∀ {k a} {A : Set a} → A ↝[ k ] A
+id : ∀ {k a} {A : Type a} → A ↝[ k ] A
 id {implication}         = P.id
 id {logical-equivalence} = Logical-equivalence.id
 id {injection}           = Injection.id
@@ -206,45 +206,45 @@ infix  -3 $⟨_⟩_
 -- For an explanation of why step-↝ and step-↔ are defined in this
 -- way, see Equality.step-≡.
 
-step-↝ : ∀ {k a b c} (A : Set a) {B : Set b} {C : Set c} →
+step-↝ : ∀ {k a b c} (A : Type a) {B : Type b} {C : Type c} →
          B ↝[ k ] C → A ↝[ k ] B → A ↝[ k ] C
 step-↝ _ = _∘_
 
 syntax step-↝ A B↝C A↝B = A ↝⟨ A↝B ⟩ B↝C
 
-step-↔ : ∀ {k₁ k₂ a b c} (A : Set a) {B : Set b} {C : Set c} →
+step-↔ : ∀ {k₁ k₂ a b c} (A : Type a) {B : Type b} {C : Type c} →
          B ↝[ k₂ ] C → A ↔[ k₁ ] B → A ↝[ k₂ ] C
 step-↔ _ B↝C A↔B = step-↝ _ B↝C (from-isomorphism A↔B)
 
 syntax step-↔ A B↝C A↔B = A ↔⟨ A↔B ⟩ B↝C
 
-_↔⟨⟩_ : ∀ {k a b} (A : Set a) {B : Set b} →
+_↔⟨⟩_ : ∀ {k a b} (A : Type a) {B : Type b} →
         A ↝[ k ] B → A ↝[ k ] B
 _ ↔⟨⟩ A↝B = A↝B
 
-_□ : ∀ {k a} (A : Set a) → A ↝[ k ] A
+_□ : ∀ {k a} (A : Type a) → A ↝[ k ] A
 A □ = id
 
-finally-↝ : ∀ {k a b} (A : Set a) (B : Set b) →
+finally-↝ : ∀ {k a b} (A : Type a) (B : Type b) →
             A ↝[ k ] B → A ↝[ k ] B
 finally-↝ _ _ A↝B = A↝B
 
 syntax finally-↝ A B A↝B = A ↝⟨ A↝B ⟩□ B □
 
-finally-↔ : ∀ {k₁ k₂ a b} (A : Set a) (B : Set b) →
+finally-↔ : ∀ {k₁ k₂ a b} (A : Type a) (B : Type b) →
             A ↔[ k₁ ] B → A ↝[ k₂ ] B
 finally-↔ _ _ A↔B = from-isomorphism A↔B
 
 syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
 
-$⟨_⟩_ : ∀ {k a b} {A : Set a} {B : Set b} →
+$⟨_⟩_ : ∀ {k a b} {A : Type a} {B : Type b} →
         A → A ↝[ k ] B → B
 $⟨ a ⟩ A↝B = to-implication A↝B a
 
 -- Lemma: to-implication maps id to the identity function.
 
 to-implication-id :
-  ∀ {a} {A : Set a} k →
+  ∀ {a} {A : Type a} k →
   to-implication {k = k} id ≡ id {A = A}
 to-implication-id implication         = refl _
 to-implication-id logical-equivalence = refl _
@@ -258,7 +258,7 @@ to-implication-id equivalenceᴱ        = refl _
 -- Lemma: to-implication is homomorphic with respect to _∘_.
 
 to-implication-∘ :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
   (k : Kind) {f : A ↝[ k ] B} {g : B ↝[ k ] C} →
   to-implication (g ∘ f) ≡ to-implication g ∘ to-implication f
 to-implication-∘ implication         = refl _
@@ -273,7 +273,7 @@ to-implication-∘ equivalenceᴱ        = refl _
 -- Lemma: to-implication maps inverse id to the identity function.
 
 to-implication-inverse-id :
-  ∀ {a} {A : Set a} k →
+  ∀ {a} {A : Type a} k →
   to-implication (inverse {k = k} id) ≡ id {A = A}
 to-implication-inverse-id logical-equivalence = refl _
 to-implication-inverse-id bijection           = refl _
@@ -290,7 +290,7 @@ to-implication-inverse-id equivalenceᴱ        = refl _
 
 -- Kinds for which extensionality is not provided.
 
-data Without-extensionality : Set where
+data Without-extensionality : Type where
   implication logical-equivalence : Without-extensionality
 
 ⌊_⌋-without : Without-extensionality → Kind
@@ -299,7 +299,7 @@ data Without-extensionality : Set where
 
 -- Kinds for which extensionality is provided.
 
-data With-extensionality : Set where
+data With-extensionality : Type where
   injection embedding surjection bijection equivalence equivalenceᴱ :
     With-extensionality
 
@@ -314,7 +314,7 @@ data With-extensionality : Set where
 -- Kinds annotated with information about whether extensionality is
 -- provided or not.
 
-data Extensionality-kind : Kind → Set where
+data Extensionality-kind : Kind → Type where
   without-extensionality : (k : Without-extensionality) →
                            Extensionality-kind ⌊ k ⌋-without
   with-extensionality    : (k : With-extensionality) →
@@ -335,7 +335,7 @@ extensionality? equivalenceᴱ        = with-extensionality equivalenceᴱ
 
 -- Extensionality, but only for certain kinds of functions.
 
-Extensionality? : Kind → (a b : Level) → Set (lsuc (a ⊔ b))
+Extensionality? : Kind → (a b : Level) → Type (lsuc (a ⊔ b))
 Extensionality? k with extensionality? k
 ... | without-extensionality _ = λ _ _ → ↑ _ ⊤
 ... | with-extensionality    _ = Extensionality
@@ -359,7 +359,7 @@ lower-extensionality? k with extensionality? k
 -- Some functions that can be used to generalise results.
 
 generalise-ext? :
-  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  ∀ {k a b c d} {A : Type a} {B : Type b} →
   A ⇔ B →
   (Extensionality c d → A ↔ B) →
   Extensionality? k c d → A ↝[ k ] B
@@ -370,7 +370,7 @@ generalise-ext? {k} f⇔ f↔ with extensionality? k
   from-isomorphism (f↔ ext)
 
 generalise-erased-ext? :
-  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  ∀ {k a b c d} {A : Type a} {B : Type b} →
   A ⇔ B →
   (@0 Extensionality c d → A ↔ B) →
   @0 Extensionality? k c d → A ↝[ k ] B
@@ -381,7 +381,7 @@ generalise-erased-ext? {k} f⇔ f↔ with extensionality? k
   from-isomorphism (f↔ ext)
 
 generalise-ext?-prop :
-  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  ∀ {k a b c d} {A : Type a} {B : Type b} →
   A ⇔ B →
   (Extensionality c d → Is-proposition A) →
   (Extensionality c d → Is-proposition B) →
@@ -393,7 +393,7 @@ generalise-ext?-prop f⇔ A-prop B-prop =
                _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
 
 generalise-erased-ext?-prop :
-  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  ∀ {k a b c d} {A : Type a} {B : Type b} →
   A ⇔ B →
   (@0 Extensionality c d → Is-proposition A) →
   (@0 Extensionality c d → Is-proposition B) →
@@ -405,13 +405,13 @@ generalise-erased-ext?-prop f⇔ A-prop B-prop =
                _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
 
 generalise-ext?-sym :
-  ∀ {a b c d} {A : Set a} {B : Set b} {k} →
+  ∀ {a b c d} {A : Type a} {B : Type b} {k} →
   (∀ {k} → Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
   Extensionality? k c d → A ↝[ k ] B
 generalise-ext?-sym hyp = generalise-ext? (hyp _) hyp
 
 generalise-erased-ext?-sym :
-  ∀ {a b c d} {A : Set a} {B : Set b} {k} →
+  ∀ {a b c d} {A : Type a} {B : Type b} {k} →
   (∀ {k} → @0 Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
   @0 Extensionality? k c d → A ↝[ k ] B
 generalise-erased-ext?-sym hyp = generalise-erased-ext? (hyp _) hyp
@@ -420,13 +420,13 @@ generalise-erased-ext?-sym hyp = generalise-erased-ext? (hyp _) hyp
 -- symmetric.
 
 inverse-ext? :
-  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  ∀ {k a b c d} {A : Type a} {B : Type b} →
   (∀ {k} → Extensionality? k c d → A ↝[ k ] B) →
   Extensionality? k c d → B ↝[ k ] A
 inverse-ext? hyp = generalise-ext?-sym (inverse ⊚ hyp)
 
 inverse-erased-ext? :
-  ∀ {k a b c d} {A : Set a} {B : Set b} →
+  ∀ {k a b c d} {A : Type a} {B : Type b} →
   (∀ {k} → @0 Extensionality? k c d → A ↝[ k ] B) →
   @0 Extensionality? k c d → B ↝[ k ] A
 inverse-erased-ext? hyp =
@@ -443,7 +443,7 @@ inverse-erased-ext? hyp =
 ------------------------------------------------------------------------
 -- Equalities can be converted to all kinds of functions
 
-≡⇒↝ : ∀ k {ℓ} {A B : Set ℓ} → A ≡ B → A ↝[ k ] B
+≡⇒↝ : ∀ k {ℓ} {A B : Type ℓ} → A ≡ B → A ↝[ k ] B
 ≡⇒↝ k = elim (λ {A B} _ → A ↝[ k ] B) (λ _ → id)
 
 abstract
@@ -451,11 +451,11 @@ abstract
   -- Some lemmas that can be used to manipulate expressions involving
   -- ≡⇒↝ and refl/sym/trans.
 
-  ≡⇒↝-refl : ∀ {k a} {A : Set a} →
+  ≡⇒↝-refl : ∀ {k a} {A : Type a} →
              ≡⇒↝ k (refl A) ≡ id
   ≡⇒↝-refl {k} = elim-refl (λ {A B} _ → A ↝[ k ] B) _
 
-  ≡⇒↝-sym : ∀ k {ℓ} {A B : Set ℓ} {eq : A ≡ B} →
+  ≡⇒↝-sym : ∀ k {ℓ} {A B : Type ℓ} {eq : A ≡ B} →
             to-implication (≡⇒↝ ⌊ k ⌋-sym (sym eq)) ≡
             to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym eq))
   ≡⇒↝-sym k {A = A} {eq = eq} = elim¹
@@ -469,7 +469,7 @@ abstract
      to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (refl A)))  ∎)
     eq
 
-  ≡⇒↝-trans : ∀ k {ℓ} {A B C : Set ℓ} {A≡B : A ≡ B} {B≡C : B ≡ C} →
+  ≡⇒↝-trans : ∀ k {ℓ} {A B C : Type ℓ} {A≡B : A ≡ B} {B≡C : B ≡ C} →
               to-implication (≡⇒↝ k (trans A≡B B≡C)) ≡
               to-implication (≡⇒↝ k B≡C ∘ ≡⇒↝ k A≡B)
   ≡⇒↝-trans k {B = B} {A≡B = A≡B} = elim¹
@@ -487,7 +487,7 @@ abstract
   -- This is a generalisation of a lemma due to Thierry Coquand.
 
   ≡⇒↝-cong : ∀ {k ℓ p A B} {eq : A ≡ B}
-             (P : Set ℓ → Set p)
+             (P : Type ℓ → Type p)
              (P-cong : ∀ {A B} → A ↝[ k ] B → P A ↝[ k ] P B) →
              P-cong (id {A = A}) ≡ id →
              ≡⇒↝ _ (cong P eq) ≡ P-cong (≡⇒↝ _ eq)
@@ -504,7 +504,7 @@ abstract
   -- One can express ≡⇒↝ in terms of subst.
 
   ≡⇒↝-in-terms-of-subst :
-    ∀ k {ℓ} {A B : Set ℓ} (A≡B : A ≡ B) →
+    ∀ k {ℓ} {A B : Type ℓ} (A≡B : A ≡ B) →
     ≡⇒↝ k A≡B ≡ subst (A ↝[ k ]_) A≡B id
   ≡⇒↝-in-terms-of-subst k {B = B} = elim₁
     (λ {A} A≡B → ≡⇒↝ k A≡B ≡ subst (A ↝[ k ]_) A≡B id)
@@ -513,7 +513,7 @@ abstract
      subst (B ↝[ k ]_) (refl B) id  ∎)
 
   ≡⇒↝-in-terms-of-subst-sym :
-    ∀ k {ℓ} {A B : Set ℓ} (A≡B : A ≡ B) →
+    ∀ k {ℓ} {A B : Type ℓ} (A≡B : A ≡ B) →
     ≡⇒↝ k A≡B ≡ subst (_↝[ k ] B) (sym A≡B) id
   ≡⇒↝-in-terms-of-subst-sym k {B = B} = elim₁
     (λ {A} A≡B → ≡⇒↝ k A≡B ≡ subst (_↝[ k ] B) (sym A≡B) id)
@@ -525,7 +525,7 @@ abstract
   -- One can express subst in terms of ≡⇒↝.
 
   subst-in-terms-of-≡⇒↝ :
-    ∀ k {a p} {A : Set a} {x y} (x≡y : x ≡ y) (P : A → Set p) p →
+    ∀ k {a p} {A : Type a} {x y} (x≡y : x ≡ y) (P : A → Type p) p →
     subst P x≡y p ≡ to-implication (≡⇒↝ k (cong P x≡y)) p
   subst-in-terms-of-≡⇒↝ k x≡y P p = elim¹
 
@@ -540,7 +540,7 @@ abstract
     x≡y
 
   subst-in-terms-of-inverse∘≡⇒↝ :
-    ∀ k {a p} {A : Set a} {x y} (x≡y : x ≡ y) (P : A → Set p) p →
+    ∀ k {a p} {A : Type a} {x y} (x≡y : x ≡ y) (P : A → Type p) p →
     subst P (sym x≡y) p ≡
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong P x≡y))) p
   subst-in-terms-of-inverse∘≡⇒↝ k x≡y P p =
@@ -552,7 +552,7 @@ abstract
   -- One can express subst id in terms of ≡⇒↝.
 
   subst-id-in-terms-of-≡⇒↝ :
-    ∀ k {a} {A B : Set a} {A≡B : A ≡ B} {x} →
+    ∀ k {a} {A B : Type a} {A≡B : A ≡ B} {x} →
     subst id A≡B x ≡ to-implication (≡⇒↝ k A≡B) x
   subst-id-in-terms-of-≡⇒↝ k {A≡B = A≡B} {x = x} =
     subst id A≡B x                          ≡⟨ subst-in-terms-of-≡⇒↝ k _ _ _ ⟩
@@ -560,7 +560,7 @@ abstract
     to-implication (≡⇒↝ k A≡B) x            ∎
 
   subst-id-in-terms-of-inverse∘≡⇒↝ :
-    ∀ k {a} {A B : Set a} {A≡B : A ≡ B} {y} →
+    ∀ k {a} {A B : Type a} {A≡B : A ≡ B} {y} →
     subst id (sym A≡B) y ≡
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym A≡B)) y
   subst-id-in-terms-of-inverse∘≡⇒↝ k {A≡B = A≡B} {y = y} =
@@ -569,7 +569,7 @@ abstract
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym A≡B)) y            ∎
 
   to-implication-≡⇒↝ :
-    ∀ k {ℓ} {A B : Set ℓ} (eq : A ≡ B) →
+    ∀ k {ℓ} {A B : Type ℓ} (eq : A ≡ B) →
     to-implication (≡⇒↝ k eq) ≡ ≡⇒↝ implication eq
   to-implication-≡⇒↝ k =
     elim (λ eq → to-implication (≡⇒↝ k eq) ≡ ≡⇒↝ implication eq)
@@ -585,16 +585,16 @@ abstract
 
 private
 
-  ⊎-cong-eq : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-                {B₁ : Set b₁} {B₂ : Set b₂} →
+  ⊎-cong-eq : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+                {B₁ : Type b₁} {B₂ : Type b₂} →
               A₁ ⇔ A₂ → B₁ ⇔ B₂ → A₁ ⊎ B₁ ⇔ A₂ ⊎ B₂
   ⊎-cong-eq A₁⇔A₂ B₁⇔B₂ = record
     { to   = ⊎-map (to   A₁⇔A₂) (to   B₁⇔B₂)
     ; from = ⊎-map (from A₁⇔A₂) (from B₁⇔B₂)
     } where open _⇔_
 
-  ⊎-cong-inj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-                 {B₁ : Set b₁} {B₂ : Set b₂} →
+  ⊎-cong-inj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+                 {B₁ : Type b₁} {B₂ : Type b₂} →
                A₁ ↣ A₂ → B₁ ↣ B₂ → A₁ ⊎ B₁ ↣ A₂ ⊎ B₂
   ⊎-cong-inj A₁↣A₂ B₁↣B₂ = record
     { to        = to′
@@ -612,8 +612,8 @@ private
       injective′ {x = inj₁ x} {y = inj₂ y} = ⊥-elim ⊚ ⊎.inj₁≢inj₂
       injective′ {x = inj₂ x} {y = inj₁ y} = ⊥-elim ⊚ ⊎.inj₁≢inj₂ ⊚ sym
 
-  ⊎-cong-emb : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-                 {B₁ : Set b₁} {B₂ : Set b₂} →
+  ⊎-cong-emb : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+                 {B₁ : Type b₁} {B₂ : Type b₂} →
                Embedding A₁ A₂ → Embedding B₁ B₂ →
                Embedding (A₁ ⊎ B₁) (A₂ ⊎ B₂)
   ⊎-cong-emb A₁↣A₂ B₁↣B₂ = record
@@ -682,8 +682,8 @@ private
         _
         (⊥-elim ⊚ ⊎.inj₁≢inj₂ ⊚ sym)
 
-  ⊎-cong-surj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-                  {B₁ : Set b₁} {B₂ : Set b₂} →
+  ⊎-cong-surj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+                  {B₁ : Type b₁} {B₂ : Type b₂} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ ⊎ B₁ ↠ A₂ ⊎ B₂
   ⊎-cong-surj A₁↠A₂ B₁↠B₂ = record
     { logical-equivalence = ⊎-cong-eq (_↠_.logical-equivalence A₁↠A₂)
@@ -694,8 +694,8 @@ private
         ]
     }
 
-  ⊎-cong-bij : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-                 {B₁ : Set b₁} {B₂ : Set b₂} →
+  ⊎-cong-bij : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+                 {B₁ : Type b₁} {B₂ : Type b₂} →
                A₁ ↔ A₂ → B₁ ↔ B₂ → A₁ ⊎ B₁ ↔ A₂ ⊎ B₂
   ⊎-cong-bij A₁↔A₂ B₁↔B₂ = record
     { surjection      = ⊎-cong-surj (_↔_.surjection A₁↔A₂)
@@ -707,24 +707,24 @@ private
     }
 
   ⊎-cong-≃ :
-    ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : Set b₁} {B₂ : Set b₂} →
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : Type b₁} {B₂ : Type b₂} →
     A₁ ≃ A₂ → B₁ ≃ B₂ → (A₁ ⊎ B₁) ≃ (A₂ ⊎ B₂)
   ⊎-cong-≃ A₁≃A₂ B₁≃B₂ =
     from-bijection $ ⊎-cong-bij (from-equivalence A₁≃A₂)
                                 (from-equivalence B₁≃B₂)
 
   ⊎-cong-≃ᴱ :
-    ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : Set b₁} {B₂ : Set b₂} →
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : Type b₁} {B₂ : Type b₂} →
     A₁ ≃ᴱ A₂ → B₁ ≃ᴱ B₂ → (A₁ ⊎ B₁) ≃ᴱ (A₂ ⊎ B₂)
   ⊎-cong-≃ᴱ f g =
     EEq.[≃]→≃ᴱ (EEq.[proofs] (⊎-cong-≃ (EEq.≃ᴱ→≃ f) (EEq.≃ᴱ→≃ g)))
 
 infixr 1 _⊎-cong_
 
-_⊎-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-             {B₁ : Set b₁} {B₂ : Set b₂} →
+_⊎-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+             {B₁ : Type b₁} {B₂ : Type b₂} →
            A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ ⊎ B₁ ↝[ k ] A₂ ⊎ B₂
 _⊎-cong_ {implication}         = ⊎-map
 _⊎-cong_ {logical-equivalence} = ⊎-cong-eq
@@ -737,7 +737,7 @@ _⊎-cong_ {equivalenceᴱ}        = ⊎-cong-≃ᴱ
 
 -- _⊎_ is commutative.
 
-⊎-comm : ∀ {a b} {A : Set a} {B : Set b} → A ⊎ B ↔ B ⊎ A
+⊎-comm : ∀ {a b} {A : Type a} {B : Type b} → A ⊎ B ↔ B ⊎ A
 ⊎-comm = record
   { surjection = record
     { logical-equivalence = record
@@ -751,7 +751,7 @@ _⊎-cong_ {equivalenceᴱ}        = ⊎-cong-≃ᴱ
 
 -- _⊎_ is associative.
 
-⊎-assoc : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+⊎-assoc : ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
           A ⊎ (B ⊎ C) ↔ (A ⊎ B) ⊎ C
 ⊎-assoc = record
   { surjection = record
@@ -768,7 +768,7 @@ _⊎-cong_ {equivalenceᴱ}        = ⊎-cong-≃ᴱ
 
 -- ⊥ is a left and right identity of _⊎_.
 
-⊎-left-identity : ∀ {a ℓ} {A : Set a} → ⊥ {ℓ = ℓ} ⊎ A ↔ A
+⊎-left-identity : ∀ {a ℓ} {A : Type a} → ⊥ {ℓ = ℓ} ⊎ A ↔ A
 ⊎-left-identity = record
   { surjection = record
     { logical-equivalence = record
@@ -780,7 +780,7 @@ _⊎-cong_ {equivalenceᴱ}        = ⊎-cong-≃ᴱ
   ; left-inverse-of = λ { (inj₁ ()); (inj₂ x) → refl (inj₂ x) }
   }
 
-⊎-right-identity : ∀ {a ℓ} {A : Set a} → A ⊎ ⊥ {ℓ = ℓ} ↔ A
+⊎-right-identity : ∀ {a ℓ} {A : Type a} → A ⊎ ⊥ {ℓ = ℓ} ↔ A
 ⊎-right-identity {A = A} =
   A ⊎ ⊥  ↔⟨ ⊎-comm ⟩
   ⊥ ⊎ A  ↔⟨ ⊎-left-identity ⟩□
@@ -789,7 +789,7 @@ _⊎-cong_ {equivalenceᴱ}        = ⊎-cong-≃ᴱ
 -- For logical equivalences _⊎_ is also idempotent. (This lemma could
 -- be generalised to cover surjections and implications.)
 
-⊎-idempotent : ∀ {a} {A : Set a} → A ⊎ A ⇔ A
+⊎-idempotent : ∀ {a} {A : Type a} → A ⊎ A ⇔ A
 ⊎-idempotent = record
   { to   = [ id , id ]
   ; from = inj₁
@@ -799,7 +799,7 @@ _⊎-cong_ {equivalenceᴱ}        = ⊎-cong-≃ᴱ
 -- two type arguments is related to the empty type.
 
 drop-⊥-right :
-  ∀ {k a b} {A : Set a} {B : Set b} →
+  ∀ {k a b} {A : Type a} {B : Type b} →
   B ↝[ k ] ⊥₀ → A ⊎ B ↝[ k ] A
 drop-⊥-right {A = A} {B} B↔⊥ =
   A ⊎ B  ↝⟨ id ⊎-cong B↔⊥ ⟩
@@ -807,7 +807,7 @@ drop-⊥-right {A = A} {B} B↔⊥ =
   A      □
 
 drop-⊥-left :
-  ∀ {k a b} {A : Set a} {B : Set b} →
+  ∀ {k a b} {A : Type a} {B : Type b} →
   A ↝[ k ] ⊥₀ → A ⊎ B ↝[ k ] B
 drop-⊥-left {A = A} {B} A↔⊥ =
   A ⊎ B  ↔⟨ ⊎-comm ⟩
@@ -821,8 +821,8 @@ drop-⊥-left {A = A} {B} A↔⊥ =
 -- _×-cong_.)
 
 Σ-preserves-embeddings :
-  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂}
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂}
   (A₁↣A₂ : Embedding A₁ A₂) →
   (∀ x → Embedding (B₁ x) (B₂ (Embedding.to A₁↣A₂ x))) →
   Embedding (Σ A₁ B₁) (Σ A₂ B₂)
@@ -934,16 +934,16 @@ drop-⊥-left {A = A} {B} A↔⊥ =
 
 private
 
-  ×-cong-eq : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-                {B₁ : Set b₁} {B₂ : Set b₂} →
+  ×-cong-eq : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+                {B₁ : Type b₁} {B₂ : Type b₂} →
               A₁ ⇔ A₂ → B₁ ⇔ B₂ → A₁ × B₁ ⇔ A₂ × B₂
   ×-cong-eq A₁⇔A₂ B₁⇔B₂ = record
     { to   = Σ-map (to   A₁⇔A₂) (to   B₁⇔B₂)
     ; from = Σ-map (from A₁⇔A₂) (from B₁⇔B₂)
     } where open _⇔_
 
-  ×-cong-inj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-                 {B₁ : Set b₁} {B₂ : Set b₂} →
+  ×-cong-inj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+                 {B₁ : Type b₁} {B₂ : Type b₂} →
                A₁ ↣ A₂ → B₁ ↣ B₂ → A₁ × B₁ ↣ A₂ × B₂
   ×-cong-inj {A₁ = A₁} {A₂} {B₁} {B₂} A₁↣A₂ B₁↣B₂ = record
     { to        = to′
@@ -961,8 +961,8 @@ private
         cong₂ _,_ (injective A₁↣A₂ (cong proj₁ to′-x≡to′-y))
                   (injective B₁↣B₂ (cong proj₂ to′-x≡to′-y))
 
-  ×-cong-surj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-                  {B₁ : Set b₁} {B₂ : Set b₂} →
+  ×-cong-surj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+                  {B₁ : Type b₁} {B₂ : Type b₂} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ × B₁ ↠ A₂ × B₂
   ×-cong-surj A₁↠A₂ B₁↠B₂ = record
     { logical-equivalence = ×-cong-eq (_↠_.logical-equivalence A₁↠A₂)
@@ -972,8 +972,8 @@ private
                   (_↠_.right-inverse-of B₁↠B₂ y)
     }
 
-  ×-cong-bij : ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-                 {B₁ : Set b₁} {B₂ : Set b₂} →
+  ×-cong-bij : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+                 {B₁ : Type b₁} {B₂ : Type b₂} →
                A₁ ↔ A₂ → B₁ ↔ B₂ → A₁ × B₁ ↔ A₂ × B₂
   ×-cong-bij A₁↔A₂ B₁↔B₂ = record
     { surjection      = ×-cong-surj (_↔_.surjection A₁↔A₂)
@@ -984,24 +984,24 @@ private
     }
 
   ×-cong-≃ :
-    ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : Set b₁} {B₂ : Set b₂} →
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : Type b₁} {B₂ : Type b₂} →
     A₁ ≃ A₂ → B₁ ≃ B₂ → (A₁ × B₁) ≃ (A₂ × B₂)
   ×-cong-≃ A₁≃A₂ B₁≃B₂ =
     from-bijection $ ×-cong-bij (from-equivalence A₁≃A₂)
                                 (from-equivalence B₁≃B₂)
 
   ×-cong-≃ᴱ :
-    ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : Set b₁} {B₂ : Set b₂} →
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : Type b₁} {B₂ : Type b₂} →
     A₁ ≃ᴱ A₂ → B₁ ≃ᴱ B₂ → (A₁ × B₁) ≃ᴱ (A₂ × B₂)
   ×-cong-≃ᴱ f g =
     EEq.[≃]→≃ᴱ (EEq.[proofs] (×-cong-≃ (EEq.≃ᴱ→≃ f) (EEq.≃ᴱ→≃ g)))
 
 infixr 2 _×-cong_
 
-_×-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-             {B₁ : Set b₁} {B₂ : Set b₂} →
+_×-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+             {B₁ : Type b₁} {B₂ : Type b₂} →
            A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ × B₁ ↝[ k ] A₂ × B₂
 _×-cong_ {implication}         = λ f g → Σ-map f g
 _×-cong_ {logical-equivalence} = ×-cong-eq
@@ -1016,7 +1016,7 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 
 -- _×_ is commutative.
 
-×-comm : ∀ {a b} {A : Set a} {B : Set b} → A × B ↔ B × A
+×-comm : ∀ {a b} {A : Type a} {B : Type b} → A × B ↔ B × A
 ×-comm = record
   { surjection = record
     { logical-equivalence = record
@@ -1031,7 +1031,7 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 -- Σ is associative.
 
 Σ-assoc : ∀ {a b c}
-            {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} →
+            {A : Type a} {B : A → Type b} {C : (x : A) → B x → Type c} →
           (Σ A λ x → Σ (B x) (C x)) ↔ Σ (Σ A B) (uncurry C)
 Σ-assoc = record
   { surjection = record
@@ -1046,13 +1046,13 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 
 -- _×_ is associative.
 
-×-assoc : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+×-assoc : ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
           A × (B × C) ↔ (A × B) × C
 ×-assoc = Σ-assoc
 
 -- ⊤ is a left and right identity of _×_ and Σ.
 
-Σ-left-identity : ∀ {a} {A : ⊤ → Set a} → Σ ⊤ A ↔ A tt
+Σ-left-identity : ∀ {a} {A : ⊤ → Type a} → Σ ⊤ A ↔ A tt
 Σ-left-identity = record
   { surjection = record
     { logical-equivalence = record
@@ -1064,10 +1064,10 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
   ; left-inverse-of = refl
   }
 
-×-left-identity : ∀ {a} {A : Set a} → ⊤ × A ↔ A
+×-left-identity : ∀ {a} {A : Type a} → ⊤ × A ↔ A
 ×-left-identity = Σ-left-identity
 
-×-right-identity : ∀ {a} {A : Set a} → A × ⊤ ↔ A
+×-right-identity : ∀ {a} {A : Type a} → A × ⊤ ↔ A
 ×-right-identity {A = A} =
   A × ⊤  ↔⟨ ×-comm ⟩
   ⊤ × A  ↔⟨ ×-left-identity ⟩□
@@ -1075,7 +1075,7 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 
 -- ⊥ is a left and right zero of _×_ and Σ.
 
-Σ-left-zero : ∀ {ℓ₁ a ℓ₂} {A : ⊥ {ℓ = ℓ₁} → Set a} →
+Σ-left-zero : ∀ {ℓ₁ a ℓ₂} {A : ⊥ {ℓ = ℓ₁} → Type a} →
               Σ ⊥ A ↔ ⊥ {ℓ = ℓ₂}
 Σ-left-zero = record
   { surjection = record
@@ -1088,10 +1088,10 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
   ; left-inverse-of = λ { (() , _) }
   }
 
-×-left-zero : ∀ {a ℓ₁ ℓ₂} {A : Set a} → ⊥ {ℓ = ℓ₁} × A ↔ ⊥ {ℓ = ℓ₂}
+×-left-zero : ∀ {a ℓ₁ ℓ₂} {A : Type a} → ⊥ {ℓ = ℓ₁} × A ↔ ⊥ {ℓ = ℓ₂}
 ×-left-zero = Σ-left-zero
 
-×-right-zero : ∀ {a ℓ₁ ℓ₂} {A : Set a} → A × ⊥ {ℓ = ℓ₁} ↔ ⊥ {ℓ = ℓ₂}
+×-right-zero : ∀ {a ℓ₁ ℓ₂} {A : Type a} → A × ⊥ {ℓ = ℓ₁} ↔ ⊥ {ℓ = ℓ₂}
 ×-right-zero {A = A} =
   A × ⊥  ↔⟨ ×-comm ⟩
   ⊥ × A  ↔⟨ ×-left-zero ⟩□
@@ -1105,8 +1105,8 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 -- Σ preserves isomorphisms in its first argument and all kinds of
 -- functions in its second argument.
 
-Σ-cong : ∀ {k₁ k₂ a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-           {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+Σ-cong : ∀ {k₁ k₂ a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+           {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
          (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
          (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
          Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
@@ -1153,8 +1153,8 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 -- A variant of Σ-cong.
 
 Σ-cong-contra :
-  ∀ {k₁ k₂ a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  ∀ {k₁ k₂ a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₂↔A₁ : A₂ ↔[ k₁ ] A₁) →
   (∀ x → B₁ (to-implication A₂↔A₁ x) ↝[ k₂ ] B₂ x) →
   Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
@@ -1175,8 +1175,8 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 -- Variants of special cases of Σ-cong-contra.
 
 Σ-cong-contra-→ :
-  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₂↠A₁ : A₂ ↠ A₁) →
   (∀ x → B₁ (_↠_.to A₂↠A₁ x) → B₂ x) →
   Σ A₁ B₁ → Σ A₂ B₂
@@ -1185,8 +1185,8 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
         (B₁→B₂ _ ∘ subst B₁ (sym $ _↠_.right-inverse-of A₂↠A₁ _))
 
 Σ-cong-contra-⇔ :
-  ∀ {a₁ a₂ b₁ b₂} {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₂↠A₁ : A₂ ↠ A₁) →
   (∀ x → B₁ (_↠_.to A₂↠A₁ x) ⇔ B₂ x) →
   Σ A₁ B₁ ⇔ Σ A₂ B₂
@@ -1202,12 +1202,12 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 private
 
   ∃-cong-impl : ∀ {a b₁ b₂}
-                  {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+                  {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
                 (∀ x → B₁ x → B₂ x) → ∃ B₁ → ∃ B₂
   ∃-cong-impl B₁→B₂ = Σ-map id (λ {x} → B₁→B₂ x)
 
   ∃-cong-eq : ∀ {a b₁ b₂}
-                {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+                {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
               (∀ x → B₁ x ⇔ B₂ x) → ∃ B₁ ⇔ ∃ B₂
   ∃-cong-eq B₁⇔B₂ = record
     { to   = ∃-cong-impl (to   ⊚ B₁⇔B₂)
@@ -1215,7 +1215,7 @@ private
     } where open _⇔_
 
   ∃-cong-surj : ∀ {a b₁ b₂}
-                  {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+                  {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
                 (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
   ∃-cong-surj B₁↠B₂ = record
     { logical-equivalence = ∃-cong-eq (_↠_.logical-equivalence ⊚ B₁↠B₂)
@@ -1224,7 +1224,7 @@ private
     }
 
   ∃-cong-bij : ∀ {a b₁ b₂}
-                 {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+                 {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
                (∀ x → B₁ x ↔ B₂ x) → ∃ B₁ ↔ ∃ B₂
   ∃-cong-bij B₁↔B₂ = record
     { surjection      = ∃-cong-surj (_↔_.surjection ⊚ B₁↔B₂)
@@ -1234,19 +1234,19 @@ private
 
   ∃-cong-≃ :
     ∀ {a b₁ b₂}
-      {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+      {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ≃ B₂ x) → ∃ B₁ ≃ ∃ B₂
   ∃-cong-≃ B₁≃B₂ =
     from-bijection $ ∃-cong-bij (from-equivalence ⊚ B₁≃B₂)
 
   ∃-cong-≃ᴱ :
     ∀ {a b₁ b₂}
-      {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+      {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ≃ᴱ B₂ x) → ∃ B₁ ≃ᴱ ∃ B₂
   ∃-cong-≃ᴱ f = EEq.[≃]→≃ᴱ (EEq.[proofs] (∃-cong-≃ (EEq.≃ᴱ→≃ ⊚ f)))
 
 ∃-cong : ∀ {k a b₁ b₂}
-           {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+           {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
          (∀ x → B₁ x ↝[ k ] B₂ x) → ∃ B₁ ↝[ k ] ∃ B₂
 ∃-cong {implication}         = ∃-cong-impl
 ∃-cong {logical-equivalence} = ∃-cong-eq
@@ -1263,14 +1263,14 @@ private
   -- variant of id ×-cong_:
 
   ×-cong₂ : ∀ {k a b₁ b₂}
-              {A : Set a} {B₁ : Set b₁} {B₂ : Set b₂} →
+              {A : Type a} {B₁ : Type b₁} {B₂ : Type b₂} →
            (A → B₁ ↝[ k ] B₂) → A × B₁ ↝[ k ] A × B₂
   ×-cong₂ = ∃-cong
 
 -- The following lemma is a more general variant of _×-cong id.
 
 ×-cong₁ : ∀ {k a₁ a₂ b}
-            {A₁ : Set a₁} {A₂ : Set a₂} {B : Set b} →
+            {A₁ : Type a₁} {A₂ : Type a₂} {B : Type b} →
           (B → A₁ ↝[ k ] A₂) → A₁ × B ↝[ k ] A₂ × B
 ×-cong₁ {A₁ = A₁} {A₂} {B} A₁↔A₂ =
   A₁ × B  ↔⟨ ×-comm ⟩
@@ -1281,21 +1281,21 @@ private
 -- Lemmas that can be used to simplify sigma types where one of the
 -- two type arguments is (conditionally) related to the unit type.
 
-drop-⊤-right : ∀ {k a b} {A : Set a} {B : A → Set b} →
+drop-⊤-right : ∀ {k a b} {A : Type a} {B : A → Type b} →
                ((x : A) → B x ↝[ k ] ⊤) → Σ A B ↝[ k ] A
 drop-⊤-right {A = A} {B} B↝⊤ =
   Σ A B  ↝⟨ ∃-cong B↝⊤ ⟩
   A × ⊤  ↔⟨ ×-right-identity ⟩□
   A      □
 
-drop-⊤-left-× : ∀ {k a b} {A : Set a} {B : Set b} →
+drop-⊤-left-× : ∀ {k a b} {A : Type a} {B : Type b} →
                 (B → A ↝[ k ] ⊤) → A × B ↝[ k ] B
 drop-⊤-left-× {A = A} {B} A↝⊤ =
   A × B  ↔⟨ ×-comm ⟩
   B × A  ↝⟨ drop-⊤-right A↝⊤ ⟩□
   B      □
 
-drop-⊤-left-Σ : ∀ {a b} {A : Set a} {B : A → Set b} →
+drop-⊤-left-Σ : ∀ {a b} {A : Type a} {B : A → Type b} →
                 (A↔⊤ : A ↔ ⊤) →
                 Σ A B ↔ B (_↔_.from A↔⊤ tt)
 drop-⊤-left-Σ {A = A} {B} A↔⊤ =
@@ -1305,8 +1305,9 @@ drop-⊤-left-Σ {A = A} {B} A↔⊤ =
 
 -- Currying.
 
-currying : ∀ {a b c} {A : Set a} {B : A → Set b} {C : Σ A B → Set c} →
-           ((p : Σ A B) → C p) ↔ ((x : A) (y : B x) → C (x , y))
+currying :
+  ∀ {a b c} {A : Type a} {B : A → Type b} {C : Σ A B → Type c} →
+  ((p : Σ A B) → C p) ↔ ((x : A) (y : B x) → C (x , y))
 currying = record
   { surjection = record
     { logical-equivalence = record { to = curry; from = uncurry }
@@ -1319,7 +1320,7 @@ currying = record
 -- functions.
 
 Π⊎↠Π×Π :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : A ⊎ B → Set c} →
+  ∀ {a b c} {A : Type a} {B : Type b} {C : A ⊎ B → Type c} →
   ((x : A ⊎ B) → C x)
     ↠
   ((x : A) → C (inj₁ x)) × ((y : B) → C (inj₂ y))
@@ -1332,7 +1333,7 @@ currying = record
   }
 
 Π⊎↔Π×Π :
-  ∀ {k a b c} {A : Set a} {B : Set b} {C : A ⊎ B → Set c} →
+  ∀ {k a b c} {A : Type a} {B : Type b} {C : A ⊎ B → Type c} →
   Extensionality? k (a ⊔ b) c →
   ((x : A ⊎ B) → C x)
     ↝[ k ]
@@ -1346,7 +1347,7 @@ currying = record
 -- ∃ distributes "from the left" over _⊎_.
 
 ∃-⊎-distrib-left :
-  ∀ {a b c} {A : Set a} {B : A → Set b} {C : A → Set c} →
+  ∀ {a b c} {A : Type a} {B : A → Type b} {C : A → Type c} →
   (∃ λ x → B x ⊎ C x) ↔ ∃ B ⊎ ∃ C
 ∃-⊎-distrib-left = record
   { surjection = record
@@ -1363,7 +1364,7 @@ currying = record
 -- ∃ also distributes "from the right" over _⊎_.
 
 ∃-⊎-distrib-right :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : A ⊎ B → Set c} →
+  ∀ {a b c} {A : Type a} {B : Type b} {C : A ⊎ B → Type c} →
   Σ (A ⊎ B) C ↔ Σ A (C ⊚ inj₁) ⊎ Σ B (C ⊚ inj₂)
 ∃-⊎-distrib-right {A = A} {B} {C} = record
   { surjection = record
@@ -1388,7 +1389,7 @@ currying = record
 
 -- ∃ is "commutative".
 
-∃-comm : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
+∃-comm : ∀ {a b c} {A : Type a} {B : Type b} {C : A → B → Type c} →
          (∃ λ x → ∃ λ y → C x y) ↔ (∃ λ y → ∃ λ x → C x y)
 ∃-comm = record
   { surjection = record
@@ -1403,7 +1404,7 @@ currying = record
 
 -- One can introduce an existential by also introducing an equality.
 
-∃-intro : ∀ {a b} {A : Set a} (B : A → Set b) (x : A) →
+∃-intro : ∀ {a b} {A : Type a} (B : A → Type b) (x : A) →
           B x ↔ ∃ λ y → B y × y ≡ x
 ∃-intro B x =
   B x                    ↔⟨ inverse ×-right-identity ⟩
@@ -1415,7 +1416,7 @@ currying = record
 -- A variant of ∃-intro.
 
 ∃-introduction :
-  ∀ {a b} {A : Set a} {x : A} (B : (y : A) → x ≡ y → Set b) →
+  ∀ {a b} {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
   B x (refl x) ↔ ∃ λ y → ∃ λ (x≡y : x ≡ y) → B y x≡y
 ∃-introduction {x = x} B =
   B x (refl x)                                              ↝⟨ ∃-intro (uncurry B) _ ⟩
@@ -1431,7 +1432,7 @@ currying = record
 -- This property used to be defined in terms of Σ-≡,≡↔≡, but was
 -- changed in order to make it compute in a different way.
 
-≡×≡↔≡ : ∀ {a b} {A : Set a} {B : Set b} {p₁ p₂ : A × B} →
+≡×≡↔≡ : ∀ {a b} {A : Type a} {B : Type b} {p₁ p₂ : A × B} →
         (proj₁ p₁ ≡ proj₁ p₂ × proj₂ p₁ ≡ proj₂ p₂) ↔ (p₁ ≡ p₂)
 ≡×≡↔≡ {B = B} {p₁} {p₂} = record
   { surjection = record
@@ -1456,7 +1457,7 @@ currying = record
 -- attention to the first components.
 
 ignore-propositional-component :
-  ∀ {a b} {A : Set a} {B : A → Set b} {p q : Σ A B} →
+  ∀ {a b} {A : Type a} {B : A → Type b} {p q : Σ A B} →
   Is-proposition (B (proj₁ q)) →
   (proj₁ p ≡ proj₁ q) ↔ (p ≡ q)
 ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
@@ -1468,7 +1469,7 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
 -- Contractible commutes with _×_ (assuming extensionality).
 
 Contractible-commutes-with-× :
-  ∀ {k x y} {X : Set x} {Y : Set y} →
+  ∀ {k x y} {X : Type x} {Y : Type y} →
   Extensionality? k (x ⊔ y) (x ⊔ y) →
   Contractible (X × Y) ↝[ k ] (Contractible X × Contractible Y)
 Contractible-commutes-with-× {x = x} {y} =
@@ -1490,7 +1491,7 @@ Contractible-commutes-with-× {x = x} {y} =
                          (Contractible-propositional
                             (lower-extensionality x x ext)))
   where
-  lemma : ∀ {x y} {X : Set x} {Y : Set y} →
+  lemma : ∀ {x y} {X : Type x} {Y : Type y} →
           Contractible (X × Y) → Contractible X
   lemma ((x , y) , eq) = x , λ x′ →
     x               ≡⟨⟩
@@ -1507,7 +1508,7 @@ Contractible-commutes-with-× {x = x} {y} =
 ≃-to-≡↔≡ :
   ∀ {a b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
-  {A : Set a} {B : Set b} {p q : A ≃ B} →
+  {A : Type a} {B : Type b} {p q : A ≃ B} →
   (∀ x → _≃_.to p x ≡ _≃_.to q x) ↔ p ≡ q
 ≃-to-≡↔≡ {a} {b} ext {p = p} {q} =
   (∀ x → _≃_.to p x ≡ _≃_.to q x)                                        ↔⟨ Eq.extensionality-isomorphism (lower-extensionality b a ext) ⟩
@@ -1522,7 +1523,7 @@ Contractible-commutes-with-× {x = x} {y} =
   ∀ {a b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Extensionality a b →
-  {A : Set a} {B : Set b} {p q : A ≃ B} →
+  {A : Type a} {B : Type b} {p q : A ≃ B} →
   (∀ x → _≃_.to p x ≡ _≃_.to q x) ≃ (p ≡ q)
 ≃-to-≡≃≡ {a} {b} ext₁ ext₂ {p = p} {q} =
   Eq.with-other-function
@@ -1602,7 +1603,7 @@ Contractible-commutes-with-× {x = x} {y} =
 ≃-from-≡↔≡ :
   ∀ {a b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
-  {A : Set a} {B : Set b} {p q : A ≃ B} →
+  {A : Type a} {B : Type b} {p q : A ≃ B} →
   (∀ x → _≃_.from p x ≡ _≃_.from q x) ↔ p ≡ q
 ≃-from-≡↔≡ ext {p = p} {q} =
   (∀ x → _≃_.from p x ≡ _≃_.from q x)  ↝⟨ ≃-to-≡↔≡ ext ⟩
@@ -1616,7 +1617,7 @@ Contractible-commutes-with-× {x = x} {y} =
 ↔-to-≡↔≡ :
   ∀ {a b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
-  {A : Set a} {B : Set b} {p q : A ↔ B} →
+  {A : Type a} {B : Type b} {p q : A ↔ B} →
   Is-set A →
   (∀ x → _↔_.to p x ≡ _↔_.to q x) ↔ p ≡ q
 ↔-to-≡↔≡ ext {p = p} {q} A-set =
@@ -1632,7 +1633,7 @@ Contractible-commutes-with-× {x = x} {y} =
 ↔-from-≡↔≡ :
   ∀ {a b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
-  {A : Set a} {B : Set b} {p q : A ↔ B} →
+  {A : Type a} {B : Type b} {p q : A ↔ B} →
   Is-set A →
   (∀ x → _↔_.from p x ≡ _↔_.from q x) ↔ p ≡ q
 ↔-from-≡↔≡ ext {p = p} {q} A-set =
@@ -1647,7 +1648,7 @@ Contractible-commutes-with-× {x = x} {y} =
 Embedding-to-≡↔≡ :
   ∀ {a b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
-  {A : Set a} {B : Set b} {p q : Embedding A B} →
+  {A : Type a} {B : Type b} {p q : Embedding A B} →
   (∀ x → Embedding.to p x ≡ Embedding.to q x) ↔ p ≡ q
 Embedding-to-≡↔≡ {a} {b} ext {p = p} {q} =
   (∀ x → Embedding.to p x ≡ Embedding.to q x)    ↔⟨ Eq.extensionality-isomorphism (lower-extensionality b a ext) ⟩
@@ -1666,7 +1667,7 @@ Embedding-to-≡↔≡ {a} {b} ext {p = p} {q} =
 -- (assuming extensionality).
 
 contractible↔≃⊤ :
-  ∀ {a} {A : Set a} →
+  ∀ {a} {A : Type a} →
   Extensionality a a →
   Contractible A ↔ (A ≃ ⊤)
 contractible↔≃⊤ ext = record
@@ -1685,7 +1686,7 @@ contractible↔≃⊤ ext = record
 -- (assuming extensionality).
 
 ≃⊥≃¬ :
-  ∀ {a ℓ} {A : Set a} →
+  ∀ {a ℓ} {A : Type a} →
   Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
   (A ≃ ⊥ {ℓ = ℓ}) ≃ (¬ A)
 ≃⊥≃¬ {ℓ = ℓ} {A} ext =
@@ -1701,7 +1702,7 @@ contractible↔≃⊤ ext = record
 -- equality (assuming extensionality).
 
 Is-equivalence-cong :
-  ∀ {k a b} {A : Set a} {B : Set b} {f g : A → B} →
+  ∀ {k a b} {A : Type a} {B : Type b} {f g : A → B} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   (∀ x → f x ≡ g x) →
   Is-equivalence f ↝[ k ] Is-equivalence g
@@ -1718,7 +1719,7 @@ Is-equivalence-cong ext f≡g =
 -- _≃_ is commutative (assuming extensionality).
 
 ≃-comm :
-  ∀ {k a b} {A : Set a} {B : Set b} →
+  ∀ {k a b} {A : Type a} {B : Type b} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   A ≃ B ↝[ k ] B ≃ A
 ≃-comm =
@@ -1731,13 +1732,13 @@ Is-equivalence-cong ext f≡g =
 
 -- _×_ distributes from the left over _⊎_.
 
-×-⊎-distrib-left : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+×-⊎-distrib-left : ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
                    A × (B ⊎ C) ↔ (A × B) ⊎ (A × C)
 ×-⊎-distrib-left = ∃-⊎-distrib-left
 
 -- _×_ distributes from the right over _⊎_.
 
-×-⊎-distrib-right : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+×-⊎-distrib-right : ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
                     (A ⊎ B) × C ↔ (A × C) ⊎ (B × C)
 ×-⊎-distrib-right = ∃-⊎-distrib-right
 
@@ -1748,7 +1749,7 @@ Is-equivalence-cong ext f≡g =
 -- (contravariantly for the domain).
 
 →-cong-→ : ∀ {a b c d}
-             {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+             {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
            (B → A) → (C → D) → (A → C) → (B → D)
 →-cong-→ B→A C→D = (C→D ∘_) ∘ (_∘ B→A)
 
@@ -1757,7 +1758,7 @@ private
   -- A lemma used in the implementations of →-cong and →-cong-↠.
 
   →-cong-⇔ : ∀ {a b c d}
-               {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+               {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
              A ⇔ B → C ⇔ D → (A → C) ⇔ (B → D)
   →-cong-⇔ A⇔B C⇔D = record
     { to   = →-cong-→ (from A⇔B) (to   C⇔D)
@@ -1769,7 +1770,7 @@ private
 -- (assuming extensionality).
 
 →-cong-↠ : ∀ {a b c d} → Extensionality b d →
-           {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+           {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
            A ↠ B → C ↠ D → (A → C) ↠ (B → D)
 →-cong-↠ {a} {b} {c} {d} ext A↠B C↠D = record
   { logical-equivalence = logical-equiv
@@ -1794,7 +1795,7 @@ private
   -- Lemmas used in the implementation of →-cong.
 
   →-cong-↔ : ∀ {a b c d}
-               {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+               {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
              Extensionality (a ⊔ b) (c ⊔ d) →
              A ↔ B → C ↔ D → (A → C) ↔ (B → D)
   →-cong-↔ {a} {b} {c} {d} ext A↔B C↔D = record
@@ -1818,7 +1819,7 @@ private
 
   →-cong-≃ :
     ∀ {a b c d}
-      {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+      {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
     Extensionality (a ⊔ b) (c ⊔ d) →
     A ≃ B → C ≃ D → (A → C) ≃ (B → D)
   →-cong-≃ ext A≃B C≃D = record
@@ -1843,7 +1844,7 @@ private
 
   →-cong-≃ᴱ :
     ∀ {a b c d}
-      {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+      {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
     Extensionality (a ⊔ b) (c ⊔ d) →
     A ≃ᴱ B → C ≃ᴱ D → (A → C) ≃ᴱ (B → D)
   →-cong-≃ᴱ ext f g =
@@ -1854,7 +1855,7 @@ private
 
 →-cong : ∀ {k a b c d} →
          Extensionality? ⌊ k ⌋-sym (a ⊔ b) (c ⊔ d) →
-         {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+         {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
          A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
          (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
 →-cong {logical-equivalence} _   = →-cong-⇔
@@ -1867,7 +1868,7 @@ private
 →-cong₁ :
   ∀ {k₁ k₂ a b c} →
   Extensionality? k₂ (a ⊔ b) c →
-  {A : Set a} {B : Set b} {C : Set c} →
+  {A : Type a} {B : Type b} {C : Type c} →
   A ↔[ k₁ ] B → (A → C) ↝[ k₂ ] (B → C)
 →-cong₁ ext hyp = generalise-ext?-sym
   (λ ext → →-cong ext (from-bijection (from-isomorphism hyp)) id)
@@ -1878,13 +1879,13 @@ private
   -- Lemmas used in the implementation of ∀-cong.
 
   ∀-cong-→ :
-    ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x → B₂ x) →
     ((x : A) → B₁ x) → ((x : A) → B₂ x)
   ∀-cong-→ B₁→B₂ = B₁→B₂ _ ⊚_
 
   ∀-cong-⇔ :
-    ∀ {a b₁ b₂} {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ⇔ B₂ x) →
     ((x : A) → B₁ x) ⇔ ((x : A) → B₂ x)
   ∀-cong-⇔ B₁⇔B₂ = record
@@ -1895,7 +1896,7 @@ private
   ∀-cong-surj :
     ∀ {a b₁ b₂} →
     Extensionality a (b₁ ⊔ b₂) →
-    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ↠ B₂ x) →
     ((x : A) → B₁ x) ↠ ((x : A) → B₂ x)
   ∀-cong-surj {b₁ = b₁} ext B₁↠B₂ = record
@@ -1915,7 +1916,7 @@ private
   ∀-cong-bij :
     ∀ {a b₁ b₂} →
     Extensionality a (b₁ ⊔ b₂) →
-    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ↔ B₂ x) →
     ((x : A) → B₁ x) ↔ ((x : A) → B₂ x)
   ∀-cong-bij {b₂ = b₂} ext B₁↔B₂ = record
@@ -1935,7 +1936,7 @@ private
   ∀-cong-eq :
     ∀ {a b₁ b₂} →
     Extensionality a (b₁ ⊔ b₂) →
-    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ≃ B₂ x) →
     ((x : A) → B₁ x) ≃ ((x : A) → B₂ x)
   ∀-cong-eq ext = Eq.↔⇒≃ ⊚ ∀-cong-bij ext ⊚ (_≃_.bijection ⊚_)
@@ -1943,7 +1944,7 @@ private
   ∀-cong-eqᴱ :
     ∀ {a b₁ b₂} →
     Extensionality a (b₁ ⊔ b₂) →
-    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ≃ᴱ B₂ x) →
     ((x : A) → B₁ x) ≃ᴱ ((x : A) → B₂ x)
   ∀-cong-eqᴱ ext f =
@@ -1952,7 +1953,7 @@ private
   ∀-cong-inj :
     ∀ {a b₁ b₂} →
     Extensionality a (b₁ ⊔ b₂) →
-    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ↣ B₂ x) →
     ((x : A) → B₁ x) ↣ ((x : A) → B₂ x)
   ∀-cong-inj {b₁ = b₁} {b₂} ext B₁↣B₂ = record
@@ -1975,7 +1976,7 @@ private
   ∀-cong-emb :
     ∀ {a b₁ b₂} →
     Extensionality a (b₁ ⊔ b₂) →
-    {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+    {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → Embedding (B₁ x) (B₂ x)) →
     Embedding ((x : A) → B₁ x) ((x : A) → B₂ x)
   ∀-cong-emb {b₁ = b₁} {b₂} ext B₁↣B₂ = record
@@ -2027,7 +2028,7 @@ private
 ∀-cong :
   ∀ {k a b₁ b₂} →
   Extensionality? k a (b₁ ⊔ b₂) →
-  {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+  {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
   (∀ x → B₁ x ↝[ k ] B₂ x) →
   ((x : A) → B₁ x) ↝[ k ] ((x : A) → B₂ x)
 ∀-cong {implication}         = λ _ → ∀-cong-→
@@ -2045,7 +2046,7 @@ private
 implicit-∀-cong :
   ∀ {k a b₁ b₂} →
   Extensionality? k a (b₁ ⊔ b₂) →
-  {A : Set a} {B₁ : A → Set b₁} {B₂ : A → Set b₂} →
+  {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
   (∀ {x} → B₁ x ↝[ k ] B₂ x) →
   ({x : A} → B₁ x) ↝[ k ] ({x : A} → B₂ x)
 implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
@@ -2058,8 +2059,8 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
 
 Π-cong-contra-→ :
   ∀ {a₁ a₂ b₁ b₂}
-    {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₂→A₁ : A₂ → A₁) →
   (∀ x → B₁ (A₂→A₁ x) → B₂ x) →
   ((x : A₁) → B₁ x) → ((x : A₂) → B₂ x)
@@ -2070,8 +2071,8 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
 
 Π-cong-→ :
   ∀ {a₁ a₂ b₁ b₂}
-    {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₁↠A₂ : A₁ ↠ A₂) →
   (∀ x → B₁ x → B₂ (_↠_.to A₁↠A₂ x)) →
   ((x : A₁) → B₁ x) → ((x : A₂) → B₂ x)
@@ -2085,8 +2086,8 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
 
 Π-cong-⇔ :
   ∀ {a₁ a₂ b₁ b₂}
-    {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₁↠A₂ : A₁ ↠ A₂) →
   (∀ x → B₁ x ⇔ B₂ (_↠_.to A₁↠A₂ x)) →
   ((x : A₁) → B₁ x) ⇔ ((x : A₂) → B₂ x)
@@ -2097,8 +2098,8 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
 
 Π-cong-contra-⇔ :
   ∀ {a₁ a₂ b₁ b₂}
-    {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₂↠A₁ : A₂ ↠ A₁) →
   (∀ x → B₁ (_↠_.to A₂↠A₁ x) ⇔ B₂ x) →
   ((x : A₁) → B₁ x) ⇔ ((x : A₂) → B₂ x)
@@ -2112,8 +2113,8 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
 Π-cong-↠ :
   ∀ {a₁ a₂ b₁ b₂} →
   Extensionality a₂ b₂ →
-  ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₁↠A₂ : A₁ ↠ A₂) →
   (∀ x → B₁ x ↠ B₂ (_↠_.to A₁↠A₂ x)) →
   ((x : A₁) → B₁ x) ↠ ((x : A₂) → B₂ x)
@@ -2143,8 +2144,8 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
 Π-cong-contra-↣ :
   ∀ {a₁ a₂ b₁ b₂} →
   Extensionality a₁ b₁ →
-  ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-    {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₂↠A₁ : A₂ ↠ A₁) →
   (∀ x → B₁ (_↠_.to A₂↠A₁ x) ↣ B₂ x) →
   ((x : A₁) → B₁ x) ↣ ((x : A₂) → B₂ x)
@@ -2179,8 +2180,8 @@ private
   Π-cong-contra-↠ :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality a₂ b₂ →
-    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₂≃A₁ : A₂ ≃ A₁) →
     (∀ x → B₁ (_≃_.to A₂≃A₁ x) ↠ B₂ x) →
     ((x : A₁) → B₁ x) ↠ ((x : A₂) → B₂ x)
@@ -2220,8 +2221,8 @@ private
   Π-cong-↔ :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₁≃A₂ : A₁ ≃ A₂) →
     (∀ x → B₁ x ↔ B₂ (_≃_.to A₁≃A₂ x)) →
     ((x : A₁) → B₁ x) ↔ ((x : A₂) → B₂ x)
@@ -2246,8 +2247,8 @@ private
   Π-cong-contra-↔ :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₂≃A₁ : A₂ ≃ A₁) →
     (∀ x → B₁ (_≃_.to A₂≃A₁ x) ↔ B₂ x) →
     ((x : A₁) → B₁ x) ↔ ((x : A₂) → B₂ x)
@@ -2271,8 +2272,8 @@ private
   Π-cong-≃ :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₁≃A₂ : A₁ ≃ A₂) →
     (∀ x → B₁ x ≃ B₂ (_≃_.to A₁≃A₂ x)) →
     ((x : A₁) → B₁ x) ≃ ((x : A₂) → B₂ x)
@@ -2282,8 +2283,8 @@ private
   Π-cong-≃ᴱ :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₁≃A₂ : A₁ ≃ A₂) →
     (∀ x → B₁ x ≃ᴱ B₂ (_≃_.to A₁≃A₂ x)) →
     ((x : A₁) → B₁ x) ≃ᴱ ((x : A₂) → B₂ x)
@@ -2297,8 +2298,8 @@ private
   Π-cong-contra-≃ :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₂≃A₁ : A₂ ≃ A₁) →
     (∀ x → B₁ (_≃_.to A₂≃A₁ x) ≃ B₂ x) →
     ((x : A₁) → B₁ x) ≃ ((x : A₂) → B₂ x)
@@ -2308,8 +2309,8 @@ private
   Π-cong-contra-≃ᴱ :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₂≃A₁ : A₂ ≃ A₁) →
     (∀ x → B₁ (_≃_.to A₂≃A₁ x) ≃ᴱ B₂ x) →
     ((x : A₁) → B₁ x) ≃ᴱ ((x : A₂) → B₂ x)
@@ -2324,8 +2325,8 @@ private
   Π-cong-↣ :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality a₁ b₁ →
-    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₁≃A₂ : A₁ ≃ A₂) →
     (∀ x → B₁ x ↣ B₂ (_≃_.to A₁≃A₂ x)) →
     ((x : A₁) → B₁ x) ↣ ((x : A₂) → B₂ x)
@@ -2339,8 +2340,8 @@ private
   Π-cong-contra-Emb :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₂≃A₁ : A₂ ≃ A₁) →
     (∀ x → Embedding (B₁ (_≃_.to A₂≃A₁ x)) (B₂ x)) →
     Embedding ((x : A₁) → B₁ x) ((x : A₂) → B₂ x)
@@ -2400,8 +2401,8 @@ private
   Π-cong-Emb :
     ∀ {a₁ a₂ b₁ b₂} →
     Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-    ∀ {A₁ : Set a₁} {A₂ : Set a₂}
-      {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+    ∀ {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₁≃A₂ : A₁ ≃ A₂) →
     (∀ x → Embedding (B₁ x) (B₂ (_≃_.to A₁≃A₂ x))) →
     Embedding ((x : A₁) → B₁ x) ((x : A₂) → B₂ x)
@@ -2421,7 +2422,8 @@ private
 Π-cong :
   ∀ {k₁ k₂ a₁ a₂ b₁ b₂} →
   Extensionality? k₂ (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-  {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  {A₁ : Type a₁} {A₂ : Type a₂}
+  {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
   (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
   ((x : A₁) → B₁ x) ↝[ k₂ ] ((x : A₂) → B₂ x)
@@ -2474,7 +2476,8 @@ private
 Π-cong-contra :
   ∀ {k₁ k₂ a₁ a₂ b₁ b₂} →
   Extensionality? k₂ (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-  {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  {A₁ : Type a₁} {A₂ : Type a₂}
+  {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₂↔A₁ : A₂ ↔[ k₁ ] A₁) →
   (∀ x → B₁ (to-implication A₂↔A₁ x) ↝[ k₂ ] B₂ x) →
   ((x : A₁) → B₁ x) ↝[ k₂ ] ((x : A₂) → B₂ x)
@@ -2529,7 +2532,8 @@ private
 implicit-Π-cong :
   ∀ {k₁ k₂ a₁ a₂ b₁ b₂} →
   Extensionality? k₂ (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-  {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  {A₁ : Type a₁} {A₂ : Type a₂}
+  {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
   (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
   ({x : A₁} → B₁ x) ↝[ k₂ ] ({x : A₂} → B₂ x)
@@ -2544,7 +2548,8 @@ implicit-Π-cong ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ =
 implicit-Π-cong-contra :
   ∀ {k₁ k₂ a₁ a₂ b₁ b₂} →
   Extensionality? k₂ (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
-  {A₁ : Set a₁} {A₂ : Set a₂} {B₁ : A₁ → Set b₁} {B₂ : A₂ → Set b₂} →
+  {A₁ : Type a₁} {A₂ : Type a₂}
+  {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
   (A₂↔A₁ : A₂ ↔[ k₁ ] A₁) →
   (∀ x → B₁ (to-implication A₂↔A₁ x) ↝[ k₂ ] B₂ x) →
   ({x : A₁} → B₁ x) ↝[ k₂ ] ({x : A₂} → B₂ x)
@@ -2554,7 +2559,7 @@ implicit-Π-cong-contra ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ 
   ((x : A₂) → B₂ x)  ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
   ({x : A₂} → B₂ x)  □
 
-Π-left-identity : ∀ {a} {A : ⊤ → Set a} → ((x : ⊤) → A x) ↔ A tt
+Π-left-identity : ∀ {a} {A : ⊤ → Type a} → ((x : ⊤) → A x) ↔ A tt
 Π-left-identity = record
   { surjection = record
     { logical-equivalence = record
@@ -2569,7 +2574,7 @@ implicit-Π-cong-contra ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ 
 -- A variant of Π-left-identity.
 
 Π-left-identity-↑ :
-  ∀ {a ℓ} {A : ↑ ℓ ⊤ → Set a} → ((x : ↑ ℓ ⊤) → A x) ↔ A (lift tt)
+  ∀ {a ℓ} {A : ↑ ℓ ⊤ → Type a} → ((x : ↑ ℓ ⊤) → A x) ↔ A (lift tt)
 Π-left-identity-↑ = record
   { surjection = record
     { logical-equivalence = record
@@ -2585,7 +2590,7 @@ implicit-Π-cong-contra ext {A₁} {A₂} {B₁} {B₂} A₁↔A₂ B₁↝B₂ 
 -- isomorphic to the unit type.
 
 drop-⊤-left-Π :
-  ∀ {k a b} {A : Set a} {B : A → Set b} →
+  ∀ {k a b} {A : Type a} {B : A → Type b} →
   Extensionality? k a b →
   (A↔⊤ : A ↔ ⊤) →
   ((x : A) → B x) ↝[ k ] B (_↔_.from A↔⊤ tt)
@@ -2594,7 +2599,7 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
   ((x : ⊤) → B (_↔_.from A↔⊤ x))  ↔⟨ Π-left-identity ⟩□
   B (_↔_.from A↔⊤ tt)             □
 
-→-right-zero : ∀ {a} {A : Set a} → (A → ⊤) ↔ ⊤
+→-right-zero : ∀ {a} {A : Type a} → (A → ⊤) ↔ ⊤
 →-right-zero = record
   { surjection = record
     { logical-equivalence = record
@@ -2609,7 +2614,7 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
 -- A lemma relating function types with the empty type as domain and
 -- the unit type.
 
-Π⊥↔⊤ : ∀ {k ℓ a} {A : ⊥ {ℓ = ℓ} → Set a} →
+Π⊥↔⊤ : ∀ {k ℓ a} {A : ⊥ {ℓ = ℓ} → Type a} →
        Extensionality? k ℓ a →
        ((x : ⊥) → A x) ↝[ k ] ⊤
 Π⊥↔⊤ = generalise-ext? Π⊥⇔⊤ λ ext → record
@@ -2635,7 +2640,7 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
 -- Simplification lemmas for types of the form A → A → B.
 
 →→↠→ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   (A → A → B) ↠ (A → B)
 →→↠→ = record
   { logical-equivalence = record
@@ -2646,7 +2651,7 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
   }
 
 →→proposition↔→ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   Extensionality a (a ⊔ b) →
   Is-proposition B →
   (A → A → B) ↔ (A → B)
@@ -2662,7 +2667,7 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
 -- B.
 
 inhabited→↠ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   A → (A → B) ↠ B
 inhabited→↠ x = record
   { logical-equivalence = record
@@ -2676,7 +2681,7 @@ inhabited→↠ x = record
 -- isomorphic (assuming extensionality).
 
 inhabited→proposition↔ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   Extensionality a b →
   Is-proposition B →
   A → (A → B) ↔ B
@@ -2690,7 +2695,7 @@ inhabited→proposition↔ ext B-prop x = record
 
 -- Π is "commutative".
 
-Π-comm : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
+Π-comm : ∀ {a b c} {A : Type a} {B : Type b} {C : A → B → Type c} →
          (∀ x y → C x y) ↔ (∀ y x → C x y)
 Π-comm = record
   { surjection = record
@@ -2703,7 +2708,7 @@ inhabited→proposition↔ ext B-prop x = record
 -- Π and Σ commute (in a certain sense).
 
 ΠΣ-comm :
-  ∀ {a b c} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} →
+  ∀ {a b c} {A : Type a} {B : A → Type b} {C : (x : A) → B x → Type c} →
   (∀ x → ∃ λ (y : B x) → C x y)
     ↔
   (∃ λ (f : ∀ x → B x) → ∀ x → C x (f x))
@@ -2721,7 +2726,7 @@ inhabited→proposition↔ ext B-prop x = record
 -- The implicit variant of Π and Σ commute (in a certain sense).
 
 implicit-ΠΣ-comm :
-  ∀ {a b c} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} →
+  ∀ {a b c} {A : Type a} {B : A → Type b} {C : (x : A) → B x → Type c} →
   (∀ {x} → ∃ λ (y : B x) → C x y)
     ↔
   (∃ λ (f : ∀ {x} → B x) → ∀ {x} → C x f)
@@ -2734,7 +2739,7 @@ implicit-ΠΣ-comm {A = A} {B} {C} =
 -- Some variants of De Morgan's laws.
 
 ¬⊎↠¬×¬ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   ¬ (A ⊎ B) ↠ ¬ A × ¬ B
 ¬⊎↠¬×¬ = record
   { logical-equivalence = record
@@ -2745,7 +2750,7 @@ implicit-ΠΣ-comm {A = A} {B} {C} =
   }
 
 ¬⊎↔¬×¬ :
-  ∀ {k a b} {A : Set a} {B : Set b} →
+  ∀ {k a b} {A : Type a} {B : Type b} →
   Extensionality? k (a ⊔ b) lzero →
   ¬ (A ⊎ B) ↝[ k ] ¬ A × ¬ B
 ¬⊎↔¬×¬ = generalise-ext?
@@ -2757,12 +2762,12 @@ implicit-ΠΣ-comm {A = A} {B} {C} =
      })
 
 ¬⊎¬→×¬ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   ¬ A ⊎ ¬ B → ¬ (A × B)
 ¬⊎¬→×¬ = [ (_∘ proj₁) , (_∘ proj₂) ]
 
 ¬⊎¬⇔¬× :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   Dec A → Dec B →
   ¬ A ⊎ ¬ B ⇔ ¬ (A × B)
 ¬⊎¬⇔¬× (no ¬A) _ = record
@@ -2779,7 +2784,7 @@ implicit-ΠΣ-comm {A = A} {B} {C} =
   }
 
 ¬⊎¬↠¬× :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) lzero →
   Dec A → Dec B →
   ¬ A ⊎ ¬ B ↠ ¬ (A × B)
@@ -2794,7 +2799,7 @@ implicit-ΠΣ-comm {A = A} {B} {C} =
 implicit-extensionality-isomorphism :
   ∀ {k a b} →
   Extensionality a b →
-  {A : Set a} {B : A → Set b} {f g : {x : A} → B x} →
+  {A : Type a} {B : A → Type b} {f g : {x : A} → B x} →
   (∀ x → f {x} ≡ g {x}) ↔[ k ] ((λ {x} → f {x}) ≡ g)
 implicit-extensionality-isomorphism ext {f = f} {g} =
   (∀ x → f {x} ≡ g {x})            ↔⟨ Eq.extensionality-isomorphism ext ⟩
@@ -2812,7 +2817,7 @@ private
 
   to-implicit-extensionality-isomorphism :
     ∀ {a b}
-    (ext : Extensionality a b) {A : Set a} {B : A → Set b}
+    (ext : Extensionality a b) {A : Type a} {B : A → Type b}
     {f g : {x : A} → B x} (f≡g : ∀ x → f {x} ≡ g {x}) →
     _↔_.to (implicit-extensionality-isomorphism ext) f≡g
       ≡
@@ -2826,15 +2831,15 @@ private
 yoneda :
   ∀ {a b X} →
   Extensionality (lsuc a) (lsuc a ⊔ b) →
-  (F : SET a → SET b) →
-  (map : ∀ {A B} → (Type A → Type B) → Type (F A) → Type (F B)) →
-  (∀ {A} {x : Type (F A)} → map id x ≡ x) →
+  (F : Set a → Set b) →
+  (map : ∀ {A B} → (⌞ A ⌟ → ⌞ B ⌟) → ⌞ F A ⌟ → ⌞ F B ⌟) →
+  (∀ {A} {x : ⌞ F A ⌟} → map id x ≡ x) →
   (∀ {A B C f g x} →
    (map {A = B} {B = C} f ∘ map {A = A} g) x ≡ map (f ∘ g) x) →
 
-  Type (F X)
+  ⌞ F X ⌟
     ↔
-  ∃ λ (γ : ∀ Y → (Type X → Type Y) → Type (F Y)) →
+  ∃ λ (γ : ∀ Y → (⌞ X ⌟ → ⌞ Y ⌟) → ⌞ F Y ⌟) →
     ∀ Y₁ Y₂ f g → map f (γ Y₁ g) ≡ γ Y₂ (f ∘ g)
 
 yoneda {a} {X = X} ext F map map-id map-∘ = record
@@ -2866,7 +2871,7 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 -- There is a (split) surjection from products of equality
 -- isomorphisms to equalities.
 
-Π≡↔≡-↠-≡ : ∀ k {a} {A : Set a} (x y : A) →
+Π≡↔≡-↠-≡ : ∀ k {a} {A : Type a} (x y : A) →
            (∀ z → (z ≡ x) ↔[ k ] (z ≡ y)) ↠ (x ≡ y)
 Π≡↔≡-↠-≡ k x y = record
   { logical-equivalence = record { to = to; from = from }
@@ -2904,7 +2909,7 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 Π≡≃≡-↔-≡ :
   ∀ {k a} →
   Extensionality? k a a →
-  {A : Set a} (x y : A) →
+  {A : Type a} (x y : A) →
   (∀ z → (z ≡ x) ≃ (z ≡ y)) ↝[ k ] (x ≡ y)
 Π≡≃≡-↔-≡ {a = a} ext x y =
   generalise-ext? (_↠_.logical-equivalence surj)
@@ -2937,13 +2942,13 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 
 ∀-intro : ∀ {k a b} →
           Extensionality? k a (a ⊔ b) →
-          {A : Set a} {x : A} (B : (y : A) → x ≡ y → Set b) →
+          {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
           B x (refl x) ↝[ k ] (∀ y (x≡y : x ≡ y) → B y x≡y)
 ∀-intro ext B =
   generalise-ext? (∀-intro-⇔ B) (λ ext → ∀-intro-↔ ext B) ext
   where
-  ∀-intro-⇔ : ∀ {a b} {A : Set a} {x : A}
-              (B : (y : A) → x ≡ y → Set b) →
+  ∀-intro-⇔ : ∀ {a b} {A : Type a} {x : A}
+              (B : (y : A) → x ≡ y → Type b) →
               B x (refl x) ⇔ (∀ y (x≡y : x ≡ y) → B y x≡y)
   ∀-intro-⇔ {x = x} B = record
     { to   = λ b y x≡y →
@@ -2955,7 +2960,7 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 
   ∀-intro-↔ : ∀ {a b} →
               Extensionality a (a ⊔ b) →
-              {A : Set a} {x : A} (B : (y : A) → x ≡ y → Set b) →
+              {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
               B x (refl x) ↔ (∀ y (x≡y : x ≡ y) → B y x≡y)
   ∀-intro-↔ {a} ext {x = x} B = record
     { surjection = record
@@ -3009,7 +3014,7 @@ private
 
   ∀-intro′ : ∀ {k a b} →
              Extensionality? k a (a ⊔ b) →
-             {A : Set a} {x : A} (B : (y : A) → x ≡ y → Set b) →
+             {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
              B x (refl x) ↝[ k ] (∀ y (x≡y : x ≡ y) → B y x≡y)
   ∀-intro′ {k} {a} ext {x = x} B =
     B x (refl x)                        ↔⟨ inverse Π-left-identity ⟩
@@ -3029,7 +3034,7 @@ private
 -- extensionality).
 
 →-intro :
-  ∀ {a p} {A : Set a} {P : A → Set p} →
+  ∀ {a p} {A : Type a} {P : A → Type p} →
   Extensionality a (a ⊔ p) →
   (∀ x → Is-proposition (P x)) →
   (∀ x → P x) ↔ (A → ∀ x → P x)
@@ -3050,7 +3055,7 @@ private
 -- Logical equivalences can be expressed as pairs of functions.
 
 ⇔↔→×→ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   (A ⇔ B) ↔ (A → B) × (B → A)
 ⇔↔→×→ = record
   { surjection = record
@@ -3069,7 +3074,7 @@ private
 -- _⇔_ preserves logical equivalences.
 
 ⇔-cong-⇔ :
-  ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d} →
+  ∀ {a b c d} {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
   A ⇔ B → C ⇔ D → (A ⇔ C) ⇔ (B ⇔ D)
 ⇔-cong-⇔ {A = A} {B = B} {C = C} {D = D} A⇔B C⇔D = record
   { to   = λ A⇔C →
@@ -3090,7 +3095,7 @@ private
 -- An alternative characterisation of split surjections.
 
 ↠↔∃-Split-surjective :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   (A ↠ B) ↔ ∃ λ (f : A → B) → Split-surjective f
 ↠↔∃-Split-surjective = record
   { surjection = record
@@ -3115,7 +3120,7 @@ private
 -- An alternative characterisation of injections.
 
 ↣↔∃-Injective :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   (A ↣ B) ↔ ∃ λ (f : A → B) → Injective f
 ↣↔∃-Injective = record
   { surjection = record
@@ -3137,7 +3142,7 @@ private
 -- Equality is commutative.
 
 ≡-comm :
-  ∀ {a} {A : Set a} {x y : A} →
+  ∀ {a} {A : Type a} {x y : A} →
   x ≡ y ↔ y ≡ x
 ≡-comm = record
   { surjection = record
@@ -3153,7 +3158,7 @@ private
 -- The function trans x≡y is the to component of an isomorphism.
 
 trans-isomorphism :
-  ∀ {a} {A : Set a} {x y z : A} →
+  ∀ {a} {A : Type a} {x y z : A} →
   x ≡ y → y ≡ z ↔ x ≡ z
 trans-isomorphism x≡y = record
   { surjection = record
@@ -3169,7 +3174,7 @@ trans-isomorphism x≡y = record
 -- The function flip trans x≡y is the to component of an isomorphism.
 
 flip-trans-isomorphism :
-  ∀ {a} {A : Set a} {x y z : A} →
+  ∀ {a} {A : Type a} {x y z : A} →
   x ≡ y → z ≡ x ↔ z ≡ y
 flip-trans-isomorphism x≡y = record
   { surjection = record
@@ -3185,7 +3190,7 @@ flip-trans-isomorphism x≡y = record
 -- Equality expression rearrangement lemmas.
 
 from≡↔≡to : ∀ {a b} →
-            {A : Set a} {B : Set b}
+            {A : Type a} {B : Type b}
             (A≃B : A ≃ B) {x : B} {y : A} →
             (_≃_.from A≃B x ≡ y) ↔ (x ≡ _≃_.to A≃B y)
 from≡↔≡to A≃B {x} {y} =
@@ -3195,7 +3200,7 @@ from≡↔≡to A≃B {x} {y} =
 
 to∘≡↔≡from∘ : ∀ {a b c} →
               Extensionality a (b ⊔ c) →
-              {A : Set a} {B : A → Set b} {C : A → Set c}
+              {A : Type a} {B : A → Type b} {C : A → Type c}
               (B≃C : ∀ {x} → B x ≃ C x)
               {f : (x : A) → B x} {g : (x : A) → C x} →
               (_≃_.to B≃C ⊚ f ≡ g) ↔ (f ≡ _≃_.from B≃C ⊚ g)
@@ -3204,7 +3209,7 @@ to∘≡↔≡from∘ ext B≃C =
 
 ∘from≡↔≡∘to : ∀ {a b c} →
               Extensionality (a ⊔ b) c →
-              {A : Set a} {B : Set b} {C : Set c}
+              {A : Type a} {B : Type b} {C : Type c}
               (A≃B : A ≃ B) {f : A → C} {g : B → C} →
               (f ∘ _≃_.from A≃B ≡ g) ↔ (f ≡ g ∘ _≃_.to A≃B)
 ∘from≡↔≡∘to ext A≃B = from≡↔≡to (→-cong₁ ext (inverse A≃B))
@@ -3212,7 +3217,7 @@ to∘≡↔≡from∘ ext B≃C =
 ∘from≡↔≡∘to′ :
   ∀ {a b c} →
   Extensionality (a ⊔ b) c →
-  {A : Set a} {B : Set b} {C : A → Set c}
+  {A : Type a} {B : Type b} {C : A → Type c}
   (A≃B : A ≃ B)
   {f : (x : A) → C x} {g : (x : B) → C (_≃_.from A≃B x)} →
   (f ⊚ _≃_.from A≃B ≡ g) ↔
@@ -3256,12 +3261,12 @@ to∘≡↔≡from∘ ext B≃C =
 private
 
   ↑-cong-→ :
-    ∀ {a b c} {B : Set b} {C : Set c} →
+    ∀ {a b c} {B : Type b} {C : Type c} →
     (B → C) → ↑ a B → ↑ a C
   ↑-cong-→ B→C = lift ⊚ B→C ⊚ lower
 
   ↑-cong-⇔ :
-    ∀ {a b c} {B : Set b} {C : Set c} →
+    ∀ {a b c} {B : Type b} {C : Type c} →
     B ⇔ C → ↑ a B ⇔ ↑ a C
   ↑-cong-⇔ B⇔C = record
     { to   = ↑-cong-→ to
@@ -3269,7 +3274,7 @@ private
     } where open _⇔_ B⇔C
 
   ↑-cong-↣ :
-    ∀ {a b c} {B : Set b} {C : Set c} →
+    ∀ {a b c} {B : Type b} {C : Type c} →
     B ↣ C → ↑ a B ↣ ↑ a C
   ↑-cong-↣ {a} B↣C = record
     { to        = to′
@@ -3285,7 +3290,7 @@ private
       injective′ = cong lift ⊚ injective ⊚ cong lower
 
   ↑-cong-Embedding :
-    ∀ {a b c} {B : Set b} {C : Set c} →
+    ∀ {a b c} {B : Type b} {C : Type c} →
     Embedding B C → Embedding (↑ a B) (↑ a C)
   ↑-cong-Embedding {a} {B = B} B↣C = record
     { to           = ↑-cong-→ to
@@ -3305,7 +3310,7 @@ private
     where
     open Embedding B↣C
 
-    lift-lemma : ∀ {ℓ a} {A : Set a} {x y : A} →
+    lift-lemma : ∀ {ℓ a} {A : Type a} {x y : A} →
                  (x ≡ y) ↔ (lift {ℓ = ℓ} x ≡ lift y)
     lift-lemma {ℓ} = record
       { surjection = record
@@ -3325,7 +3330,7 @@ private
       }
 
   ↑-cong-↠ :
-    ∀ {a b c} {B : Set b} {C : Set c} →
+    ∀ {a b c} {B : Type b} {C : Type c} →
     B ↠ C → ↑ a B ↠ ↑ a C
   ↑-cong-↠ {a} B↠C = record
     { logical-equivalence = logical-equivalence′
@@ -3344,7 +3349,7 @@ private
       right-inverse-of′ = cong lift ⊚ right-inverse-of ⊚ lower
 
   ↑-cong-↔ :
-    ∀ {a b c} {B : Set b} {C : Set c} →
+    ∀ {a b c} {B : Type b} {C : Type c} →
     B ↔ C → ↑ a B ↔ ↑ a C
   ↑-cong-↔ {a} B↔C = record
     { surjection      = surjection′
@@ -3361,16 +3366,16 @@ private
       left-inverse-of′ = cong lift ⊚ left-inverse-of ⊚ lower
 
   ↑-cong-≃ :
-    ∀ {a b c} {B : Set b} {C : Set c} →
+    ∀ {a b c} {B : Type b} {C : Type c} →
     B ≃ C → ↑ a B ≃ ↑ a C
   ↑-cong-≃ = from-bijection ∘ ↑-cong-↔ ∘ from-equivalence
 
   ↑-cong-≃ᴱ :
-    ∀ {a b c} {B : Set b} {C : Set c} →
+    ∀ {a b c} {B : Type b} {C : Type c} →
     B ≃ᴱ C → ↑ a B ≃ᴱ ↑ a C
   ↑-cong-≃ᴱ f = EEq.[≃]→≃ᴱ (EEq.[proofs] (↑-cong-≃ (EEq.≃ᴱ→≃ f)))
 
-↑-cong : ∀ {k a b c} {B : Set b} {C : Set c} →
+↑-cong : ∀ {k a b c} {B : Type b} {C : Type c} →
            B ↝[ k ] C → ↑ a B ↝[ k ] ↑ a C
 ↑-cong {implication}         = ↑-cong-→
 ↑-cong {logical-equivalence} = ↑-cong-⇔
@@ -3401,7 +3406,7 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
 
 -- All instances of A → ⊥ are isomorphic to ¬ A.
 
-¬↔→⊥ : ∀ {k a ℓ} {A : Set a} →
+¬↔→⊥ : ∀ {k a ℓ} {A : Type a} →
        Extensionality? k a ℓ →
        ¬ A ↝[ k ] (A → ⊥ {ℓ = ℓ})
 ¬↔→⊥ {A = A} ext =
@@ -3410,7 +3415,7 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
 
 -- A type cannot be logically equivalent to its own negation.
 
-¬[⇔¬] : ∀ {a} {A : Set a} → ¬ (A ⇔ ¬ A)
+¬[⇔¬] : ∀ {a} {A : Type a} → ¬ (A ⇔ ¬ A)
 ¬[⇔¬] {A = A} =
   A ⇔ ¬ A          ↝⟨ (λ eq → (λ a → _⇔_.to eq a a) , eq) ⟩
   ¬ A × (A ⇔ ¬ A)  ↝⟨ (λ { (¬a , eq) → ¬a , _⇔_.from eq ¬a }) ⟩
@@ -3421,7 +3426,7 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
 -- equivalent (assuming extensionality).
 
 ¬-cong :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) lzero →
   A ⇔ B → (¬ A) ≃ (¬ B)
 ¬-cong {a} {b} ext A⇔B =
@@ -3437,7 +3442,7 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
 -- extensionality).
 
 H-level↔H-level′ :
-  ∀ {k a} {A : Set a} {n} →
+  ∀ {k a} {A : Type a} {n} →
   Extensionality? k a a →
   H-level n A ↝[ k ] H-level′ n A
 H-level↔H-level′ {n = n} =
@@ -3449,7 +3454,7 @@ H-level↔H-level′ {n = n} =
 -- H-level n preserves isomorphisms (assuming extensionality).
 
 H-level-cong :
-  ∀ {k₁ k₂ a b} {A : Set a} {B : Set b} →
+  ∀ {k₁ k₂ a b} {A : Type a} {B : Type b} →
   Extensionality? k₂ (a ⊔ b) (a ⊔ b) →
   ∀ n → A ↔[ k₁ ] B → H-level n A ↝[ k₂ ] H-level n B
 H-level-cong {a = a} {b} ext n A↔B′ =
@@ -3467,7 +3472,7 @@ H-level-cong {a = a} {b} ext n A↔B′ =
 -- H-level′ n preserves isomorphisms (assuming extensionality).
 
 H-level′-cong :
-  ∀ {k₁ k₂ a b} {A : Set a} {B : Set b} →
+  ∀ {k₁ k₂ a b} {A : Type a} {B : Type b} →
   Extensionality? k₂ (a ⊔ b) (a ⊔ b) →
   ∀ n → A ↔[ k₁ ] B → H-level′ n A ↝[ k₂ ] H-level′ n B
 H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
@@ -3480,7 +3485,7 @@ H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
 -- H-level (suc n) A (assuming extensionality).
 
 ≡↔+ :
-  ∀ {k a} {A : Set a} n →
+  ∀ {k a} {A : Type a} n →
   Extensionality? k a a →
   ((x y : A) → H-level n (x ≡ y)) ↝[ k ] H-level (suc n) A
 ≡↔+ {A = A} n ext =
@@ -3493,13 +3498,13 @@ H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
 -- ∀ C → H-level n C → (A → C) ≃ (B → C).
 
 →≃→↠≃ :
-  ∀ n {ℓ} {A B : Set ℓ} →
+  ∀ n {ℓ} {A B : Type ℓ} →
   Extensionality ℓ ℓ →
   (hA : H-level n A) (hB : H-level n B) →
-  (∃ λ (f : (C : Set ℓ) → H-level n C → (A → C) ≃ (B → C)) →
-     ((C : Set ℓ) (hC : H-level n C) (g : A → C) →
+  (∃ λ (f : (C : Type ℓ) → H-level n C → (A → C) ≃ (B → C)) →
+     ((C : Type ℓ) (hC : H-level n C) (g : A → C) →
         g ∘ _≃_.to (f A hA) id ≡ _≃_.to (f C hC) g) ×
-     ((C : Set ℓ) (hC : H-level n C) (g : B → C) →
+     ((C : Type ℓ) (hC : H-level n C) (g : B → C) →
         g ∘ _≃_.from (f B hB) id ≡ _≃_.from (f C hC) g))
     ↠
   (A ≃ B)
@@ -3534,13 +3539,13 @@ H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
 -- The following property can be generalised.
 
 →≃→↔≃ :
-  ∀ {ℓ} {A B : Set ℓ} →
+  ∀ {ℓ} {A B : Type ℓ} →
   Extensionality (lsuc ℓ) ℓ →
   (hA : Is-set A) (hB : Is-set B) →
-  (∃ λ (f : (C : Set ℓ) → Is-set C → (A → C) ≃ (B → C)) →
-     ((C : Set ℓ) (hC : Is-set C) (g : A → C) →
+  (∃ λ (f : (C : Type ℓ) → Is-set C → (A → C) ≃ (B → C)) →
+     ((C : Type ℓ) (hC : Is-set C) (g : A → C) →
         g ∘ _≃_.to (f A hA) id ≡ _≃_.to (f C hC) g) ×
-     ((C : Set ℓ) (hC : Is-set C) (g : B → C) →
+     ((C : Type ℓ) (hC : Is-set C) (g : B → C) →
         g ∘ _≃_.from (f B hB) id ≡ _≃_.from (f C hC) g))
     ↔
   (A ≃ B)
@@ -3572,7 +3577,7 @@ H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
 -- A preservation lemma for Dec.
 
 Dec-cong :
-  ∀ {k a b} {A : Set a} {B : Set b} →
+  ∀ {k a b} {A : Type a} {B : Type b} →
   Extensionality? ⌊ k ⌋-sym (a ⊔ b) lzero →
   A ↝[ ⌊ k ⌋-sym ] B →
   Dec A ↝[ ⌊ k ⌋-sym ] Dec B
@@ -3584,8 +3589,8 @@ Dec-cong {A = A} {B = B} ext A↝B =
 
 Decidable-cong :
   ∀ {k₁ k₂ k₃ a₁ b₁ p₁ a₂ b₂ p₂}
-    {A₁ : Set a₁} {B₁ : Set b₁} {P₁ : A₁ → B₁ → Set p₁}
-    {A₂ : Set a₂} {B₂ : Set b₂} {P₂ : A₂ → B₂ → Set p₂} →
+    {A₁ : Type a₁} {B₁ : Type b₁} {P₁ : A₁ → B₁ → Type p₁}
+    {A₂ : Type a₂} {B₂ : Type b₂} {P₂ : A₂ → B₂ → Type p₂} →
   Extensionality? ⌊ k₃ ⌋-sym (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂ ⊔ p₁ ⊔ p₂)
                              (b₁ ⊔ b₂ ⊔ p₁ ⊔ p₂) →
   (A₁↔A₂ : A₁ ↔[ k₁ ] A₂)
@@ -3607,7 +3612,7 @@ Decidable-cong
 -- A preservation lemma for Decidable-equality.
 
 Decidable-equality-cong :
-  ∀ {k₁ k₂ a b} {A : Set a} {B : Set b} →
+  ∀ {k₁ k₂ a b} {A : Type a} {B : Type b} →
   Extensionality? k₂ (a ⊔ b) (a ⊔ b) →
   A ↔[ k₁ ] B →
   Decidable-equality A ↝[ k₂ ] Decidable-equality B
@@ -3629,7 +3634,7 @@ Decidable-equality-cong ext A↔B =
 
 -- A generalisation of if-encoding (which is defined below).
 
-if-lemma : ∀ {a b p} {A : Set a} {B : Set b} (P : Bool → Set p) →
+if-lemma : ∀ {a b p} {A : Type a} {B : Type b} (P : Bool → Type p) →
            A ↔ P true → B ↔ P false →
            ∀ b → T b × A ⊎ T (not b) × B ↔ P b
 if-lemma {A = A} {B} P A↔ B↔ true =
@@ -3645,7 +3650,7 @@ if-lemma {A = A} {B} P A↔ B↔ false =
 
 -- An encoding of if_then_else_ in terms of _⊎_, _×_, T and not.
 
-if-encoding : ∀ {ℓ} {A B : Set ℓ} →
+if-encoding : ∀ {ℓ} {A B : Type ℓ} →
               ∀ b → (if b then A else B) ↔ T b × A ⊎ T (not b) × B
 if-encoding {A = A} {B} =
   inverse ⊚ if-lemma (λ b → if b then A else B) id id
@@ -3915,7 +3920,7 @@ suc≤suc↔ =
   ≤⇔max≡
 
 ∃0<↔∃suc :
-  ∀ {p} {P : ℕ → Set p} →
+  ∀ {p} {P : ℕ → Type p} →
   (∃ λ n → 0 < n × P n) ↔ (∃ λ n → P (suc n))
 ∃0<↔∃suc {P = P} = record
   { surjection = record
@@ -3997,7 +4002,7 @@ Distinct↔≢ {m = m} {n} =
 -- In general _⊎_ is not left cancellative.
 
 ¬-⊎-left-cancellative :
-  ∀ k → ¬ ((A B C : Set) → A ⊎ B ↝[ k ] A ⊎ C → B ↝[ k ] C)
+  ∀ k → ¬ ((A B C : Type) → A ⊎ B ↝[ k ] A ⊎ C → B ↝[ k ] C)
 ¬-⊎-left-cancellative k cancel =
   ¬B→C $ to-implication $ cancel A B C (from-bijection A⊎B↔A⊎C)
   where
@@ -4021,8 +4026,8 @@ Distinct↔≢ {m = m} {n} =
 -- image of a "right" element is in turn not mapped to another "left"
 -- element.
 
-Well-behaved : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
-               (A ⊎ B → A ⊎ C) → Set _
+Well-behaved : ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
+               (A ⊎ B → A ⊎ C) → Type _
 Well-behaved f =
   ∀ {b a a′} → f (inj₂ b) ≡ inj₁ a → f (inj₁ a) ≢ inj₁ a′
 
@@ -4031,7 +4036,7 @@ private
   -- Some helper functions.
 
   module ⊎-left-cancellative
-    {a b c} {A : Set a} {B : Set b} {C : Set c}
+    {a b c} {A : Type a} {B : Type b} {C : Type c}
     (f : A ⊎ B → A ⊎ C)
     (hyp : Well-behaved f)
     where
@@ -4051,7 +4056,7 @@ private
       g″ eq₁ (inj₁ _ , eq₂) = ⊥-elim $ hyp eq₁ eq₂
 
 ⊎-left-cancellative :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c}
   (f : A ⊎ B ↔ A ⊎ C) →
   Well-behaved (_↔_.to   f) →
   Well-behaved (_↔_.from f) →
@@ -4072,7 +4077,7 @@ private
 
   abstract
 
-    g∘g : ∀ {b c} {B : Set b} {C : Set c}
+    g∘g : ∀ {b c} {B : Type b} {C : Type c}
           (f : A ⊎ B ↔ A ⊎ C) →
           (to-hyp   : Well-behaved (to   f)) →
           (from-hyp : Well-behaved (from f)) →
@@ -4114,7 +4119,7 @@ private
 -- the unit type.
 
 ⊎-left-cancellative-⊤ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   (⊤ ⊎ A) ↔ (⊤ ⊎ B) → A ↔ B
 ⊎-left-cancellative-⊤ = λ ⊤⊎A↔⊤⊎B →
   ⊎-left-cancellative               ⊤⊎A↔⊤⊎B
@@ -4125,7 +4130,7 @@ private
 
   abstract
 
-    wb : ∀ {a b} {A : Set a} {B : Set b}
+    wb : ∀ {a b} {A : Type a} {B : Type b}
          (⊤⊎A↔⊤⊎B : (⊤ ⊎ A) ↔ (⊤ ⊎ B)) →
          Well-behaved (_↔_.to ⊤⊎A↔⊤⊎B)
     wb ⊤⊎A↔⊤⊎B {b = b} eq₁ eq₂ = ⊎.inj₁≢inj₂ (
@@ -4139,7 +4144,7 @@ private
 -- extensionality).
 
 [⊤⊎↔⊤⊎]↔[⊤⊎×↔] :
-  ∀ {k a b} {A : Set a} {B : Set b} →
+  ∀ {k a b} {A : Type a} {B : Type b} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Decidable-equality B →
   ((⊤ ⊎ A) ↔ (⊤ ⊎ B)) ↝[ k ] (⊤ ⊎ B) × (A ↔ B)
@@ -4158,7 +4163,7 @@ private
   _≟_ : Decidable-equality (⊤ ⊎ B)
   _≟_ = ⊎.Dec._≟_ ⊤._≟_ _≟B_
 
-  if-not : ∀ {a p} {A : Set a} {P : Set p} (d : Dec P) (t e : A) →
+  if-not : ∀ {a p} {A : Type a} {P : Type p} (d : Dec P) (t e : A) →
            ¬ P → if d then t else e ≡ e
   if-not (yes p) t e ¬p = ⊥-elim (¬p p)
   if-not (no  _) t e ¬p = refl _

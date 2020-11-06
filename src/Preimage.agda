@@ -24,20 +24,20 @@ open import Surjection eq hiding (id; _∘_)
 
 infix 5 _⁻¹_
 
-_⁻¹_ : ∀ {a b} {A : Set a} {B : Set b} → (A → B) → B → Set (a ⊔ b)
+_⁻¹_ : ∀ {a b} {A : Type a} {B : Type b} → (A → B) → B → Type (a ⊔ b)
 f ⁻¹ y = ∃ λ x → f x ≡ y
 
 -- Preimages under the identity function are contractible. (Note that
 -- Singleton x is equal to id ⁻¹ x.)
 
-id⁻¹-contractible : ∀ {a} {A : Set a} (y : A) →
+id⁻¹-contractible : ∀ {a} {A : Type a} (y : A) →
                     Contractible (id ⁻¹ y)
 id⁻¹-contractible = singleton-contractible
 
 -- _⁻¹_ respects extensional equality of functions.
 
 respects-extensional-equality :
-  ∀ {a b} {A : Set a} {B : Set b} {f g : A → B} {y} →
+  ∀ {a b} {A : Type a} {B : Type b} {f g : A → B} {y} →
   (∀ x → f x ≡ g x) → (f ⁻¹ y) ↔ (g ⁻¹ y)
 respects-extensional-equality {f = f} {g} {y} f≡g = record
   { surjection = record
@@ -82,7 +82,7 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
 -- Split surjections can be lifted to preimages.
 
 lift-surjection :
-  ∀ {a b} {A : Set a} {B : Set b} (A↠B : A ↠ B) → let open _↠_ A↠B in
+  ∀ {a b} {A : Type a} {B : Type b} (A↠B : A ↠ B) → let open _↠_ A↠B in
   ∀ {y} → (from ∘ to ⁻¹ y) ↠ (from ⁻¹ y)
 lift-surjection {A = A} {B} A↠B {y} = record
   { logical-equivalence = record
@@ -137,7 +137,7 @@ lift-surjection {A = A} {B} A↠B {y} = record
 -- bijection are contractible.
 
 bijection⁻¹-contractible :
-  ∀ {a b} {A : Set a} {B : Set b} (A↔B : A ↔ B) → let open _↔_ A↔B in
+  ∀ {a b} {A : Type a} {B : Type b} (A↔B : A ↔ B) → let open _↔_ A↔B in
   ∀ y → Contractible (to ⁻¹ y)
 bijection⁻¹-contractible A↔B =
   H-level.respects-surjection surj 0 ∘ id⁻¹-contractible
@@ -156,7 +156,8 @@ abstract
   -- Preimages under an injection into a set are propositional.
 
   injection⁻¹-propositional :
-    ∀ {a b} {A : Set a} {B : Set b} (A↣B : A ↣ B) → let open _↣_ A↣B in
+    ∀ {a b} {A : Type a} {B : Type b} (A↣B : A ↣ B) →
+    let open _↣_ A↣B in
     Is-set B →
     ∀ y → Is-proposition (to ⁻¹ y)
   injection⁻¹-propositional A↣B B-set y (x₁ , tox₁≡y) (x₂ , tox₂≡y) =

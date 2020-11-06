@@ -26,12 +26,12 @@ open import Prelude hiding (id)
 
 record Standard-notion-of-structure
          {c₁ c₂} ℓ₁ ℓ₂ (C : Precategory c₁ c₂) :
-         Set (c₁ ⊔ c₂ ⊔ lsuc (ℓ₁ ⊔ ℓ₂)) where
+         Type (c₁ ⊔ c₂ ⊔ lsuc (ℓ₁ ⊔ ℓ₂)) where
   open Precategory C
 
   field
-    P               : Obj → Set ℓ₁
-    H               : ∀ {X Y} (p : P X) (q : P Y) → Hom X Y → Set ℓ₂
+    P               : Obj → Type ℓ₁
+    H               : ∀ {X Y} (p : P X) (q : P Y) → Hom X Y → Type ℓ₂
     H-prop          : ∀ {X Y} {p : P X} {q : P Y}
                       (f : Hom X Y) → Is-proposition (H p q f)
     H-id            : ∀ {X} {p : P X} → H p p id

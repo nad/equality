@@ -28,7 +28,7 @@ private
   variable
     m m₁ m₂ n n₁ n₂ : ℕ
     a               : Level
-    A               : Set a
+    A               : Type a
     i j p q         : A
 
 ------------------------------------------------------------------------
@@ -37,7 +37,7 @@ private
 -- Two pairs of natural numbers are related if they have the same
 -- difference.
 
-Same-difference : ℕ × ℕ → ℕ × ℕ → Set
+Same-difference : ℕ × ℕ → ℕ × ℕ → Type
 Same-difference (m₁ , n₁) (m₂ , n₂) = m₁ ⊕ n₂ ≡ n₁ ⊕ m₂
 
 -- The relation is pointwise propositional.
@@ -85,7 +85,7 @@ Same-difference-decidable _ = _ Nat.≟ _
 
 -- Integers.
 
-ℤ : Set
+ℤ : Type
 ℤ = (ℕ × ℕ) / Same-difference
 
 -- The integers form a set.
@@ -262,7 +262,7 @@ module _ where
     -- because it is basically just the eliminator for quotients.
 
     elim :
-      (P : ℤ → Set p) →
+      (P : ℤ → Type p) →
       (∀ i → Is-set (P i)) →
       (f : ∀ m n → P [ (m , n) ]) →
       (∀ {p q} (s : Same-difference p q) →
@@ -276,7 +276,7 @@ module _ where
     -- The following computation rule holds by definition.
 
     elim-[] :
-      (P : ℤ → Set p) →
+      (P : ℤ → Type p) →
       (P-set : ∀ i → Is-set (P i)) →
       (f : ∀ m n → P [ (m , n) ]) →
       (resp : ∀ {p q} (s : Same-difference p q) →
@@ -290,7 +290,7 @@ private
   -- A helper function used in the implementation of elim.
 
   elim′ :
-    (P : ℤ → Set p) →
+    (P : ℤ → Type p) →
     (∀ n → P (_↔_.from ℤ↔ℤ (Data.+ n))) →
     (∀ n → P (_↔_.from ℤ↔ℤ Data.-[1+ n ])) →
     ∀ i → P (_↔_.from ℤ↔ℤ i)
@@ -304,7 +304,7 @@ private
 -- Same-difference.
 
 elim :
-  (P : ℤ → Set p) →
+  (P : ℤ → Type p) →
   (∀ m n → P [ (m , n) ]) →
   ∀ i → P i
 elim P f i =                       $⟨ elim′ P (λ n → f n 0) (λ n → f 0 (suc n)) (_↔_.to ℤ↔ℤ i) ⟩
@@ -318,7 +318,7 @@ elim P f i =                       $⟨ elim′ P (λ n → f n 0) (λ n → f 0
 -- general hold by definition.
 
 elim-[] :
-  {P : ℤ → Set p}
+  {P : ℤ → Type p}
   (f : ∀ m n → P [ (m , n) ]) →
   (∀ {p q} (s : Same-difference p q) →
    subst P ([]-respects-relation s) (uncurry f p) ≡ uncurry f q) →

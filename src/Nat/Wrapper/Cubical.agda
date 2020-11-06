@@ -11,7 +11,7 @@ open import Bijection equality-with-J using (_↔_)
 
 module Nat.Wrapper.Cubical
   -- The underlying representation of natural numbers.
-  (Nat′ : Set)
+  (Nat′ : Type)
   -- A bijection between this representation and the unary natural
   -- numbers.
   (Nat′↔ℕ : Nat′ ↔ ℕ)
@@ -34,7 +34,7 @@ open import Nat.Wrapper
 
 private
   variable
-    A   : Set
+    A   : Type
     m n : A
 
 ------------------------------------------------------------------------
@@ -48,7 +48,7 @@ private
 -- it, because Nat-[_] is a family of contractible types. (The code
 -- uses univalence.)
 
-Nat-[]′ : ∥ ℕ ∥ → ∃ λ (A : Set) → Contractible A
+Nat-[]′ : ∥ ℕ ∥ → ∃ λ (A : Type) → Contractible A
 Nat-[]′ = Trunc.rec
   (U.∃-H-level-H-level-1+ ext univ 0)
   (λ n → Nat-[ n ]
@@ -58,12 +58,12 @@ Nat-[]′ = Trunc.rec
            , [ _↔_.right-inverse-of Nat′↔ℕ n ]
            ))
 
-Nat-[_]′ : ∥ ℕ ∥ → Set
+Nat-[_]′ : ∥ ℕ ∥ → Type
 Nat-[ n ]′ = proj₁ (Nat-[]′ n)
 
 -- Thus we can form a variant of Nat.
 
-Nat-with-∥∥ : Set
+Nat-with-∥∥ : Type
 Nat-with-∥∥ = Σ ∥ ℕ ∥ Nat-[_]′
 
 -- However, this variant is isomorphic to the unit type.

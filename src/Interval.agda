@@ -31,14 +31,14 @@ open import H-level.Closure equality-with-J using (ext⁻¹)
 private
   variable
     a p : Level
-    A   : Set a
+    A   : Type a
 
 ------------------------------------------------------------------------
 -- The interval
 
 -- The interval, defined as a higher inductive type.
 
-data Interval : Set where
+data Interval : Type where
   [0] [1] : Interval
   0≡1ᴾ    : [0] P.≡ [1]
 
@@ -50,7 +50,7 @@ data Interval : Set where
 -- An eliminator, expressed using paths.
 
 elimᴾ :
-  (P : Interval → Set p)
+  (P : Interval → Type p)
   (p₀ : P [0])
   (p₁ : P [1]) →
   P.[ (λ i → P (0≡1ᴾ i)) ] p₀ ≡ p₁ →
@@ -68,7 +68,7 @@ recᴾ = elimᴾ _
 -- An eliminator.
 
 module Elim
-  (P : Interval → Set p)
+  (P : Interval → Type p)
   (p₀ : P [0])
   (p₁ : P [1])
   (p₀≡p₁ : subst P 0≡1 p₀ ≡ p₁)
@@ -124,7 +124,7 @@ interval-contractible = [1] , sym ∘ f
 -- A simplification lemma for rec p p.
 
 rec-const :
-  ∀ {p} {P : Set p} (p : P) (p≡p : p ≡ p) i →
+  ∀ {p} {P : Type p} (p : P) (p≡p : p ≡ p) i →
   rec p p p≡p i ≡ p
 rec-const p p≡p i =
   rec p p p≡p i    ≡⟨ cong (rec p p p≡p) (mono₁ 0 interval-contractible i [0]) ⟩∎
@@ -155,7 +155,7 @@ private
       -- input is [0], and to λ x → g x when the input is [1].
 
       ext-helper :
-        ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
+        ∀ {a b} {A : Type a} {B : A → Type b} {f g : (x : A) → B x} →
         (∀ x → f x ≡ g x) → Interval → (x : A) → B x
       ext-helper {f = f} {g} f≡g i =
         λ x → rec (f x) (g x) (f≡g x) i
@@ -171,7 +171,7 @@ open Separate-abstract-block public
 ext : ∀ {a b} → Extensionality a b
 ext = good-ext bad-ext
 
-⟨ext⟩ : ∀ {a b} {A : Set a} {B : A → Set b} → Extensionality′ A B
+⟨ext⟩ : ∀ {a b} {A : Type a} {B : A → Type b} → Extensionality′ A B
 ⟨ext⟩ = apply-ext ext
 
 abstract
@@ -179,38 +179,38 @@ abstract
   -- The function ⟨ext⟩ is an equivalence.
 
   ext-is-equivalence :
-    ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
+    ∀ {a b} {A : Type a} {B : A → Type b} {f g : (x : A) → B x} →
     Is-equivalence {A = ∀ x → f x ≡ g x} ⟨ext⟩
   ext-is-equivalence = good-ext-is-equivalence bad-ext
 
   -- Equality rearrangement lemmas for ⟨ext⟩.
 
   ext-refl :
-    ∀ {a b} {A : Set a} {B : A → Set b} (f : (x : A) → B x) →
+    ∀ {a b} {A : Type a} {B : A → Type b} (f : (x : A) → B x) →
     ⟨ext⟩ (λ x → refl (f x)) ≡ refl f
   ext-refl = good-ext-refl bad-ext
 
   ext-const :
-    ∀ {a b} {A : Set a} {B : Set b} {x y : B}
+    ∀ {a b} {A : Type a} {B : Type b} {x y : B}
     (x≡y : x ≡ y) →
     ⟨ext⟩ (const {B = A} x≡y) ≡ cong const x≡y
   ext-const = good-ext-const bad-ext
 
   cong-ext :
-    ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
+    ∀ {a b} {A : Type a} {B : A → Type b} {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) {x} →
     cong (_$ x) (⟨ext⟩ f≡g) ≡ f≡g x
   cong-ext = cong-good-ext bad-ext
 
   subst-ext :
-    ∀ {a b p} {A : Set a} {B : A → Set b} {f g : (x : A) → B x} {x}
-    (P : B x → Set p) {p} (f≡g : ∀ x → f x ≡ g x) →
+    ∀ {a b p} {A : Type a} {B : A → Type b} {f g : (x : A) → B x} {x}
+    (P : B x → Type p) {p} (f≡g : ∀ x → f x ≡ g x) →
     subst (λ f → P (f x)) (⟨ext⟩ f≡g) p ≡ subst P (f≡g x) p
   subst-ext = subst-good-ext bad-ext
 
   elim-ext :
-    ∀ {a b p} {A : Set a} {B : A → Set b} {x : A}
-    (P : B x → B x → Set p)
+    ∀ {a b p} {A : Type a} {B : A → Type b} {x : A}
+    (P : B x → B x → Type p)
     (p : (y : B x) → P y y)
     {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) →
@@ -225,26 +225,26 @@ abstract
   -- been generalised.)
 
   ext-sym :
-    ∀ {a b} {A : Set a} {B : A → Set b} {f g : (x : A) → B x}
+    ∀ {a b} {A : Type a} {B : A → Type b} {f g : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) →
     ⟨ext⟩ (sym ∘ f≡g) ≡ sym (⟨ext⟩ f≡g)
   ext-sym = good-ext-sym bad-ext
 
   ext-trans :
-    ∀ {a b} {A : Set a} {B : A → Set b} {f g h : (x : A) → B x}
+    ∀ {a b} {A : Type a} {B : A → Type b} {f g h : (x : A) → B x}
     (f≡g : ∀ x → f x ≡ g x) (g≡h : ∀ x → g x ≡ h x) →
     ⟨ext⟩ (λ x → trans (f≡g x) (g≡h x)) ≡ trans (⟨ext⟩ f≡g) (⟨ext⟩ g≡h)
   ext-trans = good-ext-trans bad-ext
 
   cong-post-∘-ext :
-    ∀ {a b c} {A : Set a} {B : A → Set b} {C : A → Set c}
+    ∀ {a b c} {A : Type a} {B : A → Type b} {C : A → Type c}
       {f g : (x : A) → B x} {h : ∀ {x} → B x → C x}
     (f≡g : ∀ x → f x ≡ g x) →
     cong (h ∘_) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (cong h ∘ f≡g)
   cong-post-∘-ext {h = h} = cong-post-∘-good-ext {h = h} bad-ext bad-ext
 
   cong-pre-∘-ext :
-    ∀ {a b c} {A : Set a} {B : Set b} {C : B → Set c}
+    ∀ {a b c} {A : Type a} {B : Type b} {C : B → Type c}
       {f g : (x : B) → C x} {h : A → B}
     (f≡g : ∀ x → f x ≡ g x) →
     cong (_∘ h) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (f≡g ∘ h)

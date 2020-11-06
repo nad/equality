@@ -25,7 +25,7 @@ open import Univalence-axiom eq
 -- Monoid laws (including the assumption that the carrier type is a
 -- set).
 
-Is-monoid : (C : Set) → (C → C → C) → C → Set
+Is-monoid : (C : Type) → (C → C → C) → C → Type
 Is-monoid C _∙_ id =
 
   -- C is a set.
@@ -40,10 +40,10 @@ Is-monoid C _∙_ id =
 
 -- Monoids (on sets).
 
-Monoid : Set₁
+Monoid : Type₁
 Monoid =
   -- Carrier.
-  Σ Set λ C →
+  Σ Type λ C →
 
   -- Binary operation.
   Σ (C → C → C) λ _∙_ →
@@ -56,7 +56,7 @@ Monoid =
 
 -- The carrier type.
 
-Carrier : Monoid → Set
+Carrier : Monoid → Type
 Carrier M = proj₁ M
 
 -- The binary operation.
@@ -77,14 +77,14 @@ laws M = proj₂ (proj₂ (proj₂ M))
 -- Monoid morphisms.
 
 Is-homomorphism :
-  (M₁ M₂ : Monoid) → (Carrier M₁ → Carrier M₂) → Set
+  (M₁ M₂ : Monoid) → (Carrier M₁ → Carrier M₂) → Type
 Is-homomorphism M₁ M₂ f =
   (∀ x y → f (op M₁ x y) ≡ op M₂ (f x) (f y)) ×
   (f (id M₁) ≡ id M₂)
 
 -- Monoid isomorphisms.
 
-_≅_ : Monoid → Monoid → Set
+_≅_ : Monoid → Monoid → Type
 M₁ ≅ M₂ =
   Σ (Carrier M₁ ↔ Carrier M₂) λ f →
   Is-homomorphism M₁ M₂ (_↔_.to f)
@@ -142,13 +142,13 @@ equality-triple-lemma
   where
   bij =
 
-    (Σ Set λ C → Σ (C → C → C) λ op → Σ C λ id → Is-monoid C op id)  ↝⟨ ∃-cong (λ _ → Σ-assoc) ⟩
+    (Σ Type λ C → Σ (C → C → C) λ op → Σ C λ id → Is-monoid C op id)  ↝⟨ ∃-cong (λ _ → Σ-assoc) ⟩
 
-    (Σ Set λ C → Σ ((C → C → C) × C) λ { (op , id) →
-     Is-monoid C op id })                                            ↝⟨ Σ-assoc ⟩□
+    (Σ Type λ C → Σ ((C → C → C) × C) λ { (op , id) →
+     Is-monoid C op id })                                             ↝⟨ Σ-assoc ⟩□
 
-    (Σ (Σ Set λ C → (C → C → C) × C) λ { (C , op , id) →
-     Is-monoid C op id })                                            □
+    (Σ (Σ Type λ C → (C → C → C) × C) λ { (C , op , id) →
+     Is-monoid C op id })                                             □
 
 -- If two monoids are isomorphic, then they are equal (assuming
 -- univalence).
@@ -191,7 +191,7 @@ isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
 
   -- For the second equality, let us first define a "cast" operator.
 
-  cast₂ : {A B : Set} → A ≃ B → (A → A → A) → (B → B → B)
+  cast₂ : {A B : Type} → A ≃ B → (A → A → A) → (B → B → B)
   cast₂ eq f = λ x y → to eq (f (from eq x) (from eq y))
 
   -- The transport theorem implies that cast₂ equiv can be expressed
@@ -215,7 +215,7 @@ isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
   -- The development above can be repeated for the identity
   -- elements.
 
-  cast₀ : {A B : Set} → A ≃ B → A → B
+  cast₀ : {A B : Type} → A ≃ B → A → B
   cast₀ eq x = to eq x
 
   cast₀-equiv-is-subst : ∀ x → cast₀ equiv x ≡ subst (λ A → A) C-eq x

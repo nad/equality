@@ -31,10 +31,10 @@ open import Univalence-axiom eq
 -- parameter.
 
 Precategory-with-Obj :
-  ∀ {ℓ₁} → Set ℓ₁ → (ℓ₂ : Level) → Set (ℓ₁ ⊔ lsuc ℓ₂)
+  ∀ {ℓ₁} → Type ℓ₁ → (ℓ₂ : Level) → Type (ℓ₁ ⊔ lsuc ℓ₂)
 Precategory-with-Obj Obj ℓ₂ =
   -- Morphisms (a /set/).
-  ∃ λ (HOM : Obj → Obj → SET ℓ₂) →
+  ∃ λ (HOM : Obj → Obj → Set ℓ₂) →
   let Hom = λ X Y → proj₁ (HOM X Y) in
 
   -- Identity.
@@ -53,32 +53,32 @@ Precategory-with-Obj Obj ℓ₂ =
 
 -- Precategories.
 
-Precategory′ : (ℓ₁ ℓ₂ : Level) → Set (lsuc (ℓ₁ ⊔ ℓ₂))
+Precategory′ : (ℓ₁ ℓ₂ : Level) → Type (lsuc (ℓ₁ ⊔ ℓ₂))
 Precategory′ ℓ₁ ℓ₂ =
   -- Objects.
-  ∃ λ (Obj : Set ℓ₁) →
+  ∃ λ (Obj : Type ℓ₁) →
 
   Precategory-with-Obj Obj ℓ₂
 
 -- A wrapper.
 
-record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
+record Precategory (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) where
   field
     precategory : Precategory′ ℓ₁ ℓ₂
 
   -- Objects.
 
-  Obj : Set ℓ₁
+  Obj : Type ℓ₁
   Obj = proj₁ precategory
 
   -- Morphisms.
 
-  HOM : Obj → Obj → SET ℓ₂
+  HOM : Obj → Obj → Set ℓ₂
   HOM = proj₁ (proj₂ precategory)
 
   -- The morphism type family.
 
-  Hom : Obj → Obj → Set ℓ₂
+  Hom : Obj → Obj → Type ℓ₂
   Hom X Y = proj₁ (HOM X Y)
 
   -- The morphism types are sets.
@@ -118,12 +118,12 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) wher
 
   -- Isomorphisms.
 
-  Is-isomorphism : ∀ {X Y} → Hom X Y → Set ℓ₂
+  Is-isomorphism : ∀ {X Y} → Hom X Y → Type ℓ₂
   Is-isomorphism f = ∃ λ g → (f ∙ g ≡ id) × (g ∙ f ≡ id)
 
   infix 4 _≅_
 
-  _≅_ : Obj → Obj → Set ℓ₂
+  _≅_ : Obj → Obj → Type ℓ₂
   X ≅ Y = ∃ λ (f : Hom X Y) → Is-isomorphism f
 
   -- Some projections.
@@ -270,7 +270,7 @@ precategory-Set :
 precategory-Set ℓ ext = record { precategory =
 
   -- Objects: sets.
-  SET ℓ ,
+  Set ℓ ,
 
   -- Morphisms: functions.
   (λ { (A , A-set) (B , B-set) →
@@ -291,7 +291,7 @@ precategory-Set ℓ ext = record { precategory =
 ≃≃≅-Set :
   (ℓ : Level) (ext : Extensionality ℓ ℓ) →
   let open Precategory (precategory-Set ℓ ext) in
-  (X Y : Obj) → (Type X ≃ Type Y) ≃ (X ≅ Y)
+  (X Y : Obj) → (⌞ X ⌟ ≃ ⌞ Y ⌟) ≃ (X ≅ Y)
 ≃≃≅-Set ℓ ext X Y = Eq.↔⇒≃ record
   { surjection = record
     { logical-equivalence = record
@@ -428,7 +428,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                               Σ-cong (inverse $ ≡⇒↝ equivalence (HOM-lemma eqO))
                                                                                      (λ _ → F.id)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
-   ∃ λ (eqH : subst (λ Obj → Obj → Obj → SET _) eqO C.HOM ≡ D.HOM) →
+   ∃ λ (eqH : subst (λ Obj → Obj → Obj → Set _) eqO C.HOM ≡ D.HOM) →
      let eqH′ = λ X Y →
                   cong proj₁
                     (ext⁻¹ (ext⁻¹ (≡⇒← (HOM-lemma eqO) eqH) X) Y)
@@ -447,12 +447,11 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
       cong proj₁ (ext⁻¹ (ext⁻¹ (≡⇒← (HOM-lemma eqO) eqH) X) Y)                        ≡⟨⟩
       cong proj₁ (cong (_$ Y) (cong (_$ X) (≡⇒← (HOM-lemma eqO) eqH)))                ≡⟨ cong (cong _) $ cong-∘ _ _ _ ⟩
       cong proj₁ (cong (λ f → f X Y) (≡⇒← (HOM-lemma eqO) eqH))                       ≡⟨ cong-∘ _ _ _ ⟩∎
-      cong (λ F → Type (F X Y)) (≡⇒← (HOM-lemma eqO) eqH)                             ∎)) ⟩
+      cong (λ F → ⌞ F X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH)                                ∎)) ⟩
 
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
-   ∃ λ (eqH : subst (λ Obj → Obj → Obj → SET _) eqO C.HOM ≡ D.HOM) →
-     let eqH′ = λ X Y →
-                  cong (λ F → Type (F X Y)) (≡⇒← (HOM-lemma eqO) eqH)
+   ∃ λ (eqH : subst (λ Obj → Obj → Obj → Set _) eqO C.HOM ≡ D.HOM) →
+     let eqH′ = λ X Y → cong (λ F → ⌞ F X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH)
      in
      (∀ X → ≡⇒→ (eqH′ X X) C.id ≡ D.id)
        ×
@@ -469,14 +468,14 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                ∀-cong ext₂₂  λ g →
                                                                                  ≡⇒↝ _ $ cong (_≡ _) Q-lemma)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
-   ∃ λ (eqH : subst (λ Obj → Obj → Obj → SET _) eqO C.HOM ≡ D.HOM) →
+   ∃ λ (eqH : subst (λ Obj → Obj → Obj → Set _) eqO C.HOM ≡ D.HOM) →
      (∀ X → subst₂ (uncurry P) eqO eqH C.id {X = X} ≡ D.id)
        ×
      (∀ X Y Z (f : D.Hom Y Z) (g : D.Hom X Y) →
         subst₂ (uncurry Q) eqO eqH C._∙_ f g ≡ f D.∙ g))                 ↝⟨ Σ-assoc ⟩
 
   (∃ λ (eq : ∃ λ (eqO : C.Obj ≡ D.Obj) →
-               subst (λ Obj → Obj → Obj → SET _) eqO C.HOM ≡ D.HOM) →
+               subst (λ Obj → Obj → Obj → Set _) eqO C.HOM ≡ D.HOM) →
      (∀ X → subst (uncurry P) (uncurry Σ-≡,≡→≡ eq) C.id {X = X} ≡ D.id)
        ×
      (∀ X Y Z (f : D.Hom Y Z) (g : D.Hom X Y) →
@@ -580,9 +579,9 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
 
   rearrange :
     ∀ {a b c d e}
-      {A : Set a} {B : A → Set b} {C : (a : A) → B a → Set c}
-      {D : (a : A) (b : B a) → C a b → Set d}
-      {E : (a : A) (b : B a) (c : C a b) → D a b c → Set e} →
+      {A : Type a} {B : A → Type b} {C : (a : A) → B a → Type c}
+      {D : (a : A) (b : B a) → C a b → Type d}
+      {E : (a : A) (b : B a) (c : C a b) → D a b c → Type e} →
     (∃ λ (a : A) → ∃ λ (b : B a) → ∃ λ (c : C a b) → ∃ λ (d : D a b c) →
        E a b c d)
       ↔
@@ -604,20 +603,20 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
          (proj₂ (proj₂ (proj₂ p))))                                       □
 
   ≡⇒←-subst :
-    {C D : Set ℓ₁} {H : C → C → SET ℓ₂}
+    {C D : Type ℓ₁} {H : C → C → Set ℓ₂}
     (eqO : C ≡ D) →
     (λ X Y → H (≡⇒← eqO X) (≡⇒← eqO Y))
       ≡
-    subst (λ Obj → Obj → Obj → SET _) eqO H
+    subst (λ Obj → Obj → Obj → Set _) eqO H
   ≡⇒←-subst {C} {H = H} eqO =
     elim¹ (λ eqO → (λ X Y → H (≡⇒← eqO X) (≡⇒← eqO Y)) ≡
-                   subst (λ Obj → Obj → Obj → SET _) eqO H)
+                   subst (λ Obj → Obj → Obj → Set _) eqO H)
           ((λ X Y → H (≡⇒← (refl C) X) (≡⇒← (refl C) Y))  ≡⟨ cong (λ f X Y → H (f X) (f Y)) ≡⇒←-refl ⟩
            H                                              ≡⟨ sym $ subst-refl _ _ ⟩∎
-           subst (λ Obj → Obj → Obj → SET _) (refl C) H   ∎)
+           subst (λ Obj → Obj → Obj → Set _) (refl C) H   ∎)
           eqO
 
-  ≡⇒←-subst-refl : {C : Set ℓ₁} {H : C → C → SET ℓ₂} → _
+  ≡⇒←-subst-refl : {C : Type ℓ₁} {H : C → C → Set ℓ₂} → _
   ≡⇒←-subst-refl {C} {H} =
     ≡⇒←-subst {H = H} (refl C)                       ≡⟨ elim¹-refl _ _ ⟩∎
 
@@ -628,131 +627,131 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
     (eqO : C.Obj ≡ D.Obj) →
     ((λ X Y → C.HOM (≡⇒← eqO X) (≡⇒← eqO Y)) ≡ D.HOM)
       ≡
-    (subst (λ Obj → Obj → Obj → SET _) eqO C.HOM ≡ D.HOM)
+    (subst (λ Obj → Obj → Obj → Set _) eqO C.HOM ≡ D.HOM)
   HOM-lemma eqO = cong (_≡ _) (≡⇒←-subst eqO)
 
   ≡⇒→-lemma :
     ∀ {eqO eqH X Y} {f : C.Hom (≡⇒← eqO X) (≡⇒← eqO Y)} → _
   ≡⇒→-lemma {eqO} {eqH} {X} {Y} {f} =
-    ≡⇒→ (cong (λ H → Type (H X Y)) (≡⇒← (HOM-lemma eqO) eqH)) f  ≡⟨ sym $ subst-in-terms-of-≡⇒↝ equivalence
-                                                                            (≡⇒← (HOM-lemma eqO) eqH) (λ H → Type (H X Y)) _ ⟩
-    subst (λ H → Type (H X Y)) (≡⇒← (HOM-lemma eqO) eqH) f       ≡⟨ cong (λ eq → subst (λ H → Type (H X Y)) eq _) $ sym $
-                                                                      subst-in-terms-of-inverse∘≡⇒↝ equivalence (≡⇒←-subst eqO) (_≡ _) _ ⟩
-    subst (λ H → Type (H X Y))
-      (subst (_≡ _) (sym $ ≡⇒←-subst eqO) eqH) f                 ≡⟨ cong (λ eq → subst (λ H → Type (H X Y)) eq _) $
-                                                                      subst-trans (≡⇒←-subst eqO) ⟩
-    subst (λ H → Type (H X Y)) (trans (≡⇒←-subst eqO) eqH) f     ≡⟨ sym $ subst-subst _ _ _ _ ⟩∎
+    ≡⇒→ (cong (λ H → ⌞ H X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH)) f  ≡⟨ sym $ subst-in-terms-of-≡⇒↝ equivalence
+                                                                         (≡⇒← (HOM-lemma eqO) eqH) (λ H → ⌞ H X Y ⌟) _ ⟩
+    subst (λ H → ⌞ H X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH) f       ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) eq _) $ sym $
+                                                                   subst-in-terms-of-inverse∘≡⇒↝ equivalence (≡⇒←-subst eqO) (_≡ _) _ ⟩
+    subst (λ H → ⌞ H X Y ⌟)
+      (subst (_≡ _) (sym $ ≡⇒←-subst eqO) eqH) f              ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) eq _) $
+                                                                   subst-trans (≡⇒←-subst eqO) ⟩
+    subst (λ H → ⌞ H X Y ⌟) (trans (≡⇒←-subst eqO) eqH) f     ≡⟨ sym $ subst-subst _ _ _ _ ⟩∎
 
-    subst (λ H → Type (H X Y)) eqH
-      (subst (λ H → Type (H X Y)) (≡⇒←-subst eqO) f)             ∎
+    subst (λ H → ⌞ H X Y ⌟) eqH
+      (subst (λ H → ⌞ H X Y ⌟) (≡⇒←-subst eqO) f)             ∎
 
   ≡⇒←-lemma : ∀ {eqO eqH X Y} {f : D.Hom X Y} → _
   ≡⇒←-lemma {eqO} {eqH} {X} {Y} {f} =
-    ≡⇒← (cong (λ H → Type (H X Y)) (≡⇒← (HOM-lemma eqO) eqH)) f           ≡⟨ sym $ subst-in-terms-of-inverse∘≡⇒↝ equivalence
-                                                                                     (≡⇒← (HOM-lemma eqO) eqH) (λ H → Type (H X Y)) _ ⟩
-    subst (λ H → Type (H X Y)) (sym $ ≡⇒← (HOM-lemma eqO) eqH) f          ≡⟨ cong (λ eq → subst (λ H → Type (H X Y)) (sym eq) _) $ sym $
-                                                                               subst-in-terms-of-inverse∘≡⇒↝ equivalence (≡⇒←-subst eqO) (_≡ _) _ ⟩
-    subst (λ H → Type (H X Y))
-      (sym $ subst (_≡ _) (sym $ ≡⇒←-subst eqO) eqH) f                    ≡⟨ cong (λ eq → subst (λ H → Type (H X Y)) (sym eq) _) $
-                                                                               subst-trans (≡⇒←-subst eqO) ⟩
-    subst (λ H → Type (H X Y)) (sym $ trans (≡⇒←-subst eqO) eqH) f        ≡⟨ cong (λ eq → subst (λ H → Type (H X Y)) eq _) $
-                                                                               sym-trans (≡⇒←-subst eqO) eqH ⟩
-    subst (λ H → Type (H X Y)) (trans (sym eqH) (sym $ ≡⇒←-subst eqO)) f  ≡⟨ sym $ subst-subst _ _ _ _ ⟩∎
+    ≡⇒← (cong (λ H → ⌞ H X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH)) f           ≡⟨ sym $ subst-in-terms-of-inverse∘≡⇒↝ equivalence
+                                                                                  (≡⇒← (HOM-lemma eqO) eqH) (λ H → ⌞ H X Y ⌟) _ ⟩
+    subst (λ H → ⌞ H X Y ⌟) (sym $ ≡⇒← (HOM-lemma eqO) eqH) f          ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) (sym eq) _) $ sym $
+                                                                            subst-in-terms-of-inverse∘≡⇒↝ equivalence (≡⇒←-subst eqO) (_≡ _) _ ⟩
+    subst (λ H → ⌞ H X Y ⌟)
+      (sym $ subst (_≡ _) (sym $ ≡⇒←-subst eqO) eqH) f                 ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) (sym eq) _) $
+                                                                            subst-trans (≡⇒←-subst eqO) ⟩
+    subst (λ H → ⌞ H X Y ⌟) (sym $ trans (≡⇒←-subst eqO) eqH) f        ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) eq _) $
+                                                                            sym-trans (≡⇒←-subst eqO) eqH ⟩
+    subst (λ H → ⌞ H X Y ⌟) (trans (sym eqH) (sym $ ≡⇒←-subst eqO)) f  ≡⟨ sym $ subst-subst _ _ _ _ ⟩∎
 
-    subst (λ H → Type (H X Y)) (sym $ ≡⇒←-subst eqO)
-      (subst (λ H → Type (H X Y)) (sym eqH) f)                            ∎
+    subst (λ H → ⌞ H X Y ⌟) (sym $ ≡⇒←-subst eqO)
+      (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f)                            ∎
 
   expand-≡⇒←-subst :
-    ∀ {C : Set ℓ₁} {X Y}
-      {F G : C → C → SET ℓ₂}
-      {eqH : subst (λ Obj → Obj → Obj → SET ℓ₂) (refl C) F ≡ G}
-      {f : Type (F (≡⇒← (refl C) X) (≡⇒← (refl C) Y))} →
+    ∀ {C : Type ℓ₁} {X Y}
+      {F G : C → C → Set ℓ₂}
+      {eqH : subst (λ Obj → Obj → Obj → Set ℓ₂) (refl C) F ≡ G}
+      {f : ⌞ F (≡⇒← (refl C) X) (≡⇒← (refl C) Y) ⌟} →
     _
   expand-≡⇒←-subst {C} {X} {Y} {F} {eqH = eqH} {f} =
-    subst (λ H → Type (H X Y)) eqH
-      (subst (λ H → Type (H X Y)) (≡⇒←-subst (refl C)) f)   ≡⟨ cong (λ eq → subst (λ H → Type (H X Y)) eqH $ subst (λ H → Type (H X Y)) eq f)
+    subst (λ H → ⌞ H X Y ⌟) eqH
+      (subst (λ H → ⌞ H X Y ⌟) (≡⇒←-subst (refl C)) f)      ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) eqH $ subst (λ H → ⌞ H X Y ⌟) eq f)
                                                                  ≡⇒←-subst-refl ⟩
-    subst (λ H → Type (H X Y)) eqH
-      (subst (λ H → Type (H X Y))
+    subst (λ H → ⌞ H X Y ⌟) eqH
+      (subst (λ H → ⌞ H X Y ⌟)
          (trans (cong (λ f X Y → F (f X) (f Y)) ≡⇒←-refl)
                 (sym $ subst-refl _ _))
-         f)                                                 ≡⟨ cong (subst (λ H → Type (H X Y)) eqH) $ sym $
+         f)                                                 ≡⟨ cong (subst (λ H → ⌞ H X Y ⌟) eqH) $ sym $
                                                                  subst-subst _ _ _ _ ⟩
-    subst (λ H → Type (H X Y)) eqH
-      (subst (λ H → Type (H X Y))
-         (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-         (subst (λ H → Type (H X Y))
+    subst (λ H → ⌞ H X Y ⌟) eqH
+      (subst (λ H → ⌞ H X Y ⌟)
+         (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+         (subst (λ H → ⌞ H X Y ⌟)
                 (cong (λ f X Y → F (f X) (f Y)) ≡⇒←-refl)
-                f))                                         ≡⟨ cong (λ f → subst (λ H → Type (H X Y)) eqH $
-                                                                             subst (λ H → Type (H X Y))
-                                                                               (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _) f) $ sym $
-                                                                 subst-∘ (λ H → Type (H X Y)) (λ f X Y → F (f X) (f Y)) ≡⇒←-refl ⟩∎
-    subst (λ H → Type (H X Y)) eqH
-      (subst (λ H → Type (H X Y))
-         (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-         (subst (λ f → Type (F (f X) (f Y))) ≡⇒←-refl f))   ∎
+                f))                                         ≡⟨ cong (λ f → subst (λ H → ⌞ H X Y ⌟) eqH $
+                                                                             subst (λ H → ⌞ H X Y ⌟)
+                                                                               (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _) f) $ sym $
+                                                                 subst-∘ (λ H → ⌞ H X Y ⌟) (λ f X Y → F (f X) (f Y)) ≡⇒←-refl ⟩∎
+    subst (λ H → ⌞ H X Y ⌟) eqH
+      (subst (λ H → ⌞ H X Y ⌟)
+         (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+         (subst (λ f → ⌞ F (f X) (f Y) ⌟) ≡⇒←-refl f))      ∎
 
   expand-sym-≡⇒←-subst :
-    ∀ {C : Set ℓ₁} {X Y}
-      {F G : C → C → SET ℓ₂}
-      {eqH : subst (λ Obj → Obj → Obj → SET ℓ₂) (refl C) F ≡ G}
-      {f : Type (G X Y)} →
+    ∀ {C : Type ℓ₁} {X Y}
+      {F G : C → C → Set ℓ₂}
+      {eqH : subst (λ Obj → Obj → Obj → Set ℓ₂) (refl C) F ≡ G}
+      {f : ⌞ G X Y ⌟} →
     _
   expand-sym-≡⇒←-subst {C} {X} {Y} {F} {eqH = eqH} {f} =
-     subst (λ H → Type (H X Y)) (sym $ ≡⇒←-subst (refl C))
-       (subst (λ H → Type (H X Y)) (sym eqH) f)                ≡⟨ cong (λ eq → subst (λ H → Type (H X Y)) (sym eq) $
-                                                                                 subst (λ H → Type (H X Y)) (sym eqH) f)
+     subst (λ H → ⌞ H X Y ⌟) (sym $ ≡⇒←-subst (refl C))
+       (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f)                   ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) (sym eq) $
+                                                                                 subst (λ H → ⌞ H X Y ⌟) (sym eqH) f)
                                                                     ≡⇒←-subst-refl ⟩
-     subst (λ H → Type (H X Y))
+     subst (λ H → ⌞ H X Y ⌟)
        (sym $ trans (cong (λ f X Y → F (f X) (f Y)) ≡⇒←-refl)
                     (sym $ subst-refl _ _))
-       (subst (λ H → Type (H X Y)) (sym eqH) f)                ≡⟨ cong (λ eq → subst (λ H → Type (H X Y)) eq $
-                                                                                 subst (λ H → Type (H X Y)) (sym eqH) f) $
+       (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f)                   ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) eq $
+                                                                                 subst (λ H → ⌞ H X Y ⌟) (sym eqH) f) $
                                                                     sym-trans (cong (λ f X Y → F (f X) (f Y)) ≡⇒←-refl) _ ⟩
-     subst (λ H → Type (H X Y))
+     subst (λ H → ⌞ H X Y ⌟)
        (trans (sym $ sym $
-                 subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
+                 subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
               (sym $ cong (λ f X Y → F (f X) (f Y))
                           ≡⇒←-refl))
-       (subst (λ H → Type (H X Y)) (sym eqH) f)                ≡⟨ cong (λ eq → subst (λ H → Type (H X Y))
+       (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f)                   ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟)
                                                                                  (trans eq (sym $ cong (λ f X Y → F (f X) (f Y)) ≡⇒←-refl)) $
-                                                                                 subst (λ H → Type (H X Y)) (sym eqH) f) $
+                                                                                 subst (λ H → ⌞ H X Y ⌟) (sym eqH) f) $
                                                                     sym-sym _ ⟩
-     subst (λ H → Type (H X Y))
-       (trans (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
+     subst (λ H → ⌞ H X Y ⌟)
+       (trans (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
               (sym $ cong (λ f X Y → F (f X) (f Y))
                           ≡⇒←-refl))
-       (subst (λ H → Type (H X Y)) (sym eqH) f)                ≡⟨ sym $ subst-subst _ _ _ _ ⟩
+       (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f)                   ≡⟨ sym $ subst-subst _ _ _ _ ⟩
 
-     subst (λ H → Type (H X Y))
+     subst (λ H → ⌞ H X Y ⌟)
        (sym $ cong (λ f X Y → F (f X) (f Y)) ≡⇒←-refl)
-       (subst (λ H → Type (H X Y))
-          (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-          (subst (λ H → Type (H X Y)) (sym eqH) f))            ≡⟨ cong (λ eq → subst (λ H → Type (H X Y)) eq $
-                                                                                 subst (λ H → Type (H X Y))
-                                                                                       (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _) $
-                                                                                   subst (λ H → Type (H X Y)) (sym eqH) f) $ sym $
+       (subst (λ H → ⌞ H X Y ⌟)
+          (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+          (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f))               ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) eq $
+                                                                                 subst (λ H → ⌞ H X Y ⌟)
+                                                                                       (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _) $
+                                                                                   subst (λ H → ⌞ H X Y ⌟) (sym eqH) f) $ sym $
                                                                     cong-sym (λ f X Y → F (f X) (f Y)) ≡⇒←-refl ⟩
-     subst (λ H → Type (H X Y))
+     subst (λ H → ⌞ H X Y ⌟)
        (cong (λ f X Y → F (f X) (f Y)) $ sym ≡⇒←-refl)
-       (subst (λ H → Type (H X Y))
-          (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-          (subst (λ H → Type (H X Y)) (sym eqH) f))            ≡⟨ sym $ subst-∘ _ _ _ ⟩∎
+       (subst (λ H → ⌞ H X Y ⌟)
+          (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+          (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f))               ≡⟨ sym $ subst-∘ _ _ _ ⟩∎
 
-     subst (λ f → Type (F (f X) (f Y))) (sym ≡⇒←-refl)
-       (subst (λ H → Type (H X Y))
-          (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-          (subst (λ H → Type (H X Y)) (sym eqH) f))            ∎
+     subst (λ f → ⌞ F (f X) (f Y) ⌟) (sym ≡⇒←-refl)
+       (subst (λ H → ⌞ H X Y ⌟)
+          (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+          (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f))               ∎
 
   subst-Σ-≡,≡→≡ :
-    ∀ {C : Set ℓ₁}
-      {F G : C → C → SET ℓ₂}
-      {eqH : subst (λ Obj → Obj → Obj → SET ℓ₂) (refl C) F ≡ G}
-      {P : (Obj : Set ℓ₁) (HOM : Obj → Obj → SET ℓ₂) → Set (ℓ₁ ⊔ ℓ₂)} →
+    ∀ {C : Type ℓ₁}
+      {F G : C → C → Set ℓ₂}
+      {eqH : subst (λ Obj → Obj → Obj → Set ℓ₂) (refl C) F ≡ G}
+      {P : (Obj : Type ℓ₁) (HOM : Obj → Obj → Set ℓ₂) → Type (ℓ₁ ⊔ ℓ₂)} →
     _
   subst-Σ-≡,≡→≡ {C} {F} {eqH = eqH} {P} =
     subst (P C) eqH ∘
-    subst (P C) (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) F)       ≡⟨ apply-ext (lower-extensionality lzero (lsuc ℓ₂) ext) (λ _ →
+    subst (P C) (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) F)       ≡⟨ apply-ext (lower-extensionality lzero (lsuc ℓ₂) ext) (λ _ →
                                                                              subst-subst (P C) _ _ _) ⟩
     subst (P C) (trans (sym $ subst-refl _ _) eqH)                      ≡⟨ apply-ext (lower-extensionality lzero (lsuc ℓ₂) ext) (λ _ →
                                                                              subst-∘ (uncurry P) (C ,_) _) ⟩
@@ -760,59 +759,59 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
 
     subst (uncurry P) (Σ-≡,≡→≡ (refl C) eqH)                            ∎
 
-  P = λ Obj (HOM : Obj → Obj → SET _) →
-        ∀ {X} → Type (HOM X X)
+  P = λ Obj (HOM : Obj → Obj → Set _) →
+        ∀ {X} → ⌞ HOM X X ⌟
 
   abstract
 
     P-lemma :
       ∀ {eqO eqH X} →
-      ≡⇒→ (cong (λ H → Type (H X X)) (≡⇒← (HOM-lemma eqO) eqH)) C.id ≡
+      ≡⇒→ (cong (λ H → ⌞ H X X ⌟) (≡⇒← (HOM-lemma eqO) eqH)) C.id ≡
       subst₂ (uncurry P) eqO eqH C.id {X = X}
     P-lemma {eqO} {eqH} {X} =
-      ≡⇒→ (cong (λ H → Type (H X X)) (≡⇒← (HOM-lemma eqO) eqH)) C.id  ≡⟨ ≡⇒→-lemma ⟩
+      ≡⇒→ (cong (λ H → ⌞ H X X ⌟) (≡⇒← (HOM-lemma eqO) eqH)) C.id     ≡⟨ ≡⇒→-lemma ⟩
 
-      subst (λ H → Type (H X X)) eqH
-        (subst (λ H → Type (H X X)) (≡⇒←-subst eqO)
+      subst (λ H → ⌞ H X X ⌟) eqH
+        (subst (λ H → ⌞ H X X ⌟) (≡⇒←-subst eqO)
                (C.id {X = ≡⇒← eqO X}))                                ≡⟨ elim
                                                                            (λ eqO →
                                                                                     ∀ {X F G}
-                                                                                    (eqH : subst (λ Obj → Obj → Obj → SET ℓ₂) eqO F ≡ G)
-                                                                                    (id : ∀ X → Type (F X X)) →
-                                                                              subst (λ H → Type (H X X)) eqH
-                                                                                (subst (λ H → Type (H X X)) (≡⇒←-subst eqO) (id (≡⇒← eqO X)))
+                                                                                    (eqH : subst (λ Obj → Obj → Obj → Set ℓ₂) eqO F ≡ G)
+                                                                                    (id : ∀ X → ⌞ F X X ⌟) →
+                                                                              subst (λ H → ⌞ H X X ⌟) eqH
+                                                                                (subst (λ H → ⌞ H X X ⌟) (≡⇒←-subst eqO) (id (≡⇒← eqO X)))
                                                                                 ≡
                                                                               subst (uncurry P) (Σ-≡,≡→≡ eqO eqH) (λ {X} → id X))
                                                                            (λ C {X F G} eqH id →
-          subst (λ H → Type (H X X)) eqH
-            (subst (λ H → Type (H X X)) (≡⇒←-subst (refl C))
+          subst (λ H → ⌞ H X X ⌟) eqH
+            (subst (λ H → ⌞ H X X ⌟) (≡⇒←-subst (refl C))
                    (id (≡⇒← (refl C) X)))                                     ≡⟨ expand-≡⇒←-subst ⟩
 
-          subst (λ H → Type (H X X)) eqH
+          subst (λ H → ⌞ H X X ⌟) eqH
             (subst
-               (λ H → Type (H X X))
-               (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-               (subst (λ f → Type (F (f X) (f X)))
+               (λ H → ⌞ H X X ⌟)
+               (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+               (subst (λ f → ⌞ F (f X) (f X) ⌟)
                       ≡⇒←-refl
-                      (id (≡⇒← (refl C) X))))                                 ≡⟨ cong (λ f → subst (λ H → Type (H X X)) eqH
+                      (id (≡⇒← (refl C) X))))                                 ≡⟨ cong (λ f → subst (λ H → ⌞ H X X ⌟) eqH
                                                                                                (subst
-                                                                                                  (λ H → Type (H X X))
-                                                                                                  (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
+                                                                                                  (λ H → ⌞ H X X ⌟)
+                                                                                                  (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
                                                                                                   f)) $
                                                                                    dcong (λ f → id (f X)) ≡⇒←-refl ⟩
-          subst (λ H → Type (H X X)) eqH
-            (subst (λ H → Type (H X X))
-                   (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) F)
-                   (id X))                                                    ≡⟨ cong (subst (λ H → Type (H X X)) eqH) $
+          subst (λ H → ⌞ H X X ⌟) eqH
+            (subst (λ H → ⌞ H X X ⌟)
+                   (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) F)
+                   (id X))                                                    ≡⟨ cong (subst (λ H → ⌞ H X X ⌟) eqH) $
                                                                                    push-subst-implicit-application _ _ ⟩
-          subst (λ H → Type (H X X)) eqH
+          subst (λ H → ⌞ H X X ⌟) eqH
             (subst (P C)
-                   (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) F)
+                   (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) F)
                    (λ {X} → id X) {X = X})                                    ≡⟨ push-subst-implicit-application _ _ ⟩
 
           subst (P C) eqH
             (subst (P C)
-                   (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) F)
+                   (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) F)
                    (λ {X} → id X)) {X = X}                                    ≡⟨ cong (λ (f : P C F → P C G) → f _)
                                                                                    subst-Σ-≡,≡→≡ ⟩∎
           subst (uncurry P) (Σ-≡,≡→≡ (refl C) eqH) (λ {X} → id X)             ∎)
@@ -822,223 +821,223 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
 
       subst₂ (uncurry P) eqO eqH C.id                                 ∎
 
-  Q = λ Obj (HOM : Obj → Obj → SET _) →
-        ∀ {X Y Z} → Type (HOM Y Z) → Type (HOM X Y) → Type (HOM X Z)
+  Q = λ Obj (HOM : Obj → Obj → Set _) →
+        ∀ {X Y Z} → ⌞ HOM Y Z ⌟ → ⌞ HOM X Y ⌟ → ⌞ HOM X Z ⌟
 
   push-Q :
-    {C : Set ℓ₁} {X Y Z : C} {F G : C → C → SET ℓ₂}
-    {c : (X Y Z : C) → Type (F Y Z) → Type (F X Y) → Type (F X Z)}
-    {F≡G : F ≡ G} {f : Type (G Y Z)} {g : Type (G X Y)} →
-    subst (λ H → Type (H X Z)) F≡G
+    {C : Type ℓ₁} {X Y Z : C} {F G : C → C → Set ℓ₂}
+    {c : (X Y Z : C) → ⌞ F Y Z ⌟ → ⌞ F X Y ⌟ → ⌞ F X Z ⌟}
+    {F≡G : F ≡ G} {f : ⌞ G Y Z ⌟} {g : ⌞ G X Y ⌟} →
+    subst (λ H → ⌞ H X Z ⌟) F≡G
       (c X Y Z
-         (subst (λ H → Type (H Y Z)) (sym F≡G) f)
-         (subst (λ H → Type (H X Y)) (sym F≡G) g)) ≡
+         (subst (λ H → ⌞ H Y Z ⌟) (sym F≡G) f)
+         (subst (λ H → ⌞ H X Y ⌟) (sym F≡G) g)) ≡
     subst (Q C) F≡G (c _ _ _) f g
   push-Q {C} {X} {Y} {Z} {c = c} {F≡G} {f} {g} =
-    subst (λ H → Type (H X Z)) F≡G
-      (c X Y Z (subst (λ H → Type (H Y Z)) (sym F≡G) f)
-               (subst (λ H → Type (H X Y)) (sym F≡G) g))                ≡⟨ sym subst-→ ⟩
+    subst (λ H → ⌞ H X Z ⌟) F≡G
+      (c X Y Z (subst (λ H → ⌞ H Y Z ⌟) (sym F≡G) f)
+               (subst (λ H → ⌞ H X Y ⌟) (sym F≡G) g))          ≡⟨ sym subst-→ ⟩
 
-    subst (λ H → Type (H X Y) → Type (H X Z)) F≡G
-      (c X Y Z (subst (λ H → Type (H Y Z)) (sym F≡G) f)) g              ≡⟨ cong (_$ g) $ sym subst-→ ⟩
+    subst (λ H → ⌞ H X Y ⌟ → ⌞ H X Z ⌟) F≡G
+      (c X Y Z (subst (λ H → ⌞ H Y Z ⌟) (sym F≡G) f)) g        ≡⟨ cong (_$ g) $ sym subst-→ ⟩
 
-    subst (λ H → Type (H Y Z) → Type (H X Y) → Type (H X Z)) F≡G
-      (c X Y Z) f g                                                     ≡⟨ cong (λ h → h f g) $
-                                                                             push-subst-implicit-application _
-                                                                               (λ H Z → Type (H Y Z) → Type (H X Y) → Type (H X Z)) ⟩
-    subst (λ H → ∀ {Z} → Type (H Y Z) → Type (H X Y) → Type (H X Z))
-      F≡G (c X Y _) f g                                                 ≡⟨ cong (λ h → h {Z = Z} f g) $
-                                                                             push-subst-implicit-application F≡G
-                                                                               (λ H Y → ∀ {Z} → Type (H Y Z) → Type (H X Y) → Type (H X Z)) ⟩
-    subst (λ H → ∀ {Y Z} → Type (H Y Z) → Type (H X Y) → Type (H X Z))
-      F≡G (c X _ _) f g                                                 ≡⟨ cong (λ h → h {Y = Y} {Z = Z} f g) $
-                                                                             push-subst-implicit-application F≡G
-                                                                               (λ H X → ∀ {Y Z} → Type (H Y Z) → Type (H X Y) → Type (H X Z)) ⟩∎
-    subst (Q C) F≡G (c _ _ _) f g                                       ∎
+    subst (λ H → ⌞ H Y Z ⌟ → ⌞ H X Y ⌟ → ⌞ H X Z ⌟) F≡G
+      (c X Y Z) f g                                            ≡⟨ cong (λ h → h f g) $
+                                                                    push-subst-implicit-application _
+                                                                      (λ H Z → ⌞ H Y Z ⌟ → ⌞ H X Y ⌟ → ⌞ H X Z ⌟) ⟩
+    subst (λ H → ∀ {Z} → ⌞ H Y Z ⌟ → ⌞ H X Y ⌟ → ⌞ H X Z ⌟)
+      F≡G (c X Y _) f g                                        ≡⟨ cong (λ h → h {Z = Z} f g) $
+                                                                    push-subst-implicit-application F≡G
+                                                                      (λ H Y → ∀ {Z} → ⌞ H Y Z ⌟ → ⌞ H X Y ⌟ → ⌞ H X Z ⌟) ⟩
+    subst (λ H → ∀ {Y Z} → ⌞ H Y Z ⌟ → ⌞ H X Y ⌟ → ⌞ H X Z ⌟)
+      F≡G (c X _ _) f g                                        ≡⟨ cong (λ h → h {Y = Y} {Z = Z} f g) $
+                                                                    push-subst-implicit-application F≡G
+                                                                      (λ H X → ∀ {Y Z} → ⌞ H Y Z ⌟ → ⌞ H X Y ⌟ → ⌞ H X Z ⌟) ⟩∎
+    subst (Q C) F≡G (c _ _ _) f g                              ∎
 
   abstract
 
     Q-lemma :
       ∀ {eqO eqH X Y Z f g} →
       let eqH′ = λ X Y →
-                   cong (λ H → Type (H X Y)) (≡⇒← (HOM-lemma eqO) eqH)
+                   cong (λ H → ⌞ H X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH)
       in
       ≡⇒→ (eqH′ X Z) (≡⇒← (eqH′ Y Z) f C.∙ ≡⇒← (eqH′ X Y) g) ≡
       subst₂ (uncurry Q) eqO eqH C._∙_ f g
     Q-lemma {eqO} {eqH} {X} {Y} {Z} {f} {g} =
 
       let eqH′ = λ X Y →
-                   cong (λ F → Type (F X Y)) (≡⇒← (HOM-lemma eqO) eqH)
+                   cong (λ F → ⌞ F X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH)
       in
 
       ≡⇒→ (eqH′ X Z) (≡⇒← (eqH′ Y Z) f C.∙ ≡⇒← (eqH′ X Y) g)              ≡⟨ cong₂ (λ f g → ≡⇒→ (eqH′ X Z) (f C.∙ g))
                                                                                ≡⇒←-lemma
                                                                                ≡⇒←-lemma ⟩
       ≡⇒→ (eqH′ X Z)
-        (subst (λ H → Type (H Y Z)) (sym $ ≡⇒←-subst eqO)
-           (subst (λ H → Type (H Y Z)) (sym eqH) f)
+        (subst (λ H → ⌞ H Y Z ⌟) (sym $ ≡⇒←-subst eqO)
+           (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f)
            C.∙
-         subst (λ H → Type (H X Y)) (sym $ ≡⇒←-subst eqO)
-           (subst (λ H → Type (H X Y)) (sym eqH) g))                      ≡⟨ ≡⇒→-lemma ⟩
+         subst (λ H → ⌞ H X Y ⌟) (sym $ ≡⇒←-subst eqO)
+           (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g))                         ≡⟨ ≡⇒→-lemma ⟩
 
-      subst (λ H → Type (H X Z)) eqH
-        (subst (λ H → Type (H X Z)) (≡⇒←-subst eqO)
-           (subst (λ H → Type (H Y Z)) (sym $ ≡⇒←-subst eqO)
-              (subst (λ H → Type (H Y Z)) (sym eqH) f)
+      subst (λ H → ⌞ H X Z ⌟) eqH
+        (subst (λ H → ⌞ H X Z ⌟) (≡⇒←-subst eqO)
+           (subst (λ H → ⌞ H Y Z ⌟) (sym $ ≡⇒←-subst eqO)
+              (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f)
               C.∙
-            subst (λ H → Type (H X Y)) (sym $ ≡⇒←-subst eqO)
-              (subst (λ H → Type (H X Y)) (sym eqH) g)))                  ≡⟨ elim
+            subst (λ H → ⌞ H X Y ⌟) (sym $ ≡⇒←-subst eqO)
+              (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g)))                     ≡⟨ elim
                                                                                (λ eqO → ∀ {X Y Z F G}
-                                                                                        (eqH : subst (λ Obj → Obj → Obj → SET ℓ₂) eqO F ≡ G)
+                                                                                        (eqH : subst (λ Obj → Obj → Obj → Set ℓ₂) eqO F ≡ G)
                                                                                         (comp : ∀ X Y Z →
-                                                                                                Type (F Y Z) → Type (F X Y) → Type (F X Z))
-                                                                                        (f : Type (G Y Z)) (g : Type (G X Y)) →
-                                                                                  subst (λ H → Type (H X Z)) eqH
-                                                                                    (subst (λ H → Type (H X Z)) (≡⇒←-subst eqO)
+                                                                                                ⌞ F Y Z ⌟ → ⌞ F X Y ⌟ → ⌞ F X Z ⌟)
+                                                                                        (f : ⌞ G Y Z ⌟) (g : ⌞ G X Y ⌟) →
+                                                                                  subst (λ H → ⌞ H X Z ⌟) eqH
+                                                                                    (subst (λ H → ⌞ H X Z ⌟) (≡⇒←-subst eqO)
                                                                                        (comp (≡⇒← eqO X) (≡⇒← eqO Y) (≡⇒← eqO Z)
-                                                                                          (subst (λ H → Type (H Y Z)) (sym $ ≡⇒←-subst eqO)
-                                                                                             (subst (λ H → Type (H Y Z)) (sym eqH) f))
-                                                                                          (subst (λ H → Type (H X Y)) (sym $ ≡⇒←-subst eqO)
-                                                                                             (subst (λ H → Type (H X Y)) (sym eqH) g))))
+                                                                                          (subst (λ H → ⌞ H Y Z ⌟) (sym $ ≡⇒←-subst eqO)
+                                                                                             (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f))
+                                                                                          (subst (λ H → ⌞ H X Y ⌟) (sym $ ≡⇒←-subst eqO)
+                                                                                             (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g))))
                                                                                     ≡
                                                                                   subst (uncurry Q) (Σ-≡,≡→≡ eqO eqH) (λ {X Y Z} → comp X Y Z) f g)
                                                                                (λ C {X Y Z F G} eqH comp f g →
-          subst (λ H → Type (H X Z)) eqH
-            (subst (λ H → Type (H X Z)) (≡⇒←-subst (refl C))
+          subst (λ H → ⌞ H X Z ⌟) eqH
+            (subst (λ H → ⌞ H X Z ⌟) (≡⇒←-subst (refl C))
                (comp (≡⇒← (refl C) X) (≡⇒← (refl C) Y) (≡⇒← (refl C) Z)
-                  (subst (λ H → Type (H Y Z)) (sym $ ≡⇒←-subst (refl C))
-                     (subst (λ H → Type (H Y Z)) (sym eqH) f))
-                  (subst (λ H → Type (H X Y)) (sym $ ≡⇒←-subst (refl C))
-                     (subst (λ H → Type (H X Y)) (sym eqH) g))))                  ≡⟨ cong₂ (λ f g →
-                                                                                              subst (λ H → Type (H X Z)) eqH $
-                                                                                                subst (λ H → Type (H X Z)) (≡⇒←-subst (refl C)) $
+                  (subst (λ H → ⌞ H Y Z ⌟) (sym $ ≡⇒←-subst (refl C))
+                     (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f))
+                  (subst (λ H → ⌞ H X Y ⌟) (sym $ ≡⇒←-subst (refl C))
+                     (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g))))                     ≡⟨ cong₂ (λ f g →
+                                                                                              subst (λ H → ⌞ H X Z ⌟) eqH $
+                                                                                                subst (λ H → ⌞ H X Z ⌟) (≡⇒←-subst (refl C)) $
                                                                                                   comp (≡⇒← (refl C) X) (≡⇒← (refl C) Y)
                                                                                                        (≡⇒← (refl C) Z) f g)
                                                                                        expand-sym-≡⇒←-subst
                                                                                        expand-sym-≡⇒←-subst ⟩
-          subst (λ H → Type (H X Z)) eqH
-            (subst (λ H → Type (H X Z)) (≡⇒←-subst (refl C))
+          subst (λ H → ⌞ H X Z ⌟) eqH
+            (subst (λ H → ⌞ H X Z ⌟) (≡⇒←-subst (refl C))
                (comp (≡⇒← (refl C) X) (≡⇒← (refl C) Y) (≡⇒← (refl C) Z)
-                  (subst (λ f → Type (F (f Y) (f Z))) (sym ≡⇒←-refl)
-                     (subst (λ H → Type (H Y Z))
-                        (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                        (subst (λ H → Type (H Y Z)) (sym eqH) f)))
-                  (subst (λ f → Type (F (f X) (f Y))) (sym ≡⇒←-refl)
-                     (subst (λ H → Type (H X Y))
-                        (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                        (subst (λ H → Type (H X Y)) (sym eqH) g)))))              ≡⟨ expand-≡⇒←-subst ⟩
+                  (subst (λ f → ⌞ F (f Y) (f Z) ⌟) (sym ≡⇒←-refl)
+                     (subst (λ H → ⌞ H Y Z ⌟)
+                        (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                        (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f)))
+                  (subst (λ f → ⌞ F (f X) (f Y) ⌟) (sym ≡⇒←-refl)
+                     (subst (λ H → ⌞ H X Y ⌟)
+                        (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                        (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g)))))                 ≡⟨ expand-≡⇒←-subst ⟩
 
-          subst (λ H → Type (H X Z)) eqH
-            (subst (λ H → Type (H X Z))
-               (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-               (subst (λ f → Type (F (f X) (f Z))) ≡⇒←-refl
+          subst (λ H → ⌞ H X Z ⌟) eqH
+            (subst (λ H → ⌞ H X Z ⌟)
+               (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+               (subst (λ f → ⌞ F (f X) (f Z) ⌟) ≡⇒←-refl
                   (comp (≡⇒← (refl C) X) (≡⇒← (refl C) Y)
                         (≡⇒← (refl C) Z)
-                     (subst (λ f → Type (F (f Y) (f Z))) (sym ≡⇒←-refl)
-                        (subst (λ H → Type (H Y Z))
-                           (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                           (subst (λ H → Type (H Y Z)) (sym eqH) f)))
-                     (subst (λ f → Type (F (f X) (f Y))) (sym ≡⇒←-refl)
-                        (subst (λ H → Type (H X Y))
-                           (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                           (subst (λ H → Type (H X Y)) (sym eqH) g))))))          ≡⟨ cong (subst (λ H → Type (H X Z)) eqH ∘
-                                                                                           subst (λ H → Type (H X Z))
-                                                                                             (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)) $
+                     (subst (λ f → ⌞ F (f Y) (f Z) ⌟) (sym ≡⇒←-refl)
+                        (subst (λ H → ⌞ H Y Z ⌟)
+                           (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                           (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f)))
+                     (subst (λ f → ⌞ F (f X) (f Y) ⌟) (sym ≡⇒←-refl)
+                        (subst (λ H → ⌞ H X Y ⌟)
+                           (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                           (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g))))))             ≡⟨ cong (subst (λ H → ⌞ H X Z ⌟) eqH ∘
+                                                                                           subst (λ H → ⌞ H X Z ⌟)
+                                                                                             (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)) $
                                                                                        dcong′
                                                                                          (λ h eq →
                                                                                             comp (h X) (h Y) (h Z)
-                                                                                              (subst (λ f → Type (F (f Y) (f Z))) (sym eq)
-                                                                                                 (subst (λ H → Type (H Y Z))
-                                                                                                    (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                                                                                                    (subst (λ H → Type (H Y Z)) (sym eqH) f)))
-                                                                                              (subst (λ f → Type (F (f X) (f Y))) (sym eq)
-                                                                                                 (subst (λ H → Type (H X Y))
-                                                                                                    (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                                                                                                    (subst (λ H → Type (H X Y)) (sym eqH) g))))
+                                                                                              (subst (λ f → ⌞ F (f Y) (f Z) ⌟) (sym eq)
+                                                                                                 (subst (λ H → ⌞ H Y Z ⌟)
+                                                                                                    (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                                                                                                    (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f)))
+                                                                                              (subst (λ f → ⌞ F (f X) (f Y) ⌟) (sym eq)
+                                                                                                 (subst (λ H → ⌞ H X Y ⌟)
+                                                                                                    (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                                                                                                    (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g))))
                                                                                          _ ⟩
-          subst (λ H → Type (H X Z)) eqH
-            (subst (λ H → Type (H X Z))
-               (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
+          subst (λ H → ⌞ H X Z ⌟) eqH
+            (subst (λ H → ⌞ H X Z ⌟)
+               (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
                (comp X Y Z
-                  (subst (λ f → Type (F (f Y) (f Z))) (sym (refl P.id))
-                     (subst (λ H → Type (H Y Z))
-                        (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                        (subst (λ H → Type (H Y Z)) (sym eqH) f)))
-                  (subst (λ f → Type (F (f X) (f Y))) (sym (refl P.id))
-                     (subst (λ H → Type (H X Y))
-                        (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                        (subst (λ H → Type (H X Y)) (sym eqH) g)))))              ≡⟨ cong₂ (λ p q →
-                                                                                       subst (λ H → Type (H X Z)) eqH
-                                                                                         (subst (λ H → Type (H X Z))
-                                                                                            (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
+                  (subst (λ f → ⌞ F (f Y) (f Z) ⌟) (sym (refl P.id))
+                     (subst (λ H → ⌞ H Y Z ⌟)
+                        (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                        (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f)))
+                  (subst (λ f → ⌞ F (f X) (f Y) ⌟) (sym (refl P.id))
+                     (subst (λ H → ⌞ H X Y ⌟)
+                        (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                        (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g)))))                 ≡⟨ cong₂ (λ p q →
+                                                                                       subst (λ H → ⌞ H X Z ⌟) eqH
+                                                                                         (subst (λ H → ⌞ H X Z ⌟)
+                                                                                            (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
                                                                                             (comp X Y Z
-                                                                                               (subst (λ f → Type (F (f Y) (f Z))) p
-                                                                                                  (subst (λ H → Type (H Y Z))
-                                                                                                     (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                                                                                                     (subst (λ H → Type (H Y Z)) (sym eqH) f)))
-                                                                                               (subst (λ f → Type (F (f X) (f Y))) q
-                                                                                                  (subst (λ H → Type (H X Y))
-                                                                                                     (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                                                                                                     (subst (λ H → Type (H X Y)) (sym eqH) g))))))
+                                                                                               (subst (λ f → ⌞ F (f Y) (f Z) ⌟) p
+                                                                                                  (subst (λ H → ⌞ H Y Z ⌟)
+                                                                                                     (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                                                                                                     (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f)))
+                                                                                               (subst (λ f → ⌞ F (f X) (f Y) ⌟) q
+                                                                                                  (subst (λ H → ⌞ H X Y ⌟)
+                                                                                                     (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                                                                                                     (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g))))))
                                                                                        (sym-refl {x = P.id})
                                                                                        (sym-refl {x = P.id}) ⟩
-          subst (λ H → Type (H X Z)) eqH
-            (subst (λ H → Type (H X Z))
-               (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
+          subst (λ H → ⌞ H X Z ⌟) eqH
+            (subst (λ H → ⌞ H X Z ⌟)
+               (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
                (comp X Y Z
-                  (subst (λ f → Type (F (f Y) (f Z))) (refl P.id)
-                     (subst (λ H → Type (H Y Z))
-                        (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                        (subst (λ H → Type (H Y Z)) (sym eqH) f)))
-                  (subst (λ f → Type (F (f X) (f Y))) (refl P.id)
-                     (subst (λ H → Type (H X Y))
-                        (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                        (subst (λ H → Type (H X Y)) (sym eqH) g)))))              ≡⟨ cong₂ (λ f g →
-                                                                                              subst (λ H → Type (H X Z)) eqH
-                                                                                                (subst (λ H → Type (H X Z))
-                                                                                                   (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
+                  (subst (λ f → ⌞ F (f Y) (f Z) ⌟) (refl P.id)
+                     (subst (λ H → ⌞ H Y Z ⌟)
+                        (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                        (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f)))
+                  (subst (λ f → ⌞ F (f X) (f Y) ⌟) (refl P.id)
+                     (subst (λ H → ⌞ H X Y ⌟)
+                        (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                        (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g)))))                 ≡⟨ cong₂ (λ f g →
+                                                                                              subst (λ H → ⌞ H X Z ⌟) eqH
+                                                                                                (subst (λ H → ⌞ H X Z ⌟)
+                                                                                                   (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
                                                                                                    (comp X Y Z f g)))
                                                                                        (subst-refl _ _)
                                                                                        (subst-refl _ _) ⟩
-          subst (λ H → Type (H X Z)) eqH
-            (subst (λ H → Type (H X Z))
-               (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
+          subst (λ H → ⌞ H X Z ⌟) eqH
+            (subst (λ H → ⌞ H X Z ⌟)
+               (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
                (comp X Y Z
-                  (subst (λ H → Type (H Y Z))
-                     (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                     (subst (λ H → Type (H Y Z)) (sym eqH) f))
-                  (subst (λ H → Type (H X Y))
-                     (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                     (subst (λ H → Type (H X Y)) (sym eqH) g))))                  ≡⟨ sym $ cong₂ (λ p q →
-                                                                                             subst (λ H → Type (H X Z)) eqH
-                                                                                               (subst (λ H → Type (H X Z))
-                                                                                                  (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
+                  (subst (λ H → ⌞ H Y Z ⌟)
+                     (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                     (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f))
+                  (subst (λ H → ⌞ H X Y ⌟)
+                     (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                     (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g))))                     ≡⟨ sym $ cong₂ (λ p q →
+                                                                                             subst (λ H → ⌞ H X Z ⌟) eqH
+                                                                                               (subst (λ H → ⌞ H X Z ⌟)
+                                                                                                  (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
                                                                                                   (comp X Y Z
-                                                                                                     (subst (λ H → Type (H Y Z)) p
-                                                                                                        (subst (λ H → Type (H Y Z)) (sym eqH) f))
-                                                                                                     (subst (λ H → Type (H X Y)) q
-                                                                                                        (subst (λ H → Type (H X Y)) (sym eqH) g)))))
-                                                                                       (sym-sym (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _))
-                                                                                       (sym-sym (subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)) ⟩
-          subst (λ H → Type (H X Z)) eqH
-            (subst (λ H → Type (H X Z))
-               (sym $ subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
+                                                                                                     (subst (λ H → ⌞ H Y Z ⌟) p
+                                                                                                        (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f))
+                                                                                                     (subst (λ H → ⌞ H X Y ⌟) q
+                                                                                                        (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g)))))
+                                                                                       (sym-sym (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _))
+                                                                                       (sym-sym (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)) ⟩
+          subst (λ H → ⌞ H X Z ⌟) eqH
+            (subst (λ H → ⌞ H X Z ⌟)
+               (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
                (comp X Y Z
-                  (subst (λ H → Type (H Y Z))
+                  (subst (λ H → ⌞ H Y Z ⌟)
                      (sym $ sym $
-                        subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                     (subst (λ H → Type (H Y Z)) (sym eqH) f))
-                  (subst (λ H → Type (H X Y))
+                        subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                     (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f))
+                  (subst (λ H → ⌞ H X Y ⌟)
                      (sym $ sym $
-                        subst-refl (λ Obj → Obj → Obj → SET ℓ₂) _)
-                     (subst (λ H → Type (H X Y)) (sym eqH) g))))                  ≡⟨ cong (subst (λ H → Type (H X Z)) eqH) push-Q ⟩
+                        subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
+                     (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g))))                     ≡⟨ cong (subst (λ H → ⌞ H X Z ⌟) eqH) push-Q ⟩
 
-          subst (λ H → Type (H X Z)) eqH
+          subst (λ H → ⌞ H X Z ⌟) eqH
             (subst (Q C)
                (sym $ subst-refl _ _)
                (λ {X Y Z} → comp X Y Z)
-               (subst (λ H → Type (H Y Z)) (sym eqH) f)
-               (subst (λ H → Type (H X Y)) (sym eqH) g))                          ≡⟨ push-Q ⟩
+               (subst (λ H → ⌞ H Y Z ⌟) (sym eqH) f)
+               (subst (λ H → ⌞ H X Y ⌟) (sym eqH) g))                             ≡⟨ push-Q ⟩
 
           subst (Q C) eqH
             (subst (Q C)
@@ -1131,7 +1130,7 @@ lift-precategory-Hom ℓ₂′ C .Precategory.precategory =
 ------------------------------------------------------------------------
 -- Categories
 
-Category′ : (ℓ₁ ℓ₂ : Level) → Set (lsuc (ℓ₁ ⊔ ℓ₂))
+Category′ : (ℓ₁ ℓ₂ : Level) → Type (lsuc (ℓ₁ ⊔ ℓ₂))
 Category′ ℓ₁ ℓ₂ =
   -- A precategory.
   ∃ λ (C : Precategory ℓ₁ ℓ₂) →
@@ -1141,7 +1140,7 @@ Category′ ℓ₁ ℓ₂ =
 
 -- A wrapper.
 
-record Category (ℓ₁ ℓ₂ : Level) : Set (lsuc (ℓ₁ ⊔ ℓ₂)) where
+record Category (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) where
   field
     category : Category′ ℓ₁ ℓ₂
 
@@ -1366,20 +1365,20 @@ precategory-to-category C ≡≃≅ ≡≃≅-refl = record
   { category = C , Precategory.≡→≅-equivalence-lemma C ≡≃≅ ≡≃≅-refl
   }
 
--- A variant of the previous lemma for precategories with SET c₁ as
+-- A variant of the previous lemma for precategories with Set c₁ as
 -- the type of objects. (The lemma is defined using extensionality and
 -- univalence for sets.)
 
-precategory-with-SET-to-category :
+precategory-with-Set-to-category :
   ∀ {c₁ c₂} →
   Extensionality c₁ c₁ →
-  ((A B : SET c₁) → Univalence′ (Type A) (Type B)) →
-  (C : Precategory-with-Obj (SET c₁) c₂) →
+  ((A B : Set c₁) → Univalence′ ⌞ A ⌟ ⌞ B ⌟) →
+  (C : Precategory-with-Obj (Set c₁) c₂) →
   let open Precategory (record { precategory = _ , C }) in
-  (≃≃≅ : ∀ X Y → (Type X ≃ Type Y) ≃ (X ≅ Y)) →
+  (≃≃≅ : ∀ X Y → (⌞ X ⌟ ≃ ⌞ Y ⌟) ≃ (X ≅ Y)) →
   (∀ X → _≃_.to (≃≃≅ X X) Eq.id ¹ ≡ id) →
   Category (lsuc c₁) c₂
-precategory-with-SET-to-category ext univ C ≃≃≅ ≃≃≅-id =
+precategory-with-Set-to-category ext univ C ≃≃≅ ≃≃≅-id =
   precategory-to-category C′ ≡≃≅ ≡≃≅-refl
   where
   C′ = record { precategory = _ , C }
@@ -1387,12 +1386,12 @@ precategory-with-SET-to-category ext univ C ≃≃≅ ≃≃≅-id =
 
   -- _≡_ and _≅_ are pointwise equivalent…
 
-  cong-Type : {X Y : Obj} → (X ≡ Y) ≃ (Type X ≡ Type Y)
-  cong-Type = Eq.↔⇒≃ $ inverse $
+  cong-⌞⌟ : {X Y : Obj} → (X ≡ Y) ≃ (⌞ X ⌟ ≡ ⌞ Y ⌟)
+  cong-⌞⌟ = Eq.↔⇒≃ $ inverse $
     ignore-propositional-component (H-level-propositional ext 2)
 
   ≡≃≅ : ∀ {X Y} → (X ≡ Y) ≃ (X ≅ Y)
-  ≡≃≅ {X} {Y} = ≃≃≅ X Y ⊚ ≡≃≃ (univ X Y) ⊚ cong-Type
+  ≡≃≅ {X} {Y} = ≃≃≅ X Y ⊚ ≡≃≃ (univ X Y) ⊚ cong-⌞⌟
 
   -- …and the proof maps reflexivity to the identity isomorphism.
 
@@ -1400,7 +1399,7 @@ precategory-with-SET-to-category ext univ C ≃≃≅ ≃≃≅-id =
     ∀ {X} → _¹ {X = X} {Y = X} (_≃_.to ≡≃≅ (refl X)) ≡ id
   ≡≃≅-refl {X} = cong (_¹ {X = X} {Y = X}) (
     _≃_.to (≃≃≅ X X) (≡⇒≃ (proj₁ (Σ-≡,≡←≡ (refl X))))  ≡⟨ cong (_≃_.to (≃≃≅ X X) ∘ ≡⇒≃ ∘ proj₁) Σ-≡,≡←≡-refl ⟩
-    _≃_.to (≃≃≅ X X) (≡⇒≃ (refl (Type X)))             ≡⟨ cong (_≃_.to (≃≃≅ X X)) ≡⇒≃-refl ⟩
+    _≃_.to (≃≃≅ X X) (≡⇒≃ (refl ⌞ X ⌟))                ≡⟨ cong (_≃_.to (≃≃≅ X X)) ≡⇒≃-refl ⟩
     _≃_.to (≃≃≅ X X) Eq.id                             ≡⟨ _≃_.from (≡≃≡¹ {X = X} {Y = X}) $ ≃≃≅-id X ⟩∎
     id≅                                                ∎)
 
@@ -1410,10 +1409,10 @@ precategory-with-SET-to-category ext univ C ≃≃≅ ≃≃≅-id =
 category-Set :
   (ℓ : Level) →
   Extensionality ℓ ℓ →
-  ((A B : SET ℓ) → Univalence′ (Type A) (Type B)) →
+  ((A B : Set ℓ) → Univalence′ ⌞ A ⌟ ⌞ B ⌟) →
   Category (lsuc ℓ) ℓ
 category-Set ℓ ext univ =
-  precategory-with-SET-to-category
+  precategory-with-Set-to-category
     ext
     univ
     (proj₂ precategory)
@@ -1429,7 +1428,7 @@ category-Set ℓ ext univ =
 category-Set-≅ :
   (ℓ : Level) →
   Extensionality ℓ ℓ →
-  ((A B : SET ℓ) → Univalence′ (Type A) (Type B)) →
+  ((A B : Set ℓ) → Univalence′ ⌞ A ⌟ ⌞ B ⌟) →
   Category (lsuc ℓ) ℓ
 category-Set-≅ ℓ ext univ =
   Category.category-≅ (category-Set ℓ ext univ)
@@ -1440,15 +1439,15 @@ private
 
   Obj-category-Set-≅ :
     ∀ ℓ (ext : Extensionality ℓ ℓ)
-    (univ : (A B : SET ℓ) → Univalence′ (Type A) (Type B)) →
-    Category.Obj (category-Set-≅ ℓ ext univ) ≡ SET ℓ
+    (univ : (A B : Set ℓ) → Univalence′ ⌞ A ⌟ ⌞ B ⌟) →
+    Category.Obj (category-Set-≅ ℓ ext univ) ≡ Set ℓ
   Obj-category-Set-≅ _ _ _ = refl _
 
   -- The morphisms are bijections.
 
   Hom-category-Set-≅ :
     ∀ ℓ (ext : Extensionality ℓ ℓ)
-    (univ : (A B : SET ℓ) → Univalence′ (Type A) (Type B)) →
+    (univ : (A B : Set ℓ) → Univalence′ ⌞ A ⌟ ⌞ B ⌟) →
     Category.Hom (category-Set-≅ ℓ ext univ) ≡
     Category._≅_ (category-Set ℓ ext univ)
   Hom-category-Set-≅ _ _ _ = refl _

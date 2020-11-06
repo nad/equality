@@ -20,7 +20,7 @@ open import Surjection eq using (_↠_; ↠-≡)
 private
   variable
     a   : Level
-    A B : Set a
+    A B : Type a
     n   : ℕ
 
 ------------------------------------------------------------------------
@@ -28,7 +28,7 @@ private
 
 -- Vectors.
 
-Vec : ∀ {a} → Set a → ℕ → Set a
+Vec : ∀ {a} → Type a → ℕ → Type a
 Vec A n = Fin n → A
 
 -- Nil.
@@ -85,7 +85,7 @@ _[_≔_] {n = suc _} xs (fsuc i) x = cons (head xs) (tail xs [ i ≔ x ])
 -- Empty lists are equal to nil (assuming extensionality).
 
 empty≡nil :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality lzero a →
   {xs : Vec A zero} →
   xs ≡ nil
@@ -95,7 +95,7 @@ empty≡nil ext = apply-ext ext λ ()
 -- (assuming extensionality).
 
 non-empty≡cons-head-tail :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality lzero a →
   (xs : Vec A (suc n)) →
   xs ≡ cons (head xs) (tail xs)
@@ -120,7 +120,7 @@ from-list (x ∷ xs) = cons x (from-list xs)
 -- ∃ (Vec A) is isomorphic to List A (assuming extensionality).
 
 ∃Vec↔List :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality lzero a →
   ∃ (Vec A) ↔ List A
 ∃Vec↔List {A = A} ext = record

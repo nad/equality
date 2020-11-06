@@ -31,20 +31,20 @@ open import Suspension eq as Suspension
 private
   variable
     a b : Level
-    A B : Set a
+    A B : Type a
     C   : Pointed-type a
     x   : A
     n   : ℕ
 
 -- Spheres.
 
-𝕊[_-1] : ℕ → Set
+𝕊[_-1] : ℕ → Type
 𝕊[ zero  -1] = ⊥
 𝕊[ suc n -1] = Susp 𝕊[ n -1]
 
 -- Spheres with non-negative dimensions.
 
-𝕊 : ℕ → Set
+𝕊 : ℕ → Type
 𝕊 n = 𝕊[ 1 + n -1]
 
 -- The booleans are isomorphic to the 0-dimensional sphere.

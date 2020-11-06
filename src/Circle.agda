@@ -29,18 +29,18 @@ open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
 open import Nat equality-with-J
-open import Univalence-axiom equality-with-J using (¬-Set-set)
+open import Univalence-axiom equality-with-J using (¬-Type-set)
 
 private
   variable
     a p : Level
-    A   : Set p
-    P   : A → Set p
+    A   : Type p
+    P   : A → Type p
     b ℓ : A
 
 -- The circle.
 
-data 𝕊¹ : Set where
+data 𝕊¹ : Type where
   base  : 𝕊¹
   loopᴾ : base P.≡ base
 
@@ -50,7 +50,7 @@ loop = _↔_.from ≡↔≡ loopᴾ
 -- A dependent eliminator, expressed using paths.
 
 elimᴾ :
-  (P : 𝕊¹ → Set p)
+  (P : 𝕊¹ → Type p)
   (b : P base) →
   P.[ (λ i → P (loopᴾ i)) ] b ≡ b →
   (x : 𝕊¹) → P x
@@ -65,7 +65,7 @@ recᴾ = elimᴾ _
 -- A dependent eliminator.
 
 elim :
-  (P : 𝕊¹ → Set p)
+  (P : 𝕊¹ → Type p)
   (b : P base) →
   subst P loop b ≡ b →
   (x : 𝕊¹) → P x
@@ -104,9 +104,9 @@ rec′-loop = dcong≡→cong≡ elim-loop
 -- The equality loop is not equal to refl base.
 
 loop≢refl : loop ≢ refl base
-loop≢refl loop≡refl = ¬-Set-set univ Set-set
+loop≢refl loop≡refl = ¬-Type-set univ Type-set
   where
-  refl≡ : (A : Set) (A≡A : A ≡ A) → refl A ≡ A≡A
+  refl≡ : (A : Type) (A≡A : A ≡ A) → refl A ≡ A≡A
   refl≡ A A≡A =
     refl A                        ≡⟨⟩
     refl (rec A A≡A base)         ≡⟨ sym $ cong-refl _ ⟩
@@ -114,8 +114,8 @@ loop≢refl loop≡refl = ¬-Set-set univ Set-set
     cong (rec A A≡A) loop         ≡⟨ rec-loop ⟩∎
     A≡A                           ∎
 
-  Set-set : Is-set Set
-  Set-set {x = A} {y = B} =
+  Type-set : Is-set Type
+  Type-set {x = A} {y = B} =
     elim¹ (λ p → ∀ q → p ≡ q)
           (refl≡ A)
 
@@ -154,7 +154,7 @@ not-refl≢refl =
 -- (x : A) → x ≡ x is not a proposition.
 
 ¬-type-of-refl-propositional :
-  ∃ λ (A : Set a) → ¬ Is-proposition ((x : A) → x ≡ x)
+  ∃ λ (A : Type a) → ¬ Is-proposition ((x : A) → x ≡ x)
 ¬-type-of-refl-propositional {a = a} =
     ↑ _ 𝕊¹
   , (Is-proposition (∀ x → x ≡ x)                                 ↝⟨ (λ prop → prop _ _) ⟩
@@ -207,25 +207,25 @@ all-points-on-the-circle-are-¬¬-equal x =
   Is-set 𝕊¹              ↝⟨ ¬-𝕊¹-set ⟩□
   ⊥                      □
 
--- Thus double-negation shift for Set-valued predicates over 𝕊¹ does
+-- Thus double-negation shift for Type-valued predicates over 𝕊¹ does
 -- not hold in general.
 
 ¬-double-negation-shift :
-  ¬ ({P : 𝕊¹ → Set} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))
+  ¬ ({P : 𝕊¹ → Type} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))
 ¬-double-negation-shift =
-  ({P : 𝕊¹ → Set} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))  ↝⟨ _$ all-points-on-the-circle-are-¬¬-equal ⟩
-  ¬ ¬ ((x : 𝕊¹) → x ≡ base)                                       ↝⟨ _$ ¬-all-points-on-the-circle-are-equal ⟩□
-  ⊥                                                               □
+  ({P : 𝕊¹ → Type} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))  ↝⟨ _$ all-points-on-the-circle-are-¬¬-equal ⟩
+  ¬ ¬ ((x : 𝕊¹) → x ≡ base)                                        ↝⟨ _$ ¬-all-points-on-the-circle-are-equal ⟩□
+  ⊥                                                                □
 
--- Furthermore excluded middle for arbitrary types (in Set) does not
+-- Furthermore excluded middle for arbitrary types (in Type) does not
 -- hold.
 
-¬-excluded-middle : ¬ ({A : Set} → Dec A)
+¬-excluded-middle : ¬ ({A : Type} → Dec A)
 ¬-excluded-middle =
-  ({A : Set} → Dec A)                                             ↝⟨ (λ em ¬¬a → [ id , ⊥-elim ∘ ¬¬a ] em) ⟩
-  ({A : Set} → ¬ ¬ A → A)                                         ↝⟨ (λ dne → flip _$_ ∘ (dne ∘_)) ⟩
-  ({P : 𝕊¹ → Set} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))  ↝⟨ ¬-double-negation-shift ⟩□
-  ⊥                                                               □
+  ({A : Type} → Dec A)                                             ↝⟨ (λ em ¬¬a → [ id , ⊥-elim ∘ ¬¬a ] em) ⟩
+  ({A : Type} → ¬ ¬ A → A)                                         ↝⟨ (λ dne → flip _$_ ∘ (dne ∘_)) ⟩
+  ({P : 𝕊¹ → Type} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))  ↝⟨ ¬-double-negation-shift ⟩□
+  ⊥                                                                □
 
 -- H-level.Closure.proj₁-closure cannot be generalised by replacing
 -- the assumption ∀ a → B a with ∀ a → ∥ B a ∥.
@@ -233,7 +233,7 @@ all-points-on-the-circle-are-¬¬-equal x =
 -- This observation is due to Andrea Vezzosi.
 
 ¬-generalised-proj₁-closure :
-  ¬ ({A : Set} {B : A → Set} →
+  ¬ ({A : Type} {B : A → Type} →
      (∀ a → ∥ B a ∥) →
      ∀ n → H-level n (Σ A B) → H-level n A)
 ¬-generalised-proj₁-closure generalised-proj₁-closure =
@@ -251,7 +251,7 @@ all-points-on-the-circle-are-¬¬-equal x =
 -- anonymous reviewer's suggestion
 
 -- Circle eq p is an axiomatisation of the circle, for the given
--- notion of equality eq, eliminating into Set p.
+-- notion of equality eq, eliminating into Type p.
 --
 -- Note that the statement of the computation rule for "loop" is more
 -- complicated than above (elim-loop). The reason is that the
@@ -260,12 +260,12 @@ all-points-on-the-circle-are-¬¬-equal x =
 Circle :
   ∀ {e⁺} →
   (∀ {a p} → P.Equality-with-paths a p e⁺) →
-  (p : Level) → Set (lsuc p)
+  (p : Level) → Type (lsuc p)
 Circle eq p =
-  ∃ λ (𝕊¹ : Set) →
+  ∃ λ (𝕊¹ : Type) →
   ∃ λ (base : 𝕊¹) →
   ∃ λ (loop : base E.≡ base) →
-    (P : 𝕊¹ → Set p)
+    (P : 𝕊¹ → Type p)
     (b : P base)
     (ℓ : E.subst P loop b E.≡ b) →
     ∃ λ (elim : (x : 𝕊¹) → P x) →

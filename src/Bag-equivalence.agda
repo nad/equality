@@ -29,8 +29,8 @@ open import Nat eq hiding (_≟_)
 private
   variable
     a ℓ p q                  : Level
-    A B                      : Set a
-    P Q                      : A → Set p
+    A B                      : Type a
+    P Q                      : A → Type p
     x y z                    : A
     xs xs₁ xs₂ ys ys₁ ys₂ zs : List A
     xss yss                  : List (List A)
@@ -42,13 +42,13 @@ private
 
 -- Any.
 
-Any : (A → Set p) → List A → Set p
+Any : (A → Type p) → List A → Type p
 Any P []       = ⊥
 Any P (x ∷ xs) = P x ⊎ Any P xs
 
 -- Alternative definition of Any.
 
-data Any′ {A : Set a} (P : A → Set p) : List A → Set (a ⊔ p) where
+data Any′ {A : Type a} (P : A → Type p) : List A → Type (a ⊔ p) where
   here  : ∀ {x xs} → P x       → Any′ P (x ∷ xs)
   there : ∀ {x xs} → Any′ P xs → Any′ P (x ∷ xs)
 
@@ -94,7 +94,7 @@ Any↔Any′ {P = P} {xs = x ∷ xs} =
 ------------------------------------------------------------------------
 -- Lemmas relating Any to some basic list functions
 
-Any-++ : (P : A → Set p) (xs ys : List A) →
+Any-++ : (P : A → Type p) (xs ys : List A) →
          Any P (xs ++ ys) ↔ Any P xs ⊎ Any P ys
 Any-++ P [] ys =
   Any P ys      ↔⟨ inverse ⊎-left-identity ⟩
@@ -104,7 +104,7 @@ Any-++ P (x ∷ xs) ys =
   P x ⊎ (Any P xs ⊎ Any P ys)  ↔⟨ ⊎-assoc ⟩
   (P x ⊎ Any P xs) ⊎ Any P ys  □
 
-Any-concat : (P : A → Set p) (xss : List (List A)) →
+Any-concat : (P : A → Type p) (xss : List (List A)) →
              Any P (concat xss) ↔ Any (Any P) xss
 Any-concat P []         = id
 Any-concat P (xs ∷ xss) =
@@ -112,22 +112,22 @@ Any-concat P (xs ∷ xss) =
   Any P xs ⊎ Any P (concat xss)  ↔⟨ id ⊎-cong Any-concat P xss ⟩
   Any P xs ⊎ Any (Any P) xss     □
 
-Any-map : (P : B → Set p) (f : A → B) (xs : List A) →
+Any-map : (P : B → Type p) (f : A → B) (xs : List A) →
           Any P (map f xs) ↔ Any (P ∘ f) xs
 Any-map P f []       = id
 Any-map P f (x ∷ xs) =
   P (f x)   ⊎ Any P (map f xs)  ↔⟨ id ⊎-cong Any-map P f xs ⟩
   (P ∘ f) x ⊎ Any (P ∘ f) xs    □
 
-Any->>= : {A B : Set ℓ}
-          (P : B → Set p) (xs : List A) (f : A → List B) →
+Any->>= : {A B : Type ℓ}
+          (P : B → Type p) (xs : List A) (f : A → List B) →
           Any P (xs >>= f) ↔ Any (Any P ∘ f) xs
 Any->>= P xs f =
   Any P (concat (map f xs))  ↔⟨ Any-concat P (map f xs) ⟩
   Any (Any P) (map f xs)     ↔⟨ Any-map (Any P) f xs ⟩
   Any (Any P ∘ f) xs         □
 
-Any-filter : (P : A → Set p) (p : A → Bool) (xs : List A) →
+Any-filter : (P : A → Type p) (p : A → Bool) (xs : List A) →
              Any P (filter p xs) ↔ Any (λ x → P x × T (p x)) xs
 Any-filter P p []       = ⊥ □
 Any-filter P p (x ∷ xs) with p x
@@ -145,12 +145,12 @@ Any-filter P p (x ∷ xs) with p x
 
 infix 4 _∈_
 
-_∈_ : A → List A → Set _
+_∈_ : A → List A → Type _
 x ∈ xs = Any (λ y → x ≡ y) xs
 
 -- Any can be expressed using _∈_.
 
-Any-∈ : (P : A → Set p) (xs : List A) →
+Any-∈ : (P : A → Type p) (xs : List A) →
         Any P xs ↔ ∃ λ x → P x × x ∈ xs
 Any-∈ P [] =
   ⊥                  ↔⟨ inverse ×-right-zero ⟩
@@ -164,7 +164,7 @@ Any-∈ P (x ∷ xs) =
 
 -- Using this property we can prove that Any and _⊎_ commute.
 
-Any-⊎ : (P : A → Set p) (Q : A → Set q) (xs : List A) →
+Any-⊎ : (P : A → Type p) (Q : A → Type q) (xs : List A) →
         Any (λ x → P x ⊎ Q x) xs ↔ Any P xs ⊎ Any Q xs
 Any-⊎ P Q xs =
   Any (λ x → P x ⊎ Q x) xs                         ↔⟨ Any-∈ (λ x → P x ⊎ Q x) xs ⟩
@@ -250,21 +250,21 @@ open Kind public
 
 infix 4 _∼[_]_
 
-_∼[_]_ : {A : Set a} → List A → Kind → List A → Set a
+_∼[_]_ : {A : Type a} → List A → Kind → List A → Type a
 xs ∼[ k ] ys = ∀ z → z ∈ xs ↝[ k ] z ∈ ys
 
 -- Bag equivalence.
 
 infix 4 _≈-bag_
 
-_≈-bag_ : {A : Set a} → List A → List A → Set a
+_≈-bag_ : {A : Type a} → List A → List A → Type a
 xs ≈-bag ys = xs ∼[ bag ] ys
 
 -- Alternative definition of bag equivalence.
 
 infix 4 _≈-bag′_
 
-record _≈-bag′_ {A : Set a} (xs ys : List A) : Set a where
+record _≈-bag′_ {A : Type a} (xs ys : List A) : Type a where
   field
     bijection : Fin (length xs) ↔ Fin (length ys)
     related   : xs And ys Are-related-by bijection
@@ -275,7 +275,7 @@ record _≈-bag′_ {A : Set a} (xs ys : List A) : Set a where
 infixr 5 _∷_
 infix  4 _≈-bag″_
 
-data _≈-bag″_ {A : Set a} : List A → List A → Set a where
+data _≈-bag″_ {A : Type a} : List A → List A → Type a where
   []    : [] ≈-bag″ []
   _∷_   : ∀ x {xs ys} (xs≈ys : xs ≈-bag″ ys) → x ∷ xs ≈-bag″ x ∷ ys
   swap  : ∀ {x y xs} → x ∷ y ∷ xs ≈-bag″ y ∷ x ∷ xs
@@ -316,7 +316,7 @@ concat-cong {xss = xss} {yss = yss} xss∼yss = λ z →
   Any (λ zs → z ∈ zs) yss  ↔⟨ inverse (Any-concat _ yss) ⟩
   z ∈ concat yss           □
 
->>=-cong : {A B : Set ℓ} {xs ys : List A} {f g : A → List B} →
+>>=-cong : {A B : Type ℓ} {xs ys : List A} {f g : A → List B} →
            xs ∼[ k ] ys → (∀ x → f x ∼[ k ] g x) →
            (xs >>= f) ∼[ k ] (ys >>= g)
 >>=-cong {xs = xs} {ys = ys} {f = f} {g = g} xs∼ys f∼g = λ z →
@@ -357,7 +357,7 @@ module Dec-∈ (A-set : Is-set A) where
 -- Bind distributes from the left over append.
 
 >>=-left-distributive :
-  {A B : Set ℓ} (xs : List A) (f g : A → List B) →
+  {A B : Type ℓ} (xs : List A) (f g : A → List B) →
   xs >>= (λ x → f x ++ g x) ≈-bag (xs >>= f) ++ (xs >>= g)
 >>=-left-distributive xs f g = λ z →
   z ∈ xs >>= (λ x → f x ++ g x)                    ↔⟨ Any->>= (_≡_ z) xs (λ x → f x ++ g x) ⟩
@@ -370,7 +370,7 @@ module Dec-∈ (A-set : Is-set A) where
 -- This property does not hold for ordinary list equality.
 
 ¬->>=-left-distributive :
-  ¬ ({A B : Set} (xs : List A) (f g : A → List B) →
+  ¬ ({A B : Type} (xs : List A) (f g : A → List B) →
      xs >>= (λ x → f x ++ g x) ≡ (xs >>= f) ++ (xs >>= g))
 ¬->>=-left-distributive distrib = Bool.true≢false true≡false
   where
@@ -416,7 +416,7 @@ range-splitting p xs = λ z →
   Any (λ x → z ≡ x × T (p x) ⊎ z ≡ x × T (not (p x))) xs  ↔⟨ Any-cong (λ x → lemma (z ≡ x) (p x)) (λ x → x ∈ xs □) ⟩
   z ∈ xs                                                  □
   where
-  lemma : ∀ {a} (A : Set a) (b : Bool) → A × T b ⊎ A × T (not b) ↔ A
+  lemma : ∀ {a} (A : Type a) (b : Bool) → A × T b ⊎ A × T (not b) ↔ A
   lemma A b =
     A × T b ⊎ A × T (not b)  ↔⟨ ×-comm ⊎-cong ×-comm ⟩
     T b × A ⊎ T (not b) × A  ↔⟨ if-lemma (λ _ → A) id id b ⟩
@@ -443,7 +443,7 @@ range-disjunction p q xs = λ z →
   inj false true  = record { to = inj₂; injective = ⊎.cancel-inj₂ }
   inj false false = record { to = λ (); injective = λ {}          }
 
-  lemma : ∀ {a} (A : Set a) (b₁ b₂ : Bool) →
+  lemma : ∀ {a} (A : Type a) (b₁ b₂ : Bool) →
           A × T (b₁ ∨ b₂) ↣ A × T b₁ ⊎ A × T b₂
   lemma A b₁ b₂ =
     A × T (b₁ ∨ b₂)      ↝⟨ id ×-cong inj b₁ b₂ ⟩
@@ -637,7 +637,7 @@ abstract
 -- Cons is not left cancellative for set equivalence.
 
 ∷-not-left-cancellative :
-  ¬ (∀ {A : Set} {x : A} {xs ys} →
+  ¬ (∀ {A : Type} {x : A} {xs ys} →
      x ∷ xs ∼[ set ] x ∷ ys → xs ∼[ set ] ys)
 ∷-not-left-cancellative cancel =
   _⇔_.to (cancel (++-idempotent (tt ∷ [])) tt) (inj₁ (refl _))

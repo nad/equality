@@ -11,7 +11,7 @@ open import Prelude hiding (id)
 module Tree-sort.Partial
   {c⁺}
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
-  {A : Set}
+  {A : Type}
   (_≤_ : A → A → Bool) -- A comparison function.
   where
 
@@ -36,7 +36,7 @@ insert x (node l y r) =
 
 -- The insert function inserts.
 
-Any-insert : ∀ (P : A → Set) x t →
+Any-insert : ∀ (P : A → Type) x t →
              AnyT P (insert x t) ↔ P x ⊎ AnyT P t
 Any-insert P x leaf =
   AnyT P (singleton x)  ↔⟨ Any-singleton P ⟩
@@ -56,7 +56,7 @@ Any-insert P x (node l y r) with x ≤ y
   -- The following lemma is easy to prove automatically (for instance
   -- by using a ring solver).
 
-  lemma : (A B C D : Set) → A ⊎ B ⊎ C ⊎ D ↔ C ⊎ A ⊎ B ⊎ D
+  lemma : (A B C D : Type) → A ⊎ B ⊎ C ⊎ D ↔ C ⊎ A ⊎ B ⊎ D
   lemma A B C D =
     A ⊎ B ⊎ C ⊎ D      ↔⟨ id ⊎-cong ⊎-assoc ⟩
     A ⊎ (B ⊎ C) ⊎ D    ↔⟨ id ⊎-cong ⊎-comm ⊎-cong id ⟩

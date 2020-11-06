@@ -6,16 +6,15 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Equality
+open import Prelude hiding (ℕ; zero; suc)
 
 -- The module is parametrised by equality and some type that is closed
 -- under "zero" and "suc".
 
 module Nat.Eliminator
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive)
-  (ℕ : Set) (zero : ℕ) (suc : ℕ → ℕ)
+  (ℕ : Type) (zero : ℕ) (suc : ℕ → ℕ)
   where
-
-open import Prelude hiding (ℕ; zero; suc)
 
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
@@ -27,9 +26,9 @@ open import Surjection eq using (_↠_)
 
 -- Specification of natrec.
 
-Natrec : (ℓ : Level) → Set (lsuc ℓ)
+Natrec : (ℓ : Level) → Type (lsuc ℓ)
 Natrec ℓ =
-  (P : ℕ → Set ℓ) (z : P zero) (s : ∀ n → P n → P (suc n)) →
+  (P : ℕ → Type ℓ) (z : P zero) (s : ∀ n → P n → P (suc n)) →
   ∃ λ (natrec : ∀ n → P n) →
     natrec zero ≡ z
       ×
@@ -69,7 +68,7 @@ Natrec-propositional {ℓ} ext₊ =
 
   lemma :
     (natrec₀ : Natrec ℓ)
-    (P : ℕ → Set ℓ) (z : P zero) (s : ∀ n → P n → P (suc n))
+    (P : ℕ → Type ℓ) (z : P zero) (s : ∀ n → P n → P (suc n))
     (natrec : ∀ n → P n) →
 
     natrec ≡ proj₁ (natrec₀ P z s)
@@ -156,14 +155,14 @@ Natrec-propositional {ℓ} ext₊ =
         }
     }
     where
-    rec₀ : (P : ℕ → Set ℓ) (z : P zero) (s : ∀ n → P n → P (suc n)) →
+    rec₀ : (P : ℕ → Type ℓ) (z : P zero) (s : ∀ n → P n → P (suc n)) →
            ∀ n → P n
     rec₀ P z s = proj₁ (natrec₀ P z s)
 
-    nz₀ : (P : ℕ → Set ℓ) (z : P zero) (s : ∀ n → P n → P (suc n)) →
+    nz₀ : (P : ℕ → Type ℓ) (z : P zero) (s : ∀ n → P n → P (suc n)) →
           rec₀ P z s zero ≡ z
     nz₀ P z s = proj₁ (proj₂ (natrec₀ P z s))
 
-    ns₀ : (P : ℕ → Set ℓ) (z : P zero) (s : ∀ n → P n → P (suc n)) →
+    ns₀ : (P : ℕ → Type ℓ) (z : P zero) (s : ∀ n → P n → P (suc n)) →
           ∀ n → rec₀ P z s (suc n) ≡ s n (rec₀ P z s n)
     ns₀ P z s = proj₂ (proj₂ (natrec₀ P z s))

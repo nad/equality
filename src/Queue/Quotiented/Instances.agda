@@ -13,7 +13,7 @@ module Queue.Quotiented.Instances
   (eq : ∀ {a p} → P.Equality-with-paths a p e⁺)
   (open P.Derived-definitions-and-properties eq)
 
-  {Q : ∀ {ℓ} → Set ℓ → Set ℓ}
+  {Q : ∀ {ℓ} → Type ℓ → Type ℓ}
   ⦃ is-queue :
       ∀ {ℓ} → Queue.Is-queue equality-with-J Q (λ _ → ↑ _ ⊤) ℓ ⦄
   ⦃ is-queue-with-map :
@@ -32,7 +32,7 @@ open import Monad equality-with-J hiding (map)
 private
   variable
     a ℓ ℓ₁ ℓ₂ : Level
-    A         : Set a
+    A         : Type a
     xs        : List A
 
 instance

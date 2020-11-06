@@ -39,7 +39,7 @@ List = ℕ ▷ Fin
 
 -- There is a split surjection from ⟦ List ⟧ A to P.List A.
 
-List↠List : {A : Set} → ⟦ List ⟧ A ↠ P.List A
+List↠List : {A : Type} → ⟦ List ⟧ A ↠ P.List A
 List↠List {A} = record
   { logical-equivalence = record
     { to   = uncurry to
@@ -62,7 +62,7 @@ List↠List {A} = record
 -- also prove that the two definitions are isomorphic.
 
 List↔List : Extensionality lzero lzero →
-            {A : Set} → ⟦ List ⟧ A ↔ P.List A
+            {A : Type} → ⟦ List ⟧ A ↔ P.List A
 List↔List ext {A} = record
   { surjection      = List↠List
   ; left-inverse-of = uncurry from∘to
@@ -88,7 +88,7 @@ List↔List ext {A} = record
 -- The two definitions of Any are isomorphic (both via "to" and
 -- "from").
 
-Any↔Any-to : {A : Set} (P : A → Set) (xs : ⟦ List ⟧ A) →
+Any↔Any-to : {A : Type} (P : A → Type) (xs : ⟦ List ⟧ A) →
              Any P xs ↔ AnyL P (_↠_.to List↠List xs)
 Any↔Any-to {A} P = uncurry Any↔Any-to′
   where
@@ -103,7 +103,7 @@ Any↔Any-to {A} P = uncurry Any↔Any-to′
     P (lkup fzero) ⊎ Any {C = List} P (n , lkup ∘ fsuc)           ↔⟨ id ⊎-cong Any↔Any-to′ n (lkup ∘ fsuc) ⟩
     P (lkup fzero) ⊎ AnyL P (_↠_.to List↠List (n , lkup ∘ fsuc))  □
 
-Any-from↔Any : {A : Set} (P : A → Set) (xs : P.List A) →
+Any-from↔Any : {A : Type} (P : A → Type) (xs : P.List A) →
                Any P (_↠_.from List↠List xs) ↔ AnyL P xs
 Any-from↔Any P P.[] =
   (∃ λ (p : Fin zero) → P (L.index P.[] p))  ↔⟨ ∃-Fin-zero _ ⟩
@@ -118,7 +118,7 @@ Any-from↔Any P (P._∷_ x xs) =
 -- equivalent (both via "to" and "from").
 
 ≈-⇔-to-≈-to :
-  {A : Set} {xs ys : ⟦ List ⟧ A} →
+  {A : Type} {xs ys : ⟦ List ⟧ A} →
   xs ≈-bag ys ⇔ _↠_.to List↠List xs ≈-bagL _↠_.to List↠List ys
 ≈-⇔-to-≈-to {xs = xs} {ys} = record
   { to   = λ xs≈ys z →
@@ -134,7 +134,7 @@ Any-from↔Any P (P._∷_ x xs) =
   }
 
 ≈-⇔-from-≈-from :
-  {A : Set} {xs ys : P.List A} →
+  {A : Type} {xs ys : P.List A} →
   xs ≈-bagL ys ⇔ _↠_.from List↠List xs ≈-bag _↠_.from List↠List ys
 ≈-⇔-from-≈-from {xs = xs} {ys} = record
   { to   = λ xs≈ys z →
@@ -152,19 +152,19 @@ Any-from↔Any P (P._∷_ x xs) =
 ------------------------------------------------------------------------
 -- Constructors
 
-[] : {A : Set} → ⟦ List ⟧ A
+[] : {A : Type} → ⟦ List ⟧ A
 [] = (zero , λ ())
 
 infixr 5 _∷_
 
-_∷_ : {A : Set} → A → ⟦ List ⟧ A → ⟦ List ⟧ A
+_∷_ : {A : Type} → A → ⟦ List ⟧ A → ⟦ List ⟧ A
 x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
 
 -- Even if we don't assume extensionality we can prove that
 -- intensionally distinct implementations of the constructors are bag
 -- equivalent.
 
-[]≈ : {A : Set} {lkup : _ → A} →
+[]≈ : {A : Type} {lkup : _ → A} →
       _≈-bag_ {C₂ = List} [] (zero , lkup)
 []≈ _ = record
   { surjection = record
@@ -177,7 +177,7 @@ x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
   ; left-inverse-of = λ { (() , _) }
   }
 
-∷≈ : ∀ {A : Set} {n} {lkup : _ → A} →
+∷≈ : ∀ {A : Type} {n} {lkup : _ → A} →
      _≈-bag_ {C₂ = List}
              (lkup (inj₁ tt) ∷ (n , lkup ∘ inj₂))
              (suc n , lkup)
@@ -202,7 +202,7 @@ x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
 
 -- Any lemmas for the constructors.
 
-Any-[] : {A : Set} (P : A → Set) →
+Any-[] : {A : Type} (P : A → Type) →
          Any P [] ↔ ⊥₀
 Any-[] _ = record
   { surjection = record
@@ -215,7 +215,7 @@ Any-[] _ = record
   ; left-inverse-of = λ { (() , _) }
   }
 
-Any-∷ : ∀ {A : Set} (P : A → Set) {x xs} →
+Any-∷ : ∀ {A : Type} (P : A → Type) {x xs} →
         Any P (x ∷ xs) ↔ P x ⊎ Any P xs
 Any-∷ _ = record
   { surjection = record
@@ -242,7 +242,7 @@ Any-∷ _ = record
 -- A fold for lists. (Well, this is not a catamorphism, it is a
 -- paramorphism.)
 
-fold : {A B : Set} → B → (A → ⟦ List ⟧ A → B → B) → ⟦ List ⟧ A → B
+fold : {A B : Type} → B → (A → ⟦ List ⟧ A → B → B) → ⟦ List ⟧ A → B
 fold {A} {B} nl cns = uncurry fold′
   where
   fold′ : (n : ℕ) → (Fin n → A) → B
@@ -255,8 +255,8 @@ fold {A} {B} nl cns = uncurry fold′
 -- The "respects bag equivalence" argument could be omitted if
 -- equality of functions were extensional.
 
-fold-lemma : ∀ {A B : Set} {nl : B} {cns : A → ⟦ List ⟧ A → B → B}
-             (P : ⟦ List ⟧ A → B → Set) →
+fold-lemma : ∀ {A B : Type} {nl : B} {cns : A → ⟦ List ⟧ A → B → B}
+             (P : ⟦ List ⟧ A → B → Type) →
              (∀ xs ys → xs ≈-bag ys → ∀ b → P xs b → P ys b) →
              P [] nl →
              (∀ x xs b → P xs b → P (x ∷ xs) (cns x xs b)) →
@@ -292,12 +292,12 @@ fold-lemma {A} {nl = nl} {cns} P resp P-nl P-cns = uncurry fold′-lemma
 
 infixr 5 _++_
 
-_++_ : {A : Set} → ⟦ List ⟧ A → ⟦ List ⟧ A → ⟦ List ⟧ A
+_++_ : {A : Type} → ⟦ List ⟧ A → ⟦ List ⟧ A → ⟦ List ⟧ A
 xs ++ ys = fold ys (λ z _ zs → z ∷ zs) xs
 
 -- An Any lemma for append.
 
-Any-++ : ∀ {A : Set} (P : A → Set) xs ys →
+Any-++ : ∀ {A : Type} (P : A → Type) xs ys →
          Any P (xs ++ ys) ↔ Any P xs ⊎ Any P ys
 Any-++ P xs ys = fold-lemma
   (λ xs xs++ys → Any P xs++ys ↔ Any P xs ⊎ Any P ys)

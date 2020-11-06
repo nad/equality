@@ -41,7 +41,7 @@ module ⊥ {ℓ} where
 ------------------------------------------------------------------------
 -- Lifting
 
-module ↑ {a ℓ} {A : Set a} where
+module ↑ {a ℓ} {A : Type a} where
 
   -- ↑ preserves decidability of equality.
 
@@ -77,7 +77,7 @@ module Bool where
 ------------------------------------------------------------------------
 -- Σ-types
 
-module Σ {a b} {A : Set a} {B : A → Set b} where
+module Σ {a b} {A : Type a} {B : A → Type b} where
 
   -- Two variants of Dec._≟_ (which is defined below).
 
@@ -116,7 +116,7 @@ module Σ {a b} {A : Set a} {B : A → Set b} where
 ------------------------------------------------------------------------
 -- Binary products
 
-module × {a b} {A : Set a} {B : Set b} where
+module × {a b} {A : Type a} {B : Type b} where
 
   -- _,_ preserves decided equality.
 
@@ -142,7 +142,7 @@ module × {a b} {A : Set a} {B : Set b} where
 ------------------------------------------------------------------------
 -- Binary sums
 
-module ⊎ {a b} {A : Set a} {B : Set b} where
+module ⊎ {a b} {A : Type a} {B : Type b} where
 
   abstract
 
@@ -175,7 +175,7 @@ module ⊎ {a b} {A : Set a} {B : Set b} where
 ------------------------------------------------------------------------
 -- Lists
 
-module List {a} {A : Set a} where
+module List {a} {A : Type a} where
 
   abstract
 
@@ -228,7 +228,7 @@ module List {a} {A : Set a} where
       lemma₁ []      ()
       lemma₁ (_ ∷ _) _ = refl _
 
-      lemma₂ : {A B C D : Set a} {x y : A}
+      lemma₂ : {A B C D : Type a} {x y : A}
                (f : B → C → D) (g : A → B) (h : A → C) →
                (eq : x ≡ y) →
                cong (λ x → f (g x) (h x)) eq ≡

@@ -17,7 +17,7 @@ open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq as F hiding (_∘_; Distinct↔≢)
-open import H-level eq
+open import H-level eq hiding (⌞_⌟)
 open import H-level.Closure eq
 open import List eq
 open import Nat eq as Nat using (_≤_; ≤-refl; ≤-step; _<_; pred)
@@ -26,10 +26,10 @@ open import Univalence-axiom eq
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃
 
-∃-Fin-zero : ∀ {p ℓ} (P : Fin zero → Set p) → ∃ P ↔ ⊥ {ℓ = ℓ}
+∃-Fin-zero : ∀ {p ℓ} (P : Fin zero → Type p) → ∃ P ↔ ⊥ {ℓ = ℓ}
 ∃-Fin-zero P = Σ-left-zero
 
-∃-Fin-suc : ∀ {p n} (P : Fin (suc n) → Set p) →
+∃-Fin-suc : ∀ {p n} (P : Fin (suc n) → Type p) →
             ∃ P ↔ P fzero ⊎ ∃ (P ∘ fsuc)
 ∃-Fin-suc P =
   ∃ P                          ↔⟨ ∃-⊎-distrib-right ⟩
@@ -76,8 +76,8 @@ cancel-suc f =
 infix 4 _And_Are-related-by_
 
 _And_Are-related-by_ :
-  ∀ {a} {A : Set a}
-  (xs ys : List A) → Fin (length xs) ↔ Fin (length ys) → Set a
+  ∀ {a} {A : Type a}
+  (xs ys : List A) → Fin (length xs) ↔ Fin (length ys) → Type a
 xs And ys Are-related-by f =
   ∀ i → index xs i ≡ index ys (_↔_.to f i)
 
@@ -86,7 +86,7 @@ abstract
   -- The tails are related.
 
   cancel-suc-preserves-relatedness :
-    ∀ {a} {A : Set a} (x : A) xs ys
+    ∀ {a} {A : Type a} (x : A) xs ys
     (f : Fin (length (x ∷ xs)) ↔ Fin (length (x ∷ ys))) →
     x ∷ xs And x ∷ ys Are-related-by f →
     xs And ys Are-related-by cancel-suc f
@@ -395,7 +395,7 @@ Fin×Fin↔Fin* (suc m) n =
 
 -- Inequality.
 
-Distinct : ∀ {n} → Fin n → Fin n → Set
+Distinct : ∀ {n} → Fin n → Fin n → Type
 Distinct i j = Nat.Distinct ⌞ i ⌟ ⌞ j ⌟
 
 -- This definition of inequality is pointwise logically equivalent to

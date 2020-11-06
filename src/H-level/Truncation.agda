@@ -35,8 +35,8 @@ open import Suspension eq as Susp using (north)
 private
   variable
     a ℓ p : Level
-    A B   : Set a
-    P     : A → Set p
+    A B   : Type a
+    P     : A → Type p
     x     : A
     f g r : A → B
     m n   : ℕ
@@ -44,7 +44,7 @@ private
 
 -- A truncation operator for positive h-levels.
 
-data ∥_∥[1+_] (A : Set a) (n : ℕ) : Set a where
+data ∥_∥[1+_] (A : Type a) (n : ℕ) : Type a where
   ∣_∣    : A → ∥ A ∥[1+ n ]
   hub    : (r : 𝕊 n → ∥ A ∥[1+ n ]) → ∥ A ∥[1+ n ]
   spokeᴾ : (r : 𝕊 n → ∥ A ∥[1+ n ]) (x : 𝕊 n) → r x P.≡ hub r
@@ -94,7 +94,7 @@ truncation-has-correct-h-level {A = A} n =
 -- A dependent eliminator, expressed using paths.
 
 elimᴾ :
-  (P : ∥ A ∥[1+ n ] → Set p)
+  (P : ∥ A ∥[1+ n ] → Type p)
   (f : ∀ x → P ∣ x ∣)
   (h : (r : 𝕊 n → ∥ A ∥[1+ n ]) →
        (∀ x → P (r x)) →
@@ -121,7 +121,7 @@ recᴾ = elimᴾ _
 -- A dependent eliminator.
 
 module Elim′
-  (P : ∥ A ∥[1+ n ] → Set p)
+  (P : ∥ A ∥[1+ n ] → Type p)
   (f : ∀ x → P ∣ x ∣)
   (h : (r : 𝕊 n → ∥ A ∥[1+ n ]) →
        (∀ x → P (r x)) →
@@ -160,7 +160,7 @@ open Rec′ public
 -- of types, all of a certain h-level.
 
 elim :
-  (P : ∥ A ∥[1+ n ] → Set p) →
+  (P : ∥ A ∥[1+ n ] → Type p) →
   (∀ x → H-level (1 + n) (P x)) →
   (∀ x → P ∣ x ∣) →
   ∀ x → P x

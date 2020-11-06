@@ -79,7 +79,7 @@ i - j = i + - j
 +≢-[1+] : + m ≢ -[1+ n ]
 +≢-[1+] +≡- = subst P +≡- tt
   where
-  P : ℤ → Set
+  P : ℤ → Type
   P (+ n)    = ⊤
   P -[1+ n ] = ⊥
 

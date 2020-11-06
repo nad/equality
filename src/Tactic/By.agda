@@ -20,13 +20,13 @@ open import Prelude
 open import List eq
 open import Monad eq
 open import Monad.State eq hiding (set)
-open import TC-monad eq
+open import TC-monad eq as TC hiding (Type)
 
 -- Constructs the type of a "cong" function for functions with the
 -- given number of arguments. The first argument must be a function
 -- that constructs the type of equalities between its two arguments.
 
-type-of-cong : (Term → Term → Type) → ℕ → Type
+type-of-cong : (Term → Term → TC.Type) → ℕ → TC.Type
 type-of-cong equality n = levels (suc n)
   where
   -- The examples below are given for n = 3.
@@ -38,7 +38,7 @@ type-of-cong equality n = levels (suc n)
   arguments delta zero    = []
 
   -- Generates x₁ ≡ y₁ → x₂ ≡ y₂ → x₃ ≡ y₃ → f x₁ x₂ x₃ ≡ f y₁ y₂ y₃.
-  equalities : ℕ → Type
+  equalities : ℕ → TC.Type
   equalities (suc m) =
     pi (varg (equality (var (1 + 2 * m + 1 + (n ∸ suc m)) [])
                        (var (0 + 2 * m + 1 + (n ∸ suc m)) []))) $
@@ -49,13 +49,13 @@ type-of-cong equality n = levels (suc n)
              (var n (arguments 0 n))
 
   -- Generates A → B → C → D.
-  function-type : ℕ → Type
+  function-type : ℕ → TC.Type
   function-type (suc m) = pi (varg (var (3 * n) []))
                              (abs "_" (function-type m))
   function-type zero    = var (3 * n) []
 
   -- Generates ∀ {x₁ y₁ x₂ y₂ x₃ y₃} → …
-  variables : ℕ → Type
+  variables : ℕ → TC.Type
   variables (suc m) =
     pi (harg unknown) $ abs "x"   $
     pi (harg unknown) $ abs "y"   $
@@ -66,13 +66,13 @@ type-of-cong equality n = levels (suc n)
 
   -- Generates
   -- {A : Set a} {B : Set b} {C : Set c} {D : Set d} → ….
-  types : ℕ → Type
+  types : ℕ → TC.Type
   types (suc m) = pi (harg (agda-sort (set (var n [])))) $ abs "A" $
                      types m
   types zero    = variables n
 
   -- Generates {a b c d : Level} → ….
-  levels : ℕ → Type
+  levels : ℕ → TC.Type
   levels (suc n) = pi (harg (def (quote Level) [])) $ abs "a" $
                       levels n
   levels zero    = types (suc n)
@@ -84,14 +84,14 @@ type-of-cong equality n = levels (suc n)
 -- Hardy, who used it in the Holes library
 -- (https://github.com/bch29/agda-holes).
 
-⟨_⟩ : ∀ {a} {A : Set a} → A → A
+⟨_⟩ : ∀ {a} {A : Type a} → A → A
 ⟨_⟩ = id
 
 {-# NOINLINE ⟨_⟩ #-}
 
 module _
   (deconstruct-equality :
-     Type → TC (Maybe (Term × Type × Term × Term)))
+     TC.Type → TC (Maybe (Term × TC.Type × Term × Term)))
   -- Tries to deconstruct a type which is expected to be an equality,
   -- _≡_ {a = a} {A = A} x y, but in reduced form. Upon success the
   -- level a, the type A, the left-hand side x, and the right-hand
@@ -104,7 +104,7 @@ module _
 
     -- A variant of blockOnMeta which can print a debug message.
 
-    blockOnMeta′ : {A : Set} → String → Meta → TC A
+    blockOnMeta′ : {A : Type} → String → Meta → TC A
     blockOnMeta′ s m = do
       debugPrint "by" 20
         (strErr "by/⟨by⟩ is blocking on meta" ∷
@@ -119,7 +119,7 @@ module _
     --   list is used as the error message.
 
     deconstruct-equality′ :
-      List ErrorPart → Type → TC (Term × Type × Term × Term)
+      List ErrorPart → TC.Type → TC (Term × TC.Type × Term × Term)
     deconstruct-equality′ err (meta m _) =
       blockOnMeta′ "deconstruct-equality′" m
     deconstruct-equality′ err t = do
@@ -131,7 +131,7 @@ module _
     -- as many fresh meta-variables as possible (based on its type,
     -- A). The type of the resulting term is returned.
 
-    apply-to-metas : Type → Term → TC (Type × Term)
+    apply-to-metas : TC.Type → Term → TC (TC.Type × Term)
     apply-to-metas A t = apply A t =<< compute-args fuel [] A
       where
       -- Fuel, used to ensure termination.
@@ -142,14 +142,14 @@ module _
       mutual
 
         compute-args :
-          ℕ → List (Arg Term) → Type → TC (List (Arg Term))
+          ℕ → List (Arg Term) → TC.Type → TC (List (Arg Term))
         compute-args zero _ _ =
           typeError (strErr "apply-to-metas failed" ∷ [])
         compute-args (suc n) args τ =
           compute-args′ n args =<< reduce τ
 
         compute-args′ :
-          ℕ → List (Arg Term) → Type → TC (List (Arg Term))
+          ℕ → List (Arg Term) → TC.Type → TC (List (Arg Term))
         compute-args′ n args (pi a@(arg i _) (abs _ τ)) =
           extendContext a $
           compute-args n (arg i unknown ∷ args) τ
@@ -167,7 +167,7 @@ module _
   -- cong (λ x → C [ x ]) (sym t′) is generated instead.
 
   module ⟨By⟩
-    {Ctxt : Set}
+    {Ctxt : Type}
     (context : TC Ctxt)
     -- A "context" type and a computation that computes some information
     -- related to the current context. The information is only
@@ -189,7 +189,7 @@ module _
       -- A non-macro variant of ⟨by⟩ that returns the (first)
       -- constructed term.
 
-      ⟨by⟩-tactic : ∀ {a} {A : Set a} → A → Term → TC Term
+      ⟨by⟩-tactic : ∀ {a} {A : Type a} → A → Term → TC Term
       ⟨by⟩-tactic {A = A} t goal = do
         -- To avoid wasted work the first block below, which can block
         -- the tactic, is run before the second one.
@@ -280,7 +280,7 @@ module _
 
       -- The ⟨by⟩ tactic.
 
-      ⟨by⟩ : ∀ {a} {A : Set a} → A → Term → TC ⊤
+      ⟨by⟩ : ∀ {a} {A : Type a} → A → Term → TC ⊤
       ⟨by⟩ t goal = do
         ⟨by⟩-tactic t goal
         return _
@@ -292,7 +292,7 @@ module _
       -- raises an error message that includes the (first) term that
       -- would have been constructed by ⟨by⟩.
 
-      debug-⟨by⟩ : ∀ {a} {A : Set a} → A → Term → TC ⊤
+      debug-⟨by⟩ : ∀ {a} {A : Type a} → A → Term → TC ⊤
       debug-⟨by⟩ t goal = do
         t ← ⟨by⟩-tactic t goal
         typeError (strErr "Term found by ⟨by⟩:" ∷ termErr t ∷ [])
@@ -302,7 +302,7 @@ module _
   module By
     (sym : Term → Term)
     -- An implementation of symmetry.
-    (equality : Term → Term → Type)
+    (equality : Term → Term → TC.Type)
     -- Constructs the type of equalities between its two arguments.
     (refl : Term → Term → Term → Term)
     -- An implementation of reflexivity. Should take a level a, a type
@@ -329,7 +329,7 @@ module _
       --
       -- The constructed term is returned.
 
-      by-tactic : ∀ {a} {A : Set a} → A → Term → TC Term
+      by-tactic : ∀ {a} {A : Type a} → A → Term → TC Term
       by-tactic {A = A} t goal = do
         A ← quoteTC A
         t ← quoteTC t
@@ -360,13 +360,13 @@ module _
           ill-formed : List ErrorPart
           ill-formed = strErr "by: ill-formed goal" ∷ []
 
-          failure : {A : Set} → TC A
+          failure : {A : Type} → TC A
           failure = typeError (strErr "by failed" ∷ [])
 
           -- Blocks if the goal type is not sufficiently concrete.
           -- Raises a type error if the goal type is not an equality.
 
-          block-if-meta : Type → TC ⊤
+          block-if-meta : TC.Type → TC ⊤
           block-if-meta type = do
             eq ← deconstruct-equality′ ill-formed type
             case eq of λ where
@@ -378,7 +378,7 @@ module _
 
           -- Tries to solve the goal using reflexivity.
 
-          try-refl : Type → TC Term
+          try-refl : TC.Type → TC Term
           try-refl type = do
             a , A , lhs , _ ← deconstruct-equality′ ill-formed type
 
@@ -409,7 +409,7 @@ module _
           -- Tries to solve the goal using one of the "cong"
           -- functions.
 
-          try-cong : Type → TC Term
+          try-cong : TC.Type → TC Term
           try-cong type = do
             _ , _ , y , z  ← deconstruct-equality′ ill-formed type
             head , ys , zs ← heads y z
@@ -483,7 +483,7 @@ module _
       -- reflexivity and symmetry) to solve the goal, which must be an
       -- equality.
 
-      by : ∀ {a} {A : Set a} → A → Term → TC ⊤
+      by : ∀ {a} {A : Type a} → A → Term → TC ⊤
       by t goal = do
         by-tactic t goal
         return _
@@ -495,7 +495,7 @@ module _
       -- error message that includes the term that would have been
       -- constructed by by.
 
-      debug-by : ∀ {a} {A : Set a} → A → Term → TC ⊤
+      debug-by : ∀ {a} {A : Type a} → A → Term → TC ⊤
       debug-by t goal = do
         t ← by-tactic t goal
         typeError (strErr "Term found by by:" ∷ termErr t ∷ [])
@@ -510,8 +510,9 @@ module _
 -- supported.
 
 module Tactics
-  (deconstruct-equality : Type → TC (Maybe (Term × Type × Term × Term)))
-  (equality : Term → Term → Type)
+  (deconstruct-equality :
+     TC.Type → TC (Maybe (Term × TC.Type × Term × Term)))
+  (equality : Term → Term → TC.Type)
   (refl : Term → Term → Term → Term)
   (sym : Term → Term)
   (cong : Term → Term → Term → Term → Term)

@@ -45,37 +45,37 @@ private
 
   -- Signatures for abstract binding trees.
 
-  record Signature ℓ : Set (lsuc ℓ) where
+  record Signature ℓ : Type (lsuc ℓ) where
     infix 4 _≟S_ _≟O_ _≟∃V_
 
     field
       -- A set of sorts with decidable equality.
-      Sort : Set ℓ
+      Sort : Type ℓ
       _≟S_ : Decidable-equality Sort
 
     -- Valences.
 
-    Valence : Set ℓ
+    Valence : Type ℓ
     Valence = List Sort × Sort
 
     field
       -- Codomain-indexed operators with decidable equality and
       -- domains.
-      Op     : @0 Sort → Set ℓ
+      Op     : @0 Sort → Type ℓ
       _≟O_   : ∀ {@0 s} → Decidable-equality (Op s)
       domain : ∀ {@0 s} → Op s → List Valence
 
       -- A sort-indexed type of variables with decidable equality.
-      Var : @0 Sort → Set ℓ
+      Var : @0 Sort → Type ℓ
 
     -- Non-indexed variables.
 
-    ∃Var : Set ℓ
+    ∃Var : Type ℓ
     ∃Var = ∃ λ (s : Erased Sort) → Var (erased s)
 
     -- Finite subsets of variables.
 
-    Vars : Set ℓ
+    Vars : Type ℓ
     Vars = Finite-subset-of ∃Var
 
     field
@@ -88,7 +88,7 @@ private
 
     -- Arities.
 
-    Arity : Set ℓ
+    Arity : Type ℓ
     Arity = List Valence × Sort
 
     -- An operator's arity.
@@ -112,7 +112,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       @0 v             : Valence
       @0 vs            : List Valence
       @0 x y z         : Var s
-      @0 A             : Set ℓ
+      @0 A             : Type ℓ
       @0 wf            : A
 
   ----------------------------------------------------------------------
@@ -151,19 +151,19 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     -- Terms.
 
-    data Tmˢ (@0 s : Sort) : Set ℓ where
+    data Tmˢ (@0 s : Sort) : Type ℓ where
       var : Tmˢ s
       op  : (o : Op s) → Argsˢ (domain o) → Tmˢ s
 
     -- Sequences of arguments.
 
-    data Argsˢ : @0 List Valence → Set ℓ where
+    data Argsˢ : @0 List Valence → Type ℓ where
       nil  : Argsˢ []
       cons : Argˢ v → Argsˢ vs → Argsˢ (v ∷ vs)
 
     -- Arguments.
 
-    data Argˢ : @0 Valence → Set ℓ where
+    data Argˢ : @0 Valence → Type ℓ where
       nil  : Tmˢ s → Argˢ ([] , s)
       cons : ∀ {s} → Argˢ (ss , s′) → Argˢ (s ∷ ss , s′)
 
@@ -174,15 +174,15 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   mutual
 
-    Tm : Tmˢ s → Set ℓ
+    Tm : Tmˢ s → Type ℓ
     Tm {s = s} var       = Var s
     Tm         (op o as) = Args as
 
-    Args : Argsˢ vs → Set ℓ
+    Args : Argsˢ vs → Type ℓ
     Args nil         = ↑ _ ⊤
     Args (cons a as) = Arg a × Args as
 
-    Arg : Argˢ v → Set ℓ
+    Arg : Argˢ v → Type ℓ
     Arg (nil t)          = Tm t
     Arg (cons {s = s} a) = Var s × Arg a
 
@@ -231,21 +231,21 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   -- Predicates for well-formed variables, terms and arguments.
 
-  Wf-var : Vars → Var s → Set ℓ
+  Wf-var : Vars → Var s → Type ℓ
   Wf-var xs x = (_ , x) ∈ xs
 
   mutual
 
-    Wf-tm : Vars → (tˢ : Tmˢ s) → Tm tˢ → Set ℓ
+    Wf-tm : Vars → (tˢ : Tmˢ s) → Tm tˢ → Type ℓ
     Wf-tm xs var        = Wf-var xs
     Wf-tm xs (op o asˢ) = Wf-args xs asˢ
 
-    Wf-args : Vars → (asˢ : Argsˢ vs) → Args asˢ → Set ℓ
+    Wf-args : Vars → (asˢ : Argsˢ vs) → Args asˢ → Type ℓ
     Wf-args _  nil           _        = ↑ _ ⊤
     Wf-args xs (cons aˢ asˢ) (a , as) =
       Wf-arg xs aˢ a × Wf-args xs asˢ as
 
-    Wf-arg : Vars → (aˢ : Argˢ v) → Arg aˢ → Set ℓ
+    Wf-arg : Vars → (aˢ : Argˢ v) → Arg aˢ → Type ℓ
     Wf-arg xs (nil tˢ)  t       = Wf-tm xs tˢ t
     Wf-arg xs (cons aˢ) (x , a) =
       ∀ y → ¬ (_ , y) ∈ xs →
@@ -253,12 +253,12 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   -- Well-formed variables.
 
-  Variable : @0 Vars → @0 Sort → Set ℓ
+  Variable : @0 Vars → @0 Sort → Type ℓ
   Variable xs s = ∃ λ (x : Var s) → Erased (Wf-var xs x)
 
   -- Well-formed terms.
 
-  Term : @0 Vars → @0 Sort → Set ℓ
+  Term : @0 Vars → @0 Sort → Type ℓ
   Term xs s =
     ∃ λ (tˢ : Tmˢ s) → ∃ λ (t : Tm tˢ) → Erased (Wf-tm xs tˢ t)
 
@@ -267,7 +267,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   -- Well-formed sequences of arguments.
 
-  Arguments : @0 Vars → @0 List Valence → Set ℓ
+  Arguments : @0 Vars → @0 List Valence → Type ℓ
   Arguments xs vs =
     ∃ λ (asˢ : Argsˢ vs) → ∃ λ (as : Args asˢ) →
     Erased (Wf-args xs asˢ as)
@@ -278,7 +278,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   -- Well-formed arguments.
 
-  Argument : @0 Vars → @0 Valence → Set ℓ
+  Argument : @0 Vars → @0 Valence → Type ℓ
   Argument xs v =
     ∃ λ (aˢ : Argˢ v) → ∃ λ (a : Arg aˢ) → Erased (Wf-arg xs aˢ a)
 
@@ -330,7 +330,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     ; left-inverse-of = from∘to
     })
     where
-    RHS : Erased (List Valence) → Set ℓ
+    RHS : Erased (List Valence) → Type ℓ
     RHS [ vs ] =
       (Erased ([] ≡ vs) ⊎
       (∃ λ ((([ v ] , _) , [ vs′ ] , _) :
@@ -421,7 +421,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     ; left-inverse-of = from∘to
     })
     where
-    RHS : Erased Valence → Set ℓ
+    RHS : Erased Valence → Type ℓ
     RHS [ v ] =
       (∃ λ (([ s ] , _) : ∃ λ s → Tmˢ (erased s)) →
          Erased (([] , s) ≡ v)) ⊎
@@ -714,10 +714,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- The eliminators' arguments.
 
   record Wf-elim
-           (P-tm   : ∀ {@0 xs s}  → Term xs s       → Set p₁)
-           (P-args : ∀ {@0 xs vs} → Arguments xs vs → Set p₂)
-           (P-arg  : ∀ {@0 xs v}  → Argument xs v   → Set p₃)
-           : Set (ℓ ⊔ p₁ ⊔ p₂ ⊔ p₃) where
+           (P-tm   : ∀ {@0 xs s}  → Term xs s       → Type p₁)
+           (P-args : ∀ {@0 xs vs} → Arguments xs vs → Type p₂)
+           (P-arg  : ∀ {@0 xs v}  → Argument xs v   → Type p₃)
+           : Type (ℓ ⊔ p₁ ⊔ p₂ ⊔ p₃) where
     no-eta-equality
     field
       varʳ : (x : Var s) (@0 x∈ : (_ , x) ∈ xs) →
@@ -747,9 +747,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- all the renamings?
 
   module _
-    {P-tm   : ∀ {@0 xs s}  → Term xs s       → Set p₁}
-    {P-args : ∀ {@0 xs vs} → Arguments xs vs → Set p₂}
-    {P-arg  : ∀ {@0 xs v}  → Argument xs v   → Set p₃}
+    {P-tm   : ∀ {@0 xs s}  → Term xs s       → Type p₁}
+    {P-args : ∀ {@0 xs vs} → Arguments xs vs → Type p₂}
+    {P-arg  : ∀ {@0 xs v}  → Argument xs v   → Type p₃}
     (e : Wf-elim P-tm P-args P-arg)
     where
 
@@ -1293,21 +1293,21 @@ module Signature {ℓ} (sig : Signature ℓ) where
                    swap
                    (wf z z∉))
         where
-        Π : (A : Set ℓ) → (A → Proposition ℓ) → Proposition ℓ
+        Π : (A : Type ℓ) → (A → Proposition ℓ) → Proposition ℓ
         Π A B =
             (∀ x → proj₁ (B x))
           , Π-closure ext 1 λ x →
             proj₂ (B x)
 
-    Free-in-term : ∀ {xs} → Term ((_ , x) ∷ xs) s′ → Set ℓ
+    Free-in-term : ∀ {xs} → Term ((_ , x) ∷ xs) s′ → Type ℓ
     Free-in-term (t , tˢ , [ wf ]) =
       proj₁ (Free-in-term′ t tˢ wf)
 
-    Free-in-arguments : ∀ {xs} → Arguments ((_ , x) ∷ xs) vs → Set ℓ
+    Free-in-arguments : ∀ {xs} → Arguments ((_ , x) ∷ xs) vs → Type ℓ
     Free-in-arguments (as , asˢ , [ wfs ]) =
       proj₁ (Free-in-arguments′ as asˢ wfs)
 
-    Free-in-argument : ∀ {xs} → Argument ((_ , x) ∷ xs) v → Set ℓ
+    Free-in-argument : ∀ {xs} → Argument ((_ , x) ∷ xs) v → Type ℓ
     Free-in-argument (a , aˢ , [ wf ]) =
       proj₁ (Free-in-argument′ a aˢ wf)
 

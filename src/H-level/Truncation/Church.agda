@@ -30,24 +30,24 @@ open import Surjection eq using (_↠_; Split-surjective)
 
 -- Truncation.
 
-∥_∥ : ∀ {a} → Set a → ℕ → (ℓ : Level) → Set (a ⊔ lsuc ℓ)
-∥ A ∥ n ℓ = (P : Set ℓ) → H-level n P → (A → P) → P
+∥_∥ : ∀ {a} → Type a → ℕ → (ℓ : Level) → Type (a ⊔ lsuc ℓ)
+∥ A ∥ n ℓ = (P : Type ℓ) → H-level n P → (A → P) → P
 
 -- If A is inhabited, then ∥ A ∥ n ℓ is also inhabited.
 
-∣_∣ : ∀ {n ℓ a} {A : Set a} → A → ∥ A ∥ n ℓ
+∣_∣ : ∀ {n ℓ a} {A : Type a} → A → ∥ A ∥ n ℓ
 ∣ x ∣ = λ _ _ f → f x
 
 -- A special case of ∣_∣.
 
-∣_∣₁ : ∀ {ℓ a} {A : Set a} → A → ∥ A ∥ 1 ℓ
+∣_∣₁ : ∀ {ℓ a} {A : Type a} → A → ∥ A ∥ 1 ℓ
 ∣ x ∣₁ = ∣_∣ {n = 1} x
 
 -- The truncation produces types of the right h-level (assuming
 -- extensionality).
 
 truncation-has-correct-h-level :
-  ∀ n {ℓ a} {A : Set a} →
+  ∀ n {ℓ a} {A : Type a} →
   Extensionality (a ⊔ lsuc ℓ) (a ⊔ ℓ) →
   H-level n (∥ A ∥ n ℓ)
 truncation-has-correct-h-level n {ℓ} {a} ext =
@@ -59,7 +59,7 @@ truncation-has-correct-h-level n {ℓ} {a} ext =
 -- Primitive "recursion" for truncated types.
 
 rec :
-  ∀ n {a b} {A : Set a} {B : Set b} →
+  ∀ n {a b} {A : Type a} {B : Type b} →
   H-level n B →
   (A → B) → ∥ A ∥ n b → B
 rec _ h f x = x _ h f
@@ -69,21 +69,21 @@ private
   -- The function rec computes in the right way.
 
   rec-∣∣ :
-    ∀ {n a b} {A : Set a} {B : Set b}
+    ∀ {n a b} {A : Type a} {B : Type b}
     (h : H-level n B) (f : A → B) (x : A) →
     rec _ h f ∣ x ∣ ≡ f x
   rec-∣∣ _ _ _ = refl _
 
 -- Map function.
 
-∥∥-map : ∀ n {a b ℓ} {A : Set a} {B : Set b} →
+∥∥-map : ∀ n {a b ℓ} {A : Type a} {B : Type b} →
          (A → B) →
          ∥ A ∥ n ℓ → ∥ B ∥ n ℓ
 ∥∥-map _ f x = λ P h g → x P h (g ∘ f)
 
 -- The truncation operator preserves logical equivalences.
 
-∥∥-cong-⇔ : ∀ {n a b ℓ} {A : Set a} {B : Set b} →
+∥∥-cong-⇔ : ∀ {n a b ℓ} {A : Type a} {B : Type b} →
             A ⇔ B → ∥ A ∥ n ℓ ⇔ ∥ B ∥ n ℓ
 ∥∥-cong-⇔ A⇔B = record
   { to   = ∥∥-map _ (_⇔_.to   A⇔B)
@@ -93,7 +93,7 @@ private
 -- The truncation operator preserves bijections (assuming
 -- extensionality).
 
-∥∥-cong : ∀ {k n a b ℓ} {A : Set a} {B : Set b} →
+∥∥-cong : ∀ {k n a b ℓ} {A : Type a} {B : Type b} →
           Extensionality (a ⊔ b ⊔ lsuc ℓ) (a ⊔ b ⊔ ℓ) →
           A ↔[ k ] B → ∥ A ∥ n ℓ ↔[ k ] ∥ B ∥ n ℓ
 ∥∥-cong {k} {n} {a} {b} {ℓ} ext A↝B = from-bijection (record
@@ -110,7 +110,7 @@ private
   A↔B = from-isomorphism A↝B
 
   lemma :
-    ∀ {c d} {C : Set c} {D : Set d} →
+    ∀ {c d} {C : Type c} {D : Type d} →
     Extensionality (d ⊔ lsuc ℓ) (d ⊔ ℓ) →
     (C↔D : C ↔ D) (∥d∥ : ∥ D ∥ n ℓ) →
     ∥∥-map _ (_↔_.to C↔D) (∥∥-map _ (_↔_.from C↔D) ∥d∥) ≡ ∥d∥
@@ -127,7 +127,7 @@ private
 -- The universe level can be decreased (unless it is zero).
 
 with-lower-level :
-  ∀ ℓ₁ {ℓ₂ a} n {A : Set a} →
+  ∀ ℓ₁ {ℓ₂ a} n {A : Type a} →
   ∥ A ∥ n (ℓ₁ ⊔ ℓ₂) → ∥ A ∥ n ℓ₂
 with-lower-level ℓ₁ _ x =
   λ P h f → lower (x (↑ ℓ₁ P) (↑-closure _ h) (lift ∘ f))
@@ -137,14 +137,14 @@ private
   -- The function with-lower-level computes in the right way.
 
   with-lower-level-∣∣ :
-    ∀ {ℓ₁ ℓ₂ a n} {A : Set a} (x : A) →
+    ∀ {ℓ₁ ℓ₂ a n} {A : Type a} (x : A) →
     with-lower-level ℓ₁ {ℓ₂ = ℓ₂} n ∣ x ∣ ≡ ∣ x ∣
   with-lower-level-∣∣ _ = refl _
 
 -- ∥_∥ is downwards closed in the h-level.
 
 downwards-closed :
-  ∀ {m n a ℓ} {A : Set a} →
+  ∀ {m n a ℓ} {A : Type a} →
   n ≤ m →
   ∥ A ∥ m ℓ → ∥ A ∥ n ℓ
 downwards-closed n≤m x = λ P h f → x P (H-level.mono n≤m h) f
@@ -154,7 +154,7 @@ private
   -- The function downwards-closed computes in the right way.
 
   downwards-closed-∣∣ :
-    ∀ {m n a ℓ} {A : Set a} (n≤m : n ≤ m) (x : A) →
+    ∀ {m n a ℓ} {A : Type a} (n≤m : n ≤ m) (x : A) →
     downwards-closed {ℓ = ℓ} n≤m ∣ x ∣ ≡ ∣ x ∣
   downwards-closed-∣∣ _ _ = refl _
 
@@ -163,9 +163,9 @@ private
 -- extensionality).
 
 prop-elim :
-  ∀ {ℓ a p} {A : Set a} →
+  ∀ {ℓ a p} {A : Type a} →
   Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a ⊔ p) →
-  (P : ∥ A ∥ 1 ℓ → Set p) →
+  (P : ∥ A ∥ 1 ℓ → Type p) →
   (∀ x → Is-proposition (P x)) →
   ((x : A) → P ∣ x ∣₁) →
   ∥ A ∥ 1 (lsuc ℓ ⊔ a ⊔ p) → (x : ∥ A ∥ 1 ℓ) → P x
@@ -183,9 +183,9 @@ abstract
   -- equality, when applied to ∣ x ∣ and ∣ x ∣.
 
   prop-elim-∣∣ :
-    ∀ {ℓ a p} {A : Set a}
+    ∀ {ℓ a p} {A : Type a}
     (ext : Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a ⊔ p))
-    (P : ∥ A ∥ 1 ℓ → Set p)
+    (P : ∥ A ∥ 1 ℓ → Type p)
     (P-prop : ∀ x → Is-proposition (P x))
     (f : (x : A) → P ∣ x ∣₁) (x : A) →
     prop-elim ext P P-prop f ∣ x ∣₁ ∣ x ∣₁ ≡ f x
@@ -194,7 +194,7 @@ abstract
 -- Nested truncations can sometimes be flattened.
 
 flatten↠ :
-  ∀ {m n a ℓ} {A : Set a} →
+  ∀ {m n a ℓ} {A : Type a} →
   Extensionality (a ⊔ lsuc ℓ) (a ⊔ ℓ) →
   m ≤ n →
   ∥ ∥ A ∥ m ℓ ∥ n (a ⊔ lsuc ℓ) ↠ ∥ A ∥ m ℓ
@@ -210,7 +210,7 @@ flatten↠ ext m≤n = record
   }
 
 flatten↔ :
-  ∀ {a ℓ} {A : Set a} →
+  ∀ {a ℓ} {A : Type a} →
   Extensionality (lsuc (a ⊔ lsuc ℓ)) (lsuc (a ⊔ lsuc ℓ)) →
   (∥ ∥ A ∥ 1 ℓ ∥ 1       (a ⊔ lsuc ℓ) →
    ∥ ∥ A ∥ 1 ℓ ∥ 1 (lsuc (a ⊔ lsuc ℓ))) →
@@ -238,15 +238,15 @@ flatten↔ ext resize = record
 -- I'm not quite sure what the universe level of the truncation should
 -- be, so I've included it as a parameter.
 
-Surjective : ∀ {a b} ℓ {A : Set a} {B : Set b} →
-             (A → B) → Set (a ⊔ b ⊔ lsuc ℓ)
+Surjective : ∀ {a b} ℓ {A : Type a} {B : Type b} →
+             (A → B) → Type (a ⊔ b ⊔ lsuc ℓ)
 Surjective ℓ f = ∀ b → ∥ f ⁻¹ b ∥ 1 ℓ
 
 -- The property Surjective ℓ f is a proposition (assuming
 -- extensionality).
 
 Surjective-propositional :
-  ∀ {ℓ a b} {A : Set a} {B : Set b} {f : A → B} →
+  ∀ {ℓ a b} {A : Type a} {B : Type b} {f : A → B} →
   Extensionality (a ⊔ b ⊔ lsuc ℓ) (a ⊔ b ⊔ lsuc ℓ) →
   Is-proposition (Surjective ℓ f)
 Surjective-propositional {ℓ} {a} ext =
@@ -257,7 +257,7 @@ Surjective-propositional {ℓ} {a} ext =
 -- Split surjective functions are surjective.
 
 Split-surjective→Surjective :
-  ∀ {a b ℓ} {A : Set a} {B : Set b} {f : A → B} →
+  ∀ {a b ℓ} {A : Type a} {B : Type b} {f : A → B} →
   Split-surjective f → Surjective ℓ f
 Split-surjective→Surjective s = λ b → ∣ s b ∣₁
 
@@ -268,7 +268,7 @@ Split-surjective→Surjective s = λ b → ∣ s b ∣₁
 -- (the proof is perhaps not quite identical).
 
 surjective×embedding≃equivalence :
-  ∀ {a b} ℓ {A : Set a} {B : Set b} {f : A → B} →
+  ∀ {a b} ℓ {A : Type a} {B : Type b} {f : A → B} →
   Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (lsuc (a ⊔ b ⊔ ℓ)) →
   (Surjective (a ⊔ b ⊔ ℓ) f × Is-embedding f) ≃ Is-equivalence f
 surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
@@ -305,7 +305,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
 -- surjection from corresponding truncations (if they are "big"
 -- enough) to the type itself.
 
-∥∥↠ : ∀ ℓ {a} {A : Set a} n →
+∥∥↠ : ∀ ℓ {a} {A : Type a} n →
       H-level n A → ∥ A ∥ n (a ⊔ ℓ) ↠ A
 ∥∥↠ ℓ _ h = record
   { logical-equivalence = record
@@ -319,7 +319,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
 -- truncations of the type are isomorphic to the type itself (if they
 -- are "big" enough, and assuming extensionality).
 
-∥∥↔ : ∀ ℓ {a} {A : Set a} →
+∥∥↔ : ∀ ℓ {a} {A : Type a} →
       Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ ℓ) →
       Is-proposition A → ∥ A ∥ 1 (a ⊔ ℓ) ↔ A
 ∥∥↔ ℓ ext A-prop = record
@@ -331,7 +331,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
 -- A simple isomorphism involving propositional truncation.
 
 ∥∥×↔ :
-  ∀ {ℓ a} {A : Set a} →
+  ∀ {ℓ a} {A : Type a} →
   Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
   ∥ A ∥ 1 ℓ × A ↔ A
 ∥∥×↔ {ℓ} {A = A} ext =
@@ -347,7 +347,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
 -- proof is, by definition, simple (see right-inverse-of-∥∥×≃ below).
 
 ∥∥×≃ :
-  ∀ {ℓ a} {A : Set a} →
+  ∀ {ℓ a} {A : Type a} →
   Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
   (∥ A ∥ 1 ℓ × A) ≃ A
 ∥∥×≃ ext =
@@ -361,7 +361,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
 private
 
   right-inverse-of-∥∥×≃ :
-    ∀ {ℓ a} {A : Set a}
+    ∀ {ℓ a} {A : Type a}
     (ext : Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a)) (x : A) →
     _≃_.right-inverse-of (∥∥×≃ {ℓ = ℓ} ext) x ≡ refl x
   right-inverse-of-∥∥×≃ _ x = refl (refl x)
@@ -370,9 +370,9 @@ private
 -- function for the propositional truncation).
 
 ∥∥×∥∥↔∥×∥ :
-  ∀ {a b} ℓ {A : Set a} {B : Set b} →
+  ∀ {a b} ℓ {A : Type a} {B : Type b} →
   Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
-  (∀ {x} {X : Set x} →
+  (∀ {x} {X : Type x} →
      ∥ X ∥ 1       (a ⊔ b ⊔ ℓ) →
      ∥ X ∥ 1 (lsuc (a ⊔ b ⊔ ℓ))) →
   let ℓ′ = a ⊔ b ⊔ ℓ in
@@ -404,7 +404,7 @@ private
 -- the unit type (assuming extensionality).
 
 inhabited⇒∥∥↔⊤ :
-  ∀ {ℓ a} {A : Set a} →
+  ∀ {ℓ a} {A : Type a} →
   Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
   ∥ A ∥ 1 ℓ → ∥ A ∥ 1 ℓ ↔ ⊤
 inhabited⇒∥∥↔⊤ ext ∥a∥ =
@@ -417,7 +417,7 @@ inhabited⇒∥∥↔⊤ ext ∥a∥ =
 -- isomorphic to the empty type.
 
 not-inhabited⇒∥∥↔⊥ :
-  ∀ {ℓ₁ ℓ₂ a} {A : Set a} →
+  ∀ {ℓ₁ ℓ₂ a} {A : Type a} →
   ¬ A → ∥ A ∥ 1 ℓ₁ ↔ ⊥ {ℓ = ℓ₂}
 not-inhabited⇒∥∥↔⊥ {A = A} =
   ¬ A            ↝⟨ (λ ¬a ∥a∥ → rec 1 ⊥-propositional ¬a (with-lower-level _ 1 ∥a∥)) ⟩
@@ -431,7 +431,7 @@ not-inhabited⇒∥∥↔⊥ {A = A} =
 -- "mere inhabitance" implies inhabitance).
 
 constant-endofunction⇒h-stable :
-  ∀ {a} {A : Set a} {f : A → A} →
+  ∀ {a} {A : Type a} {f : A → A} →
   Constant f → ∥ A ∥ 1 a → A
 constant-endofunction⇒h-stable {a} {A} {f} c =
   ∥ A ∥ 1 a                ↝⟨ rec 1 (fixpoint-lemma f c) (λ x → f x , c (f x) x) ⟩
@@ -442,7 +442,7 @@ constant-endofunction⇒h-stable {a} {A} {f} c =
 -- h-stable (assuming extensionality).
 
 constant-endofunction⇔h-stable :
-  ∀ {a} {A : Set a} →
+  ∀ {a} {A : Type a} →
   Extensionality (lsuc a) a →
   (∃ λ (f : A → A) → Constant f) ⇔ (∥ A ∥ 1 a → A)
 constant-endofunction⇔h-stable ext = record
@@ -461,7 +461,7 @@ constant-endofunction⇔h-stable ext = record
 -- A variant of ∥∥×≃.
 
 drop-∥∥ :
-  ∀ ℓ {a b} {A : Set a} {B : A → Set b} →
+  ∀ ℓ {a b} {A : Type a} {B : A → Type b} →
   Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
 
   (∥ A ∥ 1 (a ⊔ ℓ) → ∀ x → B x)
@@ -479,7 +479,7 @@ drop-∥∥ ℓ {a} {b} {A} {B} ext =
 -- Another variant of ∥∥×≃.
 
 push-∥∥ :
-  ∀ ℓ {a b c} {A : Set a} {B : A → Set b} {C : (∀ x → B x) → Set c} →
+  ∀ ℓ {a b c} {A : Type a} {B : A → Type b} {C : (∀ x → B x) → Type c} →
   Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ b ⊔ c ⊔ ℓ) →
 
   (∥ A ∥ 1 (a ⊔ ℓ) → ∃ λ (f : ∀ x → B x) → C f)
@@ -508,8 +508,8 @@ push-∥∥ ℓ {a} {b} {c} {A} {B} {C} ext =
 
 drop-∥∥₃ :
   ∀ ℓ {a b c d}
-    {A : Set a} {B : A → Set b} {C : A → (∀ x → B x) → Set c}
-    {D : A → (f : ∀ x → B x) → (∀ x → C x f) → Set d} →
+    {A : Type a} {B : A → Type b} {C : A → (∀ x → B x) → Type c}
+    {D : A → (f : ∀ x → B x) → (∀ x → C x f) → Type d} →
   Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ b ⊔ c ⊔ d ⊔ ℓ) →
 
   (∥ A ∥ 1 (a ⊔ ℓ) →
@@ -536,13 +536,13 @@ drop-∥∥₃ ℓ {b = b} {c} {A = A} {B} {C} {D} ext =
 -- by Kraus.
 
 Coherently-constant :
-  ∀ {a b} {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+  ∀ {a b} {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
 Coherently-constant f =
   ∃ λ (c : Constant f) →
   ∀ a₁ a₂ a₃ → trans (c a₁ a₂) (c a₂ a₃) ≡ c a₁ a₃
 
 coherently-constant-function≃∥inhabited∥⇒inhabited :
-  ∀ {a b} ℓ {A : Set a} {B : Set b} →
+  ∀ {a b} ℓ {A : Type a} {B : Type b} →
   Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
   H-level 3 B →
   (∃ λ (f : A → B) → Coherently-constant f) ≃ (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)
@@ -873,7 +873,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
 -- as observed by Kraus this result follows from Proposition 2.3.
 
 constant-function≃∥inhabited∥⇒inhabited :
-  ∀ {a b} ℓ {A : Set a} {B : Set b} →
+  ∀ {a b} ℓ {A : Type a} {B : Type b} →
   Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
   Is-set B →
   (∃ λ (f : A → B) → Constant f) ≃ (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)
@@ -892,7 +892,7 @@ private
   -- One direction of the proposition above computes in the right way.
 
   to-constant-function≃∥inhabited∥⇒inhabited :
-    ∀ {a b} ℓ {A : Set a} {B : Set b}
+    ∀ {a b} ℓ {A : Type a} {B : Type b}
     (ext : Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ))
     (B-set : Is-set B)
     (f : ∃ λ (f : A → B) → Constant f) (x : A) →
@@ -908,7 +908,7 @@ private
 -- Truncation".
 
 universal-property :
-  ∀ {a b} ℓ {A : Set a} {B : Set b} →
+  ∀ {a b} ℓ {A : Type a} {B : Type b} →
   Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
   Is-proposition B →
   (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B) ≃ (A → B)
@@ -933,7 +933,7 @@ private
   -- The universal property computes in the right way.
 
   to-universal-property :
-    ∀ {a b} ℓ {A : Set a} {B : Set b}
+    ∀ {a b} ℓ {A : Type a} {B : Type b}
     (ext : Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ))
     (B-prop : Is-proposition B)
     (f : ∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B) →
@@ -941,7 +941,7 @@ private
   to-universal-property _ _ _ _ = refl _
 
   from-universal-property :
-    ∀ {a b} ℓ {A : Set a} {B : Set b}
+    ∀ {a b} ℓ {A : Type a} {B : Type b}
     (ext : Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ))
     (B-prop : Is-proposition B)
     (f : A → B) (x : A) →
@@ -951,12 +951,12 @@ private
 -- Some properties of an imagined "real" /propositional/ truncation.
 
 module Real-propositional-truncation
-  (∥_∥ʳ : ∀ {a} → Set a → Set a)
-  (∣_∣ʳ : ∀ {a} {A : Set a} → A → ∥ A ∥ʳ)
+  (∥_∥ʳ : ∀ {a} → Type a → Type a)
+  (∣_∣ʳ : ∀ {a} {A : Type a} → A → ∥ A ∥ʳ)
   (truncation-is-proposition :
-     ∀ {a} {A : Set a} → Is-proposition ∥ A ∥ʳ)
+     ∀ {a} {A : Type a} → Is-proposition ∥ A ∥ʳ)
   (recʳ :
-    ∀ {a b} {A : Set a} {B : Set b} →
+    ∀ {a b} {A : Type a} {B : Type b} →
     Is-proposition B →
     (A → B) → ∥ A ∥ʳ → B)
   where
@@ -965,9 +965,9 @@ module Real-propositional-truncation
   -- eliminator (assuming extensionality).
 
   elimʳ :
-    ∀ {a p} {A : Set a} →
+    ∀ {a p} {A : Type a} →
     Extensionality a p →
-    (P : ∥ A ∥ʳ → Set p) →
+    (P : ∥ A ∥ʳ → Type p) →
     (∀ x → Is-proposition (P x)) →
     ((x : A) → P ∣ x ∣ʳ) →
     (x : ∥ A ∥ʳ) → P x
@@ -985,9 +985,9 @@ module Real-propositional-truncation
   -- equality, when applied to ∣ x ∣ʳ.
 
   elimʳ-∣∣ʳ :
-    ∀ {a p} {A : Set a}
+    ∀ {a p} {A : Type a}
     (ext : Extensionality a p)
-    (P : ∥ A ∥ʳ → Set p)
+    (P : ∥ A ∥ʳ → Type p)
     (P-prop : ∀ x → Is-proposition (P x))
     (f : (x : A) → P ∣ x ∣ʳ)
     (x : A) →
@@ -999,7 +999,7 @@ module Real-propositional-truncation
   -- defined above (assuming extensionality).
 
   isomorphic :
-    ∀ {ℓ a} {A : Set a} →
+    ∀ {ℓ a} {A : Type a} →
     Extensionality (lsuc (a ⊔ ℓ)) (a ⊔ ℓ) →
     ∥ A ∥ʳ ↔ ∥ A ∥ 1 (a ⊔ ℓ)
   isomorphic {ℓ} ext = record
@@ -1026,7 +1026,7 @@ module Real-propositional-truncation
 -- presence of a "real" propositional truncation (and extensionality)
 -- they can be dropped (see Real-propositional-truncation.isomorphic).
 
-Axiom-of-choice : (a b ℓ : Level) → Set (lsuc (a ⊔ b ⊔ ℓ))
+Axiom-of-choice : (a b ℓ : Level) → Type (lsuc (a ⊔ b ⊔ ℓ))
 Axiom-of-choice a b ℓ =
-  {A : Set a} {B : A → Set b} →
+  {A : Type a} {B : A → Type b} →
   Is-set A → (∀ x → ∥ B x ∥ 1 (b ⊔ ℓ)) → ∥ (∀ x → B x) ∥ 1 (a ⊔ b ⊔ ℓ)

@@ -22,7 +22,7 @@ open Derived-definitions-and-properties eq
 
 -- Inhabited only for zero.
 
-Zero : ℕ → Set
+Zero : ℕ → Type
 Zero zero    = ⊤
 Zero (suc n) = ⊥
 
@@ -68,7 +68,7 @@ m == n = case m Agda.Builtin.Nat.== n of λ where
 
 -- Inequality.
 
-Distinct : ℕ → ℕ → Set
+Distinct : ℕ → ℕ → Type
 Distinct zero    zero    = ⊥
 Distinct zero    (suc _) = ⊤
 Distinct (suc _) zero    = ⊤
@@ -315,13 +315,13 @@ even≢odd (suc m) n eq =
 
 infix 4 _≤_ _<_
 
-data _≤_ (m n : ℕ) : Set where
+data _≤_ (m n : ℕ) : Type where
   ≤-refl′ : m ≡ n → m ≤ n
   ≤-step′ : ∀ {k} → m ≤ k → suc k ≡ n → m ≤ n
 
 -- Strict inequality.
 
-_<_ : ℕ → ℕ → Set
+_<_ : ℕ → ℕ → Type
 m < n = suc m ≤ n
 
 -- Some abbreviations.
@@ -650,7 +650,7 @@ _!-mono {suc m} {suc n} p =
 
 well-founded-elim :
   ∀ {p}
-  (P : ℕ → Set p) →
+  (P : ℕ → Type p) →
   (∀ m → (∀ {n} → n < m → P n) → P m) →
   ∀ m → P m
 well-founded-elim P p m = helper (suc m) ≤-refl
@@ -664,7 +664,7 @@ well-founded-elim P p m = helper (suc m) ≤-refl
 
 -- The accessibility relation for _<_.
 
-data Acc (n : ℕ) : Set where
+data Acc (n : ℕ) : Type where
   acc : (∀ {m} → m < n → Acc m) → Acc n
 
 -- Every natural number is accessible.
@@ -680,7 +680,7 @@ accessible = well-founded-elim _ λ _ → acc
 
 infix 4 _≤↑_
 
-data _≤↑_ (m n : ℕ) : Set where
+data _≤↑_ (m n : ℕ) : Type where
   ≤↑-refl : m ≡ n → m ≤↑ n
   ≤↑-step : suc m ≤↑ n → m ≤↑ n
 
@@ -717,7 +717,7 @@ private
 
 up-to-elim :
   ∀ {p}
-  (P : ℕ → Set p) →
+  (P : ℕ → Type p) →
   ∀ n →
   P n →
   (∀ m → m < n → P (suc m) → P m) →
@@ -743,7 +743,7 @@ private
 
 infix 4 _≤→_
 
-_≤→_ : ℕ → ℕ → Set
+_≤→_ : ℕ → ℕ → Type
 zero  ≤→ _     = ⊤
 suc m ≤→ zero  = ⊥
 suc m ≤→ suc n = m ≤→ n

@@ -52,9 +52,9 @@ private
   variable
     a a₁ a₂ b p r r₁ r₂ : Level
     k                   : Isomorphism-kind
-    A A₁ A₂ B           : Set a
-    P                   : A → Set p
-    R R₁ R₂             : A → A → Set r
+    A A₁ A₂ B           : Type a
+    P                   : A → Type p
+    R R₁ R₂             : A → A → Type r
     f x y               : A
 
 ------------------------------------------------------------------------
@@ -64,7 +64,7 @@ private
 
 infix 5 _/_
 
-data _/_ (A : Set a) (R : A → A → Set r) : Set (a ⊔ r) where
+data _/_ (A : Type a) (R : A → A → Type r) : Type (a ⊔ r) where
   [_]                   : A → A / R
   []-respects-relationᴾ : R x y → [ x ] P.≡ [ y ]
   /-is-setᴾ             : P.Is-set (A / R)
@@ -81,8 +81,8 @@ data _/_ (A : Set a) (R : A → A → Set r) : Set (a ⊔ r) where
 
 -- An eliminator, expressed using paths.
 
-record Elimᴾ′ {A : Set a} {R : A → A → Set r} (P : A / R → Set p) :
-              Set (a ⊔ r ⊔ p) where
+record Elimᴾ′ {A : Type a} {R : A → A → Type r} (P : A / R → Type p) :
+              Type (a ⊔ r ⊔ p) where
   no-eta-equality
   field
     []ʳ : ∀ x → P [ x ]
@@ -113,8 +113,8 @@ elimᴾ′ {A = A} {R = R} {P = P} e = helper
 
 -- A possibly more useful eliminator, expressed using paths.
 
-record Elimᴾ {A : Set a} {R : A → A → Set r} (P : A / R → Set p) :
-             Set (a ⊔ r ⊔ p) where
+record Elimᴾ {A : Type a} {R : A → A → Type r} (P : A / R → Type p) :
+             Type (a ⊔ r ⊔ p) where
   no-eta-equality
   field
     []ʳ : ∀ x → P [ x ]
@@ -156,8 +156,8 @@ private
 
 -- A non-dependent eliminator, expressed using paths.
 
-record Recᴾ {A : Set a} (R : A → A → Set r) (B : Set b) :
-            Set (a ⊔ r ⊔ b) where
+record Recᴾ {A : Type a} (R : A → A → Type r) (B : Type b) :
+            Type (a ⊔ r ⊔ b) where
   no-eta-equality
   field
     []ʳ                   : A → B
@@ -176,8 +176,8 @@ recᴾ r = elimᴾ λ where
 
 -- An eliminator.
 
-record Elim {A : Set a} {R : A → A → Set r} (P : A / R → Set p) :
-            Set (a ⊔ r ⊔ p) where
+record Elim {A : Type a} {R : A → A → Type r} (P : A / R → Type p) :
+            Type (a ⊔ r ⊔ p) where
   no-eta-equality
   field
     []ʳ : ∀ x → P [ x ]
@@ -200,8 +200,8 @@ elim e = elimᴾ λ where
 
 -- A non-dependent eliminator.
 
-record Rec {A : Set a} (R : A → A → Set r) (B : Set b) :
-           Set (a ⊔ r ⊔ b) where
+record Rec {A : Type a} (R : A → A → Type r) (B : Type b) :
+           Type (a ⊔ r ⊔ b) where
   no-eta-equality
   field
     []ʳ                   : A → B
@@ -224,8 +224,8 @@ rec r = recᴾ λ where
 -- I took the idea for this eliminator from Nicolai Kraus.
 
 record Elim-prop
-         {A : Set a} {R : A → A → Set r} (P : A / R → Set p) :
-         Set (a ⊔ r ⊔ p) where
+         {A : Type a} {R : A → A → Type r} (P : A / R → Type p) :
+         Type (a ⊔ r ⊔ p) where
   no-eta-equality
   field
     []ʳ             : ∀ x → P [ x ]
@@ -246,7 +246,7 @@ elim-prop e = elim λ where
 
 -- A variant of rec that can be used if the motive is a proposition.
 
-record Rec-prop (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Rec-prop (A : Type a) (B : Type b) : Type (a ⊔ b) where
   no-eta-equality
   field
     []ʳ             : A → B
@@ -341,9 +341,9 @@ A₁↠A₂ /-cong-↠ R₁⇔R₂ =
   A₁↠A₂ /-cong-∥∥-↠ λ x y → TruncP.∥∥-cong-⇔ (R₁⇔R₂ x y)
 
 _/-cong-∥∥_ :
-  {A₁ : Set a₁} {A₂ : Set a₂}
-  {R₁ : A₁ → A₁ → Set r₁}
-  {R₂ : A₂ → A₂ → Set r₂} →
+  {A₁ : Type a₁} {A₂ : Type a₂}
+  {R₁ : A₁ → A₁ → Type r₁}
+  {R₂ : A₂ → A₂ → Type r₂} →
   (A₁↔A₂ : A₁ ↔[ k ] A₂) →
   (∀ x y →
      ∥ R₁ x y ∥ ⇔
@@ -369,9 +369,9 @@ _/-cong-∥∥_ {k = k} {R₁ = R₁} {R₂ = R₂} A₁↔A₂′ R₁⇔R₂ =
   open _↔_ A₁↔A₂
 
 _/-cong_ :
-  {A₁ : Set a₁} {A₂ : Set a₂}
-  {R₁ : A₁ → A₁ → Set r₁}
-  {R₂ : A₂ → A₂ → Set r₂} →
+  {A₁ : Type a₁} {A₂ : Type a₂}
+  {R₁ : A₁ → A₁ → Type r₁}
+  {R₂ : A₂ → A₂ → Type r₂} →
   (A₁↔A₂ : A₁ ↔[ k ] A₂) →
   (∀ x y →
      R₁ x y ⇔ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)) →
@@ -395,7 +395,7 @@ _/-cong_ A₁↔A₂ R₁⇔R₂ =
 -- Uustalu and Veltri.
 
 related≃[equal] :
-  {R : A → A → Set r} →
+  {R : A → A → Type r} →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   ∀ {x y} → R x y ≃ _≡_ {A = A / R} [ x ] [ y ]
@@ -431,7 +431,7 @@ related≃[equal] {A = A} {r = r} {R = R}
 -- A variant of related≃[equal].
 
 ∥related∥≃[equal] :
-  {R : A → A → Set r} →
+  {R : A → A → Type r} →
   Is-equivalence-relation R →
   ∀ {x y} → ∥ R x y ∥ ≃ _≡_ {A = A / R} [ x ] [ y ]
 ∥related∥≃[equal] {A = A} {R = R} R-equiv {x} {y} =
@@ -549,23 +549,23 @@ private
 
   infix 5 _/′_
 
-  _/′_ : (A : Set a) → (A → A → Set a) → Set (lsuc a)
-  _/′_ {a = a} A R = ∃ λ (P : A → Set a) → ∥ (∃ λ x → R x ≡ P) ∥
+  _/′_ : (A : Type a) → (A → A → Type a) → Type (lsuc a)
+  _/′_ {a = a} A R = ∃ λ (P : A → Type a) → ∥ (∃ λ x → R x ≡ P) ∥
 
   /↔/′ : A Quotient./ R ↔ A /′ R
   /↔/′ {A = A} {R = R} =
-    A Quotient./ R                                           ↔⟨⟩
-    (∃ λ (P : A → Set _) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
-    (∃ λ (P : A → Set _) → ∥ (∃ λ x → R x ≡ P) ∥)            ↔⟨⟩
-    A /′ R                                                   □
+    A Quotient./ R                                            ↔⟨⟩
+    (∃ λ (P : A → Type _) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
+    (∃ λ (P : A → Type _) → ∥ (∃ λ x → R x ≡ P) ∥)            ↔⟨⟩
+    A /′ R                                                    □
 
   [_]′ : A → A /′ R
   [_]′ = _↔_.to /↔/′ ∘ Quotient.[_]
 
   rec′ :
-    {A : Set a} {R : A → A → Set a} →
+    {A : Type a} {R : A → A → Type a} →
     (∀ {x} → R x x) →
-    (B : Set a) →
+    (B : Type a) →
     Is-set B →
     (f : A → B) →
     (∀ {x y} → R x y → f x ≡ f y) →
@@ -575,9 +575,9 @@ private
     _↔_.from /↔/′
 
   elim-Prop′ :
-    {A : Set a} {R : A → A → Set a} →
+    {A : Type a} {R : A → A → Type a} →
     Quotient.Strong-equivalence-with surjection R →
-    (B : A /′ R → Set (lsuc a)) →
+    (B : A /′ R → Type (lsuc a)) →
     (∀ x → Is-proposition (B [ x ]′)) →
     (f : ∀ x → B [ x ]′) →
     ∀ x → B x
@@ -596,10 +596,10 @@ private
 -- families of equivalence relations, defined in a certain way.
 
 /↔ :
-  {A : Set a} {R : A → A → Set a} →
+  {A : Type a} {R : A → A → Type a} →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
-  A / R ↔ ∃ λ (P : A → Set a) → ∥ (∃ λ x → R x ≡ P) ∥
+  A / R ↔ ∃ λ (P : A → Type a) → ∥ (∃ λ x → R x ≡ P) ∥
 /↔ {a = a} {A = A} {R} R-equiv R-prop = record
   { surjection = record
     { logical-equivalence = record
@@ -658,15 +658,15 @@ private
 -- Quotient.Families-of-equivalence-classes is isomorphic to the one
 -- given here.
 
-/↔/ : {A : Set a} {R : A → A → Set a} →
+/↔/ : {A : Type a} {R : A → A → Type a} →
       Is-equivalence-relation R →
       (R-prop : ∀ {x y} → Is-proposition (R x y)) →
       A Quotient./ R ↔ A / R
 /↔/ {a = a} {A = A} {R} R-equiv R-prop =
-  A Quotient./ R                                                  ↔⟨⟩
-  (∃ λ (P : A → Set a) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a))  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
-  (∃ λ (P : A → Set a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ R-equiv R-prop ⟩□
-  A / R                                                           □
+  A Quotient./ R                                                   ↔⟨⟩
+  (∃ λ (P : A → Type a) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a))  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
+  (∃ λ (P : A → Type a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ R-equiv R-prop ⟩□
+  A / R                                                            □
 
 ------------------------------------------------------------------------
 -- Various type formers commute with quotients
@@ -731,8 +731,8 @@ Maybe/-comm-[] =
   ⊎-map _ id ∘ ⊎-map [_] [_]               ≡⟨ ⊎-map-∘ ⟩∎
   ⊎-map id [_]                             ∎
   where
-  ⊎-map-∘ : ∀ {a₁ b₁ c₁} {A₁ : Set a₁} {B₁ : Set b₁} {C₁ : Set c₁}
-              {a₂ b₂ c₂} {A₂ : Set a₂} {B₂ : Set b₂} {C₂ : Set c₂}
+  ⊎-map-∘ : ∀ {a₁ b₁ c₁} {A₁ : Type a₁} {B₁ : Type b₁} {C₁ : Type c₁}
+              {a₂ b₂ c₂} {A₂ : Type a₂} {B₂ : Type b₂} {C₂ : Type c₂}
               {f₁ : B₁ → C₁} {g₁ : A₁ → B₁}
               {f₂ : B₂ → C₂} {g₂ : A₂ → B₂} →
             ⊎-map f₁ f₂ ∘ ⊎-map g₁ g₂ ≡ ⊎-map (f₁ ∘ g₁) (f₂ ∘ g₂)
@@ -742,7 +742,7 @@ Maybe/-comm-[] =
 -- that the second projections come from propositional types.
 
 Σ/-comm :
-  {P : A / R → Set p} →
+  {P : A / R → Type p} →
   (∀ {x} → Is-proposition (P x)) →
   Σ (A / R) P ↔ Σ A (P ∘ [_]) / (R on proj₁)
 Σ/-comm {A = A} {R = R} {P = P} P-prop = record
@@ -804,7 +804,7 @@ Maybe/-comm-[] =
 -- The isomorphism.
 
 ℕ→/-comm :
-  {A : Set a} {R : A → A → Set r} →
+  {A : Type a} {R : A → A → Type r} →
   Axiom-of-countable-choice (a ⊔ r) →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
@@ -911,7 +911,7 @@ Maybe/-comm-[] =
 
 ↠-eliminator :
   (surj : A / R ↠ B)
-  (P : B → Set p)
+  (P : B → Type p)
   (p-[] : ∀ x → P (_↠_.to surj [ x ])) →
   (∀ {x y} (r : R x y) →
    subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x) ≡
@@ -937,7 +937,7 @@ Maybe/-comm-[] =
 
 ↠-eliminator-[] :
   ∀ (surj : A / R ↠ B)
-  (P : B → Set p)
+  (P : B → Type p)
   (p-[] : ∀ x → P (_↠_.to surj [ x ]))
   (ok : ∀ {x y} (r : R x y) →
         subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x) ≡
@@ -971,7 +971,7 @@ Maybe/-comm-[] =
 
 ↔-eliminator :
   (bij : A / R ↔ B)
-  (P : B → Set p)
+  (P : B → Type p)
   (p-[] : ∀ x → P (_↔_.to bij [ x ])) →
   (∀ {x y} (r : R x y) →
    subst P (cong (_↔_.to bij) ([]-respects-relation r)) (p-[] x) ≡
@@ -984,7 +984,7 @@ Maybe/-comm-[] =
 
 ↔-eliminator-[] :
   ∀ (bij : A / R ↔ B)
-  (P : B → Set p)
+  (P : B → Type p)
   (p-[] : ∀ x → P (_↔_.to bij [ x ]))
   (ok : ∀ {x y} (r : R x y) →
         subst P (cong (_↔_.to bij) ([]-respects-relation r)) (p-[] x) ≡
@@ -1003,11 +1003,11 @@ Maybe/-comm-[] =
 -- Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
 ℕ→/-elim :
-  {A : Set a} {R : A → A → Set r} →
+  {A : Type a} {R : A → A → Type r} →
   Axiom-of-countable-choice (a ⊔ r) →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
-  (P : (ℕ → A / R) → Set p)
+  (P : (ℕ → A / R) → Type p)
   (p-[] : ∀ f → P (λ n → [ f n ])) →
   (∀ {f g} (r : (ℕ →ᴾ R) f g) →
    subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡
@@ -1020,11 +1020,11 @@ Maybe/-comm-[] =
 -- The eliminator "computes" in the "right" way.
 
 ℕ→/-elim-[] :
-  ∀ {A : Set a} {R : A → A → Set r}
+  ∀ {A : Type a} {R : A → A → Type r}
   (cc : Axiom-of-countable-choice (a ⊔ r))
   (R-equiv : Is-equivalence-relation R)
   (R-prop : ∀ {x y} → Is-proposition (R x y))
-  (P : (ℕ → A / R) → Set p)
+  (P : (ℕ → A / R) → Type p)
   (p-[] : ∀ f → P (λ n → [ f n ]))
   (ok : ∀ {f g} (r : (ℕ →ᴾ R) f g) →
         subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡

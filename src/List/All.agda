@@ -27,16 +27,16 @@ open import Vec.Function eq as Vec using (Vec)
 private
   variable
     a b ℓ p q : Level
-    A B       : Set a
-    P         : A → Set p
-    Q         : A → Set q
+    A B       : Type a
+    P         : A → Type p
+    Q         : A → Type q
     k x y     : A
     n         : ℕ
     xs ys     : List A
 
 -- All P xs means that P holds for every element of xs.
 
-All : {A : Set a} → (A → Set p) → List A → Set (a ⊔ p)
+All : {A : Type a} → (A → Type p) → List A → Type (a ⊔ p)
 All P xs = ∀ x → x ∈ xs → P x
 
 -- The type xs ⊆ ys means that every element of xs is also an element
@@ -44,7 +44,7 @@ All P xs = ∀ x → x ∈ xs → P x
 
 infix 4 _⊆_
 
-_⊆_ : {A : Set a} → List A → List A → Set a
+_⊆_ : {A : Type a} → List A → List A → Type a
 xs ⊆ ys = All (_∈ ys) xs
 
 -- The _⊆_ relation matches _∼[ implication ]_.
@@ -59,7 +59,7 @@ xs ⊆ ys = All (_∈ ys) xs
 -- Some rearrangement lemmas.
 
 All-[] :
-  ∀ {k} {A : Set a} (P : A → Set p) →
+  ∀ {k} {A : Type a} (P : A → Type p) →
   Extensionality? k a (a ⊔ p) →
   All P [] ↝[ k ] ⊤
 All-[] {a = a} {k = k} {A} P ext =
@@ -69,7 +69,7 @@ All-[] {a = a} {k = k} {A} P ext =
   (A → ⊤)               ↔⟨ →-right-zero ⟩□
   ⊤                     □
 
-module _ {k} {A : Set a} {P : A → Set p}
+module _ {k} {A : Type a} {P : A → Type p}
          (ext : Extensionality? k a (a ⊔ p)) where
 
   private
@@ -107,7 +107,7 @@ module _ {k} {A : Set a} {P : A → Set p}
     (∀ xs → xs ∈ xss → ∀ x → x ∈ xs → P x)      □
 
 All-map :
-  ∀ {k} {A : Set a} {B : Set b} {P : B → Set p}
+  ∀ {k} {A : Type a} {B : Type b} {P : B → Type p}
     {f : A → B} {xs : List A} →
   (ext : Extensionality? k (a ⊔ b) (a ⊔ b ⊔ p)) →
   All P (L.map f xs) ↝[ k ] All (P ∘ f) xs
@@ -129,7 +129,7 @@ All-map {a = a} {b = b} {p = p} {k = k} {P = P} {f} {xs} ext =
   ext₆ = lower-extensionality? k a     b       ext
 
 All->>= :
-  ∀ {k} {A B : Set ℓ} {P : B → Set p} {f : A → List B} {xs : List A} →
+  ∀ {k} {A B : Type ℓ} {P : B → Type p} {f : A → List B} {xs : List A} →
   (ext : Extensionality? k ℓ (ℓ ⊔ p)) →
   All P (xs >>= f) ↝[ k ] All (All P ∘ f) xs
 All->>= {P = P} {f = f} {xs = xs} ext =
@@ -138,7 +138,7 @@ All->>= {P = P} {f = f} {xs = xs} ext =
   All (All P ∘ f) xs             □
 
 All-const :
-  {A : Set a} {B : Set b} {xs : List B} →
+  {A : Type a} {B : Type b} {xs : List B} →
   Extensionality? k b a →
   All (const A) xs ↝[ k ] Vec A (L.length xs)
 All-const {A = A} {xs = xs} ext =
@@ -158,7 +158,7 @@ private
   All-const-Fin-length = refl _
 
 All-const-replicate :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality? k lzero a →
   All (const A) (L.replicate n tt) ↝[ k ] Vec A n
 All-const-replicate {n = n} {A = A} ext =
@@ -167,7 +167,7 @@ All-const-replicate {n = n} {A = A} ext =
   Vec A n                              □
 
 All-Σ :
-  {A : Set a} {P : A → Set p} {Q : ∀ x → P x → Set q} {xs : List A} →
+  {A : Type a} {P : A → Type p} {Q : ∀ x → P x → Type q} {xs : List A} →
   Extensionality? k a (a ⊔ p ⊔ q) →
   All (λ x → Σ (P x) (Q x)) xs ↝[ k ]
   ∃ λ (ps : All P xs) → ∀ x (x∈xs : x ∈ xs) → Q x (ps x x∈xs)
@@ -204,7 +204,7 @@ append = curry (_⇔_.from (All-++ _))
 -- All preserves h-levels (assuming extensionality).
 
 H-level-All :
-  {A : Set a} {P : A → Set p} →
+  {A : Type a} {P : A → Type p} →
   Extensionality a (a ⊔ p) →
   ∀ n →
   (∀ x → H-level n (P x)) →
@@ -248,7 +248,7 @@ append-Any-++-inj₂ {P = P} {y = y} xs {ps = ps} {qs} {y∈ys} =
 -- Some congruence lemmas.
 
 All-cong :
-  ∀ {k} {A : Set a} {P : A → Set p} {Q : A → Set q} {xs ys} →
+  ∀ {k} {A : Type a} {P : A → Type p} {Q : A → Type q} {xs ys} →
   Extensionality? ⌊ k ⌋-sym a (a ⊔ p ⊔ q) →
   (∀ x → P x ↝[ ⌊ k ⌋-sym ] Q x) →
   xs ∼[ ⌊ k ⌋-sym ] ys →
@@ -281,7 +281,7 @@ map₂ ys⊆xs = map (λ _ → id) ys⊆xs
 private
 
   map₁-∘ :
-    ∀ {P : A → Set p} {xs} {f : ∀ x → P x → Q x} {ps : All P xs} →
+    ∀ {P : A → Type p} {xs} {f : ∀ x → P x → Q x} {ps : All P xs} →
     map₁ f ps ≡ λ _ → f _ ∘ ps _
   map₁-∘ = refl _
 
@@ -315,7 +315,7 @@ map₂-inj₂ = refl _
 -- Some rearrangement lemmas for map₂.
 
 map₂-⊎-map-id :
-  {A : Set a} {P : A → Set p} →
+  {A : Type a} {P : A → Type p} →
   Extensionality a (a ⊔ p) →
   ∀ {x xs ys} {f : ys ⊆ xs} {p : P x} {ps : All P xs} →
   map₂ (λ _ → ⊎-map id (f _)) (cons p ps) ≡ cons p (map₂ f ps)
@@ -325,7 +325,7 @@ map₂-⊎-map-id {a = a} ext {f = f} {p} {ps} =
     [ (λ _ → refl _) , (λ _ → refl _) ]
 
 map₂-⊎-map-id-inj₂ :
-  {A : Set a} {P : A → Set p} →
+  {A : Type a} {P : A → Type p} →
   Extensionality a (a ⊔ p) →
   ∀ {x y xs} {p : P x} {q : P y} {ps : All P xs} →
   map₂ (λ _ → ⊎-map id inj₂) (cons p (cons q ps)) ≡ cons p ps
@@ -335,7 +335,7 @@ map₂-⊎-map-id-inj₂ ext {p = p} {q} {ps} =
   cons p ps                                        ∎
 
 map₂-++-cong :
-  {A : Set a} {P : A → Set p} →
+  {A : Type a} {P : A → Type p} →
   Extensionality a (a ⊔ p) →
   ∀ xs₁ {ys₁ xs₂ ys₂} {ps : All P xs₂} {qs : All P ys₂}
   {f : xs₁ ⊆ xs₂} {g : ys₁ ⊆ ys₂} →

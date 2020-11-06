@@ -27,7 +27,7 @@ open import Sum equality-with-J
 private
   variable
     a b             : Level
-    A B             : Set a
+    A B             : Type a
     s s′ s₁ s₂      : Is-set A
     q q₁ q₂ x x₁ x₂ : A
     f g             : A → B
@@ -40,7 +40,7 @@ private
 
 module _
   -- The underlying queue type family.
-  (Q : ∀ {ℓ} → Set ℓ → Set ℓ)
+  (Q : ∀ {ℓ} → Type ℓ → Type ℓ)
 
   -- Note that the predicate is required to be trivial. Perhaps the
   -- code could be made more general, but I have not found a use for
@@ -55,7 +55,7 @@ module _
       -- The quotienting relation: Two queues are seen as equal if
       -- they represent the same list.
 
-      _∼_ : {A : Set a} (_ _ : Q A) → Set a
+      _∼_ : {A : Type a} (_ _ : Q A) → Type a
       q₁ ∼ q₂ = Q.to-List _ q₁ ≡ Q.to-List _ q₂
 
     -- Queues.
@@ -71,14 +71,14 @@ module _
     -- flexibility that comes with parametrisation, but I do not want
     -- to force users to work in a parametrised setting.)
 
-    Queue : Set a → Set a
+    Queue : Type a → Type a
     Queue A = Q A / _∼_
 
 -- The remainder of the code uses an implicit underlying queue type
 -- family parameter, and an extra instance argument.
 
 module _
-  {Q : ∀ {ℓ} → Set ℓ → Set ℓ}
+  {Q : ∀ {ℓ} → Type ℓ → Type ℓ}
   ⦃ is-queue : ∀ {ℓ} → Q.Is-queue Q (λ _ → ↑ _ ⊤) ℓ ⦄
   ⦃ is-queue-with-map : ∀ {ℓ₁ ℓ₂} → Q.Is-queue-with-map Q ℓ₁ ℓ₂ ⦄
   where
@@ -152,7 +152,7 @@ module _
       -- on queues.
 
       unary :
-        {A : Set a} {B : Set b}
+        {A : Type a} {B : Type b}
         (f : List A → List B)
         (g : Q A → Q B) →
         (∀ {q} → Q.to-List _ (g q) ≡ f (Q.to-List _ q)) →
@@ -179,7 +179,7 @@ module _
       -- Generalisations of the functions above.
 
       unary′ :
-        {A : Set a} {F : Set a → Set b} →
+        {A : Type a} {F : Type a → Type b} →
         (∀ {A} → Is-set A → Is-set (F A)) →
         (map : ∀ {A B} → (A → B) → F A → F B) →
         (∀ {A} {x : F A} → map id x ≡ x) →
@@ -220,7 +220,7 @@ module _
           x₂                                  ∎
 
       to-List-unary′ :
-        {F      : Set a → Set b}
+        {F      : Type a → Type b}
         (F-set  : ∀ {A} → Is-set A → Is-set (F A))
         (map    : ∀ {A B} → (A → B) → F A → F B)
         (map-id : ∀ {A} {x : F A} → map id x ≡ x)

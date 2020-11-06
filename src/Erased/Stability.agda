@@ -37,8 +37,8 @@ import Erased.Level-2
 private
   variable
     a b c ℓ p : Level
-    A B       : Set a
-    P         : A → Set p
+    A B       : Type a
+    P         : A → Type p
     k k′ x y  : A
     n         : ℕ
 
@@ -49,28 +49,28 @@ mutual
 
   -- A type A is stable if Erased A implies A.
 
-  Stable : Set a → Set a
+  Stable : Type a → Type a
   Stable = Stable-[ implication ]
 
   -- A generalisation of Stable.
 
-  Stable-[_] : Kind → Set a → Set a
+  Stable-[_] : Kind → Type a → Type a
   Stable-[ k ] A = Erased A ↝[ k ] A
 
 -- A special case of Stable-[ equivalence ].
 
-Very-stable : Set a → Set a
+Very-stable : Type a → Type a
 Very-stable A = Is-equivalence ([_]→ {A = A})
 
 -- Variants of the definitions above for equality.
 
-Stable-≡ : Set a → Set a
+Stable-≡ : Type a → Type a
 Stable-≡ = For-iterated-equality 1 Stable
 
-Stable-≡-[_] : Kind → Set a → Set a
+Stable-≡-[_] : Kind → Type a → Type a
 Stable-≡-[ k ] = For-iterated-equality 1 Stable-[ k ]
 
-Very-stable-≡ : Set a → Set a
+Very-stable-≡ : Type a → Type a
 Very-stable-≡ = For-iterated-equality 1 Very-stable
 
 ------------------------------------------------------------------------
@@ -101,7 +101,7 @@ Very-stable→Split-surjective-[] {A = A} =
 -- Very-stable is propositional (assuming extensionality).
 
 Very-stable-propositional :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality a a →
   Is-proposition (Very-stable A)
 Very-stable-propositional ext = Eq.propositional ext _
@@ -111,7 +111,7 @@ private
   -- The previous result can be generalised.
 
   For-iterated-equality-Very-stable-propositional :
-    {A : Set a} →
+    {A : Type a} →
     Extensionality a a →
     ∀ n → Is-proposition (For-iterated-equality n Very-stable A)
   For-iterated-equality-Very-stable-propositional ext n =
@@ -161,7 +161,7 @@ Very-stable→Stable-[]≡id {x = x} s =
 -- Erased A is very stable.
 
 Very-stable-Erased :
-  {@0 A : Set a} → Very-stable (Erased A)
+  {@0 A : Type a} → Very-stable (Erased A)
 Very-stable-Erased =
   _≃_.is-equivalence (Eq.↔⇒≃ (record
     { surjection = record
@@ -181,7 +181,7 @@ Very-stable-Erased =
 -- context, assuming that Agda is consistent).
 
 Erased-Very-stable :
-  {@0 A : Set a} → Erased (Very-stable A)
+  {@0 A : Type a} → Erased (Very-stable A)
 Erased-Very-stable {A = A} =
   [ _≃_.is-equivalence (    $⟨ Erased↔ ⟩
       Erased (Erased A ↔ A) ↝⟨ erased ⟩
@@ -202,7 +202,7 @@ Very-stable-Very-stable→Very-stable s =
 -- It is not the case that every very stable type is a proposition.
 
 ¬-Very-stable→Is-proposition :
-  ¬ ({A : Set a} → Very-stable A → Is-proposition A)
+  ¬ ({A : Type a} → Very-stable A → Is-proposition A)
 ¬-Very-stable→Is-proposition {a = a} hyp =
   not-proposition (hyp very-stable)
   where
@@ -219,30 +219,30 @@ Very-stable-Very-stable→Very-stable s =
 
 -- Erased A implies ¬ ¬ A.
 
-Erased→¬¬ : {@0 A : Set a} → Erased A → ¬ ¬ A
+Erased→¬¬ : {@0 A : Type a} → Erased A → ¬ ¬ A
 Erased→¬¬ [ x ] f = _↔_.to Erased-⊥↔⊥ [ f x ]
 
 -- Types that are stable for double negation are stable for Erased.
 
-¬¬-Stable→Stable : {@0 A : Set a} → (¬ ¬ A → A) → Stable A
+¬¬-Stable→Stable : {@0 A : Type a} → (¬ ¬ A → A) → Stable A
 ¬¬-Stable→Stable ¬¬-Stable x = ¬¬-Stable (Erased→¬¬ x)
 
 -- Types for which it is known whether or not they are inhabited are
 -- stable.
 
-Dec→Stable : {@0 A : Set a} → Dec A → Stable A
+Dec→Stable : {@0 A : Type a} → Dec A → Stable A
 Dec→Stable (yes x) _ = x
 Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 
 -- Every type is stable in the double negation monad.
 
-¬¬-Stable : {@0 A : Set a} → ¬¬ Stable A
+¬¬-Stable : {@0 A : Type a} → ¬¬ Stable A
 ¬¬-Stable = DN.map′ Dec→Stable excluded-middle
 
 -- A kind of map function for Stable.
 
 Stable-map :
-  {@0 A : Set a} {@0 B : Set b} →
+  {@0 A : Type a} {@0 B : Type b} →
   (A → B) → @0 (B → A) → Stable A → Stable B
 Stable-map A→B B→A s x = A→B (s (map B→A x))
 
@@ -272,7 +272,7 @@ Extensionality→[]-cong {a = a} ext′ = record
   where
   ext = Eq.good-ext ext′
 
-  Stable-≡-Erased : {@0 A : Set a} → Stable-≡ (Erased A)
+  Stable-≡-Erased : {@0 A : Type a} → Stable-≡ (Erased A)
   Stable-≡-Erased [ x ] [ y ] eq =
     [ x ]                                       ≡⟨ cong (_$ eq) (
 
@@ -290,7 +290,7 @@ Extensionality→[]-cong {a = a} ext′ = record
     [ y ]                                       ∎
 
   []-cong :
-    {@0 A : Set a} {@0 x y : A} →
+    {@0 A : Type a} {@0 x y : A} →
     Erased (x ≡ y) → [ x ] ≡ [ y ]
   []-cong {x = x} {y = y} =
     Erased (x ≡ y)          ↝⟨ map (cong [_]→) ⟩
@@ -298,7 +298,7 @@ Extensionality→[]-cong {a = a} ext′ = record
     [ x ] ≡ [ y ]           □
 
   Stable-≡-Erased-[refl] :
-    {@0 A : Set a} {x : Erased A} →
+    {@0 A : Type a} {x : Erased A} →
     Stable-≡-Erased x x [ refl x ] ≡ refl x
   Stable-≡-Erased-[refl] {x = [ x ]} =
     Stable-≡-Erased [ x ] [ x ] [ refl [ x ] ]                ≡⟨⟩
@@ -307,7 +307,7 @@ Extensionality→[]-cong {a = a} ext′ = record
     refl [ x ]                                                ∎
 
   []-cong-[refl] :
-    {@0 A : Set a} {@0 x : A} →
+    {@0 A : Type a} {@0 x : A} →
     []-cong [ refl x ] ≡ refl [ x ]
   []-cong-[refl] {x = x} =
     []-cong [ refl x ]                          ≡⟨⟩
@@ -316,7 +316,7 @@ Extensionality→[]-cong {a = a} ext′ = record
     refl [ x ]                                  ∎
 
   Very-stable-≡-Erased :
-    {@0 A : Set a} → Very-stable-≡ (Erased A)
+    {@0 A : Type a} → Very-stable-≡ (Erased A)
   Very-stable-≡-Erased [ x ] [ y ] =
     _≃_.is-equivalence (Eq.↔⇒≃ (record
       { surjection = record
@@ -333,10 +333,10 @@ Extensionality→[]-cong {a = a} ext′ = record
       Stable-≡-Erased-[refl]
 
   -- The following reimplementations of functions from Erased.[]-cong₁
-  -- are restricted to types in Set a (where a is the universe level
+  -- are restricted to types in Type a (where a is the universe level
   -- for which extensionality is assumed to hold).
 
-  module _ {@0 A B : Set a} where
+  module _ {@0 A B : Type a} where
 
     Erased-cong-↠ : @0 A ↠ B → Erased A ↠ Erased B
     Erased-cong-↠ A↠B = record
@@ -358,7 +358,7 @@ Extensionality→[]-cong {a = a} ext′ = record
       from-isomorphism (Erased-cong-↔ (from-isomorphism A≃B))
 
   []-cong-equivalence :
-    {@0 A : Set a} {@0 x y : A} →
+    {@0 A : Type a} {@0 x y : A} →
     Is-equivalence ([]-cong {x = x} {y = y})
   []-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (
     Erased (x ≡ y)          ↝⟨ inverse $ Erased-cong-≃ (Eq.≃-≡ (inverse $ Very-stable→Stable 0 (erased Erased-Very-stable))) ⟩
@@ -382,7 +382,7 @@ Very-stable-⊥ = _≃_.is-equivalence $ Eq.↔⇒≃ $ inverse Erased-⊥↔⊥
 -- extensionality).
 
 Stable-Π :
-  {A : Set a} {P : A → Set p} →
+  {A : Type a} {P : A → Type p} →
   Extensionality? k a p →
   (∀ x → Stable-[ k ] (P x)) → Stable-[ k ] ((x : A) → P x)
 Stable-Π {P = P} ext s =
@@ -393,7 +393,7 @@ Stable-Π {P = P} ext s =
 -- Very-stable is closed under Π A (assuming extensionality).
 
 Very-stable-Π :
-  {A : Set a} {P : A → Set p} →
+  {A : Type a} {P : A → Type p} →
   Extensionality a p →
   (∀ x → Very-stable (P x)) →
   Very-stable ((x : A) → P x)
@@ -475,7 +475,7 @@ Very-stable-↑ s = _≃_.is-equivalence $
 -- ¬ A is stable (possibly assuming extensionality).
 
 Stable-¬ :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality? k a lzero →
   Stable-[ k ] (¬ A)
 Stable-¬ ext =
@@ -485,7 +485,7 @@ Stable-¬ ext =
 -- ¬ A is very stable (assuming extensionality).
 
 Very-stable-¬ :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality a lzero →
   Very-stable (¬ A)
 Very-stable-¬ {A = A} ext =
@@ -497,7 +497,7 @@ Very-stable-¬ {A = A} ext =
 -- This result is based on Theorem 3.11 in "Modalities in Homotopy
 -- Type Theory" by Rijke, Shulman and Spitters.
 
-Stable-∃-Very-stable : Stable (∃ λ (A : Set a) → Very-stable A)
+Stable-∃-Very-stable : Stable (∃ λ (A : Type a) → Very-stable A)
 Stable-∃-Very-stable [ A ] = Erased (proj₁ A) , Very-stable-Erased
 
 -- If A is "stable 1 + n levels up", then H-level′ (1 + n) A is
@@ -609,8 +609,8 @@ Stable-≡-List n =
 -- along f.
 
 Is-[_]-extendable-along-[_] :
-  {A : Set a} {B : Set b} →
-  ℕ → (A → B) → (B → Set c) → Set (a ⊔ b ⊔ c)
+  {A : Type a} {B : Type b} →
+  ℕ → (A → B) → (B → Type c) → Type (a ⊔ b ⊔ c)
 Is-[ zero  ]-extendable-along-[ f ] P = ↑ _ ⊤
 Is-[ suc n ]-extendable-along-[ f ] P =
   ((g : ∀ x → P (f x)) →
@@ -621,8 +621,8 @@ Is-[ suc n ]-extendable-along-[ f ] P =
 -- Is-∞-extendable-along-[ f ] P means that P is ∞-extendable along f.
 
 Is-∞-extendable-along-[_] :
-  {A : Set a} {B : Set b} →
-  (A → B) → (B → Set c) → Set (a ⊔ b ⊔ c)
+  {A : Type a} {B : Type b} →
+  (A → B) → (B → Type c) → Type (a ⊔ b ⊔ c)
 Is-∞-extendable-along-[ f ] P =
   ∀ n → Is-[ n ]-extendable-along-[ f ] P
 
@@ -630,7 +630,7 @@ Is-∞-extendable-along-[ f ] P =
 -- contractible (assuming extensionality).
 
 Is-extendable-along-contractible-for-equivalences :
-  {A : Set a} {B : Set b} {f : A → B} {P : B → Set p} →
+  {A : Type a} {B : Type b} {f : A → B} {P : B → Type p} →
   Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
   Is-equivalence f →
   ∀ n → Contractible (Is-[ n ]-extendable-along-[ f ] P)
@@ -664,7 +664,7 @@ Is-extendable-along-contractible-for-equivalences
 -- contractible (assuming extensionality).
 
 Is-∞-extendable-along-contractible-for-equivalences :
-  {A : Set a} {B : Set b} {f : A → B} {P : B → Set p} →
+  {A : Type a} {B : Type b} {f : A → B} {P : B → Type p} →
   Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
   Is-equivalence f →
   Contractible (Is-∞-extendable-along-[ f ] P)
@@ -685,7 +685,7 @@ Is-∞-extendable-along-contractible-for-equivalences ext eq =
 --   with very stable codomains (assuming extensionality):
 
 ∘[]-equivalence :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   Extensionality a b →
   Very-stable B →
   Is-equivalence (λ (f : Erased A → B) → f ∘ [_]→)
@@ -731,11 +731,11 @@ Is-∞-extendable-along-contractible-for-equivalences ext eq =
 -- and Very-stable form a Σ-closed reflective subuniverse of this kind
 -- (Erased-Σ-closed-reflective-subuniverse).
 
-record Σ-closed-reflective-subuniverse a : Set (lsuc a) where
+record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
   field
-    ◯        : Set a → Set a
+    ◯        : Type a → Type a
     η        : A → ◯ A
-    Is-modal : Set a → Set a
+    Is-modal : Type a → Type a
 
     Is-modal-propositional :
       Extensionality a a →
@@ -843,7 +843,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Equality is stable for A if and only if [_]→ is injective for A.
 
   Stable-≡↔Injective-[] :
-    {A : Set a} →
+    {A : Type a} →
     Extensionality? k a a →
     Stable-≡ A ↝[ k ] Injective ([_]→ {A = A})
   Stable-≡↔Injective-[] ext =
@@ -857,7 +857,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- for A.
 
   Very-stable-≡↔Is-embedding-[] :
-    {A : Set a} →
+    {A : Type a} →
     Extensionality? k a a →
     Very-stable-≡ A ↝[ k ] Is-embedding ([_]→ {A = A})
   Very-stable-≡↔Is-embedding-[] ext =
@@ -890,7 +890,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     -- The previous result can be generalised.
 
     Very-stable-≡↔Is-embedding-[]→ :
-      {A : Set a} →
+      {A : Type a} →
       Extensionality? k a a →
       ∀ n →
       For-iterated-equality (1 + n) Very-stable A ↝[ k ]
@@ -926,7 +926,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       (from-isomorphism $ inverse A↔B)
 
   Stable-[]-map-↝ :
-    {A : Set a} {B : Set b} →
+    {A : Type a} {B : Type b} →
     (∀ {k} → Extensionality? k a b → A ↝[ k ] B) →
     Extensionality? k a b → Stable-[ k ] A → Stable-[ k ] B
   Stable-[]-map-↝ A↝B ext =
@@ -936,7 +936,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- "symmetric"), possibly assuming extensionality.
 
   Stable-cong :
-    {A : Set a} {B : Set b} →
+    {A : Type a} {B : Type b} →
     Extensionality? ⌊ k ⌋-sym (a ⊔ b) (a ⊔ b) →
     A ↝[ ⌊ k ⌋-sym ] B → Stable A ↝[ ⌊ k ⌋-sym ] Stable B
   Stable-cong {k = k} {A = A} {B = B} ext A↝B =
@@ -949,7 +949,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- extensionality).
 
   Stable-≃-cong :
-    {A : Set a} {B : Set b} →
+    {A : Type a} {B : Type b} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
     A ≃ B → Stable-[ equivalence ] A ↝[ k ] Stable-[ equivalence ] B
   Stable-≃-cong {A = A} {B = B} ext A≃B =
@@ -964,7 +964,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Very-stable preserves equivalences (assuming extensionality).
 
   Very-stable-cong :
-    {A : Set a} {B : Set b} →
+    {A : Type a} {B : Type b} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
     A ≃ B → Very-stable A ↝[ k ] Very-stable B
   Very-stable-cong {a = a} {b = b} ext A≃B =
@@ -995,7 +995,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- All kinds of functions between erased types are stable.
 
   Stable-Erased↝Erased :
-    {@0 A : Set a} {@0 B : Set b} →
+    {@0 A : Type a} {@0 B : Type b} →
     Stable (Erased A ↝[ k ] Erased B)
   Stable-Erased↝Erased {k = k} {A = A} {B = B} =
                                        $⟨ Very-stable-Erased ⟩
@@ -1007,7 +1007,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- some cases assuming extensionality).
 
   Very-stable-Erased↝Erased :
-    {@0 A : Set a} {@0 B : Set b} →
+    {@0 A : Type a} {@0 B : Type b} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
     Very-stable (Erased A ↝[ k ] Erased B)
   Very-stable-Erased↝Erased {k = k} {A = A} {B = B} ext =
@@ -1019,7 +1019,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- extensionality).
 
   Very-stable-W :
-    {A : Set a} {P : A → Set p} →
+    {A : Type a} {P : A → Type p} →
     Extensionality p (a ⊔ p) →
     ∀ n →
     For-iterated-equality n Very-stable A →
@@ -1071,7 +1071,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   Very-stable-∃-Very-stable :
     Extensionality a a →
     Univalence a →
-    Very-stable (∃ λ (A : Set a) → Very-stable A)
+    Very-stable (∃ λ (A : Type a) → Very-stable A)
   Very-stable-∃-Very-stable ext univ =
     Stable→Left-inverse→Very-stable Stable-∃-Very-stable inv
     where
@@ -1109,7 +1109,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     -- Equalities between erased values are very stable.
 
     Very-stable-≡₀ :
-      {@0 A : Set a} →
+      {@0 A : Type a} →
       Very-stable-≡ (Erased A)
     Very-stable-≡₀ = Very-stable→Very-stable-≡ 0 Very-stable-Erased
 
@@ -1117,7 +1117,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     -- stable.
 
     Very-stable-≡₁ :
-      {@0 A : Set a} →
+      {@0 A : Type a} →
       For-iterated-equality 2 Very-stable (Erased A)
     Very-stable-≡₁ = Very-stable→Very-stable-≡ 1 Very-stable-≡₀
 
@@ -1126,7 +1126,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- A generalisation of Stable-H-level′.
 
   Stable-[]-H-level′ :
-    {A : Set a} →
+    {A : Type a} →
     Extensionality? k a a →
     ∀ n →
     For-iterated-equality (1 + n) Stable-[ k ] A →
@@ -1150,7 +1150,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- A generalisation of Stable-H-level.
 
   Stable-[]-H-level :
-    {A : Set a} →
+    {A : Type a} →
     Extensionality? k a a →
     ∀ n →
     For-iterated-equality (1 + n) Stable-[ k ] A →
@@ -1164,7 +1164,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- stable (assuming extensionality).
 
   Very-stable-H-level′ :
-    {A : Set a} →
+    {A : Type a} →
     Extensionality a a →
     ∀ n →
     For-iterated-equality n Very-stable A →
@@ -1184,7 +1184,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- stable (assuming extensionality).
 
   Very-stable-H-level :
-    {A : Set a} →
+    {A : Type a} →
     Extensionality a a →
     ∀ n →
     For-iterated-equality n Very-stable A →
@@ -1198,7 +1198,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Very-stable A (assuming extensionality).
 
   Very-stable-Very-stable≃Very-stable :
-    {A : Set a} →
+    {A : Type a} →
     Extensionality a a →
     Very-stable (Very-stable A) ≃ Very-stable A
   Very-stable-Very-stable≃Very-stable ext =
@@ -1281,7 +1281,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- in the file ReflectiveSubuniverse.v in the Coq HoTT library.
 
   Very-stable-Σ↔Π :
-    {A : Set a} {P : A → Set p} →
+    {A : Type a} {P : A → Type p} →
     Extensionality? k (a ⊔ p) (a ⊔ p) →
     Very-stable A →
     Very-stable (Σ A P) ↝[ k ]
@@ -1308,7 +1308,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- A generalisation of Very-stable-cong.
 
   Very-stable-congⁿ :
-    {A : Set a} {B : Set b} →
+    {A : Type a} {B : Type b} →
     Extensionality? k′ (a ⊔ b) (a ⊔ b) →
     ∀ n →
     A ↔[ k ] B →
@@ -1324,7 +1324,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- A generalisation of Stable-Π.
 
   Stable-Πⁿ :
-    {A : Set a} {P : A → Set p} →
+    {A : Type a} {P : A → Type p} →
     Extensionality a p →
     ∀ n →
     (∀ x → For-iterated-equality n Stable-[ k ] (P x)) →
@@ -1339,7 +1339,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- A generalisation of Very-stable-Π.
 
   Very-stable-Πⁿ :
-    {A : Set a} {P : A → Set p} →
+    {A : Type a} {P : A → Type p} →
     Extensionality a p →
     ∀ n →
     (∀ x → For-iterated-equality n Very-stable (P x)) →
@@ -1448,7 +1448,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- along [_]→.
 
   extendable :
-    {@0 A : Set a} {P : Erased A → Set b} →
+    {@0 A : Type a} {P : Erased A → Type b} →
     (∀ x → Very-stable (P x)) →
     Is-∞-extendable-along-[ [_]→ ] P
   extendable s zero    = _
@@ -1468,7 +1468,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Rijke, Shulman and Spitters.
 
   const-extendable :
-    {@0 A : Set a} {B : Set b} →
+    {@0 A : Type a} {B : Type b} →
     Very-stable B →
     Is-∞-extendable-along-[ [_]→ ] (λ (_ : Erased A) → B)
   const-extendable s = extendable (λ _ → s)
@@ -1496,7 +1496,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- []-cong kind of commutes with trans.
 
   []-cong-trans :
-    {@0 A : Set a} {@0 x y z : A} {@0 p : x ≡ y} {@0 q : y ≡ z} →
+    {@0 A : Type a} {@0 x y z : A} {@0 p : x ≡ y} {@0 q : y ≡ z} →
     []-cong [ trans p q ] ≡ trans ([]-cong [ p ]) ([]-cong [ q ])
   []-cong-trans =
     Very-stable→Stable 0 (Very-stable-≡₁ _ _ _ _)
@@ -1515,7 +1515,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- []-cong kind of commutes with cong.
 
   []-cong-cong :
-    {@0 A : Set a} {@0 B : Set b}
+    {@0 A : Type a} {@0 B : Type b}
     {@0 f : A → B} {@0 x y : A} {@0 p : x ≡ y} →
     []-cong [ cong f p ] ≡ cong (map f) ([]-cong [ p ])
   []-cong-cong {f = f} =
@@ -1540,13 +1540,13 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     -- extensionality).
 
     Erased-cong-≃-id :
-      {@0 A : Set a} →
+      {@0 A : Type a} →
       Extensionality a a →
       Erased-cong {k = equivalence} F.id ≡ F.id {A = Erased A}
     Erased-cong-≃-id ext = Eq.lift-equality ext (refl _)
 
     Erased-cong-≃-∘ :
-      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} →
       Extensionality (a ⊔ c) (a ⊔ c) →
       (@0 f : B ≃ C) (@0 g : A ≃ B) →
       Erased-cong {k = equivalence} (f F.∘ g) ≡
@@ -1557,14 +1557,14 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     -- (assuming extensionality).
 
     Erased-cong-≃ᴱ-id :
-      {@0 A : Set a} →
+      {@0 A : Type a} →
       Extensionality a a →
       Erased-cong {k = equivalenceᴱ} F.id ≡ F.id {A = Erased A}
     Erased-cong-≃ᴱ-id ext =
       EEq.[]-cong.to≡to→≡-Erased ax ext (refl _)
 
     Erased-cong-≃ᴱ-∘ :
-      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} →
       Extensionality (a ⊔ c) (a ⊔ c) →
       (@0 f : B ≃ᴱ C) (@0 g : A ≃ᴱ B) →
       Erased-cong {k = equivalenceᴱ} (f F.∘ g) ≡
@@ -1575,14 +1575,14 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     -- Erased is functorial for embeddings (assuming extensionality).
 
     Erased-cong-Embedding-id :
-      {@0 A : Set a} →
+      {@0 A : Type a} →
       Extensionality a a →
       Erased-cong {k = embedding} F.id ≡ F.id {A = Erased A}
     Erased-cong-Embedding-id ext =
       _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _
 
     Erased-cong-Embedding-∘ :
-      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} →
       Extensionality (a ⊔ c) (a ⊔ c) →
       (@0 f : Embedding B C) (@0 g : Embedding A B) →
       Erased-cong {k = embedding} (f F.∘ g) ≡
@@ -1593,7 +1593,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     -- A lemma.
 
     right-inverse-of-cong-∘ :
-      ∀ {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} {x} →
+      ∀ {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} {x} →
       (@0 f : B ↠ C) (@0 g : A ↠ B) →
       _↠_.right-inverse-of (Erased-cong (f F.∘ g)) x ≡
       _↠_.right-inverse-of (Erased-cong f F.∘ Erased-cong g) x
@@ -1618,7 +1618,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     -- extensionality).
 
     Erased-cong-↠-id :
-      {@0 A : Set a} →
+      {@0 A : Type a} →
       Extensionality a a →
       Erased-cong {k = surjection} F.id ≡ F.id {A = Erased A}
     Erased-cong-↠-id ext =                              $⟨ lemma ⟩
@@ -1634,7 +1634,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
         cong (_ ,_) $ apply-ext ext λ _ → cong (_ ,_) []-cong-[refl]
 
     Erased-cong-↠-∘ :
-      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} →
       Extensionality c (a ⊔ c) →
       (@0 f : B ↠ C) (@0 g : A ↠ B) →
       Erased-cong {k = surjection} (f F.∘ g) ≡
@@ -1665,7 +1665,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     -- Erased is functorial for bijections (assuming extensionality).
 
     Erased-cong-↔-id :
-      {@0 A : Set a} →
+      {@0 A : Type a} →
       Extensionality a a →
       Erased-cong {k = bijection} F.id ≡ F.id {A = Erased A}
     Erased-cong-↔-id ext =                          $⟨ lemma ⟩
@@ -1686,7 +1686,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
         (apply-ext ext λ _ → []-cong-[refl])
 
     Erased-cong-↔-∘ :
-      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} →
       Extensionality (a ⊔ c) (a ⊔ c) →
       (@0 f : B ↔ C) (@0 g : A ↔ B) →
       Erased-cong {k = bijection} (f F.∘ g) ≡
@@ -1723,7 +1723,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     -- Erased is functorial for injections (assuming extensionality).
 
     Erased-cong-↣-id :
-      {@0 A : Set a} →
+      {@0 A : Type a} →
       Extensionality a a →
       Erased-cong {k = injection} F.id ≡ F.id {A = Erased A}
     Erased-cong-↣-id ext =                       $⟨ lemma ⟩
@@ -1746,7 +1746,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
           eq                      ∎
 
     Erased-cong-↣-∘ :
-      {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+      {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} →
       Extensionality (a ⊔ c) (a ⊔ c) →
       (@0 f : B ↣ C) (@0 g : A ↣ B) →
       Erased-cong {k = injection} (f F.∘ g) ≡
@@ -1780,7 +1780,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- assuming extensionality).
 
   Erased-cong-id :
-    {@0 A : Set a} →
+    {@0 A : Type a} →
     Extensionality? k a a →
     Erased-cong F.id ≡ F.id {k = k} {A = Erased A}
   Erased-cong-id {k = implication}         = λ _ → map-id
@@ -1793,7 +1793,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   Erased-cong-id {k = equivalenceᴱ}        = Erased-cong-≃ᴱ-id
 
   Erased-cong-∘ :
-    {@0 A : Set a} {@0 B : Set b} {@0 C : Set c} →
+    {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} →
     Extensionality? k (a ⊔ c) (a ⊔ c) →
     (@0 f : B ↝[ k ] C) (@0 g : A  ↝[ k ] B) →
     Erased-cong (f F.∘ g) ≡ Erased-cong f F.∘ Erased-cong g
@@ -1813,12 +1813,12 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   -- A variant of the Singleton type family with erased equality proofs.
 
-  Erased-singleton : {A : Set a} → @0 A → Set a
+  Erased-singleton : {A : Type a} → @0 A → Type a
   Erased-singleton x = ∃ λ y → Erased (y ≡ x)
 
   -- A variant of Other-singleton.
 
-  Erased-other-singleton : {A : Set a} → @0 A → Set a
+  Erased-other-singleton : {A : Type a} → @0 A → Type a
   Erased-other-singleton x = ∃ λ y → Erased (x ≡ y)
 
   -- The type of triples consisting of two values of type A, one erased,

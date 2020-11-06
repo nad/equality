@@ -17,8 +17,8 @@ open import H-level.Closure eq
 
 -- Excluded middle (roughly as stated in the HoTT book).
 
-Excluded-middle : (ℓ : Level) → Set (lsuc ℓ)
-Excluded-middle p = {P : Set p} → Is-proposition P → Dec P
+Excluded-middle : (ℓ : Level) → Type (lsuc ℓ)
+Excluded-middle p = {P : Type p} → Is-proposition P → Dec P
 
 -- Excluded middle is pointwise propositional (assuming
 -- extensionality).

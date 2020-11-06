@@ -39,13 +39,13 @@ private
 
   -- Some simple lemmas.
 
-  ≡↔≡ : ∀ {a} {A : Set a} {x y : A} → x ≡ y ↔ x P.≡ y
+  ≡↔≡ : ∀ {a} {A : Type a} {x y : A} → x ≡ y ↔ x P.≡ y
   ≡↔≡ = proj₁ (all-equality-types-isomorphic eq EP.equality-with-J)
 
-  ≡→≡ : ∀ {a} {A : Set a} {x y : A} → x ≡ y → x P.≡ y
+  ≡→≡ : ∀ {a} {A : Type a} {x y : A} → x ≡ y → x P.≡ y
   ≡→≡ = _↔_.to ≡↔≡
 
-  ≡←≡ : ∀ {a} {A : Set a} {x y : A} → x P.≡ y → x ≡ y
+  ≡←≡ : ∀ {a} {A : Type a} {x y : A} → x P.≡ y → x ≡ y
   ≡←≡ = _↔_.from ≡↔≡
 
 -- A variant of +-*-Solver.solve.

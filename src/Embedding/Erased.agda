@@ -27,7 +27,7 @@ open import Preimage eq using (_⁻¹_)
 private
   variable
     a b t   : Level
-    A B C   : Set a
+    A B C   : Type a
     f k x y : A
 
 ------------------------------------------------------------------------
@@ -35,14 +35,14 @@ private
 
 -- The property of being an embedding with erased "proofs".
 
-Is-embeddingᴱ : {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Is-embeddingᴱ : {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
 Is-embeddingᴱ f = ∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} f)
 
 -- Is-embeddingᴱ is propositional in erased contexts (assuming
 -- extensionality).
 
 @0 Is-embeddingᴱ-propositional :
-  {A : Set a} {B : Set b} {f : A → B} →
+  {A : Type a} {B : Type b} {f : A → B} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-proposition (Is-embeddingᴱ f)
 Is-embeddingᴱ-propositional {b = b} ext =
@@ -52,7 +52,7 @@ Is-embeddingᴱ-propositional {b = b} ext =
 
 -- Embeddings with erased proofs.
 
-record Embeddingᴱ (From : Set f) (To : Set t) : Set (f ⊔ t) where
+record Embeddingᴱ (From : Type f) (To : Type t) : Type (f ⊔ t) where
   field
     to           : From → To
     is-embedding : Is-embeddingᴱ to
@@ -85,7 +85,7 @@ Is-embedding→Is-embeddingᴱ {f = f} =
   (∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} f))    □
 
 @0 Is-embedding≃Is-embeddingᴱ :
-  {A : Set a} {B : Set b} {f : A → B} →
+  {A : Type a} {B : Type b} {f : A → B} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Is-embedding f ↝[ k ] Is-embeddingᴱ f
 Is-embedding≃Is-embeddingᴱ {b = b} {k = k} {f = f} ext =
@@ -107,7 +107,7 @@ Embedding→Embeddingᴱ {A = A} {B = B} =
   Embeddingᴱ A B                       □
 
 @0 Embedding≃Embeddingᴱ :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Embedding A B ↝[ k ] Embeddingᴱ A B
 Embedding≃Embeddingᴱ {A = A} {B = B} ext =
@@ -123,10 +123,10 @@ Embeddingᴱ→Embedding = inverse-ext? Embedding≃Embeddingᴱ _
 -- erased proofs.
 
 Erased-proofs :
-  {A : Set a} {B : Set b} →
+  {A : Type a} {B : Type b} →
   (to : A → B) →
   (∀ {x y} → to x ≡ to y → x ≡ y) →
-  Set (a ⊔ b)
+  Type (a ⊔ b)
 Erased-proofs to from =
   ∀ {x y} → EEq.Erased-proofs (cong {x = x} {y = y} to) from
 

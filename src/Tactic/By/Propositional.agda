@@ -14,7 +14,7 @@ open import List equality-with-J
 open import Maybe equality-with-J
 open import Monad equality-with-J
 open import Tactic.By equality-with-J as TB
-open import TC-monad equality-with-J
+open import TC-monad equality-with-J as TC hiding (Type)
 
 open TB public using (⟨_⟩)
 
@@ -22,7 +22,7 @@ private
 
   -- Constructs the type of equalities between its two arguments.
 
-  equality : Term → Term → Type
+  equality : Term → Term → TC.Type
   equality lhs rhs = def (quote _≡_) (varg lhs ∷ varg rhs ∷ [])
 
   -- An illustration of what the cong functions constructed by
@@ -30,7 +30,7 @@ private
 
   cong₃′ :
     ∀ {a b c d : Level}
-      {A : Set a} {B : Set b} {C : Set c} {D : Set d}
+      {A : Type a} {B : Type b} {C : Type c} {D : Type d}
       {x₁ y₁ x₂ y₂ x₃ y₃}
     (f : A → B → C → D) →
     x₁ ≡ y₁ → x₂ ≡ y₂ → x₃ ≡ y₃ → f x₁ x₂ x₃ ≡ f y₁ y₂ y₃
@@ -113,15 +113,15 @@ private
     g zero    _ _ = 12
     g (suc _) _ _ = 12
 
-    fst : ∀ {a b} {A : Set a} {B : A → Set b} →
+    fst : ∀ {a b} {A : Type a} {B : A → Type b} →
           Σ A B → A
     fst = proj₁
 
     {-# NOINLINE fst #-}
 
-    record R (F : Set → Set) : Set₁ where
+    record R (F : Type → Type) : Type₁ where
       field
-        p : {A : Set} {x : F A} → x ≡ x
+        p : {A : Type} {x : F A} → x ≡ x
 
     open R ⦃ … ⦄ public
 
@@ -183,10 +183,10 @@ private
       -- "refl unknown unknown lhs" in try-refl.
 
       test₁₅ :
-        (F : Set → Set → Set)
-        (G : Bool → Set → Set) →
-        ((A : Set) → F (G false A) A ≡ G false (F A A)) →
-        (A : Set) →
+        (F : Type → Type → Type)
+        (G : Bool → Type → Type) →
+        ((A : Type) → F (G false A) A ≡ G false (F A A)) →
+        (A : Type) →
         G false (F (G false A) A) ≡
         G false (G false (F A A))
       test₁₅ F G hyp A =
@@ -194,7 +194,7 @@ private
         G false (G false (F A A))  ∎
 
       -- test₁₇ :
-      --   (P : ℕ → Set)
+      --   (P : ℕ → Type)
       --   (f : ∀ {n} → P n → P n)
       --   (p : P 0) →
       --   f (subst P refl p) ≡ f p
@@ -202,18 +202,18 @@ private
 
       test₁₈ :
         (subst′ :
-           ∀ {a p} {A : Set a} {x y : A}
-           (P : A → Set p) → x ≡ y → P x → P y) →
-        (∀ {a p} {A : Set a} {x : A} (P : A → Set p) (p : P x) →
+           ∀ {a p} {A : Type a} {x y : A}
+           (P : A → Type p) → x ≡ y → P x → P y) →
+        (∀ {a p} {A : Type a} {x : A} (P : A → Type p) (p : P x) →
          subst′ P refl p ≡ p) →
-        (P : ℕ → Set)
+        (P : ℕ → Type)
         (f : ∀ {n} → P n → P n)
         (p : P 0) →
         f (subst′ P refl p) ≡ f p
       test₁₈ _ subst′-refl P _ _ = by (subst′-refl P)
 
       -- test₁₉ :
-      --   {F : Set → Set} ⦃ r : R F ⦄ {A : Set} {x₁ x₂ : F A}
+      --   {F : Type → Type} ⦃ r : R F ⦄ {A : Type} {x₁ x₂ : F A}
       --   (p₁ p₂ : x₁ ≡ x₂) (assumption : p₁ ≡ p₂) →
       --   trans p p₁ ≡ trans p p₂
       -- test₁₉ p₁ p₂ assumption =
@@ -284,10 +284,10 @@ private
         _∷_ ⟨$⟩ return xs  ∎
 
       test₁₅ :
-        (F : Set → Set → Set)
-        (G : Bool → Set → Set) →
-        ((A : Set) → F (G false A) A ≡ G false (F A A)) →
-        (A : Set) →
+        (F : Type → Type → Type)
+        (G : Bool → Type → Type) →
+        ((A : Type) → F (G false A) A ≡ G false (F A A)) →
+        (A : Type) →
         G false (F (G false A) A) ≡
         G false (G false (F A A))
       test₁₅ F G hyp A =
@@ -299,7 +299,7 @@ private
       test₁₆ hyp = ⟨by⟩ hyp
 
       test₁₇ :
-        (P : ℕ → Set)
+        (P : ℕ → Type)
         (f : ∀ {n} → P n → P n)
         (p : P 0) →
         f ⟨ subst P refl p ⟩ ≡ f p
@@ -307,18 +307,18 @@ private
 
       test₁₈ :
         (subst′ :
-           ∀ {a p} {A : Set a} {x y : A}
-           (P : A → Set p) → x ≡ y → P x → P y) →
-        (∀ {a p} {A : Set a} {x : A} (P : A → Set p) (p : P x) →
+           ∀ {a p} {A : Type a} {x y : A}
+           (P : A → Type p) → x ≡ y → P x → P y) →
+        (∀ {a p} {A : Type a} {x : A} (P : A → Type p) (p : P x) →
          subst′ P refl p ≡ p) →
-        (P : ℕ → Set)
+        (P : ℕ → Type)
         (f : ∀ {n} → P n → P n)
         (p : P 0) →
         f ⟨ subst′ P refl p ⟩ ≡ f p
       test₁₈ _ subst′-refl _ _ _ = ⟨by⟩ subst′-refl
 
       test₁₉ :
-        {F : Set → Set} ⦃ r : R F ⦄ {A : Set} {x₁ x₂ : F A}
+        {F : Type → Type} ⦃ r : R F ⦄ {A : Type} {x₁ x₂ : F A}
         (p₁ p₂ : x₁ ≡ x₂) (assumption : p₁ ≡ p₂) →
         trans p p₁ ≡ trans p p₂
       test₁₉ p₁ p₂ assumption =

@@ -32,7 +32,7 @@ open import Surjection equality-with-J using (_↠_)
 private
   variable
     a b     : Level
-    A B     : Set a
+    A B     : Type a
     p q x   : A
     f       : A → B
     xs      : List A
@@ -45,7 +45,7 @@ private
 
 module _
   -- The underlying queue type family.
-  (Q : ∀ {ℓ} → @0 Set ℓ → Set ℓ)
+  (Q : ∀ {ℓ} → @0 Type ℓ → Type ℓ)
 
   -- Note that the predicate is required to be trivial. Perhaps the
   -- code could be made more general, but I have not found a use for
@@ -69,20 +69,20 @@ module _
     -- flexibility that comes with parametrisation, but I do not want
     -- to force users to work in a parametrised setting.)
 
-    Queue_⟪_⟫ : {@0 A : Set a} → @0 List A → Set a
+    Queue_⟪_⟫ : {@0 A : Type a} → @0 List A → Type a
     Queue_⟪_⟫ {A = A} xs =
       ∥ (∃ λ (q : Q A) → Erased (Q.to-List _ q ≡ xs)) ∥
 
   -- Queues.
 
-  Queue : Set a → Set a
+  Queue : Type a → Type a
   Queue A = ∃ λ (xs : Erased (List A)) → Queue_⟪_⟫ (erased xs)
 
 -- The remainder of the code uses an implicit underlying queue type
 -- family parameter, and an extra instance argument.
 
 module _
-  {Q : ∀ {ℓ} → @0 Set ℓ → Set ℓ}
+  {Q : ∀ {ℓ} → @0 Type ℓ → Type ℓ}
   ⦃ is-queue : ∀ {ℓ} → Q.Is-queue (λ A → Q A) (λ _ → ↑ _ ⊤) ℓ ⦄
   ⦃ is-queue-with-map :
       ∀ {ℓ₁ ℓ₂} → Q.Is-queue-with-map (λ A → Q A) ℓ₁ ℓ₂ ⦄
@@ -206,7 +206,7 @@ module _
       -- list.
 
       to-List-, :
-        ∀ {A : Set a} {s : Very-stable-≡ A} {xs q p} →
+        ∀ {A : Type a} {s : Very-stable-≡ A} {xs q p} →
         to-List s ([ xs ] , ∣ q , p ∣) ≡ Q.to-List _ q
       to-List-, = refl _
 
@@ -291,7 +291,7 @@ module _
         -- functions on queues.
 
         unary :
-          {@0 A : Set a} {@0 B : Set b}
+          {@0 A : Type a} {@0 B : Type b}
           {@0 xs : List A} {@0 f : List A → List B}
           (g : Q A → Q B) →
           @0 (∀ {q} → Q.to-List _ (g q) ≡ f (Q.to-List _ q)) →
@@ -326,7 +326,7 @@ module _
     -- TODO: Perhaps it makes sense to make Q an explicit argument of
     -- this definition.
 
-    Result-⟪_⟫ : {A : Set a} → @0 List A → Set a
+    Result-⟪_⟫ : {A : Type a} → @0 List A → Type a
     Result-⟪_⟫ {A = A} xs =
       ∃ λ (q : Maybe (A × Queue Q A)) →
         Erased (_↔_.to Maybe[×Queue]↔Listⁱ q ≡ xs)
@@ -465,7 +465,7 @@ module _
 
       -- A variant of the result of the dequeue operation.
 
-      Result : Set a → Set a
+      Result : Type a → Type a
       Result A =
         ∃ λ (xs : Erased (List A)) → Indexed.Result-⟪ erased xs ⟫
 

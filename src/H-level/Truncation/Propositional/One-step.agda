@@ -33,8 +33,8 @@ open import Surjection equality-with-J using (_↠_)
 private
   variable
     a b p   : Level
-    A B     : Set a
-    P       : A → Set p
+    A B     : Type a
+    P       : A → Type p
     e r x y : A
     n       : ℕ
 
@@ -46,7 +46,7 @@ private
 -- This definition is based on that in van Doorn's "Constructing the
 -- Propositional Truncation using Non-recursive HITs".
 
-data ∥_∥¹ (A : Set a) : Set a where
+data ∥_∥¹ (A : Type a) : Type a where
   ∣_∣          : A → ∥ A ∥¹
   ∣∣-constantᴾ : PD.Constant (∣_∣ {A = A})
 
@@ -60,7 +60,7 @@ data ∥_∥¹ (A : Set a) : Set a where
 
 -- A dependent eliminator, expressed using paths.
 
-record Elimᴾ {A : Set a} (P : ∥ A ∥¹ → Set p) : Set (a ⊔ p) where
+record Elimᴾ {A : Type a} (P : ∥ A ∥¹ → Type p) : Type (a ⊔ p) where
   no-eta-equality
   field
     ∣∣ʳ          : ∀ x → P ∣ x ∣
@@ -81,7 +81,7 @@ elimᴾ {A = A} {P = P} e = helper
 
 -- A non-dependent eliminator, expressed using paths.
 
-record Recᴾ (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Recᴾ (A : Type a) (B : Type b) : Type (a ⊔ b) where
   no-eta-equality
   field
     ∣∣ʳ          : A → B
@@ -98,7 +98,7 @@ recᴾ r = elimᴾ λ where
 
 -- A dependent eliminator.
 
-record Elim {A : Set a} (P : ∥ A ∥¹ → Set p) : Set (a ⊔ p) where
+record Elim {A : Type a} (P : ∥ A ∥¹ → Type p) : Type (a ⊔ p) where
   no-eta-equality
   field
     ∣∣ʳ          : ∀ x → P ∣ x ∣
@@ -122,7 +122,7 @@ elim-∣∣-constant = dcong-subst≡→[]≡ (refl _)
 
 -- A non-dependent eliminator.
 
-record Rec (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Rec (A : Type a) (B : Type b) : Type (a ⊔ b) where
   no-eta-equality
   field
     ∣∣ʳ          : A → B
@@ -259,7 +259,7 @@ private
 -- "Constructing the Propositional Truncation using Non-recursive
 -- HITs".
 
-∥_∥¹-out-^ : Set a → ℕ → Set a
+∥_∥¹-out-^ : Type a → ℕ → Type a
 ∥ A ∥¹-out-^ zero    = A
 ∥ A ∥¹-out-^ (suc n) = ∥ ∥ A ∥¹-out-^ n ∥¹
 
@@ -297,7 +297,7 @@ private
   _ = refl _
 
   _ :
-    {A : Set a} {x : ∥ A ∥¹-out-^ (suc n)} →
+    {A : Type a} {x : ∥ A ∥¹-out-^ (suc n)} →
     _↔_.left-inverse-of (∥∥¹-∥∥¹-out-^-commute (1 + n)) ∣ x ∣ ≡
     cong ∣_∣ (_↔_.left-inverse-of (∥∥¹-∥∥¹-out-^-commute n) x)
   _ = refl _
@@ -305,7 +305,7 @@ private
 -- A variant of ∥_∥¹-out-^ which applies the one-step truncation the
 -- given number of times from the "inside".
 
-∥_∥¹-in-^ : Set a → ℕ → Set a
+∥_∥¹-in-^ : Type a → ℕ → Type a
 ∥ A ∥¹-in-^ zero    = A
 ∥ A ∥¹-in-^ (suc n) = ∥ ∥ A ∥¹ ∥¹-in-^ n
 

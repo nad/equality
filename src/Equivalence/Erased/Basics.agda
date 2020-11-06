@@ -24,8 +24,8 @@ open import Preimage eq as Preimage using (_⁻¹_)
 private
   variable
     a b d ℓ p : Level
-    A B C     : Set a
-    P Q       : A → Set p
+    A B C     : Type a
+    P Q       : A → Type p
     x y       : A
     f g       : (x : A) → P x
 
@@ -34,19 +34,19 @@ private
 
 -- Contractibility with an erased proof.
 
-Contractibleᴱ : Set ℓ → Set ℓ
+Contractibleᴱ : Type ℓ → Type ℓ
 Contractibleᴱ A = ∃ λ (x : A) → Erased (∀ y → x ≡ y)
 
 -- "Preimages" with erased proofs.
 
 infix 5 _⁻¹ᴱ_
 
-_⁻¹ᴱ_ : {A : Set a} {@0 B : Set b} → @0 (A → B) → @0 B → Set (a ⊔ b)
+_⁻¹ᴱ_ : {A : Type a} {@0 B : Type b} → @0 (A → B) → @0 B → Type (a ⊔ b)
 f ⁻¹ᴱ y = ∃ λ x → Erased (f x ≡ y)
 
 -- Is-equivalence with erased proofs.
 
-Is-equivalenceᴱ : {A : Set a} {B : Set b} → @0 (A → B) → Set (a ⊔ b)
+Is-equivalenceᴱ : {A : Type a} {B : Type b} → @0 (A → B) → Type (a ⊔ b)
 Is-equivalenceᴱ f = ∀ y → Contractibleᴱ (f ⁻¹ᴱ y)
 
 ------------------------------------------------------------------------
@@ -93,7 +93,7 @@ private
 
   infix 4 _≃ᴱ_
 
-  record _≃ᴱ_ (A : Set a) (B : Set b) : Set (a ⊔ b) where
+  record _≃ᴱ_ (A : Type a) (B : Type b) : Type (a ⊔ b) where
     constructor ⟨_,_⟩
     field
       to             : A → B
@@ -104,14 +104,14 @@ open Dummy public using (_≃ᴱ_; ⟨_,_⟩) hiding (module _≃ᴱ_)
 -- A variant of the constructor of _≃ᴱ_ with erased type arguments.
 
 ⟨_,_⟩₀ :
-  {@0 A : Set a} {@0 B : Set b}
+  {@0 A : Type a} {@0 B : Type b}
   (to : A → B) → Is-equivalenceᴱ to → A ≃ᴱ B
 ⟨ to , eq ⟩₀ = ⟨ to , eq ⟩
 
 -- Note that the type arguments A and B are erased. This is not the
 -- case for the record module Dummy._≃ᴱ_.
 
-module _≃ᴱ_ {@0 A : Set a} {@0 B : Set b} (A≃B : A ≃ᴱ B) where
+module _≃ᴱ_ {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ᴱ B) where
 
   -- The "left-to-right" direction of the equivalence.
 
@@ -192,8 +192,8 @@ module _≃ᴱ_ {@0 A : Set a} {@0 B : Set b} (A≃B : A ≃ᴱ B) where
 -- Data corresponding to the erased proofs of an equivalence with
 -- erased proofs.
 
-record Erased-proofs {A : Set a} {B : Set b}
-                     (to : A → B) (from : B → A) : Set (a ⊔ b) where
+record Erased-proofs {A : Type a} {B : Type b}
+                     (to : A → B) (from : B → A) : Type (a ⊔ b) where
   field
     right-inverse-of : ∀ y → to (from y) ≡ y
     irrelevance      : ∀ y (p : to ⁻¹ y) →
@@ -249,7 +249,7 @@ record Erased-proofs {A : Set a} {B : Set b}
 -- A variant of ↔→≃ᴱ.
 
 ⇔→≃ᴱ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   @0 Is-proposition A → @0 Is-proposition B →
   (A → B) → (B → A) →
   A ≃ᴱ B

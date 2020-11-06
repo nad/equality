@@ -64,7 +64,7 @@ isomorphism-is-equality′ Univ ass
   -- If two sets are isomorphic, then the underlying types are
   -- equivalent.
 
-  ≅⇒≃ : (C D : Fun.Obj) → C Fun.≅ D → Type C ≃ Type D
+  ≅⇒≃ : (C D : Fun.Obj) → C Fun.≅ D → ⌞ C ⌟ ≃ ⌞ D ⌟
   ≅⇒≃ C D = _≃_.from (≃≃≅-Set (# 1) ext C D)
 
   -- The "standard notion of structure" that the structure identity
@@ -72,7 +72,7 @@ isomorphism-is-equality′ Univ ass
 
   S : Standard-notion-of-structure (# 1) (# 1) Bij.precategory
   S = record
-    { P               = El a ∘ Type
+    { P               = El a ∘ ⌞_⌟
     ; H               = λ {C D} x y C≅D →
                           Is-isomorphism a (≅⇒≃ C D C≅D) x y
     ; H-prop          = λ {C D} → H-prop′ C D
@@ -87,14 +87,14 @@ isomorphism-is-equality′ Univ ass
       abstract
 
         H-prop′ :
-          (C D : SET (# 1))
-          {x : El a (Type C)} {y : El a (Type D)}
+          (C D : Set (# 1))
+          {x : El a ⌞ C ⌟} {y : El a ⌞ D ⌟}
           (f : Bij.Hom C D) →
           Is-proposition (Is-isomorphism a (≅⇒≃ C D f) x y)
         H-prop′ _ D _ = El-set (proj₂ D)
 
         H-id′ :
-          (C : SET (# 1)) {x : El a (Type C)} →
+          (C : Set (# 1)) {x : El a ⌞ C ⌟} →
           Is-isomorphism a (≅⇒≃ C C (Bij.id {X = C})) x x
         H-id′ C {x} =
           resp a (≅⇒≃ C C (Bij.id {X = C})) x  ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
@@ -102,8 +102,8 @@ isomorphism-is-equality′ Univ ass
           x                                    ∎
 
         H-∘′ :
-          (B C D : SET (# 1))
-          {x : El a (Type B)} {y : El a (Type C)} {z : El a (Type D)}
+          (B C D : Set (# 1))
+          {x : El a ⌞ B ⌟} {y : El a ⌞ C ⌟} {z : El a ⌞ D ⌟}
           {B≅C : Bij.Hom B C} {C≅D : Bij.Hom C D} →
           Is-isomorphism a (≅⇒≃ B C B≅C) x y →
           Is-isomorphism a (≅⇒≃ C D C≅D) y z →
@@ -118,8 +118,8 @@ isomorphism-is-equality′ Univ ass
           z                                              ∎
 
         H-antisymmetric′ :
-          (C : SET (# 1))
-          (x y : El a (Type C)) →
+          (C : Set (# 1))
+          (x y : El a ⌞ C ⌟) →
           Is-isomorphism a (≅⇒≃ C C (Bij.id {X = C})) x y →
           Is-isomorphism a (≅⇒≃ C C (Bij.id {X = C})) y x →
           x ≡ y

@@ -28,22 +28,22 @@ import Suspension eq as S
 private
   variable
     a b l m p r : Level
-    A           : Set a
+    A           : Type a
     S           : A
 
 -- Spans.
 
-record Span l r m : Set (lsuc (l ⊔ r ⊔ m)) where
+record Span l r m : Type (lsuc (l ⊔ r ⊔ m)) where
   field
-    {Left}   : Set l
-    {Right}  : Set r
-    {Middle} : Set m
+    {Left}   : Type l
+    {Right}  : Type r
+    {Middle} : Type m
     left     : Middle → Left
     right    : Middle → Right
 
 -- Pushouts.
 
-data Pushout (S : Span l r m) : Set (l ⊔ r ⊔ m) where
+data Pushout (S : Span l r m) : Type (l ⊔ r ⊔ m) where
   inl   : Span.Left  S → Pushout S
   inr   : Span.Right S → Pushout S
   glueᴾ : (x : Span.Middle S) →
@@ -59,7 +59,7 @@ glue x = _↔_.from ≡↔≡ (glueᴾ x)
 
 elimᴾ :
   {S : Span l m r} (open Span S)
-  (P : Pushout S → Set p)
+  (P : Pushout S → Type p)
   (h₁ : (x : Left) → P (inl x))
   (h₂ : (x : Right) → P (inr x)) →
   (∀ x → P.[ (λ i → P (glueᴾ x i)) ] h₁ (left x) ≡ h₂ (right x)) →
@@ -83,7 +83,7 @@ recᴾ = elimᴾ _
 
 elim :
   {S : Span l m r} (open Span S)
-  (P : Pushout S → Set p)
+  (P : Pushout S → Type p)
   (h₁ : (x : Left) → P (inl x))
   (h₂ : (x : Right) → P (inr x)) →
   (∀ x → subst P (glue x) (h₁ (left x)) ≡ h₂ (right x)) →
@@ -91,7 +91,7 @@ elim :
 elim P h₁ h₂ g = elimᴾ P h₁ h₂ (subst≡→[]≡ ∘ g)
 
 elim-glue :
-  {S : Span l m r} (open Span S) {P : Pushout S → Set p}
+  {S : Span l m r} (open Span S) {P : Pushout S → Type p}
   {h₁ : (x : Left) → P (inl x)}
   {h₂ : (x : Right) → P (inr x)}
   {g : ∀ x → subst P (glue x) (h₁ (left x)) ≡ h₂ (right x)}
@@ -119,7 +119,7 @@ rec-glue = cong-≡↔≡ (refl _)
 
 -- Cocones.
 
-Cocone : Span l m r → Set a → Set (a ⊔ l ⊔ m ⊔ r)
+Cocone : Span l m r → Type a → Type (a ⊔ l ⊔ m ⊔ r)
 Cocone S A =
   ∃ λ (left  : Left  → A) →
   ∃ λ (right : Right → A) →
@@ -193,7 +193,7 @@ Pushout→↔Cocone {S = S} {A = A} = record
 
 -- Joins.
 
-Join : Set a → Set b → Set (a ⊔ b)
+Join : Type a → Type b → Type (a ⊔ b)
 Join A B = Pushout (record
   { Middle = A × B
   ; left   = proj₁
@@ -202,7 +202,7 @@ Join A B = Pushout (record
 
 -- Cones.
 
-Cone : {A : Set a} {B : Set b} → (A → B) → Set (a ⊔ b)
+Cone : {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
 Cone f = Pushout (record
   { Left  = ⊤
   ; right = f
@@ -210,7 +210,7 @@ Cone f = Pushout (record
 
 -- Wedges.
 
-Wedge : Pointed-type a → Pointed-type b → Set (a ⊔ b)
+Wedge : Pointed-type a → Pointed-type b → Type (a ⊔ b)
 Wedge (A , a) (B , b) =
   Pushout (record
     { Middle = ⊤
@@ -220,7 +220,7 @@ Wedge (A , a) (B , b) =
 
 -- Smash products.
 
-Smash-product : Pointed-type a → Pointed-type b → Set (a ⊔ b)
+Smash-product : Pointed-type a → Pointed-type b → Type (a ⊔ b)
 Smash-product PA@(A , a) PB@(B , b) = Cone f
   where
   f : Wedge PA PB → A × B
@@ -228,7 +228,7 @@ Smash-product PA@(A , a) PB@(B , b) = Cone f
 
 -- Suspensions.
 
-Susp : Set a → Set a
+Susp : Type a → Type a
 Susp A = Pushout (record
   { Left   = ⊤
   ; Middle = A

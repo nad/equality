@@ -21,8 +21,9 @@ open import Agda.Builtin.IO public using (IO)
 -- The IO monad
 
 postulate
-  returnIO : ∀ {a} {A : Set a} → A → IO A
-  bindIO   : ∀ {a b} {A : Set a} {B : Set b} → IO A → (A → IO B) → IO B
+  returnIO : ∀ {a} {A : Type a} → A → IO A
+  bindIO   : ∀ {a b} {A : Type a} {B : Type b} →
+             IO A → (A → IO B) → IO B
 
 {-# COMPILE GHC returnIO = \_ _ -> return    #-}
 {-# COMPILE GHC bindIO   = \_ _ _ _ -> (>>=) #-}

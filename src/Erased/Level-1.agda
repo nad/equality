@@ -34,9 +34,9 @@ open import Univalence-axiom eq-J as U using (≡⇒→)
 private
   variable
     a b c ℓ       : Level
-    A B           : Set a
+    A B           : Type a
     eq k k′ p x y : A
-    P             : A → Set p
+    P             : A → Type p
     f g           : A → B
     n             : ℕ
 
@@ -53,7 +53,7 @@ open import Erased.Basics eq-J public
 infixl 5 _>>=′_
 
 _>>=′_ :
-  {@0 A : Set a} {@0 B : Set b} →
+  {@0 A : Type a} {@0 B : Type b} →
   Erased A → (A → Erased B) → Erased B
 x >>=′ f = [ erased (f (erased x)) ]
 
@@ -61,11 +61,11 @@ instance
 
   -- Erased is a monad.
 
-  raw-monad : Raw-monad (λ (A : Set a) → Erased A)
+  raw-monad : Raw-monad (λ (A : Type a) → Erased A)
   Raw-monad.return raw-monad = [_]→
   Raw-monad._>>=_  raw-monad = _>>=′_
 
-  monad : Monad (λ (A : Set a) → Erased A)
+  monad : Monad (λ (A : Type a) → Erased A)
   Monad.raw-monad      monad = raw-monad
   Monad.left-identity  monad = λ _ _ → refl _
   Monad.right-identity monad = λ _ → refl _
@@ -77,17 +77,17 @@ instance
 -- Erased preserves dependent functions.
 
 map :
-  {@0 A : Set a} {@0 P : A → Set b} →
+  {@0 A : Type a} {@0 P : A → Type b} →
   @0 ((x : A) → P x) → (x : Erased A) → Erased (P (erased x))
 map f [ x ] = [ f x ]
 
 -- Erased is functorial for dependent functions.
 
-map-id : {@0 A : Set a} → map id ≡ id {A = Erased A}
+map-id : {@0 A : Type a} → map id ≡ id {A = Erased A}
 map-id = refl _
 
 map-∘ :
-  {@0 A : Set a} {@0 P : A → Set b} {@0 Q : {x : A} → P x → Set c}
+  {@0 A : Type a} {@0 P : A → Type b} {@0 Q : {x : A} → P x → Type c}
   (@0 f : ∀ {x} (y : P x) → Q y) (@0 g : (x : A) → P x) →
   map (f ∘ g) ≡ map f ∘ map g
 map-∘ _ _ = refl _
@@ -95,7 +95,7 @@ map-∘ _ _ = refl _
 -- Erased preserves logical equivalences.
 
 Erased-cong-⇔ :
-  {@0 A : Set a} {@0 B : Set b} →
+  {@0 A : Type a} {@0 B : Type b} →
   @0 A ⇔ B → Erased A ⇔ Erased B
 Erased-cong-⇔ A⇔B = record
   { to   = map (_⇔_.to   A⇔B)
@@ -105,12 +105,12 @@ Erased-cong-⇔ A⇔B = record
 -- Erased is functorial for logical equivalences.
 
 Erased-cong-⇔-id :
-  {@0 A : Set a} →
+  {@0 A : Type a} →
   Erased-cong-⇔ F.id ≡ F.id {A = Erased A}
 Erased-cong-⇔-id = refl _
 
 Erased-cong-⇔-∘ :
-  {@0 A : Set a} {@0 B : Set b} {@0 C : Set c}
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
   (@0 f : B ⇔ C) (@0 g : A ⇔ B) →
   Erased-cong-⇔ (f F.∘ g) ≡ Erased-cong-⇔ f F.∘ Erased-cong-⇔ g
 Erased-cong-⇔-∘ _ _ = refl _
@@ -120,7 +120,7 @@ Erased-cong-⇔-∘ _ _ = refl _
 
 -- In an erased context Erased A is always isomorphic to A.
 
-Erased↔ : {@0 A : Set a} → Erased (Erased A ↔ A)
+Erased↔ : {@0 A : Type a} → Erased (Erased A ↔ A)
 Erased↔ = [ record
   { surjection = record
     { logical-equivalence = record
@@ -138,7 +138,7 @@ Erased↔ = [ record
 -- Erased (Erased A) is isomorphic to Erased A.
 
 Erased-Erased↔Erased :
-  {@0 A : Set a} →
+  {@0 A : Type a} →
   Erased (Erased A) ↔ Erased A
 Erased-Erased↔Erased = record
   { surjection = record
@@ -182,7 +182,7 @@ Erased-⊥↔⊥ = record
 -- Erased commutes with Π A.
 
 Erased-Π↔Π :
-  {@0 P : A → Set p} →
+  {@0 P : A → Type p} →
   Erased ((x : A) → P x) ↔ ((x : A) → Erased (P x))
 Erased-Π↔Π = record
   { surjection = record
@@ -198,7 +198,7 @@ Erased-Π↔Π = record
 -- Erased commutes with Π.
 
 Erased-Π↔Π-Erased :
-  {@0 A : Set a} {@0 P : A → Set p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   Erased ((x : A) → P x) ↔ ((x : Erased A) → Erased (P (erased x)))
 Erased-Π↔Π-Erased = record
   { surjection = record
@@ -214,7 +214,7 @@ Erased-Π↔Π-Erased = record
 -- Erased commutes with Σ.
 
 Erased-Σ↔Σ :
-  {@0 A : Set a} {@0 P : A → Set p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   Erased (Σ A P) ↔ Σ (Erased A) (λ x → Erased (P (erased x)))
 Erased-Σ↔Σ = record
   { surjection = record
@@ -230,7 +230,7 @@ Erased-Σ↔Σ = record
 -- Erased commutes with ↑ ℓ.
 
 Erased-↑↔↑ :
-  {@0 A : Set a} →
+  {@0 A : Type a} →
   Erased (↑ ℓ A) ↔ ↑ ℓ (Erased A)
 Erased-↑↔↑ = record
   { surjection = record
@@ -246,7 +246,7 @@ Erased-↑↔↑ = record
 -- Erased commutes with ¬_ (assuming extensionality).
 
 Erased-¬↔¬ :
-  {@0 A : Set a} →
+  {@0 A : Type a} →
   Extensionality? k a lzero →
   Erased (¬ A) ↝[ k ] ¬ Erased A
 Erased-¬↔¬ {A = A} ext =
@@ -257,7 +257,7 @@ Erased-¬↔¬ {A = A} ext =
 -- Erased can be dropped under ¬_ (assuming extensionality).
 
 ¬-Erased↔¬ :
-  {A : Set a} →
+  {A : Type a} →
   Extensionality? k a lzero →
   ¬ Erased A ↝[ k ] ¬ A
 ¬-Erased↔¬ {a = a} {A = A} =
@@ -279,7 +279,7 @@ Erased-¬↔¬ {A = A} ext =
 -- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
 
 Π-Erased⇔Π0 :
-  {@0 A : Set a} {@0 P : A → Set p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   ((x : Erased A) → P (erased x)) ⇔ ((@0 x : A) → P x)
 Π-Erased⇔Π0 = record
   { to   = λ f x → f [ x ]
@@ -301,7 +301,7 @@ Erased-¬↔¬ {A = A} ext =
 -- Erased commutes with W up to logical equivalence.
 
 Erased-W⇔W :
-  {@0 A : Set a} {@0 P : A → Set p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   Erased (W A P) ⇔ W (Erased A) (λ x → Erased (P (erased x)))
 Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
   where
@@ -321,7 +321,7 @@ Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
 -- Homotopy Type Theory" by Rijke, Shulman and Spitters.
 
 uniquely-eliminating-modality :
-  {@0 P : Erased A → Set p} →
+  {@0 P : Erased A → Type p} →
   Is-equivalence
     (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [_]→ {A = A})
 uniquely-eliminating-modality {A = A} {P = P} =
@@ -341,14 +341,14 @@ uniquely-eliminating-modality {A = A} {P = P} =
 -- to Erased B.
 
 ∘-[]-injective :
-  {@0 B : Set b} →
+  {@0 B : Type b} →
   Injective (λ (f : Erased A → Erased B) → f ∘ [_]→)
 ∘-[]-injective = _≃_.injective Eq.⟨ _ , uniquely-eliminating-modality ⟩
 
 -- A rearrangement lemma for ext⁻¹ and ∘-[]-injective.
 
 ext⁻¹-∘-[]-injective :
-  {@0 B : Set b} {f g : Erased A → Erased B} {p : f ∘ [_]→ ≡ g ∘ [_]→} →
+  {@0 B : Type b} {f g : Erased A → Erased B} {p : f ∘ [_]→ ≡ g ∘ [_]→} →
   ext⁻¹ (∘-[]-injective {x = f} {y = g} p) [ x ] ≡ ext⁻¹ p x
 ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
   ext⁻¹ (∘-[]-injective p) [ x ]               ≡⟨ elim₁
@@ -369,14 +369,14 @@ ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
 -- Dec-Erased A means that either we have A (erased), or we have ¬ A
 -- (also erased).
 
-Dec-Erased : @0 Set ℓ → Set ℓ
+Dec-Erased : @0 Type ℓ → Type ℓ
 Dec-Erased A = Erased A ⊎ Erased (¬ A)
 
 -- Dec-Erased A is isomorphic to Dec (Erased A) (assuming
 -- extensionality).
 
 Dec-Erased↔Dec-Erased :
-  {@0 A : Set a} →
+  {@0 A : Type a} →
   Extensionality? k a lzero →
   Dec-Erased A ↝[ k ] Dec (Erased A)
 Dec-Erased↔Dec-Erased {A = A} ext =
@@ -386,7 +386,7 @@ Dec-Erased↔Dec-Erased {A = A} ext =
 -- A map function for Dec-Erased.
 
 Dec-Erased-map :
-  {@0 A : Set a} {@0 B : Set b} →
+  {@0 A : Type a} {@0 B : Type b} →
   @0 A ⇔ B → Dec-Erased A → Dec-Erased B
 Dec-Erased-map A⇔B =
   ⊎-map (map (_⇔_.to A⇔B))
@@ -395,7 +395,7 @@ Dec-Erased-map A⇔B =
 -- Dec-Erased preserves logical equivalences.
 
 Dec-Erased-cong-⇔ :
-  {@0 A : Set a} {@0 B : Set b} →
+  {@0 A : Type a} {@0 B : Type b} →
   @0 A ⇔ B → Dec-Erased A ⇔ Dec-Erased B
 Dec-Erased-cong-⇔ A⇔B = record
   { to   = Dec-Erased-map A⇔B
@@ -450,14 +450,14 @@ erased-instance-of-[]-cong-axiomatisation
 
 module []-cong₁
   ([]-cong :
-     ∀ {a} {@0 A : Set a} {@0 x y : A} →
+     ∀ {a} {@0 A : Type a} {@0 x y : A} →
      Erased (x ≡ y) → [ x ] ≡ [ y ])
   where
 
   -- Erased commutes with W (assuming extensionality).
 
   Erased-W↔W :
-    {@0 A : Set a} {@0 P : A → Set p} →
+    {@0 A : Type a} {@0 P : A → Type p} →
     Extensionality? k p (a ⊔ p) →
     Erased (W A P) ↝[ k ] W (Erased A) (λ x → Erased (P (erased x)))
   Erased-W↔W {a = a} {p = p} {A = A} {P = P} =
@@ -490,7 +490,7 @@ module []-cong₁
   -- [_] can be "pushed" through subst.
 
   push-subst-[] :
-    {@0 P : A → Set p} {@0 p : P x} {x≡y : x ≡ y} →
+    {@0 P : A → Type p} {@0 p : P x} {x≡y : x ≡ y} →
     subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ subst P x≡y p ]
   push-subst-[] {P = P} {p = p} = elim¹
     (λ x≡y → subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ subst P x≡y p ])
@@ -501,7 +501,7 @@ module []-cong₁
 
   -- Erased preserves some kinds of functions.
 
-  module _ {@0 A : Set a} {@0 B : Set b} where
+  module _ {@0 A : Type a} {@0 B : Type b} where
 
     Erased-cong-↠ : @0 A ↠ B → Erased A ↠ Erased B
     Erased-cong-↠ A↠B = record
@@ -535,7 +535,7 @@ module []-cong₁
   -- Erased commutes with _⇔_.
 
   Erased-⇔↔⇔ :
-    {@0 A : Set a} {@0 B : Set b} →
+    {@0 A : Type a} {@0 B : Type b} →
     Erased (A ⇔ B) ↔ (Erased A ⇔ Erased B)
   Erased-⇔↔⇔ {A = A} {B = B} =
     Erased (A ⇔ B)                                 ↝⟨ Erased-cong-↔ ⇔↔→×→ ⟩
@@ -549,10 +549,10 @@ module []-cong₁
 
 module []-cong₂
   ([]-cong :
-     ∀ {a} {@0 A : Set a} {@0 x y : A} →
+     ∀ {a} {@0 A : Type a} {@0 x y : A} →
      Erased (x ≡ y) → [ x ] ≡ [ y ])
   ([]-cong-equivalence :
-     ∀ {a} {@0 A : Set a} {@0 x y : A} →
+     ∀ {a} {@0 A : Type a} {@0 x y : A} →
      Is-equivalence ([]-cong {x = x} {y = y}))
   where
 
@@ -562,14 +562,14 @@ module []-cong₂
   -- equalities between erased values.
 
   Erased-≡↔[]≡[] :
-    {@0 A : Set a} {@0 x y : A} →
+    {@0 A : Type a} {@0 x y : A} →
     Erased (x ≡ y) ↔ [ x ] ≡ [ y ]
   Erased-≡↔[]≡[] = _≃_.bijection Eq.⟨ _ , []-cong-equivalence ⟩
 
   -- The inverse of []-cong.
 
   []-cong⁻¹ :
-    {@0 A : Set a} {@0 x y : A} →
+    {@0 A : Type a} {@0 x y : A} →
     [ x ] ≡ [ y ] → Erased (x ≡ y)
   []-cong⁻¹ = _↔_.from Erased-≡↔[]≡[]
 
@@ -579,7 +579,7 @@ module []-cong₂
   -- Erased commutes with H-level′ n (assuming extensionality).
 
   Erased-H-level′↔H-level′ :
-    {@0 A : Set a} →
+    {@0 A : Type a} →
     Extensionality? k a a →
     ∀ n → Erased (H-level′ n A) ↝[ k ] H-level′ n (Erased A)
   Erased-H-level′↔H-level′ {A = A} ext zero =
@@ -601,7 +601,7 @@ module []-cong₂
   -- Erased commutes with H-level n (assuming extensionality).
 
   Erased-H-level↔H-level :
-    {@0 A : Set a} →
+    {@0 A : Type a} →
     Extensionality? k a a →
     ∀ n → Erased (H-level n A) ↝[ k ] H-level n (Erased A)
   Erased-H-level↔H-level {A = A} ext n =
@@ -613,7 +613,7 @@ module []-cong₂
   -- H-level n is closed under Erased.
 
   H-level-Erased :
-    {@0 A : Set a} →
+    {@0 A : Type a} →
     ∀ n → @0 H-level n A → H-level n (Erased A)
   H-level-Erased n h = Erased-H-level↔H-level _ n [ h ]
 
@@ -640,7 +640,7 @@ module []-cong₂
   -- See also Erased-Is-equivalence↔Is-equivalence below.
 
   Erased-connected↔Erased-Is-equivalence :
-    {A : Set a} {B : Set b} {f : A → B} →
+    {A : Type a} {B : Type b} {f : A → B} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
     (∀ y → Contractible (Erased (f ⁻¹ y))) ↝[ k ]
     Erased (Is-equivalence f)
@@ -657,7 +657,7 @@ module []-cong₂
   -- Erased "commutes" with _⁻¹_.
 
   Erased-⁻¹ :
-    {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} {@0 y : B} →
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} {@0 y : B} →
     Erased (f ⁻¹ y) ↔ map f ⁻¹ [ y ]
   Erased-⁻¹ {f = f} {y = y} =
     Erased (∃ λ x → f x ≡ y)             ↝⟨ Erased-Σ↔Σ ⟩
@@ -667,7 +667,7 @@ module []-cong₂
   -- Erased "commutes" with Is-equivalence.
 
   Erased-Is-equivalence↔Is-equivalence :
-    {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} →
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
     Erased (Is-equivalence f) ↝[ k ] Is-equivalence (map f)
   Erased-Is-equivalence↔Is-equivalence {a = a} {k = k} {f = f} ext =
@@ -681,7 +681,7 @@ module []-cong₂
   -- Erased "commutes" with Split-surjective.
 
   Erased-Split-surjective↔Split-surjective :
-    {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} →
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
     Extensionality? k b (a ⊔ b) →
     Erased (Split-surjective f) ↝[ k ]
     Split-surjective (map f)
@@ -695,7 +695,7 @@ module []-cong₂
   -- Erased "commutes" with Has-quasi-inverse.
 
   Erased-Has-quasi-inverse↔Has-quasi-inverse :
-    {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} →
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
     Erased (Has-quasi-inverse f) ↝[ k ]
     Has-quasi-inverse (map f)
@@ -714,7 +714,7 @@ module []-cong₂
     (∃ λ g → (∀ x → map f (g x) ≡ x) × (∀ x → g (map f x) ≡ x))           □
     where
     lemma :
-      {@0 A : Set a} {@0 B : Set b} →
+      {@0 A : Type a} {@0 B : Type b} →
       Extensionality? k (a ⊔ b) (a ⊔ b) →
       (@0 f : A → B) (@0 g : B → A) → _ ↝[ k ] _
     lemma {a = a} {k = k} ext f g =
@@ -726,7 +726,7 @@ module []-cong₂
   -- Erased "commutes" with Injective.
 
   Erased-Injective↔Injective :
-    {@0 A : Set a} {@0 B : Set b} {@0 f : A → B} →
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
     Extensionality? k (a ⊔ b) (a ⊔ b) →
     Erased (Injective f) ↝[ k ] Injective (map f)
   Erased-Injective↔Injective {a = a} {b = b} {k = k} {f = f} ext =
@@ -762,7 +762,7 @@ module []-cong₂
   -- Erased preserves injections.
 
   Erased-cong-↣ :
-    {@0 A : Set a} {@0 B : Set b} →
+    {@0 A : Type a} {@0 B : Type b} →
     @0 A ↣ B → Erased A ↣ Erased B
   Erased-cong-↣ A↣B = record
     { to        = map (_↣_.to A↣B)
@@ -794,7 +794,7 @@ module []-cong₂
 -- In an erased context [_]→ is always an embedding.
 
 Erased-Is-embedding-[] :
-  {@0 A : Set a} → Erased (Is-embedding ([_]→ {A = A}))
+  {@0 A : Type a} → Erased (Is-embedding ([_]→ {A = A}))
 Erased-Is-embedding-[] =
   [ (λ x y → _≃_.is-equivalence (
        x ≡ y          ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔ ⟩□
@@ -804,7 +804,7 @@ Erased-Is-embedding-[] =
 -- In an erased context [_]→ is always split surjective.
 
 Erased-Split-surjective-[] :
-  {@0 A : Set a} → Erased (Split-surjective ([_]→ {A = A}))
+  {@0 A : Type a} → Erased (Split-surjective ([_]→ {A = A}))
 Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
 
 ------------------------------------------------------------------------
@@ -837,7 +837,7 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
     x≡y
 
   []-cong⁻¹≡[cong-erased] :
-    {@0 A : Set a} {@0 x y : A} {@0 x≡y : [ x ] ≡ [ y ]} →
+    {@0 A : Type a} {@0 x y : A} {@0 x≡y : [ x ] ≡ [ y ]} →
     []-cong⁻¹ x≡y ≡ [ cong erased x≡y ]
   []-cong⁻¹≡[cong-erased] {x≡y = x≡y} = []-cong
     [ erased ([]-cong⁻¹ x≡y)      ≡⟨ cong erased (_↔_.from (from≡↔≡to $ Eq.↔⇒≃ Erased-≡↔[]≡[]) lemma) ⟩
@@ -856,7 +856,7 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- A "computation rule" for []-cong⁻¹.
 
   []-cong⁻¹-refl :
-    {@0 A : Set a} {@0 x : A} →
+    {@0 A : Type a} {@0 x : A} →
     []-cong⁻¹ (refl [ x ]) ≡ [ refl x ]
   []-cong⁻¹-refl {x = x} =
     []-cong⁻¹ (refl [ x ])        ≡⟨ []-cong⁻¹≡[cong-erased] ⟩
@@ -866,7 +866,7 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- A stronger variant of []-cong-[refl]′.
 
   []-cong-[refl] :
-    {@0 A : Set a} {@0 x : A} →
+    {@0 A : Type a} {@0 x : A} →
     []-cong [ refl x ] ≡ refl [ x ]
   []-cong-[refl] {A = A} {x = x} =
     sym $ _↔_.to (from≡↔≡to $ Eq.↔⇒≃ Erased-≡↔[]≡[]) (
@@ -919,7 +919,7 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- cong (map f) (up to pointwise equality).
 
   map-cong≡cong-map :
-    {@0 A : Set a} {@0 B : Set b} {@0 x y : A}
+    {@0 A : Type a} {@0 B : Type b} {@0 x y : A}
     {@0 f : A → B} {x≡y : Erased (x ≡ y)} →
     map (cong f) x≡y ≡ []-cong⁻¹ (cong (map f) ([]-cong x≡y))
   map-cong≡cong-map {f = f} {x≡y = [ x≡y ]} =

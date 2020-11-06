@@ -31,8 +31,8 @@ open import Injection equality-with-J using (Injective)
 private
   variable
     a p          : Level
-    A            : Set a
-    P            : A → Set p
+    A            : Type a
+    P            : A → Type p
     b f r r-[] t : A
 
 ------------------------------------------------------------------------
@@ -45,7 +45,7 @@ private
 -- to Rijke, Shulman and Spitters (see "Modalities in Homotopy Type
 -- Theory").
 
-data B̃ool : Set where
+data B̃ool : Type where
   true false : B̃ool
   stable     : Erased B̃ool → B̃ool
   stable-[]ᴾ : (b : B̃ool) → stable [ b ] P.≡ b
@@ -66,7 +66,7 @@ Very-stable-B̃ool = Stable→Left-inverse→Very-stable stable stable-[]
 -- A dependent eliminator, expressed using paths.
 
 elimᴾ :
-  (P : B̃ool → Set p) →
+  (P : B̃ool → Type p) →
   P true →
   P false →
   (r : ∀ b → Erased (P (erased b)) → P (stable b)) →
@@ -91,7 +91,7 @@ recᴾ = elimᴾ _
 -- A dependent eliminator, expressed using equality.
 
 elim :
-  (P : B̃ool → Set p) →
+  (P : B̃ool → Type p) →
   P true →
   P false →
   (r : ∀ b → Erased (P (erased b)) → P (stable b)) →
@@ -126,7 +126,7 @@ rec-stable-[] = cong-≡↔≡ (refl _)
 -- stable type families.
 
 elim-Very-stable :
-  (P : B̃ool → Set p) →
+  (P : B̃ool → Type p) →
   P true →
   P false →
   (∀ b → Very-stable (P b)) →
@@ -173,13 +173,13 @@ private
 
   private
 
-    T̃′ : B̃ool → Σ Set Very-stable
+    T̃′ : B̃ool → Σ Type Very-stable
     T̃′ = rec-Very-stable
       (⊤ , Very-stable-⊤)
       (⊥ , Very-stable-⊥)
       (Very-stable-∃-Very-stable ext univ)
 
-  T̃ : B̃ool → Set
+  T̃ : B̃ool → Type
   T̃ = proj₁ ∘ T̃′
 
   -- Some computation rules that hold by definition.
@@ -210,9 +210,9 @@ module Alternative-T̃ where
 
   private
 
-    T̃′ : B̃ool → Σ Set PE.Very-stable
+    T̃′ : B̃ool → Σ Type PE.Very-stable
 
-  T̃ : B̃ool → Set
+  T̃ : B̃ool → Type
   T̃ b = proj₁ (T̃′ b)
 
   Very-stable-T̃ : ∀ b → PE.Very-stable (T̃ b)

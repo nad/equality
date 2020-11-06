@@ -31,8 +31,8 @@ open import Function-universe equality-with-J hiding (_∘_)
 private
   variable
     a b p q : Level
-    A B     : Set a
-    P       : A → Set p
+    A B     : Type a
+    P       : A → Type p
     n       : ℕ
     e x     : A
 
@@ -41,8 +41,8 @@ private
 
 -- Sequential colimits.
 
-data Colimit (P : ℕ → Set p) (step : ∀ {n} → P n → P (suc n)) :
-             Set p where
+data Colimit (P : ℕ → Type p) (step : ∀ {n} → P n → P (suc n)) :
+             Type p where
   ∣_∣    : P n → Colimit P step
   ∣∣≡∣∣ᴾ : (x : P n) → ∣ step x ∣ P.≡ ∣ x ∣
 
@@ -58,8 +58,8 @@ data Colimit (P : ℕ → Set p) (step : ∀ {n} → P n → P (suc n)) :
 -- A dependent eliminator, expressed using paths.
 
 record Elimᴾ
-         {P : ℕ → Set p} {step : ∀ {n} → P n → P (suc n)}
-         (Q : Colimit P step → Set q) : Set (p ⊔ q) where
+         {P : ℕ → Type p} {step : ∀ {n} → P n → P (suc n)}
+         (Q : Colimit P step → Type q) : Type (p ⊔ q) where
   no-eta-equality
   field
     ∣∣ʳ    : (x : P n) → Q ∣ x ∣
@@ -70,7 +70,7 @@ record Elimᴾ
 open Elimᴾ public
 
 elimᴾ :
-  {step : ∀ {n} → P n → P (suc n)} {Q : Colimit P step → Set q} →
+  {step : ∀ {n} → P n → P (suc n)} {Q : Colimit P step → Type q} →
   Elimᴾ Q → (x : Colimit P step) → Q x
 elimᴾ {P = P} {step = step} {Q = Q} e = helper
   where
@@ -83,8 +83,8 @@ elimᴾ {P = P} {step = step} {Q = Q} e = helper
 -- A non-dependent eliminator, expressed using paths.
 
 record Recᴾ
-         (P : ℕ → Set p) (step : ∀ {n} → P n → P (suc n))
-         (B : Set b) : Set (p ⊔ b) where
+         (P : ℕ → Type p) (step : ∀ {n} → P n → P (suc n))
+         (B : Type b) : Type (p ⊔ b) where
   no-eta-equality
   field
     ∣∣ʳ    : P n → B
@@ -104,8 +104,8 @@ recᴾ r = elimᴾ λ where
 -- A dependent eliminator.
 
 record Elim
-         {P : ℕ → Set p} {step : ∀ {n} → P n → P (suc n)}
-         (Q : Colimit P step → Set q) : Set (p ⊔ q) where
+         {P : ℕ → Type p} {step : ∀ {n} → P n → P (suc n)}
+         (Q : Colimit P step → Type q) : Type (p ⊔ q) where
   no-eta-equality
   field
     ∣∣ʳ    : (x : P n) → Q ∣ x ∣
@@ -114,7 +114,7 @@ record Elim
 open Elim public
 
 elim :
-  {step : ∀ {n} → P n → P (suc n)} {Q : Colimit P step → Set q} →
+  {step : ∀ {n} → P n → P (suc n)} {Q : Colimit P step → Type q} →
   Elim Q → (x : Colimit P step) → Q x
 elim e = elimᴾ λ where
     .∣∣ʳ      → E.∣∣ʳ
@@ -130,8 +130,8 @@ elim-∣∣≡∣∣ = dcong-subst≡→[]≡ (refl _)
 -- A non-dependent eliminator.
 
 record Rec
-         (P : ℕ → Set p) (step : ∀ {n} → P n → P (suc n))
-         (B : Set b) : Set (p ⊔ b) where
+         (P : ℕ → Type p) (step : ∀ {n} → P n → P (suc n))
+         (B : Type b) : Type (p ⊔ b) where
   no-eta-equality
   field
     ∣∣ʳ    : P n → B

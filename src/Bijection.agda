@@ -22,7 +22,7 @@ open import Surjection eq as Surjection using (_↠_; module _↠_)
 
 infix 0 _↔_
 
-record _↔_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
+record _↔_ {f t} (From : Type f) (To : Type t) : Type (f ⊔ t) where
   field
     surjection : From ↠ To
 
@@ -77,8 +77,8 @@ record _↔_ {f t} (From : Set f) (To : Set t) : Set (f ⊔ t) where
 -- book).
 
 Has-quasi-inverse :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  (A → B) → Set (a ⊔ b)
+  ∀ {a b} {A : Type a} {B : Type b} →
+  (A → B) → Type (a ⊔ b)
 Has-quasi-inverse {A = A} {B = B} to =
   ∃ λ (from : B → A) →
     (∀ x → to (from x) ≡ x) ×
@@ -87,7 +87,7 @@ Has-quasi-inverse {A = A} {B = B} to =
 -- An alternative characterisation of bijections.
 
 ↔-as-Σ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   (A ↔ B) ↔ ∃ λ (f : A → B) → Has-quasi-inverse f
 ↔-as-Σ = record
   { surjection = record
@@ -117,13 +117,13 @@ Has-quasi-inverse {A = A} {B = B} to =
 
 -- _↔_ is an equivalence relation.
 
-id : ∀ {a} {A : Set a} → A ↔ A
+id : ∀ {a} {A : Type a} → A ↔ A
 id = record
   { surjection      = Surjection.id
   ; left-inverse-of = refl
   }
 
-inverse : ∀ {a b} {A : Set a} {B : Set b} → A ↔ B → B ↔ A
+inverse : ∀ {a b} {A : Type a} {B : Type b} → A ↔ B → B ↔ A
 inverse A↔B = record
   { surjection = record
     { logical-equivalence = Logical-equivalence.inverse
@@ -135,7 +135,7 @@ inverse A↔B = record
 
 infixr 9 _∘_
 
-_∘_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+_∘_ : ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
       B ↔ C → A ↔ B → A ↔ C
 f ∘ g = record
   { surjection      = Surjection._∘_ (surjection f) (surjection g)
@@ -158,13 +158,13 @@ infixr -2 step-↔
 -- For an explanation of why step-↔ is defined in this way, see
 -- Equality.step-≡.
 
-step-↔ : ∀ {a b c} (A : Set a) {B : Set b} {C : Set c} →
+step-↔ : ∀ {a b c} (A : Type a) {B : Type b} {C : Type c} →
          B ↔ C → A ↔ B → A ↔ C
 step-↔ _ = _∘_
 
 syntax step-↔ A B↔C A↔B = A ↔⟨ A↔B ⟩ B↔C
 
-finally-↔ : ∀ {a b} (A : Set a) (B : Set b) → A ↔ B → A ↔ B
+finally-↔ : ∀ {a b} (A : Type a) (B : Type b) → A ↔ B → A ↔ B
 finally-↔ _ _ A↔B = A↔B
 
 syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
@@ -174,7 +174,7 @@ syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
 -- function
 
 with-other-function :
-  ∀ {a b} {A : Set a} {B : Set b}
+  ∀ {a b} {A : Type a} {B : Type b}
   (A↔B : A ↔ B) (f : A → B) →
   (∀ x → _↔_.to A↔B x ≡ f x) →
   A ↔ B
@@ -196,7 +196,7 @@ with-other-function A↔B f ≡f = record
   }
 
 with-other-inverse :
-  ∀ {a b} {A : Set a} {B : Set b}
+  ∀ {a b} {A : Type a} {B : Type b}
   (A↔B : A ↔ B) (f : B → A) →
   (∀ x → _↔_.from A↔B x ≡ f x) →
   A ↔ B
@@ -208,28 +208,28 @@ private
   -- The two functions above compute in the right way.
 
   to∘with-other-function :
-    ∀ {a b} {A : Set a} {B : Set b}
+    ∀ {a b} {A : Type a} {B : Type b}
     (A↔B : A ↔ B) (f : A → B)
     (to≡f : ∀ x → _↔_.to A↔B x ≡ f x) →
     _↔_.to (with-other-function A↔B f to≡f) ≡ f
   to∘with-other-function _ _ _ = refl _
 
   from∘with-other-function :
-    ∀ {a b} {A : Set a} {B : Set b}
+    ∀ {a b} {A : Type a} {B : Type b}
     (A↔B : A ↔ B) (f : A → B)
     (to≡f : ∀ x → _↔_.to A↔B x ≡ f x) →
     _↔_.from (with-other-function A↔B f to≡f) ≡ _↔_.from A↔B
   from∘with-other-function _ _ _ = refl _
 
   to∘with-other-inverse :
-    ∀ {a b} {A : Set a} {B : Set b}
+    ∀ {a b} {A : Type a} {B : Type b}
     (A↔B : A ↔ B) (g : B → A)
     (from≡g : ∀ x → _↔_.from A↔B x ≡ g x) →
     _↔_.to (with-other-inverse A↔B g from≡g) ≡ _↔_.to A↔B
   to∘with-other-inverse _ _ _ = refl _
 
   from∘with-other-inverse :
-    ∀ {a b} {A : Set a} {B : Set b}
+    ∀ {a b} {A : Type a} {B : Type b}
     (A↔B : A ↔ B) (g : B → A)
     (from≡g : ∀ x → _↔_.from A↔B x ≡ g x) →
     _↔_.from (with-other-inverse A↔B g from≡g) ≡ g
@@ -240,7 +240,7 @@ private
 
 -- Uninhabited types are isomorphic to the empty type.
 
-⊥↔uninhabited : ∀ {a ℓ} {A : Set a} → ¬ A → ⊥ {ℓ = ℓ} ↔ A
+⊥↔uninhabited : ∀ {a ℓ} {A : Type a} → ¬ A → ⊥ {ℓ = ℓ} ↔ A
 ⊥↔uninhabited ¬A = record
   { surjection = record
     { logical-equivalence = record
@@ -254,7 +254,7 @@ private
 
 -- A lifted set is isomorphic to the underlying one.
 
-↑↔ : ∀ {a b} {A : Set a} → ↑ b A ↔ A
+↑↔ : ∀ {a b} {A : Type a} → ↑ b A ↔ A
 ↑↔ {b = b} {A} = record
   { surjection = record
     { logical-equivalence = record
@@ -268,7 +268,7 @@ private
 
 -- Equality between pairs can be expressed as a pair of equalities.
 
-Σ-≡,≡↔≡ : ∀ {a b} {A : Set a} {B : A → Set b} {p₁ p₂ : Σ A B} →
+Σ-≡,≡↔≡ : ∀ {a b} {A : Type a} {B : A → Type b} {p₁ p₂ : Σ A B} →
           (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
              subst B p (proj₂ p₁) ≡ proj₂ p₂) ↔
           (p₁ ≡ p₂)
@@ -342,7 +342,7 @@ private
 -- Equalities are closed, in a strong sense, under applications of
 -- certain injections (at least inj₁ and inj₂).
 
-≡↔inj₁≡inj₁ : ∀ {a b} {A : Set a} {B : Set b} {x y : A} →
+≡↔inj₁≡inj₁ : ∀ {a b} {A : Type a} {B : Type b} {x y : A} →
               (x ≡ y) ↔ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
 ≡↔inj₁≡inj₁ {A = A} {B} {x} {y} = record
   { surjection = record
@@ -387,7 +387,7 @@ private
       cong P.id x≡y                            ≡⟨ sym $ cong-id _ ⟩∎
       x≡y                                      ∎
 
-≡↔inj₂≡inj₂ : ∀ {a b} {A : Set a} {B : Set b} {x y : B} →
+≡↔inj₂≡inj₂ : ∀ {a b} {A : Type a} {B : Type b} {x y : B} →
               (x ≡ y) ↔ _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
 ≡↔inj₂≡inj₂ {A = A} {B} {x} {y} = record
   { surjection = record
@@ -434,14 +434,14 @@ private
 
 -- An alternative characterisation of equality for binary sums.
 
-Equality-⊎ : ∀ {a b} {A : Set a} {B : Set b} →
-             A ⊎ B → A ⊎ B → Set (a ⊔ b)
+Equality-⊎ : ∀ {a b} {A : Type a} {B : Type b} →
+             A ⊎ B → A ⊎ B → Type (a ⊔ b)
 Equality-⊎ {b = b} (inj₁ x) (inj₁ y) = ↑ b (x ≡ y)
 Equality-⊎         (inj₁ x) (inj₂ y) = ⊥
 Equality-⊎         (inj₂ x) (inj₁ y) = ⊥
 Equality-⊎ {a = a} (inj₂ x) (inj₂ y) = ↑ a (x ≡ y)
 
-≡↔⊎ : ∀ {a b} {A : Set a} {B : Set b} {x y : A ⊎ B} →
+≡↔⊎ : ∀ {a b} {A : Type a} {B : Type b} {x y : A ⊎ B} →
       x ≡ y ↔ Equality-⊎ x y
 ≡↔⊎ {x = inj₁ x} {inj₁ y} = inj₁ x ≡ inj₁ y  ↔⟨ inverse ≡↔inj₁≡inj₁ ⟩
                             x ≡ y            ↔⟨ inverse ↑↔ ⟩□
@@ -457,7 +457,7 @@ Equality-⊎ {a = a} (inj₂ x) (inj₂ y) = ↑ a (x ≡ y)
 -- Decidable equality respects bijections.
 
 decidable-equality-respects :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   A ↔ B → Decidable-equality A → Decidable-equality B
 decidable-equality-respects A↔B _≟A_ x y =
   ⊎-map (_↔_.injective (inverse A↔B))
@@ -468,7 +468,7 @@ decidable-equality-respects A↔B _≟A_ x y =
 -- All contractible types are isomorphic.
 
 contractible-isomorphic :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   Contractible A → Contractible B → A ↔ B
 contractible-isomorphic {A} {B} cA cB = record
   { surjection = record
@@ -483,7 +483,7 @@ contractible-isomorphic {A} {B} cA cB = record
 
 -- Implicit and explicit Πs are isomorphic.
 
-implicit-Π↔Π : ∀ {a b} {A : Set a} {B : A → Set b} →
+implicit-Π↔Π : ∀ {a b} {A : Type a} {B : A → Type b} →
                ({x : A} → B x) ↔ ((x : A) → B x)
 implicit-Π↔Π = record
   { surjection = record
@@ -500,7 +500,7 @@ implicit-Π↔Π = record
 -- can be turned into bijections.
 
 bijection-from-involutive-family :
-  ∀ {a b} {A : Set a} {B : A → Set b} →
+  ∀ {a b} {A : Type a} {B : A → Type b} →
   (f : ∀ a₁ a₂ → B a₁ → B a₂) →
   (∀ a₁ a₂ (x : B a₁) → f _ _ (f _ a₂ x) ≡ x) →
   ∀ a₁ a₂ → B a₁ ↔ B a₂
@@ -520,7 +520,7 @@ abstract
   -- An equality rearrangement lemma.
 
   trans-to-to≡to-trans :
-    ∀ {a b} {A : Set a} {B : Set b} {f : A → B}
+    ∀ {a b} {A : Type a} {B : Type b} {f : A → B}
     (iso : ∀ x y → f x ≡ f y ↔ x ≡ y) →
     (∀ x → _↔_.from (iso x x) (refl x) ≡ refl (f x)) →
     ∀ {x y z p q} →
