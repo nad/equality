@@ -781,6 +781,21 @@ extensionality {x = x} {y = y} =
            x ≡ y                  □
        })
 
+-- Another way to characterise equality.
+
+≡≃⊆×⊇ : (x ≡ y) ≃ (x ⊆ y × y ⊆ x)
+≡≃⊆×⊇ {x = x} {y = y} =
+  x ≡ y                  ↝⟨ extensionality ⟩
+  (∀ z → z ∈ x ⇔ z ∈ y)  ↝⟨ Eq.⇔→≃
+                              (Π-closure ext 1 λ _ →
+                               ⇔-closure ext 1
+                                 ∈-propositional
+                                 ∈-propositional)
+                              (×-closure 1 ⊆-propositional ⊆-propositional)
+                              (λ hyp → _⇔_.to ∘ hyp , _⇔_.from ∘ hyp)
+                              (λ (x⊆y , y⊆x) z → record { to = x⊆y z ; from = y⊆x z }) ⟩□
+  x ⊆ y × y ⊆ x          □
+
 -- _⊆_ is a partial order.
 
 ⊆-refl : x ⊆ x
@@ -790,9 +805,7 @@ extensionality {x = x} {y = y} =
 ⊆-trans x⊆y y⊆z _ = y⊆z _ ∘ x⊆y _
 
 ⊆-antisymmetric : x ⊆ y → y ⊆ x → x ≡ y
-⊆-antisymmetric x⊆y y⊆x =
-  _≃_.from extensionality λ z →
-    record { to = x⊆y z; from = y⊆x z }
+⊆-antisymmetric = curry (_≃_.from ≡≃⊆×⊇)
 
 ------------------------------------------------------------------------
 -- The functions filter, minus and delete
