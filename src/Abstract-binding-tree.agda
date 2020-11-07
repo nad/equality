@@ -1750,6 +1750,77 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)  □
 
   ----------------------------------------------------------------------
+  -- Weakening, casting and strengthening
+
+  -- Weakening.
+
+  weaken-Variable : @0 xs ⊆ ys → Variable xs s → Variable ys s
+  weaken-Variable xs⊆ys (x , [ wf ]) =
+    x , [ weaken-Wf-var xs⊆ys wf ]
+
+  weaken-Term : @0 xs ⊆ ys → Term xs s → Term ys s
+  weaken-Term xs⊆ys (tˢ , t , [ wf ]) =
+    tˢ , t , [ weaken-Wf-tm xs⊆ys tˢ wf ]
+
+  weaken-Arguments : @0 xs ⊆ ys → Arguments xs vs → Arguments ys vs
+  weaken-Arguments xs⊆ys (asˢ , as , [ wfs ]) =
+    asˢ , as , [ weaken-Wf-args xs⊆ys asˢ wfs ]
+
+  weaken-Argument : @0 xs ⊆ ys → Argument xs v → Argument ys v
+  weaken-Argument xs⊆ys (aˢ , a , [ wf ]) =
+    aˢ , a , [ weaken-Wf-arg xs⊆ys aˢ wf ]
+
+  -- Casting.
+
+  cast-Variable :
+    @0 xs ≡ ys → Variable xs s → Variable ys s
+  cast-Variable eq = weaken-Variable (subst (_ ⊆_) eq ⊆-refl)
+
+  cast-Term :
+    @0 xs ≡ ys → Term xs s → Term ys s
+  cast-Term eq = weaken-Term (subst (_ ⊆_) eq ⊆-refl)
+
+  cast-Arguments :
+    @0 xs ≡ ys → Arguments xs vs → Arguments ys vs
+  cast-Arguments eq = weaken-Arguments (subst (_ ⊆_) eq ⊆-refl)
+
+  cast-Argument :
+    @0 xs ≡ ys → Argument xs v → Argument ys v
+  cast-Argument eq = weaken-Argument (subst (_ ⊆_) eq ⊆-refl)
+
+  -- Strengthening.
+
+  strengthen-Variable :
+    (y : Variable ((_ , x) ∷ xs) s) →
+    @0 ¬ Free-in-variable x y →
+    Variable xs s
+  strengthen-Variable (y , [ wf ]) ¬free =
+    y , [ strengthen-Wf-var (¬free ∘ free-Free-Var wf) wf ]
+
+  strengthen-Term :
+    (t : Term ((_ , x) ∷ xs) s) →
+    @0 ¬ Free-in-term x t →
+    Term xs s
+  strengthen-Term (tˢ , t , [ wf ]) ¬free =
+    tˢ , t , [ strengthen-Wf-tm tˢ (¬free ∘ free-Free-Tm tˢ wf) wf ]
+
+  strengthen-Arguments :
+    (as : Arguments ((_ , x) ∷ xs) vs) →
+    @0 ¬ Free-in-arguments x as →
+    Arguments xs vs
+  strengthen-Arguments (asˢ , as , [ wfs ]) ¬free =
+      asˢ
+    , as
+    , [ strengthen-Wf-args asˢ (¬free ∘ free-Free-Args asˢ wfs) wfs ]
+
+  strengthen-Argument :
+    (a : Argument ((_ , x) ∷ xs) v) →
+    @0 ¬ Free-in-argument x a →
+    Argument xs v
+  strengthen-Argument (aˢ , a , [ wf ]) ¬free =
+    aˢ , a , [ strengthen-Wf-arg aˢ (¬free ∘ free-Free-Arg aˢ wf) wf ]
+
+  ----------------------------------------------------------------------
   -- Substitution
 
   module _ {ys} (x : Var s) (t : Term ys s) where
