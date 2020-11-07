@@ -16,7 +16,8 @@ module Abstract-binding-tree
 
 open P.Derived-definitions-and-properties equality-with-paths
 
-open import Logical-equivalence using (_⇔_; Dec-map)
+open import Dec
+open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (swap) renaming ([_,_] to [_,_]′)
 
 import Bijection equality-with-J as Bijection

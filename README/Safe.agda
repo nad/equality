@@ -18,6 +18,10 @@ import Prelude.Size
 
 import Logical-equivalence
 
+-- Some definitions related to Dec.
+
+import Dec
+
 -- Two logically equivalent axiomatisations of equality. Many of the
 -- modules below are parametrised by a definition of equality that
 -- satisfies these axioms.

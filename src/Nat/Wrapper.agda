@@ -29,7 +29,8 @@ module Nat.Wrapper
 
 open Derived-definitions-and-properties eq
 
-open import Logical-equivalence using (_⇔_; Dec-map)
+open import Dec
+open import Logical-equivalence using (_⇔_)
 
 open import Erased eq ax
 open import Function-universe eq as F hiding (_∘_)

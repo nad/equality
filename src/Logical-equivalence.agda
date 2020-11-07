@@ -64,25 +64,3 @@ finally-⇔ : ∀ {a b} (A : Type a) (B : Type b) → A ⇔ B → A ⇔ B
 finally-⇔ _ _ A⇔B = A⇔B
 
 syntax finally-⇔ A B A⇔B = A ⇔⟨ A⇔B ⟩□ B □
-
-------------------------------------------------------------------------
--- Some lemmas
-
--- A map function for Dec.
-
-Dec-map :
-  ∀ {a b} {A : Type a} {B : Type b} →
-  A ⇔ B → Dec A → Dec B
-Dec-map A⇔B = ⊎-map to (_⊚ from)
-  where
-  open _⇔_ A⇔B
-
--- Dec preserves logical equivalences.
-
-Dec-preserves :
-  ∀ {a b} {A : Type a} {B : Type b} →
-  A ⇔ B → Dec A ⇔ Dec B
-Dec-preserves A⇔B = record
-  { to   = Dec-map A⇔B
-  ; from = Dec-map (inverse A⇔B)
-  }

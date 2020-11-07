@@ -17,7 +17,8 @@ module Nat.Binary
 
 open Derived-definitions-and-properties eq
 
-open import Logical-equivalence using (_⇔_; Dec-map)
+open import Dec
+open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (suc; _^_) renaming (_+_ to _⊕_; _*_ to _⊛_)
 
 open import Bijection eq using (_↔_)
