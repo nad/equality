@@ -1049,10 +1049,13 @@ module Signature {ℓ} (sig : Signature ℓ) where
   --
   -- Note that this code is not intended to be used at run-time.
 
+  free-Var : Var s → Vars
+  free-Var x = singleton (_ , x)
+
   mutual
 
     free-Tm : (tˢ : Tmˢ s) → Tm tˢ → Vars
-    free-Tm var        x  = singleton (_ , x)
+    free-Tm var        x  = free-Var x
     free-Tm (op o asˢ) as = free-Args asˢ as
 
     free-Args : (asˢ : Argsˢ vs) → Args asˢ → Vars
@@ -1257,14 +1260,17 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   module _ (x : Var s) where
 
+    Free-in-var′ : Var s′ → Proposition ℓ
+    Free-in-var′ y =
+        _≡_ {A = ∃Var} (_ , x) (_ , y)
+      , ∃Var-set
+
     mutual
 
       Free-in-term′ :
         ∀ {xs} (tˢ : Tmˢ s′) t →
         @0 Wf-tm ((_ , x) ∷ xs) tˢ t → Proposition ℓ
-      Free-in-term′ var y _ =
-          _≡_ {A = ∃Var} (_ , x) (_ , y)
-        , ∃Var-set
+      Free-in-term′ var y _ = Free-in-var′ y
 
       Free-in-term′ (op o asˢ) as wf =
         Free-in-arguments′ asˢ as wf
@@ -1299,6 +1305,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
           , Π-closure ext 1 λ x →
             proj₂ (B x)
 
+    Free-in-variable : Variable ((_ , x) ∷ xs) s′ → Type ℓ
+    Free-in-variable (y , _) = proj₁ (Free-in-var′ y)
+
     Free-in-term : ∀ {xs} → Term ((_ , x) ∷ xs) s′ → Type ℓ
     Free-in-term (t , tˢ , [ wf ]) =
       proj₁ (Free-in-term′ t tˢ wf)
@@ -1315,6 +1324,12 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- free in a term is propositional.
 
   module _ {x : Var s} {xs} where
+
+    Free-in-variable-propositional :
+      (y : Variable ((_ , x) ∷ xs) s′) →
+      Is-proposition (Free-in-variable x y)
+    Free-in-variable-propositional (y , _) =
+      proj₂ (Free-in-var′ _ y)
 
     Free-in-term-propositional :
       (t : Term ((_ , x) ∷ xs) s′) →
@@ -1337,14 +1352,19 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- Variables that are free according to the alternative definition
   -- are in the set of free variables.
 
+  Free-free-Var :
+    {x : Var s} {y : Var s′}
+    (@0 wf : Wf-var ((_ , x) ∷ xs) y) →
+    Free-in-variable x (y , [ wf ]) → (_ , x) ∈ free-Var y
+  Free-free-Var _ = ≡→∈singleton
+
   mutual
 
     Free-free-Tm :
       ∀ {x : Var s} {xs}
       (tˢ : Tmˢ s′) {t} (@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
       Free-in-term x (tˢ , t , [ wf ]) → (_ , x) ∈ free-Tm tˢ t
-    Free-free-Tm var _ = ≡→∈singleton
-
+    Free-free-Tm var        = Free-free-Var
     Free-free-Tm (op o asˢ) = Free-free-Args asˢ
 
     Free-free-Args :
@@ -1412,17 +1432,22 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- Every member of the set of free variables is free according to
   -- the alternative definition.
 
+  free-Free-Var :
+    {x : Var s′} {y : Var s}
+    (@0 wf : Wf-var ((_ , x) ∷ xs) y) →
+    (_ , x) ∈ free-Var y → Free-in-variable x (y , [ wf ])
+  free-Free-Var {x = x} {y = y} _ =
+    (_ , x) ∈ singleton (_ , y)  ↔⟨ ∈singleton≃ ⟩
+    ∥ (_ , x) ≡ (_ , y) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩□
+    (_ , x) ≡ (_ , y)            □
+
   mutual
 
     free-Free-Tm :
       ∀ {x : Var s′} {xs}
       (tˢ : Tmˢ s) {t} (@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
       (_ , x) ∈ free-Tm tˢ t → Free-in-term x (tˢ , t , [ wf ])
-    free-Free-Tm {x = x} var {t = y} _ =
-      (_ , x) ∈ singleton (_ , y)  ↔⟨ ∈singleton≃ ⟩
-      ∥ (_ , x) ≡ (_ , y) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩□
-      (_ , x) ≡ (_ , y)            □
-
+    free-Free-Tm var        = free-Free-Var
     free-Free-Tm (op o asˢ) = free-Free-Args asˢ
 
     free-Free-Args :
