@@ -14,6 +14,7 @@ module Finite-subset.Listed
 
 open P.Derived-definitions-and-properties eq hiding (elim)
 
+open import Dec
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (swap)
 
@@ -806,6 +807,55 @@ extensionality {x = x} {y = y} =
 
 ⊆-antisymmetric : x ⊆ y → y ⊆ x → x ≡ y
 ⊆-antisymmetric = curry (_≃_.from ≡≃⊆×⊇)
+
+-- If truncated equality is decidable, then _⊆_ is also decidable.
+
+subset? :
+  ((x y : A) → Dec ∥ x ≡ y ∥) →
+  (x y : Finite-subset-of A) → Dec (x ⊆ y)
+subset? equal? x y = elim-prop r x
+  where
+  r : Elim-prop (λ x → Dec (x ⊆ y))
+  r .[]ʳ = yes λ z →
+    z ∈ []  ↔⟨ ∈[]≃ ⟩
+    ⊥       ↝⟨ ⊥-elim ⟩□
+    z ∈ y   □
+
+  r .∷ʳ {y = x} z =
+    Dec (x ⊆ y)                          ↝⟨ member? equal? z y ,_ ⟩
+    Dec (z ∈ y) × Dec (x ⊆ y)            ↝⟨ uncurry
+                                              [ (λ u∈y → Dec-map (
+        x ⊆ y                                      ↝⟨ record
+                                                        { to = λ x⊆y u →
+                                                                 [ (λ z≡u → subst (_∈ y) (sym z≡u) u∈y)
+                                                                 , x⊆y u
+                                                                 ]
+                                                        ; from = λ hyp u → hyp u ∘ inj₂
+                                                        } ⟩
+        (∀ u → u ≡ z ⊎ u ∈ x → u ∈ y)              ↔⟨ (∀-cong ext λ _ → inverse $
+                                                       Trunc.universal-property ∈-propositional) ⟩
+        (∀ u → u ≡ z ∥⊎∥ u ∈ x → u ∈ y)            ↝⟨ (∀-cong _ λ _ → →-cong₁ _ (inverse ∈∷≃)) ⟩
+        (∀ u → u ∈ z ∷ x → u ∈ y)                  ↔⟨⟩
+        z ∷ x ⊆ y                                  □))
+                                              , (λ u∉y _ → no (
+        z ∷ x ⊆ y                                  ↝⟨ (λ u∷x⊆y → u∷x⊆y z (≡→∈∷ (refl _))) ⟩
+        z ∈ y                                      ↝⟨ u∉y ⟩□
+        ⊥                                          □))
+                                              ] ⟩□
+    Dec (z ∷ x ⊆ y)                      □
+
+  r .is-propositionʳ _ =
+    Dec-closure-propositional ext ⊆-propositional
+
+-- If truncated equality is decidable, then _≡_ is also decidable.
+
+equal? :
+  ((x y : A) → Dec ∥ x ≡ y ∥) →
+  (x y : Finite-subset-of A) → Dec (x ≡ y)
+equal? eq? x y =             $⟨ subset? eq? x y , subset? eq? y x ⟩
+  Dec (x ⊆ y) × Dec (y ⊆ x)  ↝⟨ uncurry Dec-× ⟩
+  Dec (x ⊆ y × y ⊆ x)        ↝⟨ Dec-map (from-equivalence $ inverse ≡≃⊆×⊇) ⟩□
+  Dec (x ≡ y)                □
 
 ------------------------------------------------------------------------
 -- The functions filter, minus and delete
