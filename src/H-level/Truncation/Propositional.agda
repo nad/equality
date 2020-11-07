@@ -18,6 +18,7 @@ module H-level.Truncation.Propositional
 
 open P.Derived-definitions-and-properties eq hiding (elim)
 
+open import Dec
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
@@ -587,6 +588,18 @@ Is-set⇔h-separated {A = A} = record
       ((x y : A) → ∃ λ (f : x ≡ y → x ≡ y) → Constant f)  ↝⟨ constant⇒set ⟩□
       Is-set A                                            □
   }
+
+-- Decidable mere equality follows from decidable equality.
+
+decidable-equality→decidable-mere-equality :
+  Decidable-equality A →
+  ((x y : A) → Dec ∥ x ≡ y ∥)
+decidable-equality→decidable-mere-equality _≟_ x y =
+  Dec-map
+    (record { to   = ∣_∣
+            ; from = _↔_.to (∥∥↔ (decidable⇒set _≟_))
+            })
+    (x ≟ y)
 
 -- Variants of the following two lemmas were communicated to me by
 -- Nicolai Kraus. They are closely related to Lemma 2.1 in his paper
