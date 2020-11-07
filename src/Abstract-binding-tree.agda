@@ -1268,7 +1268,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     mutual
 
       Free-in-term′ :
-        ∀ {xs} (tˢ : Tmˢ s′) t →
+        ∀ (tˢ : Tmˢ s′) t →
         @0 Wf-tm ((_ , x) ∷ xs) tˢ t → Proposition ℓ
       Free-in-term′ var y _ = Free-in-var′ y
 
@@ -1276,7 +1276,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
         Free-in-arguments′ asˢ as wf
 
       Free-in-arguments′ :
-        ∀ {xs} (asˢ : Argsˢ vs) as →
+        ∀ (asˢ : Argsˢ vs) as →
         @0 Wf-args ((_ , x) ∷ xs) asˢ as → Proposition ℓ
       Free-in-arguments′ nil _ _ = ⊥ , ⊥-propositional
 
@@ -1286,12 +1286,12 @@ module Signature {ℓ} (sig : Signature ℓ) where
         , ∥⊎∥-propositional
 
       Free-in-argument′ :
-        ∀ {xs} (aˢ : Argˢ v) a →
+        ∀ (aˢ : Argˢ v) a →
         @0 Wf-arg ((_ , x) ∷ xs) aˢ a → Proposition ℓ
       Free-in-argument′ (nil tˢ) t wf = Free-in-term′ tˢ t wf
 
       Free-in-argument′ {xs = xs} (cons aˢ) (y , a) wf =
-          Π _ λ z → Π (¬ (_ , z) ∈ (_ , x) ∷ xs) λ z∉ →
+          Π _ λ z → Π (Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) λ ([ z∉ ]) →
           Free-in-argument′
             aˢ
             (rename-Arg y z aˢ a)
@@ -1308,22 +1308,22 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Free-in-variable : Variable ((_ , x) ∷ xs) s′ → Type ℓ
     Free-in-variable (y , _) = proj₁ (Free-in-var′ y)
 
-    Free-in-term : ∀ {xs} → Term ((_ , x) ∷ xs) s′ → Type ℓ
+    Free-in-term : Term ((_ , x) ∷ xs) s′ → Type ℓ
     Free-in-term (t , tˢ , [ wf ]) =
       proj₁ (Free-in-term′ t tˢ wf)
 
-    Free-in-arguments : ∀ {xs} → Arguments ((_ , x) ∷ xs) vs → Type ℓ
+    Free-in-arguments : Arguments ((_ , x) ∷ xs) vs → Type ℓ
     Free-in-arguments (as , asˢ , [ wfs ]) =
       proj₁ (Free-in-arguments′ as asˢ wfs)
 
-    Free-in-argument : ∀ {xs} → Argument ((_ , x) ∷ xs) v → Type ℓ
+    Free-in-argument : Argument ((_ , x) ∷ xs) v → Type ℓ
     Free-in-argument (a , aˢ , [ wf ]) =
       proj₁ (Free-in-argument′ a aˢ wf)
 
   -- The alternative definition of what it means for a variable to be
   -- free in a term is propositional.
 
-  module _ {x : Var s} {xs} where
+  module _ {x : Var s} where
 
     Free-in-variable-propositional :
       (y : Variable ((_ , x) ∷ xs) s′) →
@@ -1394,19 +1394,19 @@ module Signature {ℓ} (sig : Signature ℓ) where
             (∃ λ x₂ → ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xxs))  ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
             (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × ¬ (_ , x₂) ∈ xxs)      □
       in
-      (∀ z (z∉ : ¬ (_ , z) ∈ (_ , x) ∷ xs) →
+      (∀ z (z∉ : Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) →
        Free-in-argument x
          ( aˢ
          , rename-Arg y z aˢ a
          , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
                    swap
-                   (wf z z∉) ]
+                   (wf z (erased z∉)) ]
          ))                                                 ↝⟨ (λ hyp z z∉ → Free-free-Arg
                                                                                aˢ
                                                                                (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
                                                                                       swap
                                                                                       (wf z z∉))
-                                                                               (hyp z z∉)) ⟩
+                                                                               (hyp z [ z∉ ])) ⟩
       (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
        (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))         ↝⟨ (λ hyp z z∉ → free-rename-⊆-Arg aˢ _ (hyp z z∉)) ⦂ (_ → _) ⟩
 
@@ -1485,15 +1485,15 @@ module Signature {ℓ} (sig : Signature ℓ) where
              (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))       ↝⟨ (λ x∈ z z∉ → free-Free-Arg aˢ
                                                                                   (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
                                                                                          swap
-                                                                                         (wf z z∉))
-                                                                                  (x∈ z z∉)) ⟩□
-      (∀ z (z∉ : ¬ (_ , z) ∈ (_ , x) ∷ xs) →
+                                                                                         (wf z (erased z∉)))
+                                                                                  (x∈ z (Stable-¬ _ z∉))) ⟩□
+      (∀ z (z∉ : Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) →
        Free-in-argument x
          ( aˢ
          , rename-Arg y z aˢ a
          , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
                    swap
-                   (wf z z∉) ]
+                   (wf z (erased z∉)) ]
          ))                                                     □
 
   ----------------------------------------------------------------------
