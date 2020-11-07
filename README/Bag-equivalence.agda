@@ -8,7 +8,8 @@
 -- Note that the code does not follow the paper exactly. For instance,
 -- many definitions are universe-polymorphic, and in some cases where
 -- the paper contains both a specialised and a more general definition
--- the code only contains the more general one.
+-- the code only contains the more general one. The code has also been
+-- changed after the paper was published.
 
 {-# OPTIONS --without-K --safe #-}
 

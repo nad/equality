@@ -5,6 +5,8 @@
 -- The code is written by Nils Anders Danielsson
 ------------------------------------------------------------------------
 
+-- Note that the code has been changed after the paper was published.
+
 {-# OPTIONS --without-K --safe #-}
 
 module README.Isomorphism-is-equality where
