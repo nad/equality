@@ -475,6 +475,7 @@ import Queue.Truncated.Instances
 -- for Programming Languages".
 
 import Abstract-binding-tree
+import README.Abstract-binding-tree
 
 -- Isomorphism of monoids on sets coincides with equality (assuming
 -- univalence).
