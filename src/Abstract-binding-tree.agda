@@ -798,6 +798,24 @@ module Signature {ℓ} (sig : Signature ℓ) where
     wf-elim-Argument (aˢ , a , [ wf ]) = wf-elim-Argument′ aˢ a wf
 
   ----------------------------------------------------------------------
+  -- Some lemmas related to cast-Var
+
+  -- A fusion lemma for cast-Var.
+
+  cast-Var-cast-Var :
+    {x : Var s₁} {eq₁ : [ s₁ ] ≡ [ s₂ ]} {eq₂ : [ s₂ ] ≡ [ s₃ ]} →
+    cast-Var eq₂ (cast-Var eq₁ x) ≡ cast-Var (trans eq₁ eq₂) x
+  cast-Var-cast-Var = subst-subst _ _ _ _
+
+  -- The proof given to cast-Var can be replaced.
+
+  cast-Var-irrelevance :
+    {x : Var s₁} {eq₁ eq₂ : [ s₁ ] ≡ [ s₂ ]} →
+    cast-Var eq₁ x ≡ cast-Var eq₂ x
+  cast-Var-irrelevance =
+    cong (λ eq → cast-Var eq _) (H-level-Erased 2 Sort-set _ _)
+
+  ----------------------------------------------------------------------
   -- Some renaming lemmas
 
   -- Two "computation rules".
@@ -809,7 +827,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   rename-Var-≡ {x = x} {y = y} {z = z} x≡z with (_ , x) ≟∃V (_ , z)
   … | no x≢z   = ⊥-elim (x≢z x≡z)
   … | yes x≡z′ =
-    cast-Var (cong proj₁ x≡z′) y  ≡⟨ cong (λ eq → cast-Var eq _) (H-level-Erased 2 Sort-set _ _) ⟩∎
+    cast-Var (cong proj₁ x≡z′) y  ≡⟨ cast-Var-irrelevance ⟩∎
     cast-Var (cong proj₁ x≡z)  y  ∎
 
   rename-Var-≢ :
@@ -875,21 +893,6 @@ module Signature {ℓ} (sig : Signature ℓ) where
      rename-Var x y z                      ≡⟨ sym $ subst-refl _ _ ⟩∎
      cast-Var (refl _) (rename-Var x y z)  ∎)
     _
-
-  -- A fusion lemma for cast-Var.
-
-  cast-Var-cast-Var :
-    {x : Var s₁} {eq₁ : [ s₁ ] ≡ [ s₂ ]} {eq₂ : [ s₂ ] ≡ [ s₃ ]} →
-    cast-Var eq₂ (cast-Var eq₁ x) ≡ cast-Var (trans eq₁ eq₂) x
-  cast-Var-cast-Var = subst-subst _ _ _ _
-
-  -- The proof given to cast-Var can be replaced.
-
-  cast-Var-irrelevance :
-    {x : Var s₁} {eq₁ eq₂ : [ s₁ ] ≡ [ s₂ ]} →
-    cast-Var eq₁ x ≡ cast-Var eq₂ x
-  cast-Var-irrelevance =
-    cong (λ eq → cast-Var eq _) (H-level-Erased 2 Sort-set _ _)
 
   -- Renamings can sometimes be reordered in a certain way.
 
