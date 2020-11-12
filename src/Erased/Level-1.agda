@@ -907,13 +907,18 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   -- Another rearrangement lemma.
 
-  @0 subst-[]-cong-[] :
+  subst-[]-cong-[] :
+    {P : @0 A → Type p} {p : P x} →
     subst (λ ([ x ]) → P x) ([]-cong [ eq ]) p ≡
     subst (λ x → P x) eq p
-  subst-[]-cong-[] {P = P} {eq = eq} {p = p} =
-    subst (λ ([ x ]) → P x) ([]-cong [ eq ]) p          ≡⟨ subst-∘ _ _ _ ⟩
-    subst (λ x → P x) (cong erased ([]-cong [ eq ])) p  ≡⟨ cong (λ eq → subst (λ x → P x) eq p) $ _≃_.left-inverse-of ≡≃[]≡[] _ ⟩∎
-    subst (λ x → P x) eq p                              ∎
+  subst-[]-cong-[] {eq = eq} {P = P} {p = p} = elim¹
+    (λ eq → subst (λ ([ x ]) → P x) ([]-cong [ eq ]) p ≡
+            subst (λ x → P x) eq p)
+    (subst (λ ([ x ]) → P x) ([]-cong [ refl _ ]) p  ≡⟨ cong (flip (subst _) _) []-cong-[refl] ⟩
+     subst (λ ([ x ]) → P x) (refl [ _ ]) p          ≡⟨ subst-refl _ _ ⟩
+     p                                               ≡⟨ sym $ subst-refl _ _ ⟩∎
+     subst (λ x → P x) (refl _) p                    ∎)
+    eq
 
   -- The function map (cong f) can be expressed in terms of
   -- cong (map f) (up to pointwise equality).
