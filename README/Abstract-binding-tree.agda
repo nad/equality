@@ -50,27 +50,15 @@ ec x  ≟O ec y  = Dec-map (record { to   = cong ec
                          (x Bool.≟ y)
 print ≟O print = yes refl
 
--- Variables are natural numbers paired up with sorts.
+-- Variables are natural numbers.
 
 Var : @0 Sort → Type
-Var s = ℕ × ∃ λ s′ → Erased (s′ ≡ s)
+Var _ = ℕ
 
--- The function vr turns natural numbers into variables.
+-- Equality of sorts paired up with variables is decidable.
 
-vr : ∀ {s} → ℕ → Var s
-vr x = x , _ , [ refl ]
-
--- Equality of erased sorts paired up with variables is decidable.
-
-_≟∃V_ : Decidable-equality (∃ λ s → Var (erased s))
-_≟∃V_ =                                             $⟨ ×.Dec._≟_ Nat._≟_ Bool._≟_ ⟩
-   Decidable-equality (ℕ × Sort)                    ↝⟨ Decidable-equality-cong _ (F.id ×-cong inverse Σ-Erased-Erased-singleton↔) ⟩
-
-   Decidable-equality
-     (ℕ × ∃ λ s → ∃ λ s′ → Erased (s′ ≡ erased s))  ↝⟨ Decidable-equality-cong {k₂ = implication} _ ∃-comm ⟩□
-
-   Decidable-equality
-     (∃ λ s → ℕ × ∃ λ s′ → Erased (s′ ≡ erased s))  □
+_≟∃V_ : Decidable-equality (∃ λ s → Var s)
+_≟∃V_ = ×.Dec._≟_ Bool._≟_  Nat._≟_
 
 -- A signature.
 
@@ -85,11 +73,11 @@ sig .Signature.domain print     = ([] , expr) ∷ []
 sig .Signature.Var              = Var
 sig .Signature._≟∃V_            = _≟∃V_
 sig .Signature.fresh {s = s} xs =
-  Σ-map vr (λ {n} ub n∈ → Nat.<-irreflexive (ub n n∈))
+  Σ-map id (λ {n} ub n∈ → Nat.<-irreflexive (ub n n∈))
     (L.elim e xs)
   where
-  P : Finite-subset-of (∃ λ s → Var (erased s)) → ℕ → Type
-  P xs m = ∀ n → ([ s ] , vr n) ∈ xs → n Nat.< m
+  P : Finite-subset-of (∃ λ s → Var s) → ℕ → Type
+  P xs m = ∀ n → (s , n) ∈ xs → n Nat.< m
 
   prop : ∀ {xs m} → Is-proposition (P xs m)
   prop =
@@ -98,26 +86,26 @@ sig .Signature.fresh {s = s} xs =
     ≤-propositional
 
   ∷-max-suc :
-    ∀ {xs n} {x@(_ , m , _) : ∃ λ s → Var (erased s)} →
+    ∀ {xs n} {x@(_ , m) : ∃ λ s → Var s} →
     P xs n →
     P (x ∷ xs) (Nat.max (suc m) n)
-  ∷-max-suc {xs = xs} {n = n} {x = x@(_ , m , _)} ub o =
-    (_ , vr o) ∈ x ∷ xs                 ↔⟨ ∈∷≃ ⟩
-    (_ , vr o) ≡ x ∥⊎∥ (_ , vr o) ∈ xs  ↝⟨ Nat.≤-refl′ ∘ cong suc ∘ cong (proj₁ ∘ proj₂) ∥⊎∥-cong ub o ⟩
-    o Nat.< suc m ∥⊎∥ o Nat.< n         ↝⟨ Trunc.rec ≤-propositional
-                                             P.[ flip Nat.≤-trans (Nat.ˡ≤max _ n)
-                                               , flip Nat.≤-trans (Nat.ʳ≤max (suc m) _)
-                                               ] ⟩□
-    o Nat.< Nat.max (suc m) n           □
+  ∷-max-suc {xs = xs} {n = n} {x = x@(_ , m)} ub o =
+    (_ , o) ∈ x ∷ xs              ↔⟨ ∈∷≃ ⟩
+    (_ , o) ≡ x ∥⊎∥ (_ , o) ∈ xs  ↝⟨ Nat.≤-refl′ ∘ cong suc ∘ cong proj₂ ∥⊎∥-cong ub o ⟩
+    o Nat.< suc m ∥⊎∥ o Nat.< n   ↝⟨ Trunc.rec ≤-propositional
+                                       P.[ flip Nat.≤-trans (Nat.ˡ≤max _ n)
+                                         , flip Nat.≤-trans (Nat.ʳ≤max (suc m) _)
+                                         ] ⟩□
+    o Nat.< Nat.max (suc m) n     □
 
   e : L.Elim (λ xs → ∃ (P xs))
   e .[]ʳ =
     0 , λ _ ()
 
-  e .∷ʳ (_ , m , _) (n , ub) =
+  e .∷ʳ (_ , m) (n , ub) =
     Nat.max (suc m) n , ∷-max-suc ub
 
-  e .dropʳ {y = y} x@(_ , m , _) (n , ub) =
+  e .dropʳ {y = y} x@(_ , m) (n , ub) =
     to-implication (ignore-propositional-component prop)
       (proj₁ (subst (∃ ∘ P)
                     (drop {x = x} {y = y})
@@ -133,7 +121,7 @@ sig .Signature.fresh {s = s} xs =
 
        Nat.max (suc m) n                                   ∎)
 
-  e .swapʳ {z = z} x@(_ , m , _) y@(_ , n , _) (o , ub) =
+  e .swapʳ {z = z} x@(_ , m) y@(_ , n) (o , ub) =
     to-implication (ignore-propositional-component prop)
       (proj₁ (subst (∃ ∘ P)
                     (swap {x = x} {y = y} {z = z})
@@ -192,12 +180,12 @@ pattern printᵖ tˢ t wf =
 
 -- Some (more or less) smart constructors.
 
-varˢ : (x : Var s) → Term (([ s ] , x) ∷ xs) s
+varˢ : ∀ {s} (x : Var s) → Term ((s , x) ∷ xs) s
 varˢ x = varᵖ x (≡→∈∷ refl)
 
 lamˢ :
   (x : Var expr) →
-  Term (([ expr ] , x) ∷ xs) expr →
+  Term ((expr , x) ∷ xs) expr →
   Term xs expr
 lamˢ x (tˢ , t , [ wf ]) =
   lamᵖ x tˢ t (λ _ _ → rename-Wf-tm tˢ wf)
@@ -212,21 +200,21 @@ printˢ (tˢ , t , [ wf ]) = printᵖ tˢ t wf
 -- A representation of "λ x. x".
 
 λx→x : Term [] expr
-λx→x = lamˢ (vr 0) (varˢ (vr 0))
+λx→x = lamˢ 0 (varˢ 0)
 
 -- A representation of "print (λ x y. x y)".
 
 print[λxy→xy] : Term [] stmt
 print[λxy→xy] =
-  printˢ $ lamˢ (vr 0) $ lamˢ (vr 1) $
-  appˢ (weaken-Term lemma (varˢ (vr 0))) (varˢ (vr 1))
+  printˢ $ lamˢ 0 $ lamˢ 1 $
+  appˢ (weaken-Term lemma (varˢ 0)) (varˢ 1)
   where
   lemma =
     from-⊎ $
     subset?
       (decidable-equality→decidable-mere-equality _≟∃V_)
-      (([ expr ] , vr 0) ∷ [])
-      (([ expr ] , vr 1) ∷ ([ expr ] , vr 0) ∷ [])
+      ((expr , 0) ∷ [])
+      ((expr , 1) ∷ (expr , 0) ∷ [])
 
 -- An interpreter that uses fuel.
 
