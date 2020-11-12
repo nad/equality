@@ -873,6 +873,63 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
       []-cong⁻¹ (refl [ x ])  ≡⟨ []-cong⁻¹-refl ⟩∎
       [ refl x ]              ∎)
 
+  -- []-cong and []-cong⁻¹ commute (kind of) with sym.
+
+  []-cong⁻¹-sym :
+    {@0 A : Type a} {@0 x y : A} {x≡y : [ x ] ≡ [ y ]} →
+    []-cong⁻¹ (sym x≡y) ≡ map sym ([]-cong⁻¹ x≡y)
+  []-cong⁻¹-sym = elim¹
+    (λ x≡y → []-cong⁻¹ (sym x≡y) ≡ map sym ([]-cong⁻¹ x≡y))
+    ([]-cong⁻¹ (sym (refl _))      ≡⟨ cong []-cong⁻¹ sym-refl ⟩
+     []-cong⁻¹ (refl _)            ≡⟨ []-cong⁻¹-refl ⟩
+     [ refl _ ]                    ≡⟨ []-cong [ sym sym-refl ] ⟩
+     [ sym (refl _) ]              ≡⟨⟩
+     map sym [ refl _ ]            ≡⟨ cong (map sym) $ sym []-cong⁻¹-refl ⟩∎
+     map sym ([]-cong⁻¹ (refl _))  ∎)
+    _
+
+  []-cong-[sym] :
+    {@0 A : Type a} {@0 x y : A} {@0 x≡y : x ≡ y} →
+    []-cong [ sym x≡y ] ≡ sym ([]-cong [ x≡y ])
+  []-cong-[sym] {x≡y = x≡y} =
+    sym $ _↔_.to (from≡↔≡to $ Eq.↔⇒≃ Erased-≡↔[]≡[]) (
+      []-cong⁻¹ (sym ([]-cong [ x≡y ]))      ≡⟨ []-cong⁻¹-sym ⟩
+      map sym ([]-cong⁻¹ ([]-cong [ x≡y ]))  ≡⟨ cong (map sym) $ _↔_.left-inverse-of Erased-≡↔[]≡[] _ ⟩∎
+      map sym [ x≡y ]                        ∎)
+
+  -- []-cong and []-cong⁻¹ commute (kind of) with trans.
+
+  []-cong⁻¹-trans :
+    {@0 A : Type a} {@0 x y z : A}
+    {x≡y : [ x ] ≡ [ y ]} {y≡z : [ y ] ≡ [ z ]} →
+    []-cong⁻¹ (trans x≡y y≡z) ≡
+    [ trans (erased ([]-cong⁻¹ x≡y)) (erased ([]-cong⁻¹ y≡z)) ]
+  []-cong⁻¹-trans {y≡z = y≡z} = elim₁
+    (λ x≡y → []-cong⁻¹ (trans x≡y y≡z) ≡
+             [ trans (erased ([]-cong⁻¹ x≡y)) (erased ([]-cong⁻¹ y≡z)) ])
+    ([]-cong⁻¹ (trans (refl _) y≡z)                                    ≡⟨ cong []-cong⁻¹ $ trans-reflˡ _ ⟩
+     []-cong⁻¹ y≡z                                                     ≡⟨⟩
+     [ erased ([]-cong⁻¹ y≡z) ]                                        ≡⟨ []-cong [ sym $ trans-reflˡ _ ] ⟩
+     [ trans (refl _) (erased ([]-cong⁻¹ y≡z)) ]                       ≡⟨⟩
+     [ trans (erased [ refl _ ]) (erased ([]-cong⁻¹ y≡z)) ]            ≡⟨ []-cong [ cong (flip trans _) $ cong erased $ sym
+                                                                          []-cong⁻¹-refl ] ⟩∎
+     [ trans (erased ([]-cong⁻¹ (refl _))) (erased ([]-cong⁻¹ y≡z)) ]  ∎)
+    _
+
+  []-cong-[trans] :
+    {@0 A : Type a} {@0 x y z : A} {@0 x≡y : x ≡ y} {@0 y≡z : y ≡ z} →
+    []-cong [ trans x≡y y≡z ] ≡
+    trans ([]-cong [ x≡y ]) ([]-cong [ y≡z ])
+  []-cong-[trans] {x≡y = x≡y} {y≡z = y≡z} =
+    sym $ _↔_.to (from≡↔≡to $ Eq.↔⇒≃ Erased-≡↔[]≡[]) (
+      []-cong⁻¹ (trans ([]-cong [ x≡y ]) ([]-cong [ y≡z ]))  ≡⟨ []-cong⁻¹-trans ⟩
+
+      [ trans (erased ([]-cong⁻¹ ([]-cong [ x≡y ])))
+              (erased ([]-cong⁻¹ ([]-cong [ y≡z ]))) ]       ≡⟨ []-cong [ cong₂ (λ p q → trans (erased p) (erased q))
+                                                                            (_↔_.left-inverse-of Erased-≡↔[]≡[] _)
+                                                                            (_↔_.left-inverse-of Erased-≡↔[]≡[] _) ] ⟩∎
+      [ trans x≡y y≡z ]                                      ∎)
+
   -- In an erased context there is an equivalence between equality of
   -- values and equality of "boxed" values.
 
