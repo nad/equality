@@ -193,7 +193,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- A cast lemma.
 
   cast-Var : @0 s ≡ s′ → Var s → Var s′
-  cast-Var s≡s′ = subst (λ ([ s ]) → Var s) ([]-cong [ s≡s′ ])
+  cast-Var = substᴱ Var
 
   -- Renaming.
 
@@ -302,53 +302,32 @@ module Signature {ℓ} (sig : Signature ℓ) where
         ; from = from
         }
       ; right-inverse-of = λ where
-          (inj₂ _)         → refl _
-          (inj₁ (s′ , eq)) →
-            to (subst (λ ([ s ]) → Tmˢ s) ([]-cong eq) var)     ≡⟨ lemma _ ⟩
-
-            subst RHS ([]-cong eq) (to var)                     ≡⟨⟩
-
-            subst RHS ([]-cong eq) (inj₁ (_ , [ refl _ ]))      ≡⟨ push-subst-inj₁ _ _ ⟩
-
-            inj₁ (subst (λ ([ s ]) → ∃ λ s′ → Erased (s′ ≡ s))
-                    ([]-cong eq) (_ , [ refl _ ]))              ≡⟨ cong inj₁ $ push-subst-pair-× _ _ ⟩
-
-            inj₁ (s′ , subst (λ ([ s ]) → Erased (s′ ≡ s))
-                         ([]-cong eq) [ refl _ ])               ≡⟨ cong (inj₁ ∘ (s′ ,_)) $ H-level-Erased 1 Sort-set _ _ ⟩∎
-
-            inj₁ (s′ , eq)                                      ∎
+          (inj₂ _)             → refl _
+          (inj₁ (s′ , [ eq ])) → elim¹ᴱ
+            (λ eq → to (substᴱ Tmˢ eq var) ≡
+                    inj₁ (s′ , [ eq ]))
+            (to (substᴱ Tmˢ (refl _) var)  ≡⟨ cong to substᴱ-refl ⟩
+             to var                        ≡⟨⟩
+             inj₁ (s′ , [ refl _ ])        ∎)
+            eq
       }
     ; left-inverse-of = λ where
         (op _ _) → refl _
-        var      →
-          subst (λ ([ s ]) → Tmˢ s) ([]-cong [ refl _ ]) var  ≡⟨ cong (λ eq → subst (λ ([ s ]) → Tmˢ s) eq var) []-cong-[refl] ⟩
-          subst (λ ([ s ]) → Tmˢ s) (refl [ _ ]) var          ≡⟨ subst-refl _ _ ⟩∎
-          var                                                 ∎
+        var      → substᴱ-refl
     })
     where
-    RHS : Erased Sort → Type ℓ
-    RHS ([ s ]) =
+    RHS : @0 Sort → Type ℓ
+    RHS s =
       (∃ λ s′ → Erased (s′ ≡ s)) ⊎
       (∃ λ (o : Op s) → Argsˢ (domain o))
 
-    to : Tmˢ s → RHS [ s ]
+    to : Tmˢ s → RHS s
     to var       = inj₁ (_ , [ refl _ ])
     to (op o as) = inj₂ (o , as)
 
-    from : RHS [ s ] → Tmˢ s
-    from (inj₁ (s′ , eq)) = subst (λ ([ s ]) → Tmˢ s) ([]-cong eq) var
-    from (inj₂ (o , as))  = op o as
-
-    lemma :
-      ∀ {s₁ s₂} {t : Tmˢ (erased s₁)} (eq : s₁ ≡ s₂) →
-      to (subst (λ ([ s ]) → Tmˢ s) eq t) ≡
-      subst RHS eq (to t)
-    lemma {s₁ = s₁} {t = t} = elim¹
-      (λ eq → to (subst (λ ([ s ]) → Tmˢ s) eq t) ≡
-              subst RHS eq (to t))
-      (to (subst (λ ([ s ]) → Tmˢ s) (refl s₁) t)  ≡⟨ cong to $ subst-refl _ _ ⟩
-       to t                                        ≡⟨ sym $ subst-refl _ _ ⟩∎
-       subst RHS (refl _) (to t)                   ∎)
+    from : RHS s → Tmˢ s
+    from (inj₁ (s′ , [ eq ])) = substᴱ Tmˢ eq var
+    from (inj₂ (o , as))      = op o as
 
   -- A rearrangement lemma for Argsˢ.
 
@@ -370,77 +349,42 @@ module Signature {ℓ} (sig : Signature ℓ) where
     ; left-inverse-of = from∘to
     })
     where
-    RHS : Erased (List Valence) → Type ℓ
-    RHS [ vs ] =
+    RHS : @0 List Valence → Type ℓ
+    RHS vs =
       (Erased ([] ≡ vs) ⊎
       (∃ λ ((([ v ] , _) , [ vs′ ] , _) :
             (∃ λ v → Argˢ (erased v)) ×
             (∃ λ vs′ → Argsˢ (erased vs′))) →
          Erased (v ∷ vs′ ≡ vs)))
 
-    to : Argsˢ vs → RHS [ vs ]
+    to : Argsˢ vs → RHS vs
     to nil         = inj₁ [ refl _ ]
     to (cons a as) = inj₂ (((_ , a) , _ , as) , [ refl _ ])
 
-    from : RHS [ vs ] → Argsˢ vs
+    from : RHS vs → Argsˢ vs
     from (inj₁ [ eq ]) =
-      subst (λ vs → Argsˢ (erased vs)) ([]-cong [ eq ]) nil
+      substᴱ Argsˢ eq nil
     from (inj₂ (((_ , a) , _ , as) , [ eq ])) =
-      subst (λ vs → Argsˢ (erased vs)) ([]-cong [ eq ]) (cons a as)
-
-    lemma₁ :
-      ∀ {vs₁ vs₂ as} (eq : vs₁ ≡ vs₂) →
-      to (subst (λ vs → Argsˢ (erased vs)) eq as) ≡
-      subst RHS eq (to as)
-    lemma₁ {as = as} = elim¹ _
-      (to (subst (λ vs → Argsˢ (erased vs)) (refl _) as)  ≡⟨ cong to $ subst-refl _ _ ⟩
-       to as                                              ≡⟨ sym $ subst-refl _ _ ⟩∎
-       subst RHS (refl _) (to as)                         ∎)
+      substᴱ Argsˢ eq (cons a as)
 
     to∘from : ∀ x → to (from x) ≡ x
-    to∘from (inj₁ [ eq ]) =
-      to (subst (λ vs → Argsˢ (erased vs)) ([]-cong [ eq ]) nil)  ≡⟨ lemma₁ _ ⟩
-
-      subst RHS ([]-cong [ eq ]) (to nil)                         ≡⟨⟩
-
-      subst RHS ([]-cong [ eq ]) (inj₁ [ refl _ ])                ≡⟨ push-subst-inj₁ _ _ ⟩
-
-      inj₁ (subst (λ vs → Erased ([] ≡ erased vs))
-                  ([]-cong [ eq ]) [ refl _ ])                    ≡⟨ cong inj₁ $ H-level-Erased 1 (H-level-List 0 Valence-set) _ _ ⟩∎
-
-      inj₁ [ eq ]                                                 ∎
-
-    to∘from (inj₂ ((([ v ] , a) , [ vs′ ] , as) , [ eq ])) =
-      to (subst (λ vs → Argsˢ (erased vs)) ([]-cong [ eq ]) (cons a as))  ≡⟨ lemma₁ _ ⟩
-
-      subst RHS ([]-cong [ eq ]) (to (cons a as))                         ≡⟨⟩
-
-      subst RHS ([]-cong [ eq ])
-            (inj₂ (((_ , a) , _ , as) , [ refl _ ]))                      ≡⟨ push-subst-inj₂ _ _ ⟩
-
-      inj₂ (subst _
-                  ([]-cong [ eq ])
-                  (((_ , a) , _ , as) , [ refl _ ]))                      ≡⟨ cong inj₂ (push-subst-pair-× _ _) ⟩
-
-      inj₂ ( ((_ , a) , _ , as)
-           , subst (λ ([ vs ]) → Erased (v ∷ vs′ ≡ vs))
-                   ([]-cong [ eq ])
-                   [ refl _ ]
-           )                                                              ≡⟨ cong (λ eq → inj₂ (((_ , a) , _ , as) , eq)) $
-                                                                             H-level-Erased 1 (H-level-List 0 Valence-set) _ _ ⟩∎
-      inj₂ (((_ , a) , _ , as) , [ eq ])                                  ∎
-
-    lemma₂ :
-      {as : Argsˢ vs} →
-      subst (λ vs → Argsˢ (erased vs)) ([]-cong [ refl _ ]) as ≡ as
-    lemma₂ {as = as} =
-      subst (λ vs → Argsˢ (erased vs)) ([]-cong [ refl _ ]) as  ≡⟨ cong (λ eq → subst (λ vs → Argsˢ (erased vs)) eq _) []-cong-[refl] ⟩
-      subst (λ vs → Argsˢ (erased vs)) (refl _) as              ≡⟨ subst-refl _ _ ⟩∎
-      as                                                        ∎
+    to∘from (inj₁ [ eq ]) = elim¹ᴱ
+      (λ eq → to (substᴱ Argsˢ eq nil) ≡ inj₁ [ eq ])
+      (to (substᴱ Argsˢ (refl _) nil)  ≡⟨ cong to substᴱ-refl ⟩
+       to nil                          ≡⟨⟩
+       inj₁ [ refl _ ]                 ∎)
+      eq
+    to∘from (inj₂ (((_ , a) , _ , as) , [ eq ])) = elim¹ᴱ
+      (λ eq → to (substᴱ Argsˢ eq (cons a as)) ≡
+              inj₂ (((_ , a) , _ , as) , [ eq ]))
+      (to (substᴱ Argsˢ (refl _) (cons a as))  ≡⟨ cong to substᴱ-refl ⟩
+       to (cons a as)                          ≡⟨⟩
+       inj₂ (((_ , a) , _ , as) , [ refl _ ])  ∎)
+      eq
 
     from∘to : ∀ x → from (to x) ≡ x
-    from∘to nil        = lemma₂
-    from∘to (cons _ _) = lemma₂
+    from∘to nil        = substᴱ-refl
+    from∘to (cons _ _) = substᴱ-refl
 
   -- A rearrangement lemma for Argˢ.
 
@@ -461,86 +405,40 @@ module Signature {ℓ} (sig : Signature ℓ) where
     ; left-inverse-of = from∘to
     })
     where
-    RHS : Erased Valence → Type ℓ
-    RHS [ v ] =
+    RHS : @0 Valence → Type ℓ
+    RHS v =
       (∃ λ (([ s ] , _) : ∃ λ s → Tmˢ (erased s)) →
          Erased (([] , s) ≡ v)) ⊎
       (∃ λ ((s , [ ss , s′ ] , _) : Sort × ∃ λ v → Argˢ (erased v)) →
        Erased ((s ∷ ss , s′) ≡ v))
 
-    to : Argˢ v → RHS [ v ]
-    to (nil t)          = inj₁ ((_ , t) , [ refl _ ])
-    to (cons {s = s} a) = inj₂ ((s , _ , a) , [ refl _ ])
+    to : Argˢ v → RHS v
+    to (nil t)  = inj₁ ((_ , t) , [ refl _ ])
+    to (cons a) = inj₂ ((_ , _ , a) , [ refl _ ])
 
-    from : RHS [ v ] → Argˢ v
-    from (inj₁ ((_ , t) , [ eq ])) =
-      subst (λ v → Argˢ (erased v)) ([]-cong [ eq ]) (nil t)
-    from (inj₂ ((s , _ , a) , [ eq ])) =
-      subst (λ v → Argˢ (erased v)) ([]-cong [ eq ]) (cons {s = s} a)
-
-    lemma₁ :
-      ∀ {v₁ v₂ a} (eq : v₁ ≡ v₂) →
-      to (subst (λ v → Argˢ (erased v)) eq a) ≡
-      subst RHS eq (to a)
-    lemma₁ {a = a} = elim¹ _
-      (to (subst (λ v → Argˢ (erased v)) (refl _) a)  ≡⟨ cong to $ subst-refl _ _ ⟩
-       to a                                           ≡⟨ sym $ subst-refl _ _ ⟩∎
-       subst RHS (refl _) (to a)                      ∎)
+    from : RHS v → Argˢ v
+    from (inj₁ ((_ , t) , [ eq ]))     = substᴱ Argˢ eq (nil t)
+    from (inj₂ ((_ , _ , a) , [ eq ])) = substᴱ Argˢ eq (cons a)
 
     to∘from : ∀ x → to (from x) ≡ x
-    to∘from (inj₁ (([ s ] , t) , [ eq ])) =
-      to (subst (λ v → Argˢ (erased v)) ([]-cong [ eq ]) (nil t))      ≡⟨ lemma₁ _ ⟩
-
-      subst RHS ([]-cong [ eq ]) (to (nil t))                          ≡⟨⟩
-
-      subst RHS ([]-cong [ eq ]) (inj₁ ((_ , t) , [ refl _ ]))         ≡⟨ push-subst-inj₁ _ _ ⟩
-
-      inj₁ (subst (λ v → ∃ λ (([ s ] , _) : ∃ λ s → Tmˢ (erased s)) →
-                           Erased (([] , s) ≡ erased v))
-                  ([]-cong [ eq ])
-                  ((_ , t) , [ refl _ ]))                              ≡⟨ cong inj₁ $ push-subst-pair-× _ _ ⟩
-
-      inj₁ ( (_ , t)
-           , subst (λ v → Erased (([] , s) ≡ erased v))
-                   ([]-cong [ eq ])
-                   [ refl _ ]
-           )                                                           ≡⟨ cong (λ eq → inj₁ ((_ , t) , eq)) $
-                                                                          H-level-Erased 1 Valence-set _ _ ⟩∎
-      inj₁ ((_ , t) , [ eq ])                                          ∎
-
-    to∘from (inj₂ ((s , [ ss , s′ ] , a) , [ eq ])) =
-      to (subst (λ v → Argˢ (erased v))
-                ([]-cong [ eq ])
-                (cons {s = s} a))                            ≡⟨ lemma₁ _ ⟩
-
-      subst RHS ([]-cong [ eq ]) (to (cons {s = s} a))       ≡⟨⟩
-
-      subst RHS ([]-cong [ eq ])
-            (inj₂ ((s , _ , a) , [ refl _ ]))                ≡⟨ push-subst-inj₂ _ _ ⟩
-
-      inj₂ (subst _
-                  ([]-cong [ eq ])
-                  ((s , _ , a) , [ refl _ ]))                ≡⟨ cong inj₂ (push-subst-pair-× _ _) ⟩
-
-      inj₂ ( (s , _ , a)
-           , subst (λ ([ v ]) → Erased ((s ∷ ss , s′) ≡ v))
-                   ([]-cong [ eq ])
-                   [ refl _ ]
-           )                                                 ≡⟨ cong (λ eq → inj₂ ((s , _ , a) , eq)) $
-                                                                H-level-Erased 1 Valence-set _ _ ⟩∎
-      inj₂ ((s , _ , a) , [ eq ])                            ∎
-
-    lemma₂ :
-      {a : Argˢ v} →
-      subst (λ v → Argˢ (erased v)) ([]-cong [ refl _ ]) a ≡ a
-    lemma₂ {a = a} =
-      subst (λ v → Argˢ (erased v)) ([]-cong [ refl _ ]) a  ≡⟨ cong (λ eq → subst (λ v → Argˢ (erased v)) eq _) []-cong-[refl] ⟩
-      subst (λ v → Argˢ (erased v)) (refl _) a              ≡⟨ subst-refl _ _ ⟩∎
-      a                                                     ∎
+    to∘from (inj₁ ((_ , t) , [ eq ])) = elim¹ᴱ
+      (λ eq → to (substᴱ Argˢ eq (nil t)) ≡
+              inj₁ ((_ , t) , [ eq ]))
+      (to (substᴱ Argˢ (refl _) (nil t))  ≡⟨ cong to substᴱ-refl ⟩
+       to (nil t)                         ≡⟨⟩
+       inj₁ ((_ , t) , [ refl _ ])        ∎)
+      eq
+    to∘from (inj₂ ((_ , _ , a) , [ eq ])) = elim¹ᴱ
+      (λ eq → to (substᴱ Argˢ eq (cons a)) ≡
+              inj₂ ((_ , _ , a) , [ eq ]))
+      (to (substᴱ Argˢ (refl _) (cons a))  ≡⟨ cong to substᴱ-refl ⟩
+       to (cons a)                         ≡⟨⟩
+       inj₂ ((_ , _ , a) , [ refl _ ])     ∎)
+      eq
 
     from∘to : ∀ x → from (to x) ≡ x
-    from∘to (nil _)  = lemma₂
-    from∘to (cons _) = lemma₂
+    from∘to (nil _)  = substᴱ-refl
+    from∘to (cons _) = substᴱ-refl
 
   ----------------------------------------------------------------------
   -- Equality is decidable
@@ -848,8 +746,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∀ {s s′} {s≡s′ : s ≡ s′} {x} →
       cast-Var s≡s′ x ≡ subst (λ s → Var s) s≡s′ x
     cast-Var-not-erased {s≡s′ = s≡s′} {x = x} =
-      subst (λ ([ s ]) → Var s) ([]-cong [ s≡s′ ]) x  ≡⟨ subst-[]-cong-[] ⟩∎
-      subst (λ s → Var s) s≡s′ x                      ∎
+      substᴱ Var s≡s′ x           ≡⟨ substᴱ≡subst ⟩∎
+      subst (λ s → Var s) s≡s′ x  ∎
 
     -- A "computation rule".
 
@@ -857,9 +755,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∀ {@0 s} {x : Var s} →
       cast-Var (refl s) x ≡ x
     cast-Var-refl {x = x} =
-      subst (λ ([ s ]) → Var s) ([]-cong [ refl _ ]) x  ≡⟨ cong (flip (subst _) _) []-cong-[refl] ⟩
-      subst (λ ([ s ]) → Var s) (refl [ _ ]) x          ≡⟨ subst-refl _ _ ⟩∎
-      x                                                 ∎
+      substᴱ Var (refl _) x  ≡⟨ substᴱ-refl ⟩∎
+      x                      ∎
 
     -- A fusion lemma for cast-Var.
 

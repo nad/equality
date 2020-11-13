@@ -544,6 +544,59 @@ module []-cong₁
     (Erased A → Erased B) × (Erased B → Erased A)  ↝⟨ inverse ⇔↔→×→ ⟩□
     (Erased A ⇔ Erased B)                          □
 
+  ----------------------------------------------------------------------
+  -- Variants of subst, cong and the J rule that take erased equality
+  -- proofs
+
+  -- A variant of subst that takes an erased equality proof.
+
+  substᴱ :
+    {@0 A : Type a} {@0 x y : A}
+    (P : @0 A → Type p) → @0 x ≡ y → P x → P y
+  substᴱ P eq = subst (λ ([ x ]) → P x) ([]-cong [ eq ])
+
+  -- A variant of elim₁ that takes an erased equality proof.
+
+  elim₁ᴱ :
+    {@0 A : Type a} {@0 x y : A}
+    (P : {@0 x : A} → @0 x ≡ y → Type p) →
+    P (refl y) →
+    (@0 x≡y : x ≡ y) → P x≡y
+  elim₁ᴱ {x = x} {y = y} P p x≡y =
+    substᴱ
+      (λ p → P (proj₂ p))
+      (proj₂ (singleton-contractible y) (x , x≡y))
+      p
+
+  -- A variant of elim¹ that takes an erased equality proof.
+
+  elim¹ᴱ :
+    {@0 A : Type a} {@0 x y : A}
+    (P : {@0 y : A} → @0 x ≡ y → Type p) →
+    P (refl x) →
+    (@0 x≡y : x ≡ y) → P x≡y
+  elim¹ᴱ {x = x} {y = y} P p x≡y =
+    substᴱ
+      (λ p → P (proj₂ p))
+      (proj₂ (other-singleton-contractible x) (y , x≡y))
+      p
+
+  -- A variant of elim that takes an erased equality proof.
+
+  elimᴱ :
+    {@0 A : Type a} {@0 x y : A}
+    (P : {@0 x y : A} → @0 x ≡ y → Type p) →
+    (∀ (@0 x) → P (refl x)) →
+    (@0 x≡y : x ≡ y) → P x≡y
+  elimᴱ {y = y} P p = elim₁ᴱ P (p y)
+
+  -- A variant of cong that takes an erased equality proof.
+
+  congᴱ :
+    {@0 A : Type a} {@0 x y : A}
+    (f : @0 A → B) → @0 x ≡ y → f x ≡ f y
+  congᴱ f = elimᴱ (λ {x y} _ → f x ≡ f y) (λ x → refl (f x))
+
 ------------------------------------------------------------------------
 -- Some results that follow if "[]-cong" is an equivalence
 
@@ -969,21 +1022,6 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
   @0 _ : _≃_.from (≡≃[]≡[] {x = x} {y = y}) ≡ cong erased
   _ = refl _
 
-  -- Another rearrangement lemma.
-
-  subst-[]-cong-[] :
-    {P : @0 A → Type p} {p : P x} →
-    subst (λ ([ x ]) → P x) ([]-cong [ eq ]) p ≡
-    subst (λ x → P x) eq p
-  subst-[]-cong-[] {eq = eq} {P = P} {p = p} = elim¹
-    (λ eq → subst (λ ([ x ]) → P x) ([]-cong [ eq ]) p ≡
-            subst (λ x → P x) eq p)
-    (subst (λ ([ x ]) → P x) ([]-cong [ refl _ ]) p  ≡⟨ cong (flip (subst _) _) []-cong-[refl] ⟩
-     subst (λ ([ x ]) → P x) (refl [ _ ]) p          ≡⟨ subst-refl _ _ ⟩
-     p                                               ≡⟨ sym $ subst-refl _ _ ⟩∎
-     subst (λ x → P x) (refl _) p                    ∎)
-    eq
-
   -- The function map (cong f) can be expressed in terms of
   -- cong (map f) (up to pointwise equality).
 
@@ -998,3 +1036,136 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
     [ cong (erased ∘ map f) ([]-cong [ x≡y ]) ]       ≡⟨ []-cong [ sym $ cong-∘ _ _ _ ] ⟩
     [ cong erased (cong (map f) ([]-cong [ x≡y ])) ]  ≡⟨ sym []-cong⁻¹≡[cong-erased] ⟩∎
     []-cong⁻¹ (cong (map f) ([]-cong [ x≡y ]))        ∎
+
+  ----------------------------------------------------------------------
+  -- Lemmas related to substᴱ, elim₁ᴱ, elim¹ᴱ, elimᴱ and congᴱ
+
+  -- A "computation rule" for substᴱ.
+
+  substᴱ-refl :
+    {@0 A : Type a} {@0 x : A} {P : @0 A → Type p} {p : P x} →
+    substᴱ P (refl x) p ≡ p
+  substᴱ-refl {P = P} {p = p} =
+    subst (λ ([ x ]) → P x) ([]-cong [ refl _ ]) p  ≡⟨ cong (flip (subst _) _) []-cong-[refl] ⟩
+    subst (λ ([ x ]) → P x) (refl [ _ ]) p          ≡⟨ subst-refl _ _ ⟩∎
+    p                                               ∎
+
+  -- If all arguments are non-erased, then one can replace substᴱ with
+  -- subst (if the first explicit argument is η-expanded).
+
+  substᴱ≡subst :
+    {P : @0 A → Type p} {p : P x} →
+    substᴱ P eq p ≡ subst (λ x → P x) eq p
+  substᴱ≡subst {eq = eq} {P = P} {p = p} = elim¹
+    (λ eq → substᴱ P eq p ≡ subst (λ x → P x) eq p)
+    (substᴱ P (refl _) p           ≡⟨ substᴱ-refl ⟩
+     p                             ≡⟨ sym $ subst-refl _ _ ⟩∎
+     subst (λ x → P x) (refl _) p  ∎)
+    eq
+
+  -- A computation rule for elim₁ᴱ.
+
+  elim₁ᴱ-refl :
+    ∀ {@0 A : Type a} {@0 y}
+      {P : {@0 x : A} → @0 x ≡ y → Type p}
+      {p : P (refl y)} →
+    elim₁ᴱ P p (refl y) ≡ p
+  elim₁ᴱ-refl {y = y} {P = P} {p = p} =
+    substᴱ
+      (λ p → P (proj₂ p))
+      (proj₂ (singleton-contractible y) (y , refl y))
+      p                                                ≡⟨ congᴱ (λ q → substᴱ (λ p → P (proj₂ p)) q _)
+                                                            (singleton-contractible-refl _) ⟩
+
+    substᴱ (λ p → P (proj₂ p)) (refl (y , refl y)) p   ≡⟨ substᴱ-refl ⟩∎
+
+    p                                                  ∎
+
+  -- If all arguments are non-erased, then one can replace elim₁ᴱ with
+  -- elim₁ (if the first explicit argument is η-expanded).
+
+  elim₁ᴱ≡elim₁ :
+    {P : {@0 x : A} → @0 x ≡ y → Type p} {r : P (refl y)} →
+    elim₁ᴱ P r eq ≡ elim₁ (λ x → P x) r eq
+  elim₁ᴱ≡elim₁ {eq = eq} {P = P} {r = r} = elim₁
+    (λ eq → elim₁ᴱ P r eq ≡ elim₁ (λ x → P x) r eq)
+    (elim₁ᴱ P r (refl _)           ≡⟨ elim₁ᴱ-refl ⟩
+     r                             ≡⟨ sym $ elim₁-refl _ _ ⟩∎
+     elim₁ (λ x → P x) r (refl _)  ∎)
+    eq
+
+  -- A computation rule for elim¹ᴱ.
+
+  elim¹ᴱ-refl :
+    ∀ {@0 A : Type a} {@0 x}
+      {P : {@0 y : A} → @0 x ≡ y → Type p}
+      {p : P (refl x)} →
+    elim¹ᴱ P p (refl x) ≡ p
+  elim¹ᴱ-refl {x = x} {P = P} {p = p} =
+    substᴱ
+      (λ p → P (proj₂ p))
+      (proj₂ (other-singleton-contractible x) (x , refl x))
+      p                                                      ≡⟨ congᴱ (λ q → substᴱ (λ p → P (proj₂ p)) q _)
+                                                                  (other-singleton-contractible-refl _) ⟩
+
+    substᴱ (λ p → P (proj₂ p)) (refl (x , refl x)) p         ≡⟨ substᴱ-refl ⟩∎
+
+    p                                                        ∎
+
+  -- If all arguments are non-erased, then one can replace elim¹ᴱ with
+  -- elim¹ (if the first explicit argument is η-expanded).
+
+  elim¹ᴱ≡elim¹ :
+    {P : {@0 y : A} → @0 x ≡ y → Type p} {r : P (refl x)} →
+    elim¹ᴱ P r eq ≡ elim¹ (λ x → P x) r eq
+  elim¹ᴱ≡elim¹ {eq = eq} {P = P} {r = r} = elim¹
+    (λ eq → elim¹ᴱ P r eq ≡ elim¹ (λ x → P x) r eq)
+    (elim¹ᴱ P r (refl _)           ≡⟨ elim¹ᴱ-refl ⟩
+     r                             ≡⟨ sym $ elim¹-refl _ _ ⟩∎
+     elim¹ (λ x → P x) r (refl _)  ∎)
+    eq
+
+  -- A computation rule for elimᴱ.
+
+  elimᴱ-refl :
+    ∀ {@0 A : Type a} {@0 x} {P : {@0 x y : A} → @0 x ≡ y → Type p}
+    (r : ∀ (@0 x) → P (refl x)) →
+    elimᴱ P r (refl x) ≡ r x
+  elimᴱ-refl _ = elim₁ᴱ-refl
+
+  -- If all arguments are non-erased, then one can replace elimᴱ with
+  -- elim (if the first two explicit arguments are η-expanded).
+
+  elimᴱ≡elim :
+    {P : {@0 x y : A} → @0 x ≡ y → Type p}
+    {r : ∀ (@0 x) → P (refl x)} →
+    elimᴱ P r eq ≡ elim (λ x → P x) (λ x → r x) eq
+  elimᴱ≡elim {eq = eq} {P = P} {r = r} = elim
+    (λ eq → elimᴱ P r eq ≡ elim (λ x → P x) (λ x → r x) eq)
+    (λ x →
+       elimᴱ P r (refl _)                     ≡⟨ elimᴱ-refl r ⟩
+       r x                                    ≡⟨ sym $ elim-refl _ _ ⟩∎
+       elim (λ x → P x) (λ x → r x) (refl _)  ∎)
+    eq
+
+  -- A "computation rule" for congᴱ.
+
+  congᴱ-refl :
+    {@0 A : Type a} {@0 x : A} {f : @0 A → B} →
+    congᴱ f (refl x) ≡ refl (f x)
+  congᴱ-refl {x = x} {f = f} =
+    elimᴱ (λ {x y} _ → f x ≡ f y) (λ x → refl (f x)) (refl x)  ≡⟨ elimᴱ-refl (λ x → refl (f x)) ⟩∎
+    refl (f x)                                                 ∎
+
+  -- If all arguments are non-erased, then one can replace congᴱ with
+  -- cong (if the first explicit argument is η-expanded).
+
+  congᴱ≡cong :
+    {f : @0 A → B} →
+    congᴱ f eq ≡ cong (λ x → f x) eq
+  congᴱ≡cong {eq = eq} {f = f} = elim¹
+    (λ eq → congᴱ f eq ≡ cong (λ x → f x) eq)
+    (congᴱ f (refl _)           ≡⟨ congᴱ-refl ⟩
+     refl _                     ≡⟨ sym $ cong-refl _ ⟩∎
+     cong (λ x → f x) (refl _)  ∎)
+    eq

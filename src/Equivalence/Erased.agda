@@ -932,15 +932,11 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
         (λ (x , y) →
              _≃ᴱ_.from A≃B x
            , _≃ᴱ_.from (P≃Q (_≃ᴱ_.from A≃B x))
-               (subst (λ ([ x ]) → Q x)
-                  ([]-cong [ sym (_≃ᴱ_.right-inverse-of A≃B x) ]) y))
+               (substᴱ Q (sym (_≃ᴱ_.right-inverse-of A≃B x)) y))
         (λ (x , y) →
            cong (λ y → _ , _≃ᴱ_.from (P≃Q (_≃ᴱ_.from A≃B x)) y) (
-             subst (λ x → Q x) (sym (_≃ᴱ_.right-inverse-of A≃B x)) y  ≡⟨ sym subst-[]-cong-[] ⟩∎
-
-             subst (λ ([ x ]) → Q x)
-               ([]-cong [ sym (_≃ᴱ_.right-inverse-of A≃B x) ])
-               y                                                      ∎))
+             subst (λ x → Q x) (sym (_≃ᴱ_.right-inverse-of A≃B x)) y  ≡⟨ sym substᴱ≡subst ⟩∎
+             substᴱ Q (sym (_≃ᴱ_.right-inverse-of A≃B x)) y           ∎))
 
   -- A variant of Σ-cong-≃ᴱ-Erased.
 
@@ -953,18 +949,15 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     (λ (x , y) →
          _≃ᴱ_.from B≃A x
        , _≃ᴱ_.to (P≃Q (_≃ᴱ_.from B≃A x))
-            (subst (λ ([ x ]) → P x)
-               ([]-cong [ sym (_≃ᴱ_.right-inverse-of B≃A x) ])
-               y))
+            (substᴱ P (sym (_≃ᴱ_.right-inverse-of B≃A x)) y))
     (λ (x , y) → _≃ᴱ_.to B≃A x , _≃ᴱ_.from (P≃Q x) y)
     (λ (x , y) → Σ-≡,≡→≡
        (_≃ᴱ_.left-inverse-of B≃A x)
        (subst Q (_≃ᴱ_.left-inverse-of B≃A x)
           (_≃ᴱ_.to (P≃Q _)
-             (subst (λ ([ x ]) → P x)
-                ([]-cong [ sym (_≃ᴱ_.right-inverse-of B≃A _) ])
+             (substᴱ P (sym (_≃ᴱ_.right-inverse-of B≃A _))
                 (_≃ᴱ_.from (P≃Q x) y)))                                  ≡⟨ cong (λ eq → subst Q (_≃ᴱ_.left-inverse-of B≃A x) (_≃ᴱ_.to (P≃Q _) eq))
-                                                                            subst-[]-cong-[] ⟩
+                                                                            substᴱ≡subst ⟩
         subst Q (_≃ᴱ_.left-inverse-of B≃A x)
           (_≃ᴱ_.to (P≃Q _)
              (subst (λ x → P x) (sym (_≃ᴱ_.right-inverse-of B≃A _))
@@ -1014,17 +1007,15 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
        (subst (λ x → P x) (_≃ᴱ_.right-inverse-of B≃A x)
           (_≃ᴱ_.from (P≃Q _)
              (_≃ᴱ_.to (P≃Q _)
-                (subst (λ ([ x ]) → P x)
-                   ([]-cong [ sym (_≃ᴱ_.right-inverse-of B≃A _) ]) y)))  ≡⟨ cong (subst (λ x → P x) (_≃ᴱ_.right-inverse-of B≃A x)) $
-                                                                            _≃ᴱ_.left-inverse-of (P≃Q _) _ ⟩
+                (substᴱ P (sym (_≃ᴱ_.right-inverse-of B≃A _)) y)))   ≡⟨ cong (subst (λ x → P x) (_≃ᴱ_.right-inverse-of B≃A x)) $
+                                                                        _≃ᴱ_.left-inverse-of (P≃Q _) _ ⟩
         subst (λ x → P x) (_≃ᴱ_.right-inverse-of B≃A x)
-          (subst (λ ([ x ]) → P x)
-             ([]-cong [ sym (_≃ᴱ_.right-inverse-of B≃A _) ]) y)          ≡⟨ cong (subst (λ x → P x) (_≃ᴱ_.right-inverse-of B≃A x))
-                                                                            subst-[]-cong-[] ⟩
+          (substᴱ P (sym (_≃ᴱ_.right-inverse-of B≃A _)) y)           ≡⟨ cong (subst (λ x → P x) (_≃ᴱ_.right-inverse-of B≃A x))
+                                                                        substᴱ≡subst ⟩
         subst (λ x → P x) (_≃ᴱ_.right-inverse-of B≃A x)
-          (subst (λ x → P x) (sym (_≃ᴱ_.right-inverse-of B≃A _)) y)      ≡⟨ subst-subst-sym _ _ _ ⟩∎
+          (subst (λ x → P x) (sym (_≃ᴱ_.right-inverse-of B≃A _)) y)  ≡⟨ subst-subst-sym _ _ _ ⟩∎
 
-        y                                                                ∎))
+        y                                                            ∎))
 
   -- Equivalences with erased proofs are in some cases preserved by Π
   -- (assuming extensionality). Note the type of Q.
@@ -1043,16 +1034,16 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     ΠAP≃ΠBQ =
       Eq.with-other-function
         (Π-cong ext (≃ᴱ→≃ A≃B) (λ x → ≃ᴱ→≃ (P≃Q x)))
-        (λ f x → subst (λ ([ x ]) → Q x)
-                   ([]-cong [ _≃ᴱ_.right-inverse-of A≃B x ])
+        (λ f x → substᴱ Q
+                   (_≃ᴱ_.right-inverse-of A≃B x)
                    (_≃ᴱ_.to (P≃Q (_≃ᴱ_.from A≃B x))
                        (f (_≃ᴱ_.from A≃B x))))
         (λ f → apply-ext (lower-extensionality a p ext) λ x →
            subst (λ x → Q x) (_≃ᴱ_.right-inverse-of A≃B x)
-              (_≃ᴱ_.to (P≃Q (_≃ᴱ_.from A≃B x)) (f (_≃ᴱ_.from A≃B x)))  ≡⟨ sym subst-[]-cong-[] ⟩∎
+              (_≃ᴱ_.to (P≃Q (_≃ᴱ_.from A≃B x)) (f (_≃ᴱ_.from A≃B x)))  ≡⟨ sym substᴱ≡subst ⟩∎
 
-           subst (λ ([ x ]) → Q x)
-             ([]-cong [ _≃ᴱ_.right-inverse-of A≃B x ])
+           substᴱ Q
+             (_≃ᴱ_.right-inverse-of A≃B x)
              (_≃ᴱ_.to (P≃Q (_≃ᴱ_.from A≃B x)) (f (_≃ᴱ_.from A≃B x)))   ∎)
 
   -- A variant of Π-cong-≃ᴱ-Erased.
@@ -1071,16 +1062,16 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     ΠAP≃ΠBQ =
       Eq.with-other-inverse
         (Π-cong-contra ext (≃ᴱ→≃ B≃A) (λ x → ≃ᴱ→≃ (P≃Q x)))
-        (λ f x → subst (λ ([ x ]) → P x)
-                   ([]-cong [ _≃ᴱ_.right-inverse-of B≃A x ])
+        (λ f x → substᴱ P
+                   (_≃ᴱ_.right-inverse-of B≃A x)
                    (_≃ᴱ_.from (P≃Q (_≃ᴱ_.from B≃A x))
                       (f (_≃ᴱ_.from B≃A x))))
         (λ f → apply-ext (lower-extensionality b q ext) λ x →
            subst (λ x → P x) (_≃ᴱ_.right-inverse-of B≃A x)
-              (_≃ᴱ_.from (P≃Q (_≃ᴱ_.from B≃A x)) (f (_≃ᴱ_.from B≃A x)))  ≡⟨ sym subst-[]-cong-[] ⟩∎
+              (_≃ᴱ_.from (P≃Q (_≃ᴱ_.from B≃A x)) (f (_≃ᴱ_.from B≃A x)))  ≡⟨ sym substᴱ≡subst ⟩∎
 
-           subst (λ ([ x ]) → P x)
-             ([]-cong [ _≃ᴱ_.right-inverse-of B≃A x ])
+           substᴱ P
+             (_≃ᴱ_.right-inverse-of B≃A x)
              (_≃ᴱ_.from (P≃Q (_≃ᴱ_.from B≃A x)) (f (_≃ᴱ_.from B≃A x)))   ∎)
 
   -- Contractibleᴱ preserves isomorphisms (assuming extensionality).
