@@ -770,7 +770,14 @@ module []-cong₂
     }
 
   ----------------------------------------------------------------------
-  -- A lemma
+  -- Some lemmas related to whether [_]→ is injective or an embedding
+
+  -- In erased contexts [_]→ is injective.
+  --
+  -- See also Erased.With-K.Injective-[].
+
+  @0 Injective-[] : Injective {A = A} [_]→
+  Injective-[] = erased ∘ []-cong⁻¹
 
   -- If A is a proposition, then [_]→ {A = A} is an embedding.
   --

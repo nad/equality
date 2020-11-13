@@ -71,7 +71,8 @@ instance-of-[]-cong-axiomatisation = λ where
 
 open import Erased equality-with-J instance-of-[]-cong-axiomatisation
   public
-  hiding ([]-cong; []-cong-equivalence; []-cong-[refl]; Π-Erased↔Π0[])
+  hiding ([]-cong; []-cong-equivalence; []-cong-[refl]; Injective-[];
+          Π-Erased↔Π0[])
 
 ------------------------------------------------------------------------
 -- Other code
