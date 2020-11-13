@@ -1045,6 +1045,49 @@ module Signature {ℓ} (sig : Signature ℓ) where
           rename-Var-swap
           (rename-Arg-swap aˢ)
 
+  -- Nothing changes if a variable is renamed to itself.
+
+  module _ {x : Var s′} where
+
+    rename-Var-no-change :
+      {y : Var s} → rename-Var x x y ≡ y
+    rename-Var-no-change {y = y} =
+      case (_ , x) ≟∃V (_ , y) of λ where
+        (no x≢y) →
+          rename-Var x x y  ≡⟨ rename-Var-≢ x≢y ⟩∎
+          y                 ∎
+        (yes x≡y) →
+          rename-Var x x y                  ≡⟨ rename-Var-≡ x≡y ⟩
+          cast-Var (cong proj₁ x≡y) x       ≡⟨ cast-Var-irrelevance ⟩
+          cast-Var (proj₁ (Σ-≡,≡←≡ x≡y)) x  ≡⟨ proj₂ (Σ-≡,≡←≡ x≡y) ⟩∎
+          y                                 ∎
+
+    mutual
+
+      rename-Tm-no-change :
+        ∀ (tˢ : Tmˢ s) {t} →
+        rename-Tm x x tˢ t ≡ t
+      rename-Tm-no-change var        = rename-Var-no-change
+      rename-Tm-no-change (op o asˢ) = rename-Args-no-change asˢ
+
+      rename-Args-no-change :
+        ∀ (asˢ : Argsˢ vs) {as} →
+        rename-Args x x asˢ as ≡ as
+      rename-Args-no-change nil           = refl _
+      rename-Args-no-change (cons aˢ asˢ) =
+        cong₂ _,_
+          (rename-Arg-no-change aˢ)
+          (rename-Args-no-change asˢ)
+
+      rename-Arg-no-change :
+        ∀ (aˢ : Argˢ v) {a} →
+        rename-Arg x x aˢ a ≡ a
+      rename-Arg-no-change (nil tˢ)  = rename-Tm-no-change tˢ
+      rename-Arg-no-change (cons aˢ) =
+        cong₂ _,_
+          rename-Var-no-change
+          (rename-Arg-no-change aˢ)
+
   ----------------------------------------------------------------------
   -- Free variables
 
