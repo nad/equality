@@ -1796,6 +1796,144 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)  □
 
+  private
+
+    -- A lemma used below.
+
+    ∉→⊆∷∷→⊆∷→⊆∷ :
+      ∀ {x y : ∃Var} {xs ys zs} →
+      ¬ y ∈ xs →
+      xs ⊆ x ∷ y ∷ ys →
+      ys ⊆ y ∷ zs →
+      xs ⊆ x ∷ zs
+    ∉→⊆∷∷→⊆∷→⊆∷ {x = x} {y = y} {xs = xs} {ys = ys} {zs = zs}
+                y∉xs xs⊆x∷y∷ys ys⊆y∷zs = λ z →
+      z ∈ xs                                          ↝⟨ (λ z∈xs → (λ z≡y → y∉xs (subst (_∈ _) z≡y z∈xs))
+                                                                 , xs⊆x∷y∷ys z z∈xs) ⟩
+
+      z ≢ y × z ∈ x ∷ y ∷ ys                          ↔⟨ (∃-cong λ _ → (F.id ∥⊎∥-cong ∈∷≃) F.∘ ∈∷≃) ⟩
+
+      z ≢ y × (z ≡ x ∥⊎∥ z ≡ y ∥⊎∥ z ∈ ys)            ↝⟨ (∃-cong λ _ → F.id ∥⊎∥-cong F.id ∥⊎∥-cong ys⊆y∷zs z) ⟩
+
+      z ≢ y × (z ≡ x ∥⊎∥ z ≡ y ∥⊎∥ z ∈ y ∷ zs)        ↔⟨ (∃-cong λ _ → F.id ∥⊎∥-cong F.id ∥⊎∥-cong ∈∷≃) ⟩
+
+      z ≢ y × (z ≡ x ∥⊎∥ z ≡ y ∥⊎∥ z ≡ y ∥⊎∥ z ∈ zs)  ↔⟨ (∃-cong λ z≢y → F.id ∥⊎∥-cong (
+                                                          drop-⊥-left-∥⊎∥ ∈-propositional z≢y F.∘
+                                                          drop-⊥-left-∥⊎∥ ∥⊎∥-propositional z≢y)) ⟩
+
+      z ≢ y × (z ≡ x ∥⊎∥ z ∈ zs)                      ↝⟨ proj₂ ⟩
+
+      z ≡ x ∥⊎∥ z ∈ zs                                ↔⟨ inverse ∈∷≃ ⟩□
+
+      z ∈ x ∷ zs                                      □
+
+  -- If one renames with a fresh variable, and the renamed term is
+  -- well-formed (with respect to a certain set of variables), then
+  -- the original term is also well-formed (with respect to a certain
+  -- set of variables).
+
+  @0 renamee-Wf-var :
+    _≢_ {A = ∃Var} (_ , y) (_ , z) →
+    Wf-var ((_ , y) ∷ xs) (rename-Var x y z) →
+    Wf-var ((_ , x) ∷ xs) z
+  renamee-Wf-var {y = y} {z = z} {xs = xs} {x = x} y≢z
+    with (_ , x) ≟∃V (_ , z)
+  … | yes x≡z =
+    (_ , cast-Var _ y) ∈ (_ , y) ∷ xs  ↝⟨ (λ _ → ≡→∈∷ (sym x≡z)) ⟩□
+    (_ , z) ∈ (_ , x) ∷ xs             □
+  … | no x≢z =
+    (_ , z) ∈ (_ , y) ∷ xs              ↔⟨ ∈∷≃ ⟩
+    (_ , z) ≡ (_ , y) ∥⊎∥ (_ , z) ∈ xs  ↔⟨ drop-⊥-left-∥⊎∥ ∈-propositional (y≢z ∘ sym) ⟩
+    (_ , z) ∈ xs                        ↝⟨ ∈→∈∷ ⟩□
+    (_ , z) ∈ (_ , x) ∷ xs              □
+
+  @0 renamee-Wf-tm :
+    ∀ (tˢ : Tmˢ s) {t} →
+    ¬ (_ , y) ∈ free-Tm tˢ t →
+    Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t) →
+    Wf-tm ((_ , x) ∷ xs) tˢ t
+  renamee-Wf-tm {y = y} {xs = xs} {x = x} tˢ {t = t} y∉t =
+    Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)    ↝⟨ free-⊆-Tm tˢ ⟩
+    free-Tm tˢ (rename-Tm x y tˢ t) ⊆ (_ , y) ∷ xs  ↝⟨ ∉→⊆∷∷→⊆∷→⊆∷ y∉t (⊆-free-rename-Tm tˢ) ⟩
+    free-Tm tˢ t ⊆ (_ , x) ∷ xs                     ↝⟨ (λ wf → weaken-Wf-tm wf tˢ (wf-free-Tm tˢ)) ⟩□
+    Wf-tm ((_ , x) ∷ xs) tˢ t                       □
+
+  @0 renamee-Wf-args :
+    ∀ (asˢ : Argsˢ vs) {as} →
+    ¬ (_ , y) ∈ free-Args asˢ as →
+    Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as) →
+    Wf-args ((_ , x) ∷ xs) asˢ as
+  renamee-Wf-args {y = y} {xs = xs} {x = x} asˢ {as = as} y∉as =
+    Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)    ↝⟨ free-⊆-Args asˢ ⟩
+    free-Args asˢ (rename-Args x y asˢ as) ⊆ (_ , y) ∷ xs  ↝⟨ ∉→⊆∷∷→⊆∷→⊆∷ y∉as (⊆-free-rename-Args asˢ) ⟩
+    free-Args asˢ as ⊆ (_ , x) ∷ xs                        ↝⟨ (λ wf → weaken-Wf-args wf asˢ (wf-free-Args asˢ)) ⟩□
+    Wf-args ((_ , x) ∷ xs) asˢ as                          □
+
+  @0 renamee-Wf-arg :
+    ∀ (aˢ : Argˢ v) {a} →
+    ¬ (_ , y) ∈ free-Arg aˢ a →
+    Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a) →
+    Wf-arg ((_ , x) ∷ xs) aˢ a
+  renamee-Wf-arg {y = y} {xs = xs} {x = x} aˢ {a = a} y∉a =
+    Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)    ↝⟨ free-⊆-Arg aˢ ⟩
+    free-Arg aˢ (rename-Arg x y aˢ a) ⊆ (_ , y) ∷ xs  ↝⟨ ∉→⊆∷∷→⊆∷→⊆∷ y∉a (⊆-free-rename-Arg aˢ) ⟩
+    free-Arg aˢ a ⊆ (_ , x) ∷ xs                      ↝⟨ (λ wf → weaken-Wf-arg wf aˢ (wf-free-Arg aˢ)) ⟩□
+    Wf-arg ((_ , x) ∷ xs) aˢ a                        □
+
+  -- If the "body of a lambda" is well-formed for all fresh variables,
+  -- then it is well-formed for the bound variable.
+
+  @0 body-Wf-var :
+    ((y : Var s) →
+     ¬ (_ , y) ∈ xs →
+     Wf-var ((_ , y) ∷ xs) (rename-Var x y z)) →
+    Wf-var ((_ , x) ∷ xs) z
+  body-Wf-var {xs = xs} {z = z} wf =
+    let y , y-fresh = fresh ((_ , z) ∷ xs)
+        y∉xs        = y-fresh ∘ ∈→∈∷
+        y≢z         = y-fresh ∘ ≡→∈∷
+    in
+    renamee-Wf-var y≢z (wf y y∉xs)
+
+  @0 body-Wf-tm :
+    ∀ (tˢ : Tmˢ s) {t} →
+    ((y : Var s) →
+     ¬ (_ , y) ∈ xs →
+     Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)) →
+    Wf-tm ((_ , x) ∷ xs) tˢ t
+  body-Wf-tm {xs = xs} tˢ {t = t} wf =
+    let y , y-fresh = fresh (xs ∪ free-Tm tˢ t)
+        y∉xs        = y-fresh ∘ ∈→∈∪ˡ
+        y∉t         = y-fresh ∘ ∈→∈∪ʳ xs
+    in
+    renamee-Wf-tm tˢ y∉t (wf y y∉xs)
+
+  @0 body-Wf-args :
+    ∀ (asˢ : Argsˢ vs) {as} →
+    ((y : Var s) →
+     ¬ (_ , y) ∈ xs →
+     Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)) →
+    Wf-args ((_ , x) ∷ xs) asˢ as
+  body-Wf-args {xs = xs} asˢ {as = as} wfs =
+    let y , y-fresh = fresh (xs ∪ free-Args asˢ as)
+        y∉xs        = y-fresh ∘ ∈→∈∪ˡ
+        y∉as        = y-fresh ∘ ∈→∈∪ʳ xs
+    in
+    renamee-Wf-args asˢ y∉as (wfs y y∉xs)
+
+  @0 body-Wf-arg :
+    ∀ (aˢ : Argˢ v) {a} →
+    ((y : Var s) →
+     ¬ (_ , y) ∈ xs →
+     Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)) →
+    Wf-arg ((_ , x) ∷ xs) aˢ a
+  body-Wf-arg {xs = xs} aˢ {a = a} wf =
+    let y , y-fresh = fresh (xs ∪ free-Arg aˢ a)
+        y∉xs        = y-fresh ∘ ∈→∈∪ˡ
+        y∉a         = y-fresh ∘ ∈→∈∪ʳ xs
+    in
+    renamee-Wf-arg aˢ y∉a (wf y y∉xs)
+
   ----------------------------------------------------------------------
   -- Weakening, casting and strengthening
 
