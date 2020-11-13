@@ -800,99 +800,103 @@ module Signature {ℓ} (sig : Signature ℓ) where
   ----------------------------------------------------------------------
   -- Some lemmas related to cast-Var
 
-  -- A fusion lemma for cast-Var.
+  abstract
 
-  cast-Var-cast-Var :
-    {x : Var s₁} {eq₁ : [ s₁ ] ≡ [ s₂ ]} {eq₂ : [ s₂ ] ≡ [ s₃ ]} →
-    cast-Var eq₂ (cast-Var eq₁ x) ≡ cast-Var (trans eq₁ eq₂) x
-  cast-Var-cast-Var = subst-subst _ _ _ _
+    -- A fusion lemma for cast-Var.
 
-  -- The proof given to cast-Var can be replaced.
+    cast-Var-cast-Var :
+      {x : Var s₁} {eq₁ : [ s₁ ] ≡ [ s₂ ]} {eq₂ : [ s₂ ] ≡ [ s₃ ]} →
+      cast-Var eq₂ (cast-Var eq₁ x) ≡ cast-Var (trans eq₁ eq₂) x
+    cast-Var-cast-Var = subst-subst _ _ _ _
 
-  cast-Var-irrelevance :
-    {x : Var s₁} {eq₁ eq₂ : [ s₁ ] ≡ [ s₂ ]} →
-    cast-Var eq₁ x ≡ cast-Var eq₂ x
-  cast-Var-irrelevance =
-    cong (λ eq → cast-Var eq _) (H-level-Erased 2 Sort-set _ _)
+    -- The proof given to cast-Var can be replaced.
+
+    cast-Var-irrelevance :
+      {x : Var s₁} {eq₁ eq₂ : [ s₁ ] ≡ [ s₂ ]} →
+      cast-Var eq₁ x ≡ cast-Var eq₂ x
+    cast-Var-irrelevance =
+      cong (λ eq → cast-Var eq _) (H-level-Erased 2 Sort-set _ _)
 
   ----------------------------------------------------------------------
   -- Some renaming lemmas
 
-  -- Two "computation rules".
+  abstract
 
-  rename-Var-≡ :
-    {x y : Var s} {z : Var s′} →
-    (x≡z : _≡_ {A = ∃Var} (_ , x) (_ , z)) →
-    rename-Var x y z ≡ cast-Var (cong proj₁ x≡z) y
-  rename-Var-≡ {x = x} {y = y} {z = z} x≡z with (_ , x) ≟∃V (_ , z)
-  … | no x≢z   = ⊥-elim (x≢z x≡z)
-  … | yes x≡z′ =
-    cast-Var (cong proj₁ x≡z′) y  ≡⟨ cast-Var-irrelevance ⟩∎
-    cast-Var (cong proj₁ x≡z)  y  ∎
+    -- Two "computation rules".
 
-  rename-Var-≢ :
-    {x y : Var s} {z : Var s′} →
-    _≢_ {A = ∃Var} (_ , x) (_ , z) → rename-Var x y z ≡ z
-  rename-Var-≢ {x = x} {z = z} x≢z with (_ , x) ≟∃V (_ , z)
-  … | no _    = refl _
-  … | yes x≡z = ⊥-elim (x≢z x≡z)
+    rename-Var-≡ :
+      {x y : Var s} {z : Var s′} →
+      (x≡z : _≡_ {A = ∃Var} (_ , x) (_ , z)) →
+      rename-Var x y z ≡ cast-Var (cong proj₁ x≡z) y
+    rename-Var-≡ {x = x} {y = y} {z = z} x≡z with (_ , x) ≟∃V (_ , z)
+    … | no x≢z   = ⊥-elim (x≢z x≡z)
+    … | yes x≡z′ =
+      cast-Var (cong proj₁ x≡z′) y  ≡⟨ cast-Var-irrelevance ⟩∎
+      cast-Var (cong proj₁ x≡z)  y  ∎
 
-  -- Equality to a pair of a certain form involving rename-Var can be
-  -- expressed without reference to rename-Var.
+    rename-Var-≢ :
+      {x y : Var s} {z : Var s′} →
+      _≢_ {A = ∃Var} (_ , x) (_ , z) → rename-Var x y z ≡ z
+    rename-Var-≢ {x = x} {z = z} x≢z with (_ , x) ≟∃V (_ , z)
+    … | no _    = refl _
+    … | yes x≡z = ⊥-elim (x≢z x≡z)
 
-  ≡,rename-Var≃ :
-    {x y : Var s} {z : Var s′} {p : ∃Var} →
-    (p ≡ (_ , rename-Var x y z))
-      ≃
-    ((_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
-     (_ , x) ≢ (_ , z) × p ≡ (_ , z))
-  ≡,rename-Var≃ {x = x} {y = y} {z = z} {p = p} =
-    p ≡ (_ , rename-Var x y z)                        ↔⟨ ×-⊎-distrib-right F.∘
-                                                         (inverse $ drop-⊤-left-Σ $ _⇔_.to contractible⇔↔⊤ $
-                                                          propositional⇒inhabited⇒contractible
-                                                            (Dec-closure-propositional ext ∃Var-set)
-                                                            (_ ≟∃V _)) ⟩
-    (_ , x) ≡ (_ , z) × p ≡ (_ , rename-Var x y z) ⊎
-    (_ , x) ≢ (_ , z) × p ≡ (_ , rename-Var x y z)    ↝⟨ (∃-cong λ eq → ≡⇒↝ _ $ cong (p ≡_) (
+    -- Equality to a pair of a certain form involving rename-Var can
+    -- be expressed without reference to rename-Var.
 
-        _ , rename-Var x y z                                                      ≡⟨ cong (_ ,_) $ rename-Var-≡ eq ⟩
-        _ , cast-Var _ y                                                          ≡⟨ Σ-≡,≡→≡ (sym $ cong proj₁ eq)
-                                                                                             (subst-sym-subst _) ⟩∎
-        _ , y                                                                     ∎))
-                                                            ⊎-cong
-                                                         (∃-cong λ neq → ≡⇒↝ _ $ cong (λ x → _ ≡ (_ , x)) $ rename-Var-≢ neq) ⟩
-    (_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
-    (_ , x) ≢ (_ , z) × p ≡ (_ , z)                   □
+    ≡,rename-Var≃ :
+      {x y : Var s} {z : Var s′} {p : ∃Var} →
+      (p ≡ (_ , rename-Var x y z))
+        ≃
+      (_≡_ {A = ∃Var} (_ , x) (_ , z) × p ≡ (_ , y) ⊎
+       _≢_ {A = ∃Var} (_ , x) (_ , z) × p ≡ (_ , z))
+    ≡,rename-Var≃ {x = x} {y = y} {z = z} {p = p} =
+      p ≡ (_ , rename-Var x y z)                        ↔⟨ ×-⊎-distrib-right F.∘
+                                                           (inverse $ drop-⊤-left-Σ $ _⇔_.to contractible⇔↔⊤ $
+                                                            propositional⇒inhabited⇒contractible
+                                                              (Dec-closure-propositional ext ∃Var-set)
+                                                              (_ ≟∃V _)) ⟩
+      (_ , x) ≡ (_ , z) × p ≡ (_ , rename-Var x y z) ⊎
+      (_ , x) ≢ (_ , z) × p ≡ (_ , rename-Var x y z)    ↝⟨ (∃-cong λ eq → ≡⇒↝ _ $ cong (p ≡_) (
 
-  -- A variant of the previous lemma.
+          _ , rename-Var x y z                                                      ≡⟨ cong (_ ,_) $ rename-Var-≡ eq ⟩
+          _ , cast-Var _ y                                                          ≡⟨ Σ-≡,≡→≡ (sym $ cong proj₁ eq)
+                                                                                               (subst-sym-subst _) ⟩∎
+          _ , y                                                                     ∎))
+                                                              ⊎-cong
+                                                           (∃-cong λ neq → ≡⇒↝ _ $ cong (λ x → _ ≡ (_ , x)) $ rename-Var-≢ neq) ⟩
+      (_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
+      (_ , x) ≢ (_ , z) × p ≡ (_ , z)                   □
 
-  ≡,rename-Var≃′ :
-    {x y : Var s} {z : Var s′} {p : ∃Var} →
-    (p ≡ (_ , rename-Var x y z))
-      ≃
-    (p ≡ (_ , y) × (_ , x) ≡ (_ , z) ⊎
-     p ≢ (_ , x) × p ≡ (_ , z))
-  ≡,rename-Var≃′ {x = x} {y = y} {z = z} {p = p} =
-    p ≡ (_ , rename-Var x y z)         ↝⟨ ≡,rename-Var≃ ⟩
+    -- A variant of the previous lemma.
 
-    (_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
-    (_ , x) ≢ (_ , z) × p ≡ (_ , z)    ↔⟨ (×-comm ⊎-cong ×-cong₁ λ p≡z → →-cong₁ ext ≡-comm F.∘ ≡⇒↝ _ (cong (_ ≢_) (sym p≡z))) ⟩□
+    ≡,rename-Var≃′ :
+      {x y : Var s} {z : Var s′} {p : ∃Var} →
+      (p ≡ (_ , rename-Var x y z))
+        ≃
+      (p ≡ (_ , y) × _≡_ {A = ∃Var} (_ , x) (_ , z) ⊎
+       p ≢ (_ , x) × p ≡ (_ , z))
+    ≡,rename-Var≃′ {x = x} {y = y} {z = z} {p = p} =
+      p ≡ (_ , rename-Var x y z)         ↝⟨ ≡,rename-Var≃ ⟩
 
-    p ≡ (_ , y) × (_ , x) ≡ (_ , z) ⊎
-    p ≢ (_ , x) × p ≡ (_ , z)          □
+      (_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
+      (_ , x) ≢ (_ , z) × p ≡ (_ , z)    ↔⟨ (×-comm ⊎-cong ×-cong₁ λ p≡z → →-cong₁ ext ≡-comm F.∘ ≡⇒↝ _ (cong (_ ≢_) (sym p≡z))) ⟩□
 
-  -- The functions rename-Var and cast-Var commute.
+      p ≡ (_ , y) × (_ , x) ≡ (_ , z) ⊎
+      p ≢ (_ , x) × p ≡ (_ , z)          □
 
-  rename-Var-cast-Var :
-    ∀ {x y : Var s} {z : Var s₁} {eq : [ s₁ ] ≡ [ s₂ ]} →
-    rename-Var x y (cast-Var eq z) ≡ cast-Var eq (rename-Var x y z)
-  rename-Var-cast-Var {x = x} {y = y} {z = z} = elim¹
-    (λ eq → rename-Var x y (cast-Var eq z) ≡
-            cast-Var eq (rename-Var x y z))
-    (rename-Var x y (cast-Var (refl _) z)  ≡⟨ cong (rename-Var _ _) $ subst-refl _ _ ⟩
-     rename-Var x y z                      ≡⟨ sym $ subst-refl _ _ ⟩∎
-     cast-Var (refl _) (rename-Var x y z)  ∎)
-    _
+    -- The functions rename-Var and cast-Var commute.
+
+    rename-Var-cast-Var :
+      ∀ {x y : Var s} {z : Var s₁} {eq : [ s₁ ] ≡ [ s₂ ]} →
+      rename-Var x y (cast-Var eq z) ≡ cast-Var eq (rename-Var x y z)
+    rename-Var-cast-Var {x = x} {y = y} {z = z} = elim¹
+      (λ eq → rename-Var x y (cast-Var eq z) ≡
+              cast-Var eq (rename-Var x y z))
+      (rename-Var x y (cast-Var (refl _) z)  ≡⟨ cong (rename-Var _ _) $ subst-refl _ _ ⟩
+       rename-Var x y z                      ≡⟨ sym $ subst-refl _ _ ⟩∎
+       cast-Var (refl _) (rename-Var x y z)  ∎)
+      _
 
   -- Renamings can sometimes be reordered in a certain way.
 
@@ -909,184 +913,189 @@ module Signature {ℓ} (sig : Signature ℓ) where
            _≡_ {A = ∃Var} (_ , y₁) (_ , y₂))
     where
 
-    rename-Var-swap :
-      {z : Var s} →
-      rename-Var x₁ y₁ (rename-Var x₂ y₂ z) ≡
-      rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)
-    rename-Var-swap {z = z} =
-      lemma ((_ , x₁) ≟∃V (_ , z))
-            ((_ , x₂) ≟∃V (_ , z))
-            ((_ , x₂) ≟∃V (_ , y₁))
-            ((_ , x₁) ≟∃V (_ , y₂))
-      where
-      lemma :
-        Dec (_≡_ {A = ∃Var} (_ , x₁) (_ , z)) →
-        Dec (_≡_ {A = ∃Var} (_ , x₂) (_ , z)) →
-        Dec (_≡_ {A = ∃Var} (_ , x₂) (_ , y₁)) →
-        Dec (_≡_ {A = ∃Var} (_ , x₁) (_ , y₂)) →
+    abstract
+
+      rename-Var-swap :
+        {z : Var s} →
         rename-Var x₁ y₁ (rename-Var x₂ y₂ z) ≡
         rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)
-      lemma (no x₁≢z) (no x₂≢z) _ _ =
-        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
-        rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≢ x₁≢z ⟩
-        z                                                         ≡⟨ sym $ rename-Var-≢ x₂≢z ⟩
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) z                     ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≢ x₁≢z ⟩∎
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+      rename-Var-swap {z = z} =
+        lemma ((_ , x₁) ≟∃V (_ , z))
+              ((_ , x₂) ≟∃V (_ , z))
+              ((_ , x₂) ≟∃V (_ , y₁))
+              ((_ , x₁) ≟∃V (_ , y₂))
+        where
+        lemma :
+          Dec (_≡_ {A = ∃Var} (_ , x₁) (_ , z)) →
+          Dec (_≡_ {A = ∃Var} (_ , x₂) (_ , z)) →
+          Dec (_≡_ {A = ∃Var} (_ , x₂) (_ , y₁)) →
+          Dec (_≡_ {A = ∃Var} (_ , x₁) (_ , y₂)) →
+          rename-Var x₁ y₁ (rename-Var x₂ y₂ z) ≡
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)
+        lemma (no x₁≢z) (no x₂≢z) _ _ =
+          rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
+          rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≢ x₁≢z ⟩
+          z                                                         ≡⟨ sym $ rename-Var-≢ x₂≢z ⟩
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) z                     ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≢ x₁≢z ⟩∎
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
 
-      lemma (no x₁≢z) (yes x₂≡z) _ _ =
-        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
-        rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
-        cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ sym $ rename-Var-≡ x₂≡z ⟩
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) z                     ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≢ x₁≢z ⟩∎
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+        lemma (no x₁≢z) (yes x₂≡z) _ _ =
+          rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
+          rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
+          cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ sym $ rename-Var-≡ x₂≡z ⟩
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) z                     ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≢ x₁≢z ⟩∎
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
 
-      lemma (yes x₁≡z) (yes x₂≡z) (yes x₂≡y₁) _ =
-        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
-        rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
-        cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ cast-Var-irrelevance ⟩
-        cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ sym cast-Var-cast-Var ⟩
-        cast-Var _ (cast-Var _ (rename-Var x₁ y₁ y₂))             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≡ x₂≡y₁ ⟩
-        cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+        lemma (yes x₁≡z) (yes x₂≡z) (yes x₂≡y₁) _ =
+          rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
+          rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
+          cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ cast-Var-irrelevance ⟩
+          cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ sym cast-Var-cast-Var ⟩
+          cast-Var _ (cast-Var _ (rename-Var x₁ y₁ y₂))             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≡ x₂≡y₁ ⟩
+          cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
 
-      lemma (yes x₁≡z) (yes x₂≡z) (no x₂≢y₁) (yes x₁≡y₂) =
-        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
-        rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
-        cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ cong (cast-Var _) $ rename-Var-≡ x₁≡y₂ ⟩
-        cast-Var _ (cast-Var _ y₁)                                ≡⟨ cast-Var-cast-Var ⟩
-        cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
-        cast-Var _ y₁                                             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≢ x₂≢y₁ ⟩
-        cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+        lemma (yes x₁≡z) (yes x₂≡z) (no x₂≢y₁) (yes x₁≡y₂) =
+          rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
+          rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
+          cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ cong (cast-Var _) $ rename-Var-≡ x₁≡y₂ ⟩
+          cast-Var _ (cast-Var _ y₁)                                ≡⟨ cast-Var-cast-Var ⟩
+          cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
+          cast-Var _ y₁                                             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≢ x₂≢y₁ ⟩
+          cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
 
-      lemma (yes x₁≡z) (yes x₂≡z) (no x₂≢y₁) (no x₁≢y₂) =
-        case hyp of λ where
-          (inj₁ hyp) → ⊥-elim $ hyp
-                         (inj₁ (trans x₂≡z (sym x₁≡z) , x₂≢y₁) , x₁≢y₂)
-          (inj₂ hyp) →
-            rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
-            rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
-            cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ cong (cast-Var _) $ rename-Var-≢ x₁≢y₂ ⟩
-            cast-Var _ y₂                                             ≡⟨ cong (cast-Var _) $ sym $ proj₂ (Σ-≡,≡←≡ hyp) ⟩
-            cast-Var _ (cast-Var _ y₁)                                ≡⟨ cast-Var-cast-Var ⟩
-            cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
-            cast-Var _ y₁                                             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≢ x₂≢y₁ ⟩
-            cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
-            rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
-            rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+        lemma (yes x₁≡z) (yes x₂≡z) (no x₂≢y₁) (no x₁≢y₂) =
+          case hyp of λ where
+            (inj₁ hyp) →
+              ⊥-elim $
+              hyp (inj₁ (trans x₂≡z (sym x₁≡z) , x₂≢y₁) , x₁≢y₂)
+            (inj₂ hyp) →
+              rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≡ x₂≡z ⟩
+              rename-Var x₁ y₁ (cast-Var _ y₂)                          ≡⟨ rename-Var-cast-Var ⟩
+              cast-Var _ (rename-Var x₁ y₁ y₂)                          ≡⟨ cong (cast-Var _) $ rename-Var-≢ x₁≢y₂ ⟩
+              cast-Var _ y₂                                             ≡⟨ cong (cast-Var _) $ sym $ proj₂ (Σ-≡,≡←≡ hyp) ⟩
+              cast-Var _ (cast-Var _ y₁)                                ≡⟨ cast-Var-cast-Var ⟩
+              cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
+              cast-Var _ y₁                                             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≢ x₂≢y₁ ⟩
+              cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+              rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+              rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
 
-      lemma (yes x₁≡z) (no x₂≢z) (no x₂≢y₁) _ =
-        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
-        rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≡ x₁≡z ⟩
-        cast-Var _ y₁                                             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≢ x₂≢y₁ ⟩
-        cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+        lemma (yes x₁≡z) (no x₂≢z) (no x₂≢y₁) _ =
+          rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
+          rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≡ x₁≡z ⟩
+          cast-Var _ y₁                                             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≢ x₂≢y₁ ⟩
+          cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
 
-      lemma (yes x₁≡z) (no x₂≢z) (yes x₂≡y₁) (yes x₁≡y₂) =
-        rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
-        rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≡ x₁≡z ⟩
-        cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
-        cast-Var _ y₁                                             ≡⟨ sym cast-Var-cast-Var ⟩
-        cast-Var _ (cast-Var _ y₁)                                ≡⟨ sym cast-Var-cast-Var ⟩
-        cast-Var _ (cast-Var _ (cast-Var _ y₁))                   ≡⟨ sym $ cong (cast-Var _ ∘ cast-Var _) $ rename-Var-≡ x₁≡y₂ ⟩
-        cast-Var _ (cast-Var _ (rename-Var x₁ y₁ y₂))             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≡ x₂≡y₁ ⟩
-        cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
-        rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+        lemma (yes x₁≡z) (no x₂≢z) (yes x₂≡y₁) (yes x₁≡y₂) =
+          rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
+          rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≡ x₁≡z ⟩
+          cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
+          cast-Var _ y₁                                             ≡⟨ sym cast-Var-cast-Var ⟩
+          cast-Var _ (cast-Var _ y₁)                                ≡⟨ sym cast-Var-cast-Var ⟩
+          cast-Var _ (cast-Var _ (cast-Var _ y₁))                   ≡⟨ sym $ cong (cast-Var _ ∘ cast-Var _) $ rename-Var-≡ x₁≡y₂ ⟩
+          cast-Var _ (cast-Var _ (rename-Var x₁ y₁ y₂))             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≡ x₂≡y₁ ⟩
+          cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+          rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
 
-      lemma (yes x₁≡z) (no x₂≢z) (yes x₂≡y₁) (no x₁≢y₂) =
-        case hyp of λ where
-          (inj₁ hyp) → ⊥-elim $ hyp
-                         (inj₂ (x₂≡y₁ , x₂≢z ∘ flip trans x₁≡z) , x₁≢y₂)
-          (inj₂ hyp) →
-            rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
-            rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≡ x₁≡z ⟩
-            cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
-            cast-Var _ y₁                                             ≡⟨ sym cast-Var-cast-Var ⟩
-            cast-Var _ (cast-Var _ y₁)                                ≡⟨ cong (cast-Var _) $ proj₂ (Σ-≡,≡←≡ hyp) ⟩
-            cast-Var _ y₂                                             ≡⟨ sym cast-Var-cast-Var ⟩
-            cast-Var _ (cast-Var _ y₂)                                ≡⟨ sym $ cong (cast-Var _ ∘ cast-Var _) $ rename-Var-≢ x₁≢y₂ ⟩
-            cast-Var _ (cast-Var _ (rename-Var x₁ y₁ y₂))             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≡ x₂≡y₁ ⟩
-            cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
-            rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
-            rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
+        lemma (yes x₁≡z) (no x₂≢z) (yes x₂≡y₁) (no x₁≢y₂) =
+          case hyp of λ where
+            (inj₁ hyp) → ⊥-elim $ hyp
+                           (inj₂ (x₂≡y₁ , x₂≢z ∘ flip trans x₁≡z) , x₁≢y₂)
+            (inj₂ hyp) →
+              rename-Var x₁ y₁ (rename-Var x₂ y₂ z)                     ≡⟨ cong (rename-Var _ _) $ rename-Var-≢ x₂≢z ⟩
+              rename-Var x₁ y₁ z                                        ≡⟨ rename-Var-≡ x₁≡z ⟩
+              cast-Var _ y₁                                             ≡⟨ cast-Var-irrelevance ⟩
+              cast-Var _ y₁                                             ≡⟨ sym cast-Var-cast-Var ⟩
+              cast-Var _ (cast-Var _ y₁)                                ≡⟨ cong (cast-Var _) $ proj₂ (Σ-≡,≡←≡ hyp) ⟩
+              cast-Var _ y₂                                             ≡⟨ sym cast-Var-cast-Var ⟩
+              cast-Var _ (cast-Var _ y₂)                                ≡⟨ sym $ cong (cast-Var _ ∘ cast-Var _) $ rename-Var-≢ x₁≢y₂ ⟩
+              cast-Var _ (cast-Var _ (rename-Var x₁ y₁ y₂))             ≡⟨ sym $ cong (cast-Var _) $ rename-Var-≡ x₂≡y₁ ⟩
+              cast-Var _ (rename-Var x₂ (rename-Var x₁ y₁ y₂) y₁)       ≡⟨ sym rename-Var-cast-Var ⟩
+              rename-Var x₂ (rename-Var x₁ y₁ y₂) (cast-Var _ y₁)       ≡⟨ sym $ cong (rename-Var _ _) $ rename-Var-≡ x₁≡z ⟩∎
+              rename-Var x₂ (rename-Var x₁ y₁ y₂) (rename-Var x₁ y₁ z)  ∎
 
-    mutual
+      mutual
 
-      rename-Tm-swap :
-        ∀ (tˢ : Tmˢ s) {t} →
-        rename-Tm x₁ y₁ tˢ (rename-Tm x₂ y₂ tˢ t) ≡
-        rename-Tm x₂ (rename-Var x₁ y₁ y₂) tˢ (rename-Tm x₁ y₁ tˢ t)
-      rename-Tm-swap var        = rename-Var-swap
-      rename-Tm-swap (op o asˢ) = rename-Args-swap asˢ
+        rename-Tm-swap :
+          ∀ (tˢ : Tmˢ s) {t} →
+          rename-Tm x₁ y₁ tˢ (rename-Tm x₂ y₂ tˢ t) ≡
+          rename-Tm x₂ (rename-Var x₁ y₁ y₂) tˢ (rename-Tm x₁ y₁ tˢ t)
+        rename-Tm-swap var        = rename-Var-swap
+        rename-Tm-swap (op o asˢ) = rename-Args-swap asˢ
 
-      rename-Args-swap :
-        ∀ (asˢ : Argsˢ vs) {as} →
-        rename-Args x₁ y₁ asˢ (rename-Args x₂ y₂ asˢ as) ≡
-        rename-Args x₂ (rename-Var x₁ y₁ y₂) asˢ
-          (rename-Args x₁ y₁ asˢ as)
-      rename-Args-swap nil           = refl _
-      rename-Args-swap (cons aˢ asˢ) =
-        cong₂ _,_
-          (rename-Arg-swap aˢ)
-          (rename-Args-swap asˢ)
+        rename-Args-swap :
+          ∀ (asˢ : Argsˢ vs) {as} →
+          rename-Args x₁ y₁ asˢ (rename-Args x₂ y₂ asˢ as) ≡
+          rename-Args x₂ (rename-Var x₁ y₁ y₂) asˢ
+            (rename-Args x₁ y₁ asˢ as)
+        rename-Args-swap nil           = refl _
+        rename-Args-swap (cons aˢ asˢ) =
+          cong₂ _,_
+            (rename-Arg-swap aˢ)
+            (rename-Args-swap asˢ)
 
-      rename-Arg-swap :
-        ∀ (aˢ : Argˢ v) {a} →
-        rename-Arg x₁ y₁ aˢ (rename-Arg x₂ y₂ aˢ a) ≡
-        rename-Arg x₂ (rename-Var x₁ y₁ y₂) aˢ
-          (rename-Arg x₁ y₁ aˢ a)
-      rename-Arg-swap (nil tˢ)  = rename-Tm-swap tˢ
-      rename-Arg-swap (cons aˢ) =
-        cong₂ _,_
-          rename-Var-swap
-          (rename-Arg-swap aˢ)
+        rename-Arg-swap :
+          ∀ (aˢ : Argˢ v) {a} →
+          rename-Arg x₁ y₁ aˢ (rename-Arg x₂ y₂ aˢ a) ≡
+          rename-Arg x₂ (rename-Var x₁ y₁ y₂) aˢ
+            (rename-Arg x₁ y₁ aˢ a)
+        rename-Arg-swap (nil tˢ)  = rename-Tm-swap tˢ
+        rename-Arg-swap (cons aˢ) =
+          cong₂ _,_
+            rename-Var-swap
+            (rename-Arg-swap aˢ)
 
   -- Nothing changes if a variable is renamed to itself.
 
   module _ {x : Var s′} where
 
-    rename-Var-no-change :
-      {y : Var s} → rename-Var x x y ≡ y
-    rename-Var-no-change {y = y} =
-      case (_ , x) ≟∃V (_ , y) of λ where
-        (no x≢y) →
-          rename-Var x x y  ≡⟨ rename-Var-≢ x≢y ⟩∎
-          y                 ∎
-        (yes x≡y) →
-          rename-Var x x y                  ≡⟨ rename-Var-≡ x≡y ⟩
-          cast-Var (cong proj₁ x≡y) x       ≡⟨ cast-Var-irrelevance ⟩
-          cast-Var (proj₁ (Σ-≡,≡←≡ x≡y)) x  ≡⟨ proj₂ (Σ-≡,≡←≡ x≡y) ⟩∎
-          y                                 ∎
+    abstract
 
-    mutual
+      rename-Var-no-change :
+        {y : Var s} → rename-Var x x y ≡ y
+      rename-Var-no-change {y = y} =
+        case (_ , x) ≟∃V (_ , y) of λ where
+          (no x≢y) →
+            rename-Var x x y  ≡⟨ rename-Var-≢ x≢y ⟩∎
+            y                 ∎
+          (yes x≡y) →
+            rename-Var x x y                  ≡⟨ rename-Var-≡ x≡y ⟩
+            cast-Var (cong proj₁ x≡y) x       ≡⟨ cast-Var-irrelevance ⟩
+            cast-Var (proj₁ (Σ-≡,≡←≡ x≡y)) x  ≡⟨ proj₂ (Σ-≡,≡←≡ x≡y) ⟩∎
+            y                                 ∎
 
-      rename-Tm-no-change :
-        ∀ (tˢ : Tmˢ s) {t} →
-        rename-Tm x x tˢ t ≡ t
-      rename-Tm-no-change var        = rename-Var-no-change
-      rename-Tm-no-change (op o asˢ) = rename-Args-no-change asˢ
+      mutual
 
-      rename-Args-no-change :
-        ∀ (asˢ : Argsˢ vs) {as} →
-        rename-Args x x asˢ as ≡ as
-      rename-Args-no-change nil           = refl _
-      rename-Args-no-change (cons aˢ asˢ) =
-        cong₂ _,_
-          (rename-Arg-no-change aˢ)
-          (rename-Args-no-change asˢ)
+        rename-Tm-no-change :
+          ∀ (tˢ : Tmˢ s) {t} →
+          rename-Tm x x tˢ t ≡ t
+        rename-Tm-no-change var        = rename-Var-no-change
+        rename-Tm-no-change (op o asˢ) = rename-Args-no-change asˢ
 
-      rename-Arg-no-change :
-        ∀ (aˢ : Argˢ v) {a} →
-        rename-Arg x x aˢ a ≡ a
-      rename-Arg-no-change (nil tˢ)  = rename-Tm-no-change tˢ
-      rename-Arg-no-change (cons aˢ) =
-        cong₂ _,_
-          rename-Var-no-change
-          (rename-Arg-no-change aˢ)
+        rename-Args-no-change :
+          ∀ (asˢ : Argsˢ vs) {as} →
+          rename-Args x x asˢ as ≡ as
+        rename-Args-no-change nil           = refl _
+        rename-Args-no-change (cons aˢ asˢ) =
+          cong₂ _,_
+            (rename-Arg-no-change aˢ)
+            (rename-Args-no-change asˢ)
+
+        rename-Arg-no-change :
+          ∀ (aˢ : Argˢ v) {a} →
+          rename-Arg x x aˢ a ≡ a
+        rename-Arg-no-change (nil tˢ)  = rename-Tm-no-change tˢ
+        rename-Arg-no-change (cons aˢ) =
+          cong₂ _,_
+            rename-Var-no-change
+            (rename-Arg-no-change aˢ)
 
   ----------------------------------------------------------------------
   -- Free variables
@@ -1119,186 +1128,188 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   module _ {x y : Var s} where
 
-    mutual
+    abstract
 
-      free-rename-⊆-Tm :
-        ∀ (tˢ : Tmˢ s′) {t} →
-        free-Tm tˢ (rename-Tm x y tˢ t) ⊆
-        (_ , y) ∷ del (_ , x) (free-Tm tˢ t)
-      free-rename-⊆-Tm var {t = z} p =
-        p ∈ singleton (_ , rename-Var x y z)                 ↔⟨ ∥∥↔ ∃Var-set F.∘ from-isomorphism ∈singleton≃ ⟩
+      mutual
 
-        p ≡ (_ , rename-Var x y z)                           ↔⟨ ≡,rename-Var≃′ ⟩
+        free-rename-⊆-Tm :
+          ∀ (tˢ : Tmˢ s′) {t} →
+          free-Tm tˢ (rename-Tm x y tˢ t) ⊆
+          (_ , y) ∷ del (_ , x) (free-Tm tˢ t)
+        free-rename-⊆-Tm var {t = z} p =
+          p ∈ singleton (_ , rename-Var x y z)                 ↔⟨ ∥∥↔ ∃Var-set F.∘ from-isomorphism ∈singleton≃ ⟩
 
-        p ≡ (_ , y) × (_ , x) ≡ (_ , z) ⊎
-        p ≢ (_ , x) × p ≡ (_ , z)                            ↝⟨ ∣_∣ ∘ [ inj₁ ∘ proj₁ , inj₂ ∘ Σ-map id ≡→∈∷ ]′ ⟩
+          p ≡ (_ , rename-Var x y z)                           ↔⟨ ≡,rename-Var≃′ ⟩
 
-        p ≡ (_ , y) ∥⊎∥ p ≢ (_ , x) × p ∈ singleton (_ , z)  ↔⟨ F.id ∥⊎∥-cong inverse (∈delete≃ merely-equal?-∃Var) ⟩
+          p ≡ (_ , y) × (_ , x) ≡ (_ , z) ⊎
+          p ≢ (_ , x) × p ≡ (_ , z)                            ↝⟨ ∣_∣ ∘ [ inj₁ ∘ proj₁ , inj₂ ∘ Σ-map id ≡→∈∷ ]′ ⟩
 
-        p ≡ (_ , y) ∥⊎∥ p ∈ del (_ , x) (singleton (_ , z))  ↔⟨ inverse ∈∷≃ ⟩□
+          p ≡ (_ , y) ∥⊎∥ p ≢ (_ , x) × p ∈ singleton (_ , z)  ↔⟨ F.id ∥⊎∥-cong inverse (∈delete≃ merely-equal?-∃Var) ⟩
 
-        p ∈ (_ , y) ∷ del (_ , x) (singleton (_ , z))        □
+          p ≡ (_ , y) ∥⊎∥ p ∈ del (_ , x) (singleton (_ , z))  ↔⟨ inverse ∈∷≃ ⟩□
 
-      free-rename-⊆-Tm (op o asˢ) = free-rename-⊆-Args asˢ
+          p ∈ (_ , y) ∷ del (_ , x) (singleton (_ , z))        □
 
-      free-rename-⊆-Args :
-        ∀ (asˢ : Argsˢ vs) {as} →
-        free-Args asˢ (rename-Args x y asˢ as) ⊆
-        (_ , y) ∷ del (_ , x) (free-Args asˢ as)
-      free-rename-⊆-Args nil _ ()
+        free-rename-⊆-Tm (op o asˢ) = free-rename-⊆-Args asˢ
 
-      free-rename-⊆-Args (cons aˢ asˢ) {as = a , as} p =
-        p ∈ free-Arg aˢ (rename-Arg x y aˢ a) ∪
-            free-Args asˢ (rename-Args x y asˢ as)                    ↔⟨ ∈∪≃ ⟩
+        free-rename-⊆-Args :
+          ∀ (asˢ : Argsˢ vs) {as} →
+          free-Args asˢ (rename-Args x y asˢ as) ⊆
+          (_ , y) ∷ del (_ , x) (free-Args asˢ as)
+        free-rename-⊆-Args nil _ ()
 
-        p ∈ free-Arg aˢ (rename-Arg x y aˢ a) ∥⊎∥
-        p ∈ free-Args asˢ (rename-Args x y asˢ as)                    ↝⟨ free-rename-⊆-Arg aˢ p ∥⊎∥-cong free-rename-⊆-Args asˢ p ⟩
+        free-rename-⊆-Args (cons aˢ asˢ) {as = a , as} p =
+          p ∈ free-Arg aˢ (rename-Arg x y aˢ a) ∪
+              free-Args asˢ (rename-Args x y asˢ as)                    ↔⟨ ∈∪≃ ⟩
 
-        p ∈ (_ , y) ∷ del (_ , x) (free-Arg aˢ a) ∥⊎∥
-        p ∈ (_ , y) ∷ del (_ , x) (free-Args asˢ as)                  ↔⟨ ∈∷≃ ∥⊎∥-cong ∈∷≃ ⟩
+          p ∈ free-Arg aˢ (rename-Arg x y aˢ a) ∥⊎∥
+          p ∈ free-Args asˢ (rename-Args x y asˢ as)                    ↝⟨ free-rename-⊆-Arg aˢ p ∥⊎∥-cong free-rename-⊆-Args asˢ p ⟩
 
-        (p ≡ (_ , y) ∥⊎∥ p ∈ del (_ , x) (free-Arg aˢ a)) ∥⊎∥
-        (p ≡ (_ , y) ∥⊎∥ p ∈ del (_ , x) (free-Args asˢ as))          ↔⟨ (∥⊎∥-idempotent ∃Var-set ∥⊎∥-cong F.id) F.∘
-                                                                          ∥⊎∥-assoc F.∘
-                                                                          (F.id
-                                                                             ∥⊎∥-cong
-                                                                           (inverse ∥⊎∥-assoc F.∘ (∥⊎∥-comm ∥⊎∥-cong F.id) F.∘ ∥⊎∥-assoc)) F.∘
-                                                                          inverse ∥⊎∥-assoc ⟩
-        p ≡ (_ , y) ∥⊎∥
-        p ∈ del (_ , x) (free-Arg aˢ a) ∥⊎∥
-        p ∈ del (_ , x) (free-Args asˢ as)                            ↔⟨ inverse $
-                                                                         (F.id
-                                                                            ∥⊎∥-cong
-                                                                          (∈∪≃ F.∘
-                                                                           ≡⇒↝ _ (cong (_ ∈_) $ delete-∪ merely-equal?-∃Var (free-Arg aˢ a)))) F.∘
-                                                                         ∈∷≃ ⟩□
-        p ∈ (_ , y) ∷ del (_ , x) (free-Arg aˢ a ∪ free-Args asˢ as)  □
+          p ∈ (_ , y) ∷ del (_ , x) (free-Arg aˢ a) ∥⊎∥
+          p ∈ (_ , y) ∷ del (_ , x) (free-Args asˢ as)                  ↔⟨ ∈∷≃ ∥⊎∥-cong ∈∷≃ ⟩
 
-      free-rename-⊆-Arg :
-        ∀ (aˢ : Argˢ v) {a} →
-        free-Arg aˢ (rename-Arg x y aˢ a) ⊆
-        (_ , y) ∷ del (_ , x) (free-Arg aˢ a)
-      free-rename-⊆-Arg (nil tˢ) = free-rename-⊆-Tm tˢ
+          (p ≡ (_ , y) ∥⊎∥ p ∈ del (_ , x) (free-Arg aˢ a)) ∥⊎∥
+          (p ≡ (_ , y) ∥⊎∥ p ∈ del (_ , x) (free-Args asˢ as))          ↔⟨ (∥⊎∥-idempotent ∃Var-set ∥⊎∥-cong F.id) F.∘
+                                                                            ∥⊎∥-assoc F.∘
+                                                                            (F.id
+                                                                               ∥⊎∥-cong
+                                                                             (inverse ∥⊎∥-assoc F.∘ (∥⊎∥-comm ∥⊎∥-cong F.id) F.∘ ∥⊎∥-assoc)) F.∘
+                                                                            inverse ∥⊎∥-assoc ⟩
+          p ≡ (_ , y) ∥⊎∥
+          p ∈ del (_ , x) (free-Arg aˢ a) ∥⊎∥
+          p ∈ del (_ , x) (free-Args asˢ as)                            ↔⟨ inverse $
+                                                                           (F.id
+                                                                              ∥⊎∥-cong
+                                                                            (∈∪≃ F.∘
+                                                                             ≡⇒↝ _ (cong (_ ∈_) $ delete-∪ merely-equal?-∃Var (free-Arg aˢ a)))) F.∘
+                                                                           ∈∷≃ ⟩□
+          p ∈ (_ , y) ∷ del (_ , x) (free-Arg aˢ a ∪ free-Args asˢ as)  □
 
-      free-rename-⊆-Arg (cons aˢ) {a = z , a} p =
-        p ∈ del (_ , rename-Var x y z)
-              (free-Arg aˢ (rename-Arg x y aˢ a))                ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+        free-rename-⊆-Arg :
+          ∀ (aˢ : Argˢ v) {a} →
+          free-Arg aˢ (rename-Arg x y aˢ a) ⊆
+          (_ , y) ∷ del (_ , x) (free-Arg aˢ a)
+        free-rename-⊆-Arg (nil tˢ) = free-rename-⊆-Tm tˢ
 
-        p ≢ (_ , rename-Var x y z) ×
-        p ∈ free-Arg aˢ (rename-Arg x y aˢ a)                    ↝⟨ Σ-map id (free-rename-⊆-Arg aˢ p) ⟩
+        free-rename-⊆-Arg (cons aˢ) {a = z , a} p =
+          p ∈ del (_ , rename-Var x y z)
+                (free-Arg aˢ (rename-Arg x y aˢ a))                ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
 
-        p ≢ (_ , rename-Var x y z) ×
-        p ∈ (_ , y) ∷ del (_ , x) (free-Arg aˢ a)                ↔⟨ F.id ×-cong ∈∷≃ ⟩
+          p ≢ (_ , rename-Var x y z) ×
+          p ∈ free-Arg aˢ (rename-Arg x y aˢ a)                    ↝⟨ Σ-map id (free-rename-⊆-Arg aˢ p) ⟩
 
-        p ≢ (_ , rename-Var x y z) ×
-        (p ≡ (_ , y) ∥⊎∥
-         p ∈ del (_ , x) (free-Arg aˢ a))                        ↔⟨ (Π⊎↔Π×Π ext F.∘ →-cong₁ ext ≡,rename-Var≃) ×-cong Eq.id ⟩
+          p ≢ (_ , rename-Var x y z) ×
+          p ∈ (_ , y) ∷ del (_ , x) (free-Arg aˢ a)                ↔⟨ F.id ×-cong ∈∷≃ ⟩
 
-        (¬ (((_ , x) ≡ (_ , z)) × p ≡ (_ , y)) ×
-         ¬ (((_ , x) ≢ (_ , z)) × p ≡ (_ , z))) ×
-        (p ≡ (_ , y) ∥⊎∥
-         p ∈ del (_ , x) (free-Arg aˢ a))                        ↝⟨ (uncurry λ (_ , hyp) → id ∥⊎∥-cong λ u∈ → lemma hyp u∈ , u∈) ⟩
+          p ≢ (_ , rename-Var x y z) ×
+          (p ≡ (_ , y) ∥⊎∥
+           p ∈ del (_ , x) (free-Arg aˢ a))                        ↔⟨ (Π⊎↔Π×Π ext F.∘ →-cong₁ ext ≡,rename-Var≃) ×-cong Eq.id ⟩
 
-        p ≡ (_ , y) ∥⊎∥
-        p ≢ (_ , z) ×
-        p ∈ del (_ , x) (free-Arg aˢ a)                          ↔⟨ inverse $ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
+          (¬ (((_ , x) ≡ (_ , z)) × p ≡ (_ , y)) ×
+           ¬ (((_ , x) ≢ (_ , z)) × p ≡ (_ , z))) ×
+          (p ≡ (_ , y) ∥⊎∥
+           p ∈ del (_ , x) (free-Arg aˢ a))                        ↝⟨ (uncurry λ (_ , hyp) → id ∥⊎∥-cong λ u∈ → lemma hyp u∈ , u∈) ⟩
 
-        p ∈ (_ , y) ∷ del (_ , z) (del (_ , x) (free-Arg aˢ a))  ↔⟨ ≡⇒↝ equivalence $ cong (λ x → p ∈ (_ , y) ∷ x) $
-                                                                    delete-comm merely-equal?-∃Var (free-Arg aˢ a) ⟩□
-        p ∈ (_ , y) ∷ del (_ , x) (del (_ , z) (free-Arg aˢ a))  □
-        where
-        lemma :
-          ¬ (((_ , x) ≢ (_ , z)) × p ≡ (_ , z)) →
-          p ∈ del (_ , x) (free-Arg aˢ a) →
-          p ≢ (_ , z)
-        lemma hyp p∈ =
-          p ≡ (_ , z)                        ↝⟨ (λ eq → eq , hyp ∘ (_, eq)) ⟩
-          p ≡ (_ , z) × ¬ (_ , x) ≢ (_ , z)  ↝⟨ Σ-map id (λ eq → case (_ ≟∃V _) of [ id , ⊥-elim ∘ eq ]′) ⟩
-          p ≡ (_ , z) × (_ , x) ≡ (_ , z)    ↝⟨ (uncurry λ eq₁ eq₂ → trans eq₁ (sym eq₂)) ⟩
-          p ≡ (_ , x)                        ↝⟨ proj₁ (_≃_.to (∈delete≃ {z = free-Arg aˢ a} merely-equal?-∃Var) p∈) ⟩□
-          ⊥                                  □
+          p ≡ (_ , y) ∥⊎∥
+          p ≢ (_ , z) ×
+          p ∈ del (_ , x) (free-Arg aˢ a)                          ↔⟨ inverse $ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
 
-    mutual
+          p ∈ (_ , y) ∷ del (_ , z) (del (_ , x) (free-Arg aˢ a))  ↔⟨ ≡⇒↝ equivalence $ cong (λ x → p ∈ (_ , y) ∷ x) $
+                                                                      delete-comm merely-equal?-∃Var (free-Arg aˢ a) ⟩□
+          p ∈ (_ , y) ∷ del (_ , x) (del (_ , z) (free-Arg aˢ a))  □
+          where
+          lemma :
+            ¬ (((_ , x) ≢ (_ , z)) × p ≡ (_ , z)) →
+            p ∈ del (_ , x) (free-Arg aˢ a) →
+            p ≢ (_ , z)
+          lemma hyp p∈ =
+            p ≡ (_ , z)                        ↝⟨ (λ eq → eq , hyp ∘ (_, eq)) ⟩
+            p ≡ (_ , z) × ¬ (_ , x) ≢ (_ , z)  ↝⟨ Σ-map id (λ eq → case (_ ≟∃V _) of [ id , ⊥-elim ∘ eq ]′) ⟩
+            p ≡ (_ , z) × (_ , x) ≡ (_ , z)    ↝⟨ (uncurry λ eq₁ eq₂ → trans eq₁ (sym eq₂)) ⟩
+            p ≡ (_ , x)                        ↝⟨ proj₁ (_≃_.to (∈delete≃ {z = free-Arg aˢ a} merely-equal?-∃Var) p∈) ⟩□
+            ⊥                                  □
 
-      ⊆-free-rename-Tm :
-        ∀ (tˢ : Tmˢ s′) {t} →
-        free-Tm tˢ t ⊆
-        (_ , x) ∷ (_ , y) ∷ free-Tm tˢ (rename-Tm x y tˢ t)
-      ⊆-free-rename-Tm var {t = z} p =
-        p ∈ singleton (_ , z)                                           ↔⟨ ∈singleton≃ ⟩
+      mutual
 
-        ∥ p ≡ (_ , z) ∥                                                 ↝⟨ (Trunc.rec ∥⊎∥-propositional λ p≡z → case p ≟∃V (_ , x) of
-                                                                            [ ∣inj₁∣ , ∣inj₂∣ ∘ ∣inj₂∣ ∘ ∣inj₂∣ ∘ (_, p≡z) ]′) ⟩
-        p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥
-        (p ≡ (_ , y) × (_ , x) ≡ (_ , z) ∥⊎∥
-         p ≢ (_ , x) × p ≡ (_ , z))                                     ↔⟨ inverse $ F.id ∥⊎∥-cong F.id ∥⊎∥-cong ∥∥-cong ≡,rename-Var≃′ ⟩
+        ⊆-free-rename-Tm :
+          ∀ (tˢ : Tmˢ s′) {t} →
+          free-Tm tˢ t ⊆
+          (_ , x) ∷ (_ , y) ∷ free-Tm tˢ (rename-Tm x y tˢ t)
+        ⊆-free-rename-Tm var {t = z} p =
+          p ∈ singleton (_ , z)                                           ↔⟨ ∈singleton≃ ⟩
 
-        p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥ ∥ p ≡ (_ , rename-Var x y z) ∥  ↔⟨ inverse $ (F.id ∥⊎∥-cong (F.id ∥⊎∥-cong ∈singleton≃) F.∘ ∈∷≃) F.∘ ∈∷≃ ⟩□
+          ∥ p ≡ (_ , z) ∥                                                 ↝⟨ (Trunc.rec ∥⊎∥-propositional λ p≡z → case p ≟∃V (_ , x) of
+                                                                              [ ∣inj₁∣ , ∣inj₂∣ ∘ ∣inj₂∣ ∘ ∣inj₂∣ ∘ (_, p≡z) ]′) ⟩
+          p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥
+          (p ≡ (_ , y) × (_ , x) ≡ (_ , z) ∥⊎∥
+           p ≢ (_ , x) × p ≡ (_ , z))                                     ↔⟨ inverse $ F.id ∥⊎∥-cong F.id ∥⊎∥-cong ∥∥-cong ≡,rename-Var≃′ ⟩
 
-        p ∈ (_ , x) ∷ (_ , y) ∷ singleton (_ , rename-Var x y z)        □
+          p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥ ∥ p ≡ (_ , rename-Var x y z) ∥  ↔⟨ inverse $
+                                                                             (F.id ∥⊎∥-cong (F.id ∥⊎∥-cong ∈singleton≃) F.∘ ∈∷≃) F.∘ ∈∷≃ ⟩□
+          p ∈ (_ , x) ∷ (_ , y) ∷ singleton (_ , rename-Var x y z)        □
 
-      ⊆-free-rename-Tm (op o asˢ) = ⊆-free-rename-Args asˢ
+        ⊆-free-rename-Tm (op o asˢ) = ⊆-free-rename-Args asˢ
 
-      ⊆-free-rename-Args :
-        ∀ (asˢ : Argsˢ vs) {as} →
-        free-Args asˢ as ⊆
-        (_ , x) ∷ (_ , y) ∷ free-Args asˢ (rename-Args x y asˢ as)
-      ⊆-free-rename-Args nil _ ()
+        ⊆-free-rename-Args :
+          ∀ (asˢ : Argsˢ vs) {as} →
+          free-Args asˢ as ⊆
+          (_ , x) ∷ (_ , y) ∷ free-Args asˢ (rename-Args x y asˢ as)
+        ⊆-free-rename-Args nil _ ()
 
-      ⊆-free-rename-Args (cons aˢ asˢ) {as = a , as} p =
-        p ∈ free-Arg aˢ a ∪ free-Args asˢ as                            ↔⟨ ∈∪≃ ⟩
+        ⊆-free-rename-Args (cons aˢ asˢ) {as = a , as} p =
+          p ∈ free-Arg aˢ a ∪ free-Args asˢ as                            ↔⟨ ∈∪≃ ⟩
 
-        p ∈ free-Arg aˢ a ∥⊎∥ p ∈ free-Args asˢ as                      ↝⟨ ⊆-free-rename-Arg aˢ p ∥⊎∥-cong ⊆-free-rename-Args asˢ p ⟩
+          p ∈ free-Arg aˢ a ∥⊎∥ p ∈ free-Args asˢ as                      ↝⟨ ⊆-free-rename-Arg aˢ p ∥⊎∥-cong ⊆-free-rename-Args asˢ p ⟩
 
-        p ∈ (_ , x) ∷ (_ , y) ∷ free-Arg aˢ (rename-Arg x y aˢ a) ∥⊎∥
-        p ∈ (_ , x) ∷ (_ , y) ∷ free-Args asˢ (rename-Args x y asˢ as)  ↔⟨ inverse $
-                                                                           ∈∪≃ F.∘
-                                                                           ≡⇒↝ _ (cong (p ∈_) $
-                                                                                  ∪-distrib-left {y = free-Arg aˢ (rename-Arg x y aˢ a)}
-                                                                                                 ((_ , x) ∷ (_ , y) ∷ [])) ⟩□
-        p ∈ (_ , x) ∷ (_ , y) ∷
-            free-Arg aˢ (rename-Arg x y aˢ a) ∪
-            free-Args asˢ (rename-Args x y asˢ as)                      □
+          p ∈ (_ , x) ∷ (_ , y) ∷ free-Arg aˢ (rename-Arg x y aˢ a) ∥⊎∥
+          p ∈ (_ , x) ∷ (_ , y) ∷ free-Args asˢ (rename-Args x y asˢ as)  ↔⟨ inverse $
+                                                                             ∈∪≃ F.∘
+                                                                             ≡⇒↝ _ (cong (p ∈_) $
+                                                                                    ∪-distrib-left {y = free-Arg aˢ (rename-Arg x y aˢ a)}
+                                                                                                   ((_ , x) ∷ (_ , y) ∷ [])) ⟩□
+          p ∈ (_ , x) ∷ (_ , y) ∷
+              free-Arg aˢ (rename-Arg x y aˢ a) ∪
+              free-Args asˢ (rename-Args x y asˢ as)                      □
 
-      ⊆-free-rename-Arg :
-        ∀ (aˢ : Argˢ v) {a} →
-        free-Arg aˢ a ⊆
-        (_ , x) ∷ (_ , y) ∷ free-Arg aˢ (rename-Arg x y aˢ a)
-      ⊆-free-rename-Arg (nil tˢ) = ⊆-free-rename-Tm tˢ
+        ⊆-free-rename-Arg :
+          ∀ (aˢ : Argˢ v) {a} →
+          free-Arg aˢ a ⊆
+          (_ , x) ∷ (_ , y) ∷ free-Arg aˢ (rename-Arg x y aˢ a)
+        ⊆-free-rename-Arg (nil tˢ) = ⊆-free-rename-Tm tˢ
 
-      ⊆-free-rename-Arg (cons aˢ) {a = z , a} p =
-        p ∈ del (_ , z) (free-Arg aˢ a)            ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+        ⊆-free-rename-Arg (cons aˢ) {a = z , a} p =
+          p ∈ del (_ , z) (free-Arg aˢ a)            ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
 
-        p ≢ (_ , z) × p ∈ free-Arg aˢ a            ↝⟨ Σ-map id (⊆-free-rename-Arg aˢ p) ⟩
+          p ≢ (_ , z) × p ∈ free-Arg aˢ a            ↝⟨ Σ-map id (⊆-free-rename-Arg aˢ p) ⟩
 
-        p ≢ (_ , z) ×
-        p ∈ (_ , x) ∷ (_ , y) ∷
-            free-Arg aˢ (rename-Arg x y aˢ a)      ↔⟨ F.id ×-cong (F.id ∥⊎∥-cong ∈∷≃) F.∘ ∈∷≃ ⟩
+          p ≢ (_ , z) ×
+          p ∈ (_ , x) ∷ (_ , y) ∷
+              free-Arg aˢ (rename-Arg x y aˢ a)      ↔⟨ F.id ×-cong (F.id ∥⊎∥-cong ∈∷≃) F.∘ ∈∷≃ ⟩
 
-        p ≢ (_ , z) ×
-        (p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥
-         p ∈ free-Arg aˢ (rename-Arg x y aˢ a))    ↝⟨ case p ≟∃V (_ , y) of
-                                                        [ (λ p≡y _ → ∣inj₂∣ (∣inj₁∣ p≡y))
-                                                        , (λ p≢y → uncurry λ p≢z → id ∥⊎∥-cong id ∥⊎∥-cong (lemma p≢y p≢z ,_))
-                                                        ]′ ⟩
-        p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥
-        p ≢ (_ , rename-Var x y z) ×
-        p ∈ free-Arg aˢ (rename-Arg x y aˢ a)      ↔⟨ inverse $ (F.id ∥⊎∥-cong (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃) F.∘ ∈∷≃ ⟩□
+          p ≢ (_ , z) ×
+          (p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥
+           p ∈ free-Arg aˢ (rename-Arg x y aˢ a))    ↝⟨ case p ≟∃V (_ , y) of
+                                                          [ (λ p≡y _ → ∣inj₂∣ (∣inj₁∣ p≡y))
+                                                          , (λ p≢y → uncurry λ p≢z → id ∥⊎∥-cong id ∥⊎∥-cong (lemma p≢y p≢z ,_))
+                                                          ]′ ⟩
+          p ≡ (_ , x) ∥⊎∥ p ≡ (_ , y) ∥⊎∥
+          p ≢ (_ , rename-Var x y z) ×
+          p ∈ free-Arg aˢ (rename-Arg x y aˢ a)      ↔⟨ inverse $ (F.id ∥⊎∥-cong (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃) F.∘ ∈∷≃ ⟩□
 
-        p ∈ (_ , x) ∷ (_ , y) ∷
-            del (_ , rename-Var x y z)
-              (free-Arg aˢ (rename-Arg x y aˢ a))  □
-        where
-        lemma : p ≢ (_ , y) → p ≢ (_ , z) → p ≢ (_ , rename-Var x y z)
-        lemma p≢y p≢z =
-          p ≡ (_ , rename-Var x y z)         ↔⟨ ≡,rename-Var≃ ⟩
+          p ∈ (_ , x) ∷ (_ , y) ∷
+              del (_ , rename-Var x y z)
+                (free-Arg aˢ (rename-Arg x y aˢ a))  □
+          where
+          lemma : p ≢ (_ , y) → p ≢ (_ , z) → p ≢ (_ , rename-Var x y z)
+          lemma p≢y p≢z =
+            p ≡ (_ , rename-Var x y z)         ↔⟨ ≡,rename-Var≃ ⟩
 
-          (_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
-          (_ , x) ≢ (_ , z) × p ≡ (_ , z)    ↝⟨ p≢y ∘ proj₂ ⊎-cong p≢z ∘ proj₂ ⟩
+            (_ , x) ≡ (_ , z) × p ≡ (_ , y) ⊎
+            (_ , x) ≢ (_ , z) × p ≡ (_ , z)    ↝⟨ p≢y ∘ proj₂ ⊎-cong p≢z ∘ proj₂ ⟩
 
-          ⊥ ⊎ ⊥                              ↔⟨ ⊎-right-identity ⟩□
+            ⊥ ⊎ ⊥                              ↔⟨ ⊎-right-identity ⟩□
 
-          ⊥                                  □
+            ⊥                                  □
 
   -- An alternative definition of what it means for a variable to be
   -- free in a term.
@@ -1367,572 +1378,581 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Free-in-argument (a , aˢ , [ wf ]) =
       proj₁ (Free-in-argument′ a aˢ wf)
 
-  -- The alternative definition of what it means for a variable to be
-  -- free in a term is propositional.
+  -- The alternative definition of what it means for a variable to
+  -- be free in a term is propositional.
 
   module _ {x : Var s} where
 
-    Free-in-variable-propositional :
-      (y : Variable ((_ , x) ∷ xs) s′) →
-      Is-proposition (Free-in-variable x y)
-    Free-in-variable-propositional (y , _) =
-      proj₂ (Free-in-var′ _ y)
+    abstract
 
-    Free-in-term-propositional :
-      (t : Term ((_ , x) ∷ xs) s′) →
-      Is-proposition (Free-in-term x t)
-    Free-in-term-propositional (t , tˢ , [ wf ]) =
-      proj₂ (Free-in-term′ _ t tˢ wf)
+      Free-in-variable-propositional :
+        (y : Variable ((_ , x) ∷ xs) s′) →
+        Is-proposition (Free-in-variable x y)
+      Free-in-variable-propositional (y , _) =
+        proj₂ (Free-in-var′ _ y)
 
-    Free-in-arguments-propositional :
-      (as : Arguments ((_ , x) ∷ xs) vs) →
-      Is-proposition (Free-in-arguments x as)
-    Free-in-arguments-propositional (as , asˢ , [ wfs ]) =
-      proj₂ (Free-in-arguments′ _ as asˢ wfs)
+      Free-in-term-propositional :
+        (t : Term ((_ , x) ∷ xs) s′) →
+        Is-proposition (Free-in-term x t)
+      Free-in-term-propositional (t , tˢ , [ wf ]) =
+        proj₂ (Free-in-term′ _ t tˢ wf)
 
-    Free-in-argument-propositional :
-      (a : Argument ((_ , x) ∷ xs) v) →
-      Is-proposition (Free-in-argument x a)
-    Free-in-argument-propositional (a , aˢ , [ wf ]) =
-      proj₂ (Free-in-argument′ _ a aˢ wf)
+      Free-in-arguments-propositional :
+        (as : Arguments ((_ , x) ∷ xs) vs) →
+        Is-proposition (Free-in-arguments x as)
+      Free-in-arguments-propositional (as , asˢ , [ wfs ]) =
+        proj₂ (Free-in-arguments′ _ as asˢ wfs)
 
-  -- Variables that are free according to the alternative definition
-  -- are in the set of free variables.
+      Free-in-argument-propositional :
+        (a : Argument ((_ , x) ∷ xs) v) →
+        Is-proposition (Free-in-argument x a)
+      Free-in-argument-propositional (a , aˢ , [ wf ]) =
+        proj₂ (Free-in-argument′ _ a aˢ wf)
 
-  Free-free-Var :
-    {x : Var s} {y : Var s′}
-    (@0 wf : Wf-var ((_ , x) ∷ xs) y) →
-    Free-in-variable x (y , [ wf ]) → (_ , x) ∈ free-Var y
-  Free-free-Var _ = ≡→∈singleton
+  abstract
 
-  mutual
+    -- Variables that are free according to the alternative definition
+    -- are in the set of free variables.
 
-    Free-free-Tm :
-      ∀ {x : Var s} {xs}
-      (tˢ : Tmˢ s′) {t} (@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
-      Free-in-term x (tˢ , t , [ wf ]) → (_ , x) ∈ free-Tm tˢ t
-    Free-free-Tm var        = Free-free-Var
-    Free-free-Tm (op o asˢ) = Free-free-Args asˢ
+    Free-free-Var :
+      {x : Var s} {y : Var s′}
+      (@0 wf : Wf-var ((_ , x) ∷ xs) y) →
+      Free-in-variable x (y , [ wf ]) → (_ , x) ∈ free-Var y
+    Free-free-Var _ = ≡→∈singleton
 
-    Free-free-Args :
-      ∀ {x : Var s} {xs}
-      (asˢ : Argsˢ vs) {as} (@0 wf : Wf-args ((_ , x) ∷ xs) asˢ as) →
-      Free-in-arguments x (asˢ , as , [ wf ]) →
-      (_ , x) ∈ free-Args asˢ as
-    Free-free-Args {x = x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
-      Free-in-argument x (aˢ , a , [ wf ]) ∥⊎∥
-      Free-in-arguments x (asˢ , as , [ wfs ])                ↝⟨ Free-free-Arg aˢ wf ∥⊎∥-cong Free-free-Args asˢ wfs ⟩
+    mutual
 
-      (_ , x) ∈ free-Arg aˢ a ∥⊎∥ (_ , x) ∈ free-Args asˢ as  ↔⟨ inverse ∈∪≃ ⟩□
+      Free-free-Tm :
+        ∀ {x : Var s} {xs}
+        (tˢ : Tmˢ s′) {t} (@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
+        Free-in-term x (tˢ , t , [ wf ]) → (_ , x) ∈ free-Tm tˢ t
+      Free-free-Tm var        = Free-free-Var
+      Free-free-Tm (op o asˢ) = Free-free-Args asˢ
 
-      (_ , x) ∈ free-Arg aˢ a ∪ free-Args asˢ as              □
+      Free-free-Args :
+        ∀ {x : Var s} {xs}
+        (asˢ : Argsˢ vs) {as} (@0 wf : Wf-args ((_ , x) ∷ xs) asˢ as) →
+        Free-in-arguments x (asˢ , as , [ wf ]) →
+        (_ , x) ∈ free-Args asˢ as
+      Free-free-Args {x = x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
+        Free-in-argument x (aˢ , a , [ wf ]) ∥⊎∥
+        Free-in-arguments x (asˢ , as , [ wfs ])                ↝⟨ Free-free-Arg aˢ wf ∥⊎∥-cong Free-free-Args asˢ wfs ⟩
 
-    Free-free-Arg :
-      ∀ {x : Var s} {xs}
-      (aˢ : Argˢ v) {a} (@0 wf : Wf-arg ((_ , x) ∷ xs) aˢ a) →
-      Free-in-argument x (aˢ , a , [ wf ]) → (_ , x) ∈ free-Arg aˢ a
-    Free-free-Arg (nil tˢ) = Free-free-Tm tˢ
+        (_ , x) ∈ free-Arg aˢ a ∥⊎∥ (_ , x) ∈ free-Args asˢ as  ↔⟨ inverse ∈∪≃ ⟩□
 
-    Free-free-Arg {x = x} {xs = xs} (cons aˢ) {a = y , a} wf =
-      let xxs              = (_ , x) ∷ xs
-          x₁ ,         x₁∉ = fresh xxs
-          x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh ((_ , x₁) ∷ xxs) ⟩
-            (∃ λ x₂ → ¬ (_ , x₂) ∈ (_ , x₁) ∷ xxs)                 ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
-            (∃ λ x₂ → ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xxs))  ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
-            (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × ¬ (_ , x₂) ∈ xxs)      □
-      in
-      (∀ z (z∉ : Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) →
-       Free-in-argument x
-         ( aˢ
-         , rename-Arg y z aˢ a
-         , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
-                   swap
-                   (wf z (erased z∉)) ]
-         ))                                                 ↝⟨ (λ hyp z z∉ → Free-free-Arg
-                                                                               aˢ
-                                                                               (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
-                                                                                      swap
-                                                                                      (wf z z∉))
-                                                                               (hyp z [ z∉ ])) ⟩
-      (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
-       (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))         ↝⟨ (λ hyp z z∉ → free-rename-⊆-Arg aˢ _ (hyp z z∉)) ⦂ (_ → _) ⟩
+        (_ , x) ∈ free-Arg aˢ a ∪ free-Args asˢ as              □
 
-      (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
-       (_ , x) ∈ (_ , z) ∷ fs)                              ↝⟨ (λ hyp → hyp x₁ x₁∉ , hyp x₂ x₂∉) ⟩
+      Free-free-Arg :
+        ∀ {x : Var s} {xs}
+        (aˢ : Argˢ v) {a} (@0 wf : Wf-arg ((_ , x) ∷ xs) aˢ a) →
+        Free-in-argument x (aˢ , a , [ wf ]) → (_ , x) ∈ free-Arg aˢ a
+      Free-free-Arg (nil tˢ) = Free-free-Tm tˢ
 
-      (_ , x) ∈ (_ , x₁) ∷ fs ×
-      (_ , x) ∈ (_ , x₂) ∷ fs                               ↔⟨ ∈∷≃ ×-cong ∈∷≃ ⟩
+      Free-free-Arg {x = x} {xs = xs} (cons aˢ) {a = y , a} wf =
+        let xxs              = (_ , x) ∷ xs
+            x₁ ,         x₁∉ = fresh xxs
+            x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh ((_ , x₁) ∷ xxs) ⟩
+              (∃ λ x₂ → ¬ (_ , x₂) ∈ (_ , x₁) ∷ xxs)                 ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
+              (∃ λ x₂ → ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xxs))  ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
+              (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × ¬ (_ , x₂) ∈ xxs)      □
+        in
+        (∀ z (z∉ : Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) →
+         Free-in-argument x
+           ( aˢ
+           , rename-Arg y z aˢ a
+           , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
+                     swap
+                     (wf z (erased z∉)) ]
+           ))                                                 ↝⟨ (λ hyp z z∉ → Free-free-Arg
+                                                                                 aˢ
+                                                                                 (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
+                                                                                        swap
+                                                                                        (wf z z∉))
+                                                                                 (hyp z [ z∉ ])) ⟩
+        (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
+         (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))         ↝⟨ (λ hyp z z∉ → free-rename-⊆-Arg aˢ _ (hyp z z∉)) ⦂ (_ → _) ⟩
 
-      ((_ , x) ≡ (_ , x₁) ∥⊎∥ (_ , x) ∈ fs) ×
-      ((_ , x) ≡ (_ , x₂) ∥⊎∥ (_ , x) ∈ fs)                 ↔⟨ (Σ-∥⊎∥-distrib-right (λ _ → ∃Var-set) ∥⊎∥-cong F.id) F.∘
-                                                               Σ-∥⊎∥-distrib-left ∥⊎∥-propositional ⟩
-      ((_ , x) ≡ (_ , x₁) × (_ , x) ≡ (_ , x₂) ∥⊎∥
-       (_ , x) ∈ fs × (_ , x) ≡ (_ , x₂)) ∥⊎∥
-      ((_ , x) ≡ (_ , x₁) ∥⊎∥ (_ , x) ∈ fs) × (_ , x) ∈ fs  ↝⟨ ((λ (y≡x₁ , y≡x₂) → x₂≢x₁ (trans (sym y≡x₂) y≡x₁)) ∥⊎∥-cong proj₁) ∥⊎∥-cong proj₂ ⟩
+        (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
+         (_ , x) ∈ (_ , z) ∷ fs)                              ↝⟨ (λ hyp → hyp x₁ x₁∉ , hyp x₂ x₂∉) ⟩
 
-      (⊥ ∥⊎∥ (_ , x) ∈ fs) ∥⊎∥ (_ , x) ∈ fs                 ↔⟨ ∥⊎∥-idempotent ∈-propositional F.∘
-                                                               (∥⊎∥-left-identity ∈-propositional ∥⊎∥-cong F.id) ⟩□
-      (_ , x) ∈ fs                                          □
-      where
-      fs = del (_ , y) (free-Arg aˢ a)
+        (_ , x) ∈ (_ , x₁) ∷ fs ×
+        (_ , x) ∈ (_ , x₂) ∷ fs                               ↔⟨ ∈∷≃ ×-cong ∈∷≃ ⟩
 
-  -- Every member of the set of free variables is free according to
-  -- the alternative definition.
+        ((_ , x) ≡ (_ , x₁) ∥⊎∥ (_ , x) ∈ fs) ×
+        ((_ , x) ≡ (_ , x₂) ∥⊎∥ (_ , x) ∈ fs)                 ↔⟨ (Σ-∥⊎∥-distrib-right (λ _ → ∃Var-set) ∥⊎∥-cong F.id) F.∘
+                                                                 Σ-∥⊎∥-distrib-left ∥⊎∥-propositional ⟩
+        ((_ , x) ≡ (_ , x₁) × (_ , x) ≡ (_ , x₂) ∥⊎∥
+         (_ , x) ∈ fs × (_ , x) ≡ (_ , x₂)) ∥⊎∥
+        ((_ , x) ≡ (_ , x₁) ∥⊎∥ (_ , x) ∈ fs) × (_ , x) ∈ fs  ↝⟨ ((λ (y≡x₁ , y≡x₂) → x₂≢x₁ (trans (sym y≡x₂) y≡x₁)) ∥⊎∥-cong proj₁) ∥⊎∥-cong proj₂ ⟩
 
-  free-Free-Var :
-    {x : Var s′} {y : Var s}
-    (@0 wf : Wf-var ((_ , x) ∷ xs) y) →
-    (_ , x) ∈ free-Var y → Free-in-variable x (y , [ wf ])
-  free-Free-Var {x = x} {y = y} _ =
-    (_ , x) ∈ singleton (_ , y)  ↔⟨ ∈singleton≃ ⟩
-    ∥ (_ , x) ≡ (_ , y) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩□
-    (_ , x) ≡ (_ , y)            □
+        (⊥ ∥⊎∥ (_ , x) ∈ fs) ∥⊎∥ (_ , x) ∈ fs                 ↔⟨ ∥⊎∥-idempotent ∈-propositional F.∘
+                                                                 (∥⊎∥-left-identity ∈-propositional ∥⊎∥-cong F.id) ⟩□
+        (_ , x) ∈ fs                                          □
+        where
+        fs = del (_ , y) (free-Arg aˢ a)
 
-  mutual
+    -- Every member of the set of free variables is free according to
+    -- the alternative definition.
 
-    free-Free-Tm :
-      ∀ {x : Var s′} {xs}
-      (tˢ : Tmˢ s) {t} (@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
-      (_ , x) ∈ free-Tm tˢ t → Free-in-term x (tˢ , t , [ wf ])
-    free-Free-Tm var        = free-Free-Var
-    free-Free-Tm (op o asˢ) = free-Free-Args asˢ
+    free-Free-Var :
+      {x : Var s′} {y : Var s}
+      (@0 wf : Wf-var ((_ , x) ∷ xs) y) →
+      (_ , x) ∈ free-Var y → Free-in-variable x (y , [ wf ])
+    free-Free-Var {x = x} {y = y} _ =
+      (_ , x) ∈ singleton (_ , y)  ↔⟨ ∈singleton≃ ⟩
+      ∥ (_ , x) ≡ (_ , y) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩□
+      (_ , x) ≡ (_ , y)            □
 
-    free-Free-Args :
-      ∀ {x : Var s′} {xs}
-      (asˢ : Argsˢ vs) {as} (@0 wf : Wf-args ((_ , x) ∷ xs) asˢ as) →
-      (_ , x) ∈ free-Args asˢ as →
-      Free-in-arguments x (asˢ , as , [ wf ])
-    free-Free-Args
-      {x = x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
+    mutual
 
-      (_ , x) ∈ free-Arg aˢ a ∪ free-Args asˢ as              ↔⟨ ∈∪≃ ⟩
+      free-Free-Tm :
+        ∀ {x : Var s′} {xs}
+        (tˢ : Tmˢ s) {t} (@0 wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
+        (_ , x) ∈ free-Tm tˢ t → Free-in-term x (tˢ , t , [ wf ])
+      free-Free-Tm var        = free-Free-Var
+      free-Free-Tm (op o asˢ) = free-Free-Args asˢ
 
-      (_ , x) ∈ free-Arg aˢ a ∥⊎∥ (_ , x) ∈ free-Args asˢ as  ↝⟨ free-Free-Arg aˢ wf ∥⊎∥-cong free-Free-Args asˢ wfs ⟩□
+      free-Free-Args :
+        ∀ {x : Var s′} {xs}
+        (asˢ : Argsˢ vs) {as} (@0 wf : Wf-args ((_ , x) ∷ xs) asˢ as) →
+        (_ , x) ∈ free-Args asˢ as →
+        Free-in-arguments x (asˢ , as , [ wf ])
+      free-Free-Args
+        {x = x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
 
-      Free-in-argument x (aˢ , a , [ wf ]) ∥⊎∥
-      Free-in-arguments x (asˢ , as , [ wfs ])                □
+        (_ , x) ∈ free-Arg aˢ a ∪ free-Args asˢ as              ↔⟨ ∈∪≃ ⟩
 
-    free-Free-Arg :
-      ∀ {x : Var s′} {xs}
-      (aˢ : Argˢ v) {a} (@0 wf : Wf-arg ((_ , x) ∷ xs) aˢ a) →
-      (_ , x) ∈ free-Arg aˢ a → Free-in-argument x (aˢ , a , [ wf ])
-    free-Free-Arg (nil tˢ) = free-Free-Tm tˢ
+        (_ , x) ∈ free-Arg aˢ a ∥⊎∥ (_ , x) ∈ free-Args asˢ as  ↝⟨ free-Free-Arg aˢ wf ∥⊎∥-cong free-Free-Args asˢ wfs ⟩□
 
-    free-Free-Arg {x = x} {xs = xs} (cons aˢ) {a = y , a} wf =
-      (_ , x) ∈ del (_ , y) (free-Arg aˢ a)                     ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+        Free-in-argument x (aˢ , a , [ wf ]) ∥⊎∥
+        Free-in-arguments x (asˢ , as , [ wfs ])                □
 
-      (_ , x) ≢ (_ , y) × (_ , x) ∈ free-Arg aˢ a               ↝⟨ Σ-map id (λ x∈ _ → ⊆-free-rename-Arg aˢ _ x∈) ⟩
+      free-Free-Arg :
+        ∀ {x : Var s′} {xs}
+        (aˢ : Argˢ v) {a} (@0 wf : Wf-arg ((_ , x) ∷ xs) aˢ a) →
+        (_ , x) ∈ free-Arg aˢ a → Free-in-argument x (aˢ , a , [ wf ])
+      free-Free-Arg (nil tˢ) = free-Free-Tm tˢ
 
-      (_ , x) ≢ (_ , y) ×
-      (∀ z → (_ , x) ∈ (_ , y) ∷ (_ , z) ∷
-                       free-Arg aˢ (rename-Arg y z aˢ a))       ↝⟨ (uncurry λ x≢y →
-                                                                    ∀-cong _ λ _ x∈ z∉ →
-                                                                    to-implication (∈≢∷≃ (z∉ ∘ ≡→∈∷ ∘ sym) F.∘ ∈≢∷≃ x≢y) x∈) ⟩
-      (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
-             (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))       ↝⟨ (λ x∈ z z∉ → free-Free-Arg aˢ
-                                                                                  (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
-                                                                                         swap
-                                                                                         (wf z (erased z∉)))
-                                                                                  (x∈ z (Stable-¬ _ z∉))) ⟩□
-      (∀ z (z∉ : Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) →
-       Free-in-argument x
-         ( aˢ
-         , rename-Arg y z aˢ a
-         , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
-                   swap
-                   (wf z (erased z∉)) ]
-         ))                                                     □
+      free-Free-Arg {x = x} {xs = xs} (cons aˢ) {a = y , a} wf =
+        (_ , x) ∈ del (_ , y) (free-Arg aˢ a)                     ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+
+        (_ , x) ≢ (_ , y) × (_ , x) ∈ free-Arg aˢ a               ↝⟨ Σ-map id (λ x∈ _ → ⊆-free-rename-Arg aˢ _ x∈) ⟩
+
+        (_ , x) ≢ (_ , y) ×
+        (∀ z → (_ , x) ∈ (_ , y) ∷ (_ , z) ∷
+                         free-Arg aˢ (rename-Arg y z aˢ a))       ↝⟨ (uncurry λ x≢y →
+                                                                      ∀-cong _ λ _ x∈ z∉ →
+                                                                      to-implication (∈≢∷≃ (z∉ ∘ ≡→∈∷ ∘ sym) F.∘ ∈≢∷≃ x≢y) x∈) ⟩
+        (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
+               (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))       ↝⟨ (λ x∈ z z∉ → free-Free-Arg aˢ
+                                                                                    (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
+                                                                                           swap
+                                                                                           (wf z (erased z∉)))
+                                                                                    (x∈ z (Stable-¬ _ z∉))) ⟩□
+        (∀ z (z∉ : Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) →
+         Free-in-argument x
+           ( aˢ
+           , rename-Arg y z aˢ a
+           , [ subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
+                     swap
+                     (wf z (erased z∉)) ]
+           ))                                                     □
 
   ----------------------------------------------------------------------
   -- Lemmas related to the Wf predicates
 
-  -- Weakening of the Wf predicates.
+  abstract
 
-  @0 weaken-Wf-var : xs ⊆ ys → Wf-var xs x → Wf-var ys x
-  weaken-Wf-var xs⊆ys = xs⊆ys _
+    -- Weakening of the Wf predicates.
 
-  mutual
+    @0 weaken-Wf-var : xs ⊆ ys → Wf-var xs x → Wf-var ys x
+    weaken-Wf-var xs⊆ys = xs⊆ys _
 
-    @0 weaken-Wf-tm :
-      xs ⊆ ys → ∀ (tˢ : Tmˢ s) {t} →
-      Wf-tm xs tˢ t → Wf-tm ys tˢ t
-    weaken-Wf-tm xs⊆ys var        = weaken-Wf-var xs⊆ys
-    weaken-Wf-tm xs⊆ys (op o asˢ) = weaken-Wf-args xs⊆ys asˢ
+    mutual
 
-    @0 weaken-Wf-args :
-      xs ⊆ ys → ∀ (asˢ : Argsˢ vs) {as} →
-      Wf-args xs asˢ as → Wf-args ys asˢ as
-    weaken-Wf-args xs⊆ys nil           = id
-    weaken-Wf-args xs⊆ys (cons aˢ asˢ) =
-      Σ-map (weaken-Wf-arg xs⊆ys aˢ)
-            (weaken-Wf-args xs⊆ys asˢ)
+      @0 weaken-Wf-tm :
+        xs ⊆ ys → ∀ (tˢ : Tmˢ s) {t} →
+        Wf-tm xs tˢ t → Wf-tm ys tˢ t
+      weaken-Wf-tm xs⊆ys var        = weaken-Wf-var xs⊆ys
+      weaken-Wf-tm xs⊆ys (op o asˢ) = weaken-Wf-args xs⊆ys asˢ
 
-    @0 weaken-Wf-arg :
-      xs ⊆ ys → ∀ (aˢ : Argˢ v) {a} →
-      Wf-arg xs aˢ a → Wf-arg ys aˢ a
-    weaken-Wf-arg xs⊆ys (nil tˢ)  = weaken-Wf-tm xs⊆ys tˢ
-    weaken-Wf-arg xs⊆ys (cons aˢ) =
-      λ wf y y∉ys →
-        weaken-Wf-arg (∷-cong-⊆ xs⊆ys) aˢ (wf y (y∉ys ∘ xs⊆ys _))
+      @0 weaken-Wf-args :
+        xs ⊆ ys → ∀ (asˢ : Argsˢ vs) {as} →
+        Wf-args xs asˢ as → Wf-args ys asˢ as
+      weaken-Wf-args xs⊆ys nil           = id
+      weaken-Wf-args xs⊆ys (cons aˢ asˢ) =
+        Σ-map (weaken-Wf-arg xs⊆ys aˢ)
+              (weaken-Wf-args xs⊆ys asˢ)
 
-  -- A term is well-formed for its set of free variables.
+      @0 weaken-Wf-arg :
+        xs ⊆ ys → ∀ (aˢ : Argˢ v) {a} →
+        Wf-arg xs aˢ a → Wf-arg ys aˢ a
+      weaken-Wf-arg xs⊆ys (nil tˢ)  = weaken-Wf-tm xs⊆ys tˢ
+      weaken-Wf-arg xs⊆ys (cons aˢ) =
+        λ wf y y∉ys →
+          weaken-Wf-arg (∷-cong-⊆ xs⊆ys) aˢ (wf y (y∉ys ∘ xs⊆ys _))
 
-  mutual
+    -- A term is well-formed for its set of free variables.
 
-    @0 wf-free-Tm :
-      ∀ (tˢ : Tmˢ s) {t} → Wf-tm (free-Tm tˢ t) tˢ t
-    wf-free-Tm var        = ≡→∈∷ (refl _)
-    wf-free-Tm (op o asˢ) = wf-free-Args asˢ
+    mutual
 
-    @0 wf-free-Args :
+      @0 wf-free-Tm :
+        ∀ (tˢ : Tmˢ s) {t} → Wf-tm (free-Tm tˢ t) tˢ t
+      wf-free-Tm var        = ≡→∈∷ (refl _)
+      wf-free-Tm (op o asˢ) = wf-free-Args asˢ
+
+      @0 wf-free-Args :
+        ∀ (asˢ : Argsˢ vs) {as} →
+        Wf-args (free-Args asˢ as) asˢ as
+      wf-free-Args nil           = _
+      wf-free-Args (cons aˢ asˢ) =
+          weaken-Wf-arg (λ _ → ∈→∈∪ˡ) aˢ (wf-free-Arg aˢ)
+        , weaken-Wf-args (λ _ → ∈→∈∪ʳ (free-Arg aˢ _))
+                         asˢ (wf-free-Args asˢ)
+
+      @0 wf-free-Arg :
+        ∀ (aˢ : Argˢ v) {a : Arg aˢ} → Wf-arg (free-Arg aˢ a) aˢ a
+      wf-free-Arg (nil tˢ)              = wf-free-Tm tˢ
+      wf-free-Arg (cons aˢ) {a = x , a} = λ y y∉ →
+                                                        $⟨ wf-free-Arg aˢ ⟩
+        Wf-arg (free-Arg aˢ (rename-Arg x y aˢ a))
+          aˢ (rename-Arg x y aˢ a)                      ↝⟨ weaken-Wf-arg (free-rename-⊆-Arg aˢ) aˢ ⟩□
+
+        Wf-arg ((_ , y) ∷ del (_ , x) (free-Arg aˢ a))
+          aˢ (rename-Arg x y aˢ a)                      □
+
+    -- If a term is well-formed with respect to a set of variables xs,
+    -- then xs is a superset of the term's set of free variables.
+
+    mutual
+
+      @0 free-⊆-Tm :
+        ∀ (tˢ : Tmˢ s) {t} → Wf-tm xs tˢ t → free-Tm tˢ t ⊆ xs
+      free-⊆-Tm {xs = xs} var {t = x} wf y =
+        y ∈ singleton (_ , x)  ↔⟨ ∈singleton≃ ⟩
+        ∥ y ≡ (_ , x) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩
+        y ≡ (_ , x)            ↝⟨ (λ eq → subst (_∈ xs) (sym eq) wf) ⟩□
+        y ∈ xs                 □
+      free-⊆-Tm (op o asˢ) = free-⊆-Args asˢ
+
+      @0 free-⊆-Args :
+        ∀ (asˢ : Argsˢ vs) {as} →
+        Wf-args xs asˢ as → free-Args asˢ as ⊆ xs
+      free-⊆-Args           nil           _          _ = λ ()
+      free-⊆-Args {xs = xs} (cons aˢ asˢ) (wf , wfs) y =
+        y ∈ free-Arg aˢ _ ∪ free-Args asˢ _        ↔⟨ ∈∪≃ ⟩
+        y ∈ free-Arg aˢ _ ∥⊎∥ y ∈ free-Args asˢ _  ↝⟨ free-⊆-Arg aˢ wf y ∥⊎∥-cong free-⊆-Args asˢ wfs y ⟩
+        y ∈ xs ∥⊎∥ y ∈ xs                          ↔⟨ ∥⊎∥-idempotent ∈-propositional ⟩□
+        y ∈ xs                                     □
+
+      @0 free-⊆-Arg :
+        ∀ (aˢ : Argˢ v) {a} → Wf-arg xs aˢ a → free-Arg aˢ a ⊆ xs
+      free-⊆-Arg (nil tˢ) = free-⊆-Tm tˢ
+
+      free-⊆-Arg {xs = xs} (cons {s = s} aˢ) {a = x , a} wf y =
+        y ∈ del (_ , x) (free-Arg aˢ a)  ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
+        y ≢ (_ , x) × y ∈ free-Arg aˢ a  ↝⟨ uncurry lemma ⟩□
+        y ∈ xs                           □
+        where
+        lemma : y ≢ (_ , x) → _
+        lemma y≢x =
+          let fs               = free-Arg aˢ a
+              x₁ ,         x₁∉ = fresh (xs ∪ fs)
+              x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh ((_ , x₁) ∷ xs ∪ fs) ⟩
+                (∃ λ x₂ → ¬ (_ , x₂) ∈ (_ , x₁) ∷ xs ∪ fs)             ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
+                (∃ λ x₂ →
+                   ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xs ∪ fs))     ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
+                (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × ¬ (_ , x₂) ∈ xs ∪ fs)  □
+          in
+          y ∈ free-Arg aˢ a                                            ↝⟨ (λ y∈ _ z∉ → (λ y≡z → z∉ (subst (_∈ _) y≡z y∈))
+                                                                                     , ⊆-free-rename-Arg aˢ _ y∈) ⟩
+          (∀ z → ¬ (_ , z) ∈ free-Arg aˢ a →
+           y ≢ (_ , z) ×
+           y ∈ (_ , x) ∷ (_ , z) ∷ free-Arg aˢ (rename-Arg x z aˢ a))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → uncurry λ y≢z →
+                                                                           to-implication (∈≢∷≃ y≢z F.∘ ∈≢∷≃ y≢x)) ⟩
+          (∀ z → ¬ (_ , z) ∈ free-Arg aˢ a →
+           y ∈ free-Arg aˢ (rename-Arg x z aˢ a))                      ↝⟨ (λ hyp →
+                                                                               free-⊆-Arg aˢ (wf x₁ (x₁∉ ∘ ∈→∈∪ˡ)) y (hyp x₁ (x₁∉ ∘ ∈→∈∪ʳ xs))
+                                                                             , free-⊆-Arg aˢ (wf x₂ (x₂∉ ∘ ∈→∈∪ˡ)) y (hyp x₂ (x₂∉ ∘ ∈→∈∪ʳ xs))) ⟩
+
+          y ∈ (_ , x₁) ∷ xs × y ∈ (_ , x₂) ∷ xs                        ↔⟨ ∈∷≃ ×-cong ∈∷≃ ⟩
+
+          (y ≡ (_ , x₁) ∥⊎∥ y ∈ xs) ×
+          (y ≡ (_ , x₂) ∥⊎∥ y ∈ xs)                                    ↔⟨ (Σ-∥⊎∥-distrib-right (λ _ → ∃Var-set) ∥⊎∥-cong F.id) F.∘
+                                                                          Σ-∥⊎∥-distrib-left ∥⊎∥-propositional ⟩
+          (y ≡ (_ , x₁) × y ≡ (_ , x₂) ∥⊎∥ y ∈ xs × y ≡ (_ , x₂)) ∥⊎∥
+          (y ≡ (_ , x₁) ∥⊎∥ y ∈ xs) × y ∈ xs                           ↝⟨ ((λ (y≡x₁ , y≡x₂) → x₂≢x₁ (trans (sym y≡x₂) y≡x₁)) ∥⊎∥-cong proj₁)
+                                                                            ∥⊎∥-cong
+                                                                          proj₂ ⟩
+
+          (⊥ ∥⊎∥ y ∈ xs) ∥⊎∥ y ∈ xs                                    ↔⟨ ∥⊎∥-idempotent ∈-propositional F.∘
+                                                                          (∥⊎∥-left-identity ∈-propositional ∥⊎∥-cong F.id) ⟩□
+          y ∈ xs                                                       □
+
+    private
+
+      -- A lemma used to prove strengthening below.
+
+      ∉→⊆∷→⊆ :
+        ∀ {x : ∃Var} {xs ys : Vars} →
+        ¬ x ∈ xs → xs ⊆ x ∷ ys → xs ⊆ ys
+      ∉→⊆∷→⊆ {x = x} {xs = xs} {ys = ys} x∉ xs⊆x∷ys z =
+        z ∈ xs              ↝⟨ (λ z∈ → x∉ ∘ flip (subst (_∈ _)) z∈ , z∈) ⟩
+        z ≢ x × z ∈ xs      ↝⟨ Σ-map id (xs⊆x∷ys _) ⟩
+        z ≢ x × z ∈ x ∷ ys  ↔⟨ ∃-cong ∈≢∷≃ ⟩
+        z ≢ x × z ∈ ys      ↝⟨ proj₂ ⟩□
+        z ∈ ys              □
+
+    -- Strengthening of the Wf predicates.
+
+    @0 strengthen-Wf-var :
+      ¬ (_ , x) ∈ singleton {A = ∃Var} (_ , y) →
+      Wf-var ((_ , x) ∷ xs) y → Wf-var xs y
+    strengthen-Wf-var {x = x} {y = y} {xs = xs} x∉ =
+      (_ , y) ∈ (_ , x) ∷ xs                        ↔⟨ ∈∷≃ ⟩
+      (_ , y) ≡ (_ , x) ∥⊎∥ (_ , y) ∈ xs            ↔⟨ ≡-comm ∥⊎∥-cong F.id ⟩
+      (_ , x) ≡ (_ , y) ∥⊎∥ (_ , y) ∈ xs            ↝⟨ ≡→∈singleton ∥⊎∥-cong id ⟩
+      (_ , x) ∈ singleton (_ , y) ∥⊎∥ (_ , y) ∈ xs  ↔⟨ drop-⊥-left-∥⊎∥ ∈-propositional x∉ ⟩□
+      (_ , y) ∈ xs                                  □
+
+    @0 strengthen-Wf-tm :
+      ∀ (tˢ : Tmˢ s) {t} →
+      ¬ (_ , x) ∈ free-Tm tˢ t →
+      Wf-tm ((_ , x) ∷ xs) tˢ t → Wf-tm xs tˢ t
+    strengthen-Wf-tm {x = x} {xs = xs} tˢ {t = t} x∉ =
+      Wf-tm ((_ , x) ∷ xs) tˢ t                      ↝⟨ free-⊆-Tm tˢ ⟩
+      free-Tm tˢ t ⊆ (_ , x) ∷ xs                    ↝⟨ ∉→⊆∷→⊆ x∉ ⟩
+      free-Tm tˢ t ⊆ xs                              ↝⟨ _, wf-free-Tm tˢ ⟩
+      free-Tm tˢ t ⊆ xs × Wf-tm (free-Tm tˢ t) tˢ t  ↝⟨ (λ (sub , wf) → weaken-Wf-tm sub tˢ wf) ⟩□
+      Wf-tm xs tˢ t                                  □
+
+    @0 strengthen-Wf-args :
       ∀ (asˢ : Argsˢ vs) {as} →
-      Wf-args (free-Args asˢ as) asˢ as
-    wf-free-Args nil           = _
-    wf-free-Args (cons aˢ asˢ) =
-        weaken-Wf-arg (λ _ → ∈→∈∪ˡ) aˢ (wf-free-Arg aˢ)
-      , weaken-Wf-args (λ _ → ∈→∈∪ʳ (free-Arg aˢ _))
-                       asˢ (wf-free-Args asˢ)
+      ¬ (_ , x) ∈ free-Args asˢ as →
+      Wf-args ((_ , x) ∷ xs) asˢ as → Wf-args xs asˢ as
+    strengthen-Wf-args {x = x} {xs = xs} asˢ {as = as} x∉ =
+      Wf-args ((_ , x) ∷ xs) asˢ as                              ↝⟨ free-⊆-Args asˢ ⟩
+      free-Args asˢ as ⊆ (_ , x) ∷ xs                            ↝⟨ ∉→⊆∷→⊆ x∉ ⟩
+      free-Args asˢ as ⊆ xs                                      ↝⟨ _, wf-free-Args asˢ ⟩
+      free-Args asˢ as ⊆ xs × Wf-args (free-Args asˢ as) asˢ as  ↝⟨ (λ (sub , wf) → weaken-Wf-args sub asˢ wf) ⟩□
+      Wf-args xs asˢ as                                          □
 
-    @0 wf-free-Arg :
-      ∀ (aˢ : Argˢ v) {a : Arg aˢ} → Wf-arg (free-Arg aˢ a) aˢ a
-    wf-free-Arg (nil tˢ)              = wf-free-Tm tˢ
-    wf-free-Arg (cons aˢ) {a = x , a} = λ y y∉ →
+    @0 strengthen-Wf-arg :
+      ∀ (aˢ : Argˢ v) {a} →
+      ¬ (_ , x) ∈ free-Arg aˢ a →
+      Wf-arg ((_ , x) ∷ xs) aˢ a → Wf-arg xs aˢ a
+    strengthen-Wf-arg {x = x} {xs = xs} aˢ {a = a} x∉ =
+      Wf-arg ((_ , x) ∷ xs) aˢ a                        ↝⟨ free-⊆-Arg aˢ ⟩
+      free-Arg aˢ a ⊆ (_ , x) ∷ xs                      ↝⟨ ∉→⊆∷→⊆ x∉ ⟩
+      free-Arg aˢ a ⊆ xs                                ↝⟨ _, wf-free-Arg aˢ ⟩
+      free-Arg aˢ a ⊆ xs × Wf-arg (free-Arg aˢ a) aˢ a  ↝⟨ (λ (sub , wf) → weaken-Wf-arg sub aˢ wf) ⟩□
+      Wf-arg xs aˢ a                                    □
+
+    private
+
+      -- A lemma used below.
+
+      ⊆∷delete→⊆∷→⊆∷ :
+        ∀ {x y : ∃Var} {xs ys zs} →
+        xs ⊆ x ∷ del y ys →
+        ys ⊆ y ∷ zs →
+        xs ⊆ x ∷ zs
+      ⊆∷delete→⊆∷→⊆∷ {x = x} {y = y} {xs = xs} {ys = ys} {zs = zs}
+                     xs⊆ ys⊆ z =
+        z ∈ xs                        ↝⟨ xs⊆ z ⟩
+        z ∈ x ∷ del y ys              ↔⟨ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
+        z ≡ x ∥⊎∥ z ≢ y × z ∈ ys      ↝⟨ id ∥⊎∥-cong id ×-cong ys⊆ z ⟩
+        z ≡ x ∥⊎∥ z ≢ y × z ∈ y ∷ zs  ↔⟨ (F.id ∥⊎∥-cong ∃-cong λ z≢y → ∈≢∷≃ z≢y) ⟩
+        z ≡ x ∥⊎∥ z ≢ y × z ∈ zs      ↝⟨ id ∥⊎∥-cong proj₂ ⟩
+        z ≡ x ∥⊎∥ z ∈ zs              ↔⟨ inverse ∈∷≃ ⟩□
+        z ∈ x ∷ zs                    □
+
+    -- Renaming preserves well-formedness.
+
+    @0 rename-Wf-var :
+      Wf-var ((_ , x) ∷ xs) z →
+      Wf-var ((_ , y) ∷ xs) (rename-Var x y z)
+    rename-Wf-var {x = x} {xs = xs} {z = z} {y = y} z∈
+      with (_ , x) ≟∃V (_ , z)
+    … | no x≢z =                $⟨ z∈ ⟩
+        (_ , z) ∈ (_ , x) ∷ xs  ↔⟨ ∈≢∷≃ (x≢z ∘ sym) ⟩
+        (_ , z) ∈ xs            ↝⟨ ∈→∈∷ ⟩□
+        (_ , z) ∈ (_ , y) ∷ xs  □
+
+    … | yes x≡z =
+      ≡→∈∷ $ Σ-≡,≡→≡
+        (sym (cong proj₁ x≡z))
+        (cast-Var (sym (cong proj₁ x≡z)) (cast-Var (cong proj₁ x≡z) y)  ≡⟨ subst-sym-subst _ ⟩∎
+         y                                                              ∎)
+
+    @0 rename-Wf-tm :
+      ∀ (tˢ : Tmˢ s) {t} →
+      Wf-tm ((_ , x) ∷ xs) tˢ t →
+      Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)
+    rename-Wf-tm {x = x} {xs = xs} {y = y} tˢ {t = t} wf =             $⟨ wf-free-Tm tˢ ⟩
+      Wf-tm (free-Tm tˢ (rename-Tm x y tˢ t)) tˢ (rename-Tm x y tˢ t)  ↝⟨ weaken-Wf-tm
+                                                                            (⊆∷delete→⊆∷→⊆∷ (free-rename-⊆-Tm tˢ) (free-⊆-Tm tˢ wf)) tˢ ⟩□
+      Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)                     □
+
+    @0 rename-Wf-args :
+      ∀ (asˢ : Argsˢ vs) {as} →
+      Wf-args ((_ , x) ∷ xs) asˢ as →
+      Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)
+    rename-Wf-args {x = x} {xs = xs} {y = y} asˢ {as = as} wfs =
+                                                           $⟨ wf-free-Args asˢ ⟩
+      Wf-args (free-Args asˢ (rename-Args x y asˢ as)) asˢ
+              (rename-Args x y asˢ as)                     ↝⟨ weaken-Wf-args (⊆∷delete→⊆∷→⊆∷ (free-rename-⊆-Args asˢ) (free-⊆-Args asˢ wfs)) asˢ ⟩□
+
+      Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)  □
+
+    @0 rename-Wf-arg :
+      ∀ (aˢ : Argˢ v) {a} →
+      Wf-arg ((_ , x) ∷ xs) aˢ a →
+      Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)
+    rename-Wf-arg {x = x} {xs = xs} {y = y} aˢ {a = a} wf =
                                                       $⟨ wf-free-Arg aˢ ⟩
-      Wf-arg (free-Arg aˢ (rename-Arg x y aˢ a))
-        aˢ (rename-Arg x y aˢ a)                      ↝⟨ weaken-Wf-arg (free-rename-⊆-Arg aˢ) aˢ ⟩□
+      Wf-arg (free-Arg aˢ (rename-Arg x y aˢ a)) aˢ
+             (rename-Arg x y aˢ a)                    ↝⟨ weaken-Wf-arg (⊆∷delete→⊆∷→⊆∷ (free-rename-⊆-Arg aˢ) (free-⊆-Arg aˢ wf)) aˢ ⟩□
 
-      Wf-arg ((_ , y) ∷ del (_ , x) (free-Arg aˢ a))
-        aˢ (rename-Arg x y aˢ a)                      □
+      Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)  □
 
-  -- If a term is well-formed with respect to a set of variables xs,
-  -- then xs is a superset of the term's set of free variables.
+    private
 
-  mutual
+      -- A lemma used below.
 
-    @0 free-⊆-Tm :
-      ∀ (tˢ : Tmˢ s) {t} → Wf-tm xs tˢ t → free-Tm tˢ t ⊆ xs
-    free-⊆-Tm {xs = xs} var {t = x} wf y =
-      y ∈ singleton (_ , x)  ↔⟨ ∈singleton≃ ⟩
-      ∥ y ≡ (_ , x) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩
-      y ≡ (_ , x)            ↝⟨ (λ eq → subst (_∈ xs) (sym eq) wf) ⟩□
-      y ∈ xs                 □
-    free-⊆-Tm (op o asˢ) = free-⊆-Args asˢ
+      ∉→⊆∷∷→⊆∷→⊆∷ :
+        ∀ {x y : ∃Var} {xs ys zs} →
+        ¬ y ∈ xs →
+        xs ⊆ x ∷ y ∷ ys →
+        ys ⊆ y ∷ zs →
+        xs ⊆ x ∷ zs
+      ∉→⊆∷∷→⊆∷→⊆∷ {x = x} {y = y} {xs = xs} {ys = ys} {zs = zs}
+                  y∉xs xs⊆x∷y∷ys ys⊆y∷zs = λ z →
+        z ∈ xs                                          ↝⟨ (λ z∈xs → (λ z≡y → y∉xs (subst (_∈ _) z≡y z∈xs))
+                                                                   , xs⊆x∷y∷ys z z∈xs) ⟩
 
-    @0 free-⊆-Args :
+        z ≢ y × z ∈ x ∷ y ∷ ys                          ↔⟨ (∃-cong λ _ → (F.id ∥⊎∥-cong ∈∷≃) F.∘ ∈∷≃) ⟩
+
+        z ≢ y × (z ≡ x ∥⊎∥ z ≡ y ∥⊎∥ z ∈ ys)            ↝⟨ (∃-cong λ _ → F.id ∥⊎∥-cong F.id ∥⊎∥-cong ys⊆y∷zs z) ⟩
+
+        z ≢ y × (z ≡ x ∥⊎∥ z ≡ y ∥⊎∥ z ∈ y ∷ zs)        ↔⟨ (∃-cong λ _ → F.id ∥⊎∥-cong F.id ∥⊎∥-cong ∈∷≃) ⟩
+
+        z ≢ y × (z ≡ x ∥⊎∥ z ≡ y ∥⊎∥ z ≡ y ∥⊎∥ z ∈ zs)  ↔⟨ (∃-cong λ z≢y → F.id ∥⊎∥-cong (
+                                                            drop-⊥-left-∥⊎∥ ∈-propositional z≢y F.∘
+                                                            drop-⊥-left-∥⊎∥ ∥⊎∥-propositional z≢y)) ⟩
+
+        z ≢ y × (z ≡ x ∥⊎∥ z ∈ zs)                      ↝⟨ proj₂ ⟩
+
+        z ≡ x ∥⊎∥ z ∈ zs                                ↔⟨ inverse ∈∷≃ ⟩□
+
+        z ∈ x ∷ zs                                      □
+
+    -- If one renames with a fresh variable, and the renamed term is
+    -- well-formed (with respect to a certain set of variables), then
+    -- the original term is also well-formed (with respect to a
+    -- certain set of variables).
+
+    @0 renamee-Wf-var :
+      _≢_ {A = ∃Var} (_ , y) (_ , z) →
+      Wf-var ((_ , y) ∷ xs) (rename-Var x y z) →
+      Wf-var ((_ , x) ∷ xs) z
+    renamee-Wf-var {y = y} {z = z} {xs = xs} {x = x} y≢z
+      with (_ , x) ≟∃V (_ , z)
+    … | yes x≡z =
+      (_ , cast-Var _ y) ∈ (_ , y) ∷ xs  ↝⟨ (λ _ → ≡→∈∷ (sym x≡z)) ⟩□
+      (_ , z) ∈ (_ , x) ∷ xs             □
+    … | no x≢z =
+      (_ , z) ∈ (_ , y) ∷ xs              ↔⟨ ∈∷≃ ⟩
+      (_ , z) ≡ (_ , y) ∥⊎∥ (_ , z) ∈ xs  ↔⟨ drop-⊥-left-∥⊎∥ ∈-propositional (y≢z ∘ sym) ⟩
+      (_ , z) ∈ xs                        ↝⟨ ∈→∈∷ ⟩□
+      (_ , z) ∈ (_ , x) ∷ xs              □
+
+    @0 renamee-Wf-tm :
+      ∀ (tˢ : Tmˢ s) {t} →
+      ¬ (_ , y) ∈ free-Tm tˢ t →
+      Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t) →
+      Wf-tm ((_ , x) ∷ xs) tˢ t
+    renamee-Wf-tm {y = y} {xs = xs} {x = x} tˢ {t = t} y∉t =
+      Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)    ↝⟨ free-⊆-Tm tˢ ⟩
+      free-Tm tˢ (rename-Tm x y tˢ t) ⊆ (_ , y) ∷ xs  ↝⟨ ∉→⊆∷∷→⊆∷→⊆∷ y∉t (⊆-free-rename-Tm tˢ) ⟩
+      free-Tm tˢ t ⊆ (_ , x) ∷ xs                     ↝⟨ (λ wf → weaken-Wf-tm wf tˢ (wf-free-Tm tˢ)) ⟩□
+      Wf-tm ((_ , x) ∷ xs) tˢ t                       □
+
+    @0 renamee-Wf-args :
       ∀ (asˢ : Argsˢ vs) {as} →
-      Wf-args xs asˢ as → free-Args asˢ as ⊆ xs
-    free-⊆-Args           nil           _          _ = λ ()
-    free-⊆-Args {xs = xs} (cons aˢ asˢ) (wf , wfs) y =
-      y ∈ free-Arg aˢ _ ∪ free-Args asˢ _        ↔⟨ ∈∪≃ ⟩
-      y ∈ free-Arg aˢ _ ∥⊎∥ y ∈ free-Args asˢ _  ↝⟨ free-⊆-Arg aˢ wf y ∥⊎∥-cong free-⊆-Args asˢ wfs y ⟩
-      y ∈ xs ∥⊎∥ y ∈ xs                          ↔⟨ ∥⊎∥-idempotent ∈-propositional ⟩□
-      y ∈ xs                                     □
+      ¬ (_ , y) ∈ free-Args asˢ as →
+      Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as) →
+      Wf-args ((_ , x) ∷ xs) asˢ as
+    renamee-Wf-args {y = y} {xs = xs} {x = x} asˢ {as = as} y∉as =
+      Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)    ↝⟨ free-⊆-Args asˢ ⟩
+      free-Args asˢ (rename-Args x y asˢ as) ⊆ (_ , y) ∷ xs  ↝⟨ ∉→⊆∷∷→⊆∷→⊆∷ y∉as (⊆-free-rename-Args asˢ) ⟩
+      free-Args asˢ as ⊆ (_ , x) ∷ xs                        ↝⟨ (λ wf → weaken-Wf-args wf asˢ (wf-free-Args asˢ)) ⟩□
+      Wf-args ((_ , x) ∷ xs) asˢ as                          □
 
-    @0 free-⊆-Arg :
-      ∀ (aˢ : Argˢ v) {a} → Wf-arg xs aˢ a → free-Arg aˢ a ⊆ xs
-    free-⊆-Arg (nil tˢ) = free-⊆-Tm tˢ
+    @0 renamee-Wf-arg :
+      ∀ (aˢ : Argˢ v) {a} →
+      ¬ (_ , y) ∈ free-Arg aˢ a →
+      Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a) →
+      Wf-arg ((_ , x) ∷ xs) aˢ a
+    renamee-Wf-arg {y = y} {xs = xs} {x = x} aˢ {a = a} y∉a =
+      Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)    ↝⟨ free-⊆-Arg aˢ ⟩
+      free-Arg aˢ (rename-Arg x y aˢ a) ⊆ (_ , y) ∷ xs  ↝⟨ ∉→⊆∷∷→⊆∷→⊆∷ y∉a (⊆-free-rename-Arg aˢ) ⟩
+      free-Arg aˢ a ⊆ (_ , x) ∷ xs                      ↝⟨ (λ wf → weaken-Wf-arg wf aˢ (wf-free-Arg aˢ)) ⟩□
+      Wf-arg ((_ , x) ∷ xs) aˢ a                        □
 
-    free-⊆-Arg {xs = xs} (cons {s = s} aˢ) {a = x , a} wf y =
-      y ∈ del (_ , x) (free-Arg aˢ a)  ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
-      y ≢ (_ , x) × y ∈ free-Arg aˢ a  ↝⟨ uncurry lemma ⟩□
-      y ∈ xs                           □
-      where
-      lemma : y ≢ (_ , x) → _
-      lemma y≢x =
-        let fs               = free-Arg aˢ a
-            x₁ ,         x₁∉ = fresh (xs ∪ fs)
-            x₂ , x₂≢x₁ , x₂∉ =                                           $⟨ fresh ((_ , x₁) ∷ xs ∪ fs) ⟩
-              (∃ λ x₂ → ¬ (_ , x₂) ∈ (_ , x₁) ∷ xs ∪ fs)                 ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
-              (∃ λ x₂ → ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xs ∪ fs))  ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
-              (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × ¬ (_ , x₂) ∈ xs ∪ fs)      □
-        in
-        y ∈ free-Arg aˢ a                                            ↝⟨ (λ y∈ _ z∉ → (λ y≡z → z∉ (subst (_∈ _) y≡z y∈))
-                                                                                   , ⊆-free-rename-Arg aˢ _ y∈) ⟩
-        (∀ z → ¬ (_ , z) ∈ free-Arg aˢ a →
-         y ≢ (_ , z) ×
-         y ∈ (_ , x) ∷ (_ , z) ∷ free-Arg aˢ (rename-Arg x z aˢ a))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → uncurry λ y≢z →
-                                                                         to-implication (∈≢∷≃ y≢z F.∘ ∈≢∷≃ y≢x)) ⟩
-        (∀ z → ¬ (_ , z) ∈ free-Arg aˢ a →
-         y ∈ free-Arg aˢ (rename-Arg x z aˢ a))                      ↝⟨ (λ hyp → free-⊆-Arg aˢ (wf x₁ (x₁∉ ∘ ∈→∈∪ˡ)) y (hyp x₁ (x₁∉ ∘ ∈→∈∪ʳ xs))
-                                                                               , free-⊆-Arg aˢ (wf x₂ (x₂∉ ∘ ∈→∈∪ˡ)) y (hyp x₂ (x₂∉ ∘ ∈→∈∪ʳ xs))) ⟩
+    -- If the "body of a lambda" is well-formed for all fresh
+    -- variables, then it is well-formed for the bound variable.
 
-        y ∈ (_ , x₁) ∷ xs × y ∈ (_ , x₂) ∷ xs                        ↔⟨ ∈∷≃ ×-cong ∈∷≃ ⟩
+    @0 body-Wf-var :
+      ((y : Var s) →
+       ¬ (_ , y) ∈ xs →
+       Wf-var ((_ , y) ∷ xs) (rename-Var x y z)) →
+      Wf-var ((_ , x) ∷ xs) z
+    body-Wf-var {xs = xs} {z = z} wf =
+      let y , y-fresh = fresh ((_ , z) ∷ xs)
+          y∉xs        = y-fresh ∘ ∈→∈∷
+          y≢z         = y-fresh ∘ ≡→∈∷
+      in
+      renamee-Wf-var y≢z (wf y y∉xs)
 
-        (y ≡ (_ , x₁) ∥⊎∥ y ∈ xs) ×
-        (y ≡ (_ , x₂) ∥⊎∥ y ∈ xs)                                    ↔⟨ (Σ-∥⊎∥-distrib-right (λ _ → ∃Var-set) ∥⊎∥-cong F.id) F.∘
-                                                                        Σ-∥⊎∥-distrib-left ∥⊎∥-propositional ⟩
-        (y ≡ (_ , x₁) × y ≡ (_ , x₂) ∥⊎∥ y ∈ xs × y ≡ (_ , x₂)) ∥⊎∥
-        (y ≡ (_ , x₁) ∥⊎∥ y ∈ xs) × y ∈ xs                           ↝⟨ ((λ (y≡x₁ , y≡x₂) → x₂≢x₁ (trans (sym y≡x₂) y≡x₁)) ∥⊎∥-cong proj₁)
-                                                                          ∥⊎∥-cong
-                                                                        proj₂ ⟩
+    @0 body-Wf-tm :
+      ∀ (tˢ : Tmˢ s) {t} →
+      ((y : Var s) →
+       ¬ (_ , y) ∈ xs →
+       Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)) →
+      Wf-tm ((_ , x) ∷ xs) tˢ t
+    body-Wf-tm {xs = xs} tˢ {t = t} wf =
+      let y , y-fresh = fresh (xs ∪ free-Tm tˢ t)
+          y∉xs        = y-fresh ∘ ∈→∈∪ˡ
+          y∉t         = y-fresh ∘ ∈→∈∪ʳ xs
+      in
+      renamee-Wf-tm tˢ y∉t (wf y y∉xs)
 
-        (⊥ ∥⊎∥ y ∈ xs) ∥⊎∥ y ∈ xs                                    ↔⟨ ∥⊎∥-idempotent ∈-propositional F.∘
-                                                                        (∥⊎∥-left-identity ∈-propositional ∥⊎∥-cong F.id) ⟩□
-        y ∈ xs                                                       □
+    @0 body-Wf-args :
+      ∀ (asˢ : Argsˢ vs) {as} →
+      ((y : Var s) →
+       ¬ (_ , y) ∈ xs →
+       Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)) →
+      Wf-args ((_ , x) ∷ xs) asˢ as
+    body-Wf-args {xs = xs} asˢ {as = as} wfs =
+      let y , y-fresh = fresh (xs ∪ free-Args asˢ as)
+          y∉xs        = y-fresh ∘ ∈→∈∪ˡ
+          y∉as        = y-fresh ∘ ∈→∈∪ʳ xs
+      in
+      renamee-Wf-args asˢ y∉as (wfs y y∉xs)
 
-  private
-
-    -- A lemma used to prove strengthening below.
-
-    ∉→⊆∷→⊆ :
-      ∀ {x : ∃Var} {xs ys : Vars} →
-      ¬ x ∈ xs → xs ⊆ x ∷ ys → xs ⊆ ys
-    ∉→⊆∷→⊆ {x = x} {xs = xs} {ys = ys} x∉ xs⊆x∷ys z =
-      z ∈ xs              ↝⟨ (λ z∈ → x∉ ∘ flip (subst (_∈ _)) z∈ , z∈) ⟩
-      z ≢ x × z ∈ xs      ↝⟨ Σ-map id (xs⊆x∷ys _) ⟩
-      z ≢ x × z ∈ x ∷ ys  ↔⟨ ∃-cong ∈≢∷≃ ⟩
-      z ≢ x × z ∈ ys      ↝⟨ proj₂ ⟩□
-      z ∈ ys              □
-
-  -- Strengthening of the Wf predicates.
-
-  @0 strengthen-Wf-var :
-    ¬ (_ , x) ∈ singleton {A = ∃Var} (_ , y) →
-    Wf-var ((_ , x) ∷ xs) y → Wf-var xs y
-  strengthen-Wf-var {x = x} {y = y} {xs = xs} x∉ =
-    (_ , y) ∈ (_ , x) ∷ xs                        ↔⟨ ∈∷≃ ⟩
-    (_ , y) ≡ (_ , x) ∥⊎∥ (_ , y) ∈ xs            ↔⟨ ≡-comm ∥⊎∥-cong F.id ⟩
-    (_ , x) ≡ (_ , y) ∥⊎∥ (_ , y) ∈ xs            ↝⟨ ≡→∈singleton ∥⊎∥-cong id ⟩
-    (_ , x) ∈ singleton (_ , y) ∥⊎∥ (_ , y) ∈ xs  ↔⟨ drop-⊥-left-∥⊎∥ ∈-propositional x∉ ⟩□
-    (_ , y) ∈ xs                                  □
-
-  @0 strengthen-Wf-tm :
-    ∀ (tˢ : Tmˢ s) {t} →
-    ¬ (_ , x) ∈ free-Tm tˢ t →
-    Wf-tm ((_ , x) ∷ xs) tˢ t → Wf-tm xs tˢ t
-  strengthen-Wf-tm {x = x} {xs = xs} tˢ {t = t} x∉ =
-    Wf-tm ((_ , x) ∷ xs) tˢ t                      ↝⟨ free-⊆-Tm tˢ ⟩
-    free-Tm tˢ t ⊆ (_ , x) ∷ xs                    ↝⟨ ∉→⊆∷→⊆ x∉ ⟩
-    free-Tm tˢ t ⊆ xs                              ↝⟨ _, wf-free-Tm tˢ ⟩
-    free-Tm tˢ t ⊆ xs × Wf-tm (free-Tm tˢ t) tˢ t  ↝⟨ (λ (sub , wf) → weaken-Wf-tm sub tˢ wf) ⟩□
-    Wf-tm xs tˢ t                                  □
-
-  @0 strengthen-Wf-args :
-    ∀ (asˢ : Argsˢ vs) {as} →
-    ¬ (_ , x) ∈ free-Args asˢ as →
-    Wf-args ((_ , x) ∷ xs) asˢ as → Wf-args xs asˢ as
-  strengthen-Wf-args {x = x} {xs = xs} asˢ {as = as} x∉ =
-    Wf-args ((_ , x) ∷ xs) asˢ as                              ↝⟨ free-⊆-Args asˢ ⟩
-    free-Args asˢ as ⊆ (_ , x) ∷ xs                            ↝⟨ ∉→⊆∷→⊆ x∉ ⟩
-    free-Args asˢ as ⊆ xs                                      ↝⟨ _, wf-free-Args asˢ ⟩
-    free-Args asˢ as ⊆ xs × Wf-args (free-Args asˢ as) asˢ as  ↝⟨ (λ (sub , wf) → weaken-Wf-args sub asˢ wf) ⟩□
-    Wf-args xs asˢ as                                          □
-
-  @0 strengthen-Wf-arg :
-    ∀ (aˢ : Argˢ v) {a} →
-    ¬ (_ , x) ∈ free-Arg aˢ a →
-    Wf-arg ((_ , x) ∷ xs) aˢ a → Wf-arg xs aˢ a
-  strengthen-Wf-arg {x = x} {xs = xs} aˢ {a = a} x∉ =
-    Wf-arg ((_ , x) ∷ xs) aˢ a                        ↝⟨ free-⊆-Arg aˢ ⟩
-    free-Arg aˢ a ⊆ (_ , x) ∷ xs                      ↝⟨ ∉→⊆∷→⊆ x∉ ⟩
-    free-Arg aˢ a ⊆ xs                                ↝⟨ _, wf-free-Arg aˢ ⟩
-    free-Arg aˢ a ⊆ xs × Wf-arg (free-Arg aˢ a) aˢ a  ↝⟨ (λ (sub , wf) → weaken-Wf-arg sub aˢ wf) ⟩□
-    Wf-arg xs aˢ a                                    □
-
-  private
-
-    -- A lemma used below.
-
-    ⊆∷delete→⊆∷→⊆∷ :
-      ∀ {x y : ∃Var} {xs ys zs} →
-      xs ⊆ x ∷ del y ys →
-      ys ⊆ y ∷ zs →
-      xs ⊆ x ∷ zs
-    ⊆∷delete→⊆∷→⊆∷ {x = x} {y = y} {xs = xs} {ys = ys} {zs = zs}
-                   xs⊆ ys⊆ z =
-      z ∈ xs                        ↝⟨ xs⊆ z ⟩
-      z ∈ x ∷ del y ys              ↔⟨ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
-      z ≡ x ∥⊎∥ z ≢ y × z ∈ ys      ↝⟨ id ∥⊎∥-cong id ×-cong ys⊆ z ⟩
-      z ≡ x ∥⊎∥ z ≢ y × z ∈ y ∷ zs  ↔⟨ (F.id ∥⊎∥-cong ∃-cong λ z≢y → ∈≢∷≃ z≢y) ⟩
-      z ≡ x ∥⊎∥ z ≢ y × z ∈ zs      ↝⟨ id ∥⊎∥-cong proj₂ ⟩
-      z ≡ x ∥⊎∥ z ∈ zs              ↔⟨ inverse ∈∷≃ ⟩□
-      z ∈ x ∷ zs                    □
-
-  -- Renaming preserves well-formedness.
-
-  @0 rename-Wf-var :
-    Wf-var ((_ , x) ∷ xs) z →
-    Wf-var ((_ , y) ∷ xs) (rename-Var x y z)
-  rename-Wf-var {x = x} {xs = xs} {z = z} {y = y} z∈
-    with (_ , x) ≟∃V (_ , z)
-  … | no x≢z =                $⟨ z∈ ⟩
-      (_ , z) ∈ (_ , x) ∷ xs  ↔⟨ ∈≢∷≃ (x≢z ∘ sym) ⟩
-      (_ , z) ∈ xs            ↝⟨ ∈→∈∷ ⟩□
-      (_ , z) ∈ (_ , y) ∷ xs  □
-
-  … | yes x≡z =
-    ≡→∈∷ $ Σ-≡,≡→≡
-      (sym (cong proj₁ x≡z))
-      (cast-Var (sym (cong proj₁ x≡z)) (cast-Var (cong proj₁ x≡z) y)  ≡⟨ subst-sym-subst _ ⟩∎
-       y                                                              ∎)
-
-  @0 rename-Wf-tm :
-    ∀ (tˢ : Tmˢ s) {t} →
-    Wf-tm ((_ , x) ∷ xs) tˢ t →
-    Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)
-  rename-Wf-tm {x = x} {xs = xs} {y = y} tˢ {t = t} wf =             $⟨ wf-free-Tm tˢ ⟩
-    Wf-tm (free-Tm tˢ (rename-Tm x y tˢ t)) tˢ (rename-Tm x y tˢ t)  ↝⟨ weaken-Wf-tm (⊆∷delete→⊆∷→⊆∷ (free-rename-⊆-Tm tˢ) (free-⊆-Tm tˢ wf)) tˢ ⟩□
-    Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)                     □
-
-  @0 rename-Wf-args :
-    ∀ (asˢ : Argsˢ vs) {as} →
-    Wf-args ((_ , x) ∷ xs) asˢ as →
-    Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)
-  rename-Wf-args {x = x} {xs = xs} {y = y} asˢ {as = as} wfs =
-                                                         $⟨ wf-free-Args asˢ ⟩
-    Wf-args (free-Args asˢ (rename-Args x y asˢ as)) asˢ
-            (rename-Args x y asˢ as)                     ↝⟨ weaken-Wf-args (⊆∷delete→⊆∷→⊆∷ (free-rename-⊆-Args asˢ) (free-⊆-Args asˢ wfs)) asˢ ⟩□
-
-    Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)  □
-
-  @0 rename-Wf-arg :
-    ∀ (aˢ : Argˢ v) {a} →
-    Wf-arg ((_ , x) ∷ xs) aˢ a →
-    Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)
-  rename-Wf-arg {x = x} {xs = xs} {y = y} aˢ {a = a} wf =
-                                                    $⟨ wf-free-Arg aˢ ⟩
-    Wf-arg (free-Arg aˢ (rename-Arg x y aˢ a)) aˢ
-           (rename-Arg x y aˢ a)                    ↝⟨ weaken-Wf-arg (⊆∷delete→⊆∷→⊆∷ (free-rename-⊆-Arg aˢ) (free-⊆-Arg aˢ wf)) aˢ ⟩□
-
-    Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)  □
-
-  private
-
-    -- A lemma used below.
-
-    ∉→⊆∷∷→⊆∷→⊆∷ :
-      ∀ {x y : ∃Var} {xs ys zs} →
-      ¬ y ∈ xs →
-      xs ⊆ x ∷ y ∷ ys →
-      ys ⊆ y ∷ zs →
-      xs ⊆ x ∷ zs
-    ∉→⊆∷∷→⊆∷→⊆∷ {x = x} {y = y} {xs = xs} {ys = ys} {zs = zs}
-                y∉xs xs⊆x∷y∷ys ys⊆y∷zs = λ z →
-      z ∈ xs                                          ↝⟨ (λ z∈xs → (λ z≡y → y∉xs (subst (_∈ _) z≡y z∈xs))
-                                                                 , xs⊆x∷y∷ys z z∈xs) ⟩
-
-      z ≢ y × z ∈ x ∷ y ∷ ys                          ↔⟨ (∃-cong λ _ → (F.id ∥⊎∥-cong ∈∷≃) F.∘ ∈∷≃) ⟩
-
-      z ≢ y × (z ≡ x ∥⊎∥ z ≡ y ∥⊎∥ z ∈ ys)            ↝⟨ (∃-cong λ _ → F.id ∥⊎∥-cong F.id ∥⊎∥-cong ys⊆y∷zs z) ⟩
-
-      z ≢ y × (z ≡ x ∥⊎∥ z ≡ y ∥⊎∥ z ∈ y ∷ zs)        ↔⟨ (∃-cong λ _ → F.id ∥⊎∥-cong F.id ∥⊎∥-cong ∈∷≃) ⟩
-
-      z ≢ y × (z ≡ x ∥⊎∥ z ≡ y ∥⊎∥ z ≡ y ∥⊎∥ z ∈ zs)  ↔⟨ (∃-cong λ z≢y → F.id ∥⊎∥-cong (
-                                                          drop-⊥-left-∥⊎∥ ∈-propositional z≢y F.∘
-                                                          drop-⊥-left-∥⊎∥ ∥⊎∥-propositional z≢y)) ⟩
-
-      z ≢ y × (z ≡ x ∥⊎∥ z ∈ zs)                      ↝⟨ proj₂ ⟩
-
-      z ≡ x ∥⊎∥ z ∈ zs                                ↔⟨ inverse ∈∷≃ ⟩□
-
-      z ∈ x ∷ zs                                      □
-
-  -- If one renames with a fresh variable, and the renamed term is
-  -- well-formed (with respect to a certain set of variables), then
-  -- the original term is also well-formed (with respect to a certain
-  -- set of variables).
-
-  @0 renamee-Wf-var :
-    _≢_ {A = ∃Var} (_ , y) (_ , z) →
-    Wf-var ((_ , y) ∷ xs) (rename-Var x y z) →
-    Wf-var ((_ , x) ∷ xs) z
-  renamee-Wf-var {y = y} {z = z} {xs = xs} {x = x} y≢z
-    with (_ , x) ≟∃V (_ , z)
-  … | yes x≡z =
-    (_ , cast-Var _ y) ∈ (_ , y) ∷ xs  ↝⟨ (λ _ → ≡→∈∷ (sym x≡z)) ⟩□
-    (_ , z) ∈ (_ , x) ∷ xs             □
-  … | no x≢z =
-    (_ , z) ∈ (_ , y) ∷ xs              ↔⟨ ∈∷≃ ⟩
-    (_ , z) ≡ (_ , y) ∥⊎∥ (_ , z) ∈ xs  ↔⟨ drop-⊥-left-∥⊎∥ ∈-propositional (y≢z ∘ sym) ⟩
-    (_ , z) ∈ xs                        ↝⟨ ∈→∈∷ ⟩□
-    (_ , z) ∈ (_ , x) ∷ xs              □
-
-  @0 renamee-Wf-tm :
-    ∀ (tˢ : Tmˢ s) {t} →
-    ¬ (_ , y) ∈ free-Tm tˢ t →
-    Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t) →
-    Wf-tm ((_ , x) ∷ xs) tˢ t
-  renamee-Wf-tm {y = y} {xs = xs} {x = x} tˢ {t = t} y∉t =
-    Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)    ↝⟨ free-⊆-Tm tˢ ⟩
-    free-Tm tˢ (rename-Tm x y tˢ t) ⊆ (_ , y) ∷ xs  ↝⟨ ∉→⊆∷∷→⊆∷→⊆∷ y∉t (⊆-free-rename-Tm tˢ) ⟩
-    free-Tm tˢ t ⊆ (_ , x) ∷ xs                     ↝⟨ (λ wf → weaken-Wf-tm wf tˢ (wf-free-Tm tˢ)) ⟩□
-    Wf-tm ((_ , x) ∷ xs) tˢ t                       □
-
-  @0 renamee-Wf-args :
-    ∀ (asˢ : Argsˢ vs) {as} →
-    ¬ (_ , y) ∈ free-Args asˢ as →
-    Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as) →
-    Wf-args ((_ , x) ∷ xs) asˢ as
-  renamee-Wf-args {y = y} {xs = xs} {x = x} asˢ {as = as} y∉as =
-    Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)    ↝⟨ free-⊆-Args asˢ ⟩
-    free-Args asˢ (rename-Args x y asˢ as) ⊆ (_ , y) ∷ xs  ↝⟨ ∉→⊆∷∷→⊆∷→⊆∷ y∉as (⊆-free-rename-Args asˢ) ⟩
-    free-Args asˢ as ⊆ (_ , x) ∷ xs                        ↝⟨ (λ wf → weaken-Wf-args wf asˢ (wf-free-Args asˢ)) ⟩□
-    Wf-args ((_ , x) ∷ xs) asˢ as                          □
-
-  @0 renamee-Wf-arg :
-    ∀ (aˢ : Argˢ v) {a} →
-    ¬ (_ , y) ∈ free-Arg aˢ a →
-    Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a) →
-    Wf-arg ((_ , x) ∷ xs) aˢ a
-  renamee-Wf-arg {y = y} {xs = xs} {x = x} aˢ {a = a} y∉a =
-    Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)    ↝⟨ free-⊆-Arg aˢ ⟩
-    free-Arg aˢ (rename-Arg x y aˢ a) ⊆ (_ , y) ∷ xs  ↝⟨ ∉→⊆∷∷→⊆∷→⊆∷ y∉a (⊆-free-rename-Arg aˢ) ⟩
-    free-Arg aˢ a ⊆ (_ , x) ∷ xs                      ↝⟨ (λ wf → weaken-Wf-arg wf aˢ (wf-free-Arg aˢ)) ⟩□
-    Wf-arg ((_ , x) ∷ xs) aˢ a                        □
-
-  -- If the "body of a lambda" is well-formed for all fresh variables,
-  -- then it is well-formed for the bound variable.
-
-  @0 body-Wf-var :
-    ((y : Var s) →
-     ¬ (_ , y) ∈ xs →
-     Wf-var ((_ , y) ∷ xs) (rename-Var x y z)) →
-    Wf-var ((_ , x) ∷ xs) z
-  body-Wf-var {xs = xs} {z = z} wf =
-    let y , y-fresh = fresh ((_ , z) ∷ xs)
-        y∉xs        = y-fresh ∘ ∈→∈∷
-        y≢z         = y-fresh ∘ ≡→∈∷
-    in
-    renamee-Wf-var y≢z (wf y y∉xs)
-
-  @0 body-Wf-tm :
-    ∀ (tˢ : Tmˢ s) {t} →
-    ((y : Var s) →
-     ¬ (_ , y) ∈ xs →
-     Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)) →
-    Wf-tm ((_ , x) ∷ xs) tˢ t
-  body-Wf-tm {xs = xs} tˢ {t = t} wf =
-    let y , y-fresh = fresh (xs ∪ free-Tm tˢ t)
-        y∉xs        = y-fresh ∘ ∈→∈∪ˡ
-        y∉t         = y-fresh ∘ ∈→∈∪ʳ xs
-    in
-    renamee-Wf-tm tˢ y∉t (wf y y∉xs)
-
-  @0 body-Wf-args :
-    ∀ (asˢ : Argsˢ vs) {as} →
-    ((y : Var s) →
-     ¬ (_ , y) ∈ xs →
-     Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)) →
-    Wf-args ((_ , x) ∷ xs) asˢ as
-  body-Wf-args {xs = xs} asˢ {as = as} wfs =
-    let y , y-fresh = fresh (xs ∪ free-Args asˢ as)
-        y∉xs        = y-fresh ∘ ∈→∈∪ˡ
-        y∉as        = y-fresh ∘ ∈→∈∪ʳ xs
-    in
-    renamee-Wf-args asˢ y∉as (wfs y y∉xs)
-
-  @0 body-Wf-arg :
-    ∀ (aˢ : Argˢ v) {a} →
-    ((y : Var s) →
-     ¬ (_ , y) ∈ xs →
-     Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)) →
-    Wf-arg ((_ , x) ∷ xs) aˢ a
-  body-Wf-arg {xs = xs} aˢ {a = a} wf =
-    let y , y-fresh = fresh (xs ∪ free-Arg aˢ a)
-        y∉xs        = y-fresh ∘ ∈→∈∪ˡ
-        y∉a         = y-fresh ∘ ∈→∈∪ʳ xs
-    in
-    renamee-Wf-arg aˢ y∉a (wf y y∉xs)
+    @0 body-Wf-arg :
+      ∀ (aˢ : Argˢ v) {a} →
+      ((y : Var s) →
+       ¬ (_ , y) ∈ xs →
+       Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)) →
+      Wf-arg ((_ , x) ∷ xs) aˢ a
+    body-Wf-arg {xs = xs} aˢ {a = a} wf =
+      let y , y-fresh = fresh (xs ∪ free-Arg aˢ a)
+          y∉xs        = y-fresh ∘ ∈→∈∪ˡ
+          y∉a         = y-fresh ∘ ∈→∈∪ʳ xs
+      in
+      renamee-Wf-arg aˢ y∉a (wf y y∉xs)
 
   ----------------------------------------------------------------------
   -- Weakening, casting and strengthening
