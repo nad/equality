@@ -1537,12 +1537,15 @@ private
   ; left-inverse-of = from∘to
   })
   where
+  cons : A → List A / _∼[ set ]_ → List A / _∼[ set ]_
+  cons x = (x ∷_) Q./-map λ _ _ → refl _ BE.∷-cong_
+
   to : Finite-subset-of A → List A / _∼[ set ]_
   to = rec r
     where
     r : Rec _ _
     r .[]ʳ       = Q.[ [] ]
-    r .∷ʳ x _ y  = ((x ∷_) Q./-map λ _ _ → refl _ BE.∷-cong_) y
+    r .∷ʳ x _ y  = cons x y
     r .is-setʳ   = Q./-is-set
     r .dropʳ x _ = Q.elim-prop λ where
       .Q.[]ʳ xs → Q.[]-respects-relation λ z →
@@ -1589,16 +1592,15 @@ private
     e .[]ʳ = refl _
 
     e .∷ʳ {y = y} x hyp =
-      from (to (x ∷ y))                                         ≡⟨⟩
-      from (((x ∷_) Q./-map λ _ _ → refl _ BE.∷-cong_) (to y))  ≡⟨ Q.elim-prop
-                                                                     {P = λ y → from (((x ∷_) Q./-map λ _ _ → refl _ BE.∷-cong_) y) ≡
-                                                                                x ∷ from y}
-                                                                     (λ where
-                                                                        .Q.[]ʳ _             → refl _
-                                                                        .Q.is-propositionʳ _ → is-set)
-                                                                     (to y) ⟩
-      x ∷ from (to y)                                           ≡⟨ cong (x ∷_) hyp ⟩∎
-      x ∷ y                                                     ∎
+      from (to (x ∷ y))     ≡⟨⟩
+      from (cons x (to y))  ≡⟨ Q.elim-prop
+                                 {P = λ y → from (cons x y) ≡ x ∷ from y}
+                                 (λ where
+                                    .Q.[]ʳ _             → refl _
+                                    .Q.is-propositionʳ _ → is-set)
+                                 (to y) ⟩
+      x ∷ from (to y)       ≡⟨ cong (x ∷_) hyp ⟩∎
+      x ∷ y                 ∎
 
     e .is-propositionʳ _ = is-set
 
