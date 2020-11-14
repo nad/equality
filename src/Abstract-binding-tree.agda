@@ -116,6 +116,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       @0 ss            : List Sort
       @0 v             : Valence
       @0 vs            : List Valence
+      @0 o             : Op s
       @0 x y z         : Var s
       @0 A             : Type ℓ
       @0 wf            : A
@@ -193,6 +194,12 @@ module Signature {ℓ} (sig : Signature ℓ) where
     data Argˢ : @0 Valence → Type ℓ where
       nil  : Tmˢ s → Argˢ ([] , s)
       cons : ∀ {s} → Argˢ (ss , s′) → Argˢ (s ∷ ss , s′)
+
+  private
+    variable
+      @0 tˢ  : Tmˢ s
+      @0 asˢ : Argsˢ vs
+      @0 aˢ  : Argˢ v
 
   ----------------------------------------------------------------------
   -- Raw terms
@@ -465,6 +472,160 @@ module Signature {ℓ} (sig : Signature ℓ) where
     from∘to : ∀ x → from (to x) ≡ x
     from∘to (nil _)  = substᴱ-refl
     from∘to (cons _) = substᴱ-refl
+
+  ----------------------------------------------------------------------
+  -- Alternative definitions of Tm/Args/Arg and Term/Arguments/Argument
+
+  -- The following three definitions are indexed by /erased/
+  -- skeletons.
+
+  mutual
+
+    data Tm′ : @0 Tmˢ s → Type ℓ where
+      var : Var s → Tm′ (var {s = s})
+      op  : Args′ asˢ → Tm′ (op o asˢ)
+
+    data Args′ : @0 Argsˢ vs → Type ℓ where
+      nil  : Args′ nil
+      cons : Arg′ aˢ → Args′ asˢ → Args′ (cons aˢ asˢ)
+
+    data Arg′ : @0 Argˢ v → Type ℓ where
+      nil  : Tm′ tˢ → Arg′ (nil tˢ)
+      cons : {@0 aˢ : Argˢ v} →
+             Var s → Arg′ aˢ → Arg′ (cons {s = s} aˢ)
+
+  -- Lemmas used by Tm′≃Tm, Args′≃Args and Arg′≃Arg below.
+
+  private
+
+    module ′≃ where
+
+      mutual
+
+        to-Tm : Tm′ tˢ → Tm tˢ
+        to-Tm (var x) = x
+        to-Tm (op as) = to-Args as
+
+        to-Args : Args′ asˢ → Args asˢ
+        to-Args nil         = _
+        to-Args (cons a as) = to-Arg a , to-Args as
+
+        to-Arg : Arg′ aˢ → Arg aˢ
+        to-Arg (nil t)    = to-Tm t
+        to-Arg (cons x a) = x , to-Arg a
+
+      mutual
+
+        from-Tm : (tˢ : Tmˢ s) → Tm tˢ → Tm′ tˢ
+        from-Tm var        x  = var x
+        from-Tm (op o asˢ) as = op (from-Args asˢ as)
+
+        from-Args : (asˢ : Argsˢ vs) → Args asˢ → Args′ asˢ
+        from-Args nil           _        = nil
+        from-Args (cons aˢ asˢ) (a , as) =
+          cons (from-Arg aˢ a) (from-Args asˢ as)
+
+        from-Arg : (aˢ : Argˢ v) → Arg aˢ → Arg′ aˢ
+        from-Arg (nil tˢ)  t       = nil (from-Tm tˢ t)
+        from-Arg (cons aˢ) (x , a) = cons x (from-Arg aˢ a)
+
+      mutual
+
+        to-from-Tm :
+          (tˢ : Tmˢ s) (t : Tm tˢ) → to-Tm (from-Tm tˢ t) ≡ t
+        to-from-Tm var        x  = refl _
+        to-from-Tm (op o asˢ) as = to-from-Args asˢ as
+
+        to-from-Args :
+          (asˢ : Argsˢ vs) (as : Args asˢ) →
+          to-Args (from-Args asˢ as) ≡ as
+        to-from-Args nil           _        = refl _
+        to-from-Args (cons aˢ asˢ) (a , as) =
+          cong₂ _,_ (to-from-Arg aˢ a) (to-from-Args asˢ as)
+
+        to-from-Arg :
+          (aˢ : Argˢ v) (a : Arg aˢ) → to-Arg (from-Arg aˢ a) ≡ a
+        to-from-Arg (nil tˢ)  t       = to-from-Tm tˢ t
+        to-from-Arg (cons aˢ) (x , a) = cong (x ,_) (to-from-Arg aˢ a)
+
+      mutual
+
+        from-to-Tm :
+          (tˢ : Tmˢ s) (t : Tm′ tˢ) → from-Tm tˢ (to-Tm t) ≡ t
+        from-to-Tm var      (var x) = refl _
+        from-to-Tm (op _ _) (op as) = cong op (from-to-Args as)
+
+        from-to-Args :
+          {asˢ : Argsˢ vs} (as : Args′ asˢ) →
+          from-Args asˢ (to-Args as) ≡ as
+        from-to-Args nil         = refl _
+        from-to-Args (cons a as) =
+          cong₂ cons (from-to-Arg a) (from-to-Args as)
+
+        from-to-Arg :
+          {aˢ : Argˢ v} (a : Arg′ aˢ) → from-Arg aˢ (to-Arg a) ≡ a
+        from-to-Arg (nil t)    = cong nil (from-to-Tm _ t)
+        from-to-Arg (cons x a) = cong (cons x) (from-to-Arg a)
+
+  -- The alternative definitions of Tm, Args and Arg are pointwise
+  -- equivalent to the original ones.
+
+  Tm′≃Tm : {tˢ : Tmˢ s} → Tm′ tˢ ≃ Tm tˢ
+  Tm′≃Tm {tˢ = tˢ} = Eq.↔→≃
+    to-Tm
+    (from-Tm _)
+    (to-from-Tm tˢ)
+    (from-to-Tm _)
+    where
+    open ′≃
+
+  Args′≃Args : {asˢ : Argsˢ vs} → Args′ asˢ ≃ Args asˢ
+  Args′≃Args = Eq.↔→≃
+    to-Args
+    (from-Args _)
+    (to-from-Args _)
+    from-to-Args
+    where
+    open ′≃
+
+  Arg′≃Arg : {aˢ : Argˢ v} → Arg′ aˢ ≃ Arg aˢ
+  Arg′≃Arg {aˢ = aˢ} = Eq.↔→≃
+    to-Arg
+    (from-Arg _)
+    (to-from-Arg aˢ)
+    from-to-Arg
+    where
+    open ′≃
+
+  -- The following alternative definitions of Term, Arguments and
+  -- Argument use Tm′/Args′/Arg′ instead of Tm/Args/Arg.
+
+  Term′ : @0 Vars → @0 Sort → Type ℓ
+  Term′ xs s =
+    ∃ λ (tˢ : Tmˢ s) → ∃ λ (t : Tm′ tˢ) →
+      Erased (Wf-tm xs tˢ (_≃_.to Tm′≃Tm t))
+
+  Arguments′ : @0 Vars → @0 List Valence → Type ℓ
+  Arguments′ xs vs =
+    ∃ λ (asˢ : Argsˢ vs) → ∃ λ (as : Args′ asˢ) →
+    Erased (Wf-args xs asˢ (_≃_.to Args′≃Args as))
+
+  Argument′ : @0 Vars → @0 Valence → Type ℓ
+  Argument′ xs v =
+    ∃ λ (aˢ : Argˢ v) → ∃ λ (a : Arg′ aˢ) →
+      Erased (Wf-arg xs aˢ (_≃_.to Arg′≃Arg a))
+
+  -- These alternative definitions are also pointwise equivalent to
+  -- the original ones.
+
+  Term′≃Term : Term′ xs s ≃ Term xs s
+  Term′≃Term = ∃-cong λ _ → Σ-cong Tm′≃Tm λ _ → F.id
+
+  Arguments′≃Arguments : Arguments′ xs vs ≃ Arguments xs vs
+  Arguments′≃Arguments = ∃-cong λ _ → Σ-cong Args′≃Args λ _ → F.id
+
+  Argument′≃Argument : Argument′ xs v ≃ Argument xs v
+  Argument′≃Argument = ∃-cong λ _ → Σ-cong Arg′≃Arg λ _ → F.id
 
   ----------------------------------------------------------------------
   -- Equality is decidable
