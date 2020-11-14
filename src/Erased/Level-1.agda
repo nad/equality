@@ -372,6 +372,24 @@ ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
 Dec-Erased : @0 Type ℓ → Type ℓ
 Dec-Erased A = Erased A ⊎ Erased (¬ A)
 
+-- Dec A implies Dec-Erased A.
+
+Dec→Dec-Erased :
+  {@0 A : Type a} → Dec A → Dec-Erased A
+Dec→Dec-Erased (yes a) = yes [ a ]
+Dec→Dec-Erased (no ¬a) = no [ ¬a ]
+
+-- In erased contexts Dec-Erased A is equivalent to Dec A.
+
+@0 Dec-Erased≃Dec :
+  {@0 A : Type a} → Dec-Erased A ≃ Dec A
+Dec-Erased≃Dec {A = A} =
+  Eq.with-other-inverse
+    (Erased A ⊎ Erased (¬ A)  ↔⟨ erased Erased↔ ⊎-cong erased Erased↔ ⟩□
+     A ⊎ ¬ A                  □)
+    Dec→Dec-Erased
+    Prelude.[ (λ _ → refl _) , (λ _ → refl _) ]
+
 -- Dec-Erased A is isomorphic to Dec (Erased A) (assuming
 -- extensionality).
 
