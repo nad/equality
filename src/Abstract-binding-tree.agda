@@ -630,12 +630,12 @@ module Signature {ℓ} (sig : Signature ℓ) where
   ----------------------------------------------------------------------
   -- Equality is decidable
 
-  -- "Mere equality" is decidable for ∃Var.
+  -- "Erased mere equality" is decidable for ∃Var.
 
-  merely-equal?-∃Var : (x y : ∃Var) → Dec ∥ x ≡ y ∥
+  merely-equal?-∃Var : (x y : ∃Var) → Dec-Erased ∥ x ≡ y ∥
   merely-equal?-∃Var x y = case x ≟∃V y of λ where
-    (yes x≡y) → yes ∣ x≡y ∣
-    (no x≢y)  → no (x≢y ∘ Trunc.rec ∃Var-set id)
+    (yes x≡y) → yes [ ∣ x≡y ∣ ]
+    (no x≢y)  → no [ x≢y ∘ Trunc.rec ∃Var-set id ]
 
   private
 

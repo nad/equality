@@ -356,18 +356,6 @@ import Quotient
 import Quotient.Set-truncated-if-propositional
 import Quotient.Higher-constructors-if-propositional
 
--- Listed finite subsets.
-
-import Finite-subset.Listed
-
--- An alternative definition of listed finite subsets.
-
-import Finite-subset.Listed.Alternative
-
--- Kuratowski finite subsets.
-
-import Finite-subset.Kuratowski
-
 -- A type for values that should be erased at run-time.
 
 import Erased.Level-1
@@ -405,6 +393,18 @@ import Equivalence.Erased.Cubical
 -- Very stable booleans.
 
 import Bool.Very-stable
+
+-- Listed finite subsets.
+
+import Finite-subset.Listed
+
+-- An alternative definition of listed finite subsets.
+
+import Finite-subset.Listed.Alternative
+
+-- Kuratowski finite subsets.
+
+import Finite-subset.Kuratowski
 
 -- Integers.
 

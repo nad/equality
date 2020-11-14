@@ -16,12 +16,14 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 
 open import Dec
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (swap)
+open import Prelude as P hiding ([_,_]; swap)
 
 open import Bag-equivalence equality-with-J as BE using (_∼[_]_; set)
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
+open import Erased.Cubical eq as EC
+  using (Erased; [_]; Dec-Erased; Dec→Dec-Erased)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -29,6 +31,7 @@ open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣; _∥⊎∥_)
 import List equality-with-J as L
 open import Monad equality-with-J as M using (Raw-monad; Monad)
+import Nat equality-with-J as Nat
 open import Quotient eq as Q using (_/_)
 open import Surjection equality-with-J using (_↠_)
 import Univalence-axiom equality-with-J as Univ
@@ -676,15 +679,37 @@ member? equal? x = elim-prop e
   e .∷ʳ {y = z} y = case equal? x y of λ where
     (yes ∥x≡y∥) _ → yes (∥≡∥→∈∷ ∥x≡y∥)
     (no ¬∥x≡y∥)   →
-      [ (λ x∈z → yes (∈→∈∷ x∈z))
-      , (λ x∉z → no (
-           x ∈ y ∷ z        ↔⟨ ∈∷≃ ⟩
-           x ≡ y ∥⊎∥ x ∈ z  ↝⟨ Trunc.∥∥-map [ ¬∥x≡y∥ ∘ ∣_∣ , x∉z ] ⟩
-           ∥ ⊥ ∥            ↔⟨ Trunc.not-inhabited⇒∥∥↔⊥ id ⟩□
-           ⊥                □))
-      ]
+      P.[ (λ x∈z → yes (∈→∈∷ x∈z))
+        , (λ x∉z → no (
+             x ∈ y ∷ z        ↔⟨ ∈∷≃ ⟩
+             x ≡ y ∥⊎∥ x ∈ z  ↝⟨ Trunc.∥∥-map P.[ ¬∥x≡y∥ ∘ ∣_∣ , x∉z ] ⟩
+             ∥ ⊥ ∥            ↔⟨ Trunc.not-inhabited⇒∥∥↔⊥ id ⟩□
+             ⊥                □))
+        ]
   e .is-propositionʳ y =
     Dec-closure-propositional ext ∈-propositional
+
+-- A variant that uses Dec-Erased instead of Dec.
+
+member?ᴱ :
+  ((x y : A) → Dec-Erased ∥ x ≡ y ∥) →
+  (x : A) (y : Finite-subset-of A) → Dec-Erased (x ∈ y)
+member?ᴱ equal? x = elim-prop e
+  where
+  e : Elim-prop _
+  e .[]ʳ          = no [ (λ ()) ]
+  e .∷ʳ {y = z} y = case equal? x y of λ where
+    (yes [ ∥x≡y∥ ]) _ → yes [ ∥≡∥→∈∷ ∥x≡y∥ ]
+    (no [ ¬∥x≡y∥ ])   →
+      P.[ (λ ([ x∈z ]) → yes [ ∈→∈∷ x∈z ])
+        , (λ ([ x∉z ]) → no [
+             x ∈ y ∷ z        ↔⟨ ∈∷≃ ⟩
+             x ≡ y ∥⊎∥ x ∈ z  ↝⟨ Trunc.∥∥-map P.[ ¬∥x≡y∥ ∘ ∣_∣ , x∉z ] ⟩
+             ∥ ⊥ ∥            ↔⟨ Trunc.not-inhabited⇒∥∥↔⊥ id ⟩□
+             ⊥                □ ])
+        ]
+  e .is-propositionʳ y =
+    EC.Is-proposition-Dec-Erased ext ∈-propositional
 
 -- If x is a member of y, then x ∷ y is equal to y.
 
@@ -696,15 +721,15 @@ member? equal? x = elim-prop e
     x ∈ z ∷ y            ↔⟨ ∈∷≃ ⟩
     x ≡ z ∥⊎∥ x ∈ y      ↝⟨ id Trunc.∥⊎∥-cong hyp ⟩
     x ≡ z ∥⊎∥ x ∷ y ≡ y  ↝⟨ Trunc.rec is-set
-                              [ (λ x≡z →
-      x ∷ z ∷ y                  ≡⟨ cong (λ x → x ∷ _) x≡z ⟩
-      z ∷ z ∷ y                  ≡⟨ drop ⟩∎
-      z ∷ y                      ∎)
-                              , (λ x∷y≡y →
-      x ∷ z ∷ y                  ≡⟨ swap ⟩
-      z ∷ x ∷ y                  ≡⟨ cong (_ ∷_) x∷y≡y ⟩∎
-      z ∷ y                      ∎)
-                              ] ⟩□
+                              P.[ (λ x≡z →
+      x ∷ z ∷ y                    ≡⟨ cong (λ x → x ∷ _) x≡z ⟩
+      z ∷ z ∷ y                    ≡⟨ drop ⟩∎
+      z ∷ y                        ∎)
+                                , (λ x∷y≡y →
+      x ∷ z ∷ y                    ≡⟨ swap ⟩
+      z ∷ x ∷ y                    ≡⟨ cong (_ ∷_) x∷y≡y ⟩∎
+      z ∷ y                        ∎)
+                                ] ⟩□
     x ∷ z ∷ y ≡ z ∷ y    □
 
   e .is-propositionʳ _ =
@@ -824,28 +849,67 @@ subset? equal? x y = elim-prop r x
   r .∷ʳ {y = x} z =
     Dec (x ⊆ y)                          ↝⟨ member? equal? z y ,_ ⟩
     Dec (z ∈ y) × Dec (x ⊆ y)            ↝⟨ uncurry
-                                              [ (λ u∈y → Dec-map (
-        x ⊆ y                                      ↝⟨ record
-                                                        { to = λ x⊆y u →
-                                                                 [ (λ z≡u → subst (_∈ y) (sym z≡u) u∈y)
-                                                                 , x⊆y u
-                                                                 ]
-                                                        ; from = λ hyp u → hyp u ∘ inj₂
-                                                        } ⟩
-        (∀ u → u ≡ z ⊎ u ∈ x → u ∈ y)              ↔⟨ (∀-cong ext λ _ → inverse $
-                                                       Trunc.universal-property ∈-propositional) ⟩
-        (∀ u → u ≡ z ∥⊎∥ u ∈ x → u ∈ y)            ↝⟨ (∀-cong _ λ _ → →-cong₁ _ (inverse ∈∷≃)) ⟩
-        (∀ u → u ∈ z ∷ x → u ∈ y)                  ↔⟨⟩
-        z ∷ x ⊆ y                                  □))
-                                              , (λ u∉y _ → no (
-        z ∷ x ⊆ y                                  ↝⟨ (λ u∷x⊆y → u∷x⊆y z (≡→∈∷ (refl _))) ⟩
-        z ∈ y                                      ↝⟨ u∉y ⟩□
-        ⊥                                          □))
-                                              ] ⟩□
+                                              P.[ (λ u∈y → Dec-map (
+        x ⊆ y                                        ↝⟨ record
+                                                          { to = λ x⊆y u →
+                                                                   P.[ (λ z≡u → subst (_∈ y) (sym z≡u) u∈y)
+                                                                     , x⊆y u
+                                                                     ]
+                                                          ; from = λ hyp u → hyp u ∘ inj₂
+                                                          } ⟩
+        (∀ u → u ≡ z ⊎ u ∈ x → u ∈ y)                ↔⟨ (∀-cong ext λ _ → inverse $
+                                                         Trunc.universal-property ∈-propositional) ⟩
+        (∀ u → u ≡ z ∥⊎∥ u ∈ x → u ∈ y)              ↝⟨ (∀-cong _ λ _ → →-cong₁ _ (inverse ∈∷≃)) ⟩
+        (∀ u → u ∈ z ∷ x → u ∈ y)                    ↔⟨⟩
+        z ∷ x ⊆ y                                    □))
+                                                , (λ u∉y _ → no (
+        z ∷ x ⊆ y                                    ↝⟨ (λ u∷x⊆y → u∷x⊆y z (≡→∈∷ (refl _))) ⟩
+        z ∈ y                                        ↝⟨ u∉y ⟩□
+        ⊥                                            □))
+                                                ] ⟩□
     Dec (z ∷ x ⊆ y)                      □
 
   r .is-propositionʳ _ =
     Dec-closure-propositional ext ⊆-propositional
+
+-- A variant of subset? that uses Dec-Erased.
+
+subset?ᴱ :
+  ((x y : A) → Dec-Erased ∥ x ≡ y ∥) →
+  (x y : Finite-subset-of A) → Dec-Erased (x ⊆ y)
+subset?ᴱ equal? x y = elim-prop r x
+  where
+  r : Elim-prop (λ x → Dec-Erased (x ⊆ y))
+  r .[]ʳ = yes [ (λ z →
+    z ∈ []  ↔⟨ ∈[]≃ ⟩
+    ⊥       ↝⟨ ⊥-elim ⟩□
+    z ∈ y   □ )]
+
+  r .∷ʳ {y = x} z =
+    Dec-Erased (x ⊆ y)                       ↝⟨ member?ᴱ equal? z y ,_ ⟩
+    Dec-Erased (z ∈ y) × Dec-Erased (x ⊆ y)  ↝⟨ uncurry
+                                                P.[ (λ ([ u∈y ]) → EC.Dec-Erased-map (
+        x ⊆ y                                          ↝⟨ record
+                                                            { to = λ x⊆y u →
+                                                                     P.[ (λ z≡u → subst (_∈ y) (sym z≡u) u∈y)
+                                                                       , x⊆y u
+                                                                       ]
+                                                            ; from = λ hyp u → hyp u ∘ inj₂
+                                                            } ⟩
+        (∀ u → u ≡ z ⊎ u ∈ x → u ∈ y)                  ↔⟨ (∀-cong ext λ _ → inverse $
+                                                           Trunc.universal-property ∈-propositional) ⟩
+        (∀ u → u ≡ z ∥⊎∥ u ∈ x → u ∈ y)                ↝⟨ (∀-cong _ λ _ → →-cong₁ _ (inverse ∈∷≃)) ⟩
+        (∀ u → u ∈ z ∷ x → u ∈ y)                      ↔⟨⟩
+        z ∷ x ⊆ y                                      □))
+                                                  , (λ ([ u∉y ]) _ → no [
+        z ∷ x ⊆ y                                      ↝⟨ (λ u∷x⊆y → u∷x⊆y z (≡→∈∷ (refl _))) ⟩
+        z ∈ y                                          ↝⟨ u∉y ⟩□
+        ⊥                                              □ ])
+                                                  ] ⟩□
+    Dec-Erased (z ∷ x ⊆ y)                   □
+
+  r .is-propositionʳ _ =
+    EC.Is-proposition-Dec-Erased ext ⊆-propositional
 
 -- If truncated equality is decidable, then _≡_ is also decidable.
 
@@ -856,6 +920,19 @@ equal? eq? x y =             $⟨ subset? eq? x y , subset? eq? y x ⟩
   Dec (x ⊆ y) × Dec (y ⊆ x)  ↝⟨ uncurry Dec-× ⟩
   Dec (x ⊆ y × y ⊆ x)        ↝⟨ Dec-map (from-equivalence $ inverse ≡≃⊆×⊇) ⟩□
   Dec (x ≡ y)                □
+
+-- A variant of equal? that uses Dec-Erased.
+
+equal?ᴱ :
+  ((x y : A) → Dec-Erased ∥ x ≡ y ∥) →
+  (x y : Finite-subset-of A) → Dec-Erased (x ≡ y)
+equal?ᴱ eq? x y =                              $⟨ subset?ᴱ eq? x y , subset?ᴱ eq? y x ⟩
+  Dec-Erased (x ⊆ y) × Dec-Erased (y ⊆ x)      ↝⟨ EC.Dec-Erased↔Dec-Erased _ ×-cong EC.Dec-Erased↔Dec-Erased _ ⟩
+  Dec (Erased (x ⊆ y)) × Dec (Erased (y ⊆ x))  ↝⟨ uncurry Dec-× ⟩
+  Dec (Erased (x ⊆ y) × Erased (y ⊆ x))        ↝⟨ Dec-map (from-isomorphism $ inverse EC.Erased-Σ↔Σ) ⟩
+  Dec (Erased (x ⊆ y × y ⊆ x))                 ↝⟨ _⇔_.from $ EC.Dec-Erased↔Dec-Erased _ ⟩
+  Dec-Erased (x ⊆ y × y ⊆ x)                   ↝⟨ EC.Dec-Erased-map (from-equivalence $ inverse ≡≃⊆×⊇) ⟩□
+  Dec-Erased (x ≡ y)                           □
 
 ------------------------------------------------------------------------
 -- The functions filter, minus and delete
@@ -950,34 +1027,40 @@ filter-∪ {p = p} {y = y} x = _≃_.from extensionality λ z →
   T (p z) × z ∈ x ∥⊎∥ T (p z) × z ∈ y  ↔⟨ inverse $ Trunc.∥∥-cong (∈filter≃ ⊎-cong ∈filter≃) F.∘ ∈∪≃ ⟩□
   z ∈ filter p x ∪ filter p y          □
 
--- If truncated equality is decidable, then one subset can be removed
--- from another.
+-- If erased truncated equality is decidable, then one subset can be
+-- removed from another.
 
 minus :
-  ((x y : A) → Dec ∥ x ≡ y ∥) →
+  ((x y : A) → Dec-Erased ∥ x ≡ y ∥) →
   Finite-subset-of A → Finite-subset-of A → Finite-subset-of A
 minus _≟_ x y =
-  filter (λ z → if member? _≟_ z y then false else true) x
+  filter (λ z → if member?ᴱ _≟_ z y then false else true) x
 
 -- A lemma characterising minus.
 
 ∈minus≃ : (x ∈ minus _≟_ y z) ≃ (x ∈ y × ¬ x ∈ z)
 ∈minus≃ {x = x} {_≟_ = _≟_} {y = y} {z = z} =
-  x ∈ minus _≟_ y z                                    ↝⟨ ∈filter≃ ⟩
-  T (if member? _≟_ x z then false else true) × x ∈ y  ↔⟨ lemma (member? _≟_ x z) ×-cong F.id ⟩
-  ¬ x ∈ z × x ∈ y                                      ↔⟨ ×-comm ⟩□
-  x ∈ y × ¬ x ∈ z                                      □
+  x ∈ minus _≟_ y z                                     ↝⟨ ∈filter≃ ⟩
+  T (if member?ᴱ _≟_ x z then false else true) × x ∈ y  ↔⟨ lemma (member?ᴱ _≟_ x z) ×-cong F.id ⟩
+  ¬ x ∈ z × x ∈ y                                       ↔⟨ ×-comm ⟩□
+  x ∈ y × ¬ x ∈ z                                       □
   where
   lemma :
-    (d : Dec A) →
+    (d : Dec-Erased A) →
     T (if d then false else true) ↔ ¬ A
-  lemma (yes a) = Bijection.⊥↔uninhabited (_$ a)
-  lemma (no ¬a) =
-    inverse $
-    _⇔_.to contractible⇔↔⊤ $
-    propositional⇒inhabited⇒contractible
-      (¬-propositional ext)
-      ¬a
+  lemma {A = A} d@(yes a) =
+    T (if d then false else true)  ↔⟨⟩
+    ⊥                              ↝⟨ Bijection.⊥↔uninhabited (_$ a) ⟩
+    ¬ EC.Erased A                  ↝⟨ EC.¬-Erased↔¬ ext ⟩□
+    ¬ A                            □
+  lemma {A = A} d@(no ¬a) =
+    T (if d then false else true) ↔⟨⟩
+    ⊤                             ↝⟨ inverse $
+                                     _⇔_.to contractible⇔↔⊤ $
+                                     propositional⇒inhabited⇒contractible
+                                       (¬-propositional ext)
+                                       (EC.Stable-¬ _ ¬a) ⟩□
+    ¬ A                           □
 
 -- The result of minus is a subset of the original subset.
 
@@ -1000,33 +1083,37 @@ minus-∪ x _ = filter-∪ x
 
 -- A lemma relating minus, _⊆_ and _∪_.
 
-minus⊆≃ : ∀ y → (minus _≟_ x y ⊆ z) ≃ (x ⊆ y ∪ z)
-minus⊆≃ {_≟_ = _≟_} {x = x} {z = z} y =
+minus⊆≃ :
+  {_≟_ : (x y : A) → Dec ∥ x ≡ y ∥} →
+  ∀ y →
+  (minus (λ x y → Dec→Dec-Erased (x ≟ y)) x y ⊆ z) ≃
+  (x ⊆ y ∪ z)
+minus⊆≃ {x = x} {z = z} {_≟_ = _≟_} y =
   _↠_.from (Eq.≃↠⇔ ⊆-propositional ⊆-propositional) $ record
-    { to = λ x-y⊆z u → case member? _≟_ u y of
-        [ curry (
-            u ∈ y × u ∈ x  ↝⟨ ∈→∈∪ˡ ∘ proj₁ ⟩□
-            u ∈ y ∪ z      □)
-        , curry (
-            ¬ u ∈ y × u ∈ x    ↔⟨ inverse ∈minus≃ F.∘ from-isomorphism ×-comm ⟩
-            u ∈ minus _≟_ x y  ↝⟨ x-y⊆z _ ⟩
-            u ∈ z              ↝⟨ ∈→∈∪ʳ y ⟩□
-            u ∈ y ∪ z          □)
-        ]
+    { to = λ x-y⊆z u →
+        u ∈ x                         ↝⟨ (λ u∈x →
+                                            case member? _≟_ u y of
+                                              P.[ Trunc.∣inj₁∣ , Trunc.∣inj₂∣ ∘ (u∈x ,_) ]) ⟩
+        u ∈ y ∥⊎∥ (u ∈ x × ¬ u ∈ y)   ↔⟨ F.id Trunc.∥⊎∥-cong inverse ∈minus≃ ⟩
+        u ∈ y ∥⊎∥ u ∈ minus _≟′_ x y  ↝⟨ id Trunc.∥⊎∥-cong x-y⊆z u ⟩
+        u ∈ y ∥⊎∥ u ∈ z               ↔⟨ inverse ∈∪≃ ⟩□
+        u ∈ y ∪ z                     □
     ; from = λ x⊆y∪z u →
-        u ∈ minus _≟_ x y            ↔⟨ ∈minus≃ ⟩
+        u ∈ minus _≟′_ x y           ↔⟨ ∈minus≃ ⟩
         u ∈ x × ¬ u ∈ y              ↝⟨ Σ-map (x⊆y∪z _) id ⟩
         u ∈ y ∪ z × ¬ u ∈ y          ↔⟨ ∈∪≃ ×-cong F.id ⟩
         (u ∈ y ∥⊎∥ u ∈ z) × ¬ u ∈ y  ↔⟨ (×-cong₁ λ u∉y → Trunc.drop-⊥-left-∥⊎∥ ∈-propositional u∉y) ⟩
         u ∈ z × ¬ u ∈ y              ↝⟨ proj₁ ⟩□
         u ∈ z                        □
     }
+  where
+  _≟′_ = λ x y → Dec→Dec-Erased (x ≟ y)
 
--- If truncated equality is decidable, then elements can be removed
--- from a subset.
+-- If erased truncated equality is decidable, then elements can be
+-- removed from a subset.
 
 delete :
-  ((x y : A) → Dec ∥ x ≡ y ∥) →
+  ((x y : A) → Dec-Erased ∥ x ≡ y ∥) →
   A → Finite-subset-of A → Finite-subset-of A
 delete _≟_ x y = minus _≟_ y (singleton x)
 
@@ -1065,7 +1152,9 @@ delete-∪ _≟_ y = minus-∪ {_≟_ = _≟_} y (singleton _)
 
 -- A lemma relating delete, _⊆_ and _∷_.
 
-delete⊆≃ : ∀ _≟_ → (delete _≟_ x y ⊆ z) ≃ (y ⊆ x ∷ z)
+delete⊆≃ :
+  (_≟_ : (x y : A) → Dec ∥ x ≡ y ∥) →
+  (delete (λ x y → Dec→Dec-Erased (x ≟ y)) x y ⊆ z) ≃ (y ⊆ x ∷ z)
 delete⊆≃ _≟_ = minus⊆≃ {_≟_ = _≟_} (singleton _)
 
 ------------------------------------------------------------------------
@@ -1197,7 +1286,7 @@ private
              , inj₁
                  ( (                 $⟨ x∈y∷z ⟩
                     x ∈ y ∷ z        ↔⟨ ∈∷≃ ⟩
-                    x ≡ y ∥⊎∥ x ∈ z  ↝⟨ Trunc.∥∥-map [ (flip (subst (_∈ z)) y∈z ∘ sym) , id ] ⟩
+                    x ≡ y ∥⊎∥ x ∈ z  ↝⟨ Trunc.∥∥-map P.[ (flip (subst (_∈ z)) y∈z ∘ sym) , id ] ⟩
                     ∥ x ∈ z ∥        ↔⟨ Trunc.∥∥↔ ∈-propositional ⟩□
                     x ∈ z            □)
                  , p
@@ -1206,23 +1295,23 @@ private
 
       (suc n) (inj₁ (x∈y∷z , inj₂ (y∉z , p))) →
         Trunc.rec (Cons′-propositional (Cons x z H) _)
-          [ (λ x≡y →
-              inj₁ ( ≡→∈∷ (sym x≡y)
-                   , inj₂ ( (x ∈ z  ↝⟨ subst (_∈ z) x≡y ⟩
-                             y ∈ z  ↝⟨ y∉z ⟩□
-                             ⊥      □)
-                          , p
-                          )
-                   ))
-          , (λ x∈z →
-               inj₂ ( (y ∈ x ∷ z        ↔⟨ ∈∷≃ ⟩
-                       y ≡ x ∥⊎∥ y ∈ z  ↝⟨ Trunc.∥∥-map [ flip (subst (_∈ z)) x∈z ∘ sym , id ] ⟩
-                       ∥ y ∈ z ∥        ↝⟨ Trunc.∥∥-map y∉z ⟩
-                       ∥ ⊥ ∥            ↔⟨ Trunc.∥∥↔ ⊥-propositional ⟩□
-                       ⊥                □)
-                    , inj₁ (x∈z , p)
-                    ))
-          ]
+          P.[ (λ x≡y →
+                inj₁ ( ≡→∈∷ (sym x≡y)
+                     , inj₂ ( (x ∈ z  ↝⟨ subst (_∈ z) x≡y ⟩
+                               y ∈ z  ↝⟨ y∉z ⟩□
+                               ⊥      □)
+                            , p
+                            )
+                     ))
+            , (λ x∈z →
+                 inj₂ ( (y ∈ x ∷ z        ↔⟨ ∈∷≃ ⟩
+                         y ≡ x ∥⊎∥ y ∈ z  ↝⟨ Trunc.∥∥-map P.[ flip (subst (_∈ z)) x∈z ∘ sym , id ] ⟩
+                         ∥ y ∈ z ∥        ↝⟨ Trunc.∥∥-map y∉z ⟩
+                         ∥ ⊥ ∥            ↔⟨ Trunc.∥∥↔ ⊥-propositional ⟩□
+                         ⊥                □)
+                      , inj₁ (x∈z , p)
+                      ))
+            ]
           (_≃_.to ∈∷≃ x∈y∷z)
 
       (suc n) (inj₂ (x∉y∷z , inj₁ (y∈z , p))) →
@@ -1237,7 +1326,7 @@ private
       (suc (suc n)) (inj₂ (x∉y∷z , inj₂ (y∉z , p))) →
         inj₂ ( (y ∈ x ∷ z            ↔⟨ ∈∷≃ ⟩
                 y ≡ x ∥⊎∥ y ∈ z      ↝⟨ ≡→∈∷ ∘ sym Trunc.∥⊎∥-cong id ⟩
-                x ∈ y ∷ z ∥⊎∥ y ∈ z  ↝⟨ Trunc.∥∥-map [ x∉y∷z , y∉z ] ⟩
+                x ∈ y ∷ z ∥⊎∥ y ∈ z  ↝⟨ Trunc.∥∥-map P.[ x∉y∷z , y∉z ] ⟩
                 ∥ ⊥ ∥                ↔⟨ Trunc.∥∥↔ ⊥-propositional ⟩□
                 ⊥                    □)
              , inj₂ ( (x ∈ z      ↝⟨ ∈→∈∷ ⟩
@@ -1358,6 +1447,36 @@ size equal? = elim-prop e
              n  ∎)
             (∣∣≡-propositional x _ _)
 
+-- A variant of size that uses Erased.
+
+sizeᴱ :
+  ((x y : A) → Dec-Erased ∥ x ≡ y ∥) →
+  (x : Finite-subset-of A) → ∃ λ n → Erased (∣ x ∣≡ n)
+sizeᴱ equal? = elim-prop e
+  where
+  e : Elim-prop _
+  e .[]ʳ = 0 , [ lift (refl _) ]
+
+  e .∷ʳ {y = y} x (n , [ ∣y∣≡n ]) =
+    case member?ᴱ equal? x y of λ x∈?y →
+        if x∈?y then n else suc n
+      , [ lemma ∣y∣≡n x∈?y ]
+    where
+    @0 lemma :
+      ∣ y ∣≡ n →
+      (x∈?y : Dec-Erased (x ∈ y)) →
+      ∣ x ∷ y ∣≡ if x∈?y then n else suc n
+    lemma ∣y∣≡n (yes [ x∈y ]) = inj₁ (x∈y , ∣y∣≡n)
+    lemma ∣y∣≡n (no  [ x∉y ]) = inj₂ (x∉y , ∣y∣≡n)
+
+  e .is-propositionʳ x (m , [ ∣x∣≡m ]) (n , [ ∣x∣≡n ]) =
+    Σ-≡,≡→≡ (m  ≡⟨ EC.Very-stable→Stable 1
+                     (EC.Decidable-equality→Very-stable-≡ Nat._≟_)
+                     _ _
+                     [ ∣∣≡-functional x ∣x∣≡m ∣x∣≡n ] ⟩∎
+             n  ∎)
+            (EC.H-level-Erased 1 (∣∣≡-propositional x) _ _)
+
 ------------------------------------------------------------------------
 -- Finite types
 
@@ -1393,14 +1512,14 @@ private
     to : ∀ ys → ∥ x BE.∈ ys ∥ → x ∈ L.foldr _∷_ [] ys
     to []       = Trunc.rec ∈-propositional (λ ())
     to (y ∷ ys) = Trunc.rec ∈-propositional
-                    [ ≡→∈∷ , ∈→∈∷ ∘ to ys ∘ ∣_∣ ]
+                    P.[ ≡→∈∷ , ∈→∈∷ ∘ to ys ∘ ∣_∣ ]
 
     from : ∀ ys → x ∈ L.foldr _∷_ [] ys → ∥ x BE.∈ ys ∥
     from [] ()
     from (y ∷ ys) =
       Trunc.rec
         Trunc.truncation-is-proposition
-        [ ∣_∣ ∘ inj₁ , Trunc.∥∥-map inj₂ ∘ from ys ] ∘
+        P.[ ∣_∣ ∘ inj₁ , Trunc.∥∥-map inj₂ ∘ from ys ] ∘
       _≃_.to ∈∷≃
 
 -- Finite subsets can be expressed as lists quotiented by set
@@ -1427,7 +1546,7 @@ private
     r .is-setʳ   = Q./-is-set
     r .dropʳ x _ = Q.elim-prop λ where
       .Q.[]ʳ xs → Q.[]-respects-relation λ z →
-        z BE.∈ x ∷ x ∷ xs      ↝⟨ record { to = [ inj₁ , id ]; from = inj₂ } ⟩□
+        z BE.∈ x ∷ x ∷ xs      ↝⟨ record { to = P.[ inj₁ , id ]; from = inj₂ } ⟩□
         z BE.∈ x ∷ xs          □
       .Q.is-propositionʳ _ → Q./-is-set
 
