@@ -28,7 +28,7 @@ open import H-level.Closure eq-J
 open import Injection eq-J using (_↣_; Injective)
 open import Monad eq-J hiding (map; map-id; map-∘)
 open import Preimage eq-J using (_⁻¹_)
-open import Surjection eq-J using (_↠_; Split-surjective)
+open import Surjection eq-J as Surjection using (_↠_; Split-surjective)
 open import Univalence-axiom eq-J as U using (≡⇒→)
 
 private
@@ -421,6 +421,43 @@ Dec-Erased-cong-⇔ A⇔B = record
   }
 
 ------------------------------------------------------------------------
+-- Decidable erased equality
+
+-- A variant of Decidable-equality that is defined using Dec-Erased.
+
+Decidable-erased-equality : Type ℓ → Type ℓ
+Decidable-erased-equality A = (x y : A) → Dec-Erased (x ≡ y)
+
+-- Decidable equality implies decidable erased equality.
+
+Decidable-equality→Decidable-erased-equality :
+  {@0 A : Type a} →
+  Decidable-equality A →
+  Decidable-erased-equality A
+Decidable-equality→Decidable-erased-equality dec x y =
+  Dec→Dec-Erased (dec x y)
+
+-- In erased contexts Decidable-erased-equality A is equivalent to
+-- Decidable-equality A (assuming extensionality).
+
+@0 Decidable-erased-equality≃Decidable-equality :
+  {A : Type a} →
+  Extensionality? k a a →
+  Decidable-erased-equality A ↝[ k ] Decidable-equality A
+Decidable-erased-equality≃Decidable-equality {A = A} ext =
+  ((x y : A) → Dec-Erased (x ≡ y))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → from-equivalence Dec-Erased≃Dec) ⟩□
+  ((x y : A) → Dec (x ≡ y))         □
+
+-- A map function for Decidable-erased-equality.
+
+Decidable-erased-equality-map :
+  A ↠ B →
+  Decidable-erased-equality A → Decidable-erased-equality B
+Decidable-erased-equality-map A↠B _≟_ x y =     $⟨ _↠_.from A↠B x ≟ _↠_.from A↠B y ⟩
+  Dec-Erased (_↠_.from A↠B x ≡ _↠_.from A↠B y)  ↝⟨ Dec-Erased-map (_↠_.logical-equivalence $ Surjection.↠-≡ A↠B) ⟩□
+  Dec-Erased (x ≡ y)                            □
+
+------------------------------------------------------------------------
 -- Some results that hold in erased contexts
 
 -- In an erased context there is an equivalence between equality of
@@ -689,7 +726,7 @@ module []-cong₂
   H-level-Erased n h = Erased-H-level↔H-level _ n [ h ]
 
   ----------------------------------------------------------------------
-  -- A closure property
+  -- Some closure properties
 
   -- If A is a proposition, then Dec-Erased A is a proposition
   -- (assuming extensionality).
@@ -703,6 +740,19 @@ module []-cong₂
                                      $⟨ Dec-closure-propositional ext (H-level-Erased 1 p) ⟩
     Is-proposition (Dec (Erased A))  ↝⟨ H-level-cong _ 1 (inverse $ Dec-Erased↔Dec-Erased {k = equivalence} ext) ⦂ (_ → _) ⟩□
     Is-proposition (Dec-Erased A)    □
+
+  -- If A is a set, then Decidable-erased-equality A is a proposition
+  -- (assuming extensionality).
+
+  Is-proposition-Decidable-erased-equality :
+    {A : Type a} →
+    Extensionality a a →
+    @0 Is-set A →
+    Is-proposition (Decidable-erased-equality A)
+  Is-proposition-Decidable-erased-equality ext s =
+    Π-closure ext 1 λ _ →
+    Π-closure ext 1 λ _ →
+    Is-proposition-Dec-Erased (lower-extensionality lzero _ ext) s
 
   ----------------------------------------------------------------------
   -- Some properties related to "Modalities in Homotopy Type Theory"
