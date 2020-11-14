@@ -689,6 +689,22 @@ module []-cong₂
   H-level-Erased n h = Erased-H-level↔H-level _ n [ h ]
 
   ----------------------------------------------------------------------
+  -- A closure property
+
+  -- If A is a proposition, then Dec-Erased A is a proposition
+  -- (assuming extensionality).
+
+  Is-proposition-Dec-Erased :
+    {@0 A : Type a} →
+    Extensionality a lzero →
+    @0 Is-proposition A →
+    Is-proposition (Dec-Erased A)
+  Is-proposition-Dec-Erased {A = A} ext p =
+                                     $⟨ Dec-closure-propositional ext (H-level-Erased 1 p) ⟩
+    Is-proposition (Dec (Erased A))  ↝⟨ H-level-cong _ 1 (inverse $ Dec-Erased↔Dec-Erased {k = equivalence} ext) ⦂ (_ → _) ⟩□
+    Is-proposition (Dec-Erased A)    □
+
+  ----------------------------------------------------------------------
   -- Some properties related to "Modalities in Homotopy Type Theory"
   -- by Rijke, Shulman and Spitters
 
