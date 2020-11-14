@@ -55,10 +55,10 @@ print ≟O print = yes refl
 Var : @0 Sort → Type
 Var _ = ℕ
 
--- Equality of sorts paired up with variables is decidable.
+-- Equality of variables is decidable.
 
-_≟∃V_ : Decidable-equality (∃ λ s → Var s)
-_≟∃V_ = ×.Dec._≟_ Bool._≟_  Nat._≟_
+Decidable-equality-Var : ∀ (@0 s) → Decidable-equality (Var s)
+Decidable-equality-Var _ = Nat._≟_
 
 -- A signature.
 
@@ -71,7 +71,7 @@ sig .Signature.domain lam       = (expr ∷ [] , expr) ∷ []
 sig .Signature.domain app       = ([] , expr) ∷ ([] , expr) ∷ []
 sig .Signature.domain print     = ([] , expr) ∷ []
 sig .Signature.Var              = Var
-sig .Signature._≟∃V_            = _≟∃V_
+sig .Signature._≟V_ {s = s}     = Decidable-equality-Var s
 sig .Signature.fresh {s = s} xs =
   Σ-map id (λ {n} ([ ub ]) → [ (λ n∈ → Nat.<-irreflexive (ub n n∈)) ])
     (L.elim e xs)
@@ -148,8 +148,7 @@ sig .Signature.fresh {s = s} xs =
     Σ-closure 2 ℕ-set λ _ →
     mono₁ 1 prop
 
-open Signature sig public
-  hiding (Sort; Var; _≟O_; _≟∃V_)
+open Signature sig public hiding (Sort; Var; _≟O_)
 
 private
   variable

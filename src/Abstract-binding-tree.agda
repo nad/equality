@@ -47,7 +47,7 @@ private
   -- Signatures for abstract binding trees.
 
   record Signature ℓ : Type (lsuc ℓ) where
-    infix 4 _≟S_ _≟O_ _≟∃V_
+    infix 4 _≟S_ _≟O_ _≟V_
 
     field
       -- A set of sorts with decidable equality.
@@ -67,7 +67,8 @@ private
       domain : ∀ {@0 s} → Op s → List Valence
 
       -- A sort-indexed type of variables with decidable equality.
-      Var : @0 Sort → Type ℓ
+      Var  : @0 Sort → Type ℓ
+      _≟V_ : ∀ {@0 s} → Decidable-equality (Var s)
 
     -- Non-indexed variables.
 
@@ -80,9 +81,6 @@ private
     Vars = Finite-subset-of ∃Var
 
     field
-      -- Decidable equality for non-indexed variables.
-      _≟∃V_ : Decidable-equality ∃Var
-
       -- One can always find a fresh variable.
       fresh : ∀ {s} (xs : Vars) →
               ∃ λ (x : Var s) → Erased (¬ (_ , x) ∈ xs)
@@ -117,7 +115,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       @0 wf            : A
 
   ----------------------------------------------------------------------
-  -- A variant of fresh
+  -- Variants of some functions from the signature
 
   -- A variant of fresh that does not return an erased proof.
 
@@ -125,6 +123,13 @@ module Signature {ℓ} (sig : Signature ℓ) where
     ∀ {s} (xs : Vars) → ∃ λ (x : Var s) → ¬ (_ , x) ∈ xs
   fresh-not-erased =
     Σ-map id (Stable-¬ _) ∘ fresh
+
+  -- Equality is decidable for ∃Var.
+
+  infix 4 _≟∃V_
+
+  _≟∃V_ : Decidable-equality ∃Var
+  _≟∃V_ = Σ.Dec._≟_ _≟S_ _≟V_
 
   ----------------------------------------------------------------------
   -- Some types are sets
@@ -147,6 +152,11 @@ module Signature {ℓ} (sig : Signature ℓ) where
   Arity-set = ×-closure 2
     (H-level-List 0 Valence-set)
     Sort-set
+
+  -- Var s is a set.
+
+  Var-set : Is-set (Var s)
+  Var-set = decidable⇒set _≟V_
 
   -- ∃Var is a set.
 
@@ -466,24 +476,6 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     del : ∃Var → Finite-subset-of ∃Var → Finite-subset-of ∃Var
     del = delete merely-equal?-∃Var
-
-  -- Equality is decidable for Var.
-
-  infix 4 _≟V_
-
-  _≟V_ : ∀ {s} → Decidable-equality (Var s)
-  _≟V_ {s = s} x₁ x₂ =                                       $⟨ _ ≟∃V _ ⟩
-
-    Dec ((s , x₁) ≡ (s , x₂))                                ↝⟨ Dec-map $ from-isomorphism $ inverse Bijection.Σ-≡,≡↔≡ ⟩
-
-    Dec (∃ λ (eq : s ≡ s) → subst (λ s → Var s) eq x₁ ≡ x₂)  ↝⟨ Dec-map $ from-isomorphism $ drop-⊤-left-Σ $ _⇔_.to contractible⇔↔⊤ $
-                                                                propositional⇒inhabited⇒contractible Sort-set (refl _) ⟩
-
-    Dec (subst (λ s → Var s) _ x₁ ≡ x₂)                      ↝⟨ ≡⇒↝ _ $ cong (λ eq → Dec (subst _ eq _ ≡ _)) $ Sort-set _ _ ⟩
-
-    Dec (subst (λ s → Var s) (refl _) x₁ ≡ x₂)               ↝⟨ ≡⇒↝ _ $ cong (λ x → Dec (x ≡ _)) $ subst-refl _ _ ⟩□
-
-    Dec (x₁ ≡ x₂)                                            □
 
   -- Equality is decidable for Tmˢ, Argsˢ and Argˢ.
 
