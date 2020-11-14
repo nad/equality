@@ -85,7 +85,7 @@ private
 
       -- One can always find a fresh variable.
       fresh : ∀ {s} (xs : Vars) →
-              ∃ λ (x : Var s) → ¬ (_ , x) ∈ xs
+              ∃ λ (x : Var s) → Erased (¬ (_ , x) ∈ xs)
 
     -- Arities.
 
@@ -115,6 +115,16 @@ module Signature {ℓ} (sig : Signature ℓ) where
       @0 x y z         : Var s
       @0 A             : Type ℓ
       @0 wf            : A
+
+  ----------------------------------------------------------------------
+  -- A variant of fresh
+
+  -- A variant of fresh that does not return an erased proof.
+
+  fresh-not-erased :
+    ∀ {s} (xs : Vars) → ∃ λ (x : Var s) → ¬ (_ , x) ∈ xs
+  fresh-not-erased =
+    Σ-map id (Stable-¬ _) ∘ fresh
 
   ----------------------------------------------------------------------
   -- Some types are sets
@@ -1435,8 +1445,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       Free-free-Arg {x = x} {xs = xs} (cons aˢ) {a = y , a} wf =
         let xxs              = (_ , x) ∷ xs
-            x₁ ,         x₁∉ = fresh xxs
-            x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh ((_ , x₁) ∷ xxs) ⟩
+            x₁ ,         x₁∉ = fresh-not-erased xxs
+            x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh-not-erased ((_ , x₁) ∷ xxs) ⟩
               (∃ λ x₂ → ¬ (_ , x₂) ∈ (_ , x₁) ∷ xxs)                 ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
               (∃ λ x₂ → ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xxs))  ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
               (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × ¬ (_ , x₂) ∈ xxs)      □
@@ -1642,8 +1652,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
         lemma : y ≢ (_ , x) → _
         lemma y≢x =
           let fs               = free-Arg aˢ a
-              x₁ ,         x₁∉ = fresh (xs ∪ fs)
-              x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh ((_ , x₁) ∷ xs ∪ fs) ⟩
+              x₁ ,         x₁∉ = fresh-not-erased (xs ∪ fs)
+              x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh-not-erased ((_ , x₁) ∷ xs ∪ fs) ⟩
                 (∃ λ x₂ → ¬ (_ , x₂) ∈ (_ , x₁) ∷ xs ∪ fs)             ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
                 (∃ λ x₂ →
                    ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xs ∪ fs))     ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
@@ -1899,9 +1909,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
        Wf-var ((_ , y) ∷ xs) (rename-Var x y z)) →
       Wf-var ((_ , x) ∷ xs) z
     body-Wf-var {xs = xs} {z = z} wf =
-      let y , y-fresh = fresh ((_ , z) ∷ xs)
-          y∉xs        = y-fresh ∘ ∈→∈∷
-          y≢z         = y-fresh ∘ ≡→∈∷
+      let y , [ y-fresh ] = fresh ((_ , z) ∷ xs)
+          y∉xs            = y-fresh ∘ ∈→∈∷
+          y≢z             = y-fresh ∘ ≡→∈∷
       in
       renamee-Wf-var y≢z (wf y y∉xs)
 
@@ -1912,9 +1922,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
        Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)) →
       Wf-tm ((_ , x) ∷ xs) tˢ t
     body-Wf-tm {xs = xs} tˢ {t = t} wf =
-      let y , y-fresh = fresh (xs ∪ free-Tm tˢ t)
-          y∉xs        = y-fresh ∘ ∈→∈∪ˡ
-          y∉t         = y-fresh ∘ ∈→∈∪ʳ xs
+      let y , [ y-fresh ] = fresh (xs ∪ free-Tm tˢ t)
+          y∉xs            = y-fresh ∘ ∈→∈∪ˡ
+          y∉t             = y-fresh ∘ ∈→∈∪ʳ xs
       in
       renamee-Wf-tm tˢ y∉t (wf y y∉xs)
 
@@ -1925,9 +1935,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
        Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)) →
       Wf-args ((_ , x) ∷ xs) asˢ as
     body-Wf-args {xs = xs} asˢ {as = as} wfs =
-      let y , y-fresh = fresh (xs ∪ free-Args asˢ as)
-          y∉xs        = y-fresh ∘ ∈→∈∪ˡ
-          y∉as        = y-fresh ∘ ∈→∈∪ʳ xs
+      let y , [ y-fresh ] = fresh (xs ∪ free-Args asˢ as)
+          y∉xs            = y-fresh ∘ ∈→∈∪ˡ
+          y∉as            = y-fresh ∘ ∈→∈∪ʳ xs
       in
       renamee-Wf-args asˢ y∉as (wfs y y∉xs)
 
@@ -1938,9 +1948,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
        Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)) →
       Wf-arg ((_ , x) ∷ xs) aˢ a
     body-Wf-arg {xs = xs} aˢ {a = a} wf =
-      let y , y-fresh = fresh (xs ∪ free-Arg aˢ a)
-          y∉xs        = y-fresh ∘ ∈→∈∪ˡ
-          y∉a         = y-fresh ∘ ∈→∈∪ʳ xs
+      let y , [ y-fresh ] = fresh (xs ∪ free-Arg aˢ a)
+          y∉xs            = y-fresh ∘ ∈→∈∪ˡ
+          y∉a             = y-fresh ∘ ∈→∈∪ʳ xs
       in
       renamee-Wf-arg aˢ y∉a (wf y y∉xs)
 
@@ -2075,7 +2085,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
           (inj₂ x≢y) →
             -- Otherwise, rename the bound variable to something fresh
             -- and keep substituting.
-            let z , z∉             = fresh ((_ , x) ∷ xs ∪ ys)
+            let z , [ z∉ ]         = fresh ((_ , x) ∷ xs ∪ ys)
                 aˢ′ , a′ , [ wf′ ] =
                   hyp z (z∉ ∘ ∈→∈∪ˡ ∘ subst (_ ∈_) eq)
                     ((_ , z) ∷ xs′           ≡⟨ cong (_ ∷_) eq ⟩

@@ -73,46 +73,50 @@ sig .Signature.domain print     = ([] , expr) ∷ []
 sig .Signature.Var              = Var
 sig .Signature._≟∃V_            = _≟∃V_
 sig .Signature.fresh {s = s} xs =
-  Σ-map id (λ {n} ub n∈ → Nat.<-irreflexive (ub n n∈))
+  Σ-map id (λ {n} ([ ub ]) → [ (λ n∈ → Nat.<-irreflexive (ub n n∈)) ])
     (L.elim e xs)
   where
-  P : Finite-subset-of (∃ λ s → Var s) → ℕ → Type
-  P xs m = ∀ n → (s , n) ∈ xs → n Nat.< m
+  P : @0 Finite-subset-of (∃ λ s → Var s) → @0 ℕ → Type
+  P xs m = Erased (∀ n → (s , n) ∈ xs → n Nat.< m)
 
   prop : ∀ {xs m} → Is-proposition (P xs m)
   prop =
+    H-level-Erased 1 (
     Π-closure ext 1 λ _ →
     Π-closure ext 1 λ _ →
-    ≤-propositional
+    ≤-propositional)
 
   ∷-max-suc :
     ∀ {xs n} {x@(_ , m) : ∃ λ s → Var s} →
     P xs n →
     P (x ∷ xs) (Nat.max (suc m) n)
-  ∷-max-suc {xs = xs} {n = n} {x = x@(_ , m)} ub o =
-    (_ , o) ∈ x ∷ xs              ↔⟨ ∈∷≃ ⟩
-    (_ , o) ≡ x ∥⊎∥ (_ , o) ∈ xs  ↝⟨ Nat.≤-refl′ ∘ cong suc ∘ cong proj₂ ∥⊎∥-cong ub o ⟩
-    o Nat.< suc m ∥⊎∥ o Nat.< n   ↝⟨ Trunc.rec ≤-propositional
-                                       P.[ flip Nat.≤-trans (Nat.ˡ≤max _ n)
-                                         , flip Nat.≤-trans (Nat.ʳ≤max (suc m) _)
-                                         ] ⟩□
-    o Nat.< Nat.max (suc m) n     □
+  ∷-max-suc {xs = xs} {n = n} {x = x@(_ , m)} [ ub ] =
+    [ (λ o →
+         (_ , o) ∈ x ∷ xs              ↔⟨ ∈∷≃ ⟩
+         (_ , o) ≡ x ∥⊎∥ (_ , o) ∈ xs  ↝⟨ Nat.≤-refl′ ∘ cong suc ∘ cong proj₂ ∥⊎∥-cong ub o ⟩
+         o Nat.< suc m ∥⊎∥ o Nat.< n   ↝⟨ Trunc.rec ≤-propositional
+                                            P.[ flip Nat.≤-trans (Nat.ˡ≤max _ n)
+                                              , flip Nat.≤-trans (Nat.ʳ≤max (suc m) _)
+                                              ] ⟩□
+         o Nat.< Nat.max (suc m) n     □)
+    ]
 
-  e : L.Elim (λ xs → ∃ (P xs))
+  e : L.Elim (λ xs → ∃ λ m → P xs m)
   e .[]ʳ =
-    0 , λ _ ()
+    0 , [ (λ _ ()) ]
 
   e .∷ʳ (_ , m) (n , ub) =
     Nat.max (suc m) n , ∷-max-suc ub
 
   e .dropʳ {y = y} x@(_ , m) (n , ub) =
     to-implication (ignore-propositional-component prop)
-      (proj₁ (subst (∃ ∘ P)
+      (proj₁ (subst (λ xs → ∃ λ m → P xs m)
                     (drop {x = x} {y = y})
                     ( Nat.max (suc m) (Nat.max (suc m) n)
                     , ∷-max-suc (∷-max-suc ub)
                     ))                                     ≡⟨ cong proj₁ $
-                                                              push-subst-pair-× {y≡z = drop {x = x} {y = y}} _ (uncurry P)
+                                                              push-subst-pair-× {y≡z = drop {x = x} {y = y}} _
+                                                                (λ (xs , m) → P xs m)
                                                                 {p = _ , ∷-max-suc (∷-max-suc ub)} ⟩
 
        Nat.max (suc m) (Nat.max (suc m) n)                 ≡⟨ Nat.max-assoc (suc m) {n = suc m} {o = n} ⟩
@@ -123,12 +127,13 @@ sig .Signature.fresh {s = s} xs =
 
   e .swapʳ {z = z} x@(_ , m) y@(_ , n) (o , ub) =
     to-implication (ignore-propositional-component prop)
-      (proj₁ (subst (∃ ∘ P)
+      (proj₁ (subst (λ xs → ∃ λ m → P xs m)
                     (swap {x = x} {y = y} {z = z})
                     ( Nat.max (suc m) (Nat.max (suc n) o)
                     , ∷-max-suc (∷-max-suc ub)
                     ))                                     ≡⟨ cong proj₁ $
-                                                              push-subst-pair-× {y≡z = swap {x = x} {y = y} {z = z}} _ (uncurry P)
+                                                              push-subst-pair-× {y≡z = swap {x = x} {y = y} {z = z}} _
+                                                                (λ (xs , m) → P xs m)
                                                                 {p = _ , ∷-max-suc (∷-max-suc ub)} ⟩
 
        Nat.max (suc m) (Nat.max (suc n) o)                 ≡⟨ Nat.max-assoc (suc m) {n = suc n} {o = o} ⟩
