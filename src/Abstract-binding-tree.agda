@@ -76,6 +76,12 @@ private
     ∃Var = ∃ λ (s : Sort) → Var s
 
     -- Finite subsets of variables.
+    --
+    -- This type is used by the substitution functions, so it might
+    -- make sense to make it possible to switch to a more efficient
+    -- data structure. (For instance, if variables are natural
+    -- numbers, then it should suffice to store an upper bound of the
+    -- variables in the term.)
 
     Vars : Type ℓ
     Vars = Finite-subset-of ∃Var
@@ -1701,6 +1707,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
       (_ , x) ≡ (_ , y) ∥⊎∥ (_ , y) ∈ xs            ↝⟨ ≡→∈singleton ∥⊎∥-cong id ⟩
       (_ , x) ∈ singleton (_ , y) ∥⊎∥ (_ , y) ∈ xs  ↔⟨ drop-⊥-left-∥⊎∥ ∈-propositional x∉ ⟩□
       (_ , y) ∈ xs                                  □
+
+    -- TODO: It might be possible to avoid the code duplication seen
+    -- below (and elsewhere) by using a simple universe.
 
     @0 strengthen-Wf-tm :
       ∀ (tˢ : Tmˢ s) {t} →
