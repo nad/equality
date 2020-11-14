@@ -21,6 +21,7 @@ open import Prelude hiding ([_,_])
 
 open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq-J as Emb using (Embedding; Is-embedding)
+open import Equality.Decidable-UIP eq-J
 open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
@@ -420,6 +421,57 @@ Dec-Erased-cong-⇔ A⇔B = record
   ; from = Dec-Erased-map (inverse A⇔B)
   }
 
+-- A variant of Equality.Decision-procedures.×.dec⇒dec⇒dec.
+
+dec-erased⇒dec-erased⇒×-dec-erased :
+  {@0 A : Type a} {@0 B : Type b} {@0 x₁ x₂ : A} {@0 y₁ y₂ : B} →
+  Dec-Erased (x₁ ≡ x₂) →
+  Dec-Erased (y₁ ≡ y₂) →
+  Dec-Erased ((x₁ , y₁) ≡ (x₂ , y₂))
+dec-erased⇒dec-erased⇒×-dec-erased = λ where
+  (no  [ x₁≢x₂ ]) _               → no [ x₁≢x₂ ∘ cong proj₁ ]
+  _               (no  [ y₁≢y₂ ]) → no [ y₁≢y₂ ∘ cong proj₂ ]
+  (yes [ x₁≡x₂ ]) (yes [ y₁≡y₂ ]) → yes [ cong₂ _,_ x₁≡x₂ y₁≡y₂ ]
+
+-- A variant of Equality.Decision-procedures.Σ.set⇒dec⇒dec⇒dec.
+--
+-- See also set⇒dec-erased⇒dec-erased⇒Σ-dec-erased below.
+
+set⇒dec⇒dec-erased⇒Σ-dec-erased :
+  {@0 A : Type a} {@0 P : A → Type p}
+  {@0 x₁ x₂ : A} {@0 y₁ : P x₁} {@0 y₂ : P x₂} →
+  @0 Is-set A →
+  Dec (x₁ ≡ x₂) →
+  (∀ eq → Dec-Erased (subst P eq y₁ ≡ y₂)) →
+  Dec-Erased ((x₁ , y₁) ≡ (x₂ , y₂))
+set⇒dec⇒dec-erased⇒Σ-dec-erased _ (no x₁≢x₂) _ =
+  no [ x₁≢x₂ ∘ cong proj₁ ]
+set⇒dec⇒dec-erased⇒Σ-dec-erased
+  {P = P} {y₁ = y₁} {y₂ = y₂} set₁ (yes x₁≡x₂) dec₂ =
+  ⊎-map
+    (map (Σ-≡,≡→≡ x₁≡x₂))
+    (map λ cast-y₁≢y₂ eq →
+                                             $⟨ proj₂ (Σ-≡,≡←≡ eq) ⟩
+       subst P (proj₁ (Σ-≡,≡←≡ eq)) y₁ ≡ y₂  ↝⟨ subst (λ p → subst _ p _ ≡ _) (set₁ _ _) ⟩
+       subst P x₁≡x₂ y₁ ≡ y₂                 ↝⟨ cast-y₁≢y₂ ⟩□
+       ⊥                                     □)
+    (dec₂ x₁≡x₂)
+
+-- A variant of Equality.Decision-procedures.Σ.decidable⇒dec⇒dec.
+--
+-- See also decidable-erased⇒dec-erased⇒Σ-dec-erased below.
+
+decidable⇒dec-erased⇒Σ-dec-erased :
+  {@0 A : Type a} {@0 P : A → Type p}
+  {x₁ x₂ : A} {@0 y₁ : P x₁} {@0 y₂ : P x₂} →
+  Decidable-equality A →
+  (∀ eq → Dec-Erased (subst P eq y₁ ≡ y₂)) →
+  Dec-Erased ((x₁ , y₁) ≡ (x₂ , y₂))
+decidable⇒dec-erased⇒Σ-dec-erased dec =
+  set⇒dec⇒dec-erased⇒Σ-dec-erased
+    (decidable⇒set dec)
+    (dec _ _)
+
 ------------------------------------------------------------------------
 -- Decidable erased equality
 
@@ -456,6 +508,31 @@ Decidable-erased-equality-map :
 Decidable-erased-equality-map A↠B _≟_ x y =     $⟨ _↠_.from A↠B x ≟ _↠_.from A↠B y ⟩
   Dec-Erased (_↠_.from A↠B x ≡ _↠_.from A↠B y)  ↝⟨ Dec-Erased-map (_↠_.logical-equivalence $ Surjection.↠-≡ A↠B) ⟩□
   Dec-Erased (x ≡ y)                            □
+
+-- A variant of Equality.Decision-procedures.×.Dec._≟_.
+
+decidable-erased⇒decidable-erased⇒×-decidable-erased :
+  {@0 A : Type a} {@0 B : Type b} →
+  Decidable-erased-equality A →
+  Decidable-erased-equality B →
+  Decidable-erased-equality (A × B)
+decidable-erased⇒decidable-erased⇒×-decidable-erased decA decB _ _ =
+  dec-erased⇒dec-erased⇒×-dec-erased (decA _ _) (decB _ _)
+
+-- A variant of Equality.Decision-procedures.Σ.Dec._≟_.
+--
+-- See also decidable-erased⇒decidable-erased⇒Σ-decidable-erased
+-- below.
+
+decidable⇒decidable-erased⇒Σ-decidable-erased :
+  Decidable-equality A →
+  ({x : A} → Decidable-erased-equality (P x)) →
+  Decidable-erased-equality (Σ A P)
+decidable⇒decidable-erased⇒Σ-decidable-erased
+  {P = P} decA decP (_ , x₂) (_ , y₂) =
+  decidable⇒dec-erased⇒Σ-dec-erased
+    decA
+    (λ eq → decP (subst P eq x₂) y₂)
 
 ------------------------------------------------------------------------
 -- Some results that hold in erased contexts
@@ -1253,3 +1330,59 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
      refl _                     ≡⟨ sym $ cong-refl _ ⟩∎
      cong (λ x → f x) (refl _)  ∎)
     eq
+
+  ----------------------------------------------------------------------
+  -- Variants of some functions from Equality.Decision-procedures
+
+  -- A variant of Equality.Decision-procedures.Σ.set⇒dec⇒dec⇒dec.
+
+  set⇒dec-erased⇒dec-erased⇒Σ-dec-erased :
+    {@0 A : Type a} {@0 P : A → Type p}
+    {@0 x₁ x₂ : A} {@0 y₁ : P x₁} {@0 y₂ : P x₂} →
+    @0 Is-set A →
+    Dec-Erased (x₁ ≡ x₂) →
+    (∀ (@0 eq) → Dec-Erased (substᴱ (λ x → P x) eq y₁ ≡ y₂)) →
+    Dec-Erased ((x₁ , y₁) ≡ (x₂ , y₂))
+  set⇒dec-erased⇒dec-erased⇒Σ-dec-erased _ (no [ x₁≢x₂ ]) _ =
+    no [ x₁≢x₂ ∘ cong proj₁ ]
+  set⇒dec-erased⇒dec-erased⇒Σ-dec-erased
+    {P = P} {y₁ = y₁} {y₂ = y₂} set₁ (yes [ x₁≡x₂ ]) dec₂ =
+    ⊎-map
+      (map λ cast-y₁≡y₂ →
+         Σ-≡,≡→≡ x₁≡x₂
+           (subst (λ x → P x) x₁≡x₂ y₁   ≡⟨ sym substᴱ≡subst ⟩
+            substᴱ (λ x → P x) x₁≡x₂ y₁  ≡⟨ cast-y₁≡y₂ ⟩∎
+            y₂                           ∎))
+      (map λ cast-y₁≢y₂ eq →                              $⟨ proj₂ (Σ-≡,≡←≡ eq) ⟩
+         subst (λ x → P x) (proj₁ (Σ-≡,≡←≡ eq)) y₁ ≡ y₂   ↝⟨ ≡⇒↝ _ $ cong (_≡ _) $ sym substᴱ≡subst ⟩
+         substᴱ (λ x → P x) (proj₁ (Σ-≡,≡←≡ eq)) y₁ ≡ y₂  ↝⟨ subst (λ p → substᴱ _ p _ ≡ _) (set₁ _ _) ⟩
+         substᴱ (λ x → P x) x₁≡x₂ y₁ ≡ y₂                 ↝⟨ cast-y₁≢y₂ ⟩□
+         ⊥                                                □)
+      (dec₂ x₁≡x₂)
+
+  -- A variant of Equality.Decision-procedures.Σ.decidable⇒dec⇒dec.
+
+  decidable-erased⇒dec-erased⇒Σ-dec-erased :
+    {@0 A : Type a} {@0 P : A → Type p}
+    {x₁ x₂ : A} {@0 y₁ : P x₁} {@0 y₂ : P x₂} →
+    Decidable-erased-equality A →
+    (∀ (@0 eq) → Dec-Erased (substᴱ (λ x → P x) eq y₁ ≡ y₂)) →
+    Dec-Erased ((x₁ , y₁) ≡ (x₂ , y₂))
+  decidable-erased⇒dec-erased⇒Σ-dec-erased dec =
+    set⇒dec-erased⇒dec-erased⇒Σ-dec-erased
+      (decidable⇒set
+         (Decidable-erased-equality≃Decidable-equality _ dec))
+      (dec _ _)
+
+  -- A variant of Equality.Decision-procedures.Σ.Dec._≟_.
+
+  decidable-erased⇒decidable-erased⇒Σ-decidable-erased :
+    {@0 A : Type a} {P : @0 A → Type p} →
+    Decidable-erased-equality A →
+    ({x : A} → Decidable-erased-equality (P x)) →
+    Decidable-erased-equality (Σ A λ x → P x)
+  decidable-erased⇒decidable-erased⇒Σ-decidable-erased
+    {P = P} decA decP (_ , x₂) (_ , y₂) =
+    decidable-erased⇒dec-erased⇒Σ-dec-erased
+      decA
+      (λ eq → decP (substᴱ P eq x₂) y₂)
