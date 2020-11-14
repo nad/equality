@@ -1503,13 +1503,13 @@ module Signature {ℓ} (sig : Signature ℓ) where
       Free-in-argument′ (nil tˢ) t wf = Free-in-term′ tˢ t wf
 
       Free-in-argument′ {xs = xs} (cons aˢ) (y , a) wf =
-          Π _ λ z → Π (Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) λ ([ z∉ ]) →
-          Free-in-argument′
-            aˢ
-            (rename-Arg y z aˢ a)
-            (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
-                   swap
-                   (wf z z∉))
+        Π _ λ z → Π (Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) λ ([ z∉ ]) →
+        Free-in-argument′
+          aˢ
+          (rename-Arg y z aˢ a)
+          (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
+                 swap
+                 (wf z z∉))
         where
         Π : (A : Type ℓ) → (A → Proposition ℓ) → Proposition ℓ
         Π A B =
