@@ -2768,28 +2768,32 @@ implicit-ΠΣ-comm {A = A} {B} {C} =
 
 ¬⊎¬⇔¬× :
   ∀ {a b} {A : Type a} {B : Type b} →
-  Dec A → Dec B →
+  Dec (¬ A) → Dec (¬ B) →
   ¬ A ⊎ ¬ B ⇔ ¬ (A × B)
-¬⊎¬⇔¬× (no ¬A) _ = record
+¬⊎¬⇔¬× (yes ¬A) _ = record
   { to   = ¬⊎¬→×¬
   ; from = λ _ → inj₁ ¬A
   }
-¬⊎¬⇔¬× _ (no ¬B) = record
+¬⊎¬⇔¬× _ (yes ¬B) = record
   { to   = ¬⊎¬→×¬
   ; from = λ _ → inj₂ ¬B
   }
-¬⊎¬⇔¬× (yes a) (yes b) = record
+¬⊎¬⇔¬× (no ¬¬A) (no ¬¬B) = record
   { to   = ¬⊎¬→×¬
-  ; from = λ ¬[A×B] → ⊥-elim $ ¬[A×B] (a , b)
+  ; from = λ ¬[A×B] →
+             ⊥-elim $
+             ¬¬A λ a →
+             ¬¬B λ b →
+             ¬[A×B] (a , b)
   }
 
 ¬⊎¬↠¬× :
   ∀ {a b} {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) lzero →
-  Dec A → Dec B →
+  Dec (¬ A) → Dec (¬ B) →
   ¬ A ⊎ ¬ B ↠ ¬ (A × B)
-¬⊎¬↠¬× ext dec-A dec-B = record
-  { logical-equivalence = ¬⊎¬⇔¬× dec-A dec-B
+¬⊎¬↠¬× ext dec-¬A dec-¬B = record
+  { logical-equivalence = ¬⊎¬⇔¬× dec-¬A dec-¬B
   ; right-inverse-of    = λ _ → ¬-propositional ext _ _
   }
 

@@ -905,13 +905,13 @@ drop-⊥-left-∥⊎∥ B-prop ¬A =
 -- A variant of one of De Morgan's laws.
 
 ¬∥⊎∥¬↔¬× :
-  Dec A → Dec B →
+  Dec (¬ A) → Dec (¬ B) →
   ¬ A ∥⊎∥ ¬ B ↔ ¬ (A × B)
-¬∥⊎∥¬↔¬× {A = A} {B = B} dec-A dec-B = record
+¬∥⊎∥¬↔¬× {A = A} {B = B} dec-¬A dec-¬B = record
   { surjection = record
     { logical-equivalence = record
       { to   = rec (¬-propositional ext) ¬⊎¬→×¬
-      ; from = ∣_∣ ∘ _↠_.from (¬⊎¬↠¬× ext dec-A dec-B)
+      ; from = ∣_∣ ∘ _↠_.from (¬⊎¬↠¬× ext dec-¬A dec-¬B)
       }
     ; right-inverse-of = λ _ → ¬-propositional ext _ _
     }
