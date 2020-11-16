@@ -41,37 +41,36 @@ pattern lam   = ec true
 pattern app   = ec false
 pattern print = sc tt
 
--- Equality of constructors is decidable.
+-- Erased equality of constructors is decidable.
 
-_≟O_ : ∀ {@0 s} → Decidable-equality (Constructor s)
-ec x  ≟O ec y  = Dec-map (record { to   = cong ec
-                                 ; from = cong (λ { (ec x) → x })
-                                 })
-                         (x Bool.≟ y)
-print ≟O print = yes refl
+_≟O_ : ∀ {@0 s} → Decidable-erased-equality (Constructor s)
+ec x  ≟O ec y  = Dec-Erased-map
+                   (record { to   = cong ec
+                           ; from = cong (λ { (ec x) → x })
+                           })
+                   (Decidable-equality→Decidable-erased-equality
+                      Bool._≟_ x y)
+print ≟O print = yes [ refl ]
 
 -- Variables are natural numbers.
 
 Var : @0 Sort → Type
 Var _ = ℕ
 
--- Equality of variables is decidable.
-
-Decidable-equality-Var : ∀ (@0 s) → Decidable-equality (Var s)
-Decidable-equality-Var _ = Nat._≟_
-
 -- A signature.
 
 sig : Signature lzero
-sig .Signature.Sort             = Sort
-sig .Signature._≟S_             = Bool._≟_
-sig .Signature.Op               = Constructor
-sig .Signature._≟O_             = _≟O_
-sig .Signature.domain lam       = (expr ∷ [] , expr) ∷ []
-sig .Signature.domain app       = ([] , expr) ∷ ([] , expr) ∷ []
-sig .Signature.domain print     = ([] , expr) ∷ []
-sig .Signature.Var              = Var
-sig .Signature._≟V_ {s = s}     = Decidable-equality-Var s
+sig .Signature.Sort         = Sort
+sig .Signature.Op           = Constructor
+sig .Signature.domain lam   = (expr ∷ [] , expr) ∷ []
+sig .Signature.domain app   = ([] , expr) ∷ ([] , expr) ∷ []
+sig .Signature.domain print = ([] , expr) ∷ []
+sig .Signature.Var          = Var
+sig .Signature._≟O_         = _≟O_
+sig .Signature._≟S_         =
+  Decidable-equality→Decidable-erased-equality Bool._≟_
+sig .Signature._≟V_ =
+  Decidable-equality→Decidable-erased-equality Nat._≟_
 sig .Signature.fresh {s = s} xs =
   Σ-map id (λ {n} ([ ub ]) → [ (λ n∈ → Nat.<-irreflexive (ub n n∈)) ])
     (L.elim e xs)
@@ -213,10 +212,12 @@ print[λxy→xy] =
   printˢ $ lamˢ 0 $ lamˢ 1 $
   appˢ (weaken-Term lemma (varˢ 0)) (varˢ 1)
   where
+  @0 lemma : _
   lemma =
     from-⊎ $
     subset?
-      (decidable-equality→decidable-mere-equality _≟∃V_)
+      (decidable-equality→decidable-mere-equality
+         (Decidable-erased-equality≃Decidable-equality _ _≟∃V_))
       ((expr , 0) ∷ [])
       ((expr , 1) ∷ (expr , 0) ∷ [])
 
@@ -269,7 +270,7 @@ _,_⦂_ : ∀ {xs} → Ctxt xs → ∀ x → Ty → Ctxt (x ∷ xs)
 (Γ , x ⦂ σ) ⊠ y y∈x∷xs =
   case y ≟∃V x of λ where
     (yes y≡x) → σ
-    (no  y≢x) → Γ ⊠ y (_≃_.to (∈≢∷≃ y≢x) y∈x∷xs)
+    (no  y≢x) → Γ ⊠ y (_≃_.to (∈≢∷≃ (Stable-¬ _ y≢x)) y∈x∷xs)
 
 -- A type system.
 
