@@ -917,3 +917,30 @@ drop-⊥-left-∥⊎∥ B-prop ¬A =
     }
   ; left-inverse-of = λ _ → ∥⊎∥-propositional _ _
   }
+
+-- If ∥ A ∥ is decided, then A ∥⊎∥ B is equivalent to A ∥⊎∥ ¬ A × B.
+
+∥⊎∥≃∥⊎∥¬× :
+  Dec ∥ A ∥ →
+  (A ∥⊎∥ B) ≃ (A ∥⊎∥ ¬ A × B)
+∥⊎∥≃∥⊎∥¬× (yes ∥A∥) = Eq.⇔→≃
+  ∥⊎∥-propositional
+  ∥⊎∥-propositional
+  (const (∥∥-map inj₁ ∥A∥))
+  (id ∥⊎∥-cong proj₂)
+∥⊎∥≃∥⊎∥¬× (no ¬∥A∥) = Eq.⇔→≃
+  ∥⊎∥-propositional
+  ∥⊎∥-propositional
+  (id ∥⊎∥-cong (¬∥A∥ ∘ ∣_∣) ,_)
+  (id ∥⊎∥-cong proj₂)
+
+-- If ∥ B ∥ is decided, then A ∥⊎∥ B is equivalent to ¬ B × A ∥⊎∥ B.
+
+∥⊎∥≃¬×∥⊎∥ :
+  Dec ∥ B ∥ →
+  (A ∥⊎∥ B) ≃ (¬ B × A ∥⊎∥ B)
+∥⊎∥≃¬×∥⊎∥ {B = B} {A = A} dec-∥B∥ =
+  A ∥⊎∥ B        ↔⟨ ∥⊎∥-comm ⟩
+  B ∥⊎∥ A        ↝⟨ ∥⊎∥≃∥⊎∥¬× dec-∥B∥ ⟩
+  B ∥⊎∥ ¬ B × A  ↔⟨ ∥⊎∥-comm ⟩□
+  ¬ B × A ∥⊎∥ B  □
