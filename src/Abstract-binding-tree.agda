@@ -869,8 +869,54 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Decidable-erased-equality (Argument′ xs v)  ↝⟨ Decidable-erased-equality-map (_≃_.surjection Argument′≃Argument) ⟩□
     Decidable-erased-equality (Argument xs v)   □
 
-  -- Variable, Term, Arguments, Argument, Term′, Arguments′ and
-  -- Argument′ are sets (pointwise, in erased contexts).
+  -- Tmˢ, Argsˢ, Argˢ, Tm, Args, Arg, Tm′, Args′, Arg′, Variable,
+  -- Term, Arguments, Argument, Term′, Arguments′ and Argument′ are
+  -- sets (pointwise, in erased contexts).
+
+  @0 Tmˢ-set : Is-set (Tmˢ s)
+  Tmˢ-set =
+    decidable⇒set $
+    Decidable-erased-equality≃Decidable-equality _ _≟Tmˢ_
+
+  @0 Argsˢ-set : Is-set (Argsˢ vs)
+  Argsˢ-set =
+    decidable⇒set $
+    Decidable-erased-equality≃Decidable-equality _ _≟Argsˢ_
+
+  @0 Argˢ-set : Is-set (Argˢ v)
+  Argˢ-set =
+    decidable⇒set $
+    Decidable-erased-equality≃Decidable-equality _ _≟Argˢ_
+
+  @0 Tm-set : ∀ {s} (tˢ : Tmˢ s) → Is-set (Tm tˢ)
+  Tm-set tˢ =
+    decidable⇒set $
+    Decidable-erased-equality≃Decidable-equality _ (equal?-Tm tˢ)
+
+  @0 Args-set : ∀ {vs} {asˢ : Argsˢ vs} → Is-set (Args asˢ)
+  Args-set =
+    decidable⇒set $
+    Decidable-erased-equality≃Decidable-equality _ (equal?-Args _)
+
+  @0 Arg-set : ∀ {v} (aˢ : Argˢ v) → Is-set (Arg aˢ)
+  Arg-set aˢ =
+    decidable⇒set $
+    Decidable-erased-equality≃Decidable-equality _ (equal?-Arg aˢ)
+
+  @0 Tm′-set : ∀ {s} {tˢ : Tmˢ s} → Is-set (Tm′ tˢ)
+  Tm′-set =
+    decidable⇒set $
+    Decidable-erased-equality≃Decidable-equality _ _≟Tm′_
+
+  @0 Args′-set : ∀ {vs} {asˢ : Argsˢ vs} → Is-set (Args′ asˢ)
+  Args′-set =
+    decidable⇒set $
+    Decidable-erased-equality≃Decidable-equality _ _≟Args′_
+
+  @0 Arg′-set : ∀ {v} {aˢ : Argˢ v} → Is-set (Arg′ aˢ)
+  Arg′-set =
+    decidable⇒set $
+    Decidable-erased-equality≃Decidable-equality _ _≟Arg′_
 
   @0 Variable-set : ∀ {s} → Is-set (Variable xs s)
   Variable-set =
