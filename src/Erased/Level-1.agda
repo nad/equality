@@ -421,6 +421,24 @@ Dec-Erased-cong-⇔ A⇔B = record
   ; from = Dec-Erased-map (inverse A⇔B)
   }
 
+-- If A and B are decided (with erased proofs), then A × B is.
+
+Dec-Erased-× :
+  {@0 A : Type a} {@0 B : Type b} →
+  Dec-Erased A → Dec-Erased B → Dec-Erased (A × B)
+Dec-Erased-× (no [ ¬a ]) _           = no [ ¬a ∘ proj₁ ]
+Dec-Erased-× _           (no [ ¬b ]) = no [ ¬b ∘ proj₂ ]
+Dec-Erased-× (yes [ a ]) (yes [ b ]) = yes [ a , b ]
+
+-- If A and B are decided (with erased proofs), then A ⊎ B is.
+
+Dec-Erased-⊎ :
+  {@0 A : Type a} {@0 B : Type b} →
+  Dec-Erased A → Dec-Erased B → Dec-Erased (A ⊎ B)
+Dec-Erased-⊎ (yes [ a ]) _           = yes [ inj₁ a ]
+Dec-Erased-⊎ (no [ ¬a ]) (yes [ b ]) = yes [ inj₂ b ]
+Dec-Erased-⊎ (no [ ¬a ]) (no [ ¬b ]) = no [ Prelude.[ ¬a , ¬b ] ]
+
 -- A variant of Equality.Decision-procedures.×.dec⇒dec⇒dec.
 
 dec-erased⇒dec-erased⇒×-dec-erased :
