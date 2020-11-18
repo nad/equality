@@ -34,23 +34,23 @@ pattern stmt = false
 -- Constructors: lambda, application and print.
 
 data Constructor : @0 Sort → Type where
-  ec : Bool → Constructor expr
-  sc : ⊤ → Constructor stmt
+  exprᶜ : Bool → Constructor expr
+  stmtᶜ : ⊤ → Constructor stmt
 
-pattern lam   = ec true
-pattern app   = ec false
-pattern print = sc tt
+pattern lamᶜ   = exprᶜ true
+pattern appᶜ   = exprᶜ false
+pattern printᶜ = stmtᶜ tt
 
 -- Erased equality of constructors is decidable.
 
 _≟O_ : ∀ {@0 s} → Decidable-erased-equality (Constructor s)
-ec x  ≟O ec y  = Dec-Erased-map
-                   (record { to   = cong ec
-                           ; from = cong (λ { (ec x) → x })
-                           })
-                   (Decidable-equality→Decidable-erased-equality
-                      Bool._≟_ x y)
-print ≟O print = yes [ refl ]
+exprᶜ x ≟O exprᶜ y = Dec-Erased-map
+                       (record { to   = cong exprᶜ
+                               ; from = cong (λ { (exprᶜ x) → x })
+                               })
+                       (Decidable-equality→Decidable-erased-equality
+                          Bool._≟_ x y)
+printᶜ  ≟O printᶜ  = yes [ refl ]
 
 -- Variables are natural numbers.
 
@@ -60,14 +60,14 @@ Var _ = ℕ
 -- A signature.
 
 sig : Signature lzero
-sig .Signature.Sort         = Sort
-sig .Signature.Op           = Constructor
-sig .Signature.domain lam   = (expr ∷ [] , expr) ∷ []
-sig .Signature.domain app   = ([] , expr) ∷ ([] , expr) ∷ []
-sig .Signature.domain print = ([] , expr) ∷ []
-sig .Signature.Var          = Var
-sig .Signature._≟O_         = _≟O_
-sig .Signature._≟S_         =
+sig .Signature.Sort          = Sort
+sig .Signature.Op            = Constructor
+sig .Signature.domain lamᶜ   = (expr ∷ [] , expr) ∷ []
+sig .Signature.domain appᶜ   = ([] , expr) ∷ ([] , expr) ∷ []
+sig .Signature.domain printᶜ = ([] , expr) ∷ []
+sig .Signature.Var           = Var
+sig .Signature._≟O_          = _≟O_
+sig .Signature._≟S_          =
   Decidable-equality→Decidable-erased-equality Bool._≟_
 sig .Signature._≟V_ =
   Decidable-equality→Decidable-erased-equality Nat._≟_
@@ -147,7 +147,9 @@ sig .Signature.fresh {s = s} xs =
     Σ-closure 2 ℕ-set λ _ →
     mono₁ 1 prop
 
-open Signature sig public hiding (Sort; Var; _≟O_)
+open Signature sig public
+  hiding (Sort; Var; _≟O_)
+  renaming (var to varᶜ)
 
 private
   variable
@@ -158,24 +160,24 @@ private
 
 -- Pattern synonyms.
 
-pattern varᵖ x wf = var , x , [ wf ]
+pattern varᵖ x wf = varᶜ , x , [ wf ]
 
 pattern lamˢᵖ tˢ =
-  op lam (cons (cons (nil tˢ)) nil)
+  op lamᶜ (cons (cons (nil tˢ)) nil)
 pattern lamᵖ x tˢ t wf =
     lamˢᵖ tˢ
   , ((x , t) , lift tt)
   , [ wf , lift tt ]
 
 pattern appˢᵖ t₁ˢ t₂ˢ =
-  op app (cons (nil t₁ˢ) (cons (nil t₂ˢ) nil))
+  op appᶜ (cons (nil t₁ˢ) (cons (nil t₂ˢ) nil))
 pattern appᵖ t₁ˢ t₂ˢ t₁ t₂ wf₁ wf₂ =
     appˢᵖ t₁ˢ t₂ˢ
   , (t₁ , t₂ , lift tt)
   , [ wf₁ , wf₂ , lift tt ]
 
 pattern printˢᵖ tˢ =
-  op print (cons (nil tˢ) nil)
+  op printᶜ (cons (nil tˢ) nil)
 pattern printᵖ tˢ t wf =
     printˢᵖ tˢ
   , (t , lift tt)
@@ -183,34 +185,34 @@ pattern printᵖ tˢ t wf =
 
 -- Some (more or less) smart constructors.
 
-varˢ : ∀ {s} (x : Var s) → Term ((s , x) ∷ xs) s
-varˢ x = varᵖ x (≡→∈∷ refl)
+var : ∀ {s} (x : Var s) → Term ((s , x) ∷ xs) s
+var x = varᵖ x (≡→∈∷ refl)
 
-lamˢ :
+lam :
   (x : Var expr) →
   Term ((expr , x) ∷ xs) expr →
   Term xs expr
-lamˢ x (tˢ , t , [ wf ]) =
+lam x (tˢ , t , [ wf ]) =
   lamᵖ x tˢ t (λ _ _ → rename-Wf-tm tˢ wf)
 
-appˢ : Term xs expr → Term xs expr → Term xs expr
-appˢ (t₁ˢ , t₁ , [ wf₁ ]) (t₂ˢ , t₂ , [ wf₂ ]) =
+app : Term xs expr → Term xs expr → Term xs expr
+app (t₁ˢ , t₁ , [ wf₁ ]) (t₂ˢ , t₂ , [ wf₂ ]) =
   appᵖ t₁ˢ t₂ˢ t₁ t₂ wf₁ wf₂
 
-printˢ : Term xs expr → Term xs stmt
-printˢ (tˢ , t , [ wf ]) = printᵖ tˢ t wf
+print : Term xs expr → Term xs stmt
+print (tˢ , t , [ wf ]) = printᵖ tˢ t wf
 
 -- A representation of "λ x. x".
 
 λx→x : Term [] expr
-λx→x = lamˢ 0 (varˢ 0)
+λx→x = lam 0 (var 0)
 
 -- A representation of "print (λ x y. x y)".
 
 print[λxy→xy] : Term [] stmt
 print[λxy→xy] =
-  printˢ $ lamˢ 0 $ lamˢ 1 $
-  appˢ (weaken-Term lemma (varˢ 0)) (varˢ 1)
+  print $ lam 0 $ lam 1 $
+  app (weaken-Term lemma (var 0)) (var 1)
   where
   @0 lemma : _
   lemma =
@@ -230,7 +232,7 @@ eval (suc n) t = eval′ t
   eval′ : ∀ {xs} → Term xs s → Term xs s
   eval′ t@(varᵖ _ _)     = t
   eval′ t@(lamᵖ _ _ _ _) = t
-  eval′ (printᵖ tˢ t wf) = printˢ (eval′ (tˢ , t , [ wf ]))
+  eval′ (printᵖ tˢ t wf) = print (eval′ (tˢ , t , [ wf ]))
   eval′ {xs = xs} (appᵖ t₁ˢ t₂ˢ t₁ t₂ wf₁ wf₂)
     with eval′ (t₁ˢ , t₁ , [ wf₁ ])
        | eval′ (t₂ˢ , t₂ , [ wf₂ ])
@@ -241,7 +243,7 @@ eval (suc n) t = eval′ t
               , t₁′
               , [ body-Wf-tm t₁ˢ′ wf₁′ ]
               ))
-  … | t₁′ | t₂′ = appˢ t₁′ t₂′
+  … | t₁′ | t₂′ = app t₁′ t₂′
 
 -- Simple types.
 
@@ -278,19 +280,19 @@ infix 4 _⊢_⦂_
 
 data _⊢_⦂_ : Ctxt xs → Term xs s → Ty → Type where
   ⊢var   : ∀ {s x xs} {Γ : Ctxt ((s , x) ∷ xs)} {t σ} →
-           t ≡ varˢ x →
+           t ≡ var x →
            σ ≡ Γ ⊠ (s , x) (≡→∈∷ refl) →
            Γ ⊢ t ⦂ σ
   ⊢lam   : ∀ {xs} {Γ : Ctxt xs} {x t t′ σ τ} →
            Γ , (_ , x) ⦂ σ ⊢ t ⦂ τ →
-           t′ ≡ lamˢ x t →
+           t′ ≡ lam x t →
            Γ ⊢ t′ ⦂ σ ⇨ τ
   ⊢app   : ∀ {xs} {Γ : Ctxt xs} {t₁ t₂ t′ σ τ} →
            Γ ⊢ t₁ ⦂ σ ⇨ τ →
            Γ ⊢ t₂ ⦂ σ →
-           t′ ≡ appˢ t₁ t₂ →
+           t′ ≡ app t₁ t₂ →
            Γ ⊢ t′ ⦂ τ
   ⊢print : ∀ {xs} {Γ : Ctxt xs} {t t′ σ} →
            Γ ⊢ t ⦂ σ →
-           t′ ≡ printˢ t →
+           t′ ≡ print t →
            Γ ⊢ t′ ⦂ σ
