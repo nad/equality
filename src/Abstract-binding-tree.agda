@@ -2360,47 +2360,47 @@ module Signature {ℓ} (sig : Signature ℓ) where
   ----------------------------------------------------------------------
   -- Substitution
 
-  module _ {s ys} (x : Var s) (t : Term ys s) where
+  module _ {s} (x : Var s) where
 
     -- Substitution for variables.
 
     subst-Variable :
-      ∀ {s′} → Variable ((_ , x) ∷ xs) s′ → Term (xs ∪ ys) s′
-    subst-Variable {xs = xs} (y , [ y∈x∷xs ]) =
+      ∀ {xs s′} →
+      Term xs s → Variable ((_ , x) ∷ xs) s′ → Term xs s′
+    subst-Variable {xs = xs} t (y , [ y∈x∷xs ]) =
       case (_ , y) ≟∃V (_ , x) of λ where
-        (no [ y≢x ])  → var-wf y (∈→∈∪ˡ (_≃_.to (∈≢∷≃ y≢x) y∈x∷xs))
+        (no [ y≢x ])  → var-wf y (_≃_.to (∈≢∷≃ y≢x) y∈x∷xs)
         (yes [ y≡x ]) →
-          substᴱ (λ p → Term (xs ∪ ys) (proj₁ p)) (sym y≡x) $
-            Σ-map id
-              (λ {tˢ} → Σ-map id
-                          (E.map (weaken-Wf-tm (λ _ → ∈→∈∪ʳ xs) tˢ)))
-              t
+          substᴱ (λ p → Term xs (proj₁ p)) (sym y≡x) t
 
     -- Substitution for terms and arguments.
 
     private
 
       e : Wf-elim
-            (λ {xs = xs′} {s = s} _ →
-               ∀ {xs} → @0 xs′ ≡ (_ , x) ∷ xs → Term (xs ∪ ys) s)
+            (λ {xs = xs′} {s = s′} _ →
+               ∀ {xs} → @0 xs′ ≡ (_ , x) ∷ xs →
+               Term xs s → Term xs s′)
             (λ {xs = xs′} {vs = vs} _ →
-               ∀ {xs} → @0 xs′ ≡ (_ , x) ∷ xs → Arguments (xs ∪ ys) vs)
+               ∀ {xs} → @0 xs′ ≡ (_ , x) ∷ xs →
+               Term xs s → Arguments xs vs)
             (λ {xs = xs′} {v = v} _ →
-               ∀ {xs} → @0 xs′ ≡ (_ , x) ∷ xs → Argument (xs ∪ ys) v)
-      e .Wf-elim.varʳ x x∈ eq =
-        subst-Variable (x , [ subst (_ ∈_) eq x∈ ])
+               ∀ {xs} → @0 xs′ ≡ (_ , x) ∷ xs →
+               Term xs s → Argument xs v)
+      e .Wf-elim.varʳ x x∈ eq t =
+        subst-Variable t (x , [ subst (_ ∈_) eq x∈ ])
 
-      e .Wf-elim.opʳ o _ _ _ hyp eq = Σ-map (op o) id (hyp eq)
+      e .Wf-elim.opʳ o _ _ _ hyp eq t = Σ-map (op o) id (hyp eq t)
 
-      e .Wf-elim.nilʳ = λ _ → nil-wfs
+      e .Wf-elim.nilʳ = λ _ _ → nil-wfs
 
-      e .Wf-elim.consʳ _ _ _ _ _ _ hyp hyps eq =
+      e .Wf-elim.consʳ _ _ _ _ _ _ hyp hyps eq t =
         Σ-zip cons (Σ-zip _,_ λ ([ wf ]) ([ wfs ]) → [ (wf , wfs) ])
-          (hyp eq) (hyps eq)
+          (hyp eq t) (hyps eq t)
 
-      e .Wf-elim.nilʳ′ tˢ t wf hyp eq = Σ-map nil id (hyp eq)
+      e .Wf-elim.nilʳ′ _ _ _ hyp eq t = Σ-map nil id (hyp eq t)
 
-      e .Wf-elim.consʳ′ {xs = xs′} aˢ y a wf hyp {xs = xs} eq =
+      e .Wf-elim.consʳ′ {xs = xs′} aˢ y a wf hyp {xs = xs} eq t =
         case (_ , x) ≟∃V (_ , y) of λ where
           (inj₁ [ x≡y ]) →
             -- If the bound variable matches x, keep the original
@@ -2411,31 +2411,41 @@ module Signature {ℓ} (sig : Signature ℓ) where
                Wf-arg ((_ , x) ∷ xs) (cons aˢ) (y , a)        ↝⟨ strengthen-Wf-arg (cons aˢ) (
                  (_ , x) ∈ del (_ , y) (free-Arg aˢ a)             ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
                  (_ , x) ≢ (_ , y) × (_ , x) ∈ free-Arg aˢ a       ↝⟨ (_$ x≡y) ∘ proj₁ ⟩□
-                 ⊥                                                 □) ⟩
-               Wf-arg xs (cons aˢ) (y , a)                    ↝⟨ weaken-Wf-arg (λ _ → ∈→∈∪ˡ) (cons aˢ) ⟩□
-               Wf-arg (xs ∪ ys) (cons aˢ) (y , a)             □)
+                 ⊥                                                 □) ⟩□
+               Wf-arg xs (cons aˢ) (y , a)                    □)
           (inj₂ [ x≢y ]) →
             -- Otherwise, rename the bound variable to something fresh
             -- and keep substituting.
-            let z , [ z∉ ]         = fresh ((_ , x) ∷ xs ∪ ys)
+            let z , [ z∉ ]         = fresh ((_ , x) ∷ xs)
                 aˢ′ , a′ , [ wf′ ] =
-                  hyp z (z∉ ∘ ∈→∈∪ˡ ∘ subst (_ ∈_) eq)
+                  hyp
+                    z
+                    (z∉ ∘ subst (_ ∈_) eq)
                     ((_ , z) ∷ xs′           ≡⟨ cong (_ ∷_) eq ⟩
                      (_ , z) ∷ (_ , x) ∷ xs  ≡⟨ swap ⟩∎
                      (_ , x) ∷ (_ , z) ∷ xs  ∎)
+                    (weaken-Term
+                       (λ u →
+                          u ∈ xs            ↝⟨ ∈→∈∷ ⟩□
+                          u ∈ (_ , z) ∷ xs  □)
+                       t)
             in
             cons-wf aˢ′ z a′
-              (λ p _ →                                                   $⟨ wf′ ⟩
-                 Wf-arg ((_ , z) ∷ xs ∪ ys) aˢ′ a′                       ↝⟨ rename-Wf-arg aˢ′ ⟩□
-                 Wf-arg ((_ , p) ∷ xs ∪ ys) aˢ′ (rename-Arg z p aˢ′ a′)  □)
+              (λ p _ →                                              $⟨ wf′ ⟩
+                 Wf-arg ((_ , z) ∷ xs) aˢ′ a′                       ↝⟨ rename-Wf-arg aˢ′ ⟩□
+                 Wf-arg ((_ , p) ∷ xs) aˢ′ (rename-Arg z p aˢ′ a′)  □)
 
-    subst-Term : ∀ {xs} → Term ((_ , x) ∷ xs) s′ → Term (xs ∪ ys) s′
-    subst-Term t = wf-elim-Term e t (refl _)
+    subst-Term :
+      ∀ {xs} →
+      Term xs s → Term ((_ , x) ∷ xs) s′ → Term xs s′
+    subst-Term t t′ = wf-elim-Term e t′ (refl _) t
 
     subst-Arguments :
-      ∀ {xs} → Arguments ((_ , x) ∷ xs) vs → Arguments (xs ∪ ys) vs
-    subst-Arguments as = wf-elim-Arguments e as (refl _)
+      ∀ {xs} →
+      Term xs s → Arguments ((_ , x) ∷ xs) vs → Arguments xs vs
+    subst-Arguments t as = wf-elim-Arguments e as (refl _) t
 
     subst-Argument :
-      ∀ {xs} → Argument ((_ , x) ∷ xs) v → Argument (xs ∪ ys) v
-    subst-Argument a = wf-elim-Argument e a (refl _)
+      ∀ {xs} →
+      Term xs s → Argument ((_ , x) ∷ xs) v → Argument xs v
+    subst-Argument t a = wf-elim-Argument e a (refl _) t

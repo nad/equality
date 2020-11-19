@@ -233,11 +233,10 @@ eval (suc n) t = eval′ t
   eval′ t@(varᵖ _ _)     = t
   eval′ t@(lamᵖ _ _ _ _) = t
   eval′ (printᵖ tˢ t wf) = print (eval′ (tˢ , t , [ wf ]))
-  eval′ {xs = xs} (appᵖ t₁ˢ t₂ˢ t₁ t₂ wf₁ wf₂)
+  eval′ (appᵖ t₁ˢ t₂ˢ t₁ t₂ wf₁ wf₂)
     with eval′ (t₁ˢ , t₁ , [ wf₁ ])
        | eval′ (t₂ˢ , t₂ , [ wf₂ ])
   … | lamᵖ x t₁ˢ′ t₁′ wf₁′ | t₂′ =
-    cast-Term (idem xs) $
     eval n (subst-Term x t₂′
               ( t₁ˢ′
               , t₁′
