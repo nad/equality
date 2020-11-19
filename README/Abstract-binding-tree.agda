@@ -193,7 +193,7 @@ lam :
   Term ((expr , x) ∷ xs) expr →
   Term xs expr
 lam x (tˢ , t , [ wf ]) =
-  lamᵖ x tˢ t (λ _ _ → rename-Wf-tm tˢ wf)
+  lamᵖ x tˢ t (λ b _ _ → rename-Wf-arg b (nil tˢ) wf)
 
 app : Term xs expr → Term xs expr → Term xs expr
 app (t₁ˢ , t₁ , [ wf₁ ]) (t₂ˢ , t₂ , [ wf₂ ]) =
@@ -212,30 +212,29 @@ print (tˢ , t , [ wf ]) = printᵖ tˢ t wf
 λxy→yy : Term [] expr
 λxy→yy = lam 1 $ lam 2 $ app (var 2) (var 2)
 
--- A representation of "λ x y. x y".
+-- Two representations of "λ x y. x y".
 
-λxy→xy : Term [] expr
-λxy→xy = lam 2 $ lam 1 $ app (weaken-Term lemma (var 2)) (var 1)
-  where
-  @0 lemma : _
-  lemma =
-    from-⊎ $
-    subset?
-      (decidable→decidable-∥∥
-         (Decidable-erased-equality≃Decidable-equality _ _≟∃V_))
-      ((expr , 2) ∷ [])
-      ((expr , 1) ∷ (expr , 2) ∷ [])
+private
+
+  λxy→xy : ℕ → ℕ → Term [] expr
+  λxy→xy x y =
+    lam x $ lam y $ app (weaken-Term (λ _ → ∈→∈∷) (var x)) (var y)
+
+λxy→xy₁ : Term [] expr
+λxy→xy₁ = λxy→xy 2 1
+
+λxy→xy₂ : Term [] expr
+λxy→xy₂ = λxy→xy 1 2
 
 -- A representation of "print (λ x y. x y)".
 
 print[λxy→xy] : Term [] stmt
-print[λxy→xy] = print λxy→xy
+print[λxy→xy] = print λxy→xy₁
 
--- A term that should be a representation of "λ x y. x y", but is a
--- representation of "λ x y. y y".
+-- A third representation of "λ x y. x y".
 
-λxy→xy-buggy : Term [] expr
-λxy→xy-buggy = subst-Term 0 λx→x $ weaken-Term lemma λxy→xy
+λxy→xy₃ : Term [] expr
+λxy→xy₃ = subst-Term 0 λx→x $ weaken-Term lemma λxy→xy₁
   where
   @0 lemma : _
   lemma =
@@ -246,9 +245,10 @@ print[λxy→xy] = print λxy→xy
       []
       ((expr , 0) ∷ [])
 
--- The implementation of substitution is buggy.
+-- The second and third representations of "λ x y. x y" are equal (in
+-- erased contexts).
 
-@0 _ : λxy→xy-buggy ≡ λxy→yy
+@0 _ : λxy→xy₂ ≡ λxy→xy₃
 _ = Wf-tm-proof-irrelevant
 
 -- An interpreter that uses fuel.
@@ -268,7 +268,7 @@ eval (suc n) t = eval′ t
     eval n (subst-Term x t₂′
               ( t₁ˢ′
               , t₁′
-              , [ body-Wf-tm t₁ˢ′ wf₁′ ]
+              , [ body-Wf-arg (nil t₁ˢ′) wf₁′ ]
               ))
   … | t₁′ | t₂′ = app t₁′ t₂′
 
