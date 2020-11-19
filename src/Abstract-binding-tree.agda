@@ -249,6 +249,9 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       -- The term rename-Tm tˢ t is t with each (free or bound)
       -- occurrence of x replaced by y.
+      --
+      -- TODO: I think I misread Harper's text, and that this should
+      -- be capture-avoiding renaming.
 
       rename-Tm : (tˢ : Tmˢ s′) → Tm tˢ → Tm tˢ
       rename-Tm var        z  = rename-Var z
@@ -2387,7 +2390,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     aˢ , a , [ strengthen-Wf-arg aˢ (¬free ∘ free-Free-Arg aˢ wf) wf ]
 
   ----------------------------------------------------------------------
-  -- Substitution
+  -- Substitution (implemented incorrectly)
 
   module _ {s} (x : Var s) where
 
@@ -2445,6 +2448,13 @@ module Signature {ℓ} (sig : Signature ℓ) where
           (inj₂ [ x≢y ]) →
             -- Otherwise, rename the bound variable to something fresh
             -- and keep substituting.
+            --
+            -- TODO: This code is incorrect for terms that already
+            -- contain a z binder, with an occurrence of y under that
+            -- binder. For instance, if the "argument" a stands for
+            -- λ z. y z, then the renaming turns this into λ z. z z
+            -- (see README.Abstract-binding-tree for a concrete
+            -- example).
             let z , [ z∉ ]         = fresh ((_ , x) ∷ xs)
                 aˢ′ , a′ , [ wf′ ] =
                   hyp

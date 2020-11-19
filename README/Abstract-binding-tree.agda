@@ -207,12 +207,15 @@ print (tˢ , t , [ wf ]) = printᵖ tˢ t wf
 λx→x : Term [] expr
 λx→x = lam 0 (var 0)
 
--- A representation of "print (λ x y. x y)".
+-- A representation of "λ x y. y y".
 
-print[λxy→xy] : Term [] stmt
-print[λxy→xy] =
-  print $ lam 0 $ lam 1 $
-  app (weaken-Term lemma (var 0)) (var 1)
+λxy→yy : Term [] expr
+λxy→yy = lam 1 $ lam 2 $ app (var 2) (var 2)
+
+-- A representation of "λ x y. x y".
+
+λxy→xy : Term [] expr
+λxy→xy = lam 2 $ lam 1 $ app (weaken-Term lemma (var 2)) (var 1)
   where
   @0 lemma : _
   lemma =
@@ -220,8 +223,33 @@ print[λxy→xy] =
     subset?
       (decidable-equality→decidable-mere-equality
          (Decidable-erased-equality≃Decidable-equality _ _≟∃V_))
+      ((expr , 2) ∷ [])
+      ((expr , 1) ∷ (expr , 2) ∷ [])
+
+-- A representation of "print (λ x y. x y)".
+
+print[λxy→xy] : Term [] stmt
+print[λxy→xy] = print λxy→xy
+
+-- A term that should be a representation of "λ x y. x y", but is a
+-- representation of "λ x y. y y".
+
+λxy→xy-buggy : Term [] expr
+λxy→xy-buggy = subst-Term 0 λx→x $ weaken-Term lemma λxy→xy
+  where
+  @0 lemma : _
+  lemma =
+    from-⊎ $
+    subset?
+      (decidable-equality→decidable-mere-equality
+         (Decidable-erased-equality≃Decidable-equality _ _≟∃V_))
+      []
       ((expr , 0) ∷ [])
-      ((expr , 1) ∷ (expr , 0) ∷ [])
+
+-- The implementation of substitution is buggy.
+
+@0 _ : λxy→xy-buggy ≡ λxy→yy
+_ = Wf-tm-proof-irrelevant
 
 -- An interpreter that uses fuel.
 
