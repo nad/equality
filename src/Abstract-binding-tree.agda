@@ -120,7 +120,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       @0 o             : Op s
       @0 x y z         : Var s
       @0 A             : Type ℓ
-      @0 wf            : A
+      @0 wf wf₁ wf₂    : A
 
   ----------------------------------------------------------------------
   -- Variants of some functions from the signature
@@ -952,6 +952,35 @@ module Signature {ℓ} (sig : Signature ℓ) where
   Argument′-set =
     decidable⇒set $
     Decidable-erased-equality≃Decidable-equality _ _≟Argument′_
+
+  ----------------------------------------------------------------------
+  -- Some lemmas
+
+  -- Changing the well-formedness proof does not actually change
+  -- anything.
+
+  @0 Wf-var-proof-irrelevant :
+    _≡_ {A = Variable xs s} (x , [ wf₁ ]) (x , [ wf₂ ])
+  Wf-var-proof-irrelevant =
+    cong (λ wf → _ , [ wf ]) (Wf-var-propositional _ _)
+
+  @0 Wf-tm-proof-irrelevant :
+    ∀ {t : Tm tˢ} {wf₁ wf₂} →
+    _≡_ {A = Term xs s} (tˢ , t , [ wf₁ ]) (tˢ , t , [ wf₂ ])
+  Wf-tm-proof-irrelevant {tˢ = tˢ} =
+    cong (λ wf → tˢ , _ , [ wf ]) (Wf-tm-propositional tˢ _ _)
+
+  @0 Wf-args-proof-irrelevant :
+    ∀ {as : Args asˢ} {wf₁ wf₂} →
+    _≡_ {A = Arguments xs vs} (asˢ , as , [ wf₁ ]) (asˢ , as , [ wf₂ ])
+  Wf-args-proof-irrelevant {asˢ = asˢ} =
+    cong (λ wf → _ , _ , [ wf ]) (Wf-args-propositional asˢ _ _)
+
+  @0 Wf-arg-proof-irrelevant :
+    ∀ {a : Arg aˢ} {wf₁ wf₂} →
+    _≡_ {A = Argument xs v} (aˢ , a , [ wf₁ ]) (aˢ , a , [ wf₂ ])
+  Wf-arg-proof-irrelevant {aˢ = aˢ} =
+    cong (λ wf → aˢ , _ , [ wf ]) (Wf-arg-propositional aˢ _ _)
 
   ----------------------------------------------------------------------
   -- An elimination principle for well-formed terms ("structural
