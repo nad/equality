@@ -1821,6 +1821,11 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   Erased-other-singleton : {A : Type a} → @0 A → Type a
   Erased-other-singleton x = ∃ λ y → Erased (x ≡ y)
 
+  -- "Inspection" with erased proofs.
+
+  inspectᴱ : (x : A) → Erased-other-singleton x
+  inspectᴱ x = x , [ refl x ]
+
   -- The type of triples consisting of two values of type A, one erased,
   -- and an erased proof of equality of the two values is isomorphic to
   -- A.
