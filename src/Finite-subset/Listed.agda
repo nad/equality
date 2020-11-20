@@ -20,6 +20,7 @@ open import Prelude as P hiding ([_,_]; swap)
 
 open import Bag-equivalence equality-with-J as BE using (_∼[_]_; set)
 open import Bijection equality-with-J as Bijection using (_↔_)
+open import Equality.Decision-procedures equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Erased.Cubical eq as EC
@@ -29,8 +30,10 @@ open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣; _∥⊎∥_)
+open import Injection equality-with-J using (Injective)
 import List equality-with-J as L
-open import Monad equality-with-J as M using (Raw-monad; Monad)
+import Maybe equality-with-J as Maybe
+open import Monad equality-with-J as M using (Raw-monad; Monad; _=<<_)
 import Nat equality-with-J as Nat
 open import Quotient eq as Q using (_/_)
 open import Surjection equality-with-J using (_↠_)
@@ -935,97 +938,279 @@ equal?ᴱ eq? x y =                              $⟨ subset?ᴱ eq? x y , subse
   Dec-Erased (x ≡ y)                           □
 
 ------------------------------------------------------------------------
--- The functions filter, minus and delete
+-- The functions map-Maybe, filter, minus and delete
 
--- A filter function.
+private
 
-filter : (A → Bool) → Finite-subset-of A → Finite-subset-of A
-filter p = rec r
+  -- A function used to define map-Maybe.
+
+  map-Maybe-cons : Maybe B → Finite-subset-of B → Finite-subset-of B
+  map-Maybe-cons nothing  y = y
+  map-Maybe-cons (just x) y = x ∷ y
+
+-- A combination of map and filter.
+
+map-Maybe : (A → Maybe B) → Finite-subset-of A → Finite-subset-of B
+map-Maybe f = rec r
   where
   r : Rec _ _
   r .[]ʳ         = []
-  r .∷ʳ x _ y    = if p x then x ∷ y else y
+  r .∷ʳ x _ y    = map-Maybe-cons (f x) y
   r .is-setʳ     = is-set
-  r .dropʳ x _ y = lemma (p x)
+  r .dropʳ x _ y = lemma (f x)
     where
     lemma :
-      ∀ b →
-      if b then x ∷ if b then x ∷ y else y else if b then x ∷ y else y ≡
-      if b then x ∷ y else y
-    lemma true  = drop
-    lemma false = refl _
+      ∀ m → map-Maybe-cons m (map-Maybe-cons m y) ≡ map-Maybe-cons m y
+    lemma nothing  = refl _
+    lemma (just _) = drop
 
-  r .swapʳ x y _ z = lemma (p x) (p y)
+  r .swapʳ x y _ z = lemma (f x) (f y)
     where
     lemma :
-      ∀ b₁ b₂ →
-      (let u = if b₂ then y ∷ z else z in if b₁ then x ∷ u else u) ≡
-      (let u = if b₁ then x ∷ z else z in if b₂ then y ∷ u else u)
-    lemma true  true  = swap
-    lemma _     false = refl _
-    lemma false _     = refl _
+      ∀ m₁ m₂ →
+      map-Maybe-cons m₁ (map-Maybe-cons m₂ z) ≡
+      map-Maybe-cons m₂ (map-Maybe-cons m₁ z)
+    lemma (just _) (just _) = swap
+    lemma _        nothing  = refl _
+    lemma nothing  _        = refl _
 
--- A lemma characterising filter.
+-- A lemma characterising map-Maybe.
 
-∈filter≃ : (x ∈ filter p y) ≃ (T (p x) × x ∈ y)
-∈filter≃ {x = x} {p = p} = elim-prop e _
+∈map-Maybe≃ :
+  (x ∈ map-Maybe f y) ≃ ∥ (∃ λ z → z ∈ y × f z ≡ just x) ∥
+∈map-Maybe≃ {x = x} {f = f} = elim-prop e _
   where
-  e : Elim-prop _
+  e : Elim-prop (λ y → (x ∈ map-Maybe f y) ≃
+                       ∥ (∃ λ z → z ∈ y × f z ≡ just x) ∥)
   e .[]ʳ =
-    x ∈ filter p []   ↝⟨ ∈[]≃ ⟩
-    ⊥                 ↔⟨ inverse ×-right-zero ⟩
-    T (p x) × ⊥       ↝⟨ F.id ×-cong inverse ∈[]≃ ⟩□
-    T (p x) × x ∈ []  □
+    x ∈ map-Maybe f []                   ↝⟨ ∈[]≃ ⟩
+    ⊥                                    ↔⟨ inverse $ Trunc.∥∥↔ ⊥-propositional ⟩
+    ∥ ⊥ ∥                                ↔⟨ Trunc.∥∥-cong (inverse (×-right-zero {ℓ₁ = lzero} F.∘
+                                                                    ∃-cong (λ _ → ×-left-zero))) ⟩
+    ∥ (∃ λ z → ⊥ × f z ≡ just x) ∥       ↝⟨ Trunc.∥∥-cong (∃-cong λ _ → inverse ∈[]≃ ×-cong F.id) ⟩□
+    ∥ (∃ λ z → z ∈ [] × f z ≡ just x) ∥  □
 
   e .∷ʳ {y = y} z hyp =
-    x ∈ if p z then z ∷ filter p y else filter p y  ↔⟨ lemma _ (refl _) ⟩
-    T (p z) × x ≡ z ∥⊎∥ x ∈ filter p y              ↝⟨ Trunc.∥∥-cong $ (×-cong₁ λ eq → ≡⇒↝ _ $ cong (T ∘ p) (sym eq)) ⊎-cong hyp ⟩
-    T (p x) × x ≡ z ∥⊎∥ T (p x) × x ∈ y             ↔⟨ inverse $ Trunc.Σ-∥⊎∥-distrib-left (T-propositional (p x)) ⟩
-    T (p x) × (x ≡ z ∥⊎∥ x ∈ y)                     ↝⟨ F.id ×-cong inverse ∈∷≃ ⟩□
-    T (p x) × x ∈ z ∷ y                             □
+    (x ∈ map-Maybe f (z ∷ y))                                          ↝⟨ lemma _ _ ⟩
+    f z ≡ just x ∥⊎∥ (x ∈ map-Maybe f y)                               ↝⟨ from-isomorphism (inverse Trunc.truncate-right-∥⊎∥) F.∘
+                                                                          (F.id Trunc.∥⊎∥-cong hyp) ⟩
+    f z ≡ just x ∥⊎∥ (∃ λ u → u ∈ y × f u ≡ just x)                    ↔⟨ inverse $
+                                                                          drop-⊤-left-Σ (_⇔_.to contractible⇔↔⊤ $ singleton-contractible _) F.∘
+                                                                          Σ-assoc
+                                                                            Trunc.∥⊎∥-cong
+                                                                          F.id ⟩
+    (∃ λ u → u ≡ z × f u ≡ just x) ∥⊎∥ (∃ λ u → u ∈ y × f u ≡ just x)  ↔⟨ Trunc.∥∥-cong $ inverse ∃-⊎-distrib-left ⟩
+    ∥ (∃ λ u → u ≡ z × f u ≡ just x ⊎ u ∈ y × f u ≡ just x) ∥          ↔⟨ Trunc.∥∥-cong (∃-cong λ _ → inverse ∃-⊎-distrib-right) ⟩
+    ∥ (∃ λ u → (u ≡ z ⊎ u ∈ y) × f u ≡ just x) ∥                       ↔⟨ inverse $
+                                                                          Trunc.flatten′
+                                                                            (λ F → (∃ λ u → F (u ≡ z ⊎ u ∈ y) × f u ≡ just x))
+                                                                            (λ f → Σ-map id (Σ-map f id))
+                                                                            (λ (u , p , q) → Trunc.∥∥-map (λ p → u , p , q) p) ⟩
+    ∥ (∃ λ u → (u ≡ z ∥⊎∥ u ∈ y) × f u ≡ just x) ∥                     ↝⟨ Trunc.∥∥-cong (∃-cong λ _ → ×-cong₁ λ _ → inverse ∈∷≃) ⟩□
+    ∥ (∃ λ u → u ∈ z ∷ y × f u ≡ just x) ∥                             □
     where
-    lemma :
-      ∀ b → p z ≡ b →
-      (x ∈ if b then z ∷ filter p y else filter p y) ↔
-      T b × x ≡ z ∥⊎∥ x ∈ filter p y
-    lemma true eq =
-      x ∈ z ∷ filter p y            ↔⟨ ∈∷≃ ⟩
-      x ≡ z ∥⊎∥ x ∈ filter p y      ↝⟨ inverse ×-left-identity Trunc.∥⊎∥-cong F.id ⟩
-      ⊤ × x ≡ z ∥⊎∥ x ∈ filter p y  □
-    lemma false eq =
-      x ∈ filter p y                ↝⟨ inverse $ Trunc.drop-⊥-left-∥⊎∥ ∈-propositional (to-implication ×-left-zero) ⟩□
-      ⊥ × x ≡ z ∥⊎∥ x ∈ filter p y  □
+    lemma : ∀ m y → (x ∈ map-Maybe-cons m y) ≃ (m ≡ just x ∥⊎∥ x ∈ y)
+    lemma nothing y =
+      x ∈ map-Maybe-cons nothing y  ↔⟨⟩
+      x ∈ y                         ↔⟨ inverse $ Trunc.drop-⊥-left-∥⊎∥ ∈-propositional ⊎.inj₁≢inj₂ ⟩□
+      (nothing ≡ just x ∥⊎∥ x ∈ y)  □
+    lemma (just z) y =
+      x ∈ map-Maybe-cons (just z) y  ↔⟨⟩
+      x ∈ z ∷ y                      ↝⟨ ∈∷≃ ⟩
+      x ≡ z ∥⊎∥ x ∈ y                ↔⟨ (Bijection.≡↔inj₂≡inj₂ F.∘ ≡-comm) Trunc.∥⊎∥-cong F.id ⟩□
+      just z ≡ just x ∥⊎∥ x ∈ y      □
 
   e .is-propositionʳ y =
     Eq.left-closure ext 0 ∈-propositional
 
+-- The function map-Maybe f commutes with map-Maybe g if f commutes
+-- with g in a certain way.
+
+map-Maybe-comm :
+  {A : Type a} {f g : A → Maybe A} →
+  (∀ x → f =<< g x ≡ g =<< f x) →
+  ∀ x → map-Maybe f (map-Maybe g x) ≡ map-Maybe g (map-Maybe f x)
+map-Maybe-comm {A = A} {f = f} {g = g}
+               hyp x = _≃_.from extensionality λ y →
+  y ∈ map-Maybe f (map-Maybe g x)           ↝⟨ lemma₂ ⟩
+  ∥ (∃ λ u → u ∈ x × f =<< g u ≡ just y) ∥  ↝⟨ Trunc.∥∥-cong (∃-cong λ _ → ∃-cong λ _ → ≡⇒↝ _ $ cong (_≡ _) $ hyp _) ⟩
+  ∥ (∃ λ u → u ∈ x × g =<< f u ≡ just y) ∥  ↝⟨ inverse lemma₂ ⟩
+  y ∈ map-Maybe g (map-Maybe f x)           □
+  where
+  lemma₁ :
+    ∀ (f {g} : A → Maybe A) {x z} →
+    (∃ λ y → f x ≡ just y × g y ≡ just z) ⇔ (g =<< f x ≡ just z)
+  lemma₁ f {g = g} {x = x} {z = z} = record
+    { to = λ (y , f≡ , g≡) →
+        g =<< f x                    ≡⟨⟩
+        Maybe.maybe g nothing (f x)  ≡⟨ cong (Maybe.maybe g nothing) f≡ ⟩
+        g y                          ≡⟨ g≡ ⟩∎
+        just z                       ∎
+    ; from = from (f x)
+    }
+    where
+    from :
+      (fx : Maybe A) →
+      g =<< fx ≡ just z →
+      ∃ λ y → fx ≡ just y × g y ≡ just z
+    from nothing  = ⊥-elim ∘ ⊎.inj₁≢inj₂
+    from (just y) = (y ,_) ∘ (refl _ ,_)
+
+  lemma₂ :
+    {f g : A → Maybe A} →
+    y ∈ map-Maybe f (map-Maybe g x) ⇔
+    ∥ (∃ λ u → u ∈ x × f =<< g u ≡ just y) ∥
+  lemma₂ {y = y} {f = f} {g = g} =
+    y ∈ map-Maybe f (map-Maybe g x)                                  ↔⟨ Trunc.∥∥-cong (∃-cong λ _ → ∈map-Maybe≃ ×-cong F.id) F.∘ ∈map-Maybe≃ ⟩
+    ∥ (∃ λ z → ∥ (∃ λ u → u ∈ x × g u ≡ just z) ∥ × f z ≡ just y) ∥  ↔⟨ Trunc.flatten′
+                                                                          (λ F → ∃ λ z → F (∃ λ u → u ∈ x × _) × _)
+                                                                          (λ f → Σ-map id (Σ-map f id))
+                                                                          (λ (z , p , q) → Trunc.∥∥-map (λ p → z , p , q) p) ⟩
+    ∥ (∃ λ z → (∃ λ u → u ∈ x × g u ≡ just z) × f z ≡ just y) ∥      ↔⟨ Trunc.∥∥-cong (∃-cong λ _ → inverse $ Σ-assoc F.∘ ∃-cong λ _ → Σ-assoc) ⟩
+    ∥ (∃ λ z → ∃ λ u → u ∈ x × g u ≡ just z × f z ≡ just y) ∥        ↔⟨ Trunc.∥∥-cong ((∃-cong λ _ → ∃-comm) F.∘ ∃-comm) ⟩
+    ∥ (∃ λ u → u ∈ x × ∃ λ z → g u ≡ just z × f z ≡ just y) ∥        ↝⟨ Trunc.∥∥-cong (∃-cong λ _ → ∃-cong λ _ → lemma₁ g) ⟩□
+    ∥ (∃ λ u → u ∈ x × f =<< g u ≡ just y) ∥                         □
+
+-- The function map-Maybe commutes with union.
+
+map-Maybe-∪ :
+  ∀ x → map-Maybe f (x ∪ y) ≡ map-Maybe f x ∪ map-Maybe f y
+map-Maybe-∪ {f = f} {y = y} x = _≃_.from extensionality λ z →
+  z ∈ map-Maybe f (x ∪ y)                                    ↔⟨ (Trunc.∥∥-cong (∃-cong λ _ → ∈∪≃ ×-cong F.id)) F.∘ ∈map-Maybe≃ ⟩
+
+  ∥ (∃ λ u → (u ∈ x ∥⊎∥ u ∈ y) × f u ≡ just z) ∥             ↔⟨ Trunc.flatten′
+                                                                  (λ F → ∃ λ u → F (u ∈ x ⊎ u ∈ y) × _)
+                                                                  (λ f → Σ-map id (Σ-map f id))
+                                                                  (λ (u , p , q) → Trunc.∥∥-map (λ p → u , p , q) p) ⟩
+
+  ∥ (∃ λ u → (u ∈ x ⊎ u ∈ y) × f u ≡ just z) ∥               ↔⟨ Trunc.∥∥-cong (∃-cong λ _ → ∃-⊎-distrib-right) ⟩
+
+  ∥ (∃ λ u → u ∈ x × f u ≡ just z ⊎ u ∈ y × f u ≡ just z) ∥  ↔⟨ Trunc.∥∥-cong ∃-⊎-distrib-left ⟩
+
+  (∃ λ u → u ∈ x × f u ≡ just z) ∥⊎∥
+  (∃ λ u → u ∈ y × f u ≡ just z)                             ↔⟨ inverse $
+                                                                Trunc.flatten′ (λ F → F _ ⊎ F _) (λ f → ⊎-map f f)
+                                                                  P.[ Trunc.∥∥-map inj₁ , Trunc.∥∥-map inj₂ ] ⟩
+  ∥ (∃ λ u → u ∈ x × f u ≡ just z) ∥ ∥⊎∥
+  ∥ (∃ λ u → u ∈ y × f u ≡ just z) ∥                         ↔⟨ inverse $ (∈map-Maybe≃ Trunc.∥⊎∥-cong ∈map-Maybe≃) F.∘ ∈∪≃ ⟩□
+
+  z ∈ map-Maybe f x ∪ map-Maybe f y                          □
+
+-- One can express map using map-Maybe.
+
+map≡map-Maybe-just :
+  (x : Finite-subset-of A) →
+  map f x ≡ map-Maybe (just ∘ f) x
+map≡map-Maybe-just {f = f} = elim-prop e
+  where
+  e : Elim-prop _
+  e .[]ʳ               = refl _
+  e .∷ʳ x              = cong (f x ∷_)
+  e .is-propositionʳ _ = is-set
+
+-- A lemma characterising map.
+
+∈map≃ : (x ∈ map f y) ≃ ∥ (∃ λ z → z ∈ y × f z ≡ x) ∥
+∈map≃ {x = x} {f = f} {y = y} =
+  x ∈ map f y                                ↝⟨ ≡⇒↝ _ $ cong (_ ∈_) $ map≡map-Maybe-just y ⟩
+  x ∈ map-Maybe (just ∘ f) y                 ↝⟨ ∈map-Maybe≃ ⟩
+  ∥ (∃ λ z → z ∈ y × just (f z) ≡ just x) ∥  ↔⟨ Trunc.∥∥-cong (∃-cong λ _ → ∃-cong λ _ → inverse Bijection.≡↔inj₂≡inj₂) ⟩□
+  ∥ (∃ λ z → z ∈ y × f z ≡ x) ∥              □
+
+-- Some consequences of the characterisation of map.
+
+∈→∈map :
+  {f : A → B} →
+  x ∈ y → f x ∈ map f y
+∈→∈map {x = x} {y = y} {f = f} =
+  x ∈ y                            ↝⟨ (λ x∈y → ∣ x , x∈y , refl _ ∣) ⟩
+  ∥ (∃ λ z → z ∈ y × f z ≡ f x) ∥  ↔⟨ inverse ∈map≃ ⟩□
+  f x ∈ map f y                    □
+
+Injective→∈map≃ :
+  {f : A → B} →
+  Injective f →
+  (f x ∈ map f y) ≃ (x ∈ y)
+Injective→∈map≃ {x = x} {y = y} {f = f} inj =
+  f x ∈ map f y                    ↝⟨ ∈map≃ ⟩
+  ∥ (∃ λ z → z ∈ y × f z ≡ f x) ∥  ↝⟨ (Trunc.∥∥-cong-⇔ $ ∃-cong λ _ → ∃-cong λ _ →
+                                       record { to = inj; from = cong f }) ⟩
+  ∥ (∃ λ z → z ∈ y × z ≡ x) ∥      ↔⟨ Trunc.∥∥-cong $ inverse $ ∃-intro _ _ ⟩
+  ∥ x ∈ y ∥                        ↔⟨ Trunc.∥∥↔ ∈-propositional ⟩□
+  x ∈ y                            □
+
+-- The function map commutes with union.
+
+map-∪ : ∀ x → map f (x ∪ y) ≡ map f x ∪ map f y
+map-∪ {f = f} {y = y} x =
+  map f (x ∪ y)                                    ≡⟨ map≡map-Maybe-just (x ∪ y) ⟩
+  map-Maybe (just ∘ f) (x ∪ y)                     ≡⟨ map-Maybe-∪ x ⟩
+  map-Maybe (just ∘ f) x ∪ map-Maybe (just ∘ f) y  ≡⟨ sym $ cong₂ _∪_ (map≡map-Maybe-just x) (map≡map-Maybe-just y) ⟩∎
+  map f x ∪ map f y                                ∎
+
+-- A filter function.
+
+filter : (A → Bool) → Finite-subset-of A → Finite-subset-of A
+filter p = map-Maybe (λ x → if p x then just x else nothing)
+
+-- A lemma characterising filter.
+
+∈filter≃ :
+  ∀ p → (x ∈ filter p y) ≃ (T (p x) × x ∈ y)
+∈filter≃ {x = x} {y = y} p =
+  x ∈ map-Maybe (λ x → if p x then just x else nothing) y         ↝⟨ ∈map-Maybe≃ ⟩
+  ∥ (∃ λ z → z ∈ y × if p z then just z else nothing ≡ just x) ∥  ↝⟨ (Trunc.∥∥-cong $ ∃-cong λ _ → ∃-cong λ _ → lemma _ (refl _)) ⟩
+  ∥ (∃ λ z → z ∈ y × T (p z) × z ≡ x) ∥                           ↔⟨ (Trunc.∥∥-cong $ ∃-cong λ _ →
+                                                                      (×-cong₁ λ z≡x → ≡⇒↝ _ $ cong (λ z → z ∈ y × T (p z)) z≡x) F.∘
+                                                                      Σ-assoc) ⟩
+  ∥ (∃ λ z → (x ∈ y × T (p x)) × z ≡ x) ∥                         ↔⟨ inverse Σ-assoc F.∘
+                                                                     (×-cong₁ λ _ →
+                                                                        ×-comm F.∘
+                                                                        Trunc.∥∥↔ (×-closure 1 ∈-propositional (T-propositional (p x)))) F.∘
+                                                                     inverse Trunc.∥∥×∥∥↔∥×∥ F.∘
+                                                                     Trunc.∥∥-cong ∃-comm ⟩
+  T (p x) × x ∈ y × ∥ (∃ λ z → z ≡ x) ∥                           ↔⟨ (∃-cong λ _ → drop-⊤-right λ _ →
+                                                                      _⇔_.to contractible⇔↔⊤ (singleton-contractible _) F.∘
+                                                                      Trunc.∥∥↔ (mono₁ 0 $ singleton-contractible _)) ⟩□
+  T (p x) × x ∈ y                                                 □
+  where
+  lemma :
+    ∀ b → p z ≡ b →
+    (if b then just z else nothing ≡ just x) ≃
+    (T b × z ≡ x)
+  lemma {z = z} true eq =
+    just z ≡ just x  ↔⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
+    z ≡ x            ↔⟨ inverse ×-left-identity ⟩□
+    ⊤ × z ≡ x        □
+  lemma {z = z} false eq =
+    nothing ≡ just x  ↔⟨ Bijection.≡↔⊎ ⟩
+    ⊥                 ↔⟨ inverse ×-left-zero ⟩□
+    ⊥ × z ≡ x         □
+
 -- The result of filtering is a subset of the original subset.
 
-filter⊆ : filter p x ⊆ x
-filter⊆ {p = p} {x = x} z =
-  z ∈ filter p x   ↔⟨ ∈filter≃ ⟩
+filter⊆ : ∀ p → filter p x ⊆ x
+filter⊆ {x = x} p z =
+  z ∈ filter p x   ↔⟨ ∈filter≃ p ⟩
   T (p z) × z ∈ x  ↝⟨ proj₂ ⟩□
   z ∈ x            □
 
 -- Filtering commutes with itself.
 
 filter-comm :
-  ∀ x → filter p (filter q x) ≡ filter q (filter p x)
-filter-comm {p = p} {q = q} x = _≃_.from extensionality λ y →
-  y ∈ filter p (filter q x)    ↔⟨ from-isomorphism Σ-assoc F.∘ (F.id ×-cong ∈filter≃) F.∘ ∈filter≃ ⟩
+  ∀ (p q : A → Bool) x →
+  filter p (filter q x) ≡ filter q (filter p x)
+filter-comm p q x = _≃_.from extensionality λ y →
+  y ∈ filter p (filter q x)    ↔⟨ from-isomorphism Σ-assoc F.∘ (F.id ×-cong ∈filter≃ q) F.∘ ∈filter≃ p ⟩
   (T (p y) × T (q y)) × y ∈ x  ↔⟨ ×-comm ×-cong F.id ⟩
-  (T (q y) × T (p y)) × y ∈ x  ↔⟨ inverse $ from-isomorphism Σ-assoc F.∘ (F.id ×-cong ∈filter≃) F.∘ ∈filter≃ ⟩□
+  (T (q y) × T (p y)) × y ∈ x  ↔⟨ inverse $ from-isomorphism Σ-assoc F.∘ (F.id ×-cong ∈filter≃ p) F.∘ ∈filter≃ q ⟩□
   y ∈ filter q (filter p x)    □
 
 -- Filtering commutes with union.
 
 filter-∪ :
-  ∀ x → filter p (x ∪ y) ≡ filter p x ∪ filter p y
-filter-∪ {p = p} {y = y} x = _≃_.from extensionality λ z →
-  z ∈ filter p (x ∪ y)                 ↔⟨ (F.id ×-cong ∈∪≃) F.∘ ∈filter≃ ⟩
-  T (p z) × (z ∈ x ∥⊎∥ z ∈ y)          ↔⟨ Trunc.Σ-∥⊎∥-distrib-left (T-propositional (p z)) ⟩
-  T (p z) × z ∈ x ∥⊎∥ T (p z) × z ∈ y  ↔⟨ inverse $ Trunc.∥∥-cong (∈filter≃ ⊎-cong ∈filter≃) F.∘ ∈∪≃ ⟩□
-  z ∈ filter p x ∪ filter p y          □
+  ∀ p x → filter p (x ∪ y) ≡ filter p x ∪ filter p y
+filter-∪ _ = map-Maybe-∪
 
 -- If erased truncated equality is decidable, then one subset can be
 -- removed from another.
@@ -1040,7 +1225,7 @@ minus _≟_ x y =
 
 ∈minus≃ : (x ∈ minus _≟_ y z) ≃ (x ∈ y × ¬ x ∈ z)
 ∈minus≃ {x = x} {_≟_ = _≟_} {y = y} {z = z} =
-  x ∈ minus _≟_ y z                                     ↝⟨ ∈filter≃ ⟩
+  x ∈ minus _≟_ y z                                     ↝⟨ ∈filter≃ (λ _ → if member?ᴱ _ _ z then _ else _) ⟩
   T (if member?ᴱ _≟_ x z then false else true) × x ∈ y  ↔⟨ lemma (member?ᴱ _≟_ x z) ×-cong F.id ⟩
   ¬ x ∈ z × x ∈ y                                       ↔⟨ ×-comm ⟩□
   x ∈ y × ¬ x ∈ z                                       □
@@ -1064,22 +1249,27 @@ minus _≟_ x y =
 
 -- The result of minus is a subset of the original subset.
 
-minus⊆ : minus _≟_ x y ⊆ x
-minus⊆ = filter⊆
+minus⊆ : ∀ y → minus _≟_ x y ⊆ x
+minus⊆ y =
+  filter⊆ (λ _ → if member?ᴱ _ _ y then _ else _)
 
 -- Minus commutes with itself (in a certain sense).
 
 minus-comm :
   ∀ x y z →
   minus _≟_ (minus _≟_ x y) z ≡ minus _≟_ (minus _≟_ x z) y
-minus-comm x _ _ = filter-comm x
+minus-comm x y z =
+  filter-comm
+    (λ _ → if member?ᴱ _ _ z then _ else _)
+    (λ _ → if member?ᴱ _ _ y then _ else _)
+    x
 
 -- Minus commutes with union (in a certain sense).
 
 minus-∪ :
   ∀ x z →
   minus _≟_ (x ∪ y) z ≡ minus _≟_ x z ∪ minus _≟_ y z
-minus-∪ x _ = filter-∪ x
+minus-∪ x z = filter-∪ (λ _ → if member?ᴱ _ _ z then _ else _) x
 
 -- A lemma relating minus, _⊆_ and _∪_.
 
@@ -1180,9 +1370,9 @@ filter-cong-⊆ :
   (∀ z → T (p z) → T (q z)) →
   x ⊆ y → filter p x ⊆ filter q y
 filter-cong-⊆ {p = p} {q = q} {x = x} {y = y} p⇒q x⊆y z =
-  z ∈ filter p x   ↔⟨ ∈filter≃ ⟩
+  z ∈ filter p x   ↔⟨ ∈filter≃ p ⟩
   T (p z) × z ∈ x  ↝⟨ Σ-map (p⇒q _) (x⊆y _) ⟩
-  T (q z) × z ∈ y  ↔⟨ inverse ∈filter≃ ⟩□
+  T (q z) × z ∈ y  ↔⟨ inverse $ ∈filter≃ q ⟩□
   z ∈ filter q y   □
 
 minus-cong-⊆ : x₁ ⊆ x₂ → y₂ ⊆ y₁ → minus _≟_ x₁ y₁ ⊆ minus _≟_ x₂ y₂
