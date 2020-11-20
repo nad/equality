@@ -90,7 +90,7 @@ private
     field
       -- One can always find a fresh variable.
       fresh : ∀ {s} (xs : Vars) →
-              ∃ λ (x : Var s) → Erased (¬ (_ , x) ∈ xs)
+              ∃ λ (x : Var s) → Erased ((_ , x) ∉ xs)
 
     -- Arities.
 
@@ -128,7 +128,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- A variant of fresh that does not return an erased proof.
 
   fresh-not-erased :
-    ∀ {s} (xs : Vars) → ∃ λ (x : Var s) → ¬ (_ , x) ∈ xs
+    ∀ {s} (xs : Vars) → ∃ λ (x : Var s) → (_ , x) ∉ xs
   fresh-not-erased =
     Σ-map id (Stable-¬ _) ∘ fresh
 
@@ -293,7 +293,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Wf-arg : ∀ {v} → Vars → (aˢ : Argˢ v) → Arg aˢ → Type ℓ
     Wf-arg xs (nil tˢ)  t       = Wf-tm xs tˢ t
     Wf-arg xs (cons aˢ) (x , a) =
-      ∀ y → ¬ (_ , y) ∈ xs →
+      ∀ y → (_ , y) ∉ xs →
       Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)
 
   -- Well-formed variables.
@@ -1015,7 +1015,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
                P-tm (tˢ , t , [ wf ]) →
                P-arg (nil-wf tˢ t wf)
       consʳ′ : ∀ {s} (aˢ : Argˢ v) (x : Var s) a (@0 wf) →
-               (∀ y (@0 y∉ : ¬ (_ , y) ∈ xs) →
+               (∀ y (@0 y∉ : (_ , y) ∉ xs) →
                 P-arg (aˢ , rename-Arg x y aˢ a , [ wf y y∉ ])) →
                P-arg (cons-wf aˢ x a wf)
 
@@ -1701,7 +1701,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       Free-in-argument′ (nil tˢ) t wf = Free-in-term′ tˢ t wf
 
       Free-in-argument′ {xs = xs} (cons aˢ) (y , a) wf =
-        Π _ λ z → Π (Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) λ ([ z∉ ]) →
+        Π _ λ z → Π (Erased ((_ , z) ∉ (_ , x) ∷ xs)) λ ([ z∉ ]) →
         Free-in-argument′
           aˢ
           (rename-Arg y z aˢ a)
@@ -1808,11 +1808,11 @@ module Signature {ℓ} (sig : Signature ℓ) where
         let xxs              = (_ , x) ∷ xs
             x₁ ,         x₁∉ = fresh-not-erased xxs
             x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh-not-erased ((_ , x₁) ∷ xxs) ⟩
-              (∃ λ x₂ → ¬ (_ , x₂) ∈ (_ , x₁) ∷ xxs)                 ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
+              (∃ λ x₂ → (_ , x₂) ∉ (_ , x₁) ∷ xxs)                   ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
               (∃ λ x₂ → ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xxs))  ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
-              (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × ¬ (_ , x₂) ∈ xxs)      □
+              (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × (_ , x₂) ∉ xxs)        □
         in
-        (∀ z (z∉ : Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) →
+        (∀ z (z∉ : Erased ((_ , z) ∉ (_ , x) ∷ xs)) →
          Free-in-argument x
            ( aˢ
            , rename-Arg y z aˢ a
@@ -1825,10 +1825,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
                                                                                         swap
                                                                                         (wf z z∉))
                                                                                  (hyp z [ z∉ ])) ⟩
-        (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
+        (∀ z → (_ , z) ∉ (_ , x) ∷ xs →
          (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))         ↝⟨ (λ hyp z z∉ → free-rename-⊆-Arg aˢ _ (hyp z z∉)) ⦂ (_ → _) ⟩
 
-        (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
+        (∀ z → (_ , z) ∉ (_ , x) ∷ xs →
          (_ , x) ∈ (_ , z) ∷ fs)                              ↝⟨ (λ hyp → hyp x₁ x₁∉ , hyp x₂ x₂∉) ⟩
 
         (_ , x) ∈ (_ , x₁) ∷ fs ×
@@ -1899,13 +1899,13 @@ module Signature {ℓ} (sig : Signature ℓ) where
                          free-Arg aˢ (rename-Arg y z aˢ a))       ↝⟨ (uncurry λ x≢y →
                                                                       ∀-cong _ λ _ x∈ z∉ →
                                                                       to-implication (∈≢∷≃ (z∉ ∘ ≡→∈∷ ∘ sym) F.∘ ∈≢∷≃ x≢y) x∈) ⟩
-        (∀ z → ¬ (_ , z) ∈ (_ , x) ∷ xs →
+        (∀ z → (_ , z) ∉ (_ , x) ∷ xs →
                (_ , x) ∈ free-Arg aˢ (rename-Arg y z aˢ a))       ↝⟨ (λ x∈ z z∉ → free-Free-Arg aˢ
                                                                                     (subst (λ xs → Wf-arg xs aˢ (rename-Arg y z aˢ a))
                                                                                            swap
                                                                                            (wf z (erased z∉)))
                                                                                     (x∈ z (Stable-¬ _ z∉))) ⟩□
-        (∀ z (z∉ : Erased (¬ (_ , z) ∈ (_ , x) ∷ xs)) →
+        (∀ z (z∉ : Erased ((_ , z) ∉ (_ , x) ∷ xs)) →
          Free-in-argument x
            ( aˢ
            , rename-Arg y z aˢ a
@@ -2014,19 +2014,19 @@ module Signature {ℓ} (sig : Signature ℓ) where
         lemma y≢x =
           let fs               = free-Arg aˢ a
               x₁ ,         x₁∉ = fresh-not-erased (xs ∪ fs)
-              x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh-not-erased ((_ , x₁) ∷ xs ∪ fs) ⟩
-                (∃ λ x₂ → ¬ (_ , x₂) ∈ (_ , x₁) ∷ xs ∪ fs)             ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
+              x₂ , x₂≢x₁ , x₂∉ =                                     $⟨ fresh-not-erased ((_ , x₁) ∷ xs ∪ fs) ⟩
+                (∃ λ x₂ → (_ , x₂) ∉ (_ , x₁) ∷ xs ∪ fs)             ↝⟨ (∃-cong λ _ → →-cong₁ ext ∈∷≃) ⟩
                 (∃ λ x₂ →
-                   ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xs ∪ fs))     ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
-                (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × ¬ (_ , x₂) ∈ xs ∪ fs)  □
+                   ¬ ((_ , x₂) ≡ (_ , x₁) ∥⊎∥ (_ , x₂) ∈ xs ∪ fs))   ↝⟨ (∃-cong λ _ → Π∥⊎∥↔Π×Π λ _ → ⊥-propositional) ⟩□
+                (∃ λ x₂ → (_ , x₂) ≢ (_ , x₁) × (_ , x₂) ∉ xs ∪ fs)  □
           in
           y ∈ free-Arg aˢ a                                            ↝⟨ (λ y∈ _ z∉ → (λ y≡z → z∉ (subst (_∈ _) y≡z y∈))
                                                                                      , ⊆-free-rename-Arg aˢ _ y∈) ⟩
-          (∀ z → ¬ (_ , z) ∈ free-Arg aˢ a →
+          (∀ z → (_ , z) ∉ free-Arg aˢ a →
            y ≢ (_ , z) ×
            y ∈ (_ , x) ∷ (_ , z) ∷ free-Arg aˢ (rename-Arg x z aˢ a))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → uncurry λ y≢z →
                                                                            to-implication (∈≢∷≃ y≢z F.∘ ∈≢∷≃ y≢x)) ⟩
-          (∀ z → ¬ (_ , z) ∈ free-Arg aˢ a →
+          (∀ z → (_ , z) ∉ free-Arg aˢ a →
            y ∈ free-Arg aˢ (rename-Arg x z aˢ a))                      ↝⟨ (λ hyp →
                                                                                free-⊆-Arg aˢ (wf x₁ (x₁∉ ∘ ∈→∈∪ˡ)) y (hyp x₁ (x₁∉ ∘ ∈→∈∪ʳ xs))
                                                                              , free-⊆-Arg aˢ (wf x₂ (x₂∉ ∘ ∈→∈∪ˡ)) y (hyp x₂ (x₂∉ ∘ ∈→∈∪ʳ xs))) ⟩
@@ -2051,7 +2051,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       ∉→⊆∷→⊆ :
         ∀ {x : ∃Var} {xs ys : Vars} →
-        ¬ x ∈ xs → xs ⊆ x ∷ ys → xs ⊆ ys
+        x ∉ xs → xs ⊆ x ∷ ys → xs ⊆ ys
       ∉→⊆∷→⊆ {x = x} {xs = xs} {ys = ys} x∉ xs⊆x∷ys z =
         z ∈ xs              ↝⟨ (λ z∈ → x∉ ∘ flip (subst (_∈ _)) z∈ , z∈) ⟩
         z ≢ x × z ∈ xs      ↝⟨ Σ-map id (xs⊆x∷ys _) ⟩
@@ -2062,7 +2062,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     -- Strengthening of the Wf predicates.
 
     @0 strengthen-Wf-var :
-      ¬ (_ , x) ∈ singleton {A = ∃Var} (_ , y) →
+      (_ , x) ∉ singleton {A = ∃Var} (_ , y) →
       Wf-var ((_ , x) ∷ xs) y → Wf-var xs y
     strengthen-Wf-var {x = x} {y = y} {xs = xs} x∉ =
       (_ , y) ∈ (_ , x) ∷ xs                        ↔⟨ ∈∷≃ ⟩
@@ -2076,7 +2076,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     @0 strengthen-Wf-tm :
       ∀ (tˢ : Tmˢ s) {t} →
-      ¬ (_ , x) ∈ free-Tm tˢ t →
+      (_ , x) ∉ free-Tm tˢ t →
       Wf-tm ((_ , x) ∷ xs) tˢ t → Wf-tm xs tˢ t
     strengthen-Wf-tm {x = x} {xs = xs} tˢ {t = t} x∉ =
       Wf-tm ((_ , x) ∷ xs) tˢ t                      ↝⟨ free-⊆-Tm tˢ ⟩
@@ -2087,7 +2087,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     @0 strengthen-Wf-args :
       ∀ (asˢ : Argsˢ vs) {as} →
-      ¬ (_ , x) ∈ free-Args asˢ as →
+      (_ , x) ∉ free-Args asˢ as →
       Wf-args ((_ , x) ∷ xs) asˢ as → Wf-args xs asˢ as
     strengthen-Wf-args {x = x} {xs = xs} asˢ {as = as} x∉ =
       Wf-args ((_ , x) ∷ xs) asˢ as                              ↝⟨ free-⊆-Args asˢ ⟩
@@ -2098,7 +2098,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     @0 strengthen-Wf-arg :
       ∀ (aˢ : Argˢ v) {a} →
-      ¬ (_ , x) ∈ free-Arg aˢ a →
+      (_ , x) ∉ free-Arg aˢ a →
       Wf-arg ((_ , x) ∷ xs) aˢ a → Wf-arg xs aˢ a
     strengthen-Wf-arg {x = x} {xs = xs} aˢ {a = a} x∉ =
       Wf-arg ((_ , x) ∷ xs) aˢ a                        ↝⟨ free-⊆-Arg aˢ ⟩
@@ -2186,7 +2186,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       ∉→⊆∷∷→⊆∷→⊆∷ :
         ∀ {x y : ∃Var} {xs ys zs} →
-        ¬ y ∈ xs →
+        y ∉ xs →
         xs ⊆ x ∷ y ∷ ys →
         ys ⊆ y ∷ zs →
         xs ⊆ x ∷ zs
@@ -2233,7 +2233,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     @0 renamee-Wf-tm :
       ∀ (tˢ : Tmˢ s) {t} →
-      ¬ (_ , y) ∈ free-Tm tˢ t →
+      (_ , y) ∉ free-Tm tˢ t →
       Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t) →
       Wf-tm ((_ , x) ∷ xs) tˢ t
     renamee-Wf-tm {y = y} {xs = xs} {x = x} tˢ {t = t} y∉t =
@@ -2244,7 +2244,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     @0 renamee-Wf-args :
       ∀ (asˢ : Argsˢ vs) {as} →
-      ¬ (_ , y) ∈ free-Args asˢ as →
+      (_ , y) ∉ free-Args asˢ as →
       Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as) →
       Wf-args ((_ , x) ∷ xs) asˢ as
     renamee-Wf-args {y = y} {xs = xs} {x = x} asˢ {as = as} y∉as =
@@ -2255,7 +2255,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     @0 renamee-Wf-arg :
       ∀ (aˢ : Argˢ v) {a} →
-      ¬ (_ , y) ∈ free-Arg aˢ a →
+      (_ , y) ∉ free-Arg aˢ a →
       Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a) →
       Wf-arg ((_ , x) ∷ xs) aˢ a
     renamee-Wf-arg {y = y} {xs = xs} {x = x} aˢ {a = a} y∉a =
@@ -2269,7 +2269,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     @0 body-Wf-var :
       ((y : Var s) →
-       ¬ (_ , y) ∈ xs →
+       (_ , y) ∉ xs →
        Wf-var ((_ , y) ∷ xs) (rename-Var x y z)) →
       Wf-var ((_ , x) ∷ xs) z
     body-Wf-var {xs = xs} {z = z} wf =
@@ -2282,7 +2282,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     @0 body-Wf-tm :
       ∀ (tˢ : Tmˢ s) {t} →
       ((y : Var s) →
-       ¬ (_ , y) ∈ xs →
+       (_ , y) ∉ xs →
        Wf-tm ((_ , y) ∷ xs) tˢ (rename-Tm x y tˢ t)) →
       Wf-tm ((_ , x) ∷ xs) tˢ t
     body-Wf-tm {xs = xs} tˢ {t = t} wf =
@@ -2295,7 +2295,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     @0 body-Wf-args :
       ∀ (asˢ : Argsˢ vs) {as} →
       ((y : Var s) →
-       ¬ (_ , y) ∈ xs →
+       (_ , y) ∉ xs →
        Wf-args ((_ , y) ∷ xs) asˢ (rename-Args x y asˢ as)) →
       Wf-args ((_ , x) ∷ xs) asˢ as
     body-Wf-args {xs = xs} asˢ {as = as} wfs =
@@ -2308,7 +2308,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     @0 body-Wf-arg :
       ∀ (aˢ : Argˢ v) {a} →
       ((y : Var s) →
-       ¬ (_ , y) ∈ xs →
+       (_ , y) ∉ xs →
        Wf-arg ((_ , y) ∷ xs) aˢ (rename-Arg x y aˢ a)) →
       Wf-arg ((_ , x) ∷ xs) aˢ a
     body-Wf-arg {xs = xs} aˢ {a = a} wf =

@@ -554,6 +554,13 @@ private
 
 open Dummy public using (_∈_) hiding (module _∈_)
 
+-- The negation of membership.
+
+infix 4 _∉_
+
+_∉_ : {A : Type a} → A → Finite-subset-of A → Type a
+x ∉ y = ¬ x ∈ y
+
 private
 
   -- An unfolding lemma.
@@ -1223,12 +1230,12 @@ minus _≟_ x y =
 
 -- A lemma characterising minus.
 
-∈minus≃ : (x ∈ minus _≟_ y z) ≃ (x ∈ y × ¬ x ∈ z)
+∈minus≃ : (x ∈ minus _≟_ y z) ≃ (x ∈ y × x ∉ z)
 ∈minus≃ {x = x} {_≟_ = _≟_} {y = y} {z = z} =
   x ∈ minus _≟_ y z                                     ↝⟨ ∈filter≃ (λ _ → if member?ᴱ _ _ z then _ else _) ⟩
   T (if member?ᴱ _≟_ x z then false else true) × x ∈ y  ↔⟨ lemma (member?ᴱ _≟_ x z) ×-cong F.id ⟩
-  ¬ x ∈ z × x ∈ y                                       ↔⟨ ×-comm ⟩□
-  x ∈ y × ¬ x ∈ z                                       □
+  x ∉ z × x ∈ y                                         ↔⟨ ×-comm ⟩□
+  x ∈ y × x ∉ z                                         □
   where
   lemma :
     (d : Dec-Erased A) →
@@ -1284,17 +1291,17 @@ minus⊆≃ {x = x} {z = z} {_≟_ = _≟_} y =
         u ∈ x                         ↝⟨ (λ u∈x →
                                             case member? _≟_ u y of
                                               P.[ Trunc.∣inj₁∣ , Trunc.∣inj₂∣ ∘ (u∈x ,_) ]) ⟩
-        u ∈ y ∥⊎∥ (u ∈ x × ¬ u ∈ y)   ↔⟨ F.id Trunc.∥⊎∥-cong inverse ∈minus≃ ⟩
+        u ∈ y ∥⊎∥ (u ∈ x × u ∉ y)     ↔⟨ F.id Trunc.∥⊎∥-cong inverse ∈minus≃ ⟩
         u ∈ y ∥⊎∥ u ∈ minus _≟′_ x y  ↝⟨ id Trunc.∥⊎∥-cong x-y⊆z u ⟩
         u ∈ y ∥⊎∥ u ∈ z               ↔⟨ inverse ∈∪≃ ⟩□
         u ∈ y ∪ z                     □
     ; from = λ x⊆y∪z u →
-        u ∈ minus _≟′_ x y           ↔⟨ ∈minus≃ ⟩
-        u ∈ x × ¬ u ∈ y              ↝⟨ Σ-map (x⊆y∪z _) id ⟩
-        u ∈ y ∪ z × ¬ u ∈ y          ↔⟨ ∈∪≃ ×-cong F.id ⟩
-        (u ∈ y ∥⊎∥ u ∈ z) × ¬ u ∈ y  ↔⟨ (×-cong₁ λ u∉y → Trunc.drop-⊥-left-∥⊎∥ ∈-propositional u∉y) ⟩
-        u ∈ z × ¬ u ∈ y              ↝⟨ proj₁ ⟩□
-        u ∈ z                        □
+        u ∈ minus _≟′_ x y         ↔⟨ ∈minus≃ ⟩
+        u ∈ x × u ∉ y              ↝⟨ Σ-map (x⊆y∪z _) id ⟩
+        u ∈ y ∪ z × u ∉ y          ↔⟨ ∈∪≃ ×-cong F.id ⟩
+        (u ∈ y ∥⊎∥ u ∈ z) × u ∉ y  ↔⟨ (×-cong₁ λ u∉y → Trunc.drop-⊥-left-∥⊎∥ ∈-propositional u∉y) ⟩
+        u ∈ z × u ∉ y              ↝⟨ proj₁ ⟩□
+        u ∈ z                      □
     }
   where
   _≟′_ = λ x y → Dec→Dec-Erased (x ≟ y)
@@ -1311,15 +1318,15 @@ delete _≟_ x y = minus _≟_ y (singleton x)
 
 ∈delete≃ : ∀ _≟_ → (x ∈ delete _≟_ y z) ≃ (x ≢ y × x ∈ z)
 ∈delete≃ {x = x} {y = y} {z = z} _≟_ =
-  x ∈ delete _≟_ y z         ↝⟨ ∈minus≃ {_≟_ = _≟_} ⟩
-  x ∈ z × ¬ x ∈ singleton y  ↝⟨ F.id ×-cong →-cong₁ ext ∈singleton≃ ⟩
-  x ∈ z × ¬ ∥ x ≡ y ∥        ↔⟨ F.id ×-cong Trunc.¬∥∥↔¬ ⟩
-  x ∈ z × x ≢ y              ↔⟨ ×-comm ⟩□
-  x ≢ y × x ∈ z              □
+  x ∈ delete _≟_ y z       ↝⟨ ∈minus≃ {_≟_ = _≟_} ⟩
+  x ∈ z × x ∉ singleton y  ↝⟨ F.id ×-cong →-cong₁ ext ∈singleton≃ ⟩
+  x ∈ z × ¬ ∥ x ≡ y ∥      ↔⟨ F.id ×-cong Trunc.¬∥∥↔¬ ⟩
+  x ∈ z × x ≢ y            ↔⟨ ×-comm ⟩□
+  x ≢ y × x ∈ z            □
 
 -- A deleted element is no longer a member of the set.
 
-∉delete : ∀ _≟_ y → ¬ x ∈ delete _≟_ x y
+∉delete : ∀ _≟_ y → x ∉ delete _≟_ x y
 ∉delete {x = x} _≟_ y =
   x ∈ delete _≟_ x y  ↔⟨ ∈delete≃ _≟_ ⟩
   x ≢ x × x ∈ y       ↝⟨ (_$ refl _) ∘ proj₁ ⟩□
@@ -1379,8 +1386,8 @@ minus-cong-⊆ : x₁ ⊆ x₂ → y₂ ⊆ y₁ → minus _≟_ x₁ y₁ ⊆ m
 minus-cong-⊆ {x₁ = x₁} {x₂ = x₂} {y₂ = y₂} {y₁ = y₁} {_≟_ = _≟_}
              x₁⊆x₂ y₂⊆y₁ z =
   z ∈ minus _≟_ x₁ y₁  ↔⟨ ∈minus≃ ⟩
-  z ∈ x₁ × ¬ z ∈ y₁    ↝⟨ Σ-map (x₁⊆x₂ _) (_∘ y₂⊆y₁ _) ⟩
-  z ∈ x₂ × ¬ z ∈ y₂    ↔⟨ inverse ∈minus≃ ⟩□
+  z ∈ x₁ × z ∉ y₁      ↝⟨ Σ-map (x₁⊆x₂ _) (_∘ y₂⊆y₁ _) ⟩
+  z ∈ x₂ × z ∉ y₂      ↔⟨ inverse ∈minus≃ ⟩□
   z ∈ minus _≟_ x₂ y₂  □
 
 delete-cong-⊆ : ∀ _≟_ → y ⊆ z → delete _≟_ x y ⊆ delete _≟_ x z
@@ -1420,7 +1427,7 @@ private
         A → Finite-subset-of A →
         (ℕ → Proposition a) → (ℕ → Type a)
       Cons″ x y ∣y∣≡ zero    = ⊥
-      Cons″ x y ∣y∣≡ (suc n) = ¬ x ∈ y × proj₁ (∣y∣≡ n)
+      Cons″ x y ∣y∣≡ (suc n) = x ∉ y × proj₁ (∣y∣≡ n)
 
     Cons′-propositional :
       ∀ Hyp n → Is-proposition (Cons′ x y Hyp n)
@@ -1461,10 +1468,10 @@ private
       C↔⊥ : ∀ n → C n ↔ ⊥
       C↔⊥ zero    = ⊥↔⊥
       C↔⊥ (suc n) =
-        ¬ x ∈ x ∷ y × Cons′ x y H n  ↝⟨ →-cong ext x∈x∷y↔⊤ F.id ×-cong F.id ⟩
-        ¬ ⊤ × Cons′ x y H n          ↝⟨ inverse (Bijection.⊥↔uninhabited (_$ _)) ×-cong F.id ⟩
-        ⊥₀ × Cons′ x y H n           ↝⟨ ×-left-zero ⟩□
-        ⊥                            □
+        x ∉ x ∷ y × Cons′ x y H n  ↝⟨ →-cong ext x∈x∷y↔⊤ F.id ×-cong F.id ⟩
+        ¬ ⊤ × Cons′ x y H n        ↝⟨ inverse (Bijection.⊥↔uninhabited (_$ _)) ×-cong F.id ⟩
+        ⊥₀ × Cons′ x y H n         ↝⟨ ×-left-zero ⟩□
+        ⊥                          □
 
     swap-lemma′ :
       ∀ n →
@@ -1577,7 +1584,7 @@ _ : ∀ {A : Type a} {x : A} {y} →
     (∣ x ∷ y ∣≡ zero) ≡ (x ∈ y × ∣ y ∣≡ zero ⊎ ⊥)
 _ = refl _
 
-_ : (∣ x ∷ y ∣≡ suc n) ≡ (x ∈ y × ∣ y ∣≡ suc n ⊎ ¬ x ∈ y × ∣ y ∣≡ n)
+_ : (∣ x ∷ y ∣≡ suc n) ≡ (x ∈ y × ∣ y ∣≡ suc n ⊎ x ∉ y × ∣ y ∣≡ n)
 _ = refl _
 
 -- The size predicate is functional.
