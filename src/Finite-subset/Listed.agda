@@ -676,6 +676,39 @@ private
   x ∈ z ∪ y  ↝⟨ ≡⇒↝ _ (cong (_ ∈_) (comm z)) ⟩□
   x ∈ y ∪ z  □
 
+-- A lemma characterising join.
+
+∈join≃ : (x ∈ join z) ≃ ∥ (∃ λ y → x ∈ y × y ∈ z) ∥
+∈join≃ {x = x} = elim-prop e _
+  where
+  e : Elim-prop (λ z → (x ∈ join z) ≃ ∥ (∃ λ y → x ∈ y × y ∈ z) ∥)
+  e .[]ʳ =
+    x ∈ join []                   ↔⟨⟩
+    x ∈ []                        ↝⟨ ∈[]≃ ⟩
+    ⊥                             ↔⟨ inverse $ Trunc.∥∥↔ ⊥-propositional ⟩
+    ∥ ⊥ ∥                         ↔⟨ Trunc.∥∥-cong (inverse (×-right-zero {ℓ₁ = lzero} F.∘
+                                                             ∃-cong (λ _ → ×-right-zero))) ⟩
+    ∥ (∃ λ y → x ∈ y × ⊥) ∥       ↝⟨ Trunc.∥∥-cong (∃-cong λ _ → ∃-cong λ _ → inverse ∈[]≃) ⟩□
+    ∥ (∃ λ y → x ∈ y × y ∈ []) ∥  □
+  e .∷ʳ {y = z} u hyp =
+    x ∈ join (u ∷ z)                                     ↔⟨⟩
+    x ∈ u ∪ join z                                       ↝⟨ ∈∪≃ ⟩
+    x ∈ u ∥⊎∥ x ∈ join z                                 ↝⟨ F.id Trunc.∥⊎∥-cong hyp ⟩
+    x ∈ u ∥⊎∥ ∥ (∃ λ y → x ∈ y × y ∈ z) ∥                ↔⟨ inverse Trunc.truncate-right-∥⊎∥ ⟩
+    x ∈ u ∥⊎∥ (∃ λ y → x ∈ y × y ∈ z)                    ↔⟨ ∃-intro _ _ Trunc.∥⊎∥-cong F.id ⟩
+    (∃ λ y → x ∈ y × y ≡ u) ∥⊎∥ (∃ λ y → x ∈ y × y ∈ z)  ↔⟨ Trunc.∥∥-cong $ inverse $
+                                                            ∃-⊎-distrib-left F.∘
+                                                            (∃-cong λ _ → ∃-⊎-distrib-left) ⟩
+    ∥ (∃ λ y → x ∈ y × (y ≡ u ⊎ y ∈ z)) ∥                ↔⟨ inverse $
+                                                            Trunc.flatten′
+                                                              (λ F → ∃ λ y → x ∈ y × F (y ≡ u ⊎ y ∈ z))
+                                                              (λ f → Σ-map id (Σ-map id f))
+                                                              (λ (y , p , q) → Trunc.∥∥-map (λ q → y , p , q) q) ⟩
+    ∥ (∃ λ y → x ∈ y × (y ≡ u ∥⊎∥ y ∈ z)) ∥              ↝⟨ (Trunc.∥∥-cong $ ∃-cong λ _ → ∃-cong λ _ → inverse ∈∷≃) ⟩□
+    ∥ (∃ λ y → x ∈ y × y ∈ u ∷ z) ∥                      □
+  e .is-propositionʳ _ =
+    Eq.left-closure ext 0 ∈-propositional
+
 -- If truncated equality is decidable, then membership is also
 -- decidable.
 
