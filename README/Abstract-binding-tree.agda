@@ -221,7 +221,7 @@ print (tˢ , t , [ wf ]) = printᵖ tˢ t wf
   lemma =
     from-⊎ $
     subset?
-      (decidable-equality→decidable-mere-equality
+      (decidable→decidable-∥∥
          (Decidable-erased-equality≃Decidable-equality _ _≟∃V_))
       ((expr , 2) ∷ [])
       ((expr , 1) ∷ (expr , 2) ∷ [])
@@ -241,7 +241,7 @@ print[λxy→xy] = print λxy→xy
   lemma =
     from-⊎ $
     subset?
-      (decidable-equality→decidable-mere-equality
+      (decidable→decidable-∥∥
          (Decidable-erased-equality≃Decidable-equality _ _≟∃V_))
       []
       ((expr , 0) ∷ [])

@@ -589,17 +589,21 @@ Is-set⇔h-separated {A = A} = record
       Is-set A                                            □
   }
 
--- Decidable mere equality follows from decidable equality.
+-- If A is decided, then ∥ A ∥ is decided.
 
-decidable-equality→decidable-mere-equality :
-  Decidable-equality A →
-  ((x y : A) → Dec ∥ x ≡ y ∥)
-decidable-equality→decidable-mere-equality _≟_ x y =
-  Dec-map
-    (record { to   = ∣_∣
-            ; from = _↔_.to (∥∥↔ (decidable⇒set _≟_))
-            })
-    (x ≟ y)
+Dec→Dec-∥∥ : Dec A → Dec ∥ A ∥
+Dec→Dec-∥∥ (yes a) = yes ∣ a ∣
+Dec→Dec-∥∥ (no ¬A) = no (_↔_.from ¬∥∥↔¬ ¬A)
+
+-- If a binary relation can be decided, then the propositional
+-- truncation of the relation can also be decided.
+
+decidable→decidable-∥∥ :
+  {P : A → B → Type p} →
+  ((x : A) (y : B) → Dec (P x y)) →
+  ((x : A) (y : B) → Dec ∥ P x y ∥)
+decidable→decidable-∥∥ dec =
+  λ x y → Dec→Dec-∥∥ (dec x y)
 
 -- Variants of the following two lemmas were communicated to me by
 -- Nicolai Kraus. They are closely related to Lemma 2.1 in his paper
