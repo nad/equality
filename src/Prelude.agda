@@ -305,6 +305,12 @@ infix 5 if_then_else_
 if_then_else_ : A ⊎ B → C → C → C
 if x then t else f = [ const t , const f ] x
 
+-- A generalisation of not.
+
+not : A ⊎ B → B ⊎ A
+not (inj₁ x) = inj₂ x
+not (inj₂ x) = inj₁ x
+
 -- A map function.
 
 ⊎-map : (A₁ → A₂) → (B₁ → B₂) → A₁ ⊎ B₁ → A₂ ⊎ B₂
@@ -367,11 +373,6 @@ Bool = ⊤ ⊎ ⊤
 
 pattern true  = inj₁ tt
 pattern false = inj₂ tt
-
--- Not.
-
-not : Bool → Bool
-not b = if b then false else true
 
 -- And.
 

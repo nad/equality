@@ -22,7 +22,7 @@ open import H-level.Closure eq
 
 -- The not function is involutive.
 
-not-involutive : ∀ b → not (not b) ≡ b
+not-involutive : (b : Bool) → not (not b) ≡ b
 not-involutive true  = refl _
 not-involutive false = refl _
 
@@ -104,7 +104,7 @@ T-not↔≡false {b} =
   b ≡ false     □
 
 T-not⇔¬T :
-  ∀ b → T (not b) ⇔ ¬ T b
+  (b : Bool) → T (not b) ⇔ ¬ T b
 T-not⇔¬T true =
   ⊥        ↔⟨ Bijection.⊥↔uninhabited (_$ _) ⟩
   (⊤ → ⊥)  □
@@ -115,7 +115,7 @@ T-not⇔¬T false =
 T-not↔¬T :
   ∀ {k} →
   Extensionality? k (# 0) (# 0) →
-  ∀ b → T (not b) ↝[ k ] ¬ T b
+  (b : Bool) → T (not b) ↝[ k ] ¬ T b
 T-not↔¬T _ true =
   ⊥        ↔⟨ Bijection.⊥↔uninhabited (_$ _) ⟩
   (⊤ → ⊥)  □
