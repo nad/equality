@@ -387,51 +387,63 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- The universe.
 
   data Term-kind : Type where
-    tm args arg : Term-kind
+    var tm args arg : Term-kind
 
   private
     variable
       k : Term-kind
 
+  -- A variable skeleton is just an unerased sort.
+
+  data Varˢ : @0 Sort → Type ℓ where
+    var : ∀ {s} → Varˢ s
+
   -- For each kind of term there is a kind of sort, a kind of
   -- skeleton, and a kind of data.
 
   Sort-kind : Term-kind → Type ℓ
+  Sort-kind var  = Sort
   Sort-kind tm   = Sort
   Sort-kind args = List Valence
   Sort-kind arg  = Valence
 
   Skeleton : (k : Term-kind) → @0 Sort-kind k → Type ℓ
+  Skeleton var  = Varˢ
   Skeleton tm   = Tmˢ
   Skeleton args = Argsˢ
   Skeleton arg  = Argˢ
 
   Data : Skeleton k s → Type ℓ
-  Data {k = tm}   = Tm
-  Data {k = args} = Args
-  Data {k = arg}  = Arg
+  Data {k = var} {s = s} = λ _ → Var s
+  Data {k = tm}          = Tm
+  Data {k = args}        = Args
+  Data {k = arg}         = Arg
 
-  -- Term-kind is equivalent to Fin 3.
+  -- Term-kind is equivalent to Fin 4.
 
-  Term-kind≃Fin-3 : Term-kind ≃ Fin 3
-  Term-kind≃Fin-3 = Eq.↔→≃ to from to∘from from∘to
+  Term-kind≃Fin-4 : Term-kind ≃ Fin 4
+  Term-kind≃Fin-4 = Eq.↔→≃ to from to∘from from∘to
     where
-    to : Term-kind → Fin 3
-    to tm   = fzero
-    to args = fsuc fzero
-    to arg  = fsuc (fsuc fzero)
+    to : Term-kind → Fin 4
+    to var  = fzero
+    to tm   = fsuc fzero
+    to args = fsuc (fsuc fzero)
+    to arg  = fsuc (fsuc (fsuc fzero))
 
-    from : Fin 3 → Term-kind
-    from fzero               = tm
-    from (fsuc fzero)        = args
-    from (fsuc (fsuc fzero)) = arg
+    from : Fin 4 → Term-kind
+    from fzero                      = var
+    from (fsuc fzero)               = tm
+    from (fsuc (fsuc fzero))        = args
+    from (fsuc (fsuc (fsuc fzero))) = arg
 
     to∘from : ∀ i → to (from i) ≡ i
-    to∘from fzero               = refl _
-    to∘from (fsuc fzero)        = refl _
-    to∘from (fsuc (fsuc fzero)) = refl _
+    to∘from fzero                      = refl _
+    to∘from (fsuc fzero)               = refl _
+    to∘from (fsuc (fsuc fzero))        = refl _
+    to∘from (fsuc (fsuc (fsuc fzero))) = refl _
 
     from∘to : ∀ k → from (to k) ≡ k
+    from∘to var  = refl _
     from∘to tm   = refl _
     from∘to args = refl _
     from∘to arg  = refl _
@@ -444,26 +456,28 @@ module Signature {ℓ} (sig : Signature ℓ) where
   --
   -- Note that this code is not intended to be used at run-time.
 
-  free-Var : ∀ {s} → Var s → Vars
-  free-Var x = singleton (_ , x)
-
   private
-   mutual
 
-    free-Tm : (tˢ : Tmˢ s) → Tm tˢ → Vars
-    free-Tm var        x  = free-Var x
-    free-Tm (op o asˢ) as = free-Args asˢ as
+    free-Var : ∀ {s} → Var s → Vars
+    free-Var x = singleton (_ , x)
 
-    free-Args : (asˢ : Argsˢ vs) → Args asˢ → Vars
-    free-Args nil           _        = []
-    free-Args (cons aˢ asˢ) (a , as) =
-      free-Arg aˢ a ∪ free-Args asˢ as
+    mutual
 
-    free-Arg : (aˢ : Argˢ v) → Arg aˢ → Vars
-    free-Arg (nil tˢ)  t       = free-Tm tˢ t
-    free-Arg (cons aˢ) (x , a) = del (_ , x) (free-Arg aˢ a)
+      free-Tm : (tˢ : Tmˢ s) → Tm tˢ → Vars
+      free-Tm var        x  = free-Var x
+      free-Tm (op o asˢ) as = free-Args asˢ as
+
+      free-Args : (asˢ : Argsˢ vs) → Args asˢ → Vars
+      free-Args nil           _        = []
+      free-Args (cons aˢ asˢ) (a , as) =
+        free-Arg aˢ a ∪ free-Args asˢ as
+
+      free-Arg : (aˢ : Argˢ v) → Arg aˢ → Vars
+      free-Arg (nil tˢ)  t       = free-Tm tˢ t
+      free-Arg (cons aˢ) (x , a) = del (_ , x) (free-Arg aˢ a)
 
   free : (tˢ : Skeleton k s) → Data tˢ → Vars
+  free {k = var}  = λ { var → free-Var }
   free {k = tm}   = free-Tm
   free {k = args} = free-Args
   free {k = arg}  = free-Arg
@@ -632,101 +646,103 @@ module Signature {ℓ} (sig : Signature ℓ) where
   ----------------------------------------------------------------------
   -- An implementation of renaming
 
-  -- Capture-avoiding renaming for variables.
+  private
 
-  rename-Var :
-    ∀ {s s′} {@0 dom fs} (x : Var s′)
-    (ρ : Renaming dom fs) →
-    @0 restrict-to-sort s (free-Var x) ∖ dom ⊆ fs →
-    ∃ λ (x′ : Var s′) →
-      Erased (restrict-to-sort s (free-Var x′) ⊆ fs
-                ×
-              restrict-to-sort s (free-Var x) ⊆
-              dom ∪ restrict-to-sort s (free-Var x′)
-                ×
-              ∀ s′ → s′ ≢ s →
-              restrict-to-sort s′ (free-Var x′) ≡
-              restrict-to-sort s′ (free-Var x))
-  rename-Var {s = s} {s′ = s′} {dom = dom} {fs = fs}
-             x ρ ⊆free
-    with s ≟S s′
-  … | no [ s≢s′ ] =
-      x
-    , [ (λ y →
-           y ∈ restrict-to-sort s (free-Var x)  ↔⟨ from-isomorphism (∥∥↔ ∃Var-set) F.∘
-                                                   ∈singleton≃ F.∘
-                                                   ∈restrict-to-sort≃ ⟩
-           (s , y) ≡ (s′ , x)                   ↝⟨ cong proj₁ ⟩
-           s ≡ s′                               ↝⟨ s≢s′ ⟩
-           ⊥                                    ↝⟨ ⊥-elim ⟩□
-           y ∈ fs                               □)
-      , (λ y →
-           y ∈ restrict-to-sort s (free-Var x)        ↝⟨ ∈→∈∪ʳ dom ⟩□
-           y ∈ dom ∪ restrict-to-sort s (free-Var x)  □)
-      , (λ _ _ → refl _)
-      ]
-  … | yes [ s≡s′ ] with ρ (cast-Var (sym s≡s′) x)
-  …   | inj₂ [ x∉domain ] =
-      x
-    , [ (λ y →
-           y ∈ restrict-to-sort s (free-Var x)            ↝⟨ (λ hyp →
-                                                                  hyp
-                                                                , _≃_.to
-                                                                    (from-isomorphism ≡-comm F.∘
-                                                                     inverse ≡cast-Var≃ F.∘
-                                                                     from-isomorphism ≡-comm F.∘
-                                                                     from-isomorphism (∥∥↔ ∃Var-set) F.∘
+    -- Capture-avoiding renaming for variables.
+
+    rename-Var :
+      ∀ {s s′} {@0 dom fs} (x : Var s′)
+      (ρ : Renaming dom fs) →
+      @0 restrict-to-sort s (free-Var x) ∖ dom ⊆ fs →
+      ∃ λ (x′ : Var s′) →
+        Erased (restrict-to-sort s (free-Var x′) ⊆ fs
+                  ×
+                restrict-to-sort s (free-Var x) ⊆
+                dom ∪ restrict-to-sort s (free-Var x′)
+                  ×
+                ∀ s′ → s′ ≢ s →
+                restrict-to-sort s′ (free-Var x′) ≡
+                restrict-to-sort s′ (free-Var x))
+    rename-Var {s = s} {s′ = s′} {dom = dom} {fs = fs}
+               x ρ ⊆free
+      with s ≟S s′
+    … | no [ s≢s′ ] =
+        x
+      , [ (λ y →
+             y ∈ restrict-to-sort s (free-Var x)  ↔⟨ from-isomorphism (∥∥↔ ∃Var-set) F.∘
+                                                     ∈singleton≃ F.∘
+                                                     ∈restrict-to-sort≃ ⟩
+             (s , y) ≡ (s′ , x)                   ↝⟨ cong proj₁ ⟩
+             s ≡ s′                               ↝⟨ s≢s′ ⟩
+             ⊥                                    ↝⟨ ⊥-elim ⟩□
+             y ∈ fs                               □)
+        , (λ y →
+             y ∈ restrict-to-sort s (free-Var x)        ↝⟨ ∈→∈∪ʳ dom ⟩□
+             y ∈ dom ∪ restrict-to-sort s (free-Var x)  □)
+        , (λ _ _ → refl _)
+        ]
+    … | yes [ s≡s′ ] with ρ (cast-Var (sym s≡s′) x)
+    …   | inj₂ [ x∉domain ] =
+        x
+      , [ (λ y →
+             y ∈ restrict-to-sort s (free-Var x)            ↝⟨ (λ hyp →
+                                                                    hyp
+                                                                  , _≃_.to
+                                                                      (from-isomorphism ≡-comm F.∘
+                                                                       inverse ≡cast-Var≃ F.∘
+                                                                       from-isomorphism ≡-comm F.∘
+                                                                       from-isomorphism (∥∥↔ ∃Var-set) F.∘
+                                                                       ∈singleton≃ F.∘
+                                                                       ∈restrict-to-sort≃)
+                                                                      hyp) ⟩
+             y ∈ restrict-to-sort s (free-Var x) ×
+             y ≡ cast-Var (sym s≡s′) x                      ↝⟨ Σ-map id (λ y≡x → subst (_∉ _) (sym y≡x) x∉domain) ⟩
+
+             y ∈ restrict-to-sort s (free-Var x) × y ∉ dom  ↔⟨ inverse ∈minus≃ ⟩
+
+             y ∈ restrict-to-sort s (free-Var x) ∖ dom      ↝⟨ ⊆free _ ⟩□
+
+             y ∈ fs                                         □)
+        , (λ y →
+             y ∈ restrict-to-sort s (free-Var x)        ↝⟨ ∈→∈∪ʳ dom ⟩□
+             y ∈ dom ∪ restrict-to-sort s (free-Var x)  □)
+        , (λ _ _ → refl _)
+        ]
+    …   | inj₁ (y , [ x∈dom , y∈free ]) =
+        cast-Var s≡s′ y
+      , [ (λ z →
+             z ∈ restrict-to-sort s (free-Var (cast-Var s≡s′ y))  ↔⟨ from-isomorphism (∥∥↔ ∃Var-set) F.∘
                                                                      ∈singleton≃ F.∘
-                                                                     ∈restrict-to-sort≃)
-                                                                    hyp) ⟩
-           y ∈ restrict-to-sort s (free-Var x) ×
-           y ≡ cast-Var (sym s≡s′) x                      ↝⟨ Σ-map id (λ y≡x → subst (_∉ _) (sym y≡x) x∉domain) ⟩
+                                                                     ∈restrict-to-sort≃ ⟩
+             (s , z) ≡ (s′ , cast-Var s≡s′ y)                     ↝⟨ ≡⇒↝ _ $ cong (_ ≡_) $ sym ≡,cast-Var ⟩
+             (s , z) ≡ (s , y)                                    ↔⟨ ≡→,≡,≃ ⟩
+             z ≡ y                                                ↝⟨ (λ z≡y → subst (_∈ _) (sym z≡y) y∈free) ⟩□
+             z ∈ fs                                               □)
+        , (λ z →
+             z ∈ restrict-to-sort s (free-Var x)                        ↔⟨ from-isomorphism ≡-comm F.∘
+                                                                           inverse ≡cast-Var≃ F.∘
+                                                                           from-isomorphism ≡-comm F.∘
+                                                                           from-isomorphism (∥∥↔ ∃Var-set) F.∘
+                                                                           ∈singleton≃ F.∘
+                                                                           ∈restrict-to-sort≃ ⟩
 
-           y ∈ restrict-to-sort s (free-Var x) × y ∉ dom  ↔⟨ inverse ∈minus≃ ⟩
+             z ≡ cast-Var (sym s≡s′) x                                  ↝⟨ (λ z≡x → subst (_∈ _) (sym z≡x) x∈dom) ⟩
 
-           y ∈ restrict-to-sort s (free-Var x) ∖ dom      ↝⟨ ⊆free _ ⟩□
+             z ∈ dom                                                    ↝⟨ ∈→∈∪ˡ ⟩□
 
-           y ∈ fs                                         □)
-      , (λ y →
-           y ∈ restrict-to-sort s (free-Var x)        ↝⟨ ∈→∈∪ʳ dom ⟩□
-           y ∈ dom ∪ restrict-to-sort s (free-Var x)  □)
-      , (λ _ _ → refl _)
-      ]
-  …   | inj₁ (y , [ x∈dom , y∈free ]) =
-      cast-Var s≡s′ y
-    , [ (λ z →
-           z ∈ restrict-to-sort s (free-Var (cast-Var s≡s′ y))  ↔⟨ from-isomorphism (∥∥↔ ∃Var-set) F.∘
-                                                                   ∈singleton≃ F.∘
-                                                                   ∈restrict-to-sort≃ ⟩
-           (s , z) ≡ (s′ , cast-Var s≡s′ y)                     ↝⟨ ≡⇒↝ _ $ cong (_ ≡_) $ sym ≡,cast-Var ⟩
-           (s , z) ≡ (s , y)                                    ↔⟨ ≡→,≡,≃ ⟩
-           z ≡ y                                                ↝⟨ (λ z≡y → subst (_∈ _) (sym z≡y) y∈free) ⟩□
-           z ∈ fs                                               □)
-      , (λ z →
-           z ∈ restrict-to-sort s (free-Var x)                        ↔⟨ from-isomorphism ≡-comm F.∘
-                                                                         inverse ≡cast-Var≃ F.∘
-                                                                         from-isomorphism ≡-comm F.∘
-                                                                         from-isomorphism (∥∥↔ ∃Var-set) F.∘
-                                                                         ∈singleton≃ F.∘
-                                                                         ∈restrict-to-sort≃ ⟩
-
-           z ≡ cast-Var (sym s≡s′) x                                  ↝⟨ (λ z≡x → subst (_∈ _) (sym z≡x) x∈dom) ⟩
-
-           z ∈ dom                                                    ↝⟨ ∈→∈∪ˡ ⟩□
-
-           z ∈ dom ∪ restrict-to-sort s (free-Var (cast-Var s≡s′ y))  □)
-      , (λ s″ s″≢s → _≃_.from extensionality λ z →
-           z ∈ restrict-to-sort s″ (singleton (s′ , cast-Var s≡s′ y))  ↔⟨ from-isomorphism (∥∥↔ ∃Var-set) F.∘
-                                                                          ∈singleton≃ F.∘
-                                                                          ∈restrict-to-sort≃ ⟩
-           (s″ , z) ≡ (s′ , cast-Var s≡s′ y)                           ↔⟨ ≢→,≡,≃ (subst (_ ≢_) s≡s′ s″≢s) ⟩
-           ⊥                                                           ↔⟨ inverse $ ≢→,≡,≃ (subst (_ ≢_) s≡s′ s″≢s) ⟩
-           (s″ , z) ≡ (s′ , x)                                         ↔⟨ inverse $
-                                                                          from-isomorphism (∥∥↔ ∃Var-set) F.∘
-                                                                          ∈singleton≃ F.∘
-                                                                          ∈restrict-to-sort≃ ⟩□
-           z ∈ restrict-to-sort s″ ((s′ , x) ∷ [])                     □)
-      ]
+             z ∈ dom ∪ restrict-to-sort s (free-Var (cast-Var s≡s′ y))  □)
+        , (λ s″ s″≢s → _≃_.from extensionality λ z →
+             z ∈ restrict-to-sort s″ (singleton (s′ , cast-Var s≡s′ y))  ↔⟨ from-isomorphism (∥∥↔ ∃Var-set) F.∘
+                                                                            ∈singleton≃ F.∘
+                                                                            ∈restrict-to-sort≃ ⟩
+             (s″ , z) ≡ (s′ , cast-Var s≡s′ y)                           ↔⟨ ≢→,≡,≃ (subst (_ ≢_) s≡s′ s″≢s) ⟩
+             ⊥                                                           ↔⟨ inverse $ ≢→,≡,≃ (subst (_ ≢_) s≡s′ s″≢s) ⟩
+             (s″ , z) ≡ (s′ , x)                                         ↔⟨ inverse $
+                                                                            from-isomorphism (∥∥↔ ∃Var-set) F.∘
+                                                                            ∈singleton≃ F.∘
+                                                                            ∈restrict-to-sort≃ ⟩□
+             z ∈ restrict-to-sort s″ ((s′ , x) ∷ [])                     □)
+        ]
 
   private
    mutual
@@ -1112,6 +1128,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
               ∀ s′ → s′ ≢ s →
               restrict-to-sort s′ (free tˢ t′) ≡
               restrict-to-sort s′ (free tˢ t))
+  rename {k = var}  = λ { var → rename-Var }
   rename {k = tm}   = rename-Tm
   rename {k = args} = rename-Args
   rename {k = arg}  = rename-Arg
@@ -1271,36 +1288,33 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   -- Predicates for well-formed variables, terms and arguments.
 
-  Wf-var : ∀ {s} → Vars → Var s → Type ℓ
-  Wf-var xs x = (_ , x) ∈ xs
+  mutual
 
-  private
-   mutual
+    Wf : Vars → (tˢ : Skeleton k s) → Data tˢ → Type ℓ
+    Wf {k = var}  = λ { xs var → Wf-var xs }
+    Wf {k = tm}   = Wf-tm
+    Wf {k = args} = Wf-args
+    Wf {k = arg}  = Wf-arg
 
-    Wf-tm : ∀ {s} → Vars → (tˢ : Tmˢ s) → Tm tˢ → Type ℓ
-    Wf-tm xs var        = Wf-var xs
-    Wf-tm xs (op o asˢ) = Wf-args xs asˢ
+    private
 
-    Wf-args : ∀ {vs} → Vars → (asˢ : Argsˢ vs) → Args asˢ → Type ℓ
-    Wf-args _  nil           _        = ↑ _ ⊤
-    Wf-args xs (cons aˢ asˢ) (a , as) =
-      Wf-arg xs aˢ a × Wf-args xs asˢ as
+      Wf-var : ∀ {s} → Vars → Var s → Type ℓ
+      Wf-var xs x = (_ , x) ∈ xs
 
-    Wf-arg : ∀ {v} → Vars → (aˢ : Argˢ v) → Arg aˢ → Type ℓ
-    Wf-arg xs (nil tˢ)  t       = Wf-tm xs tˢ t
-    Wf-arg xs (cons aˢ) (x , a) =
-      ∀ y → (_ , y) ∉ xs →
-      Wf-arg ((_ , y) ∷ xs) aˢ (rename₁ x y aˢ a)
+      Wf-tm : Vars → (tˢ : Tmˢ s) → Tm tˢ → Type ℓ
+      Wf-tm xs var        = Wf-var xs
+      Wf-tm xs (op o asˢ) = Wf-args xs asˢ
 
-  Wf : ∀ {s} → Vars → (tˢ : Skeleton k s) → Data tˢ → Type ℓ
-  Wf {k = tm}   = Wf-tm
-  Wf {k = args} = Wf-args
-  Wf {k = arg}  = Wf-arg
+      Wf-args : Vars → (asˢ : Argsˢ vs) → Args asˢ → Type ℓ
+      Wf-args _  nil           _        = ↑ _ ⊤
+      Wf-args xs (cons aˢ asˢ) (a , as) =
+        Wf-arg xs aˢ a × Wf-args xs asˢ as
 
-  -- Well-formed variables.
-
-  Variable : @0 Vars → @0 Sort → Type ℓ
-  Variable xs s = ∃ λ (x : Var s) → Erased (Wf-var xs x)
+      Wf-arg : Vars → (aˢ : Argˢ v) → Arg aˢ → Type ℓ
+      Wf-arg xs (nil tˢ)  t       = Wf-tm xs tˢ t
+      Wf-arg xs (cons aˢ) (x , a) =
+        ∀ y → (_ , y) ∉ xs →
+        Wf-arg ((_ , y) ∷ xs) aˢ (rename₁ x y aˢ a)
 
   -- Well-formed terms.
 
@@ -1499,9 +1513,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
              Var s → Arg′ aˢ → Arg′ (cons {s = s} aˢ)
 
   Data′ : @0 Skeleton k s → Type ℓ
-  Data′ {k = tm}   = Tm′
-  Data′ {k = args} = Args′
-  Data′ {k = arg}  = Arg′
+  Data′ {k = var} {s = s} = λ _ → Var s
+  Data′ {k = tm}          = Tm′
+  Data′ {k = args}        = Args′
+  Data′ {k = arg}         = Arg′
 
   -- Lemmas used by Tm′≃Tm, Args′≃Args and Arg′≃Arg below.
 
@@ -1606,10 +1621,11 @@ module Signature {ℓ} (sig : Signature ℓ) where
     where
     open ′≃
 
-  Data′≃Data : {tˢ : Skeleton k s} → Data′ tˢ ≃ Data tˢ
-  Data′≃Data {k = tm}   = Tm′≃Tm
-  Data′≃Data {k = args} = Args′≃Args
-  Data′≃Data {k = arg}  = Arg′≃Arg
+  Data′≃Data : ∀ k {@0 s} {tˢ : Skeleton k s} → Data′ tˢ ≃ Data tˢ
+  Data′≃Data var  = F.id
+  Data′≃Data tm   = Tm′≃Tm
+  Data′≃Data args = Args′≃Args
+  Data′≃Data arg  = Arg′≃Arg
 
   -- The following alternative definition of Term[_] uses Data′
   -- instead of Data.
@@ -1620,13 +1636,13 @@ module Signature {ℓ} (sig : Signature ℓ) where
   Term[ k ]′ xs s =
     ∃ λ (tˢ : Skeleton k s) →
     ∃ λ (t : Data′ tˢ) →
-      Erased (Wf xs tˢ (_≃_.to Data′≃Data t))
+      Erased (Wf xs tˢ (_≃_.to (Data′≃Data k) t))
 
   -- This alternative definition is also pointwise equivalent to the
   -- original one.
 
   Term′≃Term : Term[ k ]′ xs s ≃ Term[ k ] xs s
-  Term′≃Term = ∃-cong λ _ → Σ-cong Data′≃Data λ _ → F.id
+  Term′≃Term {k = k} = ∃-cong λ _ → Σ-cong (Data′≃Data k) λ _ → F.id
 
   ----------------------------------------------------------------------
   -- Decision procedures for equality
@@ -1639,8 +1655,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   _≟Term-kind_ : Decidable-erased-equality Term-kind
   _≟Term-kind_ =                         $⟨ Fin._≟_ ⟩
-    Decidable-equality (Fin 3)           ↝⟨ Decidable-equality→Decidable-erased-equality ⟩
-    Decidable-erased-equality (Fin 3)    ↝⟨ Decidable-erased-equality-map (_≃_.surjection $ inverse Term-kind≃Fin-3) ⟩□
+    Decidable-equality (Fin 4)           ↝⟨ Decidable-equality→Decidable-erased-equality ⟩
+    Decidable-erased-equality (Fin 4)    ↝⟨ Decidable-erased-equality-map (_≃_.surjection $ inverse Term-kind≃Fin-4) ⟩□
     Decidable-erased-equality Term-kind  □
 
   -- Erased equality is decidable for Skeleton k s.
@@ -1650,11 +1666,15 @@ module Signature {ℓ} (sig : Signature ℓ) where
   mutual
 
     _≟ˢ_ : Decidable-erased-equality (Skeleton k s)
+    _≟ˢ_ {k = var}  = _≟Varˢ_
     _≟ˢ_ {k = tm}   = _≟Tmˢ_
     _≟ˢ_ {k = args} = _≟Argsˢ_
     _≟ˢ_ {k = arg}  = _≟Argˢ_
 
     private
+
+      _≟Varˢ_ : Decidable-erased-equality (Varˢ s)
+      var ≟Varˢ var = yes [ refl _ ]
 
       _≟Tmˢ_ : Decidable-erased-equality (Tmˢ s)
       var ≟Tmˢ var = yes [ refl _ ]
@@ -1729,6 +1749,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     equal?-Data :
       ∀ {s} (tˢ : Skeleton k s) →
       Decidable-erased-equality (Data tˢ)
+    equal?-Data {k = var}  = λ _ → _≟V_
     equal?-Data {k = tm}   = equal?-Tm
     equal?-Data {k = args} = equal?-Args
     equal?-Data {k = arg}  = equal?-Arg
@@ -1762,27 +1783,24 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- Data, and in that case the sort and skeleton arguments can
   -- perhaps be erased.)
 
-  _≟Data′_ :
-    ∀ {s} {tˢ : Skeleton k s} →
+  equal?-Data′ :
+    ∀ k {s} {tˢ : Skeleton k s} →
     Decidable-erased-equality (Data′ tˢ)
-  _≟Data′_ {tˢ = tˢ} t₁ t₂ =                                  $⟨ equal?-Data tˢ _ _ ⟩
-    Dec-Erased (_≃_.to Data′≃Data t₁ ≡ _≃_.to Data′≃Data t₂)  ↝⟨ Dec-Erased-map (from-equivalence (Eq.≃-≡ Data′≃Data)) ⟩□
-    Dec-Erased (t₁ ≡ t₂)                                      □
+  equal?-Data′ k {tˢ = tˢ} t₁ t₂ =                                    $⟨ equal?-Data tˢ _ _ ⟩
+    Dec-Erased (_≃_.to (Data′≃Data k) t₁ ≡ _≃_.to (Data′≃Data k) t₂)  ↝⟨ Dec-Erased-map (from-equivalence (Eq.≃-≡ (Data′≃Data k))) ⟩□
+    Dec-Erased (t₁ ≡ t₂)                                              □
 
-  -- The Wf predicates are propositional.
-
-  @0 Wf-var-propositional :
-    Is-proposition (Wf-var xs x)
-  Wf-var-propositional = ∈-propositional
+  -- The Wf predicate is propositional.
 
   mutual
 
     @0 Wf-propositional :
       ∀ {s} (tˢ : Skeleton k s) {t : Data tˢ} →
       Is-proposition (Wf xs tˢ t)
-    Wf-propositional {k = tm}   = Wf-tm-propositional
-    Wf-propositional {k = args} = Wf-args-propositional
-    Wf-propositional {k = arg}  = Wf-arg-propositional
+    Wf-propositional {k = var}  var = ∈-propositional
+    Wf-propositional {k = tm}       = Wf-tm-propositional
+    Wf-propositional {k = args}     = Wf-args-propositional
+    Wf-propositional {k = arg}      = Wf-arg-propositional
 
     private
 
@@ -1810,27 +1828,17 @@ module Signature {ℓ} (sig : Signature ℓ) where
         ⟨ext⟩ λ y → ⟨ext⟩ λ y∉xs →
           Wf-arg-propositional aˢ (wf₁ y y∉xs) (wf₂ y y∉xs)
 
-  -- Erased equality is decidable for Variable.
-
-  infix 4 _≟Variable_
-
-  _≟Variable_ : ∀ {s} → Decidable-erased-equality (Variable xs s)
-  _≟Variable_ =
-    decidable-erased⇒decidable-erased⇒Σ-decidable-erased
-      _≟V_
-      λ _ _ → yes [ []-cong [ Wf-var-propositional _ _ ] ]
-
   -- Erased equality is decidable for Term[_]′.
 
   infix 4 _≟Term′_
 
   _≟Term′_ : ∀ {s} → Decidable-erased-equality (Term[ k ]′ xs s)
-  _≟Term′_ =
+  _≟Term′_ {k = k} =
     decidable-erased⇒decidable-erased⇒Σ-decidable-erased
       _≟ˢ_
       λ {tˢ} →
         decidable-erased⇒decidable-erased⇒Σ-decidable-erased
-          _≟Data′_
+          (equal?-Data′ k)
           λ _ _ → yes [ []-cong [ Wf-propositional tˢ _ _ ] ]
 
   -- Erased equality is decidable for Term[_].
@@ -1845,8 +1853,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Decidable-erased-equality (Term[ k ]′ xs s)  ↝⟨ Decidable-erased-equality-map (_≃_.surjection Term′≃Term) ⟩□
     Decidable-erased-equality (Term[ k ] xs s)   □
 
-  -- Skeleton, Data, Data′, Variable, Term[_] and Term[_]′ are sets
-  -- (pointwise, in erased contexts).
+  -- Skeleton, Data, Data′, Term[_] and Term[_]′ are sets (pointwise,
+  -- in erased contexts).
 
   @0 Skeleton-set : Is-set (Skeleton k s)
   Skeleton-set =
@@ -1858,15 +1866,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
     decidable⇒set $
     Decidable-erased-equality≃Decidable-equality _ (equal?-Data tˢ)
 
-  @0 Data′-set : {tˢ : Skeleton k s} → Is-set (Data′ tˢ)
-  Data′-set =
+  @0 Data′-set : ∀ k {s} {tˢ : Skeleton k s} → Is-set (Data′ tˢ)
+  Data′-set k =
     decidable⇒set $
-    Decidable-erased-equality≃Decidable-equality _ _≟Data′_
-
-  @0 Variable-set : Is-set (Variable xs s)
-  Variable-set =
-    decidable⇒set $
-    Decidable-erased-equality≃Decidable-equality _ _≟Variable_
+    Decidable-erased-equality≃Decidable-equality _ (equal?-Data′ k)
 
   @0 Term-set : Is-set (Term[ k ] xs s)
   Term-set =
@@ -1879,15 +1882,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Decidable-erased-equality≃Decidable-equality _ _≟Term′_
 
   ----------------------------------------------------------------------
-  -- Some lemmas
+  -- A lemma
 
   -- Changing the well-formedness proof does not actually change
   -- anything.
-
-  @0 Wf-var-proof-irrelevant :
-    _≡_ {A = Variable xs s} (x , [ wf₁ ]) (x , [ wf₂ ])
-  Wf-var-proof-irrelevant =
-    cong (λ wf → _ , [ wf ]) (Wf-var-propositional _ _)
 
   @0 Wf-proof-irrelevant :
     ∀ {tˢ : Skeleton k s} {t : Data tˢ} {wf₁ wf₂} →
@@ -1907,10 +1905,14 @@ module Signature {ℓ} (sig : Signature ℓ) where
     no-eta-equality
     field
       varʳ : ∀ {s} (x : Var s) (@0 x∈ : (_ , x) ∈ xs) →
-             P tm (var-wf x x∈)
-      opʳ  : ∀ (o : Op s) asˢ as (@0 wfs : Wf xs asˢ as) →
-             P args (asˢ , as , [ wfs ]) →
-             P tm (op-wf o asˢ as wfs)
+             P var (var-wf x x∈)
+
+      varʳ′ : ∀ {s} (x : Var s) (@0 wf : Wf xs Varˢ.var x) →
+              P var (var-wf x wf) →
+              P tm (var-wf x wf)
+      opʳ   : ∀ (o : Op s) asˢ as (@0 wfs : Wf xs asˢ as) →
+              P args (asˢ , as , [ wfs ]) →
+              P tm (op-wf o asˢ as wfs)
 
       nilʳ  : P args {xs = xs} nil-wfs
       consʳ : ∀ aˢ a asˢ as
@@ -1944,6 +1946,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
     mutual
 
       wf-elim : ∀ {xs} (t : Term[ k ] xs s) → P k t
+      wf-elim {k = var} (var , x , [ wf ]) =
+        wf-elim-Var x wf
       wf-elim {k = tm} (tˢ , t , [ wf ]) =
         wf-elim-Term tˢ t wf
       wf-elim {k = args} (asˢ , as , [ wfs ]) =
@@ -1953,10 +1957,16 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       private
 
+        wf-elim-Var :
+          ∀ {xs s} (x : Var s) (@0 wf : Wf xs Varˢ.var x) →
+          P var (var , x , [ wf ])
+        wf-elim-Var x wf = e .varʳ x wf
+
         wf-elim-Term :
           ∀ {xs} (tˢ : Tmˢ s) (t : Tm tˢ) (@0 wf : Wf-tm xs tˢ t) →
           P tm (tˢ , t , [ wf ])
-        wf-elim-Term var        x  wf  = e .varʳ x wf
+        wf-elim-Term var x wf =
+          e .varʳ′ x wf (wf-elim-Var x wf)
         wf-elim-Term (op o asˢ) as wfs =
           e .opʳ o asˢ as wfs (wf-elim-Arguments asˢ as wfs)
 
@@ -2047,14 +2057,11 @@ module Signature {ℓ} (sig : Signature ℓ) where
                  erased (proj₂ (B x)))
               ]
 
-    -- A predicate that holds if x is free in the variable.
-
-    Free-in-variable : ∀ {s′} → Variable ((_ , x) ∷ xs) s′ → Type ℓ
-    Free-in-variable (y , _) = proj₁ (Free-in-var y)
-
     -- A predicate that holds if x is free in the term.
 
     Free-in : ∀ {xs} → Term[ k ] ((_ , x) ∷ xs) s′ → Type ℓ
+    Free-in {k = var} (var , y , [ wf ]) =
+      proj₁ (Free-in-var y)
     Free-in {k = tm} (tˢ , t , [ wf ]) =
       proj₁ (Free-in-term tˢ t wf)
     Free-in {k = args} (asˢ , as , [ wfs ]) =
@@ -2062,20 +2069,16 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Free-in {k = arg} (aˢ , a , [ wf ]) =
       proj₁ (Free-in-argument aˢ a wf)
 
-    -- The alternative definitions of what it means for a variable to
-    -- be free are propositional (in erased contexts).
-
     abstract
 
-      @0 Free-in-variable-propositional :
-        (y : Variable ((_ , x) ∷ xs) s′) →
-        Is-proposition (Free-in-variable y)
-      Free-in-variable-propositional (y , _) =
-        erased (proj₂ (Free-in-var y))
+      -- The alternative definition of what it means for a variable to
+      -- be free is propositional (in erased contexts).
 
       @0 Free-in-propositional :
         (t : Term[ k ] ((_ , x) ∷ xs) s′) →
         Is-proposition (Free-in t)
+      Free-in-propositional {k = var} (var , y , [ wf ]) =
+        erased (proj₂ (Free-in-var y))
       Free-in-propositional {k = tm} (tˢ , t , [ wf ]) =
         erased (proj₂ (Free-in-term tˢ t wf))
       Free-in-propositional {k = args} (asˢ , as , [ wfs ]) =
@@ -2085,30 +2088,32 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   abstract
 
-    -- Variables that are free according to the alternative definitions
-    -- are in the sets of free variables (in erased contexts).
-
-    Free-free-Var :
-      ∀ {s s′} {x : Var s} {y : Var s′}
-      (@0 wf : Wf-var ((_ , x) ∷ xs) y) →
-      Free-in-variable x (y , [ wf ]) → (_ , x) ∈ free-Var y
-    Free-free-Var _ = ≡→∈singleton
-
     mutual
+
+      -- Variables that are free according to the alternative
+      -- definition are in the set of free variables (in erased
+      -- contexts).
 
       @0 Free-free :
         ∀ (tˢ : Skeleton k s′) {t} (wf : Wf ((s , x) ∷ xs) tˢ t) →
         Free-in x (tˢ , t , [ wf ]) → (s , x) ∈ free tˢ t
+      Free-free {k = var}  = λ yˢ wf → Free-free-Var yˢ wf
       Free-free {k = tm}   = Free-free-Tm
       Free-free {k = args} = Free-free-Args
       Free-free {k = arg}  = Free-free-Arg
 
       private
 
+        Free-free-Var :
+          ∀ {s} {x : Var s} (yˢ : Varˢ s′) {y : Var s′}
+          (@0 wf : Wf ((_ , x) ∷ xs) yˢ y) →
+          Free-in x (yˢ , y , [ wf ]) → (_ , x) ∈ free yˢ y
+        Free-free-Var var _ = ≡→∈singleton
+
         @0 Free-free-Tm :
           ∀ (tˢ : Tmˢ s′) {t} (wf : Wf ((_ , x) ∷ xs) tˢ t) →
           Free-in x (tˢ , t , [ wf ]) → (_ , x) ∈ free tˢ t
-        Free-free-Tm var        wf  = Free-free-Var wf
+        Free-free-Tm var        wf  = Free-free-Var var wf
         Free-free-Tm (op o asˢ) wfs = Free-free-Args asˢ wfs
 
         @0 Free-free-Args :
@@ -2171,32 +2176,33 @@ module Signature {ℓ} (sig : Signature ℓ) where
           where
           fs′ = del (_ , y) (free aˢ a)
 
-    -- Every member of the set of free variables is free according to
-    -- the alternative definitions (in erased contexts).
-
-    @0 free-Free-Var :
-      (wf : Wf-var ((_ , x) ∷ xs) y) →
-      (_ , x) ∈ free-Var y → Free-in-variable x (y , [ wf ])
-    free-Free-Var {x = x} {y = y} _ =
-      (_ , x) ∈ singleton (_ , y)  ↔⟨ ∈singleton≃ ⟩
-      ∥ (_ , x) ≡ (_ , y) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩□
-      (_ , x) ≡ (_ , y)            □
-
     mutual
+
+      -- Every member of the set of free variables is free according
+      -- to the alternative definition (in erased contexts).
 
       @0 free-Free :
         ∀ (tˢ : Skeleton k s) {t} (wf : Wf ((s′ , x) ∷ xs) tˢ t) →
         (s′ , x) ∈ free tˢ t → Free-in x (tˢ , t , [ wf ])
+      free-Free {k = var}  = free-Free-Var
       free-Free {k = tm}   = free-Free-Tm
       free-Free {k = args} = free-Free-Args
       free-Free {k = arg}  = free-Free-Arg
 
       private
 
+        @0 free-Free-Var :
+          ∀ (yˢ : Varˢ s) {y} (wf : Wf ((_ , x) ∷ xs) yˢ y) →
+          (_ , x) ∈ free yˢ y → Free-in x (yˢ , y , [ wf ])
+        free-Free-Var {x = x} var {y = y} _ =
+          (_ , x) ∈ singleton (_ , y)  ↔⟨ ∈singleton≃ ⟩
+          ∥ (_ , x) ≡ (_ , y) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩□
+          (_ , x) ≡ (_ , y)            □
+
         @0 free-Free-Tm :
           ∀ (tˢ : Tmˢ s) {t} (wf : Wf-tm ((_ , x) ∷ xs) tˢ t) →
           (_ , x) ∈ free tˢ t → Free-in x (tˢ , t , [ wf ])
-        free-Free-Tm var        = free-Free-Var
+        free-Free-Tm var        = free-Free-Var var
         free-Free-Tm (op o asˢ) = free-Free-Args asˢ
 
         @0 free-Free-Args :
@@ -2246,30 +2252,33 @@ module Signature {ℓ} (sig : Signature ℓ) where
              ))                                                   □
 
   ----------------------------------------------------------------------
-  -- Lemmas related to the Wf predicates
+  -- Lemmas related to the Wf predicate
 
   abstract
 
-    -- Weakening of the Wf predicates.
-
-    @0 weaken-Wf-var : xs ⊆ ys → Wf-var xs x → Wf-var ys x
-    weaken-Wf-var xs⊆ys = xs⊆ys _
+    -- Weakening of the Wf predicate.
 
     mutual
 
       @0 weaken-Wf :
         xs ⊆ ys → ∀ (tˢ : Skeleton k s) {t} →
         Wf xs tˢ t → Wf ys tˢ t
+      weaken-Wf {k = var}  = weaken-Wf-var
       weaken-Wf {k = tm}   = weaken-Wf-tm
       weaken-Wf {k = args} = weaken-Wf-args
       weaken-Wf {k = arg}  = weaken-Wf-arg
 
       private
 
+        @0 weaken-Wf-var :
+          xs ⊆ ys → ∀ (xˢ : Varˢ s) {x} →
+          Wf xs xˢ x → Wf ys xˢ x
+        weaken-Wf-var xs⊆ys var = xs⊆ys _
+
         @0 weaken-Wf-tm :
           xs ⊆ ys → ∀ (tˢ : Tmˢ s) {t} →
           Wf xs tˢ t → Wf ys tˢ t
-        weaken-Wf-tm xs⊆ys var        = weaken-Wf-var xs⊆ys
+        weaken-Wf-tm xs⊆ys var        = weaken-Wf-var xs⊆ys var
         weaken-Wf-tm xs⊆ys (op o asˢ) = weaken-Wf-args xs⊆ys asˢ
 
         @0 weaken-Wf-args :
@@ -2294,15 +2303,20 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       @0 wf-free :
         ∀ (tˢ : Skeleton k s) {t} → Wf (free tˢ t) tˢ t
+      wf-free {k = var}  = wf-free-Var
       wf-free {k = tm}   = wf-free-Tm
       wf-free {k = args} = wf-free-Args
       wf-free {k = arg}  = wf-free-Arg
 
       private
 
+        @0 wf-free-Var :
+          ∀ (xˢ : Varˢ s) {x} → Wf (free xˢ x) xˢ x
+        wf-free-Var var = ≡→∈∷ (refl _)
+
         @0 wf-free-Tm :
           ∀ (tˢ : Tmˢ s) {t} → Wf (free tˢ t) tˢ t
-        wf-free-Tm var        = ≡→∈∷ (refl _)
+        wf-free-Tm var        = wf-free-Var var
         wf-free-Tm (op o asˢ) = wf-free-Args asˢ
 
         @0 wf-free-Args :
@@ -2331,19 +2345,24 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       @0 free-⊆ :
         ∀ (tˢ : Skeleton k s) {t} → Wf xs tˢ t → free tˢ t ⊆ xs
+      free-⊆ {k = var}  = free-⊆-Var
       free-⊆ {k = tm}   = free-⊆-Tm
       free-⊆ {k = args} = free-⊆-Args
       free-⊆ {k = arg}  = free-⊆-Arg
 
       private
 
-        @0 free-⊆-Tm :
-          ∀ (tˢ : Tmˢ s) {t} → Wf xs tˢ t → free tˢ t ⊆ xs
-        free-⊆-Tm {xs = xs} var {t = x} wf y =
+        @0 free-⊆-Var :
+          ∀ (xˢ : Varˢ s) {x} → Wf xs xˢ x → free xˢ x ⊆ xs
+        free-⊆-Var {xs = xs} var {x = x} wf y =
           y ∈ singleton (_ , x)  ↔⟨ ∈singleton≃ ⟩
           ∥ y ≡ (_ , x) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩
           y ≡ (_ , x)            ↝⟨ (λ eq → subst (_∈ xs) (sym eq) wf) ⟩□
           y ∈ xs                 □
+
+        @0 free-⊆-Tm :
+          ∀ (tˢ : Tmˢ s) {t} → Wf xs tˢ t → free tˢ t ⊆ xs
+        free-⊆-Tm var        = free-⊆-Var var
         free-⊆-Tm (op o asˢ) = free-⊆-Args asˢ
 
         @0 free-⊆-Args :
@@ -2395,17 +2414,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
                                                                             (∥⊎∥-left-identity ∈-propositional ∥⊎∥-cong F.id) ⟩□
             y ∈ xs                                                       □
 
-    -- Strengthening of the Wf predicates.
-
-    @0 strengthen-Wf-var :
-      (_ , x) ∉ singleton {A = ∃Var} (_ , y) →
-      Wf-var ((_ , x) ∷ xs) y → Wf-var xs y
-    strengthen-Wf-var {x = x} {y = y} {xs = xs} x∉ =
-      (_ , y) ∈ (_ , x) ∷ xs                        ↔⟨ ∈∷≃ ⟩
-      (_ , y) ≡ (_ , x) ∥⊎∥ (_ , y) ∈ xs            ↔⟨ ≡-comm ∥⊎∥-cong F.id ⟩
-      (_ , x) ≡ (_ , y) ∥⊎∥ (_ , y) ∈ xs            ↝⟨ ≡→∈singleton ∥⊎∥-cong id ⟩
-      (_ , x) ∈ singleton (_ , y) ∥⊎∥ (_ , y) ∈ xs  ↔⟨ drop-⊥-left-∥⊎∥ ∈-propositional x∉ ⟩□
-      (_ , y) ∈ xs                                  □
+    -- Strengthening of the Wf predicate.
 
     @0 strengthen-Wf :
       ∀ (tˢ : Skeleton k s) {t} →
@@ -2521,32 +2530,17 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   -- Weakening.
 
-  weaken-Variable : @0 xs ⊆ ys → Variable xs s → Variable ys s
-  weaken-Variable xs⊆ys (x , [ wf ]) =
-    x , [ weaken-Wf-var xs⊆ys wf ]
-
   weaken : @0 xs ⊆ ys → Term[ k ] xs s → Term[ k ] ys s
   weaken xs⊆ys (tˢ , t , [ wf ]) =
     tˢ , t , [ weaken-Wf xs⊆ys tˢ wf ]
 
   -- Casting.
 
-  cast-Variable :
-    @0 xs ≡ ys → Variable xs s → Variable ys s
-  cast-Variable eq = weaken-Variable (subst (_ ⊆_) eq ⊆-refl)
-
   cast :
     @0 xs ≡ ys → Term[ k ] xs s → Term[ k ] ys s
   cast eq = weaken (subst (_ ⊆_) eq ⊆-refl)
 
   -- Strengthening.
-
-  strengthen-Variable :
-    (y : Variable ((_ , x) ∷ xs) s) →
-    @0 ¬ Free-in-variable x y →
-    Variable xs s
-  strengthen-Variable (y , [ wf ]) ¬free =
-    y , [ strengthen-Wf-var (¬free ∘ free-Free-Var wf) wf ]
 
   strengthen :
     (t : Term[ k ] ((s′ , x) ∷ xs) s) →
@@ -2558,31 +2552,51 @@ module Signature {ℓ} (sig : Signature ℓ) where
   ----------------------------------------------------------------------
   -- Substitution
 
-  -- Substitution for variables.
+  -- The function subst-Term maps variables to terms. Other kinds of
+  -- terms are preserved.
 
-  subst-Variable :
-    ∀ {xs s s′} →
-    (x : Var s) → Term xs s → Variable ((_ , x) ∷ xs) s′ → Term xs s′
-  subst-Variable {xs = xs} x t (y , [ y∈x∷xs ]) =
-    case (_ , y) ≟∃V (_ , x) of λ where
-      (no [ y≢x ])  → var-wf y (_≃_.to (∈≢∷≃ y≢x) y∈x∷xs)
-      (yes [ y≡x ]) →
-        substᴱ (λ p → Term xs (proj₁ p)) (sym y≡x) t
+  var-to-tm : Term-kind → Term-kind
+  var-to-tm var = tm
+  var-to-tm k   = k
 
-  -- Substitution for terms.
+  -- The kind of sort corresponding to var-to-tm k is the same as that
+  -- for k.
+
+  var-to-tm-for-sorts : ∀ k → Sort-kind k → Sort-kind (var-to-tm k)
+  var-to-tm-for-sorts var  = id
+  var-to-tm-for-sorts tm   = id
+  var-to-tm-for-sorts args = id
+  var-to-tm-for-sorts arg  = id
+
+  -- Capture-avoiding substitution. The term subst-Term x t′ t is the
+  -- result of substituting t′ for x in t.
+
+  syntax subst-Term x t′ t = t [ x ← t′ ]
 
   subst-Term :
-    ∀ {xs s} →
+    ∀ {xs s}
     (x : Var s) → Term xs s →
-    Term[ k ] ((_ , x) ∷ xs) s′ → Term[ k ] xs s′
+    Term[ k ] ((_ , x) ∷ xs) s′ →
+    Term[ var-to-tm k ] xs (var-to-tm-for-sorts k s′)
   subst-Term {s = s} x t t′ = wf-elim e t′ (refl _) t
     where
     e : Wf-elim
           (λ k {xs = xs′} {s = s′} _ →
              ∀ {xs} → @0 xs′ ≡ (_ , x) ∷ xs →
-             Term xs s → Term[ k ] xs s′)
-    e .Wf-elim.varʳ y y∈ eq t =
-      subst-Variable x t (y , [ subst (_ ∈_) eq y∈ ])
+             Term xs s →
+             Term[ var-to-tm k ] xs (var-to-tm-for-sorts k s′))
+    e .Wf-elim.varʳ {xs = xs′} y y∈xs′ {xs = xs} xs′≡x∷xs t =
+      case (_ , y) ≟∃V (_ , x) of λ where
+        (yes [ y≡x ]) →
+          substᴱ (λ p → Term xs (proj₁ p)) (sym y≡x) t
+        (no [ y≢x ]) →
+          var-wf y
+            (                        $⟨ y∈xs′ ⟩
+             (_ , y) ∈ xs′           ↝⟨ subst (_ ∈_) xs′≡x∷xs ⟩
+             (_ , y) ∈ (_ , x) ∷ xs  ↔⟨ ∈≢∷≃ y≢x ⟩□
+             (_ , y) ∈ xs            □)
+
+    e .Wf-elim.varʳ′ _ _ hyp eq t = hyp eq t
 
     e .Wf-elim.opʳ o _ _ _ hyp eq t = Σ-map (op o) id (hyp eq t)
 

@@ -234,7 +234,7 @@ print[λxy→xy] = print λxy→xy₁
 -- A third representation of "λ x y. x y".
 
 λxy→xy₃ : Term [] expr
-λxy→xy₃ = subst-Term 0 λx→x $ weaken lemma λxy→xy₁
+λxy→xy₃ = weaken lemma λxy→xy₁ [ 0 ← λx→x ]
   where
   @0 lemma : _
   lemma =
