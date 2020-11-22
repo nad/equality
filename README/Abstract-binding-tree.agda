@@ -193,7 +193,7 @@ lam :
   Term ((expr , x) ∷ xs) expr →
   Term xs expr
 lam x (tˢ , t , [ wf ]) =
-  lamᵖ x tˢ t (λ b _ _ → rename-Wf-arg b (nil tˢ) wf)
+  lamᵖ x tˢ t (λ _ _ → rename₁-Wf tˢ wf)
 
 app : Term xs expr → Term xs expr → Term xs expr
 app (t₁ˢ , t₁ , [ wf₁ ]) (t₂ˢ , t₂ , [ wf₂ ]) =
@@ -218,7 +218,7 @@ private
 
   λxy→xy : ℕ → ℕ → Term [] expr
   λxy→xy x y =
-    lam x $ lam y $ app (weaken-Term (λ _ → ∈→∈∷) (var x)) (var y)
+    lam x $ lam y $ app (weaken (λ _ → ∈→∈∷) (var x)) (var y)
 
 λxy→xy₁ : Term [] expr
 λxy→xy₁ = λxy→xy 2 1
@@ -234,7 +234,7 @@ print[λxy→xy] = print λxy→xy₁
 -- A third representation of "λ x y. x y".
 
 λxy→xy₃ : Term [] expr
-λxy→xy₃ = subst-Term 0 λx→x $ weaken-Term lemma λxy→xy₁
+λxy→xy₃ = subst-Term 0 λx→x $ weaken lemma λxy→xy₁
   where
   @0 lemma : _
   lemma =
@@ -249,7 +249,7 @@ print[λxy→xy] = print λxy→xy₁
 -- erased contexts).
 
 @0 _ : λxy→xy₂ ≡ λxy→xy₃
-_ = Wf-tm-proof-irrelevant
+_ = Wf-proof-irrelevant
 
 -- An interpreter that uses fuel.
 
@@ -268,7 +268,7 @@ eval (suc n) t = eval′ t
     eval n (subst-Term x t₂′
               ( t₁ˢ′
               , t₁′
-              , [ body-Wf-arg (nil t₁ˢ′) wf₁′ ]
+              , [ body-Wf t₁ˢ′ wf₁′ ]
               ))
   … | t₁′ | t₂′ = app t₁′ t₂′
 
