@@ -5,6 +5,9 @@
 
 -- Operators are not indexed by symbolic parameters.
 
+-- TODO: Define α-equivalence, prove that key operations respect
+-- α-equivalence.
+
 {-# OPTIONS --cubical --safe #-}
 
 import Equality.Path as P
@@ -1108,12 +1111,17 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
               y ∈ cast-Var (sym s≡s′) x′ ∷ fs             □))
       where
+      -- TODO: Perhaps it would make sense to avoid the use of L.map
+      -- below.
       x′ = proj₁ (fresh (L.map (s ,_) fs))
 
   -- Capture-avoiding renaming of free variables.
   --
   -- Bound variables are renamed to variables that are fresh with
   -- respect to the set fs.
+  --
+  -- Note that this function renames every bound variable of the given
+  -- sort.
 
   rename :
     ∀ {s} {@0 dom} {fs} (tˢ : Skeleton k s′) (t : Data tˢ)
