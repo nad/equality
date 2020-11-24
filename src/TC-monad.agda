@@ -203,7 +203,7 @@ mutual
   bound-in-pattern (var _)    = 1
   bound-in-pattern (lit _)    = 0
   bound-in-pattern (proj _)   = 0
-  bound-in-pattern absurd     = 0
+  bound-in-pattern (absurd _) = 1
 
   bound-in-patterns : List (Arg Pattern) → ℕ
   bound-in-patterns []             = 0
