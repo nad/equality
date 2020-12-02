@@ -741,6 +741,74 @@ inverse-equivalence ext = ↔→≃ᴱ
 ------------------------------------------------------------------------
 -- Some results that depend on univalence
 
+-- A variant of ≃⇒≡.
+
+@0 ≃ᴱ→≡ :
+  {A B : Type a} →
+  Univalence a →
+  A ≃ᴱ B → A ≡ B
+≃ᴱ→≡ univ = ≃⇒≡ univ ⊚ ≃ᴱ→≃
+
+-- A variant of ≡≃≃.
+
+@0 ≡≃≃ᴱ :
+  {A B : Type a} →
+  Extensionality a a →
+  Univalence a →
+  (A ≡ B) ≃ (A ≃ᴱ B)
+≡≃≃ᴱ {A = A} {B = B} ext univ =
+  Eq.with-other-function
+    (A ≡ B   ↝⟨ ≡≃≃ univ ⟩
+     A ≃ B   ↝⟨ ≃≃≃ᴱ ext ⟩□
+     A ≃ᴱ B  □)
+    (≡⇒↝ _)
+    (elim₁ (λ eq → ≃→≃ᴱ (≡⇒≃ eq) ≡ ≡⇒↝ _ eq)
+       (≃→≃ᴱ (≡⇒≃ (refl _))  ≡⟨ cong ≃→≃ᴱ ≡⇒≃-refl ⟩
+        ≃→≃ᴱ Eq.id           ≡⟨⟩
+        id                   ≡⟨ sym ≡⇒↝-refl ⟩∎
+        ≡⇒↝ _ (refl _)       ∎))
+
+@0 _ :
+  {univ : Univalence a} →
+  _≃_.from (≡≃≃ᴱ {A = A} {B = B} ext univ) ≡ ≃ᴱ→≡ univ
+_ = refl _
+
+-- A variant of ≃⇒≡-id.
+
+@0 ≃ᴱ→≡-id :
+  {A : Type a} →
+  Extensionality a a →
+  (univ : Univalence a) →
+  ≃ᴱ→≡ univ id ≡ refl A
+≃ᴱ→≡-id ext univ =
+  ≃⇒≡ univ (≃ᴱ→≃ id)  ≡⟨ cong (≃⇒≡ univ) $ Eq.lift-equality ext (refl _) ⟩
+  ≃⇒≡ univ Eq.id      ≡⟨ ≃⇒≡-id univ ⟩∎
+  refl _              ∎
+
+-- A variant of ≃⇒≡-inverse.
+
+@0 ≃ᴱ→≡-inverse :
+  Extensionality a a →
+  (univ : Univalence a)
+  (A≃B : A ≃ᴱ B) →
+  ≃ᴱ→≡ univ (inverse A≃B) ≡ sym (≃ᴱ→≡ univ A≃B)
+≃ᴱ→≡-inverse ext univ A≃B =
+  ≃⇒≡ univ (≃ᴱ→≃ (inverse A≃B))     ≡⟨ cong (≃⇒≡ univ) $ Eq.lift-equality ext (refl _) ⟩
+  ≃⇒≡ univ (Eq.inverse (≃ᴱ→≃ A≃B))  ≡⟨ ≃⇒≡-inverse univ ext _ ⟩∎
+  sym (≃⇒≡ univ (≃ᴱ→≃ A≃B))         ∎
+
+-- A variant of ≃⇒≡-∘.
+
+@0 ≃ᴱ→≡-∘ :
+  Extensionality a a →
+  (univ : Univalence a)
+  (A≃B : A ≃ᴱ B) (B≃C : B ≃ᴱ C) →
+  ≃ᴱ→≡ univ (B≃C ∘ A≃B) ≡ trans (≃ᴱ→≡ univ A≃B) (≃ᴱ→≡ univ B≃C)
+≃ᴱ→≡-∘ ext univ A≃B B≃C =
+  ≃⇒≡ univ (≃ᴱ→≃ (B≃C ∘ A≃B))                        ≡⟨ cong (≃⇒≡ univ) $ Eq.lift-equality ext (refl _) ⟩
+  ≃⇒≡ univ (≃ᴱ→≃ B≃C Eq.∘ ≃ᴱ→≃ A≃B)                  ≡⟨ ≃⇒≡-∘ univ ext _ _ ⟩
+  trans (≃⇒≡ univ (≃ᴱ→≃ A≃B)) (≃⇒≡ univ (≃ᴱ→≃ B≃C))  ∎
+
 -- Singletons expressed using equivalences with erased proofs instead
 -- of equalities are equivalent (with erased proofs) to the unit type
 -- (assuming extensionality and univalence).
