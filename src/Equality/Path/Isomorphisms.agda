@@ -23,6 +23,8 @@ import H-level
 import Univalence-axiom
 
 private
+  module F  = Function-universe equality-with-J
+
   module PB = Bijection P.equality-with-J
   module PM = Embedding P.equality-with-J
   module PE = Equivalence P.equality-with-J
@@ -33,7 +35,7 @@ private
 open Bijection equality-with-J using (_↔_)
 open Embedding equality-with-J hiding (id; _∘_)
 open Equivalence equality-with-J hiding (id; _∘_; inverse)
-open Function-universe equality-with-J hiding (id; _∘_)
+open F hiding (id; _∘_)
 open H-level equality-with-J
 open Univalence-axiom equality-with-J
 
@@ -470,64 +472,73 @@ cong-≡↔≡ {f = f} {eq₁ = eq₁} {eq₂} hyp =
 ------------------------------------------------------------------------
 -- Univalence
 
--- Univalence.
+-- Univalence′ expressed using equality is equivalent to Univalence′
+-- expressed using paths.
 
-univ : ∀ {ℓ} → Univalence ℓ
-univ {ℓ} {A = A} {B = B} = lemma P.univ
+Univalence′≃Univalence′ :
+  {A B : Type ℓ} →
+  Univalence′ A B ≃ PU.Univalence′ A B
+Univalence′≃Univalence′ {ℓ = ℓ} {A = A} {B = B} =
+  ((A≃B : A ≃ B) → ∃ λ (x : ∃ λ A≡B → ≡⇒≃ A≡B ≡ A≃B) → ∀ y → x ≡ y)  ↝⟨ Π-cong ext ≃-as-Σ (λ _ → F.id) ⟩
+
+  ((A≃B : ∃ λ (f : A → B) → Is-equivalence f) →
+   ∃ λ (x : ∃ λ A≡B → ≡⇒≃ A≡B ≡ _↔_.from ≃-as-Σ A≃B) →
+   ∀ y → x ≡ y)                                                      ↝⟨ (Π-cong ext (∃-cong λ _ → Is-equivalence↔Is-equivalence) λ A≃B →
+                                                                         Σ-cong (lemma₁ A≃B) λ _ →
+                                                                         Π-cong ext (lemma₁ A≃B) λ _ →
+                                                                         inverse $ ≃-≡ (lemma₁ A≃B)) ⟩
+  ((A≃B : ∃ λ (f : A → B) → PE.Is-equivalence f) →
+   ∃ λ (x : ∃ λ A≡B → PU.≡⇒≃ A≡B ≡ PB._↔_.from PE.≃-as-Σ A≃B) →
+   ∀ y → x ≡ y)                                                      ↔⟨ ↔→↔ $ PF.Π-cong P.ext (PF.inverse PE.≃-as-Σ) (λ _ → PF.id) ⟩
+
+  ((A≃B : A PE.≃ B) →
+   ∃ λ (x : ∃ λ A≡B → PU.≡⇒≃ A≡B ≡ A≃B) → ∀ y → x ≡ y)               ↔⟨ Is-equivalence↔Is-equivalence ⟩□
+
+  ((A≃B : A PE.≃ B) →
+   ∃ λ (x : ∃ λ A≡B → PU.≡⇒≃ A≡B P.≡ A≃B) → ∀ y → x P.≡ y)           □
   where
-  lemma₄ : {A B : Type ℓ} → (A PE.≃ B) ≃ (A ≃ B)
-  lemma₄ {A} {B} =
-    A PE.≃ B                       ↔⟨ ↔→↔ PE.≃-as-Σ ⟩
-    (∃ λ f → PE.Is-equivalence f)  ↔⟨ ∃-cong (λ _ → inverse Is-equivalence↔Is-equivalence) ⟩
-    (∃ λ f → Is-equivalence f)     ↔⟨ inverse ≃-as-Σ ⟩□
-    A ≃ B                          □
-
-  lemma₃ : ∀ A≡B → _≃_.to lemma₄ (PU.≡⇒≃ A≡B) ≡ ≡⇒≃ (_↔_.from ≡↔≡ A≡B)
-  lemma₃ = P.elim¹
-    (λ A≡B → _≃_.to lemma₄ (PU.≡⇒≃ A≡B) ≡ ≡⇒≃ (_↔_.from ≡↔≡ A≡B))
-    (_≃_.to lemma₄ (PU.≡⇒≃ P.refl)   ≡⟨ cong (_≃_.to lemma₄) (_↔_.from ≡↔≡ PU.≡⇒≃-refl) ⟩
-     _≃_.to lemma₄ PE.id             ≡⟨ lift-equality ext (refl _) ⟩
-     Equivalence.id equality-with-J  ≡⟨ sym ≡⇒≃-refl ⟩
-     ≡⇒≃ (refl _)                    ≡⟨ sym $ cong ≡⇒≃ from-≡↔≡-refl ⟩∎
-     ≡⇒≃ (_↔_.from ≡↔≡ P.refl)       ∎)
+  lemma₃ :
+    (A≡B : A ≡ B) →
+    _↔_.to ≃↔≃ (≡⇒≃ A≡B) ≡ PU.≡⇒≃ (_↔_.to ≡↔≡ A≡B)
+  lemma₃ = elim¹
+    (λ A≡B → _↔_.to ≃↔≃ (≡⇒≃ A≡B) ≡ PU.≡⇒≃ (_↔_.to ≡↔≡ A≡B))
+    (_↔_.to ≃↔≃ (≡⇒≃ (refl _))     ≡⟨ cong (_↔_.to ≃↔≃) ≡⇒≃-refl ⟩
+     _↔_.to ≃↔≃ F.id               ≡⟨ _↔_.from ≡↔≡ $ PE.lift-equality P.ext P.refl ⟩
+     PE.id                         ≡⟨ sym $ _↔_.from ≡↔≡ PU.≡⇒≃-refl ⟩
+     PU.≡⇒≃ P.refl                 ≡⟨ sym $ cong PU.≡⇒≃ to-≡↔≡-refl ⟩∎
+     PU.≡⇒≃ (_↔_.to ≡↔≡ (refl _))  ∎)
 
   lemma₂ : ∀ _ _ → _ ≃ _
   lemma₂ A≡B (f , f-eq) =
-    PU.≡⇒≃ A≡B ≡ PE.⟨ f , f-eq ⟩                         ↝⟨ inverse $ ≃-≡ lemma₄ ⟩
+    ≡⇒≃ A≡B ≡ ⟨ f , f-eq ⟩                                ↝⟨ inverse $ ≃-≡ (↔⇒≃ ≃↔≃) ⟩
 
-    _≃_.to lemma₄ (PU.≡⇒≃ A≡B) ≡
-    ⟨ f , _↔_.from Is-equivalence↔Is-equivalence f-eq ⟩  ↝⟨ ≡⇒≃ $ cong (_≡ ⟨ f , _↔_.from Is-equivalence↔Is-equivalence f-eq ⟩) $
-                                                            lemma₃ A≡B ⟩□
-    ≡⇒≃ (_↔_.from ≡↔≡ A≡B) ≡
-    ⟨ f , _↔_.from Is-equivalence↔Is-equivalence f-eq ⟩  □
+    _↔_.to ≃↔≃ (≡⇒≃ A≡B) ≡
+    PE.⟨ f , _↔_.to Is-equivalence↔Is-equivalence f-eq ⟩  ↝⟨ ≡⇒≃ $ cong (_≡ PE.⟨ f , _↔_.to Is-equivalence↔Is-equivalence f-eq ⟩) $
+                                                             lemma₃ A≡B ⟩□
+    PU.≡⇒≃ (_↔_.to ≡↔≡ A≡B) ≡
+    PE.⟨ f , _↔_.to Is-equivalence↔Is-equivalence f-eq ⟩  □
 
   lemma₁ :
     ∀ A≃B →
-    (∃ λ A≡B → PU.≡⇒≃ A≡B ≡ PB._↔_.from PE.≃-as-Σ A≃B) ≃
-    (∃ λ A≡B → ≡⇒≃ A≡B ≡
-               ⟨ proj₁ A≃B
-               , _↔_.from Is-equivalence↔Is-equivalence (proj₂ A≃B)
-               ⟩)
-  lemma₁ A≃B = Σ-cong (inverse ≡↔≡) λ A≡B → lemma₂ A≡B A≃B
+    (∃ λ A≡B → ≡⇒≃ A≡B ≡ _↔_.from ≃-as-Σ A≃B) ≃
+    (∃ λ A≡B → PU.≡⇒≃ A≡B ≡
+               PE.⟨ proj₁ A≃B
+                  , _↔_.to Is-equivalence↔Is-equivalence (proj₂ A≃B)
+                  ⟩)
+  lemma₁ A≃B = Σ-cong ≡↔≡ λ A≡B → lemma₂ A≡B A≃B
 
-  lemma =
-    ((A≃B : A PE.≃ B) →
-     ∃ λ (x : ∃ λ A≡B → PU.≡⇒≃ A≡B P.≡ A≃B) → ∀ y → x P.≡ y)           ↔⟨ inverse Is-equivalence↔Is-equivalence ⟩
+-- Univalence expressed using equality is equivalent to univalence
+-- expressed using paths.
 
-    ((A≃B : A PE.≃ B) →
-     ∃ λ (x : ∃ λ A≡B → PU.≡⇒≃ A≡B ≡ A≃B) → ∀ y → x ≡ y)               ↝⟨ PF.Π-cong _ PE.≃-as-Σ (λ _ → id) ⟩
+Univalence≃Univalence : Univalence ℓ ≃ PU.Univalence ℓ
+Univalence≃Univalence {ℓ = ℓ} =
+  ({A B : Type ℓ} → Univalence′ A B)     ↝⟨ implicit-∀-cong ext $ implicit-∀-cong ext Univalence′≃Univalence′ ⟩□
+  ({A B : Type ℓ} → PU.Univalence′ A B)  □
 
-    ((A≃B : ∃ λ (f : A → B) → PE.Is-equivalence f) →
-     ∃ λ (x : ∃ λ A≡B → PU.≡⇒≃ A≡B ≡ PB._↔_.from PE.≃-as-Σ A≃B) →
-     ∀ y → x ≡ y)                                                      ↝⟨ Π-cong _ (∃-cong λ _ → inverse Is-equivalence↔Is-equivalence) (λ A≃B →
-                                                                          Σ-cong (lemma₁ A≃B) λ _ →
-                                                                          Π-cong _ (lemma₁ A≃B) λ _ →
-                                                                          cong (_≃_.to (lemma₁ A≃B))) ⟩
-    ((A≃B : ∃ λ (f : A → B) → Is-equivalence f) →
-     ∃ λ (x : ∃ λ A≡B → ≡⇒≃ A≡B ≡ _↔_.from ≃-as-Σ A≃B) →
-     ∀ y → x ≡ y)                                                      ↝⟨ Π-cong _ (inverse ≃-as-Σ) (λ _ → id) ⟩□
+-- Univalence.
 
-    ((A≃B : A ≃ B) → ∃ λ (x : ∃ λ A≡B → ≡⇒≃ A≡B ≡ A≃B) → ∀ y → x ≡ y)  □
+univ : ∀ {ℓ} → Univalence ℓ
+univ = _≃_.from Univalence≃Univalence P.univ
 
 -- Propositional extensionality.
 
