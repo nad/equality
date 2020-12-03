@@ -99,6 +99,11 @@ open import Agda.Builtin.Nat public
 ℕ-rec z s zero    = z
 ℕ-rec z s (suc n) = s n (ℕ-rec z s n)
 
+-- A non-recursive variant of ℕ-rec.
+
+ℕ-case : {P : ℕ → Type p} → P 0 → (∀ n → P (suc n)) → ∀ n → P n
+ℕ-case z s = ℕ-rec z (λ n _ → s n)
+
 -- Exponentiation.
 
 infixr 8 _^_
