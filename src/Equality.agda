@@ -513,7 +513,7 @@ module Derived-definitions-and-properties
 
   private
     variable
-      eq x≡y y≡z x₁≡x₂ : x ≡ y
+      eq u≡v x≡y y≡z x₁≡x₂ : x ≡ y
 
   -- Equational reasoning combinators.
 
@@ -837,15 +837,6 @@ module Derived-definitions-and-properties
       trans (refl u) u≡v                        ≡⟨ trans-reflˡ _ ⟩∎
       u≡v                                       ∎
 
-    cong-sym : (f : A → B) (x≡y : x ≡ y) →
-               cong f (sym x≡y) ≡ sym (cong f x≡y)
-    cong-sym f = elim (λ x≡y → cong f (sym x≡y) ≡ sym (cong f x≡y))
-                      (λ x → cong f (sym (refl x))  ≡⟨ cong (cong f) sym-refl ⟩
-                             cong f (refl x)        ≡⟨ cong-refl _ ⟩
-                             refl (f x)             ≡⟨ sym sym-refl ⟩
-                             sym (refl (f x))       ≡⟨ cong sym $ sym (cong-refl _) ⟩∎
-                             sym (cong f (refl x))  ∎)
-
     cong₂-reflˡ : {u≡v : u ≡ v}
                   (f : A → B → C) →
                   cong₂ f (refl x) u≡v ≡ cong (f x) u≡v
@@ -860,6 +851,26 @@ module Derived-definitions-and-properties
       trans (cong (flip f u) x≡y) (cong (f y) (refl u))  ≡⟨ cong (trans _) (cong-refl _) ⟩
       trans (cong (flip f u) x≡y) (refl (f y u))         ≡⟨ trans-reflʳ _ ⟩∎
       cong (flip f u) x≡y                                ∎
+
+    cong-sym : (f : A → B) (x≡y : x ≡ y) →
+               cong f (sym x≡y) ≡ sym (cong f x≡y)
+    cong-sym f = elim (λ x≡y → cong f (sym x≡y) ≡ sym (cong f x≡y))
+                      (λ x → cong f (sym (refl x))  ≡⟨ cong (cong f) sym-refl ⟩
+                             cong f (refl x)        ≡⟨ cong-refl _ ⟩
+                             refl (f x)             ≡⟨ sym sym-refl ⟩
+                             sym (refl (f x))       ≡⟨ cong sym $ sym (cong-refl _) ⟩∎
+                             sym (cong f (refl x))  ∎)
+
+    cong₂-sym :
+      cong₂ f (sym x≡y) (sym u≡v) ≡ sym (cong₂ f x≡y u≡v)
+    cong₂-sym {f = f} {x≡y = x≡y} {u≡v = u≡v} = elim¹
+      (λ u≡v → cong₂ f (sym x≡y) (sym u≡v) ≡ sym (cong₂ f x≡y u≡v))
+      (cong₂ f (sym x≡y) (sym (refl _))  ≡⟨ cong (cong₂ _ _) sym-refl ⟩
+       cong₂ f (sym x≡y) (refl _)        ≡⟨ cong₂-reflʳ _ ⟩
+       cong (flip f _) (sym x≡y)         ≡⟨ cong-sym _ _ ⟩
+       sym (cong (flip f _) x≡y)         ≡⟨ cong sym $ sym $ cong₂-reflʳ _ ⟩∎
+       sym (cong₂ f x≡y (refl _))        ∎)
+      u≡v
 
     cong₂-∘ˡ :
       {f : B → C → D} {g : A → B} {x≡y : x ≡ y} {u≡v : u ≡ v} →
