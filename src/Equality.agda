@@ -1885,14 +1885,14 @@ module Derived-definitions-and-properties
        subst (λ x → ∀ {y} → C x y) (refl _) g {y = f x₁}  ∎)
       x₁≡x₂
 
-    subst-∀ :
+    subst-∀-sym :
       ∀ {B : A → Type b} {y : B x₁}
         {C : (x : A) → B x → Type c} {f : (y : B x₂) → C x₂ y}
         {x₁≡x₂ : x₁ ≡ x₂} →
       subst (λ x → (y : B x) → C x y) (sym x₁≡x₂) f y ≡
       subst (uncurry C) (sym $ Σ-≡,≡→≡ x₁≡x₂ (refl _))
         (f (subst B x₁≡x₂ y))
-    subst-∀ {B = B} {C = C} {x₁≡x₂ = x₁≡x₂} = elim
+    subst-∀-sym {B = B} {C = C} {x₁≡x₂ = x₁≡x₂} = elim
       (λ {x₁ x₂} x₁≡x₂ →
          {y : B x₁} (f : (y : B x₂) → C x₂ y) →
          subst (λ x → (y : B x) → C x y) (sym x₁≡x₂) f y ≡
@@ -1920,6 +1920,19 @@ module Derived-definitions-and-properties
            (f (subst B (refl x) y))                             ∎)
       x₁≡x₂ _
 
+    subst-∀ :
+      ∀ {B : A → Type b} {y : B x₂}
+        {C : (x : A) → B x → Type c} {f : (y : B x₁) → C x₁ y}
+        {x₁≡x₂ : x₁ ≡ x₂} →
+      subst (λ x → (y : B x) → C x y) x₁≡x₂ f y ≡
+      subst (uncurry C) (sym $ Σ-≡,≡→≡ (sym x₁≡x₂) (refl _))
+        (f (subst B (sym x₁≡x₂) y))
+    subst-∀ {B = B} {y = y} {C = C} {f = f} {x₁≡x₂ = x₁≡x₂} =
+      subst (λ x → (y : B x) → C x y) x₁≡x₂ f y               ≡⟨ cong (λ eq → subst (λ x → (y : B x) → C x y) eq _ _) $ sym $ sym-sym _ ⟩
+      subst (λ x → (y : B x) → C x y) (sym (sym x₁≡x₂)) f y   ≡⟨ subst-∀-sym ⟩∎
+      subst (uncurry C) (sym $ Σ-≡,≡→≡ (sym x₁≡x₂) (refl _))
+        (f (subst B (sym x₁≡x₂) y))                           ∎
+
     subst-→ :
       {B : A → Type b} {y : B x₂} {C : A → Type c} {f : B x₁ → C x₁} →
       subst (λ x → B x → C x) x₁≡x₂ f y ≡
@@ -1927,7 +1940,7 @@ module Derived-definitions-and-properties
     subst-→ {x₁≡x₂ = x₁≡x₂} {B = B} {y = y} {C} {f} =
       subst (λ x → B x → C x) x₁≡x₂ f y                          ≡⟨ cong (λ eq → subst (λ x → B x → C x) eq f y) $ sym $
                                                                       sym-sym _ ⟩
-      subst (λ x → B x → C x) (sym $ sym x₁≡x₂) f y              ≡⟨ subst-∀ ⟩
+      subst (λ x → B x → C x) (sym $ sym x₁≡x₂) f y              ≡⟨ subst-∀-sym ⟩
 
       subst (C ∘ proj₁) (sym $ Σ-≡,≡→≡ (sym x₁≡x₂) (refl _))
         (f (subst B (sym x₁≡x₂) y))                              ≡⟨ subst-∘ _ _ _ ⟩
