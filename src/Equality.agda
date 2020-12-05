@@ -1681,6 +1681,13 @@ module Derived-definitions-and-properties
          cong₂ _,_ (refl x) q                           ∎)
       p
 
+    Σ-≡,≡→≡-subst-const-refl :
+      Σ-≡,≡→≡ x₁≡x₂ (subst-const _) ≡ cong₂ _,_ x₁≡x₂ (refl y)
+    Σ-≡,≡→≡-subst-const-refl {x₁≡x₂ = x₁≡x₂} {y = y} =
+      Σ-≡,≡→≡ x₁≡x₂ (subst-const _)                   ≡⟨ cong (Σ-≡,≡→≡ x₁≡x₂) $ sym $ trans-reflʳ _ ⟩
+      Σ-≡,≡→≡ x₁≡x₂ (trans (subst-const _) (refl _))  ≡⟨ Σ-≡,≡→≡-subst-const _ _ ⟩∎
+      cong₂ _,_ x₁≡x₂ (refl y)                        ∎
+
     -- Proof simplification rule for Σ-≡,≡←≡.
 
     proj₁-Σ-≡,≡←≡ :
