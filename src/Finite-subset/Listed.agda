@@ -1726,31 +1726,38 @@ is-finite-propositional (x , p) (y , q) =
   (x , p) ≡ (y , q)      □
 
 ------------------------------------------------------------------------
+-- Lists can be converted to finite subsets
+
+-- Converts lists to finite subsets.
+
+from-List : List A → Finite-subset-of A
+from-List = L.foldr _∷_ []
+
+-- Membership in the resulting set is equivalent to truncated
+-- membership in the list.
+
+∥∈∥≃∈-from-List : ∥ x BE.∈ ys ∥ ≃ (x ∈ from-List ys)
+∥∈∥≃∈-from-List {x = x} {ys = ys} = _↠_.from
+  (Eq.≃↠⇔
+     Trunc.truncation-is-proposition
+     ∈-propositional)
+  (record { to = to _; from = from _ })
+  where
+  to : ∀ ys → ∥ x BE.∈ ys ∥ → x ∈ from-List ys
+  to []       = Trunc.rec ∈-propositional (λ ())
+  to (y ∷ ys) = Trunc.rec ∈-propositional
+                  P.[ ≡→∈∷ , ∈→∈∷ ∘ to ys ∘ ∣_∣ ]
+
+  from : ∀ ys → x ∈ from-List ys → ∥ x BE.∈ ys ∥
+  from [] ()
+  from (y ∷ ys) =
+    Trunc.rec
+      Trunc.truncation-is-proposition
+      P.[ ∣_∣ ∘ inj₁ , Trunc.∥∥-map inj₂ ∘ from ys ] ∘
+    _≃_.to ∈∷≃
+
+------------------------------------------------------------------------
 -- Some definitions related to the definitions in Bag-equivalence
-
-private
-
-  -- A lemma used in the definition of ≃List/∼.
-
-  ∥∈∥≃∈′ : ∥ x BE.∈ ys ∥ ≃ (x ∈ L.foldr _∷_ [] ys)
-  ∥∈∥≃∈′ {x = x} {ys = ys} = _↠_.from
-    (Eq.≃↠⇔
-       Trunc.truncation-is-proposition
-       ∈-propositional)
-    (record { to = to _; from = from _ })
-    where
-    to : ∀ ys → ∥ x BE.∈ ys ∥ → x ∈ L.foldr _∷_ [] ys
-    to []       = Trunc.rec ∈-propositional (λ ())
-    to (y ∷ ys) = Trunc.rec ∈-propositional
-                    P.[ ≡→∈∷ , ∈→∈∷ ∘ to ys ∘ ∣_∣ ]
-
-    from : ∀ ys → x ∈ L.foldr _∷_ [] ys → ∥ x BE.∈ ys ∥
-    from [] ()
-    from (y ∷ ys) =
-      Trunc.rec
-        Trunc.truncation-is-proposition
-        P.[ ∣_∣ ∘ inj₁ , Trunc.∥∥-map inj₂ ∘ from ys ] ∘
-      _≃_.to ∈∷≃
 
 -- Finite subsets can be expressed as lists quotiented by set
 -- equivalence.
@@ -1791,14 +1798,14 @@ private
 
   from : List A / _∼[ set ]_ → Finite-subset-of A
   from {A = A} = Q.rec λ where
-    .Q.[]ʳ → L.foldr _∷_ []
+    .Q.[]ʳ → from-List
 
     .Q.[]-respects-relationʳ {x = xs} {y = ys} xs∼ys →
       _≃_.from extensionality λ z →
-        z ∈ L.foldr _∷_ [] xs  ↔⟨ inverse ∥∈∥≃∈′ ⟩
-        ∥ z BE.∈ xs ∥          ↔⟨ Trunc.∥∥-cong-⇔ {k = bijection} (xs∼ys z) ⟩
-        ∥ z BE.∈ ys ∥          ↔⟨ ∥∈∥≃∈′ ⟩□
-        z ∈ L.foldr _∷_ [] ys  □
+        z ∈ from-List xs  ↔⟨ inverse ∥∈∥≃∈-from-List ⟩
+        ∥ z BE.∈ xs ∥     ↔⟨ Trunc.∥∥-cong-⇔ {k = bijection} (xs∼ys z) ⟩
+        ∥ z BE.∈ ys ∥     ↔⟨ ∥∈∥≃∈-from-List ⟩□
+        z ∈ from-List ys  □
 
     .Q.is-setʳ → is-set
 
@@ -1807,11 +1814,11 @@ private
       .Q.[]ʳ               → lemma
       .Q.is-propositionʳ _ → Q./-is-set
     where
-    lemma : ∀ xs → to (L.foldr _∷_ [] xs) ≡ Q.[ xs ]
+    lemma : ∀ xs → to (from-List xs) ≡ Q.[ xs ]
     lemma []       = refl _
     lemma (x ∷ xs) =
-      to (L.foldr _∷_ [] (x ∷ xs))                         ≡⟨⟩
-      ((x ∷_) Q./-map _) (to (L.foldr _∷_ [] xs))          ≡⟨ cong ((x ∷_) Q./-map _) (lemma xs) ⟩
+      to (from-List (x ∷ xs))                              ≡⟨⟩
+      ((x ∷_) Q./-map _) (to (from-List xs))               ≡⟨ cong ((x ∷_) Q./-map _) (lemma xs) ⟩
       ((x ∷_) Q./-map λ _ _ → refl _ BE.∷-cong_) Q.[ xs ]  ≡⟨⟩
       Q.[ x ∷ xs ]                                         ∎
 
@@ -1838,4 +1845,4 @@ private
 -- Bag-equivalence can be expressed in terms of _∈_.
 
 ∥∈∥≃∈ : ∥ x BE.∈ ys ∥ ≃ (x ∈ _≃_.from ≃List/∼ Q.[ ys ])
-∥∈∥≃∈ = ∥∈∥≃∈′
+∥∈∥≃∈ = ∥∈∥≃∈-from-List
