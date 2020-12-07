@@ -605,6 +605,14 @@ decidable→decidable-∥∥ :
 decidable→decidable-∥∥ dec =
   λ x y → Dec→Dec-∥∥ (dec x y)
 
+-- If A is decided, then one can convert between ∥ A ∥ and A.
+
+Dec→∥∥⇔ :
+  Dec A → ∥ A ∥ ⇔ A
+Dec→∥∥⇔ _       ._⇔_.from = ∣_∣
+Dec→∥∥⇔ (yes a) ._⇔_.to   = λ _ → a
+Dec→∥∥⇔ (no ¬A) ._⇔_.to   = ⊥-elim ∘ rec ⊥-propositional ¬A
+
 -- Variants of the following two lemmas were communicated to me by
 -- Nicolai Kraus. They are closely related to Lemma 2.1 in his paper
 -- "The General Universal Property of the Propositional Truncation".
