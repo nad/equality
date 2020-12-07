@@ -14,7 +14,7 @@ open import Abstract-binding-tree equality-with-paths
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decision-procedures equality-with-J
 open import Equivalence equality-with-J using (_≃_)
-open import Erased.Cubical equality-with-paths
+open import Erased.Cubical equality-with-paths as E
 open import Finite-subset.Listed equality-with-paths as L
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
@@ -71,81 +71,16 @@ sig .Signature._≟S_          =
   Decidable-equality→Decidable-erased-equality Bool._≟_
 sig .Signature._≟V_ =
   Decidable-equality→Decidable-erased-equality Nat._≟_
-sig .Signature.fresh {s = s} xs =
-  Σ-map id (λ {n} ([ ub ]) → [ (λ n∈ → Nat.<-irreflexive (ub n n∈)) ])
-    (L.elim e xs)
-  where
-  P : @0 Finite-subset-of (∃ λ s → Var s) → @0 ℕ → Type
-  P xs m = Erased (∀ n → (s , n) ∈ xs → n Nat.< m)
+sig .Signature.fresh {s = s} xs =           $⟨ L.fresh (L.map proj₂ xs) ⟩
+  (∃ λ n → n ∉ L.map proj₂ xs)              ↝⟨ Σ-map id [_]→ ⟩
+  (∃ λ n → Erased (n ∉ L.map proj₂ xs))     ↝⟨ (∃-cong λ n → E.map (
 
-  prop : ∀ {xs m} → Is-proposition (P xs m)
-  prop =
-    H-level-Erased 1 (
-    Π-closure ext 1 λ _ →
-    Π-closure ext 1 λ _ →
-    ≤-propositional)
+      n ∉ L.map proj₂ xs                          ↔⟨ ¬-cong ext (from-equivalence ∈map≃) ⟩
+      ¬ ∥ (∃ λ x → x ∈ xs × proj₂ x ≡ n) ∥        ↔⟨ ¬∥∥↔¬ ⟩
+      ¬ (∃ λ x → x ∈ xs × proj₂ x ≡ n)            ↝⟨ (λ hyp ∈xs → hyp (_ , ∈xs , refl)) ⟩□
+      (s , n) ∉ xs                                □)) ⟩□
 
-  ∷-max-suc :
-    ∀ {xs n} {x@(_ , m) : ∃ λ s → Var s} →
-    P xs n →
-    P (x ∷ xs) (Nat.max (suc m) n)
-  ∷-max-suc {xs = xs} {n = n} {x = x@(_ , m)} [ ub ] =
-    [ (λ o →
-         (_ , o) ∈ x ∷ xs              ↔⟨ ∈∷≃ ⟩
-         (_ , o) ≡ x ∥⊎∥ (_ , o) ∈ xs  ↝⟨ Nat.≤-refl′ ∘ cong suc ∘ cong proj₂ ∥⊎∥-cong ub o ⟩
-         o Nat.< suc m ∥⊎∥ o Nat.< n   ↝⟨ Trunc.rec ≤-propositional
-                                            P.[ flip Nat.≤-trans (Nat.ˡ≤max _ n)
-                                              , flip Nat.≤-trans (Nat.ʳ≤max (suc m) _)
-                                              ] ⟩□
-         o Nat.< Nat.max (suc m) n     □)
-    ]
-
-  e : L.Elim (λ xs → ∃ λ m → P xs m)
-  e .[]ʳ =
-    0 , [ (λ _ ()) ]
-
-  e .∷ʳ (_ , m) (n , ub) =
-    Nat.max (suc m) n , ∷-max-suc ub
-
-  e .dropʳ {y = y} x@(_ , m) (n , ub) =
-    to-implication (ignore-propositional-component prop)
-      (proj₁ (subst (λ xs → ∃ λ m → P xs m)
-                    (drop {x = x} {y = y})
-                    ( Nat.max (suc m) (Nat.max (suc m) n)
-                    , ∷-max-suc (∷-max-suc ub)
-                    ))                                     ≡⟨ cong proj₁ $
-                                                              push-subst-pair-× {y≡z = drop {x = x} {y = y}} _
-                                                                (λ (xs , m) → P xs m)
-                                                                {p = _ , ∷-max-suc (∷-max-suc ub)} ⟩
-
-       Nat.max (suc m) (Nat.max (suc m) n)                 ≡⟨ Nat.max-assoc (suc m) {n = suc m} {o = n} ⟩
-
-       Nat.max (Nat.max (suc m) (suc m)) n                 ≡⟨ cong (λ m → Nat.max m n) $ Nat.max-idempotent (suc m) ⟩∎
-
-       Nat.max (suc m) n                                   ∎)
-
-  e .swapʳ {z = z} x@(_ , m) y@(_ , n) (o , ub) =
-    to-implication (ignore-propositional-component prop)
-      (proj₁ (subst (λ xs → ∃ λ m → P xs m)
-                    (swap {x = x} {y = y} {z = z})
-                    ( Nat.max (suc m) (Nat.max (suc n) o)
-                    , ∷-max-suc (∷-max-suc ub)
-                    ))                                     ≡⟨ cong proj₁ $
-                                                              push-subst-pair-× {y≡z = swap {x = x} {y = y} {z = z}} _
-                                                                (λ (xs , m) → P xs m)
-                                                                {p = _ , ∷-max-suc (∷-max-suc ub)} ⟩
-
-       Nat.max (suc m) (Nat.max (suc n) o)                 ≡⟨ Nat.max-assoc (suc m) {n = suc n} {o = o} ⟩
-
-       Nat.max (Nat.max (suc m) (suc n)) o                 ≡⟨ cong (λ m → Nat.max m o) $ Nat.max-comm (suc m) (suc n) ⟩
-
-       Nat.max (Nat.max (suc n) (suc m)) o                 ≡⟨ sym $ Nat.max-assoc (suc n) {n = suc m} {o = o} ⟩∎
-
-       Nat.max (suc n) (Nat.max (suc m) o)                 ∎)
-
-  e .is-setʳ _ =
-    Σ-closure 2 ℕ-set λ _ →
-    mono₁ 1 prop
+  (∃ λ n → Erased ((s , n) ∉ xs))           □
 
 open Signature sig public
   hiding (Sort; Var; _≟O_)

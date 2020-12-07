@@ -34,19 +34,19 @@ open import Injection equality-with-J using (Injective)
 import List equality-with-J as L
 import Maybe equality-with-J as Maybe
 open import Monad equality-with-J as M using (Raw-monad; Monad; _=<<_)
-import Nat equality-with-J as Nat
+open import Nat equality-with-J as Nat using (_<_)
 open import Quotient eq as Q using (_/_)
 open import Surjection equality-with-J using (_↠_)
 import Univalence-axiom equality-with-J as Univ
 
 private
   variable
-    a b                               : Level
-    A B                               : Type a
-    H p q x x₁ x₂ xs y y₁ y₂ ys z _≟_ : A
-    P                                 : A → Type p
-    f g                               : (x : A) → P x
-    m n                               : ℕ
+    a b                                  : Level
+    A B                                  : Type a
+    H ms p q x x₁ x₂ xs y y₁ y₂ ys z _≟_ : A
+    P                                    : A → Type p
+    f g                                  : (x : A) → P x
+    m n                                  : ℕ
 
 ------------------------------------------------------------------------
 -- Listed finite subsets
@@ -1846,3 +1846,93 @@ from-List = L.foldr _∷_ []
 
 ∥∈∥≃∈ : ∥ x BE.∈ ys ∥ ≃ (x ∈ _≃_.from ≃List/∼ Q.[ ys ])
 ∥∈∥≃∈ = ∥∈∥≃∈-from-List
+
+------------------------------------------------------------------------
+-- Fresh numbers
+
+-- One can always find a natural number that is distinct from those in
+-- a given finite set of natural numbers.
+
+fresh :
+  (ns : Finite-subset-of ℕ) →
+  ∃ λ (n : ℕ) → n ∉ ns
+fresh ns =
+  Σ-map id
+    (λ {m} →
+       Erased (∀ n → n ∈ ns → n < m)  ↝⟨ EC.map (_$ m) ⟩
+       Erased (m ∈ ns → m < m)        ↝⟨ EC.map (∀-cong _ λ _ → Nat.+≮ 0) ⟩
+       Erased (m ∉ ns)                ↝⟨ EC.Stable-¬ _ ⟩□
+       m ∉ ns                         □)
+    (elim e ns)
+  where
+  OK : @0 Finite-subset-of ℕ → @0 ℕ → Type
+  OK ms m = Erased (∀ n → n ∈ ms → n < m)
+
+  prop : Is-proposition (OK ms m)
+  prop =
+    EC.H-level-Erased 1 (
+    Π-closure ext 1 λ _ →
+    Π-closure ext 1 λ _ →
+    ≤-propositional)
+
+  ∷-max-suc :
+    ∀ {ms n m} →
+    OK ms n →
+    OK (m ∷ ms) (Nat.max (suc m) n)
+  ∷-max-suc {ms = ms} {n = n} {m = m} [ ub ] =
+    [ (λ o →
+         o ∈ m ∷ ms                   ↔⟨ ∈∷≃ ⟩
+         o ≡ m ∥⊎∥ o ∈ ms             ↝⟨ Nat.≤-refl′ ∘ cong suc ∘ id Trunc.∥⊎∥-cong ub o ⟩
+         o Nat.< suc m ∥⊎∥ o Nat.< n  ↝⟨ Trunc.rec ≤-propositional
+                                           P.[ flip Nat.≤-trans (Nat.ˡ≤max _ n)
+                                             , flip Nat.≤-trans (Nat.ʳ≤max (suc m) _)
+                                             ] ⟩□
+         o Nat.< Nat.max (suc m) n    □)
+    ]
+
+  e : Elim (λ ms → ∃ λ m → OK ms m)
+  e .[]ʳ =
+    0 , [ (λ _ ()) ]
+
+  e .∷ʳ m (n , ub) =
+    Nat.max (suc m) n , ∷-max-suc ub
+
+  e .dropʳ {y = ns} m (n , ub) =
+    _↔_.to (ignore-propositional-component prop)
+      (proj₁ (subst (λ ms → ∃ λ m → OK ms m)
+                    (drop {x = m} {y = ns})
+                    ( Nat.max (suc m) (Nat.max (suc m) n)
+                    , ∷-max-suc (∷-max-suc ub)
+                    ))                                     ≡⟨ cong proj₁ $
+                                                              push-subst-pair-× {y≡z = drop {x = m} {y = ns}} _
+                                                                (λ (ms , m) → OK ms m)
+                                                                {p = _ , ∷-max-suc (∷-max-suc ub)} ⟩
+
+       Nat.max (suc m) (Nat.max (suc m) n)                 ≡⟨ Nat.max-assoc (suc m) {n = suc m} {o = n} ⟩
+
+       Nat.max (Nat.max (suc m) (suc m)) n                 ≡⟨ cong (λ m → Nat.max m n) $ Nat.max-idempotent (suc m) ⟩∎
+
+       Nat.max (suc m) n                                   ∎)
+
+  e .swapʳ {z = ns} m n (o , ub) =
+    _↔_.to (ignore-propositional-component prop)
+      (proj₁ (subst (λ xs → ∃ λ m → OK xs m)
+                    (swap {x = m} {y = n} {z = ns})
+                    ( Nat.max (suc m) (Nat.max (suc n) o)
+                    , ∷-max-suc (∷-max-suc ub)
+                    ))                                     ≡⟨ cong proj₁ $
+                                                              push-subst-pair-× {y≡z = swap {x = m} {y = n} {z = ns}} _
+                                                                (λ (ms , m) → OK ms m)
+                                                                {p = _ , ∷-max-suc (∷-max-suc ub)} ⟩
+
+       Nat.max (suc m) (Nat.max (suc n) o)                 ≡⟨ Nat.max-assoc (suc m) {n = suc n} {o = o} ⟩
+
+       Nat.max (Nat.max (suc m) (suc n)) o                 ≡⟨ cong (λ m → Nat.max m o) $ Nat.max-comm (suc m) (suc n) ⟩
+
+       Nat.max (Nat.max (suc n) (suc m)) o                 ≡⟨ sym $ Nat.max-assoc (suc n) {n = suc m} {o = o} ⟩∎
+
+       Nat.max (suc n) (Nat.max (suc m) o)                 ∎)
+
+  e .is-setʳ _ =
+    Σ-closure 2 ℕ-set λ _ →
+    mono₁ 1 prop
