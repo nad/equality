@@ -3459,6 +3459,35 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
   A ↝[ ⌊ k ⌋-sym ] B → (¬ A) ↝[ ⌊ k ⌋-sym ] (¬ B)
 ¬-cong ext A↝B = from-equivalence (¬-cong-⇔ ext (sym→⇔ A↝B))
 
+-- If B can be decided, given that A is inhabited, then A → B is
+-- logically equivalent to ¬ B → ¬ A.
+
+→⇔¬→¬ :
+  ∀ {a b} {A : Type a} {B : Type b} →
+  (A → Dec B) →
+  (A → B) ⇔ (¬ B → ¬ A)
+→⇔¬→¬ _   ._⇔_.to           = flip _∘_
+→⇔¬→¬ dec ._⇔_.from ¬B→¬A A with dec A
+… | yes B = B
+… | no ¬B = ⊥-elim $ ¬B→¬A ¬B A
+
+-- If B is additionally a proposition (assuming that A is inhabited),
+-- then the two types are equivalent (assuming extensionality).
+
+→≃¬→¬ :
+  ∀ {k a b} {A : Type a} {B : Type b} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  (Extensionality (a ⊔ b) (a ⊔ b) → A → Is-proposition B) →
+  (A → Dec B) →
+  (A → B) ↝[ k ] (¬ B → ¬ A)
+→≃¬→¬ {a = a} {b = b} ext prop dec =
+  generalise-ext?-prop
+    (→⇔¬→¬ dec)
+    (λ ext → Π-closure (lower-extensionality b a ext) 1 (prop ext))
+    (λ ext → Π-closure (lower-extensionality a b ext) 1 λ _ →
+             ¬-propositional (lower-extensionality b _ ext))
+    ext
+
 ------------------------------------------------------------------------
 -- Lemmas related to H-level
 
