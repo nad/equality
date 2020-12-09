@@ -115,6 +115,17 @@ inverse {bijection}           = Bijection.inverse
 inverse {equivalence}         = Eq.inverse
 inverse {equivalenceᴱ}        = EEq.inverse
 
+-- If there is a symmetric kind of function from A to B, then A and B
+-- are logically equivalent.
+
+sym→⇔ :
+  ∀ {k a b} {A : Type a} {B : Type b} →
+  A ↝[ ⌊ k ⌋-sym ] B → A ⇔ B
+sym→⇔ {k = logical-equivalence} = P.id
+sym→⇔ {k = bijection}           = from-bijection
+sym→⇔ {k = equivalence}         = from-equivalence
+sym→⇔ {k = equivalenceᴱ}        = _≃ᴱ_.logical-equivalence
+
 ------------------------------------------------------------------------
 -- A sub-universe of isomorphisms
 
