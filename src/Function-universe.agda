@@ -3726,6 +3726,68 @@ if-encoding {A = A} {B} =
   ; left-inverse-of = ℕ-rec (refl 0) (λ n _ → refl (suc n))
   }
 
+private
+
+  -- Two consequences of ℕ↔ℕ⊎⊤.
+
+  Σℕ≃′ :
+    ∀ {p} {P : ℕ → Type p} →
+    (∃ λ n → P n) ≃ (P zero ⊎ ∃ λ n → P (suc n))
+  Σℕ≃′ {P = P} =
+    (∃ λ n → P n)                             ↝⟨ (Σ-cong-contra (inverse ℕ↔ℕ⊎⊤) λ _ → id) ⟩
+    (∃ λ (x : ℕ ⊎ ⊤) → P (_↔_.from ℕ↔ℕ⊎⊤ x))  ↔⟨ ∃-⊎-distrib-right ⟩
+    (∃ λ (n : ℕ) → P (suc n)) ⊎ ⊤ × P zero    ↔⟨ ⊎-comm ⟩
+    ⊤ × P zero ⊎ (∃ λ (n : ℕ) → P (suc n))    ↔⟨ ×-left-identity ⊎-cong id ⟩□
+    P zero ⊎ (∃ λ (n : ℕ) → P (suc n))        □
+
+  Πℕ≃′ :
+    ∀ {k p} {P : ℕ → Type p} →
+    Extensionality? k lzero p →
+    (∀ n → P n) ↝[ k ] (P zero × ∀ n → P (suc n))
+  Πℕ≃′ {P = P} ext =
+    (∀ n → P n)                           ↝⟨ (Π-cong-contra ext (inverse ℕ↔ℕ⊎⊤) λ _ → id) ⟩
+    ((x : ℕ ⊎ ⊤) → P (_↔_.from ℕ↔ℕ⊎⊤ x))  ↝⟨ Π⊎↔Π×Π ext ⟩
+    ((n : ℕ) → P (suc n)) × (⊤ → P zero)  ↔⟨ ×-comm ⟩
+    (⊤ → P zero) × ((n : ℕ) → P (suc n))  ↔⟨ Π-left-identity ×-cong id ⟩□
+    P zero × ((n : ℕ) → P (suc n))        □
+
+-- Variants of Σℕ≃′ and Πℕ≃′ which, at the time of writing, have
+-- "better" computational behaviour.
+
+Σℕ≃ :
+  ∀ {p} {P : ℕ → Type p} →
+  (∃ λ n → P n) ≃ (P zero ⊎ ∃ λ n → P (suc n))
+Σℕ≃ {P = P} = Eq.↔→≃
+  (λ where
+      (zero  , p) → inj₁ p
+      (suc n , p) → inj₂ (n , p))
+  [ (zero ,_) , Σ-map suc id ]
+  [ (λ _ → refl _) , (λ _ → refl _) ]
+  (λ where
+      (zero  , _) → refl _
+      (suc _ , _) → refl _)
+
+Πℕ≃ :
+  ∀ {k p} {P : ℕ → Type p} →
+  Extensionality? k lzero p →
+  (∀ n → P n) ↝[ k ] (P zero × ∀ n → P (suc n))
+Πℕ≃ {P = P} =
+  generalise-ext?
+    Πℕ⇔
+    (λ ext → record
+       { surjection = record
+         { logical-equivalence = Πℕ⇔
+         ; right-inverse-of    = refl
+         }
+       ; left-inverse-of = λ _ →
+           apply-ext ext $
+           ℕ-case (refl _) (λ _ → refl _)
+       })
+  where
+  Πℕ⇔ : _ ⇔ _
+  Πℕ⇔ ._⇔_.to f = f zero , f ⊚ suc
+  Πℕ⇔ ._⇔_.from = uncurry ℕ-case
+
 -- ℕ is isomorphic to ℕ ⊎ ℕ.
 
 ℕ↔ℕ⊎ℕ : ℕ ↔ ℕ ⊎ ℕ
