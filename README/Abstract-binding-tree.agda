@@ -75,7 +75,7 @@ sig .Signature.fresh {s = s} xs =           $⟨ L.fresh (L.map proj₂ xs) ⟩
   (∃ λ n → n ∉ L.map proj₂ xs)              ↝⟨ Σ-map id [_]→ ⟩
   (∃ λ n → Erased (n ∉ L.map proj₂ xs))     ↝⟨ (∃-cong λ n → E.map (
 
-      n ∉ L.map proj₂ xs                          ↔⟨ ¬-cong ext (from-equivalence ∈map≃) ⟩
+      n ∉ L.map proj₂ xs                          ↔⟨ ¬-cong ext ∈map≃ ⟩
       ¬ ∥ (∃ λ x → x ∈ xs × proj₂ x ≡ n) ∥        ↔⟨ ¬∥∥↔¬ ⟩
       ¬ (∃ λ x → x ∈ xs × proj₂ x ≡ n)            ↝⟨ (λ hyp ∈xs → hyp (_ , ∈xs , refl)) ⟩□
       (s , n) ∉ xs                                □)) ⟩□

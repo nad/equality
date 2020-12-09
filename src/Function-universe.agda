@@ -3440,15 +3440,24 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
 -- If two types are logically equivalent, then their negations are
 -- equivalent (assuming extensionality).
 
-¬-cong :
+¬-cong-⇔ :
   ∀ {a b} {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) lzero →
   A ⇔ B → (¬ A) ≃ (¬ B)
-¬-cong {a} {b} ext A⇔B =
+¬-cong-⇔ {a} {b} ext A⇔B =
   _↠_.from
     (Eq.≃↠⇔ (¬-propositional (lower-extensionality b lzero ext))
             (¬-propositional (lower-extensionality a lzero ext)))
     (→-cong _ A⇔B id)
+
+-- Symmetric kinds of functions are preserved by ¬_ (assuming
+-- extensionality).
+
+¬-cong :
+  ∀ {k a b} {A : Type a} {B : Type b} →
+  Extensionality (a ⊔ b) lzero →
+  A ↝[ ⌊ k ⌋-sym ] B → (¬ A) ↝[ ⌊ k ⌋-sym ] (¬ B)
+¬-cong ext A↝B = from-equivalence (¬-cong-⇔ ext (sym→⇔ A↝B))
 
 ------------------------------------------------------------------------
 -- Lemmas related to H-level

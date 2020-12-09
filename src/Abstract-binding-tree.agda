@@ -985,7 +985,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
               (s , y) ≢ (s′ , x′) ×
               y ∈ cast-Var (sym s≡s′) x′ ∷ fs                          ↔⟨ (¬-cong ext $
                                                                            from-isomorphism ≡-comm F.∘
-                                                                           from-equivalence (inverse ≡cast-Var≃) F.∘
+                                                                           inverse ≡cast-Var≃ F.∘
                                                                            from-isomorphism ≡-comm)
                                                                             ×-cong
                                                                           ∈∷≃ ⟩
@@ -1065,12 +1065,12 @@ module Signature {ℓ} (sig : Signature ℓ) where
                                                                             ∈delete≃ merely-equal?-∃Var F.∘
                                                                             ∈restrict-to-sort≃ ⟩
                  (s″ , z) ≢ (s′ , x′) ×
-                 z ∈ restrict-to-sort s″ (free-Arg aˢ a′)                ↔⟨ (×-cong₁ λ _ → ¬-cong ext $ from-equivalence $
+                 z ∈ restrict-to-sort s″ (free-Arg aˢ a′)                ↔⟨ (×-cong₁ λ _ → ¬-cong ext $
                                                                              ≢→,≡,≃ $ s″≢s ∘ subst (_ ≡_) (sym s≡s′)) ⟩
 
                  ¬ ⊥ × z ∈ restrict-to-sort s″ (free-Arg aˢ a′)          ↝⟨ (∃-cong λ _ → ≡⇒↝ _ $ cong (_ ∈_) $ ≡free s″ s″≢s) ⟩
 
-                 ¬ ⊥ × z ∈ restrict-to-sort s″ (free-Arg aˢ a)           ↔⟨ (inverse $ ×-cong₁ λ _ → ¬-cong ext $ from-equivalence $
+                 ¬ ⊥ × z ∈ restrict-to-sort s″ (free-Arg aˢ a)           ↔⟨ (inverse $ ×-cong₁ λ _ → ¬-cong ext $
                                                                              ≢→,≡,≃ $ s″≢s ∘ subst (_ ≡_) (sym s≡s′)) ⟩
                  (s″ , z) ≢ (s′ , x) ×
                  z ∈ restrict-to-sort s″ (free-Arg aˢ a)                 ↔⟨ inverse $
@@ -1089,16 +1089,16 @@ module Signature {ℓ} (sig : Signature ℓ) where
                                                                 ×-cong
                                                               ¬⊎↔¬×¬ ext F.∘
                                                               from-isomorphism ¬∥∥↔¬ F.∘
-                                                              ¬-cong ext (from-equivalence ∈∷≃)) F.∘
+                                                              ¬-cong ext ∈∷≃) F.∘
                                                              ∈minus≃ {_≟_ = merely-equal?-Var} ⟩
               (s , y) ∈ free-Arg aˢ a ×
               y ≢ cast-Var (sym s≡s′) x × y ∉ dom         ↔⟨ inverse $
                                                              from-isomorphism (inverse Σ-assoc) F.∘
                                                              (×-cong₁ λ _ →
-                                                                ((∃-cong λ _ → ¬-cong ext $ from-isomorphism $
-                                                                  ≡-comm F.∘
-                                                                  from-equivalence (inverse ≡cast-Var≃) F.∘
-                                                                  ≡-comm) F.∘
+                                                                ((∃-cong λ _ → ¬-cong ext $
+                                                                  from-isomorphism ≡-comm F.∘
+                                                                  inverse ≡cast-Var≃ F.∘
+                                                                  from-isomorphism ≡-comm) F.∘
                                                                  from-isomorphism ×-comm) F.∘
                                                                 ∈delete≃ merely-equal?-∃Var F.∘
                                                                 ∈restrict-to-sort≃) F.∘
@@ -1213,14 +1213,14 @@ module Signature {ℓ} (sig : Signature ℓ) where
                                                                        ((∈restrict-to-sort≃
                                                                            ×-cong
                                                                          (from-isomorphism ¬∥∥↔¬ F.∘
-                                                                          ¬-cong ext (from-equivalence ∈singleton≃))) F.∘
+                                                                          ¬-cong ext ∈singleton≃)) F.∘
                                                                         ∈minus≃ {_≟_ = merely-equal?-Var})) F.∘
                                                                       ∈∷≃ ⟩
 
       z′ ≡ y ∥⊎∥ (s , z′) ∈ free tˢ t × z′ ≢ x                     ↔⟨ inverse $
                                                                       ≡→,≡,≃
                                                                         ∥⊎∥-cong
-                                                                      (∃-cong λ _ → ¬-cong ext (from-equivalence ≡→,≡,≃)) ⟩
+                                                                      (∃-cong λ _ → ¬-cong ext ≡→,≡,≃) ⟩
       (s , z′) ≡ (s , y) ∥⊎∥
       (s , z′) ∈ free tˢ t × (s , z′) ≢ (s , x)                    ↔⟨ inverse $
                                                                       (F.id ∥⊎∥-cong (from-isomorphism ×-comm F.∘
