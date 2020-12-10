@@ -2173,6 +2173,18 @@ module Derived-definitions-and-properties
       T-irr true  _ _ = refl _
       T-irr false ()
 
+    -- A special case of cong-respects-relevant-equality.
+    --
+    -- The statement of this lemma is very similar to that of
+    -- Lemma 2.4.3 from the HoTT book.
+
+    naturality :
+      {x≡y : x ≡ y}
+      (f≡g : ∀ x → f x ≡ g x) →
+      trans (cong f x≡y) (f≡g y) ≡ trans (f≡g x) (cong g x≡y)
+    naturality f≡g =
+      cong-respects-relevant-equality (λ _ → true) (λ x _ → f≡g x)
+
     -- If f z evaluates to z for a decidable set of values which
     -- includes x and y, do we have
     --
