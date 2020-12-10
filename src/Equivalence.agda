@@ -15,132 +15,26 @@ module Equivalence
 open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decidable-UIP eq using (propositional-identity⇒set)
-open import Equality.Decision-procedures eq
+import Equivalence.Contractible-preimages eq as CP
 open import Groupoid eq
 open import H-level eq as H-level
 open import H-level.Closure eq
-open import Injection eq using (_↣_; module _↣_; Injective)
+open import Injection eq using (_↣_; Injective)
 open import Logical-equivalence as L-eq hiding (id; _∘_; inverse)
 open import Nat eq
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
-open import Surjection eq as Surjection using (_↠_; module _↠_)
+open import Surjection eq as Surjection using (_↠_)
 
 ------------------------------------------------------------------------
 -- Is-equivalence
 
--- A function f is an equivalence if all preimages under f are
--- contractible.
-
-Is-equivalence : ∀ {a b} {A : Type a} {B : Type b} →
-                 (A → B) → Type (a ⊔ b)
-Is-equivalence f = ∀ y → Contractible (f ⁻¹ y)
-
-abstract
-
-  -- Is-equivalence f is a proposition, assuming extensional equality.
-
-  propositional :
-    ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
-    {A : Type a} {B : Type b} (f : A → B) →
-    Is-proposition (Is-equivalence f)
-  propositional {a} ext f =
-    Π-closure (lower-extensionality a lzero ext) 1 λ _ →
-      Contractible-propositional ext
-
-  -- If the domain is contractible and the codomain is propositional,
-  -- then Is-equivalence f is contractible.
-
-  sometimes-contractible :
-    ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
-    {A : Type a} {B : Type b} {f : A → B} →
-    Contractible A → Is-proposition B →
-    Contractible (Is-equivalence f)
-  sometimes-contractible {a} ext A-contr B-prop =
-    Π-closure (lower-extensionality a lzero ext) 0 λ _ →
-      cojoin ext (Σ-closure 0 A-contr (λ _ → +⇒≡ B-prop))
-
-  -- Is-equivalence f is not always contractible.
-
-  not-always-contractible₁ :
-    ∀ {a b} →
-    ∃ λ (A : Type a) → ∃ λ (B : Type b) → ∃ λ (f : A → B) →
-      Is-proposition A × Contractible B ×
-      ¬ Contractible (Is-equivalence f)
-  not-always-contractible₁ =
-    ⊥ ,
-    ↑ _ ⊤ ,
-    const (lift tt) ,
-    ⊥-propositional ,
-    ↑-closure 0 ⊤-contractible ,
-    λ c → ⊥-elim (proj₁ (proj₁ (proj₁ c (lift tt))))
-
-  not-always-contractible₂ :
-    ∀ {a b} →
-    ∃ λ (A : Type a) → ∃ λ (B : Type b) → ∃ λ (f : A → B) →
-      Contractible A × Is-set B ×
-      ¬ Contractible (Is-equivalence f)
-  not-always-contractible₂ =
-    ↑ _ ⊤ ,
-    ↑ _ Bool ,
-    const (lift true) ,
-    ↑-closure 0 ⊤-contractible ,
-    ↑-closure 2 Bool-set ,
-    λ c → Bool.true≢false (cong lower
-            (proj₂ (proj₁ (proj₁ c (lift false)))))
-
--- Is-equivalence respects extensional equality.
-
-respects-extensional-equality :
-  ∀ {a b} {A : Type a} {B : Type b} {f g : A → B} →
-  (∀ x → f x ≡ g x) →
-  Is-equivalence f → Is-equivalence g
-respects-extensional-equality f≡g f-eq = λ b →
-  H-level.respects-surjection
-    (_↔_.surjection (Preimage.respects-extensional-equality f≡g))
-    0
-    (f-eq b)
-
-abstract
-
-  -- If Σ-map id f is an equivalence, then f is also an equivalence.
-
-  drop-Σ-map-id :
-    ∀ {a b} {A : Type a} {B C : A → Type b} (f : ∀ {x} → B x → C x) →
-    Is-equivalence {A = Σ A B} {B = Σ A C} (Σ-map P.id f) →
-    ∀ x → Is-equivalence (f {x = x})
-  drop-Σ-map-id {b = b} {A} {B} {C} f eq x z =
-    H-level.respects-surjection surj 0 (eq (x , z))
-    where
-    map-f : Σ A B → Σ A C
-    map-f = Σ-map P.id f
-
-    to-P : ∀ {x y} {p : ∃ C} → (x , f y) ≡ p → Type b
-    to-P {y = y} {p} _ = ∃ λ y′ → f y′ ≡ proj₂ p
-
-    to : map-f ⁻¹ (x , z) → f ⁻¹ z
-    to ((x′ , y) , eq) = elim¹ to-P (y , refl (f y)) eq
-
-    from : f ⁻¹ z → map-f ⁻¹ (x , z)
-    from (y , eq) = (x , y) , cong (_,_ x) eq
-
-    to∘from : ∀ p → to (from p) ≡ p
-    to∘from (y , eq) = elim¹
-      (λ {z′} (eq : f y ≡ z′) →
-         _≡_ {A = ∃ λ (y : B x) → f y ≡ z′}
-             (elim¹ to-P (y , refl (f y)) (cong (_,_ x) eq))
-             (y , eq))
-      (elim¹ to-P (y , refl (f y)) (cong (_,_ x) (refl (f y)))  ≡⟨ cong (elim¹ to-P (y , refl (f y))) $
-                                                                        cong-refl (_,_ x) ⟩
-       elim¹ to-P (y , refl (f y)) (refl (x , f y))             ≡⟨ elim¹-refl to-P _ ⟩∎
-       (y , refl (f y))                                         ∎)
-      eq
-
-    surj : map-f ⁻¹ (x , z) ↠ f ⁻¹ z
-    surj = record
-      { logical-equivalence = record { to = to; from = from }
-      ; right-inverse-of    = to∘from
-      }
+open CP public using
+  (Is-equivalence;
+   propositional;
+   sometimes-contractible;
+   respects-extensional-equality;
+   drop-Σ-map-id)
 
 ------------------------------------------------------------------------
 -- _≃_
@@ -158,18 +52,13 @@ record _≃_ {a b} (A : Type a) (B : Type b) : Type (a ⊔ b) where
   -- Equivalent sets are isomorphic.
 
   from : B → A
-  from y = proj₁ (proj₁ (is-equivalence y))
+  from = CP.inverse is-equivalence
 
   right-inverse-of : ∀ x → to (from x) ≡ x
-  right-inverse-of x = proj₂ (proj₁ (is-equivalence x))
+  right-inverse-of = CP.right-inverse-of is-equivalence
 
-  abstract
-
-    left-inverse-of : ∀ x → from (to x) ≡ x
-    left-inverse-of x =
-      cong (proj₁ {B = λ x′ → to x′ ≡ to x}) (
-        proj₁ (is-equivalence (to x))  ≡⟨ proj₂ (is-equivalence (to x)) (x , refl (to x)) ⟩∎
-        (x , refl (to x))              ∎)
+  left-inverse-of : ∀ x → from (to x) ≡ x
+  left-inverse-of = CP.left-inverse-of is-equivalence
 
   bijection : A ↔ B
   bijection = record
@@ -189,66 +78,19 @@ record _≃_ {a b} (A : Type a) (B : Type b) : Type (a ⊔ b) where
   -- All preimages of an element under the equivalence are equal.
 
   irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-  irrelevance y = proj₂ (is-equivalence y)
+  irrelevance = CP.irrelevance is-equivalence
 
-  abstract
+  -- The two proofs left-inverse-of and right-inverse-of are
+  -- related.
 
-    -- The two proofs left-inverse-of and right-inverse-of are
-    -- related.
+  left-right-lemma :
+    ∀ x → cong to (left-inverse-of x) ≡ right-inverse-of (to x)
+  left-right-lemma = CP.left-right-lemma is-equivalence
 
-    left-right-lemma :
-      ∀ x → cong to (left-inverse-of x) ≡ right-inverse-of (to x)
-    left-right-lemma x =
-      lemma₁ to _ _ (lemma₂ (irrelevance (to x) (x , refl (to x))))
-      where
-      lemma₁ : {x y : A} (f : A → B) (p : x ≡ y) (q : f x ≡ f y) →
-               refl (f y) ≡ trans (cong f (sym p)) q →
-               cong f p ≡ q
-      lemma₁ f = elim
-        (λ {x y} p → ∀ q → refl (f y) ≡ trans (cong f (sym p)) q →
-                           cong f p ≡ q)
-        (λ x q hyp →
-           cong f (refl x)                  ≡⟨ cong-refl f ⟩
-           refl (f x)                       ≡⟨ hyp ⟩
-           trans (cong f (sym (refl x))) q  ≡⟨ cong (λ p → trans (cong f p) q) sym-refl ⟩
-           trans (cong f (refl x)) q        ≡⟨ cong (λ p → trans p q) (cong-refl f) ⟩
-           trans (refl (f x)) q             ≡⟨ trans-reflˡ _ ⟩∎
-           q                                ∎)
 
-      lemma₂ : ∀ {f : A → B} {y} {f⁻¹y₁ f⁻¹y₂ : f ⁻¹ y}
-               (p : f⁻¹y₁ ≡ f⁻¹y₂) →
-               proj₂ f⁻¹y₂ ≡
-               trans (cong f (sym (cong (proj₁ {B = λ x → f x ≡ y}) p)))
-                     (proj₂ f⁻¹y₁)
-      lemma₂ {f} {y} =
-        let pr = proj₁ {B = λ x → f x ≡ y} in
-        elim {A = f ⁻¹ y}
-          (λ {f⁻¹y₁ f⁻¹y₂} p →
-             proj₂ f⁻¹y₂ ≡
-               trans (cong f (sym (cong pr p))) (proj₂ f⁻¹y₁))
-          (λ f⁻¹y →
-             proj₂ f⁻¹y                                               ≡⟨ sym $ trans-reflˡ _ ⟩
-             trans (refl (f (proj₁ f⁻¹y))) (proj₂ f⁻¹y)               ≡⟨ cong (λ p → trans p (proj₂ f⁻¹y)) (sym (cong-refl f)) ⟩
-             trans (cong f (refl (proj₁ f⁻¹y))) (proj₂ f⁻¹y)          ≡⟨ cong (λ p → trans (cong f p) (proj₂ f⁻¹y)) (sym sym-refl) ⟩
-             trans (cong f (sym (refl (proj₁ f⁻¹y)))) (proj₂ f⁻¹y)    ≡⟨ cong (λ p → trans (cong f (sym p)) (proj₂ f⁻¹y))
-                                                                              (sym (cong-refl pr)) ⟩∎
-             trans (cong f (sym (cong pr (refl f⁻¹y)))) (proj₂ f⁻¹y)  ∎)
-
-    right-left-lemma :
-      ∀ x → cong from (right-inverse-of x) ≡ left-inverse-of (from x)
-    right-left-lemma x = subst
-      (λ x → cong from (right-inverse-of x) ≡ left-inverse-of (from x))
-      (right-inverse-of x)
-      (let y = from x in
-
-       cong from (right-inverse-of (to y))                          ≡⟨ cong (cong from) $ sym $ left-right-lemma y ⟩
-       cong from (cong to (left-inverse-of y))                      ≡⟨ cong-∘ from to _ ⟩
-       cong (from ⊚ to) (left-inverse-of y)                         ≡⟨ cong-roughly-id (from ⊚ to) (λ _ → true) (left-inverse-of y)
-                                                                                       _ _ (λ z _ → left-inverse-of z) ⟩
-       trans (left-inverse-of (from (to y)))
-             (trans (left-inverse-of y) (sym (left-inverse-of y)))  ≡⟨ cong (trans _) $ trans-symʳ _ ⟩
-       trans (left-inverse-of (from (to y))) (refl _)               ≡⟨ trans-reflʳ _ ⟩∎
-       left-inverse-of (from (to y))                                ∎)
+  right-left-lemma :
+    ∀ x → cong from (right-inverse-of x) ≡ left-inverse-of (from x)
+  right-left-lemma = CP.right-left-lemma is-equivalence
 
 -- Equivalences are isomorphic to pairs.
 

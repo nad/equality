@@ -94,6 +94,10 @@ import Equivalence-relation
 
 import Preimage
 
+-- Is-equivalence, defined in terms of contractible fibres.
+
+import Equivalence.Contractible-preimages
+
 -- Equivalences.
 
 import Equivalence
