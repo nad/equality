@@ -20,7 +20,10 @@ open import Embedding eq using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
-open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Contractibleᴱ)
+open import Equivalence.Erased eq as EEq using (_≃ᴱ_)
+open import Equivalence.Erased.Contractible-preimages eq as ECP
+  using (Contractibleᴱ)
+import Equivalence.Half-adjoint eq as HA
 open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
@@ -156,7 +159,8 @@ Very-stable→Stable-[]≡id {x = x} s =
 
 [Erased→Very-stable]→Very-stable :
   (Erased A → Very-stable A) → Very-stable A
-[Erased→Very-stable]→Very-stable hyp x = hyp x x
+[Erased→Very-stable]→Very-stable =
+  HA.[inhabited→Is-equivalence]→Is-equivalence
 
 -- Erased A is very stable.
 
@@ -1207,6 +1211,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       (record
          { to   = Very-stable-Very-stable→Very-stable
          ; from = λ s →
+             Very-stable-cong _
+               (inverse $ Is-equivalence≃Is-equivalence-CP ext) $
              Very-stable-Π ext λ _ →
              Very-stable-H-level ext 0 $
              Very-stable-Σ s (λ _ → Very-stable-≡₀ _ _)
@@ -1856,8 +1862,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   Contractibleᴱ-Erased-singleton : Contractibleᴱ (Erased-singleton x)
   Contractibleᴱ-Erased-singleton {x = x} =
                                         $⟨ singleton-contractible x ⟩
-    Contractible  (Singleton x)         ↝⟨ EEq.Contractible→Contractibleᴱ ⟩
-    Contractibleᴱ (Singleton x)         ↝⟨ EEq.Contractibleᴱ-respects-surjection
+    Contractible  (Singleton x)         ↝⟨ ECP.Contractible→Contractibleᴱ ⟩
+    Contractibleᴱ (Singleton x)         ↝⟨ ECP.Contractibleᴱ-respects-surjection
                                              (Σ-map id [_]→)
                                              (_≃_.split-surjective $ Eq.↔→≃ _
                                                 (Σ-map id erased)
@@ -1871,8 +1877,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     Contractibleᴱ (Erased-other-singleton x)
   Contractibleᴱ-Erased-other-singleton {x = x} =
                                               $⟨ other-singleton-contractible x ⟩
-    Contractible  (Other-singleton x)         ↝⟨ EEq.Contractible→Contractibleᴱ ⟩
-    Contractibleᴱ (Other-singleton x)         ↝⟨ EEq.Contractibleᴱ-respects-surjection
+    Contractible  (Other-singleton x)         ↝⟨ ECP.Contractible→Contractibleᴱ ⟩
+    Contractibleᴱ (Other-singleton x)         ↝⟨ ECP.Contractibleᴱ-respects-surjection
                                                    (Σ-map id [_]→)
                                                    (_≃_.split-surjective $ Eq.↔→≃ _
                                                       (Σ-map id erased)

@@ -15,7 +15,7 @@ module Equivalence
 open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decidable-UIP eq using (propositional-identity⇒set)
-import Equivalence.Contractible-preimages eq as CP
+import Equivalence.Half-adjoint eq as HA
 open import Groupoid eq
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -29,12 +29,14 @@ open import Surjection eq as Surjection using (_↠_)
 ------------------------------------------------------------------------
 -- Is-equivalence
 
-open CP public using
+open HA public using
   (Is-equivalence;
    propositional;
    sometimes-contractible;
    respects-extensional-equality;
-   drop-Σ-map-id)
+   function-between-contractible-types-is-equivalence;
+   drop-Σ-map-id;
+   ext⁻¹-is-equivalence)
 
 ------------------------------------------------------------------------
 -- _≃_
@@ -52,13 +54,13 @@ record _≃_ {a b} (A : Type a) (B : Type b) : Type (a ⊔ b) where
   -- Equivalent sets are isomorphic.
 
   from : B → A
-  from = CP.inverse is-equivalence
+  from = HA.inverse is-equivalence
 
   right-inverse-of : ∀ x → to (from x) ≡ x
-  right-inverse-of = CP.right-inverse-of is-equivalence
+  right-inverse-of = HA.right-inverse-of is-equivalence
 
   left-inverse-of : ∀ x → from (to x) ≡ x
-  left-inverse-of = CP.left-inverse-of is-equivalence
+  left-inverse-of = HA.left-inverse-of is-equivalence
 
   bijection : A ↔ B
   bijection = record
@@ -78,19 +80,19 @@ record _≃_ {a b} (A : Type a) (B : Type b) : Type (a ⊔ b) where
   -- All preimages of an element under the equivalence are equal.
 
   irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-  irrelevance = CP.irrelevance is-equivalence
+  irrelevance = HA.irrelevance is-equivalence
 
   -- The two proofs left-inverse-of and right-inverse-of are
   -- related.
 
   left-right-lemma :
     ∀ x → cong to (left-inverse-of x) ≡ right-inverse-of (to x)
-  left-right-lemma = CP.left-right-lemma is-equivalence
-
+  left-right-lemma = proj₂ (proj₂ (proj₂ is-equivalence))
 
   right-left-lemma :
     ∀ x → cong from (right-inverse-of x) ≡ left-inverse-of (from x)
-  right-left-lemma = CP.right-left-lemma is-equivalence
+  right-left-lemma =
+    proj₂ (proj₂ (proj₂ (HA.inverse-equivalence is-equivalence)))
 
 -- Equivalences are isomorphic to pairs.
 
@@ -108,26 +110,23 @@ record _≃_ {a b} (A : Type a) (B : Type b) : Type (a ⊔ b) where
   }
 
 -- Bijections are equivalences.
+--
+-- Note that the right inverse proof is preserved unchanged.
 
 ↔⇒≃ : ∀ {a b} {A : Type a} {B : Type b} → A ↔ B → A ≃ B
 ↔⇒≃ A↔B = record
-  { to             = to
-  ; is-equivalence = λ y →
-      (from y , right-inverse-of y) , irrelevance y
+  { to             = _↔_.to A↔B
+  ; is-equivalence = HA.↔→Is-equivalenceʳ A↔B
   }
-  where
-  open _↔_ A↔B using (to; from)
 
-  is-equivalence : Is-equivalence to
-  is-equivalence = Preimage.bijection⁻¹-contractible A↔B
-
-  right-inverse-of : ∀ x → to (from x) ≡ x
-  right-inverse-of = proj₂ ⊚ proj₁ ⊚ is-equivalence
-
-  irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-  irrelevance = proj₂ ⊚ is-equivalence
+_ :
+  ∀ {a b} {A : Type a} {B : Type b} {A↔B : A ↔ B} →
+  _≃_.right-inverse-of (↔⇒≃ A↔B) ≡ _↔_.right-inverse-of A↔B
+_ = refl _
 
 -- A variant of the previous result.
+--
+-- Note that the right inverse proof is preserved unchanged.
 
 ↔→≃ :
   ∀ {a b} {A : Type a} {B : Type b} →
@@ -145,6 +144,12 @@ record _≃_ {a b} (A : Type a) (B : Type b) : Type (a ⊔ b) where
     }
   ; left-inverse-of = g∘f
   })
+
+_ :
+  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {g : B → A}
+    {f-g : ∀ x → f (g x) ≡ x} {g-f : ∀ x → g (f x) ≡ x} →
+  _≃_.right-inverse-of (↔→≃ f g f-g g-f) ≡ f-g
+_ = refl _
 
 -- There is a logical equivalence between A ↔ B and A ≃ B.
 
@@ -189,79 +194,24 @@ abstract
 -- Equivalences are equivalence relations.
 
 id : ∀ {a} {A : Type a} → A ≃ A
-id = ⟨ P.id , singleton-contractible ⟩
+id = ⟨ P.id , HA.id-equivalence ⟩
 
 inverse : ∀ {a b} {A : Type a} {B : Type b} → A ≃ B → B ≃ A
-inverse A≃B = ⟨ from , (λ y → (to y , left-inverse-of y) , irr y) ⟩
-  where
-  open _≃_ A≃B
-
-  abstract
-
-    irr : ∀ y (p : from ⁻¹ y) → (to y , left-inverse-of y) ≡ p
-    irr y (x , from-x≡y) =
-      Σ-≡,≡→≡ (from-to from-x≡y) (elim¹
-        (λ {y} ≡y → subst (λ z → from z ≡ y)
-                          (trans (cong to (sym ≡y))
-                                 (right-inverse-of x))
-                          (left-inverse-of y) ≡ ≡y)
-        (let lemma =
-               trans (cong to (sym (refl (from x))))
-                     (right-inverse-of x)              ≡⟨ cong (λ eq → trans (cong to eq) (right-inverse-of x)) sym-refl ⟩
-
-               trans (cong to (refl (from x)))
-                     (right-inverse-of x)              ≡⟨ cong (λ eq → trans eq (right-inverse-of x)) $ cong-refl to ⟩
-
-               trans (refl (to (from x)))
-                     (right-inverse-of x)              ≡⟨ trans-reflˡ (right-inverse-of x) ⟩∎
-
-               right-inverse-of x                      ∎
-         in
-
-         subst (λ z → from z ≡ from x)
-               (trans (cong to (sym (refl (from x))))
-                      (right-inverse-of x))
-               (left-inverse-of (from x))                    ≡⟨ cong₂ (subst (λ z → from z ≡ from x))
-                                                                      lemma (sym $ right-left-lemma x) ⟩
-         subst (λ z → from z ≡ from x)
-               (right-inverse-of x)
-               (cong from $ right-inverse-of x)              ≡⟨ subst-∘ (λ z → z ≡ from x) from _ ⟩
-
-         subst (λ z → z ≡ from x)
-               (cong from $ right-inverse-of x)
-               (cong from $ right-inverse-of x)              ≡⟨ cong (λ eq → subst (λ z → z ≡ from x) eq
-                                                                                   (cong from $ right-inverse-of x)) $
-                                                                     sym $ sym-sym _ ⟩
-         subst (λ z → z ≡ from x)
-               (sym $ sym $ cong from $ right-inverse-of x)
-               (cong from $ right-inverse-of x)              ≡⟨ subst-trans _ ⟩
-
-         trans (sym $ cong from $ right-inverse-of x)
-               (cong from $ right-inverse-of x)              ≡⟨ trans-symˡ _ ⟩∎
-
-         refl (from x)                                       ∎)
-        from-x≡y)
+inverse A≃B =
+  ⟨ HA.inverse             (_≃_.is-equivalence A≃B)
+  , HA.inverse-equivalence (_≃_.is-equivalence A≃B)
+  ⟩
 
 infixr 9 _∘_
 
 _∘_ : ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
       B ≃ C → A ≃ B → A ≃ C
-f ∘ g = record
-  { to             = to
-  ; is-equivalence = λ y →
-      (from y , right-inverse-of y) , irrelevance y
-  }
-  where
-  f∘g  = ↔⇒≃ $ Bijection._∘_ (_≃_.bijection f) (_≃_.bijection g)
-  to   = _≃_.to   f∘g
-  from = _≃_.from f∘g
-
-  abstract
-    right-inverse-of : ∀ x → to (from x) ≡ x
-    right-inverse-of = _≃_.right-inverse-of f∘g
-
-    irrelevance : ∀ y (p : to ⁻¹ y) → (from y , right-inverse-of y) ≡ p
-    irrelevance = _≃_.irrelevance f∘g
+f ∘ g =
+  ⟨ _≃_.to f ⊚ _≃_.to g
+  , HA.composition-equivalence
+      (_≃_.is-equivalence f)
+      (_≃_.is-equivalence g)
+  ⟩
 
 -- Equational reasoning combinators.
 
@@ -282,47 +232,31 @@ finally-≃ _ _ A≃B = A≃B
 
 syntax finally-≃ A B A≃B = A ≃⟨ A≃B ⟩□ B □
 
-abstract
+-- Some simplification lemmas.
 
-  -- Some simplification lemmas.
+right-inverse-of-id :
+  ∀ {a} {A : Type a} {x : A} →
+  _≃_.right-inverse-of id x ≡ refl x
+right-inverse-of-id {x = x} = refl (refl x)
 
-  right-inverse-of-id :
-    ∀ {a} {A : Type a} {x : A} →
-    _≃_.right-inverse-of id x ≡ refl x
-  right-inverse-of-id {x = x} = refl (refl x)
+left-inverse-of-id :
+  ∀ {a} {A : Type a} {x : A} →
+  _≃_.left-inverse-of id x ≡ refl x
+left-inverse-of-id {x = x} = refl (refl x)
 
-  left-inverse-of-id :
-    ∀ {a} {A : Type a} {x : A} →
-    _≃_.left-inverse-of id x ≡ refl x
-  left-inverse-of-id {x = x} =
-     left-inverse-of x               ≡⟨⟩
-     left-inverse-of (P.id x)        ≡⟨ sym $ right-left-lemma x ⟩
-     cong P.id (right-inverse-of x)  ≡⟨ sym $ cong-id _ ⟩
-     right-inverse-of x              ≡⟨ right-inverse-of-id ⟩∎
-     refl x                          ∎
-     where open _≃_ id
+right-inverse-of∘inverse :
+  ∀ {a b} {A : Type a} {B : Type b} →
+  ∀ (A≃B : A ≃ B) {x} →
+  _≃_.right-inverse-of (inverse A≃B) x ≡
+  _≃_.left-inverse-of A≃B x
+right-inverse-of∘inverse _ = refl _
 
-  right-inverse-of∘inverse :
-    ∀ {a b} {A : Type a} {B : Type b} →
-    ∀ (A≃B : A ≃ B) {x} →
-    _≃_.right-inverse-of (inverse A≃B) x ≡
-    _≃_.left-inverse-of A≃B x
-  right-inverse-of∘inverse A≃B = refl _
-
-  left-inverse-of∘inverse :
-    ∀ {a b} {A : Type a} {B : Type b} →
-    ∀ (A≃B : A ≃ B) {x} →
-    _≃_.left-inverse-of (inverse A≃B) x ≡
-    _≃_.right-inverse-of A≃B x
-  left-inverse-of∘inverse {A = A} {B} A≃B {x} =
-    subst (λ x → _≃_.left-inverse-of (inverse A≃B) x ≡
-                 right-inverse-of x)
-          (right-inverse-of x)
-          (_≃_.left-inverse-of (inverse A≃B) (to (from x))        ≡⟨ sym $ _≃_.right-left-lemma (inverse A≃B) (from x) ⟩
-           cong to (_≃_.right-inverse-of (inverse A≃B) (from x))  ≡⟨ cong (cong to) $ right-inverse-of∘inverse A≃B ⟩
-           cong to (left-inverse-of (from x))                     ≡⟨ left-right-lemma (from x) ⟩∎
-           right-inverse-of (to (from x))                         ∎)
-    where open _≃_ A≃B
+left-inverse-of∘inverse :
+  ∀ {a b} {A : Type a} {B : Type b} →
+  ∀ (A≃B : A ≃ B) {x} →
+  _≃_.left-inverse-of (inverse A≃B) x ≡
+  _≃_.right-inverse-of A≃B x
+left-inverse-of∘inverse _ = refl _
 
 ------------------------------------------------------------------------
 -- One can replace either of the functions with an extensionally equal
@@ -413,69 +347,7 @@ two-out-of-three f g = record
   }
 
 ------------------------------------------------------------------------
--- f ≡ g and ∀ x → f x ≡ g x are isomorphic (assuming extensionality)
-
-private
- module Separate-abstract-block where
-  abstract
-
-    -- Functions between contractible types are equivalences.
-
-    function-between-contractible-types-is-equivalence :
-      ∀ {a b} {A : Type a} {B : Type b} (f : A → B) →
-      Contractible A → Contractible B → Is-equivalence f
-    function-between-contractible-types-is-equivalence f cA cB =
-      Two-out-of-three.g-g∘f
-        (two-out-of-three f (const tt))
-        (lemma cB)
-        (lemma cA)
-      where
-      -- Functions from a contractible type to the unit type are
-      -- contractible.
-
-      lemma : ∀ {b} {C : Type b} → Contractible C →
-              Is-equivalence (λ (_ : C) → tt)
-      lemma (x , irr) _ = (x , refl tt) , λ p →
-        (x , refl tt)  ≡⟨ Σ-≡,≡→≡
-                            (irr (proj₁ p))
-                            (subst (λ _ → tt ≡ tt)
-                               (irr (proj₁ p)) (refl tt)  ≡⟨ elim (λ eq → subst (λ _ → tt ≡ tt) eq (refl tt) ≡ refl tt)
-                                                                  (λ _ → subst-refl (λ _ → tt ≡ tt) (refl tt))
-                                                                  (irr (proj₁ p)) ⟩
-                             refl tt                      ≡⟨ elim (λ eq → refl tt ≡ eq) (refl ⊚ refl) (proj₂ p) ⟩∎
-                             proj₂ p                      ∎) ⟩∎
-        p              ∎
-
-    -- ext⁻¹ is an equivalence (assuming extensionality).
-
-    ext⁻¹-is-equivalence :
-      ∀ {a b} {A : Type a} →
-      ({B : A → Type b} → Extensionality′ A B) →
-      {B : A → Type b} {f g : (x : A) → B x} →
-      Is-equivalence (ext⁻¹ {f = f} {g = g})
-    ext⁻¹-is-equivalence ext {f = f} {g} =
-      let surj : (∀ x → Singleton (g x)) ↠ (∃ λ f → ∀ x → f x ≡ g x)
-          surj = record
-            { logical-equivalence = record
-              { to   = λ f → proj₁ ⊚ f , proj₂ ⊚ f
-              ; from = λ p x → proj₁ p x , proj₂ p x
-              }
-            ; right-inverse-of = refl
-            }
-
-          lemma₁ : Contractible (∃ λ f → ∀ x → f x ≡ g x)
-          lemma₁ =
-            H-level.respects-surjection surj 0 $
-              _⇔_.from Π-closure-contractible⇔extensionality
-                ext (singleton-contractible ⊚ g)
-
-          lemma₂ : Is-equivalence (Σ-map P.id ext⁻¹)
-          lemma₂ = function-between-contractible-types-is-equivalence
-                     _ (singleton-contractible g) lemma₁
-
-      in drop-Σ-map-id ext⁻¹ lemma₂ f
-
-open Separate-abstract-block public
+-- Extensionality
 
 -- f ≡ g and ∀ x → f x ≡ g x are isomorphic (assuming extensionality).
 
@@ -719,7 +591,8 @@ abstract
     _≃_.from p ≡ _≃_.from q → p ≡ q
   lift-equality-inverse ext {p = p} {q = q} f≡g =
     p                    ≡⟨ lift-equality ext (refl _) ⟩
-    inverse (inverse p)  ≡⟨ cong inverse $ lift-equality ext f≡g ⟩
+    inverse (inverse p)  ≡⟨ cong inverse $
+                            lift-equality ext {p = inverse p} {q = inverse q} f≡g ⟩
     inverse (inverse q)  ≡⟨ lift-equality ext (refl _) ⟩∎
     q                    ∎
 

@@ -18,6 +18,8 @@ open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq
   hiding (id; inverse) renaming (_∘_ to _⊚_)
+import Equivalence.Contractible-preimages eq as CP
+import Equivalence.Half-adjoint eq as HA
 open import Function-universe eq as F hiding (id; _∘_)
 open import Groupoid eq
 open import H-level eq as H-level
@@ -117,7 +119,8 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
                Π-closure (lower-extensionality _ lzero ext) 1 λ _ →
                Eq.propositional ext _))
     (record
-       { to   = λ prop-ext A-prop B-prop A≃B →
+       { to   = λ prop-ext A-prop B-prop →
+                  _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $ λ A≃B →
                   ( prop-ext A-prop B-prop (_≃_.logical-equivalence A≃B)
                   , Eq.left-closure (lower-extensionality _ _ ext)
                       0 A-prop _ _
@@ -350,6 +353,55 @@ abstract
     ≡⇒↝ implication (≃⇒≡ univ eq)         ≡⟨ sym $ to-implication-≡⇒↝ equivalence _ ⟩
     ≡⇒→ (≃⇒≡ univ eq)                     ≡⟨ cong _≃_.to (_≃_.right-inverse-of (≡≃≃ univ) _) ⟩∎
     _≃_.to eq                             ∎
+
+------------------------------------------------------------------------
+-- Another alternative formulation of univalence
+
+-- Univalence′ A B is pointwise equivalent to CP.Univalence′ A B
+-- (assuming extensionality).
+
+Univalence′≃Univalence′-CP :
+  ∀ {ℓ} {A B : Type ℓ} →
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+  Univalence′ A B ≃ CP.Univalence′ A B
+Univalence′≃Univalence′-CP {ℓ = ℓ} ext =
+  Is-equivalence ≡⇒≃                      ↝⟨ Is-equivalence-cong ext $
+                                             elim
+                                               (λ A≡B → ≡⇒≃ A≡B ≡ _≃_.from ≃≃≃ (CP.≡⇒≃ A≡B))
+                                               (λ C →
+      ≡⇒≃ (refl _)                                ≡⟨ ≡⇒≃-refl ⟩
+      Eq.id                                       ≡⟨ Eq.lift-equality ext′ (refl _) ⟩
+      _≃_.from ≃≃≃ CP.id                          ≡⟨ cong (_≃_.from ≃≃≃) $ sym CP.≡⇒≃-refl ⟩∎
+      _≃_.from ≃≃≃ (CP.≡⇒≃ (refl _))              ∎) ⟩
+
+  Is-equivalence (_≃_.from ≃≃≃ ∘ CP.≡⇒≃)  ↝⟨ Eq.⇔→≃
+                                               (Eq.propositional ext _)
+                                               (Eq.propositional ext _)
+                                               (Eq.Two-out-of-three.g-g∘f (Eq.two-out-of-three _ _)
+                                                  (_≃_.is-equivalence (inverse ≃≃≃)))
+                                               (flip (Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _))
+                                                  (_≃_.is-equivalence (inverse ≃≃≃))) ⟩
+
+  Is-equivalence CP.≡⇒≃                   ↝⟨ Is-equivalence≃Is-equivalence-CP ext ⟩□
+
+  CP.Is-equivalence CP.≡⇒≃                □
+  where
+  ext′ : Extensionality ℓ ℓ
+  ext′ = lower-extensionality _ _ ext
+
+  ≃≃≃ : {A B : Type ℓ} → (A ≃ B) ≃ (A CP.≃ B)
+  ≃≃≃ = ≃≃≃-CP ext′
+
+-- Univalence ℓ is pointwise equivalent to CP.Univalence ℓ (assuming
+-- extensionality).
+
+Univalence≃Univalence-CP :
+  ∀ {ℓ} →
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+  Univalence ℓ ≃ CP.Univalence ℓ
+Univalence≃Univalence-CP {ℓ = ℓ} ext =
+  implicit-∀-cong ext $ implicit-∀-cong ext $
+  Univalence′≃Univalence′-CP ext
 
 ------------------------------------------------------------------------
 -- A consequence: Type is not a set

@@ -13,7 +13,7 @@ open import Equality
 module Univalence-axiom.Isomorphism-is-equality.Monoid
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq hiding (id; inverse; step-↔)
+open import Bijection eq using (_↔_; Σ-≡,≡↔≡; ↑↔)
 open Derived-definitions-and-properties eq
 open import Equivalence eq hiding (id; inverse)
 open import Function-universe eq hiding (id)

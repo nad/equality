@@ -18,7 +18,9 @@ open Derived-definitions-and-properties eq
 open import Embedding eq as Emb using (Is-embedding; Embedding)
 open import Equivalence eq as Eq using (_≃_)
 open import Equivalence.Erased eq as EEq
-  using (_≃ᴱ_; Is-equivalenceᴱ; _⁻¹ᴱ_)
+  using (_≃ᴱ_; Is-equivalenceᴱ)
+open import Equivalence.Erased.Contractible-preimages eq as ECP
+  using (_⁻¹ᴱ_)
 open import Erased.Basics eq using (Erased; []-cong-axiomatisation)
 open import Function-universe eq hiding (id; _∘_; equivalence)
 open import H-level.Closure eq
@@ -86,13 +88,12 @@ Is-embedding→Is-embeddingᴱ {f = f} =
 
 @0 Is-embedding≃Is-embeddingᴱ :
   {A : Type a} {B : Type b} {f : A → B} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  Extensionality? k a (a ⊔ b) →
   Is-embedding f ↝[ k ] Is-embeddingᴱ f
-Is-embedding≃Is-embeddingᴱ {b = b} {k = k} {f = f} ext =
-  (∀ x y → Eq.Is-equivalence (cong {x = x} {y = y} f))  ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ → EEq.Is-equivalence≃Is-equivalenceᴱ ext) ⟩□
+Is-embedding≃Is-embeddingᴱ {k = k} {f = f} ext =
+  (∀ x y → Eq.Is-equivalence (cong {x = x} {y = y} f))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → from-equivalence
+                                                            EEq.Is-equivalence≃Is-equivalenceᴱ) ⟩□
   (∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} f))    □
-  where
-  ext′ = lower-extensionality? k b lzero ext
 
 @0 Is-embeddingᴱ→Is-embedding : Is-embeddingᴱ f → Is-embedding f
 Is-embeddingᴱ→Is-embedding = inverse-ext? Is-embedding≃Is-embeddingᴱ _
@@ -108,7 +109,7 @@ Embedding→Embeddingᴱ {A = A} {B = B} =
 
 @0 Embedding≃Embeddingᴱ :
   {A : Type a} {B : Type b} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  Extensionality? k a (a ⊔ b) →
   Embedding A B ↝[ k ] Embeddingᴱ A B
 Embedding≃Embeddingᴱ {A = A} {B = B} ext =
   Embedding A B                        ↔⟨ Emb.Embedding-as-Σ ⟩
@@ -180,11 +181,11 @@ f ∘ g =
 
 @0 embedding→⁻¹ᴱ-propositional :
   Is-embeddingᴱ f →
-  ∀ y → Is-proposition (f EEq.⁻¹ᴱ y)
+  ∀ y → Is-proposition (f ⁻¹ᴱ y)
 embedding→⁻¹ᴱ-propositional {f = f} =
   Is-embeddingᴱ f                   ↝⟨ Is-embeddingᴱ→Is-embedding ⟩
   Is-embedding f                    ↝⟨ Emb.embedding→⁻¹-propositional ⟩
-  (∀ y → Is-proposition (f ⁻¹ y))   ↝⟨ (∀-cong _ λ _ → H-level-cong _ 1 EEq.⁻¹≃⁻¹ᴱ) ⟩□
+  (∀ y → Is-proposition (f ⁻¹ y))   ↝⟨ (∀-cong _ λ _ → H-level-cong _ 1 ECP.⁻¹≃⁻¹ᴱ) ⟩□
   (∀ y → Is-proposition (f ⁻¹ᴱ y))  □
 
 ------------------------------------------------------------------------

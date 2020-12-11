@@ -20,6 +20,7 @@ open import Embedding eq hiding (_∘_)
 open import Equality.Decidable-UIP eq
 import Equality.Groupoid eq as EG
 open import Equivalence eq as Eq hiding (_∘_; inverse)
+import Equivalence.Half-adjoint eq as HA
 open import Function-universe eq as F hiding (_∘_)
 open import Groupoid eq
 open import H-level eq as H-level
@@ -279,26 +280,28 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
     (record
        { from = λ is-eq →
 
-                    (λ y →                        $⟨ is-eq y ⟩
-                       Contractible (f ⁻¹ y)      ↝⟨ proj₁ ⟩
-                       f ⁻¹ y                     ↝⟨ ∣_∣₁ ⟩□
-                       ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)   □)
+                    (λ y →                       $⟨ HA.inverse is-eq y
+                                                  , HA.right-inverse-of is-eq y
+                                                  ⟩
+                       f ⁻¹ y                    ↝⟨ ∣_∣₁ ⟩□
+                       ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)  □)
 
                   ,                  ($⟨ is-eq ⟩
                     Is-equivalence f  ↝⟨ Embedding.is-embedding ∘ from-equivalence ∘ ⟨ _ ,_⟩ ⟩□
                     Is-embedding f    □)
 
-       ; to = λ { (is-surj , is-emb) y →
-                                             $⟨ is-surj y ⟩
-                  ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)   ↝⟨ with-lower-level ℓ 1 ⟩
-                  ∥ f ⁻¹ y ∥ 1 (a ⊔ b)       ↝⟨ rec 1
-                                                    (Contractible-propositional
-                                                       (lower-extensionality _ _ ext))
-                      (f ⁻¹ y                       ↝⟨ propositional⇒inhabited⇒contractible
-                                                         (embedding→⁻¹-propositional is-emb y) ⟩□
-                       Contractible (f ⁻¹ y)        □) ⟩□
+       ; to = λ (is-surj , is-emb) →
+           _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $ λ y →
+                                      $⟨ is-surj y ⟩
+           ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)   ↝⟨ with-lower-level ℓ 1 ⟩
+           ∥ f ⁻¹ y ∥ 1 (a ⊔ b)       ↝⟨ rec 1
+                                             (Contractible-propositional
+                                                (lower-extensionality _ _ ext))
+               (f ⁻¹ y                       ↝⟨ propositional⇒inhabited⇒contractible
+                                                  (embedding→⁻¹-propositional is-emb y) ⟩□
+                Contractible (f ⁻¹ y)        □) ⟩□
 
-                  Contractible (f ⁻¹ y)      □ }
+           Contractible (f ⁻¹ y)      □
        })
 
 -- If the underlying type has a certain h-level, then there is a split
@@ -350,13 +353,11 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
   ∀ {ℓ a} {A : Type a} →
   Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
   (∥ A ∥ 1 ℓ × A) ≃ A
-∥∥×≃ ext =
-  ⟨ proj₂
-  , (λ a → propositional⇒inhabited⇒contractible
-             (mono₁ 0 $
-                Preimage.bijection⁻¹-contractible (∥∥×↔ ext) a)
-             ((∣ a ∣₁ , a) , refl a))
-  ⟩
+∥∥×≃ ext = Eq.↔→≃
+  proj₂
+  (λ x → ∣ x ∣₁ , x)
+  refl
+  (λ _ → cong (_, _) (truncation-has-correct-h-level 1 ext _ _))
 
 private
 

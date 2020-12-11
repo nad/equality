@@ -15,9 +15,10 @@ module Equivalence.Erased.Basics
 
 open Derived-definitions-and-properties eq
 open import Logical-equivalence using (_⇔_)
-open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
+open import Prelude as P hiding (id; [_,_]) renaming (_∘_ to _⊚_)
 
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
+import Equivalence.Half-adjoint eq as HA
 open import Erased.Basics eq
 open import Preimage eq as Preimage using (_⁻¹_)
 
@@ -30,61 +31,30 @@ private
     f g       : (x : A) → P x
 
 ------------------------------------------------------------------------
--- Some basic types
-
--- Contractibility with an erased proof.
-
-Contractibleᴱ : Type ℓ → Type ℓ
-Contractibleᴱ A = ∃ λ (x : A) → Erased (∀ y → x ≡ y)
-
--- "Preimages" with erased proofs.
-
-infix 5 _⁻¹ᴱ_
-
-_⁻¹ᴱ_ : {A : Type a} {@0 B : Type b} → @0 (A → B) → @0 B → Type (a ⊔ b)
-f ⁻¹ᴱ y = ∃ λ x → Erased (f x ≡ y)
+-- Is-equivalenceᴱ
 
 -- Is-equivalence with erased proofs.
 
 Is-equivalenceᴱ : {A : Type a} {B : Type b} → @0 (A → B) → Type (a ⊔ b)
-Is-equivalenceᴱ f = ∀ y → Contractibleᴱ (f ⁻¹ᴱ y)
+Is-equivalenceᴱ {A = A} {B = B} f =
+  ∃ λ (f⁻¹ : B → A) → Erased (HA.Proofs f f⁻¹)
 
 ------------------------------------------------------------------------
 -- Some conversion lemmas
 
--- Conversions between Contractible and Contractibleᴱ.
-
-Contractible→Contractibleᴱ : Contractible A → Contractibleᴱ A
-Contractible→Contractibleᴱ = Σ-map P.id [_]→
-
-@0 Contractibleᴱ→Contractible : Contractibleᴱ A → Contractible A
-Contractibleᴱ→Contractible = Σ-map P.id erased
-
--- Conversions between _⁻¹_ and _⁻¹ᴱ_.
-
-⁻¹→⁻¹ᴱ : f ⁻¹ y → f ⁻¹ᴱ y
-⁻¹→⁻¹ᴱ = Σ-map P.id [_]→
-
-@0 ⁻¹ᴱ→⁻¹ : f ⁻¹ᴱ x → f ⁻¹ x
-⁻¹ᴱ→⁻¹ = Σ-map P.id erased
-
 -- Conversions between Is-equivalence and Is-equivalenceᴱ.
 
 Is-equivalence→Is-equivalenceᴱ : Is-equivalence f → Is-equivalenceᴱ f
-Is-equivalence→Is-equivalenceᴱ eq y =
-    ⁻¹→⁻¹ᴱ (proj₁ (eq y))
-  , [ cong ⁻¹→⁻¹ᴱ ⊚ proj₂ (eq y) ⊚ ⁻¹ᴱ→⁻¹ ]
+Is-equivalence→Is-equivalenceᴱ = Σ-map P.id [_]→
 
 @0 Is-equivalenceᴱ→Is-equivalence :
   Is-equivalenceᴱ f → Is-equivalence f
-Is-equivalenceᴱ→Is-equivalence eq y =
-    ⁻¹ᴱ→⁻¹ (proj₁ (eq y))
-  , cong ⁻¹ᴱ→⁻¹ ⊚ erased (proj₂ (eq y)) ⊚ ⁻¹→⁻¹ᴱ
+Is-equivalenceᴱ→Is-equivalence = Σ-map P.id erased
 
 -- See also Equivalence.Erased.Is-equivalence≃Is-equivalenceᴱ.
 
 ------------------------------------------------------------------------
--- Another basic type
+-- _≃ᴱ_
 
 private
  module Dummy where
@@ -126,7 +96,7 @@ module _≃ᴱ_ {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ᴱ B) where
   -- The "right-to-left" direction of the equivalence.
 
   from : B → A
-  from y = let ((x , _) , _) = is-equivalence y in x
+  from = let from , _ = is-equivalence in from
 
   -- The underlying logical equivalence.
 
@@ -195,18 +165,13 @@ module _≃ᴱ_ {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ᴱ B) where
 record Erased-proofs {A : Type a} {B : Type b}
                      (to : A → B) (from : B → A) : Type (a ⊔ b) where
   field
-    right-inverse-of : ∀ y → to (from y) ≡ y
-    irrelevance      : ∀ y (p : to ⁻¹ y) →
-                       (from y , right-inverse-of y) ≡ p
+    proofs : HA.Proofs to from
 
 -- Extracts "erased proofs" from a regular equivalence.
 
 [proofs] :
   (A≃B : A ≃ B) → Erased-proofs (_≃_.to A≃B) (_≃_.from A≃B)
-[proofs] A≃B .Erased-proofs.right-inverse-of =
-  _≃_.right-inverse-of A≃B
-[proofs] A≃B .Erased-proofs.irrelevance =
-  _≃_.irrelevance A≃B
+[proofs] A≃B .Erased-proofs.proofs = proj₂ (_≃_.is-equivalence A≃B)
 
 -- Converts two functions and some erased proofs to an equivalence
 -- with erased proofs.
@@ -219,10 +184,7 @@ record Erased-proofs {A : Type a} {B : Type b}
   @0 Erased-proofs to from →
   A ≃ᴱ B
 [≃]→≃ᴱ {to = to} {from = from} ep =
-  ⟨ to
-  , (λ y → (from y , [ Erased-proofs.right-inverse-of ep y ])
-         , [ cong ⁻¹→⁻¹ᴱ ⊚ Erased-proofs.irrelevance ep y ⊚ ⁻¹ᴱ→⁻¹ ])
-  ⟩
+  ⟨ to , (from , [ ep .Erased-proofs.proofs ]) ⟩
 
 -- A function with a quasi-inverse with erased proofs can be turned
 -- into an equivalence with erased proofs.

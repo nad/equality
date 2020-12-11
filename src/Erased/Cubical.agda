@@ -206,13 +206,11 @@ private
   ((x : Erased A) → P x) PEq.≃ ((@0 x : A) → P [ x ])
 Π-Erased≃Π0[] = record
   { to             = λ f x → f [ x ]
-  ; is-equivalence = λ f →
-      ( (λ ([ x ]) → f x)
-      , (λ _ → f)
-      )
-      , λ (g , eq) i →
-            (λ ([ x ]) → eq (P.- i) x)
-          , (λ j → eq (P.max (P.- i) j))
+  ; is-equivalence =
+        (λ f ([ x ]) → f x)
+      , (λ f _ → f)
+      , (λ f _ → f)
+      , (λ f _ _ x → f [ x ])
   }
 
 -- There is a bijection (with paths for equality, not _≡_) between

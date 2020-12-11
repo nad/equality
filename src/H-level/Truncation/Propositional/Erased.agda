@@ -29,7 +29,9 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Erased equality-with-J as EEq
-  using (_≃ᴱ_; Is-equivalenceᴱ; Contractibleᴱ; _⁻¹ᴱ_)
+  using (_≃ᴱ_; Is-equivalenceᴱ)
+open import Equivalence.Erased.Contractible-preimages equality-with-J
+  as ECP using (Contractibleᴱ; _⁻¹ᴱ_)
 open import Equivalence-relation equality-with-J
 open import Erased.Cubical eq as Er using (Erased; [_])
 open import Function-universe equality-with-J hiding (id; _∘_)
@@ -416,21 +418,11 @@ constant-endofunction⇔h-stable = record
 -- (with erased "proofs") to A.
 
 ∥∥ᴱ×≃ᴱ : (∥ A ∥ᴱ × A) ≃ᴱ A
-∥∥ᴱ×≃ᴱ =
-  EEq.⟨ proj₂
-      , (λ a → EEq.inhabited→Is-proposition→Contractibleᴱ
-                 ((∣ a ∣ , a) , [ refl _ ])
-                 (                                     $⟨ EEq.Contractibleᴱ-⁻¹ᴱ
-                                                            proj₂
-                                                            (λ a → ∣ a ∣ , a)
-                                                            refl
-                                                            (λ p → cong (_, _) $
-                                                                     truncation-is-proposition _ _)
-                                                            a ⟩
-                  EEq.Contractibleᴱ (proj₂ EEq.⁻¹ᴱ a)  ↔⟨ inverse EEq.Contractible≃Contractibleᴱ ⟩
-                  Contractible (proj₂ EEq.⁻¹ᴱ a)       ↝⟨ mono₁ 0 ⟩□
-                  Is-proposition (proj₂ EEq.⁻¹ᴱ a)     □))
-      ⟩
+∥∥ᴱ×≃ᴱ = EEq.↔→≃ᴱ
+  proj₂
+  (λ x → ∣ x ∣ , x)
+  refl
+  (λ _ → cong (_, _) (truncation-is-proposition _ _))
 
 -- The application _≃ᴱ_.right-inverse-of ∥∥ᴱ×≃ᴱ x computes in a
 -- certain way.
@@ -616,7 +608,7 @@ Surjectiveᴱ-propositional =
 
 Split-surjective→Surjectiveᴱ :
   Split-surjective f → Surjectiveᴱ f
-Split-surjective→Surjectiveᴱ s = λ y → ∣ EEq.⁻¹→⁻¹ᴱ (s y) ∣
+Split-surjective→Surjectiveᴱ s = λ y → ∣ ECP.⁻¹→⁻¹ᴱ (s y) ∣
 
 -- In an erased context surjectivity with erased proofs is equivalent
 -- to surjectivity.
@@ -627,7 +619,7 @@ Split-surjective→Surjectiveᴱ s = λ y → ∣ EEq.⁻¹→⁻¹ᴱ (s y) ∣
 @0 Surjectiveᴱ≃Surjective : Surjectiveᴱ f ≃ Surjective f
 Surjectiveᴱ≃Surjective {f = f} =
   (∀ y → ∥ f ⁻¹ᴱ y ∥ᴱ)  ↝⟨ (∀-cong ext λ _ → ∥∥ᴱ≃∥∥) ⟩
-  (∀ y → ∥ f ⁻¹ᴱ y ∥)   ↝⟨ (∀-cong ext λ _ → PT.∥∥-cong (inverse EEq.⁻¹≃⁻¹ᴱ)) ⟩□
+  (∀ y → ∥ f ⁻¹ᴱ y ∥)   ↝⟨ (∀-cong ext λ _ → PT.∥∥-cong (inverse ECP.⁻¹≃⁻¹ᴱ)) ⟩□
   (∀ y → ∥ f ⁻¹  y ∥)   □
 
 -- Being both surjective (with erased proofs) and an embedding
@@ -645,21 +637,21 @@ Surjectiveᴱ×Erased-Is-embedding≃ᴱIs-equivalenceᴱ {f = f} = EEq.⇔→�
      (Er.H-level-Erased 1
         (Emb.Is-embedding-propositional ext)))
   (EEq.Is-equivalenceᴱ-propositional ext f)
-  (λ (is-surj , is-emb) y →
+  (λ (is-surj , is-emb) →
+     _⇔_.from EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP $ λ y →
                               $⟨ is-surj y ⟩
      ∥ f ⁻¹ᴱ y ∥ᴱ             ↝⟨ (rec λ where
-                                    .∣∣ʳ p → EEq.inhabited→Is-proposition→Contractibleᴱ p
+                                    .∣∣ʳ p → ECP.inhabited→Is-proposition→Contractibleᴱ p
                                                (H-level-cong _ 1
-                                                  EEq.⁻¹≃⁻¹ᴱ
+                                                  ECP.⁻¹≃⁻¹ᴱ
                                                   (Emb.embedding→⁻¹-propositional (Er.erased is-emb) _))
                                     .truncation-is-propositionʳ →
-                                      EEq.Contractibleᴱ-propositional ext) ⟩□
+                                      ECP.Contractibleᴱ-propositional ext) ⟩□
      Contractibleᴱ (f ⁻¹ᴱ y)  □)
-  (λ is-eq →
-       (λ y →                      $⟨ is-eq y ⟩
-          Contractibleᴱ (f ⁻¹ᴱ y)  ↝⟨ proj₁ ⟩
-          f ⁻¹ᴱ y                  ↝⟨ ∣_∣ ⟩
-          ∥ f ⁻¹ᴱ y ∥ᴱ             □)
+  (λ is-eq@(inv , [ r-inv , _ ]) →
+       (λ y →           $⟨ inv y , [ r-inv y ] ⟩
+          f ⁻¹ᴱ y       ↝⟨ ∣_∣ ⟩
+          ∥ f ⁻¹ᴱ y ∥ᴱ  □)
 
      ,                            ($⟨ is-eq ⟩
        Is-equivalenceᴱ f           ↝⟨ Er.[_]→ ⟩

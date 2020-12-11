@@ -1188,7 +1188,9 @@ record Category (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) where
     abstract
 
       is-equiv : ∀ {X Y} → Is-equivalence (P≅.≡→≅ {X = X} {Y = Y})
-      is-equiv (X≅Y , X≅Y-iso) =
+      is-equiv =
+        _⇔_.from (Is-equivalence≃Is-equivalence-CP _)
+          λ (X≅Y , X≅Y-iso) →
         Σ-map (Σ-map
           P.id
           (λ {X≡Y} ≡→≅[X≡Y]≡X≅Y →
@@ -1215,8 +1217,9 @@ record Category (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) where
                    proj₁ (P≅.≡→≅ X≡Y′)  ≡⟨ cong proj₁ ≡→≅[X≡Y′]≡X≅Y ⟩∎
                    X≅Y                  ∎ in
              (X≡Y , _)   ≡⟨ Σ-≡,≡→≡ (cong proj₁ (∀y→≡y (X≡Y′ , lemma))) (P≅.≅-set _ _) ⟩∎
-             (X≡Y′ , _)  ∎ } })
-          (≡→≅-equivalence X≅Y)
+             (X≡Y′ , _)  ∎ } }) $
+        _⇔_.to (Is-equivalence≃Is-equivalence-CP _)
+          ≡→≅-equivalence X≅Y
 
   -- Some equality rearrangement lemmas.
 

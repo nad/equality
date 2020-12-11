@@ -28,7 +28,9 @@ open import Bi-invertibility eq Obj Hom id _∘′_ as Bi
          Has-quasi-inverse; _≊_; _≅_)
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq using (_≃_)
-open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Contractibleᴱ)
+open import Equivalence.Erased eq as EEq using (_≃ᴱ_)
+open import Equivalence.Erased.Contractible-preimages eq as ECP
+  using (Contractibleᴱ)
 open import Erased.Without-box-cong eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import Logical-equivalence using (_⇔_)
@@ -217,7 +219,7 @@ module More
     Has-quasi-inverseᴱ f → Contractibleᴱ (Has-left-inverseᴱ f)
   Contractibleᴱ-Has-left-inverseᴱ
     {f = f} (f⁻¹ , [ f∘f⁻¹≡id , f⁻¹∘f≡id ]) =
-    EEq.Contractibleᴱ-⁻¹ᴱ
+    ECP.Contractibleᴱ-⁻¹ᴱ
       (_∘ f)
       (_∘ f⁻¹)
       (λ g →
@@ -240,7 +242,7 @@ module More
     Has-quasi-inverseᴱ f → Contractibleᴱ (Has-right-inverseᴱ f)
   Contractibleᴱ-Has-right-inverseᴱ
     {f = f} (f⁻¹ , [ f∘f⁻¹≡id , f⁻¹∘f≡id ]) =
-    EEq.Contractibleᴱ-⁻¹ᴱ
+    ECP.Contractibleᴱ-⁻¹ᴱ
       (f ∘_)
       (f⁻¹ ∘_)
       (λ g →

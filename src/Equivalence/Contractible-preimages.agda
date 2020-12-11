@@ -13,7 +13,7 @@ module Equivalence.Contractible-preimages
 
 open Derived-definitions-and-properties eq
 
-open import Prelude
+open import Prelude as P hiding (id)
 
 open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
@@ -24,9 +24,12 @@ open import Surjection eq using (_↠_)
 
 private
   variable
-    a b p q : Level
-    A B     : Type a
-    f g     : A → B
+    a b ℓ p q : Level
+    A B       : Type a
+    f g       : A → B
+
+------------------------------------------------------------------------
+-- Is-equivalence
 
 -- A function f is an equivalence if all preimages under f are
 -- contractible.
@@ -100,18 +103,18 @@ respects-extensional-equality f≡g f-eq = λ b →
 
 abstract
 
-  -- If Σ-map id f is an equivalence, then f is also an equivalence.
+  -- If Σ-map P.id f is an equivalence, then f is also an equivalence.
 
   drop-Σ-map-id :
     {A : Type a} {P : A → Type p} {Q : A → Type q}
     (f : ∀ {x} → P x → Q x) →
-    Is-equivalence {A = Σ A P} {B = Σ A Q} (Σ-map id f) →
+    Is-equivalence {A = Σ A P} {B = Σ A Q} (Σ-map P.id f) →
     ∀ x → Is-equivalence (f {x = x})
   drop-Σ-map-id {A = A} {P = P} {Q = Q} f eq x z =
     H-level.respects-surjection surj 0 (eq (x , z))
     where
     map-f : Σ A P → Σ A Q
-    map-f = Σ-map id f
+    map-f = Σ-map P.id f
 
     to-P : ∀ {x y} {p : ∃ Q} → (x , f y) ≡ p → Type _
     to-P {y = y} {p} _ = ∃ λ y′ → f y′ ≡ proj₂ p
@@ -235,3 +238,38 @@ abstract
      left-inverse-of eq (f⁻¹ (f (f⁻¹ x)))                   ∎)
     where
     f⁻¹ = inverse eq
+
+------------------------------------------------------------------------
+-- _≃_
+
+-- A notion of equivalence.
+
+infix 4 _≃_
+
+_≃_ : Type a → Type b → Type (a ⊔ b)
+A ≃ B = ∃ λ (f : A → B) → Is-equivalence f
+
+-- An identity equivalence.
+
+id : A ≃ A
+id = P.id , singleton-contractible
+
+-- Equalities can be converted to equivalences.
+
+≡⇒≃ : A ≡ B → A ≃ B
+≡⇒≃ = elim (λ {A B} _ → A ≃ B) (λ _ → id)
+
+-- If ≡⇒≃ is applied to reflexivity, then the result is equal to id.
+
+≡⇒≃-refl : ≡⇒≃ (refl A) ≡ id
+≡⇒≃-refl = elim-refl (λ {A B} _ → A ≃ B) (λ _ → id)
+
+-- Univalence for fixed types.
+
+Univalence′ : (A B : Type ℓ) → Type (lsuc ℓ)
+Univalence′ A B = Is-equivalence (≡⇒≃ {A = A} {B = B})
+
+-- Univalence.
+
+Univalence : ∀ ℓ → Type (lsuc ℓ)
+Univalence ℓ = {A B : Type ℓ} → Univalence′ A B

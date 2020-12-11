@@ -24,6 +24,7 @@ open import Equivalence eq as Eq hiding (id; _∘_; inverse)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq as H-level hiding (Proposition)
 open import H-level.Closure eq
+open import Logical-equivalence using (_⇔_)
 open import Preimage eq
 open import Prelude as P hiding (Type)
 open import Univalence-axiom eq
@@ -262,8 +263,9 @@ record Extension-with-resp (c : Code) : P.Type₂ where
     Iso ass I≅J x y ≃ Iso′ ass I≅J x y
   Iso≃Iso′ ass I≅J {x} {y} = record
     { to             = to
-    ; is-equivalence = λ y →
-        (from y , right-inverse-of y) , irrelevance y
+    ; is-equivalence =
+        _⇔_.from (Is-equivalence≃Is-equivalence-CP _) λ y →
+          (from y , right-inverse-of y) , irrelevance y
     }
     where
     -- This is the core of the definition. I could have defined

@@ -368,6 +368,11 @@ import Quotient.Higher-constructors-if-propositional
 
 import Erased.Level-1
 
+-- Equivalences with erased "proofs", defined in terms of partly
+-- erased contractible fibres.
+
+import Equivalence.Erased.Contractible-preimages
+
 -- Equivalences with erased "proofs".
 
 import Equivalence.Erased
@@ -397,6 +402,11 @@ import Erased.Cubical
 -- Cubical Agda.
 
 import Equivalence.Erased.Cubical
+
+-- Some theory of equivalences with erased "proofs", defined in terms
+-- of partly erased contractible fibres, developed using Cubical Agda.
+
+import Equivalence.Erased.Contractible-preimages.Cubical
 
 -- Very stable booleans.
 

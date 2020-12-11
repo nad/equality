@@ -289,7 +289,8 @@ private
 
   -- The lemma above is defined using _↔_ rather than _≃_ because the
   -- following equalities hold by definition when _↔_ is used, but (at
-  -- the time of writing) not when _≃_ is used.
+  -- the time of writing) the second one does not hold when _≃_ is
+  -- used.
 
   _ :
     {x : A} →

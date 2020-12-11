@@ -23,8 +23,8 @@ open import Injection equality-with-J using (Injective)
 
 private
   variable
-    a p : Level
-    A   : Type a
+    a b p : Level
+    A     : Type a
 
 ------------------------------------------------------------------------
 -- Code related to the module Erased
@@ -85,7 +85,11 @@ Injective-[] refl = refl
 -- [_]→ is an embedding.
 
 Is-embedding-[] : {@0 A : Type a} → Is-embedding ([_]→ {A = A})
-Is-embedding-[] _ _ refl = (refl , refl) , λ { (refl , refl) → refl }
+Is-embedding-[] _ _ =
+    (λ { refl → refl })
+  , (λ { refl → refl })
+  , (λ { refl → refl })
+  , (λ { refl → refl })
 
 -- If Erased A is a proposition, then A is a proposition.
 
@@ -143,11 +147,11 @@ Very-stable-≡-trivial =
   ((x : Erased A) → P x) ≃ ((@0 x : A) → P [ x ])
 Π-Erased≃Π0[] = record
   { to             = λ f x → f [ x ]
-  ; is-equivalence = λ f →
-      ( (λ ([ x ]) → f x)
-      , refl
-      )
-      , λ { (_ , refl) → refl }
+  ; is-equivalence =
+        (λ f ([ x ]) → f x)
+      , (λ _ → refl)
+      , (λ _ → refl)
+      , (λ _ → refl)
   }
 
 -- There is a bijection between (x : Erased A) → P (erased x) and
@@ -232,35 +236,15 @@ private
     ((x : Erased-no-η A) → P x) ≃ ((@0 x : A) → P [ x ])
   Π-Erased-no-η≃Π0[] {A = A} {P = P} ext = record
     { to             = λ f x → f [ x ]
-    ; is-equivalence = λ f →
-        ( Π0[]→Π-Erased-no-η _ f
-        , refl
-        )
-        , λ { (g , refl) → lemma g }
+    ; is-equivalence =
+          Π0[]→Π-Erased-no-η _
+        , (λ _ → refl)
+        , (λ f → ext (Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] f))
+        , (λ _ → uip _ _)
     }
     where
-    Σ-≡,≡→≡′ :
-      {@0 A : Type a} {@0 P : A → Type p} {p₁ p₂ : Σ A P} →
-      (p : proj₁ p₁ ≡ proj₁ p₂) →
-      subst P p (proj₂ p₁) ≡ proj₂ p₂ →
-      p₁ ≡ p₂
-    Σ-≡,≡→≡′ refl refl = refl
-
-    subst-lemma :
-      ({g} g′ : (x : Erased-no-η A) → P x)
-      (eq₁ : Π0[]→Π-Erased-no-η P (λ (@0 x) → g′ [ x ]) ≡ g)
-      (eq₂ : (λ (@0 x) → g′ [ x ]) ≡ (λ (@0 x) → g [ x ])) →
-      subst (λ f → (λ (@0 x) → f [ x ]) ≡ (λ (@0 x) → g [ x ]))
-            eq₁ eq₂ ≡
-      refl
-    subst-lemma _ refl refl = refl
-
-    lemma :
-      (g : (x : Erased-no-η A) → P x) →
-      (Π0[]→Π-Erased-no-η P (λ (@0 x) → g [ x ]) , refl) ≡ (g , refl)
-    lemma g = Σ-≡,≡→≡′ eq (subst-lemma g eq refl)
-      where
-      eq = ext (Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] g)
+    uip : {@0 B : Type b} {@0 x y : B} (@0 p q : x ≡ y) → p ≡ q
+    uip refl refl = refl
 
   -- There is a bijection between
   -- (x : Erased-no-η A) → P (erased-no-η x) and (@0 x : A) → P x

@@ -12,8 +12,11 @@ import Bijection
 open import Equality hiding (module Derived-definitions-and-properties)
 open import Equality.Instances-related
 import Equivalence
+import Equivalence.Contractible-preimages
+import Equivalence.Half-adjoint
 import Function-universe
 import H-level
+import H-level.Closure
 open import Logical-equivalence using (_⇔_)
 import Preimage
 open import Prelude
@@ -432,6 +435,7 @@ open Temporarily-local public
 -- Extensionality
 
 open Equivalence equality-with-J using (Is-equivalence)
+open H-level.Closure equality-with-J using (ext⁻¹)
 
 -- Extensionality.
 
@@ -444,14 +448,11 @@ apply-ext ext f≡g = λ i x → f≡g x i
 -- The function ⟨ext⟩ is an equivalence.
 
 ext-is-equivalence : Is-equivalence {A = ∀ x → f x ≡ g x} ⟨ext⟩
-ext-is-equivalence f≡g =
-    ( (λ x → cong (_$ x) f≡g)
-    , refl
-    )
-  , λ { (f≡g′ , ⟨ext⟩f≡g′≡f≡g) i →
-          (λ x → cong (_$ x) (sym ⟨ext⟩f≡g′≡f≡g i))
-        , (λ j → ⟨ext⟩f≡g′≡f≡g (max (- i) j))
-      }
+ext-is-equivalence =
+    ext⁻¹
+  , (λ _ → refl)
+  , (λ _ → refl)
+  , (λ _ → refl)
 
 private
 
@@ -521,95 +522,118 @@ private
 -- The code in this section is based on code by Anders Mörtberg from
 -- Agda's reference manual or the cubical library.
 
+open Function-universe equality-with-J hiding (id; _∘_)
 open Preimage equality-with-J using (_⁻¹_)
-open Univalence-axiom equality-with-J hiding (≃⇒≡; ≃⇒≡-id)
+open Univalence-axiom equality-with-J hiding (≃⇒≡)
 
 private
   open module Eq = Equivalence equality-with-J using (_≃_)
 
+  module CP = Equivalence.Contractible-preimages equality-with-J
+  module HA = Equivalence.Half-adjoint equality-with-J
+
 private
 
-  -- Simple conversion functions.
+  -- Conversions between CP._≃_ and Glue._≃_.
 
-  ≃⇒≃ : {B : Type b} → A ≃ B → A Glue.≃ B
-  ≃⇒≃ A≃B = _≃_.to A≃B
-          , record { equiv-proof = _≃_.is-equivalence A≃B }
+  ≃-CP⇒≃-Glue : {B : Type b} → A CP.≃ B → A Glue.≃ B
+  ≃-CP⇒≃-Glue = Σ-map id (λ eq → record { equiv-proof = eq })
 
-  ≃⇒≃⁻¹ : {B : Type b} → A Glue.≃ B → A ≃ B
-  ≃⇒≃⁻¹ (f , f-equiv) = record
-    { to             = f
-    ; is-equivalence = equiv-proof f-equiv
-    }
+  ≃-Glue⇒≃-CP : {B : Type b} → A Glue.≃ B → A CP.≃ B
+  ≃-Glue⇒≃-CP = Σ-map id Glue.isEquiv.equiv-proof
+
+  -- Equivalences can be converted to equalities (if the two types live
+  -- in the same universe).
+
+  ≃-CP⇒≡ : {A B : Type ℓ} → A CP.≃ B → A ≡ B
+  ≃-CP⇒≡ {A = A} {B = B} A≃B = λ i → primGlue B
+    (λ { (i = 0̲) → A
+       ; (i = 1̲) → B
+    })
+    (λ { (i = 0̲) → ≃-CP⇒≃-Glue A≃B
+       ; (i = 1̲) → ≃-CP⇒≃-Glue CP.id
+    })
+
+  -- If ≃-CP⇒≡ is applied to the identity equivalence, then the result
+  -- is equal to CP.id.
+
+  ≃-CP⇒≡-id : ≃-CP⇒≡ CP.id ≡ refl {x = A}
+  ≃-CP⇒≡-id {A = A} = λ i j → primGlue A
+    {φ = max i (max j (- j))}
+    (λ _ → A)
+    (λ _ → ≃-CP⇒≃-Glue CP.id)
+
+  -- ≃-CP⇒≡ is a left inverse of CP.≡⇒≃.
+
+  ≃-CP⇒≡∘≡⇒≃ :
+    {A B : Type ℓ} (A≡B : A ≡ B) →
+    ≃-CP⇒≡ (CP.≡⇒≃ A≡B) ≡ A≡B
+  ≃-CP⇒≡∘≡⇒≃ = elim
+    (λ A≡B → ≃-CP⇒≡ (CP.≡⇒≃ A≡B) ≡ A≡B)
+    (λ A →
+       ≃-CP⇒≡ (CP.≡⇒≃ refl)  ≡⟨ cong ≃-CP⇒≡ CP.≡⇒≃-refl ⟩
+       ≃-CP⇒≡ CP.id          ≡⟨ ≃-CP⇒≡-id ⟩∎
+       refl                  ∎)
+
+  -- ≃-CP⇒≡ is a right inverse of CP.≡⇒≃.
+
+  ≡⇒≃∘≃-CP⇒≡ :
+    {A B : Type ℓ} (A≃B : A CP.≃ B) →
+    CP.≡⇒≃ (≃-CP⇒≡ A≃B) ≡ A≃B
+  ≡⇒≃∘≃-CP⇒≡ {A = A} {B = B} A≃B =
+    Σ-≡,≡→≡
+      (proj₁ (CP.≡⇒≃ (≃-CP⇒≡ A≃B))                            ≡⟨⟩
+       proj₁ (transport (λ i → A CP.≃ ≃-CP⇒≡ A≃B i) 0̲ CP.id)  ≡⟨⟩
+       transport (λ i → A → ≃-CP⇒≡ A≃B i) 0̲ id                ≡⟨⟩
+       transport (λ _ → A → B) 0̲ (proj₁ A≃B)                  ≡⟨ cong (_$ proj₁ A≃B) $ transport-refl 0̲ ⟩∎
+       proj₁ A≃B                                              ∎)
+      (CP.propositional ext _ _ _)
+
+  -- Univalence for CP._≃_.
+
+  univ-CP : CP.Univalence ℓ
+  univ-CP =
+    Is-equivalence≃Is-equivalence-CP _ $
+    _≃_.is-equivalence $
+    Eq.↔→≃ _ ≃-CP⇒≡ ≡⇒≃∘≃-CP⇒≡ ≃-CP⇒≡∘≡⇒≃
+
+-- Univalence.
+
+univ : ∀ {ℓ} → Univalence ℓ
+univ {A = A} {B = B} = from , proofs
+  where
+  univ′ : Univalence′ A B
+  univ′ = _≃_.from (Univalence≃Univalence-CP ext) univ-CP
+
+  from : A ≃ B → A ≡ B
+  from = proj₁ univ′
+
+  abstract
+
+    proofs : HA.Proofs ≡⇒≃ from
+    proofs = proj₂ univ′
 
 -- Equivalences can be converted to equalities (if the two types live
 -- in the same universe).
 
 ≃⇒≡ : {A B : Type ℓ} → A ≃ B → A ≡ B
-≃⇒≡ {A = A} {B} A≃B = λ i → primGlue B
-  (λ { (i = 0̲) → A
-     ; (i = 1̲) → B
-  })
-  (λ { (i = 0̲) → ≃⇒≃ A≃B
-     ; (i = 1̲) → ≃⇒≃ Eq.id
-  })
-
--- If ≃⇒≡ is applied to the identity equivalence, then the result is
--- equal to reflexivity.
-
-≃⇒≡-id : ≃⇒≡ Eq.id ≡ refl {x = A}
-≃⇒≡-id {A = A} = λ i j → primGlue A
-  {φ = max i (max j (- j))}
-  (λ _ → A)
-  (λ _ → ≃⇒≃ Eq.id)
-
--- ≃⇒≡ is a left inverse of ≡⇒≃.
-
-≃⇒≡∘≡⇒≃ : {A B : Type ℓ} (A≡B : A ≡ B) →
-          ≃⇒≡ (≡⇒≃ A≡B) ≡ A≡B
-≃⇒≡∘≡⇒≃ = elim
-  (λ A≡B → ≃⇒≡ (≡⇒≃ A≡B) ≡ A≡B)
-  (λ A →
-     ≃⇒≡ (≡⇒≃ refl)  ≡⟨ cong ≃⇒≡ ≡⇒≃-refl ⟩
-     ≃⇒≡ Eq.id       ≡⟨ ≃⇒≡-id ⟩∎
-     refl            ∎)
-
--- ≃⇒≡ is a right inverse of ≡⇒≃.
-
-≡⇒≃∘≃⇒≡ : {A B : Type ℓ} (A≃B : A ≃ B) →
-          ≡⇒≃ (≃⇒≡ A≃B) ≡ A≃B
-≡⇒≃∘≃⇒≡ {A = A} {B} A≃B = Eq.lift-equality ext (
-  ≡⇒→ (≃⇒≡ A≃B)                                     ≡⟨⟩
-  _≃_.to (transport (λ i → A ≃ ≃⇒≡ A≃B i) 0̲ Eq.id)  ≡⟨⟩
-  transport (λ i → A → ≃⇒≡ A≃B i) 0̲ id              ≡⟨⟩
-  transport (λ _ → A → B) 0̲ (_≃_.to A≃B)            ≡⟨ cong (_$ _≃_.to A≃B) $ transport-refl 0̲ ⟩∎
-  _≃_.to A≃B                                        ∎)
-
--- Univalence.
-
-univ : ∀ {ℓ} → Univalence ℓ
-univ = _≃_.is-equivalence $ Eq.↔⇒≃ (record
-  { surjection = record
-    { logical-equivalence = record
-      { from = ≃⇒≡
-      }
-    ; right-inverse-of = ≡⇒≃∘≃⇒≡
-    }
-  ; left-inverse-of = ≃⇒≡∘≡⇒≃
-  })
+≃⇒≡ = _≃_.from Eq.⟨ _ , univ ⟩
 
 private
 
   -- The type primGlue A B f is equivalent to A.
 
-  primGlue≃ :
+  primGlue≃-CP :
     (φ : I)
     (B : Partial φ (Type ℓ))
     (f : PartialP φ (λ x → B x Glue.≃ A)) →
-    primGlue A B f ≃ A
-  primGlue≃ {A = A} φ B f = record
-    { to             = prim^unglue {φ = φ}
-    ; is-equivalence = λ x →
-          ( prim^glue (λ p → _≃_.from (f′ p) x) (hcomp (lemma₁ x) x)
+    primGlue A B f CP.≃ A
+  primGlue≃-CP {A = A} φ B f =
+      prim^unglue {φ = φ}
+    , λ x →
+          ( prim^glue
+              (λ p → CP.inverse (proj₂ (f-CP p)) x)
+              (hcomp (lemma₁ x) x)
           , (hcomp (lemma₁ x) x  ≡⟨ sym $ hfill (lemma₁ x) (inˢ x) ⟩∎
              x                   ∎)
           )
@@ -618,19 +642,22 @@ private
                         (hcomp (lemma₃ y i) x)
             , (hcomp (lemma₃ y i) x  ≡⟨ sym $ hfill (lemma₃ y i) (inˢ x) ⟩∎
                x                     ∎)
-    }
     where
-    f′ : PartialP φ (λ x → B x ≃ A)
-    f′ p = ≃⇒≃⁻¹ (f p)
+    f-CP : PartialP φ (λ x → B x CP.≃ A)
+    f-CP p = ≃-Glue⇒≃-CP (f p)
 
     lemma₁ : A → ∀ i → Partial φ A
     lemma₁ x i (φ = 1̲) = (
-      x                                  ≡⟨ sym (_≃_.right-inverse-of (f′ is-one) x) ⟩∎
-      _≃_.to (f′ _) (_≃_.from (f′ _) x)  ∎) i
+      x                                               ≡⟨ sym (CP.right-inverse-of (proj₂ (f-CP is-one)) x) ⟩∎
+      proj₁ (f-CP _) (CP.inverse (proj₂ (f-CP _)) x)  ∎) i
 
-    lemma₂ : ∀ {x} p (y : _≃_.to (f′ p) ⁻¹ x) →
-             (_≃_.from (f′ p) x , _≃_.right-inverse-of (f′ p) x) ≡ y
-    lemma₂ {x} p = _≃_.irrelevance (f′ p) x
+    lemma₂ :
+      ∀ {x} p (y : proj₁ (f-CP p) ⁻¹ x) →
+      ( CP.inverse (proj₂ (f-CP p)) x
+      , CP.right-inverse-of (proj₂ (f-CP p)) x
+      ) ≡
+      y
+    lemma₂ {x} p = CP.irrelevance (proj₂ (f-CP p)) x
 
     lemma₃ : ∀ {x} → prim^unglue {e = f} ⁻¹ x →
              ∀ i → I → Partial (max φ (max i (- i))) A
@@ -641,28 +668,33 @@ private
 -- An alternative formulation of univalence.
 
 other-univ : Other-univalence ℓ
-other-univ {ℓ = ℓ} {B = B} =
-    (B , Eq.id)
-  , λ { (A , A≃B) i →
+other-univ {ℓ = ℓ} {B = B} =                  $⟨ other-univ-CP ⟩
+  Contractible (∃ λ (A : Type ℓ) → A CP.≃ B)  ↝⟨ (H-level-cong _ 0 $
+                                                  ∃-cong λ _ → inverse $
+                                                  ≃≃≃-CP {k = equivalence} ext) ⦂ (_ → _) ⟩□
+  Contractible (∃ λ (A : Type ℓ) → A ≃ B)     □
+  where
+  other-univ-CP : Contractible (∃ λ (A : Type ℓ) → A CP.≃ B)
+  other-univ-CP =
+      (B , CP.id)
+    , λ (A , A≃B) i →
           let C : ∀ i → Partial (max i (- i)) (Type ℓ)
               C = λ { i (i = 0̲) → B
                     ; i (i = 1̲) → A
                     }
 
               f : ∀ i → PartialP (max i (- i)) (λ j → C i j Glue.≃ B)
-              f = λ { i (i = 0̲) → ≃⇒≃ Eq.id
-                    ; i (i = 1̲) → ≃⇒≃ A≃B
+              f = λ { i (i = 0̲) → ≃-CP⇒≃-Glue CP.id
+                    ; i (i = 1̲) → ≃-CP⇒≃-Glue A≃B
                     }
           in
-            primGlue  _ _ (f i)
-          , primGlue≃ _ _ (f i)
-      }
+            primGlue     _ _ (f i)
+          , primGlue≃-CP _ _ (f i)
 
 ------------------------------------------------------------------------
 -- Some properties
 
 open Bijection equality-with-J using (_↔_)
-open Function-universe equality-with-J hiding (id; _∘_)
 open H-level equality-with-J
 
 -- There is a dependent path from reflexivity for x to any dependent

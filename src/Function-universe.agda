@@ -15,7 +15,9 @@ open import Embedding eq as Emb using (Is-embedding; Embedding)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; module _≃_; Is-equivalence)
+import Equivalence.Contractible-preimages eq as CP
 open import Equivalence.Erased.Basics eq as EEq using (_≃ᴱ_)
+import Equivalence.Half-adjoint eq as HA
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
@@ -1715,6 +1717,30 @@ Is-equivalence-cong ext f≡g =
     (λ ext → Eq.propositional ext _)
     ext
 
+-- Is-equivalence is pointwise equivalent to CP.Is-equivalence
+-- (assuming extensionality).
+
+Is-equivalence≃Is-equivalence-CP :
+  ∀ {k a b} {A : Type a} {B : Type b} {f : A → B} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  Is-equivalence f ↝[ k ] CP.Is-equivalence f
+Is-equivalence≃Is-equivalence-CP =
+  generalise-ext?
+    HA.Is-equivalence⇔Is-equivalence-CP
+    HA.Is-equivalence↔Is-equivalence-CP
+
+-- Two notions of equivalence are pointwise equivalent (assuming
+-- extensionality).
+
+≃≃≃-CP :
+  ∀ {k a b} {A : Type a} {B : Type b} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  (A ≃ B) ↝[ k ] (A CP.≃ B)
+≃≃≃-CP {A = A} {B = B} ext =
+  A ≃ B                                    ↔⟨ Eq.≃-as-Σ ⟩
+  (∃ λ (f : A → B) → Is-equivalence f)     ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalence-CP ext) ⟩□
+  (∃ λ (f : A → B) → CP.Is-equivalence f)  □
+
 -- _≃_ is commutative (assuming extensionality).
 
 ≃-comm :
@@ -1823,23 +1849,19 @@ private
     A ≃ B → C ≃ D → (A → C) ≃ (B → D)
   →-cong-≃ ext A≃B C≃D = record
     { to             = to
-    ; is-equivalence = λ y →
-        ((from y , right-inverse-of y) , irrelevance y)
+    ; is-equivalence = from , proofs
     }
     where
-    A→B≃C→D =
+    A→C≃B→D =
       Eq.↔⇒≃ (→-cong-↔ ext (_≃_.bijection A≃B) (_≃_.bijection C≃D))
 
-    to   = _≃_.to   A→B≃C→D
-    from = _≃_.from A→B≃C→D
+    to   = _≃_.to   A→C≃B→D
+    from = _≃_.from A→C≃B→D
 
     abstract
-      right-inverse-of : ∀ x → to (from x) ≡ x
-      right-inverse-of = _≃_.right-inverse-of A→B≃C→D
 
-      irrelevance : ∀ y (p : to ⁻¹ y) →
-                    (from y , right-inverse-of y) ≡ p
-      irrelevance = _≃_.irrelevance A→B≃C→D
+      proofs : HA.Proofs to from
+      proofs = proj₂ (_≃_.is-equivalence A→C≃B→D)
 
   →-cong-≃ᴱ :
     ∀ {a b c d}

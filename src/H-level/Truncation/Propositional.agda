@@ -324,13 +324,11 @@ surjective×embedding≃equivalence {f = f} =
 -- proof is, by definition, simple.
 
 ∥∥×≃ : (∥ A ∥ × A) ≃ A
-∥∥×≃ =
-  ⟨ proj₂
-  , (λ a → propositional⇒inhabited⇒contractible
-             (mono₁ 0 $
-                Preimage.bijection⁻¹-contractible ∥∥×↔ a)
-             ((∣ a ∣ , a) , refl _))
-  ⟩
+∥∥×≃ = Eq.↔→≃
+  proj₂
+  (λ x → ∣ x ∣ , x)
+  refl
+  (λ _ → cong (_, _) (truncation-is-proposition _ _))
 
 _ : _≃_.right-inverse-of ∥∥×≃ x ≡ refl _
 _ = refl _
@@ -338,28 +336,15 @@ _ = refl _
 -- A variant of ∥∥×≃.
 
 Erased-∥∥×≃ : (Erased ∥ A ∥ × A) ≃ A
-Erased-∥∥×≃ =
-  ⟨ proj₂
-  , (λ a → propositional⇒inhabited⇒contractible
-             (mono₁ 0 $
-                Preimage.bijection⁻¹-contractible
-                  (record
-                     { surjection = record
-                       { logical-equivalence = record
-                         { from = λ a → EB.[ ∣ a ∣ ] , a
-                         }
-                       ; right-inverse-of = refl
-                       }
-                     ; left-inverse-of = λ (x , y) →
-                         cong₂ _,_
-                           (EB.[]-cong-axiomatisation.[]-cong
-                              (ES.Extensionality→[]-cong ext)
-                              EB.[ truncation-is-proposition _ _ ])
-                           (refl _)
-                     })
-                  a)
-             ((EB.[ ∣ a ∣ ] , a) , refl _))
-  ⟩
+Erased-∥∥×≃ = Eq.↔→≃
+  proj₂
+  (λ x → EB.[ ∣ x ∣ ] , x)
+  refl
+  (λ (_ , x) →
+     cong (_, x)
+       (EB.[]-cong-axiomatisation.[]-cong
+          (ES.Extensionality→[]-cong ext)
+          EB.[ truncation-is-proposition _ _ ]))
 
 _ : _≃_.right-inverse-of Erased-∥∥×≃ x ≡ refl _
 _ = refl _

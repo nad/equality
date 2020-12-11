@@ -23,6 +23,7 @@ open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq-J as Emb using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq-J
 open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
+import Equivalence.Contractible-preimages eq-J as CP
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
 open import H-level.Closure eq-J
@@ -881,6 +882,7 @@ module []-cong₂
                                                 inverse-ext? (λ ext → Erased-H-level↔H-level ext 0) ext) ⟩
     (∀ y → Erased (Contractible (f ⁻¹ y)))  ↔⟨ inverse Erased-Π↔Π ⟩
     Erased (∀ y → Contractible (f ⁻¹ y))    ↔⟨⟩
+    Erased (CP.Is-equivalence f)            ↝⟨ inverse-ext? (λ ext → Erased-cong? Is-equivalence≃Is-equivalence-CP ext) ext ⟩□
     Erased (Is-equivalence f)               □
 
   ----------------------------------------------------------------------
@@ -903,10 +905,12 @@ module []-cong₂
     Extensionality? k (a ⊔ b) (a ⊔ b) →
     Erased (Is-equivalence f) ↝[ k ] Is-equivalence (map f)
   Erased-Is-equivalence↔Is-equivalence {a = a} {k = k} {f = f} ext =
+    Erased (Is-equivalence f)                      ↝⟨ Erased-cong? Is-equivalence≃Is-equivalence-CP ext ⟩
     Erased (∀ x → Contractible (f ⁻¹ x))           ↔⟨ Erased-Π↔Π-Erased ⟩
     (∀ x → Erased (Contractible (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → Erased-H-level↔H-level ext 0) ⟩
-    (∀ x → Contractible (Erased (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 Erased-⁻¹) ⟩□
-    (∀ x → Contractible (map f ⁻¹ x))              □
+    (∀ x → Contractible (Erased (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 Erased-⁻¹) ⟩
+    (∀ x → Contractible (map f ⁻¹ x))              ↝⟨ inverse-ext? Is-equivalence≃Is-equivalence-CP ext ⟩□
+    Is-equivalence (map f)                         □
     where
     ext′ = lower-extensionality? k a lzero ext
 

@@ -17,6 +17,7 @@ open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq hiding (id; _∘_)
+import Equivalence.Half-adjoint eq as HA
 open import Excluded-middle eq
 open import H-level eq
 open import H-level.Closure eq
@@ -101,7 +102,7 @@ id {A = A} = record
   ; is-embedding = λ x y →
       Eq.respects-extensional-equality
         cong-id
-        (singleton-contractible {A = x ≡ y})
+        HA.id-equivalence
   }
 
 infixr 9 _∘_
@@ -112,9 +113,9 @@ f ∘ g = record
   ; is-embedding = λ _ _ →
       Eq.respects-extensional-equality
         (cong-∘ (to f) (to g))
-        (Two-out-of-three.f-g
-           (two-out-of-three _ _)
-           (is-embedding g _ _) (is-embedding f _ _))
+        (HA.composition-equivalence
+           (is-embedding f _ _)
+           (is-embedding g _ _))
   }
   where
   open Embedding
