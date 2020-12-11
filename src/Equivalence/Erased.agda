@@ -1387,7 +1387,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Variants of some lemmas proved above
 
   -- Is-equivalenceᴱ f is a proposition if the domain of f is Erased A
-  -- (assuming extensional equality).
+  -- (assuming extensionality).
 
   Is-equivalenceᴱ-propositional-for-Erased :
     Extensionality (a ⊔ b) (a ⊔ b) →
