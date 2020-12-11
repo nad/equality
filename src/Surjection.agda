@@ -196,6 +196,31 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
             (proj₂ p))                                              ≡⟨ subst-subst-sym B₂ _ _ ⟩∎
        proj₂ p ∎)
 
+-- Π A preserves surjections (assuming extensionality).
+
+∀-cong :
+  ∀ {a b₁ b₂} →
+  Extensionality a (b₁ ⊔ b₂) →
+  {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
+  (∀ x → B₁ x ↠ B₂ x) →
+  ((x : A) → B₁ x) ↠ ((x : A) → B₂ x)
+∀-cong {b₁ = b₁} ext B₁↠B₂ = record
+  { logical-equivalence = equiv
+  ; right-inverse-of    = right-inverse-of
+  }
+  where
+  equiv = record
+    { to   = (_↠_.to   ⊚ B₁↠B₂) _ ⊚_
+    ; from = (_↠_.from ⊚ B₁↠B₂) _ ⊚_
+    }
+
+  abstract
+    right-inverse-of : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
+    right-inverse-of = λ f →
+      apply-ext (lower-extensionality lzero b₁ ext) λ x →
+        _↠_.to (B₁↠B₂ x) (_↠_.from (B₁↠B₂ x) (f x))  ≡⟨ _↠_.right-inverse-of (B₁↠B₂ x) (f x) ⟩∎
+        f x                                          ∎
+
 -- A lemma relating surjections and equality.
 
 ↠-≡ : ∀ {a b} {A : Type a} {B : Type b} (A↠B : A ↠ B) {x y : B} →

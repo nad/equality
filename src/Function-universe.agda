@@ -1904,26 +1904,6 @@ private
     ; from = ∀-cong-→ (_⇔_.from ⊚ B₁⇔B₂)
     }
 
-  ∀-cong-surj :
-    ∀ {a b₁ b₂} →
-    Extensionality a (b₁ ⊔ b₂) →
-    {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
-    (∀ x → B₁ x ↠ B₂ x) →
-    ((x : A) → B₁ x) ↠ ((x : A) → B₂ x)
-  ∀-cong-surj {b₁ = b₁} ext B₁↠B₂ = record
-    { logical-equivalence = equiv
-    ; right-inverse-of    = right-inverse-of
-    }
-    where
-    equiv = ∀-cong-⇔ (_↠_.logical-equivalence ⊚ B₁↠B₂)
-
-    abstract
-      right-inverse-of : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
-      right-inverse-of = λ f →
-        apply-ext (lower-extensionality lzero b₁ ext) λ x →
-          _↠_.to (B₁↠B₂ x) (_↠_.from (B₁↠B₂ x) (f x))  ≡⟨ _↠_.right-inverse-of (B₁↠B₂ x) (f x) ⟩∎
-          f x                                          ∎
-
   ∀-cong-bij :
     ∀ {a b₁ b₂} →
     Extensionality a (b₁ ⊔ b₂) →
@@ -1935,7 +1915,7 @@ private
     ; left-inverse-of = left-inverse-of
     }
     where
-    surj = ∀-cong-surj ext (_↔_.surjection ⊚ B₁↔B₂)
+    surj = Surjection.∀-cong ext (_↔_.surjection ⊚ B₁↔B₂)
 
     abstract
       left-inverse-of : ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
@@ -2046,7 +2026,7 @@ private
 ∀-cong {logical-equivalence} = λ _ → ∀-cong-⇔
 ∀-cong {injection}           = ∀-cong-inj
 ∀-cong {embedding}           = ∀-cong-emb
-∀-cong {surjection}          = ∀-cong-surj
+∀-cong {surjection}          = Surjection.∀-cong
 ∀-cong {bijection}           = ∀-cong-bij
 ∀-cong {equivalence}         = ∀-cong-eq
 ∀-cong {equivalenceᴱ}        = ∀-cong-eqᴱ
