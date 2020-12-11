@@ -98,6 +98,10 @@ import Preimage
 
 import Equivalence.Contractible-preimages
 
+-- Half adjoint equivalences.
+
+import Equivalence.Half-adjoint
+
 -- Equivalences.
 
 import Equivalence
