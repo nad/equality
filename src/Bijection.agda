@@ -496,6 +496,53 @@ implicit-Π↔Π = record
   ; left-inverse-of = refl
   }
 
+-- Σ is associative.
+
+Σ-assoc : ∀ {a b c}
+            {A : Type a} {B : A → Type b} {C : (x : A) → B x → Type c} →
+          (Σ A λ x → Σ (B x) (C x)) ↔ Σ (Σ A B) (uncurry C)
+Σ-assoc = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ { (x , (y , z)) → (x , y) , z }
+      ; from = λ { ((x , y) , z) → x , (y , z) }
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
+-- Π and Σ commute (in a certain sense).
+
+ΠΣ-comm :
+  ∀ {a b c} {A : Type a} {B : A → Type b} {C : (x : A) → B x → Type c} →
+  (∀ x → ∃ λ (y : B x) → C x y)
+    ↔
+  (∃ λ (f : ∀ x → B x) → ∀ x → C x (f x))
+ΠΣ-comm = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ f → proj₁ ⊚ f , proj₂ ⊚ f
+      ; from = λ { (f , g) x → f x , g x }
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
+-- Equality is commutative.
+
+≡-comm :
+  ∀ {a} {A : Type a} {x y : A} →
+  x ≡ y ↔ y ≡ x
+≡-comm = record
+  { surjection = record
+    { logical-equivalence = record { to = sym }
+    ; right-inverse-of    = sym-sym
+    }
+  ; left-inverse-of = sym-sym
+  }
+
 -- Families of functions that satisfy a kind of involution property
 -- can be turned into bijections.
 

@@ -88,7 +88,6 @@ module _ {congruence⁺}
          (eq : ∀ {a p} → Equality-with-J a p congruence⁺)
          where
 
-  open Bijection eq hiding (id; _∘_; inverse; step-↔)
   open Derived-definitions-and-properties eq
   open Equivalence eq hiding (id; _∘_; inverse)
   open Function-universe eq hiding (_∘_) renaming (id to ⟨id⟩)

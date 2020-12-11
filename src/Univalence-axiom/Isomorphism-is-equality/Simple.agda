@@ -18,8 +18,7 @@ open import Equality
 module Univalence-axiom.Isomorphism-is-equality.Simple
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq
-  hiding (id; _∘_; inverse; step-↔; finally-↔)
+open import Bijection eq as B using (_↔_)
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decidable-UIP eq
@@ -183,7 +182,7 @@ module Class (Univ : Universe) where
 
       (((C , x) , p) ≡ ((D , y) , q))             ↝⟨ inverse $ ignore-propositional-component (proj₂ (P D y) ass) ⟩
 
-      ((C , x) ≡ (D , y))                         ↝⟨ inverse Σ-≡,≡↔≡ ⟩□
+      ((C , x) ≡ (D , y))                         ↝⟨ inverse B.Σ-≡,≡↔≡ ⟩□
 
       (∃ λ (eq : C ≡ D) → subst (El a) eq x ≡ y)  □
 
@@ -239,7 +238,7 @@ module Class (Univ : Universe) where
       ∀ c {X Y} → ↑ (# 2) (Isomorphic c X Y) ≡ (X ≡ Y)
     isomorphic≡≡ ass c {X} {Y} =
       ≃⇒≡ univ₂ $ ↔⇒≃ (
-        ↑ _ (Isomorphic c X Y)  ↝⟨ ↑↔ ⟩
+        ↑ _ (Isomorphic c X Y)  ↝⟨ B.↑↔ ⟩
         Isomorphic c X Y        ↝⟨ isomorphism-is-equality ass c X Y ⟩□
         (X ≡ Y)                 □)
       where open Assumptions ass
@@ -650,7 +649,7 @@ abstract
 
     (X ≡ Y)      ↔⟨ ≡≃≃ univ ⟩
 
-    (X ≃ Y)      ↝⟨ inverse ↑↔ ⟩□
+    (X ≃ Y)      ↝⟨ inverse B.↑↔ ⟩□
 
     ↑ _ (X ≃ Y)  □
 
@@ -688,7 +687,7 @@ abstract
 
   is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₁ x} {inj₁ y} eq =
 
-    (inj₁ (resp a eq x) ≡ inj₁ y)  ↝⟨ inverse ≡↔inj₁≡inj₁ ⟩
+    (inj₁ (resp a eq x) ≡ inj₁ y)  ↝⟨ inverse B.≡↔inj₁≡inj₁ ⟩
 
     (resp a eq x ≡ y)              ↝⟨ is-isomorphism-isomorphic ass a eq ⟩□
 
@@ -698,7 +697,7 @@ abstract
 
   is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₂ x} {inj₂ y} eq =
 
-    (inj₂ (resp b eq x) ≡ inj₂ y)  ↝⟨ inverse ≡↔inj₂≡inj₂ ⟩
+    (inj₂ (resp b eq x) ≡ inj₂ y)  ↝⟨ inverse B.≡↔inj₂≡inj₂ ⟩
 
     (resp b eq x ≡ y)              ↝⟨ is-isomorphism-isomorphic ass b eq ⟩□
 
@@ -708,13 +707,13 @@ abstract
 
   is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₁ x} {inj₂ y} eq =
 
-    (inj₁ _ ≡ inj₂ _)  ↝⟨ inverse $ ⊥↔uninhabited ⊎.inj₁≢inj₂ ⟩□
+    (inj₁ _ ≡ inj₂ _)  ↝⟨ inverse $ B.⊥↔uninhabited ⊎.inj₁≢inj₂ ⟩□
 
     ⊥                  □
 
   is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₂ x} {inj₁ y} eq =
 
-    (inj₂ _ ≡ inj₁ _)  ↝⟨ inverse $ ⊥↔uninhabited (⊎.inj₁≢inj₂ ∘ sym) ⟩□
+    (inj₂ _ ≡ inj₁ _)  ↝⟨ inverse $ B.⊥↔uninhabited (⊎.inj₁≢inj₂ ∘ sym) ⟩□
 
     ⊥                  □
 
@@ -1029,7 +1028,7 @@ Isomorphism′-poset-isomorphic-to-order-isomorphism ext
                                                                           ∀-intro ext λ _ _ → _) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    ∀ a c → ↑ _ ((a ≤₁ c) ≃ (to a ≤₂ to c)))                          ↝⟨ ∃-cong (λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ →
-                                                                          ↑↔) ⟩
+                                                                          B.↑↔) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    ∀ a c → (a ≤₁ c) ≃ (to a ≤₂ to c))                                ↝⟨ inverse $ ∃-cong (λ _ →
                                                                           ∀-cong ext λ _ → ∀-cong (lower-ext (# 0) _ ext) λ _ →

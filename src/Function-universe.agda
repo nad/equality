@@ -1041,19 +1041,7 @@ _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 
 -- Σ is associative.
 
-Σ-assoc : ∀ {a b c}
-            {A : Type a} {B : A → Type b} {C : (x : A) → B x → Type c} →
-          (Σ A λ x → Σ (B x) (C x)) ↔ Σ (Σ A B) (uncurry C)
-Σ-assoc = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { (x , (y , z)) → (x , y) , z }
-      ; from = λ { ((x , y) , z) → x , (y , z) }
-      }
-    ; right-inverse-of = refl
-    }
-  ; left-inverse-of = refl
-  }
+open Bijection public using (Σ-assoc)
 
 -- _×_ is associative.
 
@@ -2698,21 +2686,7 @@ inhabited→proposition↔ ext B-prop x = record
 
 -- Π and Σ commute (in a certain sense).
 
-ΠΣ-comm :
-  ∀ {a b c} {A : Type a} {B : A → Type b} {C : (x : A) → B x → Type c} →
-  (∀ x → ∃ λ (y : B x) → C x y)
-    ↔
-  (∃ λ (f : ∀ x → B x) → ∀ x → C x (f x))
-ΠΣ-comm = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ f → proj₁ ⊚ f , proj₂ ⊚ f
-      ; from = λ { (f , g) x → f x , g x }
-      }
-    ; right-inverse-of = refl
-    }
-  ; left-inverse-of = refl
-  }
+open Bijection public using (ΠΣ-comm)
 
 -- The implicit variant of Π and Σ commute (in a certain sense).
 
@@ -3136,16 +3110,7 @@ private
 
 -- Equality is commutative.
 
-≡-comm :
-  ∀ {a} {A : Type a} {x y : A} →
-  x ≡ y ↔ y ≡ x
-≡-comm = record
-  { surjection = record
-    { logical-equivalence = record { to = sym }
-    ; right-inverse-of    = sym-sym
-    }
-  ; left-inverse-of = sym-sym
-  }
+open Bijection public using (≡-comm)
 
 -- The following two lemmas are based on Example 2.4.8 in the HoTT
 -- book.

@@ -24,7 +24,7 @@ open import Equality
 module Univalence-axiom.Isomorphism-is-equality.Simple.Variant
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq hiding (id; _∘_; inverse; step-↔; finally-↔)
+open import Bijection eq as B using (_↔_)
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq
@@ -203,7 +203,7 @@ module Class (Univ : Universe) where
     ((C₁ , x₁) , ((λ {_ _} → S₁) , p₁)) ≡
     ((C₂ , x₂) , ((λ {_ _} → S₂) , p₂))                                ↝⟨ inverse $ ignore-propositional-component prop ⟩
 
-    ((C₁ , x₁) ≡ (C₂ , x₂))                                            ↝⟨ inverse Σ-≡,≡↔≡ ⟩□
+    ((C₁ , x₁) ≡ (C₂ , x₂))                                            ↝⟨ inverse B.Σ-≡,≡↔≡ ⟩□
 
     (∃ λ (C-eq : C₁ ≡ C₂) → subst (El a) C-eq x₁ ≡ x₂)                 □
 
@@ -400,7 +400,7 @@ abstract
 
   isomorphism-definitions-isomorphic ass prop B↔C {P} {Q} =
 
-    ↑ _ (proj₁ P ⇔ proj₁ Q)  ↝⟨ ↑↔ ⟩
+    ↑ _ (proj₁ P ⇔ proj₁ Q)  ↝⟨ B.↑↔ ⟩
 
     (proj₁ P ⇔ proj₁ Q)      ↝⟨ ⇔↔≃ ext₀ (proj₂ P) (proj₂ Q) ⟩
 
@@ -441,7 +441,7 @@ abstract
 
     Is-isomorphism a B↔C x y                 ↝⟨ isomorphism-definitions-isomorphic ass a B↔C ⟩
 
-    (to (cast ext a B≃C) x ≡ y)              ↝⟨ ≡↔inj₁≡inj₁ ⟩□
+    (to (cast ext a B≃C) x ≡ y)              ↝⟨ B.≡↔inj₁≡inj₁ ⟩□
 
     (inj₁ (to (cast ext a B≃C) x) ≡ inj₁ y)  □
 
@@ -454,7 +454,7 @@ abstract
 
     Is-isomorphism b B↔C x y                 ↝⟨ isomorphism-definitions-isomorphic ass b B↔C ⟩
 
-    (to (cast ext b B≃C) x ≡ y)              ↝⟨ ≡↔inj₂≡inj₂ ⟩□
+    (to (cast ext b B≃C) x ≡ y)              ↝⟨ B.≡↔inj₂≡inj₂ ⟩□
 
     (inj₂ (to (cast ext b B≃C) x) ≡ inj₂ y)  □
 
@@ -464,13 +464,13 @@ abstract
 
   isomorphism-definitions-isomorphic ass (a ⊕ b) B↔C {inj₁ x} {inj₂ y} =
 
-    ⊥                  ↝⟨ ⊥↔uninhabited ⊎.inj₁≢inj₂ ⟩□
+    ⊥                  ↝⟨ B.⊥↔uninhabited ⊎.inj₁≢inj₂ ⟩□
 
     (inj₁ _ ≡ inj₂ _)  □
 
   isomorphism-definitions-isomorphic ass (a ⊕ b) B↔C {inj₂ x} {inj₁ y} =
 
-    ⊥                  ↝⟨ ⊥↔uninhabited (⊎.inj₁≢inj₂ ∘ sym) ⟩□
+    ⊥                  ↝⟨ B.⊥↔uninhabited (⊎.inj₁≢inj₂ ∘ sym) ⟩□
 
     (inj₂ _ ≡ inj₁ _)  □
 
