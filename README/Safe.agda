@@ -605,6 +605,14 @@ import Container.Tree-sort.Example
 
 import Container.Stream
 
+-- Indexed containers.
+
+import Container.Indexed
+
+-- M-types for indexed containers, defined using functions.
+
+import Container.Indexed.M.Function
+
 -- Record types with manifest fields and "with".
 
 import Records-with-with
