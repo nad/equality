@@ -313,6 +313,11 @@ import Squash
 
 import TC-monad
 
+-- Tactics for proving instances of Σ-cong (and Surjection.Σ-cong)
+-- with "better" computational behaviour.
+
+import Tactic.Sigma-cong
+
 -- Code used to construct tactics aimed at making equational reasoning
 -- proofs more readable.
 
