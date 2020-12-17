@@ -33,12 +33,12 @@ open import Univalence-axiom eq
 
 private
   variable
-    a ℓ o p s : Level
-    A I O     : Type a
-    ext i k x : A
-    Q         : A → Type p
-    C         : Container I s p
-    n         : ℕ
+    a ℓ o p s             : Level
+    A I O                 : Type a
+    b ext ext₁ ext₂ i k x : A
+    Q                     : A → Type p
+    C                     : Container I s p
+    n                     : ℕ
 
 ------------------------------------------------------------------------
 -- Chains
@@ -550,22 +550,22 @@ in-M≡ {i = i} {p = p} {s = sℓ} ⊠ ext {C = C} x@(s , f) =
          (≡⇒→
             (cong (_≡ λ i p → proj₁ (f i p) n) $ sym $
              subst-refl _ _)
-            (ext₁ λ i → ext₂ λ p → proj₂ (f i p) n)))
-  )                                                                ≡⟨ cong (ℕ-case _ (λ n → map C (λ _ m → proj₁ m n) _ x) ,_) $
-                                                                      cong (ℕ-case (refl _)) $
-                                                                      apply-ext (lower-extensionality _ lzero ext) lemma ⟩∎
+            (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n)))
+  )                                                                  ≡⟨ cong (ℕ-case _ (λ n → map C (λ _ m → proj₁ m n) _ x) ,_) $
+                                                                        cong (ℕ-case (refl _)) $
+                                                                        apply-ext (lower-extensionality _ lzero ext) lemma ⟩∎
   ( ℕ-case _ (λ n → map C (λ _ m → proj₁ m n) _ x)
   , ℕ-case (refl _)
-      (λ n → cong (s ,_) $ ext₁ λ i → ext₂ λ p → proj₂ (f i p) n)
-  )                                                                ∎
+      (λ n → cong (s ,_) $ ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n)
+  )                                                                  ∎
   where
-  ext₁ =
+  ext₁′ =
     apply-ext $
     Eq.good-ext $
     lower-extensionality (i ⊔ p) (i ⊔ p) $
     lower-extensionality lzero sℓ ext
 
-  ext₂ =
+  ext₂′ =
     apply-ext $
     Eq.good-ext $
     lower-extensionality (i ⊔ p) (i ⊔ p) $
@@ -577,35 +577,35 @@ in-M≡ {i = i} {p = p} {s = sℓ} ⊠ ext {C = C} x@(s , f) =
       (≡⇒→
          (cong (_≡ λ i p → proj₁ (f i p) n) $ sym $
           subst-refl _ _)
-         (ext₁ λ i → ext₂ λ p → proj₂ (f i p) n))       ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
+         (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n))     ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
 
     cong (_ ,_)
          (trans (sym $ subst-refl _ _) $
           ≡⇒→
             (cong (_≡ λ i p → proj₁ (f i p) n) $ sym $
              subst-refl _ _)
-            (ext₁ λ i → ext₂ λ p → proj₂ (f i p) n))    ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $ sym $
+            (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n))  ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $ sym $
                                                            subst-id-in-terms-of-≡⇒↝ equivalence ⟩
     cong (_ ,_)
          (trans (sym $ subst-refl _ _) $
           subst id
             (cong (_≡ λ i p → proj₁ (f i p) n) $ sym $
              subst-refl _ _)
-            (ext₁ λ i → ext₂ λ p → proj₂ (f i p) n))    ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $ sym $
+            (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n))  ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $ sym $
                                                            subst-∘ _ _ _ ⟩
     cong (_ ,_)
          (trans (sym $ subst-refl _ _) $
           subst (_≡ λ i p → proj₁ (f i p) n)
             (sym $ subst-refl _ _)
-            (ext₁ λ i → ext₂ λ p → proj₂ (f i p) n))    ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $
+            (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n))  ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $
                                                            subst-trans _ ⟩
     cong (_ ,_)
          (trans (sym $ subst-refl _ _) $
           trans (subst-refl _ _)
-            (ext₁ λ i → ext₂ λ p → proj₂ (f i p) n))    ≡⟨ cong (cong (_ ,_)) $
+            (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n))  ≡⟨ cong (cong (_ ,_)) $
                                                            trans-sym-[trans] _ _ ⟩∎
     cong (_ ,_)
-         (ext₁ λ i → ext₂ λ p → proj₂ (f i p) n)        ∎
+         (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n)      ∎
 
 -- A coalgebra defined using M and out-M.
 
@@ -616,97 +616,48 @@ M-coalgebra :
   (C : Container I s p) → Coalgebra C
 M-coalgebra b ext C = M C , out-M b ext
 
--- M-coalgebra b ext C is a final coalgebra (assuming extensionality).
+-- Definitions used to implement unfold.
 
-M-final :
-  (b : Block "M-fixpoint")
-  {I : Type i} {C : Container I s p} →
-  (ext : Extensionality (i ⊔ p) (i ⊔ s ⊔ p)) →
-  Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
-  Final (M-coalgebra b ext C)
-M-final {i = i} {s = s} {p = p} b {C = C} ext ext′ Y@(P , f) =
-  _↔_.from (contractible↔≃⊤ ext′)
-    (Y ⇨ M-coalgebra b ext C                                             ↔⟨⟩
-
-     (∃ λ (h : P ⇾ M C) → out-M b ext ∘⇾ h ≡ step h)                     ↝⟨ (∃-cong λ _ → inverse $
-                                                                             Eq.≃-≡ $ ∀-cong ext-i λ _ → ∀-cong ext′ λ _ →
-                                                                             M-fixpoint b ext) ⟩
-     (∃ λ (h : P ⇾ M C) →
-        (in-M b ext ∘⇾ out-M b ext) ∘⇾ h ≡ in-M b ext ∘⇾ step h)         ↝⟨ (∃-cong λ h → ≡⇒↝ _ $ cong (_≡ in-M b ext ∘⇾ step h) $
-                                                                             apply-ext ext-i λ _ → apply-ext ext′ λ _ →
-                                                                             _≃_.right-inverse-of (M-fixpoint b ext) _) ⟩
-
-     (∃ λ (h : P ⇾ M C) → h ≡ in-M b ext ∘⇾ step h)                      ↝⟨ (inverse $
-                                                                             Σ-cong (inverse $ universal-property-≃ ext′ (M-chain C)) λ _ →
-                                                                             F.id) ⟩
-     (∃ λ (c : Cone P (M-chain C)) →
-        univ c ≡ in-M b ext ∘⇾ step (univ c))                            ↝⟨ (∃-cong λ c → ≡⇒↝ _ $ cong (univ c ≡_) $ ≡univ-steps c) ⟩
-
-     (∃ λ (c : Cone P (M-chain C)) → univ c ≡ univ (steps c))            ↝⟨ (∃-cong λ _ →
-                                                                             Eq.≃-≡ $ inverse $ universal-property-≃ ext′ (M-chain C)) ⟩
-
-     (∃ λ (c : Cone P (M-chain C)) → c ≡ steps c)                        ↔⟨ (∃-cong λ _ → inverse
-                                                                             Bijection.Σ-≡,≡↔≡) ⟩
-     (∃ λ ((g , p) : Cone P (M-chain C)) →
-      ∃ λ (q : g ≡ steps₁ g) → subst Eq q p ≡ steps₂ p)                  ↔⟨ Σ-assoc F.∘
-                                                                            (∃-cong λ _ → ∃-comm) F.∘
-                                                                            inverse Σ-assoc ⟩
-     (∃ λ ((g , q) : ∃ λ (g : ∀ n → P ⇾ Up-to C n) → g ≡ steps₁ g) →
-      ∃ λ (p : Eq g) → subst Eq q p ≡ steps₂ p)                          ↝⟨ (Σ-cong-contra (inverse $ ∃-cong λ _ →
-                                                                                            steps₁-fixpoint≃) λ _ →
-                                                                             F.id) ⟩
-     (∃ λ ((g , q) : ∃ λ (g : ∀ n → P ⇾ Up-to C n) →
-                       ∀ n → g (suc n) ≡ step (g n)) →
-      ∃ λ (p : Eq g) →
-        subst Eq (_≃_.from steps₁-fixpoint≃ q) p ≡ steps₂ p)             ↝⟨ (inverse $
-                                                                             Σ-cong (inverse $
-                                                                                     cochain-limit {k = equivalence} ext₀ cochain₁) λ _ →
-                                                                             F.id) ⟩
-     (∃ λ (g : P ⇾ Up-to C 0) →
-      ∃ λ (p : Eq (cl₁← g)) →
-        subst Eq (_≃_.from steps₁-fixpoint≃ (λ _ → refl _)) p ≡
-        steps₂ p)                                                        ↔⟨ drop-⊤-left-Σ ⇾↔⊤ ⟩
-
-     (∃ λ (p : Eq (cl₁← g₀)) →
-        subst Eq (_≃_.from steps₁-fixpoint≃ (λ _ → refl _)) p ≡
-        steps₂ p)                                                        ↝⟨ (∃-cong λ _ → inverse $
-                                                                             Eq.extensionality-isomorphism ext₀) ⟩
-     (∃ λ (p : Eq (cl₁← g₀)) →
-        ∀ n → subst Eq (_≃_.from steps₁-fixpoint≃ (λ _ → refl _)) p n ≡
-              steps₂ p n)                                                ↝⟨ (∃-cong λ p → ∀-cong ext₀ λ n → ≡⇒↝ _ $ cong (_≡ steps₂ p n)
-                                                                             steps₁-fixpoint-lemma) ⟩
-     (∃ λ (p : Eq (cl₁← g₀)) →
-        ∀ n → trans (p n) (steps₁-fixpoint n) ≡ steps₂ p n)              ↝⟨ (∃-cong λ _ → ∀-cong ext₀ λ _ → ≡⇒↝ _ $
-                                                                             [trans≡]≡[≡trans-symʳ] _ _ _) ⟩
-     (∃ λ (p : Eq (cl₁← g₀)) →
-        ∀ n → p n ≡ trans (steps₂ p n) (sym (steps₁-fixpoint n)))        ↝⟨ (∃-cong λ _ →
-                                                                             Πℕ≃ ext₀) ⟩
-     (∃ λ (p : Eq (cl₁← g₀)) →
-        p zero ≡ trans (steps₂ p zero) (sym (steps₁-fixpoint zero)) ×
-        (∀ n → p (suc n) ≡
-               trans (steps₂ p (suc n))
-                 (sym (steps₁-fixpoint (suc n)))))                       ↔⟨ (∃-cong λ _ → drop-⊤-left-× λ _ →
-                                                                             _⇔_.to contractible⇔↔⊤ $
-                                                                             H-level.⇒≡ 0 $ H-level.⇒≡ 0 contr) ⟩
-     (∃ λ (p : Eq (cl₁← g₀)) →
-        ∀ n → p (suc n) ≡
-              trans (steps₂ p (suc n)) (sym (steps₁-fixpoint (suc n))))  ↔⟨⟩
-
-     (∃ λ (p : Eq (cl₁← g₀)) →
-        ∀ n → p (suc n) ≡
-              trans (cong step (p n)) (sym (refl _)))                    ↝⟨ (∃-cong λ _ → ∀-cong ext₀ λ _ → ≡⇒↝ _ $ cong (_ ≡_) $
-                                                                             trans (cong (trans _) sym-refl) $
-                                                                             trans-reflʳ _) ⟩
-     (∃ λ (p : Eq (cl₁← g₀)) →
-        ∀ n → p (suc n) ≡ cong step (p n))                               ↝⟨ cochain-limit ext₀ cochain₂ ⟩
-
-     down {C = C} 0 ∘⇾ step (cl₁← g₀ 0) ≡ cl₁← g₀ 0                      ↔⟨ _⇔_.to contractible⇔↔⊤ $
-                                                                            H-level.⇒≡ 0 contr ⟩□
-     ⊤                                                                   □)
+private
+ module Unfold
+  ((P , f) : Coalgebra C)
   where
+  up : ∀ n → P ⇾ Up-to C n
+  up zero    = _
+  up (suc n) = map C (up n) ∘⇾ f
+
+  ok : ∀ n → down n ∘⇾ up (suc n) ≡ up n
+  ok zero    = refl _
+  ok (suc n) =
+    map C (down n ∘⇾ up (suc n)) ∘⇾ f  ≡⟨ cong (λ g → map C g ∘⇾ f) $ ok n ⟩∎
+    map C (up n) ∘⇾ f                  ∎
+
+-- A direct implementation of an unfold operation.
+
+unfold :
+  ((P , _) : Coalgebra C) →
+  P ⇾ M C
+unfold Y i p =
+    (λ n → up n i p)
+  , (λ n → cong (λ f → f i p) (ok n))
+  where
+  open Unfold Y
+
+-- Definitions used to implement M-final.
+
+private
+ module M-final
+  (b : Block "M-fixpoint")
+  {I : Type i} {C : Container I s p}
+  (ext : Extensionality (i ⊔ p) (i ⊔ s ⊔ p))
+  (ext′ : Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p))
+  (Y@(P , f) : Coalgebra C)
+  where
+
   step : P ⇾ Q → P ⇾ ⟦ C ⟧ Q
   step h = map C h ∘⇾ f
 
+  univ : Cone P (M-chain C) → P ⇾ M C
   univ = _≃_.from (universal-property-≃ ext′ (M-chain C))
 
   steps₁ : (∀ n → P ⇾ Up-to C n) → (∀ n → P ⇾ Up-to C n)
@@ -736,70 +687,75 @@ M-final {i = i} {s = s} {p = p} b {C = C} ext ext′ Y@(P , f) =
   ext₀ : Extensionality lzero (i ⊔ s ⊔ p)
   ext₀ = lower-extensionality _ lzero ext
 
+  ext₀′ :
+    {A : Type} {P : A → Type (i ⊔ s ⊔ p)} →
+    Extensionality′ A P
+  ext₀′ = apply-ext (Eq.good-ext ext₀)
+
   ≡univ-steps : ∀ c → in-M b ext ∘⇾ step (univ c) ≡ univ (steps c)
   ≡univ-steps c@(g , eq) = apply-ext ext-i λ i → apply-ext ext′ λ p →
-    in-M b ext i (step (univ c) i p)                                 ≡⟨ in-M≡ b ext (step (univ c) i p) ⟩
+    in-M b ext i (step (univ c) i p)                                  ≡⟨ in-M≡ b ext (step (univ c) i p) ⟩
 
     ( (λ n → steps₁ g n i p)
     , ℕ-case (refl _)
         (λ n →
            cong (proj₁ (f i p) ,_)
-             (ext₁ λ i′ → ext₂ λ p′ →
+             (ext₁″ λ i′ → ext₂″ λ p′ →
               ext⁻¹ (ext⁻¹ (eq n) i′) (proj₂ (f i p) i′ p′)))
-    )                                                                ≡⟨ cong ((λ n → steps₁ g n i p) ,_) $
-                                                                        apply-ext ext₀ $ ℕ-case
-                                                                          (
-        refl _                                                             ≡⟨ sym $ ext⁻¹-refl _ {x = p} ⟩
-        ext⁻¹ (refl _) p                                                   ≡⟨ cong (flip ext⁻¹ p) $ sym $ ext⁻¹-refl _ ⟩
-        ext⁻¹ (ext⁻¹ {B = λ x → P x → ↑ _ ⊤} (refl _) i) p                 ≡⟨⟩
-        ext⁻¹ (ext⁻¹ (steps₂ eq zero) i) p                                 ∎)
-                                                                          (λ n →
+    )                                                                 ≡⟨ cong ((λ n → steps₁ g n i p) ,_) $
+                                                                         ext₀′ $ ℕ-case
+                                                                           (
+        refl _                                                              ≡⟨ sym $ ext⁻¹-refl _ {x = p} ⟩
+        ext⁻¹ (refl _) p                                                    ≡⟨ cong (flip ext⁻¹ p) $ sym $ ext⁻¹-refl _ ⟩
+        ext⁻¹ (ext⁻¹ {B = λ x → P x → ↑ _ ⊤} (refl _) i) p                  ≡⟨⟩
+        ext⁻¹ (ext⁻¹ (steps₂ eq zero) i) p                                  ∎)
+                                                                           (λ n →
         cong (proj₁ (f i p) ,_)
-          (ext₁ λ i′ → ext₂ λ p′ →
-           ext⁻¹ (ext⁻¹ (eq n) i′) (proj₂ (f i p) i′ p′))                    ≡⟨ elim₁
-                                                                                  (λ eq →
-                                                                                     cong (proj₁ (f i p) ,_)
-                                                                                       (ext₁ λ i′ → ext₂ λ p′ →
-                                                                                        ext⁻¹ (ext⁻¹ eq i′) (proj₂ (f i p) i′ p′)) ≡
-                                                                                     ext⁻¹ (ext⁻¹ (cong (λ g → map C g ∘⇾ f) eq) i) p)
-                                                                                  (
+          (ext₁″ λ i′ → ext₂″ λ p′ →
+           ext⁻¹ (ext⁻¹ (eq n) i′) (proj₂ (f i p) i′ p′))                     ≡⟨ elim₁
+                                                                                   (λ eq →
+                                                                                      cong (proj₁ (f i p) ,_)
+                                                                                        (ext₁″ λ i′ → ext₂″ λ p′ →
+                                                                                         ext⁻¹ (ext⁻¹ eq i′) (proj₂ (f i p) i′ p′)) ≡
+                                                                                      ext⁻¹ (ext⁻¹ (cong (λ g → map C g ∘⇾ f) eq) i) p)
+                                                                                   (
             cong (proj₁ (f i p) ,_)
-              (ext₁ λ i′ → ext₂ λ p′ →
-               ext⁻¹ (ext⁻¹ (refl (g n)) i′) (proj₂ (f i p) i′ p′))                ≡⟨ (cong (cong _) $
-                                                                                       cong ext₁ $ ext₁ λ _ →
-                                                                                       cong ext₂ $ ext₂ λ _ →
+              (ext₁″ λ i′ → ext₂″ λ p′ →
+               ext⁻¹ (ext⁻¹ (refl (g n)) i′) (proj₂ (f i p) i′ p′))                 ≡⟨ (cong (cong _) $
+                                                                                        cong ext₁″ $ ext₁″ λ _ →
+                                                                                        cong ext₂″ $ ext₂″ λ _ →
+                                                                                        trans (cong (flip ext⁻¹ _) $
+                                                                                               ext⁻¹-refl _) $
+                                                                                        ext⁻¹-refl _) ⟩
+
+            cong (proj₁ (f i p) ,_) (ext₁″ λ _ → ext₂″ λ _ → refl _)                ≡⟨ trans (cong (cong _) $
+                                                                                              trans (cong ext₁″ $ ext₁″ λ _ →
+                                                                                                     Eq.good-ext-refl ext₂′ _) $
+                                                                                              Eq.good-ext-refl ext₁′ _) $
+                                                                                       cong-refl _ ⟩
+
+            refl _                                                                  ≡⟨ sym $
                                                                                        trans (cong (flip ext⁻¹ _) $
+                                                                                              trans (cong (flip ext⁻¹ _) $
+                                                                                                     cong-refl _) $
                                                                                               ext⁻¹-refl _) $
-                                                                                       ext⁻¹-refl _) ⟩
-
-            cong (proj₁ (f i p) ,_) (ext₁ λ _ → ext₂ λ _ → refl _)                 ≡⟨ trans (cong (cong _) $
-                                                                                             trans (cong ext₁ $ ext₁ λ _ →
-                                                                                                    Eq.good-ext-refl ext₂′ _) $
-                                                                                             Eq.good-ext-refl ext₁′ _) $
-                                                                                      cong-refl _ ⟩
-
-            refl _                                                                 ≡⟨ sym $
-                                                                                      trans (cong (flip ext⁻¹ _) $
-                                                                                             trans (cong (flip ext⁻¹ _) $
-                                                                                                    cong-refl _) $
-                                                                                             ext⁻¹-refl _) $
-                                                                                      ext⁻¹-refl _ ⟩∎
-            ext⁻¹ (ext⁻¹ (cong step (refl (g n))) i) p                             ∎)
-                                                                                  (eq n) ⟩
-        ext⁻¹ (ext⁻¹ (cong step (eq n)) i) p                                 ∎) ⟩
+                                                                                       ext⁻¹-refl _ ⟩∎
+            ext⁻¹ (ext⁻¹ (cong step (refl (g n))) i) p                              ∎)
+                                                                                   (eq n) ⟩
+        ext⁻¹ (ext⁻¹ (cong step (eq n)) i) p                                  ∎) ⟩
 
     ( (λ n → steps₁ g n i p)
     , (λ n → ext⁻¹ (ext⁻¹ (steps₂ eq n) i) p)
-    )                                                                ≡⟨⟩
+    )                                                                 ≡⟨⟩
 
-    univ (steps c) i p                                               ∎
+    univ (steps c) i p                                                ∎
     where
-    ext₁′ = lower-extensionality (i ⊔ p) (i ⊔ p) $
-            lower-extensionality lzero s ext
-    ext₂′ = lower-extensionality (i ⊔ p) (i ⊔ p) $
-            lower-extensionality lzero s ext
-    ext₁  = apply-ext (Eq.good-ext ext₁′)
-    ext₂  = apply-ext (Eq.good-ext ext₂′)
+    ext₁′  = lower-extensionality (i ⊔ p) (i ⊔ p) $
+             lower-extensionality lzero s ext
+    ext₂′  = lower-extensionality (i ⊔ p) (i ⊔ p) $
+             lower-extensionality lzero s ext
+    ext₁″  = apply-ext (Eq.good-ext ext₁′)
+    ext₂″  = apply-ext (Eq.good-ext ext₂′)
 
   contr : Contractible (P ⇾ Up-to C 0)
   contr =
@@ -827,6 +783,7 @@ M-final {i = i} {s = s} {p = p} b {C = C} ext ext′ Y@(P , f) =
   cochain₁ = (λ n → P ⇾ Up-to C n)
            , (λ _ → step)
 
+  cl₁← : P ⇾ Up-to C 0 → ∀ n → P ⇾ Up-to C n
   cl₁← = proj₁ ∘ _↠_.from (cochain-limit-↠ cochain₁)
 
   ⇾↔⊤ : (P ⇾ Up-to C 0) ↔ ⊤
@@ -870,12 +827,271 @@ M-final {i = i} {s = s} {p = p} b {C = C} ext ext′ Y@(P , f) =
                                                                          sym-refl) $
                                                                   trans-reflˡ _ ⟩∎
     trans (p n) (steps₁-fixpoint n)                            ∎
-    where
-    ext₀′ = apply-ext (Eq.good-ext ext₀)
 
   cochain₂ : Cochain (i ⊔ s ⊔ p)
   cochain₂ = (λ n → down n ∘⇾ step (cl₁← g₀ n) ≡ cl₁← g₀ n)
            , (λ _ → cong step)
+
+  equiv : Block "equiv" → (Y ⇨ M-coalgebra b ext C) ≃ ⊤
+  equiv ⊠ =
+    Y ⇨ M-coalgebra b ext C                                             ↔⟨⟩
+
+    (∃ λ (h : P ⇾ M C) → out-M b ext ∘⇾ h ≡ step h)                     ↝⟨ (∃-cong λ _ → inverse $
+                                                                            Eq.≃-≡ $ ∀-cong ext-i λ _ → ∀-cong ext′ λ _ →
+                                                                            M-fixpoint b ext) ⟩
+    (∃ λ (h : P ⇾ M C) →
+       (in-M b ext ∘⇾ out-M b ext) ∘⇾ h ≡ in-M b ext ∘⇾ step h)         ↝⟨ (∃-cong λ h → ≡⇒↝ _ $ cong (_≡ in-M b ext ∘⇾ step h) $
+                                                                            apply-ext ext-i λ _ → apply-ext ext′ λ _ →
+                                                                            _≃_.right-inverse-of (M-fixpoint b ext) _) ⟩
+
+    (∃ λ (h : P ⇾ M C) → h ≡ in-M b ext ∘⇾ step h)                      ↝⟨ (inverse $
+                                                                            Σ-cong (inverse $ universal-property-≃ ext′ (M-chain C)) λ _ →
+                                                                            F.id) ⟩
+    (∃ λ (c : Cone P (M-chain C)) →
+       univ c ≡ in-M b ext ∘⇾ step (univ c))                            ↝⟨ (∃-cong λ c → ≡⇒↝ _ $ cong (univ c ≡_) $ ≡univ-steps c) ⟩
+
+    (∃ λ (c : Cone P (M-chain C)) → univ c ≡ univ (steps c))            ↝⟨ (∃-cong λ _ →
+                                                                            Eq.≃-≡ $ inverse $ universal-property-≃ ext′ (M-chain C)) ⟩
+
+    (∃ λ (c : Cone P (M-chain C)) → c ≡ steps c)                        ↔⟨ (∃-cong λ _ → inverse
+                                                                            Bijection.Σ-≡,≡↔≡) ⟩
+    (∃ λ ((g , p) : Cone P (M-chain C)) →
+     ∃ λ (q : g ≡ steps₁ g) → subst Eq q p ≡ steps₂ p)                  ↔⟨ Σ-assoc F.∘
+                                                                           (∃-cong λ _ → ∃-comm) F.∘
+                                                                           inverse Σ-assoc ⟩
+    (∃ λ ((g , q) : ∃ λ (g : ∀ n → P ⇾ Up-to C n) → g ≡ steps₁ g) →
+     ∃ λ (p : Eq g) → subst Eq q p ≡ steps₂ p)                          ↝⟨ (inverse $
+                                                                            Σ-cong (inverse $
+                                                                                    ∃-cong λ _ →
+                                                                                    steps₁-fixpoint≃) λ _ →
+                                                                            F.id) ⟩
+    (∃ λ ((g , q) : ∃ λ (g : ∀ n → P ⇾ Up-to C n) →
+                      ∀ n → g (suc n) ≡ step (g n)) →
+     ∃ λ (p : Eq g) →
+       subst Eq (_≃_.from steps₁-fixpoint≃ q) p ≡ steps₂ p)             ↝⟨ (inverse $
+                                                                            Σ-cong (inverse $
+                                                                                    cochain-limit {k = equivalence} ext₀ cochain₁) λ _ →
+                                                                            F.id) ⟩
+    (∃ λ (g : P ⇾ Up-to C 0) →
+     ∃ λ (p : Eq (cl₁← g)) →
+       subst Eq (_≃_.from steps₁-fixpoint≃ (λ _ → refl _)) p ≡
+       steps₂ p)                                                        ↔⟨ drop-⊤-left-Σ ⇾↔⊤ ⟩
+
+    (∃ λ (p : Eq (cl₁← g₀)) →
+       subst Eq (_≃_.from steps₁-fixpoint≃ (λ _ → refl _)) p ≡
+       steps₂ p)                                                        ↝⟨ (∃-cong λ _ → inverse $
+                                                                            Eq.extensionality-isomorphism ext₀) ⟩
+    (∃ λ (p : Eq (cl₁← g₀)) →
+       ∀ n → subst Eq (_≃_.from steps₁-fixpoint≃ (λ _ → refl _)) p n ≡
+             steps₂ p n)                                                ↝⟨ (∃-cong λ p → ∀-cong ext₀ λ n → ≡⇒↝ _ $ cong (_≡ steps₂ p n)
+                                                                            steps₁-fixpoint-lemma) ⟩
+    (∃ λ (p : Eq (cl₁← g₀)) →
+       ∀ n → trans (p n) (steps₁-fixpoint n) ≡ steps₂ p n)              ↝⟨ (∃-cong λ _ → ∀-cong ext₀ λ _ → ≡⇒↝ _ $
+                                                                            [trans≡]≡[≡trans-symʳ] _ _ _) ⟩
+    (∃ λ (p : Eq (cl₁← g₀)) →
+       ∀ n → p n ≡ trans (steps₂ p n) (sym (steps₁-fixpoint n)))        ↝⟨ (∃-cong λ _ →
+                                                                            Πℕ≃ ext₀) ⟩
+    (∃ λ (p : Eq (cl₁← g₀)) →
+       p zero ≡ trans (steps₂ p zero) (sym (steps₁-fixpoint zero)) ×
+       (∀ n → p (suc n) ≡
+              trans (steps₂ p (suc n))
+                (sym (steps₁-fixpoint (suc n)))))                       ↔⟨ (∃-cong λ _ → drop-⊤-left-× λ _ →
+                                                                            _⇔_.to contractible⇔↔⊤ $
+                                                                            H-level.⇒≡ 0 $ H-level.⇒≡ 0 contr) ⟩
+    (∃ λ (p : Eq (cl₁← g₀)) →
+       ∀ n → p (suc n) ≡
+             trans (steps₂ p (suc n)) (sym (steps₁-fixpoint (suc n))))  ↔⟨⟩
+
+    (∃ λ (p : Eq (cl₁← g₀)) →
+       ∀ n → p (suc n) ≡
+             trans (cong step (p n)) (sym (refl _)))                    ↝⟨ (∃-cong λ _ → ∀-cong ext₀ λ _ → ≡⇒↝ _ $ cong (_ ≡_) $
+                                                                            trans (cong (trans _) sym-refl) $
+                                                                            trans-reflʳ _) ⟩
+    (∃ λ (p : Eq (cl₁← g₀)) →
+       ∀ n → p (suc n) ≡ cong step (p n))                               ↝⟨ cochain-limit ext₀ cochain₂ ⟩
+
+    down {C = C} 0 ∘⇾ step (cl₁← g₀ 0) ≡ cl₁← g₀ 0                      ↔⟨ _⇔_.to contractible⇔↔⊤ $
+                                                                           H-level.⇒≡ 0 contr ⟩□
+    ⊤                                                                   □
+
+  -- The definition of M-final is set up so that it returns unfold Y
+  -- rather than the function obtained directly from equiv. Here it is
+  -- shown that the two functions are equal.
+
+  ≡-unfold : ∀ b → proj₁ (_≃_.from (equiv b) _) ≡ unfold Y
+  ≡-unfold ⊠ =
+    apply-ext ext-i λ i → apply-ext ext′ λ p →
+    Σ-≡,≡→≡
+      (ext₀′ λ n → cong (λ f → f i p) (lemma₁ n))
+      (lemma₃ i p)
+    where
+
+    -- Pieces of the function obtained from equiv.
+    --
+    -- These pieces are rather similar to pieces of unfold. I chose to
+    -- implement unfold using explicit pattern matching rather than
+    -- ℕ-rec to ensure that things do not unfold too much.
+
+    up′ : ∀ n → P ⇾ Up-to C n
+    up′ = ℕ-rec _ (λ _ ih → map C ih ∘⇾ f)
+
+    ok′ : ∀ n → down n ∘⇾ up′ (suc n) ≡ up′ n
+    ok′ = ℕ-rec
+      (proj₁ (H-level.⇒≡ 0 contr))
+      (λ _ → cong step)
+
+    lemma₁ : ∀ n → up′ n ≡ Unfold.up Y n
+    lemma₁ zero    = refl _
+    lemma₁ (suc n) =
+      step (up′ n)          ≡⟨ cong step $ lemma₁ n ⟩∎
+      step (Unfold.up Y n)  ∎
+
+    lemma₂ :
+      ∀ n →
+      trans (sym (cong (down n ∘⇾_) (lemma₁ (suc n))))
+        (trans (ok′ n) (lemma₁ n)) ≡
+      Unfold.ok Y n
+    lemma₂ zero =
+      trans (sym (cong (const _) (cong step (refl _))))
+        (trans (proj₁ (H-level.⇒≡ 0 contr)) (refl _))    ≡⟨ trans (cong (flip trans _) $
+                                                                   trans (cong sym $ cong-const _) $
+                                                                   sym-refl) $
+                                                            trans (trans-reflˡ _) $
+                                                            trans-reflʳ _ ⟩
+
+      proj₁ (H-level.⇒≡ 0 contr)                         ≡⟨ H-level.mono (Nat.zero≤ 2) contr _ _ ⟩∎
+
+      refl _                                             ∎
+    lemma₂ (suc n) =
+      trans (sym (cong (down (1 + n) ∘⇾_) (lemma₁ (2 + n))))
+        (trans (ok′ (1 + n)) (lemma₁ (1 + n)))                           ≡⟨⟩
+
+      trans (sym (cong (map C (down n) ∘⇾_)
+                    (cong step (lemma₁ (suc n)))))
+        (trans (cong step (ok′ n)) (cong step (lemma₁ n)))               ≡⟨ cong (flip trans _) $ cong sym $
+                                                                            cong-∘ _ _ _ ⟩
+      trans (sym (cong ((map C (down n) ∘⇾_) ∘ step) (lemma₁ (suc n))))
+        (trans (cong step (ok′ n)) (cong step (lemma₁ n)))               ≡⟨⟩
+
+      trans (sym (cong (step ∘ (down n ∘⇾_)) (lemma₁ (suc n))))
+        (trans (cong step (ok′ n)) (cong step (lemma₁ n)))               ≡⟨ sym $
+                                                                            trans (cong-trans _ _ _) $
+                                                                            cong₂ trans
+                                                                              (trans (cong-sym _ _) $
+                                                                               cong sym $ cong-∘ _ _ _)
+                                                                              (cong-trans _ _ _) ⟩
+      cong step
+        (trans (sym (cong (down n ∘⇾_) (lemma₁ (suc n))))
+           (trans (ok′ n) (lemma₁ n)))                                   ≡⟨ cong (cong _) $ lemma₂ n ⟩
+
+      cong step (Unfold.ok Y n)                                          ≡⟨⟩
+
+      Unfold.ok Y (1 + n)                                                ∎
+
+    lemma₃ :
+      ∀ i p →
+      subst (λ f → ∀ n → down n i (f (suc n)) ≡ f n)
+        (ext₀′ λ n → cong (λ f → f i p) (lemma₁ n))
+        (cong (_$ p) ∘ cong (_$ i) ∘ ok′) ≡
+      (λ n → cong (λ f → f i p) (Unfold.ok Y n))
+    lemma₃ i p = ext₀′ λ n →
+      subst (λ f → ∀ n → down n i (f (suc n)) ≡ f n)
+        (ext₀′ λ n → cong (λ f → f i p) (lemma₁ n))
+        (cong (_$ p) ∘ cong (_$ i) ∘ ok′) n                            ≡⟨ sym $
+                                                                          push-subst-application _ _ ⟩
+      subst (λ f → down n i (f (suc n)) ≡ f n)
+        (ext₀′ λ n → cong (λ f → f i p) (lemma₁ n))
+        (cong (_$ p) (cong (_$ i) (ok′ n)))                            ≡⟨ cong (subst (λ f → down n i (f (suc n)) ≡ f n) _) $
+                                                                          cong-∘ _ _ _ ⟩
+      subst (λ f → down n i (f (suc n)) ≡ f n)
+        (ext₀′ λ n → cong (λ f → f i p) (lemma₁ n))
+        (cong (λ f → f i p) (ok′ n))                                   ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+      trans (sym (cong (λ f → down n i (f (suc n)))
+                    (ext₀′ λ n → cong (λ f → f i p) (lemma₁ n))))
+        (trans (cong (λ f → f i p) (ok′ n))
+           (cong (_$ n) (ext₀′ λ n → cong (λ f → f i p) (lemma₁ n))))  ≡⟨ cong₂ (λ eq₁ eq₂ →
+                                                                                   trans (sym eq₁) (trans (cong (λ f → f i p) (ok′ n)) eq₂))
+                                                                            (trans (sym $ cong-∘ _ _ _) $
+                                                                             cong (cong _) $
+                                                                             Eq.cong-good-ext ext₀ _)
+                                                                            (Eq.cong-good-ext ext₀ _) ⟩
+      trans (sym (cong (down n i)
+                    (cong (λ f → f i p) (lemma₁ (suc n)))))
+        (trans (cong (λ f → f i p) (ok′ n))
+           (cong (λ f → f i p) (lemma₁ n)))                            ≡⟨ cong (flip trans _) $ cong sym $
+                                                                          cong-∘ _ _ _ ⟩
+      trans (sym (cong (λ f → down n i (f i p)) (lemma₁ (suc n))))
+        (trans (cong (λ f → f i p) (ok′ n))
+           (cong (λ f → f i p) (lemma₁ n)))                            ≡⟨ sym $
+                                                                          trans (cong-trans _ _ _) $
+                                                                          cong₂ trans
+                                                                            (trans (cong-sym _ _) $
+                                                                             cong sym $
+                                                                             cong-∘ _ _ _)
+                                                                            (cong-trans _ _ _) ⟩
+      cong (λ f → f i p)
+        (trans (sym (cong (down n ∘⇾_) (lemma₁ (suc n))))
+           (trans (ok′ n) (lemma₁ n)))                                 ≡⟨ cong (cong _) $ lemma₂ n ⟩∎
+
+      cong (λ f → f i p) (Unfold.ok Y n)                               ∎
+
+  unfold-lemma :
+    Block "equiv" →
+    out-M b ext ∘⇾ unfold Y ≡ map _ (unfold Y) ∘⇾ f
+  unfold-lemma b′ =
+    subst
+       (λ h → out-M b ext ∘⇾ h ≡ map C h ∘⇾ f)
+       (≡-unfold b′)
+       (proj₂ (_≃_.from (equiv b′) _))
+
+  unfold-morphism :
+    Block "equiv" → Y ⇨ M-coalgebra b ext C
+  unfold-morphism b = unfold Y , unfold-lemma b
+
+  ≡-unfold-morphism : ∀ b → _≃_.from (equiv b) _ ≡ unfold-morphism b
+  ≡-unfold-morphism b =
+    Σ-≡,≡→≡ (≡-unfold b) (refl (unfold-lemma b))
+
+  M-final : Contractible (Y ⇨ M-coalgebra b ext C)
+  M-final =
+    block λ b →
+    _↔_.from (contractible↔≃⊤ ext′) $
+    Eq.with-other-inverse
+      (equiv b)
+      (λ _ → unfold-morphism b)
+      (λ _ → ≡-unfold-morphism b)
+
+  -- Note that unfold is not blocked, but that the other pieces are.
+
+  M-final-partly-blocked :
+    Block "M-final" →
+    Contractible (Y ⇨ M-coalgebra b ext C)
+  M-final-partly-blocked _ .proj₁ .proj₁ = unfold Y
+  M-final-partly-blocked ⊠ .proj₁ .proj₂ = M-final .proj₁ .proj₂
+  M-final-partly-blocked ⊠ .proj₂        = M-final .proj₂
+
+-- M-coalgebra b ext C is a final coalgebra (assuming extensionality).
+--
+-- This is a variant of Theorem 7 from "Non-wellfounded trees in
+-- Homotopy Type Theory".
+
+M-final :
+  (b : Block "M-final")
+  {I : Type i} {C : Container I s p} →
+  (ext : Extensionality (i ⊔ p) (i ⊔ s ⊔ p)) →
+  Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
+  Final (M-coalgebra b ext C)
+M-final b ext ext′ Y =
+  M-final.M-final-partly-blocked b ext ext′ Y b
+
+-- The morphism returned by M-final is definitionally equal to an
+-- instance of unfold.
+
+_ :
+  {Y : Coalgebra C} →
+  proj₁ (proj₁ (M-final b ext₁ ext₂ Y)) ≡ unfold Y
+_ = refl _
 
 ------------------------------------------------------------------------
 -- H-levels
