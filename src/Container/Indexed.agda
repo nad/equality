@@ -58,22 +58,24 @@ f ∘⇾ g = λ i → f i ∘ g i
 
 -- Doubly indexed containers.
 
-record Container₂ (I O : Type ℓ) : Type (lsuc ℓ) where
+record Container₂
+         (I : Type i) (O : Type o) s p :
+         Type (i ⊔ o ⊔ lsuc (s ⊔ p)) where
   constructor _◁_
   field
-    Shape    : O → Type ℓ
-    Position : Shape o → I → Type ℓ
+    Shape    : O → Type s
+    Position : ∀ {o} → Shape o → I → Type p
 
 open Container₂ public
 
 -- Singly indexed containers.
 
-Container : Type ℓ → Type (lsuc ℓ)
+Container : Type i → ∀ s p → Type (i ⊔ lsuc (s ⊔ p))
 Container I = Container₂ I I
 
 private
   variable
-    C : Container₂ I O
+    C : Container₂ I O s p
 
 ------------------------------------------------------------------------
 -- Polynomial functors
@@ -81,13 +83,13 @@ private
 -- The polynomial functor associated to a container.
 
 ⟦_⟧ :
-  {I O : Type ℓ} →
-  Container₂ I O → (I → Type a) → O → Type (ℓ ⊔ a)
+  {I : Type i} {O : Type o} →
+  Container₂ I O s p → (I → Type ℓ) → O → Type (ℓ ⊔ i ⊔ s ⊔ p)
 ⟦ S ◁ P ⟧ Q o = ∃ λ (s : S o) → P s ⇾ Q
 
 -- A map function.
 
-map : (C : Container₂ I O) → P ⇾ Q → ⟦ C ⟧ P ⇾ ⟦ C ⟧ Q
+map : (C : Container₂ I O s p) → P ⇾ Q → ⟦ C ⟧ P ⇾ ⟦ C ⟧ Q
 map C f _ (s , g) = s , f ∘⇾ g
 
 -- Functor laws.
@@ -104,12 +106,16 @@ map-∘ _ _ = refl _
 
 ⟦⟧-cong :
   {I : Type i} {P₁ : I → Type p₁} {P₂ : I → Type p₂} →
-  Extensionality? k i (i ⊔ p₁ ⊔ p₂) →
-  (C : Container₂ I O) →
+  Extensionality? k (i ⊔ p) (p ⊔ p₁ ⊔ p₂) →
+  (C : Container₂ I O s p) →
   (∀ i → P₁ i ↝[ k ] P₂ i) →
   (∀ o → ⟦ C ⟧ P₁ o ↝[ k ] ⟦ C ⟧ P₂ o)
-⟦⟧-cong {i = i} {k = k} {P₁ = Q₁} {P₂ = Q₂} ext (S ◁ P) Q₁↝Q₂ o =
-  (∃ λ (s : S o) → P s ⇾ Q₁)  ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → ∀-cong (lower-extensionality? k lzero i ext) λ _ → Q₁↝Q₂ _) ⟩□
+⟦⟧-cong {i = i} {k = k} {p = p} {P₁ = Q₁} {P₂ = Q₂}
+        ext (S ◁ P) Q₁↝Q₂ o =
+  (∃ λ (s : S o) → P s ⇾ Q₁)  ↝⟨ (∃-cong λ _ →
+                                  ∀-cong (lower-extensionality? k p lzero ext) λ _ →
+                                  ∀-cong (lower-extensionality? k i p ext) λ _ →
+                                  Q₁↝Q₂ _) ⟩□
   (∃ λ (s : S o) → P s ⇾ Q₂)  □
 
 -- The shapes of a container are pointwise equivalent to the
@@ -120,7 +126,7 @@ map-∘ _ _ = refl _
 -- paper.)
 
 Shape≃⟦⟧⊤ :
-  (C : Container₂ I O) →
+  (C : Container₂ I O s p) →
   Shape C o ≃ ⟦ C ⟧ (λ _ → ⊤) o
 Shape≃⟦⟧⊤ {o = o} (S ◁ P) =
   S o                                ↔⟨ inverse $ drop-⊤-right (λ _ → →-right-zero F.∘ inverse currying) ⟩□
@@ -131,17 +137,17 @@ Shape≃⟦⟧⊤ {o = o} (S ◁ P) =
 
 -- The type of coalgebras for a (singly indexed) container.
 
-Coalgebra : {I : Type i} → Container I → Type (lsuc i)
-Coalgebra {i = i} {I = I} C =
-  ∃ λ (P : I → Type i) → P ⇾ ⟦ C ⟧ P
+Coalgebra : {I : Type i} → Container I s p → Type (lsuc (i ⊔ s ⊔ p))
+Coalgebra {i = i} {s = s} {p = p} {I = I} C =
+  ∃ λ (P : I → Type (i ⊔ s ⊔ p)) → P ⇾ ⟦ C ⟧ P
 
 -- Coalgebra morphisms.
 
 infix 4 _⇨_
 
 _⇨_ :
-  {I : Type i} {C : Container I} →
-  Coalgebra C → Coalgebra C → Type i
+  {I : Type i} {C : Container I s p} →
+  Coalgebra C → Coalgebra C → Type (i ⊔ s ⊔ p)
 (P , f) ⇨ (Q , g) = ∃ λ (h : P ⇾ Q) → g ∘⇾ h ≡ map _ h ∘⇾ f
 
 private
@@ -170,15 +176,15 @@ infix 9 [_]_∘⇨_
 -- The property of being a final coalgebra.
 
 Final :
-  {I : Type i} {C : Container I} →
-  Coalgebra C → Type (lsuc i)
+  {I : Type i} {C : Container I s p} →
+  Coalgebra C → Type (lsuc (i ⊔ s ⊔ p))
 Final X = ∀ Y → Contractible (Y ⇨ X)
 
 -- Final is pointwise propositional (assumption extensionality).
 
 Final-propositional :
-  {I : Type i} {C : Container I} →
-  Extensionality (lsuc i) i →
+  {I : Type i} {C : Container I s p} →
+  Extensionality (lsuc (i ⊔ s ⊔ p)) (i ⊔ s ⊔ p) →
   (X : Coalgebra C) →
   Is-proposition (Final X)
 Final-propositional ext _ =
@@ -189,7 +195,7 @@ Final-propositional ext _ =
 
 Final-coalgebra :
   {I : Type i} →
-  Container I → Type (lsuc i)
+  Container I s p → Type (lsuc (i ⊔ s ⊔ p))
 Final-coalgebra C = ∃ λ (X : Coalgebra C) → Final X
 
 -- Carriers of final coalgebras for a given container are pointwise
@@ -225,7 +231,7 @@ carriers-of-final-coalgebras-equivalent (X₁ , final₁) (X₂ , final₂) i =
 -- coalgebras in a certain way.
 
 out-related :
-  {C : Container I}
+  {C : Container I s p}
   (F₁@((_ , out₁) , _) F₂@((_ , out₂) , _) : Final-coalgebra C) →
   map C (_≃_.to ∘ carriers-of-final-coalgebras-equivalent F₁ F₂) ∘⇾ out₁
     ≡
@@ -240,9 +246,9 @@ out-related (X₁ , _) (_ , final₂) =
 -- Homotopy Type Theory".
 
 Final-coalgebra-propositional :
-  {I : Type i} {C : Container I} →
-  Extensionality (lsuc i) (lsuc i) →
-  Univalence i →
+  {I : Type i} {C : Container I s p} →
+  Extensionality (lsuc (i ⊔ s ⊔ p)) (lsuc (i ⊔ s ⊔ p)) →
+  Univalence (i ⊔ s ⊔ p) →
   Is-proposition (Final-coalgebra C)
 Final-coalgebra-propositional
   {I = I} {C = C@(S ◁ P)}
