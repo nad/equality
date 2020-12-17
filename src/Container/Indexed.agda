@@ -18,16 +18,16 @@ open Derived-definitions-and-properties eq
 open import Prelude
 
 open import Equivalence eq as Eq using (_≃_)
-open import Function-universe eq hiding (id; _∘_)
+open import Function-universe eq as F hiding (id; _∘_)
 open import H-level.Closure eq
 open import Univalence-axiom eq
 
 private
   variable
-    a iℓ p p₁ p₂ q : Level
-    A I            : Type a
-    P Q R          : A → Type p
-    i k s          : A
+    a ℓ p p₁ p₂ q : Level
+    A I O         : Type a
+    P Q R         : A → Type p
+    i k o s       : A
 
 ------------------------------------------------------------------------
 -- _⇾_
@@ -56,19 +56,24 @@ f ∘⇾ g = λ i → f i ∘ g i
 ------------------------------------------------------------------------
 -- Containers
 
--- Indexed containers.
+-- Doubly indexed containers.
 
-record Container (I : Type iℓ) : Type (lsuc iℓ) where
+record Container₂ (I O : Type ℓ) : Type (lsuc ℓ) where
+  constructor _◁_
   field
-    Shape    : I → Type iℓ
-    Position : Shape i → Type iℓ
-    index    : Position s → I
+    Shape    : O → Type ℓ
+    Position : Shape o → I → Type ℓ
 
-open Container public
+open Container₂ public
+
+-- Singly indexed containers.
+
+Container : Type ℓ → Type (lsuc ℓ)
+Container I = Container₂ I I
 
 private
   variable
-    C : Container I
+    C : Container₂ I O
 
 ------------------------------------------------------------------------
 -- Polynomial functors
@@ -76,14 +81,14 @@ private
 -- The polynomial functor associated to a container.
 
 ⟦_⟧ :
-  {I : Type i} →
-  Container I → (I → Type a) → I → Type (i ⊔ a)
-⟦ C ⟧ P i = ∃ λ (s : Shape C i) → (p : Position C s) → P (index C p)
+  {I O : Type ℓ} →
+  Container₂ I O → (I → Type a) → O → Type (ℓ ⊔ a)
+⟦ S ◁ P ⟧ Q o = ∃ λ (s : S o) → P s ⇾ Q
 
 -- A map function.
 
-map : (C : Container I) → P ⇾ Q → ⟦ C ⟧ P ⇾ ⟦ C ⟧ Q
-map C f _ (s , g) = s , λ p → f (index C p) (g p)
+map : (C : Container₂ I O) → P ⇾ Q → ⟦ C ⟧ P ⇾ ⟦ C ⟧ Q
+map C f _ (s , g) = s , f ∘⇾ g
 
 -- Functor laws.
 
@@ -99,13 +104,13 @@ map-∘ _ _ = refl _
 
 ⟦⟧-cong :
   {I : Type i} {P₁ : I → Type p₁} {P₂ : I → Type p₂} →
-  Extensionality? k i (p₁ ⊔ p₂) →
-  (C : Container I) →
+  Extensionality? k i (i ⊔ p₁ ⊔ p₂) →
+  (C : Container₂ I O) →
   (∀ i → P₁ i ↝[ k ] P₂ i) →
-  (∀ i → ⟦ C ⟧ P₁ i ↝[ k ] ⟦ C ⟧ P₂ i)
-⟦⟧-cong {P₁ = P₁} {P₂ = P₂} ext C P₁↝P₂ i =
-  (∃ λ (s : Shape C i) → (p : Position C s) → P₁ (index C p))  ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → P₁↝P₂ _) ⟩□
-  (∃ λ (s : Shape C i) → (p : Position C s) → P₂ (index C p))  □
+  (∀ o → ⟦ C ⟧ P₁ o ↝[ k ] ⟦ C ⟧ P₂ o)
+⟦⟧-cong {i = i} {k = k} {P₁ = Q₁} {P₂ = Q₂} ext (S ◁ P) Q₁↝Q₂ o =
+  (∃ λ (s : S o) → P s ⇾ Q₁)  ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → ∀-cong (lower-extensionality? k lzero i ext) λ _ → Q₁↝Q₂ _) ⟩□
+  (∃ λ (s : S o) → P s ⇾ Q₂)  □
 
 -- The shapes of a container are pointwise equivalent to the
 -- polynomial functor of the container applied to the constant
@@ -115,16 +120,16 @@ map-∘ _ _ = refl _
 -- paper.)
 
 Shape≃⟦⟧⊤ :
-  (C : Container I) →
-  Shape C i ≃ ⟦ C ⟧ (λ _ → ⊤) i
-Shape≃⟦⟧⊤ {i = i} C =
-  Shape C i                                 ↔⟨ inverse $ drop-⊤-right (λ _ → →-right-zero) ⟩□
-  (∃ λ (s : Shape C i) → Position C s → ⊤)  □
+  (C : Container₂ I O) →
+  Shape C o ≃ ⟦ C ⟧ (λ _ → ⊤) o
+Shape≃⟦⟧⊤ {o = o} (S ◁ P) =
+  S o                                ↔⟨ inverse $ drop-⊤-right (λ _ → →-right-zero F.∘ inverse currying) ⟩□
+  (∃ λ (s : S o) → ∀ i → P s i → ⊤)  □
 
 ------------------------------------------------------------------------
 -- Coalgebras
 
--- The type of coalgebras for a container.
+-- The type of coalgebras for a (singly indexed) container.
 
 Coalgebra : {I : Type i} → Container I → Type (lsuc i)
 Coalgebra {i = i} {I = I} C =
@@ -240,7 +245,7 @@ Final-coalgebra-propositional :
   Univalence i →
   Is-proposition (Final-coalgebra C)
 Final-coalgebra-propositional
-  {I = I} {C = C}
+  {I = I} {C = C@(S ◁ P)}
   ext univ F₁@((P₁ , out₁) , _) F₂@(X₂@(P₂ , out₂) , _) =
   block λ b →
   Σ-≡,≡→≡ (Σ-≡,≡→≡ (lemma₁ b) (lemma₂ b))
@@ -285,17 +290,14 @@ Final-coalgebra-propositional
                                                                           _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
     _≃_.from (lemma₀ b i) x                                            ∎
 
-  lemma₁-lemma₃ = λ b i _ f p →
-    subst (λ P → P (index C p)) (lemma₁ b) (f p)          ≡⟨⟩
-
-    subst (λ P → P (index C p))
-      (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i)) (f p)  ≡⟨ Eq.subst-good-ext ext₁′ _ _ ⟩
-
-    subst id (≃⇒≡ univ (lemma₀ b (index C p))) (f p)      ≡⟨ subst-id-in-terms-of-≡⇒↝ equivalence ⟩
-
-    ≡⇒→ (≃⇒≡ univ (lemma₀ b (index C p))) (f p)           ≡⟨ cong (λ eq → _≃_.to eq _) $
-                                                             _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
-    _≃_.to (lemma₀ b (index C p)) (f p)                   ∎
+  lemma₁-lemma₃ : ∀ b (f : P s ⇾ P₁) i p → _ ≡ _
+  lemma₁-lemma₃ b f i p =
+    subst (_$ i) (lemma₁ b) (f i p)                                    ≡⟨⟩
+    subst (_$ i) (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i)) (f i p)  ≡⟨ Eq.subst-good-ext ext₁′ _ _ ⟩
+    subst id (≃⇒≡ univ (lemma₀ b i)) (f i p)                           ≡⟨ subst-id-in-terms-of-≡⇒↝ equivalence ⟩
+    ≡⇒→ (≃⇒≡ univ (lemma₀ b i)) (f i p)                                ≡⟨ cong (λ eq → _≃_.to eq _) $
+                                                                          _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
+    _≃_.to (lemma₀ b i) (f i p)                                        ∎
 
   lemma₂ = λ b →
     apply-ext (lower-extensionality _ _ ext) λ i →
@@ -333,20 +335,28 @@ Final-coalgebra-propositional
     subst (λ P → ⟦ C ⟧ P i) (lemma₁ b)
       (out₁ i (_≃_.from (lemma₀ b i) x))                                 ≡⟨⟩
 
-    subst (λ P → ∃ λ (s : Shape C i) → ∀ p → P (index C p))
-      (lemma₁ b)
+    subst (λ Q → ∃ λ (s : S i) → P s ⇾ Q) (lemma₁ b)
       (out₁ i (_≃_.from (lemma₀ b i) x))                                 ≡⟨ push-subst-pair-× _ _ ⟩
 
     (let s , f = out₁ i (_≃_.from (lemma₀ b i) x) in
-     s , subst (λ P → (p : Position C s) → P (index C p)) (lemma₁ b) f)  ≡⟨ (let s , _ = out₁ i (_≃_.from (lemma₀ b i) x) in
-                                                                             cong (s ,_) $ apply-ext (lower-extensionality _ _ ext) λ _ → sym $
+     s , subst (λ Q → P s ⇾ Q) (lemma₁ b) f)                             ≡⟨ (let s , _ = out₁ i (_≃_.from (lemma₀ b i) x) in
+                                                                             cong (s ,_) $
+                                                                             apply-ext (lower-extensionality _ _ ext) λ _ → sym $
                                                                              push-subst-application _ _) ⟩
     (let s , f = out₁ i (_≃_.from (lemma₀ b i) x) in
-     s , λ p → subst (λ P → P (index C p)) (lemma₁ b) (f p))             ≡⟨ (let _ , f = out₁ i (_≃_.from (lemma₀ b i) x) in
-                                                                             cong (_ ,_) $ apply-ext (lower-extensionality _ _ ext) $
-                                                                             lemma₁-lemma₃ b i x f) ⟩
+     s , λ i → subst (λ Q → P s i → Q i) (lemma₁ b) (f i))               ≡⟨ (let s , _ = out₁ i (_≃_.from (lemma₀ b i) x) in
+                                                                             cong (s ,_) $
+                                                                             apply-ext (lower-extensionality _ _ ext) λ _ →
+                                                                             apply-ext (lower-extensionality _ _ ext) λ _ → sym $
+                                                                             push-subst-application _ _) ⟩
     (let s , f = out₁ i (_≃_.from (lemma₀ b i) x) in
-     s , λ p → _≃_.to (lemma₀ b (index C p)) (f p))                      ≡⟨⟩
+     s , λ i p → subst (_$ i) (lemma₁ b) (f i p))                        ≡⟨ (let _ , f = out₁ i (_≃_.from (lemma₀ b i) x) in
+                                                                             cong (_ ,_) $
+                                                                             apply-ext (lower-extensionality _ _ ext) λ i →
+                                                                             apply-ext (lower-extensionality _ _ ext) $
+                                                                             lemma₁-lemma₃ b f i) ⟩
+    (let s , f = out₁ i (_≃_.from (lemma₀ b i) x) in
+     s , λ i p → _≃_.to (lemma₀ b i) (f i p))                            ≡⟨⟩
 
     map C (_≃_.to ∘ lemma₀ b) i (out₁ i (_≃_.from (lemma₀ b i) x))       ≡⟨ lemma₀-lemma b x ⟩∎
 
