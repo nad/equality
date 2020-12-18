@@ -427,12 +427,16 @@ Container-chain C = Σ-map (⟦ C ⟧ ∘_) (map C ∘_)
   (∃ λ (s : S o) → P s ⇾ Limit X)                            ↝⟨ (∃-cong λ _ →
                                                                  universal-property-≃ (lower-extensionality lzero s ext) X) ⟩
   (∃ λ (s : S o) → ∃ λ (f : ∀ n → P s ⇾ Q n) →
-     ∀ n → down n ∘⇾ f (suc n) ≡ f n)                        ↝⟨ (Σ-cong (inverse $
-                                                                         simple-cochain-limit {k = equivalence}
-                                                                           (lower-extensionality _ (i ⊔ p ⊔ ℓ) ext)) λ _ →
-                                                                 ∃-cong λ _ → ∀-cong (lower-extensionality _ s ext) λ _ →
+     ∀ n → down n ∘⇾ f (suc n) ≡ f n)                        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong (lower-extensionality _ s ext) λ _ →
                                                                  ≡⇒↝ _ $ cong (_≡ _) $ sym $
                                                                  subst-refl _ _) ⟩
+  (∃ λ (s : S o) → ∃ λ (f : ∀ n → P s ⇾ Q n) →
+     ∀ n → subst (λ s → P s ⇾ Q n) (refl _)
+             (down n ∘⇾ f (suc n)) ≡
+           f n)                                              ↝⟨ (Σ-cong (inverse $
+                                                                         simple-cochain-limit {k = equivalence}
+                                                                           (lower-extensionality _ (i ⊔ p ⊔ ℓ) ext)) λ _ →
+                                                                 F.id) ⟩
   (∃ λ ((s , eq) : ∃ λ (s : ℕ → S o) →
                      ∀ n → s (suc n) ≡ s n) →
    ∃ λ (f : ∀ n → P (s n) ⇾ Q n) →
