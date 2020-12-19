@@ -310,6 +310,9 @@ to≡to≃≡ {p = p} {q = q} ext =
   _≃_.from ≃≃≃ᴱ p ≡ _≃_.from ≃≃≃ᴱ q                                ↝⟨ Eq.≃-≡ (Eq.inverse ≃≃≃ᴱ) ⟩□
   p ≡ q                                                            □
 
+------------------------------------------------------------------------
+-- A lemma that is related to Eq.≃-≡
+
 -- If f is a half adjoint equivalence with certain erased proofs, then
 -- x ≡ y is equivalent (with erased proofs) to f x ≡ f y.
 --
