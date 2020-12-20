@@ -227,9 +227,7 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext = ⇔→≃ᴱ
   {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
   @0 Extensionality (a ⊔ b ⊔ c ⊔ d) (a ⊔ b ⊔ c ⊔ d) →
   A ≃ᴱ B → C ≃ᴱ D → (A ≃ᴱ C) ≃ᴱ (B ≃ᴱ D)
-≃ᴱ-cong
-  {a = a} {b = b} {c = c} {d = d}
-  {A = A} {B = B} {C = C} {D = D} ext A≃B C≃D =
+≃ᴱ-cong {A = A} {B = B} {C = C} {D = D} ext A≃B C≃D =
   [≃]→≃ᴱ ([proofs] lemma)
   where
   @0 lemma : (A ≃ᴱ C) ≃ (B ≃ᴱ D)
