@@ -22,9 +22,11 @@ import Equivalence.Contractible-preimages
 import Equivalence.Half-adjoint
 import Function-universe
 import H-level
+import Surjection
 import Univalence-axiom
 
 private
+  module B  = Bijection equality-with-J
   module CP = Equivalence.Contractible-preimages equality-with-J
   module HA = Equivalence.Half-adjoint equality-with-J
   module F  = Function-universe equality-with-J
@@ -36,13 +38,15 @@ private
   module PHA = Equivalence.Half-adjoint P.equality-with-J
   module PF  = Function-universe P.equality-with-J
   module PH  = H-level P.equality-with-J
+  module PS  = Surjection P.equality-with-J
   module PU  = Univalence-axiom P.equality-with-J
 
-open Bijection equality-with-J using (_↔_)
+open B using (_↔_)
 open Embedding equality-with-J hiding (id; _∘_)
 open Equivalence equality-with-J hiding (id; _∘_; inverse)
 open F hiding (id; _∘_)
 open H-level equality-with-J
+open Surjection equality-with-J using (_↠_)
 open Univalence-axiom equality-with-J
 
 private
@@ -142,6 +146,34 @@ abstract
 ------------------------------------------------------------------------
 -- More isomorphisms and related properties
 
+-- Split surjections expressed using equality are equivalent to split
+-- surjections expressed using paths.
+
+↠≃↠ :
+  {A : Type a} {B : Type b} →
+  (A ↠ B) ≃ (A PS.↠ B)
+↠≃↠ = ↔→≃
+  (λ A↠B → record
+     { logical-equivalence = _↠_.logical-equivalence A↠B
+     ; right-inverse-of    = _↔_.to ≡↔≡ ∘ _↠_.right-inverse-of A↠B
+     })
+  (λ A↠B → record
+     { logical-equivalence = PS._↠_.logical-equivalence A↠B
+     ; right-inverse-of    = _↔_.from ≡↔≡ ∘ PS._↠_.right-inverse-of A↠B
+     })
+  (λ A↠B →
+     cong (λ r → record
+             { logical-equivalence = PS._↠_.logical-equivalence A↠B
+             ; right-inverse-of    = r
+             }) $
+     ⟨ext⟩ λ _ → _↔_.right-inverse-of ≡↔≡ _)
+  (λ A↠B →
+     cong (λ r → record
+             { logical-equivalence = _↠_.logical-equivalence A↠B
+             ; right-inverse-of    = r
+             }) $
+     ⟨ext⟩ λ _ → _↔_.left-inverse-of ≡↔≡ _)
+
 private
 
   -- Bijections expressed using paths can be converted into bijections
@@ -149,15 +181,28 @@ private
 
   ↔→↔ : {A B : Type ℓ} → A PB.↔ B → A ↔ B
   ↔→↔ A↔B = record
-    { surjection = record
-      { logical-equivalence = record
-        { to   = PB._↔_.to   A↔B
-        ; from = PB._↔_.from A↔B
-        }
-      ; right-inverse-of = _↔_.from ≡↔≡ ∘ PB._↔_.right-inverse-of A↔B
-      }
+    { surjection      = _≃_.from ↠≃↠ $ PB._↔_.surjection      A↔B
     ; left-inverse-of = _↔_.from ≡↔≡ ∘ PB._↔_.left-inverse-of A↔B
     }
+
+-- Bijections expressed using equality are equivalent to bijections
+-- expressed using paths.
+
+↔≃↔ :
+  {A : Type a} {B : Type b} →
+  (A ↔ B) ≃ (A PB.↔ B)
+↔≃↔ {A = A} {B = B} =
+  A ↔ B                                                 ↔⟨ B.↔-as-Σ ⟩
+
+  (∃ λ (f : A → B) → ∃ λ (f⁻¹ : B → A) →
+    (∀ x → f (f⁻¹ x) ≡ x) × (∀ x → f⁻¹ (f x) ≡ x))      ↔⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                            (∀-cong ext λ _ → ≡↔≡)
+                                                              ×-cong
+                                                            (∀-cong ext λ _ → ≡↔≡)) ⟩
+  (∃ λ (f : A → B) → ∃ λ (f⁻¹ : B → A) →
+    (∀ x → f (f⁻¹ x) P.≡ x) × (∀ x → f⁻¹ (f x) P.≡ x))  ↔⟨ inverse $ ↔→↔ $ PB.↔-as-Σ ⟩□
+
+  A PB.↔ B                                              □
 
 -- H-level expressed using equality is isomorphic to H-level expressed
 -- using paths.
