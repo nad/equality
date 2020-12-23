@@ -25,6 +25,7 @@ import Equality.Decidable-UIP P.equality-with-J as PD
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence.Erased.Cubical eq as EEq using (_≃ᴱ_)
+open import Erased.Cubical eq
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional.One-step eq as O
@@ -566,3 +567,18 @@ from-∥∥¹ᴱ-in-^≃∥∥¹-in-^-∣,∣-in-^ n {x = x} =
               (_≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ n) x) ∣-in-^  ≡⟨ _≃_.to-from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ (suc n)) (∥∥¹ᴱ-in-^→∥∥¹-in-^-∣,∣-in-^ n) ⟩∎
 
   ∣ n , _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ n) x ∣-in-^          ∎
+
+------------------------------------------------------------------------
+-- A result related to h-levels
+
+-- It is not necessarily the case that the one-step truncation of a
+-- proposition is a proposition.
+
+¬-Is-proposition-∥∥¹ᴱ :
+  ¬ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)
+¬-Is-proposition-∥∥¹ᴱ {a = a} =
+  Stable-¬ _
+    [ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)  ↝⟨ (implicit-∀-cong _ $ ∀-cong _ λ _ → H-level-cong _ 1 ∥∥¹ᴱ≃∥∥¹) ⟩
+      ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)   ↝⟨ O.¬-Is-proposition-∥∥¹ ⟩□
+      ⊥                                                           □
+    ]
