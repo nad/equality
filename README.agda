@@ -20,6 +20,10 @@ import README.Safe
 
 import README.Safe.Sized-types
 
+-- "Safe" code that does not use --with-K, but does use --guardedness.
+
+import README.Safe.Guardedness
+
 -- "Safe" code that uses --with-K.
 
 import README.Safe.With-K
