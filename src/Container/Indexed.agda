@@ -27,7 +27,7 @@ private
     a ℓ p p₁ p₂ q : Level
     A I O         : Type a
     P Q R         : A → Type p
-    i k o s       : A
+    ext f i k o s : A
 
 ------------------------------------------------------------------------
 -- _⇾_
@@ -117,6 +117,12 @@ map-∘ _ _ = refl _
                                   ∀-cong (lower-extensionality? k i p ext) λ _ →
                                   Q₁↝Q₂ _) ⟩□
   (∃ λ (s : S o) → P s ⇾ Q₂)  □
+
+-- The forward direction of ⟦⟧-cong is an instance of map (at least
+-- when k is equivalence).
+
+_ : _≃_.to (⟦⟧-cong ext C f o) ≡ map C (_≃_.to ∘ f) o
+_ = refl _
 
 -- The shapes of a container are pointwise equivalent to the
 -- polynomial functor of the container applied to the constant
