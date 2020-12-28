@@ -1133,8 +1133,31 @@ H-level-M {i = iℓ} {p = p} {n = m} ext {C = C} hyp =
     ↑-closure m (H-level.mono (Nat.zero≤ m) ⊤-contractible)
 
 -- If the shape types of C have h-level n, then F i has h-level n,
--- where F is the carrier of any final coalgebra of C (assuming
--- extensionality).
+-- where F is the carrier of any final coalgebra of C, and "final
+-- coalgebra" is defined using Final′. (Assuming extensionality.)
+
+H-level-final-coalgebra′ :
+  Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
+  {I : Type i} {C : Container I s p} {i : I} →
+  (((X , _) , _) : Final-coalgebra′ C) →
+  (∀ {i} → H-level n (Shape C i)) →
+  H-level n (X i)
+H-level-final-coalgebra′
+  {s = s} {n = n} ext {C = C} {i = i} F@((X , _) , _) =
+  block λ b →
+
+  (∀ {i} → H-level n (Shape C i))  ↝⟨ H-level-M ext′ ⟩
+  H-level n (M C i)                ↝⟨ H-level-cong _ n $
+                                      carriers-of-final-coalgebras-equivalent′
+                                        (Final-coalgebra→Final-coalgebra′ $
+                                         M-coalgebra b ext′ C , M-final b ext′ ext)
+                                        F _ ⟩□
+  H-level n (X i)                  □
+  where
+  ext′ = lower-extensionality s lzero ext
+
+-- The previous result holds also if Final-coalgebra′ is replaced by
+-- Final-coalgebra.
 
 H-level-final-coalgebra :
   Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
@@ -1142,13 +1165,6 @@ H-level-final-coalgebra :
   (((X , _) , _) : Final-coalgebra C) →
   (∀ {i} → H-level n (Shape C i)) →
   H-level n (X i)
-H-level-final-coalgebra
-  {s = s} {n = n} ext {C = C} {i = i} F@((X , _) , _) =
-  block λ b →
-
-  (∀ {i} → H-level n (Shape C i))  ↝⟨ H-level-M ext′ ⟩
-  H-level n (M C i)                ↝⟨ H-level-cong _ n $
-                                      carriers-of-final-coalgebras-equivalent (M-coalgebra b ext′ C , M-final b ext′ ext) F _ ⟩□
-  H-level n (X i)                  □
-  where
-  ext′ = lower-extensionality s lzero ext
+H-level-final-coalgebra ext =
+  H-level-final-coalgebra′ ext ∘
+  Final-coalgebra→Final-coalgebra′

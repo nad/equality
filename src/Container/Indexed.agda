@@ -186,6 +186,20 @@ Final :
   Coalgebra C → Type (lsuc (i ⊔ s ⊔ p))
 Final X = ∀ Y → Contractible (Y ⇨ X)
 
+-- A perhaps more traditional definition of what it means to be final.
+
+Final′ :
+  {I : Type i} {C : Container I s p} →
+  Coalgebra C → Type (lsuc (i ⊔ s ⊔ p))
+Final′ X =
+  ∀ Y → ∃ λ (m : Y ⇨ X) → (m′ : Y ⇨ X) → proj₁ m ≡ proj₁ m′
+
+-- Final X implies Final′ X.
+
+Final→Final′ : (X : Coalgebra C) → Final X → Final′ X
+Final→Final′ _ =
+  ∀-cong _ λ _ → ∃-cong λ _ → ∀-cong _ λ _ → cong proj₁
+
 -- Final is pointwise propositional (assumption extensionality).
 
 Final-propositional :
@@ -204,13 +218,27 @@ Final-coalgebra :
   Container I s p → Type (lsuc (i ⊔ s ⊔ p))
 Final-coalgebra C = ∃ λ (X : Coalgebra C) → Final X
 
--- Carriers of final coalgebras for a given container are pointwise
--- equivalent.
+-- Final coalgebras, defined using Final′.
 
-carriers-of-final-coalgebras-equivalent :
-  (((P₁ , _) , _) ((P₂ , _) , _) : Final-coalgebra C) →
+Final-coalgebra′ :
+  {I : Type i} →
+  Container I s p → Type (lsuc (i ⊔ s ⊔ p))
+Final-coalgebra′ C = ∃ λ (X : Coalgebra C) → Final′ X
+
+-- Final-coalgebra C implies Final-coalgebra′ C.
+
+Final-coalgebra→Final-coalgebra′ :
+  Final-coalgebra C → Final-coalgebra′ C
+Final-coalgebra→Final-coalgebra′ =
+  ∃-cong Final→Final′
+
+-- Carriers of final coalgebras (defined using Final′) for a given
+-- container are pointwise equivalent.
+
+carriers-of-final-coalgebras-equivalent′ :
+  (((P₁ , _) , _) ((P₂ , _) , _) : Final-coalgebra′ C) →
   ∀ i → P₁ i ≃ P₂ i
-carriers-of-final-coalgebras-equivalent (X₁ , final₁) (X₂ , final₂) i =
+carriers-of-final-coalgebras-equivalent′ (X₁ , final₁) (X₂ , final₂) i =
   Eq.↔→≃ (proj₁ to i) (proj₁ from i) to∘from from∘to
   where
   to : X₁ ⇨ X₂
@@ -221,17 +249,40 @@ carriers-of-final-coalgebras-equivalent (X₁ , final₁) (X₂ , final₂) i =
 
   to∘from : ∀ x → proj₁ ([ X₂ ] to ∘⇨ from) i x ≡ x
   to∘from x =
-    proj₁ ([ X₂ ] to ∘⇨ from) i x  ≡⟨ cong (λ f → proj₁ f i x) $ sym $ proj₂ (final₂ X₂) $ [ X₂ ] to ∘⇨ from ⟩
-    proj₁ (proj₁ (final₂ X₂)) i x  ≡⟨ cong (λ f → proj₁ f i x) $ proj₂ (final₂ X₂) id⇨ ⟩
+    proj₁ ([ X₂ ] to ∘⇨ from) i x  ≡⟨ cong (λ f → f i x) $ sym $ proj₂ (final₂ X₂) $ [ X₂ ] to ∘⇨ from ⟩
+    proj₁ (proj₁ (final₂ X₂)) i x  ≡⟨ cong (λ f → f i x) $ proj₂ (final₂ X₂) id⇨ ⟩
     proj₁ (id⇨ {X = X₂}) i x       ≡⟨⟩
     x                              ∎
 
   from∘to : ∀ x → proj₁ ([ X₁ ] from ∘⇨ to) i x ≡ x
   from∘to x =
-    proj₁ ([ X₁ ] from ∘⇨ to) i x  ≡⟨ cong (λ f → proj₁ f i x) $ sym $ proj₂ (final₁ X₁) $ [ X₁ ] from ∘⇨ to ⟩
-    proj₁ (proj₁ (final₁ X₁)) i x  ≡⟨ cong (λ f → proj₁ f i x) $ proj₂ (final₁ X₁) id⇨ ⟩
+    proj₁ ([ X₁ ] from ∘⇨ to) i x  ≡⟨ cong (λ f → f i x) $ sym $ proj₂ (final₁ X₁) $ [ X₁ ] from ∘⇨ to ⟩
+    proj₁ (proj₁ (final₁ X₁)) i x  ≡⟨ cong (λ f → f i x) $ proj₂ (final₁ X₁) id⇨ ⟩
     proj₁ (id⇨ {X = X₁}) i x       ≡⟨⟩
     x                              ∎
+
+-- The previous lemma relates the "out" functions of the two final
+-- coalgebras in a certain way.
+
+out-related′ :
+  {C : Container I s p}
+  (F₁@((_ , out₁) , _) F₂@((_ , out₂) , _) : Final-coalgebra′ C) →
+  map C (_≃_.to ∘ carriers-of-final-coalgebras-equivalent′ F₁ F₂) ∘⇾
+    out₁
+    ≡
+  out₂ ∘⇾ (_≃_.to ∘ carriers-of-final-coalgebras-equivalent′ F₁ F₂)
+out-related′ (X₁ , _) (_ , final₂) =
+  sym $ proj₂ (proj₁ (final₂ X₁))
+
+-- Carriers of final coalgebras for a given container are pointwise
+-- equivalent.
+
+carriers-of-final-coalgebras-equivalent :
+  (((P₁ , _) , _) ((P₂ , _) , _) : Final-coalgebra C) →
+  ∀ i → P₁ i ≃ P₂ i
+carriers-of-final-coalgebras-equivalent =
+  carriers-of-final-coalgebras-equivalent′ on
+    Final-coalgebra→Final-coalgebra′
 
 -- The previous lemma relates the "out" functions of the two final
 -- coalgebras in a certain way.
@@ -242,8 +293,74 @@ out-related :
   map C (_≃_.to ∘ carriers-of-final-coalgebras-equivalent F₁ F₂) ∘⇾ out₁
     ≡
   out₂ ∘⇾ (_≃_.to ∘ carriers-of-final-coalgebras-equivalent F₁ F₂)
-out-related (X₁ , _) (_ , final₂) =
-  sym $ proj₂ (proj₁ (final₂ X₁))
+out-related = out-related′ on Final-coalgebra→Final-coalgebra′
+
+-- If X and Y are final coalgebras (with finality defined using
+-- Final′), then—assuming extensionality—finality of X (defined using
+-- Final) is equivalent to finality of Y.
+
+Final′→Final≃Final :
+  {I : Type i} {C : Container I s p} →
+  Extensionality? k (lsuc (i ⊔ s ⊔ p)) (i ⊔ s ⊔ p) →
+  Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
+  ((X , _) (Y , _) : Final-coalgebra′ C) →
+  Final X ↝[ k ] Final Y
+Final′→Final≃Final {s = s} {p = p} {k = k} {C = C}
+  ext′ ext ((X₁ , out₁) , final₁) ((X₂ , out₂) , final₂) =
+  ∀-cong ext′ λ Y@(_ , f) →
+  H-level-cong
+    (lower-extensionality? k _ lzero ext′)
+    0
+    (Σ-cong (lemma₂ Y) λ g →
+
+       out₁ ∘⇾ g ≡ map C g ∘⇾ f                 ↝⟨ inverse $ Eq.≃-≡ (lemma₃ Y) ⟩
+
+       _≃_.to (lemma₃ Y) (out₁ ∘⇾ g) ≡
+       _≃_.to (lemma₃ Y) (map C g ∘⇾ f)         ↔⟨⟩
+
+       map C (_≃_.to ∘ lemma₁) ∘⇾ out₁ ∘⇾ g ≡
+       map C (_≃_.to ∘ lemma₁) ∘⇾ map C g ∘⇾ f  ↝⟨ ≡⇒↝ _ $ cong (λ h → h ∘⇾ g ≡ map C (_≃_.to ∘ lemma₁) ∘⇾ map C g ∘⇾ f) $
+                                                   out-related′ ((X₁ , out₁) , final₁) ((X₂ , out₂) , final₂) ⟩
+       out₂ ∘⇾ (_≃_.to ∘ lemma₁) ∘⇾ g ≡
+       map C (_≃_.to ∘ lemma₁) ∘⇾ map C g ∘⇾ f  ↔⟨⟩
+
+       out₂ ∘⇾ _≃_.to (lemma₂ Y) g ≡
+       map C (_≃_.to (lemma₂ Y) g) ∘⇾ f         □)
+  where
+  ext₁ = lower-extensionality (s ⊔ p) lzero ext
+  ext₂ = lower-extensionality s       lzero ext
+
+  lemma₁ : ∀ i → X₁ i ≃ X₂ i
+  lemma₁ =
+    carriers-of-final-coalgebras-equivalent′
+      ((X₁ , out₁) , final₁)
+      ((X₂ , out₂) , final₂)
+
+  lemma₂ : ((Y , _) : Coalgebra C) → (Y ⇾ X₁) ≃ (Y ⇾ X₂)
+  lemma₂ _ =
+    ∀-cong ext₁ λ _ →
+    ∀-cong ext  λ _ →
+    lemma₁ _
+
+  lemma₃ : ((Y , _) : Coalgebra C) → (Y ⇾ ⟦ C ⟧ X₁) ≃ (Y ⇾ ⟦ C ⟧ X₂)
+  lemma₃ _ =
+    ∀-cong ext₁ λ _ →
+    ∀-cong ext  λ _ →
+    ⟦⟧-cong ext₂ C lemma₁ _
+
+-- If there is a final C-coalgebra, and we have Final′ X for some
+-- C-coalgebra X, then we also have Final X (assuming extensionality).
+
+Final′→Final :
+  {I : Type i} {C : Container I s p} →
+  Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
+  Final-coalgebra C →
+  ((X , _) : Final-coalgebra′ C) →
+  Final X
+Final′→Final ext F₁@(_ , final₁) F₂ =
+  Final′→Final≃Final _ ext
+    (Final-coalgebra→Final-coalgebra′ F₁) F₂
+    final₁
 
 -- Final-coalgebra is pointwise propositional, assuming extensionality
 -- and univalence.
