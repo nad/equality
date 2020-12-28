@@ -11,9 +11,14 @@
 
 module README where
 
--- "Safe" code that does not use --with-K.
+-- "Safe" code that does not use --with-K, --sized-types or
+-- --guardedness.
 
 import README.Safe
+
+-- "Safe" code that does not use --with-K, but does use --sized-types.
+
+import README.Safe.Sized-types
 
 -- "Safe" code that uses --with-K.
 

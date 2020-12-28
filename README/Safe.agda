@@ -2,17 +2,13 @@
 -- Safe modules
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --prop --safe --sized-types #-}
+{-# OPTIONS --cubical --prop --safe #-}
 
 module README.Safe where
 
 -- Definitions of some basic types and some related functions.
 
 import Prelude
-
--- Support for sized types.
-
-import Prelude.Size
 
 -- Logical equivalences.
 
@@ -264,21 +260,9 @@ import Omniscience
 
 import List
 
--- Conatural numbers.
-
-import Conat
-
--- Colists.
-
-import Colist
-
 -- Some definitions related to and properties of finite sets.
 
 import Fin
-
--- M-types.
-
-import M
 
 -- Some definitions related to and properties of the Maybe type.
 
