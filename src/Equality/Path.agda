@@ -797,6 +797,76 @@ dcong≡hcong {B = B} {x≡y = x≡y} f = elim
 
   x≡y
 
+-- A "computation" rule.
+
+from-heterogeneous↔homogeneous-const-refl :
+  (B : A → Type b) {x : A} {y : B x} →
+  _↔_.from (heterogeneous↔homogeneous λ _ → B x) refl ≡
+  sym (subst-refl B y)
+from-heterogeneous↔homogeneous-const-refl B {x = x} {y = y} =
+  transport (λ _ → y ≡ transport (λ _ → B x) 0̲ y) 0̲
+    (transport
+       (λ i → transport (λ _ → B x) i y ≡ transport (λ _ → B x) 0̲ y) 0̲
+       (λ _ → transport (λ _ → B x) 0̲ y))                               ≡⟨ cong (_$ transport
+                                                                                      (λ i → transport (λ _ → B x) i y ≡
+                                                                                             transport (λ _ → B x) 0̲ y) 0̲
+                                                                                      (λ _ → transport (λ _ → B x) 0̲ y)) $
+                                                                           transport-refl 0̲ ⟩
+  transport
+    (λ i → transport (λ _ → B x) i y ≡ transport (λ _ → B x) 0̲ y) 0̲
+    (λ _ → transport (λ _ → B x) 0̲ y)                                   ≡⟨ transport-≡ (λ _ → transport (λ _ → B x) 0̲ y) ⟩
+
+  trans (λ i → transport (λ _ → B x) (- i) y)
+    (trans (λ _ → transport (λ _ → B x) 0̲ y)
+       (λ _ → transport (λ _ → B x) 0̲ y))                               ≡⟨ cong (trans (λ i → transport (λ _ → B x) (- i) y)) $
+                                                                           trans-symʳ (λ _ → transport (λ _ → B x) 0̲ y) ⟩
+
+  trans (λ i → transport (λ _ → B x) (- i) y) refl                      ≡⟨ trans-reflʳ _ ⟩∎
+
+  (λ i → transport (λ _ → B x) (- i) y)                                 ∎
+
+-- A direct proof of something with the same type as Σ-≡,≡→≡.
+
+Σ-≡,≡→≡′ :
+  {p₁ p₂ : Σ A B} →
+  (p : proj₁ p₁ ≡ proj₁ p₂) →
+  subst B p (proj₂ p₁) ≡ proj₂ p₂ →
+  p₁ ≡ p₂
+Σ-≡,≡→≡′ {B = B} {p₁ = _ , y₁} {p₂ = _ , y₂} p q i =
+  p i , lemma i
+  where
+  lemma : [ (λ i → B (p i)) ] y₁ ≡ y₂
+  lemma = _↔_.from (heterogeneous↔homogeneous _) q
+
+-- Σ-≡,≡→≡ is pointwise equal to Σ-≡,≡→≡′.
+
+Σ-≡,≡→≡≡Σ-≡,≡→≡′ :
+  {B : A → Type b}
+  {p₁ p₂ : Σ A B}
+  {p : proj₁ p₁ ≡ proj₁ p₂}
+  {q : subst B p (proj₂ p₁) ≡ proj₂ p₂} →
+  Σ-≡,≡→≡ {B = B} p q ≡ Σ-≡,≡→≡′ p q
+Σ-≡,≡→≡≡Σ-≡,≡→≡′ {B = B} {p₁ = p₁} {p₂ = p₂} {p = p} {q = q} =
+  elim₁
+    (λ p →
+       ∀ {p₁₂} (q : subst B p p₁₂ ≡ proj₂ p₂) →
+       Σ-≡,≡→≡ p q ≡ Σ-≡,≡→≡′ p q)
+    (λ q →
+       Σ-≡,≡→≡ refl q                                          ≡⟨ Σ-≡,≡→≡-reflˡ q ⟩
+       cong (_ ,_) (trans (sym $ subst-refl B _) q)            ≡⟨ cong (cong (_ ,_)) $
+                                                                  elim¹
+                                                                    (λ q →
+                                                                       trans (sym $ subst-refl B _) q ≡
+                                                                       _↔_.from (heterogeneous↔homogeneous _) q)
+                                                                    (
+           trans (sym $ subst-refl B _) refl                         ≡⟨ trans-reflʳ _ ⟩
+           sym (subst-refl B _)                                      ≡⟨ sym $ from-heterogeneous↔homogeneous-const-refl B ⟩∎
+           _↔_.from (heterogeneous↔homogeneous _) refl               ∎)
+                                                                    q ⟩
+       cong (_ ,_) (_↔_.from (heterogeneous↔homogeneous _) q)  ≡⟨⟩
+       Σ-≡,≡→≡′ refl q                                         ∎)
+    p q
+
 -- All instances of an interval-indexed family are equal.
 
 index-irrelevant : (P : I → Type p) → P i ≡ P j
