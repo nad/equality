@@ -762,8 +762,8 @@ heterogeneous↔homogeneous P =
     heterogeneous≡homogeneous
     (Bijection.id equality-with-J)
 
--- The function dcong is pointwise definitionally equal to an
--- expression involving hcong.
+-- The function dcong is pointwise equal to an expression involving
+-- hcong.
 
 dcong≡hcong :
   {B : A → Type b} {x≡y : x ≡ y} (f : (x : A) → B x) →
