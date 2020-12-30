@@ -593,6 +593,10 @@ import Container.Stream
 
 import Container.Indexed
 
+-- Another definition of indexed containers.
+
+import Container.Indexed.Variant
+
 -- M-types for indexed containers, defined using functions.
 
 import Container.Indexed.M.Function

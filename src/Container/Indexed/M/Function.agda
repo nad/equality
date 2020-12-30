@@ -3,10 +3,7 @@
 ------------------------------------------------------------------------
 
 -- Based on "Non-wellfounded trees in Homotopy Type Theory" by Ahrens,
--- Capriotti and Spadotti. However, the indexed containers that are
--- used are not those used in that paper, but rather (more or less)
--- those presented in "Indexed containers" by Altenkirch, Ghani,
--- Hancock, McBride and Morris.
+-- Capriotti and Spadotti.
 
 {-# OPTIONS --without-K --safe #-}
 
@@ -403,7 +400,7 @@ _ = refl _
 
 Container-chain :
   {I : Type i} {O : Type o} →
-  Container₂ I O s p → Chain I ℓ → Chain O (i ⊔ s ⊔ p ⊔ ℓ)
+  Container₂ I O s p → Chain I ℓ → Chain O (s ⊔ p ⊔ ℓ)
 Container-chain C = Σ-map (⟦ C ⟧ ∘_) (map C ∘_)
 
 -- The polynomial functor (for a container C) of the limit of a chain
@@ -415,53 +412,63 @@ Container-chain C = Σ-map (⟦ C ⟧ ∘_) (map C ∘_)
 
 ⟦⟧-Limit≃ :
   {I : Type i} {O : Type o} →
-  Extensionality (i ⊔ p) (i ⊔ s ⊔ p ⊔ ℓ) →
+  Extensionality p (s ⊔ p ⊔ ℓ) →
   (C : Container₂ I O s p) (X : Chain I ℓ) {o : O} →
 
   ⟦ C ⟧ (Limit X) o ≃ Limit (Container-chain C X) o
-⟦⟧-Limit≃ {i = i} {p = p} {s = s} {ℓ = ℓ}
-  ext C@(S ◁ P) X@(Q , down) {o = o} =
+⟦⟧-Limit≃ {p = p} {s = s} {ℓ = ℓ} ext C X@(Q , down) {o = o} =
 
-  ⟦ C ⟧ (Limit X) o                                          ↔⟨⟩
+  ⟦ C ⟧ (Limit X) o                                            ↔⟨⟩
 
-  (∃ λ (s : S o) → P s ⇾ Limit X)                            ↝⟨ (∃-cong λ _ →
-                                                                 universal-property-≃ (lower-extensionality lzero s ext) X) ⟩
-  (∃ λ (s : S o) → ∃ λ (f : ∀ n → P s ⇾ Q n) →
-     ∀ n → down n ∘⇾ f (suc n) ≡ f n)                        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong (lower-extensionality _ s ext) λ _ →
-                                                                 ≡⇒↝ _ $ cong (_≡ _) $ sym $
-                                                                 subst-refl _ _) ⟩
-  (∃ λ (s : S o) → ∃ λ (f : ∀ n → P s ⇾ Q n) →
-     ∀ n → subst (λ s → P s ⇾ Q n) (refl _)
-             (down n ∘⇾ f (suc n)) ≡
-           f n)                                              ↝⟨ (Σ-cong (inverse $
-                                                                         simple-cochain-limit {k = equivalence}
-                                                                           (lower-extensionality _ (i ⊔ p ⊔ ℓ) ext)) λ _ →
-                                                                 F.id) ⟩
-  (∃ λ ((s , eq) : ∃ λ (s : ℕ → S o) →
+  (∃ λ (s : Shape C o) →
+     (p : Position C s) → Limit X (index C p))                 ↝⟨ (∃-cong λ _ →
+                                                                   universal-property-Π X) ⟩
+  (∃ λ (s : Shape C o) →
+   ∃ λ (f : ∀ n (p : Position C s) → Q n (index C p)) →
+     ∀ n p → down n (index C p) (f (suc n) p) ≡ f n p)         ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                                   ∀-cong (lower-extensionality p r ext) λ _ →
+                                                                   Eq.extensionality-isomorphism (lower-extensionality p r ext)) ⟩
+  (∃ λ (s : Shape C o) →
+   ∃ λ (f : ∀ n (p : Position C s) → Q n (index C p)) →
+     ∀ n → down n _ ∘ f (suc n) ≡ f n)                         ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong (lower-extensionality p r ext) λ _ →
+                                                                   ≡⇒↝ _ $ cong (_≡ _) $ sym $
+                                                                   subst-refl _ _) ⟩
+  (∃ λ (s : Shape C o) →
+   ∃ λ (f : ∀ n (p : Position C s) → Q n (index C p)) →
+     ∀ n → subst (λ s → (p : Position C s) → Q n (index C p))
+             (refl _) (down n _ ∘ f (suc n)) ≡
+           f n)                                                ↝⟨ (Σ-cong (inverse $
+                                                                           simple-cochain-limit {k = equivalence}
+                                                                             (lower-extensionality p r ext)) λ _ →
+                                                                   F.id) ⟩
+  (∃ λ ((s , eq) : ∃ λ (s : ℕ → Shape C o) →
                      ∀ n → s (suc n) ≡ s n) →
-   ∃ λ (f : ∀ n → P (s n) ⇾ Q n) →
-     ∀ n → subst (λ s → P s ⇾ Q n) (eq n)
-             (down n ∘⇾ f (suc n)) ≡
-           f n)                                              ↔⟨ (∃-cong λ _ →
-                                                                 (∃-cong λ _ →
-                                                                  (∀-cong (lower-extensionality _ lzero ext) λ _ →
-                                                                   Bijection.Σ-≡,≡↔≡) F.∘
-                                                                  inverse ΠΣ-comm) F.∘
-                                                                 ∃-comm) F.∘
-                                                                inverse Σ-assoc ⟩
-  (∃ λ (s : ℕ → S o) →
-   ∃ λ (f : ∀ n → P (s n) ⇾ Q n) →
-     ∀ n → (s (suc n) , down n ∘⇾ f (suc n)) ≡ (s n , f n))  ↔⟨⟩
+   ∃ λ (f : ∀ n (p : Position C (s n)) → Q n (index C p)) →
+     ∀ n → subst (λ s → (p : Position C s) → Q n (index C p))
+             (eq n) (down n _ ∘ f (suc n)) ≡
+           f n)                                                ↔⟨ (∃-cong λ _ →
+                                                                   (∃-cong λ _ →
+                                                                    (∀-cong (lower-extensionality p r ext) λ _ →
+                                                                     Bijection.Σ-≡,≡↔≡) F.∘
+                                                                    inverse ΠΣ-comm) F.∘
+                                                                   ∃-comm) F.∘
+                                                                  inverse Σ-assoc ⟩
+  (∃ λ (s : ℕ → Shape C o) →
+   ∃ λ (f : ∀ n (p : Position C (s n)) → Q n (index C p)) →
+     ∀ n → (s (suc n) , down n _ ∘ f (suc n)) ≡ (s n , f n))   ↔⟨⟩
 
-  (∃ λ (s : ℕ → S o) →
-   ∃ λ (f : ∀ n → P (s n) ⇾ Q n) →
+  (∃ λ (s : ℕ → Shape C o) →
+   ∃ λ (f : ∀ n (p : Position C (s n)) → Q n (index C p)) →
      ∀ n → map C (down n) o (s (suc n) , f (suc n)) ≡
-           (s n , f n))                                      ↝⟨ (inverse $ Σ-cong-id (Eq.↔⇒≃ ΠΣ-comm)) F.∘
-                                                                Eq.↔⇒≃ Σ-assoc ⟩
-  (∃ λ (f : ∀ n → ∃ λ (s : S o) → P s ⇾ Q n) →
-     ∀ n → map C (down n) o (f (suc n)) ≡ f n)               ↔⟨⟩
+           (s n , f n))                                        ↝⟨ (inverse $ Σ-cong-id (Eq.↔⇒≃ ΠΣ-comm)) F.∘
+                                                                  Eq.↔⇒≃ Σ-assoc ⟩
+  (∃ λ (f : ∀ n → ∃ λ (s : Shape C o) →
+                    (p : Position C s) → Q n (index C p)) →
+     ∀ n → map C (down n) o (f (suc n)) ≡ f n)                 ↔⟨⟩
 
-  Limit (Container-chain C X) o                              □
+  Limit (Container-chain C X) o                                □
+  where
+  r = s ⊔ p ⊔ ℓ
 
 ------------------------------------------------------------------------
 -- M-types
@@ -497,7 +504,7 @@ M C = Limit (M-chain C)
 M-fixpoint :
   Block "M-fixpoint" →
   {I : Type i} →
-  Extensionality (i ⊔ p) (i ⊔ s ⊔ p) →
+  Extensionality p (i ⊔ s ⊔ p) →
   {C : Container I s p} {i : I} →
   ⟦ C ⟧ (M C) i ≃ M C i
 M-fixpoint ⊠ ext {C = C} {i = i} =
@@ -513,7 +520,7 @@ M-fixpoint ⊠ ext {C = C} {i = i} =
 out-M :
   Block "M-fixpoint" →
   {I : Type i} {C : Container I s p} →
-  Extensionality (i ⊔ p) (i ⊔ s ⊔ p) →
+  Extensionality p (i ⊔ s ⊔ p) →
   M C ⇾ ⟦ C ⟧ (M C)
 out-M b ext _ = _≃_.from (M-fixpoint b ext)
 
@@ -522,7 +529,7 @@ out-M b ext _ = _≃_.from (M-fixpoint b ext)
 in-M :
   Block "M-fixpoint" →
   {I : Type i} {C : Container I s p} →
-  Extensionality (i ⊔ p) (i ⊔ s ⊔ p) →
+  Extensionality p (i ⊔ s ⊔ p) →
   ⟦ C ⟧ (M C) ⇾ M C
 in-M b ext _ = _≃_.to (M-fixpoint b ext)
 
@@ -531,92 +538,78 @@ in-M b ext _ = _≃_.to (M-fixpoint b ext)
 in-M≡ :
   (b : Block "M-fixpoint")
   {I : Type i}
-  (ext : Extensionality (i ⊔ p) (i ⊔ s ⊔ p)) →
-  let ext₁ = apply-ext $ Eq.good-ext $
-             lower-extensionality (i ⊔ p) (i ⊔ p) $
-             lower-extensionality lzero s ext
-      ext₂ = apply-ext $ Eq.good-ext $
-             lower-extensionality (i ⊔ p) (i ⊔ p) $
-             lower-extensionality lzero s ext
+  (ext : Extensionality p (i ⊔ s ⊔ p)) →
+  let ext′ = apply-ext $ Eq.good-ext $
+             lower-extensionality p (i ⊔ s ⊔ p) ext
   in
   {C : Container I s p} {i : I}
   (x@(s , f) : ⟦ C ⟧ (M C) i) →
   in-M b ext _ x ≡
-  ( ℕ-case _ (λ n → map C (λ _ m → proj₁ m n) _ x)
-  , ℕ-case (refl _)
-      (λ n → cong (s ,_) $ ext₁ λ i → ext₂ λ p → proj₂ (f i p) n)
+  ( ℕ-case _ (λ n → s , λ p → proj₁ (f p) n)
+  , ℕ-case (refl _) (λ n → cong (s ,_) $ ext′ λ p → proj₂ (f p) n)
   )
 in-M≡ {i = i} {p = p} {s = sℓ} ⊠ ext {C = C} x@(s , f) =
-  ( ℕ-case _ (λ n → map C (λ _ m → proj₁ m n) _ x)
+  ( ℕ-case _ (λ n → s , λ p → proj₁ (f p) n)
   , ℕ-case (refl _)
       (λ n → Σ-≡,≡→≡
          (refl _)
          (≡⇒→
-            (cong (_≡ λ i p → proj₁ (f i p) n) $ sym $
+            (cong (_≡ λ p → proj₁ (f p) n) $ sym $
              subst-refl _ _)
-            (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n)))
-  )                                                                  ≡⟨ cong (ℕ-case _ (λ n → map C (λ _ m → proj₁ m n) _ x) ,_) $
-                                                                        cong (ℕ-case (refl _)) $
-                                                                        apply-ext (lower-extensionality _ lzero ext) lemma ⟩∎
-  ( ℕ-case _ (λ n → map C (λ _ m → proj₁ m n) _ x)
-  , ℕ-case (refl _)
-      (λ n → cong (s ,_) $ ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n)
-  )                                                                  ∎
+            (ext′ λ p → proj₂ (f p) n)))
+  )                                                                 ≡⟨ cong (ℕ-case _ (λ n → s , λ p → proj₁ (f p) n) ,_) $
+                                                                       cong (ℕ-case (refl _)) $
+                                                                       apply-ext (lower-extensionality _ lzero ext) lemma ⟩∎
+  ( ℕ-case _ (λ n → s , λ p → proj₁ (f p) n)
+  , ℕ-case (refl _) (λ n → cong (s ,_) $ ext′ λ p → proj₂ (f p) n)
+  )                                                                 ∎
   where
-  ext₁′ =
+  ext′ =
     apply-ext $
     Eq.good-ext $
-    lower-extensionality (i ⊔ p) (i ⊔ p) $
-    lower-extensionality lzero sℓ ext
-
-  ext₂′ =
-    apply-ext $
-    Eq.good-ext $
-    lower-extensionality (i ⊔ p) (i ⊔ p) $
-    lower-extensionality lzero sℓ ext
+    lower-extensionality p (i ⊔ sℓ ⊔ p) ext
 
   lemma = λ n →
     Σ-≡,≡→≡
       (refl _)
       (≡⇒→
-         (cong (_≡ λ i p → proj₁ (f i p) n) $ sym $
+         (cong (_≡ λ p → proj₁ (f p) n) $ sym $
           subst-refl _ _)
-         (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n))     ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
+         (ext′ λ p → proj₂ (f p) n))                ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
 
     cong (_ ,_)
          (trans (sym $ subst-refl _ _) $
           ≡⇒→
-            (cong (_≡ λ i p → proj₁ (f i p) n) $ sym $
+            (cong (_≡ λ p → proj₁ (f p) n) $ sym $
              subst-refl _ _)
-            (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n))  ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $ sym $
-                                                           subst-id-in-terms-of-≡⇒↝ equivalence ⟩
+            (ext′ λ p → proj₂ (f p) n))             ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $ sym $
+                                                       subst-id-in-terms-of-≡⇒↝ equivalence ⟩
     cong (_ ,_)
          (trans (sym $ subst-refl _ _) $
           subst id
-            (cong (_≡ λ i p → proj₁ (f i p) n) $ sym $
+            (cong (_≡ λ p → proj₁ (f p) n) $ sym $
              subst-refl _ _)
-            (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n))  ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $ sym $
-                                                           subst-∘ _ _ _ ⟩
+            (ext′ λ p → proj₂ (f p) n))             ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $ sym $
+                                                       subst-∘ _ _ _ ⟩
     cong (_ ,_)
          (trans (sym $ subst-refl _ _) $
-          subst (_≡ λ i p → proj₁ (f i p) n)
+          subst (_≡ λ p → proj₁ (f p) n)
             (sym $ subst-refl _ _)
-            (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n))  ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $
-                                                           subst-trans _ ⟩
+            (ext′ λ p → proj₂ (f p) n))             ≡⟨ cong (cong (_ ,_)) $ cong (trans _) $
+                                                       subst-trans _ ⟩
     cong (_ ,_)
          (trans (sym $ subst-refl _ _) $
           trans (subst-refl _ _)
-            (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n))  ≡⟨ cong (cong (_ ,_)) $
-                                                           trans-sym-[trans] _ _ ⟩∎
-    cong (_ ,_)
-         (ext₁′ λ i → ext₂′ λ p → proj₂ (f i p) n)      ∎
+            (ext′ λ p → proj₂ (f p) n))             ≡⟨ cong (cong (_ ,_)) $
+                                                       trans-sym-[trans] _ _ ⟩∎
+    cong (_ ,_) (ext′ λ p → proj₂ (f p) n)          ∎
 
 -- A coalgebra defined using M and out-M.
 
 M-coalgebra :
   Block "M-fixpoint" →
   {I : Type i} →
-  Extensionality (i ⊔ p) (i ⊔ s ⊔ p) →
+  Extensionality p (i ⊔ s ⊔ p) →
   (C : Container I s p) → Coalgebra C
 M-coalgebra b ext C = M C , out-M b ext
 
@@ -653,7 +646,7 @@ private
  module M-final
   (b : Block "M-fixpoint")
   {I : Type i} {C : Container I s p}
-  (ext : Extensionality (i ⊔ p) (i ⊔ s ⊔ p))
+  (ext : Extensionality p (i ⊔ s ⊔ p))
   (ext′ : Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p))
   (Y@(P , f) : Coalgebra C)
   where
@@ -686,7 +679,7 @@ private
   steps = Σ-map steps₁ steps₂
 
   ext-i : Extensionality i (i ⊔ s ⊔ p)
-  ext-i = lower-extensionality p lzero ext
+  ext-i = lower-extensionality (s ⊔ p) lzero ext′
 
   ext₀ : Extensionality lzero (i ⊔ s ⊔ p)
   ext₀ = lower-extensionality _ lzero ext
@@ -704,8 +697,8 @@ private
     , ℕ-case (refl _)
         (λ n →
            cong (proj₁ (f i p) ,_)
-             (ext₁″ λ i′ → ext₂″ λ p′ →
-              ext⁻¹ (ext⁻¹ (eq n) i′) (proj₂ (f i p) i′ p′)))
+             (ext‴ λ p′ →
+              ext⁻¹ (ext⁻¹ (eq n) (index C p′)) (proj₂ (f i p) p′)))
     )                                                                 ≡⟨ cong ((λ n → steps₁ g n i p) ,_) $
                                                                          ext₀′ $ ℕ-case
                                                                            (
@@ -715,27 +708,25 @@ private
         ext⁻¹ (ext⁻¹ (steps₂ eq zero) i) p                                  ∎)
                                                                            (λ n →
         cong (proj₁ (f i p) ,_)
-          (ext₁″ λ i′ → ext₂″ λ p′ →
-           ext⁻¹ (ext⁻¹ (eq n) i′) (proj₂ (f i p) i′ p′))                     ≡⟨ elim₁
+          (ext‴ λ p′ →
+           ext⁻¹ (ext⁻¹ (eq n) (index C p′)) (proj₂ (f i p) p′))              ≡⟨ elim₁
                                                                                    (λ eq →
                                                                                       cong (proj₁ (f i p) ,_)
-                                                                                        (ext₁″ λ i′ → ext₂″ λ p′ →
-                                                                                         ext⁻¹ (ext⁻¹ eq i′) (proj₂ (f i p) i′ p′)) ≡
+                                                                                        (ext‴ λ p′ →
+                                                                                         ext⁻¹ (ext⁻¹ eq (index C p′)) (proj₂ (f i p) p′)) ≡
                                                                                       ext⁻¹ (ext⁻¹ (cong (λ g → map C g ∘⇾ f) eq) i) p)
                                                                                    (
             cong (proj₁ (f i p) ,_)
-              (ext₁″ λ i′ → ext₂″ λ p′ →
-               ext⁻¹ (ext⁻¹ (refl (g n)) i′) (proj₂ (f i p) i′ p′))                 ≡⟨ (cong (cong _) $
-                                                                                        cong ext₁″ $ ext₁″ λ _ →
-                                                                                        cong ext₂″ $ ext₂″ λ _ →
+              (ext‴ λ p′ →
+               ext⁻¹ (ext⁻¹ (refl (g n)) (index C p′))
+                 (proj₂ (f i p) p′))                                                ≡⟨ (cong (cong _) $
+                                                                                        cong ext‴ $ ext‴ λ _ →
                                                                                         trans (cong (flip ext⁻¹ _) $
                                                                                                ext⁻¹-refl _) $
                                                                                         ext⁻¹-refl _) ⟩
 
-            cong (proj₁ (f i p) ,_) (ext₁″ λ _ → ext₂″ λ _ → refl _)                ≡⟨ trans (cong (cong _) $
-                                                                                              trans (cong ext₁″ $ ext₁″ λ _ →
-                                                                                                     Eq.good-ext-refl ext₂′ _) $
-                                                                                              Eq.good-ext-refl ext₁′ _) $
+            cong (proj₁ (f i p) ,_) (ext‴ λ _ → refl _)                            ≡⟨ trans (cong (cong _) $
+                                                                                             Eq.good-ext-refl ext″ _) $
                                                                                        cong-refl _ ⟩
 
             refl _                                                                  ≡⟨ sym $
@@ -754,12 +745,8 @@ private
 
     univ (steps c) i p                                                ∎
     where
-    ext₁′  = lower-extensionality (i ⊔ p) (i ⊔ p) $
-             lower-extensionality lzero s ext
-    ext₂′  = lower-extensionality (i ⊔ p) (i ⊔ p) $
-             lower-extensionality lzero s ext
-    ext₁″  = apply-ext (Eq.good-ext ext₁′)
-    ext₂″  = apply-ext (Eq.good-ext ext₂′)
+    ext″ = lower-extensionality p (i ⊔ s ⊔ p) ext
+    ext‴ = apply-ext (Eq.good-ext ext″)
 
   contr : Contractible (P ⇾ Up-to C 0)
   contr =
@@ -1083,7 +1070,7 @@ private
 M-final :
   (b : Block "M-final")
   {I : Type i} {C : Container I s p} →
-  (ext : Extensionality (i ⊔ p) (i ⊔ s ⊔ p)) →
+  (ext : Extensionality p (i ⊔ s ⊔ p)) →
   Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
   Final (M-coalgebra b ext C)
 M-final b ext ext′ Y =
@@ -1107,11 +1094,11 @@ _ = refl _
 -- Homotopy Type Theory".
 
 H-level-M :
-  Extensionality (i ⊔ p) (i ⊔ s ⊔ p) →
+  Extensionality p (i ⊔ s ⊔ p) →
   {I : Type i} {C : Container I s p} {i : I} →
   (∀ {i} → H-level n (Shape C i)) →
   H-level n (M C i)
-H-level-M {i = iℓ} {p = p} {n = m} ext {C = C} hyp =
+H-level-M {p = p} {i = iℓ} {n = m} ext {C = C} hyp =
   Σ-closure m
     (Π-closure ext′ m
      H-level-Up-to) λ _ →
@@ -1120,11 +1107,11 @@ H-level-M {i = iℓ} {p = p} {n = m} ext {C = C} hyp =
   where
   ext′ = lower-extensionality _ lzero ext
 
-  step : ∀ P → (∀ {i} → H-level m (P i)) → (∀ {i} → H-level m (⟦ C ⟧ P i))
+  step :
+    ∀ P → (∀ {i} → H-level m (P i)) → (∀ {i} → H-level m (⟦ C ⟧ P i))
   step P h =
     Σ-closure m hyp λ _ →
-    Π-closure (lower-extensionality p  lzero ext) m λ _ →
-    Π-closure (lower-extensionality iℓ lzero ext) m λ _ →
+    Π-closure ext m λ _ →
     h
 
   H-level-Up-to : ∀ n → H-level m (Up-to C n i)
@@ -1143,7 +1130,7 @@ H-level-final-coalgebra′ :
   (∀ {i} → H-level n (Shape C i)) →
   H-level n (X i)
 H-level-final-coalgebra′
-  {s = s} {n = n} ext {C = C} {i = i} F@((X , _) , _) =
+  {i = iℓ} {s = s} {n = n} ext {C = C} {i = i} F@((X , _) , _) =
   block λ b →
 
   (∀ {i} → H-level n (Shape C i))  ↝⟨ H-level-M ext′ ⟩
@@ -1154,7 +1141,7 @@ H-level-final-coalgebra′
                                         F _ ⟩□
   H-level n (X i)                  □
   where
-  ext′ = lower-extensionality s lzero ext
+  ext′ = lower-extensionality (iℓ ⊔ s) lzero ext
 
 -- The previous result holds also if Final-coalgebra′ is replaced by
 -- Final-coalgebra.

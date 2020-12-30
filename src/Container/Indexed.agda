@@ -17,6 +17,7 @@ open Derived-definitions-and-properties eq
 
 open import Prelude
 
+import Bijection eq as B
 open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level.Closure eq
@@ -24,10 +25,10 @@ open import Univalence-axiom eq
 
 private
   variable
-    a ℓ p p₁ p₂ q : Level
-    A I O         : Type a
-    P Q R         : A → Type p
-    ext f i k o s : A
+    a ℓ p p₁ p₂ q s : Level
+    A I O           : Type a
+    P Q R           : A → Type p
+    ext f i k o     : A
 
 ------------------------------------------------------------------------
 -- _⇾_
@@ -58,13 +59,12 @@ f ∘⇾ g = λ i → f i ∘ g i
 
 -- Doubly indexed containers.
 
-record Container₂
-         (I : Type i) (O : Type o) s p :
-         Type (i ⊔ o ⊔ lsuc (s ⊔ p)) where
-  constructor _◁_
+record Container₂ (I : Type i) (O : Type o) s p :
+                  Type (i ⊔ o ⊔ lsuc (s ⊔ p)) where
   field
     Shape    : O → Type s
-    Position : ∀ {o} → Shape o → I → Type p
+    Position : ∀ {o} → Shape o → Type p
+    index    : ∀ {o} {s : Shape o} → Position s → I
 
 open Container₂ public
 
@@ -77,6 +77,19 @@ private
   variable
     C : Container₂ I O s p
 
+-- Container₂ can be expressed as a nested Σ-type.
+
+Container≃Σ :
+  Container₂ I O s p ≃
+  (∃ λ (S : O → Type s) →
+   ∃ λ (P : ∀ {o} → S o → Type p) →
+     ∀ {o} {s : S o} → P s → I)
+Container≃Σ = Eq.↔→≃
+  (λ C → C .Shape , C .Position , C .index)
+  (λ (S , P , i) → record { Shape = S; Position = P; index = i })
+  refl
+  refl
+
 ------------------------------------------------------------------------
 -- Polynomial functors
 
@@ -84,13 +97,13 @@ private
 
 ⟦_⟧ :
   {I : Type i} {O : Type o} →
-  Container₂ I O s p → (I → Type ℓ) → O → Type (ℓ ⊔ i ⊔ s ⊔ p)
-⟦ S ◁ P ⟧ Q o = ∃ λ (s : S o) → P s ⇾ Q
+  Container₂ I O s p → (I → Type ℓ) → O → Type (ℓ ⊔ s ⊔ p)
+⟦ C ⟧ P i = ∃ λ (s : Shape C i) → (p : Position C s) → P (index C p)
 
 -- A map function.
 
 map : (C : Container₂ I O s p) → P ⇾ Q → ⟦ C ⟧ P ⇾ ⟦ C ⟧ Q
-map C f _ (s , g) = s , f ∘⇾ g
+map C f _ (s , g) = s , f _ ∘ g
 
 -- Functor laws.
 
@@ -106,17 +119,13 @@ map-∘ _ _ = refl _
 
 ⟦⟧-cong :
   {I : Type i} {P₁ : I → Type p₁} {P₂ : I → Type p₂} →
-  Extensionality? k (i ⊔ p) (p ⊔ p₁ ⊔ p₂) →
+  Extensionality? k p (p₁ ⊔ p₂) →
   (C : Container₂ I O s p) →
   (∀ i → P₁ i ↝[ k ] P₂ i) →
   (∀ o → ⟦ C ⟧ P₁ o ↝[ k ] ⟦ C ⟧ P₂ o)
-⟦⟧-cong {i = i} {k = k} {p = p} {P₁ = Q₁} {P₂ = Q₂}
-        ext (S ◁ P) Q₁↝Q₂ o =
-  (∃ λ (s : S o) → P s ⇾ Q₁)  ↝⟨ (∃-cong λ _ →
-                                  ∀-cong (lower-extensionality? k p lzero ext) λ _ →
-                                  ∀-cong (lower-extensionality? k i p ext) λ _ →
-                                  Q₁↝Q₂ _) ⟩□
-  (∃ λ (s : S o) → P s ⇾ Q₂)  □
+⟦⟧-cong {P₁ = P₁} {P₂ = P₂} ext C P₁↝P₂ o =
+  (∃ λ (s : Shape C o) → (p : Position C s) → P₁ (index C p))  ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → P₁↝P₂ _) ⟩□
+  (∃ λ (s : Shape C o) → (p : Position C s) → P₂ (index C p))  □
 
 -- The forward direction of ⟦⟧-cong is an instance of map (at least
 -- when k is equivalence).
@@ -134,9 +143,9 @@ _ = refl _
 Shape≃⟦⟧⊤ :
   (C : Container₂ I O s p) →
   Shape C o ≃ ⟦ C ⟧ (λ _ → ⊤) o
-Shape≃⟦⟧⊤ {o = o} (S ◁ P) =
-  S o                                ↔⟨ inverse $ drop-⊤-right (λ _ → →-right-zero F.∘ inverse currying) ⟩□
-  (∃ λ (s : S o) → ∀ i → P s i → ⊤)  □
+Shape≃⟦⟧⊤ {o = o} C =
+  Shape C o                                 ↔⟨ inverse $ drop-⊤-right (λ _ → →-right-zero) ⟩□
+  (∃ λ (s : Shape C o) → Position C s → ⊤)  □
 
 ------------------------------------------------------------------------
 -- Coalgebras
@@ -305,7 +314,7 @@ Final′→Final≃Final :
   Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
   ((X , _) (Y , _) : Final-coalgebra′ C) →
   Final X ↝[ k ] Final Y
-Final′→Final≃Final {s = s} {p = p} {k = k} {C = C}
+Final′→Final≃Final {i = i} {s = s} {p = p} {k = k} {C = C}
   ext′ ext ((X₁ , out₁) , final₁) ((X₂ , out₂) , final₂) =
   ∀-cong ext′ λ Y@(_ , f) →
   H-level-cong
@@ -328,7 +337,7 @@ Final′→Final≃Final {s = s} {p = p} {k = k} {C = C}
        map C (_≃_.to (lemma₂ Y) g) ∘⇾ f         □)
   where
   ext₁ = lower-extensionality (s ⊔ p) lzero ext
-  ext₂ = lower-extensionality s       lzero ext
+  ext₂ = lower-extensionality (i ⊔ s) lzero ext
 
   lemma₁ : ∀ i → X₁ i ≃ X₂ i
   lemma₁ =
@@ -373,8 +382,7 @@ Final-coalgebra-propositional :
   Extensionality (lsuc (i ⊔ s ⊔ p)) (lsuc (i ⊔ s ⊔ p)) →
   Univalence (i ⊔ s ⊔ p) →
   Is-proposition (Final-coalgebra C)
-Final-coalgebra-propositional
-  {I = I} {C = C@(S ◁ P)}
+Final-coalgebra-propositional {I = I} {C = C}
   ext univ F₁@((P₁ , out₁) , _) F₂@(X₂@(P₂ , out₂) , _) =
   block λ b →
   Σ-≡,≡→≡ (Σ-≡,≡→≡ (lemma₁ b) (lemma₂ b))
@@ -419,14 +427,17 @@ Final-coalgebra-propositional
                                                                           _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
     _≃_.from (lemma₀ b i) x                                            ∎
 
-  lemma₁-lemma₃ : ∀ b (f : P s ⇾ P₁) i p → _ ≡ _
-  lemma₁-lemma₃ b f i p =
-    subst (_$ i) (lemma₁ b) (f i p)                                    ≡⟨⟩
-    subst (_$ i) (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i)) (f i p)  ≡⟨ Eq.subst-good-ext ext₁′ _ _ ⟩
-    subst id (≃⇒≡ univ (lemma₀ b i)) (f i p)                           ≡⟨ subst-id-in-terms-of-≡⇒↝ equivalence ⟩
-    ≡⇒→ (≃⇒≡ univ (lemma₀ b i)) (f i p)                                ≡⟨ cong (λ eq → _≃_.to eq _) $
-                                                                          _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
-    _≃_.to (lemma₀ b i) (f i p)                                        ∎
+  lemma₁-lemma₃ = λ b i _ f p →
+    subst (λ P → P (index C p)) (lemma₁ b) (f p)          ≡⟨⟩
+
+    subst (λ P → P (index C p))
+      (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i)) (f p)  ≡⟨ Eq.subst-good-ext ext₁′ _ _ ⟩
+
+    subst id (≃⇒≡ univ (lemma₀ b (index C p))) (f p)      ≡⟨ subst-id-in-terms-of-≡⇒↝ equivalence ⟩
+
+    ≡⇒→ (≃⇒≡ univ (lemma₀ b (index C p))) (f p)           ≡⟨ cong (λ eq → _≃_.to eq _) $
+                                                             _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
+    _≃_.to (lemma₀ b (index C p)) (f p)                   ∎
 
   lemma₂ = λ b →
     apply-ext (lower-extensionality _ _ ext) λ i →
@@ -464,29 +475,89 @@ Final-coalgebra-propositional
     subst (λ P → ⟦ C ⟧ P i) (lemma₁ b)
       (out₁ i (_≃_.from (lemma₀ b i) x))                                 ≡⟨⟩
 
-    subst (λ Q → ∃ λ (s : S i) → P s ⇾ Q) (lemma₁ b)
+    subst (λ P → ∃ λ (s : Shape C i) → ∀ p → P (index C p))
+      (lemma₁ b)
       (out₁ i (_≃_.from (lemma₀ b i) x))                                 ≡⟨ push-subst-pair-× _ _ ⟩
 
     (let s , f = out₁ i (_≃_.from (lemma₀ b i) x) in
-     s , subst (λ Q → P s ⇾ Q) (lemma₁ b) f)                             ≡⟨ (let s , _ = out₁ i (_≃_.from (lemma₀ b i) x) in
-                                                                             cong (s ,_) $
-                                                                             apply-ext (lower-extensionality _ _ ext) λ _ → sym $
+     s , subst (λ P → (p : Position C s) → P (index C p)) (lemma₁ b) f)  ≡⟨ (let s , _ = out₁ i (_≃_.from (lemma₀ b i) x) in
+                                                                             cong (s ,_) $ apply-ext (lower-extensionality _ _ ext) λ _ → sym $
                                                                              push-subst-application _ _) ⟩
     (let s , f = out₁ i (_≃_.from (lemma₀ b i) x) in
-     s , λ i → subst (λ Q → P s i → Q i) (lemma₁ b) (f i))               ≡⟨ (let s , _ = out₁ i (_≃_.from (lemma₀ b i) x) in
-                                                                             cong (s ,_) $
-                                                                             apply-ext (lower-extensionality _ _ ext) λ _ →
-                                                                             apply-ext (lower-extensionality _ _ ext) λ _ → sym $
-                                                                             push-subst-application _ _) ⟩
+     s , λ p → subst (λ P → P (index C p)) (lemma₁ b) (f p))             ≡⟨ (let _ , f = out₁ i (_≃_.from (lemma₀ b i) x) in
+                                                                             cong (_ ,_) $ apply-ext (lower-extensionality _ _ ext) $
+                                                                             lemma₁-lemma₃ b i x f) ⟩
     (let s , f = out₁ i (_≃_.from (lemma₀ b i) x) in
-     s , λ i p → subst (_$ i) (lemma₁ b) (f i p))                        ≡⟨ (let _ , f = out₁ i (_≃_.from (lemma₀ b i) x) in
-                                                                             cong (_ ,_) $
-                                                                             apply-ext (lower-extensionality _ _ ext) λ i →
-                                                                             apply-ext (lower-extensionality _ _ ext) $
-                                                                             lemma₁-lemma₃ b f i) ⟩
-    (let s , f = out₁ i (_≃_.from (lemma₀ b i) x) in
-     s , λ i p → _≃_.to (lemma₀ b i) (f i p))                            ≡⟨⟩
+     s , λ p → _≃_.to (lemma₀ b (index C p)) (f p))                      ≡⟨⟩
 
     map C (_≃_.to ∘ lemma₀ b) i (out₁ i (_≃_.from (lemma₀ b i) x))       ≡⟨ lemma₀-lemma b x ⟩∎
 
     out₂ i x                                                             ∎
+
+------------------------------------------------------------------------
+-- Lifting the position type family
+
+-- One can lift the position type family so that it is in a universe
+-- that is at least as large as that containing the input indices.
+
+lift-positions :
+  {I : Type i} →
+  Container₂ I O s p → Container₂ I O s (i ⊔ p)
+lift-positions {i = i} C = λ where
+  .Shape          → C .Shape
+  .Position s     → ↑ i (C .Position s)
+  .index (lift p) → C .index p
+
+-- The result of ⟦_⟧ is not affected by lift-positions (up to
+-- pointwise equivalence, assuming extensionality).
+
+⟦⟧≃⟦lift-positions⟧ :
+  {I : Type i} →
+  Extensionality? k (i ⊔ p) ℓ →
+  (C : Container₂ I O s p) (P : I → Type ℓ) →
+  ⟦ C ⟧ P o ↝[ k ] ⟦ lift-positions C ⟧ P o
+⟦⟧≃⟦lift-positions⟧ {o = o} ext C P =
+  ∃-cong λ s →
+
+  ((      p  :      Position C s)  → P (index C p))  ↝⟨ inverse-ext? (λ ext → Π-cong ext B.↑↔ λ _ → F.id) ext ⟩□
+  (((lift p) : ↑ _ (Position C s)) → P (index C p))  □
+
+-- The definition of coalgebras is not affected by lift-positions (up
+-- to pointwise equivalence, assuming extensionality).
+
+Coalgebra≃Coalgebra-lift-positions :
+  {I : Type i} {C : Container I s p} →
+  Extensionality? k (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
+  Coalgebra C ↝[ k ] Coalgebra (lift-positions C)
+Coalgebra≃Coalgebra-lift-positions
+  {i = i} {s = s} {p = p} {k = k} {C = C} ext =
+
+  (∃ λ P → P ⇾ ⟦                C ⟧ P)  ↝⟨ (∃-cong λ P →
+                                            ∀-cong (lower-extensionality? k l lzero ext) λ _ →
+                                            ∀-cong (lower-extensionality? k l lzero ext) λ _ →
+                                            ⟦⟧≃⟦lift-positions⟧ (lower-extensionality? k l lzero ext) C P) ⟩□
+  (∃ λ P → P ⇾ ⟦ lift-positions C ⟧ P)  □
+  where
+  l = i ⊔ s ⊔ p
+
+-- The definition of coalgebra morphisms is not affected by
+-- lift-positions (in a certain sense, assuming extensionality).
+
+⇨≃⇨-lift-positions :
+  {I : Type i} {C : Container I s p}
+  (ext : Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p)) →
+  (X Y : Coalgebra C) →
+  (X ⇨ Y) ≃
+  (_≃_.to (Coalgebra≃Coalgebra-lift-positions ext) X ⇨
+   _≃_.to (Coalgebra≃Coalgebra-lift-positions ext) Y)
+⇨≃⇨-lift-positions {i = i} {s = s} {p = p} {C = C} ext (P , f) (Q , g) =
+  (∃ λ (h : P ⇾ Q) → g ∘⇾ h ≡ map _ h ∘⇾ f)      ↝⟨ (∃-cong λ _ → inverse $
+                                                     Eq.≃-≡ $
+                                                     ∀-cong (lower-extensionality l lzero ext) λ _ →
+                                                     ∀-cong (lower-extensionality l lzero ext) λ _ →
+                                                     ⟦⟧≃⟦lift-positions⟧ (lower-extensionality l lzero ext) C Q) ⟩□
+  (∃ λ (h : P ⇾ Q) →
+     (Σ-map id (_∘ lower) ∘_) ∘ (g ∘⇾ h) ≡
+     (Σ-map id (_∘ lower) ∘_) ∘ (map _ h ∘⇾ f))  □
+  where
+  l = i ⊔ s ⊔ p
