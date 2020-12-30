@@ -441,7 +441,7 @@ H-level-M :
   {I : Type i} {C : Container I s p} →
   Univalence (i ⊔ s ⊔ p) →
   Univalence (i ⊔ p) →
-  (∀ {i} → H-level n (Shape C i)) →
+  (∀ i → H-level n (Shape C i)) →
   ∀ {i} → H-level n (M C i)
 H-level-M {C = C} univ₁ univ₂ h =
   F.H-level-final-coalgebra

@@ -1096,7 +1096,7 @@ _ = refl _
 H-level-M :
   Extensionality p (i ⊔ s ⊔ p) →
   {I : Type i} {C : Container I s p} {i : I} →
-  (∀ {i} → H-level n (Shape C i)) →
+  (∀ i → H-level n (Shape C i)) →
   H-level n (M C i)
 H-level-M {p = p} {i = iℓ} {n = m} ext {C = C} hyp =
   Σ-closure m
@@ -1110,7 +1110,7 @@ H-level-M {p = p} {i = iℓ} {n = m} ext {C = C} hyp =
   step :
     ∀ P → (∀ {i} → H-level m (P i)) → (∀ {i} → H-level m (⟦ C ⟧ P i))
   step P h =
-    Σ-closure m hyp λ _ →
+    Σ-closure m (hyp _) λ _ →
     Π-closure ext m λ _ →
     h
 
@@ -1127,19 +1127,19 @@ H-level-final-coalgebra′ :
   Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
   {I : Type i} {C : Container I s p} {i : I} →
   (((X , _) , _) : Final-coalgebra′ C) →
-  (∀ {i} → H-level n (Shape C i)) →
+  (∀ i → H-level n (Shape C i)) →
   H-level n (X i)
 H-level-final-coalgebra′
   {i = iℓ} {s = s} {n = n} ext {C = C} {i = i} F@((X , _) , _) =
   block λ b →
 
-  (∀ {i} → H-level n (Shape C i))  ↝⟨ H-level-M ext′ ⟩
-  H-level n (M C i)                ↝⟨ H-level-cong _ n $
-                                      carriers-of-final-coalgebras-equivalent′
-                                        (Final-coalgebra→Final-coalgebra′ $
-                                         M-coalgebra b ext′ C , M-final b ext′ ext)
-                                        F _ ⟩□
-  H-level n (X i)                  □
+  (∀ i → H-level n (Shape C i))  ↝⟨ H-level-M ext′ ⟩
+  H-level n (M C i)              ↝⟨ H-level-cong _ n $
+                                    carriers-of-final-coalgebras-equivalent′
+                                      (Final-coalgebra→Final-coalgebra′ $
+                                       M-coalgebra b ext′ C , M-final b ext′ ext)
+                                      F _ ⟩□
+  H-level n (X i)                □
   where
   ext′ = lower-extensionality (iℓ ⊔ s) lzero ext
 
@@ -1150,7 +1150,7 @@ H-level-final-coalgebra :
   Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
   {I : Type i} {C : Container I s p} {i : I} →
   (((X , _) , _) : Final-coalgebra C) →
-  (∀ {i} → H-level n (Shape C i)) →
+  (∀ i → H-level n (Shape C i)) →
   H-level n (X i)
 H-level-final-coalgebra ext =
   H-level-final-coalgebra′ ext ∘
