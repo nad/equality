@@ -1752,6 +1752,43 @@ Is-equivalence≃Is-equivalence-CP =
     Eq.inverse-logical-equivalence
     Eq.inverse-isomorphism
 
+-- Two consequences of the two-out-of-three property.
+
+Is-equivalence≃Is-equivalence-∘ˡ :
+  ∀ {k a b c} {A : Type a} {B : Type b} {C : Type c}
+    {f : B → C} {g : A → B} →
+  Extensionality? k (a ⊔ b ⊔ c) (a ⊔ b ⊔ c) →
+  Is-equivalence f →
+  Is-equivalence g ↝[ k ] Is-equivalence (f ∘ g)
+Is-equivalence≃Is-equivalence-∘ˡ {b = b} {c = c} ext f-eq =
+  generalise-ext?-prop
+    (record
+       { to   = flip (Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _))
+                  f-eq
+       ; from = Eq.Two-out-of-three.g-g∘f (Eq.two-out-of-three _ _) f-eq
+       })
+    (flip Eq.propositional _ ⊚ lower-extensionality c c)
+    (flip Eq.propositional _ ⊚ lower-extensionality b b)
+    ext
+
+Is-equivalence≃Is-equivalence-∘ʳ :
+  ∀ {k a b c} {A : Type a} {B : Type b} {C : Type c}
+    {f : B → C} {g : A → B} →
+  Extensionality? k (a ⊔ b ⊔ c) (a ⊔ b ⊔ c) →
+  Is-equivalence g →
+  Is-equivalence f ↝[ k ] Is-equivalence (f ∘ g)
+Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} ext g-eq =
+  generalise-ext?-prop
+    (record
+       { to   = Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _) g-eq
+       ; from = flip
+                  (Eq.Two-out-of-three.g∘f-f (Eq.two-out-of-three _ _))
+                  g-eq
+       })
+    (flip Eq.propositional _ ⊚ lower-extensionality a a)
+    (flip Eq.propositional _ ⊚ lower-extensionality b b)
+    ext
+
 ------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring
 
