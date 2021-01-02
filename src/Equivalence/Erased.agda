@@ -905,14 +905,15 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
              (_≃ᴱ_.right-inverse-of B≃A x)
              (_≃ᴱ_.from (P≃Q (_≃ᴱ_.from B≃A x)) (f (_≃ᴱ_.from B≃A x)))   ∎)
 
-  -- Is-equivalenceᴱ respects erased extensional equality.
+  -- Is-equivalenceᴱ f is equivalent to Is-equivalenceᴱ g if f and g
+  -- are pointwise equal (assuming extensionality).
 
-  Is-equivalenceᴱ-respects-extensional-equality :
+  Is-equivalenceᴱ-cong :
     {A : Type a} {B : Type b} {@0 f g : A → B} →
     @0 Extensionality? k (a ⊔ b) (a ⊔ b) →
     @0 (∀ x → f x ≡ g x) →
     Is-equivalenceᴱ f ↝[ k ] Is-equivalenceᴱ g
-  Is-equivalenceᴱ-respects-extensional-equality
+  Is-equivalenceᴱ-cong
     {a = a} {b = b} {f = f} {g = g} ext f≡g =
     generalise-erased-ext?
       (record { to = to f≡g; from = to (sym ⊚ f≡g) })
@@ -1014,7 +1015,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   23→1 :
     Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f
   23→1 {g = g} {f = f} q r =
-    Is-equivalenceᴱ-respects-extensional-equality
+    Is-equivalenceᴱ-cong
       _
       (λ x →
          _≃ᴱ_.from ⟨ g , q ⟩ (g (f x))  ≡⟨ _≃ᴱ_.left-inverse-of ⟨ g , q ⟩ (f x) ⟩∎
@@ -1027,7 +1028,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   31→2 :
     Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f → Is-equivalenceᴱ g
   31→2 {g = g} {f = f} r p =
-    Is-equivalenceᴱ-respects-extensional-equality
+    Is-equivalenceᴱ-cong
       _
       (λ x →
          g (f (_≃ᴱ_.from ⟨ f , p ⟩ x))  ≡⟨ cong g (_≃ᴱ_.right-inverse-of ⟨ f , p ⟩ x) ⟩∎
@@ -1048,8 +1049,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     A ≃ᴱ B
   with-other-function ⟨ g , is-equivalence ⟩ f g≡f =
     ⟨ f
-    , Is-equivalenceᴱ-respects-extensional-equality _ g≡f
-        is-equivalence
+    , Is-equivalenceᴱ-cong _ g≡f is-equivalence
     ⟩
 
   _ : _≃ᴱ_.to (with-other-function A≃B f p) ≡ f
