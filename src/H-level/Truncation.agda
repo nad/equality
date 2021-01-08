@@ -22,22 +22,24 @@ open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
-import Equivalence equality-with-J as Eq
+open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
+open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as TP using (∥_∥)
 open import Monad equality-with-J
 open import Nat equality-with-J as Nat using (_≤_; min)
 open import Pointed-type equality-with-J
 open import Sphere eq
 open import Suspension eq as Susp using (north)
+open import Univalence-axiom equality-with-J
 
 private
   variable
     a b ℓ p : Level
     A B     : Type a
     P       : A → Type p
-    e x     : A
+    e x y   : A
     f g r   : A → B
     m n     : ℕ
     k       : Isomorphism-kind
@@ -340,6 +342,110 @@ universal-property h = record
       (H-level (1 + n) ∥ A ∥[1+ n ] ↔ H-level (1 + n) A)  ↝⟨ (λ hyp → _↔_.to hyp (truncation-has-correct-h-level _)) ⟩□
       H-level (1 + n) A                                   □
   }
+
+-- The (1 + n)-truncation of x ≡ y, where x and y have type A, is
+-- equivalent to the equality of ∣ x ∣ and ∣ y ∣ (as elements of the
+-- (2 + n)-truncation of A), assuming univalence.
+--
+-- Along with the fact that this lemma computes in a certain way (see
+-- below) this is more or less Theorem 7.3.12 from the HoTT book.
+
+∥≡∥≃∣∣≡∣∣ :
+  {A : Type a} {x y : A} →
+  Univalence a →
+  ∥ x ≡ y ∥[1+ n ] ≃ _≡_ {A = ∥ A ∥[1+ suc n ]} ∣ x ∣ ∣ y ∣
+∥≡∥≃∣∣≡∣∣ {n = n} {A = A} univ = Eq.↔→≃
+  (decode ∣ _ ∣ ∣ _ ∣)
+  (encode ∣ _ ∣ ∣ _ ∣)
+  (decode-encode _)
+  (encode-decode _ _)
+  where
+  Eq : (_ _ : ∥ A ∥[1+ suc n ]) → ∃ λ (B : Type _) → H-level (suc n) B
+  Eq = rec λ where
+    .h-levelʳ →
+      Π-closure ext (2 + n) λ _ →
+      ∃-H-level-H-level-1+ ext univ (1 + n)
+    .∣∣ʳ x → rec λ where
+      .h-levelʳ → ∃-H-level-H-level-1+ ext univ (1 + n)
+      .∣∣ʳ y →
+        ∥ x ≡ y ∥[1+ n ] , truncation-has-correct-h-level n
+
+  Eq-refl : (x : ∥ A ∥[1+ suc n ]) → proj₁ (Eq x x)
+  Eq-refl = elim λ where
+    .∣∣ʳ x      → ∣ refl x ∣
+    .h-levelʳ x → mono₁ (1 + n) $ proj₂ (Eq x x)
+
+  decode : ∀ x y → proj₁ (Eq x y) → x ≡ y
+  decode = elim λ where
+    .h-levelʳ _ →
+      Π-closure ext (2 + n) λ _ →
+      Π-closure ext (2 + n) λ _ →
+      mono₁ (2 + n) $ truncation-has-correct-h-level (1 + n)
+    .∣∣ʳ x → elim λ where
+      .h-levelʳ _ →
+        Π-closure ext (2 + n) λ _ →
+        mono₁ (2 + n) $ truncation-has-correct-h-level (1 + n)
+      .∣∣ʳ y → rec λ where
+        .h-levelʳ → truncation-has-correct-h-level (1 + n)
+        .∣∣ʳ      → cong ∣_∣
+
+  encode : ∀ x y → x ≡ y → proj₁ (Eq x y)
+  encode x y x≡y = subst (λ y → proj₁ (Eq x y)) x≡y (Eq-refl x)
+
+  decode-encode : ∀ x (x≡y : x ≡ y) → decode x y (encode x y x≡y) ≡ x≡y
+  decode-encode = elim λ where
+    .h-levelʳ _ →
+      Π-closure ext (2 + n) λ _ →
+      mono₁ (3 + n) $ mono₁ (2 + n) $
+      truncation-has-correct-h-level (1 + n)
+    .∣∣ʳ x → elim¹
+      (λ x≡y → decode _ _ (encode _ _ x≡y) ≡ x≡y)
+      (decode (∣ x ∣) (∣ x ∣) (encode ∣ x ∣ ∣ x ∣ (refl ∣ x ∣))      ≡⟨⟩
+
+       decode (∣ x ∣) (∣ x ∣)
+         (subst (λ y → proj₁ (Eq ∣ x ∣ y)) (refl ∣ x ∣) ∣ refl x ∣)  ≡⟨ cong (decode _ _) $ subst-refl _ _ ⟩
+
+       decode (∣ x ∣) (∣ x ∣) (∣ refl x ∣)                           ≡⟨⟩
+
+       cong ∣_∣ (refl x)                                             ≡⟨ cong-refl _ ⟩∎
+
+       refl ∣ x ∣                                                    ∎)
+
+  encode-decode :
+    ∀ x y (eq : proj₁ (Eq x y)) → encode x y (decode x y eq) ≡ eq
+  encode-decode = elim λ where
+    .h-levelʳ x →
+       Π-closure ext (2 + n) λ y →
+       Π-closure ext (2 + n) λ _ →
+       mono₁ (2 + n) $ mono₁ (1 + n) $
+       proj₂ (Eq x y)
+    .∣∣ʳ x → elim λ where
+      .h-levelʳ y →
+        Π-closure ext (2 + n) λ _ →
+        mono₁ (2 + n) $ mono₁ (1 + n) $
+        proj₂ (Eq ∣ x ∣ y)
+      .∣∣ʳ y → elim λ where
+        .h-levelʳ _ →
+          mono₁ (1 + n) $ truncation-has-correct-h-level n
+        .∣∣ʳ eq →
+          encode ∣ x ∣ ∣ y ∣ (decode (∣ x ∣) (∣ y ∣) (∣ eq ∣))         ≡⟨⟩
+          subst (λ y → proj₁ (Eq ∣ x ∣ y)) (cong ∣_∣ eq) (∣ refl x ∣)  ≡⟨ sym $ subst-∘ _ _ _ ⟩
+          subst (λ y → proj₁ (Eq ∣ x ∣ ∣ y ∣)) eq (∣ refl x ∣)         ≡⟨⟩
+          subst (λ y → ∥ x ≡ y ∥[1+ n ]) eq (∣ refl x ∣)               ≡⟨ elim¹
+                                                                            (λ eq → subst (λ y → ∥ x ≡ y ∥[1+ n ]) eq (∣ refl x ∣) ≡
+                                                                                    ∣ subst (x ≡_) eq (refl x) ∣)
+                                                                            (trans (subst-refl _ _) $
+                                                                             cong ∣_∣ $ sym $ subst-refl _ _)
+                                                                            _ ⟩
+          ∣ subst (x ≡_) eq (refl x) ∣                                 ≡⟨ cong ∣_∣ $ sym trans-subst ⟩
+          ∣ trans (refl x) eq ∣                                        ≡⟨ cong ∣_∣ $ trans-reflˡ _ ⟩∎
+          ∣ eq ∣                                                       ∎
+
+_ :
+  {A : Type a} {x y : A} {univ : Univalence a}
+  {x≡y : x ≡ y} →
+  _≃_.to (∥≡∥≃∣∣≡∣∣ {n = n} univ) ∣ x≡y ∣ ≡ cong ∣_∣ x≡y
+_ = refl _
 
 -- Nested truncations where the inner truncation's h-level is at least
 -- as large as the outer truncation's h-level can be flattened.
