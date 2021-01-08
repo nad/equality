@@ -5,9 +5,8 @@
 -- Nils Anders Danielsson
 ------------------------------------------------------------------------
 
--- Note that the code does not follow the paper exactly. For instance,
--- some definitions use bijections (functions with quasi-inverses)
--- instead of equivalences.
+-- Note that the code does not follow the paper exactly, and that some
+-- of the code has been changed after the paper was published.
 
 {-# OPTIONS --cubical --safe #-}
 

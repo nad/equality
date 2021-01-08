@@ -34,13 +34,13 @@ open import Suspension eq as Susp using (north)
 
 private
   variable
-    a ℓ p : Level
-    A B   : Type a
-    P     : A → Type p
-    x     : A
-    f g r : A → B
-    m n   : ℕ
-    k     : Isomorphism-kind
+    a b ℓ p : Level
+    A B     : Type a
+    P       : A → Type p
+    e x     : A
+    f g r   : A → B
+    m n     : ℕ
+    k       : Isomorphism-kind
 
 -- A truncation operator for positive h-levels.
 
@@ -93,80 +93,126 @@ truncation-has-correct-h-level {A = A} n =
 
 -- A dependent eliminator, expressed using paths.
 
-elimᴾ :
-  (P : ∥ A ∥[1+ n ] → Type p)
-  (f : ∀ x → P ∣ x ∣)
-  (h : (r : 𝕊 n → ∥ A ∥[1+ n ]) →
-       (∀ x → P (r x)) →
-       P (hub r)) →
-  ((r : 𝕊 n → ∥ A ∥[1+ n ])
-   (p : ∀ x → P (r x))
-   (x : 𝕊 n) →
-   P.[ (λ i → P (spokeᴾ r x i)) ] p x ≡ h r p) →
-  ∀ x → P x
-elimᴾ P f h s = λ where
-  ∣ x ∣          → f x
-  (hub r)        → h r (λ x → elimᴾ P f h s (r x))
-  (spokeᴾ r x i) → s r (λ x → elimᴾ P f h s (r x)) x i
+record Elimᴾ {A : Type a} (P : ∥ A ∥[1+ n ] → Type p) :
+             Type (a ⊔ p) where
+  no-eta-equality
+  field
+    ∣∣ʳ    : ∀ x → P ∣ x ∣
+    hubʳ   : (r : 𝕊 n → ∥ A ∥[1+ n ]) →
+             (∀ x → P (r x)) →
+             P (hub r)
+    spokeʳ : (r : 𝕊 n → ∥ A ∥[1+ n ])
+             (p : ∀ x → P (r x))
+             (x : 𝕊 n) →
+             P.[ (λ i → P (spokeᴾ r x i)) ] p x ≡ hubʳ r p
+
+open Elimᴾ public
+
+elimᴾ : Elimᴾ P → ∀ x → P x
+elimᴾ {P = P} e = helper
+  where
+  module E = Elimᴾ e
+
+  helper : ∀ x → P x
+  helper ∣ x ∣          = E.∣∣ʳ x
+  helper (hub r)        = E.hubʳ r (λ x → helper (r x))
+  helper (spokeᴾ r x i) = E.spokeʳ r (λ x → helper (r x)) x i
 
 -- A non-dependent eliminator, expressed using paths.
 
-recᴾ :
-  (f : A → B)
-  (h : (r : 𝕊 n → ∥ A ∥[1+ n ]) → (𝕊 n → B) → B) →
-  ((r : 𝕊 n → ∥ A ∥[1+ n ]) (p : 𝕊 n → B) (x : 𝕊 n) → p x P.≡ h r p) →
-  ∥ A ∥[1+ n ] → B
-recᴾ = elimᴾ _
+record Recᴾ (n : ℕ) (A : Type a) (B : Type b) : Type (a ⊔ b) where
+  no-eta-equality
+  field
+    ∣∣ʳ    : A → B
+    hubʳ   : (𝕊 n → ∥ A ∥[1+ n ]) → (𝕊 n → B) → B
+    spokeʳ : (r : 𝕊 n → ∥ A ∥[1+ n ]) (p : 𝕊 n → B) (x : 𝕊 n) →
+             p x P.≡ hubʳ r p
+
+open Recᴾ public
+
+recᴾ : Recᴾ n A B → ∥ A ∥[1+ n ] → B
+recᴾ r = elimᴾ eᴾ
+  where
+  module R = Recᴾ r
+
+  eᴾ : Elimᴾ _
+  eᴾ .∣∣ʳ    = r .∣∣ʳ
+  eᴾ .hubʳ   = r .hubʳ
+  eᴾ .spokeʳ = r .spokeʳ
 
 -- A dependent eliminator.
 
-module Elim′
-  (P : ∥ A ∥[1+ n ] → Type p)
-  (f : ∀ x → P ∣ x ∣)
-  (h : (r : 𝕊 n → ∥ A ∥[1+ n ]) →
-       (∀ x → P (r x)) →
-       P (hub r))
-  (s : (r : 𝕊 n → ∥ A ∥[1+ n ])
-       (p : ∀ x → P (r x))
-       (x : 𝕊 n) →
-       subst P (spoke r x) (p x) ≡ h r p)
-  where
-
-  elim′ : ∀ x → P x
-  elim′ = elimᴾ P f h (λ r p x → subst≡→[]≡ (s r p x))
-
-  elim′-spoke : dcong elim′ (spoke r x) ≡ s r (λ x → elim′ (r x)) x
-  elim′-spoke = dcong-subst≡→[]≡ (refl _)
+record Elim′ {A : Type a} (P : ∥ A ∥[1+ n ] → Type p) :
+             Type (a ⊔ p) where
+  no-eta-equality
+  field
+    ∣∣ʳ    : ∀ x → P ∣ x ∣
+    hubʳ   : (r : 𝕊 n → ∥ A ∥[1+ n ]) →
+             (∀ x → P (r x)) →
+             P (hub r)
+    spokeʳ : (r : 𝕊 n → ∥ A ∥[1+ n ])
+             (p : ∀ x → P (r x))
+             (x : 𝕊 n) →
+             subst P (spoke r x) (p x) ≡ hubʳ r p
 
 open Elim′ public
 
+elim′ : Elim′ P → ∀ x → P x
+elim′ e′ = elimᴾ eᴾ
+  where
+  module E′ = Elim′ e′
+
+  eᴾ : Elimᴾ _
+  eᴾ .∣∣ʳ          = E′.∣∣ʳ
+  eᴾ .hubʳ         = E′.hubʳ
+  eᴾ .spokeʳ r p x = subst≡→[]≡ (E′.spokeʳ r p x)
+
+elim′-spoke :
+  dcong (elim′ e) (spoke r x) ≡
+  Elim′.spokeʳ e r (λ x → elim′ e (r x)) x
+elim′-spoke = dcong-subst≡→[]≡ (refl _)
+
 -- A non-dependent eliminator.
 
-module Rec′
-  (f : A → B)
-  (h : (r : 𝕊 n → ∥ A ∥[1+ n ]) → (𝕊 n → B) → B)
-  (s : (r : 𝕊 n → ∥ A ∥[1+ n ]) (p : 𝕊 n → B) (x : 𝕊 n) → p x ≡ h r p)
-  where
-
-  rec′ : ∥ A ∥[1+ n ] → B
-  rec′ = recᴾ f h (λ r p x → _↔_.to ≡↔≡ (s r p x))
-
-  rec′-spoke : cong rec′ (spoke r x) ≡ s r (λ x → rec′ (r x)) x
-  rec′-spoke = cong-≡↔≡ (refl _)
+record Rec′ (n : ℕ) (A : Type a) (B : Type b) : Type (a ⊔ b) where
+  no-eta-equality
+  field
+    ∣∣ʳ    : A → B
+    hubʳ   : (𝕊 n → ∥ A ∥[1+ n ]) → (𝕊 n → B) → B
+    spokeʳ : (r : 𝕊 n → ∥ A ∥[1+ n ]) (p : 𝕊 n → B) (x : 𝕊 n) →
+             p x ≡ hubʳ r p
 
 open Rec′ public
+
+rec′ : Rec′ n A B → ∥ A ∥[1+ n ] → B
+rec′ r′ = recᴾ rᴾ
+  where
+  module R′ = Rec′ r′
+
+  rᴾ : Recᴾ _ _ _
+  rᴾ .∣∣ʳ          = R′.∣∣ʳ
+  rᴾ .hubʳ         = R′.hubʳ
+  rᴾ .spokeʳ r p x = _↔_.to ≡↔≡ (R′.spokeʳ r p x)
+
+rec′-spoke :
+  cong (rec′ e) (spoke r x) ≡ Rec′.spokeʳ e r (λ x → rec′ e (r x)) x
+rec′-spoke = cong-≡↔≡ (refl _)
 
 -- A dependent eliminator that can be used when the motive is a family
 -- of types, all of a certain h-level.
 
-elim :
-  (P : ∥ A ∥[1+ n ] → Type p) →
-  (∀ x → H-level (1 + n) (P x)) →
-  (∀ x → P ∣ x ∣) →
-  ∀ x → P x
-elim {A = A} {n = n} P P-h f = elim′ P f h s
-  where
+record Elim {A : Type a} (P : ∥ A ∥[1+ n ] → Type p) :
+            Type (a ⊔ p) where
+  no-eta-equality
+  field
+    ∣∣ʳ      : ∀ x → P ∣ x ∣
+    h-levelʳ : ∀ x → H-level (1 + n) (P x)
 
+open Elim public
+
+elim : Elim {n = n} {A = A} P → ∀ x → P x
+elim {n = n} {A = A} {P = P} e = elim′ e′
+  where
   module _ (r : 𝕊 n → ∥ A ∥[1+ n ]) (p : ∀ x → P (r x)) where
 
     h′ : 𝕊 n → P (hub r)
@@ -174,7 +220,7 @@ elim {A = A} {n = n} P P-h f = elim′ P f h s
 
     h = h′ north
 
-    lemma =                                                    $⟨ P-h ⟩
+    lemma =                                                    $⟨ e .h-levelʳ ⟩
       (∀ x → H-level (1 + n) (P x))                            ↝⟨ _$ _ ⟩
       H-level (1 + n) (P (hub r))                              ↔⟨ +↔∀contractible𝕊→ᴮ ⟩
       (∀ h → Contractible ((𝕊 n , north) →ᴮ (P (hub r) , h)))  ↝⟨ _$ _ ⟩
@@ -187,11 +233,26 @@ elim {A = A} {n = n} P P-h f = elim′ P f h s
       const h x                  ≡⟨⟩
       h                          ∎
 
+  e′ : Elim′ _
+  e′ .∣∣ʳ    = e .∣∣ʳ
+  e′ .hubʳ   = h
+  e′ .spokeʳ = s
+
 -- A non-dependent eliminator that can be used when the motive is a
 -- type of a certain h-level.
 
-rec : H-level (1 + n) B → (A → B) → ∥ A ∥[1+ n ] → B
-rec B-h = elim _ (const B-h)
+record Rec (n : ℕ) (A : Type a) (B : Type b) : Type (a ⊔ b) where
+  no-eta-equality
+  field
+    ∣∣ʳ      : A → B
+    h-levelʳ : H-level (1 + n) B
+
+open Rec public
+
+rec : Rec n A B → ∥ A ∥[1+ n ] → B
+rec r = elim λ where
+  .∣∣ʳ        → r .∣∣ʳ
+  .h-levelʳ _ → r .h-levelʳ
 
 -- Dependent functions into P that agree on the image of ∣_∣ agree
 -- everywhere, if P is a family of types that all have a certain
@@ -202,7 +263,9 @@ uniqueness′ :
   (∀ x → H-level (2 + n) (P x)) →
   ((x : A) → f ∣ x ∣ ≡ g ∣ x ∣) →
   ((x : ∥ A ∥[1+ n ]) → f x ≡ g x)
-uniqueness′ {n = n} P-h = elim _ (λ _ → +⇒≡ {n = suc n} (P-h _))
+uniqueness′ {n = n} P-h f≡g = elim λ where
+  .∣∣ʳ        → f≡g
+  .h-levelʳ _ → +⇒≡ {n = suc n} (P-h _)
 
 -- A special case of the previous property.
 
@@ -222,7 +285,9 @@ universal-property h = record
   { surjection = record
     { logical-equivalence = record
       { to   = _∘ ∣_∣
-      ; from = rec h
+      ; from = λ f → rec λ where
+          .∣∣ʳ      → f
+          .h-levelʳ → h
       }
     ; right-inverse-of = refl
     }
@@ -259,14 +324,16 @@ universal-property h = record
   { to = λ h → record
     { surjection = record
       { logical-equivalence = record
-        { to   = rec h id
-        ; from = ∣_∣
+        { from = ∣_∣
+        ; to   = rec λ where
+            .∣∣ʳ      → id
+            .h-levelʳ → h
         }
       ; right-inverse-of = refl
       }
-    ; left-inverse-of = elim _
-        (λ _ → ⇒≡ _ $ truncation-has-correct-h-level _)
-        (λ x → ∣ x ∣  ∎)
+    ; left-inverse-of = elim λ where
+        .∣∣ʳ x      → ∣ x ∣  ∎
+        .h-levelʳ _ → ⇒≡ _ $ truncation-has-correct-h-level _
     }
   ; from =
       ∥ A ∥[1+ n ] ↔ A                                    ↝⟨ H-level-cong ext _ ⟩
@@ -281,11 +348,13 @@ flatten-≥ : m ≤ n → ∥ ∥ A ∥[1+ n ] ∥[1+ m ] ↔ ∥ A ∥[1+ m ]
 flatten-≥ m≤n = record
   { surjection = record
     { logical-equivalence = record
-      { to   = rec (truncation-has-correct-h-level _)
-                   (rec (mono (Nat.suc≤suc m≤n)
-                              (truncation-has-correct-h-level _))
-                        ∣_∣)
-      ; from = ∥∥-map ∣_∣
+      { from = ∥∥-map ∣_∣
+      ; to   = rec λ where
+          .h-levelʳ → truncation-has-correct-h-level _
+          .∣∣ʳ      → rec λ where
+            .∣∣ʳ      → ∣_∣
+            .h-levelʳ → mono (Nat.suc≤suc m≤n)
+                             (truncation-has-correct-h-level _)
       }
     ; right-inverse-of = uniqueness
         (truncation-has-correct-h-level _)
@@ -308,10 +377,11 @@ flatten-≤ : m ≤ n → ∥ ∥ A ∥[1+ m ] ∥[1+ n ] ↔ ∥ A ∥[1+ m ]
 flatten-≤ m≤n = record
   { surjection = record
     { logical-equivalence = record
-      { to   = rec (mono (Nat.suc≤suc m≤n)
-                         (truncation-has-correct-h-level _))
-                   id
-      ; from = ∣_∣
+      { from = ∣_∣
+      ; to   = rec λ where
+          .∣∣ʳ      → id
+          .h-levelʳ → mono (Nat.suc≤suc m≤n)
+                           (truncation-has-correct-h-level _)
       }
     ; right-inverse-of = refl
     }
@@ -340,7 +410,9 @@ flatten {A = A} {m = m} {n = n} = case Nat.total m n of λ where
   { surjection = record
     { logical-equivalence = record
       { to   = TP.rec (truncation-has-correct-h-level 0) ∣_∣
-      ; from = rec TP.truncation-is-proposition TP.∣_∣
+      ; from = rec λ where
+          .∣∣ʳ      → TP.∣_∣
+          .h-levelʳ → TP.truncation-is-proposition
       }
     ; right-inverse-of = λ _ → truncation-has-correct-h-level 0 _ _
     }
