@@ -194,8 +194,8 @@ all-points-on-the-circle-are-¬¬-equal x =
   ¬ ∥ x ≡ base ∥  ↝⟨ _$ all-points-on-the-circle-are-merely-equal x ⟩□
   ⊥               □
 
--- However, it is not the case that every point on the circle is
--- /equal/ to the base point.
+-- It is not the case that every point on the circle is equal to the
+-- base point.
 
 ¬-all-points-on-the-circle-are-equal :
   ¬ ((x : 𝕊¹) → x ≡ base)
