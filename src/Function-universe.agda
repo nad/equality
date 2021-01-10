@@ -3273,6 +3273,33 @@ to∘≡↔≡from∘ ext B≃C =
     equiv = ≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B (_≃_.from A≃B x))
 
 ------------------------------------------------------------------------
+-- A lemma related to _⁻¹_
+
+-- The type of fibres of Σ-map P.id f over a pair is equivalent to the
+-- fibres of f over the pair's second component.
+--
+-- This is Theorem 4.7.6 from the HoTT book.
+
+Σ-map-id-⁻¹≃⁻¹ :
+  ∀ {a p q} {A : Type a} {P : A → Type p} {Q : A → Type q}
+    {f : ∀ {x} → P x → Q x} {x : A} {y : Q x} →
+  Σ-map P.id f ⁻¹ _,_ {B = Q} x y ≃ f ⁻¹ y
+Σ-map-id-⁻¹≃⁻¹ {Q = Q} {f = f} {x = x} {y = y} =
+  Σ-map P.id f ⁻¹ (x , y)                                        ↔⟨⟩
+  (∃ λ (u , v) → (u , f v) ≡ (x , y))                            ↔⟨ inverse Bijection.Σ-assoc ⟩
+  (∃ λ u → ∃ λ v → (u , f v) ≡ (x , y))                          ↔⟨ (∃-cong λ _ → ∃-cong λ _ → inverse
+                                                                     Bijection.Σ-≡,≡↔≡) ⟩
+  (∃ λ u → ∃ λ v → ∃ λ (p : u ≡ x) → subst Q p (f v) ≡ y)        ↔⟨ (∃-cong λ _ → ∃-comm) ⟩
+  (∃ λ u → ∃ λ (p : u ≡ x) → ∃ λ v → subst Q p (f v) ≡ y)        ↔⟨ Bijection.Σ-assoc ⟩
+  (∃ λ ((_ , p) : ∃ λ u → u ≡ x) → ∃ λ v → subst Q p (f v) ≡ y)  ↔⟨ drop-⊤-left-Σ $
+                                                                    _⇔_.to contractible⇔↔⊤ $
+                                                                    singleton-contractible _ ⟩
+  (∃ λ v → subst Q (refl _) (f v) ≡ y)                           ↝⟨ (∃-cong λ _ → ≡⇒↝ _ $ cong (_≡ _) $
+                                                                     subst-refl _ _) ⟩
+  (∃ λ v → f v ≡ y)                                              ↔⟨⟩
+  f ⁻¹ y                                                         □
+
+------------------------------------------------------------------------
 -- Lemmas related to ↑
 
 -- ↑ _ preserves all kinds of functions.
