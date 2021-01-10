@@ -36,6 +36,7 @@ open HA public using
    respects-extensional-equality;
    function-between-contractible-types-is-equivalence;
    drop-Σ-map-id;
+   inverse-drop-Σ-map-id;
    ext⁻¹-is-equivalence)
 
 ------------------------------------------------------------------------

@@ -372,20 +372,31 @@ function-between-contractible-types-is-equivalence f A-contr B-contr =
     ; left-inverse-of = proj₂ A-contr
     })
 
--- If Σ-map id f is an equivalence, then f is also an equivalence.
-
-drop-Σ-map-id :
-  {A : Type a} {P : A → Type p} {Q : A → Type q}
-  (f : ∀ {x} → P x → Q x) →
-  Is-equivalence {A = Σ A P} {B = Σ A Q} (Σ-map id f) →
-  ∀ x → Is-equivalence (f {x = x})
-drop-Σ-map-id f eq x =
-  _⇔_.from Is-equivalence⇔Is-equivalence-CP $
-  CP.drop-Σ-map-id f
-    (_⇔_.to Is-equivalence⇔Is-equivalence-CP eq)
-    x
-
 abstract
+
+  -- If Σ-map id f is an equivalence, then f is also an equivalence.
+
+  drop-Σ-map-id :
+    {A : Type a} {P : A → Type p} {Q : A → Type q}
+    (f : ∀ {x} → P x → Q x) →
+    Is-equivalence {A = Σ A P} {B = Σ A Q} (Σ-map id f) →
+    ∀ x → Is-equivalence (f {x = x})
+  drop-Σ-map-id f eq x =
+    _⇔_.from Is-equivalence⇔Is-equivalence-CP $
+    CP.drop-Σ-map-id f
+      (_⇔_.to Is-equivalence⇔Is-equivalence-CP eq)
+      x
+
+  -- A "computation" rule for drop-Σ-map-id.
+
+  inverse-drop-Σ-map-id :
+    {A : Type a} {P : A → Type p} {Q : A → Type q}
+    {f : ∀ {x} → P x → Q x} {x : A} {y : Q x}
+    {eq : Is-equivalence {A = Σ A P} {B = Σ A Q} (Σ-map id f)} →
+    inverse (drop-Σ-map-id f eq x) y ≡
+    subst P (cong proj₁ (right-inverse-of eq (x , y)))
+      (proj₂ (inverse eq (x , y)))
+  inverse-drop-Σ-map-id = CP.inverse-drop-Σ-map-id
 
   -- The function ext⁻¹ is an equivalence (assuming extensionality).
 

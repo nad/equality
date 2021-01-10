@@ -101,48 +101,6 @@ respects-extensional-equality f≡g f-eq = λ b →
     0
     (f-eq b)
 
-abstract
-
-  -- If Σ-map P.id f is an equivalence, then f is also an equivalence.
-
-  drop-Σ-map-id :
-    {A : Type a} {P : A → Type p} {Q : A → Type q}
-    (f : ∀ {x} → P x → Q x) →
-    Is-equivalence {A = Σ A P} {B = Σ A Q} (Σ-map P.id f) →
-    ∀ x → Is-equivalence (f {x = x})
-  drop-Σ-map-id {A = A} {P = P} {Q = Q} f eq x z =
-    H-level.respects-surjection surj 0 (eq (x , z))
-    where
-    map-f : Σ A P → Σ A Q
-    map-f = Σ-map P.id f
-
-    to-P : ∀ {x y} {p : ∃ Q} → (x , f y) ≡ p → Type _
-    to-P {y = y} {p} _ = ∃ λ y′ → f y′ ≡ proj₂ p
-
-    to : map-f ⁻¹ (x , z) → f ⁻¹ z
-    to ((x′ , y) , eq) = elim¹ to-P (y , refl (f y)) eq
-
-    from : f ⁻¹ z → map-f ⁻¹ (x , z)
-    from (y , eq) = (x , y) , cong (_,_ x) eq
-
-    to∘from : ∀ p → to (from p) ≡ p
-    to∘from (y , eq) = elim¹
-      (λ {z′} (eq : f y ≡ z′) →
-         _≡_ {A = ∃ λ (y : P x) → f y ≡ z′}
-             (elim¹ to-P (y , refl (f y)) (cong (_,_ x) eq))
-             (y , eq))
-      (elim¹ to-P (y , refl (f y)) (cong (_,_ x) (refl (f y)))  ≡⟨ cong (elim¹ to-P (y , refl (f y))) $
-                                                                        cong-refl (_,_ x) ⟩
-       elim¹ to-P (y , refl (f y)) (refl (x , f y))             ≡⟨ elim¹-refl to-P _ ⟩∎
-       (y , refl (f y))                                         ∎)
-      eq
-
-    surj : map-f ⁻¹ (x , z) ↠ f ⁻¹ z
-    surj = record
-      { logical-equivalence = record { to = to; from = from }
-      ; right-inverse-of    = to∘from
-      }
-
 -- If f is an equivalence, then it has an inverse.
 
 inverse :
@@ -238,6 +196,108 @@ abstract
      left-inverse-of eq (f⁻¹ (f (f⁻¹ x)))                   ∎)
     where
     f⁻¹ = inverse eq
+
+abstract
+
+  -- If Σ-map P.id f is an equivalence, then f is also an equivalence.
+
+  drop-Σ-map-id :
+    {A : Type a} {P : A → Type p} {Q : A → Type q}
+    (f : ∀ {x} → P x → Q x) →
+    Is-equivalence {A = Σ A P} {B = Σ A Q} (Σ-map P.id f) →
+    ∀ x → Is-equivalence (f {x = x})
+  drop-Σ-map-id {A = A} {P = P} {Q = Q} f eq x z =
+    H-level.respects-surjection surj 0 (eq (x , z))
+    where
+    map-f : Σ A P → Σ A Q
+    map-f = Σ-map P.id f
+
+    to-P : ∀ {x y} {p : ∃ Q} → (x , f y) ≡ p → Type _
+    to-P {y = y} {p} _ = ∃ λ y′ → f y′ ≡ proj₂ p
+
+    to : map-f ⁻¹ (x , z) → f ⁻¹ z
+    to ((x′ , y) , eq) = elim¹ to-P (y , refl (f y)) eq
+
+    from : f ⁻¹ z → map-f ⁻¹ (x , z)
+    from (y , eq) = (x , y) , cong (_,_ x) eq
+
+    to∘from : ∀ p → to (from p) ≡ p
+    to∘from (y , eq) = elim¹
+      (λ {z′} (eq : f y ≡ z′) →
+         _≡_ {A = ∃ λ (y : P x) → f y ≡ z′}
+             (elim¹ to-P (y , refl (f y)) (cong (_,_ x) eq))
+             (y , eq))
+      (elim¹ to-P (y , refl (f y)) (cong (_,_ x) (refl (f y)))  ≡⟨ cong (elim¹ to-P (y , refl (f y))) $
+                                                                        cong-refl (_,_ x) ⟩
+       elim¹ to-P (y , refl (f y)) (refl (x , f y))             ≡⟨ elim¹-refl to-P _ ⟩∎
+       (y , refl (f y))                                         ∎)
+      eq
+
+    surj : map-f ⁻¹ (x , z) ↠ f ⁻¹ z
+    surj = record
+      { logical-equivalence = record { to = to; from = from }
+      ; right-inverse-of    = to∘from
+      }
+
+  -- A "computation" rule for drop-Σ-map-id.
+
+  inverse-drop-Σ-map-id :
+    {A : Type a} {P : A → Type p} {Q : A → Type q}
+    {f : ∀ {x} → P x → Q x} {x : A} {y : Q x}
+    {eq : Is-equivalence {A = Σ A P} {B = Σ A Q} (Σ-map P.id f)} →
+    inverse (drop-Σ-map-id f eq x) y ≡
+    subst P (cong proj₁ (right-inverse-of eq (x , y)))
+      (proj₂ (inverse eq (x , y)))
+  inverse-drop-Σ-map-id
+    {P = P} {Q = Q} {f = f} {x = x} {y = y} {eq = eq} =
+
+    proj₁
+      (subst
+         (λ ((_ , y) , _) → f ⁻¹ y)
+         (proj₂
+            (other-singleton-contractible (Σ-map P.id f p′))
+            (q′ , right-inverse-of eq q′))
+         (proj₂ p′ , refl _))                                 ≡⟨ cong proj₁ $ push-subst-pair _ _ ⟩
+
+    subst
+      (λ ((x , _) , _) → P x)
+      (proj₂
+         (other-singleton-contractible (Σ-map P.id f p′))
+         (q′ , right-inverse-of eq q′))
+      (proj₂ p′)                                              ≡⟨ trans (subst-∘ _ _ _) (subst-∘ _ _ _) ⟩
+
+    subst P
+      (cong proj₁ $ cong proj₁ $
+       proj₂
+         (other-singleton-contractible (Σ-map P.id f p′))
+         (q′ , right-inverse-of eq q′))
+      (proj₂ p′)                                              ≡⟨ cong (λ eq → subst P (cong proj₁ eq) (proj₂ p′))
+                                                                 lemma ⟩∎
+    subst P
+      (cong proj₁ (right-inverse-of eq q′))
+      (proj₂ p′)                                              ∎
+    where
+    q′ : ∃ Q
+    q′ = x , y
+
+    p′ : ∃ P
+    p′ = inverse eq q′
+
+    lemma = elim¹
+      (λ {q′} eq →
+         cong proj₁
+           (proj₂ (other-singleton-contractible (Σ-map P.id f p′))
+              (q′ , eq)) ≡
+         eq)
+      (cong proj₁
+         (proj₂ (other-singleton-contractible (Σ-map P.id f p′))
+            (Σ-map P.id f p′ , refl _))                           ≡⟨ cong (cong proj₁) $
+                                                                     other-singleton-contractible-refl _ ⟩
+
+       cong proj₁ (refl _)                                        ≡⟨ cong-refl _ ⟩∎
+
+       refl _                                                     ∎)
+      _
 
 ------------------------------------------------------------------------
 -- _≃_
