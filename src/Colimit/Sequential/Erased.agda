@@ -26,7 +26,6 @@ open import Bijection equality-with-J using (_↔_)
 open import Colimit.Sequential eq as C using (Colimit)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
-open import Equivalence.Erased.Cubical eq as EEq using (_≃ᴱ_)
 import Equivalence P.equality-with-J as PEq
 open import Erased.Cubical eq
 open import Function-universe equality-with-J hiding (id; _∘_)
@@ -166,12 +165,11 @@ rec-∣∣≡∣∣ = cong-≡↔≡ (refl _)
 
 universal-property :
   {@0 step : ∀ {n} → P n → P (suc n)} →
-  (Colimitᴱ P step → B)
-    ≃ᴱ
+  (Colimitᴱ P step → B) ≃
   (∃ λ (f : ∀ n → P n → B) →
      Erased (∀ n x → f (suc n) (step x) ≡ f n x))
 universal-property {P = P} {B = B} {step = step} =
-  EEq.↔→≃ᴱ to from to∘from from∘to
+  Eq.↔→≃ to from to∘from from∘to
   where
   to :
     (Colimitᴱ P step → B) →
@@ -191,7 +189,7 @@ universal-property {P = P} {B = B} {step = step} =
     .∣∣ʳ    → f _
     .∣∣≡∣∣ʳ → erased g _
 
-  @0 to∘from : ∀ p → to (from p) ≡ p
+  to∘from : ∀ p → to (from p) ≡ p
   to∘from (f , g) =
     cong (f ,_) $
     []-cong
@@ -200,7 +198,7 @@ universal-property {P = P} {B = B} {step = step} =
            erased g n x            ∎)
       ]
 
-  @0 from∘to : ∀ h → from (to h) ≡ h
+  from∘to : ∀ h → from (to h) ≡ h
   from∘to h = ⟨ext⟩ $ elim λ where
     .∣∣ʳ _    → refl _
     .∣∣≡∣∣ʳ x →
