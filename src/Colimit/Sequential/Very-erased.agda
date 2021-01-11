@@ -6,8 +6,9 @@
 {-# OPTIONS --cubical --safe #-}
 
 -- The definition of sequential colimits and the statement of the
--- universal property are based on those in van Doorn's "Constructing
--- the Propositional Truncation using Non-recursive HITs".
+-- non-dependent universal property are based on those in van Doorn's
+-- "Constructing the Propositional Truncation using Non-recursive
+-- HITs".
 
 -- The module is parametrised by a notion of equality. The higher
 -- constructor of the HIT defining sequential colimits uses path
@@ -311,6 +312,94 @@ universal-property
       trans (sym (cong h (∣∣₊≡∣∣₊ x))) (cong h (∣∣₊≡∣∣₊ x))   ≡⟨ trans-symˡ _ ⟩∎
 
       refl _                                                  ∎
+
+-- A dependently typed variant of the sequential colimit's universal
+-- property.
+
+universal-property-Π :
+  {@0 P₊ : ℕ → Type p₊}
+  {@0 step₀ : P₀ → P₊ zero}
+  {@0 step₊ : ∀ {n} → P₊ n → P₊ (suc n)}
+  {Q : Colimitᴱ P₀ P₊ step₀ step₊ → Type q} →
+  ((x : Colimitᴱ P₀ P₊ step₀ step₊) → Q x)
+    ≃
+  (∃ λ (f₀ : (x : P₀) → Q ∣ x ∣₀) →
+     Erased (∃ λ (f₊ : ∀ n (x : P₊ n) → Q ∣ x ∣₊) →
+               (∀ x → subst Q (∣∣₊≡∣∣₀ x) (f₊ zero (step₀ x)) ≡ f₀ x) ×
+               (∀ n x → subst Q (∣∣₊≡∣∣₊ x) (f₊ (suc n) (step₊ x)) ≡
+                        f₊ n x)))
+universal-property-Π
+  {P₀ = P₀} {P₊ = P₊} {step₀ = step₀} {step₊ = step₊} {Q = Q} =
+  Eq.↔→≃ to from to∘from from∘to
+  where
+  RHS =
+    ∃ λ (f₀ : (x : P₀) → Q ∣ x ∣₀) →
+      Erased (∃ λ (f₊ : ∀ n (x : P₊ n) → Q ∣ x ∣₊) →
+                (∀ x → subst Q (∣∣₊≡∣∣₀ x) (f₊ zero (step₀ x)) ≡ f₀ x) ×
+                (∀ n x → subst Q (∣∣₊≡∣∣₊ x) (f₊ (suc n) (step₊ x)) ≡
+                         f₊ n x))
+
+  to : ((x : Colimitᴱ P₀ P₊ step₀ step₊) → Q x) → RHS
+  to h = h ∘ ∣_∣₀
+       , [ (λ _ → h ∘ ∣_∣₊)
+         , (λ x →
+              subst Q (∣∣₊≡∣∣₀ x) (h ∣ step₀ x ∣₊)  ≡⟨ dcong h (∣∣₊≡∣∣₀ x) ⟩∎
+              h ∣ x ∣₀                              ∎)
+         , (λ _ x →
+              subst Q (∣∣₊≡∣∣₊ x) (h ∣ step₊ x ∣₊)  ≡⟨ dcong h (∣∣₊≡∣∣₊ x) ⟩∎
+              h ∣ x ∣₊                              ∎)
+         ]
+
+  from :
+    RHS → (x : Colimitᴱ P₀ P₊ step₀ step₊) → Q x
+  from (f₀ , [ f₊ , g₀ , g₊ ]) = elim λ where
+    .∣∣₀ʳ     → f₀
+    .∣∣₊ʳ     → f₊ _
+    .∣∣₊≡∣∣₀ʳ → g₀
+    .∣∣₊≡∣∣₊ʳ → g₊ _
+
+  to∘from : ∀ p → to (from p) ≡ p
+  to∘from (f₀ , [ f₊ , g₀ , g₊ ]) =
+    cong (f₀ ,_) $ []-cong
+      [ cong (f₊ ,_) $ cong₂ _,_
+          (⟨ext⟩ λ x →
+             dcong (elim _) (∣∣₊≡∣∣₀ x)  ≡⟨ elim-∣∣₊≡∣∣₀ ⟩∎
+             g₀ x                        ∎)
+          (⟨ext⟩ λ n → ⟨ext⟩ λ x →
+             dcong (elim _) (∣∣₊≡∣∣₊ x)  ≡⟨ elim-∣∣₊≡∣∣₊ ⟩∎
+             g₊ n x                      ∎)
+      ]
+
+  from∘to : ∀ h → from (to h) ≡ h
+  from∘to h = ⟨ext⟩ $ elim λ where
+    .∣∣₀ʳ _     → refl _
+    .∣∣₊ʳ _     → refl _
+    .∣∣₊≡∣∣₀ʳ x →
+      subst (λ z → from (to h) z ≡ h z) (∣∣₊≡∣∣₀ x) (refl _)   ≡⟨ subst-in-terms-of-trans-and-dcong ⟩
+
+      trans (sym (dcong (from (to h)) (∣∣₊≡∣∣₀ x)))
+        (trans (cong (subst Q (∣∣₊≡∣∣₀ x)) (refl _))
+           (dcong h (∣∣₊≡∣∣₀ x)))                              ≡⟨ cong₂ (λ p q → trans (sym p) q)
+                                                                    elim-∣∣₊≡∣∣₀
+                                                                    (trans (cong (flip trans _) $ cong-refl _) $
+                                                                     trans-reflˡ _) ⟩
+
+      trans (sym (dcong h (∣∣₊≡∣∣₀ x))) (dcong h (∣∣₊≡∣∣₀ x))  ≡⟨ trans-symˡ _ ⟩∎
+
+      refl _                                                   ∎
+    .∣∣₊≡∣∣₊ʳ x →
+      subst (λ z → from (to h) z ≡ h z) (∣∣₊≡∣∣₊ x) (refl _)   ≡⟨ subst-in-terms-of-trans-and-dcong ⟩
+
+      trans (sym (dcong (from (to h)) (∣∣₊≡∣∣₊ x)))
+        (trans (cong (subst Q (∣∣₊≡∣∣₊ x)) (refl _))
+           (dcong h (∣∣₊≡∣∣₊ x)))                              ≡⟨ cong₂ (λ p q → trans (sym p) q)
+                                                                    elim-∣∣₊≡∣∣₊
+                                                                    (trans (cong (flip trans _) $ cong-refl _) $
+                                                                     trans-reflˡ _) ⟩
+
+      trans (sym (dcong h (∣∣₊≡∣∣₊ x))) (dcong h (∣∣₊≡∣∣₊ x))  ≡⟨ trans-symˡ _ ⟩∎
+
+      refl _                                                   ∎
 
 ------------------------------------------------------------------------
 -- Some conversion functions

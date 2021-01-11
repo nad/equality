@@ -5,8 +5,9 @@
 {-# OPTIONS --cubical --safe #-}
 
 -- The definition of sequential colimits and the statement of the
--- universal property are based on those in van Doorn's "Constructing
--- the Propositional Truncation using Non-recursive HITs".
+-- non-dependent universal property are based on those in van Doorn's
+-- "Constructing the Propositional Truncation using Non-recursive
+-- HITs".
 
 -- The module is parametrised by a notion of equality. The higher
 -- constructor of the HIT defining sequential colimits uses path
@@ -210,6 +211,62 @@ universal-property {P = P} {B = B} {step = step} =
                                                                  (trans-reflˡ _) ⟩
 
       trans (sym (cong h (∣∣≡∣∣ x))) (cong h (∣∣≡∣∣ x))     ≡⟨ trans-symˡ _ ⟩∎
+
+      refl _                                                ∎
+
+-- A dependently typed variant of the sequential colimit's universal
+-- property.
+
+universal-property-Π :
+  {@0 step : ∀ {n} → P n → P (suc n)} →
+  {Q : Colimitᴱ P step → Type q} →
+  ((x : Colimitᴱ P step) → Q x) ≃
+  (∃ λ (f : ∀ n (x : P n) → Q ∣ x ∣) →
+     Erased (∀ n x → subst Q (∣∣≡∣∣ x) (f (suc n) (step x)) ≡ f n x))
+universal-property-Π {P = P} {step = step} {Q = Q} =
+  Eq.↔→≃ to from to∘from from∘to
+  where
+  to :
+    ((x : Colimitᴱ P step) → Q x) →
+    ∃ λ (f : ∀ n (x : P n) → Q ∣ x ∣) →
+      Erased (∀ n x → subst Q (∣∣≡∣∣ x) (f (suc n) (step x)) ≡ f n x)
+  to h = (λ _ → h ∘ ∣_∣)
+       , [ (λ _ x →
+              subst Q (∣∣≡∣∣ x) (h ∣ step x ∣)  ≡⟨ dcong h (∣∣≡∣∣ x) ⟩∎
+              h ∣ x ∣                           ∎)
+         ]
+
+  from :
+    (∃ λ (f : ∀ n (x : P n) → Q ∣ x ∣) →
+       Erased (∀ n x →
+               subst Q (∣∣≡∣∣ x) (f (suc n) (step x)) ≡ f n x)) →
+    (x : Colimitᴱ P step) → Q x
+  from (f , [ g ]) = elim λ where
+    .∣∣ʳ    → f _
+    .∣∣≡∣∣ʳ → g _
+
+  to∘from : ∀ p → to (from p) ≡ p
+  to∘from (f , [ g ]) = cong (f ,_) $ []-cong
+    [ (⟨ext⟩ λ n → ⟨ext⟩ λ x →
+         dcong (elim _) (∣∣≡∣∣ x)  ≡⟨ elim-∣∣≡∣∣ ⟩∎
+         g n x                     ∎)
+    ]
+
+  from∘to : ∀ h → from (to h) ≡ h
+  from∘to h = ⟨ext⟩ $ elim λ where
+    .∣∣ʳ    _ → refl _
+    .∣∣≡∣∣ʳ x →
+      subst (λ z → from (to h) z ≡ h z) (∣∣≡∣∣ x) (refl _)  ≡⟨ subst-in-terms-of-trans-and-dcong ⟩
+
+      trans (sym (dcong (from (to h)) (∣∣≡∣∣ x)))
+        (trans (cong (subst Q (∣∣≡∣∣ x)) (refl _))
+           (dcong h (∣∣≡∣∣ x)))                             ≡⟨ cong₂ (λ p q → trans (sym p) q)
+                                                                 elim-∣∣≡∣∣
+                                                                 (trans (cong (flip trans _) $
+                                                                         cong-refl _) $
+                                                                  trans-reflˡ _) ⟩
+
+      trans (sym (dcong h (∣∣≡∣∣ x))) (dcong h (∣∣≡∣∣ x))   ≡⟨ trans-symˡ _ ⟩∎
 
       refl _                                                ∎
 
