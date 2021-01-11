@@ -2025,6 +2025,53 @@ module Derived-definitions-and-properties
       _
       _
 
+    -- A variant of subst-in-terms-of-trans-and-cong that works for
+    -- dependent functions.
+
+    subst-in-terms-of-trans-and-dcong :
+      {f g : (x : A) → P x} {x≡y : x ≡ y} {fx≡gx : f x ≡ g x} →
+      subst (λ z → f z ≡ g z) x≡y fx≡gx ≡
+      trans (sym (dcong f x≡y))
+        (trans (cong (subst P x≡y) fx≡gx) (dcong g x≡y))
+    subst-in-terms-of-trans-and-dcong {P = P} {f = f} {g = g} = elim
+      (λ {x y} x≡y →
+           (fx≡gx : f x ≡ g x) →
+           subst (λ z → f z ≡ g z) x≡y fx≡gx ≡
+           trans (sym (dcong f x≡y))
+             (trans (cong (subst P x≡y) fx≡gx) (dcong g x≡y)))
+      (λ x fx≡gx →
+           subst (λ z → f z ≡ g z) (refl x) fx≡gx               ≡⟨ subst-refl _ _ ⟩
+
+           fx≡gx                                                ≡⟨ elim¹
+                                                                     (λ {gx} eq →
+                                                                        eq ≡
+                                                                        trans (sym (subst-refl P (f x)))
+                                                                          (trans (cong (subst P (refl x)) eq)
+                                                                             (subst-refl P gx)))
+                                                                     (
+               refl (f x)                                             ≡⟨ sym $ trans-symˡ _ ⟩
+
+               trans (sym (subst-refl P (f x)))
+                 (subst-refl P (f x))                                 ≡⟨ cong (trans _) $
+                                                                         trans (sym $ trans-reflˡ _) $
+                                                                         cong (flip trans _) $
+                                                                         sym $ cong-refl _ ⟩∎
+               trans (sym (subst-refl P (f x)))
+                 (trans (cong (subst P (refl x)) (refl (f x)))
+                    (subst-refl P (f x)))                             ∎)
+                                                                     fx≡gx ⟩
+           trans (sym (subst-refl P (f x)))
+             (trans (cong (subst P (refl x)) fx≡gx)
+                (subst-refl P (g x)))                           ≡⟨ sym $
+                                                                   cong₂ (λ p q → trans (sym p) (trans (cong (subst P (refl x)) fx≡gx) q))
+                                                                     (dcong-refl _)
+                                                                     (dcong-refl _) ⟩∎
+           trans (sym (dcong f (refl x)))
+             (trans (cong (subst P (refl x)) fx≡gx)
+                (dcong g (refl x)))                             ∎)
+      _
+      _
+
     -- Sometimes cong can be "pushed" inside subst. The following
     -- lemma provides one example.
 
