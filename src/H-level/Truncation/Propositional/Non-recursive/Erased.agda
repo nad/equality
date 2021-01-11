@@ -17,13 +17,16 @@ private
   open module PD = P.Derived-definitions-and-properties eq
     hiding (elim)
 
-open import Prelude
+open import Logical-equivalence using (_⇔_)
+open import Prelude hiding ([_,_])
 
 open import Colimit.Sequential.Very-erased eq as C using (Colimitᴱ)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence.Erased.Cubical eq as EEq using (_≃ᴱ_)
+open import Erased.Cubical eq
+open import Function-universe equality-with-J as F hiding (_∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional.Non-recursive eq as N
@@ -247,3 +250,200 @@ _ = refl _
   e₂ : N.Elim _
   e₂ .N.Elim.∣∣ʳ _             = refl _
   e₂ .N.Elim.is-propositionʳ _ = mono₁ 1 N.∥∥-proposition
+
+------------------------------------------------------------------------
+-- A lemma
+
+-- A function of type (x : ∥ A ∥ᴱ) → P x, along with an erased proof
+-- showing that the function is equal to some erased function, is
+-- equivalent to a function of type (x : A) → P ∣ x ∣, along with an
+-- erased equality proof.
+
+Σ-Π-∥∥ᴱ-Erased-≡-≃ :
+  {@0 g : (x : ∥ A ∥ᴱ) → P x} →
+  (∃ λ (f : (x : ∥ A ∥ᴱ) → P x) → Erased (f ≡ g)) ≃
+  (∃ λ (f : (x : A) → P ∣ x ∣) → Erased (f ≡ g ∘ ∣_∣))
+Σ-Π-∥∥ᴱ-Erased-≡-≃ {A = A} {P = P} {g = g} =
+  (∃ λ (f : (x : ∥ A ∥ᴱ) → P x) → Erased (f ≡ g))                         ↝⟨ (inverse $
+                                                                              Σ-cong (inverse C.universal-property-Π) λ _ → F.id) ⟩
+  (∃ λ (f :
+        ∃ λ (f₀ : (x : A) → P ∣ x ∣) →
+        Erased (
+        ∃ λ (f₊ : ∀ n (x : ∥ A ∥¹-out-^ (suc n)) → P C.∣ x ∣₊) →
+        (∀ x → subst P (C.∣∣₊≡∣∣₀ x) (f₊ zero O.∣ x ∣) ≡ f₀ x) ×
+        (∀ n x → subst P (C.∣∣₊≡∣∣₊ x) (f₊ (suc n) O.∣ x ∣) ≡
+                         f₊ n x))) →
+   Erased (u⁻¹ f ≡ g))                                                    ↔⟨ inverse $
+                                                                             Σ-assoc F.∘
+                                                                             (∃-cong λ _ →
+                                                                              Erased-Σ↔Σ F.∘
+                                                                              (from-equivalence $ Erased-cong (∃-cong λ _ →
+                                                                               Eq.extensionality-isomorphism bad-ext))) ⟩
+  (∃ λ (f : (x : A) → P ∣ x ∣) →
+   Erased (
+   ∃ λ (e :
+        ∃ λ (f₊ : ∀ n (x : ∥ A ∥¹-out-^ (suc n)) → P C.∣ x ∣₊) →
+        (∀ x → subst P (C.∣∣₊≡∣∣₀ x) (f₊ zero O.∣ x ∣) ≡ f x) ×
+        (∀ n x → subst P (C.∣∣₊≡∣∣₊ x) (f₊ (suc n) O.∣ x ∣) ≡ f₊ n x)) →
+   ∀ x → u⁻¹ (f , [ e ]) x ≡ g x))                                        ↝⟨ (∃-cong λ _ → Erased-cong (∃-cong λ _ →
+                                                                              (∃-cong λ _ → from-bijection $ erased Erased↔) F.∘
+                                                                              C.universal-property-Π)) ⟩
+  (∃ λ (f : (x : A) → P ∣ x ∣) →
+   Erased (
+   ∃ λ ((f₊ , eq₀ , eq₊) :
+        ∃ λ (f₊ : ∀ n (x : ∥ A ∥¹-out-^ (suc n)) → P C.∣ x ∣₊) →
+        (∀ x → subst P (C.∣∣₊≡∣∣₀ x) (f₊ zero O.∣ x ∣) ≡ f x) ×
+        (∀ n x → subst P (C.∣∣₊≡∣∣₊ x) (f₊ (suc n) O.∣ x ∣) ≡ f₊ n x)) →
+   ∃ λ (f≡g₀ : (x : A) → f x ≡ g ∣ x ∣) →
+   ∃ λ (f≡g₊ : ∀ n (x : ∥ A ∥¹-out-^ (suc n)) → f₊ n x ≡ g C.∣ x ∣₊) →
+   (∀ x → subst (λ x → u⁻¹ (f , [ f₊ , eq₀ , eq₊ ]) x ≡ g x)
+            (C.∣∣₊≡∣∣₀ x) (f≡g₊ zero O.∣ x ∣) ≡
+          f≡g₀ x) ×
+   (∀ n (x : ∥ A ∥¹-out-^ (suc n)) →
+    subst (λ x → u⁻¹ (f , [ f₊ , eq₀ , eq₊ ]) x ≡ g x)
+      (C.∣∣₊≡∣∣₊ x) (f≡g₊ (suc n) O.∣ x ∣) ≡
+    f≡g₊ n x)))                                                           ↔⟨ (∃-cong λ _ → Erased-cong (
+                                                                              (∃-cong λ _ →
+                                                                               (∃-cong λ _ →
+                                                                                inverse Σ-assoc) F.∘
+                                                                               Σ-assoc F.∘
+                                                                               (∃-cong λ _ →
+                                                                                (inverse $
+                                                                                 Σ-cong (inverse $
+                                                                                         Eq.extensionality-isomorphism bad-ext F.∘
+                                                                                         (∀-cong ext λ _ →
+                                                                                          Eq.extensionality-isomorphism bad-ext)) λ _ →
+                                                                                 F.id) F.∘
+                                                                                ∃-comm) F.∘
+                                                                               inverse Σ-assoc) F.∘
+                                                                              ∃-comm)) ⟩
+  (∃ λ (f : (x : A) → P ∣ x ∣) →
+   Erased (
+   ∃ λ (f≡g₀ : (x : A) → f x ≡ g ∣ x ∣) →
+   ∃ λ ((f₊ , f≡g₊) :
+        ∃ λ (f₊ : ∀ n (x : ∥ A ∥¹-out-^ (suc n)) → P C.∣ x ∣₊) →
+        f₊ ≡ λ _ x → g C.∣ x ∣₊) →
+   ∃ λ (eq₀ : ∀ x → subst P (C.∣∣₊≡∣∣₀ x) (f₊ zero O.∣ x ∣) ≡ f x) →
+   ∃ λ (eq₊ : ∀ n x →
+              subst P (C.∣∣₊≡∣∣₊ x) (f₊ (suc n) O.∣ x ∣) ≡ f₊ n x) →
+   (∀ x → subst (λ x → u⁻¹ (f , [ f₊ , eq₀ , eq₊ ]) x ≡ g x)
+            (C.∣∣₊≡∣∣₀ x) (cong (_$ O.∣ x ∣) (cong (_$ zero) f≡g₊)) ≡
+          f≡g₀ x) ×
+   (∀ n (x : ∥ A ∥¹-out-^ (suc n)) →
+    subst (λ x → u⁻¹ (f , [ f₊ , eq₀ , eq₊ ]) x ≡ g x)
+      (C.∣∣₊≡∣∣₊ x) (cong (_$ O.∣ x ∣) (cong (_$ suc n) f≡g₊)) ≡
+    cong (_$ x) (cong (_$ n) f≡g₊))))                                     ↔⟨ (∃-cong λ _ → Erased-cong (∃-cong λ _ →
+                                                                              (∃-cong λ _ → ∃-cong λ _ →
+                                                                               (∀-cong ext λ _ → ≡⇒↝ _ $ cong (_≡ _) $
+                                                                                cong (subst (λ x → u⁻¹ _ x ≡ g x) _) $
+                                                                                trans (cong (cong (_$ _)) $ cong-refl _) $
+                                                                                cong-refl _)
+                                                                                 ×-cong
+                                                                               (∀-cong ext λ _ → ∀-cong ext λ _ → ≡⇒↝ _ $ cong₂ _≡_
+                                                                                  (cong (subst (λ x → u⁻¹ _ x ≡ g x) _) $
+                                                                                   trans (cong (cong (_$ _)) $ cong-refl _) $
+                                                                                   cong-refl _)
+                                                                                  (trans (cong (cong (_$ _)) $ cong-refl _) $
+                                                                                   cong-refl _))) F.∘
+                                                                              (drop-⊤-left-Σ $
+                                                                               _⇔_.to contractible⇔↔⊤ $
+                                                                               singleton-contractible _))) ⟩
+  (∃ λ (f : (x : A) → P ∣ x ∣) →
+   Erased (
+   ∃ λ (f≡g₀ : (x : A) → f x ≡ g ∣ x ∣) →
+   ∃ λ (eq₀ : ∀ x → subst P (C.∣∣₊≡∣∣₀ x) (g C.∣ O.∣ x ∣ ∣₊) ≡ f x) →
+   ∃ λ (eq₊ : ∀ n x →
+              subst P (C.∣∣₊≡∣∣₊ x) (g C.∣ O.∣ x ∣ ∣₊) ≡ g C.∣ x ∣₊) →
+   (∀ x → subst
+            (λ x → u⁻¹ (f , [ (λ _ → g ∘ C.∣_∣₊) , eq₀ , eq₊ ]) x ≡ g x)
+            (C.∣∣₊≡∣∣₀ x) (refl _) ≡
+          f≡g₀ x) ×
+   (∀ n (x : ∥ A ∥¹-out-^ (suc n)) →
+    subst (λ x → u⁻¹ (f , [ (λ _ → g ∘ C.∣_∣₊) , eq₀ , eq₊ ]) x ≡ g x)
+      (C.∣∣₊≡∣∣₊ x) (refl _) ≡
+    refl _)))                                                             ↝⟨ (∃-cong λ _ → Erased-cong (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                              (∀-cong ext λ _ → ≡⇒↝ _ $ cong (_≡ _) $
+                                                                               lemma₀ _ _ _ _)
+                                                                                ×-cong
+                                                                              (∀-cong ext λ _ → ∀-cong ext λ _ → ≡⇒↝ _ $ cong (_≡ refl _) $
+                                                                               lemma₊ _ _ _ _ _))) ⟩
+  (∃ λ (f : (x : A) → P ∣ x ∣) →
+   Erased (
+   ∃ λ (f≡g₀ : (x : A) → f x ≡ g ∣ x ∣) →
+   ∃ λ (eq₀ : ∀ x → subst P (C.∣∣₊≡∣∣₀ x) (g C.∣ O.∣ x ∣ ∣₊) ≡ f x) →
+   ∃ λ (eq₊ : ∀ n x →
+              subst P (C.∣∣₊≡∣∣₊ x) (g C.∣ O.∣ x ∣ ∣₊) ≡ g C.∣ x ∣₊) →
+   (∀ x → trans (sym (eq₀ x)) (dcong g (C.∣∣₊≡∣∣₀ x)) ≡ f≡g₀ x) ×
+   (∀ n (x : ∥ A ∥¹-out-^ (suc n)) →
+    trans (sym (eq₊ n x)) (dcong g (C.∣∣₊≡∣∣₊ x)) ≡ refl _)))             ↝⟨ (∃-cong λ _ → Erased-cong (∃-cong λ _ → ∃-cong λ eq₀ → ∃-cong λ eq₊ →
+                                                                              (Eq.extensionality-isomorphism bad-ext F.∘
+                                                                               (∀-cong ext λ _ →
+                                                                                Eq.≃-≡ (Eq.↔⇒≃ ≡-comm) F.∘
+                                                                                (≡⇒↝ _ $
+                                                                                 trans ([trans≡]≡[≡trans-symʳ] _ _ _) $
+                                                                                 cong (sym (eq₀ _) ≡_) $ sym $ sym-sym _)))
+                                                                                ×-cong
+                                                                              (Eq.extensionality-isomorphism bad-ext F.∘
+                                                                               (∀-cong ext λ _ →
+                                                                                Eq.extensionality-isomorphism bad-ext F.∘
+                                                                                (∀-cong ext λ _ →
+                                                                                 Eq.≃-≡ (Eq.↔⇒≃ ≡-comm) F.∘
+                                                                                 (≡⇒↝ _ $
+                                                                                  trans ([trans≡]≡[≡trans-symʳ] _ _ _) $
+                                                                                  cong (sym (eq₊ _ _) ≡_) $ sym $ sym-sym _)))))) ⟩
+  (∃ λ (f : (x : A) → P ∣ x ∣) →
+   Erased (
+   ∃ λ (f≡g₀ : (x : A) → f x ≡ g ∣ x ∣) →
+   ∃ λ (eq₀ : ∀ x → subst P (C.∣∣₊≡∣∣₀ x) (g C.∣ O.∣ x ∣ ∣₊) ≡ f x) →
+   ∃ λ (eq₊ : ∀ n x →
+              subst P (C.∣∣₊≡∣∣₊ x) (g C.∣ O.∣ x ∣ ∣₊) ≡ g C.∣ x ∣₊) →
+   eq₀ ≡ (λ x → sym (trans (f≡g₀ x) (sym (dcong g (C.∣∣₊≡∣∣₀ x))))) ×
+   eq₊ ≡ (λ _ x → sym (trans (refl _) (sym (dcong g (C.∣∣₊≡∣∣₊ x)))))))   ↔⟨ (∃-cong λ _ → Erased-cong (∃-cong λ _ → ∃-cong λ _ →
+                                                                              (drop-⊤-right λ _ →
+                                                                               _⇔_.to contractible⇔↔⊤ $
+                                                                               singleton-contractible _) F.∘
+                                                                              ∃-comm)) ⟩
+  (∃ λ (f : (x : A) → P ∣ x ∣) →
+   Erased (
+   ∃ λ (f≡g₀ : (x : A) → f x ≡ g ∣ x ∣) →
+   ∃ λ (eq₀ : ∀ x → subst P (C.∣∣₊≡∣∣₀ x) (g C.∣ O.∣ x ∣ ∣₊) ≡ f x) →
+   eq₀ ≡ (λ x → sym (trans (f≡g₀ x) (sym (dcong g (C.∣∣₊≡∣∣₀ x)))))))     ↔⟨ (∃-cong λ _ → Erased-cong (
+                                                                              drop-⊤-right λ _ →
+                                                                              _⇔_.to contractible⇔↔⊤ $
+                                                                              singleton-contractible _)) ⟩
+
+  (∃ λ (f : (x : A) → P ∣ x ∣) → Erased ((x : A) → f x ≡ g ∣ x ∣))        ↝⟨ (∃-cong λ _ → Erased-cong (
+                                                                              Eq.extensionality-isomorphism bad-ext)) ⟩□
+  (∃ λ (f : (x : A) → P ∣ x ∣) → Erased (f ≡ g ∘ ∣_∣))                    □
+  where
+  u⁻¹ = _≃_.from C.universal-property-Π
+
+  @0 lemma₀ : ∀ _ _ _ _ → _
+  lemma₀ f eq₀ eq₊ x =
+    subst (λ x → u⁻¹ (f , [ (λ _ → g ∘ C.∣_∣₊) , eq₀ , eq₊ ]) x ≡ g x)
+      (C.∣∣₊≡∣∣₀ x) (refl _)                                            ≡⟨ subst-in-terms-of-trans-and-dcong ⟩
+
+    trans (sym (dcong (u⁻¹ (f , [ (λ _ → g ∘ C.∣_∣₊) , eq₀ , eq₊ ]))
+                  (C.∣∣₊≡∣∣₀ x)))
+      (trans (cong (subst P (C.∣∣₊≡∣∣₀ x)) (refl _))
+         (dcong g (C.∣∣₊≡∣∣₀ x)))                                       ≡⟨ cong₂ (trans ∘ sym)
+                                                                             C.elim-∣∣₊≡∣∣₀
+                                                                             (trans (cong (flip trans _) $
+                                                                                     cong-refl _) $
+                                                                              trans-reflˡ _) ⟩∎
+    trans (sym (eq₀ x)) (dcong g (C.∣∣₊≡∣∣₀ x))                         ∎
+
+  @0 lemma₊ : ∀ _ _ _ _ _ → _
+  lemma₊ f eq₀ eq₊ n x =
+    subst (λ x → u⁻¹ (f , [ (λ _ → g ∘ C.∣_∣₊) , eq₀ , eq₊ ]) x ≡ g x)
+      (C.∣∣₊≡∣∣₊ x) (refl _)                                            ≡⟨ subst-in-terms-of-trans-and-dcong ⟩
+
+    trans (sym (dcong (u⁻¹ (f , [ (λ _ → g ∘ C.∣_∣₊) , eq₀ , eq₊ ]))
+                  (C.∣∣₊≡∣∣₊ x)))
+      (trans (cong (subst P (C.∣∣₊≡∣∣₊ x)) (refl _))
+         (dcong g (C.∣∣₊≡∣∣₊ x)))                                       ≡⟨ cong₂ (trans ∘ sym)
+                                                                             C.elim-∣∣₊≡∣∣₊
+                                                                             (trans (cong (flip trans _) $
+                                                                                     cong-refl _) $
+                                                                              trans-reflˡ _) ⟩∎
+    trans (sym (eq₊ n x)) (dcong g (C.∣∣₊≡∣∣₊ x))                       ∎

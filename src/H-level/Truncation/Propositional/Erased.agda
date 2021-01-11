@@ -337,7 +337,7 @@ idempotent : ∥ A ⊎ A ∥ᴱ ≃ᴱ ∥ A ∥ᴱ
 idempotent = ∥∥ᴱ-cong-⇔ (record { to = P.[ id , id ]; from = inj₁ })
 
 ------------------------------------------------------------------------
--- The universal property
+-- The universal property, and some related results
 
 mutual
 
@@ -393,6 +393,25 @@ _ :
   (f : A → B) (x : A) →
   _≃_.from (universal-property B-prop) f ∣ x ∣ ≡ f x
 _ = λ _ _ _ → refl _
+
+-- A function of type (x : ∥ A ∥ᴱ) → P x, along with an erased proof
+-- showing that the function is equal to some erased function, is
+-- equivalent to a function of type (x : A) → P ∣ x ∣, along with an
+-- erased equality proof.
+
+Σ-Π-∥∥ᴱ-Erased-≡-≃ :
+  {@0 g : (x : ∥ A ∥ᴱ) → P x} →
+  (∃ λ (f : (x : ∥ A ∥ᴱ) → P x) → Erased (f ≡ g)) ≃
+  (∃ λ (f : (x : A) → P ∣ x ∣) → Erased (f ≡ g ∘ ∣_∣))
+Σ-Π-∥∥ᴱ-Erased-≡-≃ {A = A} {P = P} {g = g} =
+  (∃ λ (f : (x : ∥ A ∥ᴱ) → P x) → Erased (f ≡ g))       ↝⟨ (Σ-cong lemma λ _ → Er.Erased-cong (inverse $ Eq.≃-≡ lemma)) ⟩
+
+  (∃ λ (f : (x : N.∥ A ∥ᴱ) → P (_≃_.from ∥∥ᴱ≃∥∥ᴱ x)) →
+     Erased (f ≡ g ∘ _≃_.from ∥∥ᴱ≃∥∥ᴱ))                 ↝⟨ N.Σ-Π-∥∥ᴱ-Erased-≡-≃ ⟩□
+
+  (∃ λ (f : (x : A) → P ∣ x ∣) → Erased (f ≡ g ∘ ∣_∣))  □
+  where
+  lemma = Π-cong-contra ext (inverse ∥∥ᴱ≃∥∥ᴱ) λ _ → Eq.id
 
 ------------------------------------------------------------------------
 -- Some results based on "Generalizations of Hedberg's Theorem" by
