@@ -39,6 +39,7 @@ open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as PT
   using (∥_∥; Surjective)
+import H-level.Truncation.Propositional.Non-recursive.Erased eq as N
 open import Monad equality-with-J
 open import Preimage equality-with-J using (_⁻¹_)
 open import Surjection equality-with-J using (_↠_; Split-surjective)
@@ -170,6 +171,23 @@ rec r = recᴾ λ where
 
 ------------------------------------------------------------------------
 -- Conversion functions
+
+-- ∥_∥ᴱ is pointwise equivalent to N.∥_∥ᴱ.
+
+∥∥ᴱ≃∥∥ᴱ : ∥ A ∥ᴱ ≃ N.∥ A ∥ᴱ
+∥∥ᴱ≃∥∥ᴱ = Eq.↔→≃
+  (rec λ where
+     .∣∣ʳ                        → N.∣_∣
+     .truncation-is-propositionʳ → N.∥∥ᴱ-proposition)
+  (N.elim λ where
+     .N.∣∣ʳ               → ∣_∣
+     .N.is-propositionʳ _ → truncation-is-proposition)
+  (N.elim λ where
+     .N.∣∣ʳ _             → refl _
+     .N.is-propositionʳ _ → mono₁ 1 N.∥∥ᴱ-proposition)
+  (elim λ where
+     .∣∣ʳ _                        → refl _
+     .truncation-is-propositionʳ _ → mono₁ 1 truncation-is-proposition)
 
 -- If A is merely inhabited (with erased proofs), then A is merely
 -- inhabited.

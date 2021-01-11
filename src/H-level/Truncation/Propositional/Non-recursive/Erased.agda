@@ -26,7 +26,6 @@ open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence.Erased.Cubical eq as EEq using (_≃ᴱ_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-import H-level.Truncation.Propositional.Erased eq as T
 open import H-level.Truncation.Propositional.Non-recursive eq as N
   using (∥_∥)
 open import H-level.Truncation.Propositional.One-step eq as O
@@ -222,24 +221,6 @@ _ = refl _
 
 ------------------------------------------------------------------------
 -- Some conversion functions
-
--- ∥_∥ᴱ is pointwise equivalent to T.∥_∥ᴱ.
-
-∥∥ᴱ≃∥∥ᴱ : ∥ A ∥ᴱ ≃ T.∥ A ∥ᴱ
-∥∥ᴱ≃∥∥ᴱ = Eq.↔→≃
-  (elim λ where
-     .∣∣ʳ               → T.∣_∣
-     .is-propositionʳ _ → T.truncation-is-proposition)
-  (T.rec λ where
-     .T.∣∣ʳ                        → ∣_∣
-     .T.truncation-is-propositionʳ → ∥∥ᴱ-proposition)
-  (T.elim λ where
-     .T.∣∣ʳ _                        → refl _
-     .T.truncation-is-propositionʳ _ →
-       mono₁ 1 T.truncation-is-proposition)
-  (elim λ where
-     .∣∣ʳ _             → refl _
-     .is-propositionʳ _ → mono₁ 1 ∥∥ᴱ-proposition)
 
 -- ∥ A ∥ᴱ implies ∥ A ∥.
 

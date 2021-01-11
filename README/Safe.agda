@@ -401,6 +401,15 @@ import Equivalence.Erased.Contractible-preimages.Cubical
 
 import Bool.Very-stable
 
+-- A sequential colimit for which everything except for the "base
+-- case" is erased.
+
+import Colimit.Sequential.Very-erased
+
+-- A non-recursive variant of H-level.Truncation.Propositional.Erased.
+
+import H-level.Truncation.Propositional.Non-recursive.Erased
+
 -- A variant of the propositional truncation operator with an erased
 -- truncation constructor.
 
@@ -414,18 +423,9 @@ import Quotient.Erased
 
 import Colimit.Sequential.Erased
 
--- A sequential colimit for which everything except for the "base
--- case" is erased.
-
-import Colimit.Sequential.Very-erased
-
 -- The one-step truncation HIT with an erased higher constructor.
 
 import H-level.Truncation.Propositional.One-step.Erased
-
--- A non-recursive variant of H-level.Truncation.Propositional.Erased.
-
-import H-level.Truncation.Propositional.Non-recursive.Erased
 
 -- Listed finite subsets.
 
