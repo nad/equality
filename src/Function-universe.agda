@@ -3301,7 +3301,20 @@ to∘≡↔≡from∘ ext B≃C =
     equiv = ≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B (_≃_.from A≃B x))
 
 ------------------------------------------------------------------------
--- A lemma related to _⁻¹_
+-- Some lemmas related to _⁻¹_
+
+-- A fibre of a composition can be expressed as a pair of fibres.
+
+∘⁻¹≃ :
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} {z} →
+  (f : B → C) (g : A → B) →
+  f ∘ g ⁻¹ z ≃ ∃ λ ((y , _) : f ⁻¹ z) → g ⁻¹ y
+∘⁻¹≃ {z = z} f g =
+  f ∘ g ⁻¹ z                                  ↔⟨⟩
+  (∃ λ a → f (g a) ≡ z)                       ↔⟨ (∃-cong λ _ → other-∃-intro _ _) ⟩
+  (∃ λ a → ∃ λ y → f y ≡ z × g a ≡ y)         ↔⟨ (∃-cong λ _ → Σ-assoc) ⟩
+  (∃ λ a → ∃ λ ((y , _) : f ⁻¹ z) → g a ≡ y)  ↔⟨ ∃-comm ⟩□
+  (∃ λ ((y , _) : f ⁻¹ z) → g ⁻¹ y)           □
 
 -- The type of fibres of Σ-map P.id f over a pair is equivalent to the
 -- fibres of f over the pair's second component.
