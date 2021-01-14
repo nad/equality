@@ -1407,14 +1407,42 @@ currying = record
 
 ∃-intro : ∀ {a b} {A : Type a} (B : A → Type b) (x : A) →
           B x ↔ ∃ λ y → B y × y ≡ x
-∃-intro B x =
-  B x                    ↔⟨ inverse ×-right-identity ⟩
-  B x × ⊤                ↔⟨ id ×-cong inverse (_⇔_.to contractible⇔↔⊤ (singleton-contractible x)) ⟩
-  B x × (∃ λ y → y ≡ x)  ↔⟨ ∃-comm ⟩
-  (∃ λ y → B x × y ≡ x)  ↔⟨ ∃-cong (λ y → ×-cong₁ (λ y≡x → subst (λ x → B x ↔ B y) y≡x id)) ⟩□
-  (∃ λ y → B y × y ≡ x)  □
+∃-intro B x = _≃_.bijection $ Eq.↔→≃
+  (λ b → x , b , refl _)
+  (λ (y , b , y≡x) → subst B y≡x b)
+  (λ (y , b , y≡x) →
+     sym $
+     Σ-≡,≡→≡
+       y≡x
+       (subst (λ y → B y × y ≡ x) y≡x (b , y≡x)  ≡⟨ push-subst-, _ _ ⟩
+        subst B y≡x b , subst (_≡ x) y≡x y≡x     ≡⟨ cong (_ ,_) subst-trans-sym ⟩
+        subst B y≡x b , trans (sym y≡x) y≡x      ≡⟨ cong (_ ,_) $ trans-symˡ _ ⟩∎
+        subst B y≡x b , refl x                   ∎))
+  (subst-refl B)
 
 -- A variant of ∃-intro.
+
+other-∃-intro :
+  ∀ {a b} {A : Type a} (B : A → Type b) (x : A) →
+  B x ≃ ∃ λ y → B y × x ≡ y
+other-∃-intro B x = Eq.↔→≃
+  (λ b → x , b , refl _)
+  (λ (y , b , x≡y) → subst B (sym x≡y) b)
+  (λ (y , b , x≡y) →
+     Σ-≡,≡→≡
+       x≡y
+       (subst (λ y → B y × x ≡ y) x≡y (subst B (sym x≡y) b , refl x)   ≡⟨ push-subst-, _ _ ⟩
+        subst B x≡y (subst B (sym x≡y) b) , subst (x ≡_) x≡y (refl x)  ≡⟨ cong₂ _,_
+                                                                            (subst-subst-sym _ _ _)
+                                                                            (trans (sym trans-subst) $
+                                                                             trans-reflˡ _) ⟩∎
+        b , x≡y                                                        ∎))
+  (λ b →
+     subst B (sym (refl _)) b  ≡⟨ cong (flip (subst B) _) sym-refl ⟩
+     subst B (refl _) b        ≡⟨ subst-refl _ _ ⟩∎
+     b                         ∎)
+
+-- Another variant of ∃-intro.
 
 ∃-introduction :
   ∀ {a b} {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
