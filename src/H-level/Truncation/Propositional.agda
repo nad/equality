@@ -46,7 +46,7 @@ private
     A A₁ A₂ B B₁ B₂ C D : Type a
     P Q                 : A → Type p
     R                   : A → A → Type r
-    k x                 : A
+    k x y               : A
 
 -- Propositional truncation.
 
@@ -62,43 +62,123 @@ truncation-is-proposition =
 
 -- A dependent eliminator, expressed using paths.
 
-elimᴾ′ :
-  (P : ∥ A ∥ → Type p) →
-  ((x : A) → P ∣ x ∣) →
-  ({x y : ∥ A ∥} (p : P x) (q : P y) →
-   P.[ (λ i → P (truncation-is-propositionᴾ x y i)) ] p ≡ q) →
-  (x : ∥ A ∥) → P x
-elimᴾ′ P f p ∣ x ∣                             = f x
-elimᴾ′ P f p (truncation-is-propositionᴾ x y i) =
-  p (elimᴾ′ P f p x) (elimᴾ′ P f p y) i
+record Elimᴾ′ {A : Type a} (P : ∥ A ∥ → Type p) : Type (a ⊔ p) where
+  no-eta-equality
+  field
+    ∣∣ʳ : (x : A) → P ∣ x ∣
+
+    truncation-is-propositionʳ :
+      (p : P x) (q : P y) →
+      P.[ (λ i → P (truncation-is-propositionᴾ x y i)) ] p ≡ q
+
+open Elimᴾ′ public
+
+elimᴾ′ : Elimᴾ′ P → (x : ∥ A ∥) → P x
+elimᴾ′ {A = A} {P = P} e = helper
+  where
+  module E = Elimᴾ′ e
+
+  helper : (x : ∥ A ∥) → P x
+  helper ∣ x ∣                              = E.∣∣ʳ x
+  helper (truncation-is-propositionᴾ x y i) =
+    E.truncation-is-propositionʳ (helper x) (helper y) i
 
 -- A possibly more useful dependent eliminator, expressed using paths.
 
-elimᴾ :
-  (P : ∥ A ∥ → Type p) →
-  (∀ x → P.Is-proposition (P x)) →
-  ((x : A) → P ∣ x ∣) →
-  (x : ∥ A ∥) → P x
-elimᴾ P p f = elimᴾ′ P f (λ _ _ → P.heterogeneous-irrelevance p)
+record Elimᴾ {A : Type a} (P : ∥ A ∥ → Type p) : Type (a ⊔ p) where
+  no-eta-equality
+  field
+    ∣∣ʳ : (x : A) → P ∣ x ∣
+
+    truncation-is-propositionʳ :
+      (x : ∥ A ∥) → P.Is-proposition (P x)
+
+open Elimᴾ public
+
+elimᴾ : Elimᴾ P → (x : ∥ A ∥) → P x
+elimᴾ e = elimᴾ′ e′
+  where
+  module E = Elimᴾ e
+
+  e′ : Elimᴾ′ _
+  e′ .∣∣ʳ                            = E.∣∣ʳ
+  e′ .truncation-is-propositionʳ _ _ =
+    P.heterogeneous-irrelevance E.truncation-is-propositionʳ
 
 -- A non-dependent eliminator, expressed using paths.
 
-recᴾ : P.Is-proposition B → (A → B) → ∥ A ∥ → B
-recᴾ p = elimᴾ _ (λ _ → p)
+record Recᴾ (A : Type a) (B : Type b) : Type (a ⊔ b) where
+  no-eta-equality
+  field
+    ∣∣ʳ                        : A → B
+    truncation-is-propositionʳ : P.Is-proposition B
+
+open Recᴾ public
+
+recᴾ : Recᴾ A B → ∥ A ∥ → B
+recᴾ r = elimᴾ e
+  where
+  module R = Recᴾ r
+
+  e : Elimᴾ _
+  e .∣∣ʳ                          = R.∣∣ʳ
+  e .truncation-is-propositionʳ _ = R.truncation-is-propositionʳ
 
 -- A dependently typed eliminator.
+
+record Elim′ {A : Type a} (P : ∥ A ∥ → Type p) : Type (a ⊔ p) where
+  no-eta-equality
+  field
+    ∣∣ʳ : (x : A) → P ∣ x ∣
+
+    truncation-is-propositionʳ :
+      (x : ∥ A ∥) → Is-proposition (P x)
+
+open Elim′ public
+
+elim′ : Elim′ P → (x : ∥ A ∥) → P x
+elim′ e = elimᴾ e′
+  where
+  module E = Elim′ e
+
+  e′ : Elimᴾ _
+  e′ .∣∣ʳ                        = E.∣∣ʳ
+  e′ .truncation-is-propositionʳ =
+    _↔_.to (H-level↔H-level 1) ∘ E.truncation-is-propositionʳ
 
 elim :
   (P : ∥ A ∥ → Type p) →
   (∀ x → Is-proposition (P x)) →
   ((x : A) → P ∣ x ∣) →
   (x : ∥ A ∥) → P x
-elim P p = elimᴾ P (_↔_.to (H-level↔H-level 1) ∘ p)
+elim _ p f = elim′ λ where
+  .∣∣ʳ                        → f
+  .truncation-is-propositionʳ → p
 
 -- Primitive "recursion".
 
+record Rec′ (A : Type a) (B : Type b) : Type (a ⊔ b) where
+  no-eta-equality
+  field
+    ∣∣ʳ                        : A → B
+    truncation-is-propositionʳ : Is-proposition B
+
+open Rec′ public
+
+rec′ : Rec′ A B → ∥ A ∥ → B
+rec′ r = recᴾ r′
+  where
+  module R = Rec′ r
+
+  r′ : Recᴾ _ _
+  r′ .∣∣ʳ                        = R.∣∣ʳ
+  r′ .truncation-is-propositionʳ =
+    _↔_.to (H-level↔H-level 1) R.truncation-is-propositionʳ
+
 rec : Is-proposition B → (A → B) → ∥ A ∥ → B
-rec p = recᴾ (_↔_.to (H-level↔H-level 1) p)
+rec p f = rec′ λ where
+  .∣∣ʳ                        → f
+  .truncation-is-propositionʳ → p
 
 -- A map function.
 
