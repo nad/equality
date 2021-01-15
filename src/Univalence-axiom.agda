@@ -40,8 +40,11 @@ open import Surjection eq using (_↠_)
 
 -- The univalence axiom states that ≡⇒≃ is an equivalence.
 
-Univalence′ : ∀ {ℓ} → Type ℓ → Type ℓ → Type (lsuc ℓ)
-Univalence′ A B = Is-equivalence (≡⇒≃ {A = A} {B = B})
+record Univalence′ {ℓ} (A B : Type ℓ) : Type (lsuc ℓ) where
+  no-eta-equality
+  pattern
+  field
+    univalence : Is-equivalence (≡⇒≃ {A = A} {B = B})
 
 Univalence : ∀ ℓ → Type (lsuc ℓ)
 Univalence ℓ = {A B : Type ℓ} → Univalence′ A B
@@ -50,7 +53,7 @@ Univalence ℓ = {A B : Type ℓ} → Univalence′ A B
 -- equivalences.
 
 ≡≃≃ : ∀ {ℓ} {A B : Type ℓ} → Univalence′ A B → (A ≡ B) ≃ (A ≃ B)
-≡≃≃ univ = ⟨ ≡⇒≃ , univ ⟩
+≡≃≃ univ = ⟨ ≡⇒≃ , Univalence′.univalence univ ⟩
 
 -- In the case of sets equalities are equivalent to bijections (if we
 -- add the assumption of extensionality).
@@ -75,6 +78,18 @@ Univalence ℓ = {A B : Type ℓ} → Univalence′ A B
 
 ≃⇒≡ : ∀ {ℓ} {A B : Type ℓ} → Univalence′ A B → A ≃ B → A ≡ B
 ≃⇒≡ univ = _≃_.from (≡≃≃ univ)
+
+-- Univalence′ can be expressed without the record type.
+
+Univalence′≃Is-equivalence-≡⇒≃ :
+  ∀ {ℓ} {A B : Type ℓ} →
+  Univalence′ A B ≃ Is-equivalence (≡⇒≃ {A = A} {B = B})
+Univalence′≃Is-equivalence-≡⇒≃ =
+  Eq.↔→≃
+    Univalence′.univalence
+    (λ eq → record { univalence = eq })
+    refl
+    (λ { (record { univalence = _ }) → refl _ })
 
 ------------------------------------------------------------------------
 -- Propositional extensionality
@@ -105,37 +120,24 @@ Propositional-extensionality-is-univalence-for-propositions :
    Is-proposition A → Is-proposition B → Univalence′ A B)
 
 Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
-  _↔_.to (⇔↔≃ ext
-              ([inhabited⇒+]⇒+ 0 λ prop-ext →
-               implicit-Π-closure ext 1 λ _ →
-               implicit-Π-closure ext 1 λ _ →
-               Π-closure (lower-extensionality _ lzero ext) 1 λ A-prop →
-               Π-closure (lower-extensionality _ lzero ext) 1 λ B-prop →
-               Π-closure (lower-extensionality _ lzero ext) 1 λ _ →
-               ≡-closure (prop-ext {_}) A-prop B-prop)
-              (implicit-Π-closure ext 1 λ _ →
-               implicit-Π-closure ext 1 λ _ →
-               Π-closure (lower-extensionality _ lzero ext) 1 λ _ →
-               Π-closure (lower-extensionality _ lzero ext) 1 λ _ →
-               Eq.propositional ext _))
-    (record
-       { to   = λ prop-ext A-prop B-prop →
-                  _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $ λ A≃B →
-                  ( prop-ext A-prop B-prop (_≃_.logical-equivalence A≃B)
-                  , Eq.left-closure (lower-extensionality _ _ ext)
-                      0 A-prop _ _
-                  ) , λ _ → Σ-≡,≡→≡
-                        (≡-closure prop-ext A-prop B-prop _ _)
-                        (mono₁ 1 (Eq.left-closure
-                                    (lower-extensionality _ _ ext)
-                                       0 A-prop)
-                               _ _)
-       ; from = λ univ {A B} A-prop B-prop →
-                  A ⇔ B  ↔⟨ ⇔↔≃ (lower-extensionality _ _ ext) A-prop B-prop ⟩
-                  A ≃ B  ↔⟨ inverse ⟨ _ , univ A-prop B-prop ⟩ ⟩□
-                  A ≡ B  □
-       })
+  Propositional-extensionality ℓ                          ↝⟨ lemma ⟩
+
+  ({A B : Type ℓ} →
+   Is-proposition A → Is-proposition B →
+   Is-equivalence (≡⇒≃ {A = A} {B = B}))                  ↝⟨ (implicit-∀-cong ext $
+                                                              implicit-∀-cong ext $
+                                                              ∀-cong ext′ λ _ →
+                                                              ∀-cong ext′ λ _ →
+                                                              inverse Univalence′≃Is-equivalence-≡⇒≃) ⟩□
+  ({A B : Type ℓ} →
+   Is-proposition A → Is-proposition B → Univalence′ A B) □
   where
+  ext′ : Extensionality ℓ (lsuc ℓ)
+  ext′ = lower-extensionality _ lzero ext
+
+  ext″ : Extensionality ℓ ℓ
+  ext″ = lower-extensionality _ _ ext
+
   ⇔≃≡ :
     Propositional-extensionality ℓ →
     {A B : Type ℓ} →
@@ -145,17 +147,14 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
     A ⇔ B                        ↝⟨ proj₂ (propositional-identity≃≡
                                              (λ (A B : Proposition ℓ) → proj₁ A ⇔ proj₁ B)
                                              (λ { (A , A-prop) (B , B-prop) →
-                                                  ⇔-closure (lower-extensionality _ _ ext)
-                                                            1 A-prop B-prop })
+                                                  ⇔-closure ext″ 1 A-prop B-prop })
                                              (λ _ → F.id)
                                              (λ { (A , A-prop) (B , B-prop) A⇔B →
                                                   Σ-≡,≡→≡ (prop-ext A-prop B-prop A⇔B)
-                                                          (H-level-propositional
-                                                             (lower-extensionality _ _ ext) 1 _ _) }))
+                                                          (H-level-propositional ext″ 1 _ _) }))
                                           ext ⟩
     (A , A-prop) ≡ (B , B-prop)  ↔⟨ inverse $ ignore-propositional-component
-                                                (H-level-propositional
-                                                   (lower-extensionality _ _ ext) 1) ⟩□
+                                                (H-level-propositional ext″ 1) ⟩□
     A ≡ B                        □
 
   ≡-closure :
@@ -166,7 +165,33 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
     H-level.respects-surjection
       (_≃_.surjection (⇔≃≡ prop-ext A-prop B-prop))
       1
-      (⇔-closure (lower-extensionality _ _ ext) 1 A-prop B-prop)
+      (⇔-closure ext″ 1 A-prop B-prop)
+
+  lemma =
+    Eq.⇔→≃
+      ([inhabited⇒+]⇒+ 0 λ prop-ext →
+       implicit-Π-closure ext 1 λ _ →
+       implicit-Π-closure ext 1 λ _ →
+       Π-closure ext′ 1 λ A-prop →
+       Π-closure ext′ 1 λ B-prop →
+       Π-closure ext′ 1 λ _ →
+       ≡-closure (prop-ext {_}) A-prop B-prop)
+      (implicit-Π-closure ext 1 λ _ →
+       implicit-Π-closure ext 1 λ _ →
+       Π-closure ext′ 1 λ _ →
+       Π-closure ext′ 1 λ _ →
+       Eq.propositional ext _)
+      (λ prop-ext A-prop B-prop →
+         _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $ λ A≃B →
+         ( prop-ext A-prop B-prop (_≃_.logical-equivalence A≃B)
+         , Eq.left-closure ext″ 0 A-prop _ _
+         ) , λ _ → Σ-≡,≡→≡
+               (≡-closure prop-ext A-prop B-prop _ _)
+               (mono₁ 1 (Eq.left-closure ext″ 0 A-prop) _ _))
+      (λ univ {A B} A-prop B-prop →
+         A ⇔ B  ↔⟨ ⇔↔≃ ext″ A-prop B-prop ⟩
+         A ≃ B  ↔⟨ inverse ⟨ _ , univ A-prop B-prop ⟩ ⟩□
+         A ≡ B  □)
 
 ------------------------------------------------------------------------
 -- An alternative formulation of univalence
@@ -266,6 +291,8 @@ Univalence↔Other-univalence :
   Extensionality? k (lsuc ℓ) (lsuc ℓ) →
   Univalence ℓ ↝[ k ] Other-univalence ℓ
 Univalence↔Other-univalence {k} {ℓ} ext =
+  Univalence ℓ                                                          ↝⟨ implicit-∀-cong ext $ implicit-∀-cong ext $
+                                                                           from-equivalence Univalence′≃Is-equivalence-≡⇒≃ ⟩
   ({A B : Type ℓ} → Is-equivalence (≡⇒≃ {A = A} {B = B}))               ↔⟨ Bijection.implicit-Π↔Π ⟩
   ((A {B} : Type ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B}))             ↝⟨ (∀-cong ext λ _ → from-bijection Bijection.implicit-Π↔Π) ⟩
   ((A B : Type ℓ) → Is-equivalence (≡⇒≃ {A = A} {B = B}))               ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ∘-sym-preserves-equivalences ext) ⟩
@@ -334,7 +361,9 @@ Univalence′≃Univalence′-CP :
   ∀ {ℓ} {A B : Type ℓ} →
   Extensionality (lsuc ℓ) (lsuc ℓ) →
   Univalence′ A B ≃ CP.Univalence′ A B
-Univalence′≃Univalence′-CP {ℓ = ℓ} ext =
+Univalence′≃Univalence′-CP {ℓ = ℓ} {A = A} {B = B} ext =
+  Univalence′ A B                         ↝⟨ Univalence′≃Is-equivalence-≡⇒≃ ⟩
+
   Is-equivalence ≡⇒≃                      ↝⟨ Is-equivalence-cong ext $
                                              elim
                                                (λ A≡B → ≡⇒≃ A≡B ≡ _≃_.from ≃≃≃ (CP.≡⇒≃ A≡B))
@@ -755,8 +784,9 @@ abstract
   Univalence′-propositional :
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
     {A B : Type ℓ} → Is-proposition (Univalence′ A B)
-  Univalence′-propositional ext =
-    Eq.propositional ext ≡⇒≃
+  Univalence′-propositional ext {A = A} {B = B} =          $⟨ Eq.propositional ext ≡⇒≃ ⟩
+    Is-proposition (Is-equivalence (≡⇒≃ {A = A} {B = B}))  ↝⟨ H-level-cong _ 1 (inverse Univalence′≃Is-equivalence-≡⇒≃) ⦂ (_ → _) ⟩□
+    Is-proposition (Univalence′ A B)                       □
 
   Univalence-propositional :
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →

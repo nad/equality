@@ -600,24 +600,26 @@ private
 -- Univalence.
 
 univ : ∀ {ℓ} → Univalence ℓ
-univ {A = A} {B = B} = from , proofs
+univ {A = A} {B = B} = record
+  { univalence = from , proofs
+  }
   where
   univ′ : Univalence′ A B
   univ′ = _≃_.from (Univalence≃Univalence-CP ext) univ-CP
 
   from : A ≃ B → A ≡ B
-  from = proj₁ univ′
+  from = proj₁ (Univalence′.univalence univ′)
 
   abstract
 
     proofs : HA.Proofs ≡⇒≃ from
-    proofs = proj₂ univ′
+    proofs = proj₂ (Univalence′.univalence univ′)
 
 -- Equivalences can be converted to equalities (if the two types live
 -- in the same universe).
 
 ≃⇒≡ : {A B : Type ℓ} → A ≃ B → A ≡ B
-≃⇒≡ = _≃_.from Eq.⟨ _ , univ ⟩
+≃⇒≡ = _≃_.from Eq.⟨ _ , Univalence′.univalence univ ⟩
 
 private
 
