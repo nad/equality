@@ -245,39 +245,9 @@ flip-subst-is-equivalence↔∃-is-contractible {p = p′} {P = P}
   ∀ {k a b} {A : Type a} {B : Type b} {x y : A} {f : x ≡ y → B} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   Is-equivalence f ↝[ k ] Is-equivalence (f ∘ sym)
-∘-sym-preserves-equivalences {A = A} {B} =
-  generalise-ext?-prop
-    (record { to = to; from = from })
-    (λ ext → Eq.propositional ext _)
-    (λ ext → Eq.propositional ext _)
-  where
-  to : {x y : A} {f : x ≡ y → B} →
-       Is-equivalence f → Is-equivalence (f ∘ sym)
-  to {x} {y} eq = _≃_.is-equivalence (↔⇒≃ (record
-    { surjection = record
-      { logical-equivalence = record
-        { from = sym ∘ _≃_.from x≡y≃B
-        }
-      ; right-inverse-of = λ z →
-          _≃_.to x≡y≃B (sym (sym (_≃_.from x≡y≃B z)))  ≡⟨ cong (_≃_.to x≡y≃B) $ sym-sym _ ⟩
-          _≃_.to x≡y≃B (_≃_.from x≡y≃B z)              ≡⟨ _≃_.right-inverse-of x≡y≃B _ ⟩∎
-          z                                            ∎
-      }
-    ; left-inverse-of = λ p →
-        sym (_≃_.from x≡y≃B (_≃_.to x≡y≃B (sym p)))  ≡⟨ cong sym $ _≃_.left-inverse-of x≡y≃B _ ⟩
-        sym (sym p)                                  ≡⟨ sym-sym _ ⟩∎
-        p                                            ∎
-    }))
-    where
-    x≡y≃B : (x ≡ y) ≃ B
-    x≡y≃B = ⟨ _ , eq ⟩
-
-  from : {x y : A} {f : x ≡ y → B} →
-         Is-equivalence (f ∘ sym) → Is-equivalence f
-  from {f = f} =
-    Is-equivalence (f ∘ sym)        ↝⟨ to ⟩
-    Is-equivalence (f ∘ sym ∘ sym)  ↝⟨ Is-equivalence-cong _ (λ _ → cong f $ sym-sym _) ⟩□
-    Is-equivalence f                □
+∘-sym-preserves-equivalences {A = A} {B} ext =
+  Is-equivalence≃Is-equivalence-∘ʳ ext
+    (_≃_.is-equivalence $ Eq.↔⇒≃ ≡-comm)
 
 -- An alternative formulation of univalence, due to Martin Escardo
 -- (see the following post to the Homotopy Type Theory group from
