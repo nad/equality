@@ -620,6 +620,114 @@ abstract
     inverse (inverse q)  ≡⟨ lift-equality ext (refl _) ⟩∎
     q                    ∎
 
+  -- An equality rearrangement lemma.
+
+  cong-to-from-lift-equality :
+    ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} {eq₁ eq₂ : A ≃ B}
+      {f : (A → B) → (B → A) → C}
+      {eq : _≃_.to eq₁ ≡ _≃_.to eq₂} →
+    (ext₁ : Extensionality (a ⊔ b) (a ⊔ b))
+    (ext₂ : Extensionality b a) →
+    cong (λ eq → f (_≃_.to eq) (_≃_.from eq))
+      (lift-equality ext₁ {p = eq₁} {q = eq₂} eq) ≡
+    cong₂ f
+      eq
+      (apply-ext (good-ext ext₂) λ b →
+
+       _≃_.from eq₁ b                              ≡⟨ cong (_≃_.from eq₁) $ sym $ _≃_.right-inverse-of eq₂ b ⟩
+       _≃_.from eq₁ (_≃_.to eq₂ (_≃_.from eq₂ b))  ≡⟨ cong (_≃_.from eq₁) $ cong (_$ _≃_.from eq₂ b) $ sym eq ⟩
+       _≃_.from eq₁ (_≃_.to eq₁ (_≃_.from eq₂ b))  ≡⟨ _≃_.left-inverse-of eq₁ (_≃_.from eq₂ b) ⟩∎
+       _≃_.from eq₂ b                              ∎)
+  cong-to-from-lift-equality {eq₂ = eq₂} {f = f} {eq = eq} ext₁ ext₂ =
+    elim₁
+      (λ {g} eq →
+         (is-eq : Is-equivalence g) →
+         let eq₁ = ⟨ g , is-eq ⟩ in
+         cong (λ eq → f (_≃_.to eq) (_≃_.from eq))
+           (lift-equality ext₁ {p = eq₁} {q = eq₂} eq) ≡
+         cong₂ f
+           eq
+           (apply-ext (good-ext ext₂) λ b →
+            trans (cong (_≃_.from eq₁) $ sym $
+                   _≃_.right-inverse-of eq₂ b) $
+            trans (cong (_≃_.from eq₁) $
+                   cong (_$ _≃_.from eq₂ b) $ sym eq) $
+            _≃_.left-inverse-of eq₁ (_≃_.from eq₂ b)))
+      (λ is-eq →
+         let eq₁ = ⟨ _≃_.to eq₂ , is-eq ⟩ in
+
+         cong (λ eq → f (_≃_.to eq) (_≃_.from eq))
+           (lift-equality ext₁ (refl _))                                   ≡⟨ cong (cong _) $ lift-equality-refl ext₁ ⟩
+
+         cong (λ eq → f (_≃_.to eq) (_≃_.from eq))
+           (cong ⟨ _≃_.to eq₂ ,_⟩
+              (propositional ext₁ (_≃_.to eq₂) _ _))                       ≡⟨ cong-∘ _ _ _ ⟩
+
+         cong (λ is-eq → f (_≃_.to eq₂) (_≃_.from ⟨ _ , is-eq ⟩))
+           (propositional ext₁ (_≃_.to eq₂) _ _)                           ≡⟨ sym $ cong-∘ _ _ _ ⟩
+
+         cong (f (_≃_.to eq₂))
+           (cong (λ is-eq → _≃_.from ⟨ _ , is-eq ⟩)
+              (propositional ext₁ (_≃_.to eq₂) _ _))                       ≡⟨ cong (cong _) $
+                                                                              elim₁
+                                                                                (λ {is-eq} eq →
+                                                                                   let eq₁ = ⟨ _≃_.to eq₂ , is-eq ⟩ in
+                                                                                   cong (λ is-eq → _≃_.from ⟨ _ , is-eq ⟩) eq ≡
+                                                                                   apply-ext (good-ext ext₂) λ b →
+                                                                                   trans (cong (_≃_.from eq₁) $ sym $
+                                                                                          _≃_.right-inverse-of eq₂ b) $
+                                                                                   _≃_.left-inverse-of eq₁ (_≃_.from eq₂ b))
+                                                                                (
+             cong (λ is-eq → _≃_.from ⟨ _ , is-eq ⟩) (refl _)                    ≡⟨ cong-refl _ ⟩
+
+             refl _                                                              ≡⟨ sym (good-ext-refl ext₂ _) ⟩
+
+             (apply-ext (good-ext ext₂) λ _ → refl _)                            ≡⟨ (cong (apply-ext (good-ext ext₂)) $ apply-ext ext₂ λ _ → sym $
+                                                                                     trans-symˡ _) ⟩
+             (apply-ext (good-ext ext₂) λ b →
+              trans (sym $ cong (_≃_.from eq₂) $
+                     _≃_.right-inverse-of eq₂ b) $
+              cong (_≃_.from eq₂) $ _≃_.right-inverse-of eq₂ b)                  ≡⟨ (cong (apply-ext (good-ext ext₂)) $ apply-ext ext₂ λ _ →
+                                                                                     cong₂ trans
+                                                                                       (sym $ cong-sym _ _)
+                                                                                       (_≃_.right-left-lemma eq₂ _)) ⟩∎
+             (apply-ext (good-ext ext₂) λ b →
+              trans (cong (_≃_.from eq₂) $ sym $
+                     _≃_.right-inverse-of eq₂ b) $
+              _≃_.left-inverse-of eq₂ (_≃_.from eq₂ b))                          ∎)
+                                                                                (propositional ext₁ (_≃_.to eq₂) _ _) ⟩
+         cong (f (_≃_.to eq₂))
+           (apply-ext (good-ext ext₂) λ b →
+            trans (cong (_≃_.from eq₁) $ sym $
+                   _≃_.right-inverse-of eq₂ b) $
+            _≃_.left-inverse-of eq₁ (_≃_.from eq₂ b))                      ≡⟨ (cong (cong _) $
+                                                                               cong (apply-ext (good-ext ext₂)) $ apply-ext ext₂ λ _ →
+                                                                               cong (trans _) $ sym $
+                                                                               trans (cong (flip trans _) $
+                                                                                      trans (cong (cong _) $
+                                                                                             trans (cong (cong _) sym-refl) $
+                                                                                             cong-refl _) $
+                                                                                      cong-refl _) $
+                                                                               trans-reflˡ _) ⟩
+         cong (f (_≃_.to eq₂))
+           (apply-ext (good-ext ext₂) λ b →
+            trans (cong (_≃_.from eq₁) $ sym $
+                   _≃_.right-inverse-of eq₂ b) $
+            trans (cong (_≃_.from eq₁) $ cong (_$ _≃_.from eq₂ b) $ sym $
+                   refl (_≃_.to eq₂)) $
+            _≃_.left-inverse-of eq₁ (_≃_.from eq₂ b))                      ≡⟨ sym $ cong₂-reflˡ _ ⟩∎
+
+         cong₂ f
+           (refl _)
+           (apply-ext (good-ext ext₂) λ b →
+            trans (cong (_≃_.from eq₁) $ sym $
+                   _≃_.right-inverse-of eq₂ b) $
+            trans (cong (_≃_.from eq₁) $ cong (_$ _≃_.from eq₂ b) $ sym $
+                   refl (_≃_.to eq₂)) $
+            _≃_.left-inverse-of eq₁ (_≃_.from eq₂ b))                      ∎)
+      eq
+      _
+
 -- _≃_ comes with a groupoid structure (assuming extensionality).
 
 groupoid : ∀ {ℓ} → Extensionality ℓ ℓ → Groupoid (lsuc ℓ) ℓ
