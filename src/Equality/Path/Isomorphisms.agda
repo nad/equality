@@ -143,6 +143,14 @@ abstract
     cong (_∘ h) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (f≡g ∘ h)
   cong-pre-∘-ext = cong-pre-∘-good-ext bad-ext bad-ext
 
+  cong-∘-ext :
+    {A : Type a} {B : Type b} {C : Type c} {f g : B → C}
+    (f≡g : ∀ x → f x ≡ g x) →
+    cong {B = (A → B) → (A → C)}
+         (λ f → f ∘_) (⟨ext⟩ f≡g) ≡
+    ⟨ext⟩ λ h → ⟨ext⟩ λ x → f≡g (h x)
+  cong-∘-ext = cong-∘-good-ext bad-ext bad-ext bad-ext
+
 ------------------------------------------------------------------------
 -- More isomorphisms and related properties
 

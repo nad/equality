@@ -30,8 +30,8 @@ open import H-level.Closure equality-with-J using (ext⁻¹)
 
 private
   variable
-    a p : Level
-    A   : Type a
+    a p   : Level
+    A B C : Type a
 
 ------------------------------------------------------------------------
 -- The interval
@@ -249,3 +249,11 @@ abstract
     (f≡g : ∀ x → f x ≡ g x) →
     cong (_∘ h) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (f≡g ∘ h)
   cong-pre-∘-ext = cong-pre-∘-good-ext bad-ext bad-ext
+
+  cong-∘-ext :
+    {f g : B → C}
+    (f≡g : ∀ x → f x ≡ g x) →
+    cong {B = (A → B) → (A → C)}
+         (λ f → f ∘_) (⟨ext⟩ f≡g) ≡
+    ⟨ext⟩ λ h → ⟨ext⟩ λ x → f≡g (h x)
+  cong-∘-ext = cong-∘-good-ext bad-ext bad-ext bad-ext

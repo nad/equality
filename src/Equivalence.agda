@@ -546,6 +546,29 @@ abstract
 
     apply-ext (good-ext ext₁) (f≡g ⊚ h)                           ∎
 
+  cong-∘-good-ext :
+    ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} {f g : B → C}
+    (ext₁ : Extensionality b c)
+    (ext₂ : Extensionality (a ⊔ b) (a ⊔ c))
+    (ext₃ : Extensionality a c)
+    (f≡g : ∀ x → f x ≡ g x) →
+    cong {B = (A → B) → (A → C)}
+         (λ f → f ⊚_) (apply-ext (good-ext ext₁) f≡g) ≡
+    apply-ext (good-ext ext₂) λ h → apply-ext (good-ext ext₃) λ x →
+    f≡g (h x)
+  cong-∘-good-ext ext₁ ext₂ ext₃ f≡g =
+    cong (λ f → f ⊚_) (apply-ext (good-ext ext₁) f≡g)                  ≡⟨ sym $ _≃_.right-inverse-of (extensionality-isomorphism ext₂) _ ⟩
+
+    (apply-ext (good-ext ext₂) λ h →
+     cong (_$ h) (cong (λ f → f ⊚_) (apply-ext (good-ext ext₁) f≡g)))  ≡⟨ (cong (apply-ext (good-ext ext₂)) $ apply-ext ext₂ λ _ →
+                                                                           cong-∘ _ _ _) ⟩
+
+    (apply-ext (good-ext ext₂) λ h →
+     cong (_⊚ h) (apply-ext (good-ext ext₁) f≡g))                      ≡⟨ (cong (apply-ext (good-ext ext₂)) $ apply-ext ext₂ λ _ → cong-pre-∘-good-ext ext₃ ext₁ _) ⟩∎
+
+    (apply-ext (good-ext ext₂) λ h → apply-ext (good-ext ext₃) λ x →
+     f≡g (h x))                                                        ∎
+
 ------------------------------------------------------------------------
 -- Groupoid
 
