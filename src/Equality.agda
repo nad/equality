@@ -513,7 +513,7 @@ module Derived-definitions-and-properties
 
   private
     variable
-      eq u≡v x≡y y≡z x₁≡x₂ : x ≡ y
+      eq u≡v v≡w x≡y y≡z x₁≡x₂ : x ≡ y
 
   -- Equational reasoning combinators.
 
@@ -871,6 +871,28 @@ module Derived-definitions-and-properties
        sym (cong (flip f _) x≡y)         ≡⟨ cong sym $ sym $ cong₂-reflʳ _ ⟩∎
        sym (cong₂ f x≡y (refl _))        ∎)
       u≡v
+
+    cong₂-trans :
+      {f : A → B → C} →
+      cong₂ f (trans x≡y y≡z) (trans u≡v v≡w) ≡
+      trans (cong₂ f x≡y u≡v) (cong₂ f y≡z v≡w)
+    cong₂-trans
+      {x≡y = x≡y} {y≡z = y≡z} {u≡v = u≡v} {v≡w = v≡w} {f = f} =
+      elim₁
+        (λ x≡y →
+           cong₂ f (trans x≡y y≡z) (trans u≡v v≡w) ≡
+           trans (cong₂ f x≡y u≡v) (cong₂ f y≡z v≡w))
+        (elim₁
+           (λ u≡v →
+              cong₂ f (trans (refl _) y≡z) (trans u≡v v≡w) ≡
+              trans (cong₂ f (refl _) u≡v) (cong₂ f y≡z v≡w))
+           (cong₂ f (trans (refl _) y≡z) (trans (refl _) v≡w)    ≡⟨ cong₂ (cong₂ f) (trans-reflˡ _) (trans-reflˡ _) ⟩
+            cong₂ f y≡z v≡w                                      ≡⟨ sym $
+                                                                    trans (cong (flip trans _) $ cong₂-refl _) $
+                                                                    trans-reflˡ _ ⟩∎
+            trans (cong₂ f (refl _) (refl _)) (cong₂ f y≡z v≡w)  ∎)
+           u≡v)
+        x≡y
 
     cong₂-∘ˡ :
       {f : B → C → D} {g : A → B} {x≡y : x ≡ y} {u≡v : u ≡ v} →
