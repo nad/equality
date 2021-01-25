@@ -24,6 +24,7 @@ open import Colimit.Sequential eq as C using (Colimit)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
+open import Function-universe equality-with-J as F
 open import H-level.Closure equality-with-J
 import H-level.Truncation.Propositional eq as T
 open import H-level.Truncation.Propositional.One-step eq as O
@@ -32,7 +33,7 @@ open import H-level.Truncation.Propositional.One-step eq as O
 private
   variable
     a p : Level
-    A   : Type a
+    A B : Type a
     P   : A → Type p
     e x : A
 
@@ -172,3 +173,19 @@ _ = refl _
      .∣∣ʳ               → T.∣_∣
      .is-propositionʳ _ → T.truncation-is-proposition)
   (T.rec ∥∥-proposition ∣_∣)
+
+-- Functions from T.∥ A ∥ can be expressed as families of functions
+-- from ∥ A ∥¹-out-^ that satisfy a certain property.
+
+∥∥→≃ :
+  (T.∥ A ∥ → B)
+    ≃
+  (∃ λ (f : ∀ n → ∥ A ∥¹-out-^ n → B) →
+     ∀ n x → f (suc n) O.∣ x ∣ ≡ f n x)
+∥∥→≃ {A = A} {B = B} =
+  (T.∥ A ∥ → B)                          ↝⟨ →-cong ext (inverse ∥∥≃∥∥) F.id ⟩
+
+  (∥ A ∥ → B)                            ↝⟨ C.universal-property ⟩□
+
+  (∃ λ (f : ∀ n → ∥ A ∥¹-out-^ n → B) →
+     ∀ n x → f (suc n) O.∣ x ∣ ≡ f n x)  □
