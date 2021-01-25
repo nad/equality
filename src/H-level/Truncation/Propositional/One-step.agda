@@ -51,7 +51,7 @@ private
 
 data ∥_∥¹ (A : Type a) : Type a where
   ∣_∣          : A → ∥ A ∥¹
-  ∣∣-constantᴾ : PD.Constant (∣_∣ {A = A})
+  ∣∣-constantᴾ : PD.Constant ∣_∣
 
 -- The function ∣_∣ is constant.
 
