@@ -23,6 +23,7 @@ open import Prelude as P
 open import Logical-equivalence using (_⇔_)
 
 open import Bijection equality-with-J as Bijection using (_↔_)
+import Colimit.Sequential.Very-erased eq as C
 open import Embedding equality-with-J as Emb using (Is-embedding)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
@@ -34,11 +35,13 @@ open import Equivalence.Erased.Contractible-preimages equality-with-J
   as ECP using (Contractibleᴱ; _⁻¹ᴱ_)
 open import Equivalence-relation equality-with-J
 open import Erased.Cubical eq as Er using (Erased; [_])
-open import Function-universe equality-with-J hiding (id; _∘_)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as PT
   using (∥_∥; Surjective)
+open import H-level.Truncation.Propositional.One-step eq as O
+  using (∥_∥¹-out-^)
 import H-level.Truncation.Propositional.Non-recursive.Erased eq as N
 open import Monad equality-with-J
 open import Preimage equality-with-J using (_⁻¹_)
@@ -393,6 +396,26 @@ _ :
   (f : A → B) (x : A) →
   _≃_.from (universal-property B-prop) f ∣ x ∣ ≡ f x
 _ = λ _ _ _ → refl _
+
+-- Functions from ∥ A ∥ᴱ can be expressed as functions from A along
+-- with some erased data.
+
+∥∥ᴱ→≃ :
+  (∥ A ∥ᴱ → B)
+    ≃
+  (∃ λ (f : A → B) →
+     Erased (∃ λ (g : ∀ n → ∥ A ∥¹-out-^ (suc n) → B) →
+               (∀ x → g zero O.∣ x ∣ ≡ f x) ×
+               (∀ n x → g (suc n) O.∣ x ∣ ≡ g n x)))
+∥∥ᴱ→≃ {A = A} {B = B} =
+  (∥ A ∥ᴱ → B)                                           ↝⟨ →-cong ext ∥∥ᴱ≃∥∥ᴱ F.id ⟩
+
+  (N.∥ A ∥ᴱ → B)                                         ↝⟨ C.universal-property ⟩□
+
+  (∃ λ (f : A → B) →
+     Erased (∃ λ (g : ∀ n → ∥ A ∥¹-out-^ (suc n) → B) →
+               (∀ x → g zero O.∣ x ∣ ≡ f x) ×
+               (∀ n x → g (suc n) O.∣ x ∣ ≡ g n x)))     □
 
 -- A function of type (x : ∥ A ∥ᴱ) → P x, along with an erased proof
 -- showing that the function is equal to some erased function, is
