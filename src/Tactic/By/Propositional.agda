@@ -172,12 +172,12 @@ private
       --   suc ⟨$⟩ h xs       ≡⟨ by (hyp xs) ⟩∎
       --   suc ⟨$⟩ return xs  ∎
 
-      test₁₃ : (h : List ⊤ → Maybe (List ⊤)) →
-               ((xs : List ⊤) → h xs ≡ just xs) →
-               (x : ⊤) (xs : List ⊤) → _
-      test₁₃ h hyp x xs =
-        _∷_ ⟨$⟩ return x ⊛ h xs       ≡⟨ by (hyp xs) ⟩∎
-        _∷_ ⟨$⟩ return x ⊛ return xs  ∎
+      -- test₁₃ : (h : List ⊤ → Maybe (List ⊤)) →
+      --          ((xs : List ⊤) → h xs ≡ just xs) →
+      --          (x : ⊤) (xs : List ⊤) → _
+      -- test₁₃ h hyp x xs =
+      --   _∷_ ⟨$⟩ return x ⊛ h xs       ≡⟨ by (hyp xs) ⟩∎
+      --   _∷_ ⟨$⟩ return x ⊛ return xs  ∎
 
       -- This test case fails if "refl a A lhs" is replaced by
       -- "refl unknown unknown lhs" in try-refl.
