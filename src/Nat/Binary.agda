@@ -79,6 +79,15 @@ private
 
           pattern _∷_⟨_⟩ b n inv = _∷_ b n {invariant = inv}
 
+          -- Synonyms that can be used in type signatures (Bin′ is
+          -- abstract, so the constructors cannot be used there).
+
+          []′ : Bin′
+          []′ = []
+
+          _∷_⟨_⟩′ : (b : Bool) (n : Bin′) → @0 Invariant b n → Bin′
+          _∷_⟨_⟩′ = _∷_⟨_⟩
+
       private
 
         -- The underlying list.
@@ -507,7 +516,7 @@ private
 
         -- The empty list is not equal to any non-empty list.
 
-        []≢∷ : ([] ⦂ Bin′) ≢ b ∷ n ⟨ inv ⟩
+        []≢∷ : []′ ≢ b ∷ n ⟨ inv ⟩′
         []≢∷ {b = b} {n = n} =
           [] ≡ b ∷ n          ↝⟨ cong to-List ⟩
           [] ≡ b ∷ to-List n  ↝⟨ List.[]≢∷ ⟩□
@@ -534,7 +543,7 @@ private
             (@0 inv₁ : Invariant b₁ n₁) (@0 inv₂ : Invariant b₂ n₂) →
             b₁ ≡ b₂ →
             Dec-Erased (n₁ ≡ n₂) →
-            Dec-Erased ((b₁ ∷ n₁ ⟨ inv₁ ⟩) ≡ (b₂ ∷ n₂ ⟨ inv₂ ⟩))
+            Dec-Erased ((b₁ ∷ n₁ ⟨ inv₁ ⟩′) ≡ (b₂ ∷ n₂ ⟨ inv₂ ⟩′))
           helper₂ n₁ n₂ _ _ _ (no [ n₁≢n₂ ]) = no [
             (b₁ ∷ n₁ ⟨ _ ⟩) ≡ (b₂ ∷ n₂ ⟨ _ ⟩)  ↝⟨ cong to-List ⟩
             b₁ ∷ to-List n₁ ≡ b₂ ∷ to-List n₂  ↝⟨ List.cancel-∷-tail ⟩
@@ -554,7 +563,7 @@ private
             ∀ n₁ n₂
               {@0 inv₁ : Invariant b₁ n₁} {@0 inv₂ : Invariant b₂ n₂} →
             Dec (b₁ ≡ b₂) →
-            Dec-Erased ((b₁ ∷ n₁ ⟨ inv₁ ⟩) ≡ (b₂ ∷ n₂ ⟨ inv₂ ⟩))
+            Dec-Erased ((b₁ ∷ n₁ ⟨ inv₁ ⟩′) ≡ (b₂ ∷ n₂ ⟨ inv₂ ⟩′))
           helper₁ n₁ n₂ (yes b₁≡b₂) =
             helper₂ _ _ _ _ b₁≡b₂ (equal? n₁ n₂)
 
@@ -584,7 +593,7 @@ private
 
         to-ℕ′-foldr-∷ˢ-[] :
           ∀ bs →
-          to-ℕ′ (foldr _∷ˢ_ [] bs) ≡
+          to-ℕ′ (foldr _∷ˢ_ []′ bs) ≡
           foldr (λ b n → from-Bool b ⊕ 2 ⊛ n) 0 bs
         to-ℕ′-foldr-∷ˢ-[] []       = refl _
         to-ℕ′-foldr-∷ˢ-[] (b ∷ bs) =

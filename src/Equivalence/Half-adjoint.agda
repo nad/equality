@@ -404,10 +404,12 @@ abstract
     ({P : A → Type b} → Extensionality′ A P) →
     {P : A → Type b} {f g : (x : A) → P x} →
     Is-equivalence (ext⁻¹ {f = f} {g = g})
-  ext⁻¹-is-equivalence ext {f = f} {g} =
+  ext⁻¹-is-equivalence {A = A} ext {P = P} {f = f} {g = g} =
     drop-Σ-map-id ext⁻¹ lemma₂ f
     where
-    surj : (∀ x → Singleton (g x)) ↠ (∃ λ f → ∀ x → f x ≡ g x)
+    surj :
+      (∀ x → Singleton (g x)) ↠
+      (∃ λ (f : (x : A) → P x) → ∀ x → f x ≡ g x)
     surj = record
       { logical-equivalence = record
         { to   = λ f → proj₁ ∘ f , proj₂ ∘ f
@@ -416,13 +418,17 @@ abstract
       ; right-inverse-of = refl
       }
 
-    lemma₁ : Contractible (∃ λ f → ∀ x → f x ≡ g x)
+    lemma₁ : Contractible (∃ λ (f : (x : A) → P x) → ∀ x → f x ≡ g x)
     lemma₁ =
       H-level.respects-surjection surj 0 $
         _⇔_.from Π-closure-contractible⇔extensionality
           ext (singleton-contractible ∘ g)
 
-    lemma₂ : Is-equivalence (Σ-map id ext⁻¹)
+    lemma₂ :
+      Is-equivalence
+        {A = ∃ λ f → f ≡ g}
+        {B = ∃ λ f → ∀ x → f x ≡ g x}
+        (Σ-map id ext⁻¹)
     lemma₂ = function-between-contractible-types-is-equivalence
                _ (singleton-contractible g) lemma₁
 
@@ -437,7 +443,7 @@ abstract
     {A : Type a} {B : Type b} →
     Extensionality (a ⊔ b) (a ⊔ b) →
     (f : A → B) → Is-proposition (Is-equivalence f)
-  propositional {a = a} {b = b} ext f =
+  propositional {a = a} {b = b} {A = A} {B = B} ext f =
     [inhabited⇒+]⇒+ 0 λ eq →
     mono₁ 0 $
     H-level.respects-surjection
@@ -465,7 +471,7 @@ abstract
 
     lemma₁ :
       Is-equivalence f →
-      Contractible (∃ λ f⁻¹ → ∀ x → f (f⁻¹ x) ≡ x)
+      Contractible (∃ λ (f⁻¹ : B → A) → ∀ x → f (f⁻¹ x) ≡ x)
     lemma₁ (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) =
       H-level.respects-surjection
         ((∃ λ f⁻¹ → f ∘ f⁻¹ ≡ id)         ↠⟨ (∃-cong λ _ → ext-↠) ⟩□
@@ -493,7 +499,7 @@ abstract
 
     lemma₂ :
       Is-equivalence f →
-      ∀ f⁻¹ (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
+      (f⁻¹ : B → A) (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
       Contractible
         (∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
            ∀ x → cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x))

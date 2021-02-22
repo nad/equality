@@ -206,13 +206,13 @@ abstract
     (f : ∀ {x} → P x → Q x) →
     Is-equivalence {A = Σ A P} {B = Σ A Q} (Σ-map P.id f) →
     ∀ x → Is-equivalence (f {x = x})
-  drop-Σ-map-id {A = A} {P = P} {Q = Q} f eq x z =
+  drop-Σ-map-id {p = ℓp} {q = ℓq} {A = A} {P = P} {Q = Q} f eq x z =
     H-level.respects-surjection surj 0 (eq (x , z))
     where
     map-f : Σ A P → Σ A Q
     map-f = Σ-map P.id f
 
-    to-P : ∀ {x y} {p : ∃ Q} → (x , f y) ≡ p → Type _
+    to-P : ∀ {x y} {p : ∃ Q} → (x , f y) ≡ p → Type (ℓp ⊔ ℓq)
     to-P {y = y} {p} _ = ∃ λ y′ → f y′ ≡ proj₂ p
 
     to : map-f ⁻¹ (x , z) → f ⁻¹ z

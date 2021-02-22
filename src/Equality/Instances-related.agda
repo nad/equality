@@ -108,18 +108,21 @@ module _ {congruence⁺}
       Contractible (Equality-with-J₀ a p (λ _ → reflexive-relation))
     Equality-with-J-contractible {a} {p} ext =                        $⟨ contr ⟩
       Contractible ((A : Type a) (P : I A → Type p)
-                    (d : ∀ x → P (x , x , refl x)) → Singleton d)     ↝⟨ H-level.respects-surjection eq surj 0 ⟩
+                    (d : ∀ x → P (to x)) → Singleton d)               ↝⟨ H-level.respects-surjection eq surj 0 ⟩
 
       Contractible (Equality-with-J₀ a p (λ _ → reflexive-relation))  □
       where
       I : Type a → Type a
       I A = ∃ λ (x : A) → ∃ λ (y : A) → x ≡ y
 
+      to : ∀ {A} → A → I A
+      to x = x , x , refl x
+
       ≃I : ∀ {A} → A ≃ I A
       ≃I = ↔⇒≃ (record
         { surjection = record
           { logical-equivalence = record
-            { to   = λ x → x , x , refl x
+            { to   = to
             ; from = proj₁
             }
           ; right-inverse-of = λ q →
@@ -135,7 +138,7 @@ module _ {congruence⁺}
 
       contr :
         Contractible ((A : Type a) (P : I A → Type p)
-                      (d : ∀ x → P (x , x , refl x)) → Singleton d)
+                      (d : ∀ x → P (to x)) → Singleton d)
       contr =
         Π-closure          (lower-extensionality (lsuc p) lzero    ext) 0 λ _ →
         Π-closure          (lower-extensionality (lsuc a) (lsuc p) ext) 0 λ _ →
@@ -144,61 +147,61 @@ module _ {congruence⁺}
 
       surj =
         ((A : Type a) (P : I A → Type p)
-         (d : ∀ x → P (x , x , refl x)) → Singleton d)                    ↔⟨⟩
+         (d : ∀ x → P (to x)) → Singleton d)                    ↔⟨⟩
 
         ((A : Type a) (P : I A → Type p)
-         (d : ∀ x → P (x , x , refl x)) →
-         ∃ λ (j : (x : A) → P (x , x , refl x)) → j ≡ d)                  ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
+         (d : ∀ x → P (to x)) →
+         ∃ λ (j : (x : A) → P (to x)) → j ≡ d)                  ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
                                                                               ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
                                                                               ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ →
                                                                               ∃-cong λ _ → inverse $
                                                                               extensionality-isomorphism (lower-extensionality _ _ ext)) ⟩
         ((A : Type a) (P : I A → Type p)
-         (d : ∀ x → P (x , x , refl x)) →
-         ∃ λ (j : (x : A) → P (x , x , refl x)) → (x : A) → j x ≡ d x)    ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
+         (d : ∀ x → P (to x)) →
+         ∃ λ (j : (x : A) → P (to x)) → (x : A) → j x ≡ d x)    ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
                                                                               ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
                                                                               ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ → inverse $
                                                                               Σ-cong (inverse $ Π-cong (lower-extensionality _ _ ext)
                                                                                                        ≃I λ _ → ⟨id⟩ {k = equivalence}) λ _ →
                                                                               ⟨id⟩ {k = equivalence}) ⟩
         ((A : Type a) (P : I A → Type p)
-         (d : ∀ x → P (x , x , refl x)) →
-         ∃ λ (j : (q : I A) → P q) → (x : A) → j (x , x , refl x) ≡ d x)  ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
+         (d : ∀ x → P (to x)) →
+         ∃ λ (j : (q : I A) → P q) → (x : A) → j (to x) ≡ d x)  ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
                                                                               ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
                                                                               ΠΣ-comm) ⟩
         ((A : Type a) (P : I A → Type p) →
-         ∃ λ (j : (d : ∀ x → P (x , x , refl x)) →
+         ∃ λ (j : (d : ∀ x → P (to x)) →
                   (q : I A) → P q) →
-             (d : ∀ x → P (x , x , refl x))
-             (x : A) → j d (x , x , refl x) ≡ d x)                        ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
+             (d : ∀ x → P (to x))
+             (x : A) → j d (to x) ≡ d x)                        ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →
                                                                               ΠΣ-comm) ⟩
         ((A : Type a) →
-         ∃ λ (j : (P : I A → Type p) (d : ∀ x → P (x , x , refl x)) →
+         ∃ λ (j : (P : I A → Type p) (d : ∀ x → P (to x)) →
                   (q : I A) → P q) →
-             (P : I A → Type p) (d : ∀ x → P (x , x , refl x))
-             (x : A) → j P d (x , x , refl x) ≡ d x)                      ↔⟨ ΠΣ-comm ⟩
+             (P : I A → Type p) (d : ∀ x → P (to x))
+             (x : A) → j P d (to x) ≡ d x)                      ↔⟨ ΠΣ-comm ⟩
 
         (∃ λ (J : (A : Type a) (P : I A → Type p)
-                  (d : ∀ x → P (x , x , refl x)) →
+                  (d : ∀ x → P (to x)) →
                   (q : I A) → P q) →
              (A : Type a) (P : I A → Type p)
-             (d : ∀ x → P (x , x , refl x))
-             (x : A) → J A P d (x , x , refl x) ≡ d x)                    ↝⟨ record
-                                                                               { logical-equivalence = record
-                                                                                 { to   = uncurry λ J Jβ → record
-                                                                                            { elim      = λ P r x≡y →
-                                                                                                            J _ (P ∘ proj₂ ∘ proj₂) r (_ , _ , x≡y)
-                                                                                            ; elim-refl = λ P r → Jβ _ (P ∘ proj₂ ∘ proj₂) r _
-                                                                                            }
-                                                                                 ; from = λ eq →
-                                                                                       (λ A P d q → Equality-with-J₀.elim eq
-                                                                                                      (λ x≡y → P (_ , _ , x≡y)) d (proj₂ (proj₂ q)))
-                                                                                     , (λ A P d x → Equality-with-J₀.elim-refl eq
-                                                                                                      (λ x≡y → P (_ , _ , x≡y)) d)
-                                                                                 }
-                                                                               ; right-inverse-of = refl
-                                                                               } ⟩□
-        Equality-with-J₀ a p (λ _ → reflexive-relation)                   □
+             (d : ∀ x → P (to x))
+             (x : A) → J A P d (to x) ≡ d x)                    ↝⟨ record
+                                                                     { logical-equivalence = record
+                                                                       { to   = uncurry λ J Jβ → record
+                                                                                  { elim      = λ P r x≡y →
+                                                                                                  J _ (P ∘ proj₂ ∘ proj₂) r (_ , _ , x≡y)
+                                                                                  ; elim-refl = λ P r → Jβ _ (P ∘ proj₂ ∘ proj₂) r _
+                                                                                  }
+                                                                       ; from = λ eq →
+                                                                             (λ A P d q → Equality-with-J₀.elim eq
+                                                                                            (λ x≡y → P (_ , _ , x≡y)) d (proj₂ (proj₂ q)))
+                                                                           , (λ A P d x → Equality-with-J₀.elim-refl eq
+                                                                                            (λ x≡y → P (_ , _ , x≡y)) d)
+                                                                       }
+                                                                     ; right-inverse-of = refl
+                                                                     } ⟩□
+        Equality-with-J₀ a p (λ _ → reflexive-relation)         □
 
   private
 

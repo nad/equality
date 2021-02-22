@@ -200,16 +200,6 @@ module _
 
   abstract
 
-    private
-
-      -- The function to-List converts the queue representation to a
-      -- list.
-
-      to-List-, :
-        ∀ {A : Type a} {s : Very-stable-≡ A} {xs q p} →
-        to-List s ([ xs ] , ∣ q , p ∣) ≡ Q.to-List _ q
-      to-List-, = refl _
-
     -- The function to-List returns the index.
 
     @0 ≡⌊⌋ : to-List s q ≡ ⌊ q ⌋

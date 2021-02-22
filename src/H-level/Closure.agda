@@ -755,7 +755,7 @@ abstract
     ; left-inverse-of = [ refl ∘ inj₁ {B = B} , refl ∘ inj₂ {A = A} ]
     }
     where
-    to : A ⊎ B → (∃ λ x → if x then ↑ b A else ↑ a B)
+    to : A ⊎ B → (∃ λ (x : Bool) → if x then ↑ b A else ↑ a B)
     to = [ _,_ true ∘ lift , _,_ false ∘ lift ]
 
     from : (∃ λ (x : Bool) → if x then ↑ b A else ↑ a B) → A ⊎ B

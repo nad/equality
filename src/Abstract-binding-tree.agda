@@ -2392,7 +2392,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
           y ≢ (_ , x) × y ∈ free aˢ a  ↝⟨ uncurry lemma ⟩□
           y ∈ xs                       □
           where
-          lemma : y ≢ (_ , x) → _
+          lemma : y ≢ (_ , x) → y ∈ free aˢ a → y ∈ xs
           lemma y≢x =
             let x₁ ,         x₁∉ = fresh-not-erased xs
                 x₂ , x₂≢x₁ , x₂∉ =                                $⟨ fresh-not-erased ((_ , x₁) ∷ xs) ⟩

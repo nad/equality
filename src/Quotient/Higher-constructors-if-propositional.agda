@@ -1053,7 +1053,7 @@ Maybe/-comm-[] {R-prop = R-prop} =
 
   abstract
 
-    from₃ : Unit → ∀ f → ℕ→/-comm-to ⁻¹ f
+    from₃ : Unit → (f : ℕ → A / R) → ℕ→/-comm-to ⁻¹ f
     from₃ x f = from₂ x f ([]→-surjective f)
 
     from : Unit → (ℕ → A / R) → (ℕ → A) / (ℕ →ᴾ R)
