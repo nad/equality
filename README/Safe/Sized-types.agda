@@ -10,6 +10,11 @@ module README.Safe.Sized-types where
 
 import Prelude.Size
 
+-- Some results that could not be placed in Function-universe because
+-- they make use of --sized-types.
+
+import Function-universe.Size
+
 -- Conatural numbers.
 
 import Conat
