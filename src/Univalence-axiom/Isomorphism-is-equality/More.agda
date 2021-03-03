@@ -916,6 +916,7 @@ module Dependent where
       ∀ {c} {I : ⟦ c ⟧} {A} →
       reflexivityE ass c (Dep set) I A ≡ lift Eq.id
     reflexivityE-set ass {c} {I} {A} =
+      let ≡⇒→′ = _↔_.to ∘ ≡⇒↝ _ in
 
       reflexivityE ass c (Dep set) I A                                ≡⟨⟩
 
@@ -952,8 +953,6 @@ module Dependent where
       where
       open _↔_ using  (to)
       open _≃_ hiding (to)
-
-      ≡⇒→′ = _↔_.to ∘ ≡⇒↝ _
 
   ⟨0⟩ : ∀ {c} → Extractor (c ▻ Dep set)
   ⟨0⟩ {c} = record

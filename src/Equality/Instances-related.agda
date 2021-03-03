@@ -92,6 +92,7 @@ module _ {congruence⁺}
   open Equivalence eq hiding (id; _∘_; inverse)
   open Function-universe eq hiding (_∘_) renaming (id to ⟨id⟩)
   open H-level.Closure eq
+  open Surjection eq using (_↠_)
 
   abstract
 
@@ -145,6 +146,10 @@ module _ {congruence⁺}
         Π-closure          (lower-extensionality _        (lsuc p) ext) 0 λ _ →
         singleton-contractible _
 
+      surj :
+        ((A : Type a) (P : I A → Type p)
+         (d : ∀ x → P (to x)) → Singleton d) ↠
+        Equality-with-J₀ a p (λ _ → reflexive-relation)
       surj =
         ((A : Type a) (P : I A → Type p)
          (d : ∀ x → P (to x)) → Singleton d)                    ↔⟨⟩

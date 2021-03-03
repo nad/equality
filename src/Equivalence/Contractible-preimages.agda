@@ -177,25 +177,25 @@ abstract
     ∀ x →
     cong (inverse eq) (right-inverse-of eq x) ≡
     left-inverse-of eq (inverse eq x)
-  right-left-lemma {f = f} eq x = subst
-    (λ x → cong f⁻¹ (right-inverse-of eq x) ≡
-           left-inverse-of eq (f⁻¹ x))
-    (right-inverse-of eq x)
-    (cong f⁻¹ (right-inverse-of eq (f (f⁻¹ x)))             ≡⟨ cong (cong f⁻¹) $ sym $ left-right-lemma eq _ ⟩
+  right-left-lemma {f = f} eq x =
+    let f⁻¹ = inverse eq in
+    subst
+      (λ x → cong f⁻¹ (right-inverse-of eq x) ≡
+             left-inverse-of eq (f⁻¹ x))
+      (right-inverse-of eq x)
+      (cong f⁻¹ (right-inverse-of eq (f (f⁻¹ x)))             ≡⟨ cong (cong f⁻¹) $ sym $ left-right-lemma eq _ ⟩
 
-     cong f⁻¹ (cong f (left-inverse-of eq (f⁻¹ x)))         ≡⟨ cong-∘ f⁻¹ f _ ⟩
+       cong f⁻¹ (cong f (left-inverse-of eq (f⁻¹ x)))         ≡⟨ cong-∘ f⁻¹ f _ ⟩
 
-     cong (f⁻¹ ∘ f) (left-inverse-of eq (f⁻¹ x))            ≡⟨ cong-roughly-id (f⁻¹ ∘ f) (λ _ → true) (left-inverse-of eq _) _ _
-                                                                 (λ z _ → left-inverse-of eq z) ⟩
-     trans (left-inverse-of eq (f⁻¹ (f (f⁻¹ x))))
-       (trans (left-inverse-of eq (f⁻¹ x))
-          (sym (left-inverse-of eq (f⁻¹ x))))               ≡⟨ cong (trans _) $ trans-symʳ _ ⟩
+       cong (f⁻¹ ∘ f) (left-inverse-of eq (f⁻¹ x))            ≡⟨ cong-roughly-id (f⁻¹ ∘ f) (λ _ → true) (left-inverse-of eq _) _ _
+                                                                   (λ z _ → left-inverse-of eq z) ⟩
+       trans (left-inverse-of eq (f⁻¹ (f (f⁻¹ x))))
+         (trans (left-inverse-of eq (f⁻¹ x))
+            (sym (left-inverse-of eq (f⁻¹ x))))               ≡⟨ cong (trans _) $ trans-symʳ _ ⟩
 
-     trans (left-inverse-of eq (f⁻¹ (f (f⁻¹ x)))) (refl _)  ≡⟨ trans-reflʳ _ ⟩∎
+       trans (left-inverse-of eq (f⁻¹ (f (f⁻¹ x)))) (refl _)  ≡⟨ trans-reflʳ _ ⟩∎
 
-     left-inverse-of eq (f⁻¹ (f (f⁻¹ x)))                   ∎)
-    where
-    f⁻¹ = inverse eq
+       left-inverse-of eq (f⁻¹ (f (f⁻¹ x)))                   ∎)
 
 abstract
 
@@ -251,6 +251,22 @@ abstract
   inverse-drop-Σ-map-id
     {P = P} {Q = Q} {f = f} {x = x} {y = y} {eq = eq} =
 
+    let lemma = elim¹
+          (λ {q′} eq →
+             cong proj₁
+               (proj₂ (other-singleton-contractible (Σ-map P.id f p′))
+                  (q′ , eq)) ≡
+             eq)
+          (cong proj₁
+             (proj₂ (other-singleton-contractible (Σ-map P.id f p′))
+                (Σ-map P.id f p′ , refl _))                           ≡⟨ cong (cong proj₁) $
+                                                                         other-singleton-contractible-refl _ ⟩
+
+           cong proj₁ (refl _)                                        ≡⟨ cong-refl _ ⟩∎
+
+           refl _                                                     ∎)
+          _
+    in
     proj₁
       (subst
          (λ ((_ , y) , _) → f ⁻¹ y)
@@ -282,22 +298,6 @@ abstract
 
     p′ : ∃ P
     p′ = inverse eq q′
-
-    lemma = elim¹
-      (λ {q′} eq →
-         cong proj₁
-           (proj₂ (other-singleton-contractible (Σ-map P.id f p′))
-              (q′ , eq)) ≡
-         eq)
-      (cong proj₁
-         (proj₂ (other-singleton-contractible (Σ-map P.id f p′))
-            (Σ-map P.id f p′ , refl _))                           ≡⟨ cong (cong proj₁) $
-                                                                     other-singleton-contractible-refl _ ⟩
-
-       cong proj₁ (refl _)                                        ≡⟨ cong-refl _ ⟩∎
-
-       refl _                                                     ∎)
-      _
 
 ------------------------------------------------------------------------
 -- _≃_

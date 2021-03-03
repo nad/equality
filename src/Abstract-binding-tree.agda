@@ -2183,6 +2183,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
                                                                      (∥⊎∥-left-identity ∈-propositional ∥⊎∥-cong F.id) ⟩□
           (_ , x) ∈ fs′                                           □
           where
+          fs′ : Vars
           fs′ = del (_ , y) (free aˢ a)
 
     mutual

@@ -198,6 +198,25 @@ Is-equivalence→↔ {f = f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , _) = record
     left-right :
       ∀ x → cong to (A↔B.left-inverse-of x) ≡ right-inverse-of′ (to x)
     left-right x =
+      let lemma =
+            trans (A↔B.right-inverse-of _)
+              (cong to (A↔B.left-inverse-of _))                         ≡⟨ cong (trans _) $
+                                                                           cong-id _ ⟩
+            trans (A↔B.right-inverse-of _)
+              (cong id (cong to (A↔B.left-inverse-of _)))               ≡⟨ sym $ naturality A↔B.right-inverse-of ⟩
+
+            trans (cong (to ∘ from) (cong to (A↔B.left-inverse-of _)))
+              (A↔B.right-inverse-of _)                                  ≡⟨ cong (flip trans _) $
+                                                                           cong-∘ _ _ _ ⟩
+            trans (cong (to ∘ from ∘ to) (A↔B.left-inverse-of _))
+              (A↔B.right-inverse-of _)                                  ≡⟨ cong (flip trans _) $ sym $
+                                                                           cong-∘ _ _ _ ⟩
+            trans (cong to (cong (from ∘ to) (A↔B.left-inverse-of _)))
+              (A↔B.right-inverse-of _)                                  ≡⟨ cong (flip trans _ ∘ cong to) $
+                                                                           cong-≡id-≡-≡id A↔B.left-inverse-of ⟩∎
+            trans (cong to (A↔B.left-inverse-of _))
+              (A↔B.right-inverse-of _)                                  ∎
+      in
       cong to (A↔B.left-inverse-of x)             ≡⟨ sym $ trans-sym-[trans] _ _ ⟩
 
       trans (sym (A↔B.right-inverse-of _))
@@ -207,25 +226,6 @@ Is-equivalence→↔ {f = f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , _) = record
       trans (sym (A↔B.right-inverse-of _))
         (trans (cong to (A↔B.left-inverse-of _))
            (A↔B.right-inverse-of _))              ∎
-      where
-      lemma =
-        trans (A↔B.right-inverse-of _)
-          (cong to (A↔B.left-inverse-of _))                         ≡⟨ cong (trans _) $
-                                                                       cong-id _ ⟩
-        trans (A↔B.right-inverse-of _)
-          (cong id (cong to (A↔B.left-inverse-of _)))               ≡⟨ sym $ naturality A↔B.right-inverse-of ⟩
-
-        trans (cong (to ∘ from) (cong to (A↔B.left-inverse-of _)))
-          (A↔B.right-inverse-of _)                                  ≡⟨ cong (flip trans _) $
-                                                                       cong-∘ _ _ _ ⟩
-        trans (cong (to ∘ from ∘ to) (A↔B.left-inverse-of _))
-          (A↔B.right-inverse-of _)                                  ≡⟨ cong (flip trans _) $ sym $
-                                                                       cong-∘ _ _ _ ⟩
-        trans (cong to (cong (from ∘ to) (A↔B.left-inverse-of _)))
-          (A↔B.right-inverse-of _)                                  ≡⟨ cong (flip trans _ ∘ cong to) $
-                                                                       cong-≡id-≡-≡id A↔B.left-inverse-of ⟩∎
-        trans (cong to (A↔B.left-inverse-of _))
-          (A↔B.right-inverse-of _)                                  ∎
 
 _ : proj₁ (↔→Is-equivalenceˡ A↔B) ≡ _↔_.from A↔B
 _ = refl _
