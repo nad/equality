@@ -22,6 +22,7 @@ private
     a   : Level
     A B : Type a
     n   : ℕ
+    k   : Kind
 
 ------------------------------------------------------------------------
 -- The type
@@ -117,27 +118,35 @@ from-list : (xs : List A) → Vec A (length xs)
 from-list []       = nil
 from-list (x ∷ xs) = cons x (from-list xs)
 
--- ∃ (Vec A) is isomorphic to List A (assuming extensionality).
+-- There is a split surjection from ∃ (Vec A) to List A.
 
-∃Vec↔List :
-  {A : Type a} →
-  Extensionality lzero a →
-  ∃ (Vec A) ↔ List A
-∃Vec↔List {A = A} ext = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = to-list ∘ proj₂
-      ; from = λ xs → length xs , from-list xs
-      }
-    ; right-inverse-of = to∘from
+∃Vec↠List : ∃ (Vec A) ↠ List A
+∃Vec↠List {A = A} = record
+  { logical-equivalence = record
+    { to   = to-list ∘ proj₂
+    ; from = λ xs → length xs , from-list xs
     }
-  ; left-inverse-of = uncurry from∘to
+  ; right-inverse-of = to∘from
   }
   where
   to∘from : (xs : List A) → to-list (from-list xs) ≡ xs
   to∘from []       = refl _
   to∘from (x ∷ xs) = cong (x ∷_) (to∘from xs)
 
+-- ∃ (Vec A) is equivalent to List A (assuming extensionality).
+
+∃Vec≃List :
+  {A : Type a} →
+  Extensionality? k lzero a →
+  ∃ (Vec A) ↝[ k ] List A
+∃Vec≃List {a = a} {A = A} =
+  generalise-ext?
+    (_↠_.logical-equivalence ∃Vec↠List)
+    (λ ext → record
+       { surjection      = ∃Vec↠List
+       ; left-inverse-of = uncurry (from∘to ext)
+       })
+  where
   tail′ : A → ∃ (Vec A) ↠ ∃ (Vec A)
   tail′ y = record
     { logical-equivalence = record
@@ -150,13 +159,14 @@ from-list (x ∷ xs) = cons x (from-list xs)
     }
 
   from∘to :
+    Extensionality lzero a →
     ∀ n (xs : Vec A n) →
     (length (to-list xs) , from-list (to-list xs)) ≡ (n , xs)
-  from∘to zero xs =
+  from∘to ext zero xs =
     (length {A = A} [] , nil)  ≡⟨ cong (zero ,_) $ sym $ empty≡nil ext ⟩∎
     (zero , xs)                ∎
 
-  from∘to (suc n) xs =                                            $⟨ from∘to n (tail xs) ⟩
+  from∘to ext (suc n) xs =                                        $⟨ from∘to ext n (tail xs) ⟩
     (length (to-list (tail xs)) , from-list (to-list (tail xs)))
       ≡
     (n , tail xs)                                                 ↝⟨ _↠_.from $ ↠-≡ (tail′ (head xs)) ⟩
