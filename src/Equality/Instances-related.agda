@@ -89,10 +89,12 @@ module _ {congruence⁺}
          where
 
   open Derived-definitions-and-properties eq
-  open Equivalence eq hiding (id; _∘_; inverse)
   open Function-universe eq hiding (_∘_) renaming (id to ⟨id⟩)
   open H-level.Closure eq
   open Surjection eq using (_↠_)
+
+  private
+    open module Eq = Equivalence eq using (_≃_)
 
   abstract
 
@@ -120,7 +122,7 @@ module _ {congruence⁺}
       to x = x , x , refl x
 
       ≃I : ∀ {A} → A ≃ I A
-      ≃I = ↔⇒≃ (record
+      ≃I = Eq.↔⇒≃ (record
         { surjection = record
           { logical-equivalence = record
             { to   = to
@@ -160,7 +162,7 @@ module _ {congruence⁺}
                                                                               ∀-cong (lower-extensionality (lsuc a) (lsuc p) ext) λ _ →
                                                                               ∀-cong (lower-extensionality _ (lsuc p) ext) λ _ →
                                                                               ∃-cong λ _ → inverse $
-                                                                              extensionality-isomorphism (lower-extensionality _ _ ext)) ⟩
+                                                                              Eq.extensionality-isomorphism (lower-extensionality _ _ ext)) ⟩
         ((A : Type a) (P : I A → Type p)
          (d : ∀ x → P (to x)) →
          ∃ λ (j : (x : A) → P (to x)) → (x : A) → j x ≡ d x)    ↔⟨ (∀-cong (lower-extensionality (lsuc p) lzero ext) λ _ →

@@ -15,7 +15,7 @@ module Univalence-axiom.Isomorphism-is-equality.Monoid
 
 open import Bijection eq using (_↔_; Σ-≡,≡↔≡; ↑↔)
 open Derived-definitions-and-properties eq
-open import Equivalence eq hiding (id; inverse)
+open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq hiding (id)
 open import H-level eq
 open import H-level.Closure eq
@@ -121,7 +121,7 @@ equality-triple-lemma :
 equality-triple-lemma
   ext (C₁ , op₁ , id₁ , laws₁) (C₂ , op₂ , id₂ , laws₂) =
 
-  ((C₁ , op₁ , id₁ , laws₁) ≡ (C₂ , op₂ , id₂ , laws₂))               ↔⟨ inverse $ ≃-≡ $ ↔⇒≃ bij ⟩
+  ((C₁ , op₁ , id₁ , laws₁) ≡ (C₂ , op₂ , id₂ , laws₂))               ↔⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ bij ⟩
 
   (((C₁ , op₁ , id₁) , laws₁) ≡ ((C₂ , op₂ , id₂) , laws₂))           ↝⟨ inverse $ ignore-propositional-component $
                                                                            laws-propositional ext (C₂ , op₂ , id₂ , laws₂) ⟩
@@ -183,7 +183,7 @@ isomorphic-equal univ univ₁ M₁ M₂ (bij , bij-op , bij-id) = goal
   -- Our bijection can be converted into an equivalence.
 
   equiv : Carrier M₁ ≃ Carrier M₂
-  equiv = ↔⇒≃ bij
+  equiv = Eq.↔⇒≃ bij
 
   -- Hence the first equality follows directly from univalence.
 
@@ -237,7 +237,7 @@ isomorphism-is-equality :
 isomorphism-is-equality univ univ₁
   (C₁ , op₁ , id₁ , laws₁) (C₂ , op₂ , id₂ , laws₂) =
 
-  (Σ (C₁ ↔ C₂) λ f → Is-homomorphism M₁ M₂ (_↔_.to f))          ↝⟨ Σ-cong (↔↔≃ ext C₁-set) (λ _ → _ □) ⟩
+  (Σ (C₁ ↔ C₂) λ f → Is-homomorphism M₁ M₂ (_↔_.to f))          ↝⟨ Σ-cong (Eq.↔↔≃ ext C₁-set) (λ _ → _ □) ⟩
 
   (Σ (C₁ ≃ C₂) λ C-eq → Is-homomorphism M₁ M₂ (_≃_.to C-eq))    ↝⟨ ∃-cong (λ C-eq → op-lemma C-eq ×-cong id-lemma C-eq) ⟩
 
@@ -280,11 +280,11 @@ isomorphism-is-equality univ univ₁
       (∀ x y → to (op₁ x y) ≡ op₂ (to x) (to y)) ↔
       subst (λ C → C → C → C) (≃⇒≡ univ C-eq) op₁ ≡ op₂
     op-lemma =
-      (∀ x y → to (op₁ x y) ≡ op₂ (to x) (to y))                  ↔⟨ ∀-cong ext (λ _ → extensionality-isomorphism ext) ⟩
+      (∀ x y → to (op₁ x y) ≡ op₂ (to x) (to y))                  ↔⟨ ∀-cong ext (λ _ → Eq.extensionality-isomorphism ext) ⟩
 
       (∀ x → (λ y → to (op₁ x y)) ≡ (λ y → op₂ (to x) (to y)))    ↝⟨ ∀-cong ext (λ _ → inverse $ ∘from≡↔≡∘to ext C-eq) ⟩
 
-      (∀ x → (λ y → to (op₁ x (from y))) ≡ (λ y → op₂ (to x) y))  ↔⟨ extensionality-isomorphism ext ⟩
+      (∀ x → (λ y → to (op₁ x (from y))) ≡ (λ y → op₂ (to x) y))  ↔⟨ Eq.extensionality-isomorphism ext ⟩
 
       ((λ x y → to (op₁ x (from y))) ≡ (λ x y → op₂ (to x) y))    ↝⟨ inverse $ ∘from≡↔≡∘to ext C-eq ⟩
 
@@ -310,7 +310,7 @@ isomorphism-is-equal-to-equality :
   Univalence (# 1) →
   (M₁ M₂ : Monoid) → ↑ _ (M₁ ≅ M₂) ≡ (M₁ ≡ M₂)
 isomorphism-is-equal-to-equality univ univ₁ M₁ M₂ =
-  ≃⇒≡ univ₁ $ ↔⇒≃ (
+  ≃⇒≡ univ₁ $ Eq.↔⇒≃ (
     ↑ _ (M₁ ≅ M₂)  ↝⟨ ↑↔ ⟩
     (M₁ ≅ M₂)      ↝⟨ isomorphism-is-equality univ univ₁ M₁ M₂ ⟩□
     (M₁ ≡ M₂)      □)

@@ -19,7 +19,7 @@ open Derived-definitions-and-properties eq
 open import Embedding eq hiding (_∘_)
 open import Equality.Decidable-UIP eq
 import Equality.Groupoid eq as EG
-open import Equivalence eq as Eq hiding (_∘_; inverse)
+open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence.Half-adjoint eq as HA
 open import Function-universe eq as F hiding (_∘_)
 open import Groupoid eq
@@ -273,36 +273,33 @@ surjective×embedding≃equivalence :
   Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (lsuc (a ⊔ b ⊔ ℓ)) →
   (Surjective (a ⊔ b ⊔ ℓ) f × Is-embedding f) ≃ Is-equivalence f
 surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
-  _↔_.to (⇔↔≃ ext (×-closure 1 (Surjective-propositional ext)
-                               (Is-embedding-propositional
-                                  (lower-extensionality _ _ ext)))
-                  (Eq.propositional (lower-extensionality _ _ ext) _))
-    (record
-       { from = λ is-eq →
+  Eq.⇔→≃
+    (×-closure 1 (Surjective-propositional ext)
+                 (Is-embedding-propositional
+                    (lower-extensionality _ _ ext)))
+    (Eq.propositional (lower-extensionality _ _ ext) _)
+    (λ (is-surj , is-emb) →
+       _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $ λ y →
+                                  $⟨ is-surj y ⟩
+       ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)   ↝⟨ with-lower-level ℓ 1 ⟩
+       ∥ f ⁻¹ y ∥ 1 (a ⊔ b)       ↝⟨ rec 1
+                                         (Contractible-propositional
+                                            (lower-extensionality _ _ ext))
+           (f ⁻¹ y                       ↝⟨ propositional⇒inhabited⇒contractible
+                                              (embedding→⁻¹-propositional is-emb y) ⟩□
+            Contractible (f ⁻¹ y)        □) ⟩□
 
-                    (λ y →                       $⟨ HA.inverse is-eq y
-                                                  , HA.right-inverse-of is-eq y
-                                                  ⟩
-                       f ⁻¹ y                    ↝⟨ ∣_∣₁ ⟩□
-                       ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)  □)
+       Contractible (f ⁻¹ y)      □)
+    (λ is-eq →
+         (λ y →                       $⟨ HA.inverse is-eq y
+                                       , HA.right-inverse-of is-eq y
+                                       ⟩
+            f ⁻¹ y                    ↝⟨ ∣_∣₁ ⟩□
+            ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)  □)
 
-                  ,                  ($⟨ is-eq ⟩
-                    Is-equivalence f  ↝⟨ Embedding.is-embedding ∘ from-equivalence ∘ ⟨ _ ,_⟩ ⟩□
-                    Is-embedding f    □)
-
-       ; to = λ (is-surj , is-emb) →
-           _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $ λ y →
-                                      $⟨ is-surj y ⟩
-           ∥ f ⁻¹ y ∥ 1 (a ⊔ b ⊔ ℓ)   ↝⟨ with-lower-level ℓ 1 ⟩
-           ∥ f ⁻¹ y ∥ 1 (a ⊔ b)       ↝⟨ rec 1
-                                             (Contractible-propositional
-                                                (lower-extensionality _ _ ext))
-               (f ⁻¹ y                       ↝⟨ propositional⇒inhabited⇒contractible
-                                                  (embedding→⁻¹-propositional is-emb y) ⟩□
-                Contractible (f ⁻¹ y)        □) ⟩□
-
-           Contractible (f ⁻¹ y)      □
-       })
+       ,                  ($⟨ is-eq ⟩
+         Is-equivalence f  ↝⟨ Embedding.is-embedding ∘ from-equivalence ∘ Eq.⟨ _ ,_⟩ ⟩□
+         Is-embedding f    □))
 
 -- If the underlying type has a certain h-level, then there is a split
 -- surjection from corresponding truncations (if they are "big"
@@ -668,7 +665,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
      trans (c a₀ a₀) (c₁ a₀) ≡ c₂)                                     □
 
   equivalence₁ : A → (B ≃ ∃ λ (f : A → B) → Coherently-constant f)
-  equivalence₁ a₀ = ↔⇒≃ (
+  equivalence₁ a₀ = Eq.↔⇒≃ (
     B                                                                    ↝⟨ (inverse $ drop-⊤-right λ _ →
                                                                              _⇔_.to contractible⇔↔⊤ $
                                                                                Π-closure (lower-extensionality _ (a ⊔ ℓ) ext) 0 λ _ →
@@ -834,7 +831,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
 
   to-is-an-equivalence : A → Is-equivalence to
   to-is-an-equivalence a₀ =
-    respects-extensional-equality
+    Eq.respects-extensional-equality
       (λ b →
          Σ-≡,≡→≡ (refl _) $
          Σ-≡,≡→≡
@@ -859,12 +856,12 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
   equivalence₂ :
     ∥ A ∥ 1 ℓ′ → (B ≃ ∃ λ (f : A → B) → Coherently-constant f)
   equivalence₂ ∥a∥ =
-    ⟨ to
-    , rec 1
-          (Eq.propositional (lower-extensionality _ ℓ ext) _)
-          to-is-an-equivalence
-          (with-lower-level ℓ 1 ∥a∥)
-    ⟩
+    Eq.⟨ to
+       , rec 1
+             (Eq.propositional (lower-extensionality _ ℓ ext) _)
+             to-is-an-equivalence
+             (with-lower-level ℓ 1 ∥a∥)
+       ⟩
 
 -- Having a constant function into a set is equivalent to having a
 -- function from a propositionally truncated type into the set
@@ -914,7 +911,7 @@ universal-property :
   Is-proposition B →
   (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B) ≃ (A → B)
 universal-property {a = a} {b} ℓ {A} {B} ext B-prop =
-  with-other-function
+  Eq.with-other-function
     ((∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)       ↝⟨ inverse $ constant-function≃∥inhabited∥⇒inhabited ℓ ext (mono₁ 1 B-prop) ⟩
      (∃ λ (f : A → B) → Constant f)  ↔⟨ (drop-⊤-right λ _ →
                                          _⇔_.to contractible⇔↔⊤ $

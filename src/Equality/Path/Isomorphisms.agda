@@ -29,6 +29,7 @@ private
   module B  = Bijection equality-with-J
   module CP = Equivalence.Contractible-preimages equality-with-J
   module HA = Equivalence.Half-adjoint equality-with-J
+  module Eq = Equivalence equality-with-J
   module F  = Function-universe equality-with-J
 
   module PB  = Bijection P.equality-with-J
@@ -43,7 +44,7 @@ private
 
 open B using (_↔_)
 open Embedding equality-with-J hiding (id; _∘_)
-open Equivalence equality-with-J hiding (id; _∘_; inverse)
+open Eq using (_≃_; Is-equivalence)
 open F hiding (id; _∘_)
 open H-level equality-with-J
 open Surjection equality-with-J using (_↠_)
@@ -75,7 +76,7 @@ apply-ext bad-ext {f = f} {g = g} =
 -- Extensionality.
 
 ext : Extensionality a b
-ext = good-ext bad-ext
+ext = Eq.good-ext bad-ext
 
 ⟨ext⟩ : Extensionality′ A B
 ⟨ext⟩ = apply-ext ext
@@ -85,28 +86,28 @@ abstract
   -- The function ⟨ext⟩ is an equivalence.
 
   ext-is-equivalence : Is-equivalence {A = ∀ x → f x ≡ g x} ⟨ext⟩
-  ext-is-equivalence = good-ext-is-equivalence bad-ext
+  ext-is-equivalence = Eq.good-ext-is-equivalence bad-ext
 
   -- Equality rearrangement lemmas for ⟨ext⟩.
 
   ext-refl : ⟨ext⟩ (λ x → refl (f x)) ≡ refl f
-  ext-refl = good-ext-refl bad-ext _
+  ext-refl = Eq.good-ext-refl bad-ext _
 
   ext-const :
     (x≡y : x ≡ y) →
     ⟨ext⟩ (const {B = A} x≡y) ≡ cong const x≡y
-  ext-const = good-ext-const bad-ext
+  ext-const = Eq.good-ext-const bad-ext
 
   cong-ext :
     ∀ (f≡g : ∀ x → f x ≡ g x) {x} →
     cong (_$ x) (⟨ext⟩ f≡g) ≡ f≡g x
-  cong-ext = cong-good-ext bad-ext
+  cong-ext = Eq.cong-good-ext bad-ext
 
   subst-ext :
     ∀ {f g : (x : A) → B x}
     (P : B x → Type p) {p} (f≡g : ∀ x → f x ≡ g x) →
     subst (λ f → P (f x)) (⟨ext⟩ f≡g) p ≡ subst P (f≡g x) p
-  subst-ext = subst-good-ext bad-ext
+  subst-ext = Eq.subst-good-ext bad-ext
 
   elim-ext :
     (P : B x → B x → Type p)
@@ -115,7 +116,7 @@ abstract
     (f≡g : ∀ x → f x ≡ g x) →
     elim (λ {f g} _ → P (f x) (g x)) (p ∘ (_$ x)) (⟨ext⟩ f≡g) ≡
     elim (λ {x y} _ → P x y) p (f≡g x)
-  elim-ext = elim-good-ext bad-ext
+  elim-ext = Eq.elim-good-ext bad-ext
 
   -- I based the statements of the following three lemmas on code in
   -- the Lean Homotopy Type Theory Library with Jakob von Raumer and
@@ -126,22 +127,22 @@ abstract
   ext-sym :
     (f≡g : ∀ x → f x ≡ g x) →
     ⟨ext⟩ (sym ∘ f≡g) ≡ sym (⟨ext⟩ f≡g)
-  ext-sym = good-ext-sym bad-ext
+  ext-sym = Eq.good-ext-sym bad-ext
 
   ext-trans :
     (f≡g : ∀ x → f x ≡ g x) (g≡h : ∀ x → g x ≡ h x) →
     ⟨ext⟩ (λ x → trans (f≡g x) (g≡h x)) ≡ trans (⟨ext⟩ f≡g) (⟨ext⟩ g≡h)
-  ext-trans = good-ext-trans bad-ext
+  ext-trans = Eq.good-ext-trans bad-ext
 
   cong-post-∘-ext :
     (f≡g : ∀ x → f x ≡ g x) →
     cong (h ∘_) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (cong h ∘ f≡g)
-  cong-post-∘-ext = cong-post-∘-good-ext bad-ext bad-ext
+  cong-post-∘-ext = Eq.cong-post-∘-good-ext bad-ext bad-ext
 
   cong-pre-∘-ext :
     (f≡g : ∀ x → f x ≡ g x) →
     cong (_∘ h) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (f≡g ∘ h)
-  cong-pre-∘-ext = cong-pre-∘-good-ext bad-ext bad-ext
+  cong-pre-∘-ext = Eq.cong-pre-∘-good-ext bad-ext bad-ext
 
   cong-∘-ext :
     {A : Type a} {B : Type b} {C : Type c} {f g : B → C}
@@ -149,7 +150,7 @@ abstract
     cong {B = (A → B) → (A → C)}
          (λ f → f ∘_) (⟨ext⟩ f≡g) ≡
     ⟨ext⟩ λ h → ⟨ext⟩ λ x → f≡g (h x)
-  cong-∘-ext = cong-∘-good-ext bad-ext bad-ext bad-ext
+  cong-∘-ext = Eq.cong-∘-good-ext bad-ext bad-ext bad-ext
 
 ------------------------------------------------------------------------
 -- More isomorphisms and related properties
@@ -160,7 +161,7 @@ abstract
 ↠≃↠ :
   {A : Type a} {B : Type b} →
   (A ↠ B) ≃ (A PS.↠ B)
-↠≃↠ = ↔→≃
+↠≃↠ = Eq.↔→≃
   (λ A↠B → record
      { logical-equivalence = _↠_.logical-equivalence A↠B
      ; right-inverse-of    = _↔_.to ≡↔≡ ∘ _↠_.right-inverse-of A↠B
@@ -258,7 +259,7 @@ Is-equivalence↔Is-equivalence {f = f} =
   {A : Type a} {B : Type b} →
   A ≃ B ↔ A PE.≃ B
 ≃↔≃ {A = A} {B = B} =
-  A ≃ B                ↝⟨ ≃-as-Σ ⟩
+  A ≃ B                ↝⟨ Eq.≃-as-Σ ⟩
   ∃ Is-equivalence     ↝⟨ (∃-cong λ _ → Is-equivalence↔Is-equivalence) ⟩
   ∃ PE.Is-equivalence  ↝⟨ inverse $ ↔→↔ PE.≃-as-Σ ⟩□
   A PE.≃ B             □
@@ -346,32 +347,31 @@ Embedding↔Embedding :
 Embedding↔Embedding {A = A} {B = B} =
   Embedding A B                                   ↝⟨ Embedding-as-Σ ⟩
   (∃ λ f → ∀ x y → Is-equivalence (cong f))       ↔⟨ (∃-cong λ f → ∀-cong ext λ x → ∀-cong ext λ y →
-                                                      _↔_.to (⇔↔≃ ext (propositional ext _) (propositional ext _)) $
-                                                        record { to   = λ is → _≃_.is-equivalence $
-                                                                               with-other-function
-                                                                                 (
-      x P.≡ y                                                                      ↔⟨ inverse ≡↔≡ ⟩
-      x ≡ y                                                                        ↝⟨ ⟨ _ , is ⟩ ⟩
-      f x ≡ f y                                                                    ↔⟨ ≡↔≡ ⟩□
-      f x P.≡ f y                                                                  □)
-                                                                                 (P.cong f)
-                                                                                 (λ eq →
-      _↔_.to ≡↔≡ (cong f (_↔_.from ≡↔≡ eq))                                         ≡⟨ cong (_↔_.to ≡↔≡) cong≡cong ⟩
-      _↔_.to ≡↔≡ (_↔_.from ≡↔≡ (P.cong f eq))                                       ≡⟨ _↔_.right-inverse-of ≡↔≡ _ ⟩∎
-      P.cong f eq                                                                   ∎)
-                                                               ; from = λ is → _≃_.is-equivalence $
-                                                                               with-other-function
-                                                                                 (
-      x ≡ y                                                                        ↔⟨ ≡↔≡ ⟩
-      x P.≡ y                                                                      ↝⟨ ⟨ _ , is ⟩ ⟩
-      f x P.≡ f y                                                                  ↔⟨ inverse ≡↔≡ ⟩□
-      f x ≡ f y                                                                    □)
-                                                                                 (cong f)
-                                                                                 (λ eq →
-      _↔_.from ≡↔≡ (P.cong f (_↔_.to ≡↔≡ eq))                                       ≡⟨ sym cong≡cong ⟩
-      cong f (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ eq))                                         ≡⟨ cong (cong f) $ _↔_.left-inverse-of ≡↔≡ _ ⟩∎
-      cong f eq                                                                     ∎)
-                                                               }) ⟩
+                                                      Eq.⇔→≃ (Eq.propositional ext _) (Eq.propositional ext _)
+                                                        (λ is → _≃_.is-equivalence $
+                                                           Eq.with-other-function
+                                                             (
+      x P.≡ y                                                  ↔⟨ inverse ≡↔≡ ⟩
+      x ≡ y                                                    ↝⟨ Eq.⟨ _ , is ⟩ ⟩
+      f x ≡ f y                                                ↔⟨ ≡↔≡ ⟩□
+      f x P.≡ f y                                              □)
+                                                             (P.cong f)
+                                                             (λ eq →
+      _↔_.to ≡↔≡ (cong f (_↔_.from ≡↔≡ eq))                     ≡⟨ cong (_↔_.to ≡↔≡) cong≡cong ⟩
+      _↔_.to ≡↔≡ (_↔_.from ≡↔≡ (P.cong f eq))                   ≡⟨ _↔_.right-inverse-of ≡↔≡ _ ⟩∎
+      P.cong f eq                                               ∎))
+                                                        (λ is → _≃_.is-equivalence $
+                                                           Eq.with-other-function
+                                                             (
+      x ≡ y                                                    ↔⟨ ≡↔≡ ⟩
+      x P.≡ y                                                  ↝⟨ Eq.⟨ _ , is ⟩ ⟩
+      f x P.≡ f y                                              ↔⟨ inverse ≡↔≡ ⟩□
+      f x ≡ f y                                                □)
+                                                             (cong f)
+                                                             (λ eq →
+      _↔_.from ≡↔≡ (P.cong f (_↔_.to ≡↔≡ eq))                   ≡⟨ sym cong≡cong ⟩
+      cong f (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ eq))                     ≡⟨ cong (cong f) $ _↔_.left-inverse-of ≡↔≡ _ ⟩∎
+      cong f eq                                                 ∎))) ⟩
   (∃ λ f → ∀ x y → Is-equivalence (P.cong f))     ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence↔Is-equivalence) ⟩
   (∃ λ f → ∀ x y → PE.Is-equivalence (P.cong f))  ↝⟨ inverse $ ↔→↔ PM.Embedding-as-Σ ⟩□
   PM.Embedding A B                                □
@@ -566,7 +566,7 @@ Univalence′-CP≃Univalence′-CP {A = A} {B = B} =
    ∀ y → x ≡ y)                                              ↝⟨ (Π-cong ext (∃-cong λ _ → Is-equivalence-CP↔Is-equivalence-CP) λ A≃B →
                                                                  Σ-cong (lemma₁ A≃B) λ _ →
                                                                  Π-cong ext (lemma₁ A≃B) λ _ →
-                                                                 inverse $ ≃-≡ (lemma₁ A≃B)) ⟩
+                                                                 inverse $ Eq.≃-≡ (lemma₁ A≃B)) ⟩
   ((A≃B : ∃ λ (f : A → B) → PCP.Is-equivalence f) →
    ∃ λ (x : ∃ λ A≡B → PCP.≡⇒≃ A≡B ≡ A≃B) →
    ∀ y → x ≡ y)                                              ↔⟨⟩
@@ -590,7 +590,7 @@ Univalence′-CP≃Univalence′-CP {A = A} {B = B} =
 
   lemma₂ : ∀ _ _ → _ ≃ _
   lemma₂ A≡B (f , f-eq) =
-    CP.≡⇒≃ A≡B ≡ (f , f-eq)                                ↝⟨ inverse $ ≃-≡ (↔⇒≃ ≃-CP↔≃-CP) ⟩
+    CP.≡⇒≃ A≡B ≡ (f , f-eq)                                ↝⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ ≃-CP↔≃-CP) ⟩
 
     _↔_.to ≃-CP↔≃-CP (CP.≡⇒≃ A≡B) ≡
     (f , _↔_.to Is-equivalence-CP↔Is-equivalence-CP f-eq)  ↝⟨ ≡⇒≃ $ cong (_≡ (f , _↔_.to Is-equivalence-CP↔Is-equivalence-CP f-eq)) $

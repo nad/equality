@@ -26,7 +26,8 @@ open import Bijection equality-with-J as Bijection using (_↔_)
 open import Embedding equality-with-J as Embedding hiding (id; _∘_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
-open import Equivalence equality-with-J as Eq hiding (id; _∘_; inverse)
+open import Equivalence equality-with-J as Eq
+  using (_≃_; Is-equivalence)
 open import Equivalence.Erased equality-with-J using (_≃ᴱ_)
 open import Equivalence-relation equality-with-J
 open import Erased.Basics equality-with-J as EB using (Erased)
@@ -220,11 +221,11 @@ mutual
   ∥∥-cong-⇔′ : ∀ {k} → (A → ∥ B ∥) → (B → ∥ A ∥) → ∥ A ∥ ↝[ k ] ∥ B ∥
   ∥∥-cong-⇔′ A→∥B∥ B→∥A∥ =
     from-equivalence $
-    _↠_.from (≃↠⇔ truncation-is-proposition truncation-is-proposition)
-      (record
-         { to   = rec truncation-is-proposition A→∥B∥
-         ; from = rec truncation-is-proposition B→∥A∥
-         })
+    Eq.⇔→≃
+      truncation-is-proposition
+      truncation-is-proposition
+      (rec truncation-is-proposition A→∥B∥)
+      (rec truncation-is-proposition B→∥A∥)
 
 -- The truncation operator preserves all kinds of functions.
 
@@ -544,10 +545,8 @@ mutual
     (∀ x → Is-proposition (P x)) →
     ((x : ∥ A ∥) → P x) ≃ ((x : A) → P ∣ x ∣)
   universal-property-Π {A = A} {P = P} P-prop =
-    ((x : ∥ A ∥) → P x)      ↝⟨ _↠_.from (≃↠⇔ prop truncation-is-proposition)
-                                  (record { to   = λ f → ∣ f ∘ ∣_∣ ∣
-                                          ; from = rec prop (elim _ P-prop)
-                                          }) ⟩
+    ((x : ∥ A ∥) → P x)      ↝⟨ Eq.⇔→≃ prop truncation-is-proposition
+                                  (λ f → ∣ f ∘ ∣_∣ ∣) (rec prop (elim _ P-prop)) ⟩
     ∥ ((x : A) → P ∣ x ∣) ∥  ↔⟨ ∥∥↔ (Π-closure ext 1 λ _ → P-prop _) ⟩□
     ((x : A) → P ∣ x ∣)      □
     where
@@ -914,11 +913,8 @@ drop-left-∥⊎∥ :
   Is-proposition B → (A → B) → A ∥⊎∥ B ↔ B
 drop-left-∥⊎∥ B-prop A→B =
   _≃_.bijection $
-  _↠_.from (≃↠⇔ ∥⊎∥-propositional B-prop)
-    (record
-      { to   = rec B-prop [ to-implication A→B , id ]
-      ; from = ∣inj₂∣
-      })
+  Eq.⇔→≃ ∥⊎∥-propositional B-prop
+    (rec B-prop [ to-implication A→B , id ]) ∣inj₂∣
 
 drop-right-∥⊎∥ :
   Is-proposition A → (B → A) → A ∥⊎∥ B ↔ A
@@ -967,14 +963,12 @@ drop-⊥-left-∥⊎∥ B-prop ¬A =
   Σ (A ∥⊎∥ B) P ↔ Σ A (P ∘ ∣inj₁∣) ∥⊎∥ Σ B (P ∘ ∣inj₂∣)
 Σ-∥⊎∥-distrib-right {A = A} {B = B} {P = P} P-prop =
   _≃_.bijection $
-  _↠_.from (≃↠⇔ prop₂ prop₁)
-    (record
-      { to   = uncurry $
-               elim _ (λ _ → Π-closure ext 1 λ _ → prop₁) λ where
-                 (inj₁ x) y → ∣ inj₁ (x , y) ∣
-                 (inj₂ x) y → ∣ inj₂ (x , y) ∣
-      ; from = rec prop₂ [ Σ-map ∣inj₁∣ id , Σ-map ∣inj₂∣ id ]
-      })
+  Eq.⇔→≃ prop₂ prop₁
+    (uncurry $
+     elim _ (λ _ → Π-closure ext 1 λ _ → prop₁) λ where
+       (inj₁ x) y → ∣ inj₁ (x , y) ∣
+       (inj₂ x) y → ∣ inj₂ (x , y) ∣)
+    (rec prop₂ [ Σ-map ∣inj₁∣ id , Σ-map ∣inj₂∣ id ])
   where
   prop₁ = ∥⊎∥-propositional
   prop₂ = Σ-closure 1 ∥⊎∥-propositional P-prop

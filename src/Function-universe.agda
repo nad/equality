@@ -1233,18 +1233,11 @@ private
         cong (_,_ x) (_↔_.left-inverse-of (B₁↔B₂ x) y)
     }
 
-  ∃-cong-≃ :
-    ∀ {a b₁ b₂}
-      {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
-    (∀ x → B₁ x ≃ B₂ x) → ∃ B₁ ≃ ∃ B₂
-  ∃-cong-≃ B₁≃B₂ =
-    from-bijection $ ∃-cong-bij (from-equivalence ⊚ B₁≃B₂)
-
   ∃-cong-≃ᴱ :
     ∀ {a b₁ b₂}
       {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ≃ᴱ B₂ x) → ∃ B₁ ≃ᴱ ∃ B₂
-  ∃-cong-≃ᴱ f = EEq.[≃]→≃ᴱ (EEq.[proofs] (∃-cong-≃ (EEq.≃ᴱ→≃ ⊚ f)))
+  ∃-cong-≃ᴱ f = EEq.[≃]→≃ᴱ (EEq.[proofs] (Eq.∃-cong (EEq.≃ᴱ→≃ ⊚ f)))
 
 ∃-cong : ∀ {k a b₁ b₂}
            {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
@@ -1255,7 +1248,7 @@ private
 ∃-cong {embedding}           = Σ-preserves-embeddings Emb.id
 ∃-cong {surjection}          = ∃-cong-surj
 ∃-cong {bijection}           = ∃-cong-bij
-∃-cong {equivalence}         = ∃-cong-≃
+∃-cong {equivalence}         = Eq.∃-cong
 ∃-cong {equivalenceᴱ}        = ∃-cong-≃ᴱ
 
 private

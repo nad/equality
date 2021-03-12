@@ -14,7 +14,7 @@ module
 open import Bijection eq using (_↔_)
 open import Category eq
 open Derived-definitions-and-properties eq
-open import Equivalence eq as Eq hiding (_∘_; inverse)
+open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq
@@ -178,12 +178,12 @@ isomorphism-is-equality′ Univ ass
                                                                                       propositional⇒inhabited⇒contractible
                                                                                         (Str.Is-isomorphism-propositional X≅Y)
                                                                                         (Str-homs-are-isos X≅Y)) ⟩
-      (((C , C-set) , x) Str.≅ ((D , D-set) , y))                  ↔⟨ inverse ⟨ _ , structure-identity-principle ext Bij S
-                                                                                      {X = (C , C-set) , x} {Y = (D , D-set) , y} ⟩ ⟩
-      (((C , λ {_ _} → C-set) , x) ≡ ((D , λ {_ _} → D-set) , y))  ↔⟨ ≃-≡ $ ↔⇒≃ (Σ-assoc ⊚ ∃-cong (λ _ → ×-comm) ⊚ inverse Σ-assoc) ⟩
+      (((C , C-set) , x) Str.≅ ((D , D-set) , y))                  ↔⟨ inverse Eq.⟨ _ , structure-identity-principle ext Bij S
+                                                                                         {X = (C , C-set) , x} {Y = (D , D-set) , y} ⟩ ⟩
+      (((C , λ {_ _} → C-set) , x) ≡ ((D , λ {_ _} → D-set) , y))  ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ (Σ-assoc ⊚ ∃-cong (λ _ → ×-comm) ⊚ inverse Σ-assoc) ⟩
       (((C , x) , λ {_ _} → C-set) ≡ ((D , y) , λ {_ _} → D-set))  ↝⟨ inverse $ ignore-propositional-component (H-level-propositional ext 2) ⟩
       ((C , x) ≡ (D , y))                                          ↝⟨ ignore-propositional-component (proj₂ (P D y) ass) ⟩
-      (((C , x) , p) ≡ ((D , y) , q))                              ↔⟨ ≃-≡ $ ↔⇒≃ Σ-assoc ⟩□
+      (((C , x) , p) ≡ ((D , y) , q))                              ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ Σ-assoc ⟩□
       ((C , x , p) ≡ (D , y , q))                                  □
 
     -- A simplification lemma.

@@ -1119,6 +1119,17 @@ to-≃-≡-refl A≃B =
   Surjection.to-↠-≡-refl
     (_↔_.surjection $ Bijection.inverse $ _≃_.bijection A≃B)
 
+-- ∃ preserves equivalences.
+
+∃-cong :
+  ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
+  (∀ x → B₁ x ≃ B₂ x) → ∃ B₁ ≃ ∃ B₂
+∃-cong B₁≃B₂ = ↔⇒≃ (record
+  { surjection      = Surjection.∃-cong (_≃_.surjection ⊚ B₁≃B₂)
+  ; left-inverse-of = uncurry λ x y →
+      cong (_,_ x) (_≃_.left-inverse-of (B₁≃B₂ x) y)
+  })
+
 abstract
   private
 

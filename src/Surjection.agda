@@ -142,10 +142,9 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
   from′ : ∃ B₂ → ∃ B₁
   from′ = Σ-map P.id (from (B₁↠B₂ _))
 
-  abstract
-    right-inverse-of′ : ∀ p → to′ (from′ p) ≡ p
-    right-inverse-of′ = λ p →
-      cong (_,_ (proj₁ p)) (right-inverse-of (B₁↠B₂ (proj₁ p)) _)
+  right-inverse-of′ : ∀ p → to′ (from′ p) ≡ p
+  right-inverse-of′ = λ p →
+    cong (_,_ (proj₁ p)) (right-inverse-of (B₁↠B₂ (proj₁ p)) _)
 
 -- A preservation lemma involving Σ, _↠_ and _⇔_.
 

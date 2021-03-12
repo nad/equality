@@ -28,7 +28,7 @@ open import Bijection eq as B using (_↔_)
 open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decision-procedures eq
-open import Equivalence eq as Eq hiding (id; _∘_; inverse)
+open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
@@ -94,7 +94,7 @@ record Universe : Type₃ where
 
   Is-isomorphism′ : Assumptions →
                     ∀ a {B C} → B ↔ C → El a B → El a C → Type₁
-  Is-isomorphism′ ass a B↔C x y = resp ass a (↔⇒≃ B↔C) x ≡ y
+  Is-isomorphism′ ass a B↔C x y = resp ass a (Eq.↔⇒≃ B↔C) x ≡ y
 
   field
 
@@ -112,7 +112,7 @@ record Universe : Type₃ where
   Is-isomorphism″ : Assumptions →
                     ∀ a {B C} → B ↔ C → El a B → El a C → Type₁
   Is-isomorphism″ ass a B↔C x y =
-    subst (El a) (≃⇒≡ univ (↔⇒≃ B↔C)) x ≡ y
+    subst (El a) (≃⇒≡ univ (Eq.↔⇒≃ B↔C)) x ≡ y
     where open Assumptions ass
 
   abstract
@@ -123,10 +123,11 @@ record Universe : Type₃ where
     isomorphic-to-itself :
       (ass : Assumptions) → let open Assumptions ass in
       ∀ a {B C} (B↔C : B ↔ C) x →
-      Is-isomorphism′ ass a B↔C x (subst (El a) (≃⇒≡ univ (↔⇒≃ B↔C)) x)
+      Is-isomorphism′ ass a B↔C x
+        (subst (El a) (≃⇒≡ univ (Eq.↔⇒≃ B↔C)) x)
     isomorphic-to-itself ass a B↔C x =
       transport-theorem (El a) (resp ass a) (resp-id ass a)
-                        univ (↔⇒≃ B↔C) x
+                        univ (Eq.↔⇒≃ B↔C) x
       where open Assumptions ass
 
     -- Is-isomorphism and Is-isomorphism″ are isomorphic (assuming
@@ -198,7 +199,7 @@ module Class (Univ : Universe) where
   instances-equal↔ ass (a , P)
                    {(C₁ , S₁) , x₁ , p₁} {(C₂ , S₂) , x₂ , p₂} =
 
-    ((C₁ , λ {_ _} → S₁) , x₁ , p₁) ≡ ((C₂ , λ {_ _} → S₂) , x₂ , p₂)  ↔⟨ inverse $ ≃-≡ $ ↔⇒≃ bij ⟩
+    ((C₁ , λ {_ _} → S₁) , x₁ , p₁) ≡ ((C₂ , λ {_ _} → S₂) , x₂ , p₂)  ↔⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ bij ⟩
 
     ((C₁ , x₁) , ((λ {_ _} → S₁) , p₁)) ≡
     ((C₂ , x₂) , ((λ {_ _} → S₂) , p₂))                                ↝⟨ inverse $ ignore-propositional-component prop ⟩
@@ -251,23 +252,23 @@ module Class (Univ : Universe) where
     isomorphic↔equal ass c {I₁} {I₂} =
 
       (∃ λ (C-eq : Carrier c I₁ ↔ Carrier c I₂) →
-         Is-isomorphism (proj₁ c) C-eq (element c I₁) (element c I₂))  ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic₂
-                                                                                             ass (proj₁ c) C-eq) ⟩
+         Is-isomorphism (proj₁ c) C-eq (element c I₁) (element c I₂))    ↝⟨ ∃-cong (λ C-eq → isomorphism-definitions-isomorphic₂
+                                                                                               ass (proj₁ c) C-eq) ⟩
       (∃ λ (C-eq : Carrier c I₁ ↔ Carrier c I₂) →
-         subst (El (proj₁ c)) (≃⇒≡ univ (↔⇒≃ C-eq)) (element c I₁) ≡
-         element c I₂)                                                 ↝⟨ Σ-cong (↔↔≃ ext₀ (proj₂ (proj₁ I₁))) (λ _ → _ □) ⟩
+         subst (El (proj₁ c)) (≃⇒≡ univ (Eq.↔⇒≃ C-eq)) (element c I₁) ≡
+         element c I₂)                                                   ↝⟨ Σ-cong (Eq.↔↔≃ ext₀ (proj₂ (proj₁ I₁))) (λ _ → _ □) ⟩
 
       (∃ λ (C-eq : Carrier c I₁ ≃ Carrier c I₂) →
          subst (El (proj₁ c)) (≃⇒≡ univ C-eq) (element c I₁) ≡
-         element c I₂)                                                 ↝⟨ inverse $
-                                                                            Σ-cong (≡≃≃ univ) (λ C-eq → ≡⇒↝ _ $ sym $
-                                                                              cong (λ eq → subst (El (proj₁ c)) eq (element c I₁) ≡
-                                                                                           element c I₂)
-                                                                                   (_≃_.left-inverse-of (≡≃≃ univ) C-eq)) ⟩
+         element c I₂)                                                   ↝⟨ inverse $
+                                                                              Σ-cong (≡≃≃ univ) (λ C-eq → ≡⇒↝ _ $ sym $
+                                                                                cong (λ eq → subst (El (proj₁ c)) eq (element c I₁) ≡
+                                                                                             element c I₂)
+                                                                                     (_≃_.left-inverse-of (≡≃≃ univ) C-eq)) ⟩
       (∃ λ (C-eq : Carrier c I₁ ≡ Carrier c I₂) →
-         subst (El (proj₁ c)) C-eq (element c I₁) ≡ element c I₂)      ↝⟨ inverse $ instances-equal↔ ass c ⟩□
+         subst (El (proj₁ c)) C-eq (element c I₁) ≡ element c I₂)        ↝⟨ inverse $ instances-equal↔ ass c ⟩□
 
-      (I₁ ≡ I₂)                                                        □
+      (I₁ ≡ I₂)                                                          □
 
       where open Assumptions ass
 
@@ -308,7 +309,7 @@ module Class (Univ : Universe) where
       Assumptions →
       ∀ c {I₁ I₂} → Isomorphic c I₁ I₂ ≡ (I₁ ≡ I₂)
     isomorphic≡equal ass c {I₁} {I₂} =
-      ≃⇒≡ univ₁ $ ↔⇒≃ (isomorphic↔equal ass c)
+      ≃⇒≡ univ₁ $ Eq.↔⇒≃ (isomorphic↔equal ass c)
       where open Assumptions ass
 
 ------------------------------------------------------------------------
@@ -355,13 +356,13 @@ abstract
   cast-id ext id      = refl _
   cast-id ext prop    = refl _
   cast-id ext (k A)   = refl _
-  cast-id ext (a ⇾ b) = lift-equality ext $ cong _≃_.to $
+  cast-id ext (a ⇾ b) = Eq.lift-equality ext $ cong _≃_.to $
                           cong₂ (→-cong ext) (cast-id ext a) (cast-id ext b)
-  cast-id ext (a ⊗ b) = lift-equality ext $ cong _≃_.to $
+  cast-id ext (a ⊗ b) = Eq.lift-equality ext $ cong _≃_.to $
                           cong₂ _×-cong_ (cast-id ext a) (cast-id ext b)
   cast-id ext (a ⊕ b) =
     cast ext a Eq.id ⊎-cong cast ext b Eq.id  ≡⟨ cong₂ _⊎-cong_ (cast-id ext a) (cast-id ext b) ⟩
-    ⟨ [ inj₁ , inj₂ ] , _ ⟩                   ≡⟨ lift-equality ext (apply-ext ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
+    Eq.⟨ [ inj₁ , inj₂ ] , _ ⟩                ≡⟨ Eq.lift-equality ext (apply-ext ext [ refl ∘ inj₁ , refl ∘ inj₂ ]) ⟩∎
     Eq.id                                     ∎
 
 -- The property of being an isomorphism between two elements.
@@ -382,7 +383,7 @@ Is-isomorphism (a ⊗ b) B↔C = Is-isomorphism a B↔C ×-rel
 
 Is-isomorphism′ : Extensionality (# 1) (# 1) →
                   ∀ a {B C} → B ↔ C → El a B → El a C → Type₁
-Is-isomorphism′ ext a B↔C x y = _≃_.to (cast ext a (↔⇒≃ B↔C)) x ≡ y
+Is-isomorphism′ ext a B↔C x y = _≃_.to (cast ext a (Eq.↔⇒≃ B↔C)) x ≡ y
 
 abstract
 
@@ -402,7 +403,7 @@ abstract
 
     ↑ _ (proj₁ P ⇔ proj₁ Q)  ↝⟨ B.↑↔ ⟩
 
-    (proj₁ P ⇔ proj₁ Q)      ↝⟨ ⇔↔≃ ext₀ (proj₂ P) (proj₂ Q) ⟩
+    (proj₁ P ⇔ proj₁ Q)      ↝⟨ Eq.⇔↔≃ ext₀ (proj₂ P) (proj₂ Q) ⟩
 
     (proj₁ P ≃ proj₁ Q)      ↔⟨ inverse $ ≡≃≃ univ ⟩
 
@@ -417,7 +418,7 @@ abstract
     (x ≡ y) □
 
   isomorphism-definitions-isomorphic ass (a ⇾ b) B↔C {f} {g} =
-    let B≃C = ↔⇒≃ B↔C in
+    let B≃C = Eq.↔⇒≃ B↔C in
 
     (∀ x y → Is-isomorphism a B↔C x y →
              Is-isomorphism b B↔C (f x) (g y))                     ↝⟨ ∀-cong ext (λ _ → ∀-cong ext λ _ →
@@ -426,7 +427,7 @@ abstract
     (∀ x y → to (cast ext a B≃C) x ≡ y →
              to (cast ext b B≃C) (f x) ≡ g y)                      ↝⟨ inverse $ ∀-cong ext (λ x →
                                                                         ∀-intro ext (λ y _ → to (cast ext b B≃C) (f x) ≡ g y)) ⟩
-    (∀ x → to (cast ext b B≃C) (f x) ≡ g (to (cast ext a B≃C) x))  ↔⟨ extensionality-isomorphism ext ⟩
+    (∀ x → to (cast ext b B≃C) (f x) ≡ g (to (cast ext a B≃C) x))  ↔⟨ Eq.extensionality-isomorphism ext ⟩
 
     (to (cast ext b B≃C) ∘ f ≡ g ∘ to (cast ext a B≃C))            ↝⟨ inverse $ ∘from≡↔≡∘to ext (cast ext a B≃C) ⟩□
 
@@ -437,7 +438,7 @@ abstract
     open Assumptions ass
 
   isomorphism-definitions-isomorphic ass (a ⊕ b) B↔C {inj₁ x} {inj₁ y} =
-    let B≃C = ↔⇒≃ B↔C in
+    let B≃C = Eq.↔⇒≃ B↔C in
 
     Is-isomorphism a B↔C x y                 ↝⟨ isomorphism-definitions-isomorphic ass a B↔C ⟩
 
@@ -450,7 +451,7 @@ abstract
     open Assumptions ass
 
   isomorphism-definitions-isomorphic ass (a ⊕ b) B↔C {inj₂ x} {inj₂ y} =
-    let B≃C = ↔⇒≃ B↔C in
+    let B≃C = Eq.↔⇒≃ B↔C in
 
     Is-isomorphism b B↔C x y                 ↝⟨ isomorphism-definitions-isomorphic ass b B↔C ⟩
 
@@ -475,7 +476,7 @@ abstract
     (inj₂ _ ≡ inj₁ _)  □
 
   isomorphism-definitions-isomorphic ass (a ⊗ b) B↔C {x , u} {y , v} =
-    let B≃C = ↔⇒≃ B↔C in
+    let B≃C = Eq.↔⇒≃ B↔C in
 
     Is-isomorphism  a B↔C x y × Is-isomorphism  b B↔C u v        ↝⟨ isomorphism-definitions-isomorphic ass a B↔C ×-cong
                                                                     isomorphism-definitions-isomorphic ass b B↔C ⟩
@@ -496,14 +497,14 @@ simple = record
   ; Is-isomorphism = λ a B↔C → Is-isomorphism a (↑-cong B↔C)
   ; resp           = λ ass a → _≃_.to ∘ cast (ext ass) a ∘ ↑-cong
   ; resp-id        = λ ass a x → cong (λ f → _≃_.to f x) (
-                       cast (ext ass) a (↑-cong Eq.id)  ≡⟨ cong (cast (ext ass) a) $ lift-equality (ext ass) (refl _) ⟩
+                       cast (ext ass) a (↑-cong Eq.id)  ≡⟨ cong (cast (ext ass) a) $ Eq.lift-equality (ext ass) (refl _) ⟩
                        cast (ext ass) a Eq.id           ≡⟨ cast-id (ext ass) a ⟩∎
                        Eq.id                            ∎)
   ; isomorphism-definitions-isomorphic = λ ass a B↔C {x y} →
-      Is-isomorphism a (↑-cong B↔C) x y                     ↝⟨ isomorphism-definitions-isomorphic ass a (↑-cong B↔C) ⟩
-      (_≃_.to (cast (ext ass) a (↔⇒≃ (↑-cong B↔C))) x ≡ y)  ↝⟨ ≡⇒↝ _ $ cong (λ eq → _≃_.to (cast (ext ass) a eq) x ≡ y) $
-                                                                 lift-equality (ext ass) (refl _) ⟩□
-      (_≃_.to (cast (ext ass) a (↑-cong (↔⇒≃ B↔C))) x ≡ y)  □
+      Is-isomorphism a (↑-cong B↔C) x y                        ↝⟨ isomorphism-definitions-isomorphic ass a (↑-cong B↔C) ⟩
+      (_≃_.to (cast (ext ass) a (Eq.↔⇒≃ (↑-cong B↔C))) x ≡ y)  ↝⟨ ≡⇒↝ _ $ cong (λ eq → _≃_.to (cast (ext ass) a eq) x ≡ y) $
+                                                                    Eq.lift-equality (ext ass) (refl _) ⟩□
+      (_≃_.to (cast (ext ass) a (↑-cong (Eq.↔⇒≃ B↔C))) x ≡ y)  □
   }
   where open Assumptions
 

@@ -23,7 +23,7 @@ open Derived-definitions-and-properties eq
   renaming (lower-extensionality to lower-ext)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
-open import Equivalence eq as Eq hiding (id; _∘_; inverse)
+open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq hiding (id) renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq
@@ -178,7 +178,7 @@ module Class (Univ : Universe) where
         subst (El (proj₁ c)) eq (element c X) ≡ element c Y
     equality-pair-lemma ass (a , P) {C , x , p} {D , y , q} =
 
-      ((C , x , p) ≡ (D , y , q))                 ↔⟨ inverse $ ≃-≡ $ ↔⇒≃ Σ-assoc ⟩
+      ((C , x , p) ≡ (D , y , q))                 ↔⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ Σ-assoc ⟩
 
       (((C , x) , p) ≡ ((D , y) , q))             ↝⟨ inverse $ ignore-propositional-component (proj₂ (P D y) ass) ⟩
 
@@ -237,7 +237,7 @@ module Class (Univ : Universe) where
       Assumptions →
       ∀ c {X Y} → ↑ (# 2) (Isomorphic c X Y) ≡ (X ≡ Y)
     isomorphic≡≡ ass c {X} {Y} =
-      ≃⇒≡ univ₂ $ ↔⇒≃ (
+      ≃⇒≡ univ₂ $ Eq.↔⇒≃ (
         ↑ _ (Isomorphic c X Y)  ↝⟨ B.↑↔ ⟩
         Isomorphic c X Y        ↝⟨ isomorphism-is-equality ass c X Y ⟩□
         (X ≡ Y)                 □)
@@ -559,7 +559,7 @@ Isomorphic′ (a , _) (C , x , _) (D , y , _) =
 
 cast≃ : Extensionality (# 1) (# 1) →
         ∀ a {B C} → B ≃ C → El a B ≃ El a C
-cast≃ ext a {B} {C} B≃C = ↔⇒≃ record
+cast≃ ext a {B} {C} B≃C = Eq.↔⇒≃ record
   { surjection = record
     { logical-equivalence = cast a B⇔C
     ; right-inverse-of    = to∘from
@@ -626,9 +626,9 @@ private
 
 cast≃′ : Assumptions → ∀ a {B C} → B ≃ C → El a B ≃ El a C
 cast≃′ ass a eq =
-  ⟨ resp a eq
-  , resp-is-equivalence (El a) (resp a) (resp-id ext₁ a) univ₁ eq
-  ⟩
+  Eq.⟨ resp a eq
+     , resp-is-equivalence (El a) (resp a) (resp-id ext₁ a) univ₁ eq
+     ⟩
   where open Assumptions ass
 
 abstract
@@ -663,7 +663,7 @@ abstract
 
     (resp b eq ∘ f ∘ resp⁻¹ a eq ≡ g)                  ↝⟨ ∘from≡↔≡∘to ext₁ (cast≃ ext₁ a eq) ⟩
 
-    (resp b eq ∘ f ≡ g ∘ resp a eq)                    ↔⟨ inverse $ extensionality-isomorphism ext₁ ⟩
+    (resp b eq ∘ f ≡ g ∘ resp a eq)                    ↔⟨ inverse $ Eq.extensionality-isomorphism ext₁ ⟩
 
     (∀ x → resp b eq (f x) ≡ g (resp a eq x))          ↝⟨ ∀-cong ext₁ (λ x →
                                                             ∀-intro ext₁ (λ y _ → resp b eq (f x) ≡ g y)) ⟩
@@ -810,25 +810,25 @@ Isomorphism-monoid-isomorphic-to-standard ext
   {C₁} {_∙₁_} {e₁} {laws₁} {C₂} {_∙₂_} {e₂} =
 
   (Σ (C₁ ≃ C₂) λ eq → let open _≃_ eq in
-   ((λ x y → to (from x ∙₁ from y)) , to e₁) ≡ (_∙₂_ , e₂))  ↝⟨ inverse $ Σ-cong (↔↔≃ ext (proj₁ laws₁)) (λ _ → _ □) ⟩
+   ((λ x y → to (from x ∙₁ from y)) , to e₁) ≡ (_∙₂_ , e₂))  ↝⟨ inverse $ Σ-cong (Eq.↔↔≃ ext (proj₁ laws₁)) (λ _ → _ □) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    ((λ x y → to (from x ∙₁ from y)) , to e₁) ≡ (_∙₂_ , e₂))  ↝⟨ inverse $ ∃-cong (λ _ → ≡×≡↔≡) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (λ x y → to (from x ∙₁ from y)) ≡ _∙₂_ ×
-   to e₁ ≡ e₂)                                               ↔⟨ inverse $ ∃-cong (λ _ → extensionality-isomorphism ext ×-cong (_ □)) ⟩
+   to e₁ ≡ e₂)                                               ↔⟨ inverse $ ∃-cong (λ _ → Eq.extensionality-isomorphism ext ×-cong (_ □)) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ x → (λ y → to (from x ∙₁ from y)) ≡ _∙₂_ x) ×
    to e₁ ≡ e₂)                                               ↔⟨ inverse $ ∃-cong (λ _ →
-                                                                  ∀-cong ext (λ _ → extensionality-isomorphism ext)
+                                                                  ∀-cong ext (λ _ → Eq.extensionality-isomorphism ext)
                                                                     ×-cong
                                                                   (_ □)) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ x y → to (from x ∙₁ from y) ≡ (x ∙₂ y)) ×
    to e₁ ≡ e₂)                                               ↔⟨ inverse $ ∃-cong (λ eq →
-                                                                  Π-cong ext (↔⇒≃ eq) (λ x → Π-cong ext (↔⇒≃ eq) (λ y →
+                                                                  Π-cong ext (Eq.↔⇒≃ eq) (λ x → Π-cong ext (Eq.↔⇒≃ eq) (λ y →
                                                                       ≡⇒≃ $ sym $ cong₂ (λ u v → _↔_.to eq (u ∙₁ v) ≡
                                                                                                  (_↔_.to eq x ∙₂ _↔_.to eq y))
                                                                                         (_↔_.left-inverse-of eq x)
@@ -942,17 +942,17 @@ Isomorphism-poset-isomorphic-to-order-isomorphism ass
   {C₁} {_≤₁_} {laws₁} {C₂} {_≤₂_} {laws₂} =
 
   (Σ (C₁ ≃ C₂) λ eq → let open _≃_ eq in
-   (λ a b → from a ≤₁ from b) ≡ _≤₂_)           ↝⟨ inverse $ Σ-cong (↔↔≃ ext₁ (proj₁ laws₁)) (λ _ → _ □) ⟩
+   (λ a b → from a ≤₁ from b) ≡ _≤₂_)           ↝⟨ inverse $ Σ-cong (Eq.↔↔≃ ext₁ (proj₁ laws₁)) (λ _ → _ □) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (λ a b → from a ≤₁ from b) ≡ _≤₂_)           ↔⟨ inverse $ ∃-cong (λ _ → extensionality-isomorphism ext₁) ⟩
+   (λ a b → from a ≤₁ from b) ≡ _≤₂_)           ↔⟨ inverse $ ∃-cong (λ _ → Eq.extensionality-isomorphism ext₁) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
-   (∀ a → (λ b → from a ≤₁ from b) ≡ _≤₂_ a))   ↔⟨ inverse $ ∃-cong (λ _ → ∀-cong ext₁ λ _ → extensionality-isomorphism ext₁) ⟩
+   (∀ a → (λ b → from a ≤₁ from b) ≡ _≤₂_ a))   ↔⟨ inverse $ ∃-cong (λ _ → ∀-cong ext₁ λ _ → Eq.extensionality-isomorphism ext₁) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ a b → (from a ≤₁ from b) ≡ (a ≤₂ b)))     ↔⟨ inverse $ ∃-cong (λ eq →
-                                                     Π-cong ext₁ (↔⇒≃ eq) λ a → Π-cong ext₁ (↔⇒≃ eq) λ b →
+                                                     Π-cong ext₁ (Eq.↔⇒≃ eq) λ a → Π-cong ext₁ (Eq.↔⇒≃ eq) λ b →
                                                          ≡⇒≃ $ sym $ cong₂ (λ x y → (x ≤₁ y) ≡ (_↔_.to eq a ≤₂ _↔_.to eq b))
                                                                            (_↔_.left-inverse-of eq a)
                                                                            (_↔_.left-inverse-of eq b)) ⟩
@@ -961,8 +961,8 @@ Isomorphism-poset-isomorphic-to-order-isomorphism ass
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ a b → (a ≤₁ b) ≃ (to a ≤₂ to b)))         ↝⟨ inverse $ ∃-cong (λ _ → ∀-cong ext₁ λ _ → ∀-cong (lower-ext (# 0) _ ext₁) λ _ →
-                                                     ⇔↔≃ (lower-ext _ _ ext₁) (proj₁ (proj₂ laws₁) _ _)
-                                                                              (proj₁ (proj₂ laws₂) _ _)) ⟩□
+                                                     Eq.⇔↔≃ (lower-ext _ _ ext₁) (proj₁ (proj₂ laws₁) _ _)
+                                                                                 (proj₁ (proj₂ laws₂) _ _)) ⟩□
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    (∀ a b → (a ≤₁ b) ⇔ (to a ≤₂ to b)))         □
 
@@ -982,7 +982,7 @@ Isomorphism-poset-equal-to-order-isomorphism :
   ∀ x y → (x ≤₁ y) ⇔ (to x ≤₂ to y)
 Isomorphism-poset-equal-to-order-isomorphism ass
   {laws₁ = laws₁} {laws₂ = laws₂} =
-  ≃⇒≡ univ₁ $ ↔⇒≃ $
+  ≃⇒≡ univ₁ $ Eq.↔⇒≃ $
     Isomorphism-poset-isomorphic-to-order-isomorphism ass
       {laws₁ = laws₁} {laws₂ = laws₂}
   where open Assumptions ass
@@ -1018,7 +1018,7 @@ Isomorphism′-poset-isomorphic-to-order-isomorphism ext
   {C₁} {_≤₁_} {laws₁} {C₂} {_≤₂_} {laws₂} =
 
   (Σ (C₁ ≃ C₂) λ eq → let open _≃_ eq in
-   ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (b ≤₂ d)))  ↝⟨ inverse $ Σ-cong (↔↔≃ ext (proj₁ laws₁)) (λ _ → _ □) ⟩
+   ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (b ≤₂ d)))  ↝⟨ inverse $ Σ-cong (Eq.↔↔≃ ext (proj₁ laws₁)) (λ _ → _ □) ⟩
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (b ≤₂ d)))  ↝⟨ inverse $ ∃-cong (λ _ → ∀-cong ext λ _ →
@@ -1032,8 +1032,8 @@ Isomorphism′-poset-isomorphic-to-order-isomorphism ext
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    ∀ a c → (a ≤₁ c) ≃ (to a ≤₂ to c))                                ↝⟨ inverse $ ∃-cong (λ _ →
                                                                           ∀-cong ext λ _ → ∀-cong (lower-ext (# 0) _ ext) λ _ →
-                                                                            ⇔↔≃ (lower-ext _ _ ext) (proj₁ (proj₂ laws₁) _ _)
-                                                                                                    (proj₁ (proj₂ laws₂) _ _)) ⟩□
+                                                                            Eq.⇔↔≃ (lower-ext _ _ ext) (proj₁ (proj₂ laws₁) _ _)
+                                                                                                       (proj₁ (proj₂ laws₂) _ _)) ⟩□
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    ∀ a c → (a ≤₁ c) ⇔ (to a ≤₂ to c))                                □
 
@@ -1768,11 +1768,13 @@ Instance-discrete-field-isomorphic-to-Bridges-and-Richman's ext =
   main-lemma C _+_ 0# _*_ 1# -_
              +-assoc *-assoc +-comm *-comm *+ +0 *1 +- 0≢1 =
     _≃_.bijection $
-    _↔_.to (⇔↔≃ ext (proposition-lemma₃ ext _+_ 0# _*_ 1# -_
-                                        +-assoc *-assoc +-comm *-comm
-                                        *+ +0 *1 +- 0≢1)
-                    (proposition-lemma₁ ext 0# _*_ 1# *-assoc *-comm *1))
-           (record { to = to; from = from })
+    Eq.⇔→≃
+      (proposition-lemma₃ ext _+_ 0# _*_ 1# -_
+                          +-assoc *-assoc +-comm *-comm
+                          *+ +0 *1 +- 0≢1)
+      (proposition-lemma₁ ext 0# _*_ 1# *-assoc *-comm *1)
+      to
+      from
     where
     To   = (((x y : C) → x ≡ y ⊎ x ≢ y) ×
             (∀ x → x ≢ 0# → ∃ λ y → (x * y) ≡ 1#))
@@ -1969,14 +1971,16 @@ nLab's-isomorphic-to-Bridges-and-Richman's ext =
   main-lemma C _+_ 0# _*_ 1# -_
              +-assoc *-assoc +-comm *-comm *+ +0 *1 +- =
     _≃_.bijection $
-    _↔_.to (⇔↔≃ ext (proposition-lemma₂ ext _+_ 0# -_ _*_ 1#
-                                        +-assoc *-assoc +-comm *-comm
-                                        +0 *1 +-)
-                    (×-closure 1
-                       (¬-propositional (lower-ext (# 0) _ ext))
-                       (proposition-lemma₁ ext 0# _*_ 1# *-assoc
-                                           *-comm *1)))
-           (record { to = to; from = from })
+    Eq.⇔→≃
+      (proposition-lemma₂ ext _+_ 0# -_ _*_ 1#
+                          +-assoc *-assoc +-comm *-comm
+                          +0 *1 +-)
+      (×-closure 1
+         (¬-propositional (lower-ext (# 0) _ ext))
+         (proposition-lemma₁ ext 0# _*_ 1# *-assoc
+                             *-comm *1))
+      to
+      from
     where
     To   = 0# ≢ 1# ×
            ((x y : C) → x ≡ y ⊎ x ≢ y) ×
