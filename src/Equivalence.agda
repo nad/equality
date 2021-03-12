@@ -1449,3 +1449,36 @@ abstract
      _≃_.from f                                     ≡⟨ sym $ subst-refl _ _ ⟩∎
      subst (λ x → Q x → P x) (refl _) (_≃_.from f)  ∎)
     eq
+
+-- If P is pointwise equivalent to x ≡_, then every function of type
+-- {y : A} → x ≡ y → P y is an equivalence (pointwise).
+--
+-- Andrea Vezzosi showed me a similar result, that he thought that
+-- Thierry Coquand had informed him about.
+
+≡≃→≡→→Is-equivalence :
+  ∀ {a p} {A : Type a} {x : A}
+  (P : A → Type p) →
+  ({y : A} → (x ≡ y) ≃ P y) →
+  (f : {y : A} → x ≡ y → P y) →
+  {y : A} → Is-equivalence (f {y = y})
+≡≃→≡→→Is-equivalence {x = x} P ≡≃P f {y = y} =
+  drop-Σ-map-id f equiv₂ y
+  where
+  equiv₁ : (∃ λ y → x ≡ y) ≃ ∃ P
+  equiv₁ = ∃-cong λ _ → ≡≃P
+
+  contr : Contractible (∃ P)
+  contr =
+    H-level.respects-surjection
+      (_≃_.surjection equiv₁)
+      0
+      (other-singleton-contractible _)
+
+  equiv₂ : Is-equivalence (Σ-map P.id f)
+  equiv₂ =
+    _≃_.is-equivalence $
+    with-other-function
+      equiv₁
+      _
+      (λ _ → mono₁ 0 contr _ _)
