@@ -23,7 +23,7 @@ module Bi-invertibility
   where
 
 open Derived-definitions-and-properties eq
-open import Equivalence eq as Eq using (_≃_)
+open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Function-universe eq as F hiding (id; _∘_)
 open import Logical-equivalence using (_⇔_)
 open import H-level eq
@@ -334,3 +334,62 @@ module More
     f ∘ id ∘ f⁻¹ ≡ id                                      ↝⟨ ≡⇒↝ _ $ cong (λ f′ → _ ∘ f′ ≡ _) $ left-identity _ ⟩
     f ∘ f⁻¹ ≡ id                                           ↝⟨ ≡⇒↝ _ $ cong (_≡ _) f∘f⁻¹≡id ⟩□
     id ≡ id                                                □
+
+  ----------------------------------------------------------------------
+  -- Univalence
+
+  -- The relation _≅_ is reflexive.
+
+  id-≅ : A ≅ A
+  id-≅ = id , id , left-identity id , right-identity id
+
+  -- Equal objects are related by _≅_.
+
+  ≡→≅ : A ≡ B → A ≅ B
+  ≡→≅ = elim (λ {A B} _ → A ≅ B) (λ _ → id-≅)
+
+  -- A "computation" rule for ≡→≅.
+
+  ≡→≅-refl : ≡→≅ (refl A) ≡ id-≅
+  ≡→≅-refl = elim-refl _ _
+
+  -- A notion of univalence, defined using _≅_.
+
+  Univalence-≅ : Type (o ⊔ h)
+  Univalence-≅ = {A B : Obj} → Is-equivalence (≡→≅ {A = A} {B = B})
+
+  -- If equality is equivalent to _≅_, then univalence holds.
+
+  ≡≃≅→Univalence-≅ :
+    (∀ {A B} → (A ≡ B) ≃ (A ≅ B)) →
+    Univalence-≅
+  ≡≃≅→Univalence-≅ ≡≃≅ =
+    Eq.≡≃→≡→→Is-equivalence (_ ≅_) ≡≃≅ ≡→≅
+
+  -- The relation _≊_ is reflexive.
+
+  id-≊ : A ≊ A
+  id-≊ = id , (id , left-identity id) , (id , right-identity id)
+
+  -- Equal objects are related by _≊_.
+
+  ≡→≊ : A ≡ B → A ≊ B
+  ≡→≊ = elim (λ {A B} _ → A ≊ B) (λ _ → id-≊)
+
+  -- A "computation" rule for ≡→≊.
+
+  ≡→≊-refl : ≡→≊ (refl A) ≡ id-≊
+  ≡→≊-refl = elim-refl _ _
+
+  -- A notion of univalence, defined using _≊_.
+
+  Univalence-≊ : Type (o ⊔ h)
+  Univalence-≊ = {A B : Obj} → Is-equivalence (≡→≊ {A = A} {B = B})
+
+  -- If equality is equivalent to _≊_, then univalence holds.
+
+  ≡≃≊→Univalence-≊ :
+    (∀ {A B} → (A ≡ B) ≃ (A ≊ B)) →
+    Univalence-≊
+  ≡≃≊→Univalence-≊ ≡≃≊ =
+    Eq.≡≃→≡→→Is-equivalence (_ ≊_) ≡≃≊ ≡→≊
