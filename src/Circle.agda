@@ -20,6 +20,7 @@ open import Prelude
 
 open import Bijection equality-with-J as Bijection using (_↔_)
 import Bijection P.equality-with-J as PB
+open import Equality.Groupoid equality-with-J
 open import Equality.Path.Isomorphisms eq
 import Equality.Path.Isomorphisms P.equality-with-paths as PI
 open import Equivalence equality-with-J as Eq using (_≃_)
@@ -28,16 +29,17 @@ open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
+open import Integer equality-with-J as Int using (ℤ; +_; -[1+_])
 open import Nat equality-with-J
-open import Univalence-axiom equality-with-J using (¬-Type-set)
+import Univalence-axiom equality-with-J as Univ
 
 private
   variable
-    a p : Level
-    A   : Type p
-    P   : A → Type p
-    f   : (x : A) → P x
-    b ℓ : A
+    a p   : Level
+    A     : Type p
+    P     : A → Type p
+    f     : (x : A) → P x
+    b ℓ x : A
 
 ------------------------------------------------------------------------
 -- The type and some eliminators
@@ -142,12 +144,226 @@ rec′-loop : cong (rec′ b ℓ) loop ≡ ℓ
 rec′-loop = dcong≡→cong≡ elim-loop
 
 ------------------------------------------------------------------------
+-- The loop space of the circle
+
+-- The function trans is commutative for the loop space of the circle.
+
+trans-commutative : (p q : base ≡ base) → trans p q ≡ trans q p
+trans-commutative =
+  flip $ Transitivity-commutative.commutative base _∙_ ∙-base base-∙
+  where
+  _∙_ : 𝕊¹ → 𝕊¹ → 𝕊¹
+  x ∙ y = rec x (elim (λ x → x ≡ x) loop lemma x) y
+    where
+    lemma : subst (λ x → x ≡ x) loop loop ≡ loop
+    lemma = ≡⇒↝ _ (sym [subst≡]≡[trans≡trans]) (refl _)
+
+  base-∙ : ∀ x → x ∙ base ≡ x
+  base-∙ _ = refl _
+
+  ∙-base : ∀ y → base ∙ y ≡ y
+  ∙-base =
+    elim _ (refl _)
+      (subst (λ x → rec base loop x ≡ x) loop (refl _)         ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+       trans (sym (cong (rec base loop) loop))
+         (trans (refl _) (cong id loop))                       ≡⟨ cong (trans _) $ trans-reflˡ _ ⟩
+
+       trans (sym (cong (rec base loop) loop)) (cong id loop)  ≡⟨ cong₂ (trans ∘ sym)
+                                                                    rec-loop
+                                                                    (sym $ cong-id _) ⟩
+
+       trans (sym loop) loop                                   ≡⟨ trans-symˡ _ ⟩∎
+
+       refl _                                                  ∎)
+
+-- The loop space is equivalent to x ≡ x, for any x : 𝕊¹.
+
+base≡base≃≡ : {x : 𝕊¹} → (base ≡ base) ≃ (x ≡ x)
+base≡base≃≡ = elim
+  (λ x → (base ≡ base) ≃ (x ≡ x))
+  Eq.id
+  (Eq.lift-equality ext $ ⟨ext⟩ λ eq →
+   _≃_.to (subst (λ x → (base ≡ base) ≃ (x ≡ x)) loop Eq.id) eq        ≡⟨ cong (_$ eq) Eq.to-subst ⟩
+   subst (λ x → base ≡ base → x ≡ x) loop id eq                        ≡⟨ subst-→ ⟩
+   subst (λ x → x ≡ x) loop (subst (λ _ → base ≡ base) (sym loop) eq)  ≡⟨ cong (subst (λ x → x ≡ x) loop) $ subst-const _ ⟩
+   subst (λ x → x ≡ x) loop eq                                         ≡⟨ ≡⇒↝ _ (sym [subst≡]≡[trans≡trans]) $
+                                                                          trans-commutative _ _ ⟩∎
+   eq                                                                  ∎)
+  _
+
+-- The loop space of the circle is equivalent to the type of integers.
+--
+-- The proof is based on the one presented by Licata and Shulman in
+-- "Calculating the Fundamental Group of the Circle in Homotopy Type
+-- Theory".
+
+base≡base≃ℤ : (base ≡ base) ≃ ℤ
+base≡base≃ℤ =
+  Eq.↔→≃ (to univ) (loops univ) (to-loops univ) (from-to univ)
+  where
+  module _ (univ : Univ.Univalence lzero) where
+
+    -- The universal cover of the circle.
+
+    Cover : 𝕊¹ → Type
+    Cover = rec ℤ (Univ.≃⇒≡ univ Int.successor)
+
+    to : base ≡ x → Cover x
+    to = flip (subst Cover) (+ 0)
+
+    loops : ℤ → base ≡ base
+    loops (+ zero)     = refl _
+    loops (+ suc n)    = trans (loops (+ n)) loop
+    loops -[1+ zero  ] = sym loop
+    loops -[1+ suc n ] = trans (loops -[1+ n ]) (sym loop)
+
+    ≡⇒≃-cong-Cover-loop : Univ.≡⇒≃ (cong Cover loop) ≡ Int.successor
+    ≡⇒≃-cong-Cover-loop =
+      Univ.≡⇒≃ (cong Cover loop)              ≡⟨ cong Univ.≡⇒≃ rec-loop ⟩
+      Univ.≡⇒≃ (Univ.≃⇒≡ univ Int.successor)  ≡⟨ _≃_.right-inverse-of (Univ.≡≃≃ univ) _ ⟩∎
+      Int.successor                           ∎
+
+    subst-Cover-loop :
+      ∀ i → subst Cover loop i ≡ _≃_.to Int.successor i
+    subst-Cover-loop i =
+      subst Cover loop i            ≡⟨ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
+      Univ.≡⇒→ (cong Cover loop) i  ≡⟨ cong (λ eq → _≃_.to eq _) ≡⇒≃-cong-Cover-loop ⟩∎
+      _≃_.to Int.successor i        ∎
+
+    subst-Cover-sym-loop :
+      ∀ i → subst Cover (sym loop) i ≡ _≃_.from Int.successor i
+    subst-Cover-sym-loop i =
+      subst Cover (sym loop) i                 ≡⟨ subst-in-terms-of-inverse∘≡⇒↝ equivalence _ _ _ ⟩
+      _≃_.from (Univ.≡⇒≃ (cong Cover loop)) i  ≡⟨ cong (λ eq → _≃_.from eq _) ≡⇒≃-cong-Cover-loop ⟩∎
+      _≃_.from Int.successor i                 ∎
+
+    to-loops : ∀ i → to (loops i) ≡ i
+    to-loops (+ zero) =
+      subst Cover (refl _) (+ 0)  ≡⟨ subst-refl _ _ ⟩∎
+      + 0                         ∎
+    to-loops (+ suc n) =
+      subst Cover (trans (loops (+ n)) loop) (+ 0)        ≡⟨ sym $ subst-subst _ _ _ _ ⟩
+      subst Cover loop (subst Cover (loops (+ n)) (+ 0))  ≡⟨⟩
+      subst Cover loop (to (loops (+ n)))                 ≡⟨ cong (subst Cover loop) $ to-loops (+ n) ⟩
+      subst Cover loop (+ n)                              ≡⟨ subst-Cover-loop _ ⟩∎
+      + suc n                                             ∎
+    to-loops -[1+ zero ] =
+      subst Cover (sym loop) (+ 0)  ≡⟨ subst-Cover-sym-loop _ ⟩∎
+      -[1+ 0 ]                      ∎
+    to-loops -[1+ suc n ] =
+      subst Cover (trans (loops -[1+ n ]) (sym loop)) (+ 0)        ≡⟨ sym $ subst-subst _ _ _ _ ⟩
+      subst Cover (sym loop) (subst Cover (loops -[1+ n ]) (+ 0))  ≡⟨⟩
+      subst Cover (sym loop) (to (loops -[1+ n ]))                 ≡⟨ cong (subst Cover (sym loop)) $ to-loops -[1+ n ] ⟩
+      subst Cover (sym loop) -[1+ n ]                              ≡⟨ subst-Cover-sym-loop _ ⟩∎
+      -[1+ suc n ]                                                 ∎
+
+    loops-pred-loop :
+      ∀ i → trans (loops (_≃_.from Int.successor i)) loop ≡ loops i
+    loops-pred-loop (+ suc _) = refl _
+    loops-pred-loop (+ zero)  =
+      trans (sym loop) loop  ≡⟨ trans-symˡ _ ⟩∎
+      refl _                 ∎
+    loops-pred-loop -[1+ zero ] =
+      trans (trans (sym loop) (sym loop)) loop  ≡⟨ trans-[trans-sym]- _ _ ⟩∎
+      sym loop                                  ∎
+    loops-pred-loop -[1+ suc n ] =
+      trans (trans (trans (loops -[1+ n ]) (sym loop)) (sym loop)) loop  ≡⟨ trans-[trans-sym]- _ _ ⟩∎
+      trans (loops -[1+ n ]) (sym loop)                                  ∎
+
+    from : ∀ x → Cover x → base ≡ x
+    from = elim _
+      loops
+      (⟨ext⟩ λ i →
+       subst (λ x → Cover x → base ≡ x) loop loops i            ≡⟨ subst-→ ⟩
+       subst (base ≡_) loop (loops (subst Cover (sym loop) i))  ≡⟨ sym trans-subst ⟩
+       trans (loops (subst Cover (sym loop) i)) loop            ≡⟨ cong (flip trans _ ∘ loops) $ subst-Cover-sym-loop _ ⟩
+       trans (loops (_≃_.from Int.successor i)) loop            ≡⟨ loops-pred-loop i ⟩∎
+       loops i                                                  ∎)
+
+    from-to : (eq : base ≡ x) → from x (to eq) ≡ eq
+    from-to = elim¹
+      (λ {x} eq → from x (to eq) ≡ eq)
+      (from base (to (refl base))             ≡⟨⟩
+       loops (subst Cover (refl base) (+ 0))  ≡⟨ cong loops $ subst-refl _ _ ⟩
+       loops (+ 0)                            ≡⟨⟩
+       refl base                              ∎)
+
+-- The circle is a groupoid.
+
+𝕊¹-groupoid : H-level 3 𝕊¹
+𝕊¹-groupoid {x = x} {y = y} =
+                        $⟨ (λ {_ _} → Int.ℤ-set) ⟩
+  Is-set ℤ              ↝⟨ H-level-cong _ 2 (inverse base≡base≃ℤ) ⦂ (_ → _) ⟩
+  Is-set (base ≡ base)  ↝⟨ (λ s →
+                              elim
+                                (λ x → ∀ y → Is-set (x ≡ y))
+                                (elim _ s (H-level-propositional ext 2 _ _))
+                                ((Π-closure ext 1 λ _ →
+                                  H-level-propositional ext 2)
+                                   _ _)
+                                x y) ⟩□
+  Is-set (x ≡ y)        □
+
+-- The type of endofunctions on 𝕊¹ is equivalent to
+-- ∃ λ (x : 𝕊¹) → x ≡ x.
+
+𝕊¹→𝕊¹≃Σ𝕊¹≡ : (𝕊¹ → 𝕊¹) ≃ ∃ λ (x : 𝕊¹) → x ≡ x
+𝕊¹→𝕊¹≃Σ𝕊¹≡ = Eq.↔→≃ to from to-from from-to
+  where
+  to : (𝕊¹ → 𝕊¹) → ∃ λ (x : 𝕊¹) → x ≡ x
+  to f = f base , cong f loop
+
+  from : (∃ λ (x : 𝕊¹) → x ≡ x) → (𝕊¹ → 𝕊¹)
+  from = uncurry rec
+
+  to-from : ∀ p → to (from p) ≡ p
+  to-from (x , eq) = cong (x ,_)
+    (cong (rec x eq) loop  ≡⟨ rec-loop ⟩∎
+     eq                    ∎)
+
+  from-to : ∀ f → from (to f) ≡ f
+  from-to f =
+    rec (f base) (cong f loop)  ≡⟨ sym η-rec ⟩∎
+    f                           ∎
+
+-- The type of endofunctions on 𝕊¹ is equivalent to 𝕊¹ × ℤ.
+--
+-- This result was pointed out to me by Paolo Capriotti.
+
+𝕊¹→𝕊¹≃𝕊¹×ℤ : (𝕊¹ → 𝕊¹) ≃ (𝕊¹ × ℤ)
+𝕊¹→𝕊¹≃𝕊¹×ℤ =
+  (𝕊¹ → 𝕊¹)               ↝⟨ 𝕊¹→𝕊¹≃Σ𝕊¹≡ ⟩
+  (∃ λ (x : 𝕊¹) → x ≡ x)  ↝⟨ (∃-cong λ _ → inverse base≡base≃≡) ⟩
+  𝕊¹ × base ≡ base        ↝⟨ (∃-cong λ _ → base≡base≃ℤ) ⟩□
+  𝕊¹ × ℤ                  □
+
+-- The forward direction of 𝕊¹→𝕊¹≃𝕊¹×ℤ maps the identity function to
+-- base , + 1.
+
+𝕊¹→𝕊¹≃𝕊¹×ℤ-id : _≃_.to 𝕊¹→𝕊¹≃𝕊¹×ℤ id ≡ (base , + 1)
+𝕊¹→𝕊¹≃𝕊¹×ℤ-id = _≃_.from-to 𝕊¹→𝕊¹≃𝕊¹×ℤ
+  (rec base (trans (refl base) loop)  ≡⟨ cong (rec base) $ trans-reflˡ _ ⟩
+   rec base loop                      ≡⟨ cong (rec base) $ cong-id _ ⟩
+   rec base (cong id loop)            ≡⟨ sym η-rec ⟩∎
+   id                                 ∎)
+
+-- The forward direction of 𝕊¹→𝕊¹≃𝕊¹×ℤ maps the constant function
+-- returning base to base , + 0.
+
+𝕊¹→𝕊¹≃𝕊¹×ℤ-const : _≃_.to 𝕊¹→𝕊¹≃𝕊¹×ℤ (const base) ≡ (base , + 0)
+𝕊¹→𝕊¹≃𝕊¹×ℤ-const = _≃_.from-to 𝕊¹→𝕊¹≃𝕊¹×ℤ
+  (rec base (refl base)               ≡⟨ cong (rec base) $ sym $ cong-const _ ⟩
+   rec base (cong (const base) loop)  ≡⟨ sym η-rec ⟩∎
+   const base                         ∎)
+
+------------------------------------------------------------------------
 -- Some negative results
 
 -- The equality loop is not equal to refl base.
 
 loop≢refl : loop ≢ refl base
-loop≢refl loop≡refl = ¬-Type-set univ Type-set
+loop≢refl loop≡refl = Univ.¬-Type-set univ Type-set
   where
   refl≡ : (A : Type) (A≡A : A ≡ A) → refl A ≡ A≡A
   refl≡ A A≡A =
