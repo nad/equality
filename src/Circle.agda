@@ -38,6 +38,9 @@ private
     P   : A → Type p
     b ℓ : A
 
+------------------------------------------------------------------------
+-- The type and some eliminators
+
 -- The circle.
 
 data 𝕊¹ : Type where
@@ -100,6 +103,9 @@ rec′ {A = A} b ℓ = elim
 
 rec′-loop : cong (rec′ b ℓ) loop ≡ ℓ
 rec′-loop = dcong≡→cong≡ elim-loop
+
+------------------------------------------------------------------------
+-- Some negative results
 
 -- The equality loop is not equal to refl base.
 
