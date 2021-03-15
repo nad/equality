@@ -36,6 +36,7 @@ private
     a p : Level
     A   : Type p
     P   : A → Type p
+    f   : (x : A) → P x
     b ℓ : A
 
 ------------------------------------------------------------------------
@@ -79,6 +80,26 @@ elim P b ℓ = elimᴾ P b (subst≡→[]≡ ℓ)
 elim-loop : dcong (elim P b ℓ) loop ≡ ℓ
 elim-loop = dcong-subst≡→[]≡ (refl _)
 
+-- Every dependent function of type (x : 𝕊¹) → P x can be expressed
+-- using elim.
+
+η-elim : f ≡ elim P (f base) (dcong f loop)
+η-elim {P = P} {f = f} =
+  ⟨ext⟩ $ elim _ (refl _)
+    (subst (λ x → f x ≡ elim P (f base) (dcong f loop) x) loop (refl _)  ≡⟨ subst-in-terms-of-trans-and-dcong ⟩
+
+     trans (sym (dcong f loop))
+       (trans (cong (subst P loop) (refl _))
+          (dcong (elim P (f base) (dcong f loop)) loop))                 ≡⟨ cong (trans (sym (dcong f loop))) $
+                                                                            trans (cong (flip trans _) $ cong-refl _) $
+                                                                            trans-reflˡ _ ⟩
+     trans (sym (dcong f loop))
+       (dcong (elim P (f base) (dcong f loop)) loop)                     ≡⟨ cong (trans (sym (dcong f loop))) elim-loop ⟩
+
+     trans (sym (dcong f loop)) (dcong f loop)                           ≡⟨ trans-symˡ _ ⟩∎
+
+     refl _                                                              ∎)
+
 -- A non-dependent eliminator.
 
 rec : (b : A) → b ≡ b → 𝕊¹ → A
@@ -88,6 +109,22 @@ rec b ℓ = recᴾ b (_↔_.to ≡↔≡ ℓ)
 
 rec-loop : cong (rec b ℓ) loop ≡ ℓ
 rec-loop = cong-≡↔≡ (refl _)
+
+-- Every function from 𝕊¹ to A can be expressed using rec.
+
+η-rec : f ≡ rec (f base) (cong f loop)
+η-rec {f = f} =
+  ⟨ext⟩ $ elim _ (refl _)
+    (subst (λ x → f x ≡ rec (f base) (cong f loop) x) loop (refl _)      ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+     trans (sym (cong f loop))
+       (trans (refl _) (cong (rec (f base) (cong f loop)) loop))         ≡⟨ cong (trans (sym (cong f loop))) $ trans-reflˡ _ ⟩
+
+     trans (sym (cong f loop)) (cong (rec (f base) (cong f loop)) loop)  ≡⟨ cong (trans (sym (cong f loop))) rec-loop ⟩
+
+     trans (sym (cong f loop)) (cong f loop)                             ≡⟨ trans-symˡ _ ⟩∎
+
+     refl _                                                              ∎)
 
 -- An alternative non-dependent eliminator.
 
