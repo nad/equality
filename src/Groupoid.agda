@@ -9,16 +9,20 @@ open import Equality
 module Groupoid
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Prelude hiding (id; _∘_)
+open import Prelude hiding (id; _∘_; _^_)
 
 open import Bijection eq hiding (id; _∘_)
 open Derived-definitions-and-properties eq
+open import Integer.Basics eq as Int using (ℤ; +_; -[1+_])
+import Nat eq as Nat
 
 private
   variable
     a       : Level
     A       : Type a
     w x y z : A
+    n       : ℕ
+    j       : ℤ
 
 -- Groupoids using _≡_ as the underlying equality.
 
@@ -188,3 +192,151 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
       }
     ; left-inverse-of = involutive
     }
+
+  -- Exponentiation.
+
+  infixr 8 _^+_ _^_
+
+  _^+_ : x ∼ x → ℕ → x ∼ x
+  p ^+ 0     = id
+  p ^+ suc n = p ∘ p ^+ n
+
+  _^_ : x ∼ x → ℤ → x ∼ x
+  p ^ + n      = p ^+ n
+  p ^ -[1+ n ] = (p ⁻¹) ^+ suc n
+
+  -- _^+_ is homomorphic with respect to _∘_/_+_.
+
+  ^+∘^+ : ∀ m → p ^+ m ∘ p ^+ n ≡ p ^+ (m + n)
+  ^+∘^+ {p = p} {n = n} zero =
+    id ∘ p ^+ n  ≡⟨ left-identity _ ⟩∎
+    p ^+ n       ∎
+  ^+∘^+ {p = p} {n = n} (suc m) =
+    (p ∘ p ^+ m) ∘ p ^+ n  ≡⟨ sym $ assoc _ _ _ ⟩
+    p ∘ (p ^+ m ∘ p ^+ n)  ≡⟨ cong (_ ∘_) $ ^+∘^+ m ⟩∎
+    p ∘ p ^+ (m + n)       ∎
+
+  -- A rearrangement lemma for _^+_.
+
+  ∘^+≡^+∘ : ∀ n → p ∘ p ^+ n ≡ p ^+ n ∘ p
+  ∘^+≡^+∘ {p = p} zero =
+    p ∘ id  ≡⟨ right-identity _ ⟩
+    p       ≡⟨ sym $ left-identity _ ⟩∎
+    id ∘ p  ∎
+  ∘^+≡^+∘ {p = p} (suc n) =
+    p ∘ (p ∘ p ^+ n)  ≡⟨ cong (p ∘_) $ ∘^+≡^+∘ n ⟩
+    p ∘ (p ^+ n ∘ p)  ≡⟨ assoc _ _ _ ⟩∎
+    (p ∘ p ^+ n) ∘ p  ∎
+
+  private
+
+    -- Some lemmas which are used to define ^∘^ below.
+
+    lemma₁ : ∀ n → (p ∘ p ^+ n) ∘ (p ⁻¹ ∘ q) ≡ p ^+ n ∘ q
+    lemma₁ {p = p} {q = q} n =
+      (p ∘ p ^+ n) ∘ (p ⁻¹ ∘ q)  ≡⟨ cong (_∘ (p ⁻¹ ∘ q)) $ ∘^+≡^+∘ n ⟩
+      (p ^+ n ∘ p) ∘ (p ⁻¹ ∘ q)  ≡⟨ sym $ assoc _ _ _ ⟩
+      p ^+ n ∘ (p ∘ (p ⁻¹ ∘ q))  ≡⟨ cong (p ^+ n ∘_) $ assoc _ _ _ ⟩
+      p ^+ n ∘ ((p ∘ p ⁻¹) ∘ q)  ≡⟨ cong (p ^+ n ∘_) $ cong (_∘ q) $ right-inverse _ ⟩
+      p ^+ n ∘ (id ∘ q)          ≡⟨ cong (p ^+ n ∘_) $ left-identity _ ⟩∎
+      p ^+ n ∘ q                 ∎
+
+    lemma₂ : ∀ n → (p ⁻¹ ∘ (p ⁻¹) ^+ n) ∘ (p ∘ q) ≡ (p ⁻¹) ^+ n ∘ q
+    lemma₂ {p = p} {q = q} n =
+      (p ⁻¹ ∘ (p ⁻¹) ^+ n) ∘ (p ∘ q)        ≡⟨ cong (λ r → (p ⁻¹ ∘ (p ⁻¹) ^+ n) ∘ (r ∘ q)) $ sym $ involutive _ ⟩
+      (p ⁻¹ ∘ (p ⁻¹) ^+ n) ∘ (p ⁻¹ ⁻¹ ∘ q)  ≡⟨ lemma₁ n ⟩∎
+      (p ⁻¹) ^+ n ∘ q                       ∎
+
+    lemma₃ :
+      ∀ m n → m Nat.≤→ n →
+      p ^+ m ∘ (p ⁻¹) ^+ suc n ≡ (p ⁻¹) ^+ suc (n ∸ m)
+    lemma₃ {p = p} zero n _ =
+      id ∘ (p ⁻¹) ^+ (1 + n)  ≡⟨ left-identity _ ⟩∎
+      (p ⁻¹) ^+ (1 + n)       ∎
+    lemma₃ {p = p} (suc m) (suc n) m≤n =
+      (p ∘ p ^+ m) ∘ (p ⁻¹ ∘ (p ⁻¹) ^+ suc n)  ≡⟨ lemma₁ m ⟩
+      p ^+ m ∘ (p ⁻¹) ^+ suc n                 ≡⟨ lemma₃ m n m≤n ⟩∎
+      (p ⁻¹) ^+ suc (n ∸ m)                    ∎
+
+    lemma₄ :
+      ∀ m n → suc n Nat.≤→ m →
+      p ^+ m ∘ (p ⁻¹) ^+ suc n ≡ p ^+ (m ∸ suc n)
+    lemma₄ {p = p} (suc m) zero _ =
+      (p ∘ p ^+ m) ∘ (p ⁻¹ ∘ id)  ≡⟨ lemma₁ m ⟩
+      p ^+ m ∘ id                 ≡⟨ right-identity _ ⟩∎
+      p ^+ m                      ∎
+    lemma₄ {p = p} (suc m) (suc n) n<m =
+      (p ∘ p ^+ m) ∘ (p ⁻¹ ∘ (p ⁻¹) ^+ suc n)  ≡⟨ lemma₁ m ⟩
+      p ^+ m ∘ (p ⁻¹) ^+ suc n                 ≡⟨ lemma₄ m n n<m ⟩∎
+      p ^+ (m ∸ suc n)                         ∎
+
+    lemma₅ :
+      ∀ m n → n Nat.≤→ m →
+      (p ⁻¹) ^+ suc m ∘ p ^+ n ≡ (p ⁻¹) ^+ suc (m ∸ n)
+    lemma₅ {p = p} m zero _ =
+      (p ⁻¹) ^+ (1 + m) ∘ id  ≡⟨ right-identity _ ⟩∎
+      (p ⁻¹) ^+ (1 + m)       ∎
+    lemma₅ {p = p} (suc m) (suc n) n≤m =
+      (p ⁻¹ ∘ (p ⁻¹) ^+ suc m) ∘ p ∘ p ^+ n  ≡⟨ lemma₂ (suc m) ⟩
+      (p ⁻¹) ^+ suc m ∘ p ^+ n               ≡⟨ lemma₅ m n n≤m ⟩∎
+      (p ⁻¹) ^+ suc (m ∸ n)                  ∎
+
+    lemma₆ :
+      ∀ m n → suc m Nat.≤→ n →
+      (p ⁻¹) ^+ suc m ∘ p ^+ n ≡ p ^+ (n ∸ suc m)
+    lemma₆ {p = p} zero (suc n) _ =
+      (p ⁻¹) ^+ 1 ∘ p ∘ p ^+ n  ≡⟨ lemma₂ 0 ⟩
+      id ∘ p ^+ n               ≡⟨ left-identity _ ⟩∎
+      p ^+ n                    ∎
+    lemma₆ {p = p} (suc m) (suc n) m<n =
+      (p ⁻¹ ∘ (p ⁻¹) ^+ suc m) ∘ p ∘ p ^+ n  ≡⟨ lemma₂ (suc m) ⟩
+      (p ⁻¹) ^+ suc m ∘ p ^+ n               ≡⟨ lemma₆ m n m<n ⟩∎
+      p ^+ (n ∸ suc m)                       ∎
+
+  -- _^_ is homomorphic with respect to _∘_/Int._+_.
+
+  ^∘^ : ∀ i → p ^ i ∘ p ^ j ≡ p ^ (i Int.+ j)
+  ^∘^ {j = + _}      (+ m) = ^+∘^+ m
+  ^∘^ {j = -[1+ n ]} (+ m) with m Nat.≤⊎> n
+  … | inj₁ m≤n = lemma₃ m n (Nat.≤→≤→ _ _ m≤n)
+  … | inj₂ n<m = lemma₄ m n (Nat.≤→≤→ _ _ n<m)
+  ^∘^ {j = + n} -[1+ m ] with n Nat.≤⊎> m
+  … | inj₁ n≤m = lemma₅ m n (Nat.≤→≤→ _ _ n≤m)
+  … | inj₂ m<n = lemma₆ m n (Nat.≤→≤→ _ _ m<n)
+  ^∘^ {p = p} {j = -[1+ n ]} -[1+ m ] =
+    (p ⁻¹) ^+ suc m ∘ (p ⁻¹) ^+ suc n  ≡⟨ ^+∘^+ (suc m) ⟩
+    (p ⁻¹) ^+ (suc m + suc n)          ≡⟨ cong ((p ⁻¹) ^+_) $ cong suc $ sym $ Nat.suc+≡+suc m ⟩∎
+    (p ⁻¹) ^+ (2 + m + n)              ∎
+
+  -- _^+ n commutes with _⁻¹.
+
+  ^+⁻¹ : ∀ n → (p ^+ n) ⁻¹ ≡ (p ⁻¹) ^+ n
+  ^+⁻¹         zero    = identity
+  ^+⁻¹ {p = p} (suc n) =
+    (p ∘ p ^+ n) ⁻¹     ≡⟨ ∘⁻¹ ⟩
+    (p ^+ n) ⁻¹ ∘ p ⁻¹  ≡⟨ cong (_∘ p ⁻¹) $ ^+⁻¹ n ⟩
+    (p ⁻¹) ^+ n ∘ p ⁻¹  ≡⟨ sym $ ∘^+≡^+∘ n ⟩∎
+    p ⁻¹ ∘ (p ⁻¹) ^+ n  ∎
+
+  -- _^ i commutes with _⁻¹.
+
+  ^⁻¹ : ∀ i → (p ^ i) ⁻¹ ≡ (p ⁻¹) ^ i
+  ^⁻¹ (+ n)    = ^+⁻¹ n
+  ^⁻¹ -[1+ n ] = ^+⁻¹ (suc n)
+
+  -- Any power of id is equal to id.
+
+  id^+ : ∀ n → id ^+ n ≡ id {x = x}
+  id^+ zero    = refl _
+  id^+ (suc n) =
+    id ∘ id ^+ n  ≡⟨ left-identity _ ⟩
+    id ^+ n       ≡⟨ id^+ n ⟩∎
+    id            ∎
+
+  id^ : ∀ i → id ^ i ≡ id {x = x}
+  id^ (+ n) = id^+ n
+  id^ -[1+ n ] =
+    (id ⁻¹) ^+ suc n  ≡⟨ sym $ ^+⁻¹ (suc n) ⟩
+    (id ^+ suc n) ⁻¹  ≡⟨ cong _⁻¹ $ id^+ (suc n) ⟩
+    id ⁻¹             ≡⟨ identity ⟩∎
+    id                ∎
