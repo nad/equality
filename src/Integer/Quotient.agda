@@ -663,12 +663,7 @@ suc = Q.rec λ where
 -- The function suc adds one to its input.
 
 suc≡1+ : ∀ i → suc i ≡ + 1 + i
-suc≡1+ = Q.elim λ where
-  .[]ʳ _ → refl _
-
-  .[]-respects-relationʳ _ → ℤ-set _ _
-
-  .is-setʳ _ → mono₁ 2 ℤ-set
+suc≡1+ = elim _ λ _ _ → refl _
 
 -- The predecessor function.
 
@@ -687,12 +682,7 @@ pred = Q.rec λ where
 -- The function pred subtracts one from its input.
 
 pred≡-1+ : ∀ i → pred i ≡ -[ 1 ] + i
-pred≡-1+ = Q.elim λ where
-  .[]ʳ _ → refl _
-
-  .[]-respects-relationʳ _ → ℤ-set _ _
-
-  .is-setʳ _ → mono₁ 2 ℤ-set
+pred≡-1+ = elim _ λ _ _ → refl _
 
 -- An equivalence between ℤ and ℤ corresponding to the successor
 -- function.
@@ -701,15 +691,5 @@ successor : ℤ ≃ ℤ
 successor = Eq.↔→≃
   suc
   pred
-  (Q.elim λ where
-     .[]ʳ (m , n) → []-respects-relation (cong P.suc (Nat.+-comm m))
-
-     .[]-respects-relationʳ _ → ℤ-set _ _
-
-     .is-setʳ _ → mono₁ 2 ℤ-set)
-  (Q.elim λ where
-     .[]ʳ (m , n) → []-respects-relation (cong P.suc (Nat.+-comm m))
-
-     .[]-respects-relationʳ _ → ℤ-set _ _
-
-     .is-setʳ _ → mono₁ 2 ℤ-set)
+  (elim _ λ m _ → []-respects-relation (cong P.suc (Nat.+-comm m)))
+  (elim _ λ m _ → []-respects-relation (cong P.suc (Nat.+-comm m)))
