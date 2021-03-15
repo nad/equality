@@ -220,14 +220,6 @@ import H-level.Truncation.Propositional.One-step
 
 import H-level.Truncation.Propositional.Non-recursive
 
--- The "circle".
-
-import Circle
-
--- The torus, defined as a HIT.
-
-import Torus
-
 -- Suspensions.
 
 import Suspension
@@ -251,6 +243,14 @@ import Figure-of-eight
 -- Truncation, defined as a HIT.
 
 import H-level.Truncation
+
+-- The "circle".
+
+import Circle
+
+-- The torus, defined as a HIT.
+
+import Torus
 
 -- Some omniscience principles.
 

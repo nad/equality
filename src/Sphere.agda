@@ -17,7 +17,6 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
-open import Circle eq using (𝕊¹)
 open import Equality.Path.Isomorphisms eq
 open import Equality.Tactic equality-with-J
 import Equivalence equality-with-J as Equiv
@@ -51,15 +50,6 @@ private
 
 Bool↔𝕊⁰ : Bool ↔ 𝕊 0
 Bool↔𝕊⁰ = Bool↔Susp-⊥
-
--- The circle is isomorphic to the 1-dimensional sphere.
-
-𝕊¹↔𝕊¹ : 𝕊¹ ↔ 𝕊 1
-𝕊¹↔𝕊¹ =
-  𝕊¹          ↝⟨ 𝕊¹↔Susp-Bool ⟩
-  Susp Bool   ↝⟨ Suspension.cong-↔ Bool↔𝕊⁰ ⟩
-  Susp (𝕊 0)  ↔⟨⟩
-  𝕊 1         □
 
 -- Based maps from spheres with non-negative dimensions (using north
 -- as the point) are isomorphic to iterated loop spaces.

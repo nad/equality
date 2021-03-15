@@ -21,11 +21,9 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection equality-with-J as Bijection using (_↔_)
-open import Circle eq as Circle using (𝕊¹; base; loop)
 open import Embedding equality-with-J as Embedding using (Embedding)
 open import Equality.Decision-procedures equality-with-J
 open import Equality.Path.Isomorphisms eq
-open import Equality.Tactic equality-with-J
 open import Equivalence equality-with-J using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
@@ -192,102 +190,6 @@ private
     subst (λ z → f (g z) ≡ z) x≡y fgx≡x                         ≡⟨ subst-in-terms-of-trans-and-cong ⟩
     trans (sym (cong (f ∘ g) x≡y)) (trans fgx≡x (cong id x≡y))  ≡⟨ sym $ cong₂ (λ p q → trans (sym p) (trans fgx≡x q)) (cong-∘ _ _ _) (cong-id _) ⟩∎
     trans (sym (cong f (cong g x≡y))) (trans fgx≡x x≡y)         ∎
-
--- The circle can be expressed as a suspension.
-
-𝕊¹↔Susp-Bool : 𝕊¹ ↔ Susp Bool
-𝕊¹↔Susp-Bool = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = to
-      ; from = from
-      }
-    ; right-inverse-of = to∘from
-    }
-  ; left-inverse-of = from∘to
-  }
-  where
-  north≡north =
-    north  ≡⟨ meridian false ⟩
-    south  ≡⟨ sym $ meridian true ⟩∎
-    north  ∎
-
-  to : 𝕊¹ → Susp Bool
-  to = Circle.rec north north≡north
-
-  module From = Rec base base (if_then refl base else loop)
-
-  from : Susp Bool → 𝕊¹
-  from = From.rec
-
-  to∘from : ∀ x → to (from x) ≡ x
-  to∘from = elim _
-    (to (from north)  ≡⟨⟩
-     north            ∎)
-    (to (from south)  ≡⟨⟩
-     north            ≡⟨ meridian true ⟩∎
-     south            ∎)
-    (λ b →
-       subst (λ x → to (from x) ≡ x) (meridian b) (refl north)  ≡⟨ subst-in-terms-of-trans-and-cong′ ⟩
-
-       trans (sym (cong to (cong from (meridian b))))
-             (trans (refl north) (meridian b))                  ≡⟨ cong₂ (λ p q → trans (sym (cong to p)) q) From.rec-meridian (trans-reflˡ _) ⟩
-
-       trans (sym (cong to (if b then refl base else loop)))
-             (meridian b)                                       ≡⟨ lemma b ⟩∎
-
-       meridian true                                            ∎)
-    where
-    lemma : (b : Bool) → _ ≡ _
-    lemma true  =
-      trans (sym (cong to (if true ⦂ Bool then refl base else loop)))
-            (meridian true)                                            ≡⟨⟩
-
-      trans (sym (cong to (refl base))) (meridian true)                ≡⟨ prove (Trans (Sym (Cong _ Refl)) (Lift _)) (Lift _) (refl _) ⟩∎
-
-      meridian true                                                    ∎
-
-    lemma false =
-      trans (sym (cong to (if false ⦂ Bool then refl base else loop)))
-            (meridian false)                                            ≡⟨⟩
-
-      trans (sym (cong to loop)) (meridian false)                       ≡⟨ cong (λ p → trans (sym p) (meridian false)) Circle.rec-loop ⟩
-
-      trans (sym north≡north) (meridian false)                          ≡⟨ prove (Trans (Sym (Trans (Lift _) (Sym (Lift _)))) (Lift _))
-                                                                                 (Trans (Trans (Lift _) (Sym (Lift _))) (Lift _))
-                                                                                 (refl _) ⟩
-      trans (trans (meridian true) (sym $ meridian false))
-            (meridian false)                                            ≡⟨ trans-[trans-sym]- _ _ ⟩∎
-
-      meridian true                                                     ∎
-
-  from∘to : ∀ x → from (to x) ≡ x
-  from∘to = Circle.elim _
-    (from (to base)  ≡⟨⟩
-     base            ∎)
-    (subst (λ x → from (to x) ≡ x) loop (refl base)                  ≡⟨ subst-in-terms-of-trans-and-cong′ ⟩
-
-     trans (sym (cong from (cong to loop)))
-           (trans (refl base) loop)                                  ≡⟨ cong₂ (λ p q → trans (sym (cong from p)) q)
-                                                                        Circle.rec-loop (trans-reflˡ _) ⟩
-
-     trans (sym (cong from north≡north)) loop                        ≡⟨ prove (Trans (Sym (Cong _ (Trans (Lift _) (Sym (Lift _))))) (Lift _))
-                                                                              (Trans (Trans (Cong from (Lift (meridian true)))
-                                                                                            (Sym (Cong from (Lift (meridian false)))))
-                                                                                     (Lift _))
-                                                                              (refl _) ⟩
-     trans (trans (cong from (meridian true))
-                  (sym $ cong from (meridian false)))
-           loop                                                      ≡⟨ cong₂ (λ p q → trans (trans p (sym q)) loop)
-                                                                          From.rec-meridian
-                                                                          From.rec-meridian ⟩
-     trans (trans (if true ⦂ Bool then refl base else loop)
-                  (sym $ if false ⦂ Bool then refl base else loop))
-           loop                                                      ≡⟨⟩
-
-     trans (trans (refl base) (sym loop)) loop                       ≡⟨ trans-[trans-sym]- _ _ ⟩∎
-
-     refl base                                                       ∎)
 
 -- The remainder of this module is not based on the HoTT book.
 

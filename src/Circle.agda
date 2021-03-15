@@ -23,6 +23,7 @@ import Bijection P.equality-with-J as PB
 open import Equality.Groupoid equality-with-J
 open import Equality.Path.Isomorphisms eq
 import Equality.Path.Isomorphisms P.equality-with-paths as PI
+open import Equality.Tactic equality-with-J hiding (module Eq)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
@@ -31,6 +32,9 @@ open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
 open import Integer equality-with-J as Int using (ℤ; +_; -[1+_])
 open import Nat equality-with-J
+open import Sphere eq as Sphere using (𝕊)
+open import Suspension eq as Suspension
+  using (Susp; north; south; meridian)
 import Univalence-axiom equality-with-J as Univ
 
 private
@@ -142,6 +146,111 @@ rec′ {A = A} b ℓ = elim
 
 rec′-loop : cong (rec′ b ℓ) loop ≡ ℓ
 rec′-loop = dcong≡→cong≡ elim-loop
+
+------------------------------------------------------------------------
+-- Some equivalences
+
+-- The circle can be expressed as a suspension.
+
+𝕊¹≃Susp-Bool : 𝕊¹ ≃ Susp Bool
+𝕊¹≃Susp-Bool = Eq.↔→≃ to from to∘from from∘to
+  where
+  north≡north =
+    north  ≡⟨ meridian false ⟩
+    south  ≡⟨ sym $ meridian true ⟩∎
+    north  ∎
+
+  to : 𝕊¹ → Susp Bool
+  to = rec north north≡north
+
+  module From = Suspension.Rec base base (if_then refl base else loop)
+
+  from : Susp Bool → 𝕊¹
+  from = From.rec
+
+  to∘from : ∀ x → to (from x) ≡ x
+  to∘from = Suspension.elim _
+    (to (from north)  ≡⟨⟩
+     north            ∎)
+    (to (from south)  ≡⟨⟩
+     north            ≡⟨ meridian true ⟩∎
+     south            ∎)
+    (λ b →
+       subst (λ x → to (from x) ≡ x) (meridian b) (refl north)  ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+       trans (sym (cong (to ∘ from) (meridian b)))
+         (trans (refl _) (cong id (meridian b)))                ≡⟨ cong₂ (trans ∘ sym)
+                                                                     (trans (sym $ cong-∘ _ _ _) $
+                                                                      cong (cong to) From.rec-meridian)
+                                                                     (trans (trans-reflˡ _) $
+                                                                      sym $ cong-id _) ⟩
+       trans (sym (cong to (if b then refl base else loop)))
+             (meridian b)                                       ≡⟨ lemma b ⟩∎
+
+       meridian true                                            ∎)
+    where
+    lemma : (b : Bool) → _ ≡ _
+    lemma true  =
+      trans (sym (cong to (if true ⦂ Bool then refl base else loop)))
+            (meridian true)                                            ≡⟨⟩
+
+      trans (sym (cong to (refl base))) (meridian true)                ≡⟨ prove (Trans (Sym (Cong _ Refl)) (Lift _)) (Lift _) (refl _) ⟩∎
+
+      meridian true                                                    ∎
+
+    lemma false =
+      trans (sym (cong to (if false ⦂ Bool then refl base else loop)))
+            (meridian false)                                            ≡⟨⟩
+
+      trans (sym (cong to loop)) (meridian false)                       ≡⟨ cong (λ p → trans (sym p) (meridian false)) rec-loop ⟩
+
+      trans (sym north≡north) (meridian false)                          ≡⟨ prove (Trans (Sym (Trans (Lift _) (Sym (Lift _)))) (Lift _))
+                                                                                 (Trans (Trans (Lift _) (Sym (Lift _))) (Lift _))
+                                                                                 (refl _) ⟩
+      trans (trans (meridian true) (sym $ meridian false))
+            (meridian false)                                            ≡⟨ trans-[trans-sym]- _ _ ⟩∎
+
+      meridian true                                                     ∎
+
+  from∘to : ∀ x → from (to x) ≡ x
+  from∘to = elim _
+    (from (to base)  ≡⟨⟩
+     base            ∎)
+    (subst (λ x → from (to x) ≡ x) loop (refl base)                  ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+     trans (sym (cong (from ∘ to) loop))
+           (trans (refl base) (cong id loop))                        ≡⟨ cong₂ (trans ∘ sym)
+                                                                          (trans (sym $ cong-∘ _ to _) $
+                                                                           cong (cong from) rec-loop)
+                                                                          (trans (trans-reflˡ _) $
+                                                                           sym $ cong-id _) ⟩
+
+     trans (sym (cong from north≡north)) loop                        ≡⟨ prove (Trans (Sym (Cong _ (Trans (Lift _) (Sym (Lift _))))) (Lift _))
+                                                                              (Trans (Trans (Cong from (Lift (meridian true)))
+                                                                                            (Sym (Cong from (Lift (meridian false)))))
+                                                                                     (Lift _))
+                                                                              (refl _) ⟩
+     trans (trans (cong from (meridian true))
+                  (sym $ cong from (meridian false)))
+           loop                                                      ≡⟨ cong₂ (λ p q → trans (trans p (sym q)) loop)
+                                                                          From.rec-meridian
+                                                                          From.rec-meridian ⟩
+     trans (trans (if true ⦂ Bool then refl base else loop)
+                  (sym $ if false ⦂ Bool then refl base else loop))
+           loop                                                      ≡⟨⟩
+
+     trans (trans (refl base) (sym loop)) loop                       ≡⟨ trans-[trans-sym]- _ _ ⟩∎
+
+     refl base                                                       ∎)
+
+-- The circle is equivalent to the 1-dimensional sphere.
+
+𝕊¹≃𝕊¹ : 𝕊¹ ≃ 𝕊 1
+𝕊¹≃𝕊¹ =
+  𝕊¹          ↝⟨ 𝕊¹≃Susp-Bool ⟩
+  Susp Bool   ↔⟨ Suspension.cong-↔ Sphere.Bool↔𝕊⁰ ⟩
+  Susp (𝕊 0)  ↔⟨⟩
+  𝕊 1         □
 
 ------------------------------------------------------------------------
 -- The loop space of the circle
