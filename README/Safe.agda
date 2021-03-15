@@ -252,6 +252,10 @@ import Figure-of-eight
 
 import H-level.Truncation
 
+-- Homotopy groups of pointed types.
+
+import Pointed-type.Homotopy-group
+
 -- The "circle".
 
 import Circle
