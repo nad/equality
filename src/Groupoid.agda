@@ -157,6 +157,28 @@ record Groupoid o p : Type (lsuc (o ⊔ p)) where
        q ⁻¹ ∘ (p ⁻¹ ∘ (p ∘ q))  ≡⟨ assoc _ _ _ ⟩∎
        (q ⁻¹ ∘ p ⁻¹) ∘ (p ∘ q)  ∎)
 
+    -- If p ∘ q is equal to id, then q is equal to p ⁻¹.
+
+    ⁻¹-unique-right :
+      ∀ {x y} {p : x ∼ y} {q : y ∼ x} →
+      p ∘ q ≡ id →
+      q ≡ p ⁻¹
+    ⁻¹-unique-right {p = p} {q = q} ∘≡id = ⁻¹∘≡id→≡
+      (p ⁻¹ ⁻¹ ∘ q  ≡⟨ cong (_∘ _) $ involutive _ ⟩
+       p ∘ q        ≡⟨ ∘≡id ⟩∎
+       id           ∎)
+
+    -- If p ∘ q is equal to id, then p is equal to q ⁻¹.
+
+    ⁻¹-unique-left :
+      ∀ {x y} {p : x ∼ y} {q : y ∼ x} →
+      p ∘ q ≡ id →
+      p ≡ q ⁻¹
+    ⁻¹-unique-left {p = p} {q = q} ∘≡id = ∘⁻¹≡id→≡
+      (p ∘ q ⁻¹ ⁻¹  ≡⟨ cong (_ ∘_) $ involutive _ ⟩
+       p ∘ q        ≡⟨ ∘≡id ⟩∎
+       id           ∎)
+
   -- The inverse operator is a bijection.
 
   ⁻¹-bijection : ∀ {x y} → x ∼ y ↔ y ∼ x
