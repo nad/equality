@@ -171,6 +171,10 @@ import Double-negation
 
 import Univalence-axiom
 
+-- Groups.
+
+import Group
+
 -- Pointed types and loop spaces.
 
 import Pointed-type
