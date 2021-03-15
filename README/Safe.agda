@@ -125,15 +125,6 @@ import Function-universe
 
 import Equivalence.Path-split
 
--- Pointed types and loop spaces.
-
-import Pointed-type
-
--- Equalities can be turned into groupoids which are sometimes
--- commutative.
-
-import Equality.Groupoid
-
 -- Results relating different instances of certain axioms related to
 -- equality.
 
@@ -175,6 +166,15 @@ import Double-negation
 -- The univalence axiom.
 
 import Univalence-axiom
+
+-- Pointed types and loop spaces.
+
+import Pointed-type
+
+-- Equalities can be turned into groupoids which are sometimes
+-- commutative.
+
+import Equality.Groupoid
 
 -- Paths, extensionality and univalence.
 

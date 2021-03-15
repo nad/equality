@@ -16,11 +16,12 @@ open Derived-definitions-and-properties eq
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection eq as B using (_↔_)
 open import Equivalence eq as E using (_≃_)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import Surjection eq using (_↠_)
+open import Univalence-axiom eq
 
 -- Pointed types.
 
@@ -53,6 +54,18 @@ _→ᴮ_ = _↝[ implication ]ᴮ_
 
 _≃ᴮ_ : Pointed-type a → Pointed-type b → Type (a ⊔ b)
 _≃ᴮ_ = _↝[ equivalence ]ᴮ_
+
+-- Based equivalences are equivalent to equalities (assuming
+-- univalence).
+
+≃ᴮ≃≡ : {P Q : Pointed-type a} → Univalence a → (P ≃ᴮ Q) ≃ (P ≡ Q)
+≃ᴮ≃≡ {P = A , x} {Q = B , y} univ =
+  (∃ λ (A≃B : A ≃ B) → _≃_.to A≃B x ≡ y)    ↝⟨ (inverse $
+                                                Σ-cong (≡≃≃ univ) λ A≃B →
+                                                ≡⇒≃ $ cong (_≡ _) $
+                                                subst-id-in-terms-of-≡⇒↝ equivalence) ⟩
+  (∃ λ (A≡B : A ≡ B) → subst id A≡B x ≡ y)  ↔⟨ B.Σ-≡,≡↔≡ ⟩□
+  (A , x) ≡ (B , y)                         □
 
 -- The loop space of a pointed type.
 
