@@ -143,6 +143,20 @@ record Groupoid o p : Type (lsuc (o ⊔ p)) where
       id ∘ q  ≡⟨ left-identity _ ⟩∎
       q       ∎
 
+    -- A lemma relating _∘_ and _⁻¹.
+
+    ∘⁻¹ :
+      ∀ {x y z} {p : y ∼ z} {q : x ∼ y} →
+      (p ∘ q) ⁻¹ ≡ q ⁻¹ ∘ p ⁻¹
+    ∘⁻¹ {p = p} {q = q} = right-cancellative
+      ((p ∘ q) ⁻¹ ∘ (p ∘ q)     ≡⟨ left-inverse _ ⟩
+       id                       ≡⟨ sym $ left-inverse _ ⟩
+       q ⁻¹ ∘ q                 ≡⟨ cong (q ⁻¹ ∘_) $ sym $ left-identity _ ⟩
+       q ⁻¹ ∘ (id ∘ q)          ≡⟨ cong (q ⁻¹ ∘_) $ cong (_∘ _) $ sym $ left-inverse _ ⟩
+       q ⁻¹ ∘ ((p ⁻¹ ∘ p) ∘ q)  ≡⟨ cong (q ⁻¹ ∘_) $ sym $ assoc _ _ _ ⟩
+       q ⁻¹ ∘ (p ⁻¹ ∘ (p ∘ q))  ≡⟨ assoc _ _ _ ⟩∎
+       (q ⁻¹ ∘ p ⁻¹) ∘ (p ∘ q)  ∎)
+
   -- The inverse operator is a bijection.
 
   ⁻¹-bijection : ∀ {x y} → x ∼ y ↔ y ∼ x
