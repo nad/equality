@@ -37,7 +37,7 @@ open import Univalence-axiom equality-with-J
 private
   variable
     a b ℓ p : Level
-    A B     : Type a
+    A B C   : Type a
     P       : A → Type p
     e x y   : A
     f g r   : A → B
@@ -317,6 +317,14 @@ universal-property h = record
 ∥∥-map-∘ {f = f} {g = g} = uniqueness
   (truncation-has-correct-h-level _)
   (λ x → ∣ f (g x) ∣  ∎)
+
+-- A zip function.
+
+∥∥-zip : (A → B → C) → ∥ A ∥[1+ n ] → ∥ B ∥[1+ n ] → ∥ C ∥[1+ n ]
+∥∥-zip f = rec λ where
+  .∣∣ʳ x    → ∥∥-map (f x)
+  .h-levelʳ → Π-closure ext _ λ _ →
+              truncation-has-correct-h-level _
 
 -- A has h-level 1 + n if and only if it is isomorphic to
 -- ∥ A ∥[1+ n ].
