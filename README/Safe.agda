@@ -70,6 +70,10 @@ import Equality.Decision-procedures
 
 import Bijection
 
+-- Integers.
+
+import Integer.Basics
+
 -- Groupoids.
 
 import Groupoid
