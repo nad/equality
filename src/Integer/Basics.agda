@@ -120,3 +120,27 @@ _≟_ : Decidable-equality ℤ
 
 ℤ-set : Is-set ℤ
 ℤ-set = decidable⇒set _≟_
+
+-- Addition is commutative.
+
++-comm : ∀ i {j} → i + j ≡ j + i
++-comm (+ m)    {j = + _}      = cong (+_) $ Nat.+-comm m
++-comm (+ m)    {j = -[1+ _ ]} = refl _
++-comm -[1+ m ] {j = + _}      = refl _
++-comm -[1+ m ] {j = -[1+ _ ]} = cong (-[1+_] ∘ suc) $ Nat.+-comm m
+
+private
+
+  -- A lemma.
+
+  +--helper : ∀ n → + suc n +-[1+ n ] ≡ + 0
+  +--helper n with suc n Nat.≤⊎> n
+  … | inj₁ n<n = ⊥-elim (Nat.+≮ 0 n<n)
+  … | inj₂ _   = cong (+_) $ Nat.∸≡0 n
+
+-- The sum of i and - i is zero.
+
++- : ∀ i → i + - i ≡ + 0
++- (+ zero)  = refl _
++- (+ suc n) = +--helper n
++- -[1+ n ]  = +--helper n
