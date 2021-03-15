@@ -78,15 +78,6 @@ infixl 6 _-_
 _-_ : ℤ → ℤ → ℤ
 i - j = i + - j
 
--- Non-negative integers are not equal to negative integers.
-
-+≢-[1+] : + m ≢ -[1+ n ]
-+≢-[1+] +≡- = subst P +≡- tt
-  where
-  P : ℤ → Type
-  P (+ n)    = ⊤
-  P -[1+ n ] = ⊥
-
 -- The +_ constructor is cancellative.
 
 +-cancellative : + m ≡ + n → m ≡ n
@@ -104,6 +95,21 @@ i - j = i + - j
   f : ℤ → ℕ
   f (+ n)    = n
   f -[1+ n ] = n
+
+-- Non-negative integers are not equal to negative integers.
+
++≢-[1+] : + m ≢ -[1+ n ]
++≢-[1+] +≡- = subst P +≡- tt
+  where
+  P : ℤ → Type
+  P (+ n)    = ⊤
+  P -[1+ n ] = ⊥
+
+-- Non-positive integers are not equal to positive integers.
+
++[1+]≢- : + suc m ≢ -[ n ]
++[1+]≢- {n = zero}  = Nat.0≢+ ∘ sym ∘ +-cancellative
++[1+]≢- {n = suc _} = +≢-[1+]
 
 -- Equality of integers is decidable.
 

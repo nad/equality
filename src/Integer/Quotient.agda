@@ -609,6 +609,16 @@ Same-difference≃[]≡[] =
   P.suc (m ⊕ n) ≡ 0                      ↝⟨ Nat.0≢+ ∘ sym ⟩□
   ⊥                                      □
 
+-- Non-positive integers are not equal to positive integers.
+
++[1+]≢- : + P.suc m ≢ -[ n ]
++[1+]≢- {m = m} {n = n} =
+  + P.suc m ≡ -[ n ]                     ↔⟨⟩
+  [ (P.suc m , 0) ] ≡ [ (0 , n) ]        ↔⟨ inverse Same-difference≃[]≡[] ⟩
+  Same-difference (P.suc m , 0) (0 , n)  ↔⟨⟩
+  P.suc m ⊕ n ≡ 0                        ↝⟨ Nat.0≢+ ∘ sym ⟩□
+  ⊥                                      □
+
 -- The +_ "constructor" is cancellative.
 
 +-cancellative : + m ≡ + n → m ≡ n
