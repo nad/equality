@@ -217,7 +217,7 @@ infix 8 +_
     Data.-[1+ n ]            ∎
 
   from-+_+-[1+_] :
-    ∀ m n → from (Data.+ m +-[1+ n ]) ≡ [ (m , suc n)]
+    ∀ m n → from (Data.+ m +-[1+ n ]) ≡ [ (m , suc n) ]
   from-+ m +-[1+ n ] with m Nat.≤⊎> n
   ... | inj₁ m≤n = []-respects-relation (
     suc n            ≡⟨ cong suc $ sym $ Nat.∸+≡ m≤n ⟩∎
