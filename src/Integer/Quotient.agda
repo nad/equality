@@ -109,6 +109,18 @@ infix 8 +_
 -[ n ] = [ (0 , n) ]
 
 ------------------------------------------------------------------------
+-- A lemma
+
+-- Increasing both sides of a pair by one does not affect the value of
+-- the corresponding integer.
+
+[]≡[suc,suc] : _≡_ {A = ℤ} [ (m , n) ] [ (P.suc m , P.suc n) ]
+[]≡[suc,suc] {m = m} {n = n} = []-respects-relation
+  (m ⊕ P.suc n  ≡⟨ sym $ Nat.suc+≡+suc m ⟩
+   P.suc m ⊕ n  ≡⟨ Nat.+-comm (P.suc m) ⟩∎
+   n ⊕ P.suc m  ∎)
+
+------------------------------------------------------------------------
 -- A one-to-one correspondence between two definitions of integers
 
 -- There is a bijection between this variant of integers and the one
@@ -128,82 +140,102 @@ infix 8 +_
   where
   to-lemma₁ : m₁ ⊕ P.suc n₂ ≡ m₂ →
               (Data.+ m₁) ≡ Data.+ m₂ +-[1+ n₂ ]
-  to-lemma₁ {m₁ = m₁} {n₂ = n₂} {m₂ = m₂} hyp with m₂ Nat.≤⊎> n₂
-  ... | inj₁ m₂≤n₂ = ⊥-elim $ Nat.+≮ 0 (
-    P.suc n₂       Nat.≤⟨ Nat.m≤n+m _ _ ⟩
-    m₁ ⊕ P.suc n₂  Nat.≡⟨ hyp ⟩≤
-    m₂             Nat.≤⟨ m₂≤n₂ ⟩∎
-    n₂             ∎≤)
-  ... | inj₂ n₂<m₂ = cong Data.+_ (
-    m₁                        ≡⟨ sym $ Nat.+∸≡ (P.suc n₂) ⟩
-    m₁ ⊕ P.suc n₂ ∸ P.suc n₂  ≡⟨ cong (_∸ P.suc n₂) hyp ⟩∎
-    m₂ ∸ P.suc n₂             ∎)
+  to-lemma₁ {m₁ = m₁} {n₂ = n₂} {m₂ = zero} hyp =
+    ⊥-elim $
+    Nat.0≢+
+      (zero             ≡⟨ sym hyp ⟩
+       m₁ ⊕ P.suc n₂    ≡⟨ sym $ Nat.suc+≡+suc m₁ ⟩∎
+       P.suc (m₁ ⊕ n₂)  ∎)
+  to-lemma₁ {m₁ = m₁} {n₂ = zero} {m₂ = P.suc m₂} hyp =
+    cong (Data.+_) $
+    Nat.cancel-suc
+      (P.suc m₁  ≡⟨ Nat.+-comm 1 ⟩
+       m₁ ⊕ 1    ≡⟨ hyp ⟩∎
+       P.suc m₂  ∎)
+  to-lemma₁ {m₁ = m₁} {n₂ = P.suc n₂} {m₂ = P.suc m₂} hyp =
+    to-lemma₁ $
+    Nat.cancel-suc
+      (P.suc (m₁ ⊕ P.suc n₂)  ≡⟨ Nat.suc+≡+suc m₁ ⟩
+       m₁ ⊕ P.suc (P.suc n₂)  ≡⟨ hyp ⟩∎
+       P.suc m₂               ∎)
 
   to-lemma₂ : m₁ ⊕ zero ≡ P.suc n₁ ⊕ m₂ →
               Data.+ m₁ +-[1+ n₁ ] ≡ Data.+ m₂
-  to-lemma₂ {m₁ = m₁} {n₁ = n₁} {m₂ = m₂} hyp = sym $ to-lemma₁ (
-    m₂ ⊕ P.suc n₁  ≡⟨ Nat.+-comm m₂ ⟩
-    P.suc n₁ ⊕ m₂  ≡⟨ sym hyp ⟩
-    m₁ ⊕ zero      ≡⟨ Nat.+-right-identity ⟩∎
-    m₁             ∎)
-
-  to-lemma₃ : m₁ ⊕ P.suc n₂ ≡ P.suc n₁ ⊕ m₂ →
-              Data.+ m₁ +-[1+ n₁ ] ≡ Data.+ m₂ +-[1+ n₂ ]
-  to-lemma₃ {m₁ = m₁} {n₂ = n₂} {n₁ = n₁} {m₂ = m₂} hyp
-    with m₁ Nat.≤⊎> n₁ | m₂ Nat.≤⊎> n₂
-  ... | inj₁ m₁≤n₁ | inj₁ m₂≤n₂ =
-    cong Data.-[1+_] $
-    Nat.+-cancellativeʳ (
-      n₁ ∸ m₁ ⊕ m₂              ≡⟨ sym $ Nat.+-∸-comm m₁≤n₁ ⟩
-      n₁ ⊕ m₂ ∸ m₁              ≡⟨⟩
-      P.suc n₁ ⊕ m₂ ∸ P.suc m₁  ≡⟨ cong (_∸ P.suc m₁) $ sym hyp ⟩
-      m₁ ⊕ P.suc n₂ ∸ P.suc m₁  ≡⟨ cong (_∸ P.suc m₁) $ sym $ Nat.suc+≡+suc m₁ ⟩
-      P.suc m₁ ⊕ n₂ ∸ P.suc m₁  ≡⟨⟩
-      m₁ ⊕ n₂ ∸ m₁              ≡⟨ cong (_∸ m₁) $ Nat.+-comm m₁ ⟩
-      n₂ ⊕ m₁ ∸ m₁              ≡⟨ Nat.+∸≡ m₁ ⟩
-      n₂                        ≡⟨ sym $ Nat.∸+≡ m₂≤n₂ ⟩∎
-      n₂ ∸ m₂ ⊕ m₂              ∎)
-  ... | inj₂ n₁<m₁ | inj₂ n₂<m₂ =
+  to-lemma₂ {m₁ = zero} hyp =
+    ⊥-elim $ Nat.0≢+ hyp
+  to-lemma₂ {m₁ = P.suc m₁} {n₁ = zero} {m₂ = m₂} hyp =
     cong (Data.+_) $
-    Nat.+-cancellativeʳ (
-      m₁ ∸ P.suc n₁ ⊕ P.suc n₂  ≡⟨ sym $ Nat.+-∸-comm n₁<m₁ ⟩
-      m₁ ⊕ P.suc n₂ ∸ P.suc n₁  ≡⟨ cong (_∸ P.suc n₁) hyp ⟩
-      P.suc n₁ ⊕ m₂ ∸ P.suc n₁  ≡⟨ cong (_∸ P.suc n₁) $ Nat.+-comm (P.suc n₁) ⟩
-      m₂ ⊕ P.suc n₁ ∸ P.suc n₁  ≡⟨ Nat.+∸≡ (P.suc n₁) ⟩
-      m₂                        ≡⟨ sym $ Nat.∸+≡ n₂<m₂ ⟩∎
-      m₂ ∸ P.suc n₂ ⊕ P.suc n₂  ∎)
-  ... | inj₁ m₁≤n₁ | inj₂ n₂<m₂ = ⊥-elim $ Nat.+≮ 0 (
-    P.suc (n₁ ⊕ m₂)  Nat.≡⟨ sym hyp ⟩≤
-    m₁ ⊕ P.suc n₂    Nat.≤⟨ m₁≤n₁ Nat.+-mono n₂<m₂ ⟩∎
-    n₁ ⊕ m₂          ∎≤)
-  ... | inj₂ n₁<m₁ | inj₁ m₂≤n₂ = ⊥-elim $ Nat.+≮ 0 (
-    P.suc (m₁ ⊕ n₂)  Nat.≡⟨ Nat.suc+≡+suc _ ⟩≤
-    m₁ ⊕ P.suc n₂    Nat.≡⟨ hyp ⟩≤
-    P.suc n₁ ⊕ m₂    Nat.≤⟨ n₁<m₁ Nat.+-mono m₂≤n₂ ⟩∎
-    m₁ ⊕ n₂          ∎≤)
+    Nat.cancel-suc
+      (P.suc m₁      ≡⟨ sym Nat.+-right-identity ⟩
+       P.suc m₁ ⊕ 0  ≡⟨ hyp ⟩∎
+       P.suc m₂      ∎)
+  to-lemma₂ {m₁ = P.suc m₁} {n₁ = P.suc n₁} hyp =
+    to-lemma₂ (Nat.cancel-suc hyp)
+
+  to-lemma₃ :
+    ∀ m₁ n₁ m₂ n₂ →
+    m₁ ⊕ P.suc n₂ ≡ P.suc n₁ ⊕ m₂ →
+    Data.+ m₁ +-[1+ n₁ ] ≡ Data.+ m₂ +-[1+ n₂ ]
+  to-lemma₃ (P.suc m₁) (P.suc n₁) m₂ n₂ hyp =
+    to-lemma₃ m₁ n₁ m₂ n₂ (Nat.cancel-suc hyp)
+  to-lemma₃ m₁ n₁ (P.suc m₂) (P.suc n₂) hyp =
+    to-lemma₃ m₁ n₁ m₂ n₂ $
+    Nat.cancel-suc
+      (P.suc (m₁ ⊕ P.suc n₂)  ≡⟨ Nat.suc+≡+suc m₁ ⟩
+       m₁ ⊕ P.suc (P.suc n₂)  ≡⟨ hyp ⟩
+       P.suc n₁ ⊕ P.suc m₂    ≡⟨ cong P.suc $ sym $ Nat.suc+≡+suc n₁ ⟩∎
+       P.suc (P.suc n₁ ⊕ m₂)  ∎)
+  to-lemma₃ zero n₁ zero n₂ hyp =
+    cong Data.-[1+_] $
+    Nat.cancel-suc
+      (P.suc n₁      ≡⟨ sym Nat.+-right-identity ⟩
+       P.suc n₁ ⊕ 0  ≡⟨ sym hyp ⟩∎
+       P.suc n₂      ∎)
+  to-lemma₃ (P.suc m₁) zero (P.suc m₂) zero hyp =
+    cong (Data.+_) $
+    Nat.cancel-suc $
+      (P.suc m₁  ≡⟨ Nat.+-comm 1 ⟩
+       m₁ ⊕ 1    ≡⟨ Nat.cancel-suc hyp ⟩∎
+       P.suc m₂  ∎)
+  to-lemma₃ (P.suc m₁) zero zero n₂ hyp =
+    ⊥-elim $ Nat.0≢+
+      (0                ≡⟨ sym $ Nat.cancel-suc hyp ⟩
+       m₁ ⊕ P.suc n₂    ≡⟨ sym $ Nat.suc+≡+suc m₁ ⟩∎
+       P.suc (m₁ ⊕ n₂)  ∎)
+  to-lemma₃ zero n₁ (P.suc m₂) zero hyp =
+    ⊥-elim $ Nat.0≢+
+      (0                ≡⟨ Nat.cancel-suc hyp ⟩
+       n₁ ⊕ P.suc m₂    ≡⟨ sym $ Nat.suc+≡+suc n₁ ⟩∎
+       P.suc (n₁ ⊕ m₂)  ∎)
+
+  to-lemma :
+    ∀ m₁ n₁ m₂ n₂ →
+    Same-difference (m₁ , n₁) (m₂ , n₂) →
+    Data.+ m₁ Data.- Data.+ n₁ ≡
+    Data.+ m₂ Data.- Data.+ n₂
+  to-lemma m₁ zero m₂ zero hyp =
+    Data.+ (m₁ ⊕ 0)  ≡⟨ cong Data.+_ hyp ⟩
+    Data.+ m₂        ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
+    Data.+ (m₂ ⊕ 0)  ∎
+  to-lemma m₁ zero m₂ (P.suc n₂) hyp =
+    Data.+ (m₁ ⊕ 0)       ≡⟨ cong Data.+_ Nat.+-right-identity ⟩
+    Data.+ m₁             ≡⟨ to-lemma₁ hyp ⟩∎
+    Data.+ m₂ +-[1+ n₂ ]  ∎
+  to-lemma m₁ (P.suc n₁) m₂ zero hyp =
+    Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₂ hyp ⟩
+    Data.+ m₂             ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
+    Data.+ (m₂ ⊕ 0)       ∎
+  to-lemma m₁ (P.suc n₁) m₂ (P.suc n₂) hyp =
+    Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₃ _ _ _ _ hyp ⟩∎
+    Data.+ m₂ +-[1+ n₂ ]  ∎
 
   to : ℤ → Data.ℤ
   to = Q.rec λ where
     .[]ʳ (m , n) → Data.+ m Data.- Data.+ n
-    .[]-respects-relationʳ
-      {x = m₁ , zero} {y = m₂ , zero} m₁+0≡m₂ →
-        Data.+ (m₁ ⊕ 0)  ≡⟨ cong Data.+_ m₁+0≡m₂ ⟩
-        Data.+ m₂        ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
-        Data.+ (m₂ ⊕ 0)  ∎
-    .[]-respects-relationʳ
-      {x = m₁ , zero} {y = m₂ , P.suc n₂} m₁+1+n₂≡m₂ →
-        Data.+ (m₁ ⊕ 0)       ≡⟨ cong Data.+_ Nat.+-right-identity ⟩
-        Data.+ m₁             ≡⟨ to-lemma₁ m₁+1+n₂≡m₂ ⟩∎
-        Data.+ m₂ +-[1+ n₂ ]  ∎
-    .[]-respects-relationʳ
-      {x = m₁ , P.suc n₁} {y = m₂ , zero} m₁+0≡1+n₁+m₂ →
-        Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₂ m₁+0≡1+n₁+m₂ ⟩
-        Data.+ m₂             ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
-        Data.+ (m₂ ⊕ 0)       ∎
-    .[]-respects-relationʳ
-      {x = m₁ , P.suc n₁} {y = m₂ , P.suc n₂} m₁+1+n₂≡n₁+1+m₂ →
-        Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₃ m₁+1+n₂≡n₁+1+m₂  ⟩∎
-        Data.+ m₂ +-[1+ n₂ ]  ∎
+
+    .[]-respects-relationʳ {x = m₁ , n₁} {y = m₂ , n₂} →
+      to-lemma m₁ n₁ m₂ n₂
+
     .is-setʳ → Data.ℤ-set
 
   from : Data.ℤ → ℤ
@@ -221,13 +253,13 @@ infix 8 +_
 
   from-+_+-[1+_] :
     ∀ m n → from (Data.+ m +-[1+ n ]) ≡ [ (m , P.suc n) ]
-  from-+ m +-[1+ n ] with m Nat.≤⊎> n
-  ... | inj₁ m≤n = []-respects-relation (
-    P.suc n            ≡⟨ cong P.suc $ sym $ Nat.∸+≡ m≤n ⟩∎
-    P.suc (n ∸ m ⊕ m)  ∎)
-  ... | inj₂ n<m = []-respects-relation (
-    m ∸ P.suc n ⊕ P.suc n  ≡⟨ Nat.∸+≡ n<m ⟩∎
-    m                      ∎)
+  from-+ zero    +-[1+ n ]       = refl _
+  from-+ P.suc m +-[1+ zero ]    = []≡[suc,suc]
+  from-+ P.suc m +-[1+ P.suc n ] =
+    from (Data.+ P.suc m +-[1+ P.suc n ])  ≡⟨⟩
+    from (Data.+ m +-[1+ n ])              ≡⟨ from-+ m +-[1+ n ] ⟩
+    [ (m , P.suc n) ]                      ≡⟨ []≡[suc,suc] ⟩∎
+    [ (P.suc m , P.suc (P.suc n)) ]        ∎
 
   from∘to : ∀ i → from (to i) ≡ i
   from∘to = Q.elim-prop λ where
@@ -314,47 +346,73 @@ elim P f i =                       $⟨ elim′ P (λ n → f n 0) (λ n → f 0
   P (_↔_.from ℤ↔ℤ (_↔_.to ℤ↔ℤ i))  ↝⟨ subst P (_↔_.left-inverse-of ℤ↔ℤ i) ⟩□
   P i                              □
 
--- A "computation" rule for elim.
---
--- Here the function is required to respect Same-difference. Note that
--- this "computation" rule does not (at the time of writing) in
--- general hold by definition.
+mutual
 
-elim-[] :
-  {P : ℤ → Type p}
-  (f : ∀ m n → P [ (m , n) ]) →
-  (∀ {p q} (s : Same-difference p q) →
-   subst P ([]-respects-relation s) (uncurry f p) ≡ uncurry f q) →
-  elim P f [ (m , n) ] ≡ f m n
-elim-[] {m = m} {n = zero} {P = P} f hyp =
-  elim P f [ (m , 0) ]                                  ≡⟨⟩
-  subst P (cong +_ Nat.+-right-identity) (f (m ⊕ 0) 0)  ≡⟨ sym $ subst-∘ _ _ _ ⟩
-  subst (P ∘ +_) Nat.+-right-identity (f (m ⊕ 0) 0)     ≡⟨ elim¹ (λ eq → subst (P ∘ +_) eq (f _ _) ≡ f _ _) (subst-refl _ _) _ ⟩∎
-  f m 0                                                 ∎
+  -- A "computation" rule for elim.
+  --
+  -- Here the function is required to respect Same-difference. Note that
+  -- this "computation" rule does not (at the time of writing) in
+  -- general hold by definition.
 
-elim-[] {m = m} {n = P.suc n} {P = P} f hyp =
-  elim P f [ (m , P.suc n) ]                                          ≡⟨⟩
+  elim-[] :
+    {P : ℤ → Type p}
+    (f : ∀ m n → P [ (m , n) ]) →
+    (∀ {p q} (s : Same-difference p q) →
+     subst P ([]-respects-relation s) (uncurry f p) ≡ uncurry f q) →
+    elim P f [ (m , n) ] ≡ f m n
+  elim-[] f hyp = elim-[]′ f (λ _ _ → hyp _)
 
-  subst P (_↔_.left-inverse-of ℤ↔ℤ [ (m , P.suc n) ]) $
-    elim′ P (λ n → f n 0) (λ n → f 0 (P.suc n)) (Data.+ m +-[1+ n ])  ≡⟨ lemma ⟩∎
+  -- A variant of the computation rule in which the requirement to
+  -- respect Same-difference has been replaced by a more specific
+  -- condition.
 
-  f m (P.suc n)                                                       ∎
-  where
-  lemma :
-    subst P (_↔_.left-inverse-of ℤ↔ℤ [ (m , P.suc n) ])
-      (elim′ P (λ n → f n 0) (λ n → f 0 (P.suc n))
-         (Data.+ m +-[1+ n ])) ≡
-    f m (P.suc n)
-  lemma with m Nat.≤⊎> n
-  ... | inj₁ m≤n =
-    subst P ([]-respects-relation (cong P.suc (sym (Nat.∸+≡ m≤n))))
-      (f 0 (P.suc (n ∸ m)))                                          ≡⟨ hyp _ ⟩∎
+  elim-[]′ :
+    {P : ℤ → Type p}
+    (f : ∀ m n → P [ (m , n) ]) →
+    (∀ m n → subst P []≡[suc,suc] (f m n) ≡ f (P.suc m) (P.suc n)) →
+    elim P f [ (m , n) ] ≡ f m n
+  elim-[]′ {m = m} {n = zero} {P = P} f hyp =
+    elim P f [ (m , 0) ]                                  ≡⟨⟩
+    subst P (cong +_ Nat.+-right-identity) (f (m ⊕ 0) 0)  ≡⟨ sym $ subst-∘ _ _ _ ⟩
+    subst (P ∘ +_) Nat.+-right-identity (f (m ⊕ 0) 0)     ≡⟨ elim¹ (λ eq → subst (P ∘ +_) eq (f _ _) ≡ f _ _) (subst-refl _ _) _ ⟩∎
+    f m 0                                                 ∎
 
-    f m (P.suc n)                                                    ∎
+  elim-[]′ {m = m} {n = P.suc n} {P = P} f hyp =
+    elim P f [ (m , P.suc n) ]                                          ≡⟨⟩
 
-  ... | inj₂ n<m =
-    subst P ([]-respects-relation (Nat.∸+≡ n<m)) (f (m ∸ P.suc n) 0)  ≡⟨ hyp _ ⟩∎
-    f m (P.suc n)                                                     ∎
+    subst P (_↔_.left-inverse-of ℤ↔ℤ [ (m , P.suc n) ]) $
+      elim′ P (λ n → f n 0) (λ n → f 0 (P.suc n)) (Data.+ m +-[1+ n ])  ≡⟨ lemma m n ⟩∎
+
+    f m (P.suc n)                                                       ∎
+    where
+    lemma :
+      ∀ m n →
+      subst P (_↔_.left-inverse-of ℤ↔ℤ [ (m , P.suc n) ])
+        (elim′ P (λ n → f n 0) (λ n → f 0 (P.suc n))
+           (Data.+ m +-[1+ n ])) ≡
+      f m (P.suc n)
+    lemma zero n =
+      subst P (refl _) (f 0 (P.suc n))  ≡⟨ subst-refl _ _ ⟩∎
+      f 0 (P.suc n)                     ∎
+    lemma (P.suc m) zero =
+      subst P []≡[suc,suc] (f m 0)  ≡⟨ hyp _ _ ⟩∎
+      f (P.suc m) 1                 ∎
+    lemma (P.suc m) (P.suc n) =
+      subst P
+        (trans (_↔_.left-inverse-of ℤ↔ℤ [ (m , P.suc n) ])
+           []≡[suc,suc])
+        (elim′ P (λ n → f n 0) (λ n → f 0 (P.suc n))
+           (Data.+ m +-[1+ n ]))                              ≡⟨ sym $ subst-subst _ _ _ _ ⟩
+
+      subst P []≡[suc,suc]
+        (subst P (_↔_.left-inverse-of ℤ↔ℤ [ (m , P.suc n) ])
+           (elim′ P (λ n → f n 0) (λ n → f 0 (P.suc n))
+              (Data.+ m +-[1+ n ])))                          ≡⟨ cong (subst P ([]-respects-relation _)) $
+                                                                 lemma m n ⟩
+
+      subst P []≡[suc,suc] (f m (P.suc n))                    ≡⟨ hyp _ _ ⟩∎
+
+      f (P.suc m) (P.suc (P.suc n))                           ∎
 
 private
 
@@ -541,19 +599,16 @@ i - j = i + - j
 -- A lemma used in the implementation of +≡+.
 
 ++-[1+]≡++-[1+] : + m + -[ P.suc n ] ≡ _↔_.from ℤ↔ℤ (Data.+ m +-[1+ n ])
-++-[1+]≡++-[1+] {m = m} {n = n} with m Nat.≤⊎> n
-... | inj₁ m≤n = []-respects-relation (
-  m ⊕ 0 ⊕ P.suc (n ∸ m)  ≡⟨ cong (_⊕ P.suc (_ ∸ m)) $ Nat.+-right-identity ⟩
-  m ⊕ P.suc (n ∸ m)      ≡⟨ Nat.+-comm m ⟩
-  P.suc (n ∸ m ⊕ m)      ≡⟨ cong P.suc $ Nat.∸+≡ m≤n ⟩
-  P.suc n                ≡⟨ cong P.suc $ sym Nat.+-right-identity ⟩∎
-  P.suc (n ⊕ 0)          ∎)
-... | inj₂ n<m = []-respects-relation (
-  m ⊕ 0 ⊕ 0                ≡⟨ Nat.+-right-identity ⟩
-  m ⊕ 0                    ≡⟨ Nat.+-right-identity ⟩
-  m                        ≡⟨ sym $ Nat.∸+≡ n<m ⟩
-  m ∸ P.suc n ⊕ P.suc n    ≡⟨ Nat.+-comm (m ∸ P.suc n) ⟩∎
-  P.suc n ⊕ (m ∸ P.suc n)  ∎)
+++-[1+]≡++-[1+] {m = zero}    {n = n}       = refl _
+++-[1+]≡++-[1+] {m = P.suc m} {n = zero}    =
+  [ (P.suc (m ⊕ 0) , 1) ]  ≡⟨ cong ([_] ∘ (_, 1) ∘ P.suc) Nat.+-right-identity ⟩
+  [ (P.suc m , 1) ]        ≡⟨ sym []≡[suc,suc] ⟩∎
+  [ (m , 0) ]              ∎
+++-[1+]≡++-[1+] {m = P.suc m} {n = P.suc n} =
+  + P.suc m + -[ P.suc (P.suc n) ]               ≡⟨ sym []≡[suc,suc] ⟩
+  + m + -[ P.suc n ]                             ≡⟨ ++-[1+]≡++-[1+] ⟩
+  _↔_.from ℤ↔ℤ (Data.+ m +-[1+ n ])              ≡⟨⟩
+  _↔_.from ℤ↔ℤ (Data.+ P.suc m +-[1+ P.suc n ])  ∎
 
 -- The implementation of addition given here matches the one in
 -- Integer.

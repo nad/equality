@@ -53,13 +53,28 @@ infix 8 -_
 - -[1+ n ] = + suc n
 
 -- A helper function used to implement addition.
---
--- Note that this definition is not optimised.
 
 +_+-[1+_] : ℕ → ℕ → ℤ
-+ m +-[1+ n ] = case m Nat.≤⊎> n of λ where
-  (inj₁ _) → -[1+ n ∸ m ]
-  (inj₂ _) → + (m ∸ suc n)
++ m +-[1+ n ] =
+  if m Nat.<= n then -[1+ n ∸ m ] else + (m ∸ suc n)
+
+private
+
+  -- An alternative implementation of +_+-[1+_].
+
+  +_+-[1+_]′ : ℕ → ℕ → ℤ
+  + zero  +-[1+ n     ]′ = -[1+ n ]
+  + suc m +-[1+ zero  ]′ = + m
+  + suc m +-[1+ suc n ]′ = + m +-[1+ n ]′
+
+  -- The alternative implementation of +_+-[1+_] is not optimised (it
+  -- does not use builtin functions), but it computes in the same way
+  -- as +_+-[1+_].
+
+  ++-[1+]≡++-[1+]′ : ∀ m n → + m +-[1+ n ] ≡ + m +-[1+ n ]′
+  ++-[1+]≡++-[1+]′ zero    n       = refl _
+  ++-[1+]≡++-[1+]′ (suc m) zero    = refl _
+  ++-[1+]≡++-[1+]′ (suc m) (suc n) = ++-[1+]≡++-[1+]′ m n
 
 -- Addition.
 
@@ -134,19 +149,3 @@ _≟_ : Decidable-equality ℤ
 +-comm (+ m)    {j = -[1+ _ ]} = refl _
 +-comm -[1+ m ] {j = + _}      = refl _
 +-comm -[1+ m ] {j = -[1+ _ ]} = cong (-[1+_] ∘ suc) $ Nat.+-comm m
-
-private
-
-  -- A lemma.
-
-  +--helper : ∀ n → + suc n +-[1+ n ] ≡ + 0
-  +--helper n with suc n Nat.≤⊎> n
-  … | inj₁ n<n = ⊥-elim (Nat.+≮ 0 n<n)
-  … | inj₂ _   = cong (+_) $ Nat.∸≡0 n
-
--- The sum of i and - i is zero.
-
-+- : ∀ i → i + - i ≡ + 0
-+- (+ zero)  = refl _
-+- (+ suc n) = +--helper n
-+- -[1+ n ]  = +--helper n

@@ -254,62 +254,38 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
       (p ⁻¹ ∘ (p ⁻¹) ^+ n) ∘ (p ⁻¹ ⁻¹ ∘ q)  ≡⟨ lemma₁ n ⟩∎
       (p ⁻¹) ^+ n ∘ q                       ∎
 
-    lemma₃ :
-      ∀ m n → m Nat.≤→ n →
-      p ^+ m ∘ (p ⁻¹) ^+ suc n ≡ (p ⁻¹) ^+ suc (n ∸ m)
-    lemma₃ {p = p} zero n _ =
-      id ∘ (p ⁻¹) ^+ (1 + n)  ≡⟨ left-identity _ ⟩∎
-      (p ⁻¹) ^+ (1 + n)       ∎
-    lemma₃ {p = p} (suc m) (suc n) m≤n =
+    lemma₃ : ∀ m n → p ^+ m ∘ (p ⁻¹) ^+ suc n ≡ p ^ Int.+ m +-[1+ n ]
+    lemma₃ {p = p} zero n =
+      id ∘ (p ⁻¹) ^+ suc n  ≡⟨ left-identity _ ⟩∎
+      (p ⁻¹) ^+ suc n       ∎
+    lemma₃ {p = p} (suc m) zero =
+      (p ∘ p ^+ m) ∘ p ⁻¹ ∘ id  ≡⟨ lemma₁ m ⟩
+      p ^+ m ∘ id               ≡⟨ right-identity _ ⟩∎
+      p ^+ m                    ∎
+    lemma₃ {p = p} (suc m) (suc n) =
       (p ∘ p ^+ m) ∘ (p ⁻¹ ∘ (p ⁻¹) ^+ suc n)  ≡⟨ lemma₁ m ⟩
-      p ^+ m ∘ (p ⁻¹) ^+ suc n                 ≡⟨ lemma₃ m n m≤n ⟩∎
-      (p ⁻¹) ^+ suc (n ∸ m)                    ∎
+      p ^+ m ∘ (p ⁻¹) ^+ suc n                 ≡⟨ lemma₃ m n ⟩∎
+      p ^ Int.+ m +-[1+ n ]                    ∎
 
-    lemma₄ :
-      ∀ m n → suc n Nat.≤→ m →
-      p ^+ m ∘ (p ⁻¹) ^+ suc n ≡ p ^+ (m ∸ suc n)
-    lemma₄ {p = p} (suc m) zero _ =
-      (p ∘ p ^+ m) ∘ (p ⁻¹ ∘ id)  ≡⟨ lemma₁ m ⟩
-      p ^+ m ∘ id                 ≡⟨ right-identity _ ⟩∎
-      p ^+ m                      ∎
-    lemma₄ {p = p} (suc m) (suc n) n<m =
-      (p ∘ p ^+ m) ∘ (p ⁻¹ ∘ (p ⁻¹) ^+ suc n)  ≡⟨ lemma₁ m ⟩
-      p ^+ m ∘ (p ⁻¹) ^+ suc n                 ≡⟨ lemma₄ m n n<m ⟩∎
-      p ^+ (m ∸ suc n)                         ∎
-
-    lemma₅ :
-      ∀ m n → n Nat.≤→ m →
-      (p ⁻¹) ^+ suc m ∘ p ^+ n ≡ (p ⁻¹) ^+ suc (m ∸ n)
-    lemma₅ {p = p} m zero _ =
-      (p ⁻¹) ^+ (1 + m) ∘ id  ≡⟨ right-identity _ ⟩∎
-      (p ⁻¹) ^+ (1 + m)       ∎
-    lemma₅ {p = p} (suc m) (suc n) n≤m =
-      (p ⁻¹ ∘ (p ⁻¹) ^+ suc m) ∘ p ∘ p ^+ n  ≡⟨ lemma₂ (suc m) ⟩
-      (p ⁻¹) ^+ suc m ∘ p ^+ n               ≡⟨ lemma₅ m n n≤m ⟩∎
-      (p ⁻¹) ^+ suc (m ∸ n)                  ∎
-
-    lemma₆ :
-      ∀ m n → suc m Nat.≤→ n →
-      (p ⁻¹) ^+ suc m ∘ p ^+ n ≡ p ^+ (n ∸ suc m)
-    lemma₆ {p = p} zero (suc n) _ =
-      (p ⁻¹) ^+ 1 ∘ p ∘ p ^+ n  ≡⟨ lemma₂ 0 ⟩
+    lemma₄ : ∀ m n → (p ⁻¹) ^+ suc m ∘ p ^+ n ≡ p ^ Int.+ n +-[1+ m ]
+    lemma₄ {p = p} m zero =
+      (p ⁻¹) ^+ suc m ∘ id  ≡⟨ right-identity _ ⟩∎
+      (p ⁻¹) ^+ suc m       ∎
+    lemma₄ {p = p} zero (suc n) =
+      (p ⁻¹ ∘ id) ∘ p ∘ p ^+ n  ≡⟨ lemma₂ zero ⟩
       id ∘ p ^+ n               ≡⟨ left-identity _ ⟩∎
       p ^+ n                    ∎
-    lemma₆ {p = p} (suc m) (suc n) m<n =
-      (p ⁻¹ ∘ (p ⁻¹) ^+ suc m) ∘ p ∘ p ^+ n  ≡⟨ lemma₂ (suc m) ⟩
-      (p ⁻¹) ^+ suc m ∘ p ^+ n               ≡⟨ lemma₆ m n m<n ⟩∎
-      p ^+ (n ∸ suc m)                       ∎
+    lemma₄ {p = p} (suc m) (suc n) =
+      (p ⁻¹ ∘ (p ⁻¹) ^+ suc m) ∘ (p ∘ p ^+ n)  ≡⟨ lemma₂ (suc m) ⟩
+      (p ⁻¹) ^+ suc m ∘ p ^+ n                 ≡⟨ lemma₄ m n ⟩∎
+      p ^ Int.+ n +-[1+ m ]                    ∎
 
   -- _^_ is homomorphic with respect to _∘_/Int._+_.
 
   ^∘^ : ∀ i → p ^ i ∘ p ^ j ≡ p ^ (i Int.+ j)
-  ^∘^ {j = + _}      (+ m) = ^+∘^+ m
-  ^∘^ {j = -[1+ n ]} (+ m) with m Nat.≤⊎> n
-  … | inj₁ m≤n = lemma₃ m n (Nat.≤→≤→ _ _ m≤n)
-  … | inj₂ n<m = lemma₄ m n (Nat.≤→≤→ _ _ n<m)
-  ^∘^ {j = + n} -[1+ m ] with n Nat.≤⊎> m
-  … | inj₁ n≤m = lemma₅ m n (Nat.≤→≤→ _ _ n≤m)
-  … | inj₂ m<n = lemma₆ m n (Nat.≤→≤→ _ _ m<n)
+  ^∘^ {j = + _}      (+ m)            = ^+∘^+ m
+  ^∘^ {j = -[1+ n ]} (+ m)            = lemma₃ m n
+  ^∘^ {j = + n}      -[1+ m ]         = lemma₄ m n
   ^∘^ {p = p} {j = -[1+ n ]} -[1+ m ] =
     (p ⁻¹) ^+ suc m ∘ (p ⁻¹) ^+ suc n  ≡⟨ ^+∘^+ (suc m) ⟩
     (p ⁻¹) ^+ (suc m + suc n)          ≡⟨ cong ((p ⁻¹) ^+_) $ cong suc $ sym $ Nat.suc+≡+suc m ⟩∎

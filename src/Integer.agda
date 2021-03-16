@@ -15,6 +15,7 @@ import Agda.Builtin.Int
 
 open import Prelude hiding (_^_) renaming (_+_ to _⊕_)
 
+open import Bijection eq using (_↔_)
 open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq hiding (id; _∘_)
 open import Group eq as G
@@ -29,6 +30,25 @@ open import Integer.Basics eq public
 private
   variable
     i : ℤ
+
+------------------------------------------------------------------------
+-- A lemma
+
+private
+
+  -- A lemma used to prove +-.
+
+  +--helper : ∀ n → + suc n +-[1+ n ] ≡ + 0
+  +--helper n with suc n Nat.<= n | T[<=]↔≤ {m = suc n} {n = n}
+  … | false | _  = cong (+_) $ Nat.∸≡0 n
+  … | true  | eq = ⊥-elim $ Nat.<-irreflexive (_↔_.to eq _)
+
+-- The sum of i and - i is zero.
+
++- : ∀ i → i + - i ≡ + 0
++- (+ zero)  = refl _
++- (+ suc n) = +--helper n
++- -[1+ n ]  = +--helper n
 
 ------------------------------------------------------------------------
 -- An equivalence
