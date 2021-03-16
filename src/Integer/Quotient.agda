@@ -17,7 +17,7 @@ open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence-relation equality-with-J
-open import Function-universe equality-with-J hiding (_∘_)
+open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 import Integer equality-with-J as Data
@@ -703,3 +703,80 @@ successor = Eq.↔→≃
   pred
   (elim _ λ m _ → []-respects-relation (cong P.suc (Nat.+-comm m)))
   (elim _ λ m _ → []-respects-relation (cong P.suc (Nat.+-comm m)))
+
+------------------------------------------------------------------------
+-- Positive, negative
+
+-- The property of being positive.
+
+Positive : ℤ → Type
+Positive = Data.Positive ∘ _↔_.to ℤ↔ℤ
+
+-- Positive is propositional.
+
+Positive-propositional : ∀ i → Is-proposition (Positive i)
+Positive-propositional _ = Data.Positive-propositional
+
+-- The property of being negative.
+
+Negative : ℤ → Type
+Negative = Data.Negative ∘ _↔_.to ℤ↔ℤ
+
+-- Negative is propositional.
+
+Negative-propositional : ∀ i → Is-proposition (Negative i)
+Negative-propositional _ = Data.Negative-propositional
+
+-- No integer is both positive and negative.
+
+¬+- : ∀ i → Positive i → Negative i → ⊥₀
+¬+- _ = Data.¬+-
+
+-- No integer is both positive and equal to zero.
+
+¬+0 : Positive i → i ≡ + 0 → ⊥₀
+¬+0 pos ≡0 = Data.¬+0 pos (_↔_.from-to ℤ↔ℤ (sym ≡0))
+
+-- No integer is both negative and equal to zero.
+
+¬-0 : Negative i → i ≡ + 0 → ⊥₀
+¬-0 neg ≡0 = Data.¬-0 neg (_↔_.from-to ℤ↔ℤ (sym ≡0))
+
+-- One can decide if an integer is negative, zero or positive.
+
+-⊎0⊎+ : ∀ i → Negative i ⊎ i ≡ + 0 ⊎ Positive i
+-⊎0⊎+ i =
+  ⊎-map id (⊎-map (sym ∘ _↔_.to-from ℤ↔ℤ) id)
+    (Data.-⊎0⊎+ $ _↔_.to ℤ↔ℤ i)
+
+-- If i and j are positive, then i + j is positive.
+
+>0→>0→+>0 : ∀ i j → Positive i → Positive j → Positive (i + j)
+>0→>0→+>0 i j i+ j+ =                                                   $⟨ Data.>0→>0→+>0 (_↔_.to ℤ↔ℤ i) (_↔_.to ℤ↔ℤ j) i+ j+ ⟩
+
+  Data.Positive (_↔_.to ℤ↔ℤ i Data.+ _↔_.to ℤ↔ℤ j)                      ↝⟨ subst Data.Positive $
+                                                                           sym $ _↔_.from-to ℤ↔ℤ $ sym $ +≡+ (_↔_.to ℤ↔ℤ i) ⟩
+  Data.Positive (_↔_.to ℤ↔ℤ (_↔_.from ℤ↔ℤ (_↔_.to ℤ↔ℤ i) +
+                             _↔_.from ℤ↔ℤ (_↔_.to ℤ↔ℤ j)))              ↔⟨⟩
+
+  Positive (_↔_.from ℤ↔ℤ (_↔_.to ℤ↔ℤ i) + _↔_.from ℤ↔ℤ (_↔_.to ℤ↔ℤ j))  ↝⟨ subst Positive $
+                                                                           cong₂ _+_
+                                                                             (_↔_.left-inverse-of ℤ↔ℤ i)
+                                                                             (_↔_.left-inverse-of ℤ↔ℤ j) ⟩□
+  Positive (i + j)                                                      □
+
+-- If i and j are negative, then i + j is negative.
+
+<0→<0→+<0 : ∀ i j → Negative i → Negative j → Negative (i + j)
+<0→<0→+<0 i j i- j- =                                                   $⟨ Data.<0→<0→+<0 (_↔_.to ℤ↔ℤ i) (_↔_.to ℤ↔ℤ j) i- j- ⟩
+
+  Data.Negative (_↔_.to ℤ↔ℤ i Data.+ _↔_.to ℤ↔ℤ j)                      ↝⟨ subst Data.Negative $
+                                                                           sym $ _↔_.from-to ℤ↔ℤ $ sym $ +≡+ (_↔_.to ℤ↔ℤ i) ⟩
+  Data.Negative (_↔_.to ℤ↔ℤ (_↔_.from ℤ↔ℤ (_↔_.to ℤ↔ℤ i) +
+                             _↔_.from ℤ↔ℤ (_↔_.to ℤ↔ℤ j)))              ↔⟨⟩
+
+  Negative (_↔_.from ℤ↔ℤ (_↔_.to ℤ↔ℤ i) + _↔_.from ℤ↔ℤ (_↔_.to ℤ↔ℤ j))  ↝⟨ subst Negative $
+                                                                           cong₂ _+_
+                                                                             (_↔_.left-inverse-of ℤ↔ℤ i)
+                                                                             (_↔_.left-inverse-of ℤ↔ℤ j) ⟩□
+  Negative (i + j)                                                      □
