@@ -4,7 +4,7 @@
 
 {-# OPTIONS --without-K --safe #-}
 
--- Largely but not entirely following the HoTT book.
+-- Partly following the HoTT book.
 
 open import Equality
 
@@ -33,7 +33,8 @@ private
     a b ℓ : Level
     A B   : Type a
     P Q   : Pointed-type a
-    x     : A
+    x y   : A
+    p q   : x ≡ y
     k     : Kind
 
 -- Based maps (generalised to several kinds of underlying
@@ -173,6 +174,57 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
 Ω[_]-cong : ∀ n → P ≃ᴮ Q → Ω[ n ] P ≃ᴮ Ω[ n ] Q
 Ω[ zero  ]-cong A≃B = A≃B
 Ω[ suc n ]-cong A≃B = Ω-cong (Ω[ n ]-cong A≃B)
+
+-- A lemma relating Ω-cong and trans.
+
+Ω-cong-trans :
+  (P≃Q : P ≃ᴮ Q) →
+  _≃_.to (proj₁ (Ω-cong P≃Q)) (trans p q) ≡
+  trans (_≃_.to (proj₁ (Ω-cong P≃Q)) p)
+        (_≃_.to (proj₁ (Ω-cong P≃Q)) q)
+Ω-cong-trans {p = p} {q = q} (A≃B , to≡) =
+  ≡⇒→ (cong₂ _≡_ to≡ to≡) (cong (_≃_.to A≃B) (trans p q))            ≡⟨ cong (≡⇒→ (cong₂ _≡_ to≡ to≡)) $
+                                                                        cong-trans _ _ _ ⟩
+  ≡⇒→ (cong₂ _≡_ to≡ to≡)
+    (trans (cong (_≃_.to A≃B) p) (cong (_≃_.to A≃B) q))              ≡⟨ lemma _ ⟩
+
+  trans
+    (trans (sym to≡)
+       (trans (cong (_≃_.to A≃B) p) (cong (_≃_.to A≃B) q)))
+    to≡                                                              ≡⟨ trans (cong (flip trans _) $ sym $ trans-assoc _ _ _) $
+                                                                        trans-assoc _ _ _ ⟩
+  trans
+    (trans (sym to≡) (cong (_≃_.to A≃B) p))
+    (trans (cong (_≃_.to A≃B) q) to≡)                                ≡⟨ cong (trans _) $ sym $
+                                                                        trans--[trans-sym] _ _ ⟩
+  trans (trans (sym to≡) (cong (_≃_.to A≃B) p))
+    (trans to≡ (trans (sym to≡) (trans (cong (_≃_.to A≃B) q) to≡)))  ≡⟨ trans (cong (trans _) $ cong (trans _) $ sym $ trans-assoc _ _ _) $
+                                                                        sym $ trans-assoc _ _ _ ⟩
+  trans
+    (trans (trans (sym to≡) (cong (_≃_.to A≃B) p)) to≡)
+    (trans (trans (sym to≡) (cong (_≃_.to A≃B) q)) to≡)              ≡⟨ sym $ cong₂ trans (lemma _) (lemma _) ⟩∎
+
+  trans
+    (≡⇒→ (cong₂ _≡_ to≡ to≡) (cong (_≃_.to A≃B) p))
+    (≡⇒→ (cong₂ _≡_ to≡ to≡) (cong (_≃_.to A≃B) q))                  ∎
+  where
+  lemma = λ p →
+    ≡⇒→ (cong₂ _≡_ to≡ to≡) p                          ≡⟨⟩
+    ≡⇒→ (trans (cong (_≡ _) to≡) (cong (_ ≡_) to≡)) p  ≡⟨ cong (_$ p) $ ≡⇒↝-trans equivalence ⟩
+    ≡⇒→ (cong (_ ≡_) to≡) (≡⇒→ (cong (_≡ _) to≡) p)    ≡⟨ sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
+    subst (_ ≡_) to≡ (≡⇒→ (cong (_≡ _) to≡) p)         ≡⟨ sym trans-subst ⟩
+    trans (≡⇒→ (cong (_≡ _) to≡) p) to≡                ≡⟨ cong (flip trans _) $ sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
+    trans (subst (_≡ _) to≡ p) to≡                     ≡⟨ cong (flip trans _) subst-trans-sym ⟩∎
+    trans (trans (sym to≡) p) to≡                      ∎
+
+-- A lemma relating Ω[_]-cong and trans.
+
+Ω[1+_]-cong-trans :
+  ∀ n {p q} (P≃Q : P ≃ᴮ Q) →
+  _≃_.to (proj₁ (Ω[ 1 + n ]-cong P≃Q)) (trans p q) ≡
+  trans (_≃_.to (proj₁ (Ω[ 1 + n ]-cong P≃Q)) p)
+        (_≃_.to (proj₁ (Ω[ 1 + n ]-cong P≃Q)) q)
+Ω[1+ n ]-cong-trans P≃Q = Ω-cong-trans (Ω[ n ]-cong P≃Q)
 
 -- A has h-level 1 + n iff the iterated loop space Ω[ n ] (A , x) is
 -- contractible for every x : A.
