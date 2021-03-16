@@ -216,7 +216,7 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
     p ∘ (p ^+ m ∘ p ^+ n)  ≡⟨ cong (_ ∘_) $ ^+∘^+ m ⟩∎
     p ∘ p ^+ (m + n)       ∎
 
-  -- A rearrangement lemma for _^+_.
+  -- Some rearrangement lemmas for _^+_.
 
   ∘^+≡^+∘ : ∀ n → p ∘ p ^+ n ≡ p ^+ n ∘ p
   ∘^+≡^+∘ {p = p} zero =
@@ -227,6 +227,13 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
     p ∘ (p ∘ p ^+ n)  ≡⟨ cong (p ∘_) $ ∘^+≡^+∘ n ⟩
     p ∘ (p ^+ n ∘ p)  ≡⟨ assoc _ _ _ ⟩∎
     (p ∘ p ^+ n) ∘ p  ∎
+
+  ^+∘^+≡^+∘^+ : ∀ m n → p ^+ m ∘ p ^+ n ≡ p ^+ n ∘ p ^+ m
+  ^+∘^+≡^+∘^+ {p = p} m n =
+    p ^+ m ∘ p ^+ n  ≡⟨ ^+∘^+ m ⟩
+    p ^+ (m + n)     ≡⟨ cong (p ^+_) $ Nat.+-comm m ⟩
+    p ^+ (n + m)     ≡⟨ sym $ ^+∘^+ n ⟩∎
+    p ^+ n ∘ p ^+ m  ∎
 
   private
 
