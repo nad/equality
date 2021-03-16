@@ -18,6 +18,17 @@ open import Prelude
 open Derived-definitions-and-properties eq
 
 ------------------------------------------------------------------------
+-- A helper function
+
+private
+
+  -- Converts builtin booleans to Bool.
+
+  Bool→Bool : Agda.Builtin.Bool.Bool → Bool
+  Bool→Bool Agda.Builtin.Bool.true  = true
+  Bool→Bool Agda.Builtin.Bool.false = false
+
+------------------------------------------------------------------------
 -- Equality of natural numbers is decidable
 
 -- Inhabited only for zero.
@@ -59,9 +70,7 @@ suc m ≟ zero  = no (0≢+ ∘ sym)
 infix 4 _==_
 
 _==_ : ℕ → ℕ → Bool
-m == n = case m Agda.Builtin.Nat.== n of λ where
-  Agda.Builtin.Bool.true  → true
-  Agda.Builtin.Bool.false → false
+m == n = Bool→Bool (m Agda.Builtin.Nat.== n)
 
 ------------------------------------------------------------------------
 -- Inequality
@@ -427,9 +436,7 @@ suc m ≤? suc n = ⊎-map suc≤suc (λ m≰n → m≰n ∘ suc≤suc⁻¹) (m 
 infix 4 _<=_
 
 _<=_ : ℕ → ℕ → Bool
-m <= n = case m Agda.Builtin.Nat.< suc n of λ where
-  Agda.Builtin.Bool.true  → true
-  Agda.Builtin.Bool.false → false
+m <= n = Bool→Bool (m Agda.Builtin.Nat.< suc n)
 
 -- If m is not less than or equal to n, then n is strictly less
 -- than m.
