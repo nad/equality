@@ -26,6 +26,7 @@ import Equality.Path.Isomorphisms P.equality-with-paths as PI
 open import Equality.Tactic equality-with-J hiding (module Eq)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import Groupoid equality-with-J
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc
@@ -321,12 +322,6 @@ base≡base≃ℤ =
     to : base ≡ x → Cover x
     to = flip (subst Cover) (+ 0)
 
-    loops : ℤ → base ≡ base
-    loops (+ zero)     = refl _
-    loops (+ suc n)    = trans (loops (+ n)) loop
-    loops -[1+ zero  ] = sym loop
-    loops -[1+ suc n ] = trans (loops -[1+ n ]) (sym loop)
-
     ≡⇒≃-cong-Cover-loop : Univ.≡⇒≃ (cong Cover loop) ≡ Int.successor
     ≡⇒≃-cong-Cover-loop =
       Univ.≡⇒≃ (cong Cover loop)              ≡⟨ cong Univ.≡⇒≃ rec-loop ⟩
@@ -334,23 +329,28 @@ base≡base≃ℤ =
       Int.successor                           ∎
 
     subst-Cover-loop :
-      ∀ i → subst Cover loop i ≡ _≃_.to Int.successor i
+      ∀ i → subst Cover loop i ≡ Int.suc i
     subst-Cover-loop i =
       subst Cover loop i            ≡⟨ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
       Univ.≡⇒→ (cong Cover loop) i  ≡⟨ cong (λ eq → _≃_.to eq _) ≡⇒≃-cong-Cover-loop ⟩∎
       _≃_.to Int.successor i        ∎
 
     subst-Cover-sym-loop :
-      ∀ i → subst Cover (sym loop) i ≡ _≃_.from Int.successor i
+      ∀ i → subst Cover (sym loop) i ≡ Int.pred i
     subst-Cover-sym-loop i =
       subst Cover (sym loop) i                 ≡⟨ subst-in-terms-of-inverse∘≡⇒↝ equivalence _ _ _ ⟩
       _≃_.from (Univ.≡⇒≃ (cong Cover loop)) i  ≡⟨ cong (λ eq → _≃_.from eq _) ≡⇒≃-cong-Cover-loop ⟩∎
       _≃_.from Int.successor i                 ∎
 
+    module G = Groupoid (groupoid 𝕊¹)
+
+    loops : ℤ → base ≡ base
+    loops = loop G.^_
+
     to-loops : ∀ i → to (loops i) ≡ i
     to-loops (+ zero) =
       subst Cover (refl _) (+ 0)  ≡⟨ subst-refl _ _ ⟩∎
-      + 0                         ∎
+      + zero                      ∎
     to-loops (+ suc n) =
       subst Cover (trans (loops (+ n)) loop) (+ 0)        ≡⟨ sym $ subst-subst _ _ _ _ ⟩
       subst Cover loop (subst Cover (loops (+ n)) (+ 0))  ≡⟨⟩
@@ -358,8 +358,9 @@ base≡base≃ℤ =
       subst Cover loop (+ n)                              ≡⟨ subst-Cover-loop _ ⟩∎
       + suc n                                             ∎
     to-loops -[1+ zero ] =
-      subst Cover (sym loop) (+ 0)  ≡⟨ subst-Cover-sym-loop _ ⟩∎
-      -[1+ 0 ]                      ∎
+      subst Cover (trans (refl _) (sym loop)) (+ 0)  ≡⟨ cong (flip (subst Cover) _) $ trans-reflˡ _ ⟩
+      subst Cover (sym loop) (+ 0)                   ≡⟨ subst-Cover-sym-loop _ ⟩∎
+      -[1+ zero ]                                    ∎
     to-loops -[1+ suc n ] =
       subst Cover (trans (loops -[1+ n ]) (sym loop)) (+ 0)        ≡⟨ sym $ subst-subst _ _ _ _ ⟩
       subst Cover (sym loop) (subst Cover (loops -[1+ n ]) (+ 0))  ≡⟨⟩
@@ -368,17 +369,14 @@ base≡base≃ℤ =
       -[1+ suc n ]                                                 ∎
 
     loops-pred-loop :
-      ∀ i → trans (loops (_≃_.from Int.successor i)) loop ≡ loops i
-    loops-pred-loop (+ suc _) = refl _
-    loops-pred-loop (+ zero)  =
-      trans (sym loop) loop  ≡⟨ trans-symˡ _ ⟩∎
-      refl _                 ∎
-    loops-pred-loop -[1+ zero ] =
-      trans (trans (sym loop) (sym loop)) loop  ≡⟨ trans-[trans-sym]- _ _ ⟩∎
-      sym loop                                  ∎
-    loops-pred-loop -[1+ suc n ] =
-      trans (trans (trans (loops -[1+ n ]) (sym loop)) (sym loop)) loop  ≡⟨ trans-[trans-sym]- _ _ ⟩∎
-      trans (loops -[1+ n ]) (sym loop)                                  ∎
+      ∀ i → trans (loops (Int.pred i)) loop ≡ loops i
+    loops-pred-loop i =
+      trans (loops (Int.pred i)) loop                           ≡⟨ cong (flip trans _ ∘ loops) $ Int.pred≡-1+ i ⟩
+      trans (loops (Int.-[ 1 ] Int.+ i)) loop                   ≡⟨ cong (flip trans _) $ sym $ G.^∘^ {j = i} Int.-[ 1 ] ⟩
+      trans (trans (loops i) (loops (Int.-[ 1 ]))) loop         ≡⟨⟩
+      trans (trans (loops i) (trans (refl _) (sym loop))) loop  ≡⟨ cong (flip trans _) $ cong (trans _) $ trans-reflˡ _ ⟩
+      trans (trans (loops i) (sym loop)) loop                   ≡⟨ trans-[trans-sym]- _ _ ⟩∎
+      loops i                                                   ∎
 
     from : ∀ x → Cover x → base ≡ x
     from = elim _
@@ -387,7 +385,7 @@ base≡base≃ℤ =
        subst (λ x → Cover x → base ≡ x) loop loops i            ≡⟨ subst-→ ⟩
        subst (base ≡_) loop (loops (subst Cover (sym loop) i))  ≡⟨ sym trans-subst ⟩
        trans (loops (subst Cover (sym loop) i)) loop            ≡⟨ cong (flip trans _ ∘ loops) $ subst-Cover-sym-loop _ ⟩
-       trans (loops (_≃_.from Int.successor i)) loop            ≡⟨ loops-pred-loop i ⟩∎
+       trans (loops (Int.pred i)) loop                          ≡⟨ loops-pred-loop i ⟩∎
        loops i                                                  ∎)
 
     from-to : (eq : base ≡ x) → from x (to eq) ≡ eq
