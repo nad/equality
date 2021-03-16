@@ -1027,6 +1027,23 @@ _×-cong_ {bijection}           = ×-cong-bij
 _×-cong_ {equivalence}         = ×-cong-≃
 _×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
 
+-- The function to-implication is homomorphic with respect to
+-- _×-cong_/Σ-map.
+
+to-implication-×-cong :
+  ∀ k {a b c d} {A : Type a} {B : Type b} {C : Type c} {D : Type d}
+    {A↝B : A ↝[ k ] B} {C↝D : C ↝[ k ] D} →
+  to-implication (A↝B ×-cong C↝D) ≡
+  Σ-map (to-implication A↝B) (to-implication C↝D)
+to-implication-×-cong implication         = refl _
+to-implication-×-cong logical-equivalence = refl _
+to-implication-×-cong injection           = refl _
+to-implication-×-cong embedding           = refl _
+to-implication-×-cong surjection          = refl _
+to-implication-×-cong bijection           = refl _
+to-implication-×-cong equivalence         = refl _
+to-implication-×-cong equivalenceᴱ        = refl _
+
 -- _×_ is commutative.
 
 ×-comm : ∀ {a b} {A : Type a} {B : Type b} → A × B ↔ B × A
