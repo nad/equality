@@ -23,6 +23,9 @@ open import H-level eq
 open import Surjection eq using (_↠_)
 open import Univalence-axiom eq
 
+------------------------------------------------------------------------
+-- The definition of pointed types
+
 -- Pointed types.
 
 Pointed-type : ∀ ℓ → Type (lsuc ℓ)
@@ -36,6 +39,9 @@ private
     x y   : A
     p q   : x ≡ y
     k     : Kind
+
+------------------------------------------------------------------------
+-- Based maps
 
 -- Based maps (generalised to several kinds of underlying
 -- "functions").
@@ -67,33 +73,6 @@ _≃ᴮ_ = _↝[ equivalence ]ᴮ_
                                                 subst-id-in-terms-of-≡⇒↝ equivalence) ⟩
   (∃ λ (A≡B : A ≡ B) → subst id A≡B x ≡ y)  ↔⟨ B.Σ-≡,≡↔≡ ⟩□
   (A , x) ≡ (B , y)                         □
-
--- The loop space of a pointed type.
-
-Ω : Pointed-type ℓ → Pointed-type ℓ
-Ω (A , x) = (x ≡ x) , refl x
-
--- Iterated loop spaces.
---
--- The HoTT book uses Ω[ n ] ∘ Ω rather than Ω ∘ Ω[ n ]. I prefer
--- the following definition, because with the other definition the
--- type of Equality.Groupoid.Ω[2+n]-commutative would not be
--- well-formed. (See also Ω∘Ω[]≡Ω[]∘Ω.)
-
-Ω[_] : ℕ → Pointed-type ℓ → Pointed-type ℓ
-Ω[ zero  ] = id
-Ω[ suc n ] = Ω ∘ Ω[ n ]
-
--- A rearrangement lemma for Ω and Ω[_].
-
-Ω∘Ω[]≡Ω[]∘Ω : ∀ n → Ω (Ω[ n ] P) ≡ Ω[ n ] (Ω P)
-Ω∘Ω[]≡Ω[]∘Ω {P = P} zero =
-  Ω P  ∎
-Ω∘Ω[]≡Ω[]∘Ω {P = P} (suc n) =
-  Ω (Ω[ suc n ] P)  ≡⟨⟩
-  Ω (Ω (Ω[ n ] P))  ≡⟨ cong Ω $ Ω∘Ω[]≡Ω[]∘Ω n ⟩
-  Ω (Ω[ n ] (Ω P))  ≡⟨⟩
-  Ω[ suc n ] (Ω P)  ∎
 
 -- There is a split surjection from based maps from
 -- (Maybe A , nothing) to functions.
@@ -149,6 +128,36 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
   (Bool , true) →ᴮ (A , x)  ↝⟨ Maybe→ᴮ↔→ ext ⟩
   (⊤ → A)                   ↔⟨ Π-left-identity ⟩□
   A                         □
+
+------------------------------------------------------------------------
+-- Loop spaces
+
+-- The loop space of a pointed type.
+
+Ω : Pointed-type ℓ → Pointed-type ℓ
+Ω (A , x) = (x ≡ x) , refl x
+
+-- Iterated loop spaces.
+--
+-- The HoTT book uses Ω[ n ] ∘ Ω rather than Ω ∘ Ω[ n ]. I prefer
+-- the following definition, because with the other definition the
+-- type of Equality.Groupoid.Ω[2+n]-commutative would not be
+-- well-formed. (See also Ω∘Ω[]≡Ω[]∘Ω.)
+
+Ω[_] : ℕ → Pointed-type ℓ → Pointed-type ℓ
+Ω[ zero  ] = id
+Ω[ suc n ] = Ω ∘ Ω[ n ]
+
+-- A rearrangement lemma for Ω and Ω[_].
+
+Ω∘Ω[]≡Ω[]∘Ω : ∀ n → Ω (Ω[ n ] P) ≡ Ω[ n ] (Ω P)
+Ω∘Ω[]≡Ω[]∘Ω {P = P} zero =
+  Ω P  ∎
+Ω∘Ω[]≡Ω[]∘Ω {P = P} (suc n) =
+  Ω (Ω[ suc n ] P)  ≡⟨⟩
+  Ω (Ω (Ω[ n ] P))  ≡⟨ cong Ω $ Ω∘Ω[]≡Ω[]∘Ω n ⟩
+  Ω (Ω[ n ] (Ω P))  ≡⟨⟩
+  Ω[ suc n ] (Ω P)  ∎
 
 -- Ω preserves based equivalences.
 
