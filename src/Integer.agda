@@ -32,23 +32,41 @@ private
     i : ℤ
 
 ------------------------------------------------------------------------
--- A lemma
-
-private
-
-  -- A lemma used to prove +-.
-
-  +--helper : ∀ n → + P.suc n +-[1+ n ] ≡ + 0
-  +--helper n with P.suc n Nat.<= n | T[<=]↔≤ {m = P.suc n} {n = n}
-  … | false | _  = cong (+_) $ Nat.∸≡0 n
-  … | true  | eq = ⊥-elim $ Nat.<-irreflexive (_↔_.to eq _)
+-- Some lemmas
 
 -- The sum of i and - i is zero.
 
-+- : ∀ i → i + - i ≡ + 0
-+- (+ zero)    = refl _
-+- (+ P.suc n) = +--helper n
-+- -[1+ n ]    = +--helper n
++-right-inverse : ∀ i → i + - i ≡ + 0
++-right-inverse = λ where
+    (+ zero)    → refl _
+    (+ P.suc n) → lemma n
+    -[1+ n ]    → lemma n
+  where
+  lemma : ∀ n → + P.suc n +-[1+ n ] ≡ + 0
+  lemma n
+    with P.suc n Nat.<= n | T[<=]↔≤ {m = P.suc n} {n = n}
+  … | false | _  = cong (+_) $ Nat.∸≡0 n
+  … | true  | eq = ⊥-elim $ Nat.<-irreflexive (_↔_.to eq _)
+
+-- The sum of - i and i is zero.
+
++-left-inverse : ∀ i → - i + i ≡ + 0
++-left-inverse i =
+  - i + i  ≡⟨ +-comm (- i) ⟩
+  i + - i  ≡⟨ +-right-inverse i ⟩∎
+  + 0      ∎
+
+-- + 0 is a left identity for addition.
+
++-left-identity : + 0 + i ≡ i
++-left-identity {i = + _}      = refl _
++-left-identity {i = -[1+ _ ]} = refl _
+
+-- + 0 is a right identity for addition.
+
++-right-identity : i + + 0 ≡ i
++-right-identity {i = + _}      = cong (+_) Nat.+-right-identity
++-right-identity {i = -[1+ _ ]} = refl _
 
 ------------------------------------------------------------------------
 -- Successor and predecessor
@@ -174,23 +192,16 @@ module ℤ-group (+-assoc : ∀ i j k → i + (j + k) ≡ (i + j) + k) where
   -- The group of integers.
 
   ℤ-group : Group lzero
-  ℤ-group .Group.Carrier        = ℤ
-  ℤ-group .Group.Carrier-is-set = ℤ-set
-  ℤ-group .Group._∘_            = _+_
-  ℤ-group .Group.id             = + 0
-  ℤ-group .Group._⁻¹            = -_
-  ℤ-group .Group.left-identity  = λ where
-    (+ _)    → refl _
-    -[1+ _ ] → refl _
-  ℤ-group .Group.right-identity = λ where
-    (+ _)    → cong (+_) Nat.+-right-identity
-    -[1+ _ ] → refl _
-  ℤ-group .Group.assoc          = +-assoc
-  ℤ-group .Group.right-inverse  = +-
-  ℤ-group .Group.left-inverse i =
-    - i + i  ≡⟨ +-comm (- i) ⟩
-    i + - i  ≡⟨ +- i ⟩∎
-    + 0      ∎
+  ℤ-group .Group.Carrier          = ℤ
+  ℤ-group .Group.Carrier-is-set   = ℤ-set
+  ℤ-group .Group._∘_              = _+_
+  ℤ-group .Group.id               = + 0
+  ℤ-group .Group._⁻¹              = -_
+  ℤ-group .Group.left-identity _  = +-left-identity
+  ℤ-group .Group.right-identity _ = +-right-identity
+  ℤ-group .Group.assoc            = +-assoc
+  ℤ-group .Group.right-inverse    = +-right-inverse
+  ℤ-group .Group.left-inverse     = +-left-inverse
 
   private
     module G¹ = Group ℤ-group
