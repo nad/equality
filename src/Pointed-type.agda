@@ -206,8 +206,8 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
 
 -- Ω preserves based equivalences.
 
-Ω-cong : P ≃ᴮ Q → Ω P ≃ᴮ Ω Q
-Ω-cong {P = A , x} {Q = B , y} (A≃B , to≡) =
+Ω-cong-≃ᴮ : P ≃ᴮ Q → Ω P ≃ᴮ Ω Q
+Ω-cong-≃ᴮ {P = A , x} {Q = B , y} (A≃B , to≡) =
     (x ≡ x                        ↝⟨ inverse $ E.≃-≡ A≃B ⟩
      _≃_.to A≃B x ≡ _≃_.to A≃B x  ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ to≡ to≡ ⟩□
      y ≡ y                        □)
@@ -225,18 +225,18 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
 
 -- Ω[ n ] preserves based equivalences.
 
-Ω[_]-cong : ∀ n → P ≃ᴮ Q → Ω[ n ] P ≃ᴮ Ω[ n ] Q
-Ω[ zero  ]-cong A≃B = A≃B
-Ω[ suc n ]-cong A≃B = Ω-cong (Ω[ n ]-cong A≃B)
+Ω[_]-cong-≃ᴮ : ∀ n → P ≃ᴮ Q → Ω[ n ] P ≃ᴮ Ω[ n ] Q
+Ω[ zero  ]-cong-≃ᴮ A≃B = A≃B
+Ω[ suc n ]-cong-≃ᴮ A≃B = Ω-cong-≃ᴮ (Ω[ n ]-cong-≃ᴮ A≃B)
 
--- A lemma relating Ω-cong and trans.
+-- A lemma relating Ω-cong-≃ᴮ and trans.
 
-Ω-cong-trans :
+Ω-cong-≃ᴮ-trans :
   (P≃Q : P ≃ᴮ Q) →
-  _≃_.to (proj₁ (Ω-cong P≃Q)) (trans p q) ≡
-  trans (_≃_.to (proj₁ (Ω-cong P≃Q)) p)
-        (_≃_.to (proj₁ (Ω-cong P≃Q)) q)
-Ω-cong-trans {p = p} {q = q} (A≃B , to≡) =
+  _≃_.to (proj₁ (Ω-cong-≃ᴮ P≃Q)) (trans p q) ≡
+  trans (_≃_.to (proj₁ (Ω-cong-≃ᴮ P≃Q)) p)
+        (_≃_.to (proj₁ (Ω-cong-≃ᴮ P≃Q)) q)
+Ω-cong-≃ᴮ-trans {p = p} {q = q} (A≃B , to≡) =
   ≡⇒→ (cong₂ _≡_ to≡ to≡) (cong (_≃_.to A≃B) (trans p q))            ≡⟨ cong (≡⇒→ (cong₂ _≡_ to≡ to≡)) $
                                                                         cong-trans _ _ _ ⟩
   ≡⇒→ (cong₂ _≡_ to≡ to≡)
@@ -271,14 +271,14 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
     trans (subst (_≡ _) to≡ p) to≡                     ≡⟨ cong (flip trans _) subst-trans-sym ⟩∎
     trans (trans (sym to≡) p) to≡                      ∎
 
--- A lemma relating Ω[_]-cong and trans.
+-- A lemma relating Ω[_]-cong-≃ᴮ and trans.
 
-Ω[1+_]-cong-trans :
+Ω[1+_]-cong-≃ᴮ-trans :
   ∀ n {p q} (P≃Q : P ≃ᴮ Q) →
-  _≃_.to (proj₁ (Ω[ 1 + n ]-cong P≃Q)) (trans p q) ≡
-  trans (_≃_.to (proj₁ (Ω[ 1 + n ]-cong P≃Q)) p)
-        (_≃_.to (proj₁ (Ω[ 1 + n ]-cong P≃Q)) q)
-Ω[1+ n ]-cong-trans P≃Q = Ω-cong-trans (Ω[ n ]-cong P≃Q)
+  _≃_.to (proj₁ (Ω[ 1 + n ]-cong-≃ᴮ P≃Q)) (trans p q) ≡
+  trans (_≃_.to (proj₁ (Ω[ 1 + n ]-cong-≃ᴮ P≃Q)) p)
+        (_≃_.to (proj₁ (Ω[ 1 + n ]-cong-≃ᴮ P≃Q)) q)
+Ω[1+ n ]-cong-≃ᴮ-trans P≃Q = Ω-cong-≃ᴮ-trans (Ω[ n ]-cong-≃ᴮ P≃Q)
 
 -- A has h-level 1 + n iff the iterated loop space Ω[ n ] (A , x) is
 -- contractible for every x : A.
@@ -308,7 +308,7 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
 
   ((x : A) (p : x ≡ x) →
    Contractible (proj₁ $ Ω[ 1 + n ] ((x ≡ x) , p)))                  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → H-level-cong _ _ $ proj₁ $
-                                                                         Ω[ 1 + n ]-cong $ lemma _) ⟩
+                                                                         Ω[ 1 + n ]-cong-≃ᴮ $ lemma _) ⟩
 
   ((x : A) → x ≡ x → Contractible (proj₁ $ Ω[ 1 + n ] (Ω (A , x))))  ↝⟨ (∀-cong _ λ x → _↠_.logical-equivalence $ inhabited→↠ (refl x)) ⟩
 
