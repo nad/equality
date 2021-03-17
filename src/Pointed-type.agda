@@ -62,6 +62,11 @@ _→ᴮ_ = _↝[ implication ]ᴮ_
 _≃ᴮ_ : Pointed-type a → Pointed-type b → Type (a ⊔ b)
 _≃ᴮ_ = _↝[ equivalence ]ᴮ_
 
+-- Based equivalences can be converted to based maps.
+
+≃ᴮ→→ᴮ : P ≃ᴮ Q → P →ᴮ Q
+≃ᴮ→→ᴮ = Σ-map _≃_.to id
+
 -- Based equivalences are equivalent to equalities (assuming
 -- univalence).
 
