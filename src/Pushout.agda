@@ -22,7 +22,7 @@ open import Prelude
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
-open import Pointed-type equality-with-J
+open import Pointed-type equality-with-J using (Pointed-type)
 import Suspension eq as S
 
 private

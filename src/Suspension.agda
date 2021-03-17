@@ -32,6 +32,7 @@ open import Injection equality-with-J using (_↣_)
 open import Interval eq as Interval using (Interval; [0]; [1]; 0≡1)
 import Nat equality-with-J as Nat
 open import Pointed-type equality-with-J
+  using (Pointed-type; _→ᴮ_; Ω)
 open import Surjection equality-with-J using (_↠_)
 
 private

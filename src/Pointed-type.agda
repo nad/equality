@@ -14,7 +14,7 @@ module Pointed-type
 open Derived-definitions-and-properties eq
 
 open import Logical-equivalence using (_⇔_)
-open import Prelude
+open import Prelude as P hiding (_×_)
 
 open import Bijection eq as B using (_↔_)
 open import Equivalence eq as E using (_≃_)
@@ -407,3 +407,95 @@ proj₁-Ω-cong-≃ᴮ-↝ᴮ-refl = proj₁-Ω-cong-→ᴮ-↝ᴮ-refl
   lemma p = E.↔⇒≃ (inverse $ flip-trans-isomorphism p)
           , (trans p (sym p)  ≡⟨ trans-symʳ _ ⟩∎
              refl _           ∎)
+
+------------------------------------------------------------------------
+-- Products
+
+-- The product of two pointed types.
+
+infixr 2 _×_
+
+_×_ : Pointed-type a → Pointed-type b → Pointed-type (a ⊔ b)
+(A , x) × (B , y) = (A P.× B) , (x , y)
+
+-- The first projection.
+
+proj₁ᴾ : (P × Q) →ᴮ P
+proj₁ᴾ = proj₁ , refl _
+
+-- The second projection.
+
+proj₂ᴾ : (P × Q) →ᴮ Q
+proj₂ᴾ = proj₂ , refl _
+
+-- Ω commutes with _×_.
+
+Ω-× : Ω (P × Q) ≃ᴮ (Ω P × Ω Q)
+Ω-× {P = A , x} {Q = B , y} =
+    ((x , y) ≡ (x , y)  ↝⟨ E.↔⇒≃ (inverse ≡×≡↔≡) ⟩□
+     x ≡ x P.× y ≡ y    □)
+  , ((cong proj₁ (refl (x , y)) , cong proj₂ (refl (x , y)))  ≡⟨ cong₂ _,_ (cong-refl _) (cong-refl _) ⟩∎
+     (refl x , refl y)                                        ∎)
+
+-- Ω[ n ] commutes with _×_.
+
+Ω[_]-× : ∀ n → Ω[ n ] (P × Q) ≃ᴮ (Ω[ n ] P × Ω[ n ] Q)
+Ω[_]-× {P = P} {Q = Q} = λ where
+  zero    → P × Q  □ᴮ
+  (suc n) →
+    Ω (Ω[ n ] (P × Q))           ↝ᴮ⟨ Ω-cong-≃ᴮ Ω[ n ]-× ⟩
+    Ω (Ω[ n ] P × Ω[ n ] Q)      ↝ᴮ⟨ Ω-× ⟩□
+    Ω (Ω[ n ] P) × Ω (Ω[ n ] Q)  □
+
+-- A lemma relating Ω[ 1 ]-× and Ω-×.
+
+Ω[1]-× : _≃_.to (proj₁ Ω[ 1 ]-×) p ≡ _≃_.to (proj₁ Ω-×) p
+Ω[1]-× {p = p} =
+  _≃_.to (proj₁ Ω[ 1 ]-×) p                                  ≡⟨⟩
+  _≃_.to (proj₁ Ω-×) (_≃_.to (proj₁ (Ω-cong-≃ᴮ ↝ᴮ-refl)) p)  ≡⟨ cong (_≃_.to (proj₁ Ω-×)) proj₁-Ω-cong-≃ᴮ-↝ᴮ-refl ⟩∎
+  _≃_.to (proj₁ Ω-×) p                                       ∎
+
+-- A lemma relating Ω-× and trans.
+
+Ω-×-trans :
+  _≃_.to (proj₁ Ω-×) (trans p q) ≡
+  Σ-zip trans trans
+    (_≃_.to (proj₁ Ω-×) p)
+    (_≃_.to (proj₁ Ω-×) q)
+Ω-×-trans {p = p} {q = q} =
+  _≃_.to (proj₁ Ω-×) (trans p q)         ≡⟨⟩
+
+  ( cong proj₁ (trans p q)
+  , cong proj₂ (trans p q)
+  )                                      ≡⟨ cong₂ _,_
+                                              (cong-trans _ _ _)
+                                              (cong-trans _ _ _) ⟩
+  ( trans (cong proj₁ p) (cong proj₁ q)
+  , trans (cong proj₂ p) (cong proj₂ q)
+  )                                      ≡⟨⟩
+
+  Σ-zip trans trans
+    (_≃_.to (proj₁ Ω-×) p)
+    (_≃_.to (proj₁ Ω-×) q)               ∎
+
+-- A lemma relating Ω[_]-× and trans.
+
+Ω[1+_]-×-trans :
+  ∀ n {p q : proj₁ (Ω[ suc n ] (P × Q))} →
+  _≃_.to (proj₁ Ω[ suc n ]-×) (trans p q) ≡
+  Σ-zip trans trans
+    (_≃_.to (proj₁ Ω[ suc n ]-×) p)
+    (_≃_.to (proj₁ Ω[ suc n ]-×) q)
+Ω[1+ n ]-×-trans {p = p} {q = q} =
+  _≃_.to (proj₁ Ω-×)
+    (_≃_.to (proj₁ (Ω-cong-≃ᴮ Ω[ n ]-×)) (trans p q))  ≡⟨ cong (_≃_.to (proj₁ Ω-×)) $ Ω-cong-≃ᴮ-trans Ω[ n ]-× ⟩
+
+  _≃_.to (proj₁ Ω-×)
+    (trans (_≃_.to (proj₁ (Ω-cong-≃ᴮ Ω[ n ]-×)) p)
+           (_≃_.to (proj₁ (Ω-cong-≃ᴮ Ω[ n ]-×)) q))    ≡⟨ Ω-×-trans ⟩∎
+
+  Σ-zip trans trans
+    (_≃_.to (proj₁ Ω-×)
+       (_≃_.to (proj₁ (Ω-cong-≃ᴮ Ω[ n ]-×)) p))
+    (_≃_.to (proj₁ Ω-×)
+       (_≃_.to (proj₁ (Ω-cong-≃ᴮ Ω[ n ]-×)) q))        ∎

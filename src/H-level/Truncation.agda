@@ -29,7 +29,7 @@ open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as TP using (∥_∥)
 open import Monad equality-with-J
 open import Nat equality-with-J as Nat using (_≤_; min)
-open import Pointed-type equality-with-J
+import Pointed-type equality-with-J as PT
 open import Sphere eq
 open import Suspension eq as Susp using (north)
 open import Univalence-axiom equality-with-J
@@ -62,7 +62,7 @@ truncation-has-correct-h-level : ∀ n → H-level (1 + n) ∥ A ∥[1+ n ]
 truncation-has-correct-h-level {A = A} n =
   _↔_.from +↔∀contractible𝕊→ᴮ c
   where
-  c : ∀ x → Contractible ((𝕊 n , north) →ᴮ (∥ A ∥[1+ n ] , x))
+  c : ∀ x → Contractible ((𝕊 n , north) PT.→ᴮ (∥ A ∥[1+ n ] , x))
   c x =
       (const x , (const x (north {A = 𝕊 n})  ≡⟨⟩
                   x                          ∎))
@@ -222,12 +222,12 @@ elim {n = n} {A = A} {P = P} e = elim′ e′
 
     h = h′ north
 
-    lemma =                                                    $⟨ e .h-levelʳ ⟩
-      (∀ x → H-level (1 + n) (P x))                            ↝⟨ _$ _ ⟩
-      H-level (1 + n) (P (hub r))                              ↔⟨ +↔∀contractible𝕊→ᴮ ⟩
-      (∀ h → Contractible ((𝕊 n , north) →ᴮ (P (hub r) , h)))  ↝⟨ _$ _ ⟩
-      Contractible ((𝕊 n , north) →ᴮ (P (hub r) , h))          ↝⟨ mono₁ _ ⟩□
-      Is-proposition ((𝕊 n , north) →ᴮ (P (hub r) , h))        □
+    lemma =                                                       $⟨ e .h-levelʳ ⟩
+      (∀ x → H-level (1 + n) (P x))                               ↝⟨ _$ _ ⟩
+      H-level (1 + n) (P (hub r))                                 ↔⟨ +↔∀contractible𝕊→ᴮ ⟩
+      (∀ h → Contractible ((𝕊 n , north) PT.→ᴮ (P (hub r) , h)))  ↝⟨ _$ _ ⟩
+      Contractible ((𝕊 n , north) PT.→ᴮ (P (hub r) , h))          ↝⟨ mono₁ _ ⟩□
+      Is-proposition ((𝕊 n , north) PT.→ᴮ (P (hub r) , h))        □
 
     s = λ x →
       subst P (spoke r x) (p x)  ≡⟨⟩
