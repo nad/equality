@@ -18,7 +18,7 @@ open import Prelude
 
 open import Bijection eq as B using (_↔_)
 open import Equivalence eq as E using (_≃_)
-open import Function-universe eq hiding (id; _∘_)
+open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import Surjection eq using (_↠_)
 open import Univalence-axiom eq
@@ -35,7 +35,7 @@ private
   variable
     a b ℓ : Level
     A B   : Type a
-    P Q   : Pointed-type a
+    P Q R : Pointed-type a
     x y   : A
     p q   : x ≡ y
     k     : Kind
@@ -73,6 +73,51 @@ _≃ᴮ_ = _↝[ equivalence ]ᴮ_
                                                 subst-id-in-terms-of-≡⇒↝ equivalence) ⟩
   (∃ λ (A≡B : A ≡ B) → subst id A≡B x ≡ y)  ↔⟨ B.Σ-≡,≡↔≡ ⟩□
   (A , x) ≡ (B , y)                         □
+
+-- _↝[ k ]ᴮ_ is reflexive.
+
+↝ᴮ-refl : P ↝[ k ]ᴮ P
+↝ᴮ-refl {k = k} = F.id , cong (_$ _) (to-implication-id k)
+
+-- _↝[ k ]ᴮ_ is transitive.
+
+↝ᴮ-trans : P ↝[ k ]ᴮ Q → Q ↝[ k ]ᴮ R → P ↝[ k ]ᴮ R
+↝ᴮ-trans {P = _ , x} {k = k} {Q = _ , y} {R = _ , z}
+  (A↝B , p) (B↝C , q) =
+    B↝C F.∘ A↝B
+  , (to-implication (B↝C F.∘ A↝B) x             ≡⟨ cong (_$ _) $ to-implication-∘ k ⟩
+     to-implication B↝C (to-implication A↝B x)  ≡⟨ cong (to-implication B↝C) p ⟩
+     to-implication B↝C y                       ≡⟨ q ⟩∎
+     z                                          ∎)
+
+-- _≃ᴮ_ is symmetric.
+
+≃ᴮ-sym : P ≃ᴮ Q → Q ≃ᴮ P
+≃ᴮ-sym (A≃B , p) = inverse A≃B , _≃_.to-from A≃B p
+
+-- "Equational" reasoning combinators.
+
+infix  -1 _□ᴮ finallyᴮ
+infixr -2 stepᴮ
+
+-- For an explanation of why stepᴮ is defined in this way, see
+-- Equality.step-≡.
+
+stepᴮ : (P : Pointed-type a) {Q : Pointed-type b} →
+        Q ↝[ k ]ᴮ R → P ↝[ k ]ᴮ Q → P ↝[ k ]ᴮ R
+stepᴮ _ = flip ↝ᴮ-trans
+
+syntax stepᴮ P Q↝R P↝Q = P ↝ᴮ⟨ P↝Q ⟩ Q↝R
+
+finallyᴮ :
+  (P : Pointed-type a) (Q : Pointed-type b) →
+  P ↝[ k ]ᴮ Q → P ↝[ k ]ᴮ Q
+finallyᴮ _ _ P↝Q = P↝Q
+
+syntax finallyᴮ P Q P↝Q = P ↝ᴮ⟨ P↝Q ⟩□ Q □
+
+_□ᴮ : (P : Pointed-type a) → P ↝[ k ]ᴮ P
+_ □ᴮ = ↝ᴮ-refl
 
 -- There is a split surjection from based maps from
 -- (Maybe A , nothing) to functions.
