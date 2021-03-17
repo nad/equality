@@ -299,10 +299,9 @@ universal-property h = record
 -- The truncation operator ∥_∥[1+ n ] is a functor.
 
 ∥∥-map : (A → B) → ∥ A ∥[1+ n ] → ∥ B ∥[1+ n ]
-∥∥-map {A = A} {B = B} {n = n} =
-  (A → B)                        ↝⟨ ∣_∣ ∘_ ⟩
-  (A → ∥ B ∥[1+ n ])             ↔⟨ inverse $ universal-property (truncation-has-correct-h-level _) ⟩□
-  (∥ A ∥[1+ n ] → ∥ B ∥[1+ n ])  □
+∥∥-map f = rec λ where
+  .∣∣ʳ x    → ∣ f x ∣
+  .h-levelʳ → truncation-has-correct-h-level _
 
 ∥∥-map-id :
   (x : ∥ A ∥[1+ n ]) →
