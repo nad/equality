@@ -16,6 +16,7 @@ module Circle {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
 open P.Derived-definitions-and-properties eq hiding (elim)
 
+open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection equality-with-J as Bijection using (_↔_)
@@ -26,13 +27,18 @@ import Equality.Path.Isomorphisms P.equality-with-paths as PI
 open import Equality.Tactic equality-with-J hiding (module Eq)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import Group equality-with-J as G using (_≃ᴳ_)
 open import Groupoid equality-with-J
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import H-level.Truncation eq as T using (∥_∥[1+_])
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
 open import Integer equality-with-J as Int using (ℤ; +_; -[1+_])
+open import Integer.Quotient eq
+  using () renaming (Data-ℤ-group to ℤ-group)
 open import Nat equality-with-J
+open import Pointed-type.Homotopy-group eq
 open import Sphere eq as Sphere using (𝕊)
 open import Suspension eq as Suspension
   using (Susp; north; south; meridian)
@@ -302,17 +308,11 @@ base≡base≃≡ = elim
    eq                                                                  ∎)
   _
 
--- The loop space of the circle is equivalent to the type of integers.
---
--- The proof is based on the one presented by Licata and Shulman in
--- "Calculating the Fundamental Group of the Circle in Homotopy Type
--- Theory".
+private
 
-base≡base≃ℤ : (base ≡ base) ≃ ℤ
-base≡base≃ℤ =
-  Eq.↔→≃ (to univ) (loops univ) (to-loops univ) (from-to univ)
-  where
-  module _ (univ : Univ.Univalence lzero) where
+  -- Definitions used to define base≡base≃ℤ and Fundamental-group≃ℤ.
+
+  module base≡base≃ℤ (univ : Univ.Univalence lzero) where
 
     -- The universal cover of the circle.
 
@@ -342,10 +342,10 @@ base≡base≃ℤ =
       _≃_.from (Univ.≡⇒≃ (cong Cover loop)) i  ≡⟨ cong (λ eq → _≃_.from eq _) ≡⇒≃-cong-Cover-loop ⟩∎
       _≃_.from Int.successor i                 ∎
 
-    module G = Groupoid (groupoid 𝕊¹)
+    module 𝕊¹-G = Groupoid (groupoid 𝕊¹)
 
     loops : ℤ → base ≡ base
-    loops = loop G.^_
+    loops = loop 𝕊¹-G.^_
 
     to-loops : ∀ i → to (loops i) ≡ i
     to-loops (+ zero) =
@@ -372,7 +372,7 @@ base≡base≃ℤ =
       ∀ i → trans (loops (Int.pred i)) loop ≡ loops i
     loops-pred-loop i =
       trans (loops (Int.pred i)) loop                           ≡⟨ cong (flip trans _ ∘ loops) $ Int.pred≡-1+ i ⟩
-      trans (loops (Int.-[ 1 ] Int.+ i)) loop                   ≡⟨ cong (flip trans _) $ sym $ G.^∘^ {j = i} Int.-[ 1 ] ⟩
+      trans (loops (Int.-[ 1 ] Int.+ i)) loop                   ≡⟨ cong (flip trans _) $ sym $ 𝕊¹-G.^∘^ {j = i} Int.-[ 1 ] ⟩
       trans (trans (loops i) (loops (Int.-[ 1 ]))) loop         ≡⟨⟩
       trans (trans (loops i) (trans (refl _) (sym loop))) loop  ≡⟨ cong (flip trans _) $ cong (trans _) $ trans-reflˡ _ ⟩
       trans (trans (loops i) (sym loop)) loop                   ≡⟨ trans-[trans-sym]- _ _ ⟩∎
@@ -395,6 +395,36 @@ base≡base≃ℤ =
        loops (subst Cover (refl base) (+ 0))  ≡⟨ cong loops $ subst-refl _ _ ⟩
        loops (+ 0)                            ≡⟨⟩
        refl base                              ∎)
+
+    loops-+ : ∀ i j → loops (i Int.+ j) ≡ trans (loops i) (loops j)
+    loops-+ i j =
+      loops (i Int.+ j)          ≡⟨ cong loops $ Int.+-comm i ⟩
+      loops (j Int.+ i)          ≡⟨ sym $ 𝕊¹-G.^∘^ j ⟩∎
+      trans (loops i) (loops j)  ∎
+
+-- The loop space of the circle is equivalent to the type of integers.
+--
+-- The proof is based on the one presented by Licata and Shulman in
+-- "Calculating the Fundamental Group of the Circle in Homotopy Type
+-- Theory".
+
+base≡base≃ℤ : (base ≡ base) ≃ ℤ
+base≡base≃ℤ = Eq.↔→≃ to loops to-loops from-to
+  where
+  open base≡base≃ℤ univ
+
+-- The circle's fundamental group is equivalent to the group of
+-- integers.
+
+Fundamental-group≃ℤ : Fundamental-group (𝕊¹ , base) ≃ᴳ ℤ-group
+Fundamental-group≃ℤ = G.≃ᴳ-sym λ where
+    .G.Homomorphic.related → inverse
+      (∥ base ≡ base ∥[1+ 1 ]  ↝⟨ T.∥∥-cong base≡base≃ℤ ⟩
+       ∥ ℤ ∥[1+ 1 ]            ↔⟨ _⇔_.to (T.+⇔∥∥↔ {n = 1}) Int.ℤ-set ⟩□
+       ℤ                       □)
+    .G.Homomorphic.homomorphic i j → cong T.∣_∣ (loops-+ i j)
+  where
+  open base≡base≃ℤ univ
 
 -- The circle is a groupoid.
 
