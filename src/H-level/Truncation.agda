@@ -455,6 +455,36 @@ _ :
   _≃_.to (∥≡∥≃∣∣≡∣∣ {n = n} univ) ∣ x≡y ∣ ≡ cong ∣_∣ x≡y
 _ = refl _
 
+-- The truncation operator commutes with _×_.
+--
+-- This result is similar to Theorem 7.3.8 from the HoTT book.
+
+∥∥×∥∥≃∥×∥ : (∥ A ∥[1+ n ] × ∥ B ∥[1+ n ]) ≃ ∥ A × B ∥[1+ n ]
+∥∥×∥∥≃∥×∥ {n = n} = Eq.↔→≃
+  (uncurry $ rec λ where
+     .h-levelʳ → Π-closure ext _ λ _ →
+                 truncation-has-correct-h-level _
+     .∣∣ʳ x    → rec λ where
+       .h-levelʳ → truncation-has-correct-h-level _
+       .∣∣ʳ y    → ∣ x , y ∣)
+  (rec λ where
+     .∣∣ʳ      → Σ-map ∣_∣ ∣_∣
+     .h-levelʳ → s)
+  (elim λ where
+     .∣∣ʳ _      → refl _
+     .h-levelʳ _ →
+       mono₁ (1 + n) $ truncation-has-correct-h-level n)
+  (uncurry $ elim λ where
+     .h-levelʳ _ → Π-closure ext (1 + n) λ _ →
+                   mono₁ (1 + n) s
+     .∣∣ʳ _      → elim λ where
+       .h-levelʳ _ → mono₁ (1 + n) s
+       .∣∣ʳ _      → refl _)
+  where
+  s = ×-closure _
+        (truncation-has-correct-h-level _)
+        (truncation-has-correct-h-level _)
+
 -- Nested truncations where the inner truncation's h-level is at least
 -- as large as the outer truncation's h-level can be flattened.
 
