@@ -23,6 +23,14 @@ open import H-level eq
 open import Surjection eq using (_↠_)
 open import Univalence-axiom eq
 
+private
+  variable
+    a b ℓ : Level
+    A B   : Type a
+    x y   : A
+    p q   : x ≡ y
+    k     : Kind
+
 ------------------------------------------------------------------------
 -- The definition of pointed types
 
@@ -30,15 +38,6 @@ open import Univalence-axiom eq
 
 Pointed-type : ∀ ℓ → Type (lsuc ℓ)
 Pointed-type a = ∃ λ (A : Type a) → A
-
-private
-  variable
-    a b ℓ : Level
-    A B   : Type a
-    P Q R : Pointed-type a
-    x y   : A
-    p q   : x ≡ y
-    k     : Kind
 
 ------------------------------------------------------------------------
 -- Based maps
@@ -61,6 +60,12 @@ _→ᴮ_ = _↝[ implication ]ᴮ_
 
 _≃ᴮ_ : Pointed-type a → Pointed-type b → Type (a ⊔ b)
 _≃ᴮ_ = _↝[ equivalence ]ᴮ_
+
+private
+  variable
+    P Q R : Pointed-type a
+    P→Q   : P →ᴮ Q
+    P≃Q   : P ≃ᴮ Q
 
 -- Based equivalences can be converted to based maps.
 
@@ -209,6 +214,24 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
   Ω (Ω[ n ] (Ω P))  ≡⟨⟩
   Ω[ suc n ] (Ω P)  ∎
 
+-- Ω preserves based maps.
+
+Ω-cong-→ᴮ : P →ᴮ Q → Ω P →ᴮ Ω Q
+Ω-cong-→ᴮ {P = A , x} {Q = B , y} (to , to≡) =
+    (x ≡ x        ↝⟨ cong to ⟩
+     to x ≡ to x  ↔⟨ ≡⇒≃ $ cong₂ _≡_ to≡ to≡ ⟩□
+     y ≡ y        □)
+  , (≡⇒→ (cong₂ _≡_ to≡ to≡) (cong to (refl x))      ≡⟨ cong (≡⇒→ (cong₂ _≡_ to≡ to≡)) $ cong-refl _ ⟩
+     ≡⇒→ (cong₂ _≡_ to≡ to≡) (refl (to x))           ≡⟨ elim¹
+                                                          (λ to≡ → ≡⇒→ (cong₂ _≡_ to≡ to≡) (refl (to x)) ≡
+                                                                   refl _)
+                                                          (
+         ≡⇒→ (cong₂ _≡_ (refl _) (refl _)) (refl _)        ≡⟨ cong (λ eq → ≡⇒→ eq (refl _)) $ cong₂-refl _≡_ ⟩
+         ≡⇒→ (refl _) (refl _)                             ≡⟨ cong (λ eq → _≃_.to eq (refl _)) ≡⇒↝-refl ⟩∎
+         refl _                                                       ∎)
+                                                          _ ⟩∎
+     refl y                                          ∎)
+
 -- Ω preserves based equivalences.
 
 Ω-cong-≃ᴮ : P ≃ᴮ Q → Ω P ≃ᴮ Ω Q
@@ -216,17 +239,13 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
     (x ≡ x                        ↝⟨ inverse $ E.≃-≡ A≃B ⟩
      _≃_.to A≃B x ≡ _≃_.to A≃B x  ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ to≡ to≡ ⟩□
      y ≡ y                        □)
-  , (_≃_.to (≡⇒↝ _ $ cong₂ _≡_ to≡ to≡) (_≃_.from (E.≃-≡ A≃B) (refl x))  ≡⟨⟩
-     _≃_.to (≡⇒↝ _ $ cong₂ _≡_ to≡ to≡) (cong (_≃_.to A≃B) (refl x))     ≡⟨ cong (_≃_.to (≡⇒↝ _ $ cong₂ _≡_ to≡ to≡)) $ cong-refl _ ⟩
-     _≃_.to (≡⇒↝ _ $ cong₂ _≡_ to≡ to≡) (refl (_≃_.to A≃B x))            ≡⟨ elim¹
-                                                                              (λ to≡ → _≃_.to (≡⇒↝ _ $ cong₂ _≡_ to≡ to≡) (refl (_≃_.to A≃B x)) ≡
-                                                                                       refl _)
-                                                                              (
-         _≃_.to (≡⇒↝ _ $ cong₂ _≡_ (refl _) (refl _)) (refl _)                 ≡⟨ cong (λ eq → _≃_.to (≡⇒↝ _ eq) (refl _)) $ cong₂-refl _≡_ ⟩
-         _≃_.to (≡⇒↝ _ $ refl _) (refl _)                                      ≡⟨ cong (λ eq → _≃_.to eq (refl _)) ≡⇒↝-refl ⟩∎
-         refl _                                                                ∎)
-                                                                              _ ⟩∎
-     refl y                                                              ∎)
+  , proj₂ (Ω-cong-→ᴮ (_≃_.to A≃B , to≡))
+
+-- Ω[ n ] preserves based maps.
+
+Ω[_]-cong-→ᴮ : ∀ n → P →ᴮ Q → Ω[ n ] P →ᴮ Ω[ n ] Q
+Ω[ zero  ]-cong-→ᴮ A→B = A→B
+Ω[ suc n ]-cong-→ᴮ A→B = Ω-cong-→ᴮ (Ω[ n ]-cong-→ᴮ A→B)
 
 -- Ω[ n ] preserves based equivalences.
 
@@ -234,38 +253,83 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
 Ω[ zero  ]-cong-≃ᴮ A≃B = A≃B
 Ω[ suc n ]-cong-≃ᴮ A≃B = Ω-cong-≃ᴮ (Ω[ n ]-cong-≃ᴮ A≃B)
 
--- A lemma relating Ω-cong-≃ᴮ and trans.
+-- ≃ᴮ→→ᴮ commutes with Ω-cong-≃ᴮ/Ω-cong-→ᴮ.
 
-Ω-cong-≃ᴮ-trans :
+≃ᴮ→→ᴮ-Ω-cong-≃ᴮ :
   (P≃Q : P ≃ᴮ Q) →
-  _≃_.to (proj₁ (Ω-cong-≃ᴮ P≃Q)) (trans p q) ≡
-  trans (_≃_.to (proj₁ (Ω-cong-≃ᴮ P≃Q)) p)
-        (_≃_.to (proj₁ (Ω-cong-≃ᴮ P≃Q)) q)
-Ω-cong-≃ᴮ-trans {p = p} {q = q} (A≃B , to≡) =
-  ≡⇒→ (cong₂ _≡_ to≡ to≡) (cong (_≃_.to A≃B) (trans p q))            ≡⟨ cong (≡⇒→ (cong₂ _≡_ to≡ to≡)) $
-                                                                        cong-trans _ _ _ ⟩
+  ≃ᴮ→→ᴮ (Ω-cong-≃ᴮ P≃Q) ≡ Ω-cong-→ᴮ (≃ᴮ→→ᴮ P≃Q)
+≃ᴮ→→ᴮ-Ω-cong-≃ᴮ _ = refl _
+
+-- ≃ᴮ→→ᴮ commutes with Ω[ n ]-cong-≃ᴮ/Ω[ n ]-cong-→ᴮ.
+
+≃ᴮ→→ᴮ-Ω[_]-cong-≃ᴮ :
+  ∀ n →
+  ≃ᴮ→→ᴮ (Ω[ n ]-cong-≃ᴮ P≃Q) ≡
+  Ω[ n ]-cong-→ᴮ (≃ᴮ→→ᴮ P≃Q)
+≃ᴮ→→ᴮ-Ω[_]-cong-≃ᴮ {P≃Q = P≃Q} = λ where
+  zero    → refl _
+  (suc n) →
+    ≃ᴮ→→ᴮ (Ω-cong-≃ᴮ (Ω[ n ]-cong-≃ᴮ P≃Q))  ≡⟨⟩
+    Ω-cong-→ᴮ (≃ᴮ→→ᴮ (Ω[ n ]-cong-≃ᴮ P≃Q))  ≡⟨ cong Ω-cong-→ᴮ ≃ᴮ→→ᴮ-Ω[ n ]-cong-≃ᴮ ⟩
+    Ω-cong-→ᴮ (Ω[ n ]-cong-→ᴮ (≃ᴮ→→ᴮ P≃Q))  ∎
+
+-- A lemma relating Ω-cong-→ᴮ and ↝ᴮ-refl.
+
+proj₁-Ω-cong-→ᴮ-↝ᴮ-refl :
+  proj₁ (Ω-cong-→ᴮ ↝ᴮ-refl) p ≡ p
+proj₁-Ω-cong-→ᴮ-↝ᴮ-refl {p = p} =
+  ≡⇒→
+    (cong₂ _≡_
+       (cong (_$ _) (refl _))
+       (cong (_$ _) (refl _)))
+    (cong id p)                 ≡⟨ cong₂ ≡⇒→
+                                     (trans (cong₂ (cong₂ _≡_)
+                                               (cong-refl _)
+                                               (cong-refl _)) $
+                                      cong₂-refl _≡_)
+                                     (sym $ cong-id _) ⟩
+
+  ≡⇒→ (refl _) p                ≡⟨ cong (_$ _) ≡⇒→-refl ⟩∎
+
+  p                             ∎
+
+-- A lemma relating Ω-cong-≃ᴮ and ↝ᴮ-refl.
+
+proj₁-Ω-cong-≃ᴮ-↝ᴮ-refl :
+  _≃_.to (proj₁ (Ω-cong-≃ᴮ ↝ᴮ-refl)) p ≡ p
+proj₁-Ω-cong-≃ᴮ-↝ᴮ-refl = proj₁-Ω-cong-→ᴮ-↝ᴮ-refl
+
+-- A lemma relating Ω-cong-→ᴮ and trans.
+
+Ω-cong-→ᴮ-trans :
+  proj₁ (Ω-cong-→ᴮ P→Q) (trans p q) ≡
+  trans (proj₁ (Ω-cong-→ᴮ P→Q) p)
+        (proj₁ (Ω-cong-→ᴮ P→Q) q)
+Ω-cong-→ᴮ-trans {P→Q = to , to≡} {p = p} {q = q} =
+  ≡⇒→ (cong₂ _≡_ to≡ to≡) (cong to (trans p q))            ≡⟨ cong (≡⇒→ (cong₂ _≡_ to≡ to≡)) $
+                                                              cong-trans _ _ _ ⟩
   ≡⇒→ (cong₂ _≡_ to≡ to≡)
-    (trans (cong (_≃_.to A≃B) p) (cong (_≃_.to A≃B) q))              ≡⟨ lemma _ ⟩
+    (trans (cong to p) (cong to q))                        ≡⟨ lemma _ ⟩
 
   trans
     (trans (sym to≡)
-       (trans (cong (_≃_.to A≃B) p) (cong (_≃_.to A≃B) q)))
-    to≡                                                              ≡⟨ trans (cong (flip trans _) $ sym $ trans-assoc _ _ _) $
-                                                                        trans-assoc _ _ _ ⟩
+       (trans (cong to p) (cong to q)))
+    to≡                                                    ≡⟨ trans (cong (flip trans _) $ sym $ trans-assoc _ _ _) $
+                                                              trans-assoc _ _ _ ⟩
   trans
-    (trans (sym to≡) (cong (_≃_.to A≃B) p))
-    (trans (cong (_≃_.to A≃B) q) to≡)                                ≡⟨ cong (trans _) $ sym $
-                                                                        trans--[trans-sym] _ _ ⟩
-  trans (trans (sym to≡) (cong (_≃_.to A≃B) p))
-    (trans to≡ (trans (sym to≡) (trans (cong (_≃_.to A≃B) q) to≡)))  ≡⟨ trans (cong (trans _) $ cong (trans _) $ sym $ trans-assoc _ _ _) $
-                                                                        sym $ trans-assoc _ _ _ ⟩
+    (trans (sym to≡) (cong to p))
+    (trans (cong to q) to≡)                                ≡⟨ cong (trans _) $ sym $
+                                                              trans--[trans-sym] _ _ ⟩
+  trans (trans (sym to≡) (cong to p))
+    (trans to≡ (trans (sym to≡) (trans (cong to q) to≡)))  ≡⟨ trans (cong (trans _) $ cong (trans _) $ sym $ trans-assoc _ _ _) $
+                                                              sym $ trans-assoc _ _ _ ⟩
   trans
-    (trans (trans (sym to≡) (cong (_≃_.to A≃B) p)) to≡)
-    (trans (trans (sym to≡) (cong (_≃_.to A≃B) q)) to≡)              ≡⟨ sym $ cong₂ trans (lemma _) (lemma _) ⟩∎
+    (trans (trans (sym to≡) (cong to p)) to≡)
+    (trans (trans (sym to≡) (cong to q)) to≡)              ≡⟨ sym $ cong₂ trans (lemma _) (lemma _) ⟩∎
 
   trans
-    (≡⇒→ (cong₂ _≡_ to≡ to≡) (cong (_≃_.to A≃B) p))
-    (≡⇒→ (cong₂ _≡_ to≡ to≡) (cong (_≃_.to A≃B) q))                  ∎
+    (≡⇒→ (cong₂ _≡_ to≡ to≡) (cong to p))
+    (≡⇒→ (cong₂ _≡_ to≡ to≡) (cong to q))                  ∎
   where
   lemma = λ p →
     ≡⇒→ (cong₂ _≡_ to≡ to≡) p                          ≡⟨⟩
@@ -275,6 +339,24 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
     trans (≡⇒→ (cong (_≡ _) to≡) p) to≡                ≡⟨ cong (flip trans _) $ sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
     trans (subst (_≡ _) to≡ p) to≡                     ≡⟨ cong (flip trans _) subst-trans-sym ⟩∎
     trans (trans (sym to≡) p) to≡                      ∎
+
+-- A lemma relating Ω-cong-≃ᴮ and trans.
+
+Ω-cong-≃ᴮ-trans :
+  (P≃Q : P ≃ᴮ Q) →
+  _≃_.to (proj₁ (Ω-cong-≃ᴮ P≃Q)) (trans p q) ≡
+  trans (_≃_.to (proj₁ (Ω-cong-≃ᴮ P≃Q)) p)
+        (_≃_.to (proj₁ (Ω-cong-≃ᴮ P≃Q)) q)
+Ω-cong-≃ᴮ-trans _ = Ω-cong-→ᴮ-trans
+
+-- A lemma relating Ω[_]-cong-→ᴮ and trans.
+
+Ω[1+_]-cong-→ᴮ-trans :
+  ∀ n {p q} →
+  proj₁ (Ω[ 1 + n ]-cong-→ᴮ P→Q) (trans p q) ≡
+  trans (proj₁ (Ω[ 1 + n ]-cong-→ᴮ P→Q) p)
+        (proj₁ (Ω[ 1 + n ]-cong-→ᴮ P→Q) q)
+Ω[1+ _ ]-cong-→ᴮ-trans = Ω-cong-→ᴮ-trans
 
 -- A lemma relating Ω[_]-cong-≃ᴮ and trans.
 
