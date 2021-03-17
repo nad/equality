@@ -35,9 +35,10 @@ open import H-level.Truncation eq as T using (∥_∥[1+_])
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
 open import Integer equality-with-J as Int using (ℤ; +_; -[1+_])
-open import Integer.Quotient eq
+open import Integer.Quotient eq as IntQ
   using () renaming (Data-ℤ-group to ℤ-group)
 open import Nat equality-with-J
+open import Pointed-type equality-with-J as PT using (_≃ᴮ_)
 open import Pointed-type.Homotopy-group eq
 open import Sphere eq as Sphere using (𝕊)
 open import Suspension eq as Suspension
@@ -640,6 +641,37 @@ all-points-on-the-circle-are-¬¬-equal x =
   Contractible 𝕊¹                ↝⟨ mono (zero≤ 2) ⟩
   Is-set 𝕊¹                      ↝⟨ ¬-𝕊¹-set ⟩□
   ⊥                              □
+
+-- There is no based equivalence between the circle and the product of
+-- the circle with itself.
+--
+-- This result was pointed out to me by Paolo Capriotti.
+
+𝕊¹≄ᴮ𝕊¹×𝕊¹ : ¬ (𝕊¹ , base) ≃ᴮ ((𝕊¹ , base) PT.× (𝕊¹ , base))
+𝕊¹≄ᴮ𝕊¹×𝕊¹ =
+  (𝕊¹ , base) ≃ᴮ ((𝕊¹ , base) PT.× (𝕊¹ , base))                      ↝⟨ ≃ᴮ→≃ᴳ (𝕊¹ , base) ((𝕊¹ , base) PT.× (𝕊¹ , base)) 0 ⟩
+
+  Fundamental-group (𝕊¹ , base) ≃ᴳ
+  Fundamental-group ((𝕊¹ , base) PT.× (𝕊¹ , base))                   ↝⟨ flip G.↝ᴳ-trans (Homotopy-group-[1+ 0 ]-× (𝕊¹ , base) (𝕊¹ , base)) ⟩
+
+  Fundamental-group (𝕊¹ , base) ≃ᴳ
+  (Fundamental-group (𝕊¹ , base) G.× Fundamental-group (𝕊¹ , base))  ↝⟨ flip G.↝ᴳ-trans (G.↝-× Fundamental-group≃ℤ Fundamental-group≃ℤ) ∘
+                                                                        G.↝ᴳ-trans (G.≃ᴳ-sym Fundamental-group≃ℤ) ⟩
+
+  ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)                                   ↝⟨ Int.ℤ-group.ℤ≄ᴳℤ×ℤ IntQ.Data-+-assoc ⟩□
+
+  ⊥                                                                  □
+
+-- 𝕊¹ is not equivalent to 𝕊¹ × 𝕊¹.
+--
+-- This result was pointed out to me by Paolo Capriotti.
+
+𝕊¹≄𝕊¹×𝕊¹ : ¬ 𝕊¹ ≃ (𝕊¹ × 𝕊¹)
+𝕊¹≄𝕊¹×𝕊¹ hyp =
+  let x , y = _≃_.to hyp base in
+  all-points-on-the-circle-are-¬¬-equal x λ x≡base →
+  all-points-on-the-circle-are-¬¬-equal y λ y≡base →
+  𝕊¹≄ᴮ𝕊¹×𝕊¹ (hyp , cong₂ _,_ x≡base y≡base)
 
 ------------------------------------------------------------------------
 -- An alternative approach to defining eliminators and proving
