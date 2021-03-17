@@ -34,9 +34,8 @@ open import H-level.Closure equality-with-J
 open import H-level.Truncation eq as T using (∥_∥[1+_])
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
-open import Integer equality-with-J as Int using (ℤ; +_; -[1+_])
-open import Integer.Quotient eq as IntQ
-  using () renaming (Data-ℤ-group to ℤ-group)
+open import Integer equality-with-J as Int
+  using (ℤ; +_; -[1+_]; ℤ-group)
 open import Nat equality-with-J
 open import Pointed-type equality-with-J as PT using (_≃ᴮ_)
 open import Pointed-type.Homotopy-group eq
@@ -658,7 +657,7 @@ all-points-on-the-circle-are-¬¬-equal x =
   (Fundamental-group (𝕊¹ , base) G.× Fundamental-group (𝕊¹ , base))  ↝⟨ flip G.↝ᴳ-trans (G.↝-× Fundamental-group≃ℤ Fundamental-group≃ℤ) ∘
                                                                         G.↝ᴳ-trans (G.≃ᴳ-sym Fundamental-group≃ℤ) ⟩
 
-  ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)                                   ↝⟨ Int.ℤ-group.ℤ≄ᴳℤ×ℤ IntQ.Data-+-assoc ⟩□
+  ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)                                   ↝⟨ Int.ℤ≄ᴳℤ×ℤ ⟩□
 
   ⊥                                                                  □
 
