@@ -96,7 +96,9 @@ elim-loop = dcong-subst≡→[]≡ (refl _)
 -- Every dependent function of type (x : 𝕊¹) → P x can be expressed
 -- using elim.
 
-η-elim : f ≡ elim P (f base) (dcong f loop)
+η-elim :
+  {f : (x : 𝕊¹) → P x} →
+  f ≡ elim P (f base) (dcong f loop)
 η-elim {P = P} {f = f} =
   ⟨ext⟩ $ elim _ (refl _)
     (subst (λ x → f x ≡ elim P (f base) (dcong f loop) x) loop (refl _)  ≡⟨ subst-in-terms-of-trans-and-dcong ⟩
@@ -125,7 +127,7 @@ rec-loop = cong-≡↔≡ (refl _)
 
 -- Every function from 𝕊¹ to A can be expressed using rec.
 
-η-rec : f ≡ rec (f base) (cong f loop)
+η-rec : {f : 𝕊¹ → A} → f ≡ rec (f base) (cong f loop)
 η-rec {f = f} =
   ⟨ext⟩ $ elim _ (refl _)
     (subst (λ x → f x ≡ rec (f base) (cong f loop) x) loop (refl _)      ≡⟨ subst-in-terms-of-trans-and-cong ⟩
@@ -303,8 +305,11 @@ base≡base≃≡ = elim
    _≃_.to (subst (λ x → (base ≡ base) ≃ (x ≡ x)) loop Eq.id) eq        ≡⟨ cong (_$ eq) Eq.to-subst ⟩
    subst (λ x → base ≡ base → x ≡ x) loop id eq                        ≡⟨ subst-→ ⟩
    subst (λ x → x ≡ x) loop (subst (λ _ → base ≡ base) (sym loop) eq)  ≡⟨ cong (subst (λ x → x ≡ x) loop) $ subst-const _ ⟩
-   subst (λ x → x ≡ x) loop eq                                         ≡⟨ ≡⇒↝ _ (sym [subst≡]≡[trans≡trans]) $
-                                                                          trans-commutative _ _ ⟩∎
+   subst (λ x → x ≡ x) loop eq                                         ≡⟨ ≡⇒↝ _ (sym [subst≡]≡[trans≡trans]) (
+
+       trans eq loop                                                        ≡⟨ trans-commutative _ _ ⟩∎
+       trans loop eq                                                        ∎) ⟩∎
+
    eq                                                                  ∎)
   _
 
