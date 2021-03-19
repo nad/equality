@@ -3484,7 +3484,7 @@ private
 ↑-cong {equivalenceᴱ}        = ↑-cong-≃ᴱ
 
 ------------------------------------------------------------------------
--- A lemma related to ⊤
+-- Lemmas related to unit types
 
 -- The type of equalities tt ≡ tt is isomorphic to the unit type.
 
@@ -3492,6 +3492,16 @@ tt≡tt↔⊤ : tt ≡ tt ↔ ⊤
 tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
             propositional⇒inhabited⇒contractible
               (mono (zero≤ 2) ⊤-contractible) (refl _)
+
+-- Unit is equivalent to ⊤.
+--
+-- The forward direction of the equivalence returns the supplied value
+-- of type Unit.
+
+Unit≃⊤ : Unit → Unit ≃ ⊤
+Unit≃⊤ x =
+  Eq.↔→≃ _ (λ _ → x) refl
+    (λ { ⊠ → unblock x (_≡ ⊠) (refl _) })
 
 ------------------------------------------------------------------------
 -- Lemmas related to ⊥
