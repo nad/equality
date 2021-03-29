@@ -265,6 +265,15 @@ Injective→Stable-≡→Stable-≡ :
 Injective→Stable-≡→Stable-≡ f inj s x y =
   Stable-map inj (cong f) (s (f x) (f y))
 
+-- If equality is stable for A and B, then A ≃ᴱ B implies A ≃ B.
+
+Stable-≡→≃ᴱ→≃ : Stable-≡ A → Stable-≡ B → A ≃ᴱ B → A ≃ B
+Stable-≡→≃ᴱ→≃ sA sB A≃ᴱB = Eq.↔→≃
+  (_≃ᴱ_.to   A≃ᴱB)
+  (_≃ᴱ_.from A≃ᴱB)
+  (λ x → sB _ _ [ _≃ᴱ_.right-inverse-of A≃ᴱB x ])
+  (λ x → sA _ _ [ _≃ᴱ_.left-inverse-of  A≃ᴱB x ])
+
 -- If we have extensionality, then []-cong can be implemented.
 --
 -- The idea for this result comes from "Modalities in Homotopy Type
