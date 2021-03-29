@@ -1145,6 +1145,28 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
     -- And so on…
 
+  -- A generalisation of Very-stable→Very-stable-≡.
+
+  Very-stable→Very-stable⁺ :
+    ∀ m →
+    For-iterated-equality n Very-stable A →
+    For-iterated-equality (m + n) Very-stable A
+  Very-stable→Very-stable⁺         zero    = id
+  Very-stable→Very-stable⁺ {n = n} (suc m) =
+    Very-stable→Very-stable-≡ (m + n) ∘
+    Very-stable→Very-stable⁺ m
+
+  -- A variant of Very-stable→Very-stable-≡.
+
+  Very-stable→Very-stableⁿ :
+    ∀ n →
+    Very-stable A →
+    For-iterated-equality n Very-stable A
+  Very-stable→Very-stableⁿ n =
+    subst (λ n → For-iterated-equality n Very-stable _)
+      (Nat.+-right-identity {n = n}) ∘
+      Very-stable→Very-stable⁺ n
+
   -- A generalisation of Stable-H-level′.
 
   Stable-[]-H-level′ :
