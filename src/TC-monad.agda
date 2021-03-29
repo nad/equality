@@ -247,9 +247,12 @@ mutual
 
   rename-sort : ℕ → ℕ → Sort → Sort
   rename-sort old new = λ where
-    (set t) → set (rename-term old new t)
-    (lit n) → lit n
-    unknown → unknown
+    (set t)     → set (rename-term old new t)
+    (prop t)    → prop (rename-term old new t)
+    (lit n)     → lit n
+    (propLit n) → propLit n
+    (inf n)     → inf n
+    unknown     → unknown
 
 mutual
 
@@ -289,9 +292,12 @@ mutual
 
   weaken-sort : ℕ → ℕ → Sort → Sort
   weaken-sort from by = λ where
-    (set t) → set (weaken-term from by t)
-    (lit n) → lit n
-    unknown → unknown
+    (set t)     → set (weaken-term from by t)
+    (prop t)    → prop (weaken-term from by t)
+    (lit n)     → lit n
+    (propLit n) → propLit n
+    (inf n)     → inf n
+    unknown     → unknown
 
 mutual
 
@@ -334,9 +340,12 @@ mutual
 
   strengthen-sort : ℕ → ℕ → Sort → Sort
   strengthen-sort from by = λ where
-    (set t) → set (strengthen-term from by t)
-    (lit n) → lit n
-    unknown → unknown
+    (set t)     → set (strengthen-term from by t)
+    (prop t)    → prop (strengthen-term from by t)
+    (lit n)     → lit n
+    (propLit n) → propLit n
+    (inf n)     → inf n
+    unknown     → unknown
 
 mutual
 
@@ -419,9 +428,12 @@ mutual
 
   any-sort : (ℕ → Bool) → Sort → Any-result
   any-sort p = λ where
-    (set t) → any-term p t
-    (lit n) → definitely false
-    unknown → unknown
+    (set t)     → any-term p t
+    (prop t)    → any-term p t
+    (lit n)     → definitely false
+    (propLit n) → definitely false
+    (inf n)     → definitely false
+    unknown     → unknown
 
 -- Figures out if the given variable is bound in the given term.
 
