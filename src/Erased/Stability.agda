@@ -256,6 +256,15 @@ Stable-map-⇔ : A ⇔ B → Stable A → Stable B
 Stable-map-⇔ A⇔B =
   Stable-map (_⇔_.to A⇔B) (_⇔_.from A⇔B)
 
+-- If there is an injective function from A to B, and equality is
+-- stable for B, then equality is stable for A.
+
+Injective→Stable-≡→Stable-≡ :
+  {@0 A : Type a} {@0 B : Type b} →
+  (f : A → B) → Injective f → Stable-≡ B → Stable-≡ A
+Injective→Stable-≡→Stable-≡ f inj s x y =
+  Stable-map inj (cong f) (s (f x) (f y))
+
 -- If we have extensionality, then []-cong can be implemented.
 --
 -- The idea for this result comes from "Modalities in Homotopy Type
