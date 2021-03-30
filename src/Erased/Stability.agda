@@ -60,7 +60,7 @@ mutual
   Stable-[_] : Kind → Type a → Type a
   Stable-[ k ] A = Erased A ↝[ k ] A
 
--- A special case of Stable-[ equivalence ].
+-- A variant of Stable-[ equivalence ].
 
 Very-stable : Type a → Type a
 Very-stable A = Is-equivalence ([_]→ {A = A})
@@ -836,7 +836,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                                    _⇔_.from (H-level⇔H-level′ {n = 1}) ⟩□
       For-iterated-equality n Is-proposition A  □
 
-  -- If equality is decidable for A, then equality is very stable for A.
+  -- If equality is decidable for A, then equality is very stable for
+  -- A.
 
   Decidable-equality→Very-stable-≡ :
     Decidable-equality A → Very-stable-≡ A
