@@ -1044,46 +1044,35 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   Very-stable-W :
     {A : Type a} {P : A → Type p} →
     Extensionality p (a ⊔ p) →
-    ∀ n →
-    For-iterated-equality n Very-stable A →
-    For-iterated-equality n Very-stable (W A P)
-  Very-stable-W {A = A} {P = P} ext n =
-    For-iterated-equality-W
-      ext
-      n
-      (Very-stable-cong _ ∘ from-isomorphism)
-      (Very-stable-Π ext)
-      Very-stable-Σ
-      lemma
-    where
-    lemma : Very-stable A → Very-stable (W A P)
-    lemma s =
-      _≃_.is-equivalence $
-      Eq.↔⇒≃ (record
-        { surjection = record
-          { logical-equivalence = record
-            { to   = [_]→
-            ; from = from
-            }
-          ; right-inverse-of = []∘from
+    Very-stable A →
+    Very-stable (W A P)
+  Very-stable-W {A = A} {P = P} ext s =
+    _≃_.is-equivalence $
+    Eq.↔⇒≃ (record
+      { surjection = record
+        { logical-equivalence = record
+          { to   = [_]→
+          ; from = from
           }
-        ; left-inverse-of = from∘[]
-        })
-      where
-      module E = _≃_ Eq.⟨ _ , s ⟩
+        ; right-inverse-of = []∘from
+        }
+      ; left-inverse-of = from∘[]
+      })
+    where
+    module E = _≃_ Eq.⟨ _ , s ⟩
 
-      from : Erased (W A P) → W A P
-      from [ sup x f ] = sup
-        (E.from [ x ])
-        (λ y → from [ f (subst P (E.left-inverse-of x) y) ])
+    from : Erased (W A P) → W A P
+    from [ sup x f ] = sup
+      (E.from [ x ])
+      (λ y → from [ f (subst P (E.left-inverse-of x) y) ])
 
-      from∘[] : ∀ x → from [ x ] ≡ x
-      from∘[] (sup x f) = curry (_↠_.to (W-≡,≡↠≡ ext))
-        (E.left-inverse-of x)
-        (λ y → from∘[] (f (subst P (E.left-inverse-of x) y)))
+    from∘[] : ∀ x → from [ x ] ≡ x
+    from∘[] (sup x f) = curry (_↠_.to (W-≡,≡↠≡ ext))
+      (E.left-inverse-of x)
+      (λ y → from∘[] (f (subst P (E.left-inverse-of x) y)))
 
-      []∘from : ∀ x → [ from x ] ≡ x
-      []∘from [ x ] = []-cong [ from∘[] x ]
+    []∘from : ∀ x → [ from x ] ≡ x
+    []∘from [ x ] = []-cong [ from∘[] x ]
 
   -- ∃ λ (A : Set a) → Very-stable A is very stable, assuming
   -- extensionality and univalence.
@@ -1485,6 +1474,23 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       _
       n
       (Very-stable-cong _ ∘ from-isomorphism)
+
+  -- A generalisation of Very-stable-W.
+
+  Very-stable-Wⁿ :
+    {A : Type a} {P : A → Type p} →
+    Extensionality p (a ⊔ p) →
+    ∀ n →
+    For-iterated-equality n Very-stable A →
+    For-iterated-equality n Very-stable (W A P)
+  Very-stable-Wⁿ {A = A} {P = P} ext n =
+    For-iterated-equality-W
+      ext
+      n
+      (Very-stable-cong _ ∘ from-isomorphism)
+      (Very-stable-Π ext)
+      Very-stable-Σ
+      (Very-stable-W ext)
 
   ----------------------------------------------------------------------
   -- The function λ A → Erased A, [_]→ and Very-stable form a Σ-closed
