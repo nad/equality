@@ -102,7 +102,7 @@ Is-equivalenceᴱ-propositional ext f =
     (Eq.propositional ext f)
 
 ------------------------------------------------------------------------
--- Even more conversion lemmas
+-- Even more conversion lemmas, and a related result
 
 -- Is-equivalenceᴱ f is logically equivalent to ECP.Is-equivalenceᴱ f.
 
@@ -144,6 +144,16 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext = ⇔→≃ᴱ
   (ECP.Is-equivalenceᴱ-propositional ext _)
   (_⇔_.to Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP)
   (_⇔_.from Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP)
+
+-- When proving that a function is an equivalence (with erased proofs)
+-- one can assume that the codomain is inhabited.
+
+[inhabited→Is-equivalenceᴱ]→Is-equivalenceᴱ :
+  {f : A → B} →
+  (B → Is-equivalenceᴱ f) → Is-equivalenceᴱ f
+[inhabited→Is-equivalenceᴱ]→Is-equivalenceᴱ hyp =
+  _⇔_.from Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP $ λ x →
+  _⇔_.to Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP (hyp x) x
 
 ------------------------------------------------------------------------
 -- Some preservation lemmas
