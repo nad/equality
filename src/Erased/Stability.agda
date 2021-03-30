@@ -706,12 +706,12 @@ Is-∞-extendable-along-contractible-for-equivalences ext eq =
 -- * Finally precomposition with [_]→ is an equivalence for functions
 --   with very stable codomains (assuming extensionality):
 
-∘[]-equivalence :
+∘-[]-equivalence :
   {A : Type a} {B : Type b} →
   Extensionality a b →
   Very-stable B →
   Is-equivalence (λ (f : Erased A → B) → f ∘ [_]→)
-∘[]-equivalence ext s =
+∘-[]-equivalence ext s =
   _≃_.is-equivalence (Eq.↔⇒≃ (record
     { surjection = record
       { logical-equivalence = record
@@ -738,7 +738,7 @@ Is-∞-extendable-along-contractible-for-equivalences ext eq =
 -- * One extra property is assumed: if A and B are equivalent and A is
 --   modal, then B is modal. Such a property is proved below, assuming
 --   that the []-cong axioms can be instantiated (Very-stable-cong).
--- * The property corresponding to ∘[]-equivalence is replaced by a
+-- * The property corresponding to ∘-[]-equivalence is replaced by a
 --   property that is intended to avoid uses of extensionality. This
 --   property is stated using Is-∞-extendable-along-[_]. Such a
 --   property is proved below, assuming that the []-cong axioms can be
