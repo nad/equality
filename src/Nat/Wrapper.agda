@@ -77,7 +77,8 @@ Nat-[ m ] = ∃ λ (n : Nat′) → Erased (to-ℕ n ≡ m)
 Nat-[]-propositional : {@0 n : ℕ} → Is-proposition Nat-[ n ]
 Nat-[]-propositional {n = n} =                                      $⟨ Very-stable-≡-ℕ ⟩
   Very-stable-≡ ℕ                                                   ↝⟨ Very-stable-congⁿ _ 1 (inverse Nat′↔ℕ) ⟩
-  Very-stable-≡ Nat′                                                ↝⟨ erased-singleton-with-erased-center-propositional ⟩
+  Very-stable-≡ Nat′                                                ↝⟨ Very-stable→Very-stableᴱ 1 ⟩
+  Very-stableᴱ-≡ Nat′                                               ↝⟨ erased-singleton-with-erased-center-propositional ⟩
   Is-proposition (∃ λ (m : Nat′) → Erased (m ≡ _↔_.from Nat′↔ℕ n))  ↝⟨ (H-level-cong _ 1 $ ∃-cong λ _ → Erased-cong (inverse $
                                                                         from≡↔≡to (from-isomorphism $ inverse Nat′↔ℕ))) ⟩□
   Is-proposition (∃ λ (m : Nat′) → Erased (to-ℕ m ≡ n))             □

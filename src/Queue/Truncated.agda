@@ -36,7 +36,7 @@ private
     p q x   : A
     f       : A → B
     xs      : List A
-    s s₁ s₂ : Very-stable-≡ A
+    s s₁ s₂ : Very-stableᴱ-≡ A
 
 ------------------------------------------------------------------------
 -- Queues
@@ -143,16 +143,16 @@ module _
         (∃ λ xs → Erased (xs ≡ ys)) → Queue Q ⟪ ys ⟫
       Σ-List→Queue-⟪⟫ = _  -- Agda can infer the definition.
 
-    -- If ys : List A and equality is very stable for A, then
-    -- Queue Q ⟪ ys ⟫ is isomorphic to the type of lists equal (with
-    -- erased equality proofs) to ys.
+    -- If ys : List A and equality is very stable (with erased proofs)
+    -- for A, then Queue Q ⟪ ys ⟫ is isomorphic to the type of lists
+    -- equal (with erased equality proofs) to ys.
     --
     -- Note that equality is very stable for A if A has decidable
     -- equality.
 
     Queue-⟪⟫↔Σ-List :
       {@0 ys : List A} →
-      Very-stable-≡ A →
+      Very-stableᴱ-≡ A →
       Queue Q ⟪ ys ⟫ ↔ ∃ λ xs → Erased (xs ≡ ys)
     Queue-⟪⟫↔Σ-List {ys = ys} s = Bijection.with-other-inverse
       Queue-⟪⟫↔Σ-List′
@@ -164,7 +164,7 @@ module _
         Queue-⟪⟫↔Σ-List′ : Queue Q ⟪ ys ⟫ ↔ ∃ λ xs → Erased (xs ≡ ys)
         Queue-⟪⟫↔Σ-List′ = ↠→↔Erased-singleton
           (Q.Queue↠List _)
-          (Very-stable-≡-List 0 s)
+          (Very-stableᴱ-≡-List 0 s)
 
         from-Queue-⟪⟫↔Σ-List′ :
           _≡_ {A = Queue Q ⟪ ys ⟫}
@@ -172,10 +172,10 @@ module _
               (Σ-List→Queue-⟪⟫ p)
         from-Queue-⟪⟫↔Σ-List′ = refl _
 
-  -- If equality is very stable for A, then Queue Q A is isomorphic to
-  -- List A.
+  -- If equality is very stable (with erased proofs) for A, then
+  -- Queue Q A is isomorphic to List A.
 
-  Queue↔List : Very-stable-≡ A → Queue Q A ↔ List A
+  Queue↔List : Very-stableᴱ-≡ A → Queue Q A ↔ List A
   Queue↔List {A = A} s =
     Queue Q A                                                        ↔⟨⟩
     (∃ λ (xs : Erased (List A)) → Queue Q ⟪ erased xs ⟫)             ↝⟨ (∃-cong λ _ → Queue-⟪⟫↔Σ-List s) ⟩
@@ -185,7 +185,8 @@ module _
   mutual
 
     -- The right-to-left direction of Queue↔List. (Note that equality
-    -- is not required to be very stable for the carrier type.)
+    -- is not required to be very stable with erased proofs for the
+    -- carrier type.)
 
     from-List : List A → Queue Q A
     from-List = _  -- Agda can infer the definition.
@@ -195,7 +196,7 @@ module _
 
   -- The forward direction of Queue↔List s.
 
-  to-List : Very-stable-≡ A → Queue Q A → List A
+  to-List : Very-stableᴱ-≡ A → Queue Q A → List A
   to-List s = _↔_.to (Queue↔List s)
 
   abstract
@@ -205,7 +206,7 @@ module _
     @0 ≡⌊⌋ : to-List s q ≡ ⌊ q ⌋
     ≡⌊⌋ {s = s} {q = q} =
       to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡
-        (Q.Queue↠List _) (Very-stable-≡-List 0 s) q
+        (Q.Queue↠List _) (Very-stableᴱ-≡-List 0 s) q
 
   -- Queue Q A is isomorphic to List A in an erased context. The
   -- forward direction of this isomorphism returns the index directly.
@@ -215,7 +216,9 @@ module _
     Queue Q A                                             ↔⟨⟩
     (∃ λ (xs : Erased (List A)) → Queue Q ⟪ erased xs ⟫)  ↝⟨ drop-⊤-right (λ _ → _⇔_.to contractible⇔↔⊤ $
                                                              propositional⇒inhabited⇒contractible Queue-⟪⟫-propositional $
-                                                             _↔_.from (Queue-⟪⟫↔Σ-List (Very-stable→Very-stable-≡ 0 $ erased Erased-Very-stable))
+                                                             _↔_.from (Queue-⟪⟫↔Σ-List (Very-stable→Very-stableᴱ 1 $
+                                                                                        Very-stable→Very-stable-≡ 0 $
+                                                                                        erased Erased-Very-stable))
                                                                       (_ , [ refl _ ])) ⟩
     Erased (List A)                                       ↝⟨ Very-stable→Stable 0 $ erased Erased-Very-stable ⟩□
     List A                                                □
@@ -233,7 +236,7 @@ module _
   -- Variants of Queue↔List and Queue↔Listⁱ.
 
   Maybe[×Queue]↔List :
-    Very-stable-≡ A →
+    Very-stableᴱ-≡ A →
     Maybe (A × Queue Q A) ↔ List A
   Maybe[×Queue]↔List {A = A} s =
     Maybe (A × Queue Q A)  ↝⟨ F.id ⊎-cong F.id ×-cong Queue↔List s ⟩
@@ -321,15 +324,15 @@ module _
       ∃ λ (q : Maybe (A × Queue Q A)) →
         Erased (_↔_.to Maybe[×Queue]↔Listⁱ q ≡ xs)
 
-    -- If equality is very stable for A, then Result-⟪ xs ⟫ is a
-    -- proposition for lists xs of type List A.
+    -- If equality is very stable (with erased proofs) for A, then
+    -- Result-⟪ xs ⟫ is a proposition for lists xs of type List A.
 
     Result-⟪⟫-propositional :
       {@0 xs : List A} →
-      Very-stable-≡ A →
+      Very-stableᴱ-≡ A →
       Is-proposition Result-⟪ xs ⟫
     Result-⟪⟫-propositional {A = A} {xs = xs} s =
-                                            $⟨ erased-singleton-with-erased-center-propositional (Very-stable-≡-List 0 s) ⟩
+                                            $⟨ erased-singleton-with-erased-center-propositional (Very-stableᴱ-≡-List 0 s) ⟩
       Is-proposition (Erased-singleton xs)  ↝⟨ H-level-cong _ 1 (inverse lemma) ⦂ (_ → _) ⟩□
       Is-proposition Result-⟪ xs ⟫          □
       where
@@ -353,7 +356,7 @@ module _
 
       dequeue :
         {@0 xs : List A} →
-        Very-stable-≡ A →
+        Very-stableᴱ-≡ A →
         Queue Q ⟪ xs ⟫ →
         Result-⟪ xs ⟫
       dequeue {xs = xs} s = Trunc.rec
@@ -409,7 +412,7 @@ module _
 
     Queue-⟪⟫↔Result-⟪⟫ :
       {@0 xs : List A} →
-      Very-stable-≡ A →
+      Very-stableᴱ-≡ A →
       Queue Q ⟪ xs ⟫ ↔ Result-⟪ xs ⟫
     Queue-⟪⟫↔Result-⟪⟫ s = record
       { surjection = record
@@ -471,7 +474,7 @@ module _
         }
 
       Result↔Maybe[×Queue] :
-        Very-stable-≡ A →
+        Very-stableᴱ-≡ A →
         Result A ↔ Maybe (A × Queue Q A)
       Result↔Maybe[×Queue] s = record
         { surjection      = Result↠Maybe[×Queue]
@@ -489,11 +492,11 @@ module _
         from∘to : ∀ r → Erased (⌊ from (to r) ⌋ʳ ≡ ⌊ r ⌋ʳ)
         from∘to (_ , _ , eq) = eq
 
-    -- Queue Q A is isomorphic to Maybe (A × Queue Q A), assuming
-    -- that equality is very stable for A.
+    -- Queue Q A is isomorphic to Maybe (A × Queue Q A), assuming that
+    -- equality is very stable (with erased proofs) for A.
 
     Queue↔Maybe[×Queue] :
-      Very-stable-≡ A →
+      Very-stableᴱ-≡ A →
       Queue Q A ↔ Maybe (A × Queue Q A)
     Queue↔Maybe[×Queue] {A = A} s =
       Queue Q A              ↝⟨ ∃-cong (λ _ → Indexed.Queue-⟪⟫↔Result-⟪⟫ s) ⟩
@@ -523,7 +526,7 @@ module _
 
     -- Dequeues an element, if possible.
 
-    dequeue : Very-stable-≡ A → Queue Q A → Maybe (A × Queue Q A)
+    dequeue : Very-stableᴱ-≡ A → Queue Q A → Maybe (A × Queue Q A)
     dequeue s = _↔_.to (Queue↔Maybe[×Queue] s)
 
     to-List-dequeue :

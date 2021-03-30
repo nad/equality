@@ -46,7 +46,7 @@ instance
 
   -- Instances.
 
-  Queue-is-queue : Is-queue (Queue Q) Very-stable-≡ ℓ
+  Queue-is-queue : Is-queue (Queue Q) Very-stableᴱ-≡ ℓ
   Queue-is-queue .Is-queue.to-List           = Q.to-List
   Queue-is-queue .Is-queue.from-List         = Q.from-List
   Queue-is-queue .Is-queue.to-List-from-List = _↔_.right-inverse-of
@@ -73,7 +73,8 @@ instance
 
 private
 
-  ns       = Decidable-equality→Very-stable-≡ Nat._≟_
+  ns       = Very-stable→Very-stableᴱ 1 $
+             Decidable-equality→Very-stable-≡ Nat._≟_
   dequeue′ = dequeue ns
   to-List′ = to-List ns
   empty′   = empty ⦂ Queue Q ℕ

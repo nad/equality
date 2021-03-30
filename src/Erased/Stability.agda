@@ -2489,18 +2489,22 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                                       (λ _ → refl _)) ⟩□
     Contractibleᴱ (Erased-other-singleton x)  □
 
-  -- If equality is very stable for A, and x : A is erased, then
-  -- Erased-singleton x is a proposition.
+  -- If equality is very stable (with erased proofs) for A, and x : A
+  -- is erased, then Erased-singleton x is a proposition.
 
   erased-singleton-with-erased-center-propositional :
     {@0 x : A} →
-    Very-stable-≡ A →
+    Very-stableᴱ-≡ A →
     Is-proposition (Erased-singleton x)
   erased-singleton-with-erased-center-propositional {x = x} s =
                                                    $⟨ [ erased-singleton-contractible (λ _ _ → erased Erased-Very-stable) ] ⟩
     Erased (Contractible (Erased-singleton x))     ↝⟨ Erased-cong (mono₁ 0) ⟩
-    Erased (Is-proposition (Erased-singleton x))   ↝⟨ (Stable-H-level 0 $ Very-stable→Stable 1 $
-                                                       Very-stable-Σⁿ 1 s λ _ → Very-stable→Very-stable-≡ 0 Very-stable-Erased) ⟩□
+    Erased (Is-proposition (Erased-singleton x))   ↝⟨ (Stable-H-level 0 $
+                                                       Very-stableᴱ→Stable 1 $
+                                                       Very-stableᴱ-Σⁿ 1 s λ _ →
+                                                       Very-stable→Very-stableᴱ 1 $
+                                                       Very-stable→Very-stable-≡ 0
+                                                       Very-stable-Erased) ⟩□
     Is-proposition (Erased-singleton x)            □
 
   -- If A is very stable, and x : A is erased, then Erased-singleton x
@@ -2515,5 +2519,6 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     Erased (Erased-singleton x)        ↝⟨ Very-stable→Stable 0 (Very-stable-Σ s λ _ → Very-stable-Erased) ⟩
     Erased-singleton x                 ↝⟨ propositional⇒inhabited⇒contractible $
                                           erased-singleton-with-erased-center-propositional $
+                                          Very-stable→Very-stableᴱ 1 $
                                           Very-stable→Very-stable-≡ 0 s ⟩□
     Contractible (Erased-singleton x)  □

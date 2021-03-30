@@ -122,7 +122,7 @@ open import Erased equality-with-J instance-of-[]-cong-axiomatisation
 
 private
   variable
-    s : Very-stable-≡ A
+    s : Very-stableᴱ-≡ A
 
 ------------------------------------------------------------------------
 -- Variants of some of the reexported definitions
@@ -260,7 +260,7 @@ Very-stable-≡-/ {A = A} {R = R} equiv prop s =
 ↠→↔Erased-singleton :
   {@0 y : B}
   (A↠B : A ↠ B) →
-  Very-stable-≡ B →
+  Very-stableᴱ-≡ B →
   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ ↔ Erased-singleton y
 ↠→↔Erased-singleton {A = A} {y = y} A↠B s =
   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  ↝⟨ Trunc.∥∥-cong-⇔ (Surjection.Σ-cong-⇔ A↠B λ _ → F.id) ⟩
@@ -287,7 +287,7 @@ mutual
 
 Σ-Erased-∥-Σ-Erased-≡-∥↔ :
   (A↠B : A ↠ B) →
-  Very-stable-≡ B →
+  Very-stableᴱ-≡ B →
   (∃ λ (x : Erased B) →
      ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥) ↔
   B
@@ -319,7 +319,7 @@ mutual
 -- Σ-Erased-∥-Σ-Erased-≡-∥↔ returns the erased first component.
 
 @0 to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ :
-  ∀ (A↠B : A ↠ B) (s : Very-stable-≡ B) x →
+  ∀ (A↠B : A ↠ B) (s : Very-stableᴱ-≡ B) x →
   _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡ erased (proj₁ x)
 to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ A↠B s ([ x ] , y) =
   _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) ([ x ] , y)  ≡⟨⟩
