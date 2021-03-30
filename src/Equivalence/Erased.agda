@@ -193,7 +193,29 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext = ⇔→≃ᴱ
 Σ-cong-contra-≃ᴱ f g f-g g-f P≃Q =
   inverse $ Σ-cong-≃ᴱ f g f-g g-f (inverse ⊚ P≃Q)
 
--- Two preservation lemmas related to Π.
+-- Yet another preservation lemma related to Σ.
+
+Σ-cong-≃ᴱ′ :
+  (A≃ᴱB : A ≃ᴱ B)
+  (P→Q : ∀ x → P x → Q (_≃ᴱ_.to A≃ᴱB x))
+  (Q→P : ∀ x → Q x → P (_≃ᴱ_.from A≃ᴱB x))
+  (@0 eq : ∀ x → Is-equivalence (P→Q x)) →
+  @0 (∀ x y →
+      Q→P x y ≡
+      _≃_.from Eq.⟨ P→Q (_≃ᴱ_.from A≃ᴱB x) , eq (_≃ᴱ_.from A≃ᴱB x) ⟩
+        (subst Q (sym (_≃ᴱ_.right-inverse-of A≃ᴱB x)) y)) →
+  Σ A P ≃ᴱ Σ B Q
+Σ-cong-≃ᴱ′ {A = A} {B = B} {P = P} {Q = Q} A≃B P→Q Q→P eq hyp =
+  [≃]→≃ᴱ ([proofs] ΣAP≃ΣBQ)
+  where
+  @0 ΣAP≃ΣBQ : Σ A P ≃ Σ B Q
+  ΣAP≃ΣBQ =
+    Eq.with-other-inverse
+      (Σ-cong (≃ᴱ→≃ A≃B) (λ x → Eq.⟨ P→Q x , eq x ⟩))
+      (λ (x , y) → _≃ᴱ_.from A≃B x , Q→P x y)
+      (λ (x , y) → cong (_ ,_) (sym (hyp x y)))
+
+-- Three preservation lemmas related to Π.
 --
 -- See also Π-cong-≃ᴱ-Erased and Π-cong-contra-≃ᴱ-Erased below.
 
@@ -220,6 +242,31 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext = ⇔→≃ᴱ
   ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
 Π-cong-contra-≃ᴱ ext f g f-g g-f P≃Q =
   inverse $ Π-cong-≃ᴱ ext f g f-g g-f (inverse ⊚ P≃Q)
+
+Π-cong-≃ᴱ′ :
+  {A : Type a} {B : Type b} {P : A → Type p} {Q : B → Type q} →
+  @0 Extensionality (a ⊔ b) (p ⊔ q) →
+  (A≃ᴱB : A ≃ᴱ B)
+  (P→Q : ∀ x → P (_≃ᴱ_.from A≃ᴱB x) → Q x)
+  (Q→P : ∀ x → Q (_≃ᴱ_.to A≃ᴱB x) → P x)
+  (@0 eq : ∀ x → Is-equivalence (Q→P x)) →
+  @0 ((f : (x : A) → P x) (y : B) →
+      let x = _≃ᴱ_.from A≃ᴱB y in
+      P→Q y (f x) ≡
+      subst Q (_≃ᴱ_.right-inverse-of A≃ᴱB y)
+        (_≃_.from Eq.⟨ Q→P x , eq x ⟩ (f x))) →
+  ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
+Π-cong-≃ᴱ′ {a = a} {p = p} {A = A} {B = B} {P = P} {Q = Q}
+           ext A≃B P→Q Q→P eq hyp =
+  [≃]→≃ᴱ ([proofs] ΠAP≃ΠBQ)
+  where
+  @0 ΠAP≃ΠBQ : ((x : A) → P x) ≃ ((x : B) → Q x)
+  ΠAP≃ΠBQ =
+    Eq.with-other-function
+      (Π-cong ext (≃ᴱ→≃ A≃B) (λ x → Eq.inverse Eq.⟨ Q→P x , eq x ⟩))
+      (λ f x → P→Q x (f (_≃ᴱ_.from A≃B x)))
+      (λ f → apply-ext (lower-extensionality a p ext) λ x →
+         sym (hyp f x))
 
 -- A variant of ∀-cong for _≃ᴱ_.
 
