@@ -366,64 +366,146 @@ to≡to≃≡ {p = p} {q = q} ext =
   p ≡ q                                                            □
 
 ------------------------------------------------------------------------
--- A lemma that is related to Eq.≃-≡
+-- A variant of _≃ᴱ_
 
--- If f is a half adjoint equivalence with certain erased proofs, then
--- x ≡ y is equivalent (with erased proofs) to f x ≡ f y.
---
--- (Perhaps it is possible to prove a similar lemma which returns a
--- half adjoint equivalence where the "left-inverse-of" part is not
--- erased.)
+-- Half adjoint equivalences with certain erased proofs.
+
+infix 4 _≃ᴱ′_
+
+record _≃ᴱ′_ (A : Type a) (B : Type b) : Type (a ⊔ b) where
+  field
+    to            : A → B
+    from          : B → A
+    @0 to-from    : ∀ x → to (from x) ≡ x
+    from-to       : ∀ x → from (to x) ≡ x
+    @0 to-from-to : ∀ x → cong to (from-to x) ≡ to-from (to x)
+
+  -- These equivalences are equivalences with erased proofs.
+
+  equivalence-with-erased-proofs : A ≃ᴱ B
+  equivalence-with-erased-proofs =
+    ⟨ to , (from , [ to-from , from-to , to-from-to ]) ⟩
+
+-- Data corresponding to the erased proofs of an equivalence with
+-- certain erased proofs.
+
+record Erased-proofs′
+         {A : Type a} {B : Type b}
+         (to : A → B) (from : B → A)
+         (from-to : ∀ x → from (to x) ≡ x) :
+         Type (a ⊔ b) where
+  field
+    to-from    : ∀ x → to (from x) ≡ x
+    to-from-to : ∀ x → cong to (from-to x) ≡ to-from (to x)
+
+-- Extracts "erased proofs" from a regular equivalence.
+
+[proofs′] :
+  (A≃B : A ≃ B) →
+  Erased-proofs′ (_≃_.to A≃B) (_≃_.from A≃B) (_≃_.left-inverse-of A≃B)
+[proofs′] A≃B .Erased-proofs′.to-from    = _≃_.right-inverse-of A≃B
+[proofs′] A≃B .Erased-proofs′.to-from-to = _≃_.left-right-lemma A≃B
+
+-- Converts two functions, one proof and some erased proofs to an
+-- equivalence with certain erased proofs.
+
+[≃]→≃ᴱ′ :
+  {to : A → B} {from : B → A} {from-to : ∀ x → from (to x) ≡ x} →
+  @0 Erased-proofs′ to from from-to →
+  A ≃ᴱ′ B
+[≃]→≃ᴱ′ {to = to} {from = from} {from-to = from-to} ep = λ where
+  ._≃ᴱ′_.to         → to
+  ._≃ᴱ′_.from       → from
+  ._≃ᴱ′_.to-from    → ep .Erased-proofs′.to-from
+  ._≃ᴱ′_.from-to    → from-to
+  ._≃ᴱ′_.to-from-to → ep .Erased-proofs′.to-from-to
+
+-- A function with a quasi-inverse with one proof and one erased proof
+-- can be turned into an equivalence with certain erased proofs.
+
+↔→≃ᴱ′ :
+  (f : A → B) (g : B → A) →
+  @0 (∀ x → f (g x) ≡ x) →
+  (∀ x → g (f x) ≡ x) →
+  A ≃ᴱ′ B
+↔→≃ᴱ′ {A = A} {B = B} to from to-from from-to =
+  [≃]→≃ᴱ′ ([proofs′] equiv)
+  where
+  @0 equiv : A ≃ B
+  equiv =
+    Eq.⟨ to
+       , HA.↔→Is-equivalenceˡ (record
+           { surjection = record
+             { logical-equivalence = record
+               { to   = to
+               ; from = from
+               }
+             ; right-inverse-of = to-from
+             }
+           ; left-inverse-of = from-to
+           })
+       ⟩
+
+-- If f is an equivalence with certain erased proofs, then there is an
+-- equivalence with certain erased proofs from x ≡ y to f x ≡ f y.
+
+≡≃ᴱ′to≡to :
+  (A≃ᴱ′B : A ≃ᴱ′ B) →
+  (x ≡ y) ≃ᴱ′ (_≃ᴱ′_.to A≃ᴱ′B x ≡ _≃ᴱ′_.to A≃ᴱ′B y)
+≡≃ᴱ′to≡to {x = x} {y = y} A≃ᴱ′B =
+  ↔→≃ᴱ′
+    (_↠_.from ≡↠≡)
+    (_↠_.to   ≡↠≡)
+    (λ eq →
+       _↠_.from ≡↠≡ (_↠_.to ≡↠≡ eq)                                          ≡⟨⟩
+
+       cong to (trans (sym (from-to x)) (trans (cong from eq) (from-to y)))  ≡⟨ cong-trans _ _ _ ⟩
+
+       trans (cong to (sym (from-to x)))
+         (cong to (trans (cong from eq) (from-to y)))                        ≡⟨ cong₂ trans
+                                                                                  (cong-sym _ _)
+                                                                                  (cong-trans _ _ _) ⟩
+       trans (sym (cong to (from-to x)))
+         (trans (cong to (cong from eq)) (cong to (from-to y)))              ≡⟨ cong₂ (λ p q → trans (sym p) (trans (cong to (cong from eq)) q))
+                                                                                  (to-from-to _)
+                                                                                  (to-from-to _) ⟩
+       trans (sym (to-from (to x)))
+         (trans (cong to (cong from eq)) (to-from (to y)))                   ≡⟨⟩
+
+       _↠_.to ≡↠≡′ (_↠_.from ≡↠≡′ eq)                                        ≡⟨ _↠_.right-inverse-of ≡↠≡′ eq ⟩∎
+
+       eq                                                                    ∎)
+    (_↠_.right-inverse-of ≡↠≡)
+  where
+  open _≃ᴱ′_ A≃ᴱ′B
+
+  ≡↠≡ : (to x ≡ to y) ↠ (x ≡ y)
+  ≡↠≡ = Surjection.↠-≡ (record
+    { logical-equivalence = record
+      { to   = from
+      ; from = to
+      }
+    ; right-inverse-of = from-to
+    })
+
+  @0 ≡↠≡′ : ∀ {x y} → (from x ≡ from y) ↠ (x ≡ y)
+  ≡↠≡′ = Surjection.↠-≡ (record
+    { logical-equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to-from
+    })
+
+-- If f is an equivalence with certain erased proofs, then x ≡ y is
+-- equivalent (with erased proofs) to f x ≡ f y.
 --
 -- See also to≡to≃ᴱ≡-Erased below.
 
 ≡≃ᴱto≡to :
-  (f : A → B) (g : B → A)
-  (@0 f∘g : ∀ y → f (g y) ≡ y)
-  (g∘f : ∀ x → g (f x) ≡ x) →
-  @0 (∀ x → cong f (g∘f x) ≡ f∘g (f x)) →
-  (x ≡ y) ≃ᴱ (f x ≡ f y)
-≡≃ᴱto≡to {x = x} {y = y} f g f∘g g∘f coh = ↔→≃ᴱ
-  (_↠_.from ≡↠≡)
-  (_↠_.to   ≡↠≡)
-  (λ eq →
-     _↠_.from ≡↠≡ (_↠_.to ≡↠≡ eq)                              ≡⟨⟩
-
-     cong f (trans (sym (g∘f x)) (trans (cong g eq) (g∘f y)))  ≡⟨ cong-trans _ _ _ ⟩
-
-     trans (cong f (sym (g∘f x)))
-       (cong f (trans (cong g eq) (g∘f y)))                    ≡⟨ cong₂ trans
-                                                                    (cong-sym _ _)
-                                                                    (cong-trans _ _ _) ⟩
-     trans (sym (cong f (g∘f x)))
-       (trans (cong f (cong g eq)) (cong f (g∘f y)))           ≡⟨ cong₂ (λ p q → trans (sym p) (trans (cong f (cong g eq)) q))
-                                                                    (coh _)
-                                                                    (coh _) ⟩
-     trans (sym (f∘g (f x)))
-       (trans (cong f (cong g eq)) (f∘g (f y)))                ≡⟨⟩
-
-     _↠_.to ≡↠≡′ (_↠_.from ≡↠≡′ eq)                            ≡⟨ _↠_.right-inverse-of ≡↠≡′ eq ⟩∎
-
-     eq                                                        ∎)
-  (_↠_.right-inverse-of ≡↠≡)
-  where
-  ≡↠≡ : (f x ≡ f y) ↠ (x ≡ y)
-  ≡↠≡ = Surjection.↠-≡ (record
-    { logical-equivalence = record
-      { to   = g
-      ; from = f
-      }
-    ; right-inverse-of = g∘f
-    })
-
-  @0 ≡↠≡′ : ∀ {x y} → (g x ≡ g y) ↠ (x ≡ y)
-  ≡↠≡′ = Surjection.↠-≡ (record
-    { logical-equivalence = record
-      { to   = f
-      ; from = g
-      }
-    ; right-inverse-of = f∘g
-    })
+  (A≃ᴱ′B : A ≃ᴱ′ B) →
+  (x ≡ y) ≃ᴱ (_≃ᴱ′_.to A≃ᴱ′B x ≡ _≃ᴱ′_.to A≃ᴱ′B y)
+≡≃ᴱto≡to = _≃ᴱ′_.equivalence-with-erased-proofs ⊚ ≡≃ᴱ′to≡to
 
 ------------------------------------------------------------------------
 -- Some results related to Contractibleᴱ
