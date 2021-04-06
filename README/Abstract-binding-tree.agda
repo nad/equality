@@ -234,7 +234,7 @@ _,_⦂_ : ∀ {xs} → Ctxt xs → ∀ x → Ty → Ctxt (x ∷ xs)
 (Γ , x ⦂ σ) ⊠ y y∈x∷xs =
   case y ≟∃V x of λ where
     (yes y≡x) → σ
-    (no  y≢x) → Γ ⊠ y (_≃_.to (∈≢∷≃ (Stable-¬ _ y≢x)) y∈x∷xs)
+    (no  y≢x) → Γ ⊠ y (_≃_.to (∈≢∷≃ (Stable-¬ y≢x)) y∈x∷xs)
 
 -- A type system.
 

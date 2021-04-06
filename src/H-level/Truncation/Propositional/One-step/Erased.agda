@@ -577,7 +577,7 @@ from-∥∥¹ᴱ-in-^≃∥∥¹-in-^-∣,∣-in-^ n {x = x} =
 ¬-Is-proposition-∥∥¹ᴱ :
   ¬ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)
 ¬-Is-proposition-∥∥¹ᴱ {a = a} =
-  Stable-¬ _
+  Stable-¬
     [ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)  ↝⟨ (implicit-∀-cong _ $ ∀-cong _ λ _ → H-level-cong _ 1 ∥∥¹ᴱ≃∥∥¹) ⟩
       ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)   ↝⟨ O.¬-Is-proposition-∥∥¹ ⟩□
       ⊥                                                           □

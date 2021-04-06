@@ -134,7 +134,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   fresh-not-erased :
     ∀ {s} (xs : Vars) → ∃ λ (x : Var s) → (_ , x) ∉ xs
   fresh-not-erased =
-    Σ-map id (Stable-¬ _) ∘ fresh
+    Σ-map id Stable-¬ ∘ fresh
 
   -- Erased equality is decidable for ∃Var.
 
@@ -2250,7 +2250,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
                                                                           (subst (λ xs → Wf xs aˢ (rename₁ y z aˢ a))
                                                                                  swap
                                                                                  (wf z (erased z∉)))
-                                                                          (x∈ z (Stable-¬ _ z∉))) ⟩□
+                                                                          (x∈ z (Stable-¬ z∉))) ⟩□
           (∀ z (z∉ : Erased ((_ , z) ∉ (_ , x) ∷ xs)) →
            Free-in x
              ( aˢ

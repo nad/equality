@@ -497,14 +497,20 @@ Very-stable-⊤ = _≃_.is-equivalence $ Eq.↔⇒≃ $ inverse Erased-⊤↔⊤
 Very-stable-⊥ : Very-stable (⊥ {ℓ = ℓ})
 Very-stable-⊥ = _≃_.is-equivalence $ Eq.↔⇒≃ $ inverse Erased-⊥↔⊥
 
--- Stable-[ k ] is closed under Π A (possibly assuming
--- extensionality).
+-- Stable is closed under Π A.
 
 Stable-Π :
+  {@0 A : Type a} {@0 P : A → Type p} →
+  (∀ x → Stable (P x)) → Stable ((x : A) → P x)
+Stable-Π s [ f ] x = s x [ f x ]
+
+-- A variant of Stable-Π.
+
+Stable-[]-Π :
   {A : Type a} {P : A → Type p} →
   Extensionality? k a p →
   (∀ x → Stable-[ k ] (P x)) → Stable-[ k ] ((x : A) → P x)
-Stable-Π {P = P} ext s =
+Stable-[]-Π {P = P} ext s =
   Erased (∀ x → P x)    ↔⟨ Erased-Π↔Π ⟩
   (∀ x → Erased (P x))  ↝⟨ ∀-cong ext s ⟩□
   (∀ x → P x)           □
@@ -517,7 +523,7 @@ Very-stable-Π :
   (∀ x → Very-stable (P x)) →
   Very-stable ((x : A) → P x)
 Very-stable-Π ext s = _≃_.is-equivalence $
-  inverse $ Stable-Π ext $ λ x → inverse Eq.⟨ _ , s x ⟩
+  inverse $ Stable-[]-Π ext $ λ x → inverse Eq.⟨ _ , s x ⟩
 
 -- Very-stableᴱ is closed under Π A (assuming extensionality).
 
@@ -618,14 +624,23 @@ Very-stableᴱ-↑ : Very-stableᴱ A → Very-stableᴱ (↑ ℓ A)
 Very-stableᴱ-↑ s = _≃ᴱ_.is-equivalence $
   inverse $ Stable-↑ $ inverse EEq.⟨ _ , s ⟩
 
--- ¬ A is stable (possibly assuming extensionality).
+-- ¬ A is stable.
 
 Stable-¬ :
+  {@0 A : Type a} →
+  Stable (¬ A)
+Stable-¬ =
+  Stable-Π λ _ →
+  Very-stable→Stable 0 Very-stable-⊥
+
+-- A variant of the previous result.
+
+Stable-[]-¬ :
   {A : Type a} →
   Extensionality? k a lzero →
   Stable-[ k ] (¬ A)
-Stable-¬ ext =
-  Stable-Π ext λ _ →
+Stable-[]-¬ ext =
+  Stable-[]-Π ext λ _ →
   Very-stable→Stable 0 Very-stable-⊥
 
 -- ¬ A is very stable (assuming extensionality).
@@ -665,7 +680,7 @@ Stable-H-level′ :
 Stable-H-level′ {A = A} n =
   For-iterated-equality (1 + n) Stable A           ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality ext n 1) _ ⟩
   For-iterated-equality n Stable-≡ A               ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
-  For-iterated-equality n (Stable ∘ H-level′ 1) A  ↝⟨ For-iterated-equality-commutes-← _ Stable n (Stable-Π _) ⟩
+  For-iterated-equality n (Stable ∘ H-level′ 1) A  ↝⟨ For-iterated-equality-commutes-← _ Stable n Stable-Π ⟩
   Stable (For-iterated-equality n (H-level′ 1) A)  ↝⟨ Stable-map-⇔ (For-iterated-equality-For-iterated-equality _ n 1) ⟩□
   Stable (H-level′ (1 + n) A)                      □
   where
@@ -673,8 +688,8 @@ Stable-H-level′ {A = A} n =
   lemma s =
     Stable-map-⇔
       (H-level↔H-level′ {n = 1} _)
-      (Stable-Π _ λ _ →
-       Stable-Π _ λ _ →
+      (Stable-Π λ _ →
+       Stable-Π λ _ →
        s _ _)
 
 -- If A is "stable 1 + n levels up", then H-level (1 + n) A is
@@ -1536,7 +1551,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   Stable-[]-H-level′ {a = a} {k = k} {A = A} ext n =
     For-iterated-equality (1 + n) Stable-[ k ] A           ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality ext n 1) _ ⟩
     For-iterated-equality n Stable-≡-[ k ] A               ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
-    For-iterated-equality n (Stable-[ k ] ∘ H-level′ 1) A  ↝⟨ For-iterated-equality-commutes-← _ Stable-[ k ] n (Stable-Π ext) ⟩
+    For-iterated-equality n (Stable-[ k ] ∘ H-level′ 1) A  ↝⟨ For-iterated-equality-commutes-← _ Stable-[ k ] n (Stable-[]-Π ext) ⟩
     Stable-[ k ] (For-iterated-equality n (H-level′ 1) A)  ↝⟨ Stable-[]-map-↝ (λ ext → For-iterated-equality-For-iterated-equality ext n 1) ext ⟩□
     Stable-[ k ] (H-level′ (1 + n) A)                      □
     where
@@ -1545,8 +1560,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       Stable-[]-map-↝
         (H-level↔H-level′ {n = 1})
         ext
-        (Stable-Π ext λ _ →
-         Stable-Π ext λ _ →
+        (Stable-[]-Π ext λ _ →
+         Stable-[]-Π ext λ _ →
          s _ _)
 
   -- A generalisation of Stable-H-level.
@@ -1856,7 +1871,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       ext
       n
       Stable-[]-map-↔
-      (Stable-Π (forget-ext? k ext))
+      (Stable-[]-Π (forget-ext? k ext))
 
   -- A generalisation of Very-stable-Π.
 

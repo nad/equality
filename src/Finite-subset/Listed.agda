@@ -1284,7 +1284,7 @@ minus _≟_ x y =
                                      _⇔_.to contractible⇔↔⊤ $
                                      propositional⇒inhabited⇒contractible
                                        (¬-propositional ext)
-                                       (EC.Stable-¬ _ ¬a) ⟩□
+                                       (EC.Stable-¬ ¬a) ⟩□
     ¬ A                           □
 
 -- The result of minus is a subset of the original subset.
@@ -1861,7 +1861,7 @@ fresh ns =
     (λ {m} →
        Erased (∀ n → n ∈ ns → n < m)  ↝⟨ EC.map (_$ m) ⟩
        Erased (m ∈ ns → m < m)        ↝⟨ EC.map (∀-cong _ λ _ → Nat.+≮ 0) ⟩
-       Erased (m ∉ ns)                ↝⟨ EC.Stable-¬ _ ⟩□
+       Erased (m ∉ ns)                ↝⟨ EC.Stable-¬ ⟩□
        m ∉ ns                         □)
     (elim e ns)
   where
