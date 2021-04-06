@@ -63,9 +63,9 @@ _≃ᴮ_ = _↝[ equivalence ]ᴮ_
 
 private
   variable
-    P Q R : Pointed-type a
-    P→Q   : P →ᴮ Q
-    P≃Q   : P ≃ᴮ Q
+    P P₁ P₂ Q Q₁ Q₂ R : Pointed-type a
+    P→Q               : P →ᴮ Q
+    P≃Q               : P ≃ᴮ Q
 
 -- Based equivalences can be converted to based maps.
 
@@ -427,6 +427,20 @@ proj₁ᴾ = proj₁ , refl _
 
 proj₂ᴾ : (P × Q) →ᴮ Q
 proj₂ᴾ = proj₂ , refl _
+
+-- The operator _×_ preserves based maps and equivalences.
+
+infixr 2 _×-cong-→ᴮ_ _×-cong-≃ᴮ_
+
+_×-cong-→ᴮ_ : P₁ →ᴮ P₂ → Q₁ →ᴮ Q₂ → (P₁ × Q₁) →ᴮ (P₂ × Q₂)
+(f₁ , eq₁) ×-cong-→ᴮ (f₂ , eq₂) =
+    (f₁ ×-cong f₂)
+  , cong₂ _,_ eq₁ eq₂
+
+_×-cong-≃ᴮ_ : P₁ ≃ᴮ P₂ → Q₁ ≃ᴮ Q₂ → (P₁ × Q₁) ≃ᴮ (P₂ × Q₂)
+(f₁ , eq₁) ×-cong-≃ᴮ (f₂ , eq₂) =
+    (f₁ ×-cong f₂)
+  , cong₂ _,_ eq₁ eq₂
 
 -- Ω commutes with _×_.
 
