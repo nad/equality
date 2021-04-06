@@ -455,6 +455,10 @@ import H-level.Truncation.Propositional.Non-recursive.Erased
 
 import H-level.Truncation.Propositional.Erased
 
+-- The circle with an erased higher constructor.
+
+import Circle.Erased
+
 -- A variant of set quotients with erased higher constructors.
 
 import Quotient.Erased
