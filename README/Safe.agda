@@ -167,6 +167,15 @@ import Monad.State
 
 import Double-negation
 
+-- Lists.
+
+import List
+
+-- Some results related to the For-iterated-equality predicate
+-- transformer.
+
+import For-iterated-equality
+
 -- The univalence axiom.
 
 import Univalence-axiom
@@ -207,6 +216,31 @@ import Equality.Propositional.Cubical
 
 import Interval
 
+-- A type for values that should be erased at run-time.
+
+import Erased.Level-1
+
+-- Equivalences with erased "proofs", defined in terms of partly
+-- erased contractible fibres.
+
+import Equivalence.Erased.Contractible-preimages
+
+-- Equivalences with erased "proofs".
+
+import Equivalence.Erased
+
+-- Embeddings with erased "proofs".
+
+import Embedding.Erased
+
+-- A type for values that should be erased at run-time.
+
+import Erased.Level-2
+
+-- Stability for Erased.
+
+import Erased.Stability
+
 -- Truncation, defined using a kind of Church encoding.
 
 import H-level.Truncation.Church
@@ -218,15 +252,6 @@ import H-level.Truncation.Propositional
 -- Sequential colimits.
 
 import Colimit.Sequential
-
--- The one-step truncation.
-
-import H-level.Truncation.Propositional.One-step
-
--- A definition of the propositional truncation operator that does not
--- use recursive higher inductive types.
-
-import H-level.Truncation.Propositional.Non-recursive
 
 -- Suspensions.
 
@@ -244,10 +269,6 @@ import Pullback
 
 import Pushout
 
--- The figure of eight.
-
-import Figure-of-eight
-
 -- Truncation, defined as a HIT.
 
 import H-level.Truncation
@@ -256,21 +277,9 @@ import H-level.Truncation
 
 import Pointed-type.Homotopy-group
 
--- The "circle".
-
-import Circle
-
--- The torus, defined as a HIT.
-
-import Torus
-
 -- Some omniscience principles.
 
 import Omniscience
-
--- Lists.
-
-import List
 
 -- Some definitions related to and properties of finite sets.
 
@@ -295,11 +304,6 @@ import Vec.Function
 -- Some properties related to the const function.
 
 import Const
-
--- Some results related to the For-iterated-equality predicate
--- transformer.
-
-import For-iterated-equality
 
 -- Squashing.
 
@@ -367,31 +371,6 @@ import Quotient.Higher-constructors-if-propositional
 
 -- A type for values that should be erased at run-time.
 
-import Erased.Level-1
-
--- Equivalences with erased "proofs", defined in terms of partly
--- erased contractible fibres.
-
-import Equivalence.Erased.Contractible-preimages
-
--- Equivalences with erased "proofs".
-
-import Equivalence.Erased
-
--- Embeddings with erased "proofs".
-
-import Embedding.Erased
-
--- A type for values that should be erased at run-time.
-
-import Erased.Level-2
-
--- Stability for Erased.
-
-import Erased.Stability
-
--- A type for values that should be erased at run-time.
-
 import Erased
 import Erased.Without-box-cong
 
@@ -418,26 +397,9 @@ import Bool.Very-stable
 
 import Colimit.Sequential.Very-erased
 
--- A non-recursive variant of H-level.Truncation.Propositional.Erased.
-
-import H-level.Truncation.Propositional.Non-recursive.Erased
-
--- A variant of the propositional truncation operator with an erased
--- truncation constructor.
-
-import H-level.Truncation.Propositional.Erased
-
--- A variant of set quotients with erased higher constructors.
-
-import Quotient.Erased
-
 -- The sequential colimit HIT with an erased higher constructor.
 
 import Colimit.Sequential.Erased
-
--- The one-step truncation HIT with an erased higher constructor.
-
-import H-level.Truncation.Propositional.One-step.Erased
 
 -- Listed finite subsets.
 
@@ -458,6 +420,44 @@ import Integer
 -- Integers, defined using a quotient type.
 
 import Integer.Quotient
+
+-- The "circle".
+
+import Circle
+
+-- The torus, defined as a HIT.
+
+import Torus
+
+-- The figure of eight.
+
+import Figure-of-eight
+
+-- The one-step truncation.
+
+import H-level.Truncation.Propositional.One-step
+
+-- The one-step truncation HIT with an erased higher constructor.
+
+import H-level.Truncation.Propositional.One-step.Erased
+
+-- A definition of the propositional truncation operator that does not
+-- use recursive higher inductive types.
+
+import H-level.Truncation.Propositional.Non-recursive
+
+-- A non-recursive variant of H-level.Truncation.Propositional.Erased.
+
+import H-level.Truncation.Propositional.Non-recursive.Erased
+
+-- A variant of the propositional truncation operator with an erased
+-- truncation constructor.
+
+import H-level.Truncation.Propositional.Erased
+
+-- A variant of set quotients with erased higher constructors.
+
+import Quotient.Erased
 
 -- A wrapper that turns a representation of natural numbers (with a
 -- unique representative for every number) into a representation that
