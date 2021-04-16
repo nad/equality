@@ -134,7 +134,7 @@ private
     ; length-rear      = q .length-rear
     ; length-front≡    = q .length-front≡
     ; length-rear≡     = q .length-rear≡
-    ; length-invariant = case ≤→<⊎≡ (q .length-invariant) of λ where
+    ; length-invariant = case ≤→<⊎≡ (q .length-invariant) of λ @0 where
         (inj₁ 1+r≤1+f) → suc≤suc⁻¹ 1+r≤1+f
         (inj₂ r≡1+f)   → ⊥-elim (_↔_.from 1+f≢r (sym r≡1+f))
     }
