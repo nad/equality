@@ -257,17 +257,15 @@ elim-prop :
   {@0 R : A → A → Type r}
   {P : A /ᴱ R → Type p} →
   Elim-prop P → (x : A /ᴱ R) → P x
-elim-prop {P = P} e = elim λ where
+elim-prop e = elim λ where
     .[]ʳ                     → E.[]ʳ
     .[]-respects-relationʳ _ → E.is-propositionʳ _ _ _
-    .is-setʳ                 → elim e′
+    .is-setʳ                 → elim λ @0 where
+      .[]ʳ                     → mono₁ 1 ∘ E.is-propositionʳ
+      .[]-respects-relationʳ _ → H-level-propositional ext 2 _ _
+      .is-setʳ _               → mono₁ 1 (H-level-propositional ext 2)
   where
   module E = Elim-prop e
-
-  @0 e′ : Elim (Is-set ∘ P)
-  e′ .[]ʳ                     = mono₁ 1 ∘ E.is-propositionʳ
-  e′ .[]-respects-relationʳ _ = H-level-propositional ext 2 _ _
-  e′ .is-setʳ _               = mono₁ 1 (H-level-propositional ext 2)
 
 -- A variant of rec that can be used if the motive is a proposition.
 
@@ -530,7 +528,13 @@ related≃[equal] {A = A} {r = r} {x = x} {y = y} {R = R}
           .is-propositionʳ → PTᴱ.truncation-is-proposition
       ; from = PTᴱ.rec λ where
           .PTᴱ.∣∣ʳ                        → [_]
-          .PTᴱ.truncation-is-propositionʳ → elim-prop e₁
+          .PTᴱ.truncation-is-propositionʳ → elim-prop λ @0 where
+            .is-propositionʳ _ →
+              Π-closure ext 1 λ _ →
+              /ᴱ-is-set
+            .[]ʳ x → elim-prop λ @0 where
+              .is-propositionʳ _ → /ᴱ-is-set
+              .[]ʳ y             → []-respects-relation (trivial x y)
       }
     ; right-inverse-of = PTᴱ.elim λ where
         .PTᴱ.∣∣ʳ _                        → refl _
@@ -541,16 +545,6 @@ related≃[equal] {A = A} {r = r} {x = x} {y = y} {R = R}
       .[]ʳ _             → refl _
       .is-propositionʳ _ → /ᴱ-is-set
   }
-  where
-  @0 e₂ : ∀ x → Elim-prop ([ x ] ≡_)
-  e₂ x .[]ʳ y             = []-respects-relation (trivial x y)
-  e₂ _ .is-propositionʳ _ = /ᴱ-is-set
-
-  @0 e₁ : Elim-prop (λ x → (y : A /ᴱ R) → x ≡ y)
-  e₁ .[]ʳ               = elim-prop ∘ e₂
-  e₁ .is-propositionʳ _ =
-       Π-closure ext 1 λ _ →
-       /ᴱ-is-set
 
 ------------------------------------------------------------------------
 -- A property related to ∥_∥ᴱ, proved using _/ᴱ_
