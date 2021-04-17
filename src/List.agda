@@ -14,7 +14,6 @@ open import Prelude
 open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
-open import Equality.Groupoid eq
 import Equivalence eq as Eq
 open import Function-universe eq hiding (_∘_)
 open import H-level eq as H-level
