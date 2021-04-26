@@ -441,6 +441,10 @@ import Torus
 
 import Figure-of-eight
 
+-- The Eilenberg-MacLane space K(G, 1).
+
+import Eilenberg-MacLane-space
+
 -- The one-step truncation.
 
 import H-level.Truncation.Propositional.One-step

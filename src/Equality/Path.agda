@@ -986,8 +986,10 @@ heterogeneous-UIP₃₀₀
   [ (λ i → [ (λ j → [ (λ k → P i j k) ] x i j ≡ y i j) ] p i ≡ q i) ]
     r ≡ s                                                                 □
 
+-- The following three lemmas can be used to implement the truncation
 -- cases of (at least some) eliminators for (at least some) HITs. For
--- some examples, see H-level.Truncation.Propositional and Quotient.
+-- some examples, see H-level.Truncation.Propositional, Quotient and
+-- Eilenberg-MacLane-space.
 
 -- A variant of heterogeneous-irrelevance₀.
 
