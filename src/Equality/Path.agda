@@ -935,7 +935,35 @@ heterogeneous-UIP₀₀ {P = P} {x = x} {y = y} {p = p} {q = q} =
   Contractible ([ (λ i → [ (λ j → P i j) ] x i ≡ y i) ] p ≡ q)  ↝⟨ proj₁ ⟩□
   [ (λ i → [ (λ j → P i j) ] x i ≡ y i) ] p ≡ q                 □
 
--- The following two lemmas can be used to implement the truncation
+-- A variant of heterogeneous-UIP₀₀, "one level up".
+
+heterogeneous-UIP₃₀₀ :
+  {P : I → I → I → Type p}
+  {x : ∀ i j → P i j 0̲} {y : ∀ i j → P i j 1̲}
+  {p : ∀ i → [ (λ k → P i 0̲ k) ] x i 0̲ ≡ y i 0̲}
+  {q : ∀ i → [ (λ k → P i 1̲ k) ] x i 1̲ ≡ y i 1̲}
+  {r : [ (λ j → [ (λ k → P 0̲ j k) ] x 0̲ j ≡ y 0̲ j) ] p 0̲ ≡ q 0̲}
+  {s : [ (λ j → [ (λ k → P 1̲ j k) ] x 1̲ j ≡ y 1̲ j) ] p 1̲ ≡ q 1̲} →
+  H-level 3 (P 0̲ 0̲ 0̲) →
+  [ (λ i → [ (λ j → [ (λ k → P i j k) ] x i j ≡ y i j) ] p i ≡ q i) ]
+    r ≡ s
+heterogeneous-UIP₃₀₀
+  {P = P} {x = x} {y = y} {p = p} {q = q} {r = r} {s = s} =
+
+  H-level 3 (P 0̲ 0̲ 0̲)                                                     ↝⟨ H-level-suc→H-level[]≡ 2 ⟩
+
+  Is-set ([ (λ k → P 0̲ 0̲ k) ] x 0̲ 0̲ ≡ y 0̲ 0̲)                              ↝⟨ H-level-suc→H-level[]≡ 1 ⟩
+
+  Is-proposition
+    ([ (λ j → [ (λ k → P 0̲ j k) ] x 0̲ j ≡ y 0̲ j) ] p 0̲ ≡ q 0̲)             ↝⟨ H-level-suc→H-level[]≡ _ ⟩
+
+  Contractible
+    ([ (λ i → [ (λ j → [ (λ k → P i j k) ] x i j ≡ y i j) ] p i ≡ q i) ]
+       r ≡ s)                                                             ↝⟨ proj₁ ⟩□
+
+  [ (λ i → [ (λ j → [ (λ k → P i j k) ] x i j ≡ y i j) ] p i ≡ q i) ]
+    r ≡ s                                                                 □
+
 -- cases of (at least some) eliminators for (at least some) HITs. For
 -- some examples, see H-level.Truncation.Propositional and Quotient.
 
@@ -970,3 +998,26 @@ heterogeneous-UIP {x = x} {P = P} P-set eq₃ {p₁} {p₂} eq₄ eq₅ =
   (∀ x → Is-set (P x))                                   ↝⟨ _$ _ ⟩
   Is-set (P x)                                           ↝⟨ heterogeneous-UIP₀₀ ⟩□
   [ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅  □
+
+-- A variant of heterogeneous-UIP, "one level up".
+
+heterogeneous-UIP₃ :
+  {P : A → Type p} →
+  (∀ x → H-level 3 (P x)) →
+  {eq₁ eq₂ : x ≡ y} {eq₃ eq₄ : eq₁ ≡ eq₂}
+  (eq₅ : eq₃ ≡ eq₄)
+  {p₁ : P x} {p₂ : P y}
+  {eq₆ : [ (λ k → P (eq₁ k)) ] p₁ ≡ p₂}
+  {eq₇ : [ (λ k → P (eq₂ k)) ] p₁ ≡ p₂}
+  (eq₈ : [ (λ j → [ (λ k → P (eq₃ j k)) ] p₁ ≡ p₂) ] eq₆ ≡ eq₇)
+  (eq₉ : [ (λ j → [ (λ k → P (eq₄ j k)) ] p₁ ≡ p₂) ] eq₆ ≡ eq₇) →
+  [ (λ i → [ (λ j → [ (λ k → P (eq₅ i j k)) ] p₁ ≡ p₂) ] eq₆ ≡ eq₇) ]
+    eq₈ ≡ eq₉
+heterogeneous-UIP₃
+  {x = x} {P = P}
+  P-groupoid eq₅ {p₁ = p₁} {p₂ = p₂} {eq₆ = eq₆} {eq₇ = eq₇} eq₈ eq₉ =
+                                                                       $⟨ P-groupoid ⟩
+  (∀ x → H-level 3 (P x))                                              ↝⟨ _$ _ ⟩
+  H-level 3 (P x)                                                      ↝⟨ heterogeneous-UIP₃₀₀ ⟩□
+  [ (λ i → [ (λ j → [ (λ k → P (eq₅ i j k)) ] p₁ ≡ p₂) ] eq₆ ≡ eq₇) ]
+    eq₈ ≡ eq₉                                                          □
