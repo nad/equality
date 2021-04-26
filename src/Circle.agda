@@ -27,14 +27,14 @@ import Equality.Path.Isomorphisms P.equality-with-paths as PI
 open import Equality.Tactic equality-with-J hiding (module Eq)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
-open import Group equality-with-J as G using (_≃ᴳ_)
+open import Group eq as G using (_≃ᴳ_)
 open import Groupoid equality-with-J
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation eq as T using (∥_∥[1+_])
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
-open import Integer equality-with-J as Int
+open import Integer eq as Int
   using (ℤ; +_; -[1+_]; ℤ-group)
 open import Nat equality-with-J
 open import Pointed-type equality-with-J as PT using (_≃ᴮ_)

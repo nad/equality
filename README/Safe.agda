@@ -180,10 +180,6 @@ import For-iterated-equality
 
 import Univalence-axiom
 
--- Groups.
-
-import Group
-
 -- Pointed types and loop spaces.
 
 import Pointed-type
@@ -272,6 +268,10 @@ import Pushout
 -- Truncation, defined as a HIT.
 
 import H-level.Truncation
+
+-- Groups.
+
+import Group
 
 -- Homotopy groups of pointed types.
 

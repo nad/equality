@@ -26,10 +26,10 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Erased.Cubical eq
 open import Function-universe equality-with-J hiding (id; _∘_)
-open import Group equality-with-J as G using (_≃ᴳ_)
+open import Group eq as G using (_≃ᴳ_)
 open import H-level equality-with-J
 open import H-level.Truncation.Propositional.Erased eq as T using (∥_∥ᴱ)
-open import Integer equality-with-J using (ℤ; +_; ℤ-group)
+open import Integer eq using (ℤ; +_; ℤ-group)
 open import Nat equality-with-J
 open import Pointed-type equality-with-J as PT using (_≃ᴮ_)
 open import Pointed-type.Homotopy-group eq
