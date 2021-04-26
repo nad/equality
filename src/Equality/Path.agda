@@ -937,8 +937,7 @@ heterogeneous-UIP₀₀ {P = P} {x = x} {y = y} {p = p} {q = q} =
 
 -- The following two lemmas can be used to implement the truncation
 -- cases of (at least some) eliminators for (at least some) HITs. For
--- some examples, see H-level.Truncation.Propositional and
--- Quotient.HIT.
+-- some examples, see H-level.Truncation.Propositional and Quotient.
 
 -- A variant of heterogeneous-irrelevance₀.
 
