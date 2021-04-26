@@ -45,7 +45,7 @@ private
     A           : Type a
     B           : A → Type b
     P           : I → Type p
-    u v x y z   : A
+    u v w x y z : A
     f g h       : (x : A) → B x
     i j         : I
     n           : ℕ
@@ -736,6 +736,28 @@ transport-≡ {x = x} {p = p} {q = q} r = elim¹
    trans refl (trans r q)         ≡⟨⟩
    trans (sym refl) (trans r q)   ∎)
   p
+
+-- The function htrans {x≡y = x≡y} {y≡z = y≡z} (const A) is pointwise
+-- equal to trans.
+--
+-- Andrea Vezzosi helped me with this proof.
+
+htrans-const :
+  (x≡y : x ≡ y) (y≡z : y ≡ z) (p : u ≡ v) {q : v ≡ w} →
+  htrans {x≡y = x≡y} {y≡z = y≡z} (const A) p q ≡ trans p q
+htrans-const {A = A} {w = w} _ _ p {q = q} =
+  (λ i → comp (λ _ → A) (s i) (q i))                  ≡⟨⟩
+
+  (λ i →
+     hcomp (λ j x → transport (λ _ → A) j (s i j x))
+       (transport (λ _ → A) 0̲ (q i)))                 ≡⟨ (λ k i → hcomp (λ j x → cong (_$ s i j x) (transport-refl j) k)
+                                                                    (cong (_$ q i) (transport-refl 0̲) k)) ⟩∎
+  (λ i → hcomp (s i) (q i))                           ∎
+  where
+  s : ∀ i j → Partial (max i (- i)) A
+  s i = λ where
+    j (i = 0̲) → p (- j)
+    _ (i = 1̲) → w
 
 -- The following two lemmas are due to Anders Mörtberg.
 --
