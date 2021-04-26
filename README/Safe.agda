@@ -421,6 +421,10 @@ import Integer
 
 import Integer.Quotient
 
+-- Finite cyclic groups.
+
+import Group.Finite-cyclic
+
 -- The "circle".
 
 import Circle
