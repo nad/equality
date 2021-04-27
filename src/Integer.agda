@@ -11,7 +11,8 @@ module Integer
 
 open P.Derived-definitions-and-properties eq
 
-open import Prelude as P hiding (suc; _*_; _^_) renaming (_+_ to _⊕_)
+open import Prelude as P hiding (suc; _^_)
+  renaming (_+_ to _⊕_; _*_ to _⊛_)
 
 open import Bijection equality-with-J using (_↔_)
 open import Equivalence equality-with-J as Eq using (_≃_)
@@ -420,3 +421,119 @@ open G¹ public
   ℤ-group ≡ (ℤ-group G.× ℤ-group)   ↝⟨ flip (subst (ℤ-group ≃ᴳ_)) G.↝ᴳ-refl ⟩
   ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)  ↝⟨ ℤ≄ᴳℤ×ℤ ⟩□
   ⊥                                 □
+
+------------------------------------------------------------------------
+-- Integer division by two
+
+-- Division by two, rounded downwards.
+
+⌊_/2⌋ : ℤ → ℤ
+⌊ + n      /2⌋ = + Nat.⌊ n /2⌋
+⌊ -[1+ n ] /2⌋ = -[ Nat.⌈ P.suc n /2⌉ ]
+
+-- A kind of distributivity property for ⌊_/2⌋ and _+_.
+
+⌊+*+2/2⌋≡ : ∀ i {j} → ⌊ i + j *+ 2 /2⌋ ≡ ⌊ i /2⌋ + j
+⌊+*+2/2⌋≡ = λ where
+    (+ m) {j = + n} → cong +_
+      (Nat.⌊ m ⊕ 2 ⊛ n /2⌋  ≡⟨ cong Nat.⌊_/2⌋ $ Nat.+-comm m ⟩
+       Nat.⌊ 2 ⊛ n ⊕ m /2⌋  ≡⟨ Nat.⌊2*+/2⌋≡ n ⟩
+       n ⊕ Nat.⌊ m /2⌋      ≡⟨ Nat.+-comm n ⟩∎
+       Nat.⌊ m /2⌋ ⊕ n      ∎)
+
+    -[1+ zero ] {j = -[1+ n ]} → cong -[1+_]
+      (Nat.⌈ P.suc (n ⊕ n) /2⌉            ≡⟨ cong (Nat.⌈_/2⌉ ∘ P.suc) $ ⊕-lemma n ⟩
+       Nat.⌈ 1 ⊕ 2 ⊛ n /2⌉                ≡⟨ cong Nat.⌈_/2⌉ $ Nat.+-comm 1 ⟩
+       Nat.⌈ 2 ⊛ n ⊕ 1 /2⌉                ≡⟨ Nat.⌈2*+/2⌉≡ n ⟩
+       n ⊕ Nat.⌈ 1 /2⌉                    ≡⟨ Nat.+-comm n ⟩∎
+       P.suc n                            ∎)
+
+    -[1+ P.suc m ] {j = -[1+ n ]} → cong -[1+_]
+      (Nat.⌈ P.suc m ⊕ P.suc (n ⊕ n) /2⌉  ≡⟨ cong (Nat.⌈_/2⌉ ∘ P.suc) $ sym $ Nat.suc+≡+suc m ⟩
+       P.suc Nat.⌈ m ⊕ (n ⊕ n) /2⌉        ≡⟨ cong (P.suc ∘ Nat.⌈_/2⌉ ∘ (m ⊕_)) $ ⊕-lemma n ⟩
+       P.suc Nat.⌈ m ⊕ 2 ⊛ n /2⌉          ≡⟨ cong (P.suc ∘ Nat.⌈_/2⌉) $ Nat.+-comm m ⟩
+       P.suc Nat.⌈ 2 ⊛ n ⊕ m /2⌉          ≡⟨ cong P.suc $ Nat.⌈2*+/2⌉≡ n ⟩
+       P.suc (n ⊕ Nat.⌈ m /2⌉)            ≡⟨ cong P.suc $ Nat.+-comm n ⟩∎
+       P.suc (Nat.⌈ m /2⌉ ⊕ n)            ∎)
+
+    (+ m) {j = -[1+ n ]} →
+      ⌊ + m +-[1+ P.suc (n ⊕ n) ] /2⌋  ≡⟨ cong (λ n → ⌊ + m +-[1+ P.suc n ] /2⌋) $ ⊕-lemma n ⟩
+      ⌊ + m +-[1+ P.suc (2 ⊛ n) ] /2⌋  ≡⟨ lemma₁ m n ⟩∎
+      + Nat.⌊ m /2⌋ +-[1+ n ]          ∎
+
+    -[1+ 0 ] {j = + 0} →
+      -[ 1 ]  ≡⟨⟩
+      -[ 1 ]  ∎
+
+    -[1+ 0 ] {j = + P.suc n} → cong +_
+      (Nat.⌊ n ⊕ P.suc (n ⊕ 0) /2⌋  ≡⟨ cong Nat.⌊_/2⌋ $ sym $ Nat.suc+≡+suc n ⟩
+       Nat.⌊ 1 ⊕ 2 ⊛ n /2⌋          ≡⟨ Nat.⌊1+2*/2⌋≡ n ⟩∎
+       n                            ∎)
+
+    -[1+ P.suc m ] {j = + n} →
+      ⌊ + 2 ⊛ n +-[1+ P.suc m ] /2⌋  ≡⟨ lemma₂ m n ⟩∎
+      + n +-[1+ Nat.⌈ m /2⌉ ]        ∎
+  where
+  ⊕-lemma : ∀ n → n ⊕ n ≡ 2 ⊛ n
+  ⊕-lemma n = cong (n ⊕_) $ sym Nat.+-right-identity
+
+  lemma₁ :
+    ∀ m n →
+    ⌊ + m +-[1+ P.suc (2 ⊛ n) ] /2⌋ ≡
+    + Nat.⌊ m /2⌋ +-[1+ n ]
+  lemma₁ zero n = cong -[1+_]
+    (Nat.⌈ 2 ⊛ n /2⌉  ≡⟨ Nat.⌈2*/2⌉≡ n ⟩∎
+     n                ∎)
+  lemma₁ (P.suc zero) n =
+    -[ Nat.⌈ 1 ⊕ 2 ⊛ n /2⌉ ]  ≡⟨ cong -[_] $ Nat.⌈1+2*/2⌉≡ n ⟩∎
+    -[1+ n ]                  ∎
+  lemma₁ (P.suc (P.suc m)) zero =
+    ⌊ + m /2⌋      ≡⟨⟩
+    + Nat.⌊ m /2⌋  ∎
+  lemma₁ (P.suc (P.suc m)) (P.suc n) =
+    ⌊ + m +-[1+ n ⊕ P.suc (n ⊕ 0) ] /2⌋  ≡⟨ cong (⌊_/2⌋ ∘ + m +-[1+_]) $ sym $ Nat.suc+≡+suc n ⟩
+    ⌊ + m +-[1+ P.suc (2 ⊛ n) ] /2⌋      ≡⟨ lemma₁ m n ⟩∎
+    + Nat.⌊ m /2⌋ +-[1+ n ]              ∎
+
+  mutual
+
+    lemma₂ :
+      ∀ m n →
+      ⌊ + 2 ⊛ n +-[1+ P.suc m ] /2⌋ ≡
+      + n +-[1+ Nat.⌈ m /2⌉ ]
+    lemma₂ m zero =
+      ⌊ -[1+ P.suc m ] /2⌋  ≡⟨⟩
+      -[1+ Nat.⌈ m /2⌉ ]    ∎
+    lemma₂ m (P.suc n) =
+      ⌊ + n ⊕ P.suc (n ⊕ 0) +-[1+ m ] /2⌋  ≡⟨ cong (⌊_/2⌋ ∘ +_+-[1+ m ]) $ sym $ Nat.suc+≡+suc n ⟩
+      ⌊ + P.suc (2 ⊛ n) +-[1+ m ] /2⌋      ≡⟨ lemma₃ m n ⟩∎
+      + P.suc n +-[1+ Nat.⌈ m /2⌉ ]        ∎
+
+    lemma₃ :
+      ∀ m n →
+      ⌊ + P.suc (2 ⊛ n) +-[1+ m ] /2⌋ ≡
+      + P.suc n +-[1+ Nat.⌈ m /2⌉ ]
+    lemma₃ zero n = cong +_
+      (Nat.⌊ 2 ⊛ n /2⌋  ≡⟨ Nat.⌊2*/2⌋≡ n ⟩∎
+       n                ∎)
+    lemma₃ (P.suc zero) zero =
+      -[ 1 ]  ≡⟨⟩
+      -[ 1 ]  ∎
+    lemma₃ (P.suc zero) (P.suc n) = cong +_
+      (Nat.⌊ n ⊕ P.suc (n ⊕ zero) /2⌋  ≡⟨ cong Nat.⌊_/2⌋ $ sym $ Nat.suc+≡+suc n ⟩
+       Nat.⌊ 1 ⊕ 2 ⊛ n /2⌋             ≡⟨ Nat.⌊1+2*/2⌋≡ n ⟩∎
+       n                               ∎)
+    lemma₃ (P.suc (P.suc m)) n =
+      ⌊ + 2 ⊛ n +-[1+ P.suc m ] /2⌋  ≡⟨ lemma₂ m n ⟩∎
+      + n +-[1+ Nat.⌈ m /2⌉ ]        ∎
+
+-- If you double and then halve an integer, then you get back what you
+-- started with.
+
+⌊*+2/2⌋≡ : ∀ i → ⌊ i *+ 2 /2⌋ ≡ i
+⌊*+2/2⌋≡ i =
+  ⌊ i *+ 2 /2⌋        ≡⟨ cong ⌊_/2⌋ $ sym $ +-left-identity {i = i *+ 2} ⟩
+  ⌊ + 0 + i *+ 2 /2⌋  ≡⟨ ⌊+*+2/2⌋≡ (+ 0) {j = i} ⟩
+  ⌊ + 0 /2⌋ + i       ≡⟨⟩
+  + 0 + i             ≡⟨ +-left-identity ⟩∎
+  i                   ∎
