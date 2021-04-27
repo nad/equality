@@ -170,6 +170,13 @@ _→ᴳ_ = _↝[ implication ]ᴳ_
 _≃ᴳ_ : Group g₁ → Group g₂ → Type (g₁ ⊔ g₂)
 _≃ᴳ_ = _↝[ equivalence ]ᴳ_
 
+-- "Functions" of type G₁ ↝[ k ]ᴳ G₂ can be converted to group
+-- homomorphisms.
+
+↝ᴳ→→ᴳ : G₁ ↝[ k ]ᴳ G₂ → G₁ →ᴳ G₂
+↝ᴳ→→ᴳ f .related     = to f
+↝ᴳ→→ᴳ f .homomorphic = f .homomorphic
+
 -- _↝[ k ]ᴳ_ is reflexive.
 
 ↝ᴳ-refl : G ↝[ k ]ᴳ G
