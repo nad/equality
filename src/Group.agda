@@ -11,6 +11,7 @@ module Group
 
 open P.Derived-definitions-and-properties eq
 
+open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (id; _∘_; _^_) renaming (_×_ to _⊗_)
 
 import Bijection equality-with-J as B
@@ -592,3 +593,71 @@ G₁ × G₂ = λ where
   helper : ∀ i → (x , y) G₁₂.^ i ≡ (x G₁.^ i , y G₂.^ i)
   helper (+ n)    = +-helper n
   helper -[1+ n ] = +-helper (suc n)
+
+------------------------------------------------------------------------
+-- The centre of a group
+
+-- Centre G is the centre of the group G, sometimes denoted Z(G).
+
+Centre : Group g → Group g
+Centre G = λ where
+    .Carrier        → ∃ λ (x : Carrier) → ∀ y → x ∘ y ≡ y ∘ x
+    .Carrier-is-set → Σ-closure 2 Carrier-is-set λ _ →
+                      Π-closure ext 2 λ _ →
+                      mono₁ 2 Carrier-is-set
+    ._∘_            → Σ-zip _∘_ λ {x y} hyp₁ hyp₂ z →
+                        (x ∘ y) ∘ z  ≡⟨ sym $ assoc _ _ _ ⟩
+                        x ∘ (y ∘ z)  ≡⟨ cong (x ∘_) $ hyp₂ z ⟩
+                        x ∘ (z ∘ y)  ≡⟨ assoc _ _ _ ⟩
+                        (x ∘ z) ∘ y  ≡⟨ cong (_∘ y) $ hyp₁ z ⟩
+                        (z ∘ x) ∘ y  ≡⟨ sym $ assoc _ _ _ ⟩∎
+                        z ∘ (x ∘ y)  ∎
+    .id             → id
+                    , λ x →
+                        id ∘ x  ≡⟨ left-identity _ ⟩
+                        x       ≡⟨ sym $ right-identity _ ⟩∎
+                        x ∘ id  ∎
+    ._⁻¹            → Σ-map _⁻¹ λ {x} hyp y →
+                        x ⁻¹ ∘ y        ≡⟨ cong (x ⁻¹ ∘_) $ sym $ involutive _ ⟩
+                        x ⁻¹ ∘ y ⁻¹ ⁻¹  ≡⟨ sym ∘⁻¹ ⟩
+                        (y ⁻¹ ∘ x) ⁻¹   ≡⟨ cong _⁻¹ $ sym $ hyp (y ⁻¹) ⟩
+                        (x ∘ y ⁻¹) ⁻¹   ≡⟨ ∘⁻¹ ⟩
+                        y ⁻¹ ⁻¹ ∘ x ⁻¹  ≡⟨ cong (_∘ x ⁻¹) $ involutive _ ⟩∎
+                        y ∘ x ⁻¹        ∎
+    .left-identity  → λ _ →
+                      Σ-≡,≡→≡ (left-identity _)
+                        ((Π-closure ext 1 λ _ → Carrier-is-set) _ _)
+    .right-identity → λ _ →
+                      Σ-≡,≡→≡ (right-identity _)
+                        ((Π-closure ext 1 λ _ → Carrier-is-set) _ _)
+    .assoc          → λ _ _ _ →
+                      Σ-≡,≡→≡ (assoc _ _ _)
+                        ((Π-closure ext 1 λ _ → Carrier-is-set) _ _)
+    .left-inverse   → λ _ →
+                      Σ-≡,≡→≡ (left-inverse _)
+                        ((Π-closure ext 1 λ _ → Carrier-is-set) _ _)
+    .right-inverse  → λ _ →
+                      Σ-≡,≡→≡ (right-inverse _)
+                        ((Π-closure ext 1 λ _ → Carrier-is-set) _ _)
+  where
+  open Group G
+
+-- The centre of an abelian group is isomorphic to the group.
+
+Abelian→Centre≃ :
+  (G : Group g) → Abelian G → Centre G ≃ᴳ G
+Abelian→Centre≃ G abelian = ≃ᴳ-sym λ where
+    .Homomorphic.related         → inverse equiv
+    .Homomorphic.homomorphic _ _ →
+      cong (_ ,_) ((Π-closure ext 1 λ _ → Carrier-is-set) _ _)
+  where
+  open Group G
+
+  equiv =
+    (∃ λ (x : Carrier) → ∀ y → x ∘ y ≡ y ∘ x)  ↔⟨ (drop-⊤-right λ _ →
+                                                   _⇔_.to contractible⇔↔⊤ $
+                                                   Π-closure ext 0 λ _ →
+                                                   propositional⇒inhabited⇒contractible
+                                                     Carrier-is-set
+                                                     (abelian _ _)) ⟩□
+    Carrier                                    □
