@@ -445,6 +445,10 @@ import Figure-of-eight
 
 import Eilenberg-MacLane-space
 
+-- Coherently constant functions.
+
+import Coherently-constant
+
 -- The one-step truncation.
 
 import H-level.Truncation.Propositional.One-step
