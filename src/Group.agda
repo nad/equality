@@ -131,7 +131,8 @@ record Homomorphic (k : Kind) (G₁ : Group g₁) (G₂ : Group g₂) :
     homomorphic :
       ∀ x y → to (x G₁.∘ y) ≡ to x G₂.∘ to y
 
-open Homomorphic
+open Homomorphic public using (related; homomorphic)
+open Homomorphic using (to)
 
 -- The type of (generalised) group homomorphisms can be expressed
 -- using a nested Σ-type.
