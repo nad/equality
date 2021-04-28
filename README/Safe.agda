@@ -277,6 +277,10 @@ import Group
 
 import Pointed-type.Homotopy-group
 
+-- Connectedness for pointed types.
+
+import Pointed-type.Connected
+
 -- Some omniscience principles.
 
 import Omniscience
