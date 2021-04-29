@@ -587,13 +587,20 @@ private
 
 ¬-Constant→Coherently-constant :
   Univalence lzero →
-  ¬ ((A B : Type) → ∥ B ∥ →
-     (g : B → A ≃ A) → Constant g → Coherently-constant g)
+  ¬ ((A B : Type) → ∥ A ∥ →
+     (f : A → B ≃ B) → Constant f → Coherently-constant f)
 ¬-Constant→Coherently-constant univ =
-  ((A : Type) → CCC (A ≃ A))                     ↝⟨ CCC-≃→CCC-K ⟩
-  ((G : Group lzero) → Abelian G → CCC K[ G ]1)  ↝⟨ (λ hyp G abelian → CCC→IR (hyp G abelian)) ⟩
-  ((G : Group lzero) → Abelian G → IR K[ G ]1)   ↝⟨ (λ hyp → hyp ℤ/[1+ 1 ]ℤ FC.abelian) ⟩
-  IR K[ ℤ/[1+ 1 ]ℤ ]1                            ↝⟨ ¬IR ⟩□
-  ⊥                                              □
+  ((A B : Type) → ∥ A ∥ →
+   (f : A → B ≃ B) → Constant f → Coherently-constant f)  ↝⟨ flip ⟩
+
+  ((A : Type) → CCC (A ≃ A))                              ↝⟨ CCC-≃→CCC-K ⟩
+
+  ((G : Group lzero) → Abelian G → CCC K[ G ]1)           ↝⟨ (λ hyp G abelian → CCC→IR (hyp G abelian)) ⟩
+
+  ((G : Group lzero) → Abelian G → IR K[ G ]1)            ↝⟨ (λ hyp → hyp ℤ/2ℤ FC.abelian) ⟩
+
+  IR K[ ℤ/2ℤ ]1                                           ↝⟨ ¬IR ⟩□
+
+  ⊥                                                       □
   where
   open ¬-Constant→Coherently-constant univ
