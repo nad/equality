@@ -26,7 +26,6 @@ open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as T using (∥_∥; ∣_∣)
 open import Injection equality-with-J using (Injective)
 open import Integer eq
-open import Pointed-type.Connected eq
 open import Pointed-type.Homotopy-group eq
 open import Preimage equality-with-J using (_⁻¹_)
 import Quotient eq as Q
@@ -157,23 +156,11 @@ private
       Ω[Aut[K[G]]] =
         Fundamental-group′ Aut[K[G]] Aut[K[G]]-groupoid
 
-      C[Aut[K[G]]] = Connected-component Aut[K[G]]
-
-      Ω[C[Aut[K[G]]]] =
-        Fundamental-group′ (Connected-component Aut[K[G]])
-          (H-level-Ω-Connected-component 2 Aut[K[G]]-groupoid)
-
-      C[Aut[K[G]]]-groupoid : H-level 3 (proj₁ C[Aut[K[G]]])
-      C[Aut[K[G]]]-groupoid =
-        H-level-Connected-component 2 Aut[K[G]]-groupoid
-
       emb : Embedding K[ G ]1 (K[ G ]1 ≃ K[ G ]1)
       emb =
-        K[ G ]1                ↔⟨ inverse $ K.cong-≃ $ K.Fundamental-group′[K1≃K1]≃ᴳ univ abelian ⟩
-        K[ Ω[Aut[K[G]]] ]1     ↔⟨ inverse $ K.cong-≃ $ Fundamental-group′-Connected-component≃ᴳ ⟩
-        K[ Ω[C[Aut[K[G]]]] ]1  ↔⟨ proj₁ $ K.K[Fundamental-group′]1≃ᴮ univ C[Aut[K[G]]]-groupoid Connected-Connected-component ⟩
-        proj₁ C[Aut[K[G]]]     ↝⟨ proj₁ Connected-component↣ᴮ ⟩□
-        proj₁ Aut[K[G]]        □
+        K[ G ]1             ↔⟨ inverse $ K.cong-≃ $ K.Fundamental-group′[K1≃K1]≃ᴳ univ abelian ⟩
+        K[ Ω[Aut[K[G]]] ]1  ↝⟨ proj₁ $ K.K[Fundamental-group′]1↣ᴮ univ Aut[K[G]]-groupoid ⟩□
+        proj₁ Aut[K[G]]     □
 
     -- The group of integers.
 
