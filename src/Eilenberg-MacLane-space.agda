@@ -19,7 +19,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 
 open import Bijection equality-with-J as B using (_↔_)
-open import Embedding equality-with-J using (Is-embedding)
+open import Embedding equality-with-J using (Embedding; Is-embedding)
 import Equality.Groupoid equality-with-J as EG
 open import Equality.Path.Isomorphisms eq hiding (univ)
 open import Equivalence equality-with-J as Eq
@@ -714,21 +714,18 @@ Abelian→Abelian-Fundamental-group′ {G = G} abelian =
 
       refl _                                          ∎
 
--- If P is a connected groupoid, then there is a based equivalence
--- from (K[ Fundamental-group′ P s ]1 , base) to P (assuming
--- univalence).
+-- If P is a groupoid, then there is a based embedding from
+-- (K[ Fundamental-group′ P s ]1 , base) to P (assuming univalence).
 --
 -- Christian Sattler showed me a similar proof of this result.
 
-K[Fundamental-group′]1≃ᴮ :
+K[Fundamental-group′]1↣ᴮ :
   {P : Pointed-type p} {s : Is-set (proj₁ (Ω P))} →
   Univalence p →
   H-level 3 (proj₁ P) →
-  Connected P →
-  (K[ Fundamental-group′ P s ]1 , base) ≃ᴮ P
-K[Fundamental-group′]1≃ᴮ {P = P@(A , a)} {s = s} univ g conn =
-    Eq.⟨ to , _≃_.to TP.surjective×embedding≃equivalence (surj , emb) ⟩
-  , refl _
+  (K[ Fundamental-group′ P s ]1 , base) ↝[ embedding ]ᴮ P
+K[Fundamental-group′]1↣ᴮ {P = P@(A , a)} {s = s} univ g =
+  record { to = to; is-embedding = emb } , refl _
   where
   to : K[ Fundamental-group′ P s ]1 → A
   to = rec λ where
@@ -737,13 +734,6 @@ K[Fundamental-group′]1≃ᴮ {P = P@(A , a)} {s = s} univ g conn =
     .loop-idʳ     → refl _
     .loop-∘ʳ      → refl _
     .is-groupoidʳ → g
-
-  surj : Surjective to
-  surj x = flip TP.∥∥-map (conn x) λ a≡x →
-      base
-    , (to base  ≡⟨⟩
-       a        ≡⟨ a≡x ⟩∎
-       x        ∎)
 
   iso :
     Fundamental-group′ P s ≃ᴳ
@@ -771,6 +761,33 @@ K[Fundamental-group′]1≃ᴮ {P = P@(A , a)} {s = s} univ g conn =
     .baseʳ → elim-prop λ where
       .is-propositionʳ _ → Eq.propositional ext _
       .baseʳ             → cong-to-equivalence
+
+-- If P is a connected groupoid, then there is a based equivalence
+-- from (K[ Fundamental-group′ P s ]1 , base) to P (assuming
+-- univalence).
+--
+-- Christian Sattler showed me a similar proof of this result.
+
+K[Fundamental-group′]1≃ᴮ :
+  {P : Pointed-type p} {s : Is-set (proj₁ (Ω P))} →
+  Univalence p →
+  H-level 3 (proj₁ P) →
+  Connected P →
+  (K[ Fundamental-group′ P s ]1 , base) ≃ᴮ P
+K[Fundamental-group′]1≃ᴮ {P = P@(A , a)} {s = s} univ g conn =
+    Eq.⟨ Embedding.to (proj₁ f)
+       , _≃_.to TP.surjective×embedding≃equivalence
+           (surj , Embedding.is-embedding (proj₁ f)) ⟩
+  , proj₂ f
+  where
+  f = K[Fundamental-group′]1↣ᴮ univ g
+
+  surj : Surjective (Embedding.to (proj₁ f))
+  surj x = flip TP.∥∥-map (conn x) λ a≡x →
+      base
+    , (Embedding.to (proj₁ f) base  ≡⟨⟩
+       a                            ≡⟨ a≡x ⟩∎
+       x                            ∎)
 
 ------------------------------------------------------------------------
 -- Another result related to a fundamental group
