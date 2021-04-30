@@ -13,6 +13,7 @@ open P.Derived-definitions-and-properties eq
 
 open import Prelude hiding (_+_)
 
+import Bijection equality-with-J as B
 open import Eilenberg-MacLane-space eq as K using (K[_]1; base; loop)
 open import Embedding equality-with-J as Emb using (Embedding)
 open import Equality.Decidable-UIP equality-with-J using (Constant)
@@ -82,26 +83,26 @@ private
   -- Definitions used in the proof of ¬-Constant→Coherently-constant.
 
   module ¬-Constant→Coherently-constant
-    (univ : Univalence lzero)
+    (ℓ : Level) (univ : Univalence lzero)
     where
 
-    -- CCC C is the statement that every constant function from a
-    -- merely inhabited type in Type to C is coherently constant.
+    -- CCC B is the statement that every constant function from a
+    -- merely inhabited type in Type ℓ to B is coherently constant.
 
-    CCC : Type → Type₁
-    CCC C =
-      (B : Type) → ∥ B ∥ →
-      (g : B → C) → Constant g → Coherently-constant g
+    CCC : Type ℓ → Type (lsuc ℓ)
+    CCC B =
+      (A : Type ℓ) → ∥ A ∥ →
+      (f : A → B) → Constant f → Coherently-constant f
 
-    Has-retraction : {A B : Type} → (A → B) → Type
+    Has-retraction : {A B : Type a} → (B → A) → Type a
     Has-retraction f = ∃ λ g → g ∘ f ≡ id
 
-    -- IR C is the statement that every injective, (-1)-connected
-    -- function from C to a type in Type has a retraction.
+    -- IR A is the statement that every injective, (-1)-connected
+    -- function from A to a type in Type ℓ has a retraction.
 
-    IR : Type → Type₁
-    IR C =
-      (A : Type) (f : C → A) → (∀ x → ∥ f ⁻¹ x ∥) →
+    IR : Type ℓ → Type (lsuc ℓ)
+    IR A =
+      (B : Type ℓ) (f : A → B) → (∀ x → ∥ f ⁻¹ x ∥) →
       Injective f → Has-retraction f
 
     -- CCC C implies IR C.
@@ -137,16 +138,16 @@ private
                             (Embedding.is-embedding emb) _) λ b →
         g b , cong (_$ b) (proj₂ cc)
 
-    -- If CCC (A ≃ A) holds for every type A, then CCC K[ G ]1 holds
-    -- for every abelian group G.
+    -- If CCC (A ≃ A) holds for every type A, then CCC (↑ ℓ K[ G ]1)
+    -- holds for every abelian group G of type Group lzero.
 
     CCC-≃→CCC-K :
-      ((A : Type) → CCC (A ≃ A)) →
-      (G : Group lzero) → Abelian G → CCC K[ G ]1
+      ((B : Type ℓ) → CCC (B ≃ B)) →
+      (G : Group lzero) → Abelian G → CCC (↑ ℓ K[ G ]1)
     CCC-≃→CCC-K ccc G abelian =
-                               $⟨ ccc K[ G ]1 ⟩
-      CCC (K[ G ]1 ≃ K[ G ]1)  ↝⟨ CCC→CCC emb ⟩□
-      CCC K[ G ]1              □
+                                       $⟨ ccc (↑ ℓ K[ G ]1) ⟩
+      CCC (↑ ℓ K[ G ]1 ≃ ↑ ℓ K[ G ]1)  ↝⟨ CCC→CCC emb ⟩□
+      CCC (↑ ℓ K[ G ]1)                □
       where
       Aut[K[G]] = (K[ G ]1 ≃ K[ G ]1) , Eq.id
 
@@ -156,11 +157,13 @@ private
       Ω[Aut[K[G]]] =
         Fundamental-group′ Aut[K[G]] Aut[K[G]]-groupoid
 
-      emb : Embedding K[ G ]1 (K[ G ]1 ≃ K[ G ]1)
+      emb : Embedding (↑ ℓ K[ G ]1) (↑ ℓ K[ G ]1 ≃ ↑ ℓ K[ G ]1)
       emb =
-        K[ G ]1             ↔⟨ inverse $ K.cong-≃ $ K.Fundamental-group′[K1≃K1]≃ᴳ univ abelian ⟩
-        K[ Ω[Aut[K[G]]] ]1  ↝⟨ proj₁ $ K.K[Fundamental-group′]1↣ᴮ univ Aut[K[G]]-groupoid ⟩□
-        proj₁ Aut[K[G]]     □
+        ↑ ℓ K[ G ]1                ↔⟨ B.↑↔ ⟩
+        K[ G ]1                    ↔⟨ inverse $ K.cong-≃ $ K.Fundamental-group′[K1≃K1]≃ᴳ univ abelian ⟩
+        K[ Ω[Aut[K[G]]] ]1         ↝⟨ proj₁ $ K.K[Fundamental-group′]1↣ᴮ univ Aut[K[G]]-groupoid ⟩
+        K[ G ]1 ≃ K[ G ]1          ↔⟨ inverse $ Eq.≃-preserves-bijections ext B.↑↔ B.↑↔ ⟩□
+        ↑ ℓ K[ G ]1 ≃ ↑ ℓ K[ G ]1  □
 
     -- The group of integers.
 
@@ -267,8 +270,8 @@ private
 
     -- The function K.map mul2ʰ is injective.
 
-    inj : Injective (K.map mul2ʰ)
-    inj {x = x} {y = y} = K.elim-set e x y
+    map-mul2ʰ-injective : Injective (K.map mul2ʰ)
+    map-mul2ʰ-injective {x = x} {y = y} = K.elim-set e x y
       where
       lemma = K.elim-set λ where
         .K.is-setʳ _ →
@@ -380,16 +383,32 @@ private
 
             lemma base eq                                              ∎
 
-    -- It is not the case that IR holds for K[ ℤ/2ℤ ]1.
+    -- It is not the case that IR holds for ↑ ℓ K[ ℤ/2ℤ ]1.
 
-    ¬IR : ¬ IR K[ ℤ/2ℤ ]1
+    ¬IR : ¬ IR (↑ ℓ K[ ℤ/2ℤ ]1)
     ¬IR ir = contradiction
       where
+
       -- The function K.map mul2ʰ has a retraction.
 
       map-mul2ʰ-has-retraction : Has-retraction (K.map mul2ʰ)
       map-mul2ʰ-has-retraction =
-        ir K[ ℤ/[1+ 3 ]ℤ ]1 (K.map mul2ʰ) K[ℤ/4ℤ]-connected inj
+        let r , is-r = ir (↑ ℓ K[ ℤ/4ℤ ]1) mul2′ conn inj in
+          lower ∘ r ∘ lift
+        , (⟨ext⟩ λ x →
+           lower (r (lift (K.map mul2ʰ x)))  ≡⟨ cong lower $ cong (_$ lift x) is-r ⟩∎
+           x                                 ∎)
+        where
+        mul2′ : ↑ ℓ K[ ℤ/2ℤ ]1 → ↑ ℓ K[ ℤ/4ℤ ]1
+        mul2′ = lift ∘ K.map mul2ʰ ∘ lower
+
+        conn : (x : ↑ ℓ K[ ℤ/4ℤ ]1) → ∥ mul2′ ⁻¹ x ∥
+        conn =
+          T.∥∥-map (Σ-map lift (cong lift)) ∘
+          K[ℤ/4ℤ]-connected ∘ lower
+
+        inj : Injective mul2′
+        inj = cong lift ∘ map-mul2ʰ-injective ∘ cong lower
 
       -- The retraction, and the proof showing that it is a
       -- retraction.
@@ -577,8 +596,8 @@ private
       contradiction : ⊥
       contradiction = FC.0≢1 0 0≡1
 
--- It is not the case that, for every type A : Type and merely
--- inhabited type B : Type, every weakly constant function from B to
+-- It is not the case that, for every type A : Type a and merely
+-- inhabited type B : Type a, every weakly constant function from B to
 -- A ≃ A is coherently constant (assuming univalence).
 --
 -- This result is due to Sattler (personal communication), building on
@@ -587,20 +606,20 @@ private
 
 ¬-Constant→Coherently-constant :
   Univalence lzero →
-  ¬ ((A B : Type) → ∥ A ∥ →
+  ¬ ((A B : Type a) → ∥ A ∥ →
      (f : A → B ≃ B) → Constant f → Coherently-constant f)
-¬-Constant→Coherently-constant univ =
-  ((A B : Type) → ∥ A ∥ →
+¬-Constant→Coherently-constant {a = a} univ =
+  ((A B : Type a) → ∥ A ∥ →
    (f : A → B ≃ B) → Constant f → Coherently-constant f)  ↝⟨ flip ⟩
 
-  ((A : Type) → CCC (A ≃ A))                              ↝⟨ CCC-≃→CCC-K ⟩
+  ((B : Type a) → CCC (B ≃ B))                            ↝⟨ CCC-≃→CCC-K ⟩
 
-  ((G : Group lzero) → Abelian G → CCC K[ G ]1)           ↝⟨ (λ hyp G abelian → CCC→IR (hyp G abelian)) ⟩
+  ((G : Group lzero) → Abelian G → CCC (↑ a K[ G ]1))     ↝⟨ (λ hyp G abelian → CCC→IR (hyp G abelian)) ⟩
 
-  ((G : Group lzero) → Abelian G → IR K[ G ]1)            ↝⟨ (λ hyp → hyp ℤ/2ℤ FC.abelian) ⟩
+  ((G : Group lzero) → Abelian G → IR (↑ a K[ G ]1))      ↝⟨ (λ hyp → hyp ℤ/2ℤ FC.abelian) ⟩
 
-  IR K[ ℤ/2ℤ ]1                                           ↝⟨ ¬IR ⟩□
+  IR (↑ a K[ ℤ/2ℤ ]1)                                     ↝⟨ ¬IR ⟩□
 
   ⊥                                                       □
   where
-  open ¬-Constant→Coherently-constant univ
+  open ¬-Constant→Coherently-constant a univ
