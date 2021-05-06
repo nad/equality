@@ -1431,7 +1431,7 @@ abstract
     (λ eq →
        _≃_.to (subst (λ x → P x ≃ Q x) eq f) ≡
        subst (λ x → P x → Q x) eq (_≃_.to f))
-    (_≃_.to (subst (λ x → P x ≃ Q x) (refl _) f)  ≡⟨ cong _≃_.to $ subst-refl _ _ ⟩
+    (_≃_.to (subst (λ x → P x ≃ Q x) (refl _) f)  ≡⟨ cong _≃_.to $ subst-refl (λ _ → _ ≃ _) _ ⟩
      _≃_.to f                                     ≡⟨ sym $ subst-refl _ _ ⟩∎
      subst (λ x → P x → Q x) (refl _) (_≃_.to f)  ∎)
     eq
@@ -1445,7 +1445,7 @@ abstract
     (λ eq →
        _≃_.from (subst (λ x → P x ≃ Q x) eq f) ≡
        subst (λ x → Q x → P x) eq (_≃_.from f))
-    (_≃_.from (subst (λ x → P x ≃ Q x) (refl _) f)  ≡⟨ cong _≃_.from $ subst-refl _ _ ⟩
+    (_≃_.from (subst (λ x → P x ≃ Q x) (refl _) f)  ≡⟨ cong _≃_.from $ subst-refl (λ _ → _ ≃ _) _ ⟩
      _≃_.from f                                     ≡⟨ sym $ subst-refl _ _ ⟩∎
      subst (λ x → Q x → P x) (refl _) (_≃_.from f)  ∎)
     eq
