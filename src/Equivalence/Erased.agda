@@ -230,7 +230,7 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext = ⇔→≃ᴱ
 Π-cong-≃ᴱ {Q = Q} ext f g f-g g-f P≃Q =
   [≃]→≃ᴱ
     {to = λ h x → subst Q (f-g x) (_≃ᴱ_.to (P≃Q (g x)) (h (g x)))}
-    ([proofs] (Π-cong ext (Eq.↔→≃ f g f-g g-f) (≃ᴱ→≃ ⊚ P≃Q)))
+    ([proofs] (Π-cong ext {B₂ = Q} (Eq.↔→≃ f g f-g g-f) (≃ᴱ→≃ ⊚ P≃Q)))
 
 Π-cong-contra-≃ᴱ :
   {A : Type a} {B : Type b} {P : A → Type p} {Q : B → Type q} →
