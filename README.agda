@@ -16,13 +16,13 @@ module README where
 
 import README.Safe
 
--- "Safe" code that does not use --with-K, but does use --sized-types.
-
-import README.Safe.Sized-types
-
 -- "Safe" code that does not use --with-K, but does use --guardedness.
 
 import README.Safe.Guardedness
+
+-- Code which is "safe", except for the use of --sized-types.
+
+import README.Unsafe.Sized-types
 
 -- "Safe" code that uses --with-K.
 
@@ -35,6 +35,7 @@ import README.Safe.With-K
 
 import README.Erased
 
--- Code which might depend on potentially unsafe features.
+-- Code which might depend on potentially unsafe features (other than
+-- --sized-types).
 
 import README.Unsafe

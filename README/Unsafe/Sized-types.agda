@@ -1,10 +1,10 @@
 ------------------------------------------------------------------------
--- Safe modules that use --sized-types
+-- Modules that are not safe because they use --sized-types
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe --sized-types #-}
+{-# OPTIONS --without-K --sized-types #-}
 
-module README.Safe.Sized-types where
+module README.Unsafe.Sized-types where
 
 -- Support for sized types.
 
