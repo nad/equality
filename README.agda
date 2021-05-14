@@ -11,22 +11,34 @@
 
 module README where
 
--- "Safe" code that does not use --with-K, --sized-types or
--- --guardedness.
+-- "Safe" code that uses --without-K.
 
-import README.Safe
+import README.Safe.Without-K
 
--- "Safe" code that does not use --with-K, but does use --guardedness.
+-- "Safe" code that uses --cubical.
 
-import README.Safe.Guardedness
+import README.Safe.Cubical
 
--- Code which is "safe", except for the use of --sized-types.
+-- "Safe" code that uses --cubical and --guardedness.
 
-import README.Unsafe.Sized-types
+import README.Safe.Cubical.Guardedness
+
+-- "Safe" code that uses --cubical and --prop.
+
+import README.Safe.Cubical.Prop
 
 -- "Safe" code that uses --with-K.
 
 import README.Safe.With-K
+
+-- Code which might depend on potentially unsafe features (other than
+-- --sized-types).
+
+import README.Unsafe
+
+-- Code which is "safe", except for the use of --sized-types.
+
+import README.Unsafe.Sized-types
 
 -- Code related to the paper "Logical properties of a modality for
 -- erasure". This code uses both --cubical and --with-K, but not at
@@ -34,8 +46,3 @@ import README.Safe.With-K
 -- reason cannot use --safe.
 
 import README.Erased
-
--- Code which might depend on potentially unsafe features (other than
--- --sized-types).
-
-import README.Unsafe

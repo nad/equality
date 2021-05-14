@@ -2,9 +2,9 @@
 -- Safe modules that use --guardedness
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe --guardedness #-}
+{-# OPTIONS --safe --cubical --guardedness #-}
 
-module README.Safe.Guardedness where
+module README.Safe.Cubical.Guardedness where
 
 -- M-types for indexed containers, defined coinductively (in Cubical
 -- Agda).

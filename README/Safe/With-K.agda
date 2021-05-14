@@ -2,7 +2,7 @@
 -- Safe modules that use --with-K
 ------------------------------------------------------------------------
 
-{-# OPTIONS --with-K --safe #-}
+{-# OPTIONS --safe --with-K #-}
 
 module README.Safe.With-K where
 
