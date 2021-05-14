@@ -15,7 +15,7 @@ open import Prelude
 
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J
-open import Group eq as G using (_≃ᴳ_)
+open import Group equality-with-J as G using (_≃ᴳ_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as T using (∥_∥; ∣_∣)

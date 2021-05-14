@@ -65,10 +65,6 @@ import Pushout
 
 import H-level.Truncation
 
--- Groups.
-
-import Group
-
 -- Homotopy groups of pointed types.
 
 import Pointed-type.Homotopy-group
@@ -135,17 +131,13 @@ import Finite-subset.Listed.Alternative
 
 import Finite-subset.Kuratowski
 
--- Integers.
-
-import Integer
-
 -- Integers, defined using a quotient type.
 
 import Integer.Quotient
 
--- Finite cyclic groups.
+-- Cyclic groups.
 
-import Group.Finite-cyclic
+import Group.Cyclic
 
 -- The "circle".
 

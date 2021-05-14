@@ -18,7 +18,7 @@ open import Equality.Groupoid equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J
-open import Group eq as G using (Group; Abelian; _≃ᴳ_)
+open import Group equality-with-J as G using (Group; Abelian; _≃ᴳ_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation eq as T

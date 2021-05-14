@@ -26,7 +26,7 @@ open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
 open import Function-universe equality-with-J hiding (id; _∘_)
-open import Group eq
+open import Group equality-with-J
 open import H-level equality-with-J as H-level
 import H-level P.equality-with-J as PH
 open import H-level.Closure equality-with-J

@@ -189,6 +189,14 @@ import Pointed-type
 
 import Equality.Groupoid
 
+-- Groups.
+
+import Group
+
+-- Integers.
+
+import Integer
+
 -- A type for values that should be erased at run-time.
 
 import Erased.Level-1

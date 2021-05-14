@@ -20,13 +20,13 @@ open import Equality.Decidable-UIP equality-with-J using (Constant)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
-open import Group eq
-open import Group.Finite-cyclic eq as FC using (ℤ/[1+_]ℤ; _≡_mod_)
+open import Group equality-with-J
+open import Group.Cyclic eq as C using (ℤ/[1+_]ℤ; _≡_mod_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as T using (∥_∥; ∣_∣)
 open import Injection equality-with-J using (Injective)
-open import Integer eq
+open import Integer equality-with-J
 open import Pointed-type.Homotopy-group eq
 open import Preimage equality-with-J using (_⁻¹_)
 import Quotient eq as Q
@@ -189,7 +189,7 @@ private
       .Q.[]ʳ i                                 → Q.[ i *+ 2 ]
       .Q.is-setʳ                               → Q./-is-set
       .Q.[]-respects-relationʳ {x = i} {y = j} →
-        i ≡ j mod 2                  ↝⟨ FC.*+-cong {j = j} {n = 2} 2 ⟩
+        i ≡ j mod 2                  ↝⟨ C.*+-cong {j = j} {n = 2} 2 ⟩
         i *+ 2 ≡ j *+ 2 mod 4        ↝⟨ Q.[]-respects-relation ⟩□
         Q.[ i *+ 2 ] ≡ Q.[ j *+ 2 ]  □
 
@@ -214,7 +214,7 @@ private
       .Q.[]ʳ i                                 → Q.[ ⌊ i /2⌋ ]
       .Q.is-setʳ                               → Q./-is-set
       .Q.[]-respects-relationʳ {x = i} {y = j} →
-        i ≡ j mod 4                    ↝⟨ FC.⌊/2⌋-cong j 2 ⟩
+        i ≡ j mod 4                    ↝⟨ C.⌊/2⌋-cong j 2 ⟩
         ⌊ i /2⌋ ≡ ⌊ j /2⌋ mod 2        ↝⟨ Q.[]-respects-relation ⟩□
         Q.[ ⌊ i /2⌋ ] ≡ Q.[ ⌊ j /2⌋ ]  □
 
@@ -580,7 +580,7 @@ private
 
       0≡1 : _≡_ {A = ℤ/2ℤ.Carrier} Q.[ + 0 ] Q.[ + 1 ]
       0≡1 =
-        Q.[ + 0 ]                           ≡⟨ sym $ FC.+≡0 (Homomorphic.to r₃ Q.[ + 1 ]) ⟩
+        Q.[ + 0 ]                           ≡⟨ sym $ C.ℤ/2ℤ-+≡0 (Homomorphic.to r₃ Q.[ + 1 ]) ⟩
 
         Homomorphic.to r₃ Q.[ + 1 ] ℤ/2ℤ.+
         Homomorphic.to r₃ Q.[ + 1 ]         ≡⟨ sym $ r₃ .homomorphic Q.[ + 1 ] Q.[ + 1 ] ⟩
@@ -594,7 +594,7 @@ private
       -- However, this is contradictory.
 
       contradiction : ⊥
-      contradiction = FC.0≢1 0 0≡1
+      contradiction = C.ℤ/ℤ-0≢1 0 0≡1
 
 -- It is not the case that, for every type A : Type a and merely
 -- inhabited type B : Type a, every weakly constant function from B to
@@ -616,7 +616,7 @@ private
 
   ((G : Group lzero) → Abelian G → CCC (↑ a K[ G ]1))     ↝⟨ (λ hyp G abelian → CCC→IR (hyp G abelian)) ⟩
 
-  ((G : Group lzero) → Abelian G → IR (↑ a K[ G ]1))      ↝⟨ (λ hyp → hyp ℤ/2ℤ FC.abelian) ⟩
+  ((G : Group lzero) → Abelian G → IR (↑ a K[ G ]1))      ↝⟨ (λ hyp → hyp ℤ/2ℤ C.ℤ/ℤ-abelian) ⟩
 
   IR (↑ a K[ ℤ/2ℤ ]1)                                     ↝⟨ ¬IR ⟩□
 
