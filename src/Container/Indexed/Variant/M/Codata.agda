@@ -19,7 +19,7 @@ open import Container.Indexed equality-with-J using (_⇾_; _∘⇾_)
 open import Container.Indexed.Variant equality-with-J
   hiding (Final′≃Final′)
 import Container.Indexed.Variant P.equality-with-J as PC
-open import Equality.Path.Isomorphisms eq hiding (univ)
+open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J
 open import H-level equality-with-J

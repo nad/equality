@@ -22,6 +22,7 @@ open import Bag-equivalence equality-with-J as BE using (_∼[_]_; set)
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Equality.Decision-procedures equality-with-J
 open import Equality.Path.Isomorphisms eq
+open import Equality.Path.Isomorphisms.Univalence eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Erased.Cubical eq as EC
   using (Erased; [_]; Dec-Erased; Dec→Dec-Erased)

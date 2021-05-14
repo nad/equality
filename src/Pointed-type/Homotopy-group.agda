@@ -15,7 +15,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Equality.Groupoid equality-with-J
-open import Equality.Path.Isomorphisms eq hiding (univ)
+open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J
 open import Group eq as G using (Group; Abelian; _≃ᴳ_)

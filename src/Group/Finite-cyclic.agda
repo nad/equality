@@ -13,7 +13,7 @@ open P.Derived-definitions-and-properties eq
 
 open import Prelude as P renaming (_+_ to _⊕_)
 
-open import Equality.Path.Isomorphisms eq hiding (univ)
+open import Equality.Path.Isomorphisms eq
 open import Equivalence-relation equality-with-J
   using (Is-equivalence-relation)
 open import Function-universe equality-with-J hiding (_∘_)

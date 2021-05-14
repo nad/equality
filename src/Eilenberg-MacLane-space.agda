@@ -21,7 +21,7 @@ open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Bijection equality-with-J as B using (_↔_)
 open import Embedding equality-with-J using (Embedding; Is-embedding)
 import Equality.Groupoid equality-with-J as EG
-open import Equality.Path.Isomorphisms eq hiding (univ)
+open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq

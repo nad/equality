@@ -14,7 +14,7 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 open import Prelude as P hiding (suc; _*_; _^_) renaming (_+_ to _⊕_)
 
 open import Bijection equality-with-J using (_↔_)
-open import Equality.Path.Isomorphisms eq hiding (univ)
+open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)

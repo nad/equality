@@ -6,15 +6,23 @@
 
 module README.Safe.Cubical where
 
--- Paths, extensionality and univalence.
+-- Paths and extensionality.
 
 import Equality.Path
 
+-- A proof of univalence.
+
+import Equality.Path.Univalence
+
 -- Isomorphisms and equalities relating an arbitrary "equality with J"
--- to path equality, along with proofs of extensionality and
--- univalence for the "equality with J".
+-- to path equality, along with a proof of extensionality for the
+-- "equality with J".
 
 import Equality.Path.Isomorphisms
+
+-- A proof of univalence for an arbitrary "equality with J".
+
+import Equality.Path.Isomorphisms.Univalence
 
 -- The cubical identity type.
 

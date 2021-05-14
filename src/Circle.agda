@@ -23,6 +23,7 @@ open import Bijection equality-with-J as Bijection using (_↔_)
 import Bijection P.equality-with-J as PB
 open import Equality.Groupoid equality-with-J
 open import Equality.Path.Isomorphisms eq
+open import Equality.Path.Isomorphisms.Univalence eq
 import Equality.Path.Isomorphisms P.equality-with-paths as PI
 open import Equality.Tactic equality-with-J hiding (module Eq)
 open import Equivalence equality-with-J as Eq using (_≃_)
