@@ -29,8 +29,6 @@ open import Erased.Cubical eq
 open import Function-universe equality-with-J as F hiding (_∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional.Non-recursive eq as N
-  using (∥_∥)
 open import H-level.Truncation.Propositional.One-step eq as O
   using (∥_∥¹-out-^)
 
@@ -221,35 +219,6 @@ _ = refl _
   lemma₅ : Elim _
   lemma₅ .is-propositionʳ = Π≡-proposition ext
   lemma₅ .∣∣ʳ x           = C.elim (lemma₄ x)
-
-------------------------------------------------------------------------
--- Some conversion functions
-
--- ∥ A ∥ᴱ implies ∥ A ∥.
-
-∥∥ᴱ→∥∥ : ∥ A ∥ᴱ → ∥ A ∥
-∥∥ᴱ→∥∥ = elim λ where
-  .∣∣ʳ               → N.∣_∣
-  .is-propositionʳ _ → N.∥∥-proposition
-
--- In erased contexts ∥ A ∥ᴱ and ∥ A ∥ are equivalent.
-
-@0 ∥∥ᴱ≃∥∥ : ∥ A ∥ᴱ ≃ ∥ A ∥
-∥∥ᴱ≃∥∥ = Eq.↔→≃
-  ∥∥ᴱ→∥∥
-  (N.elim e₁)
-  (N.elim e₂)
-  (elim λ where
-     .Elim.∣∣ʳ _             → refl _
-     .Elim.is-propositionʳ _ → mono₁ 1 ∥∥ᴱ-proposition)
-  where
-  e₁ : N.Elim _
-  e₁ .N.Elim.∣∣ʳ               = ∣_∣
-  e₁ .N.Elim.is-propositionʳ _ = ∥∥ᴱ-proposition
-
-  e₂ : N.Elim _
-  e₂ .N.Elim.∣∣ʳ _             = refl _
-  e₂ .N.Elim.is-propositionʳ _ = mono₁ 1 N.∥∥-proposition
 
 ------------------------------------------------------------------------
 -- A lemma

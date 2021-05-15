@@ -25,8 +25,11 @@ open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F
+open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 import H-level.Truncation.Propositional eq as T
+open import H-level.Truncation.Propositional.Non-recursive.Erased eq
+  as N using (∥_∥ᴱ)
 open import H-level.Truncation.Propositional.One-step eq as O
   using (∥_∥¹; ∥_∥¹-out-^; ∣_∣-out-^)
 
@@ -189,3 +192,28 @@ _ = refl _
 
   (∃ λ (f : ∀ n → ∥ A ∥¹-out-^ n → B) →
      ∀ n x → f (suc n) O.∣ x ∣ ≡ f n x)  □
+
+------------------------------------------------------------------------
+-- Some conversion functions
+
+-- ∥ A ∥ᴱ implies ∥ A ∥.
+
+∥∥ᴱ→∥∥ : ∥ A ∥ᴱ → ∥ A ∥
+∥∥ᴱ→∥∥ = N.elim λ where
+  .N.∣∣ʳ               → ∣_∣
+  .N.is-propositionʳ _ → ∥∥-proposition
+
+-- In erased contexts ∥ A ∥ᴱ and ∥ A ∥ are equivalent.
+
+@0 ∥∥ᴱ≃∥∥ : ∥ A ∥ᴱ ≃ ∥ A ∥
+∥∥ᴱ≃∥∥ = Eq.↔→≃
+  ∥∥ᴱ→∥∥
+  (elim λ @0 where
+     .∣∣ʳ               → N.∣_∣
+     .is-propositionʳ _ → N.∥∥ᴱ-proposition)
+  (elim λ @0 where
+     .∣∣ʳ _             → refl _
+     .is-propositionʳ _ → mono₁ 1 ∥∥-proposition)
+  (N.elim λ where
+     .N.∣∣ʳ _             → refl _
+     .N.is-propositionʳ _ → mono₁ 1 N.∥∥ᴱ-proposition)

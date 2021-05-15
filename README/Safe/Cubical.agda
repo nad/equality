@@ -167,14 +167,14 @@ import H-level.Truncation.Propositional.One-step
 
 import H-level.Truncation.Propositional.One-step.Erased
 
+-- A non-recursive variant of H-level.Truncation.Propositional.Erased.
+
+import H-level.Truncation.Propositional.Non-recursive.Erased
+
 -- A definition of the propositional truncation operator that does not
 -- use recursive higher inductive types.
 
 import H-level.Truncation.Propositional.Non-recursive
-
--- A non-recursive variant of H-level.Truncation.Propositional.Erased.
-
-import H-level.Truncation.Propositional.Non-recursive.Erased
 
 -- A variant of the propositional truncation operator with an erased
 -- truncation constructor.
