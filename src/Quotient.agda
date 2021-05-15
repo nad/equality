@@ -40,6 +40,7 @@ open import H-level.Truncation.Propositional eq as TruncP
   using (∥_∥; ∣_∣; Surjective; Axiom-of-countable-choice)
 open import Monad equality-with-J
 open import Preimage equality-with-J using (_⁻¹_)
+open import Quotient.Erased.Basics eq as QE using (_/ᴱ_)
 import Quotient.Families-of-equivalence-classes equality-with-J
   as Quotient
 open import Surjection equality-with-J using (_↠_)
@@ -261,6 +262,42 @@ rec-prop r = elim-prop λ where
     .is-propositionʳ _ → R.is-propositionʳ
   where
   module R = Rec-prop r
+
+------------------------------------------------------------------------
+-- Conversion functions
+
+-- One can convert from quotients with erased higher constructors to
+-- quotients with regular higher constructors.
+
+/ᴱ→/ : A /ᴱ R → A / R
+/ᴱ→/ = QE.rec λ where
+  .QE.[]ʳ                   → [_]
+  .QE.[]-respects-relationʳ → []-respects-relation
+  .QE.is-setʳ               → /-is-set
+
+-- In an erased context quotients with erased higher constructors are
+-- equivalent to quotients with regular higher constructors.
+
+@0 /ᴱ≃/ : A /ᴱ R ≃ A / R
+/ᴱ≃/ {A = A} {R = R} = Eq.↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = /ᴱ→/
+      ; from = rec λ @0 where
+          .[]ʳ                   → QE.[_]
+          .[]-respects-relationʳ → QE.[]-respects-relation
+          .is-setʳ               → QE./ᴱ-is-set
+      }
+    ; right-inverse-of = elim λ @0 where
+        .[]ʳ _                   → refl _
+        .[]-respects-relationʳ _ → /-is-set _ _
+        .is-setʳ _               → mono₁ 2 /-is-set
+    }
+  ; left-inverse-of = QE.elim λ where
+      .QE.[]ʳ _                   → refl _
+      .QE.[]-respects-relationʳ _ → QE./ᴱ-is-set _ _
+      .QE.is-setʳ _               → mono₁ 2 QE./ᴱ-is-set
+  })
 
 ------------------------------------------------------------------------
 -- Some properties
