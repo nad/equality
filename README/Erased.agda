@@ -38,6 +38,7 @@ import Nat.Wrapper
 import Nat.Wrapper.Cubical
 import Prelude
 import Queue.Truncated
+import Quotient
 
 ------------------------------------------------------------------------
 -- 3: Erased
@@ -425,7 +426,7 @@ Lemma-90         = Erased.Stable-≡-⊎
 Lemma-91         = Erased.Very-stable-≡-⊎
 Lemma-92         = Erased.Stable-≡-List
 Lemma-93         = Erased.Very-stable-≡-List
-Lemma-94         = Erased.Cubical.Very-stable-≡-/
+Lemma-94         = Quotient.Very-stable-≡-/
 
 ------------------------------------------------------------------------
 -- 4.6: []‐cong can be proved using extensionality

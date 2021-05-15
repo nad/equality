@@ -30,7 +30,8 @@ open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Erased equality-with-J using (_≃ᴱ_)
 open import Equivalence-relation equality-with-J
-open import Erased.Basics equality-with-J as EB using (Erased)
+open import Erased.Cubical eq as E
+  using (Erased; erased; Very-stableᴱ-≡; Erased-singleton)
 import Erased.Stability equality-with-J as ES
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
@@ -39,7 +40,8 @@ import H-level.Truncation.Church equality-with-J as Trunc
 open import Injection equality-with-J using (_↣_)
 open import Monad equality-with-J
 open import Preimage equality-with-J as Preimage using (_⁻¹_)
-open import Surjection equality-with-J using (_↠_; Split-surjective)
+open import Surjection equality-with-J as Surjection
+  using (_↠_; Split-surjective)
 
 private
   variable
@@ -47,7 +49,7 @@ private
     A A₁ A₂ B B₁ B₂ C D : Type a
     P Q                 : A → Type p
     R                   : A → A → Type r
-    k x y               : A
+    A↠B k s x y         : A
 
 -- Propositional truncation.
 
@@ -77,12 +79,12 @@ open Elimᴾ′ public
 elimᴾ′ : Elimᴾ′ P → (x : ∥ A ∥) → P x
 elimᴾ′ {A = A} {P = P} e = helper
   where
-  module E = Elimᴾ′ e
+  module E′ = Elimᴾ′ e
 
   helper : (x : ∥ A ∥) → P x
-  helper ∣ x ∣                              = E.∣∣ʳ x
+  helper ∣ x ∣                              = E′.∣∣ʳ x
   helper (truncation-is-propositionᴾ x y i) =
-    E.truncation-is-propositionʳ (helper x) (helper y) i
+    E′.truncation-is-propositionʳ (helper x) (helper y) i
 
 -- A possibly more useful dependent eliminator, expressed using paths.
 
@@ -99,12 +101,12 @@ open Elimᴾ public
 elimᴾ : Elimᴾ P → (x : ∥ A ∥) → P x
 elimᴾ e = elimᴾ′ e′
   where
-  module E = Elimᴾ e
+  module E′ = Elimᴾ e
 
   e′ : Elimᴾ′ _
-  e′ .∣∣ʳ                            = E.∣∣ʳ
+  e′ .∣∣ʳ                            = E′.∣∣ʳ
   e′ .truncation-is-propositionʳ _ _ =
-    P.heterogeneous-irrelevance E.truncation-is-propositionʳ
+    P.heterogeneous-irrelevance E′.truncation-is-propositionʳ
 
 -- A non-dependent eliminator, expressed using paths.
 
@@ -140,12 +142,12 @@ open Elim′ public
 elim′ : Elim′ P → (x : ∥ A ∥) → P x
 elim′ e = elimᴾ e′
   where
-  module E = Elim′ e
+  module E′ = Elim′ e
 
   e′ : Elimᴾ _
-  e′ .∣∣ʳ                        = E.∣∣ʳ
+  e′ .∣∣ʳ                        = E′.∣∣ʳ
   e′ .truncation-is-propositionʳ =
-    _↔_.to (H-level↔H-level 1) ∘ E.truncation-is-propositionʳ
+    _↔_.to (H-level↔H-level 1) ∘ E′.truncation-is-propositionʳ
 
 elim :
   (P : ∥ A ∥ → Type p) →
@@ -419,13 +421,10 @@ _ = refl _
 Erased-∥∥×≃ : (Erased ∥ A ∥ × A) ≃ A
 Erased-∥∥×≃ = Eq.↔→≃
   proj₂
-  (λ x → EB.[ ∣ x ∣ ] , x)
+  (λ x → E.[ ∣ x ∣ ] , x)
   refl
   (λ (_ , x) →
-     cong (_, x)
-       (EB.[]-cong-axiomatisation.[]-cong
-          (ES.Extensionality→[]-cong ext)
-          EB.[ truncation-is-proposition _ _ ]))
+     cong (_, x) (E.[]-cong E.[ truncation-is-proposition _ _ ]))
 
 _ : _≃_.right-inverse-of Erased-∥∥×≃ x ≡ refl _
 _ = refl _
@@ -1015,3 +1014,77 @@ drop-⊥-left-∥⊎∥ B-prop ¬A =
   B ∥⊎∥ A        ↝⟨ ∥⊎∥≃∥⊎∥¬× dec-∥B∥ ⟩
   B ∥⊎∥ ¬ B × A  ↔⟨ ∥⊎∥-comm ⟩□
   ¬ B × A ∥⊎∥ B  □
+
+------------------------------------------------------------------------
+-- Code related to Erased-singleton
+
+-- A corollary of erased-singleton-with-erased-center-propositional.
+
+↠→↔Erased-singleton :
+  {@0 y : B}
+  (A↠B : A ↠ B) →
+  Very-stableᴱ-≡ B →
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ ↔ Erased-singleton y
+↠→↔Erased-singleton {A = A} {y = y} A↠B s =
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥  ↝⟨ ∥∥-cong-⇔ (Surjection.Σ-cong-⇔ A↠B λ _ → F.id) ⟩
+  ∥ Erased-singleton y ∥                         ↝⟨ ∥∥↔ (E.erased-singleton-with-erased-center-propositional s) ⟩□
+  Erased-singleton y                             □
+
+mutual
+
+  -- The right-to-left direction of the previous lemma does not depend
+  -- on the assumption of stability.
+
+  ↠→Erased-singleton→ :
+    {@0 y : B}
+    (A↠B : A ↠ B) →
+    Erased-singleton y →
+    ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥
+  ↠→Erased-singleton→ = _  -- Agda can infer the definition.
+
+  _ : _↔_.from (↠→↔Erased-singleton A↠B s) x ≡
+      ↠→Erased-singleton→ A↠B x
+  _ = refl _
+
+-- A corollary of Σ-Erased-Erased-singleton↔ and ↠→↔Erased-singleton.
+
+Σ-Erased-∥-Σ-Erased-≡-∥↔ :
+  (A↠B : A ↠ B) →
+  Very-stableᴱ-≡ B →
+  (∃ λ (x : Erased B) →
+     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥) ↔
+  B
+Σ-Erased-∥-Σ-Erased-≡-∥↔ {A = A} {B = B} A↠B s =
+  (∃ λ (x : Erased B) →
+     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥)  ↝⟨ (∃-cong λ _ → ↠→↔Erased-singleton A↠B s) ⟩
+
+  (∃ λ (x : Erased B) → Erased-singleton (erased x))        ↝⟨ E.Σ-Erased-Erased-singleton↔ ⟩□
+
+  B                                                         □
+
+mutual
+
+  -- Again the right-to-left direction of the previous lemma does not
+  -- depend on the assumption of stability.
+
+  →Σ-Erased-∥-Σ-Erased-≡-∥ :
+    (A↠B : A ↠ B) →
+    B →
+    ∃ λ (x : Erased B) →
+      ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥
+  →Σ-Erased-∥-Σ-Erased-≡-∥ = _  -- Agda can infer the definition.
+
+  _ : _↔_.from (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡
+      →Σ-Erased-∥-Σ-Erased-≡-∥ A↠B x
+  _ = refl _
+
+-- In an erased context the left-to-right direction of
+-- Σ-Erased-∥-Σ-Erased-≡-∥↔ returns the erased first component.
+
+@0 to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ :
+  ∀ (A↠B : A ↠ B) (s : Very-stableᴱ-≡ B) x →
+  _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) x ≡ erased (proj₁ x)
+to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ A↠B s (E.[ x ] , y) =
+  _↔_.to (Σ-Erased-∥-Σ-Erased-≡-∥↔ A↠B s) (E.[ x ] , y)  ≡⟨⟩
+  proj₁ (_↔_.to (↠→↔Erased-singleton A↠B s) y)           ≡⟨ erased (proj₂ (_↔_.to (↠→↔Erased-singleton A↠B s) y)) ⟩∎
+  x                                                      ∎

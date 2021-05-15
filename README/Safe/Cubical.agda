@@ -33,6 +33,10 @@ import Equality.Id
 
 import Equality.Propositional.Cubical
 
+-- Some theory of Erased, developed using Cubical Agda.
+
+import Erased.Cubical
+
 -- The "interval".
 
 import Interval
@@ -91,10 +95,6 @@ import Quotient
 
 import Quotient.Set-truncated-if-propositional
 import Quotient.Higher-constructors-if-propositional
-
--- Some theory of Erased, developed using Cubical Agda.
-
-import Erased.Cubical
 
 -- Some theory of equivalences with erased "proofs", developed using
 -- Cubical Agda.

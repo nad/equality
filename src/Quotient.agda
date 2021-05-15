@@ -33,6 +33,8 @@ open import Equality.Path.Isomorphisms eq
 open import Equality.Path.Isomorphisms.Univalence eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence-relation equality-with-J
+open import Erased.Cubical eq as E
+  using (Stable; Very-stable; Very-stable-≡)
 open import Function-universe equality-with-J as F hiding (_∘_; id)
 open import H-level.Closure equality-with-J
 import H-level.Truncation.Church equality-with-J as Trunc
@@ -105,13 +107,13 @@ open Elimᴾ′ public
 elimᴾ′ : Elimᴾ′ P → (x : A / R) → P x
 elimᴾ′ {A = A} {R = R} {P = P} e = helper
   where
-  module E = Elimᴾ′ e
+  module E′ = Elimᴾ′ e
 
   helper : (x : A / R) → P x
-  helper [ x ]                       = E.[]ʳ x
-  helper ([]-respects-relationᴾ r i) = E.[]-respects-relationʳ r i
+  helper [ x ]                       = E′.[]ʳ x
+  helper ([]-respects-relationᴾ r i) = E′.[]-respects-relationʳ r i
   helper (/-is-setᴾ p q i j)         =
-    E.is-setʳ (λ i → helper (p i)) (λ i → helper (q i)) i j
+    E′.is-setʳ (λ i → helper (p i)) (λ i → helper (q i)) i j
 
 -- A possibly more useful eliminator, expressed using paths.
 
@@ -131,11 +133,11 @@ open Elimᴾ public
 
 elimᴾ : Elimᴾ P → (x : A / R) → P x
 elimᴾ e = elimᴾ′ λ where
-    .[]ʳ                   → E.[]ʳ
-    .[]-respects-relationʳ → E.[]-respects-relationʳ
-    .is-setʳ               → P.heterogeneous-UIP E.is-setʳ _
+    .[]ʳ                   → E′.[]ʳ
+    .[]-respects-relationʳ → E′.[]-respects-relationʳ
+    .is-setʳ               → P.heterogeneous-UIP E′.is-setʳ _
   where
-  module E = Elimᴾ e
+  module E′ = Elimᴾ e
 
 private
 
@@ -143,9 +145,9 @@ private
 
   elimᴾ′₂ : Elimᴾ′ P → (x : A / R) → P x
   elimᴾ′₂ {P = P} e = elimᴾ λ where
-      .[]ʳ                   → E.[]ʳ
-      .[]-respects-relationʳ → E.[]-respects-relationʳ
-      .is-setʳ x {y} {z} p q →                                         $⟨ E.is-setʳ p q ⟩
+      .[]ʳ                   → E′.[]ʳ
+      .[]-respects-relationʳ → E′.[]-respects-relationʳ
+      .is-setʳ x {y} {z} p q →                                         $⟨ E′.is-setʳ p q ⟩
         P.[ (λ i →
                P.[ (λ j → P (/-is-setᴾ P.refl P.refl i j)) ] y ≡ z) ]
           p ≡ q                                                        ↝⟨ P.subst (λ eq → P.[ (λ i → P.[ (λ j → P (eq i j)) ] y ≡ z) ] p ≡ q)
@@ -154,7 +156,7 @@ private
 
         p P.≡ q                                                        □
     where
-    module E = Elimᴾ′ e
+    module E′ = Elimᴾ′ e
 
 -- A non-dependent eliminator, expressed using paths.
 
@@ -194,11 +196,11 @@ open Elim public
 
 elim : Elim P → (x : A / R) → P x
 elim e = elimᴾ λ where
-    .[]ʳ                   → E.[]ʳ
-    .[]-respects-relationʳ → subst≡→[]≡ ∘ E.[]-respects-relationʳ
-    .is-setʳ               → _↔_.to (H-level↔H-level 2) ∘ E.is-setʳ
+    .[]ʳ                   → E′.[]ʳ
+    .[]-respects-relationʳ → subst≡→[]≡ ∘ E′.[]-respects-relationʳ
+    .is-setʳ               → _↔_.to (H-level↔H-level 2) ∘ E′.is-setʳ
   where
-  module E = Elim e
+  module E′ = Elim e
 
 -- A non-dependent eliminator.
 
@@ -237,14 +239,14 @@ open Elim-prop public
 
 elim-prop : Elim-prop P → (x : A / R) → P x
 elim-prop e = elim λ where
-    .[]ʳ                     → E.[]ʳ
-    .[]-respects-relationʳ _ → E.is-propositionʳ _ _ _
+    .[]ʳ                     → E′.[]ʳ
+    .[]-respects-relationʳ _ → E′.is-propositionʳ _ _ _
     .is-setʳ                 → elim λ where
-      .[]ʳ                     → mono₁ 1 ∘ E.is-propositionʳ
+      .[]ʳ                     → mono₁ 1 ∘ E′.is-propositionʳ
       .[]-respects-relationʳ _ → H-level-propositional ext 2 _ _
       .is-setʳ _               → mono₁ 1 (H-level-propositional ext 2)
   where
-  module E = Elim-prop e
+  module E′ = Elim-prop e
 
 -- A variant of rec that can be used if the motive is a proposition.
 
@@ -579,6 +581,26 @@ private
           x ≡
     f ∣ x ∣
   from-constant-function↔∥inhabited∥⇒inhabited _ = refl _
+
+-- If R is a propositional equivalence relation that is pointwise
+-- stable, then equality is very stable for A / R.
+
+Very-stable-≡-/ :
+  Is-equivalence-relation R →
+  (∀ x y → Is-proposition (R x y)) →
+  (∀ x y → Stable (R x y)) →
+  Very-stable-≡ (A / R)
+Very-stable-≡-/ {A = A} {R = R} equiv prop s =
+  elim-prop λ where
+    .[]ʳ x → elim-prop λ where
+       .[]ʳ y →                       $⟨ s _ _ ⟩
+         Stable (R x y)               ↝⟨ flip E.Stable-proposition→Very-stable (prop _ _) ⟩
+         Very-stable (R x y)          ↝⟨ E.Very-stable-cong _ (related≃[equal] equiv (prop _ _)) ⟩□
+         Very-stable ([ x ] ≡ [ y ])  □
+       .is-propositionʳ _ → E.Very-stable-propositional ext
+    .is-propositionʳ _ →
+      Π-closure ext 1 λ _ →
+      E.Very-stable-propositional ext
 
 private
 
