@@ -334,6 +334,8 @@ rec-prop r = elim-prop λ where
 infix 5 _/ᴱ-map-∥∥_ _/ᴱ-map_
 
 _/ᴱ-map-∥∥_ :
+  {@0 R₁ : A₁ → A₁ → Type r₁}
+  {@0 R₂ : A₂ → A₂ → Type r₂} →
   (A₁→A₂ : A₁ → A₂) →
   @0 (∀ x y → ∥ R₁ x y ∥ → ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥) →
   A₁ /ᴱ R₁ → A₂ /ᴱ R₂
@@ -347,6 +349,8 @@ _/ᴱ-map-∥∥_ {R₁ = R₁} {R₂ = R₂} A₁→A₂ R₁→R₂ = rec λ w
      [ A₁→A₂ x ] ≡ [ A₁→A₂ y ]   □
 
 _/ᴱ-map_ :
+  {@0 R₁ : A₁ → A₁ → Type r₁}
+  {@0 R₂ : A₂ → A₂ → Type r₂} →
   (A₁→A₂ : A₁ → A₂) →
   @0 (∀ x y → R₁ x y → R₂ (A₁→A₂ x) (A₁→A₂ y)) →
   A₁ /ᴱ R₁ → A₂ /ᴱ R₂
@@ -355,6 +359,8 @@ A₁→A₂ /ᴱ-map R₁→R₂ = A₁→A₂ /ᴱ-map-∥∥ λ x y → PT.∥
 -- Two preservation lemmas for logical equivalences.
 
 /ᴱ-cong-∥∥-⇔ :
+  {@0 R₁ : A₁ → A₁ → Type r₁}
+  {@0 R₂ : A₂ → A₂ → Type r₂} →
   (A₁⇔A₂ : A₁ ⇔ A₂) →
   @0 (∀ x y → ∥ R₁ x y ∥ → ∥ R₂ (_⇔_.to   A₁⇔A₂ x) (_⇔_.to   A₁⇔A₂ y) ∥) →
   @0 (∀ x y → ∥ R₂ x y ∥ → ∥ R₁ (_⇔_.from A₁⇔A₂ x) (_⇔_.from A₁⇔A₂ y) ∥) →
@@ -365,6 +371,8 @@ A₁→A₂ /ᴱ-map R₁→R₂ = A₁→A₂ /ᴱ-map-∥∥ λ x y → PT.∥
   }
 
 /ᴱ-cong-⇔ :
+  {@0 R₁ : A₁ → A₁ → Type r₁}
+  {@0 R₂ : A₂ → A₂ → Type r₂} →
   (A₁⇔A₂ : A₁ ⇔ A₂) →
   @0 (∀ x y → R₁ x y → R₂ (_⇔_.to   A₁⇔A₂ x) (_⇔_.to   A₁⇔A₂ y)) →
   @0 (∀ x y → R₂ x y → R₁ (_⇔_.from A₁⇔A₂ x) (_⇔_.from A₁⇔A₂ y)) →
@@ -378,6 +386,8 @@ A₁→A₂ /ᴱ-map R₁→R₂ = A₁→A₂ /ᴱ-map-∥∥ λ x y → PT.∥
 infix 5 _/ᴱ-cong-∥∥-↠_ _/ᴱ-cong-↠_
 
 _/ᴱ-cong-∥∥-↠_ :
+  {@0 R₁ : A₁ → A₁ → Type r₁}
+  {@0 R₂ : A₂ → A₂ → Type r₂} →
   (A₁↠A₂ : A₁ ↠ A₂) →
   @0 (∀ x y → ∥ R₁ x y ∥ ⇔ ∥ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y) ∥) →
   A₁ /ᴱ R₁ ↠ A₂ /ᴱ R₂
@@ -398,6 +408,8 @@ _/ᴱ-cong-∥∥-↠_ {R₁ = R₁} {R₂ = R₂} A₁↠A₂ R₁⇔R₂ = rec
   open _↠_ A₁↠A₂
 
 _/ᴱ-cong-↠_ :
+  {@0 R₁ : A₁ → A₁ → Type r₁}
+  {@0 R₂ : A₂ → A₂ → Type r₂} →
   (A₁↠A₂ : A₁ ↠ A₂) →
   @0 (∀ x y → R₁ x y ⇔ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y)) →
   A₁ /ᴱ R₁ ↠ A₂ /ᴱ R₂
@@ -410,8 +422,8 @@ infix 5 _/ᴱ-cong-∥∥_ _/ᴱ-cong_
 
 _/ᴱ-cong-∥∥_ :
   {A₁ : Type a₁} {A₂ : Type a₂}
-  {R₁ : A₁ → A₁ → Type r₁}
-  {R₂ : A₂ → A₂ → Type r₂} →
+  {@0 R₁ : A₁ → A₁ → Type r₁}
+  {@0 R₂ : A₂ → A₂ → Type r₂} →
   (A₁↔A₂ : A₁ ↔[ k ] A₂) →
   @0 (∀ x y →
         ∥ R₁ x y ∥ ⇔
@@ -438,8 +450,8 @@ _/ᴱ-cong-∥∥_ {k = k} {R₁ = R₁} {R₂ = R₂} A₁↔A₂′ R₁⇔R�
 
 _/ᴱ-cong_ :
   {A₁ : Type a₁} {A₂ : Type a₂}
-  {R₁ : A₁ → A₁ → Type r₁}
-  {R₂ : A₂ → A₂ → Type r₂} →
+  {@0 R₁ : A₁ → A₁ → Type r₁}
+  {@0 R₂ : A₂ → A₂ → Type r₂} →
   (A₁↔A₂ : A₁ ↔[ k ] A₂) →
   @0 (∀ x y →
         R₁ x y ⇔ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y)) →
