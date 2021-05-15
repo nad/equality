@@ -24,12 +24,9 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
-open import Colimit.Sequential eq as C using (Colimit)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
-import Equivalence P.equality-with-J as PEq
 open import Erased.Cubical eq
-open import Function-universe equality-with-J hiding (id; _∘_)
 
 private
   variable
@@ -269,64 +266,3 @@ universal-property-Π {P = P} {step = step} {Q = Q} =
       trans (sym (dcong h (∣∣≡∣∣ x))) (dcong h (∣∣≡∣∣ x))   ≡⟨ trans-symˡ _ ⟩∎
 
       refl _                                                ∎
-
-------------------------------------------------------------------------
--- Some conversion functions
-
--- Colimitᴱ P step implies Colimit P step.
-
-Colimitᴱ→Colimit :
-  {step : ∀ {n} → P n → P (suc n)} →
-  Colimitᴱ P step → Colimit P step
-Colimitᴱ→Colimit = rec λ where
-  .∣∣ʳ    → C.∣_∣
-  .∣∣≡∣∣ʳ → C.∣∣≡∣∣
-
--- In erased contexts Colimitᴱ P step is equivalent to Colimit P step.
-
-@0 Colimitᴱ≃Colimit :
-  {step : ∀ {n} → P n → P (suc n)} →
-  Colimitᴱ P step ≃ Colimit P step
-Colimitᴱ≃Colimit = Eq.↔→≃
-  Colimitᴱ→Colimit
-  (C.rec r)
-  (C.elim e′)
-  (elim λ where
-     .Elim.∣∣ʳ _    → refl _
-     .Elim.∣∣≡∣∣ʳ x →
-       subst (λ x → C.rec r (Colimitᴱ→Colimit x) ≡ x)
-         (∣∣≡∣∣ x) (refl _)                                       ≡⟨ subst-in-terms-of-trans-and-cong ⟩
-
-       trans (sym (cong (C.rec r ∘ Colimitᴱ→Colimit) (∣∣≡∣∣ x)))
-         (trans (refl _) (cong id (∣∣≡∣∣ x)))                     ≡⟨ cong₂ (trans ∘ sym)
-                                                                       (trans (sym $ cong-∘ _ _ _) $
-                                                                        trans (cong (cong (C.rec r)) rec-∣∣≡∣∣) $
-                                                                        C.rec-∣∣≡∣∣)
-                                                                       (trans (trans-reflˡ _) $
-                                                                        sym $ cong-id _) ⟩
-
-       trans (sym (∣∣≡∣∣ x)) (∣∣≡∣∣ x)                            ≡⟨ trans-symˡ _ ⟩∎
-
-       refl _                                                     ∎)
-  where
-  r : C.Rec _ _ _
-  r .C.∣∣ʳ    = ∣_∣
-  r .C.∣∣≡∣∣ʳ = ∣∣≡∣∣
-
-  e′ : C.Elim _
-  e′ .C.Elim.∣∣ʳ _    = refl _
-  e′ .C.Elim.∣∣≡∣∣ʳ x =
-    subst (λ x → Colimitᴱ→Colimit (C.rec r x) ≡ x)
-      (C.∣∣≡∣∣ x) (refl _)                                       ≡⟨ subst-in-terms-of-trans-and-cong ⟩
-
-    trans (sym (cong (Colimitᴱ→Colimit ∘ C.rec r) (C.∣∣≡∣∣ x)))
-      (trans (refl _) (cong id (C.∣∣≡∣∣ x)))                     ≡⟨ cong₂ (trans ∘ sym)
-                                                                      (trans (sym $ cong-∘ _ _ _) $
-                                                                       trans (cong (cong Colimitᴱ→Colimit) C.rec-∣∣≡∣∣) $
-                                                                       rec-∣∣≡∣∣)
-                                                                      (trans (trans-reflˡ _) $
-                                                                       sym $ cong-id _) ⟩
-
-    trans (sym (C.∣∣≡∣∣ x)) (C.∣∣≡∣∣ x)                          ≡⟨ trans-symˡ _ ⟩∎
-
-    refl _                                                       ∎

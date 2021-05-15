@@ -41,10 +41,6 @@ import Interval
 
 import H-level.Truncation.Propositional
 
--- Sequential colimits.
-
-import Colimit.Sequential
-
 -- Suspensions.
 
 import Suspension
@@ -118,6 +114,10 @@ import Colimit.Sequential.Very-erased
 -- The sequential colimit HIT with an erased higher constructor.
 
 import Colimit.Sequential.Erased
+
+-- Sequential colimits.
+
+import Colimit.Sequential
 
 -- Listed finite subsets.
 

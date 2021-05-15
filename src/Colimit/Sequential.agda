@@ -24,10 +24,12 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
+import Colimit.Sequential.Erased eq as E
+import Colimit.Sequential.Very-erased eq as VE
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 import Equivalence P.equality-with-J as PEq
-open import Function-universe equality-with-J hiding (_∘_)
+open import Function-universe equality-with-J hiding (id; _∘_)
 
 private
   variable
@@ -75,11 +77,11 @@ elimᴾ :
   Elimᴾ Q → (x : Colimit P step) → Q x
 elimᴾ {P = P} {step = step} {Q = Q} e = helper
   where
-  module E = Elimᴾ e
+  module E′ = Elimᴾ e
 
   helper : (x : Colimit P step) → Q x
-  helper ∣ x ∣        = E.∣∣ʳ x
-  helper (∣∣≡∣∣ᴾ x i) = E.∣∣≡∣∣ʳ x i
+  helper ∣ x ∣        = E′.∣∣ʳ x
+  helper (∣∣≡∣∣ᴾ x i) = E′.∣∣≡∣∣ʳ x i
 
 -- A non-dependent eliminator, expressed using paths.
 
@@ -118,10 +120,10 @@ elim :
   {step : ∀ {n} → P n → P (suc n)} {Q : Colimit P step → Type q} →
   Elim Q → (x : Colimit P step) → Q x
 elim e = elimᴾ λ where
-    .∣∣ʳ      → E.∣∣ʳ
-    .∣∣≡∣∣ʳ x → subst≡→[]≡ (E.∣∣≡∣∣ʳ x)
+    .∣∣ʳ      → E′.∣∣ʳ
+    .∣∣≡∣∣ʳ x → subst≡→[]≡ (E′.∣∣≡∣∣ʳ x)
   where
-  module E = Elim e
+  module E′ = Elim e
 
 -- A "computation" rule.
 
@@ -254,3 +256,177 @@ universal-property-Π {P = P} {step = step} {Q = Q} =
       trans (sym (dcong h (∣∣≡∣∣ x))) (dcong h (∣∣≡∣∣ x))   ≡⟨ trans-symˡ _ ⟩∎
 
       refl _                                                ∎
+
+------------------------------------------------------------------------
+-- Some conversion functions
+
+-- E.Colimitᴱ P step implies Colimit P step.
+
+Colimitᴱ→Colimit :
+  {step : ∀ {n} → P n → P (suc n)} →
+  E.Colimitᴱ P step → Colimit P step
+Colimitᴱ→Colimit = E.rec λ where
+  .E.∣∣ʳ    → ∣_∣
+  .E.∣∣≡∣∣ʳ → ∣∣≡∣∣
+
+-- In erased contexts E.Colimitᴱ P step is equivalent to
+-- Colimit P step.
+
+@0 Colimitᴱ≃Colimit :
+  {step : ∀ {n} → P n → P (suc n)} →
+  E.Colimitᴱ P step ≃ Colimit P step
+Colimitᴱ≃Colimit = Eq.↔→≃
+  Colimitᴱ→Colimit
+  Colimit→Colimitᴱ
+  (elim λ @0 where
+     .∣∣ʳ _    → refl _
+     .∣∣≡∣∣ʳ x →
+       subst (λ x → Colimitᴱ→Colimit (Colimit→Colimitᴱ x) ≡ x)
+         (∣∣≡∣∣ x) (refl _)                                     ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+       trans (sym (cong (Colimitᴱ→Colimit ∘ Colimit→Colimitᴱ)
+                     (∣∣≡∣∣ x)))
+         (trans (refl _) (cong id (∣∣≡∣∣ x)))                   ≡⟨ cong₂ (trans ∘ sym)
+                                                                     (trans (sym $ cong-∘ _ _ _) $
+                                                                      trans (cong (cong Colimitᴱ→Colimit) rec-∣∣≡∣∣) $
+                                                                      E.rec-∣∣≡∣∣)
+                                                                     (trans (trans-reflˡ _) $
+                                                                      sym $ cong-id _) ⟩
+
+       trans (sym (∣∣≡∣∣ x)) (∣∣≡∣∣ x)                          ≡⟨ trans-symˡ _ ⟩∎
+
+       refl _                                                   ∎)
+  (E.elim λ where
+     .E.∣∣ʳ _    → refl _
+     .E.∣∣≡∣∣ʳ x →
+       subst (λ x → Colimit→Colimitᴱ (Colimitᴱ→Colimit x) ≡ x)
+         (E.∣∣≡∣∣ x) (refl _)                                   ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+       trans (sym (cong (Colimit→Colimitᴱ ∘ Colimitᴱ→Colimit)
+                     (E.∣∣≡∣∣ x)))
+         (trans (refl _) (cong id (E.∣∣≡∣∣ x)))                 ≡⟨ cong₂ (trans ∘ sym)
+                                                                     (trans (sym $ cong-∘ _ _ _) $
+                                                                      trans (cong (cong Colimit→Colimitᴱ) E.rec-∣∣≡∣∣) $
+                                                                      rec-∣∣≡∣∣)
+                                                                     (trans (trans-reflˡ _) $
+                                                                      sym $ cong-id _) ⟩
+
+       trans (sym (E.∣∣≡∣∣ x)) (E.∣∣≡∣∣ x)                      ≡⟨ trans-symˡ _ ⟩∎
+
+       refl _                                                   ∎)
+  where
+  Colimit→Colimitᴱ = rec λ @0 where
+    .∣∣ʳ    → E.∣_∣
+    .∣∣≡∣∣ʳ → E.∣∣≡∣∣
+
+-- Some instances of VE.Colimitᴱ can be converted to instances of
+-- Colimit. Note that P₀ and P₊ target the same universe.
+
+Very-Colimitᴱ→Colimit :
+  {P₀ : Type p}
+  {P₊ : ℕ → Type p}
+  {step₀ : P₀ → P₊ zero} →
+  {step₊ : ∀ {n} → P₊ n → P₊ (suc n)} →
+  VE.Colimitᴱ P₀ P₊ step₀ step₊ →
+  Colimit
+    (ℕ-rec P₀ (λ n _ → P₊ n))
+    (λ {n} → ℕ-rec {P = λ n → ℕ-rec P₀ (λ n _ → P₊ n) n → P₊ n}
+                   step₀ (λ _ _ → step₊) n)
+Very-Colimitᴱ→Colimit = VE.rec λ where
+  .VE.∣∣₀ʳ     → ∣_∣ {n = 0}
+  .VE.∣∣₊ʳ     → ∣_∣
+  .VE.∣∣₊≡∣∣₀ʳ → ∣∣≡∣∣
+  .VE.∣∣₊≡∣∣₊ʳ → ∣∣≡∣∣
+
+-- In erased contexts there are equivalences between some instances of
+-- VE.Colimitᴱ and some instances of Colimit.
+
+@0 Very-Colimitᴱ≃Colimit :
+  {P₀ : Type p}
+  {P₊ : ℕ → Type p}
+  {step₀ : P₀ → P₊ zero} →
+  {step₊ : ∀ {n} → P₊ n → P₊ (suc n)} →
+  VE.Colimitᴱ P₀ P₊ step₀ step₊ ≃
+  Colimit
+    (ℕ-rec P₀ (λ n _ → P₊ n))
+    (λ {n} → ℕ-rec {P = λ n → ℕ-rec P₀ (λ n _ → P₊ n) n → P₊ n}
+                   step₀ (λ _ _ → step₊) n)
+Very-Colimitᴱ≃Colimit = Eq.↔→≃
+  Very-Colimitᴱ→Colimit
+  Colimit→Colimitᴱ
+  (elim λ @0 where
+     .∣∣ʳ {n = zero} _    → refl _
+     .∣∣ʳ {n = suc _} _   → refl _
+     .∣∣≡∣∣ʳ {n = zero} x →
+       subst (λ x → Very-Colimitᴱ→Colimit (Colimit→Colimitᴱ x) ≡ x)
+         (∣∣≡∣∣ x) (refl _)                                          ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+       trans (sym (cong (Very-Colimitᴱ→Colimit ∘ Colimit→Colimitᴱ)
+                     (∣∣≡∣∣ x)))
+         (trans (refl _) (cong id (∣∣≡∣∣ x)))                        ≡⟨ cong₂ (trans ∘ sym)
+                                                                          (trans (sym $ cong-∘ _ _ _) $
+                                                                           trans (cong (cong Very-Colimitᴱ→Colimit) rec-∣∣≡∣∣) $
+                                                                           VE.rec-∣∣₊≡∣∣₀)
+                                                                          (trans (trans-reflˡ _) $
+                                                                           sym $ cong-id _) ⟩
+
+       trans (sym (∣∣≡∣∣ x)) (∣∣≡∣∣ x)                               ≡⟨ trans-symˡ _ ⟩∎
+
+       refl _                                                        ∎
+     .∣∣≡∣∣ʳ {n = suc _} x →
+       subst (λ x → Very-Colimitᴱ→Colimit (Colimit→Colimitᴱ x) ≡ x)
+         (∣∣≡∣∣ x) (refl _)                                          ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+       trans (sym (cong (Very-Colimitᴱ→Colimit ∘ Colimit→Colimitᴱ)
+                     (∣∣≡∣∣ x)))
+         (trans (refl _) (cong id (∣∣≡∣∣ x)))                        ≡⟨ cong₂ (trans ∘ sym)
+                                                                          (trans (sym $ cong-∘ _ _ _) $
+                                                                           trans (cong (cong Very-Colimitᴱ→Colimit) rec-∣∣≡∣∣) $
+                                                                           VE.rec-∣∣₊≡∣∣₊)
+                                                                          (trans (trans-reflˡ _) $
+                                                                           sym $ cong-id _) ⟩
+
+       trans (sym (∣∣≡∣∣ x)) (∣∣≡∣∣ x)                               ≡⟨ trans-symˡ _ ⟩∎
+
+       refl _                                                        ∎)
+  (VE.elim λ where
+     .VE.∣∣₀ʳ _     → refl _
+     .VE.∣∣₊ʳ _     → refl _
+     .VE.∣∣₊≡∣∣₀ʳ x →
+       subst (λ x → Colimit→Colimitᴱ (Very-Colimitᴱ→Colimit x) ≡ x)
+         (VE.∣∣₊≡∣∣₀ x) (refl _)                                     ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+       trans (sym (cong (Colimit→Colimitᴱ ∘ Very-Colimitᴱ→Colimit)
+                     (VE.∣∣₊≡∣∣₀ x)))
+         (trans (refl _) (cong id (VE.∣∣₊≡∣∣₀ x)))                   ≡⟨ cong₂ (trans ∘ sym)
+                                                                          (trans (sym $ cong-∘ _ _ _) $
+                                                                           trans (cong (cong Colimit→Colimitᴱ) VE.rec-∣∣₊≡∣∣₀) $
+                                                                           rec-∣∣≡∣∣)
+                                                                          (trans (trans-reflˡ _) $
+                                                                           sym $ cong-id _) ⟩
+
+       trans (sym (VE.∣∣₊≡∣∣₀ x)) (VE.∣∣₊≡∣∣₀ x)                     ≡⟨ trans-symˡ _ ⟩∎
+
+       refl _                                                        ∎
+     .VE.∣∣₊≡∣∣₊ʳ x →
+       subst (λ x → Colimit→Colimitᴱ (Very-Colimitᴱ→Colimit x) ≡ x)
+         (VE.∣∣₊≡∣∣₊ x) (refl _)                                     ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+       trans (sym (cong (Colimit→Colimitᴱ ∘ Very-Colimitᴱ→Colimit)
+                     (VE.∣∣₊≡∣∣₊ x)))
+         (trans (refl _) (cong id (VE.∣∣₊≡∣∣₊ x)))                   ≡⟨ cong₂ (trans ∘ sym)
+                                                                          (trans (sym $ cong-∘ _ _ _) $
+                                                                           trans (cong (cong Colimit→Colimitᴱ) VE.rec-∣∣₊≡∣∣₊) $
+                                                                           rec-∣∣≡∣∣)
+                                                                          (trans (trans-reflˡ _) $
+                                                                           sym $ cong-id _) ⟩
+
+       trans (sym (VE.∣∣₊≡∣∣₊ x)) (VE.∣∣₊≡∣∣₊ x)                     ≡⟨ trans-symˡ _ ⟩∎
+
+       refl _                                                        ∎)
+  where
+  Colimit→Colimitᴱ = rec λ @0 where
+    .∣∣ʳ {n = zero}     → VE.∣_∣₀
+    .∣∣ʳ {n = suc _}    → VE.∣_∣₊
+    .∣∣≡∣∣ʳ {n = zero}  → VE.∣∣₊≡∣∣₀
+    .∣∣≡∣∣ʳ {n = suc _} → VE.∣∣₊≡∣∣₊
