@@ -27,15 +27,18 @@ open import Equality.Path.Isomorphisms.Univalence eq
 import Equality.Path.Isomorphisms P.equality-with-paths as PI
 open import Equality.Tactic equality-with-J hiding (module Eq)
 open import Equivalence equality-with-J as Eq using (_≃_)
+import Equivalence P.equality-with-J as PE
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import Group equality-with-J as G using (_≃ᴳ_)
 import Group.Cyclic eq as C
 open import Groupoid equality-with-J
-open import H-level equality-with-J
+open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import H-level.Truncation eq as T using (∥_∥[1+_])
 open import H-level.Truncation.Propositional eq as Trunc
   using (∥_∥; ∣_∣)
+open import H-level.Truncation.Propositional.One-step eq as O
+  using (∥_∥¹)
 open import Integer equality-with-J as Int
   using (ℤ; +_; -[1+_]; ℤ-group)
 open import Nat equality-with-J
@@ -502,6 +505,25 @@ Fundamental-group≃ℤ = G.≃ᴳ-sym λ where
    const base                         ∎)
 
 ------------------------------------------------------------------------
+-- A conversion function
+
+-- The one-step truncation of the unit type is equivalent to the
+-- circle.
+--
+-- Paolo Capriotti informed me about this result.
+
+∥⊤∥¹≃𝕊¹ : ∥ ⊤ ∥¹ ≃ 𝕊¹
+∥⊤∥¹≃𝕊¹ = _↔_.from ≃↔≃ $ PE.↔→≃
+  (O.recᴾ λ where
+     .O.∣∣ʳ _            → base
+     .O.∣∣-constantʳ _ _ → loopᴾ)
+  (recᴾ O.∣ _ ∣ (O.∣∣-constantᴾ _ _))
+  (elimᴾ _ P.refl (λ _ → P.refl))
+  (O.elimᴾ λ where
+     .O.∣∣ʳ _              → P.refl
+     .O.∣∣-constantʳ _ _ _ → P.refl)
+
+------------------------------------------------------------------------
 -- Some negative results
 
 -- The equality loop is not equal to refl base.
@@ -530,6 +552,18 @@ loop≢refl loop≡refl = Univ.¬-Type-set univ Type-set
   Is-proposition (base ≡ base)  ↝⟨ (λ h → h _ _) ⟩
   loop ≡ refl base              ↝⟨ loop≢refl ⟩□
   ⊥                             □
+
+-- It is not necessarily the case that the one-step truncation of a
+-- proposition is a proposition.
+
+¬-Is-proposition-∥∥¹ :
+  ¬ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)
+¬-Is-proposition-∥∥¹ {a = a} =
+  ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)  ↝⟨ _$ H-level.mono₁ 0 (↑-closure 0 ⊤-contractible) ⟩
+  Is-proposition ∥ ↑ a ⊤ ∥¹                                  ↝⟨ H-level-cong _ 1 (O.∥∥¹-cong-↔ Bijection.↑↔) ⟩
+  Is-proposition ∥ ⊤ ∥¹                                      ↝⟨ H-level-cong _ 1 ∥⊤∥¹≃𝕊¹ ⟩
+  Is-proposition 𝕊¹                                          ↝⟨ ¬-𝕊¹-set ∘ H-level.mono₁ 1 ⟩□
+  ⊥                                                          □
 
 -- A function with the type of refl (for 𝕊¹) that is not equal to
 -- refl.

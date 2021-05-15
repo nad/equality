@@ -24,11 +24,15 @@ open import Circle eq as C using (𝕊¹)
 open import Equality.Groupoid equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
+import Equivalence P.equality-with-J as PE
 open import Erased.Cubical eq
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import Group equality-with-J as G using (_≃ᴳ_)
 open import H-level equality-with-J
 open import H-level.Truncation.Propositional.Erased eq as T using (∥_∥ᴱ)
+open import H-level.Truncation.Propositional.One-step eq using (∥_∥¹)
+open import H-level.Truncation.Propositional.One-step.Erased eq as OE
+  using (∥_∥¹ᴱ)
 open import Integer equality-with-J using (ℤ; +_; ℤ-group)
 open import Nat equality-with-J
 open import Pointed-type equality-with-J as PT using (_≃ᴮ_)
@@ -185,6 +189,22 @@ rec-loop = cong-≡↔≡ (refl _)
 
 @0 𝕊¹≃ᴮ𝕊¹ᴱ : (𝕊¹ , C.base) ≃ᴮ (𝕊¹ᴱ , base)
 𝕊¹≃ᴮ𝕊¹ᴱ = 𝕊¹≃𝕊¹ᴱ , refl _
+
+-- The one-step truncation of the unit type is equivalent to 𝕊¹ᴱ.
+--
+-- Paolo Capriotti informed me about the corresponding result without
+-- erasure.
+
+∥⊤∥¹ᴱ≃𝕊¹ᴱ : ∥ ⊤ ∥¹ᴱ ≃ 𝕊¹ᴱ
+∥⊤∥¹ᴱ≃𝕊¹ᴱ = _↔_.from ≃↔≃ $ PE.↔→≃
+  (OE.recᴾ λ where
+     .OE.∣∣ʳ _            → base
+     .OE.∣∣-constantʳ _ _ → loopᴾ)
+  (recᴾ OE.∣ _ ∣ (OE.∣∣-constantᴾ _ _))
+  (elimᴾ _ P.refl (λ _ → P.refl))
+  (OE.elimᴾ λ where
+     .OE.∣∣ʳ _              → P.refl
+     .OE.∣∣-constantʳ _ _ _ → P.refl)
 
 ------------------------------------------------------------------------
 -- The loop space of 𝕊¹ᴱ
@@ -347,6 +367,18 @@ loop≢refl =
     [ Is-set 𝕊¹ᴱ  ↝⟨ H-level-cong _ 2 $ inverse 𝕊¹≃𝕊¹ᴱ ⟩
       Is-set 𝕊¹   ↝⟨ C.¬-𝕊¹-set ⟩□
       ⊥           □
+    ]
+
+-- It is not necessarily the case that the one-step truncation of a
+-- proposition is a proposition.
+
+¬-Is-proposition-∥∥¹ᴱ :
+  ¬ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)
+¬-Is-proposition-∥∥¹ᴱ {a = a} =
+  Stable-¬
+    [ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)  ↝⟨ (implicit-∀-cong _ $ ∀-cong _ λ _ → H-level-cong _ 1 OE.∥∥¹ᴱ≃∥∥¹) ⟩
+      ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)   ↝⟨ C.¬-Is-proposition-∥∥¹ ⟩□
+      ⊥                                                           □
     ]
 
 -- A function with the type of refl (for 𝕊¹ᴱ) that is not equal to

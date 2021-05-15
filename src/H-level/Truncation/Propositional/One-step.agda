@@ -19,17 +19,14 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection equality-with-J as B using (_↔_)
-open import Circle eq as C using (𝕊¹)
+open import Bijection equality-with-J using (_↔_)
 open import Equality.Decidable-UIP equality-with-J using (Constant)
 import Equality.Decidable-UIP P.equality-with-J as PD
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
-import Equivalence P.equality-with-J as PE
 open import Equivalence.Erased.Basics equality-with-J as EEq
   using (_≃ᴱ_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
-import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import Surjection equality-with-J using (_↠_)
 
@@ -251,37 +248,6 @@ private
 
 ∥∥¹-cong-≃ᴱ : A ≃ᴱ B → ∥ A ∥¹ ≃ᴱ ∥ B ∥¹
 ∥∥¹-cong-≃ᴱ A≃B = EEq.[≃]→≃ᴱ (EEq.[proofs] (∥∥¹-cong-≃ (EEq.≃ᴱ→≃ A≃B)))
-
-------------------------------------------------------------------------
--- A result related to h-levels
-
--- The one-step truncation of the unit type is equivalent to the
--- circle.
---
--- Paolo Capriotti informed me about this result.
-
-∥⊤∥¹≃𝕊¹ : ∥ ⊤ ∥¹ ≃ 𝕊¹
-∥⊤∥¹≃𝕊¹ = _↔_.from ≃↔≃ $ PE.↔→≃
-  (recᴾ λ where
-     .∣∣ʳ _            → C.base
-     .∣∣-constantʳ _ _ → C.loopᴾ)
-  (C.recᴾ ∣ _ ∣ (∣∣-constantᴾ _ _))
-  (C.elimᴾ _ P.refl (λ _ → P.refl))
-  (elimᴾ λ where
-     .∣∣ʳ _              → P.refl
-     .∣∣-constantʳ _ _ _ → P.refl)
-
--- It is not necessarily the case that the one-step truncation of a
--- proposition is a proposition.
-
-¬-Is-proposition-∥∥¹ :
-  ¬ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)
-¬-Is-proposition-∥∥¹ {a = a} =
-  ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)  ↝⟨ _$ H-level.mono₁ 0 (↑-closure 0 ⊤-contractible) ⟩
-  Is-proposition ∥ ↑ a ⊤ ∥¹                                  ↝⟨ H-level-cong _ 1 (∥∥¹-cong-↔ B.↑↔) ⟩
-  Is-proposition ∥ ⊤ ∥¹                                      ↝⟨ H-level-cong _ 1 ∥⊤∥¹≃𝕊¹ ⟩
-  Is-proposition 𝕊¹                                          ↝⟨ C.¬-𝕊¹-set ∘ H-level.mono₁ 1 ⟩□
-  ⊥                                                          □
 
 ------------------------------------------------------------------------
 -- Iterated applications of the one-step truncation operator

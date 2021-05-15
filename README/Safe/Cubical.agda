@@ -143,18 +143,6 @@ import Integer.Quotient
 
 import Group.Cyclic
 
--- The "circle".
-
-import Circle
-
--- The torus, defined as a HIT.
-
-import Torus
-
--- The figure of eight.
-
-import Figure-of-eight
-
 -- The Eilenberg-MacLane space K(G, 1).
 
 import Eilenberg-MacLane-space
@@ -185,9 +173,21 @@ import H-level.Truncation.Propositional.Non-recursive
 
 import H-level.Truncation.Propositional.Erased
 
+-- The "circle".
+
+import Circle
+
 -- The circle with an erased higher constructor.
 
 import Circle.Erased
+
+-- The torus, defined as a HIT.
+
+import Torus
+
+-- The figure of eight.
+
+import Figure-of-eight
 
 -- A variant of set quotients with erased higher constructors.
 
