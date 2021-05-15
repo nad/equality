@@ -311,6 +311,16 @@ rec-prop r = elim-prop λ where
   .[]ʳ x             → ∣ x , refl _ ∣
   .is-propositionʳ _ → TruncP.truncation-is-proposition
 
+-- QE.[_] is surjective.
+--
+-- This result is not proved in Quotient.Erased, because that module
+-- uses --erased-cubical.
+
+[]ᴱ-surjective : Surjective (QE.[_] {R = R})
+[]ᴱ-surjective = QE.elim-prop λ where
+  .QE.[]ʳ x             → ∣ x , refl _ ∣
+  .QE.is-propositionʳ _ → TruncP.truncation-is-proposition
+
 -- Some preservation lemmas.
 
 infix 5 _/-map-∥∥_ _/-map_ _/-cong-∥∥-↠_ _/-cong-↠_ _/-cong-∥∥_ _/-cong_

@@ -6,71 +6,21 @@
 
 module README.Safe.Cubical where
 
--- Paths and extensionality.
-
-import Equality.Path
-
 -- A proof of univalence.
 
 import Equality.Path.Univalence
-
--- Isomorphisms and equalities relating an arbitrary "equality with J"
--- to path equality, along with a proof of extensionality for the
--- "equality with J".
-
-import Equality.Path.Isomorphisms
 
 -- A proof of univalence for an arbitrary "equality with J".
 
 import Equality.Path.Isomorphisms.Univalence
 
--- The cubical identity type.
-
-import Equality.Id
-
--- Propositional equality, with some extra bells and whistles
--- definable in Cubical Agda.
-
-import Equality.Propositional.Cubical
-
--- Some theory of Erased, developed using Cubical Agda.
-
-import Erased.Cubical
-
--- Some theory of equivalences with erased "proofs", developed using
--- Cubical Agda.
-
-import Equivalence.Erased.Cubical
-
--- A sequential colimit for which everything except for the "base
--- case" is erased.
-
-import Colimit.Sequential.Very-erased
-
--- The sequential colimit HIT with an erased higher constructor.
-
-import Colimit.Sequential.Erased
-
 -- Sequential colimits.
 
 import Colimit.Sequential
 
--- The one-step truncation HIT with an erased higher constructor.
-
-import H-level.Truncation.Propositional.One-step.Erased
-
 -- The one-step truncation.
 
 import H-level.Truncation.Propositional.One-step
-
--- A non-recursive variant of H-level.Truncation.Propositional.Erased.
-
-import H-level.Truncation.Propositional.Non-recursive.Erased
-
--- A variant of the propositional truncation operator with an erased
--- truncation constructor.
-
-import H-level.Truncation.Propositional.Erased
 
 -- Propositional truncation.
 
@@ -113,20 +63,6 @@ import Pointed-type.Homotopy-group
 
 import Pointed-type.Connected
 
--- Some tactics aimed at making equational reasoning proofs more
--- readable for path equality.
-
-import Tactic.By.Path
-
--- Some tactics aimed at making equational reasoning proofs more
--- readable for the cubical identity type.
-
-import Tactic.By.Id
-
--- A variant of set quotients with erased higher constructors.
-
-import Quotient.Erased.Basics
-
 -- Quotients (set-quotients), defined using a higher inductive type.
 
 import Quotient
@@ -135,11 +71,6 @@ import Quotient
 
 import Quotient.Set-truncated-if-propositional
 import Quotient.Higher-constructors-if-propositional
-
--- Some theory of equivalences with erased "proofs", defined in terms
--- of partly erased contractible fibres, developed using Cubical Agda.
-
-import Equivalence.Erased.Contractible-preimages.Cubical
 
 -- Very stable booleans.
 
@@ -177,10 +108,6 @@ import Coherently-constant
 
 import Circle
 
--- The circle with an erased higher constructor.
-
-import Circle.Erased
-
 -- The torus, defined as a HIT.
 
 import Torus
@@ -188,10 +115,6 @@ import Torus
 -- The figure of eight.
 
 import Figure-of-eight
-
--- A variant of set quotients with erased higher constructors.
-
-import Quotient.Erased
 
 -- An example related to Nat.Wrapper, defined in Cubical Agda.
 

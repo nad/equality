@@ -3,7 +3,7 @@
 -- case" is erased
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- The definition of sequential colimits and the statement of the
 -- non-dependent universal property are based on those in van Doorn's

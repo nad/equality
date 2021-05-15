@@ -451,19 +451,6 @@ surjective×embedding≃equivalence {f = f} =
 _ : _≃_.right-inverse-of ∥∥×≃ x ≡ refl _
 _ = refl _
 
--- A variant of ∥∥×≃.
-
-Erased-∥∥×≃ : (Erased ∥ A ∥ × A) ≃ A
-Erased-∥∥×≃ = Eq.↔→≃
-  proj₂
-  (λ x → E.[ ∣ x ∣ ] , x)
-  refl
-  (λ (_ , x) →
-     cong (_, x) (E.[]-cong E.[ truncation-is-proposition _ _ ]))
-
-_ : _≃_.right-inverse-of Erased-∥∥×≃ x ≡ refl _
-_ = refl _
-
 -- ∥_∥ commutes with _×_.
 
 ∥∥×∥∥↔∥×∥ : (∥ A ∥ × ∥ B ∥) ↔ ∥ A × B ∥

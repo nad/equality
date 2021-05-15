@@ -2,7 +2,7 @@
 -- The cubical identity type
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 module Equality.Id where
 

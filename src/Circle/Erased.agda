@@ -2,7 +2,7 @@
 -- The circle with an erased higher constructor
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- Partly following the HoTT book.
 
@@ -139,51 +139,49 @@ rec-loop = cong-≡↔≡ (refl _)
 ------------------------------------------------------------------------
 -- Conversion functions
 
--- There is a function from 𝕊¹ᴱ to 𝕊¹.
-
-𝕊¹ᴱ→𝕊¹ : 𝕊¹ᴱ → 𝕊¹
-𝕊¹ᴱ→𝕊¹ = rec C.base C.loop
-
 -- In erased contexts 𝕊¹ is equivalent to 𝕊¹ᴱ.
 
 @0 𝕊¹≃𝕊¹ᴱ : 𝕊¹ ≃ 𝕊¹ᴱ
 𝕊¹≃𝕊¹ᴱ = Eq.↔→≃
-  (C.rec base loop)
+  𝕊¹→𝕊¹ᴱ
   𝕊¹ᴱ→𝕊¹
   (elim _ (refl _)
-     (subst (λ x → C.rec base loop (𝕊¹ᴱ→𝕊¹ x) ≡ x) loop (refl _)  ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+     (subst (λ x → 𝕊¹→𝕊¹ᴱ (𝕊¹ᴱ→𝕊¹ x) ≡ x) loop (refl _)  ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
-      trans (sym (cong (C.rec base loop ∘ 𝕊¹ᴱ→𝕊¹) loop))
-        (trans (refl _) (cong id loop))                           ≡⟨ cong (trans _) $
-                                                                     trans (trans-reflˡ _) $
-                                                                     sym $ cong-id _ ⟩
+      trans (sym (cong (𝕊¹→𝕊¹ᴱ ∘ 𝕊¹ᴱ→𝕊¹) loop))
+        (trans (refl _) (cong id loop))                  ≡⟨ cong (trans _) $
+                                                            trans (trans-reflˡ _) $
+                                                            sym $ cong-id _ ⟩
 
-      trans (sym (cong (C.rec base loop ∘ 𝕊¹ᴱ→𝕊¹) loop)) loop     ≡⟨ cong (flip trans _) $ cong sym $
-                                                                     trans (sym $ cong-∘ _ _ _) $
-                                                                     trans (cong (cong (C.rec base loop))
-                                                                            rec-loop) $
-                                                                     C.rec-loop ⟩
+      trans (sym (cong (𝕊¹→𝕊¹ᴱ ∘ 𝕊¹ᴱ→𝕊¹) loop)) loop     ≡⟨ cong (flip trans _) $ cong sym $
+                                                            trans (sym $ cong-∘ _ _ _) $
+                                                            trans (cong (cong 𝕊¹→𝕊¹ᴱ)
+                                                                   rec-loop) $
+                                                            C.rec-loop ⟩
 
-      trans (sym loop) loop                                       ≡⟨ trans-symˡ _ ⟩∎
+      trans (sym loop) loop                              ≡⟨ trans-symˡ _ ⟩∎
 
-      refl _                                                      ∎))
+      refl _                                             ∎))
   (C.elim _ (refl _)
-     (subst (λ x → 𝕊¹ᴱ→𝕊¹ (C.rec base loop x) ≡ x) C.loop (refl _)  ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+     (subst (λ x → 𝕊¹ᴱ→𝕊¹ (𝕊¹→𝕊¹ᴱ x) ≡ x) C.loop (refl _)  ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
-      trans (sym (cong (𝕊¹ᴱ→𝕊¹ ∘ C.rec base loop) C.loop))
-        (trans (refl _) (cong id C.loop))                           ≡⟨ cong (trans _) $
-                                                                       trans (trans-reflˡ _) $
-                                                                       sym $ cong-id _ ⟩
+      trans (sym (cong (𝕊¹ᴱ→𝕊¹ ∘ 𝕊¹→𝕊¹ᴱ) C.loop))
+        (trans (refl _) (cong id C.loop))                  ≡⟨ cong (trans _) $
+                                                              trans (trans-reflˡ _) $
+                                                              sym $ cong-id _ ⟩
 
-      trans (sym (cong (𝕊¹ᴱ→𝕊¹ ∘ C.rec base loop) C.loop)) C.loop   ≡⟨ cong (flip trans _) $ cong sym $
-                                                                       trans (sym $ cong-∘ _ _ _) $
-                                                                       trans (cong (cong 𝕊¹ᴱ→𝕊¹)
-                                                                              C.rec-loop) $
-                                                                       rec-loop ⟩
+      trans (sym (cong (𝕊¹ᴱ→𝕊¹ ∘ 𝕊¹→𝕊¹ᴱ) C.loop)) C.loop   ≡⟨ cong (flip trans _) $ cong sym $
+                                                              trans (sym $ cong-∘ _ _ _) $
+                                                              trans (cong (cong 𝕊¹ᴱ→𝕊¹)
+                                                                     C.rec-loop) $
+                                                              rec-loop ⟩
 
-      trans (sym C.loop) C.loop                                     ≡⟨ trans-symˡ _ ⟩∎
+      trans (sym C.loop) C.loop                            ≡⟨ trans-symˡ _ ⟩∎
 
-      refl _                                                        ∎))
+      refl _                                               ∎))
+  where
+  𝕊¹→𝕊¹ᴱ = C.rec base loop
+  𝕊¹ᴱ→𝕊¹ = rec C.base C.loop
 
 -- In erased contexts there is a based equivalence between 𝕊¹ , C.base
 -- and 𝕊¹ᴱ , base.
@@ -386,34 +384,35 @@ loop≢refl =
 -- refl. The function is available in erased contexts.
 
 @0 not-refl : (x : 𝕊¹ᴱ) → x ≡ x
-not-refl x =           $⟨ C.not-refl (𝕊¹ᴱ→𝕊¹ x) ⟩
-  𝕊¹ᴱ→𝕊¹ x ≡ 𝕊¹ᴱ→𝕊¹ x  ↝⟨ Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ ⟩□
-  x ≡ x                □
+not-refl x =                             $⟨ C.not-refl (_≃_.from 𝕊¹≃𝕊¹ᴱ x) ⟩
+  _≃_.from 𝕊¹≃𝕊¹ᴱ x ≡ _≃_.from 𝕊¹≃𝕊¹ᴱ x  ↝⟨ Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ ⟩□
+  x ≡ x                                  □
 
 -- The function not-refl is not equal to refl.
 
 not-refl≢refl : not-refl ≢ refl
 not-refl≢refl =
   Stable-¬
-    [ not-refl ≡ refl                                                ↔⟨⟩
+    [ not-refl ≡ refl                                                    ↔⟨⟩
 
-      _≃_.to (Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ) ∘ C.not-refl ∘ 𝕊¹ᴱ→𝕊¹ ≡ refl  ↝⟨ flip trans (⟨ext⟩ lemma) ⟩
+      _≃_.to (Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ) ∘ C.not-refl ∘ _≃_.from 𝕊¹≃𝕊¹ᴱ ≡
+      refl                                                               ↝⟨ flip trans (⟨ext⟩ lemma) ⟩
 
-      _≃_.to (Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ) ∘ C.not-refl ∘ 𝕊¹ᴱ→𝕊¹ ≡
-      _≃_.to (Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ) ∘ refl ∘ 𝕊¹ᴱ→𝕊¹               ↔⟨ (Eq.≃-≡ $ inverse $
-                                                                         Π-cong ext (inverse 𝕊¹≃𝕊¹ᴱ) λ _ →
-                                                                         inverse $ Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ) ⟩
+      _≃_.to (Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ) ∘ C.not-refl ∘ _≃_.from 𝕊¹≃𝕊¹ᴱ ≡
+      _≃_.to (Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ) ∘ refl ∘ _≃_.from 𝕊¹≃𝕊¹ᴱ          ↔⟨ (Eq.≃-≡ $ inverse $
+                                                                             Π-cong ext (inverse 𝕊¹≃𝕊¹ᴱ) λ _ →
+                                                                             inverse $ Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ) ⟩
 
-      C.not-refl ≡ refl                                              ↝⟨ C.not-refl≢refl ⟩□
+      C.not-refl ≡ refl                                                  ↝⟨ C.not-refl≢refl ⟩□
 
-      ⊥                                                              □
+      ⊥                                                                  □
     ]
   where
   @0 lemma : _
   lemma x = sym $ _≃_.from-to (Eq.≃-≡ $ Eq.inverse 𝕊¹≃𝕊¹ᴱ)
     (_≃_.from (Eq.≃-≡ $ Eq.inverse 𝕊¹≃𝕊¹ᴱ) (refl x)  ≡⟨⟩
-     cong 𝕊¹ᴱ→𝕊¹ (refl x)                            ≡⟨ cong-refl _ ⟩∎
-     refl (𝕊¹ᴱ→𝕊¹ x)                                 ∎)
+     cong (_≃_.from 𝕊¹≃𝕊¹ᴱ) (refl x)                 ≡⟨ cong-refl _ ⟩∎
+     refl (_≃_.from 𝕊¹≃𝕊¹ᴱ x)                        ∎)
 
 -- For every universe level there is a type A such that
 -- (x : A) → x ≡ x is not a proposition.
@@ -449,9 +448,9 @@ all-points-on-the-circle-are-¬¬-equal :
   (x : 𝕊¹ᴱ) → ¬ ¬ x ≡ base
 all-points-on-the-circle-are-¬¬-equal x =
   Stable-¬
-    [ x ≢ base           ↔⟨ →-cong ext (inverse $ Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ) Eq.id ⟩
-      𝕊¹ᴱ→𝕊¹ x ≢ C.base  ↝⟨ C.all-points-on-the-circle-are-¬¬-equal _ ⟩□
-      ⊥                  □
+    [ x ≢ base                    ↔⟨ →-cong ext (inverse $ Eq.≃-≡ $ inverse 𝕊¹≃𝕊¹ᴱ) Eq.id ⟩
+      _≃_.from 𝕊¹≃𝕊¹ᴱ x ≢ C.base  ↝⟨ C.all-points-on-the-circle-are-¬¬-equal _ ⟩□
+      ⊥                           □
     ]
 
 -- It is not the case that every value of type 𝕊¹ᴱ is equal to the

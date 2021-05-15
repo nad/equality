@@ -7,7 +7,7 @@
 -- definitions. The definitions below are reexported from
 -- Quotient.Erased.
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- Partly following the HoTT book, but adapted for erasure.
 --

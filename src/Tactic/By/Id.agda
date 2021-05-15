@@ -3,7 +3,7 @@
 -- readable for the cubical identity type
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 module Tactic.By.Id where
 

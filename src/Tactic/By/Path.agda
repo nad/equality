@@ -3,7 +3,7 @@
 -- readable for path equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 module Tactic.By.Path where
 

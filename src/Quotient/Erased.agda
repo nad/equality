@@ -2,7 +2,7 @@
 -- A variant of set quotients with erased higher constructors
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- Partly following the HoTT book, but adapted for erasure.
 --
@@ -34,8 +34,7 @@ open import Erased.Cubical eq as Er using (Erased; [_])
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional eq as PT
-  using (∥_∥; ∣_∣; Surjective)
+open import H-level.Truncation.Propositional eq as PT using (∥_∥; ∣_∣)
 open import H-level.Truncation.Propositional.Erased eq as PTᴱ
   using (∥_∥ᴱ; ∣_∣; Surjectiveᴱ)
 open import Quotient eq as Q using (_/_)
@@ -190,13 +189,6 @@ _/ᴱ-cong_ A₁↔A₂ R₁⇔R₂ =
 
 ------------------------------------------------------------------------
 -- Some properties
-
--- [_] is surjective.
-
-Surjective-[] : Surjective ([_] {R = R})
-Surjective-[] = elim-prop λ where
-  .[]ʳ x             → ∣ x , refl _ ∣
-  .is-propositionʳ _ → PT.truncation-is-proposition
 
 -- [_] is surjective with erased proofs.
 
