@@ -30,7 +30,8 @@ open import Function-universe equality-with-J hiding (id; _∘_)
 open import Group equality-with-J as G using (_≃ᴳ_)
 open import H-level equality-with-J
 open import H-level.Truncation.Propositional.Erased eq as T using (∥_∥ᴱ)
-open import H-level.Truncation.Propositional.One-step eq using (∥_∥¹)
+open import H-level.Truncation.Propositional.One-step eq as O
+  using (∥_∥¹)
 open import H-level.Truncation.Propositional.One-step.Erased eq as OE
   using (∥_∥¹ᴱ)
 open import Integer equality-with-J using (ℤ; +_; ℤ-group)
@@ -376,7 +377,7 @@ loop≢refl =
   ¬ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)
 ¬-Is-proposition-∥∥¹ᴱ {a = a} =
   Stable-¬
-    [ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)  ↝⟨ (implicit-∀-cong _ $ ∀-cong _ λ _ → H-level-cong _ 1 OE.∥∥¹ᴱ≃∥∥¹) ⟩
+    [ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)  ↝⟨ (implicit-∀-cong _ $ ∀-cong _ λ _ → H-level-cong _ 1 O.∥∥¹ᴱ≃∥∥¹) ⟩
       ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)   ↝⟨ C.¬-Is-proposition-∥∥¹ ⟩□
       ⊥                                                           □
     ]

@@ -28,6 +28,8 @@ open import Equivalence.Erased.Basics equality-with-J as EEq
   using (_≃ᴱ_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional.One-step.Erased eq as O
+  using (∥_∥¹ᴱ; ∥_∥¹ᴱ-out-^; ∥_∥¹ᴱ-in-^)
 open import Surjection equality-with-J using (_↠_)
 
 private
@@ -366,3 +368,196 @@ private
 
   _↔_.from (∥∥¹-∥∥¹-out-^-commute (1 + n))
     ∣ _≃_.from (∥∥¹-out-^≃∥∥¹-in-^ n) x ∣                   ∎
+
+------------------------------------------------------------------------
+-- Some conversion functions
+
+-- ∥ A ∥¹ᴱ implies ∥ A ∥¹.
+
+∥∥¹ᴱ→∥∥¹ : ∥ A ∥¹ᴱ → ∥ A ∥¹
+∥∥¹ᴱ→∥∥¹ = O.rec λ where
+  .O.∣∣ʳ          → ∣_∣
+  .O.∣∣-constantʳ → ∣∣-constant
+
+-- In erased contexts ∥ A ∥¹ᴱ is equivalent to ∥ A ∥¹.
+
+@0 ∥∥¹ᴱ≃∥∥¹ : ∥ A ∥¹ᴱ ≃ ∥ A ∥¹
+∥∥¹ᴱ≃∥∥¹ = Eq.↔→≃
+  ∥∥¹ᴱ→∥∥¹
+  ∥∥¹→∥∥¹ᴱ
+  (elim λ @0 where
+     .∣∣ʳ _            → refl _
+     .∣∣-constantʳ x y →
+       subst (λ x → ∥∥¹ᴱ→∥∥¹ (∥∥¹→∥∥¹ᴱ x) ≡ x)
+         (∣∣-constant x y) (refl _)                                ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+       trans (sym (cong (∥∥¹ᴱ→∥∥¹ ∘ ∥∥¹→∥∥¹ᴱ) (∣∣-constant x y)))
+         (trans (refl _) (cong id (∣∣-constant x y)))              ≡⟨ cong₂ (trans ∘ sym)
+                                                                        (trans (sym $ cong-∘ _ _ _) $
+                                                                        trans (cong (cong ∥∥¹ᴱ→∥∥¹) rec-∣∣-constant) $
+                                                                        O.rec-∣∣-constant)
+                                                                        (trans (trans-reflˡ _) $
+                                                                         sym $ cong-id _) ⟩
+
+       trans (sym (∣∣-constant x y)) (∣∣-constant x y)             ≡⟨ trans-symˡ _ ⟩∎
+
+       refl _                                                      ∎)
+  (O.elim λ where
+     .O.∣∣ʳ _            → refl _
+     .O.∣∣-constantʳ x y →
+       subst (λ x → ∥∥¹→∥∥¹ᴱ (∥∥¹ᴱ→∥∥¹ x) ≡ x)
+         (O.∣∣-constant x y) (refl _)                                ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+       trans (sym (cong (∥∥¹→∥∥¹ᴱ ∘ ∥∥¹ᴱ→∥∥¹) (O.∣∣-constant x y)))
+         (trans (refl _) (cong id (O.∣∣-constant x y)))              ≡⟨ cong₂ (trans ∘ sym)
+                                                                          (trans (sym $ cong-∘ _ _ _) $
+                                                                          trans (cong (cong ∥∥¹→∥∥¹ᴱ) O.rec-∣∣-constant) $
+                                                                          rec-∣∣-constant)
+                                                                          (trans (trans-reflˡ _) $
+                                                                           sym $ cong-id _) ⟩
+
+       trans (sym (O.∣∣-constant x y)) (O.∣∣-constant x y)           ≡⟨ trans-symˡ _ ⟩∎
+
+       refl _                                                        ∎)
+  where
+  ∥∥¹→∥∥¹ᴱ = rec′ O.∣_∣ O.∣∣-constant
+
+-- ∥ A ∥¹ᴱ-out-^ n implies ∥ A ∥¹-out-^ n.
+
+∥∥¹ᴱ-out-^→∥∥¹-out-^ : ∀ n → ∥ A ∥¹ᴱ-out-^ n → ∥ A ∥¹-out-^ n
+∥∥¹ᴱ-out-^→∥∥¹-out-^ zero            = id
+∥∥¹ᴱ-out-^→∥∥¹-out-^ {A = A} (suc n) =
+  ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ→∥∥¹ ⟩
+  ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹   ↝⟨ ∥∥¹-map (∥∥¹ᴱ-out-^→∥∥¹-out-^ n) ⟩□
+  ∥ ∥ A ∥¹-out-^ n ∥¹    □
+
+-- In erased contexts ∥ A ∥¹ᴱ-out-^ n is equivalent to ∥ A ∥¹-out-^ n.
+
+@0 ∥∥¹ᴱ-out-^≃∥∥¹-out-^ : ∀ n → ∥ A ∥¹ᴱ-out-^ n ≃ ∥ A ∥¹-out-^ n
+∥∥¹ᴱ-out-^≃∥∥¹-out-^ n =
+  Eq.with-other-function
+    (∥∥¹ᴱ-out-^≃∥∥¹-out-^′ n)
+    (∥∥¹ᴱ-out-^→∥∥¹-out-^ n)
+    (lemma n)
+  where
+  ∥∥¹ᴱ-out-^≃∥∥¹-out-^′ : ∀ n → ∥ A ∥¹ᴱ-out-^ n ≃ ∥ A ∥¹-out-^ n
+  ∥∥¹ᴱ-out-^≃∥∥¹-out-^′ zero            = F.id
+  ∥∥¹ᴱ-out-^≃∥∥¹-out-^′ {A = A} (suc n) =
+    ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ≃∥∥¹ ⟩
+    ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹   ↝⟨ ∥∥¹-cong-≃ (∥∥¹ᴱ-out-^≃∥∥¹-out-^′ n) ⟩□
+    ∥ ∥ A ∥¹-out-^ n ∥¹    □
+
+  lemma :
+    ∀ n (x : ∥ A ∥¹ᴱ-out-^ n) →
+    _≃_.to (∥∥¹ᴱ-out-^≃∥∥¹-out-^′ n) x ≡ ∥∥¹ᴱ-out-^→∥∥¹-out-^ n x
+  lemma zero    _ = refl _
+  lemma (suc n) x =
+    _≃_.to (∥∥¹ᴱ-out-^≃∥∥¹-out-^′ (suc n)) x                 ≡⟨⟩
+    ∥∥¹-map (_≃_.to (∥∥¹ᴱ-out-^≃∥∥¹-out-^′ n)) (∥∥¹ᴱ→∥∥¹ x)  ≡⟨ cong (λ f → ∥∥¹-map f (∥∥¹ᴱ→∥∥¹ x)) $
+                                                                ⟨ext⟩ (lemma n) ⟩
+    ∥∥¹-map (∥∥¹ᴱ-out-^→∥∥¹-out-^ n) (∥∥¹ᴱ→∥∥¹ x)            ≡⟨⟩
+    ∥∥¹ᴱ-out-^→∥∥¹-out-^ (suc n) x                           ∎
+
+-- ∥ A ∥¹ᴱ-in-^ n implies ∥ A ∥¹-in-^ n.
+
+∥∥¹ᴱ-in-^→∥∥¹-in-^ : ∀ n → ∥ A ∥¹ᴱ-in-^ n → ∥ A ∥¹-in-^ n
+∥∥¹ᴱ-in-^→∥∥¹-in-^ zero            = id
+∥∥¹ᴱ-in-^→∥∥¹-in-^ {A = A} (suc n) =
+  ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-in-^ n  ↔⟨ inverse $ O.∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute n ⟩
+  ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ→∥∥¹ ⟩
+  ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹   ↝⟨ ∥∥¹-map (∥∥¹ᴱ-in-^→∥∥¹-in-^ n) ⟩
+  ∥ ∥ A ∥¹-in-^ n ∥¹    ↔⟨ ∥∥¹-∥∥¹-in-^-commute n ⟩□
+  ∥ ∥ A ∥¹ ∥¹-in-^ n    □
+
+-- In erased contexts ∥ A ∥¹ᴱ-in-^ n is equivalent to ∥ A ∥¹-in-^ n.
+
+@0 ∥∥¹ᴱ-in-^≃∥∥¹-in-^ : ∀ n → ∥ A ∥¹ᴱ-in-^ n ≃ ∥ A ∥¹-in-^ n
+∥∥¹ᴱ-in-^≃∥∥¹-in-^ n =
+  Eq.with-other-function
+    (∥∥¹ᴱ-in-^≃∥∥¹-in-^′ n)
+    (∥∥¹ᴱ-in-^→∥∥¹-in-^ n)
+    (lemma n)
+  where
+  ∥∥¹ᴱ-in-^≃∥∥¹-in-^′ : ∀ n → ∥ A ∥¹ᴱ-in-^ n ≃ ∥ A ∥¹-in-^ n
+  ∥∥¹ᴱ-in-^≃∥∥¹-in-^′ zero            = F.id
+  ∥∥¹ᴱ-in-^≃∥∥¹-in-^′ {A = A} (suc n) =
+    ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-in-^ n  ↝⟨ inverse $ O.∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute n ⟩
+    ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ≃∥∥¹ ⟩
+    ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹   ↝⟨ ∥∥¹-cong-≃ (∥∥¹ᴱ-in-^≃∥∥¹-in-^′ n) ⟩
+    ∥ ∥ A ∥¹-in-^ n ∥¹    ↝⟨ ∥∥¹-∥∥¹-in-^-commute n ⟩□
+    ∥ ∥ A ∥¹ ∥¹-in-^ n    □
+
+  lemma :
+    ∀ n (x : ∥ A ∥¹ᴱ-in-^ n) →
+    _≃_.to (∥∥¹ᴱ-in-^≃∥∥¹-in-^′ n) x ≡ ∥∥¹ᴱ-in-^→∥∥¹-in-^ n x
+  lemma zero    _ = refl _
+  lemma (suc n) x =
+    _≃_.to (∥∥¹ᴱ-in-^≃∥∥¹-in-^′ (suc n)) x                      ≡⟨⟩
+
+    _≃_.to (∥∥¹-∥∥¹-in-^-commute n)
+      (∥∥¹-map (_≃_.to (∥∥¹ᴱ-in-^≃∥∥¹-in-^′ n))
+         (∥∥¹ᴱ→∥∥¹ (_≃_.from (O.∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute n) x)))  ≡⟨ cong (λ f → _≃_.to (∥∥¹-∥∥¹-in-^-commute n)
+                                                                                 (∥∥¹-map f (∥∥¹ᴱ→∥∥¹ (_≃_.from (O.∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute n) x)))) $
+                                                                   ⟨ext⟩ (lemma n) ⟩
+    _≃_.to (∥∥¹-∥∥¹-in-^-commute n)
+      (∥∥¹-map (∥∥¹ᴱ-in-^→∥∥¹-in-^ n)
+         (∥∥¹ᴱ→∥∥¹ (_≃_.from (O.∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute n) x)))  ≡⟨⟩
+
+    ∥∥¹ᴱ-in-^→∥∥¹-in-^ (suc n) x                                ∎
+
+-- ∥∥¹ᴱ-in-^→∥∥¹-in-^ commutes (kind of) with O.∣_,_∣-in-^/∣_,_∣-in-^.
+
+∥∥¹ᴱ-in-^→∥∥¹-in-^-∣,∣-in-^ :
+  ∀ n {x : ∥ A ∥¹ᴱ-in-^ n} →
+  ∥∥¹ᴱ-in-^→∥∥¹-in-^ (suc n) O.∣ n , x ∣-in-^ ≡
+  ∣ n , ∥∥¹ᴱ-in-^→∥∥¹-in-^ n x ∣-in-^
+∥∥¹ᴱ-in-^→∥∥¹-in-^-∣,∣-in-^ n {x = x} =
+  ∥∥¹ᴱ-in-^→∥∥¹-in-^ (1 + n) O.∣ n , x ∣-in-^                ≡⟨⟩
+
+  _≃_.to (∥∥¹-∥∥¹-in-^-commute n)
+    (∥∥¹-map (∥∥¹ᴱ-in-^→∥∥¹-in-^ n)
+       (∥∥¹ᴱ→∥∥¹
+          (O.∥∥¹ᴱ-map (_≃_.to (O.∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n))
+             (_≃_.from (O.∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ (1 + n))
+                O.∣ n , x ∣-in-^))))                         ≡⟨ cong (λ x → _≃_.to (∥∥¹-∥∥¹-in-^-commute n)
+                                                                              (∥∥¹-map (∥∥¹ᴱ-in-^→∥∥¹-in-^ n)
+                                                                                 (∥∥¹ᴱ→∥∥¹ (O.∥∥¹ᴱ-map (_≃_.to (O.∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n)) x)))) $
+                                                                O.∣,∣-in-^≡∣∣ n ⟩
+  _≃_.to (∥∥¹-∥∥¹-in-^-commute n)
+    (∥∥¹-map (∥∥¹ᴱ-in-^→∥∥¹-in-^ n)
+       (∥∥¹ᴱ→∥∥¹
+          (O.∥∥¹ᴱ-map (_≃_.to (O.∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n))
+             O.∣ _≃_.from (O.∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n) x ∣)))  ≡⟨⟩
+
+  _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ (1 + n))
+    ∣ _≃_.from (∥∥¹-out-^≃∥∥¹-in-^ n)
+        (∥∥¹ᴱ-in-^→∥∥¹-in-^ n
+           (_≃_.to (O.∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n)
+              (_≃_.from (O.∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n) x))) ∣    ≡⟨ ∣∣≡∣,∣-in-^ n ⟩
+
+  ∣ n
+  , _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ n)
+      (_≃_.from (∥∥¹-out-^≃∥∥¹-in-^ n)
+         (∥∥¹ᴱ-in-^→∥∥¹-in-^ n
+            (_≃_.to (O.∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n)
+               (_≃_.from (O.∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n) x))))
+  ∣-in-^                                                     ≡⟨ cong ∣ n ,_∣-in-^ $
+                                                                trans (_≃_.right-inverse-of (∥∥¹-out-^≃∥∥¹-in-^ n) _) $
+                                                                cong (∥∥¹ᴱ-in-^→∥∥¹-in-^ n) $
+                                                                _≃_.right-inverse-of (O.∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n) _ ⟩∎
+  ∣ n , ∥∥¹ᴱ-in-^→∥∥¹-in-^ n x ∣-in-^                        ∎
+
+-- A variant of ∥∥¹ᴱ-in-^→∥∥¹-in-^-∣,∣-in-^.
+
+@0 from-∥∥¹ᴱ-in-^≃∥∥¹-in-^-∣,∣-in-^ :
+  ∀ n {x : ∥ A ∥¹-in-^ n} →
+  _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ (suc n)) ∣ n , x ∣-in-^ ≡
+  O.∣ n , _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ n) x ∣-in-^
+from-∥∥¹ᴱ-in-^≃∥∥¹-in-^-∣,∣-in-^ n {x = x} =
+  _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ (suc n)) ∣ n , x ∣-in-^  ≡⟨ cong (λ x → _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ (suc n)) ∣ n , x ∣-in-^) $ sym $
+                                                           _≃_.right-inverse-of (∥∥¹ᴱ-in-^≃∥∥¹-in-^ n) _ ⟩
+  _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ (suc n))
+    ∣ n , _≃_.to (∥∥¹ᴱ-in-^≃∥∥¹-in-^ n)
+            (_≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ n) x) ∣-in-^  ≡⟨ _≃_.to-from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ (suc n)) (∥∥¹ᴱ-in-^→∥∥¹-in-^-∣,∣-in-^ n) ⟩∎
+
+  O.∣ n , _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ n) x ∣-in-^      ∎

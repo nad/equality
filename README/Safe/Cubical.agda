@@ -151,13 +151,13 @@ import Eilenberg-MacLane-space
 
 import Coherently-constant
 
--- The one-step truncation.
-
-import H-level.Truncation.Propositional.One-step
-
 -- The one-step truncation HIT with an erased higher constructor.
 
 import H-level.Truncation.Propositional.One-step.Erased
+
+-- The one-step truncation.
+
+import H-level.Truncation.Propositional.One-step
 
 -- A non-recursive variant of H-level.Truncation.Propositional.Erased.
 
