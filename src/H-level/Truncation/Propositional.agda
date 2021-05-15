@@ -29,6 +29,8 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Erased equality-with-J using (_≃ᴱ_)
+open import Equivalence.Erased.Contractible-preimages equality-with-J
+  as ECP using (_⁻¹ᴱ_)
 open import Equivalence-relation equality-with-J
 open import Erased.Cubical eq as E
   using (Erased; erased; Very-stableᴱ-≡; Erased-singleton)
@@ -37,6 +39,8 @@ open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 import H-level.Truncation.Church equality-with-J as Trunc
+open import H-level.Truncation.Propositional.Erased eq as TE
+  using (∥_∥ᴱ; Surjectiveᴱ)
 open import Injection equality-with-J using (_↣_)
 open import Monad equality-with-J
 open import Preimage equality-with-J as Preimage using (_⁻¹_)
@@ -45,11 +49,11 @@ open import Surjection equality-with-J as Surjection
 
 private
   variable
-    a b c d f p r ℓ     : Level
+    a b c d p r ℓ       : Level
     A A₁ A₂ B B₁ B₂ C D : Type a
     P Q                 : A → Type p
     R                   : A → A → Type r
-    A↠B k s x y         : A
+    A↠B f k s x y       : A
 
 -- Propositional truncation.
 
@@ -210,6 +214,25 @@ rec p f = rec′ λ where
   ; left-inverse-of = λ _ → truncation-is-proposition _ _
   }
 
+-- If A is merely inhabited (with erased proofs), then A is merely
+-- inhabited.
+
+∥∥ᴱ→∥∥ : ∥ A ∥ᴱ → ∥ A ∥
+∥∥ᴱ→∥∥ = TE.rec λ where
+  .TE.∣∣ʳ                        → ∣_∣
+  .TE.truncation-is-propositionʳ → truncation-is-proposition
+
+-- In an erased context the propositional truncation operator defined
+-- in H-level.Truncation.Propositional.Erased is equivalent to the one
+-- defined here.
+
+@0 ∥∥ᴱ≃∥∥ : ∥ A ∥ᴱ ≃ ∥ A ∥
+∥∥ᴱ≃∥∥ = Eq.⇔→≃
+  TE.truncation-is-proposition
+  truncation-is-proposition
+  ∥∥ᴱ→∥∥
+  (rec TE.truncation-is-proposition TE.∣_∣)
+
 mutual
 
   -- If A and B are logically equivalent, then functions of any kind can
@@ -341,6 +364,18 @@ Surjective-propositional : {f : A → B} → Is-proposition (Surjective f)
 Surjective-propositional =
   Π-closure ext 1 λ _ →
   truncation-is-proposition
+
+-- In an erased context surjectivity with erased proofs is equivalent
+-- to surjectivity.
+--
+-- It appears to me as if neither direction of this equivalence can be
+-- established if the erasure annotation is removed.
+
+@0 Surjectiveᴱ≃Surjective : Surjectiveᴱ f ≃ Surjective f
+Surjectiveᴱ≃Surjective {f = f} =
+  (∀ y → ∥ f ⁻¹ᴱ y ∥ᴱ)  ↝⟨ (∀-cong ext λ _ → ∥∥ᴱ≃∥∥) ⟩
+  (∀ y → ∥ f ⁻¹ᴱ y ∥)   ↝⟨ (∀-cong ext λ _ → ∥∥-cong (inverse ECP.⁻¹≃⁻¹ᴱ)) ⟩□
+  (∀ y → ∥ f ⁻¹  y ∥)   □
 
 -- The function ∣_∣ is surjective.
 

@@ -37,13 +37,53 @@ import Equality.Propositional.Cubical
 
 import Erased.Cubical
 
--- The "interval".
+-- Some theory of equivalences with erased "proofs", developed using
+-- Cubical Agda.
 
-import Interval
+import Equivalence.Erased.Cubical
+
+-- A sequential colimit for which everything except for the "base
+-- case" is erased.
+
+import Colimit.Sequential.Very-erased
+
+-- The sequential colimit HIT with an erased higher constructor.
+
+import Colimit.Sequential.Erased
+
+-- Sequential colimits.
+
+import Colimit.Sequential
+
+-- The one-step truncation HIT with an erased higher constructor.
+
+import H-level.Truncation.Propositional.One-step.Erased
+
+-- The one-step truncation.
+
+import H-level.Truncation.Propositional.One-step
+
+-- A non-recursive variant of H-level.Truncation.Propositional.Erased.
+
+import H-level.Truncation.Propositional.Non-recursive.Erased
+
+-- A variant of the propositional truncation operator with an erased
+-- truncation constructor.
+
+import H-level.Truncation.Propositional.Erased
 
 -- Propositional truncation.
 
 import H-level.Truncation.Propositional
+
+-- A definition of the propositional truncation operator that does not
+-- use recursive higher inductive types.
+
+import H-level.Truncation.Propositional.Non-recursive
+
+-- The "interval".
+
+import Interval
 
 -- Suspensions.
 
@@ -96,11 +136,6 @@ import Quotient
 import Quotient.Set-truncated-if-propositional
 import Quotient.Higher-constructors-if-propositional
 
--- Some theory of equivalences with erased "proofs", developed using
--- Cubical Agda.
-
-import Equivalence.Erased.Cubical
-
 -- Some theory of equivalences with erased "proofs", defined in terms
 -- of partly erased contractible fibres, developed using Cubical Agda.
 
@@ -109,19 +144,6 @@ import Equivalence.Erased.Contractible-preimages.Cubical
 -- Very stable booleans.
 
 import Bool.Very-stable
-
--- A sequential colimit for which everything except for the "base
--- case" is erased.
-
-import Colimit.Sequential.Very-erased
-
--- The sequential colimit HIT with an erased higher constructor.
-
-import Colimit.Sequential.Erased
-
--- Sequential colimits.
-
-import Colimit.Sequential
 
 -- Listed finite subsets.
 
@@ -150,28 +172,6 @@ import Eilenberg-MacLane-space
 -- Coherently constant functions.
 
 import Coherently-constant
-
--- The one-step truncation HIT with an erased higher constructor.
-
-import H-level.Truncation.Propositional.One-step.Erased
-
--- The one-step truncation.
-
-import H-level.Truncation.Propositional.One-step
-
--- A non-recursive variant of H-level.Truncation.Propositional.Erased.
-
-import H-level.Truncation.Propositional.Non-recursive.Erased
-
--- A definition of the propositional truncation operator that does not
--- use recursive higher inductive types.
-
-import H-level.Truncation.Propositional.Non-recursive
-
--- A variant of the propositional truncation operator with an erased
--- truncation constructor.
-
-import H-level.Truncation.Propositional.Erased
 
 -- The "circle".
 

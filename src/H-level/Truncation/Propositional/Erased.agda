@@ -38,8 +38,6 @@ open import Erased.Cubical eq as Er using (Erased; [_])
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional eq as PT
-  using (∥_∥; Surjective)
 open import H-level.Truncation.Propositional.One-step eq as O
   using (∥_∥¹-out-^)
 import H-level.Truncation.Propositional.Non-recursive.Erased eq as N
@@ -191,25 +189,6 @@ rec r = recᴾ λ where
   (elim λ where
      .∣∣ʳ _                        → refl _
      .truncation-is-propositionʳ _ → mono₁ 1 truncation-is-proposition)
-
--- If A is merely inhabited (with erased proofs), then A is merely
--- inhabited.
-
-∥∥ᴱ→∥∥ : ∥ A ∥ᴱ → ∥ A ∥
-∥∥ᴱ→∥∥ = rec λ where
-  .∣∣ʳ                        → PT.∣_∣
-  .truncation-is-propositionʳ → PT.truncation-is-proposition
-
--- In an erased context the propositional truncation operator defined
--- here is equivalent to the one defined in
--- H-level.Truncation.Propositional.
-
-@0 ∥∥ᴱ≃∥∥ : ∥ A ∥ᴱ ≃ ∥ A ∥
-∥∥ᴱ≃∥∥ = Eq.⇔→≃
-  truncation-is-proposition
-  PT.truncation-is-proposition
-  ∥∥ᴱ→∥∥
-  (PT.rec truncation-is-proposition ∣_∣)
 
 ------------------------------------------------------------------------
 -- Some preservation lemmas and related results
@@ -490,12 +469,6 @@ constant-endofunction⇔h-stable = record
 _ : _≃ᴱ_.right-inverse-of ∥∥ᴱ×≃ᴱ x ≡ refl _
 _ = refl _
 
--- This is, at the time of writing, not the case for the following
--- proof.
-
-_ : (∥ A ∥ᴱ × A) ≃ᴱ A
-_ = EEq.[≃]→≃ᴱ (EEq.[proofs] (PT.∥∥×≃ Eq.∘ (∥∥ᴱ≃∥∥ ×-cong Eq.id)))
-
 -- ∥_∥ᴱ commutes with _×_.
 
 ∥∥ᴱ×∥∥ᴱ↔∥×∥ᴱ : (∥ A ∥ᴱ × ∥ B ∥ᴱ) ↔ ∥ A × B ∥ᴱ
@@ -536,15 +509,36 @@ _ = EEq.[≃]→≃ᴱ (EEq.[proofs] (PT.∥∥×≃ Eq.∘ (∥∥ᴱ≃∥∥ 
 
 -- Variants of proj₁-closure.
 
+private
+
+  H-level-×₁-lemma :
+    (A → ∥ B ∥ᴱ) →
+    ∀ n → H-level (suc n) (A × B) → H-level (suc n) A
+  H-level-×₁-lemma inhabited n h =
+    [inhabited⇒+]⇒+ n λ a →
+    flip rec (inhabited a) λ where
+      .∣∣ʳ b →
+        proj₁-closure (λ _ → b) (suc n) h
+      .truncation-is-propositionʳ →
+        H-level-propositional ext (suc n)
+
 H-level-×₁ :
   (A → ∥ B ∥ᴱ) →
   ∀ n → H-level n (A × B) → H-level n A
-H-level-×₁ inhabited = PT.H-level-×₁ (∥∥ᴱ→∥∥ ∘ inhabited)
+H-level-×₁ inhabited zero h =
+  propositional⇒inhabited⇒contractible
+    (H-level-×₁-lemma inhabited 0 (mono₁ 0 h))
+    (proj₁ (proj₁ h))
+H-level-×₁ inhabited (suc n) =
+  H-level-×₁-lemma inhabited n
 
 H-level-×₂ :
   (B → ∥ A ∥ᴱ) →
   ∀ n → H-level n (A × B) → H-level n B
-H-level-×₂ inhabited = PT.H-level-×₂ (∥∥ᴱ→∥∥ ∘ inhabited)
+H-level-×₂ {B = B} {A = A} inhabited n =
+  H-level n (A × B)  ↝⟨ H-level.respects-surjection (from-bijection ×-comm) n ⟩
+  H-level n (B × A)  ↝⟨ H-level-×₁ inhabited n ⟩□
+  H-level n B        □
 
 ------------------------------------------------------------------------
 -- Flattening
@@ -669,18 +663,6 @@ Surjectiveᴱ-propositional =
 Split-surjective→Surjectiveᴱ :
   Split-surjective f → Surjectiveᴱ f
 Split-surjective→Surjectiveᴱ s = λ y → ∣ ECP.⁻¹→⁻¹ᴱ (s y) ∣
-
--- In an erased context surjectivity with erased proofs is equivalent
--- to surjectivity.
---
--- It appears to me as if neither direction of this equivalence can be
--- established if the erasure annotation is removed.
-
-@0 Surjectiveᴱ≃Surjective : Surjectiveᴱ f ≃ Surjective f
-Surjectiveᴱ≃Surjective {f = f} =
-  (∀ y → ∥ f ⁻¹ᴱ y ∥ᴱ)  ↝⟨ (∀-cong ext λ _ → ∥∥ᴱ≃∥∥) ⟩
-  (∀ y → ∥ f ⁻¹ᴱ y ∥)   ↝⟨ (∀-cong ext λ _ → PT.∥∥-cong (inverse ECP.⁻¹≃⁻¹ᴱ)) ⟩□
-  (∀ y → ∥ f ⁻¹  y ∥)   □
 
 -- Being both surjective (with erased proofs) and an embedding
 -- (completely erased) is equivalent to being an equivalence (with
