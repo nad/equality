@@ -17,6 +17,7 @@ module Nat.Wrapper.Cubical
   (Nat′↔ℕ : Nat′ ↔ ℕ)
   where
 
+open import Equality.Path.Univalence
 open import Logical-equivalence using (_⇔_)
 
 import Equivalence equality-with-J as Eq

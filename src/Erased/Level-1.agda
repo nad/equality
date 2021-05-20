@@ -673,7 +673,7 @@ module []-cong₁
     Erased-cong-≃ A≃B =
       from-isomorphism (Erased-cong-↔ (from-isomorphism A≃B))
 
-    -- A variant of Erased-cong (which is defined below).
+    -- A variant of Erased-cong (which is defined in Erased.Level-2).
 
     Erased-cong? :
       ∀ {a b} →

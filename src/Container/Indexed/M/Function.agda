@@ -488,10 +488,10 @@ private
   down zero    = _
   down (suc n) = map _ (down n)
 
-  -- One can combine Up-to and down into a chain.
+-- One can combine Up-to and down into a chain.
 
-  M-chain : {I : Type i} → Container I s p → Chain I (i ⊔ s ⊔ p)
-  M-chain C = Up-to C , down
+M-chain : {I : Type i} → Container I s p → Chain I (i ⊔ s ⊔ p)
+M-chain C = Up-to C , down
 
 -- An M-type for a given container.
 

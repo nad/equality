@@ -57,13 +57,13 @@ withNormalisation : ∀ {a} {A : P.Type a} → Bool → TC A → TC A
 withNormalisation =
   Agda.Builtin.Reflection.withNormalisation ∘ _⇔_.from Bool⇔Bool
 
--- Constructs a visible, relevant argument.
+-- Constructs a visible, relevant argument that is not erased
 
-pattern varg x = arg (arg-info visible relevant) x
+pattern varg x = arg (arg-info visible (modality relevant quantity-ω)) x
 
--- Constructs a hidden, relevant argument.
+-- Constructs a hidden, relevant argument that is not erased.
 
-pattern harg x = arg (arg-info hidden relevant) x
+pattern harg x = arg (arg-info hidden (modality relevant quantity-ω)) x
 
 -- An n-ary variant of pi.
 
@@ -130,8 +130,8 @@ mutual
     eq-String s₁ s₂ ∧ eq-Term t₁ t₂
 
   eq-ArgInfo : ArgInfo → ArgInfo → Bool
-  eq-ArgInfo (arg-info v₁ r₁) (arg-info v₂ r₂) =
-    eq-Visibility v₁ v₂ ∧ eq-Relevance r₁ r₂
+  eq-ArgInfo (arg-info v₁ m₁) (arg-info v₂ m₂) =
+    eq-Visibility v₁ v₂ ∧ eq-Modality m₁ m₂
 
   eq-Arg : Arg Term → Arg Term → Bool
   eq-Arg (arg i₁ t₁) (arg i₂ t₂) =
@@ -143,10 +143,19 @@ mutual
   eq-Visibility instance′ instance′ = true
   eq-Visibility _         _         = false
 
+  eq-Modality : Modality → Modality → Bool
+  eq-Modality (modality r₁ q₁) (modality r₂ q₂) =
+    eq-Relevance r₁ r₂ ∧ eq-Quantity q₁ q₂
+
   eq-Relevance : Relevance → Relevance → Bool
   eq-Relevance relevant   relevant   = true
   eq-Relevance irrelevant irrelevant = true
   eq-Relevance _          _          = false
+
+  eq-Quantity : Quantity → Quantity → Bool
+  eq-Quantity quantity-0 quantity-0 = true
+  eq-Quantity quantity-ω quantity-ω = true
+  eq-Quantity _          _          = false
 
 -- Returns a fresh meta-variable of type Level.
 

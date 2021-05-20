@@ -20,7 +20,7 @@ open import Container.Indexed equality-with-J
 import Container.Indexed.M.Function equality-with-J as F
 import Container.Indexed.Variant equality-with-J as V
 open import Container.Indexed.Variant.M.Codata eq as VM using (out-M)
-open import Equality.Path.Isomorphisms eq hiding (univ)
+open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J

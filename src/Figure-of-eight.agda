@@ -15,6 +15,7 @@ module Figure-of-eight
 
 open P.Derived-definitions-and-properties eq hiding (elim)
 
+import Equality.Path.Univalence as EPU
 open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
@@ -161,7 +162,7 @@ loop₁≢loop₂ : loop₁ ≢ loop₂
 loop₁≢loop₂ =
   loop₁ ≡ loop₂      ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (inverse ≡↔≡)) ⟩
   loop₁ᴾ ≡ loop₂ᴾ    ↔⟨ ≡↔≡ ⟩
-  loop₁ᴾ P.≡ loop₂ᴾ  ↝⟨ PU.¬-Type-set P.univ ∘ Type-set ⟩□
+  loop₁ᴾ P.≡ loop₂ᴾ  ↝⟨ PU.¬-Type-set EPU.univ ∘ Type-set ⟩□
   ⊥                  □
   where
   module _ (hyp : loop₁ᴾ P.≡ loop₂ᴾ) where
@@ -254,8 +255,8 @@ trans-not-commutative =
 
   F : ∞ → Type
   F base       = Fin 3
-  F (loop₁ᴾ i) = P.≃⇒≡ eq₁ i
-  F (loop₂ᴾ i) = P.≃⇒≡ eq₂ i
+  F (loop₁ᴾ i) = EPU.≃⇒≡ eq₁ i
+  F (loop₂ᴾ i) = EPU.≃⇒≡ eq₂ i
 
   lemma₁₂ :
     P.subst F (P.trans loop₁ᴾ loop₂ᴾ) P.≡

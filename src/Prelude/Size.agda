@@ -2,7 +2,7 @@
 -- Support for sized types
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe --sized-types #-}
+{-# OPTIONS --without-K --sized-types #-}
 
 module Prelude.Size where
 

@@ -14,14 +14,15 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 open import Prelude as P hiding (suc; _*_; _^_) renaming (_+_ to _⊕_)
 
 open import Bijection equality-with-J using (_↔_)
-open import Equality.Path.Isomorphisms eq hiding (univ)
+open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
-open import Group equality-with-J as G
-  using (Group; Generated-by; Cyclic; Abelian; _≃ᴳ_)
+open import Group equality-with-J as G using (Group; Abelian; _≃ᴳ_)
+open import Group.Cyclic eq as C using (Generated-by; Cyclic)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional eq using (∣_∣)
 import Integer equality-with-J as Data
 import Nat equality-with-J as Nat
 open import Quotient eq as Q hiding (elim; rec)
@@ -887,27 +888,27 @@ Negative-propositional _ = Data.Negative-propositional
 
 ℤ-generated-by-1 : Generated-by ℤ-group (+ 1)
 ℤ-generated-by-1 =
-  G.≃ᴳ→Generated-by→Generated-by
+  C.≃ᴳ→Generated-by→Generated-by
     (G.≃ᴳ-sym ℤ≃ᴳℤ)
-    Data.ℤ-generated-by-1
+    C.ℤ-generated-by-1
 
 -- The group of integers is cyclic.
 
 ℤ-cyclic : Cyclic ℤ-group
-ℤ-cyclic = _ , ℤ-generated-by-1
+ℤ-cyclic = ∣ _ , ℤ-generated-by-1 ∣
 
 -- The group of integers is abelian.
 
 ℤ-abelian : Abelian ℤ-group
-ℤ-abelian = G.Cyclic→Abelian ℤ-group ℤ-cyclic
+ℤ-abelian = C.Cyclic→Abelian ℤ-group ℤ-cyclic
 
 -- The direct product of the group of integers and the group of
 -- integers is not cyclic.
 
 ℤ×ℤ-not-cyclic : ¬ Cyclic (ℤ-group G.× ℤ-group)
 ℤ×ℤ-not-cyclic =
-  Cyclic (ℤ-group G.× ℤ-group)            ↝⟨ G.≃ᴳ→Cyclic→Cyclic (G.↝-× ℤ≃ᴳℤ ℤ≃ᴳℤ) ⟩
-  Cyclic (Data.ℤ-group G.× Data.ℤ-group)  ↝⟨ Data.ℤ×ℤ-not-cyclic ⟩□
+  Cyclic (ℤ-group G.× ℤ-group)            ↝⟨ C.≃ᴳ→Cyclic→Cyclic (G.↝-× ℤ≃ᴳℤ ℤ≃ᴳℤ) ⟩
+  Cyclic (Data.ℤ-group G.× Data.ℤ-group)  ↝⟨ C.ℤ×ℤ-not-cyclic ⟩□
   ⊥                                       □
 
 -- The group of integers is not isomorphic to the direct product of
@@ -916,7 +917,7 @@ Negative-propositional _ = Data.Negative-propositional
 ℤ≄ᴳℤ×ℤ : ¬ ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)
 ℤ≄ᴳℤ×ℤ =
   ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)                 ↝⟨ G.↝ᴳ-trans (G.≃ᴳ-sym ℤ≃ᴳℤ) ∘ flip G.↝ᴳ-trans (G.↝-× ℤ≃ᴳℤ ℤ≃ᴳℤ) ⟩
-  Data.ℤ-group ≃ᴳ (Data.ℤ-group G.× Data.ℤ-group)  ↝⟨ Data.ℤ≄ᴳℤ×ℤ ⟩□
+  Data.ℤ-group ≃ᴳ (Data.ℤ-group G.× Data.ℤ-group)  ↝⟨ C.ℤ≄ᴳℤ×ℤ ⟩□
   ⊥                                                □
 
 -- The group of integers is not equal to the direct product of the

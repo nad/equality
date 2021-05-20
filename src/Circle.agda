@@ -23,11 +23,13 @@ open import Bijection equality-with-J as Bijection using (_↔_)
 import Bijection P.equality-with-J as PB
 open import Equality.Groupoid equality-with-J
 open import Equality.Path.Isomorphisms eq
+open import Equality.Path.Isomorphisms.Univalence eq
 import Equality.Path.Isomorphisms P.equality-with-paths as PI
 open import Equality.Tactic equality-with-J hiding (module Eq)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import Group equality-with-J as G using (_≃ᴳ_)
+import Group.Cyclic eq as C
 open import Groupoid equality-with-J
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -662,7 +664,7 @@ all-points-on-the-circle-are-¬¬-equal x =
   (Fundamental-group (𝕊¹ , base) G.× Fundamental-group (𝕊¹ , base))  ↝⟨ flip G.↝ᴳ-trans (G.↝-× Fundamental-group≃ℤ Fundamental-group≃ℤ) ∘
                                                                         G.↝ᴳ-trans (G.≃ᴳ-sym Fundamental-group≃ℤ) ⟩
 
-  ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)                                   ↝⟨ Int.ℤ≄ᴳℤ×ℤ ⟩□
+  ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)                                   ↝⟨ C.ℤ≄ᴳℤ×ℤ ⟩□
 
   ⊥                                                                  □
 

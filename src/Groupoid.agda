@@ -195,7 +195,8 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
 
   -- Exponentiation.
 
-  infixr 8 _^+_ _^_
+  infixl 8 _^+_
+  infixr 8 _^_
 
   _^+_ : x ∼ x → ℕ → x ∼ x
   p ^+ 0     = id
@@ -218,15 +219,20 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
 
   -- Some rearrangement lemmas for _^+_.
 
-  ∘^+≡^+∘ : ∀ n → p ∘ p ^+ n ≡ p ^+ n ∘ p
-  ∘^+≡^+∘ {p = p} zero =
+  ∘^+≡^+∘ :
+    p ∘ q ≡ q ∘ p →
+    ∀ n → p ∘ q ^+ n ≡ q ^+ n ∘ p
+  ∘^+≡^+∘ {p = p} _ zero =
     p ∘ id  ≡⟨ right-identity _ ⟩
     p       ≡⟨ sym $ left-identity _ ⟩∎
     id ∘ p  ∎
-  ∘^+≡^+∘ {p = p} (suc n) =
-    p ∘ (p ∘ p ^+ n)  ≡⟨ cong (p ∘_) $ ∘^+≡^+∘ n ⟩
-    p ∘ (p ^+ n ∘ p)  ≡⟨ assoc _ _ _ ⟩∎
-    (p ∘ p ^+ n) ∘ p  ∎
+  ∘^+≡^+∘ {p = p} {q = q} comm (suc n) =
+    p ∘ (q ∘ q ^+ n)  ≡⟨ assoc _ _ _ ⟩
+    (p ∘ q) ∘ q ^+ n  ≡⟨ cong (_∘ q ^+ n) comm ⟩
+    (q ∘ p) ∘ q ^+ n  ≡⟨ sym $ assoc _ _ _ ⟩
+    q ∘ (p ∘ q ^+ n)  ≡⟨ cong (q ∘_) $ ∘^+≡^+∘ comm n ⟩
+    q ∘ (q ^+ n ∘ p)  ≡⟨ assoc _ _ _ ⟩∎
+    (q ∘ q ^+ n) ∘ p  ∎
 
   ^+∘^+≡^+∘^+ : ∀ m n → p ^+ m ∘ p ^+ n ≡ p ^+ n ∘ p ^+ m
   ^+∘^+≡^+∘^+ {p = p} m n =
@@ -241,7 +247,7 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
 
     lemma₁ : ∀ n → (p ∘ p ^+ n) ∘ (p ⁻¹ ∘ q) ≡ p ^+ n ∘ q
     lemma₁ {p = p} {q = q} n =
-      (p ∘ p ^+ n) ∘ (p ⁻¹ ∘ q)  ≡⟨ cong (_∘ (p ⁻¹ ∘ q)) $ ∘^+≡^+∘ n ⟩
+      (p ∘ p ^+ n) ∘ (p ⁻¹ ∘ q)  ≡⟨ cong (_∘ (p ⁻¹ ∘ q)) $ ∘^+≡^+∘ (refl _) n ⟩
       (p ^+ n ∘ p) ∘ (p ⁻¹ ∘ q)  ≡⟨ sym $ assoc _ _ _ ⟩
       p ^+ n ∘ (p ∘ (p ⁻¹ ∘ q))  ≡⟨ cong (p ^+ n ∘_) $ assoc _ _ _ ⟩
       p ^+ n ∘ ((p ∘ p ⁻¹) ∘ q)  ≡⟨ cong (p ^+ n ∘_) $ cong (_∘ q) $ right-inverse _ ⟩
@@ -298,7 +304,7 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
   ^+⁻¹ {p = p} (suc n) =
     (p ∘ p ^+ n) ⁻¹     ≡⟨ ∘⁻¹ ⟩
     (p ^+ n) ⁻¹ ∘ p ⁻¹  ≡⟨ cong (_∘ p ⁻¹) $ ^+⁻¹ n ⟩
-    (p ⁻¹) ^+ n ∘ p ⁻¹  ≡⟨ sym $ ∘^+≡^+∘ n ⟩∎
+    (p ⁻¹) ^+ n ∘ p ⁻¹  ≡⟨ sym $ ∘^+≡^+∘ (refl _) n ⟩∎
     p ⁻¹ ∘ (p ⁻¹) ^+ n  ∎
 
   -- _^ i commutes with _⁻¹.
@@ -323,3 +329,50 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
     (id ^+ suc n) ⁻¹  ≡⟨ cong _⁻¹ $ id^+ (suc n) ⟩
     id ⁻¹             ≡⟨ identity ⟩∎
     id                ∎
+
+  private
+
+    lemma₅ : ∀ m n → p ^+ suc m ^+ n ≡ p ^+ n ∘ p ^+ m ^+ n
+    lemma₅ _ zero =
+      id       ≡⟨ sym $ left-identity _ ⟩∎
+      id ∘ id  ∎
+    lemma₅ {p = p} m (suc n) =
+      p ^+ suc m ∘ p ^+ suc m ^+ n           ≡⟨ cong (p ^+ suc m ∘_) $ lemma₅ m n ⟩
+      p ^+ suc m ∘ (p ^+ n ∘ p ^+ m ^+ n)    ≡⟨ assoc _ _ _ ⟩
+      (p ^+ suc m ∘ p ^+ n) ∘ p ^+ m ^+ n    ≡⟨⟩
+      ((p ∘ p ^+ m) ∘ p ^+ n) ∘ p ^+ m ^+ n  ≡⟨ cong (_∘ p ^+ m ^+ n) $ sym $ assoc _ _ _ ⟩
+      (p ∘ p ^+ m ∘ p ^+ n) ∘ p ^+ m ^+ n    ≡⟨ cong (_∘ p ^+ m ^+ n) $ cong (p ∘_) $ ^+∘^+≡^+∘^+ m n ⟩
+      (p ∘ p ^+ n ∘ p ^+ m) ∘ p ^+ m ^+ n    ≡⟨ cong (_∘ p ^+ m ^+ n) $ assoc _ _ _ ⟩
+      ((p ∘ p ^+ n) ∘ p ^+ m) ∘ p ^+ m ^+ n  ≡⟨ sym $ assoc _ _ _ ⟩∎
+      (p ∘ p ^+ n) ∘ p ^+ m ∘ p ^+ m ^+ n    ∎
+
+  -- More rearrangement lemmas for _^+_.
+
+  ^+^+≡^+* : ∀ m → p ^+ m ^+ n ≡ p ^+ (m * n)
+  ^+^+≡^+* {n = n} zero =
+    id ^+ n  ≡⟨ id^+ n ⟩∎
+    id       ∎
+  ^+^+≡^+* {p = p} {n = n} (suc m) =
+    p ^+ suc m ^+ n        ≡⟨ lemma₅ m n ⟩
+    p ^+ n ∘ p ^+ m ^+ n   ≡⟨ cong (p ^+ n ∘_) $ ^+^+≡^+* m ⟩
+    p ^+ n ∘ p ^+ (m * n)  ≡⟨ ^+∘^+ n ⟩
+    p ^+ (n + m * n)       ≡⟨⟩
+    p ^+ (suc m * n)       ∎
+
+  ∘^+≡^+∘^+ :
+    p ∘ q ≡ q ∘ p →
+    ∀ n →
+    (p ∘ q) ^+ n ≡ p ^+ n ∘ q ^+ n
+  ∘^+≡^+∘^+ _ zero =
+    id       ≡⟨ sym $ left-identity _ ⟩∎
+    id ∘ id  ∎
+  ∘^+≡^+∘^+ {p = p} {q = q} comm (suc n) =
+    (p ∘ q) ^+ suc n             ≡⟨⟩
+    (p ∘ q) ∘ (p ∘ q) ^+ n       ≡⟨ cong ((p ∘ q) ∘_) $ ∘^+≡^+∘^+ comm n ⟩
+    (p ∘ q) ∘ (p ^+ n ∘ q ^+ n)  ≡⟨ sym $ assoc _ _ _ ⟩
+    p ∘ (q ∘ p ^+ n ∘ q ^+ n)    ≡⟨ cong (p ∘_) $ assoc _ _ _ ⟩
+    p ∘ ((q ∘ p ^+ n) ∘ q ^+ n)  ≡⟨ cong (p ∘_) $ cong (_∘ (q ^+ n)) $ ∘^+≡^+∘ (sym comm) n ⟩
+    p ∘ ((p ^+ n ∘ q) ∘ q ^+ n)  ≡⟨ cong (p ∘_) $ sym $ assoc _ _ _ ⟩
+    p ∘ (p ^+ n ∘ q ∘ q ^+ n)    ≡⟨ assoc _ _ _ ⟩
+    (p ∘ p ^+ n) ∘ q ∘ q ^+ n    ≡⟨⟩
+    p ^+ suc n ∘ q ^+ suc n      ∎

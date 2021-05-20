@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------
 -- Isomorphisms and equalities relating an arbitrary "equality with J"
--- to path equality, along with proofs of extensionality and
--- univalence for the "equality with J"
+-- to path equality, along with a proof of extensionality for the
+-- "equality with J"
 ------------------------------------------------------------------------
 
 {-# OPTIONS --cubical --safe #-}
@@ -627,16 +627,3 @@ Univalence≃Univalence : Univalence ℓ ≃ PU.Univalence ℓ
 Univalence≃Univalence {ℓ = ℓ} =
   ({A B : Type ℓ} → Univalence′ A B)     ↝⟨ implicit-∀-cong ext $ implicit-∀-cong ext Univalence′≃Univalence′ ⟩□
   ({A B : Type ℓ} → PU.Univalence′ A B)  □
-
--- Univalence.
-
-univ : ∀ {ℓ} → Univalence ℓ
-univ = _≃_.from Univalence≃Univalence P.univ
-
--- Propositional extensionality.
-
-prop-ext : ∀ {ℓ} → Propositional-extensionality ℓ
-prop-ext =
-  _≃_.from
-    (Propositional-extensionality-is-univalence-for-propositions ext)
-    (λ _ _ → univ)

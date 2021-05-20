@@ -16,12 +16,14 @@ module Bool.Very-stable
 
 open P.Derived-definitions-and-properties eq hiding (elim)
 
+import Equality.Path.Univalence as PU
 open import Prelude as Bool hiding (true; false)
 
 open import Bijection equality-with-J using (_↔_)
 import Bijection P.equality-with-J as PB
 open import Equality.Decision-procedures equality-with-J
 open import Equality.Path.Isomorphisms eq
+open import Equality.Path.Isomorphisms.Univalence eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Erased.Cubical eq as Erased
 import Erased.Cubical P.equality-with-paths as PE
@@ -224,7 +226,7 @@ module Alternative-T̃ where
   T̃′ (stable-[]ᴾ b i) = lemma₁ i , lemma₂ i
     where
     lemma₁ : PE.Erased (T̃ b) P.≡ T̃ b
-    lemma₁ = P.≃⇒≡ (PE.Very-stable→Stable 0 (Very-stable-T̃ b))
+    lemma₁ = PU.≃⇒≡ (PE.Very-stable→Stable 0 (Very-stable-T̃ b))
 
     lemma₂ :
       P.[ (λ i → PE.Very-stable (lemma₁ i)) ]

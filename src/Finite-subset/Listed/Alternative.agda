@@ -22,6 +22,7 @@ module Finite-subset.Listed.Alternative
 
 open P.Derived-definitions-and-properties eq hiding (elim)
 
+import Equality.Path.Univalence as EPU
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (_∷_; swap)
 
@@ -101,7 +102,7 @@ mutual
     lemma = P.Σ-≡,≡→≡
       (x ∈ y  P.≡⟨ PEq._≃_.from
                      (PU.Propositional-extensionality-is-univalence-for-propositions P.ext)
-                     (λ _ _ → P.univ)
+                     (λ _ _ → EPU.univ)
                      (∈-propositionalᴾ y)
                      (∈-propositionalᴾ z)
                      (y∼z x) ⟩∎
@@ -114,7 +115,7 @@ mutual
       {y = λ _ → Membership x z}
       {p = λ i → Membership x (p i)}
       {q = λ i → Membership x (q i)}
-      (PU.∃-H-level-H-level-1+ P.ext P.univ 1)
+      (PU.∃-H-level-H-level-1+ P.ext EPU.univ 1)
       i j
 
 -- Variants of some of the constructors.
