@@ -7,7 +7,7 @@
 -- the individual files.
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --with-K --prop #-}
+{-# OPTIONS --cubical --with-K --guardedness --sized-types --prop #-}
 
 module README where
 
