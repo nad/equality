@@ -58,7 +58,7 @@ glue x = _↔_.from ≡↔≡ (glueᴾ x)
 -- A dependent eliminator, expressed using paths.
 
 elimᴾ :
-  {S : Span l m r} (open Span S)
+  {S : Span l r m} (open Span S)
   (P : Pushout S → Type p)
   (h₁ : (x : Left) → P (inl x))
   (h₂ : (x : Right) → P (inr x)) →
@@ -72,7 +72,7 @@ elimᴾ P h₁ h₂ g = λ where
 -- A non-dependent eliminator.
 
 recᴾ :
-  {S : Span l m r} (open Span S)
+  {S : Span l r m} (open Span S)
   (h₁ : Left → A)
   (h₂ : Right → A) →
   (∀ x → h₁ (left x) P.≡ h₂ (right x)) →
@@ -82,7 +82,7 @@ recᴾ = elimᴾ _
 -- A dependent eliminator.
 
 elim :
-  {S : Span l m r} (open Span S)
+  {S : Span l r m} (open Span S)
   (P : Pushout S → Type p)
   (h₁ : (x : Left) → P (inl x))
   (h₂ : (x : Right) → P (inr x)) →
@@ -91,7 +91,7 @@ elim :
 elim P h₁ h₂ g = elimᴾ P h₁ h₂ (subst≡→[]≡ ∘ g)
 
 elim-glue :
-  {S : Span l m r} (open Span S) {P : Pushout S → Type p}
+  {S : Span l r m} (open Span S) {P : Pushout S → Type p}
   {h₁ : (x : Left) → P (inl x)}
   {h₂ : (x : Right) → P (inr x)}
   {g : ∀ x → subst P (glue x) (h₁ (left x)) ≡ h₂ (right x)}
@@ -102,7 +102,7 @@ elim-glue = dcong-subst≡→[]≡ (refl _)
 -- A non-dependent eliminator.
 
 rec :
-  {S : Span l m r} (open Span S)
+  {S : Span l r m} (open Span S)
   (h₁ : Left → A)
   (h₂ : Right → A) →
   (∀ x → h₁ (left x) ≡ h₂ (right x)) →
@@ -110,7 +110,7 @@ rec :
 rec h₁ h₂ g = recᴾ h₁ h₂ (_↔_.to ≡↔≡ ∘ g)
 
 rec-glue :
-  {S : Span l m r} (open Span S)
+  {S : Span l r m} (open Span S)
   {h₁ : Left → A} {h₂ : Right → A}
   {g : ∀ x → h₁ (left x) ≡ h₂ (right x)}
   {x : Middle} →
@@ -119,7 +119,7 @@ rec-glue = cong-≡↔≡ (refl _)
 
 -- Cocones.
 
-Cocone : Span l m r → Type a → Type (a ⊔ l ⊔ m ⊔ r)
+Cocone : Span l r m → Type a → Type (a ⊔ l ⊔ r ⊔ m)
 Cocone S A =
   ∃ λ (left  : Left  → A) →
   ∃ λ (right : Right → A) →
