@@ -52,6 +52,9 @@ postulate
   import qualified System.Exit
 #-}
 
+-- Note that the GHC code below ignores potential problems. For
+-- instance, putStr could raise an exception.
+
 {-# COMPILE GHC putStr      = Data.Text.IO.putStr #-}
 {-# COMPILE GHC putStrLn    = Data.Text.IO.putStrLn #-}
 {-# COMPILE GHC exitFailure = System.Exit.exitFailure #-}
