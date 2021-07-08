@@ -168,8 +168,8 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext = ⇔→≃ᴱ
 -- See also Σ-cong-≃ᴱ-Erased below.
 
 Σ-cong-≃ᴱ :
-  (f : A → B) (g : B → A)
-  (f-g : ∀ x → f (g x) ≡ x) →
+  (f : A → B) (g : B → A) →
+  (∀ x → f (g x) ≡ x) →
   @0 (∀ x → g (f x) ≡ x) →
   (∀ x → P x ≃ᴱ Q (f x)) →
   Σ A P ≃ᴱ Σ B Q
