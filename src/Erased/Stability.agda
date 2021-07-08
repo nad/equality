@@ -2504,6 +2504,18 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                                       (λ _ → refl _)) ⟩□
     Contractibleᴱ (Erased-other-singleton x)  □
 
+  -- Erased-singleton x is equivalent, with erased proofs, to ⊤.
+
+  Erased-singleton≃ᴱ⊤ : Erased-singleton x ≃ᴱ ⊤
+  Erased-singleton≃ᴱ⊤ =
+    _⇔_.to EEq.Contractibleᴱ⇔≃ᴱ⊤ Contractibleᴱ-Erased-singleton
+
+  -- Erased-other-singleton x is equivalent, with erased proofs, to ⊤.
+
+  Erased-other-singleton≃ᴱ⊤ : Erased-other-singleton x ≃ᴱ ⊤
+  Erased-other-singleton≃ᴱ⊤ =
+    _⇔_.to EEq.Contractibleᴱ⇔≃ᴱ⊤ Contractibleᴱ-Erased-other-singleton
+
   -- If equality is very stable (with erased proofs) for A, and x : A
   -- is erased, then Erased-singleton x is a proposition.
 
