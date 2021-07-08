@@ -409,6 +409,18 @@ abstract
     ext⁻¹ (apply-ext (good-ext ext) f≡g) x      ≡⟨ cong (_$ x) $ _≃_.left-inverse-of (extensionality-isomorphism ext) f≡g ⟩∎
     f≡g x                                       ∎
 
+  good-ext-cong :
+    ∀ {a b c} (ext : Extensionality b c)
+    {A : Type a} {B : Type b} {C : B → Type c}
+    {f : A → (x : B) → C x} {x y : A} {x≡y : x ≡ y} →
+    apply-ext (good-ext ext) (λ z → cong (flip f z) x≡y) ≡
+    cong f x≡y
+  good-ext-cong ext {f = f} {x≡y = x≡y} =
+    apply-ext (good-ext ext) (λ z → cong (flip f z) x≡y)       ≡⟨ (cong (apply-ext (good-ext ext)) $ apply-ext ext λ _ → sym $ cong-∘ _ _ _) ⟩
+    apply-ext (good-ext ext) (λ z → cong (_$ z) (cong f x≡y))  ≡⟨⟩
+    apply-ext (good-ext ext) (ext⁻¹ (cong f x≡y))              ≡⟨ _≃_.right-inverse-of (extensionality-isomorphism ext) _ ⟩∎
+    cong f x≡y                                                 ∎
+
   subst-good-ext :
     ∀ {a b p} (ext : Extensionality a b)
     {A : Type a} {B : A → Type b} {f g : (x : A) → B x} {x}

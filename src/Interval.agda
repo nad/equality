@@ -202,6 +202,12 @@ abstract
     cong (_$ x) (⟨ext⟩ f≡g) ≡ f≡g x
   cong-ext = cong-good-ext bad-ext
 
+  ext-cong :
+    ∀ {a b c} {A : Type a} {B : Type b} {C : B → Type c}
+    {f : A → (x : B) → C x} {x y : A} {x≡y : x ≡ y} →
+    ⟨ext⟩ (λ z → cong (flip f z) x≡y) ≡ cong f x≡y
+  ext-cong = good-ext-cong bad-ext
+
   subst-ext :
     ∀ {a b p} {A : Type a} {B : A → Type b} {f g : (x : A) → B x} {x}
     (P : B x → Type p) {p} (f≡g : ∀ x → f x ≡ g x) →
