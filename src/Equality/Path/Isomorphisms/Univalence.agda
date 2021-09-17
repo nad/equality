@@ -27,6 +27,13 @@ private
 univ : Univalence ℓ
 univ = _≃_.from Univalence≃Univalence PU.univ
 
+-- A variant of univ that does not compute at compile-time.
+
+abstract
+
+  abstract-univ : Univalence ℓ
+  abstract-univ = univ
+
 -- Propositional extensionality.
 
 prop-ext : Propositional-extensionality ℓ
