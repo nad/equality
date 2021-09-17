@@ -30,7 +30,7 @@ open import Equality.Decidable-UIP equality-with-J using (Constant)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence-relation equality-with-J
-open import Erased.Cubical eq as Er using (Erased; [_])
+open import Erased.Cubical eq as Er using (Erased; Erasedᴾ; [_])
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -38,14 +38,16 @@ open import H-level.Truncation.Propositional eq as PT using (∥_∥; ∣_∣)
 open import H-level.Truncation.Propositional.Erased eq as PTᴱ
   using (∥_∥ᴱ; ∣_∣; Surjectiveᴱ)
 open import Quotient eq as Q using (_/_)
+open import Sum equality-with-J
 open import Surjection equality-with-J using (_↠_)
 
 private
   variable
-    a a₁ a₂ r r₁ r₂ : Level
-    A A₁ A₂ B       : Type a
-    R               : A → A → Type r
-    f k x y         : A
+    a a₁ a₂ p r r₁ r₂ : Level
+    A A₁ A₂ B         : Type a
+    P                 : A → Type p
+    R                 : A → A → Type r
+    f k x y           : A
 
 ------------------------------------------------------------------------
 -- A re-export
@@ -335,3 +337,182 @@ _ :
   (@0 B-set : Is-set B) →
   proj₁ (_≃_.from (Σ→Erased-Constant≃∥∥ᴱ→ B-set) f) x ≡ f ∣ x ∣
 _ = λ _ → refl _
+
+------------------------------------------------------------------------
+-- Various type formers commute with quotients
+
+-- _⊎_ commutes with quotients.
+
+⊎/ᴱ :
+  {@0 R₁ : A₁ → A₁ → Type r} {@0 R₂ : A₂ → A₂ → Type r} →
+  (A₁ ⊎ A₂) /ᴱ (R₁ ⊎ᴾ R₂) ≃ (A₁ /ᴱ R₁ ⊎ A₂ /ᴱ R₂)
+⊎/ᴱ = Eq.↔→≃
+  (rec λ where
+     .[]ʳ → ⊎-map [_] [_]
+
+     .is-setʳ → ⊎-closure 0 /ᴱ-is-set /ᴱ-is-set
+
+     .[]-respects-relationʳ {x = inj₁ _} {y = inj₁ _} →
+       cong inj₁ ∘ []-respects-relation
+     .[]-respects-relationʳ {x = inj₂ _} {y = inj₂ _} →
+       cong inj₂ ∘ []-respects-relation)
+  Prelude.[ rec (λ where
+              .[]ʳ x                 → [ inj₁ x ]
+              .[]-respects-relationʳ → []-respects-relation
+              .is-setʳ               → /ᴱ-is-set)
+          , rec (λ where
+              .[]ʳ x                 → [ inj₂ x ]
+              .[]-respects-relationʳ → []-respects-relation
+              .is-setʳ               → /ᴱ-is-set)
+          ]
+  Prelude.[ elim-prop (λ where
+              .[]ʳ _             → refl _
+              .is-propositionʳ _ → ⊎-closure 0 /ᴱ-is-set /ᴱ-is-set)
+          , elim-prop (λ where
+              .[]ʳ _             → refl _
+              .is-propositionʳ _ → ⊎-closure 0 /ᴱ-is-set /ᴱ-is-set)
+          ]
+  (elim-prop λ where
+     .[]ʳ               → Prelude.[ (λ _ → refl _) , (λ _ → refl _) ]
+     .is-propositionʳ _ → /ᴱ-is-set)
+
+-- Maybe commutes with quotients.
+--
+-- Chapman, Uustalu and Veltri mention a similar result in
+-- "Quotienting the Delay Monad by Weak Bisimilarity".
+
+Maybe/ᴱ :
+  {@0 R : A → A → Type r} →
+  Maybe A /ᴱ Maybeᴾ R ≃ Maybe (A /ᴱ R)
+Maybe/ᴱ {A = A} {R = R} =
+  Maybe A /ᴱ Maybeᴾ R    ↝⟨ ⊎/ᴱ ⟩
+  ⊤ /ᴱ Trivial ⊎ A /ᴱ R  ↔⟨ /ᴱtrivial↔∥∥ᴱ _ ⊎-cong F.id ⟩
+  ∥ ⊤ ∥ᴱ ⊎ A /ᴱ R        ↔⟨ PTᴱ.∥∥ᴱ↔ (mono₁ 0 ⊤-contractible) ⊎-cong F.id ⟩□
+  Maybe (A /ᴱ R)         □
+
+-- A simplification lemma for Maybe/-comm.
+
+Maybe/ᴱ-[] :
+  {@0 R : A → A → Type r} →
+  _≃_.to (Maybe/ᴱ {R = R}) ∘ [_] ≡ ⊎-map id ([_] {R = R})
+Maybe/ᴱ-[] = ⟨ext⟩ λ x →
+  _≃_.to Maybe/ᴱ [ x ]                       ≡⟨⟩
+  ⊎-map _ id (⊎-map _ id (⊎-map [_] [_] x))  ≡⟨ sym $ ⊎-map-∘ (⊎-map [_] [_] x) ⟩
+  ⊎-map _ id (⊎-map [_] [_] x)               ≡⟨ sym $ ⊎-map-∘ x ⟩∎
+  ⊎-map id [_] x                             ∎
+
+-- Cartesian products commute with quotients, assuming that the two
+-- binary relations involved in the statement are reflexive.
+
+×/ᴱ :
+  {@0 R₁ : A₁ → A₁ → Type r₁} {@0 R₂ : A₂ → A₂ → Type r₂} →
+  @0 (∀ {x} → R₁ x x) →
+  @0 (∀ {x} → R₂ x x) →
+  (A₁ × A₂) /ᴱ (R₁ ×ᴾ R₂) ≃ (A₁ /ᴱ R₁ × A₂ /ᴱ R₂)
+×/ᴱ {R₁ = R₁} {R₂ = R₂} R₁-refl R₂-refl = Eq.↔→≃
+  (rec λ where
+     .is-setʳ → ×-closure 2 /ᴱ-is-set /ᴱ-is-set
+
+     .[]ʳ → Σ-map [_] [_]
+
+     .[]-respects-relationʳ {x = x₁ , x₂} {y = y₁ , y₂} →
+       R₁ x₁ y₁ × R₂ x₂ y₂                    ↝⟨ Σ-map []-respects-relation
+                                                       []-respects-relation ⟩
+       [ x₁ ] ≡ [ y₁ ] × [ x₂ ] ≡ [ y₂ ]      ↝⟨ uncurry (cong₂ _,_) ⟩□
+       ([ x₁ ] , [ x₂ ]) ≡ ([ y₁ ] , [ y₂ ])  □)
+  (uncurry $ rec λ where
+     .is-setʳ →
+       Π-closure ext 2 λ _ →
+       /ᴱ-is-set
+     .[]ʳ x → (x ,_) /ᴱ-map λ y₁ y₂ →
+       R₂ y₁ y₂           ↝⟨ R₁-refl ,_ ⟩□
+       R₁ x x × R₂ y₁ y₂  □
+     .[]-respects-relationʳ {x = x₁} {y = x₂} R₁x₁x₂ →
+       ⟨ext⟩ $ elim-prop λ @0 where
+         .is-propositionʳ _ →
+           /ᴱ-is-set
+         .[]ʳ y →
+           [ (x₁ , y) ]  ≡⟨ []-respects-relation (R₁x₁x₂ , R₂-refl) ⟩∎
+           [ (x₂ , y) ]  ∎)
+  (uncurry $ elim-prop λ where
+     .is-propositionʳ _ →
+       Π-closure ext 1 λ _ →
+       ×-closure 2 /ᴱ-is-set /ᴱ-is-set
+     .[]ʳ _ → elim-prop λ where
+       .is-propositionʳ _ →
+         ×-closure 2 /ᴱ-is-set /ᴱ-is-set
+       .[]ʳ _ →
+         refl _)
+  (elim-prop λ where
+     .is-propositionʳ _ → /ᴱ-is-set
+     .[]ʳ _             → refl _)
+
+-- The sigma type former commutes (kind of) with quotients, assuming
+-- that the second projections come from propositional types.
+
+Σ/ᴱ :
+  @0 (∀ {x} → Is-proposition (P x)) →
+  Σ (A /ᴱ R) P ≃ Σ A (P ∘ [_]) /ᴱ (R on proj₁)
+Σ/ᴱ {A = A} {R = R} {P = P} prop = Eq.↔→≃
+  (uncurry $ elim λ where
+     .is-setʳ _ →
+       Π-closure ext 2 λ _ →
+       /ᴱ-is-set
+
+     .[]ʳ → curry [_]
+
+     .[]-respects-relationʳ {x = x} {y = y} r → ⟨ext⟩ λ P[y] →
+       subst (λ x → P x → Σ A (P ∘ [_]) /ᴱ (R on proj₁))
+             ([]-respects-relation r)
+             (curry [_] x) P[y]                               ≡⟨ subst-→-domain P {f = curry [_] x} ([]-respects-relation r) ⟩
+
+       [ (x , subst P (sym $ []-respects-relation r) P[y]) ]  ≡⟨ []-respects-relation r ⟩∎
+
+       [ (y , P[y]) ]                                         ∎)
+  (rec λ where
+     .is-setʳ → Σ-closure 2 /ᴱ-is-set (λ _ → mono₁ 1 prop)
+
+     .[]ʳ → Σ-map [_] id
+
+     .[]-respects-relationʳ {x = (x₁ , x₂)} {y = (y₁ , y₂)} →
+       R x₁ y₁                        ↝⟨ []-respects-relation ⟩
+       [ x₁ ] ≡ [ y₁ ]                ↔⟨ ignore-propositional-component prop ⟩
+       ([ x₁ ] , x₂) ≡ ([ y₁ ] , y₂)  □)
+  (elim-prop λ where
+     .[]ʳ _             → refl _
+     .is-propositionʳ _ → /ᴱ-is-set)
+  (uncurry $ elim-prop λ where
+     .[]ʳ _ _           → refl _
+     .is-propositionʳ _ →
+       Π-closure ext 1 λ _ →
+       Σ-closure 2 /ᴱ-is-set (λ _ → mono₁ 1 prop))
+
+-- Erased commutes with quotients if certain conditions hold.
+
+Erased/ᴱ :
+  {@0 A : Type a} {@0 R : A → A → Type r} →
+  @0 Is-set A →
+  @0 (∀ {x y} → R x y → x ≡ y) →
+  Erased A /ᴱ Erasedᴾ R ≃ Erased (A /ᴱ R)
+Erased/ᴱ {A = A} {R = R} set R→≡ = Eq.↔→≃
+  (rec λ where
+     .is-setʳ                       → Er.H-level-Erased 2 /ᴱ-is-set
+     .[]ʳ                           → Er.map [_]
+     .[]-respects-relationʳ [ Rxy ] →
+       Er.[]-cong [ []-respects-relation Rxy ])
+  (λ ([ x ]) → [ [ from′ x ] ])
+  (λ ([ x ]) →
+     Er.[]-cong
+       [ flip (elim-prop {P = λ x → [ from′ x ] ≡ x}) x (λ @0 where
+           .is-propositionʳ _ → /ᴱ-is-set
+           .[]ʳ _             → refl _)
+       ])
+  (elim-prop λ where
+     .is-propositionʳ _ → /ᴱ-is-set
+     .[]ʳ _             → refl _)
+  where
+  @0 from′ : A /ᴱ R → A
+  from′ = rec λ @0 where
+    .is-setʳ               → set
+    .[]ʳ                   → id
+    .[]-respects-relationʳ → R→≡
