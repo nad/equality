@@ -599,6 +599,29 @@ private
        .truncation-is-propositionʳ _ →
          mono₁ 1 truncation-is-proposition)
 
+-- A variant of flatten′ with _≃ᴱ_ instead of _↔_.
+
+flatten-≃ᴱ :
+  (F : (Type ℓ → Type ℓ) → Type f)
+  (map : ∀ {G H} → (∀ {A} → G A → H A) → F G → F H)
+  (f : F ∥_∥ᴱ → ∥ F id ∥ᴱ) →
+  @0 (∀ x → f (map ∣_∣ x) ≡ ∣ x ∣) →
+  @0 (∀ x → ∥∥ᴱ-map (map ∣_∣) (f x) ≡ ∣ x ∣) →
+  ∥ F ∥_∥ᴱ ∥ᴱ ≃ᴱ ∥ F id ∥ᴱ
+flatten-≃ᴱ _ map f f-map map-f = EEq.↔→≃ᴱ
+  (rec λ where
+     .∣∣ʳ                        → f
+     .truncation-is-propositionʳ → truncation-is-proposition)
+  (∥∥ᴱ-map (map ∣_∣))
+  (elim λ @0 where
+     .∣∣ʳ                          → f-map
+     .truncation-is-propositionʳ _ →
+       mono₁ 1 truncation-is-proposition)
+  (elim λ @0 where
+     .∣∣ʳ                          → map-f
+     .truncation-is-propositionʳ _ →
+       mono₁ 1 truncation-is-proposition)
+
 ------------------------------------------------------------------------
 -- The propositional truncation operator is a monad
 
