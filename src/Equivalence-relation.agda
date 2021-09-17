@@ -18,9 +18,9 @@ open import H-level.Closure eq
 
 private
   variable
-    a r     : Level
-    A B     : Type a
-    R R₁ R₂ : A → A → Type r
+    a r r₁ r₂ : Level
+    A B       : Type a
+    R R₁ R₂   : A → A → Type r
 
 ------------------------------------------------------------------------
 -- The definition
@@ -167,3 +167,39 @@ Maybeᴾ-preserves-Is-proposition :
 Maybeᴾ-preserves-Is-proposition =
   ⊎ᴾ-preserves-Is-proposition λ {x} →
   Trivial-is-propositional {x = x}
+
+-- Lifts binary relations from A and B to A × B.
+
+infixr 2 _×ᴾ_
+
+_×ᴾ_ :
+  (A → A → Type r₁) →
+  (B → B → Type r₂) →
+  (A × B → A × B → Type (r₁ ⊔ r₂))
+(P ×ᴾ Q) (x₁ , x₂) (y₁ , y₂) = P x₁ y₁ × Q x₂ y₂
+
+-- _×ᴾ_ preserves Is-equivalence-relation.
+
+×ᴾ-preserves-Is-equivalence-relation :
+  Is-equivalence-relation R₁ →
+  Is-equivalence-relation R₂ →
+  Is-equivalence-relation (R₁ ×ᴾ R₂)
+×ᴾ-preserves-Is-equivalence-relation R₁-equiv R₂-equiv = λ where
+    .Is-equivalence-relation.reflexive →
+      E₁.reflexive , E₂.reflexive
+    .Is-equivalence-relation.symmetric →
+      Σ-map E₁.symmetric E₂.symmetric
+    .Is-equivalence-relation.transitive →
+      Σ-zip E₁.transitive E₂.transitive
+  where
+  module E₁ = Is-equivalence-relation R₁-equiv
+  module E₂ = Is-equivalence-relation R₂-equiv
+
+-- _×ᴾ_ preserves Is-proposition.
+
+×ᴾ-preserves-Is-proposition :
+  (∀ {x y} → Is-proposition (R₁ x y)) →
+  (∀ {x y} → Is-proposition (R₂ x y)) →
+  ∀ {x y} → Is-proposition ((R₁ ×ᴾ R₂) x y)
+×ᴾ-preserves-Is-proposition R₁-prop R₂-prop =
+  ×-closure 1 R₁-prop R₂-prop
