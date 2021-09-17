@@ -18,9 +18,9 @@ open import H-level.Closure eq
 
 private
   variable
-    a r r₁ r₂ : Level
-    A B       : Type a
-    R R₁ R₂   : A → A → Type r
+    a r r₁ r₂         : Level
+    A A₁ A₂ B B₁ B₂ C : Type a
+    R R₁ R₂           : A → B → Type r
 
 ------------------------------------------------------------------------
 -- The definition
@@ -40,16 +40,16 @@ record Is-equivalence-relation
 
 -- A trivial binary relation.
 
-Trivial : A → A → Type r
+Trivial : A → B → Type r
 Trivial _ _ = ↑ _ ⊤
 
--- This relation is an equivalence relation.
+-- Homogeneous instances of Trivial are equivalence relations.
 
 Trivial-is-equivalence-relation :
   Is-equivalence-relation (Trivial {A = A} {r = r})
 Trivial-is-equivalence-relation = _
 
--- It is also propositional.
+-- Trivial is propositional.
 
 Trivial-is-propositional :
   {x y : A} → Is-proposition (Trivial {r = r} x y)
@@ -64,8 +64,8 @@ infix 0 _→ᴾ_
 
 _→ᴾ_ :
   (A : Type a) →
-  (B → B → Type r) →
-  ((A → B) → (A → B) → Type (a ⊔ r))
+  (B → C → Type r) →
+  ((A → B) → (A → C) → Type (a ⊔ r))
 (_ →ᴾ R) f g = ∀ x → R (f x) (g x)
 
 -- _→ᴾ_ preserves equivalence relations.
@@ -84,7 +84,7 @@ _→ᴾ_ :
 -- _→ᴾ_ preserves Is-proposition (assuming extensionality).
 
 →ᴾ-preserves-Is-proposition :
-  {A : Type a} (R : B → B → Type r) →
+  {A : Type a} (R : B → C → Type r) →
   Extensionality a r →
   (∀ {x y} → Is-proposition (R x y)) →
   ∀ {f g} → Is-proposition ((A →ᴾ R) f g)
@@ -97,9 +97,9 @@ _→ᴾ_ :
 infixr 1 _⊎ᴾ_
 
 _⊎ᴾ_ :
-  (A → A → Type r) →
-  (B → B → Type r) →
-  (A ⊎ B → A ⊎ B → Type r)
+  (A₁ → A₂ → Type r) →
+  (B₁ → B₂ → Type r) →
+  (A₁ ⊎ B₁ → A₂ ⊎ B₂ → Type r)
 (P ⊎ᴾ Q) (inj₁ x) (inj₁ y) = P x y
 (P ⊎ᴾ Q) (inj₂ x) (inj₂ y) = Q x y
 (P ⊎ᴾ Q) _        _        = ⊥
@@ -147,8 +147,8 @@ _⊎ᴾ_ :
 -- Lifts a binary relation from A to Maybe A.
 
 Maybeᴾ :
-  (A → A → Type r) →
-  (Maybe A → Maybe A → Type r)
+  (A → B → Type r) →
+  (Maybe A → Maybe B → Type r)
 Maybeᴾ R = Trivial ⊎ᴾ R
 
 -- Maybeᴾ preserves Is-equivalence-relation.
@@ -173,9 +173,9 @@ Maybeᴾ-preserves-Is-proposition =
 infixr 2 _×ᴾ_
 
 _×ᴾ_ :
-  (A → A → Type r₁) →
-  (B → B → Type r₂) →
-  (A × B → A × B → Type (r₁ ⊔ r₂))
+  (A₁ → B₁ → Type r₁) →
+  (A₂ → B₂ → Type r₂) →
+  (A₁ × A₂ → B₁ × B₂ → Type (r₁ ⊔ r₂))
 (P ×ᴾ Q) (x₁ , x₂) (y₁ , y₂) = P x₁ y₁ × Q x₂ y₂
 
 -- _×ᴾ_ preserves Is-equivalence-relation.
