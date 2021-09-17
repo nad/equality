@@ -24,6 +24,7 @@ open import Embedding eq-J as Emb using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq-J
 open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
 import Equivalence.Contractible-preimages eq-J as CP
+open import Equivalence-relation eq-J
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
 open import H-level.Closure eq-J
@@ -35,7 +36,7 @@ open import Univalence-axiom eq-J as U using (≡⇒→)
 
 private
   variable
-    a b c ℓ q     : Level
+    a b c ℓ q r   : Level
     A B           : Type a
     eq k k′ p x y : A
     P             : A → Type p
@@ -562,6 +563,31 @@ decidable⇒decidable-erased⇒Σ-decidable-erased
     (λ eq → decP (subst P eq x₂) y₂)
 
 ------------------------------------------------------------------------
+-- Erased binary relations
+
+-- Lifts binary relations from A to Erased A.
+
+Erasedᴾ :
+  {@0 A : Type a} {@0 B : Type b} →
+  @0 (A → B → Type r) →
+  (Erased A → Erased B → Type r)
+Erasedᴾ R [ x ] [ y ] = Erased (R x y)
+
+-- Erasedᴾ preserves Is-equivalence-relation.
+
+Erasedᴾ-preserves-Is-equivalence-relation :
+  {@0 A : Type a} {@0 R : A → A → Type r} →
+  @0 Is-equivalence-relation R →
+  Is-equivalence-relation (Erasedᴾ R)
+Erasedᴾ-preserves-Is-equivalence-relation equiv = λ where
+  .Is-equivalence-relation.reflexive →
+    [ equiv .Is-equivalence-relation.reflexive ]
+  .Is-equivalence-relation.symmetric →
+    map (equiv .Is-equivalence-relation.symmetric)
+  .Is-equivalence-relation.transitive →
+    zip (equiv .Is-equivalence-relation.transitive)
+
+------------------------------------------------------------------------
 -- Some results that hold in erased contexts
 
 -- In an erased context there is an equivalence between equality of
@@ -857,6 +883,15 @@ module []-cong₂
     Π-closure ext 1 λ _ →
     Π-closure ext 1 λ _ →
     Is-proposition-Dec-Erased (lower-extensionality lzero _ ext) s
+
+  -- Erasedᴾ preserves Is-proposition.
+
+  Is-proposition-Erasedᴾ :
+    {@0 A : Type a} {@0 B : Type b} {@0 R : A → B → Type r} →
+    @0 (∀ {x y} → Is-proposition (R x y)) →
+    ∀ {x y} → Is-proposition (Erasedᴾ R x y)
+  Is-proposition-Erasedᴾ prop =
+    H-level-Erased 1 prop
 
   ----------------------------------------------------------------------
   -- Some properties related to "Modalities in Homotopy Type Theory"
