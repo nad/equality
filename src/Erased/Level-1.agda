@@ -35,7 +35,7 @@ open import Univalence-axiom eq-J as U using (≡⇒→)
 
 private
   variable
-    a b c ℓ       : Level
+    a b c ℓ q     : Level
     A B           : Type a
     eq k k′ p x y : A
     P             : A → Type p
@@ -93,6 +93,14 @@ map-∘ :
   (@0 f : ∀ {x} (y : P x) → Q y) (@0 g : (x : A) → P x) →
   map (f ∘ g) ≡ map f ∘ map g
 map-∘ _ _ = refl _
+
+-- A binary variant of map.
+
+zip :
+  {@0 A : Type a} {@0 P : A → Type p} {@0 Q : {x : A} → P x → Type q} →
+  @0 ((x : A) (p : P x) → Q p) →
+  (([ x ]) : Erased A) (([ p ]) : Erased (P x)) → Erased (Q p)
+zip f [ x ] [ p ] = [ f x p ]
 
 -- Erased preserves logical equivalences.
 
