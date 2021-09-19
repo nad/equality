@@ -28,7 +28,9 @@ open import Prelude
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decidable-UIP equality-with-J using (Constant)
 open import Equality.Path.Isomorphisms eq
+import Equality.Path.Isomorphisms.Univalence eq as U
 open import Equivalence equality-with-J as Eq using (_≃_)
+import Equivalence.Erased equality-with-J as EEq
 open import Equivalence-relation equality-with-J
 open import Erased.Cubical eq as Er using (Erased; Erasedᴾ; [_])
 open import Function-universe equality-with-J as F hiding (id; _∘_)
@@ -40,6 +42,7 @@ open import H-level.Truncation.Propositional.Erased eq as PTᴱ
 open import Quotient eq as Q using (_/_)
 open import Sum equality-with-J
 open import Surjection equality-with-J using (_↠_)
+open import Univalence-axiom equality-with-J
 
 private
   variable
@@ -207,29 +210,90 @@ Surjectiveᴱ-[] = elim-prop λ where
   ∥ ∥ R x y ∥ ∥  ↔⟨ PT.flatten ⟩□
   ∥ R x y ∥      □
 
--- If the quotient relation is a propositional equivalence relation,
--- then it is equivalent to equality under [_] (in erased contexts).
+-- If R is an equivalence relation, then A /ᴱ R is weakly effective
+-- (where this is expressed using ∥_∥ᴱ).
+--
+-- This proof is based on that of Proposition 2 in "Quotienting the
+-- Delay Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
+
+weakly-effective :
+  {R : A → A → Type r} →
+  @0 Is-equivalence-relation R →
+  ∥ R x x ∥ᴱ →
+  _≡_ {A = A /ᴱ R} [ x ] [ y ] → ∥ R x y ∥ᴱ
+weakly-effective
+  {A = A} {r = r} {x = x} {y = y} {R = R} eq ∥Rxx∥ᴱ [x]≡[y] =
+                     $⟨ ∥Rxx∥ᴱ ⟩
+  R′ x [ x ] .proj₁  ↝⟨ ≡⇒→ (cong (λ y → R′ x y .proj₁) [x]≡[y]) ⟩
+  R′ x [ y ] .proj₁  ↔⟨⟩
+  ∥ R x y ∥ᴱ         □
+  where
+  R′ : A → A /ᴱ R → ∃ λ (P : Type r) → Erased (Is-proposition P)
+  R′ x = rec λ where
+    .[]ʳ y → ∥ R x y ∥ᴱ , [ PTᴱ.truncation-is-proposition ]
+
+    .is-setʳ →                                               $⟨ (λ {_ _} → Is-set-∃-Is-proposition ext U.prop-ext) ⟩
+      Is-set (Proposition r)                                 ↝⟨ H-level-cong _ 2
+                                                                  (∃-cong λ _ → inverse $ Er.Erased↔ .Er.erased)
+                                                                  ⦂ (_ → _) ⟩□
+      Is-set (∃ λ (P : Type r) → Erased (Is-proposition P))  □
+
+    .[]-respects-relationʳ {x = y} {y = z} →
+      R y z                                        ↝⟨ (λ r → record
+                                                         { to   = flip (eq .Is-equivalence-relation.transitive) r
+                                                         ; from = flip (eq .Is-equivalence-relation.transitive)
+                                                                    (eq .Is-equivalence-relation.symmetric r)
+                                                         }) ⟩
+      R x y ⇔ R x z                                ↝⟨ EEq._≃ᴱ_.logical-equivalence ∘ PTᴱ.∥∥ᴱ-cong-⇔ ⟩
+      ∥ R x y ∥ᴱ ⇔ ∥ R x z ∥ᴱ                      ↔⟨ ⇔↔≡″ ext U.prop-ext ⟩
+      (∥ R x y ∥ᴱ , _) ≡ (∥ R x z ∥ᴱ , _)          ↝⟨ cong (Σ-map id Er.[_]→) ⟩□
+      (∥ R x y ∥ᴱ , [ _ ]) ≡ (∥ R x z ∥ᴱ , [ _ ])  □
+
+-- If R is an equivalence relation, and R is propositional (for x
+-- and y), then A /ᴱ R is effective (for x and y).
+
+effective :
+  @0 Is-equivalence-relation R →
+  @0 Is-proposition (R x y) →
+  R x x →
+  _≡_ {A = A /ᴱ R} [ x ] [ y ] → R x y
+effective {R = R} {x = x} {y = y} eq prop Rxx =
+  [ x ] ≡ [ y ]  ↝⟨ weakly-effective eq ∣ Rxx ∣ ⟩
+  ∥ R x y ∥ᴱ     ↔⟨ PTᴱ.∥∥ᴱ↔ prop ⟩□
+  R x y          □
+
+-- If R is an equivalence relation, and R is propositional (for x
+-- and y), then R x y is equivalent to equality of x and y under [_]
+-- (in erased contexts).
 
 @0 related≃[equal] :
-  {R : A → A → Type r} →
   Is-equivalence-relation R →
-  (∀ {x y} → Is-proposition (R x y)) →
+  Is-proposition (R x y) →
   R x y ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
-related≃[equal] {A = A} {r = r} {x = x} {y = y} {R = R}
-                R-equiv R-prop =
-  R x y                             ↝⟨ Q.related≃[equal] R-equiv R-prop ⟩
-  _≡_ {A = A /  R} Q.[ x ] Q.[ y ]  ↝⟨ Eq.≃-≡ Q./ᴱ≃/ ⟩□
-  _≡_ {A = A /ᴱ R}   [ x ]   [ y ]  □
+related≃[equal] eq prop =
+  Eq.⇔→≃
+    prop
+    /ᴱ-is-set
+    []-respects-relation
+    (effective eq prop (eq .Is-equivalence-relation.reflexive))
 
--- A variant of related≃[equal].
+-- If R is an equivalence relation, then ∥ R x y ∥ is equivalent to
+-- equality of x and y under [_] (in erased contexts).
 
 @0 ∥related∥≃[equal] :
   Is-equivalence-relation R →
   ∥ R x y ∥ ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
-∥related∥≃[equal] {A = A} {R = R} {x = x} {y = y} R-equiv =
-  ∥ R x y ∥                         ↝⟨ Q.∥related∥≃[equal] R-equiv ⟩
-  _≡_ {A = A /  R} Q.[ x ] Q.[ y ]  ↝⟨ Eq.≃-≡ Q./ᴱ≃/ ⟩□
-  _≡_ {A = A /ᴱ R}   [ x ]   [ y ]  □
+∥related∥≃[equal] {R = R} {x = x} {y = y} eq =
+  ∥ R x y ∥      ↝⟨ inverse PT.∥∥ᴱ≃∥∥ ⟩
+  ∥ R x y ∥ᴱ     ↝⟨ Eq.⇔→≃
+                      PTᴱ.truncation-is-proposition
+                      /ᴱ-is-set
+                      (PTᴱ.rec λ @0 where
+                         .PTᴱ.truncation-is-propositionʳ → /ᴱ-is-set
+                         .PTᴱ.∣∣ʳ                        →
+                           []-respects-relation)
+                      (weakly-effective eq ∣ eq .Is-equivalence-relation.reflexive ∣) ⟩□
+  [ x ] ≡ [ y ]  □
 
 -- Quotienting with equality (for a set) amounts to the same thing as
 -- not quotienting at all.
