@@ -76,18 +76,20 @@ Structure a b = Type a → Type b
 Type-with : Structure a b → Type (lsuc a ⊔ b)
 Type-with {a = a} F = ∃ λ (A : Type a) → F A
 
--- Axioms. Note that the argument must only be used in an erased
--- context. This could for instance be accomplished by making the
--- resulting type erased using Erased.
+-- Axioms.
+--
+-- Originally I made the argument of type Type-with F erased. After
+-- feedback from Andrea Vezzosi I instead added a use of Erased in
+-- _With-the-axioms_ below.
 
 Axioms : Structure a b → (c : Level) → Type (lsuc a ⊔ b ⊔ lsuc c)
-Axioms F c = @0 Type-with F → Type c
+Axioms F c = Type-with F → Type c
 
 -- One can add axioms to structures.
 
 _With-the-axioms_ :
   (F : Structure a b) → Axioms F c → Structure a (b ⊔ c)
-(F With-the-axioms Ax) A = ∃ λ (x : F A) → Ax (A , x)
+(F With-the-axioms Ax) A = ∃ λ (x : F A) → Erased (Ax (A , x))
 
 -- A type of predicates defining when a given equivalence (with erased
 -- proofs) is structure-preserving.
@@ -149,7 +151,7 @@ Univalent-With-the-axioms
 
   P (A₁ , x₁) (A₂ , x₂) eq                                            ↝⟨ u .Univalent.univalent eq ⟩
 
-  subst F (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) x₁ ≡ x₂                            ↔⟨ ignore-propositional-component (prop _) ⟩
+  subst F (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) x₁ ≡ x₂                            ↔⟨ ignore-propositional-component (H-level-Erased 1 (prop _)) ⟩
 
   (subst F (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) x₁ , _) ≡ (x₂ , ax₂)              ↝⟨ ≡⇒≃ $ cong (_≡ _) $ sym $ push-subst-pair _ _ ⟩□
 
@@ -178,8 +180,9 @@ sip {F = F} {P = P} {A = A} {B = B} u =
 -- If there is a structure-preserving equivalence (for a univalent
 -- pair of a structure and a predicate) between two types with
 -- structures, where one side satisfies some axioms, then the other
--- side also satisfies the axioms, and the resulting triple is
--- equivalent (with erased proofs) to the other one.
+-- side also satisfies the axioms (in erased contexts), and the
+-- resulting triple is equivalent (with erased proofs) to the other
+-- one.
 --
 -- This is a variant of Corollary 3.4 from "Internalizing
 -- Representation Independence with Univalence".
@@ -190,9 +193,10 @@ induced-structures :
   (X@(A , x , _) : Type-with (F With-the-axioms Ax)) →
   ((B , y) : Type-with F) →
   (A , x) ≃[ P ]ᴱ (B , y) →
-  ∃ λ (ax : Ax (B , y)) → X ≃[ Lift-With-the-axioms P ]ᴱ (B , y , ax)
+  ∃ λ (ax : Erased (Ax (B , y))) →
+    X ≃[ Lift-With-the-axioms P ]ᴱ (B , y , ax)
 induced-structures {Ax = Ax} u (A , x , ax) (B , y) eq =
-    substᴱ Ax (_≃_.to (sip u) eq) ax
+    Er.map (subst Ax (_≃_.to (sip u) eq)) ax
   , eq
 
 ------------------------------------------------------------------------
@@ -2399,23 +2403,21 @@ module Example₁ where
 
   Monoid-laws : Axioms Raw-monoid-structure a
   Monoid-laws (A , id , _∘_) =
-    Erased
-      (Is-set A ×
-       (∀ x → id ∘ x ≡ x) ×
-       (∀ x → x ∘ id ≡ x) ×
-       (∀ x y z → x ∘ (y ∘ z) ≡ (x ∘ y) ∘ z))
+    Is-set A ×
+    (∀ x → id ∘ x ≡ x) ×
+    (∀ x → x ∘ id ≡ x) ×
+    (∀ x y z → x ∘ (y ∘ z) ≡ (x ∘ y) ∘ z)
 
   -- The monoid laws are propositional.
 
   Monoid-laws-propositional :
     (M : Raw-monoid a) → Is-proposition (Monoid-laws M)
   Monoid-laws-propositional (A , id , _∘_) =
-    H-level-Erased 1
-      (Σ-closure 1 (H-level-propositional ext 2) λ A-set →
-       ×-closure 1 (Π-closure ext 1 λ _ → A-set) $
-       ×-closure 1 (Π-closure ext 1 λ _ → A-set) $
-       Π-closure ext 1 λ _ → Π-closure ext 1 λ _ → Π-closure ext 1 λ _ →
-       A-set)
+    Σ-closure 1 (H-level-propositional ext 2) λ A-set →
+    ×-closure 1 (Π-closure ext 1 λ _ → A-set) $
+    ×-closure 1 (Π-closure ext 1 λ _ → A-set) $
+    Π-closure ext 1 λ _ → Π-closure ext 1 λ _ → Π-closure ext 1 λ _ →
+    A-set
 
   -- Monoid structures.
 
@@ -2458,14 +2460,14 @@ module Example₁ where
 
   -- If a raw monoid M₂ is equivalent (with erased proofs) to the
   -- underlying raw monoid of a monoid M₁, then the monoid laws hold
-  -- for M₂, and M₁ is equivalent (with erased proofs) to the monoid
-  -- constructed from M₂ and the laws.
+  -- for M₂ (in erased contexts), and M₁ is equivalent (with erased
+  -- proofs) to the monoid constructed from M₂ and the laws.
 
   induced-monoid :
     (M₁@(A₁ , ops₁ , _) : Monoid a)
     (M₂@(A₂ , ops₂) : Raw-monoid a) →
     (A₁ , ops₁) ≃ᴿᴹᴱ M₂ →
-    ∃ λ (l₂ : Monoid-laws M₂) → M₁ ≃ᴹᴱ (A₂ , ops₂ , l₂)
+    ∃ λ (l₂ : Erased (Monoid-laws M₂)) → M₁ ≃ᴹᴱ (A₂ , ops₂ , l₂)
   induced-monoid =
     induced-structures Is-raw-monoid-equivalence-univalent
 
@@ -2507,17 +2509,17 @@ module Example₁ where
         )
       ]
 
-  -- The monoid laws hold for Bin-raw-monoid.
+  -- The monoid laws hold for Bin-raw-monoid (in erased contexts).
 
-  Bin-monoid-laws : Monoid-laws Bin-raw-monoid
+  @0 Bin-monoid-laws : Monoid-laws Bin-raw-monoid
   Bin-monoid-laws =
-    induced-monoid ℕ-monoid Bin-raw-monoid ℕ≃ᴿᴹᴱBin .proj₁
+    induced-monoid ℕ-monoid Bin-raw-monoid ℕ≃ᴿᴹᴱBin .proj₁ .erased
 
   -- One variant of binary natural numbers forms a monoid.
 
   Bin-monoid : Monoid lzero
   Bin-monoid =
-    Bin-raw-monoid .proj₁ , Bin-raw-monoid .proj₂ , Bin-monoid-laws
+    Bin-raw-monoid .proj₁ , Bin-raw-monoid .proj₂ , [ Bin-monoid-laws ]
 
   -- This monoid is equivalent, with erased proofs, to ℕ-monoid.
 
