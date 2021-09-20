@@ -86,3 +86,9 @@ import Circle.Erased
 -- A variant of set quotients with erased higher constructors.
 
 import Quotient.Erased
+
+-- A variant of the development in "Internalizing Representation
+-- Independence with Univalence" (by Angiuli, Cavallo, Mörtberg and
+-- Zeuner) with support for erasure.
+
+import Structure-identity-principle.Erased
