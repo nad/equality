@@ -151,6 +151,10 @@ import Sum
 
 import Bool
 
+-- Raw monads.
+
+import Monad.Raw
+
 -- Monads.
 
 import Monad

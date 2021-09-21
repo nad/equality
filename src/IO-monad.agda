@@ -6,11 +6,9 @@
 
 module IO-monad where
 
-open import Equality.Propositional
+open import Monad.Raw
 open import Prelude
 open import String
-
-open import Monad equality-with-J
 
 ------------------------------------------------------------------------
 -- The IO type former
