@@ -830,7 +830,7 @@ circleᴾ =
       , (P.subst (λ b → P.subst P loopᴾ b P.≡ b) P.refl
            (P.dcong elim loopᴾ)                          P.≡⟨ P.subst-refl (λ b → P.subst P loopᴾ b P.≡ b) _ ⟩
 
-         P.dcong elim loopᴾ                              P.≡⟨ PI.dcong-subst≡→[]≡ {f = elim} P.refl ⟩∎
+         P.dcong elim loopᴾ                              P.≡⟨ PI.dcong-subst≡→[]≡ {f = elim} {eq₂ = ℓ} P.refl ⟩∎
 
          ℓ                                               ∎)
 
