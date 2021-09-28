@@ -87,6 +87,10 @@ import Circle.Erased
 
 import Quotient.Erased
 
+-- A variant of Nat.Wrapper.Cubical, defined using --erased-cubical.
+
+import Nat.Wrapper.Cubical.Erased
+
 -- A variant of the development in "Internalizing Representation
 -- Independence with Univalence" (by Angiuli, Cavallo, Mörtberg and
 -- Zeuner) with support for erasure.
