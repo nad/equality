@@ -123,9 +123,8 @@ private
 
   @0 Is-equivalence≃Is-equivalenceᴱ′ :
     {A : Type a} {B : Type b} {f : A → B} →
-    Extensionality? k (a ⊔ b) (a ⊔ b) →
-    CP.Is-equivalence f ↝[ k ] Is-equivalenceᴱ f
-  Is-equivalence≃Is-equivalenceᴱ′ {a = a} {k = k} {f = f} ext =
+    CP.Is-equivalence f ↝[ a ⊔ b ∣ a ⊔ b ] Is-equivalenceᴱ f
+  Is-equivalence≃Is-equivalenceᴱ′ {a = a} {f = f} {k = k} ext =
     (∀ y → Contractible (f ⁻¹ y))    ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 ⁻¹≃⁻¹ᴱ) ⟩
     (∀ y → Contractible (f ⁻¹ᴱ y))   ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Contractible≃Contractibleᴱ) ⟩□
     (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  □
@@ -171,8 +170,7 @@ Is-equivalenceᴱ-propositional ext f =
 
 @0 Is-equivalence≃Is-equivalenceᴱ :
   {A : Type a} {B : Type b} {f : A → B} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
-  CP.Is-equivalence f ↝[ k ] Is-equivalenceᴱ f
+  CP.Is-equivalence f ↝[ a ⊔ b ∣ a ⊔ b ] Is-equivalenceᴱ f
 Is-equivalence≃Is-equivalenceᴱ {k = equivalence} ext =
   Eq.with-other-function
     (Eq.with-other-inverse
@@ -206,8 +204,7 @@ _ = refl _
 
 @0 ≃≃≃ᴱ :
   {A : Type a} {B : Type b} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
-  (A CP.≃ B) ↝[ k ] (A ≃ᴱ B)
+  (A CP.≃ B) ↝[ a ⊔ b ∣ a ⊔ b ] (A ≃ᴱ B)
 ≃≃≃ᴱ {A = A} {B = B} ext =
   A CP.≃ B                       ↔⟨⟩
   (∃ λ f → CP.Is-equivalence f)  ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalenceᴱ ext) ⟩
@@ -392,8 +389,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Erased-Contractibleᴱ↔Contractibleᴱ-Erased :
     {@0 A : Type a} →
-    @0 Extensionality? k a a →
-    Erased (Contractibleᴱ A) ↝[ k ] Contractibleᴱ (Erased A)
+    Erased (Contractibleᴱ A) ↝[ a ∣ a ]ᴱ Contractibleᴱ (Erased A)
   Erased-Contractibleᴱ↔Contractibleᴱ-Erased {A = A} ext =
     Erased (∃ λ x → Erased ((y : A) → x ≡ y))           ↔⟨ Erased-cong-↔ (∃-cong λ _ → erased Erased↔) ⟩
     Erased (∃ λ x → (y : A) → x ≡ y)                    ↔⟨ Erased-Σ↔Σ ⟩
@@ -413,10 +409,9 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Contractibleᴱ-Erased↔Contractible-Erased :
     {@0 A : Type a} →
-    Extensionality? k a a →
-    Contractibleᴱ (Erased A) ↝[ k ] Contractible (Erased A)
+    Contractibleᴱ (Erased A) ↝[ a ∣ a ] Contractible (Erased A)
   Contractibleᴱ-Erased↔Contractible-Erased {A = A} ext =
     Contractibleᴱ (Erased A)  ↝⟨ inverse-erased-ext? Erased-Contractibleᴱ↔Contractibleᴱ-Erased ext ⟩
     Erased (Contractibleᴱ A)  ↔⟨ Erased-Contractibleᴱ↔Erased-Contractible ⟩
-    Erased (Contractible A)   ↝⟨ Erased-H-level↔H-level ext 0 ⟩□
+    Erased (Contractible A)   ↝⟨ Erased-H-level↔H-level 0 ext ⟩□
     Contractible (Erased A)   □

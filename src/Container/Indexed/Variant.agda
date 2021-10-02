@@ -288,13 +288,12 @@ out-related = out-related′ on Final-coalgebra→Final-coalgebra′
 -- Final) is equivalent to finality of Y.
 
 Final′→Final≃Final :
-  {I : Type i} {C : Container I s p} →
-  Extensionality? k (lsuc (i ⊔ s ⊔ p)) (i ⊔ s ⊔ p) →
-  Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
+  {I : Type i} {C : Container I s p}
   ((X , _) (Y , _) : Final-coalgebra′ C) →
-  Final X ↝[ k ] Final Y
-Final′→Final≃Final {i = i} {s = s} {p = p} {k = k} {C = C}
-  ext′ ext ((X₁ , out₁) , final₁) ((X₂ , out₂) , final₂) =
+  Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
+  Final X ↝[ lsuc (i ⊔ s ⊔ p) ∣ i ⊔ s ⊔ p ] Final Y
+Final′→Final≃Final {i = i} {s = s} {p = p} {C = C}
+  ((X₁ , out₁) , final₁) ((X₂ , out₂) , final₂) ext {k = k} ext′ =
   ∀-cong ext′ λ Y@(_ , f) →
   H-level-cong
     (lower-extensionality? k _ lzero ext′)
@@ -346,9 +345,9 @@ Final′→Final :
   ((X , _) : Final-coalgebra′ C) →
   Final X
 Final′→Final ext F₁@(_ , final₁) F₂ =
-  Final′→Final≃Final _ ext
+  Final′→Final≃Final
     (Final-coalgebra→Final-coalgebra′ F₁) F₂
-    final₁
+    ext _ final₁
 
 -- Final-coalgebra is pointwise propositional, assuming extensionality
 -- and univalence.
@@ -566,10 +565,10 @@ _ = refl _
 
 ⟦⟧≃⟦⟧ :
   ∀ p →
-  Extensionality? k (i ⊔ p) (i ⊔ p ⊔ ℓ) →
   {I : Type i} (C : Container₂ I O s (i ⊔ p)) {P : I → Type ℓ} →
-  ∀ o → C.⟦ _⇔_.to (Container⇔Container p) C ⟧ P o ↝[ k ] ⟦ C ⟧ P o
-⟦⟧≃⟦⟧ {k = k} {i = iℓ} {ℓ = ℓ} p ext {I = I} C {P = P} o =
+  ∀ o →
+  C.⟦ _⇔_.to (Container⇔Container p) C ⟧ P o ≃ ⟦ C ⟧ P o
+⟦⟧≃⟦⟧ _ {I = I} C {P = P} o =
   (∃ λ (s : Shape C o) → ((i , _) : Σ I (Position C s)) → P i)  ↔⟨ (∃-cong λ _ → currying) ⟩□
   (∃ λ (s : Shape C o) → (i : I) → Position C s i → P i)        □
 
@@ -577,10 +576,11 @@ _ = refl _
 
 ⟦⟧≃⟦⟧′ :
   ∀ p →
-  Extensionality? k (i ⊔ p) (i ⊔ p ⊔ ℓ) →
   {I : Type i} (C : C.Container₂ I O s (i ⊔ p)) {P : I → Type ℓ} →
-  ∀ o → ⟦ _⇔_.from (Container⇔Container p) C ⟧ P o ↝[ k ] C.⟦ C ⟧ P o
-⟦⟧≃⟦⟧′ {k = k} {i = i} {ℓ = ℓ} p ext {I = I} C {P = P} _ =
+  ∀ o →
+  ⟦ _⇔_.from (Container⇔Container p) C ⟧ P o ↝[ i ⊔ p ∣ i ⊔ p ⊔ ℓ ]
+  C.⟦ C ⟧ P o
+⟦⟧≃⟦⟧′ {i = i} {ℓ = ℓ} p {I = I} C {P = P} _ {k = k} ext =
   ∃-cong λ s →
 
   ((i : I) → (∃ λ (p : C .Position s) → C .index p ≡ i) → P i)     ↝⟨ (∀-cong (lower-extensionality? k l r ext) λ _ →
@@ -605,22 +605,23 @@ _ = refl _
   l = i ⊔ p
   r = i ⊔ p ⊔ ℓ
 
--- The map functions commute with ⟦⟧≃⟦⟧.
+-- The map functions commute with ⟦⟧≃⟦⟧ (in a certain sense).
 
 _ :
-  map C f ∘⇾ ⟦⟧≃⟦⟧ p _ C ≡
-  ⟦⟧≃⟦⟧ p _ C ∘⇾ C.map (_⇔_.to (Container⇔Container p) C) f
+  map C f ∘⇾ (_≃_.to ∘ ⟦⟧≃⟦⟧ p C) ≡
+  (_≃_.to ∘ ⟦⟧≃⟦⟧ p C) ∘⇾ C.map (_⇔_.to (Container⇔Container p) C) f
 _ = refl _
 
--- The map functions commute with ⟦⟧≃⟦⟧′ (assuming extensionality).
+-- The map functions commute with ⟦⟧≃⟦⟧′ (in a certain sense, assuming
+-- extensionality).
 
 map≡map′ :
   {I : Type i} {O : Type o} {P : I → Type p} {Q : I → Type q} →
   ∀ p′ →
   Extensionality (i ⊔ o ⊔ p ⊔ s ⊔ p′) (i ⊔ p ⊔ q ⊔ s ⊔ p′) →
   (C : C.Container₂ I O s (i ⊔ p′)) {f : P ⇾ Q} →
-  C.map C f ∘⇾ ⟦⟧≃⟦⟧′ p′ _ C ≡
-  ⟦⟧≃⟦⟧′ p′ _ C ∘⇾ map (_⇔_.from (Container⇔Container p′) C) f
+  C.map C f ∘⇾ (λ o → ⟦⟧≃⟦⟧′ p′ C o _) ≡
+  (λ o → ⟦⟧≃⟦⟧′ p′ C o _) ∘⇾ map (_⇔_.from (Container⇔Container p′) C) f
 map≡map′ {i = i} {o = o} {p = p} {q = q} {s = s} {P = P} {Q = Q}
   p′ ext C {f = f} =
   apply-ext (lower-extensionality l r ext) λ _ →
@@ -648,14 +649,13 @@ map≡map′ {i = i} {o = o} {p = p} {q = q} {s = s} {P = P} {Q = Q}
 
 Coalgebra≃Coalgebra :
   ∀ p {I : Type i} (C : Container I s (i ⊔ p)) →
-  Extensionality? k (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
-  Coalgebra C ↝[ k ] C.Coalgebra (_⇔_.to (Container⇔Container p) C)
-Coalgebra≃Coalgebra {s = s} {k = k} p C ext =
+  Coalgebra C ↝[ i ⊔ s ⊔ p ∣ i ⊔ s ⊔ p ]
+  C.Coalgebra (_⇔_.to (Container⇔Container p) C)
+Coalgebra≃Coalgebra {s = s} p C {k = k} ext =
   (∃ λ P → P ⇾ ⟦ C ⟧ P)                                   ↝⟨ (∃-cong λ _ →
                                                               ∀-cong (lower-extensionality? k (s ⊔ p) lzero ext) λ _ →
                                                               ∀-cong ext λ _ →
-                                                              inverse-ext? (λ ext → ⟦⟧≃⟦⟧ p ext C _)
-                                                                (lower-extensionality? k s lzero ext)) ⟩□
+                                                              from-equivalence $ inverse $ ⟦⟧≃⟦⟧ p C _) ⟩□
   (∃ λ P → P ⇾ C.⟦ _⇔_.to (Container⇔Container p) C ⟧ P)  □
 
 -- A conversion lemma for _⇨_.
@@ -670,7 +670,7 @@ Coalgebra≃Coalgebra {s = s} {k = k} p C ext =
   (∃ λ (h : P ⇾ Q) → g ∘⇾ h ≡ map _ h ∘⇾ f)     ↝⟨ (∃-cong λ h → inverse $ Eq.≃-≡ $
                                                     ∀-cong (lower-extensionality (s ⊔ p) lzero ext) λ _ →
                                                     ∀-cong ext λ _ →
-                                                    inverse $ ⟦⟧≃⟦⟧ p (lower-extensionality s lzero ext) C _) ⟩□
+                                                    inverse $ ⟦⟧≃⟦⟧ p C _) ⟩□
   (∃ λ (h : P ⇾ Q) →
      ((Σ-map id uncurry ∘_) ∘ g) ∘⇾ h ≡
      C.map _ h ∘⇾ ((Σ-map id uncurry ∘_) ∘ f))  □
@@ -684,7 +684,7 @@ Final≃Final :
   (X : Coalgebra C) →
   Final X ≃ C.Final (_≃_.to (Coalgebra≃Coalgebra p C ext) X)
 Final≃Final p C ext′ ext X =
-  (∀ Y → Contractible (Y ⇨ X))                              ↝⟨ (Π-cong ext′ (Coalgebra≃Coalgebra {k = equivalence} p C ext) λ Y →
+  (∀ Y → Contractible (Y ⇨ X))                              ↝⟨ (Π-cong ext′ (Coalgebra≃Coalgebra p C {k = equivalence} ext) λ Y →
                                                                 H-level-cong ext 0 $
                                                                 ⇨≃⇨ p C ext Y X) ⟩□
   (∀ Y → Contractible (Y C.⇨ Coalgebra≃Coalgebra p C _ X))  □
@@ -698,7 +698,7 @@ Final′≃Final′ :
   (X : Coalgebra C) →
   Final′ X ≃ C.Final′ (_≃_.to (Coalgebra≃Coalgebra p C ext) X)
 Final′≃Final′ p C ext′ ext X =
-  (∀ Y → ∃ λ (m : Y   ⇨ X ) → (m′ : Y   ⇨ X ) → proj₁ m ≡ proj₁ m′)  ↝⟨ (Π-cong ext′ (Coalgebra≃Coalgebra {k = equivalence} p C ext) λ Y →
+  (∀ Y → ∃ λ (m : Y   ⇨ X ) → (m′ : Y   ⇨ X ) → proj₁ m ≡ proj₁ m′)  ↝⟨ (Π-cong ext′ (Coalgebra≃Coalgebra p C {k = equivalence} ext) λ Y →
                                                                          Σ-cong (⇨≃⇨ p C ext Y X) λ _ →
                                                                          Π-cong ext (⇨≃⇨ p C ext Y X) λ _ →
                                                                          F.id) ⟩□

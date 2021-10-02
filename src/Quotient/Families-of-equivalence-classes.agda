@@ -156,7 +156,7 @@ equality-strong-equivalence :
   Univalence a →
   Strong-equivalence (_≡_ {A = A})
 equality-strong-equivalence ext univ {x = x} {y = y} =
-  x ≡ y                      ↝⟨ inverse $ Π≡≃≡-↔-≡ (lower-extensionality lzero _ ext) _ _ ⟩
+  x ≡ y                      ↝⟨ inverse $ Π≡≃≡-↔-≡ _ _ (lower-extensionality lzero _ ext) ⟩
   (∀ z → (z ≡ x) ≃ (z ≡ y))  ↝⟨ (∀-cong (lower-extensionality lzero _ ext) λ _ → Eq.↔⇒≃ $
                                  Eq.≃-preserves-bijections (lower-extensionality lzero _ ext)
                                    (Groupoid.⁻¹-bijection (EG.groupoid _))

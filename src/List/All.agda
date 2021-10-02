@@ -83,7 +83,7 @@ module _ {k} {A : Type a} {P : A → Type p}
     (∀ y → y ≡ x ⊎ y ∈ xs → P y)                ↝⟨ ∀-cong ext (λ _ → Π⊎↔Π×Π ext′) ⟩
     (∀ y → (y ≡ x → P y) × (y ∈ xs → P y))      ↔⟨ ΠΣ-comm ⟩
     (∀ y → y ≡ x → P y) × (∀ y → y ∈ xs → P y)  ↝⟨ (×-cong₁ λ _ → ∀-cong ext λ _ → →-cong₁ ext′ ≡-comm) ⟩
-    (∀ y → x ≡ y → P y) × (∀ y → y ∈ xs → P y)  ↝⟨ inverse-ext? (λ ext → ∀-intro ext _) ext ×-cong F.id ⟩□
+    (∀ y → x ≡ y → P y) × (∀ y → y ∈ xs → P y)  ↝⟨ inverse-ext? (λ ext → ∀-intro _ ext) ext ×-cong F.id ⟩□
     P x × All P xs                              □
 
   All-++ : All P (xs ++ ys) ↝[ k ] All P xs × All P ys
@@ -118,7 +118,7 @@ All-map {a = a} {b = b} {p = p} {k = k} {P = P} {f} {xs} ext =
   (∀ x → ∀ y → x ≡ f y × y ∈ xs → P x)      ↝⟨ (∀-cong ext₃ λ _ → ∀-cong ext₅ λ _ → from-bijection currying) ⟩
   (∀ x → ∀ y → x ≡ f y → y ∈ xs → P x)      ↔⟨ Π-comm ⟩
   (∀ x → ∀ y → y ≡ f x → x ∈ xs → P y)      ↝⟨ (∀-cong ext₅ λ _ → ∀-cong ext₃ λ _ → →-cong₁ ext₆ ≡-comm) ⟩
-  (∀ x → ∀ y → f x ≡ y → x ∈ xs → P y)      ↝⟨ (∀-cong ext₅ λ _ → inverse-ext? (λ ext → ∀-intro ext _) ext₃) ⟩□
+  (∀ x → ∀ y → f x ≡ y → x ∈ xs → P y)      ↝⟨ (∀-cong ext₅ λ _ → inverse-ext? (λ ext → ∀-intro _ ext) ext₃) ⟩□
   (∀ x → x ∈ xs → P (f x))                  □
   where
   ext₁ = lower-extensionality? k a     a       ext

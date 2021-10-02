@@ -353,6 +353,26 @@ Extensionality? k with extensionality? k
 ... | without-extensionality _ = λ _ _ → ↑ _ ⊤
 ... | with-extensionality    _ = Extensionality
 
+-- A variant of _↝[_]_. A ↝[ c ∣ d ] B means that A ↝[ k ] B can be
+-- proved for all kinds k, in some cases assuming extensionality (for
+-- the levels c and d).
+
+infix 0 _↝[_∣_]_
+
+_↝[_∣_]_ :
+  ∀ {a b} →
+  Type a → (c d : Level) → Type b → Type (a ⊔ b ⊔ lsuc (c ⊔ d))
+A ↝[ c ∣ d ] B = ∀ {k} → Extensionality? k c d → A ↝[ k ] B
+
+-- A variant of _↝[_∣_]_ with erased extensionality assumptions.
+
+infix 0 _↝[_∣_]ᴱ_
+
+_↝[_∣_]ᴱ_ :
+  ∀ {a b} →
+  Type a → (c d : Level) → Type b → Type (a ⊔ b ⊔ lsuc (c ⊔ d))
+A ↝[ c ∣ d ]ᴱ B = ∀ {k} → @0 Extensionality? k c d → A ↝[ k ] B
+
 -- Turns extensionality into conditional extensionality.
 
 forget-ext? : ∀ k {a b} → Extensionality a b → Extensionality? k a b
@@ -372,33 +392,33 @@ lower-extensionality? k with extensionality? k
 -- Some functions that can be used to generalise results.
 
 generalise-ext? :
-  ∀ {k a b c d} {A : Type a} {B : Type b} →
+  ∀ {a b c d} {A : Type a} {B : Type b} →
   A ⇔ B →
   (Extensionality c d → A ↔ B) →
-  Extensionality? k c d → A ↝[ k ] B
-generalise-ext? {k} f⇔ f↔ with extensionality? k
+  A ↝[ c ∣ d ] B
+generalise-ext? f⇔ f↔ {k = k} with extensionality? k
 ... | without-extensionality implication         = λ _ → _⇔_.to f⇔
 ... | without-extensionality logical-equivalence = λ _ → f⇔
 ... | with-extensionality    _                   = λ ext →
   from-isomorphism (f↔ ext)
 
 generalise-erased-ext? :
-  ∀ {k a b c d} {A : Type a} {B : Type b} →
+  ∀ {a b c d} {A : Type a} {B : Type b} →
   A ⇔ B →
   (@0 Extensionality c d → A ↔ B) →
-  @0 Extensionality? k c d → A ↝[ k ] B
-generalise-erased-ext? {k} f⇔ f↔ with extensionality? k
+  A ↝[ c ∣ d ]ᴱ B
+generalise-erased-ext? f⇔ f↔ {k = k} with extensionality? k
 ... | without-extensionality implication         = λ _ → _⇔_.to f⇔
 ... | without-extensionality logical-equivalence = λ _ → f⇔
 ... | with-extensionality    _                   = λ ext →
   from-isomorphism (f↔ ext)
 
 generalise-ext?-prop :
-  ∀ {k a b c d} {A : Type a} {B : Type b} →
+  ∀ {a b c d} {A : Type a} {B : Type b} →
   A ⇔ B →
   (Extensionality c d → Is-proposition A) →
   (Extensionality c d → Is-proposition B) →
-  Extensionality? k c d → A ↝[ k ] B
+  A ↝[ c ∣ d ] B
 generalise-ext?-prop f⇔ A-prop B-prop =
   generalise-ext?
     f⇔
@@ -406,11 +426,11 @@ generalise-ext?-prop f⇔ A-prop B-prop =
                _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
 
 generalise-erased-ext?-prop :
-  ∀ {k a b c d} {A : Type a} {B : Type b} →
+  ∀ {a b c d} {A : Type a} {B : Type b} →
   A ⇔ B →
   (@0 Extensionality c d → Is-proposition A) →
   (@0 Extensionality c d → Is-proposition B) →
-  @0 Extensionality? k c d → A ↝[ k ] B
+  A ↝[ c ∣ d ]ᴱ B
 generalise-erased-ext?-prop f⇔ A-prop B-prop =
   generalise-erased-ext?
     f⇔
@@ -418,30 +438,28 @@ generalise-erased-ext?-prop f⇔ A-prop B-prop =
                _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
 
 generalise-ext?-sym :
-  ∀ {a b c d} {A : Type a} {B : Type b} {k} →
+  ∀ {a b c d} {A : Type a} {B : Type b} →
   (∀ {k} → Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
-  Extensionality? k c d → A ↝[ k ] B
+  A ↝[ c ∣ d ] B
 generalise-ext?-sym hyp = generalise-ext? (hyp _) hyp
 
 generalise-erased-ext?-sym :
-  ∀ {a b c d} {A : Type a} {B : Type b} {k} →
+  ∀ {a b c d} {A : Type a} {B : Type b} →
   (∀ {k} → @0 Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
-  @0 Extensionality? k c d → A ↝[ k ] B
+  A ↝[ c ∣ d ]ᴱ B
 generalise-erased-ext?-sym hyp = generalise-erased-ext? (hyp _) hyp
 
 -- General results of the kind produced by generalise-ext? are
 -- symmetric.
 
 inverse-ext? :
-  ∀ {k a b c d} {A : Type a} {B : Type b} →
-  (∀ {k} → Extensionality? k c d → A ↝[ k ] B) →
-  Extensionality? k c d → B ↝[ k ] A
+  ∀ {a b c d} {A : Type a} {B : Type b} →
+  A ↝[ c ∣ d ] B → B ↝[ c ∣ d ] A
 inverse-ext? hyp = generalise-ext?-sym (inverse ⊚ hyp)
 
 inverse-erased-ext? :
-  ∀ {k a b c d} {A : Type a} {B : Type b} →
-  (∀ {k} → @0 Extensionality? k c d → A ↝[ k ] B) →
-  @0 Extensionality? k c d → B ↝[ k ] A
+  ∀ {a b c d} {A : Type a} {B : Type b} →
+  A ↝[ c ∣ d ]ᴱ B → B ↝[ c ∣ d ]ᴱ A
 inverse-erased-ext? hyp =
   generalise-erased-ext?-sym (λ ext → inverse (hyp ext))
 
@@ -1344,10 +1362,9 @@ currying = record
   }
 
 Π⊎↔Π×Π :
-  ∀ {k a b c} {A : Type a} {B : Type b} {C : A ⊎ B → Type c} →
-  Extensionality? k (a ⊔ b) c →
+  ∀ {a b c} {A : Type a} {B : Type b} {C : A ⊎ B → Type c} →
   ((x : A ⊎ B) → C x)
-    ↝[ k ]
+    ↝[ a ⊔ b ∣ c ]
   ((x : A) → C (inj₁ x)) × ((y : B) → C (inj₂ y))
 Π⊎↔Π×Π =
   generalise-ext? (_↠_.logical-equivalence Π⊎↠Π×Π) λ ext → record
@@ -1508,9 +1525,9 @@ ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
 -- Contractible commutes with _×_ (assuming extensionality).
 
 Contractible-commutes-with-× :
-  ∀ {k x y} {X : Type x} {Y : Type y} →
-  Extensionality? k (x ⊔ y) (x ⊔ y) →
-  Contractible (X × Y) ↝[ k ] (Contractible X × Contractible Y)
+  ∀ {x y} {X : Type x} {Y : Type y} →
+  Contractible (X × Y) ↝[ x ⊔ y ∣ x ⊔ y ]
+  (Contractible X × Contractible Y)
 Contractible-commutes-with-× {x = x} {y} =
   generalise-ext?-prop
     (record
@@ -1743,9 +1760,8 @@ Is-equivalence-cong ext f≡g =
 -- (assuming extensionality).
 
 Is-equivalence≃Is-equivalence-CP :
-  ∀ {k a b} {A : Type a} {B : Type b} {f : A → B} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
-  Is-equivalence f ↝[ k ] CP.Is-equivalence f
+  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
+  Is-equivalence f ↝[ a ⊔ b ∣ a ⊔ b ] CP.Is-equivalence f
 Is-equivalence≃Is-equivalence-CP =
   generalise-ext?
     HA.Is-equivalence⇔Is-equivalence-CP
@@ -1755,9 +1771,8 @@ Is-equivalence≃Is-equivalence-CP =
 -- extensionality).
 
 ≃≃≃-CP :
-  ∀ {k a b} {A : Type a} {B : Type b} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
-  (A ≃ B) ↝[ k ] (A CP.≃ B)
+  ∀ {a b} {A : Type a} {B : Type b} →
+  (A ≃ B) ↝[ a ⊔ b ∣ a ⊔ b ] (A CP.≃ B)
 ≃≃≃-CP {A = A} {B = B} ext =
   A ≃ B                                    ↔⟨ Eq.≃-as-Σ ⟩
   (∃ λ (f : A → B) → Is-equivalence f)     ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalence-CP ext) ⟩□
@@ -1766,9 +1781,8 @@ Is-equivalence≃Is-equivalence-CP =
 -- _≃_ is commutative (assuming extensionality).
 
 ≃-comm :
-  ∀ {k a b} {A : Type a} {B : Type b} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
-  A ≃ B ↝[ k ] B ≃ A
+  ∀ {a b} {A : Type a} {B : Type b} →
+  A ≃ B ↝[ a ⊔ b ∣ a ⊔ b ] B ≃ A
 ≃-comm =
   generalise-ext?
     Eq.inverse-logical-equivalence
@@ -1777,12 +1791,11 @@ Is-equivalence≃Is-equivalence-CP =
 -- Two consequences of the two-out-of-three property.
 
 Is-equivalence≃Is-equivalence-∘ˡ :
-  ∀ {k a b c} {A : Type a} {B : Type b} {C : Type c}
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c}
     {f : B → C} {g : A → B} →
-  Extensionality? k (a ⊔ b ⊔ c) (a ⊔ b ⊔ c) →
   Is-equivalence f →
-  Is-equivalence g ↝[ k ] Is-equivalence (f ∘ g)
-Is-equivalence≃Is-equivalence-∘ˡ {b = b} {c = c} ext f-eq =
+  Is-equivalence g ↝[ a ⊔ b ⊔ c ∣ a ⊔ b ⊔ c ] Is-equivalence (f ∘ g)
+Is-equivalence≃Is-equivalence-∘ˡ {b = b} {c = c} f-eq =
   generalise-ext?-prop
     (record
        { to   = flip (Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _))
@@ -1791,15 +1804,13 @@ Is-equivalence≃Is-equivalence-∘ˡ {b = b} {c = c} ext f-eq =
        })
     (flip Eq.propositional _ ⊚ lower-extensionality c c)
     (flip Eq.propositional _ ⊚ lower-extensionality b b)
-    ext
 
 Is-equivalence≃Is-equivalence-∘ʳ :
-  ∀ {k a b c} {A : Type a} {B : Type b} {C : Type c}
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c}
     {f : B → C} {g : A → B} →
-  Extensionality? k (a ⊔ b ⊔ c) (a ⊔ b ⊔ c) →
   Is-equivalence g →
-  Is-equivalence f ↝[ k ] Is-equivalence (f ∘ g)
-Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} ext g-eq =
+  Is-equivalence f ↝[ a ⊔ b ⊔ c ∣ a ⊔ b ⊔ c ] Is-equivalence (f ∘ g)
+Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} g-eq =
   generalise-ext?-prop
     (record
        { to   = Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _) g-eq
@@ -1809,7 +1820,6 @@ Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} ext g-eq =
        })
     (flip Eq.propositional _ ⊚ lower-extensionality a a)
     (flip Eq.propositional _ ⊚ lower-extensionality b b)
-    ext
 
 ------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring
@@ -2674,9 +2684,8 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
 -- A lemma relating function types with the empty type as domain and
 -- the unit type.
 
-Π⊥↔⊤ : ∀ {k ℓ a} {A : ⊥ {ℓ = ℓ} → Type a} →
-       Extensionality? k ℓ a →
-       ((x : ⊥) → A x) ↝[ k ] ⊤
+Π⊥↔⊤ : ∀ {ℓ a} {A : ⊥ {ℓ = ℓ} → Type a} →
+       ((x : ⊥) → A x) ↝[ ℓ ∣ a ] ⊤
 Π⊥↔⊤ = generalise-ext? Π⊥⇔⊤ λ ext → record
   { surjection = record
     { logical-equivalence = Π⊥⇔⊤
@@ -2692,9 +2701,7 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
 
 -- A lemma relating ¬ ⊥ and ⊤.
 
-¬⊥↔⊤ : ∀ {k ℓ} →
-       Extensionality? k ℓ lzero →
-       ¬ ⊥ {ℓ = ℓ} ↝[ k ] ⊤
+¬⊥↔⊤ : ∀ {ℓ} → ¬ ⊥ {ℓ = ℓ} ↝[ ℓ ∣ lzero ] ⊤
 ¬⊥↔⊤ = Π⊥↔⊤
 
 -- Simplification lemmas for types of the form A → A → B.
@@ -2796,9 +2803,8 @@ implicit-ΠΣ-comm {A = A} {B} {C} =
   }
 
 ¬⊎↔¬×¬ :
-  ∀ {k a b} {A : Type a} {B : Type b} →
-  Extensionality? k (a ⊔ b) lzero →
-  ¬ (A ⊎ B) ↝[ k ] ¬ A × ¬ B
+  ∀ {a b} {A : Type a} {B : Type b} →
+  ¬ (A ⊎ B) ↝[ a ⊔ b ∣ lzero ] ¬ A × ¬ B
 ¬⊎↔¬×¬ = generalise-ext?
   (_↠_.logical-equivalence ¬⊎↠¬×¬)
   (λ ext → record
@@ -2957,17 +2963,14 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 -- (assuming extensionality).
 
 Π≡≃≡-↔-≡ :
-  ∀ {k a} →
-  Extensionality? k a a →
-  {A : Type a} (x y : A) →
-  (∀ z → (z ≡ x) ≃ (z ≡ y)) ↝[ k ] (x ≡ y)
-Π≡≃≡-↔-≡ {a = a} ext x y =
+  ∀ {a} {A : Type a} (x y : A) →
+  (∀ z → (z ≡ x) ≃ (z ≡ y)) ↝[ a ∣ a ] (x ≡ y)
+Π≡≃≡-↔-≡ {a = a} x y =
   generalise-ext? (_↠_.logical-equivalence surj)
                   (λ ext → record
                      { surjection      = surj
                      ; left-inverse-of = from∘to ext
                      })
-                  ext
   where
   surj = Π≡↔≡-↠-≡ equivalence x y
 
@@ -2990,12 +2993,10 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 -- One can introduce a universal quantifier by also introducing an
 -- equality (perhaps assuming extensionality).
 
-∀-intro : ∀ {k a b} →
-          Extensionality? k a (a ⊔ b) →
-          {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
-          B x (refl x) ↝[ k ] (∀ y (x≡y : x ≡ y) → B y x≡y)
-∀-intro ext B =
-  generalise-ext? (∀-intro-⇔ B) (λ ext → ∀-intro-↔ ext B) ext
+∀-intro :
+  ∀ {a b} {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
+  B x (refl x) ↝[ a ∣ a ⊔ b ] (∀ y (x≡y : x ≡ y) → B y x≡y)
+∀-intro B = generalise-ext? (∀-intro-⇔ B) (λ ext → ∀-intro-↔ ext B)
   where
   ∀-intro-⇔ : ∀ {a b} {A : Type a} {x : A}
               (B : (y : A) → x ≡ y → Type b) →
@@ -3062,11 +3063,10 @@ private
   -- theoretical Yoneda lemma"
   -- (http://homotopytypetheory.org/2012/05/02/a-type-theoretical-yoneda-lemma/).
 
-  ∀-intro′ : ∀ {k a b} →
-             Extensionality? k a (a ⊔ b) →
-             {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
-             B x (refl x) ↝[ k ] (∀ y (x≡y : x ≡ y) → B y x≡y)
-  ∀-intro′ {k} {a} ext {x = x} B =
+  ∀-intro′ :
+    ∀ {a b} {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
+    B x (refl x) ↝[ a ∣ a ⊔ b ] (∀ y (x≡y : x ≡ y) → B y x≡y)
+  ∀-intro′ {a = a} {x = x} B {k = k} ext =
     B x (refl x)                        ↔⟨ inverse Π-left-identity ⟩
     (⊤ → B x (refl x))                  ↝⟨ Π-cong-contra (lower-extensionality? k lzero a ext)
                                                          (_⇔_.to contractible⇔↔⊤ c) (λ _ → id) ⟩
@@ -3497,9 +3497,8 @@ Unit≃⊤ x =
 
 -- All instances of A → ⊥ are isomorphic to ¬ A.
 
-¬↔→⊥ : ∀ {k a ℓ} {A : Type a} →
-       Extensionality? k a ℓ →
-       ¬ A ↝[ k ] (A → ⊥ {ℓ = ℓ})
+¬↔→⊥ : ∀ {a ℓ} {A : Type a} →
+       ¬ A ↝[ a ∣ ℓ ] (A → ⊥ {ℓ = ℓ})
 ¬↔→⊥ {A = A} ext =
   (A → ⊥₀)  ↝⟨ (∀-cong ext λ _ → from-isomorphism ⊥↔⊥) ⟩□
   (A → ⊥)   □
@@ -3551,18 +3550,16 @@ Unit≃⊤ x =
 -- then the two types are equivalent (assuming extensionality).
 
 →≃¬→¬ :
-  ∀ {k a b} {A : Type a} {B : Type b} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  ∀ {a b} {A : Type a} {B : Type b} →
   (Extensionality (a ⊔ b) (a ⊔ b) → A → Is-proposition B) →
   (A → Dec B) →
-  (A → B) ↝[ k ] (¬ B → ¬ A)
-→≃¬→¬ {a = a} {b = b} ext prop dec =
+  (A → B) ↝[ a ⊔ b ∣ a ⊔ b ] (¬ B → ¬ A)
+→≃¬→¬ {a = a} {b = b} prop dec =
   generalise-ext?-prop
     (→⇔¬→¬ dec)
     (λ ext → Π-closure (lower-extensionality b a ext) 1 (prop ext))
     (λ ext → Π-closure (lower-extensionality a b ext) 1 λ _ →
              ¬-propositional (lower-extensionality b _ ext))
-    ext
 
 ------------------------------------------------------------------------
 -- Lemmas related to H-level
@@ -3571,9 +3568,8 @@ Unit≃⊤ x =
 -- extensionality).
 
 H-level↔H-level′ :
-  ∀ {k a} {A : Type a} {n} →
-  Extensionality? k a a →
-  H-level n A ↝[ k ] H-level′ n A
+  ∀ {a} {A : Type a} {n} →
+  H-level n A ↝[ a ∣ a ] H-level′ n A
 H-level↔H-level′ {n = n} =
   generalise-ext?-prop
     H-level⇔H-level′
@@ -3614,9 +3610,8 @@ H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
 -- H-level (suc n) A (assuming extensionality).
 
 ≡↔+ :
-  ∀ {k a} {A : Type a} n →
-  Extensionality? k a a →
-  ((x y : A) → H-level n (x ≡ y)) ↝[ k ] H-level (suc n) A
+  ∀ {a} {A : Type a} n →
+  ((x y : A) → H-level n (x ≡ y)) ↝[ a ∣ a ] H-level (suc n) A
 ≡↔+ {A = A} n ext =
   ((x y : A) → H-level  n (x ≡ y))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level↔H-level′ ext) ⟩
   ((x y : A) → H-level′ n (x ≡ y))  ↔⟨⟩
@@ -3817,9 +3812,8 @@ private
     P zero ⊎ (∃ λ (n : ℕ) → P (suc n))        □
 
   Πℕ≃′ :
-    ∀ {k p} {P : ℕ → Type p} →
-    Extensionality? k lzero p →
-    (∀ n → P n) ↝[ k ] (P zero × ∀ n → P (suc n))
+    ∀ {p} {P : ℕ → Type p} →
+    (∀ n → P n) ↝[ lzero ∣ p ] (P zero × ∀ n → P (suc n))
   Πℕ≃′ {P = P} ext =
     (∀ n → P n)                           ↝⟨ (Π-cong-contra ext (inverse ℕ↔ℕ⊎⊤) λ _ → id) ⟩
     ((x : ℕ ⊎ ⊤) → P (_↔_.from ℕ↔ℕ⊎⊤ x))  ↝⟨ Π⊎↔Π×Π ext ⟩
@@ -3844,9 +3838,8 @@ private
       (suc _ , _) → refl _)
 
 Πℕ≃ :
-  ∀ {k p} {P : ℕ → Type p} →
-  Extensionality? k lzero p →
-  (∀ n → P n) ↝[ k ] (P zero × ∀ n → P (suc n))
+  ∀ {p} {P : ℕ → Type p} →
+  (∀ n → P n) ↝[ lzero ∣ p ] (P zero × ∀ n → P (suc n))
 Πℕ≃ {P = P} =
   generalise-ext?
     Πℕ⇔
@@ -4176,10 +4169,7 @@ T[<=]↔≤ {m = suc m} {n = suc n} =
 -- presence of extensionality the two definitions are pointwise
 -- isomorphic.
 
-Distinct↔≢ :
-  ∀ {k m n} →
-  Extensionality? k lzero lzero →
-  Distinct m n ↝[ k ] m ≢ n
+Distinct↔≢ : ∀ {m n} → Distinct m n ↝[ lzero ∣ lzero ] m ≢ n
 Distinct↔≢ {m = m} {n} =
   generalise-ext? Distinct⇔≢ λ ext →
     from-isomorphism $
@@ -4335,11 +4325,10 @@ private
 -- extensionality).
 
 [⊤⊎↔⊤⊎]↔[⊤⊎×↔] :
-  ∀ {k a b} {A : Type a} {B : Type b} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  ∀ {a b} {A : Type a} {B : Type b} →
   Decidable-equality B →
-  ((⊤ ⊎ A) ↔ (⊤ ⊎ B)) ↝[ k ] (⊤ ⊎ B) × (A ↔ B)
-[⊤⊎↔⊤⊎]↔[⊤⊎×↔] {a = a} {b = b} {A = A} {B = B} ext _≟B_ =
+  ((⊤ ⊎ A) ↔ (⊤ ⊎ B)) ↝[ a ⊔ b ∣ a ⊔ b ] (⊤ ⊎ B) × (A ↔ B)
+[⊤⊎↔⊤⊎]↔[⊤⊎×↔] {a = a} {b = b} {A = A} {B = B} _≟B_ ext =
   generalise-ext?
     [⊤⊎↔⊤⊎]⇔[⊤⊎×↔]
     (λ ext → record

@@ -88,9 +88,8 @@ Is-embedding→Is-embeddingᴱ {f = f} =
 
 @0 Is-embedding≃Is-embeddingᴱ :
   {A : Type a} {B : Type b} {f : A → B} →
-  Extensionality? k a (a ⊔ b) →
-  Is-embedding f ↝[ k ] Is-embeddingᴱ f
-Is-embedding≃Is-embeddingᴱ {k = k} {f = f} ext =
+  Is-embedding f ↝[ a ∣ a ⊔ b ] Is-embeddingᴱ f
+Is-embedding≃Is-embeddingᴱ {f = f} {k = k} ext =
   (∀ x y → Eq.Is-equivalence (cong {x = x} {y = y} f))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → from-equivalence
                                                             EEq.Is-equivalence≃Is-equivalenceᴱ) ⟩□
   (∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} f))    □
@@ -109,8 +108,7 @@ Embedding→Embeddingᴱ {A = A} {B = B} =
 
 @0 Embedding≃Embeddingᴱ :
   {A : Type a} {B : Type b} →
-  Extensionality? k a (a ⊔ b) →
-  Embedding A B ↝[ k ] Embeddingᴱ A B
+  Embedding A B ↝[ a ∣ a ⊔ b ] Embeddingᴱ A B
 Embedding≃Embeddingᴱ {A = A} {B = B} ext =
   Embedding A B                        ↔⟨ Emb.Embedding-as-Σ ⟩
   (∃ λ (f : A → B) → Is-embedding f)   ↝⟨ (∃-cong λ _ → Is-embedding≃Is-embeddingᴱ ext) ⟩

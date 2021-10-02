@@ -80,15 +80,14 @@ universal-property-Π {g = g} X@(P , down) =
 
 universal-property :
   {I : Type i} {P : I → Type p} →
-  Extensionality? k i (p ⊔ ℓ) →
   (X@(Q , down) : Chain I ℓ) →
 
   (P ⇾ Limit X)
-    ↝[ k ]
+    ↝[ i ∣ p ⊔ ℓ ]
   (∃ λ (f : ∀ n → P ⇾ Q n) →
      ∀ n i x → down n i (f (suc n) i x) ≡ f n i x)
 
-universal-property {P = P} ext X@(Q , down) =
+universal-property {P = P} X@(Q , down) ext =
   (P ⇾ Limit X)                                     ↔⟨⟩
 
   (∀ i → P i → Limit X i)                           ↝⟨ (∀-cong ext λ _ → from-equivalence $ universal-property-Π X) ⟩
@@ -122,7 +121,7 @@ universal-property-≃ :
   (P ⇾ Limit X) ≃ Cone P X
 
 universal-property-≃ {i = i} {p = p} {ℓ = ℓ} {P = P} ext X@(Q , down) =
-  P ⇾ Limit X                                       ↝⟨ universal-property (lower-extensionality p i ext) X ⟩
+  P ⇾ Limit X                                       ↝⟨ universal-property X (lower-extensionality p i ext) ⟩
 
   (∃ λ (f : ∀ n → P ⇾ Q n) →
      ∀ n i x → down n i (f (suc n) i x) ≡ f n i x)  ↝⟨ (∃-cong λ _ → ∀-cong (lower-extensionality _ lzero ext) λ _ →
@@ -147,10 +146,9 @@ shift = Σ-map (_∘ suc) (_∘ suc)
 -- Type Theory".
 
 Limit-shift :
-  Extensionality? k lzero ℓ →
   ∀ (X : Chain I ℓ) {i} →
-  Limit (shift X) i ↝[ k ] Limit X i
-Limit-shift {ℓ = ℓ} ext X@(P , down) {i = i} =
+  Limit (shift X) i ↝[ lzero ∣ ℓ ] Limit X i
+Limit-shift {ℓ = ℓ} X@(P , down) {i = i} ext =
   Limit (shift X) i                                ↔⟨⟩
 
   (∃ λ (p : ∀ n → P (suc n) i) →
@@ -247,13 +245,12 @@ cochain-limit-↠ (_ , up) = λ where
 -- Type Theory".
 
 cochain-limit :
-  Extensionality? k lzero ℓ →
   ((P , up) : Cochain ℓ) →
 
   (∃ λ (p : ∀ n → P n) → ∀ n → p (suc n) ≡ up n (p n))
-    ↝[ k ]
+    ↝[ lzero ∣ ℓ ]
   P 0
-cochain-limit ext X@(_ , up) =
+cochain-limit X@(_ , up) ext =
   generalise-ext?
   (_↠_.logical-equivalence cl)
   (λ ext → record { surjection      = cl
@@ -328,16 +325,13 @@ _ = refl _
 
 simple-cochain-limit :
   {A : Type a} →
-  Extensionality? k lzero a →
-
-  (∃ λ (f : ℕ → A) → ∀ n → f (suc n) ≡ f n) ↝[ k ] A
-simple-cochain-limit ext =
+  (∃ λ (f : ℕ → A) → ∀ n → f (suc n) ≡ f n) ↝[ lzero ∣ a ] A
+simple-cochain-limit =
   generalise-ext?
     (_↠_.logical-equivalence scl)
     (λ ext → record { surjection      = scl
                     ; left-inverse-of = from∘to ext
                     })
-    ext
   where
   scl = simple-cochain-limit-↠
 
@@ -511,7 +505,7 @@ M-fixpoint ⊠ ext {C = C} {i = i} =
   ⟦ C ⟧ (M C) i                            ↔⟨⟩
   ⟦ C ⟧ (Limit (M-chain C)) i              ↝⟨ ⟦⟧-Limit≃ ext C (M-chain C) ⟩
   Limit (Container-chain C (M-chain C)) i  ↔⟨⟩
-  Limit (shift (M-chain C)) i              ↝⟨ Limit-shift (lower-extensionality _ lzero ext) (M-chain C) ⟩
+  Limit (shift (M-chain C)) i              ↝⟨ Limit-shift (M-chain C) (lower-extensionality _ lzero ext) ⟩
   Limit (M-chain C) i                      ↔⟨⟩
   M C i                                    □
 
@@ -861,7 +855,7 @@ private
      ∃ λ (p : Eq g) →
        subst Eq (_≃_.from steps₁-fixpoint≃ q) p ≡ steps₂ p)             ↝⟨ (inverse $
                                                                             Σ-cong (inverse $
-                                                                                    cochain-limit {k = equivalence} ext₀ cochain₁) λ _ →
+                                                                                    cochain-limit cochain₁ {k = equivalence} ext₀) λ _ →
                                                                             F.id) ⟩
     (∃ λ (g : P ⇾ Up-to C 0) →
      ∃ λ (p : Eq (cl₁← g)) →
@@ -899,7 +893,7 @@ private
                                                                             trans (cong (trans _) sym-refl) $
                                                                             trans-reflʳ _) ⟩
     (∃ λ (p : Eq (cl₁← g₀)) →
-       ∀ n → p (suc n) ≡ cong step (p n))                               ↝⟨ cochain-limit ext₀ cochain₂ ⟩
+       ∀ n → p (suc n) ≡ cong step (p n))                               ↝⟨ cochain-limit cochain₂ ext₀ ⟩
 
     down {C = C} 0 ∘⇾ step (cl₁← g₀ 0) ≡ cl₁← g₀ 0                      ↔⟨ _⇔_.to contractible⇔↔⊤ $
                                                                            H-level.⇒≡ 0 contr ⟩□

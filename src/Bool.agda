@@ -112,14 +112,11 @@ T-not⇔¬T false =
   ⊤    ↝⟨ record { to = λ _ → id } ⟩□
   ¬ ⊥  □
 
-T-not↔¬T :
-  ∀ {k} →
-  Extensionality? k (# 0) (# 0) →
-  (b : Bool) → T (not b) ↝[ k ] ¬ T b
-T-not↔¬T _ true =
+T-not↔¬T : (b : Bool) → T (not b) ↝[ lzero ∣ lzero ] ¬ T b
+T-not↔¬T true _ =
   ⊥        ↔⟨ Bijection.⊥↔uninhabited (_$ _) ⟩
   (⊤ → ⊥)  □
-T-not↔¬T ext false =
+T-not↔¬T false ext =
   ⊤    ↝⟨ inverse-ext? ¬⊥↔⊤ ext ⟩□
   ¬ ⊥  □
 
@@ -129,12 +126,9 @@ T-not↔¬T ext false =
   T (not b)  ↔⟨ T-not↔≡false ⟩□
   b ≡ false  □
 
-¬T↔≡false :
-  ∀ {k} →
-  Extensionality? k (# 0) (# 0) →
-  ∀ {b} → ¬ T b ↝[ k ] b ≡ false
-¬T↔≡false ext {b} =
-  ¬ T b      ↝⟨ inverse-ext? (flip T-not↔¬T b) ext ⟩
+¬T↔≡false : ∀ {b} → ¬ T b ↝[ lzero ∣ lzero ] b ≡ false
+¬T↔≡false {b = b} ext =
+  ¬ T b      ↝⟨ inverse-ext? (T-not↔¬T b) ext ⟩
   T (not b)  ↔⟨ T-not↔≡false ⟩□
   b ≡ false  □
 

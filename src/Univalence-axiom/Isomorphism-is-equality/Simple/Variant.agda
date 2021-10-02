@@ -426,7 +426,7 @@ abstract
                                                                                    (isomorphism-definitions-isomorphic ass b B↔C)) ⟩
     (∀ x y → to (cast ext a B≃C) x ≡ y →
              to (cast ext b B≃C) (f x) ≡ g y)                      ↝⟨ inverse $ ∀-cong ext (λ x →
-                                                                        ∀-intro ext (λ y _ → to (cast ext b B≃C) (f x) ≡ g y)) ⟩
+                                                                        ∀-intro (λ y _ → to (cast ext b B≃C) (f x) ≡ g y) ext) ⟩
     (∀ x → to (cast ext b B≃C) (f x) ≡ g (to (cast ext a B≃C) x))  ↔⟨ Eq.extensionality-isomorphism ext ⟩
 
     (to (cast ext b B≃C) ∘ f ≡ g ∘ to (cast ext a B≃C))            ↝⟨ inverse $ ∘from≡↔≡∘to ext (cast ext a B≃C) ⟩□
@@ -593,11 +593,11 @@ Isomorphism-monoid-isomorphic-to-standard ext
   (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
    (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x ∙₁ u) ≡ (y ∙₂ v)) ×
    to e₁ ≡ e₂)                                                       ↝⟨ inverse $ ∃-cong (λ _ →
-                                                                          (∀-cong ext λ _ → ∀-intro ext λ _ _ → _) ×-cong (_ □)) ⟩
+                                                                          (∀-cong ext λ _ → ∀-intro (λ _ _ → _) ext) ×-cong (_ □)) ⟩
   (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
    (∀ x u v → to u ≡ v → to (x ∙₁ u) ≡ (to x ∙₂ v)) ×
    to e₁ ≡ e₂)                                                       ↝⟨ inverse $ ∃-cong (λ _ →
-                                                                          (∀-cong ext λ _ → ∀-cong ext λ _ → ∀-intro ext λ _ _ → _)
+                                                                          (∀-cong ext λ _ → ∀-cong ext λ _ → ∀-intro (λ _ _ → _) ext)
                                                                             ×-cong
                                                                           (_ □)) ⟩□
   (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in

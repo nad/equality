@@ -678,10 +678,10 @@ Stable-H-level′ :
   For-iterated-equality (1 + n) Stable A →
   Stable (H-level′ (1 + n) A)
 Stable-H-level′ {A = A} n =
-  For-iterated-equality (1 + n) Stable A           ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality ext n 1) _ ⟩
+  For-iterated-equality (1 + n) Stable A           ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality n 1 ext) _ ⟩
   For-iterated-equality n Stable-≡ A               ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
   For-iterated-equality n (Stable ∘ H-level′ 1) A  ↝⟨ For-iterated-equality-commutes-← _ Stable n Stable-Π ⟩
-  Stable (For-iterated-equality n (H-level′ 1) A)  ↝⟨ Stable-map-⇔ (For-iterated-equality-For-iterated-equality _ n 1) ⟩□
+  Stable (For-iterated-equality n (H-level′ 1) A)  ↝⟨ Stable-map-⇔ (For-iterated-equality-For-iterated-equality n 1 _) ⟩□
   Stable (H-level′ (1 + n) A)                      □
   where
   lemma : ∀ {A} → Stable-≡ A → Stable (H-level′ 1 A)
@@ -988,8 +988,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       For-iterated-equality n Is-proposition A
     H-level-suc→For-iterated-equality-Is-proposition {n = n} {A = A} =
       H-level (1 + n) A                         ↝⟨ _⇔_.to H-level⇔H-level′ ⟩
-      H-level′ (1 + n) A                        ↝⟨ (flip inverse-ext? _ λ ext →
-                                                    For-iterated-equality-For-iterated-equality ext n 1) ⟩
+      H-level′ (1 + n) A                        ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) _ ⟩
       For-iterated-equality n (H-level′ 1) A    ↝⟨ For-iterated-equality-cong₁ _ n $
                                                    _⇔_.from (H-level⇔H-level′ {n = 1}) ⟩□
       For-iterated-equality n Is-proposition A  □
@@ -1019,7 +1018,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     For-iterated-equality n Stable A × H-level (1 + n) A           ↝⟨ (∃-cong λ _ → H-level-suc→For-iterated-equality-Is-proposition) ⟩
 
     For-iterated-equality n Stable A ×
-    For-iterated-equality n Is-proposition A                       ↝⟨ For-iterated-equality-commutes-× _ n ⟩
+    For-iterated-equality n Is-proposition A                       ↝⟨ For-iterated-equality-commutes-× n _ ⟩
 
     For-iterated-equality n (λ A → Stable A × Is-proposition A) A  ↝⟨ For-iterated-equality-cong₁ _ n $
                                                                       uncurry Stable-proposition→Very-stable ⟩
@@ -1050,7 +1049,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     Erased (For-iterated-equality n Is-proposition A)            ↝⟨ (∃-cong λ _ →
                                                                      For-iterated-equality-commutes _ (λ A → Erased A) n (_↔_.to Erased-Π↔Π)) ⟩
     For-iterated-equality n Stable A ×
-    For-iterated-equality n (λ A → Erased (Is-proposition A)) A  ↝⟨ For-iterated-equality-commutes-× _ n ⟩
+    For-iterated-equality n (λ A → Erased (Is-proposition A)) A  ↝⟨ For-iterated-equality-commutes-× n _ ⟩
 
     For-iterated-equality n
       (λ A → Stable A × Erased (Is-proposition A)) A             ↝⟨ (For-iterated-equality-cong₁ _ n λ (s , [ prop ]) →
@@ -1106,8 +1105,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Stable-≡↔Injective-[] :
     {A : Type a} →
-    Extensionality? k a a →
-    Stable-≡ A ↝[ k ] Injective ([_]→ {A = A})
+    Stable-≡ A ↝[ a ∣ a ] Injective ([_]→ {A = A})
   Stable-≡↔Injective-[] ext =
     (∀ x y → Erased (x ≡ y) → x ≡ y)    ↝⟨ (∀-cong ext λ _ → from-isomorphism $ inverse Bijection.implicit-Π↔Π) ⟩
     (∀ x {y} → Erased (x ≡ y) → x ≡ y)  ↔⟨ inverse Bijection.implicit-Π↔Π ⟩
@@ -1120,8 +1118,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Very-stable-≡↔Is-embedding-[] :
     {A : Type a} →
-    Extensionality? k a a →
-    Very-stable-≡ A ↝[ k ] Is-embedding ([_]→ {A = A})
+    Very-stable-≡ A ↝[ a ∣ a ] Is-embedding ([_]→ {A = A})
   Very-stable-≡↔Is-embedding-[] ext =
     (∀ x y → Is-equivalence ([_]→ {A = x ≡ y}))            ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                generalise-ext?-prop
@@ -1153,13 +1150,11 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
     Very-stable-≡↔Is-embedding-[]→ :
       {A : Type a} →
-      Extensionality? k a a →
       ∀ n →
-      For-iterated-equality (1 + n) Very-stable A ↝[ k ]
+      For-iterated-equality (1 + n) Very-stable A ↝[ a ∣ a ]
       For-iterated-equality n (λ A → Is-embedding ([_]→ {A = A})) A
-    Very-stable-≡↔Is-embedding-[]→ {A = A} ext n =
-      For-iterated-equality (1 + n) Very-stable A                    ↝⟨ (flip inverse-ext? ext λ ext →
-                                                                         For-iterated-equality-For-iterated-equality ext n 1) ⟩
+    Very-stable-≡↔Is-embedding-[]→ {A = A} n ext =
+      For-iterated-equality (1 + n) Very-stable A                    ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) ext ⟩
       For-iterated-equality n Very-stable-≡ A                        ↝⟨ For-iterated-equality-cong₁ ext n (Very-stable-≡↔Is-embedding-[] ext) ⟩□
       For-iterated-equality n (λ A → Is-embedding ([_]→ {A = A})) A  □
 
@@ -1233,7 +1228,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Stable-[]-map-↝ :
     {A : Type a} {B : Type b} →
-    (∀ {k} → Extensionality? k a b → A ↝[ k ] B) →
+    A ↝[ a ∣ b ] B →
     Extensionality? k a b → Stable-[ k ] A → Stable-[ k ] B
   Stable-[]-map-↝ A↝B ext =
     Stable-[]-map (A↝B ext) (inverse-ext? A↝B ext)
@@ -1487,7 +1482,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     For-iterated-equality (1 + n) Very-stable A
   Very-stable→Very-stable-≡ {A = A} n =
     For-iterated-equality n Very-stable A        ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
-    For-iterated-equality n Very-stable-≡ A      ↝⟨ For-iterated-equality-For-iterated-equality _ n 1 ⟩□
+    For-iterated-equality n Very-stable-≡ A      ↝⟨ For-iterated-equality-For-iterated-equality n 1 _ ⟩□
     For-iterated-equality (1 + n) Very-stable A  □
     where
     lemma : ∀ {A} → Very-stable A → Very-stable-≡ A
@@ -1549,10 +1544,10 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     For-iterated-equality (1 + n) Stable-[ k ] A →
     Stable-[ k ] (H-level′ (1 + n) A)
   Stable-[]-H-level′ {a = a} {k = k} {A = A} ext n =
-    For-iterated-equality (1 + n) Stable-[ k ] A           ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality ext n 1) _ ⟩
+    For-iterated-equality (1 + n) Stable-[ k ] A           ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) _ ⟩
     For-iterated-equality n Stable-≡-[ k ] A               ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
     For-iterated-equality n (Stable-[ k ] ∘ H-level′ 1) A  ↝⟨ For-iterated-equality-commutes-← _ Stable-[ k ] n (Stable-[]-Π ext) ⟩
-    Stable-[ k ] (For-iterated-equality n (H-level′ 1) A)  ↝⟨ Stable-[]-map-↝ (λ ext → For-iterated-equality-For-iterated-equality ext n 1) ext ⟩□
+    Stable-[ k ] (For-iterated-equality n (H-level′ 1) A)  ↝⟨ Stable-[]-map-↝ (For-iterated-equality-For-iterated-equality n 1) ext ⟩□
     Stable-[ k ] (H-level′ (1 + n) A)                      □
     where
     lemma : ∀ {A} → Stable-≡-[ k ] A → Stable-[ k ] (H-level′ 1 A)
@@ -1779,11 +1774,9 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Very-stable-Σ↔Π :
     {A : Type a} {P : A → Type p} →
-    Extensionality? k (a ⊔ p) (a ⊔ p) →
     Very-stable A →
-    Very-stable (Σ A P) ↝[ k ]
-    (∀ x → Very-stable (P x))
-  Very-stable-Σ↔Π {a = a} {p = p} {k = k} {A = A} {P = P} ext s =
+    Very-stable (Σ A P) ↝[ a ⊔ p ∣ a ⊔ p ] (∀ x → Very-stable (P x))
+  Very-stable-Σ↔Π {a = a} {p = p} {A = A} {P = P} s =
     generalise-ext?-prop
       (record
          { from = Very-stable-Σ s
@@ -1797,7 +1790,6 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       (λ ext →
          Π-closure (lower-extensionality p a ext) 1 λ _ →
          Very-stable-propositional (lower-extensionality a a ext))
-      ext
 
   -- A variant of Very-stableᴱ-Σ.
   --
@@ -1809,8 +1801,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     @0 Extensionality (a ⊔ p) (a ⊔ p) →
     Very-stableᴱ A →
     Very-stableᴱ-≡ A →
-    Very-stableᴱ (Σ A P) ≃ᴱ
-    (∀ x → Very-stableᴱ (P x))
+    Very-stableᴱ (Σ A P) ≃ᴱ (∀ x → Very-stableᴱ (P x))
   Very-stableᴱ-Σ≃ᴱΠ {a = a} {p = p} {A = A} {P = P} ext s s-≡ =
     EEq.⇔→≃ᴱ
       (Very-stableᴱ-propositional ext)

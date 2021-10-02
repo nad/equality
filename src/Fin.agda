@@ -373,7 +373,7 @@ Fin×Fin↔Fin* (suc m) n =
   ⊤ ⊎ ⊥          ↝⟨ id ⟩□
   Fin 1          □
 [Fin↔Fin]↔Fin! ext (suc n) =
-  Fin (suc n) ↔ Fin (suc n)      ↝⟨ [⊤⊎↔⊤⊎]↔[⊤⊎×↔] ext Fin._≟_ ⟩
+  Fin (suc n) ↔ Fin (suc n)      ↝⟨ [⊤⊎↔⊤⊎]↔[⊤⊎×↔] Fin._≟_ ext ⟩
   Fin (suc n) × (Fin n ↔ Fin n)  ↝⟨ id ×-cong [Fin↔Fin]↔Fin! ext n ⟩
   Fin (suc n) × Fin (n !)        ↝⟨ Fin×Fin↔Fin* _ _ ⟩□
   Fin (suc n !)                  □

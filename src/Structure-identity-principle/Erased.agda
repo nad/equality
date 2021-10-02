@@ -1931,7 +1931,7 @@ Function-Constᴿ≃Functionᴿ∘Constᴿ :
   Function-Constᴿ A G R f g ≃
   (Functionᴿ ∘ Constᴿ) A G R f g
 Function-Constᴿ≃Functionᴿ∘Constᴿ {R = R} {f = f} {g = g} G =
-  (∀ x → G R (f x) (g x))              ↝⟨ (∀-cong ext λ _ → ∀-intro ext _) ⟩
+  (∀ x → G R (f x) (g x))              ↝⟨ (∀-cong ext λ _ → ∀-intro _ ext) ⟩
   (∀ x y → x ≡ y → G R (f x) (g y))    ↔⟨ inverse (∀-cong ext (λ _ → B.implicit-Π↔Π) F.∘ B.implicit-Π↔Π) ⟩□
   (∀ {x y} → x ≡ y → G R (f x) (g y))  □
 
@@ -1991,7 +1991,7 @@ Function-univalent
    subst G (≃⇒≡ univ (EEq.≃ᴱ→≃ eq))
      (f (subst F (sym (≃⇒≡ univ (EEq.≃ᴱ→≃ eq))) y)) ≡
    g y)                                                            ↝⟨ (∀-cong ext λ _ → inverse $
-                                                                       ∀-intro ext _) ⟩
+                                                                       ∀-intro _ ext) ⟩
   (∀ y →
    subst G (≃⇒≡ univ (EEq.≃ᴱ→≃ eq))
      (f (subst F (sym (≃⇒≡ univ (EEq.≃ᴱ→≃ eq))) y)) ≡

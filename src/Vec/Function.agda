@@ -137,8 +137,7 @@ from-list (x ∷ xs) = cons x (from-list xs)
 
 ∃Vec≃List :
   {A : Type a} →
-  Extensionality? k lzero a →
-  ∃ (Vec A) ↝[ k ] List A
+  ∃ (Vec A) ↝[ lzero ∣ a ] List A
 ∃Vec≃List {a = a} {A = A} =
   generalise-ext?
     (_↠_.logical-equivalence ∃Vec↠List)

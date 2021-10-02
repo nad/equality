@@ -666,7 +666,7 @@ abstract
     (resp b eq ∘ f ≡ g ∘ resp a eq)                    ↔⟨ inverse $ Eq.extensionality-isomorphism ext₁ ⟩
 
     (∀ x → resp b eq (f x) ≡ g (resp a eq x))          ↝⟨ ∀-cong ext₁ (λ x →
-                                                            ∀-intro ext₁ (λ y _ → resp b eq (f x) ≡ g y)) ⟩
+                                                            ∀-intro (λ y _ → resp b eq (f x) ≡ g y) ext₁) ⟩
     (∀ x y → resp a eq x ≡ y → resp b eq (f x) ≡ g y)  ↝⟨ ∀-cong ext₁ (λ _ → ∀-cong ext₁ λ _ →
                                                             →-cong ext₁ (is-isomorphism-isomorphic ass a eq)
                                                                         (is-isomorphism-isomorphic ass b eq)) ⟩□
@@ -1022,10 +1022,10 @@ Isomorphism′-poset-isomorphic-to-order-isomorphism ext
 
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    ∀ a b → to a ≡ b → ∀ c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (b ≤₂ d)))  ↝⟨ inverse $ ∃-cong (λ _ → ∀-cong ext λ _ →
-                                                                          ∀-intro ext λ _ _ → _) ⟩
+                                                                          ∀-intro (λ _ _ → _) ext) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    ∀ a c d → to c ≡ d → ↑ _ ((a ≤₁ c) ≃ (to a ≤₂ d)))                ↝⟨ inverse $ ∃-cong (λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ →
-                                                                          ∀-intro ext λ _ _ → _) ⟩
+                                                                          ∀-intro (λ _ _ → _) ext) ⟩
   (Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
    ∀ a c → ↑ _ ((a ≤₁ c) ≃ (to a ≤₂ to c)))                          ↝⟨ ∃-cong (λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                           B.↑↔) ⟩

@@ -36,7 +36,7 @@ open import Univalence-axiom eq-J as U using (≡⇒→)
 
 private
   variable
-    a b c ℓ q r   : Level
+    a b c d ℓ q r : Level
     A B           : Type a
     eq k k′ p x y : A
     P             : A → Type p
@@ -258,8 +258,7 @@ Erased-↑↔↑ = record
 
 Erased-¬↔¬ :
   {@0 A : Type a} →
-  Extensionality? k a lzero →
-  Erased (¬ A) ↝[ k ] ¬ Erased A
+  Erased (¬ A) ↝[ a ∣ lzero ] ¬ Erased A
 Erased-¬↔¬ {A = A} ext =
   Erased (A → ⊥)         ↔⟨ Erased-Π↔Π-Erased ⟩
   (Erased A → Erased ⊥)  ↝⟨ (∀-cong ext λ _ → from-isomorphism Erased-⊥↔⊥) ⟩□
@@ -269,8 +268,7 @@ Erased-¬↔¬ {A = A} ext =
 
 ¬-Erased↔¬ :
   {A : Type a} →
-  Extensionality? k a lzero →
-  ¬ Erased A ↝[ k ] ¬ A
+  ¬ Erased A ↝[ a ∣ lzero ] ¬ A
 ¬-Erased↔¬ {a = a} {A = A} =
   generalise-ext?-prop
     (record
@@ -406,8 +404,7 @@ Dec-Erased≃Dec {A = A} =
 
 Dec-Erased↔Dec-Erased :
   {@0 A : Type a} →
-  Extensionality? k a lzero →
-  Dec-Erased A ↝[ k ] Dec (Erased A)
+  Dec-Erased A ↝[ a ∣ lzero ] Dec (Erased A)
 Dec-Erased↔Dec-Erased {A = A} ext =
   Erased A ⊎ Erased (¬ A)  ↝⟨ F.id ⊎-cong Erased-¬↔¬ ext ⟩□
   Erased A ⊎ ¬ Erased A    □
@@ -522,8 +519,7 @@ Decidable-equality→Decidable-erased-equality dec x y =
 
 @0 Decidable-erased-equality≃Decidable-equality :
   {A : Type a} →
-  Extensionality? k a a →
-  Decidable-erased-equality A ↝[ k ] Decidable-equality A
+  Decidable-erased-equality A ↝[ a ∣ a ] Decidable-equality A
 Decidable-erased-equality≃Decidable-equality {A = A} ext =
   ((x y : A) → Dec-Erased (x ≡ y))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → from-equivalence Dec-Erased≃Dec) ⟩□
   ((x y : A) → Dec (x ≡ y))         □
@@ -643,8 +639,8 @@ module []-cong₁
 
   Erased-W↔W :
     {@0 A : Type a} {@0 P : A → Type p} →
-    Extensionality? k p (a ⊔ p) →
-    Erased (W A P) ↝[ k ] W (Erased A) (λ x → Erased (P (erased x)))
+    Erased (W A P) ↝[ p ∣ a ⊔ p ]
+    W (Erased A) (λ x → Erased (P (erased x)))
   Erased-W↔W {a = a} {p = p} {A = A} {P = P} =
     generalise-ext?
       Erased-W⇔W
@@ -710,9 +706,8 @@ module []-cong₁
     -- A variant of Erased-cong (which is defined in Erased.Level-2).
 
     Erased-cong? :
-      ∀ {a b} →
-      @0 (∀ {k} → Extensionality? k a b → A ↝[ k ] B) →
-      @0 Extensionality? k a b → Erased A ↝[ k ] Erased B
+      @0 A ↝[ c ∣ d ] B →
+      Erased A ↝[ c ∣ d ]ᴱ Erased B
     Erased-cong? hyp = generalise-erased-ext?
       (Erased-cong-⇔ (hyp _))
       (λ ext → Erased-cong-↔ (hyp ext))
@@ -818,20 +813,19 @@ module []-cong₂
 
   Erased-H-level′↔H-level′ :
     {@0 A : Type a} →
-    Extensionality? k a a →
-    ∀ n → Erased (H-level′ n A) ↝[ k ] H-level′ n (Erased A)
-  Erased-H-level′↔H-level′ {A = A} ext zero =
+    ∀ n → Erased (H-level′ n A) ↝[ a ∣ a ] H-level′ n (Erased A)
+  Erased-H-level′↔H-level′ {A = A} zero ext =
     Erased (H-level′ zero A)                                              ↔⟨⟩
     Erased (∃ λ (x : A) → (y : A) → x ≡ y)                                ↔⟨ Erased-Σ↔Σ ⟩
     (∃ λ (x : Erased A) → Erased ((y : A) → erased x ≡ y))                ↔⟨ (∃-cong λ _ → Erased-Π↔Π-Erased) ⟩
     (∃ λ (x : Erased A) → (y : Erased A) → Erased (erased x ≡ erased y))  ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → from-isomorphism Erased-≡↔[]≡[]) ⟩
     (∃ λ (x : Erased A) → (y : Erased A) → x ≡ y)                         ↔⟨⟩
     H-level′ zero (Erased A)                                              □
-  Erased-H-level′↔H-level′ {A = A} ext (suc n) =
+  Erased-H-level′↔H-level′ {A = A} (suc n) ext =
     Erased (H-level′ (suc n) A)                                      ↔⟨⟩
     Erased ((x y : A) → H-level′ n (x ≡ y))                          ↔⟨ Erased-Π↔Π-Erased ⟩
     ((x : Erased A) → Erased ((y : A) → H-level′ n (erased x ≡ y)))  ↝⟨ (∀-cong ext λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
-    ((x y : Erased A) → Erased (H-level′ n (erased x ≡ erased y)))   ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Erased-H-level′↔H-level′ ext n) ⟩
+    ((x y : Erased A) → Erased (H-level′ n (erased x ≡ erased y)))   ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Erased-H-level′↔H-level′ n ext) ⟩
     ((x y : Erased A) → H-level′ n (Erased (erased x ≡ erased y)))   ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level′-cong ext n Erased-≡↔[]≡[]) ⟩
     ((x y : Erased A) → H-level′ n (x ≡ y))                          ↔⟨⟩
     H-level′ (suc n) (Erased A)                                      □
@@ -840,11 +834,10 @@ module []-cong₂
 
   Erased-H-level↔H-level :
     {@0 A : Type a} →
-    Extensionality? k a a →
-    ∀ n → Erased (H-level n A) ↝[ k ] H-level n (Erased A)
-  Erased-H-level↔H-level {A = A} ext n =
+    ∀ n → Erased (H-level n A) ↝[ a ∣ a ] H-level n (Erased A)
+  Erased-H-level↔H-level {A = A} n ext =
     Erased (H-level n A)   ↝⟨ Erased-cong? H-level↔H-level′ ext ⟩
-    Erased (H-level′ n A)  ↝⟨ Erased-H-level′↔H-level′ ext n ⟩
+    Erased (H-level′ n A)  ↝⟨ Erased-H-level′↔H-level′ n ext ⟩
     H-level′ n (Erased A)  ↝⟨ inverse-ext? H-level↔H-level′ ext ⟩□
     H-level n (Erased A)   □
 
@@ -853,7 +846,7 @@ module []-cong₂
   H-level-Erased :
     {@0 A : Type a} →
     ∀ n → @0 H-level n A → H-level n (Erased A)
-  H-level-Erased n h = Erased-H-level↔H-level _ n [ h ]
+  H-level-Erased n h = Erased-H-level↔H-level n _ [ h ]
 
   ----------------------------------------------------------------------
   -- Some closure properties
@@ -904,9 +897,9 @@ module []-cong₂
   lex-modality :
     {x y : A} → Contractible (Erased A) → Contractible (Erased (x ≡ y))
   lex-modality {A = A} {x = x} {y = y} =
-    Contractible (Erased A)        ↝⟨ _⇔_.from (Erased-H-level↔H-level _ 0) ⟩
+    Contractible (Erased A)        ↝⟨ _⇔_.from (Erased-H-level↔H-level 0 _) ⟩
     Erased (Contractible A)        ↝⟨ map (⇒≡ 0) ⟩
-    Erased (Contractible (x ≡ y))  ↝⟨ Erased-H-level↔H-level _ 0 ⟩□
+    Erased (Contractible (x ≡ y))  ↝⟨ Erased-H-level↔H-level 0 _ ⟩□
     Contractible (Erased (x ≡ y))  □
 
   -- A function f is Erased-connected in the sense of Rijke et al.
@@ -917,12 +910,11 @@ module []-cong₂
 
   Erased-connected↔Erased-Is-equivalence :
     {A : Type a} {B : Type b} {f : A → B} →
-    Extensionality? k (a ⊔ b) (a ⊔ b) →
-    (∀ y → Contractible (Erased (f ⁻¹ y))) ↝[ k ]
+    (∀ y → Contractible (Erased (f ⁻¹ y))) ↝[ a ⊔ b ∣ a ⊔ b ]
     Erased (Is-equivalence f)
-  Erased-connected↔Erased-Is-equivalence {a = a} {k = k} {f = f} ext =
+  Erased-connected↔Erased-Is-equivalence {a = a} {f = f} {k = k} ext =
     (∀ y → Contractible (Erased (f ⁻¹ y)))  ↝⟨ (∀-cong (lower-extensionality? k a lzero ext) λ _ →
-                                                inverse-ext? (λ ext → Erased-H-level↔H-level ext 0) ext) ⟩
+                                                inverse-ext? (Erased-H-level↔H-level 0) ext) ⟩
     (∀ y → Erased (Contractible (f ⁻¹ y)))  ↔⟨ inverse Erased-Π↔Π ⟩
     Erased (∀ y → Contractible (f ⁻¹ y))    ↔⟨⟩
     Erased (CP.Is-equivalence f)            ↝⟨ inverse-ext? (λ ext → Erased-cong? Is-equivalence≃Is-equivalence-CP ext) ext ⟩□
@@ -945,12 +937,11 @@ module []-cong₂
 
   Erased-Is-equivalence↔Is-equivalence :
     {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
-    Extensionality? k (a ⊔ b) (a ⊔ b) →
-    Erased (Is-equivalence f) ↝[ k ] Is-equivalence (map f)
-  Erased-Is-equivalence↔Is-equivalence {a = a} {k = k} {f = f} ext =
+    Erased (Is-equivalence f) ↝[ a ⊔ b ∣ a ⊔ b ] Is-equivalence (map f)
+  Erased-Is-equivalence↔Is-equivalence {a = a} {f = f} {k = k} ext =
     Erased (Is-equivalence f)                      ↝⟨ Erased-cong? Is-equivalence≃Is-equivalence-CP ext ⟩
     Erased (∀ x → Contractible (f ⁻¹ x))           ↔⟨ Erased-Π↔Π-Erased ⟩
-    (∀ x → Erased (Contractible (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → Erased-H-level↔H-level ext 0) ⟩
+    (∀ x → Erased (Contractible (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → Erased-H-level↔H-level 0 ext) ⟩
     (∀ x → Contractible (Erased (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 Erased-⁻¹) ⟩
     (∀ x → Contractible (map f ⁻¹ x))              ↝⟨ inverse-ext? Is-equivalence≃Is-equivalence-CP ext ⟩□
     Is-equivalence (map f)                         □
@@ -961,8 +952,7 @@ module []-cong₂
 
   Erased-Split-surjective↔Split-surjective :
     {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
-    Extensionality? k b (a ⊔ b) →
-    Erased (Split-surjective f) ↝[ k ]
+    Erased (Split-surjective f) ↝[ b ∣ a ⊔ b ]
     Split-surjective (map f)
   Erased-Split-surjective↔Split-surjective {f = f} ext =
     Erased (∀ y → ∃ λ x → f x ≡ y)                    ↔⟨ Erased-Π↔Π-Erased ⟩
@@ -975,8 +965,7 @@ module []-cong₂
 
   Erased-Has-quasi-inverse↔Has-quasi-inverse :
     {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
-    Extensionality? k (a ⊔ b) (a ⊔ b) →
-    Erased (Has-quasi-inverse f) ↝[ k ]
+    Erased (Has-quasi-inverse f) ↝[ a ⊔ b ∣ a ⊔ b ]
     Has-quasi-inverse (map f)
   Erased-Has-quasi-inverse↔Has-quasi-inverse
     {A = A} {B = B} {f = f} ext =
@@ -989,14 +978,13 @@ module []-cong₂
     (∃ λ g →
        Erased (∀ x → f (erased g x) ≡ x) ×
        Erased (∀ x → erased g (f x) ≡ x))                                 ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ g →
-                                                                             lemma ext f (erased g) ×-cong lemma ext (erased g) f) ⟩□
+                                                                             lemma f (erased g) ext ×-cong lemma (erased g) f ext) ⟩□
     (∃ λ g → (∀ x → map f (g x) ≡ x) × (∀ x → g (map f x) ≡ x))           □
     where
     lemma :
       {@0 A : Type a} {@0 B : Type b} →
-      Extensionality? k (a ⊔ b) (a ⊔ b) →
-      (@0 f : A → B) (@0 g : B → A) → _ ↝[ k ] _
-    lemma {a = a} {k = k} ext f g =
+      (@0 f : A → B) (@0 g : B → A) → _ ↝[ a ⊔ b ∣ a ⊔ b ] _
+    lemma {a = a} f g {k = k} ext =
       Erased (∀ x → f (g x) ≡ x)                    ↔⟨ Erased-Π↔Π-Erased ⟩
       (∀ x → Erased (f (g (erased x)) ≡ erased x))  ↝⟨ (∀-cong (lower-extensionality? k a a ext) λ _ → from-isomorphism Erased-≡↔[]≡[]) ⟩
       (∀ x → [ f (g (erased x)) ] ≡ x)              ↔⟨⟩
@@ -1006,9 +994,8 @@ module []-cong₂
 
   Erased-Injective↔Injective :
     {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
-    Extensionality? k (a ⊔ b) (a ⊔ b) →
-    Erased (Injective f) ↝[ k ] Injective (map f)
-  Erased-Injective↔Injective {a = a} {b = b} {k = k} {f = f} ext =
+    Erased (Injective f) ↝[ a ⊔ b ∣ a ⊔ b ] Injective (map f)
+  Erased-Injective↔Injective {a = a} {b = b} {f = f} {k = k} ext =
     Erased (∀ {x y} → f x ≡ f y → x ≡ y)                          ↔⟨ Erased-cong-↔ Bijection.implicit-Π↔Π ⟩
 
     Erased (∀ x {y} → f x ≡ f y → x ≡ y)                          ↝⟨ Erased-cong? (λ {k} ext → ∀-cong (lower-extensionality? k b lzero ext) λ _ →

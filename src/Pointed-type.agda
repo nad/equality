@@ -148,8 +148,7 @@ Maybe→ᴮ↠→ {A = A} {B = B} {x = x} = record
 
 Maybe→ᴮ↔→ :
   ∀ {A : Type a} {B : Type b} {x} →
-  Extensionality? k a b →
-  (Maybe A , nothing) →ᴮ (B , x) ↝[ k ] (A → B)
+  (Maybe A , nothing) →ᴮ (B , x) ↝[ a ∣ b ] (A → B)
 Maybe→ᴮ↔→ {A = A} {B} {x} = generalise-ext?
   (_↠_.logical-equivalence Maybe→ᴮ↠→)
   (λ ext → record
@@ -177,8 +176,7 @@ Maybe→ᴮ↔→ {A = A} {B} {x} = generalise-ext?
 
 Bool→ᴮ↔ :
   ∀ {A : Type a} {x} →
-  Extensionality? k lzero a →
-  (Bool , true) →ᴮ (A , x) ↝[ k ] A
+  (Bool , true) →ᴮ (A , x) ↝[ lzero ∣ a ] A
 Bool→ᴮ↔ {A = A} {x = x} ext =
   (Bool , true) →ᴮ (A , x)  ↝⟨ Maybe→ᴮ↔→ ext ⟩
   (⊤ → A)                   ↔⟨ Π-left-identity ⟩□

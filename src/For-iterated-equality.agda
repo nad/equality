@@ -39,30 +39,28 @@ private
 
 For-iterated-equality-For-iterated-equality′ :
   {A : Type a} →
-  Extensionality? k a a →
   ∀ m n →
-  For-iterated-equality m (For-iterated-equality n P) A ↝[ k ]
+  For-iterated-equality m (For-iterated-equality n P) A ↝[ a ∣ a ]
   For-iterated-equality (m + n) P A
-For-iterated-equality-For-iterated-equality′ _ zero _ = F.id
+For-iterated-equality-For-iterated-equality′ zero _ _ = F.id
 
 For-iterated-equality-For-iterated-equality′ {P = P} {A = A}
-                                             ext (suc m) n =
+                                             (suc m) n ext =
   ((x y : A) →
    For-iterated-equality m (For-iterated-equality n P) (x ≡ y))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
-                                                                     For-iterated-equality-For-iterated-equality′ ext m n) ⟩□
+                                                                     For-iterated-equality-For-iterated-equality′ m n ext) ⟩□
   ((x y : A) → For-iterated-equality (m + n) P (x ≡ y))          □
 
 -- A variant of the previous result.
 
 For-iterated-equality-For-iterated-equality :
   {A : Type a} →
-  Extensionality? k a a →
   ∀ m n →
-  For-iterated-equality m (For-iterated-equality n P) A ↝[ k ]
+  For-iterated-equality m (For-iterated-equality n P) A ↝[ a ∣ a ]
   For-iterated-equality (n + m) P A
 For-iterated-equality-For-iterated-equality {P = P} {A = A}
-                                            ext m n =
-  For-iterated-equality m (For-iterated-equality n P) A  ↝⟨ For-iterated-equality-For-iterated-equality′ ext m n ⟩
+                                            m n ext =
+  For-iterated-equality m (For-iterated-equality n P) A  ↝⟨ For-iterated-equality-For-iterated-equality′ m n ext ⟩
   For-iterated-equality (m + n) P A                      ↝⟨ ≡⇒↝ _ $ cong (λ n → For-iterated-equality n P A) (+-comm m) ⟩□
   For-iterated-equality (n + m) P A                      □
 
@@ -157,9 +155,8 @@ For-iterated-equality-⊤ {P = P} ext n resp =
 
 For-iterated-equality-suc-⊥ :
   {P : Type p → Type p} →
-  Extensionality? k p p →
-  ∀ n → ⊤ ↝[ k ] For-iterated-equality (suc n) P ⊥
-For-iterated-equality-suc-⊥ {P = P} ext n =
+  ∀ n → ⊤ ↝[ p ∣ p ] For-iterated-equality (suc n) P ⊥
+For-iterated-equality-suc-⊥ {P = P} n ext =
   ⊤                                                ↝⟨ inverse-ext? Π⊥↔⊤ ext ⟩□
   ((x y : ⊥) → For-iterated-equality n P (x ≡ y))  □
 
@@ -171,7 +168,7 @@ For-iterated-equality-⊥ :
   ⊤ ↝[ k ] For-iterated-equality n P ⊥
 For-iterated-equality-⊥ _   zero      = id
 For-iterated-equality-⊥ ext (suc n) _ =
-  For-iterated-equality-suc-⊥ ext n
+  For-iterated-equality-suc-⊥ n ext
 
 -- A closure property for Π.
 
@@ -496,11 +493,10 @@ For-iterated-equality-commutes₂-← {P = P} {Q = Q} {A = A}
 
 For-iterated-equality-commutes-× :
   {A : Type a} →
-  Extensionality? k a a →
   ∀ n →
-  For-iterated-equality n P A × For-iterated-equality n Q A ↝[ k ]
+  For-iterated-equality n P A × For-iterated-equality n Q A ↝[ a ∣ a ]
   For-iterated-equality n (λ A → P A × Q A) A
-For-iterated-equality-commutes-× ext n =
+For-iterated-equality-commutes-× n ext =
   For-iterated-equality-commutes₂ ext _×_ n
     (from-isomorphism $ inverse ΠΣ-comm)
 

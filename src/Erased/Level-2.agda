@@ -57,9 +57,8 @@ private
 
 Erased-Is-embedding↔Is-embedding :
   {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
-  Erased (Is-embedding f) ↝[ k ] Is-embedding (map f)
-Erased-Is-embedding↔Is-embedding {b = b} {k = k} {f = f} ext =
+  Erased (Is-embedding f) ↝[ a ⊔ b ∣ a ⊔ b ] Is-embedding (map f)
+Erased-Is-embedding↔Is-embedding {b = b} {f = f} {k = k} ext =
   Erased (∀ x y → Is-equivalence (cong f))                       ↔⟨ Erased-Π↔Π-Erased ⟩
 
   (∀ x → Erased (∀ y → Is-equivalence (cong f)))                 ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
@@ -113,8 +112,7 @@ Erased-Is-embedding↔Is-embedding {b = b} {k = k} {f = f} ext =
 
 Erased-↝↝↝ :
   {@0 A : Type a} {@0 B : Type b} →
-  Extensionality? k′ (a ⊔ b) (a ⊔ b) →
-  Erased (A ↝[ k ] B) ↝[ k′ ] (Erased A ↝[ k ] Erased B)
+  Erased (A ↝[ k ] B) ↝[ a ⊔ b ∣ a ⊔ b ] (Erased A ↝[ k ] Erased B)
 Erased-↝↝↝ {k = implication} _ = from-isomorphism Erased-Π↔Π-Erased
 
 Erased-↝↝↝ {k = logical-equivalence} _ = from-isomorphism Erased-⇔↔⇔
@@ -133,7 +131,7 @@ Erased-↝↝↝ {k = embedding} {A = A} {B = B} ext =
   (∃ λ (f : Erased A → Erased B) → Is-embedding f)               ↔⟨ inverse Emb.Embedding-as-Σ ⟩□
   Embedding (Erased A) (Erased B)                                □
 
-Erased-↝↝↝ {a = a} {k′ = k′} {k = surjection} {A = A} {B = B} ext =
+Erased-↝↝↝ {a = a} {k = surjection} {A = A} {B = B} {k = k′} ext =
   Erased (A ↠ B)                                                     ↔⟨ Erased-cong-↔ ↠↔∃-Split-surjective ⟩
   Erased (∃ λ (f : A → B) → Split-surjective f)                      ↔⟨ Erased-Σ↔Σ ⟩
   (∃ λ (f : Erased (A → B)) → Erased (Split-surjective (erased f)))  ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ _ →
@@ -188,7 +186,7 @@ to-Erased-↝↔↝≡to-Erased-↝↝↝ :
   (ext : Extensionality? k (a ⊔ b) (a ⊔ b))
   (ext′ : Extensionality? k′ (a ⊔ b) (a ⊔ b)) →
   _↔_.to (Erased-↝↔↝ {k = k} {A = A} {B = B} ext) ≡
-  to-implication (Erased-↝↝↝ {k′ = k′} {k = k} {A = A} {B = B} ext′)
+  to-implication (Erased-↝↝↝ {k = k} {A = A} {B = B} {k = k′} ext′)
 to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = implication}         _   _ = refl _
 to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = logical-equivalence} _   _ = refl _
 to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = injection}           _   _ = refl _

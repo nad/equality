@@ -337,8 +337,7 @@ private
 
 Very-stable↔Is-equivalence-[] :
   {A : Type a} →
-  Extensionality? k a a →
-  Very-stable A ↝[ k ] Is-equivalence {A = A} [_]
+  Very-stable A ↝[ a ∣ a ] Is-equivalence {A = A} [_]
 Very-stable↔Is-equivalence-[] =
   generalise-ext?-prop
     (record { from = inverse ∘ Eq.⟨ _ ,_⟩
@@ -356,8 +355,7 @@ Very-stable↔Is-equivalence-[] =
 
 Very-stable↔Stable×Is-proposition :
   {A : Type a} →
-  Extensionality? k a a →
-  Very-stable A ↝[ k ] Stable A × Is-proposition A
+  Very-stable A ↝[ a ∣ a ] Stable A × Is-proposition A
 Very-stable↔Stable×Is-proposition =
   generalise-ext?-prop
     (record { to   = λ s → _≃_.to s
@@ -384,7 +382,7 @@ Stable→H-level-suc→Very-stable {A = A} n = curry (
   For-iterated-equality n Stable A × H-level (suc n) A            ↝⟨ (∃-cong λ _ → lemma) ⟩
 
   For-iterated-equality n Stable A ×
-  For-iterated-equality n Is-proposition A                        ↝⟨ For-iterated-equality-commutes-× _ n ⟩
+  For-iterated-equality n Is-proposition A                        ↝⟨ For-iterated-equality-commutes-× n _ ⟩
 
   For-iterated-equality n (λ A → Stable A × Is-proposition A) A   ↝⟨ For-iterated-equality-cong₁ _ n $
                                                                      uncurry (curry $ _⇔_.from (Very-stable↔Stable×Is-proposition _)) ⟩
@@ -392,8 +390,7 @@ Stable→H-level-suc→Very-stable {A = A} n = curry (
   where
   lemma =
     H-level (suc n) A                         ↝⟨ _⇔_.to H-level⇔H-level′ ⟩
-    H-level′ (suc n) A                        ↝⟨ (flip inverse-ext? _ λ ext →
-                                                  For-iterated-equality-For-iterated-equality ext n 1) ⟩
+    H-level′ (suc n) A                        ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) _ ⟩
     For-iterated-equality n (H-level′ 1) A    ↝⟨ For-iterated-equality-cong₁ _ n $
                                                  _⇔_.from (H-level⇔H-level′ {n = 1}) ⟩□
     For-iterated-equality n Is-proposition A  □
@@ -611,7 +608,7 @@ Very-stable→Very-stable-≡ :
   For-iterated-equality (suc n) Very-stable A
 Very-stable→Very-stable-≡ {A = A} n =
   For-iterated-equality n Very-stable A        ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
-  For-iterated-equality n Very-stable-≡ A      ↝⟨ For-iterated-equality-For-iterated-equality _ n 1 ⟩□
+  For-iterated-equality n Very-stable-≡ A      ↝⟨ For-iterated-equality-For-iterated-equality n 1 _ ⟩□
   For-iterated-equality (suc n) Very-stable A  □
   where
   lemma : ∀ {A} → Very-stable A → Very-stable-≡ A
@@ -651,13 +648,12 @@ private
 
   For-iterated-equality-Is-proposition↔H-level′-suc :
     {A : Type a} →
-    Extensionality? k a a →
     ∀ n →
-    For-iterated-equality n Is-proposition A ↝[ k ]
+    For-iterated-equality n Is-proposition A ↝[ a ∣ a ]
     H-level′ (suc n) A
-  For-iterated-equality-Is-proposition↔H-level′-suc {A = A} ext n =
+  For-iterated-equality-Is-proposition↔H-level′-suc {A = A} n ext =
     For-iterated-equality n Is-proposition A  ↝⟨ For-iterated-equality-cong₁ ext n (H-level↔H-level′ {n = 1} ext) ⟩
-    For-iterated-equality n (H-level′ 1) A    ↝⟨ For-iterated-equality-For-iterated-equality ext n 1 ⟩□
+    For-iterated-equality n (H-level′ 1) A    ↝⟨ For-iterated-equality-For-iterated-equality n 1 ext ⟩□
     H-level′ (suc n) A                        □
 
 -- If A is "stable 1 + n levels up", then H-level′ (suc n) A is
@@ -668,10 +664,10 @@ Stable-H-level′ :
   For-iterated-equality (suc n) Stable A →
   Stable (H-level′ (suc n) A)
 Stable-H-level′ {A = A} n =
-  For-iterated-equality (suc n) Stable A               ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality ext n 1) _ ⟩
+  For-iterated-equality (suc n) Stable A               ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) _ ⟩
   For-iterated-equality n Stable-≡ A                   ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
   For-iterated-equality n (Stable ∘ Is-proposition) A  ↝⟨ For-iterated-equality-commutes-← _ Stable n Stable-Π ⟩
-  Stable (For-iterated-equality n Is-proposition A)    ↝⟨ Stable-map (For-iterated-equality-Is-proposition↔H-level′-suc _ n) ⟩□
+  Stable (For-iterated-equality n Is-proposition A)    ↝⟨ Stable-map (For-iterated-equality-Is-proposition↔H-level′-suc n _) ⟩□
   Stable (H-level′ (suc n) A)                          □
   where
   lemma : ∀ {A} → Stable-≡ A → Stable (Is-proposition A)
@@ -702,10 +698,10 @@ Very-stable-H-level′ :
   For-iterated-equality (suc n) Very-stable A →
   Very-stable (H-level′ (suc n) A)
 Very-stable-H-level′ {A = A} ext n =
-  For-iterated-equality (suc n) Very-stable A               ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality ext n 1) _ ⟩
+  For-iterated-equality (suc n) Very-stable A               ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) _ ⟩
   For-iterated-equality n Very-stable-≡ A                   ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
   For-iterated-equality n (Very-stable ∘ Is-proposition) A  ↝⟨ For-iterated-equality-commutes-← _ Very-stable n (Very-stable-Π ext) ⟩
-  Very-stable (For-iterated-equality n Is-proposition A)    ↝⟨ Very-stable-map (For-iterated-equality-Is-proposition↔H-level′-suc ext n) ⟩□
+  Very-stable (For-iterated-equality n Is-proposition A)    ↝⟨ Very-stable-map (For-iterated-equality-Is-proposition↔H-level′-suc n ext) ⟩□
   Very-stable (H-level′ (suc n) A)                          □
   where
   lemma : ∀ {A} → Very-stable-≡ A → Very-stable (Is-proposition A)

@@ -149,8 +149,7 @@ Path-split-propositional ext =
 
 Path-split↔Is-equivalence :
   {A : Type a} {B : Type b} {f : A → B} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
-  Path-split (2 + n) f ↝[ k ] Is-equivalence f
+  Path-split (2 + n) f ↝[ a ⊔ b ∣ a ⊔ b ] Is-equivalence f
 Path-split↔Is-equivalence =
   generalise-ext?-prop
     Path-split⇔Is-equivalence
@@ -179,8 +178,7 @@ Path-split-∞-propositional ext =
 
 Path-split-∞↔Is-equivalence :
   {A : Type a} {B : Type b} {f : A → B} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
-  Path-split-∞ f ↝[ k ] Is-equivalence f
+  Path-split-∞ f ↝[ a ⊔ b ∣ a ⊔ b ] Is-equivalence f
 Path-split-∞↔Is-equivalence =
   generalise-ext?-prop
     (record

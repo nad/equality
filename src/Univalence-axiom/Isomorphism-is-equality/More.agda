@@ -705,7 +705,7 @@ Simple {c} σ = Extension-with-resp.extension record
                                                                         →-cong ext₁ (Iso≃Iso″ ass σ I≅J) (Iso≃Iso″ ass τ I≅J)) ⟩
     (∀ x y → to (cast ass σ I≅J) x ≡ y →
              to (cast ass τ I≅J) (f x) ≡ g y)                      ↝⟨ inverse $ ∀-cong ext₁ (λ x →
-                                                                        ∀-intro ext₁ (λ y _ → to (cast ass τ I≅J) (f x) ≡ g y)) ⟩
+                                                                        ∀-intro (λ y _ → to (cast ass τ I≅J) (f x) ≡ g y) ext₁) ⟩
     (∀ x → to (cast ass τ I≅J) (f x) ≡ g (to (cast ass σ I≅J) x))  ↝⟨ extensionality-isomorphism ext₁ ⟩
 
     (to (cast ass τ I≅J) ∘ f ≡ g ∘ to (cast ass σ I≅J))            ↔⟨ inverse $ ∘from≡↔≡∘to ext₁ (cast ass σ I≅J) ⟩□
@@ -881,7 +881,7 @@ module Dependent where
     (∀ x y (x≡y : to (cast ass σ I≅J) x ≡ y) →
            resp τ ass (I≅J , from (Iso≃Iso″ ass σ I≅J) x≡y) (f x) ≡
            g y)                                                      ↝⟨ ∀-cong ext₁ (λ x → inverse $
-                                                                          ∀-intro ext₁ (λ y x≡y → _ ≡ _)) ⟩
+                                                                          ∀-intro (λ y x≡y → _ ≡ _) ext₁) ⟩
     (∀ x → resp τ ass (I≅J , iso-to-itself x) (f x) ≡
            g (resp σ ass I≅J x))                                     ↔⟨ extensionality-isomorphism ext₁ ⟩
 

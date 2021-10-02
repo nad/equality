@@ -201,20 +201,17 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
 -- A variant of a part of Theorem 5.8.2 from the HoTT book.
 
 flip-subst-is-equivalence↔∃-is-contractible :
-  ∀ {k a p} {A : Type a} {P : A → Type p} →
-  Extensionality? k (a ⊔ p) (a ⊔ p) →
-  {x : A} {p : P x} →
+  ∀ {a pℓ} {A : Type a} {P : A → Type pℓ} {x : A} {p : P x} →
   (∀ y → Is-equivalence (flip (subst {y = y} P) p))
-    ↝[ k ]
+    ↝[ a ⊔ pℓ ∣ a ⊔ pℓ ]
   Contractible (∃ P)
-flip-subst-is-equivalence↔∃-is-contractible {p = p′} {P = P}
-                                            ext {x} {p} =
+flip-subst-is-equivalence↔∃-is-contractible
+  {pℓ = pℓ} {P = P} {x = x} {p = p} =
   generalise-ext?-prop
     lemma
-    (λ ext → Π-closure (lower-extensionality p′ lzero ext) 1 λ _ →
+    (λ ext → Π-closure (lower-extensionality pℓ lzero ext) 1 λ _ →
              Eq.propositional ext _)
     Contractible-propositional
-    ext
   where
   lemma :
     (∀ y → Is-equivalence (flip (subst {y = y} P) p))
@@ -267,11 +264,10 @@ flip-subst-is-equivalence↔∃-is-contractible {p = p′} {P = P}
 -- If f is an equivalence, then f ∘ sym is also an equivalence.
 
 ∘-sym-preserves-equivalences :
-  ∀ {k a b} {A : Type a} {B : Type b} {x y : A} {f : x ≡ y → B} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
-  Is-equivalence f ↝[ k ] Is-equivalence (f ∘ sym)
-∘-sym-preserves-equivalences {A = A} {B} ext =
-  Is-equivalence≃Is-equivalence-∘ʳ ext
+  ∀ {a b} {A : Type a} {B : Type b} {x y : A} {f : x ≡ y → B} →
+  Is-equivalence f ↝[ a ⊔ b ∣ a ⊔ b ] Is-equivalence (f ∘ sym)
+∘-sym-preserves-equivalences {A = A} {B} =
+  Is-equivalence≃Is-equivalence-∘ʳ
     (_≃_.is-equivalence $ Eq.↔⇒≃ ≡-comm)
 
 -- An alternative formulation of univalence, due to Martin Escardo
@@ -287,10 +283,9 @@ Other-univalence ℓ =
 -- extensionality).
 
 Univalence↔Other-univalence :
-  ∀ {k ℓ} →
-  Extensionality? k (lsuc ℓ) (lsuc ℓ) →
-  Univalence ℓ ↝[ k ] Other-univalence ℓ
-Univalence↔Other-univalence {k} {ℓ} ext =
+  ∀ {ℓ} →
+  Univalence ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ] Other-univalence ℓ
+Univalence↔Other-univalence {ℓ = ℓ} ext =
   Univalence ℓ                                                          ↝⟨ implicit-∀-cong ext $ implicit-∀-cong ext $
                                                                            from-equivalence Univalence′≃Is-equivalence-≡⇒≃ ⟩
   ({A B : Type ℓ} → Is-equivalence (≡⇒≃ {A = A} {B = B}))               ↔⟨ Bijection.implicit-Π↔Π ⟩

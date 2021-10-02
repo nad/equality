@@ -1052,8 +1052,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     @0 Extensionality? k (a ⊔ b) (a ⊔ b) →
     @0 (∀ x → f x ≡ g x) →
     Is-equivalenceᴱ f ↝[ k ] Is-equivalenceᴱ g
-  Is-equivalenceᴱ-cong
-    {a = a} {b = b} {f = f} {g = g} ext f≡g =
+  Is-equivalenceᴱ-cong {a = a} {b = b} {f = f} {g = g} ext f≡g =
     generalise-erased-ext?
       (record { to = to f≡g; from = to (sym ⊚ f≡g) })
       (λ ext →
@@ -1367,10 +1366,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Is-equivalenceᴱ↔Is-equivalence :
     {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
-    Extensionality? k (a ⊔ b) (a ⊔ b) →
-    Is-equivalenceᴱ (map f) ↝[ k ] Is-equivalence (map f)
-  Is-equivalenceᴱ↔Is-equivalence
-    {a = a} {k = k} {f = f} =
+    Is-equivalenceᴱ (map f) ↝[ a ⊔ b ∣ a ⊔ b ] Is-equivalence (map f)
+  Is-equivalenceᴱ↔Is-equivalence {a = a} {f = f} =
     generalise-ext?-prop
       (Is-equivalenceᴱ (map f)                                        ↝⟨ Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP ⟩
        (∀ y → Contractibleᴱ (map f ⁻¹ᴱ y))                            ↔⟨⟩
@@ -1388,13 +1385,13 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ :
     {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
-    @0 Extensionality? k (a ⊔ b) (a ⊔ b) →
-    Erased (Is-equivalenceᴱ f) ↝[ k ] Is-equivalenceᴱ (map f)
+    Erased (Is-equivalenceᴱ f) ↝[ a ⊔ b ∣ a ⊔ b ]ᴱ
+    Is-equivalenceᴱ (map f)
   Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ
-    {a = a} {b = b} {k = k} {A = A} {B = B} {f = f} ext =
+    {a = a} {b = b} {A = A} {B = B} {f = f} {k = k} ext =
     Erased (Is-equivalenceᴱ f)                                          ↔⟨ Erased-Is-equivalenceᴱ≃Erased-Is-equivalence ⟩
 
-    Erased (Is-equivalence f)                                           ↝⟨ Erased-cong? (lemma _) ext ⟩
+    Erased (Is-equivalence f)                                           ↝⟨ Erased-cong? lemma ext ⟩
 
     Erased (Is-equivalence (map f))                                     ↔⟨⟩
 
@@ -1412,8 +1409,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
     Is-equivalenceᴱ (map f)                                             □
     where
-    @0 lemma : ∀ k → Extensionality? k (a ⊔ b) (a ⊔ b) → _ ↝[ k ] _
-    lemma k ext =
+    @0 lemma : _ ↝[ a ⊔ b ∣ a ⊔ b ] _
+    lemma {k = k} ext =
       Is-equivalence f                              ↝⟨ Is-equivalence≃Is-equivalence-CP ext ⟩
       ((y : B) → Contractible (f ⁻¹ y))             ↝⟨ (Π-cong (lower-extensionality? k a lzero ext)
                                                           (F.inverse $ erased Erased↔) λ _ →

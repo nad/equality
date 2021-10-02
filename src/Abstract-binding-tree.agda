@@ -537,7 +537,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     ≃∈restrict-to-sort {s = s} {x = x} {xs = xs} =
       (s , x) ∈ xs                                                       ↝⟨ inverse ∈restrict-to-sort≃ ⟩
       x ∈ restrict-to-sort s xs                                          ↝⟨ ≡⇒↝ _ $ cong (_∈ _) $ sym cast-Var-refl ⟩
-      cast-Var (refl _) x ∈ restrict-to-sort s xs                        ↝⟨ ∀-intro ext _ ⟩□
+      cast-Var (refl _) x ∈ restrict-to-sort s xs                        ↝⟨ ∀-intro _ ext ⟩□
       (∀ s′ (s≡s′ : s ≡ s′) → cast-Var s≡s′ x ∈ restrict-to-sort s′ xs)  □
 
     -- The function restrict-to-sort s is monotone with respect to _⊆_

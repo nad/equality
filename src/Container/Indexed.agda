@@ -309,13 +309,12 @@ out-related = out-related′ on Final-coalgebra→Final-coalgebra′
 -- Final) is equivalent to finality of Y.
 
 Final′→Final≃Final :
-  {I : Type i} {C : Container I s p} →
-  Extensionality? k (lsuc (i ⊔ s ⊔ p)) (i ⊔ s ⊔ p) →
-  Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
+  {I : Type i} {C : Container I s p}
   ((X , _) (Y , _) : Final-coalgebra′ C) →
-  Final X ↝[ k ] Final Y
-Final′→Final≃Final {i = i} {s = s} {p = p} {k = k} {C = C}
-  ext′ ext ((X₁ , out₁) , final₁) ((X₂ , out₂) , final₂) =
+  Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
+  Final X ↝[ lsuc (i ⊔ s ⊔ p) ∣ i ⊔ s ⊔ p ] Final Y
+Final′→Final≃Final {i = i} {s = s} {p = p} {C = C}
+  ((X₁ , out₁) , final₁) ((X₂ , out₂) , final₂) ext {k = k} ext′ =
   ∀-cong ext′ λ Y@(_ , f) →
   H-level-cong
     (lower-extensionality? k _ lzero ext′)
@@ -367,9 +366,9 @@ Final′→Final :
   ((X , _) : Final-coalgebra′ C) →
   Final X
 Final′→Final ext F₁@(_ , final₁) F₂ =
-  Final′→Final≃Final _ ext
+  Final′→Final≃Final
     (Final-coalgebra→Final-coalgebra′ F₁) F₂
-    final₁
+    ext _ final₁
 
 -- Final-coalgebra is pointwise propositional, assuming extensionality
 -- and univalence.
@@ -512,11 +511,10 @@ lift-positions {i = i} C = λ where
 -- pointwise equivalence, assuming extensionality).
 
 ⟦⟧≃⟦lift-positions⟧ :
-  {I : Type i} →
-  Extensionality? k (i ⊔ p) ℓ →
+  {I : Type i}
   (C : Container₂ I O s p) (P : I → Type ℓ) →
-  ⟦ C ⟧ P o ↝[ k ] ⟦ lift-positions C ⟧ P o
-⟦⟧≃⟦lift-positions⟧ {o = o} ext C P =
+  ⟦ C ⟧ P o ↝[ i ⊔ p ∣ ℓ ] ⟦ lift-positions C ⟧ P o
+⟦⟧≃⟦lift-positions⟧ {o = o} C P ext =
   ∃-cong λ s →
 
   ((      p  :      Position C s)  → P (index C p))  ↝⟨ inverse-ext? (λ ext → Π-cong ext B.↑↔ λ _ → F.id) ext ⟩□
@@ -527,15 +525,14 @@ lift-positions {i = i} C = λ where
 
 Coalgebra≃Coalgebra-lift-positions :
   {I : Type i} {C : Container I s p} →
-  Extensionality? k (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
-  Coalgebra C ↝[ k ] Coalgebra (lift-positions C)
+  Coalgebra C ↝[ i ⊔ s ⊔ p ∣ i ⊔ s ⊔ p ] Coalgebra (lift-positions C)
 Coalgebra≃Coalgebra-lift-positions
-  {i = i} {s = s} {p = p} {k = k} {C = C} ext =
+  {i = i} {s = s} {p = p} {C = C} {k = k} ext =
 
   (∃ λ P → P ⇾ ⟦                C ⟧ P)  ↝⟨ (∃-cong λ P →
                                             ∀-cong (lower-extensionality? k l lzero ext) λ _ →
                                             ∀-cong (lower-extensionality? k l lzero ext) λ _ →
-                                            ⟦⟧≃⟦lift-positions⟧ (lower-extensionality? k l lzero ext) C P) ⟩□
+                                            ⟦⟧≃⟦lift-positions⟧ C P (lower-extensionality? k l lzero ext)) ⟩□
   (∃ λ P → P ⇾ ⟦ lift-positions C ⟧ P)  □
   where
   l = i ⊔ s ⊔ p
@@ -555,7 +552,7 @@ Coalgebra≃Coalgebra-lift-positions
                                                      Eq.≃-≡ $
                                                      ∀-cong (lower-extensionality l lzero ext) λ _ →
                                                      ∀-cong (lower-extensionality l lzero ext) λ _ →
-                                                     ⟦⟧≃⟦lift-positions⟧ (lower-extensionality l lzero ext) C Q) ⟩□
+                                                     ⟦⟧≃⟦lift-positions⟧ C Q (lower-extensionality l lzero ext)) ⟩□
   (∃ λ (h : P ⇾ Q) →
      (Σ-map id (_∘ lower) ∘_) ∘ (g ∘⇾ h) ≡
      (Σ-map id (_∘ lower) ∘_) ∘ (map _ h ∘⇾ f))  □
