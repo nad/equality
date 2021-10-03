@@ -1387,35 +1387,9 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
     Erased (Is-equivalenceᴱ f) ↝[ a ⊔ b ∣ a ⊔ b ]ᴱ
     Is-equivalenceᴱ (map f)
-  Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ
-    {a = a} {b = b} {A = A} {B = B} {f = f} {k = k} ext =
-    Erased (Is-equivalenceᴱ f)                                          ↔⟨ Erased-Is-equivalenceᴱ≃Erased-Is-equivalence ⟩
-
-    Erased (Is-equivalence f)                                           ↝⟨ Erased-cong? lemma ext ⟩
-
-    Erased (Is-equivalence (map f))                                     ↔⟨⟩
-
-    Erased (∃ λ (f⁻¹ : Erased B → Erased A) → HA.Proofs (map f) f⁻¹)    ↔⟨ Erased-cong-↔ (Σ-cong (F.inverse Erased-Π↔Π-Erased) λ _ → F.id) ⟩
-
-    Erased (∃ λ (f⁻¹ : Erased (B → A)) →
-              HA.Proofs (map f) (map (erased f⁻¹)))                     ↔⟨ Erased-cong-↔ (Σ-cong (erased Erased↔) λ _ → F.id) ⟩
-
-    Erased (∃ λ (f⁻¹ : B → A) → HA.Proofs (map f) (map f⁻¹))            ↔⟨ Erased-Σ↔Σ ⟩
-
-    (∃ λ (f⁻¹ : Erased (B → A)) →
-       Erased (HA.Proofs (map f) (map (erased f⁻¹))))                   ↔⟨ (Σ-cong Erased-Π↔Π-Erased λ _ → Eq.id) ⟩
-
-    (∃ λ (f⁻¹ : Erased B → Erased A) → Erased (HA.Proofs (map f) f⁻¹))  ↔⟨⟩
-
-    Is-equivalenceᴱ (map f)                                             □
-    where
-    @0 lemma : _ ↝[ a ⊔ b ∣ a ⊔ b ] _
-    lemma {k = k} ext =
-      Is-equivalence f                              ↝⟨ Is-equivalence≃Is-equivalence-CP ext ⟩
-      ((y : B) → Contractible (f ⁻¹ y))             ↝⟨ (Π-cong (lower-extensionality? k a lzero ext)
-                                                          (F.inverse $ erased Erased↔) λ _ →
-                                                        H-level-cong ext 0 $
-                                                        Σ-cong (F.inverse $ erased Erased↔) λ _ →
-                                                        ≡≃[]≡[]) ⟩
-      ((y : Erased B) → Contractible (map f ⁻¹ y))  ↝⟨ inverse-ext? Is-equivalence≃Is-equivalence-CP ext ⟩
-      Is-equivalence (map f)                        □
+  Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ {f = f} ext =
+    Erased (Is-equivalenceᴱ f)          ↔⟨ Erased-Is-equivalenceᴱ≃Erased-Is-equivalence ⟩
+    Erased (Is-equivalence f)           ↔⟨ F.inverse Erased-Erased↔Erased ⟩
+    Erased (Erased (Is-equivalence f))  ↝⟨ Erased-cong? Erased-Is-equivalence↔Is-equivalence ext ⟩
+    Erased (Is-equivalence (map f))     ↔⟨ Erased-Is-equivalence≃Is-equivalenceᴱ ⟩□
+    Is-equivalenceᴱ (map f)             □
