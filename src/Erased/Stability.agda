@@ -584,10 +584,17 @@ Very-stable-Σ {A = A} {P = P} s s′ = _≃_.is-equivalence (
   Σ (Erased A) (λ x → Erased (P (erased x)))  ↔⟨ inverse Erased-Σ↔Σ ⟩□
   Erased (Σ A P)                              □)
 
+-- Stable is closed under _×_.
+
+Stable-× :
+  {@0 A : Type a} {@0 B : Type b} →
+  Stable A → Stable B → Stable (A × B)
+Stable-× s s′ [ x , y ] = s [ x ] , s′ [ y ]
+
 -- Stable-[ k ] is closed under _×_.
 
-Stable-× : Stable-[ k ] A → Stable-[ k ] B → Stable-[ k ] (A × B)
-Stable-× {A = A} {B = B} s s′ =
+Stable-[]-× : Stable-[ k ] A → Stable-[ k ] B → Stable-[ k ] (A × B)
+Stable-[]-× {A = A} {B = B} s s′ =
   Erased (A × B)       ↔⟨ Erased-Σ↔Σ ⟩
   Erased A × Erased B  ↝⟨ s ×-cong s′ ⟩□
   A × B                □
@@ -596,13 +603,13 @@ Stable-× {A = A} {B = B} s s′ =
 
 Very-stable-× : Very-stable A → Very-stable B → Very-stable (A × B)
 Very-stable-× s s′ = _≃_.is-equivalence $
-  inverse $ Stable-× (inverse Eq.⟨ _ , s ⟩) (inverse Eq.⟨ _ , s′ ⟩)
+  inverse $ Stable-[]-× (inverse Eq.⟨ _ , s ⟩) (inverse Eq.⟨ _ , s′ ⟩)
 
 -- Very-stableᴱ is closed under _×_.
 
 Very-stableᴱ-× : Very-stableᴱ A → Very-stableᴱ B → Very-stableᴱ (A × B)
 Very-stableᴱ-× s s′ = _≃ᴱ_.is-equivalence $
-  inverse $ Stable-× (inverse EEq.⟨ _ , s ⟩) (inverse EEq.⟨ _ , s′ ⟩)
+  inverse $ Stable-[]-× (inverse EEq.⟨ _ , s ⟩) (inverse EEq.⟨ _ , s′ ⟩)
 
 -- Stable-[ k ] is closed under ↑ ℓ.
 
@@ -765,7 +772,7 @@ Stable-≡-List n =
     (Stable-map-⇔ ∘ from-isomorphism)
     (Very-stable→Stable 0 $ Very-stable-↑ Very-stable-⊤)
     (Very-stable→Stable 0 Very-stable-⊥)
-    Stable-×
+    Stable-[]-×
 
 ------------------------------------------------------------------------
 -- Some properties related to "Modalities in Homotopy Type Theory"
@@ -1715,7 +1722,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       Stable-[]-map-↔
       (Very-stable→Stable 0 $ Very-stable-↑ Very-stable-⊤)
       (Very-stable→Stable 0 Very-stable-⊥)
-      Stable-×
+      Stable-[]-×
 
   -- If equality is very stable for A, then it is very stable for
   -- List A.
@@ -1929,18 +1936,18 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       (≃ᴱ→Very-stableᴱ→Very-stableᴱ ∘ from-isomorphism)
       Very-stableᴱ-Σ
 
-  -- A generalisation of Stable-×.
+  -- A generalisation of Stable-[]-×.
 
-  Stable-×ⁿ :
+  Stable-[]-×ⁿ :
     ∀ n →
     For-iterated-equality n Stable-[ k ] A →
     For-iterated-equality n Stable-[ k ] B →
     For-iterated-equality n Stable-[ k ] (A × B)
-  Stable-×ⁿ n =
+  Stable-[]-×ⁿ n =
     For-iterated-equality-×
       n
       Stable-[]-map-↔
-      Stable-×
+      Stable-[]-×
 
   -- A generalisation of Very-stable-×.
 
