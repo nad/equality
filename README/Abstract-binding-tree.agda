@@ -192,20 +192,24 @@ eval : ∀ {xs} → ℕ → Term xs s → Term xs s
 eval zero    t = t
 eval (suc n) t = eval′ t
   where
-  eval′ : ∀ {xs} → Term xs s → Term xs s
-  eval′ t@(varᵖ _ _)     = t
-  eval′ t@(lamᵖ _ _ _ _) = t
-  eval′ (printᵖ tˢ t wf) = print (eval′ (tˢ , t , [ wf ]))
-  eval′ (appᵖ t₁ˢ t₂ˢ t₁ t₂ wf₁ wf₂)
-    with eval′ (t₁ˢ , t₁ , [ wf₁ ])
-       | eval′ (t₂ˢ , t₂ , [ wf₂ ])
-  … | lamᵖ x t₁ˢ′ t₁′ wf₁′ | t₂′ =
+  apply : ∀ {xs} → @0 s ≡ expr → Term xs s → Term xs s → Term xs s
+  apply _ (lamᵖ x t₁ˢ′ t₁′ wf₁′) t₂′ =
     eval n (subst-Term x t₂′
               ( t₁ˢ′
               , t₁′
               , [ body-Wf t₁ˢ′ wf₁′ ]
               ))
-  … | t₁′ | t₂′ = app t₁′ t₂′
+  apply s≡expr t₁′ t₂′ =
+    substᴱ (Term _) (sym s≡expr) $
+    app (substᴱ (Term _) s≡expr t₁′) (substᴱ (Term _) s≡expr t₂′)
+
+  eval′ : ∀ {xs} → Term xs s → Term xs s
+  eval′ t@(varᵖ _ _)                 = t
+  eval′ t@(lamᵖ _ _ _ _)             = t
+  eval′ (printᵖ tˢ t wf)             = print (eval′ (tˢ , t , [ wf ]))
+  eval′ (appᵖ t₁ˢ t₂ˢ t₁ t₂ wf₁ wf₂) = apply refl
+    (eval′ (t₁ˢ , t₁ , [ wf₁ ]))
+    (eval′ (t₂ˢ , t₂ , [ wf₂ ]))
 
 -- Simple types.
 

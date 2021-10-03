@@ -40,7 +40,7 @@ open import List equality-with-J using (H-level-List)
 
 private
   variable
-    @0 p : Level
+    p : Level
 
 ------------------------------------------------------------------------
 -- Signatures
@@ -1535,17 +1535,17 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       mutual
 
-        to-Tm : Tm′ tˢ → Tm tˢ
-        to-Tm (var x) = x
-        to-Tm (op as) = to-Args as
+        to-Tm : {tˢ : Tmˢ s} → Tm′ tˢ → Tm tˢ
+        to-Tm {tˢ = var}    (var x) = x
+        to-Tm {tˢ = op _ _} (op as) = to-Args as
 
-        to-Args : Args′ asˢ → Args asˢ
-        to-Args nil         = _
-        to-Args (cons a as) = to-Arg a , to-Args as
+        to-Args : {asˢ : Argsˢ vs} → Args′ asˢ → Args asˢ
+        to-Args {asˢ = nil}      nil         = _
+        to-Args {asˢ = cons _ _} (cons a as) = to-Arg a , to-Args as
 
-        to-Arg : Arg′ aˢ → Arg aˢ
-        to-Arg (nil t)    = to-Tm t
-        to-Arg (cons x a) = x , to-Arg a
+        to-Arg : {aˢ : Argˢ v} → Arg′ aˢ → Arg aˢ
+        to-Arg {aˢ = nil _}  (nil t)    = to-Tm t
+        to-Arg {aˢ = cons _} (cons x a) = x , to-Arg a
 
       mutual
 
@@ -1591,14 +1591,15 @@ module Signature {ℓ} (sig : Signature ℓ) where
         from-to-Args :
           {asˢ : Argsˢ vs} (as : Args′ asˢ) →
           from-Args asˢ (to-Args as) ≡ as
-        from-to-Args nil         = refl _
-        from-to-Args (cons a as) =
+        from-to-Args {asˢ = nil}      nil         = refl _
+        from-to-Args {asˢ = cons _ _} (cons a as) =
           cong₂ cons (from-to-Arg a) (from-to-Args as)
 
         from-to-Arg :
           {aˢ : Argˢ v} (a : Arg′ aˢ) → from-Arg aˢ (to-Arg a) ≡ a
-        from-to-Arg (nil t)    = cong nil (from-to-Tm _ t)
-        from-to-Arg (cons x a) = cong (cons x) (from-to-Arg a)
+        from-to-Arg {aˢ = nil _}  (nil t)    = cong nil (from-to-Tm _ t)
+        from-to-Arg {aˢ = cons _} (cons x a) =
+          cong (cons x) (from-to-Arg a)
 
   -- The alternative definitions of Tm, Args, Arg and Data are
   -- pointwise equivalent to the original ones.
@@ -1756,8 +1757,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   mutual
 
     equal?-Data :
-      ∀ {s} (tˢ : Skeleton k s) →
-      Decidable-erased-equality (Data tˢ)
+      (tˢ : Skeleton k s) → Decidable-erased-equality (Data tˢ)
     equal?-Data {k = var}  = λ _ → _≟V_
     equal?-Data {k = tm}   = equal?-Tm
     equal?-Data {k = args} = equal?-Args
@@ -1765,21 +1765,19 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     private
 
-      equal?-Tm :
-        ∀ {s} (tˢ : Tmˢ s) → Decidable-erased-equality (Tm tˢ)
+      equal?-Tm : (tˢ : Tmˢ s) → Decidable-erased-equality (Tm tˢ)
       equal?-Tm var        x₁  x₂  = x₁ ≟V x₂
       equal?-Tm (op o asˢ) as₁ as₂ = equal?-Args asˢ as₁ as₂
 
       equal?-Args :
-        ∀ {vs} (asˢ : Argsˢ vs) → Decidable-erased-equality (Args asˢ)
+        (asˢ : Argsˢ vs) → Decidable-erased-equality (Args asˢ)
       equal?-Args nil           _          _          = yes [ refl _ ]
       equal?-Args (cons aˢ asˢ) (a₁ , as₁) (a₂ , as₂) =
         dec-erased⇒dec-erased⇒×-dec-erased
           (equal?-Arg aˢ a₁ a₂)
           (equal?-Args asˢ as₁ as₂)
 
-      equal?-Arg :
-        ∀ {v} (aˢ : Argˢ v) → Decidable-erased-equality (Arg aˢ)
+      equal?-Arg : (aˢ : Argˢ v) → Decidable-erased-equality (Arg aˢ)
       equal?-Arg (nil tˢ)  t₁        t₂        = equal?-Tm tˢ t₁ t₂
       equal?-Arg (cons aˢ) (x₁ , a₁) (x₂ , a₂) =
         dec-erased⇒dec-erased⇒×-dec-erased
@@ -2113,7 +2111,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
       private
 
-        Free-free-Var :
+        @0 Free-free-Var :
           ∀ {s} {x : Var s} (yˢ : Varˢ s′) {y : Var s′}
           (@0 wf : Wf ((_ , x) ∷ xs) yˢ y) →
           Free-in x (yˢ , y , [ wf ]) → (_ , x) ∈ free yˢ y
