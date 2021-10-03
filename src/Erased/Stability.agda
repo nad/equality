@@ -1121,28 +1121,9 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     Very-stable-≡ A ↝[ a ∣ a ] Is-embedding ([_]→ {A = A})
   Very-stable-≡↔Is-embedding-[] ext =
     (∀ x y → Is-equivalence ([_]→ {A = x ≡ y}))            ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
-                                                               generalise-ext?-prop
-                                                                 (record { to = to; from = from })
-                                                                 (λ ext → Eq.propositional ext _)
-                                                                 (λ ext → Eq.propositional ext _)
-                                                                 ext) ⟩
+                                                               Is-equivalence≃Is-equivalence-∘ˡ []-cong-equivalence ext) ⟩
     (∀ x y → Is-equivalence ([]-cong ∘ [_]→ {A = x ≡ y}))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence-cong ext λ _ → []-cong-[]≡cong-[]) ⟩□
     (∀ x y → Is-equivalence (cong {x = x} {y = y} [_]→))   □
-    where
-    to :
-      Is-equivalence ([_]→ {A = x ≡ y}) →
-      Is-equivalence ([]-cong ∘ [_]→ {A = x ≡ y})
-    to hyp = Eq.Two-out-of-three.f-g
-      (Eq.two-out-of-three _ _)
-      hyp
-      []-cong-equivalence
-
-    from :
-      Is-equivalence ([]-cong ∘ [_]→ {A = x ≡ y}) →
-      Is-equivalence ([_]→ {A = x ≡ y})
-    from = Eq.Two-out-of-three.g-g∘f
-      (Eq.two-out-of-three _ _)
-      []-cong-equivalence
 
   private
 
