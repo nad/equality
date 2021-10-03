@@ -1251,6 +1251,37 @@ module []-cong₃ (ax : ∀ {a} → []-cong-axiomatisation a) where
     []-cong⁻¹ (cong (map f) ([]-cong [ x≡y ]))        ∎
 
   ----------------------------------------------------------------------
+  -- An isomorphism
+
+  -- Erased "commutes" with Is-embedding.
+
+  Erased-Is-embedding↔Is-embedding :
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+    Erased (Is-embedding f) ↝[ a ⊔ b ∣ a ⊔ b ] Is-embedding (map f)
+  Erased-Is-embedding↔Is-embedding {b = b} {f = f} {k = k} ext =
+    Erased (∀ x y → Is-equivalence (cong f))                       ↔⟨ Erased-Π↔Π-Erased ⟩
+
+    (∀ x → Erased (∀ y → Is-equivalence (cong f)))                 ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
+
+    (∀ x y → Erased (Is-equivalence (cong f)))                     ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+                                                                       Erased-Is-equivalence↔Is-equivalence ext) ⟩
+
+    (∀ x y → Is-equivalence (map (cong f)))                        ↝⟨ (∀-cong ext′ λ x → ∀-cong ext′ λ y →
+                                                                       Is-equivalence-cong ext λ _ → map-cong≡cong-map) ⟩
+
+    (∀ x y → Is-equivalence ([]-cong⁻¹ ∘ cong (map f) ∘ []-cong))  ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+                                                                       inverse-ext? (Is-equivalence≃Is-equivalence-∘ʳ []-cong-equivalence) ext) ⟩
+
+    (∀ x y → Is-equivalence ([]-cong⁻¹ ∘ cong (map f)))            ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+                                                                       inverse-ext?
+                                                                         (Is-equivalence≃Is-equivalence-∘ˡ
+                                                                            (_≃_.is-equivalence $ from-isomorphism $ inverse Erased-≡↔[]≡[]))
+                                                                         ext) ⟩□
+    (∀ x y → Is-equivalence (cong (map f)))                        □
+    where
+    ext′ = lower-extensionality? k b lzero ext
+
+  ----------------------------------------------------------------------
   -- Lemmas related to substᴱ, elim₁ᴱ, elim¹ᴱ, elimᴱ and congᴱ
 
   -- A "computation rule" for substᴱ.
