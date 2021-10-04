@@ -393,7 +393,7 @@ Extensionality→[]-cong {a = a} ext′ = record
 
   Stable-≡-Erased : {@0 A : Type a} → Stable-≡ (Erased A)
   Stable-≡-Erased [ x ] [ y ] eq =
-    [ x ]                                       ≡⟨ cong (_$ eq) (
+    [ x ]                                       ≡⟨ flip ext⁻¹ eq (
 
       (λ (_ : Erased ([ x ] ≡ [ y ])) → [ x ])       ≡⟨ ∘-[]-injective (
 
