@@ -371,25 +371,18 @@ Stable-≡→≃ᴱ→≃ sA sB A≃ᴱB = Eq.↔→≃
   (λ x → sB _ _ [ _≃ᴱ_.right-inverse-of A≃ᴱB x ])
   (λ x → sA _ _ [ _≃ᴱ_.left-inverse-of  A≃ᴱB x ])
 
--- If we have extensionality, then []-cong can be implemented.
---
--- The idea for this result comes from "Modalities in Homotopy Type
--- Theory" in which Rijke, Shulman and Spitters state that []-cong can
--- be implemented for every modality, and that it is an equivalence
--- for lex modalities (Theorem 3.1 (ix)). The proof of Stable-≡-Erased
--- is based on the proof of Lemma 1.25 in that paper, and the
--- corresponding Coq source code.
+-- Some lemmas used to implement Extensionality→[]-cong.
 
-Extensionality→[]-cong :
-  Extensionality a a →
-  []-cong-axiomatisation a
-Extensionality→[]-cong {a = a} ext′ = record
-  { []-cong             = []-cong
-  ; []-cong-equivalence = []-cong-equivalence
-  ; []-cong-[refl]      = []-cong-[refl]
-  }
-  where
-  ext = Eq.good-ext ext′
+module Extensionality→[]-cong (ext′ : Extensionality a a) where
+
+  private
+    ext = Eq.good-ext ext′
+
+  -- Equality is stable for Erased A.
+  --
+  -- The proof is based on the proof of Lemma 1.25 in "Modalities in
+  -- Homotopy Type Theory" by Rijke, Shulman and Spitters, and the
+  -- corresponding Coq source code.
 
   Stable-≡-Erased : {@0 A : Type a} → Stable-≡ (Erased A)
   Stable-≡-Erased [ x ] [ y ] eq =
@@ -408,13 +401,7 @@ Extensionality→[]-cong {a = a} ext′ = record
 
     [ y ]                                       ∎
 
-  []-cong :
-    {@0 A : Type a} {@0 x y : A} →
-    Erased (x ≡ y) → [ x ] ≡ [ y ]
-  []-cong {x = x} {y = y} =
-    Erased (x ≡ y)          ↝⟨ map (cong [_]→) ⟩
-    Erased ([ x ] ≡ [ y ])  ↝⟨ Stable-≡-Erased _ _ ⟩□
-    [ x ] ≡ [ y ]           □
+  -- A "computation rule" for Stable-≡-Erased.
 
   Stable-≡-Erased-[refl] :
     {@0 A : Type a} {x : Erased A} →
@@ -425,6 +412,18 @@ Extensionality→[]-cong {a = a} ext′ = record
     ext⁻¹ (apply-ext ext id) (refl [ x ])                     ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) _ ⟩∎
     refl [ x ]                                                ∎
 
+  -- An implementation of []-cong.
+
+  []-cong :
+    {@0 A : Type a} {@0 x y : A} →
+    Erased (x ≡ y) → [ x ] ≡ [ y ]
+  []-cong {x = x} {y = y} =
+    Erased (x ≡ y)          ↝⟨ map (cong [_]→) ⟩
+    Erased ([ x ] ≡ [ y ])  ↝⟨ Stable-≡-Erased _ _ ⟩□
+    [ x ] ≡ [ y ]           □
+
+  -- A "computation rule" for []-cong.
+
   []-cong-[refl] :
     {@0 A : Type a} {@0 x : A} →
     []-cong [ refl x ] ≡ refl [ x ]
@@ -434,13 +433,15 @@ Extensionality→[]-cong {a = a} ext′ = record
     Stable-≡-Erased _ _ [ refl [ x ] ]          ≡⟨ Stable-≡-Erased-[refl] ⟩∎
     refl [ x ]                                  ∎
 
+  -- Equality is very stable for Erased A.
+
   Very-stable-≡-Erased :
     {@0 A : Type a} → Very-stable-≡ (Erased A)
-  Very-stable-≡-Erased [ x ] [ y ] =
+  Very-stable-≡-Erased x y =
     _≃_.is-equivalence (Eq.↔⇒≃ (record
       { surjection = record
         { logical-equivalence = record
-          { from = Stable-≡-Erased [ x ] [ y ]
+          { from = Stable-≡-Erased x y
           }
         ; right-inverse-of = λ ([ eq ]) → []-cong [ lemma eq ]
         }
@@ -476,6 +477,8 @@ Extensionality→[]-cong {a = a} ext′ = record
     Erased-cong-≃ A≃B =
       from-isomorphism (Erased-cong-↔ (from-isomorphism A≃B))
 
+  -- []-cong is an equivalence.
+
   []-cong-equivalence :
     {@0 A : Type a} {@0 x y : A} →
     Is-equivalence ([]-cong {x = x} {y = y})
@@ -483,6 +486,24 @@ Extensionality→[]-cong {a = a} ext′ = record
     Erased (x ≡ y)          ↝⟨ inverse $ Erased-cong-≃ (Eq.≃-≡ (inverse $ Very-stable→Stable 0 (erased Erased-Very-stable))) ⟩
     Erased ([ x ] ≡ [ y ])  ↝⟨ inverse Eq.⟨ _ , Very-stable-≡-Erased _ _ ⟩ ⟩□
     [ x ] ≡ [ y ]           □)
+
+-- If we have extensionality, then []-cong can be implemented.
+--
+-- The idea for this result comes from "Modalities in Homotopy Type
+-- Theory" in which Rijke, Shulman and Spitters state that []-cong can
+-- be implemented for every modality, and that it is an equivalence
+-- for lex modalities (Theorem 3.1 (ix)).
+
+Extensionality→[]-cong :
+  Extensionality a a →
+  []-cong-axiomatisation a
+Extensionality→[]-cong ext = record
+  { []-cong             = []-cong
+  ; []-cong-equivalence = []-cong-equivalence
+  ; []-cong-[refl]      = []-cong-[refl]
+  }
+  where
+  open Extensionality→[]-cong ext
 
 ------------------------------------------------------------------------
 -- Closure properties
