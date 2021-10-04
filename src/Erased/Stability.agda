@@ -1312,21 +1312,37 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
            [ _≃_.to A≃B (_≃_.from A≃B x) ]  ≡⟨ cong [_]→ (_≃_.right-inverse-of A≃B x) ⟩∎
            [ x ]                            ∎)
 
+  -- If there is a function from A to B, with an erased proof showing
+  -- that the function is an equivalence, and A is very stable with
+  -- erased proofs, then B is very stable with erased proofs.
+
+  →→Is-equivalence→Very-stableᴱ→Very-stableᴱ :
+    (f : A → B) → @0 Is-equivalence f → Very-stableᴱ A → Very-stableᴱ B
+  →→Is-equivalence→Very-stableᴱ→Very-stableᴱ {A = A} {B = B} f eq s =
+    _≃ᴱ_.is-equivalence $
+    EEq.↔→≃ᴱ
+      [_]→
+      (Erased B  ↝⟨ Erased-cong (_≃_.from Eq.⟨ _ , eq ⟩) ⟩
+       Erased A  ↝⟨ _≃ᴱ_.from EEq.⟨ _ , s ⟩ ⟩
+       A         ↝⟨ f ⟩□
+       B         □)
+      (λ ([ x ]) → []-cong [ lemma x ])
+      lemma
+      where
+      @0 lemma : _
+      lemma = λ x →
+         f (_≃ᴱ_.from EEq.⟨ _ , s ⟩ [ _≃_.from Eq.⟨ _ , eq ⟩ x ])  ≡⟨ cong f $ _≃ᴱ_.left-inverse-of EEq.⟨ _ , s ⟩ _ ⟩
+         f (_≃_.from Eq.⟨ _ , eq ⟩ x)                              ≡⟨ _≃_.right-inverse-of Eq.⟨ _ , eq ⟩ _ ⟩∎
+         x                                                         ∎
+
   -- If A is equivalent (with erased proofs) to B, and A is very stable
   -- with erased proofs, then B is very stable with erased proofs.
 
-  ≃ᴱ→Very-stableᴱ→Very-stableᴱ : A ≃ᴱ B → Very-stableᴱ A → Very-stableᴱ B
-  ≃ᴱ→Very-stableᴱ→Very-stableᴱ {A = A} {B = B} A≃ᴱB s =
-    _≃ᴱ_.is-equivalence $
-    EEq.[]-cong.with-other-function ax
-      (B         ↝⟨ inverse A≃ᴱB ⟩
-       A         ↝⟨ EEq.⟨ _ , s ⟩ ⟩
-       Erased A  ↝⟨ Erased-cong A≃ᴱB ⟩□
-       Erased B  □)
-      _
-      (λ x →
-         [ _≃ᴱ_.to A≃ᴱB (_≃ᴱ_.from A≃ᴱB x) ]  ≡⟨ []-cong [ _≃ᴱ_.right-inverse-of A≃ᴱB x ] ⟩∎
-         [ x ]                                ∎)
+  ≃ᴱ→Very-stableᴱ→Very-stableᴱ :
+    A ≃ᴱ B → Very-stableᴱ A → Very-stableᴱ B
+  ≃ᴱ→Very-stableᴱ→Very-stableᴱ A≃ᴱB =
+    →→Is-equivalence→Very-stableᴱ→Very-stableᴱ
+      _ (_≃_.is-equivalence $ EEq.≃ᴱ→≃ A≃ᴱB)
 
   -- Very-stableᴱ preserves equivalences with erased proofs (assuming
   -- extensionality).
