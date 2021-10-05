@@ -9,7 +9,7 @@
 
 import Bijection
 open import Equality
-import Erased.Basics
+import Erased.Without-box-cong
 open import Prelude hiding (zero; suc; _+_; _*_; _^_)
 
 module Nat.Wrapper
@@ -17,7 +17,7 @@ module Nat.Wrapper
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
 
   -- An instantiation of the []-cong axioms.
-  (ax : ∀ {a} → Erased.Basics.[]-cong-axiomatisation eq a)
+  (ax : ∀ {a} → Erased.Without-box-cong.[]-cong-axiomatisation eq a)
 
   -- The underlying representation of natural numbers.
   (Nat′ : Type)

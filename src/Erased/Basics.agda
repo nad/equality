@@ -3,22 +3,15 @@
 ------------------------------------------------------------------------
 
 -- This module contains some basic definitions with few dependencies
--- (in particular, not Function-universe). See Erased and other
--- modules under Erased for more definitions. The definitions below
--- are reexported from Erased.
+-- (in particular, not Function-universe) that do not rely on
+-- equality. See Erased and other modules under Erased for more
+-- definitions. The definitions below are reexported from Erased.
 
 {-# OPTIONS --without-K --safe #-}
 
-open import Equality
-
-module Erased.Basics
-  {e⁺} (eq : ∀ {a p} → Equality-with-J a p e⁺) where
-
-open Derived-definitions-and-properties eq
+module Erased.Basics where
 
 open import Prelude
-
-open import Equivalence eq using (Is-equivalence)
 
 private
   variable
@@ -38,17 +31,3 @@ open Erased public
 
 [_]→ : {@0 A : Type a} → A → Erased A
 [ x ]→ = [ x ]
-
--- An axiomatisation for []-cong.
-
-record []-cong-axiomatisation a : Type (lsuc a) where
-  field
-    []-cong :
-      {@0 A : Type a} {@0 x y : A} →
-      Erased (x ≡ y) → [ x ] ≡ [ y ]
-    []-cong-equivalence :
-       {@0 A : Type a} {@0 x y : A} →
-       Is-equivalence ([]-cong {x = x} {y = y})
-    []-cong-[refl] :
-      {A : Type a} {x : A} →
-      []-cong [ refl x ] ≡ refl [ x ]

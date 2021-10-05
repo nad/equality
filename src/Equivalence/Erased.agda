@@ -19,7 +19,7 @@ import Equivalence.Contractible-preimages eq as CP
 open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (_⁻¹ᴱ_; Contractibleᴱ)
 import Equivalence.Half-adjoint eq as HA
-open import Erased.Level-1 eq as Erased
+open import Erased.Level-1 eq as Erased hiding (module []-cong)
 open import Function-universe eq as F hiding (id; _∘_; inverse)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -879,7 +879,7 @@ from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
 
 module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
-  open Erased.[]-cong₃ ax
+  open Erased.[]-cong ax
 
   ----------------------------------------------------------------------
   -- More preservation lemmas

@@ -5,14 +5,14 @@
 {-# OPTIONS --without-K --safe #-}
 
 open import Equality
-import Erased.Basics
+import Erased.Without-box-cong
 
 module Nat.Binary
   {c⁺}
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
 
   -- An instantiation of the []-cong axioms.
-  (ax : ∀ {a} → Erased.Basics.[]-cong-axiomatisation eq a)
+  (ax : ∀ {a} → Erased.Without-box-cong.[]-cong-axiomatisation eq a)
   where
 
 open Derived-definitions-and-properties eq

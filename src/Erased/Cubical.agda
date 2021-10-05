@@ -21,8 +21,9 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
-import Erased.Basics equality-with-J as EB
-import Erased.Level-1 equality-with-J as E₁
+import Erased.Basics as EB
+import Erased.Level-1 P.equality-with-J as EP
+import Erased.Level-1 equality-with-J as E
 open import Function-universe equality-with-J
 
 private
@@ -46,16 +47,16 @@ private
 
 []-cong-Path-equivalence :
   {@0 A : Type a} {@0 x y : A} →
-  Is-equivalence ([]-cong-Path {x = x} {y = y})
+  PEq.Is-equivalence ([]-cong-Path {x = x} {y = y})
 []-cong-Path-equivalence =
-  _≃_.is-equivalence $ Eq.↔⇒≃ (record
+  PEq._≃_.is-equivalence $ PEq.↔⇒≃ (record
     { surjection = record
       { logical-equivalence = record
         { from = λ eq → EB.[ P.cong EB.erased eq ]
         }
-      ; right-inverse-of = λ _ → refl _
+      ; right-inverse-of = λ _ → P.refl
       }
-    ; left-inverse-of = λ _ → refl _
+    ; left-inverse-of = λ _ → P.refl
     })
 
 -- A rearrangement lemma for []-cong-Path (which holds by definition).
@@ -64,6 +65,14 @@ private
   {@0 A : Type a} {@0 x : A} →
   []-cong-Path EB.[ P.refl {x = x} ] P.≡ P.refl {x = EB.[ x ]}
 []-cong-Path-[refl] = P.refl
+
+-- The []-cong axioms can be instantiated.
+
+instance-of-[]-cong-axiomatisation-for-Path : EP.[]-cong-axiomatisation a
+instance-of-[]-cong-axiomatisation-for-Path = λ where
+  .EP.[]-cong-axiomatisation.[]-cong             → []-cong-Path
+  .EP.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-Path-equivalence
+  .EP.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-Path-[refl]
 
 -- Given an erased proof of equality of x and y one can show that
 -- EB.[ x ] is equal to EB.[ y ].
@@ -82,8 +91,11 @@ private
   {@0 A : Type a} {@0 x y : A} →
   Is-equivalence ([]-cong {x = x} {y = y})
 []-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (
-  EB.Erased (x ≡ y)      ↔⟨ E₁.[]-cong₁.Erased-cong-↔ []-cong ≡↔≡ ⟩
-  EB.Erased (x P.≡ y)    ↔⟨ Eq.⟨ _ , []-cong-Path-equivalence ⟩ ⟩
+  EB.Erased (x ≡ y)      ↔⟨ _≃_.from ↔≃↔ $
+                            EP.[]-cong.Erased-cong-↔
+                              instance-of-[]-cong-axiomatisation-for-Path
+                              (_≃_.to ↔≃↔ ≡↔≡) ⟩
+  EB.Erased (x P.≡ y)    ↝⟨ _↔_.from ≃↔≃ PEq.⟨ _ , []-cong-Path-equivalence ⟩ ⟩
   EB.[ x ] P.≡ EB.[ y ]  ↔⟨ inverse ≡↔≡ ⟩□
   EB.[ x ] ≡ EB.[ y ]    □)
 
@@ -101,11 +113,11 @@ private
 
 -- The []-cong axioms can be instantiated.
 
-instance-of-[]-cong-axiomatisation : EB.[]-cong-axiomatisation a
+instance-of-[]-cong-axiomatisation : E.[]-cong-axiomatisation a
 instance-of-[]-cong-axiomatisation = λ where
-  .EB.[]-cong-axiomatisation.[]-cong             → []-cong
-  .EB.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
-  .EB.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
+  .E.[]-cong-axiomatisation.[]-cong             → []-cong
+  .E.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
+  .E.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
 
 -- Some reexported definitions.
 

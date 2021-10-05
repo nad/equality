@@ -17,7 +17,8 @@ open import Bijection equality-with-J using (_↔_)
 open import Embedding equality-with-J as Emb using (Is-embedding)
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
-import Erased.Basics equality-with-J as EB
+import Erased.Basics as EB
+import Erased.Level-1 equality-with-J as E
 open import H-level equality-with-J
 open import Injection equality-with-J using (Injective)
 
@@ -61,11 +62,11 @@ private
 
 -- The []-cong axioms can be instantiated.
 
-instance-of-[]-cong-axiomatisation : EB.[]-cong-axiomatisation a
+instance-of-[]-cong-axiomatisation : E.[]-cong-axiomatisation a
 instance-of-[]-cong-axiomatisation = λ where
-  .EB.[]-cong-axiomatisation.[]-cong             → []-cong
-  .EB.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
-  .EB.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
+  .E.[]-cong-axiomatisation.[]-cong             → []-cong
+  .E.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
+  .E.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
 
 -- Some reexported definitions.
 

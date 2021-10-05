@@ -35,7 +35,7 @@ import Nat eq as Nat
 open import Surjection eq using (_↠_; Split-surjective)
 open import Univalence-axiom eq
 
-open import Erased.Level-1 eq
+open import Erased.Level-1 eq as Erased hiding (module []-cong)
 import Erased.Level-2
 
 private
@@ -971,7 +971,7 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
 
 module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
-  open []-cong₃ ax
+  open Erased.[]-cong ax
   open Erased.Level-2 eq ax
 
   ----------------------------------------------------------------------

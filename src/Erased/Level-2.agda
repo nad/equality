@@ -19,7 +19,7 @@ module Erased.Level-2
 
 open Derived-definitions-and-properties eq-J
 open Erased.Level-1 eq-J
-open Erased.Level-1.[]-cong₃ eq-J ax
+open Erased.Level-1.[]-cong eq-J ax
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding ([_,_])

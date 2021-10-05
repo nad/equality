@@ -19,7 +19,7 @@ open import Prelude as P hiding (id; [_,_]) renaming (_∘_ to _⊚_)
 
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence.Half-adjoint eq as HA
-open import Erased.Basics eq
+open import Erased.Basics
 open import Preimage eq as Preimage using (_⁻¹_)
 
 private

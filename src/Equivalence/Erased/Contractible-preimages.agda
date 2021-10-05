@@ -16,7 +16,7 @@ open import Prelude
 open import Bijection eq using (_↔_)
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence.Contractible-preimages eq as CP
-open import Erased.Level-1 eq as Erased
+open import Erased.Level-1 eq as Erased hiding (module []-cong)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -331,7 +331,7 @@ Contractibleᴱ-↑ c@(a , _) =
 
 module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
-  open Erased.[]-cong₃ ax
+  open Erased.[]-cong ax
 
   ----------------------------------------------------------------------
   -- Some results related to _⁻¹ᴱ_

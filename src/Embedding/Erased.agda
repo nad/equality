@@ -21,7 +21,7 @@ open import Equivalence.Erased eq as EEq
   using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (_⁻¹ᴱ_)
-open import Erased.Basics eq using (Erased; []-cong-axiomatisation)
+open import Erased.Level-1 eq using (Erased; []-cong-axiomatisation)
 open import Function-universe eq hiding (id; _∘_; equivalence)
 open import H-level.Closure eq
 open import Preimage eq using (_⁻¹_)
