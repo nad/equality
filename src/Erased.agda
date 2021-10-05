@@ -18,7 +18,9 @@ module Erased
 
 private
   module E₁ = Erased.Level-1 eq
-open E₁ public hiding (module []-cong)
+open E₁ public
+  hiding (module Erased-cong;
+          module []-cong; module []-cong₁; module []-cong₂)
 open E₁.[]-cong ax public
 open import Erased.Level-2 eq ax public
 open import Erased.Stability eq as ES public
