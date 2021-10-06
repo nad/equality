@@ -380,7 +380,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
                                                   Erased-cong?
                                                     (λ ext → Π-cong ext A≃B′ λ _ →
                                                              from-isomorphism $ inverse $ Eq.≃-≡ A≃B′)
-                                                    ext) ⟩
+                                                    ext) ⟩□
     (∃ λ (x : B) → Erased ((y : B) → x ≡ y))  □
     where
     A≃B′ = from-isomorphism A↔B
