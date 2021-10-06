@@ -19,7 +19,8 @@ import Equivalence.Contractible-preimages eq as CP
 open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (_⁻¹ᴱ_; Contractibleᴱ)
 import Equivalence.Half-adjoint eq as HA
-open import Erased.Level-1 eq as Erased hiding (module []-cong)
+open import Erased.Level-1 eq as Erased
+  hiding (module []-cong; module []-cong₁; module []-cong₂)
 open import Function-universe eq as F hiding (id; _∘_; inverse)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -30,11 +31,11 @@ open import Univalence-axiom eq
 
 private
   variable
-    a b d ℓ q    : Level
-    A B C        : Type a
-    c k k′ p x y : A
-    P Q          : A → Type p
-    f g          : (x : A) → P x
+    a b d ℓ ℓ₁ ℓ₂ q : Level
+    A B C           : Type a
+    c k k′ p x y    : A
+    P Q             : A → Type p
+    f g             : (x : A) → P x
 
 ------------------------------------------------------------------------
 -- Some basic stuff
@@ -875,11 +876,12 @@ from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
 12→3 p q = _≃ᴱ_.is-equivalence (⟨ _ , q ⟩ ∘ ⟨ _ , p ⟩)
 
 ------------------------------------------------------------------------
--- Results that depend on an axiomatisation of []-cong
+-- Results that depend on an axiomatisation of []-cong (for a single
+-- universe level)
 
-module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
+module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
-  open Erased.[]-cong ax
+  open Erased.[]-cong₁ ax
 
   ----------------------------------------------------------------------
   -- More preservation lemmas
@@ -888,11 +890,11 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- (assuming extensionality). Note the type of Q.
 
   Σ-cong-≃ᴱ-Erased :
-    {Q : @0 B → Type q}
+    {B : Type ℓ} {Q : @0 B → Type q}
     (A≃B : A ≃ᴱ B) →
     (∀ x → P x ≃ᴱ Q (_≃ᴱ_.to A≃B x)) →
     Σ A P ≃ᴱ Σ B (λ x → Q x)
-  Σ-cong-≃ᴱ-Erased {B = B} {A = A} {P = P} {Q = Q} A≃B P≃Q =
+  Σ-cong-≃ᴱ-Erased {A = A} {P = P} {B = B} {Q = Q} A≃B P≃Q =
     [≃]→≃ᴱ ([proofs] ΣAP≃ΣBQ)
     where
     @0 ΣAP≃ΣBQ : Σ A P ≃ Σ B (λ x → Q x)
@@ -911,7 +913,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- A variant of Σ-cong-≃ᴱ-Erased.
 
   Σ-cong-contra-≃ᴱ-Erased :
-    {P : @0 A → Type p}
+    {A : Type ℓ} {P : @0 A → Type p}
     (B≃A : B ≃ᴱ A) →
     (∀ x → P (_≃ᴱ_.to B≃A x) ≃ᴱ Q x) →
     Σ A (λ x → P x) ≃ᴱ Σ B Q
@@ -991,8 +993,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- (assuming extensionality). Note the type of Q.
 
   Π-cong-≃ᴱ-Erased :
-    {A : Type a} {B : Type b} {P : A → Type p} {Q : @0 B → Type q} →
-    @0 Extensionality (a ⊔ b) (p ⊔ q) →
+    {A : Type a} {B : Type ℓ} {P : A → Type p} {Q : @0 B → Type q} →
+    @0 Extensionality (a ⊔ ℓ) (p ⊔ q) →
     (A≃B : A ≃ᴱ B) →
     (∀ x → P x ≃ᴱ Q (_≃ᴱ_.to A≃B x)) →
     ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
@@ -1019,8 +1021,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- A variant of Π-cong-≃ᴱ-Erased.
 
   Π-cong-contra-≃ᴱ-Erased :
-    {A : Type a} {B : Type b} {P : @0 A → Type p} {Q : B → Type q} →
-    @0 Extensionality (a ⊔ b) (p ⊔ q) →
+    {A : Type ℓ} {B : Type b} {P : @0 A → Type p} {Q : B → Type q} →
+    @0 Extensionality (b ⊔ ℓ) (p ⊔ q) →
     (B≃A : B ≃ᴱ A) →
     (∀ x → P (_≃ᴱ_.to B≃A x) ≃ᴱ Q x) →
     ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
@@ -1044,15 +1046,89 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
              (_≃ᴱ_.right-inverse-of B≃A x)
              (_≃ᴱ_.from (P≃Q (_≃ᴱ_.from B≃A x)) (f (_≃ᴱ_.from B≃A x)))   ∎)
 
+  ----------------------------------------------------------------------
+  -- Variants of some lemmas from Function-universe
+
+  -- A variant of drop-⊤-left-Σ.
+
+  drop-⊤-left-Σ-≃ᴱ-Erased :
+    {A : Type ℓ} {P : @0 A → Type p} →
+    (A≃⊤ : A ≃ᴱ ⊤) → Σ A (λ x → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
+  drop-⊤-left-Σ-≃ᴱ-Erased {A = A} {P = P} A≃⊤ =
+    Σ A (λ x → P x)                  ↝⟨ inverse $ Σ-cong-≃ᴱ-Erased (inverse A≃⊤) (λ _ → F.id) ⟩
+    Σ ⊤ (λ x → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Σ-left-identity ⟩□
+    P (_≃ᴱ_.from A≃⊤ tt)             □
+
+  -- A variant of drop-⊤-left-Π.
+
+  drop-⊤-left-Π-≃ᴱ-Erased :
+    {A : Type ℓ} {P : @0 A → Type p} →
+    @0 Extensionality ℓ p →
+    (A≃⊤ : A ≃ᴱ ⊤) →
+    ((x : A) → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
+  drop-⊤-left-Π-≃ᴱ-Erased {A = A} {P = P} ext A≃⊤ =
+    ((x : A) → P x)                  ↝⟨ Π-cong-contra-≃ᴱ-Erased ext (inverse A≃⊤) (λ _ → F.id) ⟩
+    ((x : ⊤) → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Π-left-identity ⟩□
+    P (_≃ᴱ_.from A≃⊤ tt)             □
+
+  ----------------------------------------------------------------------
+  -- A variant of a lemma proved above
+
+  -- If f is an equivalence (with erased proofs) from Erased A to B,
+  -- then x ≡ y is equivalent (with erased proofs) to f x ≡ f y.
+
+  to≡to≃ᴱ≡-Erased :
+    ∀ {A : Type ℓ} {x y}
+    (A≃B : Erased A ≃ᴱ B) →
+    (_≃ᴱ_.to A≃B x ≡ _≃ᴱ_.to A≃B y) ≃ᴱ (x ≡ y)
+  to≡to≃ᴱ≡-Erased {B = B} {A = A} {x = x} {y = y} A≃B =
+    [≃]→≃ᴱ ([proofs] ≡≃≡)
+    where
+    @0 ≡≃≡ : (_≃ᴱ_.to A≃B x ≡ _≃ᴱ_.to A≃B y) ≃ (x ≡ y)
+    ≡≃≡ =
+      Eq.with-other-function
+        (Eq.≃-≡ (≃ᴱ→≃ A≃B))
+        (λ eq →
+           x                              ≡⟨ sym $ []-cong [ cong erased (_≃ᴱ_.left-inverse-of A≃B x) ] ⟩
+           _≃ᴱ_.from A≃B (_≃ᴱ_.to A≃B x)  ≡⟨ cong (_≃ᴱ_.from A≃B) eq ⟩
+           _≃ᴱ_.from A≃B (_≃ᴱ_.to A≃B y)  ≡⟨ []-cong [ cong erased (_≃ᴱ_.left-inverse-of A≃B y) ] ⟩∎
+           y                              ∎)
+        (λ eq →
+           let f = _≃ᴱ_.left-inverse-of A≃B in
+           trans (sym (f x)) (trans (cong (_≃ᴱ_.from A≃B) eq) (f y))  ≡⟨ cong₂ (λ p q → trans (sym p) (trans (cong (_≃ᴱ_.from A≃B) eq) q))
+                                                                           (sym $ _≃_.right-inverse-of ≡≃[]≡[] _)
+                                                                           (sym $ _≃_.right-inverse-of ≡≃[]≡[] _) ⟩∎
+           trans (sym ([]-cong [ cong erased (f x) ]))
+              (trans (cong (_≃ᴱ_.from A≃B) eq)
+                 ([]-cong [ cong erased (f y) ]))                     ∎)
+
+------------------------------------------------------------------------
+-- Results that follow if the []-cong axioms hold for the maximum of
+-- two universe levels (as well as for the two universe levels)
+
+module []-cong₂
+  (ax₁ : []-cong-axiomatisation ℓ₁)
+  (ax₂ : []-cong-axiomatisation ℓ₂)
+  (ax  : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂))
+  where
+
+  open Erased-cong ax ax
+  open Erased.[]-cong₁ ax
+  open Erased.[]-cong₂ ax₁ ax₂ ax
+  open []-cong₁ ax
+
+  ----------------------------------------------------------------------
+  -- Another preservation lemma
+
   -- Is-equivalenceᴱ f is equivalent to Is-equivalenceᴱ g if f and g
   -- are pointwise equal (assuming extensionality).
 
   Is-equivalenceᴱ-cong :
-    {A : Type a} {B : Type b} {@0 f g : A → B} →
-    @0 Extensionality? k (a ⊔ b) (a ⊔ b) →
+    {A : Type ℓ₁} {B : Type ℓ₂} {@0 f g : A → B} →
+    @0 Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     @0 (∀ x → f x ≡ g x) →
     Is-equivalenceᴱ f ↝[ k ] Is-equivalenceᴱ g
-  Is-equivalenceᴱ-cong {a = a} {b = b} {f = f} {g = g} ext f≡g =
+  Is-equivalenceᴱ-cong {f = f} {g = g} ext f≡g =
     generalise-erased-ext?
       (record { to = to f≡g; from = to (sym ⊚ f≡g) })
       (λ ext →
@@ -1061,7 +1137,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       ext
     where
     to :
-      ∀ {a b} {A : Type a} {B : Type b} {@0 f g : A → B} →
+      {@0 f g : A → B} →
       @0 (∀ x → f x ≡ g x) →
       Is-equivalenceᴱ f → Is-equivalenceᴱ g
     to f≡g f-eq@(f⁻¹ , _) =
@@ -1107,14 +1183,14 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
     @0 lemma₁ :
       ∀ f⁻¹ →
-      Extensionality (a ⊔ b) (a ⊔ b) →
+      Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
       HA.Proofs f f⁻¹ ↔ HA.Proofs g f⁻¹
     lemma₁ f⁻¹ ext =
-      Σ-cong (∀-cong (lower-extensionality a a ext) λ _ →
+      Σ-cong (∀-cong (lower-extensionality ℓ₁ ℓ₁ ext) λ _ →
               ≡⇒≃ $ cong (_≡ _) $ f≡g _) λ f-f⁻¹ →
-      Σ-cong (∀-cong (lower-extensionality b b ext) λ _ →
+      Σ-cong (∀-cong (lower-extensionality ℓ₂ ℓ₂ ext) λ _ →
               ≡⇒≃ $ cong (_≡ _) $ cong f⁻¹ $ f≡g _) λ f⁻¹-f →
-      ∀-cong (lower-extensionality b a ext) λ x → ≡⇒↝ _
+      ∀-cong (lower-extensionality ℓ₂ ℓ₁ ext) λ x → ≡⇒↝ _
         (cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x)                             ≡⟨ lemma₂ f⁻¹ f-f⁻¹ f⁻¹-f _ ⟩
 
          trans (ext⁻¹ (ext″ f≡g) (f⁻¹ (g x)))
@@ -1141,7 +1217,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
          cong g (≡⇒→ (cong (_≡ x) (cong f⁻¹ (f≡g x))) (f⁻¹-f x)) ≡
          ≡⇒→ (cong (_≡ g x) (f≡g (f⁻¹ (g x)))) (f-f⁻¹ (g x))        ∎)
       where
-      ext′ = lower-extensionality b a ext
+      ext′ = lower-extensionality ℓ₂ ℓ₁ ext
       ext″ = apply-ext $ Eq.good-ext ext′
 
   ----------------------------------------------------------------------
@@ -1151,8 +1227,9 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- also an equivalence with erased proofs.
 
   23→1 :
+    {A : Type ℓ₁} {B : Type ℓ₂} {f : A → B} {g : B → C} →
     Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f
-  23→1 {g = g} {f = f} q r =
+  23→1 {f = f} {g = g} q r =
     Is-equivalenceᴱ-cong
       _
       (λ x →
@@ -1164,8 +1241,9 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- also an equivalence with erased proofs.
 
   31→2 :
+    {B : Type ℓ₁} {C : Type ℓ₂} {f : A → B} {g : B → C} →
     Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f → Is-equivalenceᴱ g
-  31→2 {g = g} {f = f} r p =
+  31→2 {f = f} {g = g} r p =
     Is-equivalenceᴱ-cong
       _
       (λ x →
@@ -1182,6 +1260,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- replaced by an extensionally equal function.
 
   with-other-function :
+    {A : Type ℓ₁} {B : Type ℓ₂}
     (A≃B : A ≃ᴱ B) (f : A → B) →
     @0 (∀ x → _≃ᴱ_.to A≃B x ≡ f x) →
     A ≃ᴱ B
@@ -1199,6 +1278,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- The same applies to the other direction.
 
   with-other-inverse :
+    {A : Type ℓ₂} {B : Type ℓ₁}
     (A≃B : A ≃ᴱ B) (g : B → A) →
     @0 (∀ x → _≃ᴱ_.from A≃B x ≡ g x) →
     A ≃ᴱ B
@@ -1212,31 +1292,6 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   _ = refl _
 
   ----------------------------------------------------------------------
-  -- Variants of some lemmas from Function-universe
-
-  -- A variant of drop-⊤-left-Σ.
-
-  drop-⊤-left-Σ-≃ᴱ-Erased :
-    {P : @0 A → Type p} →
-    (A≃⊤ : A ≃ᴱ ⊤) → Σ A (λ x → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
-  drop-⊤-left-Σ-≃ᴱ-Erased {A = A} {P = P} A≃⊤ =
-    Σ A (λ x → P x)                  ↝⟨ inverse $ Σ-cong-≃ᴱ-Erased (inverse A≃⊤) (λ _ → F.id) ⟩
-    Σ ⊤ (λ x → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Σ-left-identity ⟩□
-    P (_≃ᴱ_.from A≃⊤ tt)             □
-
-  -- A variant of drop-⊤-left-Π.
-
-  drop-⊤-left-Π-≃ᴱ-Erased :
-    {A : Type a} {P : @0 A → Type p} →
-    @0 Extensionality a p →
-    (A≃⊤ : A ≃ᴱ ⊤) →
-    ((x : A) → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
-  drop-⊤-left-Π-≃ᴱ-Erased {A = A} {P = P} ext A≃⊤ =
-    ((x : A) → P x)                  ↝⟨ Π-cong-contra-≃ᴱ-Erased ext (inverse A≃⊤) (λ _ → F.id) ⟩
-    ((x : ⊤) → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Π-left-identity ⟩□
-    P (_≃ᴱ_.from A≃⊤ tt)             □
-
-  ----------------------------------------------------------------------
   -- More conversion lemmas
 
   -- Some equivalences relating Is-equivalenceᴱ to Is-equivalence.
@@ -1244,14 +1299,14 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- See also Is-equivalenceᴱ↔Is-equivalence below.
 
   Erased-Is-equivalenceᴱ≃Erased-Is-equivalence :
-    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+    {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
     Erased (Is-equivalenceᴱ f) ≃ Erased (Is-equivalence f)
   Erased-Is-equivalenceᴱ≃Erased-Is-equivalence {f = f} =
     Erased (∃ λ f⁻¹ → Erased (HA.Proofs f f⁻¹))  ↝⟨ Erased-cong-≃ (∃-cong λ _ → Eq.↔⇒≃ $ erased Erased↔) ⟩□
     Erased (∃ λ f⁻¹ → HA.Proofs f f⁻¹)           □
 
   Erased-Is-equivalence≃Is-equivalenceᴱ :
-    {@0 A : Type a} {B : Type b} {@0 f : Erased A → B} →
+    {@0 A : Type ℓ₁} {B : Type ℓ₂} {@0 f : Erased A → B} →
     Erased (Is-equivalence f) ≃ Is-equivalenceᴱ f
   Erased-Is-equivalence≃Is-equivalenceᴱ {A = A} {B = B} {f = f} =
     Erased (Is-equivalence f)                                  ↔⟨ Erased-cong-↔ (F.inverse $ drop-⊤-right λ _ →
@@ -1310,8 +1365,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- (assuming extensionality).
 
   Is-equivalenceᴱ-propositional-for-Erased :
-    @0 Extensionality (a ⊔ b) (a ⊔ b) →
-    {@0 A : Type a} {B : Type b} (@0 f : Erased A → B) →
+    @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    {@0 A : Type ℓ₁} {B : Type ℓ₂} (@0 f : Erased A → B) →
     Is-proposition (Is-equivalenceᴱ f)
   Is-equivalenceᴱ-propositional-for-Erased ext f =
                                                 $⟨ H-level-Erased 1 (Eq.propositional ext _) ⟩
@@ -1322,8 +1377,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Note that one side of the equivalence is Erased A.
 
   to≡to→≡-Erased :
-    {@0 A : Type a} {B : Type b} {p q : Erased A ≃ᴱ B} →
-    Extensionality (a ⊔ b) (a ⊔ b) →
+    {@0 A : Type ℓ₁} {B : Type ℓ₂} {p q : Erased A ≃ᴱ B} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     _≃ᴱ_.to p ≡ _≃ᴱ_.to q → p ≡ q
   to≡to→≡-Erased {p = ⟨ f , f-eq ⟩} {q = ⟨ g , g-eq ⟩} ext f≡g =
     elim (λ {f g} f≡g → ∀ f-eq g-eq → ⟨ f , f-eq ⟩ ≡ ⟨ g , g-eq ⟩)
@@ -1332,50 +1387,24 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
               (Is-equivalenceᴱ-propositional-for-Erased ext _ _ _))
          f≡g f-eq g-eq
 
-  -- If f is an equivalence (with erased proofs) from Erased A to B,
-  -- then x ≡ y is equivalent (with erased proofs) to f x ≡ f y.
-
-  to≡to≃ᴱ≡-Erased :
-    (A≃B : Erased A ≃ᴱ B) →
-    (_≃ᴱ_.to A≃B x ≡ _≃ᴱ_.to A≃B y) ≃ᴱ (x ≡ y)
-  to≡to≃ᴱ≡-Erased {A = A} {B = B} {x = x} {y = y} A≃B =
-    [≃]→≃ᴱ ([proofs] ≡≃≡)
-    where
-    @0 ≡≃≡ : (_≃ᴱ_.to A≃B x ≡ _≃ᴱ_.to A≃B y) ≃ (x ≡ y)
-    ≡≃≡ =
-      Eq.with-other-function
-        (Eq.≃-≡ (≃ᴱ→≃ A≃B))
-        (λ eq →
-           x                              ≡⟨ sym $ []-cong [ cong erased (_≃ᴱ_.left-inverse-of A≃B x) ] ⟩
-           _≃ᴱ_.from A≃B (_≃ᴱ_.to A≃B x)  ≡⟨ cong (_≃ᴱ_.from A≃B) eq ⟩
-           _≃ᴱ_.from A≃B (_≃ᴱ_.to A≃B y)  ≡⟨ []-cong [ cong erased (_≃ᴱ_.left-inverse-of A≃B y) ] ⟩∎
-           y                              ∎)
-        (λ eq →
-           let f = _≃ᴱ_.left-inverse-of A≃B in
-           trans (sym (f x)) (trans (cong (_≃ᴱ_.from A≃B) eq) (f y))  ≡⟨ cong₂ (λ p q → trans (sym p) (trans (cong (_≃ᴱ_.from A≃B) eq) q))
-                                                                           (sym $ _≃_.right-inverse-of ≡≃[]≡[] _)
-                                                                           (sym $ _≃_.right-inverse-of ≡≃[]≡[] _) ⟩∎
-           trans (sym ([]-cong [ cong erased (f x) ]))
-              (trans (cong (_≃ᴱ_.from A≃B) eq)
-                 ([]-cong [ cong erased (f y) ]))                     ∎)
-
   ----------------------------------------------------------------------
   -- More lemmas
 
   -- An equivalence relating Is-equivalenceᴱ to Is-equivalence.
 
   Is-equivalenceᴱ↔Is-equivalence :
-    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
-    Is-equivalenceᴱ (map f) ↝[ a ⊔ b ∣ a ⊔ b ] Is-equivalence (map f)
-  Is-equivalenceᴱ↔Is-equivalence {a = a} {f = f} =
+    {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
+    Is-equivalenceᴱ (map f) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
+    Is-equivalence (map f)
+  Is-equivalenceᴱ↔Is-equivalence {f = f} =
     generalise-ext?-prop
       (Is-equivalenceᴱ (map f)                                        ↝⟨ Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP ⟩
        (∀ y → Contractibleᴱ (map f ⁻¹ᴱ y))                            ↔⟨⟩
-       (∀ y → Contractibleᴱ (∃ λ x → Erased ([ f (erased x) ] ≡ y)))  ↝⟨ (∀-cong _ λ _ → ECP.[]-cong.Contractibleᴱ-cong ax _ (Eq.↔⇒≃ $ F.inverse Erased-Σ↔Σ)) ⟩
-       (∀ y → Contractibleᴱ (Erased (∃ λ x → [ f x ] ≡ y)))           ↝⟨ (∀-cong _ λ _ → ECP.[]-cong.Contractibleᴱ-Erased↔Contractible-Erased ax _) ⟩
+       (∀ y → Contractibleᴱ (∃ λ x → Erased ([ f (erased x) ] ≡ y)))  ↝⟨ (∀-cong _ λ _ → ECP.[]-cong₂.Contractibleᴱ-cong ax ax _ (Eq.↔⇒≃ $ F.inverse Erased-Σ↔Σ)) ⟩
+       (∀ y → Contractibleᴱ (Erased (∃ λ x → [ f x ] ≡ y)))           ↝⟨ (∀-cong _ λ _ → ECP.[]-cong₁.Contractibleᴱ-Erased↔Contractible-Erased ax _) ⟩
        (∀ y → Contractible (Erased (∃ λ x → [ f x ] ≡ y)))            ↝⟨ (∀-cong _ λ _ → H-level-cong _ 0 Erased-Σ↔Σ) ⟩
        (∀ y → Contractible (∃ λ x → Erased (map f x ≡ y)))            ↔⟨⟩
-       (∀ y → Contractible (map f ⁻¹ᴱ y))                             ↝⟨ (∀-cong _ λ _ → H-level-cong _ 0 $ ECP.[]-cong.⁻¹ᴱ[]↔⁻¹[] ax) ⟩
+       (∀ y → Contractible (map f ⁻¹ᴱ y))                             ↝⟨ (∀-cong _ λ _ → H-level-cong _ 0 $ ECP.[]-cong₁.⁻¹ᴱ[]↔⁻¹[] ax₂) ⟩
        (∀ y → Contractible (map f ⁻¹ y))                              ↝⟨ inverse-ext? Is-equivalence≃Is-equivalence-CP _ ⟩□
        Is-equivalence (map f)                                         □)
       (λ ext → Is-equivalenceᴱ-propositional-for-Erased ext _)
@@ -1384,8 +1413,8 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Erased "commutes" with Is-equivalenceᴱ (assuming extensionality).
 
   Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ :
-    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
-    Erased (Is-equivalenceᴱ f) ↝[ a ⊔ b ∣ a ⊔ b ]ᴱ
+    {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
+    Erased (Is-equivalenceᴱ f) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]ᴱ
     Is-equivalenceᴱ (map f)
   Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ {f = f} ext =
     Erased (Is-equivalenceᴱ f)          ↔⟨ Erased-Is-equivalenceᴱ≃Erased-Is-equivalence ⟩
@@ -1393,3 +1422,17 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     Erased (Erased (Is-equivalence f))  ↝⟨ Erased-cong? Erased-Is-equivalence↔Is-equivalence ext ⟩
     Erased (Is-equivalence (map f))     ↔⟨ Erased-Is-equivalence≃Is-equivalenceᴱ ⟩□
     Is-equivalenceᴱ (map f)             □
+
+------------------------------------------------------------------------
+-- Results that depend on an axiomatisation of []-cong (for all
+-- universe levels)
+
+module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
+
+  private
+    open module BC₁ {ℓ} =
+      []-cong₁ (ax {ℓ = ℓ})
+      public
+    open module BC₂ {ℓ₁ ℓ₂} =
+      []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) (ax {ℓ = ℓ₁ ⊔ ℓ₂})
+      public
