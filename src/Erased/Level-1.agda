@@ -1514,6 +1514,70 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       (λ eq → decP (substᴱ P eq x₂) y₂)
 
 ------------------------------------------------------------------------
+-- Erased commutes with W
+
+-- Erased commutes with W (assuming extensionality and an
+-- implementation of the []-cong axioms).
+--
+-- See also Erased-W↔W′ and Erased-W↔W below.
+
+Erased-W↔W-[]-cong :
+  {@0 A : Type a} {@0 P : A → Type p} →
+  []-cong-axiomatisation (a ⊔ p) →
+  Erased (W A P) ↝[ p ∣ a ⊔ p ]
+  W (Erased A) (λ x → Erased (P (erased x)))
+Erased-W↔W-[]-cong {a = a} {p = p} {A = A} {P = P} ax =
+  generalise-ext?
+    Erased-W⇔W
+    (λ ext → record
+       { surjection = record
+         { logical-equivalence = Erased-W⇔W
+         ; right-inverse-of    = to∘from ext
+         }
+       ; left-inverse-of = from∘to ext
+       })
+  where
+  open []-cong-axiomatisation ax
+  open _⇔_ Erased-W⇔W
+
+  to∘from :
+    Extensionality p (a ⊔ p) →
+    (x : W (Erased A) (λ x → Erased (P (erased x)))) →
+    to (from x) ≡ x
+  to∘from ext (sup [ x ] f) =
+    cong (sup [ x ]) $
+    apply-ext ext λ ([ y ]) →
+    to∘from ext (f [ y ])
+
+  from∘to :
+    Extensionality p (a ⊔ p) →
+    (x : Erased (W A P)) → from (to x) ≡ x
+  from∘to ext [ sup x f ] =
+    []-cong
+      [ (cong (sup x) $
+         apply-ext ext λ y →
+         cong erased (from∘to ext [ f y ]))
+      ]
+
+-- Erased commutes with W (assuming extensionality).
+--
+-- See also Erased-W↔W below: That property is defined assuming that
+-- the []-cong axioms can be instantiated, but is stated using
+-- _↝[ p ∣ a ⊔ p ]_ instead of _↝[ a ⊔ p ∣ a ⊔ p ]_.
+
+Erased-W↔W′ :
+  {@0 A : Type a} {@0 P : A → Type p} →
+  Erased (W A P) ↝[ a ⊔ p ∣ a ⊔ p ]
+  W (Erased A) (λ x → Erased (P (erased x)))
+Erased-W↔W′ {a = a} =
+  generalise-ext?
+    Erased-W⇔W
+    (λ ext →
+       Erased-W↔W-[]-cong
+         (Extensionality→[]-cong ext)
+         (lower-extensionality a lzero ext))
+
+------------------------------------------------------------------------
 -- Some results that follow if the []-cong axioms hold for the maximum
 -- of two universe levels (as well as for the two universe levels)
 
@@ -1707,35 +1771,7 @@ module []-cong₂
     {@0 A : Type ℓ₁} {@0 P : A → Type ℓ₂} →
     Erased (W A P) ↝[ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
     W (Erased A) (λ x → Erased (P (erased x)))
-  Erased-W↔W {A = A} {P = P} =
-    generalise-ext?
-      Erased-W⇔W
-      (λ ext → record
-         { surjection = record
-           { logical-equivalence = Erased-W⇔W
-           ; right-inverse-of    = to∘from ext
-           }
-         ; left-inverse-of = from∘to ext
-         })
-    where
-    open _⇔_ Erased-W⇔W
-
-    to∘from :
-      Extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) →
-      (x : W (Erased A) (λ x → Erased (P (erased x)))) →
-      to (from x) ≡ x
-    to∘from ext (sup [ x ] f) =
-      cong (sup [ x ]) $ apply-ext ext (λ ([ y ]) →
-      to∘from ext (f [ y ]))
-
-    from∘to :
-      Extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) →
-      (x : Erased (W A P)) → from (to x) ≡ x
-    from∘to ext [ sup x f ] =
-      BC.[]-cong
-        [ (cong (sup x) $ apply-ext ext λ y →
-           cong erased (from∘to ext [ f y ]))
-        ]
+  Erased-W↔W = Erased-W↔W-[]-cong ax
 
   -- Erased commutes with _⇔_.
 
