@@ -624,6 +624,46 @@ Erasedᴾ-preserves-Is-equivalence-relation equiv = λ where
     zip (equiv .Is-equivalence-relation.transitive)
 
 ------------------------------------------------------------------------
+-- Some results that hold in erased contexts
+
+-- In an erased context there is an equivalence between equality of
+-- "boxed" values and equality of values.
+
+@0 []≡[]≃≡ : ([ x ] ≡ [ y ]) ≃ (x ≡ y)
+[]≡[]≃≡ = Eq.↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = cong erased
+      ; from = cong [_]→
+      }
+    ; right-inverse-of = λ eq →
+        cong erased (cong [_]→ eq)  ≡⟨ cong-∘ _ _ _ ⟩
+        cong id eq                  ≡⟨ sym $ cong-id _ ⟩∎
+        eq                          ∎
+    }
+  ; left-inverse-of = λ eq →
+      cong [_]→ (cong erased eq)  ≡⟨ cong-∘ _ _ _ ⟩
+      cong id eq                  ≡⟨ sym $ cong-id _ ⟩∎
+      eq                          ∎
+  })
+
+-- In an erased context [_]→ is always an embedding.
+
+Erased-Is-embedding-[] :
+  {@0 A : Type a} → Erased (Is-embedding ([_]→ {A = A}))
+Erased-Is-embedding-[] =
+  [ (λ x y → _≃_.is-equivalence (
+       x ≡ y          ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔ ⟩□
+       [ x ] ≡ [ y ]  □))
+  ]
+
+-- In an erased context [_]→ is always split surjective.
+
+Erased-Split-surjective-[] :
+  {@0 A : Type a} → Erased (Split-surjective ([_]→ {A = A}))
+Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
+
+------------------------------------------------------------------------
 -- []-cong
 
 -- An axiomatisation for []-cong.
@@ -639,6 +679,25 @@ record []-cong-axiomatisation a : Type (lsuc a) where
     []-cong-[refl] :
       {A : Type a} {x : A} →
       []-cong [ refl x ] ≡ refl [ x ]
+
+-- The []-cong axioms can be instantiated in erased contexts.
+
+@0 erased-instance-of-[]-cong-axiomatisation :
+  []-cong-axiomatisation a
+erased-instance-of-[]-cong-axiomatisation
+  .[]-cong-axiomatisation.[]-cong =
+  cong [_]→ ∘ erased
+erased-instance-of-[]-cong-axiomatisation
+  .[]-cong-axiomatisation.[]-cong-equivalence {x = x} {y = y} =
+  _≃_.is-equivalence
+    (Erased (x ≡ y)  ↔⟨ erased Erased↔ ⟩
+     x ≡ y           ↝⟨ inverse []≡[]≃≡ ⟩□
+     [ x ] ≡ [ y ]   □)
+erased-instance-of-[]-cong-axiomatisation
+  .[]-cong-axiomatisation.[]-cong-[refl] {x = x} =
+  cong [_]→ (erased [ refl x ])  ≡⟨⟩
+  cong [_]→ (refl x)             ≡⟨ cong-refl _ ⟩∎
+  refl [ x ]                     ∎
 
 -- If the []-cong axioms can be implemented for a certain universe
 -- level, then they can also be implemented for all smaller universe
@@ -694,64 +753,139 @@ lower-[]-cong-axiomatisation {a = a} a′ ax = λ where
     cong (map lower) (refl [ lift x ])                 ≡⟨ cong-refl _ ⟩∎
     refl [ x ]                                         ∎
 
-------------------------------------------------------------------------
--- Some results that hold in erased contexts
+-- Some lemmas used to implement Extensionality→[]-cong.
 
--- In an erased context there is an equivalence between equality of
--- "boxed" values and equality of values.
+module Extensionality→[]-cong (ext′ : Extensionality a a) where
 
-@0 []≡[]≃≡ : ([ x ] ≡ [ y ]) ≃ (x ≡ y)
-[]≡[]≃≡ = Eq.↔⇒≃ (record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = cong erased
-      ; from = cong [_]→
+  private
+    ext = Eq.good-ext ext′
+
+  -- Equality is stable for Erased A.
+  --
+  -- The proof is based on the proof of Lemma 1.25 in "Modalities in
+  -- Homotopy Type Theory" by Rijke, Shulman and Spitters, and the
+  -- corresponding Coq source code.
+
+  Stable-≡-Erased : {@0 A : Type a} → Stable-≡ (Erased A)
+  Stable-≡-Erased [ x ] [ y ] eq =
+    [ x ]                                       ≡⟨ flip ext⁻¹ eq (
+
+      (λ (_ : Erased ([ x ] ≡ [ y ])) → [ x ])       ≡⟨ ∘-[]-injective (
+
+        (λ (_ : [ x ] ≡ [ y ]) → [ x ])                   ≡⟨ apply-ext ext (λ (eq : [ x ] ≡ [ y ]) →
+
+          [ x ]                                                ≡⟨ eq ⟩∎
+          [ y ]                                                ∎) ⟩∎
+
+        (λ (_ : [ x ] ≡ [ y ]) → [ y ])                   ∎) ⟩∎
+
+      (λ (_ : Erased ([ x ] ≡ [ y ])) → [ y ])       ∎) ⟩∎
+
+    [ y ]                                       ∎
+
+  -- A "computation rule" for Stable-≡-Erased.
+
+  Stable-≡-Erased-[refl] :
+    {@0 A : Type a} {x : Erased A} →
+    Stable-≡-Erased x x [ refl x ] ≡ refl x
+  Stable-≡-Erased-[refl] {x = [ x ]} =
+    Stable-≡-Erased [ x ] [ x ] [ refl [ x ] ]                ≡⟨⟩
+    ext⁻¹ (∘-[]-injective (apply-ext ext id)) [ refl [ x ] ]  ≡⟨ ext⁻¹-∘-[]-injective ⟩
+    ext⁻¹ (apply-ext ext id) (refl [ x ])                     ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) _ ⟩∎
+    refl [ x ]                                                ∎
+
+  -- An implementation of []-cong.
+
+  []-cong :
+    {@0 A : Type a} {@0 x y : A} →
+    Erased (x ≡ y) → [ x ] ≡ [ y ]
+  []-cong {x = x} {y = y} =
+    Erased (x ≡ y)          ↝⟨ map (cong [_]→) ⟩
+    Erased ([ x ] ≡ [ y ])  ↝⟨ Stable-≡-Erased _ _ ⟩□
+    [ x ] ≡ [ y ]           □
+
+  -- A "computation rule" for []-cong.
+
+  []-cong-[refl] :
+    {@0 A : Type a} {@0 x : A} →
+    []-cong [ refl x ] ≡ refl [ x ]
+  []-cong-[refl] {x = x} =
+    []-cong [ refl x ]                          ≡⟨⟩
+    Stable-≡-Erased _ _ [ cong [_]→ (refl x) ]  ≡⟨ cong (Stable-≡-Erased _ _) ([]-cong [ cong-refl _ ]) ⟩
+    Stable-≡-Erased _ _ [ refl [ x ] ]          ≡⟨ Stable-≡-Erased-[refl] ⟩∎
+    refl [ x ]                                  ∎
+
+  -- Equality is very stable for Erased A.
+
+  Very-stable-≡-Erased :
+    {@0 A : Type a} → Very-stable-≡ (Erased A)
+  Very-stable-≡-Erased x y =
+    _≃_.is-equivalence (Eq.↔⇒≃ (record
+      { surjection = record
+        { logical-equivalence = record
+          { from = Stable-≡-Erased x y
+          }
+        ; right-inverse-of = λ ([ eq ]) → []-cong [ lemma eq ]
+        }
+      ; left-inverse-of = lemma
+      }))
+    where
+    lemma = elim¹
+      (λ eq → Stable-≡-Erased _ _ [ eq ] ≡ eq)
+      Stable-≡-Erased-[refl]
+
+  -- The following reimplementations of functions from Erased.[]-cong₁
+  -- are restricted to types in Type a (where a is the universe level
+  -- for which extensionality is assumed to hold).
+
+  module _ {@0 A B : Type a} where
+
+    Erased-cong-↠ : @0 A ↠ B → Erased A ↠ Erased B
+    Erased-cong-↠ A↠B = record
+      { logical-equivalence = Erased-cong-⇔
+                                (_↠_.logical-equivalence A↠B)
+      ; right-inverse-of    = λ { [ x ] →
+          []-cong [ _↠_.right-inverse-of A↠B x ] }
       }
-    ; right-inverse-of = λ eq →
-        cong erased (cong [_]→ eq)  ≡⟨ cong-∘ _ _ _ ⟩
-        cong id eq                  ≡⟨ sym $ cong-id _ ⟩∎
-        eq                          ∎
-    }
-  ; left-inverse-of = λ eq →
-      cong [_]→ (cong erased eq)  ≡⟨ cong-∘ _ _ _ ⟩
-      cong id eq                  ≡⟨ sym $ cong-id _ ⟩∎
-      eq                          ∎
-  })
 
--- The []-cong axioms can be instantiated in erased contexts.
+    Erased-cong-↔ : @0 A ↔ B → Erased A ↔ Erased B
+    Erased-cong-↔ A↔B = record
+      { surjection      = Erased-cong-↠ (_↔_.surjection A↔B)
+      ; left-inverse-of = λ { [ x ] →
+          []-cong [ _↔_.left-inverse-of A↔B x ] }
+      }
 
-@0 erased-instance-of-[]-cong-axiomatisation :
+    Erased-cong-≃ : @0 A ≃ B → Erased A ≃ Erased B
+    Erased-cong-≃ A≃B =
+      from-isomorphism (Erased-cong-↔ (from-isomorphism A≃B))
+
+  -- []-cong is an equivalence.
+
+  []-cong-equivalence :
+    {@0 A : Type a} {@0 x y : A} →
+    Is-equivalence ([]-cong {x = x} {y = y})
+  []-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (
+    Erased (x ≡ y)          ↝⟨ inverse $ Erased-cong-≃ []≡[]≃≡ ⟩
+    Erased ([ x ] ≡ [ y ])  ↝⟨ inverse Eq.⟨ _ , Very-stable-≡-Erased _ _ ⟩ ⟩□
+    [ x ] ≡ [ y ]           □)
+
+-- If we have extensionality, then []-cong can be implemented.
+--
+-- The idea for this result comes from "Modalities in Homotopy Type
+-- Theory" in which Rijke, Shulman and Spitters state that []-cong can
+-- be implemented for every modality, and that it is an equivalence
+-- for lex modalities (Theorem 3.1 (ix)).
+
+Extensionality→[]-cong :
+  Extensionality a a →
   []-cong-axiomatisation a
-erased-instance-of-[]-cong-axiomatisation
-  .[]-cong-axiomatisation.[]-cong =
-  cong [_]→ ∘ erased
-erased-instance-of-[]-cong-axiomatisation
-  .[]-cong-axiomatisation.[]-cong-equivalence {x = x} {y = y} =
-  _≃_.is-equivalence
-    (Erased (x ≡ y)  ↔⟨ erased Erased↔ ⟩
-     x ≡ y           ↝⟨ inverse []≡[]≃≡ ⟩□
-     [ x ] ≡ [ y ]   □)
-erased-instance-of-[]-cong-axiomatisation
-  .[]-cong-axiomatisation.[]-cong-[refl] {x = x} =
-  cong [_]→ (erased [ refl x ])  ≡⟨⟩
-  cong [_]→ (refl x)             ≡⟨ cong-refl _ ⟩∎
-  refl [ x ]                     ∎
-
--- In an erased context [_]→ is always an embedding.
-
-Erased-Is-embedding-[] :
-  {@0 A : Type a} → Erased (Is-embedding ([_]→ {A = A}))
-Erased-Is-embedding-[] =
-  [ (λ x y → _≃_.is-equivalence (
-       x ≡ y          ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔ ⟩□
-       [ x ] ≡ [ y ]  □))
-  ]
-
--- In an erased context [_]→ is always split surjective.
-
-Erased-Split-surjective-[] :
-  {@0 A : Type a} → Erased (Split-surjective ([_]→ {A = A}))
-Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
+Extensionality→[]-cong ext = record
+  { []-cong             = []-cong
+  ; []-cong-equivalence = []-cong-equivalence
+  ; []-cong-[refl]      = []-cong-[refl]
+  }
+  where
+  open Extensionality→[]-cong ext
 
 ------------------------------------------------------------------------
 -- Some results that follow if the []-cong axioms hold
