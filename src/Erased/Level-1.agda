@@ -24,6 +24,7 @@ open import Embedding eq-J as Emb using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq-J
 open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
 import Equivalence.Contractible-preimages eq-J as CP
+open import Equivalence.Erased.Basics eq-J using (Is-equivalenceᴱ)
 open import Equivalence-relation eq-J
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
@@ -47,6 +48,45 @@ private
 -- Some basic definitions
 
 open import Erased.Basics public
+
+------------------------------------------------------------------------
+-- Stability
+
+mutual
+
+  -- A type A is stable if Erased A implies A.
+
+  Stable : Type a → Type a
+  Stable = Stable-[ implication ]
+
+  -- A generalisation of Stable.
+
+  Stable-[_] : Kind → Type a → Type a
+  Stable-[ k ] A = Erased A ↝[ k ] A
+
+-- A variant of Stable-[ equivalence ].
+
+Very-stable : Type a → Type a
+Very-stable A = Is-equivalence ([_]→ {A = A})
+
+-- A variant of Stable-[ equivalenceᴱ ].
+
+Very-stableᴱ : Type a → Type a
+Very-stableᴱ A = Is-equivalenceᴱ ([_]→ {A = A})
+
+-- Variants of the definitions above for equality.
+
+Stable-≡ : Type a → Type a
+Stable-≡ = For-iterated-equality 1 Stable
+
+Stable-≡-[_] : Kind → Type a → Type a
+Stable-≡-[ k ] = For-iterated-equality 1 Stable-[ k ]
+
+Very-stable-≡ : Type a → Type a
+Very-stable-≡ = For-iterated-equality 1 Very-stable
+
+Very-stableᴱ-≡ : Type a → Type a
+Very-stableᴱ-≡ = For-iterated-equality 1 Very-stableᴱ
 
 ------------------------------------------------------------------------
 -- Erased is a monad

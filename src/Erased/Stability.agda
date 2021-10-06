@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- Stability for Erased
+-- Properties related to stability for Erased
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K --safe #-}
@@ -45,45 +45,6 @@ private
     P         : A → Type p
     k k′ x y  : A
     n         : ℕ
-
-------------------------------------------------------------------------
--- Stability
-
-mutual
-
-  -- A type A is stable if Erased A implies A.
-
-  Stable : Type a → Type a
-  Stable = Stable-[ implication ]
-
-  -- A generalisation of Stable.
-
-  Stable-[_] : Kind → Type a → Type a
-  Stable-[ k ] A = Erased A ↝[ k ] A
-
--- A variant of Stable-[ equivalence ].
-
-Very-stable : Type a → Type a
-Very-stable A = Is-equivalence ([_]→ {A = A})
-
--- A variant of Stable-[ equivalenceᴱ ].
-
-Very-stableᴱ : Type a → Type a
-Very-stableᴱ A = Is-equivalenceᴱ ([_]→ {A = A})
-
--- Variants of the definitions above for equality.
-
-Stable-≡ : Type a → Type a
-Stable-≡ = For-iterated-equality 1 Stable
-
-Stable-≡-[_] : Kind → Type a → Type a
-Stable-≡-[ k ] = For-iterated-equality 1 Stable-[ k ]
-
-Very-stable-≡ : Type a → Type a
-Very-stable-≡ = For-iterated-equality 1 Very-stable
-
-Very-stableᴱ-≡ : Type a → Type a
-Very-stableᴱ-≡ = For-iterated-equality 1 Very-stableᴱ
 
 ------------------------------------------------------------------------
 -- Some lemmas related to stability

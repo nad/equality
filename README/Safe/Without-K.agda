@@ -222,7 +222,7 @@ import Embedding.Erased
 
 import Erased.Level-2
 
--- Stability for Erased.
+-- Properties related to stability for Erased.
 
 import Erased.Stability
 
