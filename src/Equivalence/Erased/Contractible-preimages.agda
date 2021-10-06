@@ -16,7 +16,8 @@ open import Prelude
 open import Bijection eq using (_↔_)
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence.Contractible-preimages eq as CP
-open import Erased.Level-1 eq as Erased hiding (module []-cong)
+open import Erased.Level-1 eq as Erased
+  hiding (module []-cong; module []-cong₁; module []-cong₂)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -25,7 +26,7 @@ open import Surjection eq using (_↠_; Split-surjective)
 
 private
   variable
-    a b ℓ            : Level
+    a b ℓ ℓ₁ ℓ₂      : Level
     A B              : Type a
     c ext k k′ p x y : A
     P                : A → Type p
@@ -327,11 +328,13 @@ Contractibleᴱ-↑ c@(a , _) =
     ]
 
 ------------------------------------------------------------------------
--- Results that depend on an axiomatisation of []-cong
+-- Results that follow if the []-cong axioms hold for one universe
+-- level
 
-module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
+module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
-  open Erased.[]-cong ax
+  open Erased-cong ax ax
+  open Erased.[]-cong₁ ax
 
   ----------------------------------------------------------------------
   -- Some results related to _⁻¹ᴱ_
@@ -339,7 +342,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- The function _⁻¹ᴱ y respects erased extensional equality.
 
   ⁻¹ᴱ-respects-extensional-equality :
-    {@0 B : Type b} {@0 f g : A → B} {@0 y : B} →
+    {@0 B : Type ℓ} {@0 f g : A → B} {@0 y : B} →
     @0 (∀ x → f x ≡ g x) → f ⁻¹ᴱ y ≃ g ⁻¹ᴱ y
   ⁻¹ᴱ-respects-extensional-equality {f = f} {g = g} {y = y} f≡g =
     (∃ λ x → Erased (f x ≡ y))  ↝⟨ (∃-cong λ _ → Erased-cong-≃ (≡⇒↝ _ (cong (_≡ _) $ f≡g _))) ⟩□
@@ -348,7 +351,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- An isomorphism relating _⁻¹ᴱ_ to _⁻¹_.
 
   ⁻¹ᴱ[]↔⁻¹[] :
-    {@0 B : Type b} {f : A → Erased B} {@0 y : B} →
+    {@0 B : Type ℓ} {f : A → Erased B} {@0 y : B} →
     f ⁻¹ᴱ [ y ] ↔ f ⁻¹ [ y ]
   ⁻¹ᴱ[]↔⁻¹[] {f = f} {y = y} =
     (∃ λ x → Erased (f x ≡ [ y ]))       ↔⟨ (∃-cong λ _ → Erased-cong-≃ (Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔)) ⟩
@@ -358,7 +361,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Erased "commutes" with _⁻¹ᴱ_.
 
   Erased-⁻¹ᴱ :
-    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} {@0 y : B} →
+    {@0 A : Type a} {@0 B : Type ℓ} {@0 f : A → B} {@0 y : B} →
     Erased (f ⁻¹ᴱ y) ↔ map f ⁻¹ᴱ [ y ]
   Erased-⁻¹ᴱ {f = f} {y = y} =
     Erased (f ⁻¹ᴱ y)  ↝⟨ Erased-⁻¹ᴱ↔Erased-⁻¹ ⟩
@@ -369,27 +372,11 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   ----------------------------------------------------------------------
   -- Some results related to Contractibleᴱ
 
-  -- Contractibleᴱ preserves isomorphisms (assuming extensionality).
-
-  Contractibleᴱ-cong :
-    {A : Type a} {B : Type b} →
-    @0 Extensionality? k′ (a ⊔ b) (a ⊔ b) →
-    A ↔[ k ] B → Contractibleᴱ A ↝[ k′ ] Contractibleᴱ B
-  Contractibleᴱ-cong {A = A} {B = B} ext A↔B =
-    (∃ λ (x : A) → Erased ((y : A) → x ≡ y))  ↝⟨ (Σ-cong A≃B′ λ _ →
-                                                  Erased-cong?
-                                                    (λ ext → Π-cong ext A≃B′ λ _ →
-                                                             from-isomorphism $ inverse $ Eq.≃-≡ A≃B′)
-                                                    ext) ⟩□
-    (∃ λ (x : B) → Erased ((y : B) → x ≡ y))  □
-    where
-    A≃B′ = from-isomorphism A↔B
-
   -- Erased commutes with Contractibleᴱ.
 
   Erased-Contractibleᴱ↔Contractibleᴱ-Erased :
-    {@0 A : Type a} →
-    Erased (Contractibleᴱ A) ↝[ a ∣ a ]ᴱ Contractibleᴱ (Erased A)
+    {@0 A : Type ℓ} →
+    Erased (Contractibleᴱ A) ↝[ ℓ ∣ ℓ ]ᴱ Contractibleᴱ (Erased A)
   Erased-Contractibleᴱ↔Contractibleᴱ-Erased {A = A} ext =
     Erased (∃ λ x → Erased ((y : A) → x ≡ y))           ↔⟨ Erased-cong-↔ (∃-cong λ _ → erased Erased↔) ⟩
     Erased (∃ λ x → (y : A) → x ≡ y)                    ↔⟨ Erased-Σ↔Σ ⟩
@@ -408,10 +395,54 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- An isomorphism relating Contractibleᴱ to Contractible.
 
   Contractibleᴱ-Erased↔Contractible-Erased :
-    {@0 A : Type a} →
-    Contractibleᴱ (Erased A) ↝[ a ∣ a ] Contractible (Erased A)
+    {@0 A : Type ℓ} →
+    Contractibleᴱ (Erased A) ↝[ ℓ ∣ ℓ ] Contractible (Erased A)
   Contractibleᴱ-Erased↔Contractible-Erased {A = A} ext =
     Contractibleᴱ (Erased A)  ↝⟨ inverse-erased-ext? Erased-Contractibleᴱ↔Contractibleᴱ-Erased ext ⟩
     Erased (Contractibleᴱ A)  ↔⟨ Erased-Contractibleᴱ↔Erased-Contractible ⟩
     Erased (Contractible A)   ↝⟨ Erased-H-level↔H-level 0 ext ⟩□
     Contractible (Erased A)   □
+
+------------------------------------------------------------------------
+-- Results that follow if the []-cong axioms hold for two universe
+-- levels
+
+module []-cong₂
+  (ax₁ : []-cong-axiomatisation ℓ₁)
+  (ax₂ : []-cong-axiomatisation ℓ₂)
+  where
+
+  open Erased-cong ax₁ ax₂
+
+  ----------------------------------------------------------------------
+  -- A result related to Contractibleᴱ
+
+  -- Contractibleᴱ preserves isomorphisms (assuming extensionality).
+
+  Contractibleᴱ-cong :
+    {A : Type ℓ₁} {B : Type ℓ₂} →
+    @0 Extensionality? k′ (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    A ↔[ k ] B → Contractibleᴱ A ↝[ k′ ] Contractibleᴱ B
+  Contractibleᴱ-cong {A = A} {B = B} ext A↔B =
+    (∃ λ (x : A) → Erased ((y : A) → x ≡ y))  ↝⟨ (Σ-cong A≃B′ λ _ →
+                                                  Erased-cong?
+                                                    (λ ext → Π-cong ext A≃B′ λ _ →
+                                                             from-isomorphism $ inverse $ Eq.≃-≡ A≃B′)
+                                                    ext) ⟩□
+    (∃ λ (x : B) → Erased ((y : B) → x ≡ y))  □
+    where
+    A≃B′ = from-isomorphism A↔B
+
+------------------------------------------------------------------------
+-- Results that follow if the []-cong axioms hold for all universe
+-- levels
+
+module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
+
+  private
+    open module BC₁ {ℓ} =
+      []-cong₁ (ax {ℓ = ℓ})
+      public
+    open module BC₂ {ℓ₁ ℓ₂} =
+      []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂})
+      public
