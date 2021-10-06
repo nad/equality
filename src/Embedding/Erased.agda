@@ -28,7 +28,7 @@ open import Preimage eq using (_⁻¹_)
 
 private
   variable
-    a b t   : Level
+    a b ℓ t : Level
     A B C   : Type a
     f k x y : A
 
@@ -187,9 +187,10 @@ embedding→⁻¹ᴱ-propositional {f = f} =
   (∀ y → Is-proposition (f ⁻¹ᴱ y))  □
 
 ------------------------------------------------------------------------
--- Results that depend on an axiomatisation of []-cong
+-- Results that depend on an axiomatisation of []-cong (for a single
+-- universe level)
 
-module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
+module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   ----------------------------------------------------------------------
   -- More conversion functions
@@ -198,17 +199,30 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- embeddings (with erased proofs).
 
   Is-equivalenceᴱ→Is-embeddingᴱ-Erased :
-    {f : Erased A → B} →
+    {A : Type ℓ} {f : Erased A → B} →
     Is-equivalenceᴱ f → Is-embeddingᴱ f
   Is-equivalenceᴱ→Is-embeddingᴱ-Erased eq _ _ =
     _≃ᴱ_.is-equivalence $ inverse $
-      EEq.[]-cong.to≡to≃ᴱ≡-Erased ax EEq.⟨ _ , eq ⟩
+      EEq.[]-cong₁.to≡to≃ᴱ≡-Erased ax EEq.⟨ _ , eq ⟩
 
   -- Equivalences with erased proofs between Erased A and B can be
   -- converted to embeddings with erased proofs.
 
-  Erased≃→Embedding : Erased A ≃ᴱ B → Embeddingᴱ (Erased A) B
+  Erased≃→Embedding :
+    {A : Type ℓ} →
+    Erased A ≃ᴱ B → Embeddingᴱ (Erased A) B
   Erased≃→Embedding EEq.⟨ f , is-equiv ⟩ = record
     { to           = f
     ; is-embedding = Is-equivalenceᴱ→Is-embeddingᴱ-Erased is-equiv
     }
+
+------------------------------------------------------------------------
+-- Results that depend on an axiomatisation of []-cong (for all
+-- universe levels)
+
+module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
+
+  private
+    open module BC₁ {ℓ} =
+      []-cong₁ (ax {ℓ = ℓ})
+      public
