@@ -24,11 +24,11 @@ open import Preimage eq as Preimage using (_⁻¹_)
 
 private
   variable
-    a b d ℓ p : Level
-    A B C     : Type a
-    P Q       : A → Type p
-    x y       : A
-    f g       : (x : A) → P x
+    a b c d ℓ p : Level
+    A B C       : Type a
+    P Q         : A → Type p
+    x y         : A
+    f g         : (x : A) → P x
 
 ------------------------------------------------------------------------
 -- Is-equivalenceᴱ
@@ -44,7 +44,9 @@ Is-equivalenceᴱ {A = A} {B = B} f =
 
 -- Conversions between Is-equivalence and Is-equivalenceᴱ.
 
-Is-equivalence→Is-equivalenceᴱ : Is-equivalence f → Is-equivalenceᴱ f
+Is-equivalence→Is-equivalenceᴱ :
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+  Is-equivalence f → Is-equivalenceᴱ f
 Is-equivalence→Is-equivalenceᴱ = Σ-map P.id [_]→
 
 @0 Is-equivalenceᴱ→Is-equivalence :
@@ -152,7 +154,9 @@ module _≃ᴱ_ {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ᴱ B) where
 
 -- Conversions between _≃_ and _≃ᴱ_.
 
-≃→≃ᴱ : A ≃ B → A ≃ᴱ B
+≃→≃ᴱ :
+  {@0 A : Type a} {@0 B : Type b} →
+  A ≃ B → A ≃ᴱ B
 ≃→≃ᴱ Eq.⟨ f , is-equiv ⟩ =
   ⟨ f , Is-equivalence→Is-equivalenceᴱ is-equiv ⟩
 
@@ -170,8 +174,11 @@ record Erased-proofs {A : Type a} {B : Type b}
 -- Extracts "erased proofs" from a regular equivalence.
 
 [proofs] :
+  {@0 A : Type a} {@0 B : Type b}
   (A≃B : A ≃ B) → Erased-proofs (_≃_.to A≃B) (_≃_.from A≃B)
-[proofs] A≃B .Erased-proofs.proofs = proj₂ (_≃_.is-equivalence A≃B)
+[proofs] A≃B .Erased-proofs.proofs =
+  let record { is-equivalence = is-equivalence } = A≃B in
+  proj₂₀ is-equivalence
 
 -- Converts two functions and some erased proofs to an equivalence
 -- with erased proofs.
@@ -180,7 +187,7 @@ record Erased-proofs {A : Type a} {B : Type b}
 -- first explicit argument, see (for instance) ↔→≃ᴱ below.
 
 [≃]→≃ᴱ :
-  {to : A → B} {from : B → A} →
+  {@0 A : Type a} {@0 B : Type b} {to : A → B} {from : B → A} →
   @0 Erased-proofs to from →
   A ≃ᴱ B
 [≃]→≃ᴱ {to = to} {from = from} ep =
@@ -190,6 +197,7 @@ record Erased-proofs {A : Type a} {B : Type b}
 -- into an equivalence with erased proofs.
 
 ↔→≃ᴱ :
+  {@0 A : Type a} {@0 B : Type b}
   (f : A → B) (g : B → A) →
   @0 (∀ x → f (g x) ≡ x) →
   @0 (∀ x → g (f x) ≡ x) →
@@ -211,7 +219,7 @@ record Erased-proofs {A : Type a} {B : Type b}
 -- A variant of ↔→≃ᴱ.
 
 ⇔→≃ᴱ :
-  ∀ {a b} {A : Type a} {B : Type b} →
+  {@0 A : Type a} {@0 B : Type b} →
   @0 Is-proposition A → @0 Is-proposition B →
   (A → B) → (B → A) →
   A ≃ᴱ B
@@ -223,17 +231,21 @@ record Erased-proofs {A : Type a} {B : Type b}
 
 -- Identity.
 
-id : A ≃ᴱ A
-id = ≃→≃ᴱ Eq.id
+id : {@0 A : Type a} → A ≃ᴱ A
+id = [≃]→≃ᴱ ([proofs] Eq.id)
 
 -- Inverse.
 
-inverse : A ≃ᴱ B → B ≃ᴱ A
+inverse :
+  {@0 A : Type a} {@0 B : Type b} →
+  A ≃ᴱ B → B ≃ᴱ A
 inverse A≃B = [≃]→≃ᴱ ([proofs] (Eq.inverse (≃ᴱ→≃ A≃B)))
 
 -- Composition.
 
 infixr 9 _∘_
 
-_∘_ : B ≃ᴱ C → A ≃ᴱ B → A ≃ᴱ C
+_∘_ :
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} →
+  B ≃ᴱ C → A ≃ᴱ B → A ≃ᴱ C
 f ∘ g = [≃]→≃ᴱ ([proofs] (≃ᴱ→≃ f Eq.∘ ≃ᴱ→≃ g))

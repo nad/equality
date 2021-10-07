@@ -62,7 +62,9 @@ A ≃ᴱ B = ∃ λ (f : A → B) → Is-equivalenceᴱ f
 
 -- Conversions between _⁻¹_ and _⁻¹ᴱ_.
 
-⁻¹→⁻¹ᴱ : f ⁻¹ y → f ⁻¹ᴱ y
+⁻¹→⁻¹ᴱ :
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} {@0 y : B} →
+  f ⁻¹ y → f ⁻¹ᴱ y
 ⁻¹→⁻¹ᴱ = Σ-map id [_]→
 
 @0 ⁻¹ᴱ→⁻¹ : f ⁻¹ᴱ x → f ⁻¹ x
@@ -81,7 +83,9 @@ _ = refl _
 
 -- Conversions between Contractible and Contractibleᴱ.
 
-Contractible→Contractibleᴱ : Contractible A → Contractibleᴱ A
+Contractible→Contractibleᴱ :
+  {@0 A : Type a} →
+  Contractible A → Contractibleᴱ A
 Contractible→Contractibleᴱ = Σ-map id [_]→
 
 @0 Contractibleᴱ→Contractible : Contractibleᴱ A → Contractible A
@@ -103,9 +107,11 @@ _ = refl _
 
 -- Conversions between CP.Is-equivalence and Is-equivalenceᴱ.
 
-Is-equivalence→Is-equivalenceᴱ : CP.Is-equivalence f → Is-equivalenceᴱ f
+Is-equivalence→Is-equivalenceᴱ :
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+  CP.Is-equivalence f → Is-equivalenceᴱ f
 Is-equivalence→Is-equivalenceᴱ eq y =
-    ⁻¹→⁻¹ᴱ (proj₁ (eq y))
+    ⁻¹→⁻¹ᴱ (proj₁₀ (eq y))
   , [ cong ⁻¹→⁻¹ᴱ ∘ proj₂ (eq y) ∘ ⁻¹ᴱ→⁻¹ ]
 
 @0 Is-equivalenceᴱ→Is-equivalence :
@@ -194,7 +200,9 @@ _ = refl _
 
 -- Conversions between CP._≃_ and _≃ᴱ_.
 
-≃→≃ᴱ : A CP.≃ B → A ≃ᴱ B
+≃→≃ᴱ :
+  {@0 A : Type a} {@0 B : Type b} →
+  A CP.≃ B → A ≃ᴱ B
 ≃→≃ᴱ = Σ-map id Is-equivalence→Is-equivalenceᴱ
 
 @0 ≃ᴱ→≃ : A ≃ᴱ B → A CP.≃ B
@@ -246,6 +254,7 @@ Erased-Contractibleᴱ↔Erased-Contractible =
 -- Contractibleᴱ respects split surjections with erased proofs.
 
 Contractibleᴱ-respects-surjection :
+  {@0 A : Type a} {@0 B : Type b}
   (f : A → B) → @0 Split-surjective f →
   Contractibleᴱ A → Contractibleᴱ B
 Contractibleᴱ-respects-surjection {A = A} {B = B} f s h@(x , _) =
@@ -267,6 +276,7 @@ Contractibleᴱ-respects-surjection {A = A} {B = B} f s h@(x , _) =
 -- quasi-inverse with erased proofs are contractible.
 
 Contractibleᴱ-⁻¹ᴱ :
+  {@0 A : Type a} {@0 B : Type b}
   (@0 f : A → B)
   (g : B → A)
   (@0 f∘g : ∀ x → f (g x) ≡ x)
@@ -295,33 +305,38 @@ Contractibleᴱ-⁻¹ᴱ {A = A} {B = B} f g f∘g g∘f y =
 -- propositionality, then it is contractible (with erased proofs).
 
 inhabited→Is-proposition→Contractibleᴱ :
+  {@0 A : Type a} →
   A → @0 Is-proposition A → Contractibleᴱ A
 inhabited→Is-proposition→Contractibleᴱ x prop = (x , [ prop x ])
 
 -- Some closure properties.
 
 Contractibleᴱ-Σ :
+  {@0 A : Type a} {@0 P : A → Type p} →
   Contractibleᴱ A → (∀ x → Contractibleᴱ (P x)) → Contractibleᴱ (Σ A P)
-Contractibleᴱ-Σ cA@(a , _) cB =
-    (a , proj₁ (cB a))
+Contractibleᴱ-Σ cA@(a , _) cP =
+    (a , proj₁₀ (cP a))
   , [ proj₂ $ Σ-closure 0 (Contractibleᴱ→Contractible cA)
-                          (Contractibleᴱ→Contractible ∘ cB)
+                          (Contractibleᴱ→Contractible ∘ cP)
     ]
 
 Contractibleᴱ-× :
+  {@0 A : Type a} {@0 B : Type b} →
   Contractibleᴱ A → Contractibleᴱ B → Contractibleᴱ (A × B)
 Contractibleᴱ-× cA cB = Contractibleᴱ-Σ cA (λ _ → cB)
 
 Contractibleᴱ-Π :
-  {A : Type a} {P : A → Type p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   @0 Extensionality a p →
   (∀ x → Contractibleᴱ (P x)) → Contractibleᴱ ((x : A) → P x)
 Contractibleᴱ-Π ext c =
-    proj₁ ∘ c
+    proj₁₀ ∘ c
   , [ proj₂ $ Π-closure ext 0 (Contractibleᴱ→Contractible ∘ c)
     ]
 
-Contractibleᴱ-↑ : Contractibleᴱ A → Contractibleᴱ (↑ ℓ A)
+Contractibleᴱ-↑ :
+  {@0 A : Type a} →
+  Contractibleᴱ A → Contractibleᴱ (↑ ℓ A)
 Contractibleᴱ-↑ c@(a , _) =
     lift a
   , [ proj₂ $ ↑-closure 0 (Contractibleᴱ→Contractible c)
