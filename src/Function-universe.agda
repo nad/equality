@@ -3035,6 +3035,84 @@ contractible↔≃⊤ ext = record
                     ⊥  □
     })
 
+-- If f and g are pointwise equal, then HA.Proofs f f⁻¹ and
+-- HA.Proofs g f⁻¹ are equivalent (assuming extensionality).
+
+Proofs-cong :
+  ∀ {a b} {A : Type a} {B : Type b} {f g : A → B} {f⁻¹ : B → A} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  (∀ x → f x ≡ g x) →
+  HA.Proofs f f⁻¹ ≃ HA.Proofs g f⁻¹
+Proofs-cong
+  {a = a} {b = b} {f = f} {g = g} {f⁻¹ = f⁻¹} ext f≡g =
+
+  Σ-cong (∀-cong (lower-extensionality a a ext) λ _ →
+          ≡⇒↝ equivalence $ cong (_≡ _) $ f≡g _) λ f-f⁻¹ →
+  Σ-cong (∀-cong (lower-extensionality b b ext) λ _ →
+          ≡⇒↝ equivalence $ cong (_≡ _) $ cong f⁻¹ $ f≡g _) λ f⁻¹-f →
+  ∀-cong (lower-extensionality b a ext) λ x → ≡⇒↝ _
+    (cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x)                                   ≡⟨ lemma f-f⁻¹ f⁻¹-f _ ⟩
+
+     trans (ext⁻¹ (ext″ f≡g) (f⁻¹ (g x)))
+       (cong g (trans (sym (cong f⁻¹ (ext⁻¹ (ext″ f≡g) x)))
+                  (f⁻¹-f x))) ≡
+     f-f⁻¹ (g x)                                                      ≡⟨ cong (_≡ _) $
+                                                                         cong₂ (λ p q →
+                                                                                  trans (p (f⁻¹ (g x)))
+                                                                                    (cong g (trans (sym (cong f⁻¹ (q x))) (f⁻¹-f x))))
+                                                                           (_≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) f≡g)
+                                                                           (_≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) f≡g) ⟩
+     trans (f≡g (f⁻¹ (g x)))
+       (cong g (trans (sym (cong f⁻¹ (f≡g x))) (f⁻¹-f x))) ≡
+     f-f⁻¹ (g x)                                                      ≡⟨ [trans≡]≡[≡trans-symˡ] _ _ _ ⟩
+
+     cong g (trans (sym (cong f⁻¹ (f≡g x))) (f⁻¹-f x)) ≡
+     trans (sym (f≡g (f⁻¹ (g x)))) (f-f⁻¹ (g x))                      ≡⟨ sym $ cong₂ (λ p q → cong g p ≡ q)
+                                                                           subst-trans-sym
+                                                                           subst-trans-sym ⟩
+     cong g (subst (_≡ x) (cong f⁻¹ (f≡g x)) (f⁻¹-f x)) ≡
+     subst (_≡ g x) (f≡g (f⁻¹ (g x))) (f-f⁻¹ (g x))                   ≡⟨ cong₂ (λ p q → cong g p ≡ q)
+                                                                           (subst-in-terms-of-≡⇒↝ equivalence _ _ _)
+                                                                           (subst-in-terms-of-≡⇒↝ equivalence _ _ _) ⟩∎
+     cong g
+       (_≃_.to (≡⇒↝ _ (cong (_≡ x) (cong f⁻¹ (f≡g x)))) (f⁻¹-f x)) ≡
+     _≃_.to (≡⇒↝ _ (cong (_≡ g x) (f≡g (f⁻¹ (g x))))) (f-f⁻¹ (g x))   ∎)
+  where
+  ext′ = lower-extensionality b a ext
+  ext″ = apply-ext $ Eq.good-ext ext′
+
+  lemma :
+    ∀ {x} f-f⁻¹ f⁻¹-f f≡g →
+    (cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x))
+      ≡
+    (trans (ext⁻¹ f≡g (f⁻¹ (g x)))
+       (cong g (trans (sym (cong f⁻¹ (ext⁻¹ f≡g x))) (f⁻¹-f x))) ≡
+     f-f⁻¹ (g x))
+  lemma {x = x} f-f⁻¹ f⁻¹-f = elim¹
+    (λ {g} f≡g →
+       (cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x))
+         ≡
+       (trans (ext⁻¹ f≡g (f⁻¹ (g x)))
+          (cong g (trans (sym (cong f⁻¹ (ext⁻¹ f≡g x))) (f⁻¹-f x))) ≡
+        f-f⁻¹ (g x)))
+    (cong (_≡ f-f⁻¹ (f x))
+       (cong f (f⁻¹-f x)                                                  ≡⟨ cong (cong f) $ sym $
+                                                                             trans (cong (flip trans _) $
+                                                                                    trans (cong sym $ cong-refl _) $
+                                                                                    sym-refl) $
+                                                                             trans-reflˡ _ ⟩
+
+        cong f (trans (sym (cong f⁻¹ (refl (f x)))) (f⁻¹-f x))            ≡⟨ sym $ trans-reflˡ _ ⟩
+
+        trans (refl (f (f⁻¹ (f x))))
+          (cong f (trans (sym (cong f⁻¹ (refl (f x)))) (f⁻¹-f x)))        ≡⟨ sym $
+                                                                             cong₂ (λ p q →
+                                                                                      trans p (cong f (trans (sym (cong f⁻¹ q)) (f⁻¹-f x))))
+                                                                               (ext⁻¹-refl _)
+                                                                               (ext⁻¹-refl _) ⟩∎
+        trans (ext⁻¹ (refl f) (f⁻¹ (f x)))
+          (cong f (trans (sym (cong f⁻¹ (ext⁻¹ (refl f) x))) (f⁻¹-f x)))  ∎))
+
 -- Is-equivalence preserves equality, if we see _≃_ as a form of
 -- equality (assuming extensionality).
 
