@@ -1701,127 +1701,6 @@ Embedding-to-≡↔≡ {a} {b} ext {p = p} {q} =
   p ≡ q                                          □
 
 ------------------------------------------------------------------------
--- Some lemmas related to _≃_
-
--- Contractibility is isomorphic to equivalence to the unit type
--- (assuming extensionality).
-
-contractible↔≃⊤ :
-  ∀ {a} {A : Type a} →
-  Extensionality a a →
-  Contractible A ↔ (A ≃ ⊤)
-contractible↔≃⊤ ext = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = Eq.↔⇒≃ ∘ _⇔_.to contractible⇔↔⊤
-      ; from = _⇔_.from contractible⇔↔⊤ ∘ _≃_.bijection
-      }
-    ; right-inverse-of = λ _ →
-        Eq.lift-equality ext (refl _)
-    }
-  ; left-inverse-of = λ _ → Contractible-propositional ext _ _
-  }
-
--- Equivalence to the empty type is equivalent to not being inhabited
--- (assuming extensionality).
-
-≃⊥≃¬ :
-  ∀ {a ℓ} {A : Type a} →
-  Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
-  (A ≃ ⊥ {ℓ = ℓ}) ≃ (¬ A)
-≃⊥≃¬ {ℓ = ℓ} {A} ext =
-  _↔_.to (Eq.⇔↔≃ ext (Eq.right-closure ext 0 ⊥-propositional)
-                     (¬-propositional
-                        (lower-extensionality ℓ _ ext))) (record
-    { to   = λ eq a → ⊥-elim (_≃_.to eq a)
-    ; from = λ ¬a → A  ↔⟨ inverse (Bijection.⊥↔uninhabited ¬a) ⟩□
-                    ⊥  □
-    })
-
--- Is-equivalence preserves equality, if we see _≃_ as a form of
--- equality (assuming extensionality).
-
-Is-equivalence-cong :
-  ∀ {k a b} {A : Type a} {B : Type b} {f g : A → B} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
-  (∀ x → f x ≡ g x) →
-  Is-equivalence f ↝[ k ] Is-equivalence g
-Is-equivalence-cong ext f≡g =
-  generalise-ext?-prop
-    (record
-       { to   = Eq.respects-extensional-equality f≡g
-       ; from = Eq.respects-extensional-equality (sym ⊚ f≡g)
-       })
-    (λ ext → Eq.propositional ext _)
-    (λ ext → Eq.propositional ext _)
-    ext
-
--- Is-equivalence is pointwise equivalent to CP.Is-equivalence
--- (assuming extensionality).
-
-Is-equivalence≃Is-equivalence-CP :
-  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
-  Is-equivalence f ↝[ a ⊔ b ∣ a ⊔ b ] CP.Is-equivalence f
-Is-equivalence≃Is-equivalence-CP =
-  generalise-ext?
-    HA.Is-equivalence⇔Is-equivalence-CP
-    HA.Is-equivalence↔Is-equivalence-CP
-
--- Two notions of equivalence are pointwise equivalent (assuming
--- extensionality).
-
-≃≃≃-CP :
-  ∀ {a b} {A : Type a} {B : Type b} →
-  (A ≃ B) ↝[ a ⊔ b ∣ a ⊔ b ] (A CP.≃ B)
-≃≃≃-CP {A = A} {B = B} ext =
-  A ≃ B                                    ↔⟨ Eq.≃-as-Σ ⟩
-  (∃ λ (f : A → B) → Is-equivalence f)     ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalence-CP ext) ⟩□
-  (∃ λ (f : A → B) → CP.Is-equivalence f)  □
-
--- _≃_ is commutative (assuming extensionality).
-
-≃-comm :
-  ∀ {a b} {A : Type a} {B : Type b} →
-  A ≃ B ↝[ a ⊔ b ∣ a ⊔ b ] B ≃ A
-≃-comm =
-  generalise-ext?
-    Eq.inverse-logical-equivalence
-    Eq.inverse-isomorphism
-
--- Two consequences of the two-out-of-three property.
-
-Is-equivalence≃Is-equivalence-∘ˡ :
-  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c}
-    {f : B → C} {g : A → B} →
-  Is-equivalence f →
-  Is-equivalence g ↝[ a ⊔ b ⊔ c ∣ a ⊔ b ⊔ c ] Is-equivalence (f ∘ g)
-Is-equivalence≃Is-equivalence-∘ˡ {b = b} {c = c} f-eq =
-  generalise-ext?-prop
-    (record
-       { to   = flip (Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _))
-                  f-eq
-       ; from = Eq.Two-out-of-three.g-g∘f (Eq.two-out-of-three _ _) f-eq
-       })
-    (flip Eq.propositional _ ⊚ lower-extensionality c c)
-    (flip Eq.propositional _ ⊚ lower-extensionality b b)
-
-Is-equivalence≃Is-equivalence-∘ʳ :
-  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c}
-    {f : B → C} {g : A → B} →
-  Is-equivalence g →
-  Is-equivalence f ↝[ a ⊔ b ⊔ c ∣ a ⊔ b ⊔ c ] Is-equivalence (f ∘ g)
-Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} g-eq =
-  generalise-ext?-prop
-    (record
-       { to   = Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _) g-eq
-       ; from = flip
-                  (Eq.Two-out-of-three.g∘f-f (Eq.two-out-of-three _ _))
-                  g-eq
-       })
-    (flip Eq.propositional _ ⊚ lower-extensionality a a)
-    (flip Eq.propositional _ ⊚ lower-extensionality b b)
-
-------------------------------------------------------------------------
 -- _⊎_ and _×_ form a commutative semiring
 
 -- _×_ distributes from the left over _⊎_.
@@ -3117,6 +2996,127 @@ private
     }
   ; left-inverse-of = refl
   }
+
+------------------------------------------------------------------------
+-- Some lemmas related to _≃_
+
+-- Contractibility is isomorphic to equivalence to the unit type
+-- (assuming extensionality).
+
+contractible↔≃⊤ :
+  ∀ {a} {A : Type a} →
+  Extensionality a a →
+  Contractible A ↔ (A ≃ ⊤)
+contractible↔≃⊤ ext = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = Eq.↔⇒≃ ∘ _⇔_.to contractible⇔↔⊤
+      ; from = _⇔_.from contractible⇔↔⊤ ∘ _≃_.bijection
+      }
+    ; right-inverse-of = λ _ →
+        Eq.lift-equality ext (refl _)
+    }
+  ; left-inverse-of = λ _ → Contractible-propositional ext _ _
+  }
+
+-- Equivalence to the empty type is equivalent to not being inhabited
+-- (assuming extensionality).
+
+≃⊥≃¬ :
+  ∀ {a ℓ} {A : Type a} →
+  Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
+  (A ≃ ⊥ {ℓ = ℓ}) ≃ (¬ A)
+≃⊥≃¬ {ℓ = ℓ} {A} ext =
+  _↔_.to (Eq.⇔↔≃ ext (Eq.right-closure ext 0 ⊥-propositional)
+                     (¬-propositional
+                        (lower-extensionality ℓ _ ext))) (record
+    { to   = λ eq a → ⊥-elim (_≃_.to eq a)
+    ; from = λ ¬a → A  ↔⟨ inverse (Bijection.⊥↔uninhabited ¬a) ⟩□
+                    ⊥  □
+    })
+
+-- Is-equivalence preserves equality, if we see _≃_ as a form of
+-- equality (assuming extensionality).
+
+Is-equivalence-cong :
+  ∀ {k a b} {A : Type a} {B : Type b} {f g : A → B} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  (∀ x → f x ≡ g x) →
+  Is-equivalence f ↝[ k ] Is-equivalence g
+Is-equivalence-cong ext f≡g =
+  generalise-ext?-prop
+    (record
+       { to   = Eq.respects-extensional-equality f≡g
+       ; from = Eq.respects-extensional-equality (sym ⊚ f≡g)
+       })
+    (λ ext → Eq.propositional ext _)
+    (λ ext → Eq.propositional ext _)
+    ext
+
+-- Is-equivalence is pointwise equivalent to CP.Is-equivalence
+-- (assuming extensionality).
+
+Is-equivalence≃Is-equivalence-CP :
+  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
+  Is-equivalence f ↝[ a ⊔ b ∣ a ⊔ b ] CP.Is-equivalence f
+Is-equivalence≃Is-equivalence-CP =
+  generalise-ext?
+    HA.Is-equivalence⇔Is-equivalence-CP
+    HA.Is-equivalence↔Is-equivalence-CP
+
+-- Two notions of equivalence are pointwise equivalent (assuming
+-- extensionality).
+
+≃≃≃-CP :
+  ∀ {a b} {A : Type a} {B : Type b} →
+  (A ≃ B) ↝[ a ⊔ b ∣ a ⊔ b ] (A CP.≃ B)
+≃≃≃-CP {A = A} {B = B} ext =
+  A ≃ B                                    ↔⟨ Eq.≃-as-Σ ⟩
+  (∃ λ (f : A → B) → Is-equivalence f)     ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalence-CP ext) ⟩□
+  (∃ λ (f : A → B) → CP.Is-equivalence f)  □
+
+-- _≃_ is commutative (assuming extensionality).
+
+≃-comm :
+  ∀ {a b} {A : Type a} {B : Type b} →
+  A ≃ B ↝[ a ⊔ b ∣ a ⊔ b ] B ≃ A
+≃-comm =
+  generalise-ext?
+    Eq.inverse-logical-equivalence
+    Eq.inverse-isomorphism
+
+-- Two consequences of the two-out-of-three property.
+
+Is-equivalence≃Is-equivalence-∘ˡ :
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c}
+    {f : B → C} {g : A → B} →
+  Is-equivalence f →
+  Is-equivalence g ↝[ a ⊔ b ⊔ c ∣ a ⊔ b ⊔ c ] Is-equivalence (f ∘ g)
+Is-equivalence≃Is-equivalence-∘ˡ {b = b} {c = c} f-eq =
+  generalise-ext?-prop
+    (record
+       { to   = flip (Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _))
+                  f-eq
+       ; from = Eq.Two-out-of-three.g-g∘f (Eq.two-out-of-three _ _) f-eq
+       })
+    (flip Eq.propositional _ ⊚ lower-extensionality c c)
+    (flip Eq.propositional _ ⊚ lower-extensionality b b)
+
+Is-equivalence≃Is-equivalence-∘ʳ :
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c}
+    {f : B → C} {g : A → B} →
+  Is-equivalence g →
+  Is-equivalence f ↝[ a ⊔ b ⊔ c ∣ a ⊔ b ⊔ c ] Is-equivalence (f ∘ g)
+Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} g-eq =
+  generalise-ext?-prop
+    (record
+       { to   = Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _) g-eq
+       ; from = flip
+                  (Eq.Two-out-of-three.g∘f-f (Eq.two-out-of-three _ _))
+                  g-eq
+       })
+    (flip Eq.propositional _ ⊚ lower-extensionality a a)
+    (flip Eq.propositional _ ⊚ lower-extensionality b b)
 
 ------------------------------------------------------------------------
 -- Lemmas related to _⇔_
