@@ -377,6 +377,44 @@ Is-equivalenceᴱ-cong-≃ᴱ ext f≡g =
   (λ _ → cong lift (_≃ᴱ_.right-inverse-of B≃ᴱC _))
   (λ _ → cong lift (_≃ᴱ_.left-inverse-of  B≃ᴱC _))
 
+----------------------------------------------------------------------
+-- The left-to-right and right-to-left components of an equivalence
+-- with erased proofs can be replaced with extensionally equal
+-- functions
+
+-- The forward direction of an equivalence with erased proofs can be
+-- replaced by an extensionally equal function.
+
+with-other-function :
+  (A≃B : A ≃ᴱ B) (f : A → B) →
+  @0 (∀ x → _≃ᴱ_.to A≃B x ≡ f x) →
+  A ≃ᴱ B
+with-other-function ⟨ g , is-equivalence ⟩ f g≡f =
+  ⟨ f
+  , _⇔_.to (Is-equivalenceᴱ-cong-⇔ g≡f) is-equivalence
+  ⟩
+
+_ : _≃ᴱ_.to (with-other-function A≃B f p) ≡ f
+_ = refl _
+
+_ : _≃ᴱ_.from (with-other-function A≃B f p) ≡ _≃ᴱ_.from A≃B
+_ = refl _
+
+-- The same applies to the other direction.
+
+with-other-inverse :
+  (A≃B : A ≃ᴱ B) (g : B → A) →
+  @0 (∀ x → _≃ᴱ_.from A≃B x ≡ g x) →
+  A ≃ᴱ B
+with-other-inverse A≃B g ≡g =
+  inverse $ with-other-function (inverse A≃B) g ≡g
+
+_ : _≃ᴱ_.from (with-other-inverse A≃B g p) ≡ g
+_ = refl _
+
+_ : _≃ᴱ_.to (with-other-inverse A≃B f p) ≡ _≃ᴱ_.to A≃B
+_ = refl _
+
 ------------------------------------------------------------------------
 -- Variants of some lemmas from Function-universe
 
@@ -949,13 +987,35 @@ from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
   eq
 
 ------------------------------------------------------------------------
--- One of the two-out-of-three properties
+-- The two-out-of-three properties
 
 -- If f and g are equivalences with erased proofs, then g ⊚ f is also
 -- an equivalence with erased proofs.
 
 12→3 : Is-equivalenceᴱ f → Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f)
 12→3 p q = _≃ᴱ_.is-equivalence (⟨ _ , q ⟩ ∘ ⟨ _ , p ⟩)
+
+-- If g and g ⊚ f are equivalences with erased proofs, then f is
+-- also an equivalence with erased proofs.
+
+23→1 : Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f
+23→1 {g = g} {f = f} q r =
+  _⇔_.to
+    (Is-equivalenceᴱ-cong-⇔ λ x →
+       _≃ᴱ_.from ⟨ g , q ⟩ (g (f x))  ≡⟨ _≃ᴱ_.left-inverse-of ⟨ g , q ⟩ (f x) ⟩∎
+       f x                            ∎)
+    (_≃ᴱ_.is-equivalence (inverse ⟨ _ , q ⟩ ∘ ⟨ _ , r ⟩))
+
+-- If g ⊚ f and f are equivalences with erased proofs, then g is
+-- also an equivalence with erased proofs.
+
+31→2 : Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f → Is-equivalenceᴱ g
+31→2 {g = g} {f = f} r p =
+  _⇔_.to
+    (Is-equivalenceᴱ-cong-⇔ λ x →
+       g (f (_≃ᴱ_.from ⟨ f , p ⟩ x))  ≡⟨ cong g (_≃ᴱ_.right-inverse-of ⟨ f , p ⟩ x) ⟩∎
+       g x                            ∎)
+    (_≃ᴱ_.is-equivalence (⟨ _ , r ⟩ ∘ inverse ⟨ _ , p ⟩))
 
 ------------------------------------------------------------------------
 -- Results that depend on an axiomatisation of []-cong (for a single
@@ -1217,77 +1277,6 @@ module []-cong₂
          (∃ λ f⁻¹ → Erased (HA.Proofs f f⁻¹))  ↔⟨ (∃-cong λ _ → Erased-cong-≃ (Proofs-cong ext f≡g)) ⟩□
          (∃ λ f⁻¹ → Erased (HA.Proofs g f⁻¹))  □)
       ext
-
-  ----------------------------------------------------------------------
-  -- The remaining two-out-of-three properties
-
-  -- If g and g ⊚ f are equivalences with erased proofs, then f is
-  -- also an equivalence with erased proofs.
-
-  23→1 :
-    {A : Type ℓ₁} {B : Type ℓ₂} {f : A → B} {g : B → C} →
-    Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f
-  23→1 {f = f} {g = g} q r =
-    Is-equivalenceᴱ-cong
-      _
-      (λ x →
-         _≃ᴱ_.from ⟨ g , q ⟩ (g (f x))  ≡⟨ _≃ᴱ_.left-inverse-of ⟨ g , q ⟩ (f x) ⟩∎
-         f x                            ∎)
-      (_≃ᴱ_.is-equivalence (inverse ⟨ _ , q ⟩ ∘ ⟨ _ , r ⟩))
-
-  -- If g ⊚ f and f are equivalences with erased proofs, then g is
-  -- also an equivalence with erased proofs.
-
-  31→2 :
-    {B : Type ℓ₁} {C : Type ℓ₂} {f : A → B} {g : B → C} →
-    Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f → Is-equivalenceᴱ g
-  31→2 {f = f} {g = g} r p =
-    Is-equivalenceᴱ-cong
-      _
-      (λ x →
-         g (f (_≃ᴱ_.from ⟨ f , p ⟩ x))  ≡⟨ cong g (_≃ᴱ_.right-inverse-of ⟨ f , p ⟩ x) ⟩∎
-         g x                            ∎)
-      (_≃ᴱ_.is-equivalence (⟨ _ , r ⟩ ∘ inverse ⟨ _ , p ⟩))
-
-  ----------------------------------------------------------------------
-  -- The left-to-right and right-to-left components of an equivalence
-  -- with erased proofs can be replaced with extensionally equal
-  -- functions
-
-  -- The forward direction of an equivalence with erased proofs can be
-  -- replaced by an extensionally equal function.
-
-  with-other-function :
-    {A : Type ℓ₁} {B : Type ℓ₂}
-    (A≃B : A ≃ᴱ B) (f : A → B) →
-    @0 (∀ x → _≃ᴱ_.to A≃B x ≡ f x) →
-    A ≃ᴱ B
-  with-other-function ⟨ g , is-equivalence ⟩ f g≡f =
-    ⟨ f
-    , Is-equivalenceᴱ-cong _ g≡f is-equivalence
-    ⟩
-
-  _ : _≃ᴱ_.to (with-other-function A≃B f p) ≡ f
-  _ = refl _
-
-  _ : _≃ᴱ_.from (with-other-function A≃B f p) ≡ _≃ᴱ_.from A≃B
-  _ = refl _
-
-  -- The same applies to the other direction.
-
-  with-other-inverse :
-    {A : Type ℓ₂} {B : Type ℓ₁}
-    (A≃B : A ≃ᴱ B) (g : B → A) →
-    @0 (∀ x → _≃ᴱ_.from A≃B x ≡ g x) →
-    A ≃ᴱ B
-  with-other-inverse A≃B g ≡g =
-    inverse $ with-other-function (inverse A≃B) g ≡g
-
-  _ : _≃ᴱ_.from (with-other-inverse A≃B g p) ≡ g
-  _ = refl _
-
-  _ : _≃ᴱ_.to (with-other-inverse A≃B f p) ≡ _≃ᴱ_.to A≃B
-  _ = refl _
 
   ----------------------------------------------------------------------
   -- More conversion lemmas

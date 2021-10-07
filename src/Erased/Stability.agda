@@ -1018,8 +1018,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     from :
       Is-equivalenceᴱ ([]-cong ∘ [_]→ {A = x ≡ y}) →
       Is-equivalenceᴱ ([_]→ {A = x ≡ y})
-    from = EEq.[]-cong.23→1
-      ax
+    from = EEq.23→1
       (EEq.Is-equivalence→Is-equivalenceᴱ []-cong-equivalence)
 
   -- There is an equivalence with erased proofs between "equality for
