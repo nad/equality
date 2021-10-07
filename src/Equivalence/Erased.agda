@@ -32,7 +32,7 @@ open import Univalence-axiom eq
 private
   variable
     a b d ℓ ℓ₁ ℓ₂ q : Level
-    A B C           : Type a
+    A B C D         : Type a
     c k k′ p x y    : A
     P Q             : A → Type p
     f g             : (x : A) → P x
@@ -159,6 +159,38 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext = ⇔→≃ᴱ
 ------------------------------------------------------------------------
 -- Some preservation lemmas
 
+-- A variant of _×-cong_ for _≃ᴱ_. Note that all the type arguments
+-- are erased.
+
+infixr 2 _×-cong-≃ᴱ_
+
+_×-cong-≃ᴱ_ :
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} {@0 D : Type d} →
+  A ≃ᴱ C → B ≃ᴱ D → (A × B) ≃ᴱ (C × D)
+A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
+  (Σ-map (_≃ᴱ_.to A≃ᴱC)   (_≃ᴱ_.to B≃ᴱD))
+  (Σ-map (_≃ᴱ_.from A≃ᴱC) (_≃ᴱ_.from B≃ᴱD))
+  (λ _ →
+     cong₂ _,_
+       (_≃ᴱ_.right-inverse-of A≃ᴱC _)
+       (_≃ᴱ_.right-inverse-of B≃ᴱD _))
+  (λ _ →
+     cong₂ _,_
+       (_≃ᴱ_.left-inverse-of A≃ᴱC _)
+       (_≃ᴱ_.left-inverse-of B≃ᴱD _))
+
+-- A variant of ∃-cong for _≃ᴱ_. Note that all the type arguments are
+-- erased.
+
+∃-cong-≃ᴱ :
+  {@0 A : Type a} {@0 P : A → Type p} {@0 Q : A → Type q} →
+  (∀ x → P x ≃ᴱ Q x) → ∃ P ≃ᴱ ∃ Q
+∃-cong-≃ᴱ P≃ᴱQ = ↔→≃ᴱ
+  (λ (x , y) → x , _≃ᴱ_.to   (P≃ᴱQ x) y)
+  (λ (x , y) → x , _≃ᴱ_.from (P≃ᴱQ x) y)
+  (λ (x , y) → cong (x ,_) $ _≃ᴱ_.right-inverse-of (P≃ᴱQ x) y)
+  (λ (x , y) → cong (x ,_) $ _≃ᴱ_.left-inverse-of  (P≃ᴱQ x) y)
+
 -- A preservation lemma related to Σ.
 --
 -- Note that the third argument is not marked as erased. The from
@@ -278,6 +310,45 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext = ⇔→≃ᴱ
   ((x : A) → P x) ≃ᴱ ((x : A) → Q x)
 ∀-cong-≃ᴱ ext P≃Q = [≃]→≃ᴱ ([proofs] (∀-cong ext (≃ᴱ→≃ ⊚ P≃Q)))
 
+-- Is-equivalenceᴱ f is logically equivalent to Is-equivalenceᴱ g if f
+-- and g are pointwise equal.
+--
+-- See also Is-equivalenceᴱ-cong below.
+
+Is-equivalenceᴱ-cong-⇔ :
+  {@0 A : Type a} {@0 B : Type b} {@0 f g : A → B} →
+  @0 (∀ x → f x ≡ g x) →
+  Is-equivalenceᴱ f ⇔ Is-equivalenceᴱ g
+Is-equivalenceᴱ-cong-⇔ {f = f} {g = g} f≡g =
+  record { to = to f≡g; from = to (sym ⊚ f≡g) }
+  where
+  to :
+    {@0 A : Type a} {@0 B : Type b} {@0 f g : A → B} →
+    @0 (∀ x → f x ≡ g x) →
+    Is-equivalenceᴱ f → Is-equivalenceᴱ g
+  to f≡g f-eq@(f⁻¹ , _) =
+    ( f⁻¹
+    , [ erased $ proj₂ $
+        Is-equivalence→Is-equivalenceᴱ $
+        Eq.respects-extensional-equality f≡g $
+        Is-equivalenceᴱ→Is-equivalence f-eq
+      ]
+    )
+
+-- Is-equivalenceᴱ f is equivalent (with erased proofs) to
+-- Is-equivalenceᴱ g if f and g are pointwise equal (assuming
+-- extensionality).
+--
+-- See also Is-equivalenceᴱ-cong below.
+
+Is-equivalenceᴱ-cong-≃ᴱ :
+  {@0 A : Type a} {@0 B : Type b} {@0 f g : A → B} →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
+  @0 (∀ x → f x ≡ g x) →
+  Is-equivalenceᴱ f ≃ᴱ Is-equivalenceᴱ g
+Is-equivalenceᴱ-cong-≃ᴱ ext f≡g =
+  ∃-cong-≃ᴱ λ _ → Erased-cong-≃ᴱ (≃→≃ᴱ $ Proofs-cong ext f≡g)
+
 -- The _≃ᴱ_ operator preserves equivalences with erased proofs
 -- (assuming extensionality).
 
@@ -294,6 +365,17 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext = ⇔→≃ᴱ
     A ≃ C   ↝⟨ Eq.≃-preserves ext (≃ᴱ→≃ A≃B) (≃ᴱ→≃ C≃D) ⟩
     B ≃ D   ↝⟨ ≃≃≃ᴱ ⟩□
     B ≃ᴱ D  □
+
+-- A variant of ↑-cong for _≃ᴱ_.
+
+↑-cong-≃ᴱ :
+  {@0 B : Type b} {@0 C : Type c} →
+  B ≃ᴱ C → ↑ a B ≃ᴱ ↑ a C
+↑-cong-≃ᴱ B≃ᴱC = ↔→≃ᴱ
+  (λ (lift x) → lift (_≃ᴱ_.to   B≃ᴱC x))
+  (λ (lift x) → lift (_≃ᴱ_.from B≃ᴱC x))
+  (λ _ → cong lift (_≃ᴱ_.right-inverse-of B≃ᴱC _))
+  (λ _ → cong lift (_≃ᴱ_.left-inverse-of  B≃ᴱC _))
 
 ------------------------------------------------------------------------
 -- Variants of some lemmas from Function-universe
@@ -1130,24 +1212,11 @@ module []-cong₂
     Is-equivalenceᴱ f ↝[ k ] Is-equivalenceᴱ g
   Is-equivalenceᴱ-cong {f = f} {g = g} ext f≡g =
     generalise-erased-ext?
-      (record { to = to f≡g; from = to (sym ⊚ f≡g) })
+      (Is-equivalenceᴱ-cong-⇔ f≡g)
       (λ ext →
          (∃ λ f⁻¹ → Erased (HA.Proofs f f⁻¹))  ↔⟨ (∃-cong λ _ → Erased-cong-≃ (Proofs-cong ext f≡g)) ⟩□
          (∃ λ f⁻¹ → Erased (HA.Proofs g f⁻¹))  □)
       ext
-    where
-    to :
-      {@0 f g : A → B} →
-      @0 (∀ x → f x ≡ g x) →
-      Is-equivalenceᴱ f → Is-equivalenceᴱ g
-    to f≡g f-eq@(f⁻¹ , _) =
-      ( f⁻¹
-      , [ erased $ proj₂ $
-          Is-equivalence→Is-equivalenceᴱ $
-          Eq.respects-extensional-equality f≡g $
-          Is-equivalenceᴱ→Is-equivalence f-eq
-        ]
-      )
 
   ----------------------------------------------------------------------
   -- The remaining two-out-of-three properties
