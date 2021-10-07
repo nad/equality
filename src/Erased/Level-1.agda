@@ -24,7 +24,8 @@ open import Embedding eq-J as Emb using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq-J
 open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
 import Equivalence.Contractible-preimages eq-J as CP
-open import Equivalence.Erased.Basics eq-J using (Is-equivalenceᴱ)
+open import Equivalence.Erased.Basics eq-J as EEq
+  using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence-relation eq-J
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
@@ -165,6 +166,17 @@ Erased-cong-⇔-∘ :
   (@0 f : B ⇔ C) (@0 g : A ⇔ B) →
   Erased-cong-⇔ (f F.∘ g) ≡ Erased-cong-⇔ f F.∘ Erased-cong-⇔ g
 Erased-cong-⇔-∘ _ _ = refl _
+
+-- Erased preserves equivalences with erased proofs.
+
+Erased-cong-≃ᴱ :
+  {@0 A : Type a} {@0 B : Type b} →
+  @0 A ≃ᴱ B → Erased A ≃ᴱ Erased B
+Erased-cong-≃ᴱ A≃ᴱB = EEq.↔→≃ᴱ
+  (map (_≃ᴱ_.to   A≃ᴱB))
+  (map (_≃ᴱ_.from A≃ᴱB))
+  (cong [_]→ ∘ _≃ᴱ_.right-inverse-of A≃ᴱB ∘ erased)
+  (cong [_]→ ∘ _≃ᴱ_.left-inverse-of  A≃ᴱB ∘ erased)
 
 ------------------------------------------------------------------------
 -- Some isomorphisms
