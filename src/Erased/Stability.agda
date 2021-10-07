@@ -579,7 +579,7 @@ Stable-≡-⊎ n sA sB =
 
 private
 
-  -- An alternative, more direct proof, of the "base case" of the
+  -- An alternative, more direct proof of the "base case" of the
   -- previous result.
 
   Stable-≡-⊎₀ : Stable-≡ A → Stable-≡ B → Stable-≡ (A ⊎ B)
