@@ -329,7 +329,8 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
 
 -- Three preservation lemmas related to Π.
 --
--- See also Π-cong-≃ᴱ-Erased and Π-cong-contra-≃ᴱ-Erased below.
+-- See also Π-cong-≃ᴱ′-≃ᴱ, Π-cong-≃ᴱ′-≃ᴱ′, Π-cong-≃ᴱ-Erased and
+-- Π-cong-contra-≃ᴱ-Erased below.
 
 Π-cong-≃ᴱ :
   {@0 A : Type a} {B : Type b} {@0 P : A → Type p} {Q : B → Type q} →
@@ -751,6 +752,92 @@ record Erased-proofs′
   (A≃ᴱ′B : A ≃ᴱ′ B) →
   (x ≡ y) ≃ᴱ (_≃ᴱ′_.to A≃ᴱ′B x ≡ _≃ᴱ′_.to A≃ᴱ′B y)
 ≡≃ᴱto≡to = _≃ᴱ′_.equivalence-with-erased-proofs ⊚ ≡≃ᴱ′to≡to
+
+-- Two preservation lemmas related to Π.
+
+Π-cong-≃ᴱ′-≃ᴱ :
+  {@0 A : Type a} {B : Type b} {@0 P : A → Type p} {Q : B → Type q} →
+  @0 Extensionality (a ⊔ b) (p ⊔ q) →
+  (B≃A : B ≃ᴱ′ A) →
+  (∀ x → P x ≃ᴱ Q (_≃ᴱ′_.from B≃A x)) →
+  ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
+Π-cong-≃ᴱ′-≃ᴱ ext B≃A =
+  Π-cong-≃ᴱ
+    ext
+    (_≃ᴱ′_.from B≃A)
+    (_≃ᴱ′_.to B≃A)
+    (_≃ᴱ′_.from-to B≃A)
+    (_≃ᴱ′_.to-from B≃A)
+
+Π-cong-≃ᴱ′-≃ᴱ′ :
+  {A : Type a} {@0 B : Type b} {P : A → Type p} {@0 Q : B → Type q} →
+  Extensionality (a ⊔ b) (p ⊔ q) →
+  (A≃B : A ≃ᴱ′ B) →
+  (∀ x → P (_≃ᴱ′_.from A≃B x) ≃ᴱ′ Q x) →
+  ((x : A) → P x) ≃ᴱ′ ((x : B) → Q x)
+Π-cong-≃ᴱ′-≃ᴱ′
+  {a = a} {b = b} {p = p} {q = q} {A = A} {B = B} {P = P} {Q = Q}
+  ext A≃B P≃Q =
+  ↔→≃ᴱ′
+    (λ f x → _≃ᴱ′_.to (P≃Q x) (f (_≃ᴱ′_.from A≃B x)))
+    (λ f x →
+       subst P (_≃ᴱ′_.from-to A≃B x)
+         (_≃ᴱ′_.from (P≃Q (_≃ᴱ′_.to A≃B x)) (f (_≃ᴱ′_.to A≃B x))))
+    (λ f → apply-ext (lower-extensionality a p ext) λ x →
+       _≃ᴱ′_.to (P≃Q x)
+          (subst P (_≃ᴱ′_.from-to A≃B (_≃ᴱ′_.from A≃B x))
+             (_≃ᴱ′_.from (P≃Q (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))
+                (f (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))))            ≡⟨ cong (_≃ᴱ′_.to (P≃Q x) ⊚ flip (subst P) _) $ sym $
+                                                                      _≃ᴱ′_.from-to-from A≃B _ ⟩
+       _≃ᴱ′_.to (P≃Q x)
+          (subst P (cong (_≃ᴱ′_.from A≃B) (_≃ᴱ′_.to-from A≃B x))
+             (_≃ᴱ′_.from (P≃Q (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))
+                (f (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))))            ≡⟨ elim¹
+                                                                        (λ {y} eq →
+                                                                           _≃ᴱ′_.to (P≃Q y)
+                                                                             (subst P (cong (_≃ᴱ′_.from A≃B) eq)
+                                                                                (_≃ᴱ′_.from (P≃Q (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))
+                                                                                   (f (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x))))) ≡
+                                                                           f y)
+                                                                        (
+         _≃ᴱ′_.to (P≃Q (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))
+           (subst P (cong (_≃ᴱ′_.from A≃B) (refl _))
+              (_≃ᴱ′_.from (P≃Q (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))
+                 (f (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))))                 ≡⟨ cong (_≃ᴱ′_.to (P≃Q (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))) $
+                                                                            trans (cong (flip (subst P) _) $ cong-refl _) $
+                                                                            subst-refl _ _ ⟩
+         _≃ᴱ′_.to (P≃Q (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))
+           (_≃ᴱ′_.from (P≃Q (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x)))
+              (f (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x))))                     ≡⟨ _≃ᴱ′_.to-from (P≃Q _) _ ⟩∎
+
+         f (_≃ᴱ′_.to A≃B (_≃ᴱ′_.from A≃B x))                             ∎)
+                                                                        _ ⟩∎
+       f x                                                         ∎)
+    (λ f → apply-ext (lower-extensionality b q ext) λ x →
+       subst P (_≃ᴱ′_.from-to A≃B x)
+         (_≃ᴱ′_.from (P≃Q (_≃ᴱ′_.to A≃B x))
+            (_≃ᴱ′_.to (P≃Q (_≃ᴱ′_.to A≃B x))
+               (f (_≃ᴱ′_.from A≃B (_≃ᴱ′_.to A≃B x)))))    ≡⟨ elim¹
+                                                               (λ {y} eq →
+                                                                  subst P eq
+                                                                    (_≃ᴱ′_.from (P≃Q (_≃ᴱ′_.to A≃B x))
+                                                                       (_≃ᴱ′_.to (P≃Q (_≃ᴱ′_.to A≃B x))
+                                                                          (f (_≃ᴱ′_.from A≃B (_≃ᴱ′_.to A≃B x))))) ≡
+                                                                  f y)
+                                                               (
+         subst P (refl _)
+           (_≃ᴱ′_.from (P≃Q (_≃ᴱ′_.to A≃B x))
+              (_≃ᴱ′_.to (P≃Q (_≃ᴱ′_.to A≃B x))
+                 (f (_≃ᴱ′_.from A≃B (_≃ᴱ′_.to A≃B x)))))         ≡⟨ subst-refl _ _ ⟩
+
+         _≃ᴱ′_.from (P≃Q (_≃ᴱ′_.to A≃B x))
+           (_≃ᴱ′_.to (P≃Q (_≃ᴱ′_.to A≃B x))
+              (f (_≃ᴱ′_.from A≃B (_≃ᴱ′_.to A≃B x))))             ≡⟨ _≃ᴱ′_.from-to (P≃Q _) _ ⟩∎
+
+         f (_≃ᴱ′_.from A≃B (_≃ᴱ′_.to A≃B x))                     ∎)
+                                                               _ ⟩∎
+
+       f x                                                ∎)
 
 ------------------------------------------------------------------------
 -- Some results related to Contractibleᴱ
