@@ -619,6 +619,11 @@ module _≃ᴱ′_ {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ᴱ′ B) where
   equivalence-with-erased-proofs =
     ⟨ to , (from , [ to-from , from-to , to-from-to ]) ⟩₀
 
+  -- A coherence property.
+
+  @0 from-to-from : ∀ x → cong from (to-from x) ≡ from-to (from x)
+  from-to-from = _≃ᴱ_.right-left-lemma equivalence-with-erased-proofs
+
 -- Data corresponding to the erased proofs of an equivalence with
 -- certain erased proofs.
 
