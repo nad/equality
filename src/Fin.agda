@@ -9,7 +9,7 @@ open import Equality
 module Fin
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Logical-equivalence hiding (id; _∘_; inverse)
+open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (id)
 
 open import Bijection eq as Bijection using (_↔_; module _↔_)

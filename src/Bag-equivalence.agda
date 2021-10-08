@@ -11,7 +11,7 @@ module Bag-equivalence
 
 open Derived-definitions-and-properties eq hiding (trans)
 
-open import Logical-equivalence hiding (id; _∘_; inverse)
+open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (id; swap)
 
 open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)

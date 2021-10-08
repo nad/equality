@@ -25,7 +25,7 @@ open import Groupoid eq
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (Injective)
-open import Logical-equivalence hiding (id; _∘_; inverse)
+open import Logical-equivalence using (_⇔_)
 import Nat eq as Nat
 open import Prelude hiding (swap)
 open import Surjection eq using (_↠_)

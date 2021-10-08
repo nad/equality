@@ -20,7 +20,7 @@ open import Groupoid eq
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
-open import Logical-equivalence as L-eq hiding (id; _∘_; inverse)
+open import Logical-equivalence as L-eq using (_⇔_)
 open import Nat eq
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)

@@ -21,7 +21,7 @@ import Equivalence.Half-adjoint eq as HA
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
-open import Logical-equivalence using (_⇔_; module _⇔_)
+open import Logical-equivalence as L using (_⇔_; module _⇔_)
 open import Nat eq hiding (_≟_)
 open import Preimage eq using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
@@ -112,7 +112,7 @@ data Symmetric-kind : Type where
 
 inverse : ∀ {k a b} {A : Type a} {B : Type b} →
           A ↝[ ⌊ k ⌋-sym ] B → B ↝[ ⌊ k ⌋-sym ] A
-inverse {logical-equivalence} = Logical-equivalence.inverse
+inverse {logical-equivalence} = L.inverse
 inverse {bijection}           = Bijection.inverse
 inverse {equivalence}         = Eq.inverse
 inverse {equivalenceᴱ}        = EEq.inverse
@@ -189,7 +189,7 @@ infixr 9 _∘_
 _∘_ : ∀ {k a b c} {A : Type a} {B : Type b} {C : Type c} →
       B ↝[ k ] C → A ↝[ k ] B → A ↝[ k ] C
 _∘_ {implication}         = λ f g → f ⊚ g
-_∘_ {logical-equivalence} = Logical-equivalence._∘_
+_∘_ {logical-equivalence} = L._∘_
 _∘_ {injection}           = Injection._∘_
 _∘_ {embedding}           = Emb._∘_
 _∘_ {surjection}          = Surjection._∘_
@@ -201,7 +201,7 @@ _∘_ {equivalenceᴱ}        = EEq._∘_
 
 id : ∀ {k a} {A : Type a} → A ↝[ k ] A
 id {implication}         = P.id
-id {logical-equivalence} = Logical-equivalence.id
+id {logical-equivalence} = L.id
 id {injection}           = Injection.id
 id {embedding}           = Emb.id
 id {surjection}          = Surjection.id
@@ -616,14 +616,6 @@ abstract
 
 private
 
-  ⊎-cong-eq : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
-                {B₁ : Type b₁} {B₂ : Type b₂} →
-              A₁ ⇔ A₂ → B₁ ⇔ B₂ → A₁ ⊎ B₁ ⇔ A₂ ⊎ B₂
-  ⊎-cong-eq A₁⇔A₂ B₁⇔B₂ = record
-    { to   = ⊎-map (to   A₁⇔A₂) (to   B₁⇔B₂)
-    ; from = ⊎-map (from A₁⇔A₂) (from B₁⇔B₂)
-    } where open _⇔_
-
   ⊎-cong-inj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
                  {B₁ : Type b₁} {B₂ : Type b₂} →
                A₁ ↣ A₂ → B₁ ↣ B₂ → A₁ ⊎ B₁ ↣ A₂ ⊎ B₂
@@ -717,8 +709,10 @@ private
                   {B₁ : Type b₁} {B₂ : Type b₂} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ ⊎ B₁ ↠ A₂ ⊎ B₂
   ⊎-cong-surj A₁↠A₂ B₁↠B₂ = record
-    { logical-equivalence = ⊎-cong-eq (_↠_.logical-equivalence A₁↠A₂)
-                                      (_↠_.logical-equivalence B₁↠B₂)
+    { logical-equivalence =
+        _↠_.logical-equivalence A₁↠A₂
+          L.⊎-cong
+        _↠_.logical-equivalence B₁↠B₂
     ; right-inverse-of    =
         [ cong inj₁ ⊚ _↠_.right-inverse-of A₁↠A₂
         , cong inj₂ ⊚ _↠_.right-inverse-of B₁↠B₂
@@ -758,7 +752,7 @@ _⊎-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
              {B₁ : Type b₁} {B₂ : Type b₂} →
            A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ ⊎ B₁ ↝[ k ] A₂ ⊎ B₂
 _⊎-cong_ {implication}         = ⊎-map
-_⊎-cong_ {logical-equivalence} = ⊎-cong-eq
+_⊎-cong_ {logical-equivalence} = L._⊎-cong_
 _⊎-cong_ {injection}           = ⊎-cong-inj
 _⊎-cong_ {embedding}           = ⊎-cong-emb
 _⊎-cong_ {surjection}          = ⊎-cong-surj
@@ -965,14 +959,6 @@ drop-⊥-left {A = A} {B} A↔⊥ =
 
 private
 
-  ×-cong-eq : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
-                {B₁ : Type b₁} {B₂ : Type b₂} →
-              A₁ ⇔ A₂ → B₁ ⇔ B₂ → A₁ × B₁ ⇔ A₂ × B₂
-  ×-cong-eq A₁⇔A₂ B₁⇔B₂ = record
-    { to   = Σ-map (to   A₁⇔A₂) (to   B₁⇔B₂)
-    ; from = Σ-map (from A₁⇔A₂) (from B₁⇔B₂)
-    } where open _⇔_
-
   ×-cong-inj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
                  {B₁ : Type b₁} {B₂ : Type b₂} →
                A₁ ↣ A₂ → B₁ ↣ B₂ → A₁ × B₁ ↣ A₂ × B₂
@@ -996,8 +982,10 @@ private
                   {B₁ : Type b₁} {B₂ : Type b₂} →
                 A₁ ↠ A₂ → B₁ ↠ B₂ → A₁ × B₁ ↠ A₂ × B₂
   ×-cong-surj A₁↠A₂ B₁↠B₂ = record
-    { logical-equivalence = ×-cong-eq (_↠_.logical-equivalence A₁↠A₂)
-                                      (_↠_.logical-equivalence B₁↠B₂)
+    { logical-equivalence =
+        _↠_.logical-equivalence A₁↠A₂
+          L.×-cong
+        _↠_.logical-equivalence B₁↠B₂
     ; right-inverse-of    = uncurry λ x y →
         cong₂ _,_ (_↠_.right-inverse-of A₁↠A₂ x)
                   (_↠_.right-inverse-of B₁↠B₂ y)
@@ -1035,7 +1023,7 @@ _×-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
              {B₁ : Type b₁} {B₂ : Type b₂} →
            A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ × B₁ ↝[ k ] A₂ × B₂
 _×-cong_ {implication}         = λ f g → Σ-map f g
-_×-cong_ {logical-equivalence} = ×-cong-eq
+_×-cong_ {logical-equivalence} = L._×-cong_
 _×-cong_ {injection}           = ×-cong-inj
 _×-cong_ {embedding}           = λ A₁↣A₂ B₁↣B₂ →
                                    Σ-preserves-embeddings
@@ -1242,19 +1230,11 @@ private
                 (∀ x → B₁ x → B₂ x) → ∃ B₁ → ∃ B₂
   ∃-cong-impl B₁→B₂ = Σ-map id (λ {x} → B₁→B₂ x)
 
-  ∃-cong-eq : ∀ {a b₁ b₂}
-                {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
-              (∀ x → B₁ x ⇔ B₂ x) → ∃ B₁ ⇔ ∃ B₂
-  ∃-cong-eq B₁⇔B₂ = record
-    { to   = ∃-cong-impl (to   ⊚ B₁⇔B₂)
-    ; from = ∃-cong-impl (from ⊚ B₁⇔B₂)
-    } where open _⇔_
-
   ∃-cong-surj : ∀ {a b₁ b₂}
                   {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
                 (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
   ∃-cong-surj B₁↠B₂ = record
-    { logical-equivalence = ∃-cong-eq (_↠_.logical-equivalence ⊚ B₁↠B₂)
+    { logical-equivalence = L.∃-cong (_↠_.logical-equivalence ⊚ B₁↠B₂)
     ; right-inverse-of    = uncurry λ x y →
         cong (_,_ x) (_↠_.right-inverse-of (B₁↠B₂ x) y)
     }
@@ -1278,7 +1258,7 @@ private
            {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
          (∀ x → B₁ x ↝[ k ] B₂ x) → ∃ B₁ ↝[ k ] ∃ B₂
 ∃-cong {implication}         = ∃-cong-impl
-∃-cong {logical-equivalence} = ∃-cong-eq
+∃-cong {logical-equivalence} = L.∃-cong
 ∃-cong {injection}           = Σ-cong Bijection.id
 ∃-cong {embedding}           = Σ-preserves-embeddings Emb.id
 ∃-cong {surjection}          = ∃-cong-surj
@@ -1726,19 +1706,6 @@ Embedding-to-≡↔≡ {a} {b} ext {p = p} {q} =
            (B → A) → (C → D) → (A → C) → (B → D)
 →-cong-→ B→A C→D = (C→D ∘_) ∘ (_∘ B→A)
 
-private
-
-  -- A lemma used in the implementations of →-cong and →-cong-↠.
-
-  →-cong-⇔ : ∀ {a b c d}
-               {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
-             A ⇔ B → C ⇔ D → (A → C) ⇔ (B → D)
-  →-cong-⇔ A⇔B C⇔D = record
-    { to   = →-cong-→ (from A⇔B) (to   C⇔D)
-    ; from = →-cong-→ (to   A⇔B) (from C⇔D)
-    }
-    where open _⇔_
-
 -- The non-dependent function space preserves split surjections
 -- (assuming extensionality).
 
@@ -1752,7 +1719,7 @@ private
   where
   open _↠_
 
-  logical-equiv = →-cong-⇔ (_↠_.logical-equivalence A↠B)
+  logical-equiv = L.→-cong (_↠_.logical-equivalence A↠B)
                            (_↠_.logical-equivalence C↠D)
 
   abstract
@@ -1827,7 +1794,7 @@ private
          {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
          A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
          (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
-→-cong {logical-equivalence} _   = →-cong-⇔
+→-cong {logical-equivalence} _   = L.→-cong
 →-cong {bijection}           ext = →-cong-↔  ext
 →-cong {equivalence}         ext = →-cong-≃  ext
 →-cong {equivalenceᴱ}        ext = →-cong-≃ᴱ ext
@@ -1852,15 +1819,6 @@ private
     (∀ x → B₁ x → B₂ x) →
     ((x : A) → B₁ x) → ((x : A) → B₂ x)
   ∀-cong-→ B₁→B₂ = B₁→B₂ _ ⊚_
-
-  ∀-cong-⇔ :
-    ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
-    (∀ x → B₁ x ⇔ B₂ x) →
-    ((x : A) → B₁ x) ⇔ ((x : A) → B₂ x)
-  ∀-cong-⇔ B₁⇔B₂ = record
-    { to   = ∀-cong-→ (_⇔_.to   ⊚ B₁⇔B₂)
-    ; from = ∀-cong-→ (_⇔_.from ⊚ B₁⇔B₂)
-    }
 
   ∀-cong-bij :
     ∀ {a b₁ b₂} →
@@ -1981,7 +1939,7 @@ private
   (∀ x → B₁ x ↝[ k ] B₂ x) →
   ((x : A) → B₁ x) ↝[ k ] ((x : A) → B₂ x)
 ∀-cong {implication}         = λ _ → ∀-cong-→
-∀-cong {logical-equivalence} = λ _ → ∀-cong-⇔
+∀-cong {logical-equivalence} = λ _ → L.∀-cong
 ∀-cong {injection}           = ∀-cong-inj
 ∀-cong {embedding}           = ∀-cong-emb
 ∀-cong {surjection}          = Surjection.∀-cong
@@ -3197,27 +3155,6 @@ Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} g-eq =
     (flip Eq.propositional _ ⊚ lower-extensionality b b)
 
 ------------------------------------------------------------------------
--- Lemmas related to _⇔_
-
--- _⇔_ preserves logical equivalences.
-
-⇔-cong-⇔ :
-  ∀ {a b c d} {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
-  A ⇔ B → C ⇔ D → (A ⇔ C) ⇔ (B ⇔ D)
-⇔-cong-⇔ {A = A} {B = B} {C = C} {D = D} A⇔B C⇔D = record
-  { to   = λ A⇔C →
-             B  ↝⟨ inverse A⇔B ⟩
-             A  ↝⟨ A⇔C ⟩
-             C  ↝⟨ C⇔D ⟩□
-             D  □
-  ; from = λ B⇔D →
-             A  ↝⟨ A⇔B ⟩
-             B  ↝⟨ B⇔D ⟩
-             D  ↝⟨ inverse C⇔D ⟩□
-             C  □
-  }
-
-------------------------------------------------------------------------
 -- Lemmas related to _↠_
 
 -- An alternative characterisation of split surjections.
@@ -3424,14 +3361,6 @@ private
     (B → C) → ↑ a B → ↑ a C
   ↑-cong-→ B→C = lift ⊚ B→C ⊚ lower
 
-  ↑-cong-⇔ :
-    ∀ {a b c} {B : Type b} {C : Type c} →
-    B ⇔ C → ↑ a B ⇔ ↑ a C
-  ↑-cong-⇔ B⇔C = record
-    { to   = ↑-cong-→ to
-    ; from = ↑-cong-→ from
-    } where open _⇔_ B⇔C
-
   ↑-cong-↣ :
     ∀ {a b c} {B : Type b} {C : Type c} →
     B ↣ C → ↑ a B ↣ ↑ a C
@@ -3498,7 +3427,7 @@ private
     where
     open _↠_ B↠C renaming (logical-equivalence to logical-equiv)
 
-    logical-equivalence′ = ↑-cong-⇔ {a = a} logical-equiv
+    logical-equivalence′ = L.↑-cong {a = a} logical-equiv
 
     abstract
       right-inverse-of′ : ∀ x →
@@ -3537,7 +3466,7 @@ private
 ↑-cong : ∀ {k a b c} {B : Type b} {C : Type c} →
            B ↝[ k ] C → ↑ a B ↝[ k ] ↑ a C
 ↑-cong {implication}         = ↑-cong-→
-↑-cong {logical-equivalence} = ↑-cong-⇔
+↑-cong {logical-equivalence} = L.↑-cong
 ↑-cong {injection}           = ↑-cong-↣
 ↑-cong {embedding}           = ↑-cong-Embedding
 ↑-cong {surjection}          = ↑-cong-↠

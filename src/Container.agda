@@ -10,7 +10,7 @@ module Container {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
 
 open Derived-definitions-and-properties eq
 
-open import Logical-equivalence hiding (id; _∘_; inverse)
+open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (id; List)
 
 open import Bag-equivalence eq using (Kind); open Kind
