@@ -814,7 +814,7 @@ Contractibleᴱ-commutes-with-× :
   {@0 A : Type a} {@0 B : Type b} →
   @0 Extensionality (a ⊔ b) (a ⊔ b) →
   Contractibleᴱ (A × B) ≃ᴱ (Contractibleᴱ A × Contractibleᴱ B)
-Contractibleᴱ-commutes-with-× {a = a} {b = b} {A = A} {B = B} ext =
+Contractibleᴱ-commutes-with-× {A = A} {B = B} ext =
   [≃]→≃ᴱ ([proofs] lemma)
   where
   @0 lemma : _
@@ -1034,7 +1034,6 @@ other-singleton-with-Π-≃ᴱ-≃ᴱ-⊤ {a = a} {p = p} {A = A} {P = P}
 -- (assuming extensionality and univalence).
 
 ∃Contractibleᴱ≃ᴱ⊤ :
-  ∀ {a} →
   @0 Extensionality a a →
   @0 Univalence a →
   (∃ λ (A : Type a) → Contractibleᴱ A) ≃ᴱ ⊤
