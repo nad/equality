@@ -11,7 +11,7 @@ module Erased.Stability
 
 open Derived-definitions-and-properties eq
 
-open import Logical-equivalence using (_⇔_)
+open import Logical-equivalence as LE using (_⇔_)
 open import Prelude
 
 open import Bijection eq as Bijection using (_↔_)
@@ -137,11 +137,12 @@ Very-stable→Stable-[]≡id {x = x} s =
 -- Very stable types are very stable with erased proofs.
 
 Very-stable→Very-stableᴱ :
+  {@0 A : Type a} →
   ∀ n →
   For-iterated-equality n Very-stable A →
   For-iterated-equality n Very-stableᴱ A
 Very-stable→Very-stableᴱ n =
-  For-iterated-equality-cong₁ _ n EEq.Is-equivalence→Is-equivalenceᴱ
+  For-iterated-equality-cong₁ᴱ-→ n EEq.Is-equivalence→Is-equivalenceᴱ
 
 -- In erased contexts types that are very stable with erased proofs
 -- are very stable.
@@ -157,25 +158,27 @@ Very-stableᴱ→Very-stable n =
 -- Stable-[ equivalenceᴱ ] A holds.
 
 Very-stableᴱ→Stable-≃ᴱ :
+  {@0 A : Type a} →
   ∀ n →
   For-iterated-equality n Very-stableᴱ A →
   For-iterated-equality n Stable-[ equivalenceᴱ ] A
-Very-stableᴱ→Stable-≃ᴱ n =
-  For-iterated-equality-cong₁ _ n λ {A} →
-    Very-stableᴱ A             ↝⟨ EEq.⟨ _ ,_⟩ ⟩
-    A ≃ᴱ Erased A              ↝⟨ inverse ⟩
-    Erased A ≃ᴱ A              ↔⟨⟩
+Very-stableᴱ→Stable-≃ᴱ {A = A} n =
+  For-iterated-equality-cong₁ᴱ-→ n λ {A} →
+    Very-stableᴱ A             →⟨ EEq.⟨ _ ,_⟩₀ ⟩
+    A ≃ᴱ Erased A              →⟨ EEq.inverse ⟩
+    Erased A ≃ᴱ A              →⟨ id ⟩□
     Stable-[ equivalenceᴱ ] A  □
 
 -- If A is very stable with erased proofs, then A is stable.
 
 Very-stableᴱ→Stable :
+  {@0 A : Type a} →
   ∀ n →
   For-iterated-equality n Very-stableᴱ A →
   For-iterated-equality n Stable A
 Very-stableᴱ→Stable {A = A} n =
-  For-iterated-equality n Very-stableᴱ A             ↝⟨ Very-stableᴱ→Stable-≃ᴱ n ⟩
-  For-iterated-equality n Stable-[ equivalenceᴱ ] A  ↝⟨ For-iterated-equality-cong₁ _ n _≃ᴱ_.to ⟩□
+  For-iterated-equality n Very-stableᴱ A             →⟨ Very-stableᴱ→Stable-≃ᴱ n ⟩
+  For-iterated-equality n Stable-[ equivalenceᴱ ] A  →⟨ For-iterated-equality-cong₁ᴱ-→ n _≃ᴱ_.to ⟩□
   For-iterated-equality n Stable A                   □
 
 -- The function obtained from Very-stableᴱ→Stable 0 maps [ x ] to x
@@ -202,6 +205,7 @@ Very-stableᴱ→Stable-[]≡id {x = x} s =
 -- proofs).
 
 [Erased→Very-stableᴱ]→Very-stableᴱ :
+  {@0 A : Type a} →
   (Erased A → Very-stableᴱ A) → Very-stableᴱ A
 [Erased→Very-stableᴱ]→Very-stableᴱ =
   EEq.[inhabited→Is-equivalenceᴱ]→Is-equivalenceᴱ
@@ -253,12 +257,13 @@ Very-stable-Very-stable→Very-stable s =
 -- See also Very-stableᴱ-Very-stableᴱ≃ᴱVery-stableᴱ below.
 
 Very-stableᴱ-Very-stableᴱ→Very-stableᴱ :
+  {@0 A : Type a} →
   Very-stableᴱ (Very-stableᴱ A) →
   Very-stableᴱ A
 Very-stableᴱ-Very-stableᴱ→Very-stableᴱ {A = A} s =
                            $⟨ Erased-Very-stable ⟩
-  Erased (Very-stable A)   ↝⟨ map (Very-stable→Very-stableᴱ 0) ⟩
-  Erased (Very-stableᴱ A)  ↝⟨ Very-stableᴱ→Stable 0 s ⟩□
+  Erased (Very-stable A)   →⟨ map (Very-stable→Very-stableᴱ 0) ⟩
+  Erased (Very-stableᴱ A)  →⟨ Very-stableᴱ→Stable 0 s ⟩□
   Very-stableᴱ A           □
 
 -- It is not the case that every very stable type is a proposition.
@@ -315,6 +320,7 @@ Stable-≡→≃ᴱ→≃ sA sB A≃ᴱB = Eq.↔→≃
 -- erased proofs.
 
 Stable→Left-inverse→Very-stableᴱ :
+  {@0 A : Type a} →
   (s : Stable A) → @0 (∀ x → s [ x ] ≡ x) → Very-stableᴱ A
 Stable→Left-inverse→Very-stableᴱ s inv =
   _≃ᴱ_.is-equivalence $
@@ -342,6 +348,7 @@ private
 -- proposition, then A is very stable with erased proofs.
 
 Stable-proposition→Very-stableᴱ :
+  {@0 A : Type a} →
   Stable A → @0 Is-proposition A → Very-stableᴱ A
 Stable-proposition→Very-stableᴱ {A = A} s prop =
   _≃ᴱ_.is-equivalence $
@@ -356,38 +363,40 @@ Stable-proposition→Very-stableᴱ {A = A} s prop =
 -- The previous result can be generalised.
 
 Stable→H-level-suc→Very-stableᴱ :
+  {@0 A : Type a} →
   ∀ n →
   For-iterated-equality n Stable A →
   @0 H-level (1 + n) A →
   For-iterated-equality n Very-stableᴱ A
-Stable→H-level-suc→Very-stableᴱ {A = A} n s h =                $⟨ s , [ H-level-suc→For-iterated-equality-Is-proposition h ] ⟩
+Stable→H-level-suc→Very-stableᴱ {A = A} n s h =                $⟨ s ,′ [ H-level-suc→For-iterated-equality-Is-proposition h ] ⟩
   For-iterated-equality n Stable A ×
-  Erased (For-iterated-equality n Is-proposition A)            ↝⟨ (∃-cong λ _ →
-                                                                   For-iterated-equality-commutes _ (λ A → Erased A) n (_↔_.to Erased-Π↔Π)) ⟩
+  Erased (For-iterated-equality n Is-proposition A)            →⟨ Σ-map id $
+                                                                  For-iterated-equality-commutesᴱ-→ (λ A → Erased A) n (λ ([ f ]) x → [ f x ]) ⟩
   For-iterated-equality n Stable A ×
-  For-iterated-equality n (λ A → Erased (Is-proposition A)) A  ↝⟨ For-iterated-equality-commutes-× n _ ⟩
+  For-iterated-equality n (λ A → Erased (Is-proposition A)) A  →⟨ For-iterated-equality-commutesᴱ-×-→ n ⟩
 
   For-iterated-equality n
-    (λ A → Stable A × Erased (Is-proposition A)) A             ↝⟨ (For-iterated-equality-cong₁ _ n λ (s , [ prop ]) →
-                                                                   Stable-proposition→Very-stableᴱ s prop) ⟩
+    (λ A → Stable A × Erased (Is-proposition A)) A             →⟨ (For-iterated-equality-cong₁ᴱ-→ n λ (s , [ prop ]) →
+                                                                   Stable-proposition→Very-stableᴱ s prop) ⟩□
   For-iterated-equality n Very-stableᴱ A                       □
 
 -- Types that are contractible with erased proofs (n levels up) are
 -- very stable with erased proofs (n levels up).
 
 H-level→Very-stableᴱ :
+  {@0 A : Type a} →
   ∀ n →
   For-iterated-equality n Contractibleᴱ A →
   For-iterated-equality n Very-stableᴱ A
 H-level→Very-stableᴱ {A = A} n =
-  For-iterated-equality n Contractibleᴱ A ↝⟨ For-iterated-equality-cong₁ _ n Contractibleᴱ→Very-stableᴱ ⟩□
-  For-iterated-equality n Very-stableᴱ A  □
+  For-iterated-equality n Contractibleᴱ A  →⟨ For-iterated-equality-cong₁ᴱ-→ n Contractibleᴱ→Very-stableᴱ ⟩□
+  For-iterated-equality n Very-stableᴱ A   □
   where
   Contractibleᴱ→Very-stableᴱ :
-    ∀ {A} → Contractibleᴱ A → Very-stableᴱ A
+    ∀ {@0 A} → Contractibleᴱ A → Very-stableᴱ A
   Contractibleᴱ→Very-stableᴱ c =
     Stable-proposition→Very-stableᴱ
-      (λ _ → proj₁ c)
+      (λ _ → proj₁₀ c)
       (mono₁ 0 $ ECP.Contractibleᴱ→Contractible c)
 
 ------------------------------------------------------------------------
@@ -402,9 +411,11 @@ Stable-map A→B B→A s x = A→B (s (map B→A x))
 
 -- A variant of Stable-map.
 
-Stable-map-⇔ : A ⇔ B → Stable A → Stable B
+Stable-map-⇔ :
+  {@0 A : Type a} {@0 B : Type b} →
+  A ⇔ B → Stable A → Stable B
 Stable-map-⇔ A⇔B =
-  Stable-map (_⇔_.to A⇔B) (_⇔_.from A⇔B)
+  Stable-map (to-implication A⇔B) (_⇔_.from A⇔B)
 
 -- If there is an injective function from A to B, and equality is
 -- stable for B, then equality is stable for A.
@@ -420,14 +431,15 @@ Injective→Stable-≡→Stable-≡ f inj s x y =
 -- erased proofs, then B is very stable with erased proofs.
 
 →→Is-equivalence→Very-stableᴱ→Very-stableᴱ :
+  {@0 A : Type a} {@0 B : Type b}
   (f : A → B) → @0 Is-equivalence f → Very-stableᴱ A → Very-stableᴱ B
 →→Is-equivalence→Very-stableᴱ→Very-stableᴱ {A = A} {B = B} f eq s =
   _≃ᴱ_.is-equivalence $
   EEq.↔→≃ᴱ
     [_]→
-    (Erased B  ↝⟨ map (_≃_.from Eq.⟨ _ , eq ⟩) ⟩
-     Erased A  ↝⟨ _≃ᴱ_.from EEq.⟨ _ , s ⟩ ⟩
-     A         ↝⟨ f ⟩□
+    (Erased B  →⟨ map (_≃_.from Eq.⟨ _ , eq ⟩) ⟩
+     Erased A  →⟨ _≃ᴱ_.from EEq.⟨ _ , s ⟩₀ ⟩
+     A         →⟨ f ⟩□
      B         □)
     (λ ([ x ]) → cong [_]→ (lemma x))
     lemma
@@ -442,6 +454,7 @@ Injective→Stable-≡→Stable-≡ f inj s x y =
 -- with erased proofs, then B is very stable with erased proofs.
 
 ≃ᴱ→Very-stableᴱ→Very-stableᴱ :
+  {@0 A : Type a} {@0 B : Type b} →
   A ≃ᴱ B → Very-stableᴱ A → Very-stableᴱ B
 ≃ᴱ→Very-stableᴱ→Very-stableᴱ A≃ᴱB =
   →→Is-equivalence→Very-stableᴱ→Very-stableᴱ
@@ -451,7 +464,7 @@ Injective→Stable-≡→Stable-≡ f inj s x y =
 -- extensionality).
 
 Very-stableᴱ-cong :
-  {A : Type a} {B : Type b} →
+  {@0 A : Type a} {@0 B : Type b} →
   @0 Extensionality (a ⊔ b) (a ⊔ b) →
   A ≃ᴱ B → Very-stableᴱ A ≃ᴱ Very-stableᴱ B
 Very-stableᴱ-cong {a = a} {b = b} ext A≃ᴱB =
@@ -459,7 +472,7 @@ Very-stableᴱ-cong {a = a} {b = b} ext A≃ᴱB =
     (Very-stableᴱ-propositional (lower-extensionality b b ext))
     (Very-stableᴱ-propositional (lower-extensionality a a ext))
     (≃ᴱ→Very-stableᴱ→Very-stableᴱ A≃ᴱB)
-    (≃ᴱ→Very-stableᴱ→Very-stableᴱ (inverse A≃ᴱB))
+    (≃ᴱ→Very-stableᴱ→Very-stableᴱ (EEq.inverse A≃ᴱB))
 
 -- A variant of Very-stableᴱ-cong.
 
@@ -521,14 +534,14 @@ Very-stable-Π ext s = _≃_.is-equivalence $
 -- Very-stableᴱ is closed under Π A (assuming extensionality).
 
 Very-stableᴱ-Π :
-  {A : Type a} {P : A → Type p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   @0 Extensionality a p →
   (∀ x → Very-stableᴱ (P x)) →
   Very-stableᴱ ((x : A) → P x)
 Very-stableᴱ-Π {P = P} ext s =
   _≃ᴱ_.is-equivalence
-    ((∀ x → P x)           ↝⟨ (EEq.∀-cong-≃ᴱ ext λ x → EEq.⟨ _ , s x ⟩) ⟩
-     (∀ x → Erased (P x))  ↔⟨ inverse Erased-Π↔Π ⟩□
+    ((∀ x → P x)           EEq.≃ᴱ⟨ (EEq.∀-cong-≃ᴱ ext λ x → EEq.⟨ _ , s x ⟩₀) ⟩
+     (∀ x → Erased (P x))  EEq.≃ᴱ⟨ EEq.inverse Erased-Π≃ᴱΠ ⟩□
      Erased (∀ x → P x)    □)
 
 -- A variant of Very-stableᴱ-Π.
@@ -615,9 +628,14 @@ Very-stable-× s s′ = _≃_.is-equivalence $
 
 -- Very-stableᴱ is closed under _×_.
 
-Very-stableᴱ-× : Very-stableᴱ A → Very-stableᴱ B → Very-stableᴱ (A × B)
-Very-stableᴱ-× s s′ = _≃ᴱ_.is-equivalence $
-  inverse $ Stable-[]-× (inverse EEq.⟨ _ , s ⟩) (inverse EEq.⟨ _ , s′ ⟩)
+Very-stableᴱ-× :
+  {@0 A : Type a} {@0 B : Type b} →
+  Very-stableᴱ A → Very-stableᴱ B → Very-stableᴱ (A × B)
+Very-stableᴱ-× {A = A} {B = B} s s′ =
+  _≃ᴱ_.is-equivalence
+    (A × B                EEq.≃ᴱ⟨ EEq.⟨ _ , s ⟩₀ EEq.×-cong-≃ᴱ EEq.⟨ _ , s′ ⟩₀ ⟩
+     Erased A × Erased B  EEq.↔⟨ inverse Erased-Σ↔Σ ⟩□
+     Erased (A × B)       □)
 
 -- A generalisation of Very-stableᴱ-×.
 
@@ -648,9 +666,14 @@ Very-stable-↑ s = _≃_.is-equivalence $
 
 -- Very-stableᴱ is closed under ↑ ℓ.
 
-Very-stableᴱ-↑ : Very-stableᴱ A → Very-stableᴱ (↑ ℓ A)
-Very-stableᴱ-↑ s = _≃ᴱ_.is-equivalence $
-  inverse $ Stable-↑ $ inverse EEq.⟨ _ , s ⟩
+Very-stableᴱ-↑ :
+  {@0 A : Type a} →
+  Very-stableᴱ A → Very-stableᴱ (↑ ℓ A)
+Very-stableᴱ-↑ {A = A} s =
+  _≃ᴱ_.is-equivalence
+    (↑ _ A           EEq.≃ᴱ⟨ EEq.↑-cong-≃ᴱ EEq.⟨ _ , s ⟩₀ ⟩
+     ↑ _ (Erased A)  EEq.↔⟨ inverse Erased-↑↔↑ ⟩□
+     Erased (↑ _ A)  □)
 
 -- A generalisation of Very-stableᴱ-↑.
 
@@ -697,7 +720,7 @@ Very-stable-¬ {A = A} ext =
 -- with erased proofs (assuming extensionality).
 
 Very-stableᴱ-W :
-  {A : Type a} {P : A → Type p} →
+  {@0 A : Type a} {@0 P : A → Type p} →
   @0 Extensionality p (a ⊔ p) →
   Very-stableᴱ A →
   Very-stableᴱ (W A P)
@@ -705,17 +728,18 @@ Very-stableᴱ-W {A = A} {P = P} ext s =
   _≃ᴱ_.is-equivalence $
   EEq.↔→≃ᴱ [_]→ from []∘from from∘[]
   where
-  module E = _≃ᴱ_ EEq.⟨ _ , s ⟩
+  A≃ᴱE-A : A ≃ᴱ Erased A
+  A≃ᴱE-A = EEq.⟨ _ , s ⟩₀
 
   from : Erased (W A P) → W A P
   from [ sup x f ] = sup
-    (E.from [ x ])
-    (λ y → from [ f (subst P (E.left-inverse-of x) y) ])
+    (_≃ᴱ_.from A≃ᴱE-A [ x ])
+    (λ y → from [ f (subst P (_≃ᴱ_.left-inverse-of A≃ᴱE-A x) y) ])
 
   @0 from∘[] : ∀ x → from [ x ] ≡ x
   from∘[] (sup x f) = curry (_↠_.to (W-≡,≡↠≡ ext))
-    (E.left-inverse-of x)
-    (λ y → from∘[] (f (subst P (E.left-inverse-of x) y)))
+    (_≃ᴱ_.left-inverse-of A≃ᴱE-A x)
+    (λ y → from∘[] (f (subst P (_≃ᴱ_.left-inverse-of A≃ᴱE-A x) y)))
 
   @0 []∘from : ∀ x → [ from x ] ≡ x
   []∘from [ x ] = cong [_]→ (from∘[] x)
@@ -996,7 +1020,7 @@ Is-∞-extendable-along-contractible-for-equivalences ext eq =
 -- A variant of ∘-[]-equivalence.
 
 Is-equivalenceᴱ-∘[] :
-  {A : Type a} {B : Type b} →
+  {@0 A : Type a} {@0 B : Type b} →
   @0 Extensionality a b →
   Very-stableᴱ B →
   Is-equivalenceᴱ (λ (f : Erased A → B) → f ∘ [_]→)
@@ -1004,7 +1028,7 @@ Is-equivalenceᴱ-∘[] ext s =
   _≃ᴱ_.is-equivalence $
   EEq.↔→≃ᴱ
     _
-    (λ f x → _≃ᴱ_.from EEq.⟨ _ , s ⟩ (map f x))
+    (λ f x → _≃ᴱ_.from EEq.⟨ _ , s ⟩₀ (map f x))
     (λ f → apply-ext ext λ x →
        _≃ᴱ_.left-inverse-of EEq.⟨ _ , s ⟩ (f x))
     (λ f → apply-ext ext λ x →
@@ -1073,7 +1097,9 @@ Erased-other-singleton x = ∃ λ y → Erased (x ≡ y)
 
 -- "Inspection" with erased proofs.
 
-inspectᴱ : (x : A) → Erased-other-singleton x
+inspectᴱ :
+  {@0 A : Type a}
+  (x : A) → Erased-other-singleton x
 inspectᴱ x = x , [ refl x ]
 
 -- If equality is very stable for A, then Erased-singleton x is
@@ -1093,44 +1119,50 @@ erased-singleton-contractible {x = x} s =
 
 -- Erased-singleton x is contractible with an erased proof.
 
-Contractibleᴱ-Erased-singleton : Contractibleᴱ (Erased-singleton x)
+Contractibleᴱ-Erased-singleton :
+  {@0 A : Type a} {x : A} →
+  Contractibleᴱ (Erased-singleton x)
 Contractibleᴱ-Erased-singleton {x = x} =
-                                      $⟨ singleton-contractible x ⟩
-  Contractible  (Singleton x)         ↝⟨ ECP.Contractible→Contractibleᴱ ⟩
-  Contractibleᴱ (Singleton x)         ↝⟨ ECP.Contractibleᴱ-respects-surjection
-                                           (Σ-map id [_]→)
-                                           (_≃_.split-surjective $ Eq.↔→≃ _
-                                              (Σ-map id erased)
-                                              (λ _ → refl _)
-                                              (λ _ → refl _)) ⟩□
-  Contractibleᴱ (Erased-singleton x)  □
+    (x , [ proj₂₀ (proj₁₀ contr) .erased ])
+  , [ proj₂ contr ]
+  where
+  @0 contr : Contractible (Erased-singleton x)
+  contr =
+    erased-singleton-contractible
+      (λ _ _ → Erased-Very-stable .erased)
 
 -- Erased-other-singleton x is contractible with an erased proof.
 
 Contractibleᴱ-Erased-other-singleton :
+  {@0 A : Type a} {x : A} →
   Contractibleᴱ (Erased-other-singleton x)
 Contractibleᴱ-Erased-other-singleton {x = x} =
-                                            $⟨ other-singleton-contractible x ⟩
-  Contractible  (Other-singleton x)         ↝⟨ ECP.Contractible→Contractibleᴱ ⟩
-  Contractibleᴱ (Other-singleton x)         ↝⟨ ECP.Contractibleᴱ-respects-surjection
-                                                 (Σ-map id [_]→)
+                                            $⟨ Contractibleᴱ-Erased-singleton ⟩
+  Contractibleᴱ (Erased-singleton x)        →⟨ ECP.Contractibleᴱ-respects-surjection
+                                                 (Σ-map id (map sym))
                                                  (_≃_.split-surjective $ Eq.↔→≃ _
-                                                    (Σ-map id erased)
-                                                    (λ _ → refl _)
-                                                    (λ _ → refl _)) ⟩□
+                                                    (Σ-map id (map sym))
+                                                    (λ _ → cong ((_ ,_) ∘ [_]→) $ sym-sym _)
+                                                    (λ _ → cong ((_ ,_) ∘ [_]→) $ sym-sym _)) ⟩□
   Contractibleᴱ (Erased-other-singleton x)  □
 
 -- Erased-singleton x is equivalent, with erased proofs, to ⊤.
 
-Erased-singleton≃ᴱ⊤ : Erased-singleton x ≃ᴱ ⊤
+Erased-singleton≃ᴱ⊤ :
+  {@0 A : Type a} {x : A} →
+  Erased-singleton x ≃ᴱ ⊤
 Erased-singleton≃ᴱ⊤ =
-  _⇔_.to EEq.Contractibleᴱ⇔≃ᴱ⊤ Contractibleᴱ-Erased-singleton
+  let record { to = to } = EEq.Contractibleᴱ⇔≃ᴱ⊤ in
+  to Contractibleᴱ-Erased-singleton
 
 -- Erased-other-singleton x is equivalent, with erased proofs, to ⊤.
 
-Erased-other-singleton≃ᴱ⊤ : Erased-other-singleton x ≃ᴱ ⊤
+Erased-other-singleton≃ᴱ⊤ :
+  {@0 A : Type a} {x : A} →
+  Erased-other-singleton x ≃ᴱ ⊤
 Erased-other-singleton≃ᴱ⊤ =
-  _⇔_.to EEq.Contractibleᴱ⇔≃ᴱ⊤ Contractibleᴱ-Erased-other-singleton
+  let record { to = to } = EEq.Contractibleᴱ⇔≃ᴱ⊤ in
+  to Contractibleᴱ-Erased-other-singleton
 
 ------------------------------------------------------------------------
 -- Some results that follow if "[]-cong" is an equivalence that maps
@@ -1261,14 +1293,15 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- erased proofs".
 
   Very-stableᴱ-≡⇔Is-embeddingᴱ-[] :
+    {@0 A : Type a} →
     Very-stableᴱ-≡ A ⇔ Is-embeddingᴱ ([_]→ {A = A})
   Very-stableᴱ-≡⇔Is-embeddingᴱ-[] =
-    (∀ x y → Is-equivalenceᴱ ([_]→ {A = x ≡ y}))            ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ →
-                                                                EEq.Is-equivalence⇔Is-equivalence-∘ˡ
-                                                                  (EEq.Is-equivalence→Is-equivalenceᴱ []-cong-equivalence)) ⟩
-    (∀ x y → Is-equivalenceᴱ ([]-cong ∘ [_]→ {A = x ≡ y}))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ →
-                                                                EEq.Is-equivalenceᴱ-cong-⇔ λ _ →
-                                                                []-cong-[]≡cong-[]) ⟩□
+    (∀ x y → Is-equivalenceᴱ ([_]→ {A = x ≡ y}))            LE.⇔⟨ (LE.∀-cong λ _ → LE.∀-cong λ _ →
+                                                                   EEq.Is-equivalence⇔Is-equivalence-∘ˡ
+                                                                     (EEq.Is-equivalence→Is-equivalenceᴱ []-cong-equivalence)) ⟩
+    (∀ x y → Is-equivalenceᴱ ([]-cong ∘ [_]→ {A = x ≡ y}))  LE.⇔⟨ (LE.∀-cong λ _ → LE.∀-cong λ _ →
+                                                                   EEq.Is-equivalenceᴱ-cong-⇔ λ _ →
+                                                                   []-cong-[]≡cong-[]) ⟩□
     (∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} [_]→))   □
 
   -- There is an equivalence with erased proofs between "equality for
@@ -1276,16 +1309,19 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- embedding with erased proofs" (assuming extensionality).
 
   Very-stableᴱ-≡≃ᴱIs-embeddingᴱ-[] :
-    {A : Type a} →
+    {@0 A : Type a} →
     @0 Extensionality a a →
     Very-stableᴱ-≡ A ≃ᴱ Is-embeddingᴱ ([_]→ {A = A})
   Very-stableᴱ-≡≃ᴱIs-embeddingᴱ-[] ext =
+    let record { to = to; from = from } =
+          Very-stableᴱ-≡⇔Is-embeddingᴱ-[]
+    in
     EEq.⇔→≃ᴱ
       (H-level-For-iterated-equality ext 1 1 λ {A} →
        Very-stableᴱ-propositional {A = A} ext)
       (EEmb.Is-embeddingᴱ-propositional ext)
-      (_⇔_.to Very-stableᴱ-≡⇔Is-embeddingᴱ-[])
-      (_⇔_.from Very-stableᴱ-≡⇔Is-embeddingᴱ-[])
+      to
+      from
 
   ----------------------------------------------------------------------
   -- Preservation lemmas
@@ -1414,12 +1450,13 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- Very-stableᴱ is closed under Σ.
 
   Very-stableᴱ-Σ :
+    {@0 A : Type a} {@0 P : A → Type p} →
     Very-stableᴱ A →
     (∀ x → Very-stableᴱ (P x)) →
     Very-stableᴱ (Σ A P)
   Very-stableᴱ-Σ {A = A} {P = P} s s′ = _≃ᴱ_.is-equivalence (
-    Σ A P                                       ↝⟨ EEq.[]-cong.Σ-cong-≃ᴱ-Erased ax EEq.⟨ _ , s ⟩ (λ x → EEq.⟨ _ , s′ x ⟩) ⟩
-    Σ (Erased A) (λ x → Erased (P (erased x)))  ↔⟨ inverse Erased-Σ↔Σ ⟩□
+    Σ A P                                       EEq.≃ᴱ⟨ EEq.[]-cong.Σ-cong-≃ᴱ-Erased ax EEq.⟨ _ , s ⟩₀ (λ x → EEq.⟨ _ , s′ x ⟩₀) ⟩
+    Σ (Erased A) (λ x → Erased (P (erased x)))  EEq.↔⟨ inverse Erased-Σ↔Σ ⟩□
     Erased (Σ A P)                              □)
 
   -- If A is very stable, then W A P is very stable (assuming
@@ -1603,17 +1640,17 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- erased proofs (assuming extensionality).
 
   Very-stableᴱ-H-levelᴱ :
-    {A : Type a} →
+    {@0 A : Type a} →
     @0 Extensionality a a →
     ∀ n →
     For-iterated-equality n Very-stableᴱ A →
     Very-stableᴱ (For-iterated-equality n Contractibleᴱ A)
   Very-stableᴱ-H-levelᴱ {A = A} ext n =
-    For-iterated-equality n Very-stableᴱ A                    ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
-    For-iterated-equality n (Very-stableᴱ ∘ Contractibleᴱ) A  ↝⟨ For-iterated-equality-commutes-← _ Very-stableᴱ n (Very-stableᴱ-Π ext) ⟩□
+    For-iterated-equality n Very-stableᴱ A                    →⟨ For-iterated-equality-cong₁ᴱ-→ n lemma ⟩
+    For-iterated-equality n (Very-stableᴱ ∘ Contractibleᴱ) A  →⟨ For-iterated-equality-commutesᴱ-← Very-stableᴱ n (Very-stableᴱ-Π ext) ⟩□
     Very-stableᴱ (For-iterated-equality n Contractibleᴱ A)    □
     where
-    lemma : ∀ {A} → Very-stableᴱ A → Very-stableᴱ (Contractibleᴱ A)
+    lemma : ∀ {@0 A} → Very-stableᴱ A → Very-stableᴱ (Contractibleᴱ A)
     lemma s =
       Very-stableᴱ-Σ s λ _ →
       Very-stable→Very-stableᴱ 0
@@ -1658,7 +1695,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
   -- extensionality).
 
   Very-stableᴱ-Very-stableᴱ≃ᴱVery-stableᴱ :
-    {A : Type a} →
+    {@0 A : Type a} →
     @0 Extensionality a a →
     Very-stableᴱ (Very-stableᴱ A) ≃ᴱ Very-stableᴱ A
   Very-stableᴱ-Very-stableᴱ≃ᴱVery-stableᴱ ext =
@@ -1668,7 +1705,7 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
       Very-stableᴱ-Very-stableᴱ→Very-stableᴱ
       (λ s →
          ≃ᴱ→Very-stableᴱ→Very-stableᴱ
-           (inverse $ EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext) $
+           (EEq.inverse $ EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext) $
          Very-stableᴱ-Π ext λ _ →
          Very-stableᴱ-H-levelᴱ ext 0 $
          Very-stableᴱ-Σ s λ _ →
