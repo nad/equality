@@ -1165,6 +1165,52 @@ from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
        ]
      )
 
+-- Some consequences of the two-out-of-three properties.
+
+Is-equivalence⇔Is-equivalence-∘ˡ :
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
+  {f : B → C} {@0 g : A → B} →
+  Is-equivalenceᴱ f →
+  Is-equivalenceᴱ g ⇔ Is-equivalenceᴱ (f ⊚ g)
+Is-equivalence⇔Is-equivalence-∘ˡ f-eq = record
+  { to   = flip 12→3 f-eq
+  ; from = 23→1 f-eq
+  }
+
+Is-equivalence⇔Is-equivalence-∘ʳ :
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
+  {@0 f : B → C} {g : A → B} →
+  Is-equivalenceᴱ g →
+  Is-equivalenceᴱ f ⇔ Is-equivalenceᴱ (f ⊚ g)
+Is-equivalence⇔Is-equivalence-∘ʳ g-eq = record
+  { to   = 12→3 g-eq
+  ; from = λ f∘g-eq → 31→2 f∘g-eq g-eq
+  }
+
+Is-equivalence≃ᴱIs-equivalence-∘ˡ :
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
+  {f : B → C} {@0 g : A → B} →
+  @0 Extensionality (a ⊔ b ⊔ c) (a ⊔ b ⊔ c) →
+  Is-equivalenceᴱ f →
+  Is-equivalenceᴱ g ≃ᴱ Is-equivalenceᴱ (f ⊚ g)
+Is-equivalence≃ᴱIs-equivalence-∘ˡ {b = b} {c = c} ext f-eq = ⇔→≃ᴱ
+  (Is-equivalenceᴱ-propositional (lower-extensionality c c ext) _)
+  (Is-equivalenceᴱ-propositional (lower-extensionality b b ext) _)
+  (flip 12→3 f-eq)
+  (23→1 f-eq)
+
+Is-equivalence≃ᴱIs-equivalence-∘ʳ :
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
+  {@0 f : B → C} {g : A → B} →
+  @0 Extensionality (a ⊔ b ⊔ c) (a ⊔ b ⊔ c) →
+  Is-equivalenceᴱ g →
+  Is-equivalenceᴱ f ≃ᴱ Is-equivalenceᴱ (f ⊚ g)
+Is-equivalence≃ᴱIs-equivalence-∘ʳ {a = a} {b = b} ext g-eq = ⇔→≃ᴱ
+  (Is-equivalenceᴱ-propositional (lower-extensionality a a ext) _)
+  (Is-equivalenceᴱ-propositional (lower-extensionality b b ext) _)
+  (12→3 g-eq)
+  (λ f∘g-eq → 31→2 f∘g-eq g-eq)
+
 ------------------------------------------------------------------------
 -- Results that depend on an axiomatisation of []-cong (for a single
 -- universe level)

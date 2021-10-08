@@ -1002,24 +1002,12 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     Very-stableᴱ-≡ A ⇔ Is-embeddingᴱ ([_]→ {A = A})
   Very-stableᴱ-≡⇔Is-embeddingᴱ-[] =
     (∀ x y → Is-equivalenceᴱ ([_]→ {A = x ≡ y}))            ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ →
-                                                                record { to = to; from = from }) ⟩
+                                                                EEq.Is-equivalence⇔Is-equivalence-∘ˡ
+                                                                  (EEq.Is-equivalence→Is-equivalenceᴱ []-cong-equivalence)) ⟩
     (∀ x y → Is-equivalenceᴱ ([]-cong ∘ [_]→ {A = x ≡ y}))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ →
-                                                                EEq.[]-cong.Is-equivalenceᴱ-cong ax _ λ _ →
+                                                                EEq.Is-equivalenceᴱ-cong-⇔ λ _ →
                                                                 []-cong-[]≡cong-[]) ⟩□
     (∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} [_]→))   □
-    where
-    to :
-      Is-equivalenceᴱ ([_]→ {A = x ≡ y}) →
-      Is-equivalenceᴱ ([]-cong ∘ [_]→ {A = x ≡ y})
-    to hyp = EEq.12→3
-      hyp
-      (EEq.Is-equivalence→Is-equivalenceᴱ []-cong-equivalence)
-
-    from :
-      Is-equivalenceᴱ ([]-cong ∘ [_]→ {A = x ≡ y}) →
-      Is-equivalenceᴱ ([_]→ {A = x ≡ y})
-    from = EEq.23→1
-      (EEq.Is-equivalence→Is-equivalenceᴱ []-cong-equivalence)
 
   -- There is an equivalence with erased proofs between "equality for
   -- A is very stable with erased proofs" and "[_]→ for A is an
