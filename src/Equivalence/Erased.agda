@@ -176,13 +176,14 @@ Is-equivalenceᴱ-propositional ext f =
 -- Is-equivalenceᴱ f is logically equivalent to ECP.Is-equivalenceᴱ f.
 
 Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP :
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   Is-equivalenceᴱ f ⇔ ECP.Is-equivalenceᴱ f
 Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP {f = f} =
   record { to = to; from = from }
   where
   to : Is-equivalenceᴱ f → ECP.Is-equivalenceᴱ f
   to eq y =
-      (proj₁ eq y , [ erased (proj₂ $ proj₁ eq′) ])
+      (proj₁₀ eq y , [ erased (proj₂ $ proj₁ eq′) ])
     , [ erased (proj₂ eq′) ]
     where
     @0 eq′ : Contractibleᴱ (f ⁻¹ᴱ y)
@@ -194,7 +195,7 @@ Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP {f = f} =
 
   from : ECP.Is-equivalenceᴱ f → Is-equivalenceᴱ f
   from eq =
-      proj₁ ⊚ proj₁ ⊚ eq
+      proj₁₀ ⊚ proj₁₀ ⊚ eq
     , [ erased $ proj₂ $
         Is-equivalence→Is-equivalenceᴱ $
         _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $
@@ -205,24 +206,30 @@ Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP {f = f} =
 -- ECP.Is-equivalenceᴱ f (assuming extensionality).
 
 Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP :
-  {A : Type a} {B : Type b} {f : A → B} →
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   @0 Extensionality (a ⊔ b) (a ⊔ b) →
   Is-equivalenceᴱ f ≃ᴱ ECP.Is-equivalenceᴱ f
-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext = ⇔→≃ᴱ
-  (Is-equivalenceᴱ-propositional ext _)
-  (ECP.Is-equivalenceᴱ-propositional ext _)
-  (_⇔_.to Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP)
-  (_⇔_.from Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP)
+Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext =
+  let record { to = to; from = from } =
+        Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP
+  in
+  ⇔→≃ᴱ
+    (Is-equivalenceᴱ-propositional ext _)
+    (ECP.Is-equivalenceᴱ-propositional ext _)
+    to
+    from
 
 -- When proving that a function is an equivalence (with erased proofs)
 -- one can assume that the codomain is inhabited.
 
 [inhabited→Is-equivalenceᴱ]→Is-equivalenceᴱ :
-  {f : A → B} →
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   (B → Is-equivalenceᴱ f) → Is-equivalenceᴱ f
 [inhabited→Is-equivalenceᴱ]→Is-equivalenceᴱ hyp =
-  _⇔_.from Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP $ λ x →
-  _⇔_.to Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP (hyp x) x
+  let record { to = to; from = from } =
+        Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP
+  in
+  from (λ x → to (hyp x) x)
 
 ------------------------------------------------------------------------
 -- Some preservation lemmas
@@ -269,6 +276,7 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
 -- See also Σ-cong-≃ᴱ-Erased below.
 
 Σ-cong-≃ᴱ :
+  {@0 A : Type a} {@0 P : A → Type p}
   (f : A → B) (g : B → A) →
   (∀ x → f (g x) ≡ x) →
   @0 (∀ x → g (f x) ≡ x) →
@@ -276,9 +284,9 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
   Σ A P ≃ᴱ Σ B Q
 Σ-cong-≃ᴱ {Q = Q} f g f-g g-f P≃Q =
   [≃]→≃ᴱ
-    {from = λ p → g (proj₁ p)
-                , _≃ᴱ_.from (P≃Q (g (proj₁ p)))
-                    (subst Q (sym (f-g (proj₁ p))) (proj₂ p))}
+    {from = λ (x , y) →
+                g x
+              , _≃ᴱ_.from (P≃Q (g x)) (subst Q (sym (f-g x)) y)}
     ([proofs] (Σ-cong (Eq.↔→≃ f g f-g g-f) (≃ᴱ→≃ ⊚ P≃Q)))
 
 -- Another preservation lemma related to Σ.
@@ -286,6 +294,7 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
 -- See also Σ-cong-contra-≃ᴱ-Erased below.
 
 Σ-cong-contra-≃ᴱ :
+  {@0 B : Type b} {@0 Q : B → Type q}
   (f : B → A) (g : A → B) →
   (∀ x → f (g x) ≡ x) →
   @0 (∀ x → g (f x) ≡ x) →
@@ -297,6 +306,8 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
 -- Yet another preservation lemma related to Σ.
 
 Σ-cong-≃ᴱ′ :
+  {@0 A : Type a} {@0 B : Type b}
+  {@0 P : A → Type p} {@0 Q : B → Type q}
   (A≃ᴱB : A ≃ᴱ B)
   (P→Q : ∀ x → P x → Q (_≃ᴱ_.to A≃ᴱB x))
   (Q→P : ∀ x → Q x → P (_≃ᴱ_.from A≃ᴱB x))
@@ -321,7 +332,7 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
 -- See also Π-cong-≃ᴱ-Erased and Π-cong-contra-≃ᴱ-Erased below.
 
 Π-cong-≃ᴱ :
-  {A : Type a} {B : Type b} {P : A → Type p} {Q : B → Type q} →
+  {@0 A : Type a} {B : Type b} {@0 P : A → Type p} {Q : B → Type q} →
   @0 Extensionality (a ⊔ b) (p ⊔ q) →
   (f : A → B) (g : B → A) →
   (∀ x → f (g x) ≡ x) →
@@ -334,7 +345,7 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
     ([proofs] (Π-cong ext {B₂ = Q} (Eq.↔→≃ f g f-g g-f) (≃ᴱ→≃ ⊚ P≃Q)))
 
 Π-cong-contra-≃ᴱ :
-  {A : Type a} {B : Type b} {P : A → Type p} {Q : B → Type q} →
+  {A : Type a} {@0 B : Type b} {P : A → Type p} {@0 Q : B → Type q} →
   @0 Extensionality (a ⊔ b) (p ⊔ q) →
   (f : B → A) (g : A → B) →
   (∀ x → f (g x) ≡ x) →
@@ -345,7 +356,8 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
   inverse $ Π-cong-≃ᴱ ext f g f-g g-f (inverse ⊚ P≃Q)
 
 Π-cong-≃ᴱ′ :
-  {A : Type a} {B : Type b} {P : A → Type p} {Q : B → Type q} →
+  {@0 A : Type a} {@0 B : Type b}
+  {@0 P : A → Type p} {@0 Q : B → Type q} →
   @0 Extensionality (a ⊔ b) (p ⊔ q) →
   (A≃ᴱB : A ≃ᴱ B)
   (P→Q : ∀ x → P (_≃ᴱ_.from A≃ᴱB x) → Q x)
@@ -372,7 +384,7 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
 -- A variant of ∀-cong for _≃ᴱ_.
 
 ∀-cong-≃ᴱ :
-  {A : Type a} {P : A → Type p} {Q : A → Type q} →
+  {@0 A : Type a} {@0 P : A → Type p} {@0 Q : A → Type q} →
   @0 Extensionality a (p ⊔ q) →
   (∀ x → P x ≃ᴱ Q x) →
   ((x : A) → P x) ≃ᴱ ((x : A) → Q x)
@@ -421,7 +433,7 @@ Is-equivalenceᴱ-cong-≃ᴱ ext f≡g =
 -- (assuming extensionality).
 
 ≃ᴱ-cong :
-  {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} {@0 D : Type d} →
   @0 Extensionality (a ⊔ b ⊔ c ⊔ d) (a ⊔ b ⊔ c ⊔ d) →
   A ≃ᴱ B → C ≃ᴱ D → (A ≃ᴱ C) ≃ᴱ (B ≃ᴱ D)
 ≃ᴱ-cong {A = A} {B = B} {C = C} {D = D} ext A≃B C≃D =
@@ -454,13 +466,15 @@ Is-equivalenceᴱ-cong-≃ᴱ ext f≡g =
 -- replaced by an extensionally equal function.
 
 with-other-function :
+  {@0 A : Type a} {@0 B : Type b}
   (A≃B : A ≃ᴱ B) (f : A → B) →
   @0 (∀ x → _≃ᴱ_.to A≃B x ≡ f x) →
   A ≃ᴱ B
 with-other-function ⟨ g , is-equivalence ⟩ f g≡f =
   ⟨ f
-  , _⇔_.to (Is-equivalenceᴱ-cong-⇔ g≡f) is-equivalence
-  ⟩
+  , (let record { to = to } = Is-equivalenceᴱ-cong-⇔ g≡f in
+     to is-equivalence)
+  ⟩₀
 
 _ : _≃ᴱ_.to (with-other-function A≃B f p) ≡ f
 _ = refl _
@@ -471,6 +485,7 @@ _ = refl _
 -- The same applies to the other direction.
 
 with-other-inverse :
+  {@0 A : Type a} {@0 B : Type b}
   (A≃B : A ≃ᴱ B) (g : B → A) →
   @0 (∀ x → _≃ᴱ_.from A≃B x ≡ g x) →
   A ≃ᴱ B
@@ -491,6 +506,7 @@ _ = refl _
 -- See also drop-⊤-left-Σ-≃ᴱ-Erased below.
 
 drop-⊤-left-Σ-≃ᴱ :
+  {@0 A : Type a} {P : A → Type p}
   (A≃⊤ : A ≃ᴱ ⊤) →
   (∀ x y → P x ≃ᴱ P y) →
   Σ A P ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
@@ -509,7 +525,7 @@ drop-⊤-left-Σ-≃ᴱ {A = A} {P = P} A≃⊤ P≃P =
 -- See also drop-⊤-left-Π-≃ᴱ-Erased below.
 
 drop-⊤-left-Π-≃ᴱ :
-  {A : Type a} {P : A → Type p} →
+  {@0 A : Type a} {P : A → Type p} →
   @0 Extensionality a p →
   (A≃⊤ : A ≃ᴱ ⊤) →
   (∀ x y → P x ≃ᴱ P y) →
@@ -559,21 +575,49 @@ to≡to≃≡ {p = p} {q = q} ext =
 
 -- Half adjoint equivalences with certain erased proofs.
 
-infix 4 _≃ᴱ′_
+private
+ module Dummy where
 
-record _≃ᴱ′_ (A : Type a) (B : Type b) : Type (a ⊔ b) where
-  field
-    to            : A → B
-    from          : B → A
-    @0 to-from    : ∀ x → to (from x) ≡ x
-    from-to       : ∀ x → from (to x) ≡ x
-    @0 to-from-to : ∀ x → cong to (from-to x) ≡ to-from (to x)
+  infix 4 _≃ᴱ′_
 
-  -- These equivalences are equivalences with erased proofs.
+  record _≃ᴱ′_ (A : Type a) (B : Type b) : Type (a ⊔ b) where
+    field
+      to            : A → B
+      from          : B → A
+      @0 to-from    : ∀ x → to (from x) ≡ x
+      from-to       : ∀ x → from (to x) ≡ x
+      @0 to-from-to : ∀ x → cong to (from-to x) ≡ to-from (to x)
+
+open Dummy public using (_≃ᴱ′_) hiding (module _≃ᴱ′_)
+
+-- Note that the type arguments A and B are erased. This is not the
+-- case for the record module Dummy._≃ᴱ′_.
+
+module _≃ᴱ′_ {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ᴱ′ B) where
+
+  -- Variants of the projections.
+
+  to : A → B
+  to = let record { to = to } = A≃B in to
+
+  from : B → A
+  from = let record { from = from } = A≃B in from
+
+  @0 to-from : ∀ x → to (from x) ≡ x
+  to-from = Dummy._≃ᴱ′_.to-from A≃B
+
+  from-to : ∀ x → from (to x) ≡ x
+  from-to = let record { from-to = from-to } = A≃B in from-to
+
+  @0 to-from-to : ∀ x → cong to (from-to x) ≡ to-from (to x)
+  to-from-to = Dummy._≃ᴱ′_.to-from-to A≃B
+
+  -- Half adjoint equivalences with certain erased proofs are
+  -- equivalences with erased proofs.
 
   equivalence-with-erased-proofs : A ≃ᴱ B
   equivalence-with-erased-proofs =
-    ⟨ to , (from , [ to-from , from-to , to-from-to ]) ⟩
+    ⟨ to , (from , [ to-from , from-to , to-from-to ]) ⟩₀
 
 -- Data corresponding to the erased proofs of an equivalence with
 -- certain erased proofs.
@@ -590,29 +634,36 @@ record Erased-proofs′
 -- Extracts "erased proofs" from a regular equivalence.
 
 [proofs′] :
+  {@0 A : Type a} {@0 B : Type b}
   (A≃B : A ≃ B) →
   Erased-proofs′ (_≃_.to A≃B) (_≃_.from A≃B) (_≃_.left-inverse-of A≃B)
-[proofs′] A≃B .Erased-proofs′.to-from    = _≃_.right-inverse-of A≃B
-[proofs′] A≃B .Erased-proofs′.to-from-to = _≃_.left-right-lemma A≃B
+[proofs′] A≃B .Erased-proofs′.to-from =
+  let record { is-equivalence = _ , to-from , _ } = A≃B in
+  to-from
+[proofs′] A≃B .Erased-proofs′.to-from-to =
+  let record { is-equivalence = _ , _ , _ , to-from-to } = A≃B in
+  to-from-to
 
 -- Converts two functions, one proof and some erased proofs to an
 -- equivalence with certain erased proofs.
 
 [≃]→≃ᴱ′ :
+  {@0 A : Type a} {@0 B : Type b}
   {to : A → B} {from : B → A} {from-to : ∀ x → from (to x) ≡ x} →
   @0 Erased-proofs′ to from from-to →
   A ≃ᴱ′ B
 [≃]→≃ᴱ′ {to = to} {from = from} {from-to = from-to} ep = λ where
-  ._≃ᴱ′_.to         → to
-  ._≃ᴱ′_.from       → from
-  ._≃ᴱ′_.to-from    → ep .Erased-proofs′.to-from
-  ._≃ᴱ′_.from-to    → from-to
-  ._≃ᴱ′_.to-from-to → ep .Erased-proofs′.to-from-to
+  .Dummy._≃ᴱ′_.to         → to
+  .Dummy._≃ᴱ′_.from       → from
+  .Dummy._≃ᴱ′_.to-from    → ep .Erased-proofs′.to-from
+  .Dummy._≃ᴱ′_.from-to    → from-to
+  .Dummy._≃ᴱ′_.to-from-to → ep .Erased-proofs′.to-from-to
 
 -- A function with a quasi-inverse with one proof and one erased proof
 -- can be turned into an equivalence with certain erased proofs.
 
 ↔→≃ᴱ′ :
+  {@0 A : Type a} {@0 B : Type b}
   (f : A → B) (g : B → A) →
   @0 (∀ x → f (g x) ≡ x) →
   (∀ x → g (f x) ≡ x) →
@@ -702,7 +753,9 @@ record Erased-proofs′
 -- Two types that are contractible (with erased proofs) are equivalent
 -- (with erased proofs).
 
-Contractibleᴱ→≃ᴱ : Contractibleᴱ A → Contractibleᴱ B → A ≃ᴱ B
+Contractibleᴱ→≃ᴱ :
+  {@0 A : Type a} {@0 B : Type b} →
+  Contractibleᴱ A → Contractibleᴱ B → A ≃ᴱ B
 Contractibleᴱ→≃ᴱ (a , [ irrA ]) (b , [ irrB ]) = ↔→≃ᴱ
   (const b)
   (const a)
@@ -711,7 +764,9 @@ Contractibleᴱ→≃ᴱ (a , [ irrA ]) (b , [ irrB ]) = ↔→≃ᴱ
 
 -- There is a logical equivalence between Contractibleᴱ A and A ≃ᴱ ⊤.
 
-Contractibleᴱ⇔≃ᴱ⊤ : Contractibleᴱ A ⇔ A ≃ᴱ ⊤
+Contractibleᴱ⇔≃ᴱ⊤ :
+  {@0 A : Type a} →
+  Contractibleᴱ A ⇔ A ≃ᴱ ⊤
 Contractibleᴱ⇔≃ᴱ⊤ = record
   { to   = flip Contractibleᴱ→≃ᴱ Contractibleᴱ-⊤
   ; from = λ A≃⊤ →
@@ -730,30 +785,33 @@ Contractibleᴱ⇔≃ᴱ⊤ = record
 -- and A ≃ᴱ ⊤ (assuming extensionality).
 
 Contractibleᴱ≃ᴱ≃ᴱ⊤ :
-  {A : Type a} →
+  {@0 A : Type a} →
   @0 Extensionality a a →
   Contractibleᴱ A ≃ᴱ (A ≃ᴱ ⊤)
-Contractibleᴱ≃ᴱ≃ᴱ⊤ ext = ↔→≃ᴱ
-  (_⇔_.to   Contractibleᴱ⇔≃ᴱ⊤)
-  (_⇔_.from Contractibleᴱ⇔≃ᴱ⊤)
-  (λ _ → to≡to→≡ ext (refl _))
-  (λ _ → ECP.Contractibleᴱ-propositional ext _ _)
+Contractibleᴱ≃ᴱ≃ᴱ⊤ ext =
+  let record { to = to; from = from } = Contractibleᴱ⇔≃ᴱ⊤ in
+  ↔→≃ᴱ
+    to
+    from
+    (λ _ → to≡to→≡ ext (refl _))
+    (λ _ → ECP.Contractibleᴱ-propositional ext _ _)
 
 -- If an inhabited type comes with an erased proof of
 -- propositionality, then it is equivalent (with erased proofs) to the
 -- unit type.
 
 inhabited→Is-proposition→≃ᴱ⊤ :
+  {@0 A : Type a} →
   A → @0 Is-proposition A → A ≃ᴱ ⊤
 inhabited→Is-proposition→≃ᴱ⊤ x prop =
-  _⇔_.to Contractibleᴱ⇔≃ᴱ⊤
-    (ECP.inhabited→Is-proposition→Contractibleᴱ x prop)
+  let record { to = to } = Contractibleᴱ⇔≃ᴱ⊤ in
+  to (ECP.inhabited→Is-proposition→Contractibleᴱ x prop)
 
 -- Contractibleᴱ commutes with _×_ (up to _≃ᴱ_, assuming
 -- extensionality).
 
 Contractibleᴱ-commutes-with-× :
-  {A : Type a} {B : Type b} →
+  {@0 A : Type a} {@0 B : Type b} →
   @0 Extensionality (a ⊔ b) (a ⊔ b) →
   Contractibleᴱ (A × B) ≃ᴱ (Contractibleᴱ A × Contractibleᴱ B)
 Contractibleᴱ-commutes-with-× {a = a} {b = b} {A = A} {B = B} ext =
@@ -814,7 +872,9 @@ module Groupoid where
 
 -- Inverse is a logical equivalence.
 
-inverse-logical-equivalence : A ≃ᴱ B ⇔ B ≃ᴱ A
+inverse-logical-equivalence :
+  {@0 A : Type a} {@0 B : Type b} →
+  A ≃ᴱ B ⇔ B ≃ᴱ A
 inverse-logical-equivalence = record
   { to   = inverse
   ; from = inverse
@@ -824,7 +884,7 @@ inverse-logical-equivalence = record
 -- extensionality).
 
 inverse-equivalence :
-  {A : Type a} {B : Type b} →
+  {@0 A : Type a} {@0 B : Type b} →
   @0 Extensionality (a ⊔ b) (a ⊔ b) →
   (A ≃ᴱ B) ≃ᴱ (B ≃ᴱ A)
 inverse-equivalence ext = ↔→≃ᴱ
@@ -1060,30 +1120,51 @@ from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
 -- If f and g are equivalences with erased proofs, then g ⊚ f is also
 -- an equivalence with erased proofs.
 
-12→3 : Is-equivalenceᴱ f → Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f)
-12→3 p q = _≃ᴱ_.is-equivalence (⟨ _ , q ⟩ ∘ ⟨ _ , p ⟩)
+12→3 :
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
+  {@0 f : A → B} {@0 g : B → C} →
+  Is-equivalenceᴱ f → Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f)
+12→3 p q =
+    proj₁₀ p ⊚ proj₁₀ q
+  , [ _≃ᴱ_.is-equivalence (⟨ _ , q ⟩₀ ∘ ⟨ _ , p ⟩₀) .proj₂ .erased ]
 
 -- If g and g ⊚ f are equivalences with erased proofs, then f is
 -- also an equivalence with erased proofs.
 
-23→1 : Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f
-23→1 {g = g} {f = f} q r =
-  _⇔_.to
-    (Is-equivalenceᴱ-cong-⇔ λ x →
-       _≃ᴱ_.from ⟨ g , q ⟩ (g (f x))  ≡⟨ _≃ᴱ_.left-inverse-of ⟨ g , q ⟩ (f x) ⟩∎
-       f x                            ∎)
-    (_≃ᴱ_.is-equivalence (inverse ⟨ _ , q ⟩ ∘ ⟨ _ , r ⟩))
+23→1 :
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
+  {@0 f : A → B} {g : B → C} →
+  @0 Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f
+23→1 {f = f} {g = g} q r =
+  let record { to = to } =
+        Is-equivalenceᴱ-cong-⇔ λ x →
+          _≃ᴱ_.from ⟨ g , q ⟩ (g (f x))  ≡⟨ _≃ᴱ_.left-inverse-of ⟨ g , q ⟩ (f x) ⟩∎
+          f x                            ∎
+  in
+  to ( proj₁₀ r ⊚ g
+     , [ _≃ᴱ_.is-equivalence (inverse ⟨ _ , q ⟩₀ ∘ ⟨ _ , r ⟩₀)
+           .proj₂ .erased
+       ]
+     )
 
 -- If g ⊚ f and f are equivalences with erased proofs, then g is
 -- also an equivalence with erased proofs.
 
-31→2 : Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f → Is-equivalenceᴱ g
-31→2 {g = g} {f = f} r p =
-  _⇔_.to
-    (Is-equivalenceᴱ-cong-⇔ λ x →
-       g (f (_≃ᴱ_.from ⟨ f , p ⟩ x))  ≡⟨ cong g (_≃ᴱ_.right-inverse-of ⟨ f , p ⟩ x) ⟩∎
-       g x                            ∎)
-    (_≃ᴱ_.is-equivalence (⟨ _ , r ⟩ ∘ inverse ⟨ _ , p ⟩))
+31→2 :
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
+  {f : A → B} {@0 g : B → C} →
+  Is-equivalenceᴱ (g ⊚ f) → @0 Is-equivalenceᴱ f → Is-equivalenceᴱ g
+31→2 {f = f} {g = g} r p =
+  let record { to = to } =
+        Is-equivalenceᴱ-cong-⇔ λ x →
+          g (f (_≃ᴱ_.from ⟨ f , p ⟩ x))  ≡⟨ cong g (_≃ᴱ_.right-inverse-of ⟨ f , p ⟩ x) ⟩∎
+          g x                            ∎
+  in
+  to ( f ⊚ proj₁₀ r
+     , [ _≃ᴱ_.is-equivalence (⟨ _ , r ⟩₀ ∘ inverse ⟨ _ , p ⟩₀)
+           .proj₂ .erased
+       ]
+     )
 
 ------------------------------------------------------------------------
 -- Results that depend on an axiomatisation of []-cong (for a single
@@ -1100,11 +1181,12 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- (assuming extensionality). Note the type of Q.
 
   Σ-cong-≃ᴱ-Erased :
-    {B : Type ℓ} {Q : @0 B → Type q}
+    {@0 A : Type a} {@0 B : Type ℓ}
+    {@0 P : A → Type p} {Q : @0 B → Type q}
     (A≃B : A ≃ᴱ B) →
     (∀ x → P x ≃ᴱ Q (_≃ᴱ_.to A≃B x)) →
     Σ A P ≃ᴱ Σ B (λ x → Q x)
-  Σ-cong-≃ᴱ-Erased {A = A} {P = P} {B = B} {Q = Q} A≃B P≃Q =
+  Σ-cong-≃ᴱ-Erased {A = A} {B = B} {P = P} {Q = Q} A≃B P≃Q =
     [≃]→≃ᴱ ([proofs] ΣAP≃ΣBQ)
     where
     @0 ΣAP≃ΣBQ : Σ A P ≃ Σ B (λ x → Q x)
@@ -1123,11 +1205,12 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- A variant of Σ-cong-≃ᴱ-Erased.
 
   Σ-cong-contra-≃ᴱ-Erased :
-    {A : Type ℓ} {P : @0 A → Type p}
+    {@0 A : Type ℓ} {@0 B : Type b}
+    {P : @0 A → Type p} {@0 Q : B → Type q}
     (B≃A : B ≃ᴱ A) →
     (∀ x → P (_≃ᴱ_.to B≃A x) ≃ᴱ Q x) →
     Σ A (λ x → P x) ≃ᴱ Σ B Q
-  Σ-cong-contra-≃ᴱ-Erased {Q = Q} {P = P} B≃A P≃Q = ↔→≃ᴱ
+  Σ-cong-contra-≃ᴱ-Erased {P = P} {Q = Q} B≃A P≃Q = ↔→≃ᴱ
     (λ (x , y) →
          _≃ᴱ_.from B≃A x
        , _≃ᴱ_.to (P≃Q (_≃ᴱ_.from B≃A x))
@@ -1203,7 +1286,8 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- (assuming extensionality). Note the type of Q.
 
   Π-cong-≃ᴱ-Erased :
-    {A : Type a} {B : Type ℓ} {P : A → Type p} {Q : @0 B → Type q} →
+    {@0 A : Type a} {@0 B : Type ℓ}
+    {@0 P : A → Type p} {Q : @0 B → Type q} →
     @0 Extensionality (a ⊔ ℓ) (p ⊔ q) →
     (A≃B : A ≃ᴱ B) →
     (∀ x → P x ≃ᴱ Q (_≃ᴱ_.to A≃B x)) →
@@ -1231,7 +1315,8 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- A variant of Π-cong-≃ᴱ-Erased.
 
   Π-cong-contra-≃ᴱ-Erased :
-    {A : Type ℓ} {B : Type b} {P : @0 A → Type p} {Q : B → Type q} →
+    {@0 A : Type ℓ} {@0 B : Type b}
+    {P : @0 A → Type p} {@0 Q : B → Type q} →
     @0 Extensionality (b ⊔ ℓ) (p ⊔ q) →
     (B≃A : B ≃ᴱ A) →
     (∀ x → P (_≃ᴱ_.to B≃A x) ≃ᴱ Q x) →
@@ -1262,7 +1347,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- A variant of drop-⊤-left-Σ.
 
   drop-⊤-left-Σ-≃ᴱ-Erased :
-    {A : Type ℓ} {P : @0 A → Type p} →
+    {@0 A : Type ℓ} {P : @0 A → Type p} →
     (A≃⊤ : A ≃ᴱ ⊤) → Σ A (λ x → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
   drop-⊤-left-Σ-≃ᴱ-Erased {A = A} {P = P} A≃⊤ =
     Σ A (λ x → P x)                  ≃ᴱ⟨ inverse $ Σ-cong-≃ᴱ-Erased (inverse A≃⊤) (λ _ → F.id) ⟩
@@ -1272,7 +1357,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- A variant of drop-⊤-left-Π.
 
   drop-⊤-left-Π-≃ᴱ-Erased :
-    {A : Type ℓ} {P : @0 A → Type p} →
+    {@0 A : Type ℓ} {P : @0 A → Type p} →
     @0 Extensionality ℓ p →
     (A≃⊤ : A ≃ᴱ ⊤) →
     ((x : A) → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
@@ -1288,7 +1373,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- then x ≡ y is equivalent (with erased proofs) to f x ≡ f y.
 
   to≡to≃ᴱ≡-Erased :
-    ∀ {A : Type ℓ} {x y}
+    ∀ {@0 A : Type ℓ} {x y}
     (A≃B : Erased A ≃ᴱ B) →
     (_≃ᴱ_.to A≃B x ≡ _≃ᴱ_.to A≃B y) ≃ᴱ (x ≡ y)
   to≡to≃ᴱ≡-Erased {B = B} {A = A} {x = x} {y = y} A≃B =
