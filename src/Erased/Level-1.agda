@@ -258,6 +258,13 @@ Erased-Π↔Π = record
   ; left-inverse-of = λ _ → refl _
   }
 
+-- A variant of Erased-Π↔Π.
+
+Erased-Π≃ᴱΠ :
+  {@0 A : Type a} {@0 P : A → Type p} →
+  Erased ((x : A) → P x) ≃ᴱ ((x : A) → Erased (P x))
+Erased-Π≃ᴱΠ = EEq.[≃]→≃ᴱ (EEq.[proofs] $ from-isomorphism Erased-Π↔Π)
+
 -- Erased commutes with Π.
 
 Erased-Π↔Π-Erased :
