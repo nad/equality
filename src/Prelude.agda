@@ -146,6 +146,24 @@ _∘_ :
   ((x : A) → C (g x))
 f ∘ g = λ x → f (g x)
 
+-- "Equational" reasoning combinators.
+
+infix  -1 finally-→
+infixr -2 step-→
+
+-- For an explanation of why step-⇔ is defined in this way, see
+-- Equality.step-≡.
+
+step-→ : (@0 A : Type a) → (B → C) → (A → B) → A → C
+step-→ _ f g = f ∘ g
+
+syntax step-→ A B→C A→B = A →⟨ A→B ⟩ B→C
+
+finally-→ : (@0 A : Type a) (@0 B : Type b) → (A → B) → A → B
+finally-→ _ _ A→B = A→B
+
+syntax finally-→ A B A→B = A →⟨ A→B ⟩□ B □
+
 -- Application.
 
 _$_ :
