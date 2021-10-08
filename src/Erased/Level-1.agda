@@ -350,11 +350,13 @@ Erased-¬↔¬ {A = A} ext =
 -- There is a bijection between (x : Erased A) → P x and
 -- (@0 x : A) → P [ x ].
 
-Π-Erased↔Π0[] : ((x : Erased A) → P x) ↔ ((@0 x : A) → P [ x ])
-Π-Erased↔Π0[] = record
+Π-Erased↔Π0[] :
+  {@0 A : Type a} {P : Erased A → Type p} →
+  ((x : Erased A) → P x) ↔ ((@0 x : A) → P [ x ])
+Π-Erased↔Π0[] {A = A} {P = P} = record
   { surjection = record
     { logical-equivalence = Π-Erased⇔Π0
-    ; right-inverse-of = λ _ → refl _
+    ; right-inverse-of = λ _ → refl {A = (@0 x : A) → P [ x ]} _
     }
   ; left-inverse-of = λ _ → refl _
   }
@@ -1406,7 +1408,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- here).
 
   lex-modality :
-    {A : Type ℓ} {x y : A} →
+    {@0 A : Type ℓ} {@0 x y : A} →
     Contractible (Erased A) → Contractible (Erased (x ≡ y))
   lex-modality {A = A} {x = x} {y = y} =
     Contractible (Erased A)        ↝⟨ _⇔_.from (Erased-H-level↔H-level 0 _) ⟩
@@ -1638,7 +1640,7 @@ module []-cong₂
   -- See also Erased-Is-equivalence↔Is-equivalence below.
 
   Erased-connected↔Erased-Is-equivalence :
-    {A : Type ℓ₁} {B : Type ℓ₂} {f : A → B} →
+    {@0 A : Type ℓ₁} {B : Type ℓ₂} {@0 f : A → B} →
     (∀ y → Contractible (Erased (f ⁻¹ y))) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
     Erased (Is-equivalence f)
   Erased-connected↔Erased-Is-equivalence {f = f} {k = k} ext =
