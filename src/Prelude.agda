@@ -19,9 +19,9 @@ open import Agda.Primitive public
 
 private
   variable
-    a b c ℓ p q r w              : Level
-    A A₁ A₂ B B₁ B₂ C D Whatever : Type a
-    P Q R                        : A → Type p
+    a b c ℓ p                       : Level
+    @0 A A₁ A₂ B B₁ B₂ C D Whatever : Type a
+    @0 P Q R                        : A → Type p
 
 -- Lifting.
 
@@ -63,7 +63,7 @@ block f = f ⊠
 
 -- A function that can be used to unblock something.
 
-unblock : (b : Unit) (P : Unit → Type p) → P ⊠ → P b
+unblock : (b : Unit) (@0 P : Unit → Type p) → P ⊠ → P b
 unblock ⊠ _ p = p
 
 ------------------------------------------------------------------------
@@ -101,7 +101,7 @@ open import Agda.Builtin.Nat public
 
 -- A non-recursive variant of ℕ-rec.
 
-ℕ-case : {P : ℕ → Type p} → P 0 → (∀ n → P (suc n)) → ∀ n → P n
+ℕ-case : P 0 → (∀ n → P (suc n)) → ∀ n → P n
 ℕ-case z s = ℕ-rec z (λ n _ → s n)
 
 -- Exponentiation.
@@ -140,15 +140,17 @@ id x = x
 
 -- Composition.
 
-_∘_ : {B : A → Type b} {C : {x : A} → B x → Type c} →
-      (∀ {x} (y : B x) → C y) → (g : (x : A) → B x) →
-      ((x : A) → C (g x))
+_∘_ :
+  {@0 B : A → Type b} {@0 C : {x : A} → B x → Type c} →
+  (∀ {x} (y : B x) → C y) → (g : (x : A) → B x) →
+  ((x : A) → C (g x))
 f ∘ g = λ x → f (g x)
 
 -- Application.
 
-_$_ : {B : A → Type b} →
-      ((x : A) → B x) → ((x : A) → B x)
+_$_ :
+  {@0 B : A → Type b} →
+  ((x : A) → B x) → ((x : A) → B x)
 f $ x = f x
 
 -- Constant functions.
@@ -160,17 +162,19 @@ const x = λ _ → x
 
 -- Flips the first two arguments.
 
-flip : {C : A → B → Type c} →
-       ((x : A) (y : B) → C x y) → ((y : B) (x : A) → C x y)
+flip :
+  {@0 C : A → B → Type c} →
+  ((x : A) (y : B) → C x y) → ((y : B) (x : A) → C x y)
 flip f = λ x y → f y x
 
 -- Applies the unary function to each argument and combines the
 -- results using the binary function.
 
-_on_ : {C : B → B → Type c} →
-       ((x y : B) → C x y) →
-       (f : A → B) →
-       ((x y : A) → C (f x) (f y))
+_on_ :
+  {@0 C : B → B → Type c} →
+  ((x y : B) → C x y) →
+  (f : A → B) →
+  ((x y : A) → C (f x) (f y))
 _*_ on f = λ x y → f x * f y
 
 -- A term's type.
@@ -182,7 +186,7 @@ Type-of {A = A} _ = A
 
 infix 0 type-signature
 
-type-signature : (A : Type a) → A → A
+type-signature : (@0 A : Type a) → A → A
 type-signature _ a = a
 
 syntax type-signature A a = a ⦂ A
@@ -198,7 +202,7 @@ it ⦃ x ⦄ = x
 infix 0 case_return_of_ case_of_
 
 case_return_of_ :
-  (x : A) (B : A → Type b) → ((x : A) → B x) → B x
+  (x : A) (@0 B : A → Type b) → ((x : A) → B x) → B x
 case x return B of f = f x
 
 case_of_ : A → (A → B) → B
@@ -210,15 +214,30 @@ case x of f = case x return _ of f
 infixr 4 _,′_
 infixr 2 _×_
 
-import Agda.Builtin.Sigma
-open Agda.Builtin.Sigma public
+open import Agda.Builtin.Sigma public
   using (Σ; _,_)
   hiding (module Σ)
   renaming (fst to proj₁; snd to proj₂)
+
 module Σ where
+
   open Agda.Builtin.Sigma.Σ public
     using ()
     renaming (fst to proj₁; snd to proj₂)
+
+  -- Variants of the projections with erased type arguments.
+
+  proj₁₀ :
+    {@0 B : A → Type b} →
+    Σ A B → A
+  proj₁₀ (x , y) = x
+
+  proj₂₀ :
+    {@0 B : A → Type b}
+    (p : Σ A B) → B (proj₁ p)
+  proj₂₀ (x , y) = y
+
+open Σ public using (proj₁₀; proj₂₀)
 
 -- A variant where the first argument is implicit.
 
@@ -234,30 +253,34 @@ A × B = Σ A (const B)
 -- can make type-inference easier.
 
 _,′_ : A → B → A × B
-_,′_ = _,_
+x ,′ y = x , y
 
 -- A map function.
 
-Σ-map : (f : A → B) → (∀ {x} → P x → Q (f x)) →
-        Σ A P → Σ B Q
-Σ-map f g = λ p → (f (proj₁ p) , g (proj₂ p))
+Σ-map :
+  (f : A → B) → (∀ {x} → P x → Q (f x)) →
+  Σ A P → Σ B Q
+Σ-map f g = λ p → (f (proj₁₀ p) , g (proj₂₀ p))
 
 -- Zip.
 
-Σ-zip : (f : A → B → C) → (∀ {x y} → P x → Q y → R (f x y)) →
-        Σ A P → Σ B Q → Σ C R
-Σ-zip f g = λ p q → (f (proj₁ p) (proj₁ q) , g (proj₂ p) (proj₂ q))
+Σ-zip :
+  (f : A → B → C) → (∀ {x y} → P x → Q y → R (f x y)) →
+  Σ A P → Σ B Q → Σ C R
+Σ-zip f g = λ p q → (f (proj₁₀ p) (proj₁₀ q) , g (proj₂₀ p) (proj₂₀ q))
 
 -- Curry and uncurry.
 
-curry : {B : A → Type b} {C : Σ A B → Type c} →
-        ((p : Σ A B) → C p) →
-        ((x : A) (y : B x) → C (x , y))
+curry :
+  {@0 B : A → Type b} {@0 C : Σ A B → Type c} →
+  ((p : Σ A B) → C p) →
+  ((x : A) (y : B x) → C (x , y))
 curry f x y = f (x , y)
 
-uncurry : {B : A → Type b} {C : Σ A B → Type c} →
-          ((x : A) (y : B x) → C (x , y)) →
-          ((p : Σ A B) → C p)
+uncurry :
+  {@0 B : A → Type b} {@0 C : Σ A B → Type c} →
+  ((x : A) (y : B x) → C (x , y)) →
+  ((p : Σ A B) → C p)
 uncurry f (x , y) = f x y
 
 -- Swaps the two components of the pair.
@@ -273,17 +296,23 @@ data W (A : Type a) (B : A → Type b) : Type (a ⊔ b) where
 
 -- Projections.
 
-headᵂ : {B : A → Type b} → W A B → A
+headᵂ :
+  {@0 B : A → Type b} →
+  W A B → A
 headᵂ (sup x f) = x
 
-tailᵂ : {B : A → Type b} → (x : W A B) → B (headᵂ x) → W A B
+tailᵂ :
+  {@0 B : A → Type b} →
+  (x : W A B) → B (headᵂ x) → W A B
 tailᵂ (sup x f) = f
 
 -- If B is always inhabited, then W A B is empty.
 
 abstract
 
-  inhabited⇒W-empty : {B : A → Type b} → (∀ x → B x) → ¬ W A B
+  inhabited⇒W-empty :
+    {@0 B : A → Type b} →
+    (∀ x → B x) → ¬ W A B
   inhabited⇒W-empty b (sup x f) = inhabited⇒W-empty b (f (b x))
 
 ------------------------------------------------------------------------
@@ -297,9 +326,10 @@ data _⊎_ (A : Type a) (B : Type b) : Type (a ⊔ b) where
 
 -- Eliminator for binary sums.
 
-[_,_] : {C : A ⊎ B → Type c} →
-        ((x : A) → C (inj₁ x)) → ((x : B) → C (inj₂ x)) →
-        ((x : A ⊎ B) → C x)
+[_,_] :
+  {@0 C : A ⊎ B → Type c} →
+  ((x : A) → C (inj₁ x)) → ((x : B) → C (inj₂ x)) →
+  ((x : A ⊎ B) → C x)
 [ f , g ] (inj₁ x) = f x
 [ f , g ] (inj₂ y) = g y
 
@@ -319,7 +349,7 @@ not (inj₂ x) = inj₁ x
 -- A map function.
 
 ⊎-map : (A₁ → A₂) → (B₁ → B₂) → A₁ ⊎ B₁ → A₂ ⊎ B₂
-⊎-map f g = [ inj₁ ∘ f , inj₂ ∘ g ]
+⊎-map f g = [ (λ x → inj₁ (f x)) , (λ x → inj₂ (g x)) ]
 
 -- The function from-⊎ is a safe analogue of fromJust. For an example
 -- of how from-⊎ can be used, see
