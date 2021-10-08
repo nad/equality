@@ -86,16 +86,36 @@ from-bijection {equivalenceᴱ}        = EEq.≃→≃ᴱ ⊚ Eq.↔⇒≃
 
 -- All kinds of functions can be converted to implications.
 
-to-implication : ∀ {k a b} {A : Type a} {B : Type b} →
+to-implication : ∀ {k a b} {@0 A : Type a} {@0 B : Type b} →
                  A ↝[ k ] B → A → B
-to-implication {implication}         = P.id
-to-implication {logical-equivalence} = _⇔_.to
-to-implication {injection}           = _↣_.to
-to-implication {embedding}           = Embedding.to
-to-implication {surjection}          = _↠_.to
-to-implication {bijection}           = _↔_.to
-to-implication {equivalence}         = _≃_.to
-to-implication {equivalenceᴱ}        = _≃ᴱ_.to
+to-implication {implication} f =
+  f
+to-implication {logical-equivalence} f =
+  let record { to = to } = f in to
+to-implication {injection} f =
+  let record { to = to } = f in to
+to-implication {embedding} f =
+  let record { to = to } = f in to
+to-implication {surjection} f =
+  let record
+        { logical-equivalence = record
+          { to = to
+          }
+        } = f
+  in to
+to-implication {bijection} f =
+  let record
+        { surjection = record
+          { logical-equivalence = record
+            { to = to
+            }
+          }
+        } = f
+  in to
+to-implication {equivalence} f =
+  let record { to = to } = f in to
+to-implication {equivalenceᴱ} f =
+  _≃ᴱ_.to f
 
 ------------------------------------------------------------------------
 -- A sub-universe of symmetric kinds of functions
@@ -250,7 +270,7 @@ finally-↔ _ _ A↔B = from-isomorphism A↔B
 
 syntax finally-↔ A B A↔B = A ↔⟨ A↔B ⟩□ B □
 
-$⟨_⟩_ : ∀ {k a b} {A : Type a} {B : Type b} →
+$⟨_⟩_ : ∀ {k a b} {@0 A : Type a} {@0 B : Type b} →
         A → A ↝[ k ] B → B
 $⟨ a ⟩ A↝B = to-implication A↝B a
 
