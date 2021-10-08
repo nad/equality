@@ -325,7 +325,7 @@ not (inj₂ x) = inj₁ x
 -- of how from-⊎ can be used, see
 -- Quotient.equivalence-but-not-strong-equivalence.
 
-From-⊎ : ∀ {ℓ} {A B : Type ℓ} → A ⊎ B → Type ℓ
+From-⊎ : {A B : Type ℓ} → A ⊎ B → Type ℓ
 From-⊎ {A = A} (inj₁ _) = A
 From-⊎ {B = B} (inj₂ _) = B
 
