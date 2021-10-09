@@ -34,7 +34,7 @@ open import Injection eq-J using (_↣_; Injective)
 open import Monad eq-J hiding (map; map-id; map-∘)
 open import Preimage eq-J using (_⁻¹_)
 open import Surjection eq-J as Surjection using (_↠_; Split-surjective)
-open import Univalence-axiom eq-J as U using (≡⇒→)
+open import Univalence-axiom eq-J as U using (≡⇒→; _²/≡)
 
 private
   variable
@@ -748,6 +748,9 @@ Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
 -- []-cong
 
 -- An axiomatisation for []-cong.
+--
+-- In addition to the results in this section, see
+-- []-cong-axiomatisation-propositional below.
 
 record []-cong-axiomatisation a : Type (lsuc a) where
   field
@@ -1947,3 +1950,120 @@ module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
     open module BC₂ {ℓ₁ ℓ₂} =
       []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) (ax {ℓ = ℓ₁ ⊔ ℓ₂})
       public
+
+------------------------------------------------------------------------
+-- Some lemmas related to []-cong-axiomatisation
+
+-- Any two implementations of []-cong are pointwise equal.
+
+[]-cong-unique :
+  {@0 A : Type a} {@0 x y : A} {x≡y : Erased (x ≡ y)}
+  (ax₁ ax₂ : []-cong-axiomatisation a) →
+  []-cong-axiomatisation.[]-cong ax₁ x≡y ≡
+  []-cong-axiomatisation.[]-cong ax₂ x≡y
+[]-cong-unique {x = x} ax₁ ax₂ =
+  BC₁.elim¹ᴱ
+    (λ x≡y → BC₁.[]-cong [ x≡y ] ≡ BC₂.[]-cong [ x≡y ])
+    (BC₁.[]-cong [ refl x ]  ≡⟨ BC₁.[]-cong-[refl] ⟩
+     refl [ x ]              ≡⟨ sym BC₂.[]-cong-[refl] ⟩∎
+     BC₂.[]-cong [ refl x ]  ∎)
+    _
+  where
+  module BC₁ = []-cong₁ ax₁
+  module BC₂ = []-cong₁ ax₂
+
+-- The type []-cong-axiomatisation a is propositional (assuming
+-- extensionality).
+--
+-- The proof is based on a proof due to Nicolai Kraus that shows that
+-- "J + its computation rule" is contractible, see
+-- Equality.Instances-related.Equality-with-J-contractible.
+
+[]-cong-axiomatisation-propositional :
+  Extensionality (lsuc a) a →
+  Is-proposition ([]-cong-axiomatisation a)
+[]-cong-axiomatisation-propositional {a = a} ext =
+  [inhabited⇒contractible]⇒propositional λ ax →
+  let module BC = []-cong₁ ax
+      module EC = Erased-cong ax ax
+  in
+  _⇔_.from contractible⇔↔⊤
+    ([]-cong-axiomatisation a                                             ↔⟨ Eq.↔→≃
+                                                                               (λ (record { []-cong             = c
+                                                                                          ; []-cong-equivalence = e
+                                                                                          ; []-cong-[refl]      = r
+                                                                                          })
+                                                                                  _ →
+                                                                                    (λ ([ _ , _ , x≡y ]) → c [ x≡y ])
+                                                                                  , (λ _ → r)
+                                                                                  , (λ _ _ → e))
+                                                                               (λ f → record
+                                                                                  { []-cong             = λ ([ x≡y ]) →
+                                                                                                            f _ .proj₁ [ _ , _ , x≡y ]
+                                                                                  ; []-cong-equivalence = f _ .proj₂ .proj₂ _ _
+                                                                                  ; []-cong-[refl]      = f _ .proj₂ .proj₁ _
+                                                                                  })
+                                                                               refl
+                                                                               refl ⟩
+     ((([ A ]) : Erased (Type a)) →
+      ∃ λ (c : ((([ x , y , _ ]) : Erased (A ²/≡)) → [ x ] ≡ [ y ])) →
+        ((([ x ]) : Erased A) → c [ x , x , refl x ] ≡ refl [ x ]) ×
+        ((([ x ]) ([ y ]) : Erased A) →
+         Is-equivalence {A = Erased (x ≡ y)} {B = [ x ] ≡ [ y ]}
+                        (λ ([ x≡y ]) → c [ x , y , x≡y ])))               ↝⟨ (∀-cong ext λ _ →
+                                                                              Σ-cong
+                                                                                (inverse $
+                                                                                 Π-cong ext′ (EC.Erased-cong-↔ (inverse U.-²/≡↔-)) λ _ →
+                                                                                 Bijection.id)
+                                                                                 λ c →
+                                                                              ∃-cong λ r → ∀-cong ext′ λ ([ x ]) → ∀-cong ext′ λ ([ y ]) →
+                                                                              Is-equivalence-cong ext′ λ ([ x≡y ]) →
+
+       c [ x , y , x≡y ]                                                        ≡⟨ BC.elim¹ᴱ
+                                                                                     (λ x≡y → c [ _ , _ , x≡y ] ≡ BC.[]-cong [ x≡y ])
+                                                                                     (
+         c [ x , x , refl x ]                                                         ≡⟨ r [ x ] ⟩
+         refl [ x ]                                                                   ≡⟨ sym BC.[]-cong-[refl] ⟩∎
+         BC.[]-cong [ refl x ]                                                        ∎)
+                                                                                     _ ⟩∎
+       BC.[]-cong [ x≡y ]                                                       ∎) ⟩
+
+     ((([ A ]) : Erased (Type a)) →
+      ∃ λ (c : ((x : Erased A) → x ≡ x)) →
+        ((x : Erased A) → c x ≡ refl x) ×
+        ((([ x ]) ([ y ]) : Erased A) →
+         Is-equivalence {A = Erased (x ≡ y)} {B = [ x ] ≡ [ y ]}
+                        (λ ([ x≡y ]) → BC.[]-cong [ x≡y ])))              ↝⟨ (∀-cong ext λ _ → ∃-cong λ _ →
+                                                                              drop-⊤-right λ _ →
+                                                                              _⇔_.to contractible⇔↔⊤ $
+                                                                              propositional⇒inhabited⇒contractible
+                                                                                (Π-closure ext′ 1 λ _ →
+                                                                                 Π-closure ext′ 1 λ _ →
+                                                                                 Eq.propositional ext′ _)
+                                                                                (λ _ _ → BC.[]-cong-equivalence)) ⟩
+     ((([ A ]) : Erased (Type a)) →
+      ∃ λ (c : ((x : Erased A) → x ≡ x)) →
+        ((x : Erased A) → c x ≡ refl x))                                  ↝⟨ (∀-cong ext λ _ → inverse
+                                                                              ΠΣ-comm) ⟩
+     ((([ A ]) : Erased (Type a)) (x : Erased A) →
+      ∃ λ (c : x ≡ x) → c ≡ refl x)                                       ↔⟨⟩
+
+     ((([ A ]) : Erased (Type a)) (x : Erased A) → Singleton (refl x))    ↝⟨ _⇔_.to contractible⇔↔⊤ $
+                                                                               (Π-closure ext  0 λ _ →
+                                                                                Π-closure ext′ 0 λ _ →
+                                                                                singleton-contractible _) ⟩□
+     ⊤                                                                    □)
+  where
+  ext′ : Extensionality a a
+  ext′ = lower-extensionality _ lzero ext
+
+-- The type []-cong-axiomatisation a is contractible (assuming
+-- extensionality).
+
+[]-cong-axiomatisation-contractible :
+  Extensionality (lsuc a) a →
+  Contractible ([]-cong-axiomatisation a)
+[]-cong-axiomatisation-contractible {a = a} ext =
+  propositional⇒inhabited⇒contractible
+    ([]-cong-axiomatisation-propositional ext)
+    (Extensionality→[]-cong (lower-extensionality _ lzero ext))
