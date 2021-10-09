@@ -1172,7 +1172,9 @@ Erased-other-singleton≃ᴱ⊤ =
 module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
 
   open Erased.[]-cong ax
-  open Erased.Level-2 eq ax
+  private
+    open module E₂ {ℓ₁ ℓ₂} =
+      Erased.Level-2 eq {ℓ₁ = ℓ₁} {ℓ₂ = ℓ₂} ax ax ax
 
   ----------------------------------------------------------------------
   -- Some lemmas related to stability

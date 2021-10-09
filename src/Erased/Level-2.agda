@@ -10,19 +10,24 @@
 
 open import Equality
 import Erased.Level-1
+open import Prelude hiding ([_,_])
 
 module Erased.Level-2
   {c⁺}
   (eq-J : ∀ {a p} → Equality-with-J a p c⁺)
-  (ax : ∀ {a} → Erased.Level-1.[]-cong-axiomatisation eq-J a)
+  {ℓ₁ ℓ₂}
+  (ax₁ : Erased.Level-1.[]-cong-axiomatisation eq-J ℓ₁)
+  (ax₂ : Erased.Level-1.[]-cong-axiomatisation eq-J ℓ₂)
+  (ax  : Erased.Level-1.[]-cong-axiomatisation eq-J (ℓ₁ ⊔ ℓ₂))
   where
 
 open Derived-definitions-and-properties eq-J
 open Erased.Level-1 eq-J
-open Erased.Level-1.[]-cong eq-J ax
+open Erased.Level-1.Erased-cong eq-J ax ax
+open Erased.Level-1.[]-cong₁ eq-J ax₂
+open Erased.Level-1.[]-cong₂ eq-J ax₁ ax₂ ax
 
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding ([_,_])
 
 open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq-J as Emb using (Embedding; Is-embedding)
@@ -39,7 +44,7 @@ open import Surjection eq-J using (_↠_; Split-surjective)
 
 private
 
-  module EEq′ = EEq.[]-cong ax
+  module EEq′ = EEq.[]-cong₂ ax₁ ax₂ ax
 
   variable
     a b c ℓ       : Level
@@ -57,8 +62,8 @@ private
 -- extensionality).
 
 Erased-↝↝↝ :
-  {@0 A : Type a} {@0 B : Type b} →
-  Erased (A ↝[ k ] B) ↝[ a ⊔ b ∣ a ⊔ b ] (Erased A ↝[ k ] Erased B)
+  {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} →
+  Erased (A ↝[ k ] B) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ] (Erased A ↝[ k ] Erased B)
 Erased-↝↝↝ {k = implication} _ = from-isomorphism Erased-Π↔Π-Erased
 
 Erased-↝↝↝ {k = logical-equivalence} _ = from-isomorphism Erased-⇔↔⇔
@@ -77,12 +82,12 @@ Erased-↝↝↝ {k = embedding} {A = A} {B = B} ext =
   (∃ λ (f : Erased A → Erased B) → Is-embedding f)               ↔⟨ inverse Emb.Embedding-as-Σ ⟩□
   Embedding (Erased A) (Erased B)                                □
 
-Erased-↝↝↝ {a = a} {k = surjection} {A = A} {B = B} {k = k′} ext =
+Erased-↝↝↝ {k = surjection} {A = A} {B = B} {k = k′} ext =
   Erased (A ↠ B)                                                     ↔⟨ Erased-cong-↔ ↠↔∃-Split-surjective ⟩
   Erased (∃ λ (f : A → B) → Split-surjective f)                      ↔⟨ Erased-Σ↔Σ ⟩
   (∃ λ (f : Erased (A → B)) → Erased (Split-surjective (erased f)))  ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ _ →
                                                                         Erased-Split-surjective↔Split-surjective
-                                                                          (lower-extensionality? k′ a lzero ext)) ⟩
+                                                                          (lower-extensionality? k′ ℓ₁ lzero ext)) ⟩
   (∃ λ (f : Erased A → Erased B) → Split-surjective f)               ↔⟨ inverse ↠↔∃-Split-surjective ⟩□
   Erased A ↠ Erased B                                                □
 
@@ -113,8 +118,8 @@ Erased-↝↝↝ {k = equivalenceᴱ} {A = A} {B = B} ext =
 -- assuming extensionality).
 
 Erased-↝↔↝ :
-  {@0 A : Type a} {@0 B : Type b} →
-  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} →
+  Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
   Erased (A ↝[ k ] B) ↔ (Erased A ↝[ k ] Erased B)
 Erased-↝↔↝ {k = implication}         = λ _ → Erased-Π↔Π-Erased
 Erased-↝↔↝ {k = logical-equivalence} = λ _ → Erased-⇔↔⇔
@@ -128,9 +133,9 @@ Erased-↝↔↝ {k = equivalenceᴱ}        = Erased-↝↝↝
 -- Erased-↝↔↝ and Erased-↝↝↝ produce equal functions.
 
 to-Erased-↝↔↝≡to-Erased-↝↝↝ :
-  ∀ {@0 A : Type a} {@0 B : Type b}
-  (ext : Extensionality? k (a ⊔ b) (a ⊔ b))
-  (ext′ : Extensionality? k′ (a ⊔ b) (a ⊔ b)) →
+  {@0 A : Type ℓ₁} {@0 B : Type ℓ₂}
+  (ext : Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂))
+  (ext′ : Extensionality? k′ (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂)) →
   _↔_.to (Erased-↝↔↝ {k = k} {A = A} {B = B} ext) ≡
   to-implication (Erased-↝↝↝ {k = k} {A = A} {B = B} {k = k′} ext′)
 to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = implication}         _   _ = refl _
@@ -201,7 +206,7 @@ to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = embedding} {k′ = equivalenceᴱ
 -- Erased preserves all kinds of functions.
 
 Erased-cong :
-  {@0 A : Type a} {@0 B : Type b} →
+  {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} →
   @0 A ↝[ k ] B → Erased A ↝[ k ] Erased B
 Erased-cong A↝B = Erased-↝↝↝ _ [ A↝B ]
 
@@ -209,8 +214,8 @@ Erased-cong A↝B = Erased-↝↝↝ _ [ A↝B ]
 -- assuming extensionality).
 
 Dec-Erased-cong :
-  {@0 A : Type a} {@0 B : Type b} →
-  @0 Extensionality? ⌊ k ⌋-sym (a ⊔ b) lzero →
+  {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} →
+  @0 Extensionality? ⌊ k ⌋-sym (ℓ₁ ⊔ ℓ₂) lzero →
   @0 A ↝[ ⌊ k ⌋-sym ] B →
   Dec-Erased A ↝[ ⌊ k ⌋-sym ] Dec-Erased B
 Dec-Erased-cong ext A↝B =
