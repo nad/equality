@@ -432,6 +432,41 @@ ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
   where
   equiv = Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating-modality ⟩
 
+----------------------------------------------------------------------
+-- Variants of H-level.Π-closure for function spaces with erased
+-- domains
+
+-- A variant of H-level.Π-closure for function spaces with erased
+-- explicit domains. Note the type of P.
+
+Πᴱ-closure :
+  {@0 A : Type a} {P : @0 A → Type p} →
+  Extensionality a p →
+  ∀ n →
+  ((@0 x : A) → H-level n (P x)) →
+  H-level n ((@0 x : A) → P x)
+Πᴱ-closure {P = P} ext n =
+  (∀ (@0 x) → H-level n (P x))       →⟨ (let record { from = from } = Π-Erased⇔Π0 in from) ⟩
+  (∀ x → H-level n (P (x .erased)))  →⟨ Π-closure ext n ⟩
+  H-level n (∀ x → P (x .erased))    →⟨ H-level-cong {B = ∀ (@0 x) → P x} _ n Π-Erased≃Π0[] ⟩□
+  H-level n (∀ (@0 x) → P x)         □
+
+-- A variant of H-level.Π-closure for function spaces with erased
+-- implicit domains. Note the type of P.
+
+implicit-Πᴱ-closure :
+  {@0 A : Type a} {P : @0 A → Type p} →
+  Extensionality a p →
+  ∀ n →
+  ((@0 x : A) → H-level n (P x)) →
+  H-level n ({@0 x : A} → P x)
+implicit-Πᴱ-closure {A = A} {P = P} ext n =
+  (∀ (@0 x) → H-level n (P x))  →⟨ Πᴱ-closure ext n ⟩
+  H-level n (∀ (@0 x) → P x)    →⟨ H-level-cong {A = ∀ (@0 x) → P x} {B = ∀ {@0 x} → P x} _ n $
+                                   inverse {A = ∀ {@0 x} → P x} {B = ∀ (@0 x) → P x}
+                                   Bijection.implicit-Πᴱ↔Πᴱ′ ⟩□
+  H-level n (∀ {@0 x} → P x)    □
+
 ------------------------------------------------------------------------
 -- A variant of Dec ∘ Erased
 
