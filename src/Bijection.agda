@@ -496,6 +496,38 @@ implicit-Π↔Π = record
   ; left-inverse-of = refl
   }
 
+-- Implicit and explicit Π's with erased domains are isomorphic.
+
+implicit-Πᴱ↔Πᴱ :
+  ∀ {a b} {A : Type a} {B : A → Type b} →
+  ({@0 x : A} → B x) ↔ ((@0 x : A) → B x)
+implicit-Πᴱ↔Πᴱ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ f x → f {x}
+      ; from = λ f {x} → f x
+      }
+    ; right-inverse-of = refl
+    }
+  ; left-inverse-of = refl
+  }
+
+-- A variant of implicit-Πᴱ↔Πᴱ.
+
+implicit-Πᴱ↔Πᴱ′ :
+  ∀ {a b} {@0 A : Type a} {B : @0 A → Type b} →
+  ({@0 x : A} → B x) ↔ ((@0 x : A) → B x)
+implicit-Πᴱ↔Πᴱ′ {A = A} {B = B} = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ f x → f {x}
+      ; from = λ f {x} → f x
+      }
+    ; right-inverse-of = refl {A = (@0 x : A) → B x}
+    }
+  ; left-inverse-of = refl {A = {@0 x : A} → B x}
+  }
+
 -- Σ is associative.
 
 Σ-assoc : ∀ {a b c}
