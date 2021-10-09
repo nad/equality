@@ -354,19 +354,18 @@ Erased-¬↔¬ {A = A} ext =
   ; from = λ f ([ x ]) → f x
   }
 
--- There is a bijection between (x : Erased A) → P x and
+-- There is an equivalence between (x : Erased A) → P x and
 -- (@0 x : A) → P [ x ].
 
-Π-Erased↔Π0[] :
+Π-Erased≃Π0[] :
   {@0 A : Type a} {P : Erased A → Type p} →
-  ((x : Erased A) → P x) ↔ ((@0 x : A) → P [ x ])
-Π-Erased↔Π0[] {A = A} {P = P} = record
-  { surjection = record
-    { logical-equivalence = Π-Erased⇔Π0
-    ; right-inverse-of = λ _ → refl {A = (@0 x : A) → P [ x ]} _
-    }
-  ; left-inverse-of = λ _ → refl _
-  }
+  ((x : Erased A) → P x) ≃ ((@0 x : A) → P [ x ])
+Π-Erased≃Π0[] {A = A} {P = P} =
+  Eq.↔→≃ {B = (@0 x : A) → P [ x ]}
+    (let record { to   = to   } = Π-Erased⇔Π0 in to)
+    (let record { from = from } = Π-Erased⇔Π0 in from)
+    (λ _ → refl {A = (@0 x : A) → P [ x ]} _)
+    (λ _ → refl _)
 
 -- Erased commutes with W up to logical equivalence.
 

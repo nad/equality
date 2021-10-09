@@ -67,7 +67,7 @@ Lemma-3 = Erased.Erased-Erased↔Erased
 
 -- Lemma 4 and Lemma 5.
 
-Lemmas-4-and-5 = Erased.Π-Erased↔Π0[]
+Lemmas-4-and-5 = Erased.Π-Erased≃Π0[]
 
 -- The equality type family, defined as an inductive family.
 
