@@ -597,13 +597,13 @@ precompositions-cancel univ A≃B {f} {g} f∘to≡g∘to =
 -- Pairs of equal elements.
 
 _²/≡ : ∀ {ℓ} → Type ℓ → Type ℓ
-A ²/≡ = ∃ λ (x : A) → ∃ λ (y : A) → y ≡ x
+A ²/≡ = ∃ λ (x : A) → ∃ λ (y : A) → x ≡ y
 
 -- The set of such pairs is isomorphic to the underlying type.
 
 -²/≡↔- : ∀ {a} {A : Type a} → (A ²/≡) ↔ A
 -²/≡↔- {A = A} =
-  (∃ λ (x : A) → ∃ λ (y : A) → y ≡ x)  ↝⟨ ∃-cong (λ _ → _⇔_.to contractible⇔↔⊤ (singleton-contractible _)) ⟩
+  (∃ λ (x : A) → ∃ λ (y : A) → x ≡ y)  ↝⟨ ∃-cong (λ _ → _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _)) ⟩
   A × ⊤                                ↝⟨ ×-right-identity ⟩□
   A                                    □
 
@@ -623,10 +623,10 @@ abstract
     g          ∎
     where
     f′ : B ²/≡ → B
-    f′ = proj₁ ∘ proj₂
+    f′ = proj₁
 
     g′ : B ²/≡ → B
-    g′ = proj₁
+    g′ = proj₁ ∘ proj₂
 
     f′≡g′ : f′ ≡ g′
     f′≡g′ = precompositions-cancel
@@ -635,7 +635,7 @@ abstract
               (refl id)
 
     pair : A → B ²/≡
-    pair x = (g x , f x , f≡g x)
+    pair x = (f x , g x , f≡g x)
 
   -- The univalence axiom implies that contractibility is closed under
   -- Π A.
