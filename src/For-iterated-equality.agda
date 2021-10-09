@@ -17,6 +17,7 @@ open import Prelude
 
 open import Bijection eq as Bijection using (_↔_)
 open import Equivalence eq as Eq using (_≃_)
+open import Equivalence.Erased eq as EEq using (_≃ᴱ_)
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import List eq
@@ -80,6 +81,19 @@ For-iterated-equality-cong₁ _ zero P↝Q = P↝Q
 For-iterated-equality-cong₁ {A = A} {P = P} {Q = Q} ext (suc n) P↝Q =
   ((x y : A) → For-iterated-equality n P (x ≡ y))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                        For-iterated-equality-cong₁ ext n P↝Q) ⟩□
+  ((x y : A) → For-iterated-equality n Q (x ≡ y))  □
+
+-- A variant of For-iterated-equality-cong₁.
+
+For-iterated-equality-cong₁ᴱ-→ :
+  {@0 A : Type ℓ} {@0 P Q : Type ℓ → Type ℓ} →
+  ∀ n →
+  (∀ {@0 A} → P A → Q A) →
+  For-iterated-equality n P A → For-iterated-equality n Q A
+For-iterated-equality-cong₁ᴱ-→ zero P→Q = P→Q
+
+For-iterated-equality-cong₁ᴱ-→ {A = A} {P = P} {Q = Q} (suc n) P→Q =
+  ((x y : A) → For-iterated-equality n P (x ≡ y))  →⟨ For-iterated-equality-cong₁ᴱ-→ n (λ {A} → P→Q {A = A}) ∘_ ∘_ ⟩□
   ((x y : A) → For-iterated-equality n Q (x ≡ y))  □
 
 -- Preservation lemmas for both the predicate and the type.
@@ -420,7 +434,25 @@ For-iterated-equality-commutes {P = P} {A = A} ext F (suc n) hyp =
   ((x y : A) → F (For-iterated-equality n P (x ≡ y)))          ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → For-iterated-equality-commutes ext F n hyp) ⟩□
   ((x y : A) → For-iterated-equality n (F ∘ P) (x ≡ y))        □
 
--- A variant of the previous lemma.
+-- A variant of For-iterated-equality-commutes.
+
+For-iterated-equality-commutesᴱ-→ :
+  {@0 A : Type ℓ} {@0 P : Type ℓ → Type ℓ}
+  (@0 F : Type ℓ → Type ℓ) →
+  ∀ n →
+  ({@0 A : Type ℓ} {@0 P : A → Type ℓ} →
+   F (∀ x → P x) → ∀ x → F (P x)) →
+  F (For-iterated-equality n P A) →
+  For-iterated-equality n (F ∘ P) A
+For-iterated-equality-commutesᴱ-→ _ zero _ = id
+
+For-iterated-equality-commutesᴱ-→ {A = A} {P = P} F (suc n) hyp =
+  F ((x y : A) → For-iterated-equality n P (x ≡ y))            →⟨ hyp ⟩
+  ((x : A) → F ((y : A) → For-iterated-equality n P (x ≡ y)))  →⟨ hyp ∘_ ⟩
+  ((x y : A) → F (For-iterated-equality n P (x ≡ y)))          →⟨ For-iterated-equality-commutesᴱ-→ F n hyp ∘_ ∘_ ⟩□
+  ((x y : A) → For-iterated-equality n (F ∘ P) (x ≡ y))        □
+
+-- Another variant of For-iterated-equality-commutes.
 
 For-iterated-equality-commutes-← :
   Extensionality? k ℓ ℓ →
@@ -436,6 +468,24 @@ For-iterated-equality-commutes-← {P = P} {A = A} ext F (suc n) hyp =
   ((x y : A) → For-iterated-equality n (F ∘ P) (x ≡ y))        ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → For-iterated-equality-commutes-← ext F n hyp) ⟩
   ((x y : A) → F (For-iterated-equality n P (x ≡ y)))          ↝⟨ (∀-cong ext λ _ → hyp) ⟩
   ((x : A) → F ((y : A) → For-iterated-equality n P (x ≡ y)))  ↝⟨ hyp ⟩□
+  F ((x y : A) → For-iterated-equality n P (x ≡ y))            □
+
+-- A variant of For-iterated-equality-commutes-←.
+
+For-iterated-equality-commutesᴱ-← :
+  {@0 A : Type ℓ} {@0 P : Type ℓ → Type ℓ}
+  (@0 F : Type ℓ → Type ℓ) →
+  ∀ n →
+  ({@0 A : Type ℓ} {@0 P : A → Type ℓ} →
+   (∀ x → F (P x)) → F (∀ x → P x)) →
+  For-iterated-equality n (F ∘ P) A →
+  F (For-iterated-equality n P A)
+For-iterated-equality-commutesᴱ-← _ zero _ = id
+
+For-iterated-equality-commutesᴱ-← {A = A} {P = P} F (suc n) hyp =
+  ((x y : A) → For-iterated-equality n (F ∘ P) (x ≡ y))        →⟨ For-iterated-equality-commutesᴱ-← F n hyp ∘_ ∘_ ⟩
+  ((x y : A) → F (For-iterated-equality n P (x ≡ y)))          →⟨ hyp ∘_ ⟩
+  ((x : A) → F ((y : A) → For-iterated-equality n P (x ≡ y)))  →⟨ hyp ⟩□
   F ((x y : A) → For-iterated-equality n P (x ≡ y))            □
 
 -- For-iterated-equality commutes with certain binary type
@@ -464,7 +514,31 @@ For-iterated-equality-commutes₂ {P = P} {A = A} {Q = Q}
                                                                            For-iterated-equality-commutes₂ ext F n hyp) ⟩□
   ((x y : A) → For-iterated-equality n (λ A → F (P A) (Q A)) (x ≡ y))  □
 
--- A variant of the previous lemma.
+-- A variant of For-iterated-equality-commutes₂.
+
+For-iterated-equality-commutes₂ᴱ-→ :
+  {@0 A : Type ℓ} {@0 P Q : Type ℓ → Type ℓ}
+  (@0 F : Type ℓ → Type ℓ → Type ℓ) →
+  ∀ n →
+  ({@0 A : Type ℓ} {@0 P Q : A → Type ℓ} →
+   F (∀ x → P x) (∀ x → Q x) → ∀ x → F (P x) (Q x)) →
+  F (For-iterated-equality n P A) (For-iterated-equality n Q A) →
+  For-iterated-equality n (λ A → F (P A) (Q A)) A
+For-iterated-equality-commutes₂ᴱ-→ _ zero _ = id
+
+For-iterated-equality-commutes₂ᴱ-→ {A = A} {P = P} {Q = Q}
+                                   F (suc n) hyp =
+  F ((x y : A) → For-iterated-equality n P (x ≡ y))
+    ((x y : A) → For-iterated-equality n Q (x ≡ y))                    →⟨ hyp ⟩
+
+  ((x : A) → F ((y : A) → For-iterated-equality n P (x ≡ y))
+               ((y : A) → For-iterated-equality n Q (x ≡ y)))          →⟨ hyp ∘_ ⟩
+
+  ((x y : A) → F (For-iterated-equality n P (x ≡ y))
+                 (For-iterated-equality n Q (x ≡ y)))                  →⟨ For-iterated-equality-commutes₂ᴱ-→ F n hyp ∘_ ∘_ ⟩□
+  ((x y : A) → For-iterated-equality n (λ A → F (P A) (Q A)) (x ≡ y))  □
+
+-- Another variant of For-iterated-equality-commutes₂.
 
 For-iterated-equality-commutes₂-← :
   Extensionality? k ℓ ℓ →
@@ -489,7 +563,31 @@ For-iterated-equality-commutes₂-← {P = P} {Q = Q} {A = A}
   F ((x y : A) → For-iterated-equality n P (x ≡ y))
     ((x y : A) → For-iterated-equality n Q (x ≡ y))                    □
 
--- Some corollaries of For-iterated-equality-commutes₂.
+-- A variant of For-iterated-equality-commutes₂-←.
+
+For-iterated-equality-commutes₂ᴱ-← :
+  {@0 A : Type ℓ} {@0 P Q : Type ℓ → Type ℓ}
+  (@0 F : Type ℓ → Type ℓ → Type ℓ) →
+  ∀ n →
+  ({@0 A : Type ℓ} {@0 P Q : A → Type ℓ} →
+   (∀ x → F (P x) (Q x)) → F (∀ x → P x) (∀ x → Q x)) →
+  For-iterated-equality n (λ A → F (P A) (Q A)) A →
+  F (For-iterated-equality n P A) (For-iterated-equality n Q A)
+For-iterated-equality-commutes₂ᴱ-← _ zero _ = id
+
+For-iterated-equality-commutes₂ᴱ-← {A = A} {P = P} {Q = Q}
+                                   F (suc n) hyp =
+  ((x y : A) → For-iterated-equality n (λ A → F (P A) (Q A)) (x ≡ y))  →⟨ For-iterated-equality-commutes₂ᴱ-← F n hyp ∘_ ∘_ ⟩
+  ((x y : A) → F (For-iterated-equality n P (x ≡ y))
+                 (For-iterated-equality n Q (x ≡ y)))                  →⟨ hyp ∘_ ⟩
+
+  ((x : A) → F ((y : A) → For-iterated-equality n P (x ≡ y))
+               ((y : A) → For-iterated-equality n Q (x ≡ y)))          →⟨ hyp ⟩□
+
+  F ((x y : A) → For-iterated-equality n P (x ≡ y))
+    ((x y : A) → For-iterated-equality n Q (x ≡ y))                    □
+
+-- A corollary of For-iterated-equality-commutes₂.
 
 For-iterated-equality-commutes-× :
   {A : Type a} →
@@ -500,9 +598,22 @@ For-iterated-equality-commutes-× n ext =
   For-iterated-equality-commutes₂ ext _×_ n
     (from-isomorphism $ inverse ΠΣ-comm)
 
+-- Some corollaries of For-iterated-equality-commutes₂ᴱ-→.
+
+For-iterated-equality-commutesᴱ-×-→ :
+  {@0 A : Type ℓ} {@0 P Q : Type ℓ → Type ℓ} →
+  ∀ n →
+  For-iterated-equality n P A × For-iterated-equality n Q A →
+  For-iterated-equality n (λ A → P A × Q A) A
+For-iterated-equality-commutesᴱ-×-→ n =
+  For-iterated-equality-commutes₂ᴱ-→ _×_ n
+    (λ (f , g) x → f x , g x)
+
 For-iterated-equality-commutes-⊎ :
+  {@0 A : Type ℓ} {@0 P Q : Type ℓ → Type ℓ} →
   ∀ n →
   For-iterated-equality n P A ⊎ For-iterated-equality n Q A →
   For-iterated-equality n (λ A → P A ⊎ Q A) A
 For-iterated-equality-commutes-⊎ n =
-  For-iterated-equality-commutes₂ _ _⊎_ n [ inj₁ ∘_ , inj₂ ∘_ ]
+  For-iterated-equality-commutes₂ᴱ-→ _⊎_ n
+    [ (λ f x → inj₁ (f x)) , (λ f x → inj₂ (f x)) ]
