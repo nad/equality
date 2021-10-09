@@ -481,7 +481,7 @@ contractible-isomorphic {A} {B} cA cB = record
   ; left-inverse-of = proj₂ cA
   }
 
--- Implicit and explicit Πs are isomorphic.
+-- Implicit and explicit Π's are isomorphic.
 
 implicit-Π↔Π : ∀ {a b} {A : Type a} {B : A → Type b} →
                ({x : A} → B x) ↔ ((x : A) → B x)
