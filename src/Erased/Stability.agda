@@ -1105,7 +1105,8 @@ inspectᴱ x = x , [ refl x ]
 -- If equality is very stable for A, then Erased-singleton x is
 -- contractible for x : A.
 --
--- See also erased-singleton-with-erased-center-propositional and
+-- See also Very-stableᴱ-≡→Contractible-Erased-singleton,
+-- erased-singleton-with-erased-center-propositional and
 -- erased-singleton-with-erased-center-contractible below.
 
 erased-singleton-contractible :
@@ -2390,6 +2391,33 @@ module []-cong (ax : ∀ {a} → []-cong-axiomatisation a) where
     (∃ λ y → Erased (∃ λ (x : A) → y ≡ x))                ↝⟨ (∃-cong λ _ → Erased-cong (_⇔_.to contractible⇔↔⊤ (other-singleton-contractible _))) ⟩
     A × Erased ⊤                                          ↝⟨ drop-⊤-right (λ _ → Erased-⊤↔⊤) ⟩□
     A                                                     □
+
+  -- A variant of erased-singleton-contractible.
+
+  Very-stableᴱ-≡→Contractible-Erased-singleton :
+    {x : A} →
+    Very-stableᴱ-≡ A →
+    Contractible (Erased-singleton x)
+  Very-stableᴱ-≡→Contractible-Erased-singleton {x = x} s =
+      (x , [ refl x ])
+    , λ (y , [ y≡x ]) →
+        Σ-≡,≡→≡
+          (_≃ᴱ_.from EEq.⟨ _ , s _ _ ⟩₀ [ sym y≡x ])
+          (subst (λ y → Erased (y ≡ x))
+             (_≃ᴱ_.from EEq.⟨ _ , s _ _ ⟩₀ [ sym y≡x ])
+             [ refl x ]                                          ≡⟨ push-subst-[] ⟩
+
+           [ subst (_≡ x)
+               (_≃ᴱ_.from EEq.⟨ _ , s _ _ ⟩₀ [ sym y≡x ])
+               (refl x)
+           ]                                                     ≡⟨ []-cong [ cong (flip (subst _) _) $
+                                                                    _≃ᴱ_.left-inverse-of EEq.⟨ _ , s _ _ ⟩₀ _ ] ⟩
+
+           [ subst (_≡ x) (sym y≡x) (refl x) ]                   ≡⟨ []-cong [ subst-trans _ ] ⟩
+
+           [ trans y≡x (refl x) ]                                ≡⟨ []-cong [ trans-reflʳ _ ] ⟩∎
+
+           [ y≡x ]                                               ∎)
 
   -- If equality is very stable (with erased proofs) for A, and x : A
   -- is erased, then Erased-singleton x is a proposition.
