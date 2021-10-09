@@ -18,4 +18,6 @@ open import Erased.Level-1 eq public
   hiding (module Erased-cong;
           module []-cong; module []-cong₁; module []-cong₂)
 open import Erased.Stability eq public
-  hiding (module []-cong)
+  hiding (module []-cong;
+          module []-cong₁; module []-cong₁-lsuc; module []-cong₁₃;
+          module []-cong₂; module []-cong₂₁; module []-cong₂₂)

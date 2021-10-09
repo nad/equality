@@ -28,5 +28,7 @@ private
     E₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
     public
 open import Erased.Stability eq as ES public
-  hiding (module []-cong)
+  hiding (module []-cong;
+          module []-cong₁; module []-cong₁-lsuc; module []-cong₁₃;
+          module []-cong₂; module []-cong₂₁; module []-cong₂₂)
 open ES.[]-cong ax public
