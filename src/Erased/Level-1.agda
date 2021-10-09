@@ -433,8 +433,7 @@ ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
   equiv = Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating-modality ⟩
 
 ----------------------------------------------------------------------
--- Variants of H-level.Π-closure for function spaces with erased
--- domains
+-- Some lemmas related to functions with erased domains
 
 -- A variant of H-level.Π-closure for function spaces with erased
 -- explicit domains. Note the type of P.
@@ -466,6 +465,33 @@ implicit-Πᴱ-closure {A = A} {P = P} ext n =
                                    inverse {A = ∀ {@0 x} → P x} {B = ∀ (@0 x) → P x}
                                    Bijection.implicit-Πᴱ↔Πᴱ′ ⟩□
   H-level n (∀ {@0 x} → P x)    □
+
+-- Extensionality implies extensionality for some functions with
+-- erased arguments (note the type of P).
+
+apply-extᴱ :
+  {@0 A : Type a} {P : @0 A → Type p} {f g : (@0 x : A) → P x} →
+  Extensionality a p →
+  ((@0 x : A) → f x ≡ g x) →
+  f ≡ g
+apply-extᴱ {A = A} {P = P} {f = f} {g = g} ext =
+  ((@0 x : A) → f x ≡ g x)                          →⟨ (let record { from = from } = Π-Erased⇔Π0 in from) ⟩
+  ((x : Erased A) → f (x .erased) ≡ g (x .erased))  →⟨ apply-ext ext ⟩
+  (λ x → f (x .erased)) ≡ (λ x → g (x .erased))     →⟨ cong {B = (@0 x : A) → P x} (let record { to = to } = Π-Erased⇔Π0 in to) ⟩□
+  f ≡ g                                             □
+
+-- Extensionality implies extensionality for some functions with
+-- implicit erased arguments (note the type of P).
+
+implicit-apply-extᴱ :
+  {@0 A : Type a} {P : @0 A → Type p} {f g : {@0 x : A} → P x} →
+  Extensionality a p →
+  ((@0 x : A) → f {x = x} ≡ g {x = x}) →
+  _≡_ {A = {@0 x : A} → P x} f g
+implicit-apply-extᴱ {A = A} {P = P} {f = f} {g = g} ext =
+  ((@0 x : A) → f {x = x} ≡ g {x = x})                            →⟨ apply-extᴱ ext ⟩
+  _≡_ {A = (@0 x : A) → P x} (λ x → f {x = x}) (λ x → g {x = x})  →⟨ cong {A = (@0 x : A) → P x} {B = {@0 x : A} → P x} (λ f {x = x} → f x) ⟩□
+  _≡_ {A = {@0 x : A} → P x} f g                                  □
 
 ------------------------------------------------------------------------
 -- A variant of Dec ∘ Erased
