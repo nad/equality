@@ -10,6 +10,7 @@ module Erased.Stability
   {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
 
 open Derived-definitions-and-properties eq
+  hiding (module Extensionality)
 
 open import Logical-equivalence as LE using (_⇔_)
 open import Prelude
@@ -2594,3 +2595,45 @@ module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
   Erased-cong-∘         {k = bijection}           = Erased-cong-↔-∘
   Erased-cong-∘         {k = equivalence}         = Erased-cong-≃-∘
   Erased-cong-∘         {k = equivalenceᴱ}        = Erased-cong-≃ᴱ-∘
+
+------------------------------------------------------------------------
+-- Some results that were proved assuming extensionality and also that
+-- one or more instances of the []-cong axioms can be implemented,
+-- reproved without the latter assumptions
+
+module Extensionality where
+
+  -- If A is "very stable n levels up", then H-level′ n A is very
+  -- stable (assuming extensionality).
+
+  Very-stable-H-level′ :
+    {A : Type a} →
+    Extensionality a a →
+    ∀ n →
+    For-iterated-equality n Very-stable A →
+    Very-stable (H-level′ n A)
+  Very-stable-H-level′ ext =
+    []-cong₁.Very-stable-H-level′ (Extensionality→[]-cong ext) ext
+
+  -- If A is "very stable n levels up", then H-level n A is very
+  -- stable (assuming extensionality).
+
+  Very-stable-H-level :
+    {A : Type a} →
+    Extensionality a a →
+    ∀ n →
+    For-iterated-equality n Very-stable A →
+    Very-stable (H-level n A)
+  Very-stable-H-level ext =
+    []-cong₁.Very-stable-H-level (Extensionality→[]-cong ext) ext
+
+  -- There is an equivalence between Very-stable (Very-stable A) and
+  -- Very-stable A (assuming extensionality).
+
+  Very-stable-Very-stable≃Very-stable :
+    {A : Type a} →
+    Extensionality a a →
+    Very-stable (Very-stable A) ≃ Very-stable A
+  Very-stable-Very-stable≃Very-stable ext =
+    []-cong₁.Very-stable-Very-stable≃Very-stable
+      (Extensionality→[]-cong ext) ext

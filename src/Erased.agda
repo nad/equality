@@ -30,5 +30,6 @@ private
 open import Erased.Stability eq as ES public
   hiding (module []-cong;
           module []-cong₁; module []-cong₁-lsuc; module []-cong₁₃;
-          module []-cong₂; module []-cong₂₁; module []-cong₂₂)
+          module []-cong₂; module []-cong₂₁; module []-cong₂₂;
+          module Extensionality)
 open ES.[]-cong ax public
