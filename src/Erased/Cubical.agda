@@ -199,7 +199,7 @@ private
 --
 -- This is not proved by converting Π-Erased↔Π0[] to an equivalence,
 -- because the type arguments of the conversion function in
--- Equivalence are not erased, and A and P can only be used in erased
+-- Equivalence are not erased, and P can only be used in erased
 -- contexts.
 
 Π-Erased≃Π0[] :
