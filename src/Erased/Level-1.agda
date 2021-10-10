@@ -852,21 +852,21 @@ module Extensionality→[]-cong (ext′ : Extensionality a a) where
   -- corresponding Coq source code.
 
   Stable-≡-Erased : {@0 A : Type a} → Stable-≡ (Erased A)
-  Stable-≡-Erased [ x ] [ y ] eq =
-    [ x ]                                       ≡⟨ flip ext⁻¹ eq (
+  Stable-≡-Erased x y eq =
+    x                               ≡⟨ flip ext⁻¹ eq (
 
-      (λ (_ : Erased ([ x ] ≡ [ y ])) → [ x ])       ≡⟨ ∘-[]-injective (
+      (λ (_ : Erased (x ≡ y)) → x)     ≡⟨ ∘-[]-injective (
 
-        (λ (_ : [ x ] ≡ [ y ]) → [ x ])                   ≡⟨ apply-ext ext (λ (eq : [ x ] ≡ [ y ]) →
+        (λ (_ : x ≡ y) → x)               ≡⟨ apply-ext ext (λ (eq : x ≡ y) →
 
-          [ x ]                                                ≡⟨ eq ⟩∎
-          [ y ]                                                ∎) ⟩∎
+          x                                  ≡⟨ eq ⟩∎
+          y                                  ∎) ⟩∎
 
-        (λ (_ : [ x ] ≡ [ y ]) → [ y ])                   ∎) ⟩∎
+        (λ (_ : x ≡ y) → y)               ∎) ⟩∎
 
-      (λ (_ : Erased ([ x ] ≡ [ y ])) → [ y ])       ∎) ⟩∎
+      (λ (_ : Erased (x ≡ y)) → y)     ∎) ⟩∎
 
-    [ y ]                                       ∎
+    y                               ∎
 
   -- A "computation rule" for Stable-≡-Erased.
 
