@@ -51,6 +51,10 @@ import Pullback
 
 import Pushout
 
+-- Localisation.
+
+import Localisation
+
 -- Truncation, defined as a HIT.
 
 import H-level.Truncation
