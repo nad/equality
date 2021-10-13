@@ -529,3 +529,98 @@ Is-∞-extendable-along-contractible-for-equivalences :
 Is-∞-extendable-along-contractible-for-equivalences ext eq =
   Π-closure (lower-extensionality _ lzero ext) 0 λ n →
   Is-extendable-along-contractible-for-equivalences ext eq n
+
+------------------------------------------------------------------------
+-- Alternatives to Is-[_]-extendable-along-[_] and
+-- Is-∞-extendable-along-[_]
+
+-- A variant of Is-[_]-extendable-along-[_].
+
+Is-[_]-extendable-along-const-tt-[_] :
+  ℕ → Type a → Type b → Type (a ⊔ b)
+Is-[ zero  ]-extendable-along-const-tt-[ A ] B = ↑ _ ⊤
+Is-[ suc n ]-extendable-along-const-tt-[ A ] B =
+  ((g : A → B) → ∃ λ (x : B) → ∀ y → x ≡ g y) ×
+  ((x y : B) → Is-[ n ]-extendable-along-const-tt-[ A ] (x ≡ y))
+
+-- A variant of Is-∞-extendable-along-[_].
+
+Is-∞-extendable-along-const-tt-[_] :
+  Type a → Type b → Type (a ⊔ b)
+Is-∞-extendable-along-const-tt-[ A ] B =
+  ∀ n → Is-[ n ]-extendable-along-const-tt-[ A ] B
+
+-- In some cases Is-[_]-extendable-along-[_] and
+-- Is-∞-extendable-along-[_] can be replaced by the variants.
+
+≃Is-extendable-along-const-tt :
+  {A : Type a} {B : Type b} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  ∀ n →
+  Is-[ n ]-extendable-along-[ (λ (_ : A) → lift tt) ]
+    (λ (_ : ↑ a ⊤) → B) ↝[ k ]
+  Is-[ n ]-extendable-along-const-tt-[ A ] B
+≃Is-extendable-along-const-tt                 _   zero    = F.id
+≃Is-extendable-along-const-tt {a = a} {k = k} ext (suc n) =
+  (∀-cong ext λ _ →
+   Σ-cong (Eq.↔→≃ (_$ lift tt) const refl refl) λ _ →
+   F.id)
+    ×-cong
+  Π-cong ext′ (Eq.↔→≃ (_$ lift tt) const refl refl) λ _ →
+  Π-cong ext′ (Eq.↔→≃ (_$ lift tt) const refl refl) λ _ →
+  ≃Is-extendable-along-const-tt ext n
+  where
+  ext′ = lower-extensionality? k a lzero ext
+
+≃Is-∞-extendable-along-const-tt :
+  {A : Type a} {B : Type b} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  Is-∞-extendable-along-[ (λ (_ : A) → lift tt) ] (λ (_ : ↑ a ⊤) → B)
+    ↝[ k ]
+  Is-∞-extendable-along-const-tt-[ A ] B
+≃Is-∞-extendable-along-const-tt {k = k} ext =
+  ∀-cong (lower-extensionality? k _ lzero ext) λ n →
+  ≃Is-extendable-along-const-tt ext n
+
+-- Preservation lemmas for Is-[_]-extendable-along-[_] and
+-- Is-∞-extendable-along-[_].
+
+Is-extendable-along-const-tt-cong :
+  {A : Type a} {B : Type b} {C : Type c} →
+  Extensionality? k (a ⊔ b ⊔ c) (a ⊔ b ⊔ c) →
+  (A≃B : A ≃ B)
+  (A→≃B→ : {C : Type c} → (A → C) ≃ (B → C)) →
+  ({C : Type c} (f : A → C) (x : A) →
+   _≃_.to A→≃B→ f (_≃_.to A≃B x) ≡ f x) →
+  ∀ n →
+  Is-[ n ]-extendable-along-const-tt-[ A ] C ↝[ k ]
+  Is-[ n ]-extendable-along-const-tt-[ B ] C
+Is-extendable-along-const-tt-cong _ _ _ _ zero =
+  ↑ _ ⊤  ↔⟨ B.↑↔ ⟩
+  ⊤      ↔⟨ inverse B.↑↔ ⟩□
+  ↑ _ ⊤  □
+Is-extendable-along-const-tt-cong
+  {a = a} {b = b} {c = c} {k = k} ext A≃B A→≃B→ hyp (suc n) =
+
+  (Π-cong ext A→≃B→ λ g →
+   ∃-cong λ x →
+   Π-cong (lower-extensionality? k c (a ⊔ b) ext) A≃B λ y →
+     x ≡ g y                            ↝⟨ ≡⇒↝ _ $ cong (_ ≡_) $ sym $ hyp g y ⟩□
+     x ≡ _≃_.to A→≃B→ g (_≃_.to A≃B y)  □)
+    ×-cong
+  (∀-cong (lower-extensionality? k (a ⊔ b) lzero ext) λ x →
+   ∀-cong (lower-extensionality? k (a ⊔ b) lzero ext) λ y →
+   Is-extendable-along-const-tt-cong ext A≃B A→≃B→ hyp n)
+
+Is-∞-extendable-along-const-tt-cong :
+  {A : Type a} {B : Type b} {C : Type c} →
+  Extensionality? k (a ⊔ b ⊔ c) (a ⊔ b ⊔ c) →
+  (A≃B : A ≃ B)
+  (A→≃B→ : {C : Type c} → (A → C) ≃ (B → C)) →
+  ({C : Type c} (f : A → C) (x : A) →
+   _≃_.to A→≃B→ f (_≃_.to A≃B x) ≡ f x) →
+  Is-∞-extendable-along-const-tt-[ A ] C ↝[ k ]
+  Is-∞-extendable-along-const-tt-[ B ] C
+Is-∞-extendable-along-const-tt-cong {k = k} ext A≃B A→≃B→ hyp =
+  ∀-cong (lower-extensionality? k _ lzero ext) λ n →
+  Is-extendable-along-const-tt-cong ext A≃B A→≃B→ hyp n
