@@ -20,6 +20,7 @@ open Derived-definitions-and-properties eq
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+import Bijection eq as B
 open import Embedding eq using (Embedding)
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Function-universe eq hiding (_∘_)
@@ -29,12 +30,12 @@ open import Surjection eq using (Split-surjective; _↠_)
 
 private
   variable
-    a b c p : Level
-    A B     : Type a
-    x y     : A
-    f       : A → B
-    k       : Kind
-    n       : ℕ
+    a b c d p : Level
+    A B       : Type a
+    x y       : A
+    f         : A → B
+    k         : Kind
+    n         : ℕ
 
 ------------------------------------------------------------------------
 -- Path-split
@@ -190,6 +191,98 @@ Path-split-∞↔Is-equivalence =
     Path-split-∞-propositional
     (λ ext → Eq.propositional ext _)
 
+-- A preservation lemma for Path-split.
+
+Path-split-cong :
+  {A : Type a} {B : Type b} {C : Type c} {D : Type d}
+  {f : A → B} {g : C → D} →
+  Extensionality? k (a ⊔ b ⊔ c ⊔ d) (a ⊔ b ⊔ c ⊔ d) →
+  (A≃C : A ≃ C) (B≃D : B ≃ D) →
+  (∀ x → g (_≃_.to A≃C x) ≡ _≃_.to B≃D (f x)) →
+  ∀ n → Path-split n f ↝[ k ] Path-split n g
+Path-split-cong
+  {a = a} {b = b} {c = c} {d = d} {k = k} {f = f} {g = g}
+  ext A≃C B≃D hyp = λ where
+
+  zero →
+    ↑ _ ⊤  ↔⟨ B.↑↔ ⟩
+    ⊤      ↔⟨ inverse B.↑↔ ⟩□
+    ↑ _ ⊤  □
+
+  (suc n) →
+
+    (Split-surjective f                   ↔⟨⟩
+
+     (∀ y → ∃ λ x → f x ≡ y)              ↝⟨ (Π-cong (lower-extensionality? k (a ⊔ c) lzero ext) B≃D λ y →
+                                              Σ-cong A≃C λ x →
+
+       (f x ≡ y)                                ↔⟨ inverse $ Eq.≃-≡ B≃D ⟩
+       (_≃_.to B≃D (f x) ≡ _≃_.to B≃D y)        ↝⟨ ≡⇒↝ _ $ cong (_≡ _) $ sym $ hyp x ⟩□
+       (g (_≃_.to A≃C x) ≡ _≃_.to B≃D y)        □) ⟩
+
+     (∀ y → ∃ λ x → g x ≡ y)              ↔⟨⟩
+
+     Split-surjective g                   □)
+
+      ×-cong
+
+    (Π-cong (lower-extensionality? k (b ⊔ d) lzero ext) A≃C λ x →
+     Π-cong (lower-extensionality? k (b ⊔ d) lzero ext) A≃C λ y →
+     Path-split-cong ext
+
+       (x ≡ y                        ↝⟨ inverse $ Eq.≃-≡ A≃C ⟩□
+        _≃_.to A≃C x ≡ _≃_.to A≃C y  □)
+
+       (f x ≡ f y                            ↝⟨ inverse $ Eq.≃-≡ B≃D ⟩
+        _≃_.to B≃D (f x) ≡ _≃_.to B≃D (f y)  ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ (sym $ hyp x) (sym $ hyp y) ⟩□
+        g (_≃_.to A≃C x) ≡ g (_≃_.to A≃C y)  □)
+
+       (λ x≡y →
+          cong g (cong (_≃_.to A≃C) x≡y)                            ≡⟨ cong-∘ _ _ _ ⟩
+
+          cong (g ∘ _≃_.to A≃C) x≡y                                 ≡⟨ elim¹
+                                                                         (λ {y} x≡y →
+                                                                            cong (g ∘ _≃_.to A≃C) x≡y ≡
+                                                                            trans (trans (hyp x) (cong (_≃_.to B≃D ∘ f) x≡y))
+                                                                              (sym $ hyp y))
+                                                                         (
+            cong (g ∘ _≃_.to A≃C) (refl _)                                ≡⟨ cong-refl _ ⟩
+
+            refl _                                                        ≡⟨ sym $ trans-symʳ _ ⟩
+
+            trans (hyp x) (sym $ hyp x)                                   ≡⟨ cong (flip trans _) $
+                                                                             trans (sym $ trans-reflʳ _) $
+                                                                             cong (trans _) $ sym $ cong-refl _ ⟩∎
+            trans (trans (hyp x) (cong (_≃_.to B≃D ∘ f) (refl _)))
+              (sym $ hyp x)                                               ∎)
+                                                                         _ ⟩
+          trans (trans (hyp x) (cong (_≃_.to B≃D ∘ f) x≡y))
+            (sym $ hyp y)                                           ≡⟨ trans (cong (flip trans _) $ sym $
+                                                                              subst-trans _) $
+                                                                       trans-subst ⟩
+          subst (_ ≡_) (sym $ hyp y)
+            (subst (_≡ _) (sym $ hyp x)
+               (cong (_≃_.to B≃D ∘ f) x≡y))                         ≡⟨ trans (cong (subst _ _) $
+                                                                              subst-in-terms-of-≡⇒↝ equivalence _ _ _) $
+                                                                       subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
+          _≃_.to (≡⇒↝ _ (cong (_ ≡_) (sym $ hyp y)))
+            (_≃_.to (≡⇒↝ _ (cong (_≡ _) (sym $ hyp x)))
+               (cong (_≃_.to B≃D ∘ f) x≡y))                         ≡⟨ cong (_$ cong (_≃_.to B≃D ∘ f) x≡y) $ sym $
+                                                                       ≡⇒↝-trans equivalence ⟩
+          _≃_.to
+            (≡⇒↝ _ $
+             trans (cong (_≡ _) (sym $ hyp x))
+               (cong (_ ≡_) (sym $ hyp y)))
+            (cong (_≃_.to B≃D ∘ f) x≡y)                             ≡⟨⟩
+
+          _≃_.to (≡⇒↝ _ $ cong₂ _≡_ (sym $ hyp x) (sym $ hyp y))
+            (cong (_≃_.to B≃D ∘ f) x≡y)                             ≡⟨ cong (_≃_.to (≡⇒↝ _ _)) $ sym $
+                                                                       cong-∘ _ _ _ ⟩∎
+          _≃_.to (≡⇒↝ _ $ cong₂ _≡_ (sym $ hyp x) (sym $ hyp y))
+            (cong (_≃_.to B≃D) (cong f x≡y))                        ∎)
+
+       n)
+
 ------------------------------------------------------------------------
 -- Extendable along
 
@@ -213,6 +306,65 @@ Is-∞-extendable-along-[_] :
   (A → B) → (B → Type c) → Type (a ⊔ b ⊔ c)
 Is-∞-extendable-along-[ f ] P =
   ∀ n → Is-[ n ]-extendable-along-[ f ] P
+
+-- In the presence of extensionality Is-[_]-extendable-along-[_] can
+-- be expressed using Path-split.
+
+Is-extendable-along≃Path-split :
+  {A : Type a} {B : Type b} {P : B → Type p} {f : A → B} →
+  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
+  ∀ n →
+  Is-[ n ]-extendable-along-[ f ] P ≃
+  Path-split n (λ (g : ∀ x → P x) → g ∘ f)
+Is-extendable-along≃Path-split {a = a} {b = b} {p = p} {f = f} ext =
+  λ where
+    zero    → Eq.id
+    (suc n) →
+      (∀-cong (lower-extensionality b lzero ext) λ g →
+       ∃-cong λ h →
+         (∀ x → h (f x) ≡ g x)  ↝⟨ Eq.extensionality-isomorphism
+                                     (lower-extensionality (b ⊔ p) (a ⊔ b) ext) ⟩□
+         h ∘ f ≡ g              □)
+        ×-cong
+      (∀-cong (lower-extensionality a lzero ext) λ g →
+       ∀-cong (lower-extensionality a lzero ext) λ h →
+         Is-[ n ]-extendable-along-[ f ] (λ x → g x ≡ h x)  ↝⟨ Is-extendable-along≃Path-split ext n ⟩
+         Path-split n (_∘ f)                                ↝⟨ Path-split-cong ext
+                                                                 (Eq.extensionality-isomorphism ext₁)
+                                                                 (Eq.extensionality-isomorphism ext₂)
+                                                                 (λ eq →
+          cong (_∘ f) (apply-ext (Eq.good-ext ext₁) eq)             ≡⟨ Eq.cong-pre-∘-good-ext ext₂ ext₁ _ ⟩∎
+          apply-ext (Eq.good-ext ext₂) (eq ∘ f)                     ∎)
+                                                                 n ⟩□
+         Path-split n (cong (_∘ f))                         □)
+  where
+  ext₁ = lower-extensionality (a ⊔ p) (a ⊔ b) ext
+  ext₂ = lower-extensionality (b ⊔ p) (a ⊔ b) ext
+
+-- In the presence of extensionality Is-∞-extendable-along-[_] can
+-- be expressed using Path-split-∞.
+
+Is-∞-extendable-along≃Path-split-∞ :
+  {A : Type a} {B : Type b} {P : B → Type p} {f : A → B} →
+  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
+  Is-∞-extendable-along-[ f ] P ≃
+  Path-split-∞ (λ (g : ∀ x → P x) → g ∘ f)
+Is-∞-extendable-along≃Path-split-∞ ext =
+  ∀-cong (lower-extensionality _ lzero ext) $
+  Is-extendable-along≃Path-split ext
+
+-- In the presence of extensionality Is-∞-extendable-along-[_] can be
+-- expressed using Is-equivalence.
+
+Is-∞-extendable-along≃Is-equivalence :
+  {A : Type a} {B : Type b} {P : B → Type p} {f : A → B} →
+  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
+  Is-∞-extendable-along-[ f ] P ≃
+  Is-equivalence (λ (g : ∀ x → P x) → g ∘ f)
+Is-∞-extendable-along≃Is-equivalence {P = P} {f = f} ext =
+  Is-∞-extendable-along-[ f ] P  ↝⟨ Is-∞-extendable-along≃Path-split-∞ ext ⟩
+  Path-split-∞ (_∘ f)            ↝⟨ Path-split-∞↔Is-equivalence ext ⟩□
+  Is-equivalence (_∘ f)          □
 
 -- The definitions below are not directly based on "Universal
 -- properties without function extensionality".
