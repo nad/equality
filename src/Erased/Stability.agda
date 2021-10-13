@@ -26,7 +26,8 @@ open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (Contractibleᴱ)
 import Equivalence.Half-adjoint eq as HA
-open import Equivalence.Path-split eq using (Is-∞-extendable-along-[_])
+open import Equivalence.Path-split eq as PS
+  using (Is-∞-extendable-along-[_])
 open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
@@ -1015,6 +1016,232 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
       Is-modal B → Is-∞-extendable-along-[ η ] (λ (_ : ◯ A) → B)
 
     Σ-closed : Is-modal A → (∀ x → Is-modal (P x)) → Is-modal (Σ A P)
+
+------------------------------------------------------------------------
+-- Accessibility
+
+-- A definition of what it means for Erased to be accessible (for
+-- certain universe levels).
+--
+-- This definition is based on the Coq code accompanying "Modalities
+-- in Homotopy Type Theory" by Rijke, Shulman and Spitters.
+
+Erased-is-accessible : (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
+Erased-is-accessible ℓ a =
+  ∃ λ (I : Type ℓ) →
+  ∃ λ (P : I → Type ℓ) →
+    (A : Type a) →
+    Very-stable A ⇔
+    ∀ i →
+    Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
+      (λ (_ : ↑ ℓ ⊤) → A)
+
+-- A variant of Erased-is-accessible that uses Very-stableᴱ instead of
+-- Very-stable, and which does not use Is-∞-extendable-along-[_].
+
+Erased-is-accessibleᴱ : (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
+Erased-is-accessibleᴱ ℓ a =
+  ∃ λ (I : Type ℓ) →
+  ∃ λ (P : I → Type ℓ) →
+    (A : Type a) →
+    Very-stableᴱ A ⇔
+    ∀ i → Is-equivalenceᴱ (const ⦂ (A → P i → A))
+
+-- In erased contexts Erased is accessible (assuming extensionality).
+
+@0 erased-is-accessible-in-erased-contexts :
+  Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
+  Erased-is-accessible ℓ a
+erased-is-accessible-in-erased-contexts {a = a} {ℓ = ℓ} ext =
+    ↑ ℓ ⊤
+  , (λ _ → ↑ ℓ ⊤)
+  , λ A →
+      Very-stable A                                                ↔⟨ _⇔_.to contractible⇔↔⊤ $
+                                                                      propositional⇒inhabited⇒contractible
+                                                                        (Very-stable-propositional (lower-extensionality ℓ ℓ ext))
+                                                                        (Erased-Very-stable .erased) ⟩
+      ⊤                                                            ↝⟨ record { to = λ _ _ → _≃_.is-equivalence $ Eq.↔→≃ _ (_$ _) refl refl } ⟩
+      (∀ B → Is-equivalence (const ⦂ (A → ↑ ℓ ⊤ → A)))             ↔⟨ (∀-cong (lower-extensionality a lzero ext) λ _ → inverse $
+                                                                       PS.Is-∞-extendable-along≃Is-equivalence-const ext) ⟩□
+      (∀ B → Is-∞-extendable-along-[ (λ _ → lift tt) ] (λ _ → A))  □
+
+-- Very-stable can be expressed using Is-equivalence const (assuming
+-- extensionality).
+
+Very-stable≃Is-equivalence-const :
+  {A : Type a} →
+  Extensionality a a →
+  Very-stable A ↝[ lsuc a ∣ a ]
+  ((B : Type a) → Is-equivalence (const ⦂ (A → Very-stable B → A)))
+Very-stable≃Is-equivalence-const {a = a} ext =
+  generalise-ext?-prop
+    (record { to = to; from = from })
+    (λ _ → Very-stable-propositional ext)
+    (λ ext′ →
+       Π-closure ext′ 1 λ _ →
+       Eq.propositional ext _)
+  where
+  open []-cong-axiomatisation (Extensionality→[]-cong ext)
+
+  VS : Type a → Type (lsuc a)
+  VS A = (B : Type a) → Is-equivalence (const ⦂ (A → Very-stable B → A))
+
+  to : Very-stable A → VS A
+  to sA _ =
+    _≃_.is-equivalence $
+    Eq.↔→≃
+      const
+      (λ f → Very-stable→Stable 0 sA [ f sB ])
+      (λ f → apply-ext ext λ x →
+         const (Very-stable→Stable 0 sA [ f sB ]) x  ≡⟨⟩
+         Very-stable→Stable 0 sA [ f sB ]            ≡⟨ cong (Very-stable→Stable 0 sA) $
+                                                        []-cong [ cong f $ Very-stable-propositional ext _ _ ] ⟩
+         Very-stable→Stable 0 sA [ f x ]             ≡⟨ Very-stable→Stable-[]≡id sA ⟩∎
+         f x                                         ∎)
+      (λ x →
+         Very-stable→Stable 0 sA [ x ]  ≡⟨ Very-stable→Stable-[]≡id sA ⟩∎
+         x                              ∎)
+    where
+    @0 sB : Very-stable B
+    sB = Erased-Very-stable .erased
+
+  from : VS A → Very-stable A
+  from {A = A} hyp =
+    _≃_.is-equivalence $
+    Eq.↔→≃
+      [_]→
+      (Erased A             →⟨ flip (Very-stable→Stable 0) ⟩
+       (Very-stable A → A)  ↔⟨ inverse A≃ ⟩□
+       A                    □)
+      (λ ([ x ]) → []-cong [ lemma x ])
+      lemma
+    where
+    A≃ : A ≃ (Very-stable A → A)
+    A≃ = Eq.⟨ const , hyp A ⟩
+
+    lemma :
+      ∀ x →
+      _≃_.from A≃ (λ s → Very-stable→Stable 0 s [ x ]) ≡ x
+    lemma x =
+      _≃_.from A≃ (λ s → Very-stable→Stable 0 s [ x ])  ≡⟨ (cong (_≃_.from A≃) $
+                                                            apply-ext ext λ s →
+                                                            Very-stable→Stable-[]≡id s) ⟩
+      _≃_.from A≃ (const x)                             ≡⟨⟩
+      _≃_.from A≃ (_≃_.to A≃ x)                         ≡⟨ _≃_.left-inverse-of A≃ _ ⟩∎
+      x                                                 ∎
+
+-- Very-stableᴱ can be expressed using Is-equivalenceᴱ const (up to
+-- _≃ᴱ_, assuming extensionality).
+
+Very-stableᴱ≃ᴱIs-equivalenceᴱ-const :
+  {A : Type a} →
+  @0 Extensionality (lsuc a) a →
+  Very-stableᴱ A ≃ᴱ
+  ((B : Type a) → Is-equivalenceᴱ (const ⦂ (A → Very-stableᴱ B → A)))
+Very-stableᴱ≃ᴱIs-equivalenceᴱ-const {a = a} ext′ =
+  EEq.⇔→≃ᴱ
+    (Very-stableᴱ-propositional ext)
+    (Π-closure ext′ 1 λ _ →
+     EEq.Is-equivalenceᴱ-propositional ext _)
+    to
+    from
+  where
+  @0 ext : _
+  ext = lower-extensionality _ lzero ext′
+
+  VS : Type a → Type (lsuc a)
+  VS A =
+    (B : Type a) → Is-equivalenceᴱ (const ⦂ (A → Very-stableᴱ B → A))
+
+  to : Very-stableᴱ A → VS A
+  to sA _ =
+    _≃ᴱ_.is-equivalence $
+    EEq.↔→≃ᴱ
+      const
+      (λ f → Very-stableᴱ→Stable 0 sA [ f sB ])
+      (λ f → apply-ext ext λ x →
+         const (Very-stableᴱ→Stable 0 sA [ f sB ]) x  ≡⟨⟩
+         Very-stableᴱ→Stable 0 sA [ f sB ]            ≡⟨ cong (Very-stableᴱ→Stable 0 sA ∘ [_]→ ∘ f) $
+                                                         Very-stableᴱ-propositional ext _ _ ⟩
+         Very-stableᴱ→Stable 0 sA [ f x ]             ≡⟨ Very-stableᴱ→Stable-[]≡id sA ⟩∎
+         f x                                          ∎)
+      (λ x →
+         Very-stableᴱ→Stable 0 sA [ x ]  ≡⟨ Very-stableᴱ→Stable-[]≡id sA ⟩∎
+         x                               ∎)
+    where
+    @0 sB : Very-stableᴱ B
+    sB = Very-stable→Very-stableᴱ 0 (Erased-Very-stable .erased)
+
+  from : VS A → Very-stableᴱ A
+  from {A = A} hyp =
+    _≃ᴱ_.is-equivalence $
+    EEq.↔→≃ᴱ
+      [_]→
+      (Erased A              →⟨ flip (Very-stableᴱ→Stable 0) ⟩
+       (Very-stableᴱ A → A)  →⟨ _≃ᴱ_.from A≃ ⟩□
+       A                     □)
+      (cong [_]→ ∘ lemma ∘ erased)
+      lemma
+    where
+    A≃ : A ≃ᴱ (Very-stableᴱ A → A)
+    A≃ = EEq.⟨ const , hyp A ⟩
+
+    @0 lemma :
+      ∀ x →
+      _≃ᴱ_.from A≃ (λ s → Very-stableᴱ→Stable 0 s [ x ]) ≡ x
+    lemma x =
+      _≃ᴱ_.from A≃ (λ s → Very-stableᴱ→Stable 0 s [ x ])  ≡⟨ (cong (_≃ᴱ_.from A≃) $
+                                                              apply-ext ext λ s →
+                                                              Very-stableᴱ→Stable-[]≡id s) ⟩
+      _≃ᴱ_.from A≃ (const x)                              ≡⟨⟩
+      _≃ᴱ_.from A≃ (_≃ᴱ_.to A≃ x)                         ≡⟨ _≃ᴱ_.left-inverse-of A≃ _ ⟩∎
+      x                                                   ∎
+
+-- Erased is accessible (for certain universe levels, assuming
+-- extensionality).
+
+erased-is-accessible :
+  Extensionality (lsuc a ⊔ ℓ) (lsuc a ⊔ ℓ) →
+  Erased-is-accessible (lsuc a ⊔ ℓ) a
+erased-is-accessible {a = a} {ℓ = ℓ} ext =
+    ↑ ℓ (Type a)
+  , ↑ _ ∘ Very-stable ∘ lower
+  , (λ A →
+       Very-stable A                                                      ↝⟨ Very-stable≃Is-equivalence-const
+                                                                               (lower-extensionality _ _ ext) _ ⟩
+
+       ((B : Type a) → Is-equivalence (const ⦂ (A → Very-stable B → A)))  ↝⟨ (inverse $
+                                                                              Π-cong _ Bijection.↑↔ λ B →
+                                                                              Is-equivalence≃Is-equivalence-∘ˡ
+                                                                                (_≃_.is-equivalence $
+                                                                                 Eq.↔→≃ (_∘ lift) (_∘ lower) refl refl)
+                                                                                _) ⟩
+       ((B : ↑ ℓ (Type a)) →
+        Is-equivalence (const ⦂ (A → ↑ _ (Very-stable (lower B)) → A)))   ↔⟨ (∀-cong ext λ _ → inverse $
+                                                                              PS.Is-∞-extendable-along≃Is-equivalence-const ext) ⟩□
+       (∀ B → Is-∞-extendable-along-[ _ ] (λ _ → A))                      □)
+
+-- The property Erased-is-accessibleᴱ holds for certain universe
+-- levels (assuming extensionality).
+
+erased-is-accessibleᴱ :
+  @0 Extensionality (lsuc a) a →
+  Erased-is-accessibleᴱ (lsuc a ⊔ ℓ) a
+erased-is-accessibleᴱ {a = a} {ℓ = ℓ} ext =
+    ↑ ℓ (Type a)
+  , ↑ _ ∘ Very-stableᴱ ∘ lower
+  , (λ A →
+       Very-stableᴱ A                                        ↝⟨ _≃ᴱ_.logical-equivalence $
+                                                                Very-stableᴱ≃ᴱIs-equivalenceᴱ-const ext ⟩
+       ((B : Type a) →
+        Is-equivalenceᴱ (const ⦂ (A → Very-stableᴱ B → A)))  ↝⟨ (inverse $
+                                                                 Π-cong _ Bijection.↑↔ λ B →
+                                                                 EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-∘ˡ
+                                                                   (_≃ᴱ_.is-equivalence $
+                                                                    EEq.↔→≃ᴱ (_∘ lift) (_∘ lower) refl refl)) ⟩□
+       ((B : ↑ ℓ (Type a)) →
+        Is-equivalenceᴱ
+          (const ⦂ (A → ↑ _ (Very-stableᴱ (lower B)) → A)))  □)
 
 ------------------------------------------------------------------------
 -- Erased singletons
