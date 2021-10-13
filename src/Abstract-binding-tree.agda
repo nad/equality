@@ -373,7 +373,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       x ≡ y                    □
 
     -- Equality between pairs in ∃Var can be "simplified" when the
-    -- sorts are not equal. (In erased contexts.)
+    -- sorts are not equal.
 
     ≢→,≡,≃ :
       ∀ {s₁ s₂ x y} →
