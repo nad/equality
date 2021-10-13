@@ -26,6 +26,7 @@ open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (Contractibleᴱ)
 import Equivalence.Half-adjoint eq as HA
+open import Equivalence.Path-split eq using (Is-∞-extendable-along-[_])
 open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
@@ -919,77 +920,6 @@ Very-stableᴱ-≡-List n =
 ------------------------------------------------------------------------
 -- Some properties related to "Modalities in Homotopy Type Theory"
 -- by Rijke, Shulman and Spitters
-
--- The following two definitions are taken from Shulman's blog post
--- "Universal properties without function extensionality"
--- (https://homotopytypetheory.org/2014/11/02/universal-properties-without-function-extensionality/).
-
--- Is-[ n ]-extendable-along-[ f ] P means that P is n-extendable
--- along f.
-
-Is-[_]-extendable-along-[_] :
-  {A : Type a} {B : Type b} →
-  ℕ → (A → B) → (B → Type c) → Type (a ⊔ b ⊔ c)
-Is-[ zero  ]-extendable-along-[ f ] P = ↑ _ ⊤
-Is-[ suc n ]-extendable-along-[ f ] P =
-  ((g : ∀ x → P (f x)) →
-     ∃ λ (h : ∀ x → P x) → ∀ x → h (f x) ≡ g x) ×
-  ((g h : ∀ x → P x) →
-     Is-[ n ]-extendable-along-[ f ] (λ x → g x ≡ h x))
-
--- Is-∞-extendable-along-[ f ] P means that P is ∞-extendable along f.
-
-Is-∞-extendable-along-[_] :
-  {A : Type a} {B : Type b} →
-  (A → B) → (B → Type c) → Type (a ⊔ b ⊔ c)
-Is-∞-extendable-along-[ f ] P =
-  ∀ n → Is-[ n ]-extendable-along-[ f ] P
-
--- If f is an equivalence, then n-extendability along f is
--- contractible (assuming extensionality).
-
-Is-extendable-along-contractible-for-equivalences :
-  {A : Type a} {B : Type b} {f : A → B} {P : B → Type p} →
-  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
-  Is-equivalence f →
-  ∀ n → Contractible (Is-[ n ]-extendable-along-[ f ] P)
-Is-extendable-along-contractible-for-equivalences _ _ zero =
-  ↑-closure 0 ⊤-contractible
-
-Is-extendable-along-contractible-for-equivalences
-  {a = a} {b = b} {p = p} {f = f} {P = P} ext eq (suc n) =
-
-  ×-closure 0
-    (Π-closure (lower-extensionality b lzero ext) 0 λ g →
-                                                             $⟨ singleton-contractible _ ⟩
-       Contractible (∃ λ h → h ≡ subst P (inv _) ∘ g ∘ f⁻¹)  ↝⟨ H-level-cong _ 0 (lemma g) ⦂ (_ → _) ⟩□
-       Contractible (∃ λ h → ∀ x → h (f x) ≡ g x)            □)
-    (Π-closure (lower-extensionality a lzero ext) 0 λ _ →
-     Π-closure (lower-extensionality a lzero ext) 0 λ _ →
-     Is-extendable-along-contractible-for-equivalences ext eq n)
-  where
-  f⁻¹ = _≃_.from Eq.⟨ _ , eq ⟩
-  inv = _≃_.left-inverse-of (inverse Eq.⟨ _ , eq ⟩)
-
-  lemma : ∀ _ → _ ≃ _
-  lemma g =
-    (∃ λ h → h ≡ subst P (inv _) ∘ g ∘ f⁻¹)  ↔⟨ (∃-cong λ h → inverse $
-                                                 ∘from≡↔≡∘to′ (lower-extensionality p (a ⊔ b) ext) (inverse Eq.⟨ _ , eq ⟩)) ⟩
-    (∃ λ h → h ∘ f ≡ g)                      ↝⟨ (∃-cong λ _ → inverse $
-                                                 Eq.extensionality-isomorphism (lower-extensionality (b ⊔ p) (a ⊔ b) ext)) ⟩□
-    (∃ λ h → ∀ x → h (f x) ≡ g x)            □
-
--- If f is an equivalence, then ∞-extendability along f is
--- contractible (assuming extensionality).
-
-Is-∞-extendable-along-contractible-for-equivalences :
-  {A : Type a} {B : Type b} {f : A → B} {P : B → Type p} →
-  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
-  Is-equivalence f →
-  Contractible (Is-∞-extendable-along-[ f ] P)
-Is-∞-extendable-along-contractible-for-equivalences ext eq =
-  Π-closure (lower-extensionality _ lzero ext) 0 λ n →
-  Is-extendable-along-contractible-for-equivalences ext eq n
 
 -- If we assume that equality is extensional for functions, then
 -- λ A → Erased A is the modal operator of a Σ-closed reflective

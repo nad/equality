@@ -1,10 +1,9 @@
 ------------------------------------------------------------------------
--- Some alternative definitions of the concept of being an
--- equivalence: n-path-split and ∞-path-split
+-- Some alternative definitions of the concept of being an equivalence
 ------------------------------------------------------------------------
 
--- Based on the blog post "Universal properties without function
--- extensionality" by Mike Shulman
+-- Partly based on the blog post "Universal properties without
+-- function extensionality" by Mike Shulman
 -- (https://homotopytypetheory.org/2014/11/02/universal-properties-without-function-extensionality/),
 -- and the corresponding code in the Coq HoTT library
 -- (https://github.com/HoTT/HoTT).
@@ -30,12 +29,15 @@ open import Surjection eq using (Split-surjective; _↠_)
 
 private
   variable
-    a b : Level
-    A B : Type a
-    x y : A
-    f   : A → B
-    k   : Kind
-    n   : ℕ
+    a b c p : Level
+    A B     : Type a
+    x y     : A
+    f       : A → B
+    k       : Kind
+    n       : ℕ
+
+------------------------------------------------------------------------
+-- Path-split
 
 -- An alternative definition of "Is-equivalence".
 
@@ -187,3 +189,76 @@ Path-split-∞↔Is-equivalence =
        })
     Path-split-∞-propositional
     (λ ext → Eq.propositional ext _)
+
+------------------------------------------------------------------------
+-- Extendable along
+
+-- Is-[ n ]-extendable-along-[ f ] P means that P is n-extendable
+-- along f.
+
+Is-[_]-extendable-along-[_] :
+  {A : Type a} {B : Type b} →
+  ℕ → (A → B) → (B → Type c) → Type (a ⊔ b ⊔ c)
+Is-[ zero  ]-extendable-along-[ f ] P = ↑ _ ⊤
+Is-[ suc n ]-extendable-along-[ f ] P =
+  ((g : ∀ x → P (f x)) →
+     ∃ λ (h : ∀ x → P x) → ∀ x → h (f x) ≡ g x) ×
+  ((g h : ∀ x → P x) →
+     Is-[ n ]-extendable-along-[ f ] (λ x → g x ≡ h x))
+
+-- Is-∞-extendable-along-[ f ] P means that P is ∞-extendable along f.
+
+Is-∞-extendable-along-[_] :
+  {A : Type a} {B : Type b} →
+  (A → B) → (B → Type c) → Type (a ⊔ b ⊔ c)
+Is-∞-extendable-along-[ f ] P =
+  ∀ n → Is-[ n ]-extendable-along-[ f ] P
+
+-- The definitions below are not directly based on "Universal
+-- properties without function extensionality".
+
+-- If f is an equivalence, then n-extendability along f is
+-- contractible (assuming extensionality).
+
+Is-extendable-along-contractible-for-equivalences :
+  {A : Type a} {B : Type b} {f : A → B} {P : B → Type p} →
+  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
+  Is-equivalence f →
+  ∀ n → Contractible (Is-[ n ]-extendable-along-[ f ] P)
+Is-extendable-along-contractible-for-equivalences _ _ zero =
+  ↑-closure 0 ⊤-contractible
+
+Is-extendable-along-contractible-for-equivalences
+  {a = a} {b = b} {p = p} {f = f} {P = P} ext eq (suc n) =
+
+  ×-closure 0
+    (Π-closure (lower-extensionality b lzero ext) 0 λ g →
+                                                             $⟨ singleton-contractible _ ⟩
+       Contractible (∃ λ h → h ≡ subst P (inv _) ∘ g ∘ f⁻¹)  ↝⟨ H-level-cong _ 0 (lemma g) ⦂ (_ → _) ⟩□
+       Contractible (∃ λ h → ∀ x → h (f x) ≡ g x)            □)
+    (Π-closure (lower-extensionality a lzero ext) 0 λ _ →
+     Π-closure (lower-extensionality a lzero ext) 0 λ _ →
+     Is-extendable-along-contractible-for-equivalences ext eq n)
+  where
+  f⁻¹ = _≃_.from Eq.⟨ _ , eq ⟩
+  inv = _≃_.left-inverse-of (inverse Eq.⟨ _ , eq ⟩)
+
+  lemma : ∀ _ → _ ≃ _
+  lemma g =
+    (∃ λ h → h ≡ subst P (inv _) ∘ g ∘ f⁻¹)  ↔⟨ (∃-cong λ h → inverse $
+                                                 ∘from≡↔≡∘to′ (lower-extensionality p (a ⊔ b) ext) (inverse Eq.⟨ _ , eq ⟩)) ⟩
+    (∃ λ h → h ∘ f ≡ g)                      ↝⟨ (∃-cong λ _ → inverse $
+                                                 Eq.extensionality-isomorphism (lower-extensionality (b ⊔ p) (a ⊔ b) ext)) ⟩□
+    (∃ λ h → ∀ x → h (f x) ≡ g x)            □
+
+-- If f is an equivalence, then ∞-extendability along f is
+-- contractible (assuming extensionality).
+
+Is-∞-extendable-along-contractible-for-equivalences :
+  {A : Type a} {B : Type b} {f : A → B} {P : B → Type p} →
+  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
+  Is-equivalence f →
+  Contractible (Is-∞-extendable-along-[ f ] P)
+Is-∞-extendable-along-contractible-for-equivalences ext eq =
+  Π-closure (lower-extensionality _ lzero ext) 0 λ n →
+  Is-extendable-along-contractible-for-equivalences ext eq n

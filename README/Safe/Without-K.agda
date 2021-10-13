@@ -125,7 +125,7 @@ import Embedding
 import Function-universe
 
 -- Some alternative definitions of the concept of being an
--- equivalence: n-path-split and ∞-path-split.
+-- equivalence.
 
 import Equivalence.Path-split
 
