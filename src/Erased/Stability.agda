@@ -1422,7 +1422,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     Very-stableᴱ-≡ A ⇔ Is-embeddingᴱ ([_]→ {A = A})
   Very-stableᴱ-≡⇔Is-embeddingᴱ-[] =
     (∀ x y → Is-equivalenceᴱ ([_]→ {A = x ≡ y}))            LE.⇔⟨ (LE.∀-cong λ _ → LE.∀-cong λ _ →
-                                                                   EEq.Is-equivalence⇔Is-equivalence-∘ˡ
+                                                                   EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-∘ˡ
                                                                      (EEq.Is-equivalence→Is-equivalenceᴱ []-cong-equivalence)) ⟩
     (∀ x y → Is-equivalenceᴱ ([]-cong ∘ [_]→ {A = x ≡ y}))  LE.⇔⟨ (LE.∀-cong λ _ → LE.∀-cong λ _ →
                                                                    EEq.Is-equivalenceᴱ-cong-⇔ λ _ →
