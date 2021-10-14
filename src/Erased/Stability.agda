@@ -30,7 +30,7 @@ open import Equivalence.Path-split eq as PS
   using (Is-∞-extendable-along-[_])
 open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
-open import H-level eq
+open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
 import List eq as L
@@ -1018,43 +1018,51 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
     Σ-closed : Is-modal A → (∀ x → Is-modal (P x)) → Is-modal (Σ A P)
 
 ------------------------------------------------------------------------
--- Accessibility
+-- Erased is accessible and topological (assuming extensionality)
 
--- A definition of what it means for Erased to be accessible (for
--- certain universe levels).
+-- A definition of what it means for Erased to be accessible and
+-- topological (for certain universe levels).
 --
 -- This definition is based on the Coq code accompanying "Modalities
 -- in Homotopy Type Theory" by Rijke, Shulman and Spitters.
 
-Erased-is-accessible : (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
-Erased-is-accessible ℓ a =
+Erased-is-accessible-and-topological :
+  (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
+Erased-is-accessible-and-topological ℓ a =
   ∃ λ (I : Type ℓ) →
   ∃ λ (P : I → Type ℓ) →
-    (A : Type a) →
-    Very-stable A ⇔
-    ∀ i →
-    Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
-      (λ (_ : ↑ ℓ ⊤) → A)
+    (∀ i → Is-proposition (P i)) ×
+    ((A : Type a) →
+     Very-stable A ⇔
+     ∀ i →
+     Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
+       (λ (_ : ↑ ℓ ⊤) → A))
 
--- A variant of Erased-is-accessible that uses Very-stableᴱ instead of
--- Very-stable, and which does not use Is-∞-extendable-along-[_].
+-- A variant of Erased-is-accessible-and-topological that uses
+-- Very-stableᴱ instead of Very-stable, that does not use
+-- Is-∞-extendable-along-[_], and for which Is-proposition is replaced
+-- by Erased ∘ Is-proposition.
 
-Erased-is-accessibleᴱ : (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
-Erased-is-accessibleᴱ ℓ a =
+Erased-is-accessible-and-topologicalᴱ : (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
+Erased-is-accessible-and-topologicalᴱ ℓ a =
   ∃ λ (I : Type ℓ) →
   ∃ λ (P : I → Type ℓ) →
-    (A : Type a) →
-    Very-stableᴱ A ⇔
-    ∀ i → Is-equivalenceᴱ (const ⦂ (A → P i → A))
+    (∀ i → Erased (Is-proposition (P i))) ×
+    ((A : Type a) →
+     Very-stableᴱ A ⇔
+     ∀ i → Is-equivalenceᴱ (const ⦂ (A → P i → A)))
 
--- In erased contexts Erased is accessible (assuming extensionality).
+-- In erased contexts Erased is accessible and topological (assuming
+-- extensionality).
 
-@0 erased-is-accessible-in-erased-contexts :
+@0 erased-is-accessible-and-topological-in-erased-contexts :
   Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
-  Erased-is-accessible ℓ a
-erased-is-accessible-in-erased-contexts {a = a} {ℓ = ℓ} ext =
+  Erased-is-accessible-and-topological ℓ a
+erased-is-accessible-and-topological-in-erased-contexts
+  {a = a} {ℓ = ℓ} ext =
     ↑ ℓ ⊤
   , (λ _ → ↑ ℓ ⊤)
+  , (λ _ → H-level.mono₁ 0 $ ↑-closure 0 ⊤-contractible)
   , λ A →
       Very-stable A                                                ↔⟨ _⇔_.to contractible⇔↔⊤ $
                                                                       propositional⇒inhabited⇒contractible
@@ -1197,18 +1205,18 @@ Very-stableᴱ≃ᴱIs-equivalenceᴱ-const {a = a} ext′ =
       _≃ᴱ_.from A≃ (_≃ᴱ_.to A≃ x)                         ≡⟨ _≃ᴱ_.left-inverse-of A≃ _ ⟩∎
       x                                                   ∎
 
--- Erased is accessible (for certain universe levels, assuming
--- extensionality).
+-- Erased is accessible and topological (for certain universe levels,
+-- assuming extensionality).
 
-erased-is-accessible :
+erased-is-accessible-and-topological :
   Extensionality (lsuc a ⊔ ℓ) (lsuc a ⊔ ℓ) →
-  Erased-is-accessible (lsuc a ⊔ ℓ) a
-erased-is-accessible {a = a} {ℓ = ℓ} ext =
+  Erased-is-accessible-and-topological (lsuc a ⊔ ℓ) a
+erased-is-accessible-and-topological {a = a} {ℓ = ℓ} ext =
     ↑ ℓ (Type a)
   , ↑ _ ∘ Very-stable ∘ lower
+  , (λ _ → ↑-closure 1 $ Very-stable-propositional ext′)
   , (λ A →
-       Very-stable A                                                      ↝⟨ Very-stable≃Is-equivalence-const
-                                                                               (lower-extensionality _ _ ext) _ ⟩
+       Very-stable A                                                      ↝⟨ Very-stable≃Is-equivalence-const ext′ _ ⟩
 
        ((B : Type a) → Is-equivalence (const ⦂ (A → Very-stable B → A)))  ↝⟨ (inverse $
                                                                               Π-cong _ Bijection.↑↔ λ B →
@@ -1220,16 +1228,23 @@ erased-is-accessible {a = a} {ℓ = ℓ} ext =
         Is-equivalence (const ⦂ (A → ↑ _ (Very-stable (lower B)) → A)))   ↔⟨ (∀-cong ext λ _ → inverse $
                                                                               PS.Is-∞-extendable-along≃Is-equivalence-const ext) ⟩□
        (∀ B → Is-∞-extendable-along-[ _ ] (λ _ → A))                      □)
+  where
+  ext′ = lower-extensionality _ _ ext
 
--- The property Erased-is-accessibleᴱ holds for certain universe
--- levels (assuming extensionality).
+-- The property Erased-is-accessible-and-topologicalᴱ holds for
+-- certain universe levels (assuming extensionality).
 
-erased-is-accessibleᴱ :
+erased-is-accessible-and-topologicalᴱ :
   @0 Extensionality (lsuc a) a →
-  Erased-is-accessibleᴱ (lsuc a ⊔ ℓ) a
-erased-is-accessibleᴱ {a = a} {ℓ = ℓ} ext =
+  Erased-is-accessible-and-topologicalᴱ (lsuc a ⊔ ℓ) a
+erased-is-accessible-and-topologicalᴱ {a = a} {ℓ = ℓ} ext =
     ↑ ℓ (Type a)
   , ↑ _ ∘ Very-stableᴱ ∘ lower
+  , (λ _ →
+       [ ↑-closure 1 $
+           Very-stableᴱ-propositional
+             (lower-extensionality _ lzero ext)
+       ])
   , (λ A →
        Very-stableᴱ A                                        ↝⟨ _≃ᴱ_.logical-equivalence $
                                                                 Very-stableᴱ≃ᴱIs-equivalenceᴱ-const ext ⟩
