@@ -221,22 +221,28 @@ mutual
        .∣∣ʳ                        → B→∥A∥
        .truncation-is-propositionʳ → truncation-is-proposition)
 
+-- If there is a split surjection from A to B, then there is a split
+-- surjection from ∥ A ∥ᴱ to ∥ B ∥ᴱ.
+
+∥∥ᴱ-cong-↠ : A ↠ B → ∥ A ∥ᴱ ↠ ∥ B ∥ᴱ
+∥∥ᴱ-cong-↠ A↠B = record
+  { logical-equivalence = record
+    { to   = ∥∥ᴱ-map (_↠_.to   A↠B)
+    ; from = ∥∥ᴱ-map (_↠_.from A↠B)
+    }
+  ; right-inverse-of = elim λ where
+      .∣∣ʳ x →
+        ∣ _↠_.to A↠B (_↠_.from A↠B x) ∣  ≡⟨ cong ∣_∣ (_↠_.right-inverse-of A↠B x) ⟩∎
+        ∣ x ∣                            ∎
+      .truncation-is-propositionʳ _ →
+        mono₁ 1 truncation-is-proposition
+  }
+
 private
 
   ∥∥ᴱ-cong-↔ : A ↔ B → ∥ A ∥ᴱ ↔ ∥ B ∥ᴱ
   ∥∥ᴱ-cong-↔ A↔B = record
-    { surjection = record
-      { logical-equivalence = record
-        { to   = ∥∥ᴱ-map (_↔_.to   A↔B)
-        ; from = ∥∥ᴱ-map (_↔_.from A↔B)
-        }
-      ; right-inverse-of = elim λ where
-          .∣∣ʳ x →
-            ∣ _↔_.to A↔B (_↔_.from A↔B x) ∣  ≡⟨ cong ∣_∣ (_↔_.right-inverse-of A↔B x) ⟩∎
-            ∣ x ∣                            ∎
-          .truncation-is-propositionʳ _ →
-            mono₁ 1 truncation-is-proposition
-      }
+    { surjection      = ∥∥ᴱ-cong-↠ (_↔_.surjection A↔B)
     ; left-inverse-of = elim λ where
         .∣∣ʳ x →
           ∣ _↔_.from A↔B (_↔_.to A↔B x) ∣  ≡⟨ cong ∣_∣ (_↔_.left-inverse-of A↔B x) ⟩∎
