@@ -34,7 +34,8 @@ open import Equivalence.Erased equality-with-J as EEq
 open import Equivalence.Erased.Contractible-preimages equality-with-J
   as ECP using (Contractibleᴱ; _⁻¹ᴱ_)
 open import Equivalence-relation equality-with-J
-open import Erased.Cubical eq as Er using (Erased; [_])
+open import Erased.Cubical eq as Er
+  using (Erased; [_]; erased; Very-stableᴱ-≡; Erased-singleton)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
@@ -43,7 +44,8 @@ open import H-level.Truncation.Propositional.One-step eq as O
 import H-level.Truncation.Propositional.Non-recursive.Erased eq as N
 open import Monad equality-with-J
 open import Preimage equality-with-J using (_⁻¹_)
-open import Surjection equality-with-J using (_↠_; Split-surjective)
+open import Surjection equality-with-J as S
+  using (_↠_; Split-surjective)
 
 private
   variable
@@ -975,3 +977,63 @@ drop-⊥-left-∥⊎∥ᴱ B-prop ¬A = record
      .∣∣ʳ → ¬⊎¬→×¬
      .truncation-is-propositionʳ → ¬-propositional ext)
   (∣_∣ ∘ _↠_.from (¬⊎¬↠¬× ext dec-¬A dec-¬B))
+
+------------------------------------------------------------------------
+-- Code related to Erased-singleton
+
+-- A corollary of erased-singleton-with-erased-center-propositional.
+
+↠→↠Erased-singleton :
+  {@0 y : B}
+  (A↠B : A ↠ B) →
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ᴱ ↠ Erased-singleton y
+↠→↠Erased-singleton {A = A} {y = y} A↠B =
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ᴱ  ↝⟨ ∥∥ᴱ-cong-↠ (S.Σ-cong A↠B λ _ → F.id) ⟩
+  ∥ Erased-singleton y ∥ᴱ                         ↔⟨ ∥∥ᴱ↔
+                                                       (Er.erased-singleton-with-erased-center-propositional $
+                                                        Er.Very-stable→Very-stableᴱ 1 $
+                                                        Er.Very-stable→Very-stable-≡ 0 $
+                                                        erased Er.Erased-Very-stable) ⟩□
+  Erased-singleton y                              □
+
+-- Another corollary of
+-- erased-singleton-with-erased-center-propositional.
+
+↠→≃ᴱErased-singleton :
+  {@0 y : B}
+  (A↠B : A ↠ B) →
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ᴱ ≃ᴱ Erased-singleton y
+↠→≃ᴱErased-singleton {A = A} {y = y} A↠B =
+  ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ᴱ  ↝⟨ ∥∥ᴱ-cong-⇔ (S.Σ-cong-⇔ A↠B λ _ → F.id) ⟩
+  ∥ Erased-singleton y ∥ᴱ                         ↔⟨ ∥∥ᴱ↔
+                                                       (Er.erased-singleton-with-erased-center-propositional $
+                                                        Er.Very-stable→Very-stableᴱ 1 $
+                                                        Er.Very-stable→Very-stable-≡ 0 $
+                                                        erased Er.Erased-Very-stable) ⟩□
+  Erased-singleton y                              □
+
+-- A corollary of Σ-Erased-Erased-singleton↔ and ↠→≃ᴱErased-singleton.
+
+Σ-Erased-∥-Σ-Erased-≡-∥≃ᴱ :
+  (A↠B : A ↠ B) →
+  (∃ λ (x : Erased B) →
+     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥ᴱ) ≃ᴱ
+  B
+Σ-Erased-∥-Σ-Erased-≡-∥≃ᴱ {A = A} {B = B} A↠B =
+  (∃ λ (x : Erased B) →
+     ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥ᴱ)  ↝⟨ (∃-cong λ _ → ↠→≃ᴱErased-singleton A↠B) ⟩
+
+  (∃ λ (x : Erased B) → Erased-singleton (erased x))         ↔⟨ Er.Σ-Erased-Erased-singleton↔ ⟩□
+
+  B                                                          □
+
+-- In an erased context the left-to-right direction of
+-- Σ-Erased-∥-Σ-Erased-≡-∥≃ᴱ returns the erased first component.
+
+@0 to-Σ-Erased-∥-Σ-Erased-≡-∥≃ᴱ≡ :
+  ∀ (A↠B : A ↠ B) x →
+  _≃ᴱ_.to (Σ-Erased-∥-Σ-Erased-≡-∥≃ᴱ A↠B) x ≡ erased (proj₁ x)
+to-Σ-Erased-∥-Σ-Erased-≡-∥≃ᴱ≡ A↠B ([ x ] , y) =
+  _≃ᴱ_.to (Σ-Erased-∥-Σ-Erased-≡-∥≃ᴱ A↠B) ([ x ] , y)  ≡⟨⟩
+  proj₁ (_≃ᴱ_.to (↠→≃ᴱErased-singleton A↠B) y)         ≡⟨ erased (proj₂ (_≃ᴱ_.to (↠→≃ᴱErased-singleton A↠B) y)) ⟩∎
+  x                                                    ∎
