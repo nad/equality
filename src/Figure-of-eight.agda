@@ -2,7 +2,7 @@
 -- The figure of eight
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- The module is parametrised by a notion of equality. The higher
 -- constructor of the HIT defining the circle uses path equality, but
@@ -26,6 +26,7 @@ open import Equality.Path.Isomorphisms eq
 import Equality.Tactic P.equality-with-J as PT
 open import Equivalence equality-with-J as Eq using (_≃_)
 import Equivalence P.equality-with-J as PE
+open import Erased.Cubical eq
 open import Function-universe equality-with-J hiding (_∘_)
 open import Pushout eq as Pushout using (Wedge; inl; inr; glueᴾ)
 import Univalence-axiom P.equality-with-J as PU
@@ -160,10 +161,12 @@ rec-loop₂ = cong-≡↔≡ (refl _)
 
 loop₁≢loop₂ : loop₁ ≢ loop₂
 loop₁≢loop₂ =
-  loop₁ ≡ loop₂      ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (inverse ≡↔≡)) ⟩
-  loop₁ᴾ ≡ loop₂ᴾ    ↔⟨ ≡↔≡ ⟩
-  loop₁ᴾ P.≡ loop₂ᴾ  ↝⟨ PU.¬-Type-set EPU.univ ∘ Type-set ⟩□
-  ⊥                  □
+  Stable-¬
+    [ loop₁ ≡ loop₂      ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (inverse ≡↔≡)) ⟩
+      loop₁ᴾ ≡ loop₂ᴾ    ↔⟨ ≡↔≡ ⟩
+      loop₁ᴾ P.≡ loop₂ᴾ  ↝⟨ PU.¬-Type-set EPU.univ ∘ Type-set ⟩□
+      ⊥                  □
+    ]
   where
   module _ (hyp : loop₁ᴾ P.≡ loop₂ᴾ) where
     refl≡ : (A : Type) (A≡A : A P.≡ A) → P.refl P.≡ A≡A
@@ -190,20 +193,22 @@ loop₁≢loop₂ =
 
 trans-not-commutative : trans loop₁ loop₂ ≢ trans loop₂ loop₁
 trans-not-commutative =
-  trans loop₁ loop₂ ≡ trans loop₂ loop₁          ↝⟨ (λ hyp → trans (sym (_↔_.from-to ≡↔≡ (sym trans≡trans)))
-                                                               (trans (cong (_↔_.to ≡↔≡) hyp) (_↔_.from-to ≡↔≡ (sym trans≡trans)))) ⟩
+  Stable-¬
+    [ trans loop₁ loop₂ ≡ trans loop₂ loop₁          ↝⟨ (λ hyp → trans (sym (_↔_.from-to ≡↔≡ (sym trans≡trans)))
+                                                                   (trans (cong (_↔_.to ≡↔≡) hyp) (_↔_.from-to ≡↔≡ (sym trans≡trans)))) ⟩
 
-  P.trans loop₁ᴾ loop₂ᴾ ≡ P.trans loop₂ᴾ loop₁ᴾ  ↝⟨ cong (P.subst F) ⟩
+      P.trans loop₁ᴾ loop₂ᴾ ≡ P.trans loop₂ᴾ loop₁ᴾ  ↝⟨ cong (P.subst F) ⟩
 
-  P.subst F (P.trans loop₁ᴾ loop₂ᴾ) ≡
-  P.subst F (P.trans loop₂ᴾ loop₁ᴾ)              ↝⟨ (λ hyp → trans (sym (_↔_.from ≡↔≡ lemma₁₂))
-                                                               (trans hyp (_↔_.from ≡↔≡ lemma₂₁))) ⟩
-  PE._≃_.to eq₂ ∘ PE._≃_.to eq₁ ≡
-  PE._≃_.to eq₁ ∘ PE._≃_.to eq₂                  ↝⟨ cong (_$ fzero) ⟩
+      P.subst F (P.trans loop₁ᴾ loop₂ᴾ) ≡
+      P.subst F (P.trans loop₂ᴾ loop₁ᴾ)              ↝⟨ (λ hyp → trans (sym (_↔_.from ≡↔≡ lemma₁₂))
+                                                                   (trans hyp (_↔_.from ≡↔≡ lemma₂₁))) ⟩
+      PE._≃_.to eq₂ ∘ PE._≃_.to eq₁ ≡
+      PE._≃_.to eq₁ ∘ PE._≃_.to eq₂                  ↝⟨ cong (_$ fzero) ⟩
 
-  fzero ≡ fsuc fzero                             ↝⟨ ⊎.inj₁≢inj₂ ⟩□
+      fzero ≡ fsuc fzero                             ↝⟨ ⊎.inj₁≢inj₂ ⟩□
 
-  ⊥                                              □
+      ⊥                                              □
+    ]
   where
   eq₁ : Fin 3 PE.≃ Fin 3
   eq₁ = PE.↔⇒≃ (record
@@ -253,7 +258,7 @@ trans-not-commutative =
         (fsuc (fsuc fzero)) → P.refl
     })
 
-  F : ∞ → Type
+  @0 F : ∞ → Type
   F base       = Fin 3
   F (loop₁ᴾ i) = EPU.≃⇒≡ eq₁ i
   F (loop₂ᴾ i) = EPU.≃⇒≡ eq₂ i

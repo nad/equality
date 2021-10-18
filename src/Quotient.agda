@@ -2,7 +2,7 @@
 -- Quotients (set-quotients), defined using a higher inductive type
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- Partly following the HoTT book.
 --
@@ -30,7 +30,6 @@ open import Prelude
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
-open import Equality.Path.Isomorphisms.Univalence eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence-relation equality-with-J
 open import Erased.Cubical eq as E
@@ -438,7 +437,8 @@ _/-cong_ A₁↔A₂ R₁⇔R₂ =
   ∥ R x y ∥      □
 
 -- If the relation is a propositional equivalence relation, then it is
--- equivalent to equality under [_].
+-- equivalent to equality under [_] (assuming propositional
+-- extensionality).
 --
 -- The basic structure of this proof is that of Proposition 2 in
 -- "Quotienting the Delay Monad by Weak Bisimilarity" by Chapman,
@@ -446,11 +446,12 @@ _/-cong_ A₁↔A₂ R₁⇔R₂ =
 
 related≃[equal] :
   {R : A → A → Type r} →
+  Propositional-extensionality r →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   ∀ {x y} → R x y ≃ _≡_ {A = A / R} [ x ] [ y ]
 related≃[equal] {A = A} {r = r} {R = R}
-                R-equiv R-prop {x} {y} =
+                prop-ext R-equiv R-prop {x = x} {y = y} =
   _↠_.from (Eq.≃↠⇔ R-prop /-is-set)
     (record
       { to   = []-respects-relation
@@ -482,11 +483,14 @@ related≃[equal] {A = A} {r = r} {R = R}
 
 ∥related∥≃[equal] :
   {R : A → A → Type r} →
+  Propositional-extensionality r →
   Is-equivalence-relation R →
   ∀ {x y} → ∥ R x y ∥ ≃ _≡_ {A = A / R} [ x ] [ y ]
-∥related∥≃[equal] {A = A} {R = R} R-equiv {x} {y} =
-  ∥ R x y ∥                                    ↝⟨ related≃[equal] (TruncP.∥∥-preserves-Is-equivalence-relation R-equiv)
-                                                                  TruncP.truncation-is-proposition ⟩
+∥related∥≃[equal] {A = A} {R = R} prop-ext R-equiv {x = x} {y = y} =
+  ∥ R x y ∥                                    ↝⟨ related≃[equal]
+                                                    prop-ext
+                                                    (TruncP.∥∥-preserves-Is-equivalence-relation R-equiv)
+                                                    TruncP.truncation-is-proposition ⟩
   _≡_ {A = A / λ x y → ∥ R x y ∥} [ x ] [ y ]  ↝⟨ Eq.≃-≡ (inverse /-∥∥≃/) ⟩□
   _≡_ {A = A / R} [ x ] [ y ]                  □
 
@@ -593,19 +597,22 @@ private
   from-constant-function↔∥inhabited∥⇒inhabited _ = refl _
 
 -- If R is a propositional equivalence relation that is pointwise
--- stable, then equality is very stable for A / R.
+-- stable, then equality is very stable for A / R (assuming
+-- propositional extensionality).
 
 Very-stable-≡-/ :
+  {R : A → A → Type r} →
+  Propositional-extensionality r →
   Is-equivalence-relation R →
   (∀ x y → Is-proposition (R x y)) →
   (∀ x y → Stable (R x y)) →
   Very-stable-≡ (A / R)
-Very-stable-≡-/ {A = A} {R = R} equiv prop s =
+Very-stable-≡-/ {A = A} {R = R} prop-ext equiv prop s =
   elim-prop λ where
     .[]ʳ x → elim-prop λ where
        .[]ʳ y →                       $⟨ s _ _ ⟩
          Stable (R x y)               ↝⟨ flip E.Stable-proposition→Very-stable (prop _ _) ⟩
-         Very-stable (R x y)          ↝⟨ E.Very-stable-cong _ (related≃[equal] equiv (prop _ _)) ⟩□
+         Very-stable (R x y)          ↝⟨ E.Very-stable-cong _ (related≃[equal] prop-ext equiv (prop _ _)) ⟩□
          Very-stable ([ x ] ≡ [ y ])  □
        .is-propositionʳ _ → E.Very-stable-propositional ext
     .is-propositionʳ _ →
@@ -663,14 +670,17 @@ private
 
 -- If the relation is a propositional equivalence relation of a
 -- certain size, then the quotients defined above are isomorphic to
--- families of equivalence relations, defined in a certain way.
+-- families of equivalence relations, defined in a certain way
+-- (assuming univalence).
 
 /↔ :
   {A : Type a} {R : A → A → Type a} →
+  Univalence a →
+  Univalence lzero →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   A / R ↔ ∃ λ (P : A → Type a) → ∥ (∃ λ x → R x ≡ P) ∥
-/↔ {a = a} {A = A} {R} R-equiv R-prop = record
+/↔ {a = a} {A = A} {R = R} univ univ₀ R-equiv R-prop = record
   { surjection = record
     { logical-equivalence = record
       { to   = to
@@ -694,7 +704,7 @@ private
       Quotient.[ x ] ≡ Quotient.[ y ]  ↝⟨ cong (_↔_.to /↔/′) ⟩□
       [ x ]′ ≡ [ y ]′                  □
     .is-setʳ →                 $⟨ (λ {_ _} → Quotient.quotient's-h-level-is-1-+-relation's-h-level
-                                               ext univ univ 1 (λ _ _ → R-prop)) ⟩
+                                               ext univ univ₀ 1 (λ _ _ → R-prop)) ⟩
       Is-set (A Quotient./ R)  ↝⟨ H.respects-surjection (_↔_.surjection /↔/′) 2 ⟩□
       Is-set (A /′ R)          □
 
@@ -712,7 +722,7 @@ private
        R-is-strong-equivalence)
     _
     (λ x →                                         $⟨ (λ {_ _} → Quotient.quotient's-h-level-is-1-+-relation's-h-level
-                                                                   ext univ univ 1 λ _ _ → R-prop) ⟩
+                                                                   ext univ univ₀ 1 λ _ _ → R-prop) ⟩
        Is-set (A Quotient./ R)                     ↝⟨ H.respects-surjection (_↔_.surjection /↔/′) 2 ⟩
        Is-set (A /′ R)                             ↝⟨ +⇒≡ {n = 1} ⟩□
        Is-proposition (to (from [ x ]′) ≡ [ x ]′)  □)
@@ -726,16 +736,19 @@ private
 -- If the relation is a propositional equivalence relation of a
 -- certain size, then the definition of quotients given in
 -- Quotient.Families-of-equivalence-classes is isomorphic to the one
--- given here.
+-- given here (assuming univalence).
 
-/↔/ : {A : Type a} {R : A → A → Type a} →
-      Is-equivalence-relation R →
-      (R-prop : ∀ {x y} → Is-proposition (R x y)) →
-      A Quotient./ R ↔ A / R
-/↔/ {a = a} {A = A} {R} R-equiv R-prop =
+/↔/ :
+  {A : Type a} {R : A → A → Type a} →
+  Univalence a →
+  Univalence lzero →
+  Is-equivalence-relation R →
+  (R-prop : ∀ {x y} → Is-proposition (R x y)) →
+  A Quotient./ R ↔ A / R
+/↔/ {a = a} {A = A} {R = R} univ univ₀ R-equiv R-prop =
   A Quotient./ R                                                   ↔⟨⟩
   (∃ λ (P : A → Type a) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a))  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
-  (∃ λ (P : A → Type a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ R-equiv R-prop ⟩□
+  (∃ λ (P : A → Type a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ univ univ₀ R-equiv R-prop ⟩□
   A / R                                                            □
 
 ------------------------------------------------------------------------
@@ -930,7 +943,7 @@ Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
 
 -- The type former λ X → ℕ → X commutes with quotients, assuming that
 -- the quotient relation is a propositional equivalence relation, and
--- also assuming countable choice.
+-- also assuming countable choice and propositional extensionality.
 --
 -- This result is very similar to Proposition 5 in "Quotienting the
 -- Delay Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
@@ -951,10 +964,11 @@ Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
 ℕ→/-comm :
   {A : Type a} {R : A → A → Type r} →
   Axiom-of-countable-choice (a ⊔ r) →
+  Propositional-extensionality r →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   (ℕ → A) / (ℕ →ᴾ R) ↔ (ℕ → A / R)
-ℕ→/-comm {A = A} {R} cc R-equiv R-prop = record
+ℕ→/-comm {A = A} {R = R} cc prop-ext R-equiv R-prop = record
   { surjection = record
     { logical-equivalence = record
       { to   = ℕ→/-comm-to
@@ -1002,7 +1016,7 @@ Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
 
     (∀ n → [ g₁ ]→ n ≡ [ g₂ ]→ n)            ↔⟨⟩
 
-    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ ∀-cong ext (λ _ → inverse $ related≃[equal] R-equiv R-prop) ⟩
+    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ ∀-cong ext (λ _ → inverse $ related≃[equal] prop-ext R-equiv R-prop) ⟩
 
     (∀ n → R (g₁ n) (g₂ n))                  ↔⟨⟩
 
@@ -1142,7 +1156,7 @@ Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
 
 -- A quotient-like eliminator for functions of type ℕ → A / R, where R
 -- is a propositional equivalence relation. Defined using countable
--- choice.
+-- choice and propositional extensionality.
 --
 -- This eliminator is taken from Corollary 1 in "Quotienting the Delay
 -- Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
@@ -1150,6 +1164,7 @@ Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
 ℕ→/-elim :
   {A : Type a} {R : A → A → Type r} →
   Axiom-of-countable-choice (a ⊔ r) →
+  Propositional-extensionality r →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   (P : (ℕ → A / R) → Type p)
@@ -1159,14 +1174,15 @@ Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
    p-[] g) →
   (∀ f → Is-set (P f)) →
   ∀ f → P f
-ℕ→/-elim cc R-equiv R-prop =
-  ↔-eliminator (ℕ→/-comm cc R-equiv R-prop)
+ℕ→/-elim cc prop-ext R-equiv R-prop =
+  ↔-eliminator (ℕ→/-comm cc prop-ext R-equiv R-prop)
 
 -- The eliminator "computes" in the "right" way.
 
 ℕ→/-elim-[] :
   ∀ {A : Type a} {R : A → A → Type r}
   (cc : Axiom-of-countable-choice (a ⊔ r))
+  (prop-ext : Propositional-extensionality r)
   (R-equiv : Is-equivalence-relation R)
   (R-prop : ∀ {x y} → Is-proposition (R x y))
   (P : (ℕ → A / R) → Type p)
@@ -1175,7 +1191,7 @@ Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
         subst P (cong ℕ→/-comm-to ([]-respects-relation r)) (p-[] f) ≡
         p-[] g)
   (P-set : ∀ f → Is-set (P f)) f →
-  ℕ→/-elim cc R-equiv R-prop P p-[] ok P-set (λ n → [ f n ]) ≡
+  ℕ→/-elim cc prop-ext R-equiv R-prop P p-[] ok P-set (λ n → [ f n ]) ≡
   p-[] f
-ℕ→/-elim-[] cc R-equiv R-prop =
-  ↔-eliminator-[] (ℕ→/-comm cc R-equiv R-prop)
+ℕ→/-elim-[] cc prop-ext R-equiv R-prop =
+  ↔-eliminator-[] (ℕ→/-comm cc prop-ext R-equiv R-prop)

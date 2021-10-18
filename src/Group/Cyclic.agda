@@ -2,7 +2,7 @@
 -- Cyclic groups
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 import Equality.Path as P
 
@@ -15,9 +15,11 @@ open import Prelude as P
   hiding (id; _^_) renaming (_∘_ to _⊚_; _+_ to _⊕_)
 
 open import Equality.Path.Isomorphisms eq
+open import Equality.Path.Isomorphisms.Univalence eq
 open import Equivalence-relation equality-with-J
   using (Is-equivalence-relation)
 open import Equivalence equality-with-J using (_≃_)
+open import Erased.Cubical eq
 open import Function-universe equality-with-J hiding (_∘_)
 open import Group equality-with-J as G
   using (Group; Abelian; _≃ᴳ_; Homomorphic)
@@ -446,19 +448,24 @@ negate-cong {i = i} n j = T.∥∥-map λ (k , i≡j+kn) →
 ℤ/ℤ-abelian = Cyclic→Abelian ℤ/[1+ _ ]ℤ ℤ/ℤ-cyclic
 
 -- For finite cyclic groups of order at least 2 the number 0 is not
--- equal to 1 (assuming univalence).
+-- equal to 1.
+--
+-- The proof uses propositional extensionality.
 
 ℤ/ℤ-0≢1 :
   ∀ n →
   _≢_ {A = Group.Carrier ℤ/[1+ suc n ]ℤ}
     Q.[ + 0 ] Q.[ + 1 ]
 ℤ/ℤ-0≢1 n =
-  Q.[ + 0 ] ≡ Q.[ + 1 ]  ↔⟨ inverse $
-                            Q.related≃[equal]
-                              (≡-mod-is-equivalence-relation (2 P.+ n))
-                              T.truncation-is-proposition ⟩
-  (+ 0 ≡ + 1 mod 2 ⊕ n)  ↝⟨ 0≢1mod2+ n ⟩□
-  ⊥                      □
+  Stable-¬
+    [ Q.[ + 0 ] ≡ Q.[ + 1 ]  ↔⟨ inverse $
+                                Q.related≃[equal]
+                                  prop-ext
+                                  (≡-mod-is-equivalence-relation (2 P.+ n))
+                                  T.truncation-is-proposition ⟩
+      (+ 0 ≡ + 1 mod 2 ⊕ n)  ↝⟨ 0≢1mod2+ n ⟩□
+      ⊥                      □
+    ]
 
 -- If any element in ℤ/2ℤ is added to itself we get 0.
 

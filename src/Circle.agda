@@ -2,7 +2,7 @@
 -- The "circle"
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- Partly following the HoTT book.
 
@@ -28,6 +28,7 @@ import Equality.Path.Isomorphisms P.equality-with-paths as PI
 open import Equality.Tactic equality-with-J hiding (module Eq)
 open import Equivalence equality-with-J as Eq using (_≃_)
 import Equivalence P.equality-with-J as PE
+import Erased.Cubical eq as E
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import Group equality-with-J as G using (_≃ᴳ_)
 import Group.Cyclic eq as C
@@ -47,7 +48,7 @@ open import Pointed-type.Homotopy-group eq
 open import Sphere eq as Sphere using (𝕊)
 open import Suspension eq as Suspension
   using (Susp; north; south; meridian)
-import Univalence-axiom equality-with-J as Univ
+open import Univalence-axiom equality-with-J as Univ using (Univalence)
 
 private
   variable
@@ -322,7 +323,7 @@ private
 
   -- Definitions used to define base≡base≃ℤ and Fundamental-group≃ℤ.
 
-  module base≡base≃ℤ (univ : Univ.Univalence lzero) where
+  module base≡base≃ℤ (univ : Univalence lzero) where
 
     -- The universal cover of the circle.
 
@@ -412,36 +413,43 @@ private
       loops (j Int.+ i)          ≡⟨ sym $ 𝕊¹-G.^∘^ j ⟩∎
       trans (loops i) (loops j)  ∎
 
--- The loop space of the circle is equivalent to the type of integers.
+-- The loop space of the circle is equivalent to the type of integers
+-- (assuming univalence).
 --
 -- The proof is based on the one presented by Licata and Shulman in
 -- "Calculating the Fundamental Group of the Circle in Homotopy Type
 -- Theory".
 
-base≡base≃ℤ : (base ≡ base) ≃ ℤ
-base≡base≃ℤ = Eq.↔→≃ to loops to-loops from-to
+base≡base≃ℤ :
+  Univalence lzero →
+  (base ≡ base) ≃ ℤ
+base≡base≃ℤ univ = Eq.↔→≃ to loops to-loops from-to
   where
   open base≡base≃ℤ univ
 
 -- The circle's fundamental group is equivalent to the group of
--- integers.
+-- integers (assuming univalence).
 
-Fundamental-group≃ℤ : Fundamental-group (𝕊¹ , base) ≃ᴳ ℤ-group
-Fundamental-group≃ℤ = G.≃ᴳ-sym λ where
+Fundamental-group≃ℤ :
+  Univalence lzero →
+  Fundamental-group (𝕊¹ , base) ≃ᴳ ℤ-group
+Fundamental-group≃ℤ univ = G.≃ᴳ-sym λ where
     .G.Homomorphic.related → inverse
-      (∥ base ≡ base ∥[1+ 1 ]  ↝⟨ T.∥∥-cong base≡base≃ℤ ⟩
+      (∥ base ≡ base ∥[1+ 1 ]  ↝⟨ T.∥∥-cong $ base≡base≃ℤ univ ⟩
        ∥ ℤ ∥[1+ 1 ]            ↔⟨ _⇔_.to (T.+⇔∥∥↔ {n = 1}) Int.ℤ-set ⟩□
        ℤ                       □)
     .G.Homomorphic.homomorphic i j → cong T.∣_∣ (loops-+ i j)
   where
   open base≡base≃ℤ univ
 
--- The circle is a groupoid.
+-- The circle is a groupoid (assuming univalence).
 
-𝕊¹-groupoid : H-level 3 𝕊¹
-𝕊¹-groupoid {x = x} {y = y} =
+𝕊¹-groupoid :
+  Univalence lzero →
+  H-level 3 𝕊¹
+𝕊¹-groupoid univ {x = x} {y = y} =
                         $⟨ (λ {_ _} → Int.ℤ-set) ⟩
-  Is-set ℤ              ↝⟨ H-level-cong _ 2 (inverse base≡base≃ℤ) ⦂ (_ → _) ⟩
+  Is-set ℤ              ↝⟨ H-level-cong _ 2 (inverse $ base≡base≃ℤ univ) ⦂ (_ → _) ⟩
   Is-set (base ≡ base)  ↝⟨ (λ s →
                               elim
                                 (λ x → ∀ y → Is-set (x ≡ y))
@@ -474,22 +482,27 @@ Fundamental-group≃ℤ = G.≃ᴳ-sym λ where
     rec (f base) (cong f loop)  ≡⟨ sym η-rec ⟩∎
     f                           ∎
 
--- The type of endofunctions on 𝕊¹ is equivalent to 𝕊¹ × ℤ.
+-- The type of endofunctions on 𝕊¹ is equivalent to 𝕊¹ × ℤ (assuming
+-- univalence).
 --
 -- This result was pointed out to me by Paolo Capriotti.
 
-𝕊¹→𝕊¹≃𝕊¹×ℤ : (𝕊¹ → 𝕊¹) ≃ (𝕊¹ × ℤ)
-𝕊¹→𝕊¹≃𝕊¹×ℤ =
+𝕊¹→𝕊¹≃𝕊¹×ℤ :
+  Univalence lzero →
+  (𝕊¹ → 𝕊¹) ≃ (𝕊¹ × ℤ)
+𝕊¹→𝕊¹≃𝕊¹×ℤ univ =
   (𝕊¹ → 𝕊¹)               ↝⟨ 𝕊¹→𝕊¹≃Σ𝕊¹≡ ⟩
   (∃ λ (x : 𝕊¹) → x ≡ x)  ↝⟨ (∃-cong λ _ → inverse base≡base≃≡) ⟩
-  𝕊¹ × base ≡ base        ↝⟨ (∃-cong λ _ → base≡base≃ℤ) ⟩□
+  𝕊¹ × base ≡ base        ↝⟨ (∃-cong λ _ → base≡base≃ℤ univ) ⟩□
   𝕊¹ × ℤ                  □
 
 -- The forward direction of 𝕊¹→𝕊¹≃𝕊¹×ℤ maps the identity function to
 -- base , + 1.
 
-𝕊¹→𝕊¹≃𝕊¹×ℤ-id : _≃_.to 𝕊¹→𝕊¹≃𝕊¹×ℤ id ≡ (base , + 1)
-𝕊¹→𝕊¹≃𝕊¹×ℤ-id = _≃_.from-to 𝕊¹→𝕊¹≃𝕊¹×ℤ
+𝕊¹→𝕊¹≃𝕊¹×ℤ-id :
+  (univ : Univalence lzero) →
+  _≃_.to (𝕊¹→𝕊¹≃𝕊¹×ℤ univ) id ≡ (base , + 1)
+𝕊¹→𝕊¹≃𝕊¹×ℤ-id univ = _≃_.from-to (𝕊¹→𝕊¹≃𝕊¹×ℤ univ)
   (rec base (trans (refl base) loop)  ≡⟨ cong (rec base) $ trans-reflˡ _ ⟩
    rec base loop                      ≡⟨ cong (rec base) $ cong-id _ ⟩
    rec base (cong id loop)            ≡⟨ sym η-rec ⟩∎
@@ -498,8 +511,10 @@ Fundamental-group≃ℤ = G.≃ᴳ-sym λ where
 -- The forward direction of 𝕊¹→𝕊¹≃𝕊¹×ℤ maps the constant function
 -- returning base to base , + 0.
 
-𝕊¹→𝕊¹≃𝕊¹×ℤ-const : _≃_.to 𝕊¹→𝕊¹≃𝕊¹×ℤ (const base) ≡ (base , + 0)
-𝕊¹→𝕊¹≃𝕊¹×ℤ-const = _≃_.from-to 𝕊¹→𝕊¹≃𝕊¹×ℤ
+𝕊¹→𝕊¹≃𝕊¹×ℤ-const :
+  (univ : Univalence lzero) →
+  _≃_.to (𝕊¹→𝕊¹≃𝕊¹×ℤ univ) (const base) ≡ (base , + 0)
+𝕊¹→𝕊¹≃𝕊¹×ℤ-const univ = _≃_.from-to (𝕊¹→𝕊¹≃𝕊¹×ℤ univ)
   (rec base (refl base)               ≡⟨ cong (rec base) $ sym $ cong-const _ ⟩
    rec base (cong (const base) loop)  ≡⟨ sym η-rec ⟩∎
    const base                         ∎)
@@ -529,20 +544,27 @@ Fundamental-group≃ℤ = G.≃ᴳ-sym λ where
 -- The equality loop is not equal to refl base.
 
 loop≢refl : loop ≢ refl base
-loop≢refl loop≡refl = Univ.¬-Type-set univ Type-set
+loop≢refl =
+  E.Stable-¬
+    E.[ loop ≡ refl base  →⟨ Type-set ⟩
+        Is-set Type       →⟨ Univ.¬-Type-set univ ⟩□
+        ⊥                 □
+      ]
   where
-  refl≡ : (A : Type) (A≡A : A ≡ A) → refl A ≡ A≡A
-  refl≡ A A≡A =
-    refl A                        ≡⟨⟩
-    refl (rec A A≡A base)         ≡⟨ sym $ cong-refl _ ⟩
-    cong (rec A A≡A) (refl base)  ≡⟨ cong (cong (rec A A≡A)) $ sym loop≡refl ⟩
-    cong (rec A A≡A) loop         ≡⟨ rec-loop ⟩∎
-    A≡A                           ∎
+  module _ (loop≡refl : loop ≡ refl base) where
 
-  Type-set : Is-set Type
-  Type-set {x = A} {y = B} =
-    elim¹ (λ p → ∀ q → p ≡ q)
-          (refl≡ A)
+    refl≡ : (A : Type) (A≡A : A ≡ A) → refl A ≡ A≡A
+    refl≡ A A≡A =
+      refl A                        ≡⟨⟩
+      refl (rec A A≡A base)         ≡⟨ sym $ cong-refl _ ⟩
+      cong (rec A A≡A) (refl base)  ≡⟨ cong (cong (rec A A≡A)) $ sym loop≡refl ⟩
+      cong (rec A A≡A) loop         ≡⟨ rec-loop ⟩∎
+      A≡A                           ∎
+
+    Type-set : Is-set Type
+    Type-set {x = A} {y = B} =
+      elim¹ (λ p → ∀ q → p ≡ q)
+            (refl≡ A)
 
 -- Thus the circle is not a set.
 
@@ -689,18 +711,21 @@ all-points-on-the-circle-are-¬¬-equal x =
 
 𝕊¹≄ᴮ𝕊¹×𝕊¹ : ¬ (𝕊¹ , base) ≃ᴮ ((𝕊¹ , base) PT.× (𝕊¹ , base))
 𝕊¹≄ᴮ𝕊¹×𝕊¹ =
-  (𝕊¹ , base) ≃ᴮ ((𝕊¹ , base) PT.× (𝕊¹ , base))                      ↝⟨ ≃ᴮ→≃ᴳ (𝕊¹ , base) ((𝕊¹ , base) PT.× (𝕊¹ , base)) 0 ⟩
+  E.Stable-¬
+    E.[ (𝕊¹ , base) ≃ᴮ ((𝕊¹ , base) PT.× (𝕊¹ , base))                      ↝⟨ ≃ᴮ→≃ᴳ (𝕊¹ , base) ((𝕊¹ , base) PT.× (𝕊¹ , base)) 0 ⟩
 
-  Fundamental-group (𝕊¹ , base) ≃ᴳ
-  Fundamental-group ((𝕊¹ , base) PT.× (𝕊¹ , base))                   ↝⟨ flip G.↝ᴳ-trans (Homotopy-group-[1+ 0 ]-× (𝕊¹ , base) (𝕊¹ , base)) ⟩
+        Fundamental-group (𝕊¹ , base) ≃ᴳ
+        Fundamental-group ((𝕊¹ , base) PT.× (𝕊¹ , base))                   ↝⟨ flip G.↝ᴳ-trans (Homotopy-group-[1+ 0 ]-× (𝕊¹ , base) (𝕊¹ , base)) ⟩
 
-  Fundamental-group (𝕊¹ , base) ≃ᴳ
-  (Fundamental-group (𝕊¹ , base) G.× Fundamental-group (𝕊¹ , base))  ↝⟨ flip G.↝ᴳ-trans (G.↝-× Fundamental-group≃ℤ Fundamental-group≃ℤ) ∘
-                                                                        G.↝ᴳ-trans (G.≃ᴳ-sym Fundamental-group≃ℤ) ⟩
+        Fundamental-group (𝕊¹ , base) ≃ᴳ
+        (Fundamental-group (𝕊¹ , base) G.× Fundamental-group (𝕊¹ , base))  ↝⟨ flip G.↝ᴳ-trans
+                                                                                (G.↝-× (Fundamental-group≃ℤ univ) (Fundamental-group≃ℤ univ)) ∘
+                                                                              G.↝ᴳ-trans (G.≃ᴳ-sym (Fundamental-group≃ℤ univ)) ⟩
 
-  ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)                                   ↝⟨ C.ℤ≄ᴳℤ×ℤ ⟩□
+        ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)                                   ↝⟨ C.ℤ≄ᴳℤ×ℤ ⟩□
 
-  ⊥                                                                  □
+        ⊥                                                                  □
+      ]
 
 -- 𝕊¹ is not equivalent to 𝕊¹ × 𝕊¹.
 --
@@ -732,19 +757,19 @@ Circle :
 Circle eq p =
   ∃ λ (𝕊¹ : Type) →
   ∃ λ (base : 𝕊¹) →
-  ∃ λ (loop : base E.≡ base) →
+  ∃ λ (loop : base ≡.≡ base) →
     (P : 𝕊¹ → Type p)
     (b : P base)
-    (ℓ : E.subst P loop b E.≡ b) →
+    (ℓ : ≡.subst P loop b ≡.≡ b) →
     ∃ λ (elim : (x : 𝕊¹) → P x) →
-    ∃ λ (elim-base : elim base E.≡ b) →
-      E.subst (λ b → E.subst P loop b E.≡ b)
+    ∃ λ (elim-base : elim base ≡.≡ b) →
+      ≡.subst (λ b → ≡.subst P loop b ≡.≡ b)
               elim-base
-              (E.dcong elim loop)
-        E.≡
+              (≡.dcong elim loop)
+        ≡.≡
       ℓ
   where
-  module E = P.Derived-definitions-and-properties eq
+  module ≡ = P.Derived-definitions-and-properties eq
 
 -- A circle defined for paths (P.equality-with-J) is equivalent to one
 -- defined for eq.

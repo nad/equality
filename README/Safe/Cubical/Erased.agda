@@ -120,21 +120,54 @@ import Pointed-type.Homotopy-group
 
 import Pointed-type.Connected
 
+-- A variant of set quotients with erased higher constructors.
+
+import Quotient.Erased.Basics
+
+-- Quotients (set-quotients), defined using a higher inductive type.
+
+import Quotient
+
+-- Two variants of the set quotients from Quotient.
+
+import Quotient.Set-truncated-if-propositional
+import Quotient.Higher-constructors-if-propositional
+
+-- A variant of set quotients with erased higher constructors.
+
+import Quotient.Erased
+
+-- Cyclic groups.
+
+import Group.Cyclic
+
+-- Integers, defined using a quotient type.
+
+import Integer.Quotient
+
 -- The Eilenberg-MacLane space K(G, 1).
 
 import Eilenberg-MacLane-space
 
--- A variant of set quotients with erased higher constructors.
+-- Coherently constant functions.
 
-import Quotient.Erased.Basics
+import Coherently-constant
+
+-- The "circle".
+
+import Circle
 
 -- The circle with an erased higher constructor.
 
 import Circle.Erased
 
--- A variant of set quotients with erased higher constructors.
+-- The torus, defined as a HIT.
 
-import Quotient.Erased
+import Torus
+
+-- The figure of eight.
+
+import Figure-of-eight
 
 -- A variant of Nat.Wrapper.Cubical, defined using --erased-cubical.
 
@@ -156,3 +189,12 @@ import Queue.Truncated
 -- Queue instances for the queues in Queue.Truncated.
 
 import Queue.Truncated.Instances
+
+-- Quotiented queues: any two queues representing the same sequence
+-- are equal.
+
+import Queue.Quotiented
+
+-- Queue instances for the queues in Queue.Quotiented.
+
+import Queue.Quotiented.Instances

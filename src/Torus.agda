@@ -2,7 +2,7 @@
 -- The torus, defined as a HIT
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- This module is based on the discussion of the torus in the HoTT
 -- book.

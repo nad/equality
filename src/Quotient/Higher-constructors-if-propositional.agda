@@ -2,7 +2,7 @@
 -- A variant of the set quotients from Quotient
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- Partly following the HoTT book.
 --
@@ -31,7 +31,6 @@ open import Prelude
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
-open import Equality.Path.Isomorphisms.Univalence eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J as F hiding (_∘_; id)
@@ -323,7 +322,8 @@ rec-prop r = elim-prop λ where
   .is-propositionʳ _ _ → TruncP.truncation-is-proposition
 
 -- If the relation is a propositional equivalence relation, then it is
--- equivalent to equality under [_].
+-- equivalent to equality under [_] (assuming propositional
+-- extensionality).
 --
 -- The basic structure of this proof is that of Proposition 2 in
 -- "Quotienting the Delay Monad by Weak Bisimilarity" by Chapman,
@@ -331,11 +331,12 @@ rec-prop r = elim-prop λ where
 
 related≃[equal] :
   {R : A → A → Type r} →
+  Propositional-extensionality r →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   ∀ {x y} → R x y ≃ _≡_ {A = A / R} [ x ] [ y ]
 related≃[equal] {A = A} {r = r} {R = R}
-                R-equiv R-prop {x} {y} =
+                prop-ext R-equiv R-prop {x = x} {y = y} =
   _↠_.from (Eq.≃↠⇔ R-prop (/-is-set λ _ _ → R-prop))
     (record
        { to   = []-respects-relation λ _ _ → R-prop
@@ -740,14 +741,17 @@ private
 
 -- If the relation is a propositional equivalence relation of a
 -- certain size, then the quotients defined above are isomorphic to
--- families of equivalence relations, defined in a certain way.
+-- families of equivalence relations, defined in a certain way
+-- (assuming univalence).
 
 /↔ :
   {A : Type a} {R : A → A → Type a} →
+  Univalence a →
+  Univalence lzero →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   A / R ↔ ∃ λ (P : A → Type a) → ∥ (∃ λ x → R x ≡ P) ∥
-/↔ {a = a} {A = A} {R} R-equiv R-prop = record
+/↔ {a = a} {A = A} {R = R} univ univ₀ R-equiv R-prop = record
   { surjection = record
     { logical-equivalence = record
       { to   = to
@@ -773,7 +777,7 @@ private
       [ x ]′ ≡ [ y ]′      □
 
     .is-setʳ prop →      $⟨ (λ {_ _} → QF.quotient's-h-level-is-1-+-relation's-h-level
-                                         ext univ univ 1 (λ _ _ → R-prop)) ⟩
+                                         ext univ univ₀ 1 (λ _ _ → R-prop)) ⟩
       Is-set (A QF./ R)  ↝⟨ H.respects-surjection (_↔_.surjection /↔/′) 2 ⟩□
       Is-set (A /′ R)    □
 
@@ -791,7 +795,7 @@ private
        R-is-strong-equivalence)
     _
     (λ x →                                         $⟨ (λ {_ _} → QF.quotient's-h-level-is-1-+-relation's-h-level
-                                                                   ext univ univ 1 λ _ _ → R-prop) ⟩
+                                                                   ext univ univ₀ 1 λ _ _ → R-prop) ⟩
        Is-set (A QF./ R)                           ↝⟨ H.respects-surjection (_↔_.surjection /↔/′) 2 ⟩
        Is-set (A /′ R)                             ↝⟨ +⇒≡ {n = 1} ⟩□
        Is-proposition (to (from [ x ]′) ≡ [ x ]′)  □)
@@ -805,16 +809,19 @@ private
 -- If the relation is a propositional equivalence relation of a
 -- certain size, then the definition of quotients given in
 -- QF.Families-of-equivalence-classes is isomorphic to the one given
--- here.
+-- here (assuming univalence).
 
-/↔/ : {A : Type a} {R : A → A → Type a} →
-      Is-equivalence-relation R →
-      (R-prop : ∀ {x y} → Is-proposition (R x y)) →
-      A QF./ R ↔ A / R
-/↔/ {a = a} {A = A} {R} R-equiv R-prop =
+/↔/ :
+  {A : Type a} {R : A → A → Type a} →
+  Univalence a →
+  Univalence lzero →
+  Is-equivalence-relation R →
+  (R-prop : ∀ {x y} → Is-proposition (R x y)) →
+  A QF./ R ↔ A / R
+/↔/ {a = a} {A = A} {R = R} univ univ₀ R-equiv R-prop =
   A QF./ R                                                         ↔⟨⟩
   (∃ λ (P : A → Type a) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a))  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
-  (∃ λ (P : A → Type a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ R-equiv R-prop ⟩□
+  (∃ λ (P : A → Type a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ univ univ₀ R-equiv R-prop ⟩□
   A / R                                                            □
 
 ------------------------------------------------------------------------
@@ -947,7 +954,7 @@ Maybe/-comm-[] {R-prop = R-prop} =
 
 -- The type former λ X → ℕ → X commutes with quotients, assuming that
 -- the quotient relation is a propositional equivalence relation, and
--- also assuming countable choice.
+-- also assuming countable choice and propositional extensionality.
 --
 -- This result is very similar to Proposition 5 in "Quotienting the
 -- Delay Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
@@ -977,10 +984,11 @@ Maybe/-comm-[] {R-prop = R-prop} =
 ℕ→/-comm :
   {A : Type a} {R : A → A → Type r} →
   Axiom-of-countable-choice (a ⊔ r) →
+  Propositional-extensionality r →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   (ℕ → A) / (ℕ →ᴾ R) ↔ (ℕ → A / R)
-ℕ→/-comm {A = A} {R} cc R-equiv R-prop = record
+ℕ→/-comm {A = A} {R = R} cc prop-ext R-equiv R-prop = record
   { surjection = record
     { logical-equivalence = record
       { to   = ℕ→/-comm-to
@@ -1028,7 +1036,7 @@ Maybe/-comm-[] {R-prop = R-prop} =
 
     (∀ n → [ g₁ ]→ n ≡ [ g₂ ]→ n)            ↔⟨⟩
 
-    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ ∀-cong ext (λ _ → inverse $ related≃[equal] R-equiv R-prop) ⟩
+    (∀ n → [ g₁ n ] ≡ [ g₂ n ])              ↔⟨ ∀-cong ext (λ _ → inverse $ related≃[equal] prop-ext R-equiv R-prop) ⟩
 
     (∀ n → R (g₁ n) (g₂ n))                  ↔⟨⟩
 
@@ -1191,7 +1199,7 @@ Maybe/-comm-[] {R-prop = R-prop} =
 
 -- A quotient-like eliminator for functions of type ℕ → A / R, where R
 -- is a propositional equivalence relation. Defined using countable
--- choice.
+-- choice and propositional extensionality.
 --
 -- This eliminator is taken from Corollary 1 in "Quotienting the Delay
 -- Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
@@ -1199,6 +1207,7 @@ Maybe/-comm-[] {R-prop = R-prop} =
 ℕ→/-elim :
   {A : Type a} {R : A → A → Type r} →
   Axiom-of-countable-choice (a ⊔ r) →
+  Propositional-extensionality r →
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   (P : (ℕ → A / R) → Type p)
@@ -1209,9 +1218,9 @@ Maybe/-comm-[] {R-prop = R-prop} =
    p-[] g) →
   (∀ f → Is-set (P f)) →
   ∀ f → P f
-ℕ→/-elim cc R-equiv R-prop P p-[] ok P-set =
+ℕ→/-elim cc prop-ext R-equiv R-prop P p-[] ok P-set =
   ↔-eliminator
-    (ℕ→/-comm cc R-equiv R-prop)
+    (ℕ→/-comm cc prop-ext R-equiv R-prop)
     P p-[] ok (λ _ → P-set)
 
 -- The eliminator "computes" in the "right" way.
@@ -1219,6 +1228,7 @@ Maybe/-comm-[] {R-prop = R-prop} =
 ℕ→/-elim-[] :
   ∀ {A : Type a} {R : A → A → Type r}
   (cc : Axiom-of-countable-choice (a ⊔ r))
+  (prop-ext : Propositional-extensionality r)
   (R-equiv : Is-equivalence-relation R)
   (R-prop : ∀ {x y} → Is-proposition (R x y))
   (P : (ℕ → A / R) → Type p)
@@ -1229,10 +1239,10 @@ Maybe/-comm-[] {R-prop = R-prop} =
      subst P (cong ℕ→/-comm-to ([]-respects-relation prop r)) (p-[] f) ≡
      p-[] g)
   (P-set : ∀ f → Is-set (P f)) f →
-  ℕ→/-elim cc R-equiv R-prop P p-[] ok P-set (λ n → [ f n ]) ≡
+  ℕ→/-elim cc prop-ext R-equiv R-prop P p-[] ok P-set (λ n → [ f n ]) ≡
   p-[] f
-ℕ→/-elim-[] {R = R} cc R-equiv R-prop P p-[] ok P-set f =
+ℕ→/-elim-[] {R = R} cc prop-ext R-equiv R-prop P p-[] ok P-set f =
   ↔-eliminator-[]
-    (ℕ→/-comm cc R-equiv R-prop)
+    (ℕ→/-comm cc prop-ext R-equiv R-prop)
     P p-[] ok (λ _ → P-set) f
     (→ᴾ-preserves-Is-proposition R ext R-prop)

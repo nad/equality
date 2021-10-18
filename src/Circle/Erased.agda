@@ -23,6 +23,7 @@ open import Bijection equality-with-J using (_↔_)
 open import Circle eq as C using (𝕊¹)
 open import Equality.Groupoid equality-with-J
 open import Equality.Path.Isomorphisms eq
+open import Equality.Path.Isomorphisms.Univalence eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 import Equivalence P.equality-with-J as PE
 open import Erased.Cubical eq
@@ -263,7 +264,7 @@ base≡base≃≡ = elim
 @0 base≡base≃ℤ : (base ≡ base) ≃ ℤ
 base≡base≃ℤ =
   base ≡ base      ↝⟨ Eq.≃-≡ 𝕊¹≃𝕊¹ᴱ ⟩
-  C.base ≡ C.base  ↝⟨ C.base≡base≃ℤ ⟩□
+  C.base ≡ C.base  ↝⟨ C.base≡base≃ℤ univ ⟩□
   ℤ                □
 
 -- In erased contexts the fundamental group of 𝕊¹ᴱ is equivalent to
@@ -271,12 +272,13 @@ base≡base≃ℤ =
 
 @0 Fundamental-group≃ℤ : Fundamental-group (𝕊¹ᴱ , base) ≃ᴳ ℤ-group
 Fundamental-group≃ℤ =
-  G.↝ᴳ-trans (G.≃ᴳ-sym $ ≃ᴮ→≃ᴳ _ _ 0 𝕊¹≃ᴮ𝕊¹ᴱ) C.Fundamental-group≃ℤ
+  G.↝ᴳ-trans (G.≃ᴳ-sym $ ≃ᴮ→≃ᴳ _ _ 0 𝕊¹≃ᴮ𝕊¹ᴱ)
+    (C.Fundamental-group≃ℤ univ)
 
 -- 𝕊¹ᴱ is a groupoid (in erased contexts).
 
 @0 𝕊¹ᴱ-groupoid : H-level 3 𝕊¹ᴱ
-𝕊¹ᴱ-groupoid =   $⟨ (λ {_ _ _ _} → C.𝕊¹-groupoid) ⟩
+𝕊¹ᴱ-groupoid =   $⟨ (λ {_ _ _ _} → C.𝕊¹-groupoid univ) ⟩
   H-level 3 𝕊¹   ↝⟨ H-level-cong _ 3 𝕊¹≃𝕊¹ᴱ ⦂ (_ → _) ⟩□
   H-level 3 𝕊¹ᴱ  □
 

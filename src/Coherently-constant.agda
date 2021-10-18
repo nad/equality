@@ -2,7 +2,7 @@
 -- Coherently constant functions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 import Equality.Path as P
 
