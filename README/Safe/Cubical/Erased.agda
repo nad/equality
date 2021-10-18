@@ -83,10 +83,6 @@ import H-level.Truncation.Propositional.Erased
 
 import H-level.Truncation.Propositional
 
--- Completely erased propositional truncation.
-
-import H-level.Truncation.Propositional.Completely-erased
-
 -- A definition of the propositional truncation operator that does not
 -- use recursive higher inductive types.
 
