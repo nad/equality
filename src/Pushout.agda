@@ -2,7 +2,7 @@
 -- Pushouts, defined using a HIT
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- This module follows the HoTT book rather closely.
 

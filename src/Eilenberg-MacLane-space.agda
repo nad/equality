@@ -2,7 +2,7 @@
 -- The Eilenberg-MacLane space K(G, 1)
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- The module is parametrised by a notion of equality. The higher
 -- constructors of the HIT defining K(G, 1) use path equality, but the

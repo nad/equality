@@ -58,9 +58,17 @@ import Colimit.Sequential.Very-erased
 
 import Colimit.Sequential.Erased
 
+-- Sequential colimits.
+
+import Colimit.Sequential
+
 -- The one-step truncation HIT with an erased higher constructor.
 
 import H-level.Truncation.Propositional.One-step.Erased
+
+-- The one-step truncation.
+
+import H-level.Truncation.Propositional.One-step
 
 -- A non-recursive variant of H-level.Truncation.Propositional.Erased.
 
@@ -71,9 +79,54 @@ import H-level.Truncation.Propositional.Non-recursive.Erased
 
 import H-level.Truncation.Propositional.Erased
 
+-- Propositional truncation.
+
+import H-level.Truncation.Propositional
+
 -- Completely erased propositional truncation.
 
 import H-level.Truncation.Propositional.Completely-erased
+
+-- A definition of the propositional truncation operator that does not
+-- use recursive higher inductive types.
+
+import H-level.Truncation.Propositional.Non-recursive
+
+-- The "interval".
+
+import Interval
+
+-- Suspensions.
+
+import Suspension
+
+-- Spheres.
+
+import Sphere
+
+-- Pushouts, defined using a HIT.
+
+import Pushout
+
+-- Localisation.
+
+import Localisation
+
+-- Truncation, defined as a HIT.
+
+import H-level.Truncation
+
+-- Homotopy groups of pointed types.
+
+import Pointed-type.Homotopy-group
+
+-- Connectedness for pointed types.
+
+import Pointed-type.Connected
+
+-- The Eilenberg-MacLane space K(G, 1).
+
+import Eilenberg-MacLane-space
 
 -- A variant of set quotients with erased higher constructors.
 
@@ -96,3 +149,14 @@ import Nat.Wrapper.Cubical.Erased
 -- Zeuner) with support for erasure.
 
 import Structure-identity-principle.Erased
+
+-- Truncated queues: any two queues representing the same sequence are
+-- equal, and things are set up so that at compile-time (but not at
+-- run-time) some queue operations compute in roughly the same way as
+-- the corresponding list operations.
+
+import Queue.Truncated
+
+-- Queue instances for the queues in Queue.Truncated.
+
+import Queue.Truncated.Instances

@@ -2,7 +2,7 @@
 -- The one-step truncation
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 -- The module is parametrised by a notion of equality. The higher
 -- constructor of the HIT defining the one-step truncation operator

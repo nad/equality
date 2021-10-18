@@ -14,55 +14,6 @@ import Equality.Path.Univalence
 
 import Equality.Path.Isomorphisms.Univalence
 
--- Sequential colimits.
-
-import Colimit.Sequential
-
--- The one-step truncation.
-
-import H-level.Truncation.Propositional.One-step
-
--- Propositional truncation.
-
-import H-level.Truncation.Propositional
-
--- A definition of the propositional truncation operator that does not
--- use recursive higher inductive types.
-
-import H-level.Truncation.Propositional.Non-recursive
-
--- The "interval".
-
-import Interval
-
--- Suspensions.
-
-import Suspension
-
--- Spheres.
-
-import Sphere
-
--- Pushouts, defined using a HIT.
-
-import Pushout
-
--- Localisation.
-
-import Localisation
-
--- Truncation, defined as a HIT.
-
-import H-level.Truncation
-
--- Homotopy groups of pointed types.
-
-import Pointed-type.Homotopy-group
-
--- Connectedness for pointed types.
-
-import Pointed-type.Connected
-
 -- Quotients (set-quotients), defined using a higher inductive type.
 
 import Quotient
@@ -96,10 +47,6 @@ import Integer.Quotient
 
 import Group.Cyclic
 
--- The Eilenberg-MacLane space K(G, 1).
-
-import Eilenberg-MacLane-space
-
 -- Coherently constant functions.
 
 import Coherently-constant
@@ -128,17 +75,6 @@ import Queue.Quotiented
 -- Queue instances for the queues in Queue.Quotiented.
 
 import Queue.Quotiented.Instances
-
--- Truncated queues: any two queues representing the same sequence are
--- equal, and things are set up so that at compile-time (but not at
--- run-time) some queue operations compute in roughly the same way as
--- the corresponding list operations.
-
-import Queue.Truncated
-
--- Queue instances for the queues in Queue.Truncated.
-
-import Queue.Truncated.Instances
 
 -- Abstract binding trees, based on Harper's "Practical Foundations
 -- for Programming Languages".
