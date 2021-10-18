@@ -43,10 +43,6 @@ import Suspension
 
 import Sphere
 
--- Pullbacks.
-
-import Pullback
-
 -- Pushouts, defined using a HIT.
 
 import Pushout
