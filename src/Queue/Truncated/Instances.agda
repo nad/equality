@@ -13,13 +13,13 @@ module Queue.Truncated.Instances
   (eq : ∀ {a p} → P.Equality-with-paths a p e⁺)
   (open P.Derived-definitions-and-properties eq)
 
-  {Q : ∀ {ℓ} → @0 Type ℓ → Type ℓ}
+  {Q : ∀ {ℓ} → Type ℓ → Type ℓ}
   ⦃ is-queue :
       ∀ {ℓ} →
-      Queue.Is-queue equality-with-J (λ A → Q A) (λ _ → ↑ _ ⊤) ℓ ⦄
+      Queue.Is-queue equality-with-J Q (λ _ → ↑ _ ⊤) ℓ ⦄
   ⦃ is-queue-with-map :
       ∀ {ℓ₁ ℓ₂} →
-      Queue.Is-queue-with-map equality-with-J (λ A → Q A) ℓ₁ ℓ₂ ⦄
+      Queue.Is-queue-with-map equality-with-J Q ℓ₁ ℓ₂ ⦄
   where
 
 open Queue equality-with-J

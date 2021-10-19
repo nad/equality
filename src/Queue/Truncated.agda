@@ -45,7 +45,7 @@ private
 
 module _
   -- The underlying queue type family.
-  (Q : ∀ {ℓ} → @0 Type ℓ → Type ℓ)
+  (Q : ∀ {ℓ} → Type ℓ → Type ℓ)
 
   -- Note that the predicate is required to be trivial. Perhaps the
   -- code could be made more general, but I have not found a use for
@@ -69,7 +69,7 @@ module _
     -- flexibility that comes with parametrisation, but I do not want
     -- to force users to work in a parametrised setting.)
 
-    Queue_⟪_⟫ : {@0 A : Type a} → @0 List A → Type a
+    Queue_⟪_⟫ : {A : Type a} → @0 List A → Type a
     Queue_⟪_⟫ {A = A} xs =
       ∥ (∃ λ (q : Q A) → Erased (Q.to-List _ q ≡ xs)) ∥
 
@@ -82,7 +82,7 @@ module _
 -- family parameter, and an extra instance argument.
 
 module _
-  {Q : ∀ {ℓ} → @0 Type ℓ → Type ℓ}
+  {Q : ∀ {ℓ} → Type ℓ → Type ℓ}
   ⦃ is-queue : ∀ {ℓ} → Q.Is-queue (λ A → Q A) (λ _ → ↑ _ ⊤) ℓ ⦄
   ⦃ is-queue-with-map :
       ∀ {ℓ₁ ℓ₂} → Q.Is-queue-with-map (λ A → Q A) ℓ₁ ℓ₂ ⦄
@@ -284,7 +284,7 @@ module _
         -- functions on queues.
 
         unary :
-          {@0 A : Type a} {@0 B : Type b}
+          {A : Type a} {B : Type b}
           {@0 xs : List A} {@0 f : List A → List B}
           (g : Q A → Q B) →
           @0 (∀ {q} → Q.to-List _ (g q) ≡ f (Q.to-List _ q)) →
