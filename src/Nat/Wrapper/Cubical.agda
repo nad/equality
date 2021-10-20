@@ -30,8 +30,8 @@ open import H-level.Truncation.Propositional equality-with-paths
 import Nat equality-with-J as Nat
 import Univalence-axiom equality-with-J as U
 
-open import Nat.Wrapper
-  equality-with-J instance-of-[]-cong-axiomatisation Nat′ Nat′↔ℕ
+open import Nat.Wrapper equality-with-J Nat′ Nat′↔ℕ as NW
+open NW.[]-cong instance-of-[]-cong-axiomatisation
 
 private
   variable
@@ -92,6 +92,7 @@ Nat-with-∥∥↔⊤ =
 module _ (o : Operations) where
 
   open Operations-for-Nat o
+  open Operations-for-Nat-correct o
 
   private
 

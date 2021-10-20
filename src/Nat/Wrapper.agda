@@ -16,9 +16,6 @@ module Nat.Wrapper
   {c⁺}
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
 
-  -- An instantiation of the []-cong axioms.
-  (ax : ∀ {a} → Erased.Without-box-cong.[]-cong-axiomatisation eq a)
-
   -- The underlying representation of natural numbers.
   (Nat′ : Type)
   -- A bijection between this representation and the unary natural
@@ -30,9 +27,11 @@ module Nat.Wrapper
 open Derived-definitions-and-properties eq
 
 open import Dec
+import Erased.Level-1 eq as E₁
+import Erased.Stability eq as ES
 open import Logical-equivalence using (_⇔_)
 
-open import Erased eq ax
+open import Erased.Without-box-cong eq
 open import Function-universe eq as F hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
@@ -61,27 +60,11 @@ private
   to-ℕ : Nat′ → ℕ
   to-ℕ = _↔_.to Nat′↔ℕ
 
-  -- Equality is very stable for the natural numbers.
-
-  Very-stable-≡-ℕ : Very-stable-≡ ℕ
-  Very-stable-≡-ℕ = Decidable-equality→Very-stable-≡ N._≟_
-
 -- Natural numbers built on top of Nat′, indexed by corresponding
 -- unary natural numbers.
 
 Nat-[_] : @0 ℕ → Type
 Nat-[ m ] = ∃ λ (n : Nat′) → Erased (to-ℕ n ≡ m)
-
--- Nat-[ n ] is a proposition.
-
-Nat-[]-propositional : {@0 n : ℕ} → Is-proposition Nat-[ n ]
-Nat-[]-propositional {n = n} =                                      $⟨ Very-stable-≡-ℕ ⟩
-  Very-stable-≡ ℕ                                                   ↝⟨ Very-stable-congⁿ _ 1 (inverse Nat′↔ℕ) ⟩
-  Very-stable-≡ Nat′                                                ↝⟨ Very-stable→Very-stableᴱ 1 ⟩
-  Very-stableᴱ-≡ Nat′                                               ↝⟨ erased-singleton-with-erased-center-propositional ⟩
-  Is-proposition (∃ λ (m : Nat′) → Erased (m ≡ _↔_.from Nat′↔ℕ n))  ↝⟨ (H-level-cong _ 1 $ ∃-cong λ _ → Erased-cong (inverse $
-                                                                        from≡↔≡to (from-isomorphism $ inverse Nat′↔ℕ))) ⟩□
-  Is-proposition (∃ λ (m : Nat′) → Erased (to-ℕ m ≡ n))             □
 
 -- A non-indexed variant of Nat-[_].
 
@@ -93,19 +76,8 @@ Nat = ∃ λ (n : Erased ℕ) → Nat-[ erased n ]
 @0 ⌊_⌋ : Nat → ℕ
 ⌊ [ n ] , _ ⌋ = n
 
--- There is a bijection between equality of two values of type Nat and
--- erased equality of the corresponding unary natural number indices.
-
-≡-for-indices↔≡ :
-  {m n : Nat} →
-  Erased (⌊ m ⌋ ≡ ⌊ n ⌋) ↔ m ≡ n
-≡-for-indices↔≡ {m = m} {n = n} =
-  Erased (⌊ m ⌋ ≡ ⌊ n ⌋)  ↝⟨ Erased-≡↔[]≡[] ⟩
-  proj₁ m ≡ proj₁ n       ↝⟨ ignore-propositional-component Nat-[]-propositional ⟩□
-  m ≡ n                   □
-
 ------------------------------------------------------------------------
--- Conversion functions
+-- Some conversion functions
 
 -- Nat-[ n ] is isomorphic to the type of natural numbers equal
 -- (with erased equality proofs) to n.
@@ -115,27 +87,37 @@ Nat-[]↔Σℕ {n = n} =
   (∃ λ (m : Nat′) → Erased (to-ℕ m ≡ n))  ↝⟨ (Σ-cong Nat′↔ℕ λ _ → F.id) ⟩□
   (∃ λ m → Erased (m ≡ n))                □
 
--- Nat is isomorphic to the type of unary natural numbers.
+-- Nat is logically equivalent to the type of unary natural numbers.
 
-Nat↔ℕ : Nat ↔ ℕ
-Nat↔ℕ =
+Nat⇔ℕ : Nat ⇔ ℕ
+Nat⇔ℕ =
   Nat                                                   ↔⟨⟩
-  (∃ λ (n : Erased ℕ) → Nat-[ erased n ])               ↝⟨ (∃-cong λ _ → Nat-[]↔Σℕ) ⟩
-  (∃ λ (n : Erased ℕ) → ∃ λ m → Erased (m ≡ erased n))  ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
+  (∃ λ (n : Erased ℕ) → Nat-[ erased n ])               ↔⟨ (∃-cong λ _ → Nat-[]↔Σℕ) ⟩
+  (∃ λ (n : Erased ℕ) → ∃ λ m → Erased (m ≡ erased n))  ↝⟨ Σ-Erased-Erased-singleton⇔ ⟩□
   ℕ                                                     □
+
+-- Converts from Nat to ℕ.
+
+Nat→ℕ : Nat → ℕ
+Nat→ℕ (_ , n′ , _) = to-ℕ n′
+
+-- Nat→ℕ is definitionally equal to the forward direction of Nat⇔ℕ.
+
+_ : Nat→ℕ ≡ _⇔_.to Nat⇔ℕ
+_ = refl _
 
 -- Converts from ℕ to Nat.
 
 ⌈_⌉ : ℕ → Nat
-⌈_⌉ = _↔_.from Nat↔ℕ
+⌈_⌉ = _⇔_.from Nat⇔ℕ
 
--- The index matches the result of _↔_.to Nat↔ℕ.
+-- The index matches the result of Nat→ℕ.
 
-@0 ≡⌊⌋ : ∀ n → _↔_.to Nat↔ℕ n ≡ ⌊ n ⌋
+@0 ≡⌊⌋ : ∀ n → Nat→ℕ n ≡ ⌊ n ⌋
 ≡⌊⌋ ([ m ] , n , eq) =
-  _↔_.to Nat↔ℕ ([ m ] , n , eq)  ≡⟨⟩
-  _↔_.to Nat′↔ℕ n                ≡⟨ erased eq ⟩∎
-  m                              ∎
+  Nat→ℕ ([ m ] , n , eq)  ≡⟨⟩
+  _↔_.to Nat′↔ℕ n         ≡⟨ erased eq ⟩∎
+  m                       ∎
 
 ------------------------------------------------------------------------
 -- Some operations for Nat-[_]
@@ -320,7 +302,7 @@ module Operations-for-Nat-[] (o : Operations) where
     Dec (Erased (m ≡ n))
   _≟_ {m = m} {n = n} (m′ , [ m≡m′ ]) (n′ , [ n≡n′ ]) =
     Dec-map
-      (Erased-cong (
+      (Erased-cong-⇔ (
          to-ℕ m′ ≡ to-ℕ n′  ↝⟨ ≡⇒↝ _ (cong₂ _≡_ m≡m′ n≡n′) ⟩□
          m ≡ n              □))
       (m′ O.≟ n′)
@@ -354,6 +336,13 @@ module Operations-for-Nat-[] (o : Operations) where
 ------------------------------------------------------------------------
 -- Operations for Nat
 
+private
+
+  -- Equality is stable for the natural numbers.
+
+  Stable-≡-ℕ : Stable-≡ ℕ
+  Stable-≡-ℕ m n = Dec→Stable (m N.≟ n)
+
 -- A helper function that can be used to define constants.
 
 nullary :
@@ -362,23 +351,25 @@ nullary :
   Nat
 nullary n n′ hyp = [ n ] , nullary-[] n′ hyp
 
--- The function nullary is correct.
+-- A first correctness result for nullary.
 --
--- Note that the first of the correctness results holds by definition.
+-- Note that this result holds by definition.
 
 private
 
   @0 nullary-correct′ : ⌊ nullary n n′ hyp ⌋ ≡ n
   nullary-correct′ = refl _
 
+-- A second correctness result for nullary.
+
 nullary-correct :
   (@0 hyp : to-ℕ n′ ≡ n) →
-  _↔_.to Nat↔ℕ (nullary n n′ hyp) ≡ n
+  Nat→ℕ (nullary n n′ hyp) ≡ n
 nullary-correct {n′ = n′} {n = n} hyp =
-  Very-stable→Stable 1 Very-stable-≡-ℕ _ _
-     [ _↔_.to Nat↔ℕ (nullary n n′ hyp)  ≡⟨ ≡⌊⌋ (nullary n n′ hyp) ⟩
-       ⌊ nullary n n′ hyp ⌋             ≡⟨⟩
-       n                                ∎
+  Stable-≡-ℕ _ _
+     [ Nat→ℕ (nullary n n′ hyp)  ≡⟨ ≡⌊⌋ (nullary n n′ hyp) ⟩
+       ⌊ nullary n n′ hyp ⌋      ≡⟨⟩
+       n                         ∎
      ]
 
 -- A helper function that can be used to define unary operators.
@@ -389,24 +380,26 @@ unary :
   Nat → Nat
 unary f f′ hyp ([ n ] , n′) = ([ f n ] , unary-[] f′ hyp n′)
 
--- The function unary is correct.
+-- A first correctness result for unary.
 --
--- Note that the first of the correctness results holds by definition.
+-- Note that this result holds by definition.
 
 private
 
   @0 unary-correct′ : ⌊ unary f f′ hyp n ⌋ ≡ f ⌊ n ⌋
   unary-correct′ = refl _
 
+-- A second correctness result for unary.
+
 unary-correct :
   (f : ℕ → ℕ) (@0 hyp : ∀ n → to-ℕ (f′ n) ≡ f (to-ℕ n)) →
-  ∀ n → _↔_.to Nat↔ℕ (unary f f′ hyp n) ≡ f (_↔_.to Nat↔ℕ n)
+  ∀ n → Nat→ℕ (unary f f′ hyp n) ≡ f (Nat→ℕ n)
 unary-correct {f′ = f′} f hyp n =
-  Very-stable→Stable 1 Very-stable-≡-ℕ _ _
-    [ _↔_.to Nat↔ℕ (unary f f′ hyp n)  ≡⟨ ≡⌊⌋ (unary f f′ hyp n) ⟩
-      ⌊ unary f f′ hyp n ⌋             ≡⟨⟩
-      f ⌊ n ⌋                          ≡⟨ sym $ cong f $ ≡⌊⌋ n ⟩∎
-      f (_↔_.to Nat↔ℕ n)               ∎
+  Stable-≡-ℕ _ _
+    [ Nat→ℕ (unary f f′ hyp n)  ≡⟨ ≡⌊⌋ (unary f f′ hyp n) ⟩
+      ⌊ unary f f′ hyp n ⌋      ≡⟨⟩
+      f ⌊ n ⌋                   ≡⟨ sym $ cong f $ ≡⌊⌋ n ⟩∎
+      f (Nat→ℕ n)               ∎
     ]
 
 -- A helper function that can be used to define n-ary operators.
@@ -431,15 +424,15 @@ n-ary-correct :
   ∀ (n : ℕ) f {f′}
   (@0 hyp : ∀ ms → to-ℕ (f′ ms) ≡ f (Vec.map to-ℕ ms)) →
   ∀ ms →
-  _↔_.to Nat↔ℕ (n-ary n f f′ hyp ms) ≡ f (Vec.map (_↔_.to Nat↔ℕ) ms)
+  Nat→ℕ (n-ary n f f′ hyp ms) ≡ f (Vec.map (Nat→ℕ) ms)
 n-ary-correct n f {f′ = f′} hyp ms =
-  Very-stable→Stable 1 Very-stable-≡-ℕ _ _
-    [ _↔_.to Nat↔ℕ (n-ary n f f′ hyp ms)            ≡⟨ ≡⌊⌋ (n-ary n f f′ hyp ms) ⟩
+  Stable-≡-ℕ _ _
+    [ Nat→ℕ (n-ary n f f′ hyp ms)                   ≡⟨ ≡⌊⌋ (n-ary n f f′ hyp ms) ⟩
       ⌊ n-ary n f f′ hyp ms ⌋                       ≡⟨⟩
       f (Vec.map erased (proj₁ (_↔_.to Vec-Σ ms)))  ≡⟨ cong (f ∘ Vec.map _) proj₁-Vec-Σ ⟩
       f (Vec.map erased (Vec.map proj₁ ms))         ≡⟨ cong f $ sym Vec.map-∘ ⟩
       f (Vec.map ⌊_⌋ ms)                            ≡⟨ cong f $ sym $ Vec.map-cong ≡⌊⌋ ⟩∎
-      f (Vec.map (_↔_.to Nat↔ℕ) ms)                 ∎
+      f (Vec.map (Nat→ℕ) ms)                        ∎
     ]
 
 -- A helper function that can be used to define binary operators
@@ -456,21 +449,22 @@ binary f g hyp m n =
     (λ (m , n , _) → hyp m n)
     (m , n , _)
 
--- The function binary is correct.
+-- A first correctness result for binary.
 --
--- Note that the first of the correctness results holds by definition.
+-- Note that this result holds by definition.
 
 private
 
   @0 binary-correct′ : ⌊ binary f f′ hyp m n ⌋ ≡ f ⌊ m ⌋ ⌊ n ⌋
   binary-correct′ = refl _
 
+-- A second correctness result for binary.
+
 binary-correct :
   (f : ℕ → ℕ → ℕ)
   (@0 hyp : ∀ m n → to-ℕ (f′ m n) ≡ f (to-ℕ m) (to-ℕ n)) →
   ∀ m n →
-  _↔_.to Nat↔ℕ (binary f f′ hyp m n) ≡
-  f (_↔_.to Nat↔ℕ m) (_↔_.to Nat↔ℕ n)
+  Nat→ℕ (binary f f′ hyp m n) ≡ f (Nat→ℕ m) (Nat→ℕ n)
 binary-correct f hyp m n =
   n-ary-correct
     2
@@ -493,7 +487,7 @@ module Operations-for-Nat (o : Operations) where
   zero : Nat
   zero = nullary N.zero O.zero O.to-ℕ-zero
 
-  to-ℕ-zero : _↔_.to Nat↔ℕ zero ≡ N.zero
+  to-ℕ-zero : Nat→ℕ zero ≡ N.zero
   to-ℕ-zero = nullary-correct O.to-ℕ-zero
 
   -- The number's successor.
@@ -501,7 +495,7 @@ module Operations-for-Nat (o : Operations) where
   suc : Nat → Nat
   suc = unary N.suc O.suc O.to-ℕ-suc
 
-  to-ℕ-suc : ∀ n → _↔_.to Nat↔ℕ (suc n) ≡ N.suc (_↔_.to Nat↔ℕ n)
+  to-ℕ-suc : ∀ n → Nat→ℕ (suc n) ≡ N.suc (Nat→ℕ n)
   to-ℕ-suc = unary-correct N.suc O.to-ℕ-suc
 
   -- Addition.
@@ -511,8 +505,7 @@ module Operations-for-Nat (o : Operations) where
   _+_ : Nat → Nat → Nat
   _+_ = binary N._+_ O._+_ O.to-ℕ-+
 
-  to-ℕ-+ :
-    ∀ m n → _↔_.to Nat↔ℕ (m + n) ≡ _↔_.to Nat↔ℕ m N.+ _↔_.to Nat↔ℕ n
+  to-ℕ-+ : ∀ m n → Nat→ℕ (m + n) ≡ Nat→ℕ m N.+ Nat→ℕ n
   to-ℕ-+ = binary-correct N._+_ O.to-ℕ-+
 
   -- Multiplication.
@@ -522,8 +515,7 @@ module Operations-for-Nat (o : Operations) where
   _*_ : Nat → Nat → Nat
   _*_ = binary N._*_ O._*_ O.to-ℕ-*
 
-  to-ℕ-* :
-    ∀ m n → _↔_.to Nat↔ℕ (m * n) ≡ _↔_.to Nat↔ℕ m N.* _↔_.to Nat↔ℕ n
+  to-ℕ-* : ∀ m n → Nat→ℕ (m * n) ≡ Nat→ℕ m N.* Nat→ℕ n
   to-ℕ-* = binary-correct N._*_ O.to-ℕ-*
 
   -- Multiplication.
@@ -533,8 +525,7 @@ module Operations-for-Nat (o : Operations) where
   _^_ : Nat → Nat → Nat
   _^_ = binary N._^_ O._^_ O.to-ℕ-^
 
-  to-ℕ-^ :
-    ∀ m n → _↔_.to Nat↔ℕ (m ^ n) ≡ _↔_.to Nat↔ℕ m N.^ _↔_.to Nat↔ℕ n
+  to-ℕ-^ : ∀ m n → Nat→ℕ (m ^ n) ≡ Nat→ℕ m N.^ Nat→ℕ n
   to-ℕ-^ = binary-correct N._^_ O.to-ℕ-^
 
   -- Division by two, rounded downwards.
@@ -542,7 +533,7 @@ module Operations-for-Nat (o : Operations) where
   ⌊_/2⌋ : Nat → Nat
   ⌊_/2⌋ = unary N.⌊_/2⌋ O.⌊_/2⌋ O.to-ℕ-⌊/2⌋
 
-  to-ℕ-⌊/2⌋ : ∀ n → _↔_.to Nat↔ℕ ⌊ n /2⌋ ≡ N.⌊ _↔_.to Nat↔ℕ n /2⌋
+  to-ℕ-⌊/2⌋ : ∀ n → Nat→ℕ ⌊ n /2⌋ ≡ N.⌊ Nat→ℕ n /2⌋
   to-ℕ-⌊/2⌋ = unary-correct N.⌊_/2⌋ O.to-ℕ-⌊/2⌋
 
   -- Division by two, rounded upwards.
@@ -550,7 +541,7 @@ module Operations-for-Nat (o : Operations) where
   ⌈_/2⌉ : Nat → Nat
   ⌈_/2⌉ = unary N.⌈_/2⌉ O.⌈_/2⌉ O.to-ℕ-⌈/2⌉
 
-  to-ℕ-⌈/2⌉ : ∀ n → _↔_.to Nat↔ℕ ⌈ n /2⌉ ≡ N.⌈ _↔_.to Nat↔ℕ n /2⌉
+  to-ℕ-⌈/2⌉ : ∀ n → Nat→ℕ ⌈ n /2⌉ ≡ N.⌈ Nat→ℕ n /2⌉
   to-ℕ-⌈/2⌉ = unary-correct N.⌈_/2⌉ O.to-ℕ-⌈/2⌉
 
   -- Left shift.
@@ -561,8 +552,7 @@ module Operations-for-Nat (o : Operations) where
   m *2^ n =
     unary (λ m → m N.* 2 N.^ n) (O._*2^ n) (flip O.to-ℕ-*2^ n) m
 
-  to-ℕ-*2^ :
-    ∀ m n → _↔_.to Nat↔ℕ (m *2^ n) ≡ _↔_.to Nat↔ℕ m N.* 2 N.^ n
+  to-ℕ-*2^ : ∀ m n → Nat→ℕ (m *2^ n) ≡ Nat→ℕ m N.* 2 N.^ n
   to-ℕ-*2^ m n =
     unary-correct (λ m → m N.* 2 N.^ n) (flip O.to-ℕ-*2^ n) m
 
@@ -584,7 +574,7 @@ module Operations-for-Nat (o : Operations) where
 
   to-ℕ-from-bits :
     ∀ bs →
-    _↔_.to Nat↔ℕ (from-bits bs) ≡
+    Nat→ℕ (from-bits bs) ≡
     foldl (λ n b → (if b then 1 else 0) N.+ 2 N.* n) 0 bs
   to-ℕ-from-bits bs = nullary-correct (O.to-ℕ-from-bits bs)
 
@@ -593,65 +583,137 @@ module Operations-for-Nat (o : Operations) where
   to-bits : Nat → List Bool
   to-bits (_ , n′) = proj₁ (O-[].to-bits n′)
 
-  to-ℕ-from-bits-to-bits :
-    ∀ n → _↔_.to Nat↔ℕ (from-bits (to-bits n)) ≡ _↔_.to Nat↔ℕ n
-  to-ℕ-from-bits-to-bits n@(_ , n′) =
-    cong (_↔_.to Nat↔ℕ) $
-      _↔_.to (≡-for-indices↔≡ {m = from-bits (to-bits n)} {n = n})
-        [ ⌊ from-bits (to-bits n) ⌋  ≡⟨ erased (proj₂ (O-[].to-bits n′)) ⟩∎
-          ⌊ n ⌋                      ∎
-        ]
-
 ------------------------------------------------------------------------
--- Some examples
+-- Results that make use of an instantiation of the []-cong axioms
 
-private
+module []-cong (ax : []-cong-axiomatisation lzero) where
 
-  module Nat-[]-examples (o : Operations) where
+  open E₁.[]-cong₁ ax
+  open E₁.Erased-cong ax ax
+  open ES.[]-cong₁ ax
+  open ES.[]-cong₂₁ ax ax ax
 
-    open Operations-for-Nat-[] o
+  ----------------------------------------------------------------------
+  -- Some lemmas
 
-    -- Converts unary natural numbers to binary natural numbers.
+  private
 
-    from-ℕ : ∀ n → Nat-[ n ]
-    from-ℕ = proj₂ ∘ _↔_.from Nat↔ℕ
+    -- Equality is very stable for the natural numbers.
 
-    -- Nat n is a proposition, so it is easy to prove that two values
-    -- of this type are equal.
+    Very-stable-≡-ℕ : Very-stable-≡ ℕ
+    Very-stable-≡-ℕ = Decidable-equality→Very-stable-≡ N._≟_
 
-    example₁ : from-ℕ 4 + ⌊ from-ℕ 12 /2⌋ ≡ from-ℕ 10
-    example₁ = Nat-[]-propositional _ _
+  -- Nat-[ n ] is a proposition.
 
-    -- However, stating that two values of type Nat m and Nat n are
-    -- equal, for equal natural numbers m and n, can be awkward.
+  Nat-[]-propositional : {@0 n : ℕ} → Is-proposition Nat-[ n ]
+  Nat-[]-propositional {n = n} =                                      $⟨ Very-stable-≡-ℕ ⟩
+    Very-stable-≡ ℕ                                                   ↝⟨ Very-stable-congⁿ _ 1 (inverse Nat′↔ℕ) ⟩
+    Very-stable-≡ Nat′                                                ↝⟨ Very-stable→Very-stableᴱ 1 ⟩
+    Very-stableᴱ-≡ Nat′                                               ↝⟨ erased-singleton-with-erased-center-propositional ⟩
+    Is-proposition (∃ λ (m : Nat′) → Erased (m ≡ _↔_.from Nat′↔ℕ n))  ↝⟨ (H-level-cong _ 1 $ ∃-cong λ _ → Erased-cong-↔ (inverse $
+                                                                          from≡↔≡to (from-isomorphism $ inverse Nat′↔ℕ))) ⟩□
+    Is-proposition (∃ λ (m : Nat′) → Erased (to-ℕ m ≡ n))             □
 
-    @0 example₂ :
-      {@0 m n : ℕ} →
-      (b : Nat-[ m ]) (c : Nat-[ n ]) →
-      subst (λ n → Nat-[ n ]) (N.+-comm m) (b + c) ≡ c + b
-    example₂ _ _ = Nat-[]-propositional _ _
+  -- There is a bijection between equality of two values of type Nat
+  -- and erased equality of the corresponding unary natural number
+  -- indices.
 
-  module Nat-examples (o : Operations) where
+  ≡-for-indices↔≡ :
+    {m n : Nat} →
+    Erased (⌊ m ⌋ ≡ ⌊ n ⌋) ↔ m ≡ n
+  ≡-for-indices↔≡ {m = m} {n = n} =
+    Erased (⌊ m ⌋ ≡ ⌊ n ⌋)  ↝⟨ Erased-≡↔[]≡[] ⟩
+    proj₁ m ≡ proj₁ n       ↝⟨ ignore-propositional-component Nat-[]-propositional ⟩□
+    m ≡ n                   □
+
+  ----------------------------------------------------------------------
+  -- Another conversion function
+
+  -- Nat is isomorphic to the type of unary natural numbers.
+
+  Nat↔ℕ : Nat ↔ ℕ
+  Nat↔ℕ =
+    Nat                                                   ↔⟨⟩
+    (∃ λ (n : Erased ℕ) → Nat-[ erased n ])               ↝⟨ (∃-cong λ _ → Nat-[]↔Σℕ) ⟩
+    (∃ λ (n : Erased ℕ) → ∃ λ m → Erased (m ≡ erased n))  ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
+    ℕ                                                     □
+
+  -- The logical equivalence underlying Nat↔ℕ is definitionally equal
+  -- to Nat⇔ℕ.
+
+  _ : _↔_.logical-equivalence Nat↔ℕ ≡ Nat⇔ℕ
+  _ = refl _
+
+  ----------------------------------------------------------------------
+  -- A correctness result related to the module Operations-for-Nat
+
+  module Operations-for-Nat-correct (o : Operations) where
+
+    private
+
+      module O-[] = Operations-for-Nat-[] o
 
     open Operations-for-Nat o
 
-    -- If Nat is used instead of Nat-[_], then it can be easier to
-    -- state that two values are equal.
+    to-ℕ-from-bits-to-bits :
+      ∀ n → Nat→ℕ (from-bits (to-bits n)) ≡ Nat→ℕ n
+    to-ℕ-from-bits-to-bits n@(_ , n′) =
+      cong Nat→ℕ $
+        _↔_.to (≡-for-indices↔≡ {m = from-bits (to-bits n)} {n = n})
+          [ ⌊ from-bits (to-bits n) ⌋  ≡⟨ erased (proj₂ (O-[].to-bits n′)) ⟩∎
+            ⌊ n ⌋                      ∎
+          ]
 
-    example₁ : ⌈ 4 ⌉ + ⌊ ⌈ 12 ⌉ /2⌋ ≡ ⌈ 10 ⌉
-    example₁ = _↔_.to ≡-for-indices↔≡ [ refl _ ]
+  ----------------------------------------------------------------------
+  -- Some examples
 
-    example₂ : ∀ m n → m + n ≡ n + m
-    example₂ m n = _↔_.to ≡-for-indices↔≡
-      [ ⌊ m ⌋ N.+ ⌊ n ⌋  ≡⟨ N.+-comm ⌊ m ⌋ ⟩∎
-        ⌊ n ⌋ N.+ ⌊ m ⌋  ∎
-      ]
+  private
 
-    -- One can construct a proof showing that ⌈ 5 ⌉ is either equal or
-    -- not equal to ⌈ 2 ⌉ + ⌈ 3 ⌉, but the proof does not compute to
-    -- "inj₁ something" at compile-time.
+    module Nat-[]-examples (o : Operations) where
 
-    example₃ : Dec (⌈ 5 ⌉ ≡ ⌈ 2 ⌉ + ⌈ 3 ⌉)
-    example₃ =
-      Dec-map (_↔_.logical-equivalence ≡-for-indices↔≡)
-        (⌈ 5 ⌉ ≟ ⌈ 2 ⌉ + ⌈ 3 ⌉)
+      open Operations-for-Nat-[] o
+
+      -- Converts unary natural numbers to binary natural numbers.
+
+      from-ℕ : ∀ n → Nat-[ n ]
+      from-ℕ = proj₂ ∘ _↔_.from Nat↔ℕ
+
+      -- Nat n is a proposition, so it is easy to prove that two
+      -- values of this type are equal.
+
+      example₁ : from-ℕ 4 + ⌊ from-ℕ 12 /2⌋ ≡ from-ℕ 10
+      example₁ = Nat-[]-propositional _ _
+
+      -- However, stating that two values of type Nat m and Nat n are
+      -- equal, for equal natural numbers m and n, can be awkward.
+
+      @0 example₂ :
+        {@0 m n : ℕ} →
+        (b : Nat-[ m ]) (c : Nat-[ n ]) →
+        subst (λ n → Nat-[ n ]) (N.+-comm m) (b + c) ≡ c + b
+      example₂ _ _ = Nat-[]-propositional _ _
+
+    module Nat-examples (o : Operations) where
+
+      open Operations-for-Nat o
+
+      -- If Nat is used instead of Nat-[_], then it can be easier to
+      -- state that two values are equal.
+
+      example₁ : ⌈ 4 ⌉ + ⌊ ⌈ 12 ⌉ /2⌋ ≡ ⌈ 10 ⌉
+      example₁ = _↔_.to ≡-for-indices↔≡ [ refl _ ]
+
+      example₂ : ∀ m n → m + n ≡ n + m
+      example₂ m n = _↔_.to ≡-for-indices↔≡
+        [ ⌊ m ⌋ N.+ ⌊ n ⌋  ≡⟨ N.+-comm ⌊ m ⌋ ⟩∎
+          ⌊ n ⌋ N.+ ⌊ m ⌋  ∎
+        ]
+
+      -- One can construct a proof showing that ⌈ 5 ⌉ is either equal
+      -- or not equal to ⌈ 2 ⌉ + ⌈ 3 ⌉, but the proof does not compute
+      -- to "inj₁ something" at compile-time.
+
+      example₃ : Dec (⌈ 5 ⌉ ≡ ⌈ 2 ⌉ + ⌈ 3 ⌉)
+      example₃ =
+        Dec-map (_↔_.logical-equivalence ≡-for-indices↔≡)
+          (⌈ 5 ⌉ ≟ ⌈ 2 ⌉ + ⌈ 3 ⌉)

@@ -474,7 +474,7 @@ Nat-[_] = Nat.Wrapper.Nat-[_]
 
 -- A lemma.
 
-Lemma-103 = Nat.Wrapper.Nat-[]-propositional
+Lemma-103 = Nat.Wrapper.[]-cong.Nat-[]-propositional
 
 -- Nat.
 
@@ -487,7 +487,7 @@ Nat = Nat.Wrapper.Nat
 
 -- Another lemma.
 
-Lemma-106 = Nat.Wrapper.≡-for-indices↔≡
+Lemma-106 = Nat.Wrapper.[]-cong.≡-for-indices↔≡
 
 ------------------------------------------------------------------------
 -- 5.2.1: Arithmetic
@@ -508,7 +508,14 @@ n-ary    = Nat.Wrapper.n-ary
 -- Some lemmas.
 
 Lemma-109 = Nat.Wrapper.Nat-[]↔Σℕ
-Lemma-110 = Nat.Wrapper.Nat↔ℕ
+Lemma-110 = Nat.Wrapper.[]-cong.Nat↔ℕ
+
+-- The function Nat→ℕ.
+
+Nat→ℕ = Nat.Wrapper.Nat→ℕ
+
+-- Some lemmas.
+
 @0 Lemma-111 : _
 Lemma-111 = Nat.Wrapper.≡⌊⌋
 Lemma-112 = Nat.Wrapper.unary-correct

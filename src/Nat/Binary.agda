@@ -27,7 +27,7 @@ open import Erased eq ax
 open import Function-universe eq hiding (id; _∘_)
 open import List eq
 open import Nat.Solver eq
-import Nat.Wrapper eq ax as Wrapper
+import Nat.Wrapper eq as Wrapper
 open import Surjection eq using (_↠_)
 
 private
@@ -644,16 +644,21 @@ private
 -- Some definitions from Nat.Wrapper are reexported.
 
 open Bin-wrapper public
-  using (⌊_⌋; ≡-for-indices↔≡; ⌈_⌉; ≡⌊⌋;
+  using (⌊_⌋; ⌈_⌉; ≡⌊⌋;
          nullary-[]; nullary; nullary-correct;
          unary-[]; unary; unary-correct;
          binary-[]; binary; binary-correct;
          n-ary-[]; n-ary; n-ary-correct)
   renaming
     ( Nat-[_] to Bin-[_]
-    ; Nat-[]-propositional to Bin-[]-propositional
     ; Nat to Bin
     ; Nat-[]↔Σℕ to Bin-[]↔Σℕ
+    )
+
+open Bin-wrapper.[]-cong ax public
+  using (≡-for-indices↔≡)
+  renaming
+    ( Nat-[]-propositional to Bin-[]-propositional
     ; Nat↔ℕ to Bin↔ℕ
     )
 
