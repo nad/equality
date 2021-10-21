@@ -2976,6 +2976,25 @@ private
   }
 
 ------------------------------------------------------------------------
+-- A lemma related to _≃_
+
+-- The operator _⇔_ preserves symmetric kinds of functions.
+
+⇔-cong :
+  ∀ {k a b c d} {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
+  Extensionality? ⌊ k ⌋-sym (a ⊔ b ⊔ c ⊔ d) (a ⊔ b ⊔ c ⊔ d) →
+  A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
+  (A ⇔ C) ↝[ ⌊ k ⌋-sym ] (B ⇔ D)
+⇔-cong {k = k} {a = a} {b = b} {c = c} {d = d}
+       {A = A} {B = B} {C = C} {D = D} ext A↝B C↝D =
+  A ⇔ C              ↔⟨ ⇔↔→×→ ⟩
+  (A → C) × (C → A)  ↝⟨ →-cong (lower-extensionality? ⌊ k ⌋-sym (c ⊔ d) (a ⊔ b) ext) A↝B C↝D
+                          ×-cong
+                        →-cong (lower-extensionality? ⌊ k ⌋-sym (a ⊔ b) (c ⊔ d) ext) C↝D A↝B ⟩
+  (B → D) × (D → B)  ↔⟨ inverse ⇔↔→×→ ⟩□
+  B ⇔ D              □
+
+------------------------------------------------------------------------
 -- Some lemmas related to _≃_
 
 -- Contractibility is isomorphic to equivalence to the unit type
