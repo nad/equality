@@ -1026,9 +1026,9 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
 -- This definition is based on the Coq code accompanying "Modalities
 -- in Homotopy Type Theory" by Rijke, Shulman and Spitters.
 
-Erased-is-accessible-and-topological :
+Erased-is-accessible-and-topological′ :
   (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
-Erased-is-accessible-and-topological ℓ a =
+Erased-is-accessible-and-topological′ ℓ a =
   ∃ λ (I : Type ℓ) →
   ∃ λ (P : I → Type ℓ) →
     (∀ i → Is-proposition (P i)) ×
@@ -1038,10 +1038,38 @@ Erased-is-accessible-and-topological ℓ a =
      Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
        (λ (_ : ↑ ℓ ⊤) → A))
 
+-- A variant of Erased-is-accessible-and-topological′ that does not
+-- use Is-∞-extendable-along-[_].
+
+Erased-is-accessible-and-topological :
+  (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
+Erased-is-accessible-and-topological ℓ a =
+  ∃ λ (I : Type ℓ) →
+  ∃ λ (P : I → Type ℓ) →
+    (∀ i → Is-proposition (P i)) ×
+    ((A : Type a) →
+     Very-stable A ⇔ ∀ i → Is-equivalence (const ⦂ (A → P i → A)))
+
+-- Erased-is-accessible-and-topological′ and
+-- Erased-is-accessible-and-topological are pointwise equivalent
+-- (assuming extensionality).
+
+≃Erased-is-accessible-and-topological :
+  Extensionality (lsuc a ⊔ ℓ) (a ⊔ ℓ) →
+  Erased-is-accessible-and-topological′ ℓ a ≃
+  Erased-is-accessible-and-topological ℓ a
+≃Erased-is-accessible-and-topological {a = a} {ℓ = ℓ} ext =
+  ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+  ∀-cong (lower-extensionality ℓ lzero ext) λ _ →
+  ⇔-cong (lower-extensionality (lsuc a) lzero ext) Eq.id $
+  ∀-cong (lower-extensionality (lsuc a) lzero ext) λ _ →
+  PS.Is-∞-extendable-along≃Is-equivalence-const
+    (lower-extensionality (lsuc a) lzero ext)
+
 -- A variant of Erased-is-accessible-and-topological that uses
--- Very-stableᴱ instead of Very-stable, that does not use
--- Is-∞-extendable-along-[_], and for which Is-proposition is replaced
--- by Erased ∘ Is-proposition.
+-- Very-stableᴱ instead of Very-stable and Is-equivalenceᴱ instead of
+-- Is-equivalence, and for which Is-proposition is replaced by
+-- Erased ∘ Is-proposition.
 
 Erased-is-accessible-and-topologicalᴱ : (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
 Erased-is-accessible-and-topologicalᴱ ℓ a =
@@ -1064,14 +1092,12 @@ erased-is-accessible-and-topological-in-erased-contexts
   , (λ _ → ↑ ℓ ⊤)
   , (λ _ → H-level.mono₁ 0 $ ↑-closure 0 ⊤-contractible)
   , λ A →
-      Very-stable A                                                ↔⟨ _⇔_.to contractible⇔↔⊤ $
-                                                                      propositional⇒inhabited⇒contractible
-                                                                        (Very-stable-propositional (lower-extensionality ℓ ℓ ext))
-                                                                        (Erased-Very-stable .erased) ⟩
-      ⊤                                                            ↝⟨ record { to = λ _ _ → _≃_.is-equivalence $ Eq.↔→≃ _ (_$ _) refl refl } ⟩
-      (∀ B → Is-equivalence (const ⦂ (A → ↑ ℓ ⊤ → A)))             ↔⟨ (∀-cong (lower-extensionality a lzero ext) λ _ → inverse $
-                                                                       PS.Is-∞-extendable-along≃Is-equivalence-const ext) ⟩□
-      (∀ B → Is-∞-extendable-along-[ (λ _ → lift tt) ] (λ _ → A))  □
+      Very-stable A                                     ↔⟨ _⇔_.to contractible⇔↔⊤ $
+                                                           propositional⇒inhabited⇒contractible
+                                                             (Very-stable-propositional (lower-extensionality ℓ ℓ ext))
+                                                             (Erased-Very-stable .erased) ⟩
+      ⊤                                                 ↝⟨ record { to = λ _ _ → _≃_.is-equivalence $ Eq.↔→≃ _ (_$ _) refl refl } ⟩□
+      (∀ B → Is-equivalence (const ⦂ (A → ↑ ℓ ⊤ → A)))  □
 
 -- Very-stable can be expressed using Is-equivalence const (assuming
 -- extensionality).
@@ -1223,11 +1249,9 @@ erased-is-accessible-and-topological {a = a} {ℓ = ℓ} ext =
                                                                               Is-equivalence≃Is-equivalence-∘ˡ
                                                                                 (_≃_.is-equivalence $
                                                                                  Eq.↔→≃ (_∘ lift) (_∘ lower) refl refl)
-                                                                                _) ⟩
+                                                                                _) ⟩□
        ((B : ↑ ℓ (Type a)) →
-        Is-equivalence (const ⦂ (A → ↑ _ (Very-stable (lower B)) → A)))   ↔⟨ (∀-cong ext λ _ → inverse $
-                                                                              PS.Is-∞-extendable-along≃Is-equivalence-const ext) ⟩□
-       (∀ B → Is-∞-extendable-along-[ _ ] (λ _ → A))                      □)
+        Is-equivalence (const ⦂ (A → ↑ _ (Very-stable (lower B)) → A)))   □)
   where
   ext′ = lower-extensionality _ _ ext
 
