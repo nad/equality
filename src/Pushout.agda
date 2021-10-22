@@ -22,14 +22,17 @@ open import Prelude
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
+open import Function-universe equality-with-J hiding (id; _∘_)
+import H-level equality-with-J as H-level
+open import H-level.Closure equality-with-J
 open import Pointed-type equality-with-J using (Pointed-type)
 import Suspension eq as S
 
 private
   variable
-    a b l m p r : Level
-    A           : Type a
-    S           : A
+    a b l ℓ m p r : Level
+    A B           : Type a
+    S             : A
 
 -- Spans.
 
@@ -199,6 +202,70 @@ Join A B = Pushout (record
   ; left   = proj₁
   ; right  = proj₂
   })
+
+-- Join is symmetric.
+
+Join-symmetric : Join A B ≃ Join B A
+Join-symmetric = Eq.↔→≃
+  to
+  to
+  to-to
+  to-to
+  where
+  to : Join A B → Join B A
+  to = rec inr inl (sym ∘ glue ∘ swap)
+
+  to-to : (x : Join A B) → to (to x) ≡ x
+  to-to =
+    elim _ (λ _ → refl _) (λ _ → refl _)
+      (λ p →
+         subst (λ x → to (to x) ≡ x) (glue p) (refl _)         ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+         trans (sym (cong (to ∘ to) (glue p)))
+           (trans (refl _) (cong id (glue p)))                 ≡⟨ cong₂ (trans ∘ sym)
+                                                                    (sym $ cong-∘ _ _ _)
+                                                                    (trans (trans-reflˡ _) $
+                                                                     sym $ cong-id _) ⟩
+
+         trans (sym (cong to (cong to (glue p)))) (glue p)     ≡⟨ cong (flip trans _) $ cong (sym ∘ cong to) rec-glue ⟩
+
+         trans (sym (cong to (sym (glue (swap p))))) (glue p)  ≡⟨ cong (flip trans _) $ cong sym $ cong-sym _ _ ⟩
+
+         trans (sym (sym (cong to (glue (swap p))))) (glue p)  ≡⟨ cong (flip trans _) $ sym-sym _ ⟩
+
+         trans (cong to (glue (swap p))) (glue p)              ≡⟨ cong (flip trans _) rec-glue ⟩
+
+         trans (sym (glue (swap (swap p)))) (glue p)           ≡⟨⟩
+
+         trans (sym (glue p)) (glue p)                         ≡⟨ trans-symˡ _ ⟩∎
+
+         refl _                                                ∎)
+
+-- The empty type is a right identity for Join.
+
+Join-⊥ʳ : Join A (⊥ {ℓ = ℓ}) ≃ A
+Join-⊥ʳ = Eq.↔→≃
+  (rec id ⊥-elim (λ { (_ , ()) }))
+  inl
+  refl
+  (elim _ (λ _ → refl _) (λ ()) (λ { (_ , ()) }))
+
+-- The empty type is a left identity for Join.
+
+Join-⊥ˡ : Join (⊥ {ℓ = ℓ}) A ≃ A
+Join-⊥ˡ {A = A} =
+  Join ⊥ A  ↝⟨ Join-symmetric ⟩
+  Join A ⊥  ↝⟨ Join-⊥ʳ ⟩□
+  A         □
+
+-- It is not the case that, for every proposition A, the join of A and
+-- the empty type is equivalent to the empty type.
+
+Join-⊥≄⊥ : ¬ ({A : Type a} → Is-proposition A → Join A ⊥₀ ≃ ⊥₀)
+Join-⊥≄⊥ hyp =    $⟨ _ ⟩
+  ↑ _ ⊤           ↝⟨ inverse Join-⊥ʳ ⟩
+  Join (↑ _ ⊤) ⊥  ↝⟨ hyp (H-level.mono₁ 0 $ ↑-closure 0 ⊤-contractible) ⟩□
+  ⊥               □
 
 -- Cones.
 
