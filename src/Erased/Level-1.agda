@@ -15,6 +15,7 @@ module Erased.Level-1
   {e⁺} (eq-J : ∀ {a p} → Equality-with-J a p e⁺) where
 
 open Derived-definitions-and-properties eq-J
+  hiding (module Extensionality)
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding ([_,_])
@@ -1950,6 +1951,129 @@ module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
     open module BC₂ {ℓ₁ ℓ₂} =
       []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) (ax {ℓ = ℓ₁ ⊔ ℓ₂})
       public
+
+------------------------------------------------------------------------
+-- Some results that were proved assuming extensionality and also that
+-- one or more instances of the []-cong axioms can be implemented,
+-- reproved without the latter assumptions
+
+module Extensionality where
+
+  -- Erased commutes with H-level′ n (assuming extensionality).
+
+  Erased-H-level′≃H-level′ :
+    {@0 A : Type a} →
+    Extensionality a a →
+    ∀ n → Erased (H-level′ n A) ≃ H-level′ n (Erased A)
+  Erased-H-level′≃H-level′ ext n =
+    []-cong₁.Erased-H-level′↔H-level′
+      (Extensionality→[]-cong ext)
+      n
+      ext
+
+  -- Erased commutes with H-level n (assuming extensionality).
+
+  Erased-H-level≃H-level :
+    {@0 A : Type a} →
+    Extensionality a a →
+    ∀ n → Erased (H-level n A) ≃ H-level n (Erased A)
+  Erased-H-level≃H-level ext n =
+    []-cong₁.Erased-H-level↔H-level
+      (Extensionality→[]-cong ext)
+      n
+      ext
+
+  -- If A is a set, then Decidable-erased-equality A is a proposition
+  -- (assuming extensionality).
+
+  Is-proposition-Decidable-erased-equality′ :
+    {A : Type a} →
+    Extensionality a a →
+    @0 Is-set A →
+    Is-proposition (Decidable-erased-equality A)
+  Is-proposition-Decidable-erased-equality′ ext =
+    []-cong₁.Is-proposition-Decidable-erased-equality
+      (Extensionality→[]-cong ext)
+      ext
+
+  -- Erased "commutes" with Split-surjective.
+
+  Erased-Split-surjective≃Split-surjective :
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+    Extensionality b (a ⊔ b) →
+    Erased (Split-surjective f) ≃ Split-surjective (map f)
+  Erased-Split-surjective≃Split-surjective {a = a} ext =
+    []-cong₁.Erased-Split-surjective↔Split-surjective
+      (Extensionality→[]-cong (lower-extensionality lzero a ext))
+      ext
+
+  -- A function f is Erased-connected in the sense of Rijke et al.
+  -- exactly when there is an erased proof showing that f is an
+  -- equivalence (assuming extensionality).
+
+  Erased-connected≃Erased-Is-equivalence :
+    {@0 A : Type a} {B : Type b} {@0 f : A → B} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    (∀ y → Contractible (Erased (f ⁻¹ y))) ≃ Erased (Is-equivalence f)
+  Erased-connected≃Erased-Is-equivalence {a = a} {b = b} ext =
+    []-cong₂.Erased-connected↔Erased-Is-equivalence
+      (Extensionality→[]-cong (lower-extensionality b b ext))
+      (Extensionality→[]-cong (lower-extensionality a a ext))
+      (Extensionality→[]-cong ext)
+      ext
+
+  -- Erased "commutes" with Is-equivalence (assuming extensionality).
+
+  Erased-Is-equivalence≃Is-equivalence :
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    Erased (Is-equivalence f) ≃ Is-equivalence (map f)
+  Erased-Is-equivalence≃Is-equivalence {a = a} {b = b} ext =
+    []-cong₂.Erased-Is-equivalence↔Is-equivalence
+      (Extensionality→[]-cong (lower-extensionality b b ext))
+      (Extensionality→[]-cong (lower-extensionality a a ext))
+      (Extensionality→[]-cong ext)
+      ext
+
+  -- Erased "commutes" with Has-quasi-inverse (assuming
+  -- extensionality).
+
+  Erased-Has-quasi-inverse≃Has-quasi-inverse :
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    Erased (Has-quasi-inverse f) ≃ Has-quasi-inverse (map f)
+  Erased-Has-quasi-inverse≃Has-quasi-inverse {a = a} {b = b} ext =
+    []-cong₂.Erased-Has-quasi-inverse↔Has-quasi-inverse
+      (Extensionality→[]-cong (lower-extensionality b b ext))
+      (Extensionality→[]-cong (lower-extensionality a a ext))
+      (Extensionality→[]-cong ext)
+      ext
+
+  -- Erased "commutes" with Injective (assuming extensionality).
+
+  Erased-Injective≃Injective :
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    Erased (Injective f) ≃ Injective (map f)
+  Erased-Injective≃Injective {a = a} {b = b} ext =
+    []-cong₂.Erased-Injective↔Injective
+      (Extensionality→[]-cong (lower-extensionality b b ext))
+      (Extensionality→[]-cong (lower-extensionality a a ext))
+      (Extensionality→[]-cong ext)
+      ext
+
+  -- Erased "commutes" with Is-embedding (assuming extensionality).
+
+  Erased-Is-embedding≃Is-embedding :
+    {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    Erased (Is-embedding f) ≃ Is-embedding (map f)
+  Erased-Is-embedding≃Is-embedding {a = a} {b = b} ext =
+    []-cong₂.Erased-Is-embedding↔Is-embedding
+      (Extensionality→[]-cong (lower-extensionality b b ext))
+      (Extensionality→[]-cong (lower-extensionality a a ext))
+      (Extensionality→[]-cong ext)
+      ext
 
 ------------------------------------------------------------------------
 -- Some lemmas related to []-cong-axiomatisation

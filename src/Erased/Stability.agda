@@ -39,7 +39,8 @@ open import Surjection eq using (_↠_; Split-surjective)
 open import Univalence-axiom eq
 
 open import Erased.Level-1 eq as E₁
-  hiding (module []-cong; module []-cong₁; module []-cong₂)
+  hiding (module []-cong; module []-cong₁; module []-cong₂;
+          module Extensionality)
 import Erased.Level-2
 private
   module E₂ = Erased.Level-2 eq
