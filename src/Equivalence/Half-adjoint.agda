@@ -59,17 +59,19 @@ mutual
 
 -- Some projections.
 
-inverse : {f : A → B} → Is-equivalence f → B → A
+inverse :
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+  Is-equivalence f → B → A
 inverse = proj₁
 
 right-inverse-of :
-  {f : A → B} →
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   (eq : Is-equivalence f) →
   ∀ x → f (inverse eq x) ≡ x
 right-inverse-of = proj₁ ∘ proj₂
 
 left-inverse-of :
-  {f : A → B} →
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   (eq : Is-equivalence f) →
   ∀ x → inverse eq (f x) ≡ x
 left-inverse-of = proj₁ ∘ proj₂ ∘ proj₂
@@ -160,7 +162,8 @@ composition-equivalence
 -- Equivalences are bijections (functions with quasi-inverses).
 
 Is-equivalence→↔ :
-  {f : A → B} → Is-equivalence f → A ↔ B
+  {@0 A : Type a} {@0 B : Type b} {f : A → B} →
+  Is-equivalence f → A ↔ B
 Is-equivalence→↔ {f = f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , _) = record
   { surjection = record
     { logical-equivalence = record

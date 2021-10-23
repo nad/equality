@@ -104,10 +104,12 @@ respects-extensional-equality f≡g f-eq = λ b →
 -- If f is an equivalence, then it has an inverse.
 
 inverse :
-  {f : A → B} → Is-equivalence f → B → A
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+  Is-equivalence f → B → A
 inverse eq y = proj₁ (proj₁ (eq y))
 
 right-inverse-of :
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   (eq : Is-equivalence f) → ∀ x → f (inverse eq x) ≡ x
 right-inverse-of eq x = proj₂ (proj₁ (eq x))
 
@@ -124,6 +126,7 @@ abstract
 -- given fibre.
 
 irrelevance :
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   (eq : Is-equivalence f) →
   ∀ y (p : f ⁻¹ y) → (inverse eq y , right-inverse-of eq y) ≡ p
 irrelevance eq y = proj₂ (eq y)
