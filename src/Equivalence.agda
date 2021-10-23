@@ -52,7 +52,7 @@ record _≃_ {a b} (A : Type a) (B : Type b) : Type (a ⊔ b) where
     to             : A → B
     is-equivalence : Is-equivalence to
 
-  -- Equivalent sets are isomorphic.
+  -- Equivalent types are isomorphic.
 
   from : B → A
   from = HA.inverse is-equivalence
