@@ -302,7 +302,8 @@ private
             (loop $ div2 $ _≃_.to Ω[K[ℤ/4ℤ]]≃ℤ/4ℤ $
              trans eq (sym (loop (mul2 i))))
             (loop i)                                                  ≡⟨ cong (flip trans _) $ cong (loop ∘ div2) $
-                                                                         K.Fundamental-group′[K1]≃ᴳ univ K.is-groupoid .homomorphic _ _ ⟩
+                                                                         K.Fundamental-group′[K1]≃ᴳ univ K.is-groupoid .homomorphic
+                                                                           eq (sym (loop (mul2 i))) ⟩
           trans
             (loop $ div2 $
              j ℤ/4ℤ.+ _≃_.to Ω[K[ℤ/4ℤ]]≃ℤ/4ℤ (sym (loop (mul2 i))))
@@ -367,7 +368,8 @@ private
                trans (loop (mul2 i)) eq)                               ≡⟨ cong₂ (λ p q → trans p (loop (div2 q)))
                                                                             (sym $
                                                                              →ᴳ-⁻¹ (≃ᴳ-sym $ K.Fundamental-group′[K1]≃ᴳ univ K.is-groupoid) _)
-                                                                            (K.Fundamental-group′[K1]≃ᴳ univ K.is-groupoid .homomorphic _ _) ⟩
+                                                                            (K.Fundamental-group′[K1]≃ᴳ univ K.is-groupoid .homomorphic
+                                                                               (loop (mul2 i)) eq) ⟩
             trans (loop (ℤ/2ℤ.- i))
               (loop $ div2 $
                _≃_.to Ω[K[ℤ/4ℤ]]≃ℤ/4ℤ (loop (mul2 i)) ℤ/4ℤ.+ j)        ≡⟨ cong (trans (loop (ℤ/2ℤ.- i)) ∘ loop ∘ div2 ∘ (ℤ/4ℤ._+ j)) $
