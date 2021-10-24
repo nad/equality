@@ -596,6 +596,17 @@ private
     f ∣ x ∣
   from-constant-function↔∥inhabited∥⇒inhabited _ = refl _
 
+-- The quotient type ⊤ / R is equivalent to ⊤.
+
+⊤/≃ : ⊤ / R ≃ ⊤
+⊤/≃ = Eq.↔→≃
+  _
+  [_]
+  refl
+  (elim-prop λ where
+     .is-propositionʳ _ → /-is-set
+     .[]ʳ _             → refl _)
+
 -- If R is a propositional equivalence relation that is pointwise
 -- stable, then equality is very stable for A / R (assuming
 -- propositional extensionality).
