@@ -1614,10 +1614,10 @@ module []-cong₂
   -- (assuming extensionality).
 
   Is-equivalenceᴱ-propositional-for-Erased :
+    {@0 A : Type ℓ₁} {B : Type ℓ₂} {@0 f : Erased A → B} →
     @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
-    {@0 A : Type ℓ₁} {B : Type ℓ₂} (@0 f : Erased A → B) →
     Is-proposition (Is-equivalenceᴱ f)
-  Is-equivalenceᴱ-propositional-for-Erased ext f =
+  Is-equivalenceᴱ-propositional-for-Erased {f = f} ext =
                                                 F.$⟨ H-level-Erased 1 (Eq.propositional ext _) ⟩
     Is-proposition (Erased (Is-equivalence f))  ↝⟨ H-level-cong _ 1 Erased-Is-equivalence≃Is-equivalenceᴱ ⦂ (_ → _) ⟩□
     Is-proposition (Is-equivalenceᴱ f)          □
@@ -1633,7 +1633,7 @@ module []-cong₂
     elim (λ {f g} f≡g → ∀ f-eq g-eq → ⟨ f , f-eq ⟩ ≡ ⟨ g , g-eq ⟩)
          (λ f _ _ →
             cong ⟨ f ,_⟩
-              (Is-equivalenceᴱ-propositional-for-Erased ext _ _ _))
+              (Is-equivalenceᴱ-propositional-for-Erased ext _ _))
          f≡g f-eq g-eq
 
   ----------------------------------------------------------------------
@@ -1656,7 +1656,7 @@ module []-cong₂
        (∀ y → Contractible (map f ⁻¹ᴱ y))                             ↝⟨ (∀-cong _ λ _ → H-level-cong _ 0 $ ECP.[]-cong₁.⁻¹ᴱ[]↔⁻¹[] ax₂) ⟩
        (∀ y → Contractible (map f ⁻¹ y))                              ↝⟨ inverse-ext? Is-equivalence≃Is-equivalence-CP _ ⟩□
        Is-equivalence (map f)                                         □)
-      (λ ext → Is-equivalenceᴱ-propositional-for-Erased ext _)
+      (λ ext → Is-equivalenceᴱ-propositional-for-Erased ext)
       (λ ext → Eq.propositional ext _)
 
   -- Erased "commutes" with Is-equivalenceᴱ (assuming extensionality).
