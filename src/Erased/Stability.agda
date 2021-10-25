@@ -298,8 +298,8 @@ Erased→¬¬ [ x ] f = _↔_.to Erased-⊥↔⊥ [ f x ]
 
 -- Types that are stable for double negation are stable for Erased.
 
-¬¬-Stable→Stable : {@0 A : Type a} → (¬ ¬ A → A) → Stable A
-¬¬-Stable→Stable ¬¬-Stable x = ¬¬-Stable (Erased→¬¬ x)
+¬¬-stable→Stable : {@0 A : Type a} → (¬ ¬ A → A) → Stable A
+¬¬-stable→Stable ¬¬-Stable x = ¬¬-Stable (Erased→¬¬ x)
 
 -- Types for which it is known whether or not they are inhabited are
 -- stable.

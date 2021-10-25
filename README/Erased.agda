@@ -322,7 +322,7 @@ Stable = Erased.Stable
 
 -- Some lemmas.
 
-Lemma-54 = Erased.¬¬-Stable→Stable
+Lemma-54 = Erased.¬¬-stable→Stable
 Lemma-55 = Erased.Erased→¬¬
 Lemma-56 = Erased.Dec→Stable
 
