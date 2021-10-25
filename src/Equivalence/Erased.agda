@@ -29,6 +29,7 @@ open import H-level.Closure eq
 import Nat eq as Nat
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq as Surjection using (_↠_; Split-surjective)
+open import Tactic.Sigma-cong eq
 open import Univalence-axiom eq
 
 private
@@ -1586,47 +1587,18 @@ module []-cong₂
     {@0 A : Type ℓ₁} {B : Type ℓ₂} {@0 f : Erased A → B} →
     Erased (Is-equivalence f) ≃ Is-equivalenceᴱ f
   Erased-Is-equivalence≃Is-equivalenceᴱ {A = A} {B = B} {f = f} =
-    Erased (Is-equivalence f)                                  F.↔⟨ Erased-cong-↔ (F.inverse $ drop-⊤-right λ _ →
-                                                                    _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _) ⟩
-    Erased
-      (∃ λ ((f⁻¹′ , _) : Is-equivalence f) →
-       ∃ λ (f⁻¹ : B → A) → erased ⊚ f⁻¹′ ≡ f⁻¹)                ↝⟨ Erased-cong-≃ (∃-cong λ _ → ∃-cong λ _ → F.inverse $
-                                                                  Eq.≃-≡ →≃→Erased) ⟩
-    Erased
-      (∃ λ ((f⁻¹′ , _) : Is-equivalence f) →
-       ∃ λ (f⁻¹ : B → A) → [_]→ ⊚ erased ⊚ f⁻¹′ ≡ [_]→ ⊚ f⁻¹)  F.↔⟨⟩
+    Erased (Is-equivalence f)                                F.↔⟨⟩
 
-    Erased
-      (∃ λ ((f⁻¹′ , _) : Is-equivalence f) →
-       ∃ λ (f⁻¹ : B → A) → f⁻¹′ ≡ [_]→ ⊚ f⁻¹)                  F.↔⟨ Erased-cong-↔ ∃-comm ⟩
+    Erased (∃ λ (f⁻¹ : B → Erased A) → HA.Proofs f f⁻¹)      F.↔⟨ Erased-cong-↔ (F.inverse $ Σ-cong-id →≃→Erased) ⟩
 
-    Erased
-      (∃ λ (f⁻¹ : B → A) →
-       ∃ λ ((f⁻¹′ , _) : Is-equivalence f) →
-       f⁻¹′ ≡ [_]→ ⊚ f⁻¹)                                      F.↔⟨ Erased-cong-↔ (∃-cong λ _ →
-                                                                    Σ-assoc F.∘
-                                                                    (∃-cong λ _ → ×-comm) F.∘
-                                                                    F.inverse Σ-assoc) ⟩
-    Erased
-      (∃ λ (f⁻¹ : B → A) →
-       ∃ λ ((f⁻¹′ , _) :
-            ∃ λ (f⁻¹′ : B → Erased A) → f⁻¹′ ≡ [_]→ ⊚ f⁻¹) →
-       HA.Proofs f f⁻¹′)                                       ↝⟨ Erased-cong-≃ (∃-cong λ _ → ∃-cong λ (_ , eq) →
-                                                                  ≡⇒↝ _ $ cong (HA.Proofs _) eq) ⟩
-    Erased
-      (∃ λ (f⁻¹ : B → A) →
-       (∃ λ (f⁻¹′ : B → Erased A) → f⁻¹′ ≡ [_]→ ⊚ f⁻¹) ×
-       HA.Proofs f (λ x → [ f⁻¹ x ]))                          F.↔⟨ Erased-cong-↔ (∃-cong λ _ → drop-⊤-left-× λ _ →
-                                                                    _⇔_.to contractible⇔↔⊤ $ singleton-contractible _) ⟩
-
-    Erased (∃ λ (f⁻¹ : B → A) → HA.Proofs f ([_]→ ⊚ f⁻¹))      F.↔⟨ Erased-Σ↔Σ ⟩
+    Erased (∃ λ (f⁻¹ : B → A) → HA.Proofs f ([_]→ ⊚ f⁻¹))    F.↔⟨ Erased-Σ↔Σ ⟩
 
     (∃ λ (f⁻¹ : Erased (B → A)) →
-     Erased (HA.Proofs f (λ x → map (_$ x) f⁻¹)))              ↝⟨ (F.Σ-cong Erased-Π↔Π λ _ → F.id) ⟩
+     Erased (HA.Proofs f (λ x → map (_$ x) f⁻¹)))            ↝⟨ (F.Σ-cong Erased-Π↔Π λ _ → F.id) ⟩
 
-    (∃ λ (f⁻¹ : B → Erased A) → Erased (HA.Proofs f f⁻¹))      F.↔⟨⟩
+    (∃ λ (f⁻¹ : B → Erased A) → Erased (HA.Proofs f f⁻¹))    F.↔⟨⟩
 
-    Is-equivalenceᴱ f                                          F.□
+    Is-equivalenceᴱ f                                        F.□
     where
     @0 →≃→Erased : (B → A) ≃ (B → Erased A)
     →≃→Erased = Eq.↔→≃
