@@ -20,7 +20,9 @@ private
   module E₁ = Erased.Level-1 eq
 open E₁ public
   hiding (module Erased-cong;
-          module []-cong; module []-cong₁; module []-cong₂;
+          module []-cong;
+          module []-cong₁;
+          module []-cong₂; module []-cong₂-⊔;
           module Extensionality)
 open E₁.[]-cong ax public
 import Erased.Level-2 eq as E₂

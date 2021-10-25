@@ -56,7 +56,8 @@ module []-cong₂
 
   open E₁.Erased-cong ax ax
   open E₁.[]-cong₁ ax₂
-  open E₁.[]-cong₂ ax₁ ax₂ ax
+  open E₁.[]-cong₂ ax₁ ax₂
+  open E₁.[]-cong₂-⊔ ax₁ ax₂ ax
 
   private
 

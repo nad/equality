@@ -1735,24 +1735,17 @@ Erased-W↔W′ {a = a} =
          (lower-extensionality a lzero ext))
 
 ------------------------------------------------------------------------
--- Some results that follow if the []-cong axioms hold for the maximum
--- of two universe levels (as well as for the two universe levels)
-
--- It is possible to instantiate the first two arguments using the
--- third and lower-[]-cong-axiomatisation, but this is not what is
--- done in the module []-cong below.
+-- Some results that follow if the []-cong axioms hold for two
+-- universe levels
 
 module []-cong₂
   (ax₁ : []-cong-axiomatisation ℓ₁)
   (ax₂ : []-cong-axiomatisation ℓ₂)
-  (ax  : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂))
   where
 
   private
-    module EC  = Erased-cong ax ax
     module BC₁ = []-cong₁ ax₁
     module BC₂ = []-cong₁ ax₂
-    module BC  = []-cong₁ ax
 
   ----------------------------------------------------------------------
   -- Some equalities
@@ -1788,6 +1781,65 @@ module []-cong₂
        cong (map f) (refl _)                  ≡⟨ sym $ cong (cong (map f)) BC₁.[]-cong-[refl] ⟩∎
        cong (map f) (BC₁.[]-cong [ refl _ ])  ∎)
       _
+
+  ----------------------------------------------------------------------
+  -- Erased "commutes" with one thing
+
+  -- Erased "commutes" with Has-quasi-inverse.
+
+  Erased-Has-quasi-inverse↔Has-quasi-inverse :
+    {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
+    Erased (Has-quasi-inverse f) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
+    Has-quasi-inverse (map f)
+  Erased-Has-quasi-inverse↔Has-quasi-inverse
+    {A = A} {B = B} {f = f} {k = k} ext =
+
+    Erased (∃ λ g → (∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x))            ↔⟨ Erased-Σ↔Σ ⟩
+
+    (∃ λ g →
+       Erased ((∀ x → f (erased g x) ≡ x) × (∀ x → erased g (f x) ≡ x)))  ↝⟨ (∃-cong λ _ → from-isomorphism Erased-Σ↔Σ) ⟩
+
+    (∃ λ g →
+       Erased (∀ x → f (erased g x) ≡ x) ×
+       Erased (∀ x → erased g (f x) ≡ x))                                 ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ g →
+                                                                             lemma₁ (erased g) ×-cong lemma₂ (erased g)) ⟩□
+    (∃ λ g → (∀ x → map f (g x) ≡ x) × (∀ x → g (map f x) ≡ x))           □
+    where
+    lemma₁ : (@0 g : B → A) → _ ↝[ k ] _
+    lemma₁ g =
+      Erased (∀ x → f (g x) ≡ x)                    ↔⟨ Erased-Π↔Π-Erased ⟩
+      (∀ x → Erased (f (g (erased x)) ≡ erased x))  ↝⟨ (∀-cong (lower-extensionality? k ℓ₁ ℓ₁ ext) λ _ →
+                                                        from-isomorphism BC₂.Erased-≡↔[]≡[]) ⟩
+      (∀ x → [ f (g (erased x)) ] ≡ x)              ↔⟨⟩
+      (∀ x → map (f ∘ g) x ≡ x)                     □
+
+    lemma₂ : (@0 g : B → A) → _ ↝[ k ] _
+    lemma₂ g =
+      Erased (∀ x → g (f x) ≡ x)                    ↔⟨ Erased-Π↔Π-Erased ⟩
+      (∀ x → Erased (g (f (erased x)) ≡ erased x))  ↝⟨ (∀-cong (lower-extensionality? k ℓ₂ ℓ₂ ext) λ _ →
+                                                        from-isomorphism BC₁.Erased-≡↔[]≡[]) ⟩
+      (∀ x → [ g (f (erased x)) ] ≡ x)              ↔⟨⟩
+      (∀ x → map (g ∘ f) x ≡ x)                     □
+
+------------------------------------------------------------------------
+-- Some results that follow if the []-cong axioms hold for the maximum
+-- of two universe levels (as well as for the two universe levels)
+
+-- It is possible to instantiate the first two arguments using the
+-- third and lower-[]-cong-axiomatisation, but this is not what is
+-- done in the module []-cong below.
+
+module []-cong₂-⊔
+  (ax₁ : []-cong-axiomatisation ℓ₁)
+  (ax₂ : []-cong-axiomatisation ℓ₂)
+  (ax  : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂))
+  where
+
+  private
+    module EC  = Erased-cong ax ax
+    module BC₁ = []-cong₁ ax₁
+    module BC₂ = []-cong₁ ax₂
+    module BC  = []-cong₁ ax
 
   ----------------------------------------------------------------------
   -- A property related to "Modalities in Homotopy Type Theory" by
@@ -1829,42 +1881,6 @@ module []-cong₂
     Is-equivalence (map f)                         □
     where
     ext′ = lower-extensionality? k ℓ₁ lzero ext
-
-  -- Erased "commutes" with Has-quasi-inverse.
-
-  Erased-Has-quasi-inverse↔Has-quasi-inverse :
-    {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
-    Erased (Has-quasi-inverse f) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
-    Has-quasi-inverse (map f)
-  Erased-Has-quasi-inverse↔Has-quasi-inverse
-    {A = A} {B = B} {f = f} {k = k} ext =
-
-    Erased (∃ λ g → (∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x))            ↔⟨ Erased-Σ↔Σ ⟩
-
-    (∃ λ g →
-       Erased ((∀ x → f (erased g x) ≡ x) × (∀ x → erased g (f x) ≡ x)))  ↝⟨ (∃-cong λ _ → from-isomorphism Erased-Σ↔Σ) ⟩
-
-    (∃ λ g →
-       Erased (∀ x → f (erased g x) ≡ x) ×
-       Erased (∀ x → erased g (f x) ≡ x))                                 ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ g →
-                                                                             lemma₁ (erased g) ×-cong lemma₂ (erased g)) ⟩□
-    (∃ λ g → (∀ x → map f (g x) ≡ x) × (∀ x → g (map f x) ≡ x))           □
-    where
-    lemma₁ : (@0 g : B → A) → _ ↝[ k ] _
-    lemma₁ g =
-      Erased (∀ x → f (g x) ≡ x)                    ↔⟨ Erased-Π↔Π-Erased ⟩
-      (∀ x → Erased (f (g (erased x)) ≡ erased x))  ↝⟨ (∀-cong (lower-extensionality? k ℓ₁ ℓ₁ ext) λ _ →
-                                                        from-isomorphism BC₂.Erased-≡↔[]≡[]) ⟩
-      (∀ x → [ f (g (erased x)) ] ≡ x)              ↔⟨⟩
-      (∀ x → map (f ∘ g) x ≡ x)                     □
-
-    lemma₂ : (@0 g : B → A) → _ ↝[ k ] _
-    lemma₂ g =
-      Erased (∀ x → g (f x) ≡ x)                    ↔⟨ Erased-Π↔Π-Erased ⟩
-      (∀ x → Erased (g (f (erased x)) ≡ erased x))  ↝⟨ (∀-cong (lower-extensionality? k ℓ₂ ℓ₂ ext) λ _ →
-                                                        from-isomorphism BC₁.Erased-≡↔[]≡[]) ⟩
-      (∀ x → [ g (f (erased x)) ] ≡ x)              ↔⟨⟩
-      (∀ x → map (g ∘ f) x ≡ x)                     □
 
   -- Erased "commutes" with Injective.
 
@@ -1918,7 +1934,7 @@ module []-cong₂
                                                                          Erased-Is-equivalence↔Is-equivalence ext) ⟩
 
     (∀ x y → Is-equivalence (map (cong f)))                          ↝⟨ (∀-cong ext′ λ x → ∀-cong ext′ λ y →
-                                                                         Is-equivalence-cong ext λ _ → map-cong≡cong-map) ⟩
+                                                                         Is-equivalence-cong ext λ _ → []-cong₂.map-cong≡cong-map ax₁ ax₂) ⟩
 
     (∀ x y →
        Is-equivalence (BC₂.[]-cong⁻¹ ∘ cong (map f) ∘ BC₁.[]-cong))  ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
@@ -1982,8 +1998,10 @@ module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
     open module BC₁ {ℓ} =
       []-cong₁ (ax {ℓ = ℓ})
       public
-    open module BC₂ {ℓ₁ ℓ₂} =
-      []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) (ax {ℓ = ℓ₁ ⊔ ℓ₂})
+    open module BC₂ {ℓ₁ ℓ₂} = []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂})
+      public
+    open module BC₂-⊔ {ℓ₁ ℓ₂} =
+      []-cong₂-⊔ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) (ax {ℓ = ℓ₁ ⊔ ℓ₂})
       public
 
 ------------------------------------------------------------------------
@@ -2050,7 +2068,7 @@ module Extensionality where
     Extensionality (a ⊔ b) (a ⊔ b) →
     (∀ y → Contractible (Erased (f ⁻¹ y))) ≃ Erased (Is-equivalence f)
   Erased-connected≃Erased-Is-equivalence {a = a} {b = b} ext =
-    []-cong₂.Erased-connected↔Erased-Is-equivalence
+    []-cong₂-⊔.Erased-connected↔Erased-Is-equivalence
       (Extensionality→[]-cong (lower-extensionality b b ext))
       (Extensionality→[]-cong (lower-extensionality a a ext))
       (Extensionality→[]-cong ext)
@@ -2063,7 +2081,7 @@ module Extensionality where
     Extensionality (a ⊔ b) (a ⊔ b) →
     Erased (Is-equivalence f) ≃ Is-equivalence (map f)
   Erased-Is-equivalence≃Is-equivalence {a = a} {b = b} ext =
-    []-cong₂.Erased-Is-equivalence↔Is-equivalence
+    []-cong₂-⊔.Erased-Is-equivalence↔Is-equivalence
       (Extensionality→[]-cong (lower-extensionality b b ext))
       (Extensionality→[]-cong (lower-extensionality a a ext))
       (Extensionality→[]-cong ext)
@@ -2080,7 +2098,6 @@ module Extensionality where
     []-cong₂.Erased-Has-quasi-inverse↔Has-quasi-inverse
       (Extensionality→[]-cong (lower-extensionality b b ext))
       (Extensionality→[]-cong (lower-extensionality a a ext))
-      (Extensionality→[]-cong ext)
       ext
 
   -- Erased "commutes" with Injective (assuming extensionality).
@@ -2090,7 +2107,7 @@ module Extensionality where
     Extensionality (a ⊔ b) (a ⊔ b) →
     Erased (Injective f) ≃ Injective (map f)
   Erased-Injective≃Injective {a = a} {b = b} ext =
-    []-cong₂.Erased-Injective↔Injective
+    []-cong₂-⊔.Erased-Injective↔Injective
       (Extensionality→[]-cong (lower-extensionality b b ext))
       (Extensionality→[]-cong (lower-extensionality a a ext))
       (Extensionality→[]-cong ext)
@@ -2103,7 +2120,7 @@ module Extensionality where
     Extensionality (a ⊔ b) (a ⊔ b) →
     Erased (Is-embedding f) ≃ Is-embedding (map f)
   Erased-Is-embedding≃Is-embedding {a = a} {b = b} ext =
-    []-cong₂.Erased-Is-embedding↔Is-embedding
+    []-cong₂-⊔.Erased-Is-embedding↔Is-embedding
       (Extensionality→[]-cong (lower-extensionality b b ext))
       (Extensionality→[]-cong (lower-extensionality a a ext))
       (Extensionality→[]-cong ext)

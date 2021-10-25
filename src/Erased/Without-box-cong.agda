@@ -16,7 +16,9 @@ module Erased.Without-box-cong
 
 open import Erased.Level-1 eq public
   hiding (module Erased-cong;
-          module []-cong; module []-cong₁; module []-cong₂;
+          module []-cong;
+          module []-cong₁;
+          module []-cong₂; module []-cong₂-⊔;
           module Extensionality)
 open import Erased.Stability eq public
   hiding (module []-cong;

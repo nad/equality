@@ -1547,7 +1547,7 @@ module []-cong₂
 
   open Erased-cong ax ax
   open Erased.[]-cong₁ ax
-  open Erased.[]-cong₂ ax₁ ax₂ ax
+  open Erased.[]-cong₂-⊔ ax₁ ax₂ ax
   open []-cong₁ ax
 
   ----------------------------------------------------------------------
