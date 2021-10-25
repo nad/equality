@@ -24,6 +24,7 @@ open import Bijection eq as B using (_↔_)
 open import Embedding eq using (Embedding)
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
+open import Equivalence.Erased.Basics eq using (Is-equivalenceᴱ)
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -370,27 +371,48 @@ Is-∞-extendable-along≃Is-equivalence {P = P} {f = f} ext =
 -- The definitions below are not taken directly from "Universal
 -- properties without function extensionality".
 
+-- A type B is P-null for a predicate P of type A → Type p if the
+-- function const of type B → P x → B is an equivalence for each x.
+--
+-- This definition is based on one from "Modalities in Homotopy Type
+-- Theory" by Rijke, Shulman and Spitters.
+
+_-Null_ : {A : Type a} → (A → Type p) → Type b → Type (a ⊔ b ⊔ p)
+P -Null B = ∀ x → Is-equivalence (const ⦂ (B → P x → B))
+
+-- A variant of _-Null_ with erased proofs.
+
+_-Nullᴱ_ : {A : Type a} → (A → Type p) → Type b → Type (a ⊔ b ⊔ p)
+P -Nullᴱ B = ∀ x → Is-equivalenceᴱ (const ⦂ (B → P x → B))
+
 -- Is-∞-extendable-along-[_] can sometimes be replaced by
 -- Is-equivalence const.
---
--- In the terminology of Rijke, Shulman and Spitters' "Modalities in
--- Homotopy Type Theory" a type A is B-null for a type B if const is
--- an equivalence from B to A → B.
 
 Is-∞-extendable-along≃Is-equivalence-const :
-  ∀ {A : Type a} {B : Type b} →
+  {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) (a ⊔ b) →
-  Is-∞-extendable-along-[ (λ (_ : A) → lift tt) ] (λ (_ : ↑ a ⊤) → B)
-    ≃
+  Is-∞-extendable-along-[ (λ (_ : A) → lift tt) ] (λ (_ : ↑ a ⊤) → B) ≃
   Is-equivalence (const ⦂ (B → A → B))
 Is-∞-extendable-along≃Is-equivalence-const {a = a} {A = A} {B = B} ext =
-
   Is-∞-extendable-along-[ (λ _ → lift tt) ] (λ (_ : ↑ a ⊤) → B)  ↝⟨ Is-∞-extendable-along≃Is-equivalence ext ⟩
 
   Is-equivalence (_∘ (λ _ → lift tt) ⦂ ((↑ a ⊤ → B) → (A → B)))  ↝⟨ inverse $
                                                                     Is-equivalence≃Is-equivalence-∘ʳ
                                                                       (_≃_.is-equivalence $ Eq.↔→≃ (_$ lift tt) const refl refl) ext ⟩□
   Is-equivalence (const ⦂ (B → A → B))                           □
+
+-- A corollary of Is-∞-extendable-along≃Is-equivalence-const.
+
+Π-Is-∞-extendable-along≃Null :
+  {A : Type a} {P : A → Type p} {B : Type b} →
+  Extensionality (a ⊔ b ⊔ p) (b ⊔ p) →
+  (∀ x → Is-∞-extendable-along-[ (λ (_ : P x) → lift tt) ]
+           (λ (_ : ↑ p ⊤) → B)) ≃
+  P -Null B
+Π-Is-∞-extendable-along≃Null {a = a} {p = p} {b = b} ext =
+  ∀-cong (lower-extensionality (b ⊔ p) lzero ext) λ _ →
+  Is-∞-extendable-along≃Is-equivalence-const
+    (lower-extensionality a lzero ext)
 
 private
 
