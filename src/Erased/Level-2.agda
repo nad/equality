@@ -230,6 +230,130 @@ module []-cong₂
     Erased-cong A↝B ⊎-cong Erased-cong (→-cong ext A↝B F.id)
 
 ------------------------------------------------------------------------
+-- Results that depend on three instances of the axiomatisation of
+-- []-cong, all for the same universe level
+
+module []-cong₁₃
+  (ax₁ : E₁.[]-cong-axiomatisation ℓ)
+  (ax₂ : E₁.[]-cong-axiomatisation ℓ)
+  (ax  : E₁.[]-cong-axiomatisation ℓ)
+  where
+
+  -- Note that []-cong₂, which contains Erased-cong, is instantiated
+  -- with all of the module parameters.
+
+  open []-cong₂ ax₁ ax₂ ax
+
+  private
+    module BC₁ = E₁.[]-cong₁ ax₁
+    module BC₂ = E₁.[]-cong₁ ax₂
+
+  ----------------------------------------------------------------------
+  -- Erased-cong maps F.id to F.id for all kinds of functions (in some
+  -- cases assuming extensionality)
+
+  private
+
+    -- Lemmas used in the implementation of Erased-cong-id.
+
+    Erased-cong-≃-id :
+      {@0 A : Type ℓ} →
+      Extensionality ℓ ℓ →
+      Erased-cong {k = equivalence} F.id ≡ F.id {A = Erased A}
+    Erased-cong-≃-id ext = Eq.lift-equality ext (refl _)
+
+    Erased-cong-≃ᴱ-id :
+      {@0 A : Type ℓ} →
+      Extensionality ℓ ℓ →
+      Erased-cong {k = equivalenceᴱ} F.id ≡ F.id {A = Erased A}
+    Erased-cong-≃ᴱ-id ext =
+      EEq.[]-cong₂.to≡to→≡-Erased ax₁ ax₂ ax ext (refl _)
+
+    Erased-cong-Embedding-id :
+      {@0 A : Type ℓ} →
+      Extensionality ℓ ℓ →
+      Erased-cong {k = embedding} F.id ≡ F.id {A = Erased A}
+    Erased-cong-Embedding-id ext =
+      _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _
+
+    Erased-cong-↠-id :
+      {@0 A : Type ℓ} →
+      Extensionality ℓ ℓ →
+      Erased-cong {k = surjection} F.id ≡ F.id {A = Erased A}
+    Erased-cong-↠-id ext =                              $⟨ lemma ⟩
+      _↔_.to ↠↔∃-Split-surjective (Erased-cong F.id) ≡
+      _↔_.to ↠↔∃-Split-surjective F.id                  ↝⟨ Eq.≃-≡ (from-isomorphism ↠↔∃-Split-surjective) ⟩□
+
+      Erased-cong F.id ≡ F.id                           □
+      where
+      lemma :
+        (map id , λ x → [ erased x ] , BC₂.[]-cong [ refl _ ]) ≡
+        (id , λ x → x , refl _)
+      lemma =
+        cong (_ ,_) $ apply-ext ext λ _ → cong (_ ,_) BC₂.[]-cong-[refl]
+
+    Erased-cong-↔-id :
+      {@0 A : Type ℓ} →
+      Extensionality ℓ ℓ →
+      Erased-cong {k = bijection} F.id ≡ F.id {A = Erased A}
+    Erased-cong-↔-id ext =                          $⟨ lemma ⟩
+      _↔_.to Bijection.↔-as-Σ (Erased-cong F.id) ≡
+      _↔_.to Bijection.↔-as-Σ F.id                  ↝⟨ Eq.≃-≡ (from-isomorphism Bijection.↔-as-Σ) ⟩□
+
+      Erased-cong F.id ≡ F.id                       □
+      where
+      lemma :
+        ( map id
+        , map id
+        , (λ { [ x ] → BC₂.[]-cong [ refl x ] })
+        , (λ { [ x ] → BC₁.[]-cong [ refl x ] })
+        ) ≡
+        (id , id , refl , refl)
+      lemma = cong (λ p → id , id , p) $ cong₂ _,_
+        (apply-ext ext λ _ → BC₂.[]-cong-[refl])
+        (apply-ext ext λ _ → BC₁.[]-cong-[refl])
+
+    Erased-cong-↣-id :
+      {@0 A : Type ℓ} →
+      Extensionality ℓ ℓ →
+      Erased-cong {k = injection} F.id ≡ F.id {A = Erased A}
+    Erased-cong-↣-id ext =                       $⟨ lemma ⟩
+      _↔_.to ↣↔∃-Injective (Erased-cong F.id) ≡
+      _↔_.to ↣↔∃-Injective F.id                  ↝⟨ Eq.≃-≡ (from-isomorphism ↣↔∃-Injective) ⟩□
+
+      Erased-cong F.id ≡ F.id                    □
+      where
+      lemma :
+        ( map id
+        , λ {_ _} → _↣_.injective (Erased-cong F.id)
+        ) ≡
+        (id , λ {_ _} → _↣_.injective F.id)
+      lemma =
+        cong (_ ,_) $
+        implicit-extensionality ext λ _ →
+        implicit-extensionality ext λ _ →
+        apply-ext ext λ eq →
+          BC₁.[]-cong (BC₂.[]-cong⁻¹ eq)  ≡⟨ []-cong-unique ax₁ ax₂ ⟩
+          BC₂.[]-cong (BC₂.[]-cong⁻¹ eq)  ≡⟨ _↔_.right-inverse-of BC₂.Erased-≡↔[]≡[] _ ⟩∎
+          eq                              ∎
+
+  -- Erased-cong maps F.id to F.id for all kinds of functions (in some
+  -- cases assuming extensionality).
+
+  Erased-cong-id :
+    {@0 A : Type ℓ} →
+    Extensionality? k ℓ ℓ →
+    Erased-cong F.id ≡ F.id {k = k} {A = Erased A}
+  Erased-cong-id {k = implication}         = λ _ → map-id
+  Erased-cong-id {k = logical-equivalence} = λ _ → Erased-cong-⇔-id
+  Erased-cong-id {k = injection}           = Erased-cong-↣-id
+  Erased-cong-id {k = embedding}           = Erased-cong-Embedding-id
+  Erased-cong-id {k = surjection}          = Erased-cong-↠-id
+  Erased-cong-id {k = bijection}           = Erased-cong-↔-id
+  Erased-cong-id {k = equivalence}         = Erased-cong-≃-id
+  Erased-cong-id {k = equivalenceᴱ}        = Erased-cong-≃ᴱ-id
+
+------------------------------------------------------------------------
 -- Results that depend on instances of the axiomatisation of []-cong
 -- for all universe levels
 
@@ -237,4 +361,6 @@ module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
 
   private
     open module BC₂ {ℓ₁ ℓ₂} = []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
+      public
+    open module BC₁₃ {ℓ} = []-cong₁₃ (ax {ℓ = ℓ}) ax ax
       public

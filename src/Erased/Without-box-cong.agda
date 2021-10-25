@@ -20,6 +20,6 @@ open import Erased.Level-1 eq public
           module Extensionality)
 open import Erased.Stability eq public
   hiding (module []-cong;
-          module []-cong₁; module []-cong₁-lsuc; module []-cong₁₃;
+          module []-cong₁; module []-cong₁-lsuc;
           module []-cong₂₁; module []-cong₂₂;
           module Extensionality)
