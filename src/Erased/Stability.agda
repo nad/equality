@@ -973,14 +973,11 @@ Is-equivalenceᴱ-∘[] ext s =
 -- The Coq code accompanying "Modalities in Homotopy Type Theory" uses
 -- a somewhat different definition of reflective subuniverses than the
 -- paper:
--- * Instead of defining what a reflective subuniverse is it defines
---   what a family of reflective subuniverses is.
 -- * The definition has been adapted to Coq's notion of universe
---   polymorphism. (I'm not sure exactly how universe polymorphism
---   works in Coq, so I'm not sure if or how the code differs from the
---   paper in this respect.)
+--   polymorphism.
 -- * The proof showing that the modality predicate is propositional is
---   allowed to make use of extensionality for functions.
+--   allowed to make use of function extensionality for arbitrary
+--   universe levels.
 -- * One extra property is assumed: if A and B are equivalent and A is
 --   modal, then B is modal. Such a property is proved below, assuming
 --   that the []-cong axioms can be instantiated (Very-stable-cong).
@@ -989,15 +986,17 @@ Is-equivalenceᴱ-∘[] ext s =
 --   property is stated using Is-∞-extendable-along-[_]. Such a
 --   property is proved below, assuming that the []-cong axioms can be
 --   instantiated (const-extendable).
+-- (This refers to one version of the code, which seems to have
+-- changed since I first looked at it.)
 --
 -- Here is a definition of Σ-closed reflective subuniverses that is
--- based on, but not identical to, the definition of reflective
--- subuniverses in the Coq code of Rijke et al. The main changes are
--- perhaps that this definition defines what a single reflective
--- subuniverse is, not a family of them, and that the code uses a
--- single universe level. Below it is proved that λ A → Erased A, [_]→
--- and Very-stable form a Σ-closed reflective subuniverse of this kind
--- (Erased-Σ-closed-reflective-subuniverse).
+-- based on the definition of reflective subuniverses in (one version
+-- of) the Coq code of Rijke et al. Note that Is-modal-propositional
+-- is only given access to function extensionality for a given
+-- universe level. Below (Erased-Σ-closed-reflective-subuniverse) it
+-- is proved that λ A → Erased A, [_]→ and Very-stable form a Σ-closed
+-- reflective subuniverse of this kind (assuming that the []-cong
+-- axioms can be instantiated).
 
 record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
   field
@@ -1024,8 +1023,9 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
 -- A definition of what it means for Erased to be accessible and
 -- topological (for certain universe levels).
 --
--- This definition is based on the Coq code accompanying "Modalities
--- in Homotopy Type Theory" by Rijke, Shulman and Spitters.
+-- This definition is based on (one version of) the Coq code
+-- accompanying "Modalities in Homotopy Type Theory" by Rijke, Shulman
+-- and Spitters.
 
 Erased-is-accessible-and-topological′ :
   (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
@@ -2017,8 +2017,8 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   -- As a special case we get the following property, which is based
   -- on one part of the definition of a reflective subuniverse used in
-  -- the Coq code accompanying "Modalities in Homotopy Type Theory" by
-  -- Rijke, Shulman and Spitters.
+  -- (one version of) the Coq code accompanying "Modalities in
+  -- Homotopy Type Theory" by Rijke, Shulman and Spitters.
 
   const-extendable :
     {@0 A : Type a} {B : Type ℓ} →
@@ -2247,7 +2247,8 @@ module []-cong₂₂
   -- A generalisation of Very-stable-Σ.
   --
   -- Based on a lemma called inO_unsigma, implemented by Mike Shulman
-  -- in the file ReflectiveSubuniverse.v in the Coq HoTT library.
+  -- in the file ReflectiveSubuniverse.v in (one version of) the Coq
+  -- HoTT library.
 
   Very-stable-Σ↔Π :
     {A : Type ℓ₁} {P : A → Type ℓ₂} →
@@ -2271,7 +2272,8 @@ module []-cong₂₂
   -- A variant of Very-stableᴱ-Σ.
   --
   -- Based on a lemma called inO_unsigma, implemented by Mike Shulman
-  -- in the file ReflectiveSubuniverse.v in the Coq HoTT library.
+  -- in the file ReflectiveSubuniverse.v in (one version of) the Coq
+  -- HoTT library.
 
   Very-stableᴱ-Σ≃ᴱΠ :
     {A : Type ℓ₁} {P : A → Type ℓ₂} →
