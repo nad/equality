@@ -1020,6 +1020,31 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
 ------------------------------------------------------------------------
 -- Erased is accessible and topological (assuming extensionality)
 
+-- A definition of what it means for a Σ-closed reflective subuniverse
+-- to be accessible and topological (for a certain universe level).
+--
+-- This definition is based on (one version of) the Coq code
+-- accompanying "Modalities in Homotopy Type Theory" by Rijke, Shulman
+-- and Spitters.
+--
+-- Below it is proved that Erased-Σ-closed-reflective-subuniverse is
+-- topological (assuming extensionality and that the []-cong axioms
+-- can be instantiated).
+
+Topological :
+  (ℓ : Level) → Σ-closed-reflective-subuniverse a → Type (lsuc (a ⊔ ℓ))
+Topological {a = a} ℓ U =
+  ∃ λ (I : Type ℓ) →
+  ∃ λ (P : I → Type ℓ) →
+    (∀ i → Is-proposition (P i)) ×
+    ((A : Type a) →
+     Is-modal A ⇔
+     ∀ i →
+     Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
+       (λ (_ : ↑ ℓ ⊤) → A))
+  where
+  open Σ-closed-reflective-subuniverse U
+
 -- A definition of what it means for Erased to be accessible and
 -- topological (for certain universe levels).
 --
@@ -1224,9 +1249,9 @@ Very-stableᴱ≃Very-stableᴱ-Nullᴱ {A = A} ext′ =
 -- assuming extensionality).
 
 erased-is-accessible-and-topological :
-  Extensionality (lsuc a ⊔ ℓ) (lsuc a ⊔ ℓ) →
+  ∀ ℓ → Extensionality (lsuc a ⊔ ℓ) (lsuc a ⊔ ℓ) →
   Erased-is-accessible-and-topological (lsuc a ⊔ ℓ) a
-erased-is-accessible-and-topological {a = a} {ℓ = ℓ} ext =
+erased-is-accessible-and-topological {a = a} ℓ ext =
     ↑ ℓ (Type a)
   , ↑ _ ∘ Very-stable ∘ lower
   , (λ _ → ↑-closure 1 $ Very-stable-propositional ext′)
@@ -1247,9 +1272,9 @@ erased-is-accessible-and-topological {a = a} {ℓ = ℓ} ext =
 -- certain universe levels (assuming extensionality).
 
 erased-is-accessible-and-topologicalᴱ :
-  @0 Extensionality (lsuc a) a →
+  ∀ ℓ → @0 Extensionality (lsuc a) a →
   Erased-is-accessible-and-topologicalᴱ (lsuc a ⊔ ℓ) a
-erased-is-accessible-and-topologicalᴱ {a = a} {ℓ = ℓ} ext =
+erased-is-accessible-and-topologicalᴱ {a = a} ℓ ext =
     ↑ ℓ (Type a)
   , ↑ _ ∘ Very-stableᴱ ∘ lower
   , (λ _ →
@@ -2042,6 +2067,17 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       .Σ-closed               → Very-stable-Σ
     where
     open Σ-closed-reflective-subuniverse
+
+  -- This Σ-closed reflective subuniverse is topological (for certain
+  -- universe levels, assuming extensionality).
+
+  Erased-topological :
+    ∀ ℓ′ →
+    Extensionality (lsuc ℓ ⊔ ℓ′) (lsuc ℓ ⊔ ℓ′) →
+    Topological (lsuc ℓ ⊔ ℓ′) Erased-Σ-closed-reflective-subuniverse
+  Erased-topological ℓ′ ext =                              $⟨ erased-is-accessible-and-topological ℓ′ ext ⟩
+    Erased-is-accessible-and-topological (lsuc ℓ ⊔ ℓ′) ℓ   ↝⟨ inverse $ ≃Erased-is-accessible-and-topological ext ⟩□
+    Erased-is-accessible-and-topological′ (lsuc ℓ ⊔ ℓ′) ℓ  □
 
   ----------------------------------------------------------------------
   -- Rearrangement lemmas for []-cong, proved using stability
@@ -2844,3 +2880,28 @@ module Extensionality where
   Very-stable-Very-stable≃Very-stable ext =
     []-cong₁.Very-stable-Very-stable≃Very-stable
       (Extensionality→[]-cong ext) ext
+
+  -- The function λ A → Erased A, [_]→ and Very-stable form a Σ-closed
+  -- reflective subuniverse (assuming extensionality).
+
+  Erased-Σ-closed-reflective-subuniverse :
+    Extensionality ℓ ℓ →
+    Σ-closed-reflective-subuniverse ℓ
+  Erased-Σ-closed-reflective-subuniverse ext =
+    []-cong₁.Erased-Σ-closed-reflective-subuniverse
+      (Extensionality→[]-cong ext)
+
+  -- This Σ-closed reflective subuniverse is topological (for certain
+  -- universe levels, assuming extensionality).
+
+  Erased-topological :
+    ∀ ℓ′ (ext : Extensionality (lsuc ℓ ⊔ ℓ′) (lsuc ℓ ⊔ ℓ′)) →
+    Topological (lsuc ℓ ⊔ ℓ′)
+      (Erased-Σ-closed-reflective-subuniverse {ℓ = ℓ}
+         (lower-extensionality _ _ ext))
+  Erased-topological ℓ′ ext =
+    []-cong₁.Erased-topological
+      (Extensionality→[]-cong
+         (lower-extensionality _ _ ext))
+      ℓ′
+      ext
