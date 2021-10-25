@@ -37,12 +37,12 @@ open import Erased.Level-1 eq-J as E₁
 private
 
   variable
-    a b c ℓ ℓ₁ ℓ₂ : Level
-    A B           : Type a
-    eq k k′ p x y : A
-    P             : A → Type p
-    f g           : A → B
-    n             : ℕ
+    a b c ℓ ℓ₁ ℓ₂ ℓ₃ : Level
+    A B              : Type a
+    eq k k′ p x y    : A
+    P                : A → Type p
+    f g              : A → B
+    n                : ℕ
 
 ------------------------------------------------------------------------
 -- Results that depend on an instantiation of the []-cong axioms (for
@@ -356,6 +356,227 @@ module []-cong₁₃
 
 ------------------------------------------------------------------------
 -- Results that depend on instances of the axiomatisation of []-cong
+-- for three universe levels, as well as for the maximum of each pair
+-- drawn from these three levels
+
+module []-cong₃-⊔
+  (ax₁  : []-cong-axiomatisation ℓ₁)
+  (ax₂  : []-cong-axiomatisation ℓ₂)
+  (ax₃  : []-cong-axiomatisation ℓ₃)
+  (ax₁₂ : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂))
+  (ax₁₃ : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₃))
+  (ax₂₃ : []-cong-axiomatisation (ℓ₂ ⊔ ℓ₃))
+  where
+
+  private
+    module EC₁ = []-cong₂-⊔ ax₁ ax₃ ax₁₃
+    module EC₂ = []-cong₂-⊔ ax₂ ax₃ ax₂₃
+    module EC₃ = []-cong₂-⊔ ax₁ ax₂ ax₁₂
+
+  ----------------------------------------------------------------------
+  -- Erased-cong commutes with F._∘_ for all kinds of functions (in
+  -- some cases assuming extensionality)
+
+  private
+
+    -- Lemmas used in the implementation of Erased-cong-∘.
+
+    Erased-cong-≃-∘ :
+      {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 C : Type ℓ₃} →
+      Extensionality (ℓ₁ ⊔ ℓ₃) (ℓ₁ ⊔ ℓ₃) →
+      (@0 f : B ≃ C) (@0 g : A ≃ B) →
+      EC₁.Erased-cong {k = equivalence} (f F.∘ g) ≡
+      EC₂.Erased-cong f F.∘ EC₃.Erased-cong g
+    Erased-cong-≃-∘ ext _ _ = Eq.lift-equality ext (refl _)
+
+    Erased-cong-≃ᴱ-∘ :
+      {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 C : Type ℓ₃} →
+      Extensionality (ℓ₁ ⊔ ℓ₃) (ℓ₁ ⊔ ℓ₃) →
+      (@0 f : B ≃ᴱ C) (@0 g : A ≃ᴱ B) →
+      EC₁.Erased-cong {k = equivalenceᴱ} (f F.∘ g) ≡
+      EC₂.Erased-cong f F.∘ EC₃.Erased-cong g
+    Erased-cong-≃ᴱ-∘ ext _ _ =
+      EEq.[]-cong₂-⊔.to≡to→≡-Erased ax₁ ax₃ ax₁₃ ext (refl _)
+
+    Erased-cong-Embedding-∘ :
+      {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 C : Type ℓ₃} →
+      Extensionality (ℓ₁ ⊔ ℓ₃) (ℓ₁ ⊔ ℓ₃) →
+      (@0 f : Embedding B C) (@0 g : Embedding A B) →
+      EC₁.Erased-cong {k = embedding} (f F.∘ g) ≡
+      EC₂.Erased-cong f F.∘ EC₃.Erased-cong g
+    Erased-cong-Embedding-∘ ext _ _ =
+      _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _
+
+    right-inverse-of-cong-∘ :
+      ∀ {ℓ₁ ℓ₂ ℓ₃}
+      (ax₁  : []-cong-axiomatisation ℓ₁)
+      (ax₂  : []-cong-axiomatisation ℓ₂)
+      (ax₃  : []-cong-axiomatisation ℓ₃)
+      (ax₁₂ : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂))
+      (ax₁₃ : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₃))
+      (ax₂₃ : []-cong-axiomatisation (ℓ₂ ⊔ ℓ₃)) →
+      let module EC₁′ = []-cong₂-⊔ ax₁ ax₃ ax₁₃
+          module EC₂′ = []-cong₂-⊔ ax₂ ax₃ ax₂₃
+          module EC₃′ = []-cong₂-⊔ ax₁ ax₂ ax₁₂
+      in
+      ∀ {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 C : Type ℓ₃} {x} →
+      (@0 f : B ↠ C) (@0 g : A ↠ B) →
+      _↠_.right-inverse-of (EC₁′.Erased-cong (f F.∘ g)) x ≡
+      _↠_.right-inverse-of (EC₂′.Erased-cong f F.∘ EC₃′.Erased-cong g) x
+    right-inverse-of-cong-∘ ax₁ ax₂ ax₃ _ _ _ {x = [ x ]} f g =
+      BC₃.[]-cong [ trans (cong (_↠_.to f)
+                                  (_↠_.right-inverse-of g
+                                     (_↠_.from f x)))
+                               (_↠_.right-inverse-of f x)
+                  ]                                         ≡⟨ E₁.[]-cong₁.[]-cong-trans ax₃ ⟩
+
+      trans (BC₃.[]-cong [ cong (_↠_.to f)
+                             (_↠_.right-inverse-of g
+                                (_↠_.from f x)) ])
+        (BC₃.[]-cong [ _↠_.right-inverse-of f x ])          ≡⟨ cong (λ p → trans p _) (E₁.[]-cong₂.[]-cong-cong ax₂ ax₃) ⟩∎
+
+      trans (cong (map (_↠_.to f))
+                     (BC₂.[]-cong [ _↠_.right-inverse-of g
+                                      (_↠_.from f x) ]))
+        (BC₃.[]-cong [ _↠_.right-inverse-of f x ])          ∎
+      where
+      module BC₂ = E₁.[]-cong₁ ax₂
+      module BC₃ = E₁.[]-cong₁ ax₃
+
+    Erased-cong-↠-∘ :
+      {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 C : Type ℓ₃} →
+      Extensionality ℓ₃ (ℓ₁ ⊔ ℓ₃) →
+      (@0 f : B ↠ C) (@0 g : A ↠ B) →
+      EC₁.Erased-cong {k = surjection} (f F.∘ g) ≡
+      EC₂.Erased-cong f F.∘ EC₃.Erased-cong g
+    Erased-cong-↠-∘ ext f g =                                    $⟨ lemma ⟩
+      _↔_.to ↠↔∃-Split-surjective (EC₁.Erased-cong (f F.∘ g)) ≡
+      _↔_.to ↠↔∃-Split-surjective
+        (EC₂.Erased-cong f F.∘ EC₃.Erased-cong g)                ↝⟨ Eq.≃-≡ (from-isomorphism ↠↔∃-Split-surjective) ⟩□
+
+      EC₁.Erased-cong (f F.∘ g) ≡
+      EC₂.Erased-cong f F.∘ EC₃.Erased-cong g                    □
+      where
+      lemma :
+        ( map (_↠_.to f ∘ _↠_.to g)
+        , (λ x →
+               [ _↠_.from g (_↠_.from f (erased x)) ]
+             , _↠_.right-inverse-of (EC₁.Erased-cong (f F.∘ g)) x)
+        )
+        ≡
+        ( (λ x → [ _↠_.to f (_↠_.to g (erased x)) ])
+        , (λ x →
+               [ _↠_.from g (_↠_.from f (erased x)) ]
+             , _↠_.right-inverse-of
+                 (EC₂.Erased-cong f F.∘ EC₃.Erased-cong g) x)
+        )
+      lemma =
+        cong (_ ,_) $ apply-ext ext λ ([ x ]) →
+          cong ([ _↠_.from g (_↠_.from f x) ] ,_)
+            (right-inverse-of-cong-∘ ax₁ ax₂ ax₃ ax₁₂ ax₁₃ ax₂₃ f g)
+
+    Erased-cong-↔-∘ :
+      {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 C : Type ℓ₃} →
+      Extensionality (ℓ₁ ⊔ ℓ₃) (ℓ₁ ⊔ ℓ₃) →
+      (@0 f : B ↔ C) (@0 g : A ↔ B) →
+      EC₁.Erased-cong {k = bijection} (f F.∘ g) ≡
+      EC₂.Erased-cong f F.∘ EC₃.Erased-cong g
+    Erased-cong-↔-∘ ext f g =                                            $⟨ lemma ⟩
+      _↔_.to Bijection.↔-as-Σ (EC₁.Erased-cong (f F.∘ g)) ≡
+      _↔_.to Bijection.↔-as-Σ (EC₂.Erased-cong f F.∘ EC₃.Erased-cong g)  ↝⟨ Eq.≃-≡ (from-isomorphism Bijection.↔-as-Σ) ⟩□
+
+      EC₁.Erased-cong (f F.∘ g) ≡
+      EC₂.Erased-cong f F.∘ EC₃.Erased-cong g                            □
+      where
+      lemma :
+        ( map (_↔_.to f ∘ _↔_.to g)
+        , map (_↔_.from g ∘ _↔_.from f)
+        , _↔_.right-inverse-of (EC₁.Erased-cong (f F.∘ g))
+        , _↔_.left-inverse-of (EC₁.Erased-cong (f F.∘ g))
+        )
+        ≡
+        ( (λ x → [ _↔_.to f (_↔_.to g (erased x)) ])
+        , (λ x → [ _↔_.from g (_↔_.from f (erased x)) ])
+        , _↔_.right-inverse-of (EC₂.Erased-cong f F.∘ EC₃.Erased-cong g)
+        , _↔_.left-inverse-of (EC₂.Erased-cong f F.∘ EC₃.Erased-cong g)
+        )
+      lemma =
+        cong (λ p → map (_↔_.to f ∘ _↔_.to g)
+                  , map (_↔_.from g ∘ _↔_.from f) , p) $
+        cong₂ _,_
+          (apply-ext (lower-extensionality ℓ₁ ℓ₁ ext) λ _ →
+             right-inverse-of-cong-∘ ax₁ ax₂ ax₃ ax₁₂ ax₁₃ ax₂₃
+               (_↔_.surjection f) (_↔_.surjection g))
+          (apply-ext (lower-extensionality ℓ₃ ℓ₃ ext) λ _ →
+           right-inverse-of-cong-∘ ax₃ ax₂ ax₁ ax₂₃ ax₁₃ ax₁₂
+              (_↔_.surjection $ inverse g)
+              (_↔_.surjection $ inverse f))
+
+    Erased-cong-↣-∘ :
+      {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 C : Type ℓ₃} →
+      Extensionality (ℓ₁ ⊔ ℓ₃) (ℓ₁ ⊔ ℓ₃) →
+      (@0 f : B ↣ C) (@0 g : A ↣ B) →
+      EC₁.Erased-cong {k = injection} (f F.∘ g) ≡
+      EC₂.Erased-cong f F.∘ EC₃.Erased-cong g
+    Erased-cong-↣-∘ ext f g =                                         $⟨ lemma ⟩
+      _↔_.to ↣↔∃-Injective (EC₁.Erased-cong (f F.∘ g)) ≡
+      _↔_.to ↣↔∃-Injective (EC₂.Erased-cong f F.∘ EC₃.Erased-cong g)  ↝⟨ Eq.≃-≡ (from-isomorphism ↣↔∃-Injective) ⟩□
+
+      EC₁.Erased-cong (f F.∘ g) ≡
+      EC₂.Erased-cong f F.∘ EC₃.Erased-cong g                         □
+      where
+      module BC₁ = E₁.[]-cong₁ ax₁
+      module BC₂ = E₁.[]-cong₁ ax₂
+      module BC₃ = E₁.[]-cong₁ ax₃
+
+      lemma :
+        ( map (_↣_.to f ∘ _↣_.to g)
+        , λ {_ _} → _↣_.injective (EC₁.Erased-cong (f F.∘ g))
+        )
+        ≡
+        ( (λ x → [ _↣_.to f (_↣_.to g (erased x)) ])
+        , λ {_ _} →
+            _↣_.injective (EC₂.Erased-cong f F.∘ EC₃.Erased-cong g)
+        )
+      lemma =
+        cong (_ ,_) $
+        implicit-extensionality
+          (lower-extensionality ℓ₃ lzero ext) λ _ →
+        implicit-extensionality
+          (lower-extensionality ℓ₃ lzero ext) λ _ →
+        apply-ext (lower-extensionality ℓ₁ ℓ₃ ext) λ eq →
+          let eq′ = [ _↣_.injective f (erased (BC₃.[]-cong⁻¹ eq)) ]
+          in
+          BC₁.[]-cong [ _↣_.injective g (erased eq′) ]                  ≡⟨ cong BC₁.[]-cong $
+                                                                           BC₁.[]-cong [ cong (_↣_.injective g ∘ erased) $ sym $
+                                                                                         _↔_.left-inverse-of BC₂.Erased-≡↔[]≡[] _ ] ⟩∎
+          BC₁.[]-cong [ _↣_.injective g
+                          (erased (BC₂.[]-cong⁻¹ (BC₂.[]-cong eq′))) ]  ∎
+
+  -- Erased-cong commutes with F._∘_ for all kinds of functions (in
+  -- some cases assuming extensionality).
+
+  Erased-cong-∘ :
+    {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 C : Type ℓ₃} →
+    Extensionality? k (ℓ₁ ⊔ ℓ₃) (ℓ₁ ⊔ ℓ₃) →
+    (@0 f : B ↝[ k ] C) (@0 g : A  ↝[ k ] B) →
+    EC₁.Erased-cong (f F.∘ g) ≡ EC₂.Erased-cong f F.∘ EC₃.Erased-cong g
+  Erased-cong-∘ {k = implication}         = λ _ f → map-∘ f
+  Erased-cong-∘ {k = logical-equivalence} = λ _ → Erased-cong-⇔-∘
+  Erased-cong-∘ {k = injection}           = Erased-cong-↣-∘
+  Erased-cong-∘ {k = embedding}           = λ ext f g →
+                                              Erased-cong-Embedding-∘
+                                                ext f g
+  Erased-cong-∘ {k = surjection}          = λ ext →
+                                              Erased-cong-↠-∘
+                                                (lower-extensionality ℓ₁ lzero ext)
+  Erased-cong-∘ {k = bijection}           = Erased-cong-↔-∘
+  Erased-cong-∘ {k = equivalence}         = Erased-cong-≃-∘
+  Erased-cong-∘ {k = equivalenceᴱ}        = λ ext f g →
+                                              Erased-cong-≃ᴱ-∘ ext f g
+
+------------------------------------------------------------------------
+-- Results that depend on instances of the axiomatisation of []-cong
 -- for all universe levels
 
 module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
@@ -364,4 +585,7 @@ module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
     open module BC₂ {ℓ₁ ℓ₂} = []-cong₂-⊔ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
       public
     open module BC₁₃ {ℓ} = []-cong₁₃ (ax {ℓ = ℓ}) ax ax
+      public
+    open module BC₃ {ℓ₁ ℓ₂ ℓ₃} =
+      []-cong₃-⊔ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) (ax {ℓ = ℓ₃}) ax ax ax
       public
