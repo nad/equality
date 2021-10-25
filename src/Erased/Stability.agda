@@ -39,8 +39,7 @@ open import Surjection eq using (_↠_; Split-surjective)
 open import Univalence-axiom eq
 
 open import Erased.Level-1 eq as E₁
-  hiding (module []-cong; module []-cong₁; module []-cong₂;
-          module Extensionality)
+  hiding (module []-cong; module []-cong₁; module Extensionality)
 import Erased.Level-2
 private
   module E₂ = Erased.Level-2 eq
@@ -2080,28 +2079,6 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     Erased-is-accessible-and-topological′ (lsuc ℓ ⊔ ℓ′) ℓ  □
 
   ----------------------------------------------------------------------
-  -- Rearrangement lemmas for []-cong, proved using stability
-
-  -- []-cong kind of commutes with trans.
-
-  []-cong-trans :
-    {@0 A : Type ℓ} {@0 x y z : A} {@0 p : x ≡ y} {@0 q : y ≡ z} →
-    []-cong [ trans p q ] ≡ trans ([]-cong [ p ]) ([]-cong [ q ])
-  []-cong-trans =
-    Very-stable→Stable 0 (Very-stable-≡₁ _ _ _ _)
-      [ elim¹
-          (λ p → ∀ (@0 q) → []-cong [ trans p q ] ≡
-                            trans ([]-cong [ p ]) ([]-cong [ q ]))
-          (λ q →
-             []-cong [ trans (refl _) q ]                ≡⟨ cong []-cong ([]-cong [ trans-reflˡ _ ]) ⟩
-             []-cong [ q ]                               ≡⟨ sym $ trans-reflˡ _ ⟩
-             trans (refl _) ([]-cong [ q ])              ≡⟨ sym $ cong (flip trans _) []-cong-[refl] ⟩∎
-             trans ([]-cong [ refl _ ]) ([]-cong [ q ])  ∎)
-          _
-          _
-      ]
-
-  ----------------------------------------------------------------------
   -- Erased singletons
 
   -- The type of triples consisting of two values of type A, one erased,
@@ -2216,44 +2193,6 @@ module []-cong₁-lsuc (ax : []-cong-axiomatisation (lsuc ℓ)) where
       (Erased A  ≡⟨ ≃⇒≡ univ (Very-stable→Stable 0 s) ⟩∎
        A         ∎)
       (Very-stable-propositional ext _ _)
-
-------------------------------------------------------------------------
--- Results that depend on an instantiation of the []-cong axioms (for
--- two universe levels)
-
-module []-cong₂
-  (ax₁ : []-cong-axiomatisation ℓ₁)
-  (ax₂ : []-cong-axiomatisation ℓ₂)
-  where
-
-  private
-    module BC₁ = E₁.[]-cong₁ ax₁
-    module BC₂ = E₁.[]-cong₁ ax₂
-
-  ----------------------------------------------------------------------
-  -- Rearrangement lemmas for []-cong, proved using stability
-
-  -- []-cong kind of commutes with cong.
-
-  []-cong-cong :
-    {@0 A : Type ℓ₁} {@0 B : Type ℓ₂}
-    {@0 f : A → B} {@0 x y : A} {@0 p : x ≡ y} →
-    BC₂.[]-cong [ cong f p ] ≡ cong (map f) (BC₁.[]-cong [ p ])
-  []-cong-cong {f = f} =
-    Very-stable→Stable 0
-      (([]-cong₁.Very-stable→Very-stableⁿ ax₂ 2
-        Very-stable-Erased)
-         _ _ _ _)
-      [ elim¹
-          (λ p → BC₂.[]-cong [ cong f p ] ≡
-                 cong (map f) (BC₁.[]-cong [ p ]))
-          (BC₂.[]-cong [ cong f (refl _) ]        ≡⟨ cong BC₂.[]-cong (BC₂.[]-cong [ cong-refl _ ]) ⟩
-           BC₂.[]-cong [ refl _ ]                 ≡⟨ BC₂.[]-cong-[refl] ⟩
-           refl _                                 ≡⟨ sym $ cong-refl _ ⟩
-           cong (map f) (refl _)                  ≡⟨ sym $ cong (cong (map f)) BC₁.[]-cong-[refl] ⟩∎
-           cong (map f) (BC₁.[]-cong [ refl _ ])  ∎)
-          _
-      ]
 
 ------------------------------------------------------------------------
 -- More results that depend on an instantiation of the []-cong axioms
@@ -2658,8 +2597,6 @@ module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
     open module BC₁ {ℓ} = []-cong₁ (ax {ℓ = ℓ})
       public
     open module BC₁-lsuc {ℓ} = []-cong₁-lsuc (ax {ℓ = lsuc ℓ})
-      public
-    open module BC₂ {ℓ₁ ℓ₂} = []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂})
       public
     open module BC₂₂ {ℓ₁ ℓ₂} = []-cong₂₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
       public

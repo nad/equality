@@ -1248,21 +1248,6 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   _ = refl _
 
   ----------------------------------------------------------------------
-  -- An equality
-
-  -- [_] can be "pushed" through subst.
-
-  push-subst-[] :
-    {@0 P : A → Type ℓ} {@0 p : P x} {x≡y : x ≡ y} →
-    subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ subst P x≡y p ]
-  push-subst-[] {P = P} {p = p} = elim¹
-    (λ x≡y → subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ subst P x≡y p ])
-    (subst (λ x → Erased (P x)) (refl _) [ p ]  ≡⟨ subst-refl _ _ ⟩
-     [ p ]                                      ≡⟨ []-cong [ sym $ subst-refl _ _ ] ⟩∎
-     [ subst P (refl _) p ]                     ∎)
-    _
-
-  ----------------------------------------------------------------------
   -- Variants of subst, cong and the J rule that take erased equality
   -- proofs
 
@@ -1444,6 +1429,38 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
      refl _                     ≡⟨ sym $ cong-refl _ ⟩∎
      cong (λ x → f x) (refl _)  ∎)
     eq
+
+  ----------------------------------------------------------------------
+  -- Some equalities
+
+  -- [_] can be "pushed" through subst.
+
+  push-subst-[] :
+    {@0 P : A → Type ℓ} {@0 p : P x} {x≡y : x ≡ y} →
+    subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ subst P x≡y p ]
+  push-subst-[] {P = P} {p = p} = elim¹
+    (λ x≡y → subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ subst P x≡y p ])
+    (subst (λ x → Erased (P x)) (refl _) [ p ]  ≡⟨ subst-refl _ _ ⟩
+     [ p ]                                      ≡⟨ []-cong [ sym $ subst-refl _ _ ] ⟩∎
+     [ subst P (refl _) p ]                     ∎)
+    _
+
+  -- []-cong kind of commutes with trans.
+
+  []-cong-trans :
+    {@0 A : Type ℓ} {@0 x y z : A} {@0 p : x ≡ y} {@0 q : y ≡ z} →
+    []-cong [ trans p q ] ≡ trans ([]-cong [ p ]) ([]-cong [ q ])
+  []-cong-trans =
+    elim¹ᴱ
+      (λ p →
+         ∀ (@0 q) →
+         []-cong [ trans p q ] ≡ trans ([]-cong [ p ]) ([]-cong [ q ]))
+      (λ q →
+         []-cong [ trans (refl _) q ]                ≡⟨ cong []-cong $ []-cong [ trans-reflˡ _ ] ⟩
+         []-cong [ q ]                               ≡⟨ sym $ trans-reflˡ _ ⟩
+         trans (refl [ _ ]) ([]-cong [ q ])          ≡⟨ cong (flip trans _) $ sym []-cong-[refl] ⟩∎
+         trans ([]-cong [ refl _ ]) ([]-cong [ q ])  ∎)
+      _ _
 
   ----------------------------------------------------------------------
   -- All h-levels are closed under Erased
@@ -1738,7 +1755,7 @@ module []-cong₂
     module BC  = []-cong₁ ax
 
   ----------------------------------------------------------------------
-  -- An equality
+  -- Some equalities
 
   -- The function map (cong f) can be expressed in terms of
   -- cong (map f) (up to pointwise equality).
@@ -1754,6 +1771,23 @@ module []-cong₂
     [ cong (erased ∘ map f) (BC₁.[]-cong [ x≡y ]) ]       ≡⟨ BC₂.[]-cong [ sym $ cong-∘ _ _ _ ] ⟩
     [ cong erased (cong (map f) (BC₁.[]-cong [ x≡y ])) ]  ≡⟨ sym BC₂.[]-cong⁻¹≡[cong-erased] ⟩∎
     BC₂.[]-cong⁻¹ (cong (map f) (BC₁.[]-cong [ x≡y ]))    ∎
+
+  -- []-cong kind of commutes with cong.
+
+  []-cong-cong :
+    {@0 A : Type ℓ₁} {@0 B : Type ℓ₂}
+    {@0 f : A → B} {@0 x y : A} {@0 p : x ≡ y} →
+    BC₂.[]-cong [ cong f p ] ≡ cong (map f) (BC₁.[]-cong [ p ])
+  []-cong-cong {f = f} =
+    BC₁.elim¹ᴱ
+      (λ p → BC₂.[]-cong [ cong f p ] ≡
+             cong (map f) (BC₁.[]-cong [ p ]))
+      (BC₂.[]-cong [ cong f (refl _) ]        ≡⟨ cong BC₂.[]-cong (BC₂.[]-cong [ cong-refl _ ]) ⟩
+       BC₂.[]-cong [ refl _ ]                 ≡⟨ BC₂.[]-cong-[refl] ⟩
+       refl _                                 ≡⟨ sym $ cong-refl _ ⟩
+       cong (map f) (refl _)                  ≡⟨ sym $ cong (cong (map f)) BC₁.[]-cong-[refl] ⟩∎
+       cong (map f) (BC₁.[]-cong [ refl _ ])  ∎)
+      _
 
   ----------------------------------------------------------------------
   -- A property related to "Modalities in Homotopy Type Theory" by
