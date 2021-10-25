@@ -20,7 +20,7 @@ open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (_⁻¹ᴱ_; Contractibleᴱ)
 import Equivalence.Half-adjoint eq as HA
 open import Erased.Level-1 eq as Erased
-  hiding (module []-cong; module []-cong₁; module []-cong₂)
+  hiding (module []-cong; module []-cong₁; module []-cong₂-⊔)
 open import Function-universe eq as F
   hiding (id; _∘_; inverse; from-isomorphism;
           step-↔; _↔⟨⟩_; _□; finally-↔; $⟨_⟩_)
@@ -1539,7 +1539,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 -- Results that follow if the []-cong axioms hold for the maximum of
 -- two universe levels (as well as for the two universe levels)
 
-module []-cong₂
+module []-cong₂-⊔
   (ax₁ : []-cong-axiomatisation ℓ₁)
   (ax₂ : []-cong-axiomatisation ℓ₂)
   (ax  : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂))
@@ -1683,5 +1683,5 @@ module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
       []-cong₁ (ax {ℓ = ℓ})
       public
     open module BC₂ {ℓ₁ ℓ₂} =
-      []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) (ax {ℓ = ℓ₁ ⊔ ℓ₂})
+      []-cong₂-⊔ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) (ax {ℓ = ℓ₁ ⊔ ℓ₂})
       public

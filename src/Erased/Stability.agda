@@ -1393,14 +1393,14 @@ Erased-other-singleton≃ᴱ⊤ =
 -- Results that depend on an instantiation of the []-cong axioms (for
 -- two universe levels as well as their maximum)
 
-module []-cong₂₁
+module []-cong₂-⊔₁
   (ax₁ : []-cong-axiomatisation ℓ₁)
   (ax₂ : []-cong-axiomatisation ℓ₂)
   (ax  : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂))
   where
 
   open []-cong-axiomatisation ax
-  open E₂.[]-cong₂ ax₁ ax₂ ax
+  open E₂.[]-cong₂-⊔ ax₁ ax₂ ax
 
   ----------------------------------------------------------------------
   -- Preservation lemmas
@@ -1581,7 +1581,7 @@ module []-cong₂₁
 module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   open E₁.[]-cong₁ ax
-  open []-cong₂₁ ax ax ax
+  open []-cong₂-⊔₁ ax ax ax
 
   ----------------------------------------------------------------------
   -- Some lemmas related to stability
@@ -2198,7 +2198,7 @@ module []-cong₁-lsuc (ax : []-cong-axiomatisation (lsuc ℓ)) where
 -- More results that depend on an instantiation of the []-cong axioms
 -- (for two universe levels as well as their maximum)
 
-module []-cong₂₂
+module []-cong₂-⊔₂
   (ax₁ : []-cong-axiomatisation ℓ₁)
   (ax₂ : []-cong-axiomatisation ℓ₂)
   (ax  : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂))
@@ -2216,7 +2216,8 @@ module []-cong₂₂
     Very-stable (Erased A ↝[ k ] Erased B)
   Very-stable-Erased↝Erased {k = k} {A = A} {B = B} ext =
                                             $⟨ Very-stable-Erased ⟩
-    Very-stable (Erased (A ↝[ k ] B))       ↝⟨ []-cong₂₁.Very-stable-cong ax ax ax _ (from-isomorphism $ E₂.[]-cong₂.Erased-↝↔↝ ax₁ ax₂ ax ext) ⦂ (_ → _) ⟩□
+    Very-stable (Erased (A ↝[ k ] B))       ↝⟨ []-cong₂-⊔₁.Very-stable-cong ax ax ax _ (from-isomorphism $ E₂.[]-cong₂-⊔.Erased-↝↔↝ ax₁ ax₂ ax ext)
+                                                 ⦂ (_ → _) ⟩□
     Very-stable (Erased A ↝[ k ] Erased B)  □
 
   -- A generalisation of Very-stable-Σ.
@@ -2235,8 +2236,8 @@ module []-cong₂₂
          { from = Very-stable-Σ s
          ; to   = flip λ x →
              Very-stable (Σ A P)                          ↝⟨ flip Very-stable-Σ (λ _ → []-cong₁.Very-stable→Very-stable-≡ ax₁ 0 s _ _) ⟩
-             Very-stable (∃ λ ((y , _) : Σ A P) → y ≡ x)  ↝⟨ []-cong₂₁.Very-stable-cong ax ax  ax _ $ from-bijection $ inverse Σ-assoc ⟩
-             Very-stable (∃ λ (y : A) → P y × y ≡ x)      ↝⟨ []-cong₂₁.Very-stable-cong ax ax₂ ax _ $ from-bijection $ inverse $ ∃-intro _ _ ⟩□
+             Very-stable (∃ λ ((y , _) : Σ A P) → y ≡ x)  ↝⟨ []-cong₂-⊔₁.Very-stable-cong ax ax  ax _ $ from-bijection $ inverse Σ-assoc ⟩
+             Very-stable (∃ λ (y : A) → P y × y ≡ x)      ↝⟨ []-cong₂-⊔₁.Very-stable-cong ax ax₂ ax _ $ from-bijection $ inverse $ ∃-intro _ _ ⟩□
              Very-stable (P x)                            □
          })
       Very-stable-propositional
@@ -2282,12 +2283,12 @@ module []-cong₂₂
   Stable-[]-≡-⊎ n sA sB =
     For-iterated-equality-⊎-suc
       n
-      ([]-cong₂₁.Stable-[]-map-↔ ax ax ax)
+      ([]-cong₂-⊔₁.Stable-[]-map-↔ ax ax ax)
       (Very-stable→Stable 0 Very-stable-⊥)
       (For-iterated-equality-↑ _ (1 + n)
-         ([]-cong₂₁.Stable-[]-map-↔ ax ax₁ ax) sA)
+         ([]-cong₂-⊔₁.Stable-[]-map-↔ ax ax₁ ax) sA)
       (For-iterated-equality-↑ _ (1 + n)
-         ([]-cong₂₁.Stable-[]-map-↔ ax ax₂ ax) sB)
+         ([]-cong₂-⊔₁.Stable-[]-map-↔ ax ax₂ ax) sB)
 
   -- If equality is very stable for A and B, then it is very stable
   -- for A ⊎ B.
@@ -2313,7 +2314,7 @@ module []-cong₂₂
       []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂) →
       A ↔ B → Very-stable A → Very-stable B
     lemma ax₁ ax₂ ax =
-      []-cong₂₁.Very-stable-cong ax₁ ax₂ ax _ ∘
+      []-cong₂-⊔₁.Very-stable-cong ax₁ ax₂ ax _ ∘
       from-isomorphism
 
   ----------------------------------------------------------------------
@@ -2331,7 +2332,7 @@ module []-cong₂₂
     For-iterated-equality-Π
       ext
       n
-      ([]-cong₂₁.Stable-[]-map-↔ ax ax ax)
+      ([]-cong₂-⊔₁.Stable-[]-map-↔ ax ax ax)
       (Stable-[]-Π (forget-ext? k ext))
 
   -- A generalisation of Very-stable-Π.
@@ -2346,7 +2347,7 @@ module []-cong₂₂
     For-iterated-equality-Π
       ext
       n
-      ([]-cong₂₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
+      ([]-cong₂-⊔₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
       (Very-stable-Π ext)
 
   -- A generalisation of Very-stable-Stable-Σ.
@@ -2360,7 +2361,7 @@ module []-cong₂₂
   Very-stable-Stable-Σⁿ {k = k} n =
     For-iterated-equality-Σ
       n
-      ([]-cong₂₁.Stable-[]-map-↔ ax ax ax)
+      ([]-cong₂-⊔₁.Stable-[]-map-↔ ax ax ax)
       Very-stable-Stable-Σ
 
   -- A variant of Stable-Σ for equality.
@@ -2374,7 +2375,7 @@ module []-cong₂₂
   Stable-≡-Σ {P = P} {p = p} {q = q} s₁ hyp s₂ =  $⟨ Stable-Σ s₁ hyp s₂ ⟩
 
     Stable (∃ λ (eq : proj₁ p ≡ proj₁ q) →
-                subst P eq (proj₂ p) ≡ proj₂ q)   ↝⟨ []-cong₂₁.Stable-[]-map-↔ ax ax ax Bijection.Σ-≡,≡↔≡ ⟩□
+                subst P eq (proj₂ p) ≡ proj₂ q)   ↝⟨ []-cong₂-⊔₁.Stable-[]-map-↔ ax ax ax Bijection.Σ-≡,≡↔≡ ⟩□
 
     Stable (p ≡ q)                                □
 
@@ -2389,7 +2390,7 @@ module []-cong₂₂
   Very-stable-Σⁿ n =
     For-iterated-equality-Σ
       n
-      ([]-cong₂₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
+      ([]-cong₂-⊔₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
       Very-stable-Σ
 
   -- A generalisation of Stable-[]-×.
@@ -2403,7 +2404,7 @@ module []-cong₂₂
   Stable-[]-×ⁿ n =
     For-iterated-equality-×
       n
-      ([]-cong₂₁.Stable-[]-map-↔ ax ax ax)
+      ([]-cong₂-⊔₁.Stable-[]-map-↔ ax ax ax)
       Stable-[]-×
 
   -- A generalisation of Very-stable-×.
@@ -2417,7 +2418,7 @@ module []-cong₂₂
   Very-stable-×ⁿ n =
     For-iterated-equality-×
       n
-      ([]-cong₂₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
+      ([]-cong₂-⊔₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
       Very-stable-×
 
   -- A generalisation of Stable-↑.
@@ -2429,7 +2430,7 @@ module []-cong₂₂
     For-iterated-equality n Stable-[ k ] (↑ ℓ₁ A)
   Stable-↑ⁿ n =
     For-iterated-equality-↑ _ n
-      ([]-cong₂₁.Stable-[]-map-↔ ax ax₂ ax)
+      ([]-cong₂-⊔₁.Stable-[]-map-↔ ax ax₂ ax)
 
   -- A generalisation of Very-stable-↑.
 
@@ -2442,7 +2443,7 @@ module []-cong₂₂
     For-iterated-equality-↑
       _
       n
-      ([]-cong₂₁.Very-stable-cong ax₂ ax ax _ ∘ from-isomorphism)
+      ([]-cong₂-⊔₁.Very-stable-cong ax₂ ax ax _ ∘ from-isomorphism)
 
   -- A generalisation of Very-stable-W.
 
@@ -2456,10 +2457,10 @@ module []-cong₂₂
     For-iterated-equality-W
       ext
       n
-      ([]-cong₂₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
+      ([]-cong₂-⊔₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
       (Very-stable-Π ext)
       Very-stable-Σ
-      ([]-cong₂₁.Very-stable-W ax₁ ax₂ ax ext)
+      ([]-cong₂-⊔₁.Very-stable-W ax₁ ax₂ ax ext)
 
 ------------------------------------------------------------------------
 -- Results that depend on instances of the axiomatisation of []-cong
@@ -2468,17 +2469,20 @@ module []-cong₂₂
 module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
 
   private
-    open module BC₂₁ {ℓ₁ ℓ₂} = []-cong₂₁ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
+    open module BC₂₁ {ℓ₁ ℓ₂} =
+      []-cong₂-⊔₁ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
       public
     open module BC₁ {ℓ} = []-cong₁ (ax {ℓ = ℓ})
       public
     open module BC₁-lsuc {ℓ} = []-cong₁-lsuc (ax {ℓ = lsuc ℓ})
       public
-    open module BC₂₂ {ℓ₁ ℓ₂} = []-cong₂₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
+    open module BC₂₂ {ℓ₁ ℓ₂} =
+      []-cong₂-⊔₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
       public
 
     open module BC         = E₁.[]-cong ax
-    open module EC {ℓ₁ ℓ₂} = E₂.[]-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
+    open module EC {ℓ₁ ℓ₂} =
+      E₂.[]-cong₂-⊔ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
 
   ----------------------------------------------------------------------
   -- Erased-cong commutes with F._∘_ for all kinds of functions (in

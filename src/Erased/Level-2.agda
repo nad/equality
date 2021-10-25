@@ -32,7 +32,7 @@ open import Preimage eq-J using (_⁻¹_)
 open import Surjection eq-J using (_↠_; Split-surjective)
 
 open import Erased.Level-1 eq-J as E₁
-  hiding (module []-cong; module []-cong₂)
+  hiding (module []-cong; module []-cong₂-⊔)
 
 private
 
@@ -48,7 +48,7 @@ private
 -- Results that depend on an instantiation of the []-cong axioms (for
 -- two universe levels as well as their maximum)
 
-module []-cong₂
+module []-cong₂-⊔
   (ax₁ : E₁.[]-cong-axiomatisation ℓ₁)
   (ax₂ : E₁.[]-cong-axiomatisation ℓ₂)
   (ax  : E₁.[]-cong-axiomatisation (ℓ₁ ⊔ ℓ₂))
@@ -61,7 +61,7 @@ module []-cong₂
 
   private
 
-    module EEq′ = EEq.[]-cong₂ ax₁ ax₂ ax
+    module EEq′ = EEq.[]-cong₂-⊔ ax₁ ax₂ ax
 
   ----------------------------------------------------------------------
   -- Erased commutes with all kinds of functions (in some cases
@@ -240,10 +240,10 @@ module []-cong₁₃
   (ax  : E₁.[]-cong-axiomatisation ℓ)
   where
 
-  -- Note that []-cong₂, which contains Erased-cong, is instantiated
+  -- Note that []-cong₂-⊔, which contains Erased-cong, is instantiated
   -- with all of the module parameters.
 
-  open []-cong₂ ax₁ ax₂ ax
+  open []-cong₂-⊔ ax₁ ax₂ ax
 
   private
     module BC₁ = E₁.[]-cong₁ ax₁
@@ -268,7 +268,7 @@ module []-cong₁₃
       Extensionality ℓ ℓ →
       Erased-cong {k = equivalenceᴱ} F.id ≡ F.id {A = Erased A}
     Erased-cong-≃ᴱ-id ext =
-      EEq.[]-cong₂.to≡to→≡-Erased ax₁ ax₂ ax ext (refl _)
+      EEq.[]-cong₂-⊔.to≡to→≡-Erased ax₁ ax₂ ax ext (refl _)
 
     Erased-cong-Embedding-id :
       {@0 A : Type ℓ} →
@@ -361,7 +361,7 @@ module []-cong₁₃
 module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
 
   private
-    open module BC₂ {ℓ₁ ℓ₂} = []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
+    open module BC₂ {ℓ₁ ℓ₂} = []-cong₂-⊔ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
       public
     open module BC₁₃ {ℓ} = []-cong₁₃ (ax {ℓ = ℓ}) ax ax
       public

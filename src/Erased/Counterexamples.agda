@@ -219,7 +219,7 @@ Zero-topological {ℓ′ = ℓ′} {ℓ = ℓ} =
 -- It is not the case that, for any type A and type family P over A,
 -- if A is Zero-modal, then W A P is Zero-modal.
 --
--- Compare with Erased.Stability.[]-cong₂₁.Very-stable-W, which is
+-- Compare with Erased.Stability.[]-cong₂-⊔₁.Very-stable-W, which is
 -- proved under the assumption of function extensionality.
 
 ¬[Zero-modal-W] :
@@ -251,7 +251,7 @@ Zero-topological {ℓ′ = ℓ′} {ℓ = ℓ} =
 -- It is not the case that, for all types A and B, if equality is
 -- Zero-modal for A and B, then equality is Zero-modal for A ⊎ B.
 --
--- Compare with Erased.Stability.[]-cong₂₂.Very-stable-≡-⊎.
+-- Compare with Erased.Stability.[]-cong₂-⊔₂.Very-stable-≡-⊎.
 
 ¬[Zero-modal-≡-⊎] :
   ¬ ({A : Type a} {B : Type b} →
