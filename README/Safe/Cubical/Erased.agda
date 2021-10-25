@@ -88,6 +88,11 @@ import H-level.Truncation.Propositional
 
 import H-level.Truncation.Propositional.Non-recursive
 
+-- Some properties that hold for Erased do not hold for every
+-- accessible modality.
+
+import Erased.Counterexamples.Cubical
+
 -- The "interval".
 
 import Interval
