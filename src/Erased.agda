@@ -24,10 +24,7 @@ open E₁ public
           module Extensionality)
 open E₁.[]-cong ax public
 import Erased.Level-2 eq as E₂
-private
-  open module E₂′ {ℓ₁ ℓ₂} =
-    E₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
-    public
+open E₂.[]-cong ax public
 open import Erased.Stability eq as ES public
   hiding (module []-cong;
           module []-cong₁; module []-cong₁-lsuc; module []-cong₁₃;

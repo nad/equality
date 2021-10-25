@@ -1400,7 +1400,7 @@ module []-cong₂₁
   where
 
   open []-cong-axiomatisation ax
-  open E₂ ax₁ ax₂ ax
+  open E₂.[]-cong₂ ax₁ ax₂ ax
 
   ----------------------------------------------------------------------
   -- Preservation lemmas
@@ -2216,7 +2216,7 @@ module []-cong₂₂
     Very-stable (Erased A ↝[ k ] Erased B)
   Very-stable-Erased↝Erased {k = k} {A = A} {B = B} ext =
                                             $⟨ Very-stable-Erased ⟩
-    Very-stable (Erased (A ↝[ k ] B))       ↝⟨ []-cong₂₁.Very-stable-cong ax ax ax _ (from-isomorphism $ E₂.Erased-↝↔↝ ax₁ ax₂ ax ext) ⦂ (_ → _) ⟩□
+    Very-stable (Erased (A ↝[ k ] B))       ↝⟨ []-cong₂₁.Very-stable-cong ax ax ax _ (from-isomorphism $ E₂.[]-cong₂.Erased-↝↔↝ ax₁ ax₂ ax ext) ⦂ (_ → _) ⟩□
     Very-stable (Erased A ↝[ k ] Erased B)  □
 
   -- A generalisation of Very-stable-Σ.
@@ -2471,10 +2471,10 @@ module []-cong₁₃
   (ax  : []-cong-axiomatisation ℓ)
   where
 
-  -- Note that E₂, which contains Erased-cong, is instantiated with
-  -- all of the module parameters.
+  -- Note that E₂.[]-cong₂, which contains Erased-cong, is
+  -- instantiated with all of the module parameters.
 
-  open E₂ ax₁ ax₂ ax
+  open E₂.[]-cong₂ ax₁ ax₂ ax
 
   private
     module BC₁ = E₁.[]-cong₁ ax₁
@@ -2604,7 +2604,7 @@ module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
       public
 
     open module BC         = E₁.[]-cong ax
-    open module EC {ℓ₁ ℓ₂} = E₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
+    open module EC {ℓ₁ ℓ₂} = E₂.[]-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
 
   ----------------------------------------------------------------------
   -- Erased-cong commutes with F._∘_ for all kinds of functions (in
