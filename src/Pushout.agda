@@ -258,15 +258,6 @@ Join-⊥ˡ {A = A} =
   Join A ⊥  ↝⟨ Join-⊥ʳ ⟩□
   A         □
 
--- It is not the case that, for every proposition A, the join of A and
--- the empty type is equivalent to the empty type.
-
-Join-⊥≄⊥ : ¬ ({A : Type a} → Is-proposition A → Join A ⊥₀ ≃ ⊥₀)
-Join-⊥≄⊥ hyp =    $⟨ _ ⟩
-  ↑ _ ⊤           ↝⟨ inverse Join-⊥ʳ ⟩
-  Join (↑ _ ⊤) ⊥  ↝⟨ hyp (H-level.mono₁ 0 $ ↑-closure 0 ⊤-contractible) ⟩□
-  ⊥               □
-
 -- Cones.
 
 Cone : {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
