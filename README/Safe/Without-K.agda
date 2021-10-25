@@ -230,6 +230,11 @@ import Erased.Level-2
 
 import Erased.Stability
 
+-- Some properties that hold for Erased do not hold for every
+-- topological modality.
+
+import Erased.Counterexamples
+
 -- Truncation, defined using a kind of Church encoding.
 
 import H-level.Truncation.Church
