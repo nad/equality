@@ -1020,7 +1020,27 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
 -- Erased is accessible and topological (assuming extensionality)
 
 -- A definition of what it means for a Σ-closed reflective subuniverse
--- to be accessible and topological (for a certain universe level).
+-- to be accessible (for a certain universe level).
+--
+-- This definition is based on (one version of) the Coq code
+-- accompanying "Modalities in Homotopy Type Theory" by Rijke, Shulman
+-- and Spitters.
+
+Accessible :
+  (ℓ : Level) → Σ-closed-reflective-subuniverse a → Type (lsuc (a ⊔ ℓ))
+Accessible {a = a} ℓ U =
+  ∃ λ (I : Type ℓ) →
+  ∃ λ (P : I → Type ℓ) →
+    (A : Type a) →
+    Is-modal A ⇔
+    ∀ i →
+    Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
+      (λ (_ : ↑ ℓ ⊤) → A)
+  where
+  open Σ-closed-reflective-subuniverse U
+
+-- A definition of what it means for a Σ-closed reflective subuniverse
+-- to be topological (for a certain universe level).
 --
 -- This definition is based on (one version of) the Coq code
 -- accompanying "Modalities in Homotopy Type Theory" by Rijke, Shulman
