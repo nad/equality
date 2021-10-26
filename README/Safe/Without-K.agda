@@ -179,11 +179,6 @@ import List
 
 import Pullback
 
--- Some results related to the For-iterated-equality predicate
--- transformer.
-
-import For-iterated-equality
-
 -- The univalence axiom.
 
 import Univalence-axiom
@@ -204,44 +199,6 @@ import Group
 -- Integers.
 
 import Integer
-
--- A type for values that should be erased at run-time.
-
-import Erased.Level-1
-
--- Equivalences with erased "proofs", defined in terms of partly
--- erased contractible fibres.
-
-import Equivalence.Erased.Contractible-preimages
-
--- Equivalences with erased "proofs".
-
-import Equivalence.Erased
-
--- Embeddings with erased "proofs".
-
-import Embedding.Erased
-
--- A type for values that should be erased at run-time.
-
-import Erased.Level-2
-
--- Properties related to stability for Erased.
-
-import Erased.Stability
-
--- Some properties that hold for Erased do not hold for every
--- topological modality.
-
-import Erased.Counterexamples
-
--- Truncation, defined using a kind of Church encoding.
-
-import H-level.Truncation.Church
-
--- Some omniscience principles.
-
-import Omniscience
 
 -- Some definitions related to and properties of finite sets.
 
@@ -291,6 +248,49 @@ import Tactic.By.Parametrised.Tests
 -- readable for propositional equality.
 
 import Tactic.By.Propositional
+
+-- A type for values that should be erased at run-time.
+
+import Erased.Level-1
+
+-- Equivalences with erased "proofs", defined in terms of partly
+-- erased contractible fibres.
+
+import Equivalence.Erased.Contractible-preimages
+
+-- Equivalences with erased "proofs".
+
+import Equivalence.Erased
+
+-- Embeddings with erased "proofs".
+
+import Embedding.Erased
+
+-- A type for values that should be erased at run-time.
+
+import Erased.Level-2
+
+-- Some results related to the For-iterated-equality predicate
+-- transformer.
+
+import For-iterated-equality
+
+-- Properties related to stability for Erased.
+
+import Erased.Stability
+
+-- Some properties that hold for Erased do not hold for every
+-- topological modality.
+
+import Erased.Counterexamples
+
+-- Truncation, defined using a kind of Church encoding.
+
+import H-level.Truncation.Church
+
+-- Some omniscience principles.
+
+import Omniscience
 
 -- Bag equivalence for lists.
 
