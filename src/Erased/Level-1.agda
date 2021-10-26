@@ -1289,7 +1289,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   elimᴱ :
     {@0 A : Type ℓ} {@0 x y : A}
     (P : {@0 x y : A} → @0 x ≡ y → Type p) →
-    (∀ (@0 x) → P (refl x)) →
+    ((@0 x : A) → P (refl x)) →
     (@0 x≡y : x ≡ y) → P x≡y
   elimᴱ {y = y} P p = elim₁ᴱ P (p y)
 
@@ -1388,8 +1388,8 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- A computation rule for elimᴱ.
 
   elimᴱ-refl :
-    ∀ {@0 A : Type ℓ} {@0 x} {P : {@0 x y : A} → @0 x ≡ y → Type p}
-    (r : ∀ (@0 x) → P (refl x)) →
+    {@0 A : Type ℓ} {@0 x : A} {P : {@0 x y : A} → @0 x ≡ y → Type p}
+    (r : (@0 x : A) → P (refl x)) →
     elimᴱ P r (refl x) ≡ r x
   elimᴱ-refl _ = elim₁ᴱ-refl
 
