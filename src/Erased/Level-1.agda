@@ -355,18 +355,25 @@ Erased-¬↔¬ {A = A} ext =
   ; from = λ f ([ x ]) → f x
   }
 
--- There is an equivalence between (x : Erased A) → P x and
--- (@0 x : A) → P [ x ].
+-- There is an equivalence between (x : Erased A) → P (erased x) and
+-- (@0 x : A) → P x.
+
+Π-Erased≃Π0 :
+  {@0 A : Type a} {P : @0 A → Type p} →
+  ((x : Erased A) → P (erased x)) ≃ ((@0 x : A) → P x)
+Π-Erased≃Π0 {A = A} {P = P} =
+  Eq.↔→≃ {B = (@0 x : A) → P x}
+    (_⇔_.to Π-Erased⇔Π0)
+    (_⇔_.from Π-Erased⇔Π0)
+    (λ _ → refl {A = (@0 x : A) → P x} _)
+    (λ _ → refl _)
+
+-- A variant of Π-Erased≃Π0.
 
 Π-Erased≃Π0[] :
   {@0 A : Type a} {P : Erased A → Type p} →
   ((x : Erased A) → P x) ≃ ((@0 x : A) → P [ x ])
-Π-Erased≃Π0[] {A = A} {P = P} =
-  Eq.↔→≃ {B = (@0 x : A) → P [ x ]}
-    (let record { to   = to   } = Π-Erased⇔Π0 in to)
-    (let record { from = from } = Π-Erased⇔Π0 in from)
-    (λ _ → refl {A = (@0 x : A) → P [ x ]} _)
-    (λ _ → refl _)
+Π-Erased≃Π0[] = Π-Erased≃Π0
 
 -- Erased commutes with W up to logical equivalence.
 
@@ -448,7 +455,7 @@ ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
 Πᴱ-closure {P = P} ext n =
   (∀ (@0 x) → H-level n (P x))       →⟨ (let record { from = from } = Π-Erased⇔Π0 in from) ⟩
   (∀ x → H-level n (P (x .erased)))  →⟨ Π-closure ext n ⟩
-  H-level n (∀ x → P (x .erased))    →⟨ H-level-cong {B = ∀ (@0 x) → P x} _ n Π-Erased≃Π0[] ⟩□
+  H-level n (∀ x → P (x .erased))    →⟨ H-level-cong {B = ∀ (@0 x) → P x} _ n Π-Erased≃Π0 ⟩□
   H-level n (∀ (@0 x) → P x)         □
 
 -- A variant of H-level.Π-closure for function spaces with erased

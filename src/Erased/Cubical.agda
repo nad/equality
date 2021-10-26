@@ -123,7 +123,8 @@ instance-of-[]-cong-axiomatisation = λ where
 
 open import Erased equality-with-J instance-of-[]-cong-axiomatisation
   public
-  hiding ([]-cong; []-cong-equivalence; []-cong-[refl]; Π-Erased≃Π0[])
+  hiding ([]-cong; []-cong-equivalence; []-cong-[refl];
+          Π-Erased≃Π0[]; Π-Erased≃Π0)
 
 ------------------------------------------------------------------------
 -- Variants of some of the reexported definitions
@@ -180,8 +181,6 @@ private
 
 -- There is a bijection (with paths for equality, not _≡_) between
 -- (x : Erased A) → P x and (@0 x : A) → P [ x ].
---
--- This is a strengthening of the result of the same name from Erased.
 
 Π-Erased↔Π0[] :
   {@0 A : Type a} {@0 P : Erased A → Type p} →
@@ -201,6 +200,8 @@ private
 -- because the type arguments of the conversion function in
 -- Equivalence are not erased, and P can only be used in erased
 -- contexts.
+--
+-- This is a strengthening of E.Π-Erased≃Π0[].
 
 Π-Erased≃Π0[] :
   {@0 A : Type a} {@0 P : Erased A → Type p} →
@@ -224,6 +225,8 @@ private
 
 -- There is an equivalence (with paths for equality, not _≡_) between
 -- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
+--
+-- This is a strengthening of E.Π-Erased≃Π0.
 
 Π-Erased≃Π0 :
   {@0 A : Type a} {@0 P : A → Type p} →
