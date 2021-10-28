@@ -465,7 +465,7 @@ ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
   ((@0 x : A) → H-level n (P x)) →
   H-level n ((@0 x : A) → P x)
 Πᴱ-closure {P = P} ext n =
-  (∀ (@0 x) → H-level n (P x))       →⟨ (let record { from = from } = Π-Erased⇔Π0 in from) ⟩
+  (∀ (@0 x) → H-level n (P x))       →⟨ Eq._≃₀_.from Π-Erased≃Π0 ⟩
   (∀ x → H-level n (P (x .erased)))  →⟨ Π-closure ext n ⟩
   H-level n (∀ x → P (x .erased))    →⟨ H-level-cong {B = ∀ (@0 x) → P x} _ n Π-Erased≃Π0 ⟩□
   H-level n (∀ (@0 x) → P x)         □
@@ -495,9 +495,9 @@ apply-extᴱ :
   ((@0 x : A) → f x ≡ g x) →
   f ≡ g
 apply-extᴱ {A = A} {P = P} {f = f} {g = g} ext =
-  ((@0 x : A) → f x ≡ g x)                          →⟨ (let record { from = from } = Π-Erased⇔Π0 in from) ⟩
+  ((@0 x : A) → f x ≡ g x)                          →⟨ Eq._≃₀_.from Π-Erased≃Π0 ⟩
   ((x : Erased A) → f (x .erased) ≡ g (x .erased))  →⟨ apply-ext ext ⟩
-  (λ x → f (x .erased)) ≡ (λ x → g (x .erased))     →⟨ cong {B = (@0 x : A) → P x} (let record { to = to } = Π-Erased⇔Π0 in to) ⟩□
+  (λ x → f (x .erased)) ≡ (λ x → g (x .erased))     →⟨ cong {B = (@0 x : A) → P x} (Eq._≃₀_.to Π-Erased≃Π0) ⟩□
   f ≡ g                                             □
 
 -- Extensionality implies extensionality for some functions with
