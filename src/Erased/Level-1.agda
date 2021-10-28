@@ -119,13 +119,6 @@ instance
 ------------------------------------------------------------------------
 -- Erased preserves some kinds of functions
 
--- Erased preserves dependent functions.
-
-map :
-  {@0 A : Type a} {@0 P : A → Type b} →
-  @0 ((x : A) → P x) → (x : Erased A) → Erased (P (erased x))
-map f [ x ] = [ f x ]
-
 -- Erased is functorial for dependent functions.
 
 map-id : {@0 A : Type a} → map id ≡ id {A = Erased A}
@@ -136,14 +129,6 @@ map-∘ :
   (@0 f : ∀ {x} (y : P x) → Q y) (@0 g : (x : A) → P x) →
   map (f ∘ g) ≡ map f ∘ map g
 map-∘ _ _ = refl _
-
--- A binary variant of map.
-
-zip :
-  {@0 A : Type a} {@0 P : A → Type p} {@0 Q : {x : A} → P x → Type q} →
-  @0 ((x : A) (p : P x) → Q p) →
-  (([ x ]) : Erased A) (([ p ]) : Erased (P x)) → Erased (Q p)
-zip f [ x ] [ p ] = [ f x p ]
 
 -- Erased preserves logical equivalences.
 
