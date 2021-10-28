@@ -31,3 +31,8 @@ open Erased public
 
 [_]→ : {@0 A : Type a} → A → Erased A
 [ x ]→ = [ x ]
+
+-- A variant of [_]→.
+
+[_∣_]→ : (@0 A : Type a) → A → Erased A
+[_∣_]→ _ = [_]→

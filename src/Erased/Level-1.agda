@@ -69,12 +69,12 @@ mutual
 -- A variant of Stable-[ equivalence ].
 
 Very-stable : Type a → Type a
-Very-stable A = Is-equivalence ([_]→ {A = A})
+Very-stable A = Is-equivalence [ A ∣_]→
 
 -- A variant of Stable-[ equivalenceᴱ ].
 
 Very-stableᴱ : Type a → Type a
-Very-stableᴱ A = Is-equivalenceᴱ ([_]→ {A = A})
+Very-stableᴱ A = Is-equivalenceᴱ [ A ∣_]→
 
 -- Variants of the definitions above for equality.
 
@@ -400,7 +400,7 @@ Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
 uniquely-eliminating-modality :
   {@0 P : Erased A → Type p} →
   Is-equivalence
-    (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [_]→ {A = A})
+    (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [ A ∣_]→)
 uniquely-eliminating-modality {A = A} {P = P} =
   _≃_.is-equivalence
     (((x : Erased A) → Erased (P x))  ↔⟨ inverse Erased-Π↔Π-Erased ⟩
@@ -739,7 +739,7 @@ Erasedᴾ-preserves-Is-equivalence-relation equiv = λ where
 -- In an erased context [_]→ is always an embedding.
 
 Erased-Is-embedding-[] :
-  {@0 A : Type a} → Erased (Is-embedding ([_]→ {A = A}))
+  {@0 A : Type a} → Erased (Is-embedding [ A ∣_]→)
 Erased-Is-embedding-[] =
   [ (λ x y → _≃_.is-equivalence (
        x ≡ y          ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔ ⟩□
@@ -749,7 +749,7 @@ Erased-Is-embedding-[] =
 -- In an erased context [_]→ is always split surjective.
 
 Erased-Split-surjective-[] :
-  {@0 A : Type a} → Erased (Split-surjective ([_]→ {A = A}))
+  {@0 A : Type a} → Erased (Split-surjective [ A ∣_]→)
 Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
 
 ------------------------------------------------------------------------
@@ -1613,7 +1613,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   Is-proposition→Is-embedding-[] :
     {A : Type ℓ} →
-    Is-proposition A → Is-embedding ([_]→ {A = A})
+    Is-proposition A → Is-embedding [ A ∣_]→
   Is-proposition→Is-embedding-[] prop =
     _⇔_.to (Emb.Injective⇔Is-embedding
               set (H-level-Erased 2 set) [_]→)

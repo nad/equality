@@ -80,12 +80,12 @@ open import Erased equality-with-J instance-of-[]-cong-axiomatisation
 
 -- [_]→ is injective.
 
-Injective-[] : {@0 A : Type a} → Injective ([_]→ {A = A})
+Injective-[] : {@0 A : Type a} → Injective [ A ∣_]→
 Injective-[] refl = refl
 
 -- [_]→ is an embedding.
 
-Is-embedding-[] : {@0 A : Type a} → Is-embedding ([_]→ {A = A})
+Is-embedding-[] : {@0 A : Type a} → Is-embedding [ A ∣_]→
 Is-embedding-[] _ _ =
     (λ { refl → refl })
   , (λ { refl → refl })

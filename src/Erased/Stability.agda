@@ -58,7 +58,7 @@ private
 -- If A is very stable, then [_]→ {A = A} is an embedding.
 
 Very-stable→Is-embedding-[] :
-  Very-stable A → Is-embedding ([_]→ {A = A})
+  Very-stable A → Is-embedding [ A ∣_]→
 Very-stable→Is-embedding-[] {A = A} s x y =
   _≃_.is-equivalence ≡≃[]≡[]
   where
@@ -71,7 +71,7 @@ Very-stable→Is-embedding-[] {A = A} s x y =
 -- If A is very stable, then [_]→ {A = A} is split surjective.
 
 Very-stable→Split-surjective-[] :
-  Very-stable A → Split-surjective ([_]→ {A = A})
+  Very-stable A → Split-surjective [ A ∣_]→
 Very-stable→Split-surjective-[] {A = A} =
   Very-stable A          ↔⟨⟩
   Is-equivalence [_]→    ↝⟨ (λ hyp → _↠_.split-surjective $ _≃_.surjection $ Eq.⟨ _ , hyp ⟩) ⟩
@@ -1689,7 +1689,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   Stable-≡↔Injective-[] :
     {A : Type ℓ} →
-    Stable-≡ A ↝[ ℓ ∣ ℓ ] Injective ([_]→ {A = A})
+    Stable-≡ A ↝[ ℓ ∣ ℓ ] Injective [ A ∣_]→
   Stable-≡↔Injective-[] ext =
     (∀ x y → Erased (x ≡ y) → x ≡ y)    ↝⟨ (∀-cong ext λ _ → from-isomorphism $ inverse Bijection.implicit-Π↔Π) ⟩
     (∀ x {y} → Erased (x ≡ y) → x ≡ y)  ↔⟨ inverse Bijection.implicit-Π↔Π ⟩
@@ -1702,12 +1702,12 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   Very-stable-≡↔Is-embedding-[] :
     {A : Type ℓ} →
-    Very-stable-≡ A ↝[ ℓ ∣ ℓ ] Is-embedding ([_]→ {A = A})
+    Very-stable-≡ A ↝[ ℓ ∣ ℓ ] Is-embedding [ A ∣_]→
   Very-stable-≡↔Is-embedding-[] ext =
-    (∀ x y → Is-equivalence ([_]→ {A = x ≡ y}))            ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
-                                                               Is-equivalence≃Is-equivalence-∘ˡ []-cong-equivalence ext) ⟩
-    (∀ x y → Is-equivalence ([]-cong ∘ [_]→ {A = x ≡ y}))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence-cong ext λ _ → []-cong-[]≡cong-[]) ⟩□
-    (∀ x y → Is-equivalence (cong {x = x} {y = y} [_]→))   □
+    (∀ x y → Is-equivalence [ x ≡ y ∣_]→)                 ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
+                                                              Is-equivalence≃Is-equivalence-∘ˡ []-cong-equivalence ext) ⟩
+    (∀ x y → Is-equivalence ([]-cong ∘ [ x ≡ y ∣_]→))     ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence-cong ext λ _ → []-cong-[]≡cong-[]) ⟩□
+    (∀ x y → Is-equivalence (cong {x = x} {y = y} [_]→))  □
 
   private
 
@@ -1717,11 +1717,11 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       {A : Type ℓ} →
       ∀ n →
       For-iterated-equality (1 + n) Very-stable A ↝[ ℓ ∣ ℓ ]
-      For-iterated-equality n (λ A → Is-embedding ([_]→ {A = A})) A
+      For-iterated-equality n (λ A → Is-embedding [ A ∣_]→) A
     Very-stable-≡↔Is-embedding-[]→ {A = A} n ext =
-      For-iterated-equality (1 + n) Very-stable A                    ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) ext ⟩
-      For-iterated-equality n Very-stable-≡ A                        ↝⟨ For-iterated-equality-cong₁ ext n (Very-stable-≡↔Is-embedding-[] ext) ⟩□
-      For-iterated-equality n (λ A → Is-embedding ([_]→ {A = A})) A  □
+      For-iterated-equality (1 + n) Very-stable A              ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) ext ⟩
+      For-iterated-equality n Very-stable-≡ A                  ↝⟨ For-iterated-equality-cong₁ ext n (Very-stable-≡↔Is-embedding-[] ext) ⟩□
+      For-iterated-equality n (λ A → Is-embedding [ A ∣_]→) A  □
 
   -- There is a logical equivalence between "equality for A is very
   -- stable with erased proofs" and "[_]→ for A is an embedding with
@@ -1729,15 +1729,15 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   Very-stableᴱ-≡⇔Is-embeddingᴱ-[] :
     {@0 A : Type ℓ} →
-    Very-stableᴱ-≡ A ⇔ Is-embeddingᴱ ([_]→ {A = A})
+    Very-stableᴱ-≡ A ⇔ Is-embeddingᴱ [ A ∣_]→
   Very-stableᴱ-≡⇔Is-embeddingᴱ-[] =
-    (∀ x y → Is-equivalenceᴱ ([_]→ {A = x ≡ y}))            LE.⇔⟨ (LE.∀-cong λ _ → LE.∀-cong λ _ →
-                                                                   EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-∘ˡ
-                                                                     (EEq.Is-equivalence→Is-equivalenceᴱ []-cong-equivalence)) ⟩
-    (∀ x y → Is-equivalenceᴱ ([]-cong ∘ [_]→ {A = x ≡ y}))  LE.⇔⟨ (LE.∀-cong λ _ → LE.∀-cong λ _ →
-                                                                   EEq.Is-equivalenceᴱ-cong-⇔ λ _ →
-                                                                   []-cong-[]≡cong-[]) ⟩□
-    (∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} [_]→))   □
+    (∀ x y → Is-equivalenceᴱ [ x ≡ y ∣_]→)                 LE.⇔⟨ (LE.∀-cong λ _ → LE.∀-cong λ _ →
+                                                                  EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-∘ˡ
+                                                                    (EEq.Is-equivalence→Is-equivalenceᴱ []-cong-equivalence)) ⟩
+    (∀ x y → Is-equivalenceᴱ ([]-cong ∘ [ x ≡ y ∣_]→))     LE.⇔⟨ (LE.∀-cong λ _ → LE.∀-cong λ _ →
+                                                                  EEq.Is-equivalenceᴱ-cong-⇔ λ _ →
+                                                                  []-cong-[]≡cong-[]) ⟩□
+    (∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} [_]→))  □
 
   -- There is an equivalence with erased proofs between "equality for
   -- A is very stable with erased proofs" and "[_]→ for A is an
@@ -1746,7 +1746,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   Very-stableᴱ-≡≃ᴱIs-embeddingᴱ-[] :
     {@0 A : Type ℓ} →
     @0 Extensionality ℓ ℓ →
-    Very-stableᴱ-≡ A ≃ᴱ Is-embeddingᴱ ([_]→ {A = A})
+    Very-stableᴱ-≡ A ≃ᴱ Is-embeddingᴱ [ A ∣_]→
   Very-stableᴱ-≡≃ᴱIs-embeddingᴱ-[] ext =
     let record { to = to; from = from } =
           Very-stableᴱ-≡⇔Is-embeddingᴱ-[]
@@ -1821,9 +1821,9 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     where
     lemma : ∀ {A} → Very-stable A → Very-stable-≡ A
     lemma {A = A} =
-      Very-stable A                ↝⟨ Very-stable→Is-embedding-[] ⟩
-      Is-embedding ([_]→ {A = A})  ↝⟨ inverse-ext? Very-stable-≡↔Is-embedding-[] _ ⟩□
-      Very-stable-≡ A              □
+      Very-stable A          ↝⟨ Very-stable→Is-embedding-[] ⟩
+      Is-embedding [ A ∣_]→  ↝⟨ inverse-ext? Very-stable-≡↔Is-embedding-[] _ ⟩□
+      Very-stable-≡ A        □
 
   private
 
