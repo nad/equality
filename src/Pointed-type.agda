@@ -151,26 +151,25 @@ Maybe→ᴮ↔→ :
   (Maybe A , nothing) →ᴮ (B , x) ↝[ a ∣ b ] (A → B)
 Maybe→ᴮ↔→ {A = A} {B} {x} = generalise-ext?
   (_↠_.logical-equivalence Maybe→ᴮ↠→)
-  (λ ext → record
-     { surjection      = Maybe→ᴮ↠→
-     ; left-inverse-of = λ { (f , eq) → Σ-≡,≡→≡
-         (apply-ext (E.good-ext ext)
-            [ (λ _ →
-                 x          ≡⟨ sym eq ⟩∎
-                 f nothing  ∎)
-            , (λ _ → refl _)
-            ])
-         (subst (λ f → f nothing ≡ x)
-                (apply-ext (E.good-ext ext)
-                   [ (λ _ → sym eq) , (λ _ → refl _) ])
-                (refl x)                                 ≡⟨ E.subst-good-ext ext _ _ ⟩
+  (λ ext →
+       refl
+     , (λ (f , eq) → Σ-≡,≡→≡
+          (apply-ext (E.good-ext ext)
+             [ (λ _ →
+                  x          ≡⟨ sym eq ⟩∎
+                  f nothing  ∎)
+             , (λ _ → refl _)
+             ])
+          (subst (λ f → f nothing ≡ x)
+                 (apply-ext (E.good-ext ext)
+                    [ (λ _ → sym eq) , (λ _ → refl _) ])
+                 (refl x)                                 ≡⟨ E.subst-good-ext ext _ _ ⟩
 
-          subst (_≡ x) (sym eq) (refl x)                 ≡⟨ subst-trans _ ⟩
+           subst (_≡ x) (sym eq) (refl x)                 ≡⟨ subst-trans _ ⟩
 
-          trans eq (refl x)                              ≡⟨ trans-reflʳ _ ⟩∎
+           trans eq (refl x)                              ≡⟨ trans-reflʳ _ ⟩∎
 
-          eq                                             ∎) }
-     })
+           eq                                             ∎)))
 
 -- A corollary.
 

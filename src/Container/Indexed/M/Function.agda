@@ -166,7 +166,9 @@ Limit-shift {ℓ = ℓ} X@(P , down) {i = i} ext =
      ∀ n → down (suc n) i (p (suc n)) ≡ p n)       ↝⟨ inverse-ext?
                                                         (generalise-ext?
                                                            (_↠_.logical-equivalence lemma₂-↠)
-                                                           lemma₂-↔)
+                                                           (λ ext →
+                                                                _↠_.right-inverse-of lemma₂-↠
+                                                              , _↔_.left-inverse-of (lemma₂-↔ ext)))
                                                         ext ⟩
   (∃ λ (p : ∀ n → P n i) →
      ∀ n → down n i (p (suc n)) ≡ p n)             ↔⟨⟩
@@ -253,9 +255,7 @@ cochain-limit :
 cochain-limit X@(_ , up) ext =
   generalise-ext?
   (_↠_.logical-equivalence cl)
-  (λ ext → record { surjection      = cl
-                  ; left-inverse-of = from∘to ext
-                  })
+  (λ ext → _↠_.right-inverse-of cl , from∘to ext)
   ext
   where
   cl = cochain-limit-↠ X
@@ -329,9 +329,7 @@ simple-cochain-limit :
 simple-cochain-limit =
   generalise-ext?
     (_↠_.logical-equivalence scl)
-    (λ ext → record { surjection      = scl
-                    ; left-inverse-of = from∘to ext
-                    })
+    (λ ext → _↠_.right-inverse-of scl , from∘to ext)
   where
   scl = simple-cochain-limit-↠
 

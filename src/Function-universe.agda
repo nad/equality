@@ -18,6 +18,7 @@ open import Equivalence eq as Eq using (_≃_; module _≃_; Is-equivalence)
 import Equivalence.Contractible-preimages eq as CP
 open import Equivalence.Erased.Basics eq as EEq using (_≃ᴱ_)
 import Equivalence.Half-adjoint eq as HA
+open import Erased.Basics as E using (Erased)
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
@@ -330,28 +331,37 @@ data Without-extensionality : Type where
 ⌊ implication         ⌋-without = implication
 ⌊ logical-equivalence ⌋-without = logical-equivalence
 
+-- Kinds for which erased extensionality is not provided.
+
+data With-erased-extensionality : Type where
+  equivalenceᴱ : With-erased-extensionality
+
+⌊_⌋-with-erased : With-erased-extensionality → Kind
+⌊ equivalenceᴱ ⌋-with-erased = equivalenceᴱ
+
 -- Kinds for which extensionality is provided.
 
 data With-extensionality : Type where
-  injection embedding surjection bijection equivalence equivalenceᴱ :
+  injection embedding surjection bijection equivalence :
     With-extensionality
 
 ⌊_⌋-with : With-extensionality → Kind
-⌊ injection    ⌋-with = injection
-⌊ embedding    ⌋-with = embedding
-⌊ surjection   ⌋-with = surjection
-⌊ bijection    ⌋-with = bijection
-⌊ equivalence  ⌋-with = equivalence
-⌊ equivalenceᴱ ⌋-with = equivalenceᴱ
+⌊ injection   ⌋-with = injection
+⌊ embedding   ⌋-with = embedding
+⌊ surjection  ⌋-with = surjection
+⌊ bijection   ⌋-with = bijection
+⌊ equivalence ⌋-with = equivalence
 
--- Kinds annotated with information about whether extensionality is
--- provided or not.
+-- Kinds annotated with information about what kind of extensionality
+-- is provided, if any.
 
 data Extensionality-kind : Kind → Type where
-  without-extensionality : (k : Without-extensionality) →
-                           Extensionality-kind ⌊ k ⌋-without
-  with-extensionality    : (k : With-extensionality) →
-                           Extensionality-kind ⌊ k ⌋-with
+  without-extensionality     : (k : Without-extensionality) →
+                               Extensionality-kind ⌊ k ⌋-without
+  with-erased-extensionality : (k : With-erased-extensionality) →
+                               Extensionality-kind ⌊ k ⌋-with-erased
+  with-extensionality        : (k : With-extensionality) →
+                               Extensionality-kind ⌊ k ⌋-with
 
 -- Is extensionality provided for the given kind?
 
@@ -364,14 +374,17 @@ extensionality? embedding           = with-extensionality embedding
 extensionality? surjection          = with-extensionality surjection
 extensionality? bijection           = with-extensionality bijection
 extensionality? equivalence         = with-extensionality equivalence
-extensionality? equivalenceᴱ        = with-extensionality equivalenceᴱ
+extensionality? equivalenceᴱ        = with-erased-extensionality
+                                        equivalenceᴱ
 
--- Extensionality, but only for certain kinds of functions.
+-- Extensionality, but only for certain kinds of functions, and
+-- possibly erased.
 
 Extensionality? : Kind → (a b : Level) → Type (lsuc (a ⊔ b))
-Extensionality? k with extensionality? k
-... | without-extensionality _ = λ _ _ → ↑ _ ⊤
-... | with-extensionality    _ = Extensionality
+Extensionality? k a b with extensionality? k
+... | without-extensionality _     = ↑ _ ⊤
+... | with-erased-extensionality _ = Erased (Extensionality a b)
+... | with-extensionality _        = Extensionality a b
 
 -- A variant of _↝[_]_. A ↝[ c ∣ d ] B means that A ↝[ k ] B can be
 -- proved for all kinds k, in some cases assuming extensionality (for
@@ -397,30 +410,45 @@ A ↝[ c ∣ d ]ᴱ B = ∀ {k} → @0 Extensionality? k c d → A ↝[ k ] B
 
 forget-ext? : ∀ k {a b} → Extensionality a b → Extensionality? k a b
 forget-ext? k with extensionality? k
-... | without-extensionality _ = _
-... | with-extensionality    _ = id
+... | without-extensionality _     = _
+... | with-erased-extensionality _ = E.[_]→
+... | with-extensionality _        = id
 
 -- A variant of lower-extensionality.
 
 lower-extensionality? :
   ∀ k {a b} â b̂ →
   Extensionality? k (a ⊔ â) (b ⊔ b̂) → Extensionality? k a b
-lower-extensionality? k with extensionality? k
-... | without-extensionality _ = _
-... | with-extensionality    _ = lower-extensionality
+lower-extensionality? k â b̂ with extensionality? k
+... | without-extensionality _     = _
+... | with-erased-extensionality _ = E.map (lower-extensionality â b̂)
+... | with-extensionality _        = lower-extensionality â b̂
 
 -- Some functions that can be used to generalise results.
 
 generalise-ext? :
   ∀ {a b c d} {A : Type a} {B : Type b} →
-  A ⇔ B →
-  (Extensionality c d → A ↔ B) →
+  (A⇔B : A ⇔ B) →
+  (Extensionality c d →
+   let open _⇔_ A⇔B in
+   (∀ x → to (from x) ≡ x) ×
+   (∀ x → from (to x) ≡ x)) →
   A ↝[ c ∣ d ] B
-generalise-ext? f⇔ f↔ {k = k} with extensionality? k
-... | without-extensionality implication         = λ _ → _⇔_.to f⇔
-... | without-extensionality logical-equivalence = λ _ → f⇔
-... | with-extensionality    _                   = λ ext →
-  from-isomorphism (f↔ ext)
+generalise-ext? A⇔B hyp {k = k} with extensionality? k
+... | without-extensionality implication =
+  λ _ → _⇔_.to A⇔B
+... | without-extensionality logical-equivalence =
+  λ _ → A⇔B
+... | with-extensionality _ = λ ext →
+  from-bijection record
+    { surjection = record
+      { logical-equivalence = A⇔B
+      ; right-inverse-of    = hyp ext .proj₁
+      }
+    ; left-inverse-of = hyp ext .proj₂
+    }
+... | with-erased-extensionality equivalenceᴱ = λ (E.[ ext ]) →
+  EEq.↔→≃ᴱ (_⇔_.to A⇔B) (_⇔_.from A⇔B) (hyp ext .proj₁) (hyp ext .proj₂)
 
 generalise-erased-ext? :
   ∀ {a b c d} {A : Type a} {B : Type b} →
@@ -428,10 +456,14 @@ generalise-erased-ext? :
   (@0 Extensionality c d → A ↔ B) →
   A ↝[ c ∣ d ]ᴱ B
 generalise-erased-ext? f⇔ f↔ {k = k} with extensionality? k
-... | without-extensionality implication         = λ _ → _⇔_.to f⇔
-... | without-extensionality logical-equivalence = λ _ → f⇔
-... | with-extensionality    _                   = λ ext →
+... | without-extensionality implication =
+  λ _ → _⇔_.to f⇔
+... | without-extensionality logical-equivalence =
+  λ _ → f⇔
+... | with-extensionality _ = λ ext →
   from-isomorphism (f↔ ext)
+... | with-erased-extensionality _ = λ ext →
+  from-isomorphism (f↔ (E.erased ext))
 
 generalise-ext?-prop :
   ∀ {a b c d} {A : Type a} {B : Type b} →
@@ -442,8 +474,9 @@ generalise-ext?-prop :
 generalise-ext?-prop f⇔ A-prop B-prop =
   generalise-ext?
     f⇔
-    (λ ext → _≃_.bijection $
-               _↠_.from (Eq.≃↠⇔ (A-prop ext) (B-prop ext)) f⇔)
+    (λ ext →
+         (λ _ → B-prop ext _ _)
+       , (λ _ → A-prop ext _ _))
 
 generalise-erased-ext?-prop :
   ∀ {a b c d} {A : Type a} {B : Type b} →
@@ -461,7 +494,15 @@ generalise-ext?-sym :
   ∀ {a b c d} {A : Type a} {B : Type b} →
   (∀ {k} → Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
   A ↝[ c ∣ d ] B
-generalise-ext?-sym hyp = generalise-ext? (hyp _) hyp
+generalise-ext?-sym hyp {k = k} ext with extensionality? k
+... | without-extensionality implication =
+  _⇔_.to $ hyp {k = logical-equivalence} ext
+... | without-extensionality logical-equivalence =
+  hyp {k = logical-equivalence} ext
+... | with-extensionality _ =
+  from-bijection $ hyp {k = bijection} ext
+... | with-erased-extensionality equivalenceᴱ =
+  hyp {k = equivalenceᴱ} ext
 
 generalise-erased-ext?-sym :
   ∀ {a b c d} {A : Type a} {B : Type b} →
@@ -1367,10 +1408,11 @@ currying = record
     ↝[ a ⊔ b ∣ c ]
   ((x : A) → C (inj₁ x)) × ((y : B) → C (inj₂ y))
 Π⊎↔Π×Π =
-  generalise-ext? (_↠_.logical-equivalence Π⊎↠Π×Π) λ ext → record
-    { surjection      = Π⊎↠Π×Π
-    ; left-inverse-of = λ _ → apply-ext ext [ refl ⊚ _ , refl ⊚ _ ]
-    }
+  generalise-ext?
+    (_↠_.logical-equivalence Π⊎↠Π×Π)
+    (λ ext →
+         refl
+       , (λ _ → apply-ext ext [ refl ⊚ _ , refl ⊚ _ ]))
 
 -- ∃ distributes "from the left" over _⊎_.
 
@@ -1801,9 +1843,9 @@ private
   →-cong-≃ᴱ :
     ∀ {a b c d}
       {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
-    Extensionality (a ⊔ b) (c ⊔ d) →
+    Erased (Extensionality (a ⊔ b) (c ⊔ d)) →
     A ≃ᴱ B → C ≃ᴱ D → (A → C) ≃ᴱ (B → D)
-  →-cong-≃ᴱ ext f g =
+  →-cong-≃ᴱ E.[ ext ] f g =
     EEq.[≃]→≃ᴱ (EEq.[proofs] (→-cong-≃ ext (EEq.≃ᴱ→≃ f) (EEq.≃ᴱ→≃ g)))
 
 -- The non-dependent function space preserves symmetric kinds of
@@ -1870,11 +1912,11 @@ private
 
   ∀-cong-eqᴱ :
     ∀ {a b₁ b₂} →
-    Extensionality a (b₁ ⊔ b₂) →
+    Erased (Extensionality a (b₁ ⊔ b₂)) →
     {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ≃ᴱ B₂ x) →
     ((x : A) → B₁ x) ≃ᴱ ((x : A) → B₂ x)
-  ∀-cong-eqᴱ ext f =
+  ∀-cong-eqᴱ E.[ ext ] f =
     EEq.[≃]→≃ᴱ (EEq.[proofs] (∀-cong-eq ext (EEq.≃ᴱ→≃ ⊚ f)))
 
   ∀-cong-inj :
@@ -2209,13 +2251,13 @@ private
 
   Π-cong-≃ᴱ :
     ∀ {a₁ a₂ b₁ b₂} →
-    Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+    Erased (Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂)) →
     ∀ {A₁ : Type a₁} {A₂ : Type a₂}
       {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₁≃A₂ : A₁ ≃ A₂) →
     (∀ x → B₁ x ≃ᴱ B₂ (_≃_.to A₁≃A₂ x)) →
     ((x : A₁) → B₁ x) ≃ᴱ ((x : A₂) → B₂ x)
-  Π-cong-≃ᴱ ext {B₂ = B₂} f g =
+  Π-cong-≃ᴱ E.[ ext ] {B₂ = B₂} f g =
     EEq.[≃]→≃ᴱ
       {to   = λ h x → subst B₂ (_≃_.right-inverse-of f x)
                         (_≃ᴱ_.to (g (_≃_.from f x)) (h (_≃_.from f x)))}
@@ -2235,13 +2277,13 @@ private
 
   Π-cong-contra-≃ᴱ :
     ∀ {a₁ a₂ b₁ b₂} →
-    Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂) →
+    Erased (Extensionality (a₁ ⊔ a₂) (b₁ ⊔ b₂)) →
     ∀ {A₁ : Type a₁} {A₂ : Type a₂}
       {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
     (A₂≃A₁ : A₂ ≃ A₁) →
     (∀ x → B₁ (_≃_.to A₂≃A₁ x) ≃ᴱ B₂ x) →
     ((x : A₁) → B₁ x) ≃ᴱ ((x : A₂) → B₂ x)
-  Π-cong-contra-≃ᴱ ext {B₁ = B₁} f g =
+  Π-cong-contra-≃ᴱ E.[ ext ] {B₁ = B₁} f g =
     EEq.[≃]→≃ᴱ
       {to   = λ h x → _≃ᴱ_.to (g x) (h (_≃_.to f x))}
       {from = λ h x → subst B₁ (_≃_.right-inverse-of f x)
@@ -2543,18 +2585,14 @@ drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
 
 Π⊥↔⊤ : ∀ {ℓ a} {A : ⊥ {ℓ = ℓ} → Type a} →
        ((x : ⊥) → A x) ↝[ ℓ ∣ a ] ⊤
-Π⊥↔⊤ = generalise-ext? Π⊥⇔⊤ λ ext → record
-  { surjection = record
-    { logical-equivalence = Π⊥⇔⊤
-    ; right-inverse-of    = λ _ → refl _
-    }
-  ; left-inverse-of = λ _ → apply-ext ext (λ x → ⊥-elim x)
-  }
-  where
-  Π⊥⇔⊤ = record
-    { to   = _
-    ; from = λ _ x → ⊥-elim x
-    }
+Π⊥↔⊤ = generalise-ext?
+  (record
+     { to   = _
+     ; from = λ _ x → ⊥-elim x
+     })
+  (λ ext →
+       (λ _ → refl _)
+     , (λ _ → apply-ext ext (λ x → ⊥-elim x)))
 
 -- A lemma relating ¬ ⊥ and ⊤.
 
@@ -2664,11 +2702,9 @@ implicit-ΠΣ-comm {A = A} {B} {C} =
   ¬ (A ⊎ B) ↝[ a ⊔ b ∣ lzero ] ¬ A × ¬ B
 ¬⊎↔¬×¬ = generalise-ext?
   (_↠_.logical-equivalence ¬⊎↠¬×¬)
-  (λ ext → record
-     { surjection      = ¬⊎↠¬×¬
-     ; left-inverse-of = λ _ →
-         apply-ext ext [ (λ _ → refl _) , (λ _ → refl _) ]
-     })
+  (λ ext →
+       refl
+     , (λ _ → apply-ext ext [ (λ _ → refl _) , (λ _ → refl _) ]))
 
 ¬⊎¬→×¬ :
   ∀ {a b} {A : Type a} {B : Type b} →
@@ -2823,11 +2859,11 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
   ∀ {a} {A : Type a} (x y : A) →
   (∀ z → (z ≡ x) ≃ (z ≡ y)) ↝[ a ∣ a ] (x ≡ y)
 Π≡≃≡-↔-≡ {a = a} x y =
-  generalise-ext? (_↠_.logical-equivalence surj)
-                  (λ ext → record
-                     { surjection      = surj
-                     ; left-inverse-of = from∘to ext
-                     })
+  generalise-ext?
+    (_↠_.logical-equivalence surj)
+    (λ ext →
+         _↠_.right-inverse-of surj
+       , from∘to ext)
   where
   surj = Π≡↔≡-↠-≡ equivalence x y
 
@@ -2853,12 +2889,11 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 ∀-intro :
   ∀ {a b} {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
   B x (refl x) ↝[ a ∣ a ⊔ b ] (∀ y (x≡y : x ≡ y) → B y x≡y)
-∀-intro B = generalise-ext? (∀-intro-⇔ B) (λ ext → ∀-intro-↔ ext B)
+∀-intro {a = a} {b = b} {A = A} {x = x} B =
+  generalise-ext? ∀-intro-⇔ (λ ext → to∘from ext , from∘to ext)
   where
-  ∀-intro-⇔ : ∀ {a b} {A : Type a} {x : A}
-              (B : (y : A) → x ≡ y → Type b) →
-              B x (refl x) ⇔ (∀ y (x≡y : x ≡ y) → B y x≡y)
-  ∀-intro-⇔ {x = x} B = record
+  ∀-intro-⇔ : B x (refl x) ⇔ (∀ y (x≡y : x ≡ y) → B y x≡y)
+  ∀-intro-⇔ = record
     { to   = λ b y x≡y →
                subst (uncurry B)
                      (proj₂ (other-singleton-contractible x) (y , x≡y))
@@ -2866,47 +2901,36 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
     ; from = λ f → f x (refl x)
     }
 
-  ∀-intro-↔ : ∀ {a b} →
-              Extensionality a (a ⊔ b) →
-              {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
-              B x (refl x) ↔ (∀ y (x≡y : x ≡ y) → B y x≡y)
-  ∀-intro-↔ {a} ext {x = x} B = record
-    { surjection = record
-      { logical-equivalence = ∀-intro-⇔ B
-      ; right-inverse-of    = to∘from
-      }
-    ; left-inverse-of = from∘to
-    }
-    where
+  abstract
 
-    abstract
+    from∘to :
+      Extensionality a (a ⊔ b) →
+      ∀ b → _⇔_.from ∀-intro-⇔ (_⇔_.to ∀-intro-⇔ b) ≡ b
+    from∘to ext b =
+      subst (uncurry B)
+            (proj₂ (other-singleton-contractible x) (x , refl x)) b  ≡⟨ cong (λ eq → subst (uncurry B) eq b) $
+                                                                             other-singleton-contractible-refl x ⟩
+      subst (uncurry B) (refl (x , refl x)) b                        ≡⟨ subst-refl (uncurry B) _ ⟩∎
+      b                                                              ∎
 
-      from∘to :
-        ∀ b → _⇔_.from (∀-intro-⇔ B) (_⇔_.to (∀-intro-⇔ B) b) ≡ b
-      from∘to b =
-        subst (uncurry B)
-              (proj₂ (other-singleton-contractible x) (x , refl x)) b  ≡⟨ cong (λ eq → subst (uncurry B) eq b) $
-                                                                               other-singleton-contractible-refl x ⟩
-        subst (uncurry B) (refl (x , refl x)) b                        ≡⟨ subst-refl (uncurry B) _ ⟩∎
-        b                                                              ∎
-
-      to∘from :
-        ∀ b → _⇔_.to (∀-intro-⇔ B) (_⇔_.from (∀-intro-⇔ B) b) ≡ b
-      to∘from f =
-        apply-ext ext λ y →
-        apply-ext (lower-extensionality lzero a ext) λ x≡y →
-          elim¹ (λ {y} x≡y →
-                   subst (uncurry B)
-                         (proj₂ (other-singleton-contractible x)
-                                (y , x≡y))
-                         (f x (refl x)) ≡
-                   f y x≡y)
-                (subst (uncurry B)
+    to∘from :
+      Extensionality a (a ⊔ b) →
+      ∀ b → _⇔_.to ∀-intro-⇔ (_⇔_.from ∀-intro-⇔ b) ≡ b
+    to∘from ext f =
+      apply-ext ext λ y →
+      apply-ext (lower-extensionality lzero a ext) λ x≡y →
+        elim¹ (λ {y} x≡y →
+                 subst (uncurry B)
                        (proj₂ (other-singleton-contractible x)
-                              (x , refl x))
-                       (f x (refl x))                           ≡⟨ from∘to (f x (refl x)) ⟩∎
-                 f x (refl x)                                   ∎)
-                x≡y
+                              (y , x≡y))
+                       (f x (refl x)) ≡
+                 f y x≡y)
+              (subst (uncurry B)
+                     (proj₂ (other-singleton-contractible x)
+                            (x , refl x))
+                     (f x (refl x))                           ≡⟨ from∘to ext (f x (refl x)) ⟩∎
+               f x (refl x)                                   ∎)
+              x≡y
 
 private
 
@@ -3137,7 +3161,9 @@ Is-equivalence≃Is-equivalence-CP :
 Is-equivalence≃Is-equivalence-CP =
   generalise-ext?
     HA.Is-equivalence⇔Is-equivalence-CP
-    HA.Is-equivalence↔Is-equivalence-CP
+    (λ ext →
+       let bij = HA.Is-equivalence↔Is-equivalence-CP ext in
+       _↔_.right-inverse-of bij , _↔_.left-inverse-of bij)
 
 -- Two notions of equivalence are pointwise equivalent (assuming
 -- extensionality).
@@ -3158,7 +3184,9 @@ Is-equivalence≃Is-equivalence-CP =
 ≃-comm =
   generalise-ext?
     Eq.inverse-logical-equivalence
-    Eq.inverse-isomorphism
+    (λ ext →
+       let bij = Eq.inverse-isomorphism ext in
+       _↔_.right-inverse-of bij , _↔_.left-inverse-of bij)
 
 -- Two consequences of the two-out-of-three property.
 
@@ -3789,7 +3817,9 @@ Decidable-equality-cong :
 Decidable-equality-cong ext A↔B =
   generalise-ext?
     (Decidable-cong _ A≃B A≃B lemma)
-    (λ ext → Decidable-cong ext A≃B A≃B lemma)
+    (λ ext →
+       let bij = Decidable-cong ext A≃B A≃B lemma in
+       _↔_.right-inverse-of bij , _↔_.left-inverse-of bij)
     ext
   where
   A≃B = from-isomorphism A↔B
@@ -3889,15 +3919,11 @@ private
 Πℕ≃ {P = P} =
   generalise-ext?
     Πℕ⇔
-    (λ ext → record
-       { surjection = record
-         { logical-equivalence = Πℕ⇔
-         ; right-inverse-of    = refl
-         }
-       ; left-inverse-of = λ _ →
-           apply-ext ext $
-           ℕ-case (refl _) (λ _ → refl _)
-       })
+    (λ ext →
+         refl
+       , (λ _ →
+            apply-ext ext $
+            ℕ-case (refl _) (λ _ → refl _)))
   where
   Πℕ⇔ : _ ⇔ _
   Πℕ⇔ ._⇔_.to f = f zero , f ⊚ suc
@@ -4217,11 +4243,10 @@ T[<=]↔≤ {m = suc m} {n = suc n} =
 
 Distinct↔≢ : ∀ {m n} → Distinct m n ↝[ lzero ∣ lzero ] m ≢ n
 Distinct↔≢ {m = m} {n} =
-  generalise-ext? Distinct⇔≢ λ ext →
-    from-isomorphism $
-    _↔_.to (Eq.⇔↔≃ ext (Distinct-propositional m n)
-                       (¬-propositional ext))
-           Distinct⇔≢
+  generalise-ext?-prop
+    Distinct⇔≢
+    (λ _ → Distinct-propositional m n)
+    ¬-propositional
 
 ------------------------------------------------------------------------
 -- Left cancellation for _⊎_
@@ -4374,17 +4399,8 @@ private
   ∀ {a b} {A : Type a} {B : Type b} →
   Decidable-equality B →
   ((⊤ ⊎ A) ↔ (⊤ ⊎ B)) ↝[ a ⊔ b ∣ a ⊔ b ] (⊤ ⊎ B) × (A ↔ B)
-[⊤⊎↔⊤⊎]↔[⊤⊎×↔] {a = a} {b = b} {A = A} {B = B} _≟B_ ext =
-  generalise-ext?
-    [⊤⊎↔⊤⊎]⇔[⊤⊎×↔]
-    (λ ext → record
-       { surjection = record
-         { logical-equivalence = [⊤⊎↔⊤⊎]⇔[⊤⊎×↔]
-         ; right-inverse-of    = to∘from ext
-         }
-       ; left-inverse-of = from∘to ext
-       })
-    ext
+[⊤⊎↔⊤⊎]↔[⊤⊎×↔] {a = a} {b = b} {A = A} {B = B} _≟B_ =
+  generalise-ext? [⊤⊎↔⊤⊎]⇔[⊤⊎×↔] (λ ext → to∘from ext , from∘to ext)
   where
   _≟_ : Decidable-equality (⊤ ⊎ B)
   _≟_ = ⊎.Dec._≟_ ⊤._≟_ _≟B_

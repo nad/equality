@@ -515,7 +515,9 @@ Very-stable-cong {A = A} {B = B} ext A≃B =
   Very-stable A  ↔⟨⟩
   Squash A ≃ A   ↝⟨ generalise-ext?
                       (Eq.≃-preserves-⇔ (Squash-cong A≃B) A≃B)
-                      (λ ext → from-isomorphism $ Eq.≃-preserves ext (Squash-cong-≃ A≃B) A≃B)
+                      (λ ext →
+                         let eq = Eq.≃-preserves ext (Squash-cong-≃ A≃B) A≃B in
+                         _≃_.right-inverse-of eq , _≃_.left-inverse-of eq)
                       ext ⟩
   Squash B ≃ B   ↔⟨⟩
   Very-stable B  □

@@ -1690,13 +1690,7 @@ Erased-W↔W-[]-cong :
 Erased-W↔W-[]-cong {a = a} {p = p} {A = A} {P = P} ax =
   generalise-ext?
     Erased-W⇔W
-    (λ ext → record
-       { surjection = record
-         { logical-equivalence = Erased-W⇔W
-         ; right-inverse-of    = to∘from ext
-         }
-       ; left-inverse-of = from∘to ext
-       })
+    (λ ext → to∘from ext , from∘to ext)
   where
   open []-cong-axiomatisation ax
   open _⇔_ Erased-W⇔W
@@ -1734,9 +1728,10 @@ Erased-W↔W′ {a = a} =
   generalise-ext?
     Erased-W⇔W
     (λ ext →
-       Erased-W↔W-[]-cong
-         (Extensionality→[]-cong ext)
-         (lower-extensionality a lzero ext))
+       let bij = Erased-W↔W-[]-cong
+                   (Extensionality→[]-cong ext)
+                   (lower-extensionality a lzero ext)
+       in _↔_.right-inverse-of bij , _↔_.left-inverse-of bij)
 
 ------------------------------------------------------------------------
 -- Some results that follow if the []-cong axioms hold for two

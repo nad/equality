@@ -141,10 +141,9 @@ from-list (x ∷ xs) = cons x (from-list xs)
 ∃Vec≃List {a = a} {A = A} =
   generalise-ext?
     (_↠_.logical-equivalence ∃Vec↠List)
-    (λ ext → record
-       { surjection      = ∃Vec↠List
-       ; left-inverse-of = uncurry (from∘to ext)
-       })
+    (λ ext →
+         _↠_.right-inverse-of ∃Vec↠List
+       , uncurry (from∘to ext))
   where
   tail′ : A → ∃ (Vec A) ↠ ∃ (Vec A)
   tail′ y = record

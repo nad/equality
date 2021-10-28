@@ -484,14 +484,14 @@ Very-stableᴱ-cong {a = a} {b = b} ext A≃ᴱB =
 
 Very-stableᴱ-congⁿ :
   {A : Type a} {B : Type b} →
-  Extensionality (a ⊔ b) (a ⊔ b) →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
   ∀ n →
   A ↔[ k ] B →
   For-iterated-equality n Very-stableᴱ A ≃ᴱ
   For-iterated-equality n Very-stableᴱ B
 Very-stableᴱ-congⁿ ext n A↔B =
   For-iterated-equality-cong
-    ext
+    [ ext ]
     n
     (Very-stableᴱ-cong ext ∘ from-isomorphism)
     (from-isomorphism A↔B)
@@ -1477,7 +1477,9 @@ module []-cong₂-⊔₁
     Stable-[ equivalence ] A  ↔⟨⟩
     Erased A ≃ A              ↝⟨ generalise-ext?
                                    (Eq.≃-preserves-⇔ (Erased-cong A≃B) A≃B)
-                                   (λ ext → from-isomorphism $ Eq.≃-preserves ext (Erased-cong A≃B) A≃B)
+                                   (λ ext →
+                                      let eq = Eq.≃-preserves ext (Erased-cong A≃B) A≃B in
+                                      _≃_.right-inverse-of eq , _≃_.left-inverse-of eq)
                                    ext ⟩
     Erased B ≃ B              ↔⟨⟩
     Stable-[ equivalence ] B  □

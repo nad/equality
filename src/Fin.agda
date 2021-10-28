@@ -409,11 +409,7 @@ Distinct↔≢ :
 Distinct↔≢ {i = i} {j} ext =
   Distinct i j              ↔⟨⟩
   Nat.Distinct ⌞ i ⌟ ⌞ j ⌟  ↝⟨ F.Distinct↔≢ ext ⟩
-  ⌞ i ⌟ ≢ ⌞ j ⌟             ↝⟨ generalise-ext?
-                                 ≢⇔≢
-                                 (λ ext → from-isomorphism $
-                                            _↔_.to (Eq.⇔↔≃ ext (¬-propositional ext) (¬-propositional ext)) ≢⇔≢)
-                                 ext ⟩□
+  ⌞ i ⌟ ≢ ⌞ j ⌟             ↝⟨ generalise-ext?-prop ≢⇔≢ ¬-propositional ¬-propositional ext ⟩□
   i ≢ j                     □
   where
   ≢⇔≢ : ⌞ i ⌟ ≢ ⌞ j ⌟ ⇔ i ≢ j

@@ -323,16 +323,15 @@ All↔All :
   ∀ {k} {A : Type a} {P : A → Type p} {xs : List A} →
   Extensionality? k a (a ⊔ p) →
   All P xs ↝[ k ] A.All P xs
-All↔All {a = a} = generalise-ext? All⇔All λ ext → record
-  { surjection = record
-    { logical-equivalence = All⇔All
-    ; right-inverse-of    = λ _ →
-        apply-ext ext λ _ →
-        apply-ext (lower-extensionality a a ext) $
-        index∘tabulate _
-    }
-  ; left-inverse-of = tabulate∘index
-  }
+All↔All {a = a} =
+  generalise-ext?
+    All⇔All
+    (λ ext →
+         (λ _ →
+            apply-ext ext λ _ →
+            apply-ext (lower-extensionality a a ext) $
+            index∘tabulate _)
+       , tabulate∘index)
 
 -- All preserves decidability of equality.
 
