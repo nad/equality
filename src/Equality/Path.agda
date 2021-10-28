@@ -110,7 +110,7 @@ transport-fill _ φ P u₀ i =
 
 -- Reflexivity.
 
-refl : x ≡ x
+refl : {@0 A : Type a} {x : A} → x ≡ x
 refl {x = x} = λ _ → x
 
 -- A family of instantiations of Reflexive-relation.
