@@ -1627,7 +1627,7 @@ module []-cong₂-⊔
 
   to≡to→≡-Erased :
     {@0 A : Type ℓ₁} {B : Type ℓ₂} {p q : Erased A ≃ᴱ B} →
-    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     _≃ᴱ_.to p ≡ _≃ᴱ_.to q → p ≡ q
   to≡to→≡-Erased {p = ⟨ f , f-eq ⟩} {q = ⟨ g , g-eq ⟩} ext f≡g =
     elim (λ {f g} f≡g → ∀ f-eq g-eq → ⟨ f , f-eq ⟩ ≡ ⟨ g , g-eq ⟩)
