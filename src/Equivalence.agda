@@ -42,15 +42,34 @@ open HA public using
 ------------------------------------------------------------------------
 -- _≃_
 
--- Equivalences.
+private
+ module Dummy where
 
-infix 4 _≃_
+  -- Equivalences.
 
-record _≃_ {a b} (A : Type a) (B : Type b) : Type (a ⊔ b) where
-  constructor ⟨_,_⟩
-  field
-    to             : A → B
-    is-equivalence : Is-equivalence to
+  infix 4 _≃_
+
+  record _≃_ {a b} (A : Type a) (B : Type b) : Type (a ⊔ b) where
+    constructor ⟨_,_⟩
+    field
+      to             : A → B
+      is-equivalence : Is-equivalence to
+
+open Dummy public using (_≃_; ⟨_,_⟩) hiding (module _≃_)
+
+-- Some definitions with erased type arguments.
+
+module _≃₀_ {a b} {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ B) where
+
+  -- The forward direction of the equivalence.
+
+  to : A → B
+  to = Dummy._≃_.to A≃B
+
+  -- The function to is an equivalence.
+
+  is-equivalence : Is-equivalence to
+  is-equivalence = Dummy._≃_.is-equivalence A≃B
 
   -- Equivalent types are isomorphic.
 
@@ -74,6 +93,10 @@ record _≃_ {a b} (A : Type a) (B : Type b) : Type (a ⊔ b) where
       }
     ; left-inverse-of = left-inverse-of
     }
+
+module _≃_ {a b} {A : Type a} {B : Type b} (A≃B : A ≃ B) where
+
+  open _≃₀_ A≃B public
 
   open _↔_ bijection public
     hiding (from; to; right-inverse-of; left-inverse-of)
