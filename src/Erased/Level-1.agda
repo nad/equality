@@ -338,7 +338,7 @@ Erased-¬↔¬ {A = A} ext =
     ¬-propositional
     ¬-propositional
 
--- The following two results are inspired by a result in
+-- The following three results are inspired by a result in
 -- Mishra-Linger's PhD thesis (see Section 5.4.1).
 --
 -- See also Π-Erased↔Π0[], Π-Erased≃Π0[], Π-Erased↔Π0 and Π-Erased≃Π0
@@ -354,6 +354,18 @@ Erased-¬↔¬ {A = A} ext =
   { to   = λ f x → f [ x ]
   ; from = λ f ([ x ]) → f x
   }
+
+-- There is an equivalence with erased proofs between
+-- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
+
+Π-Erased≃ᴱΠ0 :
+  {@0 A : Type a} {@0 P : A → Type p} →
+  ((x : Erased A) → P (erased x)) ≃ᴱ ((@0 x : A) → P x)
+Π-Erased≃ᴱΠ0 = EEq.↔→≃ᴱ
+  (_⇔_.to Π-Erased⇔Π0)
+  (_⇔_.from Π-Erased⇔Π0)
+  refl
+  refl
 
 -- There is an equivalence between (x : Erased A) → P (erased x) and
 -- (@0 x : A) → P x.
