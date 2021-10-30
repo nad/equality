@@ -924,9 +924,9 @@ module Extensionality→[]-cong (ext′ : Extensionality a a) where
       (λ eq → Stable-≡-Erased _ _ [ eq ] ≡ eq)
       Stable-≡-Erased-[refl]
 
-  -- The following reimplementations of functions from Erased.[]-cong₁
-  -- are restricted to types in Type a (where a is the universe level
-  -- for which extensionality is assumed to hold).
+  -- The following implementations of functions from Erased-cong
+  -- (below) are restricted to types in Type a (where a is the
+  -- universe level for which extensionality is assumed to hold).
 
   module _ {@0 A B : Type a} where
 
