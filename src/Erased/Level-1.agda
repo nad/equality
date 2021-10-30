@@ -763,8 +763,8 @@ record []-cong-axiomatisation a : Type (lsuc a) where
       {@0 A : Type a} {@0 x y : A} →
       Erased (x ≡ y) → [ x ] ≡ [ y ]
     []-cong-equivalence :
-       {@0 A : Type a} {@0 x y : A} →
-       Is-equivalence ([]-cong {x = x} {y = y})
+      {@0 A : Type a} {@0 x y : A} →
+      Is-equivalence ([]-cong {x = x} {y = y})
     []-cong-[refl] :
       {@0 A : Type a} {@0 x : A} →
       []-cong [ refl x ] ≡ refl [ x ]
