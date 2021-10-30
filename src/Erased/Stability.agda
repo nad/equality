@@ -1155,7 +1155,8 @@ Very-stable≃Very-stable-Null {A = A} ext =
        Π-closure ext′ 1 λ _ →
        Eq.propositional ext _)
   where
-  open []-cong-axiomatisation (Extensionality→[]-cong ext)
+  open []-cong-axiomatisation
+          (Extensionality→[]-cong-axiomatisation ext)
 
   to : Very-stable A → Very-stable -Null A
   to sA _ =
@@ -2519,7 +2520,8 @@ module Extensionality where
     For-iterated-equality n Very-stable A →
     Very-stable (H-level′ n A)
   Very-stable-H-level′ ext =
-    []-cong₁.Very-stable-H-level′ (Extensionality→[]-cong ext) ext
+    []-cong₁.Very-stable-H-level′
+      (Extensionality→[]-cong-axiomatisation ext) ext
 
   -- If A is "very stable n levels up", then H-level n A is very
   -- stable (assuming extensionality).
@@ -2531,7 +2533,8 @@ module Extensionality where
     For-iterated-equality n Very-stable A →
     Very-stable (H-level n A)
   Very-stable-H-level ext =
-    []-cong₁.Very-stable-H-level (Extensionality→[]-cong ext) ext
+    []-cong₁.Very-stable-H-level
+      (Extensionality→[]-cong-axiomatisation ext) ext
 
   -- There is an equivalence between Very-stable (Very-stable A) and
   -- Very-stable A (assuming extensionality).
@@ -2542,7 +2545,7 @@ module Extensionality where
     Very-stable (Very-stable A) ≃ Very-stable A
   Very-stable-Very-stable≃Very-stable ext =
     []-cong₁.Very-stable-Very-stable≃Very-stable
-      (Extensionality→[]-cong ext) ext
+      (Extensionality→[]-cong-axiomatisation ext) ext
 
   -- The function λ A → Erased A, [_]→ and Very-stable form a Σ-closed
   -- reflective subuniverse (assuming extensionality).
@@ -2552,7 +2555,7 @@ module Extensionality where
     Σ-closed-reflective-subuniverse ℓ
   Erased-Σ-closed-reflective-subuniverse ext =
     []-cong₁.Erased-Σ-closed-reflective-subuniverse
-      (Extensionality→[]-cong ext)
+      (Extensionality→[]-cong-axiomatisation ext)
 
   -- This Σ-closed reflective subuniverse is topological (for certain
   -- universe levels, assuming extensionality).
@@ -2564,7 +2567,7 @@ module Extensionality where
          (lower-extensionality _ _ ext))
   Erased-topological ℓ′ ext =
     []-cong₁.Erased-topological
-      (Extensionality→[]-cong
+      (Extensionality→[]-cong-axiomatisation
          (lower-extensionality _ _ ext))
       ℓ′
       ext

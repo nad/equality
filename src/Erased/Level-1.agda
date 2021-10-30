@@ -750,7 +750,7 @@ Erased-Split-surjective-[] :
 Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
 
 ------------------------------------------------------------------------
--- []-cong
+-- []-cong-axiomatisation
 
 -- An axiomatisation for []-cong.
 --
@@ -843,9 +843,12 @@ lower-[]-cong-axiomatisation {a = a} a′ ax = λ where
     cong (map lower) (refl [ lift x ])                 ≡⟨ cong-refl _ ⟩∎
     refl [ x ]                                         ∎
 
--- Some lemmas used to implement Extensionality→[]-cong.
+-- Some lemmas used to implement
+-- Extensionality→[]-cong-axiomatisation.
 
-module Extensionality→[]-cong (ext′ : Extensionality a a) where
+module Extensionality→[]-cong-axiomatisation
+  (ext′ : Extensionality a a)
+  where
 
   private
     ext = Eq.good-ext ext′
@@ -966,16 +969,16 @@ module Extensionality→[]-cong (ext′ : Extensionality a a) where
 -- be implemented for every modality, and that it is an equivalence
 -- for lex modalities (Theorem 3.1 (ix)).
 
-Extensionality→[]-cong :
+Extensionality→[]-cong-axiomatisation :
   Extensionality a a →
   []-cong-axiomatisation a
-Extensionality→[]-cong ext = record
+Extensionality→[]-cong-axiomatisation ext = record
   { []-cong             = []-cong
   ; []-cong-equivalence = []-cong-equivalence
   ; []-cong-[refl]      = []-cong-[refl]
   }
   where
-  open Extensionality→[]-cong ext
+  open Extensionality→[]-cong-axiomatisation ext
 
 ------------------------------------------------------------------------
 -- A variant of []-cong-axiomatisation
@@ -1729,7 +1732,7 @@ Erased-W↔W′ {a = a} =
     Erased-W⇔W
     (λ ext →
        let bij = Erased-W↔W-[]-cong
-                   (Extensionality→[]-cong ext)
+                   (Extensionality→[]-cong-axiomatisation ext)
                    (lower-extensionality a lzero ext)
        in _↔_.right-inverse-of bij , _↔_.left-inverse-of bij)
 
@@ -2018,7 +2021,7 @@ module Extensionality where
     ∀ n → Erased (H-level′ n A) ≃ H-level′ n (Erased A)
   Erased-H-level′≃H-level′ ext n =
     []-cong₁.Erased-H-level′↔H-level′
-      (Extensionality→[]-cong ext)
+      (Extensionality→[]-cong-axiomatisation ext)
       n
       ext
 
@@ -2030,7 +2033,7 @@ module Extensionality where
     ∀ n → Erased (H-level n A) ≃ H-level n (Erased A)
   Erased-H-level≃H-level ext n =
     []-cong₁.Erased-H-level↔H-level
-      (Extensionality→[]-cong ext)
+      (Extensionality→[]-cong-axiomatisation ext)
       n
       ext
 
@@ -2044,7 +2047,7 @@ module Extensionality where
     Is-proposition (Decidable-erased-equality A)
   Is-proposition-Decidable-erased-equality′ ext =
     []-cong₁.Is-proposition-Decidable-erased-equality
-      (Extensionality→[]-cong ext)
+      (Extensionality→[]-cong-axiomatisation ext)
       ext
 
   -- Erased "commutes" with Split-surjective.
@@ -2055,7 +2058,8 @@ module Extensionality where
     Erased (Split-surjective f) ≃ Split-surjective (map f)
   Erased-Split-surjective≃Split-surjective {a = a} ext =
     []-cong₁.Erased-Split-surjective↔Split-surjective
-      (Extensionality→[]-cong (lower-extensionality lzero a ext))
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality lzero a ext))
       ext
 
   -- A function f is Erased-connected in the sense of Rijke et al.
@@ -2068,9 +2072,11 @@ module Extensionality where
     (∀ y → Contractible (Erased (f ⁻¹ y))) ≃ Erased (Is-equivalence f)
   Erased-connected≃Erased-Is-equivalence {a = a} {b = b} ext =
     []-cong₂-⊔.Erased-connected↔Erased-Is-equivalence
-      (Extensionality→[]-cong (lower-extensionality b b ext))
-      (Extensionality→[]-cong (lower-extensionality a a ext))
-      (Extensionality→[]-cong ext)
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality b b ext))
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality a a ext))
+      (Extensionality→[]-cong-axiomatisation ext)
       ext
 
   -- Erased "commutes" with Is-equivalence (assuming extensionality).
@@ -2081,9 +2087,11 @@ module Extensionality where
     Erased (Is-equivalence f) ≃ Is-equivalence (map f)
   Erased-Is-equivalence≃Is-equivalence {a = a} {b = b} ext =
     []-cong₂-⊔.Erased-Is-equivalence↔Is-equivalence
-      (Extensionality→[]-cong (lower-extensionality b b ext))
-      (Extensionality→[]-cong (lower-extensionality a a ext))
-      (Extensionality→[]-cong ext)
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality b b ext))
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality a a ext))
+      (Extensionality→[]-cong-axiomatisation ext)
       ext
 
   -- Erased "commutes" with Has-quasi-inverse (assuming
@@ -2095,8 +2103,10 @@ module Extensionality where
     Erased (Has-quasi-inverse f) ≃ Has-quasi-inverse (map f)
   Erased-Has-quasi-inverse≃Has-quasi-inverse {a = a} {b = b} ext =
     []-cong₂.Erased-Has-quasi-inverse↔Has-quasi-inverse
-      (Extensionality→[]-cong (lower-extensionality b b ext))
-      (Extensionality→[]-cong (lower-extensionality a a ext))
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality b b ext))
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality a a ext))
       ext
 
   -- Erased "commutes" with Injective (assuming extensionality).
@@ -2107,9 +2117,11 @@ module Extensionality where
     Erased (Injective f) ≃ Injective (map f)
   Erased-Injective≃Injective {a = a} {b = b} ext =
     []-cong₂-⊔.Erased-Injective↔Injective
-      (Extensionality→[]-cong (lower-extensionality b b ext))
-      (Extensionality→[]-cong (lower-extensionality a a ext))
-      (Extensionality→[]-cong ext)
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality b b ext))
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality a a ext))
+      (Extensionality→[]-cong-axiomatisation ext)
       ext
 
   -- Erased "commutes" with Is-embedding (assuming extensionality).
@@ -2120,9 +2132,11 @@ module Extensionality where
     Erased (Is-embedding f) ≃ Is-embedding (map f)
   Erased-Is-embedding≃Is-embedding {a = a} {b = b} ext =
     []-cong₂-⊔.Erased-Is-embedding↔Is-embedding
-      (Extensionality→[]-cong (lower-extensionality b b ext))
-      (Extensionality→[]-cong (lower-extensionality a a ext))
-      (Extensionality→[]-cong ext)
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality b b ext))
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality a a ext))
+      (Extensionality→[]-cong-axiomatisation ext)
       ext
 
 ------------------------------------------------------------------------
@@ -2240,7 +2254,8 @@ module Extensionality where
 []-cong-axiomatisation-contractible {a = a} ext =
   propositional⇒inhabited⇒contractible
     ([]-cong-axiomatisation-propositional ext)
-    (Extensionality→[]-cong (lower-extensionality _ lzero ext))
+    (Extensionality→[]-cong-axiomatisation
+       (lower-extensionality _ lzero ext))
 
 ------------------------------------------------------------------------
 -- An alternative to []-cong-axiomatisation

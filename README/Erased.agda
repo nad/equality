@@ -441,7 +441,7 @@ Lemma-96 = Equivalence.≃-≡
 -- that it is an equivalence and that it satisfies the computation
 -- rule of []-cong.
 
-Extensionality→[]-cong = Erased.Extensionality→[]-cong
+Extensionality→[]-cong = Erased.Extensionality→[]-cong-axiomatisation
 
 ------------------------------------------------------------------------
 -- 5.1: Singleton types with erased equality proofs
