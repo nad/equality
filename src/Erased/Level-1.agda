@@ -843,49 +843,26 @@ lower-[]-cong-axiomatisation {a = a} a′ ax = λ where
     cong (map lower) (refl [ lift x ])                 ≡⟨ cong-refl _ ⟩∎
     refl [ x ]                                         ∎
 
--- Some lemmas used to implement
--- Extensionality→[]-cong-axiomatisation.
+------------------------------------------------------------------------
+-- An alternative to []-cong-axiomatisation
 
-module Extensionality→[]-cong-axiomatisation
-  (ext′ : Extensionality a a)
-  where
+-- Stable-≡-Erased-axiomatisation a is the property that equality is
+-- stable for Erased A, for every erased type A : Type a, along with a
+-- "computation" rule.
 
-  private
-    ext = Eq.good-ext ext′
-
-  -- Equality is stable for Erased A.
-  --
-  -- The proof is based on the proof of Lemma 1.25 in "Modalities in
-  -- Homotopy Type Theory" by Rijke, Shulman and Spitters, and the
-  -- corresponding Coq source code.
-
-  Stable-≡-Erased : {@0 A : Type a} → Stable-≡ (Erased A)
-  Stable-≡-Erased x y eq =
-    x                               ≡⟨ flip ext⁻¹ eq (
-
-      (λ (_ : Erased (x ≡ y)) → x)     ≡⟨ ∘-[]-injective (
-
-        (λ (_ : x ≡ y) → x)               ≡⟨ apply-ext ext (λ (eq : x ≡ y) →
-
-          x                                  ≡⟨ eq ⟩∎
-          y                                  ∎) ⟩∎
-
-        (λ (_ : x ≡ y) → y)               ∎) ⟩∎
-
-      (λ (_ : Erased (x ≡ y)) → y)     ∎) ⟩∎
-
-    y                               ∎
-
-  -- A "computation rule" for Stable-≡-Erased.
-
-  Stable-≡-Erased-[refl] :
+Stable-≡-Erased-axiomatisation : (a : Level) → Type (lsuc a)
+Stable-≡-Erased-axiomatisation a =
+  ∃ λ (Stable-≡-Erased : {@0 A : Type a} → Stable-≡ (Erased A)) →
     {@0 A : Type a} {x : Erased A} →
     Stable-≡-Erased x x [ refl x ] ≡ refl x
-  Stable-≡-Erased-[refl] {x = [ x ]} =
-    Stable-≡-Erased [ x ] [ x ] [ refl [ x ] ]                ≡⟨⟩
-    ext⁻¹ (∘-[]-injective (apply-ext ext id)) [ refl [ x ] ]  ≡⟨ ext⁻¹-∘-[]-injective ⟩
-    ext⁻¹ (apply-ext ext id) (refl [ x ])                     ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) _ ⟩∎
-    refl [ x ]                                                ∎
+
+-- Some lemmas used to implement Extensionality→[]-cong as well as
+-- Erased.Stability.[]-cong-axiomatisation≃Stable-≡-Erased-axiomatisation.
+
+module Stable-≡-Erased-axiomatisation→[]-cong-axiomatisation
+  ((Stable-≡-Erased , Stable-≡-Erased-[refl]) :
+   Stable-≡-Erased-axiomatisation a)
+  where
 
   -- An implementation of []-cong.
 
@@ -962,6 +939,68 @@ module Extensionality→[]-cong-axiomatisation
     Erased ([ x ] ≡ [ y ])  ↝⟨ inverse Eq.⟨ _ , Very-stable-≡-Erased _ _ ⟩ ⟩□
     [ x ] ≡ [ y ]           □)
 
+  -- The []-cong axioms can be instantiated.
+
+  instance-of-[]-cong-axiomatisation :
+    []-cong-axiomatisation a
+  instance-of-[]-cong-axiomatisation = record
+    { []-cong             = []-cong
+    ; []-cong-equivalence = []-cong-equivalence
+    ; []-cong-[refl]      = []-cong-[refl]
+    }
+
+------------------------------------------------------------------------
+-- In the presence of function extensionality the []-cong axioms can
+-- be instantiated
+
+-- Some lemmas used to implement
+-- Extensionality→[]-cong-axiomatisation.
+
+module Extensionality→[]-cong-axiomatisation
+  (ext′ : Extensionality a a)
+  where
+
+  private
+    ext = Eq.good-ext ext′
+
+  -- Equality is stable for Erased A.
+  --
+  -- The proof is based on the proof of Lemma 1.25 in "Modalities in
+  -- Homotopy Type Theory" by Rijke, Shulman and Spitters, and the
+  -- corresponding Coq source code.
+
+  Stable-≡-Erased : {@0 A : Type a} → Stable-≡ (Erased A)
+  Stable-≡-Erased x y eq =
+    x                               ≡⟨ flip ext⁻¹ eq (
+
+      (λ (_ : Erased (x ≡ y)) → x)     ≡⟨ ∘-[]-injective (
+
+        (λ (_ : x ≡ y) → x)               ≡⟨ apply-ext ext (λ (eq : x ≡ y) →
+
+          x                                  ≡⟨ eq ⟩∎
+          y                                  ∎) ⟩∎
+
+        (λ (_ : x ≡ y) → y)               ∎) ⟩∎
+
+      (λ (_ : Erased (x ≡ y)) → y)     ∎) ⟩∎
+
+    y                               ∎
+
+  -- A "computation rule" for Stable-≡-Erased.
+
+  Stable-≡-Erased-[refl] :
+    {@0 A : Type a} {x : Erased A} →
+    Stable-≡-Erased x x [ refl x ] ≡ refl x
+  Stable-≡-Erased-[refl] {x = [ x ]} =
+    Stable-≡-Erased [ x ] [ x ] [ refl [ x ] ]                ≡⟨⟩
+    ext⁻¹ (∘-[]-injective (apply-ext ext id)) [ refl [ x ] ]  ≡⟨ ext⁻¹-∘-[]-injective ⟩
+    ext⁻¹ (apply-ext ext id) (refl [ x ])                     ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) _ ⟩∎
+    refl [ x ]                                                ∎
+
+  open Stable-≡-Erased-axiomatisation→[]-cong-axiomatisation
+    (Stable-≡-Erased , Stable-≡-Erased-[refl])
+    public
+
 -- If we have extensionality, then []-cong can be implemented.
 --
 -- The idea for this result comes from "Modalities in Homotopy Type
@@ -972,11 +1011,8 @@ module Extensionality→[]-cong-axiomatisation
 Extensionality→[]-cong-axiomatisation :
   Extensionality a a →
   []-cong-axiomatisation a
-Extensionality→[]-cong-axiomatisation ext = record
-  { []-cong             = []-cong
-  ; []-cong-equivalence = []-cong-equivalence
-  ; []-cong-[refl]      = []-cong-[refl]
-  }
+Extensionality→[]-cong-axiomatisation ext =
+  instance-of-[]-cong-axiomatisation
   where
   open Extensionality→[]-cong-axiomatisation ext
 

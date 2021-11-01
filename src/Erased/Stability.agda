@@ -2571,3 +2571,111 @@ module Extensionality where
          (lower-extensionality _ _ ext))
       ℓ′
       ext
+
+------------------------------------------------------------------------
+-- Some lemmas related to Stable-≡-Erased-axiomatisation
+
+private
+
+  -- The type []-cong-axiomatisation ℓ is logically equivalent to
+  -- Stable-≡-Erased-axiomatisation ℓ.
+
+  []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation :
+    []-cong-axiomatisation ℓ ⇔ Stable-≡-Erased-axiomatisation ℓ
+  []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation {ℓ = ℓ} = record
+    { to   = λ ax →
+               let open []-cong₁ ax
+                   s : {@0 A : Type ℓ} → Very-stable-≡ (Erased A)
+                   s = Very-stable→Very-stable-≡ 0 Very-stable-Erased
+               in
+                 Very-stable→Stable 1 s
+               , (λ {_ x} →
+                    Very-stable→Stable 1 s x x [ refl x ]  ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s x x ⟩ _ ⟩∎
+                    refl x                                 ∎)
+    ; from = S→B.instance-of-[]-cong-axiomatisation
+    }
+    where
+    module S→B = Stable-≡-Erased-axiomatisation→[]-cong-axiomatisation
+
+-- The type Stable-≡-Erased-axiomatisation ℓ is propositional
+-- (assuming extensionality).
+--
+-- The proof is based on a proof due to Nicolai Kraus that shows that
+-- "J + its computation rule" is contractible, see
+-- Equality.Instances-related.Equality-with-J-contractible.
+
+Stable-≡-Erased-axiomatisation-propositional :
+  Extensionality (lsuc ℓ) ℓ →
+  Is-proposition (Stable-≡-Erased-axiomatisation ℓ)
+Stable-≡-Erased-axiomatisation-propositional {ℓ = ℓ} ext =
+  [inhabited⇒contractible]⇒propositional λ ax →
+  let ax′ = _⇔_.from
+              []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation
+              ax
+
+      module BC = []-cong-axiomatisation ax′
+      module EC = Erased-cong ax′ ax′
+  in
+  _⇔_.from contractible⇔↔⊤
+    (Stable-≡-Erased-axiomatisation ℓ                                  ↔⟨ Eq.↔→≃
+                                                                            (λ (Stable-≡-Erased , Stable-≡-Erased-[refl]) _ →
+                                                                                 (λ ([ x , y , x≡y ]) →
+                                                                                    Stable-≡-Erased [ x ] [ y ] [ x≡y ])
+                                                                               , (λ _ → Stable-≡-Erased-[refl]))
+                                                                            (λ hyp →
+                                                                                 (λ ([ x ]) ([ y ]) ([ x≡y ]) →
+                                                                                    hyp _ .proj₁ [ (x , y , x≡y) ])
+                                                                               , hyp _ .proj₂ _)
+                                                                            refl
+                                                                            refl ⟩
+     ((([ A ]) : Erased (Type ℓ)) →
+      ∃ λ (s : (([ x , y , _ ]) :
+                Erased (∃ λ x → ∃ λ y → [ x ] ≡ [ y ])) →
+               [ x ] ≡ [ y ]) →
+        ((([ x ]) : Erased A) →
+         s [ (x , x , refl [ x ]) ] ≡ refl [ x ]))                     ↝⟨ (∀-cong ext λ _ → inverse $
+                                                                           Σ-cong
+                                                                             (inverse $
+                                                                              Π-cong
+                                                                                ext′
+                                                                                (EC.Erased-cong-≃ (∃-cong λ _ → ∃-cong λ _ → []≡[]≃≡))
+                                                                                (λ _ → Eq.id)) λ s →
+                                                                           ∀-cong ext′ λ ([ x ]) →
+       s [ (x , x , refl x) ] ≡ refl [ x ]                                   ↝⟨ ≡⇒↝ _ $ cong (_≡ _) $
+                                                                                cong (λ (([ eq ]) : Erased (x ≡ x)) → s [ (x , x , eq) ]) $
+                                                                                BC.[]-cong [ sym $ cong-refl _ ] ⟩□
+       s [ (x , x , cong erased (refl [ x ])) ] ≡ refl [ x ]                 □) ⟩
+
+     ((([ A ]) : Erased (Type ℓ)) →
+      ∃ λ (s : (([ x , y , _ ]) : Erased (A ²/≡)) → [ x ] ≡ [ y ]) →
+        ((([ x ]) : Erased A) → s [ (x , x , refl x) ] ≡ refl [ x ]))  ↝⟨ (∀-cong ext λ _ →
+                                                                           Σ-cong
+                                                                             (inverse $
+                                                                              Π-cong ext′ (inverse $ EC.Erased-cong-↔ -²/≡↔-) (λ _ → Eq.id)) λ _ →
+                                                                             F.id) ⟩
+     ((([ A ]) : Erased (Type ℓ)) →
+      ∃ λ (r : (x : Erased A) → x ≡ x) →
+        (x : Erased A) → r x ≡ refl x)                                 ↝⟨ (∀-cong ext λ _ → inverse
+                                                                           ΠΣ-comm) ⟩
+     ((([ A ]) : Erased (Type ℓ))
+      (x : Erased A) →
+      ∃ λ (x≡x : x ≡ x) → x≡x ≡ refl x)                                ↝⟨ (_⇔_.to contractible⇔↔⊤ $
+                                                                           Π-closure ext  0 λ _ →
+                                                                           Π-closure ext′ 0 λ _ →
+                                                                           singleton-contractible _) ⟩□
+     ⊤                                                                 □)
+  where
+  ext′ : Extensionality ℓ ℓ
+  ext′ = lower-extensionality _ lzero ext
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- Stable-≡-Erased-axiomatisation ℓ (assuming extensionality).
+
+[]-cong-axiomatisation≃Stable-≡-Erased-axiomatisation :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+  Stable-≡-Erased-axiomatisation ℓ
+[]-cong-axiomatisation≃Stable-≡-Erased-axiomatisation {ℓ = ℓ} =
+  generalise-ext?-prop
+    []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation
+    []-cong-axiomatisation-propositional
+    Stable-≡-Erased-axiomatisation-propositional
