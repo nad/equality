@@ -49,7 +49,7 @@ private
     a b c ℓ ℓ₁ ℓ₂ ℓ₃ p : Level
     A B                : Type a
     P                  : A → Type p
-    k k′ x y           : A
+    ext f k k′ s x y   : A
     n                  : ℕ
 
 ------------------------------------------------------------------------
@@ -564,6 +564,62 @@ Very-stableᴱ-Πⁿ ext n =
     n
     (≃ᴱ→Very-stableᴱ→Very-stableᴱ ∘ from-isomorphism)
     (Very-stableᴱ-Π ext)
+
+-- One can sometimes drop Erased from the domain of a Π-type.
+
+Π-Erased≃Π :
+  {A : Type a} {P : @0 A → Type p} →
+  Extensionality? ⌊ k ⌋-sym a p →
+  (∀ (@0 x) → Stable-[ ⌊ k ⌋-sym ] (P x)) →
+  ((x : Erased A) → P (erased x)) ↝[ ⌊ k ⌋-sym ] ((x : A) → P x)
+Π-Erased≃Π {a = a} {p = p} {A = A} {P = P} = lemma₂
+  where
+  lemma₁ lemma₂ :
+    Extensionality? ⌊ k ⌋-sym a p →
+    (∀ (@0 x) → Stable-[ ⌊ k ⌋-sym ] (P x)) →
+    ((x : Erased A) → P (erased x)) ↝[ ⌊ k ⌋-sym ] ((x : A) → P x)
+
+  lemma₁ ext s =
+    ((x : Erased A) → P (erased x))           ↝⟨ (∀-cong ext λ x → inverse $ s (erased x)) ⟩
+    ((x : Erased A) → Erased (P (erased x)))  ↔⟨ inverse Erased-Π↔Π-Erased ⟩
+    Erased ((x : A) → P x)                    ↝⟨ Stable-[]-Π ext (λ x → s x) ⟩□
+    ((x : A) → P x)                           □
+
+  lemma₂ {k = equivalence} ext s =
+    Eq.with-other-function
+      (lemma₁ ext s)
+      (_∘ [_]→)
+      (λ f → apply-ext ext λ x →
+         _≃_.to (s x) (_≃_.from (s x) (f [ x ]))  ≡⟨ _≃_.right-inverse-of (s x) _ ⟩∎
+         f [ x ]                                  ∎)
+  lemma₂ {k = equivalenceᴱ} ext s =
+    EEq.with-other-function
+      (lemma₁ ext s)
+      (_∘ [_]→)
+      (λ f → apply-ext (erased ext) λ x →
+         _≃ᴱ_.to (s x) (_≃ᴱ_.from (s x) (f [ x ]))  ≡⟨ _≃ᴱ_.right-inverse-of (s x) _ ⟩∎
+         f [ x ]                                    ∎)
+  lemma₂ {k = bijection} ext s =
+    Bijection.with-other-function
+      (lemma₁ ext s)
+      (_∘ [_]→)
+      (λ f → apply-ext ext λ x →
+         _↔_.to (s x) (_↔_.from (s x) (f [ x ]))  ≡⟨ _↔_.right-inverse-of (s x) _ ⟩∎
+         f [ x ]                                  ∎)
+  lemma₂ {k = logical-equivalence} ext s =
+    record (lemma₁ ext s) { to = _∘ [_]→ }
+
+_ : _≃_.to (Π-Erased≃Π ext s) f x ≡ f [ x ]
+_ = refl _
+
+_ : _≃ᴱ_.to (Π-Erased≃Π ext s) f x ≡ f [ x ]
+_ = refl _
+
+_ : _↔_.to (Π-Erased≃Π ext s) f x ≡ f [ x ]
+_ = refl _
+
+_ : _⇔_.to (Π-Erased≃Π ext s) f x ≡ f [ x ]
+_ = refl _
 
 -- Stable is closed under Σ A if A is very stable.
 
@@ -1210,16 +1266,16 @@ Very-stableᴱ≃Very-stableᴱ-Nullᴱ :
   {A : Type a} →
   @0 Extensionality (lsuc a) a →
   Very-stableᴱ A ≃ᴱ (λ (A : Type a) → Very-stableᴱ A) -Nullᴱ A
-Very-stableᴱ≃Very-stableᴱ-Nullᴱ {A = A} ext′ =
+Very-stableᴱ≃Very-stableᴱ-Nullᴱ {A = A} ext =
   EEq.⇔→≃ᴱ
-    (Very-stableᴱ-propositional ext)
-    (Π-closure ext′ 1 λ _ →
-     EEq.Is-equivalenceᴱ-propositional ext _)
+    (Very-stableᴱ-propositional ext′)
+    (Π-closure ext 1 λ _ →
+     EEq.Is-equivalenceᴱ-propositional ext′ _)
     to
     from
   where
-  @0 ext : _
-  ext = lower-extensionality _ lzero ext′
+  @0 ext′ : _
+  ext′ = lower-extensionality _ lzero ext
 
   to : Very-stableᴱ A → Very-stableᴱ -Nullᴱ A
   to sA _ =
@@ -1227,10 +1283,10 @@ Very-stableᴱ≃Very-stableᴱ-Nullᴱ {A = A} ext′ =
     EEq.↔→≃ᴱ
       const
       (λ f → Very-stableᴱ→Stable 0 sA [ f sB ])
-      (λ f → apply-ext ext λ x →
+      (λ f → apply-ext ext′ λ x →
          const (Very-stableᴱ→Stable 0 sA [ f sB ]) x  ≡⟨⟩
          Very-stableᴱ→Stable 0 sA [ f sB ]            ≡⟨ cong (Very-stableᴱ→Stable 0 sA ∘ [_]→ ∘ f) $
-                                                         Very-stableᴱ-propositional ext _ _ ⟩
+                                                         Very-stableᴱ-propositional ext′ _ _ ⟩
          Very-stableᴱ→Stable 0 sA [ f x ]             ≡⟨ Very-stableᴱ→Stable-[]≡id sA ⟩∎
          f x                                          ∎)
       (λ x →
@@ -1259,7 +1315,7 @@ Very-stableᴱ≃Very-stableᴱ-Nullᴱ {A = A} ext′ =
       _≃ᴱ_.from A≃ (λ s → Very-stableᴱ→Stable 0 s [ x ]) ≡ x
     lemma x =
       _≃ᴱ_.from A≃ (λ s → Very-stableᴱ→Stable 0 s [ x ])  ≡⟨ (cong (_≃ᴱ_.from A≃) $
-                                                              apply-ext ext λ s →
+                                                              apply-ext ext′ λ s →
                                                               Very-stableᴱ→Stable-[]≡id s) ⟩
       _≃ᴱ_.from A≃ (const x)                              ≡⟨⟩
       _≃ᴱ_.from A≃ (_≃ᴱ_.to A≃ x)                         ≡⟨ _≃ᴱ_.left-inverse-of A≃ _ ⟩∎
