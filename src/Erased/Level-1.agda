@@ -983,98 +983,100 @@ Extensionality→[]-cong-axiomatisation ext = record
 ------------------------------------------------------------------------
 -- A variant of []-cong-axiomatisation
 
--- A variant of []-cong-axiomatisation with a weaker specification of
--- []-cong-[refl].
+-- A variant of []-cong-axiomatisation where some erased arguments
+-- have been replaced with non-erased ones.
 
 record []-cong-axiomatisation′ a : Type (lsuc a) where
   field
     []-cong :
-      {@0 A : Type a} {@0 x y : A} →
+      {A : Type a} {x y : A} →
       Erased (x ≡ y) → [ x ] ≡ [ y ]
     []-cong-equivalence :
-       {@0 A : Type a} {@0 x y : A} →
-       Is-equivalence ([]-cong {x = x} {y = y})
-    []-cong-[refl]′ :
-      {@0 A : Type a} {@0 x : A} →
+      Is-equivalence ([]-cong {x = x} {y = y})
+    []-cong-[refl] :
       []-cong [ refl x ] ≡ refl [ x ]
 
-  -- There is an equivalence between erased equality proofs and
-  -- equalities between erased values.
-
-  Erased-≡≃[]≡[] :
-    {@0 A : Type a} {@0 x y : A} →
-    Erased (x ≡ y) ≃ ([ x ] ≡ [ y ])
-  Erased-≡≃[]≡[] = Eq.⟨ _ , []-cong-equivalence ⟩
-
-  -- The inverse of []-cong.
-
-  []-cong⁻¹ :
-    {@0 A : Type a} {@0 x y : A} →
-    [ x ] ≡ [ y ] → Erased (x ≡ y)
-  []-cong⁻¹ = _≃_.from Erased-≡≃[]≡[]
-
-  -- Rearrangement lemmas for []-cong and []-cong⁻¹.
-
-  []-cong-[]≡cong-[] :
-    {A : Type a} {x y : A} {x≡y : x ≡ y} →
-    []-cong [ x≡y ] ≡ cong [_]→ x≡y
-  []-cong-[]≡cong-[] {x = x} {x≡y = x≡y} = elim¹
-    (λ x≡y → []-cong [ x≡y ] ≡ cong [_]→ x≡y)
-    ([]-cong [ refl x ]  ≡⟨ []-cong-[refl]′ ⟩
-     refl [ x ]          ≡⟨ sym $ cong-refl _ ⟩∎
-     cong [_]→ (refl x)  ∎)
-    x≡y
-
-  []-cong⁻¹≡[cong-erased] :
-    {@0 A : Type a} {@0 x y : A} {@0 x≡y : [ x ] ≡ [ y ]} →
-    []-cong⁻¹ x≡y ≡ [ cong erased x≡y ]
-  []-cong⁻¹≡[cong-erased] {x≡y = x≡y} = []-cong
-    [ erased ([]-cong⁻¹ x≡y)      ≡⟨ cong erased (_↔_.from (from≡↔≡to Erased-≡≃[]≡[]) lemma) ⟩
-      erased [ cong erased x≡y ]  ≡⟨⟩
-      cong erased x≡y             ∎
-    ]
-    where
-    @0 lemma : _
-    lemma =
-      x≡y                          ≡⟨ cong-id _ ⟩
-      cong id x≡y                  ≡⟨⟩
-      cong ([_]→ ∘ erased) x≡y     ≡⟨ sym $ cong-∘ _ _ _ ⟩
-      cong [_]→ (cong erased x≡y)  ≡⟨ sym []-cong-[]≡cong-[] ⟩∎
-      []-cong [ cong erased x≡y ]  ∎
-
-  -- A "computation rule" for []-cong⁻¹.
-
-  []-cong⁻¹-refl :
-    {@0 A : Type a} {@0 x : A} →
-    []-cong⁻¹ (refl [ x ]) ≡ [ refl x ]
-  []-cong⁻¹-refl {x = x} =
-    []-cong⁻¹ (refl [ x ])        ≡⟨ []-cong⁻¹≡[cong-erased] ⟩
-    [ cong erased (refl [ x ]) ]  ≡⟨ []-cong [ cong-refl _ ] ⟩∎
-    [ refl x ]                    ∎
-
-  -- A stronger variant of []-cong-[refl]′.
-
-  []-cong-[refl] :
-    {@0 A : Type a} {@0 x : A} →
-    []-cong [ refl x ] ≡ refl [ x ]
-  []-cong-[refl] {x = x} =
-    sym $ _↔_.to (from≡↔≡to Erased-≡≃[]≡[]) (
-      []-cong⁻¹ (refl [ x ])  ≡⟨ []-cong⁻¹-refl ⟩∎
-      [ refl x ]              ∎)
-
--- When implementing the []-cong axioms it suffices to prove a weaker
--- variant of []-cong-[refl].
+-- When implementing the []-cong axioms it suffices to prove "weaker"
+-- variants with fewer erased arguments.
 
 []-cong-axiomatisation′→[]-cong-axiomatisation :
   []-cong-axiomatisation′ a →
   []-cong-axiomatisation a
-[]-cong-axiomatisation′→[]-cong-axiomatisation ax = record
-  { []-cong             = []-cong
-  ; []-cong-equivalence = []-cong-equivalence
-  ; []-cong-[refl]      = []-cong-[refl]
+[]-cong-axiomatisation′→[]-cong-axiomatisation {a = a} ax = record
+  { []-cong             = []-cong₀
+  ; []-cong-equivalence = []-cong₀-equivalence
+  ; []-cong-[refl]      = []-cong₀-[refl]
   }
   where
   open []-cong-axiomatisation′ ax
+
+  []-cong₀ :
+    {@0 A : Type a} {@0 x y : A} →
+    Erased (x ≡ y) → [ x ] ≡ [ y ]
+  []-cong₀ {A = A} {x = x} {y = y} =
+    Erased (x ≡ y)          →⟨ map (cong [_]→) ⟩
+    Erased ([ x ] ≡ [ y ])  →⟨ []-cong ⟩
+    [ [ x ] ] ≡ [ [ y ] ]   →⟨ cong (map erased) ⟩□
+    [ x ] ≡ [ y ]           □
+
+  []-cong₀-[refl] :
+    {@0 A : Type a} {@0 x : A} →
+    []-cong₀ [ refl x ] ≡ refl [ x ]
+  []-cong₀-[refl] {x = x} =
+    cong (map erased) ([]-cong (map (cong [_]→) [ refl x ]))  ≡⟨⟩
+    cong (map erased) ([]-cong [ cong [_]→ (refl x) ])        ≡⟨ cong (cong (map erased) ∘ []-cong) $
+                                                                 []-cong₀ [ cong-refl _ ] ⟩
+    cong (map erased) ([]-cong [ refl [ x ] ])                ≡⟨ cong (cong (map erased)) []-cong-[refl] ⟩
+    cong (map erased) (refl [ [ x ] ])                        ≡⟨ cong-refl _ ⟩∎
+    refl [ x ]                                                ∎
+
+  []-cong₀-equivalence :
+    {@0 A : Type a} {@0 x y : A} →
+    Is-equivalence ([]-cong₀ {x = x} {y = y})
+  []-cong₀-equivalence =
+    _≃_.is-equivalence $
+    Eq.↔→≃
+      _
+      (λ [x]≡[y] → [ cong erased [x]≡[y] ])
+      (λ [x]≡[y] →
+         cong (map erased)
+           ([]-cong (map (cong [_]→) [ cong erased [x]≡[y] ]))            ≡⟨⟩
+
+         cong (map erased) ([]-cong [ cong [_]→ (cong erased [x]≡[y]) ])  ≡⟨ cong (cong (map erased) ∘ []-cong) $ []-cong₀
+                                                                             [ trans (cong-∘ _ _ _) $
+                                                                               sym $ cong-id _
+                                                                             ] ⟩
+
+         cong (map erased) ([]-cong [ [x]≡[y] ])                          ≡⟨ elim
+                                                                               (λ x≡y → cong (map erased) ([]-cong [ x≡y ]) ≡ x≡y)
+                                                                               (λ x →
+           cong (map erased) ([]-cong [ refl x ])                                 ≡⟨ cong (cong (map erased)) []-cong-[refl] ⟩
+           cong (map erased) (refl [ x ])                                         ≡⟨ cong-refl _ ⟩∎
+           refl x                                                                 ∎)
+                                                                               _ ⟩
+
+         [x]≡[y]                                                          ∎)
+      (λ ([ x≡y ]) →
+         [ cong erased
+             (cong (map erased) ([]-cong (map (cong [_]→) [ x≡y ]))) ]       ≡⟨⟩
+
+         [ cong erased (cong (map erased) ([]-cong [ cong [_]→ x≡y ])) ]     ≡⟨ []-cong₀
+                                                                                  [ elim
+                                                                                      (λ x≡y →
+                                                                                         cong erased
+                                                                                           (cong (map erased) ([]-cong [ cong [_]→ x≡y ])) ≡
+                                                                                         x≡y)
+                                                                                      (λ x →
+           cong erased (cong (map erased) ([]-cong [ cong [_]→ (refl x) ]))              ≡⟨ cong (cong erased ∘ cong (map erased) ∘ []-cong) $
+                                                                                            []-cong₀ [ cong-refl _ ] ⟩
+           cong erased (cong (map erased) ([]-cong [ refl [ x ] ]))                      ≡⟨ cong (cong erased ∘ cong (map erased)) []-cong-[refl] ⟩
+           cong erased (cong (map erased) (refl [ [ x ] ]))                              ≡⟨ trans (cong (cong erased) $ cong-refl _) $
+                                                                                            cong-refl _ ⟩∎
+           refl x                                                                        ∎)
+                                                                                      _
+                                                                                  ] ⟩∎
+
+         [ x≡y ]                                                             ∎)
 
 ------------------------------------------------------------------------
 -- Erased preserves some kinds of functions
@@ -1139,21 +1141,13 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   ----------------------------------------------------------------------
   -- Some definitions directly related to []-cong
 
-  private
+  -- There is an equivalence between erased equality proofs and
+  -- equalities between erased values.
 
-    -- An instance of []-cong-axiomatisation′.
-
-    instance-of-[]-cong-axiomatisation′ : []-cong-axiomatisation′ ℓ
-    instance-of-[]-cong-axiomatisation′ = record
-      { []-cong             = []-cong
-      ; []-cong-equivalence = []-cong-equivalence
-      ; []-cong-[refl]′     = []-cong-[refl]
-      }
-
-  open []-cong-axiomatisation′ instance-of-[]-cong-axiomatisation′
-    public
-    using (Erased-≡≃[]≡[]; []-cong⁻¹; []-cong-[]≡cong-[];
-           []-cong⁻¹≡[cong-erased]; []-cong⁻¹-refl)
+  Erased-≡≃[]≡[] :
+    {@0 A : Type ℓ} {@0 x y : A} →
+    Erased (x ≡ y) ≃ ([ x ] ≡ [ y ])
+  Erased-≡≃[]≡[] = Eq.⟨ _ , []-cong-equivalence ⟩
 
   -- There is a bijection between erased equality proofs and
   -- equalities between erased values.
@@ -1162,6 +1156,52 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     {@0 A : Type ℓ} {@0 x y : A} →
     Erased (x ≡ y) ↔ [ x ] ≡ [ y ]
   Erased-≡↔[]≡[] = _≃_.bijection Erased-≡≃[]≡[]
+
+  -- The inverse of []-cong.
+
+  []-cong⁻¹ :
+    {@0 A : Type ℓ} {@0 x y : A} →
+    [ x ] ≡ [ y ] → Erased (x ≡ y)
+  []-cong⁻¹ = _≃_.from Erased-≡≃[]≡[]
+
+  -- Rearrangement lemmas for []-cong and []-cong⁻¹.
+
+  []-cong-[]≡cong-[] :
+    {A : Type ℓ} {x y : A} {x≡y : x ≡ y} →
+    []-cong [ x≡y ] ≡ cong [_]→ x≡y
+  []-cong-[]≡cong-[] {x = x} {x≡y = x≡y} = elim¹
+    (λ x≡y → []-cong [ x≡y ] ≡ cong [_]→ x≡y)
+    ([]-cong [ refl x ]  ≡⟨ []-cong-[refl] ⟩
+     refl [ x ]          ≡⟨ sym $ cong-refl _ ⟩∎
+     cong [_]→ (refl x)  ∎)
+    x≡y
+
+  []-cong⁻¹≡[cong-erased] :
+    {@0 A : Type ℓ} {@0 x y : A} {@0 x≡y : [ x ] ≡ [ y ]} →
+    []-cong⁻¹ x≡y ≡ [ cong erased x≡y ]
+  []-cong⁻¹≡[cong-erased] {x≡y = x≡y} = []-cong
+    [ erased ([]-cong⁻¹ x≡y)      ≡⟨ cong erased (_↔_.from (from≡↔≡to Erased-≡≃[]≡[]) lemma) ⟩
+      erased [ cong erased x≡y ]  ≡⟨⟩
+      cong erased x≡y             ∎
+    ]
+    where
+    @0 lemma : _
+    lemma =
+      x≡y                          ≡⟨ cong-id _ ⟩
+      cong id x≡y                  ≡⟨⟩
+      cong ([_]→ ∘ erased) x≡y     ≡⟨ sym $ cong-∘ _ _ _ ⟩
+      cong [_]→ (cong erased x≡y)  ≡⟨ sym []-cong-[]≡cong-[] ⟩∎
+      []-cong [ cong erased x≡y ]  ∎
+
+  -- A "computation rule" for []-cong⁻¹.
+
+  []-cong⁻¹-refl :
+    {@0 A : Type ℓ} {@0 x : A} →
+    []-cong⁻¹ (refl [ x ]) ≡ [ refl x ]
+  []-cong⁻¹-refl {x = x} =
+    []-cong⁻¹ (refl [ x ])        ≡⟨ []-cong⁻¹≡[cong-erased] ⟩
+    [ cong erased (refl [ x ]) ]  ≡⟨ []-cong [ cong-refl _ ] ⟩∎
+    [ refl x ]                    ∎
 
   -- []-cong and []-cong⁻¹ commute (kind of) with sym.
 
