@@ -1034,6 +1034,9 @@ record []-cong-axiomatisation′ a : Type (lsuc a) where
 
 -- When implementing the []-cong axioms it suffices to prove "weaker"
 -- variants with fewer erased arguments.
+--
+-- See also
+-- Erased.Stability.[]-cong-axiomatisation≃[]-cong-axiomatisation′.
 
 []-cong-axiomatisation′→[]-cong-axiomatisation :
   []-cong-axiomatisation′ a →

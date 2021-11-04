@@ -2803,3 +2803,174 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
      Very-stable-≡-Erased-axiomatisation ℓ  □)
     []-cong-axiomatisation-propositional
     Very-stable-≡-Erased-axiomatisation-propositional
+
+------------------------------------------------------------------------
+-- A lemma related to []-cong-axiomatisation′
+
+-- The type []-cong-axiomatisation′ a is propositional (assuming
+-- extensionality).
+
+[]-cong-axiomatisation′-propositional :
+  Extensionality (lsuc a) a →
+  Is-proposition ([]-cong-axiomatisation′ a)
+[]-cong-axiomatisation′-propositional {a = a} ext =
+  [inhabited⇒contractible]⇒propositional λ ax →
+  let ax′ = []-cong-axiomatisation′→[]-cong-axiomatisation ax
+
+      module BC = []-cong₁ ax′
+
+      s₁ : {@0 A : Type a} → Very-stable-≡ (Erased A)
+      s₁ = BC.Very-stable→Very-stable-≡ 0 Very-stable-Erased
+
+      s₂ : {@0 A : Type a} →
+           For-iterated-equality 2 Very-stable (Erased A)
+      s₂ = BC.Very-stable→Very-stable-≡ 1 s₁
+
+      s₃ : {@0 A : Type a} {@0 x y : A}
+           {f : Erased (x ≡ y) → [ x ] ≡ [ y ]} →
+           Very-stable (Is-equivalence f)
+      s₃ =
+        Very-stable-Σ
+          (Very-stable-Π ext′ λ _ →
+           Very-stable-Erased) λ _ →
+        Very-stable-Σ
+          (Very-stable-Π ext′ λ _ →
+           BC.Very-stable→Very-stable-≡ 0 (s₁ _ _) _ _) λ _ →
+        Very-stable-Σ
+          (Very-stable-Π ext′ λ _ → s₁ _ _) λ _ →
+        Very-stable-Π ext′ λ _ →
+        BC.Very-stable→Very-stable-≡ 0
+          (BC.Very-stable→Very-stable-≡ 0 (s₁ _ _) _ _)
+          _ _
+  in
+  _⇔_.from contractible⇔↔⊤
+    ([]-cong-axiomatisation′ a                                            ↔⟨ Eq.↔→≃
+                                                                               (λ (record { []-cong             = c
+                                                                                          ; []-cong-equivalence = e
+                                                                                          ; []-cong-[refl]      = r
+                                                                                          })
+                                                                                  _ →
+                                                                                    (λ _ _ ([ x≡y ]) → c [ x≡y ])
+                                                                                  , (λ _ → r)
+                                                                                  , (λ _ _ → e))
+                                                                               (λ f → record
+                                                                                  { []-cong             = λ ([ x≡y ]) →
+                                                                                                            f _ .proj₁ _ _ [ x≡y ]
+                                                                                  ; []-cong-equivalence = f _ .proj₂ .proj₂ _ _
+                                                                                  ; []-cong-[refl]      = f _ .proj₂ .proj₁ _
+                                                                                  })
+                                                                               refl
+                                                                               refl ⟩
+     ((A : Type a) →
+      ∃ λ (c : ((x y : A) → Erased (x ≡ y) → [ x ] ≡ [ y ])) →
+        ((x : A) → c x x [ refl x ] ≡ refl [ x ]) ×
+        ((x y : A) →
+         Is-equivalence {A = Erased (x ≡ y)} {B = [ x ] ≡ [ y ]}
+                        (λ ([ x≡y ]) → c x y [ x≡y ])))                   ↝⟨ (∀-cong ext λ _ → inverse $
+                                                                              Σ-cong
+                                                                                ((Π-Erased≃Π ext′ λ _ →
+                                                                                  Very-stable→Stable 0 $
+                                                                                  Very-stable-Π ext′ λ _ →
+                                                                                  Very-stable-Π ext′ λ _ →
+                                                                                  s₁ _ _) Eq.∘
+                                                                                 (∀-cong ext′ λ _ →
+                                                                                  Π-Erased≃Π ext′ λ _ →
+                                                                                  Very-stable→Stable 0 $
+                                                                                  Very-stable-Π ext′ λ _ →
+                                                                                  s₁ _ _)) λ _ →
+                                                                                F.id) ⟩
+     ((A : Type a) →
+      ∃ λ (c : ((([ x ]) ([ y ]) : Erased A) →
+                Erased (x ≡ y) → [ x ] ≡ [ y ])) →
+        ((x : A) → c [ x ] [ x ] [ refl x ] ≡ refl [ x ]) ×
+        ((x y : A) →
+         Is-equivalence {A = Erased (x ≡ y)} {B = [ x ] ≡ [ y ]}
+                        (λ ([ x≡y ]) → c [ x ] [ y ] [ x≡y ])))           ↝⟨ (∀-cong ext λ _ →
+                                                                              Σ-cong
+                                                                                (inverse $
+                                                                                 (∀-cong ext′ λ _ → currying) F.∘
+                                                                                 currying F.∘
+                                                                                 (Π-cong ext′ (∃-cong λ _ → Erased-Σ↔Σ) λ _ → F.id) F.∘
+                                                                                 (Π-cong ext′ Erased-Σ↔Σ λ _ → F.id)) λ _ →
+                                                                              F.id) ⟩
+     ((A : Type a) →
+      ∃ λ (c : ((([ x , y , _ ]) : Erased (A ²/≡)) → [ x ] ≡ [ y ])) →
+        ((x : A) → c [ (x , x , refl x) ] ≡ refl [ x ]) ×
+        ((x y : A) →
+         Is-equivalence {A = Erased (x ≡ y)} {B = [ x ] ≡ [ y ]}
+                        (λ ([ x≡y ]) → c [ (x , y , x≡y) ])))             ↝⟨ (∀-cong ext λ _ → ∃-cong λ _ →
+                                                                              (inverse $ Π-Erased≃Π ext′ λ _ →
+                                                                               Very-stable→Stable 2 s₂ _ _ _ _)
+                                                                                ×-cong
+                                                                              (inverse $
+                                                                               (∀-cong ext′ λ _ →
+                                                                                Π-Erased≃Π ext′ λ _ →
+                                                                                Very-stable→Stable 0 s₃) F.∘
+                                                                               Π-Erased≃Π ext′ λ _ →
+                                                                               Very-stable→Stable 0 $
+                                                                               Very-stable-Π ext′ λ _ →
+                                                                               s₃)) ⟩
+     ((A : Type a) →
+      ∃ λ (c : ((([ x , y , _ ]) : Erased (A ²/≡)) → [ x ] ≡ [ y ])) →
+        ((([ x ]) : Erased A) → c [ (x , x , refl x) ] ≡ refl [ x ]) ×
+        ((([ x ]) ([ y ]) : Erased A) →
+         Is-equivalence {A = Erased (x ≡ y)} {B = [ x ] ≡ [ y ]}
+                        (λ ([ x≡y ]) → c [ (x , y , x≡y) ])))             ↝⟨ (inverse $ Π-Erased≃Π ext λ A →
+                                                                              Very-stable→Stable 0 $
+                                                                              Very-stable-Σ
+                                                                                (Very-stable-Π ext′ λ _ →
+                                                                                 s₁ _ _) λ _ →
+                                                                              Very-stable-×
+                                                                                (Very-stable-Π ext′ λ _ →
+                                                                                 s₂ _ _ _ _)
+                                                                                (Very-stable-Π ext′ λ _ →
+                                                                                 Very-stable-Π ext′ λ _ →
+                                                                                 s₃)) ⟩
+     ((([ A ]) : Erased (Type a)) →
+      ∃ λ (c : ((([ x , y , _ ]) : Erased (A ²/≡)) → [ x ] ≡ [ y ])) →
+        ((([ x ]) : Erased A) → c [ (x , x , refl x) ] ≡ refl [ x ]) ×
+        ((([ x ]) ([ y ]) : Erased A) →
+         Is-equivalence {A = Erased (x ≡ y)} {B = [ x ] ≡ [ y ]}
+                        (λ ([ x≡y ]) → c [ (x , y , x≡y) ])))             ↔⟨ Eq.↔→≃
+                                                                               (λ f → record
+                                                                                  { []-cong             = λ ([ x≡y ]) →
+                                                                                                            f _ .proj₁ [ (_ , _ , x≡y) ]
+                                                                                  ; []-cong-equivalence = f _ .proj₂ .proj₂ _ _
+                                                                                  ; []-cong-[refl]      = f _ .proj₂ .proj₁ _
+                                                                                  })
+                                                                               (λ (record { []-cong             = c
+                                                                                          ; []-cong-equivalence = e
+                                                                                          ; []-cong-[refl]      = r
+                                                                                          })
+                                                                                  _ →
+                                                                                    (λ ([ _ , _ , x≡y ]) → c [ x≡y ])
+                                                                                  , (λ _ → r)
+                                                                                  , (λ _ _ → e))
+                                                                               refl
+                                                                               refl ⟩
+
+     []-cong-axiomatisation a                                             ↝⟨ _⇔_.to contractible⇔↔⊤ $
+                                                                             []-cong-axiomatisation-contractible ext ⟩□
+     ⊤                                                                    □)
+  where
+  ext′ : Extensionality a a
+  ext′ = lower-extensionality _ lzero ext
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- []-cong-axiomatisation′ ℓ (assuming extensionality).
+
+[]-cong-axiomatisation≃[]-cong-axiomatisation′ :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+  []-cong-axiomatisation′ ℓ
+[]-cong-axiomatisation≃[]-cong-axiomatisation′ {ℓ = ℓ} =
+  generalise-ext?-prop
+    (record
+       { from = []-cong-axiomatisation′→[]-cong-axiomatisation
+       ; to   = λ ax → let open []-cong-axiomatisation ax in record
+         { []-cong             = []-cong
+         ; []-cong-equivalence = []-cong-equivalence
+         ; []-cong-[refl]      = []-cong-[refl]
+         }
+       })
+    []-cong-axiomatisation-propositional
+    []-cong-axiomatisation′-propositional
