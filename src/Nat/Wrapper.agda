@@ -591,7 +591,7 @@ module []-cong (ax : []-cong-axiomatisation lzero) where
   open E₁.[]-cong₁ ax
   open E₁.Erased-cong ax ax
   open ES.[]-cong₁ ax
-  open ES.[]-cong₂-⊔₁ ax ax ax
+  open ES.[]-cong₂ ax ax
 
   ----------------------------------------------------------------------
   -- Some lemmas

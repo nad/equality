@@ -40,7 +40,8 @@ open import Surjection eq using (_↠_; Split-surjective)
 open import Univalence-axiom eq
 
 open import Erased.Level-1 eq as E₁
-  hiding (module []-cong; module []-cong₁; module Extensionality)
+  hiding (module []-cong; module []-cong₁; module []-cong₂;
+          module Extensionality)
 import Erased.Level-2
 private
   module E₂ = Erased.Level-2 eq
@@ -1482,6 +1483,87 @@ Erased-other-singleton≃ᴱ⊤ =
 
 ------------------------------------------------------------------------
 -- Results that depend on an instantiation of the []-cong axioms (for
+-- two universe levels)
+
+module []-cong₂
+  (ax₁ : []-cong-axiomatisation ℓ₁)
+  (ax₂ : []-cong-axiomatisation ℓ₂)
+  where
+
+  open Erased-cong ax₁ ax₂
+
+  ----------------------------------------------------------------------
+  -- Preservation lemmas
+
+  -- Stable-[ equivalence ] preserves equivalences (assuming
+  -- extensionality).
+
+  Stable-≃-cong :
+    {A : Type ℓ₁} {B : Type ℓ₂} →
+    Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    A ≃ B → Stable-[ equivalence ] A ↝[ k ] Stable-[ equivalence ] B
+  Stable-≃-cong {A = A} {B = B} ext A≃B =
+    Stable-[ equivalence ] A  ↔⟨⟩
+    Erased A ≃ A              ↝⟨ generalise-ext?
+                                   (Eq.≃-preserves-⇔ (Erased-cong-≃ A≃B) A≃B)
+                                   (λ ext →
+                                      let eq = Eq.≃-preserves ext (Erased-cong-≃ A≃B) A≃B in
+                                      _≃_.right-inverse-of eq , _≃_.left-inverse-of eq)
+                                   ext ⟩
+    Erased B ≃ B              ↔⟨⟩
+    Stable-[ equivalence ] B  □
+
+  -- Very-stable preserves equivalences (assuming extensionality).
+
+  Very-stable-cong :
+    {A : Type ℓ₁} {B : Type ℓ₂} →
+    Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    A ≃ B → Very-stable A ↝[ k ] Very-stable B
+  Very-stable-cong ext A≃B =
+    generalise-ext?-prop
+      (record
+         { to   = lemma A≃B (Erased-cong-≃ A≃B)
+                    (λ x → cong [_]→ (_≃_.right-inverse-of A≃B x))
+         ; from = lemma (inverse A≃B) (inverse $ Erased-cong-≃ A≃B)
+                    (λ x → cong [_]→ (_≃_.left-inverse-of A≃B x))
+         })
+      (Very-stable-propositional ∘ lower-extensionality ℓ₂ ℓ₂)
+      (Very-stable-propositional ∘ lower-extensionality ℓ₁ ℓ₁)
+      ext
+    where
+    lemma :
+      (A≃B : A ≃ B) (E-A≃E-B : Erased A ≃ Erased B) →
+      (∀ x → _≃_.to E-A≃E-B [ _≃_.from A≃B x ] ≡ [ x ]) →
+      Very-stable A → Very-stable B
+    lemma {A = A} {B = B} A≃B E-A≃E-B hyp s = _≃_.is-equivalence $
+      Eq.with-other-function
+        (B         ↝⟨ inverse A≃B ⟩
+         A         ↝⟨ Eq.⟨ [_]→ , s ⟩ ⟩
+         Erased A  ↝⟨ E-A≃E-B ⟩□
+         Erased B  □)
+        [_]→
+        (λ x →
+           _≃_.to E-A≃E-B [ _≃_.from A≃B x ]  ≡⟨ hyp x ⟩∎
+           [ x ]                              ∎)
+
+  -- A generalisation of Very-stable-cong.
+
+  Very-stable-congⁿ :
+    {A : Type ℓ₁} {B : Type ℓ₂} →
+    Extensionality? k′ (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    ∀ n →
+    A ↔[ k ] B →
+    For-iterated-equality n Very-stable A ↝[ k′ ]
+    For-iterated-equality n Very-stable B
+  Very-stable-congⁿ ext n A↔B =
+    For-iterated-equality-cong
+      ext
+      n
+      (Very-stable-cong ext ∘ from-isomorphism)
+      (from-isomorphism A↔B)
+
+------------------------------------------------------------------------
+-- Results that depend on an instantiation of the []-cong axioms (for
 -- two universe levels as well as their maximum)
 
 module []-cong₂-⊔₁
@@ -1536,73 +1618,6 @@ module []-cong₂-⊔₁
     (Erased A → A)  ↝⟨ →-cong ext (Erased-cong A↝B) A↝B ⟩
     (Erased B → B)  ↔⟨⟩
     Stable B        □
-
-  -- Stable-[ equivalence ] preserves equivalences (assuming
-  -- extensionality).
-
-  Stable-≃-cong :
-    {A : Type ℓ₁} {B : Type ℓ₂} →
-    Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
-    A ≃ B → Stable-[ equivalence ] A ↝[ k ] Stable-[ equivalence ] B
-  Stable-≃-cong {A = A} {B = B} ext A≃B =
-    Stable-[ equivalence ] A  ↔⟨⟩
-    Erased A ≃ A              ↝⟨ generalise-ext?
-                                   (Eq.≃-preserves-⇔ (Erased-cong A≃B) A≃B)
-                                   (λ ext →
-                                      let eq = Eq.≃-preserves ext (Erased-cong A≃B) A≃B in
-                                      _≃_.right-inverse-of eq , _≃_.left-inverse-of eq)
-                                   ext ⟩
-    Erased B ≃ B              ↔⟨⟩
-    Stable-[ equivalence ] B  □
-
-  -- Very-stable preserves equivalences (assuming extensionality).
-
-  Very-stable-cong :
-    {A : Type ℓ₁} {B : Type ℓ₂} →
-    Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
-    A ≃ B → Very-stable A ↝[ k ] Very-stable B
-  Very-stable-cong ext A≃B =
-    generalise-ext?-prop
-      (record
-         { to   = lemma A≃B (Erased-cong A≃B)
-                    (λ x → cong [_]→ (_≃_.right-inverse-of A≃B x))
-         ; from = lemma (inverse A≃B) (inverse $ Erased-cong A≃B)
-                    (λ x → cong [_]→ (_≃_.left-inverse-of A≃B x))
-         })
-      (Very-stable-propositional ∘ lower-extensionality ℓ₂ ℓ₂)
-      (Very-stable-propositional ∘ lower-extensionality ℓ₁ ℓ₁)
-      ext
-    where
-    lemma :
-      (A≃B : A ≃ B) (E-A≃E-B : Erased A ≃ Erased B) →
-      (∀ x → _≃_.to E-A≃E-B [ _≃_.from A≃B x ] ≡ [ x ]) →
-      Very-stable A → Very-stable B
-    lemma {A = A} {B = B} A≃B E-A≃E-B hyp s = _≃_.is-equivalence $
-      Eq.with-other-function
-        (B         ↝⟨ inverse A≃B ⟩
-         A         ↝⟨ Eq.⟨ [_]→ , s ⟩ ⟩
-         Erased A  ↝⟨ E-A≃E-B ⟩□
-         Erased B  □)
-        [_]→
-        (λ x →
-           _≃_.to E-A≃E-B [ _≃_.from A≃B x ]  ≡⟨ hyp x ⟩∎
-           [ x ]                              ∎)
-
-  -- A generalisation of Very-stable-cong.
-
-  Very-stable-congⁿ :
-    {A : Type ℓ₁} {B : Type ℓ₂} →
-    Extensionality? k′ (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
-    ∀ n →
-    A ↔[ k ] B →
-    For-iterated-equality n Very-stable A ↝[ k′ ]
-    For-iterated-equality n Very-stable B
-  Very-stable-congⁿ ext n A↔B =
-    For-iterated-equality-cong
-      ext
-      n
-      (Very-stable-cong ext ∘ from-isomorphism)
-      (from-isomorphism A↔B)
 
   ----------------------------------------------------------------------
   -- More lemmas
@@ -1661,6 +1676,7 @@ module []-cong₂-⊔₁
 module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   open E₁.[]-cong₁ ax
+  open []-cong₂ ax ax
   open []-cong₂-⊔₁ ax ax ax
 
   ----------------------------------------------------------------------
@@ -2296,7 +2312,7 @@ module []-cong₂-⊔₂
     Very-stable (Erased A ↝[ k ] Erased B)
   Very-stable-Erased↝Erased {k = k} {A = A} {B = B} ext =
                                             $⟨ Very-stable-Erased ⟩
-    Very-stable (Erased (A ↝[ k ] B))       ↝⟨ []-cong₂-⊔₁.Very-stable-cong ax ax ax _ (from-isomorphism $ E₂.[]-cong₂-⊔.Erased-↝↔↝ ax₁ ax₂ ax ext)
+    Very-stable (Erased (A ↝[ k ] B))       ↝⟨ []-cong₂.Very-stable-cong ax ax _ (from-isomorphism $ E₂.[]-cong₂-⊔.Erased-↝↔↝ ax₁ ax₂ ax ext)
                                                  ⦂ (_ → _) ⟩□
     Very-stable (Erased A ↝[ k ] Erased B)  □
 
@@ -2316,8 +2332,8 @@ module []-cong₂-⊔₂
          { from = Very-stable-Σ s
          ; to   = flip λ x →
              Very-stable (Σ A P)                          ↝⟨ flip Very-stable-Σ (λ _ → []-cong₁.Very-stable→Very-stable-≡ ax₁ 0 s _ _) ⟩
-             Very-stable (∃ λ ((y , _) : Σ A P) → y ≡ x)  ↝⟨ []-cong₂-⊔₁.Very-stable-cong ax ax  ax _ $ from-bijection $ inverse Σ-assoc ⟩
-             Very-stable (∃ λ (y : A) → P y × y ≡ x)      ↝⟨ []-cong₂-⊔₁.Very-stable-cong ax ax₂ ax _ $ from-bijection $ inverse $ ∃-intro _ _ ⟩□
+             Very-stable (∃ λ ((y , _) : Σ A P) → y ≡ x)  ↝⟨ []-cong₂.Very-stable-cong ax ax  _ $ from-bijection $ inverse Σ-assoc ⟩
+             Very-stable (∃ λ (y : A) → P y × y ≡ x)      ↝⟨ []-cong₂.Very-stable-cong ax ax₂ _ $ from-bijection $ inverse $ ∃-intro _ _ ⟩□
              Very-stable (P x)                            □
          })
       Very-stable-propositional
@@ -2382,19 +2398,18 @@ module []-cong₂-⊔₂
   Very-stable-≡-⊎ n sA sB =
     For-iterated-equality-⊎-suc
       n
-      (lemma ax ax ax)
+      (lemma ax ax)
       Very-stable-⊥
-      (For-iterated-equality-↑ _ (1 + n) (lemma ax₁ ax ax) sA)
-      (For-iterated-equality-↑ _ (1 + n) (lemma ax₂ ax ax) sB)
+      (For-iterated-equality-↑ _ (1 + n) (lemma ax₁ ax) sA)
+      (For-iterated-equality-↑ _ (1 + n) (lemma ax₂ ax) sB)
     where
     lemma :
       ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : Type ℓ₂} →
       []-cong-axiomatisation ℓ₁ →
       []-cong-axiomatisation ℓ₂ →
-      []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂) →
       A ↔ B → Very-stable A → Very-stable B
-    lemma ax₁ ax₂ ax =
-      []-cong₂-⊔₁.Very-stable-cong ax₁ ax₂ ax _ ∘
+    lemma ax₁ ax₂ =
+      []-cong₂.Very-stable-cong ax₁ ax₂ _ ∘
       from-isomorphism
 
   ----------------------------------------------------------------------
@@ -2427,7 +2442,7 @@ module []-cong₂-⊔₂
     For-iterated-equality-Π
       ext
       n
-      ([]-cong₂-⊔₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
+      ([]-cong₂.Very-stable-cong ax ax _ ∘ from-isomorphism)
       (Very-stable-Π ext)
 
   -- A generalisation of Very-stable-Stable-Σ.
@@ -2470,7 +2485,7 @@ module []-cong₂-⊔₂
   Very-stable-Σⁿ n =
     For-iterated-equality-Σ
       n
-      ([]-cong₂-⊔₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
+      ([]-cong₂.Very-stable-cong ax ax _ ∘ from-isomorphism)
       Very-stable-Σ
 
   -- A generalisation of Stable-[]-×.
@@ -2498,7 +2513,7 @@ module []-cong₂-⊔₂
   Very-stable-×ⁿ n =
     For-iterated-equality-×
       n
-      ([]-cong₂-⊔₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
+      ([]-cong₂.Very-stable-cong ax ax _ ∘ from-isomorphism)
       Very-stable-×
 
   -- A generalisation of Stable-↑.
@@ -2523,7 +2538,7 @@ module []-cong₂-⊔₂
     For-iterated-equality-↑
       _
       n
-      ([]-cong₂-⊔₁.Very-stable-cong ax₂ ax ax _ ∘ from-isomorphism)
+      ([]-cong₂.Very-stable-cong ax₂ ax _ ∘ from-isomorphism)
 
   -- A generalisation of Very-stable-W.
 
@@ -2537,7 +2552,7 @@ module []-cong₂-⊔₂
     For-iterated-equality-W
       ext
       n
-      ([]-cong₂-⊔₁.Very-stable-cong ax ax ax _ ∘ from-isomorphism)
+      ([]-cong₂.Very-stable-cong ax ax _ ∘ from-isomorphism)
       (Very-stable-Π ext)
       Very-stable-Σ
       ([]-cong₂-⊔₁.Very-stable-W ax₁ ax₂ ax ext)
@@ -2549,6 +2564,9 @@ module []-cong₂-⊔₂
 module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
 
   private
+    open module BC₂ {ℓ₁ ℓ₂} =
+      []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂})
+      public
     open module BC₂₁ {ℓ₁ ℓ₂} =
       []-cong₂-⊔₁ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
       public
