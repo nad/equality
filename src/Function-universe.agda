@@ -671,6 +671,163 @@ abstract
                 ≡⇒↝ implication (refl A)         ∎)
 
 ------------------------------------------------------------------------
+-- One can replace the "to" and "from" functions with extensionally
+-- equal functions
+
+-- One can replace the "to" function with an extensionally equal
+-- function.
+
+with-other-function :
+  ∀ {k a b} {A : Type a} {B : Type b}
+  (A↝B : A ↝[ k ] B) (f : A → B) →
+  (∀ x → to-implication A↝B x ≡ f x) →
+  A ↝[ k ] B
+with-other-function {k = implication} _ f _ = f
+
+with-other-function {k = logical-equivalence} A⇔B f _ = record
+  { to   = f
+  ; from = _⇔_.from A⇔B
+  }
+
+with-other-function {k = injection} A↣B f ≡f = record
+  { to        = f
+  ; injective = λ {x = x} {y = y} →
+      f x ≡ f y                    →⟨ flip trans (sym $ ≡f y) ∘ trans (≡f x) ⟩
+      _↣_.to A↣B x ≡ _↣_.to A↣B y  →⟨ _↣_.injective A↣B ⟩□
+      x ≡ y                        □
+  }
+
+with-other-function {k = embedding} A↣B f ≡f = record
+  { to           = f
+  ; is-embedding = λ x y →
+      _≃_.is-equivalence $
+      Eq.with-other-function
+        (x ≡ y                                    ↝⟨ Eq.⟨ _ , Embedding.is-embedding A↣B x y ⟩ ⟩
+         Embedding.to A↣B x ≡ Embedding.to A↣B y  ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ (≡f x) (≡f y) ⟩□
+         f x ≡ f y                                □)
+        (cong f)
+        (elim
+           (λ {x = x} {y = y} x≡y →
+              _≃_.to (≡⇒↝ _ (cong₂ _≡_ (≡f x) (≡f y)))
+                (cong (Embedding.to A↣B) x≡y) ≡
+              cong f x≡y)
+           (λ x →
+              _≃_.to (≡⇒↝ _ (cong₂ _≡_ (≡f x) (≡f x)))
+                (cong (Embedding.to A↣B) (refl _))                ≡⟨ cong (_≃_.to (≡⇒↝ _ _)) $
+                                                                     cong-refl _ ⟩
+
+              _≃_.to (≡⇒↝ _ (cong₂ _≡_ (≡f x) (≡f x))) (refl _)   ≡⟨ cong (_$ _) $
+                                                                     ≡⇒↝-trans equivalence ⟩
+              _≃_.to (≡⇒↝ _ (cong (_ ≡_) (≡f x)))
+                (_≃_.to (≡⇒↝ _ (cong (_≡ _) (≡f x))) (refl _))    ≡⟨ sym $
+                                                                     trans (subst-in-terms-of-≡⇒↝ equivalence _ _ _) $
+                                                                     cong (_≃_.to (≡⇒↝ _ _)) $
+                                                                     subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
+
+              subst (_ ≡_) (≡f x) (subst (_≡ _) (≡f x) (refl _))  ≡⟨ trans (cong (subst (_ ≡_) (≡f x)) $
+                                                                            trans subst-trans-sym $
+                                                                            trans-reflʳ _) $
+                                                                     sym trans-subst ⟩
+
+              trans (sym (≡f x)) (≡f x)                           ≡⟨ trans-symˡ _ ⟩
+
+              refl (f x)                                          ≡⟨ sym $ cong-refl _ ⟩∎
+
+              cong f (refl x)                                     ∎))
+  }
+
+with-other-function {k = surjection} A↠B f ≡f = record
+  { logical-equivalence = record
+    { to   = f
+    ; from = _↠_.from A↠B
+    }
+  ; right-inverse-of = λ x →
+      f (_↠_.from A↠B x)           ≡⟨ sym $ ≡f _ ⟩
+      _↠_.to A↠B (_↠_.from A↠B x)  ≡⟨ _↠_.right-inverse-of A↠B _ ⟩∎
+      x                            ∎
+  }
+
+with-other-function {k = bijection} = Bijection.with-other-function
+
+with-other-function {k = equivalence} = Eq.with-other-function
+
+with-other-function {k = equivalenceᴱ} A≃ᴱB f ≡f =
+  EEq.with-other-function A≃ᴱB f ≡f
+
+-- The function with-other-function changes the "to" function in the
+-- advertised way.
+
+to-implication-with-other-function :
+  ∀ k {a b} {A : Type a} {B : Type b} {A↝B : A ↝[ k ] B} {f : A → B}
+    {≡f : ∀ x → to-implication A↝B x ≡ f x} {x} →
+  to-implication (with-other-function A↝B f ≡f) x ≡ f x
+to-implication-with-other-function implication         = refl _
+to-implication-with-other-function logical-equivalence = refl _
+to-implication-with-other-function injection           = refl _
+to-implication-with-other-function embedding           = refl _
+to-implication-with-other-function surjection          = refl _
+to-implication-with-other-function bijection           = refl _
+to-implication-with-other-function equivalence         = refl _
+to-implication-with-other-function equivalenceᴱ        = refl _
+
+-- The function with-other-function does not change the "from"
+-- function (if any).
+
+to-implication-inverse-with-other-function :
+  ∀ k {a b} {A : Type a} {B : Type b} {A↝B : A ↝[ ⌊ k ⌋-sym ] B}
+    {f : A → B} {≡f : ∀ x → to-implication A↝B x ≡ f x} {x} →
+  to-implication (inverse (with-other-function A↝B f ≡f)) x ≡
+  to-implication (inverse A↝B) x
+to-implication-inverse-with-other-function logical-equivalence = refl _
+to-implication-inverse-with-other-function bijection           = refl _
+to-implication-inverse-with-other-function equivalence         = refl _
+to-implication-inverse-with-other-function equivalenceᴱ        = refl _
+
+-- One can replace the "from" function with an extensionally equal
+-- function.
+
+with-other-inverse :
+  ∀ {k a b} {A : Type a} {B : Type b}
+  (A↝B : A ↝[ ⌊ k ⌋-sym ] B) (f : B → A) →
+  (∀ x → to-implication (inverse A↝B) x ≡ f x) →
+  A ↝[ ⌊ k ⌋-sym ] B
+with-other-inverse {k = logical-equivalence} A⇔B f _ = record
+  { to   = _⇔_.to A⇔B
+  ; from = f
+  }
+
+with-other-inverse {k = bijection} = Bijection.with-other-inverse
+
+with-other-inverse {k = equivalence} = Eq.with-other-inverse
+
+with-other-inverse {k = equivalenceᴱ} A≃ᴱB f ≡f =
+  EEq.with-other-inverse A≃ᴱB f ≡f
+
+-- The function with-other-inverse does not change the "to" function.
+
+to-implication-with-other-inverse :
+  ∀ k {a b} {A : Type a} {B : Type b} {A↝B : A ↝[ ⌊ k ⌋-sym ] B}
+    {f : B → A} {≡f : ∀ x → to-implication (inverse A↝B) x ≡ f x} {x} →
+  to-implication (with-other-inverse A↝B f ≡f) x ≡
+  to-implication A↝B x
+to-implication-with-other-inverse logical-equivalence = refl _
+to-implication-with-other-inverse bijection           = refl _
+to-implication-with-other-inverse equivalence         = refl _
+to-implication-with-other-inverse equivalenceᴱ        = refl _
+
+-- The function with-other-inverse changes the "from" function in the
+-- advertised way.
+
+to-implication-inverse-with-other-inverse :
+  ∀ k {a b} {A : Type a} {B : Type b} {A↝B : A ↝[ ⌊ k ⌋-sym ] B}
+    {f : B → A} {≡f : ∀ x → to-implication (inverse A↝B) x ≡ f x} {x} →
+  to-implication (inverse (with-other-inverse A↝B f ≡f)) x ≡ f x
+to-implication-inverse-with-other-inverse logical-equivalence = refl _
+to-implication-inverse-with-other-inverse bijection           = refl _
+to-implication-inverse-with-other-inverse equivalence         = refl _
+to-implication-inverse-with-other-inverse equivalenceᴱ        = refl _
+
+------------------------------------------------------------------------
 -- _⊎_ is a commutative monoid
 
 -- _⊎_ preserves all kinds of functions.
