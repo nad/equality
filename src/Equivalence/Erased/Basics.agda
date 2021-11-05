@@ -24,11 +24,11 @@ open import Preimage eq as Preimage using (_⁻¹_)
 
 private
   variable
-    a b c d ℓ p : Level
-    A B C       : Type a
-    P Q         : A → Type p
-    x y         : A
-    f g         : (x : A) → P x
+    a b c d ℓ : Level
+    A B C     : Type a
+    p x y     : A
+    P Q       : A → Type p
+    f g       : (x : A) → P x
 
 ------------------------------------------------------------------------
 -- Is-equivalenceᴱ
@@ -135,6 +135,10 @@ module _≃ᴱ_ {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ᴱ B) where
     ∀ x → cong from (right-inverse-of x) ≡ left-inverse-of (from x)
   right-left-lemma = _≃_.right-left-lemma equivalence
 
+private
+  variable
+    A≃B : A ≃ᴱ B
+
 ------------------------------------------------------------------------
 -- More conversion lemmas
 
@@ -202,10 +206,10 @@ record Erased-proofs {A : Type a} {B : Type b}
   @0 (∀ x → f (g x) ≡ x) →
   @0 (∀ x → g (f x) ≡ x) →
   A ≃ᴱ B
-↔→≃ᴱ {A = A} {B = B} f g f∘g g∘f = [≃]→≃ᴱ ([proofs] A≃B)
+↔→≃ᴱ {A = A} {B = B} f g f∘g g∘f = [≃]→≃ᴱ ([proofs] A≃B′)
   where
-  @0 A≃B : A ≃ B
-  A≃B = Eq.↔⇒≃ (record
+  @0 A≃B′ : A ≃ B
+  A≃B′ = Eq.↔⇒≃ (record
     { surjection = record
       { logical-equivalence = record
         { to   = f
@@ -249,3 +253,72 @@ _∘_ :
   {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} →
   B ≃ᴱ C → A ≃ᴱ B → A ≃ᴱ C
 f ∘ g = [≃]→≃ᴱ ([proofs] (≃ᴱ→≃ f Eq.∘ ≃ᴱ→≃ g))
+
+------------------------------------------------------------------------
+-- A preservation lemma
+
+-- Is-equivalenceᴱ f is logically equivalent to Is-equivalenceᴱ g if f
+-- and g are pointwise equal.
+--
+-- See also Equivalence.Erased.[]-cong₂-⊔.Is-equivalenceᴱ-cong.
+
+Is-equivalenceᴱ-cong-⇔ :
+  {@0 A : Type a} {@0 B : Type b} {@0 f g : A → B} →
+  @0 (∀ x → f x ≡ g x) →
+  Is-equivalenceᴱ f ⇔ Is-equivalenceᴱ g
+Is-equivalenceᴱ-cong-⇔ {f = f} {g = g} f≡g =
+  record { to = to f≡g; from = to (sym ⊚ f≡g) }
+  where
+  to :
+    {@0 A : Type a} {@0 B : Type b} {@0 f g : A → B} →
+    @0 (∀ x → f x ≡ g x) →
+    Is-equivalenceᴱ f → Is-equivalenceᴱ g
+  to f≡g f-eq@(f⁻¹ , _) =
+    ( f⁻¹
+    , [ erased $ proj₂ $
+        Is-equivalence→Is-equivalenceᴱ $
+        Eq.respects-extensional-equality f≡g $
+        Is-equivalenceᴱ→Is-equivalence f-eq
+      ]
+    )
+
+----------------------------------------------------------------------
+-- The left-to-right and right-to-left components of an equivalence
+-- with erased proofs can be replaced with extensionally equal
+-- functions
+
+-- The forward direction of an equivalence with erased proofs can be
+-- replaced by an extensionally equal function.
+
+with-other-function :
+  {@0 A : Type a} {@0 B : Type b}
+  (A≃B : A ≃ᴱ B) (f : A → B) →
+  @0 (∀ x → _≃ᴱ_.to A≃B x ≡ f x) →
+  A ≃ᴱ B
+with-other-function ⟨ g , is-equivalence ⟩ f g≡f =
+  ⟨ f
+  , (let record { to = to } = Is-equivalenceᴱ-cong-⇔ g≡f in
+     to is-equivalence)
+  ⟩₀
+
+_ : _≃ᴱ_.to (with-other-function A≃B f p) ≡ f
+_ = refl _
+
+_ : _≃ᴱ_.from (with-other-function A≃B f p) ≡ _≃ᴱ_.from A≃B
+_ = refl _
+
+-- The same applies to the other direction.
+
+with-other-inverse :
+  {@0 A : Type a} {@0 B : Type b}
+  (A≃B : A ≃ᴱ B) (g : B → A) →
+  @0 (∀ x → _≃ᴱ_.from A≃B x ≡ g x) →
+  A ≃ᴱ B
+with-other-inverse A≃B g ≡g =
+  inverse $ with-other-function (inverse A≃B) g ≡g
+
+_ : _≃ᴱ_.from (with-other-inverse A≃B g p) ≡ g
+_ = refl _
+
+_ : _≃ᴱ_.to (with-other-inverse A≃B f p) ≡ _≃ᴱ_.to A≃B
+_ = refl _
