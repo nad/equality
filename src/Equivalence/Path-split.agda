@@ -355,6 +355,28 @@ Is-∞-extendable-along≃Path-split-∞ ext =
   ∀-cong (lower-extensionality _ lzero ext) $
   Is-extendable-along≃Path-split ext
 
+-- Is-[ 2 + n ]-extendable-along-[ f ] P is propositional (assuming
+-- extensionality).
+
+Is-extendable-along-propositional :
+  {A : Type a} {B : Type b} {P : B → Type p} {f : A → B} →
+  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
+  Is-proposition (Is-[ 2 + n ]-extendable-along-[ f ] P)
+Is-extendable-along-propositional ext =
+  H-level-cong _ 1 (inverse $ Is-extendable-along≃Path-split ext _) $
+  Path-split-propositional ext
+
+-- Is-∞-extendable-along-[ f ] P is propositional (assuming
+-- extensionality).
+
+Is-∞-extendable-along-propositional :
+  {A : Type a} {B : Type b} {P : B → Type p} {f : A → B} →
+  Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
+  Is-proposition (Is-∞-extendable-along-[ f ] P)
+Is-∞-extendable-along-propositional ext =
+  H-level-cong _ 1 (inverse $ Is-∞-extendable-along≃Path-split-∞ ext) $
+  Path-split-∞-propositional ext
+
 -- In the presence of extensionality Is-∞-extendable-along-[_] can be
 -- expressed using Is-equivalence.
 
