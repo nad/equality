@@ -424,6 +424,19 @@ Stable-map-⇔ :
 Stable-map-⇔ A⇔B =
   Stable-map (to-implication A⇔B) (_⇔_.from A⇔B)
 
+-- Stable-[ equivalenceᴱ ] preserves equivalences with erased proofs
+-- (assuming extensionality).
+
+Stable-≃ᴱ-cong :
+  {A : Type ℓ₁} {B : Type ℓ₂} →
+  @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+  A ≃ᴱ B → Stable-[ equivalenceᴱ ] A ≃ᴱ Stable-[ equivalenceᴱ ] B
+Stable-≃ᴱ-cong {A = A} {B = B} ext A≃B =
+  Stable-[ equivalenceᴱ ] A  ↔⟨⟩
+  Erased A ≃ᴱ A              ↝⟨ EEq.≃ᴱ-cong ext (Erased-cong-≃ᴱ A≃B) A≃B ⟩
+  Erased B ≃ᴱ B              ↔⟨⟩
+  Stable-[ equivalenceᴱ ] B  □
+
 -- If there is an injective function from A to B, and equality is
 -- stable for B, then equality is stable for A.
 
@@ -1541,19 +1554,6 @@ module []-cong₂-⊔₁
                                    ext ⟩
     Erased B ≃ B              ↔⟨⟩
     Stable-[ equivalence ] B  □
-
-  -- Stable-[ equivalenceᴱ ] preserves equivalences with erased proofs
-  -- (assuming extensionality).
-
-  Stable-≃ᴱ-cong :
-    {A : Type ℓ₁} {B : Type ℓ₂} →
-    @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
-    A ≃ᴱ B → Stable-[ equivalenceᴱ ] A ≃ᴱ Stable-[ equivalenceᴱ ] B
-  Stable-≃ᴱ-cong {A = A} {B = B} ext A≃B =
-    Stable-[ equivalenceᴱ ] A  ↔⟨⟩
-    Erased A ≃ᴱ A              ↝⟨ EEq.≃ᴱ-cong ext (Erased-cong A≃B) A≃B ⟩
-    Erased B ≃ᴱ B              ↔⟨⟩
-    Stable-[ equivalenceᴱ ] B  □
 
   -- Very-stable preserves equivalences (assuming extensionality).
 
