@@ -2872,6 +2872,53 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
         .proj₂ (refl x)
 
 ------------------------------------------------------------------------
+-- And another alternative to []-cong-axiomatisation
+
+-- This axiomatisation states that, for types A and B in a given
+-- universe, if B is very stable, then the constant function from
+-- Erased A that returns B is ∞-extendable along [_]→.
+
+∞-extendable-along-[]→-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
+∞-extendable-along-[]→-axiomatisation ℓ =
+  {A B : Type ℓ} →
+  Very-stable B → Is-∞-extendable-along-[ [_]→ ] (λ (_ : Erased A) → B)
+
+-- The type ∞-extendable-along-[]→-axiomatisation ℓ is propositional
+-- (assuming extensionality).
+
+∞-extendable-along-[]→-axiomatisation-propositional :
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+  Is-proposition (∞-extendable-along-[]→-axiomatisation ℓ)
+∞-extendable-along-[]→-axiomatisation-propositional ext =
+  implicit-Π-closure ext  1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
+  Π-closure ext″ 1 λ _ →
+  PS.Is-∞-extendable-along-propositional ext″
+  where
+  ext′ = lower-extensionality lzero _ ext
+  ext″ = lower-extensionality _     _ ext
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- ∞-extendable-along-[]→-axiomatisation ℓ (assuming extensionality).
+
+[]-cong-axiomatisation≃∞-extendable-along-[]→-axiomatisation :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ]
+  ∞-extendable-along-[]→-axiomatisation ℓ
+[]-cong-axiomatisation≃∞-extendable-along-[]→-axiomatisation {ℓ = ℓ} =
+  generalise-ext?-prop
+    {B = ∞-extendable-along-[]→-axiomatisation ℓ}
+    (record
+       { to   = λ ax s → []-cong₁.extendable ax (λ _ → s)
+       ; from =
+           ∞-extendable-along-[]→-axiomatisation ℓ  ↝⟨ (λ ext s → ext s 2) ⟩
+           2-extendable-along-[]→-axiomatisation ℓ  ↝⟨ _⇔_.from ([]-cong-axiomatisation≃2-extendable-along-[]→-axiomatisation _) ⟩□
+           []-cong-axiomatisation ℓ                 □
+       })
+    ([]-cong-axiomatisation-propositional ∘
+     lower-extensionality lzero _)
+    ∞-extendable-along-[]→-axiomatisation-propositional
+
+------------------------------------------------------------------------
 -- A lemma related to []-cong-axiomatisation′
 
 -- The type []-cong-axiomatisation′ a is propositional (assuming
