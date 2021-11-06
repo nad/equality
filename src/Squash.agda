@@ -2,7 +2,7 @@
 -- Squashing
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --prop --safe #-}
+{-# OPTIONS --erased-cubical --prop --safe #-}
 
 import Equality.Path as P
 

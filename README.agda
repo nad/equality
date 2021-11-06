@@ -19,17 +19,17 @@ import README.Safe.Without-K
 
 import README.Safe.Cubical.Erased
 
+-- "Safe" code that uses --erased-cubical and --guardedness.
+
+import README.Safe.Cubical.Erased.Guardedness
+
+-- "Safe" code that uses --erased-cubical and --prop.
+
+import README.Safe.Cubical.Erased.Prop
+
 -- "Safe" code that uses --cubical.
 
 import README.Safe.Cubical
-
--- "Safe" code that uses --cubical and --guardedness.
-
-import README.Safe.Cubical.Guardedness
-
--- "Safe" code that uses --cubical and --prop.
-
-import README.Safe.Cubical.Prop
 
 -- "Safe" code that uses --with-K.
 

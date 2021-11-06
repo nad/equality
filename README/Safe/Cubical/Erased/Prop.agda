@@ -1,10 +1,10 @@
 ------------------------------------------------------------------------
--- Safe modules that use --cubical
+-- Safe modules that use --erased-cubical and --prop
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --cubical --prop #-}
+{-# OPTIONS --safe --erased-cubical --prop #-}
 
-module README.Safe.Cubical.Prop where
+module README.Safe.Cubical.Erased.Prop where
 
 -- Squashing.
 

@@ -3,7 +3,7 @@
 -- Agda)
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe --guardedness #-}
+{-# OPTIONS --erased-cubical --safe --guardedness #-}
 
 import Equality.Path as P
 
