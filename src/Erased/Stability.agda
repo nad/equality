@@ -1434,6 +1434,18 @@ erased-singleton-contractible {x = x} s =
   Contractible (Singleton x)         ↝⟨ H-level-cong _ 0 (∃-cong λ _ → Eq.⟨ _ , s _ _ ⟩) ⦂ (_ → _) ⟩□
   Contractible (Erased-singleton x)  □
 
+-- If equality is very stable for A, then Erased-other-singleton x is
+-- contractible for x : A.
+
+erased-other-singleton-contractible :
+  {x : A} →
+  Very-stable-≡ A →
+  Contractible (Erased-other-singleton x)
+erased-other-singleton-contractible {x = x} s =
+                                           $⟨ other-singleton-contractible x ⟩
+  Contractible (Other-singleton x)         ↝⟨ H-level-cong _ 0 (∃-cong λ _ → Eq.⟨ _ , s _ _ ⟩) ⦂ (_ → _) ⟩□
+  Contractible (Erased-other-singleton x)  □
+
 -- Erased-singleton x is contractible with an erased proof.
 
 Contractibleᴱ-Erased-singleton :
@@ -1454,14 +1466,13 @@ Contractibleᴱ-Erased-other-singleton :
   {@0 A : Type a} {x : A} →
   Contractibleᴱ (Erased-other-singleton x)
 Contractibleᴱ-Erased-other-singleton {x = x} =
-                                            $⟨ Contractibleᴱ-Erased-singleton ⟩
-  Contractibleᴱ (Erased-singleton x)        →⟨ ECP.Contractibleᴱ-respects-surjection
-                                                 (Σ-map id (map sym))
-                                                 (_≃_.split-surjective $ Eq.↔→≃ _
-                                                    (Σ-map id (map sym))
-                                                    (λ _ → cong ((_ ,_) ∘ [_]→) $ sym-sym _)
-                                                    (λ _ → cong ((_ ,_) ∘ [_]→) $ sym-sym _)) ⟩□
-  Contractibleᴱ (Erased-other-singleton x)  □
+    (x , [ proj₂ (proj₁ contr) .erased ])
+  , [ proj₂ contr ]
+  where
+  @0 contr : Contractible (Erased-other-singleton x)
+  contr =
+    erased-other-singleton-contractible
+      (λ _ _ → Erased-Very-stable .erased)
 
 -- Erased-singleton x is equivalent, with erased proofs, to ⊤.
 
