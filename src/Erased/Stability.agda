@@ -1524,6 +1524,60 @@ module []-cong₂
     Erased B ≃ B              ↔⟨⟩
     Stable-[ equivalence ] B  □
 
+  private
+
+    -- A lemma used to implement Very-stable-map-↠ and
+    -- Very-stable-cong.
+
+    Very-stable-map-↠′ :
+      {B : Type b} →
+      []-cong-axiomatisation b →
+      A ↠ B → Very-stable A → Very-stable B
+    Very-stable-map-↠′ {A = A} {B = B} ax A↠B s =
+      _≃_.is-equivalence $
+      Eq.↔→≃
+        _
+        (Erased B  →⟨ map (_↠_.from A↠B) ⟩
+         Erased A  →⟨ Very-stable→Stable 0 s ⟩
+         A         →⟨ _↠_.to A↠B ⟩□
+         B         □)
+        (λ x →
+           [ _↠_.to A↠B (Very-stable→Stable 0 s (map (_↠_.from A↠B) x)) ]  ≡⟨ []-cong-axiomatisation.[]-cong ax [ lemma (erased x) ] ⟩∎
+           x                                                               ∎)
+        lemma
+      where
+      lemma = λ x →
+        _↠_.to A↠B (Very-stable→Stable 0 s (map (_↠_.from A↠B) [ x ]))  ≡⟨⟩
+        _↠_.to A↠B (Very-stable→Stable 0 s [ _↠_.from A↠B x ])          ≡⟨ cong (_↠_.to A↠B) $ Very-stable→Stable-[]≡id s ⟩
+        _↠_.to A↠B (_↠_.from A↠B x)                                     ≡⟨ _↠_.right-inverse-of A↠B _ ⟩∎
+        x                                                               ∎
+
+  -- If there is a split surjection from A to B, then Very-stable A
+  -- implies Very-stable B.
+
+  Very-stable-map-↠ :
+    {A : Type ℓ₁} {B : Type ℓ₂} →
+    A ↠ B → Very-stable A → Very-stable B
+  Very-stable-map-↠ = Very-stable-map-↠′ ax₂
+
+  -- A generalisation of Very-stable-map-↠.
+  --
+  -- The case for 1 follows from one part of Remark 2.16 (2) from
+  -- "Localization in homotopy type theory" by Christensen, Opie,
+  -- Rijke and Scoccola.
+
+  Very-stable-map-↠ⁿ :
+    {A : Type ℓ₁} {B : Type ℓ₂} →
+    ∀ n →
+    A ↠ B →
+    For-iterated-equality n Very-stable A →
+    For-iterated-equality n Very-stable B
+  Very-stable-map-↠ⁿ n A↠B =
+    For-iterated-equality-cong-→
+      n
+      Very-stable-map-↠
+      A↠B
+
   -- Very-stable preserves equivalences (assuming extensionality).
 
   Very-stable-cong :
@@ -1533,29 +1587,12 @@ module []-cong₂
   Very-stable-cong ext A≃B =
     generalise-ext?-prop
       (record
-         { to   = lemma A≃B (Erased-cong-≃ A≃B)
-                    (λ x → cong [_]→ (_≃_.right-inverse-of A≃B x))
-         ; from = lemma (inverse A≃B) (inverse $ Erased-cong-≃ A≃B)
-                    (λ x → cong [_]→ (_≃_.left-inverse-of A≃B x))
+         { to   = Very-stable-map-↠′ ax₂ (_≃_.surjection A≃B)
+         ; from = Very-stable-map-↠′ ax₁ (_≃_.surjection $ inverse A≃B)
          })
       (Very-stable-propositional ∘ lower-extensionality ℓ₂ ℓ₂)
       (Very-stable-propositional ∘ lower-extensionality ℓ₁ ℓ₁)
       ext
-    where
-    lemma :
-      (A≃B : A ≃ B) (E-A≃E-B : Erased A ≃ Erased B) →
-      (∀ x → _≃_.to E-A≃E-B [ _≃_.from A≃B x ] ≡ [ x ]) →
-      Very-stable A → Very-stable B
-    lemma {A = A} {B = B} A≃B E-A≃E-B hyp s = _≃_.is-equivalence $
-      Eq.with-other-function
-        (B         ↝⟨ inverse A≃B ⟩
-         A         ↝⟨ Eq.⟨ [_]→ , s ⟩ ⟩
-         Erased A  ↝⟨ E-A≃E-B ⟩□
-         Erased B  □)
-        [_]→
-        (λ x →
-           _≃_.to E-A≃E-B [ _≃_.from A≃B x ]  ≡⟨ hyp x ⟩∎
-           [ x ]                              ∎)
 
   -- A generalisation of Very-stable-cong.
 
