@@ -32,6 +32,15 @@ record ¬¬_ {a} (A : Type a) : Type a where
 
 open ¬¬_ public
 
+-- ¬¬ A is a proposition (assuming extensionality).
+
+¬¬-propositional :
+  ∀ {a} {A : Type a} →
+  Extensionality a lzero →
+  Is-proposition (¬¬ A)
+¬¬-propositional ext _ _ =
+  cong wrap $ ¬-propositional ext _ _
+
 -- An extra universe-polymorphic variant of map.
 
 map′ :
@@ -51,20 +60,13 @@ instance
     join : ∀ {a} {A : Type a} → ¬¬ ¬ A → ¬ A
     join ¬¬¬a = λ a → run ¬¬¬a (λ ¬a → ¬a a)
 
-private
-
-  proof-irrelevant : ∀ {a} {A : Type a} {x y : ¬¬ A} →
-                     Extensionality a lzero → x ≡ y
-  proof-irrelevant ext =
-    cong wrap $ apply-ext ext λ _ → ⊥-propositional _ _
-
 monad : ∀ {ℓ} →
         Extensionality ℓ lzero →
         Monad (λ (A : Type ℓ) → ¬¬ A)
 Monad.raw-monad      (monad _)         = double-negation-monad
-Monad.left-identity  (monad ext) _ _   = proof-irrelevant ext
-Monad.right-identity (monad ext) _     = proof-irrelevant ext
-Monad.associativity  (monad ext) _ _ _ = proof-irrelevant ext
+Monad.left-identity  (monad ext) _ _   = ¬¬-propositional ext _ _
+Monad.right-identity (monad ext) _     = ¬¬-propositional ext _ _
+Monad.associativity  (monad ext) _ _ _ = ¬¬-propositional ext _ _
 
 -- The following variant of excluded middle is provable.
 
