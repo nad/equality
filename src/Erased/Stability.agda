@@ -1610,6 +1610,29 @@ module []-cong₂
       (Very-stable-cong ext ∘ from-isomorphism)
       (from-isomorphism A↔B)
 
+  -- If there is an embedding from B to A, and equality is very stable
+  -- for A, then equality is very stable for B.
+  --
+  -- This follows from one part of Remark 2.16 (2) from "Localization
+  -- in homotopy type theory" by Christensen, Opie, Rijke and
+  -- Scoccola.
+  --
+  -- I based the proof on that of in_SepO_embedding, implemented by
+  -- Mike Shulman in the file Separated.v in (one version of) the Coq
+  -- HoTT library. The proof is very easy, but the Coq lemma is proved
+  -- for an arbitrary subuniverse, not a reflective subuniverse, so I
+  -- thought that it could perhaps be proved without using []-cong.
+  -- However, the definition of subuniverse in the Coq code includes
+  -- something like Very-stable-cong (for functions).
+
+  Very-stable-≡-map-Embedding :
+    {A : Type ℓ₁} {B : Type ℓ₂} →
+    Embedding B A → Very-stable-≡ A → Very-stable-≡ B
+  Very-stable-≡-map-Embedding B↣A s x y =
+                                                           $⟨ s _ _ ⟩
+    Very-stable (Embedding.to B↣A x ≡ Embedding.to B↣A y)  →⟨ Very-stable-cong _ (inverse $ Embedding.equivalence B↣A) ⟩□
+    Very-stable (x ≡ y)                                    □
+
 ------------------------------------------------------------------------
 -- Results that depend on an instantiation of the []-cong axioms (for
 -- two universe levels as well as their maximum)
