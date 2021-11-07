@@ -1087,18 +1087,48 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
 
     Σ-closed : Is-modal A → (∀ x → Is-modal (P x)) → Is-modal (Σ A P)
 
+-- The following is a definition of "modality" based on that in (one
+-- version of) the Coq code accompanying "Modalities in Homotopy Type
+-- Theory".
+--
+-- One difference is that in the Coq code the proof showing that the
+-- modality predicate is propositional is allowed to make use of
+-- function extensionality for arbitrary universe levels.
+--
+-- Below (Erased-modality) it is proved that λ A → Erased A, [_]→ and
+-- Very-stable form a modality of this kind (assuming that the []-cong
+-- axioms can be instantiated).
+
+record Modality a : Type (lsuc a) where
+  field
+    ◯        : Type a → Type a
+    η        : A → ◯ A
+    Is-modal : Type a → Type a
+
+    Is-modal-propositional :
+      Extensionality a a →
+      Is-proposition (Is-modal A)
+
+    Is-modal-◯ : Is-modal (◯ A)
+
+    Is-modal-respects-≃ : A ≃ B → Is-modal A → Is-modal B
+
+    extendable-along-η :
+      {P : ◯ A → Type a} →
+      (∀ x → Is-modal (P x)) →
+      Is-∞-extendable-along-[ η ] P
+
 ------------------------------------------------------------------------
 -- Erased is accessible and topological (assuming extensionality)
 
--- A definition of what it means for a Σ-closed reflective subuniverse
--- to be accessible (for a certain universe level).
+-- A definition of what it means for a modality to be accessible (for
+-- a certain universe level).
 --
 -- This definition is based on (one version of) the Coq code
 -- accompanying "Modalities in Homotopy Type Theory" by Rijke, Shulman
 -- and Spitters.
 
-Accessible :
-  (ℓ : Level) → Σ-closed-reflective-subuniverse a → Type (lsuc (a ⊔ ℓ))
+Accessible : (ℓ : Level) → Modality a → Type (lsuc (a ⊔ ℓ))
 Accessible {a = a} ℓ U =
   ∃ λ (I : Type ℓ) →
   ∃ λ (P : I → Type ℓ) →
@@ -1108,21 +1138,19 @@ Accessible {a = a} ℓ U =
     Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
       (λ (_ : ↑ ℓ ⊤) → A)
   where
-  open Σ-closed-reflective-subuniverse U
+  open Modality U
 
--- A definition of what it means for a Σ-closed reflective subuniverse
--- to be topological (for a certain universe level).
+-- A definition of what it means for a modality to be topological (for
+-- a certain universe level).
 --
 -- This definition is based on (one version of) the Coq code
 -- accompanying "Modalities in Homotopy Type Theory" by Rijke, Shulman
 -- and Spitters.
 --
--- Below it is proved that Erased-Σ-closed-reflective-subuniverse is
--- topological (assuming extensionality and that the []-cong axioms
--- can be instantiated).
+-- Below it is proved that Erased-modality is topological (assuming
+-- extensionality and that the []-cong axioms can be instantiated).
 
-Topological :
-  (ℓ : Level) → Σ-closed-reflective-subuniverse a → Type (lsuc (a ⊔ ℓ))
+Topological : (ℓ : Level) → Modality a → Type (lsuc (a ⊔ ℓ))
 Topological {a = a} ℓ U =
   ∃ λ (I : Type ℓ) →
   ∃ λ (P : I → Type ℓ) →
@@ -1133,7 +1161,7 @@ Topological {a = a} ℓ U =
      Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
        (λ (_ : ↑ ℓ ⊤) → A))
   where
-  open Σ-closed-reflective-subuniverse U
+  open Modality U
 
 -- A definition of what it means for Erased to be accessible and
 -- topological (for certain universe levels).
@@ -2234,13 +2262,28 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     where
     open Σ-closed-reflective-subuniverse
 
-  -- This Σ-closed reflective subuniverse is topological (for certain
-  -- universe levels, assuming extensionality).
+  -- The function λ A → Erased A, [_]→ and Very-stable form a
+  -- modality.
+
+  Erased-modality : Modality ℓ
+  Erased-modality = λ where
+      .◯                      → λ A → Erased A
+      .η                      → [_]→
+      .Is-modal               → Very-stable
+      .Is-modal-propositional → Very-stable-propositional
+      .Is-modal-◯             → Very-stable-Erased
+      .Is-modal-respects-≃    → Very-stable-cong _
+      .extendable-along-η     → extendable
+    where
+    open Modality
+
+  -- This modality is topological (for certain universe levels,
+  -- assuming extensionality).
 
   Erased-topological :
     ∀ ℓ′ →
     Extensionality (lsuc ℓ ⊔ ℓ′) (lsuc ℓ ⊔ ℓ′) →
-    Topological (lsuc ℓ ⊔ ℓ′) Erased-Σ-closed-reflective-subuniverse
+    Topological (lsuc ℓ ⊔ ℓ′) Erased-modality
   Erased-topological ℓ′ ext =                              $⟨ erased-is-accessible-and-topological ℓ′ ext ⟩
     Erased-is-accessible-and-topological (lsuc ℓ ⊔ ℓ′) ℓ   ↝⟨ inverse $ ≃Erased-is-accessible-and-topological ext ⟩□
     Erased-is-accessible-and-topological′ (lsuc ℓ ⊔ ℓ′) ℓ  □
@@ -2703,14 +2746,23 @@ module Extensionality where
     []-cong₁.Erased-Σ-closed-reflective-subuniverse
       (Extensionality→[]-cong-axiomatisation ext)
 
-  -- This Σ-closed reflective subuniverse is topological (for certain
-  -- universe levels, assuming extensionality).
+  -- The function λ A → Erased A, [_]→ and Very-stable form a modality
+  -- (assuming extensionality).
+
+  Erased-modality :
+    Extensionality ℓ ℓ →
+    Modality ℓ
+  Erased-modality ext =
+    []-cong₁.Erased-modality
+      (Extensionality→[]-cong-axiomatisation ext)
+
+  -- This modality is topological (for certain universe levels,
+  -- assuming extensionality).
 
   Erased-topological :
     ∀ ℓ′ (ext : Extensionality (lsuc ℓ ⊔ ℓ′) (lsuc ℓ ⊔ ℓ′)) →
     Topological (lsuc ℓ ⊔ ℓ′)
-      (Erased-Σ-closed-reflective-subuniverse {ℓ = ℓ}
-         (lower-extensionality _ _ ext))
+      (Erased-modality {ℓ = ℓ} (lower-extensionality _ _ ext))
   Erased-topological ℓ′ ext =
     []-cong₁.Erased-topological
       (Extensionality→[]-cong-axiomatisation

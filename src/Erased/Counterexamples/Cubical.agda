@@ -16,8 +16,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection equality-with-J as B using (_↔_)
-open import Erased.Cubical eq
-  using (Σ-closed-reflective-subuniverse; Accessible)
+open import Erased.Cubical eq using (Modality; Accessible)
 open import Equality.Decision-procedures equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
@@ -42,12 +41,12 @@ private
 ∥∥-modal : Type ℓ → Type ℓ
 ∥∥-modal = Is-proposition
 
--- Propositional truncation is a Σ-closed reflective subuniverse.
+-- Propositional truncation is a modality.
 --
 -- This proof is based on "Modalities in Homotopy Type Theory" by
 -- Rijke, Shulman and Spitters.
 
-∥∥-modality : Σ-closed-reflective-subuniverse ℓ
+∥∥-modality : Modality ℓ
 ∥∥-modality {ℓ = ℓ} = λ where
     .◯                      → ∥_∥
     .η                      → ∣_∣
@@ -56,28 +55,27 @@ private
     .Is-modal-◯             → T.truncation-is-proposition
     .Is-modal-respects-≃    → H-level-cong _ 1
     .extendable-along-η     → extendable
-    .Σ-closed               → Σ-closure 1
   where
-  open Σ-closed-reflective-subuniverse
+  open Modality
 
   extendable :
-    {A B : Type ℓ} →
-    Is-proposition B →
-    Is-∞-extendable-along-[ ∣_∣ ] (λ (_ : ∥ A ∥) → B)
-  extendable {A = A} {B = B} =
-    Is-proposition B                                   →⟨ (λ prop →
-                                                             _≃_.is-equivalence $
-                                                             Eq.↔→≃
-                                                               _
-                                                               (T.rec prop)
-                                                               refl
-                                                               (λ f → ⟨ext⟩ $
-                                                                  T.elim
-                                                                    _
-                                                                    (λ _ → ⇒≡ 1 prop)
-                                                                    (λ _ → refl _))) ⟩
-    Is-equivalence (λ (f : ∥ A ∥ → B) → f ∘ ∣_∣)       ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
-    Is-∞-extendable-along-[ ∣_∣ ] (λ (_ : ∥ A ∥) → B)  □
+    {A : Type ℓ} {P : ∥ A ∥ → Type ℓ} →
+    (∀ x → Is-proposition (P x)) →
+    Is-∞-extendable-along-[ ∣_∣ ] P
+  extendable {A = A} {P = P} =
+    (∀ x → Is-proposition (P x))                          →⟨ (λ prop →
+                                                                _≃_.is-equivalence $
+                                                                Eq.↔→≃
+                                                                  _
+                                                                  (T.elim _ prop)
+                                                                  refl
+                                                                  (λ f → ⟨ext⟩ $
+                                                                     T.elim
+                                                                       _
+                                                                       (⇒≡ 1 ∘ prop)
+                                                                       (λ _ → refl _))) ⟩
+    Is-equivalence (λ (f : (x : ∥ A ∥) → P x) → f ∘ ∣_∣)  ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
+    Is-∞-extendable-along-[ ∣_∣ ] P                       □
 
 -- The propositional truncation modality is accessible.
 --

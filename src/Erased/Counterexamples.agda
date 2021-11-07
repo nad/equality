@@ -65,12 +65,12 @@ Zero-stable-≡ = For-iterated-equality 1 Zero-stable
 Zero-modal-≡ : Type a → Type a
 Zero-modal-≡ = For-iterated-equality 1 Zero-modal
 
--- The zero modality is a Σ-closed reflective subuniverse.
+-- The zero modality is a modality.
 --
 -- This proof is based on "Modalities in Homotopy Type Theory" by
 -- Rijke, Shulman and Spitters.
 
-Zero-modality : Σ-closed-reflective-subuniverse ℓ
+Zero-modality : Modality ℓ
 Zero-modality {ℓ = ℓ} = λ where
     .◯                      → Zero
     .η                      → return
@@ -79,21 +79,20 @@ Zero-modality {ℓ = ℓ} = λ where
     .Is-modal-◯             → ↑-closure 0 ⊤-contractible
     .Is-modal-respects-≃    → H-level-cong _ 0
     .extendable-along-η     → extendable
-    .Σ-closed               → Σ-closure 0
   where
-  open Σ-closed-reflective-subuniverse
+  open Modality
 
   return : A → Zero A
   return = _
 
   extendable :
-    {A B : Type ℓ} →
-    Zero-modal B →
-    Is-∞-extendable-along-[ return {A = A} ] (λ (_ : Zero A) → B)
+    {A : Type ℓ} {P : Zero A → Type ℓ} →
+    (∀ x → Zero-modal (P x)) →
+    Is-∞-extendable-along-[ return {A = A} ] P
   extendable cB zero    = _
   extendable cB (suc n) =
-      (λ g → (λ _ → proj₁ cB) , (λ x → proj₂ cB (g x)))
-    , (λ _ _ → extendable (⇒≡ 0 cB) n)
+      (λ g → proj₁ ∘ cB , (λ x → proj₂ (cB _) (g x)))
+    , (λ _ _ → extendable (⇒≡ 0 ∘ cB) n)
 
 -- The zero modality is topological (for all universe levels).
 --
@@ -107,7 +106,7 @@ Zero-topological {ℓ′ = ℓ′} {ℓ = ℓ} =
   , (λ _ → ⊥-propositional)
   , (λ _ → record { to = to; from = from })
   where
-  open Σ-closed-reflective-subuniverse Zero-modality
+  open Modality Zero-modality
 
   to :
     Zero-modal A →
