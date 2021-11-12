@@ -55,6 +55,9 @@ private
     R                   : A → A → Type r
     A↠B f k s x y       : A
 
+------------------------------------------------------------------------
+-- The type constructor and some eliminators
+
 -- Propositional truncation.
 
 data ∥_∥ (A : Type a) : Type a where
@@ -186,6 +189,9 @@ rec : Is-proposition B → (A → B) → ∥ A ∥ → B
 rec p f = rec′ λ where
   .∣∣ʳ                        → f
   .truncation-is-propositionʳ → p
+
+------------------------------------------------------------------------
+-- Various lemmas
 
 -- A map function.
 
