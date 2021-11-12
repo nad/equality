@@ -133,6 +133,10 @@ import Equivalence.Path-split
 
 import Modality
 
+-- The zero modality.
+
+import Modality.Zero
+
 -- Results relating different instances of certain axioms related to
 -- equality.
 
@@ -282,11 +286,6 @@ import For-iterated-equality
 -- Properties related to stability for Erased.
 
 import Erased.Stability
-
--- Some properties that hold for Erased do not hold for every
--- topological modality.
-
-import Erased.Counterexamples
 
 -- Truncation, defined using a kind of Church encoding.
 

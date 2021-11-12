@@ -1,13 +1,12 @@
 ------------------------------------------------------------------------
--- Some properties that hold for Erased do not hold for every
--- topological modality
+-- The zero modality
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K --safe #-}
 
 open import Equality
 
-module Erased.Counterexamples
+module Modality.Zero
   {e⁺} (eq : ∀ {a p} → Equality-with-J a p e⁺) where
 
 open Derived-definitions-and-properties eq
@@ -26,6 +25,9 @@ private
   variable
     a b ℓ ℓ′ p : Level
     A          : Type a
+
+------------------------------------------------------------------------
+-- The zero modality
 
 -- The zero modality.
 --
@@ -126,6 +128,10 @@ Zero-topological {ℓ′ = ℓ′} {ℓ = ℓ} =
     where
     inh : A
     inh = ext _ 1 .proj₁ ⊥-elim .proj₁ _
+
+------------------------------------------------------------------------
+-- Some properties that hold for Erased do not hold for every
+-- topological modality
 
 -- It is not the case that Zero ⊥ is isomorphic to ⊥.
 --
