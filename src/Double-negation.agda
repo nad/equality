@@ -14,10 +14,14 @@ open import Prelude
 
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
-open import Equivalence eq hiding (id; _∘_)
+open import Equivalence eq as Eq using (_≃_; Is-equivalence)
+open import Equivalence.Path-split eq as PS
+  using (Is-∞-extendable-along-[_])
 open import Excluded-middle eq
+open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
+open import Modality eq
 open import Monad eq
 
 -- The double-negation monad, defined using a wrapper type to make
@@ -91,6 +95,63 @@ run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
 ¬¬¬→¬ : ∀ {a} {A : Type a} → ¬¬ ¬ A → ¬ A
 ¬¬¬→¬ ¬¬¬a = λ a → ¬¬¬⊥ (¬¬¬a >>= λ ¬a → ⊥-elim (¬a a))
 
+-- The double-negation monad is a modality (assuming extensionality).
+--
+-- This fact is taken from "Modalities in Homotopy Type Theory" by
+-- Rijke, Shulman and Spitters, but the proof might be different.
+
+¬¬-modality : ∀ {ℓ} → Extensionality ℓ ℓ → Modality ℓ
+¬¬-modality {ℓ = ℓ} ext = λ where
+    .◯ → ¬¬_
+
+    .η → return
+
+    .Is-modal → ¬¬-modal
+
+    .Is-modal-propositional ext →
+      Σ-closure 1 (H-level-propositional ext 1) λ prop →
+      Π-closure ext 1 λ _ →
+      prop
+
+    .Is-modal-◯ → ¬¬-propositional ext₀ , _>>= id
+
+    .Is-modal-respects-≃ {A = A} {B = B} A≃B →
+      Σ-map
+        (H-level-cong _ 1 A≃B)
+        ((¬¬ A → A)  →⟨ (_≃_.to A≃B ∘_) ∘ (_∘ map (_≃_.from A≃B)) ⟩□
+         (¬¬ B → B)  □)
+
+    .extendable-along-η {A = A} {P = P} →
+      (∀ x → ¬¬-modal (P x))              →⟨ lemma ⟩
+      Is-equivalence (_∘ return)          ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
+      Is-∞-extendable-along-[ return ] P  □
+  where
+  open Modality
+
+  ext₀ = lower-extensionality lzero _ ext
+
+  -- A type A is modal if it is a proposition for which ¬¬ A
+  -- implies A.
+
+  ¬¬-modal : Type ℓ → Type ℓ
+  ¬¬-modal A = Is-proposition A × (¬¬ A → A)
+
+  lemma :
+    {A : Type ℓ} {P : ¬¬ A → Type ℓ} →
+    (∀ x → ¬¬-modal (P x)) →
+    Is-equivalence (λ (g : ∀ x → P x) → g ∘ return)
+  lemma {A = A} {P = P} hyp =
+    _≃_.is-equivalence $
+    Eq.⇔→≃
+      (Π-closure ext 1 λ x →
+       hyp x .proj₁)
+      (Π-closure ext 1 λ x →
+       hyp (return x) .proj₁)
+      _
+      (((x : A) → P (return x))                  →⟨ (λ f x → map (λ x → x , f x) x) ⟩
+       ((x : ¬¬ A) → ¬¬ (∃ λ x → P (return x)))  →⟨ (λ f x → hyp x .proj₂ $ map (subst P (¬¬-propositional ext₀ _ _) ∘ proj₂) (f x)) ⟩□
+       ((x : ¬¬ A) → P x)                        □)
+
 ------------------------------------------------------------------------
 -- Excluded middle and double-negation elimination
 
@@ -128,11 +189,12 @@ Excluded-middle≃Double-negation-elimination :
   Extensionality (lsuc ℓ) (lsuc ℓ) →
   Excluded-middle ℓ ≃ Double-negation-elimination ℓ
 Excluded-middle≃Double-negation-elimination ext =
-  _↔_.to (⇔↔≃ ext
-              (Excluded-middle-propositional
-                 (lower-extensionality lzero _ ext))
-              (Double-negation-elimination-propositional
-                 (lower-extensionality lzero _ ext)))
+  _↔_.to (Eq.⇔↔≃
+            ext
+            (Excluded-middle-propositional
+               (lower-extensionality lzero _ ext))
+            (Double-negation-elimination-propositional
+               (lower-extensionality lzero _ ext)))
     (record
        { to   = Excluded-middle→Double-negation-elimination
        ; from = λ dne P-prop →
