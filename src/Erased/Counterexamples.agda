@@ -18,9 +18,9 @@ open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
 open import Equivalence.Path-split eq
 open import Function-universe eq hiding (_∘_)
-open import Erased.Stability eq
 open import H-level eq
 open import H-level.Closure eq
+open import Modality eq
 
 private
   variable

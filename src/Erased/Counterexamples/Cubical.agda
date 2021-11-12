@@ -16,7 +16,6 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection equality-with-J as B using (_↔_)
-open import Erased.Cubical eq using (Modality; Accessible)
 open import Equality.Decision-procedures equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
@@ -28,6 +27,7 @@ open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as T
   using (∥_∥; ∣_∣; Axiom-of-choice)
+open import Modality equality-with-J
 open import Preimage equality-with-J using (_⁻¹_)
 
 private

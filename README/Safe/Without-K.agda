@@ -129,6 +129,10 @@ import Function-universe
 
 import Equivalence.Path-split
 
+-- Idempotent monadic modalities.
+
+import Modality
+
 -- Results relating different instances of certain axioms related to
 -- equality.
 
