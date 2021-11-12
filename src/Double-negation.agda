@@ -12,7 +12,7 @@ module Double-negation
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq using (_↔_)
+open import Bijection eq as B using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Path-split eq as PS
@@ -151,6 +151,27 @@ run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
       (((x : A) → P (return x))                  →⟨ (λ f x → map (λ x → x , f x) x) ⟩
        ((x : ¬¬ A) → ¬¬ (∃ λ x → P (return x)))  →⟨ (λ f x → hyp x .proj₂ $ map (subst P (¬¬-propositional ext₀ _ _) ∘ proj₂) (f x)) ⟩□
        ((x : ¬¬ A) → P x)                        □)
+
+-- The double-negation modality is empty-modal.
+
+¬¬-empty-modal :
+  ∀ {ℓ} (ext : Extensionality ℓ ℓ) →
+  Empty-modal (¬¬-modality ext)
+¬¬-empty-modal _ =
+  ⊥-propositional , ⊥-elim ∘ ¬¬¬⊥
+
+-- The double-negation modality is not very modal.
+
+¬¬-not-very-modal :
+  ∀ {ℓ} (ext : Extensionality ℓ ℓ) →
+  ¬ Very-modal (¬¬-modality ext)
+¬¬-not-very-modal {ℓ = ℓ} ext =
+  ({A : Type ℓ} → ¬¬ (Is-proposition A × (¬¬ A → A)))        →⟨ (λ hyp → hyp) ⟩
+  ¬¬ (Is-proposition (↑ ℓ Bool) × (¬¬ ↑ ℓ Bool → ↑ ℓ Bool))  →⟨ map′ proj₁ ⟩
+  ¬¬ Is-proposition (↑ ℓ Bool)                               →⟨ map′ (H-level-cong _ 1 B.↑↔) ⟩
+  ¬¬ Is-proposition Bool                                     →⟨ map′ ¬-Bool-propositional ⟩
+  ¬¬ ⊥                                                       →⟨ ¬¬¬⊥ ⟩□
+  ⊥                                                          □
 
 ------------------------------------------------------------------------
 -- Excluded middle and double-negation elimination

@@ -15,8 +15,9 @@ open import Prelude
 
 open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
+open import Equivalence eq using (_≃_)
 open import Equivalence.Path-split eq
-open import Function-universe eq hiding (_∘_)
+open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
 open import Modality eq
@@ -129,6 +130,22 @@ Zero-topological {ℓ′ = ℓ′} {ℓ = ℓ} =
     where
     inh : A
     inh = ext _ 1 .proj₁ ⊥-elim .proj₁ _
+
+-- The zero modality is very modal.
+
+Zero-very-modal : Very-modal (Zero-modality {ℓ = ℓ})
+Zero-very-modal {ℓ = ℓ} {A = A} =
+                         $⟨ _ ⟩
+  ↑ ℓ ⊤                  →⟨ id ⟩□
+  Zero (Contractible A)  □
+
+-- The zero modality is not empty-modal.
+
+Zero-not-empty-modal : ¬ Empty-modal (Zero-modality {ℓ = ℓ})
+Zero-not-empty-modal {ℓ = ℓ} =
+  Zero-modal ⊥    ↔⟨⟩
+  Contractible ⊥  →⟨ ⊥-elim ∘ proj₁ ⟩□
+  ⊥               □
 
 ------------------------------------------------------------------------
 -- Some properties that hold for Erased do not hold for every

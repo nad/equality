@@ -17,7 +17,7 @@ open import Prelude
 
 open import Bijection eq as Bijection using (_↔_)
 open import Equivalence eq as Eq using (_≃_)
-open import Equivalence.Erased eq as EEq using (_≃ᴱ_)
+open import Equivalence.Erased.Basics eq as EEq using (_≃ᴱ_)
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import List eq
