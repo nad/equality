@@ -1249,14 +1249,14 @@ Very-stableᴱ≃Very-stableᴱ-Nullᴱ {A = A} ext =
 -- assuming extensionality).
 
 erased-is-accessible-and-topological :
-  ∀ ℓ → Extensionality (lsuc a ⊔ ℓ) (lsuc a ⊔ ℓ) →
+  ∀ ℓ → Extensionality a a →
   Erased-is-accessible-and-topological (lsuc a ⊔ ℓ) a
 erased-is-accessible-and-topological {a = a} ℓ ext =
     ↑ ℓ (Type a)
   , ↑ _ ∘ Very-stable ∘ lower
-  , (λ _ → ↑-closure 1 $ Very-stable-propositional ext′)
+  , (λ _ → ↑-closure 1 $ Very-stable-propositional ext)
   , (λ A →
-       Very-stable A                        ↝⟨ Very-stable≃Very-stable-Null ext′ _ ⟩
+       Very-stable A                        ↝⟨ Very-stable≃Very-stable-Null ext _ ⟩
 
        Very-stable -Null A                  ↝⟨ (inverse $
                                                 Π-cong _ Bijection.↑↔ λ B →
@@ -1265,8 +1265,6 @@ erased-is-accessible-and-topological {a = a} ℓ ext =
                                                    Eq.↔→≃ (_∘ lift) (_∘ lower) refl refl)
                                                   _) ⟩□
        (↑ _ ∘ Very-stable ∘ lower) -Null A  □)
-  where
-  ext′ = lower-extensionality _ _ ext
 
 -- The property Erased-is-accessible-and-topologicalᴱ holds for
 -- certain universe levels (assuming extensionality).
@@ -2165,7 +2163,8 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ ℓ′ →
     Extensionality (lsuc ℓ ⊔ ℓ′) (lsuc ℓ ⊔ ℓ′) →
     Topological (lsuc ℓ ⊔ ℓ′) Erased-modality
-  Erased-topological ℓ′ ext =                              $⟨ erased-is-accessible-and-topological ℓ′ ext ⟩
+  Erased-topological ℓ′ ext =                              $⟨ erased-is-accessible-and-topological ℓ′
+                                                                (lower-extensionality _ _ ext) ⟩
     Erased-is-accessible-and-topological (lsuc ℓ ⊔ ℓ′) ℓ   ↔⟨ Eq.inverse $ ≃Erased-is-accessible-and-topological ext ⟩
     Erased-is-accessible-and-topological′ (lsuc ℓ ⊔ ℓ′) ℓ  ↝⟨ (λ (I , P , prop , ⇔-ext) → (I , P , ⇔-ext) , prop) ⟩□
     Topological (lsuc ℓ ⊔ ℓ′) Erased-modality              □
