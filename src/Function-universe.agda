@@ -24,7 +24,7 @@ open import H-level.Closure eq
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
 open import Logical-equivalence as L using (_⇔_; module _⇔_)
 open import Nat eq hiding (_≟_)
-open import Preimage eq using (_⁻¹_)
+open import Preimage eq as Preimage using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection eq as Surjection using (_↠_; Split-surjective)
 
@@ -3548,6 +3548,20 @@ to∘≡↔≡from∘ ext B≃C =
   (∃ λ a → ∃ λ y → f y ≡ z × g a ≡ y)         ↔⟨ (∃-cong λ _ → Σ-assoc) ⟩
   (∃ λ a → ∃ λ ((y , _) : f ⁻¹ z) → g a ≡ y)  ↔⟨ ∃-comm ⟩□
   (∃ λ ((y , _) : f ⁻¹ z) → g ⁻¹ y)           □
+
+-- An equivalence can, in a certain sense, be moved from one side of
+-- _⁻¹_ to the other.
+
+to-∘-⁻¹-≃-⁻¹-from :
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} {f : A → B} {z : C} →
+  (B≃C : B ≃ C) →
+  _≃_.to B≃C ∘ f ⁻¹ z ≃ f ⁻¹ _≃_.from B≃C z
+to-∘-⁻¹-≃-⁻¹-from {f = f} {z = z} B≃C =
+  _≃_.to B≃C ∘ f ⁻¹ z                         ↝⟨ ∘⁻¹≃ _ _ ⟩
+  (∃ λ ((y , _) : _≃_.to B≃C ⁻¹ z) → f ⁻¹ y)  ↔⟨ drop-⊤-left-Σ $
+                                                 _⇔_.to contractible⇔↔⊤ $
+                                                 Preimage.bijection⁻¹-contractible (_≃_.bijection B≃C) _ ⟩□
+  f ⁻¹ _≃_.from B≃C z                         □
 
 -- The type of fibres of Σ-map P.id f over a pair is equivalent to the
 -- fibres of f over the pair's second component.
