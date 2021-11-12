@@ -18,7 +18,7 @@ open Derived-definitions-and-properties eq
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Equivalence eq using (_≃_)
+open import Equivalence eq using (_≃_; Is-equivalence)
 open import Equivalence.Path-split eq using (Is-∞-extendable-along-[_])
 
 private
@@ -69,6 +69,16 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
 
     Σ-closed : Is-modal A → (∀ x → Is-modal (P x)) → Is-modal (Σ A P)
 
+-- The following is a definition of "uniquely eliminating modality"
+-- based on that in "Modalities in Homotopy Type Theory".
+
+record Uniquely-eliminating-modality a : Type (lsuc a) where
+  field
+    ◯                    : Type a → Type a
+    η                    : A → ◯ A
+    uniquely-eliminating :
+      Is-equivalence (λ (f : (x : ◯ A) → ◯ (P x)) → f ∘ η)
+
 -- The following is a definition of "modality" based on that in (one
 -- version of) the Coq code accompanying "Modalities in Homotopy Type
 -- Theory".
@@ -95,6 +105,29 @@ record Modality a : Type (lsuc a) where
       {P : ◯ A → Type a} →
       (∀ x → Is-modal (P x)) →
       Is-∞-extendable-along-[ η ] P
+
+-- A definition of what it means for a modality to be left exact,
+-- based on Theorem 3.1 (i) in "Modalities in Homotopy Type Theory".
+
+Left-exact : (Type a → Type a) → Type (lsuc a)
+Left-exact {a = a} ◯ =
+  {A : Type a} {x y : A} →
+  Contractible (◯ A) → Contractible (◯ (x ≡ y))
+
+-- Left-exact ◯ is propositional (assuming function extensionality).
+
+Left-exact-propositional :
+  {◯ : Type a → Type a} →
+  Extensionality (lsuc a) a →
+  Is-proposition (Left-exact ◯)
+Left-exact-propositional ext =
+  implicit-Π-closure ext  1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
+  Π-closure ext′ 1 λ _ →
+  H-level-propositional ext′ 0
+  where
+  ext′ = lower-extensionality _ lzero ext
 
 -- A definition of what it means for a modality to be accessible (for
 -- a certain universe level).

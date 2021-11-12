@@ -32,6 +32,8 @@ open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
 open import H-level.Closure eq-J
 open import Injection eq-J using (_↣_; Injective)
+open import Modality eq-J as Modality
+  using (Uniquely-eliminating-modality; Left-exact)
 open import Monad eq-J hiding (map; map-id; map-∘)
 open import Preimage eq-J using (_⁻¹_)
 open import Surjection eq-J as Surjection using (_↠_; Split-surjective)
@@ -388,24 +390,33 @@ Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
 ----------------------------------------------------------------------
 -- Erased is a modality
 
--- Erased is the modal operator of a uniquely eliminating modality
--- with [_]→ as the modal unit.
+-- The function λ A → Erased A is the modal operator of a uniquely
+-- eliminating modality with [_]→ as the modal unit.
 --
 -- The terminology here roughly follows that of "Modalities in
 -- Homotopy Type Theory" by Rijke, Shulman and Spitters.
 
-uniquely-eliminating-modality :
+uniquely-eliminating :
   {@0 P : Erased A → Type p} →
   Is-equivalence
     (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [ A ∣_]→)
-uniquely-eliminating-modality {A = A} {P = P} =
+uniquely-eliminating {A = A} {P = P} =
   _≃_.is-equivalence
     (((x : Erased A) → Erased (P x))  ↔⟨ inverse Erased-Π↔Π-Erased ⟩
      Erased ((x : A) → (P [ x ]))     ↔⟨ Erased-Π↔Π ⟩
      ((x : A) → Erased (P [ x ]))     □)
 
--- Two results that are closely related to
--- uniquely-eliminating-modality.
+-- The function λ A → Erased A is the modal operator of a uniquely
+-- eliminating modality with [_]→ as the modal unit.
+
+uniquely-eliminating-modality : Uniquely-eliminating-modality a
+uniquely-eliminating-modality = λ where
+    .Uniquely-eliminating-modality.◯ A                  → Erased A
+    .Uniquely-eliminating-modality.η                    → [_]→
+    .Uniquely-eliminating-modality.uniquely-eliminating →
+      uniquely-eliminating
+
+-- Two results that are closely related to uniquely-eliminating.
 --
 -- These results are based on the Coq source code accompanying
 -- "Modalities in Homotopy Type Theory" by Rijke, Shulman and
@@ -417,7 +428,7 @@ uniquely-eliminating-modality {A = A} {P = P} =
 ∘-[]-injective :
   {@0 B : Type b} →
   Injective (λ (f : Erased A → Erased B) → f ∘ [_]→)
-∘-[]-injective = _≃_.injective Eq.⟨ _ , uniquely-eliminating-modality ⟩
+∘-[]-injective = _≃_.injective Eq.⟨ _ , uniquely-eliminating ⟩
 
 -- A rearrangement lemma for ext⁻¹ and ∘-[]-injective.
 
@@ -435,7 +446,7 @@ ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
   ext⁻¹ (_≃_.from equiv (∘-[]-injective p)) x  ≡⟨ cong (flip ext⁻¹ x) $ _≃_.left-inverse-of equiv _ ⟩∎
   ext⁻¹ p x                                    ∎
   where
-  equiv = Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating-modality ⟩
+  equiv = Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating ⟩
 
 ----------------------------------------------------------------------
 -- Some lemmas related to functions with erased domains
@@ -1629,21 +1640,27 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     H-level-Erased 1 prop
 
   ----------------------------------------------------------------------
-  -- A property related to "Modalities in Homotopy Type Theory" by
-  -- Rijke, Shulman and Spitters
+  -- Some properties related to "Modalities in Homotopy Type Theory"
+  -- by Rijke, Shulman and Spitters
 
-  -- Erased is a lex modality (see Theorem 3.1, case (i) in
-  -- "Modalities in Homotopy Type Theory" for the definition used
-  -- here).
+  -- The function λ (A : Type ℓ) → Erased A is the modal operator of a
+  -- lex modality (see Theorem 3.1, case (i) in "Modalities in
+  -- Homotopy Type Theory" for the definition used here).
 
-  lex-modality :
+  lex :
     {@0 A : Type ℓ} {@0 x y : A} →
     Contractible (Erased A) → Contractible (Erased (x ≡ y))
-  lex-modality {A = A} {x = x} {y = y} =
+  lex {A = A} {x = x} {y = y} =
     Contractible (Erased A)        ↝⟨ _⇔_.from (Erased-H-level↔H-level 0 _) ⟩
     Erased (Contractible A)        ↝⟨ map (⇒≡ 0) ⟩
     Erased (Contractible (x ≡ y))  ↝⟨ Erased-H-level↔H-level 0 _ ⟩□
     Contractible (Erased (x ≡ y))  □
+
+  -- The function λ (A : Type ℓ) → Erased A is the modal operator of a
+  -- lex modality.
+
+  lex-modality : Left-exact (λ (A : Type ℓ) → Erased A)
+  lex-modality = lex
 
   ----------------------------------------------------------------------
   -- Erased "commutes" with various things

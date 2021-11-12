@@ -223,8 +223,8 @@ Lemmas-22-and-23 = Erased.Erased-H-level′↔H-level′
 
 -- Some lemmas.
 
-Lemma-24 = Erased.uniquely-eliminating-modality
-Lemma-25 = Erased.lex-modality
+Lemma-24 = Erased.uniquely-eliminating
+Lemma-25 = Erased.lex
 
 -- The map function.
 
