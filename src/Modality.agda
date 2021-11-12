@@ -20,6 +20,7 @@ open import Prelude
 
 open import Equivalence eq using (_≃_; Is-equivalence)
 open import Equivalence.Path-split eq using (Is-∞-extendable-along-[_])
+open import Preimage eq using (_⁻¹_)
 
 private
   variable
@@ -106,13 +107,44 @@ record Modality a : Type (lsuc a) where
       (∀ x → Is-modal (P x)) →
       Is-∞-extendable-along-[ η ] P
 
+-- ◯ -Connected A means that A is ◯-connected.
+
+_-Connected_ : (Type a → Type a) → Type a → Type a
+◯ -Connected A = Contractible (◯ A)
+
+-- ◯ -Connected-→ f means that f is ◯-connected.
+
+_-Connected-→_ :
+  {A B : Type a} →
+  (Type a → Type a) → (A → B) → Type a
+◯ -Connected-→ f = ∀ y → ◯ -Connected (f ⁻¹ y)
+
+-- ◯ -Connected A is propositional (assuming function extensionality).
+
+Connected-propositional :
+  Extensionality a a →
+  (◯ : Type a → Type a) →
+  Is-proposition (◯ -Connected A)
+Connected-propositional ext _ = H-level-propositional ext 0
+
+-- ◯ -Connected-→ f is propositional (assuming function
+-- extensionality).
+
+Connected-→-propositional :
+  Extensionality a a →
+  (◯ : Type a → Type a) →
+  Is-proposition (◯ -Connected-→ f)
+Connected-→-propositional ext ◯ =
+  Π-closure ext 1 λ _ →
+  Connected-propositional ext ◯
+
 -- A definition of what it means for a modality to be left exact,
 -- based on Theorem 3.1 (i) in "Modalities in Homotopy Type Theory".
 
 Left-exact : (Type a → Type a) → Type (lsuc a)
 Left-exact {a = a} ◯ =
   {A : Type a} {x y : A} →
-  Contractible (◯ A) → Contractible (◯ (x ≡ y))
+  ◯ -Connected A → ◯ -Connected (x ≡ y)
 
 -- Left-exact ◯ is propositional (assuming function extensionality).
 
@@ -120,12 +152,12 @@ Left-exact-propositional :
   {◯ : Type a → Type a} →
   Extensionality (lsuc a) a →
   Is-proposition (Left-exact ◯)
-Left-exact-propositional ext =
+Left-exact-propositional {◯ = ◯} ext =
   implicit-Π-closure ext  1 λ _ →
   implicit-Π-closure ext′ 1 λ _ →
   implicit-Π-closure ext′ 1 λ _ →
   Π-closure ext′ 1 λ _ →
-  H-level-propositional ext′ 0
+  Connected-propositional ext′ ◯
   where
   ext′ = lower-extensionality _ lzero ext
 
