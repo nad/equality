@@ -2166,8 +2166,9 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     Extensionality (lsuc ℓ ⊔ ℓ′) (lsuc ℓ ⊔ ℓ′) →
     Topological (lsuc ℓ ⊔ ℓ′) Erased-modality
   Erased-topological ℓ′ ext =                              $⟨ erased-is-accessible-and-topological ℓ′ ext ⟩
-    Erased-is-accessible-and-topological (lsuc ℓ ⊔ ℓ′) ℓ   ↝⟨ inverse $ ≃Erased-is-accessible-and-topological ext ⟩□
-    Erased-is-accessible-and-topological′ (lsuc ℓ ⊔ ℓ′) ℓ  □
+    Erased-is-accessible-and-topological (lsuc ℓ ⊔ ℓ′) ℓ   ↔⟨ Eq.inverse $ ≃Erased-is-accessible-and-topological ext ⟩
+    Erased-is-accessible-and-topological′ (lsuc ℓ ⊔ ℓ′) ℓ  ↝⟨ (λ (I , P , prop , ⇔-ext) → (I , P , ⇔-ext) , prop) ⟩□
+    Topological (lsuc ℓ ⊔ ℓ′) Erased-modality              □
 
   ----------------------------------------------------------------------
   -- Erased singletons

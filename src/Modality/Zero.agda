@@ -103,10 +103,11 @@ Zero-modality {ℓ = ℓ} = λ where
 
 Zero-topological : Topological ℓ′ (Zero-modality {ℓ = ℓ})
 Zero-topological {ℓ′ = ℓ′} {ℓ = ℓ} =
-    ↑ ℓ′ ⊤
-  , (λ _ → ⊥)
+    ( ↑ ℓ′ ⊤
+    , (λ _ → ⊥)
+    , (λ _ → record { to = to; from = from })
+    )
   , (λ _ → ⊥-propositional)
-  , (λ _ → record { to = to; from = from })
   where
   open Modality Zero-modality
 

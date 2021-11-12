@@ -103,7 +103,7 @@ record Modality a : Type (lsuc a) where
 -- accompanying "Modalities in Homotopy Type Theory".
 
 Accessible : (ℓ : Level) → Modality a → Type (lsuc (a ⊔ ℓ))
-Accessible {a = a} ℓ U =
+Accessible {a = a} ℓ M =
   ∃ λ (I : Type ℓ) →
   ∃ λ (P : I → Type ℓ) →
     (A : Type a) →
@@ -112,7 +112,7 @@ Accessible {a = a} ℓ U =
     Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
       (λ (_ : ↑ ℓ ⊤) → A)
   where
-  open Modality U
+  open Modality M
 
 -- A definition of what it means for a modality to be topological (for
 -- a certain universe level).
@@ -121,14 +121,6 @@ Accessible {a = a} ℓ U =
 -- accompanying "Modalities in Homotopy Type Theory".
 
 Topological : (ℓ : Level) → Modality a → Type (lsuc (a ⊔ ℓ))
-Topological {a = a} ℓ U =
-  ∃ λ (I : Type ℓ) →
-  ∃ λ (P : I → Type ℓ) →
-    (∀ i → Is-proposition (P i)) ×
-    ((A : Type a) →
-     Is-modal A ⇔
-     ∀ i →
-     Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
-       (λ (_ : ↑ ℓ ⊤) → A))
-  where
-  open Modality U
+Topological {a = a} ℓ M =
+  ∃ λ ((_ , P , _) : Accessible ℓ M) →
+    ∀ i → Is-proposition (P i)
