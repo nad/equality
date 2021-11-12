@@ -119,6 +119,18 @@ private
 
     module E = _≃_ ≃Bool→
 
+-- It is not the case that, for all types A, ∥ ∥∥-modal A ∥ holds.
+--
+-- Compare with Erased.Stability.Erased-Very-stable.
+
+¬∥∥∥-modal∥ : ¬ ({A : Type a} → ∥ ∥∥-modal A ∥)
+¬∥∥∥-modal∥ {a = a} =
+  ({A : Type a} → ∥ ∥∥-modal A ∥)  →⟨ (λ hyp → hyp) ⟩
+  ∥ ∥∥-modal (↑ a Bool) ∥          →⟨ T.∥∥-map (H-level-cong _ 1 B.↑↔) ⟩
+  ∥ ∥∥-modal Bool ∥                →⟨ T.∥∥-map ¬-Bool-propositional ⟩
+  ∥ ⊥ ∥                            ↔⟨ T.∥∥↔ ⊥-propositional ⟩□
+  ⊥                                □
+
 -- It is not the case that, for all types A and B and functions
 -- f : A → B, "f is ∥∥-connected" implies ∥ Is-equivalence f ∥.
 
