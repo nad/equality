@@ -450,6 +450,22 @@ generalise-ext? A⇔B hyp {k = k} with extensionality? k
 ... | with-erased-extensionality equivalenceᴱ = λ (E.[ ext ]) →
   EEq.↔→≃ᴱ (_⇔_.to A⇔B) (_⇔_.from A⇔B) (hyp ext .proj₁) (hyp ext .proj₂)
 
+generalise-ext?′ :
+  ∀ {a b c d} {A : Type a} {B : Type b} →
+  A ⇔ B →
+  (Extensionality c d → A ↔ B) →
+  (@0 Extensionality c d → A ≃ᴱ B) →
+  A ↝[ c ∣ d ] B
+generalise-ext?′ f⇔ f↔ f≃ᴱ {k = k} with extensionality? k
+... | without-extensionality implication =
+  λ _ → _⇔_.to f⇔
+... | without-extensionality logical-equivalence =
+  λ _ → f⇔
+... | with-extensionality _ = λ ext →
+  from-isomorphism (f↔ ext)
+... | with-erased-extensionality equivalenceᴱ = λ ext →
+  f≃ᴱ (E.erased ext)
+
 generalise-erased-ext? :
   ∀ {a b c d} {A : Type a} {B : Type b} →
   A ⇔ B →
