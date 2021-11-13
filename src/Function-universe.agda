@@ -3587,6 +3587,41 @@ to-∘-⁻¹-≃-⁻¹-from {f = f} {z = z} B≃C =
   (∃ λ v → f v ≡ y)                                              ↔⟨⟩
   f ⁻¹ y                                                         □
 
+-- Another rearrangement lemma for fibres.
+--
+-- This is part of Exercise 4.4 from the HoTT book.
+
+Σ-map--id-⁻¹≃⁻¹ :
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c}
+    {f : A → B} {g : B → C} {y : B} →
+  (Σ-map f id ⦂ (g ∘ f ⁻¹ g y → g ⁻¹ g y)) ⁻¹ (y , refl (g y)) ≃
+  f ⁻¹ y
+Σ-map--id-⁻¹≃⁻¹ {A = A} {f = f} {g = g} {y = y} =
+  (∃ λ ((x , p) : ∃ λ (x : A) → g (f x) ≡ g y) →
+   (f x , p) ≡ (y , refl (g y)))                                  ↔⟨ inverse Σ-assoc ⟩
+
+  (∃ λ (x : A) → ∃ λ (p : g (f x) ≡ g y) →
+   (f x , p) ≡ (y , refl (g y)))                                  ↔⟨ (∃-cong λ _ → ∃-cong λ _ → inverse Bijection.Σ-≡,≡↔≡) ⟩
+
+  (∃ λ (x : A) → ∃ λ (p : g (f x) ≡ g y) →
+   ∃ λ (q : f x ≡ y) → subst (λ x → g x ≡ g y) q p ≡ refl (g y))  ↔⟨ (∃-cong λ _ → ∃-comm) ⟩
+
+  (∃ λ (x : A) → ∃ λ (q : f x ≡ y) → ∃ λ (p : g (f x) ≡ g y) →
+   subst (λ x → g x ≡ g y) q p ≡ refl (g y))                      ↝⟨ (∃-cong λ _ → ∃-cong λ q → ∃-cong λ p →
+                                                                      ≡⇒↝ _ $ cong (_≡ _) (
+    subst (λ x → g x ≡ g y) q p                                         ≡⟨ subst-∘ _ _ _ ⟩
+    subst (_≡ g y) (cong g q) p                                         ≡⟨ subst-trans-sym ⟩∎
+    trans (sym (cong g q)) p                                            ∎)) ⟩
+
+  (∃ λ (x : A) → ∃ λ (q : f x ≡ y) → ∃ λ (p : g (f x) ≡ g y) →
+   trans (sym (cong g q)) p ≡ refl (g y))                         ↔⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                      from≡↔≡to $ Eq.↔⇒≃ $ trans-isomorphism _) ⟩
+  (∃ λ (x : A) → ∃ λ (q : f x ≡ y) → ∃ λ (p : g (f x) ≡ g y) →
+   p ≡ trans (cong g q) (refl (g y)))                             ↔⟨ (∃-cong λ _ → drop-⊤-right λ _ →
+                                                                      _⇔_.to contractible⇔↔⊤ $
+                                                                      singleton-contractible _) ⟩□
+  (∃ λ (x : A) → f x ≡ y)                                         □
+
 ------------------------------------------------------------------------
 -- Lemmas related to ↑
 
