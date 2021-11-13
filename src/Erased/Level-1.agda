@@ -33,7 +33,7 @@ open import H-level eq-J as H-level
 open import H-level.Closure eq-J
 open import Injection eq-J using (_↣_; Injective)
 open import Modality eq-J as Modality
-  using (Uniquely-eliminating-modality; Left-exact)
+  using (Uniquely-eliminating-modality; Left-exact; Cotopological)
 open import Monad eq-J hiding (map; map-id; map-∘)
 open import Preimage eq-J using (_⁻¹_)
 open import Surjection eq-J as Surjection using (_↠_; Split-surjective)
@@ -447,6 +447,20 @@ ext⁻¹-∘-[]-injective {x = x} {f = f} {g = g} {p = p} =
   ext⁻¹ p x                                    ∎
   where
   equiv = Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating ⟩
+
+-- In erased contexts the function λ (A : Type a) → Erased A is the
+-- modal operator of a cotopological modality.
+
+@0 cotopological-modality : Cotopological (λ (A : Type a) → Erased A)
+cotopological-modality =
+    (λ {A x y} →
+       Contractible (Erased A)        →⟨ H-level-cong _ 0 $ Erased↔ .erased ⟩
+       Contractible A                 →⟨ H-level.⇒≡ 0 ⟩
+       Contractible (x ≡ y)           →⟨ H-level-cong _ 0 $ inverse $ Erased↔ .erased ⟩□
+       Contractible (Erased (x ≡ y))  □)
+  , (λ {A} _ →
+       Contractible (Erased A)  →⟨ H-level-cong _ 0 $ Erased↔ .erased ⟩□
+       Contractible A           □)
 
 ----------------------------------------------------------------------
 -- Some lemmas related to functions with erased domains

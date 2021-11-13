@@ -189,3 +189,25 @@ Topological : (ℓ : Level) → Modality a → Type (lsuc (a ⊔ ℓ))
 Topological {a = a} ℓ M =
   ∃ λ ((_ , P , _) : Accessible ℓ M) →
     ∀ i → Is-proposition (P i)
+
+-- A definition of what it means for a modality to be cotopological.
+
+Cotopological : (Type a → Type a) → Type (lsuc a)
+Cotopological {a = a} ◯ =
+  Left-exact ◯ ×
+  ({A : Type a} → Is-proposition A → ◯ -Connected A → Contractible A)
+
+-- Cotopological ◯ is propositional (assuming function extensionality).
+
+Cotopological-propositional :
+  {◯ : Type a → Type a} →
+  Extensionality (lsuc a) a →
+  Is-proposition (Cotopological ◯)
+Cotopological-propositional {◯ = ◯} ext =
+  ×-closure 1 (Left-exact-propositional ext) $
+  implicit-Π-closure ext  1 λ _ →
+  Π-closure          ext′ 1 λ _ →
+  Π-closure          ext′ 1 λ _ →
+  H-level-propositional ext′ 0
+  where
+  ext′ = lower-extensionality _ lzero ext
