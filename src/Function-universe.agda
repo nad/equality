@@ -3783,6 +3783,17 @@ Unit≃⊤ x =
   Eq.↔→≃ _ (λ _ → x) refl
     (λ { ⊠ → unblock x (_≡ ⊠) (refl _) })
 
+-- A variant of propositional⇒inhabited⇒contractible.
+
+inhabited→propositional→↝⊤ :
+  ∀ {a b c} {A : Type a} →
+  A → (Extensionality b c → Is-proposition A) →
+  A ↝[ b ∣ c ] ⊤
+inhabited→propositional→↝⊤ x prop = generalise-ext?-prop
+  (record { from = const x })
+  prop
+  (λ _ → mono₁ 0 ⊤-contractible)
+
 ------------------------------------------------------------------------
 -- Lemmas related to ⊥
 
