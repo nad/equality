@@ -657,6 +657,29 @@ abstract
     to-implication (≡⇒↝ ⌊ k ⌋-sym (sym $ cong P x≡y)) p      ≡⟨ cong (_$ p) (≡⇒↝-sym k) ⟩∎
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong P x≡y))) p  ∎
 
+  -- A variant of subst-in-terms-of-≡⇒↝ for cong₂.
+
+  ≡⇒↝-cong₂≡subst-subst :
+    ∀ k {a b p} {A : Type a} {B : Type b} {x y u v}
+      {x≡y : x ≡ y} {u≡v : u ≡ v} {P : A → B → Type p} {p} →
+    to-implication (≡⇒↝ k (cong₂ P x≡y u≡v)) p ≡
+    subst (P _) u≡v (subst (flip P _) x≡y p)
+  ≡⇒↝-cong₂≡subst-subst k {x≡y = x≡y} {u≡v = u≡v} {P = P} {p = p} =
+    to-implication (≡⇒↝ k (cong₂ P x≡y u≡v)) p                        ≡⟨⟩
+
+    to-implication
+      (≡⇒↝ k (trans (cong (flip P _) x≡y) (cong (P _) u≡v))) p        ≡⟨ cong (_$ p) $ ≡⇒↝-trans k ⟩
+
+    to-implication
+      (≡⇒↝ k (cong (P _) u≡v) ∘ ≡⇒↝ k (cong (flip P _) x≡y)) p        ≡⟨ cong (_$ p) $ to-implication-∘ k ⟩
+
+    to-implication (≡⇒↝ k (cong (P _) u≡v))
+      (to-implication (≡⇒↝ k (cong (flip P _) x≡y)) p)                ≡⟨ sym $ subst-in-terms-of-≡⇒↝ k _ _ _ ⟩
+
+    subst (P _) u≡v (to-implication (≡⇒↝ k (cong (flip P _) x≡y)) p)  ≡⟨ cong (subst (P _) u≡v) $ sym $
+                                                                         subst-in-terms-of-≡⇒↝ k _ _ _ ⟩∎
+    subst (P _) u≡v (subst (flip P _) x≡y p)                          ∎
+
   -- One can express subst id in terms of ≡⇒↝.
 
   subst-id-in-terms-of-≡⇒↝ :
