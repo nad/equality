@@ -48,7 +48,249 @@ private
     P Q             : A → Type p
 
 ------------------------------------------------------------------------
--- Some basic definitions
+-- Modalities
+
+private
+ module Dummy where
+
+  -- The following is a definition of "modality" based on that in (one
+  -- version of) the Coq code accompanying "Modalities in Homotopy
+  -- Type Theory".
+  --
+  -- One difference is that in the Coq code the proof showing that the
+  -- modality predicate is propositional is allowed to make use of
+  -- function extensionality for arbitrary universe levels.
+
+  record Modality-record a : Type (lsuc a) where
+    field
+      ◯        : Type a → Type a
+      η        : A → ◯ A
+      Is-modal : Type a → Type a
+
+      Is-modal-propositional :
+        Extensionality a a →
+        Is-proposition (Is-modal A)
+
+      Is-modal-◯ : Is-modal (◯ A)
+
+      Is-modal-respects-≃ : A ≃ B → Is-modal A → Is-modal B
+
+      extendable-along-η :
+        {P : ◯ A → Type a} →
+        (∀ x → Is-modal (P x)) →
+        Is-∞-extendable-along-[ η ] P
+
+open Dummy public
+  using (module Modality-record)
+  renaming (Modality-record to Modality)
+
+------------------------------------------------------------------------
+-- Uniquely eliminating modalities
+
+-- The following is a definition of "uniquely eliminating modality"
+-- based on that in "Modalities in Homotopy Type Theory".
+
+record Uniquely-eliminating-modality a : Type (lsuc a) where
+  field
+    ◯                    : Type a → Type a
+    η                    : A → ◯ A
+    uniquely-eliminating :
+      Is-equivalence (λ (f : (x : ◯ A) → ◯ (P x)) → f ∘ η)
+
+  ----------------------------------------------------------------------
+  -- Some definitions and lemmas
+
+  -- A type is modal if η is an equivalence for this type.
+
+  Is-modal : Type a → Type a
+  Is-modal A = Is-equivalence (η {A = A})
+
+  -- If A is modal, then A is equivalent to ◯ A.
+
+  Is-modal→≃◯ : Is-modal A → A ≃ ◯ A
+  Is-modal→≃◯ m = Eq.⟨ _ , m ⟩
+
+  -- The type (x : ◯ A) → ◯ (P x) is equivalent to
+  -- (x : A) → ◯ (P (η x)).
+
+  Π◯◯≃Π◯η : ((x : ◯ A) → ◯ (P x)) ≃ ((x : A) → ◯ (P (η x)))
+  Π◯◯≃Π◯η = Eq.⟨ _ , uniquely-eliminating ⟩
+
+  -- A type is stable if ◯ A implies A.
+
+  Stable : Type a → Type a
+  Stable A = ◯ A → A
+
+  -- If A is stable, and the stability proof is a left inverse of η,
+  -- then A is modal.
+
+  Stable→left-inverse→Is-modal :
+    (s : Stable A) → s ∘ η ≡ id → Is-modal A
+  Stable→left-inverse→Is-modal {A = A} s s-η =
+    _≃_.is-equivalence $
+    Eq.↔→≃ η s
+      (λ x → cong (_$ x) η-s)
+      (λ x → cong (_$ x) s-η)
+    where
+    contr : Contractible ((λ (f : ◯ A → ◯ A) → f ∘ η) ⁻¹ η)
+    contr = Preimage.bijection⁻¹-contractible (_≃_.bijection Π◯◯≃Π◯η) _
+
+    η-s : η ∘ s ≡ id
+    η-s =
+      η ∘ s               ≡⟨ cong proj₁ $ sym $ contr .proj₂ (η ∘ s , (
+
+        η ∘ s ∘ η              ≡⟨ cong (η ∘_) s-η ⟩
+        η ∘ id                 ≡⟨⟩
+        η                      ∎)) ⟩
+
+      _≃_.from Π◯◯≃Π◯η η  ≡⟨ cong proj₁ $ contr .proj₂ (id , refl η) ⟩∎
+      id                  ∎
+
+  -- The type ◯ A is modal.
+
+  Is-modal-◯ : Is-modal (◯ A)
+  Is-modal-◯ {A = A} = Stable→left-inverse→Is-modal η⁻¹ η⁻¹-η
+    where
+    η⁻¹ : ◯ (◯ A) → ◯ A
+    η⁻¹ = _≃_.from Π◯◯≃Π◯η id
+
+    η⁻¹-η : η⁻¹ ∘ η ≡ id
+    η⁻¹-η =
+      _≃_.from Π◯◯≃Π◯η id ∘ η       ≡⟨⟩
+      (_∘ η) (_≃_.from Π◯◯≃Π◯η id)  ≡⟨ _≃_.right-inverse-of Π◯◯≃Π◯η _ ⟩∎
+      id                            ∎
+
+  -- If P : ◯ A → Type a is pointwise modal, then it is ∞-extendable
+  -- along η (assuming function extensionality).
+
+  extendable-along-η :
+    {P : ◯ A → Type a} →
+    Extensionality a a →
+    (∀ x → Is-modal (P x)) →
+    Is-∞-extendable-along-[ η ] P
+  extendable-along-η {A = A} {P = P} ext m =          $⟨ equiv ⟩
+    Is-equivalence (λ (f : (x : ◯ A) → P x) → f ∘ η)  ↝⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
+    Is-∞-extendable-along-[ η ] P                     □
+    where
+    equiv : Is-equivalence (λ (f : (x : ◯ A) → P x) → f ∘ η)
+    equiv =
+      _≃_.is-equivalence $
+      Eq.with-other-function
+        (((x : ◯ A) → P x)        ↝⟨ ∀-cong ext (Is-modal→≃◯ ∘ m) ⟩
+         ((x : ◯ A) → ◯ (P x))    ↝⟨ Π◯◯≃Π◯η ⟩
+         ((x : A) → ◯ (P (η x)))  ↝⟨ ∀-cong ext (inverse ∘ Is-modal→≃◯ ∘ m ∘ η) ⟩□
+         ((x : A) → P (η x))      □)
+        (_∘ η)
+        (λ f → apply-ext ext λ x →
+           _≃_.from (Is-modal→≃◯ (m (η x))) (η (f (η x)))  ≡⟨ _≃_.left-inverse-of (Is-modal→≃◯ (m (η x))) _ ⟩∎
+           f (η x)                                         ∎)
+
+  ----------------------------------------------------------------------
+  -- Eliminators
+
+  -- A dependent eliminator for ◯.
+
+  ◯-elim :
+    {P : ◯ A → Type a} →
+    (∀ x → Is-modal (P x)) →
+    ((x : A) → P (η x)) →
+    ((x : ◯ A) → P x)
+  ◯-elim {A = A} {P = P} m =
+    ((x : A) → P (η x))      →⟨ η ∘_ ⟩
+    ((x : A) → ◯ (P (η x)))  ↔⟨ inverse Π◯◯≃Π◯η ⟩
+    ((x : ◯ A) → ◯ (P x))    →⟨ _≃_.from (Is-modal→≃◯ (m _)) ∘_ ⟩□
+    ((x : ◯ A) → P x)        □
+
+  -- A "computation rule" for ◯-elim.
+
+  ◯-elim-η :
+    {P : ◯ A → Type a} {f : (x : A) → P (η x)}
+    (m : ∀ x → Is-modal (P x)) →
+    ◯-elim m f (η x) ≡ f x
+  ◯-elim-η {x = x} {P = P} {f = f} m =
+    _≃_.from (Is-modal→≃◯ (m _))
+      (_≃_.from (Π◯◯≃Π◯η {P = P}) (η ∘ f) (η x))         ≡⟨⟩
+
+    _≃_.from (Is-modal→≃◯ (m _))
+      (((_∘ η) (_≃_.from (Π◯◯≃Π◯η {P = P}) (η ∘ f))) x)  ≡⟨ cong (_≃_.from (Is-modal→≃◯ (m _))) $ cong (_$ x) $
+                                                            _≃_.right-inverse-of Π◯◯≃Π◯η _ ⟩
+
+    _≃_.from (Is-modal→≃◯ (m _)) (η (f x))               ≡⟨ _≃_.left-inverse-of (Is-modal→≃◯ (m _)) _ ⟩∎
+
+    f x                                                  ∎
+
+  -- A non-dependent eliminator for ◯.
+
+  ◯-rec : Is-modal B → (A → B) → (◯ A → B)
+  ◯-rec m = ◯-elim (λ _ → m)
+
+  -- A "computation rule" for ◯-rec.
+
+  ◯-rec-η : ∀ m → ◯-rec m f (η x) ≡ f x
+  ◯-rec-η m = ◯-elim-η (λ _ → m)
+
+  ----------------------------------------------------------------------
+  -- More lemmas
+
+  -- A map function for ◯.
+
+  ◯-map : (A → B) → ◯ A → ◯ B
+  ◯-map f = ◯-rec Is-modal-◯ (η ∘ f)
+
+  -- A "computation rule" for ◯-map.
+
+  ◯-map-η : ◯-map f (η x) ≡ η (f x)
+  ◯-map-η = ◯-rec-η Is-modal-◯
+
+  -- Is-modal respects equivalences (assuming function
+  -- extensionality).
+
+  Is-modal-respects-≃ :
+    Extensionality a a →
+    A ≃ B → Is-modal A → Is-modal B
+  Is-modal-respects-≃ {A = A} {B = B} ext A≃B m =
+    Stable→left-inverse→Is-modal
+      (◯ B  →⟨ ◯-map (_≃_.from A≃B) ⟩
+       ◯ A  →⟨ _≃_.from $ Is-modal→≃◯ m ⟩
+       A    →⟨ _≃_.to A≃B ⟩□
+       B    □)
+      (apply-ext ext λ x →
+
+       _≃_.to A≃B (_≃_.from (Is-modal→≃◯ m)
+                     (◯-map (_≃_.from A≃B) (η x)))                 ≡⟨ cong (_≃_.to A≃B ∘ _≃_.from (Is-modal→≃◯ m)) ◯-map-η ⟩
+
+       _≃_.to A≃B (_≃_.from (Is-modal→≃◯ m) (η (_≃_.from A≃B x)))  ≡⟨ cong (_≃_.to A≃B) $ _≃_.left-inverse-of (Is-modal→≃◯ m) _ ⟩
+
+       _≃_.to A≃B (_≃_.from A≃B x)                                 ≡⟨ _≃_.right-inverse-of A≃B _ ⟩∎
+
+       x                                                           ∎)
+
+  -- A uniquely eliminating modality is a modality (assuming function
+  -- extensionality).
+  --
+  -- See also Modality.uniquely-eliminating below.
+
+  modality :
+    Extensionality a a →
+    Modality a
+  modality ext = λ where
+    .Modality-record.◯ → ◯
+
+    .Modality-record.η → η
+
+    .Modality-record.Is-modal → Is-modal
+
+    .Modality-record.Is-modal-propositional ext →
+      Eq.propositional ext _
+
+    .Modality-record.Is-modal-◯ → Is-modal-◯
+
+    .Modality-record.Is-modal-respects-≃ → Is-modal-respects-≃ ext
+
+    .Modality-record.extendable-along-η → extendable-along-η ext
+
+------------------------------------------------------------------------
+-- Σ-closed reflective subuniverses
 
 -- The Coq code accompanying "Modalities in Homotopy Type Theory" uses
 -- a somewhat different definition of reflective subuniverses than the
@@ -92,49 +334,158 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
 
     Σ-closed : Is-modal A → (∀ x → Is-modal (P x)) → Is-modal (Σ A P)
 
--- The following is a definition of "uniquely eliminating modality"
--- based on that in "Modalities in Homotopy Type Theory".
+  ----------------------------------------------------------------------
+  -- Eliminators
 
-record Uniquely-eliminating-modality a : Type (lsuc a) where
-  field
-    ◯                    : Type a → Type a
-    η                    : A → ◯ A
-    uniquely-eliminating :
-      Is-equivalence (λ (f : (x : ◯ A) → ◯ (P x)) → f ∘ η)
+  -- A non-dependent eliminator for ◯.
 
-private
- module Dummy where
+  ◯-rec : Is-modal B → (A → B) → (◯ A → B)
+  ◯-rec m f = extendable-along-η m 1 .proj₁ f .proj₁
 
-  -- The following is a definition of "modality" based on that in (one
-  -- version of) the Coq code accompanying "Modalities in Homotopy
-  -- Type Theory".
+  -- A "computation rule" for ◯-rec.
+
+  ◯-rec-η : ◯-rec m f (η x) ≡ f x
+  ◯-rec-η = extendable-along-η _ 1 .proj₁ _ .proj₂ _
+
+  -- If f and g have type ◯ A → B, where B is modal, and f ∘ η and
+  -- g ∘ η are pointwise equal, then f and g are pointwise equal.
+
+  ∘η≡∘η→≡ :
+    {f g : ◯ A → B} →
+    Is-modal B →
+    (∀ x → f (η x) ≡ g (η x)) →
+    ∀ x → f x ≡ g x
+  ∘η≡∘η→≡ m p =
+    extendable-along-η m 2 .proj₂ _ _ .proj₁ p .proj₁
+
+  -- A "computation rule" for ∘η≡∘η→≡.
+
+  ∘η≡∘η→≡-η : ∘η≡∘η→≡ m p (η x) ≡ p x
+  ∘η≡∘η→≡-η =
+    extendable-along-η _ 2 .proj₂ _ _ .proj₁ _ .proj₂ _
+
+  -- A dependent eliminator for ◯.
+
+  ◯-elim :
+    {P : ◯ A → Type a} →
+    (∀ x → Is-modal (P x)) →
+    ((x : A) → P (η x)) →
+    ((x : ◯ A) → P x)
+  ◯-elim {A = A} {P = P} m f x =
+    subst P (lemma x) (f′ x .proj₂)
+    where
+    f′ : ◯ A → Σ (◯ A) P
+    f′ = ◯-rec (Σ-closed Is-modal-◯ m) (λ x → η x , f x)
+
+    lemma : ∀ x → f′ x .proj₁ ≡ x
+    lemma = ∘η≡∘η→≡ Is-modal-◯ λ x →
+      ◯-rec (Σ-closed Is-modal-◯ m) (λ x → η x , f x) (η x) .proj₁  ≡⟨ cong proj₁ ◯-rec-η ⟩∎
+      η x                                                           ∎
+
+  -- A "computation rule" for ◯-elim.
+
+  ◯-elim-η :
+    {P : ◯ A → Type a}
+    {m : ∀ x → Is-modal (P x)}
+    {f : (x : A) → P (η x)} →
+    ◯-elim m f (η x) ≡ f x
+  ◯-elim-η {x = x} {P = P} {m = m} {f = f} =
+    subst P (∘η≡∘η→≡ Is-modal-◯ (λ _ → cong proj₁ ◯-rec-η) (η x))
+      (◯-rec (Σ-closed Is-modal-◯ m) (λ x → η x , f x) (η x) .proj₂)  ≡⟨ cong (flip (subst P) _) ∘η≡∘η→≡-η ⟩
+
+    subst P (cong proj₁ ◯-rec-η)
+      (◯-rec (Σ-closed Is-modal-◯ m) (λ x → η x , f x) (η x) .proj₂)  ≡⟨ sym $ subst-∘ _ _ _ ⟩
+
+    subst (P ∘ proj₁) ◯-rec-η
+      (◯-rec (Σ-closed Is-modal-◯ m) (λ x → η x , f x) (η x) .proj₂)  ≡⟨ elim₁
+                                                                           (λ {y} eq → subst (P ∘ proj₁) eq (y .proj₂) ≡ f x)
+                                                                           (subst-refl _ _)
+                                                                           _ ⟩∎
+    f x                                                               ∎
+
+  ----------------------------------------------------------------------
+  -- Some basic definitions and lemmas
+
+  -- If η is an equivalence for A, then A is modal.
+
+  Is-equivalence-η→Is-modal :
+    Is-equivalence (η {A = A}) → Is-modal A
+  Is-equivalence-η→Is-modal {A = A} =
+    Is-equivalence (η {A = A})     →⟨ Eq.⟨ _ ,_⟩ ⟩
+    A ≃ ◯ A                        →⟨ Is-modal-respects-≃ ∘ inverse ⟩
+    (Is-modal (◯ A) → Is-modal A)  →⟨ _$ Is-modal-◯ ⟩□
+    Is-modal A                     □
+
+  -- A type is stable if ◯ A implies A.
+
+  Stable : Type a → Type a
+  Stable A = ◯ A → A
+
+  -- If A is stable, and the stability proof is a left inverse of η,
+  -- then A is modal.
+
+  Stable→left-inverse→Is-modal :
+    (s : Stable A) → (∀ x → s (η x) ≡ x) → Is-modal A
+  Stable→left-inverse→Is-modal s eq =
+    Is-equivalence-η→Is-modal $
+    _≃_.is-equivalence $
+    Eq.↔→≃
+      _
+      s
+      (∘η≡∘η→≡ Is-modal-◯ (cong η ∘ eq))
+      eq
+
+  -- A type is separated if equality is modal for this type.
   --
-  -- One difference is that in the Coq code the proof showing that the
-  -- modality predicate is propositional is allowed to make use of
-  -- function extensionality for arbitrary universe levels.
+  -- This definition is taken from "Localization in homotopy type
+  -- theory" by Christensen, Opie, Rijke and Scoccola.
 
-  record Modality-record a : Type (lsuc a) where
-    field
-      ◯        : Type a → Type a
-      η        : A → ◯ A
-      Is-modal : Type a → Type a
+  Separated : Type a → Type a
+  Separated = For-iterated-equality 1 Is-modal
 
-      Is-modal-propositional :
-        Extensionality a a →
-        Is-proposition (Is-modal A)
+  -- If a type is modal, then it is separated.
 
-      Is-modal-◯ : Is-modal (◯ A)
+  Is-modal→Separated : Is-modal A → Separated A
+  Is-modal→Separated m x y =
+    Stable→left-inverse→Is-modal
+      (◯ (x ≡ y)  →⟨ ∘η≡∘η→≡
+                       {f = λ (_ : ◯ (x ≡ y)) → x}
+                       {g = λ (_ : ◯ (x ≡ y)) → y}
+                       m
+                       id ⟩□
+       x ≡ y      □)
+      (λ _ → ∘η≡∘η→≡-η)
 
-      Is-modal-respects-≃ : A ≃ B → Is-modal A → Is-modal B
+  -- One can strengthen extendable-along-η.
 
-      extendable-along-η :
-        {P : ◯ A → Type a} →
-        (∀ x → Is-modal (P x)) →
-        Is-∞-extendable-along-[ η ] P
+  stronger-extendable-along-η :
+    {P : ◯ A → Type a} →
+    (∀ x → Is-modal (P x)) →
+    Is-∞-extendable-along-[ η ] P
+  stronger-extendable-along-η m zero    = _
+  stronger-extendable-along-η m (suc n) =
+      (λ f → ◯-elim m f , λ _ → ◯-elim-η)
+    , λ _ _ →
+        stronger-extendable-along-η
+          (λ x → Is-modal→Separated (m x) _ _) n
 
-open Dummy public
-  using (module Modality-record)
-  renaming (Modality-record to Modality)
+  -- A Σ-closed reflective subuniverse is a modality.
+  --
+  -- See also Modality.Σ-closed below.
+
+  modality : Modality a
+  modality = λ where
+    .Modality-record.◯                      → ◯
+    .Modality-record.η                      → η
+    .Modality-record.Is-modal               → Is-modal
+    .Modality-record.Is-modal-propositional → Is-modal-propositional
+    .Modality-record.Is-modal-◯             → Is-modal-◯
+    .Modality-record.Is-modal-respects-≃    → Is-modal-respects-≃
+    .Modality-record.extendable-along-η     →
+      stronger-extendable-along-η
+
+------------------------------------------------------------------------
+-- Some definitions
 
 -- ◯ -Connected A means that A is ◯-connected.
 
@@ -913,6 +1264,37 @@ module Modality (M : Modality a) where
           η (x , y)                                            ∎))
     where
     m′ = Is-modal-Σ m λ _ → Is-modal-◯
+
+  ----------------------------------------------------------------------
+  -- Some conversions
+
+  -- Modalities are Σ-closed reflective subuniverses.
+
+  Σ-closed : Σ-closed-reflective-subuniverse a
+  Σ-closed = λ where
+      .M.◯                      → ◯
+      .M.η                      → η
+      .M.Is-modal               → Is-modal
+      .M.Is-modal-propositional → Is-modal-propositional
+      .M.Is-modal-◯             → Is-modal-◯
+      .M.Is-modal-respects-≃    → Is-modal-respects-≃
+      .M.extendable-along-η m   → extendable-along-η (λ _ → m)
+      .M.Σ-closed               → Is-modal-Σ
+    where
+    module M = Σ-closed-reflective-subuniverse
+
+  -- Modalities are uniquely eliminating modalities (assuming function
+  -- extensionality).
+
+  uniquely-eliminating :
+    Extensionality a a →
+    Uniquely-eliminating-modality a
+  uniquely-eliminating ext = λ where
+      .M.◯                    → ◯
+      .M.η                    → η
+      .M.uniquely-eliminating → _≃_.is-equivalence (Π◯◯≃Π◯η ext)
+    where
+    module M = Uniquely-eliminating-modality
 
   ----------------------------------------------------------------------
   -- Stability
