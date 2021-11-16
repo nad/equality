@@ -9,7 +9,7 @@ open import Equality
 module Function-universe
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Bijection eq as Bijection using (_↔_; module _↔_)
+open import Bijection eq as Bijection using (_↔_; Has-quasi-inverse)
 open Derived-definitions-and-properties eq
 open import Embedding eq as Emb using (Is-embedding; Embedding)
 open import Equality.Decidable-UIP eq
@@ -3179,6 +3179,9 @@ private
   ; left-inverse-of = refl
   }
 
+------------------------------------------------------------------------
+-- Some lemmas related to _⇔_
+
 -- Logical equivalences can be expressed as pairs of functions.
 
 ⇔↔→×→ :
@@ -3194,9 +3197,6 @@ private
     }
   ; left-inverse-of = refl
   }
-
-------------------------------------------------------------------------
--- A lemma related to _≃_
 
 -- The operator _⇔_ preserves symmetric kinds of functions.
 
@@ -3442,6 +3442,34 @@ Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} g-eq =
   ; left-inverse-of = λ _ → refl _
   }
 
+-- Split-surjective preserves equality, if we see _≃_ as a form of
+-- equality (assuming extensionality).
+
+Split-surjective-cong :
+  ∀ {k a b} {A : Type a} {B : Type b} {f g : A → B} →
+  Extensionality? k b (a ⊔ b) →
+  (∀ x → f x ≡ g x) →
+  Split-surjective f ↝[ k ] Split-surjective g
+Split-surjective-cong {f = f} {g = g} ext f≡g =
+  (∀ y → ∃ λ x → f x ≡ y)  ↝⟨ (∀-cong ext λ _ → ∃-cong λ x → ≡⇒↝ _ $ cong (_≡ _) $ f≡g x) ⟩□
+  (∀ y → ∃ λ x → g x ≡ y)  □
+
+-- A "computation rule" for Split-surjective-cong.
+
+Split-surjective-cong-refl :
+  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {p} →
+  Extensionality b (a ⊔ b) →
+  Split-surjective-cong _ (refl ⊚ f) p ≡ p
+Split-surjective-cong-refl {p = p} ext = apply-ext ext λ x →
+  ( proj₁ (p x)
+  , ≡⇒↝ _ (cong (_≡ _) (refl _)) (proj₂ (p x))
+  )                                             ≡⟨ cong (proj₁ (p x) ,_) $ cong (flip (≡⇒↝ _) _) $
+                                                   cong-refl _ ⟩
+
+  (proj₁ (p x) , ≡⇒↝ _ (refl _) (proj₂ (p x)))  ≡⟨ cong (_ ,_) $ cong (_$ _) ≡⇒↝-refl ⟩∎
+
+  p x                                           ∎
+
 ------------------------------------------------------------------------
 -- Lemmas related to _↣_
 
@@ -3463,6 +3491,119 @@ Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} g-eq =
     }
   ; left-inverse-of = λ _ → refl _
   }
+
+-- Injective preserves equality, if we see _≃_ as a form of equality
+-- (assuming extensionality).
+
+Injective-cong :
+  ∀ {k a b} {A : Type a} {B : Type b} {f g : A → B} →
+  Extensionality? k a (a ⊔ b) →
+  (∀ x → f x ≡ g x) →
+  Injective f ↝[ k ] Injective g
+Injective-cong {f = f} {g = g} ext f≡g =
+  (∀ {x y} → f x ≡ f y → x ≡ y)  ↝⟨ (implicit-∀-cong ext $ implicit-∀-cong ext $
+                                     ≡⇒↝ _ $ cong₂ (λ u v → u ≡ v → _) (f≡g _) (f≡g _)) ⟩□
+  (∀ {x y} → g x ≡ g y → x ≡ y)  □
+
+-- A "computation rule" for Injective-cong.
+
+Injective-cong-refl :
+  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {p : Injective f} →
+  Extensionality a (a ⊔ b) →
+  _≡_ {A = Injective f}
+    (Injective-cong _ (refl ⊚ f) p)
+    p
+Injective-cong-refl {p = p} ext =
+  implicit-extensionality ext λ x →
+  implicit-extensionality ext λ y →
+  ≡⇒↝ _ (cong₂ (λ u v → u ≡ v → _) (refl _) (refl _)) p  ≡⟨ cong (flip (≡⇒↝ _) _) $ cong₂-refl (λ u v → u ≡ v → _) ⟩
+  ≡⇒↝ _ (refl _) p                                       ≡⟨ cong (_$ p) ≡⇒↝-refl ⟩∎
+  p                                                      ∎
+
+------------------------------------------------------------------------
+-- A lemma related to _↔_
+
+-- Has-quasi-inverse preserves equality, if we see _≃_ as a form of
+-- equality (assuming extensionality).
+
+Has-quasi-inverse-cong :
+  ∀ {k a b} {A : Type a} {B : Type b} {f g : A → B} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  (∀ x → f x ≡ g x) →
+  Has-quasi-inverse f ↝[ k ] Has-quasi-inverse g
+Has-quasi-inverse-cong {k = k} {a = a} {b = b} {f = f} {g = g} ext f≡g =
+  (∃ λ from → (∀ x → f (from x) ≡ x) × (∀ x → from (f x) ≡ x))  ↝⟨ (∃-cong λ from →
+                                                                    (∀-cong (lower-extensionality? k a a ext) λ _ →
+                                                                     ≡⇒↝ _ $ cong (_≡ _) $ f≡g _)
+                                                                      ×-cong
+                                                                    (∀-cong (lower-extensionality? k b b ext) λ _ →
+                                                                     ≡⇒↝ _ $ cong ((_≡ _) ∘ from) $ f≡g _)) ⟩□
+  (∃ λ from → (∀ x → g (from x) ≡ x) × (∀ x → from (g x) ≡ x))  □
+
+-- A "computation rule" for Has-quasi-inverse-cong.
+
+Has-quasi-inverse-cong-refl :
+  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {p} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Has-quasi-inverse-cong _ (refl ⊚ f) p ≡ p
+Has-quasi-inverse-cong-refl
+  {a = a} {b = b} {p = from , to-from , from-to} ext =
+  ( from
+  , ≡⇒↝ _ (cong (_≡ _) (refl _)) ⊚ to-from
+  , ≡⇒↝ _ (cong ((_≡ _) ∘ from) (refl _)) ⊚ from-to
+  )                                                  ≡⟨ cong (from ,_) $ cong₂ _,_
+                                                          (apply-ext ext₁ λ x → cong (λ eq → ≡⇒↝ _ eq (to-from x)) $ cong-refl _)
+                                                          (apply-ext ext₂ λ x → cong (λ eq → ≡⇒↝ _ eq (from-to x)) $ cong-refl _) ⟩
+  ( from
+  , ≡⇒↝ _ (refl _) ⊚ to-from
+  , ≡⇒↝ _ (refl _) ⊚ from-to
+  )                                                  ≡⟨ cong (_ ,_) $ cong₂ _,_
+                                                          (apply-ext ext₁ λ x → cong (_$ to-from x) ≡⇒↝-refl)
+                                                          (apply-ext ext₂ λ x → cong (_$ from-to x) ≡⇒↝-refl) ⟩∎
+  (from , to-from , from-to)                         ∎
+  where
+  ext₁ = lower-extensionality a a ext
+  ext₂ = lower-extensionality b b ext
+
+------------------------------------------------------------------------
+-- A lemma related to Embedding
+
+-- Is-embedding preserves equality, if we see _≃_ as a form of
+-- equality (assuming extensionality).
+
+Is-embedding-cong :
+  ∀ {k a b} {A : Type a} {B : Type b} {f g : A → B} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  (∀ x → f x ≡ g x) →
+  Is-embedding f ↝[ k ] Is-embedding g
+Is-embedding-cong {k = k} {a = a} {b = b} {f = f} {g = g} ext f≡g =
+  (∀ x y → Is-equivalence (cong f))                                       ↝⟨ (∀-cong ext′ λ x → ∀-cong ext′ λ y →
+                                                                             Is-equivalence≃Is-equivalence-∘ˡ
+                                                                               (_≃_.is-equivalence $
+                                                                                ≡⇒↝ _ (cong₂ _≡_ (f≡g x) (f≡g y)))
+                                                                               ext) ⟩
+  (∀ x y →
+   Is-equivalence (_≃_.to (≡⇒↝ _ (cong₂ _≡_ (f≡g x) (f≡g y))) ∘ cong f))  ↝⟨ (∀-cong ext′ λ x → ∀-cong ext′ λ y →
+                                                                              Is-equivalence-cong ext $ elim _ λ x →
+    _≃_.to (≡⇒↝ _ (cong₂ _≡_ (f≡g x) (f≡g x))) (cong f (refl x))                ≡⟨ cong (_≃_.to (≡⇒↝ _ _)) $ cong-refl _ ⟩
+
+    _≃_.to (≡⇒↝ _ (cong₂ _≡_ (f≡g x) (f≡g x))) (refl (f x))                     ≡⟨ ≡⇒↝-cong₂≡subst-subst equivalence {P = _≡_} ⟩
+
+    subst (_ ≡_) (f≡g x) (subst (_≡ _) (f≡g x) (refl (f x)))                    ≡⟨ sym trans-subst ⟩
+
+    trans (subst (_≡ _) (f≡g x) (refl (f x))) (f≡g x)                           ≡⟨ cong (flip trans _) $
+                                                                                   trans subst-trans-sym $
+                                                                                   trans-reflʳ _ ⟩
+
+    trans (sym (f≡g x)) (f≡g x)                                                 ≡⟨ trans-symˡ _ ⟩
+
+    refl (g x)                                                                  ≡⟨ sym $ cong-refl _ ⟩∎
+
+    cong g (refl x)                                                             ∎) ⟩□
+
+  (∀ x y → Is-equivalence (cong g))                                       □
+  where
+  ext′ = lower-extensionality? k b lzero ext
 
 ------------------------------------------------------------------------
 -- Lemmas related to _≡_
