@@ -33,6 +33,8 @@ open import Equivalence.Erased equality-with-J as EEq
   using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages equality-with-J
   as ECP using (Contractibleᴱ; _⁻¹ᴱ_)
+open import Equivalence.Path-split equality-with-J as PS
+  using (Is-∞-extendable-along-[_])
 open import Equivalence-relation equality-with-J
 open import Erased.Cubical eq as Er
   using (Erased; [_]; erased; Very-stableᴱ-≡; Erased-singleton)
@@ -42,6 +44,7 @@ open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional.One-step eq as O
   using (∥_∥¹-out-^)
 import H-level.Truncation.Propositional.Non-recursive.Erased eq as N
+open import Modality equality-with-J
 open import Monad equality-with-J
 open import Preimage equality-with-J using (_⁻¹_)
 open import Surjection equality-with-J as S
@@ -171,6 +174,45 @@ rec r = recᴾ λ where
       _↔_.to (H-level↔H-level 1) R.truncation-is-propositionʳ
   where
   module R = Rec r
+
+------------------------------------------------------------------------
+-- ∥_∥ᴱ is a modality
+
+-- ∥_∥ᴱ and ∣_∣ form a modality, where a type A is modal if
+-- Erased (Is-proposition A) holds.
+
+∥∥ᴱ-modality : Modality ℓ
+∥∥ᴱ-modality {ℓ = ℓ} = λ where
+    .◯                      → ∥_∥ᴱ
+    .η                      → ∣_∣
+    .Is-modal A             → Erased (Is-proposition A)
+    .Is-modal-propositional → λ ext →
+                                Er.H-level-Erased 1
+                                  (H-level-propositional ext 1)
+    .Is-modal-◯             → [ truncation-is-proposition ]
+    .Is-modal-respects-≃    → λ A≃B → Er.map (H-level-cong _ 1 A≃B)
+    .extendable-along-η     → extendable
+  where
+  open Modality
+
+  extendable :
+    {A : Type ℓ} {P : ∥ A ∥ᴱ → Type ℓ} →
+    (∀ x → Erased (Is-proposition (P x))) →
+    Is-∞-extendable-along-[ ∣_∣ ] P
+  extendable {A = A} {P = P} =
+    (∀ x → Erased (Is-proposition (P x)))                  →⟨ (λ prop →
+                                                                 _≃_.is-equivalence $
+                                                                 Eq.↔→≃
+                                                                   _
+                                                                   (λ f → elim λ where
+                                                                      .∣∣ʳ                          → f
+                                                                      .truncation-is-propositionʳ _ → prop _ .erased)
+                                                                   refl
+                                                                   (λ f → ⟨ext⟩ $ elim λ where
+                                                                      .∣∣ʳ _                        → refl _
+                                                                      .truncation-is-propositionʳ _ → ⇒≡ 1 $ prop _ .erased)) ⟩
+    Is-equivalence (λ (f : (x : ∥ A ∥ᴱ) → P x) → f ∘ ∣_∣)  ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
+    Is-∞-extendable-along-[ ∣_∣ ] P                        □
 
 ------------------------------------------------------------------------
 -- Conversion functions
