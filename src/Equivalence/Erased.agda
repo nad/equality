@@ -172,36 +172,7 @@ Is-equivalenceᴱ-propositional ext f =
     (Eq.propositional ext f)
 
 ------------------------------------------------------------------------
--- Even more conversion lemmas, and a related result
-
--- Is-equivalenceᴱ f is logically equivalent to ECP.Is-equivalenceᴱ f.
-
-Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP :
-  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
-  Is-equivalenceᴱ f ⇔ ECP.Is-equivalenceᴱ f
-Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP {f = f} =
-  record { to = to; from = from }
-  where
-  to : Is-equivalenceᴱ f → ECP.Is-equivalenceᴱ f
-  to eq y =
-      (proj₁₀ eq y , [ erased (proj₂ $ proj₁ eq′) ])
-    , [ erased (proj₂ eq′) ]
-    where
-    @0 eq′ : Contractibleᴱ (f ⁻¹ᴱ y)
-    eq′ =
-      ECP.Is-equivalence→Is-equivalenceᴱ
-        (_⇔_.to HA.Is-equivalence⇔Is-equivalence-CP $
-         Is-equivalenceᴱ→Is-equivalence eq)
-        y
-
-  from : ECP.Is-equivalenceᴱ f → Is-equivalenceᴱ f
-  from eq =
-      proj₁₀ ⊚ proj₁₀ ⊚ eq
-    , [ erased $ proj₂ $
-        Is-equivalence→Is-equivalenceᴱ $
-        _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $
-        ECP.Is-equivalenceᴱ→Is-equivalence eq
-      ]
+-- Another conversion lemma, and a related result
 
 -- Is-equivalenceᴱ f is equivalent (with erased proofs) to
 -- ECP.Is-equivalenceᴱ f (assuming extensionality).

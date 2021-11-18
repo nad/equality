@@ -18,6 +18,8 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (id; [_,_]) renaming (_∘_ to _⊚_)
 
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
+open import Equivalence.Erased.Contractible-preimages.Basics eq as ECP
+  using (Contractibleᴱ; _⁻¹ᴱ_)
 import Equivalence.Half-adjoint eq as HA
 open import Erased.Basics
 open import Preimage eq as Preimage using (_⁻¹_)
@@ -43,6 +45,8 @@ Is-equivalenceᴱ {A = A} {B = B} f =
 -- Some conversion lemmas
 
 -- Conversions between Is-equivalence and Is-equivalenceᴱ.
+--
+-- See also Equivalence.Erased.Is-equivalence≃Is-equivalenceᴱ.
 
 Is-equivalence→Is-equivalenceᴱ :
   {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
@@ -53,7 +57,34 @@ Is-equivalence→Is-equivalenceᴱ = Σ-map P.id [_]→
   Is-equivalenceᴱ f → Is-equivalence f
 Is-equivalenceᴱ→Is-equivalence = Σ-map P.id erased
 
--- See also Equivalence.Erased.Is-equivalence≃Is-equivalenceᴱ.
+-- Is-equivalenceᴱ f is logically equivalent to ECP.Is-equivalenceᴱ f.
+
+Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP :
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
+  Is-equivalenceᴱ f ⇔ ECP.Is-equivalenceᴱ f
+Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP {f = f} =
+  record { to = to; from = from }
+  where
+  to : Is-equivalenceᴱ f → ECP.Is-equivalenceᴱ f
+  to eq y =
+      (proj₁₀ eq y , [ erased (proj₂ $ proj₁ eq′) ])
+    , [ erased (proj₂ eq′) ]
+    where
+    @0 eq′ : Contractibleᴱ (f ⁻¹ᴱ y)
+    eq′ =
+      ECP.Is-equivalence→Is-equivalenceᴱ
+        (_⇔_.to HA.Is-equivalence⇔Is-equivalence-CP $
+         Is-equivalenceᴱ→Is-equivalence eq)
+        y
+
+  from : ECP.Is-equivalenceᴱ f → Is-equivalenceᴱ f
+  from eq =
+      proj₁₀ ⊚ proj₁₀ ⊚ eq
+    , [ erased $ proj₂ $
+        Is-equivalence→Is-equivalenceᴱ $
+        _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $
+        ECP.Is-equivalenceᴱ→Is-equivalence eq
+      ]
 
 ------------------------------------------------------------------------
 -- _≃ᴱ_

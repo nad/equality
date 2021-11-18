@@ -110,6 +110,11 @@ import Equivalence
 
 import Erased.Basics
 
+-- Equivalences with erased "proofs", defined in terms of partly
+-- erased contractible fibres.
+
+import Equivalence.Erased.Contractible-preimages.Basics
+
 -- Equivalences with erased "proofs".
 
 import Equivalence.Erased.Basics
