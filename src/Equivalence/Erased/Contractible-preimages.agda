@@ -17,7 +17,8 @@ open import Bijection eq using (_↔_)
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence.Contractible-preimages eq as CP
 open import Erased.Level-1 eq as Erased
-  hiding (module []-cong; module []-cong₁; module []-cong₂)
+  hiding (module []-cong; module []-cong₁;
+          module []-cong₂; module []-cong₂-⊔)
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -291,6 +292,32 @@ module []-cong₂
     A≃B′ = from-isomorphism A↔B
 
 ------------------------------------------------------------------------
+-- Results that follow if the []-cong axioms hold for two universe
+-- levels and their maximum
+
+module []-cong₂-⊔
+  (ax₁ : []-cong-axiomatisation ℓ₁)
+  (ax₂ : []-cong-axiomatisation ℓ₂)
+  (ax  : []-cong-axiomatisation (ℓ₁ ⊔ ℓ₂))
+  where
+
+  ----------------------------------------------------------------------
+  -- A preservation lemma
+
+  -- Is-equivalenceᴱ f is equivalent to Is-equivalenceᴱ g if f and g
+  -- are pointwise equal (assuming extensionality).
+
+  Is-equivalenceᴱ-cong :
+    {A : Type ℓ₁} {B : Type ℓ₂} {@0 f g : A → B} →
+    Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    @0 (∀ x → f x ≡ g x) →
+    Is-equivalenceᴱ f ↝[ k ] Is-equivalenceᴱ g
+  Is-equivalenceᴱ-cong {k = k} ext f≡g =
+    ∀-cong (lower-extensionality? k ℓ₁ lzero ext) λ _ →
+    []-cong₂.Contractibleᴱ-cong ax ax ext $ ∃-cong λ _ →
+    Erased-cong.Erased-cong-≃ ax₂ ax₂ (≡⇒↝ _ $ cong (_≡ _) $ f≡g _)
+
+------------------------------------------------------------------------
 -- Results that follow if the []-cong axioms hold for all universe
 -- levels
 
@@ -302,4 +329,7 @@ module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
       public
     open module BC₂ {ℓ₁ ℓ₂} =
       []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂})
+      public
+    open module BC₂-⊔ {ℓ₁ ℓ₂} =
+      []-cong₂-⊔ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) ax
       public
