@@ -136,6 +136,18 @@ import Equivalence.Path-split
 
 -- Idempotent monadic modalities.
 
+import Modality.Basics
+
+-- Some results that hold for every empty-modal modality.
+
+import Modality.Empty-modal
+
+-- Some results that hold for every very modal modality.
+
+import Modality.Very-modal
+
+-- Idempotent monadic modalities.
+
 import Modality
 
 -- The zero modality.
