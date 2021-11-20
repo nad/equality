@@ -172,7 +172,7 @@ Is-equivalenceᴱ-propositional ext f =
     (Eq.propositional ext f)
 
 ------------------------------------------------------------------------
--- Another conversion lemma, and a related result
+-- More conversion lemmas, and a related result
 
 -- Is-equivalenceᴱ f is equivalent (with erased proofs) to
 -- ECP.Is-equivalenceᴱ f (assuming extensionality).
@@ -190,6 +190,18 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext =
     (ECP.Is-equivalenceᴱ-propositional ext _)
     to
     from
+
+-- A ≃ᴱ B is equivalent (with erased proofs) to A ECP.≃ᴱ B (assuming
+-- extensionality).
+
+≃ᴱ≃ᴱ≃ᴱ-CP :
+  {A : Type a} {B : Type b} →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
+  (A ≃ᴱ B) ≃ᴱ (A ECP.≃ᴱ B)
+≃ᴱ≃ᴱ≃ᴱ-CP {A = A} {B = B} ext =
+  A ≃ᴱ B                                 ↔⟨ ≃ᴱ-as-Σ ⟩
+  (∃ λ (f : A → B) → Is-equivalenceᴱ f)  ↝⟨ (∃-cong λ _ → Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext) ⟩□
+  A ECP.≃ᴱ B                             □
 
 -- When proving that a function is an equivalence (with erased proofs)
 -- one can assume that the codomain is inhabited.
