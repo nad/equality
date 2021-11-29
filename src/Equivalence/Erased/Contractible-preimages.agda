@@ -11,6 +11,8 @@ module Equivalence.Erased.Contractible-preimages
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
+
+open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection eq using (_↔_)
@@ -316,6 +318,36 @@ module []-cong₂-⊔
     ∀-cong (lower-extensionality? k ℓ₁ lzero ext) λ _ →
     []-cong₂.Contractibleᴱ-cong ax ax ext $ ∃-cong λ _ →
     Erased-cong.Erased-cong-≃ ax₂ ax₂ (≡⇒↝ _ $ cong (_≡ _) $ f≡g _)
+
+  ----------------------------------------------------------------------
+  -- Some equivalences
+
+  -- A variant of ∘⁻¹≃.
+
+  ∘⁻¹ᴱ≃ :
+    ∀ {B : Type ℓ₁} {C : Type ℓ₂} {z} →
+    (f : B → C) (g : A → B) →
+    f ∘ g ⁻¹ᴱ z ≃ ∃ λ (([ y , _ ]) : Erased (f ⁻¹ z)) → g ⁻¹ᴱ y
+  ∘⁻¹ᴱ≃ {z = z} f g =
+    f ∘ g ⁻¹ᴱ z                                                       ↔⟨⟩
+    (∃ λ a → Erased (f (g a) ≡ z))                                    ↔⟨ (∃-cong λ _ → Erased-cong.Erased-cong-≃ ax₂ ax (other-∃-intro _ _)) ⟩
+    (∃ λ a → Erased (∃ λ y → f y ≡ z × g a ≡ y))                      ↔⟨ (∃-cong λ _ → Erased-cong.Erased-cong-↔ ax ax Σ-assoc) ⟩
+    (∃ λ a → Erased (∃ λ ((y , _) : f ⁻¹ z) → g a ≡ y))               ↔⟨ (∃-cong λ _ → Erased-Σ↔Σ) ⟩
+    (∃ λ a → ∃ λ (([ y , _ ]) : Erased (f ⁻¹ z)) → Erased (g a ≡ y))  ↔⟨ ∃-comm ⟩□
+    (∃ λ (([ y , _ ]) : Erased (f ⁻¹ z)) → g ⁻¹ᴱ y)                   □
+
+  -- A variant of to-∘-⁻¹-≃-⁻¹-from.
+
+  to-∘-⁻¹ᴱ-≃-⁻¹ᴱ-from :
+    {B : Type ℓ₁} {C : Type ℓ₂} {f : A → B} {z : C} →
+    (B≃C : B ≃ C) →
+    _≃_.to B≃C ∘ f ⁻¹ᴱ z ≃ f ⁻¹ᴱ _≃_.from B≃C z
+  to-∘-⁻¹ᴱ-≃-⁻¹ᴱ-from {f = f} {z = z} B≃C =
+    _≃_.to B≃C ∘ f ⁻¹ᴱ z                                      ↝⟨ ∘⁻¹ᴱ≃ _ _ ⟩
+    (∃ λ (([ y , _ ]) : Erased (_≃_.to B≃C ⁻¹ z)) → f ⁻¹ᴱ y)  ↔⟨ drop-⊤-left-Σ $
+                                                                 _⇔_.to contractible⇔↔⊤ $
+                                                                 Erased.[]-cong₁.H-level-Erased ax 0 (Preimage.bijection⁻¹-contractible (_≃_.bijection B≃C) _) ⟩□
+    f ⁻¹ᴱ _≃_.from B≃C z                                      □
 
 ------------------------------------------------------------------------
 -- Results that follow if the []-cong axioms hold for all universe
