@@ -1060,6 +1060,22 @@ module Modality (M : Modality a) where
   ----------------------------------------------------------------------
   -- Some equivalences and related results
 
+  -- If A and B are equivalent, then Is-modal A and Is-modal B are
+  -- equivalent (assuming function extensionality).
+
+  Is-modal-cong :
+    Extensionality? k a a →
+    A ≃ B → Is-modal A ↝[ k ] Is-modal B
+  Is-modal-cong {A = A} {B = B} ext A≃B =
+    generalise-ext?-prop
+      (record
+         { to   = Is-modal-respects-≃ A≃B
+         ; from = Is-modal-respects-≃ (inverse A≃B)
+         })
+      Is-modal-propositional
+      Is-modal-propositional
+      ext
+
   -- ◯ (↑ a ⊤) is equivalent to ⊤.
 
   ◯⊤≃ : ◯ (↑ a ⊤) ≃ ⊤
