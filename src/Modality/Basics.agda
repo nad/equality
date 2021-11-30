@@ -1453,7 +1453,7 @@ module Modality (M : Modality a) where
   Stable-⁻¹ᴱ :
     {A B : Type a} {f : A → B} {y : B} →
     Is-modal A →
-    For-iterated-equality 1 Stable B →
+    @0 For-iterated-equality 1 Stable B →
     Stable (f ⁻¹ᴱ y)
   Stable-⁻¹ᴱ m s =
     Stable-Σ m λ _ →
