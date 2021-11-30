@@ -699,19 +699,20 @@ private
 -- A lemma that is easy to prove, but relies on function
 -- extensionality.
 
-_ :
+Σ-cong-◯→≃◯→◯ :
   Extensionality a a →
   Σ (◯ (A → B)) (P ∘ ◯-map-◯) ↝[ k ] Σ (◯ A → ◯ B) P
-_ = λ ext → Σ-cong (◯→≃◯→◯ {k = equivalence} ext) λ _ → F.id
+Σ-cong-◯→≃◯→◯ ext =
+  Σ-cong (◯→≃◯→◯ {k = equivalence} ext) λ _ → F.id
 
 -- A variant of the lemma above that only relies on conditional
 -- function extensionality.
 
-Σ-cong-◯→≃◯→◯ :
+Σ-cong-◯→↝◯→◯ :
   (P-resp : {f g : ◯ A → ◯ B} → (∀ x → f x ≡ g x) → P f → P g) →
   (∀ {f x} → Extensionality a a → P-resp (refl ∘ f) x ≡ x) →
   Σ (◯ (A → B)) (P ∘ ◯-map-◯) ↝[ a ∣ a ] Σ (◯ A → ◯ B) P
-Σ-cong-◯→≃◯→◯ {P = P} P-resp P-resp-refl = generalise-ext?
+Σ-cong-◯→↝◯→◯ {P = P} P-resp P-resp-refl = generalise-ext?
   (record { to = to; from = from })
   (λ ext →
      let ext′ = Eq.good-ext ext in
@@ -773,15 +774,39 @@ Stable-Σ[◯→◯] :
   (∀ f → Stable-[ k ] (P f)) →
   Stable-[ k ] (Σ (◯ A → ◯ B) P)
 Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
-  ◯ (Σ (◯ A → ◯ B) P)              ↝⟨ ◯-cong-↝ ext $ inverse-ext? (Σ-cong-◯→≃◯→◯ P-resp P-resp-refl) ⟩
+  ◯ (Σ (◯ A → ◯ B) P)              ↝⟨ ◯-cong-↝ ext $ inverse-ext? (Σ-cong-◯→↝◯→◯ P-resp P-resp-refl) ⟩
   ◯ (Σ (◯ (A → B)) (P ∘ ◯-map-◯))  ↝⟨ Stable-Σ Is-modal-◯ (s ∘ ◯-map-◯) ⟩
-  Σ (◯ (A → B)) (P ∘ ◯-map-◯)      ↝⟨ Σ-cong-◯→≃◯→◯ P-resp P-resp-refl ext ⟩□
+  Σ (◯ (A → B)) (P ∘ ◯-map-◯)      ↝⟨ Σ-cong-◯→↝◯→◯ P-resp P-resp-refl ext ⟩□
   Σ (◯ A → ◯ B) P                  □
 
--- A lemma that can be used to prove that ◯ (F A B) is equivalent to
--- F (◯ A) (◯ B).
+-- Some lemmas that can be used to prove that ◯ (F A B) is equivalent
+-- to F (◯ A) (◯ B).
 
-◯↝↝◯↝◯ :
+◯↝↝◯↝◯′ :
+  {F : Type a → Type a → Type a}
+  {P : {A B : Type a} → (A → B) → Type a} →
+  (∀ {A B} → F A B ↔ (∃ λ (f : A → B) → P f)) →
+  ({f : A → B} → ◯ (P f) ↝[ a ∣ a ] P (◯-map f)) →
+  (∀ {k} {f g : ◯ A → ◯ B} →
+   Extensionality? k a a → (∀ x → f x ≡ g x) → P f ↝[ k ] P g) →
+  ({f : ◯ A → ◯ B} → Stable-[ k ] (P f)) →
+  ((∃ λ (f : ◯ (A → B)) → P (◯-map-◯ f)) ↝[ k ]
+   (∃ λ (f : ◯ A → ◯ B) → P f)) →
+  Extensionality? k a a →
+  ◯ (F A B) ↝[ k ] F (◯ A) (◯ B)
+◯↝↝◯↝◯′ {A = A} {B = B} {F = F} {P = P}
+  F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ-cong-◯→≃◯→◯ ext =
+  ◯ (F A B)                                  ↔⟨ ◯-cong-↔ F↔ ⟩
+  ◯ (∃ λ (f : A → B) → P f)                  ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
+  ◯ (∃ λ (f : A → B) → ◯ (P f))              ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ◯∘P↝P∘◯-map ext) ⟩
+  ◯ (∃ λ (f : A → B) → P (◯-map f))          ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → P-cong ext λ _ → sym ◯-map-◯-ηˡ) ⟩
+  ◯ (∃ λ (f : A → B) → P (◯-map-◯ (η f)))    ↔⟨ ◯Ση≃Σ◯◯ ⟩
+  (∃ λ (f : ◯ (A → B)) → ◯ (P (◯-map-◯ f)))  ↝⟨ (∃-cong λ _ → P-stable) ⟩
+  (∃ λ (f : ◯ (A → B)) → P (◯-map-◯ f))      ↝⟨ Σ-cong-◯→≃◯→◯ ⟩
+  (∃ λ (f : ◯ A → ◯ B) → P f)                ↔⟨ inverse F↔ ⟩□
+  F (◯ A) (◯ B)                              □
+
+◯↝↝◯↝◯″ :
   {F : Type a → Type a → Type a}
   {P : {A B : Type a} → (A → B) → Type a} →
   (∀ {A B} → F A B ↔ (∃ λ (f : A → B) → P f)) →
@@ -795,25 +820,23 @@ Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
   ({f : ◯ A → ◯ B} → Stable-[ k ] (P f)) →
   Extensionality? k a a →
   ◯ (F A B) ↝[ k ] F (◯ A) (◯ B)
-◯↝↝◯↝◯ {A = A} {B = B} {F = F} {P = P}
+◯↝↝◯↝◯″ {A = A} {B = B} {F = F} {P = P}
   F↔ ◯∘P↝P∘◯-map P-cong P-cong-refl P-stable ext =
-  ◯ (F A B)                                  ↔⟨ ◯-cong-↔ F↔ ⟩
-  ◯ (∃ λ (f : A → B) → P f)                  ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
-  ◯ (∃ λ (f : A → B) → ◯ (P f))              ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ◯∘P↝P∘◯-map ext) ⟩
-  ◯ (∃ λ (f : A → B) → P (◯-map f))          ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → P-cong ext λ _ → sym ◯-map-◯-ηˡ) ⟩
-  ◯ (∃ λ (f : A → B) → P (◯-map-◯ (η f)))    ↔⟨ ◯Ση≃Σ◯◯ ⟩
-  (∃ λ (f : ◯ (A → B)) → ◯ (P (◯-map-◯ f)))  ↝⟨ (∃-cong λ _ → P-stable) ⟩
-  (∃ λ (f : ◯ (A → B)) → P (◯-map-◯ f))      ↝⟨ Σ-cong-◯→≃◯→◯ (P-cong _) P-cong-refl ext ⟩
-  (∃ λ (f : ◯ A → ◯ B) → P f)                ↔⟨ inverse F↔ ⟩□
-  F (◯ A) (◯ B)                              □
+  ◯↝↝◯↝◯′
+    F↔
+    ◯∘P↝P∘◯-map
+    P-cong
+    P-stable
+    (Σ-cong-◯→↝◯→◯ (P-cong _) P-cong-refl ext)
+    ext
 
 private
 
-  -- An example of how ◯↝↝◯↝◯ can be used.
+  -- An example of how ◯↝↝◯↝◯″ can be used.
 
   ◯⇔≃◯⇔◯′ : ◯ (A ⇔ B) ↝[ a ∣ a ] (◯ A ⇔ ◯ B)
   ◯⇔≃◯⇔◯′ ext =
-    ◯↝↝◯↝◯
+    ◯↝↝◯↝◯″
       ⇔↔→×→
       ◯→≃◯→◯
       (λ _ _ → F.id)
@@ -845,7 +868,7 @@ private
 
 ◯↠≃◯↠◯ : ◯ (A ↠ B) ↝[ a ∣ a ] (◯ A ↠ ◯ B)
 ◯↠≃◯↠◯ ext =
-  ◯↝↝◯↝◯
+  ◯↝↝◯↝◯″
     ↠↔∃-Split-surjective
     ◯-Split-surjective≃Split-surjective
     Split-surjective-cong
@@ -899,7 +922,7 @@ Connected-→≃◯-Is-equivalence {f = f} ext =
 
 ◯≃≃◯≃◯ : ◯ (A ≃ B) ↝[ a ∣ a ] (◯ A ≃ ◯ B)
 ◯≃≃◯≃◯ ext =
-  ◯↝↝◯↝◯
+  ◯↝↝◯↝◯″
     Eq.≃-as-Σ
     ◯-Is-equivalence≃Is-equivalence
     Is-equivalence-cong
@@ -989,7 +1012,7 @@ private
                                                                            ×-cong
                                                                          (∀-cong ext λ _ → Is-modal→Stable (Separated-◯ _ _))) ⟩
   (∃ λ g → (∀ x → ◯-map f (◯-map-◯ g x) ≡ x) ×
-           (∀ x → ◯-map-◯ g (◯-map f x) ≡ x))                        ↝⟨ Σ-cong-◯→≃◯→◯
+           (∀ x → ◯-map-◯ g (◯-map f x) ≡ x))                        ↝⟨ Σ-cong-◯→↝◯→◯
                                                                           Has-quasi-inverse-proofs-resp
                                                                           Has-quasi-inverse-proofs-resp-refl
                                                                           ext ⟩□
@@ -999,7 +1022,7 @@ private
 
 ◯↔≃◯↔◯ : ◯ (A ↔ B) ↝[ a ∣ a ] (◯ A ↔ ◯ B)
 ◯↔≃◯↔◯ ext =
-  ◯↝↝◯↝◯
+  ◯↝↝◯↝◯″
     Bijection.↔-as-Σ
     ◯-Has-quasi-inverse≃Has-quasi-inverse
     Has-quasi-inverse-cong
@@ -1049,7 +1072,7 @@ private
 
 ◯↣≃◯↣◯ : ◯ (A ↣ B) ↝[ a ∣ a ] (◯ A ↣ ◯ B)
 ◯↣≃◯↣◯ ext =
-  ◯↝↝◯↝◯
+  ◯↝↝◯↝◯″
     ↣↔∃-Injective
     ◯-Injective≃Injective
     Injective-cong
@@ -1124,7 +1147,7 @@ private
 ◯-Embedding≃Embedding-◯-◯ :
   ◯ (Embedding A B) ↝[ a ∣ a ] Embedding (◯ A) (◯ B)
 ◯-Embedding≃Embedding-◯-◯ ext =
-  ◯↝↝◯↝◯
+  ◯↝↝◯↝◯″
     Emb.Embedding-as-Σ
     ◯-Is-embedding≃Is-embedding
     Is-embedding-cong
