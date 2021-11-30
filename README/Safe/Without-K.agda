@@ -134,26 +134,6 @@ import Function-universe
 
 import Equivalence.Path-split
 
--- Idempotent monadic modalities.
-
-import Modality.Basics
-
--- Some results that hold for every empty-modal modality.
-
-import Modality.Empty-modal
-
--- Some results that hold for every very modal modality.
-
-import Modality.Very-modal
-
--- Idempotent monadic modalities.
-
-import Modality
-
--- The zero modality.
-
-import Modality.Zero
-
 -- Results relating different instances of certain axioms related to
 -- equality.
 
@@ -192,10 +172,6 @@ import Monad.Reader
 
 import Monad.State
 
--- The double-negation monad.
-
-import Double-negation
-
 -- Lists.
 
 import List
@@ -203,6 +179,35 @@ import List
 -- Pullbacks.
 
 import Pullback
+
+-- Some results related to the For-iterated-equality predicate
+-- transformer.
+
+import For-iterated-equality
+
+-- Idempotent monadic modalities.
+
+import Modality.Basics
+
+-- Some results that hold for every empty-modal modality.
+
+import Modality.Empty-modal
+
+-- Some results that hold for every very modal modality.
+
+import Modality.Very-modal
+
+-- Idempotent monadic modalities.
+
+import Modality
+
+-- The zero modality.
+
+import Modality.Zero
+
+-- The double-negation monad.
+
+import Double-negation
 
 -- The univalence axiom.
 
@@ -294,11 +299,6 @@ import Embedding.Erased
 -- A type for values that should be erased at run-time.
 
 import Erased.Level-2
-
--- Some results related to the For-iterated-equality predicate
--- transformer.
-
-import For-iterated-equality
 
 -- Properties related to stability for Erased.
 
