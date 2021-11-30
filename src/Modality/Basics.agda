@@ -822,7 +822,7 @@ module Modality (M : Modality a) where
 
   Is-modal-Σ :
     Is-modal A → (∀ x → Is-modal (P x)) → Is-modal (Σ A P)
-  Is-modal-Σ {A = A} {P = P} mA mP =
+  Is-modal-Σ {P = P} mA mP =
     Stable→left-inverse→Is-modal
       (λ p →
            ◯-rec mA proj₁ p

@@ -32,9 +32,9 @@ open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Path-split eq as PS
   using (Is-∞-extendable-along-[_]; _-Null_)
 open import Function-universe eq as F hiding (id; _∘_)
-open import Injection eq using (_↣_; Injective)
 open import H-level eq as H-level
 open import H-level.Closure eq
+open import Injection eq using (_↣_; Injective)
 open import Preimage eq using (_⁻¹_)
 open import Surjection eq using (_↠_; Split-surjective)
 
@@ -696,7 +696,7 @@ private
   (◯ A → ◯ B) × (◯ B → ◯ A)  ↔⟨ inverse ⇔↔→×→ ⟩□
   ◯ A ⇔ ◯ B                  □
 
--- A lemma that is easy to prove, but relies on function
+-- A lemma that is easy to prove, but that relies on function
 -- extensionality.
 
 Σ-cong-◯→≃◯→◯ :
