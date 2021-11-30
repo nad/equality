@@ -18,23 +18,32 @@ module Modality.Very-modal
 
 open Derived-definitions-and-properties eq
 
-open Modality M
-  hiding (◯Ση≃Σ◯◯; Stable-Π; Stable-implicit-Π;
-          Is-modal→Stable-Is-equivalence)
+private
+  open module M = Modality M
+    hiding (◯Ση≃Σ◯◯;
+            Stable-Π; Stable-implicit-Π;
+            Stable-Erased; Stable-Contractibleᴱ; Stable-⁻¹ᴱ;
+            Is-modal→Stable-Is-equivalence)
 
-import Erased.Basics as E
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection eq as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq as Emb using (Embedding; Is-embedding)
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
+open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Is-equivalenceᴱ)
+open import Equivalence.Erased.Contractible-preimages eq as ECP
+  using (Contractibleᴱ; _⁻¹ᴱ_)
 open import Equivalence.Path-split eq as PS
   using (Is-∞-extendable-along-[_]; _-Null_)
+open import Erased.Level-1 eq as E
+  using (Erased; []-cong-axiomatisation)
+import Erased.Level-2 eq as E₂
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
+import Modality.Box-cong
 open import Preimage eq using (_⁻¹_)
 open import Surjection eq using (_↠_; Split-surjective)
 
@@ -1156,3 +1165,302 @@ private
      Is-modal→Stable-Is-equivalence ext
        (Separated-◯ _ _) (Separated-◯ _ _))
     ext
+
+------------------------------------------------------------------------
+-- Some results related to Erased
+
+-- ◯ (Erased (◯ A)) is logically equivalent to ◯ (Erased A).
+--
+-- See also []-cong.◯-Erased-◯≃◯-Erased below.
+
+◯-Erased-◯⇔◯-Erased :
+  ◯ (Erased (◯ A)) ⇔ ◯ (Erased A)
+◯-Erased-◯⇔◯-Erased {A = A} =
+  ◯ (Erased (◯ A))               ↝⟨ ◯≃◯-Is-modal-× _ ⟩
+  ◯ (Is-modal A × Erased (◯ A))  ↝⟨ (◯-cong-⇔ $ ∃-cong λ m → E.Erased-cong-⇔ (Is-modal→Stable m)) ⟩
+  ◯ (Is-modal A × Erased A)      ↝⟨ inverse $ ◯≃◯-Is-modal-× _ ⟩□
+  ◯ (Erased A)                   □
+
+-- ◯ (Erased A) is logically equivalent to Erased (◯ A).
+--
+-- See also []-cong.◯-Erased≃Erased-◯ below.
+
+◯-Erased⇔Erased-◯ :
+  ◯ (Erased A) ⇔ Erased (◯ A)
+◯-Erased⇔Erased-◯ {A = A} =
+  ◯ (Erased A)      ↝⟨ inverse ◯-Erased-◯⇔◯-Erased ⟩
+  ◯ (Erased (◯ A))  ↝⟨ lemma ⟩□
+  Erased (◯ A)      □
+  where
+  lemma = record
+    { to   = M.Stable-Erased (Is-modal→Stable Is-modal-◯)
+    ; from = η
+    }
+
+-- Some results that hold if the []-cong axioms can be instantiated.
+
+module []-cong (ax : []-cong-axiomatisation a) where
+
+  open Modality.Box-cong eq ax M
+
+  private
+    module BC       = E.[]-cong₁ ax
+    module EC       = E₂.[]-cong₂-⊔ ax ax ax
+    module BC-ECP   = ECP.[]-cong₂ ax ax
+    module BC-ECP-⊔ = ECP.[]-cong₂-⊔ ax ax ax
+
+  -- ◯ (Erased (◯ A)) is equivalent to ◯ (Erased A) (assuming function
+  -- extensionality).
+
+  ◯-Erased-◯≃◯-Erased :
+    ◯ (Erased (◯ A)) ↝[ a ∣ a ] ◯ (Erased A)
+  ◯-Erased-◯≃◯-Erased {A = A} ext =
+    ◯-cong-↝-Is-modal→ lzero lzero ext λ m _ →
+      Erased (◯ A)  ↔⟨ EC.Erased-cong (inverse $ Is-modal→≃◯ m) ⟩□
+      Erased A      □
+
+  -- ◯ (Erased A) is equivalent to Erased (◯ A) (assuming function
+  -- extensionality).
+
+  ◯-Erased≃Erased-◯ :
+    ◯ (Erased A) ↝[ a ∣ a ] Erased (◯ A)
+  ◯-Erased≃Erased-◯ {A = A} ext =
+    ◯ (Erased A)      ↝⟨ inverse-ext? ◯-Erased-◯≃◯-Erased ext ⟩
+    ◯ (Erased (◯ A))  ↔⟨ lemma ⟩□
+    Erased (◯ A)      □
+    where
+    lemma′ = λ (E.[ x ]) →
+      E.[ ◯-rec Is-modal-◯ id (◯-map E.erased (η E.[ x ])) ]  ≡⟨ BC.[]-cong E.[ cong (_≃_.from ◯≃◯◯) ◯-map-η ] ⟩
+      E.[ ◯-rec Is-modal-◯ id (η x) ]                         ≡⟨ BC.[]-cong E.[ ◯-rec-η ] ⟩∎
+      E.[ x ]                                                 ∎
+
+    lemma = Eq.↔→≃
+      (M.Stable-Erased (Is-modal→Stable Is-modal-◯))
+      η
+      lemma′
+      (◯-elim (λ _ → Separated-◯ _ _) (cong η ∘ lemma′))
+
+  -- ◯ commutes with Contractibleᴱ (assuming function extensionality).
+
+  ◯-Contractibleᴱ≃Contractibleᴱ-◯ :
+    ◯ (Contractibleᴱ A) ↝[ a ∣ a ] Contractibleᴱ (◯ A)
+  ◯-Contractibleᴱ≃Contractibleᴱ-◯ {A = A} ext =
+    ◯ (Contractibleᴱ A)                           ↔⟨⟩
+    ◯ (∃ λ (x : A) → Erased (∀ y → x ≡ y))        ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
+    ◯ (∃ λ (x : A) → ◯ (Erased (∀ y → x ≡ y)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ◯-Erased≃Erased-◯ ext) ⟩
+    ◯ (∃ λ (x : A) → Erased (◯ (∀ y → x ≡ y)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → EC.Erased-cong (inverse-ext? Π◯≃◯Π ext)) ⟩
+    ◯ (∃ λ (x : A) → Erased (∀ y → ◯ (x ≡ y)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → EC.Erased-cong (∀-cong ext λ _ → from-equivalence $
+                                                      ◯≡≃η≡η left-exact-η-cong)) ⟩
+    ◯ (∃ λ (x : A) → Erased (∀ y → η x ≡ η y))    ↔⟨ ◯Ση≃Σ◯◯ ⟩
+    (∃ λ (x : ◯ A) → ◯ (Erased (∀ y → x ≡ η y)))  ↝⟨ (∃-cong λ _ → ◯-Erased≃Erased-◯ ext) ⟩
+    (∃ λ (x : ◯ A) → Erased (◯ (∀ y → x ≡ η y)))  ↝⟨ (∃-cong λ _ → EC.Erased-cong (◯-cong-↝-Is-modal→ lzero lzero ext λ m ext →
+                                                      Π-cong ext (Is-modal→≃◯ m) λ _ → F.id)) ⟩
+    (∃ λ (x : ◯ A) → Erased (◯ (∀ y → x ≡ y)))    ↝⟨ (∃-cong λ _ → EC.Erased-cong (inverse-ext? Π◯≃◯Π ext)) ⟩
+    (∃ λ (x : ◯ A) → Erased (∀ y → ◯ (x ≡ y)))    ↝⟨ (∃-cong λ _ → EC.Erased-cong (∀-cong ext λ _ → from-equivalence $ inverse $
+                                                      Is-modal→≃◯ (Separated-◯ _ _))) ⟩
+    (∃ λ (x : ◯ A) → Erased (∀ y → x ≡ y))        ↔⟨⟩
+    Contractibleᴱ (◯ A)                           □
+
+  -- If A is k-stable, then Erased A is k-stable (perhaps assuming
+  -- function extensionality).
+
+  Stable-Erased :
+    Extensionality? k a a →
+    @0 Stable-[ k ] A → Stable-[ k ] (Erased A)
+  Stable-Erased {A = A} ext s =
+    ◯ (Erased A)  ↝⟨ ◯-Erased≃Erased-◯ ext ⟩
+    Erased (◯ A)  ↝⟨ EC.Erased-cong s ⟩□
+    Erased A      □
+
+  -- If A is modal, then Contractibleᴱ A is k-stable (perhaps assuming
+  -- function extensionality).
+
+  Stable-Contractibleᴱ :
+    Extensionality? k a a →
+    Is-modal A →
+    Stable-[ k ] (Contractibleᴱ A)
+  Stable-Contractibleᴱ ext m =
+    Stable-Σ m λ _ →
+    Stable-Erased ext (
+    Stable-Π ext λ _ →
+    Is-modal→Stable (Is-modal→Separated m _ _))
+
+  -- If f has type A → B, A is modal, and equality is k-stable for B,
+  -- then f ⁻¹ᴱ y is k-stable (perhaps assuming function
+  -- extensionality).
+
+  Stable-⁻¹ᴱ :
+    {A B : Type a} {f : A → B} {y : B} →
+    Extensionality? k a a →
+    Is-modal A →
+    @0 For-iterated-equality 1 Stable-[ k ] B →
+    Stable-[ k ] (f ⁻¹ᴱ y)
+  Stable-⁻¹ᴱ ext m s =
+    Stable-Σ m λ _ →
+    Stable-Erased ext (s _ _)
+
+  -- If f has type A → B, where A and B are modal, then
+  -- ECP.Is-equivalenceᴱ f is k-stable (perhaps assuming function
+  -- extensionality).
+
+  Is-modal→Stable-Is-equivalenceᴱ-CP :
+    {@0 f : A → B} →
+    Extensionality? k a a →
+    Is-modal A → @0 Is-modal B →
+    Stable-[ k ] (ECP.Is-equivalenceᴱ f)
+  Is-modal→Stable-Is-equivalenceᴱ-CP {f = f} ext mA mB =
+    Stable-Π ext λ y →
+    let m : Is-modal (f ⁻¹ᴱ y)
+        m = Is-modal-Σ mA λ _ →
+            Is-modal-Erased (Is-modal→Separated mB _ _) in
+    Stable-Σ m λ _ →
+    Stable-Erased ext (
+    Stable-Π ext λ _ →
+    Is-modal→Stable (Is-modal→Separated m _ _))
+
+  -- If f has type A → B, where A and B are modal, then
+  -- Is-equivalenceᴱ f is equivalenceᴱ-stable (assuming function
+  -- extensionality).
+
+  Is-modal→Stable-≃ᴱ-Is-equivalenceᴱ :
+    {@0 f : A → B} →
+    @0 Extensionality a a →
+    Is-modal A → @0 Is-modal B →
+    Stable-[ equivalenceᴱ ] (Is-equivalenceᴱ f)
+  Is-modal→Stable-≃ᴱ-Is-equivalenceᴱ {f = f} ext mA mB =
+                                                             $⟨ s ⟩
+    Stable-[ equivalenceᴱ ] (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  →⟨ Stable-respects-↝-sym $ inverse $
+                                                                EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext ⟩□
+    Stable-[ equivalenceᴱ ] (Is-equivalenceᴱ f)              □
+    where
+    ext′ = E.[ ext ]
+
+    s =
+      Stable-Π ext′ λ y →
+      let m : Is-modal (f ⁻¹ᴱ y)
+          m = Is-modal-Σ mA λ _ →
+              Is-modal-Erased (Is-modal→Separated mB _ _) in
+      Stable-Σ m λ _ →
+      Stable-Erased ext′ (
+      Stable-Π ext′ λ _ →
+      Is-modal→Stable (Is-modal→Separated m _ _))
+
+  -- A lemma relating ◯, ◯-map and _⁻¹ᴱ_.
+
+  ◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ :
+    {A : Type a} {@0 B : Type a} {@0 f : A → B} {y : ◯ B} →
+    ◯ (η ∘ f ⁻¹ᴱ y) ≃ ◯-map f ⁻¹ᴱ y
+  ◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ {f = f} {y = y} =
+    ◯ (∃ λ x → Erased (η (f x) ≡ y))        ↝⟨ ◯-cong-≃ (∃-cong λ _ → EC.Erased-cong (≡⇒↝ _ $ cong (_≡ _) $ sym ◯-map-η)) ⟩
+    ◯ (∃ λ x → Erased (◯-map f (η x) ≡ y))  ↝⟨ ◯Ση≃Σ◯◯ ⟩
+    (∃ λ x → ◯ (Erased (◯-map f x ≡ y)))    ↝⟨ (∃-cong λ _ → Is-modal→Stable (Is-modal-Erased (Separated-◯ _ _))) ⟩
+    (∃ λ x → Erased (◯-map f x ≡ y))        □
+
+  -- ◯ (ECP.Is-equivalenceᴱ f) is equivalent to
+  -- Is-equivalenceᴱ (◯-map f) (assuming function extensionality).
+
+  ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP :
+    ◯ (ECP.Is-equivalenceᴱ f) ↝[ a ∣ a ] ECP.Is-equivalenceᴱ (◯-map f)
+  ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP {f = f} ext =
+    ◯ (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))                ↝⟨ inverse-ext? Π◯≃◯Π ext ⟩
+    (∀ y → ◯ (Contractibleᴱ (f ⁻¹ᴱ y)))              ↝⟨ Is-modal→↝→↝ lzero lzero ext
+                                                          (
+      (∀ x → ◯ (Contractibleᴱ (f ⁻¹ᴱ x)))                  ↝⟨ inverse-ext?
+                                                                (λ ext →
+                                                                   Stable-Π ext λ _ →
+                                                                   Is-modal→Stable Is-modal-◯)
+                                                                ext ⟩
+      ◯ (∀ x → ◯ (Contractibleᴱ (f ⁻¹ᴱ x)))                □)
+                                                          (
+      ◯ (∀ x → Contractibleᴱ (◯ (η ∘ f ⁻¹ᴱ x)))            ↝⟨ (Stable-Π ext λ _ →
+                                                               Stable-Contractibleᴱ ext Is-modal-◯) ⟩□
+      (∀ x → Contractibleᴱ (◯ (η ∘ f ⁻¹ᴱ x)))              □)
+                                                          (λ m ext →
+                                                             Π-cong-contra ext (inverse $ Is-modal→≃◯ m) λ x →
+      ◯ (Contractibleᴱ (f ⁻¹ᴱ Is-modal→Stable m x))            ↝⟨ ◯-Contractibleᴱ≃Contractibleᴱ-◯ ext ⟩
+      Contractibleᴱ (◯ (f ⁻¹ᴱ Is-modal→Stable m x))            ↝⟨ BC-ECP.Contractibleᴱ-cong ext $ ◯-cong-≃ $ inverse $
+                                                                  BC-ECP-⊔.to-∘-⁻¹ᴱ-≃-⁻¹ᴱ-from (Is-modal→≃◯ m) ⟩□
+      Contractibleᴱ (◯ (η ∘ f ⁻¹ᴱ x))                          □) ⟩
+
+    (∀ y → Contractibleᴱ (◯ (η ∘ f ⁻¹ᴱ y)))          ↝⟨ (∀-cong ext λ _ → BC-ECP.Contractibleᴱ-cong ext ◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ) ⟩□
+    (∀ y → Contractibleᴱ (◯-map f ⁻¹ᴱ y))            □
+
+  -- ◯ (Is-equivalenceᴱ f) is equivalent (with erased proofs) to
+  -- Is-equivalenceᴱ (◯-map f) (assuming function extensionality).
+
+  ◯-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ :
+    @0 Extensionality a a →
+    ◯ (Is-equivalenceᴱ f) ≃ᴱ Is-equivalenceᴱ (◯-map f)
+  ◯-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ {f = f} ext =
+    ◯ (Is-equivalenceᴱ f)                  ↝⟨ ◯-cong-≃ᴱ (EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext) ⟩
+    ◯ (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))      ↝⟨ ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP E.[ ext ] ⟩
+    (∀ y → Contractibleᴱ (◯-map f ⁻¹ᴱ y))  ↝⟨ inverse $ EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext ⟩□
+    Is-equivalenceᴱ (◯-map f)              □
+
+  -- A variant of Σ-cong-◯→≃◯→◯.
+
+  Σ-cong-◯→≃◯→◯-≃ᴱ :
+    {P : @0 (◯ A → ◯ B) → Type a} →
+    @0 Extensionality a a →
+    Σ (◯ (A → B)) (λ f → P (◯-map-◯ f)) ≃ᴱ Σ (◯ A → ◯ B) (λ f → P f)
+  Σ-cong-◯→≃◯→◯-≃ᴱ ext =
+    EEq.[]-cong₁.Σ-cong-≃ᴱ-Erased ax
+      (◯→≃◯→◯ {k = equivalenceᴱ} E.[ ext ]) λ _ → F.id
+
+  -- ◯ commutes with ECP._≃ᴱ_ up to _≃ᴱ_ (assuming function
+  -- extensionality).
+
+  ◯≃ᴱ≃ᴱ◯≃ᴱ◯′ :
+    @0 Extensionality a a →
+    ◯ (A ECP.≃ᴱ B) ≃ᴱ (◯ A ECP.≃ᴱ ◯ B)
+  ◯≃ᴱ≃ᴱ◯≃ᴱ◯′ ext =
+    ◯↝↝◯↝◯′
+      {P = λ f → ECP.Is-equivalenceᴱ f}
+      F.id
+      ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP
+      (λ ext f≡g →
+         ECP.[]-cong₂-⊔.Is-equivalenceᴱ-cong ax ax ax ext f≡g)
+      (Is-modal→Stable-Is-equivalenceᴱ-CP
+         E.[ ext ] Is-modal-◯ Is-modal-◯)
+      (Σ-cong-◯→≃◯→◯-≃ᴱ ext)
+      E.[ ext ]
+
+  -- ◯ commutes with _≃ᴱ_ up to _≃ᴱ_ (assuming function
+  -- extensionality).
+
+  ◯≃ᴱ≃ᴱ◯≃ᴱ◯ :
+    @0 Extensionality a a →
+    ◯ (A ≃ᴱ B) ≃ᴱ (◯ A ≃ᴱ ◯ B)
+  ◯≃ᴱ≃ᴱ◯≃ᴱ◯ {A = A} {B = B} ext =
+    ◯ (A ≃ᴱ B)        ↝⟨ ◯-cong-≃ᴱ $ EEq.≃ᴱ≃ᴱ≃ᴱ-CP ext ⟩
+    ◯ (A ECP.≃ᴱ B)    ↝⟨ ◯≃ᴱ≃ᴱ◯≃ᴱ◯′ ext ⟩
+    (◯ A ECP.≃ᴱ ◯ B)  ↝⟨ inverse $ EEq.≃ᴱ≃ᴱ≃ᴱ-CP ext ⟩□
+    (◯ A ≃ᴱ ◯ B)      □
+
+  -- ◯ (A ↝[ k ] B) is related to ◯ A ↝[ k ] ◯ B (perhaps assuming
+  -- function extensionality).
+
+  ◯↝↝◯↝◯ :
+    Extensionality? k a a →
+    ◯ (A ↝[ k ] B) ↝[ k ] (◯ A ↝[ k ] ◯ B)
+  ◯↝↝◯↝◯ {k = implication}         = ◯→≃◯→◯
+  ◯↝↝◯↝◯ {k = logical-equivalence} = ◯⇔≃◯⇔◯
+  ◯↝↝◯↝◯ {k = injection}           = ◯↣≃◯↣◯
+  ◯↝↝◯↝◯ {k = embedding}           = ◯-Embedding≃Embedding-◯-◯
+  ◯↝↝◯↝◯ {k = surjection}          = ◯↠≃◯↠◯
+  ◯↝↝◯↝◯ {k = bijection}           = ◯↔≃◯↔◯
+  ◯↝↝◯↝◯ {k = equivalence}         = ◯≃≃◯≃◯
+  ◯↝↝◯↝◯ {k = equivalenceᴱ}        = λ ext → ◯≃ᴱ≃ᴱ◯≃ᴱ◯ (E.erased ext)
+
+  ◯↝≃ᴱ◯↝◯ :
+    @0 Extensionality a a →
+    ◯ (A ↝[ k ] B) ≃ᴱ (◯ A ↝[ k ] ◯ B)
+  ◯↝≃ᴱ◯↝◯ {k = implication}         ext = ◯→≃◯→◯ E.[ ext ]
+  ◯↝≃ᴱ◯↝◯ {k = logical-equivalence} ext = ◯⇔≃◯⇔◯ E.[ ext ]
+  ◯↝≃ᴱ◯↝◯ {k = injection}           ext = ◯↣≃◯↣◯ E.[ ext ]
+  ◯↝≃ᴱ◯↝◯ {k = embedding}           ext = ◯-Embedding≃Embedding-◯-◯
+                                                 E.[ ext ]
+  ◯↝≃ᴱ◯↝◯ {k = surjection}          ext = ◯↠≃◯↠◯ E.[ ext ]
+  ◯↝≃ᴱ◯↝◯ {k = bijection}           ext = ◯↔≃◯↔◯ E.[ ext ]
+  ◯↝≃ᴱ◯↝◯ {k = equivalence}         ext = ◯≃≃◯≃◯ E.[ ext ]
+  ◯↝≃ᴱ◯↝◯ {k = equivalenceᴱ}        ext = ◯≃ᴱ≃ᴱ◯≃ᴱ◯ ext

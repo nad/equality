@@ -193,22 +193,6 @@ import Modality.Basics
 
 import Modality.Empty-modal
 
--- Some results that hold for every very modal modality.
-
-import Modality.Very-modal
-
--- Idempotent monadic modalities.
-
-import Modality
-
--- The zero modality.
-
-import Modality.Zero
-
--- The double-negation monad.
-
-import Double-negation
-
 -- The univalence axiom.
 
 import Univalence-axiom
@@ -299,6 +283,27 @@ import Embedding.Erased
 -- A type for values that should be erased at run-time.
 
 import Erased.Level-2
+
+-- Some results related to modalities that hold if the []-cong axioms
+-- can be instantiated.
+
+import Modality.Box-cong
+
+-- Some results that hold for every very modal modality.
+
+import Modality.Very-modal
+
+-- Idempotent monadic modalities.
+
+import Modality
+
+-- The zero modality.
+
+import Modality.Zero
+
+-- The double-negation monad.
+
+import Double-negation
 
 -- Properties related to stability for Erased.
 
