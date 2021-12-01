@@ -708,21 +708,33 @@ private
 -- A lemma that is easy to prove, but that relies on function
 -- extensionality.
 
-Σ-cong-◯→≃◯→◯ :
+Σ◯→≃Σ◯→◯ :
   Extensionality a a →
   Σ (◯ (A → B)) (P ∘ ◯-map-◯) ↝[ k ] Σ (◯ A → ◯ B) P
-Σ-cong-◯→≃◯→◯ ext =
+Σ◯→≃Σ◯→◯ ext =
   Σ-cong (◯→≃◯→◯ {k = equivalence} ext) λ _ → F.id
 
--- A variant of the lemma above that only relies on conditional
--- function extensionality.
+-- A variant of Σ◯→≃Σ◯→◯ for logical equivalence.
 
-Σ-cong-◯→↝◯→◯ :
+Σ◯→⇔Σ◯→◯ :
+  ({f g : ◯ A → ◯ B} → (∀ x → f x ≡ g x) → P f → P g) →
+  Σ (◯ (A → B)) (P ∘ ◯-map-◯) ⇔ Σ (◯ A → ◯ B) P
+Σ◯→⇔Σ◯→◯ {P = P} P-resp = record { to = to; from = from }
+  where
+  to   = Σ-map (_⇔_.to   ◯→⇔◯→◯) id
+  from = Σ-map (_⇔_.from ◯→⇔◯→◯) λ {f} →
+    P f                                    →⟨ (P-resp λ _ → sym $ ◯→⇔◯→◯-◯→⇔◯→◯ f) ⟩□
+    P (_⇔_.to ◯→⇔◯→◯ (_⇔_.from ◯→⇔◯→◯ f))  □
+
+-- A variant of Σ◯→≃Σ◯→◯ that only relies on conditional function
+-- extensionality.
+
+Σ◯→↝Σ◯→◯ :
   (P-resp : {f g : ◯ A → ◯ B} → (∀ x → f x ≡ g x) → P f → P g) →
   (∀ {f x} → Extensionality a a → P-resp (refl ∘ f) x ≡ x) →
   Σ (◯ (A → B)) (P ∘ ◯-map-◯) ↝[ a ∣ a ] Σ (◯ A → ◯ B) P
-Σ-cong-◯→↝◯→◯ {P = P} P-resp P-resp-refl = generalise-ext?
-  (record { to = to; from = from })
+Σ◯→↝Σ◯→◯ {P = P} P-resp P-resp-refl = generalise-ext?
+  (Σ◯→⇔Σ◯→◯ P-resp)
   (λ ext →
      let ext′ = Eq.good-ext ext in
        (λ (f , p) → Σ-≡,≡→≡
@@ -745,11 +757,6 @@ private
            p                                                       ∎)))
   where
   eq′ = λ f x → ◯→⇔◯→◯-◯→⇔◯→◯ {x = x} f
-
-  to   = Σ-map (_⇔_.to   ◯→⇔◯→◯) id
-  from = Σ-map (_⇔_.from ◯→⇔◯→◯) λ {f} →
-    P f                                    →⟨ (P-resp λ _ → sym $ ◯→⇔◯→◯-◯→⇔◯→◯ f) ⟩□
-    P (_⇔_.to ◯→⇔◯→◯ (_⇔_.from ◯→⇔◯→◯ f))  □
 
   lemma = λ ext f p →
     let eq = apply-ext (Eq.good-ext ext) (eq′ f) in
@@ -783,9 +790,9 @@ Stable-Σ[◯→◯] :
   (∀ f → Stable-[ k ] (P f)) →
   Stable-[ k ] (Σ (◯ A → ◯ B) P)
 Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
-  ◯ (Σ (◯ A → ◯ B) P)              ↝⟨ ◯-cong-↝ ext $ inverse-ext? (Σ-cong-◯→↝◯→◯ P-resp P-resp-refl) ⟩
+  ◯ (Σ (◯ A → ◯ B) P)              ↝⟨ ◯-cong-↝ ext $ inverse-ext? (Σ◯→↝Σ◯→◯ P-resp P-resp-refl) ⟩
   ◯ (Σ (◯ (A → B)) (P ∘ ◯-map-◯))  ↝⟨ Stable-Σ Is-modal-◯ (s ∘ ◯-map-◯) ⟩
-  Σ (◯ (A → B)) (P ∘ ◯-map-◯)      ↝⟨ Σ-cong-◯→↝◯→◯ P-resp P-resp-refl ext ⟩□
+  Σ (◯ (A → B)) (P ∘ ◯-map-◯)      ↝⟨ Σ◯→↝Σ◯→◯ P-resp P-resp-refl ext ⟩□
   Σ (◯ A → ◯ B) P                  □
 
 -- Some lemmas that can be used to prove that ◯ (F A B) is equivalent
@@ -804,14 +811,14 @@ Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
   Extensionality? k a a →
   ◯ (F A B) ↝[ k ] F (◯ A) (◯ B)
 ◯↝↝◯↝◯′ {A = A} {B = B} {F = F} {P = P}
-  F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ-cong-◯→≃◯→◯ ext =
+  F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ◯→↝Σ◯→◯ ext =
   ◯ (F A B)                                  ↔⟨ ◯-cong-↔ F↔ ⟩
   ◯ (∃ λ (f : A → B) → P f)                  ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
   ◯ (∃ λ (f : A → B) → ◯ (P f))              ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ◯∘P↝P∘◯-map ext) ⟩
   ◯ (∃ λ (f : A → B) → P (◯-map f))          ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → P-cong ext λ _ → sym ◯-map-◯-ηˡ) ⟩
   ◯ (∃ λ (f : A → B) → P (◯-map-◯ (η f)))    ↔⟨ ◯Ση≃Σ◯◯ ⟩
   (∃ λ (f : ◯ (A → B)) → ◯ (P (◯-map-◯ f)))  ↝⟨ (∃-cong λ _ → P-stable) ⟩
-  (∃ λ (f : ◯ (A → B)) → P (◯-map-◯ f))      ↝⟨ Σ-cong-◯→≃◯→◯ ⟩
+  (∃ λ (f : ◯ (A → B)) → P (◯-map-◯ f))      ↝⟨ Σ◯→↝Σ◯→◯ ⟩
   (∃ λ (f : ◯ A → ◯ B) → P f)                ↔⟨ inverse F↔ ⟩□
   F (◯ A) (◯ B)                              □
 
@@ -836,7 +843,7 @@ Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
     ◯∘P↝P∘◯-map
     P-cong
     P-stable
-    (Σ-cong-◯→↝◯→◯ (P-cong _) P-cong-refl ext)
+    (Σ◯→↝Σ◯→◯ (P-cong _) P-cong-refl ext)
     ext
 
 private
@@ -1021,7 +1028,7 @@ private
                                                                            ×-cong
                                                                          (∀-cong ext λ _ → Is-modal→Stable (Separated-◯ _ _))) ⟩
   (∃ λ g → (∀ x → ◯-map f (◯-map-◯ g x) ≡ x) ×
-           (∀ x → ◯-map-◯ g (◯-map f x) ≡ x))                        ↝⟨ Σ-cong-◯→↝◯→◯
+           (∀ x → ◯-map-◯ g (◯-map f x) ≡ x))                        ↝⟨ Σ◯→↝Σ◯→◯
                                                                           Has-quasi-inverse-proofs-resp
                                                                           Has-quasi-inverse-proofs-resp-refl
                                                                           ext ⟩□
@@ -1397,33 +1404,50 @@ module []-cong (ax : []-cong-axiomatisation a) where
     (∀ y → Contractibleᴱ (◯-map f ⁻¹ᴱ y))  ↝⟨ inverse $ EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext ⟩□
     Is-equivalenceᴱ (◯-map f)              □
 
-  -- A variant of Σ-cong-◯→≃◯→◯.
+  -- A variant of Σ◯→≃Σ◯→◯.
 
-  Σ-cong-◯→≃◯→◯-≃ᴱ :
+  Σ◯→≃ᴱΣ◯→◯ :
     {P : @0 (◯ A → ◯ B) → Type a} →
     @0 Extensionality a a →
     Σ (◯ (A → B)) (λ f → P (◯-map-◯ f)) ≃ᴱ Σ (◯ A → ◯ B) (λ f → P f)
-  Σ-cong-◯→≃◯→◯-≃ᴱ ext =
+  Σ◯→≃ᴱΣ◯→◯ ext =
     EEq.[]-cong₁.Σ-cong-≃ᴱ-Erased ax
       (◯→≃◯→◯ {k = equivalenceᴱ} E.[ ext ]) λ _ → F.id
 
-  -- ◯ commutes with ECP._≃ᴱ_ up to _≃ᴱ_ (assuming function
-  -- extensionality).
+  -- Two other variants of Σ◯→≃Σ◯→◯.
 
-  ◯≃ᴱ≃ᴱ◯≃ᴱ◯′ :
-    @0 Extensionality a a →
-    ◯ (A ECP.≃ᴱ B) ≃ᴱ (◯ A ECP.≃ᴱ ◯ B)
-  ◯≃ᴱ≃ᴱ◯≃ᴱ◯′ ext =
+  Σ◯→↝Σ◯→◯-Is-equivalenceᴱ-CP :
+    (∃ λ (f : ◯ (A → B)) → ECP.Is-equivalenceᴱ (◯-map-◯ f)) ↝[ a ∣ a ]
+    (∃ λ (f : ◯ A → ◯ B) → ECP.Is-equivalenceᴱ f)
+  Σ◯→↝Σ◯→◯-Is-equivalenceᴱ-CP =
+    generalise-ext?′
+      (Σ◯→⇔Σ◯→◯ λ f≡g →
+         ECP.[]-cong₂-⊔.Is-equivalenceᴱ-cong ax ax ax _ f≡g)
+      Σ◯→≃Σ◯→◯
+      Σ◯→≃ᴱΣ◯→◯
+
+  Σ◯→↝Σ◯→◯-Is-equivalenceᴱ :
+    (∃ λ (f : ◯ (A → B)) → Is-equivalenceᴱ (◯-map-◯ f)) ↝[ a ∣ a ]
+    (∃ λ (f : ◯ A → ◯ B) → Is-equivalenceᴱ f)
+  Σ◯→↝Σ◯→◯-Is-equivalenceᴱ =
+    generalise-ext?′
+      (Σ◯→⇔Σ◯→◯ λ f≡g →
+         EEq.[]-cong₂-⊔.Is-equivalenceᴱ-cong ax ax ax _ f≡g)
+      Σ◯→≃Σ◯→◯
+      Σ◯→≃ᴱΣ◯→◯
+
+  -- ◯ commutes with ECP._≃ᴱ_ (assuming function extensionality).
+
+  ◯≃ᴱ-CP-≃◯≃ᴱ-CP-◯ : ◯ (A ECP.≃ᴱ B) ↝[ a ∣ a ] (◯ A ECP.≃ᴱ ◯ B)
+  ◯≃ᴱ-CP-≃◯≃ᴱ-CP-◯ ext =
     ◯↝↝◯↝◯′
       {P = λ f → ECP.Is-equivalenceᴱ f}
       F.id
       ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP
-      (λ ext f≡g →
-         ECP.[]-cong₂-⊔.Is-equivalenceᴱ-cong ax ax ax ext f≡g)
-      (Is-modal→Stable-Is-equivalenceᴱ-CP
-         E.[ ext ] Is-modal-◯ Is-modal-◯)
-      (Σ-cong-◯→≃◯→◯-≃ᴱ ext)
-      E.[ ext ]
+      (λ ext f≡g → ECP.[]-cong₂-⊔.Is-equivalenceᴱ-cong ax ax ax ext f≡g)
+      (Is-modal→Stable-Is-equivalenceᴱ-CP ext Is-modal-◯ Is-modal-◯)
+      (Σ◯→↝Σ◯→◯-Is-equivalenceᴱ-CP ext)
+      ext
 
   -- ◯ commutes with _≃ᴱ_ up to _≃ᴱ_ (assuming function
   -- extensionality).
@@ -1433,7 +1457,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
     ◯ (A ≃ᴱ B) ≃ᴱ (◯ A ≃ᴱ ◯ B)
   ◯≃ᴱ≃ᴱ◯≃ᴱ◯ {A = A} {B = B} ext =
     ◯ (A ≃ᴱ B)        ↝⟨ ◯-cong-≃ᴱ $ EEq.≃ᴱ≃ᴱ≃ᴱ-CP ext ⟩
-    ◯ (A ECP.≃ᴱ B)    ↝⟨ ◯≃ᴱ≃ᴱ◯≃ᴱ◯′ ext ⟩
+    ◯ (A ECP.≃ᴱ B)    ↝⟨ ◯≃ᴱ-CP-≃◯≃ᴱ-CP-◯ E.[ ext ] ⟩
     (◯ A ECP.≃ᴱ ◯ B)  ↝⟨ inverse $ EEq.≃ᴱ≃ᴱ≃ᴱ-CP ext ⟩□
     (◯ A ≃ᴱ ◯ B)      □
 
