@@ -1426,26 +1426,26 @@ module Modality (M : Modality a) where
     A    ↝⟨ A↝B ext ⟩□
     B    □
 
-  -- If f has type A → B, where A and B are modal, then
+  -- If f has type A → B, where A is modal and B is separated, then
   -- Is-equivalence f is stable.
 
   Is-modal→Stable-Is-equivalence :
     {f : A → B} →
-    Is-modal A → Is-modal B →
+    Is-modal A → Separated B →
     Stable (Is-equivalence f)
-  Is-modal→Stable-Is-equivalence {f = f} mA mB =
-                                          $⟨ s ⟩
+  Is-modal→Stable-Is-equivalence {f = f} m s =
+                                          $⟨ s′ ⟩
     Stable (∀ y → Contractible (f ⁻¹ y))  →⟨ Stable-respects-⇔ $ inverse $
                                              Is-equivalence≃Is-equivalence-CP _ ⟩□
     Stable (Is-equivalence f)             □
     where
-    s =
+    s′ =
       Stable-Π λ y →
-      let m : Is-modal (f ⁻¹ y)
-          m = Is-modal-Σ mA (λ _ → Is-modal→Separated mB _ _) in
-      Stable-Σ m λ _ →
+      let m′ : Is-modal (f ⁻¹ y)
+          m′ = Is-modal-Σ m (λ _ → s _ _) in
+      Stable-Σ m′ λ _ →
       Stable-Π λ _ →
-      Is-modal→Stable (Is-modal→Separated m _ _)
+      Is-modal→Stable (Is-modal→Separated m′ _ _)
 
   -- ◯ (Erased A) implies Erased (◯ A).
 
@@ -2486,7 +2486,7 @@ module Modality (M : Modality a) where
       Eq.≃-as-Σ
       ◯-Is-equivalence→Is-equivalence
       (Is-equivalence-cong _)
-      (Is-modal→Stable-Is-equivalence Is-modal-◯ Is-modal-◯)
+      (Is-modal→Stable-Is-equivalence Is-modal-◯ Separated-◯)
 
   -- A generalisation of ◯-cong-↔.
 
@@ -2660,13 +2660,13 @@ module Modality (M : Modality a) where
          (cong (◯-map f) ⦂ (η x ≡ η y → ◯-map f (η x) ≡ ◯-map f (η y))))  →⟨ (_⇔_.from $
                                                                               Π◯⇔Πη λ _ → Stable-Π λ _ →
                                                                               Is-modal→Stable-Is-equivalence
-                                                                                (Separated-◯ _ _) (Separated-◯ _ _)) ⟩
+                                                                                (Separated-◯ _ _) (Is-modal→Separated (Separated-◯ _ _))) ⟩
     (∀ x y →
        Is-equivalence
          (cong (◯-map f) ⦂ (x ≡ η y → ◯-map f x ≡ ◯-map f (η y))))        →⟨ (∀-cong _ λ _ → _⇔_.from $
                                                                               Π◯⇔Πη λ _ →
                                                                               Is-modal→Stable-Is-equivalence
-                                                                                (Separated-◯ _ _) (Separated-◯ _ _)) ⟩□
+                                                                                (Separated-◯ _ _) (Is-modal→Separated (Separated-◯ _ _))) ⟩□
     (∀ x y →
        Is-equivalence
          (cong (◯-map f) ⦂ (x ≡ y → ◯-map f x ≡ ◯-map f y)))              □
@@ -2684,4 +2684,4 @@ module Modality (M : Modality a) where
       (Is-embedding-cong _)
       (Stable-Π λ _ → Stable-Π λ _ →
        Is-modal→Stable-Is-equivalence
-         (Separated-◯ _ _) (Separated-◯ _ _))
+         (Separated-◯ _ _) (Is-modal→Separated (Separated-◯ _ _)))
