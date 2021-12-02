@@ -76,6 +76,19 @@ Is-modal→Stable-Is-equivalenceᴱ {f = f} m s =
     Stable-Π λ _ →
     Is-modal→Stable (Is-modal→Separated m′ _ _))
 
+-- If f has type A → B, where A is modal and B is separated, then
+-- Is-equivalenceᴱ f is modal (assuming function extensionality).
+
+Is-modal-Is-equivalenceᴱ :
+  {@0 f : A → B} →
+  Extensionality a a →
+  Is-modal A → @0 Separated B →
+  Is-modal (Is-equivalenceᴱ f)
+Is-modal-Is-equivalenceᴱ ext m s =
+  Is-modal-Σ (Is-modal-Π ext λ _ → m) λ _ →
+  Is-modal-Erased (
+  Is-modal-Half-adjoint-proofs ext (Is-modal→Separated m) s)
+
 -- ◯ (A ≃ᴱ B) implies ◯ A ≃ᴱ ◯ B.
 
 ◯-cong-≃ᴱ-◯ : ◯ (A ≃ᴱ B) → ◯ A ≃ᴱ ◯ B

@@ -873,6 +873,65 @@ module Modality (M : Modality a) where
          Π-closure ext 1 λ _ →
          Is-modal-propositional ext)
 
+  -- If A is modal, then Contractible A is modal (assuming function
+  -- extensionality).
+
+  Is-modal-Contractible :
+    Extensionality a a →
+    Is-modal A → Is-modal (Contractible A)
+  Is-modal-Contractible ext m =
+    Is-modal-Σ m λ _ →
+    Is-modal-Π ext λ _ →
+    Is-modal→Separated m _ _
+
+  -- If f has type A → B, where A is modal and B is separated, then
+  -- f ⁻¹ y is modal.
+
+  Is-modal-⁻¹ :
+    {f : A → B} →
+    Is-modal A →
+    Separated B →
+    Is-modal (f ⁻¹ y)
+  Is-modal-⁻¹ m s = Is-modal-Σ m λ _ → s _ _
+
+  -- If f has type A → B, where A and B are separated, then
+  -- HA.Proofs f g is modal (assuming function extensionality).
+
+  Is-modal-Half-adjoint-proofs :
+    {f : A → B} →
+    Extensionality a a →
+    Separated A →
+    Separated B →
+    Is-modal (HA.Proofs f g)
+  Is-modal-Half-adjoint-proofs ext sA sB =
+    Is-modal-Σ (Is-modal-Π ext λ _ → sB _ _) λ _ →
+    Is-modal-Σ (Is-modal-Π ext λ _ → sA _ _) λ _ →
+    Is-modal-Π ext λ _ → Is-modal→Separated (sB _ _) _ _
+
+  -- If f has type A → B, where A is modal and B is separated, then
+  -- Is-equivalence f is modal (assuming function extensionality).
+
+  Is-modal-Is-equivalence :
+    {f : A → B} →
+    Extensionality a a →
+    Is-modal A →
+    Separated B →
+    Is-modal (Is-equivalence f)
+  Is-modal-Is-equivalence ext m s =
+    Is-modal-Σ (Is-modal-Π ext λ _ → m) λ _ →
+    Is-modal-Half-adjoint-proofs ext (Is-modal→Separated m) s
+
+  -- If A and B are modal, then A ≃ B is modal (assuming function
+  -- extensionality).
+
+  Is-modal-≃ :
+    Extensionality a a →
+    Is-modal A → Is-modal B → Is-modal (A ≃ B)
+  Is-modal-≃ ext mA mB =
+    Is-modal-respects-≃ (inverse $ Eq.↔⇒≃ Eq.≃-as-Σ) $
+    Is-modal-Σ (Is-modal-Π ext λ _ → mB) λ _ →
+    Is-modal-Is-equivalence ext mA (Is-modal→Separated mB)
+
   -- I did not take the remaining results in this section from
   -- "Modalities in Homotopy Type Theory" or the corresponding Coq
   -- code (but that does not mean that one cannot find something
@@ -887,15 +946,9 @@ module Modality (M : Modality a) where
     For-iterated-equality n Is-modal A →
     Is-modal (H-level′ n A)
   Is-modal-H-level′ {A = A} ext n =
-    For-iterated-equality n Is-modal A                   ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
+    For-iterated-equality n Is-modal A                   ↝⟨ For-iterated-equality-cong₁ _ n (Is-modal-Contractible ext) ⟩
     For-iterated-equality n (Is-modal ∘ Contractible) A  ↝⟨ For-iterated-equality-commutes-← _ Is-modal n (Is-modal-Π ext) ⟩□
     Is-modal (H-level′ n A)                              □
-    where
-    lemma : ∀ {A} → Is-modal A → Is-modal (Contractible A)
-    lemma m =
-      Is-modal-Σ m λ _ →
-      Is-modal-Π ext λ _ →
-      Is-modal→Separated m _ _
 
   -- If A is "modal n levels up", then H-level n A is modal (assuming
   -- function extensionality).
