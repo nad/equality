@@ -1612,6 +1612,33 @@ module Modality (M : Modality a) where
     ((x : ◯ A) → P x) ⇔ ((x : A) → P (η x))
   Π◯⇔Πη s = Π◯≃Πη _ (Stable→Stable-⇔ ∘ s)
 
+  -- Two simplification rules for Π◯≃Πη.
+
+  Π◯≃Πη-η :
+    ∀ ext s (f : ∀ x → P x) →
+    _≃_.to (Π◯≃Πη ext s) f x ≡ f (η x)
+  Π◯≃Πη-η {x = x} ext s f =
+    _≃_.to (Π◯≃Πη ext s) f x                         ≡⟨⟩
+    _≃_.to (s (η x)) (_≃_.from (s (η x)) (f (η x)))  ≡⟨ _≃_.right-inverse-of (s (η x)) _ ⟩∎
+    f (η x)                                          ∎
+
+  Π◯≃Πη⁻¹-η :
+    ∀ ext (s : ∀ x → Stable-[ equivalence ] (P x)) →
+    _≃_.from (Π◯≃Πη {P = P} ext s) f (η x) ≡ f x
+  Π◯≃Πη⁻¹-η {P = P} {f = f} {x = x} ext s =
+    _≃_.from (Π◯≃Πη ext s) f (η x)               ≡⟨⟩
+
+    _≃_.to (s (η x))
+      (◯-elim
+         {P = ◯ ∘ P}
+         (λ _ → Is-modal-◯)
+         (λ x → _≃_.from (s (η x)) (f x))
+         (η x))                                  ≡⟨ cong (_≃_.to (s (η x))) ◯-elim-η ⟩
+
+    _≃_.to (s (η x)) (_≃_.from (s (η x)) (f x))  ≡⟨ _≃_.right-inverse-of (s (η x)) _ ⟩∎
+
+    f x                                          ∎
+
   ----------------------------------------------------------------------
   -- Map-like lemmas for Is-modal and Separated, and a related result
 
