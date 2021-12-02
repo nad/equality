@@ -27,6 +27,7 @@ open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
 import Equivalence.Contractible-preimages eq-J as CP
 open import Equivalence.Erased.Basics eq-J as EEq
   using (_≃ᴱ_; Is-equivalenceᴱ)
+import Equivalence.Half-adjoint eq-J as HA
 open import Equivalence-relation eq-J
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
@@ -1895,7 +1896,7 @@ module []-cong₂
       _
 
   ----------------------------------------------------------------------
-  -- Erased "commutes" with one thing
+  -- Erased "commutes" with various things
 
   -- Erased "commutes" with Has-quasi-inverse.
 
@@ -1932,6 +1933,64 @@ module []-cong₂
                                                         from-isomorphism BC₁.Erased-≡↔[]≡[]) ⟩
       (∀ x → [ g (f (erased x)) ] ≡ x)              ↔⟨⟩
       (∀ x → map (g ∘ f) x ≡ x)                     □
+
+  -- Erased "commutes" with HA.Proofs (assuming extensionality).
+
+  Erased-Half-adjoint-proofs≃Half-adjoint-proofs :
+    {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} {@0 g : B → A} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    Erased (HA.Proofs f g) ≃ HA.Proofs (map f) (map g)
+  Erased-Half-adjoint-proofs≃Half-adjoint-proofs
+    {A = A} {B = B} {f = f} {g = g} ext =
+    Erased (HA.Proofs f g)                                                ↔⟨⟩
+
+    Erased
+      (∃ λ (f-g : (x : B) → f (g x) ≡ x) →
+       ∃ λ (g-f : (x : A) → g (f x) ≡ x) →
+       (x : A) → cong f (g-f x) ≡ f-g (f x))                              ↔⟨ (∃-cong λ _ → Erased-Σ↔Σ) F.∘
+                                                                             Erased-Σ↔Σ ⟩
+    (∃ λ (f-g : Erased ((x : B) → f (g x) ≡ x)) →
+     ∃ λ (g-f : Erased ((x : A) → g (f x) ≡ x)) →
+     Erased ((x : A) → cong f (erased g-f x) ≡ erased f-g (f x)))         ↔⟨ (Σ-cong Erased-Π↔Π-Erased λ _ →
+                                                                              Σ-cong Erased-Π↔Π-Erased λ _ →
+                                                                              Erased-Π↔Π-Erased) ⟩
+    (∃ λ (f-g : (x : Erased B) → Erased (f (g (erased x)) ≡ erased x)) →
+     ∃ λ (g-f : (x : Erased A) → Erased (g (f (erased x)) ≡ erased x)) →
+     (x : Erased A) →
+     Erased (cong f (erased (g-f x)) ≡ erased (f-g (map f x))))           ↝⟨ (Σ-cong (∀-cong (lower-extensionality ℓ₁ ℓ₁ ext) λ _ →
+                                                                                      BC₂.Erased-≡≃[]≡[]) λ f-g →
+                                                                              Σ-cong (∀-cong (lower-extensionality ℓ₂ ℓ₂ ext) λ _ →
+                                                                                      BC₁.Erased-≡≃[]≡[]) λ g-f →
+                                                                              ∀-cong (lower-extensionality ℓ₂ ℓ₁ ext) λ x →
+      Erased (cong f (erased (g-f x)) ≡ erased (f-g (map f x)))                 ↝⟨ BC₂.Erased-≡≃[]≡[] ⟩
+
+      map (cong f) (g-f x) ≡ f-g (map f x)                                      ↝⟨ inverse $ Eq.≃-≡ BC₂.Erased-≡≃[]≡[] ⟩
+
+      BC₂.[]-cong (map (cong f) (g-f x)) ≡ BC₂.[]-cong (f-g (map f x))          ↔⟨⟩
+
+      BC₂.[]-cong [ cong f (erased (g-f x)) ] ≡
+      BC₂.[]-cong (f-g (map f x))                                               ↝⟨ ≡⇒↝ _ $ cong (_≡ _) $
+                                                                                   BC₁.elimᴱ
+                                                                                     (λ eq →
+                                                                                        BC₂.[]-cong [ cong f eq ] ≡
+                                                                                        cong (map f) (BC₁.[]-cong [ eq ]))
+                                                                                     (λ x →
+        BC₂.[]-cong [ cong f (refl x) ]                                                 ≡⟨ cong BC₂.[]-cong $ BC₂.[]-cong [ cong-refl _ ] ⟩
+        BC₂.[]-cong [ refl (f x) ]                                                      ≡⟨ BC₂.[]-cong-[refl] ⟩
+        refl [ f x ]                                                                    ≡⟨ sym $ cong-refl _ ⟩
+        cong (map f) (refl [ x ])                                                       ≡⟨ cong (cong (map f)) $ sym BC₁.[]-cong-[refl] ⟩∎
+        cong (map f) (BC₁.[]-cong [ refl x ])                                           ∎)
+                                                                                     _ ⟩
+      cong (map f) (BC₁.[]-cong [ erased (g-f x) ]) ≡
+      BC₂.[]-cong (f-g (map f x))                                               ↔⟨⟩
+
+      cong (map f) (BC₁.[]-cong (g-f x)) ≡ BC₂.[]-cong (f-g (map f x))          □) ⟩
+
+    (∃ λ (f-g : (x : Erased B) → map (f ∘ g) x ≡ x) →
+     ∃ λ (g-f : (x : Erased A) → map (g ∘ f) x ≡ x) →
+     (x : Erased A) → cong (map f) (g-f x) ≡ f-g (map f x))               ↔⟨⟩
+
+    HA.Proofs (map f) (map g)                                             □
 
 ------------------------------------------------------------------------
 -- Some results that follow if the []-cong axioms hold for the maximum
