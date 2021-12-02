@@ -1788,6 +1788,28 @@ module Modality (M : Modality a) where
                                                                             _ ⟩∎
               η f                                                      ∎))
 
+  -- Two "computation rules" for ◯Π◯≃◯Π.
+
+  ◯Π◯≃◯Π-η :
+    ◯Π◯≃◯Π (η m) _ (η f) ≡ η (λ x → Is-modal→Stable (m x) (f x))
+  ◯Π◯≃◯Π-η {m = m} {f = f} =
+    ◯Π◯≃◯Π (η m) _ (η f)                                         ≡⟨⟩
+
+    ◯-rec
+      Is-modal-◯
+      (λ f → ◯-map (λ m x → Is-modal→Stable (m x) (f x)) (η m))
+      (η f)                                                      ≡⟨ ◯-rec-η ⟩
+
+    ◯-map (λ m x → Is-modal→Stable (m x) (f x)) (η m)            ≡⟨ ◯-map-η ⟩∎
+
+    η (λ x → Is-modal→Stable (m x) (f x))                        ∎
+
+  ◯Π◯≃◯Π⁻¹-η : _⇔_.from (◯Π◯≃◯Π m _) (η f) ≡ η (η ∘ f)
+  ◯Π◯≃◯Π⁻¹-η {m = m} {f = f} =
+    _⇔_.from (◯Π◯≃◯Π m _) (η f)    ≡⟨⟩
+    ◯-map (λ g x → η (g x)) (η f)  ≡⟨ ◯-map-η ⟩∎
+    η (η ∘ f)                      ∎
+
   ----------------------------------------------------------------------
   -- Some results related to connectedness
 
