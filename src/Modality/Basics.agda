@@ -31,6 +31,7 @@ open import Equivalence.Erased.Basics eq as EEq
   using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages.Basics eq
   using (Contractibleᴱ; _⁻¹ᴱ_)
+import Equivalence.Half-adjoint eq as HA
 open import Equivalence.Path-split eq as PS
   using (Is-∞-extendable-along-[_])
 open import For-iterated-equality eq
@@ -795,6 +796,15 @@ module Modality (M : Modality a) where
 
   η⁻¹-η : η⁻¹ m (η x) ≡ x
   η⁻¹-η = _≃_.left-inverse-of (Is-modal→≃◯ _) _
+
+  -- When proving that A is modal one can assume that ◯ A is
+  -- inhabited.
+
+  [◯→Is-modal]→Is-modal : (◯ A → Is-modal A) → Is-modal A
+  [◯→Is-modal]→Is-modal m =
+    Is-equivalence-η→Is-modal $
+    HA.[inhabited→Is-equivalence]→Is-equivalence $
+    Is-modal≃Is-equivalence-η _ ∘ m
 
   ----------------------------------------------------------------------
   -- Some closure properties related to Is-modal
