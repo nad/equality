@@ -23,7 +23,8 @@ private
     hiding (◯Ση≃Σ◯◯;
             Stable-Π; Stable-implicit-Π;
             Stable-Erased; Stable-Contractibleᴱ; Stable-⁻¹ᴱ;
-            Is-modal→Stable-Is-equivalence)
+            Is-modal→Stable-Is-equivalence;
+            ◯Π◯≃◯Π; ◯≡≃η≡η)
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude
@@ -49,10 +50,10 @@ open import Surjection eq using (_↠_; Split-surjective)
 
 private
   variable
-    ℓ           : Level
-    A B C       : Type ℓ
-    f g h k p x : A
-    P           : A → Type p
+    ℓ             : Level
+    A B C         : Type ℓ
+    f g h k p x y : A
+    P             : A → Type p
 
 ------------------------------------------------------------------------
 -- Should "Very-modal" be stated differently?
@@ -87,6 +88,19 @@ private
 left-exact-η-cong : Left-exact-η-cong
 left-exact-η-cong =
   ◯-Is-modal→Is-equivalence-η-cong very-modal _ _
+
+-- There is an equivalence between ◯ (x ≡ y) and η x ≡ η y.
+
+◯≡≃η≡η : ◯ (x ≡ y) ≃ (η x ≡ η y)
+◯≡≃η≡η = M.◯≡≃η≡η left-exact-η-cong
+
+-- ◯ ((x : A) → ◯ (P x)) is equivalent to ◯ (((x : A) → P x))
+-- (assuming function extensionality).
+
+◯Π◯≃◯Π :
+  {A : Type a} {P : A → Type a} →
+  ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ (((x : A) → P x))
+◯Π◯≃◯Π = M.◯Π◯≃◯Π ◯-Π-Is-modal
 
 -- Is-modal A is equivalent to Is-modal -Null A (assuming function
 -- extensionality).
@@ -226,7 +240,7 @@ topological {ℓ = ℓ} ext =
   ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ ((x : A) → P x)
 Π◯≃◯Π {A = A} {P = P} ext =
   ((x : A) → ◯ (P x))    ↝⟨ lemma ext ⟩
-  ◯ ((x : A) → ◯ (P x))  ↝⟨ ◯Π◯≃◯Π ◯-Π-Is-modal ext ⟩□
+  ◯ ((x : A) → ◯ (P x))  ↝⟨ ◯Π◯≃◯Π ext ⟩□
   ◯ ((x : A) → P x)      □
   where
   from =
@@ -552,8 +566,8 @@ H-level′-◯≃◯-H-level′ {A = A} zero ext =
   (∃ λ (x : ◯ A) → ◯ (∀ y → x ≡ y))    ↝⟨ (∃-cong λ _ → ◯-cong-↝-Is-modal→ lzero lzero ext λ m →
                                            inverse-ext? λ ext → Π-cong ext (Is-modal→≃◯ m) λ _ → F.id) ⟩
   (∃ λ (x : ◯ A) → ◯ (∀ y → x ≡ η y))  ↔⟨ inverse ◯Ση≃Σ◯◯ ⟩
-  ◯ (∃ λ (x : A) → ∀ y → η x ≡ η y)    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ∀-cong ext λ _ → from-equivalence $
-                                           inverse $ ◯≡≃η≡η left-exact-η-cong) ⟩
+  ◯ (∃ λ (x : A) → ∀ y → η x ≡ η y)    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ∀-cong ext λ _ → from-equivalence $ inverse
+                                           ◯≡≃η≡η) ⟩
   ◯ (∃ λ (x : A) → ∀ y → ◯ (x ≡ y))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → Π◯≃◯Π ext) ⟩
   ◯ (∃ λ (x : A) → ◯ (∀ y → x ≡ y))    ↔⟨ ◯Σ◯≃◯Σ ⟩
   ◯ (∃ λ (x : A) → ∀ y → x ≡ y)        ↔⟨⟩
@@ -581,8 +595,8 @@ H-level′-◯≃◯-H-level′ {A = A} (suc n) ext =
                                                                   Π-cong-contra ext (Is-modal→≃◯ m) λ _ →
                                                                   F.id) ⟩
     ((x y : A) → H-level′ n (η x ≡ η y))                      ↝⟨ ((∀-cong ext λ _ → ∀-cong ext λ _ →
-                                                                  H-level′-cong ext n $ inverse $
-                                                                  ◯≡≃η≡η left-exact-η-cong)) ⟩
+                                                                  H-level′-cong ext n $ inverse
+                                                                  ◯≡≃η≡η)) ⟩
     ((x y : A) → H-level′ n (◯ (x ≡ y)))                      ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                   H-level′-◯≃◯-H-level′ n ext) ⟩□
     ((x y : A) → ◯ (H-level′ n (x ≡ y)))                      □) ⟩
@@ -868,7 +882,7 @@ private
 ◯-Split-surjective≃Split-surjective {f = f} {k = k} ext =
   ◯ (∀ y → ∃ λ x → f x ≡ y)              ↝⟨ inverse-ext? Π◯≃◯Π ext ⟩
   (∀ y → ◯ (∃ λ x → f x ≡ y))            ↝⟨ (∀-cong′ λ _ → inverse ◯Σ◯≃◯Σ) ⟩
-  (∀ y → ◯ (∃ λ x → ◯ (f x ≡ y)))        ↝⟨ (∀-cong′ λ _ → ◯-cong-≃ $ ∃-cong λ _ → ◯≡≃η≡η left-exact-η-cong) ⟩
+  (∀ y → ◯ (∃ λ x → ◯ (f x ≡ y)))        ↝⟨ (∀-cong′ λ _ → ◯-cong-≃ $ ∃-cong λ _ → ◯≡≃η≡η) ⟩
   (∀ y → ◯ (∃ λ x → η (f x) ≡ η y))      ↝⟨ inverse-ext? Π◯◯≃Π◯η ext ⟩
   (∀ y → ◯ (∃ λ x → η (f x) ≡ y))        ↝⟨ (∀-cong′ λ _ → ◯-cong-≃ $ ∃-cong λ _ → ≡⇒↝ _ $ cong (_≡ _) $ sym ◯-map-η) ⟩
   (∀ y → ◯ (∃ λ x → ◯-map f (η x) ≡ y))  ↝⟨ (∀-cong′ λ _ → ◯Ση≃Σ◯◯) ⟩
@@ -996,9 +1010,9 @@ private
                                                                          inverse-ext? (λ ext → Π◯≃◯Π ext ×-cong Π◯≃◯Π ext) ext) ⟩
 
   ◯ (∃ λ g → (∀ x → ◯ (f (g x) ≡ x)) × (∀ x → ◯ (g (f x) ≡ x)))      ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ →
-                                                                         (∀-cong ext λ _ → from-equivalence $ ◯≡≃η≡η left-exact-η-cong)
+                                                                         (∀-cong ext λ _ → from-equivalence ◯≡≃η≡η)
                                                                            ×-cong
-                                                                         (∀-cong ext λ _ → from-equivalence $ ◯≡≃η≡η left-exact-η-cong)) ⟩
+                                                                         (∀-cong ext λ _ → from-equivalence ◯≡≃η≡η)) ⟩
 
   ◯ (∃ λ g → (∀ x → η (f (g x)) ≡ η x) × (∀ x → η (g (f x)) ≡ η x))  ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ →
                                                                          (∀-cong ext λ _ → ≡⇒↝ _ $ cong (_≡ _) $ sym $
@@ -1063,10 +1077,10 @@ private
   ◯ (∀ x y → f x ≡ f y → x ≡ y)                        ↝⟨ inverse-ext? Π◯≃◯Π ext ⟩
   (∀ x → ◯ (∀ y → f x ≡ f y → x ≡ y))                  ↝⟨ (∀-cong ext λ _ → inverse-ext? Π◯≃◯Π ext) ⟩
   (∀ x y → ◯ (f x ≡ f y → x ≡ y))                      ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ◯→≃◯→◯ ext) ⟩
-  (∀ x y → ◯ (f x ≡ f y) → ◯ (x ≡ y))                  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → →-cong₁ ext $
-                                                           ◯≡≃η≡η left-exact-η-cong) ⟩
-  (∀ x y → η (f x) ≡ η (f y) → ◯ (x ≡ y))              ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ →
-                                                           from-equivalence $ ◯≡≃η≡η left-exact-η-cong) ⟩
+  (∀ x y → ◯ (f x ≡ f y) → ◯ (x ≡ y))                  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → →-cong₁ ext
+                                                           ◯≡≃η≡η) ⟩
+  (∀ x y → η (f x) ≡ η (f y) → ◯ (x ≡ y))              ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ → from-equivalence
+                                                           ◯≡≃η≡η) ⟩
   (∀ x y → η (f x) ≡ η (f y) → η x ≡ η y)              ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → →-cong₁ ext $
                                                            ≡⇒↝ equivalence $ sym $ cong₂ _≡_ ◯-map-η ◯-map-η) ⟩
   (∀ x y → ◯-map f (η x) ≡ ◯-map f (η y) → η x ≡ η y)  ↝⟨ (∀-cong ext λ _ → inverse-ext? (Π◯↝Πη s) ext) ⟩
@@ -1121,7 +1135,7 @@ private
         cong (◯-map f) ∘ η-cong ⦂ (◯ (x ≡ y) → ◯ (f x ≡ f y))))         ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                             inverse-ext?
                                                                               (Is-equivalence≃Is-equivalence-∘ˡ
-                                                                                 (_≃_.is-equivalence $ inverse $ ◯≡≃η≡η left-exact-η-cong))
+                                                                                 (_≃_.is-equivalence $ inverse ◯≡≃η≡η))
                                                                               ext) ⟩
   (∀ x y →
      Is-equivalence
@@ -1256,8 +1270,8 @@ module []-cong (ax : []-cong-axiomatisation a) where
     ◯ (∃ λ (x : A) → Erased (∀ y → x ≡ y))        ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
     ◯ (∃ λ (x : A) → ◯ (Erased (∀ y → x ≡ y)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ◯-Erased≃Erased-◯ ext) ⟩
     ◯ (∃ λ (x : A) → Erased (◯ (∀ y → x ≡ y)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → EC.Erased-cong (inverse-ext? Π◯≃◯Π ext)) ⟩
-    ◯ (∃ λ (x : A) → Erased (∀ y → ◯ (x ≡ y)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → EC.Erased-cong (∀-cong ext λ _ → from-equivalence $
-                                                      ◯≡≃η≡η left-exact-η-cong)) ⟩
+    ◯ (∃ λ (x : A) → Erased (∀ y → ◯ (x ≡ y)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → EC.Erased-cong (∀-cong ext λ _ → from-equivalence
+                                                      ◯≡≃η≡η)) ⟩
     ◯ (∃ λ (x : A) → Erased (∀ y → η x ≡ η y))    ↔⟨ ◯Ση≃Σ◯◯ ⟩
     (∃ λ (x : ◯ A) → ◯ (Erased (∀ y → x ≡ η y)))  ↝⟨ (∃-cong λ _ → ◯-Erased≃Erased-◯ ext) ⟩
     (∃ λ (x : ◯ A) → Erased (◯ (∀ y → x ≡ η y)))  ↝⟨ (∃-cong λ _ → EC.Erased-cong (◯-cong-↝-Is-modal→ lzero lzero ext λ m ext →
