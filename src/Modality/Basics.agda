@@ -634,48 +634,53 @@ module Modality (M : Modality a) where
   ----------------------------------------------------------------------
   -- Eliminators
 
-  -- An eliminator for ◯.
+  -- The eliminators are abstract in order to make types printed by
+  -- Agda potentially easier to read.
 
-  ◯-elim :
-    {P : ◯ A → Type a} →
-    (∀ x → Is-modal (P x)) →
-    ((x : A) → P (η x)) →
-    ((x : ◯ A) → P x)
-  ◯-elim m f = extendable-along-η m 1 .proj₁ f .proj₁
+  abstract
 
-  -- A "computation rule" for ◯-elim.
+    -- An eliminator for ◯.
 
-  ◯-elim-η : ◯-elim m f (η x) ≡ f x
-  ◯-elim-η {m = m} {f = f} {x = x} =
-    extendable-along-η m 1 .proj₁ f .proj₂ x
+    ◯-elim :
+      {P : ◯ A → Type a} →
+      (∀ x → Is-modal (P x)) →
+      ((x : A) → P (η x)) →
+      ((x : ◯ A) → P x)
+    ◯-elim m f = extendable-along-η m 1 .proj₁ f .proj₁
 
-  -- A non-dependent eliminator for ◯.
+    -- A "computation rule" for ◯-elim.
 
-  ◯-rec : Is-modal B → (A → B) → (◯ A → B)
-  ◯-rec m = ◯-elim (λ _ → m)
+    ◯-elim-η : ◯-elim m f (η x) ≡ f x
+    ◯-elim-η {m = m} {f = f} {x = x} =
+      extendable-along-η m 1 .proj₁ f .proj₂ x
 
-  -- A "computation rule" for ◯-rec.
+    -- A non-dependent eliminator for ◯.
 
-  ◯-rec-η : ◯-rec m f (η x) ≡ f x
-  ◯-rec-η = ◯-elim-η
+    ◯-rec : Is-modal B → (A → B) → (◯ A → B)
+    ◯-rec m = ◯-elim (λ _ → m)
 
-  -- If f and g have type (x : ◯ A) → P x, where P x is modal for all
-  -- x, and f ∘ η and g ∘ η are pointwise equal, then f and g are
-  -- pointwise equal.
+    -- A "computation rule" for ◯-rec.
 
-  ∘η≡∘η→≡ :
-    {f g : (x : ◯ A) → P x} →
-    (∀ x → Is-modal (P x)) →
-    (∀ x → f (η x) ≡ g (η x)) →
-    ∀ x → f x ≡ g x
-  ∘η≡∘η→≡ m p =
-    extendable-along-η m 2 .proj₂ _ _ .proj₁ p .proj₁
+    ◯-rec-η : ◯-rec m f (η x) ≡ f x
+    ◯-rec-η = ◯-elim-η
 
-  -- A "computation rule" for ∘η≡∘η→≡.
+    -- If f and g have type (x : ◯ A) → P x, where P x is modal for
+    -- all x, and f ∘ η and g ∘ η are pointwise equal, then f and g
+    -- are pointwise equal.
 
-  ∘η≡∘η→≡-η : ∘η≡∘η→≡ m p (η x) ≡ p x
-  ∘η≡∘η→≡-η {m = m} {p = p} =
-    extendable-along-η m 2 .proj₂ _ _ .proj₁ p .proj₂ _
+    ∘η≡∘η→≡ :
+      {f g : (x : ◯ A) → P x} →
+      (∀ x → Is-modal (P x)) →
+      (∀ x → f (η x) ≡ g (η x)) →
+      ∀ x → f x ≡ g x
+    ∘η≡∘η→≡ m p =
+      extendable-along-η m 2 .proj₂ _ _ .proj₁ p .proj₁
+
+    -- A "computation rule" for ∘η≡∘η→≡.
+
+    ∘η≡∘η→≡-η : ∘η≡∘η→≡ m p (η x) ≡ p x
+    ∘η≡∘η→≡-η {m = m} {p = p} =
+      extendable-along-η m 2 .proj₂ _ _ .proj₁ p .proj₂ _
 
   ----------------------------------------------------------------------
   -- Some basic definitions and lemmas
@@ -766,8 +771,8 @@ module Modality (M : Modality a) where
                (◯-rec m id)
                (◯-elim
                   (λ _ → Separated-◯ _ _)
-                  (λ _ → cong η ◯-elim-η))
-               (λ _ → ◯-elim-η)
+                  (λ _ → cong η ◯-rec-η))
+               (λ _ → ◯-rec-η)
          ; from = Is-equivalence-η→Is-modal
          })
       Is-modal-propositional
@@ -987,15 +992,20 @@ module Modality (M : Modality a) where
   ----------------------------------------------------------------------
   -- The function ◯-map
 
-  -- A map function for ◯.
+  -- The function ◯-map is abstract in order to make types printed by
+  -- Agda potentially easier to read.
 
-  ◯-map : (A → B) → ◯ A → ◯ B
-  ◯-map f = ◯-rec Is-modal-◯ (η ∘ f)
+  abstract
 
-  -- A "computation rule" for ◯-map.
+    -- A map function for ◯.
 
-  ◯-map-η : ◯-map f (η x) ≡ η (f x)
-  ◯-map-η = ◯-rec-η
+    ◯-map : (A → B) → ◯ A → ◯ B
+    ◯-map f = ◯-rec Is-modal-◯ (η ∘ f)
+
+    -- A "computation rule" for ◯-map.
+
+    ◯-map-η : ◯-map f (η x) ≡ η (f x)
+    ◯-map-η = ◯-rec-η
 
   -- ◯-map id is pointwise equal to id.
 
@@ -1296,7 +1306,7 @@ module Modality (M : Modality a) where
 
                ◯Ση→Σ◯◯ (η (x , y))                                  ≡⟨⟩
 
-               ◯-rec m₁ (Σ-map η η) (η (x , y))                     ≡⟨ ◯-elim-η ⟩∎
+               ◯-rec m₁ (Σ-map η η) (η (x , y))                     ≡⟨ ◯-rec-η ⟩∎
 
                (η x , η y)                                          ∎)))
     (◯-elim
@@ -2045,8 +2055,16 @@ module Modality (M : Modality a) where
   Connected-→-η-∘-≃Is-equivalence-◯-map :
     {f : A → B} →
     ◯ -Connected-→ (η ∘ f) ↝[ a ∣ a ] Is-equivalence (◯-map f)
-  Connected-→-η-∘-≃Is-equivalence-◯-map =
-    Connected-→≃Is-equivalence-◯-rec Is-modal-◯
+  Connected-→-η-∘-≃Is-equivalence-◯-map {f = f} ext =
+    ◯ -Connected-→ (η ∘ f)                     ↝⟨ Connected-→≃Is-equivalence-◯-rec Is-modal-◯ ext ⟩
+
+    Is-equivalence (◯-rec Is-modal-◯ (η ∘ f))  ↝⟨ (Is-equivalence-cong ext $
+                                                   ◯-elim (λ _ → Separated-◯ _ _) λ x →
+      ◯-rec Is-modal-◯ (η ∘ f) (η x)                 ≡⟨ ◯-rec-η ⟩
+      η (f x)                                        ≡⟨ sym ◯-map-η ⟩∎
+      ◯-map f (η x)                                  ∎) ⟩□
+
+    Is-equivalence (◯-map f)                   □
 
   -- If A is ◯-connected, and P x is ◯-connected for all x, then Σ A P
   -- is ◯-connected.
