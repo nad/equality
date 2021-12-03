@@ -35,6 +35,7 @@ open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (Contractibleᴱ; _⁻¹ᴱ_)
+import Equivalence.Half-adjoint eq as HA
 open import Equivalence.Path-split eq as PS
   using (Is-∞-extendable-along-[_]; _-Null_)
 open import Erased.Level-1 eq as E
@@ -50,10 +51,10 @@ open import Surjection eq using (_↠_; Split-surjective)
 
 private
   variable
-    ℓ             : Level
-    A B C         : Type ℓ
-    f g h k p x y : A
-    P             : A → Type p
+    ℓ                 : Level
+    A B C             : Type ℓ
+    f f⁻¹ g h k p x y : A
+    P                 : A → Type p
 
 ------------------------------------------------------------------------
 -- Should "Very-modal" be stated differently?
@@ -1404,17 +1405,333 @@ module []-cong (ax : []-cong-axiomatisation a) where
     (∀ y → Contractibleᴱ (◯ (η ∘ f ⁻¹ᴱ y)))          ↝⟨ (∀-cong ext λ _ → BC-ECP.Contractibleᴱ-cong ext ◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ) ⟩□
     (∀ y → Contractibleᴱ (◯-map f ⁻¹ᴱ y))            □
 
-  -- ◯ (Is-equivalenceᴱ f) is equivalent (with erased proofs) to
-  -- Is-equivalenceᴱ (◯-map f) (assuming function extensionality).
+  -- ◯ (HA.Proofs f f⁻¹) is equivalent to
+  -- HA.Proofs (◯-map f) (◯-map f⁻¹) (assuming function
+  -- extensionality).
 
-  ◯-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ :
-    @0 Extensionality a a →
-    ◯ (Is-equivalenceᴱ f) ≃ᴱ Is-equivalenceᴱ (◯-map f)
-  ◯-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ {f = f} ext =
-    ◯ (Is-equivalenceᴱ f)                  ↝⟨ ◯-cong-≃ᴱ (EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext) ⟩
-    ◯ (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))      ↝⟨ ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP E.[ ext ] ⟩
-    (∀ y → Contractibleᴱ (◯-map f ⁻¹ᴱ y))  ↝⟨ inverse $ EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext ⟩□
-    Is-equivalenceᴱ (◯-map f)              □
+  ◯-Half-adjoint-proofs≃Half-adjoint-proofs-◯-map-◯-map :
+    {f : A → B} →
+    Extensionality a a →
+    ◯ (HA.Proofs f f⁻¹) ≃ HA.Proofs (◯-map f) (◯-map f⁻¹)
+  ◯-Half-adjoint-proofs≃Half-adjoint-proofs-◯-map-◯-map
+    {A = A} {B = B} {f⁻¹ = f⁻¹} {f = f} ext =
+    ◯ (HA.Proofs f f⁻¹)                                                   ↔⟨⟩
+
+    ◯ (∃ λ (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
+       ∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
+       (x : A) → cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x))                          ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ∃-cong λ _ → inverse (Π◯≃◯Π ext)) F.∘
+                                                                             ◯Σ◯≃◯Σ F.∘
+                                                                             (◯-cong-≃ $ ∃-cong λ _ → inverse ◯Σ◯≃◯Σ) F.∘
+                                                                             inverse ◯Σ◯≃◯Σ ⟩
+    ◯ (∃ λ (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
+       ∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
+       (x : A) → ◯ (cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x)))                      ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
+                                                                              ◯≡≃η≡η) ⟩
+    ◯ (∃ λ (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
+       ∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
+       (x : A) → η (cong f (f⁻¹-f x)) ≡ η (f-f⁻¹ (f x)))                  ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
+                                                                              ≡⇒↝ _ $ sym $ cong₂ _≡_ ◯-map-η ◯-map-η) ⟩
+    ◯ (∃ λ (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
+       ∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
+       (x : A) →
+       ◯-map (cong f ∘ (_$ x)) (η f⁻¹-f) ≡ ◯-map (_$ f x) (η f-f⁻¹))      ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse (Π◯≃◯Π ext)) F.∘
+                                                                             (∃-cong λ _ → ◯Ση≃Σ◯◯) F.∘
+                                                                             ◯Ση≃Σ◯◯ ⟩
+    (∃ λ (f-f⁻¹ : ◯ (∀ x → f (f⁻¹ x) ≡ x)) →
+     ∃ λ (f⁻¹-f : ◯ (∀ x → f⁻¹ (f x) ≡ x)) →
+     (x : A) → ◯ (◯-map (cong f ∘ (_$ x)) f⁻¹-f ≡ ◯-map (_$ f x) f-f⁻¹))  ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ → inverse $
+                                                                              Is-modal→≃◯ $ Separated-◯ _ _) ⟩
+    (∃ λ (f-f⁻¹ : ◯ (∀ x → f (f⁻¹ x) ≡ x)) →
+     ∃ λ (f⁻¹-f : ◯ (∀ x → f⁻¹ (f x) ≡ x)) →
+     (x : A) → ◯-map (cong f ∘ (_$ x)) f⁻¹-f ≡ ◯-map (_$ f x) f-f⁻¹)      ↝⟨ (Σ-cong (lemma₂ _ _) λ _ →
+                                                                              Σ-cong (lemma₂ _ _) λ _ →
+                                                                              ∀-cong ext λ _ → lemma₃ _ _ _) ⟩
+    (∃ λ (f-f⁻¹ : ∀ x → ◯-map f (◯-map f⁻¹ x) ≡ x) →
+     ∃ λ (f⁻¹-f : ∀ x → ◯-map f⁻¹ (◯-map f x) ≡ x) →
+     (x : A) → cong (◯-map f) (f⁻¹-f (η x)) ≡ f-f⁻¹ (◯-map f (η x)))      ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse $
+                                                                              Π◯≃Πη ext λ _ →
+                                                                              Is-modal→Stable $ Is-modal→Separated (Separated-◯ _ _) _ _) ⟩
+    (∃ λ (f-f⁻¹ : ∀ x → ◯-map f (◯-map f⁻¹ x) ≡ x) →
+     ∃ λ (f⁻¹-f : ∀ x → ◯-map f⁻¹ (◯-map f x) ≡ x) →
+     (x : ◯ A) → cong (◯-map f) (f⁻¹-f x) ≡ f-f⁻¹ (◯-map f x))            ↔⟨⟩
+
+    HA.Proofs (◯-map f) (◯-map f⁻¹)                                       □
+    where
+    lemma₁ :
+      ∀ {A B : Type a} (g : A → B) (h : B → A) {x} →
+      ◯-map g (◯-map h (η x)) ≡ η (g (h x))
+    lemma₁ g h {x = x} =
+      ◯-map g (◯-map h (η x))  ≡⟨ cong (◯-map g) ◯-map-η ⟩
+      ◯-map g (η (h x))        ≡⟨ ◯-map-η ⟩∎
+      η (g (h x))              ∎
+
+    s : ∀ x → Stable-[ equivalence ] (◯-map g (◯-map h x) ≡ x)
+    s _ = Is-modal→Stable $ Separated-◯ _ _
+
+    abstract
+
+      lemma₂ :
+        {A B : Type a} (g : A → B) (h : B → A) →
+        ◯ ((x : B) → g (h x) ≡ x) ≃
+        ((x : ◯ B) → ◯-map g (◯-map h x) ≡ x)
+      lemma₂ {B = B} g h =
+        ◯ ((x : B) → g (h x) ≡ x)                  ↝⟨ inverse (Π◯≃◯Π ext) ⟩
+        ((x : B) → ◯ (g (h x) ≡ x))                ↝⟨ (∀-cong ext λ _ → ◯≡≃η≡η) ⟩
+        ((x : B) → η (g (h x)) ≡ η x)              ↔⟨ (∀-cong ext λ _ → trans-isomorphism (lemma₁ g h)) ⟩
+        ((x : B) → ◯-map g (◯-map h (η x)) ≡ η x)  ↝⟨ inverse $ Π◯≃Πη ext s ⟩□
+        ((x : ◯ B) → ◯-map g (◯-map h x) ≡ x)      □
+
+      lemma₂-η :
+        ∀ {A B : Type a} {g : A → B} {h p x} →
+        _≃_.to (lemma₂ g h) (η p) (η x) ≡
+        trans (lemma₁ g h) (cong η (p x))
+      lemma₂-η {g = g} {h = h} {p = p} {x = x} =
+        _≃_.to (lemma₂ g h) (η p) (η x)                                    ≡⟨⟩
+
+        _≃_.from (Π◯≃Πη ext s)
+          (λ x → trans (lemma₁ g h) $ η-cong $
+                 ◯-rec Is-modal-◯ id $ ◯-map (_$ x) $ ◯-map (η ∘_) (η p))
+          (η x)                                                            ≡⟨ Π◯≃Πη⁻¹-η ext s ⟩
+
+        (trans (lemma₁ g h) $ η-cong $
+         ◯-rec Is-modal-◯ id $ ◯-map (_$ x) $ ◯-map (η ∘_) (η p))          ≡⟨ cong (trans (lemma₁ g h) ∘ η-cong) $
+                                                                              trans (cong (◯-rec Is-modal-◯ id) $
+                                                                                     trans (cong (◯-map (_$ x)) ◯-map-η)
+                                                                                     ◯-map-η)
+                                                                              ◯-rec-η ⟩
+
+        trans (lemma₁ g h) (η-cong (η (p x)))                              ≡⟨ cong (trans (lemma₁ g h)) η-cong-η ⟩∎
+
+        trans (lemma₁ g h) (cong η (p x))                                  ∎
+
+    lemma₂-ηˡ :
+      ∀ {A B : Type a} {g : A → B} {h p x} →
+      _≃_.to (lemma₂ g h) (η p) x ≡
+      ◯-elim (λ _ → Separated-◯ _ _) (trans (lemma₁ g h) ∘ cong η ∘ p) x
+    lemma₂-ηˡ {g = g} {h = h} {p = p} {x = x} =
+      ◯-elim
+        {P = λ x →
+               _≃_.to (lemma₂ g h) (η p) x ≡
+               ◯-elim (λ _ → Separated-◯ _ _)
+                 (trans (lemma₁ g h) ∘ cong η ∘ p) x}
+        (λ _ → Is-modal→Separated (Separated-◯ _ _) _ _)
+        (λ x →
+           _≃_.to (lemma₂ g h) (η p) (η x)                     ≡⟨ lemma₂-η ⟩
+
+           trans (lemma₁ g h) (cong η (p x))                   ≡⟨ sym ◯-elim-η ⟩∎
+
+           ◯-elim (λ x → Separated-◯ (◯-map g (◯-map h x)) x)
+             (trans (lemma₁ g h) ∘ cong η ∘ p) (η x)           ∎)
+        x
+
+    lemma₃ :
+      ∀ x f-f⁻¹ f⁻¹-f →
+      (◯-map (cong f ∘ (_$ x)) f⁻¹-f ≡ ◯-map (_$ f x) f-f⁻¹) ≃
+      (cong (◯-map f) (_≃_.to (lemma₂ f⁻¹ f) f⁻¹-f (η x)) ≡
+       _≃_.to (lemma₂ f f⁻¹) f-f⁻¹ (◯-map f (η x)))
+    lemma₃ x =
+      ◯-elim (λ _ → Is-modal-Π ext λ _ → m) λ f-f⁻¹ →
+      ◯-elim (λ _ → m) λ f⁻¹-f →
+
+        ◯-map (cong f ∘ (_$ x)) (η f⁻¹-f) ≡ ◯-map (_$ f x) (η f-f⁻¹)  ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ ◯-map-η ◯-map-η ⟩
+
+        η (cong f (f⁻¹-f x)) ≡ η (f-f⁻¹ (f x))                        ↝⟨ inverse $ Eq.≃-≡ ◯≡≃η≡η ⟩
+
+        η-cong (η (cong f (f⁻¹-f x))) ≡ η-cong (η (f-f⁻¹ (f x)))      ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ η-cong-η η-cong-η ⟩
+
+        cong η (cong f (f⁻¹-f x)) ≡ cong η (f-f⁻¹ (f x))              ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ $ flip-trans-isomorphism _ ⟩
+
+        trans (cong η (cong f (f⁻¹-f x))) (sym ◯-map-η) ≡
+        trans (cong η (f-f⁻¹ (f x))) (sym ◯-map-η)                    ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ $ trans-isomorphism _ ⟩
+
+        trans (trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η)
+          (trans (cong η (cong f (f⁻¹-f x))) (sym ◯-map-η)) ≡
+        trans (trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η)
+          (trans (cong η (f-f⁻¹ (f x))) (sym ◯-map-η))                ↝⟨ ≡⇒↝ _ $ sym $ cong₂ _≡_ (lemma₄ _) (lemma₅ _) ⟩□
+
+        cong (◯-map f) (_≃_.to (lemma₂ f⁻¹ f) (η f⁻¹-f) (η x)) ≡
+        _≃_.to (lemma₂ f f⁻¹) (η f-f⁻¹) (◯-map f (η x))               □
+      where
+      m :
+        ∀ {f-f⁻¹ f⁻¹-f} →
+        Is-modal
+          ((◯-map (cong f ∘ (_$ x)) f⁻¹-f ≡ ◯-map (_$ f x) f-f⁻¹) ≃
+           (cong (◯-map f) (_≃_.to (lemma₂ f⁻¹ f) f⁻¹-f (η x)) ≡
+            _≃_.to (lemma₂ f f⁻¹) f-f⁻¹ (◯-map f (η x))))
+      m =
+        Is-modal-≃ ext (Separated-◯ _ _) $
+        Is-modal→Separated (Separated-◯ _ _) _ _
+
+      lemma₄ :
+        (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
+        cong (◯-map f) (_≃_.to (lemma₂ f⁻¹ f) (η f⁻¹-f) (η x)) ≡
+        trans (trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η)
+          (trans (cong η (cong f (f⁻¹-f x))) (sym ◯-map-η))
+      lemma₄ f⁻¹-f =
+        cong (◯-map f) (_≃_.to (lemma₂ f⁻¹ f) (η f⁻¹-f) (η x))     ≡⟨ cong (cong (◯-map f)) lemma₂-η ⟩
+
+        cong (◯-map f) (trans (lemma₁ f⁻¹ f) (cong η (f⁻¹-f x)))   ≡⟨ elim¹
+                                                                        (λ p →
+                                                                           cong (◯-map f) (trans (lemma₁ f⁻¹ f) (cong η p)) ≡
+                                                                           trans (trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η)
+                                                                             (trans (cong η (cong f p)) (sym ◯-map-η)))
+                                                                        (
+          cong (◯-map f) (trans (lemma₁ f⁻¹ f) (cong η (refl _)))        ≡⟨ cong (cong (◯-map f)) $
+                                                                            trans (cong (trans _) $ cong-refl _) $
+                                                                            trans-reflʳ _ ⟩
+
+          cong (◯-map f) (lemma₁ f⁻¹ f)                                  ≡⟨ sym $
+                                                                            trans-[trans]-sym _ _ ⟩
+          trans (trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η)
+            (sym ◯-map-η)                                                ≡⟨ cong (trans _) $ sym $
+                                                                            trans (cong (flip trans _) $
+                                                                                   trans (cong (cong η) $ cong-refl _) $
+                                                                                   cong-refl _) $
+                                                                            trans-reflˡ _ ⟩∎
+          trans (trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η)
+            (trans (cong η (cong f (refl _))) (sym ◯-map-η))             ∎)
+                                                                        _ ⟩∎
+        trans (trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η)
+          (trans (cong η (cong f (f⁻¹-f x))) (sym ◯-map-η))        ∎
+
+      lemma₅ :
+        (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
+        _≃_.to (lemma₂ f f⁻¹) (η f-f⁻¹) (◯-map f (η x)) ≡
+        trans (trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η)
+          (trans (cong η (f-f⁻¹ (f x))) (sym ◯-map-η))
+      lemma₅ f-f⁻¹ =
+        _≃_.to (lemma₂ f f⁻¹) (η f-f⁻¹) (◯-map f (η x))             ≡⟨ lemma₂-ηˡ ⟩
+
+        ◯-elim
+          {P = λ x → ◯-map f (◯-map f⁻¹ x) ≡ x}
+          (λ _ → Separated-◯ _ _)
+          (trans (lemma₁ f f⁻¹) ∘ cong η ∘ f-f⁻¹)
+          (◯-map f (η x))                                           ≡⟨ ◯-elim-◯-map ⟩
+
+        ◯-elim
+          {P = λ x → ◯-map f (◯-map f⁻¹ (◯-map f x)) ≡ ◯-map f x}
+          (λ _ → Separated-◯ _ _)
+          (subst (λ x → ◯-map f (◯-map f⁻¹ x) ≡ x) (sym ◯-map-η) ∘
+           trans (lemma₁ f f⁻¹) ∘ cong η ∘ f-f⁻¹ ∘ f)
+          (η x)                                                     ≡⟨ ◯-elim-η ⟩
+
+        subst (λ x → ◯-map f (◯-map f⁻¹ x) ≡ x) (sym ◯-map-η)
+          (trans (lemma₁ f f⁻¹) (cong η (f-f⁻¹ (f x))))             ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+        trans (sym (cong (◯-map f ∘ ◯-map f⁻¹) (sym ◯-map-η)))
+          (trans (trans (lemma₁ f f⁻¹) (cong η (f-f⁻¹ (f x))))
+             (cong id (sym ◯-map-η)))                               ≡⟨ cong (trans _) $
+                                                                       trans (cong (trans _) $ sym $ cong-id _) $
+                                                                       trans-assoc _ _ _ ⟩
+        trans (sym (cong (◯-map f ∘ ◯-map f⁻¹) (sym ◯-map-η)))
+          (trans (lemma₁ f f⁻¹)
+             (trans (cong η (f-f⁻¹ (f x))) (sym ◯-map-η)))          ≡⟨ elim¹
+                                                                         (λ eq →
+                                                                            trans (sym (cong (◯-map f ∘ ◯-map f⁻¹) (sym ◯-map-η)))
+                                                                              (trans (lemma₁ f f⁻¹) eq) ≡
+                                                                            trans (trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η) eq)
+                                                                         (trans (cong (trans _) $ trans-reflʳ _) $
+                                                                          trans lemma₆ $
+                                                                          sym $ trans-reflʳ _)
+                                                                         _ ⟩∎
+        trans (trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η)
+          (trans (cong η (f-f⁻¹ (f x))) (sym ◯-map-η))              ∎
+        where
+        lemma₆ =
+          trans (sym (cong (◯-map f ∘ ◯-map f⁻¹)
+                        (sym $ ◯-map-η {x = x})))
+            (lemma₁ f f⁻¹)                                        ≡⟨⟩
+
+          trans (sym (cong (◯-map f ∘ ◯-map f⁻¹) (sym ◯-map-η)))
+            (trans (cong (◯-map f) ◯-map-η) ◯-map-η)              ≡⟨ cong (flip trans _) $
+                                                                     trans (sym $ cong-sym _ _) $
+                                                                     cong (cong _) $ sym-sym _ ⟩
+          trans (cong (◯-map f ∘ ◯-map f⁻¹) ◯-map-η)
+            (trans (cong (◯-map f) ◯-map-η) ◯-map-η)              ≡⟨ cong (flip trans _) $ sym $
+                                                                     cong-∘ _ _ _ ⟩
+          trans (cong (◯-map f) (cong (◯-map f⁻¹) ◯-map-η))
+            (trans (cong (◯-map f) ◯-map-η) ◯-map-η)              ≡⟨ trans (sym $ trans-assoc _ _ _) $
+                                                                     cong (flip trans _) $ sym $
+                                                                     cong-trans _ _ _ ⟩
+          trans (cong (◯-map f)
+                   (trans (cong (◯-map f⁻¹) ◯-map-η) ◯-map-η))
+            ◯-map-η                                               ≡⟨⟩
+
+          trans (cong (◯-map f) (lemma₁ f⁻¹ f)) ◯-map-η           ∎
+
+  private
+
+    -- ◯ (Is-equivalenceᴱ f) is logically equivalent to
+    -- Is-equivalenceᴱ (◯-map f).
+
+    ◯-Is-equivalenceᴱ⇔Is-equivalenceᴱ :
+      ◯ (Is-equivalenceᴱ f) ⇔ Is-equivalenceᴱ (◯-map f)
+    ◯-Is-equivalenceᴱ⇔Is-equivalenceᴱ {f = f} =
+      ◯ (Is-equivalenceᴱ f)                  ↝⟨ ◯-cong-⇔ EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP ⟩
+      ◯ (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))      ↝⟨ ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP _ ⟩
+      (∀ y → Contractibleᴱ (◯-map f ⁻¹ᴱ y))  ↝⟨ inverse $ EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP ⟩□
+      Is-equivalenceᴱ (◯-map f)              □
+
+    -- ◯ (Is-equivalenceᴱ f) is equivalent (with erased proofs) to
+    -- Is-equivalenceᴱ (◯-map f) (assuming function extensionality).
+
+    ◯-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ :
+      @0 Extensionality a a →
+      ◯ (Is-equivalenceᴱ f) ≃ᴱ Is-equivalenceᴱ (◯-map f)
+    ◯-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ {f = f} ext =
+      ◯ (Is-equivalenceᴱ f)                  ↝⟨ ◯-cong-≃ᴱ (EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext) ⟩
+      ◯ (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))      ↝⟨ ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP E.[ ext ] ⟩
+      (∀ y → Contractibleᴱ (◯-map f ⁻¹ᴱ y))  ↝⟨ inverse $ EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext ⟩□
+      Is-equivalenceᴱ (◯-map f)              □
+
+    -- ◯ (Is-equivalenceᴱ f) is equivalent to
+    -- Is-equivalenceᴱ (◯-map f) (assuming function extensionality).
+
+    ◯-Is-equivalenceᴱ≃Is-equivalenceᴱ′ :
+      {f : A → B} →
+      Extensionality a a →
+      ◯ (Is-equivalenceᴱ f) ≃ Is-equivalenceᴱ (◯-map f)
+    ◯-Is-equivalenceᴱ≃Is-equivalenceᴱ′ {A = A} {B = B} {f = f} ext =
+      ◯ (Is-equivalenceᴱ f)                                                 ↔⟨⟩
+
+      ◯ (∃ λ (f⁻¹ : B → A) → Erased (HA.Proofs f f⁻¹))                      ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
+
+      ◯ (∃ λ (f⁻¹ : B → A) → ◯ (Erased (HA.Proofs f f⁻¹)))                  ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯-Erased≃Erased-◯ ext) ⟩
+
+      ◯ (∃ λ (f⁻¹ : B → A) → Erased (◯ (HA.Proofs f f⁻¹)))                  ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → EC.Erased-cong (
+                                                                                ◯-Half-adjoint-proofs≃Half-adjoint-proofs-◯-map-◯-map ext)) ⟩
+
+      ◯ (∃ λ (f⁻¹ : B → A) → Erased (HA.Proofs (◯-map f) (◯-map f⁻¹)))      ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ≡⇒↝ _ $
+                                                                                cong (λ g → Erased (HA.Proofs (◯-map f) g)) $ sym $
+                                                                                apply-ext ext λ _ → ◯-map-◯-ηˡ) ⟩
+      ◯ (∃ λ (f⁻¹ : B → A) →
+           Erased (HA.Proofs (◯-map f) (◯-map-◯ (η f⁻¹))))                  ↝⟨ ◯Ση≃Σ◯◯ ⟩
+
+      (∃ λ (f⁻¹ : ◯ (B → A)) →
+         ◯ (Erased (HA.Proofs (◯-map f) (◯-map-◯ f⁻¹))))                    ↝⟨ (∃-cong λ _ →
+                                                                                Is-modal→Stable $
+                                                                                Is-modal-Erased (
+                                                                                Is-modal-Σ (Is-modal-Π ext λ _ → Separated-◯ _ _) λ _ →
+                                                                                Is-modal-Σ (Is-modal-Π ext λ _ → Separated-◯ _ _) λ _ →
+                                                                                Is-modal-Π ext λ _ →
+                                                                                Is-modal→Separated (Separated-◯ _ _) _ _)) ⟩
+
+      (∃ λ (f⁻¹ : ◯ (B → A)) → Erased (HA.Proofs (◯-map f) (◯-map-◯ f⁻¹)))  ↝⟨ Σ◯→≃Σ◯→◯ ext ⟩
+
+      (∃ λ (f⁻¹ : ◯ B → ◯ A) → Erased (HA.Proofs (◯-map f) f⁻¹))            ↔⟨⟩
+
+      Is-equivalenceᴱ (◯-map f)                                             □
+
+  -- ◯ (Is-equivalenceᴱ f) is equivalent to Is-equivalenceᴱ (◯-map f)
+  -- (assuming function extensionality).
+
+  ◯-Is-equivalenceᴱ≃Is-equivalenceᴱ :
+    ◯ (Is-equivalenceᴱ f) ↝[ a ∣ a ] Is-equivalenceᴱ (◯-map f)
+  ◯-Is-equivalenceᴱ≃Is-equivalenceᴱ =
+    generalise-ext?′
+      ◯-Is-equivalenceᴱ⇔Is-equivalenceᴱ
+      (from-equivalence ∘ ◯-Is-equivalenceᴱ≃Is-equivalenceᴱ′)
+      ◯-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ
 
   -- A variant of Σ◯→≃Σ◯→◯.
 
