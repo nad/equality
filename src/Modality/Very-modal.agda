@@ -813,7 +813,7 @@ Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
 -- Some lemmas that can be used to prove that ◯ (F A B) is equivalent
 -- to F (◯ A) (◯ B).
 
-◯↝↝◯↝◯′ :
+◯↝↝◯↝◯ :
   {F : Type a → Type a → Type a}
   {P : {A B : Type a} → (A → B) → Type a} →
   (∀ {A B} → F A B ↔ (∃ λ (f : A → B) → P f)) →
@@ -825,7 +825,7 @@ Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
    (∃ λ (f : ◯ A → ◯ B) → P f)) →
   Extensionality? k a a →
   ◯ (F A B) ↝[ k ] F (◯ A) (◯ B)
-◯↝↝◯↝◯′ {A = A} {B = B} {F = F} {P = P}
+◯↝↝◯↝◯ {A = A} {B = B} {F = F} {P = P}
   F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ◯→↝Σ◯→◯ ext =
   ◯ (F A B)                                  ↔⟨ ◯-cong-↔ F↔ ⟩
   ◯ (∃ λ (f : A → B) → P f)                  ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
@@ -837,7 +837,7 @@ Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
   (∃ λ (f : ◯ A → ◯ B) → P f)                ↔⟨ inverse F↔ ⟩□
   F (◯ A) (◯ B)                              □
 
-◯↝↝◯↝◯″ :
+◯↝↝◯↝◯′ :
   {F : Type a → Type a → Type a}
   {P : {A B : Type a} → (A → B) → Type a} →
   (∀ {A B} → F A B ↔ (∃ λ (f : A → B) → P f)) →
@@ -851,9 +851,9 @@ Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
   ({f : ◯ A → ◯ B} → Stable-[ k ] (P f)) →
   Extensionality? k a a →
   ◯ (F A B) ↝[ k ] F (◯ A) (◯ B)
-◯↝↝◯↝◯″ {A = A} {B = B} {F = F} {P = P}
+◯↝↝◯↝◯′ {A = A} {B = B} {F = F} {P = P}
   F↔ ◯∘P↝P∘◯-map P-cong P-cong-refl P-stable ext =
-  ◯↝↝◯↝◯′
+  ◯↝↝◯↝◯
     F↔
     ◯∘P↝P∘◯-map
     P-cong
@@ -863,11 +863,11 @@ Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
 
 private
 
-  -- An example of how ◯↝↝◯↝◯″ can be used.
+  -- An example of how ◯↝↝◯↝◯′ can be used.
 
   ◯⇔≃◯⇔◯′ : ◯ (A ⇔ B) ↝[ a ∣ a ] (◯ A ⇔ ◯ B)
   ◯⇔≃◯⇔◯′ ext =
-    ◯↝↝◯↝◯″
+    ◯↝↝◯↝◯′
       ⇔↔→×→
       ◯→≃◯→◯
       (λ _ _ → F.id)
@@ -899,7 +899,7 @@ private
 
 ◯↠≃◯↠◯ : ◯ (A ↠ B) ↝[ a ∣ a ] (◯ A ↠ ◯ B)
 ◯↠≃◯↠◯ ext =
-  ◯↝↝◯↝◯″
+  ◯↝↝◯↝◯′
     ↠↔∃-Split-surjective
     ◯-Split-surjective≃Split-surjective
     Split-surjective-cong
@@ -953,7 +953,7 @@ Connected-→≃◯-Is-equivalence {f = f} ext =
 
 ◯≃≃◯≃◯ : ◯ (A ≃ B) ↝[ a ∣ a ] (◯ A ≃ ◯ B)
 ◯≃≃◯≃◯ ext =
-  ◯↝↝◯↝◯″
+  ◯↝↝◯↝◯′
     Eq.≃-as-Σ
     ◯-Is-equivalence≃Is-equivalence
     Is-equivalence-cong
@@ -1053,7 +1053,7 @@ private
 
 ◯↔≃◯↔◯ : ◯ (A ↔ B) ↝[ a ∣ a ] (◯ A ↔ ◯ B)
 ◯↔≃◯↔◯ ext =
-  ◯↝↝◯↝◯″
+  ◯↝↝◯↝◯′
     Bijection.↔-as-Σ
     ◯-Has-quasi-inverse≃Has-quasi-inverse
     Has-quasi-inverse-cong
@@ -1103,7 +1103,7 @@ private
 
 ◯↣≃◯↣◯ : ◯ (A ↣ B) ↝[ a ∣ a ] (◯ A ↣ ◯ B)
 ◯↣≃◯↣◯ ext =
-  ◯↝↝◯↝◯″
+  ◯↝↝◯↝◯′
     ↣↔∃-Injective
     ◯-Injective≃Injective
     Injective-cong
@@ -1178,7 +1178,7 @@ private
 ◯-Embedding≃Embedding-◯-◯ :
   ◯ (Embedding A B) ↝[ a ∣ a ] Embedding (◯ A) (◯ B)
 ◯-Embedding≃Embedding-◯-◯ ext =
-  ◯↝↝◯↝◯″
+  ◯↝↝◯↝◯′
     Emb.Embedding-as-Σ
     ◯-Is-embedding≃Is-embedding
     Is-embedding-cong
@@ -1781,7 +1781,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
 
   ◯≃ᴱ-CP-≃◯≃ᴱ-CP-◯ : ◯ (A ECP.≃ᴱ B) ↝[ a ∣ a ] (◯ A ECP.≃ᴱ ◯ B)
   ◯≃ᴱ-CP-≃◯≃ᴱ-CP-◯ ext =
-    ◯↝↝◯↝◯′
+    ◯↝↝◯↝◯
       {P = λ f → ECP.Is-equivalenceᴱ f}
       F.id
       ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP
@@ -1790,42 +1790,26 @@ module []-cong (ax : []-cong-axiomatisation a) where
       (Σ◯→↝Σ◯→◯-Is-equivalenceᴱ-CP ext)
       ext
 
-  -- ◯ commutes with _≃ᴱ_ up to _≃ᴱ_ (assuming function
-  -- extensionality).
+  -- ◯ commutes with _≃ᴱ_ (assuming function extensionality).
 
-  ◯≃ᴱ≃ᴱ◯≃ᴱ◯ :
-    @0 Extensionality a a →
-    ◯ (A ≃ᴱ B) ≃ᴱ (◯ A ≃ᴱ ◯ B)
-  ◯≃ᴱ≃ᴱ◯≃ᴱ◯ {A = A} {B = B} ext =
-    ◯ (A ≃ᴱ B)        ↝⟨ ◯-cong-≃ᴱ $ EEq.≃ᴱ≃ᴱ≃ᴱ-CP ext ⟩
-    ◯ (A ECP.≃ᴱ B)    ↝⟨ ◯≃ᴱ-CP-≃◯≃ᴱ-CP-◯ E.[ ext ] ⟩
-    (◯ A ECP.≃ᴱ ◯ B)  ↝⟨ inverse $ EEq.≃ᴱ≃ᴱ≃ᴱ-CP ext ⟩□
-    (◯ A ≃ᴱ ◯ B)      □
+  ◯≃ᴱ≃◯≃ᴱ◯ : ◯ (A ≃ᴱ B) ↝[ a ∣ a ] (◯ A ≃ᴱ ◯ B)
+  ◯≃ᴱ≃◯≃ᴱ◯ ext =
+    ◯↝↝◯↝◯
+      (from-equivalence EEq.≃ᴱ-as-Σ)
+      ◯-Is-equivalenceᴱ≃Is-equivalenceᴱ
+      (λ ext f≡g → EEq.[]-cong₂-⊔.Is-equivalenceᴱ-cong ax ax ax ext f≡g)
+      (Is-modal→Stable-Is-equivalenceᴱ ext Is-modal-◯ Separated-◯)
+      (Σ◯→↝Σ◯→◯-Is-equivalenceᴱ ext)
+      ext
 
-  -- ◯ (A ↝[ k ] B) is related to ◯ A ↝[ k ] ◯ B (perhaps assuming
-  -- function extensionality).
+  -- ◯ commutes with _↝[ k ]_ (assuming function extensionality).
 
-  ◯↝↝◯↝◯ :
-    Extensionality? k a a →
-    ◯ (A ↝[ k ] B) ↝[ k ] (◯ A ↝[ k ] ◯ B)
-  ◯↝↝◯↝◯ {k = implication}         = ◯→≃◯→◯
-  ◯↝↝◯↝◯ {k = logical-equivalence} = ◯⇔≃◯⇔◯
-  ◯↝↝◯↝◯ {k = injection}           = ◯↣≃◯↣◯
-  ◯↝↝◯↝◯ {k = embedding}           = ◯-Embedding≃Embedding-◯-◯
-  ◯↝↝◯↝◯ {k = surjection}          = ◯↠≃◯↠◯
-  ◯↝↝◯↝◯ {k = bijection}           = ◯↔≃◯↔◯
-  ◯↝↝◯↝◯ {k = equivalence}         = ◯≃≃◯≃◯
-  ◯↝↝◯↝◯ {k = equivalenceᴱ}        = λ ext → ◯≃ᴱ≃ᴱ◯≃ᴱ◯ (E.erased ext)
-
-  ◯↝≃ᴱ◯↝◯ :
-    @0 Extensionality a a →
-    ◯ (A ↝[ k ] B) ≃ᴱ (◯ A ↝[ k ] ◯ B)
-  ◯↝≃ᴱ◯↝◯ {k = implication}         ext = ◯→≃◯→◯ E.[ ext ]
-  ◯↝≃ᴱ◯↝◯ {k = logical-equivalence} ext = ◯⇔≃◯⇔◯ E.[ ext ]
-  ◯↝≃ᴱ◯↝◯ {k = injection}           ext = ◯↣≃◯↣◯ E.[ ext ]
-  ◯↝≃ᴱ◯↝◯ {k = embedding}           ext = ◯-Embedding≃Embedding-◯-◯
-                                                 E.[ ext ]
-  ◯↝≃ᴱ◯↝◯ {k = surjection}          ext = ◯↠≃◯↠◯ E.[ ext ]
-  ◯↝≃ᴱ◯↝◯ {k = bijection}           ext = ◯↔≃◯↔◯ E.[ ext ]
-  ◯↝≃ᴱ◯↝◯ {k = equivalence}         ext = ◯≃≃◯≃◯ E.[ ext ]
-  ◯↝≃ᴱ◯↝◯ {k = equivalenceᴱ}        ext = ◯≃ᴱ≃ᴱ◯≃ᴱ◯ ext
+  ◯↝≃◯↝◯ : ◯ (A ↝[ k ] B) ↝[ a ∣ a ] (◯ A ↝[ k ] ◯ B)
+  ◯↝≃◯↝◯ {k = implication}         = ◯→≃◯→◯
+  ◯↝≃◯↝◯ {k = logical-equivalence} = ◯⇔≃◯⇔◯
+  ◯↝≃◯↝◯ {k = injection}           = ◯↣≃◯↣◯
+  ◯↝≃◯↝◯ {k = embedding}           = ◯-Embedding≃Embedding-◯-◯
+  ◯↝≃◯↝◯ {k = surjection}          = ◯↠≃◯↠◯
+  ◯↝≃◯↝◯ {k = bijection}           = ◯↔≃◯↔◯
+  ◯↝≃◯↝◯ {k = equivalence}         = ◯≃≃◯≃◯
+  ◯↝≃◯↝◯ {k = equivalenceᴱ}        = ◯≃ᴱ≃◯≃ᴱ◯
