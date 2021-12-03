@@ -1223,7 +1223,9 @@ private
 
 module []-cong (ax : []-cong-axiomatisation a) where
 
-  open Modality.Box-cong eq ax M
+  private
+    open module MBC = Modality.Box-cong eq ax M
+      hiding (Is-modal→Stable-Is-equivalenceᴱ)
 
   private
     module BC       = E.[]-cong₁ ax
@@ -1340,30 +1342,40 @@ module []-cong (ax : []-cong-axiomatisation a) where
     Is-modal→Stable (Is-modal→Separated m′ _ _))
 
   -- If f has type A → B, where A is modal and B is separated, then
-  -- Is-equivalenceᴱ f is equivalenceᴱ-stable (assuming function
+  -- Is-equivalenceᴱ f is k-stable (perhaps assuming function
   -- extensionality).
 
-  Is-modal→Stable-≃ᴱ-Is-equivalenceᴱ :
+  Is-modal→Stable-Is-equivalenceᴱ :
     {@0 f : A → B} →
-    @0 Extensionality a a →
+    Extensionality? k a a →
     Is-modal A → @0 Separated B →
-    Stable-[ equivalenceᴱ ] (Is-equivalenceᴱ f)
-  Is-modal→Stable-≃ᴱ-Is-equivalenceᴱ {f = f} ext m s =
-                                                             $⟨ s′ ⟩
-    Stable-[ equivalenceᴱ ] (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  →⟨ Stable-respects-↝-sym $ inverse $
-                                                                EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext ⟩□
-    Stable-[ equivalenceᴱ ] (Is-equivalenceᴱ f)              □
+    Stable-[ k ] (Is-equivalenceᴱ f)
+  Is-modal→Stable-Is-equivalenceᴱ {k = k} {f = f} ext m s =
+    generalise-ext?′
+      (Stable→Stable-⇔ $ MBC.Is-modal→Stable-Is-equivalenceᴱ m s)
+      (λ ext → Is-modal→Stable $ Is-modal-Is-equivalenceᴱ ext m s)
+      Is-modal→Stable-≃ᴱ-Is-equivalenceᴱ
+      ext
     where
-    ext′ = E.[ ext ]
+    Is-modal→Stable-≃ᴱ-Is-equivalenceᴱ :
+      @0 Extensionality a a →
+      Stable-[ equivalenceᴱ ] (Is-equivalenceᴱ f)
+    Is-modal→Stable-≃ᴱ-Is-equivalenceᴱ ext =
+                                                               $⟨ s′ ⟩
+      Stable-[ equivalenceᴱ ] (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  →⟨ Stable-respects-↝-sym $ inverse $
+                                                                  EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext ⟩□
+      Stable-[ equivalenceᴱ ] (Is-equivalenceᴱ f)              □
+      where
+      ext′ = E.[ ext ]
 
-    s′ =
-      Stable-Π ext′ λ y →
-      let m′ : Is-modal (f ⁻¹ᴱ y)
-          m′ = Is-modal-Σ m λ _ → Is-modal-Erased (s _ _) in
-      Stable-Σ m′ λ _ →
-      Stable-Erased ext′ (
-      Stable-Π ext′ λ _ →
-      Is-modal→Stable (Is-modal→Separated m′ _ _))
+      s′ =
+        Stable-Π ext′ λ y →
+        let m′ : Is-modal (f ⁻¹ᴱ y)
+            m′ = Is-modal-Σ m λ _ → Is-modal-Erased (s _ _) in
+        Stable-Σ m′ λ _ →
+        Stable-Erased ext′ (
+        Stable-Π ext′ λ _ →
+        Is-modal→Stable (Is-modal→Separated m′ _ _))
 
   -- A lemma relating ◯, ◯-map and _⁻¹ᴱ_.
 
