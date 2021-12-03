@@ -875,6 +875,123 @@ private
       (Stable-Π ext λ _ → Is-modal→Stable Is-modal-◯)
       ext
 
+-- A "computation rule" for ◯↝↝◯↝◯.
+
+◯↝↝◯↝◯-η :
+  {F : Type a → Type a → Type a}
+  {P : {A B : Type a} → (A → B) → Type a}
+  (F↔ : ∀ {A B} → F A B ↔ (∃ λ (f : A → B) → P f))
+  (◯∘P↝P∘◯-map : {f : A → B} → ◯ (P f) ↝[ a ∣ a ] P (◯-map f)) →
+  (P-cong :
+     ∀ {k} {f g : ◯ A → ◯ B} →
+     Extensionality? k a a → (∀ x → f x ≡ g x) → P f ↝[ k ] P g)
+  (P-stable : {f : ◯ A → ◯ B} → Stable (P f)) →
+  (∀ {f} {p : P f} → P-stable (η p) ≡ p) →
+  (Σ◯→→Σ◯→◯ :
+     (∃ λ (f : ◯ (A → B)) → P (◯-map-◯ f)) →
+     (∃ λ (f : ◯ A → ◯ B) → P f)) →
+  (∀ f p →
+     Σ◯→→Σ◯→◯
+       (η f , P-cong _ (λ _ → sym ◯-map-◯-ηˡ) (◯∘P↝P∘◯-map _ (η p))) ≡
+     (◯-map f , ◯∘P↝P∘◯-map _ (η p))) →
+  {x : F A B} →
+  ◯↝↝◯↝◯ F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ◯→→Σ◯→◯ _ (η x) ≡
+  _↔_.from F↔ (Σ-map ◯-map (◯∘P↝P∘◯-map _ ∘ η) (_↔_.to F↔ x))
+◯↝↝◯↝◯-η
+  F↔ ◯∘P↝P∘◯-map P-cong P-stable P-stable-η Σ◯→→Σ◯→◯ hyp {x = x} =
+  ◯↝↝◯↝◯ F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ◯→→Σ◯→◯ _ (η x)             ≡⟨⟩
+
+  (_↔_.from F↔ $ Σ◯→→Σ◯→◯ $ Σ-map id P-stable $ ◯Ση→Σ◯◯ $
+   ◯-map (Σ-map id (P-cong _ λ _ → sym ◯-map-◯-ηˡ)) $
+   ◯-map (Σ-map id (◯∘P↝P∘◯-map _)) $ ◯-map (Σ-map id η) $
+   ◯-map (_↔_.to F↔) (η x))                                    ≡⟨ cong (_↔_.from F↔) $ cong Σ◯→→Σ◯→◯ $ cong (Σ-map id P-stable) $
+                                                                  trans
+                                                                    (cong ◯Ση→Σ◯◯ $
+                                                                     trans
+                                                                       (cong (◯-map (Σ-map id (P-cong _ λ _ → sym ◯-map-◯-ηˡ))) $
+                                                                        trans
+                                                                          (cong (◯-map (Σ-map id (◯∘P↝P∘◯-map _))) $
+                                                                           trans
+                                                                             (cong (◯-map (Σ-map id η))
+                                                                              ◯-map-η) $
+                                                                           ◯-map-η)
+                                                                        ◯-map-η)
+                                                                     ◯-map-η)
+                                                                  ◯-rec-η ⟩
+  (_↔_.from F↔ $ Σ◯→→Σ◯→◯ $
+   Σ-map
+     η
+     (P-stable ∘ η ∘ P-cong _ (λ _ → sym ◯-map-◯-ηˡ) ∘
+      ◯∘P↝P∘◯-map _ ∘ η)
+     (_↔_.to F↔ x))                                            ≡⟨ cong (_↔_.from F↔) $ cong Σ◯→→Σ◯→◯ $ cong (_ ,_)
+                                                                  P-stable-η ⟩
+  (_↔_.from F↔ $ Σ◯→→Σ◯→◯ $
+   Σ-map
+     η
+     (P-cong _ (λ _ → sym ◯-map-◯-ηˡ) ∘ ◯∘P↝P∘◯-map _ ∘ η)
+     (_↔_.to F↔ x))                                            ≡⟨ cong (_↔_.from F↔) $
+                                                                  hyp _ _ ⟩∎
+  _↔_.from F↔ (Σ-map ◯-map (◯∘P↝P∘◯-map _ ∘ η) (_↔_.to F↔ x))  ∎
+
+-- A "computation rule" for ◯↝↝◯↝◯′.
+
+◯↝↝◯↝◯′-η :
+  {F : Type a → Type a → Type a}
+  {P : {A B : Type a} → (A → B) → Type a}
+  (F↔ : ∀ {A B} → F A B ↔ (∃ λ (f : A → B) → P f))
+  (◯∘P↝P∘◯-map : {f : A → B} → ◯ (P f) ↝[ a ∣ a ] P (◯-map f))
+  (P-cong :
+     ∀ {k} {f g : ◯ A → ◯ B} →
+     Extensionality? k a a → (∀ x → f x ≡ g x) → P f ↝[ k ] P g)
+  (P-cong-refl :
+     ∀ {f x} →
+     Extensionality a a →
+     P-cong {k = implication} _ (refl ∘ f) x ≡ x)
+  (P-stable : {f : ◯ A → ◯ B} → Stable (P f)) →
+  (∀ {f} {p : P f} → P-stable (η p) ≡ p) →
+  Extensionality a a →
+  {x : F A B} →
+  ◯↝↝◯↝◯′ F↔ ◯∘P↝P∘◯-map P-cong P-cong-refl P-stable _ (η x) ≡
+  _↔_.from F↔ (Σ-map ◯-map (◯∘P↝P∘◯-map _ ∘ η) (_↔_.to F↔ x))
+◯↝↝◯↝◯′-η {P = P}
+  F↔ ◯∘P↝P∘◯-map P-cong P-cong-refl P-stable P-stable-η ext {x = x} =
+  ◯↝↝◯↝◯-η F↔ ◯∘P↝P∘◯-map P-cong P-stable P-stable-η
+    (Σ◯→↝Σ◯→◯ (P-cong _) P-cong-refl _)
+    (λ f p →
+       Σ-≡,≡→≡
+         (◯-map-◯ (η f)  ≡⟨ (apply-ext ext′ λ _ → ◯-map-◯-ηˡ) ⟩∎
+          ◯-map f        ∎)
+         (subst P (apply-ext ext′ λ _ → ◯-map-◯-ηˡ)
+            (P-cong _ (λ _ → sym ◯-map-◯-ηˡ)
+               (◯∘P↝P∘◯-map _ (η p)))                                  ≡⟨ cong (subst P _) $
+                                                                          cong (λ eq → P-cong _ eq (◯∘P↝P∘◯-map _ (η p))) $
+                                                                          trans (sym $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext) _) $
+                                                                          cong ext⁻¹ $
+                                                                          Eq.good-ext-sym ext _ ⟩
+          subst P (apply-ext ext′ λ _ → ◯-map-◯-ηˡ)
+            (P-cong _ (ext⁻¹ $ sym $ apply-ext ext′ λ _ → ◯-map-◯-ηˡ)
+               (◯∘P↝P∘◯-map _ (η p)))                                  ≡⟨ elim₁
+                                                                            (λ eq →
+                                                                               subst P eq
+                                                                                 (P-cong _ (ext⁻¹ $ sym eq) (◯∘P↝P∘◯-map _ (η p))) ≡
+                                                                               ◯∘P↝P∘◯-map _ (η p))
+                                                                            (
+            subst P (refl _)
+              (P-cong _ (ext⁻¹ $ sym $ refl _) (◯∘P↝P∘◯-map _ (η p)))        ≡⟨ subst-refl _ _ ⟩
+
+            P-cong _ (ext⁻¹ $ sym $ refl _) (◯∘P↝P∘◯-map _ (η p))            ≡⟨ (cong (λ eq → P-cong _ eq (◯∘P↝P∘◯-map _ (η p))) $
+                                                                                 trans (cong ext⁻¹ sym-refl) $
+                                                                                 apply-ext ext λ _ → ext⁻¹-refl _) ⟩
+
+            P-cong _ (λ _ → refl _) (◯∘P↝P∘◯-map _ (η p))                    ≡⟨ P-cong-refl ext ⟩∎
+
+            ◯∘P↝P∘◯-map _ (η p)                                              ∎)
+                                                                            _ ⟩∎
+
+          ◯∘P↝P∘◯-map _ (η p)                                          ∎))
+  where
+  ext′ = Eq.good-ext ext
+
 -- ◯ (Split-surjective f) is equivalent to
 -- Split-surjective (◯-map f) (assuming function extensionality).
 

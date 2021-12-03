@@ -1174,7 +1174,8 @@ module Modality (M : Modality a) where
     Extensionality? k c d →
     A ↝[ c ∣ d ] B →
     ◯ A ↝[ k ] ◯ B
-  ◯-cong-↝ ext hyp = generalise-ext?′
+  ◯-cong-↝ {k = implication} _   hyp = ◯-map (hyp _)
+  ◯-cong-↝                   ext hyp = generalise-ext?′
     (◯-cong-⇔ (hyp _))
     (λ ext → ◯-cong-↔ (hyp ext))
     (λ ext → ◯-cong-≃ᴱ (hyp E.[ ext ]))
