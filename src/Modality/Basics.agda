@@ -1317,9 +1317,11 @@ module Modality (M : Modality a) where
   -- on function extensionality.
 
   ◯Ση→Σ◯◯ : ◯ (Σ A (P ∘ η)) → Σ (◯ A) (◯ ∘ P)
-  ◯Ση→Σ◯◯ = ◯-rec m₁ (Σ-map η η)
+  ◯Ση→Σ◯◯ {A = A} {P = P} = ◯-rec m₁ (Σ-map η η)
     where
-    m₁ = Is-modal-Σ Is-modal-◯ λ _ → Is-modal-◯
+    abstract
+      m₁ : Is-modal (Σ (◯ A) (◯ ∘ P))
+      m₁ = Is-modal-Σ Is-modal-◯ λ _ → Is-modal-◯
 
   -- ◯ commutes with Σ in a certain way (assuming function
   -- extensionality).
@@ -1376,7 +1378,7 @@ module Modality (M : Modality a) where
 
           η (x , y)                                                       ∎))
     where
-    m₁ = Is-modal-Σ Is-modal-◯ λ _ → Is-modal-◯
+    m₁ = _
     m₂ = λ _ → Is-modal-Π ext λ _ → Is-modal-◯
 
   -- If A is modal, then ◯ (Σ A P) is equivalent to Σ A (◯ ∘ P).

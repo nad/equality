@@ -404,7 +404,7 @@ topological {ℓ = ℓ} ext =
              η (x , y)                                                 ∎)
           very-modal))
   where
-  m₁ = Is-modal-Σ Is-modal-◯ λ _ → Is-modal-◯
+  m₁ = _
 
 -- ◯ commutes with Σ in a certain way.
 
