@@ -1062,6 +1062,56 @@ module Modality (M : Modality a) where
          ◯-map g (η x)  ∎)
       x
 
+  -- I did not take the remaining lemmas in this section from
+  -- "Modalities in Homotopy Type Theory" or the corresponding Coq
+  -- code.
+
+  -- A fusion lemma for ◯-elim and ◯-map.
+
+  ◯-elim-◯-map :
+    {g : A → B} →
+    ◯-elim {P = P} m f (◯-map g x) ≡
+    ◯-elim
+      {P = P ∘ ◯-map g}
+      (m ∘ ◯-map g)
+      (subst P (sym ◯-map-η) ∘ f ∘ g)
+      x
+  ◯-elim-◯-map {P = P} {m = m} {f = f} {x = x} {g = g} =
+    ◯-elim
+      {P = λ x →
+             ◯-elim {P = P} m f (◯-map g x) ≡
+             ◯-elim
+               {P = P ∘ ◯-map g}
+               (m ∘ ◯-map g)
+               (subst P (sym ◯-map-η) ∘ f ∘ g)
+               x}
+      (λ x → Is-modal→Separated (m (◯-map g x)) _ _)
+      (λ x →
+         ◯-elim m f (◯-map g (η x))                                  ≡⟨ elim¹
+                                                                          (λ {y} eq → ◯-elim m f y ≡ subst P eq (f (g x)))
+                                                                          (
+           ◯-elim m f (η (g x))                                            ≡⟨ ◯-elim-η ⟩
+           f (g x)                                                         ≡⟨ sym $ subst-refl _ _ ⟩∎
+           subst P (refl (η (g x))) (f (g x))                              ∎)
+                                                                          _ ⟩
+         subst P (sym ◯-map-η) (f (g x))                             ≡⟨ sym ◯-elim-η ⟩∎
+         ◯-elim (m ∘ ◯-map g) (subst P (sym ◯-map-η) ∘ f ∘ g) (η x)  ∎)
+      x
+
+  -- A fusion lemma for ◯-rec and ◯-map.
+
+  ◯-rec-◯-map : ◯-rec m f (◯-map g x) ≡ ◯-rec m (f ∘ g) x
+  ◯-rec-◯-map {m = m} {f = f} {g = g} {x = x} =
+    ◯-elim
+      {P = λ x → ◯-rec m f (◯-map g x) ≡ ◯-rec m (f ∘ g) x}
+      (λ _ → Is-modal→Separated m _ _)
+      (λ x →
+         ◯-rec m f (◯-map g (η x))  ≡⟨ cong (◯-rec m f) ◯-map-η ⟩
+         ◯-rec m f (η (g x))        ≡⟨ ◯-rec-η ⟩
+         f (g x)                    ≡⟨ sym ◯-rec-η ⟩∎
+         ◯-rec m (f ∘ g) (η x)      ∎)
+      x
+
   ----------------------------------------------------------------------
   -- Some preservation lemmas
 
