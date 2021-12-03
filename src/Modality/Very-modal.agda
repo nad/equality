@@ -1233,6 +1233,9 @@ module []-cong (ax : []-cong-axiomatisation a) where
     module BC-ECP   = ECP.[]-cong₂ ax ax
     module BC-ECP-⊔ = ECP.[]-cong₂-⊔ ax ax ax
 
+  ----------------------------------------------------------------------
+  -- Some equivalences
+
   -- ◯ (Erased (◯ A)) is equivalent to ◯ (Erased A) (assuming function
   -- extensionality).
 
@@ -1284,6 +1287,9 @@ module []-cong (ax : []-cong-axiomatisation a) where
                                                       Is-modal→≃◯ (Separated-◯ _ _))) ⟩
     (∃ λ (x : ◯ A) → Erased (∀ y → x ≡ y))        ↔⟨⟩
     Contractibleᴱ (◯ A)                           □
+
+  ----------------------------------------------------------------------
+  -- Some results related to stability
 
   -- If A is k-stable, then Erased A is k-stable (perhaps assuming
   -- function extensionality).
@@ -1376,6 +1382,9 @@ module []-cong (ax : []-cong-axiomatisation a) where
         Stable-Erased ext′ (
         Stable-Π ext′ λ _ →
         Is-modal→Stable (Is-modal→Separated m′ _ _))
+
+  ----------------------------------------------------------------------
+  -- More equivalences
 
   -- A lemma relating ◯, ◯-map and _⁻¹ᴱ_.
 
