@@ -407,6 +407,39 @@ P -Null B = ∀ x → Is-equivalence (const ⦂ (B → P x → B))
 _-Nullᴱ_ : {A : Type a} → (A → Type p) → Type b → Type (a ⊔ b ⊔ p)
 P -Nullᴱ B = ∀ x → Is-equivalenceᴱ (const ⦂ (B → P x → B))
 
+-- P -Null_ preserves equivalences (assuming extensionality).
+
+Null-cong :
+  {A : Type a} {B : Type b} {C : Type c} {P : A → Type p} →
+  Extensionality (a ⊔ b ⊔ c ⊔ p) (b ⊔ c ⊔ p) →
+  B ≃ C → P -Null B ≃ P -Null C
+Null-cong
+  {a = a} {b = b} {c = c} {p = p} {B = B} {C = C} {P = P} ext B≃C =
+  P -Null B                                                         ↔⟨⟩
+
+  (∀ x → Is-equivalence (const ⦂ (B → P x → B)))                    ↝⟨ (∀-cong ext′ λ x →
+                                                                        Is-equivalence≃Is-equivalence-∘ʳ
+                                                                          (_≃_.is-equivalence $ inverse B≃C) ext″) ⟩
+
+  (∀ x → Is-equivalence ((const ⦂ (B → P x → B)) ∘ _≃_.from B≃C))   ↝⟨ (∀-cong ext′ λ x →
+                                                                        Is-equivalence≃Is-equivalence-∘ˡ
+                                                                          (_≃_.is-equivalence $
+                                                                           ∀-cong (lower-extensionality (a ⊔ b ⊔ c) p ext) λ _ → B≃C)
+                                                                          ext″) ⟩
+  (∀ x →
+     Is-equivalence
+       ((_≃_.to B≃C ∘_) ∘ (const ⦂ (B → P x → B)) ∘ _≃_.from B≃C))  ↝⟨ (∀-cong (lower-extensionality (b ⊔ c ⊔ p) b ext) λ x →
+                                                                        Is-equivalence-cong (lower-extensionality (a ⊔ b) b ext) λ y →
+    const (_≃_.to B≃C (_≃_.from B≃C y))                                   ≡⟨ cong const $ _≃_.right-inverse-of B≃C _ ⟩∎
+    const y                                                               ∎) ⟩
+
+  (∀ x → Is-equivalence (const ⦂ (C → P x → C)))                    ↔⟨⟩
+
+  P -Null C                                                         □
+  where
+  ext′ = lower-extensionality (b ⊔ c ⊔ p) lzero ext
+  ext″ = lower-extensionality a           lzero ext
+
 -- Is-∞-extendable-along-[_] can sometimes be replaced by
 -- Is-equivalence const.
 

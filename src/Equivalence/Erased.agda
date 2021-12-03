@@ -19,6 +19,7 @@ import Equivalence.Contractible-preimages eq as CP
 open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (_⁻¹ᴱ_; Contractibleᴱ)
 import Equivalence.Half-adjoint eq as HA
+open import Equivalence.Path-split eq using (_-Nullᴱ_)
 open import Erased.Level-1 eq as Erased
   hiding (module []-cong; module []-cong₁; module []-cong₂-⊔)
 open import Function-universe eq as F
@@ -1468,7 +1469,26 @@ module []-cong₂-⊔
   open []-cong₁ ax
 
   ----------------------------------------------------------------------
-  -- Another preservation lemma
+  -- More preservation lemmas
+
+  private
+
+    -- Is-equivalenceᴱ f is equivalent to Is-equivalenceᴱ g if f and g
+    -- are pointwise equal (assuming extensionality).
+
+    Is-equivalenceᴱ-cong′ :
+      {A : Type a} {B : Type b} {@0 f g : A → B} →
+      []-cong-axiomatisation (a ⊔ b) →
+      @0 Extensionality? k (a ⊔ b) (a ⊔ b) →
+      @0 (∀ x → f x ≡ g x) →
+      Is-equivalenceᴱ f ↝[ k ] Is-equivalenceᴱ g
+    Is-equivalenceᴱ-cong′ {f = f} {g = g} ax ext f≡g =
+      generalise-erased-ext?
+        (Is-equivalenceᴱ-cong-⇔ f≡g)
+        (λ ext →
+           (∃ λ f⁻¹ → Erased (HA.Proofs f f⁻¹))  F.↔⟨ (∃-cong λ _ → Erased.Erased-cong.Erased-cong-≃ ax ax (Proofs-cong ext f≡g)) ⟩□
+           (∃ λ f⁻¹ → Erased (HA.Proofs g f⁻¹))  □)
+        ext
 
   -- Is-equivalenceᴱ f is equivalent to Is-equivalenceᴱ g if f and g
   -- are pointwise equal (assuming extensionality).
@@ -1478,13 +1498,42 @@ module []-cong₂-⊔
     @0 Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     @0 (∀ x → f x ≡ g x) →
     Is-equivalenceᴱ f ↝[ k ] Is-equivalenceᴱ g
-  Is-equivalenceᴱ-cong {f = f} {g = g} ext f≡g =
-    generalise-erased-ext?
-      (Is-equivalenceᴱ-cong-⇔ f≡g)
-      (λ ext →
-         (∃ λ f⁻¹ → Erased (HA.Proofs f f⁻¹))  F.↔⟨ (∃-cong λ _ → Erased-cong-≃ (Proofs-cong ext f≡g)) ⟩□
-         (∃ λ f⁻¹ → Erased (HA.Proofs g f⁻¹))  □)
-      ext
+  Is-equivalenceᴱ-cong = Is-equivalenceᴱ-cong′ ax
+
+  -- P -Nullᴱ_ preserves equivalences with erased proofs (assuming
+  -- extensionality).
+
+  Nullᴱ-cong :
+    {A : Type a} {B : Type b} {C : Type ℓ₁} {P : A → Type ℓ₂} →
+    @0 Extensionality (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂) (b ⊔ ℓ₁ ⊔ ℓ₂) →
+    B ≃ᴱ C → P -Nullᴱ B ≃ᴱ P -Nullᴱ C
+  Nullᴱ-cong {a = a} {b = b} {B = B} {C = C} {P = P} ext B≃C =
+    P -Nullᴱ B                                                          ↔⟨⟩
+
+    (∀ x → Is-equivalenceᴱ (const ⦂ (B → P x → B)))                     ↝⟨ (∀-cong [ ext′ ] λ x →
+                                                                            Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-∘ʳ ext″ $
+                                                                            _≃ᴱ_.is-equivalence $ inverse B≃C) ⟩
+
+    (∀ x → Is-equivalenceᴱ ((const ⦂ (B → P x → B)) ⊚ _≃ᴱ_.from B≃C))   ↝⟨ (∀-cong [ ext′ ] λ x →
+                                                                            Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-∘ˡ ext″ $
+                                                                            _≃ᴱ_.is-equivalence $
+                                                                            ∀-cong [ lower-extensionality (a ⊔ b ⊔ ℓ₁) ℓ₂ ext ] λ _ →
+                                                                            B≃C) ⟩
+    (∀ x →
+       Is-equivalenceᴱ
+         ((_≃ᴱ_.to B≃C ⊚_) ⊚ (const ⦂ (B → P x → B)) ⊚ _≃ᴱ_.from B≃C))  ↝⟨ (∀-cong [ lower-extensionality (b ⊔ ℓ₁ ⊔ ℓ₂) b ext ] λ x →
+                                                                            Is-equivalenceᴱ-cong′ ax [ lower-extensionality (a ⊔ b) b ext ] λ y →
+      const (_≃ᴱ_.to B≃C (_≃ᴱ_.from B≃C y))                                   ≡⟨ cong const $ _≃ᴱ_.right-inverse-of B≃C _ ⟩∎
+      const y                                                                 ∎) ⟩
+
+    (∀ x → Is-equivalenceᴱ (const ⦂ (C → P x → C)))                     ↔⟨⟩
+
+    P -Nullᴱ C                                                          □
+    where
+    @0 ext′ : _
+    ext′ = lower-extensionality (b ⊔ ℓ₁ ⊔ ℓ₂) lzero ext
+    @0 ext″ : _
+    ext″ = lower-extensionality a             lzero ext
 
   ----------------------------------------------------------------------
   -- More conversion lemmas
