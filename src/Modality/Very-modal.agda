@@ -1342,7 +1342,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
 
   private
     open module MBC = Modality.Box-cong eq ax M
-      hiding (Is-modal→Stable-Is-equivalenceᴱ)
+      hiding (Is-modal→Stable-Is-equivalenceᴱ; ◯-cong-◯)
 
   private
     module BC       = E.[]-cong₁ ax
@@ -1939,3 +1939,8 @@ module []-cong (ax : []-cong-axiomatisation a) where
   ◯↝≃◯↝◯ {k = bijection}           = ◯↔≃◯↔◯
   ◯↝≃◯↝◯ {k = equivalence}         = ◯≃≃◯≃◯
   ◯↝≃◯↝◯ {k = equivalenceᴱ}        = ◯≃ᴱ≃◯≃ᴱ◯
+
+  -- A variant of MBC.◯-cong-◯.
+
+  ◯-cong-◯ : ◯ (A ↝[ k ] B) → ◯ A ↝[ k ] ◯ B
+  ◯-cong-◯ = ◯↝≃◯↝◯ _
