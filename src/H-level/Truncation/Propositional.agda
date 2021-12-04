@@ -44,7 +44,7 @@ import H-level.Truncation.Church equality-with-J as Trunc
 open import H-level.Truncation.Propositional.Erased eq as TE
   using (∥_∥ᴱ; Surjectiveᴱ)
 open import Injection equality-with-J using (_↣_)
-open import Modality equality-with-J
+open import Modality.Basics equality-with-J
 open import Monad equality-with-J
 open import Preimage equality-with-J as Preimage using (_⁻¹_)
 open import Surjection equality-with-J as Surjection

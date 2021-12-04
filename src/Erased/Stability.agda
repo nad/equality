@@ -36,7 +36,7 @@ open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
 import List eq as L
-open import Modality eq
+open import Modality.Basics eq
 import Nat eq as Nat
 open import Surjection eq using (_↠_; Split-surjective)
 open import Univalence-axiom eq

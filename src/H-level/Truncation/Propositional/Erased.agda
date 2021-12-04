@@ -44,7 +44,7 @@ open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional.One-step eq as O
   using (∥_∥¹-out-^)
 import H-level.Truncation.Propositional.Non-recursive.Erased eq as N
-open import Modality equality-with-J
+open import Modality.Basics equality-with-J
 open import Monad equality-with-J
 open import Preimage equality-with-J using (_⁻¹_)
 open import Surjection equality-with-J as S

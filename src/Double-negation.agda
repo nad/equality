@@ -21,7 +21,7 @@ open import Excluded-middle eq
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
-open import Modality eq
+open import Modality.Basics eq
 open import Monad eq
 
 -- The double-negation monad, defined using a wrapper type to make

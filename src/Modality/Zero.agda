@@ -20,7 +20,7 @@ open import Equivalence.Path-split eq
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
-open import Modality eq
+open import Modality.Basics eq
 
 private
   variable
