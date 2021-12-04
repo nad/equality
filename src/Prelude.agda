@@ -324,6 +324,14 @@ tailᵂ :
   (x : W A B) → B (headᵂ x) → W A B
 tailᵂ (sup x f) = f
 
+-- A map function.
+
+W-map :
+  (f : A → B) →
+  (∀ {x} → Q (f x) → P x) →
+  W A P → W B Q
+W-map f g (sup x h) = sup (f x) (λ y → W-map f g (h (g y)))
+
 -- If B is always inhabited, then W A B is empty.
 
 abstract
