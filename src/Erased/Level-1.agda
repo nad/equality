@@ -20,6 +20,7 @@ open Derived-definitions-and-properties eq-J
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding ([_,_])
 
+open import Accessibility eq-J as A using (Acc; Well-founded)
 open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq-J as Emb using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq-J
@@ -380,6 +381,44 @@ Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
 
   from : W (Erased A) (λ x → Erased (P (erased x))) → Erased (W A P)
   from (sup [ x ] f) = [ sup x (λ y → erased (from (f [ y ]))) ]
+
+-- The operator _[_]Erased_ lifts a relation from A to Erased A.
+
+_[_]Erased_ :
+  {@0 A : Type a} → Erased A → @0 (A → A → Type r) → Erased A → Type r
+[ x ] [ _<_ ]Erased [ y ] = Erased (x < y)
+
+-- Erased "commutes" with Acc (up to logical equivalence).
+--
+-- See also Erased-Acc below.
+
+Erased-Acc-⇔ :
+  {@0 A : Type a} {@0 _<_ : A → A → Type r} {@0 x : A} →
+  Erased (Acc _<_ x) ⇔ Acc _[ _<_ ]Erased_ [ x ]
+Erased-Acc-⇔ {_<_ = _<_} = record
+  { to   = λ acc → to (erased acc)
+  ; from = [_]→ ∘ from
+  }
+  where
+  to : ∀ {@0 x} → @0 Acc _<_ x → Acc _[ _<_ ]Erased_ [ x ]
+  to (A.acc f) = A.acc λ ([ y ]) ([ y<x ]) → to (f y y<x)
+
+  from : ∀ {@0 x} → Acc _[ _<_ ]Erased_ [ x ] → Acc _<_ x
+  from (A.acc f) = A.acc λ y y<x → from (f [ y ] [ y<x ])
+
+-- Erased "commutes" with Well-founded (up to logical equivalence).
+--
+-- See also Erased-Well-founded below.
+
+Erased-Well-founded-⇔ :
+  {@0 A : Type a} {@0 _<_ : A → A → Type r} →
+  Erased (Well-founded _<_) ⇔ Well-founded _[ _<_ ]Erased_
+Erased-Well-founded-⇔ {_<_ = _<_} =
+  Erased (Well-founded _<_)            ↔⟨⟩
+  Erased (∀ x → Acc _<_ x)             ↔⟨ Erased-Π↔Π-Erased ⟩
+  (∀ x → Erased (Acc _<_ (erased x)))  ↝⟨ (∀-cong _ λ _ → Erased-Acc-⇔) ⟩
+  (∀ x → Acc _[ _<_ ]Erased_ x)        ↔⟨⟩
+  Well-founded _[ _<_ ]Erased_         □
 
 ----------------------------------------------------------------------
 -- Erased is a modality
@@ -2115,6 +2154,28 @@ module []-cong₂-⊔
     (∀ x y → Is-equivalence (cong (map f)))                          □
     where
     ext′ = lower-extensionality? k ℓ₂ lzero ext
+
+  -- Erased "commutes" with Acc.
+
+  Erased-Acc :
+    {@0 A : Type ℓ₁} {@0 _<_ : A → A → Type ℓ₂} {@0 x : A} →
+    Erased (Acc _<_ x) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
+    Acc _[ _<_ ]Erased_ [ x ]
+  Erased-Acc = generalise-ext?-prop
+    Erased-Acc-⇔
+    (λ ext → BC.H-level-Erased 1 (A.Acc-propositional ext))
+    A.Acc-propositional
+
+  -- Erased "commutes" with Well-founded.
+
+  Erased-Well-founded :
+    {@0 A : Type ℓ₁} {@0 _<_ : A → A → Type ℓ₂} →
+    Erased (Well-founded _<_) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
+    Well-founded _[ _<_ ]Erased_
+  Erased-Well-founded = generalise-ext?-prop
+    Erased-Well-founded-⇔
+    (λ ext → BC.H-level-Erased 1 (A.Well-founded-propositional ext))
+    A.Well-founded-propositional
 
   ----------------------------------------------------------------------
   -- Erased commutes with various type formers
