@@ -15,6 +15,7 @@ open Derived-definitions-and-properties eq
 open import Logical-equivalence as LE using (_⇔_)
 open import Prelude
 
+open import Accessibility eq as A using (Acc; Well-founded)
 open import Bijection eq as Bijection using (_↔_)
 open import Double-negation eq as DN
 open import Embedding eq using (Embedding; Is-embedding)
@@ -52,7 +53,7 @@ private
     a b c ℓ ℓ₁ ℓ₂ ℓ₃ p : Level
     A B                : Type a
     P                  : A → Type p
-    ext f k k′ s x y   : A
+    ext f k k′ r s x y : A
     n                  : ℕ
 
 ------------------------------------------------------------------------
@@ -793,6 +794,21 @@ Very-stable-¬ :
 Very-stable-¬ {A = A} ext =
   Very-stable-Π ext λ _ →
   Very-stable-⊥
+
+-- Acc _<_ x is stable.
+
+Stable-Acc :
+  {@0 A : Type a} {@0 _<_ : A → A → Type r} {@0 x : A} →
+  Stable (Acc _<_ x)
+Stable-Acc [ A.acc f ] = A.acc (λ y y<x → Stable-Acc [ f y y<x ])
+
+-- Well-founded _<_ is stable.
+
+Stable-Well-founded :
+  {@0 A : Type a} {@0 _<_ : A → A → Type r} →
+  Stable (Well-founded _<_)
+Stable-Well-founded =
+  Stable-Π λ _ → Stable-Acc
 
 -- If A is very stable with erased proofs, then W A P is very stable
 -- with erased proofs (assuming extensionality).
@@ -2297,6 +2313,32 @@ module []-cong₂-⊔₂
 
   ----------------------------------------------------------------------
   -- Some lemmas related to Very-stable
+
+  -- Acc _<_ x is very stable (assuming extensionality).
+
+  Very-stable-Acc :
+    {A : Type ℓ₁} {_<_ : A → A → Type ℓ₂} {x : A} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    Very-stable (Acc _<_ x)
+  Very-stable-Acc {_<_ = _<_} ext =
+    []-cong₁.Stable→Left-inverse→Very-stable ax Stable-Acc lemma
+    where
+    lemma : (a : Acc _<_ x) → Stable-Acc [ a ] ≡ a
+    lemma (A.acc f) =
+      cong A.acc $
+      apply-ext (lower-extensionality ℓ₂ lzero ext) λ y →
+      apply-ext (lower-extensionality ℓ₁ lzero ext) λ y<x →
+      lemma (f y y<x)
+
+  -- Well-founded _<_ is very stable (assuming extensionality).
+
+  Very-stable-Well-founded :
+    {A : Type ℓ₁} {_<_ : A → A → Type ℓ₂} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    Very-stable (Well-founded _<_)
+  Very-stable-Well-founded {_<_ = _<_} ext =
+    Very-stable-Π (lower-extensionality ℓ₂ lzero ext) λ _ →
+    Very-stable-Acc ext
 
   -- All kinds of functions between erased types are very stable (in
   -- some cases assuming extensionality).
