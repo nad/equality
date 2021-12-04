@@ -59,24 +59,26 @@ private
 ------------------------------------------------------------------------
 -- Should "Very-modal" be stated differently?
 
--- ◯ (∀ x → Is-modal (P x)) is inhabited.
---
--- One might wonder if something like ◯ ({A : Type a} → Is-modal A)
--- would be more general than Very-modal M. However, the former
--- statement is not type-correct. The statement
---
---   {A : Type a} {P : A → Type a} → ◯ (∀ x → Is-modal (P x))
---
--- is type-correct, but follows from Very-modal M.
+abstract
 
-◯-Π-Is-modal :
-  {A : Type a} {P : A → Type a} → ◯ (∀ x → Is-modal (P x))
-◯-Π-Is-modal {A = A} {P = P} =
-                                         $⟨ (λ {_} → very-modal) ⟩
-  Very-modal M                           →⟨ (λ m → m , m) ⟩
-  ◯ (Is-modal A) × ◯ (Is-modal (Σ A P))  →⟨ _≃_.from ◯×≃ ⟩
-  ◯ (Is-modal A × Is-modal (Σ A P))      →⟨ ◯-map (λ (mA , mΣAP) → Is-modal-Σ≃Π-Is-modal mA _ mΣAP) ⟩□
-  ◯ (∀ x → Is-modal (P x))               □
+  -- ◯ (∀ x → Is-modal (P x)) is inhabited.
+  --
+  -- One might wonder if something like ◯ ({A : Type a} → Is-modal A)
+  -- would be more general than Very-modal M. However, the former
+  -- statement is not type-correct. The statement
+  --
+  --   {A : Type a} {P : A → Type a} → ◯ (∀ x → Is-modal (P x))
+  --
+  -- is type-correct, but follows from Very-modal M.
+
+  ◯-Π-Is-modal :
+    {A : Type a} {P : A → Type a} → ◯ (∀ x → Is-modal (P x))
+  ◯-Π-Is-modal {A = A} {P = P} =
+                                           $⟨ (λ {_} → very-modal) ⟩
+    Very-modal M                           →⟨ (λ m → m , m) ⟩
+    ◯ (Is-modal A) × ◯ (Is-modal (Σ A P))  →⟨ _≃_.from ◯×≃ ⟩
+    ◯ (Is-modal A × Is-modal (Σ A P))      →⟨ ◯-map (λ (mA , mΣAP) → Is-modal-Σ≃Π-Is-modal mA _ mΣAP) ⟩□
+    ◯ (∀ x → Is-modal (P x))               □
 
 ------------------------------------------------------------------------
 -- The modality is left exact and, assuming function extensionality,
