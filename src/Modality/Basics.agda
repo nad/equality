@@ -44,10 +44,10 @@ open import Surjection eq using (_↠_; Split-surjective)
 
 private
   variable
-    a c d         : Level
-    A B C         : Type a
-    f g k m p x y : A
-    P             : A → Type p
+    a c d           : Level
+    A B C           : Type a
+    f g k m p s x y : A
+    P               : A → Type p
 
 ------------------------------------------------------------------------
 -- Modalities
@@ -1601,22 +1601,64 @@ module Modality (M : Modality a) where
     Stable-Σ m λ _ →
     Stable-Erased (s _ _)
 
-  -- A variant of ◯-elim that uses Stable instead of Is-modal.
+  abstract
 
-  ◯-elim′ :
-    (∀ x → Stable (P x)) →
-    ((x : A) → P (η x)) →
-    ((x : ◯ A) → P x)
-  ◯-elim′ {A = A} {P = P} s =
-    ((x : A) → P (η x))      →⟨ η ∘_ ⟩
-    ((x : A) → ◯ (P (η x)))  →⟨ _⇔_.from $ Π◯◯≃Π◯η _ ⟩
-    ((x : ◯ A) → ◯ (P x))    →⟨ (λ f x → s x (f x)) ⟩□
-    ((x : ◯ A) → P x)        □
+    -- A variant of ◯-elim that uses Stable instead of Is-modal.
 
-  -- A variant of ◯-rec that uses Stable instead of Is-modal.
+    ◯-elim′ :
+      (∀ x → Stable (P x)) →
+      ((x : A) → P (η x)) →
+      ((x : ◯ A) → P x)
+    ◯-elim′ {A = A} {P = P} s =
+      ((x : A) → P (η x))      →⟨ η ∘_ ⟩
+      ((x : A) → ◯ (P (η x)))  →⟨ _⇔_.from $ Π◯◯≃Π◯η _ ⟩
+      ((x : ◯ A) → ◯ (P x))    →⟨ (λ f x → s x (f x)) ⟩□
+      ((x : ◯ A) → P x)        □
 
-  ◯-rec′ : Stable B → (A → B) → (◯ A → B)
-  ◯-rec′ s = ◯-elim′ (λ _ → s)
+    -- Three "computation rules" for ◯-elim′.
+
+    ◯-elim′-η :
+      {s : ∀ x → Stable (P x)} →
+      ◯-elim′ s f (η x) ≡ s (η x) (η (f x))
+    ◯-elim′-η {P = P} {f = f} {x = x} {s = s} =
+      ◯-elim′ s f (η x)                                            ≡⟨⟩
+      s (η x) (◯-elim (λ x → Is-modal-◯ {A = P x}) (η ∘ f) (η x))  ≡⟨ cong (s (η x)) ◯-elim-η ⟩∎
+      s (η x) (η (f x))                                            ∎
+
+    ◯-elim′-η′ :
+      s (η x) (η (f x)) ≡ f x →
+      ◯-elim′ s f (η x) ≡ f x
+    ◯-elim′-η′ {s = s} {x = x} {f = f} hyp =
+      ◯-elim′ s f (η x)  ≡⟨ ◯-elim′-η {s = s} ⟩
+      s (η x) (η (f x))  ≡⟨ hyp ⟩∎
+      f x                ∎
+
+    ◯-elim′-Is-modal→Stable-η :
+      ◯-elim′ (Is-modal→Stable ∘ m) f (η x) ≡ f x
+    ◯-elim′-Is-modal→Stable-η {m = m} {f = f} {x = x} =
+      ◯-elim′-η′ {s = Is-modal→Stable ∘ m}
+        (Is-modal→Stable (m (η x)) (η (f x))  ≡⟨ Is-modal→Stable-η ⟩∎
+         f x                                  ∎)
+
+    -- A variant of ◯-rec that uses Stable instead of Is-modal.
+
+    ◯-rec′ : Stable B → (A → B) → (◯ A → B)
+    ◯-rec′ s = ◯-elim′ (λ _ → s)
+
+    -- Three "computation rules" for ◯-rec′.
+
+    ◯-rec′-η : ◯-rec′ s f (η x) ≡ s (η (f x))
+    ◯-rec′-η {s = s} = ◯-elim′-η {s = λ _ → s}
+
+    ◯-rec′-η′ :
+      s (η (f x)) ≡ f x →
+      ◯-rec′ s f (η x) ≡ f x
+    ◯-rec′-η′ {s = s} = ◯-elim′-η′ {s = λ _ → s}
+
+    ◯-rec′-Is-modal→Stable-η :
+      ◯-rec′ (Is-modal→Stable m) f (η x) ≡ f x
+    ◯-rec′-Is-modal→Stable-η {m = m} =
+      ◯-elim′-Is-modal→Stable-η {m = λ _ → m}
 
   -- If s : Stable B and a certain "computation rule" holds for ◯-rec′
   -- and s, then B is modal.
@@ -1625,14 +1667,13 @@ module Modality (M : Modality a) where
     (s : Stable B) →
     (∀ {A} {f : A → B} {x : A} → ◯-rec′ s f (η x) ≡ f x) →
     Is-modal B
-  ◯-rec′-η→Is-modal s ◯-rec′-η =
+  ◯-rec′-η→Is-modal s ◯-rec′-η′ =
     Stable→left-inverse→Is-modal
       s
       (λ x →
-         s (η x)                                ≡⟨ cong s $ sym ◯-elim-η ⟩
-         s (◯-elim (λ _ → Is-modal-◯) η (η x))  ≡⟨⟩
-         ◯-rec′ s id (η x)                      ≡⟨ ◯-rec′-η ⟩∎
-         x                                      ∎)
+         s (η x)            ≡⟨ sym ◯-rec′-η ⟩
+         ◯-rec′ s id (η x)  ≡⟨ ◯-rec′-η′ ⟩∎
+         x                  ∎)
 
   ----------------------------------------------------------------------
   -- More equivalences
@@ -2705,13 +2746,13 @@ module Modality (M : Modality a) where
                                                              →-cong-→ (_≃_.from $ ◯≡≃η≡η lex) η-cong) ⟩
     (∀ x y → η (f x) ≡ η (f y) → η x ≡ η y)              →⟨ (∀-cong _ λ _ → ∀-cong _ λ _ →
                                                              →-cong-→ (≡⇒↝ _ $ cong₂ _≡_ ◯-map-η ◯-map-η) id) ⟩
-    (∀ x y → ◯-map f (η x) ≡ ◯-map f (η y) → η x ≡ η y)  →⟨ (∀-cong _ λ _ → _⇔_.from $ Π◯⇔Πη s) ⟩
-    (∀ x y → ◯-map f (η x) ≡ ◯-map f y → η x ≡ y)        →⟨ (_⇔_.from $ Π◯⇔Πη λ _ → Stable-Π s) ⟩
+    (∀ x y → ◯-map f (η x) ≡ ◯-map f (η y) → η x ≡ η y)  →⟨ (∀-cong _ λ _ → _⇔_.from $ Π◯⇔Πη s′) ⟩
+    (∀ x y → ◯-map f (η x) ≡ ◯-map f y → η x ≡ y)        →⟨ (_⇔_.from $ Π◯⇔Πη λ _ → Stable-Π s′) ⟩
     (∀ x y → ◯-map f x ≡ ◯-map f y → x ≡ y)              →⟨ (λ g → g _ _) ⟩□
     (∀ {x y} → ◯-map f x ≡ ◯-map f y → x ≡ y)            □
     where
-    s : ∀ {x} y → Stable (◯-map f x ≡ ◯-map f y → x ≡ y)
-    s _ = Stable-Π λ _ → Is-modal→Stable $ Separated-◯ _ _
+    s′ : ∀ {x} y → Stable (◯-map f x ≡ ◯-map f y → x ≡ y)
+    s′ _ = Stable-Π λ _ → Is-modal→Stable $ Separated-◯ _ _
 
   -- If the modality is left exact, then ◯ (A ↣ B) implies ◯ A ↣ ◯ B.
 
