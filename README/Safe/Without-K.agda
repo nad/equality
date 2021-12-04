@@ -129,6 +129,10 @@ import Embedding
 
 import Function-universe
 
+-- The accessibility predicate and well-founded induction.
+
+import Accessibility
+
 -- Some alternative definitions of the concept of being an
 -- equivalence.
 
