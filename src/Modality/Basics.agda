@@ -1167,19 +1167,29 @@ module Modality (M : Modality a) where
   ◯-cong-≃ᴱ A≃ᴱB =
     EEq.[≃]→≃ᴱ (EEq.[proofs] (◯-cong-≃ (EEq.≃ᴱ→≃ A≃ᴱB)))
 
-  -- If A ↝[ c ∣ d ] B holds, then ◯ A ↝[ k ] ◯ B holds for all k for
-  -- which Extensionality? k c d holds.
+  mutual
 
-  ◯-cong-↝ :
-    Extensionality? k c d →
-    A ↝[ c ∣ d ] B →
-    ◯ A ↝[ k ] ◯ B
-  ◯-cong-↝ {k = implication} _   hyp = ◯-map (hyp _)
-  ◯-cong-↝                   ext hyp = generalise-ext?′
-    (◯-cong-⇔ (hyp _))
-    (λ ext → ◯-cong-↔ (hyp ext))
-    (λ ext → ◯-cong-≃ᴱ (hyp E.[ ext ]))
-    ext
+    -- If A ↝[ c ∣ d ] B holds, then ◯ A ↝[ k ] ◯ B holds for all k for
+    -- which Extensionality? k c d holds.
+
+    ◯-cong-↝ :
+      Extensionality? k c d →
+      A ↝[ c ∣ d ] B →
+      ◯ A ↝[ k ] ◯ B
+    ◯-cong-↝ {k = implication} _   hyp = ◯-map (hyp _)
+    ◯-cong-↝                   ext hyp = ◯-cong-↝-sym ext hyp
+
+    -- A variant of ◯-cong-↝.
+
+    ◯-cong-↝-sym :
+      Extensionality? k c d →
+      (∀ {k} → Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
+      ◯ A ↝[ k ] ◯ B
+    ◯-cong-↝-sym ext hyp = generalise-ext?′
+      (◯-cong-⇔ (hyp _))
+      (λ ext → _≃_.bijection $ ◯-cong-≃ (hyp ext))
+      (λ ext → ◯-cong-≃ᴱ (hyp E.[ ext ]))
+      ext
 
   ----------------------------------------------------------------------
   -- Some equivalences and related results
