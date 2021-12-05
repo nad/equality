@@ -53,7 +53,8 @@ private
 ------------------------------------------------------------------------
 -- Some basic definitions
 
-open import Erased.Basics public
+open import Erased.Basics                       public
+open import Erased.Box-cong-axiomatisation eq-J public
 
 ------------------------------------------------------------------------
 -- Stability
@@ -806,100 +807,6 @@ Erased-Is-embedding-[] =
 Erased-Split-surjective-[] :
   {@0 A : Type a} → Erased (Split-surjective [ A ∣_]→)
 Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
-
-------------------------------------------------------------------------
--- []-cong-axiomatisation
-
--- An axiomatisation for []-cong.
---
--- In addition to the results in this section, see
--- []-cong-axiomatisation-propositional below.
-
-record []-cong-axiomatisation a : Type (lsuc a) where
-  field
-    []-cong :
-      {@0 A : Type a} {@0 x y : A} →
-      Erased (x ≡ y) → [ x ] ≡ [ y ]
-    []-cong-equivalence :
-      {@0 A : Type a} {@0 x y : A} →
-      Is-equivalence ([]-cong {x = x} {y = y})
-    []-cong-[refl] :
-      {@0 A : Type a} {@0 x : A} →
-      []-cong [ refl x ] ≡ refl [ x ]
-
--- The []-cong axioms can be instantiated in erased contexts.
-
-@0 erased-instance-of-[]-cong-axiomatisation :
-  []-cong-axiomatisation a
-erased-instance-of-[]-cong-axiomatisation
-  .[]-cong-axiomatisation.[]-cong =
-  cong [_]→ ∘ erased
-erased-instance-of-[]-cong-axiomatisation
-  .[]-cong-axiomatisation.[]-cong-equivalence {x = x} {y = y} =
-  _≃_.is-equivalence
-    (Erased (x ≡ y)  ↔⟨ erased Erased↔ ⟩
-     x ≡ y           ↝⟨ inverse []≡[]≃≡ ⟩□
-     [ x ] ≡ [ y ]   □)
-erased-instance-of-[]-cong-axiomatisation
-  .[]-cong-axiomatisation.[]-cong-[refl] {x = x} =
-  cong [_]→ (erased [ refl x ])  ≡⟨⟩
-  cong [_]→ (refl x)             ≡⟨ cong-refl _ ⟩∎
-  refl [ x ]                     ∎
-
--- If the []-cong axioms can be implemented for a certain universe
--- level, then they can also be implemented for all smaller universe
--- levels.
-
-lower-[]-cong-axiomatisation :
-  ∀ a′ → []-cong-axiomatisation (a ⊔ a′) → []-cong-axiomatisation a
-lower-[]-cong-axiomatisation {a = a} a′ ax = λ where
-    .[]-cong-axiomatisation.[]-cong             → []-cong′
-    .[]-cong-axiomatisation.[]-cong-equivalence → []-cong′-equivalence
-    .[]-cong-axiomatisation.[]-cong-[refl]      → []-cong′-[refl]
-  where
-  open []-cong-axiomatisation ax
-
-  lemma :
-    {@0 A : Type a} {@0 x y : A} →
-    Erased (lift {ℓ = a′} x ≡ lift y) ≃ ([ x ] ≡ [ y ])
-  lemma {x = x} {y = y} =
-    Erased (lift {ℓ = a′} x ≡ lift y)  ↝⟨ Eq.⟨ _ , []-cong-equivalence ⟩ ⟩
-    [ lift x ] ≡ [ lift y ]            ↝⟨ inverse $ Eq.≃-≡ (Eq.↔→≃ (map lower) (map lift) refl refl) ⟩□
-    [ x ] ≡ [ y ]                      □
-
-  []-cong′ :
-    {@0 A : Type a} {@0 x y : A} →
-    Erased (x ≡ y) → [ x ] ≡ [ y ]
-  []-cong′ {x = x} {y = y} =
-    Erased (x ≡ y)                     ↝⟨ map (cong lift) ⟩
-    Erased (lift {ℓ = a′} x ≡ lift y)  ↔⟨ lemma ⟩□
-    [ x ] ≡ [ y ]                      □
-
-  []-cong′-equivalence :
-    {@0 A : Type a} {@0 x y : A} →
-    Is-equivalence ([]-cong′ {x = x} {y = y})
-  []-cong′-equivalence {x = x} {y = y} =
-    _≃_.is-equivalence
-      (Erased (x ≡ y)                     ↝⟨ Eq.↔→≃ (map (cong lift)) (map (cong lower))
-                                               (λ ([ eq ]) →
-                                                  [ cong lift (cong lower eq) ]  ≡⟨ []-cong [ cong-∘ _ _ _ ] ⟩
-                                                  [ cong id eq ]                 ≡⟨ []-cong [ sym $ cong-id _ ] ⟩∎
-                                                  [ eq ]                         ∎)
-                                               (λ ([ eq ]) →
-                                                  [ cong lower (cong lift eq) ]  ≡⟨ []-cong′ [ cong-∘ _ _ _ ] ⟩
-                                                  [ cong id eq ]                 ≡⟨ []-cong′ [ sym $ cong-id _ ] ⟩∎
-                                                  [ eq ]                         ∎) ⟩
-       Erased (lift {ℓ = a′} x ≡ lift y)  ↝⟨ lemma ⟩□
-       [ x ] ≡ [ y ]                      □)
-
-  []-cong′-[refl] :
-    {@0 A : Type a} {@0 x : A} →
-    []-cong′ [ refl x ] ≡ refl [ x ]
-  []-cong′-[refl] {x = x} =
-    cong (map lower) ([]-cong [ cong lift (refl x) ])  ≡⟨ cong (cong (map lower) ∘ []-cong) $ []-cong [ cong-refl _ ] ⟩
-    cong (map lower) ([]-cong [ refl (lift x) ])       ≡⟨ cong (cong (map lower)) []-cong-[refl] ⟩
-    cong (map lower) (refl [ lift x ])                 ≡⟨ cong-refl _ ⟩∎
-    refl [ x ]                                         ∎
 
 ------------------------------------------------------------------------
 -- An alternative to []-cong-axiomatisation
@@ -2364,6 +2271,80 @@ module Extensionality where
 
 ------------------------------------------------------------------------
 -- Some lemmas related to []-cong-axiomatisation
+
+-- The []-cong axioms can be instantiated in erased contexts.
+
+@0 erased-instance-of-[]-cong-axiomatisation :
+  []-cong-axiomatisation a
+erased-instance-of-[]-cong-axiomatisation
+  .[]-cong-axiomatisation.[]-cong =
+  cong [_]→ ∘ erased
+erased-instance-of-[]-cong-axiomatisation
+  .[]-cong-axiomatisation.[]-cong-equivalence {x = x} {y = y} =
+  _≃_.is-equivalence
+    (Erased (x ≡ y)  ↔⟨ erased Erased↔ ⟩
+     x ≡ y           ↝⟨ inverse []≡[]≃≡ ⟩□
+     [ x ] ≡ [ y ]   □)
+erased-instance-of-[]-cong-axiomatisation
+  .[]-cong-axiomatisation.[]-cong-[refl] {x = x} =
+  cong [_]→ (erased [ refl x ])  ≡⟨⟩
+  cong [_]→ (refl x)             ≡⟨ cong-refl _ ⟩∎
+  refl [ x ]                     ∎
+
+-- If the []-cong axioms can be implemented for a certain universe
+-- level, then they can also be implemented for all smaller universe
+-- levels.
+
+lower-[]-cong-axiomatisation :
+  ∀ a′ → []-cong-axiomatisation (a ⊔ a′) → []-cong-axiomatisation a
+lower-[]-cong-axiomatisation {a = a} a′ ax = λ where
+    .[]-cong-axiomatisation.[]-cong             → []-cong′
+    .[]-cong-axiomatisation.[]-cong-equivalence → []-cong′-equivalence
+    .[]-cong-axiomatisation.[]-cong-[refl]      → []-cong′-[refl]
+  where
+  open []-cong-axiomatisation ax
+
+  lemma :
+    {@0 A : Type a} {@0 x y : A} →
+    Erased (lift {ℓ = a′} x ≡ lift y) ≃ ([ x ] ≡ [ y ])
+  lemma {x = x} {y = y} =
+    Erased (lift {ℓ = a′} x ≡ lift y)  ↝⟨ Eq.⟨ _ , []-cong-equivalence ⟩ ⟩
+    [ lift x ] ≡ [ lift y ]            ↝⟨ inverse $ Eq.≃-≡ (Eq.↔→≃ (map lower) (map lift) refl refl) ⟩□
+    [ x ] ≡ [ y ]                      □
+
+  []-cong′ :
+    {@0 A : Type a} {@0 x y : A} →
+    Erased (x ≡ y) → [ x ] ≡ [ y ]
+  []-cong′ {x = x} {y = y} =
+    Erased (x ≡ y)                     ↝⟨ map (cong lift) ⟩
+    Erased (lift {ℓ = a′} x ≡ lift y)  ↔⟨ lemma ⟩□
+    [ x ] ≡ [ y ]                      □
+
+  []-cong′-equivalence :
+    {@0 A : Type a} {@0 x y : A} →
+    Is-equivalence ([]-cong′ {x = x} {y = y})
+  []-cong′-equivalence {x = x} {y = y} =
+    _≃_.is-equivalence
+      (Erased (x ≡ y)                     ↝⟨ Eq.↔→≃ (map (cong lift)) (map (cong lower))
+                                               (λ ([ eq ]) →
+                                                  [ cong lift (cong lower eq) ]  ≡⟨ []-cong [ cong-∘ _ _ _ ] ⟩
+                                                  [ cong id eq ]                 ≡⟨ []-cong [ sym $ cong-id _ ] ⟩∎
+                                                  [ eq ]                         ∎)
+                                               (λ ([ eq ]) →
+                                                  [ cong lower (cong lift eq) ]  ≡⟨ []-cong′ [ cong-∘ _ _ _ ] ⟩
+                                                  [ cong id eq ]                 ≡⟨ []-cong′ [ sym $ cong-id _ ] ⟩∎
+                                                  [ eq ]                         ∎) ⟩
+       Erased (lift {ℓ = a′} x ≡ lift y)  ↝⟨ lemma ⟩□
+       [ x ] ≡ [ y ]                      □)
+
+  []-cong′-[refl] :
+    {@0 A : Type a} {@0 x : A} →
+    []-cong′ [ refl x ] ≡ refl [ x ]
+  []-cong′-[refl] {x = x} =
+    cong (map lower) ([]-cong [ cong lift (refl x) ])  ≡⟨ cong (cong (map lower) ∘ []-cong) $ []-cong [ cong-refl _ ] ⟩
+    cong (map lower) ([]-cong [ refl (lift x) ])       ≡⟨ cong (cong (map lower)) []-cong-[refl] ⟩
+    cong (map lower) (refl [ lift x ])                 ≡⟨ cong-refl _ ⟩∎
+    refl [ x ]                                         ∎
 
 -- Any two implementations of []-cong are pointwise equal.
 

@@ -6,19 +6,18 @@
 
 open import Equality
 import Erased.Basics
-import Erased.Level-1
+import Erased.Box-cong-axiomatisation
 
 module Erased
   {c⁺}
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
-  (ax : ∀ {ℓ} → Erased.Level-1.[]-cong-axiomatisation eq ℓ)
+  (ax : ∀ {ℓ} →
+        Erased.Box-cong-axiomatisation.[]-cong-axiomatisation eq ℓ)
   where
 
 -- Re-exported definitions.
 
-private
-  module E₁ = Erased.Level-1 eq
-open E₁ public
+open import Erased.Level-1 eq as E₁ public
   hiding (module Erased-cong;
           module []-cong;
           module []-cong₁;

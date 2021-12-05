@@ -110,6 +110,10 @@ import Equivalence
 
 import Erased.Basics
 
+-- An axiomatisation for []-cong.
+
+import Erased.Box-cong-axiomatisation
+
 -- Equivalences with erased "proofs", defined in terms of partly
 -- erased contractible fibres.
 

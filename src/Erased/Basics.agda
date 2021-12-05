@@ -5,7 +5,8 @@
 -- This module contains some basic definitions with few dependencies
 -- (in particular, not Function-universe) that do not rely on
 -- equality. See Erased and other modules under Erased for more
--- definitions. The definitions below are reexported from Erased.
+-- definitions. The definitions below are reexported from
+-- Erased.Level-1.
 
 {-# OPTIONS --without-K --safe #-}
 
