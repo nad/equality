@@ -4253,6 +4253,345 @@ if-encoding {A = A} {B} =
   inverse ⊚ if-lemma (λ b → if b then A else B) id id
 
 ------------------------------------------------------------------------
+-- Properties related to W
+
+-- A preservation lemma for W and _⇔_.
+
+W-cong-⇔ :
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
+  (A₁↠A₂ : A₁ ↠ A₂) →
+  (∀ x → B₂ (_↠_.to A₁↠A₂ x) ⇔ B₁ x) →
+  W A₁ B₁ ⇔ W A₂ B₂
+W-cong-⇔ {B₁ = B₁} {B₂ = B₂} A₁↠A₂ B₂⇔B₁ = record
+  { to   = W-map (_↠_.to A₁↠A₂) (_⇔_.to (B₂⇔B₁ _))
+  ; from = W-map (_↠_.from A₁↠A₂) λ {x} →
+      B₁ (_↠_.from A₁↠A₂ x)                 →⟨ _⇔_.from (B₂⇔B₁ _) ⟩
+      B₂ (_↠_.to A₁↠A₂ (_↠_.from A₁↠A₂ x))  →⟨ subst B₂ (_↠_.right-inverse-of A₁↠A₂ _) ⟩□
+      B₂ x                                  □
+  }
+
+-- A preservation lemma for W and _↠_.
+
+W-cong-↠ :
+  ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
+  Extensionality b₂ (a₂ ⊔ b₂) →
+  (A₁↠A₂ : A₁ ↠ A₂) →
+  (∀ x → B₁ x ↠ B₂ (_↠_.to A₁↠A₂ x)) →
+  W A₁ B₁ ↠ W A₂ B₂
+W-cong-↠ {A₂ = A₂} {B₁ = B₁} {B₂ = B₂} ext A₁↠A₂ B₁↠B₂ = record
+  { logical-equivalence =
+      W-cong-⇔ A₁↠A₂ (inverse ⊚ _↠_.logical-equivalence ⊚ B₁↠B₂)
+  ; right-inverse-of = lemma
+  }
+  where
+  lemma :
+    ∀ x →
+    W-map (_↠_.to A₁↠A₂) (λ {x} → _↠_.from (B₁↠B₂ x))
+      (W-map (_↠_.from A₁↠A₂)
+         (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _) ⊚ _↠_.to (B₁↠B₂ _))
+         x) ≡
+    x
+  lemma (sup x f) =
+    (sup (_↠_.to A₁↠A₂ (_↠_.from A₁↠A₂ x)) λ y →
+       W-map (_↠_.to A₁↠A₂) (_↠_.from (B₁↠B₂ _))
+         (W-map (_↠_.from A₁↠A₂)
+            (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _) ⊚
+             _↠_.to (B₁↠B₂ _))
+            (f (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _)
+                  (_↠_.to (B₁↠B₂ _) (_↠_.from (B₁↠B₂ _) y))))))        ≡⟨ cong (uncurry sup) $
+                                                                          Σ-≡,≡→≡
+                                                                            (_↠_.right-inverse-of A₁↠A₂ _)
+                                                                            (apply-ext ext λ y →
+      subst (λ x → B₂ x → W A₂ B₂)
+        (_↠_.right-inverse-of A₁↠A₂ _)
+        (λ y →
+           W-map (_↠_.to A₁↠A₂) (_↠_.from (B₁↠B₂ _))
+             (W-map (_↠_.from A₁↠A₂)
+                (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _) ⊚
+                 _↠_.to (B₁↠B₂ _))
+                (f (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _)
+                      (_↠_.to (B₁↠B₂ _) (_↠_.from (B₁↠B₂ _) y))))))
+        y                                                                      ≡⟨ subst-→-domain _ _ ⟩
+
+      W-map (_↠_.to A₁↠A₂) (_↠_.from (B₁↠B₂ _))
+        (W-map (_↠_.from A₁↠A₂)
+           (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _) ⊚
+            _↠_.to (B₁↠B₂ _))
+           (f (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _)
+                 (_↠_.to (B₁↠B₂ _) $ _↠_.from (B₁↠B₂ _) $
+                  subst B₂ (sym $ _↠_.right-inverse-of A₁↠A₂ _) y))))          ≡⟨ cong (W-map _ _) $ cong (W-map _ _) $ cong f (
+
+        (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _) $
+         _↠_.to (B₁↠B₂ _) $ _↠_.from (B₁↠B₂ _) $
+         subst B₂ (sym $ _↠_.right-inverse-of A₁↠A₂ _) y)                           ≡⟨ cong (subst B₂ _) $
+                                                                                       _↠_.right-inverse-of (B₁↠B₂ _) _ ⟩
+        (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _) $
+         subst B₂ (sym $ _↠_.right-inverse-of A₁↠A₂ _) y)                           ≡⟨ subst-subst-sym _ _ _ ⟩∎
+
+        y                                                                           ∎) ⟩∎
+
+      W-map (_↠_.to A₁↠A₂) (_↠_.from (B₁↠B₂ _))
+        (W-map (_↠_.from A₁↠A₂)
+           (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _) ⊚
+            _↠_.to (B₁↠B₂ _))
+           (f y))                                                              ∎) ⟩
+
+    (sup x λ y →
+       W-map (_↠_.to A₁↠A₂) (_↠_.from (B₁↠B₂ _))
+         (W-map (_↠_.from A₁↠A₂)
+            (subst B₂ (_↠_.right-inverse-of A₁↠A₂ _) ⊚
+             _↠_.to (B₁↠B₂ _))
+            (f y)))                                                    ≡⟨ (cong (sup x) $ apply-ext ext λ y →
+                                                                           lemma (f y)) ⟩∎
+    sup x f                                                            ∎
+
+private
+
+  -- Lemmas used in the implementation of W-cong.
+
+  W-cong-↔ :
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
+    Extensionality (b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) →
+    (A₁≃A₂ : A₁ ≃ A₂) →
+    (∀ x → B₁ x ↔ B₂ (_≃_.to A₁≃A₂ x)) →
+    W A₁ B₁ ↔ W A₂ B₂
+  W-cong-↔ {a₁ = a₁} {a₂ = a₂} {b₁ = b₁} {b₂ = b₂}
+           {A₁ = A₁} {B₁ = B₁} {B₂ = B₂} ext A₁≃A₂ B₁↔B₂ = record
+    { surjection =
+        W-cong-↠ (lower-extensionality b₁ (a₁ ⊔ b₁) ext)
+          (_≃_.surjection A₁≃A₂) (_↔_.surjection ⊚ B₁↔B₂)
+    ; left-inverse-of = lemma
+    }
+    where
+    ext′ = lower-extensionality b₂ (a₂ ⊔ b₂) ext
+
+    lemma :
+      ∀ x →
+      W-map (_≃_.from A₁≃A₂)
+        (subst B₂ (_≃_.right-inverse-of A₁≃A₂ _) ⊚ _↔_.to (B₁↔B₂ _))
+        (W-map (_≃_.to A₁≃A₂) (λ {x} → _↔_.from (B₁↔B₂ x)) x) ≡
+      x
+    lemma (sup x f) =
+      (sup (_≃_.from A₁≃A₂ (_≃_.to A₁≃A₂ x)) λ y →
+         W-map (_≃_.from A₁≃A₂)
+           (subst B₂ (_≃_.right-inverse-of A₁≃A₂ _) ⊚
+            _↔_.to (B₁↔B₂ _))
+           (W-map (_≃_.to A₁≃A₂) (_↔_.from (B₁↔B₂ _))
+             (f (_↔_.from (B₁↔B₂ _)
+                   (subst B₂ (_≃_.right-inverse-of A₁≃A₂ _)
+                      (_↔_.to (B₁↔B₂ _) y))))))                          ≡⟨ cong (uncurry sup) $
+                                                                            Σ-≡,≡→≡
+                                                                              (_≃_.left-inverse-of A₁≃A₂ _)
+                                                                              (apply-ext ext′ λ y →
+        subst (λ x → B₁ x → W A₁ B₁)
+          (_≃_.left-inverse-of A₁≃A₂ _)
+          (λ y →
+             W-map (_≃_.from A₁≃A₂)
+               (subst B₂ (_≃_.right-inverse-of A₁≃A₂ _) ⊚
+                _↔_.to (B₁↔B₂ _))
+               (W-map (_≃_.to A₁≃A₂) (_↔_.from (B₁↔B₂ _))
+                 (f (_↔_.from (B₁↔B₂ _)
+                       (subst B₂ (_≃_.right-inverse-of A₁≃A₂ _)
+                          (_↔_.to (B₁↔B₂ _) y))))))
+          y                                                                      ≡⟨ subst-→-domain _ _ ⟩
+
+        W-map (_≃_.from A₁≃A₂)
+          (subst B₂ (_≃_.right-inverse-of A₁≃A₂ _) ⊚
+           _↔_.to (B₁↔B₂ _))
+          (W-map (_≃_.to A₁≃A₂) (_↔_.from (B₁↔B₂ _))
+            (f (_↔_.from (B₁↔B₂ _) $
+                subst B₂ (_≃_.right-inverse-of A₁≃A₂ _) $
+                _↔_.to (B₁↔B₂ _) $
+                subst B₁ (sym $ _≃_.left-inverse-of A₁≃A₂ _) y)))                ≡⟨ cong (W-map _ _) $ cong (W-map _ _) $ cong f (
+
+          (_↔_.from (B₁↔B₂ _) $
+           subst B₂ (_≃_.right-inverse-of A₁≃A₂ _) $
+           _↔_.to (B₁↔B₂ _) $
+           subst B₁ (sym $ _≃_.left-inverse-of A₁≃A₂ _) y)                            ≡⟨ cong (_↔_.from (B₁↔B₂ _)) $ cong (flip (subst B₂) _) $
+                                                                                         sym $ _≃_.left-right-lemma A₁≃A₂ _ ⟩
+          (_↔_.from (B₁↔B₂ _) $
+           subst B₂ (cong (_≃_.to A₁≃A₂) $ _≃_.left-inverse-of A₁≃A₂ _) $
+           _↔_.to (B₁↔B₂ _) $
+           subst B₁ (sym $ _≃_.left-inverse-of A₁≃A₂ _) y)                            ≡⟨ elim₁
+                                                                                           (λ eq →
+                                                                                              (_↔_.from (B₁↔B₂ _) $
+                                                                                               subst B₂ (cong (_≃_.to A₁≃A₂) eq) $
+                                                                                               _↔_.to (B₁↔B₂ _) $
+                                                                                               subst B₁ (sym $ eq) y) ≡
+                                                                                              y)
+                                                                                           (
+            (_↔_.from (B₁↔B₂ _) $
+             subst B₂ (cong (_≃_.to A₁≃A₂) $ refl _) $
+             _↔_.to (B₁↔B₂ _) $
+             subst B₁ (sym $ refl _) y)                                                     ≡⟨ trans (cong (_↔_.from (B₁↔B₂ _)) $
+                                                                                                      trans (cong (flip (subst B₂) _) $
+                                                                                                             cong-refl _) $
+                                                                                                      trans (subst-refl _ _) $
+                                                                                                      cong (_↔_.to (B₁↔B₂ _)) $
+                                                                                                      trans (cong (flip (subst B₁) _)
+                                                                                                             sym-refl) $
+                                                                                                      subst-refl _ _) $
+                                                                                               _↔_.left-inverse-of (B₁↔B₂ _) _ ⟩∎
+
+            y                                                                               ∎)
+                                                                                           _ ⟩∎
+          y                                                                           ∎) ⟩∎
+
+        W-map (_≃_.from A₁≃A₂)
+          (subst B₂ (_≃_.right-inverse-of A₁≃A₂ _) ⊚
+           _↔_.to (B₁↔B₂ _))
+          (W-map (_≃_.to A₁≃A₂) (_↔_.from (B₁↔B₂ _)) (f y))                      ∎) ⟩
+
+      (sup x λ y →
+         W-map (_≃_.from A₁≃A₂)
+           (subst B₂ (_≃_.right-inverse-of A₁≃A₂ _) ⊚ _↔_.to (B₁↔B₂ _))
+           (W-map (_≃_.to A₁≃A₂) (λ {x} → _↔_.from (B₁↔B₂ x)) (f y)))    ≡⟨ (cong (sup x) $ apply-ext ext′ λ y →
+                                                                             lemma (f y)) ⟩∎
+      sup x f                                                            ∎
+
+  W-cong-≃ :
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
+    Extensionality (b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) →
+    (A₁≃A₂ : A₁ ≃ A₂) →
+    (∀ x → B₁ x ≃ B₂ (_≃_.to A₁≃A₂ x)) →
+    W A₁ B₁ ≃ W A₂ B₂
+  W-cong-≃ ext A₁≃A₂ B₁≃B₂ =
+    from-bijection $ W-cong-↔ ext A₁≃A₂ (from-equivalence ⊚ B₁≃B₂)
+
+  W-cong-≃ᴱ :
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+      {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
+    @0 Extensionality (b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) →
+    (A₁≃A₂ : A₁ ≃ A₂) →
+    (∀ x → B₁ x ≃ᴱ B₂ (_≃_.to A₁≃A₂ x)) →
+    W A₁ B₁ ≃ᴱ W A₂ B₂
+  W-cong-≃ᴱ ext A₁≃A₂ B₁≃ᴱB₂ =
+    EEq.[≃]→≃ᴱ
+      (EEq.[proofs] (W-cong-≃ ext A₁≃A₂ (λ x → EEq.≃ᴱ→≃ (B₁≃ᴱB₂ x))))
+
+-- A preservation lemma for W.
+
+W-cong :
+  ∀ {k a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+    {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂} →
+  Extensionality? ⌊ k ⌋-sym (b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) →
+  (A₁≃A₂ : A₁ ≃ A₂) →
+  (∀ x → B₁ x ↝[ ⌊ k ⌋-sym ] B₂ (_≃_.to A₁≃A₂ x)) →
+  W A₁ B₁ ↝[ ⌊ k ⌋-sym ] W A₂ B₂
+W-cong {k = logical-equivalence} _ A₁≃A₂ B₁⇔B₂ =
+  W-cong-⇔ (_≃_.surjection A₁≃A₂) (inverse ⊚ B₁⇔B₂)
+
+W-cong {k = bijection} = W-cong-↔
+
+W-cong {k = equivalence} = W-cong-≃
+
+W-cong {k = equivalenceᴱ} E.[ ext ] = W-cong-≃ᴱ ext
+
+private
+
+  -- A lemma used in the implementation of W-cong₂.
+
+  W-cong₂-⇔ :
+    ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
+    (∀ x → B₁ x ⇔ B₂ x) →
+    W A B₁ ⇔ W A B₂
+  W-cong₂-⇔ B₁⇔B₂ = record
+    { to   = W-map id (_⇔_.from (B₁⇔B₂ _))
+    ; from = W-map id (_⇔_.to   (B₁⇔B₂ _))
+    }
+
+-- A preservation lemma for W and _↠_.
+
+W-cong₂-↠ :
+  ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
+  Extensionality b₂ (a ⊔ b₂) →
+  (∀ x → B₁ x ↠ B₂ x) →
+  W A B₁ ↠ W A B₂
+W-cong₂-↠ ext B₁↠B₂ = record
+  { logical-equivalence = W-cong₂-⇔ (_↠_.logical-equivalence ⊚ B₁↠B₂)
+  ; right-inverse-of    = lemma
+  }
+  where
+  lemma :
+    ∀ x →
+    W-map id (_↠_.from (B₁↠B₂ _)) (W-map id (_↠_.to (B₁↠B₂ _)) x) ≡
+    x
+  lemma (sup x f) =
+    cong (sup x) $ apply-ext ext λ y →
+      W-map id (_↠_.from (B₁↠B₂ _))
+        (W-map id (_↠_.to (B₁↠B₂ _))
+           (f (_↠_.to (B₁↠B₂ _) (_↠_.from (B₁↠B₂ _) y))))  ≡⟨ cong (W-map _ _) $ cong (W-map _ _) $ cong f $
+                                                              _↠_.right-inverse-of (B₁↠B₂ _) _ ⟩
+      W-map id (_↠_.from (B₁↠B₂ _))
+        (W-map id (_↠_.to (B₁↠B₂ _)) (f y))                ≡⟨ lemma (f y) ⟩∎
+
+      f y                                                  ∎
+
+private
+
+  -- Lemmas used in the implementation of W-cong₂.
+
+  W-cong₂-↔ :
+    ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
+    Extensionality (b₁ ⊔ b₂) (a ⊔ b₁ ⊔ b₂) →
+    (∀ x → B₁ x ↔ B₂ x) →
+    W A B₁ ↔ W A B₂
+  W-cong₂-↔ {b₁ = b₁} {b₂ = b₂} ext B₁↔B₂ = record
+    { surjection =
+        W-cong₂-↠ (lower-extensionality b₁ b₁ ext)
+          (_↔_.surjection ⊚ B₁↔B₂)
+    ; left-inverse-of = lemma
+    }
+    where
+    lemma :
+      ∀ x →
+      W-map id (_↔_.to (B₁↔B₂ _)) (W-map id (_↔_.from (B₁↔B₂ _)) x) ≡
+      x
+    lemma (sup x f) =
+      cong (sup x) $ apply-ext (lower-extensionality b₂ b₂ ext) λ y →
+        W-map id (_↔_.to (B₁↔B₂ _))
+          (W-map id (_↔_.from (B₁↔B₂ _))
+             (f (_↔_.from (B₁↔B₂ _) (_↔_.to (B₁↔B₂ _) y))))  ≡⟨ cong (W-map _ _) $ cong (W-map _ _) $ cong f $
+                                                                _↔_.left-inverse-of (B₁↔B₂ _) _ ⟩
+        W-map id (_↔_.to (B₁↔B₂ _))
+          (W-map id (_↔_.from (B₁↔B₂ _)) (f y))              ≡⟨ lemma (f y) ⟩∎
+
+        f y                                                  ∎
+
+  W-cong₂-≃ :
+    ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
+    Extensionality (b₁ ⊔ b₂) (a ⊔ b₁ ⊔ b₂) →
+    (∀ x → B₁ x ≃ B₂ x) →
+    W A B₁ ≃ W A B₂
+  W-cong₂-≃ ext B₁≃B₂ =
+    from-bijection $ W-cong₂-↔ ext (from-equivalence ⊚ B₁≃B₂)
+
+  W-cong₂-≃ᴱ :
+    ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
+    @0 Extensionality (b₁ ⊔ b₂) (a ⊔ b₁ ⊔ b₂) →
+    (∀ x → B₁ x ≃ᴱ B₂ x) →
+    W A B₁ ≃ᴱ W A B₂
+  W-cong₂-≃ᴱ ext B₁≃ᴱB₂ =
+    EEq.[≃]→≃ᴱ
+      (EEq.[proofs] (W-cong₂-≃ ext (λ x → EEq.≃ᴱ→≃ (B₁≃ᴱB₂ x))))
+
+-- A preservation lemma for W.
+
+W-cong₂ :
+  ∀ {k a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
+  Extensionality? ⌊ k ⌋-sym (b₁ ⊔ b₂) (a ⊔ b₁ ⊔ b₂) →
+  (∀ x → B₁ x ↝[ ⌊ k ⌋-sym ] B₂ x) →
+  W A B₁ ↝[ ⌊ k ⌋-sym ] W A B₂
+W-cong₂ {k = logical-equivalence} _  = W-cong₂-⇔
+W-cong₂ {k = bijection}              = W-cong₂-↔
+W-cong₂ {k = equivalence}            = W-cong₂-≃
+W-cong₂ {k = equivalenceᴱ} E.[ ext ] = W-cong₂-≃ᴱ ext
+
+------------------------------------------------------------------------
 -- Properties related to ℕ
 
 -- The natural numbers are isomorphic to the natural numbers extended
