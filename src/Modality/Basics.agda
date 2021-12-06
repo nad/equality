@@ -16,38 +16,38 @@
 open import Equality
 
 module Modality.Basics
-  {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
+  {c⁺} (eq-J : ∀ {a p} → Equality-with-J a p c⁺) where
 
-open Derived-definitions-and-properties eq
+open Derived-definitions-and-properties eq-J
 
 open import Erased.Basics as E using (Erased)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq as Bijection using (_↔_; Has-quasi-inverse)
-open import Embedding eq as Emb using (Embedding; Is-embedding)
-open import Equivalence eq as Eq using (_≃_; Is-equivalence)
-open import Equivalence.Erased.Basics eq as EEq
+open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
+open import Embedding eq-J as Emb using (Embedding; Is-embedding)
+open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
+open import Equivalence.Erased.Basics eq-J as EEq
   using (_≃ᴱ_; Is-equivalenceᴱ)
-open import Equivalence.Erased.Contractible-preimages.Basics eq
+open import Equivalence.Erased.Contractible-preimages.Basics eq-J
   using (Contractibleᴱ; _⁻¹ᴱ_)
-import Equivalence.Half-adjoint eq as HA
-open import Equivalence.Path-split eq as PS
+import Equivalence.Half-adjoint eq-J as HA
+open import Equivalence.Path-split eq-J as PS
   using (Is-∞-extendable-along-[_])
-open import For-iterated-equality eq
-open import Function-universe eq hiding (id; _∘_)
-open import H-level eq as H-level
-open import H-level.Closure eq
-open import Injection eq using (_↣_; Injective)
-open import Preimage eq as Preimage using (_⁻¹_)
-open import Surjection eq using (_↠_; Split-surjective)
+open import For-iterated-equality eq-J
+open import Function-universe eq-J hiding (id; _∘_)
+open import H-level eq-J as H-level
+open import H-level.Closure eq-J
+open import Injection eq-J using (_↣_; Injective)
+open import Preimage eq-J as Preimage using (_⁻¹_)
+open import Surjection eq-J using (_↠_; Split-surjective)
 
 private
   variable
-    a c d                 : Level
-    A B C                 : Type a
-    f g k m m₁ m₂ p s x y : A
-    P                     : A → Type p
+    a c d                      : Level
+    A B C                      : Type a
+    eq f g k m m₁ m₂ p s x y z : A
+    P                          : A → Type p
 
 ------------------------------------------------------------------------
 -- Modalities
@@ -1909,6 +1909,147 @@ module Modality (M : Modality a) where
                      _ _)
             (λ _ → H-level.mono₁ 1 prop _ _)
       }
+
+  -- If A is separated, then W A P is separated (assuming function
+  -- extensionality).
+
+  Separated-W :
+    {P : A → Type a} →
+    Extensionality a a →
+    Separated A →
+    Separated (W A P)
+  Separated-W {A = A} {P = P} ext′ s = λ x y →
+    Stable→left-inverse→Is-modal
+      (Stable-≡-W   x y)
+      (Stable-≡-W-η x y)
+    where
+    ext = Eq.good-ext ext′
+
+    head-lemma : sup x f ≡ sup y g → x ≡ y
+    head-lemma = proj₁ ∘ Σ-≡,≡←≡ ∘ cong (_↔_.to W-unfolding)
+
+    tail-lemma :
+      (eq : sup x f ≡ sup y g) →
+      subst (λ x → P x → W A P) (head-lemma eq) f ≡ g
+    tail-lemma = proj₂ ∘ Σ-≡,≡←≡ ∘ cong (_↔_.to W-unfolding)
+
+    heads : ◯ (_≡_ {A = W A P} (sup x f) (sup y g)) → x ≡ y
+    heads {x = x} {f = f} {y = y} {g = g} =
+      ◯ (sup x f ≡ sup y g)  →⟨ ◯-map head-lemma ⟩
+      ◯ (x ≡ y)              →⟨ Is-modal→Stable (s _ _) ⟩□
+      x ≡ y                  □
+
+    heads-η : heads (η eq) ≡ head-lemma eq
+    heads-η =
+      trans (cong (Is-modal→Stable _) ◯-map-η) $
+      Is-modal→Stable-η
+
+    tails :
+      (eq : ◯ (sup x f ≡ sup y g)) →
+      ◯ (subst (λ x → P x → W A P) (heads eq) f z ≡
+         g z)
+    tails {f = f} {g = g} {z = z} =
+      ◯-elim
+        (λ _ → Is-modal-◯)
+        (λ eq → η (cong (_$ z) (
+           subst (λ x → P x → W A P) (heads (η eq)) f   ≡⟨ cong (λ eq → subst (λ x → P x → W A P) eq f) heads-η ⟩
+           subst (λ x → P x → W A P) (head-lemma eq) f  ≡⟨ tail-lemma eq ⟩∎
+           g                                            ∎)))
+
+    tails-η :
+      (eq : sup x f ≡ sup y g) →
+      tails {z = z} (η eq) ≡
+      η (cong (_$ z) $
+         trans (cong (λ eq → subst (λ x → P x → W A P) eq f) heads-η) $
+         tail-lemma eq)
+    tails-η _ = ◯-elim-η
+
+    Stable-≡-W : For-iterated-equality 1 Stable (W A P)
+    Stable-≡-W (sup x f) (sup y g) eq =
+      cong (uncurry sup) $
+      Σ-≡,≡→≡
+        (heads eq)
+        (apply-ext ext λ z →
+           subst (λ x → P x → W A P) (heads eq) f z  ≡⟨ Stable-≡-W _ (g z) (tails eq) ⟩∎
+           g z                                       ∎)
+
+    Stable-≡-W-η :
+      (x y : W A P) (eq : x ≡ y) →
+      Stable-≡-W x y (η eq) ≡ eq
+    Stable-≡-W-η (sup x f) (sup y g) eq =
+      cong (uncurry sup)
+        (Σ-≡,≡→≡ (heads (η eq))
+           (apply-ext ext λ z →
+            Stable-≡-W _ (g z) (tails (η eq))))                        ≡⟨ (cong (λ f →
+                                                                                   cong (uncurry sup)
+                                                                                     (Σ-≡,≡→≡ (heads (η eq))
+                                                                                        (apply-ext ext f))) $
+                                                                           apply-ext ext λ _ →
+                                                                           cong (Stable-≡-W _ (g _)) $
+                                                                           tails-η eq) ⟩
+      cong (uncurry sup)
+        (Σ-≡,≡→≡ (heads (η eq))
+           (apply-ext ext λ z →
+            Stable-≡-W _ (g z)
+              (η (cong (_$ z) $
+                  trans (cong (λ eq → subst (λ x → P x → W A P) eq f)
+                           heads-η) $
+                  tail-lemma eq))))                                    ≡⟨ (cong (λ f →
+                                                                                   cong (uncurry sup)
+                                                                                     (Σ-≡,≡→≡ (heads (η eq))
+                                                                                        (apply-ext ext f))) $
+                                                                           apply-ext ext λ z →
+                                                                           Stable-≡-W-η _ (g z) _) ⟩
+      cong (uncurry sup)
+        (Σ-≡,≡→≡ (heads (η eq))
+           (apply-ext ext λ z →
+            cong (_$ z) $
+            trans (cong (λ eq → subst (λ x → P x → W A P) eq f)
+                     heads-η) $
+            tail-lemma eq))                                            ≡⟨ cong (cong (uncurry sup) ∘ Σ-≡,≡→≡ (heads (η eq))) $
+                                                                          trans (Eq.good-ext-cong ext′) $
+                                                                          sym $ cong-id _ ⟩
+      cong (uncurry sup)
+        (Σ-≡,≡→≡ (heads (η eq))
+           (trans (cong (λ eq → subst (λ x → P x → W A P) eq f)
+                     heads-η) $
+            tail-lemma eq))                                            ≡⟨ elim₁
+                                                                            (λ {p} eq′ →
+                                                                               cong (uncurry sup)
+                                                                                 (Σ-≡,≡→≡ p
+                                                                                    (trans (cong (λ eq → subst (λ x → P x → W A P) eq f) eq′) $
+                                                                                     tail-lemma eq)) ≡
+                                                                               cong (uncurry sup) (Σ-≡,≡→≡ (head-lemma eq) (tail-lemma eq)))
+                                                                            (cong (cong (uncurry sup) ∘ Σ-≡,≡→≡ (head-lemma eq)) $
+                                                                             trans (cong (flip trans _) $ cong-refl _) $
+                                                                             trans-reflˡ _)
+                                                                            _ ⟩
+
+      cong (uncurry sup) (Σ-≡,≡→≡ (head-lemma eq) (tail-lemma eq))     ≡⟨ cong (cong (uncurry sup)) $
+                                                                          _↔_.right-inverse-of Bijection.Σ-≡,≡↔≡ _ ⟩
+
+      cong (uncurry sup) (cong (_↔_.to W-unfolding) eq)                ≡⟨⟩
+
+      cong (_↔_.from W-unfolding) (cong (_↔_.to W-unfolding) eq)       ≡⟨ cong-∘ _ _ _ ⟩
+
+      cong (_↔_.from W-unfolding ∘ _↔_.to W-unfolding) eq              ≡⟨ sym $
+                                                                          trans-[trans]-sym _ _ ⟩
+      trans
+        (trans (cong (_↔_.from W-unfolding ∘ _↔_.to W-unfolding) eq)
+           (_↔_.left-inverse-of W-unfolding (sup y g)))
+        (sym (_↔_.left-inverse-of W-unfolding (sup y g)))              ≡⟨ cong (flip trans _) $
+                                                                          naturality (_↔_.left-inverse-of W-unfolding) ⟩
+      trans
+        (trans (_↔_.left-inverse-of W-unfolding (sup x f))
+           (cong id eq))
+        (sym (_↔_.left-inverse-of W-unfolding (sup y g)))              ≡⟨⟩
+
+      trans (trans (refl _) (cong id eq)) (sym (refl _))               ≡⟨ trans (cong₂ trans
+                                                                                   (trans (trans-reflˡ _) $
+                                                                                    sym $ cong-id _)
+                                                                                   sym-refl) $
+                                                                          trans-reflʳ _ ⟩∎
+      eq                                                               ∎
 
   ----------------------------------------------------------------------
   -- Flattening lemmas
