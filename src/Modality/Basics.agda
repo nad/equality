@@ -1821,7 +1821,7 @@ module Modality (M : Modality a) where
     f x                                          ∎
 
   ----------------------------------------------------------------------
-  -- Map-like lemmas for Is-modal and Separated, and a related result
+  -- Map-like lemmas for Is-modal and Separated
 
   -- If there is an embedding from B to A, and A is separated, then B
   -- is separated.
@@ -1848,31 +1848,6 @@ module Modality (M : Modality a) where
   -- I did not take the remaining results in this section from
   -- "Modalities in Homotopy Type Theory" or the corresponding Coq
   -- code.
-
-  -- Propositions are separated.
-  --
-  -- This is Remark 2.16 (3) from "Localization in homotopy type
-  -- theory" by Christensen, Opie, Rijke and Scoccola.
-
-  Is-proposition→Separated : Is-proposition A → Separated A
-  Is-proposition→Separated {A = A} prop =
-    Embedding→Separated→Separated
-      emb
-      (Is-modal→Separated Is-modal-⊤)
-    where
-    emb : Embedding A (↑ a ⊤)
-    emb = record
-      { to           = _
-      ; is-embedding = λ x y →
-          _≃_.is-equivalence $
-          Eq.↔→≃
-            _
-            (λ _ → prop x y)
-            (λ _ → H-level.mono₁ 1
-                     (H-level.mono₁ 0 (↑-closure 0 ⊤-contractible))
-                     _ _)
-            (λ _ → H-level.mono₁ 1 prop _ _)
-      }
 
   -- Is-modal respects split surjections.
 
@@ -1902,6 +1877,38 @@ module Modality (M : Modality a) where
     For-iterated-equality n Is-modal B
   Is-modal-respects-↠ⁿ n =
     For-iterated-equality-cong-→ n Is-modal-respects-↠
+
+  ----------------------------------------------------------------------
+  -- Lemmas related to Separated
+
+  -- I did not take the lemmas in this section from "Modalities in
+  -- Homotopy Type Theory" or the corresponding Coq code (but perhaps
+  -- something similar can be found there).
+
+  -- Propositions are separated.
+  --
+  -- This is Remark 2.16 (3) from "Localization in homotopy type
+  -- theory" by Christensen, Opie, Rijke and Scoccola.
+
+  Is-proposition→Separated : Is-proposition A → Separated A
+  Is-proposition→Separated {A = A} prop =
+    Embedding→Separated→Separated
+      emb
+      (Is-modal→Separated Is-modal-⊤)
+    where
+    emb : Embedding A (↑ a ⊤)
+    emb = record
+      { to           = _
+      ; is-embedding = λ x y →
+          _≃_.is-equivalence $
+          Eq.↔→≃
+            _
+            (λ _ → prop x y)
+            (λ _ → H-level.mono₁ 1
+                     (H-level.mono₁ 0 (↑-closure 0 ⊤-contractible))
+                     _ _)
+            (λ _ → H-level.mono₁ 1 prop _ _)
+      }
 
   ----------------------------------------------------------------------
   -- Flattening lemmas
