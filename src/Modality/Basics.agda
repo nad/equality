@@ -2031,7 +2031,7 @@ module Modality (M : Modality a) where
   ◯Π◯≃◯Π :
     {A : Type a} {P : A → Type a} →
     ◯ (∀ x → Is-modal (P x)) →
-    ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ (((x : A) → P x))
+    ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ ((x : A) → P x)
   ◯Π◯≃◯Π {A = A} {P = P} m =
     flatten-↝
       (λ F → (x : A) → F (P x))

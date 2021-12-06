@@ -102,7 +102,7 @@ left-exact-η-cong =
 
 ◯Π◯≃◯Π :
   {A : Type a} {P : A → Type a} →
-  ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ (((x : A) → P x))
+  ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ ((x : A) → P x)
 ◯Π◯≃◯Π = M.◯Π◯≃◯Π ◯-Π-Is-modal
 
 -- Is-modal A is equivalent to Is-modal -Null A (assuming function
