@@ -221,6 +221,19 @@ rec r = recᴾ λ where
 ∥∥ᴱ-empty-modal : Empty-modal (∥∥ᴱ-modality {ℓ = ℓ})
 ∥∥ᴱ-empty-modal = [ ⊥-propositional ]
 
+-- The modality is not very modal.
+
+¬-∥∥ᴱ-very-modal : ¬ Very-modal (∥∥ᴱ-modality {ℓ = ℓ})
+¬-∥∥ᴱ-very-modal {ℓ = ℓ} =
+  Very-modal (∥∥ᴱ-modality {ℓ = ℓ})                ↔⟨⟩
+  ({A : Type ℓ} → ∥ Erased (Is-proposition A) ∥ᴱ)  →⟨ (λ hyp → hyp) ⟩
+  ∥ Erased (Is-proposition (↑ ℓ Bool)) ∥ᴱ          →⟨ ◯-map (Er.map (⊥-elim ∘ ¬-Bool-propositional ∘ H-level-cong _ 1 Bijection.↑↔)) ⟩
+  ∥ Erased ⊥ ∥ᴱ                                    →⟨ ◯-map (_↔_.to Er.Erased-⊥↔⊥) ⟩
+  ∥ ⊥ ∥ᴱ                                           →⟨ ⊥-elim ∘ Is-modal→Stable ∥∥ᴱ-empty-modal ⟩□
+  ⊥                                                □
+  where
+  open Modality (∥∥ᴱ-modality {ℓ = ℓ})
+
 -- The modality is not accessibility-modal.
 
 ¬-∥∥ᴱ-accessibility-modal :

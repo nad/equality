@@ -281,6 +281,18 @@ rec p f = rec′ λ where
 ∥∥-empty-modal : Empty-modal (∥∥-modality {ℓ = ℓ})
 ∥∥-empty-modal = ⊥-propositional
 
+-- The modality is not very modal.
+
+¬-∥∥-very-modal : ¬ Very-modal (∥∥-modality {ℓ = ℓ})
+¬-∥∥-very-modal {ℓ = ℓ} =
+  Very-modal (∥∥-modality {ℓ = ℓ})       ↔⟨⟩
+  ({A : Type ℓ} → ∥ Is-proposition A ∥)  →⟨ (λ hyp → hyp) ⟩
+  ∥ Is-proposition (↑ ℓ Bool) ∥          →⟨ ◯-map (⊥-elim ∘ ¬-Bool-propositional ∘ H-level-cong _ 1 Bijection.↑↔) ⟩
+  ∥ ⊥ ∥                                  →⟨ ⊥-elim ∘ Is-modal→Stable ∥∥-empty-modal ⟩□
+  ⊥                                      □
+  where
+  open Modality (∥∥-modality {ℓ = ℓ})
+
 -- The modality is not accessibility-modal.
 
 ¬-∥∥-accessibility-modal :
