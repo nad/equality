@@ -37,6 +37,7 @@ open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
 import List eq as L
 open import Modality.Basics eq
+import Modality.Very-modal eq as Very-modal
 import Nat eq as Nat
 open import Surjection eq using (_↠_; Split-surjective)
 open import Univalence-axiom eq
@@ -2172,18 +2173,25 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     where
     open Modality
 
-  -- This modality is topological (for certain universe levels,
+  -- The modality is empty-modal.
+
+  Erased-empty-modal : Empty-modal Erased-modality
+  Erased-empty-modal = Very-stable-⊥
+
+  -- The modality is very modal.
+
+  Erased-very-modal : Very-modal Erased-modality
+  Erased-very-modal = Erased-Very-stable
+
+  -- The modality is topological (for certain universe levels,
   -- assuming extensionality).
 
   Erased-topological :
     ∀ ℓ′ →
     Extensionality (lsuc ℓ ⊔ ℓ′) (lsuc ℓ ⊔ ℓ′) →
     Topological (lsuc ℓ ⊔ ℓ′) Erased-modality
-  Erased-topological ℓ′ ext =                              $⟨ erased-is-accessible-and-topological ℓ′
-                                                                (lower-extensionality _ _ ext) ⟩
-    Erased-is-accessible-and-topological (lsuc ℓ ⊔ ℓ′) ℓ   ↔⟨ Eq.inverse $ ≃Erased-is-accessible-and-topological ext ⟩
-    Erased-is-accessible-and-topological′ (lsuc ℓ ⊔ ℓ′) ℓ  ↝⟨ (λ (I , P , prop , ⇔-ext) → (I , P , ⇔-ext) , prop) ⟩□
-    Topological (lsuc ℓ ⊔ ℓ′) Erased-modality              □
+  Erased-topological =
+    Very-modal.topological Erased-modality Erased-very-modal
 
   ----------------------------------------------------------------------
   -- Erased singletons
