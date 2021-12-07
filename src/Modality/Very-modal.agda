@@ -605,6 +605,174 @@ Stable-H-level {A = A} ext n m =
   H-level n A       □
 
 ------------------------------------------------------------------------
+-- Some lemmas related to W
+
+-- W (◯ A) P implies ◯ (W A (P ∘ η)).
+
+W◯→◯Wη :
+  (P : ◯ A → Type a) →
+  W (◯ A) P → ◯ (W A (P ∘ η))
+W◯→◯Wη {A = A} P (sup x f) =
+  ◯-elim′
+    {P = λ x → (P x → ◯ (W A (P ∘ η))) → ◯ (W A (P ∘ η))}
+    (λ _ → M.Stable-Π λ _ → Is-modal→Stable Is-modal-◯)
+    (λ x f →
+       ◯-map (sup x)
+         (                             $⟨ f ⟩
+          (P (η x) → ◯ (W A (P ∘ η)))  →⟨ Π◯≃◯Π _ ⟩□
+          ◯ ((P ∘ η) x → W A (P ∘ η))  □))
+    x (λ y → W◯→◯Wη P (f y))
+
+-- A "computation rule" for W◯→◯Wη.
+
+W◯→◯Wη-sup-η :
+  {P : ◯ A → Type a} →
+  Extensionality a a →
+  (f : P (η x) → W (◯ A) P) →
+  W◯→◯Wη P (sup (η x) f) ≡ ◯-map (sup x) (Π◯≃◯Π _ (W◯→◯Wη P ∘ f))
+W◯→◯Wη-sup-η {A = A} {x = x} {P = P} ext f =
+  ◯-elim′
+    {P = λ x → (P x → ◯ (W A (P ∘ η))) → ◯ (W A (P ∘ η))}
+    (λ _ → M.Stable-Π λ _ → Is-modal→Stable Is-modal-◯)
+    (λ x f → ◯-map (sup x) (Π◯≃◯Π _ f))
+    (η x) (W◯→◯Wη P ∘ f)                                       ≡⟨ (cong
+                                                                     (λ m →
+                                                                        ◯-elim′
+                                                                          {P = λ x → (P x → ◯ (W A (P ∘ η))) → ◯ (W A (P ∘ η))}
+                                                                          m (λ x f → ◯-map (sup x) (Π◯≃◯Π _ f))
+                                                                          (η x) (W◯→◯Wη P ∘ f)) $
+                                                                   apply-ext ext λ _ →
+                                                                   Stable-Π-Is-modal-Π ext) ⟩
+  ◯-elim′
+    {P = λ x → (P x → ◯ (W A (P ∘ η))) → ◯ (W A (P ∘ η))}
+    (λ _ → Is-modal→Stable $ Is-modal-Π ext λ _ → Is-modal-◯)
+    (λ x f → ◯-map (sup x) (Π◯≃◯Π _ f))
+    (η x) (W◯→◯Wη P ∘ f)                                       ≡⟨ cong (_$ (W◯→◯Wη P ∘ f)) $
+                                                                  ◯-elim′-Is-modal→Stable-η ⟩∎
+  ◯-map (sup x) (Π◯≃◯Π _ (W◯→◯Wη P ∘ f))                       ∎
+
+-- A lemma relating W◯→◯Wη and W-map η id.
+
+W◯→◯Wη-W-map-η-id :
+  Extensionality a a →
+  W◯→◯Wη P (W-map η id x) ≡ η x
+W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
+  W◯→◯Wη P (W-map η id (sup x f))                            ≡⟨⟩
+  W◯→◯Wη P (sup (η x) λ y → W-map η id (f y))                ≡⟨ W◯→◯Wη-sup-η ext (λ y → W-map η id (f y)) ⟩
+  ◯-map (sup x) (Π◯≃◯Π _ λ y → W◯→◯Wη P (W-map η id (f y)))  ≡⟨ (cong (◯-map (sup x)) $ cong (Π◯≃◯Π _) $ apply-ext ext λ y →
+                                                                 W◯→◯Wη-W-map-η-id {x = f y} ext) ⟩
+  ◯-map (sup x) (Π◯≃◯Π _ (η ∘ f))                            ≡⟨ cong (◯-map (sup x)) $
+                                                                Π◯≃◯Π-η ext ⟩
+  ◯-map (sup x) (η f)                                        ≡⟨ ◯-map-η ⟩∎
+  η (sup x f)                                                ∎
+
+-- Another lemma relating W◯→◯Wη and W-map η id.
+
+◯-map-W-map-η-id-W◯→◯Wη :
+  Extensionality a a →
+  ◯-map (W-map η id) (W◯→◯Wη P x) ≡ η x
+◯-map-W-map-η-id-W◯→◯Wη {P = P} {x = sup x f} ext =
+  ◯-elim
+    {P = λ x →
+           ∀ f →
+           (∀ y → ◯-map (W-map η id) (W◯→◯Wη P (f y)) ≡ η (f y)) →
+           ◯-map (W-map η id) (W◯→◯Wη P (sup x f)) ≡
+           η (sup x f)}
+    (λ _ → Is-modal-Π ext λ _ →
+           Is-modal-Π ext λ _ →
+           Separated-◯ _ _)
+    (λ x f hyp →
+       ◯-map (W-map η id) (W◯→◯Wη P (sup (η x) f))                   ≡⟨ cong (◯-map (W-map η id)) $ W◯→◯Wη-sup-η ext f ⟩
+
+       ◯-map (W-map η id) (◯-map (sup x) (Π◯≃◯Π _ (W◯→◯Wη P ∘ f)))   ≡⟨ sym ◯-map-∘ ⟩
+
+       ◯-map (W-map η id ∘ sup x) (Π◯≃◯Π _ (W◯→◯Wη P ∘ f))           ≡⟨⟩
+
+       ◯-map (sup (η x) ∘ (W-map η id ∘_)) (Π◯≃◯Π _ (W◯→◯Wη P ∘ f))  ≡⟨ ◯-map-∘ ⟩
+
+       ◯-map (sup (η x))
+         (◯-map (W-map η id ∘_) (Π◯≃◯Π _ (W◯→◯Wη P ∘ f)))            ≡⟨ cong (◯-map (sup (η x))) $ sym $
+                                                                        Π◯≃◯Π-◯-map ext ⟩
+       ◯-map (sup (η x))
+         (Π◯≃◯Π _ (◯-map (W-map η id) ∘ (W◯→◯Wη P ∘ f)))             ≡⟨ cong (◯-map (sup (η x)) ∘ Π◯≃◯Π _) $ apply-ext ext
+                                                                        hyp ⟩
+
+       ◯-map (sup (η x)) (Π◯≃◯Π _ (η ∘ f))                           ≡⟨ cong (◯-map (sup (η x))) $ Π◯≃◯Π-η ext ⟩
+
+       ◯-map (sup (η x)) (η f)                                       ≡⟨ ◯-map-η ⟩∎
+
+       η (sup (η x) f)                                               ∎)
+    x f
+    (λ y → ◯-map-W-map-η-id-W◯→◯Wη {x = f y} ext)
+
+-- ◯ (W (◯ A) P) is equivalent to ◯ (W A (P ∘ η)) (assuming function
+-- extensionality).
+
+◯W◯≃◯Wη :
+  {P : ◯ A → Type a} →
+  ◯ (W (◯ A) P) ↝[ a ∣ a ] ◯ (W A (P ∘ η))
+◯W◯≃◯Wη {A = A} {P = P} =
+  generalise-ext?
+    (record { to = to; from = from })
+    (λ ext → to-from ext , from-to ext)
+  where
+  to   = ◯-rec Is-modal-◯ (W◯→◯Wη P)
+  from = ◯-map (W-map η id)
+
+  to-from :
+    Extensionality a a →
+    ∀ x → to (from x) ≡ x
+  to-from ext =
+    ◯-elim
+      (λ _ → Separated-◯ _ _)
+      (λ x →
+         to (from (η x))                                         ≡⟨⟩
+         ◯-rec Is-modal-◯ (W◯→◯Wη P) (◯-map (W-map η id) (η x))  ≡⟨ ◯-rec-◯-map ⟩
+         ◯-rec Is-modal-◯ (W◯→◯Wη P ∘ W-map η id) (η x)          ≡⟨ ◯-rec-η ⟩
+         W◯→◯Wη P (W-map η id x)                                 ≡⟨ W◯→◯Wη-W-map-η-id ext ⟩∎
+         η x                                                     ∎)
+
+  from-to :
+    Extensionality a a →
+    ∀ x → from (to x) ≡ x
+  from-to ext =
+    ◯-elim
+      (λ _ → Separated-◯ _ _)
+      (λ x →
+         from (to (η x))                                         ≡⟨⟩
+         ◯-map (W-map η id) (◯-rec Is-modal-◯ (W◯→◯Wη P) (η x))  ≡⟨ cong (◯-map (W-map η id)) ◯-rec-η ⟩
+         ◯-map (W-map η id) (W◯→◯Wη P x)                         ≡⟨ ◯-map-W-map-η-id-W◯→◯Wη ext ⟩∎
+         η x                                                     ∎)
+
+-- An unfolding lemma for ◯ (W A (P ∘ η)).
+
+◯Wη≃Σ◯Π◯Wη :
+  {P : ◯ A → Type a} →
+  ◯ (W A (P ∘ η)) ↝[ a ∣ a ] Σ (◯ A) (λ x → P x → ◯ (W A (P ∘ η)))
+◯Wη≃Σ◯Π◯Wη {A = A} {P = P} ext =
+  ◯ (W A (P ∘ η))                        ↔⟨ ◯-cong-↔ W-unfolding ⟩
+  ◯ (Σ A (λ x → P (η x) → W A (P ∘ η)))  ↔⟨ ◯Ση≃Σ◯◯ ⟩
+  Σ (◯ A) (λ x → ◯ (P x → W A (P ∘ η)))  ↝⟨ (∃-cong λ _ → inverse-ext? Π◯≃◯Π ext) ⟩□
+  Σ (◯ A) (λ x → P x → ◯ (W A (P ∘ η)))  □
+
+-- A "computation rule" for ◯Wη≃Σ◯Π◯Wη.
+
+◯Wη≃Σ◯Π◯Wη-η :
+  Extensionality a a →
+  ◯Wη≃Σ◯Π◯Wη _ (η (sup x f)) ≡ (η x , η ∘ f)
+◯Wη≃Σ◯Π◯Wη-η {x = x} {f = f} ext =
+  Σ-map id ◯Π→Π◯
+    (◯Ση→Σ◯◯ (◯-map (λ w → headᵂ w , tailᵂ w) (η (sup x f))))  ≡⟨ cong (Σ-map id ◯Π→Π◯ ∘ ◯Ση→Σ◯◯) ◯-map-η ⟩
+
+  Σ-map id ◯Π→Π◯ (◯Ση→Σ◯◯ (η (x , f)))                         ≡⟨ cong (Σ-map id ◯Π→Π◯) ◯-rec-η ⟩
+
+  Σ-map id ◯Π→Π◯ (η x , η f)                                   ≡⟨⟩
+
+  (η x , ◯Π→Π◯ (η f))                                          ≡⟨ cong (_ ,_) $ ◯Π→Π◯-η ext ⟩∎
+
+  (η x , η ∘ f)                                                ∎
+
+------------------------------------------------------------------------
 -- Preservation lemmas
 
 -- One can prove that ◯ A ↝[ k ] ◯ B holds by proving A ↝[ d ∣ e ] B
