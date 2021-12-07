@@ -13,6 +13,7 @@ open Derived-definitions-and-properties eq
 
 open import Prelude
 
+open import Accessibility eq as A using (Well-founded)
 open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
 open import Equivalence eq using (_≃_)
@@ -146,6 +147,24 @@ Zero-not-empty-modal {ℓ = ℓ} =
   Zero-modal ⊥    ↔⟨⟩
   Contractible ⊥  →⟨ ⊥-elim ∘ proj₁ ⟩□
   ⊥               □
+
+-- The zero modality is not accessibility-modal.
+
+¬-Zero-accessibility-modal :
+  ¬ Modality.Accessibility-modal (Zero-modality {ℓ = ℓ})
+¬-Zero-accessibility-modal {ℓ = ℓ} acc =
+                           $⟨ A.Well-founded-⊥ ⟩
+  Well-founded _<_         →⟨ (λ wf _ → acc .proj₁ (wf _)) ⟩
+  Well-founded _[ _<_ ]◯_  →⟨ A.<→¬-Well-founded cyclic ⟩□
+  ⊥                        □
+  where
+  open Modality (Zero-modality {ℓ = ℓ})
+
+  _<_ : ↑ ℓ ⊤ → ↑ ℓ ⊤ → Type ℓ
+  _ < _ = ⊥
+
+  cyclic : lift tt [ _<_ ]◯ lift tt
+  cyclic = lift tt
 
 ------------------------------------------------------------------------
 -- Some properties that hold for Erased do not hold for every

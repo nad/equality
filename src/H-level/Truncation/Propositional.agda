@@ -22,6 +22,7 @@ open import Dec
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
+open import Accessibility equality-with-J as A using (Well-founded)
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Embedding equality-with-J as Embedding hiding (id; _∘_)
 open import Equality.Decidable-UIP equality-with-J
@@ -46,6 +47,7 @@ open import H-level.Truncation.Propositional.Erased eq as TE
 open import Injection equality-with-J using (_↣_)
 open import Modality.Basics equality-with-J
 open import Monad equality-with-J
+import Nat equality-with-J as Nat
 open import Preimage equality-with-J as Preimage using (_⁻¹_)
 open import Surjection equality-with-J as Surjection
   using (_↠_; Split-surjective)
@@ -278,6 +280,35 @@ rec p f = rec′ λ where
 
 ∥∥-empty-modal : Empty-modal (∥∥-modality {ℓ = ℓ})
 ∥∥-empty-modal = ⊥-propositional
+
+-- The modality is not accessibility-modal.
+
+¬-∥∥-accessibility-modal :
+  ¬ Modality.Accessibility-modal (∥∥-modality {ℓ = ℓ})
+¬-∥∥-accessibility-modal {ℓ = ℓ} acc =
+                           $⟨ A.Well-founded-ℕ ⟩
+  Well-founded Nat._<_     →⟨ (λ wf → A.Well-founded-↑ _ (A.Well-founded-on wf)) ⟩
+  Well-founded _<_         →⟨ (λ wf → elim′ λ where
+                                 .∣∣ʳ n →
+                                   acc .proj₁ (wf n)
+                                 .truncation-is-propositionʳ _ →
+                                   A.Acc-propositional ext) ⟩
+  Well-founded _[ _<_ ]◯_  →⟨ A.<→¬-Well-founded cyclic ⟩□
+  ⊥                        □
+  where
+  open Modality (∥∥-modality {ℓ = ℓ})
+
+  _<_ : ↑ ℓ ℕ → ↑ ℓ ℕ → Type ℓ
+  lift m < lift n = ↑ ℓ (m Nat.< n)
+
+  cyclic : ∣ lift 0 ∣ [ _<_ ]◯ ∣ lift 0 ∣
+  cyclic =
+    ∣ lift 0
+    , lift 1
+    , truncation-is-proposition _ _
+    , truncation-is-proposition _ _
+    , lift (from-⊎ (1 Nat.≤? 1))
+    ∣
 
 ------------------------------------------------------------------------
 -- Various lemmas

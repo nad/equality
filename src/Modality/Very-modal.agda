@@ -23,7 +23,7 @@ private
     hiding (◯Ση≃Σ◯◯;
             Stable-Π; Stable-implicit-Π;
             Stable-Erased; Stable-Contractibleᴱ; Stable-⁻¹ᴱ;
-            Is-modal→Stable-Is-equivalence;
+            Is-modal→Stable-Is-equivalence; Stable-W;
             ◯Π◯≃◯Π; ◯Π◯≃◯Π-η; ◯Π◯≃◯Π⁻¹-η; ◯≡≃η≡η)
 
 open import Logical-equivalence using (_⇔_)
@@ -771,6 +771,183 @@ W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
   (η x , ◯Π→Π◯ (η f))                                          ≡⟨ cong (_ ,_) $ ◯Π→Π◯-η ext ⟩∎
 
   (η x , η ∘ f)                                                ∎
+
+-- A lemma relating ◯Wη≃Σ◯Π◯Wη and ◯Wη→Σ◯Π◯Wη.
+
+◯Wη≃Σ◯Π◯Wη≡◯Wη→Σ◯Π◯Wη :
+  Extensionality a a →
+  ◯Wη≃Σ◯Π◯Wη _ ≡ ◯Wη→Σ◯Π◯Wη {P = P}
+◯Wη≃Σ◯Π◯Wη≡◯Wη→Σ◯Π◯Wη ext =
+  apply-ext ext $
+  ◯-elim
+    (λ _ → Is-modal→Separated
+              (Is-modal-Σ Is-modal-◯ λ _ →
+               Is-modal-Π ext λ _ →
+               Is-modal-◯)
+              _ _)
+    (λ where
+       (sup x f) →
+         ◯Wη≃Σ◯Π◯Wη _ (η (sup x f))  ≡⟨ ◯Wη≃Σ◯Π◯Wη-η ext ⟩
+         (η x , η ∘ f)               ≡⟨ sym $ ◯Wη→Σ◯Π◯Wη-η ext ⟩∎
+         ◯Wη→Σ◯Π◯Wη (η (sup x f))    ∎)
+
+-- If the modality is accessibility-modal, then ◯ commutes with W in a
+-- certain way (assuming function extensionality).
+
+◯Wη≃W◯ :
+  {P : ◯ A → Type a} →
+  Accessibility-modal →
+  @0 Extensionality a a →
+  ◯ (W A (P ∘ η)) ↝[ a ∣ a ] W (◯ A) P
+◯Wη≃W◯ {A = A} {P = P} acc ext =
+  generalise-ext?
+    (record { to = ◯Wη→W◯ acc ext; from = W◯→◯Wη P })
+    (λ ext′ → to-from ext′ , from-to ext′)
+  where
+  module _ (ext′ : Extensionality a a) where
+    ax = E.Extensionality→[]-cong-axiomatisation ext′
+
+    from-to : ∀ x → W◯→◯Wη P (◯Wη→W◯ acc ext x) ≡ x
+    from-to =
+      ◯-elim
+        (λ _ → Separated-◯ _ _)
+        (λ x →
+           W◯→◯Wη P (◯Wη→W◯ acc ext (η x))  ≡⟨ cong (W◯→◯Wη P) $
+                                               ◯Wη→W◯-η acc ext ext′ ax ⟩
+           W◯→◯Wη P (W-map η id x)          ≡⟨ W◯→◯Wη-W-map-η-id ext′ ⟩∎
+           η x                              ∎)
+
+    to-from : ∀ x → ◯Wη→W◯ acc ext (W◯→◯Wη P x) ≡ x
+    to-from (sup x f) =
+      ◯-elim
+        {P = λ x →
+               ∀ f →
+               (∀ y → ◯Wη→W◯ acc ext (W◯→◯Wη P (f y)) ≡ f y) →
+               ◯Wη→W◯ acc ext (W◯→◯Wη P (sup x f)) ≡
+               sup x f}
+        (λ _ → Is-modal-Π ext′ λ _ →
+               Is-modal-Π ext′ λ _ →
+               Separated-W ext′ Separated-◯ _ _)
+        (λ x f hyp →
+           ◯Wη→W◯ acc ext (W◯→◯Wη P (sup (η x) f))                      ≡⟨ cong (◯Wη→W◯ acc ext) $ W◯→◯Wη-sup-η ext′ f ⟩
+
+           ◯Wη→W◯ acc ext (◯-map (sup x) (Π◯≃◯Π _ (W◯→◯Wη P ∘ f)))      ≡⟨ ◯-elim
+                                                                             {P = λ f′ →
+                                                                                    ◯Wη→W◯ acc ext (◯-map (sup x) f′) ≡
+                                                                                    sup (η x) (◯Wη→W◯ acc ext ∘ ◯Π→Π◯ f′)}
+                                                                             (λ _ → Separated-W ext′ Separated-◯ _ _)
+                                                                             (λ f′ →
+             ◯Wη→W◯ acc ext (◯-map (sup x) (η f′))                              ≡⟨ cong (◯Wη→W◯ acc ext)
+                                                                                   ◯-map-η ⟩
+             ◯Wη→W◯ acc ext (η (sup x f′))                                      ≡⟨ ◯Wη→W◯-η acc ext ext′ ax ⟩
+             W-map η id (sup x f′)                                              ≡⟨⟩
+             sup (η x) (W-map η id ∘ f′)                                        ≡⟨ (cong (sup _) $ sym $ apply-ext ext′ λ _ →
+                                                                                    ◯Wη→W◯-η acc ext ext′ ax) ⟩
+             sup (η x) (◯Wη→W◯ acc ext ∘ η ∘ f′)                                ≡⟨ cong (sup _ ∘ (◯Wη→W◯ acc ext ∘_)) $ sym $
+                                                                                   ◯Π→Π◯-η ext′ ⟩∎
+             sup (η x) (◯Wη→W◯ acc ext ∘ ◯Π→Π◯ (η f′))                          ∎)
+                                                                             _ ⟩
+
+           sup (η x) (◯Wη→W◯ acc ext ∘ ◯Π→Π◯ (Π◯≃◯Π _ (W◯→◯Wη P ∘ f)))  ≡⟨ cong (sup _ ∘ (◯Wη→W◯ acc ext ∘_)) $
+                                                                           _≃_.left-inverse-of (Π◯≃◯Π ext′) _ ⟩
+
+           sup (η x) (◯Wη→W◯ acc ext ∘ W◯→◯Wη P ∘ f)                    ≡⟨ cong (sup (η x)) $ apply-ext ext′
+                                                                           hyp ⟩∎
+           sup (η x) f                                                  ∎)
+        x f (λ y → to-from (f y))
+
+-- If the modality is accessibility-modal and A is modal, then W A P
+-- is k-stable for symmetric kinds k (assuming function
+-- extensionality).
+
+Stable-W :
+  Accessibility-modal →
+  @0 Extensionality a a →
+  Extensionality? ⌊ k ⌋-sym a a →
+  Is-modal A →
+  Stable-[ ⌊ k ⌋-sym ] (W A P)
+Stable-W {A = A} {P = P} acc ext ext′ m =
+  ◯ (W A P)                            ↝⟨ (◯-cong-↝-sym ext′ λ ext → W-cong₂ ext λ _ → ≡⇒↝ _ $ cong P $ sym
+                                           Is-modal→Stable-η) ⟩
+  ◯ (W A (P ∘ Is-modal→Stable m ∘ η))  ↝⟨ ◯Wη≃W◯ acc ext ext′ ⟩
+  W (◯ A) (P ∘ Is-modal→Stable m)      ↝⟨ (inverse $ W-cong ext′ (Is-modal→≃◯ m) λ _ → ≡⇒↝ _ $ cong P $ sym
+                                           Is-modal→Stable-η) ⟩□
+  W A P                                □
+
+-- If the modality is accessibility-modal and A is modal, then W A P
+-- is modal (assuming function extensionality).
+
+Is-modal-W :
+  Accessibility-modal →
+  Extensionality a a →
+  Is-modal A →
+  Is-modal (W A P)
+Is-modal-W {A = A} {P = P} acc ext m =
+  Is-equivalence-η→Is-modal $
+  _≃_.is-equivalence $
+  Eq.with-other-function
+    (inverse $ Stable-W acc ext ext m)
+    η
+    lemma
+  where
+  P≃ : P x ≃ P (Is-modal→Stable m (η x))
+  P≃ = ≡⇒↝ _ $ cong P $ sym Is-modal→Stable-η
+
+  P→ : P x → P (Is-modal→Stable m (η x))
+  P→ = _≃_.to P≃
+
+  P← : P (Is-modal→Stable m (η x)) → P x
+  P← = _≃_.from P≃
+
+  lemma :
+    ∀ x →
+    ◯-map (W-map id P→)
+      (W◯→◯Wη (P ∘ Is-modal→Stable m) (W-map η P← x)) ≡
+    η x
+  lemma (sup x f) =
+    ◯-map (W-map id P→)
+      (W◯→◯Wη (P ∘ Is-modal→Stable m) $ W-map η P← (sup x f))  ≡⟨⟩
+
+    ◯-map (W-map id P→)
+      (W◯→◯Wη (P ∘ Is-modal→Stable m) $
+       sup (η x) (W-map η P← ∘ f ∘ P←))                        ≡⟨ cong (◯-map _) $
+                                                                  W◯→◯Wη-sup-η ext (W-map η P← ∘ f ∘ P←) ⟩
+    ◯-map (W-map id P→)
+      (◯-map (sup x)
+         (Π◯≃◯Π _
+            (W◯→◯Wη (P ∘ Is-modal→Stable m) ∘
+             W-map η P← ∘ f ∘ P←)))                            ≡⟨ sym ◯-map-∘ ⟩
+
+    ◯-map (sup x ∘ (_∘ P→) ∘ (W-map id P→ ∘_))
+      (Π◯≃◯Π _
+         (W◯→◯Wη (P ∘ Is-modal→Stable m) ∘
+          W-map η P← ∘ f ∘ P←))                                ≡⟨ ◯-map-∘ ⟩
+
+    ◯-map (sup x ∘ (_∘ P→))
+      (◯-map (W-map id P→ ∘_)
+         (Π◯≃◯Π _
+            (W◯→◯Wη (P ∘ Is-modal→Stable m) ∘
+             W-map η P← ∘ f ∘ P←)))                            ≡⟨ cong (◯-map _) $ sym $
+                                                                  Π◯≃◯Π-◯-map ext ⟩
+    ◯-map (sup x ∘ (_∘ P→))
+      (Π◯≃◯Π _
+         (◯-map (W-map id P→) ∘
+          W◯→◯Wη (P ∘ Is-modal→Stable m) ∘
+          W-map η P← ∘ f ∘ P←))                                ≡⟨ (cong (◯-map (sup x ∘ (_∘ P→))) $ cong (Π◯≃◯Π _) $
+                                                                   apply-ext ext λ y →
+                                                                   lemma (f (P← y))) ⟩
+
+    ◯-map (sup x ∘ (_∘ P→)) (Π◯≃◯Π _ (η ∘ f ∘ P←))             ≡⟨ cong (◯-map (sup x ∘ (_∘ P→))) $ cong (Π◯≃◯Π _) $ sym $
+                                                                  ◯Π→Π◯-η ext ⟩
+
+    ◯-map (sup x ∘ (_∘ P→)) (Π◯≃◯Π _ (◯Π→Π◯ (η (f ∘ P←))))     ≡⟨ cong (◯-map (sup x ∘ (_∘ P→))) $
+                                                                  _≃_.right-inverse-of (Π◯≃◯Π ext) _ ⟩
+
+    ◯-map (sup x ∘ (_∘ P→)) (η (f ∘ P←))                       ≡⟨ ◯-map-η ⟩
+
+    η (sup x (f ∘ P← ∘ P→))                                    ≡⟨ (cong (η ∘ sup x) $ cong (f ∘_) $ apply-ext ext λ _ →
+                                                                   _≃_.left-inverse-of P≃ _) ⟩∎
+    η (sup x f)                                                ∎
 
 ------------------------------------------------------------------------
 -- Preservation lemmas

@@ -22,6 +22,7 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 open import Prelude as P
 open import Logical-equivalence using (_⇔_)
 
+open import Accessibility equality-with-J as A using (Well-founded)
 open import Bijection equality-with-J as Bijection using (_↔_)
 import Colimit.Sequential.Very-erased eq as C
 open import Embedding equality-with-J as Emb using (Is-embedding)
@@ -46,6 +47,7 @@ open import H-level.Truncation.Propositional.One-step eq as O
 import H-level.Truncation.Propositional.Non-recursive.Erased eq as N
 open import Modality.Basics equality-with-J
 open import Monad equality-with-J
+import Nat equality-with-J as Nat
 open import Preimage equality-with-J using (_⁻¹_)
 open import Surjection equality-with-J as S
   using (_↠_; Split-surjective)
@@ -218,6 +220,37 @@ rec r = recᴾ λ where
 
 ∥∥ᴱ-empty-modal : Empty-modal (∥∥ᴱ-modality {ℓ = ℓ})
 ∥∥ᴱ-empty-modal = [ ⊥-propositional ]
+
+-- The modality is not accessibility-modal.
+
+¬-∥∥ᴱ-accessibility-modal :
+  ¬ Modality.Accessibility-modal (∥∥ᴱ-modality {ℓ = ℓ})
+¬-∥∥ᴱ-accessibility-modal {ℓ = ℓ} acc =
+  Er.Very-stable→Stable 0 Er.Very-stable-⊥
+    [                          $⟨ A.Well-founded-ℕ ⟩
+      Well-founded Nat._<_     →⟨ (λ wf → A.Well-founded-↑ _ (A.Well-founded-on wf)) ⟩
+      Well-founded _<_         →⟨ (λ wf → elim λ where
+                                     .∣∣ʳ n →
+                                       acc .proj₁ (wf n)
+                                     .truncation-is-propositionʳ _ →
+                                       A.Acc-propositional ext) ⟩
+      Well-founded _[ _<_ ]◯_  →⟨ A.<→¬-Well-founded cyclic ⟩□
+      ⊥                        □
+    ]
+  where
+  open Modality (∥∥ᴱ-modality {ℓ = ℓ})
+
+  _<_ : ↑ ℓ ℕ → ↑ ℓ ℕ → Type ℓ
+  lift m < lift n = ↑ ℓ (m Nat.< n)
+
+  @0 cyclic : ∣ lift 0 ∣ [ _<_ ]◯ ∣ lift 0 ∣
+  cyclic =
+    ∣ lift 0
+    , lift 1
+    , truncation-is-proposition _ _
+    , truncation-is-proposition _ _
+    , lift (from-⊎ (1 Nat.≤? 1))
+    ∣
 
 ------------------------------------------------------------------------
 -- Conversion functions
