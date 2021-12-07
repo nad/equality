@@ -214,6 +214,11 @@ rec r = recᴾ λ where
     Is-equivalence (λ (f : (x : ∥ A ∥ᴱ) → P x) → f ∘ ∣_∣)  ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
     Is-∞-extendable-along-[ ∣_∣ ] P                        □
 
+-- The modality is empty-modal.
+
+∥∥ᴱ-empty-modal : Empty-modal (∥∥ᴱ-modality {ℓ = ℓ})
+∥∥ᴱ-empty-modal = [ ⊥-propositional ]
+
 ------------------------------------------------------------------------
 -- Conversion functions
 

@@ -274,6 +274,11 @@ rec p f = rec′ λ where
 
     module EB→ = _≃_ ≃Bool→
 
+-- The propositional truncation modality is empty-modal.
+
+∥∥-empty-modal : Empty-modal (∥∥-modality {ℓ = ℓ})
+∥∥-empty-modal = ⊥-propositional
+
 ------------------------------------------------------------------------
 -- Various lemmas
 
