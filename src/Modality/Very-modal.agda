@@ -178,9 +178,10 @@ Is-modal≃Is-modal-Null {A = A} ext =
 -- modal?
 
 topological :
+  ∀ ℓ →
   Extensionality (lsuc a ⊔ ℓ) (lsuc a ⊔ ℓ) →
   Topological (lsuc a ⊔ ℓ) M
-topological {ℓ = ℓ} ext =
+topological ℓ ext =
     ( ↑ ℓ (Type a)
     , ↑ _ ∘ Is-modal ∘ lower
     , (λ A →
