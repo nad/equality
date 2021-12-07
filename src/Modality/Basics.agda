@@ -1323,6 +1323,13 @@ module Modality (M : Modality a) where
     ◯ ((x : A) → P x) → ((x : A) → ◯ (P x))
   ◯Π→Π◯ = flip (◯-map ∘ flip _$_)
 
+  -- A "computation rule" for ◯Π→Π◯.
+
+  ◯Π→Π◯-η :
+    Extensionality a a →
+    ◯Π→Π◯ (η f) ≡ η ∘ f
+  ◯Π→Π◯-η ext = apply-ext ext λ _ → ◯-map-η
+
   -- The forward direction of ◯Ση≃Σ◯◯, which is defined below (and
   -- which is due to Felix Cherubini). This direction does not depend
   -- on function extensionality.
