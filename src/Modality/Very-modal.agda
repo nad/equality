@@ -54,7 +54,7 @@ private
     ℓ                 : Level
     A B C             : Type ℓ
     f f⁻¹ g h k p x y : A
-    P                 : A → Type p
+    P Q               : A → Type p
 
 ------------------------------------------------------------------------
 -- Should "Very-modal" be stated differently?
@@ -284,33 +284,85 @@ topological ℓ ext =
 Π◯≃◯Π :
   {A : Type a} {P : A → Type a} →
   ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ ((x : A) → P x)
-Π◯≃◯Π {A = A} {P = P} ext =
-  ((x : A) → ◯ (P x))    ↝⟨ lemma ext ⟩
-  ◯ ((x : A) → ◯ (P x))  ↝⟨ ◯Π◯≃◯Π ext ⟩□
-  ◯ ((x : A) → P x)      □
-  where
-  from =
-    ◯ ((x : A) → ◯ (P x))    →⟨ ◯Π→Π◯ ⟩
-    ((x : A) → ◯ (◯ (P x)))  →⟨ _≃_.from ◯≃◯◯ ∘_ ⟩□
-    ((x : A) → ◯ (P x))      □
+Π◯≃◯Π {A = A} {P = P} =
+  generalise-ext?
+    (record { to = to; from = ◯Π→Π◯ })
+    (λ ext →
+         ◯-elim
+           (λ _ → Separated-◯ _ _)
+           (λ f →
+              ◯Π◯≃◯Π _ (η (◯Π→Π◯ (η f)))            ≡⟨ cong (◯Π◯≃◯Π _ ∘ η) $ ◯Π→Π◯-η ext ⟩
+              ◯Π◯≃◯Π _ (η (η ∘ f))                  ≡⟨ cong (◯Π◯≃◯Π _) $ sym ◯Π◯≃◯Π⁻¹-η ⟩
+              ◯Π◯≃◯Π _ (_⇔_.from (◯Π◯≃◯Π _) (η f))  ≡⟨ _≃_.right-inverse-of (◯Π◯≃◯Π ext) _ ⟩∎
+              η f                                   ∎)
+       , (λ f →
+            ◯Π→Π◯ (◯Π◯≃◯Π _ (η f))                           ≡⟨ ◯Π◯≃◯Π-η′ ◯Π→Π◯ id
+                                                                  (Is-modal-Π ext λ _ → Is-modal-◯)
+                                                                  (λ m →
+              ◯Π→Π◯ (η (λ x → Is-modal→Stable (m x) (f x)))          ≡⟨ ◯Π→Π◯-η ext ⟩
+              (λ x → η (Is-modal→Stable (m x) (f x)))                ≡⟨⟩
+              (λ x → η (η⁻¹ (m x) (f x)))                            ≡⟨ (apply-ext ext λ _ → η-η⁻¹) ⟩∎
+              f                                                      ∎) ⟩∎
 
-  lemma =
-    generalise-ext?
-      (record { to = η; from = from })
-      (λ ext →
-         let from-η : ∀ f → from (η f) ≡ f
-             from-η = λ f → apply-ext ext λ x →
-               from (η f) x                              ≡⟨⟩
-               ◯-rec Is-modal-◯ id (◯-map (_$ x) (η f))  ≡⟨ cong (◯-rec _ _) ◯-map-η ⟩
-               ◯-rec Is-modal-◯ id (η (f x))             ≡⟨ ◯-rec-η ⟩∎
-               f x                                       ∎
-         in
-           (◯-elim
-              (λ _ → Separated-◯ _ _)
-              (λ f →
-                 η (from (η f))  ≡⟨ cong η $ from-η f ⟩∎
-                 η f             ∎))
-         , from-η)
+            f                                                ∎))
+  where
+  to =
+    ((x : A) → ◯ (P x))    →⟨ η ⟩
+    ◯ ((x : A) → ◯ (P x))  →⟨ ◯Π◯≃◯Π _ ⟩□
+    ◯ ((x : A) → P x)      □
+
+-- A "computation rule" for Π◯≃◯Π.
+
+Π◯≃◯Π-η :
+  Extensionality a a →
+  Π◯≃◯Π _ (η ∘ f) ≡ η f
+Π◯≃◯Π-η {f = f} ext =
+  Π◯≃◯Π _ (η ∘ f)        ≡⟨ cong (Π◯≃◯Π _) $ sym $ ◯Π→Π◯-η ext ⟩
+  Π◯≃◯Π _ (◯Π→Π◯ (η f))  ≡⟨ _≃_.right-inverse-of (Π◯≃◯Π ext) _ ⟩∎
+  η f                    ∎
+
+-- Π◯≃◯Π commutes with ◯-map in a certain way (assuming function
+-- extensionality).
+
+Π◯≃◯Π-◯-map :
+  {f : ∀ {x} → P x → Q x} {g : (x : A) → ◯ (P x)} →
+  Extensionality a a →
+  Π◯≃◯Π _ (◯-map f ∘ g) ≡ ◯-map (f ∘_) (Π◯≃◯Π _ g)
+Π◯≃◯Π-◯-map {f = f} {g = g} ext =
+  Π◯≃◯Π _ (◯-map f ∘ g)                                  ≡⟨⟩
+  ◯Π◯≃◯Π _ (η (◯-map f ∘ g))                             ≡⟨ sym $
+                                                            ◯Π◯≃◯Π-η′
+                                                              (◯-map (f ∘_))
+                                                              (λ g → ◯Π◯≃◯Π _ (η (◯-map f ∘ g)))
+                                                              Is-modal-◯
+                                                              (λ m₁ →
+                                                                 sym $
+                                                                 ◯-elim
+                                                                   {P = λ m₂ →
+                                                                          M.◯Π◯≃◯Π m₂ _ (η (◯-map f ∘ g)) ≡
+                                                                          ◯-map (f ∘_) (η λ x → Is-modal→Stable (m₁ x) (g x))}
+                                                                   (λ _ → Separated-◯ _ _)
+                                                                   (λ m₂ →
+    M.◯Π◯≃◯Π (η m₂) _ (η (◯-map f ∘ g))                               ≡⟨ M.◯Π◯≃◯Π-η ⟩
+    η (λ x → Is-modal→Stable (m₂ x) (◯-map f (g x)))                  ≡⟨ (cong η $
+                                                                          apply-ext ext λ x →
+                                                                          ◯-elim
+                                                                            {P = λ y →
+                                                                                   Is-modal→Stable (m₂ x) (◯-map f y) ≡
+                                                                                   f (Is-modal→Stable (m₁ x) y)}
+                                                                            (λ _ → Is-modal→Separated (m₂ x) _ _)
+                                                                            (λ y →
+      Is-modal→Stable (m₂ x) (◯-map f (η y))                                   ≡⟨ cong (Is-modal→Stable (m₂ x)) ◯-map-η ⟩
+      Is-modal→Stable (m₂ x) (η (f y))                                         ≡⟨ Is-modal→Stable-η ⟩
+      f y                                                                      ≡⟨ cong f $ sym Is-modal→Stable-η ⟩∎
+      f (Is-modal→Stable (m₁ x) (η y))                                         ∎)
+                                                                            (g x)) ⟩
+    η (λ x → f (Is-modal→Stable (m₁ x) (g x)))                        ≡⟨ sym ◯-map-η ⟩∎
+    ◯-map (f ∘_) (η λ x → Is-modal→Stable (m₁ x) (g x))               ∎)
+                                                                   ◯-Π-Is-modal) ⟩
+
+  ◯-map (f ∘_) (◯Π◯≃◯Π _ (η g))                          ≡⟨⟩
+  ◯-map (f ∘_) (Π◯≃◯Π _ g)                               ∎
 
 -- A variant of Modality-lemma.◯Ση≃Σ◯◯ proved using the assumption
 -- that the modality is very modal, instead of function
@@ -1669,23 +1721,18 @@ module []-cong (ax : []-cong-axiomatisation a) where
         _≃_.to (lemma₂ g h) (η p) (η x) ≡
         trans (lemma₁ g h) (cong η (p x))
       lemma₂-η {g = g} {h = h} {p = p} {x = x} =
-        _≃_.to (lemma₂ g h) (η p) (η x)                                    ≡⟨⟩
+        _≃_.to (lemma₂ g h) (η p) (η x)                ≡⟨⟩
 
         _≃_.from (Π◯≃Πη ext s)
-          (λ x → trans (lemma₁ g h) $ η-cong $
-                 ◯-rec Is-modal-◯ id $ ◯-map (_$ x) $ ◯-map (η ∘_) (η p))
-          (η x)                                                            ≡⟨ Π◯≃Πη⁻¹-η ext s ⟩
+          (trans (lemma₁ g h) ∘ η-cong ∘ ◯Π→Π◯ (η p))
+          (η x)                                        ≡⟨ Π◯≃Πη⁻¹-η ext s ⟩
 
-        (trans (lemma₁ g h) $ η-cong $
-         ◯-rec Is-modal-◯ id $ ◯-map (_$ x) $ ◯-map (η ∘_) (η p))          ≡⟨ cong (trans (lemma₁ g h) ∘ η-cong) $
-                                                                              trans (cong (◯-rec Is-modal-◯ id) $
-                                                                                     trans (cong (◯-map (_$ x)) ◯-map-η)
-                                                                                     ◯-map-η)
-                                                                              ◯-rec-η ⟩
+        trans (lemma₁ g h) (η-cong (◯Π→Π◯ (η p) x))    ≡⟨ cong (trans (lemma₁ g h) ∘ η-cong) $ cong (_$ x) $
+                                                          ◯Π→Π◯-η ext ⟩
 
-        trans (lemma₁ g h) (η-cong (η (p x)))                              ≡⟨ cong (trans (lemma₁ g h)) η-cong-η ⟩∎
-
-        trans (lemma₁ g h) (cong η (p x))                                  ∎
+        trans (lemma₁ g h) (η-cong (η (p x)))          ≡⟨ cong (trans (lemma₁ g h))
+                                                          η-cong-η ⟩∎
+        trans (lemma₁ g h) (cong η (p x))              ∎
 
     lemma₂-ηˡ :
       ∀ {A B : Type a} {g : A → B} {h p x} →

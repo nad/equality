@@ -1315,8 +1315,7 @@ module Modality (M : Modality a) where
   -- code (but that does not mean that one cannot find something
   -- similar in those places).
 
-  -- A function with the same type as the right-to-left direction of
-  -- Modality.Very-modal.Π◯≃◯Π.
+  -- The right-to-left direction of Modality.Very-modal.Π◯≃◯Π.
 
   ◯Π→Π◯ :
     {A : Type a} {P : A → Type a} →
