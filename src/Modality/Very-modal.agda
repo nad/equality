@@ -24,7 +24,7 @@ private
             Stable-Π; Stable-implicit-Π;
             Stable-Erased; Stable-Contractibleᴱ; Stable-⁻¹ᴱ;
             Is-modal→Stable-Is-equivalence;
-            ◯Π◯≃◯Π; ◯≡≃η≡η)
+            ◯Π◯≃◯Π; ◯Π◯≃◯Π-η; ◯Π◯≃◯Π⁻¹-η; ◯≡≃η≡η)
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude
@@ -104,6 +104,48 @@ left-exact-η-cong =
   {A : Type a} {P : A → Type a} →
   ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ ((x : A) → P x)
 ◯Π◯≃◯Π = M.◯Π◯≃◯Π ◯-Π-Is-modal
+
+-- Two "computation rules" for ◯Π◯≃◯Π.
+
+◯Π◯≃◯Π-η :
+  ◯Π◯≃◯Π _ (η f) ≡
+  ◯-map (λ m x → Is-modal→Stable (m x) (f x)) ◯-Π-Is-modal
+◯Π◯≃◯Π-η {f = f} =
+  ◯-elim
+    {P = λ m →
+           M.◯Π◯≃◯Π m _ (η f) ≡
+           ◯-map (λ m x → Is-modal→Stable (m x) (f x)) m}
+    (λ _ → Separated-◯ _ _)
+    (λ m →
+       M.◯Π◯≃◯Π (η m) _ (η f)                             ≡⟨ M.◯Π◯≃◯Π-η ⟩
+       η (λ x → Is-modal→Stable (m x) (f x))              ≡⟨ sym ◯-map-η ⟩∎
+       ◯-map (λ m x → Is-modal→Stable (m x) (f x)) (η m)  ∎)
+    ◯-Π-Is-modal
+
+◯Π◯≃◯Π⁻¹-η : _⇔_.from (◯Π◯≃◯Π _) (η f) ≡ η (η ∘ f)
+◯Π◯≃◯Π⁻¹-η = M.◯Π◯≃◯Π⁻¹-η {m = ◯-Π-Is-modal}
+
+-- A variant of ◯Π◯≃◯Π-η.
+
+◯Π◯≃◯Π-η′ :
+  (f : ◯ ((x : A) → P x) → B)
+  (g : ((x : A) → ◯ (P x)) → B) →
+  Is-modal B →
+  (∀ m → f (η λ x → Is-modal→Stable (m x) (h x)) ≡ g h) →
+  f (◯Π◯≃◯Π _ (η h)) ≡ g h
+◯Π◯≃◯Π-η′ {h = h} f g m hyp =
+  f (◯Π◯≃◯Π _ (η h))                                            ≡⟨ cong f ◯Π◯≃◯Π-η ⟩
+  f (◯-map (λ m x → Is-modal→Stable (m x) (h x)) ◯-Π-Is-modal)  ≡⟨ ◯-elim
+                                                                     {P = λ m →
+                                                                            f (◯-map (λ m x → Is-modal→Stable (m x) (h x)) m) ≡
+                                                                            g h}
+                                                                     (λ _ → Is-modal→Separated m _ _)
+                                                                     (λ m →
+    f (◯-map (λ m x → Is-modal→Stable (m x) (h x)) (η m))               ≡⟨ cong f ◯-map-η ⟩
+    f (η λ x → Is-modal→Stable (m x) (h x))                             ≡⟨ hyp m ⟩∎
+    g h                                                                 ∎)
+                                                                     ◯-Π-Is-modal ⟩∎
+  g h                                                           ∎
 
 -- Is-modal A is equivalent to Is-modal -Null A (assuming function
 -- extensionality).
