@@ -37,6 +37,11 @@ open Erased public
 [_∣_]→ : (@0 A : Type a) → A → Erased A
 [_∣_]→ _ = [_]→
 
+-- A type A is stable if Erased A implies A.
+
+Stable : Type a → Type a
+Stable A = Erased A → A
+
 -- Erased preserves dependent functions.
 
 map :

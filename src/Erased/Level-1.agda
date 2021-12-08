@@ -57,17 +57,10 @@ open import Erased.Basics public
 ------------------------------------------------------------------------
 -- Stability
 
-mutual
+-- A generalisation of Stable.
 
-  -- A type A is stable if Erased A implies A.
-
-  Stable : Type a → Type a
-  Stable = Stable-[ implication ]
-
-  -- A generalisation of Stable.
-
-  Stable-[_] : Kind → Type a → Type a
-  Stable-[ k ] A = Erased A ↝[ k ] A
+Stable-[_] : Kind → Type a → Type a
+Stable-[ k ] A = Erased A ↝[ k ] A
 
 -- A variant of Stable-[ equivalence ].
 
