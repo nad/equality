@@ -305,6 +305,10 @@ import Modality.Very-modal
 
 import Modality
 
+-- The identity modality.
+
+import Modality.Identity
+
 -- The zero modality.
 
 import Modality.Zero
