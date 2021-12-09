@@ -13,7 +13,7 @@ module Modality.Empty-modal
   (open Modality.Basics eq)
   {a}
   (M : Modality a)
-  (Is-modal-⊥ : Empty-modal M)
+  (Modal-⊥ : Empty-modal M)
   where
 
 open Derived-definitions-and-properties eq
@@ -40,7 +40,7 @@ private
 
 ◯⊥≃⊥ : ◯ ⊥ ≃ ⊥₀
 ◯⊥≃⊥ =
-  ◯ ⊥  ↝⟨ inverse $ Is-modal→≃◯ Is-modal-⊥ ⟩
+  ◯ ⊥  ↝⟨ inverse $ Modal→≃◯ Modal-⊥ ⟩
   ⊥    ↔⟨ ⊥↔⊥ ⟩□
   ⊥₀   □
 
@@ -70,7 +70,7 @@ private
   generalise-ext?-prop
     (record
        { to   = _∘ η
-       ; from = λ f → ⊥-elim ∘ ◯-rec Is-modal-⊥ (⊥-elim ∘ f)
+       ; from = λ f → ⊥-elim ∘ ◯-rec Modal-⊥ (⊥-elim ∘ f)
        })
     ¬-propositional
     ¬-propositional
@@ -84,7 +84,7 @@ private
 Dec→Dec-◯ : Dec A → Dec (◯ A)
 Dec→Dec-◯ (yes x)    = yes (η x)
 Dec→Dec-◯ (no empty) =
-  no (⊥-elim ∘ ◯-rec Is-modal-⊥ (⊥-elim ∘ empty))
+  no (⊥-elim ∘ ◯-rec Modal-⊥ (⊥-elim ∘ empty))
 
 -- ◯ A implies ¬ ¬ A.
 
@@ -112,7 +112,7 @@ Dec→Stable {A = A} (no empty) =
 Decidable-equality→Separated :
   Decidable-equality A → Separated A
 Decidable-equality→Separated dec x y =
-  Stable→Is-proposition→Is-modal
+  Stable→Is-proposition→Modal
     (Dec→Stable (dec x y))
     (decidable⇒set dec)
 
@@ -129,11 +129,11 @@ Stable-¬ {A = A} ext =
 
 -- ¬ A is modal (assuming function extensionality).
 
-Is-modal-¬ :
+Modal-¬ :
   Extensionality a lzero →
-  Is-modal (¬ A)
-Is-modal-¬ {A = A} ext =
-  Is-equivalence-η→Is-modal $
+  Modal (¬ A)
+Modal-¬ {A = A} ext =
+  Is-equivalence-η→Modal $
   _≃_.is-equivalence $
   Eq.with-other-function
     (inverse $ Stable-¬ ext)
@@ -152,7 +152,7 @@ Stable-≡-⊎ n sA sB =
   For-iterated-equality-⊎-suc
     n
     lemma
-    (Is-modal→Stable Is-modal-⊥)
+    (Modal→Stable Modal-⊥)
     (For-iterated-equality-↑ _ (1 + n) lemma sA)
     (For-iterated-equality-↑ _ (1 + n) lemma sB)
   where
@@ -164,19 +164,19 @@ Stable-≡-⊎ n sA sB =
 
 Separated-⊎ :
   ∀ n →
-  For-iterated-equality (1 + n) Is-modal A →
-  For-iterated-equality (1 + n) Is-modal B →
-  For-iterated-equality (1 + n) Is-modal (A ⊎ B)
+  For-iterated-equality (1 + n) Modal A →
+  For-iterated-equality (1 + n) Modal B →
+  For-iterated-equality (1 + n) Modal (A ⊎ B)
 Separated-⊎ n sA sB =
   For-iterated-equality-⊎-suc
     n
     lemma
-    Is-modal-⊥
+    Modal-⊥
     (For-iterated-equality-↑ _ (1 + n) lemma sA)
     (For-iterated-equality-↑ _ (1 + n) lemma sB)
   where
-  lemma : A ↔ B → Is-modal A → Is-modal B
-  lemma = Is-modal-respects-≃ ∘ from-isomorphism
+  lemma : A ↔ B → Modal A → Modal B
+  lemma = Modal-respects-≃ ∘ from-isomorphism
 
 -- If equality is k-stable for A, then it is k-stable for List A.
 -- (The lemma is more general.)
@@ -189,8 +189,8 @@ Stable-≡-List n =
   For-iterated-equality-List-suc
     n
     (Stable-respects-≃ ∘ from-isomorphism)
-    (Is-modal→Stable Is-modal-⊤)
-    (Is-modal→Stable Is-modal-⊥)
+    (Modal→Stable Modal-⊤)
+    (Modal→Stable Modal-⊥)
     Stable-×
 
 -- If A is separated, then List A is separated. (The lemma is more
@@ -198,12 +198,12 @@ Stable-≡-List n =
 
 Separated-List :
   ∀ n →
-  For-iterated-equality (1 + n) Is-modal A →
-  For-iterated-equality (1 + n) Is-modal (List A)
+  For-iterated-equality (1 + n) Modal A →
+  For-iterated-equality (1 + n) Modal (List A)
 Separated-List n =
   For-iterated-equality-List-suc
     n
-    (Is-modal-respects-≃ ∘ from-isomorphism)
-    Is-modal-⊤
-    Is-modal-⊥
-    (λ mA mB → Is-modal-Σ mA λ _ → mB)
+    (Modal-respects-≃ ∘ from-isomorphism)
+    Modal-⊤
+    Modal-⊥
+    (λ mA mB → Modal-Σ mA λ _ → mB)

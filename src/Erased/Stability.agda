@@ -2143,14 +2143,14 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   Erased-Σ-closed-reflective-subuniverse :
     Σ-closed-reflective-subuniverse ℓ
   Erased-Σ-closed-reflective-subuniverse = λ where
-      .◯                      → λ A → Erased A
-      .η                      → [_]→
-      .Is-modal               → Very-stable
-      .Is-modal-propositional → Very-stable-propositional
-      .Is-modal-◯             → Very-stable-Erased
-      .Is-modal-respects-≃    → Very-stable-cong _
-      .extendable-along-η     → const-extendable
-      .Σ-closed               → Very-stable-Σ
+      .◯                   → λ A → Erased A
+      .η                   → [_]→
+      .Modal               → Very-stable
+      .Modal-propositional → Very-stable-propositional
+      .Modal-◯             → Very-stable-Erased
+      .Modal-respects-≃    → Very-stable-cong _
+      .extendable-along-η  → const-extendable
+      .Σ-closed            → Very-stable-Σ
     where
     open Σ-closed-reflective-subuniverse
 
@@ -2159,13 +2159,13 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   Erased-modality : Modality ℓ
   Erased-modality = λ where
-      .◯                      → λ A → Erased A
-      .η                      → [_]→
-      .Is-modal               → Very-stable
-      .Is-modal-propositional → Very-stable-propositional
-      .Is-modal-◯             → Very-stable-Erased
-      .Is-modal-respects-≃    → Very-stable-cong _
-      .extendable-along-η     → extendable
+      .◯                   → λ A → Erased A
+      .η                   → [_]→
+      .Modal               → Very-stable
+      .Modal-propositional → Very-stable-propositional
+      .Modal-◯             → Very-stable-Erased
+      .Modal-respects-≃    → Very-stable-cong _
+      .extendable-along-η  → extendable
     where
     open Modality
 

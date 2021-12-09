@@ -43,25 +43,25 @@ private
 
 -- If A is modal, then Erased A is modal.
 
-Is-modal-Erased :
-  {@0 A : Type a} → @0 Is-modal A → Is-modal (Erased A)
-Is-modal-Erased {A = A} m =
-  Stable→left-inverse→Is-modal
-    (Stable-Erased (Is-modal→Stable m))
+Modal-Erased :
+  {@0 A : Type a} → @0 Modal A → Modal (Erased A)
+Modal-Erased {A = A} m =
+  Stable→left-inverse→Modal
+    (Stable-Erased (Modal→Stable m))
     (λ x →
-       Stable-Erased (Is-modal→Stable m) (η x)         ≡⟨⟩
-       E.[ Is-modal→Stable m (◯-map E.erased (η x)) ]  ≡⟨ BC.[]-cong E.[ cong (Is-modal→Stable m) ◯-map-η ] ⟩
-       E.[ Is-modal→Stable m (η (E.erased x)) ]        ≡⟨ BC.[]-cong E.[ _≃_.left-inverse-of (Is-modal→≃◯ m) _ ] ⟩∎
-       E.[ E.erased x ]                                ∎)
+       Stable-Erased (Modal→Stable m) (η x)         ≡⟨⟩
+       E.[ Modal→Stable m (◯-map E.erased (η x)) ]  ≡⟨ BC.[]-cong E.[ cong (Modal→Stable m) ◯-map-η ] ⟩
+       E.[ Modal→Stable m (η (E.erased x)) ]        ≡⟨ BC.[]-cong E.[ _≃_.left-inverse-of (Modal→≃◯ m) _ ] ⟩∎
+       E.[ E.erased x ]                             ∎)
 
 -- If f has type A → B, where A is modal and B is separated, then
 -- Is-equivalenceᴱ f is stable.
 
-Is-modal→Stable-Is-equivalenceᴱ :
+Modal→Stable-Is-equivalenceᴱ :
   {@0 f : A → B} →
-  Is-modal A → @0 Separated B →
+  Modal A → @0 Separated B →
   Stable (Is-equivalenceᴱ f)
-Is-modal→Stable-Is-equivalenceᴱ {f = f} m s =
+Modal→Stable-Is-equivalenceᴱ {f = f} m s =
                                           $⟨ s′ ⟩
   Stable (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  →⟨ Stable-respects-⇔ $ inverse $
                                              EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP ⟩□
@@ -69,25 +69,25 @@ Is-modal→Stable-Is-equivalenceᴱ {f = f} m s =
   where
   s′ =
     Stable-Π λ y →
-    let m′ : Is-modal (f ⁻¹ᴱ y)
-        m′ = Is-modal-Σ m λ _ → Is-modal-Erased (s _ _) in
+    let m′ : Modal (f ⁻¹ᴱ y)
+        m′ = Modal-Σ m λ _ → Modal-Erased (s _ _) in
     Stable-Σ m′ λ _ →
     Stable-Erased (
     Stable-Π λ _ →
-    Is-modal→Stable (Is-modal→Separated m′ _ _))
+    Modal→Stable (Modal→Separated m′ _ _))
 
 -- If f has type A → B, where A is modal and B is separated, then
 -- Is-equivalenceᴱ f is modal (assuming function extensionality).
 
-Is-modal-Is-equivalenceᴱ :
+Modal-Is-equivalenceᴱ :
   {@0 f : A → B} →
   Extensionality a a →
-  Is-modal A → @0 Separated B →
-  Is-modal (Is-equivalenceᴱ f)
-Is-modal-Is-equivalenceᴱ ext m s =
-  Is-modal-Σ (Is-modal-Π ext λ _ → m) λ _ →
-  Is-modal-Erased (
-  Is-modal-Half-adjoint-proofs ext (Is-modal→Separated m) s)
+  Modal A → @0 Separated B →
+  Modal (Is-equivalenceᴱ f)
+Modal-Is-equivalenceᴱ ext m s =
+  Modal-Σ (Modal-Π ext λ _ → m) λ _ →
+  Modal-Erased (
+  Modal-Half-adjoint-proofs ext (Modal→Separated m) s)
 
 -- ◯ (A ≃ᴱ B) implies ◯ A ≃ᴱ ◯ B.
 
@@ -97,7 +97,7 @@ Is-modal-Is-equivalenceᴱ ext m s =
     (from-equivalence EEq.≃ᴱ-as-Σ)
     ◯-Is-equivalenceᴱ→Is-equivalenceᴱ
     (λ p → _⇔_.to $ EEq.Is-equivalenceᴱ-cong-⇔ p)
-    (Is-modal→Stable-Is-equivalenceᴱ Is-modal-◯ Separated-◯)
+    (Modal→Stable-Is-equivalenceᴱ Modal-◯ Separated-◯)
 
 -- If the modality is left exact, then ◯ (A ↝[ k ] B) implies
 -- ◯ A ↝[ k ] ◯ B.

@@ -205,13 +205,13 @@ rec p f = rec′ λ where
 
 ∥∥-modality : Modality ℓ
 ∥∥-modality {ℓ = ℓ} = λ where
-    .◯                      → ∥_∥
-    .η                      → ∣_∣
-    .Is-modal               → Is-proposition
-    .Is-modal-propositional → λ ext → H-level-propositional ext 1
-    .Is-modal-◯             → truncation-is-proposition
-    .Is-modal-respects-≃    → H-level-cong _ 1
-    .extendable-along-η     → extendable
+    .◯                   → ∥_∥
+    .η                   → ∣_∣
+    .Modal               → Is-proposition
+    .Modal-propositional → λ ext → H-level-propositional ext 1
+    .Modal-◯             → truncation-is-proposition
+    .Modal-respects-≃    → H-level-cong _ 1
+    .extendable-along-η  → extendable
   where
   open Modality
 
@@ -288,7 +288,7 @@ rec p f = rec′ λ where
   Very-modal (∥∥-modality {ℓ = ℓ})       ↔⟨⟩
   ({A : Type ℓ} → ∥ Is-proposition A ∥)  →⟨ (λ hyp → hyp) ⟩
   ∥ Is-proposition (↑ ℓ Bool) ∥          →⟨ ◯-map (⊥-elim ∘ ¬-Bool-propositional ∘ H-level-cong _ 1 Bijection.↑↔) ⟩
-  ∥ ⊥ ∥                                  →⟨ ⊥-elim ∘ Is-modal→Stable ∥∥-empty-modal ⟩□
+  ∥ ⊥ ∥                                  →⟨ ⊥-elim ∘ Modal→Stable ∥∥-empty-modal ⟩□
   ⊥                                      □
   where
   open Modality (∥∥-modality {ℓ = ℓ})
@@ -334,7 +334,7 @@ Is-proposition→∥∥-accessibility-modal {ℓ = ℓ} p₁ p₂ =
   Accessibility-modal-for-erasure-stable
     E.[ (
           (λ acc →
-             Is-modal→Acc→Acc-[]◯-η
+             Modal→Acc→Acc-[]◯-η
                p₁
                (rec′ λ @0 where
                   .∣∣ʳ                        → id

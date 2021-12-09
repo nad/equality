@@ -23,7 +23,7 @@ private
     hiding (◯Ση≃Σ◯◯;
             Stable-Π; Stable-implicit-Π;
             Stable-Erased; Stable-Contractibleᴱ; Stable-⁻¹ᴱ;
-            Is-modal→Stable-Is-equivalence; Stable-W;
+            Modal→Stable-Is-equivalence; Stable-W;
             ◯Π◯≃◯Π; ◯Π◯≃◯Π-η; ◯Π◯≃◯Π⁻¹-η; ◯≡≃η≡η)
 
 open import Logical-equivalence using (_⇔_)
@@ -62,24 +62,24 @@ private
 
 abstract
 
-  -- ◯ (∀ x → Is-modal (P x)) is inhabited.
+  -- ◯ (∀ x → Modal (P x)) is inhabited.
   --
-  -- One might wonder if something like ◯ ({A : Type a} → Is-modal A)
+  -- One might wonder if something like ◯ ({A : Type a} → Modal A)
   -- would be more general than Very-modal M. However, the former
   -- statement is not type-correct. The statement
   --
-  --   {A : Type a} {P : A → Type a} → ◯ (∀ x → Is-modal (P x))
+  --   {A : Type a} {P : A → Type a} → ◯ (∀ x → Modal (P x))
   --
   -- is type-correct, but follows from Very-modal M.
 
-  ◯-Π-Is-modal :
-    {A : Type a} {P : A → Type a} → ◯ (∀ x → Is-modal (P x))
-  ◯-Π-Is-modal {A = A} {P = P} =
-                                           $⟨ (λ {_} → very-modal) ⟩
-    Very-modal M                           →⟨ (λ m → m , m) ⟩
-    ◯ (Is-modal A) × ◯ (Is-modal (Σ A P))  →⟨ _≃_.from ◯×≃ ⟩
-    ◯ (Is-modal A × Is-modal (Σ A P))      →⟨ ◯-map (λ (mA , mΣAP) → Is-modal-Σ≃Π-Is-modal mA _ mΣAP) ⟩□
-    ◯ (∀ x → Is-modal (P x))               □
+  ◯-Π-Modal :
+    {A : Type a} {P : A → Type a} → ◯ (∀ x → Modal (P x))
+  ◯-Π-Modal {A = A} {P = P} =
+                                     $⟨ (λ {_} → very-modal) ⟩
+    Very-modal M                     →⟨ (λ m → m , m) ⟩
+    ◯ (Modal A) × ◯ (Modal (Σ A P))  →⟨ _≃_.from ◯×≃ ⟩
+    ◯ (Modal A × Modal (Σ A P))      →⟨ ◯-map (λ (mA , mΣAP) → Modal-Σ≃Π-Modal mA _ mΣAP) ⟩□
+    ◯ (∀ x → Modal (P x))            □
 
 ------------------------------------------------------------------------
 -- The modality is left exact and, assuming function extensionality,
@@ -91,7 +91,7 @@ abstract
 
 left-exact-η-cong : Left-exact-η-cong
 left-exact-η-cong =
-  ◯-Is-modal→Is-equivalence-η-cong very-modal _ _
+  ◯-Modal→Is-equivalence-η-cong very-modal _ _
 
 -- There is an equivalence between ◯ (x ≡ y) and η x ≡ η y.
 
@@ -104,65 +104,65 @@ left-exact-η-cong =
 ◯Π◯≃◯Π :
   {A : Type a} {P : A → Type a} →
   ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ ((x : A) → P x)
-◯Π◯≃◯Π = M.◯Π◯≃◯Π ◯-Π-Is-modal
+◯Π◯≃◯Π = M.◯Π◯≃◯Π ◯-Π-Modal
 
 -- Two "computation rules" for ◯Π◯≃◯Π.
 
 ◯Π◯≃◯Π-η :
   ◯Π◯≃◯Π _ (η f) ≡
-  ◯-map (λ m x → Is-modal→Stable (m x) (f x)) ◯-Π-Is-modal
+  ◯-map (λ m x → Modal→Stable (m x) (f x)) ◯-Π-Modal
 ◯Π◯≃◯Π-η {f = f} =
   ◯-elim
     {P = λ m →
            M.◯Π◯≃◯Π m _ (η f) ≡
-           ◯-map (λ m x → Is-modal→Stable (m x) (f x)) m}
+           ◯-map (λ m x → Modal→Stable (m x) (f x)) m}
     (λ _ → Separated-◯ _ _)
     (λ m →
-       M.◯Π◯≃◯Π (η m) _ (η f)                             ≡⟨ M.◯Π◯≃◯Π-η ⟩
-       η (λ x → Is-modal→Stable (m x) (f x))              ≡⟨ sym ◯-map-η ⟩∎
-       ◯-map (λ m x → Is-modal→Stable (m x) (f x)) (η m)  ∎)
-    ◯-Π-Is-modal
+       M.◯Π◯≃◯Π (η m) _ (η f)                          ≡⟨ M.◯Π◯≃◯Π-η ⟩
+       η (λ x → Modal→Stable (m x) (f x))              ≡⟨ sym ◯-map-η ⟩∎
+       ◯-map (λ m x → Modal→Stable (m x) (f x)) (η m)  ∎)
+    ◯-Π-Modal
 
 ◯Π◯≃◯Π⁻¹-η : _⇔_.from (◯Π◯≃◯Π _) (η f) ≡ η (η ∘ f)
-◯Π◯≃◯Π⁻¹-η = M.◯Π◯≃◯Π⁻¹-η {m = ◯-Π-Is-modal}
+◯Π◯≃◯Π⁻¹-η = M.◯Π◯≃◯Π⁻¹-η {m = ◯-Π-Modal}
 
 -- A variant of ◯Π◯≃◯Π-η.
 
 ◯Π◯≃◯Π-η′ :
   (f : ◯ ((x : A) → P x) → B)
   (g : ((x : A) → ◯ (P x)) → B) →
-  Is-modal B →
-  (∀ m → f (η λ x → Is-modal→Stable (m x) (h x)) ≡ g h) →
+  Modal B →
+  (∀ m → f (η λ x → Modal→Stable (m x) (h x)) ≡ g h) →
   f (◯Π◯≃◯Π _ (η h)) ≡ g h
 ◯Π◯≃◯Π-η′ {h = h} f g m hyp =
   f (◯Π◯≃◯Π _ (η h))                                            ≡⟨ cong f ◯Π◯≃◯Π-η ⟩
-  f (◯-map (λ m x → Is-modal→Stable (m x) (h x)) ◯-Π-Is-modal)  ≡⟨ ◯-elim
+  f (◯-map (λ m x → Modal→Stable (m x) (h x)) ◯-Π-Modal)        ≡⟨ ◯-elim
                                                                      {P = λ m →
-                                                                            f (◯-map (λ m x → Is-modal→Stable (m x) (h x)) m) ≡
+                                                                            f (◯-map (λ m x → Modal→Stable (m x) (h x)) m) ≡
                                                                             g h}
-                                                                     (λ _ → Is-modal→Separated m _ _)
+                                                                     (λ _ → Modal→Separated m _ _)
                                                                      (λ m →
-    f (◯-map (λ m x → Is-modal→Stable (m x) (h x)) (η m))               ≡⟨ cong f ◯-map-η ⟩
-    f (η λ x → Is-modal→Stable (m x) (h x))                             ≡⟨ hyp m ⟩∎
+    f (◯-map (λ m x → Modal→Stable (m x) (h x)) (η m))                  ≡⟨ cong f ◯-map-η ⟩
+    f (η λ x → Modal→Stable (m x) (h x))                                ≡⟨ hyp m ⟩∎
     g h                                                                 ∎)
-                                                                     ◯-Π-Is-modal ⟩∎
+                                                                     ◯-Π-Modal ⟩∎
   g h                                                           ∎
 
--- Is-modal A is equivalent to Is-modal -Null A (assuming function
+-- Modal A is equivalent to Modal -Null A (assuming function
 -- extensionality).
 
-Is-modal≃Is-modal-Null :
+Modal≃Modal-Null :
   Extensionality a a →
-  Is-modal A ↝[ lsuc a ∣ a ] Is-modal -Null A
-Is-modal≃Is-modal-Null {A = A} ext =
+  Modal A ↝[ lsuc a ∣ a ] Modal -Null A
+Modal≃Modal-Null {A = A} ext =
   generalise-ext?-prop
     (record { to = to; from = from })
-    (λ _ → Is-modal-propositional ext)
+    (λ _ → Modal-propositional ext)
     (λ ext′ →
        Π-closure ext′ 1 λ _ →
        Eq.propositional ext _)
   where
-  to : Is-modal A → Is-modal -Null A
+  to : Modal A → Modal -Null A
   to m _ =
     _≃_.is-equivalence $
     Eq.↔→≃
@@ -171,38 +171,38 @@ Is-modal≃Is-modal-Null {A = A} ext =
       (λ f → apply-ext ext λ m′ →
          ◯-elim
            {P = λ m″ → η⁻¹ m (◯-map f m″) ≡ f m′}
-           (λ _ → Is-modal→Separated m _ _)
+           (λ _ → Modal→Separated m _ _)
            (λ m″ →
               η⁻¹ m (◯-map f (η m″))  ≡⟨ cong (η⁻¹ m) ◯-map-η ⟩
               η⁻¹ m (η (f m″))        ≡⟨ η⁻¹-η ⟩
-              f m″                    ≡⟨ cong f $ Is-modal-propositional ext _ _ ⟩∎
+              f m″                    ≡⟨ cong f $ Modal-propositional ext _ _ ⟩∎
               f m′                    ∎)
            very-modal)
       (λ x →
          ◯-elim
            {P = λ m′ → η⁻¹ m (◯-map (const x) m′) ≡ x}
-           (λ _ → Is-modal→Separated m _ _)
+           (λ _ → Modal→Separated m _ _)
            (λ m′ →
               η⁻¹ m (◯-map (const x) (η m′))  ≡⟨ cong (η⁻¹ m) ◯-map-η ⟩
               η⁻¹ m (η x)                     ≡⟨ η⁻¹-η ⟩∎
               x                               ∎)
            very-modal)
 
-  from : Is-modal -Null A → Is-modal A
+  from : Modal -Null A → Modal A
   from null =
-    Is-equivalence-η→Is-modal $
+    Is-equivalence-η→Modal $
     _≃_.is-equivalence $
     Eq.↔→≃
       η
-      (◯ A               →⟨ flip η⁻¹ ⟩
-       (Is-modal A → A)  ↔⟨ inverse A≃ ⟩□
-       A                 □)
+      (◯ A            →⟨ flip η⁻¹ ⟩
+       (Modal A → A)  ↔⟨ inverse A≃ ⟩□
+       A              □)
       (◯-elim
          (λ _ → Separated-◯ _ _)
          (λ x → cong η (lemma x)))
       lemma
     where
-    A≃ : A ≃ (Is-modal A → A)
+    A≃ : A ≃ (Modal A → A)
     A≃ = Eq.⟨ const , null A ⟩
 
     lemma : ∀ x → _≃_.from A≃ (λ m → η⁻¹ m (η x)) ≡ x
@@ -226,30 +226,30 @@ topological :
   Topological (lsuc a ⊔ ℓ) M
 topological ℓ ext =
     ( ↑ ℓ (Type a)
-    , ↑ _ ∘ Is-modal ∘ lower
+    , ↑ _ ∘ Modal ∘ lower
     , (λ A →
-         Is-modal A                                     ↝⟨ Is-modal≃Is-modal-Null ext′ _ ⟩
-         Is-modal -Null A                               ↝⟨ (inverse $
+         Modal A                                        ↝⟨ Modal≃Modal-Null ext′ _ ⟩
+         Modal -Null A                                  ↝⟨ (inverse $
                                                             Π-cong _ Bijection.↑↔ λ B →
                                                             Is-equivalence≃Is-equivalence-∘ˡ
                                                               (_≃_.is-equivalence $
                                                                Eq.↔→≃ (_∘ lift) (_∘ lower) refl refl)
                                                               _) ⟩
-         (↑ _ ∘ Is-modal ∘ lower) -Null A               ↔⟨ inverse $ PS.Π-Is-∞-extendable-along≃Null ext ⟩□
+         (↑ _ ∘ Modal ∘ lower) -Null A                  ↔⟨ inverse $ PS.Π-Is-∞-extendable-along≃Null ext ⟩□
          (∀ _ → Is-∞-extendable-along-[ _ ] (λ _ → A))  □)
     )
-  , (λ _ → ↑-closure 1 $ Is-modal-propositional ext′)
+  , (λ _ → ↑-closure 1 $ Modal-propositional ext′)
   where
   ext′ = lower-extensionality _ _ ext
 
 ------------------------------------------------------------------------
 -- Some equivalences
 
--- ◯ (Is-modal A) is equivalent to the unit type (assuming function
+-- ◯ (Modal A) is equivalent to the unit type (assuming function
 -- extensionality).
 
-◯-Is-modal≃⊤ : ◯ (Is-modal A) ↝[ a ∣ a ] ⊤
-◯-Is-modal≃⊤ {A = A} =
+◯-Modal≃⊤ : ◯ (Modal A) ↝[ a ∣ a ] ⊤
+◯-Modal≃⊤ {A = A} =
   generalise-ext?
     (record { from = λ _ → very-modal })
     (λ ext →
@@ -257,28 +257,28 @@ topological ℓ ext =
        , (λ m →
             very-modal  ≡⟨ Left-exact-η-cong→H-level→H-level-◯
                              ext left-exact-η-cong 1
-                             (Is-modal-propositional ext)
+                             (Modal-propositional ext)
                              _ _ ⟩∎
             m           ∎))
 
--- ◯ B is equivalent to ◯ (Is-modal A × B) (assuming function
+-- ◯ B is equivalent to ◯ (Modal A × B) (assuming function
 -- extensionality).
 
-◯≃◯-Is-modal-× : ◯ B ↝[ a ∣ a ] ◯ (Is-modal A × B)
-◯≃◯-Is-modal-× {B = B} {A = A} ext =
-  ◯ B                   ↝⟨ inverse-ext? (drop-⊤-left-× ∘ const ∘ ◯-Is-modal≃⊤) ext ⟩
-  ◯ (Is-modal A) × ◯ B  ↔⟨ inverse ◯×≃ ⟩□
-  ◯ (Is-modal A × B)    □
+◯≃◯-Modal-× : ◯ B ↝[ a ∣ a ] ◯ (Modal A × B)
+◯≃◯-Modal-× {B = B} {A = A} ext =
+  ◯ B                ↝⟨ inverse-ext? (drop-⊤-left-× ∘ const ∘ ◯-Modal≃⊤) ext ⟩
+  ◯ (Modal A) × ◯ B  ↔⟨ inverse ◯×≃ ⟩□
+  ◯ (Modal A × B)    □
 
--- A variant of ◯≃◯-Is-modal-×.
+-- A variant of ◯≃◯-Modal-×.
 
-◯≃◯Σ-Is-modal :
+◯≃◯Σ-Modal :
   (P : A → Type a) →
-  ◯ (P x) ↝[ a ∣ a ] ◯ (∃ λ (m : Is-modal A) → P (◯-rec m id (η x)))
-◯≃◯Σ-Is-modal {A = A} {x = x} P ext =
-  ◯ (P x)                                          ↝⟨ ◯≃◯-Is-modal-× ext ⟩
-  ◯ (Is-modal A × P x)                             ↔⟨ (◯-cong-≃ $ ∃-cong λ _ → ≡⇒↝ _ $ cong P $ sym ◯-rec-η) ⟩□
-  ◯ (∃ λ (m : Is-modal A) → P (◯-rec m id (η x)))  □
+  ◯ (P x) ↝[ a ∣ a ] ◯ (∃ λ (m : Modal A) → P (◯-rec m id (η x)))
+◯≃◯Σ-Modal {A = A} {x = x} P ext =
+  ◯ (P x)                                       ↝⟨ ◯≃◯-Modal-× ext ⟩
+  ◯ (Modal A × P x)                             ↔⟨ (◯-cong-≃ $ ∃-cong λ _ → ≡⇒↝ _ $ cong P $ sym ◯-rec-η) ⟩□
+  ◯ (∃ λ (m : Modal A) → P (◯-rec m id (η x)))  □
 
 -- A kind of choice principle holds.
 
@@ -298,10 +298,10 @@ topological ℓ ext =
               η f                                   ∎)
        , (λ f →
             ◯Π→Π◯ (◯Π◯≃◯Π _ (η f))                           ≡⟨ ◯Π◯≃◯Π-η′ ◯Π→Π◯ id
-                                                                  (Is-modal-Π ext λ _ → Is-modal-◯)
+                                                                  (Modal-Π ext λ _ → Modal-◯)
                                                                   (λ m →
-              ◯Π→Π◯ (η (λ x → Is-modal→Stable (m x) (f x)))          ≡⟨ ◯Π→Π◯-η ext ⟩
-              (λ x → η (Is-modal→Stable (m x) (f x)))                ≡⟨⟩
+              ◯Π→Π◯ (η (λ x → Modal→Stable (m x) (f x)))          ≡⟨ ◯Π→Π◯-η ext ⟩
+              (λ x → η (Modal→Stable (m x) (f x)))                ≡⟨⟩
               (λ x → η (η⁻¹ (m x) (f x)))                            ≡⟨ (apply-ext ext λ _ → η-η⁻¹) ⟩∎
               f                                                      ∎) ⟩∎
 
@@ -330,40 +330,40 @@ topological ℓ ext =
   Extensionality a a →
   Π◯≃◯Π _ (◯-map f ∘ g) ≡ ◯-map (f ∘_) (Π◯≃◯Π _ g)
 Π◯≃◯Π-◯-map {f = f} {g = g} ext =
-  Π◯≃◯Π _ (◯-map f ∘ g)                                  ≡⟨⟩
-  ◯Π◯≃◯Π _ (η (◯-map f ∘ g))                             ≡⟨ sym $
-                                                            ◯Π◯≃◯Π-η′
-                                                              (◯-map (f ∘_))
-                                                              (λ g → ◯Π◯≃◯Π _ (η (◯-map f ∘ g)))
-                                                              Is-modal-◯
-                                                              (λ m₁ →
-                                                                 sym $
-                                                                 ◯-elim
-                                                                   {P = λ m₂ →
-                                                                          M.◯Π◯≃◯Π m₂ _ (η (◯-map f ∘ g)) ≡
-                                                                          ◯-map (f ∘_) (η λ x → Is-modal→Stable (m₁ x) (g x))}
-                                                                   (λ _ → Separated-◯ _ _)
-                                                                   (λ m₂ →
-    M.◯Π◯≃◯Π (η m₂) _ (η (◯-map f ∘ g))                               ≡⟨ M.◯Π◯≃◯Π-η ⟩
-    η (λ x → Is-modal→Stable (m₂ x) (◯-map f (g x)))                  ≡⟨ (cong η $
-                                                                          apply-ext ext λ x →
-                                                                          ◯-elim
-                                                                            {P = λ y →
-                                                                                   Is-modal→Stable (m₂ x) (◯-map f y) ≡
-                                                                                   f (Is-modal→Stable (m₁ x) y)}
-                                                                            (λ _ → Is-modal→Separated (m₂ x) _ _)
-                                                                            (λ y →
-      Is-modal→Stable (m₂ x) (◯-map f (η y))                                   ≡⟨ cong (Is-modal→Stable (m₂ x)) ◯-map-η ⟩
-      Is-modal→Stable (m₂ x) (η (f y))                                         ≡⟨ Is-modal→Stable-η ⟩
-      f y                                                                      ≡⟨ cong f $ sym Is-modal→Stable-η ⟩∎
-      f (Is-modal→Stable (m₁ x) (η y))                                         ∎)
-                                                                            (g x)) ⟩
-    η (λ x → f (Is-modal→Stable (m₁ x) (g x)))                        ≡⟨ sym ◯-map-η ⟩∎
-    ◯-map (f ∘_) (η λ x → Is-modal→Stable (m₁ x) (g x))               ∎)
-                                                                   ◯-Π-Is-modal) ⟩
+  Π◯≃◯Π _ (◯-map f ∘ g)                               ≡⟨⟩
+  ◯Π◯≃◯Π _ (η (◯-map f ∘ g))                          ≡⟨ sym $
+                                                         ◯Π◯≃◯Π-η′
+                                                           (◯-map (f ∘_))
+                                                           (λ g → ◯Π◯≃◯Π _ (η (◯-map f ∘ g)))
+                                                           Modal-◯
+                                                           (λ m₁ →
+                                                              sym $
+                                                              ◯-elim
+                                                                {P = λ m₂ →
+                                                                       M.◯Π◯≃◯Π m₂ _ (η (◯-map f ∘ g)) ≡
+                                                                       ◯-map (f ∘_) (η λ x → Modal→Stable (m₁ x) (g x))}
+                                                                (λ _ → Separated-◯ _ _)
+                                                                (λ m₂ →
+    M.◯Π◯≃◯Π (η m₂) _ (η (◯-map f ∘ g))                            ≡⟨ M.◯Π◯≃◯Π-η ⟩
+    η (λ x → Modal→Stable (m₂ x) (◯-map f (g x)))                  ≡⟨ (cong η $
+                                                                       apply-ext ext λ x →
+                                                                       ◯-elim
+                                                                         {P = λ y →
+                                                                                Modal→Stable (m₂ x) (◯-map f y) ≡
+                                                                                f (Modal→Stable (m₁ x) y)}
+                                                                         (λ _ → Modal→Separated (m₂ x) _ _)
+                                                                         (λ y →
+      Modal→Stable (m₂ x) (◯-map f (η y))                                   ≡⟨ cong (Modal→Stable (m₂ x)) ◯-map-η ⟩
+      Modal→Stable (m₂ x) (η (f y))                                         ≡⟨ Modal→Stable-η ⟩
+      f y                                                                   ≡⟨ cong f $ sym Modal→Stable-η ⟩∎
+      f (Modal→Stable (m₁ x) (η y))                                         ∎)
+                                                                         (g x)) ⟩
+    η (λ x → f (Modal→Stable (m₁ x) (g x)))                        ≡⟨ sym ◯-map-η ⟩∎
+    ◯-map (f ∘_) (η λ x → Modal→Stable (m₁ x) (g x))               ∎)
+                                                                ◯-Π-Modal) ⟩
 
-  ◯-map (f ∘_) (◯Π◯≃◯Π _ (η g))                          ≡⟨⟩
-  ◯-map (f ∘_) (Π◯≃◯Π _ g)                               ∎
+  ◯-map (f ∘_) (◯Π◯≃◯Π _ (η g))                       ≡⟨⟩
+  ◯-map (f ∘_) (Π◯≃◯Π _ g)                            ∎
 
 -- A variant of Modality-lemma.◯Ση≃Σ◯◯ proved using the assumption
 -- that the modality is very modal, instead of function
@@ -372,71 +372,71 @@ topological ℓ ext =
 ◯Ση≃Σ◯◯ : ◯ (Σ A (P ∘ η)) ≃ Σ (◯ A) (◯ ∘ P)
 ◯Ση≃Σ◯◯ {A = A} {P = P} = Eq.↔→≃
   ◯Ση→Σ◯◯
-  (Σ (◯ A) (◯ ∘ P)             →⟨ (λ (x , y) → ◯-map (x ,_) y) ⟩
-   ◯ (Σ (◯ A) P)               →⟨ ◯≃◯-Is-modal-× _ ⟩
-   ◯ (Is-modal A × Σ (◯ A) P)  →⟨ ◯-map (proj₂ ∘ ∃-cong λ m → _≃_.from $ Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id) ⟩□
-   ◯ (Σ A (P ∘ η))             □)
+  (Σ (◯ A) (◯ ∘ P)          →⟨ (λ (x , y) → ◯-map (x ,_) y) ⟩
+   ◯ (Σ (◯ A) P)            →⟨ ◯≃◯-Modal-× _ ⟩
+   ◯ (Modal A × Σ (◯ A) P)  →⟨ ◯-map (proj₂ ∘ ∃-cong λ m → _≃_.from $ Σ-cong (Modal→≃◯ m) λ _ → Eq.id) ⟩□
+   ◯ (Σ A (P ∘ η))          □)
   (λ (x , y) →
      ◯-elim
        {P = λ m →
               ◯-rec m₁ (Σ-map η η)
                 (◯-map (proj₂ ∘
                         ∃-cong λ m → _≃_.from $
-                        Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
+                        Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
                    (_≃_.from ◯×≃ (m , ◯-map (x ,_) y))) ≡
               (x , y)}
-       (λ _ → Is-modal→Separated m₁ _ _)
+       (λ _ → Modal→Separated m₁ _ _)
        (λ m →
           ◯-elim
             {P = λ y →
                    ◯-rec m₁ (Σ-map η η)
                      (◯-map (proj₂ ∘
                              ∃-cong λ m → _≃_.from $
-                             Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
+                             Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
                         (_≃_.from ◯×≃ (η m , ◯-map (x ,_) y))) ≡
                    (x , y)}
-            (λ _ → Is-modal→Separated m₁ _ _)
+            (λ _ → Modal→Separated m₁ _ _)
             (λ y →
                ◯-rec m₁ (Σ-map η η)
                  (◯-map (proj₂ ∘
                          ∃-cong λ m → _≃_.from $
-                         Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
-                    (_≃_.from ◯×≃ (η m , ◯-map (x ,_) (η y))))        ≡⟨ cong (◯-rec _ _) $ cong (◯-map _) $ cong (_≃_.from ◯×≃) $ cong (η m ,_)
-                                                                         ◯-map-η ⟩
+                         Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
+                    (_≃_.from ◯×≃ (η m , ◯-map (x ,_) (η y))))     ≡⟨ cong (◯-rec _ _) $ cong (◯-map _) $ cong (_≃_.from ◯×≃) $ cong (η m ,_)
+                                                                      ◯-map-η ⟩
                ◯-rec m₁ (Σ-map η η)
                  (◯-map (proj₂ ∘
                          ∃-cong λ m → _≃_.from $
-                         Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
-                    (_≃_.from ◯×≃ (η m , η (x , y))))                 ≡⟨ cong (◯-rec _ _) $ cong (◯-map _)
-                                                                         ◯×≃⁻¹-η ⟩
+                         Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
+                    (_≃_.from ◯×≃ (η m , η (x , y))))              ≡⟨ cong (◯-rec _ _) $ cong (◯-map _)
+                                                                      ◯×≃⁻¹-η ⟩
                ◯-rec m₁ (Σ-map η η)
                  (◯-map (proj₂ ∘
                          ∃-cong λ m → _≃_.from $
-                         Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
-                    (η (m , x , y)))                                  ≡⟨ cong (◯-rec _ _)
-                                                                         ◯-map-η ⟩
+                         Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
+                    (η (m , x , y)))                               ≡⟨ cong (◯-rec _ _)
+                                                                      ◯-map-η ⟩
                ◯-rec m₁ (Σ-map η η)
                  (η (_≃_.from
-                       (Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
-                       (x , y)))                                      ≡⟨ ◯-rec-η ⟩
+                       (Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
+                       (x , y)))                                   ≡⟨ ◯-rec-η ⟩
 
                Σ-map η η
-                 (_≃_.from (Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
-                    (x , y))                                          ≡⟨⟩
+                 (_≃_.from (Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
+                    (x , y))                                       ≡⟨⟩
 
-               ( η (_≃_.from (Is-modal→≃◯ m) x)
+               ( η (_≃_.from (Modal→≃◯ m) x)
                , η (subst P
-                      (sym (_≃_.right-inverse-of (Is-modal→≃◯ m) x))
+                      (sym (_≃_.right-inverse-of (Modal→≃◯ m) x))
                       y)
-               )                                                      ≡⟨ elim₁
-                                                                           (λ {x′} eq → (x′ , η (subst P (sym eq) y)) ≡ (x , η y))
-                                                                           (
-                 (x , η (subst P (sym $ refl x) y))                         ≡⟨ cong (x ,_) $ cong η $
-                                                                               trans (cong (flip (subst P) _) $ sym-refl) $
-                                                                               subst-refl _ _ ⟩∎
-                 (x , η y)                                                  ∎)
-                                                                           _ ⟩∎
-               (x , η y)                                              ∎)
+               )                                                   ≡⟨ elim₁
+                                                                        (λ {x′} eq → (x′ , η (subst P (sym eq) y)) ≡ (x , η y))
+                                                                        (
+                 (x , η (subst P (sym $ refl x) y))                      ≡⟨ cong (x ,_) $ cong η $
+                                                                            trans (cong (flip (subst P) _) $ sym-refl) $
+                                                                            subst-refl _ _ ⟩∎
+                 (x , η y)                                               ∎)
+                                                                        _ ⟩∎
+               (x , η y)                                           ∎)
             y)
        very-modal)
   (◯-elim
@@ -447,7 +447,7 @@ topological ℓ ext =
           {P = λ m →
                  ◯-map (proj₂ ∘
                         ∃-cong λ m → _≃_.from $
-                        Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
+                        Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
                    (_≃_.from ◯×≃
                       (m , f (◯-rec m₁ (Σ-map η η) (η (x , y))))) ≡
                  η (x , y)}
@@ -455,51 +455,51 @@ topological ℓ ext =
           (λ m →
              ◯-map (proj₂ ∘
                     ∃-cong λ m → _≃_.from $
-                    Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
+                    Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
                (_≃_.from ◯×≃
-                  (η m , f (◯-rec m₁ (Σ-map η η) (η (x , y)))))        ≡⟨ cong (◯-map _) $ cong (_≃_.from ◯×≃) $ cong (η m ,_) $ cong f
-                                                                          ◯-rec-η ⟩
+                  (η m , f (◯-rec m₁ (Σ-map η η) (η (x , y)))))     ≡⟨ cong (◯-map _) $ cong (_≃_.from ◯×≃) $ cong (η m ,_) $ cong f
+                                                                       ◯-rec-η ⟩
              ◯-map (proj₂ ∘
                     ∃-cong λ m → _≃_.from $
-                    Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
-               (_≃_.from ◯×≃ (η m , ◯-map (η x ,_) (η y)))             ≡⟨ cong (◯-map _) $ cong (_≃_.from ◯×≃) $ cong (η m ,_)
-                                                                          ◯-map-η ⟩
+                    Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
+               (_≃_.from ◯×≃ (η m , ◯-map (η x ,_) (η y)))          ≡⟨ cong (◯-map _) $ cong (_≃_.from ◯×≃) $ cong (η m ,_)
+                                                                       ◯-map-η ⟩
              ◯-map (proj₂ ∘
                     ∃-cong λ m → _≃_.from $
-                    Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
-               (_≃_.from ◯×≃ (η m , η (η x , y)))                      ≡⟨ cong (◯-map _)
-                                                                          ◯×≃⁻¹-η ⟩
+                    Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
+               (_≃_.from ◯×≃ (η m , η (η x , y)))                   ≡⟨ cong (◯-map _)
+                                                                       ◯×≃⁻¹-η ⟩
              ◯-map (proj₂ ∘
                     ∃-cong λ m → _≃_.from $
-                    Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
-               (η (m , η x , y))                                       ≡⟨ ◯-map-η ⟩
+                    Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
+               (η (m , η x , y))                                    ≡⟨ ◯-map-η ⟩
 
-             η (_≃_.from (Σ-cong (Is-modal→≃◯ m) λ _ → Eq.id)
-                  (η x , y))                                           ≡⟨⟩
+             η (_≃_.from (Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
+                  (η x , y))                                        ≡⟨⟩
 
-             η ( _≃_.from (Is-modal→≃◯ m) (η x)
+             η ( _≃_.from (Modal→≃◯ m) (η x)
                , subst P
-                   (sym (_≃_.right-inverse-of (Is-modal→≃◯ m) (η x)))
+                   (sym (_≃_.right-inverse-of (Modal→≃◯ m) (η x)))
                    y
-               )                                                       ≡⟨ cong η $ cong (_ ,_) $ cong (flip (subst P) _) $ cong sym $ sym $
-                                                                          _≃_.left-right-lemma (Is-modal→≃◯ m) _ ⟩
-             η ( _≃_.from (Is-modal→≃◯ m) (η x)
+               )                                                    ≡⟨ cong η $ cong (_ ,_) $ cong (flip (subst P) _) $ cong sym $ sym $
+                                                                       _≃_.left-right-lemma (Modal→≃◯ m) _ ⟩
+             η ( _≃_.from (Modal→≃◯ m) (η x)
                , subst P
                    (sym $ cong η $
-                    _≃_.left-inverse-of (Is-modal→≃◯ m) x)
+                    _≃_.left-inverse-of (Modal→≃◯ m) x)
                    y
-               )                                                       ≡⟨ cong η $
-                                                                          elim₁
-                                                                            (λ {x′} eq → (x′ , subst P (sym $ cong η eq) y) ≡ (x , y))
-                                                                            (
-               (x , subst P (sym $ cong η $ refl x) y)                       ≡⟨ cong (x ,_) $
-                                                                                trans (cong (flip (subst P) _) $
-                                                                                       trans (cong sym $ cong-refl _) $
-                                                                                       sym-refl) $
-                                                                                subst-refl _ _ ⟩∎
-               (x , y)                                                       ∎)
-                                                                            _ ⟩∎
-             η (x , y)                                                 ∎)
+               )                                                    ≡⟨ cong η $
+                                                                       elim₁
+                                                                         (λ {x′} eq → (x′ , subst P (sym $ cong η eq) y) ≡ (x , y))
+                                                                         (
+               (x , subst P (sym $ cong η $ refl x) y)                    ≡⟨ cong (x ,_) $
+                                                                             trans (cong (flip (subst P) _) $
+                                                                                    trans (cong sym $ cong-refl _) $
+                                                                                    sym-refl) $
+                                                                             subst-refl _ _ ⟩∎
+               (x , y)                                                    ∎)
+                                                                         _ ⟩∎
+             η (x , y)                                              ∎)
           very-modal))
   where
   m₁ = _
@@ -510,9 +510,9 @@ topological ℓ ext =
   {P : A → Type a} →
   ◯ (Σ A P) ↝[ a ∣ a ] Σ (◯ A) (λ x → ◯ (∃ λ m → P (◯-rec m id x)))
 ◯Σ≃Σ◯◯ {A = A} {P = P} ext =
-  ◯ (Σ A P)                                     ↝⟨ ◯≃◯-Is-modal-× ext ⟩
-  ◯ (Is-modal A × Σ A P)                        ↔⟨ ◯-cong-↔ ∃-comm ⟩
-  ◯ (Σ A (λ x → Is-modal A × P x))              ↔⟨ ◯-cong-≃ $ (∃-cong λ _ → ∃-cong λ _ → ≡⇒↝ _ $ cong P $ sym ◯-rec-η) ⟩
+  ◯ (Σ A P)                                     ↝⟨ ◯≃◯-Modal-× ext ⟩
+  ◯ (Modal A × Σ A P)                           ↔⟨ ◯-cong-↔ ∃-comm ⟩
+  ◯ (Σ A (λ x → Modal A × P x))                 ↔⟨ ◯-cong-≃ $ (∃-cong λ _ → ∃-cong λ _ → ≡⇒↝ _ $ cong P $ sym ◯-rec-η) ⟩
   ◯ (Σ A (λ x → ∃ λ m → P (◯-rec m id (η x))))  ↔⟨ ◯Ση≃Σ◯◯ ⟩□
   Σ (◯ A) (λ x → ◯ (∃ λ m → P (◯-rec m id x)))  □
 
@@ -550,12 +550,12 @@ Stable-implicit-Π {A = A} {P = P} ext hyp =
 -- Is-equivalence f is k-stable (perhaps assuming function
 -- extensionality).
 
-Is-modal→Stable-Is-equivalence :
+Modal→Stable-Is-equivalence :
   {f : A → B} →
   Extensionality? k a a →
-  Is-modal A → Separated B →
+  Modal A → Separated B →
   Stable-[ k ] (Is-equivalence f)
-Is-modal→Stable-Is-equivalence {k = k} {f = f} ext m s =
+Modal→Stable-Is-equivalence {k = k} {f = f} ext m s =
                                               $⟨ s′ ⟩
   Stable-[ k ] (∀ y → Contractible (f ⁻¹ y))  →⟨ Stable-respects-↝ ext $ inverse-ext?
                                                  Is-equivalence≃Is-equivalence-CP ⟩□
@@ -563,11 +563,11 @@ Is-modal→Stable-Is-equivalence {k = k} {f = f} ext m s =
   where
   s′ =
     Stable-Π ext λ y →
-    let m′ : Is-modal (f ⁻¹ y)
-        m′ = Is-modal-Σ m (λ _ → s _ _) in
+    let m′ : Modal (f ⁻¹ y)
+        m′ = Modal-Σ m (λ _ → s _ _) in
     Stable-Σ m′ λ _ →
     Stable-Π ext λ _ →
-    Is-modal→Stable (Is-modal→Separated m′ _ _)
+    Modal→Stable (Modal→Separated m′ _ _)
 
 -- If A is modal, then H-level′ n A is k-stable (perhaps assuming
 -- function extensionality).
@@ -575,20 +575,20 @@ Is-modal→Stable-Is-equivalence {k = k} {f = f} ext m s =
 Stable-H-level′ :
   Extensionality? k a a →
   ∀ n →
-  Is-modal A →
+  Modal A →
   Stable-[ k ] (H-level′ n A)
 Stable-H-level′ {k = k} {A = A} ext zero =
-  Is-modal A                     →⟨ (λ m →
+  Modal A                        →⟨ (λ m →
                                        Stable-Σ m λ _ →
                                        Stable-Π ext λ _ →
-                                       Is-modal→Stable $ Is-modal→Separated m _ _) ⟩□
+                                       Modal→Stable $ Modal→Separated m _ _) ⟩□
   Stable-[ k ] (Contractible A)  □
 Stable-H-level′ {k = k} {A = A} ext (suc n) =
-  Is-modal A                                     →⟨ (λ m →
+  Modal A                                        →⟨ (λ m →
                                                        Stable-Π ext λ _ →
                                                        Stable-Π ext λ _ →
                                                        Stable-H-level′ ext n $
-                                                       Is-modal→Separated m _ _) ⟩□
+                                                       Modal→Separated m _ _) ⟩□
   Stable-[ k ] ((x y : A) → H-level′ n (x ≡ y))  □
 
 -- If A is modal, then H-level n A is k-stable (perhaps assuming
@@ -597,7 +597,7 @@ Stable-H-level′ {k = k} {A = A} ext (suc n) =
 Stable-H-level :
   Extensionality? k a a →
   ∀ n →
-  Is-modal A →
+  Modal A →
   Stable-[ k ] (H-level n A)
 Stable-H-level {A = A} ext n m =
   ◯ (H-level n A)   ↝⟨ ◯-cong-↝ ext H-level↔H-level′ ⟩
@@ -616,7 +616,7 @@ W◯→◯Wη :
 W◯→◯Wη {A = A} P (sup x f) =
   ◯-elim′
     {P = λ x → (P x → ◯ (W A (P ∘ η))) → ◯ (W A (P ∘ η))}
-    (λ _ → M.Stable-Π λ _ → Is-modal→Stable Is-modal-◯)
+    (λ _ → M.Stable-Π λ _ → Modal→Stable Modal-◯)
     (λ x f →
        ◯-map (sup x)
          (                             $⟨ f ⟩
@@ -634,23 +634,23 @@ W◯→◯Wη-sup-η :
 W◯→◯Wη-sup-η {A = A} {x = x} {P = P} ext f =
   ◯-elim′
     {P = λ x → (P x → ◯ (W A (P ∘ η))) → ◯ (W A (P ∘ η))}
-    (λ _ → M.Stable-Π λ _ → Is-modal→Stable Is-modal-◯)
+    (λ _ → M.Stable-Π λ _ → Modal→Stable Modal-◯)
     (λ x f → ◯-map (sup x) (Π◯≃◯Π _ f))
-    (η x) (W◯→◯Wη P ∘ f)                                       ≡⟨ (cong
-                                                                     (λ m →
-                                                                        ◯-elim′
-                                                                          {P = λ x → (P x → ◯ (W A (P ∘ η))) → ◯ (W A (P ∘ η))}
-                                                                          m (λ x f → ◯-map (sup x) (Π◯≃◯Π _ f))
-                                                                          (η x) (W◯→◯Wη P ∘ f)) $
-                                                                   apply-ext ext λ _ →
-                                                                   Stable-Π-Is-modal-Π ext) ⟩
+    (η x) (W◯→◯Wη P ∘ f)                                   ≡⟨ (cong
+                                                                 (λ m →
+                                                                    ◯-elim′
+                                                                      {P = λ x → (P x → ◯ (W A (P ∘ η))) → ◯ (W A (P ∘ η))}
+                                                                      m (λ x f → ◯-map (sup x) (Π◯≃◯Π _ f))
+                                                                      (η x) (W◯→◯Wη P ∘ f)) $
+                                                               apply-ext ext λ _ →
+                                                               Stable-Π-Modal-Π ext) ⟩
   ◯-elim′
     {P = λ x → (P x → ◯ (W A (P ∘ η))) → ◯ (W A (P ∘ η))}
-    (λ _ → Is-modal→Stable $ Is-modal-Π ext λ _ → Is-modal-◯)
+    (λ _ → Modal→Stable $ Modal-Π ext λ _ → Modal-◯)
     (λ x f → ◯-map (sup x) (Π◯≃◯Π _ f))
-    (η x) (W◯→◯Wη P ∘ f)                                       ≡⟨ cong (_$ (W◯→◯Wη P ∘ f)) $
-                                                                  ◯-elim′-Is-modal→Stable-η ⟩∎
-  ◯-map (sup x) (Π◯≃◯Π _ (W◯→◯Wη P ∘ f))                       ∎
+    (η x) (W◯→◯Wη P ∘ f)                                   ≡⟨ cong (_$ (W◯→◯Wη P ∘ f)) $
+                                                              ◯-elim′-Modal→Stable-η ⟩∎
+  ◯-map (sup x) (Π◯≃◯Π _ (W◯→◯Wη P ∘ f))                   ∎
 
 -- A lemma relating W◯→◯Wη and W-map η id.
 
@@ -679,8 +679,8 @@ W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
            (∀ y → ◯-map (W-map η id) (W◯→◯Wη P (f y)) ≡ η (f y)) →
            ◯-map (W-map η id) (W◯→◯Wη P (sup x f)) ≡
            η (sup x f)}
-    (λ _ → Is-modal-Π ext λ _ →
-           Is-modal-Π ext λ _ →
+    (λ _ → Modal-Π ext λ _ →
+           Modal-Π ext λ _ →
            Separated-◯ _ _)
     (λ x f hyp →
        ◯-map (W-map η id) (W◯→◯Wη P (sup (η x) f))                   ≡⟨ cong (◯-map (W-map η id)) $ W◯→◯Wη-sup-η ext f ⟩
@@ -717,7 +717,7 @@ W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
     (record { to = to; from = from })
     (λ ext → to-from ext , from-to ext)
   where
-  to   = ◯-rec Is-modal-◯ (W◯→◯Wη P)
+  to   = ◯-rec Modal-◯ (W◯→◯Wη P)
   from = ◯-map (W-map η id)
 
   to-from :
@@ -727,11 +727,11 @@ W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
     ◯-elim
       (λ _ → Separated-◯ _ _)
       (λ x →
-         to (from (η x))                                         ≡⟨⟩
-         ◯-rec Is-modal-◯ (W◯→◯Wη P) (◯-map (W-map η id) (η x))  ≡⟨ ◯-rec-◯-map ⟩
-         ◯-rec Is-modal-◯ (W◯→◯Wη P ∘ W-map η id) (η x)          ≡⟨ ◯-rec-η ⟩
-         W◯→◯Wη P (W-map η id x)                                 ≡⟨ W◯→◯Wη-W-map-η-id ext ⟩∎
-         η x                                                     ∎)
+         to (from (η x))                                      ≡⟨⟩
+         ◯-rec Modal-◯ (W◯→◯Wη P) (◯-map (W-map η id) (η x))  ≡⟨ ◯-rec-◯-map ⟩
+         ◯-rec Modal-◯ (W◯→◯Wη P ∘ W-map η id) (η x)          ≡⟨ ◯-rec-η ⟩
+         W◯→◯Wη P (W-map η id x)                              ≡⟨ W◯→◯Wη-W-map-η-id ext ⟩∎
+         η x                                                  ∎)
 
   from-to :
     Extensionality a a →
@@ -740,10 +740,10 @@ W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
     ◯-elim
       (λ _ → Separated-◯ _ _)
       (λ x →
-         from (to (η x))                                         ≡⟨⟩
-         ◯-map (W-map η id) (◯-rec Is-modal-◯ (W◯→◯Wη P) (η x))  ≡⟨ cong (◯-map (W-map η id)) ◯-rec-η ⟩
-         ◯-map (W-map η id) (W◯→◯Wη P x)                         ≡⟨ ◯-map-W-map-η-id-W◯→◯Wη ext ⟩∎
-         η x                                                     ∎)
+         from (to (η x))                                      ≡⟨⟩
+         ◯-map (W-map η id) (◯-rec Modal-◯ (W◯→◯Wη P) (η x))  ≡⟨ cong (◯-map (W-map η id)) ◯-rec-η ⟩
+         ◯-map (W-map η id) (W◯→◯Wη P x)                      ≡⟨ ◯-map-W-map-η-id-W◯→◯Wη ext ⟩∎
+         η x                                                  ∎)
 
 -- An unfolding lemma for ◯ (W A (P ∘ η)).
 
@@ -781,10 +781,10 @@ W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
 ◯Wη≃Σ◯Π◯Wη≡◯Wη→Σ◯Π◯Wη ext =
   apply-ext ext $
   ◯-elim
-    (λ _ → Is-modal→Separated
-              (Is-modal-Σ Is-modal-◯ λ _ →
-               Is-modal-Π ext λ _ →
-               Is-modal-◯)
+    (λ _ → Modal→Separated
+              (Modal-Σ Modal-◯ λ _ →
+               Modal-Π ext λ _ →
+               Modal-◯)
               _ _)
     (λ where
        (sup x f) →
@@ -827,8 +827,8 @@ W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
                (∀ y → ◯Wη→W◯ acc ext (W◯→◯Wη P (f y)) ≡ f y) →
                ◯Wη→W◯ acc ext (W◯→◯Wη P (sup x f)) ≡
                sup x f}
-        (λ _ → Is-modal-Π ext′ λ _ →
-               Is-modal-Π ext′ λ _ →
+        (λ _ → Modal-Π ext′ λ _ →
+               Modal-Π ext′ λ _ →
                Separated-W ext′ Separated-◯ _ _)
         (λ x f hyp →
            ◯Wη→W◯ acc ext (W◯→◯Wη P (sup (η x) f))                      ≡⟨ cong (◯Wη→W◯ acc ext) $ W◯→◯Wη-sup-η ext′ f ⟩
@@ -866,99 +866,99 @@ Stable-W :
   @0 Accessibility-modal-for (_<W_ {A = A} {P = P}) →
   @0 Extensionality a a →
   Extensionality? ⌊ k ⌋-sym a a →
-  Is-modal A →
+  Modal A →
   Stable-[ ⌊ k ⌋-sym ] (W A P)
 Stable-W {A = A} {P = P} acc ext ext′ m =
-  ◯ (W A P)                            ↝⟨ (◯-cong-↝-sym ext′ λ ext → W-cong₂ ext λ _ → ≡⇒↝ _ $ cong P $ sym
-                                           Is-modal→Stable-η) ⟩
-  ◯ (W A (P ∘ Is-modal→Stable m ∘ η))  ↝⟨ ◯Wη≃W◯ acc′ ext ext′ ⟩
-  W (◯ A) (P ∘ Is-modal→Stable m)      ↝⟨ (inverse $ W-cong ext′ (Is-modal→≃◯ m) λ _ → ≡⇒↝ _ $ cong P $ sym
-                                           Is-modal→Stable-η) ⟩□
-  W A P                                □
+  ◯ (W A P)                         ↝⟨ (◯-cong-↝-sym ext′ λ ext → W-cong₂ ext λ _ → ≡⇒↝ _ $ cong P $ sym
+                                        Modal→Stable-η) ⟩
+  ◯ (W A (P ∘ Modal→Stable m ∘ η))  ↝⟨ ◯Wη≃W◯ acc′ ext ext′ ⟩
+  W (◯ A) (P ∘ Modal→Stable m)      ↝⟨ (inverse $ W-cong ext′ (Modal→≃◯ m) λ _ → ≡⇒↝ _ $ cong P $ sym
+                                        Modal→Stable-η) ⟩□
+  W A P                             □
   where
   @0 acc′ :
     Accessibility-modal-for
-      (_<W_ {A = A} {P = P ∘ Is-modal→Stable m ∘ η})
+      (_<W_ {A = A} {P = P ∘ Modal→Stable m ∘ η})
   acc′ =
     subst
       (λ f → Accessibility-modal-for (_<W_ {A = A} {P = P ∘ f}))
-      (apply-ext ext λ _ → sym Is-modal→Stable-η)
+      (apply-ext ext λ _ → sym Modal→Stable-η)
       acc
 
 -- If the modality is accessibility-modal for a certain relation and A
 -- is modal, then W A P is modal (assuming function extensionality).
 
-Is-modal-W :
+Modal-W :
   @0 Accessibility-modal-for (_<W_ {A = A} {P = P}) →
   Extensionality a a →
-  Is-modal A →
-  Is-modal (W A P)
-Is-modal-W {A = A} {P = P} acc ext m =
-  Is-equivalence-η→Is-modal $
+  Modal A →
+  Modal (W A P)
+Modal-W {A = A} {P = P} acc ext m =
+  Is-equivalence-η→Modal $
   _≃_.is-equivalence $
   Eq.with-other-function
     (inverse $ Stable-W acc ext ext m)
     η
     lemma
   where
-  P≃ : P x ≃ P (Is-modal→Stable m (η x))
-  P≃ = ≡⇒↝ _ $ cong P $ sym Is-modal→Stable-η
+  P≃ : P x ≃ P (Modal→Stable m (η x))
+  P≃ = ≡⇒↝ _ $ cong P $ sym Modal→Stable-η
 
-  P→ : P x → P (Is-modal→Stable m (η x))
+  P→ : P x → P (Modal→Stable m (η x))
   P→ = _≃_.to P≃
 
-  P← : P (Is-modal→Stable m (η x)) → P x
+  P← : P (Modal→Stable m (η x)) → P x
   P← = _≃_.from P≃
 
   lemma :
     ∀ x →
     ◯-map (W-map id P→)
-      (W◯→◯Wη (P ∘ Is-modal→Stable m) (W-map η P← x)) ≡
+      (W◯→◯Wη (P ∘ Modal→Stable m) (W-map η P← x)) ≡
     η x
   lemma (sup x f) =
     ◯-map (W-map id P→)
-      (W◯→◯Wη (P ∘ Is-modal→Stable m) $ W-map η P← (sup x f))  ≡⟨⟩
+      (W◯→◯Wη (P ∘ Modal→Stable m) $ W-map η P← (sup x f))  ≡⟨⟩
 
     ◯-map (W-map id P→)
-      (W◯→◯Wη (P ∘ Is-modal→Stable m) $
-       sup (η x) (W-map η P← ∘ f ∘ P←))                        ≡⟨ cong (◯-map _) $
-                                                                  W◯→◯Wη-sup-η ext (W-map η P← ∘ f ∘ P←) ⟩
+      (W◯→◯Wη (P ∘ Modal→Stable m) $
+       sup (η x) (W-map η P← ∘ f ∘ P←))                     ≡⟨ cong (◯-map _) $
+                                                               W◯→◯Wη-sup-η ext (W-map η P← ∘ f ∘ P←) ⟩
     ◯-map (W-map id P→)
       (◯-map (sup x)
          (Π◯≃◯Π _
-            (W◯→◯Wη (P ∘ Is-modal→Stable m) ∘
-             W-map η P← ∘ f ∘ P←)))                            ≡⟨ sym ◯-map-∘ ⟩
+            (W◯→◯Wη (P ∘ Modal→Stable m) ∘
+             W-map η P← ∘ f ∘ P←)))                         ≡⟨ sym ◯-map-∘ ⟩
 
     ◯-map (sup x ∘ (_∘ P→) ∘ (W-map id P→ ∘_))
       (Π◯≃◯Π _
-         (W◯→◯Wη (P ∘ Is-modal→Stable m) ∘
-          W-map η P← ∘ f ∘ P←))                                ≡⟨ ◯-map-∘ ⟩
+         (W◯→◯Wη (P ∘ Modal→Stable m) ∘
+          W-map η P← ∘ f ∘ P←))                             ≡⟨ ◯-map-∘ ⟩
 
     ◯-map (sup x ∘ (_∘ P→))
       (◯-map (W-map id P→ ∘_)
          (Π◯≃◯Π _
-            (W◯→◯Wη (P ∘ Is-modal→Stable m) ∘
-             W-map η P← ∘ f ∘ P←)))                            ≡⟨ cong (◯-map _) $ sym $
-                                                                  Π◯≃◯Π-◯-map ext ⟩
+            (W◯→◯Wη (P ∘ Modal→Stable m) ∘
+             W-map η P← ∘ f ∘ P←)))                         ≡⟨ cong (◯-map _) $ sym $
+                                                               Π◯≃◯Π-◯-map ext ⟩
     ◯-map (sup x ∘ (_∘ P→))
       (Π◯≃◯Π _
          (◯-map (W-map id P→) ∘
-          W◯→◯Wη (P ∘ Is-modal→Stable m) ∘
-          W-map η P← ∘ f ∘ P←))                                ≡⟨ (cong (◯-map (sup x ∘ (_∘ P→))) $ cong (Π◯≃◯Π _) $
-                                                                   apply-ext ext λ y →
-                                                                   lemma (f (P← y))) ⟩
+          W◯→◯Wη (P ∘ Modal→Stable m) ∘
+          W-map η P← ∘ f ∘ P←))                             ≡⟨ (cong (◯-map (sup x ∘ (_∘ P→))) $ cong (Π◯≃◯Π _) $
+                                                                apply-ext ext λ y →
+                                                                lemma (f (P← y))) ⟩
 
-    ◯-map (sup x ∘ (_∘ P→)) (Π◯≃◯Π _ (η ∘ f ∘ P←))             ≡⟨ cong (◯-map (sup x ∘ (_∘ P→))) $ cong (Π◯≃◯Π _) $ sym $
-                                                                  ◯Π→Π◯-η ext ⟩
+    ◯-map (sup x ∘ (_∘ P→)) (Π◯≃◯Π _ (η ∘ f ∘ P←))          ≡⟨ cong (◯-map (sup x ∘ (_∘ P→))) $ cong (Π◯≃◯Π _) $ sym $
+                                                               ◯Π→Π◯-η ext ⟩
 
-    ◯-map (sup x ∘ (_∘ P→)) (Π◯≃◯Π _ (◯Π→Π◯ (η (f ∘ P←))))     ≡⟨ cong (◯-map (sup x ∘ (_∘ P→))) $
-                                                                  _≃_.right-inverse-of (Π◯≃◯Π ext) _ ⟩
+    ◯-map (sup x ∘ (_∘ P→)) (Π◯≃◯Π _ (◯Π→Π◯ (η (f ∘ P←))))  ≡⟨ cong (◯-map (sup x ∘ (_∘ P→))) $
+                                                               _≃_.right-inverse-of (Π◯≃◯Π ext) _ ⟩
 
-    ◯-map (sup x ∘ (_∘ P→)) (η (f ∘ P←))                       ≡⟨ ◯-map-η ⟩
+    ◯-map (sup x ∘ (_∘ P→)) (η (f ∘ P←))                    ≡⟨ ◯-map-η ⟩
 
-    η (sup x (f ∘ P← ∘ P→))                                    ≡⟨ (cong (η ∘ sup x) $ cong (f ∘_) $ apply-ext ext λ _ →
-                                                                   _≃_.left-inverse-of P≃ _) ⟩∎
-    η (sup x f)                                                ∎
+    η (sup x (f ∘ P← ∘ P→))                                 ≡⟨ (cong (η ∘ sup x) $ cong (f ∘_) $ apply-ext ext λ _ →
+                                                                _≃_.left-inverse-of P≃ _) ⟩∎
+    η (sup x f)                                             ∎
 
 ------------------------------------------------------------------------
 -- Preservation lemmas
@@ -967,41 +967,41 @@ Is-modal-W {A = A} {P = P} acc ext m =
 -- under the assumption that any type C is modal (perhaps assuming
 -- function extensionality).
 
-◯-cong-↝-Is-modal→ :
+◯-cong-↝-Modal→ :
   ∀ d e →
   Extensionality? k (a ⊔ d) (a ⊔ e) →
-  (Is-modal C → A ↝[ a ⊔ d ∣ a ⊔ e ] B) →
+  (Modal C → A ↝[ a ⊔ d ∣ a ⊔ e ] B) →
   ◯ A ↝[ k ] ◯ B
-◯-cong-↝-Is-modal→ {C = C} {A = A} {B = B} d e ext hyp =
+◯-cong-↝-Modal→ {C = C} {A = A} {B = B} d e ext hyp =
   generalise-ext?′
-    (◯ A                 ↝⟨ ◯≃◯-Is-modal-× _ ⟩
-     ◯ (Is-modal C × A)  ↝⟨ ◯-cong-⇔ (∃-cong λ m → hyp m _) ⟩
-     ◯ (Is-modal C × B)  ↝⟨ inverse-ext? ◯≃◯-Is-modal-× _ ⟩□
-     ◯ B                 □)
+    (◯ A              ↝⟨ ◯≃◯-Modal-× _ ⟩
+     ◯ (Modal C × A)  ↝⟨ ◯-cong-⇔ (∃-cong λ m → hyp m _) ⟩
+     ◯ (Modal C × B)  ↝⟨ inverse-ext? ◯≃◯-Modal-× _ ⟩□
+     ◯ B              □)
     (λ ext →
-       ◯ A                 ↝⟨ ◯≃◯-Is-modal-× (lower-extensionality d e ext) ⟩
-       ◯ (Is-modal C × A)  ↝⟨ ◯-cong-↔ (∃-cong λ m → hyp m ext) ⟩
-       ◯ (Is-modal C × B)  ↝⟨ inverse-ext? ◯≃◯-Is-modal-× (lower-extensionality d e ext) ⟩□
-       ◯ B                 □)
+       ◯ A              ↝⟨ ◯≃◯-Modal-× (lower-extensionality d e ext) ⟩
+       ◯ (Modal C × A)  ↝⟨ ◯-cong-↔ (∃-cong λ m → hyp m ext) ⟩
+       ◯ (Modal C × B)  ↝⟨ inverse-ext? ◯≃◯-Modal-× (lower-extensionality d e ext) ⟩□
+       ◯ B              □)
     (λ ext →
-       ◯ A                 ↝⟨ ◯≃◯-Is-modal-× (lower-extensionality? equivalenceᴱ d e E.[ ext ]) ⟩
-       ◯ (Is-modal C × A)  ↝⟨ ◯-cong-≃ᴱ (∃-cong λ m → hyp m E.[ ext ]) ⟩
-       ◯ (Is-modal C × B)  ↝⟨ inverse-ext? ◯≃◯-Is-modal-× (lower-extensionality? equivalenceᴱ d e E.[ ext ]) ⟩□
-       ◯ B                 □)
+       ◯ A              ↝⟨ ◯≃◯-Modal-× (lower-extensionality? equivalenceᴱ d e E.[ ext ]) ⟩
+       ◯ (Modal C × A)  ↝⟨ ◯-cong-≃ᴱ (∃-cong λ m → hyp m E.[ ext ]) ⟩
+       ◯ (Modal C × B)  ↝⟨ inverse-ext? ◯≃◯-Modal-× (lower-extensionality? equivalenceᴱ d e E.[ ext ]) ⟩□
+       ◯ B              □)
     ext
 
--- A variant of ◯-cong-↝-Is-modal→.
+-- A variant of ◯-cong-↝-Modal→.
 
-Is-modal→↝→↝ :
+Modal→↝→↝ :
   ∀ d e →
   Extensionality? k (a ⊔ d) (a ⊔ e) →
   A ↝[ k ] ◯ A →
   ◯ B ↝[ k ] B →
-  (Is-modal C → A ↝[ a ⊔ d ∣ a ⊔ e ] B) →
+  (Modal C → A ↝[ a ⊔ d ∣ a ⊔ e ] B) →
   A ↝[ k ] B
-Is-modal→↝→↝ {A = A} {B = B} d e ext A↝◯A ◯B↝B A↝B =
+Modal→↝→↝ {A = A} {B = B} d e ext A↝◯A ◯B↝B A↝B =
   A    ↝⟨ A↝◯A ⟩
-  ◯ A  ↝⟨ ◯-cong-↝-Is-modal→ d e ext A↝B ⟩
+  ◯ A  ↝⟨ ◯-cong-↝-Modal→ d e ext A↝B ⟩
   ◯ B  ↝⟨ ◯B↝B ⟩□
   B    □
 
@@ -1015,10 +1015,10 @@ H-level′-◯≃◯-H-level′ :
 H-level′-◯≃◯-H-level′ {A = A} zero ext =
   Contractible (◯ A)                   ↔⟨⟩
   (∃ λ (x : ◯ A) → ∀ y → x ≡ y)        ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → from-equivalence $
-                                           Is-modal→≃◯ (Separated-◯ _ _)) ⟩
+                                           Modal→≃◯ (Separated-◯ _ _)) ⟩
   (∃ λ (x : ◯ A) → ∀ y → ◯ (x ≡ y))    ↝⟨ (∃-cong λ _ → Π◯≃◯Π ext) ⟩
-  (∃ λ (x : ◯ A) → ◯ (∀ y → x ≡ y))    ↝⟨ (∃-cong λ _ → ◯-cong-↝-Is-modal→ lzero lzero ext λ m →
-                                           inverse-ext? λ ext → Π-cong ext (Is-modal→≃◯ m) λ _ → F.id) ⟩
+  (∃ λ (x : ◯ A) → ◯ (∀ y → x ≡ y))    ↝⟨ (∃-cong λ _ → ◯-cong-↝-Modal→ lzero lzero ext λ m →
+                                           inverse-ext? λ ext → Π-cong ext (Modal→≃◯ m) λ _ → F.id) ⟩
   (∃ λ (x : ◯ A) → ◯ (∀ y → x ≡ η y))  ↔⟨ inverse ◯Ση≃Σ◯◯ ⟩
   ◯ (∃ λ (x : A) → ∀ y → η x ≡ η y)    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ∀-cong ext λ _ → from-equivalence $ inverse
                                            ◯≡≃η≡η) ⟩
@@ -1028,7 +1028,7 @@ H-level′-◯≃◯-H-level′ {A = A} zero ext =
   ◯ (Contractible A)                   □
 H-level′-◯≃◯-H-level′ {A = A} (suc n) ext =
   H-level′ (suc n) (◯ A)                              ↔⟨⟩
-  ((x y : ◯ A) → H-level′ n (x ≡ y))                  ↝⟨ Is-modal→↝→↝ lzero lzero ext
+  ((x y : ◯ A) → H-level′ n (x ≡ y))                  ↝⟨ Modal→↝→↝ lzero lzero ext
                                                            (
     ((x y : ◯ A) → H-level′ n (x ≡ y))                      ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                 inverse-ext?
@@ -1044,9 +1044,9 @@ H-level′-◯≃◯-H-level′ {A = A} (suc n) ext =
     ((x : A) → ◯ ((y : A) → ◯ (H-level′ n (x ≡ y))))        ↝⟨ (∀-cong ext λ _ → inverse-ext? Π◯≃◯Π ext) ⟩
     ((x y : A) → ◯ (◯ (H-level′ n (x ≡ y))))                ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → from-equivalence $ inverse ◯≃◯◯) ⟩□
     ((x y : A) → ◯ (H-level′ n (x ≡ y)))                    □)
-                                                           (λ (m : Is-modal A) ext →
-    ((x y : ◯ A) → H-level′ n (x ≡ y))                        ↝⟨ (Π-cong-contra ext (Is-modal→≃◯ m) λ _ →
-                                                                  Π-cong-contra ext (Is-modal→≃◯ m) λ _ →
+                                                           (λ (m : Modal A) ext →
+    ((x y : ◯ A) → H-level′ n (x ≡ y))                        ↝⟨ (Π-cong-contra ext (Modal→≃◯ m) λ _ →
+                                                                  Π-cong-contra ext (Modal→≃◯ m) λ _ →
                                                                   F.id) ⟩
     ((x y : A) → H-level′ n (η x ≡ η y))                      ↝⟨ ((∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                   H-level′-cong ext n $ inverse
@@ -1102,15 +1102,15 @@ private
 
   -- A lemma used to implement ◯→⇔◯→◯.
 
-  ◯→⇔◯→◯-lemma : (◯ A → ◯ B) → (A → Is-modal B) → A → B
-  ◯→⇔◯→◯-lemma f m x = Is-modal→Stable (m x) (f (η x))
+  ◯→⇔◯→◯-lemma : (◯ A → ◯ B) → (A → Modal B) → A → B
+  ◯→⇔◯→◯-lemma f m x = Modal→Stable (m x) (f (η x))
 
   -- ◯ commutes with the non-dependent function space (up to _⇔_).
 
   ◯→⇔◯→◯ : ◯ (A → B) ⇔ (◯ A → ◯ B)
   ◯→⇔◯→◯ {A = A} {B = B} = record
     { to   = ◯-map-◯
-    ; from = λ f → ◯-map (◯→⇔◯→◯-lemma f) ◯-Π-Is-modal
+    ; from = λ f → ◯-map (◯→⇔◯→◯-lemma f) ◯-Π-Modal
     }
 
   abstract
@@ -1134,11 +1134,11 @@ private
 
                 η (◯→⇔◯→◯-lemma f m x)                        ≡⟨⟩
 
-                η (Is-modal→Stable (m x) (f (η x)))           ≡⟨ _≃_.right-inverse-of (Is-modal→≃◯ (m x)) _ ⟩∎
+                η (Modal→Stable (m x) (f (η x)))              ≡⟨ _≃_.right-inverse-of (Modal→≃◯ (m x)) _ ⟩∎
 
                 f (η x)                                       ∎)
              x)
-        ◯-Π-Is-modal
+        ◯-Π-Modal
 
 -- ◯ commutes with the non-dependent function space (assuming
 -- function extensionality).
@@ -1154,14 +1154,14 @@ private
               {P = λ m → ◯-map (◯→⇔◯→◯-lemma (◯-map-◯ (η f))) m ≡ η f}
               (λ _ → Separated-◯ _ _)
               (λ m →
-                 ◯-map (◯→⇔◯→◯-lemma (◯-map-◯ (η f))) (η m)             ≡⟨ ◯-map-η ⟩
-                 η (◯→⇔◯→◯-lemma (◯-map-◯ (η f)) m)                     ≡⟨⟩
-                 η (λ x → Is-modal→Stable (m x) (◯-map-◯ (η f) (η x)))  ≡⟨ (cong η $ apply-ext ext λ x → cong (Is-modal→Stable (m x))
-                                                                            ◯-map-◯-η) ⟩
-                 η (λ x → Is-modal→Stable (m x) (η (f x)))              ≡⟨ (cong η $ apply-ext ext λ x →
-                                                                            _≃_.left-inverse-of (Is-modal→≃◯ (m x)) _) ⟩∎
-                 η f                                                    ∎)
-              ◯-Π-Is-modal))
+                 ◯-map (◯→⇔◯→◯-lemma (◯-map-◯ (η f))) (η m)          ≡⟨ ◯-map-η ⟩
+                 η (◯→⇔◯→◯-lemma (◯-map-◯ (η f)) m)                  ≡⟨⟩
+                 η (λ x → Modal→Stable (m x) (◯-map-◯ (η f) (η x)))  ≡⟨ (cong η $ apply-ext ext λ x → cong (Modal→Stable (m x))
+                                                                         ◯-map-◯-η) ⟩
+                 η (λ x → Modal→Stable (m x) (η (f x)))              ≡⟨ (cong η $ apply-ext ext λ x →
+                                                                         _≃_.left-inverse-of (Modal→≃◯ (m x)) _) ⟩∎
+                 η f                                                 ∎)
+              ◯-Π-Modal))
 
 -- ◯ commutes with _⇔_ (assuming function extensionality).
 
@@ -1259,7 +1259,7 @@ Stable-Σ[◯→◯] :
   Stable-[ k ] (Σ (◯ A → ◯ B) P)
 Stable-Σ[◯→◯] {A = A} {B = B} {P = P} ext P-resp P-resp-refl s =
   ◯ (Σ (◯ A → ◯ B) P)              ↝⟨ ◯-cong-↝ ext $ inverse-ext? (Σ◯→↝Σ◯→◯ P-resp P-resp-refl) ⟩
-  ◯ (Σ (◯ (A → B)) (P ∘ ◯-map-◯))  ↝⟨ Stable-Σ Is-modal-◯ (s ∘ ◯-map-◯) ⟩
+  ◯ (Σ (◯ (A → B)) (P ∘ ◯-map-◯))  ↝⟨ Stable-Σ Modal-◯ (s ∘ ◯-map-◯) ⟩
   Σ (◯ (A → B)) (P ∘ ◯-map-◯)      ↝⟨ Σ◯→↝Σ◯→◯ P-resp P-resp-refl ext ⟩□
   Σ (◯ A → ◯ B) P                  □
 
@@ -1325,7 +1325,7 @@ private
       ◯→≃◯→◯
       (λ _ _ → F.id)
       (λ _ → refl _)
-      (Stable-Π ext λ _ → Is-modal→Stable Is-modal-◯)
+      (Stable-Π ext λ _ → Modal→Stable Modal-◯)
       ext
 
 -- A "computation rule" for ◯↝↝◯↝◯.
@@ -1457,7 +1457,7 @@ private
   (∀ y → ◯ (∃ λ x → η (f x) ≡ η y))      ↝⟨ inverse-ext? Π◯◯≃Π◯η ext ⟩
   (∀ y → ◯ (∃ λ x → η (f x) ≡ y))        ↝⟨ (∀-cong′ λ _ → ◯-cong-≃ $ ∃-cong λ _ → ≡⇒↝ _ $ cong (_≡ _) $ sym ◯-map-η) ⟩
   (∀ y → ◯ (∃ λ x → ◯-map f (η x) ≡ y))  ↝⟨ (∀-cong′ λ _ → ◯Ση≃Σ◯◯) ⟩
-  (∀ y → ∃ λ x → ◯ (◯-map f x ≡ y))      ↝⟨ (∀-cong′ λ _ → ∃-cong λ _ → Is-modal→Stable (Separated-◯ _ _)) ⟩□
+  (∀ y → ∃ λ x → ◯ (◯-map f x ≡ y))      ↝⟨ (∀-cong′ λ _ → ∃-cong λ _ → Modal→Stable (Separated-◯ _ _)) ⟩□
   (∀ y → ∃ λ x → ◯-map f x ≡ y)          □
   where
   ∀-cong′ :
@@ -1474,8 +1474,8 @@ private
     ◯-Split-surjective≃Split-surjective
     Split-surjective-cong
     Split-surjective-cong-refl
-    (Stable-Π ext λ _ → Is-modal→Stable $
-     Is-modal-Σ Is-modal-◯ λ _ → Separated-◯ _ _)
+    (Stable-Π ext λ _ → Modal→Stable $
+     Modal-Σ Modal-◯ λ _ → Separated-◯ _ _)
     ext
 
 -- ◯ (Is-equivalence f) is equivalent to Is-equivalence (◯-map f)
@@ -1486,23 +1486,23 @@ private
 ◯-Is-equivalence≃Is-equivalence {f = f} ext =
   ◯ (Is-equivalence f)                           ↝⟨ ◯-cong-↝ ext Is-equivalence≃Is-equivalence-CP ⟩
   ◯ (∀ y → Contractible (f ⁻¹ y))                ↝⟨ inverse-ext? Π◯≃◯Π ext ⟩
-  (∀ y → ◯ (Contractible (f ⁻¹ y)))              ↝⟨ Is-modal→↝→↝ lzero lzero ext
+  (∀ y → ◯ (Contractible (f ⁻¹ y)))              ↝⟨ Modal→↝→↝ lzero lzero ext
                                                       (
     (∀ x → ◯ (Contractible (f ⁻¹ x)))                  ↝⟨ inverse-ext?
                                                             (λ ext →
                                                                Stable-Π ext λ _ →
-                                                               Is-modal→Stable Is-modal-◯)
+                                                               Modal→Stable Modal-◯)
                                                             ext ⟩
     ◯ (∀ x → ◯ (Contractible (f ⁻¹ x)))                □)
                                                       (
     ◯ (∀ x → Contractible (◯ (η ∘ f ⁻¹ x)))            ↝⟨ (Stable-Π ext λ _ →
-                                                           Stable-H-level′ ext 0 Is-modal-◯) ⟩□
+                                                           Stable-H-level′ ext 0 Modal-◯) ⟩□
     (∀ x → Contractible (◯ (η ∘ f ⁻¹ x)))              □)
                                                       (λ m ext →
-                                                         Π-cong-contra ext (inverse $ Is-modal→≃◯ m) λ x →
-    ◯ (Contractible (f ⁻¹ Is-modal→Stable m x))            ↝⟨ inverse-ext? (H-level′-◯≃◯-H-level′ 0) ext ⟩
-    Contractible (◯ (f ⁻¹ Is-modal→Stable m x))            ↝⟨ H-level-cong ext 0 $ ◯-cong-≃ $ inverse $
-                                                              to-∘-⁻¹-≃-⁻¹-from (Is-modal→≃◯ m) ⟩□
+                                                         Π-cong-contra ext (inverse $ Modal→≃◯ m) λ x →
+    ◯ (Contractible (f ⁻¹ Modal→Stable m x))               ↝⟨ inverse-ext? (H-level′-◯≃◯-H-level′ 0) ext ⟩
+    Contractible (◯ (f ⁻¹ Modal→Stable m x))               ↝⟨ H-level-cong ext 0 $ ◯-cong-≃ $ inverse $
+                                                              to-∘-⁻¹-≃-⁻¹-from (Modal→≃◯ m) ⟩□
     Contractible (◯ (η ∘ f ⁻¹ x))                          □) ⟩
 
   (∀ y → Contractible (◯ (η ∘ f ⁻¹ y)))          ↔⟨⟩
@@ -1528,7 +1528,7 @@ Connected-→≃◯-Is-equivalence {f = f} ext =
     ◯-Is-equivalence≃Is-equivalence
     Is-equivalence-cong
     (λ ext → Eq.propositional ext _ _ _)
-    (Is-modal→Stable-Is-equivalence ext Is-modal-◯ Separated-◯)
+    (Modal→Stable-Is-equivalence ext Modal-◯ Separated-◯)
     ext
 
 private
@@ -1609,9 +1609,9 @@ private
                                                                          inverse-ext? (λ ext → Π◯◯≃Π◯η ext ×-cong Π◯◯≃Π◯η ext) ext) ⟩
   (∃ λ g → (∀ x → ◯ (◯-map f (◯-map-◯ g x) ≡ x)) ×
            (∀ x → ◯ (◯-map-◯ g (◯-map f x) ≡ x)))                    ↝⟨ (∃-cong λ _ →
-                                                                         (∀-cong ext λ _ → Is-modal→Stable (Separated-◯ _ _))
+                                                                         (∀-cong ext λ _ → Modal→Stable (Separated-◯ _ _))
                                                                            ×-cong
-                                                                         (∀-cong ext λ _ → Is-modal→Stable (Separated-◯ _ _))) ⟩
+                                                                         (∀-cong ext λ _ → Modal→Stable (Separated-◯ _ _))) ⟩
   (∃ λ g → (∀ x → ◯-map f (◯-map-◯ g x) ≡ x) ×
            (∀ x → ◯-map-◯ g (◯-map f x) ≡ x))                        ↝⟨ Σ◯→↝Σ◯→◯
                                                                           Has-quasi-inverse-proofs-resp
@@ -1633,9 +1633,9 @@ private
        Has-quasi-inverse-proofs-resp-refl λ _ →
      Stable-×
        (Stable-Π ext λ _ →
-        Is-modal→Stable (Is-modal→Separated Is-modal-◯ _ _))
+        Modal→Stable (Modal→Separated Modal-◯ _ _))
        (Stable-Π ext λ _ →
-        Is-modal→Stable (Is-modal→Separated Is-modal-◯ _ _)))
+        Modal→Stable (Modal→Separated Modal-◯ _ _)))
     ext
 
 -- ◯ (Injective f) is equivalent to Injective (◯-map f) (assuming
@@ -1667,7 +1667,7 @@ private
   s :
     Extensionality? k a a →
     ∀ y → Stable-[ k ] (◯-map f x ≡ ◯-map f y → x ≡ y)
-  s ext _ = Stable-Π ext λ _ → Is-modal→Stable $ Separated-◯ _ _
+  s ext _ = Stable-Π ext λ _ → Modal→Stable $ Separated-◯ _ _
 
 -- ◯ commutes with _↣_ (assuming function extensionality).
 
@@ -1681,7 +1681,7 @@ private
     (Stable-implicit-Π ext λ _ →
      Stable-implicit-Π ext λ _ →
      Stable-Π          ext λ _ →
-     Is-modal→Stable $ Separated-◯ _ _)
+     Modal→Stable $ Separated-◯ _ _)
     ext
 
 -- ◯ (Is-embedding f) is equivalent to Is-embedding (◯-map f)
@@ -1728,16 +1728,16 @@ private
        (cong (◯-map f) ⦂ (η x ≡ η y → ◯-map f (η x) ≡ ◯-map f (η y))))  ↝⟨ inverse-ext?
                                                                              (Π◯↝Πη λ ext _ →
                                                                               Stable-Π ext λ _ →
-                                                                              Is-modal→Stable-Is-equivalence ext
-                                                                                (Separated-◯ _ _) (Is-modal→Separated (Separated-◯ _ _)))
+                                                                              Modal→Stable-Is-equivalence ext
+                                                                                (Separated-◯ _ _) (Modal→Separated (Separated-◯ _ _)))
                                                                              ext ⟩
   (∀ x y →
      Is-equivalence
        (cong (◯-map f) ⦂ (x ≡ η y → ◯-map f x ≡ ◯-map f (η y))))        ↝⟨ (∀-cong ext λ _ →
                                                                             inverse-ext?
                                                                               (Π◯↝Πη λ ext _ →
-                                                                               Is-modal→Stable-Is-equivalence ext
-                                                                                 (Separated-◯ _ _) (Is-modal→Separated (Separated-◯ _ _)))
+                                                                               Modal→Stable-Is-equivalence ext
+                                                                                 (Separated-◯ _ _) (Modal→Separated (Separated-◯ _ _)))
                                                                               ext) ⟩□
   (∀ x y →
      Is-equivalence
@@ -1754,8 +1754,8 @@ private
     Is-embedding-cong
     (λ ext → Emb.Is-embedding-propositional ext _ _)
     (Stable-Π ext λ _ → Stable-Π ext λ _ →
-     Is-modal→Stable-Is-equivalence ext
-       (Separated-◯ _ _) (Is-modal→Separated (Separated-◯ _ _)))
+     Modal→Stable-Is-equivalence ext
+       (Separated-◯ _ _) (Modal→Separated (Separated-◯ _ _)))
     ext
 
 ------------------------------------------------------------------------
@@ -1768,10 +1768,10 @@ private
 ◯-Erased-◯⇔◯-Erased :
   ◯ (Erased (◯ A)) ⇔ ◯ (Erased A)
 ◯-Erased-◯⇔◯-Erased {A = A} =
-  ◯ (Erased (◯ A))               ↝⟨ ◯≃◯-Is-modal-× _ ⟩
-  ◯ (Is-modal A × Erased (◯ A))  ↝⟨ (◯-cong-⇔ $ ∃-cong λ m → E.Erased-cong-⇔ (Is-modal→Stable m)) ⟩
-  ◯ (Is-modal A × Erased A)      ↝⟨ inverse $ ◯≃◯-Is-modal-× _ ⟩□
-  ◯ (Erased A)                   □
+  ◯ (Erased (◯ A))            ↝⟨ ◯≃◯-Modal-× _ ⟩
+  ◯ (Modal A × Erased (◯ A))  ↝⟨ (◯-cong-⇔ $ ∃-cong λ m → E.Erased-cong-⇔ (Modal→Stable m)) ⟩
+  ◯ (Modal A × Erased A)      ↝⟨ inverse $ ◯≃◯-Modal-× _ ⟩□
+  ◯ (Erased A)                □
 
 -- ◯ (Erased A) is logically equivalent to Erased (◯ A).
 --
@@ -1785,7 +1785,7 @@ private
   Erased (◯ A)      □
   where
   lemma = record
-    { to   = M.Stable-Erased (Is-modal→Stable Is-modal-◯)
+    { to   = M.Stable-Erased (Modal→Stable Modal-◯)
     ; from = η
     }
 
@@ -1795,7 +1795,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
 
   private
     open module MBC = Modality.Box-cong eq ax M
-      hiding (Is-modal→Stable-Is-equivalenceᴱ; ◯-cong-◯)
+      hiding (Modal→Stable-Is-equivalenceᴱ; ◯-cong-◯)
 
   private
     module BC       = E.[]-cong₁ ax
@@ -1812,8 +1812,8 @@ module []-cong (ax : []-cong-axiomatisation a) where
   ◯-Erased-◯≃◯-Erased :
     ◯ (Erased (◯ A)) ↝[ a ∣ a ] ◯ (Erased A)
   ◯-Erased-◯≃◯-Erased {A = A} ext =
-    ◯-cong-↝-Is-modal→ lzero lzero ext λ m _ →
-      Erased (◯ A)  ↔⟨ EC.Erased-cong (inverse $ Is-modal→≃◯ m) ⟩□
+    ◯-cong-↝-Modal→ lzero lzero ext λ m _ →
+      Erased (◯ A)  ↔⟨ EC.Erased-cong (inverse $ Modal→≃◯ m) ⟩□
       Erased A      □
 
   -- ◯ (Erased A) is equivalent to Erased (◯ A) (assuming function
@@ -1827,12 +1827,12 @@ module []-cong (ax : []-cong-axiomatisation a) where
     Erased (◯ A)      □
     where
     lemma′ = λ (E.[ x ]) →
-      E.[ ◯-rec Is-modal-◯ id (◯-map E.erased (η E.[ x ])) ]  ≡⟨ BC.[]-cong E.[ cong (_≃_.from ◯≃◯◯) ◯-map-η ] ⟩
-      E.[ ◯-rec Is-modal-◯ id (η x) ]                         ≡⟨ BC.[]-cong E.[ ◯-rec-η ] ⟩∎
-      E.[ x ]                                                 ∎
+      E.[ ◯-rec Modal-◯ id (◯-map E.erased (η E.[ x ])) ]  ≡⟨ BC.[]-cong E.[ cong (_≃_.from ◯≃◯◯) ◯-map-η ] ⟩
+      E.[ ◯-rec Modal-◯ id (η x) ]                         ≡⟨ BC.[]-cong E.[ ◯-rec-η ] ⟩∎
+      E.[ x ]                                              ∎
 
     lemma = Eq.↔→≃
-      (M.Stable-Erased (Is-modal→Stable Is-modal-◯))
+      (M.Stable-Erased (Modal→Stable Modal-◯))
       η
       lemma′
       (◯-elim (λ _ → Separated-◯ _ _) (cong η ∘ lemma′))
@@ -1850,11 +1850,11 @@ module []-cong (ax : []-cong-axiomatisation a) where
                                                       ◯≡≃η≡η)) ⟩
     ◯ (∃ λ (x : A) → Erased (∀ y → η x ≡ η y))    ↔⟨ ◯Ση≃Σ◯◯ ⟩
     (∃ λ (x : ◯ A) → ◯ (Erased (∀ y → x ≡ η y)))  ↝⟨ (∃-cong λ _ → ◯-Erased≃Erased-◯ ext) ⟩
-    (∃ λ (x : ◯ A) → Erased (◯ (∀ y → x ≡ η y)))  ↝⟨ (∃-cong λ _ → EC.Erased-cong (◯-cong-↝-Is-modal→ lzero lzero ext λ m ext →
-                                                      Π-cong ext (Is-modal→≃◯ m) λ _ → F.id)) ⟩
+    (∃ λ (x : ◯ A) → Erased (◯ (∀ y → x ≡ η y)))  ↝⟨ (∃-cong λ _ → EC.Erased-cong (◯-cong-↝-Modal→ lzero lzero ext λ m ext →
+                                                      Π-cong ext (Modal→≃◯ m) λ _ → F.id)) ⟩
     (∃ λ (x : ◯ A) → Erased (◯ (∀ y → x ≡ y)))    ↝⟨ (∃-cong λ _ → EC.Erased-cong (inverse-ext? Π◯≃◯Π ext)) ⟩
     (∃ λ (x : ◯ A) → Erased (∀ y → ◯ (x ≡ y)))    ↝⟨ (∃-cong λ _ → EC.Erased-cong (∀-cong ext λ _ → from-equivalence $ inverse $
-                                                      Is-modal→≃◯ (Separated-◯ _ _))) ⟩
+                                                      Modal→≃◯ (Separated-◯ _ _))) ⟩
     (∃ λ (x : ◯ A) → Erased (∀ y → x ≡ y))        ↔⟨⟩
     Contractibleᴱ (◯ A)                           □
 
@@ -1877,13 +1877,13 @@ module []-cong (ax : []-cong-axiomatisation a) where
 
   Stable-Contractibleᴱ :
     Extensionality? k a a →
-    Is-modal A →
+    Modal A →
     Stable-[ k ] (Contractibleᴱ A)
   Stable-Contractibleᴱ ext m =
     Stable-Σ m λ _ →
     Stable-Erased ext (
     Stable-Π ext λ _ →
-    Is-modal→Stable (Is-modal→Separated m _ _))
+    Modal→Stable (Modal→Separated m _ _))
 
   -- If f has type A → B, A is modal, and equality is k-stable for B,
   -- then f ⁻¹ᴱ y is k-stable (perhaps assuming function
@@ -1892,7 +1892,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
   Stable-⁻¹ᴱ :
     {A B : Type a} {f : A → B} {y : B} →
     Extensionality? k a a →
-    Is-modal A →
+    Modal A →
     @0 For-iterated-equality 1 Stable-[ k ] B →
     Stable-[ k ] (f ⁻¹ᴱ y)
   Stable-⁻¹ᴱ ext m s =
@@ -1903,40 +1903,40 @@ module []-cong (ax : []-cong-axiomatisation a) where
   -- ECP.Is-equivalenceᴱ f is k-stable (perhaps assuming function
   -- extensionality).
 
-  Is-modal→Stable-Is-equivalenceᴱ-CP :
+  Modal→Stable-Is-equivalenceᴱ-CP :
     {@0 f : A → B} →
     Extensionality? k a a →
-    Is-modal A → @0 Separated B →
+    Modal A → @0 Separated B →
     Stable-[ k ] (ECP.Is-equivalenceᴱ f)
-  Is-modal→Stable-Is-equivalenceᴱ-CP {f = f} ext m s =
+  Modal→Stable-Is-equivalenceᴱ-CP {f = f} ext m s =
     Stable-Π ext λ y →
-    let m′ : Is-modal (f ⁻¹ᴱ y)
-        m′ = Is-modal-Σ m λ _ → Is-modal-Erased (s _ _) in
+    let m′ : Modal (f ⁻¹ᴱ y)
+        m′ = Modal-Σ m λ _ → Modal-Erased (s _ _) in
     Stable-Σ m′ λ _ →
     Stable-Erased ext (
     Stable-Π ext λ _ →
-    Is-modal→Stable (Is-modal→Separated m′ _ _))
+    Modal→Stable (Modal→Separated m′ _ _))
 
   -- If f has type A → B, where A is modal and B is separated, then
   -- Is-equivalenceᴱ f is k-stable (perhaps assuming function
   -- extensionality).
 
-  Is-modal→Stable-Is-equivalenceᴱ :
+  Modal→Stable-Is-equivalenceᴱ :
     {@0 f : A → B} →
     Extensionality? k a a →
-    Is-modal A → @0 Separated B →
+    Modal A → @0 Separated B →
     Stable-[ k ] (Is-equivalenceᴱ f)
-  Is-modal→Stable-Is-equivalenceᴱ {k = k} {f = f} ext m s =
+  Modal→Stable-Is-equivalenceᴱ {k = k} {f = f} ext m s =
     generalise-ext?′
-      (Stable→Stable-⇔ $ MBC.Is-modal→Stable-Is-equivalenceᴱ m s)
-      (λ ext → Is-modal→Stable $ Is-modal-Is-equivalenceᴱ ext m s)
-      Is-modal→Stable-≃ᴱ-Is-equivalenceᴱ
+      (Stable→Stable-⇔ $ MBC.Modal→Stable-Is-equivalenceᴱ m s)
+      (λ ext → Modal→Stable $ Modal-Is-equivalenceᴱ ext m s)
+      Modal→Stable-≃ᴱ-Is-equivalenceᴱ
       ext
     where
-    Is-modal→Stable-≃ᴱ-Is-equivalenceᴱ :
+    Modal→Stable-≃ᴱ-Is-equivalenceᴱ :
       @0 Extensionality a a →
       Stable-[ equivalenceᴱ ] (Is-equivalenceᴱ f)
-    Is-modal→Stable-≃ᴱ-Is-equivalenceᴱ ext =
+    Modal→Stable-≃ᴱ-Is-equivalenceᴱ ext =
                                                                $⟨ s′ ⟩
       Stable-[ equivalenceᴱ ] (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  →⟨ Stable-respects-↝-sym $ inverse $
                                                                   EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext ⟩□
@@ -1946,12 +1946,12 @@ module []-cong (ax : []-cong-axiomatisation a) where
 
       s′ =
         Stable-Π ext′ λ y →
-        let m′ : Is-modal (f ⁻¹ᴱ y)
-            m′ = Is-modal-Σ m λ _ → Is-modal-Erased (s _ _) in
+        let m′ : Modal (f ⁻¹ᴱ y)
+            m′ = Modal-Σ m λ _ → Modal-Erased (s _ _) in
         Stable-Σ m′ λ _ →
         Stable-Erased ext′ (
         Stable-Π ext′ λ _ →
-        Is-modal→Stable (Is-modal→Separated m′ _ _))
+        Modal→Stable (Modal→Separated m′ _ _))
 
   ----------------------------------------------------------------------
   -- More equivalences
@@ -1964,7 +1964,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
   ◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ {f = f} {y = y} =
     ◯ (∃ λ x → Erased (η (f x) ≡ y))        ↝⟨ ◯-cong-≃ (∃-cong λ _ → EC.Erased-cong (≡⇒↝ _ $ cong (_≡ _) $ sym ◯-map-η)) ⟩
     ◯ (∃ λ x → Erased (◯-map f (η x) ≡ y))  ↝⟨ ◯Ση≃Σ◯◯ ⟩
-    (∃ λ x → ◯ (Erased (◯-map f x ≡ y)))    ↝⟨ (∃-cong λ _ → Is-modal→Stable (Is-modal-Erased (Separated-◯ _ _))) ⟩
+    (∃ λ x → ◯ (Erased (◯-map f x ≡ y)))    ↝⟨ (∃-cong λ _ → Modal→Stable (Modal-Erased (Separated-◯ _ _))) ⟩
     (∃ λ x → Erased (◯-map f x ≡ y))        □
 
   -- ◯ (ECP.Is-equivalenceᴱ f) is equivalent to
@@ -1974,23 +1974,23 @@ module []-cong (ax : []-cong-axiomatisation a) where
     ◯ (ECP.Is-equivalenceᴱ f) ↝[ a ∣ a ] ECP.Is-equivalenceᴱ (◯-map f)
   ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP {f = f} ext =
     ◯ (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))                ↝⟨ inverse-ext? Π◯≃◯Π ext ⟩
-    (∀ y → ◯ (Contractibleᴱ (f ⁻¹ᴱ y)))              ↝⟨ Is-modal→↝→↝ lzero lzero ext
+    (∀ y → ◯ (Contractibleᴱ (f ⁻¹ᴱ y)))              ↝⟨ Modal→↝→↝ lzero lzero ext
                                                           (
       (∀ x → ◯ (Contractibleᴱ (f ⁻¹ᴱ x)))                  ↝⟨ inverse-ext?
                                                                 (λ ext →
                                                                    Stable-Π ext λ _ →
-                                                                   Is-modal→Stable Is-modal-◯)
+                                                                   Modal→Stable Modal-◯)
                                                                 ext ⟩
       ◯ (∀ x → ◯ (Contractibleᴱ (f ⁻¹ᴱ x)))                □)
                                                           (
       ◯ (∀ x → Contractibleᴱ (◯ (η ∘ f ⁻¹ᴱ x)))            ↝⟨ (Stable-Π ext λ _ →
-                                                               Stable-Contractibleᴱ ext Is-modal-◯) ⟩□
+                                                               Stable-Contractibleᴱ ext Modal-◯) ⟩□
       (∀ x → Contractibleᴱ (◯ (η ∘ f ⁻¹ᴱ x)))              □)
                                                           (λ m ext →
-                                                             Π-cong-contra ext (inverse $ Is-modal→≃◯ m) λ x →
-      ◯ (Contractibleᴱ (f ⁻¹ᴱ Is-modal→Stable m x))            ↝⟨ ◯-Contractibleᴱ≃Contractibleᴱ-◯ ext ⟩
-      Contractibleᴱ (◯ (f ⁻¹ᴱ Is-modal→Stable m x))            ↝⟨ BC-ECP.Contractibleᴱ-cong ext $ ◯-cong-≃ $ inverse $
-                                                                  BC-ECP-⊔.to-∘-⁻¹ᴱ-≃-⁻¹ᴱ-from (Is-modal→≃◯ m) ⟩□
+                                                             Π-cong-contra ext (inverse $ Modal→≃◯ m) λ x →
+      ◯ (Contractibleᴱ (f ⁻¹ᴱ Modal→Stable m x))               ↝⟨ ◯-Contractibleᴱ≃Contractibleᴱ-◯ ext ⟩
+      Contractibleᴱ (◯ (f ⁻¹ᴱ Modal→Stable m x))               ↝⟨ BC-ECP.Contractibleᴱ-cong ext $ ◯-cong-≃ $ inverse $
+                                                                  BC-ECP-⊔.to-∘-⁻¹ᴱ-≃-⁻¹ᴱ-from (Modal→≃◯ m) ⟩□
       Contractibleᴱ (◯ (η ∘ f ⁻¹ᴱ x))                          □) ⟩
 
     (∀ y → Contractibleᴱ (◯ (η ∘ f ⁻¹ᴱ y)))          ↝⟨ (∀-cong ext λ _ → BC-ECP.Contractibleᴱ-cong ext ◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ) ⟩□
@@ -2031,7 +2031,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
     (∃ λ (f-f⁻¹ : ◯ (∀ x → f (f⁻¹ x) ≡ x)) →
      ∃ λ (f⁻¹-f : ◯ (∀ x → f⁻¹ (f x) ≡ x)) →
      (x : A) → ◯ (◯-map (cong f ∘ (_$ x)) f⁻¹-f ≡ ◯-map (_$ f x) f-f⁻¹))  ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ → inverse $
-                                                                              Is-modal→≃◯ $ Separated-◯ _ _) ⟩
+                                                                              Modal→≃◯ $ Separated-◯ _ _) ⟩
     (∃ λ (f-f⁻¹ : ◯ (∀ x → f (f⁻¹ x) ≡ x)) →
      ∃ λ (f⁻¹-f : ◯ (∀ x → f⁻¹ (f x) ≡ x)) →
      (x : A) → ◯-map (cong f ∘ (_$ x)) f⁻¹-f ≡ ◯-map (_$ f x) f-f⁻¹)      ↝⟨ (Σ-cong (lemma₂ _ _) λ _ →
@@ -2041,7 +2041,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
      ∃ λ (f⁻¹-f : ∀ x → ◯-map f⁻¹ (◯-map f x) ≡ x) →
      (x : A) → cong (◯-map f) (f⁻¹-f (η x)) ≡ f-f⁻¹ (◯-map f (η x)))      ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse $
                                                                               Π◯≃Πη ext λ _ →
-                                                                              Is-modal→Stable $ Is-modal→Separated (Separated-◯ _ _) _ _) ⟩
+                                                                              Modal→Stable $ Modal→Separated (Separated-◯ _ _) _ _) ⟩
     (∃ λ (f-f⁻¹ : ∀ x → ◯-map f (◯-map f⁻¹ x) ≡ x) →
      ∃ λ (f⁻¹-f : ∀ x → ◯-map f⁻¹ (◯-map f x) ≡ x) →
      (x : ◯ A) → cong (◯-map f) (f⁻¹-f x) ≡ f-f⁻¹ (◯-map f x))            ↔⟨⟩
@@ -2057,7 +2057,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
       η (g (h x))              ∎
 
     s : ∀ x → Stable-[ equivalence ] (◯-map g (◯-map h x) ≡ x)
-    s _ = Is-modal→Stable $ Separated-◯ _ _
+    s _ = Modal→Stable $ Separated-◯ _ _
 
     abstract
 
@@ -2100,7 +2100,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
                _≃_.to (lemma₂ g h) (η p) x ≡
                ◯-elim (λ _ → Separated-◯ _ _)
                  (trans (lemma₁ g h) ∘ cong η ∘ p) x}
-        (λ _ → Is-modal→Separated (Separated-◯ _ _) _ _)
+        (λ _ → Modal→Separated (Separated-◯ _ _) _ _)
         (λ x →
            _≃_.to (lemma₂ g h) (η p) (η x)                     ≡⟨ lemma₂-η ⟩
 
@@ -2116,7 +2116,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
       (cong (◯-map f) (_≃_.to (lemma₂ f⁻¹ f) f⁻¹-f (η x)) ≡
        _≃_.to (lemma₂ f f⁻¹) f-f⁻¹ (◯-map f (η x)))
     lemma₃ x =
-      ◯-elim (λ _ → Is-modal-Π ext λ _ → m) λ f-f⁻¹ →
+      ◯-elim (λ _ → Modal-Π ext λ _ → m) λ f-f⁻¹ →
       ◯-elim (λ _ → m) λ f⁻¹-f →
 
         ◯-map (cong f ∘ (_$ x)) (η f⁻¹-f) ≡ ◯-map (_$ f x) (η f-f⁻¹)  ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ ◯-map-η ◯-map-η ⟩
@@ -2140,13 +2140,13 @@ module []-cong (ax : []-cong-axiomatisation a) where
       where
       m :
         ∀ {f-f⁻¹ f⁻¹-f} →
-        Is-modal
+        Modal
           ((◯-map (cong f ∘ (_$ x)) f⁻¹-f ≡ ◯-map (_$ f x) f-f⁻¹) ≃
            (cong (◯-map f) (_≃_.to (lemma₂ f⁻¹ f) f⁻¹-f (η x)) ≡
             _≃_.to (lemma₂ f f⁻¹) f-f⁻¹ (◯-map f (η x))))
       m =
-        Is-modal-≃ ext (Separated-◯ _ _) $
-        Is-modal→Separated (Separated-◯ _ _) _ _
+        Modal-≃ ext (Separated-◯ _ _) $
+        Modal→Separated (Separated-◯ _ _) _ _
 
       lemma₄ :
         (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
@@ -2295,12 +2295,12 @@ module []-cong (ax : []-cong-axiomatisation a) where
 
       (∃ λ (f⁻¹ : ◯ (B → A)) →
          ◯ (Erased (HA.Proofs (◯-map f) (◯-map-◯ f⁻¹))))                    ↝⟨ (∃-cong λ _ →
-                                                                                Is-modal→Stable $
-                                                                                Is-modal-Erased (
-                                                                                Is-modal-Σ (Is-modal-Π ext λ _ → Separated-◯ _ _) λ _ →
-                                                                                Is-modal-Σ (Is-modal-Π ext λ _ → Separated-◯ _ _) λ _ →
-                                                                                Is-modal-Π ext λ _ →
-                                                                                Is-modal→Separated (Separated-◯ _ _) _ _)) ⟩
+                                                                                Modal→Stable $
+                                                                                Modal-Erased (
+                                                                                Modal-Σ (Modal-Π ext λ _ → Separated-◯ _ _) λ _ →
+                                                                                Modal-Σ (Modal-Π ext λ _ → Separated-◯ _ _) λ _ →
+                                                                                Modal-Π ext λ _ →
+                                                                                Modal→Separated (Separated-◯ _ _) _ _)) ⟩
 
       (∃ λ (f⁻¹ : ◯ (B → A)) → Erased (HA.Proofs (◯-map f) (◯-map-◯ f⁻¹)))  ↝⟨ Σ◯→≃Σ◯→◯ ext ⟩
 
@@ -2360,7 +2360,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
       F.id
       ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP
       (λ ext f≡g → ECP.[]-cong₂-⊔.Is-equivalenceᴱ-cong ax ax ax ext f≡g)
-      (Is-modal→Stable-Is-equivalenceᴱ-CP ext Is-modal-◯ Separated-◯)
+      (Modal→Stable-Is-equivalenceᴱ-CP ext Modal-◯ Separated-◯)
       (Σ◯→↝Σ◯→◯-Is-equivalenceᴱ-CP ext)
       ext
 
@@ -2372,7 +2372,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
       (from-equivalence EEq.≃ᴱ-as-Σ)
       ◯-Is-equivalenceᴱ≃Is-equivalenceᴱ
       (λ ext f≡g → EEq.[]-cong₂-⊔.Is-equivalenceᴱ-cong ax ax ax ext f≡g)
-      (Is-modal→Stable-Is-equivalenceᴱ ext Is-modal-◯ Separated-◯)
+      (Modal→Stable-Is-equivalenceᴱ ext Modal-◯ Separated-◯)
       (Σ◯→↝Σ◯→◯-Is-equivalenceᴱ ext)
       ext
 

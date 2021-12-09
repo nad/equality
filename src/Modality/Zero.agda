@@ -76,13 +76,13 @@ Zero-modal-≡ = For-iterated-equality 1 Zero-modal
 
 Zero-modality : Modality ℓ
 Zero-modality {ℓ = ℓ} = λ where
-    .◯                      → Zero
-    .η                      → return
-    .Is-modal               → Zero-modal
-    .Is-modal-propositional → λ ext → H-level-propositional ext 0
-    .Is-modal-◯             → ↑-closure 0 ⊤-contractible
-    .Is-modal-respects-≃    → H-level-cong _ 0
-    .extendable-along-η     → extendable
+    .◯                   → Zero
+    .η                   → return
+    .Modal               → Zero-modal
+    .Modal-propositional → λ ext → H-level-propositional ext 0
+    .Modal-◯             → ↑-closure 0 ⊤-contractible
+    .Modal-respects-≃    → H-level-cong _ 0
+    .extendable-along-η  → extendable
   where
   open Modality
 

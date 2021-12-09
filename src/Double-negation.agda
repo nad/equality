@@ -106,16 +106,16 @@ run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
 
     .η → return
 
-    .Is-modal → ¬¬-modal
+    .Modal → ¬¬-modal
 
-    .Is-modal-propositional ext →
+    .Modal-propositional ext →
       Σ-closure 1 (H-level-propositional ext 1) λ prop →
       Π-closure ext 1 λ _ →
       prop
 
-    .Is-modal-◯ → ¬¬-propositional ext₀ , _>>= id
+    .Modal-◯ → ¬¬-propositional ext₀ , _>>= id
 
-    .Is-modal-respects-≃ {A = A} {B = B} A≃B →
+    .Modal-respects-≃ {A = A} {B = B} A≃B →
       Σ-map
         (H-level-cong _ 1 A≃B)
         ((¬¬ A → A)  →⟨ (_≃_.to A≃B ∘_) ∘ (_∘ map (_≃_.from A≃B)) ⟩□

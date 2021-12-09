@@ -34,7 +34,7 @@ Very-modal-propositional {M = M} ext =
   let open VM M very-modal in
   implicit-Π-closure ext 1 λ _ →
   H-level→H-level-◯ 1 $
-  Is-modal-propositional ext′
+  Modal-propositional ext′
   where
   open Modality M
 

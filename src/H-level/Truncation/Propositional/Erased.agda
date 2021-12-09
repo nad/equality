@@ -185,15 +185,15 @@ rec r = recᴾ λ where
 
 ∥∥ᴱ-modality : Modality ℓ
 ∥∥ᴱ-modality {ℓ = ℓ} = λ where
-    .◯                      → ∥_∥ᴱ
-    .η                      → ∣_∣
-    .Is-modal A             → Erased (Is-proposition A)
-    .Is-modal-propositional → λ ext →
-                                Er.H-level-Erased 1
-                                  (H-level-propositional ext 1)
-    .Is-modal-◯             → [ truncation-is-proposition ]
-    .Is-modal-respects-≃    → λ A≃B → Er.map (H-level-cong _ 1 A≃B)
-    .extendable-along-η     → extendable
+    .◯                   → ∥_∥ᴱ
+    .η                   → ∣_∣
+    .Modal A             → Erased (Is-proposition A)
+    .Modal-propositional → λ ext →
+                             Er.H-level-Erased 1
+                               (H-level-propositional ext 1)
+    .Modal-◯             → [ truncation-is-proposition ]
+    .Modal-respects-≃    → λ A≃B → Er.map (H-level-cong _ 1 A≃B)
+    .extendable-along-η  → extendable
   where
   open Modality
 
@@ -229,7 +229,7 @@ rec r = recᴾ λ where
   ({A : Type ℓ} → ∥ Erased (Is-proposition A) ∥ᴱ)  →⟨ (λ hyp → hyp) ⟩
   ∥ Erased (Is-proposition (↑ ℓ Bool)) ∥ᴱ          →⟨ ◯-map (Er.map (⊥-elim ∘ ¬-Bool-propositional ∘ H-level-cong _ 1 Bijection.↑↔)) ⟩
   ∥ Erased ⊥ ∥ᴱ                                    →⟨ ◯-map (_↔_.to Er.Erased-⊥↔⊥) ⟩
-  ∥ ⊥ ∥ᴱ                                           →⟨ ⊥-elim ∘ Is-modal→Stable ∥∥ᴱ-empty-modal ⟩□
+  ∥ ⊥ ∥ᴱ                                           →⟨ ⊥-elim ∘ Modal→Stable ∥∥ᴱ-empty-modal ⟩□
   ⊥                                                □
   where
   open Modality (∥∥ᴱ-modality {ℓ = ℓ})
@@ -277,7 +277,7 @@ Is-proposition→∥∥ᴱ-accessibility-modal {ℓ = ℓ} p₁ p₂ =
   Accessibility-modal-for-erasure-stable
     [ (
         (λ acc →
-           Is-modal→Acc→Acc-[]◯-η
+           Modal→Acc→Acc-[]◯-η
              [ p₁ ]
              (rec λ where
                 .∣∣ʳ                        → id
