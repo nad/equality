@@ -34,6 +34,7 @@ private
   variable
     a b c d p : Level
     A B       : Type a
+    P         : A → Type p
     x y       : A
     f         : A → B
     k         : Kind
@@ -308,6 +309,14 @@ Is-∞-extendable-along-[_] :
   (A → B) → (B → Type c) → Type (a ⊔ b ⊔ c)
 Is-∞-extendable-along-[ f ] P =
   ∀ n → Is-[ n ]-extendable-along-[ f ] P
+
+-- Everything is ∞-extendable along the identity function.
+
+∞-extendable-along-id : Is-∞-extendable-along-[ id ] P
+∞-extendable-along-id zero    = _
+∞-extendable-along-id (suc n) =
+    (λ f → f , refl ∘ f)
+  , (λ _ _ → ∞-extendable-along-id n)
 
 -- In the presence of extensionality Is-[_]-extendable-along-[_] can
 -- be expressed using Path-split.
