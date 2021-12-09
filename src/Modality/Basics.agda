@@ -2265,11 +2265,7 @@ module Modality (M : Modality a) where
   --
   -- I based the proof on that of in_SepO_embedding, implemented by
   -- Mike Shulman in the file Separated.v in (one version of) the Coq
-  -- HoTT library. The proof is very easy, but the Coq lemma is proved
-  -- for an arbitrary subuniverse, not a reflective subuniverse, so I
-  -- thought that it could perhaps be proved without using η-cong.
-  -- However, the definition of subuniverse in the Coq code includes
-  -- something like Is-modal-respects-≃.
+  -- HoTT library.
 
   Embedding→Separated→Separated :
     Embedding B A → Separated A → Separated B
