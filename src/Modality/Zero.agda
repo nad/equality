@@ -140,6 +140,10 @@ Zero-very-modal {ℓ = ℓ} {A = A} =
   ↑ ℓ ⊤                  →⟨ id ⟩□
   Zero (Contractible A)  □
 
+------------------------------------------------------------------------
+-- Some properties that hold for Erased do not hold for every
+-- topological modality
+
 -- The zero modality is not empty-modal.
 
 Zero-not-empty-modal : ¬ Empty-modal (Zero-modality {ℓ = ℓ})
@@ -174,10 +178,6 @@ Zero-not-empty-modal {ℓ = ℓ} =
     {A = ↑ _ ⊤}
     {_<_ = λ _ _ → ↑ _ ⊤}
     acc
-
-------------------------------------------------------------------------
--- Some properties that hold for Erased do not hold for every
--- topological modality
 
 -- It is not the case that Zero ⊥ is isomorphic to ⊥.
 --
