@@ -29,6 +29,7 @@ private
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+open import Accessibility eq using (_<W_)
 open import Bijection eq as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq as Emb using (Embedding; Is-embedding)
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
@@ -791,12 +792,13 @@ W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
          (η x , η ∘ f)               ≡⟨ sym $ ◯Wη→Σ◯Π◯Wη-η ext ⟩∎
          ◯Wη→Σ◯Π◯Wη (η (sup x f))    ∎)
 
--- If the modality is accessibility-modal, then ◯ commutes with W in a
--- certain way (assuming function extensionality).
+-- If the modality is accessibility-modal for a certain relation, then
+-- ◯ commutes with W in a certain way (assuming function
+-- extensionality).
 
 ◯Wη≃W◯ :
   {P : ◯ A → Type a} →
-  Accessibility-modal →
+  @0 Accessibility-modal-for (_<W_ {A = A} {P = P ∘ η}) →
   @0 Extensionality a a →
   ◯ (W A (P ∘ η)) ↝[ a ∣ a ] W (◯ A) P
 ◯Wη≃W◯ {A = A} {P = P} acc ext =
@@ -856,12 +858,12 @@ W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
            sup (η x) f                                                  ∎)
         x f (λ y → to-from (f y))
 
--- If the modality is accessibility-modal and A is modal, then W A P
--- is k-stable for symmetric kinds k (assuming function
--- extensionality).
+-- If the modality is accessibility-modal for a certain relation and A
+-- is modal, then W A P is k-stable for symmetric kinds k (assuming
+-- function extensionality).
 
 Stable-W :
-  Accessibility-modal →
+  @0 Accessibility-modal-for (_<W_ {A = A} {P = P}) →
   @0 Extensionality a a →
   Extensionality? ⌊ k ⌋-sym a a →
   Is-modal A →
@@ -869,16 +871,25 @@ Stable-W :
 Stable-W {A = A} {P = P} acc ext ext′ m =
   ◯ (W A P)                            ↝⟨ (◯-cong-↝-sym ext′ λ ext → W-cong₂ ext λ _ → ≡⇒↝ _ $ cong P $ sym
                                            Is-modal→Stable-η) ⟩
-  ◯ (W A (P ∘ Is-modal→Stable m ∘ η))  ↝⟨ ◯Wη≃W◯ acc ext ext′ ⟩
+  ◯ (W A (P ∘ Is-modal→Stable m ∘ η))  ↝⟨ ◯Wη≃W◯ acc′ ext ext′ ⟩
   W (◯ A) (P ∘ Is-modal→Stable m)      ↝⟨ (inverse $ W-cong ext′ (Is-modal→≃◯ m) λ _ → ≡⇒↝ _ $ cong P $ sym
                                            Is-modal→Stable-η) ⟩□
   W A P                                □
+  where
+  @0 acc′ :
+    Accessibility-modal-for
+      (_<W_ {A = A} {P = P ∘ Is-modal→Stable m ∘ η})
+  acc′ =
+    subst
+      (λ f → Accessibility-modal-for (_<W_ {A = A} {P = P ∘ f}))
+      (apply-ext ext λ _ → sym Is-modal→Stable-η)
+      acc
 
--- If the modality is accessibility-modal and A is modal, then W A P
--- is modal (assuming function extensionality).
+-- If the modality is accessibility-modal for a certain relation and A
+-- is modal, then W A P is modal (assuming function extensionality).
 
 Is-modal-W :
-  Accessibility-modal →
+  @0 Accessibility-modal-for (_<W_ {A = A} {P = P}) →
   Extensionality a a →
   Is-modal A →
   Is-modal (W A P)

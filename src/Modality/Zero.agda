@@ -148,23 +148,32 @@ Zero-not-empty-modal {ℓ = ℓ} =
   Contractible ⊥  →⟨ ⊥-elim ∘ proj₁ ⟩□
   ⊥               □
 
+-- The Zero modality is not accessibility-modal for any relation.
+
+¬-Zero-accessibility-modal-for :
+  {_<_ : A → A → Type ℓ} →
+  ¬ Modality.Accessibility-modal-for Zero-modality _<_
+¬-Zero-accessibility-modal-for {ℓ = ℓ} {_<_ = _<_} =
+  Accessibility-modal-for _<_           →⟨ Stable-Acc-[]◯ ⟩
+  Stable (A.Acc _[ _<_ ]◯_ (lift tt))   →⟨ Stable-respects-⇔ record
+                                             { to   = λ acc → A.Acc-map _ acc
+                                             ; from = λ acc → A.Acc-map _ acc
+                                             } ⟩
+  Stable (A.Acc (λ _ _ → ⊤) (lift tt))  →⟨ _$ _ ⟩
+  A.Acc (λ _ _ → ⊤) (lift tt)           →⟨ A.<→¬-Acc _ ⟩□
+  ⊥                                     □
+  where
+  open Modality (Zero-modality {ℓ = ℓ})
+
 -- The zero modality is not accessibility-modal.
 
 ¬-Zero-accessibility-modal :
   ¬ Modality.Accessibility-modal (Zero-modality {ℓ = ℓ})
-¬-Zero-accessibility-modal {ℓ = ℓ} acc =
-                           $⟨ A.Well-founded-⊥ ⟩
-  Well-founded _<_         →⟨ (λ wf _ → acc .proj₁ (wf _)) ⟩
-  Well-founded _[ _<_ ]◯_  →⟨ A.<→¬-Well-founded cyclic ⟩□
-  ⊥                        □
-  where
-  open Modality (Zero-modality {ℓ = ℓ})
-
-  _<_ : ↑ ℓ ⊤ → ↑ ℓ ⊤ → Type ℓ
-  _ < _ = ⊥
-
-  cyclic : lift tt [ _<_ ]◯ lift tt
-  cyclic = lift tt
+¬-Zero-accessibility-modal acc =
+  ¬-Zero-accessibility-modal-for
+    {A = ↑ _ ⊤}
+    {_<_ = λ _ _ → ↑ _ ⊤}
+    acc
 
 ------------------------------------------------------------------------
 -- Some properties that hold for Erased do not hold for every

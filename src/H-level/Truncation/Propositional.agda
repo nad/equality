@@ -22,7 +22,7 @@ open import Dec
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
-open import Accessibility equality-with-J as A using (Well-founded)
+open import Accessibility equality-with-J as A using (Acc; Well-founded)
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Embedding equality-with-J as Embedding hiding (id; _∘_)
 open import Equality.Decidable-UIP equality-with-J
@@ -321,6 +321,60 @@ rec p f = rec′ λ where
     , truncation-is-proposition _ _
     , lift (from-⊎ (1 Nat.≤? 1))
     ∣
+
+-- The modality is accessibility-modal for propositional types and
+-- relations.
+
+Is-proposition→∥∥-accessibility-modal :
+  {@0 A : Type ℓ} {@0 _<_ : A → A → Type ℓ} →
+  @0 Is-proposition A →
+  @0 (∀ x y → Is-proposition (x < y)) →
+  Modality.Accessibility-modal-for ∥∥-modality _<_
+Is-proposition→∥∥-accessibility-modal {ℓ = ℓ} p₁ p₂ =
+  Accessibility-modal-for-erasure-stable
+    E.[ (
+          (λ acc →
+             Is-modal→Acc→Acc-[]◯-η
+               p₁
+               (rec′ λ @0 where
+                  .∣∣ʳ                        → id
+                  .truncation-is-propositionʳ → p₂ _ _)
+               acc)
+        , (rec′ λ @0 where
+             .∣∣ʳ                        → id
+             .truncation-is-propositionʳ → A.Acc-propositional ext)
+        )
+      ]
+  where
+  open Modality (∥∥-modality {ℓ = ℓ})
+
+-- If the modality is accessibility-modal for all relations for a
+-- type A, then all values of type A are not not equal.
+
+∥∥-accessibility-modal→¬¬≡ :
+  {x y : A} →
+  ({_<_ : A → A → Type ℓ} →
+   Modality.Accessibility-modal-for ∥∥-modality _<_) →
+  ¬ ¬ x ≡ y
+∥∥-accessibility-modal→¬¬≡
+  {ℓ = ℓ} {A = A} {x = x} {y = y} acc x≢y =
+                         $⟨ (A.acc λ _ x≡y → ⊥-elim $ x≢y x≡y) ⟩
+  Acc _<_ x              →⟨ Acc-[]◯-η acc ⟩
+  Acc _[ _<_ ]◯_ ∣ x ∣   →⟨ (λ acc →
+                               A.Acc-map
+                                 (λ _ → ∣ y , y
+                                        , truncation-is-proposition _ _
+                                        , truncation-is-proposition _ _
+                                        , refl _
+                                        ∣)
+                                 acc) ⟩
+  Acc (λ _ _ → ⊤) ∣ x ∣  →⟨ A.<→¬-Acc _ ⟩□
+  ⊥                      □
+  where
+  open Modality (∥∥-modality {ℓ = ℓ})
+
+  _<_ : A → A → Type ℓ
+  _ < z = z ≡ y
 
 ------------------------------------------------------------------------
 -- Various lemmas

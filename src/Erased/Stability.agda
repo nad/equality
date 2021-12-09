@@ -2197,16 +2197,17 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   Erased-accessibility-modal :
     Modality.Accessibility-modal Erased-modality
-  Erased-accessibility-modal {_<_ = _<_} {x = x} =
-      (Acc _<_ x                  →⟨ _⇔_.to Erased-Acc-⇔ ∘ [_]→ ⟩
-       Acc _[ _<_ ]Erased_ [ x ]  →⟨ (λ acc →
-                                        A.Acc-map
-                                          (map λ (y , z , ≡[y] , ≡[z] , y<z) →
-                                                 subst (uncurry _<_)
-                                                   (sym $ cong₂ _,_ (cong erased ≡[y]) (cong erased ≡[z]))
-                                                   y<z)
-                                          acc) ⟩□
-       Acc _[ _<_ ]◯_ [ x ]       □)
+  Erased-accessibility-modal {_<_ = _<_} =
+      (λ {x} →
+         Acc _<_ x                  →⟨ _⇔_.to Erased-Acc-⇔ ∘ [_]→ ⟩
+         Acc _[ _<_ ]Erased_ [ x ]  →⟨ (λ acc →
+                                          A.Acc-map
+                                            (map λ (y , z , ≡[y] , ≡[z] , y<z) →
+                                                   subst (uncurry _<_)
+                                                     (sym $ cong₂ _,_ (cong erased ≡[y]) (cong erased ≡[z]))
+                                                     y<z)
+                                            acc) ⟩□
+         Acc _[ _<_ ]◯_ [ x ]       □)
     , Stable-Acc
     where
     open Modality Erased-modality using (_[_]◯_)
