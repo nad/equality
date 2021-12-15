@@ -1325,75 +1325,6 @@ module Modality (M : Modality a) where
     ◯Π→Π◯ (η f) ≡ η ∘ f
   ◯Π→Π◯-η ext = apply-ext ext λ _ → ◯-map-η
 
-  -- The forward direction of ◯Ση≃Σ◯◯, which is defined below (and
-  -- which is due to Felix Cherubini). This direction does not depend
-  -- on function extensionality.
-
-  ◯Ση→Σ◯◯ : ◯ (Σ A (P ∘ η)) → Σ (◯ A) (◯ ∘ P)
-  ◯Ση→Σ◯◯ {A = A} {P = P} = ◯-rec m′ (Σ-map η η)
-    where
-    abstract
-      m′ : Modal (Σ (◯ A) (◯ ∘ P))
-      m′ = Modal-Σ Modal-◯ λ _ → Modal-◯
-
-  -- ◯ commutes with Σ in a certain way (assuming function
-  -- extensionality).
-  --
-  -- This lemma is due to Felix Cherubini.
-  --
-  -- See also Modality.Very-modal.◯Ση≃Σ◯◯.
-
-  ◯Ση≃Σ◯◯ :
-    Extensionality a a →
-    ◯ (Σ A (P ∘ η)) ≃ Σ (◯ A) (◯ ∘ P)
-  ◯Ση≃Σ◯◯ {A = A} {P = P} ext = Eq.↔→≃
-    ◯Ση→Σ◯◯
-    (Σ (◯ A) (◯ ∘ P)  →⟨ (λ (x , y) → ◯-map (x ,_) y) ⟩
-     ◯ (Σ (◯ A) P)    →⟨ ◯-rec Modal-◯ (uncurry $ ◯-elim m″ $ curry η) ⟩□
-     ◯ (Σ A (P ∘ η))  □)
-    (uncurry $
-     ◯-elim
-       (λ _ → Modal-Π ext λ _ →
-              Modal→Separated m′ _ _)
-       (λ x →
-          ◯-elim
-            (λ _ → Modal→Separated m′ _ _)
-            (λ y →
-               ◯Ση→Σ◯◯
-                 (◯-rec Modal-◯ (uncurry $ ◯-elim m″ $ curry η)
-                    (◯-map (η x ,_) (η y)))                      ≡⟨ cong ◯Ση→Σ◯◯ $ cong (◯-rec _ _) ◯-map-η ⟩
-
-               ◯Ση→Σ◯◯
-                 (◯-rec Modal-◯ (uncurry $ ◯-elim m″ $ curry η)
-                    (η (η x , y)))                               ≡⟨ cong ◯Ση→Σ◯◯ ◯-rec-η ⟩
-
-               ◯Ση→Σ◯◯ (◯-elim m″ (curry η) (η x) y)             ≡⟨ cong ◯Ση→Σ◯◯ $ cong (_$ y) ◯-elim-η ⟩
-
-               ◯Ση→Σ◯◯ (η (x , y))                               ≡⟨⟩
-
-               ◯-rec m′ (Σ-map η η) (η (x , y))                  ≡⟨ ◯-rec-η ⟩∎
-
-               (η x , η y)                                       ∎)))
-    (◯-elim
-       (λ _ → Separated-◯ _ _)
-       (λ (x , y) →
-          let f = λ (x , y) → ◯-map (x ,_) y in
-
-          ◯-rec Modal-◯ (uncurry $ ◯-elim m″ $ curry η)
-            (f (◯-rec m′ (Σ-map η η) (η (x , y))))                     ≡⟨ cong (◯-rec _ _) $ cong f ◯-rec-η ⟩
-
-          ◯-rec Modal-◯ (uncurry $ ◯-elim m″ $ curry η)
-            (◯-map (η x ,_) (η y))                                     ≡⟨ cong (◯-rec _ _) ◯-map-η ⟩
-
-          ◯-rec Modal-◯ (uncurry $ ◯-elim m″ $ curry η) (η (η x , y))  ≡⟨ ◯-rec-η ⟩
-
-          ◯-elim m″ (curry η) (η x) y                                  ≡⟨ cong (_$ y) ◯-elim-η ⟩∎
-
-          η (x , y)                                                    ∎))
-    where
-    m′ = _
-    m″ = λ _ → Modal-Π ext λ _ → Modal-◯
-
   -- If A is modal, then ◯ (Σ A P) is equivalent to Σ A (◯ ∘ P).
 
   Modal→◯Σ≃Σ◯ :
@@ -1778,6 +1709,99 @@ module Modality (M : Modality a) where
 
   -- I did not take the lemmas in this section from "Modalities in
   -- Homotopy Type Theory" or the corresponding Coq code.
+
+  -- ◯ commutes with Σ in a certain way (assuming function
+  -- extensionality).
+  --
+  -- This lemma is due to Felix Cherubini.
+  --
+  -- See also Modality.Very-modal.◯Ση≃Σ◯◯.
+
+  ◯Ση≃Σ◯◯ : ◯ (Σ A (P ∘ η)) ↝[ a ∣ a ] Σ (◯ A) (◯ ∘ P)
+  ◯Ση≃Σ◯◯ {A = A} {P = P} =
+    generalise-ext?
+      (record { to = to; from = from })
+      (λ ext → to-from ext , from-to ext)
+    where
+    abstract
+      m′ : Modal (Σ (◯ A) (◯ ∘ P))
+      m′ = Modal-Σ Modal-◯ λ _ → Modal-◯
+
+      s′ : (x : ◯ A) → Stable ((y : P x) → ◯ (Σ A (P ∘ η)))
+      s′ _ = Stable-Π λ _ → Modal→Stable Modal-◯
+
+      m″ :
+        Extensionality a a →
+        (x : ◯ A) → Modal ((y : P x) → ◯ (Σ A (P ∘ η)))
+      m″ ext _ = Modal-Π ext λ _ → Modal-◯
+
+      s′-≡ : ∀ ext → s′ ≡ Modal→Stable ∘ m″ ext
+      s′-≡ ext =
+        apply-ext ext λ _ →
+        Stable-Π (λ _ → Modal→Stable Modal-◯)     ≡⟨ Stable-Π-Modal-Π ext ⟩∎
+        Modal→Stable (Modal-Π ext λ _ → Modal-◯)  ∎
+
+    to : ◯ (Σ A (P ∘ η)) → Σ (◯ A) (◯ ∘ P)
+    to = ◯-rec m′ (Σ-map η η)
+
+    from : Σ (◯ A) (◯ ∘ P) → ◯ (Σ A (P ∘ η))
+    from =
+      Σ (◯ A) (◯ ∘ P)  →⟨ (λ (x , y) → ◯-map (x ,_) y) ⟩
+      ◯ (Σ (◯ A) P)    →⟨ ◯-rec Modal-◯ (uncurry $ ◯-elim′ s′ $ curry η) ⟩□
+      ◯ (Σ A (P ∘ η))  □
+
+    to-from :
+      Extensionality a a →
+      ∀ x → to (from x) ≡ x
+    to-from ext = uncurry $
+      ◯-elim
+        (λ _ → Modal-Π ext λ _ →
+               Modal→Separated m′ _ _)
+        (λ x →
+           ◯-elim
+             (λ _ → Modal→Separated m′ _ _)
+             (λ y →
+                to
+                  (◯-rec Modal-◯ (uncurry $ ◯-elim′ s′ $ curry η)
+                     (◯-map (η x ,_) (η y)))                            ≡⟨ cong to $ cong (◯-rec _ _) ◯-map-η ⟩
+
+                to
+                  (◯-rec Modal-◯ (uncurry $ ◯-elim′ s′ $ curry η)
+                     (η (η x , y)))                                     ≡⟨ cong to ◯-rec-η ⟩
+
+                to (◯-elim′ s′ (curry η) (η x) y)                       ≡⟨ cong (λ s → to (◯-elim′ s (curry η) (η x) y)) $
+                                                                           s′-≡ ext ⟩
+
+                to (◯-elim′ (Modal→Stable ∘ m″ ext) (curry η) (η x) y)  ≡⟨ cong to $ cong (_$ y) ◯-elim′-Modal→Stable-η ⟩
+
+                to (η (x , y))                                          ≡⟨⟩
+
+                ◯-rec m′ (Σ-map η η) (η (x , y))                        ≡⟨ ◯-rec-η ⟩∎
+
+                (η x , η y)                                             ∎))
+
+    from-to :
+      Extensionality a a →
+      ∀ x → from (to x) ≡ x
+    from-to ext =
+      ◯-elim
+        (λ _ → Separated-◯ _ _)
+        (λ (x , y) →
+           let f = λ (x , y) → ◯-map (x ,_) y in
+
+           ◯-rec Modal-◯ (uncurry $ ◯-elim′ s′ $ curry η)
+             (f (◯-rec m′ (Σ-map η η) (η (x , y))))                      ≡⟨ cong (◯-rec _ _) $ cong f ◯-rec-η ⟩
+
+           ◯-rec Modal-◯ (uncurry $ ◯-elim′ s′ $ curry η)
+             (◯-map (η x ,_) (η y))                                      ≡⟨ cong (◯-rec _ _) ◯-map-η ⟩
+
+           ◯-rec Modal-◯ (uncurry $ ◯-elim′ s′ $ curry η) (η (η x , y))  ≡⟨ ◯-rec-η ⟩
+
+           ◯-elim′ s′ (curry η) (η x) y                                  ≡⟨ cong (λ s → ◯-elim′ s (curry η) (η x) y) $ s′-≡ ext ⟩
+
+           ◯-elim′ (Modal→Stable ∘ m″ ext) (curry η) (η x) y             ≡⟨ cong (_$ y) ◯-elim′-Modal→Stable-η ⟩∎
+
+           η (x , y)                                                     ∎)
 
   -- Some variants of Π◯◯≃Π◯η, stated using stability.
 
@@ -3292,7 +3316,7 @@ module Modality (M : Modality a) where
   ◯Wη→W◯ {A = A} {P = P} acc ext =
     ◯ (W A (P ∘ η))                                      →⟨ ◯-map (λ x → x , A.Well-founded-W x) ⟩
     ◯ (∃ λ (x : W A (P ∘ η)) → Acc _<W_ x)               →⟨ ◯-map (Σ-map id (acc′ .proj₁)) ⟩
-    ◯ (∃ λ (x : W A (P ∘ η)) → Acc _[ _<W_ ]◯_ (η x))    →⟨ ◯Ση→Σ◯◯ ⟩
+    ◯ (∃ λ (x : W A (P ∘ η)) → Acc _[ _<W_ ]◯_ (η x))    →⟨ ◯Ση≃Σ◯◯ _ ⟩
     (∃ λ (x : ◯ (W A (P ∘ η))) → ◯ (Acc _[ _<W_ ]◯_ x))  →⟨ Σ-map id (acc′ .proj₂) ⟩
     (∃ λ (x : ◯ (W A (P ∘ η))) → Acc _[ _<W_ ]◯_ x)      →⟨ (λ (x , a) → ◯Wη→W◯-Acc ext x a) ⟩□
     W (◯ A) P                                            □
@@ -3313,10 +3337,10 @@ module Modality (M : Modality a) where
     ◯Wη→W◯ {P = P} acc ext (η x) ≡ W-map η id x
   ◯Wη→W◯-η {A = A} {P = P} {x = x} acc ext ext′ ax =
     (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
-      (◯Ση→Σ◯◯
+      (◯Ση≃Σ◯◯ _
          (◯-map (Σ-map id (acc′ .proj₁))
             (◯-map (λ x → x , A.Well-founded-W x) (η x))))  ≡⟨ cong (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a)) $
-                                                               trans (cong ◯Ση→Σ◯◯ $
+                                                               trans (cong (◯Ση≃Σ◯◯ _) $
                                                                       trans (cong (◯-map _) ◯-map-η)
                                                                       ◯-map-η)
                                                                ◯-rec-η ⟩
@@ -3435,7 +3459,7 @@ module Modality (M : Modality a) where
     ◯ (∃ λ (f : A → B) → P f)                  ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
     ◯ (∃ λ (f : A → B) → ◯ (P f))              →⟨ (◯-map $ ∃-cong λ _ → ◯∘P→P∘◯-map) ⟩
     ◯ (∃ λ (f : A → B) → P (◯-map f))          →⟨ (◯-map $ ∃-cong λ _ → P-map λ _ → sym ◯-map-◯-ηˡ) ⟩
-    ◯ (∃ λ (f : A → B) → P (◯-map-◯ (η f)))    →⟨ ◯Ση→Σ◯◯ ⟩
+    ◯ (∃ λ (f : A → B) → P (◯-map-◯ (η f)))    →⟨ ◯Ση≃Σ◯◯ _ ⟩
     (∃ λ (f : ◯ (A → B)) → ◯ (P (◯-map-◯ f)))  →⟨ Σ-map ◯-map-◯ id ⟩
     (∃ λ (f : ◯ A → ◯ B) → ◯ (P f))            →⟨ (∃-cong λ _ → P-stable) ⟩
     (∃ λ (f : ◯ A → ◯ B) → P f)                ↔⟨ inverse F↔ ⟩□
@@ -3463,7 +3487,7 @@ module Modality (M : Modality a) where
     (∀ y → ◯ (∃ λ x → ◯ (f x ≡ y)))        →⟨ (∀-cong _ λ _ → ◯-map $ ∃-cong λ _ → η-cong) ⟩
     (∀ y → ◯ (∃ λ x → η (f x) ≡ η y))      →⟨ _⇔_.from $ Π◯◯≃Π◯η _ ⟩
     (∀ y → ◯ (∃ λ x → η (f x) ≡ y))        →⟨ (∀-cong _ λ _ → ◯-map $ ∃-cong λ _ → subst (_≡ _) (sym ◯-map-η)) ⟩
-    (∀ y → ◯ (∃ λ x → ◯-map f (η x) ≡ y))  →⟨ (∀-cong _ λ _ → ◯Ση→Σ◯◯) ⟩
+    (∀ y → ◯ (∃ λ x → ◯-map f (η x) ≡ y))  →⟨ (∀-cong _ λ _ → ◯Ση≃Σ◯◯ _) ⟩
     (∀ y → ∃ λ x → ◯ (◯-map f x ≡ y))      →⟨ (∀-cong _ λ _ → ∃-cong λ _ → Modal→Stable (Separated-◯ _ _)) ⟩□
     (∀ y → ∃ λ x → ◯-map f x ≡ y)          □
 
@@ -3499,7 +3523,7 @@ module Modality (M : Modality a) where
                                                                            (∀-cong _ λ _ → ≡⇒↝ _ $ cong (_≡ _) $ sym $
                                                                             ◯-map-◯-η)) ⟩
     ◯ (∃ λ g → (∀ x → ◯-map f (◯-map-◯ (η g) (η x)) ≡ η x) ×
-               (∀ x → ◯-map-◯ (η g) (η (f x)) ≡ η x))                  →⟨ ◯Ση→Σ◯◯ ⟩
+               (∀ x → ◯-map-◯ (η g) (η (f x)) ≡ η x))                  →⟨ ◯Ση≃Σ◯◯ _ ⟩
 
     (∃ λ g → ◯ ((∀ x → ◯-map f (◯-map-◯ g (η x)) ≡ η x) ×
                 (∀ x → ◯-map-◯ g (η (f x)) ≡ η x)))                    ↔⟨ (∃-cong λ _ → ◯×≃) ⟩

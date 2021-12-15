@@ -371,7 +371,7 @@ topological ℓ ext =
 
 ◯Ση≃Σ◯◯ : ◯ (Σ A (P ∘ η)) ≃ Σ (◯ A) (◯ ∘ P)
 ◯Ση≃Σ◯◯ {A = A} {P = P} = Eq.↔→≃
-  ◯Ση→Σ◯◯
+  (M.◯Ση≃Σ◯◯ _)
   (Σ (◯ A) (◯ ∘ P)          →⟨ (λ (x , y) → ◯-map (x ,_) y) ⟩
    ◯ (Σ (◯ A) P)            →⟨ ◯≃◯-Modal-× _ ⟩
    ◯ (Modal A × Σ (◯ A) P)  →⟨ ◯-map (proj₂ ∘ ∃-cong λ m → _≃_.from $ Σ-cong (Modal→≃◯ m) λ _ → Eq.id) ⟩□
@@ -763,15 +763,15 @@ W◯→◯Wη-W-map-η-id {P = P} {x = sup x f} ext =
   ◯Wη≃Σ◯Π◯Wη _ (η (sup x f)) ≡ (η x , η ∘ f)
 ◯Wη≃Σ◯Π◯Wη-η {x = x} {f = f} ext =
   Σ-map id ◯Π→Π◯
-    (◯Ση→Σ◯◯ (◯-map (λ w → headᵂ w , tailᵂ w) (η (sup x f))))  ≡⟨ cong (Σ-map id ◯Π→Π◯ ∘ ◯Ση→Σ◯◯) ◯-map-η ⟩
+    (_≃_.to ◯Ση≃Σ◯◯ (◯-map (λ w → headᵂ w , tailᵂ w) (η (sup x f))))  ≡⟨ cong (Σ-map id ◯Π→Π◯ ∘ _≃_.to ◯Ση≃Σ◯◯) ◯-map-η ⟩
 
-  Σ-map id ◯Π→Π◯ (◯Ση→Σ◯◯ (η (x , f)))                         ≡⟨ cong (Σ-map id ◯Π→Π◯) ◯-rec-η ⟩
+  Σ-map id ◯Π→Π◯ (_≃_.to ◯Ση≃Σ◯◯ (η (x , f)))                         ≡⟨ cong (Σ-map id ◯Π→Π◯) ◯-rec-η ⟩
 
-  Σ-map id ◯Π→Π◯ (η x , η f)                                   ≡⟨⟩
+  Σ-map id ◯Π→Π◯ (η x , η f)                                          ≡⟨⟩
 
-  (η x , ◯Π→Π◯ (η f))                                          ≡⟨ cong (_ ,_) $ ◯Π→Π◯-η ext ⟩∎
+  (η x , ◯Π→Π◯ (η f))                                                 ≡⟨ cong (_ ,_) $ ◯Π→Π◯-η ext ⟩∎
 
-  (η x , η ∘ f)                                                ∎
+  (η x , η ∘ f)                                                       ∎
 
 -- A lemma relating ◯Wη≃Σ◯Π◯Wη and ◯Wη→Σ◯Π◯Wη.
 
@@ -1352,39 +1352,39 @@ private
   _↔_.from F↔ (Σ-map ◯-map (◯∘P↝P∘◯-map _ ∘ η) (_↔_.to F↔ x))
 ◯↝↝◯↝◯-η
   F↔ ◯∘P↝P∘◯-map P-cong P-stable P-stable-η Σ◯→→Σ◯→◯ hyp {x = x} =
-  ◯↝↝◯↝◯ F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ◯→→Σ◯→◯ _ (η x)       ≡⟨⟩
+  ◯↝↝◯↝◯ F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ◯→→Σ◯→◯ _ (η x)          ≡⟨⟩
 
-  (_↔_.from F↔ $ Σ◯→→Σ◯→◯ $ Σ-map id P-stable $ ◯Ση→Σ◯◯ $
+  (_↔_.from F↔ $ Σ◯→→Σ◯→◯ $ Σ-map id P-stable $ _≃_.to ◯Ση≃Σ◯◯ $
    ◯-map (Σ-map id (P-cong _ λ _ → sym ◯-map-◯-ηˡ)) $
    ◯-map (Σ-map id (◯∘P↝P∘◯-map _)) $ ◯-map (Σ-map id η) $
-   ◯-map (_↔_.to F↔) (η x))                                    ≡⟨ cong (_↔_.from F↔) $ cong Σ◯→→Σ◯→◯ $ cong (Σ-map id P-stable) $
-                                                                  trans
-                                                                    (cong ◯Ση→Σ◯◯ $
+   ◯-map (_↔_.to F↔) (η x))                                       ≡⟨ cong (_↔_.from F↔) $ cong Σ◯→→Σ◯→◯ $ cong (Σ-map id P-stable) $
                                                                      trans
-                                                                       (cong (◯-map (Σ-map id (P-cong _ λ _ → sym ◯-map-◯-ηˡ))) $
+                                                                       (cong (_≃_.to ◯Ση≃Σ◯◯) $
                                                                         trans
-                                                                          (cong (◯-map (Σ-map id (◯∘P↝P∘◯-map _))) $
+                                                                          (cong (◯-map (Σ-map id (P-cong _ λ _ → sym ◯-map-◯-ηˡ))) $
                                                                            trans
-                                                                             (cong (◯-map (Σ-map id η))
-                                                                              ◯-map-η) $
+                                                                             (cong (◯-map (Σ-map id (◯∘P↝P∘◯-map _))) $
+                                                                              trans
+                                                                                (cong (◯-map (Σ-map id η))
+                                                                                 ◯-map-η) $
+                                                                              ◯-map-η)
                                                                            ◯-map-η)
                                                                         ◯-map-η)
-                                                                     ◯-map-η)
-                                                                  ◯-rec-η ⟩
+                                                                     ◯-rec-η ⟩
   (_↔_.from F↔ $ Σ◯→→Σ◯→◯ $
    Σ-map
      η
      (P-stable ∘ η ∘ P-cong _ (λ _ → sym ◯-map-◯-ηˡ) ∘
       ◯∘P↝P∘◯-map _ ∘ η)
-     (_↔_.to F↔ x))                                            ≡⟨ cong (_↔_.from F↔) $ cong Σ◯→→Σ◯→◯ $ cong (_ ,_)
-                                                                  P-stable-η ⟩
+     (_↔_.to F↔ x))                                               ≡⟨ cong (_↔_.from F↔) $ cong Σ◯→→Σ◯→◯ $ cong (_ ,_)
+                                                                     P-stable-η ⟩
   (_↔_.from F↔ $ Σ◯→→Σ◯→◯ $
    Σ-map
      η
      (P-cong _ (λ _ → sym ◯-map-◯-ηˡ) ∘ ◯∘P↝P∘◯-map _ ∘ η)
-     (_↔_.to F↔ x))                                            ≡⟨ cong (_↔_.from F↔) $
-                                                                  hyp _ _ ⟩∎
-  _↔_.from F↔ (Σ-map ◯-map (◯∘P↝P∘◯-map _ ∘ η) (_↔_.to F↔ x))  ∎
+     (_↔_.to F↔ x))                                               ≡⟨ cong (_↔_.from F↔) $
+                                                                     hyp _ _ ⟩∎
+  _↔_.from F↔ (Σ-map ◯-map (◯∘P↝P∘◯-map _ ∘ η) (_↔_.to F↔ x))     ∎
 
 -- A "computation rule" for ◯↝↝◯↝◯′.
 
