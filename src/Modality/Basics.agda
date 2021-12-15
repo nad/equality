@@ -1774,506 +1774,6 @@ module Modality (M : Modality a) where
          x                  ∎)
 
   ----------------------------------------------------------------------
-  -- Accessibility-modal modalities
-
-  -- I did not take the definitions or lemmas in this section from
-  -- "Modalities in Homotopy Type Theory" or the corresponding Coq
-  -- code.
-
-  -- The operator _[_]◯_ lifts a relation from A to ◯ A.
-
-  infix 4 _[_]◯_
-
-  _[_]◯_ : ◯ A → (A → A → Type a) → ◯ A → Type a
-  x [ _<_ ]◯ y =
-    ◯ (∃ λ x′ → ∃ λ y′ → x ≡ η x′ × y ≡ η y′ × (x′ < y′))
-
-  -- If ◯ (x < y) is inhabited, then η x [ _<_ ]◯ η y holds.
-
-  ◯→η-[]◯-η : ◯ (x < y) → η x [ _<_ ]◯ η y
-  ◯→η-[]◯-η = ◯-map (λ x<y → _ , _ , refl _ , refl _ , x<y)
-
-  -- If A is modal and _<_ has type A → A → Type a, then
-  -- η x [ _<_ ]◯ η y is equivalent to ◯ (x < y).
-
-  η-[]◯-η≃◯ :
-    {_<_ : A → A → Type a} →
-    Modal A →
-    (η x [ _<_ ]◯ η y) ≃ ◯ (x < y)
-  η-[]◯-η≃◯ {x = x} {y = y} {_<_ = _<_} m =
-    η x [ _<_ ]◯ η y                                           ↔⟨⟩
-
-    ◯ (∃ λ x′ → ∃ λ y′ → η x ≡ η x′ × η y ≡ η y′ × (x′ < y′))  ↝⟨ (∃-cong λ _ →
-                                                                   (∃-cong λ _ →
-                                                                    (∃-cong λ _ →
-                                                                     Modal→◯Σ≃Σ◯ (Separated-◯ _ _)) F.∘
-                                                                    Modal→◯Σ≃Σ◯ (Separated-◯ _ _)) F.∘
-                                                                   Modal→◯Σ≃Σ◯ m) F.∘
-                                                                  Modal→◯Σ≃Σ◯ m ⟩
-
-    (∃ λ x′ → ∃ λ y′ → η x ≡ η x′ × η y ≡ η y′ × ◯ (x′ < y′))  ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
-                                                                   Eq.≃-≡ (Modal→≃◯ m)
-                                                                     ×-cong
-                                                                   ×-cong₁ λ _ → Eq.≃-≡ (Modal→≃◯ m)) ⟩
-
-    (∃ λ x′ → ∃ λ y′ → x ≡ x′ × y ≡ y′ × ◯ (x′ < y′))          ↔⟨ (∃-cong λ _ → Σ-assoc) F.∘
-                                                                  Σ-assoc F.∘
-                                                                  (∃-cong λ _ → ∃-comm) ⟩
-    (∃ λ ((x′ , _) : ∃ λ x′ → x ≡ x′) →
-     ∃ λ ((y′ , _) : ∃ λ y′ → y ≡ y′) →
-     ◯ (x′ < y′))                                              ↔⟨ drop-⊤-left-Σ $
-                                                                  _⇔_.to contractible⇔↔⊤ $
-                                                                  other-singleton-contractible _ ⟩
-
-    (∃ λ ((y′ , _) : ∃ λ y′ → y ≡ y′) → ◯ (x < y′))            ↔⟨ drop-⊤-left-Σ $
-                                                                  _⇔_.to contractible⇔↔⊤ $
-                                                                  other-singleton-contractible _ ⟩□
-    ◯ (x < y)                                                  □
-
-  -- If A is modal, _<_ is pointwise stable, and x : A is accessible
-  -- with respect to _<_, then η x is accessible with respect to
-  -- _[ _<_ ]◯_.
-
-  Modal→Acc→Acc-[]◯-η :
-    {@0 A : Type a} {@0 _<_ : A → A → Type a} {@0 x : A} →
-    @0 Modal A →
-    @0 ({x y : A} → Stable (x < y)) →
-    @0 Acc _<_ x → Acc _[ _<_ ]◯_ (η x)
-  Modal→Acc→Acc-[]◯-η {_<_ = _<_} {x = x} m s a =
-    A.Acc-erasure-stable
-      E.[                           $⟨ a ⟩
-          Acc _<_ x                 →⟨ subst (Acc _<_) (sym η⁻¹-η) ⟩
-          Acc _<_ (η⁻¹ m (η x))     →⟨ (λ acc → A.Acc-on acc) ⟩
-          Acc (_<_ on η⁻¹ m) (η x)  →⟨ (λ acc → A.Acc-map lemma acc) ⟩□
-          Acc _[ _<_ ]◯_ (η x)      □
-        ]
-    where
-    @0 lemma : y [ _<_ ]◯ z → η⁻¹ m y < η⁻¹ m z
-    lemma {y = y} {z = z} =
-      y [ _<_ ]◯ z                      →⟨ subst (uncurry _[ _<_ ]◯_) (sym $ cong₂ _,_ η-η⁻¹ η-η⁻¹) ⟩
-      η (η⁻¹ m y) [ _<_ ]◯ η (η⁻¹ m z)  ↔⟨ η-[]◯-η≃◯ m ⟩
-      ◯ (η⁻¹ m y < η⁻¹ m z)             →⟨ s ⟩□
-      η⁻¹ m y < η⁻¹ m z                 □
-
-  -- If A is modal and _<_ is pointwise stable and well-founded, then
-  -- _[ _<_ ]◯_ is well-founded.
-
-  Modal→Well-founded→Well-founded-[]◯ :
-    {@0 A : Type a} {@0 _<_ : A → A → Type a} →
-    @0 Modal A →
-    @0 ({x y : A} → Stable (x < y)) →
-    @0 Well-founded _<_ → Well-founded _[ _<_ ]◯_
-  Modal→Well-founded→Well-founded-[]◯ {_<_ = _<_} m s wf =
-    A.Well-founded-erasure-stable
-      E.[                                       $⟨ wf ⟩
-          (∀ x → Acc _<_ x)                     →⟨ ((λ acc → Modal→Acc→Acc-[]◯-η m s acc) ∘_) ∘ (_∘ η⁻¹ m) ⟩
-          (∀ x → Acc _[ _<_ ]◯_ (η (η⁻¹ m x)))  →⟨ subst (Acc _) η-η⁻¹ ∘_ ⟩□
-          (∀ x → Acc _[ _<_ ]◯_ x)              □
-        ]
-
-  -- A definition of what it means to be accessibility-modal for a
-  -- given type and relation.
-
-  Accessibility-modal-for : {A : Type a} → (A → A → Type a) → Type a
-  Accessibility-modal-for _<_ =
-    (∀ {x} → Acc _<_ x → Acc _[ _<_ ]◯_ (η x)) ×
-    (∀ {x} → Stable (Acc _[ _<_ ]◯_ x))
-
-  -- A definition of what it means to be accessibility-modal.
-  --
-  -- The erasure modality is both very modal and accessibility-modal,
-  -- and the zero modality is very modal but not accessibility-modal.
-  -- TODO: Is there some accessibility-modal modality that is not very
-  -- modal?
-
-  Accessibility-modal : Type (lsuc a)
-  Accessibility-modal =
-    {A : Type a} {_<_ : A → A → Type a} →
-    Accessibility-modal-for _<_
-
-  -- If the modality is accessibility-modal for _<_, then
-  -- Acc _[ _<_ ]◯_ x is stable.
-
-  Stable-Acc-[]◯ :
-    Accessibility-modal-for _<_ →
-    Stable (Acc _[ _<_ ]◯_ x)
-  Stable-Acc-[]◯ acc = acc .proj₂
-
-  -- If the modality is accessibility-modal for _<_, then
-  -- Acc _[ _<_ ]◯_ x is modal (assuming function extensionality).
-
-  Modal-Acc-[]◯ :
-    Extensionality a a →
-    Accessibility-modal-for _<_ →
-    Modal (Acc _[ _<_ ]◯_ x)
-  Modal-Acc-[]◯ ext acc =
-    Stable→left-inverse→Modal
-      (Stable-Acc-[]◯ acc)
-      (λ _ → A.Acc-propositional ext _ _)
-
-  -- If the modality is accessibility-modal for _<_ and x is
-  -- accessible with respect to _<_, then η x is accessible with
-  -- respect to _[ _<_ ]◯_.
-
-  Acc-[]◯-η :
-    Accessibility-modal-for _<_ →
-    Acc _<_ x → Acc _[ _<_ ]◯_ (η x)
-  Acc-[]◯-η acc = acc .proj₁
-
-  -- If the modality is accessibility-modal for _<_, then Acc _<_ x is
-  -- stable.
-
-  Stable-Acc :
-    {_<_ : A → A → Type a} →
-    Accessibility-modal-for _<_ →
-    Stable (Acc _<_ x)
-  Stable-Acc {x = x} {_<_ = _<_} acc =
-    ◯ (Acc _<_ x)             →⟨ ◯-map (Acc-[]◯-η acc) ⟩
-    ◯ (Acc _[ _<_ ]◯_ (η x))  →⟨ Stable-Acc-[]◯ acc ⟩
-    Acc _[ _<_ ]◯_ (η x)      →⟨ lemma ⟩□
-    Acc _<_ x                 □
-    where
-    lemma : ∀ {x} → Acc _[ _<_ ]◯_ (η x) → Acc _<_ x
-    lemma (A.acc f) =
-      A.acc λ y y<x → lemma (f (η y) (◯→η-[]◯-η (η y<x)))
-
-  -- If the modality is accessibility-modal for _<_, then Acc _<_ x is
-  -- modal (assuming function extensionality).
-
-  Modal-Acc :
-    Extensionality a a →
-    Accessibility-modal-for _<_ →
-    Modal (Acc _<_ x)
-  Modal-Acc ext acc =
-    Stable→left-inverse→Modal
-      (Stable-Acc acc)
-      (λ _ → A.Acc-propositional ext _ _)
-
-  -- If the modality is accessibility-modal for _<_ and _<_ is
-  -- well-founded, then _[ _<_ ]◯_ is well-founded.
-
-  Well-founded-[]◯ :
-    Accessibility-modal-for _<_ →
-    Well-founded _<_ → Well-founded _[ _<_ ]◯_
-  Well-founded-[]◯ {_<_ = _<_} acc wf =
-    ◯-elim′
-      (λ _ → Stable-Acc-[]◯ acc)
-      (λ x →                   $⟨ wf x ⟩
-         Acc _<_ x             →⟨ Acc-[]◯-η acc ⟩□
-         Acc _[ _<_ ]◯_ (η x)  □)
-
-  -- If ◯ (↑ a Bool) is a proposition, then the modality is not
-  -- accessibility-modal.
-
-  Is-proposition-◯→¬-Accessibility-modal :
-    Is-proposition (◯ (↑ a Bool)) →
-    ¬ Accessibility-modal
-  Is-proposition-◯→¬-Accessibility-modal prop acc =
-                                      $⟨ Acc-false ⟩
-    Acc _<₁_ false                    →⟨ (λ hyp → A.Acc-on hyp) ⟩
-    Acc _<₂_ (lift false)             →⟨ Acc-[]◯-η acc ⟩
-    Acc _[ _<₂_ ]◯_ (η (lift false))  →⟨ A.<→¬-Acc cyclic ⟩□
-    ⊥                                 □
-    where
-    _<₁_ : Bool → Bool → Type a
-    false <₁ true = ↑ _ ⊤
-    _     <₁ _    = ⊥
-
-    _<₂_ : ↑ a Bool → ↑ a Bool → Type a
-    _<₂_ = _<₁_ on lower
-
-    Acc-false : Acc _<₁_ false
-    Acc-false = A.acc λ where
-      true  ()
-      false ()
-
-    cyclic : η (lift false) [ _<₂_ ]◯ η (lift false)
-    cyclic =
-      η ( lift false
-        , lift true
-        , prop _ _
-        , prop _ _
-        , lift tt
-        )
-
-  -- Accessibility-modal-for _<_ is propositional (assuming function
-  -- extensionality).
-
-  Accessibility-modal-for-propositional :
-    Extensionality a a →
-    Is-proposition (Accessibility-modal-for _<_)
-  Accessibility-modal-for-propositional ext =
-    ×-closure 1
-      (implicit-Π-closure ext 1 λ _ →
-       Π-closure ext 1 λ _ →
-       A.Acc-propositional ext) $
-      (implicit-Π-closure ext 1 λ _ →
-       Π-closure ext 1 λ _ →
-       A.Acc-propositional ext)
-
-  -- Accessibility-modal is propositional (assuming function
-  -- extensionality).
-
-  Accessibility-modal-propositional :
-    Extensionality (lsuc a) (lsuc a) →
-    Is-proposition Accessibility-modal
-  Accessibility-modal-propositional ext =
-    implicit-Π-closure ext                                1 λ _ →
-    implicit-Π-closure (lower-extensionality lzero _ ext) 1 λ _ →
-    Accessibility-modal-for-propositional
-      (lower-extensionality _ _ ext)
-
-  -- Accessibility-modal-for _<_ is "erasure-stable".
-
-  Accessibility-modal-for-erasure-stable :
-    {@0 A : Type a} {@0 _<_ : A → A → Type a} →
-    E.Stable (Accessibility-modal-for _<_)
-  Accessibility-modal-for-erasure-stable E.[ acc₁ , acc₂ ] =
-      (λ acc → A.Acc-map id (acc₁ acc))
-    , (λ acc → A.Acc-map id (acc₂ acc))
-
-  -- Accessibility-modal is "erasure-stable".
-
-  Accessibility-modal-erasure-stable :
-    E.Stable Accessibility-modal
-  Accessibility-modal-erasure-stable E.[ acc ] =
-    Accessibility-modal-for-erasure-stable E.[ acc ]
-
-  -- Accessibility-modal modalities are empty-modal.
-
-  Accessibility-modal→Empty-modal : Accessibility-modal → Empty-modal M
-  Accessibility-modal→Empty-modal acc =
-    Stable→left-inverse→Modal
-      stable
-      (λ x → ⊥-elim x)
-    where
-    stable =
-      ◯ ⊥                                           →⟨ ◯-map ⊥-elim ⟩
-      ◯ (Acc _[ (λ _ _ → ↑ a ⊤) ]◯_ (η (lift tt)))  →⟨ Stable-Acc-[]◯ acc ⟩
-      Acc _[ (λ _ _ → ↑ a ⊤) ]◯_ (η (lift tt))      →⟨ ⊥-elim ∘ A.<→¬-Acc (◯→η-[]◯-η (η _)) ⟩□
-      ⊥                                             □
-
-  -- An unfolding lemma for ◯ (W A (P ∘ η)).
-  --
-  -- See also Modality.Very-modal.◯Wη≃Σ◯Π◯Wη.
-
-  ◯Wη→Σ◯Π◯Wη :
-    {P : ◯ A → Type a} →
-    ◯ (W A (P ∘ η)) → Σ (◯ A) (λ x → P x → ◯ (W A (P ∘ η)))
-  ◯Wη→Σ◯Π◯Wη =
-    ◯-elim′
-      (λ _ → Stable-Σ Modal-◯ λ _ →
-             Stable-Π λ _ →
-             Modal→Stable Modal-◯)
-      (λ where
-         (sup x f) → η x , η ∘ f)
-
-  -- A "computation rule" for ◯Wη→Σ◯Π◯Wη.
-
-  ◯Wη→Σ◯Π◯Wη-η :
-    Extensionality a a →
-    ◯Wη→Σ◯Π◯Wη (η (sup x f)) ≡ (η x , η ∘ f)
-  ◯Wη→Σ◯Π◯Wη-η {x = x} {f = f} ext =
-    ◯-elim′-η′
-      (Stable-Σ Modal-◯
-         (λ _ → Stable-Π λ _ → Modal→Stable Modal-◯)
-         (η (η x , η ∘ f))                                 ≡⟨ (cong (λ s → Stable-Σ Modal-◯ s (η (η x , η ∘ f))) $
-                                                               apply-ext ext λ _ →
-                                                               Stable-Π-Modal-Π ext) ⟩
-       Stable-Σ Modal-◯
-         (λ _ → Modal→Stable $ Modal-Π ext λ _ → Modal-◯)
-         (η (η x , η ∘ f))                                 ≡⟨ Stable-Σ-Modal-Σ
-                                                                (λ _ → Modal-Π ext λ _ → Modal-◯) ⟩
-       Modal→Stable
-         (Modal-Σ Modal-◯ λ _ →
-          Modal-Π ext λ _ → Modal-◯)
-         (η (η x , η ∘ f))                                 ≡⟨ Modal→Stable-η ⟩∎
-
-       (η x , η ∘ f)                                       ∎)
-
-  private
-
-    -- A lemma used in the implementation of ◯Wη→W◯.
-
-    ◯Wη→W◯-Acc :
-      @0 Extensionality a a →
-      (x : ◯ (W A (P ∘ η))) →
-      @0 Acc _[ _<W_ ]◯_ x →
-      W (◯ A) P
-    ◯Wη→W◯-Acc {P = P} ext w (A.acc a) =
-      sup x′ λ y → ◯Wη→W◯-Acc ext (f′ y) (a (f′ y) (f′<w y))
-      where
-      p′ = ◯Wη→Σ◯Π◯Wη {P = P} w
-
-      x′ = p′ .proj₁
-      f′ = p′ .proj₂
-
-      @0 f′<w : ∀ y → f′ y [ _<W_ ]◯ w
-      f′<w =
-        ◯-elim′
-          {P = λ w →
-                 let (x′ , f′) = ◯Wη→Σ◯Π◯Wη {P = P} w in
-                 ∀ y → f′ y [ _<W_ ]◯ w}
-          (λ _ → Stable-Π λ _ → Modal→Stable Modal-◯)
-          (λ @0 where
-             w@(sup x f) y →
-               let x′ , f′ = ◯Wη→Σ◯Π◯Wη (η w)
-
-                   @0 lemma : (x′ , f′) ≡ (η x , η ∘ f)
-                   lemma = ◯Wη→Σ◯Π◯Wη-η ext
-               in
-               η ( f (subst (P ∘ proj₁) lemma y)
-                 , w
-                 , (f′ y                               ≡⟨ elim₁
-                                                            (λ {(x′ , f′)} eq →
-                                                               (y : P x′) → f′ y ≡ η (f (subst (P ∘ proj₁) eq y)))
-                                                            (λ _ → cong (η ∘ f) $ sym $ subst-refl _ _)
-                                                            lemma y ⟩∎
-                    η (f (subst (P ∘ proj₁) lemma y))  ∎)
-                 , (η w  ∎)
-                 , (_ , refl _)
-                 ))
-          w
-
-    -- A "computation rule" for ◯Wη→W◯-Acc.
-
-    ◯Wη→W◯-Acc-η :
-      (@0 ext : Extensionality a a) →
-      Extensionality a a →
-      []-cong-axiomatisation a →
-      (x : W A (P ∘ η))
-      (@0 acc : Acc _[ _<W_ ]◯_ (η x)) →
-      ◯Wη→W◯-Acc {P = P} ext (η x) acc ≡ W-map η id x
-    ◯Wη→W◯-Acc-η {A = A} {P = P} ext ext′ ax (sup x f) (A.acc acc) =
-      cong (uncurry sup) $
-      Σ-≡,≡→≡
-        (cong proj₁ lemma)
-        (apply-ext ext′ λ y →
-           let @0 acc₁ : ∀ y → Acc _[ _<W_ ]◯_ (p′ .proj₂ y)
-               acc₁ = _
-           in
-           subst (λ y → P y → W (◯ A) P)
-             (cong proj₁ lemma)
-             (λ y → ◯Wη→W◯-Acc ext (p′ .proj₂ y) (acc₁ y))
-             y
-                                                            ≡⟨ elim₁
-                                                                 (λ {(x′ , f′)} lemma →
-                                                                    (y : P (η x))
-                                                                    (@0 acc₁ : (y : P x′) → Acc _[ _<W_ ]◯_ (f′ y)) →
-                                                                    subst (λ y → P y → W (◯ A) P)
-                                                                      (cong proj₁ lemma)
-                                                                      (λ y → ◯Wη→W◯-Acc ext (f′ y) (acc₁ y))
-                                                                      y ≡
-                                                                    ◯Wη→W◯-Acc ext (η (f y)) (acc₂ y))
-                                                                 (λ y (@0 acc₁) →
-             subst (λ y → P y → W (◯ A) P)
-               (cong proj₁ (refl _))
-               (λ y → ◯Wη→W◯-Acc ext (η (f y)) (acc₁ y))
-               y                                                    ≡⟨ cong (_$ y) $ cong (flip (subst (λ y → P y → W (◯ A) P)) _) $
-                                                                       cong-refl _ ⟩
-             subst (λ y → P y → W (◯ A) P)
-               (refl _)
-               (λ y → ◯Wη→W◯-Acc ext (η (f y)) (acc₁ y))
-               y                                                    ≡⟨ cong (_$ y) $ subst-refl _ _ ⟩
-
-             ◯Wη→W◯-Acc ext (η (f y)) (acc₁ y)                      ≡⟨ cong (λ acc → ◯Wη→W◯-Acc ext (η (f y)) (E.erased acc)) $
-                                                                       []-cong-axiomatisation.[]-cong ax E.[ A.Acc-propositional ext _ _ ] ⟩∎
-             ◯Wη→W◯-Acc ext (η (f y)) (acc₂ y)                      ∎)
-                                                                 lemma y acc₁ ⟩
-
-           ◯Wη→W◯-Acc ext (η (f y)) (acc₂ y)                ≡⟨ ◯Wη→W◯-Acc-η ext ext′ ax (f y) (acc₂ y) ⟩∎
-
-           W-map η id (f y)                                 ∎)
-      where
-      p′ = ◯Wη→Σ◯Π◯Wη {P = P} (η (sup x f))
-
-      lemma : p′ ≡ (η x , η ∘ f)
-      lemma = ◯Wη→Σ◯Π◯Wη-η ext′
-
-      @0 acc₂ : ∀ y → Acc _[ _<W_ ]◯_ (η (f y))
-      acc₂ y =
-        acc (η (f y)) (η (_ , _ , refl _ , refl _ , _ , refl _))
-
-  -- If the modality is accessibility-modal for a certain relation,
-  -- then ◯ (W A (P ∘ η)) implies W (◯ A) P (assuming function
-  -- extensionality).
-  --
-  -- See also Modality.Very-modal.W◯→◯Wη and
-  -- Modality.Very-modal.◯Wη≃W◯.
-
-  ◯Wη→W◯ :
-    {P : ◯ A → Type a} →
-    @0 Accessibility-modal-for (_<W_ {A = A} {P = P ∘ η}) →
-    @0 Extensionality a a →
-    ◯ (W A (P ∘ η)) → W (◯ A) P
-  ◯Wη→W◯ {A = A} {P = P} acc ext =
-    ◯ (W A (P ∘ η))                                      →⟨ ◯-map (λ x → x , A.Well-founded-W x) ⟩
-    ◯ (∃ λ (x : W A (P ∘ η)) → Acc _<W_ x)               →⟨ ◯-map (Σ-map id (acc′ .proj₁)) ⟩
-    ◯ (∃ λ (x : W A (P ∘ η)) → Acc _[ _<W_ ]◯_ (η x))    →⟨ ◯Ση→Σ◯◯ ⟩
-    (∃ λ (x : ◯ (W A (P ∘ η))) → ◯ (Acc _[ _<W_ ]◯_ x))  →⟨ Σ-map id (acc′ .proj₂) ⟩
-    (∃ λ (x : ◯ (W A (P ∘ η))) → Acc _[ _<W_ ]◯_ x)      →⟨ (λ (x , a) → ◯Wη→W◯-Acc ext x a) ⟩□
-    W (◯ A) P                                            □
-    where
-    acc′ = Accessibility-modal-for-erasure-stable E.[ acc ]
-
-  -- A "computation rule" for ◯Wη→W◯.
-  --
-  -- Note that the final argument can be proved using the previous
-  -- one, see Erased.Level-1.Extensionality→[]-cong-axiomatisation.
-
-  ◯Wη→W◯-η :
-    {x : W A (P ∘ η)}
-    (@0 acc : Accessibility-modal-for _<W_)
-    (@0 ext : Extensionality a a) →
-    Extensionality a a →
-    []-cong-axiomatisation a →
-    ◯Wη→W◯ {P = P} acc ext (η x) ≡ W-map η id x
-  ◯Wη→W◯-η {A = A} {P = P} {x = x} acc ext ext′ ax =
-    (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
-      (◯Ση→Σ◯◯
-         (◯-map (Σ-map id (acc′ .proj₁))
-            (◯-map (λ x → x , A.Well-founded-W x) (η x))))  ≡⟨ cong (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a)) $
-                                                               trans (cong ◯Ση→Σ◯◯ $
-                                                                      trans (cong (◯-map _) ◯-map-η)
-                                                                      ◯-map-η)
-                                                               ◯-rec-η ⟩
-    (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
-      (η x , η (acc′ .proj₁ (A.Well-founded-W x)))           ≡⟨⟩
-
-    ◯Wη→W◯-Acc ext (η x)
-      (acc′ .proj₂ (η (acc′ .proj₁ (A.Well-founded-W x))))  ≡⟨ ◯Wη→W◯-Acc-η ext ext′ ax _ _ ⟩∎
-
-    W-map η id x                                            ∎
-    where
-    acc′ = Accessibility-modal-for-erasure-stable E.[ acc ]
-
-  -- If the modality is accessibility-modal for a certain relation and
-  -- A is modal, then W A P is stable (assuming function
-  -- extensionality).
-  --
-  -- See also Modality.Very-modal.Modal-W.
-
-  Stable-W :
-    @0 Accessibility-modal-for (_<W_ {A = A} {P = P}) →
-    @0 Extensionality a a →
-    Modal A →
-    Stable (W A P)
-  Stable-W {A = A} {P = P} acc ext m =
-    ◯ (W A P)                         →⟨ ◯-map $ W-map id (subst P Modal→Stable-η) ⟩
-    ◯ (W A (P ∘ Modal→Stable m ∘ η))  →⟨ ◯Wη→W◯ acc′ ext ⟩
-    W (◯ A) (P ∘ Modal→Stable m)      →⟨ W-map (Modal→Stable m) id ⟩□
-    W A P                             □
-    where
-    @0 acc′ :
-      Accessibility-modal-for
-        (_<W_ {A = A} {P = P ∘ Modal→Stable m ∘ η})
-    acc′ =
-      subst
-        (λ f → Accessibility-modal-for (_<W_ {A = A} {P = P ∘ f}))
-        (apply-ext ext λ _ → sym Modal→Stable-η)
-        acc
-
-  ----------------------------------------------------------------------
   -- More equivalences
 
   -- I did not take the lemmas in this section from "Modalities in
@@ -3234,6 +2734,506 @@ module Modality (M : Modality a) where
 
     _ : _≃_.from (≡≃η≡η m) p ≡ lemma (m , p)
     _ = refl _
+
+  ----------------------------------------------------------------------
+  -- Accessibility-modal modalities
+
+  -- I did not take the definitions or lemmas in this section from
+  -- "Modalities in Homotopy Type Theory" or the corresponding Coq
+  -- code.
+
+  -- The operator _[_]◯_ lifts a relation from A to ◯ A.
+
+  infix 4 _[_]◯_
+
+  _[_]◯_ : ◯ A → (A → A → Type a) → ◯ A → Type a
+  x [ _<_ ]◯ y =
+    ◯ (∃ λ x′ → ∃ λ y′ → x ≡ η x′ × y ≡ η y′ × (x′ < y′))
+
+  -- If ◯ (x < y) is inhabited, then η x [ _<_ ]◯ η y holds.
+
+  ◯→η-[]◯-η : ◯ (x < y) → η x [ _<_ ]◯ η y
+  ◯→η-[]◯-η = ◯-map (λ x<y → _ , _ , refl _ , refl _ , x<y)
+
+  -- If A is modal and _<_ has type A → A → Type a, then
+  -- η x [ _<_ ]◯ η y is equivalent to ◯ (x < y).
+
+  η-[]◯-η≃◯ :
+    {_<_ : A → A → Type a} →
+    Modal A →
+    (η x [ _<_ ]◯ η y) ≃ ◯ (x < y)
+  η-[]◯-η≃◯ {x = x} {y = y} {_<_ = _<_} m =
+    η x [ _<_ ]◯ η y                                           ↔⟨⟩
+
+    ◯ (∃ λ x′ → ∃ λ y′ → η x ≡ η x′ × η y ≡ η y′ × (x′ < y′))  ↝⟨ (∃-cong λ _ →
+                                                                   (∃-cong λ _ →
+                                                                    (∃-cong λ _ →
+                                                                     Modal→◯Σ≃Σ◯ (Separated-◯ _ _)) F.∘
+                                                                    Modal→◯Σ≃Σ◯ (Separated-◯ _ _)) F.∘
+                                                                   Modal→◯Σ≃Σ◯ m) F.∘
+                                                                  Modal→◯Σ≃Σ◯ m ⟩
+
+    (∃ λ x′ → ∃ λ y′ → η x ≡ η x′ × η y ≡ η y′ × ◯ (x′ < y′))  ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                                   Eq.≃-≡ (Modal→≃◯ m)
+                                                                     ×-cong
+                                                                   ×-cong₁ λ _ → Eq.≃-≡ (Modal→≃◯ m)) ⟩
+
+    (∃ λ x′ → ∃ λ y′ → x ≡ x′ × y ≡ y′ × ◯ (x′ < y′))          ↔⟨ (∃-cong λ _ → Σ-assoc) F.∘
+                                                                  Σ-assoc F.∘
+                                                                  (∃-cong λ _ → ∃-comm) ⟩
+    (∃ λ ((x′ , _) : ∃ λ x′ → x ≡ x′) →
+     ∃ λ ((y′ , _) : ∃ λ y′ → y ≡ y′) →
+     ◯ (x′ < y′))                                              ↔⟨ drop-⊤-left-Σ $
+                                                                  _⇔_.to contractible⇔↔⊤ $
+                                                                  other-singleton-contractible _ ⟩
+
+    (∃ λ ((y′ , _) : ∃ λ y′ → y ≡ y′) → ◯ (x < y′))            ↔⟨ drop-⊤-left-Σ $
+                                                                  _⇔_.to contractible⇔↔⊤ $
+                                                                  other-singleton-contractible _ ⟩□
+    ◯ (x < y)                                                  □
+
+  -- If A is modal, _<_ is pointwise stable, and x : A is accessible
+  -- with respect to _<_, then η x is accessible with respect to
+  -- _[ _<_ ]◯_.
+
+  Modal→Acc→Acc-[]◯-η :
+    {@0 A : Type a} {@0 _<_ : A → A → Type a} {@0 x : A} →
+    @0 Modal A →
+    @0 ({x y : A} → Stable (x < y)) →
+    @0 Acc _<_ x → Acc _[ _<_ ]◯_ (η x)
+  Modal→Acc→Acc-[]◯-η {_<_ = _<_} {x = x} m s a =
+    A.Acc-erasure-stable
+      E.[                           $⟨ a ⟩
+          Acc _<_ x                 →⟨ subst (Acc _<_) (sym η⁻¹-η) ⟩
+          Acc _<_ (η⁻¹ m (η x))     →⟨ (λ acc → A.Acc-on acc) ⟩
+          Acc (_<_ on η⁻¹ m) (η x)  →⟨ (λ acc → A.Acc-map lemma acc) ⟩□
+          Acc _[ _<_ ]◯_ (η x)      □
+        ]
+    where
+    @0 lemma : y [ _<_ ]◯ z → η⁻¹ m y < η⁻¹ m z
+    lemma {y = y} {z = z} =
+      y [ _<_ ]◯ z                      →⟨ subst (uncurry _[ _<_ ]◯_) (sym $ cong₂ _,_ η-η⁻¹ η-η⁻¹) ⟩
+      η (η⁻¹ m y) [ _<_ ]◯ η (η⁻¹ m z)  ↔⟨ η-[]◯-η≃◯ m ⟩
+      ◯ (η⁻¹ m y < η⁻¹ m z)             →⟨ s ⟩□
+      η⁻¹ m y < η⁻¹ m z                 □
+
+  -- If A is modal and _<_ is pointwise stable and well-founded, then
+  -- _[ _<_ ]◯_ is well-founded.
+
+  Modal→Well-founded→Well-founded-[]◯ :
+    {@0 A : Type a} {@0 _<_ : A → A → Type a} →
+    @0 Modal A →
+    @0 ({x y : A} → Stable (x < y)) →
+    @0 Well-founded _<_ → Well-founded _[ _<_ ]◯_
+  Modal→Well-founded→Well-founded-[]◯ {_<_ = _<_} m s wf =
+    A.Well-founded-erasure-stable
+      E.[                                       $⟨ wf ⟩
+          (∀ x → Acc _<_ x)                     →⟨ ((λ acc → Modal→Acc→Acc-[]◯-η m s acc) ∘_) ∘ (_∘ η⁻¹ m) ⟩
+          (∀ x → Acc _[ _<_ ]◯_ (η (η⁻¹ m x)))  →⟨ subst (Acc _) η-η⁻¹ ∘_ ⟩□
+          (∀ x → Acc _[ _<_ ]◯_ x)              □
+        ]
+
+  -- A definition of what it means to be accessibility-modal for a
+  -- given type and relation.
+
+  Accessibility-modal-for : {A : Type a} → (A → A → Type a) → Type a
+  Accessibility-modal-for _<_ =
+    (∀ {x} → Acc _<_ x → Acc _[ _<_ ]◯_ (η x)) ×
+    (∀ {x} → Stable (Acc _[ _<_ ]◯_ x))
+
+  -- A definition of what it means to be accessibility-modal.
+  --
+  -- The erasure modality is both very modal and accessibility-modal,
+  -- and the zero modality is very modal but not accessibility-modal.
+  -- TODO: Is there some accessibility-modal modality that is not very
+  -- modal?
+
+  Accessibility-modal : Type (lsuc a)
+  Accessibility-modal =
+    {A : Type a} {_<_ : A → A → Type a} →
+    Accessibility-modal-for _<_
+
+  -- If the modality is accessibility-modal for _<_, then
+  -- Acc _[ _<_ ]◯_ x is stable.
+
+  Stable-Acc-[]◯ :
+    Accessibility-modal-for _<_ →
+    Stable (Acc _[ _<_ ]◯_ x)
+  Stable-Acc-[]◯ acc = acc .proj₂
+
+  -- If the modality is accessibility-modal for _<_, then
+  -- Acc _[ _<_ ]◯_ x is modal (assuming function extensionality).
+
+  Modal-Acc-[]◯ :
+    Extensionality a a →
+    Accessibility-modal-for _<_ →
+    Modal (Acc _[ _<_ ]◯_ x)
+  Modal-Acc-[]◯ ext acc =
+    Stable→left-inverse→Modal
+      (Stable-Acc-[]◯ acc)
+      (λ _ → A.Acc-propositional ext _ _)
+
+  -- If the modality is accessibility-modal for _<_ and x is
+  -- accessible with respect to _<_, then η x is accessible with
+  -- respect to _[ _<_ ]◯_.
+
+  Acc-[]◯-η :
+    Accessibility-modal-for _<_ →
+    Acc _<_ x → Acc _[ _<_ ]◯_ (η x)
+  Acc-[]◯-η acc = acc .proj₁
+
+  -- If the modality is accessibility-modal for _<_, then Acc _<_ x is
+  -- stable.
+
+  Stable-Acc :
+    {_<_ : A → A → Type a} →
+    Accessibility-modal-for _<_ →
+    Stable (Acc _<_ x)
+  Stable-Acc {x = x} {_<_ = _<_} acc =
+    ◯ (Acc _<_ x)             →⟨ ◯-map (Acc-[]◯-η acc) ⟩
+    ◯ (Acc _[ _<_ ]◯_ (η x))  →⟨ Stable-Acc-[]◯ acc ⟩
+    Acc _[ _<_ ]◯_ (η x)      →⟨ lemma ⟩□
+    Acc _<_ x                 □
+    where
+    lemma : ∀ {x} → Acc _[ _<_ ]◯_ (η x) → Acc _<_ x
+    lemma (A.acc f) =
+      A.acc λ y y<x → lemma (f (η y) (◯→η-[]◯-η (η y<x)))
+
+  -- If the modality is accessibility-modal for _<_, then Acc _<_ x is
+  -- modal (assuming function extensionality).
+
+  Modal-Acc :
+    Extensionality a a →
+    Accessibility-modal-for _<_ →
+    Modal (Acc _<_ x)
+  Modal-Acc ext acc =
+    Stable→left-inverse→Modal
+      (Stable-Acc acc)
+      (λ _ → A.Acc-propositional ext _ _)
+
+  -- If the modality is accessibility-modal for _<_ and _<_ is
+  -- well-founded, then _[ _<_ ]◯_ is well-founded.
+
+  Well-founded-[]◯ :
+    Accessibility-modal-for _<_ →
+    Well-founded _<_ → Well-founded _[ _<_ ]◯_
+  Well-founded-[]◯ {_<_ = _<_} acc wf =
+    ◯-elim′
+      (λ _ → Stable-Acc-[]◯ acc)
+      (λ x →                   $⟨ wf x ⟩
+         Acc _<_ x             →⟨ Acc-[]◯-η acc ⟩□
+         Acc _[ _<_ ]◯_ (η x)  □)
+
+  -- If ◯ (↑ a Bool) is a proposition, then the modality is not
+  -- accessibility-modal.
+
+  Is-proposition-◯→¬-Accessibility-modal :
+    Is-proposition (◯ (↑ a Bool)) →
+    ¬ Accessibility-modal
+  Is-proposition-◯→¬-Accessibility-modal prop acc =
+                                      $⟨ Acc-false ⟩
+    Acc _<₁_ false                    →⟨ (λ hyp → A.Acc-on hyp) ⟩
+    Acc _<₂_ (lift false)             →⟨ Acc-[]◯-η acc ⟩
+    Acc _[ _<₂_ ]◯_ (η (lift false))  →⟨ A.<→¬-Acc cyclic ⟩□
+    ⊥                                 □
+    where
+    _<₁_ : Bool → Bool → Type a
+    false <₁ true = ↑ _ ⊤
+    _     <₁ _    = ⊥
+
+    _<₂_ : ↑ a Bool → ↑ a Bool → Type a
+    _<₂_ = _<₁_ on lower
+
+    Acc-false : Acc _<₁_ false
+    Acc-false = A.acc λ where
+      true  ()
+      false ()
+
+    cyclic : η (lift false) [ _<₂_ ]◯ η (lift false)
+    cyclic =
+      η ( lift false
+        , lift true
+        , prop _ _
+        , prop _ _
+        , lift tt
+        )
+
+  -- Accessibility-modal-for _<_ is propositional (assuming function
+  -- extensionality).
+
+  Accessibility-modal-for-propositional :
+    Extensionality a a →
+    Is-proposition (Accessibility-modal-for _<_)
+  Accessibility-modal-for-propositional ext =
+    ×-closure 1
+      (implicit-Π-closure ext 1 λ _ →
+       Π-closure ext 1 λ _ →
+       A.Acc-propositional ext) $
+      (implicit-Π-closure ext 1 λ _ →
+       Π-closure ext 1 λ _ →
+       A.Acc-propositional ext)
+
+  -- Accessibility-modal is propositional (assuming function
+  -- extensionality).
+
+  Accessibility-modal-propositional :
+    Extensionality (lsuc a) (lsuc a) →
+    Is-proposition Accessibility-modal
+  Accessibility-modal-propositional ext =
+    implicit-Π-closure ext                                1 λ _ →
+    implicit-Π-closure (lower-extensionality lzero _ ext) 1 λ _ →
+    Accessibility-modal-for-propositional
+      (lower-extensionality _ _ ext)
+
+  -- Accessibility-modal-for _<_ is "erasure-stable".
+
+  Accessibility-modal-for-erasure-stable :
+    {@0 A : Type a} {@0 _<_ : A → A → Type a} →
+    E.Stable (Accessibility-modal-for _<_)
+  Accessibility-modal-for-erasure-stable E.[ acc₁ , acc₂ ] =
+      (λ acc → A.Acc-map id (acc₁ acc))
+    , (λ acc → A.Acc-map id (acc₂ acc))
+
+  -- Accessibility-modal is "erasure-stable".
+
+  Accessibility-modal-erasure-stable :
+    E.Stable Accessibility-modal
+  Accessibility-modal-erasure-stable E.[ acc ] =
+    Accessibility-modal-for-erasure-stable E.[ acc ]
+
+  -- Accessibility-modal modalities are empty-modal.
+
+  Accessibility-modal→Empty-modal : Accessibility-modal → Empty-modal M
+  Accessibility-modal→Empty-modal acc =
+    Stable→left-inverse→Modal
+      stable
+      (λ x → ⊥-elim x)
+    where
+    stable =
+      ◯ ⊥                                           →⟨ ◯-map ⊥-elim ⟩
+      ◯ (Acc _[ (λ _ _ → ↑ a ⊤) ]◯_ (η (lift tt)))  →⟨ Stable-Acc-[]◯ acc ⟩
+      Acc _[ (λ _ _ → ↑ a ⊤) ]◯_ (η (lift tt))      →⟨ ⊥-elim ∘ A.<→¬-Acc (◯→η-[]◯-η (η _)) ⟩□
+      ⊥                                             □
+
+  -- An unfolding lemma for ◯ (W A (P ∘ η)).
+  --
+  -- See also Modality.Very-modal.◯Wη≃Σ◯Π◯Wη.
+
+  ◯Wη→Σ◯Π◯Wη :
+    {P : ◯ A → Type a} →
+    ◯ (W A (P ∘ η)) → Σ (◯ A) (λ x → P x → ◯ (W A (P ∘ η)))
+  ◯Wη→Σ◯Π◯Wη =
+    ◯-elim′
+      (λ _ → Stable-Σ Modal-◯ λ _ →
+             Stable-Π λ _ →
+             Modal→Stable Modal-◯)
+      (λ where
+         (sup x f) → η x , η ∘ f)
+
+  -- A "computation rule" for ◯Wη→Σ◯Π◯Wη.
+
+  ◯Wη→Σ◯Π◯Wη-η :
+    Extensionality a a →
+    ◯Wη→Σ◯Π◯Wη (η (sup x f)) ≡ (η x , η ∘ f)
+  ◯Wη→Σ◯Π◯Wη-η {x = x} {f = f} ext =
+    ◯-elim′-η′
+      (Stable-Σ Modal-◯
+         (λ _ → Stable-Π λ _ → Modal→Stable Modal-◯)
+         (η (η x , η ∘ f))                                 ≡⟨ (cong (λ s → Stable-Σ Modal-◯ s (η (η x , η ∘ f))) $
+                                                               apply-ext ext λ _ →
+                                                               Stable-Π-Modal-Π ext) ⟩
+       Stable-Σ Modal-◯
+         (λ _ → Modal→Stable $ Modal-Π ext λ _ → Modal-◯)
+         (η (η x , η ∘ f))                                 ≡⟨ Stable-Σ-Modal-Σ
+                                                                (λ _ → Modal-Π ext λ _ → Modal-◯) ⟩
+       Modal→Stable
+         (Modal-Σ Modal-◯ λ _ →
+          Modal-Π ext λ _ → Modal-◯)
+         (η (η x , η ∘ f))                                 ≡⟨ Modal→Stable-η ⟩∎
+
+       (η x , η ∘ f)                                       ∎)
+
+  private
+
+    -- A lemma used in the implementation of ◯Wη→W◯.
+
+    ◯Wη→W◯-Acc :
+      @0 Extensionality a a →
+      (x : ◯ (W A (P ∘ η))) →
+      @0 Acc _[ _<W_ ]◯_ x →
+      W (◯ A) P
+    ◯Wη→W◯-Acc {P = P} ext w (A.acc a) =
+      sup x′ λ y → ◯Wη→W◯-Acc ext (f′ y) (a (f′ y) (f′<w y))
+      where
+      p′ = ◯Wη→Σ◯Π◯Wη {P = P} w
+
+      x′ = p′ .proj₁
+      f′ = p′ .proj₂
+
+      @0 f′<w : ∀ y → f′ y [ _<W_ ]◯ w
+      f′<w =
+        ◯-elim′
+          {P = λ w →
+                 let (x′ , f′) = ◯Wη→Σ◯Π◯Wη {P = P} w in
+                 ∀ y → f′ y [ _<W_ ]◯ w}
+          (λ _ → Stable-Π λ _ → Modal→Stable Modal-◯)
+          (λ @0 where
+             w@(sup x f) y →
+               let x′ , f′ = ◯Wη→Σ◯Π◯Wη (η w)
+
+                   @0 lemma : (x′ , f′) ≡ (η x , η ∘ f)
+                   lemma = ◯Wη→Σ◯Π◯Wη-η ext
+               in
+               η ( f (subst (P ∘ proj₁) lemma y)
+                 , w
+                 , (f′ y                               ≡⟨ elim₁
+                                                            (λ {(x′ , f′)} eq →
+                                                               (y : P x′) → f′ y ≡ η (f (subst (P ∘ proj₁) eq y)))
+                                                            (λ _ → cong (η ∘ f) $ sym $ subst-refl _ _)
+                                                            lemma y ⟩∎
+                    η (f (subst (P ∘ proj₁) lemma y))  ∎)
+                 , (η w  ∎)
+                 , (_ , refl _)
+                 ))
+          w
+
+    -- A "computation rule" for ◯Wη→W◯-Acc.
+
+    ◯Wη→W◯-Acc-η :
+      (@0 ext : Extensionality a a) →
+      Extensionality a a →
+      []-cong-axiomatisation a →
+      (x : W A (P ∘ η))
+      (@0 acc : Acc _[ _<W_ ]◯_ (η x)) →
+      ◯Wη→W◯-Acc {P = P} ext (η x) acc ≡ W-map η id x
+    ◯Wη→W◯-Acc-η {A = A} {P = P} ext ext′ ax (sup x f) (A.acc acc) =
+      cong (uncurry sup) $
+      Σ-≡,≡→≡
+        (cong proj₁ lemma)
+        (apply-ext ext′ λ y →
+           let @0 acc₁ : ∀ y → Acc _[ _<W_ ]◯_ (p′ .proj₂ y)
+               acc₁ = _
+           in
+           subst (λ y → P y → W (◯ A) P)
+             (cong proj₁ lemma)
+             (λ y → ◯Wη→W◯-Acc ext (p′ .proj₂ y) (acc₁ y))
+             y
+                                                            ≡⟨ elim₁
+                                                                 (λ {(x′ , f′)} lemma →
+                                                                    (y : P (η x))
+                                                                    (@0 acc₁ : (y : P x′) → Acc _[ _<W_ ]◯_ (f′ y)) →
+                                                                    subst (λ y → P y → W (◯ A) P)
+                                                                      (cong proj₁ lemma)
+                                                                      (λ y → ◯Wη→W◯-Acc ext (f′ y) (acc₁ y))
+                                                                      y ≡
+                                                                    ◯Wη→W◯-Acc ext (η (f y)) (acc₂ y))
+                                                                 (λ y (@0 acc₁) →
+             subst (λ y → P y → W (◯ A) P)
+               (cong proj₁ (refl _))
+               (λ y → ◯Wη→W◯-Acc ext (η (f y)) (acc₁ y))
+               y                                                    ≡⟨ cong (_$ y) $ cong (flip (subst (λ y → P y → W (◯ A) P)) _) $
+                                                                       cong-refl _ ⟩
+             subst (λ y → P y → W (◯ A) P)
+               (refl _)
+               (λ y → ◯Wη→W◯-Acc ext (η (f y)) (acc₁ y))
+               y                                                    ≡⟨ cong (_$ y) $ subst-refl _ _ ⟩
+
+             ◯Wη→W◯-Acc ext (η (f y)) (acc₁ y)                      ≡⟨ cong (λ acc → ◯Wη→W◯-Acc ext (η (f y)) (E.erased acc)) $
+                                                                       []-cong-axiomatisation.[]-cong ax E.[ A.Acc-propositional ext _ _ ] ⟩∎
+             ◯Wη→W◯-Acc ext (η (f y)) (acc₂ y)                      ∎)
+                                                                 lemma y acc₁ ⟩
+
+           ◯Wη→W◯-Acc ext (η (f y)) (acc₂ y)                ≡⟨ ◯Wη→W◯-Acc-η ext ext′ ax (f y) (acc₂ y) ⟩∎
+
+           W-map η id (f y)                                 ∎)
+      where
+      p′ = ◯Wη→Σ◯Π◯Wη {P = P} (η (sup x f))
+
+      lemma : p′ ≡ (η x , η ∘ f)
+      lemma = ◯Wη→Σ◯Π◯Wη-η ext′
+
+      @0 acc₂ : ∀ y → Acc _[ _<W_ ]◯_ (η (f y))
+      acc₂ y =
+        acc (η (f y)) (η (_ , _ , refl _ , refl _ , _ , refl _))
+
+  -- If the modality is accessibility-modal for a certain relation,
+  -- then ◯ (W A (P ∘ η)) implies W (◯ A) P (assuming function
+  -- extensionality).
+  --
+  -- See also Modality.Very-modal.W◯→◯Wη and
+  -- Modality.Very-modal.◯Wη≃W◯.
+
+  ◯Wη→W◯ :
+    {P : ◯ A → Type a} →
+    @0 Accessibility-modal-for (_<W_ {A = A} {P = P ∘ η}) →
+    @0 Extensionality a a →
+    ◯ (W A (P ∘ η)) → W (◯ A) P
+  ◯Wη→W◯ {A = A} {P = P} acc ext =
+    ◯ (W A (P ∘ η))                                      →⟨ ◯-map (λ x → x , A.Well-founded-W x) ⟩
+    ◯ (∃ λ (x : W A (P ∘ η)) → Acc _<W_ x)               →⟨ ◯-map (Σ-map id (acc′ .proj₁)) ⟩
+    ◯ (∃ λ (x : W A (P ∘ η)) → Acc _[ _<W_ ]◯_ (η x))    →⟨ ◯Ση→Σ◯◯ ⟩
+    (∃ λ (x : ◯ (W A (P ∘ η))) → ◯ (Acc _[ _<W_ ]◯_ x))  →⟨ Σ-map id (acc′ .proj₂) ⟩
+    (∃ λ (x : ◯ (W A (P ∘ η))) → Acc _[ _<W_ ]◯_ x)      →⟨ (λ (x , a) → ◯Wη→W◯-Acc ext x a) ⟩□
+    W (◯ A) P                                            □
+    where
+    acc′ = Accessibility-modal-for-erasure-stable E.[ acc ]
+
+  -- A "computation rule" for ◯Wη→W◯.
+  --
+  -- Note that the final argument can be proved using the previous
+  -- one, see Erased.Level-1.Extensionality→[]-cong-axiomatisation.
+
+  ◯Wη→W◯-η :
+    {x : W A (P ∘ η)}
+    (@0 acc : Accessibility-modal-for _<W_)
+    (@0 ext : Extensionality a a) →
+    Extensionality a a →
+    []-cong-axiomatisation a →
+    ◯Wη→W◯ {P = P} acc ext (η x) ≡ W-map η id x
+  ◯Wη→W◯-η {A = A} {P = P} {x = x} acc ext ext′ ax =
+    (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
+      (◯Ση→Σ◯◯
+         (◯-map (Σ-map id (acc′ .proj₁))
+            (◯-map (λ x → x , A.Well-founded-W x) (η x))))  ≡⟨ cong (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a)) $
+                                                               trans (cong ◯Ση→Σ◯◯ $
+                                                                      trans (cong (◯-map _) ◯-map-η)
+                                                                      ◯-map-η)
+                                                               ◯-rec-η ⟩
+    (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
+      (η x , η (acc′ .proj₁ (A.Well-founded-W x)))           ≡⟨⟩
+
+    ◯Wη→W◯-Acc ext (η x)
+      (acc′ .proj₂ (η (acc′ .proj₁ (A.Well-founded-W x))))  ≡⟨ ◯Wη→W◯-Acc-η ext ext′ ax _ _ ⟩∎
+
+    W-map η id x                                            ∎
+    where
+    acc′ = Accessibility-modal-for-erasure-stable E.[ acc ]
+
+  -- If the modality is accessibility-modal for a certain relation and
+  -- A is modal, then W A P is stable (assuming function
+  -- extensionality).
+  --
+  -- See also Modality.Very-modal.Modal-W.
+
+  Stable-W :
+    @0 Accessibility-modal-for (_<W_ {A = A} {P = P}) →
+    @0 Extensionality a a →
+    Modal A →
+    Stable (W A P)
+  Stable-W {A = A} {P = P} acc ext m =
+    ◯ (W A P)                         →⟨ ◯-map $ W-map id (subst P Modal→Stable-η) ⟩
+    ◯ (W A (P ∘ Modal→Stable m ∘ η))  →⟨ ◯Wη→W◯ acc′ ext ⟩
+    W (◯ A) (P ∘ Modal→Stable m)      →⟨ W-map (Modal→Stable m) id ⟩□
+    W A P                             □
+    where
+    @0 acc′ :
+      Accessibility-modal-for
+        (_<W_ {A = A} {P = P ∘ Modal→Stable m ∘ η})
+    acc′ =
+      subst
+        (λ f → Accessibility-modal-for (_<W_ {A = A} {P = P ∘ f}))
+        (apply-ext ext λ _ → sym Modal→Stable-η)
+        acc
 
   ----------------------------------------------------------------------
   -- Applicative functor application
