@@ -1921,6 +1921,35 @@ module Modality (M : Modality a) where
     Acc _<_ x → Acc _[ _<_ ]◯_ (η x)
   Acc-[]◯-η acc = acc .proj₁
 
+  -- If the modality is accessibility-modal for _<_, then Acc _<_ x is
+  -- stable.
+
+  Stable-Acc :
+    {_<_ : A → A → Type a} →
+    Accessibility-modal-for _<_ →
+    Stable (Acc _<_ x)
+  Stable-Acc {x = x} {_<_ = _<_} acc =
+    ◯ (Acc _<_ x)             →⟨ ◯-map (Acc-[]◯-η acc) ⟩
+    ◯ (Acc _[ _<_ ]◯_ (η x))  →⟨ Stable-Acc-[]◯ acc ⟩
+    Acc _[ _<_ ]◯_ (η x)      →⟨ lemma ⟩□
+    Acc _<_ x                 □
+    where
+    lemma : ∀ {x} → Acc _[ _<_ ]◯_ (η x) → Acc _<_ x
+    lemma (A.acc f) =
+      A.acc λ y y<x → lemma (f (η y) (◯→η-[]◯-η (η y<x)))
+
+  -- If the modality is accessibility-modal for _<_, then Acc _<_ x is
+  -- modal (assuming function extensionality).
+
+  Modal-Acc :
+    Extensionality a a →
+    Accessibility-modal-for _<_ →
+    Modal (Acc _<_ x)
+  Modal-Acc ext acc =
+    Stable→left-inverse→Modal
+      (Stable-Acc acc)
+      (λ _ → A.Acc-propositional ext _ _)
+
   -- If the modality is accessibility-modal for _<_ and _<_ is
   -- well-founded, then _[ _<_ ]◯_ is well-founded.
 
