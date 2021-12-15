@@ -22,7 +22,7 @@ open import Dec
 open import Prelude
 open import Logical-equivalence using (_⇔_)
 
-open import Accessibility equality-with-J as A using (Acc; Well-founded)
+open import Accessibility equality-with-J as A using (Acc)
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Embedding equality-with-J as Embedding hiding (id; _∘_)
 open import Equality.Decidable-UIP equality-with-J
@@ -297,30 +297,11 @@ rec p f = rec′ λ where
 
 ¬-∥∥-accessibility-modal :
   ¬ Modality.Accessibility-modal (∥∥-modality {ℓ = ℓ})
-¬-∥∥-accessibility-modal {ℓ = ℓ} acc =
-                           $⟨ A.Well-founded-ℕ ⟩
-  Well-founded Nat._<_     →⟨ (λ wf → A.Well-founded-↑ _ (A.Well-founded-on wf)) ⟩
-  Well-founded _<_         →⟨ (λ wf → elim′ λ where
-                                 .∣∣ʳ n →
-                                   acc .proj₁ (wf n)
-                                 .truncation-is-propositionʳ _ →
-                                   A.Acc-propositional ext) ⟩
-  Well-founded _[ _<_ ]◯_  →⟨ A.<→¬-Well-founded cyclic ⟩□
-  ⊥                        □
+¬-∥∥-accessibility-modal {ℓ = ℓ} =
+  Is-proposition-◯→¬-Accessibility-modal
+    truncation-is-proposition
   where
   open Modality (∥∥-modality {ℓ = ℓ})
-
-  _<_ : ↑ ℓ ℕ → ↑ ℓ ℕ → Type ℓ
-  lift m < lift n = ↑ ℓ (m Nat.< n)
-
-  cyclic : ∣ lift 0 ∣ [ _<_ ]◯ ∣ lift 0 ∣
-  cyclic =
-    ∣ lift 0
-    , lift 1
-    , truncation-is-proposition _ _
-    , truncation-is-proposition _ _
-    , lift (from-⊎ (1 Nat.≤? 1))
-    ∣
 
 -- The modality is accessibility-modal for propositional types and
 -- relations.

@@ -1962,6 +1962,40 @@ module Modality (M : Modality a) where
          Acc _<_ x             →⟨ Acc-[]◯-η acc ⟩□
          Acc _[ _<_ ]◯_ (η x)  □)
 
+  -- If ◯ (↑ a Bool) is a proposition, then the modality is not
+  -- accessibility-modal.
+
+  Is-proposition-◯→¬-Accessibility-modal :
+    Is-proposition (◯ (↑ a Bool)) →
+    ¬ Accessibility-modal
+  Is-proposition-◯→¬-Accessibility-modal prop acc =
+                                      $⟨ Acc-false ⟩
+    Acc _<₁_ false                    →⟨ (λ hyp → A.Acc-on hyp) ⟩
+    Acc _<₂_ (lift false)             →⟨ Acc-[]◯-η acc ⟩
+    Acc _[ _<₂_ ]◯_ (η (lift false))  →⟨ A.<→¬-Acc cyclic ⟩□
+    ⊥                                 □
+    where
+    _<₁_ : Bool → Bool → Type a
+    false <₁ true = ↑ _ ⊤
+    _     <₁ _    = ⊥
+
+    _<₂_ : ↑ a Bool → ↑ a Bool → Type a
+    _<₂_ = _<₁_ on lower
+
+    Acc-false : Acc _<₁_ false
+    Acc-false = A.acc λ where
+      true  ()
+      false ()
+
+    cyclic : η (lift false) [ _<₂_ ]◯ η (lift false)
+    cyclic =
+      η ( lift false
+        , lift true
+        , prop _ _
+        , prop _ _
+        , lift tt
+        )
+
   -- Accessibility-modal-for _<_ is propositional (assuming function
   -- extensionality).
 
