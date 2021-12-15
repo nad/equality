@@ -3241,16 +3241,16 @@ contractible↔≃⊤ ext = record
 
 ≃⊥≃¬ :
   ∀ {a ℓ} {A : Type a} →
-  Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
-  (A ≃ ⊥ {ℓ = ℓ}) ≃ (¬ A)
-≃⊥≃¬ {ℓ = ℓ} {A} ext =
-  _↔_.to (Eq.⇔↔≃ ext (Eq.right-closure ext 0 ⊥-propositional)
-                     (¬-propositional
-                        (lower-extensionality ℓ _ ext))) (record
-    { to   = λ eq a → ⊥-elim (_≃_.to eq a)
-    ; from = λ ¬a → A  ↔⟨ inverse (Bijection.⊥↔uninhabited ¬a) ⟩□
-                    ⊥  □
-    })
+  (A ≃ ⊥ {ℓ = ℓ}) ↝[ a ⊔ ℓ ∣ a ⊔ ℓ ] (¬ A)
+≃⊥≃¬ {ℓ = ℓ} {A} =
+  generalise-ext?-prop
+    (record
+       { to   = λ eq a → ⊥-elim (_≃_.to eq a)
+       ; from = λ ¬a → A  ↔⟨ inverse (Bijection.⊥↔uninhabited ¬a) ⟩□
+                       ⊥  □
+       })
+    (λ ext → Eq.right-closure ext 0 ⊥-propositional)
+    (¬-propositional ∘ lower-extensionality ℓ _)
 
 -- If f and g are pointwise equal, then HA.Proofs f f⁻¹ and
 -- HA.Proofs g f⁻¹ are equivalent (assuming extensionality).

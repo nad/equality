@@ -367,7 +367,7 @@ Fin×Fin↔Fin* (suc m) n =
 [Fin↔Fin]↔Fin! ext zero =
   Fin 0 ↔ Fin 0  ↝⟨ Eq.↔↔≃ ext (Fin-set 0) ⟩
   Fin 0 ≃ Fin 0  ↝⟨ id ⟩
-  ⊥ ≃ ⊥          ↔⟨ ≃⊥≃¬ ext ⟩
+  ⊥ ≃ ⊥          ↝⟨ ≃⊥≃¬ ext ⟩
   ¬ ⊥            ↝⟨ ¬⊥↔⊤ ext ⟩
   ⊤              ↝⟨ inverse ⊎-right-identity ⟩
   ⊤ ⊎ ⊥          ↝⟨ id ⟩□

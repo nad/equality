@@ -1354,7 +1354,7 @@ Is-set-∃-Is-proposition {a} ext prop-ext
   Univalence a →
   (∃ λ (A : Type a) → ¬ A) ↔ ⊤
 ∃¬↔⊤ ext univ =
-  (∃ λ A → ¬ A)     ↔⟨ inverse (∃-cong λ _ → ≃⊥≃¬ ext) ⟩
+  (∃ λ A → ¬ A)     ↝⟨ inverse (∃-cong λ _ → ≃⊥≃¬ ext) ⟩
   (∃ λ A → A ≃ ⊥₀)  ↔⟨ singleton-with-≃-↔-⊤ ext univ ⟩
   ⊤                 □
 
