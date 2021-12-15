@@ -3478,6 +3478,45 @@ Split-surjective-cong-refl {p = p} ext = apply-ext ext λ x →
 
   p x                                           ∎
 
+-- If f is an equivalence, then there is an equivalence between "g is
+-- split surjective" and "f ∘ g is split surjective" (assuming
+-- extensionality).
+
+Split-surjective≃Split-surjective-∘ˡ :
+  ∀ {k a b c} {A : Type a} {B : Type b} {C : Type c}
+    {f : B → C} {g : A → B} →
+  Extensionality? k (b ⊔ c) (a ⊔ b ⊔ c) →
+  Is-equivalence f →
+  Split-surjective g ↝[ k ] Split-surjective (f ∘ g)
+Split-surjective≃Split-surjective-∘ˡ
+  {k = k} {b = b} {c = c} {f = f} {g = g} ext f-eq =
+  (∀ y → ∃ λ x → g x ≡ y)        ↝⟨ (∀-cong ext′ λ _ → from-equivalence $ ∃-cong λ _ → inverse $
+                                     Eq.≃-≡ B≃C) ⟩
+  (∀ y → ∃ λ x → f (g x) ≡ f y)  ↝⟨ (Π-cong ext″ B≃C λ _ → id) ⟩□
+  (∀ y → ∃ λ x → f (g x) ≡ y)    □
+  where
+  B≃C = Eq.⟨ _ , f-eq ⟩
+
+  ext′ = lower-extensionality? k c lzero ext
+  ext″ = lower-extensionality? k lzero b ext
+
+-- If g is an equivalence, then there is an equivalence between "f is
+-- split surjective" and "f ∘ g is split surjective" (assuming
+-- extensionality).
+
+Split-surjective≃Split-surjective-∘ʳ :
+  ∀ {k a b c} {A : Type a} {B : Type b} {C : Type c}
+    {f : B → C} {g : A → B} →
+  Extensionality? k c (a ⊔ b ⊔ c) →
+  Is-equivalence g →
+  Split-surjective f ↝[ k ] Split-surjective (f ∘ g)
+Split-surjective≃Split-surjective-∘ʳ
+  {k = k} {b = b} {c = c} {f = f} {g = g} ext g-eq =
+  (∀ y → ∃ λ x → f x ≡ y)        ↝⟨ (∀-cong ext λ _ → Σ-cong-contra A≃B λ _ → id) ⟩□
+  (∀ y → ∃ λ x → f (g x) ≡ y)    □
+  where
+  A≃B = Eq.⟨ _ , g-eq ⟩
+
 ------------------------------------------------------------------------
 -- Lemmas related to _↣_
 
