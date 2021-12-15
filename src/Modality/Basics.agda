@@ -2039,6 +2039,20 @@ module Modality (M : Modality a) where
   Accessibility-modal-erasure-stable E.[ acc ] =
     Accessibility-modal-for-erasure-stable E.[ acc ]
 
+  -- Accessibility-modal modalities are empty-modal.
+
+  Accessibility-modal→Empty-modal : Accessibility-modal → Empty-modal M
+  Accessibility-modal→Empty-modal acc =
+    Stable→left-inverse→Modal
+      stable
+      (λ x → ⊥-elim x)
+    where
+    stable =
+      ◯ ⊥                                           →⟨ ◯-map ⊥-elim ⟩
+      ◯ (Acc _[ (λ _ _ → ↑ a ⊤) ]◯_ (η (lift tt)))  →⟨ Stable-Acc-[]◯ acc ⟩
+      Acc _[ (λ _ _ → ↑ a ⊤) ]◯_ (η (lift tt))      →⟨ ⊥-elim ∘ A.<→¬-Acc (◯→η-[]◯-η (η _)) ⟩□
+      ⊥                                             □
+
   -- An unfolding lemma for ◯ (W A (P ∘ η)).
   --
   -- See also Modality.Very-modal.◯Wη≃Σ◯Π◯Wη.
