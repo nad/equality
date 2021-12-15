@@ -117,6 +117,20 @@ Double-negation-elimination-propositional ext =
   Π-closure (lower-extensionality _ lzero ext) 1 λ _ →
   P-prop
 
+-- In the presence of double-negation elimination ¬¬ A is equivalent
+-- to A for propositions A (assuming extensionality).
+
+¬¬≃ :
+  ∀ {a} {A : Type a} →
+  Is-proposition A →
+  Double-negation-elimination a →
+  (¬¬ A) ↝[ a ∣ lzero ] A
+¬¬≃ prop dne =
+  generalise-ext?-prop
+    (record { to = dne prop; from = return })
+    ¬¬-propositional
+    (λ _ → prop)
+
 -- Excluded middle implies double-negation elimination.
 
 Excluded-middle→Double-negation-elimination :
