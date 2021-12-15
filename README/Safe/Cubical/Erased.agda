@@ -104,6 +104,10 @@ import Sphere
 
 import Pushout
 
+-- Joins.
+
+import Join
+
 -- Localisation.
 
 import Localisation

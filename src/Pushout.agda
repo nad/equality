@@ -32,9 +32,9 @@ import Suspension eq as S
 
 private
   variable
-    a b l ℓ m p r : Level
-    A B C         : Type a
-    f S           : A
+    a b l m p r : Level
+    A B C       : Type a
+    f S         : A
 
 -- Spans.
 
@@ -195,70 +195,6 @@ Pushout→↔Cocone {S = S} {A = A} = record
        trans (sym (cong f (glue x))) (cong f (glue x))                        ≡⟨ trans-symˡ _ ⟩∎
 
        refl _                                                                 ∎)
-
--- Joins.
-
-Join : Type a → Type b → Type (a ⊔ b)
-Join A B = Pushout (record
-  { Middle = A × B
-  ; left   = proj₁
-  ; right  = proj₂
-  })
-
--- Join is symmetric.
-
-Join-symmetric : Join A B ≃ Join B A
-Join-symmetric = Eq.↔→≃
-  to
-  to
-  to-to
-  to-to
-  where
-  to : Join A B → Join B A
-  to = rec inr inl (sym ∘ glue ∘ swap)
-
-  to-to : (x : Join A B) → to (to x) ≡ x
-  to-to =
-    elim _ (λ _ → refl _) (λ _ → refl _)
-      (λ p →
-         subst (λ x → to (to x) ≡ x) (glue p) (refl _)         ≡⟨ subst-in-terms-of-trans-and-cong ⟩
-
-         trans (sym (cong (to ∘ to) (glue p)))
-           (trans (refl _) (cong id (glue p)))                 ≡⟨ cong₂ (trans ∘ sym)
-                                                                    (sym $ cong-∘ _ _ _)
-                                                                    (trans (trans-reflˡ _) $
-                                                                     sym $ cong-id _) ⟩
-
-         trans (sym (cong to (cong to (glue p)))) (glue p)     ≡⟨ cong (flip trans _) $ cong (sym ∘ cong to) rec-glue ⟩
-
-         trans (sym (cong to (sym (glue (swap p))))) (glue p)  ≡⟨ cong (flip trans _) $ cong sym $ cong-sym _ _ ⟩
-
-         trans (sym (sym (cong to (glue (swap p))))) (glue p)  ≡⟨ cong (flip trans _) $ sym-sym _ ⟩
-
-         trans (cong to (glue (swap p))) (glue p)              ≡⟨ cong (flip trans _) rec-glue ⟩
-
-         trans (sym (glue (swap (swap p)))) (glue p)           ≡⟨⟩
-
-         trans (sym (glue p)) (glue p)                         ≡⟨ trans-symˡ _ ⟩∎
-
-         refl _                                                ∎)
-
--- The empty type is a right identity for Join.
-
-Join-⊥ʳ : Join A (⊥ {ℓ = ℓ}) ≃ A
-Join-⊥ʳ = Eq.↔→≃
-  (rec id ⊥-elim (λ { (_ , ()) }))
-  inl
-  refl
-  (elim _ (λ _ → refl _) (λ ()) (λ { (_ , ()) }))
-
--- The empty type is a left identity for Join.
-
-Join-⊥ˡ : Join (⊥ {ℓ = ℓ}) A ≃ A
-Join-⊥ˡ {A = A} =
-  Join ⊥ A  ↝⟨ Join-symmetric ⟩
-  Join A ⊥  ↝⟨ Join-⊥ʳ ⟩□
-  A         □
 
 -- Cones.
 
