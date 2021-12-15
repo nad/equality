@@ -90,7 +90,7 @@ record Elimᴾ
   no-eta-equality
   field
     []ʳ   : ∀ x → R [ x ]
-    extʳ  : (∀ y → R (g y)) → ∀ y → R (ext {x = x} g y)
+    extʳ  : ((y : P x) → R (g y)) → ∀ y → R (ext g y)
     ext≡ʳ : (h : (y : P x) → R (g y)) →
             P.[ (λ i → R (ext≡ᴾ {g = g} {y = y} i)) ] extʳ h (f x y) ≡
             h y
@@ -140,7 +140,7 @@ record Elim
   no-eta-equality
   field
     []ʳ   : ∀ x → R [ x ]
-    extʳ  : (∀ y → R (g y)) → ∀ y → R (ext {x = x} g y)
+    extʳ  : ((y : P x) → R (g y)) → ∀ y → R (ext g y)
     ext≡ʳ : (h : (y : P x) → R (g y)) →
             subst R (ext≡ {y = y} {g = g}) (extʳ h (f x y)) ≡ h y
 
