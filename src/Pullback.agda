@@ -28,7 +28,7 @@ private
   variable
     a a₁ a₂ b b₁ b₂ l m r : Level
     A A₁ A₂ B             : Type a
-    C                     : A
+    C f                   : A
     k                     : Kind
 
 -- Cospans.
@@ -214,3 +214,83 @@ homotopy-pullbacks-equivalent {A₁ = A₁} {C = C} {A₂ = A₂} _ _ p₁ p₂ 
   Cone (↑ _ ⊤) C  ↝⟨ inverse Eq.⟨ _ , p₂ (↑ _ ⊤) ⟩ ⟩
   (↑ _ ⊤ → A₂)    ↔⟨ Π-left-identity-↑ ⟩□
   A₂              □
+
+-- The diagonal of a function.
+--
+-- This definition is taken from "Modalities in Homotopy Type Theory"
+-- by Rijke, Shulman and Spitters.
+--
+-- Note that the symbol used is not Δ (U+0394), but ∆ (U+2206), to go
+-- along with ∇ (U+2207).
+
+∆ : (f : A → B) → A → Pullback (record { left = f; right = f })
+∆ f x = x , x , refl (f x)
+
+-- If f is an equivalence, then ∆ f is an equivalence.
+--
+-- This result is mentioned in "Modalities in Homotopy Type Theory" by
+-- Rijke, Shulman and Spitters.
+
+Is-equivalence-∆ : Is-equivalence f → Is-equivalence (∆ f)
+Is-equivalence-∆ {f = f} f-eq =
+  _≃_.is-equivalence $
+  Eq.↔→≃
+    _
+    proj₁
+    (λ (x , y , p) →
+       (x , x , refl (f x))  ≡⟨ cong (x ,_) $
+                                Σ-≡,≡→≡ (lemma₁ x y p) (lemma₂ x y p) ⟩∎
+       (x , y , p)           ∎)
+    refl
+  where
+  equiv = Eq.⟨ _ , f-eq ⟩
+
+  lemma₁ = λ x y p →
+    x                     ≡⟨ sym $ _≃_.left-inverse-of equiv _ ⟩
+    _≃_.from equiv (f x)  ≡⟨ cong (_≃_.from equiv) p ⟩
+    _≃_.from equiv (f y)  ≡⟨ _≃_.left-inverse-of equiv _ ⟩∎
+    y                     ∎
+
+  lemma₂ = λ x y p →
+    subst (λ y → f x ≡ f y) (lemma₁ x y p) (refl (f x))  ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+    trans (sym (cong (const (f x)) (lemma₁ x y p)))
+      (trans (refl (f x)) (cong f (lemma₁ x y p)))       ≡⟨ trans (cong (flip trans _) $
+                                                                   trans (cong sym $ cong-const _)
+                                                                   sym-refl) $
+                                                            trans (trans-reflˡ _) $
+                                                            trans-reflˡ _ ⟩
+
+    cong f (lemma₁ x y p)                                ≡⟨⟩
+
+    cong f
+      (trans (sym $ _≃_.left-inverse-of equiv _)
+         (trans (cong (_≃_.from equiv) p)
+            (_≃_.left-inverse-of equiv _)))              ≡⟨ trans (cong-trans _ _ _) $
+                                                            cong₂ trans
+                                                              (trans (cong-sym _ _) $
+                                                               cong sym $ _≃_.left-right-lemma equiv _)
+                                                              (trans (cong-trans _ _ _) $
+                                                               cong₂ trans
+                                                                 (cong-∘ _ _ _)
+                                                                 (_≃_.left-right-lemma equiv _)) ⟩
+    trans (sym $ _≃_.right-inverse-of equiv _)
+      (trans (cong (f ∘ _≃_.from equiv) p)
+         (_≃_.right-inverse-of equiv _))                 ≡⟨ elim¹
+                                                              (λ p →
+                                                                 trans (sym $ _≃_.right-inverse-of equiv _)
+                                                                   (trans (cong (f ∘ _≃_.from equiv) p)
+                                                                      (_≃_.right-inverse-of equiv _)) ≡
+                                                                 p)
+                                                              (
+      trans (sym $ _≃_.right-inverse-of equiv _)
+        (trans (cong (f ∘ _≃_.from equiv) (refl _))
+           (_≃_.right-inverse-of equiv _))                     ≡⟨ cong (trans _) $
+                                                                  trans (cong (flip trans _) $ cong-refl _) $
+                                                                  trans-reflˡ _ ⟩
+      trans (sym $ _≃_.right-inverse-of equiv _)
+        (_≃_.right-inverse-of equiv _)                         ≡⟨ trans-symˡ _ ⟩∎
+
+      refl _                                                   ∎)
+                                                              _ ⟩∎
+    p                                                    ∎
