@@ -95,6 +95,60 @@ run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
 ¬¬¬→¬ : ∀ {a} {A : Type a} → ¬¬ ¬ A → ¬ A
 ¬¬¬→¬ ¬¬¬a = λ a → ¬¬¬⊥ (¬¬¬a >>= λ ¬a → ⊥-elim (¬a a))
 
+------------------------------------------------------------------------
+-- Excluded middle and double-negation elimination
+
+-- Double-negation elimination (roughly as stated in the HoTT book).
+
+Double-negation-elimination : (ℓ : Level) → Type (lsuc ℓ)
+Double-negation-elimination p =
+  {P : Type p} → Is-proposition P → ¬¬ P → P
+
+-- Double-negation elimination is propositional (assuming
+-- extensionality).
+
+Double-negation-elimination-propositional :
+  ∀ {ℓ} →
+  Extensionality (lsuc ℓ) ℓ →
+  Is-proposition (Double-negation-elimination ℓ)
+Double-negation-elimination-propositional ext =
+  implicit-Π-closure ext 1 λ _ →
+  Π-closure (lower-extensionality _ lzero ext) 1 λ P-prop →
+  Π-closure (lower-extensionality _ lzero ext) 1 λ _ →
+  P-prop
+
+-- Excluded middle implies double-negation elimination.
+
+Excluded-middle→Double-negation-elimination :
+  ∀ {ℓ} → Excluded-middle ℓ → Double-negation-elimination ℓ
+Excluded-middle→Double-negation-elimination em P-prop ¬¬p =
+  [ id , ⊥-elim ∘ run ¬¬p ] (em P-prop)
+
+-- Excluded middle is pointwise equivalent to double-negation
+-- elimination (assuming extensionality).
+
+Excluded-middle≃Double-negation-elimination :
+  ∀ {ℓ} →
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+  Excluded-middle ℓ ≃ Double-negation-elimination ℓ
+Excluded-middle≃Double-negation-elimination ext =
+  _↔_.to (Eq.⇔↔≃
+            ext
+            (Excluded-middle-propositional
+               (lower-extensionality lzero _ ext))
+            (Double-negation-elimination-propositional
+               (lower-extensionality lzero _ ext)))
+    (record
+       { to   = Excluded-middle→Double-negation-elimination
+       ; from = λ dne P-prop →
+                  dne (Dec-closure-propositional
+                         (lower-extensionality _ _ ext) P-prop)
+                      excluded-middle
+       })
+
+------------------------------------------------------------------------
+-- The double-negation modality
+
 -- The double-negation monad is a modality (assuming extensionality).
 --
 -- This fact is taken from "Modalities in Homotopy Type Theory" by
@@ -172,54 +226,3 @@ run (call/cc hyp) ¬a = run (hyp (λ a → ⊥-elim (¬a a))) ¬a
   ¬¬ Is-proposition Bool                                     →⟨ map′ ¬-Bool-propositional ⟩
   ¬¬ ⊥                                                       →⟨ ¬¬¬⊥ ⟩□
   ⊥                                                          □
-
-------------------------------------------------------------------------
--- Excluded middle and double-negation elimination
-
--- Double-negation elimination (roughly as stated in the HoTT book).
-
-Double-negation-elimination : (ℓ : Level) → Type (lsuc ℓ)
-Double-negation-elimination p =
-  {P : Type p} → Is-proposition P → ¬¬ P → P
-
--- Double-negation elimination is propositional (assuming
--- extensionality).
-
-Double-negation-elimination-propositional :
-  ∀ {ℓ} →
-  Extensionality (lsuc ℓ) ℓ →
-  Is-proposition (Double-negation-elimination ℓ)
-Double-negation-elimination-propositional ext =
-  implicit-Π-closure ext 1 λ _ →
-  Π-closure (lower-extensionality _ lzero ext) 1 λ P-prop →
-  Π-closure (lower-extensionality _ lzero ext) 1 λ _ →
-  P-prop
-
--- Excluded middle implies double-negation elimination.
-
-Excluded-middle→Double-negation-elimination :
-  ∀ {ℓ} → Excluded-middle ℓ → Double-negation-elimination ℓ
-Excluded-middle→Double-negation-elimination em P-prop ¬¬p =
-  [ id , ⊥-elim ∘ run ¬¬p ] (em P-prop)
-
--- Excluded middle is pointwise equivalent to double-negation
--- elimination (assuming extensionality).
-
-Excluded-middle≃Double-negation-elimination :
-  ∀ {ℓ} →
-  Extensionality (lsuc ℓ) (lsuc ℓ) →
-  Excluded-middle ℓ ≃ Double-negation-elimination ℓ
-Excluded-middle≃Double-negation-elimination ext =
-  _↔_.to (Eq.⇔↔≃
-            ext
-            (Excluded-middle-propositional
-               (lower-extensionality lzero _ ext))
-            (Double-negation-elimination-propositional
-               (lower-extensionality lzero _ ext)))
-    (record
-       { to   = Excluded-middle→Double-negation-elimination
-       ; from = λ dne P-prop →
-                  dne (Dec-closure-propositional
-                         (lower-extensionality _ _ ext) P-prop)
-                      excluded-middle
-       })
