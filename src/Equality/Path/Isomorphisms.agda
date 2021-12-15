@@ -81,6 +81,14 @@ ext = Eq.good-ext bad-ext
 ⟨ext⟩ : Extensionality′ A B
 ⟨ext⟩ = apply-ext ext
 
+-- An equivalence formed using ⟨ext⟩.
+
+Π≡≃≡ : (∀ x → f x ≡ g x) ≃ (f ≡ g)
+Π≡≃≡ = Eq.extensionality-isomorphism bad-ext
+
+_ : _≃_.to (Π≡≃≡ {f = f} {g = g}) ≡ ⟨ext⟩
+_ = refl _
+
 abstract
 
   -- The function ⟨ext⟩ is an equivalence.
