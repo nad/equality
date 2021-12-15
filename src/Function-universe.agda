@@ -1439,6 +1439,14 @@ open Bijection public using (Σ-assoc)
   (A₂↔A₁ : A₂ ↔[ k₁ ] A₁) →
   (∀ x → B₁ (to-implication A₂↔A₁ x) ↝[ k₂ ] B₂ x) →
   Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
+Σ-cong-contra {k₂ = logical-equivalence} A₂↔A₁ B₁⇔B₂ =
+  inverse $ Σ-cong A₂↔A₁ (inverse ⊚ B₁⇔B₂)
+Σ-cong-contra {k₂ = bijection} A₂↔A₁ B₁↔B₂ =
+  inverse $ Σ-cong A₂↔A₁ (inverse ⊚ B₁↔B₂)
+Σ-cong-contra {k₂ = equivalence} A₂↔A₁ B₁≃B₂ =
+  inverse $ Σ-cong A₂↔A₁ (inverse ⊚ B₁≃B₂)
+Σ-cong-contra {k₂ = equivalenceᴱ} A₂↔A₁ B₁≃ᴱB₂ =
+  inverse $ Σ-cong A₂↔A₁ (inverse ⊚ B₁≃ᴱB₂)
 Σ-cong-contra {k₁} {k₂} {A₁ = A₁} {A₂} {B₁} {B₂} A₂↔A₁ B₁↝B₂ =
   Σ-cong A₁↔A₂ B₁↝B₂′
   where
