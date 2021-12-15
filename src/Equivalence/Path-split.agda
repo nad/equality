@@ -402,53 +402,6 @@ Is-∞-extendable-along≃Is-equivalence {P = P} {f = f} ext =
 -- The definitions below are not taken directly from "Universal
 -- properties without function extensionality".
 
--- A type B is P-null for a predicate P of type A → Type p if the
--- function const of type B → P x → B is an equivalence for each x.
---
--- This definition is based on one from "Modalities in Homotopy Type
--- Theory" by Rijke, Shulman and Spitters.
-
-_-Null_ : {A : Type a} → (A → Type p) → Type b → Type (a ⊔ b ⊔ p)
-P -Null B = ∀ x → Is-equivalence (const ⦂ (B → P x → B))
-
--- A variant of _-Null_ with erased proofs.
-
-_-Nullᴱ_ : {A : Type a} → (A → Type p) → Type b → Type (a ⊔ b ⊔ p)
-P -Nullᴱ B = ∀ x → Is-equivalenceᴱ (const ⦂ (B → P x → B))
-
--- P -Null_ preserves equivalences (assuming extensionality).
-
-Null-cong :
-  {A : Type a} {B : Type b} {C : Type c} {P : A → Type p} →
-  Extensionality (a ⊔ b ⊔ c ⊔ p) (b ⊔ c ⊔ p) →
-  B ≃ C → P -Null B ≃ P -Null C
-Null-cong
-  {a = a} {b = b} {c = c} {p = p} {B = B} {C = C} {P = P} ext B≃C =
-  P -Null B                                                         ↔⟨⟩
-
-  (∀ x → Is-equivalence (const ⦂ (B → P x → B)))                    ↝⟨ (∀-cong ext′ λ x →
-                                                                        Is-equivalence≃Is-equivalence-∘ʳ
-                                                                          (_≃_.is-equivalence $ inverse B≃C) ext″) ⟩
-
-  (∀ x → Is-equivalence ((const ⦂ (B → P x → B)) ∘ _≃_.from B≃C))   ↝⟨ (∀-cong ext′ λ x →
-                                                                        Is-equivalence≃Is-equivalence-∘ˡ
-                                                                          (_≃_.is-equivalence $
-                                                                           ∀-cong (lower-extensionality (a ⊔ b ⊔ c) p ext) λ _ → B≃C)
-                                                                          ext″) ⟩
-  (∀ x →
-     Is-equivalence
-       ((_≃_.to B≃C ∘_) ∘ (const ⦂ (B → P x → B)) ∘ _≃_.from B≃C))  ↝⟨ (∀-cong (lower-extensionality (b ⊔ c ⊔ p) b ext) λ x →
-                                                                        Is-equivalence-cong (lower-extensionality (a ⊔ b) b ext) λ y →
-    const (_≃_.to B≃C (_≃_.from B≃C y))                                   ≡⟨ cong const $ _≃_.right-inverse-of B≃C _ ⟩∎
-    const y                                                               ∎) ⟩
-
-  (∀ x → Is-equivalence (const ⦂ (C → P x → C)))                    ↔⟨⟩
-
-  P -Null C                                                         □
-  where
-  ext′ = lower-extensionality (b ⊔ c ⊔ p) lzero ext
-  ext″ = lower-extensionality a           lzero ext
-
 -- Is-∞-extendable-along-[_] can sometimes be replaced by
 -- Is-equivalence const.
 
@@ -464,111 +417,6 @@ Is-∞-extendable-along≃Is-equivalence-const {a = a} {A = A} {B = B} ext =
                                                                     Is-equivalence≃Is-equivalence-∘ʳ
                                                                       (_≃_.is-equivalence $ Eq.↔→≃ (_$ lift tt) const refl refl) ext ⟩□
   Is-equivalence (const ⦂ (B → A → B))                           □
-
--- A corollary of Is-∞-extendable-along≃Is-equivalence-const.
-
-Π-Is-∞-extendable-along≃Null :
-  {A : Type a} {P : A → Type p} {B : Type b} →
-  Extensionality (a ⊔ b ⊔ p) (b ⊔ p) →
-  (∀ x → Is-∞-extendable-along-[ (λ (_ : P x) → lift tt) ]
-           (λ (_ : ↑ p ⊤) → B)) ≃
-  P -Null B
-Π-Is-∞-extendable-along≃Null {a = a} {p = p} {b = b} ext =
-  ∀-cong (lower-extensionality (b ⊔ p) lzero ext) λ _ →
-  Is-∞-extendable-along≃Is-equivalence-const
-    (lower-extensionality a lzero ext)
-
-private
-
-  -- If const is an equivalence from Bool to B → Bool, then B is not
-  -- not inhabited (assuming extensionality).
-
-  Is-equivalence-const→¬¬ :
-    {B : Type b} →
-    Extensionality b lzero →
-    Is-equivalence (const ⦂ (Bool → B → Bool)) →
-    ¬ ¬ B
-  Is-equivalence-const→¬¬ {B = B} ext =
-    curry
-      (Is-equivalence (const ⦂ (Bool → B → Bool)) × ¬ B  →⟨ Σ-map Eq.⟨ _ ,_⟩ (Eq.↔⇒≃ ∘ inverse ∘ B.⊥↔uninhabited) ⟩
-       Bool ≃ (B → Bool) × B ≃ ⊥                         →⟨ (λ (≃B→ , B≃) → →-cong ext B≃ F.id F.∘ ≃B→) ⟩
-       Bool ≃ (⊥ → Bool)                                 →⟨ Π⊥↔⊤ ext F.∘_ ⟩
-       Bool ≃ ⊤                                          →⟨ (λ eq → _≃_.to (Eq.≃-≡ eq) (refl _)) ⟩
-       true ≡ false                                      →⟨ Bool.true≢false ⟩□
-       ⊥                                                 □)
-
-  -- If const is an equivalence from Bool to B → Bool, and equality is
-  -- decidable for B, then B is a proposition.
-
-  Is-equivalence-const→Decidable-equality→Is-proposition :
-    Is-equivalence (const ⦂ (Bool → B → Bool)) →
-    Decidable-equality B →
-    Is-proposition B
-  Is-equivalence-const→Decidable-equality→Is-proposition
-    {B = B} eq _≟_ x y = x≡y
-    where
-    lemma :
-      (f g : B → Bool) → f ≢ g →
-      (h : B → Bool) → f ≡ h ⊎ g ≡ h
-    lemma =                                                        $⟨ helper ⟩
-      ((x y : Bool) → x ≢ y → (z : Bool) → x ≡ z ⊎ y ≡ z)          →⟨ (Π-cong _ equiv λ x → Π-cong _ equiv λ y →
-                                                                       →-cong-→ (→-cong-→ (_≃_.from (Eq.≃-≡ equiv)) id) $
-                                                                       Π-cong _ equiv λ z →
-                                                                       _≃_.from (Eq.≃-≡ equiv ⊎-cong Eq.≃-≡ equiv)) ⟩□
-      ((f g : B → Bool) → f ≢ g → (h : B → Bool) → f ≡ h ⊎ g ≡ h)  □
-      where
-      equiv : Bool ≃ (B → Bool)
-      equiv = Eq.⟨ _ , eq ⟩
-
-      true≡⊎false≡ : (b : Bool) → true ≡ b ⊎ false ≡ b
-      true≡⊎false≡ true  = inj₁ (refl _)
-      true≡⊎false≡ false = inj₂ (refl _)
-
-      helper : (x y : Bool) → x ≢ y → (z : Bool) → x ≡ z ⊎ y ≡ z
-      helper true  true  t≢t = ⊥-elim $ t≢t (refl _)
-      helper true  false _   = true≡⊎false≡
-      helper false true  _   = _↔_.to ⊎-comm ∘ true≡⊎false≡
-      helper false false f≢f = ⊥-elim $ f≢f (refl _)
-
-    f₁ f₂ f₃ : B → Bool
-    f₁ _ = true
-    f₂ _ = false
-    f₃ z = if x ≟ z then true else false
-
-    f₁≢f₂ : f₁ ≢ f₂
-    f₁≢f₂ f₁≡f₂ = Bool.true≢false $ cong (_$ x) f₁≡f₂
-
-    f₁≡f₃→x≡y : f₁ ≡ f₃ → x ≡ y
-    f₁≡f₃→x≡y f₁≡f₃ = helper (x ≟ y) (cong (_$ y) f₁≡f₃)
-      where
-      helper :
-        (d : Dec (x ≡ y)) →
-        true ≡ if d then true else false →
-        x ≡ y
-      helper (yes x≡y) _          = x≡y
-      helper (no  _)   true≡false =
-        ⊥-elim $ Bool.true≢false true≡false
-
-    f₂≢f₃ : f₂ ≢ f₃
-    f₂≢f₃ =
-      f₂ ≡ f₃                                →⟨ cong (_$ x) ⟩
-      false ≡ if x ≟ x then true else false  →⟨ flip trans (helper (x ≟ x)) ⟩
-      false ≡ true                           →⟨ Bool.true≢false ∘ sym ⟩□
-      ⊥                                      □
-      where
-      helper :
-        (d : Dec (x ≡ x)) →
-        if d then true else false ≡ true
-      helper (yes _)  = refl _
-      helper (no x≢x) = ⊥-elim $ x≢x $ refl _
-
-    f₁≡⊎f₂≡ : (f : B → Bool) → f₁ ≡ f ⊎ f₂ ≡ f
-    f₁≡⊎f₂≡ = lemma f₁ f₂ f₁≢f₂
-
-    x≡y : x ≡ y
-    x≡y with f₁≡⊎f₂≡ f₃
-    … | inj₁ f₁≡f₃ = f₁≡f₃→x≡y f₁≡f₃
-    … | inj₂ f₂≡f₃ = ⊥-elim $ f₂≢f₃ f₂≡f₃
 
 -- If f is an equivalence, then n-extendability along f is
 -- contractible (assuming extensionality).
@@ -710,3 +558,158 @@ Is-∞-extendable-along-const-tt-cong :
 Is-∞-extendable-along-const-tt-cong {k = k} ext A≃B A→≃B→ hyp =
   ∀-cong (lower-extensionality? k _ lzero ext) λ n →
   Is-extendable-along-const-tt-cong ext A≃B A→≃B→ hyp n
+
+------------------------------------------------------------------------
+-- P-null types
+
+-- A type B is P-null for a predicate P of type A → Type p if the
+-- function const of type B → P x → B is an equivalence for each x.
+--
+-- This definition is based on one from "Modalities in Homotopy Type
+-- Theory" by Rijke, Shulman and Spitters.
+
+_-Null_ : {A : Type a} → (A → Type p) → Type b → Type (a ⊔ b ⊔ p)
+P -Null B = ∀ x → Is-equivalence (const ⦂ (B → P x → B))
+
+-- A variant of _-Null_ with erased proofs.
+
+_-Nullᴱ_ : {A : Type a} → (A → Type p) → Type b → Type (a ⊔ b ⊔ p)
+P -Nullᴱ B = ∀ x → Is-equivalenceᴱ (const ⦂ (B → P x → B))
+
+-- P -Null_ preserves equivalences (assuming extensionality).
+
+Null-cong :
+  {A : Type a} {B : Type b} {C : Type c} {P : A → Type p} →
+  Extensionality (a ⊔ b ⊔ c ⊔ p) (b ⊔ c ⊔ p) →
+  B ≃ C → P -Null B ≃ P -Null C
+Null-cong
+  {a = a} {b = b} {c = c} {p = p} {B = B} {C = C} {P = P} ext B≃C =
+  P -Null B                                                         ↔⟨⟩
+
+  (∀ x → Is-equivalence (const ⦂ (B → P x → B)))                    ↝⟨ (∀-cong ext′ λ x →
+                                                                        Is-equivalence≃Is-equivalence-∘ʳ
+                                                                          (_≃_.is-equivalence $ inverse B≃C) ext″) ⟩
+
+  (∀ x → Is-equivalence ((const ⦂ (B → P x → B)) ∘ _≃_.from B≃C))   ↝⟨ (∀-cong ext′ λ x →
+                                                                        Is-equivalence≃Is-equivalence-∘ˡ
+                                                                          (_≃_.is-equivalence $
+                                                                           ∀-cong (lower-extensionality (a ⊔ b ⊔ c) p ext) λ _ → B≃C)
+                                                                          ext″) ⟩
+  (∀ x →
+     Is-equivalence
+       ((_≃_.to B≃C ∘_) ∘ (const ⦂ (B → P x → B)) ∘ _≃_.from B≃C))  ↝⟨ (∀-cong (lower-extensionality (b ⊔ c ⊔ p) b ext) λ x →
+                                                                        Is-equivalence-cong (lower-extensionality (a ⊔ b) b ext) λ y →
+    const (_≃_.to B≃C (_≃_.from B≃C y))                                   ≡⟨ cong const $ _≃_.right-inverse-of B≃C _ ⟩∎
+    const y                                                               ∎) ⟩
+
+  (∀ x → Is-equivalence (const ⦂ (C → P x → C)))                    ↔⟨⟩
+
+  P -Null C                                                         □
+  where
+  ext′ = lower-extensionality (b ⊔ c ⊔ p) lzero ext
+  ext″ = lower-extensionality a           lzero ext
+
+-- A corollary of Is-∞-extendable-along≃Is-equivalence-const.
+
+Π-Is-∞-extendable-along≃Null :
+  {A : Type a} {P : A → Type p} {B : Type b} →
+  Extensionality (a ⊔ b ⊔ p) (b ⊔ p) →
+  (∀ x → Is-∞-extendable-along-[ (λ (_ : P x) → lift tt) ]
+           (λ (_ : ↑ p ⊤) → B)) ≃
+  P -Null B
+Π-Is-∞-extendable-along≃Null {a = a} {p = p} {b = b} ext =
+  ∀-cong (lower-extensionality (b ⊔ p) lzero ext) λ _ →
+  Is-∞-extendable-along≃Is-equivalence-const
+    (lower-extensionality a lzero ext)
+
+private
+
+  -- If const is an equivalence from Bool to B → Bool, then B is not
+  -- not inhabited (assuming extensionality).
+
+  Is-equivalence-const→¬¬ :
+    {B : Type b} →
+    Extensionality b lzero →
+    Is-equivalence (const ⦂ (Bool → B → Bool)) →
+    ¬ ¬ B
+  Is-equivalence-const→¬¬ {B = B} ext =
+    curry
+      (Is-equivalence (const ⦂ (Bool → B → Bool)) × ¬ B  →⟨ Σ-map Eq.⟨ _ ,_⟩ (Eq.↔⇒≃ ∘ inverse ∘ B.⊥↔uninhabited) ⟩
+       Bool ≃ (B → Bool) × B ≃ ⊥                         →⟨ (λ (≃B→ , B≃) → →-cong ext B≃ F.id F.∘ ≃B→) ⟩
+       Bool ≃ (⊥ → Bool)                                 →⟨ Π⊥↔⊤ ext F.∘_ ⟩
+       Bool ≃ ⊤                                          →⟨ (λ eq → _≃_.to (Eq.≃-≡ eq) (refl _)) ⟩
+       true ≡ false                                      →⟨ Bool.true≢false ⟩□
+       ⊥                                                 □)
+
+  -- If const is an equivalence from Bool to B → Bool, and equality is
+  -- decidable for B, then B is a proposition.
+
+  Is-equivalence-const→Decidable-equality→Is-proposition :
+    Is-equivalence (const ⦂ (Bool → B → Bool)) →
+    Decidable-equality B →
+    Is-proposition B
+  Is-equivalence-const→Decidable-equality→Is-proposition
+    {B = B} eq _≟_ x y = x≡y
+    where
+    lemma :
+      (f g : B → Bool) → f ≢ g →
+      (h : B → Bool) → f ≡ h ⊎ g ≡ h
+    lemma =                                                        $⟨ helper ⟩
+      ((x y : Bool) → x ≢ y → (z : Bool) → x ≡ z ⊎ y ≡ z)          →⟨ (Π-cong _ equiv λ x → Π-cong _ equiv λ y →
+                                                                       →-cong-→ (→-cong-→ (_≃_.from (Eq.≃-≡ equiv)) id) $
+                                                                       Π-cong _ equiv λ z →
+                                                                       _≃_.from (Eq.≃-≡ equiv ⊎-cong Eq.≃-≡ equiv)) ⟩□
+      ((f g : B → Bool) → f ≢ g → (h : B → Bool) → f ≡ h ⊎ g ≡ h)  □
+      where
+      equiv : Bool ≃ (B → Bool)
+      equiv = Eq.⟨ _ , eq ⟩
+
+      true≡⊎false≡ : (b : Bool) → true ≡ b ⊎ false ≡ b
+      true≡⊎false≡ true  = inj₁ (refl _)
+      true≡⊎false≡ false = inj₂ (refl _)
+
+      helper : (x y : Bool) → x ≢ y → (z : Bool) → x ≡ z ⊎ y ≡ z
+      helper true  true  t≢t = ⊥-elim $ t≢t (refl _)
+      helper true  false _   = true≡⊎false≡
+      helper false true  _   = _↔_.to ⊎-comm ∘ true≡⊎false≡
+      helper false false f≢f = ⊥-elim $ f≢f (refl _)
+
+    f₁ f₂ f₃ : B → Bool
+    f₁ _ = true
+    f₂ _ = false
+    f₃ z = if x ≟ z then true else false
+
+    f₁≢f₂ : f₁ ≢ f₂
+    f₁≢f₂ f₁≡f₂ = Bool.true≢false $ cong (_$ x) f₁≡f₂
+
+    f₁≡f₃→x≡y : f₁ ≡ f₃ → x ≡ y
+    f₁≡f₃→x≡y f₁≡f₃ = helper (x ≟ y) (cong (_$ y) f₁≡f₃)
+      where
+      helper :
+        (d : Dec (x ≡ y)) →
+        true ≡ if d then true else false →
+        x ≡ y
+      helper (yes x≡y) _          = x≡y
+      helper (no  _)   true≡false =
+        ⊥-elim $ Bool.true≢false true≡false
+
+    f₂≢f₃ : f₂ ≢ f₃
+    f₂≢f₃ =
+      f₂ ≡ f₃                                →⟨ cong (_$ x) ⟩
+      false ≡ if x ≟ x then true else false  →⟨ flip trans (helper (x ≟ x)) ⟩
+      false ≡ true                           →⟨ Bool.true≢false ∘ sym ⟩□
+      ⊥                                      □
+      where
+      helper :
+        (d : Dec (x ≡ x)) →
+        if d then true else false ≡ true
+      helper (yes _)  = refl _
+      helper (no x≢x) = ⊥-elim $ x≢x $ refl _
+
+    f₁≡⊎f₂≡ : (f : B → Bool) → f₁ ≡ f ⊎ f₂ ≡ f
+    f₁≡⊎f₂≡ = lemma f₁ f₂ f₁≢f₂
+
+    x≡y : x ≡ y
+    x≡y with f₁≡⊎f₂≡ f₃
+    … | inj₁ f₁≡f₃ = f₁≡f₃→x≡y f₁≡f₃
+    … | inj₂ f₂≡f₃ = ⊥-elim $ f₂≢f₃ f₂≡f₃
