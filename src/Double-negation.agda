@@ -9,9 +9,11 @@ open import Equality
 module Double-negation
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
+import Erased.Basics as E
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+import Accessibility eq as A
 open import Bijection eq as B using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
@@ -240,3 +242,33 @@ Excluded-middle≃Double-negation-elimination ext =
   ¬¬ Is-proposition Bool                                     →⟨ map′ ¬-Bool-propositional ⟩
   ¬¬ ⊥                                                       →⟨ ¬¬¬⊥ ⟩□
   ⊥                                                          □
+
+-- The double-negation modality is not accessibility-modal.
+
+¬¬-not-accessibility-modal :
+  ∀ {ℓ} (ext : Extensionality ℓ ℓ) →
+  ¬ Modality.Accessibility-modal (¬¬-modality ext)
+¬¬-not-accessibility-modal {ℓ = ℓ} ext =
+  Is-proposition-◯→¬-Accessibility-modal
+    (¬¬-propositional (lower-extensionality lzero _ ext))
+  where
+  open Modality (¬¬-modality ext)
+
+-- If double-negation elimination holds, then the double-negation
+-- modality is accessibility-modal for propositional relations on
+-- propositions.
+
+¬¬-accessibility-modal-for-propositions :
+  ∀ {ℓ} {@0 A : Type ℓ} {@0 _<_ : A → A → Type ℓ}
+  (ext : Extensionality ℓ ℓ) →
+  @0 Double-negation-elimination ℓ →
+  @0 Is-proposition A →
+  @0 (∀ {x y} → Is-proposition (x < y)) →
+  Modality.Accessibility-modal-for (¬¬-modality ext) _<_
+¬¬-accessibility-modal-for-propositions {_<_ = _<_} ext dne prop prop′ =
+  Accessibility-modal-for-erasure-stable
+    E.[ (λ acc → Modal→Acc→Acc-[]◯-η (prop , dne prop) (dne prop′) acc)
+      , dne (A.Acc-propositional ext)
+      ]
+  where
+  open Modality (¬¬-modality ext)
