@@ -4,7 +4,7 @@
 
 {-# OPTIONS --erased-cubical --safe #-}
 
--- This module follows the HoTT book rather closely.
+-- Parts of this module follow the HoTT book rather closely.
 
 -- The module is parametrised by a notion of equality. The higher
 -- constructor of the HIT defining pushouts uses path equality, but
@@ -21,18 +21,20 @@ open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
-open import Equivalence equality-with-J as Eq using (_≃_)
+open import Equivalence equality-with-J as Eq
+  using (_≃_; Is-equivalence)
 open import Function-universe equality-with-J hiding (id; _∘_)
 import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import Pointed-type equality-with-J using (Pointed-type)
+open import Pullback equality-with-J as PB using (Pullback; ∆)
 import Suspension eq as S
 
 private
   variable
     a b l ℓ m p r : Level
-    A B           : Type a
-    S             : A
+    A B C         : Type a
+    f S           : A
 
 -- Spans.
 
@@ -279,10 +281,10 @@ Wedge (A , a) (B , b) =
 -- Smash products.
 
 Smash-product : Pointed-type a → Pointed-type b → Type (a ⊔ b)
-Smash-product PA@(A , a) PB@(B , b) = Cone f
+Smash-product PA@(A , a) PB@(B , b) = Cone g
   where
-  f : Wedge PA PB → A × B
-  f = rec (_, b) (a ,_) (λ _ → refl _)
+  g : Wedge PA PB → A × B
+  g = rec (_, b) (a ,_) (λ _ → refl _)
 
 -- Suspensions.
 
@@ -322,3 +324,69 @@ Susp≃Susp = Eq.↔⇒≃ (record
   from∘to =
     _↔_.from ≡↔≡ ∘
     elimᴾ _ (λ _ → P.refl) (λ _ → P.refl) (λ a i _ → glueᴾ a i)
+
+-- The following five definitions are based on "Modalities in Homotopy
+-- Type Theory" by Rijke, Shulman and Spitters.
+
+-- The type of non-dependent functions from a pushout to a type can be
+-- expressed using a pullback.
+
+Pushout→≃Pullback :
+  let open Span S in
+  (Pushout S → A) ≃
+  Pullback (record { Middle = Middle → A; left = _∘ left ; right = _∘ right })
+Pushout→≃Pullback {S = S} {A = A} =
+  (Pushout S → A)                                                        ↔⟨ Pushout→↔Cocone ⟩
+
+  Cocone S A                                                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → Π≡≃≡) ⟩□
+
+  Pullback
+    (record { Middle = Middle → A; left = _∘ left ; right = _∘ right })  □
+  where
+  open Span S
+
+-- The codiagonal of a function.
+
+∇ : (f : A → B) → Pushout (record { left = f; right = f }) → B
+∇ f = rec id id (refl ∘ f)
+
+-- A property relating ∇ and ∆.
+
+∘∇≡∆∘ :
+  {f : A → B} →
+  _≃_.to (Pushout→≃Pullback {A = C}) ∘ (_∘ ∇ f) ≡ ∆ (_∘ f)
+∘∇≡∆∘ {f = f} = ⟨ext⟩ λ g →
+  (g , g , ⟨ext⟩ (cong (g ∘ ∇ f) ∘ glue))  ≡⟨ cong (λ p → g , g , ⟨ext⟩ p) $ ⟨ext⟩ $ lemma g ⟩
+  (g , g , ⟨ext⟩ (refl ∘ g ∘ f))           ≡⟨ cong (λ p → g , g , p) ext-refl ⟩∎
+  (g , g , refl (g ∘ f))                   ∎
+  where
+  lemma : ∀ _ _ → _
+  lemma g x =
+    cong (g ∘ ∇ f) (glue x)       ≡⟨ sym $ cong-∘ _ _ _ ⟩
+    cong g (cong (∇ f) (glue x))  ≡⟨ cong (cong _) rec-glue ⟩
+    cong g (refl (f x))           ≡⟨ cong-refl _ ⟩∎
+    refl (g (f x))                ∎
+
+-- There is an equivalence between "∆ (_∘ f) is an equivalence (at a
+-- certain type)" and "_∘ ∇ f is an equivalence (at a certain type)".
+
+Is-equivalence-∆∘≃Is-equivalence-∘∇ :
+  Is-equivalence (∆ (_∘ f) ⦂ ((_ → C) → _)) ≃
+  Is-equivalence (_∘ ∇ f ⦂ ((_ → C) → _))
+Is-equivalence-∆∘≃Is-equivalence-∘∇ {f = f} =
+  Is-equivalence (∆ (_∘ f))                             ↝⟨ Is-equivalence-cong ext $ ext⁻¹ $ sym ∘∇≡∆∘ ⟩
+  Is-equivalence (_≃_.to Pushout→≃Pullback ∘ (_∘ ∇ f))  ↝⟨ inverse $
+                                                           Is-equivalence≃Is-equivalence-∘ˡ
+                                                              (_≃_.is-equivalence Pushout→≃Pullback) ext ⟩□
+  Is-equivalence (_∘ ∇ f)                               □
+
+-- If _ ∘ f is an equivalence (at a certain type), then _ ∘ ∇ f is an
+-- equivalence (at a certain type).
+
+Is-equivalence-∘∇ :
+  Is-equivalence (_∘ f ⦂ ((_ → C) → _)) →
+  Is-equivalence (_∘ ∇ f ⦂ ((_ → C) → _))
+Is-equivalence-∘∇ {f = f} =
+  Is-equivalence (_∘ f)      →⟨ PB.Is-equivalence-∆ ⟩
+  Is-equivalence (∆ (_∘ f))  ↔⟨ Is-equivalence-∆∘≃Is-equivalence-∘∇ ⟩□
+  Is-equivalence (_∘ ∇ f)    □
