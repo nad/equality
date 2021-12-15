@@ -1903,7 +1903,6 @@ module Modality (M : Modality a) where
   -- Acc _[ _<_ ]◯_ x is modal (assuming function extensionality).
 
   Modal-Acc-[]◯ :
-    {_<_ : A → A → Type a} →
     Extensionality a a →
     Accessibility-modal-for _<_ →
     Modal (Acc _[ _<_ ]◯_ x)
