@@ -313,8 +313,7 @@ Is-proposition→∥∥-accessibility-modal :
   Modality.Accessibility-modal-for ∥∥-modality _<_
 Is-proposition→∥∥-accessibility-modal {ℓ = ℓ} p₁ p₂ =
   Accessibility-modal-for-erasure-stable
-    E.[ (
-          (λ acc →
+    E.[ ( (λ acc →
              Modal→Acc→Acc-[]◯-η
                p₁
                (rec′ λ @0 where
