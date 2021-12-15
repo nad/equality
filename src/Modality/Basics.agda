@@ -1821,13 +1821,13 @@ module Modality (M : Modality a) where
                                                                   (∃-cong λ _ → ∃-comm) ⟩
     (∃ λ ((x′ , _) : ∃ λ x′ → x ≡ x′) →
      ∃ λ ((y′ , _) : ∃ λ y′ → y ≡ y′) →
-     ◯ (x′ < y′))                                              ↔⟨ (drop-⊤-left-Σ $
-                                                                   _⇔_.to contractible⇔↔⊤ $
-                                                                   other-singleton-contractible _) ⟩
+     ◯ (x′ < y′))                                              ↔⟨ drop-⊤-left-Σ $
+                                                                  _⇔_.to contractible⇔↔⊤ $
+                                                                  other-singleton-contractible _ ⟩
 
-    (∃ λ ((y′ , _) : ∃ λ y′ → y ≡ y′) → ◯ (x < y′))            ↔⟨ (drop-⊤-left-Σ $
-                                                                   _⇔_.to contractible⇔↔⊤ $
-                                                                   other-singleton-contractible _) ⟩□
+    (∃ λ ((y′ , _) : ∃ λ y′ → y ≡ y′) → ◯ (x < y′))            ↔⟨ drop-⊤-left-Σ $
+                                                                  _⇔_.to contractible⇔↔⊤ $
+                                                                  other-singleton-contractible _ ⟩□
     ◯ (x < y)                                                  □
 
   -- If A is modal, _<_ is pointwise stable, and x : A is accessible
