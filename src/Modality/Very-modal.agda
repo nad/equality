@@ -98,8 +98,8 @@ left-exact-η-cong =
 ◯≡≃η≡η : ◯ (x ≡ y) ≃ (η x ≡ η y)
 ◯≡≃η≡η = M.◯≡≃η≡η left-exact-η-cong
 
--- ◯ ((x : A) → ◯ (P x)) is equivalent to ◯ (((x : A) → P x))
--- (assuming function extensionality).
+-- ◯ ((x : A) → ◯ (P x)) is equivalent to ◯ ((x : A) → P x) (assuming
+-- function extensionality).
 
 ◯Π◯≃◯Π :
   {A : Type a} {P : A → Type a} →

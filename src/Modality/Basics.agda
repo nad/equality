@@ -2592,7 +2592,7 @@ module Modality (M : Modality a) where
             η (x , η y)                              ∎))
 
   -- If ◯ (∀ x → Modal (P x)) holds, then ◯ ((x : A) → ◯ (P x)) is
-  -- equivalent to ◯ (((x : A) → P x)) (assuming function
+  -- equivalent to ◯ ((x : A) → P x) (assuming function
   -- extensionality).
   --
   -- I did not take this lemma from "Modalities in Homotopy Type
