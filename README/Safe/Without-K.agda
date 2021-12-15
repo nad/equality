@@ -137,6 +137,10 @@ import Function-universe
 
 import Accessibility
 
+-- Pullbacks.
+
+import Pullback
+
 -- Some alternative definitions of the concept of being an
 -- equivalence.
 
@@ -183,10 +187,6 @@ import Monad.State
 -- Lists.
 
 import List
-
--- Pullbacks.
-
-import Pullback
 
 -- Some results related to the For-iterated-equality predicate
 -- transformer.

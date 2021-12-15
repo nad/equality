@@ -28,6 +28,7 @@ open import Equivalence.Erased.Basics eq using (Is-equivalenceᴱ)
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
+open import Pullback eq using (∆)
 open import Surjection eq using (Split-surjective; _↠_)
 
 private
@@ -285,6 +286,83 @@ Path-split-cong
             (cong (_≃_.to B≃D) (cong f x≡y))                        ∎)
 
        n)
+
+-- Path-split 2 f can be expressed using Split-surjective and ∆
+-- (assuming extensionality).
+--
+-- This definition is based on Lemma 2.12 in "Modalities in Homotopy
+-- Type Theory" by Rijke, Shulman and Spitters.
+
+Path-split-2≃Split-surjective×Split-surjective-∆ :
+  {A : Type a} {B : Type b} {f : A → B} →
+  Path-split 2 f
+    ↝[ a ⊔ b ∣ a ⊔ b ]
+  (Split-surjective f × Split-surjective (∆ f))
+Path-split-2≃Split-surjective×Split-surjective-∆
+  {a = a} {b = b} {f = f} {k = k} ext =
+  Path-split 2 f                                ↔⟨⟩
+
+  Split-surjective f ×
+  (∀ x y →
+   Split-surjective (cong {x = x} {y = y} f) ×
+   (∀ x y → ↑ _ ⊤))                             ↝⟨ (∃-cong λ _ → lemma₁) ⟩□
+
+  Split-surjective f × Split-surjective (∆ f)   □
+  where
+  ext′ = lower-extensionality? k b lzero ext
+  ext″ = lower-extensionality? k a lzero ext
+
+  lemma₂ = λ x y p →
+    (∃ λ (q : x ≡ y) → cong f q ≡ p)                                      ↝⟨ (∃-cong λ q → ≡⇒↝ _ $ cong (_≡ _) (
+
+      cong f q                                                                  ≡⟨ sym $
+                                                                                   trans (cong (flip trans _) $
+                                                                                          trans (cong sym $ cong-const _)
+                                                                                          sym-refl) $
+                                                                                   trans (trans-reflˡ _) $
+                                                                                   trans-reflˡ _ ⟩
+      trans (sym (cong (const (f x)) q))
+        (trans (refl (f x)) (cong f q))                                         ≡⟨ sym subst-in-terms-of-trans-and-cong ⟩∎
+
+      subst (λ y → f x ≡ f y) q (refl (f x))                                    ∎)) ⟩
+
+    (∃ λ (q : x ≡ y) → subst (λ y → f x ≡ f y) q (refl (f x)) ≡ p)        ↝⟨ B.Σ-≡,≡↔≡ ⟩
+
+    (x , refl (f x)) ≡ (y , p)                                            ↝⟨ ≡⇒↝ _ $ cong (_≡ _) $ sym $ subst-refl _ _ ⟩
+
+    (subst (λ x → ∃ λ y → f x ≡ f y) (refl x) (x , refl (f x)) ≡
+     (y , p))                                                             ↝⟨ inverse $
+                                                                             drop-⊤-left-Σ $
+                                                                             _⇔_.to contractible⇔↔⊤ $ singleton-contractible _ ⟩
+    (∃ λ ((z , q) : ∃ λ z → z ≡ x) →
+     subst (λ x → ∃ λ y → f x ≡ f y) q (z , refl (f z)) ≡ (y , p))        ↝⟨ inverse Σ-assoc ⟩
+
+    (∃ λ z → ∃ λ (q : z ≡ x) →
+     subst (λ x → ∃ λ y → f x ≡ f y) q (z , refl (f z)) ≡ (y , p))        ↝⟨ (∃-cong λ _ →
+                                                                              B.Σ-≡,≡↔≡) ⟩□
+    (∃ λ z → (z , z , refl (f z)) ≡ (x , y , p))                          □
+
+  lemma₁ =
+    (∀ x y →
+     Split-surjective (cong {x = x} {y = y} f) ×
+     (∀ x y → ↑ _ ⊤))                                                     ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+                                                                              drop-⊤-right λ _ →
+                                                                              from-bijection →-right-zero F.∘
+                                                                              ∀-cong ext′ λ _ →
+                                                                              from-bijection →-right-zero F.∘
+                                                                              ∀-cong ext′ λ _ →
+                                                                              from-bijection B.↑↔) ⟩
+    (∀ x y → Split-surjective (cong {x = x} {y = y} f))                   ↔⟨⟩
+
+    (∀ x y → (p : f x ≡ f y) → ∃ λ (q : x ≡ y) → cong f q ≡ p)            ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ → ∀-cong ext″ λ _ →
+                                                                              from-bijection $ lemma₂ _ _ _) ⟩
+    (∀ x y → (p : f x ≡ f y) →
+     ∃ λ z → (z , z , refl (f z)) ≡ (x , y , p))                          ↝⟨ from-bijection (inverse currying) F.∘
+                                                                             (∀-cong ext′ λ _ → from-bijection (inverse currying)) ⟩
+
+    ((p : ∃ λ x → ∃ λ y → f x ≡ f y) → ∃ λ z → (z , z , refl (f z)) ≡ p)  ↔⟨⟩
+
+    Split-surjective (∆ f)                                                □
 
 ------------------------------------------------------------------------
 -- Extendable along
