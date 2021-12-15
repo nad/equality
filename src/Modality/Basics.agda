@@ -1599,6 +1599,15 @@ module Modality (M : Modality a) where
     ◯ A × ◯ B  ↝⟨ sA ×-cong sB ⟩□
     A × B      □
 
+  -- If A and B are stable, then A ⇔ B is stable.
+
+  Stable-⇔ : Stable A → Stable B → Stable (A ⇔ B)
+  Stable-⇔ {A = A} {B = B} sA sB =
+    ◯ (A ⇔ B)              ↔⟨ ◯-cong-↔ ⇔↔→×→ ⟩
+    ◯ ((A → B) × (B → A))  ↝⟨ Stable-× (Stable-Π λ _ → sB) (Stable-Π λ _ → sA) ⟩
+    (A → B) × (B → A)      ↔⟨ inverse ⇔↔→×→ ⟩□
+    A ⇔ B                  □
+
   -- Stable respects logical equivalences.
 
   Stable-respects-⇔ :
