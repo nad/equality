@@ -2792,6 +2792,127 @@ module Modality (M : Modality a) where
                                                                   other-singleton-contractible _ ⟩□
     ◯ (x < y)                                                  □
 
+  -- If the modality is left exact, then η x [ _<_ ]◯ η y is
+  -- equivalent to ◯ (x < y).
+
+  Left-exact→η-[]◯-η≃◯ :
+    Left-exact-η-cong →
+    (η x [ _<_ ]◯ η y) ≃ ◯ (x < y)
+  Left-exact→η-[]◯-η≃◯ {x = x} {_<_ = _<_} {y = y} lex =
+    η x [ _<_ ]◯ η y                                           ↔⟨⟩
+
+    ◯ (∃ λ x′ → ∃ λ y′ → η x ≡ η x′ × η y ≡ η y′ × (x′ < y′))  ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ∃-cong λ _ → inverse $
+                                                                   ◯≡≃η≡η lex ×-cong ◯≡≃η≡η lex ×-cong F.id) ⟩
+
+    ◯ (∃ λ x′ → ∃ λ y′ → ◯ (x ≡ x′) × ◯ (y ≡ y′) × (x′ < y′))  ↝⟨ flatten-≃
+                                                                    (λ F → ∃ λ x′ → ∃ λ y′ → F (x ≡ x′) × F (y ≡ y′) × (x′ < y′))
+                                                                    (λ f → Σ-map id (Σ-map id (Σ-map f (Σ-map f id))))
+                                                                    (λ (x′ , y′ , p , q , r) →
+                                                                       ◯-map (λ (p , q) → x′ , y′ , p , q , r) $
+                                                                       _≃_.from ◯×≃ (p , q))
+                                                                    lemma
+                                                                    (λ (x′ , y′ , p , q , r) →
+                                                                       ◯-elim
+                                                                         {P = λ p →
+                                                                                ◯-map (Σ-map id (Σ-map id (Σ-map η (Σ-map η id))))
+                                                                                  (◯-map (λ (p , q) → x′ , y′ , p , q , r)
+                                                                                     (_≃_.from ◯×≃ (p , q))) ≡
+                                                                                η (x′ , y′ , p , q , r)}
+                                                                         (λ _ → Separated-◯ _ _)
+                                                                         (λ p →
+                                                                            ◯-elim
+                                                                              {P = λ q →
+                                                                                     ◯-map (Σ-map id (Σ-map id (Σ-map η (Σ-map η id))))
+                                                                                       (◯-map (λ (p , q) → x′ , y′ , p , q , r)
+                                                                                          (_≃_.from ◯×≃ (η p , q))) ≡
+                                                                                     η (x′ , y′ , η p , q , r)}
+                                                                              (λ _ → Separated-◯ _ _)
+                                                                              (λ q →
+      ◯-map (Σ-map id (Σ-map id (Σ-map η (Σ-map η id))))
+        (◯-map (λ (p , q) → x′ , y′ , p , q , r)
+           (_≃_.from ◯×≃ (η p , η q)))                                           ≡⟨ cong (◯-map _) $
+                                                                                    lemma _ ⟩
+      ◯-map (Σ-map id (Σ-map id (Σ-map η (Σ-map η id))))
+        (η (x′ , y′ , p , q , r))                                                ≡⟨ ◯-map-η ⟩∎
+
+      η (x′ , y′ , η p , η q , r)                                                ∎)
+                                                                              q)
+                                                                         p) ⟩
+
+    ◯ (∃ λ x′ → ∃ λ y′ → x ≡ x′ × y ≡ y′ × (x′ < y′))          ↔⟨ ◯-cong-↔ $
+                                                                  (∃-cong λ _ → Σ-assoc) F.∘
+                                                                  Σ-assoc F.∘
+                                                                  (∃-cong λ _ → ∃-comm) ⟩
+    ◯ (∃ λ ((x′ , _) : ∃ λ x′ → x ≡ x′) →
+       ∃ λ ((y′ , _) : ∃ λ y′ → y ≡ y′) →
+       x′ < y′)                                                ↔⟨ ◯-cong-↔ $
+                                                                  drop-⊤-left-Σ $
+                                                                  _⇔_.to contractible⇔↔⊤ $
+                                                                  other-singleton-contractible _ ⟩
+
+    ◯ (∃ λ ((y′ , _) : ∃ λ y′ → y ≡ y′) → x < y′)              ↔⟨ ◯-cong-↔ $
+                                                                  drop-⊤-left-Σ $
+                                                                  _⇔_.to contractible⇔↔⊤ $
+                                                                  other-singleton-contractible _ ⟩□
+    ◯ (x < y)                                                  □
+    where
+    lemma = λ (x′ , y′ , p , q , r) →
+      ◯-map (λ (p , q) → x′ , y′ , p , q , r) (_≃_.from ◯×≃ (η p , η q))  ≡⟨ cong (◯-map _) ◯×≃⁻¹-η ⟩
+      ◯-map (λ (p , q) → x′ , y′ , p , q , r) (η (p , q))                 ≡⟨ ◯-map-η ⟩∎
+      η (x′ , y′ , p , q , r)                                             ∎
+
+  -- For a left exact modality _[ _<_ ]◯_ is logically equivalent to
+  -- any pointwise stable relation R (of a certain type) for which
+  -- R (η x) (η y) ⇔ ◯ (x < y) holds for all x and y.
+
+  ⇔[]◯ :
+    {R : ◯ A → ◯ A → Type a} →
+    Left-exact-η-cong →
+    (∀ {x y} → Stable (R x y)) →
+    (∀ {x y} → R (η x) (η y) ⇔ ◯ (x < y)) →
+    R x y ⇔ (x [ _<_ ]◯ y)
+  ⇔[]◯ {_<_ = _<_} {x = x} {y = y} {R = R} lex s Rηη⇔◯< =
+    ◯-elim′
+      {P = λ x → R x y ⇔ (x [ _<_ ]◯ y)}
+      (λ _ → Stable-⇔ s (Modal→Stable Modal-◯))
+      (λ x →
+         ◯-elim′
+           {P = λ y → R (η x) y ⇔ (η x [ _<_ ]◯ y)}
+           (λ _ → Stable-⇔ s (Modal→Stable Modal-◯))
+           (λ y →
+              R (η x) (η y)     ↝⟨ Rηη⇔◯< ⟩
+              ◯ (x < y)         ↔⟨ inverse $ Left-exact→η-[]◯-η≃◯ lex ⟩□
+              η x [ _<_ ]◯ η y  □)
+           y)
+      x
+
+  -- For a left exact modality, and in the presence of function
+  -- extensionality, _[ _<_ ]◯_ is pointwise equivalent to any
+  -- pointwise modal relation R (of a certain type) for which
+  -- R (η x) (η y) ≃ ◯ (x < y) holds for all x and y.
+
+  ≃[]◯ :
+    {R : ◯ A → ◯ A → Type a} →
+    Extensionality a a →
+    Left-exact-η-cong →
+    (∀ {x y} → Modal (R x y)) →
+    (∀ {x y} → R (η x) (η y) ≃ ◯ (x < y)) →
+    R x y ≃ (x [ _<_ ]◯ y)
+  ≃[]◯ {_<_ = _<_} {x = x} {y = y} {R = R} ext lex m Rηη≃◯< =
+    ◯-elim
+      {P = λ x → R x y ≃ (x [ _<_ ]◯ y)}
+      (λ _ → Modal-≃ ext m Modal-◯)
+      (λ x →
+         ◯-elim
+           {P = λ y → R (η x) y ≃ (η x [ _<_ ]◯ y)}
+           (λ _ → Modal-≃ ext m Modal-◯)
+           (λ y →
+              R (η x) (η y)     ↝⟨ Rηη≃◯< ⟩
+              ◯ (x < y)         ↝⟨ inverse $ Left-exact→η-[]◯-η≃◯ lex ⟩□
+              η x [ _<_ ]◯ η y  □)
+           y)
+      x
+
   -- If A is modal, _<_ is pointwise stable, and x : A is accessible
   -- with respect to _<_, then η x is accessible with respect to
   -- _[ _<_ ]◯_.
