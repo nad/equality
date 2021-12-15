@@ -297,15 +297,15 @@ topological ℓ ext =
               ◯Π◯≃◯Π _ (_⇔_.from (◯Π◯≃◯Π _) (η f))  ≡⟨ _≃_.right-inverse-of (◯Π◯≃◯Π ext) _ ⟩∎
               η f                                   ∎)
        , (λ f →
-            ◯Π→Π◯ (◯Π◯≃◯Π _ (η f))                           ≡⟨ ◯Π◯≃◯Π-η′ ◯Π→Π◯ id
-                                                                  (Modal-Π ext λ _ → Modal-◯)
-                                                                  (λ m →
-              ◯Π→Π◯ (η (λ x → Modal→Stable (m x) (f x)))          ≡⟨ ◯Π→Π◯-η ext ⟩
-              (λ x → η (Modal→Stable (m x) (f x)))                ≡⟨⟩
-              (λ x → η (η⁻¹ (m x) (f x)))                            ≡⟨ (apply-ext ext λ _ → η-η⁻¹) ⟩∎
-              f                                                      ∎) ⟩∎
+            ◯Π→Π◯ (◯Π◯≃◯Π _ (η f))                        ≡⟨ ◯Π◯≃◯Π-η′ ◯Π→Π◯ id
+                                                               (Modal-Π ext λ _ → Modal-◯)
+                                                               (λ m →
+              ◯Π→Π◯ (η (λ x → Modal→Stable (m x) (f x)))       ≡⟨ ◯Π→Π◯-η ext ⟩
+              (λ x → η (Modal→Stable (m x) (f x)))             ≡⟨⟩
+              (λ x → η (η⁻¹ (m x) (f x)))                         ≡⟨ (apply-ext ext λ _ → η-η⁻¹) ⟩∎
+              f                                                   ∎) ⟩∎
 
-            f                                                ∎))
+            f                                             ∎))
   where
   to =
     ((x : A) → ◯ (P x))    →⟨ η ⟩
