@@ -217,8 +217,9 @@ Modal≃Modal-Null {A = A} ext =
 -- The modality is topological for certain universe levels (assuming
 -- function extensionality).
 --
--- TODO: Are there any topological modalities which are not very
--- modal?
+-- Note that if every topological modality is very modal, then
+-- excluded middle holds (in Cubical Agda, see
+-- Join.Very-modal-Closed≃Excluded-middle).
 
 topological :
   ∀ ℓ →
