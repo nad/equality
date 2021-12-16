@@ -1117,6 +1117,19 @@ Erased-is-accessible-and-topologicalᴱ a =
     (∀ i → Erased (Is-proposition (P i))) ×
     ((A : Type a) → Very-stableᴱ A ⇔ P -Nullᴱ A)
 
+-- In erased contexts Erased is accessible and topological.
+
+@0 erased-is-accessible-and-topological-in-erased-contexts′ :
+  Erased-is-accessible-and-topological′ a
+erased-is-accessible-and-topological-in-erased-contexts′ {a = a} =
+    ↑ a ⊤
+  , (λ _ → ↑ a ⊤)
+  , (λ _ → H-level.mono₁ 0 (↑-closure 0 ⊤-contractible))
+  , (λ _ → record
+       { to   = λ _ _ → PS.∞-extendable-along-id
+       ; from = λ _ → Erased-Very-stable .erased
+       })
+
 -- In erased contexts Erased is accessible and topological (assuming
 -- extensionality).
 
@@ -2159,14 +2172,9 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   @0 Erased-topological : Topological Erased-modality
   Erased-topological =
-      ( ↑ _ ⊤
-      , (λ _ → ↑ _ ⊤)
-      , (λ _ → record
-           { to   = λ _ _ → PS.∞-extendable-along-id
-           ; from = λ _ → Erased-Very-stable .erased
-           })
-      )
-    , (λ _ → H-level.mono₁ 0 (↑-closure 0 ⊤-contractible))
+    let I , P , prop , eq =
+          erased-is-accessible-and-topological-in-erased-contexts′
+    in (I , P , eq) , prop
 
   ----------------------------------------------------------------------
   -- Erased singletons
