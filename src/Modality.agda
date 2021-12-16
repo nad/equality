@@ -26,10 +26,10 @@ open import Modality.Basics eq public
 -- Very-modal M is propositional (assuming function extensionality).
 
 Very-modal-propositional :
-  {M : Modality a} →
   Extensionality (lsuc a) a →
+  (M : Modality a) →
   Is-proposition (Very-modal M)
-Very-modal-propositional {M = M} ext =
+Very-modal-propositional ext M =
   [inhabited⇒+]⇒+ {A = Very-modal M} 0 λ very-modal →
   let open VM M very-modal in
   implicit-Π-closure ext 1 λ _ →
