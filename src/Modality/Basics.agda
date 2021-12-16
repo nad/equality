@@ -540,33 +540,36 @@ Left-exact-propositional {◯ = ◯} ext =
   where
   ext′ = lower-extensionality _ lzero ext
 
--- A definition of what it means for a modality to be accessible (for
--- a certain universe level).
+-- A definition of what it means for a modality to be accessible.
 --
 -- This definition is based on (one version of) the Coq code
--- accompanying "Modalities in Homotopy Type Theory".
+-- accompanying "Modalities in Homotopy Type Theory". Originally I had
+-- allowed I and P to target a different, possibly larger universe,
+-- because I had missed that the two universe levels occurring in the
+-- Coq code were not unconstrained. However, it was pointed out to me
+-- by Felix Cherubini and Christian Sattler (and perhaps someone else)
+-- that my definition was not correct.
 
-Accessible : (ℓ : Level) → Modality a → Type (lsuc (a ⊔ ℓ))
-Accessible {a = a} ℓ M =
-  ∃ λ (I : Type ℓ) →
-  ∃ λ (P : I → Type ℓ) →
+Accessible : Modality a → Type (lsuc a)
+Accessible {a = a} M =
+  ∃ λ (I : Type a) →
+  ∃ λ (P : I → Type a) →
     (A : Type a) →
     Modal A ⇔
     ∀ i →
     Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
-      (λ (_ : ↑ ℓ ⊤) → A)
+      (λ (_ : ↑ a ⊤) → A)
   where
   open Modality-record M
 
--- A definition of what it means for a modality to be topological (for
--- a certain universe level).
+-- A definition of what it means for a modality to be topological.
 --
 -- This definition is based on (one version of) the Coq code
 -- accompanying "Modalities in Homotopy Type Theory".
 
-Topological : (ℓ : Level) → Modality a → Type (lsuc (a ⊔ ℓ))
-Topological {a = a} ℓ M =
-  ∃ λ ((_ , P , _) : Accessible ℓ M) →
+Topological : Modality a → Type (lsuc a)
+Topological M =
+  ∃ λ ((_ , P , _) : Accessible M) →
     ∀ i → Is-proposition (P i)
 
 -- A definition of what it means for a modality to be cotopological.

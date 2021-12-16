@@ -98,31 +98,31 @@ Zero-modality {ℓ = ℓ} = λ where
       (λ g → proj₁ ∘ cB , (λ x → proj₂ (cB _) (g x)))
     , (λ _ _ → extendable (⇒≡ 0 ∘ cB) n)
 
--- The zero modality is topological (for all universe levels).
+-- The zero modality is topological.
 --
 -- This result is based on "Modalities in Homotopy Type Theory" by
 -- Rijke, Shulman and Spitters.
 
-Zero-topological : Topological ℓ′ (Zero-modality {ℓ = ℓ})
-Zero-topological {ℓ′ = ℓ′} {ℓ = ℓ} =
-    ( ↑ ℓ′ ⊤
+Zero-topological : Topological (Zero-modality {ℓ = ℓ})
+Zero-topological {ℓ = ℓ} =
+    ( ↑ ℓ ⊤
     , (λ _ → ⊥)
     , (λ _ → record { to = to; from = from })
     )
   , (λ _ → ⊥-propositional)
   where
-  open Modality Zero-modality
+  open Modality (Zero-modality {ℓ = ℓ})
 
   to :
     Zero-modal A →
-    ↑ ℓ′ ⊤ → Is-∞-extendable-along-[ η ] (λ _ → A)
+    ↑ ℓ ⊤ → Is-∞-extendable-along-[ η {A = ⊥} ] (λ _ → A)
   to cA _ zero    = _
   to cA _ (suc n) =
       (λ _ → (λ _ → proj₁ cA) , (λ ()))
     , (λ _ _ → to (⇒≡ 0 cA) _ n)
 
   from :
-    (↑ ℓ′ ⊤ → Is-∞-extendable-along-[ η ] (λ _ → A)) →
+    (↑ ℓ ⊤ → Is-∞-extendable-along-[ η ] (λ _ → A)) →
     Zero-modal A
   from {A = A} ext =
       inh

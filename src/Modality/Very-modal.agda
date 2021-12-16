@@ -82,8 +82,7 @@ abstract
     ◯ (∀ x → Modal (P x))            □
 
 ------------------------------------------------------------------------
--- The modality is left exact and, assuming function extensionality,
--- topological
+-- The modality is left exact
 
 -- Very modal modalities are left exact.
 --
@@ -97,6 +96,10 @@ left-exact-η-cong =
 
 ◯≡≃η≡η : ◯ (x ≡ y) ≃ (η x ≡ η y)
 ◯≡≃η≡η = M.◯≡≃η≡η left-exact-η-cong
+
+------------------------------------------------------------------------
+-- Modal A is equivalent to Modal -Null A (assuming function
+-- extensionality)
 
 -- ◯ ((x : A) → ◯ (P x)) is equivalent to ◯ ((x : A) → P x) (assuming
 -- function extensionality).
@@ -213,35 +216,6 @@ Modal≃Modal-Null {A = A} ext =
       _≃_.from A≃ (const x)            ≡⟨⟩
       _≃_.from A≃ (_≃_.to A≃ x)        ≡⟨ _≃_.left-inverse-of A≃ _ ⟩∎
       x                                ∎
-
--- The modality is topological for certain universe levels (assuming
--- function extensionality).
---
--- Note that if every topological modality is very modal, then
--- excluded middle holds (in Cubical Agda, see
--- Join.Very-modal-Closed≃Excluded-middle).
-
-topological :
-  ∀ ℓ →
-  Extensionality (lsuc a ⊔ ℓ) (lsuc a ⊔ ℓ) →
-  Topological (lsuc a ⊔ ℓ) M
-topological ℓ ext =
-    ( ↑ ℓ (Type a)
-    , ↑ _ ∘ Modal ∘ lower
-    , (λ A →
-         Modal A                                        ↝⟨ Modal≃Modal-Null ext′ _ ⟩
-         Modal -Null A                                  ↝⟨ (inverse $
-                                                            Π-cong _ Bijection.↑↔ λ B →
-                                                            Is-equivalence≃Is-equivalence-∘ˡ
-                                                              (_≃_.is-equivalence $
-                                                               Eq.↔→≃ (_∘ lift) (_∘ lower) refl refl)
-                                                              _) ⟩
-         (↑ _ ∘ Modal ∘ lower) -Null A                  ↔⟨ inverse $ PS.Π-Is-∞-extendable-along≃Null ext ⟩□
-         (∀ _ → Is-∞-extendable-along-[ _ ] (λ _ → A))  □)
-    )
-  , (λ _ → ↑-closure 1 $ Modal-propositional ext′)
-  where
-  ext′ = lower-extensionality _ _ ext
 
 ------------------------------------------------------------------------
 -- Some equivalences

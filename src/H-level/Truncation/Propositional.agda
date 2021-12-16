@@ -239,17 +239,17 @@ rec p f = rec′ λ where
 -- This proof is based on "Modalities in Homotopy Type Theory" by
 -- Rijke, Shulman and Spitters.
 
-∥∥-accessible : Accessible ℓ′ (∥∥-modality {ℓ = ℓ})
-∥∥-accessible {ℓ′ = ℓ′} {ℓ = ℓ} =
-    ↑ ℓ′ ⊤
-  , (λ _ → ↑ ℓ′ Bool)
+∥∥-accessible : Accessible (∥∥-modality {ℓ = ℓ})
+∥∥-accessible {ℓ = ℓ} =
+    ↑ ℓ ⊤
+  , (λ _ → ↑ ℓ Bool)
   , (λ A →
-       Is-proposition A                                  ↝⟨ record { from = from; to = to } ⟩
-       (λ _ → ↑ ℓ′ Bool) -Null A                         ↔⟨ inverse $ PS.Π-Is-∞-extendable-along≃Null ext ⟩□
-       (↑ ℓ′ ⊤ → Is-∞-extendable-along-[ _ ] (λ _ → A))  □)
+       Is-proposition A                                 ↝⟨ record { from = from; to = to } ⟩
+       (λ (_ : ↑ ℓ ⊤) → ↑ ℓ Bool) -Null A               ↔⟨ inverse $ PS.Π-Is-∞-extendable-along≃Null ext ⟩□
+       (↑ ℓ ⊤ → Is-∞-extendable-along-[ _ ] (λ _ → A))  □)
 
   where
-  to : Is-proposition A → (λ _ → ↑ ℓ′ Bool) -Null A
+  to : Is-proposition A → (λ (_ : ↑ ℓ ⊤) → ↑ ℓ Bool) -Null A
   to prop _ =
     _≃_.is-equivalence $
     Eq.⇔→≃
@@ -258,7 +258,7 @@ rec p f = rec′ λ where
       _
       (_$ lift true)
 
-  from : (λ _ → ↑ ℓ′ Bool) -Null A → Is-proposition A
+  from : (λ (_ : ↑ ℓ ⊤) → ↑ ℓ Bool) -Null A → Is-proposition A
   from {A = A} null x y =
     x                                           ≡⟨⟩
     case true ⦂ Bool of if_then x else y        ≡⟨ cong (_$ true) $ sym $ EB→.right-inverse-of _ ⟩
@@ -270,9 +270,9 @@ rec p f = rec′ λ where
     where
     ≃Bool→ : A ≃ (Bool → A)
     ≃Bool→ =
-      A                ↝⟨ Eq.⟨ _ , null _ ⟩ ⟩
-      (↑ ℓ′ Bool → A)  ↝⟨ Eq.↔→≃ (_∘ lift) (_∘ lower) refl refl ⟩□
-      (Bool → A)       □
+      A               ↝⟨ Eq.⟨ _ , null _ ⟩ ⟩
+      (↑ ℓ Bool → A)  ↝⟨ Eq.↔→≃ (_∘ lift) (_∘ lower) refl refl ⟩□
+      (Bool → A)      □
 
     module EB→ = _≃_ ≃Bool→
 

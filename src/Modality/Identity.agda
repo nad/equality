@@ -65,12 +65,12 @@ private
       (Identity-modality {ℓ = ℓ})
       (λ {A} → very-modal {A = A})
 
--- The identity modality is topological (for every universe level).
+-- The identity modality is topological.
 
-topological : Topological ℓ′ (Identity-modality {ℓ = ℓ})
-topological {ℓ′ = ℓ′} =
-    ( ↑ ℓ′ ⊤
-    , (λ _ → ↑ ℓ′ ⊤)
+topological : Topological (Identity-modality {ℓ = ℓ})
+topological {ℓ = ℓ} =
+    ( ↑ ℓ ⊤
+    , (λ _ → ↑ ℓ ⊤)
     , (λ _ → record { to = λ _ _ → ∞-extendable-along-id })
     )
   , (λ _ → H-level.mono₁ 0 (↑-closure 0 ⊤-contractible))

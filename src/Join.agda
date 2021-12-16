@@ -460,7 +460,7 @@ Closed A prop = Σ-closed-reflective-subuniverse.modality λ where
     Is-equivalence (λ (f : Join A B → C) → f ∘ inr)       ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
     Is-∞-extendable-along-[ inr ] (λ (_ : Join A B) → C)  □
 
--- Closed A prop is topological (for a certain universe level).
+-- Closed A prop is topological.
 --
 -- This definition is based on "Modalities in Homotopy Type Theory" by
 -- Rijke, Shulman and Spitters.
@@ -468,7 +468,7 @@ Closed A prop = Σ-closed-reflective-subuniverse.modality λ where
 Closed-topological :
   {A : Type a}
   (prop : Is-proposition A) →
-  Topological a (Closed A prop)
+  Topological (Closed A prop)
 Closed-topological {A = A} prop =
     ( A
     , (λ _ → ⊥)

@@ -1059,35 +1059,34 @@ Is-equivalenceᴱ-∘[] ext s =
        _≃ᴱ_.left-inverse-of EEq.⟨ _ , s ⟩ (f x))
 
 ------------------------------------------------------------------------
--- Erased is accessible and topological (assuming extensionality)
+-- Definitions of what it means for Erased to be accessible and
+-- topological
 
 -- A definition of what it means for Erased to be accessible and
--- topological (for certain universe levels).
+-- topological (for a certain universe level).
 --
 -- This definition is based on (one version of) the Coq code
 -- accompanying "Modalities in Homotopy Type Theory" by Rijke, Shulman
 -- and Spitters.
 
-Erased-is-accessible-and-topological′ :
-  (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
-Erased-is-accessible-and-topological′ ℓ a =
-  ∃ λ (I : Type ℓ) →
-  ∃ λ (P : I → Type ℓ) →
+Erased-is-accessible-and-topological′ : (a : Level) → Type (lsuc a)
+Erased-is-accessible-and-topological′ a =
+  ∃ λ (I : Type a) →
+  ∃ λ (P : I → Type a) →
     (∀ i → Is-proposition (P i)) ×
     ((A : Type a) →
      Very-stable A ⇔
      ∀ i →
      Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
-       (λ (_ : ↑ ℓ ⊤) → A))
+       (λ (_ : ↑ a ⊤) → A))
 
 -- A variant of Erased-is-accessible-and-topological′ that does not
 -- use Is-∞-extendable-along-[_].
 
-Erased-is-accessible-and-topological :
-  (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
-Erased-is-accessible-and-topological ℓ a =
-  ∃ λ (I : Type ℓ) →
-  ∃ λ (P : I → Type ℓ) →
+Erased-is-accessible-and-topological : (a : Level) → Type (lsuc a)
+Erased-is-accessible-and-topological a =
+  ∃ λ (I : Type a) →
+  ∃ λ (P : I → Type a) →
     (∀ i → Is-proposition (P i)) ×
     ((A : Type a) → Very-stable A ⇔ P -Null A)
 
@@ -1096,25 +1095,25 @@ Erased-is-accessible-and-topological ℓ a =
 -- (assuming extensionality).
 
 ≃Erased-is-accessible-and-topological :
-  Extensionality (lsuc a ⊔ ℓ) (a ⊔ ℓ) →
-  Erased-is-accessible-and-topological′ ℓ a ≃
-  Erased-is-accessible-and-topological ℓ a
-≃Erased-is-accessible-and-topological {a = a} {ℓ = ℓ} ext =
+  Extensionality (lsuc a) a →
+  Erased-is-accessible-and-topological′ a ≃
+  Erased-is-accessible-and-topological a
+≃Erased-is-accessible-and-topological {a = a} ext =
   ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
-  ∀-cong (lower-extensionality ℓ lzero ext) λ _ →
-  ⇔-cong (lower-extensionality (lsuc a) lzero ext) Eq.id $
+  ∀-cong ext λ _ →
+  ⇔-cong (lower-extensionality _ lzero ext) Eq.id $
   PS.Π-Is-∞-extendable-along≃Null
-    (lower-extensionality (lsuc a) lzero ext)
+    (lower-extensionality _ lzero ext)
 
 -- A variant of Erased-is-accessible-and-topological that uses
 -- Very-stableᴱ instead of Very-stable and _-Nullᴱ_ instead of
 -- _-Null_, and for which Is-proposition is replaced by
 -- Erased ∘ Is-proposition.
 
-Erased-is-accessible-and-topologicalᴱ : (ℓ a : Level) → Type (lsuc (a ⊔ ℓ))
-Erased-is-accessible-and-topologicalᴱ ℓ a =
-  ∃ λ (I : Type ℓ) →
-  ∃ λ (P : I → Type ℓ) →
+Erased-is-accessible-and-topologicalᴱ : (a : Level) → Type (lsuc a)
+Erased-is-accessible-and-topologicalᴱ a =
+  ∃ λ (I : Type a) →
+  ∃ λ (P : I → Type a) →
     (∀ i → Erased (Is-proposition (P i))) ×
     ((A : Type a) → Very-stableᴱ A ⇔ P -Nullᴱ A)
 
@@ -1122,20 +1121,23 @@ Erased-is-accessible-and-topologicalᴱ ℓ a =
 -- extensionality).
 
 @0 erased-is-accessible-and-topological-in-erased-contexts :
-  Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
-  Erased-is-accessible-and-topological ℓ a
-erased-is-accessible-and-topological-in-erased-contexts
-  {a = a} {ℓ = ℓ} ext =
-    ↑ ℓ ⊤
-  , (λ _ → ↑ ℓ ⊤)
+  Extensionality a a →
+  Erased-is-accessible-and-topological a
+erased-is-accessible-and-topological-in-erased-contexts {a = a} ext =
+    ↑ a ⊤
+  , (λ _ → ↑ a ⊤)
   , (λ _ → H-level.mono₁ 0 $ ↑-closure 0 ⊤-contractible)
   , λ A →
       Very-stable A          ↔⟨ _⇔_.to contractible⇔↔⊤ $
                                 propositional⇒inhabited⇒contractible
-                                  (Very-stable-propositional (lower-extensionality ℓ ℓ ext))
+                                  (Very-stable-propositional ext)
                                   (Erased-Very-stable .erased) ⟩
       ⊤                      ↝⟨ record { to = λ _ _ → _≃_.is-equivalence $ Eq.↔→≃ _ (_$ _) refl refl } ⟩□
-      (λ _ → ↑ ℓ ⊤) -Null A  □
+      (λ _ → ↑ a ⊤) -Null A  □
+
+------------------------------------------------------------------------
+-- Some lemmas related to Very-stable/Very-stableᴱ and
+-- _-Null_/_-Nullᴱ_
 
 -- Very-stable {a = a} is pointwise equivalent to
 -- (λ (A : Type a) → Very-stable A) -Null_ (assuming extensionality).
@@ -1261,51 +1263,6 @@ Very-stableᴱ≃Very-stableᴱ-Nullᴱ {A = A} ext =
       _≃ᴱ_.from A≃ (const x)                              ≡⟨⟩
       _≃ᴱ_.from A≃ (_≃ᴱ_.to A≃ x)                         ≡⟨ _≃ᴱ_.left-inverse-of A≃ _ ⟩∎
       x                                                   ∎
-
--- Erased is accessible and topological (for certain universe levels,
--- assuming extensionality).
-
-erased-is-accessible-and-topological :
-  ∀ ℓ → Extensionality a a →
-  Erased-is-accessible-and-topological (lsuc a ⊔ ℓ) a
-erased-is-accessible-and-topological {a = a} ℓ ext =
-    ↑ ℓ (Type a)
-  , ↑ _ ∘ Very-stable ∘ lower
-  , (λ _ → ↑-closure 1 $ Very-stable-propositional ext)
-  , (λ A →
-       Very-stable A                        ↝⟨ Very-stable≃Very-stable-Null ext _ ⟩
-
-       Very-stable -Null A                  ↝⟨ (inverse $
-                                                Π-cong _ Bijection.↑↔ λ B →
-                                                Is-equivalence≃Is-equivalence-∘ˡ
-                                                  (_≃_.is-equivalence $
-                                                   Eq.↔→≃ (_∘ lift) (_∘ lower) refl refl)
-                                                  _) ⟩□
-       (↑ _ ∘ Very-stable ∘ lower) -Null A  □)
-
--- The property Erased-is-accessible-and-topologicalᴱ holds for
--- certain universe levels (assuming extensionality).
-
-erased-is-accessible-and-topologicalᴱ :
-  ∀ ℓ → @0 Extensionality (lsuc a) a →
-  Erased-is-accessible-and-topologicalᴱ (lsuc a ⊔ ℓ) a
-erased-is-accessible-and-topologicalᴱ {a = a} ℓ ext =
-    ↑ ℓ (Type a)
-  , ↑ _ ∘ Very-stableᴱ ∘ lower
-  , (λ _ →
-       [ ↑-closure 1 $
-           Very-stableᴱ-propositional
-             (lower-extensionality _ lzero ext)
-       ])
-  , (λ A →
-       Very-stableᴱ A                         ↝⟨ _≃ᴱ_.logical-equivalence $
-                                                 Very-stableᴱ≃Very-stableᴱ-Nullᴱ ext ⟩
-       Very-stableᴱ -Nullᴱ A                  ↝⟨ (inverse $
-                                                  Π-cong _ Bijection.↑↔ λ B →
-                                                  EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-∘ˡ
-                                                    (_≃ᴱ_.is-equivalence $
-                                                     EEq.↔→≃ᴱ (_∘ lift) (_∘ lower) refl refl)) ⟩□
-       (↑ _ ∘ Very-stableᴱ ∘ lower) -Nullᴱ A  □)
 
 ------------------------------------------------------------------------
 -- Erased singletons
@@ -2179,16 +2136,6 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   Erased-very-modal : Very-modal Erased-modality
   Erased-very-modal = Erased-Very-stable
 
-  -- The modality is topological (for certain universe levels,
-  -- assuming extensionality).
-
-  Erased-topological :
-    ∀ ℓ′ →
-    Extensionality (lsuc ℓ ⊔ ℓ′) (lsuc ℓ ⊔ ℓ′) →
-    Topological (lsuc ℓ ⊔ ℓ′) Erased-modality
-  Erased-topological =
-    Very-modal.topological Erased-modality Erased-very-modal
-
   -- The modality is accessibility-modal.
 
   Erased-accessibility-modal :
@@ -2207,6 +2154,19 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     , Stable-Acc
     where
     open Modality Erased-modality using (_[_]◯_)
+
+  -- The modality is topological in erased contexts.
+
+  @0 Erased-topological : Topological Erased-modality
+  Erased-topological =
+      ( ↑ _ ⊤
+      , (λ _ → ↑ _ ⊤)
+      , (λ _ → record
+           { to   = λ _ _ → PS.∞-extendable-along-id
+           ; from = λ _ → Erased-Very-stable .erased
+           })
+      )
+    , (λ _ → H-level.mono₁ 0 (↑-closure 0 ⊤-contractible))
 
   ----------------------------------------------------------------------
   -- Erased singletons
@@ -2701,20 +2661,6 @@ module Extensionality where
   Erased-modality ext =
     []-cong₁.Erased-modality
       (Extensionality→[]-cong-axiomatisation ext)
-
-  -- This modality is topological (for certain universe levels,
-  -- assuming extensionality).
-
-  Erased-topological :
-    ∀ ℓ′ (ext : Extensionality (lsuc ℓ ⊔ ℓ′) (lsuc ℓ ⊔ ℓ′)) →
-    Topological (lsuc ℓ ⊔ ℓ′)
-      (Erased-modality {ℓ = ℓ} (lower-extensionality _ _ ext))
-  Erased-topological ℓ′ ext =
-    []-cong₁.Erased-topological
-      (Extensionality→[]-cong-axiomatisation
-         (lower-extensionality _ _ ext))
-      ℓ′
-      ext
 
 ------------------------------------------------------------------------
 -- Some lemmas related to Stable-≡-Erased-axiomatisation
