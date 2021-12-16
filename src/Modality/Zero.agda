@@ -13,7 +13,7 @@ open Derived-definitions-and-properties eq
 
 open import Prelude
 
-open import Accessibility eq as A using (Well-founded)
+import Accessibility eq as A
 open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
 open import Equivalence eq using (_≃_)
