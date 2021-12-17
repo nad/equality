@@ -151,7 +151,7 @@ f ∘ g = λ x → f (g x)
 infix  -1 finally-→
 infixr -2 step-→
 
--- For an explanation of why step-⇔ is defined in this way, see
+-- For an explanation of why step-→ is defined in this way, see
 -- Equality.step-≡.
 
 step-→ : (@0 A : Type a) → (B → C) → (A → B) → A → C
