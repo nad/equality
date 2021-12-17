@@ -193,6 +193,10 @@ import List
 
 import For-iterated-equality
 
+-- Lists of equivalent types.
+
+import Equivalence.List
+
 -- Idempotent monadic modalities.
 
 import Modality.Basics
