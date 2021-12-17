@@ -21,7 +21,7 @@ open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
 open import Logical-equivalence as L-eq using (_⇔_)
-open import Nat eq
+import Nat eq as Nat
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection eq as Surjection using (_↠_)
@@ -1022,7 +1022,7 @@ abstract
              H-level n A → H-level n B →
              H-level n (Is-equivalence to)
     lemma₁ zero    cA cB = sometimes-contractible ext cA (mono₁ 0 cB)
-    lemma₁ (suc n) _  _  = mono (m≤m+n 1 n) (propositional ext _)
+    lemma₁ (suc n) _  _  = mono (Nat.m≤m+n 1 n) (propositional ext _)
 
     lemma₂ : H-level n (∃ λ (to : A → B) → Is-equivalence to)
     lemma₂ = Σ-closure n
