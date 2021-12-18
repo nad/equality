@@ -3849,6 +3849,88 @@ to-∘-⁻¹-≃-⁻¹-from {f = f} {z = z} B≃C =
                                                                       singleton-contractible _) ⟩□
   (∃ λ (x : A) → f x ≡ y)                                         □
 
+-- The following two definitions are based on code in the Coq HoTT
+-- library, implemented by Mike Shulman.
+
+-- A kind of map function for fibres.
+
+⁻¹-map :
+  ∀ {a b c d} {A : Type a} {B : Type b} {C : Type c} {D : Type d}
+    {f₁ : A → B} {f₂ : B → D} {g₁ : A → C} {g₂ : C → D} {y} →
+  (∀ x → g₂ (g₁ x) ≡ f₂ (f₁ x)) →
+  f₁ ⁻¹ y → g₂ ⁻¹ f₂ y
+⁻¹-map {f₁ = f₁} {f₂ = f₂} {g₁ = g₁} {g₂ = g₂} {y = y} eq (x , f₁x≡y) =
+    g₁ x
+  , (g₂ (g₁ x)  ≡⟨ eq x ⟩
+     f₂ (f₁ x)  ≡⟨ cong f₂ f₁x≡y ⟩∎
+     f₂ y       ∎)
+
+-- The 3 × 3 lemma for fibrations.
+
+3×3-⁻¹ :
+  ∀ {a b c d} {A : Type a} {B : Type b} {C : Type c} {D : Type d}
+    {f₁ : A → B} {f₂ : B → D} {g₁ : A → C} {g₂ : C → D} {y z} →
+    {eq₁ : ∀ x → g₂ (g₁ x) ≡ f₂ (f₁ x)} {eq₂ : g₂ z ≡ f₂ y} →
+  ⁻¹-map {f₂ = f₂} {g₂ = g₂} eq₁ ⁻¹ (z , eq₂) ≃
+  ⁻¹-map {f₂ = g₂} {g₂ = f₂} (sym ⊚ eq₁) ⁻¹ (y , sym eq₂)
+3×3-⁻¹
+  {f₁ = f₁} {f₂ = f₂} {g₁ = g₁} {g₂ = g₂} {y = y} {z = z}
+  {eq₁ = eq₁} {eq₂ = eq₂} =
+
+  ⁻¹-map eq₁ ⁻¹ (z , eq₂)                                             ↔⟨⟩
+
+  (∃ λ (p : f₁ ⁻¹ y) → ⁻¹-map eq₁ p ≡ (z , eq₂))                      ↔⟨ (∃-cong λ _ → inverse Bijection.Σ-≡,≡↔≡) ⟩
+
+  (∃ λ ((x , f₁x≡y) : f₁ ⁻¹ y) → ∃ λ (g₁x≡z : g₁ x ≡ z) →
+   subst (λ z → g₂ z ≡ f₂ y) g₁x≡z (trans (eq₁ x) (cong f₂ f₁x≡y)) ≡
+   eq₂)                                                               ↔⟨ Σ-assoc ∘
+                                                                         (∃-cong λ _ → ∃-comm) ∘
+                                                                         inverse Σ-assoc ⟩
+  (∃ λ ((x , g₁x≡z) : g₁ ⁻¹ z) → ∃ λ (f₁x≡y : f₁ x ≡ y) →
+   subst (λ z → g₂ z ≡ f₂ y) g₁x≡z (trans (eq₁ x) (cong f₂ f₁x≡y)) ≡
+   eq₂)                                                               ↝⟨ (∃-cong λ (x , g₁x≡z) → ∃-cong λ f₁x≡y →
+                                                                          ≡⇒↝ _ $ cong (_≡ _) (
+    subst (λ z → g₂ z ≡ f₂ y) g₁x≡z (trans (eq₁ x) (cong f₂ f₁x≡y))        ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+    trans (sym (cong g₂ g₁x≡z))
+      (trans (trans (eq₁ x) (cong f₂ f₁x≡y))
+         (cong (const (f₂ y)) g₁x≡z))                                      ≡⟨ cong (trans _) $
+                                                                              trans (cong (trans _) $ cong-const _) $
+                                                                              trans-reflʳ _ ⟩
+
+    trans (sym (cong g₂ g₁x≡z)) (trans (eq₁ x) (cong f₂ f₁x≡y))            ≡⟨ sym $ trans-assoc _ _ _ ⟩
+
+    trans (trans (sym (cong g₂ g₁x≡z)) (eq₁ x)) (cong f₂ f₁x≡y)            ≡⟨ trans (cong₂ trans
+                                                                                       (trans (cong (trans _) $ sym $ sym-sym _) $
+                                                                                        sym $ sym-trans _ _)
+                                                                                       (sym $ sym-sym _)) $
+                                                                              sym $ sym-trans _ _ ⟩
+    sym (trans (sym (cong f₂ f₁x≡y))
+           (trans (sym (eq₁ x)) (cong g₂ g₁x≡z)))                          ≡⟨ cong sym $ cong (trans _) $
+                                                                              trans (sym $ trans-reflʳ _) $
+                                                                              cong (trans _) $ sym $ cong-const _ ⟩
+    sym (trans (sym (cong f₂ f₁x≡y))
+           (trans (trans (sym (eq₁ x)) (cong g₂ g₁x≡z))
+              (cong (const (g₂ z)) f₁x≡y)))                                ≡⟨ cong sym $ sym
+                                                                              subst-in-terms-of-trans-and-cong ⟩∎
+    sym (subst (λ y → f₂ y ≡ g₂ z) f₁x≡y
+           (trans (sym (eq₁ x)) (cong g₂ g₁x≡z)))                          ∎)) ⟩
+
+  (∃ λ ((x , g₁x≡z) : g₁ ⁻¹ z) → ∃ λ (f₁x≡y : f₁ x ≡ y) →
+   sym (subst (λ y → f₂ y ≡ g₂ z) f₁x≡y
+          (trans (sym (eq₁ x)) (cong g₂ g₁x≡z))) ≡
+   eq₂)                                                               ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                                          ≡⇒↝ _ (cong (_≡ _) $ sym-sym _) ∘
+                                                                          inverse (Eq.≃-≡ (from-bijection ≡-comm))) ⟩
+  (∃ λ ((x , g₁x≡z) : g₁ ⁻¹ z) → ∃ λ (f₁x≡y : f₁ x ≡ y) →
+   subst (λ y → f₂ y ≡ g₂ z) f₁x≡y
+     (trans (sym (eq₁ x)) (cong g₂ g₁x≡z)) ≡
+   sym eq₂)                                                           ↔⟨ (∃-cong λ _ → Bijection.Σ-≡,≡↔≡) ⟩
+
+  (∃ λ (p : g₁ ⁻¹ z) → ⁻¹-map (sym ⊚ eq₁) p ≡ (y , sym eq₂))          ↔⟨⟩
+
+  ⁻¹-map (sym ⊚ eq₁) ⁻¹ (y , sym eq₂)                                 □
+
 ------------------------------------------------------------------------
 -- Lemmas related to ↑
 
