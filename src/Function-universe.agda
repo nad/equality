@@ -3849,6 +3849,17 @@ to-∘-⁻¹-≃-⁻¹-from {f = f} {z = z} B≃C =
                                                                       singleton-contractible _) ⟩□
   (∃ λ (x : A) → f x ≡ y)                                         □
 
+-- The type proj₁ {B = P} ⁻¹ x is equivalent to P x.
+
+proj₁-⁻¹≃ :
+  ∀ {a p} {A : Type a} {P : A → Type p} {x : A} →
+  proj₁ {B = P} ⁻¹ x ≃ P x
+proj₁-⁻¹≃ {P = P} {x = x} =
+  proj₁ ⁻¹ x                       ↔⟨⟩
+  (∃ λ ((x′ , _) : ∃ P) → x′ ≡ x)  ↔⟨ inverse Σ-assoc ⟩
+  (∃ λ x′ → P x′ × x′ ≡ x)         ↔⟨ inverse $ ∃-intro _ _ ⟩□
+  P x                              □
+
 -- The following two definitions are based on code in the Coq HoTT
 -- library, implemented by Mike Shulman.
 
