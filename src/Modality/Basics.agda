@@ -2957,6 +2957,82 @@ module Modality (M : Modality a) where
     Left-exact-propositional
     Left-exact-η-cong-propositional
 
+  -- If the modality is left exact, f is ◯-connected, and
+  -- Σ-map {Q = Q} f (g _) is ◯-connected (for
+  -- g : ∀ x → P x → Q (f x)), then g x is ◯-connected for all x.
+
+  Left-exact→Connected-→-Σ-map→Connected-→ :
+    {g : ∀ x → P x → Q (f x)} →
+    Left-exact ◯ →
+    ◯ -Connected-→ f →
+    ◯ -Connected-→ Σ-map {Q = Q} f (g _) →
+    ∀ x → ◯ -Connected-→ g x
+  Left-exact→Connected-→-Σ-map→Connected-→
+    {P = P} {Q = Q} {f = f} {g = g} lex c-f c-f-g x q =
+                                              $⟨ c-h x q (x , refl (f x)) ⟩
+    ◯ -Connected (h x q ⁻¹ (x , refl (f x)))  →⟨ Connected-cong _ lemma ⟩□
+    ◯ -Connected (g x ⁻¹ q)                   □
+    where
+    h : ∀ x (q : Q (f x)) →
+        Σ-map {Q = Q} f (g _) ⁻¹ (f x , q) → f ⁻¹ f x
+    h x _ ((x′ , _) , eq) =
+        x′
+      , (f x′  ≡⟨ proj₁ (Σ-≡,≡←≡ eq) ⟩∎
+         f x   ∎)
+
+    c-h : ∀ x q → ◯ -Connected-→ h x q
+    c-h x q =
+      _⇔_.to
+        (logically-equivalent
+           Logically-equivalent-Variants-of-left-exact
+           (inj₁ F.id) (inj₂ (inj₁ F.id)))
+        lex
+        (c-f-g _)
+        (c-f _)
+
+    lemma =
+      h x q ⁻¹ (x , refl (f x))                                       ↔⟨⟩
+
+      Σ-map proj₁ (proj₁ ∘ Σ-≡,≡←≡) ⁻¹ (x , refl (f x))               ↔⟨⟩
+
+      Σ-map proj₁ proj₁ ∘ Σ-map id Σ-≡,≡←≡ ⁻¹ (x , refl (f x))        ↝⟨ ∘⁻¹≃ _ _ ⟩
+
+      (∃ λ ((p , _) : Σ-map proj₁ proj₁ ⁻¹ (x , refl (f x))) →
+       Σ-map id Σ-≡,≡←≡ ⁻¹ p)                                         ↔⟨ (drop-⊤-right λ _ →
+                                                                          _⇔_.to contractible⇔↔⊤ $
+                                                                          Preimage.bijection⁻¹-contractible
+                                                                            (∃-cong λ _ → inverse Bijection.Σ-≡,≡↔≡) _) ⟩
+      Σ-map proj₁ proj₁ ⁻¹ (x , refl (f x))                           ↔⟨⟩
+
+      Σ-map proj₁ id ∘ Σ-map id proj₁ ⁻¹ (x , refl (f x))             ↝⟨ ∘⁻¹≃ _ _ ⟩
+
+      (∃ λ ((p , _) : Σ-map proj₁ id ⁻¹ (x , refl (f x))) →
+       Σ-map id proj₁ ⁻¹ p)                                           ↝⟨ (∃-cong λ _ → Σ-map-id-⁻¹≃⁻¹) ⟩
+
+      (∃ λ (((p , eq) , _) : Σ-map proj₁ id ⁻¹ (x , refl (f x))) →
+       proj₁ {B = λ eq → subst Q eq (uncurry g p) ≡ q} ⁻¹ eq)         ↝⟨ (Σ-cong Σ-map--id-⁻¹≃⁻¹ λ p →
+                                                                          ≡⇒↝ _ $
+                                                                          cong (λ ((p , eq) , _) →
+                                                                                  proj₁ {B = λ eq → subst Q eq (uncurry g p) ≡ q} ⁻¹ eq) $
+                                                                          sym $ _≃_.left-inverse-of Σ-map--id-⁻¹≃⁻¹ p) ⟩
+      (∃ λ (p@(p′ , _) : proj₁ ⁻¹ x) →
+       proj₁ {B = λ eq → subst Q eq (uncurry g p′) ≡ q} ⁻¹
+       proj₂ (proj₁ (_≃_.from Σ-map--id-⁻¹≃⁻¹ p)))                    ↝⟨ (∃-cong λ p → ≡⇒↝ _ $
+                                                                          cong (proj₁ {B = λ eq → subst Q eq (uncurry g (proj₁ p)) ≡ q} ⁻¹_) $
+                                                                          trans-reflʳ _) ⟩
+      (∃ λ ((p , eq) : proj₁ ⁻¹ x) →
+       proj₁ {B = λ eq → subst Q eq (uncurry g p) ≡ q} ⁻¹ cong f eq)  ↝⟨ (Σ-cong-contra (inverse proj₁-⁻¹≃) λ _ → F.id) ⟩
+
+      (∃ λ (p : P x) →
+       proj₁ {B = λ eq → subst Q eq (g x p) ≡ q} ⁻¹ cong f (refl _))  ↝⟨ (∃-cong λ _ → proj₁-⁻¹≃) ⟩
+
+      (∃ λ (p : P x) → subst Q (cong f (refl _)) (g x p) ≡ q)         ↝⟨ (∃-cong λ _ → ≡⇒↝ _ $ cong (_≡ _) $
+                                                                          trans (cong (flip (subst Q) _) $ cong-refl _) $
+                                                                          subst-refl _ _) ⟩
+      (∃ λ (p : P x) → g x p ≡ q)                                     ↔⟨⟩
+
+      g x ⁻¹ q                                                        □
+
   -- I did not take the remaining result in this section from
   -- "Modalities in Homotopy Type Theory" or the corresponding Coq
   -- code.
