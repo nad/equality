@@ -2276,6 +2276,13 @@ module Modality (M : Modality a) where
   ----------------------------------------------------------------------
   -- Some results related to connectedness
 
+  -- ◯ -Connected_ respects split surjections.
+
+  Connected-map : A ↠ B → ◯ -Connected A → ◯ -Connected B
+  Connected-map {A = A} {B = B} A↠B =
+    Contractible (◯ A)  ↝⟨ H-level.respects-surjection (◯-cong-↠ A↠B) 0 ⟩□
+    Contractible (◯ B)  □
+
   -- ◯ -Connected_ preserves equivalences (assuming function
   -- extensionality).
 
