@@ -50,7 +50,7 @@ private
     a c d                          : Level
     A B C                          : Type a
     eq f g k m m₁ m₂ p s x y z _<_ : A
-    P                              : A → Type p
+    P Q                            : A → Type p
 
 ------------------------------------------------------------------------
 -- Modalities
@@ -2488,6 +2488,71 @@ module Modality (M : Modality a) where
       ◯ (∃ λ ((y , _) : f ⁻¹ z) → ◯ (g ⁻¹ y))  ↝⟨ ◯Σ◯≃◯Σ ⟩
       ◯ (∃ λ ((y , _) : f ⁻¹ z) → g ⁻¹ y)      ↝⟨ ◯-cong-≃ $ inverse $ ∘⁻¹≃ _ _ ⟩□
       ◯ (f ∘ g ⁻¹ z)                           □
+
+  private
+
+    -- A lemma used in the following two definitions.
+
+    ◯-Σ-map-⁻¹≃◯⁻¹ :
+      ∀ {A B : Type a} {P : A → Type a} {Q : B → Type a}
+        {f : A → B} {g : ∀ x → P x → Q (f x)} {x y} →
+      (∀ x → ◯ -Connected-→ g x) →
+      ◯ (Σ-map f (λ {x} → g x) ⁻¹ (x , y)) ≃ ◯ (f ⁻¹ x)
+    ◯-Σ-map-⁻¹≃◯⁻¹ {Q = Q} {f = f} {g = g} {x = x} {y = y} c-g =
+      ◯ (Σ-map f (λ {x} → g x) ⁻¹ (x , y))                                ↔⟨⟩
+      ◯ (∃ λ (x′ , y′) → (f x′ , g x′ y′) ≡ (x , y))                      ↔⟨ ◯-cong-↔ $ inverse Σ-assoc ⟩
+      ◯ (∃ λ x′ → ∃ λ y′ → (f x′ , g x′ y′) ≡ (x , y))                    ↔⟨ (◯-cong-↔ $ ∃-cong λ _ → ∃-cong λ _ → inverse
+                                                                              Bijection.Σ-≡,≡↔≡) ⟩
+      ◯ (∃ λ x′ → ∃ λ y′ → ∃ λ (p : f x′ ≡ x) → subst Q p (g x′ y′) ≡ y)  ↔⟨ ◯-cong-↔ $ Σ-assoc F.∘ (∃-cong λ _ → ∃-comm) ⟩
+      ◯ (∃ λ ((x′ , p) : f ⁻¹ x) → subst Q p ∘ g x′ ⁻¹ y)                 ↝⟨ (◯-cong-≃ $ ∃-cong λ _ →
+                                                                              to-∘-⁻¹-≃-⁻¹-from (Eq.subst-as-equivalence Q _)) ⟩
+      ◯ (∃ λ ((x′ , p) : f ⁻¹ x) → g x′ ⁻¹ subst Q (sym p) y)             ↝⟨ inverse ◯Σ◯≃◯Σ ⟩
+      ◯ (∃ λ ((x′ , p) : f ⁻¹ x) → ◯ (g x′ ⁻¹ subst Q (sym p) y))         ↔⟨ (◯-cong-↔ $ drop-⊤-right λ _ → _⇔_.to contractible⇔↔⊤ $ c-g _ _) ⟩□
+      ◯ (f ⁻¹ x)                                                          □
+
+  -- If f is ◯-connected, and g : ∀ x → P x → Q (f x) is pointwise
+  -- ◯-connected, then Σ-map {Q = Q} f (λ {x} → g x) is ◯-connected.
+
+  Connected-→-Σ-map :
+    {g : ∀ x → P x → Q (f x)} →
+    ◯ -Connected-→ f → (∀ x → ◯ -Connected-→ g x) →
+    ◯ -Connected-→ Σ-map {Q = Q} f (λ {x} → g x)
+  Connected-→-Σ-map {f = f} {g = g} c-f c-g (x , y) =
+                                                         $⟨ c-f x ⟩
+    Contractible (◯ (f ⁻¹ x))                            →⟨ H-level-cong _ 0 (inverse $ ◯-Σ-map-⁻¹≃◯⁻¹ c-g) ⟩□
+    Contractible (◯ (Σ-map f (λ {x} → g x) ⁻¹ (x , y)))  □
+
+  -- If Q x is inhabited for each x, g : ∀ x → P x → Q (f x) is
+  -- pointwise ◯-connected, and Σ-map f (λ {x} → g x) is ◯-connected,
+  -- then f is ◯-connected.
+  --
+  -- In Cubical Agda it would have sufficed for Q x to be merely
+  -- inhabited for each x, but this module does not use Cubical Agda.
+
+  Connected-→-Σ-map→Connected-→ :
+    {g : ∀ x → P x → Q (f x)} →
+    (∀ x → Q x) →
+    (∀ x → ◯ -Connected-→ g x) →
+    ◯ -Connected-→ Σ-map f (λ {x} → g x) →
+    ◯ -Connected-→ f
+  Connected-→-Σ-map→Connected-→ {f = f} {g = g} q c-g c-f-g x =
+                                                           $⟨ c-f-g (x , q x) ⟩
+    Contractible (◯ (Σ-map f (λ {x} → g x) ⁻¹ (x , q x)))  →⟨ H-level-cong _ 0 (◯-Σ-map-⁻¹≃◯⁻¹ c-g) ⟩□
+    Contractible (◯ (f ⁻¹ x))                              □
+
+  -- Σ-map id (λ {x} → f x) is ◯-connected (for f : ∀ x → P x → Q x)
+  -- if and only if f x is ◯-connected for each x.
+
+  Connected-→-Σ-map≃Connected-→ :
+    {A : Type a} {P Q : A → Type a} {f : ∀ x → P x → Q x} →
+    ◯ -Connected-→ Σ-map id (λ {x} → f x) ↝[ a ∣ a ]
+    (∀ x → ◯ -Connected-→ f x)
+  Connected-→-Σ-map≃Connected-→ {f = f} ext =
+    ◯ -Connected-→ Σ-map id (λ {x} → f x)               ↔⟨⟩
+    (∀ p → ◯ -Connected (Σ-map id (λ {x} → f x) ⁻¹ p))  ↝⟨ (∀-cong ext λ _ → Connected-cong ext Σ-map-id-⁻¹≃⁻¹) ⟩
+    (∀ p → ◯ -Connected (f (proj₁ p) ⁻¹ proj₂ p))       ↔⟨ currying ⟩
+    (∀ x y → ◯ -Connected (f x ⁻¹ y))                   ↔⟨⟩
+    (∀ x → ◯ -Connected-→ f x)                          □
 
   ----------------------------------------------------------------------
   -- Left exact modalities
