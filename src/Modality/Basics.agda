@@ -2283,8 +2283,8 @@ module Modality (M : Modality a) where
     Extensionality? k a a →
     A ≃ B → ◯ -Connected A ↝[ k ] ◯ -Connected B
   Connected-cong {A = A} {B = B} ext A≃B =
-    Contractible (◯ A) ↝⟨ H-level-cong ext 0 $ ◯-cong-≃ A≃B ⟩□
-    Contractible (◯ B) □
+    Contractible (◯ A)  ↝⟨ H-level-cong ext 0 $ ◯-cong-≃ A≃B ⟩□
+    Contractible (◯ B)  □
 
   -- If f and g are pointwise equal, then ◯ -Connected-→ f and
   -- ◯ -Connected-→ g are equivalent (assuming function
