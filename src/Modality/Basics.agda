@@ -45,6 +45,7 @@ open import H-level.Closure eq-J
 open import Injection eq-J using (_↣_; Injective)
 open import Preimage eq-J as Preimage using (_⁻¹_)
 open import Surjection eq-J using (_↠_; Split-surjective)
+open import Univalence-axiom eq-J
 
 private
   variable
@@ -2722,6 +2723,95 @@ module Modality (M : Modality a) where
     (∀ p → ◯ -Connected (f (proj₁ p) ⁻¹ proj₂ p))       ↔⟨ currying ⟩
     (∀ x y → ◯ -Connected (f x ⁻¹ y))                   ↔⟨⟩
     (∀ x → ◯ -Connected-→ f x)                          □
+
+  -- If A is modal and B is ◯-connected, then const : A → B → A is an
+  -- equivalence (assuming function extensionality).
+
+  Modal→Connected→Is-equivalence-const :
+    Extensionality a a →
+    Modal A →
+    ◯ -Connected B →
+    Is-equivalence (const ⦂ (A → B → A))
+  Modal→Connected→Is-equivalence-const {B = B} ext m c =
+    _≃_.is-equivalence $
+    Eq.↔→≃
+      const
+      (λ f → ◯-rec m f (proj₁ c))
+      (λ f → apply-ext ext λ x →
+         ◯-rec m f (proj₁ c)  ≡⟨ cong (◯-rec _ _) $ proj₂ c _ ⟩
+         ◯-rec m f (η x)      ≡⟨ ◯-rec-η ⟩∎
+         f x                  ∎)
+      (λ eq →
+         ◯-rec m (const eq) (proj₁ c)  ≡⟨ ◯-elim
+                                            {P = λ x → ◯-rec m (const eq) x ≡ eq}
+                                            (λ _ → Modal→Separated m _ _)
+                                            (λ _ → ◯-rec-η)
+                                            (proj₁ c) ⟩∎
+         eq                            ∎)
+
+  -- I did not take the remaining lemmas in this section from
+  -- "Modalities in Homotopy Type Theory" or the corresponding Coq
+  -- code.
+
+  -- If A is separated and B is ◯-connected, then const : A → B → A is
+  -- an embedding (assuming function extensionality).
+
+  Separated→Connected→Is-embedding-const :
+    Extensionality a a →
+    Separated A →
+    ◯ -Connected B →
+    Is-embedding (const ⦂ (A → B → A))
+  Separated→Connected→Is-embedding-const {B = B} ext s c x y =
+    _≃_.is-equivalence $
+    Eq.with-other-function
+      (x ≡ y                          ↝⟨ Eq.⟨ _ , Modal→Connected→Is-equivalence-const ext (s _ _) c ⟩ ⟩
+       (B → x ≡ y)                    ↔⟨⟩
+       (∀ z → const x z ≡ const y z)  ↝⟨ Eq.extensionality-isomorphism ext ⟩□
+       const x ≡ const y              □)
+      (cong const)
+      (λ eq →
+         apply-ext (Eq.good-ext ext) (λ _ → eq)  ≡⟨ Eq.good-ext-const ext _ ⟩∎
+         cong const eq                           ∎)
+
+  -- If A is ◯-connected, then const : ∃ Modal → A → ∃ Modal is an
+  -- embedding (assuming function extensionality and univalence).
+
+  Connected→Is-embedding-const-Σ-Modal :
+    Extensionality a (lsuc a) →
+    Univalence a →
+    ◯ -Connected A →
+    Is-embedding (const ⦂ (∃ Modal → A → ∃ Modal))
+  Connected→Is-embedding-const-Σ-Modal
+    {A = A} ext univ c Bm@(B , mB) Cm@(C , mC) =
+    _≃_.is-equivalence $
+    Eq.with-other-function
+      (Bm ≡ Cm                          ↔⟨ inverse $ ignore-propositional-component prop ⟩
+       B ≡ C                            ↝⟨ ≡≃≃ univ ⟩
+       B ≃ C                            ↝⟨ Eq.⟨ _ , Modal→Connected→Is-equivalence-const ext′ (Modal-≃ ext′ mB mC) c ⟩ ⟩
+       (A → B ≃ C)                      ↔⟨⟩
+       (∀ x → const B x ≃ const C x)    ↝⟨ (∀-cong ext λ _ → inverse $ ≡≃≃ univ) ⟩
+       (∀ x → const B x ≡ const C x)    ↔⟨ (∀-cong ext λ _ → ignore-propositional-component prop) ⟩
+       (∀ x → const Bm x ≡ const Cm x)  ↝⟨ Eq.extensionality-isomorphism ext ⟩□
+       const Bm ≡ const Cm              □)
+      (cong const)
+      (λ eq →
+         (apply-ext (Eq.good-ext ext) λ _ →
+          _↔_.to (ignore-propositional-component prop) $
+          ≃⇒≡ univ $ ≡⇒≃ $
+          _↔_.from (ignore-propositional-component prop) eq)  ≡⟨ (cong (apply-ext (Eq.good-ext ext)) $ apply-ext ext λ _ →
+                                                                  cong (_↔_.to (ignore-propositional-component prop)) $
+                                                                  _≃_.left-inverse-of (≡≃≃ univ) _) ⟩
+         (apply-ext (Eq.good-ext ext) λ _ →
+          _↔_.to (ignore-propositional-component prop) $
+          _↔_.from (ignore-propositional-component prop) eq)  ≡⟨ (cong (apply-ext (Eq.good-ext ext)) $ apply-ext ext λ _ →
+                                                                  _↔_.right-inverse-of (ignore-propositional-component prop) _) ⟩
+
+         (apply-ext (Eq.good-ext ext) λ _ → eq)               ≡⟨ Eq.good-ext-const ext _ ⟩∎
+
+         cong const eq                                        ∎)
+    where
+    ext′ = lower-extensionality lzero _ ext
+    prop = Modal-propositional ext′
 
   ----------------------------------------------------------------------
   -- Left exact modalities
