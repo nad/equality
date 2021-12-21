@@ -2583,6 +2583,19 @@ module Modality (M : Modality a) where
       ◯ -Connected-→ (◯-rec m f ∘ η)  →⟨ (Connected-→-cong _ λ _ → ◯-rec-η) ⟩□
       ◯ -Connected-→ f                □
 
+  -- A function between modal types is ◯-connected if and only if it
+  -- is an equivalence.
+
+  Connected-→≃Is-equivalence :
+    {f : A → B} →
+    Modal A → Modal B →
+    ◯ -Connected-→ f ↝[ a ∣ a ] Is-equivalence f
+  Connected-→≃Is-equivalence {f = f} mA mB ext =
+    ◯ -Connected-→ f                 ↝⟨ Connected-→≃Is-equivalence-◯-rec mB ext ⟩
+    Is-equivalence (◯-rec mB f)      ↝⟨ Is-equivalence≃Is-equivalence-∘ʳ (Modal≃Is-equivalence-η _ mA) ext ⟩
+    Is-equivalence (◯-rec mB f ∘ η)  ↝⟨ (Is-equivalence-cong ext λ _ → ◯-rec-η) ⟩□
+    Is-equivalence f                 □
+
   -- The function η ∘ f is ◯-connected if and only if ◯-map f is an
   -- equivalence.
 
