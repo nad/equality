@@ -812,6 +812,18 @@ module Modality (M : Modality a) where
     HA.[inhabited→Is-equivalence]→Is-equivalence $
     Modal≃Is-equivalence-η _ ∘ m
 
+  -- The function subst can sometimes be "pushed" through η.
+
+  subst-η : subst (◯ ∘ P) eq (η p) ≡ η (subst P eq p)
+  subst-η {P = P} {eq = eq} {p = p} =
+    elim¹
+      (λ eq → ∀ p → subst (◯ ∘ P) eq (η p) ≡ η (subst P eq p))
+      (λ p →
+         subst (◯ ∘ P) (refl _) (η p)  ≡⟨ subst-refl _ _ ⟩
+         η p                           ≡⟨ cong η $ sym $ subst-refl _ _ ⟩∎
+         η (subst P (refl _) p)        ∎)
+      eq p
+
   ----------------------------------------------------------------------
   -- Some closure properties related to Modal
 
