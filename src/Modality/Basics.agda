@@ -1714,6 +1714,27 @@ module Modality (M : Modality a) where
          x                  ∎)
 
   ----------------------------------------------------------------------
+  -- A lemma related to h-levels
+
+  -- If A is a proposition, then ◯ A is a proposition.
+
+  Is-proposition→Is-proposition-◯ :
+    Is-proposition A → Is-proposition (◯ A)
+  Is-proposition→Is-proposition-◯ {A = A} prop x y =
+    x                                         ≡⟨ cong proj₁ $ sym $ _≃_.right-inverse-of ◯×≃ _ ⟩
+    _≃_.to ◯×≃ (_≃_.from ◯×≃ (x , y)) .proj₁  ≡⟨ ◯-elim
+                                                   {P = λ p → _≃_.to ◯×≃ p .proj₁ ≡ _≃_.to ◯×≃ p .proj₂}
+                                                   (λ _ → Separated-◯ _ _)
+                                                   (λ (x , y) →
+      _≃_.to ◯×≃ (η (x , y)) .proj₁                   ≡⟨ cong proj₁ ◯×≃-η ⟩
+      η x                                             ≡⟨ cong η $ prop _ _ ⟩
+      η y                                             ≡⟨ cong proj₂ $ sym ◯×≃-η ⟩∎
+      _≃_.to ◯×≃ (η (x , y)) .proj₂                   ∎)
+                                                   (_≃_.from ◯×≃ (x , y)) ⟩
+    _≃_.to ◯×≃ (_≃_.from ◯×≃ (x , y)) .proj₂  ≡⟨ cong proj₂ $ _≃_.right-inverse-of ◯×≃ _ ⟩∎
+    y                                         ∎
+
+  ----------------------------------------------------------------------
   -- More equivalences
 
   -- I did not take the lemmas in this section from "Modalities in
@@ -2686,25 +2707,6 @@ module Modality (M : Modality a) where
       Is-equivalence (◯-map f)  →⟨ _⇔_.from $ Connected-→-η-∘-≃Is-equivalence-◯-map _ ⟩
       ◯ -Connected-→ (η ∘ f)    →⟨ Left-exact→Connected-→→Connected-→-∘≃Connected-→ lex Connected-→-η ⟩□
       ◯ -Connected-→ f          □
-
-  -- If ◯ is left exact and A is a proposition, then ◯ A is a
-  -- proposition.
-
-  Left-exact→Is-proposition→Is-proposition-◯ :
-    Left-exact-η-cong → Is-proposition A → Is-proposition (◯ A)
-  Left-exact→Is-proposition→Is-proposition-◯ {A = A} lex prop x y =
-    x                                         ≡⟨ cong proj₁ $ sym $ _≃_.right-inverse-of ◯×≃ _ ⟩
-    _≃_.to ◯×≃ (_≃_.from ◯×≃ (x , y)) .proj₁  ≡⟨ ◯-elim
-                                                   {P = λ p → _≃_.to ◯×≃ p .proj₁ ≡ _≃_.to ◯×≃ p .proj₂}
-                                                   (λ _ → Separated-◯ _ _)
-                                                   (λ (x , y) →
-      _≃_.to ◯×≃ (η (x , y)) .proj₁                   ≡⟨ cong proj₁ ◯×≃-η ⟩
-      η x                                             ≡⟨ cong η $ prop _ _ ⟩
-      η y                                             ≡⟨ cong proj₂ $ sym ◯×≃-η ⟩∎
-      _≃_.to ◯×≃ (η (x , y)) .proj₂                   ∎)
-                                                   (_≃_.from ◯×≃ (x , y)) ⟩
-    _≃_.to ◯×≃ (_≃_.from ◯×≃ (x , y)) .proj₂  ≡⟨ cong proj₂ $ _≃_.right-inverse-of ◯×≃ _ ⟩∎
-    y                                         ∎
 
   -- If ◯ is left exact and A has a given h-level, then ◯ A has the
   -- same h-level (assuming function extensionality).
