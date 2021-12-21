@@ -1218,81 +1218,86 @@ module Modality (M : Modality a) where
     ↑ a ⊤      ↔⟨ Bijection.↑↔ ⟩□
     ⊤          □
 
-  -- ◯ commutes with _×_.
+  private module Abstract where abstract
 
-  ◯×≃ : ◯ (A × B) ≃ (◯ A × ◯ B)
-  ◯×≃ = Eq.↔→≃
-    (◯-rec m′ (Σ-map η η))
-    (uncurry λ x → ◯-rec Modal-◯ λ y → ◯-map (_, y) x)
-    (λ (x , y) →
-       ◯-rec m′ (Σ-map η η) (◯-rec Modal-◯ (λ y → ◯-map (_, y) x) y)  ≡⟨ ◯-elim
-                                                                           {P = λ y →
-                                                                                  ◯-rec m′ (Σ-map η η)
-                                                                                    (◯-rec Modal-◯ (λ y → ◯-map (_, y) x) y) ≡
-                                                                                  (x , y)}
-                                                                           (λ _ → Modal→Separated m′ _ _)
-                                                                           (λ y →
-         ◯-rec m′ (Σ-map η η)
-           (◯-rec Modal-◯ (λ y → ◯-map (_, y) x) (η y))                       ≡⟨ cong (◯-rec _ _)
-                                                                                 ◯-rec-η ⟩
+    -- ◯ commutes with _×_.
 
-         ◯-rec m′ (Σ-map η η) (◯-map (_, y) x)                                ≡⟨ ◯-elim
-                                                                                   (λ _ → Modal→Separated m′ _ _)
-                                                                                   (λ x →
-           ◯-rec m′ (Σ-map η η) (◯-map (_, y) (η x))                                  ≡⟨ cong (◯-rec _ _)
-                                                                                         ◯-map-η ⟩
+    ◯×≃ : ◯ (A × B) ≃ (◯ A × ◯ B)
+    ◯×≃ {A = A} {B = B} = Eq.↔→≃
+      (◯-rec m′ (Σ-map η η))
+      (uncurry λ x → ◯-rec Modal-◯ λ y → ◯-map (_, y) x)
+      (λ (x , y) →
+         ◯-rec m′ (Σ-map η η) (◯-rec Modal-◯ (λ y → ◯-map (_, y) x) y)  ≡⟨ ◯-elim
+                                                                             {P = λ y →
+                                                                                    ◯-rec m′ (Σ-map η η)
+                                                                                      (◯-rec Modal-◯ (λ y → ◯-map (_, y) x) y) ≡
+                                                                                    (x , y)}
+                                                                             (λ _ → Modal→Separated m′ _ _)
+                                                                             (λ y →
+           ◯-rec m′ (Σ-map η η)
+             (◯-rec Modal-◯ (λ y → ◯-map (_, y) x) (η y))                       ≡⟨ cong (◯-rec _ _)
+                                                                                   ◯-rec-η ⟩
 
-           ◯-rec m′ (Σ-map η η) (η (x , y))                                           ≡⟨ ◯-rec-η ⟩∎
+           ◯-rec m′ (Σ-map η η) (◯-map (_, y) x)                                ≡⟨ ◯-elim
+                                                                                     (λ _ → Modal→Separated m′ _ _)
+                                                                                     (λ x →
+             ◯-rec m′ (Σ-map η η) (◯-map (_, y) (η x))                                  ≡⟨ cong (◯-rec _ _)
+                                                                                           ◯-map-η ⟩
 
-           (η x , η y)                                                                ∎)
-                                                                                   x ⟩∎
-         (x , η y)                                                            ∎)
-                                                                           _ ⟩∎
-       (x , y)                                                        ∎)
-    (◯-elim
-       (λ _ → Separated-◯ _ _)
-       (λ (x , y) →
-          uncurry (λ x → ◯-rec Modal-◯ λ y → ◯-map (_, y) x)
-            (◯-rec m′ (Σ-map η η) (η (x , y)))                ≡⟨ cong (uncurry λ x → ◯-rec Modal-◯ λ y → ◯-map (_, y) x)
-                                                                 ◯-rec-η ⟩
-          uncurry (λ x → ◯-rec Modal-◯ λ y → ◯-map (_, y) x)
-            (η x , η y)                                       ≡⟨⟩
+             ◯-rec m′ (Σ-map η η) (η (x , y))                                           ≡⟨ ◯-rec-η ⟩∎
 
-          ◯-rec Modal-◯ (λ y → ◯-map (_, y) (η x)) (η y)      ≡⟨ ◯-rec-η ⟩
+             (η x , η y)                                                                ∎)
+                                                                                     x ⟩∎
+           (x , η y)                                                            ∎)
+                                                                             _ ⟩∎
+         (x , y)                                                        ∎)
+      (◯-elim
+         (λ _ → Separated-◯ _ _)
+         (λ (x , y) →
+            uncurry (λ x → ◯-rec Modal-◯ λ y → ◯-map (_, y) x)
+              (◯-rec m′ (Σ-map η η) (η (x , y)))                ≡⟨ cong (uncurry λ x → ◯-rec Modal-◯ λ y → ◯-map (_, y) x)
+                                                                   ◯-rec-η ⟩
+            uncurry (λ x → ◯-rec Modal-◯ λ y → ◯-map (_, y) x)
+              (η x , η y)                                       ≡⟨⟩
+
+            ◯-rec Modal-◯ (λ y → ◯-map (_, y) (η x)) (η y)      ≡⟨ ◯-rec-η ⟩
 
 
-          ◯-map (_, y) (η x)                                  ≡⟨ ◯-map-η ⟩∎
+            ◯-map (_, y) (η x)                                  ≡⟨ ◯-map-η ⟩∎
 
-          η (x , y)                                           ∎))
-    where
-    m′ = Modal-Σ Modal-◯ λ _ → Modal-◯
+            η (x , y)                                           ∎))
+      where
+      m′ : Modal (◯ A × ◯ B)
+      m′ = Modal-Σ Modal-◯ λ _ → Modal-◯
 
-  -- Four "computation rules" for ◯×≃.
+    -- Four "computation rules" for ◯×≃.
 
-  ◯×≃-η : _≃_.to ◯×≃ (η (x , y)) ≡ (η x , η y)
-  ◯×≃-η = ◯-rec-η
+    ◯×≃-η : _≃_.to ◯×≃ (η (x , y)) ≡ (η x , η y)
+    ◯×≃-η = ◯-rec-η
 
-  ◯×≃⁻¹-ηʳ : {y : B} → _≃_.from ◯×≃ (x , η y) ≡ ◯-map (_, y) x
-  ◯×≃⁻¹-ηʳ {x = x} {y = y} =
-    ◯-rec Modal-◯ (λ y → ◯-map (_, y) x) (η y)  ≡⟨ ◯-rec-η ⟩∎
-    ◯-map (_, y) x                              ∎
+    ◯×≃⁻¹-ηʳ : {y : B} → _≃_.from ◯×≃ (x , η y) ≡ ◯-map (_, y) x
+    ◯×≃⁻¹-ηʳ {x = x} {y = y} =
+      ◯-rec Modal-◯ (λ y → ◯-map (_, y) x) (η y)  ≡⟨ ◯-rec-η ⟩∎
+      ◯-map (_, y) x                              ∎
 
-  ◯×≃⁻¹-η : {y : B} → _≃_.from ◯×≃ (η x , η y) ≡ η (x , y)
-  ◯×≃⁻¹-η {x = x} {y = y} =
-    _≃_.from ◯×≃ (η x , η y)  ≡⟨ ◯×≃⁻¹-ηʳ ⟩
-    ◯-map (_, y) (η x)        ≡⟨ ◯-map-η ⟩∎
-    η (x , y)                 ∎
+    ◯×≃⁻¹-η : {y : B} → _≃_.from ◯×≃ (η x , η y) ≡ η (x , y)
+    ◯×≃⁻¹-η {x = x} {y = y} =
+      _≃_.from ◯×≃ (η x , η y)  ≡⟨ ◯×≃⁻¹-ηʳ ⟩
+      ◯-map (_, y) (η x)        ≡⟨ ◯-map-η ⟩∎
+      η (x , y)                 ∎
 
-  ◯×≃⁻¹-ηˡ : {y : ◯ B} → _≃_.from ◯×≃ (η x , y) ≡ ◯-map (x ,_) y
-  ◯×≃⁻¹-ηˡ {x = x} {y = y} =
-    ◯-elim
-      {P = λ y → _≃_.from ◯×≃ (η x , y) ≡ ◯-map (x ,_) y}
-      (λ _ → Separated-◯ _ _)
-      (λ y →
-         _≃_.from ◯×≃ (η x , η y)  ≡⟨ ◯×≃⁻¹-η ⟩
-         η (x , y)                 ≡⟨ sym ◯-map-η ⟩∎
-         ◯-map (x ,_) (η y)        ∎)
-      y
+    ◯×≃⁻¹-ηˡ : {y : ◯ B} → _≃_.from ◯×≃ (η x , y) ≡ ◯-map (x ,_) y
+    ◯×≃⁻¹-ηˡ {x = x} {y = y} =
+      ◯-elim
+        {P = λ y → _≃_.from ◯×≃ (η x , y) ≡ ◯-map (x ,_) y}
+        (λ _ → Separated-◯ _ _)
+        (λ y →
+           _≃_.from ◯×≃ (η x , η y)  ≡⟨ ◯×≃⁻¹-η ⟩
+           η (x , y)                 ≡⟨ sym ◯-map-η ⟩∎
+           ◯-map (x ,_) (η y)        ∎)
+        y
+
+  open Abstract public
 
   -- The type (x : ◯ A) → ◯ (P x) is inhabited if and only if
   -- (x : A) → ◯ (P (η x)) is.
