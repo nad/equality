@@ -1639,6 +1639,13 @@ module Modality (M : Modality a) where
     Stable-Σ m λ _ →
     Stable-Erased (s _ _)
 
+  ----------------------------------------------------------------------
+  -- Some variants of the eliminators
+
+  -- I did not take the definitions in this section from "Modalities
+  -- in Homotopy Type Theory" or the corresponding Coq code (but
+  -- perhaps something similar can be found there).
+
   abstract
 
     -- A variant of ◯-elim that uses Stable instead of Modal.
@@ -1713,6 +1720,116 @@ module Modality (M : Modality a) where
          ◯-rec′ s id (η x)  ≡⟨ ◯-rec′-η′ ⟩∎
          x                  ∎)
 
+  abstract
+
+    -- A binary variant of ◯-elim.
+
+    ◯-elim₂ :
+      {P : ◯ A → ◯ B → Type a} →
+      (∀ x y → Modal (P x y)) →
+      ((x : A) (y : B) → P (η x) (η y)) →
+      ((x : ◯ A) (y : ◯ B) → P x y)
+    ◯-elim₂ {P = P} m f x y =                        $⟨ ◯-elim
+                                                          {P = uncurry P ∘ _≃_.to ◯×≃}
+                                                          (uncurry m ∘ _≃_.to ◯×≃)
+                                                          (λ (x , y) → subst (uncurry P) (sym ◯×≃-η) (f x y))
+                                                          (_≃_.from ◯×≃ (x , y)) ⟩
+      uncurry P (_≃_.to ◯×≃ (_≃_.from ◯×≃ (x , y)))  →⟨ subst (uncurry P) (_≃_.right-inverse-of ◯×≃ _) ⟩□
+      P x y                                          □
+
+    -- A "computation rule" for ◯-elim₂.
+
+    ◯-elim₂-η :
+      Extensionality a a →
+      ◯-elim₂ m f (η x) (η y) ≡ f x y
+    ◯-elim₂-η {m = m} {f = f} {x = x} {y = y} ext =
+      let P = _ in
+
+      subst (uncurry P) (_≃_.right-inverse-of ◯×≃ (η x , η y))
+        (◯-elim
+           (uncurry m ∘ _≃_.to ◯×≃)
+           (λ (x , y) → subst (uncurry P) (sym ◯×≃-η) (f x y))
+           (_≃_.from ◯×≃ (η x , η y)))                               ≡⟨ (cong (subst _ _) $
+                                                                         cong (flip (◯-elim (uncurry m ∘ _≃_.to ◯×≃)) _) $
+                                                                         apply-ext ext λ p →
+                                                                         cong (flip (subst _) _) $ cong sym $ cong (_$ p) $ sym $
+                                                                         _≃_.left-inverse-of (Eq.extensionality-isomorphism ext) _) ⟩
+      subst (uncurry P) (_≃_.right-inverse-of ◯×≃ (η x , η y))
+        (◯-elim
+           (uncurry m ∘ _≃_.to ◯×≃)
+           (subst (uncurry P) (sym (ext⁻¹ ◯×≃-η′ _)) ∘ uncurry f)
+           (_≃_.from ◯×≃ (η x , η y)))                               ≡⟨ elim¹
+                                                                          (λ {g} (eq : _≃_.to ◯×≃ ∘ η ≡ g) →
+                                                                             (f : ∀ p → uncurry P (g p)) →
+                                                                             subst (uncurry P) (_≃_.right-inverse-of ◯×≃ (g (x , y)))
+                                                                               (◯-elim
+                                                                                  (uncurry m ∘ _≃_.to ◯×≃)
+                                                                                  (subst (uncurry P) (sym (ext⁻¹ {f = _≃_.to ◯×≃ ∘ η} eq _)) ∘ f)
+                                                                                  (_≃_.from ◯×≃ (g (x , y)))) ≡
+                                                                             f (x , y))
+                                                                          (λ f →
+        subst (uncurry P)
+          (_≃_.right-inverse-of ◯×≃ (_≃_.to ◯×≃ (η (x , y))))
+          (◯-elim
+             (uncurry m ∘ _≃_.to ◯×≃)
+             (subst (uncurry P)
+                (sym (ext⁻¹ {f = _≃_.to ◯×≃ ∘ η} (refl _) _)) ∘
+              f)
+             (_≃_.from ◯×≃ (_≃_.to ◯×≃ (η (x , y)))))                        ≡⟨ (cong (subst _ _) $ cong (flip (◯-elim _) _) $
+                                                                                 apply-ext ext λ _ →
+                                                                                 trans (cong (flip (subst _) _) $
+                                                                                        trans (cong sym $ ext⁻¹-refl _)
+                                                                                        sym-refl) $
+                                                                                 subst-refl _ _) ⟩
+        subst (uncurry P)
+          (_≃_.right-inverse-of ◯×≃ (_≃_.to ◯×≃ (η (x , y))))
+          (◯-elim
+             (uncurry m ∘ _≃_.to ◯×≃)
+             f
+             (_≃_.from ◯×≃ (_≃_.to ◯×≃ (η (x , y)))))                        ≡⟨ cong (flip (subst _) _) $ sym $
+                                                                                _≃_.left-right-lemma ◯×≃ _ ⟩
+        subst (uncurry P)
+          (cong (_≃_.to ◯×≃) (_≃_.left-inverse-of ◯×≃ (η (x , y))))
+          (◯-elim
+             (uncurry m ∘ _≃_.to ◯×≃)
+             f
+             (_≃_.from ◯×≃ (_≃_.to ◯×≃ (η (x , y)))))                        ≡⟨ elim₁
+                                                                                  (λ {p} (eq : p ≡ η (x , y)) →
+                                                                                     subst (uncurry P)
+                                                                                       (cong (_≃_.to ◯×≃) eq)
+                                                                                       (◯-elim (uncurry m ∘ _≃_.to ◯×≃) f p) ≡
+                                                                                     f (x , y))
+                                                                                  (
+          subst (uncurry P)
+            (cong (_≃_.to ◯×≃) (refl _))
+            (◯-elim (uncurry m ∘ _≃_.to ◯×≃) f (η (x , y)))                        ≡⟨ trans (cong (flip (subst _) _) $
+                                                                                             cong-refl _) $
+                                                                                      subst-refl _ _ ⟩
+
+          ◯-elim (uncurry m ∘ _≃_.to ◯×≃) f (η (x , y))                            ≡⟨ ◯-elim-η ⟩∎
+
+          f (x , y)                                                                ∎)
+                                                                                  _ ⟩∎
+        f (x , y)                                                            ∎)
+                                                                          _ _ ⟩∎
+      f x y                                                          ∎
+      where
+      ◯×≃-η′ : _≃_.to (◯×≃ {A = A} {B = B}) ∘ η ≡ Σ-map η η
+      ◯×≃-η′ = apply-ext (Eq.good-ext ext) λ _ → ◯×≃-η
+
+    -- A binary variant of ◯-rec.
+
+    ◯-rec₂ : Modal C → (A → B → C) → (◯ A → ◯ B → C)
+    ◯-rec₂ m f x y = ◯-rec m (uncurry f) (_≃_.from ◯×≃ (x , y))
+
+    -- A "computation rule" for ◯-rec₂.
+
+    ◯-rec₂-η : ◯-rec₂ m f (η x) (η y) ≡ f x y
+    ◯-rec₂-η {m = m} {f = f} {x = x} {y = y} =
+      ◯-rec m (uncurry f) (_≃_.from ◯×≃ (η x , η y))  ≡⟨ cong (◯-rec _ _) ◯×≃⁻¹-η ⟩
+      ◯-rec m (uncurry f) (η (x , y))                 ≡⟨ ◯-rec-η ⟩∎
+      f x y                                           ∎
+
   ----------------------------------------------------------------------
   -- A lemma related to h-levels
 
@@ -1720,19 +1837,12 @@ module Modality (M : Modality a) where
 
   Is-proposition→Is-proposition-◯ :
     Is-proposition A → Is-proposition (◯ A)
-  Is-proposition→Is-proposition-◯ {A = A} prop x y =
-    x                                         ≡⟨ cong proj₁ $ sym $ _≃_.right-inverse-of ◯×≃ _ ⟩
-    _≃_.to ◯×≃ (_≃_.from ◯×≃ (x , y)) .proj₁  ≡⟨ ◯-elim
-                                                   {P = λ p → _≃_.to ◯×≃ p .proj₁ ≡ _≃_.to ◯×≃ p .proj₂}
-                                                   (λ _ → Separated-◯ _ _)
-                                                   (λ (x , y) →
-      _≃_.to ◯×≃ (η (x , y)) .proj₁                   ≡⟨ cong proj₁ ◯×≃-η ⟩
-      η x                                             ≡⟨ cong η $ prop _ _ ⟩
-      η y                                             ≡⟨ cong proj₂ $ sym ◯×≃-η ⟩∎
-      _≃_.to ◯×≃ (η (x , y)) .proj₂                   ∎)
-                                                   (_≃_.from ◯×≃ (x , y)) ⟩
-    _≃_.to ◯×≃ (_≃_.from ◯×≃ (x , y)) .proj₂  ≡⟨ cong proj₂ $ _≃_.right-inverse-of ◯×≃ _ ⟩∎
-    y                                         ∎
+  Is-proposition→Is-proposition-◯ {A = A} prop =
+    ◯-elim₂
+      (λ _ _ → Separated-◯ _ _)
+      (λ x y →
+         η x  ≡⟨ cong η $ prop x y ⟩∎
+         η y  ∎)
 
   ----------------------------------------------------------------------
   -- More equivalences
