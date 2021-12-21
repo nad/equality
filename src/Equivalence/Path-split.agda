@@ -34,7 +34,7 @@ open import Surjection eq using (Split-surjective; _↠_)
 private
   variable
     a b c d p : Level
-    A B       : Type a
+    A B C     : Type a
     P         : A → Type p
     x y       : A
     f         : A → B
@@ -699,6 +699,35 @@ Null-cong
   ∀-cong (lower-extensionality (b ⊔ p) lzero ext) λ _ →
   Is-∞-extendable-along≃Is-equivalence-const
     (lower-extensionality a lzero ext)
+
+-- If A is contractible, then const : B → A → B is an equivalence
+-- (assuming extensionality).
+
+Contractible→Is-equivalence-const :
+  {A : Type a} {B : Type b} →
+  Extensionality a b →
+  Contractible A →
+  Is-equivalence (const ⦂ (B → A → B))
+Contractible→Is-equivalence-const ext c =
+  _≃_.is-equivalence $
+  Eq.↔→≃
+    const
+    (_$ proj₁ c)
+    (λ f → apply-ext ext λ x →
+       f (proj₁ c)  ≡⟨ cong f $ proj₂ c x ⟩∎
+       f x          ∎)
+    refl
+
+-- If A is contractible, then every type B is "λ (_ : C) → A"-null
+-- (assuming extensionality).
+
+Contractible→Null :
+  {A : Type a} {B : Type b} →
+  Extensionality a b →
+  Contractible A →
+  (λ (_ : C) → A) -Null B
+Contractible→Null ext c _ =
+  Contractible→Is-equivalence-const ext c
 
 private
 
