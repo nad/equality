@@ -2650,16 +2650,6 @@ module Extensionality where
     []-cong₁.Very-stable-Very-stable≃Very-stable
       (Extensionality→[]-cong-axiomatisation ext) ext
 
-  -- The function λ A → Erased A, [_]→ and Very-stable form a Σ-closed
-  -- reflective subuniverse (assuming extensionality).
-
-  Erased-Σ-closed-reflective-subuniverse :
-    Extensionality ℓ ℓ →
-    Σ-closed-reflective-subuniverse ℓ
-  Erased-Σ-closed-reflective-subuniverse ext =
-    []-cong₁.Erased-Σ-closed-reflective-subuniverse
-      (Extensionality→[]-cong-axiomatisation ext)
-
   -- The function λ A → Erased A, [_]→ and Very-stable form a modality
   -- (assuming extensionality).
 
