@@ -1313,10 +1313,10 @@ Is-set-∃-Is-proposition :
   Extensionality (lsuc a) (lsuc a) →
   Propositional-extensionality a →
   Is-set (∃ λ (A : Type a) → Is-proposition A)
-Is-set-∃-Is-proposition {a} ext prop-ext
+Is-set-∃-Is-proposition ext prop-ext
                         {x = A₁ , A₁-prop} {y = A₂ , A₂-prop} =
                                                     $⟨ _≃_.to (Propositional-extensionality-is-univalence-for-propositions ext)
-                                                            prop-ext A₁-prop A₂-prop ⟩
+                                                         prop-ext A₁-prop A₂-prop ⟩
   Univalence′ A₁ A₂                                 ↝⟨ (λ univ → H-level-H-level-≡ ext′ univ 1 A₁-prop A₂-prop) ⟩
   Is-proposition (A₁ ≡ A₂)                          ↝⟨ H-level.respects-surjection
                                                          (_↔_.surjection $ ignore-propositional-component
