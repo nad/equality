@@ -1325,6 +1325,26 @@ Is-set-∃-Is-proposition ext prop-ext
   where
   ext′ = lower-extensionality _ _ ext
 
+-- ∃ λ A → Contractible A is contractible (assuming extensionality
+-- and propositional extensionality).
+
+Contractible-∃-Contractible :
+  ∀ {a} →
+  Extensionality (lsuc a) (lsuc a) →
+  Propositional-extensionality a →
+  Contractible (∃ λ (A : Type a) → Contractible A)
+Contractible-∃-Contractible ext prop-ext =
+  propositional⇒inhabited⇒contractible
+    (λ (A₁ , c₁) (A₂ , c₂) →   $⟨ _≃_.to (Propositional-extensionality-is-univalence-for-propositions ext)
+                                    prop-ext (H-level.mono₁ 0 c₁) (H-level.mono₁ 0 c₂) ⟩
+       Univalence′ A₁ A₂       →⟨ (λ univ → H-level-H-level-≡ ext′ univ 0 c₁ c₂) ⟩
+       Contractible (A₁ ≡ A₂)  →⟨ proj₁ ⟩
+       A₁ ≡ A₂                 ↔⟨ ignore-propositional-component (H-level-propositional ext′ 0) ⟩□
+       (A₁ , c₁) ≡ (A₂ , c₂)   □)
+    (↑ _ ⊤ , ↑-closure 0 ⊤-contractible)
+  where
+  ext′ = lower-extensionality _ _ ext
+
 -- ∃ λ A → H-level n A does not in general have h-level n.
 --
 -- (Kraus and Sattler show that, for all n,
