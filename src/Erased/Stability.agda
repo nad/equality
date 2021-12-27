@@ -30,6 +30,7 @@ import Equivalence.Half-adjoint eq as HA
 open import Equivalence.Path-split eq as PS
   using (Is-∞-extendable-along-[_]; Is-[_]-extendable-along-[_];
          _-Null_; _-Nullᴱ_)
+open import Excluded-middle eq
 open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
@@ -37,7 +38,8 @@ open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
 import List eq as L
 open import Modality.Basics eq
-import Modality.Very-modal eq as Very-modal
+import Modality.Empty-modal eq as Empty-modal
+open import Modality.Identity eq using (Identity-modality)
 import Nat eq as Nat
 open import Surjection eq using (_↠_; Split-surjective)
 open import Univalence-axiom eq
@@ -1059,8 +1061,7 @@ Is-equivalenceᴱ-∘[] ext s =
        _≃ᴱ_.left-inverse-of EEq.⟨ _ , s ⟩ (f x))
 
 ------------------------------------------------------------------------
--- Definitions of what it means for Erased to be accessible and
--- topological
+-- Erased is accessible and topological (given certain assumptions)
 
 -- A definition of what it means for Erased to be accessible and
 -- topological (for a certain universe level).
@@ -1147,6 +1148,34 @@ erased-is-accessible-and-topological-in-erased-contexts {a = a} ext =
                                   (Erased-Very-stable .erased) ⟩
       ⊤                      ↝⟨ record { to = λ _ _ → _≃_.is-equivalence $ Eq.↔→≃ _ (_$ _) refl refl } ⟩□
       (λ _ → ↑ a ⊤) -Null A  □
+
+-- In the presence of excluded middle Erased is accessible and
+-- topological (assuming extensionality).
+
+erased-is-accessible-and-topological :
+  Excluded-middle a →
+  Extensionality a a →
+  Erased-is-accessible-and-topological a
+erased-is-accessible-and-topological {a = a} em ext =               $⟨ (λ _ →
+                                                                          [ erased-is-accessible-and-topological-in-erased-contexts
+                                                                              ext .proj₂ .proj₂ .proj₂ _ ]) ⟩
+  ((A : Type a) →
+   Erased (Very-stable A ⇔ (λ (_ : ↑ a ⊤) → ↑ a ⊤) -Null A))        →⟨ (wrap ∘ Erased→¬¬) ∘_ ⟩
+
+  ((A : Type a) →
+   ¬¬ (Very-stable A ⇔ (λ (_ : ↑ a ⊤) → ↑ a ⊤) -Null A))            →⟨ (∀-cong _ λ _ →
+                                                                        Excluded-middle→Double-negation-elimination em $
+                                                                        ⇔-closure ext 1
+                                                                          (Very-stable-propositional ext)
+                                                                          (Π-closure ext 1 λ _ →
+                                                                           Eq.propositional ext _)) ⟩
+
+  ((A : Type a) → Very-stable A ⇔ (λ (_ : ↑ a ⊤) → ↑ a ⊤) -Null A)  →⟨ (λ hyp →
+                                                                            _
+                                                                          , _
+                                                                          , (λ _ → H-level.mono₁ 0 $ ↑-closure 0 ⊤-contractible)
+                                                                          , hyp) ⟩□
+  Erased-is-accessible-and-topological a                            □
 
 ------------------------------------------------------------------------
 -- Some lemmas related to Very-stable/Very-stableᴱ and
@@ -2074,8 +2103,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       Very-stable-×
 
   ----------------------------------------------------------------------
-  -- The function λ A → Erased A, [_]→ and Very-stable form a Σ-closed
-  -- reflective subuniverse
+  -- The function λ A → Erased A, [_]→ and Very-stable form a modality
 
   -- As a consequence of Very-stable→Very-stable-≡ we get that every
   -- family of very stable types, indexed by Erased A, is ∞-extendable
@@ -2170,11 +2198,70 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   -- The modality is topological in erased contexts.
 
-  @0 Erased-topological : Topological Erased-modality
-  Erased-topological =
-    let I , P , prop , eq =
+  @0 Erased-topological-in-erased-contexts :
+    Topological Erased-modality
+  Erased-topological-in-erased-contexts =
+    let I , P , prop , p =
           erased-is-accessible-and-topological-in-erased-contexts′
-    in (I , P , eq) , prop
+    in (I , P , p) , prop
+
+  ----------------------------------------------------------------------
+  -- Some properties that rely on excluded middle
+
+  module Excluded-middle (em : Excluded-middle ℓ) where
+
+    -- Every type of type Type ℓ is very stable (assuming
+    -- extensionality).
+
+    very-stable :
+      {A : Type ℓ} →
+      Extensionality ℓ ℓ →
+      Very-stable A
+    very-stable ext =
+      Empty-modal.Excluded-middle.Very-modal.modal
+        Erased-modality
+        Erased-empty-modal
+        em
+        Erased-very-modal
+        ext
+
+    -- The modality is equal to the identity modality (assuming
+    -- extensionality and univalence).
+
+    Erased≡Identity-modality :
+      Extensionality (lsuc ℓ) (lsuc ℓ) →
+      Univalence ℓ →
+      Erased-modality ≡ Identity-modality
+    Erased≡Identity-modality ext univ =
+      Empty-modal.Excluded-middle.Very-modal.≡Identity-modality
+        Erased-modality
+        Erased-empty-modal
+        em
+        Erased-very-modal
+        ext univ
+
+    -- The modality is topological (assuming extensionality).
+
+    Erased-topological :
+      Extensionality ℓ ℓ →
+      Topological Erased-modality
+    Erased-topological ext =
+      Empty-modal.Excluded-middle.Very-modal.topological
+        Erased-modality
+        Erased-empty-modal
+        em
+        Erased-very-modal
+        ext
+
+    -- The modality is cotopological.
+
+    Erased-cotopological : Cotopological (λ (A : Type ℓ) → Erased A)
+    Erased-cotopological =
+      Empty-modal.Excluded-middle.Left-exact→Cotopological
+        Erased-modality
+        Erased-empty-modal
+        em
+        lex-modality
 
   ----------------------------------------------------------------------
   -- Erased singletons
@@ -2659,6 +2746,46 @@ module Extensionality where
   Erased-modality ext =
     []-cong₁.Erased-modality
       (Extensionality→[]-cong-axiomatisation ext)
+
+  ----------------------------------------------------------------------
+  -- Some properties that rely on excluded middle
+
+  module Excluded-middle (em : Excluded-middle ℓ) where
+
+    -- Every type of type Type ℓ is very stable (assuming
+    -- extensionality).
+
+    very-stable :
+      {A : Type ℓ} →
+      Extensionality ℓ ℓ →
+      Very-stable A
+    very-stable ext =
+      []-cong₁.Excluded-middle.very-stable
+        (Extensionality→[]-cong-axiomatisation ext)
+        em ext
+
+    -- The modality is equal to the identity modality (assuming
+    -- extensionality and univalence).
+
+    Erased≡Identity-modality :
+      Extensionality (lsuc ℓ) (lsuc ℓ) →
+      (ext : Extensionality ℓ ℓ) →
+      Univalence ℓ →
+      Erased-modality ext ≡ Identity-modality
+    Erased≡Identity-modality ext′ ext univ =
+      []-cong₁.Excluded-middle.Erased≡Identity-modality
+        (Extensionality→[]-cong-axiomatisation ext)
+        em ext′ univ
+
+    -- The modality is topological (assuming extensionality).
+
+    Erased-topological :
+      (ext : Extensionality ℓ ℓ) →
+      Topological (Erased-modality {ℓ = ℓ} ext)
+    Erased-topological ext =
+      []-cong₁.Excluded-middle.Erased-topological
+        (Extensionality→[]-cong-axiomatisation ext)
+        em ext
 
 ------------------------------------------------------------------------
 -- Some lemmas related to Stable-≡-Erased-axiomatisation
