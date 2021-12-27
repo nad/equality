@@ -20,21 +20,29 @@ open Derived-definitions-and-properties eq
 
 open Modality M
 
+open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+open import Accessibility eq as A using (Acc)
 open import Bijection eq as Bijection using (_↔_)
+open import Double-negation eq
 open import Equality.Decidable-UIP eq
 open import Equivalence eq as Eq using (_≃_)
+open import Equivalence.Path-split eq as PS
+  using (Is-∞-extendable-along-[_])
+open import Excluded-middle eq
 open import For-iterated-equality eq
-open import Function-universe eq hiding (_∘_)
+open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
+open import Modality.Identity eq as Identity using (Identity-modality)
+open import Univalence-axiom eq
 
 private
   variable
-    ℓ   : Level
-    A B : Type ℓ
-    k   : A
+    ℓ         : Level
+    A B       : Type ℓ
+    k x y _<_ : A
 
 ------------------------------------------------------------------------
 -- A basic lemma
@@ -219,3 +227,182 @@ Separated-List n =
     Modal-⊤
     Modal-⊥
     (λ mA mB → Modal-Σ mA λ _ → mB)
+
+------------------------------------------------------------------------
+-- Some results that depend on excluded middle
+
+module Excluded-middle (em : Excluded-middle a) where
+
+  -- Propositions are modal.
+
+  Is-proposition→Modal : Is-proposition A → Modal A
+  Is-proposition→Modal prop =
+    Stable→Is-proposition→Modal
+      (¬¬-stable→Stable
+         (Excluded-middle→Double-negation-elimination em prop ∘ wrap))
+      prop
+
+  -- If the modality is left exact, then it is cotopological.
+
+  Left-exact→Cotopological :
+    Left-exact ◯ → Cotopological ◯
+  Left-exact→Cotopological lex =
+      lex
+    , λ {A = A} A-prop →
+        ◯ -Connected A      ↔⟨⟩
+        Contractible (◯ A)  →⟨ H-level-cong _ 0 $ inverse $ Modal→≃◯ $ Is-proposition→Modal A-prop ⟩□
+        Contractible A      □
+
+  ----------------------------------------------------------------------
+  -- Some results that hold if the modality is very modal (in addition
+  -- to being empty-modal)
+
+  module Very-modal (very-modal : Very-modal M) where
+
+    -- Every type is modal (assuming function extensionality).
+
+    modal : Extensionality a a → Modal A
+    modal {A = A} ext =
+                   $⟨ very-modal ⟩
+      ◯ (Modal A)  →⟨ Modal→Stable $
+                      Is-proposition→Modal $
+                      Modal-propositional ext ⟩□
+      Modal A      □
+
+    private
+
+      -- A lemma used below.
+
+      Modal⇔⊤ :
+        Extensionality a a →
+        (A : Type a) → Modal A ⇔ ↑ a ⊤
+      Modal⇔⊤ ext _ = record { from = λ _ → modal ext }
+
+    -- The modal operator is pointwise equivalent to the identity
+    -- function, and the right-to-left direction of the equivalence is
+    -- pointwise equal to the modal unit (assuming function
+    -- extensionality).
+
+    ◯≃id :
+      Extensionality a a →
+      ∃ λ (eq : ∀ A → ◯ A ≃ A) → ∀ A → _≃_.from (eq A) ≡ η
+    ◯≃id ext =                                                $⟨ Modal⇔Modal→◯≃◯ ext Identity-modality M
+                                                                   (inverse ∘ Modal⇔⊤ ext) ⟩
+      (∃ λ (eq : ∀ A → A ≃ ◯ A) → ∀ A → _≃_.to (eq A) ≡ η)    →⟨ Σ-map (inverse ∘_) id ⟩□
+      (∃ λ (eq : ∀ A → ◯ A ≃ A) → ∀ A → _≃_.from (eq A) ≡ η)  □
+
+    -- The modality is equal to one instance of the identity modality
+    -- (assuming function extensionality and univalence).
+
+    ≡Identity-modality :
+      Extensionality (lsuc a) (lsuc a) →
+      Univalence a →
+      M ≡ Identity-modality {ℓ = a}
+    ≡Identity-modality ext univ =
+      _≃_.to (Modal⇔Modal≃≡ ext univ)
+        (Modal⇔⊤ (lower-extensionality _ _ ext))
+
+    -- The modality is topological (assuming function extensionality).
+
+    topological : Extensionality a a → Topological M
+    topological ext =                                            $⟨ Identity.topological ⟩
+
+      Topological Identity-modality                              ↔⟨⟩
+
+      (∃ λ ((_ , P , _) :
+            ∃ λ (I : Type a) → ∃ λ (P : I → Type a) →
+              (A : Type a) →
+              ↑ a ⊤ ⇔
+              ∀ i →
+              Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
+                (λ (_ : ↑ a ⊤) → A)) →
+       ∀ i → Is-proposition (P i))                               →⟨ Σ-map (Σ-map id (Σ-map id ((F._∘ Modal⇔⊤ ext _) ∘_))) id ⟩
+
+      (∃ λ ((_ , P , _) :
+            ∃ λ (I : Type a) → ∃ λ (P : I → Type a) →
+              (A : Type a) →
+              Modal A ⇔
+              ∀ i →
+              Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
+                (λ (_ : ↑ a ⊤) → A)) →
+       ∀ i → Is-proposition (P i))                               ↔⟨⟩
+
+      Topological M                                              □
+
+    -- The modality is accessibility-modal (assuming function
+    -- extensionality).
+
+    accessibility-modal :
+      Extensionality a a →
+      Modality.Accessibility-modal M
+    accessibility-modal ext =                         $⟨ (λ {_ _} → Identity.accessibility-modal) ⟩
+
+      Modality.Accessibility-modal Identity-modality  ↔⟨⟩
+
+      ({A : Type a} {_<_ : A → A → Type a} →
+       (∀ {x} → Acc _<_ x → Acc IM._[ _<_ ]◯_ x) ×
+       (∀ {x} → IM.Stable (Acc IM._[ _<_ ]◯_ x)))     →⟨ implicit-∀-cong _ $ implicit-∀-cong _ $
+                                                         (implicit-∀-cong _ $ ∀-cong _ λ _ →
+                                                          lemma₂ ∘ subst (Acc _) (sym ◯≃-η≡))
+                                                           ×-cong
+                                                         (implicit-Π-cong-contra _ ◯≃ λ _ →
+                                                          →-cong-→ (lemma₁ ∘ _≃_.to ◯≃) lemma₂) ⟩
+      ({A : Type a} {_<_ : A → A → Type a} →
+       (∀ {x} → Acc _<_ x → Acc _[ _<_ ]◯_ (η x)) ×
+       (∀ {x} → Stable (Acc _[ _<_ ]◯_ x)))           ↔⟨⟩
+
+      Modality.Accessibility-modal M                  □
+      where
+      module IM = Modality Identity-modality
+
+      ◯≃ : ◯ A ≃ A
+      ◯≃ {A = A} = proj₁ (◯≃id ext) A
+
+      ◯≃-η≡ : _≃_.to ◯≃ (η x) ≡ x
+      ◯≃-η≡ {x = x} =
+        _≃_.to ◯≃ (η x)            ≡⟨ cong (λ f → _≃_.to ◯≃ (f x)) $ sym $ proj₂ (◯≃id ext) _ ⟩
+        _≃_.to ◯≃ (_≃_.from ◯≃ x)  ≡⟨ _≃_.right-inverse-of ◯≃ _ ⟩∎
+        x                          ∎
+
+      η-◯≃≡ : η (_≃_.to ◯≃ x) ≡ x
+      η-◯≃≡ {x = x} =
+        η (_≃_.to ◯≃ x)            ≡⟨ cong (λ f → f (_≃_.to ◯≃ x)) $ sym $ proj₂ (◯≃id ext) _ ⟩
+        _≃_.from ◯≃ (_≃_.to ◯≃ x)  ≡⟨ _≃_.left-inverse-of ◯≃ _ ⟩∎
+        x                          ∎
+
+      lemma₁′ : y IM.[ _<_ ]◯ _≃_.to ◯≃ x → _≃_.from ◯≃ y [ _<_ ]◯ x
+      lemma₁′ {y = y} {x = x} (y′ , x′ , ≡y′ , ≡x′ , y′<x′) =
+        η ( y′
+          , x′
+          , (_≃_.from ◯≃ y  ≡⟨ _≃_.to-from ◯≃ ◯≃-η≡ ⟩
+             η y            ≡⟨ cong η ≡y′ ⟩∎
+             η y′           ∎)
+          , (x                ≡⟨ sym η-◯≃≡ ⟩
+             η (_≃_.to ◯≃ x)  ≡⟨ cong η ≡x′ ⟩∎
+             η x′             ∎)
+          , y′<x′
+          )
+
+      lemma₂′ : y [ _<_ ]◯ x → _≃_.to ◯≃ y IM.[ _<_ ]◯ _≃_.to ◯≃ x
+      lemma₂′ {y = y} {x = x} y<x =
+        let (y′ , x′ , y≡ , x≡ , y′<x′) = _≃_.to ◯≃ y<x in
+          y′
+        , x′
+        , (_≃_.to ◯≃ y       ≡⟨ cong (_≃_.to ◯≃) y≡ ⟩
+           _≃_.to ◯≃ (η y′)  ≡⟨ ◯≃-η≡ ⟩∎
+           y′                ∎)
+        , (_≃_.to ◯≃ x       ≡⟨ cong (_≃_.to ◯≃) x≡ ⟩
+           _≃_.to ◯≃ (η x′)  ≡⟨ ◯≃-η≡ ⟩∎
+           x′                ∎)
+        , y′<x′
+
+      lemma₁ : Acc _[ _<_ ]◯_ x → Acc IM._[ _<_ ]◯_ (_≃_.to ◯≃ x)
+      lemma₁ (A.acc f) =
+        A.acc λ y y< →
+        subst (Acc _) (_≃_.right-inverse-of ◯≃ _) $
+        lemma₁ (f (_≃_.from ◯≃ y) (lemma₁′ y<))
+
+      lemma₂ : Acc IM._[ _<_ ]◯_ (_≃_.to ◯≃ x) → Acc _[ _<_ ]◯_ x
+      lemma₂ (A.acc f) =
+        A.acc λ y y< →
+        lemma₂ (f (_≃_.to ◯≃ y) (lemma₂′ y<))

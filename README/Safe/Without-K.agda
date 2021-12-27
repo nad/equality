@@ -205,6 +205,10 @@ import Modality.Basics
 
 import Modality.Identity
 
+-- The double-negation monad.
+
+import Double-negation
+
 -- Some results that hold for every empty-modal modality.
 
 import Modality.Empty-modal
@@ -316,10 +320,6 @@ import Modality
 -- The zero modality.
 
 import Modality.Zero
-
--- The double-negation monad.
-
-import Double-negation
 
 -- Properties related to stability for Erased.
 
