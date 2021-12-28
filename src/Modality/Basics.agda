@@ -70,18 +70,28 @@ private
 
   record Modality-record a : Type (lsuc a) where
     field
-      ◯     : Type a → Type a
-      η     : A → ◯ A
+      -- The modal operator.
+      ◯ : Type a → Type a
+
+      -- The modal unit.
+      η : A → ◯ A
+
+      -- A type A is modal if Modal A is inhabited.
       Modal : Type a → Type a
 
+      -- Modal A is propositional (assuming function extensionality).
       Modal-propositional :
         Extensionality a a →
         Is-proposition (Modal A)
 
+      -- ◯ A is modal.
       Modal-◯ : Modal (◯ A)
 
+      -- Modal respects equivalences.
       Modal-respects-≃ : A ≃ B → Modal A → Modal B
 
+      -- Pointwise modal families of type ◯ A → Type a are
+      -- ∞-extendable along η.
       extendable-along-η :
         {P : ◯ A → Type a} →
         (∀ x → Modal (P x)) →
