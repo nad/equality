@@ -36,6 +36,9 @@ private
     A B : Type ℓ
     k   : A
 
+------------------------------------------------------------------------
+-- A basic lemma
+
 -- ◯ ⊥ is equivalent to ⊥₀.
 
 ◯⊥≃⊥ : ◯ ⊥ ≃ ⊥₀
@@ -43,6 +46,9 @@ private
   ◯ ⊥  ↝⟨ inverse $ Modal→≃◯ Modal-⊥ ⟩
   ⊥    ↔⟨ ⊥↔⊥ ⟩□
   ⊥₀   □
+
+------------------------------------------------------------------------
+-- Some lemmas related to negation
 
 -- ◯ commutes with ¬_ (assuming extensionality).
 
@@ -75,17 +81,6 @@ private
     ¬-propositional
     ¬-propositional
 
--- Dec A implies Dec (◯ A).
---
--- This result appears in (at least one version of) the Coq code
--- accompanying "Modalities in Homotopy Type Theory" by Rijke, Shulman
--- and Spitters.
-
-Dec→Dec-◯ : Dec A → Dec (◯ A)
-Dec→Dec-◯ (yes x)    = yes (η x)
-Dec→Dec-◯ (no empty) =
-  no (⊥-elim ∘ ◯-rec Modal-⊥ (⊥-elim ∘ empty))
-
 -- ◯ A implies ¬ ¬ A.
 
 ◯→¬¬ : ◯ A → ¬ ¬ A
@@ -95,26 +90,6 @@ Dec→Dec-◯ (no empty) =
 
 ¬¬-stable→Stable : (¬ ¬ A → A) → Stable A
 ¬¬-stable→Stable = _∘ ◯→¬¬
-
--- Types for which it is known whether or not they are inhabited are
--- stable.
-
-Dec→Stable : Dec A → Stable A
-Dec→Stable         (yes x)    = λ _ → x
-Dec→Stable {A = A} (no empty) =
-  ◯ A    →⟨ ◯→¬¬ ⟩
-  ¬ ¬ A  →⟨ _$ empty ⟩
-  ⊥      →⟨ ⊥-elim ⟩□
-  A      □
-
--- If equality is decidable for A, then A is separated.
-
-Decidable-equality→Separated :
-  Decidable-equality A → Separated A
-Decidable-equality→Separated dec x y =
-  Stable→Is-proposition→Modal
-    (Dec→Stable (dec x y))
-    (decidable⇒set dec)
 
 -- The type ¬ A is k-stable (perhaps assuming function
 -- extensionality).
@@ -139,6 +114,43 @@ Modal-¬ {A = A} ext =
     (inverse $ Stable-¬ ext)
     η
     (λ empty → cong η $ apply-ext ext (⊥-elim ∘ empty))
+
+------------------------------------------------------------------------
+-- Some lemmas related to Dec
+
+-- Dec A implies Dec (◯ A).
+--
+-- This result appears in (at least one version of) the Coq code
+-- accompanying "Modalities in Homotopy Type Theory" by Rijke, Shulman
+-- and Spitters.
+
+Dec→Dec-◯ : Dec A → Dec (◯ A)
+Dec→Dec-◯ (yes x)    = yes (η x)
+Dec→Dec-◯ (no empty) =
+  no (⊥-elim ∘ ◯-rec Modal-⊥ (⊥-elim ∘ empty))
+
+-- Types for which it is known whether or not they are inhabited are
+-- stable.
+
+Dec→Stable : Dec A → Stable A
+Dec→Stable         (yes x)    = λ _ → x
+Dec→Stable {A = A} (no empty) =
+  ◯ A    →⟨ ◯→¬¬ ⟩
+  ¬ ¬ A  →⟨ _$ empty ⟩
+  ⊥      →⟨ ⊥-elim ⟩□
+  A      □
+
+------------------------------------------------------------------------
+-- Some results related to stability or modality of equality types
+
+-- If equality is decidable for A, then A is separated.
+
+Decidable-equality→Separated :
+  Decidable-equality A → Separated A
+Decidable-equality→Separated dec x y =
+  Stable→Is-proposition→Modal
+    (Dec→Stable (dec x y))
+    (decidable⇒set dec)
 
 -- If equality is k-stable for A and B, then equality is k-stable
 -- for A ⊎ B. (The lemma is more general.)
