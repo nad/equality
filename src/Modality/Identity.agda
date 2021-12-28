@@ -17,7 +17,6 @@ open import Equivalence.Path-split eq
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Modality.Basics eq
-import Modality.Very-modal
 
 private
   variable
@@ -58,13 +57,6 @@ empty-modal = _
 very-modal : Very-modal (Identity-modality {ℓ = ℓ})
 very-modal = _
 
-private
-  module VM {ℓ = ℓ} =
-    Modality.Very-modal
-      eq
-      (Identity-modality {ℓ = ℓ})
-      (λ {A} → very-modal {A = A})
-
 -- The identity modality is topological.
 
 topological : Topological (Identity-modality {ℓ = ℓ})
@@ -78,13 +70,9 @@ topological {ℓ = ℓ} =
 -- The identity modality is left exact.
 
 left-exact : Left-exact (λ (A : Type ℓ) → A)
-left-exact = VM.left-exact
-
--- The identity modality is left exact.
-
-left-exact-η-cong :
-  Modality.Left-exact-η-cong (Identity-modality {ℓ = ℓ})
-left-exact-η-cong = VM.left-exact-η-cong
+left-exact {A = A} {x = x} {y = y} =
+  Contractible A        →⟨ H-level.⇒≡ 0 ⟩□
+  Contractible (x ≡ y)  □
 
 -- The identity modality is accessibility-modal.
 

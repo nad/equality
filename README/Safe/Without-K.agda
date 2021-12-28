@@ -201,6 +201,10 @@ import Equivalence.List
 
 import Modality.Basics
 
+-- The identity modality.
+
+import Modality.Identity
+
 -- Some results that hold for every empty-modal modality.
 
 import Modality.Empty-modal
@@ -308,10 +312,6 @@ import Modality.Very-modal
 -- Idempotent monadic modalities.
 
 import Modality
-
--- The identity modality.
-
-import Modality.Identity
 
 -- The zero modality.
 
