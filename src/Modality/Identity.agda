@@ -74,6 +74,11 @@ left-exact {A = A} {x = x} {y = y} =
   Contractible A        →⟨ H-level.⇒≡ 0 ⟩□
   Contractible (x ≡ y)  □
 
+-- The identity modality is cotopological.
+
+cotopological : Cotopological (λ (A : Type ℓ) → A)
+cotopological = left-exact , (λ _ c → c)
+
 -- The identity modality is accessibility-modal.
 
 accessibility-modal :
