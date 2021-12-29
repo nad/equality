@@ -145,6 +145,8 @@ Zero-very-modal {ℓ = ℓ} {A = A} =
 -- topological modality
 
 -- The zero modality is not empty-modal.
+--
+-- Compare with Erased.Stability.[]-cong₁.Erased-empty-modal.
 
 Zero-not-empty-modal : ¬ Empty-modal (Zero-modality {ℓ = ℓ})
 Zero-not-empty-modal {ℓ = ℓ} =
@@ -170,6 +172,8 @@ Zero-not-empty-modal {ℓ = ℓ} =
   open Modality (Zero-modality {ℓ = ℓ})
 
 -- The zero modality is not accessibility-modal.
+--
+-- Compare with Erased.Stability.[]-cong₁.Erased-accessibility-modal.
 
 ¬-Zero-accessibility-modal :
   ¬ Modality.Accessibility-modal (Zero-modality {ℓ = ℓ})
