@@ -221,6 +221,17 @@ rec r = recᴾ λ where
 ∥∥ᴱ-empty-modal : Empty-modal (∥∥ᴱ-modality {ℓ = ℓ})
 ∥∥ᴱ-empty-modal = [ ⊥-propositional ]
 
+-- The modality is not left exact.
+
+¬-∥∥ᴱ-left-exact : ¬ Left-exact (∥_∥ᴱ {a = a})
+¬-∥∥ᴱ-left-exact {a = a} =
+  Er.Stable-¬
+    [ Empty-modal→Is-proposition-◯→¬-Left-exact
+        ∥∥ᴱ-empty-modal truncation-is-proposition
+    ]
+  where
+  open Modality (∥∥ᴱ-modality {ℓ = a})
+
 -- The modality is not very modal.
 
 ¬-∥∥ᴱ-very-modal : ¬ Very-modal (∥∥ᴱ-modality {ℓ = ℓ})

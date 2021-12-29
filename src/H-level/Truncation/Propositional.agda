@@ -281,6 +281,18 @@ rec p f = rec′ λ where
 ∥∥-empty-modal : Empty-modal (∥∥-modality {ℓ = ℓ})
 ∥∥-empty-modal = ⊥-propositional
 
+-- The modality is not left exact.
+--
+-- This result is mentioned by Rijke, Shulman and Spitters in
+-- "Modalities in Homotopy Type Theory".
+
+¬-∥∥-left-exact : ¬ Left-exact (∥_∥ {a = a})
+¬-∥∥-left-exact {a = a} =
+  Empty-modal→Is-proposition-◯→¬-Left-exact
+    ∥∥-empty-modal truncation-is-proposition
+  where
+  open Modality (∥∥-modality {ℓ = a})
+
 -- The modality is not very modal.
 
 ¬-∥∥-very-modal : ¬ Very-modal (∥∥-modality {ℓ = ℓ})

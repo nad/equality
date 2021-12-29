@@ -230,6 +230,20 @@ Excluded-middle≃Double-negation-elimination ext =
 ¬¬-empty-modal _ =
   ⊥-propositional , ⊥-elim ∘ ¬¬¬⊥
 
+-- The double-negation modality is not left exact (assuming
+-- extensionality).
+
+¬¬-not-left-exact :
+  ∀ {a} →
+  Extensionality a a →
+  ¬ Left-exact (¬¬_ {a = a})
+¬¬-not-left-exact {a = a} ext =
+  Empty-modal→Is-proposition-◯→¬-Left-exact
+    (¬¬-empty-modal ext)
+    (¬¬-propositional (lower-extensionality lzero _ ext))
+  where
+  open Modality (¬¬-modality ext)
+
 -- The double-negation modality is not very modal.
 
 ¬¬-not-very-modal :

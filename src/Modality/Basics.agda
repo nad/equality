@@ -27,6 +27,7 @@ open import Prelude
 open import Accessibility eq-J as A using (Acc; Well-founded; _<W_)
 open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq-J as Emb using (Embedding; Is-embedding)
+open import Equality.Decision-procedures eq-J
 open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Erased.Basics eq-J as EEq
   using (_≃ᴱ_; Is-equivalenceᴱ)
@@ -3663,9 +3664,33 @@ module Modality (M : Modality a) where
                                                                    ≡≃≃ univ) ⟩□
         (∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)           □
 
-  -- I did not take the remaining result in this section from
+  -- I did not take the remaining results in this section from
   -- "Modalities in Homotopy Type Theory" or the corresponding Coq
   -- code.
+
+  -- If the modality is empty-modal and ◯ (↑ a Bool) is a proposition,
+  -- then the modality is not left exact.
+
+  Empty-modal→Is-proposition-◯→¬-Left-exact :
+    Empty-modal M →
+    Is-proposition (◯ (↑ a Bool)) →
+    ¬ Left-exact ◯
+  Empty-modal→Is-proposition-◯→¬-Left-exact Modal-⊥ prop =
+    Left-exact ◯                                                         →⟨ Left-exact≃Left-exact-η-cong _ ⟩
+
+    Left-exact-η-cong                                                    →⟨ (λ lex → lex) ⟩
+
+    Is-equivalence
+      (η-cong ⦂
+         (◯ (lift true ≡ lift false) → η (lift true) ≡ η (lift false)))  →⟨ Eq.⟨ _ ,_⟩ ⟩
+
+    ◯ (lift true ≡ lift false) ≃ (η (lift true) ≡ η (lift false))        →⟨ (λ eq → _≃_.from eq (prop _ _)) ⟩
+
+    ◯ (lift true ≡ lift false)                                           →⟨ ◯-map (⊥-elim ∘ Bool.true≢false ∘ cong lower) ⟩
+
+    ◯ ⊥                                                                  →⟨ ⊥-elim ∘ Modal→Stable Modal-⊥ ⟩□
+
+    ⊥                                                                    □
 
   -- If ◯ (Modal A) holds, then the function η-cong {x = x} {y = y} is
   -- an equivalence for all x and y of type A.
