@@ -482,6 +482,11 @@ Local→Is-equivalence-[] {f = f} local =
 ------------------------------------------------------------------------
 -- The nullification modality
 
+-- Nullification.
+
+Nullification : {A : Type a} → (A → Type a) → Type a → Type a
+Nullification P = Localisation {P = P} {Q = λ _ → ⊤} _
+
 -- The nullification modality for a given type family.
 
 Nullification-modality :
@@ -489,7 +494,7 @@ Nullification-modality :
   Modality a
 Nullification-modality {a = a} P =
   Σ-closed-reflective-subuniverse.modality λ where
-    .Σ-closed-reflective-subuniverse.◯ → ◯
+    .Σ-closed-reflective-subuniverse.◯ → Nullification P
 
     .Σ-closed-reflective-subuniverse.η → [_]
 
@@ -500,9 +505,9 @@ Nullification-modality {a = a} P =
       Eq.propositional I.ext _
 
     .Σ-closed-reflective-subuniverse.Modal-◯ {A = A} →
-                                       $⟨ Local-Localisation ⟩
-      (λ x (_ : P x) → tt) -Local ◯ A  ↝⟨ inverse Null≃Local ⟩□
-      P -Null ◯ A                      □
+                                                     $⟨ Local-Localisation ⟩
+      (λ x (_ : P x) → tt) -Local Nullification P A  ↝⟨ inverse Null≃Local ⟩□
+      P -Null Nullification P A                      □
 
     .Σ-closed-reflective-subuniverse.Modal-respects-≃
       {A = A} {B = B} A≃B →
@@ -511,10 +516,10 @@ Nullification-modality {a = a} P =
 
     .Σ-closed-reflective-subuniverse.extendable-along-η
       {B = B} {A = A} →
-      P -Null B                                        ↔⟨ Null≃Local ⟩
-      (λ x (_ : P x) → tt) -Local B                    →⟨ Local→Is-equivalence-[] ⟩
-      Is-equivalence (λ (f : ◯ A → B) → f ∘ [_])       ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence I.ext ⟩□
-      Is-∞-extendable-along-[ [_] ] (λ (_ : ◯ A) → B)  □
+      P -Null B                                                      ↔⟨ Null≃Local ⟩
+      (λ x (_ : P x) → tt) -Local B                                  →⟨ Local→Is-equivalence-[] ⟩
+      Is-equivalence (λ (f : Nullification P A → B) → f ∘ [_])       ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence I.ext ⟩□
+      Is-∞-extendable-along-[ [_] ] (λ (_ : Nullification P A) → B)  □
 
     .Σ-closed-reflective-subuniverse.Σ-closed {A = B} {P = Q} mB mQ x →
       _≃_.is-equivalence
@@ -522,6 +527,3 @@ Nullification-modality {a = a} P =
          (∃ λ (y : B) → P x → Q y)                  ↝⟨ (Σ-cong Eq.⟨ _ , mB x ⟩ λ _ → F.id) ⟩
          (∃ λ (f : P x → B) → (y : P x) → Q (f y))  ↔⟨ inverse ΠΣ-comm ⟩□
          (P x → ∃ λ (y : B) → Q y)                  □)
-  where
-  ◯ : Type a → Type a
-  ◯ = Localisation {P = P} {Q = λ _ → ⊤} _
