@@ -93,7 +93,7 @@ Local≃Split-surjective-∘×Split-surjective-∘∇
                                                                   (_≃_.is-equivalence Pushout→≃Pullback)) ⟩□
     Split-surjective (_∘ g) × Split-surjective (_∘ ∇ g)     □
 
--- Locality for constant families can be expressed in a third way.
+-- Locality can be expressed in a third way.
 
 Local≃Is-equivalence-∘×Is-equivalence-∘∇ :
   {f : (x : A) → P x → Q x} →
