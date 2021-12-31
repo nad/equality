@@ -654,6 +654,18 @@ P -Null B = ∀ x → Is-equivalence (const ⦂ (B → P x → B))
 _-Nullᴱ_ : {A : Type a} → (A → Type p) → Type b → Type (a ⊔ b ⊔ p)
 P -Nullᴱ B = ∀ x → Is-equivalenceᴱ (const ⦂ (B → P x → B))
 
+-- P -Null B is a proposition (assuming extensionality).
+--
+-- See also Equivalence.Erased.Nullᴱ-propositional.
+
+Null-propositional :
+  {A : Type a} {P : A → Type p} {B : Type b} →
+  Extensionality (a ⊔ p ⊔ b) (p ⊔ b) →
+  Is-proposition (P -Null B)
+Null-propositional {a = a} {p = p} {b = b} ext =
+  Π-closure (lower-extensionality (p ⊔ b) lzero ext) 1 λ _ →
+  Eq.propositional (lower-extensionality a lzero ext) _
+
 -- P -Null_ preserves equivalences (assuming extensionality).
 --
 -- See also Equivalence.Erased.[]-cong₂-⊔.Nullᴱ-cong.

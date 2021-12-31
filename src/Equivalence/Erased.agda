@@ -172,6 +172,17 @@ Is-equivalenceᴱ-propositional ext f =
     1
     (Eq.propositional ext f)
 
+-- P -Nullᴱ B is a proposition in erased contexts (assuming
+-- extensionality).
+
+@0 Nullᴱ-propositional :
+  {A : Type a} {P : A → Type p} {B : Type b} →
+  Extensionality (a ⊔ p ⊔ b) (p ⊔ b) →
+  Is-proposition (P -Nullᴱ B)
+Nullᴱ-propositional {a = a} {p = p} {b = b} ext =
+  Π-closure (lower-extensionality (p ⊔ b) lzero ext) 1 λ _ →
+  Is-equivalenceᴱ-propositional (lower-extensionality a lzero ext) _
+
 ------------------------------------------------------------------------
 -- More conversion lemmas, and a related result
 
