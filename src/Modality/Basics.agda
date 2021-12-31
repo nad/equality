@@ -607,6 +607,10 @@ Cotopological-propositional {◯ = ◯} ext =
   where
   ext′ = lower-extensionality _ lzero ext
 
+-- I did not take the remaining definitions in this section from
+-- "Modalities in Homotopy Type Theory" or the corresponding Coq code
+-- (but "Modal ⊥" is used in the Coq code).
+
 -- A modality is called empty-modal if the empty type is modal.
 
 Empty-modal : Modality a → Type a
