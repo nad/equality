@@ -88,3 +88,8 @@ accessibility-modal {ℓ = ℓ} =
   , id
   where
   open Modality (Identity-modality {ℓ = ℓ})
+
+-- The identity modality is W-modal.
+
+w-modal : W-modal (Identity-modality {ℓ = ℓ})
+w-modal _ = _

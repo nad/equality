@@ -154,6 +154,18 @@ Zero-not-empty-modal {ℓ = ℓ} =
   Contractible ⊥  →⟨ ⊥-elim ∘ proj₁ ⟩□
   ⊥               □
 
+-- The zero modality is not W-modal.
+--
+-- Compare with Erased.Stability.[]-cong₁.Erased-W-modal.
+
+Zero-not-W-modal : ¬ W-modal (Zero-modality {ℓ = ℓ})
+Zero-not-W-modal {ℓ = ℓ} =
+  W-modal Zero-modality      →⟨ W-modal→Empty-modal ⟩
+  Empty-modal Zero-modality  →⟨ Zero-not-empty-modal ⟩□
+  ⊥                          □
+  where
+  open Modality (Zero-modality {ℓ = ℓ})
+
 -- The Zero modality is not accessibility-modal for any relation.
 
 ¬-Zero-accessibility-modal-for :

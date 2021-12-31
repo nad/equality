@@ -637,6 +637,30 @@ Very-modal {a = a} M = {A : Type a} → ◯ (Modal A)
   where
   open Modality-record M
 
+-- A modality of type Modality a is W-modal if W A P is modal whenever
+-- A is modal (for any A : Type a and P : A → Type a).
+
+W-modal : Modality a → Type (lsuc a)
+W-modal {a = a} M =
+  {A : Type a} {P : A → Type a} →
+  Modal A → Modal (W A P)
+  where
+  open Modality-record M
+
+-- W-modal M is propositional (assuming function extensionality).
+
+W-modal-propositional :
+  {M : Modality a} →
+  Extensionality (lsuc a) (lsuc a) →
+  Is-proposition (W-modal M)
+W-modal-propositional {M = M} ext =
+  implicit-Π-closure ext 1 λ _ →
+  implicit-Π-closure (lower-extensionality lzero _ ext) 1 λ _ →
+  Π-closure (lower-extensionality _ _ ext) 1 λ _ →
+  Modal-propositional (lower-extensionality _ _ ext)
+  where
+  open Modality-record M
+
 ------------------------------------------------------------------------
 -- Some results that hold for every modality
 
@@ -4208,6 +4232,26 @@ module Modality (M : Modality a) where
         (λ f → Accessibility-modal-for (_<W_ {A = A} {P = P ∘ f}))
         (apply-ext ext λ _ → sym Modal→Stable-η)
         acc
+
+  ----------------------------------------------------------------------
+  -- W-modal modalities
+
+  -- I did not take the lemma in this section from "Modalities in
+  -- Homotopy Type Theory" or the corresponding Coq code.
+
+  -- W-modal modalities are empty-modal.
+
+  W-modal→Empty-modal : W-modal M → Empty-modal M
+  W-modal→Empty-modal =
+    W-modal M                      →⟨ (λ m → m Modal-⊤) ⟩
+    Modal (W (↑ a ⊤) λ _ → ↑ a ⊤)  →⟨ Modal-respects-↠ record
+                                        { logical-equivalence = record
+                                          { to   = ⊥-elim ∘ inhabited⇒W-empty _
+                                          ; from = λ ()
+                                          }
+                                        ; right-inverse-of = λ ()
+                                        } ⟩□
+    Empty-modal M                  □
 
   ----------------------------------------------------------------------
   -- Applicative functor application

@@ -2196,6 +2196,13 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     where
     open Modality Erased-modality using (_[_]◯_)
 
+  -- The modality is W-modal (assuming extensionality).
+
+  Erased-W-modal :
+    Extensionality ℓ ℓ →
+    W-modal Erased-modality
+  Erased-W-modal ext = Very-stable-W ext
+
   -- The modality is topological in erased contexts.
 
   @0 Erased-topological-in-erased-contexts :
@@ -2746,6 +2753,16 @@ module Extensionality where
   Erased-modality ext =
     []-cong₁.Erased-modality
       (Extensionality→[]-cong-axiomatisation ext)
+
+  -- The modality is W-modal (assuming extensionality).
+
+  Erased-W-modal :
+    (ext : Extensionality ℓ ℓ) →
+    W-modal (Erased-modality {ℓ = ℓ} ext)
+  Erased-W-modal ext =
+    []-cong₁.Erased-W-modal
+      (Extensionality→[]-cong-axiomatisation ext)
+      ext
 
   ----------------------------------------------------------------------
   -- Some properties that rely on excluded middle

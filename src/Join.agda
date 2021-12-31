@@ -30,6 +30,7 @@ open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import Injection equality-with-J using (_↣_; Injective)
 open import Modality equality-with-J
+import Modality.Very-modal equality-with-J as Very-modal
 open import Pushout eq as PO
 open import Surjection equality-with-J using (_↠_)
 
@@ -609,5 +610,28 @@ Accessibility-modal-Closed≃Empty-modal-Closed {A = A} prop =
   Accessibility-modal          ↝⟨ Accessibility-modal-Closed≃¬ prop ⟩
   ¬ A                          ↝⟨ inverse $ Empty-modal-Closed≃¬ prop ⟩□
   Empty-modal (Closed A prop)  □
+  where
+  open Modality (Closed A prop)
+
+-- Closed A prop is W-modal exactly when it is empty-modal.
+
+W-modal-Closed≃Empty-modal-Closed :
+  (prop : Is-proposition A) →
+  W-modal (Closed A prop) ≃
+  Empty-modal (Closed A prop)
+W-modal-Closed≃Empty-modal-Closed {A = A} prop =
+  Eq.⇔→≃
+    (W-modal-propositional {M = Closed A prop} ext)
+    (Empty-modal-propositional {M = Closed A prop} ext)
+    W-modal→Empty-modal
+    (Empty-modal (Closed A prop)  →⟨ (λ hyp →
+                                          _≃_.to (Empty-modal-Closed≃¬ prop) hyp
+                                        , _≃_.from (Accessibility-modal-Closed≃Empty-modal-Closed prop) hyp) ⟩
+     ¬ A × Accessibility-modal    →⟨ (λ (hyp₁ , hyp₂) →
+                                        Very-modal.Modal-W
+                                          (Closed A prop)
+                                          (_≃_.from (Very-modal-Closed≃⊎¬ prop) (inj₂ hyp₁))
+                                          hyp₂ ext) ⟩□
+     W-modal (Closed A prop)      □)
   where
   open Modality (Closed A prop)

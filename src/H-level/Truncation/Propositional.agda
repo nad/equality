@@ -305,6 +305,11 @@ rec p f = rec′ λ where
   where
   open Modality (∥∥-modality {ℓ = ℓ})
 
+-- The modality is W-modal.
+
+∥∥-W-modal : W-modal (∥∥-modality {ℓ = ℓ})
+∥∥-W-modal = W-closure ext 0
+
 -- The modality is not accessibility-modal.
 
 ¬-∥∥-accessibility-modal :

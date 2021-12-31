@@ -257,6 +257,21 @@ Excluded-middle≃Double-negation-elimination ext =
   ¬¬ ⊥                                                       →⟨ ¬¬¬⊥ ⟩□
   ⊥                                                          □
 
+-- If double-negation elimination holds, then the double-negation
+-- modality is W-modal.
+
+¬¬-W-modal :
+  ∀ {ℓ} (ext : Extensionality ℓ ℓ) →
+  Double-negation-elimination ℓ →
+  W-modal (¬¬-modality ext)
+¬¬-W-modal ext dne {A = A} {P = P} (p , _) =
+  prop , dne prop
+  where
+  open Modality (¬¬-modality ext)
+
+  prop : Is-proposition (W A P)
+  prop = W-closure ext 0 p
+
 -- The double-negation modality is not accessibility-modal.
 
 ¬¬-not-accessibility-modal :

@@ -935,6 +935,26 @@ Modal-W {A = A} {P = P} acc ext m =
                                                                 _≃_.left-inverse-of P≃ _) ⟩∎
     η (sup x f)                                             ∎
 
+-- If the modality is accessibility-modal for certain relations, then
+-- it is W-modal (assuming function extensionality).
+
+Accessibility-modal-for→W-modal :
+  Extensionality a a →
+  @0 ({A : Type a} {P : A → Type a} →
+      Accessibility-modal-for (_<W_ {A = A} {P = P})) →
+  W-modal M
+Accessibility-modal-for→W-modal ext acc = Modal-W acc ext
+
+-- If the modality is accessibility-modal, then it is W-modal
+-- (assuming function extensionality).
+
+Accessibility-modal→W-modal :
+  Extensionality a a →
+  @0 Accessibility-modal →
+  W-modal M
+Accessibility-modal→W-modal ext acc =
+  Accessibility-modal-for→W-modal ext acc
+
 ------------------------------------------------------------------------
 -- Preservation lemmas
 
