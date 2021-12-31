@@ -102,188 +102,6 @@ open Dummy public
   using (module Modality-record)
   renaming (Modality-record to Modality)
 
--- If two modalities (for a given universe level) have the same modal
--- types, then the modal operators and units are related in a certain
--- way (assuming function extensionality).
-
-Modal⇔Modal→◯≃◯ :
-  Extensionality a a →
-  (M₁ M₂ : Modality a) →
-  (∀ A → Modality-record.Modal M₁ A ⇔ Modality-record.Modal M₂ A) →
-  ∃ λ (eq : ∀ A → Modality-record.◯ M₁ A ≃ Modality-record.◯ M₂ A) →
-    ∀ A → _≃_.to (eq A) ∘ Modality-record.η M₁ ≡ Modality-record.η M₂
-Modal⇔Modal→◯≃◯ {a = a} ext M₁ M₂ hyp =
-    (λ _ →
-       Eq.↔→≃
-         (c₁₂ .proj₁ .proj₁)
-         (c₂₁ .proj₁ .proj₁)
-         (λ x →
-            (c₁₂ .proj₁ .proj₁ ∘ c₂₁ .proj₁ .proj₁) x       ≡⟨ cong (λ p → proj₁ p x) $ sym $ c₂₂ .proj₂ $ _ , (
-
-              c₁₂ .proj₁ .proj₁ ∘ c₂₁ .proj₁ .proj₁ ∘ M₂.η       ≡⟨ cong (c₁₂ .proj₁ .proj₁ ∘_) $ c₂₁ .proj₁ .proj₂ ⟩
-              c₁₂ .proj₁ .proj₁ ∘ M₁.η                           ≡⟨ c₁₂ .proj₁ .proj₂ ⟩∎
-              M₂.η                                               ∎) ⟩
-
-            c₂₂ .proj₁ .proj₁ x                             ≡⟨ cong (λ p → proj₁ p x) $ c₂₂ .proj₂ (_ , refl _) ⟩∎
-
-            id x                                            ∎)
-         (λ x →
-            (c₂₁ .proj₁ .proj₁ ∘ c₁₂ .proj₁ .proj₁) x       ≡⟨ cong (λ p → proj₁ p x) $ sym $ c₁₁ .proj₂ $ _ , (
-
-              c₂₁ .proj₁ .proj₁ ∘ c₁₂ .proj₁ .proj₁ ∘ M₁.η       ≡⟨ cong (c₂₁ .proj₁ .proj₁ ∘_) $ c₁₂ .proj₁ .proj₂ ⟩
-              c₂₁ .proj₁ .proj₁ ∘ M₂.η                           ≡⟨ c₂₁ .proj₁ .proj₂ ⟩∎
-              M₁.η                                               ∎) ⟩
-
-            c₁₁ .proj₁ .proj₁ x                             ≡⟨ cong (λ p → proj₁ p x) $ c₁₁ .proj₂ (_ , refl _) ⟩∎
-
-            id x                                            ∎))
-  , (λ _ → c₁₂ .proj₁ .proj₂)
-  where
-  module M₁ = Modality-record M₁
-  module M₂ = Modality-record M₂
-
-  module _ {A : Type a} where
-
-    abstract
-
-      c₁₁ : Contractible (_∘ M₁.η ⁻¹ M₁.η {A = A})
-      c₁₁ =                                            $⟨ M₁.extendable-along-η (λ _ → M₁.Modal-◯) ⟩
-        Is-∞-extendable-along-[ M₁.η ] (λ _ → M₁.◯ A)  ↔⟨ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩
-        Is-equivalence (_∘ M₁.η)                       →⟨ (λ eq →
-                                                             Preimage.bijection⁻¹-contractible
-                                                               (_≃_.bijection Eq.⟨ _ , eq ⟩) _) ⟩□
-        Contractible (_∘ M₁.η ⁻¹ M₁.η)                 □
-
-      c₁₂ : Contractible (_∘ M₁.η ⁻¹ M₂.η {A = A})
-      c₁₂ =                                            $⟨ M₁.extendable-along-η (λ _ → _⇔_.from (hyp _) M₂.Modal-◯) ⟩
-        Is-∞-extendable-along-[ M₁.η ] (λ _ → M₂.◯ A)  ↔⟨ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩
-        Is-equivalence (_∘ M₁.η)                       →⟨ (λ eq →
-                                                             Preimage.bijection⁻¹-contractible
-                                                               (_≃_.bijection Eq.⟨ _ , eq ⟩) _) ⟩□
-        Contractible (_∘ M₁.η ⁻¹ M₂.η)                 □
-
-      c₂₁ : Contractible (_∘ M₂.η ⁻¹ M₁.η {A = A})
-      c₂₁ =                                            $⟨ M₂.extendable-along-η (λ _ → _⇔_.to (hyp _) M₁.Modal-◯) ⟩
-        Is-∞-extendable-along-[ M₂.η ] (λ _ → M₁.◯ A)  ↔⟨ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩
-        Is-equivalence (_∘ M₂.η)                       →⟨ (λ eq →
-                                                             Preimage.bijection⁻¹-contractible
-                                                               (_≃_.bijection Eq.⟨ _ , eq ⟩) _) ⟩□
-        Contractible (_∘ M₂.η ⁻¹ M₁.η)                 □
-
-      c₂₂ : Contractible (_∘ M₂.η ⁻¹ M₂.η {A = A})
-      c₂₂ =                                            $⟨ M₂.extendable-along-η (λ _ → M₂.Modal-◯) ⟩
-        Is-∞-extendable-along-[ M₂.η ] (λ _ → M₂.◯ A)  ↔⟨ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩
-        Is-equivalence (_∘ M₂.η)                       →⟨ (λ eq →
-                                                             Preimage.bijection⁻¹-contractible
-                                                               (_≃_.bijection Eq.⟨ _ , eq ⟩) _) ⟩□
-        Contractible (_∘ M₂.η ⁻¹ M₂.η)                 □
-
--- Two modalities (for the same universe level) are equal exactly when
--- they have the same modal types (assuming function extensionality
--- and univalence).
-
-Modal⇔Modal≃≡ :
-  {M₁ M₂ : Modality a} →
-  Extensionality (lsuc a) (lsuc a) →
-  Univalence a →
-  (∀ A → Modality-record.Modal M₁ A ⇔ Modality-record.Modal M₂ A) ≃
-  (M₁ ≡ M₂)
-Modal⇔Modal≃≡ {a = a} {M₁ = M₁} {M₂ = M₂} ext univ =
-  (∀ A → Modality-record.Modal M₁ A ⇔ Modality-record.Modal M₂ A)  ↔⟨ (∀-cong ext λ _ →
-                                                                       ⇔↔≡ ext″ univ
-                                                                         (Modality-record.Modal-propositional M₁ ext″)
-                                                                         (Modality-record.Modal-propositional M₂ ext″)) ⟩
-  (∀ A → Modality-record.Modal M₁ A ≡ Modality-record.Modal M₂ A)  ↝⟨ Eq.extensionality-isomorphism ext ⟩
-  Modality-record.Modal M₁ ≡ Modality-record.Modal M₂              ↔⟨ (ignore-propositional-component λ M₁′ M₂′ →
-                                                                       _↔_.to (ignore-propositional-component
-                                                                                 (×-closure 1
-                                                                                    (implicit-Π-closure ext 1 λ _ →
-                                                                                     Π-closure ext′ 1 λ ext →
-                                                                                     H-level-propositional ext 1) $
-                                                                                  ×-closure 1
-                                                                                    (implicit-Π-closure ext′ 1 λ _ →
-                                                                                     Modality-record.Modal-propositional M₂ ext″) $
-                                                                                  ×-closure 1
-                                                                                    (implicit-Π-closure ext 1 λ _ →
-                                                                                     implicit-Π-closure ext′ 1 λ _ →
-                                                                                     Π-closure ext″ 1 λ _ →
-                                                                                     Π-closure ext″ 1 λ _ →
-                                                                                     Modality-record.Modal-propositional M₂ ext″) $
-                                                                                  implicit-Π-closure ext 1 λ _ →
-                                                                                  implicit-Π-closure ext′ 1 λ _ →
-                                                                                  Π-closure ext″ 1 λ _ →
-                                                                                  PS.Is-∞-extendable-along-propositional ext″)) $
-                                                                       lemma
-                                                                         (_≃_.from equiv (Modality-record.Modal M₂ , M₁′))
-                                                                         (_≃_.from equiv (Modality-record.Modal M₂ , M₂′))
-                                                                         (λ _ → F.id)) ⟩
-  _≃_.to equiv M₁ ≡ _≃_.to equiv M₂                                ↝⟨ Eq.≃-≡ equiv ⟩□
-  M₁ ≡ M₂                                                          □
-  where
-  ext′ : Extensionality (lsuc a) a
-  ext′ = lower-extensionality lzero _ ext
-
-  ext″ : Extensionality a a
-  ext″ = lower-extensionality _ _ ext
-
-  ext‴ = Eq.good-ext ext
-
-  equiv :
-    Modality a ≃
-    (∃ λ (Modal : Type a → Type a) →
-     ∃ λ ((◯ , η) :
-          ∃ λ (◯ : Type a → Type a) → {A : Type a} → A → ◯ A) →
-     ({A : Type a} → Extensionality a a → Is-proposition (Modal A)) ×
-     ({A : Type a} → Modal (◯ A)) ×
-     ({A B : Type a} → A ≃ B → Modal A → Modal B) ×
-     ({A : Type a} {P : ◯ A → Type a} →
-      (∀ x → Modal (P x)) →
-      Is-∞-extendable-along-[ η ] P))
-  equiv = Eq.↔→≃
-    (λ M →
-       let open Modality-record M in
-         Modal
-       , (◯ , η)
-       , Modal-propositional
-       , Modal-◯
-       , Modal-respects-≃
-       , extendable-along-η)
-    _
-    refl
-    refl
-
-  lemma :
-    (M₁ M₂ : Modality a) →
-    (∀ A → Modality-record.Modal M₁ A ⇔ Modality-record.Modal M₂ A) →
-    _≡_ {A = ∃ λ (◯ : Type a → Type a) → {A : Type a} → A → ◯ A}
-      (Modality-record.◯ M₁ , Modality-record.η M₁)
-      (Modality-record.◯ M₂ , Modality-record.η M₂)
-  lemma M₁ M₂ Modal⇔Modal =
-    let ◯≃◯ , η≡η = Modal⇔Modal→◯≃◯ ext″ M₁ M₂ Modal⇔Modal in
-    Σ-≡,≡→≡
-      (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯))
-      (implicit-extensionality ext′ λ A →
-
-       subst (λ ◯ → ∀ {A} → A → ◯ A) (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯))
-         (Modality-record.η M₁)                                         ≡⟨ sym $
-                                                                           push-subst-implicit-application _ _ ⟩
-       subst (λ ◯ → A → ◯ A) (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯))
-         (Modality-record.η M₁)                                         ≡⟨ (apply-ext ext″ λ _ → sym $
-                                                                            push-subst-application _ _) ⟩
-       subst (λ ◯ → ◯ A) (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯)) ∘
-       Modality-record.η M₁                                             ≡⟨ (apply-ext ext″ λ _ →
-                                                                            Eq.subst-good-ext ext _ _) ⟩
-
-       subst id (≃⇒≡ univ (◯≃◯ A)) ∘ Modality-record.η M₁               ≡⟨ (apply-ext ext″ λ _ →
-                                                                            subst-id-in-terms-of-≡⇒↝ equivalence) ⟩
-
-       ≡⇒→ (≃⇒≡ univ (◯≃◯ A)) ∘ Modality-record.η M₁                    ≡⟨ cong (λ eq → _≃_.to eq ∘ Modality-record.η M₁) $
-                                                                           _≃_.right-inverse-of (≡≃≃ univ) _ ⟩
-
-       _≃_.to (◯≃◯ A) ∘ Modality-record.η M₁                            ≡⟨ η≡η A ⟩∎
-
-       Modality-record.η M₂                                             ∎)
-
 ------------------------------------------------------------------------
 -- Uniquely eliminating modalities
 
@@ -4775,3 +4593,279 @@ module Modality (M : Modality a) where
       (Stable-Π λ _ → Stable-Π λ _ →
        Modal→Stable-Is-equivalence
          (Separated-◯ _ _) (Modal→Separated (Separated-◯ _ _)))
+
+------------------------------------------------------------------------
+-- Lemmas relating two modalities to each other
+
+-- If the modal operators and units of two modalities (for a given
+-- universe level) are related in a certain way, then the modalities
+-- have the same modal types.
+
+◯≃◯→Modal⇔Modal :
+  (M₁ M₂ : Modality a) →
+  (∃ λ (eq : ∀ A → Modality.◯ M₁ A ≃ Modality.◯ M₂ A) →
+     ∀ A → _≃_.to (eq A) ∘ Modality.η M₁ ≡ Modality.η M₂) →
+  (∀ A → Modality.Modal M₁ A ⇔ Modality.Modal M₂ A)
+◯≃◯→Modal⇔Modal {a = a} M₁ M₂ (eq , η≡η) A =
+  M₁.Modal A                                     ↝⟨ M₁.Modal≃Is-equivalence-η _ ⟩
+  Is-equivalence (M₁.η {A = A})                  ↝⟨ Is-equivalence≃Is-equivalence-∘ˡ (_≃_.is-equivalence (eq A)) _ ⟩
+  Is-equivalence (_≃_.to (eq A) ∘ M₁.η {A = A})  ↝⟨ Is-equivalence-cong _ (ext⁻¹ (η≡η A)) ⟩
+  Is-equivalence (M₂.η {A = A})                  ↝⟨ inverse $ M₂.Modal≃Is-equivalence-η _ ⟩□
+  M₂.Modal A                                     □
+  where
+  module M₁ = Modality M₁
+  module M₂ = Modality M₂
+
+-- Given two modalities (for a given universe level) there is an
+-- equivalence between "the modalities have the same modal types" and
+-- "the modal operators and units are related (in a certain way)",
+-- assuming function extensionality.
+
+Modal⇔Modal≃◯≃◯ :
+  Extensionality a a →
+  (M₁ M₂ : Modality a) →
+
+  (∀ A → Modality.Modal M₁ A ⇔ Modality.Modal M₂ A)
+    ↝[ lsuc a ∣ a ]
+  (∃ λ (eq : ∀ A → Modality.◯ M₁ A ≃ Modality.◯ M₂ A) →
+     ∀ A → _≃_.to (eq A) ∘ Modality.η M₁ ≡ Modality.η M₂)
+Modal⇔Modal≃◯≃◯ {a = a} ext M₁ M₂ =
+  generalise-ext?-prop
+    (record { to = to; from = ◯≃◯→Modal⇔Modal M₁ M₂ })
+    (λ ext′ →
+       Π-closure ext′ 1 λ _ →
+       ⇔-closure ext 1
+         (M₁.Modal-propositional ext)
+         (M₂.Modal-propositional ext))
+    (λ ext′ →                                                            $⟨ (Π-closure ext′ 1 λ _ → prop) ⟩
+       Is-proposition
+         (∀ A →
+          ∃ λ ((f , _) : ∃ λ (f : M₁.◯ A → M₂.◯ A) → f ∘ M₁.η ≡ M₂.η) →
+            Is-equivalence f)                                            →⟨ H-level-cong _ 1 (inverse $ equiv ext′) ⟩□
+
+       Is-proposition
+         (∃ λ (eq : ∀ A → M₁.◯ A ≃ M₂.◯ A) →
+            ∀ A → _≃_.to (eq A) ∘ M₁.η ≡ M₂.η)                           □)
+  where
+  module M₁ = Modality M₁
+  module M₂ = Modality M₂
+
+  module _
+    (Modal⇔Modal :
+       ∀ A → Modality.Modal M₁ A ⇔ Modality.Modal M₂ A)
+    where
+
+    module _ {A : Type a} where abstract
+
+      c₁₁ : Contractible (_∘ M₁.η ⁻¹ M₁.η {A = A})
+      c₁₁ =                                            $⟨ M₁.extendable-along-η (λ _ → M₁.Modal-◯) ⟩
+        Is-∞-extendable-along-[ M₁.η ] (λ _ → M₁.◯ A)  ↔⟨ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩
+        Is-equivalence (_∘ M₁.η)                       →⟨ (λ eq →
+                                                             Preimage.bijection⁻¹-contractible
+                                                               (_≃_.bijection Eq.⟨ _ , eq ⟩) _) ⟩□
+        Contractible (_∘ M₁.η ⁻¹ M₁.η)                 □
+
+      c₁₂ : Contractible (_∘ M₁.η ⁻¹ M₂.η {A = A})
+      c₁₂ =                                            $⟨ M₁.extendable-along-η (λ _ → _⇔_.from (Modal⇔Modal _) M₂.Modal-◯) ⟩
+        Is-∞-extendable-along-[ M₁.η ] (λ _ → M₂.◯ A)  ↔⟨ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩
+        Is-equivalence (_∘ M₁.η)                       →⟨ (λ eq →
+                                                             Preimage.bijection⁻¹-contractible
+                                                               (_≃_.bijection Eq.⟨ _ , eq ⟩) _) ⟩□
+        Contractible (_∘ M₁.η ⁻¹ M₂.η)                 □
+
+      c₂₁ : Contractible (_∘ M₂.η ⁻¹ M₁.η {A = A})
+      c₂₁ =                                            $⟨ M₂.extendable-along-η (λ _ → _⇔_.to (Modal⇔Modal _) M₁.Modal-◯) ⟩
+        Is-∞-extendable-along-[ M₂.η ] (λ _ → M₁.◯ A)  ↔⟨ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩
+        Is-equivalence (_∘ M₂.η)                       →⟨ (λ eq →
+                                                             Preimage.bijection⁻¹-contractible
+                                                               (_≃_.bijection Eq.⟨ _ , eq ⟩) _) ⟩□
+        Contractible (_∘ M₂.η ⁻¹ M₁.η)                 □
+
+      c₂₂ : Contractible (_∘ M₂.η ⁻¹ M₂.η {A = A})
+      c₂₂ =                                            $⟨ M₂.extendable-along-η (λ _ → M₂.Modal-◯) ⟩
+        Is-∞-extendable-along-[ M₂.η ] (λ _ → M₂.◯ A)  ↔⟨ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩
+        Is-equivalence (_∘ M₂.η)                       →⟨ (λ eq →
+                                                             Preimage.bijection⁻¹-contractible
+                                                               (_≃_.bijection Eq.⟨ _ , eq ⟩) _) ⟩□
+        Contractible (_∘ M₂.η ⁻¹ M₂.η)                 □
+
+    to =
+        (λ _ →
+           Eq.↔→≃
+             (c₁₂ .proj₁ .proj₁)
+             (c₂₁ .proj₁ .proj₁)
+             (λ x →
+                (c₁₂ .proj₁ .proj₁ ∘ c₂₁ .proj₁ .proj₁) x       ≡⟨ cong (λ p → proj₁ p x) $ sym $ c₂₂ .proj₂ $ _ , (
+
+                  c₁₂ .proj₁ .proj₁ ∘ c₂₁ .proj₁ .proj₁ ∘ M₂.η       ≡⟨ cong (c₁₂ .proj₁ .proj₁ ∘_) $ c₂₁ .proj₁ .proj₂ ⟩
+                  c₁₂ .proj₁ .proj₁ ∘ M₁.η                           ≡⟨ c₁₂ .proj₁ .proj₂ ⟩∎
+                  M₂.η                                               ∎) ⟩
+
+                c₂₂ .proj₁ .proj₁ x                             ≡⟨ cong (λ p → proj₁ p x) $ c₂₂ .proj₂ (_ , refl _) ⟩∎
+
+                id x                                            ∎)
+             (λ x →
+                (c₂₁ .proj₁ .proj₁ ∘ c₁₂ .proj₁ .proj₁) x       ≡⟨ cong (λ p → proj₁ p x) $ sym $ c₁₁ .proj₂ $ _ , (
+
+                  c₂₁ .proj₁ .proj₁ ∘ c₁₂ .proj₁ .proj₁ ∘ M₁.η       ≡⟨ cong (c₂₁ .proj₁ .proj₁ ∘_) $ c₁₂ .proj₁ .proj₂ ⟩
+                  c₂₁ .proj₁ .proj₁ ∘ M₂.η                           ≡⟨ c₂₁ .proj₁ .proj₂ ⟩∎
+                  M₁.η                                               ∎) ⟩
+
+                c₁₁ .proj₁ .proj₁ x                             ≡⟨ cong (λ p → proj₁ p x) $ c₁₁ .proj₂ (_ , refl _) ⟩∎
+
+                id x                                            ∎))
+      , (λ _ → c₁₂ .proj₁ .proj₂)
+
+  equiv = λ ext′ →
+
+    (∃ λ (eq : ∀ A → M₁.◯ A ≃ M₂.◯ A) →
+       ∀ A → _≃_.to (eq A) ∘ M₁.η ≡ M₂.η)                            ↝⟨ inverse ΠΣ-comm ⟩
+
+    (∀ A → ∃ λ (eq : M₁.◯ A ≃ M₂.◯ A) → _≃_.to eq ∘ M₁.η ≡ M₂.η)     ↝⟨ (∀-cong ext′ λ _ → Σ-cong Eq.≃-as-Σ λ _ → F.id) ⟩
+
+    (∀ A →
+     ∃ λ ((f , _) : ∃ λ (f : M₁.◯ A → M₂.◯ A) → Is-equivalence f) →
+       f ∘ M₁.η ≡ M₂.η)                                              ↝⟨ (∀-cong ext′ λ _ →
+                                                                         Σ-assoc F.∘ (∃-cong λ _ → ×-comm) F.∘ inverse Σ-assoc) ⟩□
+    (∀ A →
+     ∃ λ ((f , _) : ∃ λ (f : M₁.◯ A → M₂.◯ A) → f ∘ M₁.η ≡ M₂.η) →
+       Is-equivalence f)                                             □
+
+  prop :
+    Is-proposition
+      (∃ λ ((f , _) : ∃ λ (f : M₁.◯ A → M₂.◯ A) → f ∘ M₁.η ≡ M₂.η) →
+         Is-equivalence f)
+  prop ((f₁ , eq₁) , equiv₁) ((f₂ , eq₂) , equiv₂) =
+    _↔_.to (ignore-propositional-component (Eq.propositional ext _)) $
+    Σ-≡,≡→≡
+      (⟨ext⟩ lemma)
+      (subst (λ f → f ∘ M₁.η ≡ M₂.η) (⟨ext⟩ lemma) eq₁        ≡⟨ subst-∘ _ _ _ ⟩
+       subst (_≡ M₂.η) (cong (_∘ M₁.η) $ ⟨ext⟩ lemma) eq₁     ≡⟨ cong (flip (subst _) _) $
+                                                                 Eq.cong-pre-∘-good-ext ext ext _ ⟩
+       subst (_≡ M₂.η) (⟨ext⟩ $ lemma ∘ M₁.η) eq₁             ≡⟨ subst-trans-sym ⟩
+       trans (sym $ ⟨ext⟩ $ lemma ∘ M₁.η) eq₁                 ≡⟨ (cong (flip trans _ ∘ sym) $ cong ⟨ext⟩ $ ⟨ext⟩ λ _ →
+                                                                  M₁.∘η≡∘η→≡-η) ⟩
+       trans (sym $ ⟨ext⟩ $ ext⁻¹ $ trans eq₁ (sym eq₂)) eq₁  ≡⟨ cong (flip trans _ ∘ sym) $
+                                                                 _≃_.right-inverse-of (Eq.extensionality-isomorphism ext) _ ⟩
+       trans (sym $ trans eq₁ (sym eq₂)) eq₁                  ≡⟨ trans (cong (flip trans _) $
+                                                                        sym-trans _ _) $
+                                                                 trans (trans-[trans-sym]- _ _) $
+                                                                 sym-sym _ ⟩∎
+       eq₂                                                    ∎)
+    where
+    ⟨ext⟩ = apply-ext (Eq.good-ext ext)
+
+    lemma : ∀ x → f₁ x ≡ f₂ x
+    lemma =
+      M₁.∘η≡∘η→≡
+        (λ _ → M₁.Modal-respects-≃ Eq.⟨ _ , equiv₁ ⟩ M₁.Modal-◯)
+        (ext⁻¹ (
+           f₁ ∘ M₁.η  ≡⟨ eq₁ ⟩
+           M₂.η       ≡⟨ sym eq₂ ⟩∎
+           f₂ ∘ M₁.η  ∎))
+
+-- Two modalities (for the same universe level) are equal exactly when
+-- they have the same modal types (assuming function extensionality
+-- and univalence).
+
+Modal⇔Modal≃≡ :
+  {M₁ M₂ : Modality a} →
+  Extensionality (lsuc a) (lsuc a) →
+  Univalence a →
+  (∀ A → Modality.Modal M₁ A ⇔ Modality.Modal M₂ A) ≃
+  (M₁ ≡ M₂)
+Modal⇔Modal≃≡ {a = a} {M₁ = M₁} {M₂ = M₂} ext univ =
+  (∀ A → Modality.Modal M₁ A ⇔ Modality.Modal M₂ A)                ↔⟨ (∀-cong ext λ _ →
+                                                                       ⇔↔≡ ext″ univ
+                                                                         (Modality.Modal-propositional M₁ ext″)
+                                                                         (Modality.Modal-propositional M₂ ext″)) ⟩
+  (∀ A → Modality.Modal M₁ A ≡ Modality.Modal M₂ A)                ↝⟨ Eq.extensionality-isomorphism ext ⟩
+  Modality.Modal M₁ ≡ Modality.Modal M₂                            ↔⟨ (ignore-propositional-component λ M₁′ M₂′ →
+                                                                       _↔_.to (ignore-propositional-component
+                                                                                 (×-closure 1
+                                                                                    (implicit-Π-closure ext 1 λ _ →
+                                                                                     Π-closure ext′ 1 λ ext →
+                                                                                     H-level-propositional ext 1) $
+                                                                                  ×-closure 1
+                                                                                    (implicit-Π-closure ext′ 1 λ _ →
+                                                                                     Modality.Modal-propositional M₂ ext″) $
+                                                                                  ×-closure 1
+                                                                                    (implicit-Π-closure ext 1 λ _ →
+                                                                                     implicit-Π-closure ext′ 1 λ _ →
+                                                                                     Π-closure ext″ 1 λ _ →
+                                                                                     Π-closure ext″ 1 λ _ →
+                                                                                     Modality.Modal-propositional M₂ ext″) $
+                                                                                  implicit-Π-closure ext 1 λ _ →
+                                                                                  implicit-Π-closure ext′ 1 λ _ →
+                                                                                  Π-closure ext″ 1 λ _ →
+                                                                                  PS.Is-∞-extendable-along-propositional ext″)) $
+                                                                       lemma
+                                                                         (_≃_.from equiv (Modality.Modal M₂ , M₁′))
+                                                                         (_≃_.from equiv (Modality.Modal M₂ , M₂′))
+                                                                         (λ _ → F.id)) ⟩
+  _≃_.to equiv M₁ ≡ _≃_.to equiv M₂                                ↝⟨ Eq.≃-≡ equiv ⟩□
+  M₁ ≡ M₂                                                          □
+  where
+  ext′ : Extensionality (lsuc a) a
+  ext′ = lower-extensionality lzero _ ext
+
+  ext″ : Extensionality a a
+  ext″ = lower-extensionality _ _ ext
+
+  ext‴ = Eq.good-ext ext
+
+  equiv :
+    Modality a ≃
+    (∃ λ (Modal : Type a → Type a) →
+     ∃ λ ((◯ , η) :
+          ∃ λ (◯ : Type a → Type a) → {A : Type a} → A → ◯ A) →
+     ({A : Type a} → Extensionality a a → Is-proposition (Modal A)) ×
+     ({A : Type a} → Modal (◯ A)) ×
+     ({A B : Type a} → A ≃ B → Modal A → Modal B) ×
+     ({A : Type a} {P : ◯ A → Type a} →
+      (∀ x → Modal (P x)) →
+      Is-∞-extendable-along-[ η ] P))
+  equiv = Eq.↔→≃
+    (λ M →
+       let open Modality M in
+         Modal
+       , (◯ , η)
+       , Modal-propositional
+       , Modal-◯
+       , Modal-respects-≃
+       , extendable-along-η)
+    _
+    refl
+    refl
+
+  lemma :
+    (M₁ M₂ : Modality a) →
+    (∀ A → Modality.Modal M₁ A ⇔ Modality.Modal M₂ A) →
+    _≡_ {A = ∃ λ (◯ : Type a → Type a) → {A : Type a} → A → ◯ A}
+      (Modality.◯ M₁ , Modality.η M₁)
+      (Modality.◯ M₂ , Modality.η M₂)
+  lemma M₁ M₂ Modal⇔Modal =
+    let ◯≃◯ , η≡η = Modal⇔Modal≃◯≃◯ ext″ M₁ M₂ _ Modal⇔Modal in
+    Σ-≡,≡→≡
+      (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯))
+      (implicit-extensionality ext′ λ A →
+
+       subst (λ ◯ → ∀ {A} → A → ◯ A) (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯))
+         (Modality.η M₁)                                                ≡⟨ sym $
+                                                                           push-subst-implicit-application _ _ ⟩
+       subst (λ ◯ → A → ◯ A) (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯))
+         (Modality.η M₁)                                                ≡⟨ (apply-ext ext″ λ _ → sym $
+                                                                            push-subst-application _ _) ⟩
+       subst (λ ◯ → ◯ A) (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯)) ∘
+       Modality.η M₁                                                    ≡⟨ (apply-ext ext″ λ _ →
+                                                                            Eq.subst-good-ext ext _ _) ⟩
+
+       subst id (≃⇒≡ univ (◯≃◯ A)) ∘ Modality.η M₁                      ≡⟨ (apply-ext ext″ λ _ →
+                                                                            subst-id-in-terms-of-≡⇒↝ equivalence) ⟩
+
+       ≡⇒→ (≃⇒≡ univ (◯≃◯ A)) ∘ Modality.η M₁                           ≡⟨ cong (λ eq → _≃_.to eq ∘ Modality.η M₁) $
+                                                                           _≃_.right-inverse-of (≡≃≃ univ) _ ⟩
+
+       _≃_.to (◯≃◯ A) ∘ Modality.η M₁                                   ≡⟨ η≡η A ⟩∎
+
+       Modality.η M₂                                                    ∎)

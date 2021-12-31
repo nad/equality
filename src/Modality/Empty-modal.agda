@@ -286,7 +286,7 @@ module Excluded-middle (em : Excluded-middle a) where
     ◯≃id :
       Extensionality a a →
       ∃ λ (eq : ∀ A → ◯ A ≃ A) → ∀ A → _≃_.from (eq A) ≡ η
-    ◯≃id ext =                                                $⟨ Modal⇔Modal→◯≃◯ ext Identity-modality M
+    ◯≃id ext =                                                $⟨ Modal⇔Modal≃◯≃◯ ext Identity-modality M _
                                                                    (inverse ∘ Modal⇔⊤ ext) ⟩
       (∃ λ (eq : ∀ A → A ≃ ◯ A) → ∀ A → _≃_.to (eq A) ≡ η)    →⟨ Σ-map (inverse ∘_) id ⟩□
       (∃ λ (eq : ∀ A → ◯ A ≃ A) → ∀ A → _≃_.from (eq A) ≡ η)  □
