@@ -655,6 +655,8 @@ _-Nullᴱ_ : {A : Type a} → (A → Type p) → Type b → Type (a ⊔ b ⊔ p)
 P -Nullᴱ B = ∀ x → Is-equivalenceᴱ (const ⦂ (B → P x → B))
 
 -- P -Null_ preserves equivalences (assuming extensionality).
+--
+-- See also Equivalence.Erased.[]-cong₂-⊔.Nullᴱ-cong.
 
 Null-cong :
   {A : Type a} {B : Type b} {C : Type c} {P : A → Type p} →
