@@ -23,10 +23,10 @@ open import Surjection eq-J using (_↠_)
 
 private
   variable
-    a b l p q  : Level
-    ls ls₁ ls₂ : List Level
-    A B        : Type a
-    k          : A
+    a b c l p q : Level
+    ls ls₁ ls₂  : List Level
+    A B         : Type a
+    k           : A
 
 ------------------------------------------------------------------------
 -- Functions used to compute levels
@@ -578,10 +578,10 @@ Logically-equivalent-Append A∈Bs A∈Cs eq₁ eq₂ =
 -- An example below illustrates how the combinators can be used.
 
 infix  -1 finally-⇔
-infixr -2 step-⇔ _↔⟨⟩⇔_
+infixr -2 step-⇔ step-⇔→ _↔⟨⟩⇔_
 
--- For an explanation of why step-⇔ takes the last two arguments in
--- the given order, see Equality.step-≡.
+-- For an explanation of why step-⇔ and step-⇔→ take the last two
+-- arguments in the given order, see Equality.step-≡.
 
 step-⇔ :
   (@0 A : Type a) {@0 As : Type-list (b ∷ ls)} →
@@ -592,6 +592,16 @@ step-⇔ {ls = []}    _ _       f = f
 step-⇔ {ls = _ ∷ _} _ implies f = f , implies
 
 syntax step-⇔ A implies A→B = A →⟨ A→B ⟩⇔ implies
+
+step-⇔→ :
+  (@0 A : Type a) {B : Type b} {@0 As : Type-list (c ∷ ls)} →
+  Implies {b ∷ c ∷ ls} (B , As) →
+  (A → B) →
+  Implies {a ∷ c ∷ ls} (A , As)
+step-⇔→ _ implies f =
+  Implies-Cons (Implies-Head implies ∘ f) (Implies-Tail implies)
+
+syntax step-⇔→ A implies A→B = A →⟨ A→B ⟩⇔→ implies
 
 finally-⇔ :
   (@0 A : Type a) {@0 B : Type b} → (A → B) → Implies (A , B)
