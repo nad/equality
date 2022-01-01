@@ -253,6 +253,18 @@ module Excluded-middle (em : Excluded-middle a) where
         Contractible (◯ A)  →⟨ H-level-cong _ 0 $ inverse $ Modal→≃◯ $ Is-proposition→Modal A-prop ⟩□
         Contractible A      □
 
+  -- The modality is accessibility-modal for stable relations on modal
+  -- types (assuming function extensionality).
+
+  Modal→Stable→Accessibility-modal :
+    Extensionality a a →
+    Modal A →
+    ({x y : A} → Stable (x < y)) →
+    Accessibility-modal-for _<_
+  Modal→Stable→Accessibility-modal ext m s =
+      (λ acc → Modal→Acc→Acc-[]◯-η m s acc)
+    , Modal→Stable (Is-proposition→Modal (A.Acc-propositional ext))
+
   ----------------------------------------------------------------------
   -- Some results that hold if the modality is very modal (in addition
   -- to being empty-modal)
