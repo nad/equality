@@ -187,6 +187,40 @@ Last∈ :
 Last∈ {ls = []}    = inj₁ F.id
 Last∈ {ls = _ ∷ _} = inj₂ Last∈
 
+-- A function used to state the type of Delete.
+
+Delete-levels :
+  {As : Type-list ls} → A ∈⇔ As → List Level
+Delete-levels {ls = _ ∷ ls} {As = As} (inj₁ _) = ls
+Delete-levels {ls = a ∷ ls} {As = As} (inj₂ p) = a ∷ Delete-levels p
+
+-- Removes the element at the given position from the list.
+
+Delete :
+  {A : Type a} {As : Type-list ls}
+  (A∈As : A ∈⇔ As) → Type-list (Delete-levels A∈As)
+Delete {ls = _ ∷ _} {As = As} (inj₁ _) = Tail As
+Delete {ls = _ ∷ _} {As = As} (inj₂ p) = Cons (Head As) (Delete p)
+
+-- If A∈As has type A ∈⇔ As and B is a member of Delete A∈As, then B
+-- is a member of As.
+
+Delete∈→∈ :
+  {A : Type a} {B : Type b} {As : Type-list ls}
+  (A∈As : A ∈⇔ As) →
+  Any b (B ↝[ k ]_) (Delete A∈As) → Any b (B ↝[ k ]_) As
+Delete∈→∈ {ls = _ ∷ _} (inj₁ _) = inj₂
+
+Delete∈→∈ {ls = _ ∷ _} {B = B} {As = As} (inj₂ p) (inj₁ q) = inj₁
+  (B                                 ↝⟨ q ⟩
+   Head (Cons (Head As) (Delete p))  ↔⟨ Head-Cons (Delete-levels p) ⟩□
+   Head As                           □)
+
+Delete∈→∈ {ls = _ ∷ _} (inj₂ p) (inj₂ q) =
+  inj₂ (Delete∈→∈ p q′)
+  where
+  q′ = subst (Any _ _) (Tail-Cons {ls = Delete-levels p}) q
+
 -- An ordering relation for Any.
 
 infix 4 _≤_
@@ -268,6 +302,30 @@ Implies-Head :
   Implies As → Head As → Head (Tail As)
 Implies-Head {ls = []}    f       = f
 Implies-Head {ls = _ ∷ _} (f , _) = f
+
+-- A delete operation for Implies.
+
+Implies-Delete :
+  {A : Type a} {Bs : Type-list ls}
+  (A∈Bs : A ∈⇔ Bs) → Implies Bs → Implies (Delete A∈Bs)
+Implies-Delete {ls = _ ∷ _} (inj₁ _) =
+  Implies-Tail
+Implies-Delete {ls = _ ∷ _ ∷ []} (inj₂ (inj₁ _)) =
+  _
+Implies-Delete
+  {ls = _ ∷ _ ∷ _ ∷ _} {Bs = B , C , Bs} (inj₂ (inj₁ _)) implies =
+  Implies-Cons
+    (B        →⟨ Implies-Head implies ⟩
+     C        →⟨ Implies-Head (Implies-Tail implies) ⟩□
+     Head Bs  □)
+    (Implies-Tail (Implies-Tail implies))
+Implies-Delete
+  {ls = _ ∷ _ ∷ _} {Bs = B , Bs} (inj₂ A∈Bs@(inj₂ A∈)) implies =
+  Implies-Cons
+    (B                                  →⟨ Implies-Head implies ⟩
+     Head Bs                            ↔⟨ inverse $ Head-Cons (Delete-levels A∈) ⟩□
+     Head (Cons (Head Bs) (Delete A∈))  □)
+    (Implies-Delete A∈Bs (Implies-Tail implies))
 
 -- Last-implies-first As holds if As contains at most one element, or
 -- otherwise if the last type in As implies the first one.
