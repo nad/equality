@@ -105,6 +105,33 @@ Append : Type-list ls₁ → Type-list ls₂ → Type-list (ls₁ ++ ls₂)
 Append {ls₁ = []}    _  Bs = Bs
 Append {ls₁ = _ ∷ _} As Bs = Cons (Head As) (Append (Tail As) Bs)
 
+-- The head of Cons A As is equivalent to A.
+
+Head-Cons :
+  ∀ {A : Type a} ls {As : Type-list ls} →
+  Head (Cons A As) ≃ A
+Head-Cons []      = F.id
+Head-Cons (_ ∷ _) = F.id
+
+-- If As is non-empty and Bs is empty, then the last element of
+-- Append As Bs is the last element of As.
+
+Last-Append-[] :
+  (ls : List Level) {As : Type-list (a ∷ ls)} {Bs : Type-list []} →
+  Last (Append As Bs) ≃ Last As
+Last-Append-[] []       = F.id
+Last-Append-[] (_ ∷ ls) = Last-Append-[] ls
+
+-- If As and Bs are both non-empty, then the last element of
+-- Append As Bs is the last element of Bs.
+
+Last-Append-∷ :
+  (ls₁ : List Level)
+  {As : Type-list (a ∷ ls₁)} {Bs : Type-list (b ∷ ls₂)} →
+  Last (Append As Bs) ≃ Last Bs
+Last-Append-∷ []       = F.id
+Last-Append-∷ (_ ∷ ls) = Last-Append-∷ ls
+
 -- A ∈ As means that A is a member of As.
 
 infix 4 _∈_
