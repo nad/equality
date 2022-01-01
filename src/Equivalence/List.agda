@@ -23,10 +23,10 @@ open import Surjection eq-J using (_↠_)
 
 private
   variable
-    a b l      : Level
+    a b l p q  : Level
     ls ls₁ ls₂ : List Level
     A B        : Type a
-    P          : ∀ {a} → Type a → Type a
+    k          : A
 
 ------------------------------------------------------------------------
 -- Functions used to compute levels
@@ -39,13 +39,15 @@ Last-level : Level → List Level → Level
 Last-level a []       = a
 Last-level a (b ∷ ls) = Last-level b ls
 
-∈-level : Level → List Level → Level
-∈-level _ []       = lzero
-∈-level a (b ∷ ls) = a ⊔ b ⊔ ∈-level a ls
+All-level : Level → List Level → Level
+All-level p []       = lzero
+All-level p (l ∷ ls) = p ⊔ l ⊔ All-level p ls
 
-All-level : List Level → Level
-All-level []       = lzero
-All-level (l ∷ ls) = l ⊔ All-level ls
+Any-level : Level → List Level → Level
+Any-level = All-level
+
+∈-level : Level → List Level → Level
+∈-level = Any-level
 
 Implies-level : List Level → Level
 Implies-level []               = lzero
@@ -63,7 +65,7 @@ Logically-equivalent-level ls =
 
 Equivalent-level : List Level → Level
 Equivalent-level ls =
-  Logically-equivalent-level ls ⊔ All-level ls
+  Logically-equivalent-level ls ⊔ All-level lzero ls
 
 ------------------------------------------------------------------------
 -- Lists of types and some related definitions
@@ -132,72 +134,95 @@ Last-Append-∷ :
 Last-Append-∷ []       = F.id
 Last-Append-∷ (_ ∷ ls) = Last-Append-∷ ls
 
+-- All P As means that P A holds for every type A in As.
+
+All :
+  ∀ p (P : ∀ {a} → Type a → Type (a ⊔ p)) →
+  Type-list ls → Type (All-level p ls)
+All {ls = []}    _ _ _  = ⊤
+All {ls = _ ∷ _} p P As = P (Head As) × All p P (Tail As)
+
+-- Any p P As means that P A holds for some type A in As.
+
+Any :
+  ∀ p (P : ∀ {a} → Type a → Type (a ⊔ p)) →
+  Type-list ls → Type (Any-level p ls)
+Any {ls = []}    _ _ _  = ⊥₀
+Any {ls = _ ∷ _} p P As = P (Head As) ⊎ Any p P (Tail As)
+
 -- A ∈ As means that A is a member of As.
 
 infix 4 _∈_
 
 _∈_ : Type a → Type-list ls → Type (∈-level a ls)
-_∈_ {ls = []}        _ _        = ⊥
-_∈_ {ls = _ ∷ []}    A B        = A ≃ B
-_∈_ {ls = _ ∷ _ ∷ _} A (B , As) = A ≃ B ⊎ A ∈ As
+_∈_ {a = a} A As = Any a (A ≃_) As
+
+-- A ∈⇔ As means that A is a member of As up to logical equivalence.
+
+infix 4 _∈⇔_
+
+_∈⇔_ : Type a → Type-list ls → Type (∈-level a ls)
+_∈⇔_ {a = a} A As = Any a (A ⇔_) As
 
 -- The head of a list of types is a member of the list.
 
 Head∈ :
   {As : Type-list (a ∷ ls)} →
-  Head As ∈ As
-Head∈ {ls = []}    = F.id
-Head∈ {ls = _ ∷ _} = inj₁ F.id
+  Any a (Head As ↝[ k ]_) As
+Head∈ = inj₁ F.id
 
--- An ordering relation for membership proofs.
+-- A list's last element is a member of the list.
+
+Last∈ :
+  {As : Type-list (a ∷ ls)} →
+  Any (Last-level a ls) (Last As ↝[ k ]_) As
+Last∈ {ls = []}    = inj₁ F.id
+Last∈ {ls = _ ∷ _} = inj₂ Last∈
+
+-- An ordering relation for Any.
 
 infix 4 _≤_
 
 _≤_ :
+  {P : ∀ {a} → Type a → Type (a ⊔ p)}
+  {Q : ∀ {a} → Type a → Type (a ⊔ q)}
   {As : Type-list ls} →
-  A ∈ As → B ∈ As → Type
-_≤_ {ls = _ ∷ []}    _         _         = ⊤
-_≤_ {ls = _ ∷ _ ∷ _} (inj₁ _)  _         = ⊤
-_≤_ {ls = _ ∷ _ ∷ _} (inj₂ _)  (inj₁ _)  = ⊥
-_≤_ {ls = _ ∷ _ ∷ _} (inj₂ A∈) (inj₂ B∈) = A∈ ≤ B∈
-
--- Head∈ {As = As} is smaller than any other membership proof for As.
-
-Head∈≤ :
-  (As : Type-list (a ∷ ls)) {B : Type b} {p : B ∈ As} →
-  Head∈ {As = As} ≤ p
-Head∈≤ {ls = []}    _ = _
-Head∈≤ {ls = _ ∷ _} _ = _
+  Any p P As → Any q Q As → Type
+_≤_ {ls = _ ∷ _} (inj₁ _) _        = ⊤
+_≤_ {ls = _ ∷ _} (inj₂ _) (inj₁ _) = ⊥
+_≤_ {ls = _ ∷ _} (inj₂ x) (inj₂ y) = x ≤ y
 
 -- The ordering relation is total.
 
 ≤-total :
-  {@0 A : Type a} {@0 B : Type b} {@0 As : Type-list ls} →
-  (A∈As : A ∈ As) (B∈As : B ∈ As) → A∈As ≤ B∈As ⊎ B∈As ≤ A∈As
-≤-total {ls = _ ∷ []}    _           _           = inj₁ _
-≤-total {ls = _ ∷ _ ∷ _} (inj₁ _)    _           = inj₁ _
-≤-total {ls = _ ∷ _ ∷ _} (inj₂ _)    (inj₁ _)    = inj₂ _
-≤-total {ls = _ ∷ _ ∷ _} (inj₂ A∈As) (inj₂ B∈As) = ≤-total A∈As B∈As
-
--- All P As means that P A holds for every type A in As.
-
-All :
-  (P : ∀ {a} → Type a → Type a) →
-  Type-list ls → Type (All-level ls)
-All {ls = []}        _ _        = ⊤
-All {ls = _ ∷ []}    P A        = P A
-All {ls = _ ∷ _ ∷ _} P (A , As) = P A × All P As
+  {@0 P : ∀ {a} → Type a → Type (a ⊔ p)}
+  {@0 Q : ∀ {a} → Type a → Type (a ⊔ q)}
+  {@0 As : Type-list ls} →
+  (x : Any p P As) (y : Any q Q As) → x ≤ y ⊎ y ≤ x
+≤-total {ls = _ ∷ _} (inj₁ _) _        = inj₁ _
+≤-total {ls = _ ∷ _} (inj₂ _) (inj₁ _) = inj₂ _
+≤-total {ls = _ ∷ _} (inj₂ x) (inj₂ y) = ≤-total x y
 
 -- If P respects equivalences, All P As holds, and A is a member of
 -- As, then P A holds.
 
 All-∈ :
-  {As : Type-list ls} →
+  {P : ∀ {a} → Type a → Type (a ⊔ p)} {As : Type-list ls} →
   (∀ {a b} {A : Type a} {B : Type b} → A ≃ B → P A → P B) →
-  All P As → A ∈ As → P A
-All-∈ {ls = _ ∷ []}    resp p         A≃        = resp (inverse A≃) p
-All-∈ {ls = _ ∷ _ ∷ _} resp (p , _)   (inj₁ A≃) = resp (inverse A≃) p
-All-∈ {ls = _ ∷ _ ∷ _} resp (_ , all) (inj₂ A∈) = All-∈ resp all A∈
+  All p P As → A ∈ As → P A
+All-∈ {ls = _ ∷ _} resp (p , _)   (inj₁ A≃) = resp (inverse A≃) p
+All-∈ {ls = _ ∷ _} resp (_ , all) (inj₂ A∈) = All-∈ resp all A∈
+
+-- A map function for Any.
+
+Any-map :
+  {P : ∀ {a} → Type a → Type (a ⊔ p)}
+  {Q : ∀ {a} → Type a → Type (a ⊔ q)}
+  {As : Type-list ls} →
+  (∀ {a} (A : Type a) → P A → Q A) →
+  Any p P As → Any q Q As
+Any-map {ls = _ ∷ _} f (inj₁ x) = inj₁ (f _ x)
+Any-map {ls = _ ∷ _} f (inj₂ x) = inj₂ (Any-map f x)
 
 ------------------------------------------------------------------------
 -- Lists containing (logically) equivalent types
@@ -256,15 +281,16 @@ Logically-equivalent As = Implies As × Last-implies-first As
 -- propositions.
 
 Equivalent : Type-list ls → Type (Equivalent-level ls)
-Equivalent As = Logically-equivalent As × All Is-proposition As
+Equivalent As = Logically-equivalent As × All lzero Is-proposition As
 
--- If A and B are members of As, and Logically-equivalent As holds,
--- then A and B are logically equivalent.
+-- If A and B are members of As (up to logical equivalence), and
+-- Logically-equivalent As holds, then A and B are logically
+-- equivalent.
 
 logically-equivalent :
   {As : Type-list ls} →
   Logically-equivalent As →
-  A ∈ As → B ∈ As → A ⇔ B
+  A ∈⇔ As → B ∈⇔ As → A ⇔ B
 logically-equivalent (implies , last→first) A∈ B∈ =
   case ≤-total A∈ B∈ of λ where
     (inj₁ A≤B) → record
@@ -281,51 +307,44 @@ logically-equivalent (implies , last→first) A∈ B∈ =
 
   forward :
     ∀ {A : Type a} {B : Type b}
-      ls (As : Type-list ls) (A∈ : A ∈ As) (B∈ : B ∈ As) →
+      ls (As : Type-list ls) (A∈ : A ∈⇔ As) (B∈ : B ∈⇔ As) →
     A∈ ≤ B∈ → Implies As → A → B
   forward {A = A} {B = B} = λ where
-    (_ ∷ []) C A≃ B≃ _ _ →
-      A  ↔⟨ A≃ ⟩
-      C  ↔⟨ inverse B≃ ⟩□
-      B  □
-    (_ ∷ _ ∷ _) (C , _) (inj₁ A≃) (inj₁ B≃) _ _ →
-      A  ↔⟨ A≃ ⟩
-      C  ↔⟨ inverse B≃ ⟩□
-      B  □
-    (_ ∷ _ ∷ _) (C , As) (inj₁ A≃) (inj₂ B∈) A≤B implies →
-      A        ↔⟨ A≃ ⟩
-      C        →⟨ Implies-Head implies ⟩
-      Head As  →⟨ forward _ _ Head∈ B∈ (Head∈≤ As) (Implies-Tail implies) ⟩□
+    (_ ∷ _) As (inj₁ A⇔) (inj₁ B⇔) _ _ →
+      A        →⟨ _⇔_.to A⇔ ⟩
+      Head As  →⟨ _⇔_.from B⇔ ⟩□
       B        □
-    (_ ∷ _ ∷ _) _ (inj₂ A∈) (inj₂ B∈) A≤B implies →
+    (_ ∷ _ ∷ _) (C , As) (inj₁ A⇔) (inj₂ B∈) _ implies →
+      A        →⟨ _⇔_.to A⇔ ⟩
+      C        →⟨ Implies-Head implies ⟩
+      Head As  →⟨ forward _ _ Head∈ B∈ _ (Implies-Tail implies) ⟩□
+      B        □
+    (_ ∷ _) _ (inj₂ A∈) (inj₂ B∈) A≤B implies →
       forward _ _ A∈ B∈ A≤B (Implies-Tail implies)
 
   first-implies :
-    ∀ ls (As : Type-list (a ∷ ls)) (A∈ : A ∈ As) →
+    ∀ ls (As : Type-list (a ∷ ls)) (A∈ : A ∈⇔ As) →
     Implies As →
     Head As → A
   first-implies {A = A} = λ where
-    [] B A≃B _ →
-      B  ↔⟨ inverse A≃B ⟩□
-      A  □
-    (_ ∷ _) (B , _) (inj₁ A≃B) _ →
-      B  ↔⟨ inverse A≃B ⟩□
-      A  □
+    _ As (inj₁ A⇔Head-As) _ →
+      Head As  →⟨ _⇔_.from A⇔Head-As ⟩□
+      A        □
     (_ ∷ _) As (inj₂ A∈) implies →
       Head As         →⟨ Implies-Head implies ⟩
       Head (Tail As)  →⟨ first-implies _ _ A∈ (Implies-Tail implies) ⟩□
       A               □
 
   implies-last :
-    ∀ ls (As : Type-list (a ∷ ls)) (A∈ : A ∈ As) →
+    ∀ ls (As : Type-list (a ∷ ls)) (A∈ : A ∈⇔ As) →
     Implies As →
     A → Last As
   implies-last {A = A} = λ where
-    [] B A≃B _ →
-      A  ↔⟨ A≃B ⟩□
+    [] B (inj₁ A⇔B) _ →
+      A  →⟨ _⇔_.to A⇔B ⟩□
       B  □
-    (_ ∷ _) (B , As) (inj₁ A≃B) implies →
-      A        ↔⟨ A≃B ⟩
+    (_ ∷ _) (B , As) (inj₁ A⇔B) implies →
+      A        →⟨ _⇔_.to A⇔B ⟩
       B        →⟨ Implies-Head implies ⟩
       Head As  →⟨ implies-last _ _ Head∈ (Implies-Tail implies) ⟩□
       Last As  □
@@ -334,11 +353,11 @@ logically-equivalent (implies , last→first) A∈ B∈ =
 
   around :
     ∀ {A : Type a} {B : Type b}
-      ls (As : Type-list ls) (A∈ : A ∈ As) (B∈ : B ∈ As) →
+      ls (As : Type-list ls) (A∈ : A ∈⇔ As) (B∈ : B ∈⇔ As) →
     Implies As → Last-implies-first As → A → B
-  around {A = A} {B = B} (_ ∷ []) C A≃C B≃C _ _ =
-    A  ↔⟨ A≃C ⟩
-    C  ↔⟨ inverse B≃C ⟩□
+  around {A = A} {B = B} (_ ∷ []) C (inj₁ A⇔C) (inj₁ B⇔C) _ _ =
+    A  →⟨ _⇔_.to A⇔C ⟩
+    C  →⟨ _⇔_.from B⇔C ⟩□
     B  □
   around {A = A} {B = B} (_ ∷ _ ∷ _) As A∈ B∈ implies last→first =
     A        →⟨ implies-last _ _ A∈ implies ⟩
@@ -358,7 +377,9 @@ equivalent (equiv , prop) A∈ B∈ =
     (Eq.≃↠⇔
        (All-∈ (H-level-cong _ 1) prop A∈)
        (All-∈ (H-level-cong _ 1) prop B∈))
-    (logically-equivalent equiv A∈ B∈)
+    (logically-equivalent equiv
+       (Any-map (λ _ → from-equivalence) A∈)
+       (Any-map (λ _ → from-equivalence) B∈))
 
 -- If the types in Cons A As are logically equivalent, and the types
 -- in Cons A Bs are logically equivalent, then the types in
@@ -463,7 +484,7 @@ private
   _ = logically-equivalent ex₁ (inj₁ F.id) (inj₂ (inj₁ F.id))
 
   _ : ↑ (lsuc (lsuc lzero)) ⊤ ⇔ ⊤
-  _ = logically-equivalent ex₁ (inj₂ (inj₂ F.id)) (inj₁ F.id)
+  _ = logically-equivalent ex₁ (inj₂ (inj₂ (inj₁ F.id))) (inj₁ F.id)
 
   -- The unit type is equivalent to some lifted variants of itself.
 
@@ -478,6 +499,7 @@ private
     , ( ⊤-prop
       , ↑-closure 1 ⊤-prop
       , ↑-closure 1 ⊤-prop
+      , _
       )
     where
     ⊤-prop = H-level.mono₁ 0 ⊤-contractible
@@ -486,4 +508,4 @@ private
   _ = equivalent ex₂ (inj₁ F.id) (inj₂ (inj₁ F.id))
 
   _ : ↑ (lsuc (lsuc lzero)) ⊤ ≃ ⊤
-  _ = equivalent ex₂ (inj₂ (inj₂ F.id)) (inj₁ F.id)
+  _ = equivalent ex₂ (inj₂ (inj₂ (inj₁ F.id))) (inj₁ F.id)

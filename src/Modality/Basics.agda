@@ -3266,6 +3266,7 @@ module Modality (M : Modality a) where
          implicit-Π-closure ext″ 1 λ _ →
          Connected-→-propositional ext″ ◯)
       , Left-exact-η-cong-propositional ext′
+      , _
       )
     where
     ext′ : Extensionality (lsuc a) a
@@ -3281,7 +3282,8 @@ module Modality (M : Modality a) where
     Left-exact ◯ ↝[ lsuc a ∣ a ] Left-exact-η-cong
   Left-exact≃Left-exact-η-cong = generalise-ext?-prop
     (logically-equivalent Logically-equivalent-Variants-of-left-exact₁
-       (inj₁ F.id) (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ F.id)))))))
+       (inj₁ F.id)
+       (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ F.id))))))))
     Left-exact-propositional
     Left-exact-η-cong-propositional
 
@@ -3409,6 +3411,7 @@ module Modality (M : Modality a) where
          Π-closure ext″ 1 λ c →
          Π-closure ext″ 1 λ m →
          prop₃ c m)
+      , _
       )
     where
     ext′ : Extensionality (lsuc a) a
