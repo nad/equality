@@ -447,51 +447,130 @@ equivalent (equiv , prop) A∈ B∈ =
        (Any-map (λ _ → from-equivalence) A∈)
        (Any-map (λ _ → from-equivalence) B∈))
 
--- If the types in Cons A As are logically equivalent, and the types
--- in Cons A Bs are logically equivalent, then the types in
--- Cons A (Append As Bs) are logically equivalent.
+-- If A is logically equivalent to B, B is a member of Bs (up to
+-- logical equivalence), and Bs is a list of logically equivalent
+-- types, then A is a member of Bs (up to logical equivalence). The
+-- returned proof "points to" the last element of Bs.
+
+Logically-equivalent→⇔→∈⇔→∈⇔ :
+  {Bs : Type-list ls} →
+  Logically-equivalent Bs →
+  A ⇔ B → B ∈⇔ Bs → A ∈⇔ Bs
+Logically-equivalent→⇔→∈⇔→∈⇔
+  {ls = _ ∷ _} {A = A} {B = B} {Bs = Bs} eq A⇔B B∈Bs =
+  Any-map
+    (λ C Last-Bs⇔C →
+       A        ↝⟨ A⇔B ⟩
+       B        ↝⟨ logically-equivalent eq B∈Bs Last∈ ⟩
+       Last Bs  ↝⟨ Last-Bs⇔C ⟩□
+       C        □)
+    (Last∈ {k = logical-equivalence})
+
+-- If the types in Bs are logically equivalent, and the types in Cs
+-- are logically equivalent, and there is some type A that is a member
+-- (up to logical equivalence) of both Bs and Cs, and the second
+-- membership proof is A∈Cs, then the types in Append As (Delete A∈Cs)
+-- are logically equivalent.
 
 Logically-equivalent-Append :
-  {A : Type a} {As : Type-list ls₁} {Bs : Type-list ls₂} →
-  Logically-equivalent (Cons A As) → Logically-equivalent (Cons A Bs) →
-  Logically-equivalent (Cons A (Append As Bs))
-Logically-equivalent-Append leq₁@(i₁ , l₁) (i₂ , l₂) =
-    implies i₁ i₂ (last-implies-first₁ leq₁)
-  , last-implies-first₂ l₁ l₂
+  {A : Type a} {Bs : Type-list ls₁} {Cs : Type-list ls₂} →
+  A ∈⇔ Bs → (A∈Cs : A ∈⇔ Cs) →
+  Logically-equivalent Bs → Logically-equivalent Cs →
+  Logically-equivalent (Append Bs (Delete A∈Cs))
+Logically-equivalent-Append A∈Bs A∈Cs eq₁ eq₂ =
+    implies A∈Bs A∈Cs eq₁ eq₂
+  , last-implies-first A∈Bs A∈Cs eq₁ eq₂
   where
-  last-implies-first₁ :
-    {A : Type a} {As : Type-list ls₁} →
-    Logically-equivalent (Cons A As) → Last (Cons A As) → A
-  last-implies-first₁ {ls₁ = []}    _       = id
-  last-implies-first₁ {ls₁ = _ ∷ _} (_ , l) = l
+  last-implies-first :
+    {A : Type a} {Bs : Type-list ls₁} {Cs : Type-list ls₂} →
+    A ∈⇔ Bs → (A∈Cs : A ∈⇔ Cs) →
+    Logically-equivalent Bs →
+    Logically-equivalent Cs →
+    Last-implies-first (Append Bs (Delete A∈Cs))
+  last-implies-first
+    {ls₁ = _ ∷ []} {ls₂ = _ ∷ []} {A = A} {Bs = B} {Cs = C}
+    (inj₁ A⇔B) (inj₁ A⇔C) _ _ =
+    _
+  last-implies-first
+    {ls₁ = _ ∷ []} {ls₂ = _ ∷ _ ∷ _} {A = A} {Bs = B} {Cs = C , Cs}
+    (inj₁ A⇔B) A∈C,Cs@(inj₁ _) _ eq₂ =
+    Last Cs  →⟨ _⇔_.to (logically-equivalent eq₂ Last∈ A∈C,Cs) ⟩
+    A        →⟨ _⇔_.to A⇔B ⟩□
+    B        □
+  last-implies-first
+    {ls₁ = _ ∷ []} {ls₂ = _ ∷ _ ∷ ls₂} {A = A} {Bs = B} {Cs = Cs}
+    (inj₁ A⇔B) A∈Cs@(inj₂ _) _ eq₂ =
+    Last (Delete A∈Cs)  →⟨ _⇔_.to (logically-equivalent eq₂ (Delete∈→∈ A∈Cs Last∈) A∈Cs) ⟩
+    A                   →⟨ _⇔_.to A⇔B ⟩□
+    B                   □
+  last-implies-first
+    {ls₁ = _ ∷ _ ∷ ls₁} {ls₂ = _ ∷ []} {A = A} {Bs = B , Bs} {Cs = C}
+    _ (inj₁ A⇔C) (_ , last-implies-first₁) _ =
+    Last (Append Bs tt)  ↔⟨ Last-Append-[] ls₁ ⟩
+    Last Bs              →⟨ last-implies-first₁ ⟩□
+    B                    □
+  last-implies-first
+    {ls₁ = _ ∷ _ ∷ ls₁} {ls₂ = _ ∷ _ ∷ _}
+    {A = A} {Bs = B , Bs} {Cs = C , Cs}
+    A∈B,Bs A∈C,Cs@(inj₁ _) eq₁ eq₂ =
+    Last (Append Bs Cs)  ↔⟨ Last-Append-∷ ls₁ ⟩
+    Last Cs              →⟨ _⇔_.to (logically-equivalent eq₂ Last∈ A∈C,Cs) ⟩
+    A                    →⟨ _⇔_.to (logically-equivalent eq₁ A∈B,Bs Head∈) ⟩□
+    B                    □
+  last-implies-first
+    {ls₁ = _ ∷ _ ∷ ls₁} {ls₂ = _ ∷ ls₂@(_ ∷ _)}
+    {A = A} {Bs = B , Bs} {Cs = Cs}
+    A∈B,Bs A∈Cs@(inj₂ _) eq₁ eq₂ =
+    Last (Append Bs (Delete A∈Cs))  ↔⟨ Last-Append-∷ (_ ∷ ls₁) {As = B , _} ⟩
+    Last (Delete A∈Cs)              →⟨ _⇔_.to (logically-equivalent eq₂ (Delete∈→∈ A∈Cs Last∈) A∈Cs) ⟩
+    A                               →⟨ _⇔_.to (logically-equivalent eq₁ A∈B,Bs Head∈) ⟩□
+    B                               □
 
-  last-implies-first₂ :
-    {A : Type a} {As : Type-list ls₁} {Bs : Type-list ls₂} →
-    Last-implies-first (Cons A As) →
-    Last-implies-first (Cons A Bs) →
-    Last-implies-first (Cons A (Append As Bs))
-  last-implies-first₂ {ls₁ = []}                            _  l₂ = l₂
-  last-implies-first₂ {ls₁ = _ ∷ []}          {ls₂ = []}    l₁ _  = l₁
-  last-implies-first₂ {ls₁ = _ ∷ []}          {ls₂ = _ ∷ _} _  l₂ = l₂
-  last-implies-first₂ {ls₁ = _ ∷ ls₁@(_ ∷ _)}               l₁ l₂ =
-    last-implies-first₂ {ls₁ = ls₁} l₁ l₂
+  implies-∷ :
+    {A : Type a} {Bs : Type-list (b ∷ ls₁)} {Cs : Type-list ls₂} →
+    A ⇔ Last Bs → (A∈Cs : A ∈⇔ Cs) →
+    Implies Bs →
+    Logically-equivalent Cs →
+    Implies (Append Bs (Delete A∈Cs))
+  implies-∷
+    {ls₁ = []} {ls₂ = _ ∷ []} {A = A} {Bs = B} {Cs = C}
+    A⇔B (inj₁ A⇔C) _ _ = _
+  implies-∷
+    {ls₁ = []} {ls₂ = _ ∷ _ ∷ ls₂} {A = A} {Bs = B} {Cs = C , Cs}
+    A⇔B A∈@(inj₁ A⇔C) _ eq₂@(implies₂ , _) =
+    Implies-Cons
+      (B        →⟨ _⇔_.from A⇔B ⟩
+       A        →⟨ _⇔_.to (logically-equivalent eq₂ A∈ (inj₂ Head∈)) ⟩□
+       Head Cs  □)
+      (Implies-Tail implies₂)
+  implies-∷
+    {ls₁ = []} {ls₂ = _ ∷ _ ∷ ls₂} {A = A} {Bs = B} {Cs = C , Cs}
+    A⇔B A∈@(inj₂ A∈Cs) _ eq₂@(implies₂ , _) =
+    Implies-Cons
+      (B                            →⟨ _⇔_.from A⇔B ⟩
+       A                            →⟨ _⇔_.to (logically-equivalent eq₂ A∈ Head∈) ⟩
+       C                            ↔⟨ inverse $ Head-Cons (Delete-levels A∈Cs) ⟩□
+       Head (Cons C (Delete A∈Cs))  □)
+      (Implies-Delete A∈ implies₂)
+  implies-∷
+    {ls₁ = _ ∷ ls₁} {ls₂ = _ ∷ ls₂} {A = A} {Bs = B , Bs} {Cs = Cs}
+    A⇔Last-Bs A∈Cs implies₁ eq₂ =
+    Implies-Cons
+      (B                                                       →⟨ Implies-Head implies₁ ⟩
+       Head Bs                                                 ↔⟨ inverse $ Head-Cons (ls₁ ++ _) ⟩□
+       Head (Cons (Head Bs) (Append (Tail Bs) (Delete A∈Cs)))  □)
+      (implies-∷ A⇔Last-Bs A∈Cs (Implies-Tail implies₁) eq₂)
 
   implies :
-    {A : Type a} {B : Type b} {As : Type-list ls₁} {Bs : Type-list ls₂} →
-    Implies (Cons A As) → Implies (Cons B Bs) →
-    (Last (Cons A As) → B) → Implies (Cons A (Append As Bs))
-  implies {ls₁ = []} {ls₂ = []} = _
-
-  implies {ls₁ = []} {ls₂ = _ ∷ _} _  i₂ f =
-    Implies-Cons (Implies-Head i₂ ∘ f) (Implies-Tail i₂)
-
-  implies {ls₁ = _ ∷ []} {ls₂ = []} i₁ _ f = i₁
-
-  implies {ls₁ = _ ∷ []} {ls₂ = _ ∷ _} i₁ i₂ f =
-    i₁ , implies {ls₁ = []} _ i₂ f
-
-  implies {ls₁ = _ ∷ _ ∷ _} i₁ i₂ f =
-    Implies-Head i₁ , implies (Implies-Tail i₁) i₂ f
+    {A : Type a} {Bs : Type-list ls₁} {Cs : Type-list ls₂} →
+    A ∈⇔ Bs → (A∈Cs : A ∈⇔ Cs) →
+    Logically-equivalent Bs →
+    Logically-equivalent Cs →
+    Implies (Append Bs (Delete A∈Cs))
+  implies {ls₁ = _ ∷ _} A∈Bs A∈Cs eq₁@(implies₁ , _) eq₂ =
+    implies-∷
+      (logically-equivalent eq₁ A∈Bs Last∈)
+      A∈Cs implies₁ eq₂
 
 ------------------------------------------------------------------------
 -- Some combinators that can be used to prove Logically-equivalent As
