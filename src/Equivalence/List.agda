@@ -412,7 +412,7 @@ Logically-equivalent-Append leq₁@(i₁ , l₁) (i₂ , l₂) =
 -- An example below illustrates how the combinators can be used.
 
 infix  -1 finally-⇔
-infixr -2 step-⇔
+infixr -2 step-⇔ _↔⟨⟩⇔_
 
 -- For an explanation of why step-⇔ takes the last two arguments in
 -- the given order, see Equality.step-≡.
@@ -432,6 +432,12 @@ finally-⇔ :
 finally-⇔ _ A→B = A→B
 
 syntax finally-⇔ A A→B = A →⟨ A→B ⟩⇔□
+
+_↔⟨⟩⇔_ :
+  (@0 A : Type a) {@0 As : Type-list ls} →
+  Implies {a ∷ ls} (Cons A As) →
+  Implies {a ∷ ls} (Cons A As)
+_ ↔⟨⟩⇔ implies = implies
 
 ------------------------------------------------------------------------
 -- Some examples
