@@ -34,6 +34,7 @@ open import Modality.Basics equality-with-J
 open import Pullback equality-with-J as PB using (∆)
 open import Pushout eq as PO using (Pushout; ∇; Pushout→≃Pullback)
 open import Surjection equality-with-J using (_↠_; Split-surjective)
+open import Univalence-axiom equality-with-J
 
 private
   variable
@@ -527,3 +528,108 @@ Nullification-modality {a = a} P =
          (∃ λ (y : B) → P x → Q y)                  ↝⟨ (Σ-cong Eq.⟨ _ , mB x ⟩ λ _ → F.id) ⟩
          (∃ λ (f : P x → B) → (y : P x) → Q (f y))  ↔⟨ inverse ΠΣ-comm ⟩□
          (P x → ∃ λ (y : B) → Q y)                  □)
+
+-- The nullification modality for P is accessible.
+
+Nullification-accessible :
+  {P : A → Type a} →
+  Accessible (Nullification-modality P)
+Nullification-accessible {a = a} {P = P} =
+    _
+  , P
+  , (λ A →
+       Modal A                                               ↔⟨⟩
+       P -Null A                                             ↔⟨ inverse $ PS.Π-Is-∞-extendable-along≃Null I.ext ⟩□
+       (∀ x →
+          Is-∞-extendable-along-[ (λ (_ : P x) → lift tt) ]
+            (λ (_ : ↑ a ⊤) → A))                             □)
+  where
+  open Modality (Nullification-modality P)
+
+-- If P is pointwise propositional, then the nullification modality
+-- for P is topological.
+
+Nullification-topological :
+  (∀ x → Is-proposition (P x)) →
+  Topological (Nullification-modality P)
+Nullification-topological prop =
+  Nullification-accessible , prop
+
+-- An alternative characterisation of "accessible".
+
+Accessible≃≃ :
+  (M : Modality a) →
+  Accessible M ≃
+  ∃ λ (A : Type a) → ∃ λ (P : A → Type a) →
+  ∃ λ (eq : ∀ B → Modality.◯ M B ≃ Nullification P B) →
+    ∀ B → _≃_.to (eq B) ∘ Modality.η M ≡ [_]
+Accessible≃≃ {a = a} M =
+  (∃ λ (A : Type a) →
+   ∃ λ (P : A → Type a) →
+     (B : Type a) →
+     Modal B ⇔
+     ∀ x →
+     Is-∞-extendable-along-[ (λ (_ : P x) → lift tt) ]
+       (λ (_ : ↑ a ⊤) → B))                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong I.ext λ _ →
+                                                            ⇔-cong I.ext F.id (PS.Π-Is-∞-extendable-along≃Null I.ext)) ⟩
+  (∃ λ (A : Type a) →
+   ∃ λ (P : A → Type a) →
+     (B : Type a) → Modal B ⇔ P -Null B)                ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                            Modal⇔Modal≃◯≃◯ I.ext M (Nullification-modality _) I.ext) ⟩□
+  (∃ λ (A : Type a) →
+   ∃ λ (P : A → Type a) →
+   ∃ λ (eq : ∀ B → ◯ B ≃ Nullification P B) →
+     ∀ B → _≃_.to (eq B) ∘ η ≡ [_])                     □
+  where
+  open Modality M
+
+-- Another alternative characterisation of "accessible".
+
+Accessible≃≡ :
+  Univalence a →
+  (M : Modality a) →
+  Accessible M ≃
+  ∃ λ (A : Type a) → ∃ λ (P : A → Type a) →
+    M ≡ Nullification-modality P
+Accessible≃≡ {a = a} univ M =
+  (∃ λ (A : Type a) →
+   ∃ λ (P : A → Type a) →
+     (B : Type a) →
+     Modal B ⇔
+     ∀ x →
+     Is-∞-extendable-along-[ (λ (_ : P x) → lift tt) ]
+       (λ (_ : ↑ a ⊤) → B))                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong I.ext λ _ →
+                                                            ⇔-cong I.ext F.id (PS.Π-Is-∞-extendable-along≃Null I.ext)) ⟩
+  (∃ λ (A : Type a) →
+   ∃ λ (P : A → Type a) →
+     (B : Type a) → Modal B ⇔ P -Null B)                ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                            Modal⇔Modal≃≡ I.ext univ) ⟩□
+  (∃ λ (A : Type a) →
+   ∃ λ (P : A → Type a) →
+     M ≡ Nullification-modality P)                      □
+  where
+  open Modality M
+
+-- An alternative characterisation of "topological".
+
+Topological≃≃ :
+  (M : Modality a) →
+  Topological M ≃
+  ∃ λ ((_ , P , _) :
+       ∃ λ (A : Type a) → ∃ λ (P : A → Type a) →
+       ∃ λ (eq : ∀ B → Modality.◯ M B ≃ Nullification P B) →
+         (∀ B → _≃_.to (eq B) ∘ Modality.η M ≡ [_])) →
+    ∀ x → Is-proposition (P x)
+Topological≃≃ M = Σ-cong (Accessible≃≃ M) λ _ → F.id
+
+-- Another alternative characterisation of "topological".
+
+Topological≃≡ :
+  Univalence a →
+  (M : Modality a) →
+  Topological M ≃
+  ∃ λ ((_ , P , _) :
+       ∃ λ (A : Type a) → ∃ λ (P : A → Type a) →
+         M ≡ Nullification-modality P) →
+    ∀ x → Is-proposition (P x)
+Topological≃≡ univ M = Σ-cong (Accessible≃≡ univ M) λ _ → F.id
