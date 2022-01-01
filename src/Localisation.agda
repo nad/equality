@@ -511,7 +511,7 @@ Nullification-modality {a = a} P =
 
     .Σ-closed-reflective-subuniverse.Modal-respects-≃
       {A = A} {B = B} A≃B →
-      P -Null A  ↔⟨ PS.Null-cong I.ext A≃B ⟩□
+      P -Null A  ↔⟨ PS.Null-cong I.ext (λ _ → F.id) A≃B ⟩□
       P -Null B  □
 
     .Σ-closed-reflective-subuniverse.extendable-along-η

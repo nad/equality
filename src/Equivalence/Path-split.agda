@@ -33,13 +33,13 @@ open import Surjection eq using (Split-surjective; _↠_)
 
 private
   variable
-    a b c d ℓ p : Level
-    A B C       : Type a
-    P           : A → Type p
-    x y         : A
-    f           : A → B
-    k           : Kind
-    n           : ℕ
+    a b c d ℓ p q : Level
+    A B C         : Type a
+    P             : A → Type p
+    x y           : A
+    f             : A → B
+    k             : Kind
+    n             : ℕ
 
 ------------------------------------------------------------------------
 -- Path-split
@@ -666,40 +666,55 @@ Null-propositional {a = a} {p = p} {b = b} ext =
   Π-closure (lower-extensionality (p ⊔ b) lzero ext) 1 λ _ →
   Eq.propositional (lower-extensionality a lzero ext) _
 
--- P -Null_ preserves equivalences (assuming extensionality).
+-- The operator _-Null_ preserves equivalences (assuming
+-- extensionality).
 --
 -- See also Equivalence.Erased.[]-cong₂-⊔.Nullᴱ-cong.
 
 Null-cong :
-  {A : Type a} {B : Type b} {C : Type c} {P : A → Type p} →
-  Extensionality (a ⊔ b ⊔ c ⊔ p) (b ⊔ c ⊔ p) →
-  B ≃ C → P -Null B ≃ P -Null C
+  {A : Type a} {B : Type b} {C : Type c}
+  {P : A → Type p} {Q : A → Type q} →
+  Extensionality (a ⊔ b ⊔ c ⊔ p ⊔ q) (b ⊔ c ⊔ p ⊔ q) →
+  (∀ x → P x ≃ Q x) → B ≃ C → P -Null B ≃ Q -Null C
 Null-cong
-  {a = a} {b = b} {c = c} {p = p} {B = B} {C = C} {P = P} ext B≃C =
-  P -Null B                                                         ↔⟨⟩
+  {a = a} {b = b} {c = c} {p = p} {q = q}
+  {B = B} {C = C} {P = P} {Q = Q} ext P≃Q B≃C =
+  P -Null B                                                             ↔⟨⟩
 
-  (∀ x → Is-equivalence (const ⦂ (B → P x → B)))                    ↝⟨ (∀-cong ext′ λ x →
-                                                                        Is-equivalence≃Is-equivalence-∘ʳ
-                                                                          (_≃_.is-equivalence $ inverse B≃C) ext″) ⟩
+  (∀ x → Is-equivalence (const ⦂ (B → P x → B)))                        ↝⟨ (∀-cong ext′ λ x →
+                                                                            Is-equivalence≃Is-equivalence-∘ʳ
+                                                                              (_≃_.is-equivalence $ inverse B≃C) ext″) ⟩
 
-  (∀ x → Is-equivalence ((const ⦂ (B → P x → B)) ∘ _≃_.from B≃C))   ↝⟨ (∀-cong ext′ λ x →
-                                                                        Is-equivalence≃Is-equivalence-∘ˡ
-                                                                          (_≃_.is-equivalence $
-                                                                           ∀-cong (lower-extensionality (a ⊔ b ⊔ c) p ext) λ _ → B≃C)
-                                                                          ext″) ⟩
+  (∀ x → Is-equivalence ((const ⦂ (B → P x → B)) ∘ _≃_.from B≃C))       ↝⟨ (∀-cong ext′ λ x →
+                                                                            Is-equivalence≃Is-equivalence-∘ˡ
+                                                                              (_≃_.is-equivalence $
+                                                                               ∀-cong (lower-extensionality (a ⊔ b ⊔ c ⊔ q) (p ⊔ q) ext) λ _ →
+                                                                               B≃C)
+                                                                              ext″) ⟩
   (∀ x →
      Is-equivalence
-       ((_≃_.to B≃C ∘_) ∘ (const ⦂ (B → P x → B)) ∘ _≃_.from B≃C))  ↝⟨ (∀-cong (lower-extensionality (b ⊔ c ⊔ p) b ext) λ x →
-                                                                        Is-equivalence-cong (lower-extensionality (a ⊔ b) b ext) λ y →
-    const (_≃_.to B≃C (_≃_.from B≃C y))                                   ≡⟨ cong const $ _≃_.right-inverse-of B≃C _ ⟩∎
-    const y                                                               ∎) ⟩
+       ((_≃_.to B≃C ∘_) ∘ (const ⦂ (B → P x → B)) ∘ _≃_.from B≃C))      ↝⟨ (∀-cong (lower-extensionality (b ⊔ c ⊔ p ⊔ q) (b ⊔ q) ext) λ x →
+                                                                            Is-equivalence-cong
+                                                                              (lower-extensionality (a ⊔ b ⊔ q) (b ⊔ q) ext) λ y →
+    const (_≃_.to B≃C (_≃_.from B≃C y))                                       ≡⟨ cong const $ _≃_.right-inverse-of B≃C _ ⟩∎
+    const y                                                                   ∎) ⟩
 
-  (∀ x → Is-equivalence (const ⦂ (C → P x → C)))                    ↔⟨⟩
+  (∀ x → Is-equivalence (const ⦂ (C → P x → C)))                        ↝⟨ (∀-cong (lower-extensionality (b ⊔ c ⊔ p ⊔ q) b ext) λ x →
+                                                                           Is-equivalence≃Is-equivalence-∘ˡ
+                                                                             (_≃_.is-equivalence
+                                                                                (→-cong
+                                                                                   (lower-extensionality (a ⊔ b ⊔ c) (b ⊔ p ⊔ q) ext)
+                                                                                   (P≃Q x) F.id))
+                                                                             (lower-extensionality (a ⊔ b) b ext)) ⟩
+  (∀ x →
+     Is-equivalence ((_∘ _≃_.from (P≃Q x)) ∘ (const ⦂ (C → P x → C))))  ↔⟨⟩
 
-  P -Null C                                                         □
+  (∀ x → Is-equivalence (const ⦂ (C → Q x → C)))                        ↔⟨⟩
+
+  Q -Null C                                                             □
   where
-  ext′ = lower-extensionality (b ⊔ c ⊔ p) lzero ext
-  ext″ = lower-extensionality a           lzero ext
+  ext′ = lower-extensionality (b ⊔ c ⊔ p ⊔ q) q ext
+  ext″ = lower-extensionality (a ⊔ q)         q ext
 
 -- A corollary of Is-∞-extendable-along≃Is-equivalence-const.
 
