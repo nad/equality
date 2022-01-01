@@ -2937,98 +2937,6 @@ module Modality (M : Modality a) where
   Left-exact→Connected→Connected→Connected-→ lex cA cB _ =
     Connected-Σ cA λ _ → lex cB
 
-  -- If ◯ is left exact, then the remaining part of the
-  -- two-out-of-three property holds for ◯-connectedness. (For the two
-  -- other parts, see Connected-→→Connected-→≃Connected-→-∘.)
-
-  Left-exact→Connected-→→Connected-→-∘≃Connected-→ :
-    Left-exact ◯ →
-    ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f
-  Left-exact→Connected-→→Connected-→-∘≃Connected-→
-    {g = g} {f = f} lex c-g c-g∘f =                    $⟨ (λ _ →
-                                                             Left-exact→Connected→Connected→Connected-→
-                                                               lex (c-g∘f _) (c-g _) _) ⟩
-    (∀ y → ◯ -Connected (∘⁻¹→⁻¹ ⁻¹ (y , refl (g y))))  →⟨ (∀-cong _ λ y → Connected-cong _ Σ-map--id-⁻¹≃⁻¹) ⟩□
-    (∀ y → ◯ -Connected (f ⁻¹ y))                      □
-    where
-    ∘⁻¹→⁻¹ : g ∘ f ⁻¹ g y → g ⁻¹ g y
-    ∘⁻¹→⁻¹ = Σ-map f id
-
-  private
-
-    -- If "the remaining part of the two-out-of-three property" holds
-    -- for ◯-connectedness, A is ◯-connected, and P : A → Type a is
-    -- pointwise modal, then there is some modal type B : Type a for
-    -- which P x ≃ B holds for each x.
-
-    23→Connected→Modal→≃ :
-      {P : A → Type a} →
-      ({A B C : Type a} {f : A → B} {g : B → C} →
-       ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f) →
-      ◯ -Connected A → (∀ x → Modal (P x)) →
-      ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B
-    23→Connected→Modal→≃ {A = A} {P = P} lex c m =
-        ◯ (∃ P)
-      , Modal-◯
-      , (λ x →
-           P x      ↝⟨ Eq.⟨ f′ x , f′-eq x ⟩ ⟩□
-           ◯ (∃ P)  □)
-      where
-      f′ : ∀ x → P x → ◯ (∃ P)
-      f′ x y = η (x , y)
-
-      c′ : ◯ -Connected-→ proj₂ {B = λ (_ : A) → ◯ (∃ P)}
-      c′ y =                                  $⟨ c ⟩
-        ◯ -Connected A                        →⟨ (Connected-cong _ $ from-bijection $
-                                                  Σ-assoc F.∘
-                                                  (inverse $ drop-⊤-right λ _ →
-                                                   _⇔_.to contractible⇔↔⊤ $ singleton-contractible _)) ⟩
-        ◯ -Connected (∃ λ (x , y′) → y′ ≡ y)  ↔⟨⟩
-        ◯ -Connected (proj₂ ⁻¹ y)             □
-
-      f′-eq : ∀ x → Is-equivalence (f′ x)
-      f′-eq x =                                   $⟨ lex c′ Connected-→-η ⟩
-        ◯ -Connected-→ (Σ-map id (λ {x} → f′ x))  →⟨ Connected-→-Σ-map≃Connected-→ _ ⟩
-        (∀ x → ◯ -Connected-→ f′ x)               →⟨ _$ x ⟩
-        ◯ -Connected-→ f′ x                       →⟨ Connected-→≃Is-equivalence (m x) Modal-◯ _ ⟩□
-        Is-equivalence (f′ x)                     □
-
-  -- If the modality is left exact, A is ◯-connected, and
-  -- P : A → Type a is pointwise modal, then there is some modal type
-  -- B : Type a for which P x ≃ B holds for each x.
-
-  Left-exact→Connected→Modal→≃ :
-    {P : A → Type a} →
-    Left-exact ◯ →
-    ◯ -Connected A → (∀ x → Modal (P x)) →
-    ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B
-  Left-exact→Connected→Modal→≃ {A = A} {P = P} =
-    Left-exact ◯                                                    →⟨ (λ lex → Left-exact→Connected-→→Connected-→-∘≃Connected-→ lex) ⟩
-
-    ({A B C : Type a} {f : A → B} {g : B → C} →
-     ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f)  →⟨ 23→Connected→Modal→≃ ⟩□
-
-    (◯ -Connected A → (∀ x → Modal (P x)) →
-     ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)                    □
-
-  -- If ◯ is left exact, then the function f is ◯-connected if and
-  -- only if ◯-map f is an equivalence.
-
-  Left-exact→Connected-→≃Is-equivalence-◯-map :
-    Left-exact ◯ →
-    ◯ -Connected-→ f ↝[ a ∣ a ] Is-equivalence (◯-map f)
-  Left-exact→Connected-→≃Is-equivalence-◯-map {f = f} lex =
-    generalise-ext?-prop
-      (record { to = Connected→Is-equivalence-◯-map; from = from })
-      (flip Connected-→-propositional ◯)
-      (flip Eq.propositional _)
-    where
-    from : Is-equivalence (◯-map f) → ◯ -Connected-→ f
-    from =
-      Is-equivalence (◯-map f)  →⟨ _⇔_.from $ Connected-→-η-∘-≃Is-equivalence-◯-map _ ⟩
-      ◯ -Connected-→ (η ∘ f)    →⟨ Left-exact→Connected-→→Connected-→-∘≃Connected-→ lex Connected-→-η ⟩□
-      ◯ -Connected-→ f          □
-
   -- If ◯ is left exact and A has a given h-level, then ◯ A has the
   -- same h-level (assuming function extensionality).
   --
@@ -3075,8 +2983,8 @@ module Modality (M : Modality a) where
 
   -- A number of logically equivalent definitions of "left exact".
 
-  Variants-of-left-exact₁ : Type-list _
-  Variants-of-left-exact₁ =
+  Variants-of-left-exact : Type-list _
+  Variants-of-left-exact =
     ({A : Type a} {x y : A} → ◯ -Connected A → ◯ -Connected (x ≡ y)) ,
 
     ({A B : Type a} {f : A → B} →
@@ -3101,44 +3009,82 @@ module Modality (M : Modality a) where
      ◯ -Connected-→ (cong η ⦂ (x ≡ y → η x ≡ η y))) ,
 
     ({A : Type a} {x y : A} →
-     Is-equivalence (η-cong ⦂ (◯ (x ≡ y) → η x ≡ η y)))
+     Is-equivalence (η-cong ⦂ (◯ (x ≡ y) → η x ≡ η y))) ,
 
-  -- The types in Variants-of-left-exact₁ are logically equivalent.
+    ({A B C : Type a} {f : A → B} {g : B → C} →
+     ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f) ,
 
-  Logically-equivalent-Variants-of-left-exact₁ :
-    Logically-equivalent Variants-of-left-exact₁
-  Logically-equivalent-Variants-of-left-exact₁ =
-      (({A : Type a} {x y : A} → ◯ -Connected A → ◯ -Connected (x ≡ y))   →⟨ (λ lex → Left-exact→Connected→Connected→Connected-→ lex) ⟩⇔
+    ({A B : Type a} {f : A → B} →
+     Is-equivalence (◯-map f) → ◯ -Connected-→ f)
 
-       ({A B : Type a} {f : A → B} →
-        ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f)               →⟨ (λ lex → step₂ lex) ⟩⇔
+  -- The types in Variants-of-left-exact are logically equivalent.
 
-       ({A B₁ B₂ C : Type a}
-        {f₁ : A → B₂} {f₂ : B₂ → C} {g₁ : A → B₁} {g₂ : B₁ → C}
-        (p : ∀ x → g₂ (g₁ x) ≡ f₂ (f₁ x)) →
-        ◯ -Connected-→ f₂ → ◯ -Connected-→ g₁ →
-        ∀ y → ◯ -Connected-→ (⁻¹-map p ⦂ (f₁ ⁻¹ y → g₂ ⁻¹ f₂ y)))         →⟨ (λ lex → lex (λ _ → ◯-map-η) Connected-→-η Connected-→-η _) ⟩⇔
+  Logically-equivalent-Variants-of-left-exact :
+    Logically-equivalent Variants-of-left-exact
+  Logically-equivalent-Variants-of-left-exact =
+    Logically-equivalent-Append
+      (inj₂ (inj₁ F.id))
+      (inj₁ F.id)
+      ( (({A : Type a} {x y : A} →
+          ◯ -Connected A → ◯ -Connected (x ≡ y))                      →⟨ (λ lex → Left-exact→Connected→Connected→Connected-→ lex) ⟩⇔
 
-       ({A B : Type a} {f : A → B} {y : B} →
-        ◯ -Connected-→
-          (⁻¹-map {f₂ = η} (λ _ → ◯-map-η) ⦂ (f ⁻¹ y → ◯-map f ⁻¹ η y)))  →⟨ (λ lex → lex) ⟩⇔
+         ({A B : Type a} {f : A → B} →
+          ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f)         →⟨ (λ lex → step₂ lex) ⟩⇔
 
-       ({A : Type a} {x y : A} →
-        ◯ -Connected-→
-          (⁻¹-map (λ _ → ◯-map-η {x = lift tt}) ⦂
-             (const {B = ↑ a ⊤} x ⁻¹ y → ◯-map (const x) ⁻¹ η y)))        →⟨ (λ lex → step₅ lex) ⟩⇔
+         ({A B₁ B₂ C : Type a}
+          {f₁ : A → B₂} {f₂ : B₂ → C} {g₁ : A → B₁} {g₂ : B₁ → C}
+          (p : ∀ x → g₂ (g₁ x) ≡ f₂ (f₁ x)) →
+          ◯ -Connected-→ f₂ → ◯ -Connected-→ g₁ →
+          ∀ y → ◯ -Connected-→ (⁻¹-map p ⦂ (f₁ ⁻¹ y → g₂ ⁻¹ f₂ y)))   →⟨ (λ lex → lex (λ _ → ◯-map-η) Connected-→-η Connected-→-η _) ⟩⇔
 
-       ({A : Type a} {x y : A} →
-        ◯ -Connected-→ (cong η ⦂ (x ≡ y → η x ≡ η y)))                    →⟨ (λ lex {_ _ _} → Connected-→≃Is-equivalence-◯-rec _ _ lex) ⟩⇔□)
+         ({A B : Type a} {f : A → B} {y : B} →
+          ◯ -Connected-→
+            (⁻¹-map {f₂ = η} (λ _ → ◯-map-η) ⦂
+             (f ⁻¹ y → ◯-map f ⁻¹ η y)))                              →⟨ (λ lex → lex) ⟩⇔
 
-    , (({A : Type a} {x y : A} →
-        Is-equivalence
-          (◯-rec (Separated-◯ _ _) (cong η) ⦂ (◯ (x ≡ y) → η x ≡ η y)))   ↔⟨⟩
+         ({A : Type a} {x y : A} →
+          ◯ -Connected-→
+            (⁻¹-map (λ _ → ◯-map-η {x = lift tt}) ⦂
+               (const {B = ↑ a ⊤} x ⁻¹ y → ◯-map (const x) ⁻¹ η y)))  →⟨ (λ lex → step₅ lex) ⟩⇔
 
-       ({A : Type a} {x y : A} →
-        Is-equivalence (η-cong ⦂ (◯ (x ≡ y) → η x ≡ η y)))                →⟨ step₇ ⟩□
+         ({A : Type a} {x y : A} →
+          ◯ -Connected-→ (cong η ⦂ (x ≡ y → η x ≡ η y)))              →⟨ (λ lex {_ _ _} → Connected-→≃Is-equivalence-◯-rec _ _ lex) ⟩⇔□)
 
-       ({A : Type a} {x y : A} → ◯ -Connected A → ◯ -Connected (x ≡ y))   □)
+      , (({A : Type a} {x y : A} →
+          Is-equivalence
+            (◯-rec (Separated-◯ _ _) (cong η) ⦂
+             (◯ (x ≡ y) → η x ≡ η y)))                                ↔⟨⟩
+
+         ({A : Type a} {x y : A} →
+          Is-equivalence (η-cong ⦂ (◯ (x ≡ y) → η x ≡ η y)))          →⟨ step₇ ⟩□
+
+         ({A : Type a} {x y : A} →
+          ◯ -Connected A → ◯ -Connected (x ≡ y))                      □)
+      )
+      (Logically-equivalent-Append
+         (inj₂ (inj₁ F.id))
+         (inj₁ F.id)
+         ( (({A B : Type a} {f : A → B} →
+             ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f)  →⟨ (λ lex {_ _ _ _ _} → step₈ lex) ⟩⇔□)
+
+         , (({A B C : Type a} {f : A → B} {g : B → C} →
+             ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) →
+             ◯ -Connected-→ f)                                    →⟨ (λ lex → step₉ lex) ⟩□
+
+            ({A B : Type a} {f : A → B} →
+             ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f)  □)
+         )
+         ( (({A B C : Type a} {f : A → B} {g : B → C} →
+             ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) →
+             ◯ -Connected-→ f)                                    →⟨ (λ lex {_ _ _} → step₁₀ lex) ⟩⇔□)
+
+         , (({A B : Type a} {f : A → B} →
+             Is-equivalence (◯-map f) → ◯ -Connected-→ f)         →⟨ (λ lex → step₁₁ lex) ⟩□
+
+            ({A B C : Type a} {f : A → B} {g : B → C} →
+             ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) →
+             ◯ -Connected-→ f)                                    □)
+         ))
     where
     step₂ :
       {f₁ : A → B₂} {f₂ : B₂ → C} {g₁ : A → B₁} {g₂ : B₁ → C} →
@@ -3224,14 +3170,59 @@ module Modality (M : Modality a) where
       Contractible (η x ≡ η y)  →⟨ H-level-cong _ 0 $ inverse $ ◯≡≃η≡η lex ⟩□
       Contractible (◯ (x ≡ y))  □
 
-  -- The types in Variants-of-left-exact₁ are equivalent (assuming
+    step₈ :
+      ({A B : Type a} {f : A → B} →
+       ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f) →
+      ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f
+    step₈ {g = g} {f = f} lex c-g c-g∘f =                $⟨ (λ _ → lex (c-g∘f _) (c-g _) _) ⟩
+      (∀ y → ◯ -Connected (∘⁻¹→⁻¹ ⁻¹ (y , refl (g y))))  →⟨ (∀-cong _ λ y → Connected-cong _ Σ-map--id-⁻¹≃⁻¹) ⟩□
+      (∀ y → ◯ -Connected (f ⁻¹ y))                      □
+      where
+      ∘⁻¹→⁻¹ : g ∘ f ⁻¹ g y → g ⁻¹ g y
+      ∘⁻¹→⁻¹ = Σ-map f id
+
+    step₁₀ :
+      ({A B C : Type a} {f : A → B} {g : B → C} →
+       ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f) →
+      Is-equivalence (◯-map f) → ◯ -Connected-→ f
+    step₁₀ {f = f} lex =
+      Is-equivalence (◯-map f)  →⟨ _⇔_.from (Connected-→-η-∘-≃Is-equivalence-◯-map _) ⟩
+      ◯ -Connected-→ (η ∘ f)    →⟨ lex Connected-→-η ⟩□
+      ◯ -Connected-→ f          □
+
+    step₉ :
+      {f : A → B} →
+      ({A B C : Type a} {f : A → B} {g : B → C} →
+       ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f) →
+      ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f
+    step₉ {f = f} lex c-A c-B =
+                                $⟨ Eq.function-between-contractible-types-is-equivalence _ c-A c-B ⟩
+      Is-equivalence (◯-map f)  →⟨ step₁₀ lex ⟩□
+      ◯ -Connected-→ f          □
+
+    step₁₁ :
+      ({A B : Type a} {f : A → B} →
+       Is-equivalence (◯-map f) → ◯ -Connected-→ f) →
+      ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f
+    step₁₁ {g = g} {f = f} lex = curry
+      (◯ -Connected-→ g × ◯ -Connected-→ (g ∘ f)                      →⟨ Σ-map
+                                                                           Connected→Is-equivalence-◯-map
+                                                                           Connected→Is-equivalence-◯-map ⟩
+       Is-equivalence (◯-map g) × Is-equivalence (◯-map (g ∘ f))      →⟨ (∃-cong λ _ →
+                                                                          Is-equivalence-cong _ λ _ →
+                                                                          ◯-map-∘) ⟩
+       Is-equivalence (◯-map g) × Is-equivalence (◯-map g ∘ ◯-map f)  →⟨ uncurry (Eq.Two-out-of-three.g-g∘f $ Eq.two-out-of-three _ _) ⟩
+       Is-equivalence (◯-map f)                                       →⟨ lex ⟩□
+       ◯ -Connected-→ f                                               □)
+
+  -- The types in Variants-of-left-exact are equivalent (assuming
   -- function extensionality).
 
-  Equivalent-Variants-of-left-exact₁ :
+  Equivalent-Variants-of-left-exact :
     Extensionality (lsuc a) (lsuc a) →
-    Equivalent Variants-of-left-exact₁
-  Equivalent-Variants-of-left-exact₁ ext =
-      Logically-equivalent-Variants-of-left-exact₁
+    Equivalent Variants-of-left-exact
+  Equivalent-Variants-of-left-exact ext =
+      Logically-equivalent-Variants-of-left-exact
     , ( Left-exact-propositional ext′
       , (implicit-Π-closure ext  1 λ _ →
          implicit-Π-closure ext′ 1 λ _ →
@@ -3266,6 +3257,19 @@ module Modality (M : Modality a) where
          implicit-Π-closure ext″ 1 λ _ →
          Connected-→-propositional ext″ ◯)
       , Left-exact-η-cong-propositional ext′
+      , (implicit-Π-closure ext  1 λ _ →
+         implicit-Π-closure ext  1 λ _ →
+         implicit-Π-closure ext′ 1 λ _ →
+         implicit-Π-closure ext″ 1 λ _ →
+         implicit-Π-closure ext″ 1 λ _ →
+         Π-closure ext″ 1 λ _ →
+         Π-closure ext″ 1 λ _ →
+         Connected-→-propositional ext″ ◯)
+      , (implicit-Π-closure ext  1 λ _ →
+         implicit-Π-closure ext′ 1 λ _ →
+         implicit-Π-closure ext″ 1 λ _ →
+         Π-closure ext″ 1 λ _ →
+         Connected-→-propositional ext″ ◯)
       , _
       )
     where
@@ -3281,11 +3285,32 @@ module Modality (M : Modality a) where
   Left-exact≃Left-exact-η-cong :
     Left-exact ◯ ↝[ lsuc a ∣ a ] Left-exact-η-cong
   Left-exact≃Left-exact-η-cong = generalise-ext?-prop
-    (logically-equivalent Logically-equivalent-Variants-of-left-exact₁
+    (logically-equivalent Logically-equivalent-Variants-of-left-exact
        (inj₁ F.id)
        (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ F.id))))))))
     Left-exact-propositional
     Left-exact-η-cong-propositional
+
+  -- If ◯ is left exact, then the function f is ◯-connected if and
+  -- only if ◯-map f is an equivalence.
+
+  Left-exact→Connected-→≃Is-equivalence-◯-map :
+    Left-exact ◯ →
+    ◯ -Connected-→ f ↝[ a ∣ a ] Is-equivalence (◯-map f)
+  Left-exact→Connected-→≃Is-equivalence-◯-map {f = f} lex =
+    generalise-ext?-prop
+      (record
+         { to   = Connected→Is-equivalence-◯-map
+         ; from =
+             _⇔_.to
+               (logically-equivalent
+                  Logically-equivalent-Variants-of-left-exact
+                  (inj₁ F.id)
+                  (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ F.id))))))))))
+               lex
+         })
+      (flip Connected-→-propositional ◯)
+      (flip Eq.propositional _)
 
   -- If the modality is left exact, f is ◯-connected, and
   -- Σ-map {Q = Q} f (g _) is ◯-connected (for
@@ -3314,7 +3339,7 @@ module Modality (M : Modality a) where
     c-h x q =
       _⇔_.to
         (logically-equivalent
-           Logically-equivalent-Variants-of-left-exact₁
+           Logically-equivalent-Variants-of-left-exact
            (inj₁ F.id) (inj₂ (inj₁ F.id)))
         lex
         (c-f-g _)
@@ -3363,56 +3388,78 @@ module Modality (M : Modality a) where
 
       g x ⁻¹ q                                                        □
 
-  -- More definitions of "left exact".
+  -- If the modality is left exact, A is ◯-connected, and
+  -- P : A → Type a is pointwise modal, then there is some modal type
+  -- B : Type a for which P x ≃ B holds for each x.
 
-  Variants-of-left-exact₂ : Type-list _
-  Variants-of-left-exact₂ =
-    ({A : Type a} {x y : A} → ◯ -Connected A → ◯ -Connected (x ≡ y)) ,
-
+  Left-exact→Connected→Modal→≃ :
+    {P : A → Type a} →
+    Left-exact ◯ →
+    ◯ -Connected A → (∀ x → Modal (P x)) →
+    ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B
+  Left-exact→Connected→Modal→≃ {A = A} {P = P} =
+    Left-exact ◯                                                    →⟨ _⇔_.to
+                                                                         (logically-equivalent
+                                                                            Logically-equivalent-Variants-of-left-exact
+                                                                            (inj₁ F.id)
+                                                                            (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ F.id))))))))) ⟩
     ({A B C : Type a} {f : A → B} {g : B → C} →
-     ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f) ,
+     ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f)  →⟨ step₂ ⟩□
 
+    (◯ -Connected A → (∀ x → Modal (P x)) →
+     ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)                    □
+    where
+    step₂ :
+      ({A B C : Type a} {f : A → B} {g : B → C} →
+       ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f) →
+      ◯ -Connected A → (∀ x → Modal (P x)) →
+      ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B
+    step₂ lex c m =
+        ◯ (∃ P)
+      , Modal-◯
+      , (λ x →
+           P x      ↝⟨ Eq.⟨ f′ x , f′-eq x ⟩ ⟩□
+           ◯ (∃ P)  □)
+      where
+      f′ : ∀ x → P x → ◯ (∃ P)
+      f′ x y = η (x , y)
+
+      c′ : ◯ -Connected-→ proj₂ {B = λ (_ : A) → ◯ (∃ P)}
+      c′ y =                                  $⟨ c ⟩
+        ◯ -Connected A                        →⟨ (Connected-cong _ $ from-bijection $
+                                                  Σ-assoc F.∘
+                                                  (inverse $ drop-⊤-right λ _ →
+                                                   _⇔_.to contractible⇔↔⊤ $ singleton-contractible _)) ⟩
+        ◯ -Connected (∃ λ (x , y′) → y′ ≡ y)  ↔⟨⟩
+        ◯ -Connected (proj₂ ⁻¹ y)             □
+
+      f′-eq : ∀ x → Is-equivalence (f′ x)
+      f′-eq x =                                   $⟨ lex c′ Connected-→-η ⟩
+        ◯ -Connected-→ (Σ-map id (λ {x} → f′ x))  →⟨ Connected-→-Σ-map≃Connected-→ _ ⟩
+        (∀ x → ◯ -Connected-→ f′ x)               →⟨ _$ x ⟩
+        ◯ -Connected-→ f′ x                       →⟨ Connected-→≃Is-equivalence (m x) Modal-◯ _ ⟩□
+        Is-equivalence (f′ x)                     □
+
+  -- In the presence of univalence and function extensionality the
+  -- previous lemma can be strengthened.
+
+  Left-exact≃Connected→Modal→≃ :
+    Extensionality (lsuc a) (lsuc a) →
+    Univalence a →
+    Left-exact ◯ ≃
     ({A : Type a} {P : A → Type a} →
      ◯ -Connected A → (∀ x → Modal (P x)) →
      ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)
-
-  -- The types in Variants-of-left-exact₂ are equivalent, assuming
-  -- function extensionality and univalence.
-
-  Equivalent-Variants-of-left-exact₂ :
-    Extensionality (lsuc a) (lsuc a) →
-    Univalence a →
-    Equivalent Variants-of-left-exact₂
-  Equivalent-Variants-of-left-exact₂ ext univ =
-      ( (({A : Type a} {x y : A} →
-          ◯ -Connected A → ◯ -Connected (x ≡ y))                         →⟨ (λ lex → Left-exact→Connected-→→Connected-→-∘≃Connected-→ lex) ⟩⇔
-
-         ({A B C : Type a} {f : A → B} {g : B → C} →
-          ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f)  →⟨ (λ lex {_ _} → 23→Connected→Modal→≃ lex) ⟩⇔□)
-
-      , (({A : Type a} {P : A → Type a} →
-          ◯ -Connected A → (∀ x → Modal (P x)) →
-          ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)                    →⟨ (λ lex → step₃ lex) ⟩□
-
-         ({A : Type a} {x y : A} →
-          ◯ -Connected A → ◯ -Connected (x ≡ y))                         □)
-      )
-    , ( Left-exact-propositional ext′
-      , (implicit-Π-closure ext 1 λ _ →
-         implicit-Π-closure ext 1 λ _ →
-         implicit-Π-closure ext′ 1 λ _ →
-         implicit-Π-closure ext‴ 1 λ _ →
-         implicit-Π-closure ext‴ 1 λ _ →
-         Π-closure ext‴ 1 λ _ →
-         Π-closure ext‴ 1 λ _ →
-         Connected-→-propositional ext‴ ◯)
-      , (implicit-Π-closure ext 1 λ _ →
-         implicit-Π-closure ext 1 λ _ →
-         Π-closure ext″ 1 λ c →
-         Π-closure ext″ 1 λ m →
-         prop₃ c m)
-      , _
-      )
+  Left-exact≃Connected→Modal→≃ ext univ =
+    Eq.⇔→≃
+      (Left-exact-propositional ext′)
+      (implicit-Π-closure ext 1 λ _ →
+       implicit-Π-closure ext 1 λ _ →
+       Π-closure ext″ 1 λ c →
+       Π-closure ext″ 1 λ m →
+       prop c m)
+      (λ lex → Left-exact→Connected→Modal→≃ lex)
+      (λ lex → from lex)
     where
     ext′ : Extensionality (lsuc a) a
     ext′ = lower-extensionality lzero _ ext
@@ -3423,13 +3470,13 @@ module Modality (M : Modality a) where
     ext‴ : Extensionality a a
     ext‴ = lower-extensionality _ _ ext
 
-    step₃ :
+    from :
       {x y : A} →
       ({A : Type a} {P : A → Type a} →
        ◯ -Connected A → (∀ x → Modal (P x)) →
        ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B) →
       ◯ -Connected A → ◯ -Connected (x ≡ y)
-    step₃ {A = A} {x = x} {y = y} lex c = c′
+    from {A = A} {x = x} {y = y} lex c = c′
       where
       P′ : A → Type a
       P′ z = ◯ (x ≡ z)
@@ -3489,11 +3536,11 @@ module Modality (M : Modality a) where
       c′ : Contractible (◯ (x ≡ y))
       c′ = propositional⇒inhabited⇒contractible prop inh
 
-    prop₃ :
+    prop :
       {A : Type a} {P : A → Type a} →
       ◯ -Connected A → (∀ x → Modal (P x)) →
       Is-proposition (∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)
-    prop₃ {A = A} {P = P} c m =                                    $⟨ Emb.embedding→⁻¹-propositional
+    prop {A = A} {P = P} c m =                                     $⟨ Emb.embedding→⁻¹-propositional
                                                                         (Connected→Is-embedding-const-Σ-Modal ext″ univ c) _ ⟩
       Is-proposition
         ((const ⦂ (∃ Modal → A → ∃ Modal)) ⁻¹ (λ x → P x , m x))   →⟨ H-level-cong _ 1 equiv ⟩□
