@@ -33,13 +33,13 @@ open import Surjection eq using (Split-surjective; _↠_)
 
 private
   variable
-    a b c d p : Level
-    A B C     : Type a
-    P         : A → Type p
-    x y       : A
-    f         : A → B
-    k         : Kind
-    n         : ℕ
+    a b c d ℓ p : Level
+    A B C       : Type a
+    P           : A → Type p
+    x y         : A
+    f           : A → B
+    k           : Kind
+    n           : ℕ
 
 ------------------------------------------------------------------------
 -- Path-split
@@ -732,16 +732,161 @@ Contractible→Is-equivalence-const ext c =
        f x          ∎)
     refl
 
--- If A is contractible, then every type B is "λ (_ : C) → A"-null
+-- If B is contractible, then every type is "λ (_ : A) → B"-null
 -- (assuming extensionality).
+--
+-- Rijke, Shulman and Spitters mention something similar in
+-- "Modalities in Homotopy Type Theory".
 
-Contractible→Null :
-  {A : Type a} {B : Type b} →
-  Extensionality a b →
-  Contractible A →
-  (λ (_ : C) → A) -Null B
-Contractible→Null ext c _ =
+Contractible→Nullˡ :
+  {B : Type b} {C : Type c} →
+  Extensionality b c →
+  Contractible B →
+  (λ (_ : A) → B) -Null C
+Contractible→Nullˡ ext c _ =
   Contractible→Is-equivalence-const ext c
+
+-- The unit type is P-null.
+--
+-- Rijke, Shulman and Spitters mention something similar in
+-- "Modalities in Homotopy Type Theory".
+
+Null-⊤ : P -Null ⊤
+Null-⊤ _ =
+  _≃_.is-equivalence $
+  Eq.↔→≃
+    _
+    _
+    refl
+    refl
+
+-- P -Null ⊥ holds iff ¬ ¬ P x holds for each x.
+
+Null-⊥≃¬¬ :
+  {A : Type a} {P : A → Type p} →
+  P -Null ⊥ {ℓ = ℓ} ↝[ a ⊔ p ⊔ ℓ ∣ p ⊔ ℓ ] (∀ x → ¬ ¬ P x)
+Null-⊥≃¬¬ {a = a} {p = p} {ℓ = ℓ} {P = P} =
+  generalise-ext?-prop
+    (record
+       { to = λ eq x →
+           ¬ P x      →⟨ ¬↔→⊥ _ ⟩
+           (P x → ⊥)  ↔⟨ inverse Eq.⟨ _ , eq x ⟩ ⟩
+           ⊥          ↔⟨ ⊥↔⊥ ⟩□
+           ⊥₀         □
+       ; from = λ hyp x →
+           _≃_.is-equivalence $
+           Eq.↔→≃
+             _
+             (                 $⟨ hyp x ⟩
+              ¬ ¬ P x          →⟨ →-cong-→ (→-cong-→ id ⊥-elim) ⊥-elim ⟩□
+              ((P x → ⊥) → ⊥)  □)
+             (λ f → ⊥-elim $ hyp x (⊥-elim ∘ f))
+             (λ ())
+       })
+    Null-propositional
+    (λ ext →
+       Π-closure (lower-extensionality (p ⊔ ℓ) ℓ ext) 1 λ _ →
+       ¬-propositional (lower-extensionality (a ⊔ ℓ) _ ext))
+
+-- Every type is "λ (x : ⊥ {ℓ = ℓ}) → P x"-null.
+
+Π⊥-Null : (λ (x : ⊥ {ℓ = ℓ}) → P x) -Null A
+Π⊥-Null ()
+
+-- If A is inhabited, then (λ (_ : A) → ⊥ {ℓ = ℓ}) -Null B is
+-- equivalent to Contractible B (assuming extensionality).
+--
+-- Rijke, Shulman and Spitters mention something similar in
+-- "Modalities in Homotopy Type Theory".
+
+⊥-Null≃Contractible :
+  {A : Type a} {B : Type b} →
+  Extensionality ℓ b →
+  A →
+  ((λ (_ : A) → ⊥ {ℓ = ℓ}) -Null B)
+    ↝[ a ⊔ b ⊔ ℓ ∣ b ⊔ ℓ ]
+  Contractible B
+⊥-Null≃Contractible {a = a} {ℓ = ℓ} {B = B} ext inh =
+  generalise-ext?-prop
+    (record
+       { to   =
+           (λ _ → ⊥) -Null B  →⟨ (λ hyp → Eq.⟨ _ , hyp inh ⟩) ⟩
+           B ≃ (⊥ → B)        →⟨ Π⊥↔⊤ ext F.∘_ ⟩
+           B ≃ ⊤              →⟨ _⇔_.from contractible⇔↔⊤ ∘ _≃_.bijection ⟩□
+           Contractible B     □
+       ; from = λ c x →
+           _≃_.is-equivalence $
+           Eq.↔→≃
+             _
+             (λ _ → proj₁ c)
+             (λ _ → apply-ext ext λ ())
+             (proj₂ c)
+       })
+    Null-propositional
+    (λ ext →
+       H-level-propositional (lower-extensionality (a ⊔ ℓ) ℓ ext) 0)
+
+-- If A is inhabited and B is "λ (_ : A) → Bool"-null, then B is a
+-- proposition.
+--
+-- This lemma is based on something mentioned by Rijke, Shulman and
+-- Spitters in "Modalities in Homotopy Type Theory".
+
+Bool-Null→Is-proposition :
+  A → (λ (_ : A) → Bool) -Null B → Is-proposition B
+Bool-Null→Is-proposition {B = B} inh null x y =
+  x                                       ≡⟨⟩
+  xy true                                 ≡⟨ cong (_$ true) $ sym $ _≃_.right-inverse-of equiv _ ⟩
+  _≃_.to equiv (_≃_.from equiv xy) true   ≡⟨⟩
+  _≃_.from equiv xy                       ≡⟨⟩
+  _≃_.to equiv (_≃_.from equiv xy) false  ≡⟨ cong (_$ false) $ _≃_.right-inverse-of equiv _ ⟩
+  xy false                                ≡⟨⟩
+  y                                       ∎
+  where
+  equiv : B ≃ (Bool → B)
+  equiv = Eq.⟨ const , null inh ⟩
+
+  xy : Bool → B
+  xy = if_then x else y
+
+-- If B is a proposition, then it is "λ (_ : A) → Bool"-null (assuming
+-- extensionality).
+--
+-- This lemma is based on something mentioned by Rijke, Shulman and
+-- Spitters in "Modalities in Homotopy Type Theory".
+
+Is-proposition→Bool-Null :
+  {B : Type b} →
+  Extensionality lzero b →
+  Is-proposition B → (λ (_ : A) → Bool) -Null B
+Is-proposition→Bool-Null ext prop _ =
+  _≃_.is-equivalence $
+  Eq.↔→≃
+    _
+    (λ f → f true)
+    (λ _ → Π-closure ext 1 (λ _ → prop) _ _)
+    refl
+
+-- If A is inhabited, then (λ (_ : A) → Bool) -Null B is equivalent to
+-- Is-proposition B (assuming extensionality).
+--
+-- Rijke, Shulman and Spitters mention something similar in
+-- "Modalities in Homotopy Type Theory".
+
+Bool-Null≃Is-proposition :
+  {A : Type a} {B : Type b} →
+  Extensionality lzero b →
+  A →
+  ((λ (_ : A) → Bool) -Null B) ↝[ a ⊔ b ∣ b ] Is-proposition B
+Bool-Null≃Is-proposition {a = a} ext inh =
+  generalise-ext?-prop
+    (record
+       { to   = Bool-Null→Is-proposition inh
+       ; from = Is-proposition→Bool-Null ext
+       })
+    Null-propositional
+    (λ ext →
+       H-level-propositional (lower-extensionality a lzero ext) 1)
 
 private
 
