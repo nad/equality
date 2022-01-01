@@ -281,7 +281,7 @@ Implies {ls = _ ∷ _ ∷ _ ∷ _} (A , As@(B , _)) = (A → B) × Implies As
 -- A cons operation for Implies.
 
 Implies-Cons :
-  {A : Type a} {As : Type-list (b ∷ ls)} →
+  {@0 A : Type a} {@0 As : Type-list (b ∷ ls)} →
   (A → Head As) → Implies As → Implies (Cons A As)
 Implies-Cons {ls = []}    f _       = f
 Implies-Cons {ls = _ ∷ _} f implies = f , implies
@@ -289,7 +289,7 @@ Implies-Cons {ls = _ ∷ _} f implies = f , implies
 -- A tail operation for Implies.
 
 Implies-Tail :
-  {As : Type-list (a ∷ ls)} →
+  {@0 As : Type-list (a ∷ ls)} →
   Implies As → Implies (Tail As)
 Implies-Tail {ls = []}        implies       = _
 Implies-Tail {ls = _ ∷ []}    implies       = _
@@ -298,7 +298,7 @@ Implies-Tail {ls = _ ∷ _ ∷ _} (_ , implies) = implies
 -- A head operation for Implies.
 
 Implies-Head :
-  {As : Type-list (a ∷ b ∷ ls)} →
+  {@0 As : Type-list (a ∷ b ∷ ls)} →
   Implies As → Head As → Head (Tail As)
 Implies-Head {ls = []}    f       = f
 Implies-Head {ls = _ ∷ _} (f , _) = f
