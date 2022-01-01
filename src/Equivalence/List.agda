@@ -115,6 +115,14 @@ Head-Cons :
 Head-Cons []      = F.id
 Head-Cons (_ ∷ _) = F.id
 
+-- The tail of Cons A As is As.
+
+Tail-Cons :
+  {A : Type a} {As : Type-list ls} →
+  Tail (Cons A As) ≡ As
+Tail-Cons {ls = []}    = refl _
+Tail-Cons {ls = _ ∷ _} = refl _
+
 -- If As is non-empty and Bs is empty, then the last element of
 -- Append As Bs is the last element of As.
 
