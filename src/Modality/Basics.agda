@@ -36,7 +36,7 @@ open import Equivalence.Erased.Contractible-preimages.Basics eq-J
 import Equivalence.Half-adjoint eq-J as HA
 open import Equivalence.List eq-J
 open import Equivalence.Path-split eq-J as PS
-  using (Is-∞-extendable-along-[_])
+  using (_-Null_; Is-∞-extendable-along-[_])
 open import Erased.Box-cong-axiomatisation eq-J
   using ([]-cong-axiomatisation)
 open import For-iterated-equality eq-J
@@ -2787,6 +2787,40 @@ module Modality (M : Modality a) where
                                             (λ _ → ◯-rec-η)
                                             (proj₁ c) ⟩∎
          eq                            ∎)
+
+  -- If ◯ (P x) is P-null, then P x is ◯-connected.
+
+  Null→Connected : P -Null ◯ (P x) → ◯ -Connected (P x)
+  Null→Connected {P = P} {x = x} null =
+    propositional⇒inhabited⇒contractible
+      (◯-elim₂
+         (λ _ _ → Separated-◯ _ _)
+         (λ y z →
+            η y                              ≡⟨ cong (_$ y) $ sym $ _≃_.right-inverse-of ◯≃→◯ _ ⟩
+            _≃_.to ◯≃→◯ (_≃_.from ◯≃→◯ η) y  ≡⟨⟩
+            _≃_.from ◯≃→◯ η                  ≡⟨⟩
+            _≃_.to ◯≃→◯ (_≃_.from ◯≃→◯ η) z  ≡⟨ cong (_$ z) $ _≃_.right-inverse-of ◯≃→◯ _ ⟩∎
+            η z                              ∎))
+      (_≃_.from ◯≃→◯ η)
+    where
+    ◯≃→◯ : ◯ (P x) ≃ (P x → ◯ (P x))
+    ◯≃→◯ = Eq.⟨ const , null x ⟩
+
+  -- If (_ , P , _) is a witness of the modality's accessibility, then
+  -- P x is ◯-connected for each x (assuming function extensionality).
+
+  Accessible→Connected :
+    Extensionality a a →
+    ((A , P , _) : Accessible M) →
+    {x : A} → ◯ -Connected (P x)
+  Accessible→Connected ext (_ , P , acc) {x = x} =
+    Null→Connected
+      (                                                    $⟨ _⇔_.to (acc (◯ (P x))) Modal-◯ ⟩
+       (∀ i →
+        Is-∞-extendable-along-[ (λ (_ : P i) → lift tt) ]
+          (λ (_ : ↑ a ⊤) → ◯ (P x)))                       ↝⟨ PS.Π-Is-∞-extendable-along≃Null ext ⟩□
+
+       P -Null ◯ (P x)                                     □)
 
   -- I did not take the remaining lemmas in this section from
   -- "Modalities in Homotopy Type Theory" or the corresponding Coq
