@@ -23,7 +23,7 @@ open import H-level eq
 open import H-level.Closure eq
 open import Injection eq as Injection using (Injective; _↣_)
 open import Preimage eq using (_⁻¹_)
-open import Surjection eq using (_↠_)
+open import Surjection eq using (Split-surjective; _↠_)
 
 private
   variable
@@ -249,6 +249,27 @@ Injective≃Is-embedding ext A-set B-set f =
 
 ------------------------------------------------------------------------
 -- Surjections
+
+-- A function is an equivalence if and only if it is a split
+-- surjective embedding.
+--
+-- This lemma is based on Corollary 4.6.4 from the first edition of
+-- the HoTT book. See also
+-- H-level.Truncation.Propositional.surjective×embedding≃equivalence.
+
+Is-embedding×Split-surjective⇔Is-equivalence :
+  Is-embedding f × Split-surjective f ⇔ Is-equivalence f
+Is-embedding×Split-surjective⇔Is-equivalence {f = f} = record
+  { to = λ (emb , surj) →
+      _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP λ y →
+      propositional⇒inhabited⇒contractible
+        (embedding→⁻¹-propositional emb y)
+        (surj y) ⦂
+        Contractible (f ⁻¹ y)
+  ; from = λ eq →
+        Is-equivalence→Is-embedding eq
+      , (λ y → HA.inverse eq y , HA.right-inverse-of eq y)
+  }
 
 -- If excluded middle holds, then an embedding from an inhabited type
 -- can be turned into a (split) surjection in the other direction.
