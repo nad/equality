@@ -2887,6 +2887,24 @@ module Modality (M : Modality a) where
     prop = Modal-propositional ext′
 
   ----------------------------------------------------------------------
+  -- Accessible modalities
+
+  -- A simple consequence of the definition of accessibility.
+
+  Accessible→Modal⇔Null :
+    Extensionality a a →
+    ((_ , P , _) : Accessible M) →
+    Modal A ⇔ P -Null A
+  Accessible→Modal⇔Null {A = A} ext (_ , P , acc) =
+    Modal A                                               ↝⟨ acc A ⟩
+
+    (∀ x →
+       Is-∞-extendable-along-[ (λ (_ : P x) → lift tt) ]
+         (λ (_ : ↑ a ⊤) → A))                             ↔⟨ PS.Π-Is-∞-extendable-along≃Null ext ⟩□
+
+    P -Null A                                             □
+
+  ----------------------------------------------------------------------
   -- Left exact modalities
 
   -- An alternative definition of what it means for the modality to be
