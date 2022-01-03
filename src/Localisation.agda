@@ -1161,6 +1161,17 @@ Accessible≃≃ {a = a} M =
   where
   open Modality M
 
+-- If a modality is accessible, then it is related to nullification in
+-- a certain way.
+
+Accessible→≃Nullification :
+  (M : Modality a)
+  ((_ , P , _) : Accessible M) →
+  ∃ λ (eq : ∀ B → Modality.◯ M B ≃ Nullification P B) →
+    ∀ B → _≃_.to (eq B) ∘ Modality.η M ≡ [_]
+Accessible→≃Nullification M acc =
+  _≃_.to (Accessible≃≃ M) acc .proj₂ .proj₂
+
 -- Another alternative characterisation of "accessible".
 
 Accessible≃≡ :
