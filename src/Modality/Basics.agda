@@ -3492,8 +3492,57 @@ module Modality (M : Modality a) where
         ◯ -Connected-→ f′ x                       →⟨ Connected-→≃Is-equivalence (m x) Modal-◯ _ ⟩□
         Is-equivalence (f′ x)                     □
 
-  -- In the presence of univalence and function extensionality the
-  -- previous lemma can be strengthened.
+  -- If the type of fibres of const : ∃ Modal → A → ∃ Modal over P is
+  -- inhabited (for A : Type a), then a certain type of triples is
+  -- inhabited.
+
+  const⁻¹→ :
+    {A : Type a} {P : A → ∃ Modal} →
+    (const ⦂ (∃ Modal → A → ∃ Modal)) ⁻¹ P →
+    ∃ λ B → Modal B × (∀ y → proj₁ (P y) ≃ B)
+  const⁻¹→ {A = A} {P = P} =
+    const ⁻¹ P                                         ↔⟨⟩
+    (∃ λ (B : ∃ Modal) → const B ≡ P)                  ↔⟨ inverse Σ-assoc ⟩
+    (∃ λ B → ∃ λ (m : Modal B) → const (B , m) ≡ P)    →⟨ (∃-cong λ _ → ∃-cong λ _ → ext⁻¹) ⟩
+    (∃ λ B → ∃ λ (m : Modal B) → ∀ y → (B , m) ≡ P y)  →⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong _ λ _ → proj₁ ∘ Σ-≡,≡←≡) ⟩
+    (∃ λ B → Modal B × (∀ y → B ≡ proj₁ (P y)))        →⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong _ λ _ → sym) ⟩
+    (∃ λ B → Modal B × (∀ y → proj₁ (P y) ≡ B))        →⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong _ λ _ → ≡⇒≃) ⟩□
+    (∃ λ B → Modal B × (∀ y → proj₁ (P y) ≃ B))        □
+
+  -- The function const⁻¹→ can be turned into an equivalence (assuming
+  -- function extensionality and univalence).
+
+  const⁻¹≃ :
+    {A : Type a} {P : A → ∃ Modal} →
+    Extensionality a (lsuc a) →
+    Univalence a →
+    (const ⦂ (∃ Modal → A → ∃ Modal)) ⁻¹ P ≃
+    (∃ λ B → Modal B × (∀ y → proj₁ (P y) ≃ B))
+  const⁻¹≃ {A = A} {P = P} ext univ =
+    const ⁻¹ P                                         ↔⟨⟩
+
+    (∃ λ (B : ∃ Modal) → const B ≡ P)                  ↔⟨ inverse
+                                                          Σ-assoc ⟩
+    (∃ λ B → ∃ λ (m : Modal B) → const (B , m) ≡ P)    ↝⟨ (∃-cong λ _ → ∃-cong λ _ → inverse $
+                                                           Eq.extensionality-isomorphism ext) ⟩
+    (∃ λ B → ∃ λ (m : Modal B) → ∀ y → (B , m) ≡ P y)  ↔⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ → inverse $
+                                                           ignore-propositional-component
+                                                             (Modal-propositional (lower-extensionality lzero _ ext))) ⟩
+    (∃ λ B → Modal B × (∀ y → B ≡ proj₁ (P y)))        ↔⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
+                                                           ≡-comm) ⟩
+    (∃ λ B → Modal B × (∀ y → proj₁ (P y) ≡ B))        ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
+                                                           ≡≃≃ univ) ⟩□
+    (∃ λ B → Modal B × (∀ y → proj₁ (P y) ≃ B))        □
+
+  _ :
+    {A : Type a} {P : A → ∃ Modal}
+    {ext : Extensionality a (lsuc a)}
+    {univ : Univalence a} →
+    _≃_.to (const⁻¹≃ {P = P} ext univ) ≡ const⁻¹→
+  _ = refl _
+
+  -- In the presence of univalence and function extensionality
+  -- Left-exact→Connected→Modal→≃ can be strengthened.
 
   Left-exact≃Connected→Modal→≃ :
     Extensionality (lsuc a) (lsuc a) →
@@ -3595,22 +3644,9 @@ module Modality (M : Modality a) where
     prop {A = A} {P = P} c m =                                     $⟨ Emb.embedding→⁻¹-propositional
                                                                         (Connected→Is-embedding-const-Σ-Modal ext″ univ c) _ ⟩
       Is-proposition
-        ((const ⦂ (∃ Modal → A → ∃ Modal)) ⁻¹ (λ x → P x , m x))   →⟨ H-level-cong _ 1 equiv ⟩□
+        ((const ⦂ (∃ Modal → A → ∃ Modal)) ⁻¹ (λ x → P x , m x))   →⟨ H-level-cong _ 1 $ const⁻¹≃ ext″ univ ⟩□
 
       Is-proposition (∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)  □
-      where
-      equiv =
-        const ⁻¹ (λ x → P x , m x)                             ↔⟨ (∃-cong λ _ → ≡-comm) ⟩
-
-        (∃ λ (Bm : ∃ Modal) → (λ x → P x , m x) ≡ (const Bm))  ↝⟨ from-bijection (inverse Σ-assoc) F.∘
-                                                                  (∃-cong λ _ → inverse (Eq.extensionality-isomorphism ext″)) ⟩
-        (∃ λ (B : Type a) → ∃ λ (mB : Modal B) →
-         ∀ x → _≡_ {A = ∃ Modal} (P x , m x) (B , mB))         ↔⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong ext″ λ _ → inverse $
-                                                                   ignore-propositional-component (Modal-propositional ext‴)) ⟩
-
-        (∃ λ (B : Type a) → Modal B × ∀ x → P x ≡ B)           ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∀-cong ext″ λ _ →
-                                                                   ≡≃≃ univ) ⟩□
-        (∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)           □
 
   -- I did not take the remaining results in this section from
   -- "Modalities in Homotopy Type Theory" or the corresponding Coq
