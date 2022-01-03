@@ -34,15 +34,15 @@ open import Modality.Basics equality-with-J
 open import Pullback equality-with-J as PB using (∆)
 open import Pushout eq as PO using (Pushout; ∇; Pushout→≃Pullback)
 open import Surjection equality-with-J using (_↠_; Split-surjective)
-open import Suspension eq (Susp)
+open import Suspension eq as Susp using (Susp)
 open import Univalence-axiom equality-with-J
 
 private
   variable
-    a b c p q r : Level
-    A B C       : Type a
-    P Q R       : A → Type p
-    e f g x y   : A
+    a a₁ a₂ b c p q r : Level
+    A B C             : Type a
+    P Q R             : A → Type p
+    e f g x y         : A
 
 ------------------------------------------------------------------------
 -- Local types
@@ -1049,6 +1049,63 @@ Nullification≃Localisation {P = P} {B = B} =
     _≃_.right-inverse-of PO.Susp≃Susp y ≡
     ext⁻¹ (⟨ext⟩ (_≃_.right-inverse-of PO.Susp≃Susp)) y
   right-lemma = sym $ cong-ext (_≃_.right-inverse-of PO.Susp≃Susp)
+
+private
+
+  -- A first approximation to nullification.
+
+  Nullification′ : {A : Type a} → (A → Type a) → Type a → Type a
+  Nullification′ P = Localisation′ {P = P} {Q = λ _ → ⊤} _
+
+  -- The body of Nullification′-map.
+
+  Nullification′-map-body :
+    {A₁ : Type a₁} {P₁ : A₁ → Type a₁} {B₁ : Type a₁}
+    {A₂ : Type a₂} {P₂ : A₂ → Type a₂} {B₂ : Type a₂} →
+    (f : A₁ → A₂) → (∀ x → P₂ (f x) ↠ P₁ x) → (B₁ → B₂) →
+    Rec {P = P₁} {Q = λ _ → ⊤} _ B₁ (Nullification′ P₂ B₂)
+  Nullification′-map-body A₁→A₂ P₂↠P₁ B₁→B₂ = λ where
+    .[]ʳ → [_] ∘ B₁→B₂
+
+    .extʳ {x = x} f _ → ext (A₁→A₂ x) (f ∘ _↠_.to (P₂↠P₁ x)) _
+
+    .ext≡ʳ {x = x} {y = y} f →
+      ext (A₁→A₂ x) (f ∘ _↠_.to (P₂↠P₁ x)) _       ≡⟨ ext≡ ⟩
+      f (_↠_.to (P₂↠P₁ x) (_↠_.from (P₂↠P₁ x) y))  ≡⟨ cong f $ _↠_.right-inverse-of (P₂↠P₁ x) _ ⟩∎
+      f y                                          ∎
+
+  -- A map function for Nullification′.
+
+  Nullification′-map :
+    {A₁ : Type a₁} {P₁ : A₁ → Type a₁} {B₁ : Type a₁}
+    {A₂ : Type a₂} {P₂ : A₂ → Type a₂} {B₂ : Type a₂} →
+    (f : A₁ → A₂) → (∀ x → P₂ (f x) ↠ P₁ x) → (B₁ → B₂) →
+    Nullification′ P₁ B₁ → Nullification′ P₂ B₂
+  Nullification′-map A₁→A₂ P₂↠P₁ B₁→B₂ =
+    rec (Nullification′-map-body A₁→A₂ P₂↠P₁ B₁→B₂)
+
+  -- The body of Nullification-map.
+
+  Nullification-map-body :
+    {A₁ : Type a₁} {P₁ : A₁ → Type a₁} {B₁ : Type a₁}
+    {A₂ : Type a₂} {P₂ : A₂ → Type a₂} {B₂ : Type a₂} →
+    (f : A₁ → A₂) → (∀ x → P₂ (f x) ↠ P₁ x) → (B₁ → B₂) →
+    Rec {P = P.[ P₁ , Susp ∘ P₁ ]} {Q = λ _ → ⊤} _ B₁
+      (Nullification P₂ B₂)
+  Nullification-map-body A₁→A₂ P₂↠P₁ =
+    Nullification′-map-body
+      (⊎-map A₁→A₂ A₁→A₂)
+      P.[ P₂↠P₁ , Susp.cong-↠ ∘ P₂↠P₁ ]
+
+-- A map function for Nullification.
+
+Nullification-map :
+  {A₁ : Type a₁} {P₁ : A₁ → Type a₁} {B₁ : Type a₁}
+  {A₂ : Type a₂} {P₂ : A₂ → Type a₂} {B₂ : Type a₂} →
+  (f : A₁ → A₂) → (∀ x → P₂ (f x) ↠ P₁ x) → (B₁ → B₂) →
+  Nullification P₁ B₁ → Nullification P₂ B₂
+Nullification-map A₁→A₂ P₂↠P₁ B₁→B₂ =
+  rec (Nullification-map-body A₁→A₂ P₂↠P₁ B₁→B₂)
 
 ------------------------------------------------------------------------
 -- The nullification modality
