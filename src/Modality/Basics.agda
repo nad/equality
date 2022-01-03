@@ -3648,6 +3648,26 @@ module Modality (M : Modality a) where
 
       Is-proposition (∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)  □
 
+  -- If the modality is left exact and (_ , P , _) is a witness of its
+  -- accessibility, then every modal family of type P x → Type a is,
+  -- in a certain sense, constant (assuming function extensionality).
+
+  Left-exact→Accessible→ :
+    Extensionality a a →
+    Left-exact ◯ →
+    ((_ , P , _) : Accessible M) →
+    ∀ x → (Q : P x → Type a) → (∀ y → Modal (Q y)) →
+    ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B)
+  Left-exact→Accessible→ ext lex acc@(_ , P , _) x Q m =
+                                                  $⟨ (λ {_ _ _} → lex) ⟩
+
+    Left-exact ◯                                  →⟨ (λ lex → Left-exact→Connected→Modal→≃ lex) ⟩
+
+    (◯ -Connected (P x) → (∀ x → Modal (Q x)) →
+     ∃ λ (B : Type a) → Modal B × ∀ y → Q y ≃ B)  →⟨ (λ hyp → hyp (Accessible→Connected ext acc) m) ⟩□
+
+    (∃ λ (B : Type a) → Modal B × ∀ y → Q y ≃ B)  □
+
   -- I did not take the remaining results in this section from
   -- "Modalities in Homotopy Type Theory" or the corresponding Coq
   -- code.
