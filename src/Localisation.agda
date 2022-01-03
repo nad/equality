@@ -130,15 +130,14 @@ data Localisation′
        (f : ∀ x → P x → Q x) (B : Type b) :
        Type (a ⊔ b ⊔ p ⊔ q) where
   [_]   : B → Localisation′ f B
-  ext   : (P x → Localisation′ f B) →
-          (Q x → Localisation′ f B)
-  ext≡ᴾ : ext g (f x y) P.≡ g y
+  ext   : ∀ x → (P x → Localisation′ f B) → (Q x → Localisation′ f B)
+  ext≡ᴾ : ext x g (f x y) P.≡ g y
 
 -- A variant of ext≡ᴾ.
 
 ext≡ :
   {f : (x : A) → P x → Q x} {g : P x → Localisation′ f B} →
-  ext g (f x y) ≡ g y
+  ext x g (f x y) ≡ g y
 ext≡ = _↔_.from ≡↔≡ ext≡ᴾ
 
 ------------------------------------------------------------------------
@@ -154,7 +153,7 @@ record Elimᴾ
   no-eta-equality
   field
     []ʳ   : ∀ x → R [ x ]
-    extʳ  : ((y : P x) → R (g y)) → ∀ y → R (ext g y)
+    extʳ  : ((y : P x) → R (g y)) → ∀ y → R (ext x g y)
     ext≡ʳ : (h : (y : P x) → R (g y)) →
             P.[ (λ i → R (ext≡ᴾ {g = g} {y = y} i)) ] extʳ h (f x y) ≡
             h y
@@ -168,7 +167,7 @@ elimᴾ {f = f} {B = B} {R = R} e = helper
 
   helper : (x : Localisation′ f B) → R x
   helper [ x ]             = E.[]ʳ x
-  helper (ext g y)         = E.extʳ (λ y → helper (g y)) y
+  helper (ext _ g y)       = E.extʳ (λ y → helper (g y)) y
   helper (ext≡ᴾ {g = g} i) = E.ext≡ʳ (λ y → helper (g y)) i
 
 -- A non-dependent eliminator, expressed using paths.
@@ -204,7 +203,7 @@ record Elim
   no-eta-equality
   field
     []ʳ   : ∀ x → R [ x ]
-    extʳ  : ((y : P x) → R (g y)) → ∀ y → R (ext g y)
+    extʳ  : ((y : P x) → R (g y)) → ∀ y → R (ext x g y)
     ext≡ʳ : (h : (y : P x) → R (g y)) →
             subst R (ext≡ {y = y} {g = g}) (extʳ h (f x y)) ≡ h y
 
@@ -312,16 +311,16 @@ Local→Is-equivalence-∘[] {P = P} {Q = Q} {C = C} {B = B} {f = f} local =
     where
     lemma : ∀ {x} (k : P x → Localisation′ f B) → _ ≃ _
     lemma {x = x} k =
-      ((y : P x) → g (k y) ≡ h (k y))          ↔⟨ Π≡≃≡ ⟩
-      g ∘ k ≡ h ∘ k                            ↔⟨ (≡⇒↝ equivalence $ cong (λ f → g ∘ f ≡ h ∘ f) $ ⟨ext⟩ λ _ → sym ext≡) ⟩
-      g ∘ ext k ∘ f x ≡ h ∘ ext k ∘ f x        ↔⟨ Eq.≃-≡ $ Q→C≃P→C x ⟩
-      g ∘ ext k ≡ h ∘ ext k                    ↔⟨ inverse Π≡≃≡ ⟩□
-      ((y : Q x) → g (ext k y) ≡ h (ext k y))  □
+      ((y : P x) → g (k y) ≡ h (k y))              ↔⟨ Π≡≃≡ ⟩
+      g ∘ k ≡ h ∘ k                                ↔⟨ (≡⇒↝ equivalence $ cong (λ f → g ∘ f ≡ h ∘ f) $ ⟨ext⟩ λ _ → sym ext≡) ⟩
+      g ∘ ext x k ∘ f x ≡ h ∘ ext x k ∘ f x        ↔⟨ Eq.≃-≡ $ Q→C≃P→C x ⟩
+      g ∘ ext x k ≡ h ∘ ext x k                    ↔⟨ inverse Π≡≃≡ ⟩□
+      ((y : Q x) → g (ext x k y) ≡ h (ext x k y))  □
 
     from-lemma :
       ∀ {x y}
       (k : P x → Localisation′ f B)
-      (eq : ∀ y → g (ext k y) ≡ h (ext k y)) →
+      (eq : ∀ y → g (ext x k y) ≡ h (ext x k y)) →
       _
     from-lemma {x = x} {y = y} k eq =
       _≃_.from (lemma k) eq y                          ≡⟨⟩
@@ -394,13 +393,13 @@ Split-surjective→Local-Localisation′ {P = P} {Q = Q} {f = f} f-surj x =
   _≃_.is-equivalence $
   Eq.↔→≃
     _
-    ext
+    (ext x)
     (λ _ → ⟨ext⟩ λ _ → ext≡)
     (λ g → ⟨ext⟩ λ y →
-       ext (g ∘ f x) y                         ≡⟨ cong (ext _) $ sym $ _↠_.right-inverse-of Px↠Qx _ ⟩
-       ext (g ∘ f x) (f x (_↠_.from Px↠Qx y))  ≡⟨ ext≡ ⟩
-       g (f x (_↠_.from Px↠Qx y))              ≡⟨ cong g $ _↠_.right-inverse-of Px↠Qx _ ⟩∎
-       g y                                     ∎)
+       ext x (g ∘ f x) y                         ≡⟨ cong (ext _ _) $ sym $ _↠_.right-inverse-of Px↠Qx _ ⟩
+       ext x (g ∘ f x) (f x (_↠_.from Px↠Qx y))  ≡⟨ ext≡ ⟩
+       g (f x (_↠_.from Px↠Qx y))                ≡⟨ cong g $ _↠_.right-inverse-of Px↠Qx _ ⟩∎
+       g y                                       ∎)
   where
   Px↠Qx : P x ↠ Q x
   Px↠Qx = _↔_.from ↠↔∃-Split-surjective (f x , f-surj x)
@@ -435,24 +434,25 @@ Localisation {p = p} {q = q} {A = A} {P = P} {Q = Q} f =
 Local-Localisation : f -Local Localisation f B
 Local-Localisation {f = f} {B = B} =
   _≃_.from Local≃Split-surjective-∘×Split-surjective-∘∇ λ x →
-    (λ g → ext {x = inj₁ x} (g ∘ lower)
+    (λ g → ext (inj₁ x) (g ∘ lower)
          , ⟨ext⟩ λ y →
-             ext (g ∘ lower) (f x y)  ≡⟨ ext≡ ⟩∎
-             g y                      ∎)
-  , (λ g → ext {x = inj₂ x} g
+             ext (inj₁ x) (g ∘ lower) (f x y)  ≡⟨ ext≡ ⟩∎
+             g y                               ∎)
+  , (λ g → ext (inj₂ x) g
          , (⟨ext⟩ $ PO.elim
-              (λ y → ext g (∇ (f x) y) ≡ g y)
+              (λ y → ext (inj₂ x) g (∇ (f x) y) ≡ g y)
               (λ _ → ext≡)
               (λ _ → ext≡)
               (lemma x g)))
   where
   lemma :
     ∀ x g y →
-    subst (λ y → ext g (∇ (f x) y) ≡ g y) (PO.glue y) ext≡ ≡ ext≡
+    subst (λ y → ext (inj₂ x) g (∇ (f x) y) ≡ g y) (PO.glue y) ext≡ ≡
+    ext≡
   lemma x g _ =
     elim¹
       (λ eq →
-         subst (λ y → ext g (∇ (f x) y) ≡ g y) eq ext≡ ≡
+         subst (λ y → ext (inj₂ x) g (∇ (f x) y) ≡ g y) eq ext≡ ≡
          ext≡ {x = inj₂ x})
       (subst-refl _ _)
       _
@@ -507,54 +507,54 @@ Nullification≃Localisation {P = P} {B = B} =
        .[]ʳ → refl ∘ [_]
 
        .extʳ {x = inj₁ x} {g = f} hyp _ →
-         to (from (ext {x = inj₁ x} f _))    ≡⟨⟩
-         ext {x = inj₁ x} (to ∘ from ∘ f) _  ≡⟨ cong (flip ext _) $ ⟨ext⟩ hyp ⟩∎
-         ext {x = inj₁ x} f _                ∎
+         to (from (ext (inj₁ x) f _))    ≡⟨⟩
+         ext (inj₁ x) (to ∘ from ∘ f) _  ≡⟨ cong (flip (ext _) _) $ ⟨ext⟩ hyp ⟩∎
+         ext (inj₁ x) f _                ∎
 
        .extʳ {x = inj₂ x} {g = f} hyp _ →
-         to (from (ext {x = inj₂ x} f _))                                 ≡⟨⟩
+         to (from (ext (inj₂ x) f _))                                     ≡⟨⟩
 
-         ext {x = inj₂ x}
+         ext (inj₂ x)
            (to ∘ from ∘ f ∘ _≃_.from PO.Susp≃Susp ∘ _≃_.to PO.Susp≃Susp)
-           _                                                              ≡⟨ (cong (flip ext _) $ ⟨ext⟩ λ y → cong (to ∘ from ∘ f) $
+           _                                                              ≡⟨ (cong (flip (ext _) _) $ ⟨ext⟩ λ y → cong (to ∘ from ∘ f) $
                                                                               _≃_.left-inverse-of PO.Susp≃Susp y) ⟩
 
-         ext {x = inj₂ x} (to ∘ from ∘ f) _                               ≡⟨ cong (flip ext _) $ ⟨ext⟩ hyp ⟩∎
+         ext (inj₂ x) (to ∘ from ∘ f) _                                   ≡⟨ cong (flip (ext _) _) $ ⟨ext⟩ hyp ⟩∎
 
-         ext {x = inj₂ x} f _                                             ∎
+         ext (inj₂ x) f _                                                 ∎
 
        .ext≡ʳ {x = inj₁ x} {g = f} {y = y} hyp →
          subst (λ x → to (from x) ≡ x)
            (ext≡ {x = inj₁ x} {y = y} {g = f})
-           (cong (flip ext _) $ ⟨ext⟩ hyp)                        ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+           (cong (flip (ext _) _) $ ⟨ext⟩ hyp)                    ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
          trans
            (sym $ cong (to ∘ from) $
             ext≡ {x = inj₁ x} {y = y} {g = f})
-           (trans (cong (flip ext _) $ ⟨ext⟩ hyp)
+           (trans (cong (flip (ext _) _) $ ⟨ext⟩ hyp)
               (cong id (ext≡ {x = inj₁ x} {y = y} {g = f})))      ≡⟨ cong₂ (trans ∘ sym)
                                                                        (sym $ cong-∘ _ _ _)
                                                                        (cong (trans _) $ sym $ cong-id _) ⟩
          trans
            (sym $ cong to $ cong from $
             ext≡ {x = inj₁ x} {y = y} {g = f})
-           (trans (cong (flip ext _) $ ⟨ext⟩ hyp)
+           (trans (cong (flip (ext _) _) $ ⟨ext⟩ hyp)
               (ext≡ {x = inj₁ x} {y = y} {g = f}))                ≡⟨ cong (flip trans _) $ cong sym $
                                                                      trans (cong (cong to) $ rec-ext≡ {r = from′}) $
                                                                      rec-ext≡ {r = to′} ⟩
          trans
            (sym $ ext≡ {x = inj₁ x} {y = y} {g = to ∘ from ∘ f})
-           (trans (cong (flip ext _) $ ⟨ext⟩ hyp)
+           (trans (cong (flip (ext _) _) $ ⟨ext⟩ hyp)
               (ext≡ {x = inj₁ x} {y = y} {g = f}))                ≡⟨ elim₁
                                                                        (λ {g} eq →
                                                                           trans
                                                                             (sym $ ext≡ {x = inj₁ x} {y = y} {g = g})
-                                                                            (trans (cong (flip ext _) eq)
+                                                                            (trans (cong (flip (ext _) _) eq)
                                                                                (ext≡ {x = inj₁ x} {y = y} {g = f})) ≡
                                                                           ext⁻¹ eq y)
                                                                        (
            trans (sym ext≡)
-             (trans (cong (flip ext _) (refl f)) ext≡)                  ≡⟨ cong (trans _) $
+             (trans (cong (flip (ext _) _) (refl f)) ext≡)              ≡⟨ cong (trans _) $
                                                                            trans (cong (flip trans _) $ cong-refl _) $
                                                                            trans-reflˡ _ ⟩
 
@@ -573,19 +573,20 @@ Nullification≃Localisation {P = P} {B = B} =
          subst (λ x → to (from x) ≡ x)
            (ext≡ {x = inj₂ x} {y = y} {g = f})
            (trans
-              (cong (flip ext _) $ ⟨ext⟩ λ y → cong (to ∘ from ∘ f) $
+              (cong (flip (ext _) _) $
+               ⟨ext⟩ λ y → cong (to ∘ from ∘ f) $
                _≃_.left-inverse-of PO.Susp≃Susp y)
-              (cong (flip ext _) $ ⟨ext⟩ hyp))                            ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+              (cong (flip (ext _) _) $ ⟨ext⟩ hyp))                        ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
          trans
            (sym $ cong (to ∘ from) $
             ext≡ {x = inj₂ x} {y = y} {g = f})
            (trans
               (trans
-                 (cong (flip ext _) $ ⟨ext⟩ λ y →
+                 (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                   cong (to ∘ from ∘ f) $
                   _≃_.left-inverse-of PO.Susp≃Susp y)
-                 (cong (flip ext _) $ ⟨ext⟩ hyp))
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
               (cong id (ext≡ {x = inj₂ x} {y = y} {g = f})))              ≡⟨ cong₂ (trans ∘ sym)
                                                                                (sym $ cong-∘ _ _ _)
                                                                                (cong (trans _) $ sym $ cong-id _) ⟩
@@ -594,10 +595,10 @@ Nullification≃Localisation {P = P} {B = B} =
             ext≡ {x = inj₂ x} {y = y} {g = f})
            (trans
               (trans
-                 (cong (flip ext _) $ ⟨ext⟩ λ y →
+                 (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                   cong (to ∘ from ∘ f) $
                   _≃_.left-inverse-of PO.Susp≃Susp y)
-                 (cong (flip ext _) $ ⟨ext⟩ hyp))
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
               (ext≡ {x = inj₂ x} {y = y} {g = f}))                        ≡⟨ cong (flip trans _) $ cong (sym ∘ cong to) $
                                                                              rec-ext≡ {r = from′} ⟩
          trans
@@ -608,10 +609,10 @@ Nullification≃Localisation {P = P} {B = B} =
               (cong (from ∘ f) $ _≃_.left-inverse-of PO.Susp≃Susp y))
            (trans
               (trans
-                 (cong (flip ext _) $ ⟨ext⟩ λ y →
+                 (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                   cong (to ∘ from ∘ f) $
                   _≃_.left-inverse-of PO.Susp≃Susp y)
-                 (cong (flip ext _) $ ⟨ext⟩ hyp))
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
               (ext≡ {x = inj₂ x} {y = y} {g = f}))                        ≡⟨ cong (flip trans _) $ cong sym $
                                                                              trans (cong-trans _ _ _) $
                                                                              cong (trans _) $ cong-∘ _ _ _ ⟩
@@ -625,10 +626,10 @@ Nullification≃Localisation {P = P} {B = B} =
                _≃_.left-inverse-of PO.Susp≃Susp y))
            (trans
               (trans
-                 (cong (flip ext _) $ ⟨ext⟩ λ y →
+                 (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                   cong (to ∘ from ∘ f) $
                   _≃_.left-inverse-of PO.Susp≃Susp y)
-                 (cong (flip ext _) $ ⟨ext⟩ hyp))
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
               (ext≡ {x = inj₂ x} {y = y} {g = f}))                        ≡⟨ cong (flip trans _) $ cong sym $ cong (flip trans _) $
                                                                              rec-ext≡ {r = to′} ⟩
          trans
@@ -646,10 +647,10 @@ Nullification≃Localisation {P = P} {B = B} =
                _≃_.left-inverse-of PO.Susp≃Susp y))
            (trans
               (trans
-                 (cong (flip ext _) $ ⟨ext⟩ λ y →
+                 (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                   cong (to ∘ from ∘ f) $
                   _≃_.left-inverse-of PO.Susp≃Susp y)
-                 (cong (flip ext _) $ ⟨ext⟩ hyp))
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
               (ext≡ {x = inj₂ x} {y = y} {g = f}))                        ≡⟨ trans (cong (flip trans _) $ cong sym $
                                                                                     cong (flip trans _) $ cong (trans _) $
                                                                                     trans (sym $ cong-∘ _ _ _) $
@@ -678,9 +679,9 @@ Nullification≃Localisation {P = P} {B = B} =
                (cong (to ∘ from ∘ f) $ ext⁻¹ eq y))
             (trans
                (trans
-                  (cong (flip ext _) $ ⟨ext⟩ λ y →
+                  (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                    cong (to ∘ from ∘ f) $ ext⁻¹ eq y)
-                  (cong (flip ext _) $ ⟨ext⟩ hyp))
+                  (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
                (ext≡ {x = inj₂ x} {y = y} {g = f})))                      ≡⟨ elim₁
                                                                                (λ {g} eq →
                                                                                   trans
@@ -692,9 +693,9 @@ Nullification≃Localisation {P = P} {B = B} =
                                                                                        (cong (to ∘ from ∘ f) $ ext⁻¹ eq y))
                                                                                     (trans
                                                                                        (trans
-                                                                                          (cong (flip ext _) $ ⟨ext⟩ λ y →
+                                                                                          (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                                                                                            cong (to ∘ from ∘ f) $ ext⁻¹ eq y)
-                                                                                          (cong (flip ext _) $ ⟨ext⟩ hyp))
+                                                                                          (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
                                                                                        (ext≡ {x = inj₂ x} {y = y} {g = f})) ≡
                                                                                   hyp y)
                                                                                (
@@ -707,9 +708,9 @@ Nullification≃Localisation {P = P} {B = B} =
                 (cong (to ∘ from ∘ f) $ ext⁻¹ (refl id) y))
              (trans
                 (trans
-                   (cong (flip ext _) $ ⟨ext⟩ λ y →
+                   (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                     cong (to ∘ from ∘ f) $ ext⁻¹ (refl id) y)
-                   (cong (flip ext _) $ ⟨ext⟩ hyp))
+                   (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
                 (ext≡ {x = inj₂ x} {y = y} {g = f}))                            ≡⟨ cong₂ trans
                                                                                      (cong sym $
                                                                                       trans (cong₂ trans
@@ -731,12 +732,12 @@ Nullification≃Localisation {P = P} {B = B} =
                                                                                       trans-reflˡ _) ⟩
            trans
              (sym $ ext≡ {x = inj₂ x} {y = y} {g = to ∘ from ∘ f})
-             (trans (cong (flip ext _) $ ⟨ext⟩ hyp)
+             (trans (cong (flip (ext _) _) $ ⟨ext⟩ hyp)
                 (ext≡ {x = inj₂ x} {y = y} {g = f}))                            ≡⟨ elim₁
                                                                                      (λ {g} eq →
                                                                                       trans
                                                                                         (sym $ ext≡ {x = inj₂ x} {y = y} {g = g})
-                                                                                        (trans (cong (flip ext _) eq)
+                                                                                        (trans (cong (flip (ext _) _) eq)
                                                                                            (ext≡ {x = inj₂ x} {y = y} {g = f})) ≡
                                                                                       ext⁻¹ eq y)
                                                                                      (trans (cong (trans _) $
@@ -755,54 +756,54 @@ Nullification≃Localisation {P = P} {B = B} =
        .[]ʳ → refl ∘ [_]
 
        .extʳ {x = inj₁ x} {g = f} hyp _ →
-         from (to (ext {x = inj₁ x} f _))    ≡⟨⟩
-         ext {x = inj₁ x} (from ∘ to ∘ f) _  ≡⟨ cong (flip ext _) $ ⟨ext⟩ hyp ⟩∎
-         ext {x = inj₁ x} f _                ∎
+         from (to (ext (inj₁ x) f _))    ≡⟨⟩
+         ext (inj₁ x) (from ∘ to ∘ f) _  ≡⟨ cong (flip (ext _) _) $ ⟨ext⟩ hyp ⟩∎
+         ext (inj₁ x) f _                ∎
 
        .extʳ {x = inj₂ x} {g = f} hyp _ →
-         from (to (ext {x = inj₂ x} f _))                                 ≡⟨⟩
+         from (to (ext (inj₂ x) f _))                                     ≡⟨⟩
 
-         ext {x = inj₂ x}
+         ext (inj₂ x)
            (from ∘ to ∘ f ∘ _≃_.to PO.Susp≃Susp ∘ _≃_.from PO.Susp≃Susp)
-           _                                                              ≡⟨ (cong (flip ext _) $ ⟨ext⟩ λ y → cong (from ∘ to ∘ f) $
+           _                                                              ≡⟨ (cong (flip (ext _) _) $ ⟨ext⟩ λ y → cong (from ∘ to ∘ f) $
                                                                               _≃_.right-inverse-of PO.Susp≃Susp y) ⟩
 
-         ext {x = inj₂ x} (from ∘ to ∘ f) _                               ≡⟨ cong (flip ext _) $ ⟨ext⟩ hyp ⟩∎
+         ext (inj₂ x) (from ∘ to ∘ f) _                                   ≡⟨ cong (flip (ext _) _) $ ⟨ext⟩ hyp ⟩∎
 
-         ext {x = inj₂ x} f _                                             ∎
+         ext (inj₂ x) f _                                                 ∎
 
        .ext≡ʳ {x = inj₁ x} {g = f} {y = y} hyp →
          subst (λ x → from (to x) ≡ x)
            (ext≡ {x = inj₁ x} {y = y} {g = f})
-           (cong (flip ext _) $ ⟨ext⟩ hyp)                        ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+           (cong (flip (ext _) _) $ ⟨ext⟩ hyp)                    ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
          trans
            (sym $ cong (from ∘ to) $
             ext≡ {x = inj₁ x} {y = y} {g = f})
-           (trans (cong (flip ext _) $ ⟨ext⟩ hyp)
+           (trans (cong (flip (ext _) _) $ ⟨ext⟩ hyp)
               (cong id (ext≡ {x = inj₁ x} {y = y} {g = f})))      ≡⟨ cong₂ (trans ∘ sym)
                                                                        (sym $ cong-∘ _ _ _)
                                                                        (cong (trans _) $ sym $ cong-id _) ⟩
          trans
            (sym $ cong from $ cong to $
             ext≡ {x = inj₁ x} {y = y} {g = f})
-           (trans (cong (flip ext _) $ ⟨ext⟩ hyp)
+           (trans (cong (flip (ext _) _) $ ⟨ext⟩ hyp)
               (ext≡ {x = inj₁ x} {y = y} {g = f}))                ≡⟨ cong (flip trans _) $ cong sym $
                                                                      trans (cong (cong from) $ rec-ext≡ {r = to′}) $
                                                                      rec-ext≡ {r = from′} ⟩
          trans
            (sym $ ext≡ {x = inj₁ x} {y = y} {g = from ∘ to ∘ f})
-           (trans (cong (flip ext _) $ ⟨ext⟩ hyp)
+           (trans (cong (flip (ext _) _) $ ⟨ext⟩ hyp)
               (ext≡ {x = inj₁ x} {y = y} {g = f}))                ≡⟨ elim₁
                                                                        (λ {g} eq →
                                                                           trans
                                                                             (sym $ ext≡ {x = inj₁ x} {y = y} {g = g})
-                                                                            (trans (cong (flip ext _) eq)
+                                                                            (trans (cong (flip (ext _) _) eq)
                                                                                (ext≡ {x = inj₁ x} {y = y} {g = f})) ≡
                                                                           ext⁻¹ eq y)
                                                                        (
            trans (sym ext≡)
-             (trans (cong (flip ext _) (refl f)) ext≡)                  ≡⟨ cong (trans _) $
+             (trans (cong (flip (ext _) _) (refl f)) ext≡)              ≡⟨ cong (trans _) $
                                                                            trans (cong (flip trans _) $ cong-refl _) $
                                                                            trans-reflˡ _ ⟩
 
@@ -821,19 +822,20 @@ Nullification≃Localisation {P = P} {B = B} =
          subst (λ x → from (to x) ≡ x)
            (ext≡ {x = inj₂ x} {y = y} {g = f})
            (trans
-              (cong (flip ext _) $ ⟨ext⟩ λ y → cong (from ∘ to ∘ f) $
+              (cong (flip (ext _) _) $
+               ⟨ext⟩ λ y → cong (from ∘ to ∘ f) $
                _≃_.right-inverse-of PO.Susp≃Susp y)
-              (cong (flip ext _) $ ⟨ext⟩ hyp))                            ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+              (cong (flip (ext _) _) $ ⟨ext⟩ hyp))                        ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
          trans
            (sym $ cong (from ∘ to) $
             ext≡ {x = inj₂ x} {y = y} {g = f})
            (trans
               (trans
-                 (cong (flip ext _) $ ⟨ext⟩ λ y →
+                 (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                   cong (from ∘ to ∘ f) $
                   _≃_.right-inverse-of PO.Susp≃Susp y)
-                 (cong (flip ext _) $ ⟨ext⟩ hyp))
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
               (cong id (ext≡ {x = inj₂ x} {y = y} {g = f})))              ≡⟨ cong₂ (trans ∘ sym)
                                                                                (sym $ cong-∘ _ _ _)
                                                                                (cong (trans _) $ sym $ cong-id _) ⟩
@@ -842,10 +844,10 @@ Nullification≃Localisation {P = P} {B = B} =
             ext≡ {x = inj₂ x} {y = y} {g = f})
            (trans
               (trans
-                 (cong (flip ext _) $ ⟨ext⟩ λ y →
+                 (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                   cong (from ∘ to ∘ f) $
                   _≃_.right-inverse-of PO.Susp≃Susp y)
-                 (cong (flip ext _) $ ⟨ext⟩ hyp))
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
               (ext≡ {x = inj₂ x} {y = y} {g = f}))                        ≡⟨ cong (flip trans _) $ cong (sym ∘ cong from) $
                                                                              rec-ext≡ {r = to′} ⟩
          trans
@@ -856,10 +858,10 @@ Nullification≃Localisation {P = P} {B = B} =
               (cong (to ∘ f) $ _≃_.right-inverse-of PO.Susp≃Susp y))
            (trans
               (trans
-                 (cong (flip ext _) $ ⟨ext⟩ λ y →
+                 (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                   cong (from ∘ to ∘ f) $
                   _≃_.right-inverse-of PO.Susp≃Susp y)
-                 (cong (flip ext _) $ ⟨ext⟩ hyp))
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
               (ext≡ {x = inj₂ x} {y = y} {g = f}))                        ≡⟨ cong (flip trans _) $ cong sym $
                                                                              trans (cong-trans _ _ _) $
                                                                              cong (trans _) $ cong-∘ _ _ _ ⟩
@@ -873,10 +875,10 @@ Nullification≃Localisation {P = P} {B = B} =
                _≃_.right-inverse-of PO.Susp≃Susp y))
            (trans
               (trans
-                 (cong (flip ext _) $ ⟨ext⟩ λ y →
+                 (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                   cong (from ∘ to ∘ f) $
                   _≃_.right-inverse-of PO.Susp≃Susp y)
-                 (cong (flip ext _) $ ⟨ext⟩ hyp))
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
               (ext≡ {x = inj₂ x} {y = y} {g = f}))                        ≡⟨ cong (flip trans _) $ cong sym $ cong (flip trans _) $
                                                                              rec-ext≡ {r = from′} ⟩
          trans
@@ -894,10 +896,10 @@ Nullification≃Localisation {P = P} {B = B} =
                _≃_.right-inverse-of PO.Susp≃Susp y))
            (trans
               (trans
-                 (cong (flip ext _) $ ⟨ext⟩ λ y →
+                 (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                   cong (from ∘ to ∘ f) $
                   _≃_.right-inverse-of PO.Susp≃Susp y)
-                 (cong (flip ext _) $ ⟨ext⟩ hyp))
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
               (ext≡ {x = inj₂ x} {y = y} {g = f}))                        ≡⟨ trans (cong (flip trans _) $ cong sym $
                                                                                     cong (flip trans _) $ cong (trans _) $
                                                                                     trans (sym $ cong-∘ _ _ _) $
@@ -926,9 +928,9 @@ Nullification≃Localisation {P = P} {B = B} =
                (cong (from ∘ to ∘ f) $ ext⁻¹ eq y))
             (trans
                (trans
-                  (cong (flip ext _) $ ⟨ext⟩ λ y →
+                  (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                    cong (from ∘ to ∘ f) $ ext⁻¹ eq y)
-                  (cong (flip ext _) $ ⟨ext⟩ hyp))
+                  (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
                (ext≡ {x = inj₂ x} {y = y} {g = f})))                      ≡⟨ elim₁
                                                                                (λ {g} eq →
                                                                                   trans
@@ -940,9 +942,9 @@ Nullification≃Localisation {P = P} {B = B} =
                                                                                        (cong (from ∘ to ∘ f) $ ext⁻¹ eq y))
                                                                                     (trans
                                                                                        (trans
-                                                                                          (cong (flip ext _) $ ⟨ext⟩ λ y →
+                                                                                          (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                                                                                            cong (from ∘ to ∘ f) $ ext⁻¹ eq y)
-                                                                                          (cong (flip ext _) $ ⟨ext⟩ hyp))
+                                                                                          (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
                                                                                        (ext≡ {x = inj₂ x} {y = y} {g = f})) ≡
                                                                                   hyp y)
                                                                                (
@@ -955,9 +957,9 @@ Nullification≃Localisation {P = P} {B = B} =
                 (cong (from ∘ to ∘ f) $ ext⁻¹ (refl id) y))
              (trans
                 (trans
-                   (cong (flip ext _) $ ⟨ext⟩ λ y →
+                   (cong (flip (ext _) _) $ ⟨ext⟩ λ y →
                     cong (from ∘ to ∘ f) $ ext⁻¹ (refl id) y)
-                   (cong (flip ext _) $ ⟨ext⟩ hyp))
+                   (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
                 (ext≡ {x = inj₂ x} {y = y} {g = f}))                            ≡⟨ cong₂ trans
                                                                                      (cong sym $
                                                                                       trans (cong₂ trans
@@ -979,12 +981,12 @@ Nullification≃Localisation {P = P} {B = B} =
                                                                                       trans-reflˡ _) ⟩
            trans
              (sym $ ext≡ {x = inj₂ x} {y = y} {g = from ∘ to ∘ f})
-             (trans (cong (flip ext _) $ ⟨ext⟩ hyp)
+             (trans (cong (flip (ext _) _) $ ⟨ext⟩ hyp)
                 (ext≡ {x = inj₂ x} {y = y} {g = f}))                            ≡⟨ elim₁
                                                                                      (λ {g} eq →
                                                                                       trans
                                                                                         (sym $ ext≡ {x = inj₂ x} {y = y} {g = g})
-                                                                                        (trans (cong (flip ext _) eq)
+                                                                                        (trans (cong (flip (ext _) _) eq)
                                                                                            (ext≡ {x = inj₂ x} {y = y} {g = f})) ≡
                                                                                       ext⁻¹ eq y)
                                                                                      (trans (cong (trans _) $
@@ -1003,34 +1005,32 @@ Nullification≃Localisation {P = P} {B = B} =
   to′ = λ where
     .[]ʳ → [_]
 
-    .extʳ {x = inj₁ x} f _ → ext {x = inj₁ x} (f ∘ lower) _
+    .extʳ {x = inj₁ x} f _ → ext (inj₁ x) (f ∘ lower) _
 
-    .extʳ {x = inj₂ x} f _ →
-      ext {x = inj₂ x} (f ∘ _≃_.to PO.Susp≃Susp) _
+    .extʳ {x = inj₂ x} f _ → ext (inj₂ x) (f ∘ _≃_.to PO.Susp≃Susp) _
 
     .ext≡ʳ {x = inj₁ x} {y = y} f →
-      ext (f ∘ lower) _  ≡⟨ ext≡ {x = inj₁ x} {y = lift y} {g = f ∘ lower} ⟩∎
-      f y                ∎
+      ext (inj₁ x) (f ∘ lower) _  ≡⟨ ext≡ {x = inj₁ x} {y = lift y} {g = f ∘ lower} ⟩∎
+      f y                         ∎
 
     .ext≡ʳ {x = inj₂ x} {y = y} f →
-      ext (f ∘ _≃_.to PO.Susp≃Susp) _                    ≡⟨ ext≡ {x = inj₂ x} {y = _≃_.from PO.Susp≃Susp y} {g = f ∘ _≃_.to PO.Susp≃Susp} ⟩
+      ext (inj₂ x) (f ∘ _≃_.to PO.Susp≃Susp) _           ≡⟨ ext≡ {x = inj₂ x} {y = _≃_.from PO.Susp≃Susp y} {g = f ∘ _≃_.to PO.Susp≃Susp} ⟩
       f (_≃_.to PO.Susp≃Susp (_≃_.from PO.Susp≃Susp y))  ≡⟨ cong f $ _≃_.right-inverse-of PO.Susp≃Susp y ⟩∎
       f y                                                ∎
 
   from′ = λ where
     .[]ʳ → [_]
 
-    .extʳ {x = inj₁ x} f _ → ext {x = inj₁ x} (f ∘ lift) _
+    .extʳ {x = inj₁ x} f _ → ext (inj₁ x) (f ∘ lift) _
 
-    .extʳ {x = inj₂ x} f _ →
-      ext {x = inj₂ x} (f ∘ _≃_.from PO.Susp≃Susp) _
+    .extʳ {x = inj₂ x} f _ → ext (inj₂ x) (f ∘ _≃_.from PO.Susp≃Susp) _
 
     .ext≡ʳ {x = inj₁ x} {y = y} f →
-      ext (f ∘ lift) _  ≡⟨ ext≡ {x = inj₁ x} {y = lower y} {g = f ∘ lift} ⟩∎
-      f y               ∎
+      ext (inj₁ x) (f ∘ lift) _  ≡⟨ ext≡ {x = inj₁ x} {y = lower y} {g = f ∘ lift} ⟩∎
+      f y                        ∎
 
     .ext≡ʳ {x = inj₂ x} {y = y} f →
-      ext (f ∘ _≃_.from PO.Susp≃Susp) _                  ≡⟨ ext≡ {x = inj₂ x} {y = _≃_.to PO.Susp≃Susp y} {g = f ∘ _≃_.from PO.Susp≃Susp} ⟩
+      ext (inj₂ x) (f ∘ _≃_.from PO.Susp≃Susp) _         ≡⟨ ext≡ {x = inj₂ x} {y = _≃_.to PO.Susp≃Susp y} {g = f ∘ _≃_.from PO.Susp≃Susp} ⟩
       f (_≃_.from PO.Susp≃Susp (_≃_.to PO.Susp≃Susp y))  ≡⟨ cong f $ _≃_.left-inverse-of PO.Susp≃Susp y ⟩∎
       f y                                                ∎
 
