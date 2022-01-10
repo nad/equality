@@ -39,8 +39,9 @@ private
   variable
     a b ℓ ℓ₁ ℓ₂ p : Level
     A B           : Type a
+    P             : A → Type p
     C             : Pointed-type a
-    x y           : A
+    e r x y       : A
     f g           : A → B
 
 -- Suspensions.
@@ -56,87 +57,136 @@ meridian = _↔_.from ≡↔≡ ∘ meridianᴾ
 
 -- A dependent eliminator, expressed using paths.
 
-elimᴾ :
-  (P : Susp A → Type p)
-  (n : P north)
-  (s : P south) →
-  (∀ x → P.[ (λ i → P (meridianᴾ x i)) ] n ≡ s) →
-  (x : Susp A) → P x
-elimᴾ _ n s n≡s = λ where
-  north           → n
-  south           → s
-  (meridianᴾ x i) → n≡s x i
+record Elimᴾ {A : Type a} (P : Susp A → Type p) : Type (a ⊔ p) where
+  no-eta-equality
+  field
+    northʳ    : P north
+    southʳ    : P south
+    meridianʳ : ∀ x → P.[ (λ i → P (meridianᴾ x i)) ] northʳ ≡ southʳ
+
+open Elimᴾ public
+
+elimᴾ : Elimᴾ P → (x : Susp A) → P x
+elimᴾ {A = A} {P = P} e = helper
+  where
+  module E = Elimᴾ e
+
+  helper : (x : Susp A) → P x
+  helper north           = E.northʳ
+  helper south           = E.southʳ
+  helper (meridianᴾ x i) = E.meridianʳ x i
 
 -- A non-dependent eliminator, expressed using paths.
 
-recᴾ : (n s : B) → (A → n P.≡ s) → Susp A → B
-recᴾ = elimᴾ _
+record Recᴾ (A : Type a) (B : Type b) : Type (a ⊔ b) where
+  no-eta-equality
+  field
+    northʳ    : B
+    southʳ    : B
+    meridianʳ : A → northʳ P.≡ southʳ
+
+open Recᴾ public
+
+recᴾ : Recᴾ A B → Susp A → B
+recᴾ {A = A} {B = B} r = elimᴾ eᴾ
+  where
+  module R = Recᴾ r
+
+  eᴾ : Elimᴾ (λ (_ : Susp A) → B)
+  eᴾ .northʳ    = R.northʳ
+  eᴾ .southʳ    = R.southʳ
+  eᴾ .meridianʳ = R.meridianʳ
 
 -- A dependent eliminator.
 
-module Elim
-  (P   : Susp A → Type p)
-  (n   : P north)
-  (s   : P south)
-  (n≡s : ∀ x → subst P (meridian x) n ≡ s)
-  where
-
-  elim : ∀ x → P x
-  elim = elimᴾ P n s (subst≡→[]≡ ∘ n≡s)
-
-  -- "Computation" rule for meridians.
-
-  elim-meridian : dcong elim (meridian x) ≡ n≡s x
-  elim-meridian = dcong-subst≡→[]≡ (refl _)
+record Elim {A : Type a} (P : Susp A → Type p) : Type (a ⊔ p) where
+  no-eta-equality
+  field
+    northʳ    : P north
+    southʳ    : P south
+    meridianʳ : ∀ x → subst P (meridian x) northʳ ≡ southʳ
 
 open Elim public
 
+elim : Elim P → (x : Susp A) → P x
+elim {P = P} e = elimᴾ eᴾ
+  where
+  module E = Elim e
+
+  eᴾ : Elimᴾ P
+  eᴾ .northʳ    = E.northʳ
+  eᴾ .southʳ    = E.southʳ
+  eᴾ .meridianʳ = subst≡→[]≡ ∘ E.meridianʳ
+
+-- A "computation rule" for meridians.
+
+elim-meridian : dcong (elim e) (meridian x) ≡ e .meridianʳ x
+elim-meridian = dcong-subst≡→[]≡ (refl _)
+
 -- A non-dependent eliminator.
 
-module Rec
-  {B : Type b}
-  (n s : B)
-  (n≡s : A → n ≡ s)
-  where
-
-  rec : Susp A → B
-  rec = recᴾ n s (_↔_.to ≡↔≡ ∘ n≡s)
-
-  rec-meridian : cong rec (meridian x) ≡ n≡s x
-  rec-meridian = cong-≡↔≡ (refl _)
+record Rec (A : Type a) (B : Type b) : Type (a ⊔ b) where
+  no-eta-equality
+  field
+    northʳ    : B
+    southʳ    : B
+    meridianʳ : A → northʳ ≡ southʳ
 
 open Rec public
+
+rec : Rec A B → Susp A → B
+rec {A = A} {B = B} r = recᴾ rᴾ
+  where
+  module R = Rec r
+
+  rᴾ : Recᴾ A B
+  rᴾ .northʳ    = R.northʳ
+  rᴾ .southʳ    = R.southʳ
+  rᴾ .meridianʳ = _↔_.to ≡↔≡ ∘ R.meridianʳ
+
+-- A "computation rule" for meridians.
+
+rec-meridian : cong (rec r) (meridian x) ≡ r .meridianʳ x
+rec-meridian = cong-≡↔≡ (refl _)
 
 -- The universal property of suspensions.
 
 universal-property :
   (Susp A → B) ↔ (∃ λ (n : B) → ∃ λ (s : B) → A → n ≡ s)
-universal-property = record
+universal-property {A = A} {B = B} = record
   { surjection = record
     { logical-equivalence = record
       { to   = λ f → f north , f south , cong f ∘ meridian
-      ; from = λ { (n , s , f) → rec n s f }
+      ; from = rec ∘ from′
       }
-    ; right-inverse-of = λ { (n , s , f) →
-        n , s , cong (rec n s f) ∘ meridian  ≡⟨ cong (λ f → n , s , f) $ ⟨ext⟩ (λ _ → rec-meridian n s f) ⟩∎
-        n , s , f                            ∎ }
+    ; right-inverse-of = λ x@(n , s , m) →
+        n , s , cong (rec (from′ x)) ∘ meridian  ≡⟨ cong (λ m → n , s , m) $ ⟨ext⟩ (λ _ → rec-meridian) ⟩∎
+        n , s , m                                ∎
     }
   ; left-inverse-of = λ f →
-      let module R = Rec (f north) (f south) (cong f ∘ meridian) in
+      let r = from′ (f north , f south , cong f ∘ meridian)
 
-      R.rec                                                        ≡⟨ ⟨ext⟩ $ elim _ (refl _) (refl _) (λ x →
+          lemma = λ x →
+            subst (λ x → rec r x ≡ f x) (meridian x) (refl _)        ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
-          subst (λ x → R.rec x ≡ f x) (meridian x) (refl _)             ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+            trans (sym $ cong (rec r) (meridian x))
+                  (trans (refl _) (cong f (meridian x)))             ≡⟨ cong₂ (λ p q → trans (sym p) q) rec-meridian (trans-reflˡ _) ⟩
 
-          trans (sym $ cong R.rec (meridian x))
-                (trans (refl _) (cong f (meridian x)))                  ≡⟨ cong₂ (λ p q → trans (sym p) q) R.rec-meridian (trans-reflˡ _) ⟩
+            trans (sym $ cong f (meridian x)) (cong f (meridian x))  ≡⟨ trans-symˡ _ ⟩∎
 
-          trans (sym $ cong f (meridian x)) (cong f (meridian x))       ≡⟨ trans-symˡ _ ⟩∎
-
-          refl _                                                        ∎) ⟩∎
-
-      f                                                            ∎
+            refl _                                                   ∎
+      in
+      rec r  ≡⟨ (⟨ext⟩ $ elim λ where
+                   .northʳ    → refl _
+                   .southʳ    → refl _
+                   .meridianʳ → lemma) ⟩∎
+      f      ∎
   }
+  where
+  from′ : (∃ λ (n : B) → ∃ λ (s : B) → A → n ≡ s) → Rec A B
+  from′ (n , s , m) .northʳ    = n
+  from′ (n , s , m) .southʳ    = s
+  from′ (n , s , m) .meridianʳ = m
 
 -- Based maps from suspensions of pointed types (using north as the
 -- point) are isomorphic to based maps to loop spaces.
@@ -167,9 +217,13 @@ Bool↔Susp-⊥ = record
   { surjection = record
     { logical-equivalence = record
       { to   = if_then north else south
-      ; from = rec true false (λ ())
+      ; from = rec λ where
+          .northʳ → true
+          .southʳ → false
       }
-    ; right-inverse-of = elim _ (refl _) (refl _) (λ ())
+    ; right-inverse-of = elim λ where
+        .northʳ → refl _
+        .southʳ → refl _
     }
   ; left-inverse-of = λ where
       true  → refl _
@@ -202,22 +256,21 @@ Interval↔Susp-⊤ = record
       { to   = to
       ; from = from
       }
-    ; right-inverse-of = elim
-        _
-        (refl _)
-        (refl _)
-        (λ _ →
+    ; right-inverse-of = elim λ where
+        .northʳ      → refl _
+        .southʳ      → refl _
+        .meridianʳ _ →
            subst (λ x → to (from x) ≡ x) (meridian tt) (refl _)           ≡⟨ subst-in-terms-of-trans-and-cong′ ⟩
 
            trans (sym (cong to (cong from (meridian tt))))
                  (trans (refl _) (meridian tt))                           ≡⟨ cong₂ (λ p q → trans (sym (cong to p)) q)
-                                                                               (rec-meridian _ _ _)
+                                                                               rec-meridian
                                                                                (trans-reflˡ _) ⟩
            trans (sym (cong to 0≡1)) (meridian tt)                        ≡⟨ cong (λ p → trans (sym p) (meridian tt)) $ Interval.rec-0≡1 _ _ _ ⟩
 
            trans (sym (meridian tt)) (meridian tt)                        ≡⟨ trans-symˡ _ ⟩∎
 
-           refl _                                                         ∎)
+           refl _                                                         ∎
     }
   ; left-inverse-of = Interval.elim
       _
@@ -227,18 +280,24 @@ Interval↔Susp-⊤ = record
        trans (sym (cong from (cong to 0≡1))) (trans (refl _) 0≡1)  ≡⟨ cong₂ (λ p q → trans (sym (cong from p)) q)
                                                                         (Interval.rec-0≡1 _ _ _)
                                                                         (trans-reflˡ _) ⟩
-       trans (sym (cong from (meridian tt))) 0≡1                   ≡⟨ cong (λ p → trans (sym p) 0≡1) $ rec-meridian _ _ _ ⟩
+       trans (sym (cong from (meridian tt))) 0≡1                   ≡⟨ cong (λ p → trans (sym p) 0≡1) rec-meridian ⟩
        trans (sym 0≡1) 0≡1                                         ≡⟨ trans-symˡ _ ⟩∎
        refl _                                                      ∎)
   }
   where
   to   = Interval.rec north south (meridian tt)
-  from = rec [0] [1] λ _ → 0≡1
+  from = rec λ where
+    .northʳ      → [0]
+    .southʳ      → [1]
+    .meridianʳ _ → 0≡1
 
 -- A map function.
 
 map : (A → B) → Susp A → Susp B
-map A→B = rec north south (meridian ∘ A→B)
+map A→B = rec λ where
+  .northʳ    → north
+  .southʳ    → south
+  .meridianʳ → meridian ∘ A→B
 
 private
 
@@ -247,25 +306,24 @@ private
   map∘map :
     (∀ x → f (g x) ≡ x) →
     ∀ x → map f (map g x) ≡ x
-  map∘map {f = f} {g = g} hyp = elim
-    _
-    (refl _)
-    (refl _)
-    (λ x →
+  map∘map {f = f} {g = g} hyp = elim λ where
+    .northʳ      → refl _
+    .southʳ      → refl _
+    .meridianʳ x →
        subst (λ x → map f (map g x) ≡ x) (meridian x) (refl _)   ≡⟨ subst-in-terms-of-trans-and-cong′ ⟩
 
        trans (sym $ cong (map f) $ cong (map g) (meridian x))
              (trans (refl _) (meridian x))                       ≡⟨ cong₂ (λ p q → trans (sym $ cong (map f) p) q)
-                                                                      (rec-meridian _ _ _)
+                                                                      rec-meridian
                                                                       (trans-reflˡ _) ⟩
 
-       trans (sym $ cong (map f) $ meridian (g x)) (meridian x)  ≡⟨ cong (λ p → trans (sym p) (meridian x)) $ rec-meridian _ _ _ ⟩
+       trans (sym $ cong (map f) $ meridian (g x)) (meridian x)  ≡⟨ cong (λ p → trans (sym p) (meridian x)) rec-meridian ⟩
 
        trans (sym $ meridian (f (g x))) (meridian x)             ≡⟨ cong (λ y → trans (sym $ meridian y) (meridian x)) $ hyp x ⟩
 
        trans (sym $ meridian x) (meridian x)                     ≡⟨ trans-symˡ _ ⟩∎
 
-       refl _                                                    ∎)
+       refl _                                                    ∎
 
 -- Some preservation lemmas.
 

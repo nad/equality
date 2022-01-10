@@ -178,31 +178,34 @@ rec′-loop = dcong≡→cong≡ elim-loop
   to : 𝕊¹ → Susp Bool
   to = rec north north≡north
 
-  module From = Suspension.Rec base base (if_then refl base else loop)
-
   from : Susp Bool → 𝕊¹
-  from = From.rec
+  from = Suspension.rec λ where
+    .Suspension.northʳ    → base
+    .Suspension.southʳ    → base
+    .Suspension.meridianʳ → if_then refl base else loop
 
   to∘from : ∀ x → to (from x) ≡ x
-  to∘from = Suspension.elim _
-    (to (from north)  ≡⟨⟩
-     north            ∎)
-    (to (from south)  ≡⟨⟩
-     north            ≡⟨ meridian true ⟩∎
-     south            ∎)
-    (λ b →
-       subst (λ x → to (from x) ≡ x) (meridian b) (refl north)  ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+  to∘from = Suspension.elim λ where
+      .Suspension.northʳ →
+        to (from north)  ≡⟨⟩
+        north            ∎
+      .Suspension.southʳ →
+        to (from south)  ≡⟨⟩
+        north            ≡⟨ meridian true ⟩∎
+        south            ∎
+      .Suspension.meridianʳ b →
+        subst (λ x → to (from x) ≡ x) (meridian b) (refl north)  ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
-       trans (sym (cong (to ∘ from) (meridian b)))
-         (trans (refl _) (cong id (meridian b)))                ≡⟨ cong₂ (trans ∘ sym)
-                                                                     (trans (sym $ cong-∘ _ _ _) $
-                                                                      cong (cong to) From.rec-meridian)
-                                                                     (trans (trans-reflˡ _) $
-                                                                      sym $ cong-id _) ⟩
-       trans (sym (cong to (if b then refl base else loop)))
-             (meridian b)                                       ≡⟨ lemma b ⟩∎
+        trans (sym (cong (to ∘ from) (meridian b)))
+          (trans (refl _) (cong id (meridian b)))                ≡⟨ cong₂ (trans ∘ sym)
+                                                                      (trans (sym $ cong-∘ _ _ _) $
+                                                                       cong (cong to) Suspension.rec-meridian)
+                                                                      (trans (trans-reflˡ _) $
+                                                                       sym $ cong-id _) ⟩
+        trans (sym (cong to (if b then refl base else loop)))
+              (meridian b)                                       ≡⟨ lemma b ⟩∎
 
-       meridian true                                            ∎)
+        meridian true                                            ∎
     where
     lemma : (b : Bool) → _ ≡ _
     lemma true  =
@@ -248,8 +251,8 @@ rec′-loop = dcong≡→cong≡ elim-loop
      trans (trans (cong from (meridian true))
                   (sym $ cong from (meridian false)))
            loop                                                      ≡⟨ cong₂ (λ p q → trans (trans p (sym q)) loop)
-                                                                          From.rec-meridian
-                                                                          From.rec-meridian ⟩
+                                                                          Suspension.rec-meridian
+                                                                          Suspension.rec-meridian ⟩
      trans (trans (if true ⦂ Bool then refl base else loop)
                   (sym $ if false ⦂ Bool then refl base else loop))
            loop                                                      ≡⟨⟩

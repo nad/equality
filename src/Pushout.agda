@@ -249,12 +249,18 @@ Susp≃Susp = Eq.↔⇒≃ (record
   to = recᴾ (λ _ → S.north) (λ _ → S.south) S.meridianᴾ
 
   from : S.Susp A → Susp A
-  from = S.recᴾ (inl _) (inr _) glueᴾ
+  from = S.recᴾ λ where
+    .S.northʳ    → inl _
+    .S.southʳ    → inr _
+    .S.meridianʳ → glueᴾ
 
   to∘from : ∀ x → to (from x) ≡ x
   to∘from =
     _↔_.from ≡↔≡ ∘
-    S.elimᴾ _ P.refl P.refl (λ a i _ → S.meridianᴾ a i)
+    S.elimᴾ λ where
+      .S.northʳ          → P.refl
+      .S.southʳ          → P.refl
+      .S.meridianʳ a i _ → S.meridianᴾ a i
 
   from∘to : ∀ x → from (to x) ≡ x
   from∘to =
