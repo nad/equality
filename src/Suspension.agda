@@ -299,7 +299,7 @@ map A→B = rec λ where
   .southʳ    → south
   .meridianʳ → meridian ∘ A→B
 
-private
+private abstract
 
   -- A helper function used to implement cong-↠ and cong-↔.
 
