@@ -255,45 +255,6 @@ Is-equivalence-CP↔Is-equivalence-CP {f = f} =
   (∀ y → P.Contractible (∃ λ x → f x P.≡ y))  ↔⟨⟩
   PCP.Is-equivalence f                        □
 
--- Is-equivalence expressed using equality is isomorphic to
--- Is-equivalence expressed using paths.
-
-Is-equivalence↔Is-equivalence :
-  Is-equivalence f ↔ PE.Is-equivalence f
-Is-equivalence↔Is-equivalence {f = f} =
-  Is-equivalence f      ↝⟨ HA.Is-equivalence↔Is-equivalence-CP ext ⟩
-  CP.Is-equivalence f   ↝⟨ Is-equivalence-CP↔Is-equivalence-CP ⟩
-  PCP.Is-equivalence f  ↝⟨ inverse $ ↔→↔ $ PHA.Is-equivalence↔Is-equivalence-CP P.ext ⟩□
-  PE.Is-equivalence f   □
-
--- The type of equivalences, expressed using equality, is isomorphic
--- to the type of equivalences, expressed using paths.
-
-≃↔≃ :
-  {A : Type a} {B : Type b} →
-  A ≃ B ↔ A PE.≃ B
-≃↔≃ {A = A} {B = B} =
-  A ≃ B                ↝⟨ Eq.≃-as-Σ ⟩
-  ∃ Is-equivalence     ↝⟨ (∃-cong λ _ → Is-equivalence↔Is-equivalence) ⟩
-  ∃ PE.Is-equivalence  ↝⟨ inverse $ ↔→↔ PE.≃-as-Σ ⟩□
-  A PE.≃ B             □
-
-private
-
-  -- ≃↔≃ computes in the "right" way.
-
-  to-≃↔≃ :
-    {A : Type a} {B : Type b} {A≃B : A ≃ B} →
-    PE._≃_.logical-equivalence (_↔_.to ≃↔≃ A≃B) ≡
-    _≃_.logical-equivalence A≃B
-  to-≃↔≃ = refl _
-
-  from-≃↔≃ :
-    {A : Type a} {B : Type b} {A≃B : A PE.≃ B} →
-    _≃_.logical-equivalence (_↔_.from ≃↔≃ A≃B) ≡
-    PE._≃_.logical-equivalence A≃B
-  from-≃↔≃ = refl _
-
 -- The type of equivalences, expressed using "contractible preimages"
 -- and equality, is isomorphic to the type of equivalences, expressed
 -- using contractible preimages and paths.
@@ -351,6 +312,69 @@ trans≡trans {x≡y = x≡y} {y≡z = y≡z} = P.elim₁
    _↔_.from ≡↔≡ y≡z                                ≡⟨ cong (_↔_.from ≡↔≡) $ sym $ _↔_.from ≡↔≡ $ P.trans-reflˡ _ ⟩∎
    _↔_.from ≡↔≡ (P.trans P.refl y≡z)               ∎)
   x≡y
+
+-- Is-equivalence expressed using equality is isomorphic to
+-- Is-equivalence expressed using paths.
+
+Is-equivalence↔Is-equivalence :
+  Is-equivalence f ↔ PE.Is-equivalence f
+Is-equivalence↔Is-equivalence {f = f} =
+  (∃ λ f⁻¹ →
+   ∃ λ (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
+   ∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
+   ∀ x → cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x))                            ↝⟨ (∃-cong λ _ → Σ-assoc) ⟩
+
+  (∃ λ f⁻¹ →
+   ∃ λ ((f-f⁻¹ , f⁻¹-f) :
+        (∀ x → f (f⁻¹ x) ≡ x) × (∀ x → f⁻¹ (f x) ≡ x)) →
+   ∀ x → cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x))                            ↝⟨ (∃-cong λ _ →
+                                                                        Σ-cong-contra
+                                                                          ((∀-cong ext λ _ → inverse ≡↔≡)
+                                                                             ×-cong
+                                                                           (∀-cong ext λ _ → inverse ≡↔≡)) λ (f-f⁻¹ , f⁻¹-f) →
+                                                                        ∀-cong ext λ x →
+    cong f (_↔_.from ≡↔≡ (f⁻¹-f x)) ≡ _↔_.from ≡↔≡ (f-f⁻¹ (f x))          ↝⟨ ≡⇒↝ _ $ cong (_≡ _↔_.from ≡↔≡ _) cong≡cong ⟩
+    _↔_.from ≡↔≡ (P.cong f (f⁻¹-f x)) ≡ _↔_.from ≡↔≡ (f-f⁻¹ (f x))        ↔⟨ Eq.≃-≡ $ from-bijection $ inverse ≡↔≡ ⟩
+    P.cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x)                                      ↝⟨ ≡↔≡ ⟩□
+    P.cong f (f⁻¹-f x) P.≡ f-f⁻¹ (f x)                                    □) ⟩
+
+  (∃ λ f⁻¹ →
+   ∃ λ ((f-f⁻¹ , f⁻¹-f) :
+        (∀ x → f (f⁻¹ x) P.≡ x) × (∀ x → f⁻¹ (f x) P.≡ x)) →
+   ∀ x → P.cong f (f⁻¹-f x) P.≡ f-f⁻¹ (f x))                        ↝⟨ (∃-cong λ _ → inverse Σ-assoc) ⟩□
+
+  (∃ λ f⁻¹ →
+   ∃ λ (f-f⁻¹ : ∀ x → f (f⁻¹ x) P.≡ x) →
+   ∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) P.≡ x) →
+   ∀ x → P.cong f (f⁻¹-f x) P.≡ f-f⁻¹ (f x))                        □
+
+-- The type of equivalences, expressed using equality, is isomorphic
+-- to the type of equivalences, expressed using paths.
+
+≃↔≃ :
+  {A : Type a} {B : Type b} →
+  A ≃ B ↔ A PE.≃ B
+≃↔≃ {A = A} {B = B} =
+  A ≃ B                ↝⟨ Eq.≃-as-Σ ⟩
+  ∃ Is-equivalence     ↝⟨ (∃-cong λ _ → Is-equivalence↔Is-equivalence) ⟩
+  ∃ PE.Is-equivalence  ↝⟨ inverse $ ↔→↔ PE.≃-as-Σ ⟩□
+  A PE.≃ B             □
+
+private
+
+  -- ≃↔≃ computes in the "right" way.
+
+  to-≃↔≃ :
+    {A : Type a} {B : Type b} {A≃B : A ≃ B} →
+    PE._≃_.bijection (_↔_.to ≃↔≃ A≃B) ≡
+    _≃_.to ↔≃↔ (_≃_.bijection A≃B)
+  to-≃↔≃ = refl _
+
+  from-≃↔≃ :
+    {A : Type a} {B : Type b} {A≃B : A PE.≃ B} →
+    _≃_.bijection (_↔_.from ≃↔≃ A≃B) ≡
+    _≃_.from ↔≃↔ (PE._≃_.bijection A≃B)
+  from-≃↔≃ = refl _
 
 -- The type of embeddings, expressed using equality, is isomorphic to
 -- the type of embeddings, expressed using paths.
