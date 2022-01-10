@@ -42,7 +42,6 @@ private
     C             : Pointed-type a
     x y           : A
     f g           : A → B
-    n             : ℕ
 
 -- Suspensions.
 
