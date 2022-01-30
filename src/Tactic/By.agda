@@ -150,8 +150,8 @@ module _
 
         compute-args′ :
           ℕ → List (Arg Term) → TC.Type → TC (List (Arg Term))
-        compute-args′ n args (pi a@(arg i _) (abs _ τ)) =
-          extendContext a $
+        compute-args′ n args (pi a@(arg i _) (abs x τ)) =
+          extendContext x a $
           compute-args n (arg i unknown ∷ args) τ
         compute-args′ n args (meta x _) =
           blockOnMeta′ "apply-to-metas" x

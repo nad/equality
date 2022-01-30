@@ -39,11 +39,11 @@ private
     n ← search (reverse c)
     return (var (length c ∸ suc n) [])
     where
-    search : List (Arg TC.Type) → TC ℕ
+    search : List (String × Arg TC.Type) → TC ℕ
     search [] = typeError (strErr err ∷ [])
       where
       err = "⟨by⟩: No instance of Equality-with-J found in the context."
-    search (a@(arg _ t) ∷ args) = do
+    search ((_ , arg _ t) ∷ args) = do
       if ok t then return 0
               else suc ⟨$⟩ search args
       where
