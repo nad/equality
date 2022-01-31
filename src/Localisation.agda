@@ -8,8 +8,9 @@
 -- and Spitters.
 
 -- The module is parametrised by a notion of equality. The higher
--- constructors of the HIT defining localisation use path equality,
--- but the supplied notion of equality is used for many other things.
+-- constructors of the HIT defining (a first approximation to)
+-- localisation use path equality, but the supplied notion of equality
+-- is used for many other things.
 
 import Equality.Path as P
 
