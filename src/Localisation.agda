@@ -147,7 +147,7 @@ ext≡ = _↔_.from ≡↔≡ ext≡ᴾ
 
 record Elimᴾ
          {A : Type a} {P : A → Type p} {Q : A → Type q}
-         (f : ∀ x → P x → Q x) (B : Type b)
+         {f : ∀ x → P x → Q x} {B : Type b}
          (R : Localisation′ f B → Type r) :
          Type (a ⊔ b ⊔ p ⊔ q ⊔ r) where
   no-eta-equality
@@ -160,7 +160,7 @@ record Elimᴾ
 
 open Elimᴾ public
 
-elimᴾ : Elimᴾ f B R → (x : Localisation′ f B) → R x
+elimᴾ : Elimᴾ R → (x : Localisation′ f B) → R x
 elimᴾ {f = f} {B = B} {R = R} e = helper
   where
   module E = Elimᴾ e
@@ -197,7 +197,7 @@ recᴾ r = elimᴾ λ where
 
 record Elim
          {A : Type a} {P : A → Type p} {Q : A → Type q}
-         (f : ∀ x → P x → Q x) (B : Type b)
+         {f : ∀ x → P x → Q x} {B : Type b}
          (R : Localisation′ f B → Type r) :
          Type (a ⊔ b ⊔ p ⊔ q ⊔ r) where
   no-eta-equality
@@ -209,19 +209,21 @@ record Elim
 
 open Elim public
 
-elim : Elim f B R → (x : Localisation′ f B) → R x
-elim e = elimᴾ λ where
-    .[]ʳ   → E.[]ʳ
-    .extʳ  → E.extʳ
-    .ext≡ʳ → subst≡→[]≡ ∘ E.ext≡ʳ
+elim : Elim R → (x : Localisation′ f B) → R x
+elim {R = R} e = elimᴾ eᴾ
   where
   module E = Elim e
 
--- A "computation" rule.
+  eᴾ : Elimᴾ R
+  eᴾ .[]ʳ   = E.[]ʳ
+  eᴾ .extʳ  = E.extʳ
+  eᴾ .ext≡ʳ = subst≡→[]≡ ∘ E.ext≡ʳ
+
+-- A "computation rule".
 
 elim-ext≡ :
   dcong (elim e) (ext≡ {y = y} {g = g}) ≡
-  Elim.ext≡ʳ e (elim e ∘ g)
+  e .ext≡ʳ (elim e ∘ g)
 elim-ext≡ = dcong-subst≡→[]≡ (refl _)
 
 -- A non-dependent eliminator.
@@ -240,21 +242,23 @@ record Rec
 open Rec public
 
 rec : Rec f B C → Localisation′ f B → C
-rec r = recᴾ λ where
-    .[]ʳ   → R.[]ʳ
-    .extʳ  → R.extʳ
-    .ext≡ʳ → _↔_.to ≡↔≡ ∘ R.ext≡ʳ
+rec {f = f} {B = B} {C = C} r = recᴾ rᴾ
   where
   module R = Rec r
 
--- A "computation" rule.
+  rᴾ : Recᴾ f B C
+  rᴾ .[]ʳ   = R.[]ʳ
+  rᴾ .extʳ  = R.extʳ
+  rᴾ .ext≡ʳ = _↔_.to ≡↔≡ ∘ R.ext≡ʳ
+
+-- A "computation rule".
 
 rec-ext≡ :
   {f : ∀ x → P x → Q x}
   {r : Rec f B C}
   {g : P x → Localisation′ f B} →
   cong (rec r) (ext≡ {y = y} {g = g}) ≡
-  Rec.ext≡ʳ r (rec r ∘ g)
+  r .ext≡ʳ (rec r ∘ g)
 rec-ext≡ = cong-≡↔≡ (refl _)
 
 ------------------------------------------------------------------------
