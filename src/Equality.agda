@@ -533,7 +533,7 @@ module Derived-definitions-and-properties
   -- Norell.
 
   step-≡ : ∀ x → y ≡ z → x ≡ y → x ≡ z
-  step-≡ _ = flip trans
+  step-≡ _ y≡z x≡y = trans x≡y y≡z
 
   syntax step-≡ x y≡z x≡y = x ≡⟨ x≡y ⟩ y≡z
 
@@ -544,6 +544,14 @@ module Derived-definitions-and-properties
   finally _ _ x≡y = x≡y
 
   syntax finally x y x≡y = x ≡⟨ x≡y ⟩∎ y ∎
+
+  -- The equational reasoning combinators are inlined to avoid
+  -- overheads.
+
+  {-# INLINE _∎      #-}
+  {-# INLINE step-≡  #-}
+  {-# INLINE _≡⟨⟩_   #-}
+  {-# INLINE finally #-}
 
   -- A minor variant of Christine Paulin-Mohring's version of the J
   -- rule.
