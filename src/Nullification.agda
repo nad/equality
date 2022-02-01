@@ -626,12 +626,14 @@ private
     {A₂ : Type a₂} {P₂ : A₂ → Type a₂} {B₂ : Type a₂} →
     (f : A₁ → A₂) → (∀ x → P₂ (f x) ↠ P₁ x) → (B₁ → B₂) →
     Rec {P = P₁} {Q = λ _ → ⊤} _ B₁ (Nullification′ P₂ B₂)
-  Nullification′-map-body A₁→A₂ P₂↠P₁ B₁→B₂ = λ where
-    .[]ʳ → [_] ∘ B₁→B₂
+  Nullification′-map-body A₁→A₂ P₂↠P₁ B₁→B₂ = body
+    where
+    body : Rec _ _ _
+    body .[]ʳ = [_] ∘ B₁→B₂
 
-    .extʳ {x = x} f _ → ext (A₁→A₂ x) (f ∘ _↠_.to (P₂↠P₁ x)) _
+    body .extʳ {x = x} f _ = ext (A₁→A₂ x) (f ∘ _↠_.to (P₂↠P₁ x)) _
 
-    .ext≡ʳ {x = x} {y = y} f →
+    body .ext≡ʳ {x = x} {y = y} f =
       ext (A₁→A₂ x) (f ∘ _↠_.to (P₂↠P₁ x)) _       ≡⟨ ext≡ ⟩
       f (_↠_.to (P₂↠P₁ x) (_↠_.from (P₂↠P₁ x) y))  ≡⟨ cong f $ _↠_.right-inverse-of (P₂↠P₁ x) _ ⟩∎
       f y                                          ∎
