@@ -2,7 +2,7 @@
 -- Nullification
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe --save-metas #-}
 
 -- Partly based on "Modalities in Homotopy Type Theory" by Rijke,
 -- Shulman and Spitters.
@@ -16,6 +16,7 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 
 open import Prelude as P
 
+import Bijection equality-with-J as B
 open import Equality.Path.Isomorphisms eq as I hiding (ext)
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
@@ -29,10 +30,10 @@ open import Suspension eq as Susp using (Susp)
 
 private
   variable
-    a a₁ a₂ p : Level
-    A B       : Type a
-    P Q       : A → Type p
-    f g h x y : A
+    a a₁ a₂ ℓ p : Level
+    A B         : Type a
+    P Q         : A → Type p
+    f g h x y   : A
 
 ------------------------------------------------------------------------
 -- Nullification
@@ -670,3 +671,706 @@ Nullification-map :
   Nullification P₁ B₁ → Nullification P₂ B₂
 Nullification-map A₁→A₂ P₂↠P₁ B₁→B₂ =
   rec (Nullification-map-body A₁→A₂ P₂↠P₁ B₁→B₂)
+
+------------------------------------------------------------------------
+-- The lemma Nullification-↑-↑-≃
+
+private abstract
+
+  -- A lemma used below.
+
+  sym-ext≡-ext≡′ :
+    {f : P x → Nullification′ P B}
+    {eq : h ≡ id}
+    (g : Nullification′ P B → Nullification′ P B)
+    (hyp : ∀ x → g (f x) ≡ f x) →
+    trans
+      (sym $
+       trans
+         (trans
+            (ext≡ {x = x} {y = h y} {g = g ∘ f ∘ h})
+            (cong (g ∘ f) $ ext⁻¹ eq (h y)))
+         (cong (g ∘ f) $ ext⁻¹ eq y))
+      (trans
+         (trans
+            (cong (flip (ext _) _) $ cong ((g ∘ f) ∘_) eq)
+            (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
+         (ext≡ {x = x} {y = y} {g = f})) ≡
+    hyp y
+  sym-ext≡-ext≡′ {x = x} {y = y} {f = f} g hyp =
+    elim₁
+      (λ {h} eq →
+         trans
+           (sym $
+            trans
+              (trans (ext≡ {x = x} {y = h y} {g = g ∘ f ∘ h})
+                 (cong (g ∘ f) $ ext⁻¹ eq (h y)))
+              (cong (g ∘ f) $ ext⁻¹ eq y))
+           (trans
+              (trans
+                 (cong (flip (ext _) _) $ cong ((g ∘ f) ∘_) eq)
+                 (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
+              (ext≡ {x = x} {y = y} {g = f})) ≡
+         hyp y)
+      (trans
+         (sym $
+          trans
+            (trans
+               (ext≡ {x = x} {y = y} {g = g ∘ f})
+               (cong (g ∘ f) $ ext⁻¹ (refl id) y))
+            (cong (g ∘ f) $ ext⁻¹ (refl id) y))
+         (trans
+            (trans
+               (cong (flip (ext x) _) $
+                cong ((g ∘ f) ∘_) $ refl id)
+               (cong (flip (ext x) _) $ ⟨ext⟩ hyp))
+            (ext≡ {x = x} {y = y} {g = f}))          ≡⟨ cong₂ trans
+                                                          (cong sym $
+                                                           trans (cong₂ trans
+                                                                    (trans (cong (trans _) $
+                                                                            trans (cong (cong _) $ ext⁻¹-refl _) $
+                                                                            cong-refl _) $
+                                                                     trans-reflʳ _)
+                                                                    (trans (cong (cong _) $ ext⁻¹-refl _) $
+                                                                     cong-refl _)) $
+                                                           trans-reflʳ _)
+                                                          (cong (flip trans _) $
+                                                           trans (cong (flip trans _) $
+                                                                  trans (cong (cong _) $ cong-refl _) $
+                                                                  cong-refl _) $
+                                                           trans-reflˡ _) ⟩
+       trans
+         (sym $ ext≡ {x = x} {y = y} {g = g ∘ f})
+         (trans (cong (flip (ext x) _) $ ⟨ext⟩ hyp)
+            (ext≡ {x = x} {y = y} {g = f}))          ≡⟨ sym-ext≡-ext≡ ⟩∎
+
+       hyp y                                         ∎)
+      _
+
+-- Helper functions used to implement Nullification-↑-↑-≃.
+
+private
+  module Nullification-↑-↑-≃
+    {ℓ : Level} {A B : Type a} {P : A → Type a} where
+
+    ↑≃ : {A : Type a} → ↑ ℓ A ≃ A
+    ↑≃ = Eq.↔⇒≃ B.↑↔
+
+    mutual
+
+      to″ =
+        Nullification′-map-body
+          (⊎-map lower lower)
+          P.[ (λ _ → _≃_.surjection $ inverse ↑≃)
+            , (λ _ → _≃_.surjection $ inverse $ Susp.cong-≃ ↑≃)
+            ]
+          lower
+
+      -- The proof to′ is a variant of to″ that is partly blocked.
+
+      to′ : Block "to" → Rec _ _ _
+      to′ _ .[]ʳ                   = to″ .[]ʳ
+      to′ _ .extʳ {x = x}          = to″ .extʳ {x = x}
+      to′ ⊠ .ext≡ʳ {x = x} {y = y} = to″ .ext≡ʳ {x = x} {y = y}
+
+      to :
+        Block "to" →
+        Nullification {A = ↑ ℓ A} (↑ ℓ ∘ P ∘ lower) (↑ ℓ B) →
+        Nullification P B
+      to b = rec (to′ b)
+
+    mutual
+
+      from″ =
+        Nullification-map-body
+          lift
+          (λ _ → _≃_.surjection ↑≃)
+          lift
+
+      -- The proof from′ is a variant of from″ that is partly blocked.
+
+      from′ : Block "from" → Rec _ _ _
+      from′ _ .[]ʳ                   = from″ .[]ʳ
+      from′ _ .extʳ {x = x}          = from″ .extʳ {x = x}
+      from′ ⊠ .ext≡ʳ {x = x} {y = y} = from″ .ext≡ʳ {x = x} {y = y}
+
+      from :
+        Block "from" →
+        Nullification P B →
+        Nullification {A = ↑ ℓ A} (↑ ℓ ∘ P ∘ lower) (↑ ℓ B)
+      from b = rec (from′ b)
+
+    abstract
+
+      right-eq :
+        {A : Type a} →
+        Susp.map lower ∘ Susp.map (lift {ℓ = ℓ}) ≡ id {A = Susp A}
+      right-eq = ⟨ext⟩ (_≃_.right-inverse-of (Susp.cong-≃ ↑≃))
+
+      right-lemma :
+        _≃_.right-inverse-of (Susp.cong-≃ ↑≃) y ≡ ext⁻¹ right-eq y
+      right-lemma = sym $ cong-ext (_≃_.right-inverse-of (Susp.cong-≃ ↑≃))
+
+      to-from-ext :
+        ∀ b x f →
+        (∀ y → to b (from b (f y)) ≡ f y) →
+        to b (from b (ext x f _)) ≡ ext x f _
+      to-from-ext b (inj₁ x) f hyp =
+        ext (inj₁ x) (to b ∘ from b ∘ f) _  ≡⟨ cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp ⟩∎
+        ext (inj₁ x) f _                    ∎
+      to-from-ext b (inj₂ x) f hyp =
+        ext (inj₂ x)
+          (to b ∘ from b ∘ f ∘ Susp.map lower ∘ Susp.map lift)
+          _                                                     ≡⟨ cong (flip (ext (inj₂ x)) _) $ cong ((to b ∘ from b ∘ f) ∘_)
+                                                                   right-eq ⟩
+
+        ext (inj₂ x) (to b ∘ from b ∘ f) _                      ≡⟨ cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp ⟩∎
+
+        ext (inj₂ x) f _                                        ∎
+
+      to-from-ext≡ :
+        ∀ b x f y (hyp : ∀ y → to b (from b (f y)) ≡ f y) →
+        subst (λ x → to b (from b x) ≡ x) ext≡ (to-from-ext b x f hyp) ≡
+        hyp y
+      to-from-ext≡ b (inj₁ x) f y hyp =
+        subst (λ x → to b (from b x) ≡ x)
+          (ext≡ {x = inj₁ x} {y = y} {g = f})
+          (to-from-ext b (inj₁ x) f hyp)                                ≡⟨⟩
+
+        subst (λ x → to b (from b x) ≡ x)
+          (ext≡ {x = inj₁ x} {y = y} {g = f})
+          (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)                    ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+        trans
+          (sym $ cong (to b ∘ from b) $
+           ext≡ {x = inj₁ x} {y = y} {g = f})
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (cong id $ ext≡ {x = inj₁ x} {y = y} {g = f}))             ≡⟨ cong₂ trans
+                                                                             (cong sym $ sym $ cong-∘ _ _ _)
+                                                                             (cong (trans _) $ sym $ cong-id _) ⟩
+        trans
+          (sym $ cong (to b) $ cong (from b) $
+           ext≡ {x = inj₁ x} {y = y} {g = f})
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $ cong (cong (to b)) $
+                                                                           unblock b
+                                                                             (λ b →
+                                                                                cong (from b) ext≡ ≡
+                                                                                trans ext≡ (cong (from b ∘ f) (refl y))) $
+                                                                           rec-ext≡ {r = from′ ⊠} ⟩
+        trans
+          (sym $ cong (to b) $
+           trans
+             (ext≡ {x = inj₁ (lift x)} {y = lift y}
+                {g = from b ∘ f ∘ lower {ℓ = ℓ}}) $
+           cong (from b ∘ f) $ refl y)
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $ cong (cong _) $
+                                                                           trans (cong (trans _) $ cong-refl _) $
+                                                                           trans-reflʳ _ ⟩
+        trans
+          (sym $ cong (to b) $
+           ext≡ {x = inj₁ (lift x)} {y = lift y}
+             {g = from b ∘ f ∘ lower {ℓ = ℓ}})
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $
+                                                                           unblock b
+                                                                             (λ b →
+                                                                                cong (to b)
+                                                                                  (ext≡ {x = inj₁ (lift x)} {y = lift y}
+                                                                                     {g = from b ∘ f ∘ lower {ℓ = ℓ}}) ≡
+                                                                                trans (ext≡ {x = inj₁ x} {y = y} {g = to b ∘ from b ∘ f})
+                                                                                  (cong (to b ∘ from b ∘ f ∘ lower {ℓ = ℓ}) $
+                                                                                   _≃_.left-inverse-of ↑≃ (lift y))) $
+                                                                           rec-ext≡ {r = to′ ⊠} ⟩
+        trans
+          (sym $
+           trans (ext≡ {x = inj₁ x} {y = y} {g = to b ∘ from b ∘ f}) $
+           cong (to b ∘ from b ∘ f ∘ lower {ℓ = ℓ}) $
+           _≃_.left-inverse-of ↑≃ (lift y))
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $ cong (trans _) $
+                                                                           trans (sym $ cong-∘ _ _ _) $
+                                                                           cong (cong _) $
+                                                                           _≃_.left-right-lemma ↑≃ _ ⟩
+        trans
+          (sym $
+           trans (ext≡ {x = inj₁ x} {y = y} {g = to b ∘ from b ∘ f}) $
+           cong (to b ∘ from b ∘ f) $ _≃_.right-inverse-of ↑≃ y)
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨⟩
+        trans
+          (sym $
+           trans (ext≡ {x = inj₁ x} {y = y} {g = to b ∘ from b ∘ f}) $
+           cong (to b ∘ from b ∘ f) $ refl y)
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $
+                                                                           trans (cong (trans _) $ cong-refl _) $
+                                                                           trans-reflʳ _ ⟩
+        trans
+          (sym $ ext≡ {x = inj₁ x} {y = y} {g = to b ∘ from b ∘ f})
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ sym-ext≡-ext≡ ⟩∎
+
+        hyp y                                                           ∎
+
+      to-from-ext≡ b (inj₂ x) f y hyp =
+        subst (λ x → to b (from b x) ≡ x)
+          (ext≡ {x = inj₂ x} {y = y} {g = f})
+          (to-from-ext b (inj₂ x) f hyp)                                ≡⟨⟩
+
+        subst (λ x → to b (from b x) ≡ x)
+          (ext≡ {x = inj₂ x} {y = y} {g = f})
+          (trans
+             (cong (flip (ext (inj₂ x)) _) $
+              cong ((to b ∘ from b ∘ f) ∘_) right-eq)
+             (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))                ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+        trans
+          (sym $ cong (to b ∘ from b) $
+           ext≡ {x = inj₂ x} {y = y} {g = f})
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((to b ∘ from b ∘ f) ∘_) right-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (cong id (ext≡ {x = inj₂ x} {y = y} {g = f})))             ≡⟨ cong₂ (trans ∘ sym)
+                                                                             (sym $ cong-∘ _ _ _)
+                                                                             (cong (trans _) $ sym $ cong-id _) ⟩
+        trans
+          (sym $ cong (to b) $ cong (from b) $
+           ext≡ {x = inj₂ x} {y = y} {g = f})
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((to b ∘ from b ∘ f) ∘_) right-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (ext≡ {x = inj₂ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong (sym ∘ cong (to b)) $
+                                                                           unblock b
+                                                                             (λ b →
+                                                                                cong (from b)
+                                                                                  (ext≡ {x = inj₂ x} {y = y} {g = f}) ≡
+                                                                                trans
+                                                                                  (ext≡
+                                                                                     {x = inj₂ (lift x)}
+                                                                                     {y = Susp.map (lift {ℓ = ℓ}) y}
+                                                                                     {g = from b ∘ f ∘ Susp.map (lower {ℓ = ℓ})})
+                                                                                  (cong (from b ∘ f) $
+                                                                                   _≃_.right-inverse-of (Susp.cong-≃ ↑≃) y)) $
+                                                                           rec-ext≡ {r = from′ ⊠} ⟩
+        trans
+          (sym $ cong (to b) $
+           trans
+             (ext≡
+                {x = inj₂ (lift x)}
+                {y = Susp.map (lift {ℓ = ℓ}) y}
+                {g = from b ∘ f ∘ Susp.map (lower {ℓ = ℓ})})
+             (cong (from b ∘ f) $
+              _≃_.right-inverse-of (Susp.cong-≃ ↑≃) y))
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((to b ∘ from b ∘ f) ∘_) right-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (ext≡ {x = inj₂ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $
+                                                                           trans (cong-trans _ _ _) $
+                                                                           cong (trans _) $ cong-∘ _ _ _ ⟩
+        trans
+          (sym $
+           trans
+             (cong (to b) $
+              ext≡
+                {x = inj₂ (lift x)}
+                {y = Susp.map (lift {ℓ = ℓ}) y}
+                {g = from b ∘ f ∘ Susp.map (lower {ℓ = ℓ})})
+             (cong (to b ∘ from b ∘ f) $
+              _≃_.right-inverse-of (Susp.cong-≃ ↑≃) y))
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((to b ∘ from b ∘ f) ∘_) right-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (ext≡ {x = inj₂ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $ cong (flip trans _) $
+                                                                           unblock b
+                                                                             (λ b →
+                                                                                cong (to b)
+                                                                                  (ext≡
+                                                                                     {x = inj₂ (lift x)}
+                                                                                     {y = Susp.map (lift {ℓ = ℓ}) y}
+                                                                                     {g = from b ∘ f ∘ Susp.map (lower {ℓ = ℓ})}) ≡
+                                                                                trans
+                                                                                  (ext≡
+                                                                                     {x = inj₂ x}
+                                                                                     {y = Susp.map (lower {ℓ = ℓ}) (Susp.map lift y)}
+                                                                                     {g = to b ∘ from b ∘ f ∘
+                                                                                          Susp.map (lower {ℓ = ℓ}) ∘ Susp.map lift})
+                                                                                  (cong (to b ∘ from b ∘ f ∘ Susp.map (lower {ℓ = ℓ})) $
+                                                                                   _≃_.left-inverse-of (Susp.cong-≃ ↑≃) (Susp.map lift y))) $
+                                                                           rec-ext≡ {r = to′ ⊠} ⟩
+        trans
+          (sym $
+           trans
+             (trans
+                (ext≡
+                   {x = inj₂ x}
+                   {y = Susp.map (lower {ℓ = ℓ}) (Susp.map lift y)}
+                   {g = to b ∘ from b ∘ f ∘
+                        Susp.map (lower {ℓ = ℓ}) ∘ Susp.map lift})
+                (cong (to b ∘ from b ∘ f ∘ Susp.map (lower {ℓ = ℓ})) $
+                 _≃_.left-inverse-of (Susp.cong-≃ ↑≃)
+                   (Susp.map lift y)))
+             (cong (to b ∘ from b ∘ f) $
+              _≃_.right-inverse-of (Susp.cong-≃ ↑≃) y))
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((to b ∘ from b ∘ f) ∘_) right-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (ext≡ {x = inj₂ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $
+                                                                           cong₂ trans
+                                                                             (cong (trans _) $
+                                                                              trans (sym $ cong-∘ _ _ _) $
+                                                                              cong (cong (to b ∘ from b ∘ f)) $
+                                                                              trans (_≃_.left-right-lemma (Susp.cong-≃ ↑≃) _)
+                                                                              right-lemma)
+                                                                             (cong (cong _) right-lemma) ⟩
+        trans
+          (sym $
+           trans
+             (trans
+                (ext≡
+                   {x = inj₂ x}
+                   {y = Susp.map (lower {ℓ = ℓ}) (Susp.map lift y)}
+                   {g = to b ∘ from b ∘ f ∘
+                        Susp.map (lower {ℓ = ℓ}) ∘ Susp.map lift})
+                (cong (to b ∘ from b ∘ f) $
+                 ext⁻¹ right-eq
+                   (Susp.map (lower {ℓ = ℓ}) (Susp.map lift y))))
+             (cong (to b ∘ from b ∘ f) $ ext⁻¹ right-eq y))
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((to b ∘ from b ∘ f) ∘_) right-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (ext≡ {x = inj₂ x} {y = y} {g = f}))                       ≡⟨ sym-ext≡-ext≡′ (to b ∘ from b) hyp ⟩∎
+
+        hyp y                                                           ∎
+
+      to-from : ∀ b x → to b (from b x) ≡ x
+      to-from b = elim λ where
+        .[]ʳ        → refl ∘ [_]
+        .extʳ hyp _ → to-from-ext b _ _ hyp
+        .ext≡ʳ hyp  → to-from-ext≡ b _ _ _ hyp
+
+      left-eq :
+        {A : Type a} →
+        Susp.map lift ∘ Susp.map lower ≡ id {A = Susp (↑ ℓ A)}
+      left-eq = ⟨ext⟩ (_≃_.left-inverse-of (Susp.cong-≃ ↑≃))
+
+      left-lemma :
+        _≃_.left-inverse-of (Susp.cong-≃ ↑≃) y ≡ ext⁻¹ left-eq y
+      left-lemma = sym $ cong-ext (_≃_.left-inverse-of (Susp.cong-≃ ↑≃))
+
+      from-to-ext :
+        ∀ b x f →
+        (∀ y → from b (to b (f y)) ≡ f y) →
+        from b (to b (ext x f _)) ≡ ext x f _
+      from-to-ext b (inj₁ x) f hyp =
+        ext (inj₁ x) (from b ∘ to b ∘ f) _  ≡⟨ cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp ⟩∎
+        ext (inj₁ x) f _                    ∎
+      from-to-ext b (inj₂ x) f hyp =
+        ext (inj₂ x)
+          (from b ∘ to b ∘ f ∘ Susp.map lift ∘ Susp.map lower)
+          _                                                     ≡⟨ cong (flip (ext (inj₂ x)) _) $ cong ((from b ∘ to b ∘ f) ∘_)
+                                                                   left-eq ⟩
+
+        ext (inj₂ x) (from b ∘ to b ∘ f) _                      ≡⟨ cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp ⟩∎
+
+        ext (inj₂ x) f _                                        ∎
+
+      cong-to-ext≡-inj₁ :
+        ∀ b →
+        cong (to b) (ext≡ {x = inj₁ x} {y = y} {g = f}) ≡
+        trans
+          (ext≡ {x = inj₁ (lower x)} {y = lower y}
+             {g = to b ∘ f ∘ lift {ℓ = ℓ}})
+          (cong (to b ∘ f) $ _≃_.left-inverse-of ↑≃ y)
+      cong-to-ext≡-inj₁ ⊠ = rec-ext≡ {r = to′ ⊠}
+
+      cong-from-ext≡-inj₁ :
+        ∀ b f →
+        cong (from b)
+          (ext≡ {x = inj₁ (lower x)} {y = lower y}
+             {g = to b ∘ f ∘ lift {ℓ = ℓ}}) ≡
+        trans
+          (ext≡ {x = inj₁ x} {y = y} {g = from b ∘ to b ∘ f})
+          (cong (from b ∘ to b ∘ f ∘ lift {ℓ = ℓ}) $
+           refl (lower y))
+      cong-from-ext≡-inj₁ ⊠ _ = rec-ext≡ {r = from′ ⊠}
+
+      cong-to-ext≡-inj₂ :
+        ∀ b →
+        cong (to b) (ext≡ {x = inj₂ x} {y = y} {g = f}) ≡
+        trans
+          (ext≡
+             {x = inj₂ (lower x)}
+             {y = Susp.map (lower {ℓ = ℓ}) y}
+             {g = to b ∘ f ∘ Susp.map (lift {ℓ = ℓ})})
+          (cong (to b ∘ f) $ _≃_.left-inverse-of (Susp.cong-≃ ↑≃) y)
+      cong-to-ext≡-inj₂ ⊠ = rec-ext≡ {r = to′ ⊠}
+
+      cong-from-ext≡-inj₂ :
+        ∀ b f y →
+        cong (from b)
+          (ext≡
+             {x = inj₂ (lower x)}
+             {y = Susp.map (lower {ℓ = ℓ}) y}
+             {g = to b ∘ f ∘ Susp.map (lift {ℓ = ℓ})}) ≡
+        trans
+          (ext≡
+             {x = inj₂ x}
+             {y = Susp.map (lift {ℓ = ℓ}) (Susp.map lower y)}
+             {g = from b ∘ to b ∘ f ∘
+                  Susp.map (lift {ℓ = ℓ}) ∘ Susp.map lower})
+          (cong (from b ∘ to b ∘ f ∘ Susp.map (lift {ℓ = ℓ})) $
+           _≃_.right-inverse-of (Susp.cong-≃ ↑≃) (Susp.map lower y))
+      cong-from-ext≡-inj₂ ⊠ _ _ = rec-ext≡ {r = from′ ⊠}
+
+      from-to-ext≡ :
+        ∀ b x f y (hyp : ∀ y → from b (to b (f y)) ≡ f y) →
+        subst (λ x → from b (to b x) ≡ x) ext≡ (from-to-ext b x f hyp) ≡
+        hyp y
+      from-to-ext≡ b (inj₁ x) f y hyp =
+        subst (λ x → from b (to b x) ≡ x)
+          (ext≡ {x = inj₁ x} {y = y} {g = f})
+          (from-to-ext b (inj₁ x) f hyp)                                ≡⟨⟩
+
+        subst (λ x → from b (to b x) ≡ x)
+          (ext≡ {x = inj₁ x} {y = y} {g = f})
+          (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)                    ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+        trans
+          (sym $ cong (from b ∘ to b) $
+           ext≡ {x = inj₁ x} {y = y} {g = f})
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (cong id $ ext≡ {x = inj₁ x} {y = y} {g = f}))             ≡⟨ cong₂ trans
+                                                                             (cong sym $ sym $ cong-∘ _ _ _)
+                                                                             (cong (trans _) $ sym $ cong-id _) ⟩
+        trans
+          (sym $ cong (from b) $ cong (to b) $
+           ext≡ {x = inj₁ x} {y = y} {g = f})
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $ cong (cong (from b)) $
+                                                                           cong-to-ext≡-inj₁ b ⟩
+        trans
+          (sym $ cong (from b) $
+           trans
+             (ext≡ {x = inj₁ (lower x)} {y = lower y}
+                {g = to b ∘ f ∘ lift {ℓ = ℓ}}) $
+           cong (to b ∘ f) $ _≃_.left-inverse-of ↑≃ y)
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨⟩
+
+        trans
+          (sym $ cong (from b) $
+           trans
+             (ext≡ {x = inj₁ (lower x)} {y = lower y}
+                {g = to b ∘ f ∘ lift {ℓ = ℓ}}) $
+           cong (to b ∘ f ∘ lift ∘ lower) $
+           _≃_.left-inverse-of ↑≃ y)
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $ cong (cong _) $ cong (trans _) $
+                                                                           trans (sym $ cong-∘ _ _ _) $
+                                                                           cong (cong _) $
+                                                                           _≃_.left-right-lemma ↑≃ _ ⟩
+        trans
+          (sym $ cong (from b) $
+           trans
+             (ext≡ {x = inj₁ (lower x)} {y = lower y}
+                {g = to b ∘ f ∘ lift {ℓ = ℓ}}) $
+           cong (to b ∘ f ∘ lift) $
+           _≃_.right-inverse-of ↑≃ (lower y))
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨⟩
+
+        trans
+          (sym $ cong (from b) $
+           trans
+             (ext≡ {x = inj₁ (lower x)} {y = lower y}
+                {g = to b ∘ f ∘ lift {ℓ = ℓ}}) $
+           cong (to b ∘ f ∘ lift) $ refl (lower y))
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $ cong (cong _) $
+                                                                           trans (cong (trans _) $ cong-refl _) $
+                                                                           trans-reflʳ _ ⟩
+        trans
+          (sym $ cong (from b) $
+           ext≡ {x = inj₁ (lower x)} {y = lower y}
+             {g = to b ∘ f ∘ lift {ℓ = ℓ}})
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $
+                                                                           cong-from-ext≡-inj₁ b f ⟩
+        trans
+          (sym $
+           trans (ext≡ {x = inj₁ x} {y = y} {g = from b ∘ to b ∘ f}) $
+           cong (from b ∘ to b ∘ f ∘ lift {ℓ = ℓ}) $ refl (lower y))
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ cong (flip trans _) $ cong sym $
+                                                                           trans (cong (trans _) $ cong-refl _) $
+                                                                           trans-reflʳ _ ⟩
+        trans
+          (sym (ext≡ {x = inj₁ x} {y = y} {g = from b ∘ to b ∘ f}))
+          (trans (cong (flip (ext (inj₁ x)) _) $ ⟨ext⟩ hyp)
+             (ext≡ {x = inj₁ x} {y = y} {g = f}))                       ≡⟨ sym-ext≡-ext≡ ⟩∎
+
+        hyp y                                                           ∎
+
+      from-to-ext≡ b (inj₂ x) f y hyp =
+        subst (λ x → from b (to b x) ≡ x)
+          (ext≡ {x = inj₂ x} {y = y} {g = f})
+          (from-to-ext b (inj₂ x) f hyp)                             ≡⟨⟩
+
+        subst (λ x → from b (to b x) ≡ x)
+          (ext≡ {x = inj₂ x} {y = y} {g = f})
+          (trans
+             (cong (flip (ext (inj₂ x)) _) $
+              cong ((from b ∘ to b ∘ f) ∘_) left-eq)
+             (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))             ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+        trans
+          (sym $ cong (from b ∘ to b) $
+           ext≡ {x = inj₂ x} {y = y} {g = f})
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((from b ∘ to b ∘ f) ∘_) left-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (cong id (ext≡ {x = inj₂ x} {y = y} {g = f})))          ≡⟨ cong₂ (trans ∘ sym)
+                                                                          (sym $ cong-∘ _ _ _)
+                                                                          (cong (trans _) $ sym $ cong-id _) ⟩
+        trans
+          (sym $ cong (from b) $ cong (to b) $
+           ext≡ {x = inj₂ x} {y = y} {g = f})
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((from b ∘ to b ∘ f) ∘_) left-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (ext≡ {x = inj₂ x} {y = y} {g = f}))                    ≡⟨ cong (flip trans _) $ cong sym $ cong (cong (from b)) $
+                                                                        cong-to-ext≡-inj₂ b ⟩
+        trans
+          (sym $ cong (from b) $
+           trans
+             (ext≡
+                {x = inj₂ (lower x)}
+                {y = Susp.map (lower {ℓ = ℓ}) y}
+                {g = to b ∘ f ∘ Susp.map (lift {ℓ = ℓ})})
+             (cong (to b ∘ f) $
+              _≃_.left-inverse-of (Susp.cong-≃ ↑≃) y))
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((from b ∘ to b ∘ f) ∘_) left-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (ext≡ {x = inj₂ x} {y = y} {g = f}))                    ≡⟨ cong (flip trans _) $ cong sym $
+                                                                        trans (cong-trans _ _ _) $
+                                                                        cong (trans _) $ cong-∘ _ _ _ ⟩
+        trans
+          (sym $
+           trans
+             (cong (from b) $
+              ext≡
+                {x = inj₂ (lower x)}
+                {y = Susp.map (lower {ℓ = ℓ}) y}
+                {g = to b ∘ f ∘ Susp.map (lift {ℓ = ℓ})})
+             (cong (from b ∘ to b ∘ f) $
+              _≃_.left-inverse-of (Susp.cong-≃ ↑≃) y))
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((from b ∘ to b ∘ f) ∘_) left-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (ext≡ {x = inj₂ x} {y = y} {g = f}))                    ≡⟨ cong (flip trans _) $ cong sym $ cong (flip trans _) $
+                                                                        cong-from-ext≡-inj₂ b f y ⟩
+        trans
+          (sym $
+           trans
+             (trans
+                (ext≡
+                   {x = inj₂ x}
+                   {y = Susp.map (lift {ℓ = ℓ}) (Susp.map lower y)}
+                   {g = from b ∘ to b ∘ f ∘
+                        Susp.map (lift {ℓ = ℓ}) ∘ Susp.map lower})
+                (cong (from b ∘ to b ∘ f ∘ Susp.map (lift {ℓ = ℓ})) $
+                 _≃_.right-inverse-of (Susp.cong-≃ ↑≃)
+                   (Susp.map lower y)))
+             (cong (from b ∘ to b ∘ f) $
+              _≃_.left-inverse-of (Susp.cong-≃ ↑≃) y))
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((from b ∘ to b ∘ f) ∘_) left-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (ext≡ {x = inj₂ x} {y = y} {g = f}))                    ≡⟨ cong (flip trans _) $ cong sym $
+                                                                        cong₂ trans
+                                                                          (cong (trans _) $
+                                                                           trans (sym $ cong-∘ _ _ _) $
+                                                                           cong (cong (from b ∘ to b ∘ f)) $
+                                                                           trans (_≃_.right-left-lemma (Susp.cong-≃ ↑≃) _)
+                                                                           left-lemma)
+                                                                          (cong (cong _) left-lemma) ⟩
+        trans
+          (sym $
+           trans
+             (trans
+                (ext≡
+                   {x = inj₂ x}
+                   {y = Susp.map (lift {ℓ = ℓ}) (Susp.map lower y)}
+                   {g = from b ∘ to b ∘ f ∘
+                        Susp.map (lift {ℓ = ℓ}) ∘ Susp.map lower})
+                (cong (from b ∘ to b ∘ f) $
+                 ext⁻¹ left-eq
+                   (Susp.map (lift {ℓ = ℓ}) (Susp.map lower y))))
+             (cong (from b ∘ to b ∘ f) $ ext⁻¹ left-eq y))
+          (trans
+             (trans
+                (cong (flip (ext (inj₂ x)) _) $
+                 cong ((from b ∘ to b ∘ f) ∘_) left-eq)
+                (cong (flip (ext (inj₂ x)) _) $ ⟨ext⟩ hyp))
+             (ext≡ {x = inj₂ x} {y = y} {g = f}))                    ≡⟨ sym-ext≡-ext≡′ (from b ∘ to b) hyp ⟩∎
+
+        hyp y                                                        ∎
+
+      from-to : ∀ b x → from b (to b x) ≡ x
+      from-to b = elim λ where
+        .[]ʳ        → refl ∘ [_]
+        .extʳ hyp _ → from-to-ext b _ _ hyp
+        .ext≡ʳ hyp  → from-to-ext≡ b _ _ _ hyp
+
+-- Nullification {A = ↑ ℓ A} (↑ ℓ ∘ P ∘ lower) (↑ ℓ B) is equivalent
+-- to Nullification {A = A} P B.
+--
+-- This lemma could be replaced by
+--
+--   Nullification-cong
+--     (Eq.↔⇒≃ B.↑↔) (λ _ → Eq.↔⇒≃ B.↑↔) (Eq.↔⇒≃ B.↑↔),
+--
+-- given a suitable implementation of Nullification-cong.
+
+Nullification-↑-↑-≃ :
+  Nullification {A = ↑ ℓ A} (↑ ℓ ∘ P ∘ lower) (↑ ℓ B) ≃
+  Nullification {A = A} P B
+Nullification-↑-↑-≃ =
+  block λ b → Eq.↔→≃ (to b) (from b) (to-from b) (from-to b)
+  where
+  open Nullification-↑-↑-≃
+
+_ :
+  _≃_.to (Nullification-↑-↑-≃ {ℓ = ℓ} {P = P} {B = B}) ∘ [_] ≡
+  [_] ∘ lower
+_ = refl _
+
+_ :
+  _≃_.from (Nullification-↑-↑-≃ {ℓ = ℓ} {P = P} {B = B}) ∘ [_] ≡
+  [_] ∘ lift
+_ = refl _
