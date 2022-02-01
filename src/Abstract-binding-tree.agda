@@ -1614,10 +1614,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
     open ′≃
 
   Args′≃Args : {asˢ : Argsˢ vs} → Args′ asˢ ≃ Args asˢ
-  Args′≃Args = Eq.↔→≃
+  Args′≃Args {asˢ = asˢ} = Eq.↔→≃
     to-Args
     (from-Args _)
-    (to-from-Args _)
+    (to-from-Args asˢ)
     from-to-Args
     where
     open ′≃
