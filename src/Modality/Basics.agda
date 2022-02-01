@@ -2891,16 +2891,20 @@ module Modality (M : Modality a) where
 
   -- A simple consequence of the definition of accessibility.
 
-  Accessible→Modal⇔Null :
+  Accessible→Modal≃Null :
     Extensionality a a →
     ((_ , P , _) : Accessible M) →
-    Modal A ⇔ P -Null A
-  Accessible→Modal⇔Null {A = A} ext (_ , P , acc) =
-    Modal A                                               ↝⟨ acc A ⟩
-
+    Modal A ≃ P -Null A
+  Accessible→Modal≃Null {A = A} ext (_ , P , acc) =
+    Modal A                                               ↝⟨ _↠_.from
+                                                               (Eq.≃↠⇔
+                                                                  (Modal-propositional ext)
+                                                                  (Π-closure ext 1 λ _ →
+                                                                   PS.Is-∞-extendable-along-propositional ext))
+                                                               (acc A) ⟩
     (∀ x →
        Is-∞-extendable-along-[ (λ (_ : P x) → lift tt) ]
-         (λ (_ : ↑ a ⊤) → A))                             ↔⟨ PS.Π-Is-∞-extendable-along≃Null ext ⟩□
+         (λ (_ : ↑ a ⊤) → A))                             ↝⟨ PS.Π-Is-∞-extendable-along≃Null ext ⟩□
 
     P -Null A                                             □
 
