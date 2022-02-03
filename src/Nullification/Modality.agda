@@ -17,12 +17,14 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+import Bijection equality-with-J as B
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Path-split equality-with-J as PS
   using (_-Null_; Is-∞-extendable-along-[_])
 open import Function-universe equality-with-J as F hiding (_∘_)
+import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import Localisation eq hiding (ext)
 open import Modality.Basics equality-with-J
@@ -31,9 +33,10 @@ open import Univalence-axiom equality-with-J
 
 private
   variable
-    a p : Level
-    A   : Type a
-    P   : A → Type p
+    a ℓ p   : Level
+    A B C D : Type a
+    P       : A → Type p
+    i       : A
 
 ------------------------------------------------------------------------
 -- The nullification modality
@@ -207,3 +210,236 @@ Topological≃≡ :
          M ≡ Nullification-modality P) →
     ∀ x → Is-proposition (P x)
 Topological≃≡ univ M = Σ-cong (Accessible≃≡ univ M) λ _ → F.id
+
+----------------------------------------------------------------------
+-- The canonical accessible extension
+
+-- The canonical accessible extension of an accessible modality M.
+
+Canonical-accessible-extension :
+  (M : Modality a) →
+  Accessible M →
+  ∀ ℓ → Modality (a ⊔ ℓ)
+Canonical-accessible-extension M (I , P , _) ℓ =
+  Nullification-modality {A = ↑ ℓ I} (↑ ℓ ∘ P ∘ lower)
+
+-- Some properties that hold for canonical accessible extensions.
+
+module Canonical-accessible-extension
+  (M : Modality a)
+  (acc@(I , P , _) : Accessible M)
+  (ℓ : Level)
+  where
+
+  private
+    module M = Modality M
+
+  open Modality (Canonical-accessible-extension M acc ℓ) public
+
+  -- A : Type (a ⊔ ℓ) is modal exactly when it is null.
+
+  Modal≃Null :
+    {A : Type (a ⊔ ℓ)} →
+    Modal A ≃ P -Null A
+  Modal≃Null {A = A} =
+    (↑ ℓ ∘ P ∘ lower) -Null A                                            ↔⟨⟩
+    (((lift i) : ↑ ℓ I) → Is-equivalence (const ⦂ (A → ↑ ℓ (P i) → A)))  ↝⟨ (Π-cong ext B.↑↔ λ _ → F.id) ⟩
+    (∀ i → Is-equivalence (const ⦂ (A → ↑ ℓ (P i) → A)))                 ↔⟨⟩
+    (∀ i → Is-equivalence ((_∘ lower) ∘ const ⦂ (A → ↑ ℓ (P i) → A)))    ↝⟨ (∀-cong ext λ _ →
+                                                                             Is-equivalence≃Is-equivalence-∘ˡ
+                                                                               (_≃_.is-equivalence $ Eq.↔⇒≃ $ →-cong ext B.↑↔ F.id)
+                                                                               ext) ⟩
+    (∀ i → Is-equivalence (const ⦂ (A → P i → A)))                       ↔⟨⟩
+    P -Null A                                                            □
+
+  -- A : Type a is M-modal exactly when ↑ ℓ A is modal.
+
+  Modal≃Modal-↑ :
+    {A : Type a} →
+    M.Modal A ≃ Modal (↑ ℓ A)
+  Modal≃Modal-↑ {A = A} =
+    M.Modal A                                               ↝⟨ M.Accessible→Modal≃Null ext acc ⟩
+
+    P -Null A                                               ↔⟨⟩
+
+    (∀ i → Is-equivalence (const ⦂ (A → P i → A)))          ↝⟨ (∀-cong ext λ _ → inverse $
+                                                                Is-equivalence≃Is-equivalence-∘ʳ
+                                                                  (_≃_.is-equivalence $ Eq.↔⇒≃ $ inverse B.↑↔)
+                                                                  ext F.∘
+                                                                Is-equivalence≃Is-equivalence-∘ˡ
+                                                                  (_≃_.is-equivalence $ Eq.↔⇒≃ $ →-cong ext F.id B.↑↔)
+                                                                  ext) ⟩
+    ((i : I) →
+     Is-equivalence
+       ((lift ∘_) ∘ const ∘ lower ⦂
+        (↑ ℓ A → P i → ↑ ℓ A)))                             ↔⟨⟩
+
+    (∀ i → Is-equivalence (const ⦂ (↑ ℓ A → P i → ↑ ℓ A)))  ↔⟨⟩
+
+    P -Null ↑ ℓ A                                           ↝⟨ inverse Modal≃Null ⟩□
+
+    Modal (↑ ℓ A)                                           □
+
+  -- There is an equivalence between ◯ (↑ ℓ A) and M.◯ A.
+
+  ◯↑≃◯ : ◯ (↑ ℓ A) ≃ M.◯ A
+  ◯↑≃◯ {A = A} =
+    Nullification (↑ ℓ ∘ P ∘ lower) (↑ ℓ A)  ↝⟨ Nullification-↑-↑-≃ ⟩
+    Nullification P A                        ↝⟨ inverse $ Accessible→≃Nullification M acc .proj₁ _ ⟩□
+    M.◯ A                                    □
+
+  -- Two "computation rules" for ◯↑≃◯.
+
+  from-◯↑≃◯-η : _≃_.from (◯↑≃◯ {A = A}) ∘ M.η ≡ η ∘ lift
+  from-◯↑≃◯-η =
+    _≃_.from Nullification-↑-↑-≃ ∘
+    _≃_.to (Accessible→≃Nullification M acc .proj₁ _) ∘ M.η  ≡⟨ cong (_≃_.from Nullification-↑-↑-≃ ∘_) $
+                                                                Accessible→≃Nullification M acc .proj₂ _ ⟩
+
+    _≃_.from Nullification-↑-↑-≃ ∘ [_]                       ≡⟨⟩
+
+    η ∘ lift                                                 ∎
+
+  to-◯↑≃◯-η : _≃_.to (◯↑≃◯ {A = A}) ∘ η ≡ M.η ∘ lower
+  to-◯↑≃◯-η = ⟨ext⟩ λ x → _≃_.from-to ◯↑≃◯
+    (_≃_.from ◯↑≃◯ (M.η (lower x))  ≡⟨ cong (_$ lower x) from-◯↑≃◯-η ⟩∎
+     η x                            ∎)
+
+  -- Modal A can be expressed in another way.
+
+  Modal≃ :
+    {A : Type (a ⊔ ℓ)} →
+    Modal A ≃
+    ({B C : Type a} {f : B → C} →
+     Is-equivalence (M.◯-map f) →
+     Is-equivalence ((_∘ f) ⦂ ((C → A) → (B → A))))
+  Modal≃ {A = A} =
+    Modal A                                          ↝⟨ Modal≃Null ⟩
+
+    P -Null A                                        ↝⟨ Eq.⇔→≃
+                                                          (PS.Null-propositional ext)
+                                                          (implicit-Π-closure ext 1 λ _ →
+                                                           implicit-Π-closure ext 1 λ _ →
+                                                           implicit-Π-closure ext 1 λ _ →
+                                                           Π-closure ext 1 λ _ →
+                                                           Eq.propositional ext _)
+                                                          (λ hyp → to hyp)
+                                                          from ⟩□
+    ({B C : Type a} {f : B → C} →
+     Is-equivalence (M.◯-map f) →
+     Is-equivalence ((_∘ f) ⦂ ((C → A) → (B → A))))  □
+    where
+    from =
+      ({B C : Type a} {f : B → C} →
+       Is-equivalence (M.◯-map f) →
+       Is-equivalence ((_∘ f) ⦂ ((C → A) → (B → A))))                    →⟨ (λ hyp _ → hyp equiv) ⟩
+
+      (λ i (_ : P i) → lift tt) -Local A                                 ↔⟨⟩
+
+      (∀ i →
+       Is-equivalence (_∘ const (lift tt) ⦂ ((↑ a ⊤ → A) → (P i → A))))  →⟨ (∀-cong _ λ _ →
+                                                                             Is-equivalence≃Is-equivalence-∘ʳ
+                                                                               (_≃_.is-equivalence $
+                                                                                →-cong ext (Eq.↔⇒≃ $ inverse B.↑↔) F.id)
+                                                                               _) ⟩
+
+      (∀ i → Is-equivalence (_∘ const tt ⦂ ((⊤ → A) → (P i → A))))       ↔⟨⟩
+
+      (λ i (_ : P i) → tt) -Local A                                      ↔⟨ inverse Null≃Local ⟩□
+
+      P -Null A                                                          □
+      where
+      equiv : {f : P i → ↑ a ⊤} → Is-equivalence (M.◯-map f)
+      equiv {f = f} =                 $⟨ (λ {_} → M.Accessible→Connected ext acc) ⟩
+        (∀ {i} → M.◯ -Connected P i)  →⟨ (λ hyp _ →
+                                            M.Connected-Σ
+                                              hyp
+                                              (λ _ → M.Contractible→Connected
+                                                       (H-level.⇒≡ 0 (↑-closure 0 ⊤-contractible)))) ⟩
+        M.◯ -Connected-→ f            →⟨ M.Connected→Is-equivalence-◯-map ⟩□
+        Is-equivalence (M.◯-map f)    □
+
+    to :
+      {f : B → C} →
+      P -Null A →
+      Is-equivalence (M.◯-map f) →
+      Is-equivalence ((_∘ f) ⦂ ((C → A) → (B → A)))
+    to {B = B} {C = C} {f = f} null =
+      Is-equivalence (M.◯-map f)                                →⟨ Is-equivalence≃Is-equivalence-∘ˡ
+                                                                     (_≃_.is-equivalence $ inverse ◯↑≃◯)
+                                                                     _ ∘
+                                                                   Is-equivalence≃Is-equivalence-∘ʳ
+                                                                     (_≃_.is-equivalence ◯↑≃◯)
+                                                                     _ ⟩
+
+      Is-equivalence (_≃_.from ◯↑≃◯ ∘ M.◯-map f ∘ _≃_.to ◯↑≃◯)  →⟨ (Is-equivalence-cong _ $
+                                                                    ◯-elim (λ _ → Separated-◯ _ _) λ x →
+
+        _≃_.from ◯↑≃◯ (M.◯-map f (_≃_.to ◯↑≃◯ (η x)))                 ≡⟨ cong (_≃_.from ◯↑≃◯ ∘ M.◯-map f) $ ext⁻¹ to-◯↑≃◯-η _ ⟩
+        _≃_.from ◯↑≃◯ (M.◯-map f (M.η (lower x)))                     ≡⟨ cong (_≃_.from ◯↑≃◯) M.◯-map-η ⟩
+        _≃_.from ◯↑≃◯ (M.η (f (lower x)))                             ≡⟨ ext⁻¹ from-◯↑≃◯-η _ ⟩
+        η (lift (f (lower x)))                                        ≡⟨⟩
+        η (f′ x)                                                      ≡⟨ sym ◯-map-η ⟩∎
+        ◯-map f′ (η x)                                                ∎) ⟩
+
+      Is-equivalence (◯-map f′)                                 →⟨ (λ eq →
+                                                                      _≃_.is-equivalence $
+                                                                      →-cong ext (inverse Eq.⟨ _ , eq ⟩) F.id) ⟩
+
+      Is-equivalence (_∘ ◯-map f′)                              →⟨ Is-equivalence≃Is-equivalence-∘ˡ
+                                                                     (_≃_.is-equivalence ◯→A≃→A)
+                                                                     _ ⟩
+
+      Is-equivalence ((_∘ η) ∘ (_∘ ◯-map f′))                   ↔⟨⟩
+
+      Is-equivalence (_∘ (◯-map f′ ∘ η))                        →⟨ (Is-equivalence-cong _ λ g → ⟨ext⟩ λ _ → cong g
+                                                                    ◯-map-η) ⟩
+      Is-equivalence (_∘ (η ∘ f′))                              ↔⟨⟩
+
+      Is-equivalence ((_∘ f′) ∘ (_∘ η))                         →⟨ Is-equivalence≃Is-equivalence-∘ʳ
+                                                                     (_≃_.is-equivalence $ inverse ◯→A≃→A)
+                                                                     _ ⟩
+
+      Is-equivalence ((_∘ f′) ∘ (_∘ η) ∘ _≃_.from ◯→A≃→A)       →⟨ (Is-equivalence-cong _ λ g →
+                                                                    cong {y = g} (_∘ (lift ∘ f ∘ lower)) $
+                                                                    _≃_.right-inverse-of ◯→A≃→A _) ⟩
+
+      Is-equivalence (_∘ f′)                                    →⟨ Is-equivalence≃Is-equivalence-∘ˡ
+                                                                     (_≃_.is-equivalence $
+                                                                      →-cong ext (Eq.↔⇒≃ B.↑↔) F.id)
+                                                                     _ ∘
+                                                                   Is-equivalence≃Is-equivalence-∘ʳ
+                                                                     (_≃_.is-equivalence $
+                                                                      →-cong ext (Eq.↔⇒≃ $ inverse B.↑↔) F.id)
+                                                                     _ ⟩□
+      Is-equivalence (_∘ f)                                     □
+      where
+      f′ : ↑ ℓ B → ↑ ℓ C
+      f′ = lift ∘ f ∘ lower
+
+      ◯→A≃→A : (◯ (↑ ℓ D) → A) ≃ (↑ ℓ D → A)
+      ◯→A≃→A {D = D} =                 $⟨ null ⟩
+        P -Null A                      ↔⟨ inverse Modal≃Null ⟩
+        (↑ ℓ ∘ P ∘ lower) -Null A      →⟨ Null→Is-equivalence-∘[] ⟩
+        Is-equivalence (_∘ η)          →⟨ Eq.⟨ _ ,_⟩ ⟩□
+        (◯ (↑ ℓ D) → A) ≃ (↑ ℓ D → A)  □
+
+-- The modal types of the canonical accessible extension of an
+-- accessible modality do not depend on the accessibility proof.
+
+modal-types-do-not-depend-on-accessibility-proof :
+  (M : Modality a)
+  (acc₁ acc₂ : Accessible M) →
+  Modality.Modal (Canonical-accessible-extension M acc₁ ℓ) A ≃
+  Modality.Modal (Canonical-accessible-extension M acc₂ ℓ) A
+modal-types-do-not-depend-on-accessibility-proof
+  {a = a} {ℓ = ℓ} {A = A} M acc₁ acc₂ =
+  Modality.Modal (Canonical-accessible-extension M acc₁ ℓ) A  ↝⟨ Canonical-accessible-extension.Modal≃ _ acc₁ _ ⟩
+
+  ({B C : Type a} {f : B → C} →
+   Is-equivalence (◯-map f) →
+   Is-equivalence ((_∘ f) ⦂ ((C → A) → (B → A))))             ↝⟨ inverse $ Canonical-accessible-extension.Modal≃ _ acc₂ _ ⟩□
+
+  Modality.Modal (Canonical-accessible-extension M acc₂ ℓ) A  □
+  where
+  open Modality M
