@@ -20,8 +20,8 @@ import Bijection equality-with-J as B
 open import Equality.Path.Isomorphisms eq as I hiding (ext)
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
-open import Equivalence.Path-split equality-with-J using (_-Null_)
-open import Function-universe equality-with-J hiding (id; _∘_)
+open import Equivalence.Path-split equality-with-J as PS using (_-Null_)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level.Closure equality-with-J
 open import Localisation eq
 import Pushout eq as PO
@@ -609,6 +609,24 @@ Nullification≃Localisation {P = P} {B = B} =
 
     from-to : ∀ x → from (to x) ≡ x
     from-to = elim from-to′
+
+-- If B is P-null, then λ (f : Nullification P A → B) → f ∘ [_] is an
+-- equivalence.
+
+Null→Is-equivalence-∘[] :
+  P -Null B →
+  Is-equivalence (λ (f : Nullification P A → B) → f ∘ [_])
+Null→Is-equivalence-∘[] {P = P} {B = B} {A = A} =
+  P -Null B                                                         ↔⟨ Null≃Local ⟩
+
+  (λ x (_ : P x) → tt) -Local B                                     →⟨ Local→Is-equivalence-[] ⟩
+
+  Is-equivalence
+    (λ (f : Localisation {P = P} {Q = λ _ → ⊤} _ A → B) → f ∘ [_])  →⟨ Is-equivalence≃Is-equivalence-∘ʳ
+                                                                         (_≃_.is-equivalence $
+                                                                          →-cong I.ext Nullification≃Localisation F.id)
+                                                                         _ ⟩□
+  Is-equivalence (λ (f : Nullification P A → B) → f ∘ [_])          □
 
 ------------------------------------------------------------------------
 -- A map function
