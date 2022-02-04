@@ -17,18 +17,22 @@ open P.Derived-definitions-and-properties eq hiding (elim)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-import Bijection equality-with-J as B
+open import Bijection equality-with-J as B using (_↔_)
+open import Embedding equality-with-J as Emb using (Is-embedding)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
+open import Equivalence.List equality-with-J
 open import Equivalence.Path-split equality-with-J as PS
   using (_-Null_; Is-∞-extendable-along-[_])
-open import Function-universe equality-with-J as F hiding (_∘_)
-import H-level equality-with-J as H-level
+open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import Localisation eq hiding (ext)
 open import Modality.Basics equality-with-J
 open import Nullification eq
+open import Preimage equality-with-J using (_⁻¹_)
+open import Surjection equality-with-J using (_↠_; Split-surjective)
 open import Univalence-axiom equality-with-J
 
 private
@@ -441,5 +445,327 @@ modal-types-do-not-depend-on-accessibility-proof
    Is-equivalence ((_∘ f) ⦂ ((C → A) → (B → A))))             ↝⟨ inverse $ Canonical-accessible-extension.Modal≃ _ acc₂ _ ⟩□
 
   Modality.Modal (Canonical-accessible-extension M acc₂ ℓ) A  □
+  where
+  open Modality M
+
+------------------------------------------------------------------------
+-- Left exactness
+
+-- If M is an accessible modality for the universe level a, and
+-- ∃ λ (A : Type a) → Modal A (where Modal is the modality predicate
+-- of M) is modal with respect to a certain canonical accessible
+-- extension of M, then M is left exact (for a certain definition of
+-- "left exact").
+
+Accessible→Modal-∃-Modal→Left-exact :
+  (M : Modality a)
+  (acc : Accessible M) →
+  let open Modality M
+      module CAE = Canonical-accessible-extension M acc (lsuc a)
+  in
+  CAE.Modal (∃ λ (A : Type a) → Modal A) →
+  {A : Type a} {P : A → Type a} →
+  ◯ -Connected A → (∀ x → Modal (P x)) →
+  ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B
+Accessible→Modal-∃-Modal→Left-exact
+  {a = a} M acc modal {A = A} {P = P} =                  $⟨ modal ⟩
+
+  CAE.Modal (∃ Modal)                                    →⟨ (λ hyp c →
+                                                               _≃_.is-equivalence $
+                                                               Eq.with-other-function
+                                                                 (
+    ∃ Modal                                                       ↝⟨ inverse $ drop-⊤-left-Π ext $ _⇔_.to contractible⇔↔⊤ c ⟩
+    (◯ A → ∃ Modal)                                               ↝⟨ →-cong ext (inverse CAE.◯↑≃◯) F.id ⟩
+    (CAE.◯ (↑ _ A) → ∃ Modal)                                     ↝⟨ CAE.Π◯≃Πη ext (λ _ → CAE.Modal→Stable hyp) ⟩
+    (↑ _ A → ∃ Modal)                                             ↝⟨ →-cong ext (from-bijection B.↑↔) F.id ⟩□
+    (A → ∃ Modal)                                                 □)
+                                                                 const
+                                                                 (λ B →
+    _≃_.to (CAE.Π◯≃Πη ext (λ _ → CAE.Modal→Stable hyp))
+      ((λ x → subst (const (∃ Modal)) (proj₂ c x) B) ∘
+       _≃_.to CAE.◯↑≃◯) ∘
+    lift                                                            ≡⟨ (⟨ext⟩ λ _ →
+                                                                        CAE.Π◯≃Πη-η ext
+                                                                          (λ _ → CAE.Modal→Stable hyp)
+                                                                          ((λ x → subst (const (∃ Modal)) (proj₂ c x) B) ∘ _≃_.to CAE.◯↑≃◯)) ⟩
+    (λ x → subst (const (∃ Modal)) (proj₂ c x) B) ∘
+    _≃_.to CAE.◯↑≃◯ ∘ [_] ∘ lift                                    ≡⟨⟩
+
+    (λ x →
+       subst (const (∃ Modal))
+         (proj₂ c (_≃_.to CAE.◯↑≃◯ [ lift x ]))
+         B)                                                         ≡⟨ (⟨ext⟩ λ _ → subst-const _) ⟩∎
+
+    const B                                                         ∎)) ⟩
+
+  (◯ -Connected A →
+   Is-equivalence (const ⦂ (∃ Modal → A → ∃ Modal)))     →⟨ (λ hyp c m →
+                                                               _≃_.split-surjective Eq.⟨ _ , hyp c ⟩ (λ x → P x , m x)) ⟩
+  (◯ -Connected A → (m : ∀ x → Modal (P x)) →
+   ∃ λ (B : ∃ Modal) → const B ≡ (λ x → (P x , m x)))    →⟨ (∀-cong _ λ _ → ∀-cong _ λ _ →
+                                                             const⁻¹→) ⟩□
+  (◯ -Connected A → (∀ x → Modal (P x)) →
+   ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)           □
+  where
+  open Modality M
+  module CAE = Canonical-accessible-extension M acc (lsuc a)
+
+private
+
+  -- A lemma used below.
+
+  Is-embedding-const :
+    Univalence a →
+    (M : Modality a)
+    ((_ , P , _) : Accessible M) →
+    let open Modality M in
+    ∀ i → Is-embedding (const ⦂ (∃ Modal → P i → ∃ Modal))
+  Is-embedding-const univ M =
+    λ acc@(_ , P , _) i Bm@(B , m-B) Cm@(C , m-C) →                  $⟨ Accessible→Connected ext acc ⟩
+      ◯ -Connected P i                                               →⟨ Is-equivalence-const m-B m-C ⟩
+      Is-equivalence (const ⦂ (B ≃ C → P i → B ≃ C))                 ↔⟨ Is-equivalence-const≃ ⟩□
+      Is-equivalence (cong const ⦂ (Bm ≡ Cm → const Bm ≡ const Cm))  □
+    where
+    open Modality M
+
+    Is-equivalence-const :
+      Modal A → Modal B →
+      ◯ -Connected C →
+      Is-equivalence (const ⦂ (A ≃ B → C → A ≃ B))
+    Is-equivalence-const m-A m-B c =
+      Modal→Connected→Is-equivalence-const
+        ext (Modal-≃ ext m-A m-B) c
+
+    Is-equivalence-const≃ :
+      {Bm@(B , _) Cm@(C , _) : ∃ Modal} →
+      Is-equivalence (const ⦂ (B ≃ C → A → B ≃ C)) ≃
+      Is-equivalence (cong const ⦂ (Bm ≡ Cm → const Bm ≡ const Cm))
+    Is-equivalence-const≃
+      {A = A} {Bm = Bm@(B , m-B)} {Cm = Cm@(C , m-C)} =
+
+      Is-equivalence (const ⦂ (B ≃ C → A → B ≃ C))           ↝⟨ Is-equivalence-cong ext lemma₃ ⟩
+
+      Is-equivalence
+        ((≡⇒≃ ∘_) ∘ const ∘ ≃⇒≡ univ ⦂ (B ≃ C → A → B ≃ C))  ↝⟨ inverse $
+                                                                Is-equivalence≃Is-equivalence-∘ʳ
+                                                                  (_≃_.is-equivalence $ inverse $ ≡≃≃ univ)
+                                                                  ext F.∘
+                                                                Is-equivalence≃Is-equivalence-∘ˡ
+                                                                  (_≃_.is-equivalence $ ∀-cong ext λ _ → ≡≃≃ univ)
+                                                                  ext ⟩
+
+      Is-equivalence (const ⦂ (B ≡ C → A → B ≡ C))           ↝⟨ Is-equivalence-cong ext lemma₂ ⟩
+
+      Is-equivalence
+        ((_↔_.from lemma₁ ∘_) ∘ const ∘ _↔_.to lemma₁ ⦂
+         (B ≡ C → A → B ≡ C))                                ↝⟨ inverse $
+                                                                Is-equivalence≃Is-equivalence-∘ʳ
+                                                                  (_≃_.is-equivalence $ Eq.↔⇒≃ lemma₁)
+                                                                  ext F.∘
+                                                                Is-equivalence≃Is-equivalence-∘ˡ
+                                                                  (_≃_.is-equivalence $ inverse $
+                                                                   ∀-cong ext λ _ → Eq.↔⇒≃ lemma₁)
+                                                                  ext ⟩
+
+      Is-equivalence (const ⦂ (Bm ≡ Cm → A → Bm ≡ Cm))       ↝⟨ (Is-equivalence-cong ext λ eq → ⟨ext⟩ λ y →
+        eq                                                         ≡⟨ cong-id _ ⟩
+        cong id eq                                                 ≡⟨ sym $ cong-∘ _ _ _ ⟩∎
+        cong (_$ y) (cong const eq)                                ∎) ⟩
+
+      Is-equivalence
+        (ext⁻¹ ∘ cong const ⦂ (Bm ≡ Cm → A → Bm ≡ Cm))       ↝⟨ inverse {k = equivalence} $
+                                                                Is-equivalence≃Is-equivalence-∘ˡ
+                                                                  (_≃_.is-equivalence $ inverse $
+                                                                   Eq.extensionality-isomorphism ext)
+                                                                  ext ⟩□
+      Is-equivalence
+        (cong const ⦂ (Bm ≡ Cm → const Bm ≡ const Cm))       □
+      where
+      lemma₁ : B ≡ C ↔ Bm ≡ Cm
+      lemma₁ =
+        ignore-propositional-component (Modal-propositional ext)
+
+      lemma₂ :
+        ∀ eq → const eq ≡ _↔_.from lemma₁ ∘ const (_↔_.to lemma₁ eq)
+      lemma₂ eq = ⟨ext⟩ λ _ →
+        eq                                  ≡⟨ sym $ _↔_.left-inverse-of lemma₁ _ ⟩∎
+        _↔_.from lemma₁ (_↔_.to lemma₁ eq)  ∎
+
+      lemma₃ : (eq : B ≃ C) → const eq ≡ ≡⇒≃ ∘ const (≃⇒≡ univ eq)
+      lemma₃ eq = ⟨ext⟩ λ _ →
+        eq                 ≡⟨ sym $ _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
+        ≡⇒≃ (≃⇒≡ univ eq)  ∎
+
+-- Some definitions of "left exact" for accessible modalities are
+-- logically equivalent (assuming univalence).
+
+Accessible→Logically-equivalent-Left-exact :
+  Univalence a →
+  (M : Modality a)
+  (acc@(_ , P , _) : Accessible M) →
+  let open Modality M
+      module CAE = Canonical-accessible-extension M acc (lsuc a)
+  in
+  Logically-equivalent
+    (Left-exact ◯ ,
+
+     (∀ i → (Q : P i → Type a) → (∀ y → Modal (Q y)) →
+      ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B)) ,
+
+     (∃ λ ((_ , P , _) : Accessible M) →
+      ∀ i → (Q : P i → Type a) → (∀ y → Modal (Q y)) →
+      ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B)) ,
+
+     CAE.Modal (∃ λ (A : Type a) → Modal A))
+Accessible→Logically-equivalent-Left-exact
+  {a = a} univ M acc@(_ , P , _) =
+    (Left-exact ◯                                       →⟨ (λ lex → Left-exact→Accessible→ ext lex acc) ⟩⇔
+
+     (∀ i → (Q : P i → Type a) → (∀ y → Modal (Q y)) →
+      ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B))     →⟨ (λ lex → acc , lex) ⟩⇔
+
+     (∃ λ ((_ , P , _) : Accessible M) →
+      ∀ i → (Q : P i → Type a) → (∀ y → Modal (Q y)) →
+      ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B))     →⟨ uncurry step₂ ⟩⇔□)
+
+  , (CAE.Modal acc (∃ Modal)                            →⟨ Accessible→Modal-∃-Modal→Left-exact M acc ⟩
+
+     ({A : Type a} {P : A → Type a} →
+      ◯ -Connected A → (∀ x → Modal (P x)) →
+      ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B)       ↔⟨ inverse $ Left-exact≃Connected→Modal→≃ ext univ ⟩□
+
+     Left-exact ◯                                       □)
+  where
+  open Modality M
+  module CAE acc = Canonical-accessible-extension M acc (lsuc a)
+  step₂ :
+    ((_ , P , _) : Accessible M) →
+    (∀ i → (Q : P i → Type a) → (∀ y → Modal (Q y)) →
+     ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B)) →
+    CAE.Modal acc (∃ λ (A : Type a) → Modal A)
+  step₂ acc′@(I , P , _) =
+    (∀ i → (Q : P i → Type a) → (∀ y → Modal (Q y)) →
+     ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B))                    →⟨ (λ hyp _ → surj hyp) ⟩
+
+    ((i : I) → Split-surjective (const ⦂ (∃ Modal → P i → ∃ Modal)))  →⟨ (λ hyp i →
+                                                                            _⇔_.to Emb.Is-embedding×Split-surjective⇔Is-equivalence
+                                                                              (Is-embedding-const univ M acc′ i , hyp i)) ⟩
+    ((i : I) → Is-equivalence (const ⦂ (∃ Modal → P i → ∃ Modal)))    ↔⟨⟩
+
+    P -Null ∃ Modal                                                   ↔⟨ inverse $ CAE.Modal≃Null acc′ ⟩
+
+    CAE.Modal acc′ (∃ Modal)                                          ↔⟨ modal-types-do-not-depend-on-accessibility-proof M acc′ acc ⟩□
+
+    CAE.Modal acc (∃ Modal)                                           □
+    where
+    surj :
+      (∀ i → (Q : P i → Type a) → (∀ y → Modal (Q y)) →
+       ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B)) →
+      Split-surjective (const ⦂ (∃ Modal → P i → ∃ Modal))
+    surj {i = i} hyp Q =                           $⟨ hyp i (proj₁ ∘ Q) (proj₂ ∘ Q) ⟩
+      (∃ λ B → Modal B × (∀ y → proj₁ (Q y) ≃ B))  ↝⟨ inverse $ const⁻¹≃ ext univ ⟩□
+      const ⁻¹ Q                                   □
+
+-- Some definitions of "left exact" for accessible modalities are
+-- equivalent (assuming univalence).
+
+Accessible→Equivalent-Left-exact :
+  Univalence a →
+  (M : Modality a)
+  (acc@(_ , P , _) : Accessible M) →
+  let open Modality M
+      module CAE = Canonical-accessible-extension M acc (lsuc a)
+  in
+  Equivalent
+    (Left-exact ◯ ,
+
+     (∀ i → (Q : P i → Type a) → (∀ y → Modal (Q y)) →
+      ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B)) ,
+
+     CAE.Modal (∃ λ (A : Type a) → Modal A))
+Accessible→Equivalent-Left-exact
+  {a = a} univ M acc@(_ , P , _) =
+    Logically-equivalent-Delete
+      (inj₂ (inj₂ (inj₁ F.id)))
+      (Accessible→Logically-equivalent-Left-exact
+         univ M acc)
+  , ( Left-exact-propositional ext
+    , prop
+    , CAE.Modal-propositional ext
+    , _
+    )
+  where
+  open Modality M
+  module CAE = Canonical-accessible-extension M acc (lsuc a)
+
+  prop =                                                     $⟨ (Π-closure ext 1 λ _ →
+                                                                 Π-closure ext 1 λ _ →
+                                                                 Emb.embedding→⁻¹-propositional
+                                                                   (Is-embedding-const univ M acc _)
+                                                                   _) ⟩
+    Is-proposition (∀ x → (Q : P x → ∃ Modal) → const ⁻¹ Q)  →⟨ (H-level-cong _ 1 $
+                                                                 ∀-cong ext λ _ →
+                                                                 Eq.↔⇒≃ currying F.∘
+                                                                 (Π-cong ext ΠΣ-comm λ _ → F.id) F.∘
+                                                                 (∀-cong ext λ Q → const⁻¹≃ ext univ)) ⟩□
+    Is-proposition
+      (∀ x → (Q : P x → Type a) → (∀ y → Modal (Q y)) →
+       ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B))         □
+
+-- If P is pointwise propositional, then Nullification P is left exact
+-- (assuming univalence).
+
+Is-proposition→Left-exact-Nullification-modality :
+  {P : A → Type a} →
+  Univalence a →
+  (∀ x → Is-proposition (P x)) →
+  Left-exact (Nullification P)
+Is-proposition→Left-exact-Nullification-modality
+  {a = a} {P = P} univ prop =
+  _⇔_.to
+    (logically-equivalent
+       (Accessible→Logically-equivalent-Left-exact
+          univ
+          (Nullification-modality P)
+          Nullification-accessible)
+       (inj₂ (inj₁ F.id)) (inj₁ F.id))
+    lex
+  where
+  open Modality (Nullification-modality P)
+
+  lex :
+    ∀ x → (Q : P x → Type a) → (∀ y → Modal (Q y)) →
+    ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B)
+  lex x Q m =
+      (∀ x → Q x)
+    , Modal-Π ext m
+    , (λ y →
+         Q y          ↝⟨ inverse $ drop-⊤-left-Π ext $
+                         _⇔_.to contractible⇔↔⊤ $
+                         propositional⇒inhabited⇒contractible
+                           (prop _)
+                           y ⟩□
+         (∀ y → Q y)  □)
+
+-- Topological modalities are left exact (assuming univalence).
+
+Topological→Left-exact :
+  Univalence a →
+  (M : Modality a) →
+  let open Modality M in
+  Topological M → Left-exact ◯
+Topological→Left-exact {a = a} univ M =
+  Topological M                                    ↔⟨ Topological≃≡ univ M ⟩
+
+  (∃ λ ((_ , P , _) :
+        ∃ λ (A : Type a) → ∃ λ (P : A → Type a) →
+          M ≡ Nullification-modality P) →
+     ∀ x → Is-proposition (P x))                   →⟨ (λ ((_ , _ , M≡) , prop) →
+                                                         subst
+                                                           (Left-exact ∘ Modality.◯)
+                                                           (sym M≡)
+                                                           (Is-proposition→Left-exact-Nullification-modality
+                                                              univ prop)) ⟩□
+  Left-exact ◯                                     □
   where
   open Modality M
