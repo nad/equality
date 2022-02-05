@@ -2763,30 +2763,198 @@ module Modality (M : Modality a) where
     (∀ x y → ◯ -Connected (f x ⁻¹ y))                   ↔⟨⟩
     (∀ x → ◯ -Connected-→ f x)                          □
 
-  -- If A is modal and B is ◯-connected, then const : A → B → A is an
-  -- equivalence (assuming function extensionality).
+  -- If _∘ f is split surjective at certain types, then f is
+  -- ◯-connected.
 
-  Modal→Connected→Is-equivalence-const :
+  Split-surjective-∘→Connected-→ :
+    {f : A → B} →
+    ((P : B → Type a) → (∀ y → Modal (P y)) →
+     Split-surjective (_∘ f ⦂ ((∀ y → P y) → (∀ x → P (f x))))) →
+    ◯ -Connected-→ f
+  Split-surjective-∘→Connected-→ {B = B} {f = f} hyp =
+    λ y → inh y , lemma y
+    where
+    P′ : B → Type a
+    P′ y = ◯ (f ⁻¹ y)
+
+    surj :
+      Split-surjective
+        (_∘ f ⦂ ((∀ y → ◯ (f ⁻¹ y)) → (∀ x → ◯ (f ⁻¹ f x))))
+    surj = hyp P′ (λ _ → Modal-◯)
+
+    inh : ∀ y → ◯ (f ⁻¹ y)
+    inh = surj (λ x → η (x , refl (f x))) .proj₁
+
+    lemma : ∀ y (p : ◯ (f ⁻¹ y)) → inh y ≡ p
+    lemma y =
+      ◯-elim
+        (λ _ → Separated-◯ _ _)
+        (uncurry λ x →
+           elim¹
+             (λ {y} fx≡y →
+                surj (λ x → η (x , refl (f x))) .proj₁ y ≡
+                η (x , fx≡y))
+             (surj (λ x → η (x , refl (f x))) .proj₁ (f x)  ≡⟨ ext⁻¹ (surj (λ x → η (x , refl (f x))) .proj₂) x ⟩∎
+              η (x , refl (f x))                            ∎))
+
+  -- One can express ◯ -Connected-→ f in several equivalent ways
+  -- (assuming function extensionality).
+
+  Equivalent-Connected-→ :
+    {f : A → B} →
     Extensionality a a →
-    Modal A →
-    ◯ -Connected B →
-    Is-equivalence (const ⦂ (A → B → A))
-  Modal→Connected→Is-equivalence-const {B = B} ext m c =
-    _≃_.is-equivalence $
-    Eq.↔→≃
-      const
-      (λ f → ◯-rec m f (proj₁ c))
-      (λ f → apply-ext ext λ x →
-         ◯-rec m f (proj₁ c)  ≡⟨ cong (◯-rec _ _) $ proj₂ c _ ⟩
-         ◯-rec m f (η x)      ≡⟨ ◯-rec-η ⟩∎
-         f x                  ∎)
-      (λ eq →
-         ◯-rec m (const eq) (proj₁ c)  ≡⟨ ◯-elim
-                                            {P = λ x → ◯-rec m (const eq) x ≡ eq}
-                                            (λ _ → Modal→Separated m _ _)
-                                            (λ _ → ◯-rec-η)
-                                            (proj₁ c) ⟩∎
-         eq                            ∎)
+    Equivalent? (lsuc a) a
+      ( ◯ -Connected-→ f
+
+      , ((P : B → Type a) → (∀ y → Modal (P y)) →
+         Is-equivalence (_∘ f ⦂ ((∀ y → P y) → (∀ x → P (f x)))))
+
+      , ((P : B → Type a) → (∀ y → Modal (P y)) →
+         Split-surjective (_∘ f ⦂ ((∀ y → P y) → (∀ x → P (f x)))))
+      )
+  Equivalent-Connected-→ {B = B} {f = f} ext =
+      l-equiv
+    , (λ ext′ →
+           Connected-→-propositional ext ◯
+         , (Π-closure ext′  1 λ _ →
+            Π-closure ext  1 λ _ →
+            Eq.propositional ext _)
+         , prop ext′
+         , _)
+    where
+    step₁ :
+      ◯ -Connected-→ f →
+      (P : B → Type a) → (∀ y → Modal (P y)) →
+      Is-equivalence (_∘ f ⦂ ((∀ y → P y) → (∀ x → P (f x))))
+    step₁ c P m =
+      _≃_.is-equivalence $
+      Eq.with-other-function
+        ((∀ y → P y)                              ↝⟨ (∀-cong ext λ _ → inverse $
+                                                      drop-⊤-left-Π ext $
+                                                      _⇔_.to contractible⇔↔⊤ (c _)) ⟩
+         (∀ y → ◯ (f ⁻¹ y) → P y)                 ↝⟨ (∀-cong ext λ _ →
+                                                      Π◯≃Πη ext λ _ → Modal→Stable (m _)) ⟩
+         (∀ y → f ⁻¹ y → P y)                     ↔⟨ (∀-cong ext λ _ → currying) ⟩
+         (∀ y x → f x ≡ y → P y)                  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ∀-cong ext λ fx≡y →
+                                                      ≡⇒↝ _ $ cong P $ sym fx≡y) ⟩
+         (∀ y x → f x ≡ y → P (f x))              ↔⟨ Π-comm ⟩
+         (∀ x y → f x ≡ y → P (f x))              ↔⟨ (∀-cong ext λ _ → inverse currying) ⟩
+         (∀ x → Other-singleton (f x) → P (f x))  ↝⟨ (∀-cong ext λ _ →
+                                                      drop-⊤-left-Π ext $
+                                                      _⇔_.to contractible⇔↔⊤ $
+                                                      other-singleton-contractible _) ⟩□
+         (∀ x → P (f x))                          □)
+        (_∘ f)
+        (λ g → apply-ext ext λ x →
+           ≡⇒→ (cong P (sym (refl _)))
+             (◯-rec (m (f x)) id
+                (η (subst (λ _ → P (f x))
+                      (proj₂ (c (f x)) (η (x , refl _)))
+                      (g (f x)))))                        ≡⟨ (let y = _ in
+                                                              trans (cong (λ eq → ≡⇒→ eq y) $
+                                                                     trans (cong (cong P) sym-refl) $
+                                                                     cong-refl _) $
+                                                              ext⁻¹ ≡⇒→-refl _) ⟩
+           ◯-rec (m (f x)) id
+             (η (subst (λ _ → P (f x))
+                   (proj₂ (c (f x)) (η (x , refl _)))
+                   (g (f x))))                            ≡⟨ ◯-rec-η ⟩
+
+           subst (λ _ → P (f x))
+             (proj₂ (c (f x)) (η (x , refl _)))
+             (g (f x))                                    ≡⟨ subst-const _ ⟩∎
+
+           g (f x)                                        ∎)
+
+    l-equiv : Logically-equivalent _
+    l-equiv =
+        (◯ -Connected-→ f                                             →⟨ step₁ ⟩⇔
+
+         ((P : B → Type a) → (∀ y → Modal (P y)) →
+          Is-equivalence (_∘ f ⦂ ((∀ y → P y) → (∀ x → P (f x)))))    →⟨ (λ hyp P m →
+                                                                            _≃_.split-surjective $ Eq.⟨ _ , hyp P m ⟩) ⟩⇔□)
+      , (((P : B → Type a) → (∀ y → Modal (P y)) →
+          Split-surjective (_∘ f ⦂ ((∀ y → P y) → (∀ x → P (f x)))))  →⟨ Split-surjective-∘→Connected-→ ⟩□
+
+         ◯ -Connected-→ f                                             □)
+
+    prop :
+      Extensionality (lsuc a) a →
+      Is-proposition
+        ((P : B → Type a) → (∀ y → Modal (P y)) →
+         Split-surjective (_∘ f ⦂ ((∀ y → P y) → (∀ x → P (f x)))))
+    prop ext′ =
+      [inhabited⇒+]⇒+ 0 λ surj →
+      Π-closure ext′ 1 λ P →
+      Π-closure ext  1 λ m →                                           $⟨ _⇔_.to
+                                                                            (logically-equivalent
+                                                                               l-equiv
+                                                                               (inj₂ (inj₂ (inj₁ F.id)))
+                                                                               (inj₂ (inj₁ F.id)))
+                                                                            surj P m ⟩
+
+        Is-equivalence (_∘ f)                                          →⟨ (λ eq → _≃_.is-equivalence $ →-cong ext F.id Eq.⟨ _ , eq ⟩) ⟩
+
+        Is-equivalence ((_∘ f) ∘_)                                     →⟨ Emb.Is-equivalence→Is-embedding ⟩
+
+        Is-embedding ((_∘ f) ∘_)                                       →⟨ (λ emb → Emb.embedding→⁻¹-propositional emb _) ⟩
+
+        Is-proposition (((_∘ f) ∘_) ⁻¹ id)                             →⟨ H-level-cong _ 1 $ equiv P ⟩□
+
+        Is-proposition
+          (Split-surjective (_∘ f ⦂ ((∀ y → P y) → (∀ x → P (f x)))))  □
+      where
+      equiv : ∀ _ → _
+      equiv _ =
+        ((_∘ f) ∘_) ⁻¹ id               ↔⟨⟩
+        (∃ λ g → (λ h → g h ∘ f) ≡ id)  ↝⟨ (∃-cong λ _ → inverse $ Eq.extensionality-isomorphism ext) ⟩
+        (∃ λ g → ∀ h → g h ∘ f ≡ h)     ↔⟨ inverse ΠΣ-comm ⟩□
+        Split-surjective (_∘ f)         □
+
+  -- "◯-connected" can be expressed in another way (assuming function
+  -- extensionality).
+
+  Connected≃Modal→Is-equivalence-const :
+    Extensionality a a →
+    ◯ -Connected A ↝[ lsuc a ∣ a ]
+    ({B : Type a} →
+     Modal B →
+     Is-equivalence (const ⦂ (B → A → B)))
+  Connected≃Modal→Is-equivalence-const {A = A} ext =
+    generalise-ext?-prop
+      (◯ -Connected A                                               ↝⟨ (Connected-cong _ $ inverse $
+                                                                        drop-⊤-right λ _ → Eq.↔⇒≃ $
+                                                                        _⇔_.to contractible⇔↔⊤ $
+                                                                        H-level.⇒≡ 0 $ ↑-closure 0 ⊤-contractible) ⟩
+
+       ◯ -Connected (const {B = A} (lift tt) ⁻¹ lift tt)            ↝⟨ inverse $ drop-⊤-left-Π _ Bijection.↑↔ ⟩
+
+       ◯ -Connected-→ const {B = A} (lift tt)                       ↝⟨ logically-equivalent
+                                                                         (Equivalent-Connected-→ ext .proj₁)
+                                                                         (inj₁ F.id) (inj₂ (inj₁ F.id)) ⟩
+       ((P : ↑ a ⊤ → Type a) → (∀ y → Modal (P y)) →
+        Is-equivalence (_∘ const _ ⦂ ((↑ a ⊤ → P _) → (A → P _))))  ↝⟨ record
+                                                                         { to   = λ hyp {_} m → hyp _ (const m)
+                                                                         ; from = λ hyp _ m → hyp (m _)
+                                                                         } ⟩
+       ({B : Type a} → Modal B →
+        Is-equivalence (_∘ const _ ⦂ ((↑ a ⊤ → B) → (A → B))))      ↝⟨ (implicit-∀-cong _ λ {B} → ∀-cong _ λ m →
+                                                                        Is-equivalence≃Is-equivalence-∘ʳ
+                                                                          (_≃_.is-equivalence $
+                                                                           Eq.with-other-function
+                                                                             (inverse $ drop-⊤-left-Π ext Bijection.↑↔)
+                                                                             const
+                                                                             (λ y → apply-ext ext λ _ →
+         subst (λ _ → B) (refl _) y                                             ≡⟨ subst-refl _ _ ⟩∎
+         y                                                                      ∎))
+                                                                          _) ⟩□
+       ({B : Type a} → Modal B →
+        Is-equivalence (const ⦂ (B → A → B)))                       □)
+      (λ _ → Connected-propositional ext ◯)
+      (λ ext′ →
+         implicit-Π-closure ext′ 1 λ _ →
+         Π-closure ext 1 λ _ →
+         Eq.propositional ext _)
 
   -- If ◯ (P x) is P-null, then P x is ◯-connected.
 
@@ -2837,7 +3005,7 @@ module Modality (M : Modality a) where
   Separated→Connected→Is-embedding-const {B = B} ext s c x y =
     _≃_.is-equivalence $
     Eq.with-other-function
-      (x ≡ y                          ↝⟨ Eq.⟨ _ , Modal→Connected→Is-equivalence-const ext (s _ _) c ⟩ ⟩
+      (x ≡ y                          ↝⟨ Eq.⟨ _ , _⇔_.to (Connected≃Modal→Is-equivalence-const ext _) c (s _ _) ⟩ ⟩
        (B → x ≡ y)                    ↔⟨⟩
        (∀ z → const x z ≡ const y z)  ↝⟨ Eq.extensionality-isomorphism ext ⟩□
        const x ≡ const y              □)
@@ -2860,7 +3028,7 @@ module Modality (M : Modality a) where
     Eq.with-other-function
       (Bm ≡ Cm                          ↔⟨ inverse $ ignore-propositional-component prop ⟩
        B ≡ C                            ↝⟨ ≡≃≃ univ ⟩
-       B ≃ C                            ↝⟨ Eq.⟨ _ , Modal→Connected→Is-equivalence-const ext′ (Modal-≃ ext′ mB mC) c ⟩ ⟩
+       B ≃ C                            ↝⟨ Eq.⟨ _ , _⇔_.to (Connected≃Modal→Is-equivalence-const ext′ _) c (Modal-≃ ext′ mB mC) ⟩ ⟩
        (A → B ≃ C)                      ↔⟨⟩
        (∀ x → const B x ≃ const C x)    ↝⟨ (∀-cong ext λ _ → inverse $ ≡≃≃ univ) ⟩
        (∀ x → const B x ≡ const C x)    ↔⟨ (∀-cong ext λ _ → ignore-propositional-component prop) ⟩

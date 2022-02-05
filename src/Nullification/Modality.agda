@@ -533,8 +533,9 @@ private
       ◯ -Connected C →
       Is-equivalence (const ⦂ (A ≃ B → C → A ≃ B))
     Is-equivalence-const m-A m-B c =
-      Modal→Connected→Is-equivalence-const
-        ext (Modal-≃ ext m-A m-B) c
+      _⇔_.to (Connected≃Modal→Is-equivalence-const ext _)
+        c
+        (Modal-≃ ext m-A m-B)
 
     Is-equivalence-const≃ :
       {Bm@(B , _) Cm@(C , _) : ∃ Modal} →
