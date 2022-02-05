@@ -3037,110 +3037,163 @@ module Modality (M : Modality a) where
     H-level′ n (◯ A)  ↝⟨ _⇔_.from (H-level↔H-level′ _) ⟩□
     H-level n (◯ A)   □
 
-  -- A number of logically equivalent definitions of "left exact".
+  -- A number of definitions of "left exact" are logically equivalent
+  -- (and equivalent assuming function extensionality).
 
-  Variants-of-left-exact : Type-list _
-  Variants-of-left-exact =
-    ({A : Type a} {x y : A} → ◯ -Connected A → ◯ -Connected (x ≡ y)) ,
+  Equivalent-Left-exact :
+    Equivalent? (lsuc a) (lsuc a)
+      (({A : Type a} {x y : A} →
+        ◯ -Connected A → ◯ -Connected (x ≡ y)) ,
 
-    ({A B : Type a} {f : A → B} →
-     ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f) ,
+       ({A B : Type a} {f : A → B} →
+        ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f) ,
 
-    ({A B₁ B₂ C : Type a}
-     {f₁ : A → B₂} {f₂ : B₂ → C} {g₁ : A → B₁} {g₂ : B₁ → C}
-     (p : ∀ x → g₂ (g₁ x) ≡ f₂ (f₁ x)) →
-     ◯ -Connected-→ f₂ → ◯ -Connected-→ g₁ →
-     ∀ y → ◯ -Connected-→ (⁻¹-map p ⦂ (f₁ ⁻¹ y → g₂ ⁻¹ f₂ y))) ,
+       ({A B₁ B₂ C : Type a}
+        {f₁ : A → B₂} {f₂ : B₂ → C} {g₁ : A → B₁} {g₂ : B₁ → C}
+        (p : ∀ x → g₂ (g₁ x) ≡ f₂ (f₁ x)) →
+        ◯ -Connected-→ f₂ → ◯ -Connected-→ g₁ →
+        ∀ y → ◯ -Connected-→ (⁻¹-map p ⦂ (f₁ ⁻¹ y → g₂ ⁻¹ f₂ y))) ,
 
-    ({A B : Type a} {f : A → B} {y : B} →
-     ◯ -Connected-→
-       (⁻¹-map {f₂ = η} (λ _ → ◯-map-η) ⦂ (f ⁻¹ y → ◯-map f ⁻¹ η y))) ,
+       ({A B : Type a} {f : A → B} {y : B} →
+        ◯ -Connected-→
+          (⁻¹-map {f₂ = η} (λ _ → ◯-map-η) ⦂
+           (f ⁻¹ y → ◯-map f ⁻¹ η y))) ,
 
-    ({A : Type a} {x y : A} →
-     ◯ -Connected-→
-       (⁻¹-map (λ _ → ◯-map-η {x = lift tt}) ⦂
-          (const {B = ↑ a ⊤} x ⁻¹ y → ◯-map (const x) ⁻¹ η y))) ,
+       ({A : Type a} {x y : A} →
+        ◯ -Connected-→
+          (⁻¹-map (λ _ → ◯-map-η {x = lift tt}) ⦂
+             (const {B = ↑ a ⊤} x ⁻¹ y → ◯-map (const x) ⁻¹ η y))) ,
 
-    ({A : Type a} {x y : A} →
-     ◯ -Connected-→ (cong η ⦂ (x ≡ y → η x ≡ η y))) ,
+       ({A : Type a} {x y : A} →
+        ◯ -Connected-→ (cong η ⦂ (x ≡ y → η x ≡ η y))) ,
 
-    ({A : Type a} {x y : A} →
-     Is-equivalence (η-cong ⦂ (◯ (x ≡ y) → η x ≡ η y))) ,
+       ({A : Type a} {x y : A} →
+        Is-equivalence (η-cong ⦂ (◯ (x ≡ y) → η x ≡ η y))) ,
 
-    ({A B C : Type a} {f : A → B} {g : B → C} →
-     ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f) ,
+       ({A B C : Type a} {f : A → B} {g : B → C} →
+        ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f) ,
 
-    ({A B : Type a} {f : A → B} →
-     Is-equivalence (◯-map f) → ◯ -Connected-→ f)
+       ({A B : Type a} {f : A → B} →
+        Is-equivalence (◯-map f) → ◯ -Connected-→ f))
+  Equivalent-Left-exact =
+      Logically-equivalent-Append
+        (inj₂ (inj₁ F.id))
+        (inj₁ F.id)
+        ( (({A : Type a} {x y : A} →
+            ◯ -Connected A → ◯ -Connected (x ≡ y))                      →⟨ (λ lex → Left-exact→Connected→Connected→Connected-→ lex) ⟩⇔
 
-  -- The types in Variants-of-left-exact are logically equivalent.
+           ({A B : Type a} {f : A → B} →
+            ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f)         →⟨ (λ lex → step₂ lex) ⟩⇔
 
-  Logically-equivalent-Variants-of-left-exact :
-    Logically-equivalent Variants-of-left-exact
-  Logically-equivalent-Variants-of-left-exact =
-    Logically-equivalent-Append
-      (inj₂ (inj₁ F.id))
-      (inj₁ F.id)
-      ( (({A : Type a} {x y : A} →
-          ◯ -Connected A → ◯ -Connected (x ≡ y))                      →⟨ (λ lex → Left-exact→Connected→Connected→Connected-→ lex) ⟩⇔
+           ({A B₁ B₂ C : Type a}
+            {f₁ : A → B₂} {f₂ : B₂ → C} {g₁ : A → B₁} {g₂ : B₁ → C}
+            (p : ∀ x → g₂ (g₁ x) ≡ f₂ (f₁ x)) →
+            ◯ -Connected-→ f₂ → ◯ -Connected-→ g₁ →
+            ∀ y → ◯ -Connected-→ (⁻¹-map p ⦂ (f₁ ⁻¹ y → g₂ ⁻¹ f₂ y)))   →⟨ (λ lex → lex (λ _ → ◯-map-η) Connected-→-η Connected-→-η _) ⟩⇔
 
-         ({A B : Type a} {f : A → B} →
-          ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f)         →⟨ (λ lex → step₂ lex) ⟩⇔
+           ({A B : Type a} {f : A → B} {y : B} →
+            ◯ -Connected-→
+              (⁻¹-map {f₂ = η} (λ _ → ◯-map-η) ⦂
+               (f ⁻¹ y → ◯-map f ⁻¹ η y)))                              →⟨ (λ lex → lex) ⟩⇔
 
-         ({A B₁ B₂ C : Type a}
-          {f₁ : A → B₂} {f₂ : B₂ → C} {g₁ : A → B₁} {g₂ : B₁ → C}
-          (p : ∀ x → g₂ (g₁ x) ≡ f₂ (f₁ x)) →
-          ◯ -Connected-→ f₂ → ◯ -Connected-→ g₁ →
-          ∀ y → ◯ -Connected-→ (⁻¹-map p ⦂ (f₁ ⁻¹ y → g₂ ⁻¹ f₂ y)))   →⟨ (λ lex → lex (λ _ → ◯-map-η) Connected-→-η Connected-→-η _) ⟩⇔
+           ({A : Type a} {x y : A} →
+            ◯ -Connected-→
+              (⁻¹-map (λ _ → ◯-map-η {x = lift tt}) ⦂
+                 (const {B = ↑ a ⊤} x ⁻¹ y → ◯-map (const x) ⁻¹ η y)))  →⟨ (λ lex → step₅ lex) ⟩⇔
 
-         ({A B : Type a} {f : A → B} {y : B} →
-          ◯ -Connected-→
-            (⁻¹-map {f₂ = η} (λ _ → ◯-map-η) ⦂
-             (f ⁻¹ y → ◯-map f ⁻¹ η y)))                              →⟨ (λ lex → lex) ⟩⇔
+           ({A : Type a} {x y : A} →
+            ◯ -Connected-→ (cong η ⦂ (x ≡ y → η x ≡ η y)))              →⟨ (λ lex {_ _ _} → Connected-→≃Is-equivalence-◯-rec _ _ lex) ⟩⇔□)
 
-         ({A : Type a} {x y : A} →
-          ◯ -Connected-→
-            (⁻¹-map (λ _ → ◯-map-η {x = lift tt}) ⦂
-               (const {B = ↑ a ⊤} x ⁻¹ y → ◯-map (const x) ⁻¹ η y)))  →⟨ (λ lex → step₅ lex) ⟩⇔
+        , (({A : Type a} {x y : A} →
+            Is-equivalence
+              (◯-rec (Separated-◯ _ _) (cong η) ⦂
+               (◯ (x ≡ y) → η x ≡ η y)))                                ↔⟨⟩
 
-         ({A : Type a} {x y : A} →
-          ◯ -Connected-→ (cong η ⦂ (x ≡ y → η x ≡ η y)))              →⟨ (λ lex {_ _ _} → Connected-→≃Is-equivalence-◯-rec _ _ lex) ⟩⇔□)
+           ({A : Type a} {x y : A} →
+            Is-equivalence (η-cong ⦂ (◯ (x ≡ y) → η x ≡ η y)))          →⟨ step₇ ⟩□
 
-      , (({A : Type a} {x y : A} →
-          Is-equivalence
-            (◯-rec (Separated-◯ _ _) (cong η) ⦂
-             (◯ (x ≡ y) → η x ≡ η y)))                                ↔⟨⟩
+           ({A : Type a} {x y : A} →
+            ◯ -Connected A → ◯ -Connected (x ≡ y))                      □)
+        )
+        (Logically-equivalent-Append
+           (inj₂ (inj₁ F.id))
+           (inj₁ F.id)
+           ( (({A B : Type a} {f : A → B} →
+               ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f)  →⟨ (λ lex {_ _ _ _ _} → step₈ lex) ⟩⇔□)
 
-         ({A : Type a} {x y : A} →
-          Is-equivalence (η-cong ⦂ (◯ (x ≡ y) → η x ≡ η y)))          →⟨ step₇ ⟩□
+           , (({A B C : Type a} {f : A → B} {g : B → C} →
+               ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) →
+               ◯ -Connected-→ f)                                    →⟨ (λ lex → step₉ lex) ⟩□
 
-         ({A : Type a} {x y : A} →
-          ◯ -Connected A → ◯ -Connected (x ≡ y))                      □)
-      )
-      (Logically-equivalent-Append
-         (inj₂ (inj₁ F.id))
-         (inj₁ F.id)
-         ( (({A B : Type a} {f : A → B} →
-             ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f)  →⟨ (λ lex {_ _ _ _ _} → step₈ lex) ⟩⇔□)
+              ({A B : Type a} {f : A → B} →
+               ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f)  □)
+           )
+           ( (({A B C : Type a} {f : A → B} {g : B → C} →
+               ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) →
+               ◯ -Connected-→ f)                                    →⟨ (λ lex {_ _ _} → step₁₀ lex) ⟩⇔□)
 
-         , (({A B C : Type a} {f : A → B} {g : B → C} →
-             ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) →
-             ◯ -Connected-→ f)                                    →⟨ (λ lex → step₉ lex) ⟩□
+           , (({A B : Type a} {f : A → B} →
+               Is-equivalence (◯-map f) → ◯ -Connected-→ f)         →⟨ (λ lex → step₁₁ lex) ⟩□
 
-            ({A B : Type a} {f : A → B} →
-             ◯ -Connected A → ◯ -Connected B → ◯ -Connected-→ f)  □)
-         )
-         ( (({A B C : Type a} {f : A → B} {g : B → C} →
-             ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) →
-             ◯ -Connected-→ f)                                    →⟨ (λ lex {_ _ _} → step₁₀ lex) ⟩⇔□)
+              ({A B C : Type a} {f : A → B} {g : B → C} →
+               ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) →
+               ◯ -Connected-→ f)                                    □)
+           ))
+    , (λ ext →
+         let ext′ : Extensionality (lsuc a) a
+             ext′ = lower-extensionality lzero _ ext
 
-         , (({A B : Type a} {f : A → B} →
-             Is-equivalence (◯-map f) → ◯ -Connected-→ f)         →⟨ (λ lex → step₁₁ lex) ⟩□
-
-            ({A B C : Type a} {f : A → B} {g : B → C} →
-             ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) →
-             ◯ -Connected-→ f)                                    □)
-         ))
+             ext″ : Extensionality a a
+             ext″ = lower-extensionality _ _ ext
+         in
+           Left-exact-propositional ext′
+         , (implicit-Π-closure ext  1 λ _ →
+            implicit-Π-closure ext′ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            Π-closure ext″ 1 λ _ →
+            Π-closure ext″ 1 λ _ →
+            Connected-→-propositional ext″ ◯)
+         , (implicit-Π-closure ext  1 λ _ →
+            implicit-Π-closure ext  1 λ _ →
+            implicit-Π-closure ext  1 λ _ →
+            implicit-Π-closure ext′ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            Π-closure ext″ 1 λ _ →
+            Π-closure ext″ 1 λ _ →
+            Π-closure ext″ 1 λ _ →
+            Π-closure ext″ 1 λ _ →
+            Connected-→-propositional ext″ ◯)
+         , (implicit-Π-closure ext  1 λ _ →
+            implicit-Π-closure ext′ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            Connected-→-propositional ext″ ◯)
+         , (implicit-Π-closure ext′ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            Connected-→-propositional ext″ ◯)
+         , (implicit-Π-closure ext′ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            Connected-→-propositional ext″ ◯)
+         , Left-exact-η-cong-propositional ext′
+         , (implicit-Π-closure ext  1 λ _ →
+            implicit-Π-closure ext  1 λ _ →
+            implicit-Π-closure ext′ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            Π-closure ext″ 1 λ _ →
+            Π-closure ext″ 1 λ _ →
+            Connected-→-propositional ext″ ◯)
+         , (implicit-Π-closure ext  1 λ _ →
+            implicit-Π-closure ext′ 1 λ _ →
+            implicit-Π-closure ext″ 1 λ _ →
+            Π-closure ext″ 1 λ _ →
+            Connected-→-propositional ext″ ◯)
+         , _)
     where
     step₂ :
       {f₁ : A → B₂} {f₂ : B₂ → C} {g₁ : A → B₁} {g₂ : B₁ → C} →
@@ -3271,77 +3324,14 @@ module Modality (M : Modality a) where
        Is-equivalence (◯-map f)                                       →⟨ lex ⟩□
        ◯ -Connected-→ f                                               □)
 
-  -- The types in Variants-of-left-exact are equivalent (assuming
-  -- function extensionality).
-
-  Equivalent-Variants-of-left-exact :
-    Extensionality (lsuc a) (lsuc a) →
-    Equivalent Variants-of-left-exact
-  Equivalent-Variants-of-left-exact ext =
-      Logically-equivalent-Variants-of-left-exact
-    , ( Left-exact-propositional ext′
-      , (implicit-Π-closure ext  1 λ _ →
-         implicit-Π-closure ext′ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         Π-closure ext″ 1 λ _ →
-         Π-closure ext″ 1 λ _ →
-         Connected-→-propositional ext″ ◯)
-      , (implicit-Π-closure ext  1 λ _ →
-         implicit-Π-closure ext  1 λ _ →
-         implicit-Π-closure ext  1 λ _ →
-         implicit-Π-closure ext′ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         Π-closure ext″ 1 λ _ →
-         Π-closure ext″ 1 λ _ →
-         Π-closure ext″ 1 λ _ →
-         Π-closure ext″ 1 λ _ →
-         Connected-→-propositional ext″ ◯)
-      , (implicit-Π-closure ext  1 λ _ →
-         implicit-Π-closure ext′ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         Connected-→-propositional ext″ ◯)
-      , (implicit-Π-closure ext′ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         Connected-→-propositional ext″ ◯)
-      , (implicit-Π-closure ext′ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         Connected-→-propositional ext″ ◯)
-      , Left-exact-η-cong-propositional ext′
-      , (implicit-Π-closure ext  1 λ _ →
-         implicit-Π-closure ext  1 λ _ →
-         implicit-Π-closure ext′ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         Π-closure ext″ 1 λ _ →
-         Π-closure ext″ 1 λ _ →
-         Connected-→-propositional ext″ ◯)
-      , (implicit-Π-closure ext  1 λ _ →
-         implicit-Π-closure ext′ 1 λ _ →
-         implicit-Π-closure ext″ 1 λ _ →
-         Π-closure ext″ 1 λ _ →
-         Connected-→-propositional ext″ ◯)
-      , _
-      )
-    where
-    ext′ : Extensionality (lsuc a) a
-    ext′ = lower-extensionality lzero _ ext
-
-    ext″ : Extensionality a a
-    ext″ = lower-extensionality _ _ ext
-
   -- The two definitions of "left exact" given above are equivalent
   -- (assuming function extensionality).
 
   Left-exact≃Left-exact-η-cong :
     Left-exact ◯ ↝[ lsuc a ∣ a ] Left-exact-η-cong
   Left-exact≃Left-exact-η-cong = generalise-ext?-prop
-    (logically-equivalent Logically-equivalent-Variants-of-left-exact
+    (logically-equivalent
+       (Equivalent-Left-exact .proj₁)
        (inj₁ F.id)
        (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ F.id))))))))
     Left-exact-propositional
@@ -3360,9 +3350,10 @@ module Modality (M : Modality a) where
          ; from =
              _⇔_.to
                (logically-equivalent
-                  Logically-equivalent-Variants-of-left-exact
+                  (Equivalent-Left-exact .proj₁)
                   (inj₁ F.id)
-                  (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ F.id))))))))))
+                  (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁
+                     F.id))))))))))
                lex
          })
       (flip Connected-→-propositional ◯)
@@ -3395,7 +3386,7 @@ module Modality (M : Modality a) where
     c-h x q =
       _⇔_.to
         (logically-equivalent
-           Logically-equivalent-Variants-of-left-exact
+           (Equivalent-Left-exact .proj₁)
            (inj₁ F.id) (inj₂ (inj₁ F.id)))
         lex
         (c-f-g _)
@@ -3456,7 +3447,7 @@ module Modality (M : Modality a) where
   Left-exact→Connected→Modal→≃ {A = A} {P = P} =
     Left-exact ◯                                                    →⟨ _⇔_.to
                                                                          (logically-equivalent
-                                                                            Logically-equivalent-Variants-of-left-exact
+                                                                            (Equivalent-Left-exact .proj₁)
                                                                             (inj₁ F.id)
                                                                             (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₂ (inj₁ F.id))))))))) ⟩
     ({A B C : Type a} {f : A → B} {g : B → C} →
