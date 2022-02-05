@@ -67,6 +67,9 @@ Equivalent-level : List Level → Level
 Equivalent-level ls =
   Logically-equivalent-level ls ⊔ All-level lzero ls
 
+Equivalent?-level : Level → Level → List Level → Level
+Equivalent?-level a b ls = lsuc (a ⊔ b) ⊔ Equivalent-level ls
+
 ------------------------------------------------------------------------
 -- Lists of types and some related definitions
 
@@ -358,6 +361,27 @@ Logically-equivalent As = Implies As × Last-implies-first As
 
 Equivalent : Type-list ls → Type (Equivalent-level ls)
 Equivalent As = Logically-equivalent As × All lzero Is-proposition As
+
+-- Equivalent? a b As means that the types in As are logically
+-- equivalent, and if function extensionality holds for a and b, then
+-- the types are equivalent propositions.
+
+Equivalent? :
+  (a b : Level) → Type-list ls → Type (Equivalent?-level a b ls)
+Equivalent? a b As =
+  Logically-equivalent As ×
+  (Extensionality a b → All lzero Is-proposition As)
+
+-- If the types in As satisfy Equivalent? a b, and function
+-- extensionality holds for a and b, then the types in As are
+-- equivalent propositions.
+
+Equivalent?→Equivalent :
+  {As : Type-list ls} →
+  Extensionality a b →
+  Equivalent? a b As →
+  Equivalent As
+Equivalent?→Equivalent ext (equiv , prop) = equiv , prop ext
 
 -- If A and B are members of As (up to logical equivalence), and
 -- Logically-equivalent As holds, then A and B are logically
