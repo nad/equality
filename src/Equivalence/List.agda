@@ -336,6 +336,16 @@ Last-implies-first {ls = []}        _        = ⊤
 Last-implies-first {ls = _ ∷ []}    _        = ⊤
 Last-implies-first {ls = _ ∷ _ ∷ _} (A , As) = Last As → A
 
+-- If As is a non-empty list of types, then one can prove
+-- Last-implies-first As by proving that Last As implies Head As.
+
+[Last→Head]→Last-implies-first :
+  {As : Type-list (a ∷ ls)} →
+  (Last As → Head As) →
+  Last-implies-first As
+[Last→Head]→Last-implies-first {ls = []}    = _
+[Last→Head]→Last-implies-first {ls = _ ∷ _} = id
+
 -- Logically-equivalent As means that all types in As are logically
 -- equivalent.
 
@@ -465,6 +475,63 @@ Logically-equivalent→⇔→∈⇔→∈⇔
        Last Bs  ↝⟨ Last-Bs⇔C ⟩□
        C        □)
     (Last∈ {k = logical-equivalence})
+
+-- If the types in As are logically equivalent, and there is some type
+-- A that is a member (up to logical equivalence) of As, where the
+-- membership proof is A∈As, then the types in Delete A∈Cs are
+-- logically equivalent.
+
+Logically-equivalent-Delete :
+  {A : Type a} {As : Type-list ls} →
+  (A∈As : A ∈⇔ As) →
+  Logically-equivalent As →
+  Logically-equivalent (Delete A∈As)
+Logically-equivalent-Delete A∈As eq =
+    Implies-Delete A∈As (eq .proj₁)
+  , last-implies-first A∈As eq
+  where
+  last-implies-last :
+    {A : Type a} {B : Type b} {Bs : Type-list ls} →
+    (B∈Bs : B ∈⇔ Bs) →
+    Implies (Cons A Bs) →
+    Last (Cons A (Delete B∈Bs)) → Last (Cons A Bs)
+  last-implies-last
+    {ls = _ ∷ []} {A = A} {B = B} {Bs = C} (inj₁ B⇔C) A→C =
+    A  →⟨ A→C ⟩□
+    C  □
+  last-implies-last
+    {ls = _ ∷ _ ∷ _} {A = A} {B = B} {Bs = C , Bs} (inj₁ B⇔C) _ =
+    Last Bs  ↔⟨⟩
+    Last Bs  □
+  last-implies-last
+    {ls = _ ∷ _ ∷ _} {A = A} {B = B} {Bs = C , Bs}
+    (inj₂ B∈Bs) (_ , implies) =
+    Last (Cons C (Delete B∈Bs))  →⟨ last-implies-last B∈Bs implies ⟩□
+    Last Bs                      □
+
+  last-implies-first :
+    {A : Type a} {As : Type-list ls} →
+    (A∈As : A ∈⇔ As) →
+    Logically-equivalent As →
+    Last-implies-first (Delete A∈As)
+  last-implies-first
+    {ls = _ ∷ []} {A = A} {As = B} (inj₁ A⇔B) _ =
+    _
+  last-implies-first
+    {ls = _ ∷ _ ∷ _} {A = A} {As = B , As} (inj₁ A⇔B)
+    (implies , last-implies-first) =
+    [Last→Head]→Last-implies-first
+      (Last As  →⟨ last-implies-first ⟩
+       B        →⟨ Implies-Head implies ⟩□
+       Head As  □)
+  last-implies-first
+    {ls = _ ∷ _ ∷ _} {A = A} {As = B , As} (inj₂ A∈As)
+    (implies , last-implies-first) =
+    [Last→Head]→Last-implies-first
+      (Last (Cons B (Delete A∈As))  →⟨ last-implies-last A∈As implies ⟩
+       Last (Cons B As)             →⟨ last-implies-first ⟩
+       B                            ↔⟨ inverse $ Head-Cons (Delete-levels A∈As) ⟩□
+       Head (Cons B (Delete A∈As))  □)
 
 -- If the types in Bs are logically equivalent, and the types in Cs
 -- are logically equivalent, and there is some type A that is a member
