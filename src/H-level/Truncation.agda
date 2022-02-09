@@ -44,6 +44,9 @@ private
     m n     : ℕ
     k       : Isomorphism-kind
 
+------------------------------------------------------------------------
+-- The truncation operator
+
 -- A truncation operator for positive h-levels.
 
 data ∥_∥[1+_] (A : Type a) (n : ℕ) : Type a where
@@ -92,6 +95,9 @@ truncation-has-correct-h-level {A = A} n =
 
              fn≡x                                                       ∎)
         }
+
+------------------------------------------------------------------------
+-- Eliminators
 
 -- A dependent eliminator, expressed using paths.
 
@@ -256,6 +262,9 @@ rec r = elim λ where
   .∣∣ʳ        → r .∣∣ʳ
   .h-levelʳ _ → r .h-levelʳ
 
+------------------------------------------------------------------------
+-- A universal property
+
 -- Dependent functions into P that agree on the image of ∣_∣ agree
 -- everywhere, if P is a family of types that all have a certain
 -- h-level.
@@ -296,6 +305,9 @@ universal-property h = record
   ; left-inverse-of = λ f → ⟨ext⟩ $ uniqueness h (λ x → f ∣ x ∣  ∎)
   }
 
+------------------------------------------------------------------------
+-- A map function and a zip function
+
 -- The truncation operator ∥_∥[1+ n ] is a functor.
 
 ∥∥-map : (A → B) → ∥ A ∥[1+ n ] → ∥ B ∥[1+ n ]
@@ -324,6 +336,9 @@ universal-property h = record
   .∣∣ʳ x    → ∥∥-map (f x)
   .h-levelʳ → Π-closure ext _ λ _ →
               truncation-has-correct-h-level _
+
+------------------------------------------------------------------------
+-- Some equivalences/logical equivalences/bijections
 
 -- A has h-level 1 + n if and only if it is isomorphic to
 -- ∥ A ∥[1+ n ].
@@ -562,6 +577,9 @@ flatten {A = A} {m = m} {n = n} = case Nat.total m n of λ where
   ; left-inverse-of = λ _ → TP.truncation-is-proposition _ _
   }
 
+------------------------------------------------------------------------
+-- The truncation operator is a monad
+
 -- A universe-polymorphic variant of bind.
 
 infixl 5 _>>=′_
@@ -589,6 +607,9 @@ instance
   Monad.associativity monad = flip λ f → flip λ g → uniqueness
     (truncation-has-correct-h-level _)
     (λ x → f x >>=′ g  ∎)
+
+------------------------------------------------------------------------
+-- Some preservation lemmas
 
 -- The truncation operator preserves logical equivalences.
 
@@ -622,6 +643,9 @@ instance
     ∥∥-map (_↔_.to A↔B ∘ _↔_.from A↔B) x           ≡⟨ cong (λ f → ∥∥-map f x) $ ⟨ext⟩ $ _↔_.right-inverse-of A↔B ⟩
     ∥∥-map id x                                    ≡⟨ ∥∥-map-id x ⟩∎
     x                                              ∎
+
+------------------------------------------------------------------------
+-- Another lemma
 
 -- ∥ A ∥[1+_] is downwards closed.
 
