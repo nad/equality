@@ -17,16 +17,22 @@ module H-level.Truncation
 
 open P.Derived-definitions-and-properties eq hiding (elim)
 
+import Erased.Basics as Er
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection equality-with-J using (_↔_)
+import Accessibility equality-with-J as A
+open import Bijection equality-with-J as B using (_↔_)
 open import Equality.Path.Isomorphisms eq
-open import Equivalence equality-with-J as Eq using (_≃_)
-open import Function-universe equality-with-J hiding (id; _∘_)
-open import H-level equality-with-J
+open import Equivalence equality-with-J as Eq
+  using (_≃_; Is-equivalence)
+open import Equivalence.Path-split equality-with-J as PS
+  using (Is-∞-extendable-along-[_]; _-Null_)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as TP using (∥_∥)
+open import Modality.Basics equality-with-J
 open import Monad equality-with-J
 open import Nat equality-with-J as Nat using (_≤_; min)
 import Pointed-type equality-with-J as PT
@@ -654,3 +660,94 @@ downwards-closed {m = m} {n = n} {A = A} m≤n =
   ∥ A ∥[1+ n ]             ↝⟨ ∥∥-map ∣_∣ ⟩
   ∥ ∥ A ∥[1+ m ] ∥[1+ n ]  ↔⟨ flatten-≤ m≤n ⟩□
   ∥ A ∥[1+ m ]             □
+
+------------------------------------------------------------------------
+-- The truncation modality
+
+-- The truncation operator can be turned into a family of modalities.
+--
+-- This definition is based on "Modalities in Homotopy Type Theory" by
+-- Rijke, Shulman and Spitters.
+
+∥∥[1+_]-modality : ℕ → Modality ℓ
+∥∥[1+_]-modality {ℓ = ℓ} n = λ where
+    .◯                   → ∥_∥[1+ n ]
+    .η                   → ∣_∣
+    .Modal               → H-level (1 + n)
+    .Modal-propositional → λ ext → H-level-propositional ext (1 + n)
+    .Modal-◯             → truncation-has-correct-h-level n
+    .Modal-respects-≃    → H-level-cong _ (1 + n)
+    .extendable-along-η  → extendable
+  where
+  open Modality
+
+  extendable :
+    {A : Type ℓ} {P : ∥ A ∥[1+ n ] → Type ℓ} →
+    (∀ x → H-level (1 + n) (P x)) →
+    Is-∞-extendable-along-[ ∣_∣ ] P
+  extendable {A = A} {P = P} =
+    (∀ x → H-level (1 + n) (P x))                                →⟨ (λ h →
+                                                                       _≃_.is-equivalence $
+                                                                       Eq.↔→≃
+                                                                         _
+                                                                         (λ f → elim λ where
+                                                                            .∣∣ʳ      → _
+                                                                            .h-levelʳ → h)
+                                                                         refl
+                                                                         (λ f → ⟨ext⟩ $ elim λ where
+                                                                            .∣∣ʳ _    → refl _
+                                                                            .h-levelʳ → ⇒≡ (1 + n) ∘ h)) ⟩
+    Is-equivalence (λ (f : (x : ∥ A ∥[1+ n ]) → P x) → f ∘ ∣_∣)  ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
+    Is-∞-extendable-along-[ ∣_∣ ] P                              □
+
+-- The truncation modality is accessible.
+--
+-- This proof is based on "Modalities in Homotopy Type Theory" by
+-- Rijke, Shulman and Spitters.
+
+∥∥[1+_]-accessible : ∀ n → Accessible (∥∥[1+_]-modality {ℓ = ℓ} n)
+∥∥[1+_]-accessible {ℓ = ℓ} n =
+    ↑ ℓ ⊤
+  , (λ _ → ↑ ℓ (𝕊 n))
+  , (λ A →
+       H-level (1 + n) A                                ↔⟨ inverse 𝕊-1-Null≃H-level ⟩
+       (λ (_ : ⊤) → 𝕊 n) -Null A                        ↔⟨ PS.Null-cong ext (λ _ → Eq.↔⇒≃ $ inverse B.↑↔) F.id ⟩
+       (λ (_ : ⊤) → ↑ ℓ (𝕊 n)) -Null A                  ↔⟨ inverse $ PS.Π-Is-∞-extendable-along≃Null ext ⟩
+       (⊤ → Is-∞-extendable-along-[ _ ] (λ _ → A))      ↔⟨ →-cong ext (inverse B.↑↔) F.id ⟩□
+       (↑ ℓ ⊤ → Is-∞-extendable-along-[ _ ] (λ _ → A))  □)
+
+-- The truncation modality is empty-modal.
+
+∥∥[1+]-empty-modal : Empty-modal (∥∥[1+_]-modality {ℓ = ℓ} n)
+∥∥[1+]-empty-modal = H-level.mono (Nat.m≤m+n 1 _) ⊥-propositional
+
+-- The truncation modality is W-modal.
+
+∥∥[1+]-W-modal : W-modal (∥∥[1+_]-modality {ℓ = ℓ} n)
+∥∥[1+]-W-modal = W-closure ext _
+
+-- The truncation modality ∥∥[1+ n ] is accessibility-modal for types
+-- and relations with h-level n.
+
+Is-proposition→∥∥[1+]-accessibility-modal :
+  {@0 A : Type ℓ} {@0 _<_ : A → A → Type ℓ} →
+  @0 H-level (1 + n) A →
+  @0 (∀ x y → H-level (1 + n) (x < y)) →
+  Modality.Accessibility-modal-for ∥∥[1+ n ]-modality _<_
+Is-proposition→∥∥[1+]-accessibility-modal p₁ p₂ =
+  Accessibility-modal-for-erasure-stable
+    Er.[ ( (λ acc →
+              Modal→Acc→Acc-[]◯-η
+                p₁
+                (rec λ @0 where
+                   .∣∣ʳ      → id
+                   .h-levelʳ → p₂ _ _)
+                acc)
+         , (rec λ @0 where
+              .∣∣ʳ      → id
+              .h-levelʳ →
+                H-level.mono (Nat.m≤m+n 1 _) (A.Acc-propositional ext))
+         )
+       ]
+  where
+  open Modality (∥∥[1+_]-modality _)
