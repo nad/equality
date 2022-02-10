@@ -197,6 +197,10 @@ import For-iterated-equality
 
 import Equivalence.List
 
+-- The univalence axiom.
+
+import Univalence-axiom
+
 -- Idempotent monadic modalities.
 
 import Modality.Basics
@@ -212,10 +216,6 @@ import Double-negation
 -- Some results that hold for every empty-modal modality.
 
 import Modality.Empty-modal
-
--- The univalence axiom.
-
-import Univalence-axiom
 
 -- Pointed types and loop spaces.
 
