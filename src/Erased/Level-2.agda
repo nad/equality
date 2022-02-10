@@ -148,6 +148,50 @@ module []-cong₂-⊔
   Erased-↝↔↝ {k = equivalence}         = Erased-↝↝↝
   Erased-↝↔↝ {k = equivalenceᴱ}        = λ ([ ext ]) → Erased-≃ᴱ↔≃ᴱ ext
 
+  private
+
+    -- A lemma used below.
+
+    to≡to→≡ :
+      {@0 A : Type (ℓ₁ ⊔ ℓ₂)} {@0 B : Type ℓ₁} {@0 C : Type ℓ₂}
+      {f g : Erased A → Erased B ≃ᴱ Erased C} →
+      Erased (Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂)) →
+      @0 (∀ {x y} → _≃ᴱ_.to (f x) y ≡ _≃ᴱ_.to (g x) y) →
+      f ≡ g
+    to≡to→≡ {A = A} {B = B} {C = C} {f = f} {g = g} [ ext ] eq =  $⟨ [ (λ _ _ → eq) ] ⟩
+      Erased (∀ x y → _≃ᴱ_.to (f x) y ≡ _≃ᴱ_.to (g x) y)          ↝⟨ Erased-cong-≃ (∀-cong ext λ _ → EEq.to≡to≃≡ ext) ⟩
+      Erased (∀ x → f x ≡ g x)                                    ↝⟨ Erased-cong-≃ (Eq.extensionality-isomorphism ext) ⟩
+      Erased (f ≡ g)                                              ↝⟨ Erased-cong-≃ (inverse $ Eq.≃-≡ lemma₂) ⟩
+      Erased (_≃_.to lemma₂ f ≡ _≃_.to lemma₂ g)                  ↝⟨ Erased-cong-≃ (inverse $ E₁.[]-cong₁.≡≃[]≡[] ax) ⟩
+      Erased (_≃_.to lemma₂ f .erased ≡ _≃_.to lemma₂ g .erased)  ↝⟨ E₁.[]-cong₁.Erased-≡≃[]≡[] ax ⟩
+      _≃_.to lemma₂ f ≡ _≃_.to lemma₂ g                           ↝⟨ Eq.≃-≡ lemma₂ ⟩□
+      f ≡ g                                                       □
+      where
+      abstract
+
+        lemma₁ :
+          (Erased A → Erased B ≃ᴱ Erased C) ≃
+          (Erased A → Erased (Erased B ≃ᴱ Erased C))
+        lemma₁ = Eq.↔→≃
+          ([_]→ ∘_)
+          (λ f x →
+             EEq.⟨ (λ y → [ _≃ᴱ_.to (f x .erased) y .erased ])
+                 , ( (λ y → [ _≃ᴱ_.from (f x .erased) y .erased ])
+                   , [ _≃ᴱ_.is-equivalence (f x .erased)
+                         .proj₂ .erased ]
+                   )
+                 ⟩)
+          refl
+          refl
+
+        lemma₂ :
+          (Erased A → Erased B ≃ᴱ Erased C) ≃
+          Erased (A → Erased B ≃ᴱ Erased C)
+        lemma₂ =
+          (Erased A → Erased B ≃ᴱ Erased C)           ↝⟨ lemma₁ ⟩
+          (Erased A → Erased (Erased B ≃ᴱ Erased C))  ↔⟨ inverse Erased-Π↔Π-Erased ⟩□
+          Erased (A → Erased B ≃ᴱ Erased C)           □
+
   -- Erased-↝↔↝ and Erased-↝↝↝ produce equal functions.
 
   to-Erased-↝↔↝≡to-Erased-↝↝↝ :
@@ -156,62 +200,62 @@ module []-cong₂-⊔
     (ext′ : Extensionality? k′ (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂)) →
     _↔_.to (Erased-↝↔↝ {k = k} {A = A} {B = B} ext) ≡
     to-implication (Erased-↝↝↝ {k = k} {A = A} {B = B} {k = k′} ext′)
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = implication}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = logical-equivalence} _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = injection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = embedding}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = surjection}          _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = bijection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = equivalence}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = equivalenceᴱ}        _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = implication}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = logical-equivalence} _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = injection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = embedding}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = surjection}          _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = bijection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = equivalence}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = equivalenceᴱ}        _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = implication}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = logical-equivalence} _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = injection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = embedding}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = surjection}          _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = bijection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = equivalence}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = equivalenceᴱ}        _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = implication}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = logical-equivalence} _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = injection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = embedding}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = surjection}          _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = bijection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = equivalence}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = equivalenceᴱ}        _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = implication}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = logical-equivalence} _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = injection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = embedding}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = surjection}          _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = bijection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = equivalence}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = equivalenceᴱ}        _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = implication}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = logical-equivalence} _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = injection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = embedding}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = surjection}          _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = bijection}           _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = equivalence}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = equivalenceᴱ}        _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = implication}         _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = logical-equivalence} _ _   = refl _
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = injection}           _ ext = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = embedding}           _ ext = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = surjection}          _ ext = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = bijection}           _ ext = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = equivalence}         _ ext = apply-ext ext λ _ → EEq′.to≡to→≡-Erased ext (refl _)
-  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = equivalenceᴱ}        _ _   = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = implication}         _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = logical-equivalence} _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = injection}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = embedding}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = surjection}          _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = bijection}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = equivalence}         _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = implication}         {k′ = equivalenceᴱ}        _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = implication}         _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = logical-equivalence} _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = injection}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = embedding}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = surjection}          _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = bijection}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = equivalence}         _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = logical-equivalence} {k′ = equivalenceᴱ}        _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = implication}         _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = logical-equivalence} _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = injection}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = embedding}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = surjection}          _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = bijection}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = equivalence}         _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = injection}           {k′ = equivalenceᴱ}        _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = implication}         _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = logical-equivalence} _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = injection}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = embedding}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = surjection}          _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = bijection}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = equivalence}         _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = surjection}          {k′ = equivalenceᴱ}        _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = implication}         _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = logical-equivalence} _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = injection}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = embedding}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = surjection}          _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = bijection}           _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = equivalence}         _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = bijection}           {k′ = equivalenceᴱ}        _   _ = refl _
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = implication}         ext _ = apply-ext ext λ _ → Eq.lift-equality ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = logical-equivalence} ext _ = apply-ext ext λ _ → Eq.lift-equality ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = injection}           ext _ = apply-ext ext λ _ → Eq.lift-equality ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = embedding}           ext _ = apply-ext ext λ _ → Eq.lift-equality ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = surjection}          ext _ = apply-ext ext λ _ → Eq.lift-equality ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = bijection}           ext _ = apply-ext ext λ _ → Eq.lift-equality ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = equivalence}         ext _ = apply-ext ext λ _ → Eq.lift-equality ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalence}         {k′ = equivalenceᴱ}        ext _ = apply-ext ext λ _ → Eq.lift-equality ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = implication}         ext _ = to≡to→≡ ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = logical-equivalence} ext _ = to≡to→≡ ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = injection}           ext _ = to≡to→≡ ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = embedding}           ext _ = to≡to→≡ ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = surjection}          ext _ = to≡to→≡ ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = bijection}           ext _ = to≡to→≡ ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = equivalence}         ext _ = to≡to→≡ ext (refl _)
+  to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = equivalenceᴱ}        {k′ = equivalenceᴱ}        ext _ = to≡to→≡ ext (refl _)
   to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = embedding} {k′ = implication}         ext _ = apply-ext ext λ _ → _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _
   to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = embedding} {k′ = logical-equivalence} ext _ = apply-ext ext λ _ → _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _
   to-Erased-↝↔↝≡to-Erased-↝↝↝ {k = embedding} {k′ = injection}           ext _ = apply-ext ext λ _ → _↔_.to (Embedding-to-≡↔≡ ext) λ _ → refl _
