@@ -887,7 +887,7 @@ elim-loop-circle {P = P} {b = b} {ℓ = ℓ} =
 
       lemma =
         refl _               ≡⟨ sym from-≡↔≡-refl ⟩
-        _↔_.from ≡↔≡ P.refl  ≡⟨⟩
+        _↔_.from ≡↔≡ P.refl  ≡⟨ refl _ ⟩∎
         elim″-base           ∎
   in
   dcong elim″ loop′                                                 ≡⟨ sym $ subst-refl _ _ ⟩
