@@ -11,6 +11,7 @@ module Squash {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 open P.Derived-definitions-and-properties eq
 
 open import Logical-equivalence using (_⇔_)
+import Modality.Empty-modal
 open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
@@ -21,12 +22,16 @@ open import Equality.Decision-procedures equality-with-J
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Erased equality-with-J using (_≃ᴱ_)
+open import Equivalence.Path-split equality-with-J
+  using (Is-∞-extendable-along-[_])
 open import For-iterated-equality equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)
 open import Injection equality-with-J using (_↣_)
+open import Modality.Basics equality-with-J
+import Modality.Very-modal equality-with-J as VM
 open import Monad equality-with-J
 open import Surjection equality-with-J using (_↠_; Split-surjective)
 
@@ -94,6 +99,144 @@ instance
   Monad.left-identity  monad = λ _ _ → refl _
   Monad.right-identity monad = λ _ → refl _
   Monad.associativity  monad = λ _ _ _ → refl _
+
+------------------------------------------------------------------------
+-- Stability
+
+-- A type A is stable if Squash A implies A.
+
+Stable : Type a → Type a
+Stable A = Squash A → A
+
+-- A type A is very stable if Squash A is equivalent to A.
+
+Very-stable : Type a → Type a
+Very-stable A = Squash A ≃ A
+
+-- Variants of the definitions above for equality.
+
+Stable-≡ : Type a → Type a
+Stable-≡ = For-iterated-equality 1 Stable
+
+Very-stable-≡ : Type a → Type a
+Very-stable-≡ = For-iterated-equality 1 Very-stable
+
+------------------------------------------------------------------------
+-- Squash is a modality
+
+-- Squash is a modality with [_] as the unit. A type is modal if it is
+-- a stable proposition.
+
+modality : Modality ℓ
+modality {ℓ = ℓ} = λ where
+    .Modality.◯                   → Squash
+    .Modality.η                   → [_]
+    .Modality.Modal               → Modal
+    .Modality.Modal-propositional → prop
+    .Modality.Modal-◯             → Modal-Squash
+    .Modality.Modal-respects-≃    → resp
+    .Modality.extendable-along-η  → extendable
+  where
+  Modal : Type ℓ → Type ℓ
+  Modal A = Stable A × Is-proposition A
+
+  Modal-Squash : Modal (Squash A)
+  Modal-Squash = _>>= id , Squash-propositional
+
+  prop :
+    {A : Type ℓ} →
+    Extensionality ℓ ℓ →
+    Is-proposition (Stable A × Is-proposition A)
+  prop ext =
+    [inhabited⇒+]⇒+ 0 λ (_ , prop) →
+    ×-closure 1
+      (Π-closure ext 1 λ _ → prop)
+      (H-level-propositional ext 1)
+
+  resp : A ≃ B → Modal A → Modal B
+  resp {A = A} {B = B} A≃B =
+    Stable A × Is-proposition A  →⟨ →-cong-→ (_>>= [_] ∘ _≃_.from A≃B) (_≃_.to A≃B)
+                                      ×-cong
+                                    H-level-cong _ 1 A≃B ⟩□
+    Stable B × Is-proposition B  □
+
+  Modal→Separated : {x y : A} → Modal A → Modal (x ≡ y)
+  Modal→Separated {A = A} {x = x} {y = y} (s , prop) =
+      (Squash (x ≡ y)        →⟨ const prop ⟩
+       Is-proposition A      →⟨ +⇒≡ ⟩
+       Contractible (x ≡ y)  →⟨ proj₁ ⟩□
+       x ≡ y                 □)
+    , ⇒≡ 1 prop
+
+  extendable :
+    {A : Type ℓ} {P : Squash A → Type ℓ} →
+    (∀ x → Modal (P x)) →
+    Is-∞-extendable-along-[ [_] ] P
+  extendable                 _ zero    = _
+  extendable {A = A} {P = P} m (suc n) =
+      (λ f → (λ x → m x .proj₁ (lemma x f))
+           , (λ x →
+                m [ x ] .proj₁ (lemma [ x ] f)  ≡⟨ m [ x ] .proj₂ _ _ ⟩∎
+                f x                             ∎))
+    , (λ _ _ → extendable (Modal→Separated ∘ m) n)
+    where
+    lemma : (x : Squash A) → ((x : A) → P [ x ]) → Squash (P x)
+    lemma (squash x) f = squash (lemma′ x)
+      where
+      lemma′ : (x : Squash′ A) → Squash′ (P (squash x))
+      lemma′ (squash′ x) = squash′ (f x)
+
+-- The squash modality is empty-modal.
+
+empty-modal : Empty-modal (modality {ℓ = ℓ})
+empty-modal =
+    (λ x → ⊥-in-prop→⊥ (Squash-⊥→⊥-in-prop x))
+  , ⊥-propositional
+  where
+
+  -- An empty type in Prop.
+
+  data ⊥-in-prop : Prop where
+
+  -- Squash ⊥ implies ⊥-in-prop.
+
+  Squash-⊥→⊥-in-prop : Squash (⊥ {ℓ = ℓ}) → ⊥-in-prop
+  Squash-⊥→⊥-in-prop [ () ]
+
+  -- ⊥-in-prop implies ⊥.
+
+  ⊥-in-prop→⊥ : ⊥-in-prop → ⊥ {ℓ = ℓ}
+  ⊥-in-prop→⊥ ()
+
+private
+  module EM {ℓ = ℓ} =
+    Modality.Empty-modal equality-with-J (modality {ℓ = ℓ}) empty-modal
+
+-- The squash modality is not left exact.
+
+not-left-exact : ¬ Left-exact (Squash {a = a})
+not-left-exact =
+  Empty-modal→Is-proposition-◯→¬-Left-exact
+    empty-modal Squash-propositional
+  where
+  open Modality modality
+
+-- The squash modality is not very modal.
+
+not-very-modal : ¬ Very-modal (modality {ℓ = ℓ})
+not-very-modal =
+  Very-modal modality  →⟨ VM.left-exact modality ⟩
+  Left-exact Squash    →⟨ not-left-exact ⟩□
+  ⊥                    □
+
+-- The squash modality is not accessibility-modal.
+
+not-accessibility-modal :
+  ¬ Modality.Accessibility-modal (modality {ℓ = ℓ})
+not-accessibility-modal =
+  Is-proposition-◯→¬-Accessibility-modal Squash-propositional
+  where
+  open Modality modality
 
 ------------------------------------------------------------------------
 -- Squash preserves all kinds of functions
@@ -190,28 +333,13 @@ Squash-⊥↔⊥ : Squash (⊥ {ℓ = ℓ}) ↔ ⊥ {ℓ = ℓ}
 Squash-⊥↔⊥ = record
   { surjection = record
     { logical-equivalence = record
-      { to   = λ x → ⊥-in-prop→⊥ (Squash-⊥→⊥-in-prop x)
+      { to   = empty-modal .proj₁
       ; from = λ ()
       }
     ; right-inverse-of = λ ()
     }
   ; left-inverse-of = λ _ → refl _
   }
-  where
-
-  -- An empty type in Prop.
-
-  data ⊥-in-prop : Prop where
-
-  -- Squash ⊥ implies ⊥-in-prop.
-
-  Squash-⊥→⊥-in-prop : Squash (⊥ {ℓ = ℓ}) → ⊥-in-prop
-  Squash-⊥→⊥-in-prop [ () ]
-
-  -- ⊥-in-prop implies ⊥.
-
-  ⊥-in-prop→⊥ : ⊥-in-prop → ⊥ {ℓ = ℓ}
-  ⊥-in-prop→⊥ ()
 
 -- Squash commutes with _×_.
 --
@@ -279,27 +407,6 @@ Split-surjective-[] (no ¬x) x =
   ⊥-elim (_↔_.to Squash-⊥↔⊥ (Squash-cong ¬x x))
 
 ------------------------------------------------------------------------
--- Stability
-
--- A type A is stable if Squash A implies A.
-
-Stable : Type a → Type a
-Stable A = Squash A → A
-
--- A type A is very stable if Squash A is equivalent to A.
-
-Very-stable : Type a → Type a
-Very-stable A = Squash A ≃ A
-
--- Variants of the definitions above for equality.
-
-Stable-≡ : Type a → Type a
-Stable-≡ = For-iterated-equality 1 Stable
-
-Very-stable-≡ : Type a → Type a
-Very-stable-≡ = For-iterated-equality 1 Very-stable
-
-------------------------------------------------------------------------
 -- Some lemmas related to stability
 
 -- Very stable types are stable.
@@ -356,20 +463,12 @@ Very-stable↔Is-equivalence-[] =
 Very-stable↔Stable×Is-proposition :
   {A : Type a} →
   Very-stable A ↝[ a ∣ a ] Stable A × Is-proposition A
-Very-stable↔Stable×Is-proposition =
-  generalise-ext?-prop
-    (record { to   = λ s → _≃_.to s
-                         , H-level-cong _ 1 s Squash-propositional
-            ; from = λ (s , prop) →
-                _↠_.from (Eq.≃↠⇔ Squash-propositional prop)
-                  (record { to = s; from = [_] })
-            })
-    Very-stable-propositional
-    (λ ext →
-       [inhabited⇒+]⇒+ 0 λ (_ , prop) →
-       ×-closure 1
-         (Π-closure ext 1 (λ _ → prop))
-         (H-level-propositional ext 1))
+Very-stable↔Stable×Is-proposition {A = A} ext =
+  Very-stable A               ↝⟨ Very-stable↔Is-equivalence-[] ext ⟩
+  Is-equivalence {A = A} [_]  ↝⟨ inverse-ext? Modal≃Is-equivalence-η ext ⟩□
+  Modal A                     □
+  where
+  open Modality modality
 
 -- If A has h-level 1 + n and is stable "n levels up", then A is very
 -- stable "n levels up".
@@ -416,10 +515,12 @@ H-level→Very-stable {A = A} n =
 
 Very-stable→Is-embedding-[] :
   Very-stable A → Is-embedding {A = A} [_]
-Very-stable→Is-embedding-[] s x y =
-  _≃_.is-equivalence (
-    x ≡ y          ↝⟨ inverse $ Eq.≃-≡ $ Eq.⟨ _ , Very-stable↔Is-equivalence-[] _ s ⟩ ⟩□
-    [ x ] ≡ [ y ]  □)
+Very-stable→Is-embedding-[] {A = A} =
+  Very-stable A             →⟨ _⇔_.to (Very-stable↔Stable×Is-proposition _) ⟩
+  Modal A                   →⟨ Modal→Is-embedding-η ⟩□
+  Is-embedding {A = A} [_]  □
+  where
+  open Modality modality
 
 -- If A is very stable, then [_] {A = A} is split surjective.
 
@@ -433,14 +534,13 @@ Very-stable→Split-surjective-[] {A = A} =
 -- Types that are stable for double negation are stable for Squash.
 
 ¬¬-Stable→Stable : (¬ ¬ A → A) → Stable A
-¬¬-Stable→Stable ¬¬-Stable x = ¬¬-Stable (Squash→¬¬ x)
+¬¬-Stable→Stable = EM.¬¬-stable→Stable
 
 -- Types for which it is known whether or not they are inhabited are
 -- stable.
 
 Dec→Stable : Dec A → Stable A
-Dec→Stable (yes x) _ = x
-Dec→Stable (no ¬x) x with () ← Squash→¬¬ x ¬x
+Dec→Stable = EM.Dec→Stable
 
 -- Every type is stable in the double negation monad.
 
@@ -459,11 +559,12 @@ Dec→Stable (no ¬x) x with () ← Squash→¬¬ x ¬x
 
 Decidable-equality→Very-stable-≡ :
   Decidable-equality A → Very-stable-≡ A
-Decidable-equality→Very-stable-≡ dec _ _ =
-  _⇔_.from (Very-stable↔Stable×Is-proposition _)
-    ( Dec→Stable (dec _ _)
-    , decidable⇒set dec
-    )
+Decidable-equality→Very-stable-≡ {A = A} =
+  Decidable-equality A  →⟨ EM.Decidable-equality→Separated ⟩
+  Separated A           →⟨ (λ hyp x y → _⇔_.from (Very-stable↔Stable×Is-proposition _) (hyp x y)) ⟩□
+  Very-stable-≡ A       □
+  where
+  open Modality modality
 
 ----------------------------------------------------------------------
 -- Preservation lemmas
@@ -528,11 +629,12 @@ Very-stable-cong {A = A} {B = B} ext A≃B =
 -- Squash A is very stable.
 
 Very-stable-Squash : Very-stable (Squash A)
-Very-stable-Squash =
-  _⇔_.from (Very-stable↔Stable×Is-proposition _)
-    ( _>>= id
-    , Squash-propositional
-    )
+Very-stable-Squash {A = A} =
+                          $⟨ Modal-◯ ⟩
+  Modal (Squash A)        →⟨ _⇔_.from (Very-stable↔Stable×Is-proposition _) ⟩□
+  Very-stable (Squash A)  □
+  where
+  open Modality modality
 
 -- ⊤ is very stable.
 
@@ -609,22 +711,14 @@ Very-stable→Very-stable-≡ :
   For-iterated-equality n       Very-stable A →
   For-iterated-equality (suc n) Very-stable A
 Very-stable→Very-stable-≡ {A = A} n =
-  For-iterated-equality n Very-stable A        ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
-  For-iterated-equality n Very-stable-≡ A      ↝⟨ For-iterated-equality-For-iterated-equality n 1 _ ⟩□
+  For-iterated-equality n Very-stable A        →⟨ For-iterated-equality-cong₁ _ n $
+                                                  _⇔_.to (Very-stable↔Stable×Is-proposition _) ⟩
+  For-iterated-equality n Modal A              →⟨ Modalⁿ→Modal¹⁺ⁿ n ⟩
+  For-iterated-equality (suc n) Modal A        →⟨ For-iterated-equality-cong₁ _ (suc n) $
+                                                  _⇔_.from (Very-stable↔Stable×Is-proposition _) ⟩□
   For-iterated-equality (suc n) Very-stable A  □
   where
-  lemma : ∀ {A} → Very-stable A → Very-stable-≡ A
-  lemma {A = A} s x y =
-    _⇔_.from (Very-stable↔Stable×Is-proposition _)
-      ( (Squash (x ≡ y)        ↝⟨ const prop ⟩
-         Is-proposition A      ↝⟨ +⇒≡ ⟩
-         Contractible (x ≡ y)  ↝⟨ proj₁ ⟩□
-         x ≡ y                 □)
-      , ⇒≡ 1 prop
-      )
-    where
-    prop : Is-proposition A
-    prop = proj₂ $ _⇔_.to (Very-stable↔Stable×Is-proposition _) s
+  open Modality modality
 
 private
 
@@ -690,41 +784,41 @@ Stable-H-level {A = A} n =
   Stable (H-level′ (suc n) A)             ↝⟨ Stable-map (record { to = inverse-ext? H-level↔H-level′ _; from = H-level↔H-level′ _ }) ⟩□
   Stable (H-level (suc n) A)              □
 
--- If A is "very stable 1 + n levels up", then H-level′ (suc n) A is
--- very stable (assuming extensionality).
+-- If A is "very stable n levels up", then H-level′ n A is very stable
+-- (assuming extensionality).
 
 Very-stable-H-level′ :
   {A : Type a} →
   Extensionality a a →
   ∀ n →
-  For-iterated-equality (suc n) Very-stable A →
-  Very-stable (H-level′ (suc n) A)
+  For-iterated-equality n Very-stable A →
+  Very-stable (H-level′ n A)
 Very-stable-H-level′ {A = A} ext n =
-  For-iterated-equality (suc n) Very-stable A               ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) _ ⟩
-  For-iterated-equality n Very-stable-≡ A                   ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
-  For-iterated-equality n (Very-stable ∘ Is-proposition) A  ↝⟨ For-iterated-equality-commutes-← _ Very-stable n (Very-stable-Π ext) ⟩
-  Very-stable (For-iterated-equality n Is-proposition A)    ↝⟨ Very-stable-map (For-iterated-equality-Is-proposition↔H-level′-suc n ext) ⟩□
-  Very-stable (H-level′ (suc n) A)                          □
+  For-iterated-equality n Very-stable A  →⟨ For-iterated-equality-cong₁ _ n $
+                                            _⇔_.to (Very-stable↔Stable×Is-proposition _) ⟩
+  For-iterated-equality n Modal A        →⟨ Modal-H-level′ ext n ⟩
+  Modal (H-level′ n A)                   →⟨ _⇔_.from (Very-stable↔Stable×Is-proposition _) ⟩□
+  Very-stable (H-level′ n A)             □
   where
-  lemma : ∀ {A} → Very-stable-≡ A → Very-stable (Is-proposition A)
-  lemma s =
-    Very-stable-Π ext λ _ →
-    Very-stable-Π ext λ _ →
-    s _ _
+  open Modality modality
 
--- If A is "very stable 1 + n levels up", then H-level (suc n) A is
--- very stable (assuming extensionality).
+-- If A is "very stable n levels up", then H-level n A is very stable
+-- (assuming extensionality).
 
 Very-stable-H-level :
   {A : Type a} →
   Extensionality a a →
   ∀ n →
-  For-iterated-equality (suc n) Very-stable A →
-  Very-stable (H-level (suc n) A)
+  For-iterated-equality n Very-stable A →
+  Very-stable (H-level n A)
 Very-stable-H-level {A = A} ext n =
-  For-iterated-equality (suc n) Very-stable A  ↝⟨ Very-stable-H-level′ ext n ⟩
-  Very-stable (H-level′ (suc n) A)             ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
-  Very-stable (H-level (suc n) A)              □
+  For-iterated-equality n Very-stable A  →⟨ For-iterated-equality-cong₁ _ n $
+                                            _⇔_.to (Very-stable↔Stable×Is-proposition _) ⟩
+  For-iterated-equality n Modal A        →⟨ Modal-H-level ext n ⟩
+  Modal (H-level n A)                    →⟨ _⇔_.from (Very-stable↔Stable×Is-proposition _) ⟩□
+  Very-stable (H-level n A)              □
+  where
+  open Modality modality
 
 -- If equality is stable for A and B, then it is stable for A ⊎ B.
 
@@ -766,13 +860,7 @@ Stable-≡-List :
   ∀ n →
   For-iterated-equality (suc n) Stable A →
   For-iterated-equality (suc n) Stable (List A)
-Stable-≡-List n =
-  For-iterated-equality-List-suc
-    n
-    (Stable-map ∘ from-isomorphism)
-    (Very-stable→Stable 0 $ Very-stable-↑ Very-stable-⊤)
-    (Very-stable→Stable 0 Very-stable-⊥)
-    Stable-×
+Stable-≡-List = EM.Stable-≡-List
 
 -- If equality is very stable for A, then it is very stable for
 -- List A.
@@ -781,13 +869,15 @@ Very-stable-≡-List :
   ∀ n →
   For-iterated-equality (suc n) Very-stable A →
   For-iterated-equality (suc n) Very-stable (List A)
-Very-stable-≡-List n =
-  For-iterated-equality-List-suc
-    n
-    (Very-stable-cong _ ∘ from-isomorphism)
-    (Very-stable-↑ Very-stable-⊤)
-    Very-stable-⊥
-    Very-stable-×
+Very-stable-≡-List {A = A} n =
+  For-iterated-equality (suc n) Very-stable A         →⟨ For-iterated-equality-cong₁ _ (suc n) $
+                                                         _⇔_.to (Very-stable↔Stable×Is-proposition _) ⟩
+  For-iterated-equality (suc n) Modal A               →⟨ EM.Separated-List n ⟩
+  For-iterated-equality (suc n) Modal (List A)        →⟨ For-iterated-equality-cong₁ _ (suc n) $
+                                                         _⇔_.from (Very-stable↔Stable×Is-proposition _) ⟩□
+  For-iterated-equality (suc n) Very-stable (List A)  □
+  where
+  open Modality modality
 
 ----------------------------------------------------------------------
 -- Simple corollaries or variants of results above
