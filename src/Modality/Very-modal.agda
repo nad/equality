@@ -340,9 +340,8 @@ Modal≃Modal-Null {A = A} ext =
   ◯-map (f ∘_) (◯Π◯≃◯Π _ (η g))                       ≡⟨⟩
   ◯-map (f ∘_) (Π◯≃◯Π _ g)                            ∎
 
--- A variant of Modality-lemma.◯Ση≃Σ◯◯ proved using the assumption
--- that the modality is very modal, instead of function
--- extensionality.
+-- A variant of M.◯Ση≃Σ◯◯ proved using the assumption that the
+-- modality is very modal, instead of function extensionality.
 
 ◯Ση≃Σ◯◯ : ◯ (Σ A (P ∘ η)) ≃ Σ (◯ A) (◯ ∘ P)
 ◯Ση≃Σ◯◯ {A = A} {P = P} = Eq.↔→≃
