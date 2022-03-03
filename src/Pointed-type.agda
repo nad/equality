@@ -18,6 +18,7 @@ open import Prelude as P hiding (_×_)
 
 open import Bijection eq as B using (_↔_)
 open import Equivalence eq as E using (_≃_)
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import Surjection eq using (_↠_)
@@ -154,22 +155,21 @@ Maybe→ᴮ↔→ {A = A} {B} {x} = generalise-ext?
   (λ ext →
        refl
      , (λ (f , eq) → Σ-≡,≡→≡
-          (apply-ext (E.good-ext ext)
+          (apply-ext ext
              [ (λ _ →
                   x          ≡⟨ sym eq ⟩∎
                   f nothing  ∎)
              , (λ _ → refl _)
              ])
           (subst (λ f → f nothing ≡ x)
-                 (apply-ext (E.good-ext ext)
-                    [ (λ _ → sym eq) , (λ _ → refl _) ])
-                 (refl x)                                 ≡⟨ E.subst-good-ext ext _ _ ⟩
+                 (apply-ext ext [ (λ _ → sym eq) , (λ _ → refl _) ])
+                 (refl x)                                             ≡⟨ subst-ext ext ⟩
 
-           subst (_≡ x) (sym eq) (refl x)                 ≡⟨ subst-trans _ ⟩
+           subst (_≡ x) (sym eq) (refl x)                             ≡⟨ subst-trans _ ⟩
 
-           trans eq (refl x)                              ≡⟨ trans-reflʳ _ ⟩∎
+           trans eq (refl x)                                          ≡⟨ trans-reflʳ _ ⟩∎
 
-           eq                                             ∎)))
+           eq                                                         ∎)))
 
 -- A corollary.
 

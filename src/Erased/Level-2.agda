@@ -23,6 +23,7 @@ open import Embedding eq-J as Emb using (Embedding; Is-embedding)
 open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Erased eq-J as EEq
   using (_≃ᴱ_; Is-equivalenceᴱ)
+open import Extensionality eq-J
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
 open import H-level.Closure eq-J

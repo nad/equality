@@ -13,6 +13,7 @@ open import Prelude
 
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
+open import Extensionality eq
 open import Function-universe eq hiding (id; _∘_)
 open import List eq using (length)
 open import Surjection eq using (_↠_; ↠-≡)

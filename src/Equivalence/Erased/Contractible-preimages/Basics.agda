@@ -21,6 +21,7 @@ open import Prelude
 
 open import Bijection eq using (_↔_)
 import Equivalence.Contractible-preimages eq as CP
+open import Extensionality eq
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Preimage eq as Preimage using (_⁻¹_)

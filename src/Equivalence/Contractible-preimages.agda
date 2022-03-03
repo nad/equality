@@ -18,7 +18,6 @@ open import Prelude as P hiding (id)
 open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
 open import H-level eq as H-level
-open import H-level.Closure eq
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq using (_↠_)
 
@@ -38,57 +37,6 @@ Is-equivalence :
   {A : Type a} {B : Type b} →
   (A → B) → Type (a ⊔ b)
 Is-equivalence f = ∀ y → Contractible (f ⁻¹ y)
-
-abstract
-
-  -- Is-equivalence f is a proposition, assuming extensional equality.
-
-  propositional :
-    Extensionality (a ⊔ b) (a ⊔ b) →
-    {A : Type a} {B : Type b} (f : A → B) →
-    Is-proposition (Is-equivalence f)
-  propositional {a = a} ext f =
-    Π-closure (lower-extensionality a lzero ext) 1 λ _ →
-      Contractible-propositional ext
-
-  -- If the domain is contractible and the codomain is propositional,
-  -- then Is-equivalence f is contractible.
-
-  sometimes-contractible :
-    Extensionality (a ⊔ b) (a ⊔ b) →
-    {A : Type a} {B : Type b} {f : A → B} →
-    Contractible A → Is-proposition B →
-    Contractible (Is-equivalence f)
-  sometimes-contractible {a = a} ext A-contr B-prop =
-    Π-closure (lower-extensionality a lzero ext) 0 λ _ →
-      cojoin ext (Σ-closure 0 A-contr (λ _ → +⇒≡ B-prop))
-
-  -- Is-equivalence f is not always contractible.
-
-  not-always-contractible₁ :
-    ∃ λ (A : Type a) → ∃ λ (B : Type b) → ∃ λ (f : A → B) →
-      Is-proposition A × Contractible B ×
-      ¬ Contractible (Is-equivalence f)
-  not-always-contractible₁ =
-    ⊥ ,
-    ↑ _ ⊤ ,
-    const (lift tt) ,
-    ⊥-propositional ,
-    ↑-closure 0 ⊤-contractible ,
-    λ c → ⊥-elim (proj₁ (proj₁ (proj₁ c (lift tt))))
-
-  not-always-contractible₂ :
-    ∃ λ (A : Type a) → ∃ λ (B : Type b) → ∃ λ (f : A → B) →
-      Contractible A × Is-set B ×
-      ¬ Contractible (Is-equivalence f)
-  not-always-contractible₂ =
-    ↑ _ ⊤ ,
-    ↑ _ Bool ,
-    const (lift true) ,
-    ↑-closure 0 ⊤-contractible ,
-    ↑-closure 2 Bool-set ,
-    λ c → Bool.true≢false (cong lower
-            (proj₂ (proj₁ (proj₁ c (lift false)))))
 
 -- Is-equivalence respects extensional equality.
 

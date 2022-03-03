@@ -78,18 +78,6 @@ import Integer.Basics
 
 import Groupoid
 
--- Closure properties for h-levels.
-
-import H-level.Closure
-
--- Excluded middle.
-
-import Excluded-middle
-
--- Equivalence relations
-
-import Equivalence-relation
-
 -- Preimages.
 
 import Preimage
@@ -101,6 +89,22 @@ import Equivalence.Contractible-preimages
 -- Half adjoint equivalences.
 
 import Equivalence.Half-adjoint
+
+-- Function extensionality.
+
+import Extensionality
+
+-- Closure properties for h-levels.
+
+import H-level.Closure
+
+-- Excluded middle.
+
+import Excluded-middle
+
+-- Equivalence relations
+
+import Equivalence-relation
 
 -- Equivalences.
 

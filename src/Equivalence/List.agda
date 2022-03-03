@@ -15,6 +15,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Equivalence eq-J as Eq using (_≃_)
+open import Extensionality eq-J
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
 open import H-level.Closure eq-J

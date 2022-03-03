@@ -25,6 +25,7 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 import Equivalence P.equality-with-J as PEq
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import Group equality-with-J
 open import H-level equality-with-J as H-level
@@ -757,9 +758,9 @@ K[Fundamental-group′]1↣ᴮ {P = P@(A , a)} {s = s} univ g =
   emb = elim-prop λ where
     .is-propositionʳ _ →
       Π-closure ext 1 λ _ →
-      Eq.propositional ext _
+      Is-equivalence-propositional ext
     .baseʳ → elim-prop λ where
-      .is-propositionʳ _ → Eq.propositional ext _
+      .is-propositionʳ _ → Is-equivalence-propositional ext
       .baseʳ             → cong-to-equivalence
 
 -- If P is a connected groupoid, then there is a based equivalence

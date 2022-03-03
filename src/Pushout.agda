@@ -23,6 +23,7 @@ open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
 import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
@@ -299,7 +300,7 @@ Pushout→≃Pullback {S = S} {A = A} =
   _≃_.to (Pushout→≃Pullback {A = C}) ∘ (_∘ ∇ f) ≡ ∆ (_∘ f)
 ∘∇≡∆∘ {f = f} = ⟨ext⟩ λ g →
   (g , g , ⟨ext⟩ (cong (g ∘ ∇ f) ∘ glue))  ≡⟨ cong (λ p → g , g , ⟨ext⟩ p) $ ⟨ext⟩ $ lemma g ⟩
-  (g , g , ⟨ext⟩ (refl ∘ g ∘ f))           ≡⟨ cong (λ p → g , g , p) ext-refl ⟩∎
+  (g , g , ⟨ext⟩ (refl ∘ g ∘ f))           ≡⟨ cong (λ p → g , g , p) $ ext-refl ext ⟩∎
   (g , g , refl (g ∘ f))                   ∎
   where
   lemma : ∀ _ _ → _

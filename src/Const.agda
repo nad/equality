@@ -16,6 +16,7 @@ import Bijection eq as Bijection
 open Derived-definitions-and-properties eq
 open import Embedding eq
 open import Equivalence eq as Eq using (_≃_)
+open import Extensionality eq
 open import Fin eq
 open import Function-universe eq
 open import H-level eq

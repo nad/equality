@@ -25,6 +25,7 @@ open import Embedding eq using (Embedding)
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Erased.Basics eq using (Is-equivalenceᴱ)
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -161,7 +162,7 @@ Path-split↔Is-equivalence =
   generalise-ext?-prop
     Path-split⇔Is-equivalence
     Path-split-propositional
-    (λ ext → Eq.propositional ext _)
+    Is-equivalence-propositional
 
 -- Another alternative definition of "Is-equivalence".
 
@@ -193,7 +194,7 @@ Path-split-∞↔Is-equivalence =
        ; from = λ eq _ → Is-equivalence→Path-split eq
        })
     Path-split-∞-propositional
-    (λ ext → Eq.propositional ext _)
+    Is-equivalence-propositional
 
 -- A preservation lemma for Path-split.
 
@@ -422,8 +423,8 @@ Is-extendable-along≃Path-split {a = a} {b = b} {p = p} {f = f} ext =
                                                                  (Eq.extensionality-isomorphism ext₁)
                                                                  (Eq.extensionality-isomorphism ext₂)
                                                                  (λ eq →
-          cong (_∘ f) (apply-ext (Eq.good-ext ext₁) eq)             ≡⟨ Eq.cong-pre-∘-good-ext ext₂ ext₁ _ ⟩∎
-          apply-ext (Eq.good-ext ext₂) (eq ∘ f)                     ∎)
+          cong (_∘ f) (apply-ext ext₁ eq)                           ≡⟨ cong-pre-∘-ext ext₂ ext₁ ⟩∎
+          apply-ext ext₂ (eq ∘ f)                                   ∎)
                                                                  n ⟩□
          Path-split n (cong (_∘ f))                         □)
   where
@@ -664,7 +665,7 @@ Null-propositional :
   Is-proposition (P -Null B)
 Null-propositional {a = a} {p = p} {b = b} ext =
   Π-closure (lower-extensionality (p ⊔ b) lzero ext) 1 λ _ →
-  Eq.propositional (lower-extensionality a lzero ext) _
+  Is-equivalence-propositional (lower-extensionality a lzero ext)
 
 -- The operator _-Null_ preserves equivalences (assuming
 -- extensionality).

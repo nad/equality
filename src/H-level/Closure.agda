@@ -16,9 +16,13 @@ open import Bijection eq as Bijection hiding (id; _∘_)
 open Derived-definitions-and-properties eq
 import Equality.Decidable-UIP eq as DUIP
 open import Equality.Decision-procedures eq
+import Equivalence.Contractible-preimages eq as CP
+open import Equivalence.Half-adjoint eq as HA using (Is-equivalence)
+open import Extensionality eq
 open import H-level eq
 open import Logical-equivalence hiding (id; _∘_)
 open import Nat eq as Nat
+open import Preimage eq as Preimage
 open import Prelude
 open import Surjection eq as Surjection hiding (id; _∘_)
 
@@ -163,93 +167,21 @@ abstract
 ------------------------------------------------------------------------
 -- Π-types
 
--- Closure of contractibility under Π A is logically equivalent to
--- having extensional equality for functions from A.
-
-Π-closure-contractible⇔extensionality :
-  ∀ {a b} {A : Type a} →
-  ({B : A → Type b} →
-   (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)) ⇔
-  ({B : A → Type b} → Extensionality′ A B)
-Π-closure-contractible⇔extensionality {b = b} {A} = record
-  { to   = ⇒
-  ; from = λ ext cB →
-      ((λ x → proj₁ (cB x)) , λ f → ext λ x → proj₂ (cB x) (f x))
-  }
-  where
-  ⇒ : ({B : A → Type b} →
-       (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)) →
-      (∀ {B} → Extensionality′ A B)
-  ⇒ closure {B} {f} {g} f≡g =
-    f                                     ≡⟨ sym (cong (λ c → λ x → proj₁ (c x)) $
-                                               proj₂ contractible (λ x → (f x , f≡g x))) ⟩
-    (λ x → proj₁ (proj₁ contractible x))  ≡⟨ cong (λ c → λ x → proj₁ (c x)) $
-                                               proj₂ contractible (λ x → (g x , refl (g x))) ⟩∎
-    g                                     ∎
-    where
-    contractible : Contractible ((x : A) → Singleton (g x))
-    contractible = closure (singleton-contractible ∘ g)
-
 abstract
-
-  -- Given (generalised) extensionality one can define an
-  -- extensionality proof which is well-behaved.
-
-  extensionality⇒well-behaved-extensionality :
-    ∀ {a b} {A : Type a} →
-    ({B : A → Type b} → Extensionality′ A B) →
-    {B : A → Type b} → Well-behaved-extensionality A B
-  extensionality⇒well-behaved-extensionality {A = A} ext {B} =
-    (λ {_} → ext′) , λ f →
-      ext′ (refl ∘ f)  ≡⟨ trans-symˡ _ ⟩∎
-      refl f           ∎
-    where
-    ext′ : Extensionality′ A B
-    ext′ = to (from ext)
-      where open _⇔_ Π-closure-contractible⇔extensionality
-
--- A potential inverse of extensionality. (See Equivalence for a proof
--- which shows that this function has an inverse, assuming
--- extensionality.)
-
-ext⁻¹ : ∀ {a b} {A : Type a} {B : A → Type b} {f g : (x : A) → B x} →
-        f ≡ g → (∀ x → f x ≡ g x)
-ext⁻¹ f≡g = λ x → cong (λ h → h x) f≡g
-
-abstract
-
-  -- "Evaluation rule" for ext⁻¹.
-
-  ext⁻¹-refl : ∀ {a b} {A : Type a} {B : A → Type b}
-               (f : (x : A) → B x) {x} →
-               ext⁻¹ (refl f) x ≡ refl (f x)
-  ext⁻¹-refl f {x} = cong-refl (λ h → h x)
 
   -- Given extensionality there is a (split) surjection from
   -- ∀ x → f x ≡ g x to f ≡ g.
 
-  ext-surj : ∀ {a b} →
-             Extensionality a b →
-             {A : Type a} {B : A → Type b} {f g : (x : A) → B x} →
-             (∀ x → f x ≡ g x) ↠ (f ≡ g)
-  ext-surj {b = b} ext {A} {B} = record
-    { logical-equivalence = record
-      { to   = to
-      ; from = ext⁻¹
-      }
-    ; right-inverse-of =
-        elim (λ {f g} f≡g → to (ext⁻¹ f≡g) ≡ f≡g) λ h →
-          proj₁ ext′ (ext⁻¹ (refl h))  ≡⟨ cong (proj₁ ext′) (proj₁ ext′ λ _ →
-                                            ext⁻¹-refl h) ⟩
-          proj₁ ext′ (refl ∘ h)        ≡⟨ proj₂ ext′ h ⟩∎
-          refl h                       ∎
-    }
-    where
-    ext′ : {B : A → Type b} → Well-behaved-extensionality A B
-    ext′ = extensionality⇒well-behaved-extensionality (apply-ext ext)
-
-    to : {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
-    to = proj₁ ext′
+  ext-surj :
+    ∀ {a p} →
+    Extensionality a p →
+    {A : Type a} {P : A → Type p} {f g : (x : A) → P x} →
+    (∀ x → f x ≡ g x) ↠ (f ≡ g)
+  ext-surj ext =
+    _↔_.surjection $
+    HA.Is-equivalence→↔ $
+    HA.inverse-equivalence $
+    Extensionality.extensionality ext
 
 -- H-level′ is closed under Π A (assuming extensionality).
 
@@ -258,10 +190,11 @@ abstract
   Extensionality a b →
   ∀ n → (∀ x → H-level′ n (B x)) → H-level′ n ((x : A) → B x)
 Π-closure′ ext zero =
-  _⇔_.from Π-closure-contractible⇔extensionality (apply-ext ext)
+  _⇔_.from [Π-Contractible→Contractible-Π]⇔Function-extensionality′
+    (apply-ext ext)
 Π-closure′ ext (suc n) = λ h f g →
   respects-surjection′ (ext-surj ext) n $
-    Π-closure′ ext n (λ x → h x (f x) (g x))
+  Π-closure′ ext n (λ x → h x (f x) (g x))
 
 -- H-level is closed under Π A (assuming extensionality).
 
@@ -733,6 +666,252 @@ abstract
   UIP-propositional ext =
     implicit-Π-closure ext 1 λ A →
     H-level-propositional (lower-extensionality _ lzero ext) 2
+
+------------------------------------------------------------------------
+-- Is-equivalence
+
+-- Π A preserves surjections (assuming extensionality).
+
+∀-cong-↠ :
+  ∀ {a p₁ p₂} {A : Type a} {P₁ : A → Type p₁} {P₂ : A → Type p₂} →
+  Extensionality a (p₁ ⊔ p₂) →
+  (∀ x → P₁ x ↠ P₂ x) →
+  ((x : A) → P₁ x) ↠ ((x : A) → P₂ x)
+∀-cong-↠ {p₁ = p₁} ext P₁↠P₂ = record
+  { logical-equivalence = equiv
+  ; right-inverse-of    = right-inverse-of′
+  }
+  where
+  equiv = record
+    { to   = _↠_.to   (P₁↠P₂ _) ∘_
+    ; from = _↠_.from (P₁↠P₂ _) ∘_
+    }
+
+  abstract
+    right-inverse-of′ : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
+    right-inverse-of′ f =
+      apply-ext (lower-extensionality lzero p₁ ext) λ x →
+        _↠_.to (P₁↠P₂ x) (_↠_.from (P₁↠P₂ x) (f x))  ≡⟨ _↠_.right-inverse-of (P₁↠P₂ x) (f x) ⟩∎
+        f x                                          ∎
+
+abstract
+
+  -- Is-equivalence f is a proposition (assuming extensionality).
+
+  Is-equivalence-propositional :
+    ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    Is-proposition (Is-equivalence f)
+  Is-equivalence-propositional
+    {a = a} {b = b} {A = A} {B = B} {f = f} ext =
+    [inhabited⇒+]⇒+ 0 λ eq →
+    mono₁ 0 $
+    respects-surjection
+      ((∃ λ ((f⁻¹ , f-f⁻¹) : ∃ λ f⁻¹ → ∀ x → f (f⁻¹ x) ≡ x) →
+        ∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
+            ∀ x → cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x))              ↠⟨ _↔_.surjection $ Bijection.inverse Bijection.Σ-assoc ⟩□
+
+       Is-equivalence f                                        □)
+      0 $
+    Σ-closure 0 (lemma₁ eq) (uncurry $ lemma₂ eq)
+    where
+    ext₁ : Extensionality b b
+    ext₁ = lower-extensionality a a ext
+
+    ext₁′ : Extensionality b a
+    ext₁′ = lower-extensionality a b ext
+
+    ext-↠ :
+      {A B : Type b} {f g : A → B} →
+      f ≡ g ↠ (∀ x → f x ≡ g x)
+    ext-↠ =
+      _↔_.surjection $
+      HA.Is-equivalence→↔ $
+      Extensionality.extensionality ext₁
+
+    lemma₁ :
+      Is-equivalence f →
+      Contractible (∃ λ (f⁻¹ : B → A) → ∀ x → f (f⁻¹ x) ≡ x)
+    lemma₁ (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) =
+      respects-surjection
+        ((∃ λ f⁻¹ → f ∘ f⁻¹ ≡ id)         ↠⟨ (Surjection.∃-cong λ _ → ext-↠) ⟩□
+         (∃ λ f⁻¹ → ∀ x → f (f⁻¹ x) ≡ x)  □)
+        0 $
+      Preimage.bijection⁻¹-contractible
+        (record
+           { surjection = record
+             { logical-equivalence = record
+               { to   = f   ∘_
+               ; from = f⁻¹ ∘_
+               }
+             ; right-inverse-of = λ g → apply-ext ext₁ λ x →
+                 f (f⁻¹ (g x))  ≡⟨ f-f⁻¹ (g x) ⟩∎
+                 g x            ∎
+             }
+           ; left-inverse-of = λ g → apply-ext ext₁′ λ x →
+               f⁻¹ (f (g x))  ≡⟨ f⁻¹-f (g x) ⟩∎
+               g x            ∎
+           })
+        id
+
+    ext₂ : Extensionality a (a ⊔ b)
+    ext₂ = lower-extensionality b lzero ext
+
+    lemma₂ :
+      Is-equivalence f →
+      (f⁻¹ : B → A) (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
+      Contractible
+        (∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
+           ∀ x → cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x))
+    lemma₂ eq f⁻¹ f-f⁻¹ =
+      respects-surjection
+        ((∀ x → (f⁻¹ (f x) , f-f⁻¹ (f x)) ≡ (x , refl (f x)))             ↠⟨ (∀-cong-↠ ext₂ λ _ → _↔_.surjection $
+                                                                              Bijection.inverse Bijection.Σ-≡,≡↔≡) ⟩
+         (∀ x → ∃ λ f⁻¹-f →
+                  subst (λ y → f y ≡ f x) f⁻¹-f (f-f⁻¹ (f x)) ≡
+                  refl (f x))                                             ↠⟨ (∀-cong-↠ ext₂ λ x → Surjection.∃-cong λ f⁻¹-f →
+                                                                              elim (λ {A B} _ → A ↠ B) (λ _ → Surjection.id) (
+
+             subst (λ y → f y ≡ f x) f⁻¹-f (f-f⁻¹ (f x)) ≡ refl (f x)           ≡⟨ cong (_≡ _) $ subst-∘ _ _ _ ⟩
+             subst (_≡ f x) (cong f f⁻¹-f) (f-f⁻¹ (f x)) ≡ refl (f x)           ≡⟨ cong (_≡ _) subst-trans-sym ⟩
+             trans (sym (cong f f⁻¹-f)) (f-f⁻¹ (f x)) ≡ refl (f x)              ≡⟨ [trans≡]≡[≡trans-symˡ] _ _ _ ⟩
+             f-f⁻¹ (f x) ≡ trans (sym (sym (cong f f⁻¹-f))) (refl (f x))        ≡⟨ cong (_ ≡_) $ trans-reflʳ _ ⟩
+             f-f⁻¹ (f x) ≡ sym (sym (cong f f⁻¹-f))                             ≡⟨ cong (_ ≡_) $ sym-sym _ ⟩∎
+             f-f⁻¹ (f x) ≡ cong f f⁻¹-f                                         ∎)) ⟩
+
+         (∀ x → ∃ λ f⁻¹-f → f-f⁻¹ (f x) ≡ cong f f⁻¹-f)                   ↠⟨ (∀-cong-↠ ext₂ λ _ → Surjection.∃-cong λ _ →
+                                                                              _↔_.surjection Bijection.≡-comm) ⟩
+
+         (∀ x → ∃ λ f⁻¹-f → cong f f⁻¹-f ≡ f-f⁻¹ (f x))                   ↠⟨ _↔_.surjection Bijection.ΠΣ-comm ⟩□
+
+         (∃ λ f⁻¹-f → ∀ x → cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x))               □)
+        0 $
+      Π-closure ext₂ 0 λ x →
+      ⇒≡ 0 $
+      _⇔_.to HA.Is-equivalence⇔Is-equivalence-CP eq (f x)
+
+-- If the domain of f is contractible and the codomain is
+-- propositional, then Is-equivalence f is contractible (assuming
+-- extensionality).
+
+Is-equivalence-sometimes-contractible :
+  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
+  Extensionality (a ⊔ b) (a ⊔ b) →
+  Contractible A → Is-proposition B →
+  Contractible (Is-equivalence f)
+Is-equivalence-sometimes-contractible
+  {a = a} {b = b} ext A-contr B-prop =
+  Σ-closure 0 (Π-closure ext-b-a 0 λ _ → A-contr)              λ _ →
+  Σ-closure 0 (Π-closure ext-b-b 0 λ _ → +⇒≡ B-prop)   λ _ →
+  Σ-closure 0 (Π-closure ext-a-a 0 λ _ → ⇒≡ 0 A-contr) λ _ →
+  Π-closure ext-a-b 0 λ _ → ⇒≡ 0 $ +⇒≡ B-prop
+  where
+  ext-a-a : Extensionality a a
+  ext-a-a = lower-extensionality b b ext
+
+  ext-a-b : Extensionality a b
+  ext-a-b = lower-extensionality b a ext
+
+  ext-b-a : Extensionality b a
+  ext-b-a = lower-extensionality a b ext
+
+  ext-b-b : Extensionality b b
+  ext-b-b = lower-extensionality a a ext
+
+------------------------------------------------------------------------
+-- Function extensionality
+
+-- Extensionality is propositional (assuming extensionality).
+
+Extensionality-propositional :
+  ∀ {a p} →
+  Extensionality (lsuc (a ⊔ p)) (a ⊔ lsuc p) →
+  Is-proposition (Extensionality a p)
+Extensionality-propositional {a = a} {p = p} ext =
+  respects-surjection surj 1 $
+  implicit-Π-closure ext₁ 1 λ _ →
+  implicit-Π-closure ext₂ 1 λ _ →
+  implicit-Π-closure ext₃ 1 λ _ →
+  implicit-Π-closure ext₃ 1 λ _ →
+  Is-equivalence-propositional ext₃
+  where
+  ext₁ : Extensionality (lsuc a) (a ⊔ lsuc p)
+  ext₁ = lower-extensionality (lsuc p) lzero ext
+
+  ext₂ : Extensionality (a ⊔ lsuc p) (a ⊔ p)
+  ext₂ = lower-extensionality (lsuc a) (lsuc p) ext
+
+  ext₃ : Extensionality (a ⊔ p) (a ⊔ p)
+  ext₃ = lower-extensionality _ (lsuc p) ext
+
+  surj :
+    ({A : Type a} {P : A → Type p} → Extensionality′ A P) ↠
+    Extensionality a p
+  surj = record
+    { logical-equivalence = record
+      { to   = λ ext → record { extensionality = ext }
+      ; from = Extensionality.extensionality
+      }
+    ; right-inverse-of = λ where
+        record { extensionality = ext } → refl _
+    }
+
+------------------------------------------------------------------------
+-- CP.Is-equivalence
+
+abstract
+
+  -- CP.Is-equivalence f is a proposition, assuming extensional
+  -- equality.
+
+  Is-equivalence-CP-propositional :
+    ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    Is-proposition (CP.Is-equivalence f)
+  Is-equivalence-CP-propositional {a = a} ext =
+    Π-closure (lower-extensionality a lzero ext) 1 λ _ →
+    Contractible-propositional ext
+
+  -- If the domain is contractible and the codomain is propositional,
+  -- then CP.Is-equivalence f is contractible.
+
+  Is-equivalence-CP-sometimes-contractible :
+    ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    Contractible A → Is-proposition B →
+    Contractible (CP.Is-equivalence f)
+  Is-equivalence-CP-sometimes-contractible {a = a} ext A-contr B-prop =
+    Π-closure (lower-extensionality a lzero ext) 0 λ _ →
+    cojoin ext (Σ-closure 0 A-contr (λ _ → +⇒≡ B-prop))
+
+  -- CP.Is-equivalence f is not always contractible.
+
+  Is-equivalence-CP-not-always-contractible₁ :
+    ∀ {a b} →
+    ∃ λ (A : Type a) → ∃ λ (B : Type b) → ∃ λ (f : A → B) →
+      Is-proposition A × Contractible B ×
+      ¬ Contractible (CP.Is-equivalence f)
+  Is-equivalence-CP-not-always-contractible₁ =
+    ⊥ ,
+    ↑ _ ⊤ ,
+    const (lift tt) ,
+    ⊥-propositional ,
+    ↑-closure 0 ⊤-contractible ,
+    λ c → ⊥-elim (proj₁ (proj₁ (proj₁ c (lift tt))))
+
+  Is-equivalence-CP-not-always-contractible₂ :
+    ∀ {a b} →
+    ∃ λ (A : Type a) → ∃ λ (B : Type b) → ∃ λ (f : A → B) →
+      Contractible A × Is-set B ×
+      ¬ Contractible (CP.Is-equivalence f)
+  Is-equivalence-CP-not-always-contractible₂ =
+    ↑ _ ⊤ ,
+    ↑ _ Bool ,
+    const (lift true) ,
+    ↑-closure 0 ⊤-contractible ,
+    ↑-closure 2 Bool-set ,
+    λ c → Bool.true≢false (cong lower
+            (proj₂ (proj₁ (proj₁ c (lift false)))))
 
 ------------------------------------------------------------------------
 -- Binary sums

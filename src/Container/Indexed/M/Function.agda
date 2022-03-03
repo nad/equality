@@ -20,6 +20,7 @@ open import Prelude
 open import Bijection eq as Bijection using (_↔_)
 open import Container.Indexed eq
 open import Equivalence eq as Eq using (_≃_)
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level using (H-level)
 open import H-level.Closure eq
@@ -273,23 +274,23 @@ cochain-limit X@(_ , up) ext =
     Extensionality lzero _ →
     ∀ l → from (to l) ≡ l
   from∘to ext l@(p , q) = Σ-≡,≡→≡
-    (apply-ext ext′ (from₁∘to l))
+    (apply-ext ext (from₁∘to l))
     (apply-ext ext λ n →
 
      subst (λ p → ∀ n → p (suc n) ≡ up n (p n))
-       (apply-ext ext′ (from₁∘to l))
+       (apply-ext ext (from₁∘to l))
        (λ _ → refl _) n                                            ≡⟨ sym $ push-subst-application _ _ ⟩
 
      subst (λ p → p (suc n) ≡ up n (p n))
-       (apply-ext ext′ (from₁∘to l))
+       (apply-ext ext (from₁∘to l))
        (refl _)                                                    ≡⟨ trans subst-in-terms-of-trans-and-cong $
                                                                       cong (trans _) $
                                                                       trans-reflˡ _ ⟩
-     trans (sym $ cong (_$ suc n) (apply-ext ext′ (from₁∘to l)))
-       (cong (λ p → up n (p n)) (apply-ext ext′ (from₁∘to l)))     ≡⟨ cong₂ trans
-                                                                        (cong sym $ Eq.cong-good-ext ext _)
+     trans (sym $ cong (_$ suc n) (apply-ext ext (from₁∘to l)))
+       (cong (λ p → up n (p n)) (apply-ext ext (from₁∘to l)))      ≡⟨ cong₂ trans
+                                                                        (cong sym $ cong-ext ext)
                                                                         (trans (sym $ cong-∘ _ _ _) $
-                                                                         cong (cong _) $ Eq.cong-good-ext ext _) ⟩
+                                                                         cong (cong _) $ cong-ext ext) ⟩
      trans (sym $ from₁∘to l (suc n))
        (cong (up n) $ from₁∘to l n)                                ≡⟨⟩
 
@@ -302,8 +303,6 @@ cochain-limit X@(_ , up) ext =
        (cong (up n) $ from₁∘to l n)                                ≡⟨ trans-[trans-sym]- _ _ ⟩∎
 
      q n                                                           ∎)
-    where
-    ext′ = Eq.good-ext ext
 
 -- A variant of cochain-limit-↠ for simple cochains.
 
@@ -346,22 +345,22 @@ simple-cochain-limit =
     Extensionality lzero _ →
     ∀ l → from (to l) ≡ l
   from∘to ext l@(f , p) = Σ-≡,≡→≡
-    (apply-ext ext′ (from₁∘to l))
+    (apply-ext ext (from₁∘to l))
     (apply-ext ext λ n →
 
      subst (λ f → ∀ n → f (suc n) ≡ f n)
-       (apply-ext ext′ (from₁∘to l))
+       (apply-ext ext (from₁∘to l))
        (λ _ → refl _) n                                             ≡⟨ sym $ push-subst-application _ _ ⟩
 
      subst (λ f → f (suc n) ≡ f n)
-       (apply-ext ext′ (from₁∘to l))
+       (apply-ext ext (from₁∘to l))
        (refl _)                                                     ≡⟨ trans subst-in-terms-of-trans-and-cong $
                                                                        cong (trans _) $
                                                                        trans-reflˡ _ ⟩
-     trans (sym $ cong (_$ suc n) (apply-ext ext′ (from₁∘to l)))
-       (cong (_$ n) (apply-ext ext′ (from₁∘to l)))                  ≡⟨ cong₂ trans
-                                                                         (cong sym $ Eq.cong-good-ext ext _)
-                                                                         (Eq.cong-good-ext ext _) ⟩
+     trans (sym $ cong (_$ suc n) (apply-ext ext (from₁∘to l)))
+       (cong (_$ n) (apply-ext ext (from₁∘to l)))                   ≡⟨ cong₂ trans
+                                                                         (cong sym $ cong-ext ext)
+                                                                         (cong-ext ext) ⟩
      trans (sym $ from₁∘to l (suc n)) (from₁∘to l n)                ≡⟨⟩
 
      trans (sym $ trans (from₁∘to l n) (sym $ p n)) (from₁∘to l n)  ≡⟨ cong (flip trans _) $
@@ -372,8 +371,6 @@ simple-cochain-limit =
      trans (trans (p n) (sym $ from₁∘to l n)) (from₁∘to l n)        ≡⟨ trans-[trans-sym]- _ _ ⟩∎
 
      p n                                                            ∎)
-    where
-    ext′ = Eq.good-ext ext
 
 -- The first projection of the right-to-left direction of
 -- simple-cochain-limit computes in a certain way (at least when "k"
@@ -531,9 +528,7 @@ in-M≡ :
   (b : Block "M-fixpoint")
   {I : Type i}
   (ext : Extensionality p (i ⊔ s ⊔ p)) →
-  let ext′ = apply-ext $ Eq.good-ext $
-             lower-extensionality p (i ⊔ s ⊔ p) ext
-  in
+  let ext′ = apply-ext $ lower-extensionality p (i ⊔ s ⊔ p) ext in
   {C : Container I s p} {i : I}
   (x@(s , f) : ⟦ C ⟧ (M C) i) →
   in-M b ext _ x ≡
@@ -556,10 +551,7 @@ in-M≡ {i = i} {p = p} {s = sℓ} ⊠ ext {C = C} x@(s , f) =
   , ℕ-case (refl _) (λ n → cong (s ,_) $ ext′ λ p → proj₂ (f p) n)
   )                                                                 ∎
   where
-  ext′ =
-    apply-ext $
-    Eq.good-ext $
-    lower-extensionality p (i ⊔ sℓ ⊔ p) ext
+  ext′ = apply-ext $ lower-extensionality p (i ⊔ sℓ ⊔ p) ext
 
   lemma = λ n →
     Σ-≡,≡→≡
@@ -678,8 +670,8 @@ private
 
   ext₀′ :
     {A : Type} {P : A → Type (i ⊔ s ⊔ p)} →
-    Extensionality′ A P
-  ext₀′ = apply-ext (Eq.good-ext ext₀)
+    Function-extensionality′ A P
+  ext₀′ = apply-ext ext₀
 
   ≡univ-steps : ∀ c → in-M b ext ∘⇾ step (univ c) ≡ univ (steps c)
   ≡univ-steps c@(g , eq) = apply-ext ext-i λ i → apply-ext ext′ λ p →
@@ -694,9 +686,9 @@ private
     )                                                                 ≡⟨ cong ((λ n → steps₁ g n i p) ,_) $
                                                                          ext₀′ $ ℕ-case
                                                                            (
-        refl _                                                              ≡⟨ sym $ ext⁻¹-refl _ {x = p} ⟩
+        refl _                                                              ≡⟨ sym $ ext⁻¹-refl {x = p} _ ⟩
         ext⁻¹ (refl _) p                                                    ≡⟨ cong (flip ext⁻¹ p) $ sym $ ext⁻¹-refl _ ⟩
-        ext⁻¹ (ext⁻¹ {B = λ x → P x → ↑ _ ⊤} (refl _) i) p                  ≡⟨⟩
+        ext⁻¹ (ext⁻¹ {P = λ x → P x → ↑ _ ⊤} (refl _) i) p                  ≡⟨⟩
         ext⁻¹ (ext⁻¹ (steps₂ eq zero) i) p                                  ∎)
                                                                            (λ n →
         cong (proj₁ (f i p) ,_)
@@ -718,7 +710,7 @@ private
                                                                                         ext⁻¹-refl _) ⟩
 
             cong (proj₁ (f i p) ,_) (ext‴ λ _ → refl _)                            ≡⟨ trans (cong (cong _) $
-                                                                                             Eq.good-ext-refl ext″ _) $
+                                                                                             ext-refl ext″) $
                                                                                        cong-refl _ ⟩
 
             refl _                                                                  ≡⟨ sym $
@@ -738,7 +730,7 @@ private
     univ (steps c) i p                                                ∎
     where
     ext″ = lower-extensionality p (i ⊔ s ⊔ p) ext
-    ext‴ = apply-ext (Eq.good-ext ext″)
+    ext‴ = apply-ext ext″
 
   contr : Contractible (P ⇾ Up-to C 0)
   contr =
@@ -799,8 +791,8 @@ private
     trans (sym (cong (down n ∘⇾_)
                   (cong (_$ suc n) (ext₀′ steps₁-fixpoint))))
       (trans (p n) (cong (_$ n) (ext₀′ steps₁-fixpoint)))      ≡⟨ cong₂ (λ eq₁ eq₂ → trans (sym (cong (down n ∘⇾_) eq₁)) (trans _ eq₂))
-                                                                    (Eq.cong-good-ext ext₀ _)
-                                                                    (Eq.cong-good-ext ext₀ _) ⟩
+                                                                    (cong-ext ext₀)
+                                                                    (cong-ext ext₀) ⟩
     trans (sym (cong (down n ∘⇾_) (steps₁-fixpoint (suc n))))
       (trans (p n) (steps₁-fixpoint n))                        ≡⟨⟩
 
@@ -997,8 +989,8 @@ private
                                                                                    trans (sym eq₁) (trans (cong (λ f → f i p) (ok′ n)) eq₂))
                                                                             (trans (sym $ cong-∘ _ _ _) $
                                                                              cong (cong _) $
-                                                                             Eq.cong-good-ext ext₀ _)
-                                                                            (Eq.cong-good-ext ext₀ _) ⟩
+                                                                             cong-ext ext₀)
+                                                                            (cong-ext ext₀) ⟩
       trans (sym (cong (down n i)
                     (cong (λ f → f i p) (lemma₁ (suc n)))))
         (trans (cong (λ f → f i p) (ok′ n))

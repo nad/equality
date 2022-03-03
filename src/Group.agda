@@ -16,6 +16,7 @@ open import Prelude as P hiding (id; _∘_) renaming (_×_ to _⊗_)
 
 import Bijection eq as B
 open import Equivalence eq as Eq using (_≃_)
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import Groupoid eq using (Groupoid)
 open import H-level eq

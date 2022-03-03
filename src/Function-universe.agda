@@ -19,6 +19,7 @@ import Equivalence.Contractible-preimages eq as CP
 open import Equivalence.Erased.Basics eq as EEq using (_≃ᴱ_)
 import Equivalence.Half-adjoint eq as HA
 open import Erased.Basics as E using (Erased)
+open import Extensionality eq
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq as Injection using (_↣_; module _↣_; Injective)
@@ -1814,7 +1815,7 @@ Contractible-commutes-with-× {x = x} {y} =
   (∀ x → _≃_.to p x ≡ _≃_.to q x) ↔ p ≡ q
 ≃-to-≡↔≡ {a} {b} ext {p = p} {q} =
   (∀ x → _≃_.to p x ≡ _≃_.to q x)                                        ↔⟨ Eq.extensionality-isomorphism (lower-extensionality b a ext) ⟩
-  _≃_.to p ≡ _≃_.to q                                                    ↝⟨ ignore-propositional-component (Eq.propositional ext _) ⟩
+  _≃_.to p ≡ _≃_.to q                                                    ↝⟨ ignore-propositional-component (Is-equivalence-propositional ext) ⟩
   (_≃_.to p , _≃_.is-equivalence p) ≡ (_≃_.to q , _≃_.is-equivalence q)  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Eq.≃-as-Σ) ⟩□
   p ≡ q                                                                  □
 
@@ -1829,28 +1830,28 @@ Contractible-commutes-with-× {x = x} {y} =
   (∀ x → _≃_.to p x ≡ _≃_.to q x) ≃ (p ≡ q)
 ≃-to-≡≃≡ ext₁ ext₂ {p = p} {q = q} =
   Eq.↔→≃
-    (Eq.lift-equality ext₁ ⊚ apply-ext (Eq.good-ext ext₂))
+    (Eq.lift-equality ext₁ ⊚ apply-ext ext₂)
     (flip $ cong ⊚ flip _≃_.to)
     (elim¹
        (λ p≡q →
           Eq.lift-equality ext₁
-            (apply-ext (Eq.good-ext ext₂)
+            (apply-ext ext₂
                (λ x → cong (λ eq → _≃_.to eq x) p≡q)) ≡
           p≡q)
        (Eq.lift-equality ext₁
-          (apply-ext (Eq.good-ext ext₂)
+          (apply-ext ext₂
              (λ x → cong (λ eq → _≃_.to eq x) (refl _)))  ≡⟨ (cong (Eq.lift-equality ext₁) $
-                                                              cong (apply-ext (Eq.good-ext ext₂)) $
+                                                              cong (apply-ext ext₂) $
                                                               apply-ext ext₂ λ _ →
                                                               cong-refl _) ⟩
         Eq.lift-equality ext₁
-          (apply-ext (Eq.good-ext ext₂) (λ _ → refl _))   ≡⟨ cong (Eq.lift-equality ext₁) $
-                                                             Eq.good-ext-refl ext₂ _ ⟩
+          (apply-ext ext₂ (λ _ → refl _))                 ≡⟨ cong (Eq.lift-equality ext₁) $
+                                                             ext-refl ext₂ ⟩
 
         Eq.lift-equality ext₁ (refl _)                    ≡⟨ Eq.lift-equality-refl ext₁ ⟩
 
         cong Eq.⟨ _≃_.to p ,_⟩ _                          ≡⟨ cong (cong Eq.⟨ _≃_.to p ,_⟩) $
-                                                             mono₁ 1 (Eq.propositional ext₁ _) _ _ ⟩
+                                                             mono₁ 1 (Is-equivalence-propositional ext₁) _ _ ⟩
 
         cong Eq.⟨ _≃_.to p ,_⟩ (refl _)                   ≡⟨ cong-refl _ ⟩∎
 
@@ -1858,7 +1859,7 @@ Contractible-commutes-with-× {x = x} {y} =
     (λ p≡q → apply-ext ext₂ λ x →
        cong (λ eq → _≃_.to eq x)
          (Eq.lift-equality ext₁
-            (apply-ext (Eq.good-ext ext₂) p≡q))    ≡⟨ elim¹
+            (apply-ext ext₂ p≡q))                  ≡⟨ elim¹
                                                         (λ {g} p≡g →
                                                            (eq : Is-equivalence g) →
                                                            cong (λ eq → _≃_.to eq x)
@@ -1876,10 +1877,10 @@ Contractible-commutes-with-× {x = x} {y} =
            refl _                                          ≡⟨ sym $ cong-refl _ ⟩∎
 
            ext⁻¹ (refl _) x                                ∎)
-                                                        (apply-ext (Eq.good-ext ext₂) p≡q)
+                                                        (apply-ext ext₂ p≡q)
                                                         _ ⟩
 
-       ext⁻¹ (apply-ext (Eq.good-ext ext₂) p≡q) x  ≡⟨ cong (_$ x) $
+       ext⁻¹ (apply-ext ext₂ p≡q) x                ≡⟨ cong (_$ x) $
                                                       _≃_.left-inverse-of (Eq.extensionality-isomorphism ext₂) _ ⟩∎
        p≡q x                                       ∎)
 
@@ -2097,7 +2098,7 @@ private
     ; left-inverse-of = left-inverse-of
     }
     where
-    surj = Surjection.∀-cong ext (_↔_.surjection ⊚ B₁↔B₂)
+    surj = ∀-cong-↠ ext (_↔_.surjection ⊚ B₁↔B₂)
 
     abstract
       left-inverse-of : ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
@@ -2176,21 +2177,21 @@ private
            (λ x → Embedding.to (B₁↣B₂ x) (g x))    □)
           _
           (λ f≡g →
-             apply-ext (Eq.good-ext ext₂)
+             apply-ext ext₂
                (λ x → cong (Embedding.to (B₁↣B₂ x)) (ext⁻¹ f≡g x))        ≡⟨⟩
 
-             apply-ext (Eq.good-ext ext₂)
-               (λ x → cong (Embedding.to (B₁↣B₂ x)) (cong (_$ x) f≡g))    ≡⟨ cong (apply-ext (Eq.good-ext ext₂)) (apply-ext ext₂ λ _ →
+             apply-ext ext₂
+               (λ x → cong (Embedding.to (B₁↣B₂ x)) (cong (_$ x) f≡g))    ≡⟨ cong (apply-ext ext₂) (apply-ext ext₂ λ _ →
                                                                                cong-∘ _ _ _) ⟩
-             apply-ext (Eq.good-ext ext₂)
-               (λ x → cong (λ h → Embedding.to (B₁↣B₂ x) (h x)) f≡g)      ≡⟨ cong (apply-ext (Eq.good-ext ext₂)) (apply-ext ext₂ λ _ → sym $
+             apply-ext ext₂
+               (λ x → cong (λ h → Embedding.to (B₁↣B₂ x) (h x)) f≡g)      ≡⟨ cong (apply-ext ext₂) (apply-ext ext₂ λ _ → sym $
                                                                                cong-∘ _ _ _) ⟩
-             apply-ext (Eq.good-ext ext₂)
+             apply-ext ext₂
                (λ x → cong (_$ x)
                         (cong (λ h x → Embedding.to (B₁↣B₂ x) (h x))
                            f≡g))                                          ≡⟨⟩
 
-             apply-ext (Eq.good-ext ext₂)
+             apply-ext ext₂
                (ext⁻¹ (cong (λ h x → Embedding.to (B₁↣B₂ x) (h x)) f≡g))  ≡⟨ _≃_.right-inverse-of (Eq.extensionality-isomorphism ext₂) _ ⟩∎
 
              cong (λ h x → Embedding.to (B₁↣B₂ x) (h x)) f≡g              ∎)
@@ -2208,7 +2209,7 @@ private
 ∀-cong {logical-equivalence} = λ _ → L.∀-cong
 ∀-cong {injection}           = ∀-cong-inj
 ∀-cong {embedding}           = ∀-cong-emb
-∀-cong {surjection}          = Surjection.∀-cong
+∀-cong {surjection}          = λ ext → ∀-cong-↠ ext
 ∀-cong {bijection}           = ∀-cong-bij
 ∀-cong {equivalence}         = ∀-cong-eq
 ∀-cong {equivalenceᴱ}        = ∀-cong-eqᴱ
@@ -2554,22 +2555,22 @@ private
              to f ≡ to g                                            □)
             _
             (λ f≡g →
-               apply-ext (Eq.good-ext ext₂₂)
+               apply-ext ext₂₂
                  (cong (Embedding.to (B₁↣B₂ _)) ⊚
-                    ext⁻¹ f≡g ⊚ _≃_.to A₂≃A₁)                       ≡⟨ sym $ Eq.cong-post-∘-good-ext ext₂₁ ext₂₂ _ ⟩
+                    ext⁻¹ f≡g ⊚ _≃_.to A₂≃A₁)         ≡⟨ sym $ cong-post-∘-ext ext₂₁ ext₂₂ ⟩
 
                cong (Embedding.to (B₁↣B₂ _) ⊚_)
-                 (apply-ext (Eq.good-ext ext₂₁)
-                    (ext⁻¹ f≡g ⊚ _≃_.to A₂≃A₁))                     ≡⟨ cong (cong (Embedding.to (B₁↣B₂ _) ⊚_)) $ sym $
-                                                                       Eq.cong-pre-∘-good-ext ext₂₁ ext₁₁ _ ⟩
+                 (apply-ext ext₂₁
+                    (ext⁻¹ f≡g ⊚ _≃_.to A₂≃A₁))       ≡⟨ cong (cong (Embedding.to (B₁↣B₂ _) ⊚_)) $ sym $
+                                                         cong-pre-∘-ext ext₂₁ ext₁₁ ⟩
                cong (Embedding.to (B₁↣B₂ _) ⊚_)
                  (cong (_⊚ _≃_.to A₂≃A₁)
-                   (apply-ext (Eq.good-ext ext₁₁) (ext⁻¹ f≡g)))     ≡⟨ cong-∘ _ _ _ ⟩
+                   (apply-ext ext₁₁ (ext⁻¹ f≡g)))     ≡⟨ cong-∘ _ _ _ ⟩
 
-               cong to (apply-ext (Eq.good-ext ext₁₁) (ext⁻¹ f≡g))  ≡⟨ cong (cong to) $
-                                                                       _≃_.right-inverse-of (Eq.extensionality-isomorphism ext₁₁) _ ⟩∎
+               cong to (apply-ext ext₁₁ (ext⁻¹ f≡g))  ≡⟨ cong (cong to) $
+                                                         _≃_.right-inverse-of (Eq.extensionality-isomorphism ext₁₁) _ ⟩∎
 
-               cong to f≡g                                          ∎)
+               cong to f≡g                            ∎)
 
   Π-cong-Emb :
     ∀ {a₁ a₂ b₁ b₂} →
@@ -2974,7 +2975,7 @@ private
     {f g : {x : A} → B x} (f≡g : ∀ x → f {x} ≡ g {x}) →
     _↔_.to (implicit-extensionality-isomorphism ext) f≡g
       ≡
-    implicit-extensionality (Eq.good-ext ext) f≡g
+    implicit-extensionality ext f≡g
   to-implicit-extensionality-isomorphism _ _ = refl _
 
 -- The Yoneda lemma, as given in the HoTT book, but specialised to the
@@ -3304,7 +3305,7 @@ Proofs-cong
      _≃_.to (≡⇒↝ _ (cong (_≡ g x) (f≡g (f⁻¹ (g x))))) (f-f⁻¹ (g x))   ∎)
   where
   ext′ = lower-extensionality b a ext
-  ext″ = apply-ext $ Eq.good-ext ext′
+  ext″ = apply-ext ext′
 
   lemma :
     ∀ {x} f-f⁻¹ f⁻¹-f f≡g →
@@ -3352,8 +3353,8 @@ Is-equivalence-cong ext f≡g =
        { to   = Eq.respects-extensional-equality f≡g
        ; from = Eq.respects-extensional-equality (sym ⊚ f≡g)
        })
-    (λ ext → Eq.propositional ext _)
-    (λ ext → Eq.propositional ext _)
+    Is-equivalence-propositional
+    Is-equivalence-propositional
     ext
 
 -- Is-equivalence is pointwise equivalent to CP.Is-equivalence
@@ -3363,11 +3364,10 @@ Is-equivalence≃Is-equivalence-CP :
   ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
   Is-equivalence f ↝[ a ⊔ b ∣ a ⊔ b ] CP.Is-equivalence f
 Is-equivalence≃Is-equivalence-CP =
-  generalise-ext?
+  generalise-ext?-prop
     HA.Is-equivalence⇔Is-equivalence-CP
-    (λ ext →
-       let bij = HA.Is-equivalence↔Is-equivalence-CP ext in
-       _↔_.right-inverse-of bij , _↔_.left-inverse-of bij)
+    Is-equivalence-propositional
+    Is-equivalence-CP-propositional
 
 -- Two notions of equivalence are pointwise equivalent (assuming
 -- extensionality).
@@ -3406,8 +3406,8 @@ Is-equivalence≃Is-equivalence-∘ˡ {b = b} {c = c} f-eq =
                   f-eq
        ; from = Eq.Two-out-of-three.g-g∘f (Eq.two-out-of-three _ _) f-eq
        })
-    (flip Eq.propositional _ ⊚ lower-extensionality c c)
-    (flip Eq.propositional _ ⊚ lower-extensionality b b)
+    (Is-equivalence-propositional ⊚ lower-extensionality c c)
+    (Is-equivalence-propositional ⊚ lower-extensionality b b)
 
 Is-equivalence≃Is-equivalence-∘ʳ :
   ∀ {a b c} {A : Type a} {B : Type b} {C : Type c}
@@ -3422,8 +3422,8 @@ Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} g-eq =
                   (Eq.Two-out-of-three.g∘f-f (Eq.two-out-of-three _ _))
                   g-eq
        })
-    (flip Eq.propositional _ ⊚ lower-extensionality a a)
-    (flip Eq.propositional _ ⊚ lower-extensionality b b)
+    (Is-equivalence-propositional ⊚ lower-extensionality a a)
+    (Is-equivalence-propositional ⊚ lower-extensionality b b)
 
 ------------------------------------------------------------------------
 -- Lemmas related to _↠_

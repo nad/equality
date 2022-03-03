@@ -16,6 +16,7 @@ open Derived-definitions-and-properties eq
 open import Erased.Basics as Erased
 open import Prelude
 
+open import Extensionality eq
 open import Function-universe eq hiding (id; _∘_)
 open import H-level.Closure eq
 import Nat eq as Nat

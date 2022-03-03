@@ -22,6 +22,7 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Path-split equality-with-J as PS using (_-Null_)
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J as F hiding (_∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -157,7 +158,7 @@ Bool↔𝕊⁰ = Bool↔Susp-⊥
           (sym $ cong (_$ north) $ ⟨ext⟩ λ y →
            trans (sym f-north≡x)
              (trans (sym $ cong (_$ north) rinv)
-                (cong (_$ y) rinv)))                ≡⟨ cong sym $ cong-ext _ ⟩
+                (cong (_$ y) rinv)))                ≡⟨ cong sym $ cong-ext ext ⟩
 
           sym $
           trans (sym f-north≡x)

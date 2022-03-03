@@ -28,6 +28,7 @@ open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Path-split equality-with-J as PS
   using (Path-split)
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J as F hiding (_∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -99,7 +100,7 @@ Local≃Is-equivalence-∘×Is-equivalence-∘∇ {P = P} {Q = Q} {B = B} {f = f
     Is-equivalence (_∘ g)                              ↔⟨ (inverse $ drop-⊤-right λ ∘-f-eq →
                                                            _⇔_.to contractible⇔↔⊤ $
                                                            propositional⇒inhabited⇒contractible
-                                                             (Eq.propositional I.ext _)
+                                                             (Is-equivalence-propositional I.ext)
                                                              (PB.Is-equivalence-∆ ∘-f-eq)) ⟩
     Is-equivalence (_∘ g) × Is-equivalence (∆ (_∘ g))  ↝⟨ (∃-cong λ _ → PO.Is-equivalence-∆∘≃Is-equivalence-∘∇) ⟩□
     Is-equivalence (_∘ g) × Is-equivalence (_∘ ∇ g)    □
@@ -325,14 +326,14 @@ Local→Is-equivalence-∘[] {P = P} {Q = Q} {C = C} {B = B} {f = f} local =
         (subst (λ f → g ∘ f ≡ h ∘ f)
            (sym $ ⟨ext⟩ λ _ → sym ext≡)
            (cong (_∘ f x) (⟨ext⟩ eq)))                 ≡⟨ (cong (cong _) $ cong (flip (subst _) _) $
-                                                           trans (sym $ ext-sym _) $
+                                                           trans (sym $ ext-sym I.ext) $
                                                            cong ⟨ext⟩ $ ⟨ext⟩ λ _ →
                                                            sym-sym _) ⟩
       cong (_$ y)
         (subst (λ f → g ∘ f ≡ h ∘ f)
            (⟨ext⟩ λ _ → ext≡)
            (cong (_∘ f x) (⟨ext⟩ eq)))                 ≡⟨ cong (cong _) $ cong (subst _ _) $
-                                                          cong-pre-∘-ext _ ⟩
+                                                          cong-pre-∘-ext I.ext I.ext ⟩
       cong (_$ y)
         (subst (λ f → g ∘ f ≡ h ∘ f)
            (⟨ext⟩ λ _ → ext≡)
@@ -343,14 +344,14 @@ Local→Is-equivalence-∘[] {P = P} {Q = Q} {C = C} {B = B} {f = f} local =
            (trans (⟨ext⟩ (eq ∘ f x))
               (cong (h ∘_) (⟨ext⟩ λ _ → ext≡))))       ≡⟨ cong (cong _) $
                                                           trans (cong₂ trans
-                                                                   (trans (cong sym $ cong-post-∘-ext _) $
-                                                                    sym $ ext-sym _)
-                                                                   (trans (cong (trans _) $ cong-post-∘-ext _) $
-                                                                    sym $ ext-trans _ _)) $
-                                                          sym $ ext-trans _ _ ⟩
+                                                                   (trans (cong sym $ cong-post-∘-ext I.ext I.ext) $
+                                                                    sym $ ext-sym I.ext)
+                                                                   (trans (cong (trans _) $ cong-post-∘-ext I.ext I.ext) $
+                                                                    sym $ ext-trans I.ext)) $
+                                                          sym $ ext-trans I.ext ⟩
       (cong (_$ y) $ ⟨ext⟩ λ y →
        trans (sym (cong g ext≡))
-         (trans (eq (f x y)) (cong h ext≡)))           ≡⟨ cong-ext _ ⟩
+         (trans (eq (f x y)) (cong h ext≡)))           ≡⟨ cong-ext I.ext ⟩
 
       trans (sym (cong g ext≡))
         (trans (eq (f x y)) (cong h ext≡))             ≡⟨ sym subst-in-terms-of-trans-and-cong ⟩∎
@@ -368,7 +369,7 @@ Local→Is-equivalence-∘[] {P = P} {Q = Q} {C = C} {B = B} {f = f} local =
     cong (_∘ [_]) (drop-∘[] g h g∘[]≡h∘[]) ≡ g∘[]≡h∘[]
   cong-∘[]-drop-∘[] {g = g} {h = h} g∘[]≡h∘[] =
     cong (_∘ [_]) (drop-∘[] g h g∘[]≡h∘[])           ≡⟨⟩
-    cong (_∘ [_]) (⟨ext⟩ $ drop-∘[]′ g h g∘[]≡h∘[])  ≡⟨ cong-pre-∘-ext _ ⟩
+    cong (_∘ [_]) (⟨ext⟩ $ drop-∘[]′ g h g∘[]≡h∘[])  ≡⟨ cong-pre-∘-ext I.ext I.ext ⟩
     ⟨ext⟩ (drop-∘[]′ g h g∘[]≡h∘[] ∘ [_])            ≡⟨⟩
     ⟨ext⟩ (ext⁻¹ g∘[]≡h∘[])                          ≡⟨ _≃_.right-inverse-of Π≡≃≡ _ ⟩∎
     g∘[]≡h∘[]                                        ∎

@@ -31,6 +31,7 @@ open import Equivalence eq as Eq using (_≃_)
 open import Equivalence.Path-split eq as PS
   using (Is-∞-extendable-along-[_])
 open import Excluded-middle eq
+open import Extensionality eq
 open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level

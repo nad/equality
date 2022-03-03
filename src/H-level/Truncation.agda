@@ -28,6 +28,7 @@ open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Path-split equality-with-J as PS
   using (Is-∞-extendable-along-[_]; _-Null_)
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
@@ -86,7 +87,7 @@ truncation-has-correct-h-level {A = A} n =
                    (⟨ext⟩ (λ y → trans (sym fn≡x)
                                    (trans (spoke f north)
                                       (sym (spoke f y)))))
-                   (refl x)                                             ≡⟨ subst-ext _ _ ⟩
+                   (refl x)                                             ≡⟨ subst-ext ext ⟩
 
              subst (_≡ x)
                    (trans (sym fn≡x)

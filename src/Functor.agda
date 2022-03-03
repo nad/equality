@@ -18,6 +18,7 @@ open import Bijection eq hiding (id; _∘_; inverse; step-↔; finally-↔)
 open import Category eq
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq using (_≃_; module _≃_; ↔⇒≃)
+open import Extensionality eq
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq
@@ -628,12 +629,12 @@ abstract
                          _⇔_.to (natural-isomorphism-lemma ext₁) F⇾G-iso
 
                    ⊚F≡⊚G : _⊚_ F ≡ _⊚_ G
-                   ⊚F≡⊚G = apply-ext (Eq.good-ext ext₂) λ X →
+                   ⊚F≡⊚G = apply-ext ext₂ λ X →
                      F ⊚ X  ≡⟨ ≅→≡ (γ X) ⟩∎
                      G ⊚ X  ∎
 
                    cong-⊚F≡⊚G : ∀ {X} → cong (λ H → H X) ⊚F≡⊚G ≡ ≅→≡ (γ X)
-                   cong-⊚F≡⊚G = Eq.cong-good-ext ext₂ (≅→≡ ∘ γ)
+                   cong-⊚F≡⊚G = cong-ext ext₂
 
                    ⊙F≡⊙G : _≡_ {A = ∀ {X Y} → HomC X Y → Hom (G ⊚ X) (G ⊚ Y)}
                                (subst (λ F → ∀ {X Y} → HomC X Y → Hom (F X) (F Y))
@@ -693,41 +694,45 @@ abstract
 
                _⇾_.transformation
                  (proj₁ (elim (λ {F G} _ → Precategory._≅_ D^C F G)
-                              (λ _ → Precategory.id≅ D^C) _))             ≡⟨ elim (λ {F G} F≡G →
-                                                                                     _⇾_.transformation (proj₁ (Precategory.≡→≅ D^C F≡G)) ≡
-                                                                                     elim (λ {F G} _ → Hom (F X) (G X)) (λ _ → id) (cong _⊚_ F≡G))
-                                                                                  (λ F →
+                              (λ _ → Precategory.id≅ D^C) _))             ≡⟨ elim
+                                                                               (λ {F G} F≡G →
+                                                                                  _⇾_.transformation (proj₁ (Precategory.≡→≅ D^C F≡G)) ≡
+                                                                                  elim (λ {F G} _ → Hom (F X) (G X)) (λ _ → id) (cong _⊚_ F≡G))
+                                                                               (λ F →
                    _⇾_.transformation
                      (proj₁ (elim (λ {F G} _ → Precategory._≅_ D^C F G)
-                                  (λ _ → Precategory.id≅ D^C) (refl F)))             ≡⟨ cong (λ f → _⇾_.transformation (proj₁ f) {X = X}) $
-                                                                                          elim-refl (λ {X Y} _ → Precategory._≅_ D^C X Y) _ ⟩
+                                  (λ _ → Precategory.id≅ D^C) (refl F)))          ≡⟨ cong (λ f → _⇾_.transformation (proj₁ f) {X = X}) $
+                                                                                     elim-refl (λ {X Y} _ → Precategory._≅_ D^C X Y) _ ⟩
                    _⇾_.transformation {F = F}
-                     (proj₁ (Precategory.id≅ D^C))                                   ≡⟨⟩
+                     (proj₁ (Precategory.id≅ D^C))                                ≡⟨⟩
 
-                   id                                                                ≡⟨ sym $ elim-refl (λ {F G} _ → Hom (F X) (G X)) _ ⟩
+                   id                                                             ≡⟨ sym $ elim-refl (λ {F G} _ → Hom (F X) (G X)) _ ⟩
 
                    elim (λ {F G} _ → Hom (F X) (G X))
-                        (λ _ → id) (refl (_⊚_ F))                                    ≡⟨ cong (elim (λ {F G} _ → Hom (F X) (G X)) _) $
-                                                                                          sym $ cong-refl _⊚_ ⟩∎
+                        (λ _ → id) (refl (_⊚_ F))                                 ≡⟨ cong (elim (λ {F G} _ → Hom (F X) (G X)) _) $
+                                                                                     sym $ cong-refl _⊚_ ⟩∎
                    elim (λ {F G} _ → Hom (F X) (G X))
-                        (λ _ → id) (cong _⊚_ (refl F))                               ∎)
-                                                                                  _ ⟩
+                        (λ _ → id) (cong _⊚_ (refl F))                            ∎)
+                                                                               _ ⟩
                elim (λ {F G} _ → Hom (F X) (G X))
                     (λ _ → id) (cong _⊚_ _)                               ≡⟨ cong (elim (λ {F G} _ → Hom (F X) (G X)) (λ _ → id)) $
-                                                                               cong-⊚-from-equality-characterisation⇨ _ _ _ ⟩
+                                                                             cong-⊚-from-equality-characterisation⇨ _ _ _ ⟩
                elim (λ {F G} _ → Hom (F X) (G X)) (λ _ → id)
-                    (apply-ext (Eq.good-ext ext₂) λ Y →
-                       ≅→≡ (_⇾_.transformation F⇾G {X = Y} , _))          ≡⟨ Eq.elim-good-ext ext₂ _ _ _ ⟩
+                    (apply-ext ext₂ λ Y →
+                     ≅→≡ (_⇾_.transformation F⇾G {X = Y} , _))            ≡⟨ elim-ext ext₂ ⟩
 
                elim (λ {X Y} _ → Hom X Y) (λ _ → id)
-                    (≅→≡ (_⇾_.transformation F⇾G {X = X} , _))            ≡⟨ elim (λ {X Y} X≡Y → elim (λ {X Y} _ → Hom X Y) (λ _ → id) X≡Y ≡
-                                                                                                 proj₁ (≡→≅ X≡Y))
-                                                                                  (λ X →
-                   elim (λ {X Y} _ → Hom X Y) (λ _ → id) (refl X)                    ≡⟨ elim-refl (λ {X Y} _ → Hom X Y) _ ⟩
-                   id                                                                ≡⟨⟩
-                   proj₁ id≅                                                         ≡⟨ cong proj₁ (sym ≡→≅-refl) ⟩∎
-                   proj₁ (≡→≅ (refl X))                                              ∎ )
-                                                                                  _ ⟩
+                    (≅→≡ (_⇾_.transformation F⇾G {X = X} , _))            ≡⟨ elim
+                                                                               (λ {X Y} X≡Y →
+                                                                                  elim (λ {X Y} _ → Hom X Y) (λ _ → id) X≡Y ≡
+                                                                                  proj₁ (≡→≅ X≡Y))
+                                                                               (λ X →
+                   elim (λ {X Y} _ → Hom X Y) (λ _ → id) (refl X)                 ≡⟨ elim-refl (λ {X Y} _ → Hom X Y) _ ⟩
+                   id                                                             ≡⟨⟩
+                   proj₁ id≅                                                      ≡⟨ cong proj₁ (sym ≡→≅-refl) ⟩∎
+                   proj₁ (≡→≅ (refl X))                                           ∎ )
+                                                                               _ ⟩
+
                proj₁ (≡→≅ (≅→≡ (_⇾_.transformation F⇾G {X = X} , _)))     ≡⟨ cong proj₁ (_≃_.right-inverse-of ≡≃≅ _) ⟩∎
 
                _⇾_.transformation F⇾G {X = X}                             ∎ }
@@ -736,39 +741,43 @@ abstract
            _≃_.from (equality-characterisation≡⇨ ext₁) (
               cong _⊚_ _                                           ≡⟨ cong-⊚-from-equality-characterisation⇨ _ _ _ ⟩
 
-              apply-ext (Eq.good-ext ext₂) (λ X →
-                ≅→≡ ( _⇾_.transformation
-                        (proj₁ $ Precategory.≡→≅ D^C F≡G) {X = X}
-                    , _
-                    ))                                             ≡⟨ elim
+              (apply-ext ext₂ λ X →
+               ≅→≡ ( _⇾_.transformation
+                       (proj₁ $ Precategory.≡→≅ D^C F≡G) {X = X}
+                   , _
+                   ))                                              ≡⟨ elim
                                                                         (λ {F G} F≡G → (f : (X : _) → _) →
-                                                                           apply-ext (Eq.good-ext ext₂) (λ X →
-                                                                             ≅→≡ (_⇾_.transformation (proj₁ $ Precategory.≡→≅ D^C F≡G) , f X)) ≡
+                                                                           (apply-ext ext₂ λ X →
+                                                                            ≅→≡ (_⇾_.transformation (proj₁ $ Precategory.≡→≅ D^C F≡G) , f X)) ≡
                                                                            cong _⊚_ F≡G)
                                                                         (λ F _ →
-                  apply-ext (Eq.good-ext ext₂) (λ _ →
-                    ≅→≡ ( _⇾_.transformation
-                            (proj₁ $ Precategory.≡→≅ D^C (refl F))
-                        , _
-                        ))                                                  ≡⟨ cong (apply-ext (Eq.good-ext ext₂)) (apply-ext ext₂ λ X → cong ≅→≡ $
-                                                                                 Σ-≡,≡→≡ (cong (λ f → _⇾_.transformation (proj₁ f) {X = X}) $
-                                                                                            Precategory.≡→≅-refl D^C)
-                                                                                         (refl _)) ⟩
-                  apply-ext (Eq.good-ext ext₂) (λ _ →
-                    ≅→≡ ( _⇾_.transformation {F = F}
-                            (proj₁ $ Precategory.id≅ D^C)
-                        , _
-                        ))                                                  ≡⟨⟩
+                  (apply-ext ext₂ λ _ →
+                   ≅→≡ ( _⇾_.transformation
+                           (proj₁ $ Precategory.≡→≅ D^C (refl F))
+                       , _
+                       ))                                                  ≡⟨ (cong (apply-ext ext₂) $ apply-ext ext₂ λ X → cong ≅→≡ $
+                                                                               Σ-≡,≡→≡
+                                                                                 (cong (λ f → _⇾_.transformation (proj₁ f) {X = X}) $
+                                                                                  Precategory.≡→≅-refl D^C)
+                                                                                 (refl _)) ⟩
+                  (apply-ext ext₂ λ _ →
+                   ≅→≡ ( _⇾_.transformation {F = F}
+                           (proj₁ $ Precategory.id≅ D^C)
+                       , _
+                       ))                                                  ≡⟨⟩
 
-                  apply-ext (Eq.good-ext ext₂) (λ _ → ≅→≡ (id , _))         ≡⟨ cong (apply-ext (Eq.good-ext ext₂)) (apply-ext ext₂ λ _ →
-                                                                                 cong ≅→≡ $ _≃_.from ≡≃≡¹ $ refl _) ⟩
-                  apply-ext (Eq.good-ext ext₂) (λ _ → ≅→≡ id≅)              ≡⟨ cong (apply-ext (Eq.good-ext ext₂)) (apply-ext ext₂ λ _ →
-                                                                                 ≅→≡-refl) ⟩
-                  apply-ext (Eq.good-ext ext₂) (λ X → refl (F ⊚ X))         ≡⟨ Eq.good-ext-refl ext₂ _ ⟩
+                  apply-ext ext₂ (λ _ → ≅→≡ (id , _))                      ≡⟨ (cong (apply-ext ext₂) $ apply-ext ext₂ λ _ →
+                                                                               cong ≅→≡ $ _≃_.from ≡≃≡¹ $ refl _) ⟩
 
-                  refl (_⊚_ F)                                              ≡⟨ sym $ cong-refl _ ⟩∎
+                  apply-ext ext₂ (λ _ → ≅→≡ id≅)                           ≡⟨ (cong (apply-ext ext₂) $ apply-ext ext₂ λ _ →
+                                                                               ≅→≡-refl) ⟩
 
-                  cong _⊚_ (refl F)                                         ∎)
+                  apply-ext ext₂ (λ X → refl (F ⊚ X))                      ≡⟨ ext-refl ext₂ ⟩
+
+                  refl (_⊚_ F)                                             ≡⟨ sym $ cong-refl _ ⟩∎
+
+                  cong _⊚_ (refl F)                                        ∎)
+
                                                                         F≡G _ ⟩∎
               cong _⊚_ F≡G                                         ∎)
        }) }

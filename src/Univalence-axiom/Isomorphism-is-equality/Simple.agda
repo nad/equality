@@ -20,10 +20,11 @@ module Univalence-axiom.Isomorphism-is-equality.Simple
 
 open import Bijection eq as B using (_↔_)
 open Derived-definitions-and-properties eq
-  renaming (lower-extensionality to lower-ext)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_)
+open import Extensionality eq
+  renaming (lower-extensionality to lower-ext)
 open import Function-universe eq hiding (id) renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq

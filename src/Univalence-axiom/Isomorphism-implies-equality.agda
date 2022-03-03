@@ -19,6 +19,7 @@ module Univalence-axiom.Isomorphism-implies-equality
 open import Bijection eq
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq
+open import Extensionality eq
 open import H-level eq
 open import H-level.Closure eq
 open import Logical-equivalence
@@ -68,9 +69,10 @@ abstract
 
   -- Cast simplification lemma.
 
-  cast-id : {A : Type} →
-            (∀ n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
-            ∀ n (f : A ^ n ⟶ A) → cast Eq.id n f ≡ f
+  cast-id :
+    {A : Type} →
+    (∀ n → Function-extensionality′ A (λ _ → A ^ n ⟶ A)) →
+    ∀ n (f : A ^ n ⟶ A) → cast Eq.id n f ≡ f
   cast-id ext zero    f = refl f
   cast-id ext (suc n) f = ext n $ λ x → cast-id ext n (f x)
 
@@ -78,7 +80,7 @@ abstract
   -- extensionality and univalence).
 
   cast-is-subst :
-    (∀ {A : Type} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
+    (∀ {A : Type} n → Function-extensionality′ A (λ _ → A ^ n ⟶ A)) →
     {A₁ A₂ : Type}
     (univ : Univalence′ A₁ A₂)
     (A₁≃A₂ : A₁ ≃ A₂) (n : ℕ) (f : A₁ ^ n ⟶ A₁) →
@@ -96,7 +98,7 @@ abstract
 
   cast-isomorphism :
     {A₁ A₂ : Type} →
-    (∀ n → Extensionality′ A₂ (λ _ → A₂ ^ n ⟶ A₂)) →
+    (∀ n → Function-extensionality′ A₂ (λ _ → A₂ ^ n ⟶ A₂)) →
     (A₁≃A₂ : A₁ ≃ A₂)
     (n : ℕ) (f₁ : A₁ ^ n ⟶ A₁) (f₂ : A₂ ^ n ⟶ A₂) →
     Is- n -ary-morphism f₁ f₂ (_≃_.to A₁≃A₂) →
@@ -113,7 +115,7 @@ abstract
   -- subst maps f₁ to f₂ (assuming extensionality and univalence).
 
   subst-isomorphism :
-    (∀ {A : Type} n → Extensionality′ A (λ _ → A ^ n ⟶ A)) →
+    (∀ {A : Type} n → Function-extensionality′ A (λ _ → A ^ n ⟶ A)) →
     {A₁ A₂ : Type}
     (univ : Univalence′ A₁ A₂)
     (A₁≃A₂ : A₁ ≃ A₂)
@@ -213,7 +215,7 @@ abstract
 
     -- Extensionality follows from univalence.
 
-    ext : {A : Type} {B : A → Type} → Extensionality′ A B
+    ext : {A : Type} {B : A → Type} → Function-extensionality′ A B
     ext = dependent-extensionality′ univ₁ (λ _ → univ₂)
 
     -- The presence of the bijection implies that the structure's

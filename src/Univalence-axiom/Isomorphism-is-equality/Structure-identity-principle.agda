@@ -15,6 +15,7 @@ open import Bijection eq using (_↔_)
 open import Category eq
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq using (_≃_)
+open import Extensionality eq
 open import Function-universe eq renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq

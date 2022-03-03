@@ -12,6 +12,7 @@ open import Equality.Instances-related
 import Equivalence
 import Equivalence.Contractible-preimages
 import Equivalence.Half-adjoint
+import Extensionality
 import Function-universe
 import H-level
 import H-level.Closure
@@ -433,21 +434,23 @@ open Temporarily-local public
 -- Extensionality
 
 open Equivalence equality-with-J using (Is-equivalence)
-open H-level.Closure equality-with-J using (ext⁻¹)
+private
+  open module Ext = Extensionality equality-with-J
+    using (Extensionality; Function-extensionality)
 
 -- Extensionality.
 
-ext : Extensionality a b
-apply-ext ext f≡g = λ i x → f≡g x i
+⟨ext⟩ : Function-extensionality a p
+⟨ext⟩ f≡g = λ i x → f≡g x i
 
-⟨ext⟩ : Extensionality′ A B
-⟨ext⟩ = apply-ext ext
+ext : Extensionality a p
+ext = _⇔_.from Ext.Extensionality⇔Function-extensionality ⟨ext⟩
 
 -- The function ⟨ext⟩ is an equivalence.
 
 ext-is-equivalence : Is-equivalence {A = ∀ x → f x ≡ g x} ⟨ext⟩
 ext-is-equivalence =
-    ext⁻¹
+    Ext.ext⁻¹
   , (λ _ → refl)
   , (λ _ → refl)
   , (λ _ → refl)

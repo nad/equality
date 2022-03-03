@@ -22,6 +22,7 @@ import Bijection eq as B
 open import Container.Indexed eq as C
   using (_⇾_; id⇾; _∘⇾_; Shape; Position; index)
 open import Equivalence eq as Eq using (_≃_)
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level.Closure eq
 open import Tactic.Sigma-cong eq
@@ -366,8 +367,7 @@ Final-coalgebra-propositional {I = I} {C = C@(S ◁ P)}
   Σ-≡,≡→≡ (Σ-≡,≡→≡ (lemma₁ b) (lemma₂ b))
     (Final-propositional (lower-extensionality lzero _ ext) X₂ _ _)
   where
-  ext₁′ = lower-extensionality _ lzero ext
-  ext₁  = Eq.good-ext ext₁′
+  ext₁ = lower-extensionality _ lzero ext
 
   lemma₀ : Block "lemma₀" → ∀ i → P₁ i ≃ P₂ i
   lemma₀ ⊠ = carriers-of-final-coalgebras-equivalent F₁ F₂
@@ -398,8 +398,8 @@ Final-coalgebra-propositional {I = I} {C = C@(S ◁ P)}
   lemma₁-lemma₂ = λ b i x →
     subst (_$ i) (sym (lemma₁ b)) x                                    ≡⟨⟩
     subst (_$ i) (sym (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i))) x  ≡⟨ cong (flip (subst (_$ i)) _) $ sym $
-                                                                          Eq.good-ext-sym ext₁′ _ ⟩
-    subst (_$ i) (apply-ext ext₁ λ i → sym (≃⇒≡ univ (lemma₀ b i))) x  ≡⟨ Eq.subst-good-ext ext₁′ _ _ ⟩
+                                                                          ext-sym ext₁ ⟩
+    subst (_$ i) (apply-ext ext₁ λ i → sym (≃⇒≡ univ (lemma₀ b i))) x  ≡⟨ subst-ext ext₁ ⟩
     subst id (sym (≃⇒≡ univ (lemma₀ b i))) x                           ≡⟨ subst-id-in-terms-of-inverse∘≡⇒↝ equivalence ⟩
     _≃_.from (≡⇒≃ (≃⇒≡ univ (lemma₀ b i))) x                           ≡⟨ cong (λ eq → _≃_.from eq _) $
                                                                           _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
@@ -408,7 +408,7 @@ Final-coalgebra-propositional {I = I} {C = C@(S ◁ P)}
   lemma₁-lemma₃ : ∀ b (f : P s ⇾ P₁) i p → _ ≡ _
   lemma₁-lemma₃ b f i p =
     subst (_$ i) (lemma₁ b) (f i p)                                    ≡⟨⟩
-    subst (_$ i) (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i)) (f i p)  ≡⟨ Eq.subst-good-ext ext₁′ _ _ ⟩
+    subst (_$ i) (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i)) (f i p)  ≡⟨ subst-ext ext₁ ⟩
     subst id (≃⇒≡ univ (lemma₀ b i)) (f i p)                           ≡⟨ subst-id-in-terms-of-≡⇒↝ equivalence ⟩
     ≡⇒→ (≃⇒≡ univ (lemma₀ b i)) (f i p)                                ≡⟨ cong (λ eq → _≃_.to eq _) $
                                                                           _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎

@@ -16,6 +16,7 @@ open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
 open import Equivalence eq using (_≃_; ↔⇒≃; lift-equality)
+open import Extensionality eq
 open import Function-universe eq
 open import H-level eq
 open import H-level.Closure eq

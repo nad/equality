@@ -29,6 +29,7 @@ open import Equality.Decision-procedures eq
 import Equality.Groupoid eq as EG
 open import Equivalence eq as Eq using (_≃_)
 open import Equivalence-relation eq
+open import Extensionality eq
 open import Fin eq
 open import Function-universe eq as F hiding (_∘_)
 open import Groupoid

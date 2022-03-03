@@ -29,6 +29,7 @@ open import Equivalence eq using (_≃_)
 open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages eq
   using (Contractibleᴱ; _⁻¹ᴱ_)
+open import Extensionality eq
 open import Function-universe eq
 
 private

@@ -13,6 +13,7 @@ open Derived-definitions-and-properties eq
 
 open import Prelude
 
+open import Extensionality eq
 open import H-level.Closure eq
 
 -- Excluded middle (roughly as stated in the HoTT book).

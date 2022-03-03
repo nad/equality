@@ -247,7 +247,7 @@ _ = refl _
                                                                              (∃-cong λ _ →
                                                                               Erased-Σ↔Σ F.∘
                                                                               (from-equivalence $ Erased-cong (∃-cong λ _ →
-                                                                               Eq.extensionality-isomorphism bad-ext))) ⟩
+                                                                               Eq.extensionality-isomorphism ext))) ⟩
   (∃ λ (f : (x : A) → P ∣ x ∣) →
    Erased (
    ∃ λ (e :
@@ -279,9 +279,9 @@ _ = refl _
                                                                                (∃-cong λ _ →
                                                                                 (inverse $
                                                                                  Σ-cong (inverse $
-                                                                                         Eq.extensionality-isomorphism bad-ext F.∘
+                                                                                         Eq.extensionality-isomorphism ext F.∘
                                                                                          (∀-cong ext λ _ →
-                                                                                          Eq.extensionality-isomorphism bad-ext)) λ _ →
+                                                                                          Eq.extensionality-isomorphism ext)) λ _ →
                                                                                  F.id) F.∘
                                                                                 ∃-comm) F.∘
                                                                                inverse Σ-assoc) F.∘
@@ -345,16 +345,16 @@ _ = refl _
    (∀ x → trans (sym (eq₀ x)) (dcong g (C.∣∣₊≡∣∣₀ x)) ≡ f≡g₀ x) ×
    (∀ n (x : ∥ A ∥¹-out-^ (suc n)) →
     trans (sym (eq₊ n x)) (dcong g (C.∣∣₊≡∣∣₊ x)) ≡ refl _)))             ↝⟨ (∃-cong λ _ → Erased-cong (∃-cong λ _ → ∃-cong λ eq₀ → ∃-cong λ eq₊ →
-                                                                              (Eq.extensionality-isomorphism bad-ext F.∘
+                                                                              (Eq.extensionality-isomorphism ext F.∘
                                                                                (∀-cong ext λ _ →
                                                                                 Eq.≃-≡ (Eq.↔⇒≃ ≡-comm) F.∘
                                                                                 (≡⇒↝ _ $
                                                                                  trans ([trans≡]≡[≡trans-symʳ] _ _ _) $
                                                                                  cong (sym (eq₀ _) ≡_) $ sym $ sym-sym _)))
                                                                                 ×-cong
-                                                                              (Eq.extensionality-isomorphism bad-ext F.∘
+                                                                              (Eq.extensionality-isomorphism ext F.∘
                                                                                (∀-cong ext λ _ →
-                                                                                Eq.extensionality-isomorphism bad-ext F.∘
+                                                                                Eq.extensionality-isomorphism ext F.∘
                                                                                 (∀-cong ext λ _ →
                                                                                  Eq.≃-≡ (Eq.↔⇒≃ ≡-comm) F.∘
                                                                                  (≡⇒↝ _ $
@@ -382,7 +382,7 @@ _ = refl _
                                                                               singleton-contractible _)) ⟩
 
   (∃ λ (f : (x : A) → P ∣ x ∣) → Erased ((x : A) → f x ≡ g ∣ x ∣))        ↝⟨ (∃-cong λ _ → Erased-cong (
-                                                                              Eq.extensionality-isomorphism bad-ext)) ⟩□
+                                                                              Eq.extensionality-isomorphism ext)) ⟩□
   (∃ λ (f : (x : A) → P ∣ x ∣) → Erased (f ≡ g ∘ ∣_∣))                    □
   where
   u⁻¹ = _≃_.from C.universal-property-Π

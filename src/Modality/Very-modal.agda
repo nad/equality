@@ -42,6 +42,7 @@ open import Equivalence.Path-split eq as PS
 open import Erased.Level-1 eq as E
   using (Erased; []-cong-axiomatisation)
 import Erased.Level-2 eq as E₂
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -163,7 +164,7 @@ Modal≃Modal-Null {A = A} ext =
     (λ _ → Modal-propositional ext)
     (λ ext′ →
        Π-closure ext′ 1 λ _ →
-       Eq.propositional ext _)
+       Is-equivalence-propositional ext)
   where
   to : Modal A → Modal -Null A
   to m _ =
@@ -1198,30 +1199,29 @@ private
 Σ◯→↝Σ◯→◯ {P = P} P-resp P-resp-refl = generalise-ext?
   (Σ◯→⇔Σ◯→◯ P-resp)
   (λ ext →
-     let ext′ = Eq.good-ext ext in
        (λ (f , p) → Σ-≡,≡→≡
-          (apply-ext ext′ $ eq′ f)
+          (apply-ext ext $ eq′ f)
           (lemma ext f p))
      , (λ (f , p) → Σ-≡,≡→≡
-          (_≃_.left-inverse-of (◯→≃◯→◯ ext′) f)
+          (_≃_.left-inverse-of (◯→≃◯→◯ ext) f)
           (subst (P ∘ ◯-map-◯)
-             (_≃_.left-inverse-of (◯→≃◯→◯ ext′) f)
-             (P-resp (sym ∘ eq′ (◯-map-◯ f)) p)                    ≡⟨ subst-∘ _ _ _ ⟩
+             (_≃_.left-inverse-of (◯→≃◯→◯ ext) f)
+             (P-resp (sym ∘ eq′ (◯-map-◯ f)) p)                   ≡⟨ subst-∘ _ _ _ ⟩
 
            subst P
-             (cong ◯-map-◯ $ _≃_.left-inverse-of (◯→≃◯→◯ ext′) f)
-             (P-resp (sym ∘ eq′ (◯-map-◯ f)) p)                    ≡⟨ cong (flip (subst P) _) $
-                                                                      _≃_.left-right-lemma (◯→≃◯→◯ ext′) _ ⟩
+             (cong ◯-map-◯ $ _≃_.left-inverse-of (◯→≃◯→◯ ext) f)
+             (P-resp (sym ∘ eq′ (◯-map-◯ f)) p)                   ≡⟨ cong (flip (subst P) _) $
+                                                                     _≃_.left-right-lemma (◯→≃◯→◯ ext) _ ⟩
            subst P
-             (_≃_.right-inverse-of (◯→≃◯→◯ ext′) (◯-map-◯ f))
-             (P-resp (sym ∘ eq′ (◯-map-◯ f)) p)                    ≡⟨ lemma ext _ _ ⟩∎
+             (_≃_.right-inverse-of (◯→≃◯→◯ ext) (◯-map-◯ f))
+             (P-resp (sym ∘ eq′ (◯-map-◯ f)) p)                   ≡⟨ lemma ext _ _ ⟩∎
 
-           p                                                       ∎)))
+           p                                                      ∎)))
   where
   eq′ = λ f x → ◯→⇔◯→◯-◯→⇔◯→◯ {x = x} f
 
   lemma = λ ext f p →
-    let eq = apply-ext (Eq.good-ext ext) (eq′ f) in
+    let eq = apply-ext ext (eq′ f) in
 
     subst P eq (P-resp (sym ∘ eq′ f) p)                   ≡⟨ cong (λ eq′ → subst P eq (P-resp (sym ∘ eq′) p)) $ sym $
                                                              _≃_.left-inverse-of (Eq.extensionality-isomorphism ext) _ ⟩
@@ -1406,17 +1406,17 @@ private
     (Σ◯→↝Σ◯→◯ (P-cong _) P-cong-refl _)
     (λ f p →
        Σ-≡,≡→≡
-         (◯-map-◯ (η f)  ≡⟨ (apply-ext ext′ λ _ → ◯-map-◯-ηˡ) ⟩∎
+         (◯-map-◯ (η f)  ≡⟨ (apply-ext ext λ _ → ◯-map-◯-ηˡ) ⟩∎
           ◯-map f        ∎)
-         (subst P (apply-ext ext′ λ _ → ◯-map-◯-ηˡ)
+         (subst P (apply-ext ext λ _ → ◯-map-◯-ηˡ)
             (P-cong _ (λ _ → sym ◯-map-◯-ηˡ)
                (◯∘P↝P∘◯-map _ (η p)))                                  ≡⟨ cong (subst P _) $
                                                                           cong (λ eq → P-cong _ eq (◯∘P↝P∘◯-map _ (η p))) $
                                                                           trans (sym $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext) _) $
                                                                           cong ext⁻¹ $
-                                                                          Eq.good-ext-sym ext _ ⟩
-          subst P (apply-ext ext′ λ _ → ◯-map-◯-ηˡ)
-            (P-cong _ (ext⁻¹ $ sym $ apply-ext ext′ λ _ → ◯-map-◯-ηˡ)
+                                                                          ext-sym ext ⟩
+          subst P (apply-ext ext λ _ → ◯-map-◯-ηˡ)
+            (P-cong _ (ext⁻¹ $ sym $ apply-ext ext λ _ → ◯-map-◯-ηˡ)
                (◯∘P↝P∘◯-map _ (η p)))                                  ≡⟨ elim₁
                                                                             (λ eq →
                                                                                subst P eq
@@ -1436,8 +1436,6 @@ private
                                                                             _ ⟩∎
 
           ◯∘P↝P∘◯-map _ (η p)                                          ∎))
-  where
-  ext′ = Eq.good-ext ext
 
 -- ◯ (Split-surjective f) is equivalent to
 -- Split-surjective (◯-map f) (assuming function extensionality).
@@ -1521,7 +1519,7 @@ Connected-→≃◯-Is-equivalence {f = f} ext =
     Eq.≃-as-Σ
     ◯-Is-equivalence≃Is-equivalence
     Is-equivalence-cong
-    (λ ext → Eq.propositional ext _ _ _)
+    (λ ext → Is-equivalence-propositional ext _ _)
     (Modal→Stable-Is-equivalence ext Modal-◯ Separated-◯)
     ext
 

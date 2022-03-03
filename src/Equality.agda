@@ -97,34 +97,6 @@ module Reflexive-relation′
   inspect : (x : A) → Other-singleton x
   inspect x = x , refl x
 
-  -- Extensionality for functions of a certain type.
-
-  Extensionality′ : (A : Type a) → (A → Type b) → Type (a ⊔ b)
-  Extensionality′ A B =
-    {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g
-
-  -- Extensionality for functions at certain levels.
-  --
-  -- The definition is wrapped in a record type in order to avoid
-  -- certain problems related to Agda's handling of implicit
-  -- arguments.
-
-  record Extensionality (a b : Level) : Type (lsuc (a ⊔ b)) where
-    no-eta-equality
-    field
-      apply-ext : {A : Type a} {B : A → Type b} → Extensionality′ A B
-
-  open Extensionality public
-
-  -- Proofs of extensionality which behave well when applied to
-  -- reflexivity.
-
-  Well-behaved-extensionality :
-    (A : Type a) → (A → Type b) → Type (a ⊔ b)
-  Well-behaved-extensionality A B =
-    ∃ λ (ext : Extensionality′ A B) →
-      ∀ f → ext (λ x → refl (f x)) ≡ refl f
-
 ------------------------------------------------------------------------
 -- Abstract definition of equality based on the J rule
 
@@ -711,27 +683,6 @@ module Derived-definitions-and-properties
         elim (λ p → ∀ q → p ≡ q)
              (λ x → K (λ {x} p → refl x ≡ p) (λ x → refl (refl x)))
     }
-
-  abstract
-
-    -- Extensionality at given levels works at lower levels as well.
-
-    lower-extensionality :
-      ∀ â b̂ → Extensionality (a ⊔ â) (b ⊔ b̂) → Extensionality a b
-    apply-ext (lower-extensionality â b̂ ext) f≡g =
-      cong (λ h → lower ∘ h ∘ lift) $
-        apply-ext ext
-          {A = ↑ â _} {B = ↑ b̂ ∘ _} (cong lift ∘ f≡g ∘ lower)
-
-  -- Extensionality for explicit function types works for implicit
-  -- function types as well.
-
-  implicit-extensionality :
-    Extensionality a b →
-    {A : Type a} {B : A → Type b} {f g : {x : A} → B x} →
-    (∀ x → f {x} ≡ g {x}) → (λ {x} → f {x}) ≡ g
-  implicit-extensionality ext f≡g =
-    cong (λ f {x} → f x) $ apply-ext ext f≡g
 
   -- A bunch of lemmas that can be used to rearrange equalities.
 

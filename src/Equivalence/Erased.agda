@@ -22,6 +22,7 @@ import Equivalence.Half-adjoint eq as HA
 open import Equivalence.Path-split eq using (_-Nullᴱ_)
 open import Erased.Level-1 eq as Erased
   hiding (module []-cong; module []-cong₁; module []-cong₂-⊔)
+open import Extensionality eq
 open import Function-universe eq as F
   hiding (id; _∘_; inverse; from-isomorphism;
           step-↔; _↔⟨⟩_; _□; finally-↔; $⟨_⟩_)
@@ -170,7 +171,7 @@ Is-equivalenceᴱ-propositional ext f =
   H-level.respects-surjection
     (_≃_.surjection $ Is-equivalence≃Is-equivalenceᴱ)
     1
-    (Eq.propositional ext f)
+    (Is-equivalence-propositional ext)
 
 -- P -Nullᴱ B is a proposition in erased contexts (assuming
 -- extensionality).
@@ -1610,7 +1611,7 @@ module []-cong₂-⊔
     @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     Is-proposition (Is-equivalenceᴱ f)
   Is-equivalenceᴱ-propositional-for-Erased {f = f} ext =
-                                                F.$⟨ H-level-Erased 1 (Eq.propositional ext _) ⟩
+                                                F.$⟨ H-level-Erased 1 (Is-equivalence-propositional ext) ⟩
     Is-proposition (Erased (Is-equivalence f))  ↝⟨ H-level-cong _ 1 Erased-Is-equivalence≃Is-equivalenceᴱ ⦂ (_ → _) ⟩□
     Is-proposition (Is-equivalenceᴱ f)          □
 
@@ -1649,7 +1650,7 @@ module []-cong₂-⊔
        (∀ y → Contractible (map f ⁻¹ y))                              ↝⟨ inverse-ext? Is-equivalence≃Is-equivalence-CP _ ⟩□
        Is-equivalence (map f)                                         □)
       (λ ext → Is-equivalenceᴱ-propositional-for-Erased ext)
-      (λ ext → Eq.propositional ext _)
+      Is-equivalence-propositional
 
   -- Erased "commutes" with Is-equivalenceᴱ (assuming extensionality).
 

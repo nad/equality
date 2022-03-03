@@ -16,6 +16,7 @@ open import Prelude
 open import Bag-equivalence eq
 open import Bijection eq as Bijection using (_↔_)
 import Equality.Groupoid eq as EG
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import Groupoid eq
 open import H-level eq

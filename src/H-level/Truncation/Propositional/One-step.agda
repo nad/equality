@@ -26,6 +26,7 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence.Erased.Basics equality-with-J as EEq
   using (_≃ᴱ_)
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional.One-step.Erased eq as O
@@ -192,7 +193,7 @@ private
                                                                        (sym $ cong-id _) ⟩
     trans (sym (∣∣-constant (f (g x)) (f (g y))))
       (trans (cong ∣_∣ (eq x)) (∣∣-constant x y))                 ≡⟨ cong (λ f → trans _ (trans (cong ∣_∣ (f _)) _)) $ sym $
-                                                                     _≃_.left-inverse-of (Eq.extensionality-isomorphism bad-ext) eq ⟩
+                                                                     _≃_.left-inverse-of Π≡≃≡ eq ⟩
     trans (sym (∣∣-constant (f (g x)) (f (g y))))
       (trans (cong ∣_∣ (ext⁻¹ (⟨ext⟩ eq) x)) (∣∣-constant x y))   ≡⟨ elim₁
                                                                        (λ {f} eq → trans (sym (∣∣-constant (f x) (f y)))
@@ -214,7 +215,7 @@ private
                                                                        _ ⟩
 
     cong ∣_∣ (ext⁻¹ (⟨ext⟩ eq) y)                                 ≡⟨ cong (λ f → cong ∣_∣ (f _)) $
-                                                                     _≃_.left-inverse-of (Eq.extensionality-isomorphism bad-ext) eq ⟩∎
+                                                                     _≃_.left-inverse-of Π≡≃≡ eq ⟩∎
     cong ∣_∣ (eq y)                                               ∎
 
 -- The truncation operator preserves split surjections.

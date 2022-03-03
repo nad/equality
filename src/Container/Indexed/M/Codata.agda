@@ -22,6 +22,7 @@ import Container.Indexed.Variant equality-with-J as V
 open import Container.Indexed.Variant.M.Codata eq as VM using (out-M)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -124,12 +125,12 @@ M-coalgebra≡M-coalgebra p C univ =
        (subst (_$ i) (sym (⟨ext⟩ lemma₁)) x .out-M)                    ≡⟨ cong (subst (λ P → ⟦ _⇔_.to (V.Container⇔Container p) C ⟧ P i) _) $
                                                                           cong out-M $
                                                                           cong (flip (subst (_$ i)) _) $ sym $
-                                                                          ext-sym lemma₁ ⟩
+                                                                          ext-sym {f≡g = lemma₁} ext ⟩
      subst (λ P → ⟦ _⇔_.to (V.Container⇔Container p) C ⟧ P i)
        (⟨ext⟩ lemma₁)
        (subst (_$ i) (⟨ext⟩ (sym ∘ lemma₁)) x .out-M)                  ≡⟨ cong (subst (λ P → ⟦ _⇔_.to (V.Container⇔Container p) C ⟧ P i) _) $
                                                                           cong out-M $
-                                                                          subst-ext id (sym ∘ lemma₁) ⟩
+                                                                          subst-ext {Q = id} {f≡g = sym ∘ lemma₁} ext ⟩
      subst (λ P → ⟦ _⇔_.to (V.Container⇔Container p) C ⟧ P i)
        (⟨ext⟩ lemma₁)
        (subst id (sym (lemma₁ i)) x .out-M)                            ≡⟨ cong (subst (λ P → ⟦ _⇔_.to (V.Container⇔Container p) C ⟧ P i) _) $
@@ -210,7 +211,7 @@ M-coalgebra≡M-coalgebra p C univ =
       (_≃_.from (M≃M p {i = i}) x .out-M .proj₂ (i′ , p′))  ≡⟨ sym $ subst-∘ _ _ _ ⟩
 
     subst (_$ i′) (⟨ext⟩ lemma₁)
-      (_≃_.from (M≃M p {i = i}) x .out-M .proj₂ (i′ , p′))  ≡⟨ subst-ext _ _ ⟩
+      (_≃_.from (M≃M p {i = i}) x .out-M .proj₂ (i′ , p′))  ≡⟨ subst-ext ext ⟩
 
     subst id (lemma₁ i′)
       (_≃_.from (M≃M p {i = i}) x .out-M .proj₂ (i′ , p′))  ≡⟨⟩
@@ -283,13 +284,13 @@ M≃M-lift-positions =
         subst (_$ i) (sym (⟨ext⟩ lemma)) x .out-M)                     ≡⟨ cong (subst (λ P → ⟦ lift-positions C ⟧ P i) _) $
                                                                           cong (Σ-map id (_∘ lower)) $ cong out-M $
                                                                           cong (flip (subst (_$ i)) _) $ sym $
-                                                                          ext-sym lemma ⟩
+                                                                          ext-sym {f≡g = lemma} ext ⟩
      subst (λ P → ⟦ lift-positions C ⟧ P i)
        (⟨ext⟩ lemma)
        (Σ-map id (_∘ lower) $
         subst (_$ i) (⟨ext⟩ (sym ∘ lemma)) x .out-M)                   ≡⟨ cong (subst (λ P → ⟦ lift-positions C ⟧ P i) _) $
                                                                           cong (Σ-map id (_∘ lower)) $ cong out-M $
-                                                                          subst-ext id (sym ∘ lemma) ⟩
+                                                                          subst-ext {Q = id} {f≡g = sym ∘ lemma} ext ⟩
      subst (λ P → ⟦ lift-positions C ⟧ P i)
        (⟨ext⟩ lemma)
        (Σ-map id (_∘ lower) $
@@ -324,7 +325,7 @@ M≃M-lift-positions =
                                                                            ⟨ext⟩ λ p →
                                                                            cong (λ (f : ∀ i → M C i ≡ M (lift-positions C) i) →
                                                                                    _≃_.from (≡⇒≃ (f _)) (x .out-M .proj₂ p)) $ sym $
-                                                                           _≃_.left-inverse-of (Eq.extensionality-isomorphism bad-ext) _) ⟩
+                                                                           _≃_.left-inverse-of Π≡≃≡ _) ⟩
      subst (λ P → ⟦ lift-positions C ⟧ P i)
        (⟨ext⟩ lemma)
        ( x .out-M .proj₁

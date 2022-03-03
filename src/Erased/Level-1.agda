@@ -15,7 +15,6 @@ module Erased.Level-1
   {e⁺} (eq-J : ∀ {a p} → Equality-with-J a p e⁺) where
 
 open Derived-definitions-and-properties eq-J
-  hiding (module Extensionality)
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding ([_,_])
@@ -30,6 +29,7 @@ open import Equivalence.Erased.Basics eq-J as EEq
   using (_≃ᴱ_; Is-equivalenceᴱ)
 import Equivalence.Half-adjoint eq-J as HA
 open import Equivalence-relation eq-J
+open import Extensionality eq-J hiding (module Extensionality)
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
 open import H-level.Closure eq-J
@@ -922,11 +922,8 @@ module Stable-≡-Erased-axiomatisation→[]-cong-axiomatisation
 -- Extensionality→[]-cong-axiomatisation.
 
 module Extensionality→[]-cong-axiomatisation
-  (ext′ : Extensionality a a)
+  (ext : Extensionality a a)
   where
-
-  private
-    ext = Eq.good-ext ext′
 
   -- Equality is stable for Erased A.
   --
@@ -959,7 +956,7 @@ module Extensionality→[]-cong-axiomatisation
   Stable-≡-Erased-[refl] {x = [ x ]} =
     Stable-≡-Erased [ x ] [ x ] [ refl [ x ] ]                ≡⟨⟩
     ext⁻¹ (∘-[]-injective (apply-ext ext id)) [ refl [ x ] ]  ≡⟨ ext⁻¹-∘-[]-injective ⟩
-    ext⁻¹ (apply-ext ext id) (refl [ x ])                     ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext′) _ ⟩∎
+    ext⁻¹ (apply-ext ext id) (refl [ x ])                     ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext) _ ⟩∎
     refl [ x ]                                                ∎
 
   open Stable-≡-Erased-axiomatisation→[]-cong-axiomatisation
@@ -2431,7 +2428,7 @@ lower-[]-cong-axiomatisation {a = a} a′ ax = λ where
                                                                               propositional⇒inhabited⇒contractible
                                                                                 (Π-closure ext′ 1 λ _ →
                                                                                  Π-closure ext′ 1 λ _ →
-                                                                                 Eq.propositional ext′ _)
+                                                                                 Is-equivalence-propositional ext′)
                                                                                 (λ _ _ → BC.[]-cong-equivalence)) ⟩
      ((([ A ]) : Erased (Type a)) →
       ∃ λ (c : ((x : Erased A) → x ≡ x)) →

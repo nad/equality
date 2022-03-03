@@ -16,6 +16,7 @@ open import Prelude hiding (id)
 
 open import Category eq
 open Derived-definitions-and-properties eq
+open import Extensionality eq
 open import Functor eq
 
 ------------------------------------------------------------------------

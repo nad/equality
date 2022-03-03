@@ -14,6 +14,7 @@ open import Prelude
 
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
+open import Extensionality eq
 open import Function-universe eq using (inverse)
 
 ------------------------------------------------------------------------

@@ -19,6 +19,7 @@ open import Prelude
 
 import Bijection eq as B
 open import Equivalence eq as Eq using (_≃_)
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level.Closure eq
 open import Univalence-axiom eq
@@ -387,8 +388,7 @@ Final-coalgebra-propositional {I = I} {C = C}
   Σ-≡,≡→≡ (Σ-≡,≡→≡ (lemma₁ b) (lemma₂ b))
     (Final-propositional (lower-extensionality lzero _ ext) X₂ _ _)
   where
-  ext₁′ = lower-extensionality _ lzero ext
-  ext₁  = Eq.good-ext ext₁′
+  ext₁ = lower-extensionality _ lzero ext
 
   lemma₀ : Block "lemma₀" → ∀ i → P₁ i ≃ P₂ i
   lemma₀ ⊠ = carriers-of-final-coalgebras-equivalent F₁ F₂
@@ -419,8 +419,8 @@ Final-coalgebra-propositional {I = I} {C = C}
   lemma₁-lemma₂ = λ b i x →
     subst (_$ i) (sym (lemma₁ b)) x                                    ≡⟨⟩
     subst (_$ i) (sym (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i))) x  ≡⟨ cong (flip (subst (_$ i)) _) $ sym $
-                                                                          Eq.good-ext-sym ext₁′ _ ⟩
-    subst (_$ i) (apply-ext ext₁ λ i → sym (≃⇒≡ univ (lemma₀ b i))) x  ≡⟨ Eq.subst-good-ext ext₁′ _ _ ⟩
+                                                                          ext-sym ext₁ ⟩
+    subst (_$ i) (apply-ext ext₁ λ i → sym (≃⇒≡ univ (lemma₀ b i))) x  ≡⟨ subst-ext ext₁ ⟩
     subst id (sym (≃⇒≡ univ (lemma₀ b i))) x                           ≡⟨ subst-id-in-terms-of-inverse∘≡⇒↝ equivalence ⟩
     _≃_.from (≡⇒≃ (≃⇒≡ univ (lemma₀ b i))) x                           ≡⟨ cong (λ eq → _≃_.from eq _) $
                                                                           _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
@@ -430,7 +430,7 @@ Final-coalgebra-propositional {I = I} {C = C}
     subst (λ P → P (index C p)) (lemma₁ b) (f p)          ≡⟨⟩
 
     subst (λ P → P (index C p))
-      (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i)) (f p)  ≡⟨ Eq.subst-good-ext ext₁′ _ _ ⟩
+      (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i)) (f p)  ≡⟨ subst-ext ext₁ ⟩
 
     subst id (≃⇒≡ univ (lemma₀ b (index C p))) (f p)      ≡⟨ subst-id-in-terms-of-≡⇒↝ equivalence ⟩
 

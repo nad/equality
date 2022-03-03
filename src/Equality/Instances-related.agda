@@ -10,6 +10,7 @@ module Equality.Instances-related where
 import Bijection
 open import Equality
 import Equivalence
+import Extensionality
 import Function-universe
 import H-level
 import H-level.Closure
@@ -89,6 +90,7 @@ module _ {congruence⁺}
          where
 
   open Derived-definitions-and-properties eq
+  open Extensionality eq
   open Function-universe eq hiding (_∘_) renaming (id to ⟨id⟩)
   open H-level.Closure eq
   open Surjection eq using (_↠_)

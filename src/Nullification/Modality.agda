@@ -25,6 +25,7 @@ open import Equivalence equality-with-J as Eq
 open import Equivalence.List equality-with-J
 open import Equivalence.Path-split equality-with-J as PS
   using (_-Null_; Is-∞-extendable-along-[_])
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
@@ -60,7 +61,7 @@ Nullification-modality {a = a} P =
 
     .Σ-closed-reflective-subuniverse.Modal-propositional _ →
       Π-closure ext 1 λ _ →
-      Eq.propositional ext _
+      Is-equivalence-propositional ext
 
     .Σ-closed-reflective-subuniverse.Modal-◯ {A = A} →
                                                                           $⟨ Local-Localisation ⟩
@@ -326,7 +327,7 @@ module Canonical-accessible-extension
                                                            implicit-Π-closure ext 1 λ _ →
                                                            implicit-Π-closure ext 1 λ _ →
                                                            Π-closure ext 1 λ _ →
-                                                           Eq.propositional ext _)
+                                                           Is-equivalence-propositional ext)
                                                           (λ hyp → to hyp)
                                                           from ⟩□
     ({B C : Type a} {f : B → C} →

@@ -15,6 +15,7 @@ module Monad.State
 open import Prelude
 
 open Derived-definitions-and-properties eq
+open import Extensionality eq
 open import Monad eq
 
 -- The state monad transformer, defined using a wrapper type to make

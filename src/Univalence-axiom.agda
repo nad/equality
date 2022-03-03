@@ -20,6 +20,7 @@ open import Equivalence eq as Eq
   using (_≃_; ⟨_,_⟩; Is-equivalence) renaming (_∘_ to _⊚_)
 import Equivalence.Contractible-preimages eq as CP
 import Equivalence.Half-adjoint eq as HA
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import Groupoid eq
 open import H-level eq as H-level
@@ -180,7 +181,7 @@ Propositional-extensionality-is-univalence-for-propositions {ℓ} ext =
        implicit-Π-closure ext 1 λ _ →
        Π-closure ext′ 1 λ _ →
        Π-closure ext′ 1 λ _ →
-       Eq.propositional ext _)
+       Is-equivalence-propositional ext)
       (λ prop-ext A-prop B-prop →
          _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $ λ A≃B →
          ( prop-ext A-prop B-prop (_≃_.logical-equivalence A≃B)
@@ -210,7 +211,7 @@ flip-subst-is-equivalence↔∃-is-contractible
   generalise-ext?-prop
     lemma
     (λ ext → Π-closure (lower-extensionality pℓ lzero ext) 1 λ _ →
-             Eq.propositional ext _)
+             Is-equivalence-propositional ext)
     Contractible-propositional
   where
   lemma :
@@ -369,8 +370,8 @@ Univalence′≃Univalence′-CP {ℓ = ℓ} {A = A} {B = B} ext =
       _≃_.from ≃≃≃ (CP.≡⇒≃ (refl _))              ∎) ⟩
 
   Is-equivalence (_≃_.from ≃≃≃ ∘ CP.≡⇒≃)  ↝⟨ Eq.⇔→≃
-                                               (Eq.propositional ext _)
-                                               (Eq.propositional ext _)
+                                               (Is-equivalence-propositional ext)
+                                               (Is-equivalence-propositional ext)
                                                (Eq.Two-out-of-three.g-g∘f (Eq.two-out-of-three _ _)
                                                   (_≃_.is-equivalence (inverse ≃≃≃)))
                                                (flip (Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _))
@@ -666,9 +667,9 @@ abstract
     ∀ {b} → Univalence′ (Type b ²/≡) (Type b) →
     ∀ {a} {A : Type a} →
     (∀ {B : A → Type b} x → Univalence′ (↑ b ⊤) (B x)) →
-    {B : A → Type b} → Extensionality′ A B
+    {B : A → Type b} → Function-extensionality′ A B
   dependent-extensionality′ univ₁ univ₂ =
-    _⇔_.to Π-closure-contractible⇔extensionality
+    _⇔_.to [Π-Contractible→Contractible-Π]⇔Function-extensionality′
       (Π-closure-contractible univ₁ univ₂)
 
   dependent-extensionality :
@@ -676,8 +677,9 @@ abstract
     Univalence (lsuc b) →
     Univalence b →
     ∀ {a} → Extensionality a b
-  apply-ext (dependent-extensionality univ₁ univ₂) =
-    dependent-extensionality′ univ₁ (λ _ → univ₂)
+  dependent-extensionality univ₁ univ₂ =
+    _⇔_.from Extensionality⇔Function-extensionality
+      (dependent-extensionality′ univ₁ (λ _ → univ₂))
 
 ------------------------------------------------------------------------
 -- Pow and Fam
@@ -780,7 +782,7 @@ abstract
   Univalence′-propositional :
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
     {A B : Type ℓ} → Is-proposition (Univalence′ A B)
-  Univalence′-propositional ext {A = A} {B = B} =          $⟨ Eq.propositional ext ≡⇒≃ ⟩
+  Univalence′-propositional ext {A = A} {B = B} =          $⟨ Is-equivalence-propositional ext ⟩
     Is-proposition (Is-equivalence (≡⇒≃ {A = A} {B = B}))  ↝⟨ H-level-cong _ 1 (inverse Univalence′≃Is-equivalence-≡⇒≃) ⦂ (_ → _) ⟩□
     Is-proposition (Univalence′ A B)                       □
 
@@ -1451,7 +1453,7 @@ Contractible-∃-Contractible ext prop-ext =
   Is-set (L ≃ L)                        ↝⟨ (λ h → h) ⟩
   Is-proposition (F.id ≡ F.id)          ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ Eq.≃-as-Σ) 1 ⟩
   Is-proposition ((id , _) ≡ (id , _))  ↝⟨ H-level.respects-surjection
-                                             (_↔_.surjection $ inverse $ ignore-propositional-component (Eq.propositional ext id)) 1 ⟩
+                                             (_↔_.surjection $ inverse $ ignore-propositional-component (Is-equivalence-propositional ext)) 1 ⟩
   Is-proposition (id ≡ id)              ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ Eq.extensionality-isomorphism ext) 1 ⟩
   Is-proposition ((l : L) → l ≡ l)      ↝⟨ proj₂ $ ¬-type-of-refl-propositional ext univ₀ ⟩□
   ⊥                                     □

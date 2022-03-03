@@ -15,6 +15,7 @@ open import Prelude
 
 open import Equality.Decision-procedures eq
 open import Excluded-middle eq
+open import Extensionality eq
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq

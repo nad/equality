@@ -10,7 +10,6 @@ module Erased.Stability
   {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
 
 open Derived-definitions-and-properties eq
-  hiding (module Extensionality)
 
 open import Logical-equivalence as LE using (_⇔_)
 open import Prelude
@@ -31,6 +30,7 @@ open import Equivalence.Path-split eq as PS
   using (Is-∞-extendable-along-[_]; Is-[_]-extendable-along-[_];
          _-Null_; _-Nullᴱ_)
 open import Excluded-middle eq
+open import Extensionality eq hiding (module Extensionality)
 open import For-iterated-equality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
@@ -90,7 +90,7 @@ Very-stable-propositional :
   {A : Type a} →
   Extensionality a a →
   Is-proposition (Very-stable A)
-Very-stable-propositional ext = Eq.propositional ext _
+Very-stable-propositional = Is-equivalence-propositional
 
 private
 
@@ -1168,7 +1168,7 @@ erased-is-accessible-and-topological {a = a} em ext =               $⟨ (λ _ �
                                                                         ⇔-closure ext 1
                                                                           (Very-stable-propositional ext)
                                                                           (Π-closure ext 1 λ _ →
-                                                                           Eq.propositional ext _)) ⟩
+                                                                           Is-equivalence-propositional ext)) ⟩
 
   ((A : Type a) → Very-stable A ⇔ (λ (_ : ↑ a ⊤) → ↑ a ⊤) -Null A)  →⟨ (λ hyp →
                                                                             _
@@ -1194,7 +1194,7 @@ Very-stable≃Very-stable-Null {A = A} ext =
     (λ _ → Very-stable-propositional ext)
     (λ ext′ →
        Π-closure ext′ 1 λ _ →
-       Eq.propositional ext _)
+       Is-equivalence-propositional ext)
   where
   open []-cong-axiomatisation
           (Extensionality→[]-cong-axiomatisation ext)

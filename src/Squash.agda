@@ -24,6 +24,7 @@ open import Equivalence equality-with-J as Eq
 open import Equivalence.Erased equality-with-J using (_≃ᴱ_)
 open import Equivalence.Path-split equality-with-J
   using (Is-∞-extendable-along-[_])
+open import Extensionality equality-with-J
 open import For-iterated-equality equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J as H-level
@@ -456,7 +457,7 @@ Very-stable↔Is-equivalence-[] =
                   (λ _ → refl _)
             })
     Very-stable-propositional
-    (λ ext → Eq.propositional ext _)
+    Is-equivalence-propositional
 
 -- A type is very stable if and only if it is a stable proposition.
 

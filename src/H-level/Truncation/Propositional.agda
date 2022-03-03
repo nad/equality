@@ -38,6 +38,7 @@ open import Equivalence-relation equality-with-J
 open import Erased.Cubical eq as E
   using (Erased; erased; Very-stableᴱ-≡; Erased-singleton)
 import Erased.Stability equality-with-J as ES
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
@@ -798,8 +799,8 @@ equivalence-to-∥∥≃proj₂-equivalence :
   (f : A → ∥ B ∥) →
   Is-equivalence f ≃ Is-equivalence (proj₂ ⦂ (A × B → B))
 equivalence-to-∥∥≃proj₂-equivalence {A = A} {B = B} f = Eq.⇔→≃
-  (Eq.propositional ext _)
-  (Eq.propositional ext _)
+  (Is-equivalence-propositional ext)
+  (Is-equivalence-propositional ext)
   (λ eq → _≃_.is-equivalence
             (A × B      ↝⟨ (×-cong₁ λ _ → Eq.⟨ _ , eq ⟩) ⟩
              ∥ B ∥ × B  ↝⟨ ∥∥×≃ ⟩□
@@ -1344,7 +1345,7 @@ to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡ A↠B s (E.[ x ] , y) =
   ((y : ↑ _ ⊤) →
    Contractible ∥ (const (lift tt) ⦂ (↑ _ Bool → ↑ _ ⊤)) ⁻¹ y ∥)   →⟨ hyp ⟩
 
-  ∥ Is-equivalence (const (lift tt) ⦂ (↑ _ Bool → ↑ _ ⊤)) ∥        ↔⟨ ∥∥↔ (Eq.propositional ext _) ⟩
+  ∥ Is-equivalence (const (lift tt) ⦂ (↑ _ Bool → ↑ _ ⊤)) ∥        ↔⟨ ∥∥↔ (Is-equivalence-propositional ext) ⟩
 
   Is-equivalence (const (lift tt) ⦂ (↑ _ Bool → ↑ _ ⊤))            →⟨ Eq.⟨ _ ,_⟩ ⟩
 

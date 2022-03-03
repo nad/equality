@@ -18,6 +18,7 @@ open import Equivalence equality-with-J as Eq using (_≃_)
 import Equivalence.Contractible-preimages equality-with-J as CP
 import Equivalence.Half-adjoint equality-with-J as HA
 open import Function-universe equality-with-J hiding (id)
+open import H-level.Closure equality-with-J
 open import Preimage equality-with-J
 open import Univalence-axiom equality-with-J hiding (≃⇒≡)
 
@@ -81,7 +82,7 @@ private
        transport (λ i → A → ≃-CP⇒≡ A≃B i) 0̲ id                ≡⟨⟩
        transport (λ _ → A → B) 0̲ (proj₁ A≃B)                  ≡⟨ cong (_$ proj₁ A≃B) $ transport-refl 0̲ ⟩∎
        proj₁ A≃B                                              ∎)
-      (CP.propositional ext _ _ _)
+      (Is-equivalence-CP-propositional ext _ _)
 
   -- Univalence for CP._≃_.
 

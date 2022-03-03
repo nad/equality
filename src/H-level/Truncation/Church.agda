@@ -21,6 +21,7 @@ open import Equality.Decidable-UIP eq
 import Equality.Groupoid eq as EG
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence.Half-adjoint eq as HA
+open import Extensionality eq
 open import Function-universe eq as F hiding (_∘_)
 open import Groupoid eq
 open import H-level eq as H-level
@@ -277,7 +278,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
     (×-closure 1 (Surjective-propositional ext)
                  (Is-embedding-propositional
                     (lower-extensionality _ _ ext)))
-    (Eq.propositional (lower-extensionality _ _ ext) _)
+    (Is-equivalence-propositional (lower-extensionality _ _ ext))
     (λ (is-surj , is-emb) →
        _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP $ λ y →
                                   $⟨ is-surj y ⟩
@@ -858,7 +859,8 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
   equivalence₂ ∥a∥ =
     Eq.⟨ to
        , rec 1
-             (Eq.propositional (lower-extensionality _ ℓ ext) _)
+             (Is-equivalence-propositional
+                (lower-extensionality _ ℓ ext))
              to-is-an-equivalence
              (with-lower-level ℓ 1 ∥a∥)
        ⟩

@@ -20,6 +20,7 @@ open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Path-split eq as PS
   using (Is-∞-extendable-along-[_])
 open import Excluded-middle eq
+open import Extensionality eq
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq

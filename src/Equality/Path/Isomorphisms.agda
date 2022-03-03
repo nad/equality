@@ -13,6 +13,7 @@ module Equality.Path.Isomorphisms
 
 open P.Derived-definitions-and-properties eq
 
+open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 import Bijection
@@ -22,6 +23,7 @@ import Equivalence.Contractible-preimages
 import Equivalence.Half-adjoint
 import Function-universe
 import H-level
+import H-level.Closure
 import Surjection
 import Univalence-axiom
 
@@ -39,14 +41,17 @@ private
   module PHA = Equivalence.Half-adjoint P.equality-with-J
   module PF  = Function-universe P.equality-with-J
   module PH  = H-level P.equality-with-J
+  module PHC = H-level.Closure P.equality-with-J
   module PS  = Surjection P.equality-with-J
   module PU  = Univalence-axiom P.equality-with-J
 
 open B using (_↔_)
 open Embedding equality-with-J hiding (id; _∘_)
 open Eq using (_≃_; Is-equivalence)
+open import Extensionality equality-with-J
 open F hiding (id; _∘_)
 open H-level equality-with-J
+open H-level.Closure equality-with-J
 open Surjection equality-with-J using (_↠_)
 open Univalence-axiom equality-with-J
 
@@ -60,111 +65,34 @@ private
     n           : ℕ
 
 ------------------------------------------------------------------------
--- Extensionality
+-- Function extensionality
 
--- The proof bad-ext is perhaps not less "good" than ext (I don't
--- know), it is called this simply because it is not defined using
--- good-ext.
+private
 
-bad-ext : Extensionality a b
-apply-ext bad-ext {f = f} {g = g} =
-  (∀ x → f x ≡ g x)    ↝⟨ (λ p x → _↔_.to ≡↔≡ (p x)) ⟩
-  (∀ x → f x P.≡ g x)  ↝⟨ P.apply-ext P.ext ⟩
-  f P.≡ g              ↔⟨ inverse ≡↔≡ ⟩□
-  f ≡ g                □
+  -- A preliminary definition of function extensionality.
 
--- Extensionality.
+  ⟨ext⟩′ : Function-extensionality a p
+  ⟨ext⟩′ {f = f} {g = g} =
+    (∀ x → f x ≡ g x)    ↝⟨ (λ p x → _↔_.to ≡↔≡ (p x)) ⟩
+    (∀ x → f x P.≡ g x)  ↝⟨ P.⟨ext⟩ ⟩
+    f P.≡ g              ↔⟨ inverse ≡↔≡ ⟩□
+    f ≡ g                □
 
-ext : Extensionality a b
-ext = Eq.good-ext bad-ext
+-- Function extensionality.
 
-⟨ext⟩ : Extensionality′ A B
+ext : Extensionality a p
+ext = _⇔_.from Extensionality⇔Function-extensionality ⟨ext⟩′
+
+⟨ext⟩ : Function-extensionality a p
 ⟨ext⟩ = apply-ext ext
 
 -- An equivalence formed using ⟨ext⟩.
 
 Π≡≃≡ : (∀ x → f x ≡ g x) ≃ (f ≡ g)
-Π≡≃≡ = Eq.extensionality-isomorphism bad-ext
+Π≡≃≡ = Eq.extensionality-isomorphism ext
 
 _ : _≃_.to (Π≡≃≡ {f = f} {g = g}) ≡ ⟨ext⟩
 _ = refl _
-
-abstract
-
-  -- The function ⟨ext⟩ is an equivalence.
-
-  ext-is-equivalence : Is-equivalence {A = ∀ x → f x ≡ g x} ⟨ext⟩
-  ext-is-equivalence = Eq.good-ext-is-equivalence bad-ext
-
-  -- Equality rearrangement lemmas for ⟨ext⟩.
-
-  ext-refl : ⟨ext⟩ (λ x → refl (f x)) ≡ refl f
-  ext-refl = Eq.good-ext-refl bad-ext _
-
-  ext-const :
-    (x≡y : x ≡ y) →
-    ⟨ext⟩ (const {B = A} x≡y) ≡ cong const x≡y
-  ext-const = Eq.good-ext-const bad-ext
-
-  cong-ext :
-    ∀ (f≡g : ∀ x → f x ≡ g x) {x} →
-    cong (_$ x) (⟨ext⟩ f≡g) ≡ f≡g x
-  cong-ext = Eq.cong-good-ext bad-ext
-
-  ext-cong :
-    {B : Type b} {C : B → Type c}
-    {f : A → (x : B) → C x} {x≡y : x ≡ y} →
-    ⟨ext⟩ (λ z → cong (flip f z) x≡y) ≡ cong f x≡y
-  ext-cong = Eq.good-ext-cong bad-ext
-
-  subst-ext :
-    ∀ {f g : (x : A) → B x}
-    (P : B x → Type p) {p} (f≡g : ∀ x → f x ≡ g x) →
-    subst (λ f → P (f x)) (⟨ext⟩ f≡g) p ≡ subst P (f≡g x) p
-  subst-ext = Eq.subst-good-ext bad-ext
-
-  elim-ext :
-    (P : B x → B x → Type p)
-    (p : (y : B x) → P y y)
-    {f g : (x : A) → B x}
-    (f≡g : ∀ x → f x ≡ g x) →
-    elim (λ {f g} _ → P (f x) (g x)) (p ∘ (_$ x)) (⟨ext⟩ f≡g) ≡
-    elim (λ {x y} _ → P x y) p (f≡g x)
-  elim-ext = Eq.elim-good-ext bad-ext
-
-  -- I based the statements of the following three lemmas on code in
-  -- the Lean Homotopy Type Theory Library with Jakob von Raumer and
-  -- Floris van Doorn listed as authors. The file was claimed to have
-  -- been ported from the Coq HoTT library. (The third lemma has later
-  -- been generalised.)
-
-  ext-sym :
-    (f≡g : ∀ x → f x ≡ g x) →
-    ⟨ext⟩ (sym ∘ f≡g) ≡ sym (⟨ext⟩ f≡g)
-  ext-sym = Eq.good-ext-sym bad-ext
-
-  ext-trans :
-    (f≡g : ∀ x → f x ≡ g x) (g≡h : ∀ x → g x ≡ h x) →
-    ⟨ext⟩ (λ x → trans (f≡g x) (g≡h x)) ≡ trans (⟨ext⟩ f≡g) (⟨ext⟩ g≡h)
-  ext-trans = Eq.good-ext-trans bad-ext
-
-  cong-post-∘-ext :
-    (f≡g : ∀ x → f x ≡ g x) →
-    cong (h ∘_) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (cong h ∘ f≡g)
-  cong-post-∘-ext = Eq.cong-post-∘-good-ext bad-ext bad-ext
-
-  cong-pre-∘-ext :
-    (f≡g : ∀ x → f x ≡ g x) →
-    cong (_∘ h) (⟨ext⟩ f≡g) ≡ ⟨ext⟩ (f≡g ∘ h)
-  cong-pre-∘-ext = Eq.cong-pre-∘-good-ext bad-ext bad-ext
-
-  cong-∘-ext :
-    {A : Type a} {B : Type b} {C : Type c} {f g : B → C}
-    (f≡g : ∀ x → f x ≡ g x) →
-    cong {B = (A → B) → (A → C)}
-         (λ f → f ∘_) (⟨ext⟩ f≡g) ≡
-    ⟨ext⟩ λ h → ⟨ext⟩ λ x → f≡g (h x)
-  cong-∘-ext = Eq.cong-∘-good-ext bad-ext bad-ext bad-ext
 
 ------------------------------------------------------------------------
 -- More isomorphisms and related properties
@@ -385,7 +313,7 @@ Embedding↔Embedding :
 Embedding↔Embedding {A = A} {B = B} =
   Embedding A B                                   ↝⟨ Embedding-as-Σ ⟩
   (∃ λ f → ∀ x y → Is-equivalence (cong f))       ↔⟨ (∃-cong λ f → ∀-cong ext λ x → ∀-cong ext λ y →
-                                                      Eq.⇔→≃ (Eq.propositional ext _) (Eq.propositional ext _)
+                                                      Eq.⇔→≃ (Is-equivalence-propositional ext) (Is-equivalence-propositional ext)
                                                         (λ is → _≃_.is-equivalence $
                                                            Eq.with-other-function
                                                              (
@@ -621,7 +549,7 @@ Univalence′-CP≃Univalence′-CP {A = A} {B = B} =
   lemma₃ = elim¹
     (λ A≡B → _↔_.to ≃-CP↔≃-CP (CP.≡⇒≃ A≡B) ≡ PCP.≡⇒≃ (_↔_.to ≡↔≡ A≡B))
     (_↔_.to ≃-CP↔≃-CP (CP.≡⇒≃ (refl _))  ≡⟨ cong (_↔_.to ≃-CP↔≃-CP) CP.≡⇒≃-refl ⟩
-     _↔_.to ≃-CP↔≃-CP CP.id              ≡⟨ _↔_.from ≡↔≡ $ P.Σ-≡,≡→≡ P.refl (PCP.propositional P.ext _ _ _) ⟩
+     _↔_.to ≃-CP↔≃-CP CP.id              ≡⟨ _↔_.from ≡↔≡ $ P.Σ-≡,≡→≡ P.refl (PHC.Is-equivalence-CP-propositional P.ext _ _) ⟩
      PCP.id                              ≡⟨ sym $ _↔_.from ≡↔≡ PCP.≡⇒≃-refl ⟩
      PCP.≡⇒≃ P.refl                      ≡⟨ sym $ cong PCP.≡⇒≃ to-≡↔≡-refl ⟩∎
      PCP.≡⇒≃ (_↔_.to ≡↔≡ (refl _))       ∎)

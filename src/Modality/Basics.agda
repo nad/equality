@@ -39,6 +39,7 @@ open import Equivalence.Path-split eq-J as PS
   using (_-Null_; Is-∞-extendable-along-[_])
 open import Erased.Box-cong-axiomatisation eq-J
   using ([]-cong-axiomatisation)
+open import Extensionality eq-J
 open import For-iterated-equality eq-J
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
@@ -293,8 +294,8 @@ record Uniquely-eliminating-modality a : Type (lsuc a) where
 
     .Modality-record.Modal → Modal
 
-    .Modality-record.Modal-propositional ext →
-      Eq.propositional ext _
+    .Modality-record.Modal-propositional →
+      Is-equivalence-propositional
 
     .Modality-record.Modal-◯ → Modal-◯
 
@@ -817,7 +818,7 @@ module Modality (M : Modality a) where
          ; from = Is-equivalence-η→Modal
          })
       Modal-propositional
-      (λ ext → Eq.propositional ext _)
+      Is-equivalence-propositional
 
   -- If A is modal, then A is equivalent to ◯ A.
 
@@ -1867,7 +1868,7 @@ module Modality (M : Modality a) where
       f x y                                                          ∎
       where
       ◯×≃-η′ : _≃_.to (◯×≃ {A = A} {B = B}) ∘ η ≡ Σ-map η η
-      ◯×≃-η′ = apply-ext (Eq.good-ext ext) λ _ → ◯×≃-η
+      ◯×≃-η′ = apply-ext ext λ _ → ◯×≃-η
 
     -- A binary variant of ◯-rec.
 
@@ -2141,13 +2142,11 @@ module Modality (M : Modality a) where
     Extensionality a a →
     Separated A →
     Separated (W A P)
-  Separated-W {A = A} {P = P} ext′ s = λ x y →
+  Separated-W {A = A} {P = P} ext s = λ x y →
     Stable→left-inverse→Modal
       (Stable-≡-W   x y)
       (Stable-≡-W-η x y)
     where
-    ext = Eq.good-ext ext′
-
     head-lemma : sup x f ≡ sup y g → x ≡ y
     head-lemma = proj₁ ∘ Σ-≡,≡←≡ ∘ cong (_↔_.to W-unfolding)
 
@@ -2230,7 +2229,7 @@ module Modality (M : Modality a) where
             trans (cong (λ eq → subst (λ x → P x → W A P) eq f)
                      heads-η) $
             tail-lemma eq))                                            ≡⟨ cong (cong (uncurry sup) ∘ Σ-≡,≡→≡ (heads (η eq))) $
-                                                                          trans (Eq.good-ext-cong ext′) $
+                                                                          trans (ext-cong ext) $
                                                                           sym $ cong-id _ ⟩
       cong (uncurry sup)
         (Σ-≡,≡→≡ (heads (η eq))
@@ -2611,7 +2610,7 @@ module Modality (M : Modality a) where
     generalise-ext?-prop
       (record { to = to; from = from })
       (λ ext → Connected-→-propositional ext ◯)
-      (λ ext → Eq.propositional ext _)
+      Is-equivalence-propositional
     where
     to : ◯ -Connected-→ f → Is-equivalence (◯-rec m f)
     to =
@@ -2816,9 +2815,9 @@ module Modality (M : Modality a) where
       l-equiv
     , (λ ext′ →
            Connected-→-propositional ext ◯
-         , (Π-closure ext′  1 λ _ →
+         , (Π-closure ext′ 1 λ _ →
             Π-closure ext  1 λ _ →
-            Eq.propositional ext _)
+            Is-equivalence-propositional ext)
          , prop ext′
          , _)
     where
@@ -2954,7 +2953,7 @@ module Modality (M : Modality a) where
       (λ ext′ →
          implicit-Π-closure ext′ 1 λ _ →
          Π-closure ext 1 λ _ →
-         Eq.propositional ext _)
+         Is-equivalence-propositional ext)
 
   -- If ◯ (P x) is P-null, then P x is ◯-connected.
 
@@ -3011,8 +3010,8 @@ module Modality (M : Modality a) where
        const x ≡ const y              □)
       (cong const)
       (λ eq →
-         apply-ext (Eq.good-ext ext) (λ _ → eq)  ≡⟨ Eq.good-ext-const ext _ ⟩∎
-         cong const eq                           ∎)
+         apply-ext ext (λ _ → eq)  ≡⟨ ext-const ext ⟩∎
+         cong const eq             ∎)
 
   -- If A is ◯-connected, then const : ∃ Modal → A → ∃ Modal is an
   -- embedding (assuming function extensionality and univalence).
@@ -3036,18 +3035,18 @@ module Modality (M : Modality a) where
        const Bm ≡ const Cm              □)
       (cong const)
       (λ eq →
-         (apply-ext (Eq.good-ext ext) λ _ →
+         (apply-ext ext λ _ →
           _↔_.to (ignore-propositional-component prop) $
           ≃⇒≡ univ $ ≡⇒≃ $
-          _↔_.from (ignore-propositional-component prop) eq)  ≡⟨ (cong (apply-ext (Eq.good-ext ext)) $ apply-ext ext λ _ →
+          _↔_.from (ignore-propositional-component prop) eq)  ≡⟨ (cong (apply-ext ext) $ apply-ext ext λ _ →
                                                                   cong (_↔_.to (ignore-propositional-component prop)) $
                                                                   _≃_.left-inverse-of (≡≃≃ univ) _) ⟩
-         (apply-ext (Eq.good-ext ext) λ _ →
+         (apply-ext ext λ _ →
           _↔_.to (ignore-propositional-component prop) $
-          _↔_.from (ignore-propositional-component prop) eq)  ≡⟨ (cong (apply-ext (Eq.good-ext ext)) $ apply-ext ext λ _ →
+          _↔_.from (ignore-propositional-component prop) eq)  ≡⟨ (cong (apply-ext ext) $ apply-ext ext λ _ →
                                                                   _↔_.right-inverse-of (ignore-propositional-component prop) _) ⟩
 
-         (apply-ext (Eq.good-ext ext) λ _ → eq)               ≡⟨ Eq.good-ext-const ext _ ⟩∎
+         (apply-ext ext λ _ → eq)                             ≡⟨ ext-const ext ⟩∎
 
          cong const eq                                        ∎)
     where
@@ -3097,7 +3096,7 @@ module Modality (M : Modality a) where
     implicit-Π-closure ext  1 λ _ →
     implicit-Π-closure ext′ 1 λ _ →
     implicit-Π-closure ext′ 1 λ _ →
-    Eq.propositional ext′ _
+    Is-equivalence-propositional ext′
     where
     ext′ = lower-extensionality _ lzero ext
 
@@ -3525,7 +3524,7 @@ module Modality (M : Modality a) where
                lex
          })
       (flip Connected-→-propositional ◯)
-      (flip Eq.propositional _)
+      Is-equivalence-propositional
 
   -- If the modality is left exact, f is ◯-connected, and
   -- Σ-map {Q = Q} f (g _) is ◯-connected (for
@@ -5105,12 +5104,13 @@ Modal⇔Modal≃◯≃◯ {a = a} ext M₁ M₂ =
       (∃ λ ((f , _) : ∃ λ (f : M₁.◯ A → M₂.◯ A) → f ∘ M₁.η ≡ M₂.η) →
          Is-equivalence f)
   prop ((f₁ , eq₁) , equiv₁) ((f₂ , eq₂) , equiv₂) =
-    _↔_.to (ignore-propositional-component (Eq.propositional ext _)) $
+    _↔_.to (ignore-propositional-component
+              (Is-equivalence-propositional ext)) $
     Σ-≡,≡→≡
       (⟨ext⟩ lemma)
       (subst (λ f → f ∘ M₁.η ≡ M₂.η) (⟨ext⟩ lemma) eq₁        ≡⟨ subst-∘ _ _ _ ⟩
        subst (_≡ M₂.η) (cong (_∘ M₁.η) $ ⟨ext⟩ lemma) eq₁     ≡⟨ cong (flip (subst _) _) $
-                                                                 Eq.cong-pre-∘-good-ext ext ext _ ⟩
+                                                                 cong-pre-∘-ext ext ext ⟩
        subst (_≡ M₂.η) (⟨ext⟩ $ lemma ∘ M₁.η) eq₁             ≡⟨ subst-trans-sym ⟩
        trans (sym $ ⟨ext⟩ $ lemma ∘ M₁.η) eq₁                 ≡⟨ (cong (flip trans _ ∘ sym) $ cong ⟨ext⟩ $ ⟨ext⟩ λ _ →
                                                                   M₁.∘η≡∘η→≡-η) ⟩
@@ -5122,7 +5122,7 @@ Modal⇔Modal≃◯≃◯ {a = a} ext M₁ M₂ =
                                                                  sym-sym _ ⟩∎
        eq₂                                                    ∎)
     where
-    ⟨ext⟩ = apply-ext (Eq.good-ext ext)
+    ⟨ext⟩ = apply-ext ext
 
     lemma : ∀ x → f₁ x ≡ f₂ x
     lemma =
@@ -5181,8 +5181,6 @@ Modal⇔Modal≃≡ {a = a} {M₁ = M₁} {M₂ = M₂} ext univ =
   ext″ : Extensionality a a
   ext″ = lower-extensionality _ _ ext
 
-  ext‴ = Eq.good-ext ext
-
   equiv :
     Modality a ≃
     (∃ λ (Modal : Type a → Type a) →
@@ -5216,25 +5214,25 @@ Modal⇔Modal≃≡ {a = a} {M₁ = M₁} {M₂ = M₂} ext univ =
   lemma M₁ M₂ Modal⇔Modal =
     let ◯≃◯ , η≡η = Modal⇔Modal≃◯≃◯ ext″ M₁ M₂ _ Modal⇔Modal in
     Σ-≡,≡→≡
-      (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯))
+      (apply-ext ext (≃⇒≡ univ ∘ ◯≃◯))
       (implicit-extensionality ext′ λ A →
 
-       subst (λ ◯ → ∀ {A} → A → ◯ A) (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯))
-         (Modality.η M₁)                                                ≡⟨ sym $
-                                                                           push-subst-implicit-application _ _ ⟩
-       subst (λ ◯ → A → ◯ A) (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯))
-         (Modality.η M₁)                                                ≡⟨ (apply-ext ext″ λ _ → sym $
-                                                                            push-subst-application _ _) ⟩
-       subst (λ ◯ → ◯ A) (apply-ext ext‴ (≃⇒≡ univ ∘ ◯≃◯)) ∘
-       Modality.η M₁                                                    ≡⟨ (apply-ext ext″ λ _ →
-                                                                            Eq.subst-good-ext ext _ _) ⟩
+       subst (λ ◯ → ∀ {A} → A → ◯ A) (apply-ext ext (≃⇒≡ univ ∘ ◯≃◯))
+         (Modality.η M₁)                                               ≡⟨ sym $
+                                                                          push-subst-implicit-application _ _ ⟩
+       subst (λ ◯ → A → ◯ A) (apply-ext ext (≃⇒≡ univ ∘ ◯≃◯))
+         (Modality.η M₁)                                               ≡⟨ (apply-ext ext″ λ _ → sym $
+                                                                           push-subst-application _ _) ⟩
+       subst (λ ◯ → ◯ A) (apply-ext ext (≃⇒≡ univ ∘ ◯≃◯)) ∘
+       Modality.η M₁                                                   ≡⟨ (apply-ext ext″ λ _ →
+                                                                           subst-ext ext) ⟩
 
-       subst id (≃⇒≡ univ (◯≃◯ A)) ∘ Modality.η M₁                      ≡⟨ (apply-ext ext″ λ _ →
-                                                                            subst-id-in-terms-of-≡⇒↝ equivalence) ⟩
+       subst id (≃⇒≡ univ (◯≃◯ A)) ∘ Modality.η M₁                     ≡⟨ (apply-ext ext″ λ _ →
+                                                                           subst-id-in-terms-of-≡⇒↝ equivalence) ⟩
 
-       ≡⇒→ (≃⇒≡ univ (◯≃◯ A)) ∘ Modality.η M₁                           ≡⟨ cong (λ eq → _≃_.to eq ∘ Modality.η M₁) $
-                                                                           _≃_.right-inverse-of (≡≃≃ univ) _ ⟩
+       ≡⇒→ (≃⇒≡ univ (◯≃◯ A)) ∘ Modality.η M₁                          ≡⟨ cong (λ eq → _≃_.to eq ∘ Modality.η M₁) $
+                                                                          _≃_.right-inverse-of (≡≃≃ univ) _ ⟩
 
-       _≃_.to (◯≃◯ A) ∘ Modality.η M₁                                   ≡⟨ η≡η A ⟩∎
+       _≃_.to (◯≃◯ A) ∘ Modality.η M₁                                  ≡⟨ η≡η A ⟩∎
 
-       Modality.η M₂                                                    ∎)
+       Modality.η M₂                                                   ∎)

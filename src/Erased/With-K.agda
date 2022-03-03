@@ -19,6 +19,7 @@ open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 import Erased.Basics as EB
 import Erased.Level-1 equality-with-J as E
+open import Extensionality equality-with-J
 open import H-level equality-with-J
 open import Injection equality-with-J using (Injective)
 
@@ -211,7 +212,7 @@ private
 
   Π-Erased-no-η↔Π0[] :
     {@0 A : Type a} {@0 P : Erased-no-η A → Type p} →
-    Extensionality′ (Erased-no-η A) P →
+    Function-extensionality′ (Erased-no-η A) P →
     ((x : Erased-no-η A) → P x) ↔ ((@0 x : A) → P [ x ])
   Π-Erased-no-η↔Π0[] {P = P} ext = record
     { surjection = record
@@ -235,7 +236,7 @@ private
 
   Π-Erased-no-η≃Π0[] :
     {@0 A : Type a} {@0 P : Erased-no-η A → Type p} →
-    Extensionality′ (Erased-no-η A) P →
+    Function-extensionality′ (Erased-no-η A) P →
     ((x : Erased-no-η A) → P x) ≃ ((@0 x : A) → P [ x ])
   Π-Erased-no-η≃Π0[] {A = A} {P = P} ext = record
     { to             = λ f x → f [ x ]
@@ -255,7 +256,7 @@ private
 
   Π-Erased-no-η↔Π0 :
     {@0 A : Type a} {@0 P : A → Type p} →
-    Extensionality′ (Erased-no-η A) (P ∘ erased-no-η) →
+    Function-extensionality′ (Erased-no-η A) (P ∘ erased-no-η) →
     ((x : Erased-no-η A) → P (erased-no-η x)) ↔ ((@0 x : A) → P x)
   Π-Erased-no-η↔Π0 = Π-Erased-no-η↔Π0[]
 
@@ -265,6 +266,6 @@ private
 
   Π-Erased-no-η≃Π0 :
     {@0 A : Type a} {@0 P : A → Type p} →
-    Extensionality′ (Erased-no-η A) (P ∘ erased-no-η) →
+    Function-extensionality′ (Erased-no-η A) (P ∘ erased-no-η) →
     ((x : Erased-no-η A) → P (erased-no-η x)) ≃ ((@0 x : A) → P x)
   Π-Erased-no-η≃Π0 = Π-Erased-no-η≃Π0[]

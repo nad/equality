@@ -19,6 +19,7 @@ open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq hiding (id; _∘_)
 import Equivalence.Half-adjoint eq as HA
 open import Excluded-middle eq
+open import Extensionality eq
 open import H-level eq
 open import H-level.Closure eq
 open import Injection eq as Injection using (Injective; _↣_)
@@ -48,7 +49,7 @@ Is-embedding-propositional :
 Is-embedding-propositional {b = b} ext =
   Π-closure (lower-extensionality b lzero ext) 1 λ _ →
   Π-closure (lower-extensionality b lzero ext) 1 λ _ →
-  Eq.propositional ext _
+  Is-equivalence-propositional ext
 
 -- Embeddings.
 

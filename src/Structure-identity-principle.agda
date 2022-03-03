@@ -16,6 +16,7 @@ open import Category eq
 open Derived-definitions-and-properties eq
 open import Equality.Decidable-UIP eq
 open import Equivalence eq hiding (id; _∘_; inverse; lift-equality)
+open import Extensionality eq
 open import Function-universe eq hiding (id) renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq

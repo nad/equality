@@ -17,6 +17,7 @@ open import Prelude
 open import Bag-equivalence eq hiding (module Dec)
 open import Bijection eq as Bijection using (_↔_)
 open import Equality.Decision-procedures eq
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
 open import H-level.Closure eq

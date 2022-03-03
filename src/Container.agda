@@ -17,6 +17,7 @@ open import Bag-equivalence eq using (Kind); open Kind
 open import Bijection eq as Bijection using (_↔_; module _↔_)
 open import Equivalence eq as Eq
   using (Is-equivalence; _≃_; ⟨_,_⟩; module _≃_)
+open import Extensionality eq
 open import Function-universe eq as Function-universe
   hiding (inverse; Kind) renaming (_∘_ to _⟨∘⟩_)
 open import H-level eq
@@ -439,7 +440,7 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
 
         irr : f-eq′ ≡ f-eq
         irr = proj₁ $ +⇒≡ $
-          Eq.propositional (lower-extensionality a a ext) f
+          Is-equivalence-propositional (lower-extensionality a a ext)
 
         f≡f : ⟨ f , f-eq′ ⟩ ≡ ⟨ f , f-eq ⟩
         f≡f = cong (⟨_,_⟩ f) irr

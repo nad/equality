@@ -12,6 +12,7 @@ module M
 open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 import Equivalence eq as Eq
+open import Extensionality eq
 open import Function-universe eq hiding (_∘_)
 open import Function-universe.Size eq
 open import H-level eq

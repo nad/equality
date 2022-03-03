@@ -21,6 +21,7 @@ open import Equality.Path.Isomorphisms eq as I hiding (ext)
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Path-split equality-with-J as PS using (_-Null_)
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level.Closure equality-with-J
 open import Localisation eq
@@ -90,7 +91,7 @@ private abstract
       ext⁻¹ (refl h) y                                       ∎)
                                                             _ ⟩
 
-    ext⁻¹ (⟨ext⟩ g≡h) y                                ≡⟨ cong-ext _ ⟩∎
+    ext⁻¹ (⟨ext⟩ g≡h) y                                ≡⟨ cong-ext I.ext ⟩∎
 
     g≡h y                                              ∎
 
@@ -161,7 +162,7 @@ Nullification≃Localisation {P = P} {B = B} =
 
     left-lemma :
       _≃_.left-inverse-of PO.Susp≃Susp y ≡ ext⁻¹ left-eq y
-    left-lemma = sym $ cong-ext (_≃_.left-inverse-of PO.Susp≃Susp)
+    left-lemma = sym $ cong-ext I.ext
 
     right-eq :
       _≃_.to PO.Susp≃Susp ∘ _≃_.from PO.Susp≃Susp ≡ id {A = Susp A}
@@ -170,7 +171,7 @@ Nullification≃Localisation {P = P} {B = B} =
     right-lemma :
       _≃_.right-inverse-of PO.Susp≃Susp y ≡
       ext⁻¹ (⟨ext⟩ (_≃_.right-inverse-of PO.Susp≃Susp)) y
-    right-lemma = sym $ cong-ext (_≃_.right-inverse-of PO.Susp≃Susp)
+    right-lemma = sym $ cong-ext I.ext
 
     to-from′ : Elim (λ x → to (from x) ≡ x)
     to-from′ .[]ʳ =
@@ -375,8 +376,8 @@ Nullification≃Localisation {P = P} {B = B} =
                                                                                          trans (cong (cong _) $
                                                                                                 trans (cong ⟨ext⟩ $ ⟨ext⟩ λ _ →
                                                                                                        trans (cong (cong _) $ ext⁻¹-refl _) $
-                                                                                                       cong-refl _)
-                                                                                                ext-refl) $
+                                                                                                       cong-refl _) $
+                                                                                                ext-refl I.ext) $
                                                                                          cong-refl _) $
                                                                                   trans-reflˡ _) ⟩
         trans
@@ -591,8 +592,8 @@ Nullification≃Localisation {P = P} {B = B} =
                                                                                          trans (cong (cong _) $
                                                                                                 trans (cong ⟨ext⟩ $ ⟨ext⟩ λ _ →
                                                                                                        trans (cong (cong _) $ ext⁻¹-refl _) $
-                                                                                                       cong-refl _)
-                                                                                                ext-refl) $
+                                                                                                       cong-refl _) $
+                                                                                                ext-refl I.ext) $
                                                                                          cong-refl _) $
                                                                                   trans-reflˡ _) ⟩
         trans
@@ -827,7 +828,7 @@ private
 
       right-lemma :
         _≃_.right-inverse-of (Susp.cong-≃ ↑≃) y ≡ ext⁻¹ right-eq y
-      right-lemma = sym $ cong-ext (_≃_.right-inverse-of (Susp.cong-≃ ↑≃))
+      right-lemma = sym $ cong-ext I.ext
 
       to-from-ext :
         ∀ b x f →
@@ -1087,7 +1088,7 @@ private
 
       left-lemma :
         _≃_.left-inverse-of (Susp.cong-≃ ↑≃) y ≡ ext⁻¹ left-eq y
-      left-lemma = sym $ cong-ext (_≃_.left-inverse-of (Susp.cong-≃ ↑≃))
+      left-lemma = sym $ cong-ext I.ext
 
       from-to-ext :
         ∀ b x f →

@@ -21,6 +21,7 @@ import Equivalence.Contractible-preimages eq as CP
 open import Erased.Level-1 eq as Erased
   hiding (module []-cong; module []-cong₁;
           module []-cong₂; module []-cong₂-⊔)
+open import Extensionality eq
 open import Function-universe eq hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -116,7 +117,7 @@ Is-equivalenceᴱ-propositional ext f =
   H-level.respects-surjection
     (_≃_.surjection $ Is-equivalence≃Is-equivalenceᴱ′ ext)
     1
-    (CP.propositional ext f)
+    (Is-equivalence-CP-propositional ext)
 
 ------------------------------------------------------------------------
 -- More conversion lemmas
@@ -132,7 +133,7 @@ Is-equivalence≃Is-equivalenceᴱ {k = equivalence} ext =
     (Eq.with-other-inverse
        (Is-equivalence≃Is-equivalenceᴱ′ ext)
        Is-equivalenceᴱ→Is-equivalence
-       (λ _ → CP.propositional ext _ _ _))
+       (λ _ → Is-equivalence-CP-propositional ext _ _))
     Is-equivalence→Is-equivalenceᴱ
     (λ _ → Is-equivalenceᴱ-propositional ext _ _ _)
 Is-equivalence≃Is-equivalenceᴱ = Is-equivalence≃Is-equivalenceᴱ′

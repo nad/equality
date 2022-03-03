@@ -18,6 +18,7 @@ open import Bag-equivalence eq
   using () renaming (_≈-bag_ to _≈-bagL_; _∈_ to _∈L_; Any to AnyL)
 open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
 open import Container eq
+open import Extensionality eq
 open import Fin eq
 open import Function-universe eq
 open import H-level.Closure eq

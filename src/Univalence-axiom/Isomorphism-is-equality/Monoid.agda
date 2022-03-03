@@ -16,6 +16,7 @@ module Univalence-axiom.Isomorphism-is-equality.Monoid
 open import Bijection eq using (_↔_; Σ-≡,≡↔≡; ↑↔)
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq using (_≃_)
+open import Extensionality eq
 open import Function-universe eq hiding (id)
 open import H-level eq
 open import H-level.Closure eq

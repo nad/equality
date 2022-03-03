@@ -16,6 +16,7 @@ open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq
   using (_≃_; ⟨_,_⟩; module _≃_; Is-equivalence)
+open import Extensionality eq
 open import Function-universe eq as F hiding (id) renaming (_∘_ to _⊚_)
 open import H-level eq
 open import H-level.Closure eq
@@ -1268,7 +1269,7 @@ record Category (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) where
   ignore-propositional-component
     (implicit-Π-closure (lower-extensionality ℓ₂ lzero ext) 1 λ _ →
      implicit-Π-closure (lower-extensionality ℓ₂ lzero ext) 1 λ _ →
-     Eq.propositional ext _)
+     Is-equivalence-propositional ext)
 
 -- Equality of categories is isomorphic to equality of the underlying
 -- precategories (assuming extensionality).

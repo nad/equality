@@ -19,6 +19,7 @@ module Nat.Eliminator
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
 import Equivalence eq as Eq
+open import Extensionality eq
 open import Function-universe eq hiding (_∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -60,11 +61,8 @@ Natrec-propositional {ℓ} ext₊ =
   ext₌ : Extensionality ℓ ℓ
   ext₌ = lower-extensionality _ lzero ext₊
 
-  ext₀ : Extensionality lzero ℓ
-  ext₀ = lower-extensionality _ lzero ext₊
-
   ext : Extensionality lzero ℓ
-  ext = Eq.good-ext ext₀
+  ext = lower-extensionality _ lzero ext₊
 
   lemma :
     (natrec₀ : Natrec ℓ)
@@ -114,7 +112,7 @@ Natrec-propositional {ℓ} ext₊ =
                                   (sym $ ns₀ P z s n)))) in
 
           _↔_.to ≡×≡↔≡
-            ( (trans (cong (_$ zero) (apply-ext ext f)) (nz₀ P z s)  ≡⟨ cong (flip trans (nz₀ P z s)) $ Eq.cong-good-ext ext₀ f ⟩
+            ( (trans (cong (_$ zero) (apply-ext ext f)) (nz₀ P z s)  ≡⟨ cong (flip trans (nz₀ P z s)) $ cong-ext ext ⟩
                trans (f zero) (nz₀ P z s)                            ≡⟨ cong (flip trans (nz₀ P z s) ∘ lower) $ nz₀ _ _ _ ⟩
                trans (trans nz (sym $ nz₀ P z s)) (nz₀ P z s)        ≡⟨ trans-[trans-sym]- _ (nz₀ P z s) ⟩∎
                nz                                                    ∎)
@@ -124,7 +122,7 @@ Natrec-propositional {ℓ} ext₊ =
                   (cong (_$ suc n) (apply-ext ext f))
                   (trans (ns₀ P z s n)
                      (sym $ cong (s n) $ cong (_$ n) (apply-ext ext f)))     ≡⟨ cong₂ (λ p q → trans p (trans (ns₀ P z s n) (sym $ cong (s n) q)))
-                                                                                  (Eq.cong-good-ext ext₀ f) (Eq.cong-good-ext ext₀ f) ⟩
+                                                                                  (cong-ext ext) (cong-ext ext) ⟩
                 trans
                   (f (suc n))
                   (trans (ns₀ P z s n) (sym $ cong (s n) (f n)))             ≡⟨ cong (flip trans (trans _ (sym $ cong (s n) (f n))) ∘ lower) $
