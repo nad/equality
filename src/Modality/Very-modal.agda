@@ -27,6 +27,7 @@ private
             ◯Π◯≃◯Π; ◯Π◯≃◯Π-η; ◯Π◯≃◯Π⁻¹-η; ◯≡≃η≡η)
 
 open import Logical-equivalence using (_⇔_)
+import Modality.Box-cong
 open import Prelude
 
 open import Accessibility eq using (_<W_)
@@ -47,7 +48,6 @@ open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
-import Modality.Box-cong
 open import Preimage eq using (_⁻¹_)
 open import Surjection eq using (_↠_; Split-surjective)
 
