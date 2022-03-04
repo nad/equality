@@ -2391,75 +2391,122 @@ module Modality (M : Modality a) where
             ◯-map (Σ-map id η) (η (x , y))           ≡⟨ ◯-map-η ⟩∎
             η (x , η y)                              ∎))
 
-  -- If ◯ (∀ x → Modal (P x)) holds, then ◯ ((x : A) → ◯ (P x)) is
-  -- equivalent to ◯ ((x : A) → P x) (assuming function
-  -- extensionality).
-  --
-  -- I did not take this lemma from "Modalities in Homotopy Type
-  -- Theory" or the corresponding Coq code.
+  -- I did not take the remaining definitions in this section from
+  -- "Modalities in Homotopy Type Theory" or the corresponding Coq
+  -- code.
 
-  ◯Π◯≃◯Π :
-    {A : Type a} {P : A → Type a} →
-    ◯ (∀ x → Modal (P x)) →
-    ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ ((x : A) → P x)
-  ◯Π◯≃◯Π {A = A} {P = P} m =
-    flatten-↝
-      (λ F → (x : A) → F (P x))
-      (λ f g x → f (g x))
-      (λ f → ◯-map (λ m x → Modal→Stable (m x) (f x)) m)
-      (λ ext →
-           (λ f →
-              ◯-elim
-                {P = λ m →
-                       ◯-map (λ m x → Modal→Stable (m x) (η (f x))) m
-                         ≡
-                       η f}
-                (λ _ → Separated-◯ _ _)
-                (λ m →
-                   ◯-map (λ m x → Modal→Stable (m x) (η (f x))) (η m)  ≡⟨ ◯-map-η ⟩
-                   η (λ x → Modal→Stable (m x) (η (f x)))              ≡⟨ (cong η $ apply-ext ext λ _ →
-                                                                           Modal→Stable-η) ⟩∎
-                   η f                                                 ∎)
-                _)
-         , (λ f →
-              ◯-map (λ g x → η (g x))
-                (◯-map (λ m x → Modal→Stable (m x) (f x)) m)           ≡⟨ sym ◯-map-∘ ⟩
+  mutual
 
-              ◯-map (λ m x → η (Modal→Stable (m x) (f x))) m           ≡⟨ ◯-elim
-                                                                            {P = λ m →
-                                                                                   ◯-map (λ m x → η (Modal→Stable (m x) (f x))) m ≡
-                                                                                   η f}
-                                                                            (λ _ → Separated-◯ _ _)
-                                                                            (λ m →
-                ◯-map (λ m x → η (Modal→Stable (m x) (f x))) (η m)             ≡⟨ ◯-map-η ⟩
+    -- If ◯ (∀ x → Modal (P x)) holds, then ◯ ((x : A) → ◯ (P x)) is
+    -- equivalent to ◯ ((x : A) → P x) (assuming function
+    -- extensionality).
 
-                η (λ x → η (Modal→Stable (m x) (f x)))                         ≡⟨ (cong η $ apply-ext ext λ x →
+    ◯Π◯≃◯Π :
+      {A : Type a} {P : A → Type a} →
+      ◯ (∀ x → Modal (P x)) →
+      ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ ((x : A) → P x)
+    ◯Π◯≃◯Π m = ◯Π◯≃◯Π′ (◯-map (Modal→Stable ∘_) m) (λ _ → m , refl _)
+
+    -- A variant of ◯Π◯≃◯Π.
+
+    ◯Π◯≃◯Π′ :
+      {A : Type a} {P : A → Type a}
+      (s : ◯ (∀ x → Stable (P x))) →
+      (Extensionality a a →
+       ∃ λ (m : ◯ (∀ x → Modal (P x))) →
+         ◯-map (Modal→Stable ∘_) m ≡ s) →
+      ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ ((x : A) → P x)
+    ◯Π◯≃◯Π′ {A = A} {P = P} s m =
+      flatten-↝
+        (λ F → (x : A) → F (P x))
+        (λ f g x → f (g x))
+        (λ f → ◯-map (λ s x → s x (f x)) s)
+        (λ ext →
+             (λ f →
+                ◯-elim₂
+                  {P = λ s (m : ◯ (∀ x → Modal (P x))) →
+                         ◯-map (Modal→Stable ∘_) m ≡ s →
+                         ◯-map (λ s x → s x (η (f x))) s ≡ η f}
+                  (λ _ _ →
+                     Modal-Π ext λ _ →
+                     Separated-◯ _ _)
+                  (λ s m eq →
+                     ◯-map (λ s x → s x (η (f x))) (η s)     ≡⟨ cong (◯-map _) $ sym
+                                                                eq ⟩
+                     ◯-map (λ s x → s x (η (f x)))
+                       (◯-map (Modal→Stable ∘_) (η m))       ≡⟨ trans (cong (◯-map _) ◯-map-η) $
+                                                                ◯-map-η ⟩
+
+                     η (λ x → Modal→Stable (m x) (η (f x)))  ≡⟨ (cong η $ apply-ext ext λ _ →
+                                                                 Modal→Stable-η) ⟩∎
+                     η f                                     ∎)
+                  _ (m ext .proj₁) (m ext .proj₂))
+           , (λ f →
+                ◯-map (λ g x → η (g x)) (◯-map (λ s x → s x (f x)) s)  ≡⟨ sym ◯-map-∘ ⟩
+
+                ◯-map (λ s x → η (s x (f x))) s                        ≡⟨ ◯-elim₂
+                                                                            {P = λ s (m : ◯ (∀ x → Modal (P x))) →
+                                                                                   ◯-map (Modal→Stable ∘_) m ≡ s →
+                                                                                   ◯-map (λ s x → η (s x (f x))) s ≡ η f}
+                                                                            (λ _ _ →
+                                                                               Modal-Π ext λ _ →
+                                                                               Separated-◯ _ _)
+                                                                            (λ s m eq →
+                  ◯-map (λ s x → η (s x (f x))) (η s)                          ≡⟨ cong (◯-map _) $ sym
+                                                                                  eq ⟩
+                  ◯-map (λ s x → η (s x (f x)))
+                    (◯-map (Modal→Stable ∘_) (η m))                            ≡⟨ trans (cong (◯-map _) ◯-map-η) $
+                                                                                  ◯-map-η ⟩
+
+                  η (λ x → η (Modal→Stable (m x) (f x)))                       ≡⟨ (cong η $ apply-ext ext λ x →
                                                                                    _≃_.right-inverse-of (Modal→≃◯ (m x)) _) ⟩∎
-                η f                                                            ∎)
-                                                                            _ ⟩∎
-              η f                                                      ∎))
+                  η f                                                          ∎)
+                                                                            _ (m ext .proj₁) (m ext .proj₂) ⟩∎
+                η f                                                    ∎))
+
+  -- Two "computation rules" for ◯Π◯≃◯Π′.
+
+  ◯Π◯≃◯Π′-η :
+    (m : Extensionality a a →
+         ∃ λ (m : ◯ (∀ x → Modal (P x))) →
+           ◯-map (Modal→Stable ∘_) m ≡ η s) →
+    ◯Π◯≃◯Π′ (η s) m _ (η f) ≡ η (λ x → s x (f x))
+  ◯Π◯≃◯Π′-η {s = s} {f = f} m =
+    ◯Π◯≃◯Π′ (η s) m _ (η f)                                      ≡⟨⟩
+    ◯-rec Modal-◯ (λ f → ◯-map (λ s x → s x (f x)) (η s)) (η f)  ≡⟨ ◯-rec-η ⟩
+    ◯-map (λ s x → s x (f x)) (η s)                              ≡⟨ ◯-map-η ⟩∎
+    η (λ x → s x (f x))                                          ∎
+
+  ◯Π◯≃◯Π′⁻¹-η :
+    (m : Extensionality a a →
+         ∃ λ (m : ◯ (∀ x → Modal (P x))) →
+           ◯-map (Modal→Stable ∘_) m ≡ s) →
+    _⇔_.from (◯Π◯≃◯Π′ s m _) (η f) ≡ η (η ∘ f)
+  ◯Π◯≃◯Π′⁻¹-η {s = s} {f = f} m =
+    _⇔_.from (◯Π◯≃◯Π′ s m _) (η f)  ≡⟨⟩
+    ◯-map (λ g x → η (g x)) (η f)   ≡⟨ ◯-map-η ⟩∎
+    η (η ∘ f)                       ∎
 
   -- Two "computation rules" for ◯Π◯≃◯Π.
 
   ◯Π◯≃◯Π-η :
     ◯Π◯≃◯Π (η m) _ (η f) ≡ η (λ x → Modal→Stable (m x) (f x))
   ◯Π◯≃◯Π-η {m = m} {f = f} =
-    ◯Π◯≃◯Π (η m) _ (η f)                                      ≡⟨⟩
+    ◯Π◯≃◯Π (η m) _ (η f)                                                  ≡⟨⟩
+    ◯Π◯≃◯Π′ (◯-map (Modal→Stable ∘_) (η m)) (λ _ → η m , refl _) _ (η f)  ≡⟨ elim¹
+                                                                               (λ {x} eq →
+                                                                                  ◯Π◯≃◯Π′ (◯-map (Modal→Stable ∘_) (η m))
+                                                                                    (λ _ → η m , refl _) _ (η f) ≡
+                                                                                  ◯Π◯≃◯Π′ x (λ _ → η m , eq) _ (η f))
+                                                                               (refl _)
+                                                                               ◯-map-η ⟩
+    ◯Π◯≃◯Π′ (η (Modal→Stable ∘ m)) (λ _ → η m , ◯-map-η) _ (η f)          ≡⟨ ◯Π◯≃◯Π′-η (λ _ → η m , ◯-map-η) ⟩∎
+    η (λ x → Modal→Stable (m x) (f x))                                    ∎
 
-    ◯-rec
-      Modal-◯
-      (λ f → ◯-map (λ m x → Modal→Stable (m x) (f x)) (η m))
-      (η f)                                                   ≡⟨ ◯-rec-η ⟩
-
-    ◯-map (λ m x → Modal→Stable (m x) (f x)) (η m)            ≡⟨ ◯-map-η ⟩∎
-
-    η (λ x → Modal→Stable (m x) (f x))                        ∎
-
-  ◯Π◯≃◯Π⁻¹-η : _⇔_.from (◯Π◯≃◯Π m _) (η f) ≡ η (η ∘ f)
-  ◯Π◯≃◯Π⁻¹-η {m = m} {f = f} =
-    _⇔_.from (◯Π◯≃◯Π m _) (η f)    ≡⟨⟩
-    ◯-map (λ g x → η (g x)) (η f)  ≡⟨ ◯-map-η ⟩∎
-    η (η ∘ f)                      ∎
+  ◯Π◯≃◯Π⁻¹-η :
+    (m : ◯ (∀ x → Modal (P x))) →
+    _⇔_.from (◯Π◯≃◯Π m _) (η f) ≡ η (η ∘ f)
+  ◯Π◯≃◯Π⁻¹-η m = ◯Π◯≃◯Π′⁻¹-η (λ _ → m , refl _)
 
   ----------------------------------------------------------------------
   -- Some results related to connectedness
