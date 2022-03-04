@@ -801,14 +801,15 @@ to-implication-with-other-function :
   ∀ k {a b} {A : Type a} {B : Type b} {A↝B : A ↝[ k ] B} {f : A → B}
     {≡f : ∀ x → to-implication A↝B x ≡ f x} {x} →
   to-implication (with-other-function A↝B f ≡f) x ≡ f x
-to-implication-with-other-function implication         = refl _
-to-implication-with-other-function logical-equivalence = refl _
-to-implication-with-other-function injection           = refl _
-to-implication-with-other-function embedding           = refl _
-to-implication-with-other-function surjection          = refl _
-to-implication-with-other-function bijection           = refl _
-to-implication-with-other-function equivalence         = refl _
-to-implication-with-other-function equivalenceᴱ        = refl _
+to-implication-with-other-function = λ where
+  implication         → refl _
+  logical-equivalence → refl _
+  injection           → refl _
+  embedding           → refl _
+  surjection          → refl _
+  bijection           → refl _
+  equivalence         → refl _
+  equivalenceᴱ        → refl _
 
 -- The function with-other-function does not change the "from"
 -- function (if any).
@@ -818,10 +819,69 @@ to-implication-inverse-with-other-function :
     {f : A → B} {≡f : ∀ x → to-implication A↝B x ≡ f x} {x} →
   to-implication (inverse (with-other-function A↝B f ≡f)) x ≡
   to-implication (inverse A↝B) x
-to-implication-inverse-with-other-function logical-equivalence = refl _
-to-implication-inverse-with-other-function bijection           = refl _
-to-implication-inverse-with-other-function equivalence         = refl _
-to-implication-inverse-with-other-function equivalenceᴱ        = refl _
+to-implication-inverse-with-other-function = λ where
+  logical-equivalence → refl _
+  bijection           → refl _
+  equivalence         → refl _
+  equivalenceᴱ        → refl _
+
+-- A variant of with-other-function.
+
+with-other-function-ext? :
+  ∀ {k a b c d} {A : Type a} {B : Type b}
+  (A↝B : A ↝[ k ] B) (f : A → B) →
+  (Extensionality c d → ∀ x → to-implication A↝B x ≡ f x) →
+  Extensionality? k c d → A ↝[ k ] B
+with-other-function-ext? {k = implication} _ f _ _ =
+  f
+with-other-function-ext? {k = logical-equivalence} A⇔B f _ _ =
+  record A⇔B { to = f }
+with-other-function-ext? {k = injection} A↣B f ≡f ext =
+  with-other-function A↣B f (≡f ext)
+with-other-function-ext? {k = embedding} A↣B f ≡f ext =
+  with-other-function A↣B f (≡f ext)
+with-other-function-ext? {k = surjection} A↠B f ≡f ext =
+  with-other-function A↠B f (≡f ext)
+with-other-function-ext? {k = bijection} A↔B f ≡f ext =
+  with-other-function A↔B f (≡f ext)
+with-other-function-ext? {k = equivalence} A≃B f ≡f ext =
+  with-other-function A≃B f (≡f ext)
+with-other-function-ext? {k = equivalenceᴱ} A≃ᴱB f ≡f ext =
+  EEq.with-other-function A≃ᴱB f (≡f (ext .E.erased))
+
+-- The function with-other-function-ext? changes the "to" function in
+-- the correct way.
+
+to-implication-with-other-function-ext? :
+  ∀ k {a b c d} {A : Type a} {B : Type b} {A↝B : A ↝[ k ] B} {f : A → B}
+    {≡f : Extensionality c d → ∀ x → to-implication A↝B x ≡ f x}
+    {x ext} →
+  to-implication (with-other-function-ext? A↝B f ≡f ext) x ≡ f x
+to-implication-with-other-function-ext? = λ where
+  implication         → refl _
+  logical-equivalence → refl _
+  injection           → refl _
+  embedding           → refl _
+  surjection          → refl _
+  bijection           → refl _
+  equivalence         → refl _
+  equivalenceᴱ        → refl _
+
+-- The function with-other-function-ext? does not change the "from"
+-- function (if any).
+
+to-implication-inverse-with-other-function-ext? :
+  ∀ k {a b c d} {A : Type a} {B : Type b} {A↝B : A ↝[ ⌊ k ⌋-sym ] B}
+    {f : A → B}
+    {≡f : Extensionality c d → ∀ x → to-implication A↝B x ≡ f x}
+    {x ext} →
+  to-implication (inverse (with-other-function-ext? A↝B f ≡f ext)) x ≡
+  to-implication (inverse A↝B) x
+to-implication-inverse-with-other-function-ext? = λ where
+  logical-equivalence → refl _
+  bijection           → refl _
+  equivalence         → refl _
+  equivalenceᴱ        → refl _
 
 -- One can replace the "from" function with an extensionally equal
 -- function.
@@ -850,10 +910,11 @@ to-implication-with-other-inverse :
     {f : B → A} {≡f : ∀ x → to-implication (inverse A↝B) x ≡ f x} {x} →
   to-implication (with-other-inverse A↝B f ≡f) x ≡
   to-implication A↝B x
-to-implication-with-other-inverse logical-equivalence = refl _
-to-implication-with-other-inverse bijection           = refl _
-to-implication-with-other-inverse equivalence         = refl _
-to-implication-with-other-inverse equivalenceᴱ        = refl _
+to-implication-with-other-inverse = λ where
+  logical-equivalence → refl _
+  bijection           → refl _
+  equivalence         → refl _
+  equivalenceᴱ        → refl _
 
 -- The function with-other-inverse changes the "from" function in the
 -- advertised way.
@@ -862,10 +923,61 @@ to-implication-inverse-with-other-inverse :
   ∀ k {a b} {A : Type a} {B : Type b} {A↝B : A ↝[ ⌊ k ⌋-sym ] B}
     {f : B → A} {≡f : ∀ x → to-implication (inverse A↝B) x ≡ f x} {x} →
   to-implication (inverse (with-other-inverse A↝B f ≡f)) x ≡ f x
-to-implication-inverse-with-other-inverse logical-equivalence = refl _
-to-implication-inverse-with-other-inverse bijection           = refl _
-to-implication-inverse-with-other-inverse equivalence         = refl _
-to-implication-inverse-with-other-inverse equivalenceᴱ        = refl _
+to-implication-inverse-with-other-inverse = λ where
+  logical-equivalence → refl _
+  bijection           → refl _
+  equivalence         → refl _
+  equivalenceᴱ        → refl _
+
+-- A variant of with-other-inverse.
+
+with-other-inverse-ext? :
+  ∀ {k a b c d} {A : Type a} {B : Type b}
+  (A↝B : A ↝[ ⌊ k ⌋-sym ] B) (f : B → A) →
+  (Extensionality c d → ∀ x → to-implication (inverse A↝B) x ≡ f x) →
+  Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B
+with-other-inverse-ext? {k = logical-equivalence} A⇔B f _ _ =
+  record A⇔B { from = f }
+with-other-inverse-ext? {k = bijection} A↔B f ≡f ext =
+  with-other-inverse A↔B f (≡f ext)
+with-other-inverse-ext? {k = equivalence} A≃B f ≡f ext =
+  with-other-inverse A≃B f (≡f ext)
+with-other-inverse-ext? {k = equivalenceᴱ} A≃ᴱB f ≡f ext =
+  EEq.with-other-inverse A≃ᴱB f (≡f (ext .E.erased))
+
+-- The function with-other-inverse-ext? does not change the "to"
+-- function.
+
+to-implication-with-other-inverse-ext? :
+  ∀ k {a b c d} {A : Type a} {B : Type b} {A↝B : A ↝[ ⌊ k ⌋-sym ] B}
+    {f : B → A}
+    {≡f : Extensionality c d →
+          ∀ x → to-implication (inverse A↝B) x ≡ f x}
+    {x ext} →
+  to-implication (with-other-inverse-ext? A↝B f ≡f ext) x ≡
+  to-implication A↝B x
+to-implication-with-other-inverse-ext? = λ where
+  logical-equivalence → refl _
+  bijection           → refl _
+  equivalence         → refl _
+  equivalenceᴱ        → refl _
+
+-- The function with-other-inverse-ext? changes the "from" function in
+-- the correct way.
+
+to-implication-inverse-with-other-inverse-ext? :
+  ∀ k {a b c d} {A : Type a} {B : Type b} {A↝B : A ↝[ ⌊ k ⌋-sym ] B}
+    {f : B → A}
+    {≡f : Extensionality c d →
+          ∀ x → to-implication (inverse A↝B) x ≡ f x}
+    {x ext} →
+  to-implication (inverse (with-other-inverse-ext? A↝B f ≡f ext)) x ≡
+  f x
+to-implication-inverse-with-other-inverse-ext? = λ where
+  logical-equivalence → refl _
+  bijection           → refl _
+  equivalence         → refl _
+  equivalenceᴱ        → refl _
 
 ------------------------------------------------------------------------
 -- _⊎_ is a commutative monoid
