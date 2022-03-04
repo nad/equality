@@ -544,13 +544,13 @@ Modal→Stable-Is-equivalence {k = k} {f = f} ext m s =
     Stable-Π ext λ _ →
     Modal→Stable (Modal→Separated m′ _ _)
 
--- If A is modal, then H-level′ n A is k-stable (perhaps assuming
--- function extensionality).
+-- If A is "modal n levels up", then H-level′ n A is k-stable (perhaps
+-- assuming function extensionality).
 
 Stable-H-level′ :
   Extensionality? k a a →
   ∀ n →
-  Modal A →
+  For-iterated-equality n Modal A →
   Stable-[ k ] (H-level′ n A)
 Stable-H-level′ {k = k} {A = A} ext zero =
   Modal A                        →⟨ (λ m →
@@ -559,20 +559,20 @@ Stable-H-level′ {k = k} {A = A} ext zero =
                                        Modal→Stable $ Modal→Separated m _ _) ⟩□
   Stable-[ k ] (Contractible A)  □
 Stable-H-level′ {k = k} {A = A} ext (suc n) =
-  Modal A                                        →⟨ (λ m →
+  For-iterated-equality (suc n) Modal A          →⟨ (λ m →
                                                        Stable-Π ext λ _ →
                                                        Stable-Π ext λ _ →
                                                        Stable-H-level′ ext n $
-                                                       Modal→Separated m _ _) ⟩□
+                                                       m _ _) ⟩□
   Stable-[ k ] ((x y : A) → H-level′ n (x ≡ y))  □
 
--- If A is modal, then H-level n A is k-stable (perhaps assuming
--- function extensionality).
+-- If A is "modal n levels up", then H-level n A is k-stable (perhaps
+-- assuming function extensionality).
 
 Stable-H-level :
   Extensionality? k a a →
   ∀ n →
-  Modal A →
+  For-iterated-equality n Modal A →
   Stable-[ k ] (H-level n A)
 Stable-H-level {A = A} ext n m =
   ◯ (H-level n A)   ↝⟨ ◯-cong-↝ ext H-level↔H-level′ ⟩
@@ -1029,7 +1029,7 @@ H-level′-◯≃◯-H-level′ {A = A} (suc n) ext =
                                                                 inverse-ext?
                                                                   (λ ext →
                                                                      Stable-H-level′ ext n $
-                                                                     Separated-◯ _ _)
+                                                                     Modal→Modalⁿ n (Separated-◯ _ _))
                                                                   ext) ⟩
     ((x y : ◯ A) → ◯ (H-level′ n (x ≡ y)))                  ↝⟨ (∀-cong ext λ _ → Π◯≃◯Π ext) ⟩
     ((x : ◯ A) → ◯ ((y : ◯ A) → H-level′ n (x ≡ y)))        ↝⟨ Π◯≃◯Π ext ⟩□
