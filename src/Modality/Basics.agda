@@ -3240,46 +3240,45 @@ module Modality (M : Modality a) where
     Connected-Σ cA λ _ → lex cB
 
   -- If ◯ is left exact and A has a given h-level, then ◯ A has the
-  -- same h-level (assuming function extensionality).
-  --
-  -- TODO: Can this be proved without the use of function
-  -- extensionality? The Coq code accompanying "Modalities in Homotopy
-  -- Type Theory" contains the following comment in connection with
-  -- the corresponding lemma:
-  --
-  --   "With a little more work, this can probably be proven without
-  --   [Funext]."
+  -- same h-level.
 
   Left-exact→H-level′→H-level′-◯ :
-    Extensionality a a →
     Left-exact-η-cong → ∀ n → H-level′ n A → H-level′ n (◯ A)
-  Left-exact→H-level′→H-level′-◯ {A = A} _ _ zero =
+  Left-exact→H-level′→H-level′-◯ {A = A} _ zero =
     Contractible A      →⟨ Contractible→Connected ⟩□
     Contractible (◯ A)  □
-  Left-exact→H-level′→H-level′-◯ {A = A} ext lex (suc n) =
-    ((x y : A) → H-level′ n (x ≡ y))      →⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → Left-exact→H-level′→H-level′-◯ ext lex n) ⟩
+  Left-exact→H-level′→H-level′-◯ {A = A} lex (suc n) =
+    ((x y : A) → H-level′ n (x ≡ y))      →⟨ (∀-cong _ λ _ → ∀-cong _ λ _ →
+                                              Left-exact→H-level′→H-level′-◯ lex n) ⟩
     ((x y : A) → H-level′ n (◯ (x ≡ y)))  →⟨ (λ h →
-                                                ◯-elim (λ _ → Modal-Π ext λ _ →
-                                                              Modal-H-level′ ext n $
-                                                              Modal→Modalⁿ n $
-                                                              Separated-◯ _ _) λ x →
-                                                ◯-elim (λ _ → Modal-H-level′ ext n $
-                                                              Modal→Modalⁿ n $
-                                                              Separated-◯ _ _) λ y →
+                                                ◯-elim′ (λ _ → Stable-Π λ _ →
+                                                               Stable-H-level′ n $
+                                                               Modal→Modalⁿ n $
+                                                               Separated-◯ _ _) λ x →
+                                                ◯-elim′ (λ _ → Stable-H-level′ n $
+                                                               Modal→Modalⁿ n $
+                                                               Separated-◯ _ _) λ y →
                                                 H-level′-cong _ n (◯≡≃η≡η lex) (h x y)) ⟩□
     ((x y : ◯ A) → H-level′ n (x ≡ y))    □
 
   -- If ◯ is left exact and A has a given h-level, then ◯ A has the
-  -- same h-level (assuming function extensionality).
+  -- same h-level.
   --
-  -- See also Modality.Very-modal.H-level→H-level-◯.
+  -- At least one version of the Coq code accompanying "Modalities in
+  -- Homotopy Type Theory" contains the following comment in
+  -- connection with the corresponding lemma:
+  --
+  --   "With a little more work, this can probably be proven without
+  --   [Funext]."
+  --
+  -- Note that this lemma does not make use of function
+  -- extensionality.
 
   Left-exact-η-cong→H-level→H-level-◯ :
-    Extensionality a a →
     Left-exact-η-cong → ∀ n → H-level n A → H-level n (◯ A)
-  Left-exact-η-cong→H-level→H-level-◯ {A = A} ext lex n =
+  Left-exact-η-cong→H-level→H-level-◯ {A = A} lex n =
     H-level n A       ↝⟨ H-level↔H-level′ _ ⟩
-    H-level′ n A      ↝⟨ Left-exact→H-level′→H-level′-◯ ext lex n ⟩
+    H-level′ n A      ↝⟨ Left-exact→H-level′→H-level′-◯ lex n ⟩
     H-level′ n (◯ A)  ↝⟨ _⇔_.from (H-level↔H-level′ _) ⟩□
     H-level n (◯ A)   □
 

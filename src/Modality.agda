@@ -34,7 +34,7 @@ Very-modal-propositional ext M =
   [inhabited⇒+]⇒+ {A = Very-modal M} 0 λ very-modal →
   let open VM M very-modal in
   implicit-Π-closure ext 1 λ _ →
-  H-level→H-level-◯ 1 $
+  Left-exact-η-cong→H-level→H-level-◯ left-exact-η-cong 1 $
   Modal-propositional ext′
   where
   open Modality M

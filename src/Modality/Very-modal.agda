@@ -233,7 +233,7 @@ Modal≃Modal-Null {A = A} ext =
          refl
        , (λ m →
             very-modal  ≡⟨ Left-exact-η-cong→H-level→H-level-◯
-                             ext left-exact-η-cong 1
+                             left-exact-η-cong 1
                              (Modal-propositional ext)
                              _ _ ⟩∎
             m           ∎))
@@ -1065,17 +1065,6 @@ H-level-◯≃◯-H-level {A = A} n ext =
   H-level′ n (◯ A)  ↝⟨ H-level′-◯≃◯-H-level′ n ext ⟩
   ◯ (H-level′ n A)  ↝⟨ ◯-cong-↝ ext $ inverse-ext? H-level↔H-level′ ⟩□
   ◯ (H-level n A)   □
-
--- A variant of Left-exact-η-cong→H-level→H-level-◯ proved using the
--- assumption that the modality is very modal, instead of function
--- extensionality and left exactness.
-
-H-level→H-level-◯ :
-  ∀ n → H-level n A → H-level n (◯ A)
-H-level→H-level-◯ {A = A} n =
-  H-level n A      →⟨ η ⟩
-  ◯ (H-level n A)  →⟨ _⇔_.from (H-level-◯≃◯-H-level n _) ⟩□
-  H-level n (◯ A)  □
 
 ------------------------------------------------------------------------
 -- The modality is left exact
