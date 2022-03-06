@@ -22,6 +22,7 @@ private
   open module M = Modality M
     hiding (◯Ση≃Σ◯◯;
             Stable-Π; Stable-implicit-Π;
+            Stable-H-level′; Stable-H-level;
             Stable-Erased; Stable-Contractibleᴱ; Stable-⁻¹ᴱ;
             Modal→Stable-Is-equivalence; Stable-W;
             ◯Π◯≃◯Π; ◯Π◯≃◯Π-η; ◯Π◯≃◯Π⁻¹-η; ◯≡≃η≡η)

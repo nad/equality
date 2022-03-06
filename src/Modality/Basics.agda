@@ -1692,6 +1692,38 @@ module Modality (M : Modality a) where
     Stable-Σ m λ _ →
     Stable-Erased (s _ _)
 
+  -- If A is "modal n levels up", then H-level′ n A is stable.
+
+  Stable-H-level′ :
+    ∀ n →
+    For-iterated-equality n Modal A →
+    Stable (H-level′ n A)
+  Stable-H-level′ {A = A} zero =
+    Modal A                  →⟨ (λ m →
+                                   Stable-Σ m λ _ →
+                                   Stable-Π λ _ →
+                                   Modal→Stable $ Modal→Separated m _ _) ⟩□
+    Stable (Contractible A)  □
+  Stable-H-level′ {A = A} (suc n) =
+    For-iterated-equality (suc n) Modal A    →⟨ (λ m →
+                                                   Stable-Π λ _ →
+                                                   Stable-Π λ _ →
+                                                   Stable-H-level′ n $
+                                                   m _ _) ⟩□
+    Stable ((x y : A) → H-level′ n (x ≡ y))  □
+
+  -- If A is "modal n levels up", then H-level n A is stable.
+
+  Stable-H-level :
+    ∀ n →
+    For-iterated-equality n Modal A →
+    Stable (H-level n A)
+  Stable-H-level {A = A} n m =
+    ◯ (H-level n A)   →⟨ ◯-map $ H-level↔H-level′ _ ⟩
+    ◯ (H-level′ n A)  →⟨ Stable-H-level′ n m ⟩
+    H-level′ n A      →⟨ _⇔_.from $ H-level↔H-level′ _ ⟩□
+    H-level n A       □
+
   ----------------------------------------------------------------------
   -- Some variants of the eliminators
 
