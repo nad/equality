@@ -4600,7 +4600,7 @@ module Modality (M : Modality a) where
                                                                       ◯-map-η)
                                                                ◯-rec-η ⟩
     (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
-      (η x , η (acc′ .proj₁ (A.Well-founded-W x)))           ≡⟨⟩
+      (η x , η (acc′ .proj₁ (A.Well-founded-W x)))          ≡⟨⟩
 
     ◯Wη→W◯-Acc ext (η x)
       (acc′ .proj₂ (η (acc′ .proj₁ (A.Well-founded-W x))))  ≡⟨ ◯Wη→W◯-Acc-η ext ext′ ax _ _ ⟩∎
