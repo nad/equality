@@ -1368,12 +1368,12 @@ module Modality (M : Modality a) where
               ◯-elim (λ _ → Modal-◯) (f ∘ η) (η x)  ≡⟨ ◯-elim-η ⟩∎
               f (η x)                               ∎)))
 
-  -- I did not take the remaining results in this section from
-  -- "Modalities in Homotopy Type Theory" or the corresponding Coq
-  -- code (but that does not mean that one cannot find something
-  -- similar in those places).
+  -- I did not take the remaining results and definitions in this
+  -- section from "Modalities in Homotopy Type Theory" or the
+  -- corresponding Coq code (but that does not mean that one cannot
+  -- find something similar in those places).
 
-  -- The right-to-left direction of Modality.Very-modal.Π◯≃◯Π.
+  -- The inverse of a choice principle (that may or may not hold).
 
   ◯Π→Π◯ :
     {A : Type a} {P : A → Type a} →
@@ -1386,6 +1386,159 @@ module Modality (M : Modality a) where
     Extensionality a a →
     ◯Π→Π◯ (η f) ≡ η ∘ f
   ◯Π→Π◯-η ext = apply-ext ext λ _ → ◯-map-η
+
+  -- ◯Π→Π◯ commutes with ◯-map in a certain way.
+
+  ◯Π→Π◯-◯-map :
+    {f : ∀ {x} → P x → Q x} {g : ◯ ((x : A) → P x)} →
+    ◯Π→Π◯ (◯-map (f ∘_) g) x ≡ ◯-map f (◯Π→Π◯ g x)
+  ◯Π→Π◯-◯-map {x = x} {f = f} {g = g} =
+    ◯-elim
+      {P = λ g → ◯Π→Π◯ (◯-map (f ∘_) g) x ≡ ◯-map f (◯Π→Π◯ g x)}
+      (λ _ → Separated-◯ _ _)
+      (λ g →
+         ◯Π→Π◯ (◯-map (f ∘_) (η g)) x  ≡⟨ cong (flip ◯Π→Π◯ _) ◯-map-η ⟩
+         ◯Π→Π◯ (η (f ∘ g)) x           ≡⟨ ◯-map-η ⟩
+         η (f (g x))                   ≡⟨ sym ◯-map-η ⟩
+         ◯-map f (η (g x))             ≡⟨ cong (◯-map _) $ sym ◯-map-η ⟩∎
+         ◯-map f (◯Π→Π◯ (η g) x)       ∎)
+      g
+
+  -- A definition of what it means for the modality to "have choice
+  -- for P".
+  --
+  -- The definition is a little convoluted. In the presence of
+  -- function extensionality it can be simplified to
+  -- "Is-equivalence (◯Π→Π◯ {P = P})" (see
+  -- Has-choice-for≃Is-equivalence-◯Π→Π◯). With the present
+  -- formulation one can prove certain things without assuming
+  -- function extensionality:
+  -- * One can prove that modalities with choice satisfy certain
+  --   properties (see Modality.Has-choice).
+  -- * One can prove that very modal modalities have choice (see
+  --   Modality.Very-modal.has-choice).
+
+  Has-choice-for : {A : Type a} → (A → Type a) → Type (lsuc a)
+  Has-choice-for P =
+    ∃ λ (Π◯→◯Π : (∀ x → ◯ (P x)) → ◯ (∀ x → P x)) →
+    ∃ λ (◯Π→Π◯-Π◯→◯Π : ∀ f x → ◯Π→Π◯ (Π◯→◯Π f) x ≡ f x) →
+    Extensionality a a →
+    ∃ λ (equiv : Is-equivalence (◯Π→Π◯ {P = P})) →
+    let eq = Eq.⟨ _ , equiv ⟩ in
+    ∃ λ (Π◯→◯Π≡ : Π◯→◯Π ≡ _≃_.from eq) →
+    ∀ f x →
+    ◯Π→Π◯-Π◯→◯Π f x ≡
+    (◯Π→Π◯ (Π◯→◯Π f) x            ≡⟨ cong (λ g → ◯Π→Π◯ (g f) x) Π◯→◯Π≡ ⟩
+     _≃_.to eq (_≃_.from eq f) x  ≡⟨ ext⁻¹ (_≃_.right-inverse-of eq f) x ⟩∎
+     f x                          ∎)
+
+  -- In the presence of function extensionality Has-choice-for P is
+  -- equivalent to Is-equivalence (◯Π→Π◯ {P = P}).
+
+  Has-choice-for≃Is-equivalence-◯Π→Π◯ :
+    Extensionality (lsuc a) (lsuc a) →
+    Has-choice-for P ≃ Is-equivalence (◯Π→Π◯ {P = P})
+  Has-choice-for≃Is-equivalence-◯Π→Π◯ {P = P} ext =
+    (∃ λ (Π◯→◯Π : (∀ x → ◯ (P x)) → ◯ (∀ x → P x)) →
+     ∃ λ (◯Π→Π◯-Π◯→◯Π : ∀ f x → ◯Π→Π◯ (Π◯→◯Π f) x ≡ f x) →
+     Extensionality a a →
+     ∃ λ (equiv : Is-equivalence (◯Π→Π◯ {P = P})) →
+     let eq = Eq.⟨ _ , equiv ⟩ in
+     ∃ λ (Π◯→◯Π≡ : Π◯→◯Π ≡ _≃_.from eq) →
+     ∀ f x →
+     ◯Π→Π◯-Π◯→◯Π f x ≡
+     trans (cong (λ g → ◯Π→Π◯ (g f) x) Π◯→◯Π≡)
+       (ext⁻¹ (_≃_.right-inverse-of eq f) x))                     ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                                      drop-⊤-left-Π (lower-extensionality lzero _ ext) $
+                                                                      _⇔_.to contractible⇔↔⊤ $
+                                                                      propositional⇒inhabited⇒contractible
+                                                                        (Extensionality-propositional ext)
+                                                                        ext′) ⟩
+    (∃ λ (Π◯→◯Π : (∀ x → ◯ (P x)) → ◯ (∀ x → P x)) →
+     ∃ λ (◯Π→Π◯-Π◯→◯Π : ∀ f x → ◯Π→Π◯ (Π◯→◯Π f) x ≡ f x) →
+     ∃ λ (equiv : Is-equivalence (◯Π→Π◯ {P = P})) →
+     let eq = Eq.⟨ _ , equiv ⟩ in
+     ∃ λ (Π◯→◯Π≡ : Π◯→◯Π ≡ _≃_.from eq) →
+     ∀ f x →
+     ◯Π→Π◯-Π◯→◯Π f x ≡
+     trans (cong (λ g → ◯Π→Π◯ (g f) x) Π◯→◯Π≡)
+       (ext⁻¹ (_≃_.right-inverse-of eq f) x))                     ↔⟨ Σ-assoc F.∘
+                                                                     (∃-cong λ _ → Σ-assoc) F.∘
+                                                                     ∃-comm F.∘
+                                                                     (∃-cong λ _ →
+                                                                      inverse Σ-assoc F.∘
+                                                                      ∃-comm F.∘
+                                                                      (∃-cong λ _ → Σ-assoc)) ⟩
+    (∃ λ ((equiv , Π◯→◯Π , Π◯→◯Π≡) :
+          ∃ λ (equiv : Is-equivalence (◯Π→Π◯ {P = P})) →
+          ∃ λ (Π◯→◯Π : (∀ x → ◯ (P x)) → ◯ (∀ x → P x)) →
+          Π◯→◯Π ≡ _≃_.from Eq.⟨ _ , equiv ⟩) →
+     ∃ λ (◯Π→Π◯-Π◯→◯Π : ∀ f x → ◯Π→Π◯ (Π◯→◯Π f) x ≡ f x) →
+     ∀ f x →
+     ◯Π→Π◯-Π◯→◯Π f x ≡
+     trans (cong (λ g → ◯Π→Π◯ (g f) x) Π◯→◯Π≡)
+       (ext⁻¹ (_≃_.right-inverse-of Eq.⟨ _ , equiv ⟩ f) x))       ↝⟨ (Σ-cong-contra
+                                                                        (inverse $
+                                                                         drop-⊤-right λ _ →
+                                                                         _⇔_.to contractible⇔↔⊤ $
+                                                                         singleton-contractible _) λ _ →
+                                                                      F.id) ⟩
+    (∃ λ (equiv : Is-equivalence (◯Π→Π◯ {P = P})) →
+     let eq = Eq.⟨ _ , equiv ⟩ in
+     ∃ λ (◯Π→Π◯-Π◯→◯Π : ∀ f x → ◯Π→Π◯ (_≃_.from eq f) x ≡ f x) →
+     ∀ f x →
+     ◯Π→Π◯-Π◯→◯Π f x ≡
+     trans (cong (λ g → ◯Π→Π◯ (g f) x) (refl (_≃_.from eq)))
+       (ext⁻¹ (_≃_.right-inverse-of eq f) x))                     ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                                      ∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+                                                                      ≡⇒↝ _ $ cong (_ ≡_) $
+                                                                      trans (cong (flip trans _) $
+                                                                             cong-refl _) $
+                                                                      trans-reflˡ _) ⟩
+    (∃ λ (equiv : Is-equivalence (◯Π→Π◯ {P = P})) →
+     let eq = Eq.⟨ _ , equiv ⟩ in
+     ∃ λ (◯Π→Π◯-Π◯→◯Π : ∀ f x → ◯Π→Π◯ (_≃_.from eq f) x ≡ f x) →
+     ∀ f x →
+     ◯Π→Π◯-Π◯→◯Π f x ≡ ext⁻¹ (_≃_.right-inverse-of eq f) x)       ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
+                                                                      Eq.extensionality-isomorphism ext′ F.∘
+                                                                      (∀-cong ext′ λ _ → Eq.extensionality-isomorphism ext′)) ⟩
+    (∃ λ (equiv : Is-equivalence (◯Π→Π◯ {P = P})) →
+     let eq = Eq.⟨ _ , equiv ⟩ in
+     ∃ λ (◯Π→Π◯-Π◯→◯Π : ∀ f x → ◯Π→Π◯ (_≃_.from eq f) x ≡ f x) →
+     ◯Π→Π◯-Π◯→◯Π ≡ ext⁻¹ ∘ _≃_.right-inverse-of eq)               ↔⟨ (drop-⊤-right λ _ →
+                                                                      _⇔_.to contractible⇔↔⊤ $
+                                                                      singleton-contractible _) ⟩□
+    Is-equivalence (◯Π→Π◯ {P = P})                                □
+    where
+    ext′ : Extensionality a a
+    ext′ = lower-extensionality _ _ ext
+
+  -- A definition of what it means for the modality to "have choice",
+  -- or to be a "modality with choice".
+
+  Has-choice : Type (lsuc a)
+  Has-choice = {A : Type a} {P : A → Type a} → Has-choice-for P
+
+  -- Has-choice-for P is a proposition (assuming function
+  -- extensionality).
+
+  Has-choice-for-propositional :
+    Extensionality (lsuc a) (lsuc a) →
+    Is-proposition (Has-choice-for P)
+  Has-choice-for-propositional {P = P} ext =
+                                           $⟨ Is-equivalence-propositional (lower-extensionality _ _ ext) ⟩
+    Is-proposition (Is-equivalence ◯Π→Π◯)  →⟨ H-level-cong _ 1 (inverse $ Has-choice-for≃Is-equivalence-◯Π→Π◯ ext) ⟩□
+    Is-proposition (Has-choice-for P)      □
+
+  -- Has-choice is a proposition (assuming function extensionality).
+
+  Has-choice-propositional :
+    Extensionality (lsuc a) (lsuc a) →
+    Is-proposition Has-choice
+  Has-choice-propositional ext =
+    implicit-Π-closure ext 1 λ _ →
+    implicit-Π-closure (lower-extensionality lzero lzero ext) 1 λ _ →
+    Has-choice-for-propositional ext
 
   -- If A is modal, then ◯ (Σ A P) is equivalent to Σ A (◯ ∘ P).
 
@@ -4417,7 +4570,7 @@ module Modality (M : Modality a) where
 
   -- An unfolding lemma for ◯ (W A (P ∘ η)).
   --
-  -- See also Modality.Very-modal.◯Wη≃Σ◯Π◯Wη.
+  -- See also Modality.Has-choice.◯Wη≃Σ◯Π◯Wη.
 
   ◯Wη→Σ◯Π◯Wη :
     {P : ◯ A → Type a} →
@@ -4560,8 +4713,8 @@ module Modality (M : Modality a) where
   -- then ◯ (W A (P ∘ η)) implies W (◯ A) P (assuming function
   -- extensionality).
   --
-  -- See also Modality.Very-modal.W◯→◯Wη and
-  -- Modality.Very-modal.◯Wη≃W◯.
+  -- See also Modality.Has-choice.W◯→◯Wη and
+  -- Modality.Has-choice.◯Wη≃W◯.
 
   ◯Wη→W◯ :
     {P : ◯ A → Type a} →
@@ -4613,7 +4766,7 @@ module Modality (M : Modality a) where
   -- A is modal, then W A P is stable (assuming function
   -- extensionality).
   --
-  -- See also Modality.Very-modal.Modal-W.
+  -- See also Modality.Has-choice.Modal-W.
 
   Stable-W :
     @0 Accessibility-modal-for (_<W_ {A = A} {P = P}) →
@@ -4931,7 +5084,7 @@ module Modality (M : Modality a) where
 
   -- A lemma used in the implementations of
   -- ◯-Is-embedding→Is-embedding and
-  -- Modality.Very-modal.◯-Is-embedding≃Is-embedding.
+  -- Modality.Has-choice.Left-exact.◯-Is-embedding≃Is-embedding.
 
   ◯-map-cong≡ :
     ∀ (lex : Left-exact-η-cong) (p : ◯ (x ≡ y)) →

@@ -313,6 +313,11 @@ import Erased.Level-2
 
 import Modality.Box-cong
 
+-- Some results that hold for modalities that satisfy a choice
+-- principle.
+
+import Modality.Has-choice
+
 -- Some results that hold for every very modal modality.
 
 import Modality.Very-modal
