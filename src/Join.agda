@@ -147,7 +147,7 @@ Join-⊤ʳ {A = A} =
 -- Join A (¬ A) is equivalent to A ⊎ ¬ A.
 --
 -- This lemma is used in (at least my variant of) Christian Sattler's
--- proof of Very-modal-Closed→⊎¬ (see below).
+-- proof of Very-modal-Closed≃⊎¬ (see below).
 
 Join-¬≃⊎-¬ : Join A (¬ A) ≃ (A ⊎ ¬ A)
 Join-¬≃⊎-¬ = Eq.↔→≃
