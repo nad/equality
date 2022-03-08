@@ -655,7 +655,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
   Modal→Stable-Is-equivalenceᴱ-CP {f = f} ext m s =
     Stable-Π ext λ y →
     let m′ : Modal (f ⁻¹ᴱ y)
-        m′ = Modal-Σ m λ _ → Modal-Erased (s _ _) in
+        m′ = Modal-⁻¹ᴱ m s in
     Stable-Σ m′ λ _ →
     Stable-Erased ext (
     Stable-Π ext λ _ →
@@ -691,7 +691,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
       s′ =
         Stable-Π ext′ λ y →
         let m′ : Modal (f ⁻¹ᴱ y)
-            m′ = Modal-Σ m λ _ → Modal-Erased (s _ _) in
+            m′ = Modal-⁻¹ᴱ m s in
         Stable-Σ m′ λ _ →
         Stable-Erased ext′ (
         Stable-Π ext′ λ _ →

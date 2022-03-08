@@ -56,6 +56,16 @@ Modal-Erased {A = A} m =
        E.[ E.erased x ]                             ∎)
 
 -- If f has type A → B, where A is modal and B is separated, then
+-- f ⁻¹ᴱ y is modal.
+
+Modal-⁻¹ᴱ :
+  {@0 B : Type a} {@0 f : A → B} {@0 y : B} →
+  Modal A →
+  @0 Separated B →
+  Modal (f ⁻¹ᴱ y)
+Modal-⁻¹ᴱ m s = Modal-Σ m λ _ → Modal-Erased (s _ _)
+
+-- If f has type A → B, where A is modal and B is separated, then
 -- Is-equivalenceᴱ f is stable.
 
 Modal→Stable-Is-equivalenceᴱ :
@@ -71,7 +81,7 @@ Modal→Stable-Is-equivalenceᴱ {f = f} m s =
   s′ =
     Stable-Π λ y →
     let m′ : Modal (f ⁻¹ᴱ y)
-        m′ = Modal-Σ m λ _ → Modal-Erased (s _ _) in
+        m′ = Modal-⁻¹ᴱ m s in
     Stable-Σ m′ λ _ →
     Stable-Erased (
     Stable-Π λ _ →
