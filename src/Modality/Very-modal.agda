@@ -712,7 +712,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
     (∃ λ x → Erased (◯-map f x ≡ y))        □
 
   -- ◯ (ECP.Is-equivalenceᴱ f) is equivalent to
-  -- Is-equivalenceᴱ (◯-map f) (assuming function extensionality).
+  -- ECP.Is-equivalenceᴱ (◯-map f) (assuming function extensionality).
 
   ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP :
     ◯ (ECP.Is-equivalenceᴱ f) ↝[ a ∣ a ] ECP.Is-equivalenceᴱ (◯-map f)
