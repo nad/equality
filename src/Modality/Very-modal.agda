@@ -775,7 +775,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
     ◯-Is-equivalenceᴱ≃Is-equivalenceᴱ′ {A = A} {B = B} {f = f} ext =
       ◯ (Is-equivalenceᴱ f)                                                 ↔⟨⟩
 
-      ◯ (∃ λ (f⁻¹ : B → A) → Erased (HA.Proofs f f⁻¹))                      ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
+      ◯ (∃ λ (f⁻¹ : B → A) → Erased (HA.Proofs f f⁻¹))                      ↝⟨ inverse ◯Σ◯≃◯Σ ⟩
 
       ◯ (∃ λ (f⁻¹ : B → A) → ◯ (Erased (HA.Proofs f f⁻¹)))                  ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯-Erased≃Erased-◯ ext) ⟩
 
