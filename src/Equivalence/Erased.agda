@@ -1409,6 +1409,21 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
              (_≃ᴱ_.right-inverse-of B≃A x)
              (_≃ᴱ_.from (P≃Q (_≃ᴱ_.from B≃A x)) (f (_≃ᴱ_.from B≃A x)))   ∎)
 
+  -- Contractibleᴱ preserves equivalences with erased proofs (assuming
+  -- extensionality).
+
+  Contractibleᴱ-cong-≃ᴱ :
+    {A : Type a} {B : Type ℓ} →
+    @0 Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
+    A ≃ᴱ B → Contractibleᴱ A ≃ᴱ Contractibleᴱ B
+  Contractibleᴱ-cong-≃ᴱ {A = A} {B = B} ext A≃ᴱB =
+    (∃ λ (x : A) → Erased ((y : A) → x ≡ y))  ↝⟨ (Σ-cong-≃ᴱ-Erased A≃ᴱB λ _ →
+                                                  Erased-cong-≃ᴱ
+                                                    (let A≃B = ≃ᴱ→≃ A≃ᴱB in
+                                                     Π-cong [ ext ] A≃B λ _ →
+                                                     from-equivalence $ F.inverse $ Eq.≃-≡ A≃B)) ⟩□
+    (∃ λ (x : B) → Erased ((y : B) → x ≡ y))  □
+
   ----------------------------------------------------------------------
   -- Variants of some lemmas from Function-universe
 
