@@ -1885,12 +1885,37 @@ module Modality (M : Modality a) where
     H-level′ n A      →⟨ _⇔_.from $ H-level↔H-level′ _ ⟩□
     H-level n A       □
 
+  ----------------------------------------------------------------------
+  -- Some definitions related to Erased
+
+  -- I did not take the definitions in this section from "Modalities
+  -- in Homotopy Type Theory" or the corresponding Coq code.
+
   -- ◯ (Erased A) implies Erased (◯ A).
 
   ◯-Erased→Erased-◯ :
     {@0 A : Type a} →
     @0 ◯ (Erased A) → Erased (◯ A)
   ◯-Erased→Erased-◯ x = E.[ ◯-map E.erased x ]
+
+  -- A definition of what it means for the modality to "commute with
+  -- Erased".
+
+  Commutes-with-Erased : Type (lsuc a)
+  Commutes-with-Erased =
+    {A : Type a} →
+    Is-equivalence (λ (x : ◯ (Erased A)) → ◯-Erased→Erased-◯ x)
+
+  -- Commutes-with-Erased is a proposition (assuming function
+  -- extensionality).
+
+  Commutes-with-Erased-propositional :
+    Extensionality (lsuc a) a →
+    Is-proposition Commutes-with-Erased
+  Commutes-with-Erased-propositional ext =
+    implicit-Π-closure ext 1 λ _ →
+    Is-equivalence-propositional
+      (lower-extensionality _ lzero ext)
 
   -- If A is stable, then Erased A is stable.
 
@@ -2129,10 +2154,18 @@ module Modality (M : Modality a) where
          η y  ∎)
 
   ----------------------------------------------------------------------
-  -- More equivalences
+  -- Commuting with Σ
 
-  -- I did not take the lemmas in this section from "Modalities in
-  -- Homotopy Type Theory" or the corresponding Coq code.
+  -- I did not take the definitions and lemmas in this section from
+  -- "Modalities in Homotopy Type Theory" or the corresponding Coq
+  -- code.
+
+  private abstract
+
+    -- A lemma used in the implementation of ◯Ση≃Σ◯◯.
+
+    Modal-Σ◯◯ : Modal (Σ (◯ A) (◯ ∘ P))
+    Modal-Σ◯◯ = Modal-Σ Modal-◯ λ _ → Modal-◯
 
   -- ◯ commutes with Σ in a certain way (assuming function
   -- extensionality).
@@ -2148,9 +2181,6 @@ module Modality (M : Modality a) where
       (λ ext → to-from ext , from-to ext)
     where
     abstract
-      m′ : Modal (Σ (◯ A) (◯ ∘ P))
-      m′ = Modal-Σ Modal-◯ λ _ → Modal-◯
-
       s′ : (x : ◯ A) → Stable ((y : P x) → ◯ (Σ A (P ∘ η)))
       s′ _ = Stable-Π λ _ → Modal→Stable Modal-◯
 
@@ -2166,7 +2196,7 @@ module Modality (M : Modality a) where
         Modal→Stable (Modal-Π ext λ _ → Modal-◯)  ∎
 
     to : ◯ (Σ A (P ∘ η)) → Σ (◯ A) (◯ ∘ P)
-    to = ◯-rec m′ (Σ-map η η)
+    to = ◯-rec Modal-Σ◯◯ (Σ-map η η)
 
     from : Σ (◯ A) (◯ ∘ P) → ◯ (Σ A (P ∘ η))
     from =
@@ -2180,10 +2210,10 @@ module Modality (M : Modality a) where
     to-from ext = uncurry $
       ◯-elim
         (λ _ → Modal-Π ext λ _ →
-               Modal→Separated m′ _ _)
+               Modal→Separated Modal-Σ◯◯ _ _)
         (λ x →
            ◯-elim
-             (λ _ → Modal→Separated m′ _ _)
+             (λ _ → Modal→Separated Modal-Σ◯◯ _ _)
              (λ y →
                 to
                   (◯-rec Modal-◯ (uncurry $ ◯-elim′ s′ $ curry η)
@@ -2200,7 +2230,7 @@ module Modality (M : Modality a) where
 
                 to (η (x , y))                                          ≡⟨⟩
 
-                ◯-rec m′ (Σ-map η η) (η (x , y))                        ≡⟨ ◯-rec-η ⟩∎
+                ◯-rec Modal-Σ◯◯ (Σ-map η η) (η (x , y))                 ≡⟨ ◯-rec-η ⟩∎
 
                 (η x , η y)                                             ∎))
 
@@ -2214,7 +2244,7 @@ module Modality (M : Modality a) where
            let f = λ (x , y) → ◯-map (x ,_) y in
 
            ◯-rec Modal-◯ (uncurry $ ◯-elim′ s′ $ curry η)
-             (f (◯-rec m′ (Σ-map η η) (η (x , y))))                      ≡⟨ cong (◯-rec _ _) $ cong f ◯-rec-η ⟩
+             (f (◯-rec Modal-Σ◯◯ (Σ-map η η) (η (x , y))))               ≡⟨ cong (◯-rec _ _) $ cong f ◯-rec-η ⟩
 
            ◯-rec Modal-◯ (uncurry $ ◯-elim′ s′ $ curry η)
              (◯-map (η x ,_) (η y))                                      ≡⟨ cong (◯-rec _ _) ◯-map-η ⟩
@@ -2226,6 +2256,41 @@ module Modality (M : Modality a) where
            ◯-elim′ (Modal→Stable ∘ m″ ext) (curry η) (η x) y             ≡⟨ cong (_$ y) ◯-elim′-Modal→Stable-η ⟩∎
 
            η (x , y)                                                     ∎)
+
+  -- A definition of what it means for the modality to "commute with
+  -- Σ".
+
+  Commutes-with-Σ : Type (lsuc a)
+  Commutes-with-Σ =
+    {A : Type a} {P : ◯ A → Type a} →
+    Is-equivalence (◯Ση≃Σ◯◯ {A = A} {P = P} _)
+
+  -- If function extensionality holds, then the modality commutes with
+  -- Σ.
+  --
+  -- See also Modality.Very-modal.commutes-with-Σ.
+
+  commutes-with-Σ :
+    Extensionality a a →
+    Commutes-with-Σ
+  commutes-with-Σ ext = _≃_.is-equivalence $ ◯Ση≃Σ◯◯ ext
+
+  -- Commutes-with-Σ is a proposition (assuming function
+  -- extensionality).
+
+  Commutes-with-Σ-propositional :
+    Extensionality (lsuc a) (lsuc a) →
+    Is-proposition Commutes-with-Σ
+  Commutes-with-Σ-propositional ext =
+    implicit-Π-closure ext 1 λ _ →
+    implicit-Π-closure (lower-extensionality lzero _ ext) 1 λ _ →
+    Is-equivalence-propositional (lower-extensionality _ _ ext)
+
+  ----------------------------------------------------------------------
+  -- Some variants of Π◯◯≃Π◯η
+
+  -- I did not take the lemmas in this section from "Modalities in
+  -- Homotopy Type Theory" or the corresponding Coq code.
 
   -- Some variants of Π◯◯≃Π◯η, stated using stability.
 

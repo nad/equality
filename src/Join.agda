@@ -24,6 +24,7 @@ open import Equivalence equality-with-J as Eq
 open import Equivalence.Erased equality-with-J as EEq using (_≃ᴱ_)
 open import Equivalence.Path-split equality-with-J as PS
   using (Is-∞-extendable-along-[_])
+open import Erased.Cubical eq as E using (Erased)
 open import Excluded-middle equality-with-J
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level
@@ -635,3 +636,82 @@ W-modal-Closed≃Empty-modal-Closed {A = A} prop =
      W-modal (Closed A prop)      □)
   where
   open Modality (Closed A prop)
+
+-- Closed A prop commutes with Σ.
+
+Closed-commutes-with-Σ :
+  (prop : Is-proposition A) →
+  Modality.Commutes-with-Σ (Closed A prop)
+Closed-commutes-with-Σ {A = A} prop =
+  Modality.commutes-with-Σ (Closed A prop) ext
+
+-- If Dec A holds, then Closed A prop commutes with Erased.
+
+Dec→Closed-commutes-with-Erased :
+  (prop : Is-proposition A) →
+  Dec A → Modality.Commutes-with-Erased (Closed A prop)
+Dec→Closed-commutes-with-Erased {A = A} prop =
+  Dec A                       →⟨ _≃_.from $ Very-modal-Closed≃Dec prop ⟩
+  Very-modal (Closed A prop)  →⟨ (λ very-modal →
+                                    Very-modal.[]-cong.commutes-with-Erased
+                                      (Closed A prop)
+                                      very-modal
+                                      E.instance-of-[]-cong-axiomatisation) ⟩□
+  Commutes-with-Erased        □
+  where
+  open Modality (Closed A prop)
+
+-- If Closed A prop commutes with Erased, then Dec A is very stable
+-- (for Erased).
+
+Closed-commutes-with-Erased→Very-stable-Dec :
+  (prop : Is-proposition A) →
+  Modality.Commutes-with-Erased (Closed A prop) → E.Very-stable (Dec A)
+Closed-commutes-with-Erased→Very-stable-Dec {A = A} prop comm =
+  _≃_.is-equivalence $
+  Eq.⇔→≃
+    Dec-prop
+    (E.H-level-Erased 1 Dec-prop)
+    _
+    (Erased (Dec A)         ↔⟨ inverse $ E.Erased-cong-≃ Join-¬≃Dec ⟩
+     Erased (Join A (¬ A))  ↔⟨ inverse Eq.⟨ _ , comm ⟩ ⟩
+     Join A (Erased (¬ A))  ↔⟨ Join-cong-≃ F.id (E.Stable-[]-¬ ext) ⟩
+     Join A (¬ A)           ↔⟨ Join-¬≃Dec ⟩□
+     Dec A                  □)
+  where
+  open Modality (Closed A prop)
+
+  Dec-prop : Is-proposition (Dec A)
+  Dec-prop = Dec-closure-propositional ext prop
+
+-- If Dec A holds in erased contexts, then Closed A prop commutes with
+-- Erased exactly when Dec A holds.
+
+Dec→Closed-commutes-with-Erased≃Dec :
+  (prop : Is-proposition A) →
+  @0 Dec A →
+  Modality.Commutes-with-Erased (Closed A prop) ≃ Dec A
+Dec→Closed-commutes-with-Erased≃Dec {A = A} prop dec =
+  Eq.⇔→≃
+    (Commutes-with-Erased-propositional ext)
+    (Dec-closure-propositional ext prop)
+    (Commutes-with-Erased   →⟨ Closed-commutes-with-Erased→Very-stable-Dec prop ⟩
+     E.Very-stable (Dec A)  →⟨ (λ vs → E.Very-stable→Stable 0 vs E.[ dec ]) ⟩□
+     Dec A                  □)
+    (Dec→Closed-commutes-with-Erased prop)
+  where
+  open Modality (Closed A prop)
+
+-- If excluded middle holds in erased contexts, then Closed commutes
+-- with Erased for every proposition (in a certain universe) exactly
+-- when excluded middle holds (for that universe).
+
+Excluded-middle→Closed-commutes-with-Erased≃Excluded-middle :
+  @0 Excluded-middle a →
+  ({A : Type a} (prop : Is-proposition A) →
+   Modality.Commutes-with-Erased (Closed A prop)) ≃
+  Excluded-middle a
+Excluded-middle→Closed-commutes-with-Erased≃Excluded-middle em =
+  implicit-∀-cong ext $
+  ∀-cong ext λ prop →
+  Dec→Closed-commutes-with-Erased≃Dec prop (em prop)

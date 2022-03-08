@@ -9,7 +9,6 @@ open import Equality
 module Double-negation
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-import Erased.Basics as E
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
@@ -19,6 +18,7 @@ open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Path-split eq as PS
   using (Is-∞-extendable-along-[_])
+open import Erased.Level-1 eq as E using (Erased)
 open import Excluded-middle eq
 open import Extensionality eq
 open import Function-universe eq hiding (id; _∘_)
@@ -302,3 +302,42 @@ Excluded-middle≃Double-negation-elimination ext =
       ]
   where
   open Modality (¬¬-modality ext)
+
+-- The double-negation modality commutes with Σ.
+
+¬¬-commutes-with-Σ :
+  ∀ {ℓ}
+  (ext : Extensionality ℓ ℓ) →
+  Modality.Commutes-with-Σ (¬¬-modality ext)
+¬¬-commutes-with-Σ ext = Modality.commutes-with-Σ (¬¬-modality ext) ext
+
+-- The double-negation modality commutes with Erased.
+
+commutes-with-Erased :
+  ∀ {ℓ} →
+  (ext : Extensionality ℓ ℓ) →
+  Modality.Commutes-with-Erased (¬¬-modality ext)
+commutes-with-Erased {ℓ = ℓ} ext =
+  _≃_.is-equivalence $
+  Eq.↔→≃
+    _
+    from
+    (λ _ → E.[]-cong₁.H-level-Erased
+             (E.Extensionality→[]-cong-axiomatisation ext)
+             1
+             (¬¬-propositional ext₀)
+             _ _)
+    (λ _ → ¬¬-propositional ext₀ _ _)
+  where
+  open Modality (¬¬-modality ext)
+
+  ext₀ : Extensionality ℓ lzero
+  ext₀ = lower-extensionality lzero _ ext
+
+  from : {@0 A : Type ℓ} → Erased (¬¬ A) → ¬¬ Erased A
+  from {A = A} =
+    Erased (¬¬ A)   →⟨ E.map run ⟩
+    Erased (¬ ¬ A)  →⟨ E.Erased-¬↔¬ _ ⟩
+    ¬ Erased (¬ A)  →⟨ →-cong-→ (_⇔_.from (E.Erased-¬↔¬ _)) id ⟩
+    ¬ ¬ Erased A    →⟨ wrap ⟩□
+    ¬¬ Erased A     □

@@ -213,6 +213,10 @@ import Modality.Basics
 
 import Modality.Identity
 
+-- A type for values that should be erased at run-time.
+
+import Erased.Level-1
+
 -- The double-negation monad.
 
 import Double-negation
@@ -287,10 +291,6 @@ import Tactic.By.Parametrised.Tests
 
 import Tactic.By.Propositional
 
--- A type for values that should be erased at run-time.
-
-import Erased.Level-1
-
 -- Equivalences with erased "proofs", defined in terms of partly
 -- erased contractible fibres.
 
@@ -317,6 +317,10 @@ import Modality.Box-cong
 -- principle.
 
 import Modality.Has-choice
+
+-- Some results that hold for modalities that commute with Erased.
+
+import Modality.Commutes-with-Erased
 
 -- Some results that hold for every very modal modality.
 

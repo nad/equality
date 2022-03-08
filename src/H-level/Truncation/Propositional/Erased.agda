@@ -315,6 +315,11 @@ Is-proposition→∥∥ᴱ-accessibility-modal {ℓ = ℓ} p₁ p₂ =
   _<_ : A → A → Type ℓ
   _ < z = z ≡ y
 
+-- ∥_∥ᴱ commutes with Σ.
+
+∥∥ᴱ-commutes-with-Σ : Modality.Commutes-with-Σ (∥∥ᴱ-modality {ℓ = ℓ})
+∥∥ᴱ-commutes-with-Σ = Modality.commutes-with-Σ ∥∥ᴱ-modality ext
+
 ------------------------------------------------------------------------
 -- Conversion functions
 

@@ -10,6 +10,7 @@ module Squash {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
 
 open P.Derived-definitions-and-properties eq
 
+open import Erased.Basics as E using (Erased)
 open import Logical-equivalence using (_⇔_)
 import Modality.Empty-modal
 open import Prelude
@@ -212,6 +213,59 @@ empty-modal =
 private
   module EM {ℓ = ℓ} =
     Modality.Empty-modal equality-with-J (modality {ℓ = ℓ}) empty-modal
+
+-- The squash modality commutes with Erased.
+
+commutes-with-Erased : Modality.Commutes-with-Erased (modality {ℓ = ℓ})
+commutes-with-Erased =
+  _≃_.is-equivalence $
+  Eq.↔→≃
+    (λ x → ◯-Erased→Erased-◯ x)
+    Erased-Squash→Squash-Erased
+    (λ _ → refl _)
+    (λ _ → refl _)
+  where
+  open Modality modality
+
+  Erased-Squash→Squash′-Erased :
+    E.Erased (Squash A) → Squash′ (E.Erased A)
+  Erased-Squash→Squash′-Erased E.[ [ x ] ] = squash′ E.[ x ]
+
+  Erased-Squash→Squash-Erased :
+    E.Erased (Squash A) → Squash (E.Erased A)
+  Erased-Squash→Squash-Erased x =
+    squash (Erased-Squash→Squash′-Erased x)
+
+-- Squash commutes with Σ.
+
+Squash-Σ≃Σ-Squash-Squash : Squash (Σ A (P ∘ [_])) ≃ Σ (Squash A) (Squash ∘ P)
+Squash-Σ≃Σ-Squash-Squash {A = A} {P = P} =
+  Eq.↔→≃
+    to
+    from
+    (λ _ → refl _)
+    (λ _ → refl _)
+  where
+  to₁ : Squash′ (Σ A (P ∘ [_])) → Squash′ A
+  to₁ (squash′ (x , y)) = squash′ x
+
+  to₂ : (x : Squash′ (Σ A (P ∘ [_]))) → Squash′ (P (squash (to₁ x)))
+  to₂ (squash′ (x , y)) = squash′ y
+
+  to : Squash (Σ A (P ∘ [_])) → Σ (Squash A) (Squash ∘ P)
+  to (squash x) = squash (to₁ x) , squash (to₂ x)
+
+  from′ :
+    (x : Squash′ A) → Squash′ (P (squash x)) → Squash′ (Σ A (P ∘ [_]))
+  from′ (squash′ x) (squash′ y) = squash′ (x , y)
+
+  from : Σ (Squash A) (Squash ∘ P) → Squash (Σ A (P ∘ [_]))
+  from (squash x , squash y) = squash (from′ x y)
+
+-- The squash modality commutes with Σ.
+
+commutes-with-Σ : Modality.Commutes-with-Σ (modality {ℓ = ℓ})
+commutes-with-Σ = _≃_.is-equivalence Squash-Σ≃Σ-Squash-Squash
 
 -- The squash modality is not left exact.
 

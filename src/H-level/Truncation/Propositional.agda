@@ -374,6 +374,11 @@ Is-proposition→∥∥-accessibility-modal {ℓ = ℓ} p₁ p₂ =
   _<_ : A → A → Type ℓ
   _ < z = z ≡ y
 
+-- The modality commutes with Σ.
+
+∥∥-commutes-with-Σ : Modality.Commutes-with-Σ (∥∥-modality {ℓ = ℓ})
+∥∥-commutes-with-Σ = Modality.commutes-with-Σ ∥∥-modality ext
+
 ------------------------------------------------------------------------
 -- Various lemmas
 

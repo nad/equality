@@ -25,12 +25,13 @@ open Modality M
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Equivalence eq using (_≃_)
+open import Equivalence eq as Eq using (_≃_)
 open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages eq
   using (Contractibleᴱ; _⁻¹ᴱ_)
+import Erased.Level-2 eq as E₂
 open import Extensionality eq
-open import Function-universe eq
+open import Function-universe eq hiding (_∘_)
 
 private
   variable
@@ -160,3 +161,18 @@ Stable-respects-↝-sym {A = A} {k = equivalenceᴱ} {B = B} A≃ᴱB s =
   ◯ A  ↝⟨ s ⟩
   A    ↝⟨ A≃ᴱB ⟩□
   B    □
+
+-- If the modality commutes with Σ, then ◯ (η ∘ f ⁻¹ᴱ y) is equivalent
+-- to ◯-map f ⁻¹ᴱ y.
+
+◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ :
+  {A : Type a} {@0 B : Type a} {@0 f : A → B} {y : ◯ B} →
+  Commutes-with-Σ →
+  ◯ (η ∘ f ⁻¹ᴱ y) ≃ ◯-map f ⁻¹ᴱ y
+◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ {f = f} {y = y} comm =
+  ◯ (∃ λ x → Erased (η (f x) ≡ y))        ↝⟨ (◯-cong-≃ $ ∃-cong λ _ →
+                                              E₂.[]-cong₂-⊔.Erased-cong ax ax ax (
+                                              ≡⇒↝ _ $ cong (_≡ _) $ sym ◯-map-η)) ⟩
+  ◯ (∃ λ x → Erased (◯-map f (η x) ≡ y))  ↝⟨ Eq.⟨ _ , comm ⟩ ⟩
+  (∃ λ x → ◯ (Erased (◯-map f x ≡ y)))    ↝⟨ (∃-cong λ _ → inverse $ Modal→≃◯ (Modal-Erased (Separated-◯ _ _))) ⟩□
+  (∃ λ x → Erased (◯-map f x ≡ y))        □
