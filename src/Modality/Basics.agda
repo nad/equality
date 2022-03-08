@@ -1268,6 +1268,28 @@ module Modality (M : Modality a) where
       (λ ext → ◯-cong-≃ᴱ (hyp E.[ ext ]))
       ext
 
+  mutual
+
+    -- A variant of ◯-cong-↝-sym.
+
+    ◯-cong-↝ᴱ :
+      @0 Extensionality? k c d →
+      A ↝[ c ∣ d ]ᴱ B →
+      ◯ A ↝[ k ] ◯ B
+    ◯-cong-↝ᴱ {k = implication} _   hyp = ◯-map (hyp _)
+    ◯-cong-↝ᴱ                   ext hyp = ◯-cong-↝-symᴱ ext hyp
+
+    -- A variant of ◯-cong-↝-sym.
+
+    ◯-cong-↝-symᴱ :
+      @0 Extensionality? k c d →
+      (∀ {k} → @0 Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
+      ◯ A ↝[ k ] ◯ B
+    ◯-cong-↝-symᴱ ext hyp = generalise-erased-ext?
+      (◯-cong-⇔ (hyp _))
+      (λ ext → _≃_.bijection $ ◯-cong-≃ (hyp ext))
+      ext
+
   ----------------------------------------------------------------------
   -- Some equivalences and related results
 
