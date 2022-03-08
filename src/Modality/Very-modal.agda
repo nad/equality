@@ -44,10 +44,10 @@ open import H-level.Closure eq
 
 private
   variable
-    ℓ p     : Level
-    A B C   : Type ℓ
-    f k x y : A
-    P       : A → Type p
+    ℓ p       : Level
+    A B C     : Type ℓ
+    f k m x y : A
+    P         : A → Type p
 
 ------------------------------------------------------------------------
 -- Should "Very-modal" be stated differently?
@@ -294,6 +294,18 @@ Modal≃Modal-Null {A = A} ext =
   ◯ B                ↝⟨ inverse-ext? (drop-⊤-left-× ∘ const ∘ ◯-Modal≃⊤) ext ⟩
   ◯ (Modal A) × ◯ B  ↔⟨ inverse ◯×≃ ⟩□
   ◯ (Modal A × B)    □
+
+-- Two "computation rules" for ◯≃◯-Modal-×.
+
+◯≃◯-Modal-×-η : ◯≃◯-Modal-× {A = A} _ (η x) ≡ ◯-map (_, x) very-modal
+◯≃◯-Modal-×-η {x = x} =
+  _≃_.from ◯×≃ (very-modal , η x)  ≡⟨ ◯×≃⁻¹-ηʳ ⟩∎
+  ◯-map (_, x) very-modal          ∎
+
+◯≃◯-Modal-×⁻¹-η : _⇔_.from (◯≃◯-Modal-× _) (η (m , x)) ≡ η x
+◯≃◯-Modal-×⁻¹-η {m = m} {x = x} =
+  _≃_.to ◯×≃ (η (m , x)) .proj₂  ≡⟨ cong proj₂ ◯×≃-η ⟩∎
+  η x                            ∎
 
 -- A variant of ◯≃◯-Modal-×.
 
