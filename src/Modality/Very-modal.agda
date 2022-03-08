@@ -515,33 +515,19 @@ Modal→↝→↝ {A = A} {B = B} d e ext A↝◯A ◯B↝B A↝B =
 ------------------------------------------------------------------------
 -- Some results related to Erased
 
--- ◯ (Erased (◯ A)) is logically equivalent to ◯ (Erased A).
---
--- See also []-cong.◯-Erased-◯≃◯-Erased below.
-
-◯-Erased-◯⇔◯-Erased :
-  ◯ (Erased (◯ A)) ⇔ ◯ (Erased A)
-◯-Erased-◯⇔◯-Erased {A = A} =
-  ◯ (Erased (◯ A))            ↝⟨ ◯≃◯-Modal-× _ ⟩
-  ◯ (Modal A × Erased (◯ A))  ↝⟨ (◯-cong-⇔ $ ∃-cong λ m → E.Erased-cong-⇔ (Modal→Stable m)) ⟩
-  ◯ (Modal A × Erased A)      ↝⟨ inverse $ ◯≃◯-Modal-× _ ⟩□
-  ◯ (Erased A)                □
-
 -- ◯ (Erased A) is logically equivalent to Erased (◯ A).
 --
 -- See also []-cong.◯-Erased≃Erased-◯ below.
 
-◯-Erased⇔Erased-◯ :
-  ◯ (Erased A) ⇔ Erased (◯ A)
-◯-Erased⇔Erased-◯ {A = A} =
-  ◯ (Erased A)      ↝⟨ inverse ◯-Erased-◯⇔◯-Erased ⟩
-  ◯ (Erased (◯ A))  ↝⟨ lemma ⟩□
-  Erased (◯ A)      □
-  where
-  lemma = record
-    { to   = M.Stable-Erased (Modal→Stable Modal-◯)
-    ; from = η
-    }
+◯-Erased⇔Erased-◯ : ◯ (Erased A) ⇔ Erased (◯ A)
+◯-Erased⇔Erased-◯ {A = A} = record
+  { to   = λ x → ◯-Erased→Erased-◯ x
+  ; from =
+      Erased (◯ A)                →⟨ η ⟩
+      ◯ (Erased (◯ A))            →⟨ ◯≃◯-Modal-× _ ⟩
+      ◯ (Modal A × Erased (◯ A))  →⟨ ◯-map (uncurry λ m → E.map (Modal→Stable m)) ⟩□
+      ◯ (Erased A)                □
+  }
 
 -- Some results that hold if the []-cong axioms can be instantiated.
 
@@ -562,50 +548,83 @@ module []-cong (ax : []-cong-axiomatisation a) where
   ----------------------------------------------------------------------
   -- Some equivalences
 
-  -- ◯ (Erased (◯ A)) is equivalent to ◯ (Erased A) (assuming function
-  -- extensionality).
+  -- ◯ (Erased A) is equivalent to Erased (◯ A).
 
-  ◯-Erased-◯≃◯-Erased :
-    ◯ (Erased (◯ A)) ↝[ a ∣ a ] ◯ (Erased A)
-  ◯-Erased-◯≃◯-Erased {A = A} ext =
-    ◯-cong-↝-Modal→ lzero lzero ext λ m _ →
-      Erased (◯ A)  ↔⟨ EC.Erased-cong (inverse $ Modal→≃◯ m) ⟩□
-      Erased A      □
+  ◯-Erased≃Erased-◯ : ◯ (Erased A) ≃ Erased (◯ A)
+  ◯-Erased≃Erased-◯ {A = A} =
+    Eq.↔→≃
+      (_⇔_.to   ◯-Erased⇔Erased-◯)
+      (_⇔_.from ◯-Erased⇔Erased-◯)
+      (λ (E.[ x ]) →
+         ◯-Erased→Erased-◯
+           (◯-map (uncurry λ m → E.map (Modal→Stable m))
+              (◯≃◯-Modal-× _ (η E.[ x ])))                    ≡⟨ cong (λ x → ◯-Erased→Erased-◯ (◯-map _ x))
+                                                                 ◯≃◯-Modal-×-η ⟩
+         ◯-Erased→Erased-◯
+           (◯-map (uncurry λ m → E.map (Modal→Stable m))
+              (◯-map (_, E.[ x ]) very-modal))                ≡⟨ cong (λ x → ◯-Erased→Erased-◯ x) $ sym
+                                                                 ◯-map-∘ ⟩
+         ◯-Erased→Erased-◯
+           (◯-map (λ m → E.[ Modal→Stable m x ]) very-modal)  ≡⟨ ◯-elim
+                                                                   {P = λ m →
+                                                                          ◯-Erased→Erased-◯ (◯-map (λ m → E.[ Modal→Stable m x ]) m) ≡
+                                                                          E.[ x ]}
+                                                                   (λ _ → Modal→Separated (Modal-Erased Modal-◯) _ _)
+                                                                   (λ m →
+           ◯-Erased→Erased-◯
+             (◯-map (λ m → E.[ Modal→Stable m x ]) (η m))             ≡⟨ cong (λ x → ◯-Erased→Erased-◯ x) ◯-map-η ⟩
 
-  -- ◯ (Erased A) is equivalent to Erased (◯ A) (assuming function
-  -- extensionality).
+           ◯-Erased→Erased-◯ (η E.[ Modal→Stable m x ])               ≡⟨⟩
 
-  ◯-Erased≃Erased-◯ :
-    ◯ (Erased A) ↝[ a ∣ a ] Erased (◯ A)
-  ◯-Erased≃Erased-◯ {A = A} ext =
-    ◯ (Erased A)      ↝⟨ inverse-ext? ◯-Erased-◯≃◯-Erased ext ⟩
-    ◯ (Erased (◯ A))  ↔⟨ lemma ⟩□
-    Erased (◯ A)      □
-    where
-    lemma′ = λ (E.[ x ]) →
-      E.[ ◯-rec Modal-◯ id (◯-map E.erased (η E.[ x ])) ]  ≡⟨ BC.[]-cong E.[ cong (_≃_.from ◯≃◯◯) ◯-map-η ] ⟩
-      E.[ ◯-rec Modal-◯ id (η x) ]                         ≡⟨ BC.[]-cong E.[ ◯-rec-η ] ⟩∎
-      E.[ x ]                                              ∎
+           E.[ ◯-map E.erased (η E.[ Modal→Stable m x ]) ]            ≡⟨ BC.[]-cong E.[ ◯-map-η ] ⟩
 
-    lemma = Eq.↔→≃
-      (M.Stable-Erased (Modal→Stable Modal-◯))
-      η
-      lemma′
-      (◯-elim (λ _ → Separated-◯ _ _) (cong η ∘ lemma′))
+           E.[ η (Modal→Stable m x) ]                                 ≡⟨⟩
+
+           E.[ η (η⁻¹ m x) ]                                          ≡⟨ BC.[]-cong E.[ η-η⁻¹ ] ⟩∎
+
+           E.[ x ]                                                    ∎)
+                                                                   very-modal ⟩∎
+         E.[ x ]                                              ∎)
+      (◯-elim
+         (λ _ → Separated-◯ _ _)
+         (λ (E.[ x ]) →
+            ◯-map (uncurry λ m → E.map (Modal→Stable m))
+              (◯≃◯-Modal-× _ (η (◯-Erased→Erased-◯ (η E.[ x ]))))   ≡⟨⟩
+
+            ◯-map (uncurry λ m → E.map (Modal→Stable m))
+              (◯≃◯-Modal-× _ (η E.[ ◯-map E.erased (η E.[ x ]) ]))  ≡⟨ cong (◯-map _) $ cong (◯≃◯-Modal-× _ ∘ η) $
+                                                                       BC.[]-cong E.[ ◯-map-η ] ⟩
+            ◯-map (uncurry λ m → E.map (Modal→Stable m))
+              (◯≃◯-Modal-× _ (η E.[ η x ]))                         ≡⟨ cong (◯-map _) ◯≃◯-Modal-×-η ⟩
+
+            ◯-map (uncurry λ m → E.map (Modal→Stable m))
+              (◯-map (_, E.[ η x ]) very-modal)                     ≡⟨ sym ◯-map-∘ ⟩
+
+            ◯-map (λ m → E.[ Modal→Stable m (η x) ]) very-modal     ≡⟨ ◯-elim
+                                                                         {P = λ m →
+                                                                                ◯-map (λ m → E.[ Modal→Stable m (η x) ]) m ≡
+                                                                                η E.[ x ]}
+                                                                         (λ _ → Separated-◯ _ _)
+                                                                         (λ m →
+              ◯-map (λ m → E.[ Modal→Stable m (η x) ]) (η m)                ≡⟨ ◯-map-η ⟩
+              η E.[ Modal→Stable m (η x) ]                                  ≡⟨ cong η $ BC.[]-cong E.[ Modal→Stable-η ] ⟩∎
+              η E.[ x ]                                                     ∎)
+                                                                         very-modal ⟩∎
+            η E.[ x ]                                               ∎))
 
   -- ◯ commutes with Contractibleᴱ (assuming function extensionality).
 
   ◯-Contractibleᴱ≃Contractibleᴱ-◯ :
-    ◯ (Contractibleᴱ A) ↝[ a ∣ a ] Contractibleᴱ (◯ A)
+    ◯ (Contractibleᴱ A) ↝[ a ∣ a ]ᴱ Contractibleᴱ (◯ A)
   ◯-Contractibleᴱ≃Contractibleᴱ-◯ {A = A} ext =
     ◯ (Contractibleᴱ A)                           ↔⟨⟩
     ◯ (∃ λ (x : A) → Erased (∀ y → x ≡ y))        ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
-    ◯ (∃ λ (x : A) → ◯ (Erased (∀ y → x ≡ y)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ◯-Erased≃Erased-◯ ext) ⟩
-    ◯ (∃ λ (x : A) → Erased (◯ (∀ y → x ≡ y)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → EC.Erased-cong (inverse-ext? Π◯≃◯Π ext)) ⟩
-    ◯ (∃ λ (x : A) → Erased (∀ y → ◯ (x ≡ y)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → EC.Erased-cong (∀-cong ext λ _ → from-equivalence
+    ◯ (∃ λ (x : A) → ◯ (Erased (∀ y → x ≡ y)))    ↔⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯-Erased≃Erased-◯) ⟩
+    ◯ (∃ λ (x : A) → Erased (◯ (∀ y → x ≡ y)))    ↝⟨ (◯-cong-↝ᴱ ext λ ext → ∃-cong λ _ → EC.Erased-cong (inverse-ext? Π◯≃◯Π ext)) ⟩
+    ◯ (∃ λ (x : A) → Erased (∀ y → ◯ (x ≡ y)))    ↝⟨ (◯-cong-↝ᴱ ext λ ext → ∃-cong λ _ → EC.Erased-cong (∀-cong ext λ _ → from-equivalence
                                                       ◯≡≃η≡η)) ⟩
     ◯ (∃ λ (x : A) → Erased (∀ y → η x ≡ η y))    ↔⟨ ◯Ση≃Σ◯◯ ⟩
-    (∃ λ (x : ◯ A) → ◯ (Erased (∀ y → x ≡ η y)))  ↝⟨ (∃-cong λ _ → ◯-Erased≃Erased-◯ ext) ⟩
+    (∃ λ (x : ◯ A) → ◯ (Erased (∀ y → x ≡ η y)))  ↔⟨ (∃-cong λ _ → ◯-Erased≃Erased-◯) ⟩
     (∃ λ (x : ◯ A) → Erased (◯ (∀ y → x ≡ η y)))  ↝⟨ (∃-cong λ _ → EC.Erased-cong (◯-cong-↝-Modal→ lzero lzero ext λ m ext →
                                                       Π-cong ext (Modal→≃◯ m) λ _ → F.id)) ⟩
     (∃ λ (x : ◯ A) → Erased (◯ (∀ y → x ≡ y)))    ↝⟨ (∃-cong λ _ → EC.Erased-cong (inverse-ext? Π◯≃◯Π ext)) ⟩
@@ -617,14 +636,11 @@ module []-cong (ax : []-cong-axiomatisation a) where
   ----------------------------------------------------------------------
   -- Some results related to stability
 
-  -- If A is k-stable, then Erased A is k-stable (perhaps assuming
-  -- function extensionality).
+  -- If A is k-stable, then Erased A is k-stable.
 
-  Stable-Erased :
-    Extensionality? k a a →
-    @0 Stable-[ k ] A → Stable-[ k ] (Erased A)
-  Stable-Erased {A = A} ext s =
-    ◯ (Erased A)  ↝⟨ ◯-Erased≃Erased-◯ ext ⟩
+  Stable-Erased : @0 Stable-[ k ] A → Stable-[ k ] (Erased A)
+  Stable-Erased {A = A} s =
+    ◯ (Erased A)  ↔⟨ ◯-Erased≃Erased-◯ ⟩
     Erased (◯ A)  ↝⟨ EC.Erased-cong s ⟩□
     Erased A      □
 
@@ -632,28 +648,26 @@ module []-cong (ax : []-cong-axiomatisation a) where
   -- function extensionality).
 
   Stable-Contractibleᴱ :
-    Extensionality? k a a →
+    @0 Extensionality? k a a →
     Modal A →
     Stable-[ k ] (Contractibleᴱ A)
   Stable-Contractibleᴱ ext m =
     Stable-Σ m λ _ →
-    Stable-Erased ext (
+    Stable-Erased (
     Stable-Π ext λ _ →
     Modal→Stable (Modal→Separated m _ _))
 
   -- If f has type A → B, A is modal, and equality is k-stable for B,
-  -- then f ⁻¹ᴱ y is k-stable (perhaps assuming function
-  -- extensionality).
+  -- then f ⁻¹ᴱ y is k-stable.
 
   Stable-⁻¹ᴱ :
     {A B : Type a} {f : A → B} {y : B} →
-    Extensionality? k a a →
     Modal A →
     @0 For-iterated-equality 1 Stable-[ k ] B →
     Stable-[ k ] (f ⁻¹ᴱ y)
-  Stable-⁻¹ᴱ ext m s =
+  Stable-⁻¹ᴱ m s =
     Stable-Σ m λ _ →
-    Stable-Erased ext (s _ _)
+    Stable-Erased (s _ _)
 
   -- If f has type A → B, where A is modal and B is separated, then
   -- ECP.Is-equivalenceᴱ f is k-stable (perhaps assuming function
@@ -669,7 +683,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
     let m′ : Modal (f ⁻¹ᴱ y)
         m′ = Modal-⁻¹ᴱ m s in
     Stable-Σ m′ λ _ →
-    Stable-Erased ext (
+    Stable-Erased (
     Stable-Π ext λ _ →
     Modal→Stable (Modal→Separated m′ _ _))
 
@@ -705,7 +719,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
         let m′ : Modal (f ⁻¹ᴱ y)
             m′ = Modal-⁻¹ᴱ m s in
         Stable-Σ m′ λ _ →
-        Stable-Erased ext′ (
+        Stable-Erased (
         Stable-Π ext′ λ _ →
         Modal→Stable (Modal→Separated m′ _ _))
 
@@ -789,7 +803,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
 
       ◯ (∃ λ (f⁻¹ : B → A) → Erased (HA.Proofs f f⁻¹))                      ↝⟨ inverse ◯Σ◯≃◯Σ ⟩
 
-      ◯ (∃ λ (f⁻¹ : B → A) → ◯ (Erased (HA.Proofs f f⁻¹)))                  ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯-Erased≃Erased-◯ ext) ⟩
+      ◯ (∃ λ (f⁻¹ : B → A) → ◯ (Erased (HA.Proofs f f⁻¹)))                  ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯-Erased≃Erased-◯) ⟩
 
       ◯ (∃ λ (f⁻¹ : B → A) → Erased (◯ (HA.Proofs f f⁻¹)))                  ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → EC.Erased-cong (
                                                                                 ◯-Half-adjoint-proofs≃Half-adjoint-proofs-◯-map-◯-map ext)) ⟩
