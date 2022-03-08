@@ -144,13 +144,13 @@ Join-⊤ʳ {A = A} =
   Join ⊤ A  ↝⟨ Join-⊤ˡ ⟩□
   ⊤         □
 
--- Join A (¬ A) is equivalent to A ⊎ ¬ A.
+-- Join A (¬ A) is equivalent to Dec A.
 --
 -- This lemma is used in (at least my variant of) Christian Sattler's
--- proof of Very-modal-Closed≃⊎¬ (see below).
+-- proof of Very-modal-Closed≃Dec (see below).
 
-Join-¬≃⊎-¬ : Join A (¬ A) ≃ (A ⊎ ¬ A)
-Join-¬≃⊎-¬ = Eq.↔→≃
+Join-¬≃Dec : Join A (¬ A) ≃ Dec A
+Join-¬≃Dec = Eq.↔→≃
   (rec inj₁ inj₂ lemma)
   [ inl , inr ]
   [ (λ _ → refl _) , (λ _ → refl _) ]
@@ -511,20 +511,20 @@ Empty-modal-Closed≃¬ {A = A} prop =
 -- model that showed that it is not the case that every topological
 -- modality is very modal.
 
--- Closed A prop is very modal exactly when A ⊎ ¬ A holds.
+-- Closed A prop is very modal exactly when Dec A holds.
 
-Very-modal-Closed≃⊎¬ :
+Very-modal-Closed≃Dec :
   (prop : Is-proposition A) →
-  Very-modal (Closed A prop) ≃ (A ⊎ ¬ A)
-Very-modal-Closed≃⊎¬ {A = A} prop =
+  Very-modal (Closed A prop) ≃ Dec A
+Very-modal-Closed≃Dec {A = A} prop =
   Eq.⇔→≃
     (Very-modal-propositional ext (Closed _ prop))
     (Dec-closure-propositional ext prop)
     (Very-modal (Closed A prop)  →⟨ (λ very-modal → very-modal) ⟩
      Join A (Modal ⊥)            →⟨ ◯-map Modal→Stable ⟩
      Join A (Join A ⊥ → ⊥)       ↔⟨ ◯-cong-≃ $ →-cong ext Join-⊥ʳ (from-bijection ⊥↔⊥) ⟩
-     Join A (¬ A)                ↔⟨ Join-¬≃⊎-¬ ⟩□
-     A ⊎ ¬ A                     □)
+     Join A (¬ A)                ↔⟨ Join-¬≃Dec ⟩□
+     Dec A                       □)
     [ (λ inh → inl inh) , (λ not-inh → inr (⊥-elim ∘ not-inh)) ]
   where
   open Modality (Closed A prop)
@@ -539,7 +539,7 @@ Very-modal-Closed≃Excluded-middle :
 Very-modal-Closed≃Excluded-middle =
   implicit-∀-cong ext $
   ∀-cong ext λ prop →
-  Very-modal-Closed≃⊎¬ prop
+  Very-modal-Closed≃Dec prop
 
 -- Closed A prop is accessibility-modal for a relation exactly when
 -- ¬ A holds.
@@ -630,7 +630,7 @@ W-modal-Closed≃Empty-modal-Closed {A = A} prop =
      ¬ A × Accessibility-modal    →⟨ (λ (hyp₁ , hyp₂) →
                                         Very-modal.Modal-W
                                           (Closed A prop)
-                                          (_≃_.from (Very-modal-Closed≃⊎¬ prop) (inj₂ hyp₁))
+                                          (_≃_.from (Very-modal-Closed≃Dec prop) (inj₂ hyp₁))
                                           hyp₂ ext) ⟩□
      W-modal (Closed A prop)      □)
   where
