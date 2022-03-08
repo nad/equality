@@ -498,7 +498,7 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
     .Modality-record.extendable-along-η  → stronger-extendable-along-η
 
 ------------------------------------------------------------------------
--- Some definitions
+-- Connectedness
 
 -- ◯ -Connected A means that A is ◯-connected.
 
@@ -530,6 +530,30 @@ Connected-→-propositional :
 Connected-→-propositional ext ◯ =
   Π-closure ext 1 λ _ →
   Connected-propositional ext ◯
+
+-- I did not take the remaining definitions in this section from
+-- "Modalities in Homotopy Type Theory" or the corresponding Coq code.
+
+-- _-Connectedᴱ_ is a variant of _-Connected_ that uses Contractibleᴱ
+-- instead of Contractible.
+--
+-- See also Modality.Connectedᴱ-propositional.
+
+_-Connectedᴱ_ : (Type a → Type a) → Type a → Type a
+◯ -Connectedᴱ A = Contractibleᴱ (◯ A)
+
+-- _-Connected-→ᴱ_ is a variant of _-Connected→_ that uses
+-- _-Connectedᴱ_ instead of _-Connected_ and _⁻¹ᴱ_ instead of _⁻¹_.
+--
+-- See also Modality.Connected-→ᴱ-propositional.
+
+_-Connected-→ᴱ_ :
+  {A B : Type a} →
+  (Type a → Type a) → (A → B) → Type a
+◯ -Connected-→ᴱ f = ∀ y → ◯ -Connectedᴱ (f ⁻¹ᴱ y)
+
+------------------------------------------------------------------------
+-- Some definitions
 
 -- A definition of what it means for a modality to be left exact,
 -- based on Theorem 3.1 (i) in "Modalities in Homotopy Type Theory".
