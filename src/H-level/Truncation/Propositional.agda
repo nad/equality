@@ -197,6 +197,69 @@ rec p f = rec′ λ where
   .truncation-is-propositionʳ → p
 
 ------------------------------------------------------------------------
+-- A lemma
+
+-- A map function.
+
+∥∥-map : (A → B) → ∥ A ∥ → ∥ B ∥
+∥∥-map f = rec truncation-is-proposition (∣_∣ ∘ f)
+
+------------------------------------------------------------------------
+-- The axiom of choice, and the axiom of countable choice
+
+-- The axiom of choice, in one of the alternative forms given in the
+-- HoTT book (§3.8).
+
+Axiom-of-choice : (a b : Level) → Type (lsuc (a ⊔ b))
+Axiom-of-choice a b =
+  {A : Type a} {B : A → Type b} →
+  Is-set A → (∀ x → ∥ B x ∥) → ∥ (∀ x → B x) ∥
+
+-- The axiom of choice can be turned into a bijection.
+
+choice-bijection :
+  {A : Type a} {B : A → Type b} →
+  Axiom-of-choice a b → Is-set A →
+  (∀ x → ∥ B x ∥) ↔ ∥ (∀ x → B x) ∥
+choice-bijection choice A-set = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = choice A-set
+      ; from = λ f x → ∥∥-map (_$ x) f
+      }
+    ; right-inverse-of = λ _ → truncation-is-proposition _ _
+    }
+  ; left-inverse-of = λ _ →
+      (Π-closure ext 1 λ _ →
+       truncation-is-proposition) _ _
+  }
+
+-- The axiom of countable choice, stated in a corresponding way.
+
+Axiom-of-countable-choice : (b : Level) → Type (lsuc b)
+Axiom-of-countable-choice b =
+  {B : ℕ → Type b} → (∀ x → ∥ B x ∥) → ∥ (∀ x → B x) ∥
+
+-- The axiom of countable choice can be turned into a bijection.
+
+countable-choice-bijection :
+  {B : ℕ → Type b} →
+  Axiom-of-countable-choice b →
+  (∀ x → ∥ B x ∥) ↔ ∥ (∀ x → B x) ∥
+countable-choice-bijection cc = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = cc
+      ; from = λ f x → ∥∥-map (_$ x) f
+      }
+    ; right-inverse-of = λ _ → truncation-is-proposition _ _
+    }
+  ; left-inverse-of = λ _ →
+      (Π-closure ext 1 λ _ →
+       truncation-is-proposition) _ _
+  }
+
+------------------------------------------------------------------------
 -- Propositional truncation is an accessible modality
 
 -- Propositional truncation is a modality.
@@ -381,11 +444,6 @@ Is-proposition→∥∥-accessibility-modal {ℓ = ℓ} p₁ p₂ =
 
 ------------------------------------------------------------------------
 -- Various lemmas
-
--- A map function.
-
-∥∥-map : (A → B) → ∥ A ∥ → ∥ B ∥
-∥∥-map f = rec truncation-is-proposition (∣_∣ ∘ f)
 
 -- The propositional truncation defined here is isomorphic to the one
 -- defined in H-level.Truncation.Church.
@@ -1001,58 +1059,6 @@ private
     _≃_.to (constant-function≃∥inhabited∥⇒inhabited B-set) f ∣ x ∣ ≡
     proj₁ f x
   to-constant-function≃∥inhabited∥⇒inhabited _ _ _ = refl _
-
--- The axiom of choice, in one of the alternative forms given in the
--- HoTT book (§3.8).
-
-Axiom-of-choice : (a b : Level) → Type (lsuc (a ⊔ b))
-Axiom-of-choice a b =
-  {A : Type a} {B : A → Type b} →
-  Is-set A → (∀ x → ∥ B x ∥) → ∥ (∀ x → B x) ∥
-
--- The axiom of choice can be turned into a bijection.
-
-choice-bijection :
-  {A : Type a} {B : A → Type b} →
-  Axiom-of-choice a b → Is-set A →
-  (∀ x → ∥ B x ∥) ↔ ∥ (∀ x → B x) ∥
-choice-bijection choice A-set = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = choice A-set
-      ; from = λ f x → ∥∥-map (_$ x) f
-      }
-    ; right-inverse-of = λ _ → truncation-is-proposition _ _
-    }
-  ; left-inverse-of = λ _ →
-      (Π-closure ext 1 λ _ →
-       truncation-is-proposition) _ _
-  }
-
--- The axiom of countable choice, stated in a corresponding way.
-
-Axiom-of-countable-choice : (b : Level) → Type (lsuc b)
-Axiom-of-countable-choice b =
-  {B : ℕ → Type b} → (∀ x → ∥ B x ∥) → ∥ (∀ x → B x) ∥
-
--- The axiom of countable choice can be turned into a bijection.
-
-countable-choice-bijection :
-  {B : ℕ → Type b} →
-  Axiom-of-countable-choice b →
-  (∀ x → ∥ B x ∥) ↔ ∥ (∀ x → B x) ∥
-countable-choice-bijection cc = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = cc
-      ; from = λ f x → ∥∥-map (_$ x) f
-      }
-    ; right-inverse-of = λ _ → truncation-is-proposition _ _
-    }
-  ; left-inverse-of = λ _ →
-      (Π-closure ext 1 λ _ →
-       truncation-is-proposition) _ _
-  }
 
 ------------------------------------------------------------------------
 -- Definitions related to truncated binary sums
