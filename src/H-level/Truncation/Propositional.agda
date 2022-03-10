@@ -442,6 +442,47 @@ Is-proposition→∥∥-accessibility-modal {ℓ = ℓ} p₁ p₂ =
 ∥∥-commutes-with-Σ : Modality.Commutes-with-Σ (∥∥-modality {ℓ = ℓ})
 ∥∥-commutes-with-Σ = Modality.commutes-with-Σ ∥∥-modality ext
 
+-- If the axiom of choice holds, then the modality has choice for
+-- families over sets.
+
+∥∥-has-choice-for-sets :
+  {A : Type ℓ} →
+  Axiom-of-choice ℓ ℓ →
+  Is-set A →
+  Modality.Has-choice-for (∥∥-modality {ℓ = ℓ}) A
+∥∥-has-choice-for-sets choice set =
+  _≃_.from (Has-choice-for≃Is-equivalence-◯Π→Π◯ ext) $
+  _≃_.is-equivalence $
+  Eq.with-other-function
+    (from-bijection $ inverse $ choice-bijection choice set)
+    _
+    (λ _ → (Π-closure ext 1 λ _ →
+            truncation-is-proposition)
+             _ _)
+  where
+  open Modality ∥∥-modality
+
+-- If the axiom of countable choice holds, then the modality has
+-- choice for families over ℕ (lifted).
+
+∥∥-has-choice-for-ℕ :
+  Axiom-of-countable-choice ℓ →
+  Modality.Has-choice-for (∥∥-modality {ℓ = ℓ}) (↑ ℓ ℕ)
+∥∥-has-choice-for-ℕ choice =
+  _≃_.from (Has-choice-for≃Is-equivalence-◯Π→Π◯ ext) λ {P = P} →
+  _≃_.is-equivalence $
+  Eq.with-other-function
+    (∥ ((n : ↑ _ ℕ) → P n) ∥     ↝⟨ (◯-cong-≃ $ Π-cong ext Bijection.↑↔ λ _ → F.id) ⟩
+     ∥ ((n : ℕ) → P (lift n)) ∥  ↔⟨ inverse $ countable-choice-bijection choice ⟩
+     ((n : ℕ) → ∥ P (lift n) ∥)  ↝⟨ (Π-cong ext (inverse Bijection.↑↔) λ _ → F.id) ⟩□
+     ((n : ↑ _ ℕ) → ∥ P n ∥)     □)
+    _
+    (λ _ → (Π-closure ext 1 λ _ →
+            truncation-is-proposition)
+             _ _)
+  where
+  open Modality ∥∥-modality
+
 ------------------------------------------------------------------------
 -- Various lemmas
 
