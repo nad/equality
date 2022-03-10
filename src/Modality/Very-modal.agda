@@ -171,7 +171,9 @@ has-choice {A = A} {P = P} =
       (ext⁻¹ (_≃_.right-inverse-of Eq.⟨ ◯Π→Π◯ , equiv ext ⟩ f) x)  ∎
 
 private
-  module C = Modality.Has-choice eq M has-choice
+  module C =
+    Modality.Has-choice.Valid-domain
+      eq M (λ _ → ↑ _ ⊤) (λ _ → has-choice) _
 open C public
   hiding (◯Π◯≃◯Π; ◯Π◯≃◯Π-η; ◯Π◯≃◯Π⁻¹-η;
           module Left-exact; module []-cong)
@@ -614,7 +616,8 @@ module []-cong (ax : []-cong-axiomatisation a) where
       public
       hiding (module []-cong)
     open module BC = CE.[]-cong ax public
-      hiding (module Has-erased-choice; module Has-choice)
+      hiding (module Has-erased-choice-for; module Has-choice-for;
+              module Has-choice)
     open module HC = BC.Has-choice has-choice public
       hiding (module Left-exact; module Left-exact-Commutes-with-Σ)
     open HC.Left-exact-Commutes-with-Σ left-exact-η-cong commutes-with-Σ

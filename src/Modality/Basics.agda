@@ -4684,7 +4684,7 @@ module Modality (M : Modality a) where
 
   -- An unfolding lemma for ◯ (W A (P ∘ η)).
   --
-  -- See also Modality.Has-choice.◯Wη≃Σ◯Π◯Wη.
+  -- See also ◯Wη≃Σ◯Π◯Wη in Modality.Has-choice.
 
   ◯Wη→Σ◯Π◯Wη :
     {P : ◯ A → Type a} →
@@ -4827,8 +4827,7 @@ module Modality (M : Modality a) where
   -- then ◯ (W A (P ∘ η)) implies W (◯ A) P (assuming function
   -- extensionality).
   --
-  -- See also Modality.Has-choice.W◯→◯Wη and
-  -- Modality.Has-choice.◯Wη≃W◯.
+  -- See also W◯→◯Wη and ◯Wη≃W◯ in Modality.Has-choice.
 
   ◯Wη→W◯ :
     {P : ◯ A → Type a} →
@@ -4880,7 +4879,7 @@ module Modality (M : Modality a) where
   -- A is modal, then W A P is stable (assuming function
   -- extensionality).
   --
-  -- See also Modality.Has-choice.Modal-W.
+  -- See also Modal-W in Modality.Has-choice.
 
   Stable-W :
     @0 Accessibility-modal-for (_<W_ {A = A} {P = P}) →
@@ -5197,8 +5196,8 @@ module Modality (M : Modality a) where
        Modal→Stable $ Separated-◯ _ _)
 
   -- A lemma used in the implementations of
-  -- ◯-Is-embedding→Is-embedding and
-  -- Modality.Has-choice.Left-exact.◯-Is-embedding≃Is-embedding.
+  -- ◯-Is-embedding→Is-embedding and ◯-Is-embedding≃Is-embedding (the
+  -- latter definition can be found in Modality.Has-choice).
 
   ◯-map-cong≡ :
     ∀ (lex : Left-exact-η-cong) (p : ◯ (x ≡ y)) →
