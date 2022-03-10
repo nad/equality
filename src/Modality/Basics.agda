@@ -1451,21 +1451,21 @@ module Modality (M : Modality a) where
       g
 
   -- A definition of what it means for the modality to "have choice
-  -- for P".
+  -- for A".
   --
   -- The definition is a little convoluted. In the presence of
-  -- function extensionality it can be simplified to
-  -- "Is-equivalence (◯Π→Π◯ {P = P})" (see
-  -- Has-choice-for≃Is-equivalence-◯Π→Π◯). With the present
-  -- formulation one can prove certain things without assuming
-  -- function extensionality:
+  -- function extensionality it can be simplified, see
+  -- Has-choice-for≃Is-equivalence-◯Π→Π◯. With the present formulation
+  -- one can prove certain things without assuming function
+  -- extensionality:
   -- * One can prove that modalities with choice satisfy certain
   --   properties (see Modality.Has-choice).
   -- * One can prove that very modal modalities have choice (see
   --   Modality.Very-modal.has-choice).
 
-  Has-choice-for : {A : Type a} → (A → Type a) → Type (lsuc a)
-  Has-choice-for P =
+  Has-choice-for : Type a → Type (lsuc a)
+  Has-choice-for A =
+    {P : A → Type a} →
     ∃ λ (Π◯→◯Π : (∀ x → ◯ (P x)) → ◯ (∀ x → P x)) →
     ∃ λ (◯Π→Π◯-Π◯→◯Π : ∀ f x → ◯Π→Π◯ (Π◯→◯Π f) x ≡ f x) →
     Extensionality a a →
@@ -1478,13 +1478,16 @@ module Modality (M : Modality a) where
      _≃_.to eq (_≃_.from eq f) x  ≡⟨ ext⁻¹ (_≃_.right-inverse-of eq f) x ⟩∎
      f x                          ∎)
 
-  -- In the presence of function extensionality Has-choice-for P is
-  -- equivalent to Is-equivalence (◯Π→Π◯ {P = P}).
+  -- In the presence of function extensionality Has-choice-for A is
+  -- equivalent to {P : A → Type a} → Is-equivalence (◯Π→Π◯ {P = P}).
 
   Has-choice-for≃Is-equivalence-◯Π→Π◯ :
     Extensionality (lsuc a) (lsuc a) →
-    Has-choice-for P ≃ Is-equivalence (◯Π→Π◯ {P = P})
-  Has-choice-for≃Is-equivalence-◯Π→Π◯ {P = P} ext =
+    Has-choice-for A ≃
+    ({P : A → Type a} → Is-equivalence (◯Π→Π◯ {P = P}))
+  Has-choice-for≃Is-equivalence-◯Π→Π◯ ext =
+    implicit-∀-cong ext λ {P} →
+
     (∃ λ (Π◯→◯Π : (∀ x → ◯ (P x)) → ◯ (∀ x → P x)) →
      ∃ λ (◯Π→Π◯-Π◯→◯Π : ∀ f x → ◯Π→Π◯ (Π◯→◯Π f) x ≡ f x) →
      Extensionality a a →
@@ -1563,18 +1566,19 @@ module Modality (M : Modality a) where
   -- or to be a "modality with choice".
 
   Has-choice : Type (lsuc a)
-  Has-choice = {A : Type a} {P : A → Type a} → Has-choice-for P
+  Has-choice = {A : Type a} → Has-choice-for A
 
   -- Has-choice-for P is a proposition (assuming function
   -- extensionality).
 
   Has-choice-for-propositional :
     Extensionality (lsuc a) (lsuc a) →
-    Is-proposition (Has-choice-for P)
-  Has-choice-for-propositional {P = P} ext =
-                                           $⟨ Is-equivalence-propositional (lower-extensionality _ _ ext) ⟩
-    Is-proposition (Is-equivalence ◯Π→Π◯)  →⟨ H-level-cong _ 1 (inverse $ Has-choice-for≃Is-equivalence-◯Π→Π◯ ext) ⟩□
-    Is-proposition (Has-choice-for P)      □
+    Is-proposition (Has-choice-for A)
+  Has-choice-for-propositional {A = A} ext =
+                                                              $⟨ (implicit-Π-closure (lower-extensionality lzero _ ext) 1 λ _ →
+                                                                  Is-equivalence-propositional (lower-extensionality _ _ ext)) ⟩
+    Is-proposition ({P : A → Type a} → Is-equivalence ◯Π→Π◯)  →⟨ H-level-cong _ 1 (inverse $ Has-choice-for≃Is-equivalence-◯Π→Π◯ ext) ⟩□
+    Is-proposition (Has-choice-for A)                         □
 
   -- Has-choice is a proposition (assuming function extensionality).
 
@@ -1583,7 +1587,6 @@ module Modality (M : Modality a) where
     Is-proposition Has-choice
   Has-choice-propositional ext =
     implicit-Π-closure ext 1 λ _ →
-    implicit-Π-closure (lower-extensionality lzero lzero ext) 1 λ _ →
     Has-choice-for-propositional ext
 
   -- If A is modal, then ◯ (Σ A P) is equivalent to Σ A (◯ ∘ P).
