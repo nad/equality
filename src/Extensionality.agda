@@ -214,6 +214,21 @@ abstract
 
   -- Some simplification/rearrangement lemmas related to apply-ext.
 
+  ext-ext⁻¹ :
+    {A : Type a} {P : A → Type p} {f g : (x : A) → P x} {f≡g : f ≡ g}
+    (ext : Extensionality a p) →
+    apply-ext ext (ext⁻¹ f≡g) ≡ f≡g
+  ext-ext⁻¹ ext =
+    left-inverse-of (ext .Extensionality.extensionality) _
+
+  ext⁻¹-ext :
+    {A : Type a} {P : A → Type p}
+    {f g : (x : A) → P x} {f≡g : ∀ x → f x ≡ g x}
+    (ext : Extensionality a p) →
+    ext⁻¹ (apply-ext ext f≡g) ≡ f≡g
+  ext⁻¹-ext ext =
+    right-inverse-of (ext .Extensionality.extensionality) _
+
   ext-refl :
     {A : Type a} {P : A → Type p} {f : (x : A) → P x}
     (ext : Extensionality a p) →
