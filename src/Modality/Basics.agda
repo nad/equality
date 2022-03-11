@@ -1309,6 +1309,22 @@ module Modality (M : Modality a) where
       Modal-propositional
       ext
 
+  -- The type (x : ◯ A) → ◯ (P x) is inhabited if and only if
+  -- (x : A) → ◯ (P (η x)) is.
+
+  Π◯◯≃Π◯η :
+    ((x : ◯ A) → ◯ (P x)) ↝[ a ∣ a ] ((x : A) → ◯ (P (η x)))
+  Π◯◯≃Π◯η =
+    generalise-ext?
+      (record { to = _∘ η; from = ◯-elim (λ _ → Modal-◯) })
+      (λ ext →
+           (λ f → apply-ext ext λ x →
+              ◯-elim (λ _ → Modal-◯) f (η x)  ≡⟨ ◯-elim-η ⟩∎
+              f x                             ∎)
+         , (λ f → apply-ext ext (◯-elim (λ _ → Separated-◯ _ _) λ x →
+              ◯-elim (λ _ → Modal-◯) (f ∘ η) (η x)  ≡⟨ ◯-elim-η ⟩∎
+              f (η x)                               ∎)))
+
   -- ◯ (↑ a ⊤) is equivalent to ⊤.
 
   ◯⊤≃ : ◯ (↑ a ⊤) ≃ ⊤
@@ -1397,22 +1413,6 @@ module Modality (M : Modality a) where
         y
 
   open Abstract public
-
-  -- The type (x : ◯ A) → ◯ (P x) is inhabited if and only if
-  -- (x : A) → ◯ (P (η x)) is.
-
-  Π◯◯≃Π◯η :
-    ((x : ◯ A) → ◯ (P x)) ↝[ a ∣ a ] ((x : A) → ◯ (P (η x)))
-  Π◯◯≃Π◯η =
-    generalise-ext?
-      (record { to = _∘ η; from = ◯-elim (λ _ → Modal-◯) })
-      (λ ext →
-           (λ f → apply-ext ext λ x →
-              ◯-elim (λ _ → Modal-◯) f (η x)  ≡⟨ ◯-elim-η ⟩∎
-              f x                             ∎)
-         , (λ f → apply-ext ext (◯-elim (λ _ → Separated-◯ _ _) λ x →
-              ◯-elim (λ _ → Modal-◯) (f ∘ η) (η x)  ≡⟨ ◯-elim-η ⟩∎
-              f (η x)                               ∎)))
 
   -- I did not take the remaining results and definitions in this
   -- section from "Modalities in Homotopy Type Theory" or the
