@@ -22,6 +22,7 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Erased equality-with-J as EEq using (_≃ᴱ_)
+open import Equivalence.List equality-with-J
 open import Equivalence.Path-split equality-with-J as PS
   using (Is-∞-extendable-along-[_])
 open import Erased.Cubical eq as E using (Erased)
@@ -581,6 +582,59 @@ Very-modal-Closed≃Excluded-middle =
   implicit-∀-cong ext $
   ∀-cong ext λ prop →
   Very-modal-Closed≃Dec prop
+
+-- Very-modal-Closed≃Dec can be extended with properties related to
+-- choice.
+
+Very-modal-Closed≃Has-choice-Closed≃Dec :
+  (prop : Is-proposition A) →
+  Equivalent
+    ( Very-modal              (Closed A prop)
+    , Modality.Has-choice     (Closed A prop)
+    , Modality.Has-choice-for (Closed A prop) A
+    , Dec A
+    )
+Very-modal-Closed≃Has-choice-Closed≃Dec {A = A} prop =
+    ( (Very-modal (Closed A prop)  →⟨ Very-modal.has-choice (Closed A prop) ⟩⇔
+       Has-choice                  →⟨ (λ hyp → hyp) ⟩⇔
+       Has-choice-for A            →⟨ lemma ⟩⇔□)
+    , (Dec A                       →⟨ _≃_.from (Very-modal-Closed≃Dec prop) ⟩□
+       Very-modal (Closed A prop)  □)
+    )
+  , ( Very-modal-propositional ext (Closed A prop)
+    , Has-choice-propositional ext
+    , Has-choice-for-propositional ext
+    , Dec-closure-propositional ext prop
+    , _
+    )
+  where
+  open Modality (Closed A prop)
+
+  lemma : Has-choice-for A → Dec A
+  lemma has-choice =    $⟨ inj₁ ⟩
+    (A → Dec A)         ↝⟨ (∀-cong ext λ _ → inverse Join-¬≃Dec) ⟩
+    (A → Join A (¬ A))  ↔⟨ inverse Eq.⟨ _ , _≃_.to (Has-choice-for≃Is-equivalence-◯Π→Π◯ ext) has-choice ⟩ ⟩
+    Join A (A → ¬ A)    ↔⟨ Join-cong-↔ F.id (→→proposition↔→ ext ⊥-propositional) ⟩
+    Join A (¬ A)        ↝⟨ Join-¬≃Dec ⟩□
+    Dec A               □
+
+-- Very-modal-Closed≃Excluded-middle can be extended with properties
+-- related to choice.
+
+Very-modal-Closed≃Has-choice-Closed≃Excluded-middle :
+  Equivalent
+    ( ({A : Type a} (prop : Is-proposition A) →
+       Very-modal (Closed A prop))
+    , ({A : Type a} (prop : Is-proposition A) →
+       Modality.Has-choice (Closed A prop))
+    , ({A : Type a} (prop : Is-proposition A) →
+       Modality.Has-choice-for (Closed A prop) A)
+    , Excluded-middle a
+    )
+Very-modal-Closed≃Has-choice-Closed≃Excluded-middle =
+  Equivalent-Implicit-forall ext λ _ →
+  Equivalent-Forall ext λ prop →
+  Very-modal-Closed≃Has-choice-Closed≃Dec prop
 
 -- Closed A prop is accessibility-modal for a relation exactly when
 -- ¬ A holds.
