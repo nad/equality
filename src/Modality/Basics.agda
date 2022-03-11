@@ -48,13 +48,14 @@ open import Injection eq-J using (_↣_; Injective)
 open import Preimage eq-J as Preimage using (_⁻¹_)
 open import Surjection eq-J using (_↠_; Split-surjective)
 open import Univalence-axiom eq-J
+open import Vec.Dependent eq-J as Vec using (Vec)
 
 private
   variable
-    a c d                                : Level
-    A B B₁ B₂ C                          : Type a
-    eq f g k m m₁ m₂ p s x y z z₁ z₂ _<_ : A
-    P Q                                  : A → Type p
+    a c d                                    : Level
+    A B B₁ B₂ C                              : Type a
+    eq f g i k m m₁ m₂ n p s x y z z₁ z₂ _<_ : A
+    P Q                                      : A → Type p
 
 ------------------------------------------------------------------------
 -- Modalities
@@ -1418,6 +1419,80 @@ module Modality (M : Modality a) where
   -- section from "Modalities in Homotopy Type Theory" or the
   -- corresponding Coq code (but that does not mean that one cannot
   -- find something similar in those places).
+
+  -- ◯ commutes with Vec n (in a certain sense).
+
+  ◯-Vec : ◯ (Vec n P) ≃ Vec n (◯ ∘ P)
+  ◯-Vec {n = zero} =
+    ◯ (↑ a ⊤)  ↝⟨ ◯⊤≃ ⟩
+    ⊤          ↔⟨ inverse Bijection.↑↔ ⟩□
+    ↑ a ⊤      □
+  ◯-Vec {n = suc n} {P = P} =
+    ◯ (P fzero × Vec n (P ∘ fsuc))      ↝⟨ ◯×≃ ⟩
+    ◯ (P fzero) × ◯ (Vec n (P ∘ fsuc))  ↝⟨ (∃-cong λ _ → ◯-Vec) ⟩□
+    ◯ (P fzero) × Vec n (◯ ∘ P ∘ fsuc)  □
+
+  -- A "computation rule" for ◯-Vec.
+
+  ◯-Vec-η :
+    {xs : Vec n P} →
+    _≃_.to ◯-Vec (η xs) ≡ Vec.map η xs
+  ◯-Vec-η {n = zero}                = refl _
+  ◯-Vec-η {n = suc _} {xs = x , xs} =
+    Σ-map id (_≃_.to ◯-Vec) (_≃_.to ◯×≃ (η (x , xs)))  ≡⟨ cong (Σ-map id (_≃_.to ◯-Vec)) ◯×≃-η ⟩
+    Σ-map id (_≃_.to ◯-Vec) (η x , η xs)               ≡⟨ cong (_ ,_) ◯-Vec-η ⟩∎
+    η x , Vec.map η xs                                 ∎
+
+  -- A lemma relating Vec.index and ◯-Vec.
+
+  index-◯-Vec :
+    {xs : Vec n (◯ ∘ P)} →
+    ◯-map (λ xs → Vec.index xs i) (_≃_.from ◯-Vec xs) ≡
+    Vec.index xs i
+  index-◯-Vec {n = suc _} {i = fzero} {xs = x , xs} =
+    ◯-elim
+      {P = λ x → ◯-map proj₁ (_≃_.from ◯×≃ (x , _≃_.from ◯-Vec xs)) ≡ x}
+      (λ _ → Separated-◯ _ _)
+      (λ x →
+         ◯-map proj₁ (_≃_.from ◯×≃ (η x , _≃_.from ◯-Vec xs))  ≡⟨ cong (◯-map _) ◯×≃⁻¹-ηˡ ⟩
+         ◯-map proj₁ (◯-map (x ,_) (_≃_.from ◯-Vec xs))        ≡⟨ sym ◯-map-∘ ⟩
+         ◯-map (const x) (_≃_.from ◯-Vec xs)                   ≡⟨ ◯-map-const ⟩∎
+         η x                                                   ∎)
+      x
+  index-◯-Vec {n = suc _} {i = fsuc i} {xs = x , xs} =
+    ◯-map (λ (_ , xs) → Vec.index xs i)
+      (_≃_.from ◯×≃ (x , _≃_.from ◯-Vec xs))                ≡⟨ ◯-map-∘ ⟩
+
+    ◯-map (λ xs → Vec.index xs i)
+      (◯-map proj₂ (_≃_.from ◯×≃ (x , _≃_.from ◯-Vec xs)))  ≡⟨ cong (◯-map _) $
+                                                               ◯-elim
+                                                                 {P = λ xs → ◯-map proj₂ (_≃_.from ◯×≃ (x , xs)) ≡ xs}
+                                                                 (λ _ → Separated-◯ _ _)
+                                                                 (λ xs →
+      ◯-map proj₂ (_≃_.from ◯×≃ (x , η xs))                         ≡⟨ cong (◯-map _) ◯×≃⁻¹-ηʳ ⟩
+      ◯-map proj₂ (◯-map (_, xs) x)                                 ≡⟨ sym ◯-map-∘ ⟩
+      ◯-map (const xs) x                                            ≡⟨ ◯-map-const ⟩∎
+      η xs                                                          ∎)
+                                                                 _ ⟩
+
+    ◯-map (λ xs → Vec.index xs i) (_≃_.from ◯-Vec xs)       ≡⟨ index-◯-Vec ⟩∎
+
+    Vec.index xs i                                          ∎
+
+  -- A lemma relating ◯-Vec and Vec.tabulate.
+
+  ◯-Vec-tabulate-η :
+    {f : (i : Fin n) → P i} →
+    _≃_.from ◯-Vec (Vec.tabulate (η ∘ f)) ≡
+    η (Vec.tabulate f)
+  ◯-Vec-tabulate-η {n = zero}          = refl _
+  ◯-Vec-tabulate-η {n = suc n} {f = f} =
+    _≃_.from ◯×≃
+      (η (f fzero) , _≃_.from ◯-Vec (Vec.tabulate (η ∘ f ∘ fsuc)))  ≡⟨ cong (_≃_.from ◯×≃ ∘ (_ ,_)) ◯-Vec-tabulate-η ⟩
+
+    _≃_.from ◯×≃ (η (f fzero) , η (Vec.tabulate (f ∘ fsuc)))        ≡⟨ ◯×≃⁻¹-η ⟩∎
+
+    η (f fzero , Vec.tabulate (f ∘ fsuc))                           ∎
 
   -- The inverse of a choice principle (that may or may not hold).
 
