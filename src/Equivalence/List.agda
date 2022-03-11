@@ -32,6 +32,10 @@ private
 ------------------------------------------------------------------------
 -- Functions used to compute levels
 
+Max : List Level → Level
+Max []       = lzero
+Max (a ∷ ls) = a ⊔ Max ls
+
 Type-list-level : List Level → Level
 Type-list-level []       = lzero
 Type-list-level (a ∷ ls) = lsuc a ⊔ Type-list-level ls
@@ -49,6 +53,10 @@ Any-level = All-level
 
 ∈-level : Level → List Level → Level
 ∈-level = Any-level
+
+Quantified-level : Level → List Level → List Level
+Quantified-level a []       = []
+Quantified-level a (b ∷ ls) = a ⊔ b ∷ Quantified-level a ls
 
 Implies-level : List Level → Level
 Implies-level []               = lzero
@@ -269,6 +277,44 @@ Any-map :
   Any p P As → Any q Q As
 Any-map {ls = _ ∷ _} f (inj₁ x) = inj₁ (f _ x)
 Any-map {ls = _ ∷ _} f (inj₂ x) = inj₂ (Any-map f x)
+
+-- Quantified turns a family of lists of types into a list of types.
+
+Quantified :
+  {A : Type a} →
+  (∀ {b} → (A → Type b) → Type (a ⊔ b)) →
+  (A → Type-list ls) →
+  Type-list (Quantified-level a ls)
+Quantified {ls = []}        F Ps = _
+Quantified {ls = _ ∷ []}    F Ps = F Ps
+Quantified {ls = _ ∷ _ ∷ _} F Ps =
+  F (λ x → Ps x .proj₁) , Quantified F (λ x → Ps x .proj₂)
+
+-- Forall can be used to define a list of types of the form "∀ x → …".
+
+Forall :
+  {A : Type a} →
+  (A → Type-list ls) →
+  Type-list (Quantified-level a ls)
+Forall = Quantified (λ P → ∀ x → P x)
+
+-- Implicit-forall can be used to define a list of types of the form
+-- "∀ {x} → …".
+
+Implicit-forall :
+  {A : Type a} →
+  (A → Type-list ls) →
+  Type-list (Quantified-level a ls)
+Implicit-forall = Quantified (λ P → ∀ {x} → P x)
+
+-- Exists can be used to define a list of types of the form
+-- "∃ λ x → …".
+
+Exists :
+  {A : Type a} →
+  (A → Type-list ls) →
+  Type-list (Quantified-level a ls)
+Exists = Quantified ∃
 
 ------------------------------------------------------------------------
 -- Lists containing (logically) equivalent types
@@ -663,6 +709,166 @@ Logically-equivalent-Append A∈Bs A∈Cs eq₁ eq₂ =
     implies-∷
       (logically-equivalent eq₁ A∈Bs Last∈)
       A∈Cs implies₁ eq₂
+
+------------------------------------------------------------------------
+-- Some preservation lemmas
+
+-- Quantified F preserves Logically-equivalent if F satisfies a
+-- certain property.
+
+Logically-equivalent-Quantified :
+  {A : Type a} {F : (∀ {b} → (A → Type b) → Type (a ⊔ b))}
+  {Ps : A → Type-list ls} →
+  (∀ {p q} {P : A → Type p} {Q : A → Type q} →
+   (∀ x → P x → Q x) → F P → F Q) →
+  (∀ x → Logically-equivalent (Ps x)) →
+  Logically-equivalent (Quantified F Ps)
+Logically-equivalent-Quantified {A = A} {F = F} cong eq =
+    implies (λ x → eq x .proj₁)
+  , last-implies-first (λ x → eq x .proj₂)
+  where
+  implies :
+    {Ps : A → Type-list ls} →
+    (∀ x → Implies (Ps x)) →
+    Implies (Quantified F Ps)
+  implies {ls = []}                       = _
+  implies {ls = _ ∷ []}                   = _
+  implies {ls = _ ∷ _ ∷ []} {Ps = Ps} imp =
+    F (λ x → Ps x .proj₁)  →⟨ cong imp ⟩□
+    F (λ x → Ps x .proj₂)  □
+  implies {ls = _ ∷ _ ∷ _ ∷ _} {Ps = Ps} imp =
+      (F (λ x → Ps x .proj₁)         →⟨ cong (λ x → imp x .proj₁) ⟩□
+       F (λ x → Ps x .proj₂ .proj₁)  □)
+    , implies (λ x → imp x .proj₂)
+
+  last-implies-first′ :
+    ∀ ls {Ps : A → Type-list (p ∷ ls)} {Q : A → Type q} →
+    (∀ x → Last (Ps x) → Q x) →
+    Last (Quantified F Ps) → F Q
+  last-implies-first′ [] {Ps = P} {Q = Q} imp =
+    F P  →⟨ cong imp ⟩□
+    F Q  □
+  last-implies-first′ (_ ∷ ls) imp =
+    last-implies-first′ ls imp
+
+  last-implies-first :
+    {Ps : A → Type-list ls} →
+    (∀ x → Last-implies-first (Ps x)) →
+    Last-implies-first (Quantified F Ps)
+  last-implies-first {ls = []}                       = _
+  last-implies-first {ls = _ ∷ []}                   = _
+  last-implies-first {ls = _ ∷ _ ∷ ls} {Ps = Ps} imp =
+    Last (Quantified F (λ x → Ps x .proj₂))  →⟨ last-implies-first′ ls imp ⟩□
+    F (λ x → Ps x .proj₁)                    □
+
+-- Forall preserves Logically-equivalent.
+
+Logically-equivalent-Forall :
+  {A : Type a} {Ps : A → Type-list ls} →
+  (∀ x → Logically-equivalent (Ps x)) →
+  Logically-equivalent (Forall Ps)
+Logically-equivalent-Forall =
+  Logically-equivalent-Quantified (∀-cong _)
+
+-- Implicit-forall preserves Logically-equivalent.
+
+Logically-equivalent-Implicit-forall :
+  {A : Type a} {Ps : A → Type-list ls} →
+  (∀ x → Logically-equivalent (Ps x)) →
+  Logically-equivalent (Implicit-forall Ps)
+Logically-equivalent-Implicit-forall =
+  Logically-equivalent-Quantified (implicit-∀-cong _ ∘ (_$ _))
+
+-- Exists preserves Logically-equivalent.
+
+Logically-equivalent-Exists :
+  {A : Type a} {Ps : A → Type-list ls} →
+  (∀ x → Logically-equivalent (Ps x)) →
+  Logically-equivalent (Exists Ps)
+Logically-equivalent-Exists =
+  Logically-equivalent-Quantified ∃-cong
+
+-- Quantified F preserves All p P if certain assumptions hold.
+
+All-Quantified :
+  {A : Type a} {F : (∀ {b} → (A → Type b) → Type (a ⊔ b))}
+  {Ps : A → Type-list ls}
+  {P : ∀ {a} → Type a → Type (a ⊔ p)}
+  (Q : (q : Level) → Type (lsuc (a ⊔ q))) →
+  (∀ {q} q′ → Q (q ⊔ q′) → Q q) →
+  (∀ {r} {R : A → Type r} →
+   Q r → (∀ x → P (R x)) → P (F R)) →
+  Q (Max ls) →
+  (∀ x → All p P (Ps x)) →
+  All p P (Quantified F Ps)
+All-Quantified {ls = []}                   = _
+All-Quantified {ls = _ ∷ []} _ _ hyp q all =
+    hyp q (λ x → all x .proj₁)
+  , _
+All-Quantified {ls = ls@(_ ∷ _ ∷ _)} _ lower hyp q all =
+    hyp (lower (Max ls) q) (λ x → all x .proj₁)
+  , All-Quantified _ lower hyp (lower (Max ls) q) (λ x → all x .proj₂)
+
+-- Quantified F preserves Equivalent, given certain assumptions.
+
+Equivalent-Quantified :
+  {A : Type a} {F : (∀ {b} → (A → Type b) → Type (a ⊔ b))}
+  {Ps : A → Type-list ls}
+  (P : (p : Level) → Type (lsuc (a ⊔ p))) →
+  (∀ {p} p′ → P (p ⊔ p′) → P p) →
+  (∀ {p q} {P : A → Type p} {Q : A → Type q} →
+   (∀ x → P x → Q x) → F P → F Q) →
+  (∀ {q} {Q : A → Type q} →
+   P q → (∀ x → Is-proposition (Q x)) → Is-proposition (F Q)) →
+  P (Max ls) →
+  (∀ x → Equivalent (Ps x)) →
+  Equivalent (Quantified F Ps)
+Equivalent-Quantified P lower cong closure p eq =
+    Logically-equivalent-Quantified cong (λ x → eq x .proj₁)
+  , All-Quantified P lower closure p (λ x → eq x .proj₂)
+
+-- Forall preserves Equivalent (assuming extensionality).
+
+Equivalent-Forall :
+  {A : Type a} {F : A → Type-list ls} →
+  Extensionality a (Max ls) →
+  (∀ x → Equivalent (F x)) →
+  Equivalent (Forall F)
+Equivalent-Forall {a = a} =
+  Equivalent-Quantified
+    (Extensionality a)
+    (lower-extensionality lzero)
+    (∀-cong _)
+    (flip Π-closure 1)
+
+-- Implicit-forall preserves Equivalent (assuming extensionality).
+
+Equivalent-Implicit-forall :
+  {A : Type a} {F : A → Type-list ls} →
+  Extensionality a (Max ls) →
+  (∀ x → Equivalent (F x)) →
+  Equivalent (Implicit-forall F)
+Equivalent-Implicit-forall {a = a} =
+  Equivalent-Quantified
+    (Extensionality a)
+    (lower-extensionality lzero)
+    (implicit-∀-cong _ ∘ (_$ _))
+    (flip implicit-Π-closure 1)
+
+-- Exists {A = A} preserves Equivalent if A is a proposition.
+
+Equivalent-Exists :
+  {A : Type a} {F : A → Type-list ls} →
+  Is-proposition A →
+  (∀ x → Equivalent (F x)) →
+  Equivalent (Exists F)
+Equivalent-Exists prop =
+  Equivalent-Quantified
+    (λ _ → ↑ _ ⊤)
+    _
+    ∃-cong
+    (λ _ → Σ-closure 1 prop)
+    _
 
 ------------------------------------------------------------------------
 -- Some combinators that can be used to prove Logically-equivalent As
