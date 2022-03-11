@@ -1664,6 +1664,86 @@ module Modality (M : Modality a) where
     implicit-Π-closure ext 1 λ _ →
     Has-choice-for-propositional ext
 
+  -- The modality has choice for Fin n (lifted).
+
+  Has-choice-for-Fin : Has-choice-for (↑ a (Fin n))
+  Has-choice-for-Fin =
+      Π◯→◯Π
+    , ◯Π→Π◯-Π◯→◯Π
+    , (λ ext →
+           _≃_.is-equivalence
+             (Eq.↔→≃ _ _
+                (apply-ext ext ∘ ◯Π→Π◯-Π◯→◯Π)
+                (λ _ → Π◯→◯Π-◯Π→Π◯ (lower-extensionality _ lzero ext)))
+         , refl _
+         , (λ f i →
+              ◯Π→Π◯-Π◯→◯Π f i                                  ≡⟨ cong (_$ i) $ sym $ ext⁻¹-ext ext ⟩
+
+              ext⁻¹ (apply-ext ext $ ◯Π→Π◯-Π◯→◯Π f) i          ≡⟨ trans (sym $ trans-reflˡ _) $
+                                                                  cong (flip trans _) $ sym $ cong-refl _ ⟩∎
+              trans (cong (λ g → ◯Π→Π◯ (g f) i) (refl Π◯→◯Π))
+                (ext⁻¹ (apply-ext ext $ ◯Π→Π◯-Π◯→◯Π f) i)      ∎))
+    where
+    Π◯→◯Π : ((x : ↑ a (Fin n)) → ◯ (P x)) → ◯ ((x : ↑ a (Fin n)) → P x)
+    Π◯→◯Π {n = n} {P = P} =
+      ((x : ↑ a (Fin n)) → ◯ (P x))   →⟨ _∘ lift ⟩
+      ((x : Fin n) → ◯ (P (lift x)))  →⟨ Vec.tabulate ⟩
+      Vec n (◯ ∘ P ∘ lift)            ↔⟨ inverse ◯-Vec ⟩
+      ◯ (Vec n (P ∘ lift))            →⟨ ◯-map Vec.index ⟩
+      ◯ ((x : Fin n) → P (lift x))    →⟨ ◯-map (_∘ lower) ⟩□
+      ◯ ((x : ↑ a (Fin n)) → P x)     □
+
+    abstract
+
+      ◯Π→Π◯-Π◯→◯Π :
+        ∀ (f : (x : ↑ a (Fin n)) → ◯ (P x)) i →
+        ◯Π→Π◯ (Π◯→◯Π f) i ≡ f i
+      ◯Π→Π◯-Π◯→◯Π {n = n} {P = P} f (lift i) =
+        ◯-map (_$ lift i) $
+        ◯-map (_∘ lower) $
+        ◯-map Vec.index $
+        _≃_.from ◯-Vec $
+        Vec.tabulate (f ∘ lift)                ≡⟨ sym (trans ◯-map-∘ ◯-map-∘) ⟩
+
+        ◯-map (λ xs → Vec.index xs i) $
+        _≃_.from ◯-Vec $
+        Vec.tabulate (f ∘ lift)                ≡⟨ index-◯-Vec ⟩
+
+        Vec.index (Vec.tabulate (f ∘ lift)) i  ≡⟨ Vec.index-tabulate n _ ⟩∎
+
+        f (lift i)                             ∎
+
+      Π◯→◯Π-◯Π→Π◯ :
+        {f : ◯ ((x : ↑ a (Fin n)) → P x)} →
+        Extensionality lzero a →
+        Π◯→◯Π (◯Π→Π◯ f) ≡ f
+      Π◯→◯Π-◯Π→Π◯ {n = n} {P = P} {f = f} ext =
+        ◯-elim
+          {P = λ f → Π◯→◯Π (◯Π→Π◯ f) ≡ f}
+          (λ _ → Separated-◯ _ _)
+          (λ f →
+             ◯-map (_∘ lower) $
+             ◯-map Vec.index $
+             _≃_.from ◯-Vec $
+             Vec.tabulate (λ i → ◯-map (_$ lift i) (η f))     ≡⟨ sym ◯-map-∘ ⟩
+
+             ◯-map (λ xs → Vec.index xs ∘ lower) $
+             _≃_.from ◯-Vec $
+             Vec.tabulate (λ i → ◯-map (_$ lift i) (η f))     ≡⟨ (cong (◯-map _) $ cong (_≃_.from ◯-Vec) $ cong Vec.tabulate $ apply-ext ext λ _ →
+                                                                  ◯-map-η) ⟩
+             ◯-map (λ xs → Vec.index xs ∘ lower) $
+             _≃_.from ◯-Vec $
+             Vec.tabulate (η ∘ f ∘ lift)                      ≡⟨ cong (◯-map _)
+                                                                 ◯-Vec-tabulate-η ⟩
+             ◯-map (λ xs → Vec.index xs ∘ lower) $
+             η (Vec.tabulate (f ∘ lift))                      ≡⟨ ◯-map-η ⟩
+
+             η (Vec.index (Vec.tabulate (f ∘ lift)) ∘ lower)  ≡⟨ (cong (η ∘ (_∘ lower)) $
+                                                                  apply-ext ext $
+                                                                  Vec.index-tabulate n) ⟩∎
+             η f                                              ∎)
+          f
+
   -- If A is modal, then ◯ (Σ A P) is equivalent to Σ A (◯ ∘ P).
 
   Modal→◯Σ≃Σ◯ :
