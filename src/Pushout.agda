@@ -25,8 +25,6 @@ open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Extensionality equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
-import H-level equality-with-J as H-level
-open import H-level.Closure equality-with-J
 open import Pointed-type equality-with-J using (Pointed-type)
 open import Pullback equality-with-J as PB using (Pullback; ∆)
 import Suspension eq as S
