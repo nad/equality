@@ -946,7 +946,7 @@ module Valid-domain₂ (vA : Valid-domain A) (vB : Valid-domain B) where
   ◯⇔≃◯⇔◯ : ◯ (A ⇔ B) ↝[ a ∣ a ] (◯ A ⇔ ◯ B)
   ◯⇔≃◯⇔◯ ext =
     ◯ (A ⇔ B)                  ↔⟨ ◯-cong-↔ ⇔↔→×→ ⟩
-    ◯ ((A → B) × (B → A))      ↔⟨ ◯×≃ ⟩
+    ◯ ((A → B) × (B → A))      ↔⟨ ◯× ⟩
     ◯ (A → B) × ◯ (B → A)      ↝⟨ ◯→≃◯→◯ vA ext ×-cong ◯→≃◯→◯ vB ext ⟩
     (◯ A → ◯ B) × (◯ B → ◯ A)  ↔⟨ inverse ⇔↔→×→ ⟩□
     ◯ A ⇔ ◯ B                  □
@@ -1276,7 +1276,7 @@ module Valid-domain-Σ≡◯
       ◯-Has-quasi-inverse≃Has-quasi-inverse {f = f} ext =
         ◯ (∃ λ g → (∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x))            ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
 
-        ◯ (∃ λ g → ◯ ((∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x)))        ↔⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯×≃) ⟩
+        ◯ (∃ λ g → ◯ ((∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x)))        ↔⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯×) ⟩
 
         ◯ (∃ λ g → ◯ (∀ x → f (g x) ≡ x) × ◯ (∀ x → g (f x) ≡ x))        ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ →
                                                                              inverse-ext? (λ ext → Π◯≃◯Π vB ext ×-cong Π◯≃◯Π vA ext) ext) ⟩
@@ -1297,7 +1297,7 @@ module Valid-domain-Σ≡◯
                    (∀ x → ◯-map-◯ (η g) (η (f x)) ≡ η x))                ↝⟨ ◯Ση≃Σ◯◯ ext ⟩
 
         (∃ λ g → ◯ ((∀ x → ◯-map f (◯-map-◯ g (η x)) ≡ η x) ×
-                    (∀ x → ◯-map-◯ g (η (f x)) ≡ η x)))                  ↔⟨ (∃-cong λ _ → ◯×≃) ⟩
+                    (∀ x → ◯-map-◯ g (η (f x)) ≡ η x)))                  ↔⟨ (∃-cong λ _ → ◯×) ⟩
 
         (∃ λ g → ◯ (∀ x → ◯-map f (◯-map-◯ g (η x)) ≡ η x) ×
                  ◯ (∀ x → ◯-map-◯ g (η (f x)) ≡ η x))                    ↝⟨ inverse-ext?

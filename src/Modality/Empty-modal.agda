@@ -64,7 +64,7 @@ private
 ◯¬≃¬ : ◯ (¬ A) ↝[ a ∣ lzero ] ¬ ◯ A
 ◯¬≃¬ {A = A} = generalise-ext?
   (record
-     { to = λ f x →   $⟨ _≃_.from ◯×≃ (f , x) ⟩
+     { to = λ f x →   $⟨ _≃_.from ◯× (f , x) ⟩
          ◯ (¬ A × A)  →⟨ ◯-map (_↔_.to ⊥↔⊥ ∘ uncurry _$_) ⟩
          ◯ ⊥          ↔⟨ ◯⊥≃⊥ ⟩□
          ⊥₀           □

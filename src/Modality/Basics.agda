@@ -1328,8 +1328,8 @@ module Modality (M : Modality a) where
 
   -- ◯ (↑ a ⊤) is equivalent to ⊤.
 
-  ◯⊤≃ : ◯ (↑ a ⊤) ≃ ⊤
-  ◯⊤≃ =
+  ◯-⊤ : ◯ (↑ a ⊤) ≃ ⊤
+  ◯-⊤ =
     ◯ (↑ a ⊤)  ↝⟨ inverse Eq.⟨ _ , Modal≃Is-equivalence-η _ Modal-⊤ ⟩ ⟩
     ↑ a ⊤      ↔⟨ Bijection.↑↔ ⟩□
     ⊤          □
@@ -1338,8 +1338,8 @@ module Modality (M : Modality a) where
 
     -- ◯ commutes with _×_.
 
-    ◯×≃ : ◯ (A × B) ≃ (◯ A × ◯ B)
-    ◯×≃ {A = A} {B = B} = Eq.↔→≃
+    ◯× : ◯ (A × B) ≃ (◯ A × ◯ B)
+    ◯× {A = A} {B = B} = Eq.↔→≃
       (◯-rec m′ (Σ-map η η))
       (uncurry λ x → ◯-rec Modal-◯ λ y → ◯-map (_, y) x)
       (λ (x , y) →
@@ -1386,31 +1386,31 @@ module Modality (M : Modality a) where
       m′ : Modal (◯ A × ◯ B)
       m′ = Modal-Σ Modal-◯ λ _ → Modal-◯
 
-    -- Four "computation rules" for ◯×≃.
+    -- Four "computation rules" for ◯×.
 
-    ◯×≃-η : _≃_.to ◯×≃ (η (x , y)) ≡ (η x , η y)
-    ◯×≃-η = ◯-rec-η
+    ◯×-η : _≃_.to ◯× (η (x , y)) ≡ (η x , η y)
+    ◯×-η = ◯-rec-η
 
-    ◯×≃⁻¹-ηʳ : {y : B} → _≃_.from ◯×≃ (x , η y) ≡ ◯-map (_, y) x
-    ◯×≃⁻¹-ηʳ {x = x} {y = y} =
+    ◯×⁻¹-ηʳ : {y : B} → _≃_.from ◯× (x , η y) ≡ ◯-map (_, y) x
+    ◯×⁻¹-ηʳ {x = x} {y = y} =
       ◯-rec Modal-◯ (λ y → ◯-map (_, y) x) (η y)  ≡⟨ ◯-rec-η ⟩∎
       ◯-map (_, y) x                              ∎
 
-    ◯×≃⁻¹-η : {y : B} → _≃_.from ◯×≃ (η x , η y) ≡ η (x , y)
-    ◯×≃⁻¹-η {x = x} {y = y} =
-      _≃_.from ◯×≃ (η x , η y)  ≡⟨ ◯×≃⁻¹-ηʳ ⟩
-      ◯-map (_, y) (η x)        ≡⟨ ◯-map-η ⟩∎
-      η (x , y)                 ∎
+    ◯×⁻¹-η : {y : B} → _≃_.from ◯× (η x , η y) ≡ η (x , y)
+    ◯×⁻¹-η {x = x} {y = y} =
+      _≃_.from ◯× (η x , η y)  ≡⟨ ◯×⁻¹-ηʳ ⟩
+      ◯-map (_, y) (η x)       ≡⟨ ◯-map-η ⟩∎
+      η (x , y)                ∎
 
-    ◯×≃⁻¹-ηˡ : {y : ◯ B} → _≃_.from ◯×≃ (η x , y) ≡ ◯-map (x ,_) y
-    ◯×≃⁻¹-ηˡ {x = x} {y = y} =
+    ◯×⁻¹-ηˡ : {y : ◯ B} → _≃_.from ◯× (η x , y) ≡ ◯-map (x ,_) y
+    ◯×⁻¹-ηˡ {x = x} {y = y} =
       ◯-elim
-        {P = λ y → _≃_.from ◯×≃ (η x , y) ≡ ◯-map (x ,_) y}
+        {P = λ y → _≃_.from ◯× (η x , y) ≡ ◯-map (x ,_) y}
         (λ _ → Separated-◯ _ _)
         (λ y →
-           _≃_.from ◯×≃ (η x , η y)  ≡⟨ ◯×≃⁻¹-η ⟩
-           η (x , y)                 ≡⟨ sym ◯-map-η ⟩∎
-           ◯-map (x ,_) (η y)        ∎)
+           _≃_.from ◯× (η x , η y)  ≡⟨ ◯×⁻¹-η ⟩
+           η (x , y)                ≡⟨ sym ◯-map-η ⟩∎
+           ◯-map (x ,_) (η y)       ∎)
         y
 
   open Abstract public
@@ -1424,11 +1424,11 @@ module Modality (M : Modality a) where
 
   ◯-Vec : ◯ (Vec n P) ≃ Vec n (◯ ∘ P)
   ◯-Vec {n = zero} =
-    ◯ (↑ a ⊤)  ↝⟨ ◯⊤≃ ⟩
+    ◯ (↑ a ⊤)  ↝⟨ ◯-⊤ ⟩
     ⊤          ↔⟨ inverse Bijection.↑↔ ⟩□
     ↑ a ⊤      □
   ◯-Vec {n = suc n} {P = P} =
-    ◯ (P fzero × Vec n (P ∘ fsuc))      ↝⟨ ◯×≃ ⟩
+    ◯ (P fzero × Vec n (P ∘ fsuc))      ↝⟨ ◯× ⟩
     ◯ (P fzero) × ◯ (Vec n (P ∘ fsuc))  ↝⟨ (∃-cong λ _ → ◯-Vec) ⟩□
     ◯ (P fzero) × Vec n (◯ ∘ P ∘ fsuc)  □
 
@@ -1439,9 +1439,9 @@ module Modality (M : Modality a) where
     _≃_.to ◯-Vec (η xs) ≡ Vec.map η xs
   ◯-Vec-η {n = zero}                = refl _
   ◯-Vec-η {n = suc _} {xs = x , xs} =
-    Σ-map id (_≃_.to ◯-Vec) (_≃_.to ◯×≃ (η (x , xs)))  ≡⟨ cong (Σ-map id (_≃_.to ◯-Vec)) ◯×≃-η ⟩
-    Σ-map id (_≃_.to ◯-Vec) (η x , η xs)               ≡⟨ cong (_ ,_) ◯-Vec-η ⟩∎
-    η x , Vec.map η xs                                 ∎
+    Σ-map id (_≃_.to ◯-Vec) (_≃_.to ◯× (η (x , xs)))  ≡⟨ cong (Σ-map id (_≃_.to ◯-Vec)) ◯×-η ⟩
+    Σ-map id (_≃_.to ◯-Vec) (η x , η xs)              ≡⟨ cong (_ ,_) ◯-Vec-η ⟩∎
+    η x , Vec.map η xs                                ∎
 
   -- A lemma relating Vec.index and ◯-Vec.
 
@@ -1451,33 +1451,33 @@ module Modality (M : Modality a) where
     Vec.index xs i
   index-◯-Vec {n = suc _} {i = fzero} {xs = x , xs} =
     ◯-elim
-      {P = λ x → ◯-map proj₁ (_≃_.from ◯×≃ (x , _≃_.from ◯-Vec xs)) ≡ x}
+      {P = λ x → ◯-map proj₁ (_≃_.from ◯× (x , _≃_.from ◯-Vec xs)) ≡ x}
       (λ _ → Separated-◯ _ _)
       (λ x →
-         ◯-map proj₁ (_≃_.from ◯×≃ (η x , _≃_.from ◯-Vec xs))  ≡⟨ cong (◯-map _) ◯×≃⁻¹-ηˡ ⟩
-         ◯-map proj₁ (◯-map (x ,_) (_≃_.from ◯-Vec xs))        ≡⟨ sym ◯-map-∘ ⟩
-         ◯-map (const x) (_≃_.from ◯-Vec xs)                   ≡⟨ ◯-map-const ⟩∎
-         η x                                                   ∎)
+         ◯-map proj₁ (_≃_.from ◯× (η x , _≃_.from ◯-Vec xs))  ≡⟨ cong (◯-map _) ◯×⁻¹-ηˡ ⟩
+         ◯-map proj₁ (◯-map (x ,_) (_≃_.from ◯-Vec xs))       ≡⟨ sym ◯-map-∘ ⟩
+         ◯-map (const x) (_≃_.from ◯-Vec xs)                  ≡⟨ ◯-map-const ⟩∎
+         η x                                                  ∎)
       x
   index-◯-Vec {n = suc _} {i = fsuc i} {xs = x , xs} =
     ◯-map (λ (_ , xs) → Vec.index xs i)
-      (_≃_.from ◯×≃ (x , _≃_.from ◯-Vec xs))                ≡⟨ ◯-map-∘ ⟩
+      (_≃_.from ◯× (x , _≃_.from ◯-Vec xs))                ≡⟨ ◯-map-∘ ⟩
 
     ◯-map (λ xs → Vec.index xs i)
-      (◯-map proj₂ (_≃_.from ◯×≃ (x , _≃_.from ◯-Vec xs)))  ≡⟨ cong (◯-map _) $
-                                                               ◯-elim
-                                                                 {P = λ xs → ◯-map proj₂ (_≃_.from ◯×≃ (x , xs)) ≡ xs}
-                                                                 (λ _ → Separated-◯ _ _)
-                                                                 (λ xs →
-      ◯-map proj₂ (_≃_.from ◯×≃ (x , η xs))                         ≡⟨ cong (◯-map _) ◯×≃⁻¹-ηʳ ⟩
-      ◯-map proj₂ (◯-map (_, xs) x)                                 ≡⟨ sym ◯-map-∘ ⟩
-      ◯-map (const xs) x                                            ≡⟨ ◯-map-const ⟩∎
-      η xs                                                          ∎)
-                                                                 _ ⟩
+      (◯-map proj₂ (_≃_.from ◯× (x , _≃_.from ◯-Vec xs)))  ≡⟨ cong (◯-map _) $
+                                                              ◯-elim
+                                                                {P = λ xs → ◯-map proj₂ (_≃_.from ◯× (x , xs)) ≡ xs}
+                                                                (λ _ → Separated-◯ _ _)
+                                                                (λ xs →
+      ◯-map proj₂ (_≃_.from ◯× (x , η xs))                         ≡⟨ cong (◯-map _) ◯×⁻¹-ηʳ ⟩
+      ◯-map proj₂ (◯-map (_, xs) x)                                ≡⟨ sym ◯-map-∘ ⟩
+      ◯-map (const xs) x                                           ≡⟨ ◯-map-const ⟩∎
+      η xs                                                         ∎)
+                                                                _ ⟩
 
-    ◯-map (λ xs → Vec.index xs i) (_≃_.from ◯-Vec xs)       ≡⟨ index-◯-Vec ⟩∎
+    ◯-map (λ xs → Vec.index xs i) (_≃_.from ◯-Vec xs)      ≡⟨ index-◯-Vec ⟩∎
 
-    Vec.index xs i                                          ∎
+    Vec.index xs i                                         ∎
 
   -- A lemma relating ◯-Vec and Vec.tabulate.
 
@@ -1487,10 +1487,10 @@ module Modality (M : Modality a) where
     η (Vec.tabulate f)
   ◯-Vec-tabulate-η {n = zero}          = refl _
   ◯-Vec-tabulate-η {n = suc n} {f = f} =
-    _≃_.from ◯×≃
-      (η (f fzero) , _≃_.from ◯-Vec (Vec.tabulate (η ∘ f ∘ fsuc)))  ≡⟨ cong (_≃_.from ◯×≃ ∘ (_ ,_)) ◯-Vec-tabulate-η ⟩
+    _≃_.from ◯×
+      (η (f fzero) , _≃_.from ◯-Vec (Vec.tabulate (η ∘ f ∘ fsuc)))  ≡⟨ cong (_≃_.from ◯× ∘ (_ ,_)) ◯-Vec-tabulate-η ⟩
 
-    _≃_.from ◯×≃ (η (f fzero) , η (Vec.tabulate (f ∘ fsuc)))        ≡⟨ ◯×≃⁻¹-η ⟩∎
+    _≃_.from ◯× (η (f fzero) , η (Vec.tabulate (f ∘ fsuc)))         ≡⟨ ◯×⁻¹-η ⟩∎
 
     η (f fzero , Vec.tabulate (f ∘ fsuc))                           ∎
 
@@ -1945,7 +1945,7 @@ module Modality (M : Modality a) where
 
   Stable-× : Stable-[ k ] A → Stable-[ k ] B → Stable-[ k ] (A × B)
   Stable-× {A = A} {B = B} sA sB =
-    ◯ (A × B)  ↔⟨ ◯×≃ ⟩
+    ◯ (A × B)  ↔⟨ ◯× ⟩
     ◯ A × ◯ B  ↝⟨ sA ×-cong sB ⟩□
     A × B      □
 
@@ -2196,13 +2196,13 @@ module Modality (M : Modality a) where
       (∀ x y → Modal (P x y)) →
       ((x : A) (y : B) → P (η x) (η y)) →
       ((x : ◯ A) (y : ◯ B) → P x y)
-    ◯-elim₂ {P = P} m f x y =                        $⟨ ◯-elim
-                                                          {P = uncurry P ∘ _≃_.to ◯×≃}
-                                                          (uncurry m ∘ _≃_.to ◯×≃)
-                                                          (λ (x , y) → subst (uncurry P) (sym ◯×≃-η) (f x y))
-                                                          (_≃_.from ◯×≃ (x , y)) ⟩
-      uncurry P (_≃_.to ◯×≃ (_≃_.from ◯×≃ (x , y)))  →⟨ subst (uncurry P) (_≃_.right-inverse-of ◯×≃ _) ⟩□
-      P x y                                          □
+    ◯-elim₂ {P = P} m f x y =                      $⟨ ◯-elim
+                                                        {P = uncurry P ∘ _≃_.to ◯×}
+                                                        (uncurry m ∘ _≃_.to ◯×)
+                                                        (λ (x , y) → subst (uncurry P) (sym ◯×-η) (f x y))
+                                                        (_≃_.from ◯× (x , y)) ⟩
+      uncurry P (_≃_.to ◯× (_≃_.from ◯× (x , y)))  →⟨ subst (uncurry P) (_≃_.right-inverse-of ◯× _) ⟩□
+      P x y                                        □
 
     -- A "computation rule" for ◯-elim₂.
 
@@ -2212,90 +2212,90 @@ module Modality (M : Modality a) where
     ◯-elim₂-η {m = m} {f = f} {x = x} {y = y} ext =
       let P = _ in
 
-      subst (uncurry P) (_≃_.right-inverse-of ◯×≃ (η x , η y))
+      subst (uncurry P) (_≃_.right-inverse-of ◯× (η x , η y))
         (◯-elim
-           (uncurry m ∘ _≃_.to ◯×≃)
-           (λ (x , y) → subst (uncurry P) (sym ◯×≃-η) (f x y))
-           (_≃_.from ◯×≃ (η x , η y)))                               ≡⟨ (cong (subst _ _) $
-                                                                         cong (flip (◯-elim (uncurry m ∘ _≃_.to ◯×≃)) _) $
-                                                                         apply-ext ext λ p →
-                                                                         cong (flip (subst _) _) $ cong sym $ cong (_$ p) $ sym $
-                                                                         _≃_.left-inverse-of (Eq.extensionality-isomorphism ext) _) ⟩
-      subst (uncurry P) (_≃_.right-inverse-of ◯×≃ (η x , η y))
+           (uncurry m ∘ _≃_.to ◯×)
+           (λ (x , y) → subst (uncurry P) (sym ◯×-η) (f x y))
+           (_≃_.from ◯× (η x , η y)))                              ≡⟨ (cong (subst _ _) $
+                                                                       cong (flip (◯-elim (uncurry m ∘ _≃_.to ◯×)) _) $
+                                                                       apply-ext ext λ p →
+                                                                       cong (flip (subst _) _) $ cong sym $ cong (_$ p) $ sym $
+                                                                       _≃_.left-inverse-of (Eq.extensionality-isomorphism ext) _) ⟩
+      subst (uncurry P) (_≃_.right-inverse-of ◯× (η x , η y))
         (◯-elim
-           (uncurry m ∘ _≃_.to ◯×≃)
-           (subst (uncurry P) (sym (ext⁻¹ ◯×≃-η′ _)) ∘ uncurry f)
-           (_≃_.from ◯×≃ (η x , η y)))                               ≡⟨ elim¹
-                                                                          (λ {g} (eq : _≃_.to ◯×≃ ∘ η ≡ g) →
-                                                                             (f : ∀ p → uncurry P (g p)) →
-                                                                             subst (uncurry P) (_≃_.right-inverse-of ◯×≃ (g (x , y)))
-                                                                               (◯-elim
-                                                                                  (uncurry m ∘ _≃_.to ◯×≃)
-                                                                                  (subst (uncurry P) (sym (ext⁻¹ {f = _≃_.to ◯×≃ ∘ η} eq _)) ∘ f)
-                                                                                  (_≃_.from ◯×≃ (g (x , y)))) ≡
-                                                                             f (x , y))
-                                                                          (λ f →
+           (uncurry m ∘ _≃_.to ◯×)
+           (subst (uncurry P) (sym (ext⁻¹ ◯×-η′ _)) ∘ uncurry f)
+           (_≃_.from ◯× (η x , η y)))                              ≡⟨ elim¹
+                                                                        (λ {g} (eq : _≃_.to ◯× ∘ η ≡ g) →
+                                                                           (f : ∀ p → uncurry P (g p)) →
+                                                                           subst (uncurry P) (_≃_.right-inverse-of ◯× (g (x , y)))
+                                                                             (◯-elim
+                                                                                (uncurry m ∘ _≃_.to ◯×)
+                                                                                (subst (uncurry P) (sym (ext⁻¹ {f = _≃_.to ◯× ∘ η} eq _)) ∘ f)
+                                                                                (_≃_.from ◯× (g (x , y)))) ≡
+                                                                           f (x , y))
+                                                                        (λ f →
         subst (uncurry P)
-          (_≃_.right-inverse-of ◯×≃ (_≃_.to ◯×≃ (η (x , y))))
+          (_≃_.right-inverse-of ◯× (_≃_.to ◯× (η (x , y))))
           (◯-elim
-             (uncurry m ∘ _≃_.to ◯×≃)
+             (uncurry m ∘ _≃_.to ◯×)
              (subst (uncurry P)
-                (sym (ext⁻¹ {f = _≃_.to ◯×≃ ∘ η} (refl _) _)) ∘
+                (sym (ext⁻¹ {f = _≃_.to ◯× ∘ η} (refl _) _)) ∘
               f)
-             (_≃_.from ◯×≃ (_≃_.to ◯×≃ (η (x , y)))))                        ≡⟨ (cong (subst _ _) $ cong (flip (◯-elim _) _) $
-                                                                                 apply-ext ext λ _ →
-                                                                                 trans (cong (flip (subst _) _) $
-                                                                                        trans (cong sym $ ext⁻¹-refl _)
-                                                                                        sym-refl) $
-                                                                                 subst-refl _ _) ⟩
+             (_≃_.from ◯× (_≃_.to ◯× (η (x , y)))))                        ≡⟨ (cong (subst _ _) $ cong (flip (◯-elim _) _) $
+                                                                               apply-ext ext λ _ →
+                                                                               trans (cong (flip (subst _) _) $
+                                                                                      trans (cong sym $ ext⁻¹-refl _)
+                                                                                      sym-refl) $
+                                                                               subst-refl _ _) ⟩
         subst (uncurry P)
-          (_≃_.right-inverse-of ◯×≃ (_≃_.to ◯×≃ (η (x , y))))
+          (_≃_.right-inverse-of ◯× (_≃_.to ◯× (η (x , y))))
           (◯-elim
-             (uncurry m ∘ _≃_.to ◯×≃)
+             (uncurry m ∘ _≃_.to ◯×)
              f
-             (_≃_.from ◯×≃ (_≃_.to ◯×≃ (η (x , y)))))                        ≡⟨ cong (flip (subst _) _) $ sym $
-                                                                                _≃_.left-right-lemma ◯×≃ _ ⟩
+             (_≃_.from ◯× (_≃_.to ◯× (η (x , y)))))                        ≡⟨ cong (flip (subst _) _) $ sym $
+                                                                              _≃_.left-right-lemma ◯× _ ⟩
         subst (uncurry P)
-          (cong (_≃_.to ◯×≃) (_≃_.left-inverse-of ◯×≃ (η (x , y))))
+          (cong (_≃_.to ◯×) (_≃_.left-inverse-of ◯× (η (x , y))))
           (◯-elim
-             (uncurry m ∘ _≃_.to ◯×≃)
+             (uncurry m ∘ _≃_.to ◯×)
              f
-             (_≃_.from ◯×≃ (_≃_.to ◯×≃ (η (x , y)))))                        ≡⟨ elim₁
-                                                                                  (λ {p} (eq : p ≡ η (x , y)) →
-                                                                                     subst (uncurry P)
-                                                                                       (cong (_≃_.to ◯×≃) eq)
-                                                                                       (◯-elim (uncurry m ∘ _≃_.to ◯×≃) f p) ≡
-                                                                                     f (x , y))
-                                                                                  (
+             (_≃_.from ◯× (_≃_.to ◯× (η (x , y)))))                        ≡⟨ elim₁
+                                                                                (λ {p} (eq : p ≡ η (x , y)) →
+                                                                                   subst (uncurry P)
+                                                                                     (cong (_≃_.to ◯×) eq)
+                                                                                     (◯-elim (uncurry m ∘ _≃_.to ◯×) f p) ≡
+                                                                                   f (x , y))
+                                                                                (
           subst (uncurry P)
-            (cong (_≃_.to ◯×≃) (refl _))
-            (◯-elim (uncurry m ∘ _≃_.to ◯×≃) f (η (x , y)))                        ≡⟨ trans (cong (flip (subst _) _) $
-                                                                                             cong-refl _) $
-                                                                                      subst-refl _ _ ⟩
+            (cong (_≃_.to ◯×) (refl _))
+            (◯-elim (uncurry m ∘ _≃_.to ◯×) f (η (x , y)))                       ≡⟨ trans (cong (flip (subst _) _) $
+                                                                                           cong-refl _) $
+                                                                                    subst-refl _ _ ⟩
 
-          ◯-elim (uncurry m ∘ _≃_.to ◯×≃) f (η (x , y))                            ≡⟨ ◯-elim-η ⟩∎
+          ◯-elim (uncurry m ∘ _≃_.to ◯×) f (η (x , y))                           ≡⟨ ◯-elim-η ⟩∎
 
-          f (x , y)                                                                ∎)
-                                                                                  _ ⟩∎
-        f (x , y)                                                            ∎)
-                                                                          _ _ ⟩∎
-      f x y                                                          ∎
+          f (x , y)                                                              ∎)
+                                                                                _ ⟩∎
+        f (x , y)                                                          ∎)
+                                                                        _ _ ⟩∎
+      f x y                                                        ∎
       where
-      ◯×≃-η′ : _≃_.to (◯×≃ {A = A} {B = B}) ∘ η ≡ Σ-map η η
-      ◯×≃-η′ = apply-ext ext λ _ → ◯×≃-η
+      ◯×-η′ : _≃_.to (◯× {A = A} {B = B}) ∘ η ≡ Σ-map η η
+      ◯×-η′ = apply-ext ext λ _ → ◯×-η
 
     -- A binary variant of ◯-rec.
 
     ◯-rec₂ : Modal C → (A → B → C) → (◯ A → ◯ B → C)
-    ◯-rec₂ m f x y = ◯-rec m (uncurry f) (_≃_.from ◯×≃ (x , y))
+    ◯-rec₂ m f x y = ◯-rec m (uncurry f) (_≃_.from ◯× (x , y))
 
     -- A "computation rule" for ◯-rec₂.
 
     ◯-rec₂-η : ◯-rec₂ m f (η x) (η y) ≡ f x y
     ◯-rec₂-η {m = m} {f = f} {x = x} {y = y} =
-      ◯-rec m (uncurry f) (_≃_.from ◯×≃ (η x , η y))  ≡⟨ cong (◯-rec _ _) ◯×≃⁻¹-η ⟩
-      ◯-rec m (uncurry f) (η (x , y))                 ≡⟨ ◯-rec-η ⟩∎
-      f x y                                           ∎
+      ◯-rec m (uncurry f) (_≃_.from ◯× (η x , η y))  ≡⟨ cong (◯-rec _ _) ◯×⁻¹-η ⟩
+      ◯-rec m (uncurry f) (η (x , y))                ≡⟨ ◯-rec-η ⟩∎
+      f x y                                          ∎
 
   ----------------------------------------------------------------------
   -- A lemma related to h-levels
@@ -3892,11 +3892,11 @@ module Modality (M : Modality a) where
 
         subst
           (λ z → ◯-map (const x) z ≡ η y)
-          (sym $ _≃_.left-inverse-of ◯⊤≃ _)
+          (sym $ _≃_.left-inverse-of ◯-⊤ _)
           (trans ◯-map-η (cong η x≡y))                                        ≡⟨ cong (flip (subst _) _) $
                                                                                  H-level.⇒≡ 1
                                                                                    (H-level.mono₁ 0 $ _⇔_.from contractible⇔↔⊤ $
-                                                                                    from-equivalence ◯⊤≃)
+                                                                                    from-equivalence ◯-⊤)
                                                                                    _ _ ⟩
         subst
           (λ z → ◯-map (const x) z ≡ η y)
@@ -3915,7 +3915,7 @@ module Modality (M : Modality a) where
       where
       lemma₁ : ◯ -Connected-→ (lift {ℓ = a} tt ,_)
       lemma₁ (lift tt , x≡y) =                            $⟨ ⊤-contractible ⟩
-        Contractible ⊤                                    →⟨ H-level-cong _ 0 $ inverse ◯⊤≃ ⟩
+        Contractible ⊤                                    →⟨ H-level-cong _ 0 $ inverse ◯-⊤ ⟩
         Contractible (◯ (↑ a ⊤))                          ↔⟨⟩
         ◯ -Connected (↑ a ⊤)                              →⟨ Connected-cong _ (
 
@@ -3929,7 +3929,7 @@ module Modality (M : Modality a) where
         ◯ -Connected (((lift tt ,_) ⁻¹ (lift tt , x≡y)))  □
 
       drop-proj₁ : (∃ λ (x : ◯ (↑ a ⊤)) → P x) ≃ P (η _)
-      drop-proj₁ = from-bijection $ drop-⊤-left-Σ $ from-equivalence ◯⊤≃
+      drop-proj₁ = from-bijection $ drop-⊤-left-Σ $ from-equivalence ◯-⊤
 
       lemma₂ :
         Is-equivalence
@@ -4371,19 +4371,19 @@ module Modality (M : Modality a) where
       _
       (η x ≡ η y                    →⟨ η ⟩
        ◯ (η x ≡ η y)                →⟨ m ,_ ⟩
-       ◯ (Modal A) × ◯ (η x ≡ η y)  →⟨ _≃_.from ◯×≃ ⟩
+       ◯ (Modal A) × ◯ (η x ≡ η y)  →⟨ _≃_.from ◯× ⟩
        ◯ (Modal A × η x ≡ η y)      →⟨ ◯-map lemma ⟩□
        ◯ (x ≡ y)                    □)
       (λ p →
          ◯-elim
            {P = λ m →
                   ◯-rec m′ (cong η)
-                    (◯-map lemma (_≃_.from ◯×≃ (m , η p))) ≡
+                    (◯-map lemma (_≃_.from ◯× (m , η p))) ≡
                   p}
            (λ _ → Modal→Separated m′ _ _)
            (λ m →
               ◯-rec m′ (cong η)
-                (◯-map lemma (_≃_.from ◯×≃ (η m , η p)))   ≡⟨ cong (◯-rec m′ (cong η) ∘ ◯-map _) ◯×≃⁻¹-η ⟩
+                (◯-map lemma (_≃_.from ◯× (η m , η p)))    ≡⟨ cong (◯-rec m′ (cong η) ∘ ◯-map _) ◯×⁻¹-η ⟩
 
               ◯-rec m′ (cong η) (◯-map lemma (η (m , p)))  ≡⟨ cong (◯-rec m′ (cong η)) ◯-map-η ⟩
 
@@ -4399,21 +4399,21 @@ module Modality (M : Modality a) where
             ◯-elim
               {P = λ m →
                      ◯-map lemma
-                       (_≃_.from ◯×≃
+                       (_≃_.from ◯×
                           (m , η (◯-rec m′ (cong η) (η p)))) ≡
                      η p}
               (λ _ → Separated-◯ _ _)
               (λ m →
                  ◯-map lemma
-                   (_≃_.from ◯×≃ (η m , η (◯-rec m′ (cong η) (η p))))  ≡⟨ cong (◯-map lemma) ◯×≃⁻¹-η ⟩
+                   (_≃_.from ◯× (η m , η (◯-rec m′ (cong η) (η p))))  ≡⟨ cong (◯-map lemma) ◯×⁻¹-η ⟩
 
-                 ◯-map lemma (η (m , ◯-rec m′ (cong η) (η p)))         ≡⟨ ◯-map-η ⟩
+                 ◯-map lemma (η (m , ◯-rec m′ (cong η) (η p)))        ≡⟨ ◯-map-η ⟩
 
-                 η (lemma (m , ◯-rec m′ (cong η) (η p)))               ≡⟨ cong (η ∘ lemma ∘ (m ,_)) ◯-rec-η ⟩
+                 η (lemma (m , ◯-rec m′ (cong η) (η p)))              ≡⟨ cong (η ∘ lemma ∘ (m ,_)) ◯-rec-η ⟩
 
-                 η (lemma (m , cong η p))                              ≡⟨ cong η $ _≃_.left-inverse-of (≡≃η≡η m) _ ⟩∎
+                 η (lemma (m , cong η p))                             ≡⟨ cong η $ _≃_.left-inverse-of (≡≃η≡η m) _ ⟩∎
 
-                 η p                                                   ∎)
+                 η p                                                  ∎)
               m))
     where
     lemma : {x y : A} → Modal A × η x ≡ η y → x ≡ y
@@ -4510,14 +4510,14 @@ module Modality (M : Modality a) where
                                                                     (λ f → Σ-map id (Σ-map id (Σ-map f (Σ-map f id))))
                                                                     (λ (x′ , y′ , p , q , r) →
                                                                        ◯-map (λ (p , q) → x′ , y′ , p , q , r) $
-                                                                       _≃_.from ◯×≃ (p , q))
+                                                                       _≃_.from ◯× (p , q))
                                                                     lemma
                                                                     (λ (x′ , y′ , p , q , r) →
                                                                        ◯-elim
                                                                          {P = λ p →
                                                                                 ◯-map (Σ-map id (Σ-map id (Σ-map η (Σ-map η id))))
                                                                                   (◯-map (λ (p , q) → x′ , y′ , p , q , r)
-                                                                                     (_≃_.from ◯×≃ (p , q))) ≡
+                                                                                     (_≃_.from ◯× (p , q))) ≡
                                                                                 η (x′ , y′ , p , q , r)}
                                                                          (λ _ → Separated-◯ _ _)
                                                                          (λ p →
@@ -4525,13 +4525,13 @@ module Modality (M : Modality a) where
                                                                               {P = λ q →
                                                                                      ◯-map (Σ-map id (Σ-map id (Σ-map η (Σ-map η id))))
                                                                                        (◯-map (λ (p , q) → x′ , y′ , p , q , r)
-                                                                                          (_≃_.from ◯×≃ (η p , q))) ≡
+                                                                                          (_≃_.from ◯× (η p , q))) ≡
                                                                                      η (x′ , y′ , η p , q , r)}
                                                                               (λ _ → Separated-◯ _ _)
                                                                               (λ q →
       ◯-map (Σ-map id (Σ-map id (Σ-map η (Σ-map η id))))
         (◯-map (λ (p , q) → x′ , y′ , p , q , r)
-           (_≃_.from ◯×≃ (η p , η q)))                                           ≡⟨ cong (◯-map _) $
+           (_≃_.from ◯× (η p , η q)))                                            ≡⟨ cong (◯-map _) $
                                                                                     lemma _ ⟩
       ◯-map (Σ-map id (Σ-map id (Σ-map η (Σ-map η id))))
         (η (x′ , y′ , p , q , r))                                                ≡⟨ ◯-map-η ⟩∎
@@ -4558,9 +4558,9 @@ module Modality (M : Modality a) where
     ◯ (x < y)                                                  □
     where
     lemma = λ (x′ , y′ , p , q , r) →
-      ◯-map (λ (p , q) → x′ , y′ , p , q , r) (_≃_.from ◯×≃ (η p , η q))  ≡⟨ cong (◯-map _) ◯×≃⁻¹-η ⟩
-      ◯-map (λ (p , q) → x′ , y′ , p , q , r) (η (p , q))                 ≡⟨ ◯-map-η ⟩∎
-      η (x′ , y′ , p , q , r)                                             ∎
+      ◯-map (λ (p , q) → x′ , y′ , p , q , r) (_≃_.from ◯× (η p , η q))  ≡⟨ cong (◯-map _) ◯×⁻¹-η ⟩
+      ◯-map (λ (p , q) → x′ , y′ , p , q , r) (η (p , q))                ≡⟨ ◯-map-η ⟩∎
+      η (x′ , y′ , p , q , r)                                            ∎
 
   -- For a left exact modality _[ _<_ ]◯_ is logically equivalent to
   -- any pointwise stable relation R (of a certain type) for which
@@ -5088,7 +5088,7 @@ module Modality (M : Modality a) where
 
   ◯-map-◯ : ◯ (A → B) → ◯ A → ◯ B
   ◯-map-◯ {A = A} {B = B} = curry
-    (◯ (A → B) × ◯ A  ↔⟨ inverse ◯×≃ ⟩
+    (◯ (A → B) × ◯ A  ↔⟨ inverse ◯× ⟩
      ◯ ((A → B) × A)  →⟨ ◯-map (uncurry _$_) ⟩□
      ◯ B              □)
 
@@ -5096,9 +5096,9 @@ module Modality (M : Modality a) where
 
   ◯-map-◯-η : ◯-map-◯ (η f) (η x) ≡ η (f x)
   ◯-map-◯-η {f = f} {x = x} =
-    ◯-map (uncurry _$_) (_≃_.from ◯×≃ (η f , η x))  ≡⟨ cong (◯-map _) ◯×≃⁻¹-η ⟩
-    ◯-map (uncurry _$_) (η (f , x))                 ≡⟨ ◯-map-η ⟩∎
-    η (f x)                                         ∎
+    ◯-map (uncurry _$_) (_≃_.from ◯× (η f , η x))  ≡⟨ cong (◯-map _) ◯×⁻¹-η ⟩
+    ◯-map (uncurry _$_) (η (f , x))                ≡⟨ ◯-map-η ⟩∎
+    η (f x)                                        ∎
 
   ◯-map-◯-ηˡ : ◯-map-◯ (η f) x ≡ ◯-map f x
   ◯-map-◯-ηˡ {f = f} {x = x} =
@@ -5134,7 +5134,7 @@ module Modality (M : Modality a) where
   ◯-cong-⇔-◯ : ◯ (A ⇔ B) → ◯ A ⇔ ◯ B
   ◯-cong-⇔-◯ {A = A} {B = B} =
     ◯ (A ⇔ B)                  ↔⟨ ◯-cong-↔ ⇔↔→×→ ⟩
-    ◯ ((A → B) × (B → A))      ↔⟨ ◯×≃ ⟩
+    ◯ ((A → B) × (B → A))      ↔⟨ ◯× ⟩
     ◯ (A → B) × ◯ (B → A)      →⟨ Σ-map ◯-map-◯ ◯-map-◯ ⟩
     (◯ A → ◯ B) × (◯ B → ◯ A)  ↔⟨ inverse ⇔↔→×→ ⟩□
     ◯ A ⇔ ◯ B                  □
@@ -5205,7 +5205,7 @@ module Modality (M : Modality a) where
   ◯-Has-quasi-inverse→Has-quasi-inverse {f = f} =
     ◯ (∃ λ g → (∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x))              ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
 
-    ◯ (∃ λ g → ◯ ((∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x)))          ↔⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯×≃) ⟩
+    ◯ (∃ λ g → ◯ ((∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x)))          ↔⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯×) ⟩
 
     ◯ (∃ λ g → ◯ (∀ x → f (g x) ≡ x) × ◯ (∀ x → g (f x) ≡ x))          →⟨ (◯-map $ ∃-cong λ _ → ◯Π→Π◯ ×-cong ◯Π→Π◯) ⟩
 
@@ -5222,7 +5222,7 @@ module Modality (M : Modality a) where
                (∀ x → ◯-map-◯ (η g) (η (f x)) ≡ η x))                  →⟨ ◯Ση≃Σ◯◯ _ ⟩
 
     (∃ λ g → ◯ ((∀ x → ◯-map f (◯-map-◯ g (η x)) ≡ η x) ×
-                (∀ x → ◯-map-◯ g (η (f x)) ≡ η x)))                    ↔⟨ (∃-cong λ _ → ◯×≃) ⟩
+                (∀ x → ◯-map-◯ g (η (f x)) ≡ η x)))                    ↔⟨ (∃-cong λ _ → ◯×) ⟩
 
     (∃ λ g → ◯ (∀ x → ◯-map f (◯-map-◯ g (η x)) ≡ η x) ×
              ◯ (∀ x → ◯-map-◯ g (η (f x)) ≡ η x))                      →⟨ (∃-cong λ _ → ◯Π→Π◯ ×-cong ◯Π→Π◯) ⟩

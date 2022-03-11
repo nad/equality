@@ -72,7 +72,7 @@ abstract
   ◯-Π-Modal {A = A} {P = P} =
                                      $⟨ (λ {_} → very-modal) ⟩
     Very-modal M                     →⟨ (λ m → m , m) ⟩
-    ◯ (Modal A) × ◯ (Modal (Σ A P))  →⟨ _≃_.from ◯×≃ ⟩
+    ◯ (Modal A) × ◯ (Modal (Σ A P))  →⟨ _≃_.from ◯× ⟩
     ◯ (Modal A × Modal (Σ A P))      →⟨ ◯-map (λ (mA , mΣAP) → Modal-Σ≃Π-Modal mA _ mΣAP) ⟩□
     ◯ (∀ x → Modal (P x))            □
 
@@ -297,20 +297,20 @@ Modal≃Modal-Null {A = A} ext =
 ◯≃◯-Modal-× : ◯ B ↝[ a ∣ a ] ◯ (Modal A × B)
 ◯≃◯-Modal-× {B = B} {A = A} ext =
   ◯ B                ↝⟨ inverse-ext? (drop-⊤-left-× ∘ const ∘ ◯-Modal≃⊤) ext ⟩
-  ◯ (Modal A) × ◯ B  ↔⟨ inverse ◯×≃ ⟩□
+  ◯ (Modal A) × ◯ B  ↔⟨ inverse ◯× ⟩□
   ◯ (Modal A × B)    □
 
 -- Two "computation rules" for ◯≃◯-Modal-×.
 
 ◯≃◯-Modal-×-η : ◯≃◯-Modal-× {A = A} _ (η x) ≡ ◯-map (_, x) very-modal
 ◯≃◯-Modal-×-η {x = x} =
-  _≃_.from ◯×≃ (very-modal , η x)  ≡⟨ ◯×≃⁻¹-ηʳ ⟩∎
-  ◯-map (_, x) very-modal          ∎
+  _≃_.from ◯× (very-modal , η x)  ≡⟨ ◯×⁻¹-ηʳ ⟩∎
+  ◯-map (_, x) very-modal         ∎
 
 ◯≃◯-Modal-×⁻¹-η : _⇔_.from (◯≃◯-Modal-× _) (η (m , x)) ≡ η x
 ◯≃◯-Modal-×⁻¹-η {m = m} {x = x} =
-  _≃_.to ◯×≃ (η (m , x)) .proj₂  ≡⟨ cong proj₂ ◯×≃-η ⟩∎
-  η x                            ∎
+  _≃_.to ◯× (η (m , x)) .proj₂  ≡⟨ cong proj₂ ◯×-η ⟩∎
+  η x                           ∎
 
 -- A variant of ◯≃◯-Modal-×.
 
@@ -339,7 +339,7 @@ Modal≃Modal-Null {A = A} ext =
                 (◯-map (proj₂ ∘
                         ∃-cong λ m → _≃_.from $
                         Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
-                   (_≃_.from ◯×≃ (m , ◯-map (x ,_) y))) ≡
+                   (_≃_.from ◯× (m , ◯-map (x ,_) y))) ≡
               (x , y)}
        (λ _ → Modal→Separated m₁ _ _)
        (λ m →
@@ -349,7 +349,7 @@ Modal≃Modal-Null {A = A} ext =
                      (◯-map (proj₂ ∘
                              ∃-cong λ m → _≃_.from $
                              Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
-                        (_≃_.from ◯×≃ (η m , ◯-map (x ,_) y))) ≡
+                        (_≃_.from ◯× (η m , ◯-map (x ,_) y))) ≡
                    (x , y)}
             (λ _ → Modal→Separated m₁ _ _)
             (λ y →
@@ -357,14 +357,14 @@ Modal≃Modal-Null {A = A} ext =
                  (◯-map (proj₂ ∘
                          ∃-cong λ m → _≃_.from $
                          Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
-                    (_≃_.from ◯×≃ (η m , ◯-map (x ,_) (η y))))     ≡⟨ cong (◯-rec _ _) $ cong (◯-map _) $ cong (_≃_.from ◯×≃) $ cong (η m ,_)
+                    (_≃_.from ◯× (η m , ◯-map (x ,_) (η y))))      ≡⟨ cong (◯-rec _ _) $ cong (◯-map _) $ cong (_≃_.from ◯×) $ cong (η m ,_)
                                                                       ◯-map-η ⟩
                ◯-rec m₁ (Σ-map η η)
                  (◯-map (proj₂ ∘
                          ∃-cong λ m → _≃_.from $
                          Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
-                    (_≃_.from ◯×≃ (η m , η (x , y))))              ≡⟨ cong (◯-rec _ _) $ cong (◯-map _)
-                                                                      ◯×≃⁻¹-η ⟩
+                    (_≃_.from ◯× (η m , η (x , y))))               ≡⟨ cong (◯-rec _ _) $ cong (◯-map _)
+                                                                      ◯×⁻¹-η ⟩
                ◯-rec m₁ (Σ-map η η)
                  (◯-map (proj₂ ∘
                          ∃-cong λ m → _≃_.from $
@@ -404,7 +404,7 @@ Modal≃Modal-Null {A = A} ext =
                  ◯-map (proj₂ ∘
                         ∃-cong λ m → _≃_.from $
                         Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
-                   (_≃_.from ◯×≃
+                   (_≃_.from ◯×
                       (m , f (◯-rec m₁ (Σ-map η η) (η (x , y))))) ≡
                  η (x , y)}
           (λ _ → Separated-◯ _ _)
@@ -412,19 +412,19 @@ Modal≃Modal-Null {A = A} ext =
              ◯-map (proj₂ ∘
                     ∃-cong λ m → _≃_.from $
                     Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
-               (_≃_.from ◯×≃
-                  (η m , f (◯-rec m₁ (Σ-map η η) (η (x , y)))))     ≡⟨ cong (◯-map _) $ cong (_≃_.from ◯×≃) $ cong (η m ,_) $ cong f
+               (_≃_.from ◯×
+                  (η m , f (◯-rec m₁ (Σ-map η η) (η (x , y)))))     ≡⟨ cong (◯-map _) $ cong (_≃_.from ◯×) $ cong (η m ,_) $ cong f
                                                                        ◯-rec-η ⟩
              ◯-map (proj₂ ∘
                     ∃-cong λ m → _≃_.from $
                     Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
-               (_≃_.from ◯×≃ (η m , ◯-map (η x ,_) (η y)))          ≡⟨ cong (◯-map _) $ cong (_≃_.from ◯×≃) $ cong (η m ,_)
+               (_≃_.from ◯× (η m , ◯-map (η x ,_) (η y)))           ≡⟨ cong (◯-map _) $ cong (_≃_.from ◯×) $ cong (η m ,_)
                                                                        ◯-map-η ⟩
              ◯-map (proj₂ ∘
                     ∃-cong λ m → _≃_.from $
                     Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
-               (_≃_.from ◯×≃ (η m , η (η x , y)))                   ≡⟨ cong (◯-map _)
-                                                                       ◯×≃⁻¹-η ⟩
+               (_≃_.from ◯× (η m , η (η x , y)))                    ≡⟨ cong (◯-map _)
+                                                                       ◯×⁻¹-η ⟩
              ◯-map (proj₂ ∘
                     ∃-cong λ m → _≃_.from $
                     Σ-cong (Modal→≃◯ m) λ _ → Eq.id)
