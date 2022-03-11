@@ -160,6 +160,46 @@ Join-¬≃Dec = Eq.↔→≃
   lemma : (p : A × ¬ A) → P p
   lemma (inh , not-inh) = ⊥-elim (not-inh inh)
 
+-- Join is idempotent for propositions.
+
+Join-idempotent :
+  Is-proposition A →
+  Join A A ≃ A
+Join-idempotent prop =
+  Eq.↔→≃
+    (rec id id (λ _ → prop _ _))
+    inl
+    refl
+    (PO.elim
+       _
+       (refl ∘ inl)
+       (λ x → glue (x , x))
+       (λ (x , y) →
+          subst
+            (λ x → inl (rec id id (λ _ → prop _ _) x) ≡ x)
+            (glue (x , y))
+            (refl (inl x))                                          ≡⟨ subst-in-terms-of-trans-and-cong ⟩
+
+          trans (sym $ cong (inl ∘ rec id id (λ _ → prop _ _)) $
+                 glue (x , y))
+            (trans (refl (inl x)) (cong id (glue (x , y))))         ≡⟨ cong₂ (trans ∘ sym)
+                                                                         (sym $ cong-∘ _ _ _)
+                                                                         (trans (trans-reflˡ _) $
+                                                                          sym $ cong-id _) ⟩
+          trans (sym $ cong inl $
+                 cong (rec id id (λ _ → prop _ _)) $ glue (x , y))
+            (glue (x , y))                                          ≡⟨ cong (flip trans _ ∘ sym ∘ cong _) PO.rec-glue ⟩
+
+          trans (sym $ cong inl $ prop x y) (glue (x , y))          ≡⟨ elim₁
+                                                                         (λ {x} eq →
+                                                                            trans (sym $ cong inl eq) (glue (x , y)) ≡ glue (y , y))
+                                                                         (trans (cong (flip trans _) $
+                                                                                 trans (cong sym $ cong-refl _)
+                                                                                 sym-refl) $
+                                                                          trans-reflˡ _)
+                                                                         _ ⟩∎
+          glue (y , y)                                              ∎))
+
 ------------------------------------------------------------------------
 -- Preservation lemmas
 
