@@ -192,6 +192,11 @@ import Monad.State
 
 import List
 
+-- Vectors for which the element types depend on the position, defined
+-- using a recursive function.
+
+import Vec.Dependent
+
 -- Some results related to the For-iterated-equality predicate
 -- transformer.
 

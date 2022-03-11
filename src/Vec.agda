@@ -16,6 +16,7 @@ open Derived-definitions-and-properties eq
 open import Function-universe eq hiding (id; _∘_)
 open import List eq using (length)
 open import Surjection eq using (_↠_; ↠-≡)
+import Vec.Dependent eq as DVec
 
 private
 
@@ -31,8 +32,7 @@ private
 -- Vectors.
 
 Vec : Type a → ℕ → Type a
-Vec A zero    = ↑ _ ⊤
-Vec A (suc n) = A × Vec A n
+Vec A n = DVec.Vec n (const A)
 
 ------------------------------------------------------------------------
 -- Some simple functions
@@ -40,30 +40,25 @@ Vec A (suc n) = A × Vec A n
 -- Finds the element at the given position.
 
 index : Vec A n → Fin n → A
-index {n = suc _} (x , _)  fzero    = x
-index {n = suc _} (_ , xs) (fsuc i) = index xs i
+index = DVec.index
 
 -- Updates the element at the given position.
 
 infix 3 _[_≔_]
 
 _[_≔_] : Vec A n → Fin n → A → Vec A n
-_[_≔_] {n = zero}  _        ()       _
-_[_≔_] {n = suc _} (x , xs) fzero    y = y , xs
-_[_≔_] {n = suc _} (x , xs) (fsuc i) y = x , (xs [ i ≔ y ])
+_[_≔_] = DVec._[_≔_]
 
 -- Applies the function to every element in the vector.
 
 map : (A → B) → Vec A n → Vec B n
-map {n = zero}  f _        = _
-map {n = suc _} f (x , xs) = f x , map f xs
+map f = DVec.map f
 
 -- Constructs a vector containing a certain number of copies of the
 -- given element.
 
 replicate : A → Vec A n
-replicate {n = zero}  _ = _
-replicate {n = suc _} x = x , replicate x
+replicate x = DVec.tabulate (const x)
 
 -- The head of the vector.
 
@@ -137,15 +132,13 @@ from-list (x ∷ xs) = x , from-list xs
 
 map-id :
   {A : Type a} {xs : Vec A n} → map id xs ≡ xs
-map-id {n = zero}  = refl _
-map-id {n = suc n} = cong (_ ,_) map-id
+map-id = DVec.map-id
 
 map-∘ :
   {A : Type a} {B : Type b} {C : Type c} {f : B → C} {g : A → B}
   {xs : Vec A n} →
   map (f ∘ g) xs ≡ map f (map g xs)
-map-∘ {n = zero}  = refl _
-map-∘ {n = suc n} = cong (_ ,_) map-∘
+map-∘ = DVec.map-∘
 
 -- If f and g are pointwise equal, then map f xs and map g xs are
 -- equal.
@@ -153,5 +146,4 @@ map-∘ {n = suc n} = cong (_ ,_) map-∘
 map-cong :
   ∀ {n} {xs : Vec A n} →
   (∀ x → f x ≡ g x) → map f xs ≡ map g xs
-map-cong {n = zero}  _   = refl _
-map-cong {n = suc n} hyp = cong₂ _,_ (hyp _) (map-cong hyp)
+map-cong f≡g = DVec.map-cong f≡g
