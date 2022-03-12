@@ -1493,6 +1493,40 @@ module Modality (M : Modality a) where
 
     η (f fzero , Vec.tabulate (f ∘ fsuc))                           ∎
 
+  -- If A is modal, then ◯ (Σ A P) is equivalent to Σ A (◯ ∘ P).
+
+  Modal→◯Σ≃Σ◯ :
+    Modal A →
+    ◯ (Σ A P) ≃ Σ A (◯ ∘ P)
+  Modal→◯Σ≃Σ◯ {A = A} {P = P} m = Eq.↔→≃
+    (◯-rec m′ (Σ-map id η))
+    (λ (x , y) → ◯-map (x ,_) y)
+    (uncurry λ x →
+       ◯-elim (λ _ → Modal→Separated m′ _ _) λ y →
+         ◯-rec m′ (Σ-map id η) (◯-map (x ,_) (η y))  ≡⟨ cong (◯-rec m′ (Σ-map id η)) ◯-map-η ⟩
+         ◯-rec m′ (Σ-map id η) (η (x , y))           ≡⟨ ◯-rec-η ⟩∎
+         (x , η y)                                   ∎)
+    (◯-elim
+       (λ _ → Separated-◯ _ _)
+       (λ (x , y) →
+          (let x′ , y′ = ◯-rec m′ (Σ-map id η) (η (x , y)) in
+           ◯-map (x′ ,_) y′)                                   ≡⟨ cong (λ (p : Σ A (◯ ∘ P)) → let x′ , y′ = p in ◯-map (x′ ,_) y′)
+                                                                  ◯-rec-η ⟩
+
+          ◯-map (x ,_) (η y)                                   ≡⟨ ◯-map-η ⟩∎
+
+          η (x , y)                                            ∎))
+    where
+    m′ = Modal-Σ m λ _ → Modal-◯
+
+  ----------------------------------------------------------------------
+  -- Choice
+
+  -- I did not take the definitions in this section from "Modalities
+  -- in Homotopy Type Theory" or the corresponding Coq code (but that
+  -- does not mean that one cannot find something similar in those
+  -- places).
+
   -- The inverse of a choice principle (that may or may not hold).
 
   ◯Π→Π◯ :
@@ -1817,32 +1851,6 @@ module Modality (M : Modality a) where
                                                                   Vec.index-tabulate n) ⟩∎
              η f                                              ∎)
           f
-
-  -- If A is modal, then ◯ (Σ A P) is equivalent to Σ A (◯ ∘ P).
-
-  Modal→◯Σ≃Σ◯ :
-    Modal A →
-    ◯ (Σ A P) ≃ Σ A (◯ ∘ P)
-  Modal→◯Σ≃Σ◯ {A = A} {P = P} m = Eq.↔→≃
-    (◯-rec m′ (Σ-map id η))
-    (λ (x , y) → ◯-map (x ,_) y)
-    (uncurry λ x →
-       ◯-elim (λ _ → Modal→Separated m′ _ _) λ y →
-         ◯-rec m′ (Σ-map id η) (◯-map (x ,_) (η y))  ≡⟨ cong (◯-rec m′ (Σ-map id η)) ◯-map-η ⟩
-         ◯-rec m′ (Σ-map id η) (η (x , y))           ≡⟨ ◯-rec-η ⟩∎
-         (x , η y)                                   ∎)
-    (◯-elim
-       (λ _ → Separated-◯ _ _)
-       (λ (x , y) →
-          (let x′ , y′ = ◯-rec m′ (Σ-map id η) (η (x , y)) in
-           ◯-map (x′ ,_) y′)                                   ≡⟨ cong (λ (p : Σ A (◯ ∘ P)) → let x′ , y′ = p in ◯-map (x′ ,_) y′)
-                                                                  ◯-rec-η ⟩
-
-          ◯-map (x ,_) (η y)                                   ≡⟨ ◯-map-η ⟩∎
-
-          η (x , y)                                            ∎))
-    where
-    m′ = Modal-Σ m λ _ → Modal-◯
 
   ----------------------------------------------------------------------
   -- Some conversions
