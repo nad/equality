@@ -149,7 +149,7 @@ Connected-→≃Is-equivalence-◯-map :
 Connected-→≃Is-equivalence-◯-map {f = f} =
   generalise-ext?-prop
     (record
-       { to   = Connected→Is-equivalence-◯-map
+       { to   = Connected-→→Is-equivalence-◯-map
        ; from =
            _⇔_.to
              (logically-equivalent

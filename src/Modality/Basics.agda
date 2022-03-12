@@ -3091,9 +3091,9 @@ module Modality (M : Modality a) where
 
   -- If f is ◯-connected, then ◯-map f is an equivalence.
 
-  Connected→Is-equivalence-◯-map :
+  Connected-→→Is-equivalence-◯-map :
     ◯ -Connected-→ f → Is-equivalence (◯-map f)
-  Connected→Is-equivalence-◯-map {f = f} c =
+  Connected-→→Is-equivalence-◯-map {f = f} c =
     _≃_.is-equivalence $
     Eq.↔→≃
       _
@@ -3199,7 +3199,7 @@ module Modality (M : Modality a) where
     where
     to : ◯ -Connected-→ f → Is-equivalence (◯-rec m f)
     to =
-      ◯ -Connected-→ f                →⟨ Connected→Is-equivalence-◯-map ⟩
+      ◯ -Connected-→ f                →⟨ Connected-→→Is-equivalence-◯-map ⟩
 
       Is-equivalence (◯-map f)        →⟨ Eq.respects-extensional-equality $
                                          ◯-elim
@@ -3988,8 +3988,8 @@ module Modality (M : Modality a) where
         ◯ -Connected-→ g → ◯ -Connected-→ (g ∘ f) → ◯ -Connected-→ f
       step₁₁ {g = g} {f = f} lex = curry
         (◯ -Connected-→ g × ◯ -Connected-→ (g ∘ f)                      →⟨ Σ-map
-                                                                             Connected→Is-equivalence-◯-map
-                                                                             Connected→Is-equivalence-◯-map ⟩
+                                                                             Connected-→→Is-equivalence-◯-map
+                                                                             Connected-→→Is-equivalence-◯-map ⟩
          Is-equivalence (◯-map g) × Is-equivalence (◯-map (g ∘ f))      →⟨ (∃-cong λ _ →
                                                                             Is-equivalence-cong _ λ _ →
                                                                             ◯-map-∘) ⟩

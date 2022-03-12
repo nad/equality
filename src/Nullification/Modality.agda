@@ -362,7 +362,7 @@ module Canonical-accessible-extension
                                               hyp
                                               (λ _ → M.Contractible→Connected
                                                        (H-level.⇒≡ 0 (↑-closure 0 ⊤-contractible)))) ⟩
-        M.◯ -Connected-→ f            →⟨ M.Connected→Is-equivalence-◯-map ⟩□
+        M.◯ -Connected-→ f            →⟨ M.Connected-→→Is-equivalence-◯-map ⟩□
         Is-equivalence (M.◯-map f)    □
 
     to :
