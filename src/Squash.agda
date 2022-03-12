@@ -2,40 +2,38 @@
 -- Squashing
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --prop --safe #-}
+{-# OPTIONS --without-K --prop --safe #-}
 
-import Equality.Path as P
+open import Equality
 
-module Squash {e⁺} (eq : ∀ {a p} → P.Equality-with-paths a p e⁺) where
+module Squash {e⁺} (eq-J : ∀ {a p} → Equality-with-J a p e⁺) where
 
-open P.Derived-definitions-and-properties eq
+open Derived-definitions-and-properties eq-J
 
 open import Erased.Basics as E using (Erased)
 open import Logical-equivalence using (_⇔_)
 import Modality.Empty-modal
 open import Prelude
 
-open import Bijection equality-with-J using (_↔_)
-open import Equality.Decidable-UIP equality-with-J
-open import Double-negation equality-with-J as DN using (¬¬_)
-open import Embedding equality-with-J using (Embedding; Is-embedding)
-open import Equality.Decision-procedures equality-with-J
-open import Equivalence equality-with-J as Eq
-  using (_≃_; Is-equivalence)
-open import Equivalence.Erased equality-with-J using (_≃ᴱ_)
-open import Equivalence.Path-split equality-with-J
+open import Bijection eq-J using (_↔_)
+open import Equality.Decidable-UIP eq-J
+open import Double-negation eq-J as DN using (¬¬_)
+open import Embedding eq-J using (Embedding; Is-embedding)
+open import Equality.Decision-procedures eq-J
+open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
+open import Equivalence.Erased eq-J using (_≃ᴱ_)
+open import Equivalence.Path-split eq-J
   using (Is-∞-extendable-along-[_])
-open import Extensionality equality-with-J
-open import For-iterated-equality equality-with-J
-open import Function-universe equality-with-J hiding (id; _∘_)
-open import H-level equality-with-J as H-level
-open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional eq as Trunc using (∥_∥)
-open import Injection equality-with-J using (_↣_)
-open import Modality.Basics equality-with-J
-import Modality.Very-modal equality-with-J as VM
-open import Monad equality-with-J
-open import Surjection equality-with-J using (_↠_; Split-surjective)
+open import Extensionality eq-J
+open import For-iterated-equality eq-J
+open import Function-universe eq-J hiding (id; _∘_)
+open import H-level eq-J as H-level
+open import H-level.Closure eq-J
+open import Injection eq-J using (_↣_)
+open import Modality.Basics eq-J
+import Modality.Very-modal eq-J as VM
+open import Monad eq-J
+open import Surjection eq-J using (_↠_; Split-surjective)
 
 private
   variable
@@ -212,7 +210,7 @@ empty-modal =
 
 private
   module EM {ℓ = ℓ} =
-    Modality.Empty-modal equality-with-J (modality {ℓ = ℓ}) empty-modal
+    Modality.Empty-modal eq-J (modality {ℓ = ℓ}) empty-modal
 
 -- The squash modality commutes with Erased.
 
@@ -428,11 +426,6 @@ Squash-↑↔↑ = record
 
 ------------------------------------------------------------------------
 -- Some properties
-
--- ∥ A ∥ implies Squash A.
-
-∥∥→Squash : ∥ A ∥ → Squash A
-∥∥→Squash = Trunc.rec Squash-propositional [_]
 
 -- Squash A implies ¬ ¬ A.
 

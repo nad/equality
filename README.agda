@@ -15,6 +15,10 @@ module README where
 
 import README.Safe.Without-K
 
+-- "Safe" code that uses --without-K and --prop.
+
+import README.Safe.Without-K.Prop
+
 -- "Safe" code that uses --erased-cubical.
 
 import README.Safe.Cubical.Erased

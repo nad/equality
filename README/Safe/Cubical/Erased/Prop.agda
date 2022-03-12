@@ -6,6 +6,6 @@
 
 module README.Safe.Cubical.Erased.Prop where
 
--- Squashing.
+-- Code related to Squash that uses --erased-cubical.
 
-import Squash
+import Squash.Cubical
