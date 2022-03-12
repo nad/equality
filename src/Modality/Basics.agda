@@ -1664,6 +1664,81 @@ module Modality (M : Modality a) where
     implicit-Π-closure ext 1 λ _ →
     Has-choice-for-propositional ext
 
+  -- Has-choice-for preserves equivalences (assuming function
+  -- extensionality).
+
+  Has-choice-for-cong-≃ :
+    Extensionality (lsuc a) (lsuc a) →
+    A ≃ B → Has-choice-for A ≃ Has-choice-for B
+  Has-choice-for-cong-≃ {A = A} {B = B} ext A≃B =
+    Has-choice-for A                                       ↝⟨ Has-choice-for≃Is-equivalence-◯Π→Π◯ ext ⟩
+
+    ({P : A → Type a} → Is-equivalence (◯Π→Π◯ {P = P}))    ↝⟨ (implicit-Π-cong ext⁺₀ (Π-cong-contra ext₀⁺ (inverse A≃B) (λ _ → Eq.id)) λ P →
+
+      Is-equivalence
+        (◯Π→Π◯ ⦂ (◯ ((x : A) → P x) → (x : A) → ◯ (P x)))        ↝⟨ Is-equivalence≃Is-equivalence-∘ˡ
+                                                                      (_≃_.is-equivalence $
+                                                                       Π-cong-contra ext₀₀ (inverse A≃B) (λ _ → F.id))
+                                                                      ext₀₀ F.∘
+                                                                    Is-equivalence≃Is-equivalence-∘ʳ
+                                                                      (_≃_.is-equivalence $
+                                                                       ◯-cong-≃ $ Π-cong ext₀₀ (inverse A≃B) (λ _ → F.id))
+                                                                      ext₀₀ ⟩
+      Is-equivalence
+        (Π-cong-contra-→ (_≃_.from A≃B) (λ _ → id) ∘
+         ◯Π→Π◯ {P = P} ∘
+         ◯-map (Π-cong _ (inverse A≃B) (λ _ → id)) ⦂
+         (◯ ((x : B) → P (_≃_.from A≃B x)) →
+          (x : B) → ◯ (P (_≃_.from A≃B x))))                     ↝⟨ Is-equivalence-cong ext₀₀ $
+                                                                    ◯-elim
+                                                                      (λ _ → Modal→Separated (Modal-Π ext₀₀ λ _ → Modal-◯) _ _)
+                                                                      (lemma P) ⟩□
+      Is-equivalence
+        (◯Π→Π◯ ⦂
+         (◯ ((x : B) → P (_≃_.from A≃B x)) →
+          (x : B) → ◯ (P (_≃_.from A≃B x))))                     □) ⟩
+
+    ({P : B → Type a} → Is-equivalence (◯Π→Π◯ {P = P}))    ↝⟨ inverse $ Has-choice-for≃Is-equivalence-◯Π→Π◯ ext ⟩□
+
+    Has-choice-for B                                       □
+    where
+    ext⁺₀ = lower-extensionality lzero _ ext
+    ext₀⁺ = lower-extensionality _ lzero ext
+    ext₀₀ = lower-extensionality _ _ ext
+
+    lemma = λ P f → apply-ext ext₀₀ λ x →
+      ◯-map (_$ _≃_.from A≃B x) $
+      ◯-map
+        (λ f x →
+           subst P (_≃_.left-inverse-of A≃B x)
+             (f (_≃_.to A≃B x))) $
+      η f                                                ≡⟨ sym ◯-map-∘ ⟩
+
+      ◯-map
+        (λ f →
+           subst P
+             (_≃_.left-inverse-of A≃B (_≃_.from A≃B x))
+             (f (_≃_.to A≃B (_≃_.from A≃B x)))) $
+      η f                                                ≡⟨ (cong (flip ◯-map _) $ apply-ext ext₀₀ λ f →
+
+        subst P
+          (_≃_.left-inverse-of A≃B (_≃_.from A≃B x))
+          (f (_≃_.to A≃B (_≃_.from A≃B x)))                    ≡⟨ cong (flip (subst P) _) $ sym $
+                                                                  _≃_.right-left-lemma A≃B _ ⟩
+        subst P
+          (cong (_≃_.from A≃B) $
+           _≃_.right-inverse-of A≃B x)
+          (f (_≃_.to A≃B (_≃_.from A≃B x)))                    ≡⟨ elim₁
+                                                                    (λ {y} eq →
+                                                                       subst P (cong (_≃_.from A≃B) eq) (f y) ≡ f x)
+                                                                    (trans (cong (flip (subst P) _) $ cong-refl _) $
+                                                                     subst-refl _ _)
+                                                                    _ ⟩∎
+
+        f x                                                    ∎) ⟩∎
+
+      ◯-map (_$ x) (η f)                                 ∎
+
   -- The modality has choice for Fin n (lifted).
 
   Has-choice-for-Fin : Has-choice-for (↑ a (Fin n))
