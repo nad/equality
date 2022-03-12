@@ -354,6 +354,8 @@ private
           (record { from = λ _ → refl _ })
     }
 
+-- Squash preserves all kinds of functions.
+
 Squash-cong : A ↝[ k ] B → Squash A ↝[ k ] Squash B
 Squash-cong {k = implication}         = Squash-cong-→
 Squash-cong {k = logical-equivalence} = from-isomorphism ∘ Squash-cong-⇔
