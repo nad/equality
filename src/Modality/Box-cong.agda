@@ -32,6 +32,7 @@ open import Equivalence.Erased.Contractible-preimages eq
 import Erased.Level-2 eq as E₂
 open import Extensionality eq
 open import Function-universe eq hiding (_∘_)
+import Modality.Left-exact eq M as Lex
 
 private
   variable
@@ -119,8 +120,8 @@ Modal-Is-equivalenceᴱ ext m s =
   ◯ (A ↝[ k ] B) → ◯ A ↝[ k ] ◯ B
 ◯-cong-◯ {k = implication}         _   = ◯-map-◯
 ◯-cong-◯ {k = logical-equivalence} _   = ◯-cong-⇔-◯
-◯-cong-◯ {k = injection}           lex = ◯-cong-↣-◯ lex
-◯-cong-◯ {k = embedding}           lex = ◯-cong-Embedding-◯ lex
+◯-cong-◯ {k = injection}           lex = Lex.◯-cong-↣-◯ lex
+◯-cong-◯ {k = embedding}           lex = Lex.◯-cong-Embedding-◯ lex
 ◯-cong-◯ {k = surjection}          _   = ◯-cong-↠-◯
 ◯-cong-◯ {k = bijection}           _   = ◯-cong-↔-◯
 ◯-cong-◯ {k = equivalence}         _   = ◯-cong-≃-◯

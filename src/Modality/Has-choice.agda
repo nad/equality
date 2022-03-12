@@ -52,6 +52,7 @@ open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J
 open import H-level.Closure eq-J
 open import Injection eq-J using (_↣_; Injective)
+import Modality.Left-exact eq-J M as Lex
 open import Preimage eq-J using (_⁻¹_)
 open import Surjection eq-J using (_↠_; Split-surjective)
 
@@ -370,6 +371,8 @@ module Valid-domain₁ (v : Valid-domain A) where
 
   module Left-exact (lex : Left-exact-η-cong) where
 
+    open Lex lex
+
     -- Contractible commutes with ◯ (assuming function
     -- extensionality).
 
@@ -383,7 +386,7 @@ module Valid-domain₁ (v : Valid-domain A) where
       (∃ λ (x : ◯ A) → (y : A) → ◯ (x ≡ η y))  ↝⟨ (∃-cong λ _ → Π◯≃◯Π ext) ⟩
       (∃ λ (x : ◯ A) → ◯ ((y : A) → x ≡ η y))  ↝⟨ inverse-ext? ◯Ση≃Σ◯◯ ext ⟩
       ◯ (∃ λ (x : A) → (y : A) → η x ≡ η y)    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ∀-cong ext λ _ →
-                                                   from-equivalence $ inverse $ ◯≡≃η≡η lex) ⟩
+                                                   from-equivalence $ inverse ◯≡≃η≡η) ⟩
       ◯ (∃ λ (x : A) → (y : A) → ◯ (x ≡ y))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → Π◯≃◯Π ext) ⟩
       ◯ (∃ λ (x : A) → ◯ ((y : A) → x ≡ y))    ↔⟨ ◯Σ◯≃◯Σ ⟩
       ◯ (∃ λ (x : A) → (y : A) → x ≡ y)        ↔⟨⟩
@@ -398,7 +401,7 @@ module Valid-domain₁ (v : Valid-domain A) where
     ◯-Split-surjective≃Split-surjective {f = f} {k = k} ext =
       ◯ (∀ y → ∃ λ x → f x ≡ y)              ↝⟨ inverse-ext? Π◯≃◯Π ext ⟩
       (∀ y → ◯ (∃ λ x → f x ≡ y))            ↝⟨ (∀-cong′ λ _ → inverse ◯Σ◯≃◯Σ) ⟩
-      (∀ y → ◯ (∃ λ x → ◯ (f x ≡ y)))        ↝⟨ (∀-cong′ λ _ → ◯-cong-≃ $ ∃-cong λ _ → ◯≡≃η≡η lex) ⟩
+      (∀ y → ◯ (∃ λ x → ◯ (f x ≡ y)))        ↝⟨ (∀-cong′ λ _ → ◯-cong-≃ $ ∃-cong λ _ → ◯≡≃η≡η) ⟩
       (∀ y → ◯ (∃ λ x → η (f x) ≡ η y))      ↝⟨ inverse-ext? Π◯◯≃Π◯η ext ⟩
       (∀ y → ◯ (∃ λ x → η (f x) ≡ y))        ↝⟨ (∀-cong′ λ _ → ◯-cong-≃ $ ∃-cong λ _ → ≡⇒↝ _ $ cong (_≡ _) $ sym ◯-map-η) ⟩
       (∀ y → ◯ (∃ λ x → ◯-map f (η x) ≡ y))  ↝⟨ (∀-cong ext λ _ → ◯Ση≃Σ◯◯ ext) ⟩
@@ -1042,7 +1045,7 @@ module Valid-domain-Σ≡◯
       ((x : ◯ A) (y : A) → ◯ (H-level′ n (x ≡ η y)))    ↝⟨ (∀-cong ext λ _ → Π◯≃◯Π v ext) ⟩
       ((x : ◯ A) → ◯ ((y : A) → H-level′ n (x ≡ η y)))  ↝⟨ Π◯◯≃Π◯η ext ⟩
       ((x : A) → ◯ ((y : A) → H-level′ n (η x ≡ η y)))  ↝⟨ (∀-cong ext λ _ → ◯-cong-↝ ext λ ext → ∀-cong ext λ _ →
-                                                            H-level′-cong ext n $ inverse $ ◯≡≃η≡η lex) ⟩
+                                                            H-level′-cong ext n $ inverse $ Lex.◯≡≃η≡η lex) ⟩
       ((x : A) → ◯ ((y : A) → H-level′ n (◯ (x ≡ y))))  ↝⟨ (∀-cong ext λ _ → ◯-cong-↝ ext λ ext → ∀-cong ext λ _ →
                                                             H-level′-◯≃◯-H-level′′ lex (v-≡ v) n ext) ⟩
       ((x : A) → ◯ ((y : A) → ◯ (H-level′ n (x ≡ y))))  ↝⟨ (∀-cong ext λ _ → ◯Π◯≃◯Π v ext) ⟩
@@ -1150,6 +1153,7 @@ module Valid-domain-Σ≡◯
       module Left-exact (lex : Left-exact-η-cong) where
 
         private
+          open Lex lex
           open module V₁ {A} (v : Valid-domain A) =
             Valid-domain₁.Left-exact v lex
 
@@ -1178,8 +1182,7 @@ module Valid-domain-Σ≡◯
           ◯ (Is-equivalence f) ↝[ a ∣ a ] Is-equivalence (◯-map f)
         ◯-Is-equivalence≃Is-equivalence {f = f} ext =
           ◯ (Is-equivalence f)      ↝⟨ inverse-ext? Connected-→≃◯-Is-equivalence ext ⟩
-          ◯ -Connected-→ f          ↝⟨ Left-exact→Connected-→≃Is-equivalence-◯-map
-                                         (_⇔_.from (Left-exact≃Left-exact-η-cong _) lex) ext ⟩□
+          ◯ -Connected-→ f          ↝⟨ Connected-→≃Is-equivalence-◯-map ext ⟩□
           Is-equivalence (◯-map f)  □
 
   ----------------------------------------------------------------------
@@ -1197,6 +1200,7 @@ module Valid-domain-Σ≡◯
 
     module Left-exact (lex : Left-exact-η-cong) where
 
+      open Lex lex
       open Valid-domain₂′′.Left-exact vA vB lex public
 
       -- ◯ commutes with _≃_ (for A and B, assuming function
@@ -1282,9 +1286,9 @@ module Valid-domain-Σ≡◯
                                                                              inverse-ext? (λ ext → Π◯≃◯Π vB ext ×-cong Π◯≃◯Π vA ext) ext) ⟩
 
         ◯ (∃ λ g → (∀ x → ◯ (f (g x) ≡ x)) × (∀ x → ◯ (g (f x) ≡ x)))    ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ →
-                                                                             (∀-cong ext λ _ → from-equivalence $ ◯≡≃η≡η lex)
+                                                                             (∀-cong ext λ _ → from-equivalence ◯≡≃η≡η)
                                                                                ×-cong
-                                                                             (∀-cong ext λ _ → from-equivalence $ ◯≡≃η≡η lex)) ⟩
+                                                                             (∀-cong ext λ _ → from-equivalence ◯≡≃η≡η)) ⟩
 
         ◯ (∃ λ g → (∀ x → η (f (g x)) ≡ η x) ×
                    (∀ x → η (g (f x)) ≡ η x))                            ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ →
@@ -1358,10 +1362,10 @@ module Valid-domain-Σ≡◯
         ◯ (∀ x y → f x ≡ f y → x ≡ y)                        ↝⟨ inverse-ext? (Π◯≃◯Π vA) ext ⟩
         (∀ x → ◯ (∀ y → f x ≡ f y → x ≡ y))                  ↝⟨ (∀-cong ext λ _ → inverse-ext? (Π◯≃◯Π vA) ext) ⟩
         (∀ x y → ◯ (f x ≡ f y → x ≡ y))                      ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ◯→≃◯→◯ (v-≡ vB) ext) ⟩
-        (∀ x y → ◯ (f x ≡ f y) → ◯ (x ≡ y))                  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → →-cong₁ ext $
-                                                                 ◯≡≃η≡η lex) ⟩
-        (∀ x y → η (f x) ≡ η (f y) → ◯ (x ≡ y))              ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ → from-equivalence $
-                                                                 ◯≡≃η≡η lex) ⟩
+        (∀ x y → ◯ (f x ≡ f y) → ◯ (x ≡ y))                  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → →-cong₁ ext
+                                                                 ◯≡≃η≡η) ⟩
+        (∀ x y → η (f x) ≡ η (f y) → ◯ (x ≡ y))              ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → ∀-cong ext λ _ → from-equivalence
+                                                                 ◯≡≃η≡η) ⟩
         (∀ x y → η (f x) ≡ η (f y) → η x ≡ η y)              ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → →-cong₁ ext $
                                                                  ≡⇒↝ equivalence $ sym $ cong₂ _≡_ ◯-map-η ◯-map-η) ⟩
         (∀ x y → ◯-map f (η x) ≡ ◯-map f (η y) → η x ≡ η y)  ↝⟨ (∀-cong ext λ _ → inverse-ext? (Π◯↝Πη s) ext) ⟩
@@ -1413,16 +1417,16 @@ module Valid-domain-Σ≡◯
                                                                                   Valid-domain₂′′.Left-exact.◯-Is-equivalence≃Is-equivalence
                                                                                     (v-≡ vA) (v-≡ vB) lex ext) ⟩
 
-        (∀ x y → Is-equivalence (◯-map (cong f ⦂ (x ≡ y → f x ≡ f y))))       ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence-cong ext $
-                                                                                  ◯-map-cong≡ lex) ⟩
+        (∀ x y → Is-equivalence (◯-map (cong f ⦂ (x ≡ y → f x ≡ f y))))       ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Is-equivalence-cong ext
+                                                                                  ◯-map-cong≡) ⟩
         (∀ x y →
            Is-equivalence
-             (η-cong⁻¹ lex ∘
+             (η-cong⁻¹ ∘
               _≃_.to (≡⇒↝ _ (cong₂ _≡_ ◯-map-η ◯-map-η)) ∘
               cong (◯-map f) ∘ η-cong ⦂ (◯ (x ≡ y) → ◯ (f x ≡ f y))))         ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                                   inverse-ext?
                                                                                     (Is-equivalence≃Is-equivalence-∘ˡ
-                                                                                       (_≃_.is-equivalence $ inverse $ ◯≡≃η≡η lex))
+                                                                                       (_≃_.is-equivalence $ inverse ◯≡≃η≡η))
                                                                                     ext) ⟩
         (∀ x y →
            Is-equivalence
@@ -1500,7 +1504,7 @@ module Valid-domain-Σ≡◯
         ◯ (∃ λ (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
            ∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
            (x : A) → ◯ (cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x)))                  ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
-                                                                              ◯≡≃η≡η lex) ⟩
+                                                                              ◯≡≃η≡η) ⟩
         ◯ (∃ λ (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
            ∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
            (x : A) → η (cong f (f⁻¹-f x)) ≡ η (f-f⁻¹ (f x)))              ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
@@ -1552,7 +1556,7 @@ module Valid-domain-Σ≡◯
             ((x : ◯ B) → ◯-map g (◯-map h x) ≡ x)
           lemma₂ {B = B} g h v =
             ◯ ((x : B) → g (h x) ≡ x)                  ↝⟨ inverse (Π◯≃◯Π v ext) ⟩
-            ((x : B) → ◯ (g (h x) ≡ x))                ↝⟨ (∀-cong ext λ _ → ◯≡≃η≡η lex) ⟩
+            ((x : B) → ◯ (g (h x) ≡ x))                ↝⟨ (∀-cong ext λ _ → ◯≡≃η≡η) ⟩
             ((x : B) → η (g (h x)) ≡ η x)              ↔⟨ (∀-cong ext λ _ → trans-isomorphism (lemma₁ g h)) ⟩
             ((x : B) → ◯-map g (◯-map h (η x)) ≡ η x)  ↝⟨ inverse $ Π◯≃Πη ext s ⟩□
             ((x : ◯ B) → ◯-map g (◯-map h x) ≡ x)      □
@@ -1607,7 +1611,7 @@ module Valid-domain-Σ≡◯
 
             ◯-map (cong f ∘ (_$ x)) (η f⁻¹-f) ≡ ◯-map (_$ f x) (η f-f⁻¹)  ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ ◯-map-η ◯-map-η ⟩
 
-            η (cong f (f⁻¹-f x)) ≡ η (f-f⁻¹ (f x))                        ↝⟨ inverse $ Eq.≃-≡ $ ◯≡≃η≡η lex ⟩
+            η (cong f (f⁻¹-f x)) ≡ η (f-f⁻¹ (f x))                        ↝⟨ inverse $ Eq.≃-≡ ◯≡≃η≡η ⟩
 
             η-cong (η (cong f (f⁻¹-f x))) ≡ η-cong (η (f-f⁻¹ (f x)))      ↝⟨ ≡⇒↝ _ $ cong₂ _≡_ η-cong-η η-cong-η ⟩
 

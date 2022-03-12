@@ -36,6 +36,7 @@ open import Extensionality eq-J
 open import Function-universe eq-J as F hiding (_∘_)
 open import H-level eq-J
 import Modality.Has-choice eq-J M as C
+import Modality.Left-exact eq-J M as Lex
 
 private
   variable
@@ -100,7 +101,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
   ◯⁻¹ᴱ≃◯∘⁻¹ᴱ {A = A} {f = f} {y = y} lex =
     ◯ (∃ λ (x : A) → Erased (f x ≡ y))        ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
     ◯ (∃ λ (x : A) → ◯ (Erased (f x ≡ y)))    ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯-Erased≃Erased-◯) ⟩
-    ◯ (∃ λ (x : A) → Erased (◯ (f x ≡ y)))    ↔⟨ (◯-cong-≃ $ ∃-cong (λ _ → EC.Erased-cong (◯≡≃η≡η lex))) ⟩□
+    ◯ (∃ λ (x : A) → Erased (◯ (f x ≡ y)))    ↔⟨ (◯-cong-≃ $ ∃-cong (λ _ → EC.Erased-cong (Lex.◯≡≃η≡η lex))) ⟩□
     ◯ (∃ λ (x : A) → Erased (η (f x) ≡ η y))  □
 
   ----------------------------------------------------------------------
@@ -156,7 +157,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
                                                               inverse-ext? (C.Valid-domain₁.Π◯≃◯Π Valid-domain has-choice v) ext)) ⟩
         ◯ (∃ λ (x : A) → Erased ((y : A) → ◯ (x ≡ y)))    ↝⟨ (◯-cong-↝ᴱ ext λ ext → ∃-cong λ _ →
                                                               EC.Erased-cong (∀-cong ext λ _ → from-equivalence $
-                                                              ◯≡≃η≡η lex)) ⟩
+                                                              Lex.◯≡≃η≡η lex)) ⟩
         ◯ (∃ λ (x : A) → Erased ((y : A) → η x ≡ η y))    ↝⟨ comm ⟩
         (∃ λ (x : ◯ A) → ◯ (Erased ((y : A) → x ≡ η y)))  ↔⟨ (∃-cong λ _ → ◯-Erased≃Erased-◯) ⟩
         (∃ λ (x : ◯ A) → Erased (◯ ((y : A) → x ≡ η y)))  ↝⟨ (∃-cong λ _ → EC.Erased-cong (

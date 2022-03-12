@@ -214,6 +214,10 @@ import Univalence-axiom
 
 import Modality.Basics
 
+-- Some results that hold for left exact modalities.
+
+import Modality.Left-exact
+
 -- The identity modality.
 
 import Modality.Identity

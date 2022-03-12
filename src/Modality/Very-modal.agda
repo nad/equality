@@ -22,13 +22,13 @@ private
   open module M = Modality M
     hiding (Stable-Π; Stable-Erased; Stable-Contractibleᴱ; Stable-⁻¹ᴱ;
             ◯Ση≃Σ◯◯; commutes-with-Σ;
-            ◯Π◯≃◯Π; ◯Π◯≃◯Π-η; ◯Π◯≃◯Π⁻¹-η;
-            ◯≡≃η≡η)
+            ◯Π◯≃◯Π; ◯Π◯≃◯Π-η; ◯Π◯≃◯Π⁻¹-η)
 
 open import Logical-equivalence using (_⇔_)
 import Modality.Box-cong
 import Modality.Commutes-with-Erased
 import Modality.Has-choice
+import Modality.Left-exact
 open import Prelude
 
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
@@ -188,20 +188,7 @@ left-exact-η-cong =
   ◯-Modal→Is-equivalence-η-cong very-modal _ _
 
 open C.Left-exact left-exact-η-cong public
-
--- Very modal modalities are left exact.
-
-left-exact : Left-exact ◯
-left-exact {A = A} {x = x} {y = y} =
-  Contractible (◯ A)        →⟨ H-level′-◯≃◯-H-level′ 0 _ ⟩
-  ◯ (Contractible A)        →⟨ ◯-map $ H-level.⇒≡ 0 ⟩
-  ◯ (Contractible (x ≡ y))  →⟨ inverse-ext? (H-level′-◯≃◯-H-level′ 0) _ ⟩□
-  Contractible (◯ (x ≡ y))  □
-
--- There is an equivalence between ◯ (x ≡ y) and η x ≡ η y.
-
-◯≡≃η≡η : ◯ (x ≡ y) ≃ (η x ≡ η y)
-◯≡≃η≡η = M.◯≡≃η≡η left-exact-η-cong
+open Modality.Left-exact eq M left-exact-η-cong public
 
 ------------------------------------------------------------------------
 -- Modal A is equivalent to Modal -Null A
@@ -285,10 +272,7 @@ Modal≃Modal-Null {A = A} ext =
     (λ ext →
          refl
        , (λ m →
-            very-modal  ≡⟨ Left-exact-η-cong→H-level→H-level-◯
-                             left-exact-η-cong 1
-                             (Modal-propositional ext)
-                             _ _ ⟩∎
+            very-modal  ≡⟨ H-level→H-level-◯ 1 (Modal-propositional ext) _ _ ⟩∎
             m           ∎))
 
 -- ◯ B is equivalent to ◯ (Modal A × B) (assuming function

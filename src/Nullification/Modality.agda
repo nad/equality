@@ -31,6 +31,7 @@ open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import Localisation eq hiding (ext)
 open import Modality.Basics equality-with-J
+import Modality.Left-exact equality-with-J as Lex
 open import Nullification eq
 open import Preimage equality-with-J using (_⁻¹_)
 open import Surjection equality-with-J using (_↠_; Split-surjective)
@@ -621,8 +622,9 @@ Accessible→Logically-equivalent-Left-exact :
      CAE.Modal (∃ λ (A : Type a) → Modal A))
 Accessible→Logically-equivalent-Left-exact
   {a = a} univ M acc@(_ , P , _) =
-    (Left-exact ◯                                       →⟨ (λ lex → Left-exact→Accessible→ ext lex acc) ⟩⇔
-
+    (Left-exact ◯                                       →⟨ (λ lex →
+                                                              Lex.Accessible→ M
+                                                                (_⇔_.to (Left-exact≃Left-exact-η-cong _) lex) ext acc) ⟩⇔
      (∀ i → (Q : P i → Type a) → (∀ y → Modal (Q y)) →
       ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B))     →⟨ (λ lex → acc , lex) ⟩⇔
 
