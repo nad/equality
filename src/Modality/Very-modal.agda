@@ -480,9 +480,9 @@ commutes-with-Σ = _≃_.is-equivalence ◯Ση≃Σ◯◯
 ------------------------------------------------------------------------
 -- Preservation lemmas
 
--- One can prove that ◯ A ↝[ k ] ◯ B holds by proving A ↝[ d ∣ e ] B
--- under the assumption that any type C is modal (perhaps assuming
--- function extensionality).
+-- One can prove that ◯ A ↝[ k ] ◯ B holds by proving
+-- A ↝[ a ⊔ d ∣ a ⊔ e ] B under the assumption that a given type C is
+-- modal (perhaps assuming function extensionality).
 
 ◯-cong-↝-Modal→ :
   ∀ d e →
