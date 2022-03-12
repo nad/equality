@@ -21,6 +21,8 @@ open import Prelude
 
 open import Bijection equality-with-J as Bijection using (_↔_)
 import Bijection P.equality-with-J as PB
+open import Double-negation equality-with-J as DN
+  using (¬¬_; ¬¬-modality)
 open import Equality.Groupoid equality-with-J
 open import Equality.Path.Isomorphisms eq
 open import Equality.Path.Isomorphisms.Univalence eq
@@ -42,6 +44,7 @@ open import H-level.Truncation.Propositional.One-step eq as O
   using (∥_∥¹)
 open import Integer equality-with-J as Int
   using (ℤ; +_; -[1+_]; ℤ-group)
+open import Modality equality-with-J
 open import Nat equality-with-J
 open import Pointed-type equality-with-J as PT using (_≃ᴮ_)
 open import Pointed-type.Homotopy-group eq
@@ -678,6 +681,19 @@ all-points-on-the-circle-are-¬¬-equal x =
   ({P : 𝕊¹ → Type} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))  ↝⟨ _$ all-points-on-the-circle-are-¬¬-equal ⟩
   ¬ ¬ ((x : 𝕊¹) → x ≡ base)                                        ↝⟨ _$ ¬-all-points-on-the-circle-are-equal ⟩□
   ⊥                                                                □
+
+-- This implies that the double-negation modality does not have choice
+-- for 𝕊¹.
+
+¬-¬¬-modality-Has-choice-for-𝕊¹ :
+  ¬ Modality.Has-choice-for (¬¬-modality ext) 𝕊¹
+¬-¬¬-modality-Has-choice-for-𝕊¹ =
+  Has-choice-for 𝕊¹                                                →⟨ (λ hyp → hyp .proj₁) ⟩
+  ({P : 𝕊¹ → Type} → ((x : 𝕊¹) → ¬¬ P x) → ¬¬ ((x : 𝕊¹) → P x))    →⟨ implicit-∀-cong _ $ →-cong-→ (∀-cong _ λ _ → DN.wrap) DN.run ⟩
+  ({P : 𝕊¹ → Type} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))  →⟨ ¬-double-negation-shift ⟩□
+  ⊥                                                                □
+  where
+  open Modality (¬¬-modality ext)
 
 -- Furthermore excluded middle for arbitrary types (in Type) does not
 -- hold.
