@@ -46,11 +46,11 @@ open import Univalence-axiom equality-with-J
 
 private
   variable
-    a a₁ a₂ p r r₁ r₂ : Level
-    A A₁ A₂ B         : Type a
-    P                 : A → Type p
-    R                 : A → A → Type r
-    f k x y           : A
+    a a₁ a₂ ℓ p r r₁ r₂ : Level
+    A A₁ A₂ B           : Type a
+    P                   : A → Type p
+    R                   : A → A → Type r
+    f k x y             : A
 
 ------------------------------------------------------------------------
 -- A re-export
@@ -405,6 +405,30 @@ _ = λ _ → refl _
 ------------------------------------------------------------------------
 -- Various type formers commute with quotients
 
+-- The quotient type ⊤ /ᴱ R is equivalent to ⊤.
+
+⊤/ᴱ : ⊤ /ᴱ R ≃ ⊤
+⊤/ᴱ = Eq.↔→≃
+  _
+  [_]
+  refl
+  (elim-prop λ where
+     .is-propositionʳ _ → /ᴱ-is-set
+     .[]ʳ _             → refl _)
+
+-- The quotient type ⊥ {ℓ = ℓ} /ᴱ R is equivalent to ⊥ {ℓ = ℓ}.
+
+⊥/ᴱ : ⊥ {ℓ = ℓ} /ᴱ R ≃ ⊥ {ℓ = ℓ}
+⊥/ᴱ = Eq.↔→≃
+  (rec-prop λ where
+     .[]ʳ ()
+     .is-propositionʳ ())
+  (λ ())
+  (λ ())
+  (elim-prop λ where
+     .[]ʳ ()
+     .is-propositionʳ ())
+
 -- _⊎_ commutes with quotients.
 
 ⊎/ᴱ :
@@ -450,8 +474,8 @@ Maybe/ᴱ :
   Maybe A /ᴱ Maybeᴾ R ≃ Maybe (A /ᴱ R)
 Maybe/ᴱ {A = A} {R = R} =
   Maybe A /ᴱ Maybeᴾ R    ↝⟨ ⊎/ᴱ ⟩
-  ⊤ /ᴱ Trivial ⊎ A /ᴱ R  ↔⟨ /ᴱtrivial↔∥∥ᴱ _ ⊎-cong F.id ⟩
-  ∥ ⊤ ∥ᴱ ⊎ A /ᴱ R        ↔⟨ PTᴱ.∥∥ᴱ↔ (mono₁ 0 ⊤-contractible) ⊎-cong F.id ⟩□
+  ⊤ /ᴱ Trivial ⊎ A /ᴱ R  ↔⟨ ⊤/ᴱ ⊎-cong F.id ⟩
+  ⊤ ⊎ A /ᴱ R             ↔⟨⟩
   Maybe (A /ᴱ R)         □
 
 -- A simplification lemma for Maybe/-comm.
@@ -460,10 +484,9 @@ Maybe/ᴱ-[] :
   {@0 R : A → A → Type r} →
   _≃_.to (Maybe/ᴱ {R = R}) ∘ [_] ≡ ⊎-map id ([_] {R = R})
 Maybe/ᴱ-[] = ⟨ext⟩ λ x →
-  _≃_.to Maybe/ᴱ [ x ]                       ≡⟨⟩
-  ⊎-map _ id (⊎-map _ id (⊎-map [_] [_] x))  ≡⟨ sym $ ⊎-map-∘ (⊎-map [_] [_] x) ⟩
-  ⊎-map _ id (⊎-map [_] [_] x)               ≡⟨ sym $ ⊎-map-∘ x ⟩∎
-  ⊎-map id [_] x                             ∎
+  _≃_.to Maybe/ᴱ [ x ]          ≡⟨⟩
+  ⊎-map _ id (⊎-map [_] [_] x)  ≡⟨ sym $ ⊎-map-∘ x ⟩∎
+  ⊎-map id [_] x                ∎
 
 -- Cartesian products commute with quotients, assuming that the two
 -- binary relations involved in the statement are reflexive.
