@@ -508,16 +508,16 @@ lift-positions {i = i} C = λ where
   .index (lift p) → C .index p
 
 -- The result of ⟦_⟧ is not affected by lift-positions (up to
--- pointwise equivalence, assuming extensionality).
+-- pointwise equivalence).
 
 ⟦⟧≃⟦lift-positions⟧ :
   {I : Type i}
   (C : Container₂ I O s p) (P : I → Type ℓ) →
-  ⟦ C ⟧ P o ↝[ i ⊔ p ∣ ℓ ] ⟦ lift-positions C ⟧ P o
-⟦⟧≃⟦lift-positions⟧ {o = o} C P ext =
+  ⟦ C ⟧ P o ≃ ⟦ lift-positions C ⟧ P o
+⟦⟧≃⟦lift-positions⟧ {o = o} C P =
   ∃-cong λ s →
 
-  ((      p  :      Position C s)  → P (index C p))  ↝⟨ inverse-ext? (λ ext → Π-cong ext B.↑↔ λ _ → F.id) ext ⟩□
+  ((      p  :      Position C s)  → P (index C p))  ↝⟨ Eq.↔→≃ (_∘ lower) (_∘ lift) refl refl ⟩□
   (((lift p) : ↑ _ (Position C s)) → P (index C p))  □
 
 -- The definition of coalgebras is not affected by lift-positions (up
@@ -526,16 +526,12 @@ lift-positions {i = i} C = λ where
 Coalgebra≃Coalgebra-lift-positions :
   {I : Type i} {C : Container I s p} →
   Coalgebra C ↝[ i ⊔ s ⊔ p ∣ i ⊔ s ⊔ p ] Coalgebra (lift-positions C)
-Coalgebra≃Coalgebra-lift-positions
-  {i = i} {s = s} {p = p} {C = C} {k = k} ext =
-
+Coalgebra≃Coalgebra-lift-positions {s = s} {p = p} {C = C} {k = k} ext =
   (∃ λ P → P ⇾ ⟦                C ⟧ P)  ↝⟨ (∃-cong λ P →
-                                            ∀-cong (lower-extensionality? k l lzero ext) λ _ →
-                                            ∀-cong (lower-extensionality? k l lzero ext) λ _ →
-                                            ⟦⟧≃⟦lift-positions⟧ C P (lower-extensionality? k l lzero ext)) ⟩□
+                                            ∀-cong (lower-extensionality? k (s ⊔ p) lzero ext) λ _ →
+                                            ∀-cong ext λ _ →
+                                            from-equivalence $ ⟦⟧≃⟦lift-positions⟧ C P) ⟩□
   (∃ λ P → P ⇾ ⟦ lift-positions C ⟧ P)  □
-  where
-  l = i ⊔ s ⊔ p
 
 -- The definition of coalgebra morphisms is not affected by
 -- lift-positions (in a certain sense, assuming extensionality).
@@ -547,14 +543,12 @@ Coalgebra≃Coalgebra-lift-positions
   (X ⇨ Y) ≃
   (_≃_.to (Coalgebra≃Coalgebra-lift-positions ext) X ⇨
    _≃_.to (Coalgebra≃Coalgebra-lift-positions ext) Y)
-⇨≃⇨-lift-positions {i = i} {s = s} {p = p} {C = C} ext (P , f) (Q , g) =
+⇨≃⇨-lift-positions {s = s} {p = p} {C = C} ext (P , f) (Q , g) =
   (∃ λ (h : P ⇾ Q) → g ∘⇾ h ≡ map _ h ∘⇾ f)      ↝⟨ (∃-cong λ _ → inverse $
                                                      Eq.≃-≡ $
-                                                     ∀-cong (lower-extensionality l lzero ext) λ _ →
-                                                     ∀-cong (lower-extensionality l lzero ext) λ _ →
-                                                     ⟦⟧≃⟦lift-positions⟧ C Q (lower-extensionality l lzero ext)) ⟩□
+                                                     ∀-cong (lower-extensionality (s ⊔ p) lzero ext) λ _ →
+                                                     ∀-cong ext λ _ →
+                                                     from-equivalence $ ⟦⟧≃⟦lift-positions⟧ C Q) ⟩□
   (∃ λ (h : P ⇾ Q) →
      (Σ-map id (_∘ lower) ∘_) ∘ (g ∘⇾ h) ≡
      (Σ-map id (_∘ lower) ∘_) ∘ (map _ h ∘⇾ f))  □
-  where
-  l = i ⊔ s ⊔ p
