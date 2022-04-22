@@ -24,10 +24,10 @@ open import Function-universe eq as F hiding (id; _∘_)
 
 private
   variable
-    a ℓ p p₁ p₂ q s : Level
-    A I O           : Type a
-    P Q R           : A → Type p
-    ext f i k o     : A
+    a ℓ p p₁ p₂ q r s : Level
+    A I O             : Type a
+    P Q R             : A → Type p
+    ext f i k o       : A
 
 ------------------------------------------------------------------------
 -- _⇾_
@@ -46,12 +46,86 @@ P ⇾ Q = ∀ x → P x → Q x
 id⇾ : P ⇾ P
 id⇾ _ = id
 
--- Composition for _⇾_.
+mutual
 
-infixr 9 _∘⇾_
+  infixr 9 _∘⇾_ _∘⇾′_ _∘⇾″_
 
-_∘⇾_ : Q ⇾ R → P ⇾ Q → P ⇾ R
-f ∘⇾ g = λ i → f i ∘ g i
+  -- Composition for _⇾_.
+
+  _∘⇾_ : Q ⇾ R → P ⇾ Q → P ⇾ R
+  _∘⇾_ = _∘⇾′_
+
+  -- A generalisation of _∘⇾_.
+
+  _∘⇾′_ :
+    {I : Type i} {P : I → Type p} {Q : I → Type q}
+    {R : ∀ {i} → Q i → Type r} →
+    (∀ i (x : Q i) → R x) →
+    (g : P ⇾ Q) →
+    ((i : I) (x : P i) → R (g i x))
+  f ∘⇾′ g = (λ i _ → f i) ∘⇾″ g
+
+  -- Another generalisation of _∘⇾_.
+
+  _∘⇾″_ :
+    {I : Type i} {P : I → Type p} {Q : ∀ {i} → P i → Type q}
+    {R : ∀ {i} {x : P i} → Q x → Type r} →
+    (∀ i (x : P i) (y : Q x) → R y) →
+    (g : ∀ i (x : P i) → Q x) →
+    ((i : I) (x : P i) → R (g i x))
+  f ∘⇾″ g = λ i → f i _ ∘ g i
+
+-- A variant of cong-post-∘-ext.
+
+cong-post-∘⇾-ext :
+  {I : Type i}
+  {P : I → Type p} {Q : ∀ {i} → P i → Type q} {R : I → Type r}
+  {h : ∀ i (x : P i) → Q x → R i} {f g : ∀ i (x : P i) → Q x}
+  {f≡g : ∀ i x → f i x ≡ g i x}
+  (ext₁ : Extensionality i (p ⊔ r))
+  (ext₂ : Extensionality i (p ⊔ q))
+  (ext₃ : Extensionality p r)
+  (ext₄ : Extensionality p q) →
+  cong (h ∘⇾″_) (apply-ext ext₂ (apply-ext ext₄ ∘ f≡g)) ≡
+  apply-ext ext₁ (apply-ext ext₃ ∘ (λ i x → cong (h i x)) ∘⇾″ f≡g)
+cong-post-∘⇾-ext {h = h} {f≡g = f≡g} ext₁ ext₂ ext₃ ext₄ =
+  cong ((λ {i} → (λ {x} → h i x) ∘_) ∘_)
+    (apply-ext ext₂ (apply-ext ext₄ ∘ f≡g))                               ≡⟨ cong-post-∘-ext ext₂ ext₁ ⟩
+
+  (apply-ext ext₁ $
+   (λ {i} → cong ((λ {x} → h i x) ∘_)) ∘ apply-ext ext₄ ∘ f≡g)            ≡⟨⟩
+
+  (apply-ext ext₁ λ i →
+   cong ((λ {x} → h i x) ∘_) (apply-ext ext₄ (f≡g i)))                    ≡⟨ (cong (apply-ext ext₁) $ apply-ext ext₁ λ _ →
+                                                                              cong-post-∘-ext ext₄ ext₃) ⟩∎
+  (apply-ext ext₁ λ i → apply-ext ext₃ ((λ {x} → cong (h i x)) ∘ f≡g i))  ∎
+
+-- A variant of cong-pre-∘-ext.
+
+cong-pre-∘⇾-ext :
+  {I : Type i}
+  {P : I → Type p} {Q : I → Type q} {R : ∀ {i} → Q i → Type r}
+  {f g : ∀ i (x : Q i) → R x} {h : P ⇾ Q}
+  {f≡g : ∀ i x → f i x ≡ g i x}
+  (ext₁ : Extensionality i (p ⊔ r))
+  (ext₂ : Extensionality i (q ⊔ r))
+  (ext₃ : Extensionality p r)
+  (ext₄ : Extensionality q r) →
+  cong (_∘⇾′ h) (apply-ext ext₂ (apply-ext ext₄ ∘ f≡g)) ≡
+  apply-ext ext₁ (apply-ext ext₃ ∘ f≡g ∘⇾′ h)
+cong-pre-∘⇾-ext {h = h} {f≡g = f≡g} ext₁ ext₂ ext₃ ext₄ =
+  cong (λ f i → f i ∘ h i) (apply-ext ext₂ (apply-ext ext₄ ∘ f≡g))  ≡⟨ sym $ ext-cong ext₁ ⟩
+
+  (apply-ext ext₁ λ i →
+   cong (λ f → f i ∘ h i) (apply-ext ext₂ (apply-ext ext₄ ∘ f≡g)))  ≡⟨ (cong (apply-ext ext₁) $ apply-ext ext₁ λ _ → sym $
+                                                                        cong-∘ _ _ _) ⟩
+  (apply-ext ext₁ λ i → cong (_∘ h i) $
+   cong (_$ i) (apply-ext ext₂ (apply-ext ext₄ ∘ f≡g)))             ≡⟨ (cong (apply-ext ext₁) $ apply-ext ext₁ λ _ → cong (cong _) $
+                                                                        cong-ext ext₂) ⟩
+
+  (apply-ext ext₁ λ i → cong (_∘ h i) (apply-ext ext₄ (f≡g i)))     ≡⟨ (cong (apply-ext ext₁) $ apply-ext ext₁ λ _ →
+                                                                        cong-pre-∘-ext ext₃ ext₄) ⟩∎
+  (apply-ext ext₁ λ i → apply-ext ext₃ (f≡g i ∘ h i))               ∎
 
 ------------------------------------------------------------------------
 -- Containers
