@@ -17,8 +17,10 @@ open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 open import Container.Indexed equality-with-J
+open import Container.Indexed.Coalgebra equality-with-J
 import Container.Indexed.M.Function equality-with-J as F
 import Container.Indexed.Variant equality-with-J as V
+import Container.Indexed.Variant.Coalgebra equality-with-J as VC
 open import Container.Indexed.Variant.M.Codata eq as VM using (out-M)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
@@ -108,7 +110,7 @@ M-coalgebra≡M-coalgebra :
   ∀ p {I : Type i} (C : V.Container I s (i ⊔ p)) →
   Univalence (i ⊔ s ⊔ p) →
   M-coalgebra (_⇔_.to (V.Container⇔Container p) C) ≡
-  _≃_.to (V.Coalgebra≃Coalgebra p C ext) (VM.M-coalgebra C)
+  _≃_.to (VC.Coalgebra≃Coalgebra p C ext) (VM.M-coalgebra C)
 M-coalgebra≡M-coalgebra p C univ =
   Σ-≡,≡→≡
     (⟨ext⟩ lemma₁)
@@ -373,9 +375,9 @@ private
     Univalence (i ⊔ p) →
     Final′ (M-coalgebra C)
   M-final′ p {C = C} univ₁ univ₂ =                                    $⟨ VM.M-final′ C′ ⟩
-    V.Final′ (VM.M-coalgebra C′)                                      ↝⟨ subst V.Final′ $ sym $ _≃_.to-from C≃C $ sym $
+    VC.Final′ (VM.M-coalgebra C′)                                     ↝⟨ subst VC.Final′ $ sym $ _≃_.to-from C≃C $ sym $
                                                                          M-coalgebra≡M-coalgebra p C′ univ₁ ⟩
-    V.Final′ (_≃_.from C≃C (M-coalgebra (_⇔_.to C⇔C C′)))             ↔⟨ V.Final′≃Final′ p C′ ext ext
+    VC.Final′ (_≃_.from C≃C (M-coalgebra (_⇔_.to C⇔C C′)))            ↔⟨ VC.Final′≃Final′ p C′ ext ext
                                                                            (_≃_.from C≃C (M-coalgebra (_⇔_.to C⇔C C′))) ⟩
     Final′ (_≃_.to C≃C $ _≃_.from C≃C $ M-coalgebra (_⇔_.to C⇔C C′))  ↝⟨ subst Final′ (_≃_.right-inverse-of C≃C (M-coalgebra (_⇔_.to C⇔C C′))) ⟩
     Final′ (M-coalgebra (_⇔_.to C⇔C C′))                              ↝⟨ subst (Final′ ∘ M-coalgebra) $
@@ -384,7 +386,7 @@ private
     where
     C⇔C = V.Container⇔Container p
     C′  = _⇔_.from C⇔C C
-    C≃C = V.Coalgebra≃Coalgebra p C′ ext
+    C≃C = VC.Coalgebra≃Coalgebra p C′ ext
 
   -- M-coalgebra C is sometimes a final coalgebra (assuming univalence).
   -- Note that the last index argument of C is not unrestricted.

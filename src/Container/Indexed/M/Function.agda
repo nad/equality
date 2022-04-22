@@ -19,6 +19,7 @@ open import Prelude
 
 open import Bijection eq as Bijection using (_↔_)
 open import Container.Indexed eq
+open import Container.Indexed.Coalgebra eq
 open import Equivalence eq as Eq using (_≃_)
 open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)

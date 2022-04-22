@@ -17,8 +17,9 @@ open import Prelude
 open import Bijection equality-with-J using (_↔_)
 open import Container.Indexed equality-with-J using (_⇾_; _∘⇾_)
 open import Container.Indexed.Variant equality-with-J
+open import Container.Indexed.Variant.Coalgebra equality-with-J
   hiding (Final′≃Final′)
-import Container.Indexed.Variant P.equality-with-J as PC
+import Container.Indexed.Variant.Coalgebra P.equality-with-J as PC
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J

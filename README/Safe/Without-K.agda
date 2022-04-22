@@ -492,9 +492,17 @@ import Container.Stream
 
 import Container.Indexed
 
+-- Coalgebras for indexed containers.
+
+import Container.Indexed.Coalgebra
+
 -- Another definition of indexed containers.
 
 import Container.Indexed.Variant
+
+-- Coalgebras for the indexed containers in Container.Indexed.Variant.
+
+import Container.Indexed.Variant.Coalgebra
 
 -- M-types for indexed containers, defined using functions.
 
