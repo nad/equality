@@ -24,10 +24,10 @@ open import Function-universe eq as F hiding (id; _∘_)
 
 private
   variable
-    a ℓ p p₁ p₂ q r s : Level
-    A I O             : Type a
-    P Q R             : A → Type p
-    ext f i k o       : A
+    a ℓ p p₁ p₂ pos q r s : Level
+    A I O                 : Type a
+    P Q R                 : A → Type p
+    ext f i k o           : A
 
 ------------------------------------------------------------------------
 -- _⇾_
@@ -219,6 +219,72 @@ Shape≃⟦⟧⊤ :
 Shape≃⟦⟧⊤ {o = o} C =
   Shape C o                                 ↔⟨ inverse $ drop-⊤-right (λ _ → →-right-zero) ⟩□
   (∃ λ (s : Shape C o) → Position C s → ⊤)  □
+
+-- A rearrangement lemma for cong, map and apply-ext.
+
+cong-map-ext :
+  {I : Type i} {O : Type o} {C : Container₂ I O s pos}
+  {P : I → Type p} {Q : I → Type q}
+  {f g : P ⇾ Q} {f≡g : ∀ i x → f i x ≡ g i x}
+  (ext₁ : Extensionality i (p ⊔ q))
+  (ext₂ : Extensionality p q)
+  (ext₃ : Extensionality o (s ⊔ pos ⊔ p ⊔ q))
+  (ext₄ : Extensionality (s ⊔ pos ⊔ p) (s ⊔ pos ⊔ q)) →
+  (ext₅ : Extensionality pos q) →
+  cong (map C) (apply-ext ext₁ (apply-ext ext₂ ∘ f≡g)) ≡
+  (apply-ext ext₃ λ _ → apply-ext ext₄ λ (s , h) →
+   cong (s ,_) $ apply-ext ext₅ (f≡g _ ∘ h))
+cong-map-ext {C = C} {P = P} {f≡g = f≡g} ext₁ ext₂ ext₃ ext₄ ext₅ =
+  cong (λ f _ (s , h) → s , λ p → f (index C p) (h p))
+    (apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))             ≡⟨ sym $ ext-cong ext₃ ⟩
+
+  (apply-ext ext₃ λ o →
+   cong (λ f ((s , h) : ⟦ C ⟧ P o) →
+           s , λ p → f (index C p) (h p)) $
+   apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))               ≡⟨ (cong (apply-ext ext₃) $ apply-ext ext₃ λ _ →
+                                                            sym $ ext-cong ext₄) ⟩
+  (apply-ext ext₃ λ _ → apply-ext ext₄ λ (s , h) →
+   cong (λ f → s , λ p → f (index C p) (h p)) $
+   apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))               ≡⟨ (cong (apply-ext ext₃) $ apply-ext ext₃ λ _ →
+                                                            cong (apply-ext ext₄) $ apply-ext ext₄ λ (s , _) →
+                                                            sym $ cong-∘ (s ,_) _ _) ⟩
+  (apply-ext ext₃ λ _ →
+   apply-ext ext₄ λ (s , h) → cong (s ,_) $
+   cong (λ f p → f (index C p) (h p)) $
+   apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))               ≡⟨ (cong (apply-ext ext₃) $ apply-ext ext₃ λ _ →
+                                                            cong (apply-ext ext₄) $ apply-ext ext₄ λ _ →
+                                                            cong (cong _) $
+                                                            sym $ ext-cong ext₅) ⟩
+  (apply-ext ext₃ λ _ →
+   apply-ext ext₄ λ (s , h) → cong (s ,_) $
+   apply-ext ext₅ λ p →
+   cong (λ f → f (index C p) (h p)) $
+   apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))               ≡⟨ (cong (apply-ext ext₃) $ apply-ext ext₃ λ _ →
+                                                            cong (apply-ext ext₄) $ apply-ext ext₄ λ _ →
+                                                            cong (cong _) $
+                                                            cong (apply-ext ext₅) $ apply-ext ext₅ λ _ →
+                                                            sym $ cong-∘ _ _ _) ⟩
+  (apply-ext ext₃ λ _ →
+   apply-ext ext₄ λ (s , h) → cong (s ,_) $
+   apply-ext ext₅ λ p → cong (_$ h p) $
+   cong (_$ index C p) $
+   apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))               ≡⟨ (cong (apply-ext ext₃) $ apply-ext ext₃ λ _ →
+                                                            cong (apply-ext ext₄) $ apply-ext ext₄ λ _ →
+                                                            cong (cong _) $
+                                                            cong (apply-ext ext₅) $ apply-ext ext₅ λ _ →
+                                                            cong (cong _) $
+                                                            cong-ext ext₁) ⟩
+  (apply-ext ext₃ λ _ →
+   apply-ext ext₄ λ (s , h) → cong (s ,_) $
+   apply-ext ext₅ λ p → cong (_$ h p) $
+   apply-ext ext₂ $ f≡g (index C p))                    ≡⟨ (cong (apply-ext ext₃) $ apply-ext ext₃ λ _ →
+                                                            cong (apply-ext ext₄) $ apply-ext ext₄ λ _ →
+                                                            cong (cong _) $
+                                                            cong (apply-ext ext₅) $ apply-ext ext₅ λ _ →
+                                                            cong-ext ext₂) ⟩∎
+  (apply-ext ext₃ λ _ →
+   apply-ext ext₄ λ (s , h) → cong (s ,_) $
+   apply-ext ext₅ λ p → f≡g (index C p) (h p))          ∎
 
 ------------------------------------------------------------------------
 -- Lifting the position type family

@@ -19,7 +19,7 @@ open import Prelude
 
 import Bijection eq as B
 open import Container.Indexed eq as C
-  using (_⇾_; id⇾; _∘⇾_; Position; index)
+  using (_⇾_; id⇾; _∘⇾_; _∘⇾′_; Position; index)
 open import Equivalence eq as Eq using (_≃_)
 open import Extensionality eq
 open import Function-universe eq as F hiding (_∘_)
@@ -29,10 +29,10 @@ open import Univalence-axiom eq
 
 private
   variable
-    a ℓ p p₁ p₂ q : Level
-    A I O         : Type a
-    P Q R         : A → Type p
-    ext f i k o s : A
+    a ℓ p p₁ p₂ pos q : Level
+    A I O             : Type a
+    P Q R             : A → Type p
+    ext f i k o s     : A
 
 ------------------------------------------------------------------------
 -- Containers
@@ -125,6 +125,44 @@ Shape≃⟦⟧⊤ :
 Shape≃⟦⟧⊤ {o = o} (S ◁ P) =
   S o                                ↔⟨ inverse $ drop-⊤-right (λ _ → →-right-zero F.∘ inverse currying) ⟩□
   (∃ λ (s : S o) → ∀ i → P s i → ⊤)  □
+
+-- A rearrangement lemma for cong, map and apply-ext.
+
+cong-map-ext :
+  {I : Type i} {O : Type o} {C : Container₂ I O s pos}
+  {P : I → Type p} {Q : I → Type q}
+  {f g : P ⇾ Q} {f≡g : ∀ i x → f i x ≡ g i x}
+  (ext₁ : Extensionality i (p ⊔ q))
+  (ext₂ : Extensionality p q)
+  (ext₃ : Extensionality o (i ⊔ s ⊔ pos ⊔ p ⊔ q))
+  (ext₄ : Extensionality (i ⊔ s ⊔ pos ⊔ p) (i ⊔ s ⊔ pos ⊔ q)) →
+  (ext₅ : Extensionality i (pos ⊔ q)) →
+  (ext₆ : Extensionality pos q) →
+  cong (map C) (apply-ext ext₁ (apply-ext ext₂ ∘ f≡g)) ≡
+  (apply-ext ext₃ λ _ → apply-ext ext₄ λ (s , h) →
+   cong (s ,_) $ apply-ext ext₅ $ apply-ext ext₆ ∘ f≡g ∘⇾′ h)
+cong-map-ext {C = C} {P = P} {f≡g = f≡g} ext₁ ext₂ ext₃ ext₄ ext₅ ext₆ =
+  cong (λ f _ (s , h) → s , f ∘⇾ h)
+    (apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))               ≡⟨ sym $ ext-cong ext₃ ⟩
+
+  (apply-ext ext₃ λ i →
+   cong (λ f ((s , h) : ⟦ C ⟧ P i) → s , f ∘⇾ h) $
+   apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))                 ≡⟨ (cong (apply-ext ext₃) $ apply-ext ext₃ λ _ →
+                                                              sym $ ext-cong ext₄) ⟩
+  (apply-ext ext₃ λ i → apply-ext ext₄ λ (s , h) →
+   cong (λ f → s , f ∘⇾ h) $
+   apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))                 ≡⟨ (cong (apply-ext ext₃) $ apply-ext ext₃ λ _ →
+                                                              cong (apply-ext ext₄) $ apply-ext ext₄ λ (s , _) →
+                                                              sym $ cong-∘ (s ,_) _ _) ⟩
+  (apply-ext ext₃ λ i →
+   apply-ext ext₄ λ (s , h) → cong (s ,_) $
+   cong (_∘⇾ h) $ apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))  ≡⟨ (cong (apply-ext ext₃) $ apply-ext ext₃ λ _ →
+                                                              cong (apply-ext ext₄) $ apply-ext ext₄ λ _ →
+                                                              cong (cong _) $
+                                                              C.cong-pre-∘⇾-ext ext₅ ext₁ ext₆ ext₂) ⟩∎
+  (apply-ext ext₃ λ i →
+   apply-ext ext₄ λ (s , h) → cong (s ,_) $
+   apply-ext ext₅ (apply-ext ext₆ ∘ f≡g ∘⇾′ h))           ∎
 
 ------------------------------------------------------------------------
 -- Conversion lemmas
