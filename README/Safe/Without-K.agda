@@ -496,6 +496,10 @@ import Container.Indexed
 
 import Container.Indexed.Coalgebra
 
+-- Algebras for indexed containers.
+
+import Container.Indexed.Algebra
+
 -- Another definition of indexed containers.
 
 import Container.Indexed.Variant
@@ -503,6 +507,10 @@ import Container.Indexed.Variant
 -- Coalgebras for the indexed containers in Container.Indexed.Variant.
 
 import Container.Indexed.Variant.Coalgebra
+
+-- Algebras for the indexed containers in Container.Indexed.Variant.
+
+import Container.Indexed.Variant.Algebra
 
 -- M-types for indexed containers, defined using functions.
 
