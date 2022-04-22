@@ -257,7 +257,7 @@ abstract
     cong (_$ x) (apply-ext ext f≡g) ≡ f≡g x
   cong-ext {x = x} {f≡g = f≡g} ext =
     cong (_$ x) (apply-ext ext f≡g)  ≡⟨⟩
-    ext⁻¹ (apply-ext ext f≡g) x      ≡⟨ cong (_$ x) $ right-inverse-of (Extensionality.extensionality ext) _ ⟩∎
+    ext⁻¹ (apply-ext ext f≡g) x      ≡⟨ cong (_$ x) $ ext⁻¹-ext ext ⟩∎
     f≡g x                            ∎
 
   ext-cong :
