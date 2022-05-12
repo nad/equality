@@ -418,63 +418,63 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
 -- Thierry Coquand helped me with this proof: At first I wasn't sure
 -- if it was true or not, but then I managed to prove it for singleton
 -- lists, Thierry found a proof for lists of length two, I found one
--- for streams, and finally I could complete a proof of the statement
--- below.
+-- for streams, and finally I could complete a proof of (a variant of)
+-- the statement below.
 
-≈↔≈′ : ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
-       Extensionality (a ⊔ c ⊔ d) (a ⊔ c ⊔ d) →
-       (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
-       xs ∼[ bag-with-equivalence ] ys ↔
-       xs ≈[ bag-with-equivalence ]′ ys
-≈↔≈′ {a} {c} {d} {C = C} {D} ext xs ys = record
-  { surjection = record
-    { logical-equivalence = equiv
-    ; right-inverse-of    = λ { (⟨ f , f-eq ⟩ , related) →
-      let
-        P : (Position C (shape xs) → Position D (shape ys)) →
-            Type (a ⊔ c)
-        P f = ∀ p → index xs p ≡ index ys (f p)
+≈↔≈′ :
+  ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
+  (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
+  xs ∼[ bag-with-equivalence ] ys ↝[ a ⊔ c ⊔ d ∣ a ⊔ c ⊔ d ]
+  xs ≈[ bag-with-equivalence ]′ ys
+≈↔≈′ {a = a} {c = c} {d = d} {C = C} {D = D} xs ys =
+  generalise-ext? equiv λ ext →
+      (λ (⟨ f , f-eq ⟩ , related) →
+         let
+           P : (Position C (shape xs) → Position D (shape ys)) →
+               Type (a ⊔ c)
+           P f = ∀ p → index xs p ≡ index ys (f p)
 
-        f-eq′ : Is-equivalence f
-        f-eq′ = _
+           f-eq′ : Is-equivalence f
+           f-eq′ = _
 
-        irr : f-eq′ ≡ f-eq
-        irr = proj₁ $ +⇒≡ $
-          Is-equivalence-propositional (lower-extensionality a a ext)
+           irr : f-eq′ ≡ f-eq
+           irr = proj₁ $ +⇒≡ $
+             Is-equivalence-propositional (lower-extensionality a a ext)
 
-        f≡f : ⟨ f , f-eq′ ⟩ ≡ ⟨ f , f-eq ⟩
-        f≡f = cong (⟨_,_⟩ f) irr
+           f≡f : ⟨ f , f-eq′ ⟩ ≡ ⟨ f , f-eq ⟩
+           f≡f = cong (⟨_,_⟩ f) irr
 
-        cong-to-f≡f : cong _≃_.to f≡f ≡ refl f
-        cong-to-f≡f =
-          cong _≃_.to f≡f              ≡⟨ cong-∘ _≃_.to (⟨_,_⟩ f) irr ⟩
-          cong (_≃_.to ∘ ⟨_,_⟩ f) irr  ≡⟨ cong-const irr ⟩∎
-          refl _                       ∎
-      in
-      Σ-≡,≡→≡ f≡f
-        (subst (P ∘ _≃_.to) f≡f (trans (refl _) ∘ related)  ≡⟨ cong (subst (P ∘ _≃_.to) f≡f)
-                                                                    (apply-ext (lower-extensionality (a ⊔ d) (c ⊔ d) ext) λ _ → trans-reflˡ _) ⟩
-         subst (P ∘ _≃_.to) f≡f related                     ≡⟨ subst-∘ P _≃_.to f≡f ⟩
-         subst P (cong _≃_.to f≡f) related                  ≡⟨ cong (λ eq → subst P eq related) cong-to-f≡f ⟩
-         subst P (refl _) related                           ≡⟨ subst-refl P related ⟩∎
-         related                                            ∎) }
-    }
-  ; left-inverse-of = λ xs≈ys →
-      apply-ext (lower-extensionality (c ⊔ d) a ext) λ z →
-        Eq.lift-equality ext $
-          apply-ext (lower-extensionality d c ext) λ { (p , z≡xs[p]) →
+           cong-to-f≡f : cong _≃_.to f≡f ≡ refl f
+           cong-to-f≡f =
+             cong _≃_.to f≡f              ≡⟨ cong-∘ _≃_.to (⟨_,_⟩ f) irr ⟩
+             cong (_≃_.to ∘ ⟨_,_⟩ f) irr  ≡⟨ cong-const irr ⟩∎
+             refl _                       ∎
+         in
+         Σ-≡,≡→≡ f≡f
+           (subst (P ∘ _≃_.to) f≡f (trans (refl _) ∘ related)  ≡⟨ cong (subst (P ∘ _≃_.to) f≡f)
+                                                                       (apply-ext (lower-extensionality (a ⊔ d) (c ⊔ d) ext) λ _ → trans-reflˡ _) ⟩
+            subst (P ∘ _≃_.to) f≡f related                     ≡⟨ subst-∘ P _≃_.to f≡f ⟩
+            subst P (cong _≃_.to f≡f) related                  ≡⟨ cong (λ eq → subst P eq related) cong-to-f≡f ⟩
+            subst P (refl _) related                           ≡⟨ subst-refl P related ⟩∎
+            related                                            ∎))
+    , (λ xs≈ys →
+         apply-ext (lower-extensionality (c ⊔ d) a ext) λ z →
+         Eq.lift-equality ext $
+         apply-ext (lower-extensionality d c ext) λ (p , z≡xs[p]) →
 
-              let xs[p]≡ys[-] : ∃ λ p′ → index xs p ≡ index ys p′
-                  xs[p]≡ys[-] = _≃_.to (xs≈ys (index xs p)) (p , refl _)
-              in
+         let xs[p]≡ys[-] : ∃ λ p′ → index xs p ≡ index ys p′
+             xs[p]≡ys[-] = _≃_.to (xs≈ys (index xs p)) (p , refl _)
+         in
 
-            Σ-map id (trans z≡xs[p]) xs[p]≡ys[-]      ≡⟨ elim₁ (λ {z} z≡xs[p] → Σ-map id (trans z≡xs[p]) xs[p]≡ys[-] ≡
-                                                                          _≃_.to (xs≈ys z) (p , z≡xs[p]))
-              (Σ-map id (trans (refl _)) xs[p]≡ys[-]              ≡⟨ cong (_,_ _) (trans-reflˡ _) ⟩∎
-               xs[p]≡ys[-]                                        ∎)
-                                                               z≡xs[p] ⟩∎
-            _≃_.to (xs≈ys z) (p , z≡xs[p])            ∎ }
-  }
+         Σ-map id (trans z≡xs[p]) xs[p]≡ys[-]      ≡⟨ elim₁
+                                                        (λ {z} z≡xs[p] →
+                                                           Σ-map id (trans z≡xs[p]) xs[p]≡ys[-] ≡
+                                                           _≃_.to (xs≈ys z) (p , z≡xs[p]))
+                                                        (
+           Σ-map id (trans (refl _)) xs[p]≡ys[-]         ≡⟨ cong (_,_ _) (trans-reflˡ _) ⟩∎
+           xs[p]≡ys[-]                                   ∎)
+                                                        z≡xs[p] ⟩∎
+         _≃_.to (xs≈ys z) (p , z≡xs[p])            ∎)
   where
   equiv = ≈⇔≈′ {k = equivalence} xs ys
 
