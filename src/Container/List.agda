@@ -17,6 +17,7 @@ open import Prelude as P hiding (List; []; _∷_; id; _∘_)
 import Bag-equivalence eq as BE
 open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
 open import Container eq
+open import Equivalence eq as Eq using (_≃_)
 open import Extensionality eq
 open import Fin eq
 open import Function-universe eq
@@ -24,10 +25,12 @@ open import H-level.Closure eq
 import List eq as L
 open import Surjection eq using (_↠_)
 
+open BE.Kind
+
 private variable
-  a p            : Level
-  A B            : Type a
-  lkup n x xs ys : A
+  a p              : Level
+  A B              : Type a
+  k lkup n x xs ys : A
 
 ------------------------------------------------------------------------
 -- The type
@@ -142,12 +145,12 @@ Any-from↔Any P (P._∷_ x xs) =
   P x ⊎ Any {C = List} P (_↠_.from List↠List xs)                    ↔⟨ id ⊎-cong Any-from↔Any P xs ⟩
   P x ⊎ BE.Any P xs                                                 □
 
--- The definition of bag equivalence in Bag-equivalence and the one in
--- Container, instantiated with the List container, are logically
--- equivalent (both via "to" and "from").
+-- Some lemmas relating different definitions of bag equivalence for
+-- different definitions of lists.
 
 ≈-⇔-to-≈-to :
-  xs ≈-bag ys ⇔ _↠_.to List↠List xs BE.≈-bag _↠_.to List↠List ys
+  xs ∼[ ⌊ k ⌋-iso ] ys ⇔
+  _↠_.to List↠List xs BE.∼[ ⌊ k ⌋-iso ] _↠_.to List↠List ys
 ≈-⇔-to-≈-to {xs = xs} {ys = ys} = record
   { to   = λ xs≈ys z →
              z BE.∈ (_↠_.to List↠List xs)  ↔⟨ inverse $ Any↔Any-to _ xs ⟩
@@ -162,7 +165,8 @@ Any-from↔Any P (P._∷_ x xs) =
   }
 
 ≈-⇔-from-≈-from :
-  xs BE.≈-bag ys ⇔ _↠_.from List↠List xs ≈-bag _↠_.from List↠List ys
+  xs BE.∼[ ⌊ k ⌋-iso ] ys ⇔
+  _↠_.from List↠List xs ∼[ ⌊ k ⌋-iso ] _↠_.from List↠List ys
 ≈-⇔-from-≈-from {xs = xs} {ys = ys} = record
   { to   = λ xs≈ys z →
              z ∈ (_↠_.from List↠List xs)  ↔⟨ Any-from↔Any _ xs ⟩
@@ -175,6 +179,39 @@ Any-from↔Any P (P._∷_ x xs) =
              z ∈ (_↠_.from List↠List ys)  ↔⟨ Any-from↔Any _ ys ⟩
              z BE.∈ ys                    □
   }
+
+≈-≃-from-≈-from :
+  {A : Type a} {xs ys : P.List A} →
+  xs BE.∼[ bag-with-equivalence ] ys ↝[ a ∣ a ]
+  _↠_.from List↠List xs ∼[ bag-with-equivalence ] _↠_.from List↠List ys
+≈-≃-from-≈-from {xs = xs} {ys = ys} =
+  generalise-ext? ≈-⇔-from-≈-from λ ext →
+      (λ xs≈ys → apply-ext ext λ z →
+         Eq.lift-equality ext $ apply-ext ext λ z∈xs →
+         _↔_.from (Any-from↔Any (z ≡_) ys)
+           (_↔_.to (Any-from↔Any (z ≡_) ys)
+              (_≃_.to (xs≈ys z)
+                 (_↔_.from (Any-from↔Any (z ≡_) xs)
+                    (_↔_.to (Any-from↔Any (z ≡_) xs) z∈xs))))  ≡⟨ _↔_.left-inverse-of (Any-from↔Any (z ≡_) ys) _ ⟩
+
+          _≃_.to (xs≈ys z)
+            (_↔_.from (Any-from↔Any (z ≡_) xs)
+               (_↔_.to (Any-from↔Any (z ≡_) xs) z∈xs))         ≡⟨ cong (_≃_.to (xs≈ys z)) $
+                                                                  _↔_.left-inverse-of (Any-from↔Any (z ≡_) xs) _ ⟩∎
+          _≃_.to (xs≈ys z) z∈xs                                ∎)
+    , (λ xs≈ys → apply-ext ext λ z →
+         Eq.lift-equality ext $ apply-ext ext λ z∈xs →
+         _↔_.to (Any-from↔Any (z ≡_) ys)
+           (_↔_.from (Any-from↔Any (z ≡_) ys)
+              (_≃_.to (xs≈ys z)
+                 (_↔_.to (Any-from↔Any (z ≡_) xs)
+                    (_↔_.from (Any-from↔Any (z ≡_) xs) z∈xs))))  ≡⟨ _↔_.right-inverse-of (Any-from↔Any (z ≡_) ys) _ ⟩
+
+          _≃_.to (xs≈ys z)
+            (_↔_.to (Any-from↔Any (z ≡_) xs)
+               (_↔_.from (Any-from↔Any (z ≡_) xs) z∈xs))         ≡⟨ cong (_≃_.to (xs≈ys z)) $
+                                                                    _↔_.right-inverse-of (Any-from↔Any (z ≡_) xs) _ ⟩∎
+          _≃_.to (xs≈ys z) z∈xs                                  ∎)
 
 ------------------------------------------------------------------------
 -- Constructors
