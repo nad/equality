@@ -486,21 +486,26 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
 -- A higher-order variant of _∼[_]_. Note that this definition is
 -- large (due to the quantification over predicates).
 
-infix 4 _∼[_]″_
+infix 4 _∼[_∣_]″_
 
-_∼[_]″_ : ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
-          ⟦ C ⟧ A → Kind → ⟦ D ⟧ A → Type (lsuc a ⊔ c ⊔ d)
-_∼[_]″_ {a} {A = A} xs k ys =
-  (P : A → Type a) → Any P xs ↝[ k ] Any P ys
+_∼[_∣_]″_ : ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
+            ⟦ C ⟧ A → Kind → ∀ ℓ → ⟦ D ⟧ A → Type (lsuc (a ⊔ ℓ) ⊔ c ⊔ d)
+_∼[_∣_]″_ {a = a} {A = A} xs k ℓ ys =
+  (P : A → Type (a ⊔ ℓ)) → Any P xs ↝[ k ] Any P ys
 
 -- This definition is logically equivalent to _∼[_]_.
 
-∼⇔∼″ : ∀ {k a c d} {A : Type a} {C : Container c} {D : Container d}
-       (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
-       xs ∼[ k ] ys ⇔ xs ∼[ k ]″ ys
-∼⇔∼″ xs ys = record
+∼⇔∼″ :
+  ∀ {k a c d} ℓ {A : Type a} {C : Container c} {D : Container d}
+  (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
+  xs ∼[ k ] ys ⇔ xs ∼[ k ∣ ℓ ]″ ys
+∼⇔∼″ ℓ xs ys = record
   { to   = λ xs∼ys P → Any-cong P P xs ys (λ _ → id) xs∼ys
-  ; from = λ Any-xs↝Any-ys z → Any-xs↝Any-ys (λ x → z ≡ x)
+  ; from = λ Any-xs↝Any-ys z →
+      z ∈ xs                      ↔⟨ Any-cong (z ≡_) _ xs xs (λ _ → inverse Bijection.↑↔) (λ _ → id) ⟩
+      Any (λ x → ↑ ℓ (z ≡ x)) xs  ↝⟨ Any-xs↝Any-ys (λ x → ↑ ℓ (z ≡ x)) ⟩
+      Any (λ x → ↑ ℓ (z ≡ x)) ys  ↔⟨ Any-cong _ (z ≡_) ys ys (λ _ → Bijection.↑↔) (λ _ → id) ⟩□
+      z ∈ ys                      □
   }
 
 ------------------------------------------------------------------------

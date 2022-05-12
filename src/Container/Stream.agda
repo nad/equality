@@ -108,7 +108,7 @@ Any-++ P xs ys = fold-lemma
 
   (λ us vs us≈vs us++ys hyp →
     Any P us++ys         ↔⟨ hyp ⟩
-    Any P us ⊎ Any P ys  ↔⟨ _⇔_.to (∼⇔∼″ us vs) us≈vs P ⊎-cong id ⟩
+    Any P us ⊎ Any P ys  ↔⟨ _⇔_.to (∼⇔∼″ lzero us vs) us≈vs P ⊎-cong id ⟩
     Any P vs ⊎ Any P ys  □)
 
   (Any P ys             ↔⟨ inverse ⊎-left-identity ⟩

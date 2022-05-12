@@ -71,7 +71,7 @@ Any-insert P x = Tree.fold-lemma
 
   (λ t₁ t₂ t₁≈t₂ t hyp →
      Any P t         ↔⟨ hyp ⟩
-     P x ⊎ Any P t₁  ↔⟨ id ⊎-cong _⇔_.to (∼⇔∼″ t₁ t₂) t₁≈t₂ P ⟩
+     P x ⊎ Any P t₁  ↔⟨ id ⊎-cong _⇔_.to (∼⇔∼″ lzero t₁ t₂) t₁≈t₂ P ⟩
      P x ⊎ Any P t₂  □)
 
   (Any P (singleton x)  ↔⟨ Any-singleton P ⟩
