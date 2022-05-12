@@ -21,6 +21,7 @@ open import Equivalence eq as Eq using (_≃_)
 open import Extensionality eq
 open import Fin eq
 open import Function-universe eq
+open import H-level eq
 open import H-level.Closure eq
 import List eq as L
 open import Surjection eq using (_↠_)
@@ -383,3 +384,50 @@ Any-++ P xs ys = fold-lemma
      Any P (x ∷ xs) ⊎ Any P ys    □)
 
   xs
+
+------------------------------------------------------------------------
+-- More results related to bag equivalence
+
+-- The type of lists that are bag equivalent to a list xs is
+-- equivalent to Fin (length xs !), if a certain variant of bag
+-- equivalence is used (and assuming function extensionality).
+
+∃≈≃Fin! :
+  {A : Type a} {xs : ⟦ List ⟧ A} →
+  Extensionality a a →
+  (∃ λ (ys : ⟦ List ⟧ A) → xs ∼[ bag-with-equivalence ] ys) ≃
+  Fin (length xs !)
+∃≈≃Fin! {A = A} {xs = xs@(m , f)} ext =
+  (∃ λ ys → xs ∼[ bag-with-equivalence ] ys)  ↝⟨ ∃≈≃∃≃ ext List ⟩
+
+  (∃ λ (n : ℕ) → Fin m ≃ Fin n)               ↔⟨ (∃-cong λ _ → inverse $ drop-⊤-right λ hyp →
+                                                  _⇔_.to contractible⇔↔⊤ $
+                                                  propositional⇒inhabited⇒contractible ℕ-set
+                                                    (_⇔_.to isomorphic-same-size (from-equivalence hyp))) ⟩
+
+  (∃ λ (n : ℕ) → Fin m ≃ Fin n × m ≡ n)       ↝⟨ inverse $ other-∃-intro _ _ ⟩
+
+  Fin m ≃ Fin m                               ↔⟨ [Fin↔Fin]↔Fin! ext₀ m ∘
+                                                 inverse (Eq.↔↔≃ ext₀ (Fin-set m)) ⟩□
+  Fin (m !)                                   □
+  where
+  ext₀ = lower-extensionality _ _ ext
+
+-- The type of lists that are bag equivalent to a list xs is
+-- equivalent to Fin (L.length xs !), if a certain variant of bag
+-- equivalence is used (and assuming function extensionality).
+
+∃-List-≈≃Fin! :
+  {A : Type a} {xs : P.List A} →
+  Extensionality a a →
+  (∃ λ (ys : P.List A) → xs BE.∼[ bag-with-equivalence ] ys) ≃
+  Fin (L.length xs !)
+∃-List-≈≃Fin! {A = A} {xs = xs} ext =
+  (∃ λ (ys : P.List A) → xs BE.∼[ bag-with-equivalence ] ys)  ↝⟨ Σ-cong (inverse $ List↔List ext′) (λ _ → ≈-≃-from-≈-from ext) ⟩
+
+  (∃ λ (ys : ⟦ List ⟧ A) →
+   _↠_.from List↠List xs ∼[ bag-with-equivalence ] ys)        ↝⟨ ∃≈≃Fin! ext ⟩□
+
+  Fin (L.length xs !)                                         □
+  where
+  ext′ = lower-extensionality _ lzero ext

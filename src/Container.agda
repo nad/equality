@@ -18,7 +18,7 @@ open import Bijection eq as Bijection using (_↔_; module _↔_)
 open import Equivalence eq as Eq
   using (Is-equivalence; _≃_; ⟨_,_⟩; module _≃_)
 open import Extensionality eq
-open import Function-universe eq as Function-universe
+open import Function-universe eq as F
   hiding (inverse; Kind) renaming (_∘_ to _⟨∘⟩_)
 open import H-level eq
 open import H-level.Closure eq
@@ -114,7 +114,7 @@ record _[_]↔_ {c₁ c₂} (C₁ : Container c₁) ℓ (C₂ : Container c₂) 
 
   inverse : C₂ [ ℓ ]↔ C₁
   inverse = record
-    { isomorphism = Function-universe.inverse isomorphism
+    { isomorphism = F.inverse isomorphism
     ; natural     = λ f xs →
         map f (from xs)              ≡⟨ sym $ left-inverse-of _ ⟩
         from (to (map f (from xs)))  ≡⟨ sym $ cong from $ natural f (from xs) ⟩
@@ -123,7 +123,7 @@ record _[_]↔_ {c₁ c₂} (C₁ : Container c₁) ℓ (C₂ : Container c₂) 
     }
     where open module I {A : Type ℓ} = _↔_ (isomorphism {A = A})
 
-open Function-universe using (inverse)
+open F using (inverse)
 
 ------------------------------------------------------------------------
 -- Any, _∈_, bag equivalence and similar relations
@@ -479,6 +479,35 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
   equiv = ≈⇔≈′ {k = equivalence} xs ys
 
   open _⇔_ equiv
+
+-- The type of D-things that are bag equivalent (in a certain sense)
+-- to a given C-thing can be expressed in a different way (assuming
+-- function extensionality).
+
+∃≈≃∃≃ :
+  ∀ {a c d} {A : Type a} {D : Container d} →
+  Extensionality (a ⊔ c ⊔ d) (a ⊔ c ⊔ d) →
+  (C : Container c) {xs : ⟦ C ⟧ A} →
+  (∃ λ (ys : ⟦ D ⟧ A) → xs ∼[ bag-with-equivalence ] ys) ≃
+  (∃ λ (s : Shape D) → Position C (shape xs) ≃ Position D s)
+∃≈≃∃≃ {a = a} {c = c} {d = d} {A = A} {D = D} ext C {xs = xs@(s , f)} =
+  (∃ λ ys → xs ∼[ bag-with-equivalence ] ys)                    ↝⟨ (∃-cong λ ys → ≈↔≈′ xs ys ext) ⟩
+
+  (∃ λ ys → xs ≈[ bag-with-equivalence ]′ ys)                   ↔⟨⟩
+
+  (∃ λ (t , g) → ∃ λ (h : Position C s ≃ Position D t) →
+   ∀ i → f i ≡ g (_≃_.to h i))                                  ↔⟨ (∃-cong λ _ →
+                                                                    (∃-cong λ h → ∃-cong λ g →
+                                                                     from-equivalence (Eq.extensionality-isomorphism
+                                                                                         (lower-extensionality (a ⊔ c) (c ⊔ d) ext)) F.∘
+                                                                     Π-cong (lower-extensionality a (c ⊔ d) ext) h λ _ →
+                                                                     ≡⇒↝ _ $ cong ((_≡ g _) ∘ f) $ sym $ _≃_.left-inverse-of h _) F.∘
+                                                                    ∃-comm) F.∘
+                                                                   inverse Σ-assoc ⟩
+  (∃ λ (t : Shape D) → ∃ λ (h : Position C s ≃ Position D t) →
+   ∃ λ (g : Position D t → A) → f ∘ _≃_.from h ≡ g)             ↔⟨ (∃-cong λ _ → drop-⊤-right λ _ →
+                                                                    _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _) ⟩□
+  (∃ λ (t : Shape D) → Position C s ≃ Position D t)             □
 
 ------------------------------------------------------------------------
 -- Another alternative definition of bag equivalence
