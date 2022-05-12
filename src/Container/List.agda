@@ -14,8 +14,7 @@ open Derived-definitions-and-properties eq
 open import Logical-equivalence using (_⇔_; module _⇔_)
 open import Prelude as P hiding (List; []; _∷_; id; _∘_)
 
-open import Bag-equivalence eq
-  using () renaming (_≈-bag_ to _≈-bagL_; _∈_ to _∈L_; Any to AnyL)
+import Bag-equivalence eq as BE
 open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
 open import Container eq
 open import Extensionality eq
@@ -118,63 +117,63 @@ List↔List ext {A = A} = record
 
 Any↔Any-to :
   (P : A → Type p) (xs : ⟦ List ⟧ A) →
-  Any P xs ↔ AnyL P (_↠_.to List↠List xs)
+  Any P xs ↔ BE.Any P (_↠_.to List↠List xs)
 Any↔Any-to {A = A} P = uncurry Any↔Any-to′
   where
   Any↔Any-to′ : (n : ℕ) (lkup : Fin n → A) →
                 Any {C = List} P (n , lkup) ↔
-                AnyL P (_↠_.to List↠List (n , lkup))
+                BE.Any P (_↠_.to List↠List (n , lkup))
   Any↔Any-to′ zero lkup =
     (∃ λ (p : Fin zero) → P (lkup p))  ↔⟨ ∃-Fin-zero _ ⟩
     ⊥                                  □
   Any↔Any-to′ (suc n) lkup =
-    (∃ λ (p : Fin (suc n)) → P (lkup p))                          ↔⟨ ∃-Fin-suc _ ⟩
-    P (lkup fzero) ⊎ Any {C = List} P (n , lkup ∘ fsuc)           ↔⟨ id ⊎-cong Any↔Any-to′ n (lkup ∘ fsuc) ⟩
-    P (lkup fzero) ⊎ AnyL P (_↠_.to List↠List (n , lkup ∘ fsuc))  □
+    (∃ λ (p : Fin (suc n)) → P (lkup p))                            ↔⟨ ∃-Fin-suc _ ⟩
+    P (lkup fzero) ⊎ Any {C = List} P (n , lkup ∘ fsuc)             ↔⟨ id ⊎-cong Any↔Any-to′ n (lkup ∘ fsuc) ⟩
+    P (lkup fzero) ⊎ BE.Any P (_↠_.to List↠List (n , lkup ∘ fsuc))  □
 
 Any-from↔Any :
   (P : A → Type p) (xs : P.List A) →
-  Any P (_↠_.from List↠List xs) ↔ AnyL P xs
+  Any P (_↠_.from List↠List xs) ↔ BE.Any P xs
 Any-from↔Any P P.[] =
   (∃ λ (p : Fin zero) → P (L.index P.[] p))  ↔⟨ ∃-Fin-zero _ ⟩
   ⊥                                          □
 Any-from↔Any P (P._∷_ x xs) =
   (∃ λ (p : Fin (suc (L.length xs))) → P (L.index (P._∷_ x xs) p))  ↔⟨ ∃-Fin-suc _ ⟩
   P x ⊎ Any {C = List} P (_↠_.from List↠List xs)                    ↔⟨ id ⊎-cong Any-from↔Any P xs ⟩
-  P x ⊎ AnyL P xs                                                   □
+  P x ⊎ BE.Any P xs                                                 □
 
 -- The definition of bag equivalence in Bag-equivalence and the one in
 -- Container, instantiated with the List container, are logically
 -- equivalent (both via "to" and "from").
 
 ≈-⇔-to-≈-to :
-  xs ≈-bag ys ⇔ _↠_.to List↠List xs ≈-bagL _↠_.to List↠List ys
+  xs ≈-bag ys ⇔ _↠_.to List↠List xs BE.≈-bag _↠_.to List↠List ys
 ≈-⇔-to-≈-to {xs = xs} {ys = ys} = record
   { to   = λ xs≈ys z →
-             z ∈L (_↠_.to List↠List xs)  ↔⟨ inverse $ Any↔Any-to _ xs ⟩
-             z ∈ xs                      ↔⟨ xs≈ys z ⟩
-             z ∈ ys                      ↔⟨ Any↔Any-to _ ys ⟩
-             z ∈L (_↠_.to List↠List ys)  □
+             z BE.∈ (_↠_.to List↠List xs)  ↔⟨ inverse $ Any↔Any-to _ xs ⟩
+             z ∈ xs                        ↔⟨ xs≈ys z ⟩
+             z ∈ ys                        ↔⟨ Any↔Any-to _ ys ⟩
+             z BE.∈ (_↠_.to List↠List ys)  □
   ; from = λ xs≈ys z →
-             z ∈ xs                      ↔⟨ Any↔Any-to _ xs ⟩
-             z ∈L (_↠_.to List↠List xs)  ↔⟨ xs≈ys z ⟩
-             z ∈L (_↠_.to List↠List ys)  ↔⟨ inverse $ Any↔Any-to _ ys ⟩
-             z ∈ ys                      □
+             z ∈ xs                        ↔⟨ Any↔Any-to _ xs ⟩
+             z BE.∈ (_↠_.to List↠List xs)  ↔⟨ xs≈ys z ⟩
+             z BE.∈ (_↠_.to List↠List ys)  ↔⟨ inverse $ Any↔Any-to _ ys ⟩
+             z ∈ ys                        □
   }
 
 ≈-⇔-from-≈-from :
-  xs ≈-bagL ys ⇔ _↠_.from List↠List xs ≈-bag _↠_.from List↠List ys
+  xs BE.≈-bag ys ⇔ _↠_.from List↠List xs ≈-bag _↠_.from List↠List ys
 ≈-⇔-from-≈-from {xs = xs} {ys = ys} = record
   { to   = λ xs≈ys z →
              z ∈ (_↠_.from List↠List xs)  ↔⟨ Any-from↔Any _ xs ⟩
-             z ∈L xs                      ↔⟨ xs≈ys z ⟩
-             z ∈L ys                      ↔⟨ inverse $ Any-from↔Any _ ys ⟩
+             z BE.∈ xs                    ↔⟨ xs≈ys z ⟩
+             z BE.∈ ys                    ↔⟨ inverse $ Any-from↔Any _ ys ⟩
              z ∈ (_↠_.from List↠List ys)  □
   ; from = λ xs≈ys z →
-             z ∈L xs                      ↔⟨ inverse $ Any-from↔Any _ xs ⟩
+             z BE.∈ xs                    ↔⟨ inverse $ Any-from↔Any _ xs ⟩
              z ∈ (_↠_.from List↠List xs)  ↔⟨ xs≈ys z ⟩
              z ∈ (_↠_.from List↠List ys)  ↔⟨ Any-from↔Any _ ys ⟩
-             z ∈L ys                      □
+             z BE.∈ ys                    □
   }
 
 ------------------------------------------------------------------------
