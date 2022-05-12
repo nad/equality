@@ -25,6 +25,11 @@ open import H-level.Closure eq
 import List eq as L
 open import Surjection eq using (_↠_)
 
+private variable
+  a p            : Level
+  A B            : Type a
+  lkup n x xs ys : A
+
 ------------------------------------------------------------------------
 -- The type
 
@@ -40,8 +45,8 @@ List = ℕ ▷ Fin
 
 -- There is a split surjection from ⟦ List ⟧ A to P.List A.
 
-List↠List : {A : Type} → ⟦ List ⟧ A ↠ P.List A
-List↠List {A} = record
+List↠List : ⟦ List ⟧ A ↠ P.List A
+List↠List {A = A} = record
   { logical-equivalence = record
     { to   = uncurry to
     ; from = from
@@ -62,9 +67,10 @@ List↠List {A} = record
 -- If we assume that equality of functions is extensional, then we can
 -- also prove that the two definitions are isomorphic.
 
-List↔List : Extensionality lzero lzero →
-            {A : Type} → ⟦ List ⟧ A ↔ P.List A
-List↔List ext {A} = record
+List↔List :
+  Extensionality lzero a →
+  {A : Type a} → ⟦ List ⟧ A ↔ P.List A
+List↔List ext {A = A} = record
   { surjection      = List↠List
   ; left-inverse-of = uncurry from∘to
   }
@@ -74,6 +80,9 @@ List↔List ext {A} = record
   from∘to : ∀ n f → from (to (n , f)) ≡ (n , f)
   from∘to zero    f = cong (_,_ _) (apply-ext ext λ ())
   from∘to (suc n) f =
+    let x  = f (inj₁ tt)
+        xs = (n , f ∘ inj₂)
+    in
     (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))  ≡⟨ elim¹ (λ {ys} _ → _≡_ {A = ⟦ List ⟧ A}
                                                                                    (suc (L.length (to xs)) , L.index (P._∷_ x (to xs)))
                                                                                    (suc (proj₁ ys) , [ (λ _ → x) , proj₂ ys ]))
@@ -82,16 +91,14 @@ List↔List ext {A} = record
                                                                    (from∘to n (f ∘ inj₂)) ⟩
     (suc n                  , [ (λ _ → x) , f ∘ inj₂ ])   ≡⟨ cong (_,_ _) (apply-ext ext [ (λ _ → refl _) , (λ _ → refl _) ]) ⟩∎
     (suc n                  , f)                          ∎
-    where
-    x  = f (inj₁ tt)
-    xs = (n , f ∘ inj₂)
 
 -- The two definitions of Any are isomorphic (both via "to" and
 -- "from").
 
-Any↔Any-to : {A : Type} (P : A → Type) (xs : ⟦ List ⟧ A) →
-             Any P xs ↔ AnyL P (_↠_.to List↠List xs)
-Any↔Any-to {A} P = uncurry Any↔Any-to′
+Any↔Any-to :
+  (P : A → Type p) (xs : ⟦ List ⟧ A) →
+  Any P xs ↔ AnyL P (_↠_.to List↠List xs)
+Any↔Any-to {A = A} P = uncurry Any↔Any-to′
   where
   Any↔Any-to′ : (n : ℕ) (lkup : Fin n → A) →
                 Any {C = List} P (n , lkup) ↔
@@ -104,8 +111,9 @@ Any↔Any-to {A} P = uncurry Any↔Any-to′
     P (lkup fzero) ⊎ Any {C = List} P (n , lkup ∘ fsuc)           ↔⟨ id ⊎-cong Any↔Any-to′ n (lkup ∘ fsuc) ⟩
     P (lkup fzero) ⊎ AnyL P (_↠_.to List↠List (n , lkup ∘ fsuc))  □
 
-Any-from↔Any : {A : Type} (P : A → Type) (xs : P.List A) →
-               Any P (_↠_.from List↠List xs) ↔ AnyL P xs
+Any-from↔Any :
+  (P : A → Type p) (xs : P.List A) →
+  Any P (_↠_.from List↠List xs) ↔ AnyL P xs
 Any-from↔Any P P.[] =
   (∃ λ (p : Fin zero) → P (L.index P.[] p))  ↔⟨ ∃-Fin-zero _ ⟩
   ⊥                                          □
@@ -119,9 +127,8 @@ Any-from↔Any P (P._∷_ x xs) =
 -- equivalent (both via "to" and "from").
 
 ≈-⇔-to-≈-to :
-  {A : Type} {xs ys : ⟦ List ⟧ A} →
   xs ≈-bag ys ⇔ _↠_.to List↠List xs ≈-bagL _↠_.to List↠List ys
-≈-⇔-to-≈-to {xs = xs} {ys} = record
+≈-⇔-to-≈-to {xs = xs} {ys = ys} = record
   { to   = λ xs≈ys z →
              z ∈L (_↠_.to List↠List xs)  ↔⟨ inverse $ Any↔Any-to _ xs ⟩
              z ∈ xs                      ↔⟨ xs≈ys z ⟩
@@ -135,9 +142,8 @@ Any-from↔Any P (P._∷_ x xs) =
   }
 
 ≈-⇔-from-≈-from :
-  {A : Type} {xs ys : P.List A} →
   xs ≈-bagL ys ⇔ _↠_.from List↠List xs ≈-bag _↠_.from List↠List ys
-≈-⇔-from-≈-from {xs = xs} {ys} = record
+≈-⇔-from-≈-from {xs = xs} {ys = ys} = record
   { to   = λ xs≈ys z →
              z ∈ (_↠_.from List↠List xs)  ↔⟨ Any-from↔Any _ xs ⟩
              z ∈L xs                      ↔⟨ xs≈ys z ⟩
@@ -153,20 +159,19 @@ Any-from↔Any P (P._∷_ x xs) =
 ------------------------------------------------------------------------
 -- Constructors
 
-[] : {A : Type} → ⟦ List ⟧ A
+[] : ⟦ List ⟧ A
 [] = (zero , λ ())
 
 infixr 5 _∷_
 
-_∷_ : {A : Type} → A → ⟦ List ⟧ A → ⟦ List ⟧ A
+_∷_ : A → ⟦ List ⟧ A → ⟦ List ⟧ A
 x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
 
 -- Even if we don't assume extensionality we can prove that
 -- intensionally distinct implementations of the constructors are bag
 -- equivalent.
 
-[]≈ : {A : Type} {lkup : _ → A} →
-      _≈-bag_ {C₂ = List} [] (zero , lkup)
+[]≈ : _≈-bag_ {C₂ = List} [] (zero , lkup)
 []≈ _ = record
   { surjection = record
     { logical-equivalence = record
@@ -178,10 +183,10 @@ x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
   ; left-inverse-of = λ { (() , _) }
   }
 
-∷≈ : ∀ {A : Type} {n} {lkup : _ → A} →
-     _≈-bag_ {C₂ = List}
-             (lkup (inj₁ tt) ∷ (n , lkup ∘ inj₂))
-             (suc n , lkup)
+∷≈ :
+  _≈-bag_ {C₂ = List}
+          (lkup (inj₁ tt) ∷ (n , lkup ∘ inj₂))
+          (suc n , lkup)
 ∷≈ _ = record
   { surjection = record
     { logical-equivalence = record
@@ -203,8 +208,7 @@ x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
 
 -- Any lemmas for the constructors.
 
-Any-[] : {A : Type} (P : A → Type) →
-         Any P [] ↔ ⊥₀
+Any-[] : (P : A → Type p) → Any P [] ↔ ⊥₀
 Any-[] _ = record
   { surjection = record
     { logical-equivalence = record
@@ -216,8 +220,7 @@ Any-[] _ = record
   ; left-inverse-of = λ { (() , _) }
   }
 
-Any-∷ : ∀ {A : Type} (P : A → Type) {x xs} →
-        Any P (x ∷ xs) ↔ P x ⊎ Any P xs
+Any-∷ : (P : A → Type p) → Any P (x ∷ xs) ↔ P x ⊎ Any P xs
 Any-∷ _ = record
   { surjection = record
     { logical-equivalence = record
@@ -243,8 +246,8 @@ Any-∷ _ = record
 -- A fold for lists. (Well, this is not a catamorphism, it is a
 -- paramorphism.)
 
-fold : {A B : Type} → B → (A → ⟦ List ⟧ A → B → B) → ⟦ List ⟧ A → B
-fold {A} {B} nl cns = uncurry fold′
+fold : B → (A → ⟦ List ⟧ A → B → B) → ⟦ List ⟧ A → B
+fold {B = B} {A = A} nl cns = uncurry fold′
   where
   fold′ : (n : ℕ) → (Fin n → A) → B
   fold′ zero    lkup = nl
@@ -256,13 +259,15 @@ fold {A} {B} nl cns = uncurry fold′
 -- The "respects bag equivalence" argument could be omitted if
 -- equality of functions were extensional.
 
-fold-lemma : ∀ {A B : Type} {nl : B} {cns : A → ⟦ List ⟧ A → B → B}
-             (P : ⟦ List ⟧ A → B → Type) →
-             (∀ xs ys → xs ≈-bag ys → ∀ b → P xs b → P ys b) →
-             P [] nl →
-             (∀ x xs b → P xs b → P (x ∷ xs) (cns x xs b)) →
-             ∀ xs → P xs (fold nl cns xs)
-fold-lemma {A} {nl = nl} {cns} P resp P-nl P-cns = uncurry fold′-lemma
+fold-lemma :
+  {nl : B} {cns : A → ⟦ List ⟧ A → B → B}
+  (P : ⟦ List ⟧ A → B → Type p) →
+  (∀ xs ys → xs ≈-bag ys → ∀ b → P xs b → P ys b) →
+  P [] nl →
+  (∀ x xs b → P xs b → P (x ∷ xs) (cns x xs b)) →
+  ∀ xs → P xs (fold nl cns xs)
+fold-lemma {A = A} {nl = nl} {cns = cns} P resp P-nl P-cns =
+  uncurry fold′-lemma
   where
   fold′-lemma : ∀ n (lkup : Fin n → A) →
                 P (n , lkup) (fold nl cns (n , lkup))
@@ -293,30 +298,31 @@ fold-lemma {A} {nl = nl} {cns} P resp P-nl P-cns = uncurry fold′-lemma
 
 infixr 5 _++_
 
-_++_ : {A : Type} → ⟦ List ⟧ A → ⟦ List ⟧ A → ⟦ List ⟧ A
+_++_ : ⟦ List ⟧ A → ⟦ List ⟧ A → ⟦ List ⟧ A
 xs ++ ys = fold ys (λ z _ zs → z ∷ zs) xs
 
 -- An Any lemma for append.
 
-Any-++ : ∀ {A : Type} (P : A → Type) xs ys →
-         Any P (xs ++ ys) ↔ Any P xs ⊎ Any P ys
+Any-++ :
+  ∀ (P : A → Type p) xs ys →
+  Any P (xs ++ ys) ↔ Any P xs ⊎ Any P ys
 Any-++ P xs ys = fold-lemma
   (λ xs xs++ys → Any P xs++ys ↔ Any P xs ⊎ Any P ys)
 
   (λ us vs us≈vs us++ys hyp →
-    Any P us++ys         ↔⟨ hyp ⟩
-    Any P us ⊎ Any P ys  ↔⟨ _⇔_.to (∼⇔∼″ us vs) us≈vs P ⊎-cong id ⟩
-    Any P vs ⊎ Any P ys  □)
+     Any P us++ys         ↔⟨ hyp ⟩
+     Any P us ⊎ Any P ys  ↔⟨ Any-cong P P us vs (λ _ → id) us≈vs ⊎-cong id ⟩□
+     Any P vs ⊎ Any P ys  □)
 
   (Any P ys             ↔⟨ inverse ⊎-left-identity ⟩
-   ⊥ ⊎ Any P ys         ↔⟨ inverse (Any-[] P) ⊎-cong id ⟩
+   ⊥ ⊎ Any P ys         ↔⟨ inverse (Any-[] P) ⊎-cong id ⟩□
    Any P [] ⊎ Any P ys  □)
 
   (λ x xs xs++ys ih →
      Any P (x ∷ xs++ys)           ↔⟨ Any-∷ P ⟩
      P x ⊎ Any P xs++ys           ↔⟨ id ⊎-cong ih ⟩
      P x ⊎ Any P xs ⊎ Any P ys    ↔⟨ ⊎-assoc ⟩
-     (P x ⊎ Any P xs) ⊎ Any P ys  ↔⟨ inverse (Any-∷ P) ⊎-cong id ⟩
+     (P x ⊎ Any P xs) ⊎ Any P ys  ↔⟨ inverse (Any-∷ P) ⊎-cong id ⟩□
      Any P (x ∷ xs) ⊎ Any P ys    □)
 
   xs
