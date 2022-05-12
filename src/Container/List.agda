@@ -38,6 +38,11 @@ private variable
 List : Container lzero
 List = ℕ ▷ Fin
 
+-- The length of a list.
+
+length : ⟦ List ⟧ A → ℕ
+length = proj₁
+
 ------------------------------------------------------------------------
 -- The definitions of lists and bag equivalence for lists given in
 -- Container/Container.List and in Prelude/Bag-equivalence are closely
@@ -63,6 +68,22 @@ List↠List {A = A} = record
   to∘from : ∀ xs → uncurry to (from xs) ≡ xs
   to∘from P.[]         = refl _
   to∘from (P._∷_ x xs) = cong (P._∷_ x) (to∘from xs)
+
+-- The surjection preserves lengths.
+
+_ : length (_↠_.from List↠List xs) ≡ L.length xs
+_ = refl _
+
+length-List↠List : L.length (_↠_.to List↠List xs) ≡ length xs
+length-List↠List {xs = xs} =
+  L.length (_↠_.to List↠List xs)                     ≡⟨⟩
+  length (_↠_.from List↠List (_↠_.to List↠List xs))  ≡⟨ uncurry lemma xs ⟩∎
+  length xs                                          ∎
+  where
+  lemma :
+    ∀ n f → proj₁ (_↠_.from List↠List (_↠_.to List↠List (n , f))) ≡ n
+  lemma zero    _ = refl _
+  lemma (suc n) _ = cong suc $ lemma n _
 
 -- If we assume that equality of functions is extensional, then we can
 -- also prove that the two definitions are isomorphic.
