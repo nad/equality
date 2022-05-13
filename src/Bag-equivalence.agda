@@ -560,9 +560,9 @@ abstract
                   (_≈-bag′_.related x∷xs≈x∷ys)
   }
 
--- By the equivalence above we get the result also for the first
--- definition of bag equivalence, but we can show this directly, with
--- the help of some lemmas.
+-- By the logical equivalence above we get the result also for the
+-- first definition of bag equivalence, but we can show this directly,
+-- with the help of some lemmas.
 
 abstract
 
