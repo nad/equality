@@ -14,6 +14,7 @@ open import Prelude hiding (id)
 
 open import Bag-equivalence eq
 open import Bijection eq using (_↔_)
+open import Equivalence eq using (_≃_)
 open import Function-universe eq
 open import List eq
 
@@ -40,7 +41,7 @@ x ∈T t = AnyT (_≡_ x) t
 -- Bag equivalence.
 
 _≈-bagT_ : ∀ {A} → Tree A → Tree A → Type
-t₁ ≈-bagT t₂ = ∀ x → x ∈T t₁ ↔ x ∈T t₂
+t₁ ≈-bagT t₂ = ∀ x → (x ∈T t₁) ≃ (x ∈T t₂)
 
 ------------------------------------------------------------------------
 -- Singleton

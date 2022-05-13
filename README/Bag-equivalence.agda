@@ -8,8 +8,13 @@
 -- Note that the code does not follow the paper exactly. For instance,
 -- many definitions are universe-polymorphic, and in some cases where
 -- the paper contains both a specialised and a more general definition
--- the code only contains the more general one. The code has also been
--- changed after the paper was published.
+-- the code only contains the more general one.
+--
+-- The code has also been changed after the paper was published. For
+-- instance, "bag equivalence" is now defined using equivalences
+-- instead of bijections, and some lemmas about how two definitions of
+-- bag equivalence are logically equivalent have been strengthened to
+-- equivalences (proved using function extensionality).
 
 {-# OPTIONS --without-K --safe #-}
 
@@ -76,9 +81,15 @@ import Bag-equivalence
 ------------------------------------------------------------------------
 -- 5: The Definitions Are Equivalent
 
--- The equivalence proof.
+-- The proof showing that the two definitions are logically
+-- equivalent.
 
 import Bag-equivalence
+
+-- A proof, not included in the paper, which shows that the
+-- definitions are equivalent (assuming extensionality).
+
+import Container.List
 
 -- There are infinitely many proofs of ℕ ≡ ℕ in homotopy type theory.
 
@@ -91,10 +102,8 @@ import Univalence-axiom
 -- equivalence, and a proof showing that the two definitions are
 -- logically equivalent.
 --
--- There is also a proof which shows that the definitions are
--- isomorphic (assuming extensionality), if "bijection" is replaced by
--- the logically equivalent concept of "(weak) equivalence" in the
--- definitions of bag equivalence.
+-- There is also a proof, not included in the paper, which shows that
+-- the definitions are equivalent (assuming extensionality).
 
 import Container
 import Equivalence

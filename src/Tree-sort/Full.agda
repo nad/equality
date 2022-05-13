@@ -24,6 +24,7 @@ open Derived-definitions-and-properties eq
 
 open import Bag-equivalence eq using () renaming (Any to AnyL)
 open import Bijection eq using (_↔_)
+open import Equivalence eq using (_≃_)
 open import Function-universe eq hiding (Kind; module Kind)
 open import List eq
 
@@ -133,7 +134,7 @@ x ∈ xs = Any (λ y → x ≡ y) xs
 infix 4 _≈-bag_
 
 _≈-bag_ : ∀ {k₁ k₂ l₁ u₁ l₂ u₂} → ⟦ k₁ ⟧ l₁ u₁ → ⟦ k₂ ⟧ l₂ u₂ → Type
-xs ≈-bag ys = ∀ z → z ∈ xs ↔ z ∈ ys
+xs ≈-bag ys = ∀ z → (z ∈ xs) ≃ (z ∈ ys)
 
 ------------------------------------------------------------------------
 -- Singleton trees

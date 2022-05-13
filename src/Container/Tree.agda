@@ -17,6 +17,7 @@ open import Prelude hiding (id; _∘_; List; []; _∷_)
 open import Bijection eq using (_↔_; module _↔_)
 open import Container eq hiding (Shape; Position)
 open import Container.List eq hiding (fold; fold-lemma)
+import Equivalence eq as Eq
 open import Function-universe eq
 import Tree eq as Tree
 
@@ -103,43 +104,33 @@ node (l , lkup-l) x (r , lkup-r) =
 
 leaf≈ : {A : Type} {lkup : _ → A} →
         _≈-bag_ {C₂ = Tree} leaf (lf , lkup)
-leaf≈ _ = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { (() , _) }
-      ; from = λ { (() , _) }
-      }
-    ; right-inverse-of = λ { (() , _) }
-    }
-  ; left-inverse-of = λ { (() , _) }
-  }
+leaf≈ _ = Eq.↔→≃
+  (λ { (() , _) })
+  (λ { (() , _) })
+  (λ { (() , _) })
+  (λ { (() , _) })
 
 node≈ : ∀ {A : Type} {l r} {lkup : _ → A} →
         _≈-bag_ {C₂ = Tree}
                 (node (l , lkup ∘ left) (lkup root) (r , lkup ∘ right))
                 (nd l r , lkup)
-node≈ _ = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { (root    , eq) → (root    , eq)
-                 ; (left p  , eq) → (left p  , eq)
-                 ; (right p , eq) → (right p , eq)
-                 }
-      ; from = λ { (root    , eq) → (root    , eq)
-                 ; (left p  , eq) → (left p  , eq)
-                 ; (right p , eq) → (right p , eq)
-                 }
-      }
-    ; right-inverse-of = λ { (root    , eq) → refl _
-                           ; (left p  , eq) → refl _
-                           ; (right p , eq) → refl _
-                           }
-    }
-  ; left-inverse-of = λ { (root    , eq) → refl _
-                        ; (left p  , eq) → refl _
-                        ; (right p , eq) → refl _
-                        }
-  }
+node≈ _ = Eq.↔→≃
+  (λ { (root    , eq) → (root    , eq)
+     ; (left p  , eq) → (left p  , eq)
+     ; (right p , eq) → (right p , eq)
+     })
+  (λ { (root    , eq) → (root    , eq)
+     ; (left p  , eq) → (left p  , eq)
+     ; (right p , eq) → (right p , eq)
+     })
+  (λ { (root    , eq) → refl _
+     ; (left p  , eq) → refl _
+     ; (right p , eq) → refl _
+     })
+  (λ { (root    , eq) → refl _
+     ; (left p  , eq) → refl _
+     ; (right p , eq) → refl _
+     })
 
 -- Any lemmas for the constructors.
 

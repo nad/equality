@@ -287,8 +287,8 @@ expressed-in-terms-of-interpretation-and-Any C = record
 ------------------------------------------------------------------------
 -- Alternative definition of bag equivalence
 
--- Two things are bag equivalent if there is a bijection (or
--- equivalence) between their positions that relates equal things.
+-- Two things are bag equivalent if there is an equivalence or
+-- bijection between their positions that relates equal things.
 
 infix 4 _≈[_]′_
 
@@ -305,9 +305,9 @@ _≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
         Extensionality (c ⊔ d) (c ⊔ d) →
         (∀ s → Is-set (Position C s)) →
         (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
-        xs ≈[ bag ]′ ys ↔ xs ≈[ bag-with-equivalence ]′ ys
+        xs ≈[ bag ]′ ys ↔ xs ≈[ bag-with-bijection ]′ ys
 ≈′↔≈′ ext P-set (s , f) (s′ , f′) =
-  (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  ↔⟨ Σ-cong (Eq.↔↔≃ ext (P-set s)) (λ _ → Bijection.id) ⟩
+  (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  ↔⟨ Σ-cong (inverse $ Eq.↔↔≃ ext (P-set s)) (λ _ → Bijection.id) ⟩□
   (∃ λ P↔P → ∀ p → f p ≡ f′ (to-implication P↔P p))  □
 
 -- The definition _≈[_]′_ is also logically equivalent to the one
@@ -360,7 +360,7 @@ Position-shape-cong-relates :
   (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) (xs≈ys : xs ∼[ k ] ys) p →
   index xs p ≡
     index ys (to-implication (Position-shape-cong xs ys xs≈ys) p)
-Position-shape-cong-relates {bag} xs ys xs≈ys p =
+Position-shape-cong-relates {k = bag-with-bijection} xs ys xs≈ys p =
   index xs p                                                     ≡⟨ proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _) ⟩
   index ys (proj₁ $ to-implication (xs≈ys (index xs p))
                                    (p , refl _))                 ≡⟨⟩
@@ -377,19 +377,19 @@ Position-shape-cong-relates {bag} xs ys xs≈ys p =
               p)                                                 ≡⟨⟩
   index ys (to-implication (Position-shape-cong xs ys xs≈ys) p)  ∎
 
-Position-shape-cong-relates {bag-with-equivalence} xs ys xs≈ys p =
+Position-shape-cong-relates {k = bag} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
-Position-shape-cong-relates {bag-with-equivalenceᴱ} xs ys xs≈ys p =
+Position-shape-cong-relates {k = bag-with-equivalenceᴱ} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
-Position-shape-cong-relates {subbag} xs ys xs≈ys p =
+Position-shape-cong-relates {k = subbag} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
-Position-shape-cong-relates {set} xs ys xs≈ys p =
+Position-shape-cong-relates {k = set} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
-Position-shape-cong-relates {subset} xs ys xs≈ys p =
+Position-shape-cong-relates {k = subset} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
-Position-shape-cong-relates {embedding} xs ys xs≈ys p =
+Position-shape-cong-relates {k = injection} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
-Position-shape-cong-relates {surjection} xs ys xs≈ys p =
+Position-shape-cong-relates {k = surjection} xs ys xs≈ys p =
   proj₂ $ to-implication (xs≈ys (index xs p)) (p , refl _)
 
 -- We get that the two definitions of bag equivalence are logically
@@ -424,8 +424,7 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
 ≈↔≈′ :
   ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
   (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
-  xs ∼[ bag-with-equivalence ] ys ↝[ a ⊔ c ⊔ d ∣ a ⊔ c ⊔ d ]
-  xs ≈[ bag-with-equivalence ]′ ys
+  xs ≈-bag ys ↝[ a ⊔ c ⊔ d ∣ a ⊔ c ⊔ d ] xs ≈[ bag ]′ ys
 ≈↔≈′ {a = a} {c = c} {d = d} {C = C} {D = D} xs ys =
   generalise-ext? equiv λ ext →
       (λ (⟨ f , f-eq ⟩ , related) →
@@ -481,22 +480,21 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
   open _⇔_ equiv
 
 -- The type of "index functions" g for a given D-shape t, such that
--- t , g ⦂ ⟦ D ⟧ A is bag equivalent (in a certain sense) to a given
--- C-thing, can be expressed as an equivalence between position types
--- (assuming function extensionality).
+-- t , g ⦂ ⟦ D ⟧ A is bag equivalent to a given C-thing, can be
+-- expressed as an equivalence between position types (assuming
+-- function extensionality).
 
 ∃≈≃≃ :
   ∀ {a c d} {A : Type a} →
   Extensionality (a ⊔ c ⊔ d) (a ⊔ c ⊔ d) →
   (C : Container c) {xs : ⟦ C ⟧ A}
   (D : Container d) {t : Shape D} →
-  (∃ λ (g : Position D t → A) →
-     xs ∼[ bag-with-equivalence ] (t , g ⦂ ⟦ D ⟧ A)) ≃
+  (∃ λ (g : Position D t → A) → xs ≈-bag (t , g ⦂ ⟦ D ⟧ A)) ≃
   (Position C (shape xs) ≃ Position D t)
 ∃≈≃≃ {a = a} {c = c} {d = d} {A = A} ext C {xs = xs@(s , f)} D {t = t} =
-  (∃ λ g → xs ∼[ bag-with-equivalence ] (t , g ⦂ ⟦ D ⟧ A))   ↝⟨ (∃-cong λ _ → ≈↔≈′ {D = D} xs _ ext) ⟩
+  (∃ λ g → xs ≈-bag (t , g ⦂ ⟦ D ⟧ A))                       ↝⟨ (∃-cong λ _ → ≈↔≈′ {D = D} xs _ ext) ⟩
 
-  (∃ λ g → xs ≈[ bag-with-equivalence ]′ (t , g ⦂ ⟦ D ⟧ A))  ↔⟨⟩
+  (∃ λ g → xs ≈[ bag ]′ (t , g ⦂ ⟦ D ⟧ A))                   ↔⟨⟩
 
   (∃ λ g → ∃ λ (h : Position C s ≃ Position D t) →
    ∀ i → f i ≡ g (_≃_.to h i))                               ↔⟨ (∃-cong λ h → ∃-cong λ g →
@@ -510,20 +508,19 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
                                                                  _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _) ⟩□
   Position C s ≃ Position D t                                □
 
--- The type of D-things that are bag equivalent (in a certain sense)
--- to a given C-thing can be expressed in a different way (assuming
--- function extensionality).
+-- The type of D-things that are bag equivalent to a given C-thing can
+-- be expressed in a different way (assuming function extensionality).
 
 ∃≈≃∃≃ :
   ∀ {a c d} {A : Type a} {D : Container d} →
   Extensionality (a ⊔ c ⊔ d) (a ⊔ c ⊔ d) →
   (C : Container c) {xs : ⟦ C ⟧ A} →
-  (∃ λ (ys : ⟦ D ⟧ A) → xs ∼[ bag-with-equivalence ] ys) ≃
+  (∃ λ (ys : ⟦ D ⟧ A) → xs ≈-bag ys) ≃
   (∃ λ (s : Shape D) → Position C (shape xs) ≃ Position D s)
 ∃≈≃∃≃ {A = A} {D = D} ext C {xs = xs} =
-  (∃ λ ys → xs ∼[ bag-with-equivalence ] ys)                        ↔⟨ inverse Σ-assoc ⟩
-  (∃ λ t → ∃ λ g → xs ∼[ bag-with-equivalence ] (t , g ⦂ ⟦ D ⟧ A))  ↝⟨ (∃-cong λ _ → ∃≈≃≃ ext C D) ⟩□
-  (∃ λ (t : Shape D) → Position C (shape xs) ≃ Position D t)        □
+  (∃ λ ys → xs ≈-bag ys)                                      ↔⟨ inverse Σ-assoc ⟩
+  (∃ λ t → ∃ λ g → xs ≈-bag (t , g ⦂ ⟦ D ⟧ A))                ↝⟨ (∃-cong λ _ → ∃≈≃≃ ext C D) ⟩□
+  (∃ λ (t : Shape D) → Position C (shape xs) ≃ Position D t)  □
 
 ------------------------------------------------------------------------
 -- Another alternative definition of bag equivalence

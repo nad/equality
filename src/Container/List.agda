@@ -183,8 +183,8 @@ Any-from↔Any P (P._∷_ x xs) =
 
 ≈-≃-from-≈-from :
   {A : Type a} {xs ys : P.List A} →
-  xs BE.∼[ bag-with-equivalence ] ys ↝[ a ∣ a ]
-  _↠_.from List↠List xs ∼[ bag-with-equivalence ] _↠_.from List↠List ys
+  xs BE.≈-bag ys ↝[ a ∣ a ]
+  _↠_.from List↠List xs ≈-bag _↠_.from List↠List ys
 ≈-≃-from-≈-from {xs = xs} {ys = ys} =
   generalise-ext? ≈-⇔-from-≈-from λ ext →
       (λ xs≈ys → apply-ext ext λ z →
@@ -230,39 +230,29 @@ x ∷ (n , lkup) = (suc n , [ (λ _ → x) , lkup ])
 -- equivalent.
 
 []≈ : _≈-bag_ {C₂ = List} [] (zero , lkup)
-[]≈ _ = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { (() , _) }
-      ; from = λ { (() , _) }
-      }
-    ; right-inverse-of = λ { (() , _) }
-    }
-  ; left-inverse-of = λ { (() , _) }
-  }
+[]≈ _ = Eq.↔→≃
+  (λ { (() , _) })
+  (λ { (() , _) })
+  (λ { (() , _) })
+  (λ { (() , _) })
 
 ∷≈ :
   _≈-bag_ {C₂ = List}
           (lkup (inj₁ tt) ∷ (n , lkup ∘ inj₂))
           (suc n , lkup)
-∷≈ _ = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { (inj₁ tt , eq) → (inj₁ tt , eq)
-                 ; (inj₂ s  , eq) → (inj₂ s  , eq)
-                 }
-      ; from = λ { (inj₁ tt , eq) → (inj₁ tt , eq)
-                 ; (inj₂ s  , eq) → (inj₂ s  , eq)
-                 }
-      }
-    ; right-inverse-of = λ { (inj₁ tt , eq) → refl _
-                           ; (inj₂ s  , eq) → refl _
-                           }
-    }
-  ; left-inverse-of = λ { (inj₁ tt , eq) → refl _
-                        ; (inj₂ s  , eq) → refl _
-                        }
-  }
+∷≈ _ = Eq.↔→≃
+  (λ { (inj₁ tt , eq) → (inj₁ tt , eq)
+     ; (inj₂ s  , eq) → (inj₂ s  , eq)
+     })
+  (λ { (inj₁ tt , eq) → (inj₁ tt , eq)
+     ; (inj₂ s  , eq) → (inj₂ s  , eq)
+     })
+  (λ { (inj₁ tt , eq) → refl _
+     ; (inj₂ s  , eq) → refl _
+     })
+  (λ { (inj₁ tt , eq) → refl _
+     ; (inj₂ s  , eq) → refl _
+     })
 
 -- Any lemmas for the constructors.
 
@@ -388,6 +378,27 @@ Any-++ P xs ys = fold-lemma
 ------------------------------------------------------------------------
 -- More results related to bag equivalence
 
+-- Two notions of bag equivalence are pointwise equivalent (assuming
+-- function extensionality).
+
+≈≃≈′ :
+  {A : Type a} {xs ys : P.List A} →
+  xs BE.≈-bag ys ↝[ a ∣ a ] xs BE.≈-bag′ ys
+≈≃≈′ {xs = xs} {ys = ys} {k = k} ext =
+  xs BE.≈-bag ys                                         ↝⟨ ≈-≃-from-≈-from ext ⟩
+
+  _↠_.from List↠List xs ≈-bag _↠_.from List↠List ys      ↝⟨ ≈↔≈′ (_↠_.from List↠List xs) (_↠_.from List↠List ys) ext ⟩
+
+  _↠_.from List↠List xs ≈[ bag ]′ _↠_.from List↠List ys  ↔⟨⟩
+
+  (∃ λ (eq : Fin (L.length xs) ≃ Fin (L.length ys)) →
+   ∀ i → L.index xs i ≡ L.index ys (_≃_.to eq i))        ↔⟨ Eq.↔→≃
+                                                              (λ (eq , r) → record { equivalence = eq; related = r })
+                                                              _
+                                                              refl
+                                                              refl ⟩□
+  xs BE.≈-bag′ ys                                        □
+
 -- The type of lists that are bag equivalent to a list xs is
 -- equivalent to Fin (length xs !), if a certain variant of bag
 -- equivalence is used (and assuming function extensionality).
@@ -395,10 +406,9 @@ Any-++ P xs ys = fold-lemma
 ∃≈≃Fin! :
   {A : Type a} {xs : ⟦ List ⟧ A} →
   Extensionality a a →
-  (∃ λ (ys : ⟦ List ⟧ A) → xs ∼[ bag-with-equivalence ] ys) ≃
-  Fin (length xs !)
+  (∃ λ (ys : ⟦ List ⟧ A) → xs ≈-bag ys) ≃ Fin (length xs !)
 ∃≈≃Fin! {A = A} {xs = xs@(m , f)} ext =
-  (∃ λ ys → xs ∼[ bag-with-equivalence ] ys)  ↝⟨ ∃≈≃∃≃ ext List ⟩
+  (∃ λ ys → xs ≈-bag ys)                      ↝⟨ ∃≈≃∃≃ ext List ⟩
 
   (∃ λ (n : ℕ) → Fin m ≃ Fin n)               ↔⟨ (∃-cong λ _ → inverse $ drop-⊤-right λ hyp →
                                                   _⇔_.to contractible⇔↔⊤ $
@@ -420,14 +430,10 @@ Any-++ P xs ys = fold-lemma
 ∃-List-≈≃Fin! :
   {A : Type a} {xs : P.List A} →
   Extensionality a a →
-  (∃ λ (ys : P.List A) → xs BE.∼[ bag-with-equivalence ] ys) ≃
-  Fin (L.length xs !)
+  (∃ λ (ys : P.List A) → xs BE.≈-bag ys) ≃ Fin (L.length xs !)
 ∃-List-≈≃Fin! {A = A} {xs = xs} ext =
-  (∃ λ (ys : P.List A) → xs BE.∼[ bag-with-equivalence ] ys)  ↝⟨ Σ-cong (inverse $ List↔List ext′) (λ _ → ≈-≃-from-≈-from ext) ⟩
-
-  (∃ λ (ys : ⟦ List ⟧ A) →
-   _↠_.from List↠List xs ∼[ bag-with-equivalence ] ys)        ↝⟨ ∃≈≃Fin! ext ⟩□
-
-  Fin (L.length xs !)                                         □
+  (∃ λ (ys : P.List A) → xs BE.≈-bag ys)                    ↝⟨ Σ-cong (inverse $ List↔List ext′) (λ _ → ≈-≃-from-≈-from ext) ⟩
+  (∃ λ (ys : ⟦ List ⟧ A) → _↠_.from List↠List xs ≈-bag ys)  ↝⟨ ∃≈≃Fin! ext ⟩□
+  Fin (L.length xs !)                                       □
   where
   ext′ = lower-extensionality _ lzero ext

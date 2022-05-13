@@ -15,11 +15,13 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (id; swap)
 
 open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
+open import Embedding eq as Emb using (Embedding)
 open import Equality.Decision-procedures eq
+open import Equivalence eq using (_≃_)
 open import Fin eq as Finite
 open import Function-universe eq as Function-universe
-  hiding (_∘_; Kind; module Kind; bijection)
-open import H-level eq
+  hiding (_∘_; Kind; equivalence)
+open import H-level eq as H-level
 open import H-level.Closure eq
 open import Injection eq using (_↣_)
 open import List eq
@@ -224,11 +226,6 @@ filter-cong-∈ p q (x ∷ xs) p≡q
 -- Bag and set equivalence and the subset and subbag orders
 
 -- Various kinds of relatedness.
---
--- NOTE: Perhaps it would be better to define the subbag property in
--- terms of embeddings, rather than injections. The HoTT book (first
--- edition) claims that injectivity "is an ill-behaved notion for
--- non-sets".
 
 open Function-universe public using (Kind) hiding (module Kind)
 
@@ -238,9 +235,9 @@ module Kind where
     using ()
     renaming ( implication         to subset
              ; logical-equivalence to set
-             ; injection           to subbag
-             ; bijection           to bag
-             ; equivalence         to bag-with-equivalence
+             ; embedding           to subbag
+             ; bijection           to bag-with-bijection
+             ; equivalence         to bag
              ; equivalenceᴱ        to bag-with-equivalenceᴱ
              )
 
@@ -266,8 +263,8 @@ infix 4 _≈-bag′_
 
 record _≈-bag′_ {A : Type a} (xs ys : List A) : Type a where
   field
-    bijection : Fin (length xs) ↔ Fin (length ys)
-    related   : xs And ys Are-related-by bijection
+    equivalence : Fin (length xs) ≃ Fin (length ys)
+    related     : xs And ys Are-related-by from-equivalence equivalence
 
 -- Yet another definition of bag equivalence. This definition is taken
 -- from Coq's standard library.
@@ -444,10 +441,18 @@ range-disjunction p q xs = λ z →
   inj false false = record { to = λ (); injective = λ {}          }
 
   lemma : ∀ {a} (A : Type a) (b₁ b₂ : Bool) →
-          A × T (b₁ ∨ b₂) ↣ A × T b₁ ⊎ A × T b₂
+          Embedding (A × T (b₁ ∨ b₂)) (A × T b₁ ⊎ A × T b₂)
   lemma A b₁ b₂ =
-    A × T (b₁ ∨ b₂)      ↝⟨ id ×-cong inj b₁ b₂ ⟩
-    A × (T b₁ ⊎ T b₂)    ↔⟨ ×-⊎-distrib-left ⟩
+    A × T (b₁ ∨ b₂)      ↝⟨ id
+                              ×-cong
+                            _⇔_.to
+                              (Emb.↣⇔Embedding
+                                 (H-level.mono₁ 1 (T-propositional (b₁ ∨ b₂)))
+                                 (⊎-closure 0
+                                    (H-level.mono₁ 1 (T-propositional b₁))
+                                    (H-level.mono₁ 1 (T-propositional b₂))))
+                              (inj b₁ b₂) ⟩
+    A × (T b₁ ⊎ T b₂)    ↔⟨ ×-⊎-distrib-left ⟩□
     A × T b₁ ⊎ A × T b₂  □
 
 ------------------------------------------------------------------------
@@ -515,21 +520,24 @@ abstract
     {xs ys : List A} (xs≈ys : xs ≈-bag ys) →
     xs And ys Are-related-by Fin-length-cong xs≈ys
   Fin-length-cong-relates {xs = xs} {ys = ys} xs≈ys i =
-    index xs i                                ≡⟨ proj₂ $ to (∈-index _) $ to (xs≈ys _) (from (∈-index _) (i , refl _)) ⟩
-    index ys (proj₁ $ to (∈-index _) $
-              to (xs≈ys _) $
-              from (∈-index _) (i , refl _))  ≡⟨⟩
-    index ys (to (Fin-length-cong xs≈ys) i)   ∎
-    where open _↔_
+    index xs i                                    ≡⟨ proj₂ $ _↔_.to (∈-index _) $ _≃_.to (xs≈ys _) (_↔_.from (∈-index _) (i , refl _)) ⟩
+
+    index ys (proj₁ $ _↔_.to (∈-index _) $
+              _≃_.to (xs≈ys _) $
+              _↔_.from (∈-index _) (i , refl _))  ≡⟨⟩
+
+    index ys (_↔_.to (Fin-length-cong xs≈ys) i)   ∎
 
 -- We get that the two definitions of bag equivalence are logically
 -- equivalent.
+--
+-- The result can be strengthened, see Container.List.≈≃≈′.
 
 ≈⇔≈′ : xs ≈-bag ys ⇔ xs ≈-bag′ ys
 ≈⇔≈′ = record
   { to   = λ xs≈ys → record
-             { bijection = Fin-length-cong xs≈ys
-             ; related   = Fin-length-cong-relates xs≈ys
+             { equivalence = from-bijection $ Fin-length-cong xs≈ys
+             ; related     = Fin-length-cong-relates xs≈ys
              }
   ; from = from
   }
@@ -540,7 +548,7 @@ abstract
   from : xs ≈-bag′ ys → xs ≈-bag ys
   from {xs = xs} {ys = ys} xs≈ys z =
     z ∈ xs                    ↔⟨ ∈-index xs ⟩
-    ∃ (λ i → z ≡ index xs i)  ↔⟨ Σ-cong (_≈-bag′_.bijection xs≈ys)
+    ∃ (λ i → z ≡ index xs i)  ↔⟨ Σ-cong (_≈-bag′_.equivalence xs≈ys)
                                         (λ i → equality-lemma $
                                                  _≈-bag′_.related xs≈ys i) ⟩
     ∃ (λ i → z ≡ index ys i)  ↔⟨ inverse (∈-index ys) ⟩
@@ -554,10 +562,13 @@ abstract
 
 ∷-left-cancellative′ : ∀ xs ys → x ∷ xs ≈-bag′ x ∷ ys → xs ≈-bag′ ys
 ∷-left-cancellative′ {x = x} xs ys x∷xs≈x∷ys = record
-  { bijection = Finite.cancel-suc (_≈-bag′_.bijection x∷xs≈x∷ys)
-  ; related   = Finite.cancel-suc-preserves-relatedness x xs ys
-                  (_≈-bag′_.bijection x∷xs≈x∷ys)
-                  (_≈-bag′_.related x∷xs≈x∷ys)
+  { equivalence =
+      from-bijection $ Finite.cancel-suc $ from-equivalence $
+      _≈-bag′_.equivalence x∷xs≈x∷ys
+  ; related =
+      Finite.cancel-suc-preserves-relatedness x xs ys
+        (from-equivalence $ _≈-bag′_.equivalence x∷xs≈x∷ys)
+        (_≈-bag′_.related x∷xs≈x∷ys)
   }
 
 -- By the logical equivalence above we get the result also for the
@@ -573,22 +584,20 @@ abstract
 
   index-of-commutes :
     {xs ys : List A} (xs≈ys : xs ≈-bag ys) (p : z ∈ xs) →
-    index-of (_↔_.to (xs≈ys z) p) ≡
+    index-of (_≃_.to (xs≈ys z) p) ≡
     _↔_.to (Fin-length-cong xs≈ys) (index-of p)
   index-of-commutes {z = z} {xs = xs} {ys = ys} xs≈ys p =
-    index-of $ to (xs≈ys z) p                                     ≡⟨⟩
+    index-of $ _≃_.to (xs≈ys z) p                                     ≡⟨⟩
 
-    index-of $ proj₂ $ Σ-map P.id (λ {x} → to (xs≈ys x)) (z , p)  ≡⟨ cong (index-of ∘ proj₂ ∘ Σ-map P.id (to (xs≈ys _))) $ sym $
-                                                                     left-inverse-of (Fin-length xs) (z , p) ⟩
-    index-of $ proj₂ $ Σ-map P.id (λ {x} → to (xs≈ys x)) $
-    from (Fin-length xs) $ to (Fin-length xs) (z , p)             ≡⟨⟩
+    index-of $ proj₂ $ Σ-map P.id (λ {x} → _≃_.to (xs≈ys x)) (z , p)  ≡⟨ cong (index-of ∘ proj₂ ∘ Σ-map P.id (_≃_.to (xs≈ys _))) $ sym $
+                                                                         _↔_.left-inverse-of (Fin-length xs) (z , p) ⟩
+    index-of $ proj₂ $ Σ-map P.id (λ {x} → _≃_.to (xs≈ys x)) $
+    _↔_.from (Fin-length xs) $ _↔_.to (Fin-length xs) (z , p)         ≡⟨⟩
 
-    to (Fin-length ys) $ Σ-map P.id (λ {x} → to (xs≈ys x)) $
-    from (Fin-length xs) $ index-of p                             ≡⟨⟩
+    _↔_.to (Fin-length ys) $ Σ-map P.id (λ {x} → _≃_.to (xs≈ys x)) $
+    _↔_.from (Fin-length xs) $ index-of p                             ≡⟨⟩
 
-    to (Fin-length-cong xs≈ys) $ index-of p                       ∎
-    where
-    open _↔_
+    _↔_.to (Fin-length-cong xs≈ys) $ index-of p                       ∎
 
   -- Bag equivalence isomorphisms preserve index equality. Note that
   -- this means that, even if the underlying equality is proof
@@ -599,22 +608,23 @@ abstract
     {xs ys : List A} {p q : z ∈ xs}
     (xs≈ys : xs ≈-bag ys) →
     index-of p ≡ index-of q →
-    index-of (_↔_.to (xs≈ys z) p) ≡ index-of (_↔_.to (xs≈ys z) q)
+    index-of (_≃_.to (xs≈ys z) p) ≡ index-of (_≃_.to (xs≈ys z) q)
   index-equality-preserved {z = z} {p = p} {q = q} xs≈ys eq =
-    index-of (_↔_.to (xs≈ys z) p)                ≡⟨ index-of-commutes xs≈ys p ⟩
+    index-of (_≃_.to (xs≈ys z) p)                ≡⟨ index-of-commutes xs≈ys p ⟩
     _↔_.to (Fin-length-cong xs≈ys) (index-of p)  ≡⟨ cong (_↔_.to (Fin-length-cong xs≈ys)) eq ⟩
     _↔_.to (Fin-length-cong xs≈ys) (index-of q)  ≡⟨ sym $ index-of-commutes xs≈ys q ⟩∎
-    index-of (_↔_.to (xs≈ys z) q)                ∎
+    index-of (_≃_.to (xs≈ys z) q)                ∎
 
 -- If x ∷ xs is bag equivalent to x ∷ ys, then xs and ys are bag
 -- equivalent.
 
 ∷-left-cancellative : x ∷ xs ≈-bag x ∷ ys → xs ≈-bag ys
-∷-left-cancellative {x = x} x∷xs≈x∷ys z =
-  ⊎-left-cancellative
-    (x∷xs≈x∷ys z)
-    (lemma x∷xs≈x∷ys)
-    (lemma (inverse ∘ x∷xs≈x∷ys))
+∷-left-cancellative {x = x} {xs = xs} {ys = ys} x∷xs≈x∷ys z =
+  z ∈ xs  ↔⟨ ⊎-left-cancellative
+               (from-equivalence $ x∷xs≈x∷ys z)
+               (lemma x∷xs≈x∷ys)
+               (lemma (inverse ∘ x∷xs≈x∷ys)) ⟩□
+  z ∈ ys  □
   where
   abstract
 
@@ -622,8 +632,9 @@ abstract
     -- equal), then this lemma can be proved without the help of
     -- index-equality-preserved.
 
-    lemma : (inv : x ∷ xs ≈-bag x ∷ ys) →
-            Well-behaved (_↔_.to (inv z))
+    lemma :
+      ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) →
+      Well-behaved (_≃_.to (inv z))
     lemma {xs = xs} inv {b = z∈xs} {a = p} {a′ = q} hyp₁ hyp₂ =
       ⊎.inj₁≢inj₂ (
         fzero                                   ≡⟨⟩
@@ -632,7 +643,8 @@ abstract
         index-of {xs = x ∷ xs} (from (inj₁ p))  ≡⟨ cong index-of $ to-from hyp₁ ⟩
         index-of {xs = x ∷ xs} (inj₂ z∈xs)      ≡⟨⟩
         fsuc (index-of {xs = xs} z∈xs)          ∎)
-      where open _↔_ (inv z)
+      where
+      open _≃_ (inv z)
 
 -- Cons is not left cancellative for set equivalence.
 
