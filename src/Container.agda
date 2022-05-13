@@ -538,7 +538,8 @@ _∼[_∣_]″_ : ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} �
 _∼[_∣_]″_ {a = a} {A = A} xs k ℓ ys =
   (P : A → Type (a ⊔ ℓ)) → Any P xs ↝[ k ] Any P ys
 
--- This definition is logically equivalent to _∼[_]_.
+-- This definition is logically equivalent to _∼[_]_ (for each
+-- universe level ℓ).
 
 ∼⇔∼″ :
   ∀ {k a c d} ℓ {A : Type a} {C : Container c} {D : Container d}
