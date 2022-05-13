@@ -480,6 +480,36 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
 
   open _⇔_ equiv
 
+-- The type of "index functions" g for a given D-shape t, such that
+-- t , g ⦂ ⟦ D ⟧ A is bag equivalent (in a certain sense) to a given
+-- C-thing, can be expressed as an equivalence between position types
+-- (assuming function extensionality).
+
+∃≈≃≃ :
+  ∀ {a c d} {A : Type a} →
+  Extensionality (a ⊔ c ⊔ d) (a ⊔ c ⊔ d) →
+  (C : Container c) {xs : ⟦ C ⟧ A}
+  (D : Container d) {t : Shape D} →
+  (∃ λ (g : Position D t → A) →
+     xs ∼[ bag-with-equivalence ] (t , g ⦂ ⟦ D ⟧ A)) ≃
+  (Position C (shape xs) ≃ Position D t)
+∃≈≃≃ {a = a} {c = c} {d = d} {A = A} ext C {xs = xs@(s , f)} D {t = t} =
+  (∃ λ g → xs ∼[ bag-with-equivalence ] (t , g ⦂ ⟦ D ⟧ A))   ↝⟨ (∃-cong λ _ → ≈↔≈′ {D = D} xs _ ext) ⟩
+
+  (∃ λ g → xs ≈[ bag-with-equivalence ]′ (t , g ⦂ ⟦ D ⟧ A))  ↔⟨⟩
+
+  (∃ λ g → ∃ λ (h : Position C s ≃ Position D t) →
+   ∀ i → f i ≡ g (_≃_.to h i))                               ↔⟨ (∃-cong λ h → ∃-cong λ g →
+                                                                 from-equivalence (Eq.extensionality-isomorphism
+                                                                                     (lower-extensionality (a ⊔ c) (c ⊔ d) ext)) F.∘
+                                                                 Π-cong (lower-extensionality a (c ⊔ d) ext) h λ _ →
+                                                                 ≡⇒↝ _ $ cong ((_≡ g _) ∘ f) $ sym $ _≃_.left-inverse-of h _) F.∘
+                                                                ∃-comm ⟩
+  (∃ λ (h : Position C s ≃ Position D t) →
+   ∃ λ (g : Position D t → A) → f ∘ _≃_.from h ≡ g)          ↔⟨ (drop-⊤-right λ _ →
+                                                                 _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _) ⟩□
+  Position C s ≃ Position D t                                □
+
 -- The type of D-things that are bag equivalent (in a certain sense)
 -- to a given C-thing can be expressed in a different way (assuming
 -- function extensionality).
@@ -490,24 +520,10 @@ Position-shape-cong-relates {surjection} xs ys xs≈ys p =
   (C : Container c) {xs : ⟦ C ⟧ A} →
   (∃ λ (ys : ⟦ D ⟧ A) → xs ∼[ bag-with-equivalence ] ys) ≃
   (∃ λ (s : Shape D) → Position C (shape xs) ≃ Position D s)
-∃≈≃∃≃ {a = a} {c = c} {d = d} {A = A} {D = D} ext C {xs = xs@(s , f)} =
-  (∃ λ ys → xs ∼[ bag-with-equivalence ] ys)                    ↝⟨ (∃-cong λ ys → ≈↔≈′ xs ys ext) ⟩
-
-  (∃ λ ys → xs ≈[ bag-with-equivalence ]′ ys)                   ↔⟨⟩
-
-  (∃ λ (t , g) → ∃ λ (h : Position C s ≃ Position D t) →
-   ∀ i → f i ≡ g (_≃_.to h i))                                  ↔⟨ (∃-cong λ _ →
-                                                                    (∃-cong λ h → ∃-cong λ g →
-                                                                     from-equivalence (Eq.extensionality-isomorphism
-                                                                                         (lower-extensionality (a ⊔ c) (c ⊔ d) ext)) F.∘
-                                                                     Π-cong (lower-extensionality a (c ⊔ d) ext) h λ _ →
-                                                                     ≡⇒↝ _ $ cong ((_≡ g _) ∘ f) $ sym $ _≃_.left-inverse-of h _) F.∘
-                                                                    ∃-comm) F.∘
-                                                                   inverse Σ-assoc ⟩
-  (∃ λ (t : Shape D) → ∃ λ (h : Position C s ≃ Position D t) →
-   ∃ λ (g : Position D t → A) → f ∘ _≃_.from h ≡ g)             ↔⟨ (∃-cong λ _ → drop-⊤-right λ _ →
-                                                                    _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _) ⟩□
-  (∃ λ (t : Shape D) → Position C s ≃ Position D t)             □
+∃≈≃∃≃ {A = A} {D = D} ext C {xs = xs} =
+  (∃ λ ys → xs ∼[ bag-with-equivalence ] ys)                        ↔⟨ inverse Σ-assoc ⟩
+  (∃ λ t → ∃ λ g → xs ∼[ bag-with-equivalence ] (t , g ⦂ ⟦ D ⟧ A))  ↝⟨ (∃-cong λ _ → ∃≈≃≃ ext C D) ⟩□
+  (∃ λ (t : Shape D) → Position C (shape xs) ≃ Position D t)        □
 
 ------------------------------------------------------------------------
 -- Another alternative definition of bag equivalence
