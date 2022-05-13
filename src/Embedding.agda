@@ -216,6 +216,23 @@ Injective≃Is-embedding ext A-set B-set f =
     (Injective⇔Is-embedding A-set B-set f)
 
 -- If A and B are sets, then the type of injections from A to B is
+-- logically equivalent to the type of embeddings from A to B.
+
+↣⇔Embedding :
+  {A : Type a} {B : Type b} →
+  Is-set A → Is-set B →
+  (A ↣ B) ⇔ Embedding A B
+↣⇔Embedding A-set B-set = record
+  { to   = λ f → record
+             { to           = _↣_.to f
+             ; is-embedding =
+                 _⇔_.to (Injective⇔Is-embedding A-set B-set _)
+                        (_↣_.injective f)
+             }
+  ; from = injection
+  }
+
+-- If A and B are sets, then the type of injections from A to B is
 -- isomorphic to the type of embeddings from A to B (assuming
 -- extensionality).
 
@@ -224,18 +241,10 @@ Injective≃Is-embedding ext A-set B-set f =
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-set A → Is-set B →
   (A ↣ B) ↔ Embedding A B
-↣↔Embedding {A = A} {B = B} ext A-set B-set = record
+↣↔Embedding ext A-set B-set = record
   { surjection = record
-    { logical-equivalence = record
-      { to   = λ f → record
-                 { to           = _↣_.to f
-                 ; is-embedding =
-                     _≃_.to (Injective≃Is-embedding ext A-set B-set _)
-                            (_↣_.injective f)
-                 }
-      ; from = injection
-      }
-    ; right-inverse-of = λ f →
+    { logical-equivalence = ↣⇔Embedding A-set B-set
+    ; right-inverse-of    = λ f →
         cong (uncurry λ to (emb : Is-embedding to) →
                         record { to = to; is-embedding = emb })
              (Σ-≡,≡→≡ (refl _)
