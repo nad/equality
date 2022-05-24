@@ -14,7 +14,7 @@ open import Prelude
 open import Bijection eq as Bijection using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equality.Decision-procedures eq
-import Equivalence eq as Eq
+open import Equivalence eq as Eq using (_≃_)
 open import Function-universe eq hiding (_∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
@@ -523,10 +523,46 @@ List↔Maybe[×List] = record
 
 ∷≡∷↔≡×≡ : x ∷ xs ≡ y ∷ ys ↔ x ≡ y × xs ≡ ys
 ∷≡∷↔≡×≡ {x = x} {xs = xs} {y = y} {ys = ys} =
-  x ∷ xs ≡ y ∷ ys                ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
-  just (x , xs) ≡ just (y , ys)  ↝⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
-  (x , xs) ≡ (y , ys)            ↝⟨ inverse ≡×≡↔≡ ⟩□
-  x ≡ y × xs ≡ ys                □
+  with-other-inverse
+    (x ∷ xs ≡ y ∷ ys                ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
+     just (x , xs) ≡ just (y , ys)  ↝⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
+     (x , xs) ≡ (y , ys)            ↝⟨ inverse ≡×≡↔≡ ⟩□
+     x ≡ y × xs ≡ ys                □)
+    (uncurry (cong₂ _∷_))
+    (λ (x≡y , xs≡ys) →
+       trans (sym $ p (x ∷ xs))
+         (trans (cong [ (λ _ → []) , uncurry _∷_ ]
+                   (cong inj₂ (cong₂ _,_ x≡y xs≡ys)))
+            (p (y ∷ ys)))                                       ≡⟨ cong (trans _) $ cong (flip trans _) $
+                                                                   trans (cong-∘ _ _ _)
+                                                                   cong-uncurry-cong₂-, ⟩
+       trans (sym $ p (x ∷ xs))
+         (trans (cong₂ _∷_ x≡y xs≡ys) (p (y ∷ ys)))             ≡⟨ elim₁
+                                                                     (λ {x} x≡y →
+                                                                        trans (sym $ p (x ∷ xs))
+                                                                          (trans (cong₂ _∷_ x≡y xs≡ys) (p (y ∷ ys))) ≡
+                                                                        cong₂ _∷_ x≡y xs≡ys)
+                                                                     (elim₁
+                                                                        (λ {xs} xs≡ys →
+                                                                           trans (sym $ p (y ∷ xs))
+                                                                             (trans (cong₂ _∷_ (refl y) xs≡ys) (p (y ∷ ys))) ≡
+                                                                           cong₂ _∷_ (refl y) xs≡ys)
+                                                                        (
+         trans (sym $ p (y ∷ ys))
+           (trans (cong₂ _∷_ (refl y) (refl ys)) (p (y ∷ ys)))           ≡⟨ cong (trans _) $
+                                                                            trans (cong (flip trans _) $ cong₂-refl _) $
+                                                                            trans-reflˡ _ ⟩
+
+         trans (sym $ p (y ∷ ys)) (p (y ∷ ys))                           ≡⟨ trans-symˡ _ ⟩
+
+         refl (y ∷ ys)                                                   ≡⟨ sym $ cong₂-refl _ ⟩∎
+
+         cong₂ _∷_ (refl y) (refl ys)                                    ∎)
+                                                                        xs≡ys)
+                                                                     x≡y ⟩∎
+       cong₂ _∷_ x≡y xs≡ys                                      ∎)
+  where
+  p = _≃_.left-inverse-of (Eq.↔⇒≃ List↔Maybe[×List])
 
 ------------------------------------------------------------------------
 -- H-levels
