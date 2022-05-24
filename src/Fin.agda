@@ -19,7 +19,7 @@ open import Equivalence eq as Eq using (_≃_)
 open import Extensionality eq
 open import Function-universe eq as F hiding (_∘_; Distinct↔≢)
 open import H-level eq hiding (⌞_⌟)
-open import H-level.Closure eq
+open import H-level.Closure eq as HC hiding (Distinct-propositional)
 open import List eq
 open import Nat eq as Nat using (_≤_; ≤-refl; ≤-step; _<_; pred)
 open import Univalence-axiom eq
@@ -398,6 +398,13 @@ Fin×Fin↔Fin* (suc m) n =
 
 Distinct : ∀ {n} → Fin n → Fin n → Type
 Distinct i j = Nat.Distinct ⌞ i ⌟ ⌞ j ⌟
+
+-- Distinct is a family of propositions.
+
+Distinct-propositional :
+  ∀ {n} (i {j} : Fin n) →
+  Is-proposition (Distinct i j)
+Distinct-propositional i = HC.Distinct-propositional ⌞ i ⌟ _
 
 -- This definition of inequality is pointwise logically equivalent to
 -- _≢_, and in the presence of extensionality the two definitions are
