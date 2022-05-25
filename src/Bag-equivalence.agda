@@ -1308,14 +1308,70 @@ swap-first-two {x = x} {y = y} {xs = xs} = λ z →
   (z ≡ y ⊎ z ≡ x) ⊎ z ∈ xs  ↔⟨ inverse ⊎-assoc ⟩
    z ≡ y ⊎ z ≡ x  ⊎ z ∈ xs  □
 
--- The definition of bag equivalence given in this section is sound
--- with respect to the first definition given above.
+-- The type ×s ≈-bag ys is logically equivalent to xs ≈-bag″ ys.
 
-≈⁗⇒≈ : xs ≈-bag⁗ ys → xs ≈-bag ys
-≈⁗⇒≈ []                  = λ _ → id
-≈⁗⇒≈ (x ∷ xs≈ys)         = refl _ ∷-cong ≈⁗⇒≈ xs≈ys
-≈⁗⇒≈ swap                = swap-first-two
-≈⁗⇒≈ (trans xs≈ys ys≈zs) = λ z → _ ↔⟨ ≈⁗⇒≈ xs≈ys z ⟩ ≈⁗⇒≈ ys≈zs z
+≈⇔≈⁗ : xs ≈-bag ys ⇔ xs ≈-bag⁗ ys
+≈⇔≈⁗ {xs = xs} {ys = ys} = record
+  { from = from
+  ; to   =
+      xs ≈-bag  ys  →⟨ ≈≃≈‴ _ _ ⟩
+      xs ≈-bag‴ ys  →⟨ to ⟩□
+      xs ≈-bag⁗ ys  □
+  }
+  where
+  from : {xs ys : List A} → xs ≈-bag⁗ ys → xs ≈-bag ys
+  from []                  = λ _ → id
+  from (x ∷ xs≈ys)         = refl _ ∷-cong from xs≈ys
+  from swap                = swap-first-two
+  from (trans xs≈ys ys≈zs) = λ z → _ ↔⟨ from xs≈ys z ⟩ from ys≈zs z
 
--- The other direction should also be provable, but I expect that this
--- requires some work.
+  refl-≈ : (xs : List A) → xs ≈-bag⁗ xs
+  refl-≈ []       = []
+  refl-≈ (x ∷ xs) = x ∷ refl-≈ xs
+
+  ≈-∷-delete :
+    {xs : List A} (p : x ∈ xs) →
+    x ∷ delete p ≈-bag⁗ xs
+  ≈-∷-delete {xs = _ ∷ _} (inj₁ p) =
+    subst (λ x → _ ≈-bag⁗ x ∷ _) p (refl-≈ _)
+  ≈-∷-delete {xs = _ ∷ _} (inj₂ p) =
+    trans swap (_ ∷ ≈-∷-delete p)
+
+  cons′ :
+    {xs ys : List A} (p : x ∈ ys) →
+    xs ≈-bag⁗ delete p → x ∷ xs ≈-bag⁗ ys
+  cons′ {ys = _ ∷ _} (inj₁ p) q =
+    subst (λ x → _ ≈-bag⁗ x ∷ _) p (_ ∷ q)
+  cons′ {ys = _ ∷ _} (inj₂ p) q =
+    trans (_ ∷ q) $
+    trans swap $
+    _ ∷ ≈-∷-delete p
+
+  to : {xs ys : List A} → xs ≈-bag‴ ys → xs ≈-bag⁗ ys
+  to {xs = []}    p       = subst ([] ≈-bag⁗_) p []
+  to {xs = _ ∷ _} (p , q) = cons′ p (to q)
+
+-- However, it is not the case that, for all lists xs and ys of type
+-- List A, there is a split surjection from xs ≈-bag″ ys to
+-- xs ≈-bag⁗ ys.
+
+¬≈″↠≈⁗ : ¬ ({xs ys : List A} → xs ≈-bag″ ys ↠ xs ≈-bag⁗ ys)
+¬≈″↠≈⁗ {A = A} =
+  ({xs ys : List A} → xs ≈-bag″ ys ↠ xs ≈-bag⁗ ys)  →⟨ (λ hyp → hyp) ⟩
+
+  ([] ≈-bag″ [] ↠ [] ≈-bag⁗ ([] ⦂ List A))          →⟨ (λ hyp → H-level.respects-surjection hyp 1 []≈″-propositional) ⟩
+
+  Is-proposition ([] ≈-bag⁗ [])                     →⟨ (λ hyp → p₁≢p₂ (hyp _ _)) ⟩□
+
+  ⊥                                                 □
+  where
+  p₁ p₂ : [] ≈-bag⁗ ([] ⦂ List A)
+  p₁ = []
+  p₂ = trans [] []
+
+  p₁≢p₂ : p₁ ≢ p₂
+  p₁≢p₂ p₁≡p₂ = subst id (cong is-[] p₁≡p₂) _
+    where
+    is-[] : [] ≈-bag⁗ ([] ⦂ List A) → Type
+    is-[] []          = ⊤
+    is-[] (trans _ _) = ⊥
