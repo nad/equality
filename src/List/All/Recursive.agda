@@ -14,7 +14,7 @@ open Derived-definitions-and-properties eq
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bag-equivalence eq hiding (module Dec)
+open import Bag-equivalence eq hiding (cons; module Dec)
 open import Bijection eq as Bijection using (_↔_)
 open import Equality.Decision-procedures eq
 open import Extensionality eq

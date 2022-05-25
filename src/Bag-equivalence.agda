@@ -20,6 +20,7 @@ open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
 open import Embedding eq as Emb using (Embedding)
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_)
+open import Extensionality eq
 open import Fin eq as Finite
 open import Function-universe eq as Function-universe
   hiding (_∘_; Kind; equivalence)
@@ -29,6 +30,7 @@ open import Injection eq using (_↣_)
 open import List eq
 open import Monad eq hiding (map)
 open import Nat eq using (_≤_; _<_)
+open import Surjection eq using (_↠_)
 
 private
   module F = Function-universe
@@ -804,7 +806,476 @@ Insertion≃ {x = x} = Eq.↔→≃ to from to-from from-to
     there p q                                  ∎
 
 ------------------------------------------------------------------------
--- Another definition of bag equivalence
+-- Two more definitions of bag equivalence
+
+-- A definition of bag equivalence based on one due to the Zulip user
+-- glyph
+-- (https://agda.zulipchat.com/#narrow/stream/259644-newcomers/topic/Counting.20elements.20in.20a.20.28family.20of.29.20type.28s.29/near/283317566).
+
+infix 4 _≈-bag″_
+
+data _≈-bag″_ {A : Type a} : List A → List A → Type a where
+  []   : [] ≈-bag″ []
+  cons : Insertion x ys zs → xs ≈-bag″ ys → x ∷ xs ≈-bag″ zs
+
+-- The type [] ≈-bag″ xs is a proposition.
+
+[]≈″-propositional : Is-proposition ([] ≈-bag″ xs)
+[]≈″-propositional {xs = []}    [] [] = refl _
+[]≈″-propositional {xs = _ ∷ _} _  ()
+
+-- A variant of _≈-bag″_.
+
+infix 4 _≈-bag‴_
+
+_≈-bag‴_ : {A : Type a} → List A → List A → Type a
+[]     ≈-bag‴ ys = [] ≡ ys
+x ∷ xs ≈-bag‴ ys = ∃ λ (p : x ∈ ys) → xs ≈-bag‴ delete p
+
+-- The type ×s ≈-bag″ ys is equivalent to xs ≈-bag‴ ys.
+
+≈″≃≈‴ : (xs ≈-bag″ ys) ≃ (xs ≈-bag‴ ys)
+≈″≃≈‴ {xs = xs} = Eq.↔→≃ to (from xs) (to-from xs) from-to
+  where
+  to : ∀ {xs} → xs ≈-bag″ ys → xs ≈-bag‴ ys
+  to []                   = refl _
+  to (cons {xs = xs} p q) =
+    let x∈ , eq = _≃_.to Insertion≃ p in
+    x∈ , subst (xs ≈-bag‴_) eq (to q)
+
+  from : ∀ xs → xs ≈-bag‴ ys → xs ≈-bag″ ys
+  from []       p       = subst ([] ≈-bag″_) p []
+  from (_ ∷ xs) (p , q) =
+    cons (_≃_.from Insertion≃ (p , refl _)) (from xs q)
+
+  to-from : ∀ xs (p : xs ≈-bag‴ ys) → to (from xs p) ≡ p
+  to-from [] p =
+    to (subst ([] ≈-bag″_) p [])  ≡⟨ elim¹
+                                       (λ p → to (subst ([] ≈-bag″_) p []) ≡ p)
+                                       (cong to $ subst-refl _ _)
+                                       _ ⟩∎
+    p                             ∎
+  to-from (_ ∷ xs) (p , q) =
+    proj₁ lemma₁ , subst (xs ≈-bag‴_) (proj₂ lemma₁) (to (from xs q))  ≡⟨ Σ-≡,≡→≡
+                                                                            (cong proj₁ lemma₂)
+                                                                            (
+      subst ((xs ≈-bag‴_) ∘ delete)
+        (cong proj₁ lemma₂)
+        (subst (xs ≈-bag‴_) (proj₂ lemma₁) (to (from xs q)))                 ≡⟨ elim₁
+                                                                                  (λ {lemma₁} lemma₂ →
+                                                                                     subst ((xs ≈-bag‴_) ∘ delete)
+                                                                                       (cong proj₁ lemma₂)
+                                                                                       (subst (xs ≈-bag‴_) (proj₂ lemma₁) (to (from xs q))) ≡
+                                                                                     q)
+                                                                                  (
+        subst ((xs ≈-bag‴_) ∘ delete)
+          (cong proj₁ (refl _))
+          (subst (xs ≈-bag‴_) (refl _) (to (from xs q)))                           ≡⟨ D.trans (sym $ subst-∘ _ _ _) $
+                                                                                      subst-refl _ _ ⟩
+
+        subst (xs ≈-bag‴_) (refl _) (to (from xs q))                               ≡⟨ subst-refl _ _ ⟩
+
+        to (from xs q)                                                             ≡⟨ to-from xs q ⟩∎
+
+        q                                                                          ∎)
+                                                                                  lemma₂ ⟩∎
+      q                                                                      ∎) ⟩∎
+
+    p , q                                                              ∎
+    where
+    lemma₁ =
+      _≃_.to Insertion≃ (_≃_.from Insertion≃ (p , refl (delete p)))
+
+    lemma₂ : lemma₁ ≡ (p , refl (delete p))
+    lemma₂ = _≃_.right-inverse-of Insertion≃ (p , refl _)
+
+  from-to : ∀ {xs} (p : xs ≈-bag″ ys) → from xs (to p) ≡ p
+  from-to [] =
+    subst ([] ≈-bag″_) (refl _) []  ≡⟨ subst-refl _ _ ⟩∎
+    []                              ∎
+  from-to (cons {xs = xs} p q) =
+    let x∈ , eq = _≃_.to Insertion≃ p in
+
+    cons (_≃_.from Insertion≃ (x∈ , refl _))
+      (from xs (subst (xs ≈-bag‴_) eq (to q)))          ≡⟨ elim₁
+                                                             (λ {ys} eq →
+                                                                (q : _ ≈-bag″ ys) →
+                                                                cons (_≃_.from Insertion≃ (x∈ , refl _))
+                                                                  (from xs (subst (xs ≈-bag‴_) eq (to q))) ≡
+                                                                cons (_≃_.from Insertion≃ (x∈ , eq)) (from xs (to q)))
+                                                             (λ q →
+      cons (_≃_.from Insertion≃ (x∈ , refl _))
+        (from xs (subst (xs ≈-bag‴_) (refl _) (to q)))          ≡⟨ cong (cons _ ∘ from xs) $ subst-refl _ _ ⟩∎
+
+      cons (_≃_.from Insertion≃ (x∈ , refl _))
+        (from xs (to q))                                        ∎)
+                                                             eq q ⟩
+
+    cons (_≃_.from Insertion≃ (x∈ , eq))
+      (from xs (to q))                                  ≡⟨ cong (flip cons (from xs (to q))) $
+                                                           _≃_.left-inverse-of Insertion≃ _ ⟩
+
+    cons p (from xs (to q))                             ≡⟨ cong (cons _) $ from-to q ⟩∎
+
+    cons p q                                            ∎
+
+-- If two membership proofs, one for x and one for y, point to the
+-- same position in a list, then x is equal to y.
+
+index-of≡index-of→≡ :
+  {zs : List A} (p : x ∈ zs) (q : y ∈ zs) →
+  index-of p ≡ index-of q →
+  x ≡ y
+index-of≡index-of→≡ {x = x} {y = y} {zs = z ∷ _} (inj₁ p) (inj₁ q) _ =
+  x  ≡⟨ p ⟩
+  z  ≡⟨ sym q ⟩∎
+  y  ∎
+index-of≡index-of→≡ {zs = _ ∷ _} (inj₂ p) (inj₂ q) r =
+  index-of≡index-of→≡ p q (⊎.cancel-inj₂ r)
+index-of≡index-of→≡ {zs = _ ∷ _} (inj₁ p) (inj₂ q) r =
+  ⊥-elim $ ⊎.inj₁≢inj₂ r
+index-of≡index-of→≡ {zs = _ ∷ _} (inj₂ p) (inj₁ q) r =
+  ⊥-elim $ ⊎.inj₁≢inj₂ (sym r)
+
+-- A "computation rule" for index-of≡index-of→≡.
+
+index-of≡index-of→≡-refl :
+  {zs : List A} (p : x ∈ zs) →
+  index-of≡index-of→≡ p p (refl (index-of p)) ≡ refl x
+index-of≡index-of→≡-refl {x = x} {zs = z ∷ _} (inj₁ p) =
+  D.trans p (sym p)  ≡⟨ trans-symʳ _ ⟩∎
+  refl x             ∎
+index-of≡index-of→≡-refl {x = x} {zs = _ ∷ _} (inj₂ p) =
+  index-of≡index-of→≡ p p (⊎.cancel-inj₂ (refl (inj₂ (index-of p))))  ≡⟨ cong (index-of≡index-of→≡ p p) $ cong-refl _ ⟩
+  index-of≡index-of→≡ p p (refl (index-of p))                         ≡⟨ index-of≡index-of→≡-refl p ⟩∎
+  refl x                                                              ∎
+
+-- The type ×s ≈-bag ys is equivalent to xs ≈-bag‴ ys (assuming
+-- extensionality).
+
+≈≃≈‴ :
+  {A : Type a} (xs {ys} : List A) →
+  xs ≈-bag ys ↝[ a ∣ a ] xs ≈-bag‴ ys
+≈≃≈‴ {a = a} [] {ys = ys} ext =
+  (∀ z → ⊥ ≃ (z ∈ ys))  ↝⟨ (∀-cong ext λ _ → ≃⊥≃¬ ext F.∘ ≃-comm ext) ⟩
+  (∀ z → ¬ z ∈ ys)      ↝⟨ generalise-ext?
+                             (record { to = to ys; from = from })
+                             (λ ext → to-from ys , from-to ext)
+                             ext ⟩□
+  [] ≡ ys               □
+  where
+  to : ∀ ys → (∀ z → ¬ z ∈ ys) → [] ≡ ys
+  to []      _ = refl _
+  to (y ∷ _) p = ⊥-elim $ p y (inj₁ (refl _))
+
+  from : ∀ {ys} → [] ≡ ys → ∀ z → ¬ z ∈ ys
+  from eq z p = ⊥-elim $ subst (z ∈_) (sym eq) p
+
+  to-from : ∀ ys p → to ys (from p) ≡ p
+  to-from [] p =
+    refl []  ≡⟨ H-level.mono₁ 0 (_⇔_.from contractible⇔↔⊤ []≡[]↔⊤) _ _ ⟩∎
+    p        ∎
+  to-from (_ ∷ _) p = ⊥-elim $ List.[]≢∷ p
+
+  from-to :
+    Extensionality a a →
+    ∀ p → from (to ys p) ≡ p
+  from-to ext _ =
+    (Π-closure ext 1 λ _ →
+     ¬-propositional
+       (lower-extensionality lzero _ ext))
+      _ _
+
+≈≃≈‴ {a = a} (x ∷ xs) {ys = ys} ext =
+  (∀ z → (z ∈ x ∷ xs) ≃ (z ∈ ys))                               ↝⟨ generalise-ext?
+                                                                     (record { to = to; from = from })
+                                                                     (λ ext → to-from ext , from-to ext)
+                                                                     ext ⟩
+  (∃ λ (p : x ∈ ys) →
+   ∀ z →
+   (z ∈ xs) ≃
+   (∃ λ (q : z ∈ ys) → Distinct (index-of p) (index-of q)))     ↝⟨ (∃-cong λ p → ∀-cong ext λ _ → ≃-cong ext id $ ∃-cong λ _ →
+                                                                    index-of≢index-of≃ p _) ⟩
+  (∃ λ (p : x ∈ ys) →
+   ∀ z →
+   (z ∈ xs) ≃
+   (∃ λ (q : z ∈ ys) →
+    Distinct fzero (index-of (_≃_.to (∈≃≡⊎∈delete p) q))))      ↝⟨ (∃-cong λ p → ∀-cong ext λ _ → ≃-cong ext id $
+                                                                    Σ-cong (∈≃≡⊎∈delete p) λ _ → id) ⟩
+  (∃ λ (p : x ∈ ys) →
+   ∀ z →
+   (z ∈ xs) ≃
+   (∃ λ (q : z ∈ x ∷ delete p) → Distinct fzero (index-of q)))  ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → ≃-cong ext id ∃-Distinct-fzero≃) ⟩
+
+  (∃ λ (p : x ∈ ys) → ∀ z → (z ∈ xs) ≃ (z ∈ delete p))          ↝⟨ (∃-cong λ _ → ≈≃≈‴ xs ext) ⟩□
+
+  (∃ λ (p : x ∈ ys) → xs ≈-bag‴ delete p)                       □
+  where
+  ∃-Distinct-fzero≃ :
+    ∀ {x y} {ys : List A} →
+    (∃ λ (p : x ∈ y ∷ ys) → Distinct fzero (index-of p)) ≃ (x ∈ ys)
+  ∃-Distinct-fzero≃ = Eq.↔→≃
+    (λ { (inj₂ x , _) → x })
+    (λ x → inj₂ x , _)
+    refl
+    (λ { (inj₂ _ , _) → refl _ })
+
+  to :
+    (∀ z → (z ∈ x ∷ xs) ≃ (z ∈ ys)) →
+    ∃ λ (p : x ∈ ys) →
+    ∀ z →
+    (z ∈ xs) ≃
+    (∃ λ (q : z ∈ ys) → Distinct (index-of p) (index-of q))
+  to p =
+      _≃_.to (p x) (inj₁ (refl _))
+    , λ z →
+        z ∈ xs                                                ↝⟨ inverse ∃-Distinct-fzero≃ ⟩
+
+        (∃ λ (q : z ∈ x ∷ xs) → Distinct fzero (index-of q))  ↝⟨ (Σ-cong (p z) λ q → ≡⇒↝ _ $ cong (Distinct fzero ∘ index-of) $ sym $
+                                                                  _≃_.left-inverse-of (p z) q) ⟩
+        (∃ λ (q : z ∈ ys) →
+         Distinct fzero (index-of (_≃_.from (p z) q)))        ↝⟨ ∃-cong lemma ⟩□
+
+        (∃ λ (q : z ∈ ys) →
+         Distinct (index-of (_≃_.to (p x) (inj₁ (refl _))))
+           (index-of q))                                      □
+    where abstract
+    lemma :
+      ∀ q →
+      Distinct fzero (index-of (_≃_.from (p z) q)) ≃
+      Distinct (index-of (_≃_.to (p x) (inj₁ (refl x)))) (index-of q)
+    lemma {z = z} q =
+      _↠_.from
+        (Eq.≃↠⇔
+           (Finite.Distinct-propositional
+              fzero {j = index-of (_≃_.from (p z) q)})
+           (Finite.Distinct-propositional
+              (index-of (_≃_.to (p x) (inj₁ (refl x))))))
+        (Distinct fzero (index-of (_≃_.from (p z) q))          ↝⟨ Finite.Distinct↔≢ _ ⟩
+
+         fzero ≢ index-of (_≃_.from (p z) q)                   ↝⟨ →-cong₁ _ ≡-comm ⟩
+
+         index-of (_≃_.from (p z) q) ≢ fzero                   ↝⟨ ≡⇒↝ _ $ cong (_≢ _) $ index-of-commutes (inverse ∘ p) _ ⟩
+
+         _↔_.from (Fin-length-cong p) (index-of q) ≢ fzero     ↝⟨ →-cong₁ _ $ from≡↔≡to (Eq.↔⇒≃ $ Fin-length-cong p) ⟩
+
+         index-of q ≢ _↔_.to (Fin-length-cong p) fzero         ↝⟨ ≡⇒↝ _ $ cong (_ ≢_) $ sym $ index-of-commutes p _ ⟩
+
+         index-of q ≢ index-of (_≃_.to (p x) (inj₁ (refl x)))  ↝⟨ →-cong₁ _ ≡-comm ⟩
+
+         index-of (_≃_.to (p x) (inj₁ (refl x))) ≢ index-of q  ↝⟨ inverse $ Finite.Distinct↔≢ _ ⟩□
+
+         Distinct (index-of (_≃_.to (p x) (inj₁ (refl x))))
+           (index-of q)                                        □)
+
+  from :
+    (∃ λ (p : x ∈ ys) →
+     ∀ z →
+     (z ∈ xs) ≃
+     (∃ λ (q : z ∈ ys) → Distinct (index-of p) (index-of q))) →
+    ∀ z → (z ∈ x ∷ xs) ≃ (z ∈ ys)
+  from (p , q) z =
+    Eq.↔→≃
+      to′
+      (λ r → from′ r (index-of r Fin.≟ index-of p))
+      (λ r → to′-from′ r (index-of r Fin.≟ index-of p))
+      (λ r → from′-to′ r _)
+    where
+    to′ : z ∈ x ∷ xs → z ∈ ys
+    to′ =
+      [ flip (subst (_∈ ys)) p ∘ sym
+      , (λ r → proj₁ $ _≃_.to (q z) r)
+      ]
+
+    from′ :
+      (r : z ∈ ys) →
+      Dec (index-of r ≡ index-of p) →
+      z ∈ x ∷ xs
+    from′ r (yes r≡p) =
+      inj₁
+        (z  ≡⟨ index-of≡index-of→≡ r p r≡p ⟩∎
+         x  ∎)
+    from′ r (no r≢p) =
+      inj₂ (_≃_.from (q z)
+              (r , _⇔_.from (Finite.Distinct↔≢ _) (r≢p ∘ sym)))
+
+    abstract
+
+      to′-from′ :
+        (r : z ∈ ys) (s : Dec (index-of r ≡ index-of p)) →
+        to′ (from′ r s) ≡ r
+      to′-from′ r (no r≢p) =
+        proj₁ (_≃_.to (q z) (_≃_.from (q z) (r , _)))  ≡⟨ cong proj₁ $ _≃_.right-inverse-of (q z) _ ⟩∎
+        r                                              ∎
+      to′-from′ r (yes r≡p) = lemma _ _ _ _
+        where
+        lemma :
+          ∀ ys (p : x ∈ ys) (r : z ∈ ys)
+          (r≡p : index-of r ≡ index-of p) →
+          subst (_∈ ys) (sym (index-of≡index-of→≡ r p r≡p)) p ≡ r
+        lemma (y ∷ ys) (inj₁ p) (inj₁ r) r≡p =
+          subst (_∈ y ∷ ys) (sym (D.trans r (sym p))) (inj₁ p)  ≡⟨ push-subst-inj₁ _ _ ⟩
+          inj₁ (subst (_≡ y) (sym (D.trans r (sym p))) p)       ≡⟨ cong inj₁ $ subst-trans _ ⟩
+          inj₁ (D.trans (D.trans r (sym p)) p)                  ≡⟨ cong inj₁ $ trans-[trans-sym]- _ _ ⟩∎
+          inj₁ r                                                ∎
+        lemma (y ∷ ys) (inj₂ p) (inj₂ r) r≡p =
+          subst (_∈ y ∷ ys)
+            (sym (index-of≡index-of→≡ r p (⊎.cancel-inj₂ r≡p)))
+            (inj₂ p)                                                ≡⟨ push-subst-inj₂ _ _ ⟩
+
+          inj₂
+            (subst (_∈ ys)
+               (sym (index-of≡index-of→≡ r p (⊎.cancel-inj₂ r≡p)))
+               p)                                                   ≡⟨ cong inj₂ $ lemma _ _ _ _ ⟩∎
+
+          inj₂ r                                                    ∎
+        lemma (_ ∷ _) (inj₁ _) (inj₂ _) r≡p =
+          ⊥-elim $ ⊎.inj₁≢inj₂ (sym r≡p)
+        lemma (_ ∷ _) (inj₂ _) (inj₁ _) r≡p =
+          ⊥-elim $ ⊎.inj₁≢inj₂ r≡p
+
+      from′-to′ :
+        (r : z ∈ x ∷ xs) (s : Dec (index-of (to′ r) ≡ index-of p)) →
+        from′ (to′ r) s ≡ r
+      from′-to′ (inj₁ r) (yes to′r≡p) =
+        inj₁ (index-of≡index-of→≡ (subst (_∈ ys) (sym r) p) p to′r≡p)  ≡⟨ cong inj₁ $
+                                                                          elim¹
+                                                                            (λ r →
+                                                                               ∀ p to′r≡p →
+                                                                               index-of≡index-of→≡ (subst (_∈ ys) (sym r) p) p to′r≡p ≡ r)
+                                                                            (λ p to′r≡p →
+          index-of≡index-of→≡ (subst (_∈ ys) (sym (refl _)) p) p
+            to′r≡p                                                             ≡⟨ cong (index-of≡index-of→≡ _ p) $
+                                                                                  Fin-set _ _ _ ⟩
+          index-of≡index-of→≡ (subst (_∈ ys) (sym (refl _)) p) p
+            (cong index-of
+               (D.trans (cong (flip (subst (_∈ ys)) p) sym-refl) $
+                subst-refl _ _))                                               ≡⟨ elim₁
+                                                                                    (λ {p′} (eq : p′ ≡ p) →
+                                                                                       index-of≡index-of→≡ p′ p (cong index-of eq) ≡
+                                                                                       index-of≡index-of→≡ p p (refl _))
+                                                                                    (cong (index-of≡index-of→≡ _ p) $ cong-refl _)
+                                                                                    _ ⟩
+
+          index-of≡index-of→≡ p p (refl _)                                     ≡⟨ index-of≡index-of→≡-refl p ⟩∎
+
+          refl _                                                               ∎)
+                                                                            _ _ _ ⟩∎
+        inj₁ r                                                         ∎
+      from′-to′ (inj₂ r) (yes to′r≡p) =
+        ⊥-elim $ _⇔_.to (Finite.Distinct↔≢ _) (proj₂ (_≃_.to (q z) r))
+          (index-of p                         ≡⟨ sym to′r≡p ⟩
+           index-of (to′ (inj₂ r))            ≡⟨⟩
+           index-of (proj₁ (_≃_.to (q z) r))  ∎)
+      from′-to′ (inj₂ r) (no _) =
+        inj₂ (_≃_.from (q z) (proj₁ (_≃_.to (q z) r) , _))  ≡⟨ cong inj₂ $ cong (_≃_.from (q z)) $ cong (_ ,_) $
+                                                               Finite.Distinct-propositional (index-of p) _ _ ⟩
+        inj₂ (_≃_.from (q z) (_≃_.to (q z) r))              ≡⟨ cong inj₂ $ _≃_.left-inverse-of (q z) _ ⟩∎
+        inj₂ r                                              ∎
+      from′-to′ (inj₁ r) (no to′r≢p) =                   $⟨ to′r≢p ⟩
+        index-of (subst (_∈ ys) (sym r) p) ≢ index-of p  →⟨ _∘ D.trans
+                                                                 (elim¹
+                                                                    (λ r → ∀ p → index-of (subst (_∈ ys) (sym r) p) ≡ index-of p)
+                                                                    (λ _ → cong index-of $
+                                                                           D.trans (cong (flip (subst (_∈ ys)) _) sym-refl) $
+                                                                           subst-refl _ _)
+                                                                    r p) ⟩
+        index-of p ≢ index-of p                          →⟨ _$ refl _ ⟩
+        ⊥                                                →⟨ ⊥-elim ⟩□
+        _                                                □
+
+  abstract
+
+    to-from :
+      Extensionality a a →
+      (p : ∃ λ (p : x ∈ ys) →
+           ∀ z →
+           (z ∈ xs) ≃
+           (∃ λ (q : z ∈ ys) → Distinct (index-of p) (index-of q))) →
+      to (from p) ≡ p
+    to-from ext (p , q) =
+      Σ-≡,≡→≡
+        (subst (_∈ ys) (sym (refl x)) p  ≡⟨ D.trans (cong (flip (subst (_∈ ys)) _) sym-refl) $
+                                            subst-refl _ _ ⟩∎
+         p                               ∎)
+        (apply-ext ext λ z →
+         Eq.lift-equality ext $
+         apply-ext ext λ r →
+         Σ-≡,≡→≡
+           (proj₁ $
+            _≃_.to
+              (subst
+                 (λ p →
+                    ∀ z →
+                    (z ∈ xs) ≃
+                    (∃ λ (q : z ∈ ys) →
+                     Distinct (index-of p) (index-of q)))
+                 _ _ z)
+              r                                            ≡⟨ cong (λ eq → proj₁ $ _≃_.to eq r) $ sym $
+                                                              push-subst-application _ _ ⟩
+            proj₁ $
+            _≃_.to
+              (subst
+                 (λ p →
+                    (z ∈ xs) ≃
+                    (∃ λ (q : z ∈ ys) →
+                     Distinct (index-of p) (index-of q)))
+                 _ _)
+              r                                            ≡⟨ cong proj₁ $ cong (_$ r)
+                                                              Eq.to-subst ⟩
+            proj₁ $
+            subst
+              (λ p →
+                 z ∈ xs →
+                 ∃ λ (q : z ∈ ys) →
+                 Distinct (index-of p) (index-of q))
+              _ _ r                                        ≡⟨ cong proj₁ $ sym $
+                                                              push-subst-application _ _ ⟩
+            proj₁ $
+            subst
+              (λ p →
+                 ∃ λ (q : z ∈ ys) →
+                 Distinct (index-of p) (index-of q))
+              _ _                                          ≡⟨ cong proj₁ $ push-subst-pair _ _ ⟩
+
+            subst (λ _ → z ∈ ys) _
+              (proj₁ (_≃_.to (q z) r))                     ≡⟨ subst-const _ ⟩∎
+
+            proj₁ (_≃_.to (q z) r)                         ∎)
+           (Finite.Distinct-propositional (index-of p) _ _))
+
+    from-to :
+      Extensionality a a →
+      (p : ∀ z → (z ∈ x ∷ xs) ≃ (z ∈ ys)) →
+      from (to p) ≡ p
+    from-to ext p =
+      apply-ext ext λ z →
+      Eq.lift-equality ext $
+      apply-ext ext λ where
+        (inj₂ q) → _≃_.to (p z) (inj₂ q)  ∎
+        (inj₁ q) →
+          subst (_∈ ys) (sym q) (_≃_.to (p x) (inj₁ (refl _)))  ≡⟨ elim₁
+                                                                     (λ {z} q →
+                                                                        subst (_∈ ys) (sym q) (_≃_.to (p x) (inj₁ (refl _))) ≡
+                                                                        _≃_.to (p z) (inj₁ q))
+                                                                     (D.trans (cong (flip (subst (_∈ ys)) _) sym-refl) $
+                                                                      subst-refl _ _)
+                                                                     _ ⟩∎
+          _≃_.to (p z) (inj₁ q)                                 ∎
+
+-- The type ×s ≈-bag ys is equivalent to xs ≈-bag″ ys (assuming
+-- extensionality).
+
+≈≃≈″ :
+  {A : Type a} {xs ys : List A} →
+  (xs ≈-bag ys) ↝[ a ∣ a ] (xs ≈-bag″ ys)
+≈≃≈″ {xs = xs} {ys = ys} ext =
+  xs ≈-bag ys   ↝⟨ ≈≃≈‴ xs ext ⟩
+  xs ≈-bag‴ ys  ↔⟨ inverse ≈″≃≈‴ ⟩□
+  xs ≈-bag″ ys  □
+
+------------------------------------------------------------------------
+-- Yet another definition of bag equivalence
 
 -- A definition of bag equivalence that is taken from Coq's standard
 -- library.

@@ -13,7 +13,7 @@ open Derived-definitions-and-properties eq
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bag-equivalence eq
+open import Bag-equivalence eq hiding (cons)
 open import Bijection eq as Bijection using (_↔_)
 import Equality.Groupoid eq as EG
 open import Extensionality eq
