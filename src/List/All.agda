@@ -48,14 +48,14 @@ infix 4 _⊆_
 _⊆_ : {A : Type a} → List A → List A → Type a
 xs ⊆ ys = All (_∈ ys) xs
 
--- The _⊆_ relation matches _∼[ implication ]_.
+-- The _⊆_ relation matches _∼[ subset ]_.
 
-⊆↔∼[implication] : xs ⊆ ys ↔ xs ∼[ implication ] ys
-⊆↔∼[implication] {xs = xs} {ys = ys} =
+⊆↔∼[subset] : xs ⊆ ys ↔ xs ∼[ subset ] ys
+⊆↔∼[subset] {xs = xs} {ys = ys} =
   xs ⊆ ys                  ↔⟨⟩
   All (_∈ ys) xs           ↔⟨⟩
   (∀ x → x ∈ xs → x ∈ ys)  ↔⟨⟩
-  xs ∼[ implication ] ys   □
+  xs ∼[ subset ] ys        □
 
 -- Some rearrangement lemmas.
 

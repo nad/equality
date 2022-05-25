@@ -365,16 +365,15 @@ H-level-All n h []       = mono (Nat.zero≤ n) $
 H-level-All n h (x ∷ xs) =
   ×-closure n (h _) (H-level-All n h xs)
 
--- The _⊆_ relation matches _∼[ implication ]_.
+-- The _⊆_ relation matches _∼[ subset ]_.
 
-⊆↔∼[implication] :
-  ∀ {k} {A : Type a} {xs ys : List A} →
-  Extensionality? k a a →
-  xs ⊆ ys ↝[ k ] xs ∼[ implication ] ys
-⊆↔∼[implication] {xs = xs} {ys} ext =
-  xs ⊆ ys                 ↝⟨ All↔All ext ⟩
-  xs A.⊆ ys               ↔⟨ A.⊆↔∼[implication] ⟩
-  xs ∼[ implication ] ys  □
+⊆↔∼[subset] :
+  {A : Type a} {xs ys : List A} →
+  xs ⊆ ys ↝[ a ∣ a ] xs ∼[ subset ] ys
+⊆↔∼[subset] {xs = xs} {ys = ys} ext =
+  xs ⊆ ys            ↝⟨ All↔All ext ⟩
+  xs A.⊆ ys          ↔⟨ A.⊆↔∼[subset] ⟩
+  xs ∼[ subset ] ys  □
 
 -- A variant of _⊆_, based on A._⊆_.
 
