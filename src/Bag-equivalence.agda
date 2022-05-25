@@ -266,19 +266,6 @@ record _≈-bag′_ {A : Type a} (xs ys : List A) : Type a where
     equivalence : Fin (length xs) ≃ Fin (length ys)
     related     : xs And ys Are-related-by from-equivalence equivalence
 
--- Yet another definition of bag equivalence. This definition is taken
--- from Coq's standard library.
-
-infixr 5 _∷_
-infix  4 _≈-bag″_
-
-data _≈-bag″_ {A : Type a} : List A → List A → Type a where
-  []    : [] ≈-bag″ []
-  _∷_   : ∀ x {xs ys} (xs≈ys : xs ≈-bag″ ys) → x ∷ xs ≈-bag″ x ∷ ys
-  swap  : ∀ {x y xs} → x ∷ y ∷ xs ≈-bag″ y ∷ x ∷ xs
-  trans : ∀ {xs ys zs}
-          (xs≈ys : xs ≈-bag″ ys) (ys≈zs : ys ≈-bag″ zs) → xs ≈-bag″ zs
-
 ------------------------------------------------------------------------
 -- Some congruence lemmas
 
@@ -671,8 +658,20 @@ abstract
     z ∈ zs ++ ys  □)
 
 ------------------------------------------------------------------------
--- The third definition of bag equivalence is sound with respect to
--- the other two
+-- Another definition of bag equivalence
+
+-- A definition of bag equivalence that is taken from Coq's standard
+-- library.
+
+infixr 5 _∷_
+infix  4 _≈-bag⁗_
+
+data _≈-bag⁗_ {A : Type a} : List A → List A → Type a where
+  []    : [] ≈-bag⁗ []
+  _∷_   : ∀ x {xs ys} (xs≈ys : xs ≈-bag⁗ ys) → x ∷ xs ≈-bag⁗ x ∷ ys
+  swap  : ∀ {x y xs} → x ∷ y ∷ xs ≈-bag⁗ y ∷ x ∷ xs
+  trans : ∀ {xs ys zs}
+          (xs≈ys : xs ≈-bag⁗ ys) (ys≈zs : ys ≈-bag⁗ zs) → xs ≈-bag⁗ zs
 
 -- _∷_ preserves _∼[ k ]_.
 
@@ -692,14 +691,14 @@ swap-first-two {x = x} {y = y} {xs = xs} = λ z →
   (z ≡ y ⊎ z ≡ x) ⊎ z ∈ xs  ↔⟨ inverse ⊎-assoc ⟩
    z ≡ y ⊎ z ≡ x  ⊎ z ∈ xs  □
 
--- The third definition of bag equivalence is sound with respect to
--- the first one.
+-- The definition of bag equivalence given in this section is sound
+-- with respect to the first definition given above.
 
-≈″⇒≈ : xs ≈-bag″ ys → xs ≈-bag ys
-≈″⇒≈ []                  = λ _ → id
-≈″⇒≈ (x ∷ xs≈ys)         = refl _ ∷-cong ≈″⇒≈ xs≈ys
-≈″⇒≈ swap                = swap-first-two
-≈″⇒≈ (trans xs≈ys ys≈zs) = λ z → _ ↔⟨ ≈″⇒≈ xs≈ys z ⟩ ≈″⇒≈ ys≈zs z
+≈⁗⇒≈ : xs ≈-bag⁗ ys → xs ≈-bag ys
+≈⁗⇒≈ []                  = λ _ → id
+≈⁗⇒≈ (x ∷ xs≈ys)         = refl _ ∷-cong ≈⁗⇒≈ xs≈ys
+≈⁗⇒≈ swap                = swap-first-two
+≈⁗⇒≈ (trans xs≈ys ys≈zs) = λ z → _ ↔⟨ ≈⁗⇒≈ xs≈ys z ⟩ ≈⁗⇒≈ ys≈zs z
 
 -- The other direction should also be provable, but I expect that this
 -- requires some work.
