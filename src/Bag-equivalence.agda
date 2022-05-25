@@ -9,7 +9,9 @@ open import Equality
 module Bag-equivalence
   {c⁺} (eq : ∀ {a p} → Equality-with-J a p c⁺) where
 
-open Derived-definitions-and-properties eq hiding (trans)
+private
+  open module D = Derived-definitions-and-properties eq
+    hiding (trans)
 
 open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (id; swap)
@@ -17,7 +19,7 @@ open import Prelude as P hiding (id; swap)
 open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
 open import Embedding eq as Emb using (Embedding)
 open import Equality.Decision-procedures eq
-open import Equivalence eq using (_≃_)
+open import Equivalence eq as Eq using (_≃_)
 open import Fin eq as Finite
 open import Function-universe eq as Function-universe
   hiding (_∘_; Kind; equivalence)
@@ -26,9 +28,11 @@ open import H-level.Closure eq
 open import Injection eq using (_↣_)
 open import List eq
 open import Monad eq hiding (map)
-open import Nat eq hiding (_≟_)
+open import Nat eq using (_≤_; _<_)
 
 private
+  module F = Function-universe
+
   variable
     a ℓ p q                  : Level
     A B                      : Type a
@@ -36,7 +40,7 @@ private
     x y z                    : A
     xs xs₁ xs₂ ys ys₁ ys₂ zs : List A
     xss yss                  : List (List A)
-    k                        : Function-universe.Kind
+    k                        : F.Kind
     m n                      : ℕ
 
 ------------------------------------------------------------------------
@@ -218,7 +222,7 @@ filter-cong-∈ p q (x ∷ xs) p≡q
   suc m ≤ suc n         ↝⟨ suc≤suc↔ ⟩
   m ≤ n                 ↝⟨ ≤↔<⊎≡ ⟩
   m < n ⊎ m ≡ n         ↝⟨ ⊎-comm ⟩
-  m ≡ n ⊎ m < n         ↝⟨ Function-universe.id ⊎-cong <-↔-∈-nats-< ⟩
+  m ≡ n ⊎ m < n         ↝⟨ F.id ⊎-cong <-↔-∈-nats-< ⟩
   m ≡ n ⊎ m ∈ nats-< n  ↔⟨⟩
   m ∈ nats-< (suc n)    □
 
@@ -656,6 +660,148 @@ abstract
     z ∈ xs ++ zs  ↔⟨ eq z ⟩
     z ∈ ys ++ zs  ↔⟨ ++-comm ys zs z ⟩
     z ∈ zs ++ ys  □)
+
+------------------------------------------------------------------------
+-- The delete function
+
+-- If an element is a member of a list, then one can remove the
+-- element from the list.
+
+delete : {ys : List A} → x ∈ ys → List A
+delete {ys = _ ∷ ys} (inj₁ _) = ys
+delete {ys = y ∷ _}  (inj₂ p) = y ∷ delete p
+
+-- If p has type y ∈ ys, then x ∈ ys is equivalent to
+-- x ∈ y ∷ delete p.
+
+∈≃≡⊎∈delete :
+  {ys : List A} (p : y ∈ ys) →
+  (x ∈ ys) ≃ (x ∈ y ∷ delete p)
+∈≃≡⊎∈delete {y = y} {x = x} {ys = z ∷ ys} (inj₁ y≡z) =
+  x ≡ z ⊎ x ∈ ys  ↝⟨ ≡⇒↝ _ (cong (_ ≡_) (sym y≡z)) ⊎-cong id ⟩□
+  x ≡ y ⊎ x ∈ ys  □
+∈≃≡⊎∈delete {y = y} {x = x} {ys = z ∷ ys} (inj₂ p) =
+  x ≡ z ⊎ x ∈ ys                  ↝⟨ id ⊎-cong ∈≃≡⊎∈delete p ⟩
+  x ≡ z ⊎ (x ≡ y ⊎ x ∈ delete p)  ↔⟨ inverse ⊎-assoc F.∘ (⊎-comm ⊎-cong id) F.∘ ⊎-assoc ⟩□
+  x ≡ y ⊎ (x ≡ z ⊎ x ∈ delete p)  □
+
+-- A simplification lemma for ∈≃≡⊎∈delete.
+
+from-∈≃≡⊎∈delete-inj₁ :
+  {xs : List A} (p : x ∈ xs) →
+  _≃_.from (∈≃≡⊎∈delete p) (inj₁ (refl x)) ≡ p
+from-∈≃≡⊎∈delete-inj₁ {x = x} {xs = _ ∷ _} (inj₁ p) =
+  _≃_.from (∈≃≡⊎∈delete (inj₁ p)) (inj₁ (refl x))         ≡⟨⟩
+  inj₁ (_≃_.from (≡⇒↝ _ (cong (_ ≡_) (sym p))) (refl x))  ≡⟨ cong inj₁ $
+                                                             D.trans (sym $ subst-in-terms-of-inverse∘≡⇒↝ F.equivalence _ (_ ≡_) _) $
+                                                             D.trans (sym trans-subst) $
+                                                             D.trans (trans-reflˡ _) $
+                                                             sym-sym _ ⟩∎
+  inj₁ p                                                  ∎
+from-∈≃≡⊎∈delete-inj₁ {x = x} {xs = _ ∷ _} (inj₂ p) =
+  _≃_.from (∈≃≡⊎∈delete (inj₂ p)) (inj₁ (refl x))  ≡⟨⟩
+  inj₂ (_≃_.from (∈≃≡⊎∈delete p) (inj₁ (refl x)))  ≡⟨ cong inj₂ $ from-∈≃≡⊎∈delete-inj₁ p ⟩∎
+  inj₂ p                                           ∎
+
+-- The fact that two membership proofs (for the same list) have
+-- different indices can be expressed in a certain way using
+-- ∈≃≡⊎∈delete.
+
+index-of≢index-of≃ :
+  {zs : List A} (p : x ∈ zs) (q : y ∈ zs) →
+  Distinct (index-of p) (index-of q) ≃
+  Distinct fzero (index-of (_≃_.to (∈≃≡⊎∈delete p) q))
+index-of≢index-of≃ {zs = _ ∷ _} (inj₁ _) (inj₁ _) = ⊥  □
+index-of≢index-of≃ {zs = _ ∷ _} (inj₂ _) (inj₁ _) = ⊤  □
+index-of≢index-of≃ {zs = _ ∷ _} (inj₁ _) (inj₂ _) = ⊤  □
+index-of≢index-of≃ {zs = _ ∷ _} (inj₂ p) (inj₂ q) =
+  Distinct (fsuc (index-of p)) (fsuc (index-of q))                    ↔⟨⟩
+
+  Distinct (index-of p) (index-of q)                                  ↝⟨ index-of≢index-of≃ p q ⟩
+
+  Distinct fzero (index-of (_≃_.to (∈≃≡⊎∈delete p) q))                ↔⟨ lemma (_≃_.to (∈≃≡⊎∈delete p) q) ⟩
+
+  Distinct fzero
+    (index-of $
+     _↔_.to
+       (inverse ⊎-assoc F.∘ (⊎-comm ⊎-cong id) F.∘ ⊎-assoc)
+       (inj₂ (_≃_.to (∈≃≡⊎∈delete p) q)))                             ↔⟨⟩
+
+  Distinct fzero (index-of (_≃_.to (∈≃≡⊎∈delete (inj₂ p)) (inj₂ q)))  □
+  where
+  lemma :
+    (p : x ∈ y ∷ zs) →
+    Distinct fzero (index-of p) ≃
+    Distinct fzero
+      (index-of {xs = y ∷ z ∷ zs} $
+       _↔_.to (inverse ⊎-assoc F.∘ (⊎-comm ⊎-cong id) F.∘ ⊎-assoc)
+         (inj₂ p))
+  lemma (inj₁ _) = id
+  lemma (inj₂ _) = id
+
+-- Insertion x xs ys means that ys is the result of inserting x
+-- somewhere in xs. This definition is based on one due to the Zulip
+-- user glyph
+-- (https://agda.zulipchat.com/#narrow/stream/259644-newcomers/topic/Counting.20elements.20in.20a.20.28family.20of.29.20type.28s.29/near/283317566).
+
+data Insertion {A : Type a} : A → List A → List A → Type a where
+  here  : x ∷ xs ≡ ys → Insertion x xs ys
+  there : x ≡ y → Insertion z xs ys → Insertion z (x ∷ xs) (y ∷ ys)
+
+-- One can express Insertion using _∈_ and delete.
+
+Insertion≃ :
+  {xs ys : List A} →
+  Insertion x xs ys ≃ ∃ λ (p : x ∈ ys) → xs ≡ delete p
+Insertion≃ {x = x} = Eq.↔→≃ to from to-from from-to
+  where
+  to : Insertion x xs ys → ∃ λ (p : x ∈ ys) → xs ≡ delete p
+  to {ys = []}    (here p) = ⊥-elim (List.[]≢∷ (sym p))
+  to {ys = _ ∷ _} (here p) =
+    let p₁ , p₂ = _↔_.to ∷≡∷↔≡×≡ p in
+    inj₁ p₁ , p₂
+  to (there p q) = Σ-map inj₂ (cong₂ _∷_ p) (to q)
+
+  from : (∃ λ (p : x ∈ ys) → xs ≡ delete p) → Insertion x xs ys
+  from {ys = _ ∷ _}              (inj₁ p , q) = here (cong₂ _∷_ p q)
+  from {ys = _ ∷ _} {xs = []}    (inj₂ p , q) = ⊥-elim (List.[]≢∷ q)
+  from {ys = _ ∷ _} {xs = _ ∷ _} (inj₂ p , q) =
+    let q₁ , q₂ = _↔_.to ∷≡∷↔≡×≡ q in
+    there q₁ (from (p , q₂))
+
+  to-from : (p : ∃ λ (p : x ∈ ys) → xs ≡ delete p) → to (from p) ≡ p
+  to-from {ys = _ ∷ _} (inj₁ p , q) =
+    let p′ , q′ = _↔_.to ∷≡∷↔≡×≡ (cong₂ _∷_ p q) in
+
+    inj₁ p′ , q′  ≡⟨ cong (λ (p , q) → inj₁ p , q) $ _↔_.right-inverse-of ∷≡∷↔≡×≡ _ ⟩∎
+    inj₁ p , q    ∎
+  to-from {ys = _ ∷ _} {xs = []} (inj₂ p , q) =
+    ⊥-elim (List.[]≢∷ q)
+  to-from {ys = _ ∷ _} {xs = _ ∷ _} (inj₂ p , q) =
+    Σ-map inj₂
+      (cong₂ _∷_ (proj₁ (_↔_.to ∷≡∷↔≡×≡ q)))
+      (to (from (p , proj₂ (_↔_.to ∷≡∷↔≡×≡ q))))     ≡⟨ cong (Σ-map inj₂ (cong₂ _∷_ (proj₁ (_↔_.to ∷≡∷↔≡×≡ q)))) $ to-from _ ⟩
+
+    Σ-map inj₂
+      (cong₂ _∷_ (proj₁ (_↔_.to ∷≡∷↔≡×≡ q)))
+      (p , proj₂ (_↔_.to ∷≡∷↔≡×≡ q))                 ≡⟨⟩
+
+    inj₂ p , uncurry (cong₂ _∷_) (_↔_.to ∷≡∷↔≡×≡ q)  ≡⟨ cong (inj₂ p ,_) $ _↔_.left-inverse-of ∷≡∷↔≡×≡ _ ⟩∎
+
+    inj₂ p , q                                       ∎
+
+  from-to : (p : Insertion x xs ys) → from (to p) ≡ p
+  from-to {ys = []}    (here p) = ⊥-elim (List.[]≢∷ (sym p))
+  from-to {ys = _ ∷ _} (here p) =
+    here (uncurry (cong₂ _∷_) (_↔_.to ∷≡∷↔≡×≡ p))  ≡⟨ cong here $ _↔_.left-inverse-of ∷≡∷↔≡×≡ _ ⟩∎
+    here p                                         ∎
+  from-to (there p q) =
+    let to-q₁ , to-q₂ = _↔_.to ∷≡∷↔≡×≡ (cong₂ _∷_ p (proj₂ (to q))) in
+
+    there to-q₁ (from (proj₁ (to q) , to-q₂))  ≡⟨ cong (λ (to-q₁ , to-q₂) → there to-q₁ (from (proj₁ (to q) , to-q₂))) $
+                                                  _↔_.right-inverse-of ∷≡∷↔≡×≡ _ ⟩
+    there p (from (to q))                      ≡⟨ cong (there p) (from-to q) ⟩∎
+    there p q                                  ∎
 
 ------------------------------------------------------------------------
 -- Another definition of bag equivalence
