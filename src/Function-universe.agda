@@ -3469,6 +3469,21 @@ Is-equivalence-cong ext f≡g =
     Is-equivalence-propositional
     ext
 
+-- _≃_ preserves equivalences (assuming extensionality).
+
+≃-cong :
+  ∀ {k a₁ a₂ b₁ b₂}
+    {A₁ : Type a₁} {A₂ : Type a₂} {B₁ : Type b₁} {B₂ : Type b₂} →
+  Extensionality? k (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) (a₁ ⊔ a₂ ⊔ b₁ ⊔ b₂) →
+  A₁ ≃ A₂ → B₁ ≃ B₂ → (A₁ ≃ B₁) ↝[ k ] (A₂ ≃ B₂)
+≃-cong ext A₁≃A₂ B₁≃B₂ =
+  generalise-ext?
+    (Eq.≃-preserves-⇔ A₁≃A₂ B₁≃B₂)
+    (λ ext →
+       let equiv = Eq.≃-preserves ext A₁≃A₂ B₁≃B₂ in
+       _≃_.right-inverse-of equiv , _≃_.left-inverse-of equiv)
+    ext
+
 -- Is-equivalence is pointwise equivalent to CP.Is-equivalence
 -- (assuming extensionality).
 
