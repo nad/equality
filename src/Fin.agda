@@ -411,10 +411,9 @@ Distinct-propositional i = HC.Distinct-propositional ⌞ i ⌟ _
 -- pointwise isomorphic.
 
 Distinct↔≢ :
-  ∀ {k n} {i j : Fin n} →
-  Extensionality? ⌊ k ⌋-sym lzero lzero →
-  Distinct i j ↝[ ⌊ k ⌋-sym ] i ≢ j
-Distinct↔≢ {i = i} {j} ext =
+  ∀ {n} {i j : Fin n} →
+  Distinct i j ↝[ lzero ∣ lzero ] i ≢ j
+Distinct↔≢ {i = i} {j = j} ext =
   Distinct i j              ↔⟨⟩
   Nat.Distinct ⌞ i ⌟ ⌞ j ⌟  ↝⟨ F.Distinct↔≢ ext ⟩
   ⌞ i ⌟ ≢ ⌞ j ⌟             ↝⟨ generalise-ext?-prop ≢⇔≢ ¬-propositional ¬-propositional ext ⟩□
