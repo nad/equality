@@ -14,12 +14,19 @@ private
     a   : Level
     A B : Type a
 
--- A map function for Dec.
+mutual
 
-Dec-map : A ⇔ B → Dec A → Dec B
-Dec-map A⇔B = ⊎-map to (_∘ from)
-  where
-  open _⇔_ A⇔B
+  -- A map function for Dec.
+
+  Dec-map : A ⇔ B → Dec A → Dec B
+  Dec-map A⇔B = Dec-map₀ to from
+    where
+    open _⇔_ A⇔B
+
+  -- A generalisation of Dec-map.
+
+  Dec-map₀ : (A → B) → @0 (B → A) → Dec A → Dec B
+  Dec-map₀ to from = ⊎-map to (λ f x → ⊥-elim₀ (f (from x)))
 
 -- Dec preserves logical equivalences.
 
