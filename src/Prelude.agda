@@ -69,10 +69,19 @@ unblock ⊠ _ p = p
 ------------------------------------------------------------------------
 -- The empty type
 
+-- A family of empty types.
+
 data ⊥ {ℓ} : Type ℓ where
 
+-- An eliminator for the empty types.
+
+⊥-elim₀ : @0 ⊥ {ℓ = ℓ} → Whatever
+⊥-elim₀ ()
+
+-- A variant of the eliminator that takes a non-erased argument.
+
 ⊥-elim : ⊥ {ℓ = ℓ} → Whatever
-⊥-elim ()
+⊥-elim x = ⊥-elim₀ x
 
 -- A version of the empty type that is not universe-polymorphic.
 
