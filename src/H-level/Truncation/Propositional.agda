@@ -36,7 +36,7 @@ open import Equivalence.Erased.Contractible-preimages equality-with-J
   as ECP using (_⁻¹ᴱ_)
 open import Equivalence-relation equality-with-J
 open import Erased.Cubical eq as E
-  using (Erased; erased; Very-stableᴱ-≡; Erased-singleton)
+  using (Erased; erased; Dec-Erased; Very-stableᴱ-≡; Erased-singleton)
 import Erased.Stability equality-with-J as ES
 open import Extensionality equality-with-J
 open import Function-universe equality-with-J as F hiding (id; _∘_)
@@ -526,6 +526,12 @@ Is-proposition→∥∥-accessibility-modal {ℓ = ℓ} p₁ p₂ =
   truncation-is-proposition
   ∥∥ᴱ→∥∥
   (rec TE.truncation-is-proposition TE.∣_∣)
+
+-- One can convert from Dec ∥ A ∥ᴱ to Dec-Erased ∥ A ∥.
+
+Dec-∥∥ᴱ→Dec-Erased-∥∥ : Dec ∥ A ∥ᴱ → Dec-Erased ∥ A ∥
+Dec-∥∥ᴱ→Dec-Erased-∥∥ =
+  E.Dec→Dec-Erased ∘ Dec-map₀ ∥∥ᴱ→∥∥ (_≃_.from ∥∥ᴱ≃∥∥)
 
 mutual
 
