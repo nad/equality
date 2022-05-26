@@ -919,6 +919,13 @@ A ∥⊎∥ᴱ B = ∥ A ⊎ B ∥ᴱ
 @0 ∥⊎∥ᴱ-propositional : Is-proposition (A ∥⊎∥ᴱ B)
 ∥⊎∥ᴱ-propositional = truncation-is-proposition
 
+-- The _∥⊎∥ᴱ_ operator preserves functions.
+
+infixr 1 _∥⊎∥ᴱ-map_
+
+_∥⊎∥ᴱ-map_ : (A₁ → A₂) → (B₁ → B₂) → A₁ ∥⊎∥ᴱ B₁ → A₂ ∥⊎∥ᴱ B₂
+f ∥⊎∥ᴱ-map g = ∥∥ᴱ-map (f ⊎-cong g)
+
 -- The _∥⊎∥ᴱ_ operator preserves "symmetric" functions.
 
 infixr 1 _∥⊎∥ᴱ-cong_
