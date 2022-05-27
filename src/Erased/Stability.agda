@@ -15,9 +15,9 @@ open import Logical-equivalence as LE using (_⇔_)
 open import Prelude
 
 open import Accessibility eq as A using (Acc; Well-founded)
-open import Bijection eq as Bijection using (_↔_)
+open import Bijection eq as Bijection using (_↔_; Has-quasi-inverse)
 open import Double-negation eq as DN
-open import Embedding eq using (Embedding; Is-embedding)
+open import Embedding eq as Emb using (Embedding; Is-embedding)
 open import Embedding.Erased eq as EEmb using (Is-embeddingᴱ)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
@@ -731,6 +731,15 @@ Very-stableᴱ-×ⁿ n =
     n
     (≃ᴱ→Very-stableᴱ→Very-stableᴱ ∘ from-isomorphism)
     Very-stableᴱ-×
+
+-- Stable is closed under _⇔_.
+
+Stable-⇔ : Stable A → Stable B → Stable (A ⇔ B)
+Stable-⇔ {A = A} {B = B} s s′ =
+                                   $⟨ (Stable-Π λ _ → s′) , (Stable-Π λ _ → s) ⟩
+  Stable (A → B) × Stable (B → A)  →⟨ uncurry Stable-[]-× ⟩
+  Stable ((A → B) × (B → A))       →⟨ Stable-map-⇔ (from-bijection $ inverse ⇔↔→×→) ⟩□
+  Stable (A ⇔ B)                   □
 
 -- Stable-[ k ] is closed under ↑ ℓ.
 
@@ -2397,7 +2406,116 @@ module []-cong₂-⊔₂
   where
 
   ----------------------------------------------------------------------
+  -- A lemma related to Stable-[_]
+
+  -- Stable-[ k ] is closed under _⇔_ (assuming extensionality).
+
+  Stable-[]-⇔ :
+    {A : Type ℓ₁} {B : Type ℓ₂} →
+    Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    Stable-[ k ] A → Stable-[ k ] B → Stable-[ k ] (A ⇔ B)
+  Stable-[]-⇔ {k = k} {A = A} {B = B} ext s s′ =
+                                                 $⟨ (Stable-[]-Π (lower-extensionality? k ℓ₂ ℓ₁ ext) λ _ → s′)
+                                                  , (Stable-[]-Π (lower-extensionality? k ℓ₁ ℓ₂ ext) λ _ → s) ⟩
+    Stable-[ k ] (A → B) × Stable-[ k ] (B → A)  →⟨ uncurry Stable-[]-× ⟩
+    Stable-[ k ] ((A → B) × (B → A))             →⟨ []-cong₂-⊔₁.Stable-[]-map-↔ ax ax ax (inverse ⇔↔→×→) ⟩□
+    Stable-[ k ] (A ⇔ B)                         □
+
+  ----------------------------------------------------------------------
   -- Some lemmas related to Very-stable
+
+  -- Very-stable is closed under _↝[ k ]_ (assuming extensionality).
+
+  Very-stable-↝ :
+    {A : Type ℓ₁} {B : Type ℓ₂} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    Very-stable A → Very-stable B → Very-stable (A ↝[ k ] B)
+  Very-stable-↝ {k = k} {A = A} {B = B} ext sA sB = lemma k
+    where
+    ext₁₁ : Extensionality ℓ₁ ℓ₁
+    ext₁₁ = lower-extensionality ℓ₂ ℓ₂ ext
+
+    ext₁₂ : Extensionality ℓ₁ ℓ₂
+    ext₁₂ = lower-extensionality ℓ₂ ℓ₁ ext
+
+    ext₁₁₂ : Extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂)
+    ext₁₁₂ = lower-extensionality ℓ₂ lzero ext
+
+    ext₂₁ : Extensionality ℓ₂ ℓ₁
+    ext₂₁ = lower-extensionality ℓ₁ ℓ₂ ext
+
+    ext₂₁₂ : Extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂)
+    ext₂₁₂ = lower-extensionality ℓ₁ lzero ext
+
+    ext₂₂ : Extensionality ℓ₂ ℓ₂
+    ext₂₂ = lower-extensionality ℓ₁ ℓ₁ ext
+
+    Very-stable-map :
+      {A B : Type (ℓ₁ ⊔ ℓ₂)} →
+      B ↔ A → Very-stable A → Very-stable B
+    Very-stable-map =
+      []-cong₂.Very-stable-cong ax ax _ ∘ from-bijection ∘ inverse
+
+    sA→B : Very-stable (A → B)
+    sA→B = Very-stable-Π ext₁₂ (λ _ → sB)
+
+    sB→A : Very-stable (B → A)
+    sB→A = Very-stable-Π ext₂₁ (λ _ → sA)
+
+    s≡A : ∀ n → For-iterated-equality n Very-stable A
+    s≡A n = []-cong₁.Very-stable→Very-stableⁿ ax₁ n sA
+
+    s≡B : ∀ n → For-iterated-equality n Very-stable B
+    s≡B n = []-cong₁.Very-stable→Very-stableⁿ ax₂ n sB
+
+    lemma : ∀ k → Very-stable (A ↝[ k ] B)
+    lemma implication         = sA→B
+    lemma logical-equivalence =        $⟨ Very-stable-× sA→B sB→A ⟩
+      Very-stable ((A → B) × (B → A))  →⟨ Very-stable-map ⇔↔→×→ ⟩□
+      Very-stable (A ⇔ B)              □
+    lemma injection =                                            $⟨ (Very-stable-Σ sA→B λ _ →
+                                                                     Very-stable-Π ext₁₁₂ λ _ →
+                                                                     Very-stable-Π ext₁₁₂ λ _ →
+                                                                     Very-stable-Π ext₂₁ λ _ → s≡A 1 _ _) ⟩
+      Very-stable (∃ λ (f : A → B) → ∀ x y → f x ≡ f y → x ≡ y)  →⟨ (Very-stable-map $
+                                                                     ∃-cong λ _ →
+                                                                     (∀-cong ext₁₁₂ λ _ → Bijection.implicit-Π↔Π) F.∘
+                                                                     Bijection.implicit-Π↔Π) ⟩
+      Very-stable (∃ λ (f : A → B) → Injective f)                →⟨ Very-stable-map ↣↔∃-Injective ⟩□
+      Very-stable (A ↣ B)                                        □
+    lemma embedding =                                 $⟨ (Very-stable-Σ sA→B λ _ →
+                                                          Very-stable-Π ext₁₁₂ λ _ →
+                                                          Very-stable-Π ext₁₁₂ λ _ →
+                                                          Very-stable-Σ (Very-stable-Π ext₂₁ λ _ → s≡A 1 _ _) λ _ →
+                                                          Very-stable-Σ (Very-stable-Π ext₂₂ λ _ → s≡B 2 _ _ _ _) λ _ →
+                                                          Very-stable-Σ (Very-stable-Π ext₁₁ λ _ → s≡A 2 _ _ _ _) λ _ →
+                                                          Very-stable-Π ext₁₂ λ _ → s≡B 3 _ _ _ _ _ _) ⟩
+      Very-stable (∃ λ (f : A → B) → Is-embedding f)  →⟨ Very-stable-map Emb.Embedding-as-Σ ⟩□
+      Very-stable (Embedding A B)                     □
+    lemma surjection =                                    $⟨ (Very-stable-Σ sA→B λ _ →
+                                                              Very-stable-Π ext₂₁₂ λ _ →
+                                                              Very-stable-Σ sA λ _ → s≡B 1 _ _) ⟩
+      Very-stable (∃ λ (f : A → B) → Split-surjective f)  →⟨ Very-stable-map ↠↔∃-Split-surjective ⟩□
+      Very-stable (A ↠ B)                                 □
+    lemma bijection =                                      $⟨ (Very-stable-Σ sA→B λ _ →
+                                                               Very-stable-Σ sB→A λ _ →
+                                                               Very-stable-×
+                                                                 (Very-stable-Π ext₂₂ λ _ → s≡B 1 _ _)
+                                                                 (Very-stable-Π ext₁₁ λ _ → s≡A 1 _ _)) ⟩
+      Very-stable (∃ λ (f : A → B) → Has-quasi-inverse f)  →⟨ Very-stable-map Bijection.↔-as-Σ ⟩□
+      Very-stable (A ↔ B)                                  □
+    lemma equivalence =                                 $⟨ (Very-stable-Σ sA→B λ _ →
+                                                            Very-stable-Σ sB→A λ _ →
+                                                            Very-stable-Σ (Very-stable-Π ext₂₂ λ _ → s≡B 1 _ _) λ _ →
+                                                            Very-stable-Σ (Very-stable-Π ext₁₁ λ _ → s≡A 1 _ _) λ _ →
+                                                            Very-stable-Π ext₁₂ λ _ → s≡B 2 _ _ _ _) ⟩
+      Very-stable (∃ λ (f : A → B) → Is-equivalence f)  →⟨ Very-stable-map Eq.≃-as-Σ ⟩□
+      Very-stable (A ≃ B)                               □
+    lemma equivalenceᴱ =                                 $⟨ (Very-stable-Σ sA→B λ _ →
+                                                             Very-stable-Σ sB→A λ _ →
+                                                             Very-stable-Erased) ⟩
+      Very-stable (∃ λ (f : A → B) → Is-equivalenceᴱ f)  →⟨ Very-stable-map (from-equivalence EEq.≃ᴱ-as-Σ) ⟩□
+      Very-stable (A ≃ᴱ B)                               □
 
   -- Acc _<_ x is very stable (assuming extensionality).
 
