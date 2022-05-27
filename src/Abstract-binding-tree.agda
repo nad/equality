@@ -30,6 +30,7 @@ open import Equality.Path.Isomorphisms equality-with-paths
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Erased.Cubical equality-with-paths as E
 open import Finite-subset.Listed equality-with-paths as L
+open import Finite-subset.Listed.Membership equality-with-paths
   hiding (fresh)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J

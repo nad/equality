@@ -149,6 +149,10 @@ import Quotient.Higher-constructors-if-propositional
 
 import Quotient.Erased
 
+-- Listed finite subsets.
+
+import Finite-subset.Listed
+
 -- Listed finite subsets, defined using a HIT with erased higher
 -- constructors.
 

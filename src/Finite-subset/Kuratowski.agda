@@ -21,6 +21,7 @@ open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 import Finite-subset.Listed eq as L
+import Finite-subset.Listed.Membership eq as LM
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Truncation.Propositional eq as Trunc
@@ -512,55 +513,55 @@ _ = refl _
 infix 4 _∈_
 
 _∈_ : {A : Type a} → A → Finite-subset-of A → Type a
-x ∈ y = x L.∈ _≃_.from Listed≃Kuratowski y
+x ∈ y = x LM.∈ _≃_.from Listed≃Kuratowski y
 
 -- Membership is propositional.
 
 ∈-propositional : ∀ y → Is-proposition (x ∈ y)
-∈-propositional _ = L.∈-propositional
+∈-propositional _ = LM.∈-propositional
 
 -- A lemma characterising ∅.
 
 ∈∅≃ : (x ∈ ∅) ≃ ⊥₀
-∈∅≃ = L.∈[]≃
+∈∅≃ = LM.∈[]≃
 
 -- A lemma characterising singleton.
 
 ∈singleton≃ : (x ∈ singleton y) ≃ ∥ x ≡ y ∥
-∈singleton≃ = L.∈singleton≃
+∈singleton≃ = LM.∈singleton≃
 
 -- If x is a member of y, then x is a member of y ∪ z.
 
 ∈→∈∪ˡ : ∀ y z → x ∈ y → x ∈ y ∪ z
 ∈→∈∪ˡ {x = x} y z =
-  x ∈ y                                                                ↔⟨⟩
-  x L.∈ _≃_.from Listed≃Kuratowski y                                   ↝⟨ L.∈→∈∪ˡ ⟩
-  x L.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↔⟨⟩
-  x L.∈ _≃_.from Listed≃Kuratowski (y ∪ z)                             ↔⟨⟩
-  x ∈ y ∪ z                                                            □
+  x ∈ y                                                                 ↔⟨⟩
+  x LM.∈ _≃_.from Listed≃Kuratowski y                                   ↝⟨ LM.∈→∈∪ˡ ⟩
+  x LM.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↔⟨⟩
+  x LM.∈ _≃_.from Listed≃Kuratowski (y ∪ z)                             ↔⟨⟩
+  x ∈ y ∪ z                                                             □
 
 -- If x is a member of z, then x is a member of y ∪ z.
 
 ∈→∈∪ʳ : ∀ y z → x ∈ z → x ∈ y ∪ z
 ∈→∈∪ʳ {x = x} y z =
-  x ∈ z                                                                ↔⟨⟩
-  x L.∈ _≃_.from Listed≃Kuratowski z                                   ↝⟨ L.∈→∈∪ʳ (_≃_.from Listed≃Kuratowski y) ⟩
-  x L.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↔⟨⟩
-  x ∈ y ∪ z                                                            □
+  x ∈ z                                                                 ↔⟨⟩
+  x LM.∈ _≃_.from Listed≃Kuratowski z                                   ↝⟨ LM.∈→∈∪ʳ (_≃_.from Listed≃Kuratowski y) ⟩
+  x LM.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↔⟨⟩
+  x ∈ y ∪ z                                                             □
 
 -- Membership of a union of two subsets can be expressed in terms of
 -- membership of the subsets.
 
 ∈∪≃ : ∀ y z → (x ∈ y ∪ z) ≃ (x ∈ y ∥⊎∥ x ∈ z)
 ∈∪≃ {x = x} y z =
-  x ∈ y ∪ z                                                            ↔⟨⟩
+  x ∈ y ∪ z                                                             ↔⟨⟩
 
-  x L.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↝⟨ L.∈∪≃ ⟩
+  x LM.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↝⟨ LM.∈∪≃ ⟩
 
-  x L.∈ _≃_.from Listed≃Kuratowski y ∥⊎∥
-  x L.∈ _≃_.from Listed≃Kuratowski z                                   ↔⟨⟩
+  x LM.∈ _≃_.from Listed≃Kuratowski y ∥⊎∥
+  x LM.∈ _≃_.from Listed≃Kuratowski z                                   ↔⟨⟩
 
-  x ∈ y ∥⊎∥ x ∈ z                                                      □
+  x ∈ y ∥⊎∥ x ∈ z                                                       □
 
 -- If truncated equality is decidable, then membership is also
 -- decidable.
@@ -568,7 +569,7 @@ x ∈ y = x L.∈ _≃_.from Listed≃Kuratowski y
 member? :
   ((x y : A) → Dec ∥ x ≡ y ∥) →
   (x : A) (y : Finite-subset-of A) → Dec (x ∈ y)
-member? equal? x = L.member? equal? x ∘ _≃_.from Listed≃Kuratowski
+member? equal? x = LM.member? equal? x ∘ _≃_.from Listed≃Kuratowski
 
 -- Subsets.
 
@@ -579,7 +580,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 
 ⊆≃∪≡ : (x ⊆ y) ≃ (x ∪ y ≡ y)
 ⊆≃∪≡ {x = x} {y = y} =
-  x ⊆ y                                                              ↝⟨ L.⊆≃∪≡ (_≃_.from Listed≃Kuratowski x) ⟩
+  x ⊆ y                                                              ↝⟨ LM.⊆≃∪≡ (_≃_.from Listed≃Kuratowski x) ⟩
 
   _≃_.from Listed≃Kuratowski x L.∪ _≃_.from Listed≃Kuratowski y ≡
   _≃_.from Listed≃Kuratowski y                                       ↔⟨⟩
@@ -594,7 +595,7 @@ extensionality :
   (x ≡ y) ≃ (∀ z → z ∈ x ⇔ z ∈ y)
 extensionality {x = x} {y = y} =
   x ≡ y                                                        ↝⟨ inverse $ Eq.≃-≡ (inverse Listed≃Kuratowski) ⟩
-  _≃_.from Listed≃Kuratowski x ≡ _≃_.from Listed≃Kuratowski y  ↝⟨ L.extensionality ⟩□
+  _≃_.from Listed≃Kuratowski x ≡ _≃_.from Listed≃Kuratowski y  ↝⟨ LM.extensionality ⟩□
   (∀ z → z ∈ x ⇔ z ∈ y)                                        □
 
 ------------------------------------------------------------------------
@@ -744,13 +745,13 @@ instance
 infix 4 ∣_∣≡_
 
 ∣_∣≡_ : {A : Type a} → Finite-subset-of A → ℕ → Type a
-∣ x ∣≡ n = L.∣ _≃_.from Listed≃Kuratowski x ∣≡ n
+∣ x ∣≡ n = LM.∣ _≃_.from Listed≃Kuratowski x ∣≡ n
 
 -- The size predicate is propositional.
 
 ∣∣≡-propositional :
   (x : Finite-subset-of A) → Is-proposition (∣ x ∣≡ n)
-∣∣≡-propositional = L.∣∣≡-propositional ∘ _≃_.from Listed≃Kuratowski
+∣∣≡-propositional = LM.∣∣≡-propositional ∘ _≃_.from Listed≃Kuratowski
 
 -- Unit tests documenting some of the computational behaviour of
 -- ∣_∣≡_.
@@ -770,7 +771,7 @@ _ = refl _
 
 ∣∣≡-functional :
   (x : Finite-subset-of A) → ∣ x ∣≡ m → ∣ x ∣≡ n → m ≡ n
-∣∣≡-functional = L.∣∣≡-functional ∘ _≃_.from Listed≃Kuratowski
+∣∣≡-functional = LM.∣∣≡-functional ∘ _≃_.from Listed≃Kuratowski
 
 -- If truncated equality is decidable, then one can compute the size
 -- of a finite subset.
@@ -778,4 +779,4 @@ _ = refl _
 size :
   ((x y : A) → Dec ∥ x ≡ y ∥) →
   (x : Finite-subset-of A) → ∃ λ n → ∣ x ∣≡ n
-size equal? = L.size equal? ∘ _≃_.from Listed≃Kuratowski
+size equal? = LM.size equal? ∘ _≃_.from Listed≃Kuratowski

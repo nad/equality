@@ -32,6 +32,7 @@ open import Equality.Path.Isomorphisms eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 import Equivalence P.equality-with-J as PEq
 import Finite-subset.Listed eq as Listed
+import Finite-subset.Listed.Membership eq as LM
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 import H-level P.equality-with-J as PH
 open import H-level.Closure equality-with-J
@@ -702,69 +703,69 @@ private
       r .Listed.Rec.swapʳ _ _ _ _ = swap
       r .Listed.Rec.is-setʳ       = is-set
 
-    -- A lemma relating from, _∈_ and Listed._∈_.
+    -- A lemma relating from, _∈_ and LM._∈_.
 
-    ∈from≃ : ∀ x → (z ∈ from x) ≃ (z Listed.∈ x)
+    ∈from≃ : ∀ x → (z ∈ from x) ≃ (z LM.∈ x)
     ∈from≃ {z = z} = Listed.elim-prop e
       where
       e : Listed.Elim-prop _
       e .Listed.Elim-prop.[]ʳ =
-        z ∈ from Listed.[]    ↔⟨⟩
-        ⊥                     ↔⟨ ⊥↔⊥ ⟩
-        ⊥₀                    ↝⟨ inverse $ Listed.∈[]≃ ⟩
-        z Listed.∈ Listed.[]  □
+        z ∈ from Listed.[]  ↔⟨⟩
+        ⊥                   ↔⟨ ⊥↔⊥ ⟩
+        ⊥₀                  ↝⟨ inverse $ LM.∈[]≃ ⟩
+        z LM.∈ Listed.[]    □
 
       e .Listed.Elim-prop.∷ʳ {y = y} x hyp =
         z ∈ from (x Listed.∷ y)  ↔⟨⟩
         z ≡ x ∥⊎∥ z ∈ from y     ↝⟨ F.id Trunc.∥⊎∥-cong hyp ⟩
-        z ≡ x ∥⊎∥ z Listed.∈ y   ↝⟨ inverse Listed.∈∷≃ ⟩□
-        z Listed.∈ x Listed.∷ y  □
+        z ≡ x ∥⊎∥ z LM.∈ y       ↝⟨ inverse LM.∈∷≃ ⟩□
+        z LM.∈ x Listed.∷ y      □
 
       e .Listed.Elim-prop.is-propositionʳ _ =
-        Eq.right-closure ext 0 Listed.∈-propositional
+        Eq.right-closure ext 0 LM.∈-propositional
 
     -- A lemma relating from, _⊆_ and Listed._⊆_.
 
     from⊆from→ :
       (x y : Listed.Finite-subset-of A) →
-      from x ⊆ from y → x Listed.⊆ y
+      from x ⊆ from y → x LM.⊆ y
     from⊆from→ = Listed.elim-prop e
       where
       e : Listed.Elim-prop _
       e .Listed.Elim-prop.[]ʳ = Listed.elim-prop e′
         where
         e′ : Listed.Elim-prop _
-        e′ .Listed.Elim-prop.[]ʳ _ = Listed.⊆-refl
+        e′ .Listed.Elim-prop.[]ʳ _ = LM.⊆-refl
 
         e′ .Listed.Elim-prop.∷ʳ {y = y} x _ _ z =
-          z Listed.∈ Listed.[]     ↔⟨ Listed.∈[]≃ ⟩
-          ⊥₀                       ↝⟨ ⊥-elim ⟩□
-          z Listed.∈ x Listed.∷ y  □
+          z LM.∈ Listed.[]     ↔⟨ LM.∈[]≃ ⟩
+          ⊥₀                   ↝⟨ ⊥-elim ⟩□
+          z LM.∈ x Listed.∷ y  □
 
         e′ .Listed.Elim-prop.is-propositionʳ _ =
           Π-closure ext 1 λ _ →
-          Listed.⊆-propositional
+          LM.⊆-propositional
 
       e .Listed.Elim-prop.∷ʳ {y = y₁} x hyp₁ y₂ =
-        from (x Listed.∷ y₁) ⊆ from y₂                   ↔⟨⟩
-        (∀ z → z ≡ x ∥⊎∥ z ∈ from y₁ → z ∈ from y₂)      ↝⟨ (λ hyp₂ z → Trunc.rec Listed.∈-propositional
-                                                                          [ (
-            z ≡ x                                                            ↝⟨ Trunc.∣inj₁∣ ⟩
-            z ≡ x ∥⊎∥ z ∈ from y₁                                            ↝⟨ hyp₂ z ⟩
-            z ∈ from y₂                                                      ↔⟨ ∈from≃ _ ⟩□
-            z Listed.∈ y₂                                                    □)
-                                                                          , ($⟨ (λ z → hyp₂ z ∘ Trunc.∣inj₂∣) ⟩
-            from y₁ ⊆ from y₂                                                ↝⟨ hyp₁ y₂ ⟩
-            y₁ Listed.⊆ y₂                                                   ↝⟨ _$ z ⟩□
-            (z Listed.∈ y₁ → z Listed.∈ y₂)                                  □)
-                                                                          ]) ⟩
-        (∀ z → z ≡ x ∥⊎∥ z Listed.∈ y₁ → z Listed.∈ y₂)  ↔⟨ (∀-cong ext λ _ → →-cong ext (inverse Listed.∈∷≃) F.id) ⟩□
-        x Listed.∷ y₁ Listed.⊆ y₂                        □
+        from (x Listed.∷ y₁) ⊆ from y₂               ↔⟨⟩
+        (∀ z → z ≡ x ∥⊎∥ z ∈ from y₁ → z ∈ from y₂)  ↝⟨ (λ hyp₂ z → Trunc.rec LM.∈-propositional
+                                                                      [ (
+            z ≡ x                                                        ↝⟨ Trunc.∣inj₁∣ ⟩
+            z ≡ x ∥⊎∥ z ∈ from y₁                                        ↝⟨ hyp₂ z ⟩
+            z ∈ from y₂                                                  ↔⟨ ∈from≃ _ ⟩□
+            z LM.∈ y₂                                                    □)
+                                                                      , ($⟨ (λ z → hyp₂ z ∘ Trunc.∣inj₂∣) ⟩
+            from y₁ ⊆ from y₂                                            ↝⟨ hyp₁ y₂ ⟩
+            y₁ LM.⊆ y₂                                                   ↝⟨ _$ z ⟩□
+            (z LM.∈ y₁ → z LM.∈ y₂)                                      □)
+                                                                      ]) ⟩
+        (∀ z → z ≡ x ∥⊎∥ z LM.∈ y₁ → z LM.∈ y₂)      ↔⟨ (∀-cong ext λ _ → →-cong ext (inverse LM.∈∷≃) F.id) ⟩□
+        x Listed.∷ y₁ LM.⊆ y₂                        □
 
       e .Listed.Elim-prop.is-propositionʳ _ =
         Π-closure ext 1 λ _ →
         Π-closure ext 1 λ _ →
-        Listed.⊆-propositional
+        LM.⊆-propositional
 
     -- The function from is injective.
 
@@ -772,7 +773,7 @@ private
     from-injective {x = x} {y = y} =
       from x ≡ from y                    ↔⟨ ≡≃⊆×⊇ ⟩
       from x ⊆ from y × from y ⊆ from x  ↝⟨ Σ-map (from⊆from→ _ _) (from⊆from→ _ _) ⟩
-      x Listed.⊆ y × y Listed.⊆ x        ↝⟨ uncurry Listed.⊆-antisymmetric ⟩□
+      x LM.⊆ y × y LM.⊆ x                ↝⟨ uncurry LM.⊆-antisymmetric ⟩□
       x ≡ y                              □
 
     -- Converts one kind of finite subset to another, and returns a
@@ -818,11 +819,11 @@ Listed≃Listed = Eq.↔→≃ (proj₁ ∘ to) from to-from (proj₂ ∘ to)
 
 -- The equivalence preserves membership.
 
-∈≃∈ : ∀ y → (x ∈ y) ≃ (x Listed.∈ _≃_.to Listed≃Listed y)
+∈≃∈ : ∀ y → (x ∈ y) ≃ (x LM.∈ _≃_.to Listed≃Listed y)
 ∈≃∈ {x = x} y =
   x ∈ y                                                ↝⟨ ≡⇒↝ _ $ cong (_ ∈_) $ sym $ _≃_.left-inverse-of Listed≃Listed y ⟩
   x ∈ _≃_.from Listed≃Listed (_≃_.to Listed≃Listed y)  ↝⟨ ∈from≃ _ ⟩□
-  x Listed.∈ _≃_.to Listed≃Listed y                    □
+  x LM.∈ _≃_.to Listed≃Listed y                        □
   where
   open Listed≃Listed
 

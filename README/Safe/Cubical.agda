@@ -18,9 +18,10 @@ import Equality.Path.Isomorphisms.Univalence
 
 import Bool.Very-stable
 
--- Listed finite subsets.
+-- A membership relation for listed finite subsets (defined using
+-- non-erased univalence).
 
-import Finite-subset.Listed
+import Finite-subset.Listed.Membership
 
 -- An alternative definition of listed finite subsets.
 

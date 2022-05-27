@@ -16,6 +16,7 @@ open import Equality.Decision-procedures equality-with-J
 open import Equivalence equality-with-J using (_≃_)
 open import Erased.Cubical equality-with-paths as E
 open import Finite-subset.Listed equality-with-paths as L
+open import Finite-subset.Listed.Membership equality-with-paths as LM
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -71,7 +72,7 @@ sig .Signature._≟S_          =
   Decidable-equality→Decidable-erased-equality Bool._≟_
 sig .Signature._≟V_ =
   Decidable-equality→Decidable-erased-equality Nat._≟_
-sig .Signature.fresh {s = s} xs =           $⟨ L.fresh (L.map proj₂ xs) ⟩
+sig .Signature.fresh {s = s} xs =           $⟨ LM.fresh (L.map proj₂ xs) ⟩
   (∃ λ n → n ∉ L.map proj₂ xs)              ↝⟨ Σ-map id [_]→ ⟩
   (∃ λ n → Erased (n ∉ L.map proj₂ xs))     ↝⟨ (∃-cong λ n → E.map (
 
