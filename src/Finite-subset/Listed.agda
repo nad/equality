@@ -1715,13 +1715,13 @@ sizeᴱ equal? = elim-prop e
 -- A type is finite if there is some finite subset of the type for
 -- which every element of the type is a member of the subset.
 
-is-finite : Type a → Type a
-is-finite A = ∃ λ (s : Finite-subset-of A) → ∀ x → x ∈ s
+Is-finite : Type a → Type a
+Is-finite A = ∃ λ (s : Finite-subset-of A) → ∀ x → x ∈ s
 
--- The is-finite predicate is propositional.
+-- The Is-finite predicate is propositional.
 
-is-finite-propositional : Is-proposition (is-finite A)
-is-finite-propositional (x , p) (y , q) =
+Is-finite-propositional : Is-proposition (Is-finite A)
+Is-finite-propositional (x , p) (y , q) =
                          $⟨ (λ z → record { to = λ _ → q z; from = λ _ → p z }) ⟩
   (∀ z → z ∈ x ⇔ z ∈ y)  ↝⟨ inverse extensionality ⟩
   x ≡ y                  ↔⟨ ignore-propositional-component (Π-closure ext 1 (λ _ → ∈-propositional)) ⟩□
