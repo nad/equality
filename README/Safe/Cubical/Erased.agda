@@ -149,6 +149,11 @@ import Quotient.Higher-constructors-if-propositional
 
 import Quotient.Erased
 
+-- Listed finite subsets, defined using a HIT with erased higher
+-- constructors.
+
+import Finite-subset.Listed.Erased
+
 -- Cyclic groups.
 
 import Group.Cyclic
