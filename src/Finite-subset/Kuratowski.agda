@@ -5,7 +5,11 @@
 -- Based on Frumin, Geuvers, Gondelman and van der Weide's "Finite
 -- Sets in Homotopy Type Theory".
 
-{-# OPTIONS --cubical --safe #-}
+-- A membership relation can be found in
+-- Finite-subset.Kuratowski.Membership (which uses --cubical rather
+-- than --erased-cubical).
+
+{-# OPTIONS --erased-cubical --safe #-}
 
 import Equality.Path as P
 
@@ -14,18 +18,14 @@ module Finite-subset.Kuratowski
 
 open P.Derived-definitions-and-properties eq hiding (elim)
 
-open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
-open import Equivalence equality-with-J as Eq using (_≃_)
+open import Equivalence equality-with-J using (_≃_)
 import Finite-subset.Listed eq as L
-import Finite-subset.Listed.Membership eq as LM
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
-open import H-level.Truncation.Propositional eq as Trunc
-  using (∥_∥; _∥⊎∥_)
 open import Monad equality-with-J as M using (Raw-monad; Monad)
 
 private
@@ -35,7 +35,6 @@ private
     P       : A → Type p
     f g     : (x : A) → P x
     l x y z : A
-    m n     : ℕ
 
 ------------------------------------------------------------------------
 -- Kuratowski finite subsets
@@ -285,6 +284,159 @@ rec-prop r = elim-prop e
   e .is-propositionʳ _  = R.is-propositionʳ
 
 ------------------------------------------------------------------------
+-- A law
+
+-- Union is idempotent.
+
+idem : x ∪ x ≡ x
+idem {x = x} = flip (elim-prop {P = λ x → x ∪ x ≡ x}) x λ where
+  .∅ʳ →
+    ∅ ∪ ∅  ≡⟨ ∅∪ ⟩∎
+    ∅      ∎
+  .singletonʳ x →
+    singleton x ∪ singleton x  ≡⟨ idem-s ⟩∎
+    singleton x                ∎
+  .∪ʳ {x = x} {y = y} → curry
+    (x ∪ x ≡ x × y ∪ y ≡ y      →⟨ uncurry (cong₂ _∪_) ⟩
+     (x ∪ x) ∪ (y ∪ y) ≡ x ∪ y  →⟨ trans $
+                                   trans (sym assoc) $
+                                   trans (cong (x ∪_) $
+                                          trans assoc $
+                                          (trans (cong (_∪ y) comm) $
+                                           sym assoc))
+                                   assoc ⟩□
+     (x ∪ y) ∪ (x ∪ y) ≡ x ∪ y  □)
+  .is-propositionʳ _ →
+    is-set
+
+------------------------------------------------------------------------
+-- Some operations
+
+-- A map function.
+
+map : (A → B) → Finite-subset-of A → Finite-subset-of B
+map f = recᴾ r
+  where
+  r : Recᴾ _ _
+  r .∅ʳ           = ∅
+  r .singletonʳ x = singleton (f x)
+  r .∪ʳ _ _       = _∪_
+  r .∅∪ʳ _ _      = ∅∪ᴾ
+  r .idem-sʳ _    = idem-sᴾ
+  r .assocʳ _ _ _ = assocᴾ
+  r .commʳ _ _    = commᴾ
+  r .is-setʳ      = is-setᴾ
+
+-- A filter function.
+
+filter : (A → Bool) → Finite-subset-of A → Finite-subset-of A
+filter p = rec r
+  where
+  r : Rec _ _
+  r .∅ʳ           = ∅
+  r .singletonʳ x = if p x then singleton x else ∅
+  r .∪ʳ _ _       = _∪_
+  r .∅∪ʳ _ _      = ∅∪
+  r .idem-sʳ _    = idem
+  r .assocʳ _ _ _ = assoc
+  r .commʳ _ _    = comm
+  r .is-setʳ      = is-set
+
+-- Join.
+
+join : Finite-subset-of (Finite-subset-of A) → Finite-subset-of A
+join = rec r
+  where
+  r : Rec _ _
+  r .∅ʳ           = ∅
+  r .singletonʳ   = id
+  r .∪ʳ _ _       = _∪_
+  r .∅∪ʳ _ _      = ∅∪
+  r .idem-sʳ _    = idem
+  r .assocʳ _ _ _ = assoc
+  r .commʳ _ _    = comm
+  r .is-setʳ      = is-set
+
+-- A universe-polymorphic variant of bind.
+
+infixl 5 _>>=′_
+
+_>>=′_ :
+  Finite-subset-of A → (A → Finite-subset-of B) → Finite-subset-of B
+x >>=′ f = join (map f x)
+
+-- Bind distributes from the right over union.
+
+_ : (x ∪ y) >>=′ f ≡ (x >>=′ f) ∪ (y >>=′ f)
+_ = refl _
+
+-- Bind distributes from the left over union.
+
+>>=-left-distributive :
+  ∀ x → (x >>=′ λ x → f x ∪ g x) ≡ (x >>=′ f) ∪ (x >>=′ g)
+>>=-left-distributive {f = f} {g = g} = elim-prop e
+  where
+  e : Elim-prop _
+  e .∅ʳ                           = ∅      ≡⟨ sym idem ⟩∎
+                                    ∅ ∪ ∅  ∎
+  e .singletonʳ _                 = refl _
+  e .is-propositionʳ _            = is-set
+  e .∪ʳ {x = x} {y = y} hyp₁ hyp₂ =
+    (x ∪ y) >>=′ (λ x → f x ∪ g x)                         ≡⟨⟩
+    (x >>=′ λ x → f x ∪ g x) ∪ (y >>=′ λ x → f x ∪ g x)    ≡⟨ cong₂ _∪_ hyp₁ hyp₂ ⟩
+    ((x >>=′ f) ∪ (x >>=′ g)) ∪ ((y >>=′ f) ∪ (y >>=′ g))  ≡⟨ sym assoc ⟩
+    (x >>=′ f) ∪ ((x >>=′ g) ∪ ((y >>=′ f) ∪ (y >>=′ g)))  ≡⟨ cong ((x >>=′ f) ∪_) assoc ⟩
+    (x >>=′ f) ∪ (((x >>=′ g) ∪ (y >>=′ f)) ∪ (y >>=′ g))  ≡⟨ cong (((x >>=′ f) ∪_) ∘ (_∪ (y >>=′ g))) comm ⟩
+    (x >>=′ f) ∪ (((y >>=′ f) ∪ (x >>=′ g)) ∪ (y >>=′ g))  ≡⟨ cong ((x >>=′ f) ∪_) (sym assoc) ⟩
+    (x >>=′ f) ∪ ((y >>=′ f) ∪ ((x >>=′ g) ∪ (y >>=′ g)))  ≡⟨ assoc ⟩
+    ((x >>=′ f) ∪ (y >>=′ f)) ∪ ((x >>=′ g) ∪ (y >>=′ g))  ≡⟨⟩
+    ((x ∪ y) >>=′ f) ∪ ((x ∪ y) >>=′ g)                    ∎
+
+-- Monad laws.
+
+_ : singleton x >>=′ f ≡ f x
+_ = refl _
+
+>>=-singleton : x >>=′ singleton ≡ x
+>>=-singleton = elim-prop e _
+  where
+  e : Elim-prop (λ x → x >>=′ singleton ≡ x)
+  e .∅ʳ                           = refl _
+  e .singletonʳ _                 = refl _
+  e .is-propositionʳ _            = is-set
+  e .∪ʳ {x = x} {y = y} hyp₁ hyp₂ =
+    (x ∪ y) >>=′ singleton                   ≡⟨⟩
+    (x >>=′ singleton) ∪ (y >>=′ singleton)  ≡⟨ cong₂ _∪_ hyp₁ hyp₂ ⟩∎
+    x ∪ y                                    ∎
+
+>>=-assoc : ∀ x → x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
+>>=-assoc {f = f} {g = g} = elim-prop e
+  where
+  e : Elim-prop _
+  e .∅ʳ                           = refl _
+  e .singletonʳ _                 = refl _
+  e .is-propositionʳ _            = is-set
+  e .∪ʳ {x = x} {y = y} hyp₁ hyp₂ =
+    (x ∪ y) >>=′ (λ x → f x >>=′ g)                        ≡⟨⟩
+    (x >>=′ λ x → f x >>=′ g) ∪ (y >>=′ λ x → f x >>=′ g)  ≡⟨ cong₂ _∪_ hyp₁ hyp₂ ⟩
+    (x >>=′ f >>=′ g) ∪ (y >>=′ f >>=′ g)                  ≡⟨⟩
+    (x ∪ y) >>=′ f >>=′ g                                  ∎
+
+-- A monad instance.
+
+instance
+
+  raw-monad : Raw-monad {d = a} Finite-subset-of
+  raw-monad .M.return = singleton
+  raw-monad .M._>>=_  = _>>=′_
+
+  monad : Monad {d = a} Finite-subset-of
+  monad .M.Monad.raw-monad           = raw-monad
+  monad .M.Monad.left-identity _ _   = refl _
+  monad .M.Monad.right-identity _    = >>=-singleton
+  monad .M.Monad.associativity x _ _ = >>=-assoc x
+
+------------------------------------------------------------------------
 -- Definitions related to listed finite subsets
 
 private
@@ -504,279 +656,3 @@ _ : let y′ = _≃_.to Listed≃Kuratowski (_≃_.from Listed≃Kuratowski y) i
 
     list-rec l (singleton x ∪ y) ≡ l .∷ʳ x y′ (list-rec l y)
 _ = refl _
-
-------------------------------------------------------------------------
--- Membership
-
--- Membership.
-
-infix 4 _∈_
-
-_∈_ : {A : Type a} → A → Finite-subset-of A → Type a
-x ∈ y = x LM.∈ _≃_.from Listed≃Kuratowski y
-
--- Membership is propositional.
-
-∈-propositional : ∀ y → Is-proposition (x ∈ y)
-∈-propositional _ = LM.∈-propositional
-
--- A lemma characterising ∅.
-
-∈∅≃ : (x ∈ ∅) ≃ ⊥₀
-∈∅≃ = LM.∈[]≃
-
--- A lemma characterising singleton.
-
-∈singleton≃ : (x ∈ singleton y) ≃ ∥ x ≡ y ∥
-∈singleton≃ = LM.∈singleton≃
-
--- If x is a member of y, then x is a member of y ∪ z.
-
-∈→∈∪ˡ : ∀ y z → x ∈ y → x ∈ y ∪ z
-∈→∈∪ˡ {x = x} y z =
-  x ∈ y                                                                 ↔⟨⟩
-  x LM.∈ _≃_.from Listed≃Kuratowski y                                   ↝⟨ LM.∈→∈∪ˡ ⟩
-  x LM.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↔⟨⟩
-  x LM.∈ _≃_.from Listed≃Kuratowski (y ∪ z)                             ↔⟨⟩
-  x ∈ y ∪ z                                                             □
-
--- If x is a member of z, then x is a member of y ∪ z.
-
-∈→∈∪ʳ : ∀ y z → x ∈ z → x ∈ y ∪ z
-∈→∈∪ʳ {x = x} y z =
-  x ∈ z                                                                 ↔⟨⟩
-  x LM.∈ _≃_.from Listed≃Kuratowski z                                   ↝⟨ LM.∈→∈∪ʳ (_≃_.from Listed≃Kuratowski y) ⟩
-  x LM.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↔⟨⟩
-  x ∈ y ∪ z                                                             □
-
--- Membership of a union of two subsets can be expressed in terms of
--- membership of the subsets.
-
-∈∪≃ : ∀ y z → (x ∈ y ∪ z) ≃ (x ∈ y ∥⊎∥ x ∈ z)
-∈∪≃ {x = x} y z =
-  x ∈ y ∪ z                                                             ↔⟨⟩
-
-  x LM.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↝⟨ LM.∈∪≃ ⟩
-
-  x LM.∈ _≃_.from Listed≃Kuratowski y ∥⊎∥
-  x LM.∈ _≃_.from Listed≃Kuratowski z                                   ↔⟨⟩
-
-  x ∈ y ∥⊎∥ x ∈ z                                                       □
-
--- If truncated equality is decidable, then membership is also
--- decidable.
-
-member? :
-  ((x y : A) → Dec ∥ x ≡ y ∥) →
-  (x : A) (y : Finite-subset-of A) → Dec (x ∈ y)
-member? equal? x = LM.member? equal? x ∘ _≃_.from Listed≃Kuratowski
-
--- Subsets.
-
-_⊆_ : {A : Type a} → Finite-subset-of A → Finite-subset-of A → Type a
-x ⊆ y = ∀ z → z ∈ x → z ∈ y
-
--- The subset property can be expressed using _∪_ and _≡_.
-
-⊆≃∪≡ : (x ⊆ y) ≃ (x ∪ y ≡ y)
-⊆≃∪≡ {x = x} {y = y} =
-  x ⊆ y                                                              ↝⟨ LM.⊆≃∪≡ (_≃_.from Listed≃Kuratowski x) ⟩
-
-  _≃_.from Listed≃Kuratowski x L.∪ _≃_.from Listed≃Kuratowski y ≡
-  _≃_.from Listed≃Kuratowski y                                       ↔⟨⟩
-
-  _≃_.from Listed≃Kuratowski (x ∪ y) ≡ _≃_.from Listed≃Kuratowski y  ↝⟨ Eq.≃-≡ (inverse Listed≃Kuratowski) ⟩□
-
-  x ∪ y ≡ y                                                          □
-
--- Extensionality.
-
-extensionality :
-  (x ≡ y) ≃ (∀ z → z ∈ x ⇔ z ∈ y)
-extensionality {x = x} {y = y} =
-  x ≡ y                                                        ↝⟨ inverse $ Eq.≃-≡ (inverse Listed≃Kuratowski) ⟩
-  _≃_.from Listed≃Kuratowski x ≡ _≃_.from Listed≃Kuratowski y  ↝⟨ LM.extensionality ⟩□
-  (∀ z → z ∈ x ⇔ z ∈ y)                                        □
-
-------------------------------------------------------------------------
--- A law
-
--- Union is idempotent.
-
-idem : x ∪ x ≡ x
-idem {x = x} = _≃_.from extensionality λ y →
-  y ∈ x ∪ x        ↔⟨ ∈∪≃ x x ⟩
-  y ∈ x ∥⊎∥ y ∈ x  ↔⟨ Trunc.idempotent ⟩
-  ∥ y ∈ x ∥        ↔⟨ Trunc.∥∥↔ (∈-propositional x) ⟩□
-  y ∈ x            □
-
-------------------------------------------------------------------------
--- Some operations
-
--- A map function.
-
-map : (A → B) → Finite-subset-of A → Finite-subset-of B
-map f = recᴾ r
-  where
-  r : Recᴾ _ _
-  r .∅ʳ           = ∅
-  r .singletonʳ x = singleton (f x)
-  r .∪ʳ _ _       = _∪_
-  r .∅∪ʳ _ _      = ∅∪ᴾ
-  r .idem-sʳ _    = idem-sᴾ
-  r .assocʳ _ _ _ = assocᴾ
-  r .commʳ _ _    = commᴾ
-  r .is-setʳ      = is-setᴾ
-
--- A filter function.
-
-filter : (A → Bool) → Finite-subset-of A → Finite-subset-of A
-filter p = rec r
-  where
-  r : Rec _ _
-  r .∅ʳ           = ∅
-  r .singletonʳ x = if p x then singleton x else ∅
-  r .∪ʳ _ _       = _∪_
-  r .∅∪ʳ _ _      = ∅∪
-  r .idem-sʳ _    = idem
-  r .assocʳ _ _ _ = assoc
-  r .commʳ _ _    = comm
-  r .is-setʳ      = is-set
-
--- Join.
-
-join : Finite-subset-of (Finite-subset-of A) → Finite-subset-of A
-join = rec r
-  where
-  r : Rec _ _
-  r .∅ʳ           = ∅
-  r .singletonʳ   = id
-  r .∪ʳ _ _       = _∪_
-  r .∅∪ʳ _ _      = ∅∪
-  r .idem-sʳ _    = idem
-  r .assocʳ _ _ _ = assoc
-  r .commʳ _ _    = comm
-  r .is-setʳ      = is-set
-
--- A universe-polymorphic variant of bind.
-
-infixl 5 _>>=′_
-
-_>>=′_ :
-  Finite-subset-of A → (A → Finite-subset-of B) → Finite-subset-of B
-x >>=′ f = join (map f x)
-
--- Bind distributes from the right over union.
-
-_ : (x ∪ y) >>=′ f ≡ (x >>=′ f) ∪ (y >>=′ f)
-_ = refl _
-
--- Bind distributes from the left over union.
-
->>=-left-distributive :
-  ∀ x → (x >>=′ λ x → f x ∪ g x) ≡ (x >>=′ f) ∪ (x >>=′ g)
->>=-left-distributive {f = f} {g = g} = elim-prop e
-  where
-  e : Elim-prop _
-  e .∅ʳ                           = ∅      ≡⟨ sym idem ⟩∎
-                                    ∅ ∪ ∅  ∎
-  e .singletonʳ _                 = refl _
-  e .is-propositionʳ _            = is-set
-  e .∪ʳ {x = x} {y = y} hyp₁ hyp₂ =
-    (x ∪ y) >>=′ (λ x → f x ∪ g x)                         ≡⟨⟩
-    (x >>=′ λ x → f x ∪ g x) ∪ (y >>=′ λ x → f x ∪ g x)    ≡⟨ cong₂ _∪_ hyp₁ hyp₂ ⟩
-    ((x >>=′ f) ∪ (x >>=′ g)) ∪ ((y >>=′ f) ∪ (y >>=′ g))  ≡⟨ sym assoc ⟩
-    (x >>=′ f) ∪ ((x >>=′ g) ∪ ((y >>=′ f) ∪ (y >>=′ g)))  ≡⟨ cong ((x >>=′ f) ∪_) assoc ⟩
-    (x >>=′ f) ∪ (((x >>=′ g) ∪ (y >>=′ f)) ∪ (y >>=′ g))  ≡⟨ cong (((x >>=′ f) ∪_) ∘ (_∪ (y >>=′ g))) comm ⟩
-    (x >>=′ f) ∪ (((y >>=′ f) ∪ (x >>=′ g)) ∪ (y >>=′ g))  ≡⟨ cong ((x >>=′ f) ∪_) (sym assoc) ⟩
-    (x >>=′ f) ∪ ((y >>=′ f) ∪ ((x >>=′ g) ∪ (y >>=′ g)))  ≡⟨ assoc ⟩
-    ((x >>=′ f) ∪ (y >>=′ f)) ∪ ((x >>=′ g) ∪ (y >>=′ g))  ≡⟨⟩
-    ((x ∪ y) >>=′ f) ∪ ((x ∪ y) >>=′ g)                    ∎
-
--- Monad laws.
-
-_ : singleton x >>=′ f ≡ f x
-_ = refl _
-
->>=-singleton : x >>=′ singleton ≡ x
->>=-singleton = elim-prop e _
-  where
-  e : Elim-prop (λ x → x >>=′ singleton ≡ x)
-  e .∅ʳ                           = refl _
-  e .singletonʳ _                 = refl _
-  e .is-propositionʳ _            = is-set
-  e .∪ʳ {x = x} {y = y} hyp₁ hyp₂ =
-    (x ∪ y) >>=′ singleton                   ≡⟨⟩
-    (x >>=′ singleton) ∪ (y >>=′ singleton)  ≡⟨ cong₂ _∪_ hyp₁ hyp₂ ⟩∎
-    x ∪ y                                    ∎
-
->>=-assoc : ∀ x → x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
->>=-assoc {f = f} {g = g} = elim-prop e
-  where
-  e : Elim-prop _
-  e .∅ʳ                           = refl _
-  e .singletonʳ _                 = refl _
-  e .is-propositionʳ _            = is-set
-  e .∪ʳ {x = x} {y = y} hyp₁ hyp₂ =
-    (x ∪ y) >>=′ (λ x → f x >>=′ g)                        ≡⟨⟩
-    (x >>=′ λ x → f x >>=′ g) ∪ (y >>=′ λ x → f x >>=′ g)  ≡⟨ cong₂ _∪_ hyp₁ hyp₂ ⟩
-    (x >>=′ f >>=′ g) ∪ (y >>=′ f >>=′ g)                  ≡⟨⟩
-    (x ∪ y) >>=′ f >>=′ g                                  ∎
-
--- A monad instance.
-
-instance
-
-  raw-monad : Raw-monad {d = a} Finite-subset-of
-  raw-monad .M.return = singleton
-  raw-monad .M._>>=_  = _>>=′_
-
-  monad : Monad {d = a} Finite-subset-of
-  monad .M.Monad.raw-monad           = raw-monad
-  monad .M.Monad.left-identity _ _   = refl _
-  monad .M.Monad.right-identity _    = >>=-singleton
-  monad .M.Monad.associativity x _ _ = >>=-assoc x
-
-------------------------------------------------------------------------
--- Size
-
--- Size.
-
-infix 4 ∣_∣≡_
-
-∣_∣≡_ : {A : Type a} → Finite-subset-of A → ℕ → Type a
-∣ x ∣≡ n = LM.∣ _≃_.from Listed≃Kuratowski x ∣≡ n
-
--- The size predicate is propositional.
-
-∣∣≡-propositional :
-  (x : Finite-subset-of A) → Is-proposition (∣ x ∣≡ n)
-∣∣≡-propositional = LM.∣∣≡-propositional ∘ _≃_.from Listed≃Kuratowski
-
--- Unit tests documenting some of the computational behaviour of
--- ∣_∣≡_.
-
-_ : (∣ ∅ {A = A} ∣≡ n) ≡ ↑ _ (n ≡ 0)
-_ = refl _
-
-_ : ∀ {A : Type a} {x : A} {y} →
-    (∣ singleton x ∪ y ∣≡ zero) ≡ (x ∈ y × ∣ y ∣≡ zero ⊎ ⊥)
-_ = refl _
-
-_ : (∣ singleton x ∪ y ∣≡ suc n) ≡
-    (x ∈ y × ∣ y ∣≡ suc n ⊎ ¬ x ∈ y × ∣ y ∣≡ n)
-_ = refl _
-
--- The size predicate is functional.
-
-∣∣≡-functional :
-  (x : Finite-subset-of A) → ∣ x ∣≡ m → ∣ x ∣≡ n → m ≡ n
-∣∣≡-functional = LM.∣∣≡-functional ∘ _≃_.from Listed≃Kuratowski
-
--- If truncated equality is decidable, then one can compute the size
--- of a finite subset.
-
-size :
-  ((x y : A) → Dec ∥ x ≡ y ∥) →
-  (x : Finite-subset-of A) → ∃ λ n → ∣ x ∣≡ n
-size equal? = LM.size equal? ∘ _≃_.from Listed≃Kuratowski

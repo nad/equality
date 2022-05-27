@@ -27,9 +27,10 @@ import Finite-subset.Listed.Membership
 
 import Finite-subset.Listed.Alternative
 
--- Kuratowski finite subsets.
+-- A membership relation for Kuratowski finite subsets (defined using
+-- non-erased univalence).
 
-import Finite-subset.Kuratowski
+import Finite-subset.Kuratowski.Membership
 
 -- An example related to Nat.Wrapper, defined in Cubical Agda.
 

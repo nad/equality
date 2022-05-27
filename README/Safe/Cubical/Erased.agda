@@ -153,6 +153,10 @@ import Quotient.Erased
 
 import Finite-subset.Listed
 
+-- Kuratowski finite subsets.
+
+import Finite-subset.Kuratowski
+
 -- Listed finite subsets, defined using a HIT with erased higher
 -- constructors.
 
