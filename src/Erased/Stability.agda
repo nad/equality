@@ -12,7 +12,7 @@ module Erased.Stability
 open Derived-definitions-and-properties eq
 
 open import Logical-equivalence as LE using (_⇔_)
-open import Prelude
+open import Prelude as P
 
 open import Accessibility eq as A using (Acc; Well-founded)
 open import Bijection eq as Bijection using (_↔_; Has-quasi-inverse)
@@ -528,6 +528,11 @@ Very-stable-⊤ = _≃_.is-equivalence $ Eq.↔⇒≃ $ inverse Erased-⊤↔⊤
 
 Very-stable-⊥ : Very-stable (⊥ {ℓ = ℓ})
 Very-stable-⊥ = _≃_.is-equivalence $ Eq.↔⇒≃ $ inverse Erased-⊥↔⊥
+
+-- T b is very stable for all b : A ⊎ B.
+
+Very-stable-T : (b : A ⊎ B) → Very-stable (T b)
+Very-stable-T = P.[ (λ _ → Very-stable-⊤) , (λ _ → Very-stable-⊥) ]
 
 -- Stable is closed under Π A.
 
