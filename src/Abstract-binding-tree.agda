@@ -8,7 +8,7 @@
 -- TODO: Define α-equivalence, prove that key operations respect
 -- α-equivalence.
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 import Equality.Path as P
 
@@ -30,7 +30,7 @@ open import Equality.Path.Isomorphisms equality-with-paths
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Erased.Cubical equality-with-paths as E
 open import Finite-subset.Listed equality-with-paths as L
-open import Finite-subset.Listed.Membership equality-with-paths
+open import Finite-subset.Listed.Membership.Erased equality-with-paths
   hiding (fresh)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
@@ -1027,12 +1027,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
                                                                             y≢x ∘ sym ∘ _≃_.to ≡cast-Var≃ ∘ sym) ⟩
                  (s , y) ≢ (s′ , x) ×
                  (y ∈ dom ∥⊎∥ (s , y) ∈ free-Arg aˢ a′)                 ↔⟨ (∃-cong λ _ →
-                                                                            ∥⊎∥≃∥⊎∥¬× $
-                                                                            ΠΠ-Dec→ΠΠ-Dec-∥∥
-                                                                              (member? (ΠΠ-Dec→ΠΠ-Dec-∥∥ $
-                                                                                        Decidable-erased-equality≃Decidable-equality _
-                                                                                        _≟V_))
-                                                                              y dom) ⟩
+                                                                            ∥⊎∥≃∥⊎∥¬× $ Dec→Dec-∥∥ $
+                                                                            member? (ΠΠ-Dec-Erased→ΠΠ-Dec-Erased-∥∥ _≟V_) y dom) ⟩
                  (s , y) ≢ (s′ , x) ×
                  (y ∈ dom ∥⊎∥ y ∉ dom × (s , y) ∈ free-Arg aˢ a′)       ↝⟨ (uncurry λ y≢x → id ∥⊎∥-cong ×-cong₁ λ _ →
 

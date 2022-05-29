@@ -228,3 +228,9 @@ import Queue.Quotiented
 -- Queue instances for the queues in Queue.Quotiented.
 
 import Queue.Quotiented.Instances
+
+-- Abstract binding trees, based on Harper's "Practical Foundations
+-- for Programming Languages".
+
+import Abstract-binding-tree
+import README.Abstract-binding-tree

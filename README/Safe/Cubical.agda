@@ -36,12 +36,6 @@ import Finite-subset.Kuratowski.Membership
 
 import Nat.Wrapper.Cubical
 
--- Abstract binding trees, based on Harper's "Practical Foundations
--- for Programming Languages".
-
-import Abstract-binding-tree
-import README.Abstract-binding-tree
-
 -- Overview of code related to a paper.
 
 import README.HITs-without-paths

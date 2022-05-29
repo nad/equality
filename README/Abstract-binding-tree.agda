@@ -2,7 +2,7 @@
 -- An example of how Abstract-binding-tree can be used
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 module README.Abstract-binding-tree where
 
@@ -16,7 +16,8 @@ open import Equality.Decision-procedures equality-with-J
 open import Equivalence equality-with-J using (_≃_)
 open import Erased.Cubical equality-with-paths as E
 open import Finite-subset.Listed equality-with-paths as L
-open import Finite-subset.Listed.Membership equality-with-paths as LM
+open import Finite-subset.Listed.Membership.Erased equality-with-paths
+  as LM
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -176,8 +177,7 @@ print[λxy→xy] = print λxy→xy₁
   lemma =
     from-⊎ $
     subset?
-      (ΠΠ-Dec→ΠΠ-Dec-∥∥
-         (Decidable-erased-equality≃Decidable-equality _ _≟∃V_))
+      (ΠΠ-Dec-Erased→ΠΠ-Dec-Erased-∥∥ _≟∃V_)
       []
       ((expr , 0) ∷ [])
 
