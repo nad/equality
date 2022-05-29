@@ -153,6 +153,11 @@ import Quotient.Erased
 
 import Finite-subset.Listed
 
+-- A membership relation for listed finite subsets (defined using
+-- erased univalence).
+
+import Finite-subset.Listed.Membership.Erased
+
 -- Kuratowski finite subsets.
 
 import Finite-subset.Kuratowski

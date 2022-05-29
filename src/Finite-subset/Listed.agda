@@ -8,7 +8,9 @@
 -- A membership relation, and a number of definitions that make use of
 -- the membership relation, can be found in
 -- Finite-subset.Listed.Membership (which uses --cubical rather than
--- --erased-cubical).
+-- --erased-cubical). An alternative definition of membership can be
+-- found in Finite-subset.Listed.Membership.Erased (that definition of
+-- membership is erased, but the module uses --erased-cubical).
 
 {-# OPTIONS --erased-cubical --safe #-}
 
