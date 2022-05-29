@@ -1241,7 +1241,7 @@ Is-finite-propositional (x , p) (y , q) =
 fresh :
   (ns : Finite-subset-of ℕ) →
   ∃ λ (n : ℕ) → n ∉ ns
-fresh ns =
+fresh = λ ns →
   Σ-map id
     (λ {m} →
        Erased (∀ n → n ∈ ns → n < m)  →⟨ EC.map (_$ m) ⟩
