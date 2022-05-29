@@ -1409,9 +1409,10 @@ delete⊆≃ _≟_ = minus⊆≃ {_≟_ = _≟_} (singleton _)
   z ∈ x₂ ∪ y₂        □
 
 filter-cong-⊆ :
+  ∀ p q →
   (∀ z → T (p z) → T (q z)) →
   x ⊆ y → filter p x ⊆ filter q y
-filter-cong-⊆ {p = p} {q = q} {x = x} {y = y} p⇒q x⊆y z =
+filter-cong-⊆ {x = x} {y = y} p q p⇒q x⊆y z =
   z ∈ filter p x   ↔⟨ ∈filter≃ p ⟩
   T (p z) × z ∈ x  →⟨ Σ-map (p⇒q _) (x⊆y _) ⟩
   T (q z) × z ∈ y  ↔⟨ inverse $ ∈filter≃ q ⟩□
