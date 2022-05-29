@@ -176,7 +176,7 @@ print[λxy→xy] = print λxy→xy₁
   lemma =
     from-⊎ $
     subset?
-      (decidable→decidable-∥∥
+      (ΠΠ-Dec→ΠΠ-Dec-∥∥
          (Decidable-erased-equality≃Decidable-equality _ _≟∃V_))
       []
       ((expr , 0) ∷ [])

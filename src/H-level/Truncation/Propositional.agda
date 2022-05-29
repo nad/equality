@@ -993,15 +993,41 @@ Dec→Dec-∥∥ : Dec A → Dec ∥ A ∥
 Dec→Dec-∥∥ (yes a) = yes ∣ a ∣
 Dec→Dec-∥∥ (no ¬A) = no (_↔_.from ¬∥∥↔¬ ¬A)
 
+-- If A is decided (with erased proofs), then ∥ A ∥ is decided (with
+-- erased proofs).
+
+Dec-Erased→Dec-Erased-∥∥ : Dec-Erased A → Dec-Erased ∥ A ∥
+Dec-Erased→Dec-Erased-∥∥ {A = A} =
+  Dec-Erased A        →⟨ E.Dec-Erased↔Dec-Erased _ ⟩
+  Dec (Erased A)      →⟨ Dec→Dec-∥∥ ⟩
+  Dec ∥ Erased A ∥    →⟨ Dec-map₀
+                           (rec′ λ where
+                              .Rec′.∣∣ʳ →
+                                E.map ∣_∣
+                              .Rec′.truncation-is-propositionʳ →
+                                E.H-level-Erased 1 truncation-is-proposition)
+                           (λ (E.[ x ]) → ∥∥-map E.[_]→ x) ⟩
+  Dec (Erased ∥ A ∥)  →⟨ _⇔_.from (E.Dec-Erased↔Dec-Erased _) ⟩□
+  Dec-Erased ∥ A ∥    □
+
 -- If a binary relation can be decided, then the propositional
 -- truncation of the relation can also be decided.
 
-decidable→decidable-∥∥ :
+ΠΠ-Dec→ΠΠ-Dec-∥∥ :
   {P : A → B → Type p} →
   ((x : A) (y : B) → Dec (P x y)) →
   ((x : A) (y : B) → Dec ∥ P x y ∥)
-decidable→decidable-∥∥ dec =
+ΠΠ-Dec→ΠΠ-Dec-∥∥ dec =
   λ x y → Dec→Dec-∥∥ (dec x y)
+
+-- A variant of ΠΠ-Dec→ΠΠ-Dec-∥∥ for Dec-Erased.
+
+ΠΠ-Dec-Erased→ΠΠ-Dec-Erased-∥∥ :
+  {P : A → B → Type p} →
+  ((x : A) (y : B) → Dec-Erased (P x y)) →
+  ((x : A) (y : B) → Dec-Erased ∥ P x y ∥)
+ΠΠ-Dec-Erased→ΠΠ-Dec-Erased-∥∥ dec =
+  λ x y → Dec-Erased→Dec-Erased-∥∥ (dec x y)
 
 -- If A is decided, then one can convert between ∥ A ∥ and A.
 

@@ -1028,8 +1028,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
                  (s , y) ≢ (s′ , x) ×
                  (y ∈ dom ∥⊎∥ (s , y) ∈ free-Arg aˢ a′)                 ↔⟨ (∃-cong λ _ →
                                                                             ∥⊎∥≃∥⊎∥¬× $
-                                                                            decidable→decidable-∥∥
-                                                                              (member? (decidable→decidable-∥∥ $
+                                                                            ΠΠ-Dec→ΠΠ-Dec-∥∥
+                                                                              (member? (ΠΠ-Dec→ΠΠ-Dec-∥∥ $
                                                                                         Decidable-erased-equality≃Decidable-equality _
                                                                                         _≟V_))
                                                                               y dom) ⟩
