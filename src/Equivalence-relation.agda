@@ -39,6 +39,15 @@ record Is-equivalence-relation
 -- Some examples of equivalence relations/equivalence relation
 -- transformers
 
+-- Equality is an equivalence relation.
+
+≡-is-equivalence-relation :
+  Is-equivalence-relation (_≡_ {A = A})
+≡-is-equivalence-relation = λ where
+  .Is-equivalence-relation.reflexive  → refl _
+  .Is-equivalence-relation.symmetric  → sym
+  .Is-equivalence-relation.transitive → trans
+
 -- A trivial binary relation.
 
 Trivial : A → B → Type r
