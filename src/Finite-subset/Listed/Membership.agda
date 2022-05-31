@@ -405,6 +405,15 @@ extensionality {x = x} {y = y} =
                               (λ (x⊆y , y⊆x) z → record { to = x⊆y z ; from = y⊆x z }) ⟩□
   x ⊆ y × y ⊆ x          □
 
+-- The empty set is not equal to a set constructed using _∷_.
+
+[]≢∷ : Finite-subset-of.[] ≢ x ∷ y
+[]≢∷ {x = x} {y = y} =
+  [] ≡ x ∷ y                  ↔⟨ extensionality ⟩
+  (∀ z → z ∈ [] ⇔ z ∈ x ∷ y)  →⟨ (λ hyp → _⇔_.from (hyp x) (≡→∈∷ (refl _))) ⟩
+  x ∈ []                      ↔⟨ ∈[]≃ ⟩□
+  ⊥                           □
+
 -- _⊆_ is a partial order.
 
 ⊆-refl : x ⊆ x

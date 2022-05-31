@@ -291,6 +291,11 @@ extensionality {x = x} {y = y} =
   x M.⊆ y × y M.⊆ x  ↝⟨ inverse $ ⊆≃⊆ ×-cong ⊆≃⊆ ⟩□
   x ⊆ y × y ⊆ x      □
 
+-- The empty set is not equal to a set constructed using _∷_.
+
+[]≢∷ : Finite-subset-of.[] ≢ x ∷ y
+[]≢∷ = EC.Very-stable→Stable 0 (EC.Very-stable-¬ ext) [ M.[]≢∷ ]
+
 -- _⊆_ is a partial order (in erased contexts).
 
 ⊆-refl : x ⊆ x
