@@ -116,6 +116,11 @@ Very-stableᴱ-propositional ext =
 
 -- Very stable types are stable.
 
+Very-stable→Stable₀ : {@0 A : Type a} → Very-stable A → Stable A
+Very-stable→Stable₀ s = Eq._≃₀_.from Eq.⟨ _ , s ⟩
+
+-- A variant of Very-stable→Stable₀.
+
 Very-stable→Stable :
   ∀ n →
   For-iterated-equality n Very-stable A →
@@ -128,8 +133,13 @@ Very-stable→Stable {k = k} n =
     Stable-[ equivalence ] A  ↝⟨ from-equivalence ⟩□
     Stable-[ k ] A            □
 
--- The function obtained from Very-stable→Stable {k = implication} 0
--- maps [ x ] to x.
+-- Very-stable→Stable₀ s is definitionally equal to
+-- Very-stable→Stable 0 s.
+
+_ : Very-stable→Stable₀ s ≡ Very-stable→Stable 0 s
+_ = refl _
+
+-- Very-stable→Stable₀ maps [ x ] to x.
 --
 -- This seems to imply that (say) the booleans can not be proved to be
 -- very stable (assuming that Agda is consistent), because
@@ -141,11 +151,11 @@ Very-stable→Stable {k = k} n =
 
 Very-stable→Stable-[]≡id :
   (s : Very-stable A) →
-  Very-stable→Stable 0 s [ x ] ≡ x
+  Very-stable→Stable₀ s [ x ] ≡ x
 Very-stable→Stable-[]≡id {x = x} s =
-  Very-stable→Stable 0 s [ x ]  ≡⟨⟩
-  _≃_.from Eq.⟨ _ , s ⟩ [ x ]   ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s ⟩ x ⟩∎
-  x                             ∎
+  Very-stable→Stable₀ s [ x ]      ≡⟨⟩
+  Eq._≃₀_.from Eq.⟨ _ , s ⟩ [ x ]  ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s ⟩ x ⟩∎
+  x                                ∎
 
 -- Very stable types are very stable with erased proofs.
 
