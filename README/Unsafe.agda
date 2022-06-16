@@ -3,7 +3,7 @@
 -- do not use --sized-types
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --irrelevant-projections #-}
 
 module README.Unsafe where
 
@@ -14,3 +14,7 @@ import String
 -- IO.
 
 import IO-monad
+
+-- Squashing using irrelevance (with irrelevant projections).
+
+import Squash.Irrelevance
