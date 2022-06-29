@@ -1014,8 +1014,7 @@ abstract
   T-propositional (inj₁ _) = mono₁ 0 ⊤-contractible
   T-propositional (inj₂ _) = ⊥-propositional
 
-  -- Furthermore Is-proposition is closed under Dec (assuming
-  -- extensionality).
+  -- Is-proposition is closed under Dec (assuming extensionality).
 
   Dec-closure-propositional :
     ∀ {a} {A : Type a} →
