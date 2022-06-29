@@ -1006,6 +1006,24 @@ abstract
   Maybe-closure n h =
     ⊎-closure n (mono (zero≤ (2 + n)) ⊤-contractible) h
 
+  -- Equality with nothing is a proposition.
+
+  Equality-⊎-nothing-propositional :
+    ∀ {a} {A : Type a} {x : Maybe A} →
+    Is-proposition (Equality-⊎ x nothing)
+  Equality-⊎-nothing-propositional {x = just _}  = ⊥-propositional
+  Equality-⊎-nothing-propositional {x = nothing} =
+    ↑-closure 1 $ mono₁ 0 $ ⇒≡ 0 ⊤-contractible
+
+  -- Equality with nothing is a proposition.
+
+  ≡-nothing-propositional :
+    ∀ {a} {A : Type a} {x : Maybe A} →
+    Is-proposition (x ≡ nothing)
+  ≡-nothing-propositional =
+    respects-surjection (_↔_.surjection $ Bijection.inverse ≡↔⊎)
+      1 Equality-⊎-nothing-propositional
+
   -- T is pointwise propositional.
 
   T-propositional :
