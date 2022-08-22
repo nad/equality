@@ -99,8 +99,9 @@ private
         (∀ x → Modal (P x)) →
         Is-∞-extendable-along-[ η ] P
 
+open Dummy using (module Modality-record)
 open Dummy public
-  using (module Modality-record)
+  hiding (module Modality-record)
   renaming (Modality-record to Modality)
 
 ------------------------------------------------------------------------
