@@ -696,7 +696,7 @@ W-modal-propositional {M = M} ext =
 
 module Modality (M : Modality a) where
 
-  open Dummy.Modality-record M public
+  open Modality-record M public
 
   ----------------------------------------------------------------------
   -- Eliminators
