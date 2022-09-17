@@ -33,7 +33,7 @@ open import Agda.Primitive.Cubical public
             primTransp to transport)
 
 open import Agda.Builtin.Cubical.Sub public
-  renaming (Sub to _[_↦_]; inc to inˢ; primSubOut to outˢ)
+  renaming (Sub to _[_↦_]; inS to inˢ; primSubOut to outˢ)
 
 ------------------------------------------------------------------------
 -- Some local generalisable variables

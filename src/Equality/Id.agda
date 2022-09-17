@@ -31,8 +31,8 @@ Reflexive-relation._≡_  (reflexive-relation _) = _≡_
 Reflexive-relation.refl (reflexive-relation _) = λ _ → refl
 
 equality-with-J₀ : ∀ {a p} → Equality-with-J₀ a p reflexive-relation
-Equality-with-J₀.elim      equality-with-J₀ = λ P r → Id.primIdJ
-                                                        (λ _ → P) (r _)
+Equality-with-J₀.elim      equality-with-J₀ = λ P r →
+                                                Id.IdJ (λ _ → P) (r _)
 Equality-with-J₀.elim-refl equality-with-J₀ = λ _ _ → refl
 
 equivalence-relation⁺ : ∀ ℓ → Equivalence-relation⁺ ℓ
