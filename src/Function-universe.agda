@@ -4256,12 +4256,15 @@ inhabited→propositional→↝⊤ x prop = generalise-ext?-prop
 ¬-cong-⇔ :
   ∀ {a b} {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) lzero →
-  A ⇔ B → (¬ A) ≃ (¬ B)
+  @0 A ⇔ B → (¬ A) ≃ (¬ B)
 ¬-cong-⇔ {a} {b} ext A⇔B =
   _↠_.from
     (Eq.≃↠⇔ (¬-propositional (lower-extensionality b lzero ext))
             (¬-propositional (lower-extensionality a lzero ext)))
-    (→-cong _ A⇔B id)
+    (record
+       { to   = λ f x → ⊥-elim₀ (f (_⇔_.from A⇔B x))
+       ; from = λ f x → ⊥-elim₀ (f (_⇔_.to   A⇔B x))
+       })
 
 -- Symmetric kinds of functions are preserved by ¬_ (assuming
 -- extensionality).
@@ -4269,7 +4272,7 @@ inhabited→propositional→↝⊤ x prop = generalise-ext?-prop
 ¬-cong :
   ∀ {k a b} {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) lzero →
-  A ↝[ ⌊ k ⌋-sym ] B → (¬ A) ↝[ ⌊ k ⌋-sym ] (¬ B)
+  @0 A ↝[ ⌊ k ⌋-sym ] B → (¬ A) ↝[ ⌊ k ⌋-sym ] (¬ B)
 ¬-cong ext A↝B = from-equivalence (¬-cong-⇔ ext (sym→⇔ A↝B))
 
 -- If B can be decided, given that A is inhabited, then A → B is

@@ -478,7 +478,7 @@ all-points-on-the-circle-are-¬¬-equal x =
     [ ({P : 𝕊¹ᴱ → Type} → ((x : 𝕊¹ᴱ) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹ᴱ) → P x))  ↔⟨ (implicit-Π-cong ext
                                                                                 (→-cong₁ {k₂ = equivalence} ext $ inverse 𝕊¹≃𝕊¹ᴱ) λ _ →
                                                                               →-cong ext (inverse $ Π-cong ext 𝕊¹≃𝕊¹ᴱ λ _ → Eq.id) $
-                                                                              ¬-cong ext $ ¬-cong ext $ inverse $ Π-cong ext 𝕊¹≃𝕊¹ᴱ λ _ → Eq.id) ⟩
+                                                                              ¬-cong ext (¬-cong ext (inverse $ Π-cong ext 𝕊¹≃𝕊¹ᴱ λ _ → Eq.id))) ⟩
       ({P : 𝕊¹ → Type} → ((x : 𝕊¹) → ¬ ¬ P x) → ¬ ¬ ((x : 𝕊¹) → P x))     ↝⟨ C.¬-double-negation-shift ⟩□
       ⊥                                                                   □
     ]
