@@ -13,6 +13,7 @@ private
   open module D = Derived-definitions-and-properties eq
     hiding (trans)
 
+open import Dec as _
 open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (id; swap)
 
@@ -325,6 +326,18 @@ filter-cong p xs ys xs∼ys = λ z →
 
 ------------------------------------------------------------------------
 -- Some decision procedures
+
+-- If P is pointwise decidable, then Any P is pointwise decidable.
+
+Dec-Any : (∀ x → Dec (P x)) → ∀ xs → Dec (Any P xs)
+Dec-Any dec []       = no (λ ())
+Dec-Any dec (x ∷ xs) = Dec-⊎ (dec x) (Dec-Any dec xs)
+
+-- If equality is decidable for a given type, then membership is
+-- decidable for that type.
+
+Decidable-∈ : Decidable-equality A → Decidable (_∈_ {A = A})
+Decidable-∈ dec x = Dec-Any (dec x)
 
 -- Any preserves decidability of equality.
 
