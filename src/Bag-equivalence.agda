@@ -324,25 +324,25 @@ filter-cong p xs ys xs∼ys = λ z →
   z ∈ filter p ys                 □
 
 ------------------------------------------------------------------------
--- More properties
+-- Some decision procedures
 
 -- Any preserves decidability of equality.
 
-module Dec (dec : ∀ {x} → Decidable-equality (P x)) where
-
-  infix 4 _≟_
-
-  _≟_ : Decidable-equality (Any P xs)
-  _≟_ {xs = _ ∷ _} = ⊎.Dec._≟_ dec _≟_
+Decidable-equality-Any :
+  (∀ {x} → Decidable-equality (P x)) →
+  Decidable-equality (Any P xs)
+Decidable-equality-Any {xs = _ ∷ _} dec =
+  ⊎.Dec._≟_ dec (Decidable-equality-Any dec)
 
 -- If the type of x is a set, then equality is decidable for x ∈ xs.
 
-module Dec-∈ (A-set : Is-set A) where
+Decidable-equality-∈ :
+  {x : A} → Is-set A → Decidable-equality (x ∈ xs)
+Decidable-equality-∈ A-set =
+  Decidable-equality-Any (λ _ _ → yes (A-set _ _))
 
-  infix 4 _≟_
-
-  _≟_ : ∀ {x xs} → Decidable-equality (x ∈ xs)
-  _≟_ = Dec._≟_ λ _ _ → yes (A-set _ _)
+------------------------------------------------------------------------
+-- More properties
 
 -- Bind distributes from the left over append.
 

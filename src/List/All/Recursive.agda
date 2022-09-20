@@ -14,7 +14,7 @@ open Derived-definitions-and-properties eq
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bag-equivalence eq hiding (cons; module Dec)
+open import Bag-equivalence eq hiding (cons)
 open import Bijection eq as Bijection using (_↔_)
 open import Equality.Decision-procedures eq
 open import Extensionality eq
@@ -352,7 +352,7 @@ module Dec-⊆ (A-set : Is-set A) where
   infix 4 _≟_
 
   _≟_ : {xs ys : List A} → Decidable-equality (xs ⊆ ys)
-  _≟_ = Dec._≟_ (Dec-∈._≟_ A-set)
+  _≟_ = Dec._≟_ (Decidable-equality-∈ A-set)
 
 -- All preserves h-levels.
 
