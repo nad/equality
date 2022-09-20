@@ -1037,6 +1037,22 @@ Dec→∥∥⇔ _       ._⇔_.from = ∣_∣
 Dec→∥∥⇔ (yes a) ._⇔_.to   = λ _ → a
 Dec→∥∥⇔ (no ¬A) ._⇔_.to   = ⊥-elim ∘ rec ⊥-propositional ¬A
 
+-- If A is decided, then one can convert between Erased ∥ A ∥ and A.
+
+Dec→Erased-∥∥⇔ : Dec A → Erased ∥ A ∥ ⇔ A
+Dec→Erased-∥∥⇔ {A = A} dec =
+  Erased ∥ A ∥  ↝⟨ record { to = E.Dec→Stable (Dec→Dec-∥∥ dec); from = E.[_]→ } ⟩
+  ∥ A ∥         ↝⟨ Dec→∥∥⇔ dec ⟩□
+  A             □
+
+-- If A is decided, then one can convert between ∥ Erased A ∥ and A.
+
+Dec→∥Erased∥⇔ : Dec A → ∥ Erased A ∥ ⇔ A
+Dec→∥Erased∥⇔ {A = A} dec =
+  ∥ Erased A ∥  ↝⟨ Dec→∥∥⇔ (E.Dec-Erased↔Dec-Erased _ (E.Dec→Dec-Erased dec)) ⟩
+  Erased A      ↝⟨ record { to = E.Dec→Stable dec; from = E.[_]→ } ⟩□
+  A             □
+
 -- Variants of the following two lemmas were communicated to me by
 -- Nicolai Kraus. They are closely related to Lemma 2.1 in his paper
 -- "The General Universal Property of the Propositional Truncation".
