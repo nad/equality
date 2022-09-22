@@ -383,7 +383,7 @@ mutual
     -- There is no positive evidence that the result is true. The term
     -- contains the term unknown, the sort unknown, or a
     -- pattern-matching lambda (and pattern-matching lambdas are not
-    -- analysed).
+    -- analysed), or fuel ran out.
 
 instance
 
@@ -454,3 +454,31 @@ bound? x = any-term (eq-ℕ x)
 
 <bound? : ℕ → Term → Any-result
 <bound? x = any-term (λ y → suc y <= x)
+
+-- Does the type seem to be "dependent" (a sequence of one or more Π's
+-- where at least one of the codomains mentions the bound variable)?
+--
+-- Hidden arguments are reconstructed if argument reconstruction has
+-- been activated.
+
+is-dependent
+  : ℕ     -- Fuel.
+  → Bool  -- Skip a maximal prefix of domains that are not visible?
+  → Type
+  → TC Any-result
+is-dependent zero    _    _ = return unknown
+is-dependent (suc n) skip t = do
+  t ← reduce t
+  case t of λ where
+    (pi a@(arg (arg-info v _) _) (abs x b)) →
+      let cont skip = extendContext x a $ is-dependent n skip b
+          check     = case bound? 0 b of λ where
+            (definitely false) → cont false
+            is-bound           → return is-bound
+      in case skip of λ where
+        false → check
+        true  → case eq-Visibility v visible of λ where
+          true  → check
+          false → cont true
+    (meta m _) → return (meta m)
+    _          → return (definitely false)
