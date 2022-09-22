@@ -25,7 +25,8 @@ open import Nat eq
 
 -- Reflection primitives.
 
-open Agda.Builtin.Reflection public hiding (isMacro; withNormalisation)
+open Agda.Builtin.Reflection public
+  hiding (isMacro; withNormalisation; runSpeculative)
 
 -- The TC monad is a "raw monad".
 
@@ -56,6 +57,11 @@ isMacro x = _⇔_.to Bool⇔Bool ⟨$⟩ Agda.Builtin.Reflection.isMacro x
 withNormalisation : ∀ {a} {A : P.Type a} → Bool → TC A → TC A
 withNormalisation =
   Agda.Builtin.Reflection.withNormalisation ∘ _⇔_.from Bool⇔Bool
+
+runSpeculative : ∀ {a} {A : P.Type a} → TC (A × Bool) → TC A
+runSpeculative =
+  Agda.Builtin.Reflection.runSpeculative ∘
+  (Σ-map id (_⇔_.from Bool⇔Bool) ⟨$⟩_)
 
 -- Constructs a visible, relevant argument that is not erased
 
