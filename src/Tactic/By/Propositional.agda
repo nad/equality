@@ -59,28 +59,28 @@ private
   unquoteDecl cong₉  = make-cong-called cong₉   9
   unquoteDecl cong₁₀ = make-cong-called cong₁₀ 10
 
-  -- Constructs a "cong" function (similar to cong and cong₂ in
-  -- Equality) for functions with the given number of arguments. The
-  -- name of the constructed function is returned (for 1 and 2 the
-  -- functions in Equality are returned). The cong functions for
-  -- functions with 3 up to 10 arguments are cached to avoid creating
-  -- lots of copies of the same functions.
+-- Constructs a "cong" function (similar to cong and cong₂ in
+-- Equality) for functions with the given number of arguments. The
+-- name of the constructed function is returned (for 1 and 2 the
+-- functions in Equality are returned). The cong functions for
+-- functions with 3 up to 10 arguments are cached to avoid creating
+-- lots of copies of the same functions.
 
-  make-cong : ℕ → TC Name
-  make-cong  1 = return (quote cong)
-  make-cong  2 = return (quote cong₂)
-  make-cong  3 = return (quote cong₃)
-  make-cong  4 = return (quote cong₄)
-  make-cong  5 = return (quote cong₅)
-  make-cong  6 = return (quote cong₆)
-  make-cong  7 = return (quote cong₇)
-  make-cong  8 = return (quote cong₈)
-  make-cong  9 = return (quote cong₉)
-  make-cong 10 = return (quote cong₁₀)
-  make-cong n  = do
-    cong ← freshName "cong"
-    make-cong-called cong n
-    return cong
+make-cong : ℕ → TC Name
+make-cong  1 = return (quote cong)
+make-cong  2 = return (quote cong₂)
+make-cong  3 = return (quote cong₃)
+make-cong  4 = return (quote cong₄)
+make-cong  5 = return (quote cong₅)
+make-cong  6 = return (quote cong₆)
+make-cong  7 = return (quote cong₇)
+make-cong  8 = return (quote cong₈)
+make-cong  9 = return (quote cong₉)
+make-cong 10 = return (quote cong₁₀)
+make-cong n  = do
+  cong ← freshName "cong"
+  make-cong-called cong n
+  return cong
 
 open Tactics
   (λ where
