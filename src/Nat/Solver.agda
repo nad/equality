@@ -23,8 +23,7 @@ open import Function-universe eq
 open import Data.Nat.Solver
 open import Data.Vec as Vec
 open import Data.Vec.N-ary
-open import Function.Equality using (_⟨$⟩_)
-open import Function.Equivalence using (Equivalence)
+open import Function.Bundles using (Equivalence)
 import Relation.Binary.Reflection
 import Relation.Binary.PropositionalEquality as P
 
@@ -65,7 +64,7 @@ solve n f =
            (curryⁿ ⟦ proj₂ (close n f) ⟧↓)                         ↔⟨⟩
 
   ∀ⁿ n (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧↓ $ⁿ xs) ≡
-                      (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs))       ↝⟨ Equivalence.to (uncurry-∀ⁿ n) ⟨$⟩_ ⟩
+                      (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs))       ↝⟨ Equivalence.to (uncurry-∀ⁿ n) ⟩
 
   (∀ (xs : Vec _ n) →
      (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧↓ $ⁿ xs) ≡
@@ -81,7 +80,7 @@ solve n f =
 
   (∀ (xs : Vec _ n) →
      (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧↓ $ⁿ xs) P.≡
-                    (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs)) $ⁿ xs)  ↝⟨ Equivalence.from (uncurry-∀ⁿ n) ⟨$⟩_ ⟩
+                    (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs)) $ⁿ xs)  ↝⟨ Equivalence.from (uncurry-∀ⁿ n) ⟩
 
   ∀ⁿ n (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧↓ $ⁿ xs) P.≡
                       (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs))       ↔⟨⟩
@@ -96,7 +95,7 @@ solve n f =
              (curryⁿ ⟦ proj₂ (close n f) ⟧)                        ↔⟨⟩
 
   ∀ⁿ n (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧ $ⁿ xs) P.≡
-                      (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs))        ↝⟨ Equivalence.to (uncurry-∀ⁿ n) ⟨$⟩_ ⟩
+                      (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs))        ↝⟨ Equivalence.to (uncurry-∀ⁿ n) ⟩
 
   (∀ (xs : Vec _ n) →
      (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧ $ⁿ xs) P.≡
@@ -112,7 +111,7 @@ solve n f =
 
   (∀ (xs : Vec _ n) →
      (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧ $ⁿ xs) ≡
-                    (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs)) $ⁿ xs)   ↝⟨ Equivalence.from (uncurry-∀ⁿ n) ⟨$⟩_ ⟩
+                    (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs)) $ⁿ xs)   ↝⟨ Equivalence.from (uncurry-∀ⁿ n) ⟩
 
   ∀ⁿ n (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧ $ⁿ xs) ≡
                       (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs))        ↔⟨⟩
