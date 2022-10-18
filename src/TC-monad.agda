@@ -67,9 +67,18 @@ runSpeculative =
 
 pattern varg x = arg (arg-info visible (modality relevant quantity-ω)) x
 
+-- Constructs a visible, relevant argument that is erased.
+
+pattern vargᴱ x =
+  arg (arg-info visible (modality relevant quantity-0)) x
+
 -- Constructs a hidden, relevant argument that is not erased.
 
 pattern harg x = arg (arg-info hidden (modality relevant quantity-ω)) x
+
+-- Constructs a hidden, relevant argument that is erased.
+
+pattern hargᴱ x = arg (arg-info hidden (modality relevant quantity-0)) x
 
 -- An n-ary variant of pi.
 
