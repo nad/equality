@@ -896,6 +896,44 @@ suc m ≤→ suc n = m ≤→ n
 <→∸≡0 {m = zero}  {n = suc n} 0<1+n   = 0  ∎
 <→∸≡0 {m = suc m} {n = suc n} 1+m<1+n = <→∸≡0 (suc≤suc⁻¹ 1+m<1+n)
 
+-- Multiplication distributes from the left over truncated
+-- subtraction.
+
+*-∸-distribˡ : ∀ m {n k} → m * (n ∸ k) ≡ m * n ∸ m * k
+*-∸-distribˡ m {n = n} {k = k} = case k ≤⊎> n of λ where
+    (inj₂ k>n) →
+      m * (n ∸ k)    ≡⟨ cong (m *_) (<→∸≡0 k>n) ⟩
+      m * 0          ≡⟨ *-right-zero m ⟩
+      0              ≡⟨ lemma₁ m k>n ⟩∎
+      m * n ∸ m * k  ∎
+    (inj₁ k≤n) → lemma₂ m k≤n
+  where
+  lemma₁ : ∀ m → n < k → 0 ≡ m * n ∸ m * k
+  lemma₁ zero       _   = refl _
+  lemma₁ m@(suc m′) n<k =
+    0              ≡⟨ sym $ <→∸≡0 $ suc-*-mono-< m′ n<k ⟩∎
+    m * n ∸ m * k  ∎
+
+  lemma₂ : ∀ m → k ≤ n → m * (n ∸ k) ≡ m * n ∸ m * k
+  lemma₂ zero    _   = 0  ∎
+  lemma₂ (suc m) k≤n =
+    n ∸ k + m * (n ∸ k)        ≡⟨ cong (n ∸ k +_) (lemma₂ m k≤n) ⟩
+    n ∸ k + (m * n ∸ m * k)    ≡⟨ sym $ +-∸-comm k≤n ⟩
+    n + (m * n ∸ m * k) ∸ k    ≡⟨ cong (_∸ k) $ sym $ +-∸-assoc ((m ∎≤) *-mono k≤n) ⟩
+    n + m * n ∸ m * k ∸ k      ≡⟨ ∸-∸-assoc (m * _) ⟩
+    n + m * n ∸ (m * k + k)    ≡⟨ cong (n + m * n ∸_) $ +-comm (m * _) ⟩∎
+    n + m * n ∸ (k + m * k)    ∎
+
+-- Multiplication distributes from the right over truncated
+-- subtraction.
+
+*-∸-distribʳ : ∀ {m} n {k} → (m ∸ n) * k ≡ m * k ∸ n * k
+*-∸-distribʳ {m = m} n {k = k} =
+  (m ∸ n) * k    ≡⟨ *-comm (m ∸ n) ⟩
+  k * (m ∸ n)    ≡⟨ *-∸-distribˡ k ⟩
+  k * m ∸ k * n  ≡⟨ cong₂ _∸_ (*-comm k) (*-comm k) ⟩∎
+  m * k ∸ n * k  ∎
+
 -- _∸_ is monotone in its first argument and antitone in its second
 -- argument.
 
