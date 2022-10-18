@@ -152,6 +152,23 @@ tails : List A → List (List A)
 tails []           = [] ∷ []
 tails xxs@(_ ∷ xs) = xxs ∷ tails xs
 
+-- The smallest element in the list extended with the given element.
+--
+-- The given comparison function ("is less than or equal to") is used.
+
+minimum : (A → A → Bool) → A → List A → A
+minimum _    x []       = x
+minimum _<=_ x (y ∷ ys) = case x <= y of λ where
+  true  → minimum _<=_ x ys
+  false → minimum _<=_ y ys
+
+-- The largest element in the list extended with the given element.
+--
+-- The given comparison function ("is less than or equal to") is used.
+
+maximum : (A → A → Bool) → A → List A → A
+maximum _<=_ = minimum (flip _<=_)
+
 ------------------------------------------------------------------------
 -- Some properties
 
