@@ -86,6 +86,15 @@ pis : List (Abs (Arg Type)) → Type → Type
 pis []             B = B
 pis (abs x A ∷ As) B = pi A (abs x (pis As B))
 
+-- Extends the context with the telescope and runs the given
+-- computation.
+
+extend-context-telescope :
+  ∀ {a} {A : P.Type a} → Telescope → TC A → TC A
+extend-context-telescope []              m = m
+extend-context-telescope ((x , t) ∷ tel) m =
+  extendContext x t $ extend-context-telescope tel m
+
 mutual
 
   -- Checks if the terms are syntactically equal.
