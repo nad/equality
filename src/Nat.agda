@@ -889,6 +889,13 @@ suc m ≤→ suc n = m ≤→ n
 +-∸-comm {zero}  {k = suc k} = ⊥-elim ∘ ≮0 k
 +-∸-comm {suc _} {k = suc _} = +-∸-comm ∘ suc≤suc⁻¹
 
+-- If m is less than n, then m ∸ n is 0.
+
+<→∸≡0 : ∀ {m n} → m < n → m ∸ n ≡ 0
+<→∸≡0             {n = zero}  m<0     = ⊥-elim (≮0 _ m<0)
+<→∸≡0 {m = zero}  {n = suc n} 0<1+n   = 0  ∎
+<→∸≡0 {m = suc m} {n = suc n} 1+m<1+n = <→∸≡0 (suc≤suc⁻¹ 1+m<1+n)
+
 -- _∸_ is monotone in its first argument and antitone in its second
 -- argument.
 
