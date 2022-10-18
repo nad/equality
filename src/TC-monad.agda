@@ -63,7 +63,7 @@ runSpeculative =
   Agda.Builtin.Reflection.runSpeculative ∘
   (Σ-map id (_⇔_.from Bool⇔Bool) ⟨$⟩_)
 
--- Constructs a visible, relevant argument that is not erased
+-- Constructs a visible, relevant argument that is not erased.
 
 pattern varg x = arg (arg-info visible (modality relevant quantity-ω)) x
 
