@@ -577,6 +577,28 @@ _*-mono_ {zero}          _ _ = zero≤ _
 _*-mono_ {suc _} {zero}  p q = ⊥-elim (≮0 _ p)
 _*-mono_ {suc _} {suc _} p q = q +-mono suc≤suc⁻¹ p *-mono q
 
+-- The function suc m *_ is monotone with respect to _<_.
+
+suc-*-mono-< : ∀ m {n₁ n₂} → n₁ < n₂ → suc m * n₁ < suc m * n₂
+suc-*-mono-< m {n₁ = n₁} {n₂ = n₂} p@(≤-refl′ q) =
+  suc n₁ + m * n₁  ≡⟨ cong (_+ _) q ⟩≤
+  n₂ + m * n₁      ≤⟨ (n₂ ∎≤) +-mono (m ∎≤) *-mono <→≤ p ⟩∎
+  n₂ + m * n₂      ∎≤
+suc-*-mono-< m {n₁ = n₁} {n₂ = n₂} p@(≤-step′ {k = k} q r) =
+  suc n₁ + m * n₁  ≤⟨ q +-mono (m ∎≤) *-mono <→≤ p ⟩
+  k + m * n₂       ≤⟨ ≤-step ≤-refl ⟩
+  suc k + m * n₂   ≡⟨ cong (_+ m * n₂) r ⟩≤
+  n₂ + m * n₂      ∎≤
+
+-- The function _* suc n is monotone with respect to _<_.
+
+*-suc-mono-< : ∀ {m₁ m₂} n → m₁ < m₂ → m₁ * suc n < m₂ * suc n
+*-suc-mono-< {m₁ = m₁} {m₂ = m₂} n p =
+  suc (m₁ * suc n)  ≡⟨ cong suc $ *-comm m₁ ⟩≤
+  suc (suc n * m₁)  ≤⟨ suc-*-mono-< n p ⟩
+  suc n * m₂        ≡⟨ *-comm (suc n) ⟩≤
+  m₂ * suc n        ∎≤
+
 -- 1 is less than or equal to positive natural numbers raised to any
 -- power.
 
