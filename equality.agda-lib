@@ -1,4 +1,6 @@
 name: equality
 depend: standard-library
 include: src
-flags: --no-import-sorts
+flags:
+  --no-import-sorts
+  --warning=noNoEquivWhenSplitting
