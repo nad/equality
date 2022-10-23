@@ -5,7 +5,7 @@
 -- This module reexports definitions that do not depend on an
 -- implementation of []-cong.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

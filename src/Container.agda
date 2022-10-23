@@ -2,7 +2,7 @@
 -- Containers, including a definition of bag equivalence
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

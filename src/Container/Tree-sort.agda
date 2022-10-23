@@ -3,7 +3,7 @@
 -- permutation of the input
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 open import Prelude hiding (id; _∘_; List; module List; []; _∷_)

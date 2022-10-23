@@ -5,7 +5,7 @@
 -- Partly based on "Constructing Recursion Operators in Intuitionistic
 -- Type Theory" by Lawrence C Paulson.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

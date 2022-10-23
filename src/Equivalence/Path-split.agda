@@ -8,7 +8,7 @@
 -- and the corresponding code in the Coq HoTT library
 -- (https://github.com/HoTT/HoTT).
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

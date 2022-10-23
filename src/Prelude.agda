@@ -2,7 +2,7 @@
 -- A small prelude
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 -- Note that parts of Agda's standard library make use of the K rule.
 

@@ -2,7 +2,7 @@
 -- Some definitions related to and properties of finite sets
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

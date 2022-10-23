@@ -2,7 +2,7 @@
 -- Truncation, defined using a kind of Church encoding
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 -- Partly following the HoTT book.
 

@@ -3,7 +3,7 @@
 -- isomorphic instances of a structure are equal (assuming univalence)
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 -- This code has been superseded by more recent developments. See
 -- README.agda.

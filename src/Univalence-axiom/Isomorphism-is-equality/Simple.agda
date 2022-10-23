@@ -11,7 +11,7 @@
 -- This module has been developed in collaboration with Thierry
 -- Coquand.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

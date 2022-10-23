@@ -2,7 +2,7 @@
 -- Some results that hold for modalities that commute with Erased
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 import Modality.Basics

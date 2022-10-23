@@ -4,7 +4,7 @@
 
 -- The definitions below are reexported from Erased.Level-1.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

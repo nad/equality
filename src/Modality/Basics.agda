@@ -11,7 +11,7 @@
 
 -- The definitions in this module are reexported from Modality.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

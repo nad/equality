@@ -2,7 +2,7 @@
 -- Banker's queues (following Okasaki)
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

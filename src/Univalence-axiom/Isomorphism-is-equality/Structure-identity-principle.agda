@@ -3,7 +3,7 @@
 -- isomorphism coincides with equality (assuming univalence)
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

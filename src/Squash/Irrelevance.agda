@@ -2,7 +2,7 @@
 -- Squashing using irrelevance (with irrelevant projections)
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --irrelevant-projections #-}
+{-# OPTIONS --cubical-compatible --irrelevant-projections #-}
 
 open import Equality
 

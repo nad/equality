@@ -3,7 +3,7 @@
 -- Pollack's "Dependently Typed Records in Type Theory"
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 -- The module is parametrised by the type of labels, which should come
 -- with decidable equality.

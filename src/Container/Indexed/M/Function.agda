@@ -5,7 +5,7 @@
 -- Based on "Non-wellfounded trees in Homotopy Type Theory" by Ahrens,
 -- Capriotti and Spadotti.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

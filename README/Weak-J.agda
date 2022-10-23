@@ -6,7 +6,7 @@
 -- The code is written by Nils Anders Danielsson
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 module README.Weak-J where
 

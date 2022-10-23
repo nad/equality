@@ -2,7 +2,7 @@
 -- Pullbacks
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 -- This module is partly based on code written by Guillame Brunerie in
 -- a fork of the Coq HoTT library

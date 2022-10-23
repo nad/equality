@@ -2,7 +2,7 @@
 -- Some definitions related to the binary sum type former
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

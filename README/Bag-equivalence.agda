@@ -16,7 +16,7 @@
 -- bag equivalence are logically equivalent have been strengthened to
 -- equivalences (proved using function extensionality).
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 module README.Bag-equivalence where
 

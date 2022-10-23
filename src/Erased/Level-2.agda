@@ -6,7 +6,7 @@
 
 -- This module imports Equivalence.Erased.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 open import Prelude hiding ([_,_])

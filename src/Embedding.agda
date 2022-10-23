@@ -4,7 +4,7 @@
 
 -- Partially following the HoTT book.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

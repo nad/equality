@@ -3,7 +3,7 @@
 -- the specification is propositional (assuming extensionality)
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 open import Prelude hiding (ℕ; zero; suc)

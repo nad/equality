@@ -2,7 +2,7 @@
 -- Modules that are not safe because they use --sized-types
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --sized-types #-}
+{-# OPTIONS --cubical-compatible --sized-types #-}
 
 module README.Unsafe.Sized-types where
 

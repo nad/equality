@@ -2,7 +2,7 @@
 -- Some results that hold for every very modal modality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 import Modality.Basics

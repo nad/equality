@@ -1,10 +1,10 @@
 ------------------------------------------------------------------------
--- Safe modules that use --without-K
+-- Safe modules that use --cubical-compatible
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --without-K #-}
+{-# OPTIONS --safe --cubical-compatible #-}
 
-module README.Safe.Without-K where
+module README.Safe.Cubical-compatible where
 
 -- Definitions of some basic types and some related functions.
 

@@ -2,7 +2,7 @@
 -- Queue instances for the queues in Queue.Bankers
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

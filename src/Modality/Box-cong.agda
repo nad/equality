@@ -3,7 +3,7 @@
 -- can be instantiated
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 import Erased.Level-1

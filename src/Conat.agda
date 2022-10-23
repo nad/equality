@@ -2,7 +2,7 @@
 -- Conatural numbers
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --sized-types #-}
+{-# OPTIONS --cubical-compatible --sized-types #-}
 
 open import Equality
 

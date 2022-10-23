@@ -2,7 +2,7 @@
 -- A type for values that should be erased at run-time
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 import Erased.Basics

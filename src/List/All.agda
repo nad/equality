@@ -2,7 +2,7 @@
 -- The All predicate, defined using _∈_
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

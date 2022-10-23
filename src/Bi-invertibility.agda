@@ -5,7 +5,7 @@
 -- The development is based on the presentation of bi-invertibility
 -- (for types and functions) and related things in the HoTT book.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 open import Prelude hiding (id; _∘_)

@@ -11,13 +11,13 @@
 
 module README where
 
--- "Safe" code that uses --without-K.
+-- "Safe" code that uses --cubical-compatible.
 
-import README.Safe.Without-K
+import README.Safe.Cubical-compatible
 
--- "Safe" code that uses --without-K and --prop.
+-- "Safe" code that uses --cubical-compatible and --prop.
 
-import README.Safe.Without-K.Prop
+import README.Safe.Cubical-compatible.Prop
 
 -- "Safe" code that uses --erased-cubical.
 

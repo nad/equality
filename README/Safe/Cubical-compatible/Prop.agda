@@ -1,10 +1,10 @@
 ------------------------------------------------------------------------
--- Safe modules that use --without-K and --prop
+-- Safe modules that use --cubical-compatible and --prop
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --without-K --prop #-}
+{-# OPTIONS --safe --cubical-compatible --prop #-}
 
-module README.Safe.Without-K.Prop where
+module README.Safe.Cubical-compatible.Prop where
 
 -- Squashing.
 

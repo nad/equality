@@ -2,7 +2,7 @@
 -- Squashing
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --prop --safe #-}
+{-# OPTIONS --cubical-compatible --prop --safe #-}
 
 open import Equality
 

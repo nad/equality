@@ -3,7 +3,7 @@
 -- equality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 module Equality.Instances-related where
 

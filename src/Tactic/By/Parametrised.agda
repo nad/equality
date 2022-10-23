@@ -6,7 +6,7 @@
 -- The tactic uses the first instance of Equality-with-J that it finds
 -- in the context.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 open import Prelude

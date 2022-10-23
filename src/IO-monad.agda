@@ -2,7 +2,7 @@
 -- IO
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical-compatible #-}
 
 module IO-monad where
 

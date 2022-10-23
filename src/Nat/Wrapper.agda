@@ -5,7 +5,7 @@
 -- operations)
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 import Bijection
 open import Equality

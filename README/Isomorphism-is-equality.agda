@@ -7,7 +7,7 @@
 
 -- Note that the code has been changed after the paper was published.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 module README.Isomorphism-is-equality where
 

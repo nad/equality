@@ -5,7 +5,7 @@
 -- The interface is based on that used by the "mtl" package on
 -- Hackage.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

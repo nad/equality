@@ -2,7 +2,7 @@
 -- Examples related to Univalence-axiom.Isomorphism-is-equality.More
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 -- Note that this module uses ordinary propositional equality, with a
 -- computing J rule.

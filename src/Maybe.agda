@@ -2,7 +2,7 @@
 -- Some definitions related to and properties of the Maybe type
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

@@ -7,7 +7,7 @@
 
 -- This module imports Function-universe, but not Equivalence.Erased.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

@@ -3,7 +3,7 @@
 -- related results
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 -- The part up to "decidable⇒set" follows a proof by Michael Hedberg
 -- ("A coherence theorem for Martin-Löf's type theory", JFP 1998).

@@ -2,7 +2,7 @@
 -- Some definitions related to Dec
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 module Dec where
 

@@ -6,7 +6,7 @@
 -- See Equivalence.Erased for more definitions. The definitions below
 -- are reexported from Equivalence.Erased.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

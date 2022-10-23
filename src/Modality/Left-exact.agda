@@ -9,7 +9,7 @@
 -- counterparts in the work of Rijke, Shulman and Spitters, even
 -- though there is no note about this.)
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 import Modality.Basics

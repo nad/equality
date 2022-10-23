@@ -5,7 +5,7 @@
 -- Note that this module is not parametrised by an axiomatisation of
 -- equality. This module is reexported from Monad.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 module Monad.Raw where
 

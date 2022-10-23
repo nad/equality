@@ -5,7 +5,7 @@
 -- Partly based on "Indexed containers" by Altenkirch, Ghani, Hancock,
 -- McBride and Morris.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

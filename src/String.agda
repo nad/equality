@@ -2,7 +2,7 @@
 -- Strings
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical-compatible #-}
 
 module String where
 

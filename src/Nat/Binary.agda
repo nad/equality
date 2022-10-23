@@ -2,7 +2,7 @@
 -- A binary representation of natural numbers
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 import Erased.Without-box-cong

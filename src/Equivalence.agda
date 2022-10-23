@@ -2,7 +2,7 @@
 -- Equivalences
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 -- Partly based on Voevodsky's work on so-called univalent
 -- foundations.

@@ -4,7 +4,7 @@
 
 -- Nothing is exported from this module.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

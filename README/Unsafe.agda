@@ -3,7 +3,7 @@
 -- do not use --sized-types
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --irrelevant-projections #-}
+{-# OPTIONS --cubical-compatible --irrelevant-projections #-}
 
 module README.Unsafe where
 

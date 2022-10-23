@@ -6,7 +6,7 @@
 -- (for types and functions) and related things in the HoTT book, but
 -- adapted to a setting with erasure.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 open import Prelude as P hiding (id; _∘_; [_,_])

@@ -6,7 +6,7 @@
 -- adjoint equivalences in the HoTT book, and partly based on
 -- Voevodsky's work on univalent foundations.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

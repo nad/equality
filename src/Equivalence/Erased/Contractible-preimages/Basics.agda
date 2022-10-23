@@ -8,7 +8,7 @@
 -- The definitions below are reexported from
 -- Equivalence.Erased.Contractible-preimages.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

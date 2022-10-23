@@ -2,7 +2,7 @@
 -- Vectors, defined as functions from finite sets
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

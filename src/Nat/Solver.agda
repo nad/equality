@@ -4,7 +4,7 @@
 
 -- The standard library's solver is used.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 

@@ -6,7 +6,7 @@
 -- (in particular, not Groupoid). See Integer for more definitions.
 -- The definitions below are reexported from Integer.
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 
