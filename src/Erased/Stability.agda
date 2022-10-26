@@ -3323,7 +3323,7 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
     2-extendable-along-[]→-axiomatisation-propositional
 
 ------------------------------------------------------------------------
--- Another alternative to []-cong-axiomatisation
+-- Two more alternatives to []-cong-axiomatisation
 
 -- This axiomatisation states that, for types A and B in a given
 -- universe, if B is very stable, then the constant function from
@@ -3333,6 +3333,16 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
 ∞-extendable-along-[]→-axiomatisation ℓ =
   {A B : Type ℓ} →
   Very-stable B → Is-∞-extendable-along-[ [_]→ ] (λ (_ : Erased A) → B)
+
+-- A variant of ∞-extendable-along-[]→-axiomatisation which states
+-- that, for types A and B in a given universe, the constant function
+-- from Erased A that returns Erased B is ∞-extendable along [_]→.
+
+∞-extendable-along-[]→-Erased-axiomatisation :
+  (ℓ : Level) → Type (lsuc ℓ)
+∞-extendable-along-[]→-Erased-axiomatisation ℓ =
+  {A B : Type ℓ} →
+  Is-∞-extendable-along-[ [_]→ ] (λ (_ : Erased A) → Erased B)
 
 -- The type ∞-extendable-along-[]→-axiomatisation ℓ is propositional
 -- (assuming extensionality).
@@ -3344,6 +3354,20 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
   implicit-Π-closure ext  1 λ _ →
   implicit-Π-closure ext′ 1 λ _ →
   Π-closure ext″ 1 λ _ →
+  PS.Is-∞-extendable-along-propositional ext″
+  where
+  ext′ = lower-extensionality lzero _ ext
+  ext″ = lower-extensionality _     _ ext
+
+-- The type ∞-extendable-along-[]→-Erased-axiomatisation ℓ is
+-- propositional (assuming extensionality).
+
+∞-extendable-along-[]→-Erased-axiomatisation-propositional :
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+  Is-proposition (∞-extendable-along-[]→-Erased-axiomatisation ℓ)
+∞-extendable-along-[]→-Erased-axiomatisation-propositional ext =
+  implicit-Π-closure ext  1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
   PS.Is-∞-extendable-along-propositional ext″
   where
   ext′ = lower-extensionality lzero _ ext
@@ -3368,6 +3392,28 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
     ([]-cong-axiomatisation-propositional ∘
      lower-extensionality lzero _)
     ∞-extendable-along-[]→-axiomatisation-propositional
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- ∞-extendable-along-[]→-Erased-axiomatisation ℓ (assuming
+-- extensionality).
+
+[]-cong-axiomatisation≃∞-extendable-along-[]→-Erased-axiomatisation :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ]
+  ∞-extendable-along-[]→-Erased-axiomatisation ℓ
+[]-cong-axiomatisation≃∞-extendable-along-[]→-Erased-axiomatisation
+  {ℓ = ℓ} =
+  generalise-ext?-prop
+    {B = ∞-extendable-along-[]→-Erased-axiomatisation ℓ}
+    (record
+       { to   = λ ax → []-cong₁.extendable ax (λ _ → Very-stable-Erased)
+       ; from =
+           ∞-extendable-along-[]→-Erased-axiomatisation ℓ  ↝⟨ (λ ext → ext 2) ⟩
+           2-extendable-along-[]→-Erased-axiomatisation ℓ  ↝⟨ _⇔_.from ([]-cong-axiomatisation≃2-extendable-along-[]→-Erased-axiomatisation _) ⟩□
+           []-cong-axiomatisation ℓ                        □
+       })
+    ([]-cong-axiomatisation-propositional ∘
+     lower-extensionality lzero _)
+    ∞-extendable-along-[]→-Erased-axiomatisation-propositional
 
 ------------------------------------------------------------------------
 -- Some lemmas related to []-cong-axiomatisation′
