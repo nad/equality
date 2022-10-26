@@ -3216,7 +3216,7 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
     Very-stable-≡-Erased-axiomatisation-propositional
 
 ------------------------------------------------------------------------
--- Yet another alternative to []-cong-axiomatisation
+-- Two more alternatives to []-cong-axiomatisation
 
 -- This axiomatisation states that, for types A and B in a given
 -- universe, if B is very stable, then the constant function from
@@ -3227,6 +3227,16 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
   {A B : Type ℓ} →
   Very-stable B →
   Is-[ 2 ]-extendable-along-[ [_]→ ] (λ (_ : Erased A) → B)
+
+-- A variant of 2-extendable-along-[]→-axiomatisation which states
+-- that, for types A and B in a given universe, the constant function
+-- from Erased A that returns Erased B is 2-extendable along [_]→.
+
+2-extendable-along-[]→-Erased-axiomatisation :
+  (ℓ : Level) → Type (lsuc ℓ)
+2-extendable-along-[]→-Erased-axiomatisation ℓ =
+  {A B : Type ℓ} →
+  Is-[ 2 ]-extendable-along-[ [_]→ ] (λ (_ : Erased A) → Erased B)
 
 -- The type 2-extendable-along-[]→-axiomatisation ℓ is propositional
 -- (assuming extensionality).
@@ -3243,6 +3253,55 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
   ext′ = lower-extensionality lzero _ ext
   ext″ = lower-extensionality _     _ ext
 
+-- The type 2-extendable-along-[]→-Erased-axiomatisation ℓ is
+-- propositional (assuming extensionality).
+
+2-extendable-along-[]→-Erased-axiomatisation-propositional :
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+  Is-proposition (2-extendable-along-[]→-Erased-axiomatisation ℓ)
+2-extendable-along-[]→-Erased-axiomatisation-propositional ext =
+  implicit-Π-closure ext  1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
+  PS.Is-extendable-along-propositional ext″
+  where
+  ext′ = lower-extensionality lzero _ ext
+  ext″ = lower-extensionality _     _ ext
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- 2-extendable-along-[]→-Erased-axiomatisation ℓ (assuming
+-- extensionality).
+
+[]-cong-axiomatisation≃2-extendable-along-[]→-Erased-axiomatisation :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ]
+  2-extendable-along-[]→-Erased-axiomatisation ℓ
+[]-cong-axiomatisation≃2-extendable-along-[]→-Erased-axiomatisation
+  {ℓ = ℓ} =
+  generalise-ext?-prop
+    {B = 2-extendable-along-[]→-Erased-axiomatisation ℓ}
+    (record
+       { to   = λ ax →
+                  []-cong₁.extendable ax (λ _ → Very-stable-Erased) 2
+       ; from =
+           2-extendable-along-[]→-Erased-axiomatisation ℓ  ↝⟨ (λ ext → Stable-≡-Erased ext , Stable-≡-Erased-[refl] ext) ⟩
+           Stable-≡-Erased-axiomatisation′ ℓ               ↝⟨ _⇔_.from $ []-cong-axiomatisation≃Stable-≡-Erased-axiomatisation′ _ ⟩□
+           []-cong-axiomatisation ℓ                        □
+       })
+    ([]-cong-axiomatisation-propositional ∘
+     lower-extensionality lzero _)
+    2-extendable-along-[]→-Erased-axiomatisation-propositional
+  where
+  module _ (ext : 2-extendable-along-[]→-Erased-axiomatisation ℓ) where
+
+    Stable-≡-Erased : {A : Type ℓ} → Stable-≡ (Erased A)
+    Stable-≡-Erased x y =
+      ext .proj₂ (λ _ → x) (λ _ → y) .proj₁ id .proj₁
+
+    Stable-≡-Erased-[refl] :
+      {A : Type ℓ} {x : Erased A} →
+      Stable-≡-Erased x x [ refl x ] ≡ refl x
+    Stable-≡-Erased-[refl] {x = x} =
+      ext .proj₂ (λ _ → x) (λ _ → x) .proj₁ id .proj₂ (refl x)
+
 -- The type []-cong-axiomatisation ℓ is equivalent to
 -- 2-extendable-along-[]→-axiomatisation ℓ (assuming extensionality).
 
@@ -3255,34 +3314,16 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
     (record
        { to   = λ ax s → []-cong₁.extendable ax (λ _ → s) 2
        ; from =
-           2-extendable-along-[]→-axiomatisation ℓ  ↝⟨ (λ ext → Stable-≡-Erased ext , Stable-≡-Erased-[refl] ext) ⟩
-           Stable-≡-Erased-axiomatisation ℓ         ↝⟨ _⇔_.from $ []-cong-axiomatisation≃Stable-≡-Erased-axiomatisation _ ⟩□
-           []-cong-axiomatisation ℓ                 □
+           2-extendable-along-[]→-axiomatisation ℓ         ↝⟨ _$ Very-stable-Erased ⟩
+           2-extendable-along-[]→-Erased-axiomatisation ℓ  ↝⟨ _⇔_.from ([]-cong-axiomatisation≃2-extendable-along-[]→-Erased-axiomatisation _) ⟩□
+           []-cong-axiomatisation ℓ                        □
        })
     ([]-cong-axiomatisation-propositional ∘
      lower-extensionality lzero _)
     2-extendable-along-[]→-axiomatisation-propositional
-  where
-  module _ (ext : 2-extendable-along-[]→-axiomatisation ℓ) where
-
-    Stable-≡-Erased : {@0 A : Type ℓ} → Stable-≡ (Erased A)
-    Stable-≡-Erased x y =
-      ext Very-stable-Erased
-        .proj₂ (λ _ → x) (λ _ → y)
-        .proj₁ id
-        .proj₁
-
-    Stable-≡-Erased-[refl] :
-      {@0 A : Type ℓ} {x : Erased A} →
-      Stable-≡-Erased x x [ refl x ] ≡ refl x
-    Stable-≡-Erased-[refl] {x = x} =
-      ext Very-stable-Erased
-        .proj₂ (λ _ → x) (λ _ → x)
-        .proj₁ id
-        .proj₂ (refl x)
 
 ------------------------------------------------------------------------
--- And another alternative to []-cong-axiomatisation
+-- Another alternative to []-cong-axiomatisation
 
 -- This axiomatisation states that, for types A and B in a given
 -- universe, if B is very stable, then the constant function from
