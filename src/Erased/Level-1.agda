@@ -910,11 +910,21 @@ record []-cong-axiomatisation′ a : Type (lsuc a) where
          [ x≡y ]                                                             ∎)
 
 ------------------------------------------------------------------------
--- An alternative to []-cong-axiomatisation
+-- Some alternatives to []-cong-axiomatisation
+
+-- Stable-≡-Erased-axiomatisation′ a is the property that equality is
+-- stable for Erased A, for every type A : Type a, along with a
+-- "computation" rule.
+
+Stable-≡-Erased-axiomatisation′ : (a : Level) → Type (lsuc a)
+Stable-≡-Erased-axiomatisation′ a =
+  ∃ λ (Stable-≡-Erased : {A : Type a} → Stable-≡ (Erased A)) →
+    {A : Type a} {x : Erased A} →
+    Stable-≡-Erased x x [ refl x ] ≡ refl x
 
 -- Stable-≡-Erased-axiomatisation a is the property that equality is
--- stable for Erased A, for every erased type A : Type a, along with a
--- "computation" rule.
+-- stable for Erased A, for every *erased* type A : Type a, along with
+-- a "computation" rule.
 
 Stable-≡-Erased-axiomatisation : (a : Level) → Type (lsuc a)
 Stable-≡-Erased-axiomatisation a =
@@ -970,8 +980,8 @@ module Stable-≡-Erased-axiomatisation→[]-cong-axiomatisation
       (λ eq → Stable-≡-Erased _ _ [ eq ] ≡ eq)
       Stable-≡-Erased-[refl]
 
-  -- The following implementations of functions from Erased-cong
-  -- (below) are restricted to types in Type a.
+  -- The following variants of functions from Erased-cong (below) are
+  -- restricted to types in Type a.
 
   module _ {@0 A B : Type a} where
 
@@ -1013,6 +1023,108 @@ module Stable-≡-Erased-axiomatisation→[]-cong-axiomatisation
     ; []-cong-equivalence = []-cong-equivalence
     ; []-cong-[refl]      = []-cong-[refl]
     }
+
+-- One can also derive []-cong-axiomatisation a from
+-- Stable-≡-Erased-axiomatisation′ a, by going via
+-- []-cong-axiomatisation′ a.
+
+module Stable-≡-Erased-axiomatisation′→[]-cong-axiomatisation
+  ((Stable-≡-Erased , Stable-≡-Erased-[refl]) :
+   Stable-≡-Erased-axiomatisation′ a)
+  where
+
+  -- An implementation of []-cong (with a non-erased type argument).
+
+  []-cong :
+    {A : Type a} {@0 x y : A} →
+    Erased (x ≡ y) → [ x ] ≡ [ y ]
+  []-cong {x = x} {y = y} =
+    Erased (x ≡ y)          ↝⟨ map (cong [_]→) ⟩
+    Erased ([ x ] ≡ [ y ])  ↝⟨ Stable-≡-Erased _ _ ⟩□
+    [ x ] ≡ [ y ]           □
+
+  -- A "computation rule" for []-cong.
+
+  []-cong-[refl] :
+    {A : Type a} {@0 x : A} →
+    []-cong [ refl x ] ≡ refl [ x ]
+  []-cong-[refl] {x = x} =
+    []-cong [ refl x ]                          ≡⟨⟩
+    Stable-≡-Erased _ _ [ cong [_]→ (refl x) ]  ≡⟨ cong (Stable-≡-Erased _ _) ([]-cong [ cong-refl _ ]) ⟩
+    Stable-≡-Erased _ _ [ refl [ x ] ]          ≡⟨ Stable-≡-Erased-[refl] ⟩∎
+    refl [ x ]                                  ∎
+
+  -- Equality is very stable for Erased A.
+
+  Very-stable-≡-Erased :
+    {A : Type a} → Very-stable-≡ (Erased A)
+  Very-stable-≡-Erased x y =
+    _≃_.is-equivalence (Eq.↔⇒≃ (record
+      { surjection = record
+        { logical-equivalence = record
+          { from = Stable-≡-Erased x y
+          }
+        ; right-inverse-of = λ ([ eq ]) → []-cong [ lemma eq ]
+        }
+      ; left-inverse-of = lemma
+      }))
+    where
+    lemma = elim¹
+      (λ eq → Stable-≡-Erased _ _ [ eq ] ≡ eq)
+      Stable-≡-Erased-[refl]
+
+  -- The following variants of functions from Erased-cong (below) are
+  -- restricted to types in Type a, and the types are not assumed to
+  -- be erased.
+
+  module _ {A B : Type a} where
+
+    Erased-cong-↠ : @0 A ↠ B → Erased A ↠ Erased B
+    Erased-cong-↠ A↠B = record
+      { logical-equivalence = Erased-cong-⇔
+                                (_↠_.logical-equivalence A↠B)
+      ; right-inverse-of    = λ { [ x ] →
+          []-cong [ _↠_.right-inverse-of A↠B x ] }
+      }
+
+    Erased-cong-↔ : @0 A ↔ B → Erased A ↔ Erased B
+    Erased-cong-↔ A↔B = record
+      { surjection      = Erased-cong-↠ (_↔_.surjection A↔B)
+      ; left-inverse-of = λ { [ x ] →
+          []-cong [ _↔_.left-inverse-of A↔B x ] }
+      }
+
+    Erased-cong-≃ : @0 A ≃ B → Erased A ≃ Erased B
+    Erased-cong-≃ A≃B =
+      from-isomorphism (Erased-cong-↔ (from-isomorphism A≃B))
+
+  -- []-cong is an equivalence (for non-erased arguments).
+
+  []-cong-equivalence :
+    {A : Type a} {x y : A} →
+    Is-equivalence ([]-cong {x = x} {y = y})
+  []-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (
+    Erased (x ≡ y)          ↝⟨ inverse $ Erased-cong-≃ []≡[]≃≡ ⟩
+    Erased ([ x ] ≡ [ y ])  ↝⟨ inverse Eq.⟨ _ , Very-stable-≡-Erased _ _ ⟩ ⟩□
+    [ x ] ≡ [ y ]           □)
+
+  -- []-cong-axiomatisation′ a is inhabited.
+
+  instance-of-[]-cong-axiomatisation′ :
+    []-cong-axiomatisation′ a
+  instance-of-[]-cong-axiomatisation′ = record
+    { []-cong             = []-cong
+    ; []-cong-equivalence = []-cong-equivalence
+    ; []-cong-[refl]      = []-cong-[refl]
+    }
+
+  -- The []-cong axioms can be instantiated.
+
+  instance-of-[]-cong-axiomatisation :
+    []-cong-axiomatisation a
+  instance-of-[]-cong-axiomatisation =
+    []-cong-axiomatisation′→[]-cong-axiomatisation
+      instance-of-[]-cong-axiomatisation′
 
 ------------------------------------------------------------------------
 -- In the presence of function extensionality the []-cong axioms can
