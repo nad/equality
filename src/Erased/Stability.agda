@@ -3227,7 +3227,7 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
     ∞-extendable-along-[]→-axiomatisation-propositional
 
 ------------------------------------------------------------------------
--- A lemma related to []-cong-axiomatisation′
+-- Some lemmas related to []-cong-axiomatisation′
 
 -- The type []-cong-axiomatisation′ a is propositional (assuming
 -- extensionality).
