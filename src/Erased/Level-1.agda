@@ -971,8 +971,7 @@ module Stable-≡-Erased-axiomatisation→[]-cong-axiomatisation
       Stable-≡-Erased-[refl]
 
   -- The following implementations of functions from Erased-cong
-  -- (below) are restricted to types in Type a (where a is the
-  -- universe level for which extensionality is assumed to hold).
+  -- (below) are restricted to types in Type a.
 
   module _ {@0 A B : Type a} where
 
