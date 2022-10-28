@@ -3151,11 +3151,11 @@ Stable-≡-Erased-axiomatisation′-propositional {ℓ = ℓ} ext =
 -- Another alternative to []-cong-axiomatisation
 
 -- This axiomatisation states that equality is very stable for
--- Erased A, for every (erased) type A in a certain universe.
+-- Erased A, for every type A in a certain universe.
 
 Very-stable-≡-Erased-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
 Very-stable-≡-Erased-axiomatisation ℓ =
-  {@0 A : Type ℓ} → Very-stable-≡ (Erased A)
+  {A : Type ℓ} → Very-stable-≡ (Erased A)
 
 -- The type Very-stable-≡-Erased-axiomatisation ℓ is propositional
 -- (assuming extensionality).
@@ -3164,37 +3164,37 @@ Very-stable-≡-Erased-axiomatisation-propositional :
   Extensionality (lsuc ℓ) ℓ →
   Is-proposition (Very-stable-≡-Erased-axiomatisation ℓ)
 Very-stable-≡-Erased-axiomatisation-propositional ext =
-  implicit-Πᴱ-closure ext 1 λ _ →
+  implicit-Π-closure ext 1 λ _ →
   For-iterated-equality-Very-stable-propositional
     (lower-extensionality _ lzero ext)
     1
 
--- The type Stable-≡-Erased-axiomatisation ℓ is equivalent to
+-- The type Stable-≡-Erased-axiomatisation′ ℓ is equivalent to
 -- Very-stable-≡-Erased-axiomatisation ℓ (assuming extensionality).
 
-Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation :
-  Stable-≡-Erased-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation :
+  Stable-≡-Erased-axiomatisation′ ℓ ↝[ lsuc ℓ ∣ ℓ ]
   Very-stable-≡-Erased-axiomatisation ℓ
-Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
+Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
   {ℓ = ℓ} =
   generalise-ext?-prop
     (record { to = to; from = from })
-    Stable-≡-Erased-axiomatisation-propositional
+    Stable-≡-Erased-axiomatisation′-propositional
     Very-stable-≡-Erased-axiomatisation-propositional
   where
   to :
-    Stable-≡-Erased-axiomatisation ℓ →
+    Stable-≡-Erased-axiomatisation′ ℓ →
     Very-stable-≡-Erased-axiomatisation ℓ
   to ax = Very-stable→Very-stable-≡ 0 Very-stable-Erased
     where
     open []-cong₁
            (_⇔_.from
-              []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation
+              []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation′
               ax)
 
   from :
     Very-stable-≡-Erased-axiomatisation ℓ →
-    Stable-≡-Erased-axiomatisation ℓ
+    Stable-≡-Erased-axiomatisation′ ℓ
   from Very-stable-≡-Erased =
       Very-stable→Stable 1 Very-stable-≡-Erased
     , (λ {_ x} →
@@ -3209,8 +3209,8 @@ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation
   Very-stable-≡-Erased-axiomatisation ℓ
 []-cong-axiomatisation≃Very-stable-≡-Erased-axiomatisation {ℓ = ℓ} =
   generalise-ext?-prop
-    ([]-cong-axiomatisation ℓ               ↝⟨ []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation ⟩
-     Stable-≡-Erased-axiomatisation ℓ       ↝⟨ Stable-≡-Erased-axiomatisation≃Very-stable-≡-Erased-axiomatisation _ ⟩□
+    ([]-cong-axiomatisation ℓ               ↝⟨ []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation′ ⟩
+     Stable-≡-Erased-axiomatisation′ ℓ      ↝⟨ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation _ ⟩□
      Very-stable-≡-Erased-axiomatisation ℓ  □)
     []-cong-axiomatisation-propositional
     Very-stable-≡-Erased-axiomatisation-propositional
