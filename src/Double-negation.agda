@@ -55,17 +55,26 @@ map′ :
   (A → B) → ¬¬ A → ¬¬ B
 run (map′ f ¬¬a) = λ ¬b → run ¬¬a (λ a → ¬b (f a))
 
+-- A variant of bind with extra universe-polymorphism (and some erased
+-- arguments).
+
+infixl 5 _>>=′_
+
+_>>=′_ :
+  ∀ {a b} {@0 A : Type a} {@0 B : Type b} →
+  ¬¬ A → (A → ¬¬ B) → ¬¬ B
+run (x >>=′ f) = join (map′ (run ∘ f) x)
+  where
+  join : ∀ {a} {@0 A : Type a} → ¬¬ ¬ A → ¬ A
+  join ¬¬¬a = λ a → run ¬¬¬a (λ ¬a → ¬a a)
+
 -- Instances.
 
 instance
 
   double-negation-monad : ∀ {ℓ} → Raw-monad (λ (A : Type ℓ) → ¬¬ A)
-  run (Raw-monad.return double-negation-monad x)   = _$ x
-  run (Raw-monad._>>=_  double-negation-monad x f) =
-    join (map′ (run ∘ f) x)
-    where
-    join : ∀ {a} {A : Type a} → ¬¬ ¬ A → ¬ A
-    join ¬¬¬a = λ a → run ¬¬¬a (λ ¬a → ¬a a)
+  Raw-monad.return double-negation-monad x .run = _$ x
+  Raw-monad._>>=_  double-negation-monad        = _>>=′_
 
 monad : ∀ {ℓ} →
         Extensionality ℓ lzero →
