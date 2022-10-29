@@ -191,6 +191,31 @@ open C.Left-exact left-exact-η-cong public
 open Modality.Left-exact eq M left-exact-η-cong public
 
 ------------------------------------------------------------------------
+-- Modal (Modal A) is equivalent to Modal A
+
+-- Modal (Modal A) implies Modal A.
+
+Modal-Modal→Modal : Modal (Modal A) → Modal A
+Modal-Modal→Modal {A = A} =
+  Modal (Modal A)   →⟨ Modal→Stable ⟩
+  Stable (Modal A)  →⟨ _$ very-modal ⟩□
+  Modal A           □
+
+-- Modal (Modal A) is equivalent to Modal A (assuming function
+-- extensionality).
+
+Modal-Modal≃Modal :
+  Extensionality a a →
+  Modal (Modal A) ≃ Modal A
+Modal-Modal≃Modal {A = A} ext = Eq.⇔→≃
+  (Modal-propositional ext)
+  (Modal-propositional ext)
+  Modal-Modal→Modal
+  (Modal A                             →⟨ (λ hyp → Modal-Is-equivalence ext hyp Separated-◯) ⟩
+   Modal (Is-equivalence (η {A = A}))  →⟨ Modal-respects-≃ (inverse $ Modal≃Is-equivalence-η ext) ⟩□
+   Modal (Modal A)                     □)
+
+------------------------------------------------------------------------
 -- Modal A is equivalent to Modal -Null A
 
 -- Modal A is equivalent to Modal -Null A (assuming function
