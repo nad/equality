@@ -34,7 +34,7 @@ open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
 open import H-level.Closure eq-J
 open import Injection eq-J using (_↣_; Injective)
-open import Modality.Basics eq-J as Modality
+open import Modality.Basics eq-J
   using (Uniquely-eliminating-modality; Left-exact; Cotopological)
 open import Monad eq-J hiding (map; map-id; map-∘)
 open import Preimage eq-J using (_⁻¹_)
