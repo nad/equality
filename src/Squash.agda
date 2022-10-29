@@ -210,7 +210,7 @@ empty-modal =
 
 private
   module EM {ℓ = ℓ} =
-    Modality.Empty-modal eq-J (modality {ℓ = ℓ}) empty-modal
+    Modality.Empty-modal.Empty-modal eq-J (modality {ℓ = ℓ}) empty-modal
 
 -- The squash modality commutes with Erased.
 

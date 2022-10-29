@@ -230,10 +230,6 @@ import Erased.Level-1
 
 import Double-negation
 
--- Some results that hold for every empty-modal modality.
-
-import Modality.Empty-modal
-
 -- Pointed types and loop spaces.
 
 import Pointed-type
@@ -334,6 +330,10 @@ import Modality.Commutes-with-Erased
 -- Some results that hold for every very modal modality.
 
 import Modality.Very-modal
+
+-- Some results that hold for every empty-modal modality.
+
+import Modality.Empty-modal
 
 -- Idempotent monadic modalities.
 

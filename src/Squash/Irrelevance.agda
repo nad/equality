@@ -153,7 +153,7 @@ empty-modal =
 
 private
   module EM {ℓ = ℓ} =
-    Modality.Empty-modal eq (modality {ℓ = ℓ}) empty-modal
+    Modality.Empty-modal.Empty-modal eq (modality {ℓ = ℓ}) empty-modal
 
 -- The squash modality is not left exact.
 

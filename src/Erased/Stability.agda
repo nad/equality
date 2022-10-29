@@ -38,7 +38,7 @@ open import H-level.Closure eq
 open import Injection eq using (_↣_; Injective)
 import List eq as L
 open import Modality.Basics eq
-import Modality.Empty-modal eq as Empty-modal
+import Modality.Empty-modal eq as EM
 open import Modality.Identity eq using (Identity-modality)
 import Nat eq as Nat
 open import Surjection eq using (_↠_; Split-surjective)
@@ -2237,6 +2237,21 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     in (I , P , p) , prop
 
   ----------------------------------------------------------------------
+  -- A property that is stated using the double-negation monad
+
+  -- For a given type it is not not the case that function
+  -- extensionality implies that the type is very stable.
+  --
+  -- This is a variant of a lemma due to Felix Cherubini.
+
+  ¬¬-Very-stable :
+    {A : Type ℓ} →
+    ¬¬ (Extensionality ℓ ℓ → Very-stable A)
+  ¬¬-Very-stable =
+    flip map′ (EM.¬¬-Empty-modal→Very-modal→Modal Erased-modality) $
+    ∀-cong _ λ _ → λ f → f Very-stable-⊥ Erased-very-modal
+
+  ----------------------------------------------------------------------
   -- Some properties that rely on excluded middle
 
   module Excluded-middle (em : Excluded-middle ℓ) where
@@ -2249,7 +2264,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       Extensionality ℓ ℓ →
       Very-stable A
     very-stable ext =
-      Empty-modal.Excluded-middle.Very-modal.modal
+      EM.Empty-modal.Excluded-middle.Very-modal.modal
         Erased-modality
         Erased-empty-modal
         em
@@ -2264,7 +2279,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       Univalence ℓ →
       Erased-modality ≡ Identity-modality
     Erased≡Identity-modality ext univ =
-      Empty-modal.Excluded-middle.Very-modal.≡Identity-modality
+      EM.Empty-modal.Excluded-middle.Very-modal.≡Identity-modality
         Erased-modality
         Erased-empty-modal
         em
@@ -2277,7 +2292,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       Extensionality ℓ ℓ →
       Topological Erased-modality
     Erased-topological ext =
-      Empty-modal.Excluded-middle.Very-modal.topological
+      EM.Empty-modal.Excluded-middle.Very-modal.topological
         Erased-modality
         Erased-empty-modal
         em
@@ -2288,7 +2303,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
     Erased-cotopological : Cotopological (λ (A : Type ℓ) → Erased A)
     Erased-cotopological =
-      Empty-modal.Excluded-middle.Left-exact→Cotopological
+      EM.Empty-modal.Excluded-middle.Left-exact→Cotopological
         Erased-modality
         Erased-empty-modal
         em
