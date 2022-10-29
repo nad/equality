@@ -44,6 +44,7 @@ open import For-iterated-equality eq-J
 open import Function-universe eq-J as F hiding (id; _∘_)
 open import H-level eq-J as H-level
 open import H-level.Closure eq-J
+open import Monad eq-J
 open import Preimage eq-J as Preimage using (_⁻¹_)
 open import Surjection eq-J using (_↠_; Split-surjective)
 open import Univalence-axiom eq-J
@@ -2379,6 +2380,44 @@ module Modality (M : Modality a) where
       ◯-rec m (uncurry f) (_≃_.from ◯× (η x , η y))  ≡⟨ cong (◯-rec _ _) ◯×⁻¹-η ⟩
       ◯-rec m (uncurry f) (η (x , y))                ≡⟨ ◯-rec-η ⟩∎
       f x y                                          ∎
+
+  ----------------------------------------------------------------------
+  -- Idempotent monadic modalities are monads
+
+  -- At the time of writing I do not know if corresponding definitions
+  -- appear in the source code corresponding to "Modalities in
+  -- Homotopy Type Theory". The definitions are entirely
+  -- straightforward, with the possible exception of the use of
+  -- ◯-elim′ and Stable-Π—rather than ◯-elim, Modal-Π and function
+  -- extensionality—in the proof of associativity.
+
+  -- The modality is a raw monad.
+
+  raw-monad : Raw-monad ◯
+  Raw-monad.return raw-monad     = η
+  Raw-monad._>>=_  raw-monad x f = ◯-rec Modal-◯ f x
+
+  instance
+
+    -- The modality is a monad.
+
+    monad : Monad ◯
+    Monad.raw-monad monad         = raw-monad
+    Monad.left-identity monad x f =
+      ◯-rec Modal-◯ f (η x)  ≡⟨ ◯-rec-η ⟩∎
+      f x                    ∎
+    Monad.right-identity monad = ◯-elim
+      (λ _ → Separated-◯ _ _)
+      (λ x →
+         ◯-rec Modal-◯ η (η x)  ≡⟨ ◯-rec-η ⟩∎
+         η x                    ∎)
+    Monad.associativity monad = ◯-elim′
+      (λ _ → Stable-Π λ _ → Stable-Π λ _ →
+             Modal→Stable $ Separated-◯ _ _)
+      (λ x f g →
+         ◯-rec Modal-◯ (◯-rec Modal-◯ g ∘ f) (η x)  ≡⟨ ◯-rec-η ⟩
+         ◯-rec Modal-◯ g (f x)                      ≡⟨ cong (◯-rec Modal-◯ g) $ sym ◯-rec-η ⟩∎
+         ◯-rec Modal-◯ g (◯-rec Modal-◯ f (η x))    ∎)
 
   ----------------------------------------------------------------------
   -- A lemma related to h-levels
