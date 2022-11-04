@@ -170,28 +170,9 @@ module More
                        f ∘ (g ∘ h) ≡ (f ∘ g) ∘ h)
   where
 
-  -- A workaround for Agda's lack of erased modules.
-
   private
-
-    record Proofs : Type (o ⊔ h) where
-      field
-        lid : {A B : Obj} (f : Hom A B) → id ∘ f ≡ f
-        rid : {A B : Obj} (f : Hom A B) → f ∘ id ≡ f
-        ass : {A B C D : Obj}
-              (f : Hom C D) (g : Hom B C) (h : Hom A B) →
-              f ∘ (g ∘ h) ≡ (f ∘ g) ∘ h
-
-    @0 proofs : Proofs
-    proofs .Proofs.lid = left-identity
-    proofs .Proofs.rid = right-identity
-    proofs .Proofs.ass = associativity
-
-    module BiM (p : Proofs) =
-      Bi.More
-        (Proofs.lid p)
-        (Proofs.rid p)
-        (Proofs.ass p)
+    module @0 BiM =
+      Bi.More left-identity right-identity associativity
 
   -- Bi-invertible morphisms have quasi-inverses.
 
@@ -261,7 +242,7 @@ module More
 
   @0 Is-bi-invertibleᴱ-propositional :
     (f : Hom A B) → Is-proposition (Is-bi-invertibleᴱ f)
-  Is-bi-invertibleᴱ-propositional f =     $⟨ BiM.Is-bi-invertible-propositional proofs f ⟩
+  Is-bi-invertibleᴱ-propositional f =     $⟨ BiM.Is-bi-invertible-propositional f ⟩
     Is-proposition (Is-bi-invertible  f)  ↝⟨ H-level-cong _ 1 Is-bi-invertible≃Is-bi-invertibleᴱ ⦂ (_ → _) ⟩
     Is-proposition (Is-bi-invertibleᴱ f)  □
 
@@ -273,7 +254,7 @@ module More
     Is-set (Hom A A) →
     Is-proposition (Has-quasi-inverseᴱ f)
   Has-quasi-inverseᴱ-propositional-domain {f = f} s =
-                                           $⟨ BiM.Has-quasi-inverse-propositional-domain proofs s ⟩
+                                           $⟨ BiM.Has-quasi-inverse-propositional-domain s ⟩
     Is-proposition (Has-quasi-inverse  f)  ↝⟨ H-level-cong _ 1 Has-quasi-inverse≃Has-quasi-inverseᴱ ⦂ (_ → _) ⟩□
     Is-proposition (Has-quasi-inverseᴱ f)  □
 
@@ -285,7 +266,7 @@ module More
     Is-set (Hom B B) →
     Is-proposition (Has-quasi-inverseᴱ f)
   Has-quasi-inverseᴱ-propositional-codomain {f = f} s =
-                                           $⟨ BiM.Has-quasi-inverse-propositional-codomain proofs s ⟩
+                                           $⟨ BiM.Has-quasi-inverse-propositional-codomain s ⟩
     Is-proposition (Has-quasi-inverse  f)  ↝⟨ H-level-cong _ 1 Has-quasi-inverse≃Has-quasi-inverseᴱ ⦂ (_ → _) ⟩□
     Is-proposition (Has-quasi-inverseᴱ f)  □
 
@@ -356,7 +337,7 @@ module More
     (f g : A ≊ᴱ B) → (f ≡ g) ≃ (proj₁ f ≡ proj₁ g)
   equality-characterisation-≊ᴱ f g =
     f ≡ g                              ↝⟨ inverse $ Eq.≃-≡ (inverse ≊≃≊ᴱ) ⟩
-    _≃_.from ≊≃≊ᴱ f ≡ _≃_.from ≊≃≊ᴱ g  ↝⟨ BiM.equality-characterisation-≊ proofs _ _ ⟩□
+    _≃_.from ≊≃≊ᴱ f ≡ _≃_.from ≊≃≊ᴱ g  ↝⟨ BiM.equality-characterisation-≊ _ _ ⟩□
     proj₁ f ≡ proj₁ g                  □
 
   -- Two equality characterisation lemmas for _≅ᴱ_.
@@ -366,7 +347,7 @@ module More
     (f g : A ≅ᴱ B) → (f ≡ g) ≃ (proj₁ f ≡ proj₁ g)
   equality-characterisation-≅ᴱ-domain s f g =
     f ≡ g                              ↝⟨ inverse $ Eq.≃-≡ (inverse ≅≃≅ᴱ) ⟩
-    _≃_.from ≅≃≅ᴱ f ≡ _≃_.from ≅≃≅ᴱ g  ↝⟨ BiM.equality-characterisation-≅-domain proofs s _ _ ⟩□
+    _≃_.from ≅≃≅ᴱ f ≡ _≃_.from ≅≃≅ᴱ g  ↝⟨ BiM.equality-characterisation-≅-domain s _ _ ⟩□
     proj₁ f ≡ proj₁ g                  □
 
   @0 equality-characterisation-≅ᴱ-codomain :
@@ -374,7 +355,7 @@ module More
     (f g : A ≅ᴱ B) → (f ≡ g) ≃ (proj₁ f ≡ proj₁ g)
   equality-characterisation-≅ᴱ-codomain s f g =
     f ≡ g                              ↝⟨ inverse $ Eq.≃-≡ (inverse ≅≃≅ᴱ) ⟩
-    _≃_.from ≅≃≅ᴱ f ≡ _≃_.from ≅≃≅ᴱ g  ↝⟨ BiM.equality-characterisation-≅-codomain proofs s _ _ ⟩□
+    _≃_.from ≅≃≅ᴱ f ≡ _≃_.from ≅≃≅ᴱ g  ↝⟨ BiM.equality-characterisation-≅-codomain s _ _ ⟩□
     proj₁ f ≡ proj₁ g                  □
 
   -- If f : Hom A B has a quasi-inverse, then Has-quasi-inverseᴱ f is
@@ -387,7 +368,7 @@ module More
     Has-quasi-inverseᴱ f ≃ (id ≡ id {A = A})
   Has-quasi-inverseᴱ≃id≡id-domain {f = f} q-inv =
     Has-quasi-inverseᴱ f  ↝⟨ inverse Has-quasi-inverse≃Has-quasi-inverseᴱ ⟩
-    Has-quasi-inverse f   ↝⟨ BiM.Has-quasi-inverse≃id≡id-domain proofs (_≃_.from Has-quasi-inverse≃Has-quasi-inverseᴱ q-inv) ⟩□
+    Has-quasi-inverse f   ↝⟨ BiM.Has-quasi-inverse≃id≡id-domain (_≃_.from Has-quasi-inverse≃Has-quasi-inverseᴱ q-inv) ⟩□
     id ≡ id               □
 
   @0 Has-quasi-inverseᴱ≃id≡id-codomain :
@@ -396,5 +377,5 @@ module More
     Has-quasi-inverseᴱ f ≃ (id ≡ id {A = B})
   Has-quasi-inverseᴱ≃id≡id-codomain {f = f} q-inv =
     Has-quasi-inverseᴱ f  ↝⟨ inverse Has-quasi-inverse≃Has-quasi-inverseᴱ ⟩
-    Has-quasi-inverse f   ↝⟨ BiM.Has-quasi-inverse≃id≡id-codomain proofs (_≃_.from Has-quasi-inverse≃Has-quasi-inverseᴱ q-inv) ⟩□
+    Has-quasi-inverse f   ↝⟨ BiM.Has-quasi-inverse≃id≡id-codomain (_≃_.from Has-quasi-inverse≃Has-quasi-inverseᴱ q-inv) ⟩□
     id ≡ id               □
