@@ -27,7 +27,7 @@ private
     a ℓ      : Level
     A B C    : Type a
     x y      : A
-    f        : A → B
+    f g      : A → B
     n        : ℕ
     xs ys zs : List A
     ns       : List ℕ
@@ -253,6 +253,11 @@ foldr∘map :
   (foldr _⊕_ ε ∘ map f) xs ≡ foldr (_⊕_ ∘ f) ε xs
 foldr∘map _⊕_ ε f []       = ε ∎
 foldr∘map _⊕_ ε f (x ∷ xs) = cong (f x ⊕_) (foldr∘map _⊕_ ε f xs)
+
+-- A fusion lemma for map and map.
+
+map∘map : ∀ xs → (map f ∘ map g) xs ≡ map (f ∘ g) xs
+map∘map = foldr∘map _ _ _
 
 -- A fusion lemma for length and map.
 
