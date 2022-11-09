@@ -15,7 +15,7 @@ open import Prelude
 private
   variable
     a               : Level
-    A B             : Type a
+    A B C D         : Type a
     x y             : A
     f f₁ f₂ g g₁ g₂ : A → B
 
@@ -42,3 +42,11 @@ if-⊎-map-then-else :
   if ⊎-map f g b then x else y ≡ if b then x else y
 if-⊎-map-then-else (yes _) = refl _
 if-⊎-map-then-else (no  _) = refl _
+
+-- Non-dependent function application commutes with if_then_else_.
+
+if-then-else-commutes :
+  (f : C → D) (b : A ⊎ B) →
+  f (if b then x else y) ≡ if b then f x else f y
+if-then-else-commutes _ (yes _) = refl _
+if-then-else-commutes _ (no  _) = refl _
