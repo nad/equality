@@ -14,10 +14,10 @@ open import Prelude
 
 private
   variable
-    a           : Level
-    A B         : Type a
-    x           : A
-    f₁ f₂ g₁ g₂ : A → B
+    a               : Level
+    A B             : Type a
+    x y             : A
+    f f₁ f₂ g g₁ g₂ : A → B
 
 -- Functor laws.
 
@@ -34,3 +34,11 @@ private
 dec-¬ : Dec A → Dec (¬ A)
 dec-¬ (yes p) = no (_$ p)
 dec-¬ (no  p) = yes p
+
+-- A simplification lemma related to if_then_else_ and ⊎-map.
+
+if-⊎-map-then-else :
+  ∀ b →
+  if ⊎-map f g b then x else y ≡ if b then x else y
+if-⊎-map-then-else (yes _) = refl _
+if-⊎-map-then-else (no  _) = refl _
