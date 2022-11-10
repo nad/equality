@@ -392,6 +392,15 @@ syntax step-< m n≤o m<n = m <⟨ m<n ⟩ n≤o
 _<⟨⟩_ : ∀ m {n} → m < n → m ≤ n
 _<⟨⟩_ _ = <→≤
 
+-- _<_ is transitive.
+
+<-trans : ∀ {m n o} → m < n → n < o → m < o
+<-trans {m = m} {n = n} {o = o} p q =
+  suc m  ≤⟨ p ⟩
+  n      ≤⟨ ≤-step ≤-refl ⟩
+  suc n  ≤⟨ q ⟩∎
+  o      ∎≤
+
 -- Some simple lemmas.
 
 zero≤ : ∀ n → zero ≤ n
