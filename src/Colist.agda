@@ -19,6 +19,15 @@ open import Conat eq as Conat using (Conat; zero; suc; force; infinity)
 open import Function-universe eq hiding (id; _∘_)
 import Nat eq as Nat
 
+private variable
+  a p q                                    : Level
+  A B                                      : Type a
+  P Q                                      : A → Type p
+  Pˢ Qˢ                                    : Size → A → Type p
+  i                                        : Size
+  c m ms n ns x xs xs₁ xs₂ y ys ys₁ ys₂ zs : A
+  f g                                      : (x : A) → P x
+
 ------------------------------------------------------------------------
 -- The type
 
@@ -28,11 +37,11 @@ mutual
 
   infixr 5 _∷_
 
-  data Colist {a} (A : Type a) (i : Size) : Type a where
+  data Colist (A : Type a) (i : Size) : Type a where
     []  : Colist A i
     _∷_ : A → Colist′ A i → Colist A i
 
-  record Colist′ {a} (A : Type a) (i : Size) : Type a where
+  record Colist′ (A : Type a) (i : Size) : Type a where
     coinductive
     field
       force : {j : Size< i} → Colist A j
@@ -46,83 +55,81 @@ open Colist′ public
 
 infixr 5 _∷′_
 
-_∷′_ : ∀ {i a} {A : Type a} → A → Colist A i → Colist A i
+_∷′_ : A → Colist A i → Colist A i
 x ∷′ xs = x ∷ λ { .force → xs }
 
 -- The colist's tail, if any.
 
-tail : ∀ {a} {A : Type a} {i} → Colist A i → Colist′ A i
+tail : Colist A i → Colist′ A i
 tail xs@[]    = λ { .force → xs }
 tail (x ∷ xs) = xs
 
 -- A map function.
 
-map : ∀ {a b i} {A : Type a} {B : Type b} →
-      (A → B) → Colist A i → Colist B i
+map : (A → B) → Colist A i → Colist B i
 map f []       = []
 map f (x ∷ xs) = f x ∷ λ { .force → map f (force xs) }
 
 -- The length of a colist.
 
-length : ∀ {a i} {A : Type a} → Colist A i → Conat i
+length : Colist A i → Conat i
 length []       = zero
 length (n ∷ ns) = suc λ { .force → length (force ns) }
 
 -- The colist replicate n x contains exactly n copies of x (and
 -- nothing else).
 
-replicate : ∀ {a i} {A : Type a} → Conat i → A → Colist A i
+replicate : Conat i → A → Colist A i
 replicate zero    x = []
 replicate (suc n) x = x ∷ λ { .force → replicate (force n) x }
 
 -- Repeats the given element indefinitely.
 
-repeat : ∀ {a i} {A : Type a} → A → Colist A i
+repeat : A → Colist A i
 repeat = replicate infinity
 
 -- Appends one colist to another.
 
 infixr 5 _++_
 
-_++_ : ∀ {a i} {A : Type a} → Colist A i → Colist A i → Colist A i
+_++_ : Colist A i → Colist A i → Colist A i
 []       ++ ys = ys
 (x ∷ xs) ++ ys = x ∷ λ { .force → force xs ++ ys }
 
 -- The colist cycle x xs is an endless cycle of repetitions of the
 -- colist x ∷ xs.
 
-cycle : ∀ {a i} {A : Type a} → A → Colist′ A i → Colist A i
+cycle : A → Colist′ A i → Colist A i
 cycle x xs = x ∷ λ { .force → force xs ++ cycle x xs }
 
 -- "Scan left".
 
-scanl : ∀ {a b i} {A : Type a} {B : Type b} →
-        (A → B → A) → A → Colist B i → Colist A i
+scanl : (A → B → A) → A → Colist B i → Colist A i
 scanl c n []       = n ∷ λ { .force → [] }
 scanl c n (x ∷ xs) = n ∷ λ { .force → scanl c (c n x) (force xs) }
 
 -- The natural numbers in strictly increasing order.
 
-nats : ∀ {i} → Colist ℕ i
+nats : Colist ℕ i
 nats = 0 ∷ λ { .force → map suc nats }
 
 -- The colist nats-from n is the natural numbers greater than or equal
 -- to n, in strictly increasing order.
 
-nats-from : ∀ {i} → ℕ → Colist ℕ i
+nats-from : ℕ → Colist ℕ i
 nats-from n = n ∷ λ { .force → nats-from (suc n) }
 
 -- The list take n xs is the longest possible prefix of xs that
 -- contains at most n elements.
 
-take : ∀ {a} {A : Type a} → ℕ → Colist A ∞ → List A
+take : ℕ → Colist A ∞ → List A
 take zero    _        = []
 take _       []       = []
 take (suc n) (x ∷ xs) = x ∷ take n (force xs)
 
 -- The sum of the successor of every element in the list.
 
-sum-of-successors : ∀ {i} → Colist (Conat ∞) i → Conat i
+sum-of-successors : Colist (Conat ∞) i → Conat i
 sum-of-successors []       = zero
 sum-of-successors (n ∷ ns) = suc λ { .force →
   n Conat.+ sum-of-successors (ns .force) }
@@ -130,84 +137,75 @@ sum-of-successors (n ∷ ns) = suc λ { .force →
 ------------------------------------------------------------------------
 -- Bisimilarity
 
-module _ {a} {A : Type a} where
+-- [ ∞ ] xs ∼ ys means that xs and ys are "equal".
 
-  -- [ ∞ ] xs ∼ ys means that xs and ys are "equal".
+mutual
 
-  mutual
+  infix 4 [_]_∼_ [_]_∼′_
 
-    infix 4 [_]_∼_ [_]_∼′_
+  data [_]_∼_ {A : Type a} (i : Size) :
+         Colist A ∞ → Colist A ∞ → Type a where
+    []  : [ i ] [] ∼ []
+    _∷_ : x ≡ y → [ i ] force xs ∼′ force ys → [ i ] x ∷ xs ∼ y ∷ ys
 
-    data [_]_∼_ (i : Size) : Colist A ∞ → Colist A ∞ → Type a where
-      []  : [ i ] [] ∼ []
-      _∷_ : ∀ {x y xs ys} →
-            x ≡ y → [ i ] force xs ∼′ force ys → [ i ] x ∷ xs ∼ y ∷ ys
+  record [_]_∼′_ {A : Type a} (i : Size) (xs ys : Colist A ∞) :
+           Type a where
+    coinductive
+    field
+      force : {j : Size< i} → [ j ] xs ∼ ys
 
-    record [_]_∼′_ (i : Size) (xs ys : Colist A ∞) : Type a where
-      coinductive
-      field
-        force : {j : Size< i} → [ j ] xs ∼ ys
+open [_]_∼′_ public
 
-  open [_]_∼′_ public
+-- Bisimilarity is an equivalence relation.
 
-  -- Bisimilarity is an equivalence relation.
+reflexive-∼ : (xs : Colist A ∞) → [ i ] xs ∼ xs
+reflexive-∼ []       = []
+reflexive-∼ (x ∷ xs) =
+  E.refl _ ∷ λ { .force → reflexive-∼ (force xs) }
 
-  reflexive-∼ : ∀ {i} xs → [ i ] xs ∼ xs
-  reflexive-∼ []       = []
-  reflexive-∼ (x ∷ xs) =
-    E.refl _ ∷ λ { .force → reflexive-∼ (force xs) }
+symmetric-∼ : [ i ] xs ∼ ys → [ i ] ys ∼ xs
+symmetric-∼ []        = []
+symmetric-∼ (p₁ ∷ p₂) =
+  E.sym p₁ ∷ λ { .force → symmetric-∼ (force p₂) }
 
-  symmetric-∼ : ∀ {i xs ys} →
-                [ i ] xs ∼ ys → [ i ] ys ∼ xs
-  symmetric-∼ []        = []
-  symmetric-∼ (p₁ ∷ p₂) =
-    E.sym p₁ ∷ λ { .force → symmetric-∼ (force p₂) }
+transitive-∼ : [ i ] xs ∼ ys → [ i ] ys ∼ zs → [ i ] xs ∼ zs
+transitive-∼ []        []        = []
+transitive-∼ (p₁ ∷ p₂) (q₁ ∷ q₂) =
+  E.trans p₁ q₁ ∷ λ { .force → transitive-∼ (force p₂) (force q₂) }
 
-  transitive-∼ : ∀ {i xs ys zs} →
-                 [ i ] xs ∼ ys → [ i ] ys ∼ zs → [ i ] xs ∼ zs
-  transitive-∼ []        []        = []
-  transitive-∼ (p₁ ∷ p₂) (q₁ ∷ q₂) =
-    E.trans p₁ q₁ ∷ λ { .force → transitive-∼ (force p₂) (force q₂) }
+-- Equational reasoning combinators.
 
-  -- Equational reasoning combinators.
+infix  -1 _∎
+infixr -2 step-∼ step-≡ _∼⟨⟩_
 
-  infix  -1 _∎
-  infixr -2 step-∼ step-≡ _∼⟨⟩_
+_∎ : (xs : Colist A ∞) → [ i ] xs ∼ xs
+_∎ = reflexive-∼
 
-  _∎ : ∀ {i} xs → [ i ] xs ∼ xs
-  _∎ = reflexive-∼
+step-∼ : ∀ xs → [ i ] ys ∼ zs → [ i ] xs ∼ ys → [ i ] xs ∼ zs
+step-∼ _ ys∼zs xs∼ys = transitive-∼ xs∼ys ys∼zs
 
-  step-∼ : ∀ {i} xs {ys zs} →
-           [ i ] ys ∼ zs → [ i ] xs ∼ ys → [ i ] xs ∼ zs
-  step-∼ _ ys∼zs xs∼ys = transitive-∼ xs∼ys ys∼zs
+syntax step-∼ xs ys∼zs xs∼ys = xs ∼⟨ xs∼ys ⟩ ys∼zs
 
-  syntax step-∼ xs ys∼zs xs∼ys = xs ∼⟨ xs∼ys ⟩ ys∼zs
+step-≡ : ∀ xs → [ i ] ys ∼ zs → xs ≡ ys → [ i ] xs ∼ zs
+step-≡ {i = i} _ ys∼zs xs≡ys = E.subst ([ i ]_∼ _) (E.sym xs≡ys) ys∼zs
 
-  step-≡ : ∀ {i} xs {ys zs} → [ i ] ys ∼ zs → xs ≡ ys → [ i ] xs ∼ zs
-  step-≡ {i} _ ys∼zs xs≡ys = E.subst ([ i ]_∼ _) (E.sym xs≡ys) ys∼zs
+syntax step-≡ xs ys∼zs xs≡ys = xs ≡⟨ xs≡ys ⟩ ys∼zs
 
-  syntax step-≡ xs ys∼zs xs≡ys = xs ≡⟨ xs≡ys ⟩ ys∼zs
+_∼⟨⟩_ : ∀ xs → [ i ] xs ∼ ys → [ i ] xs ∼ ys
+_ ∼⟨⟩ xs∼ys = xs∼ys
 
-  _∼⟨⟩_ : ∀ {i} xs {ys} → [ i ] xs ∼ ys → [ i ] xs ∼ ys
-  _ ∼⟨⟩ xs∼ys = xs∼ys
+-- A property relating Colist._∷_ and _∷′_.
 
-  -- A property relating Colist._∷_ and _∷′_.
-
-  ∷∼∷′ : ∀ {i} {x : A} {xs} →
-         [ i ] x ∷ xs ∼ x ∷′ force xs
-  ∷∼∷′ = E.refl _ ∷ λ { .force → reflexive-∼ _ }
+∷∼∷′ : [ i ] x ∷ xs ∼ x ∷′ force xs
+∷∼∷′ = E.refl _ ∷ λ { .force → reflexive-∼ _ }
 
 -- Functor laws.
 
-map-id :
-  ∀ {a i} {A : Type a} (xs : Colist A ∞) →
-  [ i ] map id xs ∼ xs
+map-id : (xs : Colist A ∞) → [ i ] map id xs ∼ xs
 map-id []       = []
 map-id (_ ∷ xs) = E.refl _ ∷ λ { .force → map-id (force xs) }
 
 map-∘ :
-  ∀ {a b c i} {A : Type a} {B : Type b} {C : Type c}
-    {f : B → C} {g : A → B}
   (xs : Colist A ∞) →
   [ i ] map (f ∘ g) xs ∼ map f (map g xs)
 map-∘ []       = []
@@ -216,37 +214,30 @@ map-∘ (_ ∷ xs) = E.refl _ ∷ λ { .force → map-∘ (force xs) }
 -- If two non-empty colists are bisimilar, then their heads are
 -- bisimilar.
 
-head-cong : ∀ {a i} {A : Type a} {x y : A} {xs ys} →
-            [ i ] x ∷ xs ∼ y ∷ ys → x ≡ y
+head-cong : [ i ] x ∷ xs ∼ y ∷ ys → x ≡ y
 head-cong (p ∷ _) = p
 
 -- Some preservation lemmas.
 
-tail-cong :
-  ∀ {a i} {A : Type a} {xs ys : Colist A ∞} →
-  [ i ] xs ∼ ys → [ i ] force (tail xs) ∼′ force (tail ys)
+tail-cong : [ i ] xs ∼ ys → [ i ] force (tail xs) ∼′ force (tail ys)
 tail-cong []       = λ { .force → [] }
 tail-cong (_ ∷ ps) = ps
 
 map-cong :
-  ∀ {a b i} {A : Type a} {B : Type b} {f g : A → B} {xs ys} →
-  (∀ x → f x ≡ g x) → [ i ] xs ∼ ys → [ i ] map f xs ∼ map g ys
-map-cong             f≡g []                           = []
-map-cong {f = f} {g} f≡g (_∷_ {x = x} {y = y} x≡y ps) =
+  (∀ x → f x ≡ g x) →
+  [ i ] xs ∼ ys → [ i ] map f xs ∼ map g ys
+map-cong                 f≡g []                           = []
+map-cong {f = f} {g = g} f≡g (_∷_ {x = x} {y = y} x≡y ps) =
   (f x  E.≡⟨ E.cong f x≡y ⟩
    f y  E.≡⟨ f≡g y ⟩∎
    g y  ∎) ∷ λ { .force →
   map-cong f≡g (force ps) }
 
-length-cong :
-  ∀ {a i} {A : Type a} {xs ys : Colist A ∞} →
-  [ i ] xs ∼ ys → Conat.[ i ] length xs ∼ length ys
+length-cong : [ i ] xs ∼ ys → Conat.[ i ] length xs ∼ length ys
 length-cong []       = zero
 length-cong (_ ∷ ps) = suc λ { .force → length-cong (force ps) }
 
-replicate-cong :
-  ∀ {a i} {A : Type a} {m n} {x : A} →
-  Conat.[ i ] m ∼ n → [ i ] replicate m x ∼ replicate n x
+replicate-cong : Conat.[ i ] m ∼ n → [ i ] replicate m x ∼ replicate n x
 replicate-cong zero    = []
 replicate-cong (suc p) =
   E.refl _ ∷ λ { .force → replicate-cong (force p) }
@@ -254,37 +245,29 @@ replicate-cong (suc p) =
 infixr 5 _++-cong_
 
 _++-cong_ :
-  ∀ {a i} {A : Type a} {xs₁ xs₂ ys₁ ys₂ : Colist A ∞} →
   [ i ] xs₁ ∼ ys₁ → [ i ] xs₂ ∼ ys₂ → [ i ] xs₁ ++ xs₂ ∼ ys₁ ++ ys₂
 []       ++-cong qs = qs
 (p ∷ ps) ++-cong qs = p ∷ λ { .force → force ps ++-cong qs }
 
-cycle-cong :
-  ∀ {a i} {A : Type a} {x : A} {xs ys} →
-  [ i ] force xs ∼′ force ys → [ i ] cycle x xs ∼ cycle x ys
+cycle-cong : [ i ] force xs ∼′ force ys → [ i ] cycle x xs ∼ cycle x ys
 cycle-cong p = E.refl _ ∷ λ { .force → force p ++-cong cycle-cong p }
 
-scanl-cong :
-  ∀ {a b i} {A : Type a} {B : Type b} {c : A → B → A} {n : A} {xs ys} →
-  [ i ] xs ∼ ys → [ i ] scanl c n xs ∼ scanl c n ys
+scanl-cong : [ i ] xs ∼ ys → [ i ] scanl c n xs ∼ scanl c n ys
 scanl-cong [] = E.refl _ ∷ λ { .force → [] }
 
-scanl-cong {c = c} {n}
+scanl-cong {c = c} {n = n}
            (_∷_ {x = x} {y = y} {xs = xs} {ys = ys} x≡y ps) =
   E.refl n ∷ λ { .force →
     scanl c (c n x) (force xs)  ≡⟨ E.cong (λ x → scanl _ (c _ x) _) x≡y ⟩
     scanl c (c n y) (force xs)  ∼⟨ scanl-cong (force ps) ⟩
     scanl c (c n y) (force ys)  ∎ }
 
-take-cong :
-  ∀ {a} {A : Type a} n {xs ys : Colist A ∞} →
-  [ ∞ ] xs ∼ ys → take n xs ≡ take n ys
+take-cong : ∀ n → [ ∞ ] xs ∼ ys → take n xs ≡ take n ys
 take-cong n       []       = E.refl _
 take-cong zero    (p ∷ ps) = E.refl _
 take-cong (suc n) (p ∷ ps) = E.cong₂ _∷_ p (take-cong n (force ps))
 
 sum-of-successors-cong :
-  ∀ {i ms ns} →
   [ i ] ms ∼ ns →
   Conat.[ i ] sum-of-successors ms ∼ sum-of-successors ns
 sum-of-successors-cong []       = zero
@@ -295,9 +278,7 @@ sum-of-successors-cong (p ∷ ps) = suc λ { .force →
 
 -- The length of replicate n x is bisimilar to n.
 
-length-replicate :
-  ∀ {a i} {A : Type a} {x : A} n →
-  Conat.[ i ] length (replicate n x) ∼ n
+length-replicate : ∀ n → Conat.[ i ] length (replicate n x) ∼ n
 length-replicate zero    = zero
 length-replicate (suc n) =
   suc λ { .force → length-replicate (force n) }
@@ -305,7 +286,7 @@ length-replicate (suc n) =
 -- A lemma relating nats and nats-from n.
 
 map-+-nats∼nats-from :
-  ∀ {i} n → [ i ] map (n +_) nats ∼ nats-from n
+  ∀ n → [ i ] map (n +_) nats ∼ nats-from n
 map-+-nats∼nats-from n = Nat.+-right-identity ∷ λ { .force →
   map (n +_) (map suc nats)  ∼⟨ symmetric-∼ (map-∘ _) ⟩
   map ((n +_) ∘ suc) nats    ∼⟨ map-cong (λ _ → E.sym (Nat.suc+≡+suc _)) (_ ∎) ⟩
@@ -314,7 +295,7 @@ map-+-nats∼nats-from n = Nat.+-right-identity ∷ λ { .force →
 
 -- The colist nats is bisimilar to nats-from 0.
 
-nats∼nats-from-0 : ∀ {i} → [ i ] nats ∼ nats-from 0
+nats∼nats-from-0 : [ i ] nats ∼ nats-from 0
 nats∼nats-from-0 =
   nats             ∼⟨ symmetric-∼ (map-id _) ⟩
   map id nats      ∼⟨⟩
@@ -326,86 +307,77 @@ nats∼nats-from-0 =
 
 -- ◇ ∞ P xs means that P holds for some element in xs.
 
-data ◇ {a p} {A : Type a} (i : Size)
+data ◇ {A : Type a} (i : Size)
        (P : A → Type p) : Colist A ∞ → Type (a ⊔ p) where
-  here  : ∀ {x xs} → P x → ◇ i P (x ∷ xs)
-  there : ∀ {x xs} {j : Size< i} → ◇ j P (force xs) → ◇ i P (x ∷ xs)
+  here  : P x → ◇ i P (x ∷ xs)
+  there : {j : Size< i} → ◇ j P (force xs) → ◇ i P (x ∷ xs)
 
 -- ◇ respects bisimilarity.
 
-◇-∼ :
-  ∀ {a p i} {A : Type a} {P : A → Type p} {xs ys} →
-  [ ∞ ] xs ∼ ys → ◇ i P xs → ◇ i P ys
+◇-∼ : [ ∞ ] xs ∼ ys → ◇ i P xs → ◇ i P ys
 ◇-∼ (x≡y ∷ _) (here p)  = here (E.subst _ x≡y p)
 ◇-∼ (_   ∷ b) (there p) = there (◇-∼ (force b) p)
 
 -- A map function for ◇.
 
-◇-map : ∀ {a p q i} {A : Type a} {P : A → Type p} {Q : A → Type q} →
-        (∀ {x} → P x → Q x) →
-        (∀ {xs} → ◇ i P xs → ◇ i Q xs)
+◇-map :
+  (∀ {x} → P x → Q x) →
+  (∀ {xs} → ◇ i P xs → ◇ i Q xs)
 ◇-map f (here p)  = here (f p)
 ◇-map f (there p) = there (◇-map f p)
 
 -- A variant of ◇-map.
 
-◇-map′ : ∀ {a b c p q i} {A : Type a} {B : Type b} {C : Type c}
-           {P : B → Type p} {Q : C → Type q}
-           {f : A → B} {g : A → C} →
-         (∀ {x} → P (f x) → Q (g x)) →
-         (∀ {xs} → ◇ i P (map f xs) → ◇ i Q (map g xs))
-◇-map′ g {_ ∷ _} (here p)  = here (g p)
-◇-map′ g {_ ∷ _} (there p) = there (◇-map′ g p)
-◇-map′ g {[]}    ()
+◇-map′ :
+  (∀ {x} → P (f x) → Q (g x)) →
+  (∀ {xs} → ◇ i P (map f xs) → ◇ i Q (map g xs))
+◇-map′ g {xs = _ ∷ _} (here p)  = here (g p)
+◇-map′ g {xs = _ ∷ _} (there p) = there (◇-map′ g p)
+◇-map′ g {xs = []}    ()
 
 -- If a predicate holds for some element in a colist, then it holds
 -- for some value.
 
-◇-witness : ∀ {a p i} {A : Type a} {P : A → Type p} {xs} →
-            ◇ i P xs → ∃ P
+◇-witness : ◇ i P xs → ∃ P
 ◇-witness (here p)  = _ , p
 ◇-witness (there p) = ◇-witness p
 
--- If const P holds for some element, then P holds.
+-- If const A holds for some element, then A holds.
 
-◇-const : ∀ {a p i} {A : Type a} {P : Type p} {xs : Colist A ∞} →
-          ◇ i (const P) xs → P
+◇-const : ◇ i (const A) xs → A
 ◇-const = proj₂ ∘ ◇-witness
 
 -- Colist membership.
 
 infix 4 [_]_∈_
 
-[_]_∈_ : ∀ {a} {A : Type a} → Size → A → Colist A ∞ → Type a
+[_]_∈_ : {A : Type a} → Size → A → Colist A ∞ → Type a
 [ i ] x ∈ xs = ◇ i (x ≡_) xs
 
 -- A generalisation of "◇ ∞ P xs holds iff P holds for some element in
 -- xs".
 
-◇⇔∈× : ∀ {a p i} {A : Type a} {P : A → Type p} {xs} →
-       ◇ i P xs ⇔ ∃ λ x → [ i ] x ∈ xs × P x
+◇⇔∈× : ◇ i P xs ⇔ ∃ λ x → [ i ] x ∈ xs × P x
 ◇⇔∈× {P = P} = record { to = to; from = from }
   where
-  to : ∀ {i xs} → ◇ i P xs → ∃ λ x → [ i ] x ∈ xs × P x
+  to : ◇ i P xs → ∃ λ x → [ i ] x ∈ xs × P x
   to (here p)  = _ , here (E.refl _) , p
   to (there p) = Σ-map id (Σ-map there id) (to p)
 
-  from : ∀ {i xs} → (∃ λ x → [ i ] x ∈ xs × P x) → ◇ i P xs
+  from : (∃ λ x → [ i ] x ∈ xs × P x) → ◇ i P xs
   from (x , here eq   , p) = here (E.subst P eq p)
   from (x , there x∈xs , p) = there (from (x , x∈xs , p))
 
 -- If P holds for some element in replicate (suc n) x, then it also
 -- holds for x, and vice versa.
 
-◇-replicate-suc⇔ :
-  ∀ {a p i} {A : Type a} {P : A → Type p} {x : A} {n} →
-  ◇ i P (replicate (suc n) x) ⇔ P x
-◇-replicate-suc⇔ {P = P} {x} = record
+◇-replicate-suc⇔ : ◇ i P (replicate (suc n) x) ⇔ P x
+◇-replicate-suc⇔ {P = P} {x = x} = record
   { to   = to _
   ; from = here
   }
   where
-  to : ∀ {i} n → ◇ i P (replicate n x) → P x
+  to : ∀ n → ◇ i P (replicate n x) → P x
   to zero    ()
   to (suc n) (here p)  = p
   to (suc n) (there p) = to (force n) p
@@ -413,10 +385,8 @@ infix 4 [_]_∈_
 -- If P holds for some element in cycle x xs, then it also holds for
 -- some element in x ∷ xs, and vice versa.
 
-◇-cycle⇔ :
-  ∀ {a p i} {A : Type a} {P : A → Type p} {x : A} {xs} →
-  ◇ i P (cycle x xs) ⇔ ◇ i P (x ∷ xs)
-◇-cycle⇔ {i = i} {P = P} {x} {xs} = record
+◇-cycle⇔ : ◇ i P (cycle x xs) ⇔ ◇ i P (x ∷ xs)
+◇-cycle⇔ {i = i} {P = P} {x = x} {xs = xs} = record
   { to   = ◇ i P (cycle x xs)               ↝⟨ ◇-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩
            ◇ i P ((x ∷ xs) ++ cycle x xs)   ↝⟨ to _ ⟩
            ◇ i P (x ∷ xs) ⊎ ◇ i P (x ∷ xs)  ↝⟨ [ id , id ] ⟩□
@@ -433,7 +403,7 @@ infix 4 [_]_∈_
   to (y ∷ ys) (here p)  = inj₁ (here p)
   to (y ∷ ys) (there p) = ⊎-map there id (to (force ys) p)
 
-  from : ∀ {i ys} → ◇ i P ys → ◇ i P (ys ++ cycle x xs)
+  from : ∀ {i} → ◇ i P ys → ◇ i P (ys ++ cycle x xs)
   from (here p)   = here p
   from (there ps) = there (from ps)
 
@@ -444,12 +414,12 @@ infix 4 [_]_∈_
 
 mutual
 
-  data □ {a p} {A : Type a} (i : Size)
+  data □ {A : Type a} (i : Size)
          (P : A → Type p) : Colist A ∞ → Type (a ⊔ p) where
     []  : □ i P []
-    _∷_ : ∀ {x xs} → P x → □′ i P (force xs) → □ i P (x ∷ xs)
+    _∷_ : P x → □′ i P (force xs) → □ i P (x ∷ xs)
 
-  record □′ {a p} {A : Type a} (i : Size)
+  record □′ {A : Type a} (i : Size)
             (P : A → Type p) (xs : Colist A ∞) : Type (a ⊔ p) where
     coinductive
     field
@@ -459,19 +429,15 @@ open □′ public
 
 -- Some projections.
 
-□-head : ∀ {a p i} {A : Type a} {P : A → Type p} {x xs} →
-         □ i P (x ∷ xs) → P x
+□-head : □ i P (x ∷ xs) → P x
 □-head (p ∷ _) = p
 
-□-tail : ∀ {a p i} {j : Size< i} {A : Type a} {P : A → Type p} {x xs} →
-         □ i P (x ∷ xs) → □ j P (force xs)
+□-tail : {j : Size< i} → □ i P (x ∷ xs) → □ j P (force xs)
 □-tail (_ ∷ ps) = force ps
 
 -- □ respects bisimilarity.
 
-□-∼ :
-  ∀ {i a p} {A : Type a} {P : A → Type p} {xs ys} →
-  [ i ] xs ∼ ys → □ i P xs → □ i P ys
+□-∼ : [ i ] xs ∼ ys → □ i P xs → □ i P ys
 □-∼ []       _        = []
 □-∼ (eq ∷ b) (p ∷ ps) =
   E.subst _ eq p ∷ λ { .force →
@@ -480,15 +446,14 @@ open □′ public
 -- A generalisation of "□ ∞ P xs holds iff P is true for every element
 -- in xs".
 
-□⇔∈→ : ∀ {a p i} {A : Type a} {P : A → Type p} {xs} →
-       □ i P xs ⇔ (∀ x → [ i ] x ∈ xs → P x)
+□⇔∈→ : □ i P xs ⇔ (∀ x → [ i ] x ∈ xs → P x)
 □⇔∈→ {P = P} = record { to = to; from = from _ }
   where
-  to : ∀ {i xs} → □ i P xs → (∀ x → [ i ] x ∈ xs → P x)
+  to : □ i P xs → (∀ x → [ i ] x ∈ xs → P x)
   to (p ∷ ps) x (here eq)    = E.subst P (E.sym eq) p
   to (p ∷ ps) x (there x∈xs) = to (force ps) x x∈xs
 
-  from : ∀ {i} xs → (∀ x → [ i ] x ∈ xs → P x) → □ i P xs
+  from : ∀ xs → (∀ x → [ i ] x ∈ xs → P x) → □ i P xs
   from []       f = []
   from (x ∷ xs) f =
     f x (here (E.refl _)) ∷ λ { .force →
@@ -496,77 +461,64 @@ open □′ public
 
 -- If P is universally true, then □ i P is also universally true.
 
-□-replicate : ∀ {a p i} {A : Type a} {P : A → Type p} →
-              (∀ x → P x) →
-              (∀ xs → □ i P xs)
+□-replicate : (∀ x → P x) → (∀ xs → □ i P xs)
 □-replicate f _ = _⇔_.from □⇔∈→ (λ x _ → f x)
 
 -- Something resembling applicative functor application for □.
 
 infixl 4 _□-⊛_
 
-_□-⊛_ :
-  ∀ {i a p q} {A : Type a} {P : A → Type p} {Q : A → Type q} {xs} →
-  □ i (λ x → P x → Q x) xs → □ i P xs → □ i Q xs
+_□-⊛_ : □ i (λ x → P x → Q x) xs → □ i P xs → □ i Q xs
 []       □-⊛ _        = []
 (f ∷ fs) □-⊛ (p ∷ ps) = f p ∷ λ { .force → force fs □-⊛ force ps }
 
 -- A map function for □.
 
-□-map : ∀ {a p q i} {A : Type a} {P : A → Type p} {Q : A → Type q} →
-        (∀ {x} → P x → Q x) →
-        (∀ {xs} → □ i P xs → □ i Q xs)
+□-map :
+  (∀ {x} → P x → Q x) →
+  (∀ {xs} → □ i P xs → □ i Q xs)
 □-map f ps = □-replicate (λ _ → f) _ □-⊛ ps
 
 -- A variant of □-map.
 
-□-map′ : ∀ {a b c p q i} {A : Type a} {B : Type b} {C : Type c}
-           {P : B → Type p} {Q : C → Type q}
-           {f : A → B} {g : A → C} →
-         (∀ {x} → P (f x) → Q (g x)) →
-         (∀ {xs} → □ i P (map f xs) → □ i Q (map g xs))
-□-map′ g {[]}    []       = []
-□-map′ g {_ ∷ _} (p ∷ ps) = g p ∷ λ { .force → □-map′ g (force ps) }
+□-map′ :
+  (∀ {x} → P (f x) → Q (g x)) →
+  (∀ {xs} → □ i P (map f xs) → □ i Q (map g xs))
+□-map′ g {xs = []}    []       = []
+□-map′ g {xs = _ ∷ _} (p ∷ ps) =
+  g p ∷ λ { .force → □-map′ g (force ps) }
 
 -- Something resembling applicative functor application for □ and ◇.
 
 infixl 4 _□◇-⊛_
 
-_□◇-⊛_ :
-  ∀ {a p q i} {A : Type a} {P : A → Type p} {Q : A → Type q} {xs} →
-  □ i (λ x → P x → Q x) xs → ◇ i P xs → ◇ i Q xs
+_□◇-⊛_ : □ i (λ x → P x → Q x) xs → ◇ i P xs → ◇ i Q xs
 (f ∷ _)  □◇-⊛ (here p)  = here (f p)
 (_ ∷ fs) □◇-⊛ (there p) = there (force fs □◇-⊛ p)
 
 -- A combination of some of the combinators above.
 
-□◇-witness :
-  ∀ {a p q i} {A : Type a} {P : A → Type p} {Q : A → Type q} {xs} →
-  □ i P xs → ◇ i Q xs → ∃ λ x → P x × Q x
+□◇-witness : □ i P xs → ◇ i Q xs → ∃ λ x → P x × Q x
 □◇-witness p q = ◇-witness (□-map _,_ p □◇-⊛ q)
 
 -- If P holds for every element in replicate (suc n) x, then it also holds
 -- for x, and vice versa.
 
-□-replicate-suc⇔ :
-  ∀ {a p i} {A : Type a} {P : A → Type p} {x : A} {n} →
-  □ i P (replicate (suc n) x) ⇔ P x
-□-replicate-suc⇔ {P = P} {x} = record
+□-replicate-suc⇔ : □ i P (replicate (suc n) x) ⇔ P x
+□-replicate-suc⇔ {P = P} {x = x} = record
   { to   = □-head
   ; from = from _
   }
   where
-  from : ∀ {i} n → P x → □ i P (replicate n x)
+  from : ∀ n → P x → □ i P (replicate n x)
   from zero    p = []
   from (suc n) p = p ∷ λ { .force → from (force n) p }
 
 -- If P holds for every element in cycle x xs, then it also holds for
 -- every element in x ∷ xs, and vice versa.
 
-□-cycle⇔ :
-  ∀ {a p i} {A : Type a} {P : A → Type p} {x : A} {xs} →
-  □ i P (cycle x xs) ⇔ □ i P (x ∷ xs)
-□-cycle⇔ {i = i} {P = P} {x} {xs} = record
+□-cycle⇔ : □ i P (cycle x xs) ⇔ □ i P (x ∷ xs)
+□-cycle⇔ {i = i} {P = P} {x = x} {xs = xs} = record
   { to   = □ i P (cycle x xs)              ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩
            □ i P ((x ∷ xs) ++ cycle x xs)  ↝⟨ to _ ⟩□
            □ i P (x ∷ xs)                  □
@@ -579,181 +531,165 @@ _□◇-⊛_ :
   to []       _        = []
   to (y ∷ ys) (p ∷ ps) = p ∷ λ { .force → to (force ys) (force ps) }
 
-  from : ∀ {i ys} →
-         □ i P (x ∷ xs) → □ i P ys → □ i P (ys ++ cycle x xs)
+  from : ∀ {i} → □ i P (x ∷ xs) → □ i P ys → □ i P (ys ++ cycle x xs)
   from ps       (q ∷ qs) = q ∷ λ { .force → from ps (force qs) }
   from (p ∷ ps) []       = p ∷ λ { .force → from (p ∷ ps) (force ps) }
 
 ------------------------------------------------------------------------
 -- A variant of ◇ with a sized predicate
 
--- ◇ˢ ∞ P xs means that (some instance of) P holds for some element in
--- xs.
+-- ◇ˢ ∞ Pˢ xs means that (some instance of) Pˢ holds for some element
+-- in xs.
 
-data ◇ˢ {a p} {A : Type a} (i : Size)
-        (P : Size → A → Type p) : Colist A ∞ → Type (a ⊔ p) where
-  here  : ∀ {x xs} → P i x → ◇ˢ i P (x ∷ xs)
-  there : ∀ {x xs} {j : Size< i} → ◇ˢ j P (force xs) → ◇ˢ i P (x ∷ xs)
+data ◇ˢ {A : Type a} (i : Size)
+        (Pˢ : Size → A → Type p) : Colist A ∞ → Type (a ⊔ p) where
+  here  : Pˢ i x → ◇ˢ i Pˢ (x ∷ xs)
+  there : {j : Size< i} → ◇ˢ j Pˢ (force xs) → ◇ˢ i Pˢ (x ∷ xs)
 
 -- ◇ˢ respects bisimilarity.
 
-◇ˢ-∼ :
-  ∀ {a p i} {A : Type a} {P : Size → A → Type p} {xs ys} →
-  [ ∞ ] xs ∼ ys → ◇ˢ i P xs → ◇ˢ i P ys
+◇ˢ-∼ : [ ∞ ] xs ∼ ys → ◇ˢ i Pˢ xs → ◇ˢ i Pˢ ys
 ◇ˢ-∼ (eq ∷ _) (here p)  = here (E.subst _ eq p)
 ◇ˢ-∼ (_  ∷ b) (there p) = there (◇ˢ-∼ (force b) p)
 
--- If P is upwards closed, then flip ◇ˢ P is upwards closed.
+-- If Pˢ is upwards closed, then flip ◇ˢ Pˢ is upwards closed.
 
 ◇ˢ-upwards-closed :
-  ∀ {a p} {A : Type a} {P : Size → A → Type p} →
-  (∀ {i} {j : Size< i} {x} → P j x → P i x) →
-  (∀ {i} {j : Size< i} {xs} → ◇ˢ j P xs → ◇ˢ i P xs)
-◇ˢ-upwards-closed P-closed (here p)  = here (P-closed p)
-◇ˢ-upwards-closed P-closed (there p) =
-  there (◇ˢ-upwards-closed P-closed p)
+  (∀ {i} {j : Size< i} {x} → Pˢ j x → Pˢ i x) →
+  (∀ {i} {j : Size< i} {xs} → ◇ˢ j Pˢ xs → ◇ˢ i Pˢ xs)
+◇ˢ-upwards-closed Pˢ-closed (here p)  = here (Pˢ-closed p)
+◇ˢ-upwards-closed Pˢ-closed (there p) =
+  there (◇ˢ-upwards-closed Pˢ-closed p)
 
 -- A variant of the previous lemma.
 
 ◇ˢ-upwards-closed-∞ :
-  ∀ {a p} {A : Type a} {P : Size → A → Type p} →
-  (∀ {i x} → P i x → P ∞ x) →
-  (∀ {i xs} → ◇ˢ i P xs → ◇ˢ ∞ P xs)
-◇ˢ-upwards-closed-∞ P-closed-∞ (here p)  = here (P-closed-∞ p)
-◇ˢ-upwards-closed-∞ P-closed-∞ (there p) =
-  there (◇ˢ-upwards-closed-∞ P-closed-∞ p)
+  (∀ {i x} → Pˢ i x → Pˢ ∞ x) →
+  (∀ {i xs} → ◇ˢ i Pˢ xs → ◇ˢ ∞ Pˢ xs)
+◇ˢ-upwards-closed-∞ Pˢ-closed-∞ (here p)  = here (Pˢ-closed-∞ p)
+◇ˢ-upwards-closed-∞ Pˢ-closed-∞ (there p) =
+  there (◇ˢ-upwards-closed-∞ Pˢ-closed-∞ p)
 
 -- A map function for ◇ˢ.
 
 ◇ˢ-map :
-  ∀ {a p q i}
-    {A : Type a} {P : Size → A → Type p} {Q : Size → A → Type q} →
-  (∀ {i x} → P i x → Q i x) →
-  (∀ {xs} → ◇ˢ i P xs → ◇ˢ i Q xs)
+  (∀ {i x} → Pˢ i x → Qˢ i x) →
+  (∀ {xs} → ◇ˢ i Pˢ xs → ◇ˢ i Qˢ xs)
 ◇ˢ-map f (here p)  = here (f p)
 ◇ˢ-map f (there p) = there (◇ˢ-map f p)
 
 -- A variant of ◇ˢ-map.
 
-◇ˢ-map′ : ∀ {a b c p q i} {A : Type a} {B : Type b} {C : Type c}
-            {P : Size → B → Type p} {Q : Size → C → Type q}
-            {f : A → B} {g : A → C} →
-          (∀ {i x} → P i (f x) → Q i (g x)) →
-          (∀ {xs} → ◇ˢ i P (map f xs) → ◇ˢ i Q (map g xs))
-◇ˢ-map′ g {_ ∷ _} (here p)  = here (g p)
-◇ˢ-map′ g {_ ∷ _} (there p) = there (◇ˢ-map′ g p)
-◇ˢ-map′ g {[]}    ()
+◇ˢ-map′ :
+  (∀ {i x} → Pˢ i (f x) → Qˢ i (g x)) →
+  (∀ {xs} → ◇ˢ i Pˢ (map f xs) → ◇ˢ i Qˢ (map g xs))
+◇ˢ-map′ g {xs = _ ∷ _} (here p)  = here (g p)
+◇ˢ-map′ g {xs = _ ∷ _} (there p) = there (◇ˢ-map′ g p)
+◇ˢ-map′ g {xs = []}    ()
 
 -- If a predicate holds for some element in a colist, then it holds
--- for some value (assuming that P is upwards closed).
+-- for some value (assuming that Pˢ is upwards closed).
 
-◇ˢ-witness : ∀ {a p i} {A : Type a} {P : Size → A → Type p} {xs} →
-             (∀ {i} {j : Size< i} {x} → P j x → P i x) →
-             ◇ˢ i P xs → ∃ (P i)
+◇ˢ-witness :
+  (∀ {i} {j : Size< i} {x} → Pˢ j x → Pˢ i x) →
+  ◇ˢ i Pˢ xs → ∃ (Pˢ i)
 ◇ˢ-witness closed (here p)  = _ , p
 ◇ˢ-witness closed (there p) = Σ-map id closed (◇ˢ-witness closed p)
 
--- If P ∞ holds for some element in xs, then ◇ˢ ∞ P xs holds.
+-- If Pˢ ∞ holds for some element in xs, then ◇ˢ ∞ Pˢ xs holds.
 
-∈×∞→◇ˢ : ∀ {a p} {A : Type a} {P : Size → A → Type p} {x xs} →
-         [ ∞ ] x ∈ xs → P ∞ x → ◇ˢ ∞ P xs
+∈×∞→◇ˢ : [ ∞ ] x ∈ xs → Pˢ ∞ x → ◇ˢ ∞ Pˢ xs
 ∈×∞→◇ˢ (here eq)    p = here (E.subst _ eq p)
 ∈×∞→◇ˢ (there x∈xs) p = there (∈×∞→◇ˢ x∈xs p)
 
--- If P i x implies P ∞ x for any i and x, then ◇ˢ ∞ P xs holds iff
--- P ∞ holds for some element in xs.
+-- If Pˢ i x implies Pˢ ∞ x for any i and x, then ◇ˢ ∞ Pˢ xs holds iff
+-- Pˢ ∞ holds for some element in xs.
 
-◇ˢ⇔∈× : ∀ {a p} {A : Type a} {P : Size → A → Type p} {xs} →
-        (∀ {i x} → P i x → P ∞ x) →
-        ◇ˢ ∞ P xs ⇔ (∃ λ x → [ ∞ ] x ∈ xs × P ∞ x)
-◇ˢ⇔∈× {P = P} →∞ = record
+◇ˢ⇔∈× :
+  (∀ {i x} → Pˢ i x → Pˢ ∞ x) →
+  ◇ˢ ∞ Pˢ xs ⇔ (∃ λ x → [ ∞ ] x ∈ xs × Pˢ ∞ x)
+◇ˢ⇔∈× {Pˢ = Pˢ} →∞ = record
   { to   = to
   ; from = λ { (_ , x∈xs , p) → ∈×∞→◇ˢ x∈xs p }
   }
   where
-  to : ∀ {i xs} → ◇ˢ i P xs → ∃ λ x → [ ∞ ] x ∈ xs × P ∞ x
+  to : ◇ˢ i Pˢ xs → ∃ λ x → [ ∞ ] x ∈ xs × Pˢ ∞ x
   to (here p)  = _ , here (E.refl _) , →∞ p
   to (there p) = Σ-map id (Σ-map there id) (to p)
 
 -- Sized variants of the previous lemma.
 
-◇ˢ→∈× : ∀ {a p} {A : Type a} {P : Size → A → Type p} →
-        (∀ {i} {j : Size< i} {x} → P j x → P i x) →
-        ∀ {i xs} → ◇ˢ i P xs → ∃ λ x → [ i ] x ∈ xs × P i x
+◇ˢ→∈× :
+  (∀ {i} {j : Size< i} {x} → Pˢ j x → Pˢ i x) →
+  ◇ˢ i Pˢ xs → ∃ λ x → [ i ] x ∈ xs × Pˢ i x
 ◇ˢ→∈× closed (here p)  = _ , here (E.refl _) , p
 ◇ˢ→∈× closed (there p) = Σ-map id (Σ-map there closed) (◇ˢ→∈× closed p)
 
-∈×→◇ˢ : ∀ {a p} {A : Type a} {P : Size → A → Type p} →
-        (∀ {i} {j : Size< i} {x} → P i x → P j x) →
-        ∀ {i x xs} → [ i ] x ∈ xs → P i x → ◇ˢ i P xs
+∈×→◇ˢ :
+  (∀ {i} {j : Size< i} {x} → Pˢ i x → Pˢ j x) →
+  [ i ] x ∈ xs → Pˢ i x → ◇ˢ i Pˢ xs
 ∈×→◇ˢ closed (here eq)    p = here (E.subst _ eq p)
 ∈×→◇ˢ closed (there x∈xs) p = there (∈×→◇ˢ closed x∈xs (closed p))
 
--- ◇ ∞ (P ∞) is "contained in" ◇ˢ ∞ P.
+-- ◇ ∞ (Pˢ ∞) is "contained in" ◇ˢ ∞ Pˢ.
 
-◇∞→◇ˢ∞ : ∀ {a p} {A : Type a} {P : Size → A → Type p} {xs} →
-         ◇ ∞ (P ∞) xs → ◇ˢ ∞ P xs
-◇∞→◇ˢ∞ {P = P} {xs} =
-  ◇ ∞ (P ∞) xs                    ↝⟨ _⇔_.to ◇⇔∈× ⟩
-  (∃ λ x → [ ∞ ] x ∈ xs × P ∞ x)  ↝⟨ (λ { (_ , x∈xs , p) → ∈×∞→◇ˢ x∈xs p }) ⟩□
-  ◇ˢ ∞ P xs                       □
+◇∞→◇ˢ∞ : ◇ ∞ (Pˢ ∞) xs → ◇ˢ ∞ Pˢ xs
+◇∞→◇ˢ∞ {Pˢ = Pˢ} {xs = xs} =
+  ◇ ∞ (Pˢ ∞) xs                    ↝⟨ _⇔_.to ◇⇔∈× ⟩
+  (∃ λ x → [ ∞ ] x ∈ xs × Pˢ ∞ x)  ↝⟨ (λ { (_ , x∈xs , p) → ∈×∞→◇ˢ x∈xs p }) ⟩□
+  ◇ˢ ∞ Pˢ xs                       □
 
--- If P i x implies P ∞ x for any i and x, then ◇ˢ ∞ P is pointwise
--- logically equivalent to ◇ ∞ (P ∞).
+-- If Pˢ i x implies Pˢ ∞ x for any i and x, then ◇ˢ ∞ Pˢ is pointwise
+-- logically equivalent to ◇ ∞ (Pˢ ∞).
 
-◇ˢ∞⇔◇∞ : ∀ {a p} {A : Type a} {P : Size → A → Type p} {xs} →
-         (∀ {i x} → P i x → P ∞ x) →
-         ◇ˢ ∞ P xs ⇔ ◇ ∞ (P ∞) xs
-◇ˢ∞⇔◇∞ {P = P} {xs} →∞ =
-  ◇ˢ ∞ P xs                       ↝⟨ ◇ˢ⇔∈× →∞ ⟩
-  (∃ λ x → [ ∞ ] x ∈ xs × P ∞ x)  ↝⟨ inverse ◇⇔∈× ⟩□
-  ◇ ∞ (P ∞) xs                    □
+◇ˢ∞⇔◇∞ :
+  (∀ {i x} → Pˢ i x → Pˢ ∞ x) →
+  ◇ˢ ∞ Pˢ xs ⇔ ◇ ∞ (Pˢ ∞) xs
+◇ˢ∞⇔◇∞ {Pˢ = Pˢ} {xs = xs} →∞ =
+  ◇ˢ ∞ Pˢ xs                       ↝⟨ ◇ˢ⇔∈× →∞ ⟩
+  (∃ λ x → [ ∞ ] x ∈ xs × Pˢ ∞ x)  ↝⟨ inverse ◇⇔∈× ⟩□
+  ◇ ∞ (Pˢ ∞) xs                    □
 
 -- ◇ˢ i (const P) is pointwise logically equivalent to ◇ i P.
 
-◇ˢ⇔◇ : ∀ {a p i} {A : Type a} {P : A → Type p} {xs} →
-       ◇ˢ i (λ _ → P) xs ⇔ ◇ i P xs
-◇ˢ⇔◇ {P = P} {xs} = record { to = to; from = from }
+◇ˢ⇔◇ : ◇ˢ i (λ _ → P) xs ⇔ ◇ i P xs
+◇ˢ⇔◇ {P = P} = record { to = to; from = from }
   where
-  to : ∀ {i xs} → ◇ˢ i (λ _ → P) xs → ◇ i P xs
+  to : ◇ˢ i (λ _ → P) xs → ◇ i P xs
   to (here p)  = here p
   to (there p) = there (to p)
 
-  from : ∀ {i xs} → ◇ i P xs → ◇ˢ i (λ _ → P) xs
+  from : ◇ i P xs → ◇ˢ i (λ _ → P) xs
   from (here p)  = here p
   from (there p) = there (from p)
 
--- If ◇ˢ i P (x ∷ xs) holds, then ◇ˢ i P (cycle x xs) also holds.
+-- If ◇ˢ i Pˢ (x ∷ xs) holds, then ◇ˢ i Pˢ (cycle x xs) also holds.
 
-◇ˢ-cycle← :
-  ∀ {a p i} {A : Type a} {P : Size → A → Type p} {x : A} {xs} →
-  ◇ˢ i P (x ∷ xs) → ◇ˢ i P (cycle x xs)
-◇ˢ-cycle← {i = i} {P = P} {x} {xs} =
-  ◇ˢ i P (x ∷ xs)                  ↝⟨ from ⟩
-  ◇ˢ i P ((x ∷ xs) ++ cycle x xs)  ↝⟨ ◇ˢ-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩□
-  ◇ˢ i P (cycle x xs)              □
+◇ˢ-cycle← : ◇ˢ i Pˢ (x ∷ xs) → ◇ˢ i Pˢ (cycle x xs)
+◇ˢ-cycle← {i = i} {Pˢ = Pˢ} {x = x} {xs = xs} =
+  ◇ˢ i Pˢ (x ∷ xs)                  ↝⟨ from ⟩
+  ◇ˢ i Pˢ ((x ∷ xs) ++ cycle x xs)  ↝⟨ ◇ˢ-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩□
+  ◇ˢ i Pˢ (cycle x xs)              □
   where
-  from : ∀ {i ys} → ◇ˢ i P ys → ◇ˢ i P (ys ++ cycle x xs)
+  from : ∀ {i} → ◇ˢ i Pˢ ys → ◇ˢ i Pˢ (ys ++ cycle x xs)
   from (here p)   = here p
   from (there ps) = there (from ps)
 
--- If P i x implies P ∞ x for any i and x, then ◇ˢ ∞ P (cycle x xs) is
--- logically equivalent to ◇ˢ ∞ P (x ∷ xs).
+-- If Pˢ i x implies Pˢ ∞ x for any i and x, then ◇ˢ ∞ Pˢ (cycle x xs)
+-- is logically equivalent to ◇ˢ ∞ Pˢ (x ∷ xs).
 
 ◇ˢ-cycle⇔ :
-  ∀ {a p} {A : Type a} {P : Size → A → Type p} {x : A} {xs} →
-  (∀ {i x} → P i x → P ∞ x) →
-  ◇ˢ ∞ P (cycle x xs) ⇔ ◇ˢ ∞ P (x ∷ xs)
-◇ˢ-cycle⇔ {P = P} {x} {xs} →∞ = record
-  { to   = ◇ˢ ∞ P (cycle x xs)                ↝⟨ ◇ˢ-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩
-           ◇ˢ ∞ P ((x ∷ xs) ++ cycle x xs)    ↝⟨ to _ ⟩
-           ◇ˢ ∞ P (x ∷ xs) ⊎ ◇ˢ ∞ P (x ∷ xs)  ↝⟨ [ id , id ] ⟩□
-           ◇ˢ ∞ P (x ∷ xs)                    □
+  (∀ {i x} → Pˢ i x → Pˢ ∞ x) →
+  ◇ˢ ∞ Pˢ (cycle x xs) ⇔ ◇ˢ ∞ Pˢ (x ∷ xs)
+◇ˢ-cycle⇔ {Pˢ = Pˢ} {x = x} {xs = xs} →∞ = record
+  { to   = ◇ˢ ∞ Pˢ (cycle x xs)                 ↝⟨ ◇ˢ-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩
+           ◇ˢ ∞ Pˢ ((x ∷ xs) ++ cycle x xs)     ↝⟨ to _ ⟩
+           ◇ˢ ∞ Pˢ (x ∷ xs) ⊎ ◇ˢ ∞ Pˢ (x ∷ xs)  ↝⟨ [ id , id ] ⟩□
+           ◇ˢ ∞ Pˢ (x ∷ xs)                     □
   ; from = ◇ˢ-cycle←
   }
   where
-  to :
-    ∀ {i} ys → ◇ˢ i P (ys ++ cycle x xs) → ◇ˢ ∞ P ys ⊎ ◇ˢ ∞ P (x ∷ xs)
+  to : ∀ ys → ◇ˢ i Pˢ (ys ++ cycle x xs) → ◇ˢ ∞ Pˢ ys ⊎ ◇ˢ ∞ Pˢ (x ∷ xs)
   to []       (here p)  = inj₂ (here (→∞ p))
   to []       (there p) = case to (force xs) p of
                             [ inj₂ ∘ there , inj₂ ]
@@ -763,83 +699,77 @@ data ◇ˢ {a p} {A : Type a} (i : Size)
 ------------------------------------------------------------------------
 -- A variant of □ with a sized predicate
 
--- □ˢ ∞ P xs means that (some instance of) P holds for every element
+-- □ˢ ∞ Pˢ xs means that (some instance of) Pˢ holds for every element
 -- in xs.
 
 mutual
 
-  data □ˢ {a p} {A : Type a} (i : Size)
-          (P : Size → A → Type p) : Colist A ∞ → Type (a ⊔ p) where
-    []  : □ˢ i P []
-    _∷_ : ∀ {x xs} → P i x → □ˢ′ i P (force xs) → □ˢ i P (x ∷ xs)
+  data □ˢ {A : Type a} (i : Size)
+          (Pˢ : Size → A → Type p) : Colist A ∞ → Type (a ⊔ p) where
+    []  : □ˢ i Pˢ []
+    _∷_ : Pˢ i x → □ˢ′ i Pˢ (force xs) → □ˢ i Pˢ (x ∷ xs)
 
-  record □ˢ′ {a p} {A : Type a} (i : Size)
-             (P : Size → A → Type p) (xs : Colist A ∞) :
+  record □ˢ′ {A : Type a} (i : Size)
+             (Pˢ : Size → A → Type p) (xs : Colist A ∞) :
              Type (a ⊔ p) where
     coinductive
     field
-      force : {j : Size< i} → □ˢ j P xs
+      force : {j : Size< i} → □ˢ j Pˢ xs
 
 open □ˢ′ public
 
 -- Some projections.
 
-□ˢ-head : ∀ {a p i} {A : Type a} {P : Size → A → Type p} {x xs} →
-          □ˢ i P (x ∷ xs) → P i x
+□ˢ-head : □ˢ i Pˢ (x ∷ xs) → Pˢ i x
 □ˢ-head (p ∷ _) = p
 
-□ˢ-tail : ∀ {a p i} {j : Size< i}
-            {A : Type a} {P : Size → A → Type p} {x xs} →
-          □ˢ i P (x ∷ xs) → □ˢ j P (force xs)
+□ˢ-tail :
+  {j : Size< i} →
+  □ˢ i Pˢ (x ∷ xs) → □ˢ j Pˢ (force xs)
 □ˢ-tail (_ ∷ ps) = force ps
 
 -- □ˢ respects bisimilarity.
 
-□ˢ-∼ :
-  ∀ {i a p} {A : Type a} {P : Size → A → Type p} {xs ys} →
-  [ i ] xs ∼ ys → □ˢ i P xs → □ˢ i P ys
+□ˢ-∼ : [ i ] xs ∼ ys → □ˢ i Pˢ xs → □ˢ i Pˢ ys
 □ˢ-∼ []       _        = []
 □ˢ-∼ (eq ∷ b) (p ∷ ps) =
   E.subst _ eq p ∷ λ { .force →
   □ˢ-∼ (force b) (force ps) }
 
--- If P is downwards closed, then flip □ˢ P is downwards closed.
+-- If Pˢ is downwards closed, then flip □ˢ Pˢ is downwards closed.
 
 □ˢ-downwards-closed :
-  ∀ {a p} {A : Type a} {P : Size → A → Type p} →
-  (∀ {i} {j : Size< i} {x} → P i x → P j x) →
-  (∀ {i} {j : Size< i} {xs} → □ˢ i P xs → □ˢ j P xs)
-□ˢ-downwards-closed P-closed []       = []
-□ˢ-downwards-closed P-closed (p ∷ ps) =
-  P-closed p ∷ λ { .force → □ˢ-downwards-closed P-closed (force ps) }
+  (∀ {i} {j : Size< i} {x} → Pˢ i x → Pˢ j x) →
+  (∀ {i} {j : Size< i} {xs} → □ˢ i Pˢ xs → □ˢ j Pˢ xs)
+□ˢ-downwards-closed Pˢ-closed []       = []
+□ˢ-downwards-closed Pˢ-closed (p ∷ ps) =
+  Pˢ-closed p ∷ λ { .force → □ˢ-downwards-closed Pˢ-closed (force ps) }
 
 -- A variant of the previous lemma.
 
 □ˢ-downwards-closed-∞ :
-  ∀ {a p} {A : Type a} {P : Size → A → Type p} →
-  (∀ {i x} → P ∞ x → P i x) →
-  (∀ {i xs} → □ˢ ∞ P xs → □ˢ i P xs)
-□ˢ-downwards-closed-∞ P-closed-∞ []       = []
-□ˢ-downwards-closed-∞ P-closed-∞ (p ∷ ps) =
-  P-closed-∞ p ∷ λ { .force →
-  □ˢ-downwards-closed-∞ P-closed-∞ (force ps) }
+  (∀ {i x} → Pˢ ∞ x → Pˢ i x) →
+  (∀ {i xs} → □ˢ ∞ Pˢ xs → □ˢ i Pˢ xs)
+□ˢ-downwards-closed-∞ Pˢ-closed-∞ []       = []
+□ˢ-downwards-closed-∞ Pˢ-closed-∞ (p ∷ ps) =
+  Pˢ-closed-∞ p ∷ λ { .force →
+  □ˢ-downwards-closed-∞ Pˢ-closed-∞ (force ps) }
 
--- If □ˢ ∞ P xs holds, then P ∞ holds for every element in xs.
+-- If □ˢ ∞ Pˢ xs holds, then Pˢ ∞ holds for every element in xs.
 
-□ˢ∞∈→ : ∀ {a p} {A : Type a} {P : Size → A → Type p} {xs x} →
-        □ˢ ∞ P xs → [ ∞ ] x ∈ xs → P ∞ x
+□ˢ∞∈→ : □ˢ ∞ Pˢ xs → [ ∞ ] x ∈ xs → Pˢ ∞ x
 □ˢ∞∈→ (p ∷ ps) (here eq)    = E.subst _ (E.sym eq) p
 □ˢ∞∈→ (p ∷ ps) (there x∈xs) = □ˢ∞∈→ (force ps) x∈xs
 
--- If P ∞ x implies P i x for any i and x, then □ˢ ∞ P xs holds iff P ∞
--- holds for every element in xs.
+-- If Pˢ ∞ x implies Pˢ i x for any i and x, then □ˢ ∞ Pˢ xs holds iff
+-- Pˢ ∞ holds for every element in xs.
 
-□ˢ⇔∈→ : ∀ {a p} {A : Type a} {P : Size → A → Type p} {xs} →
-        (∀ {i x} → P ∞ x → P i x) →
-        □ˢ ∞ P xs ⇔ (∀ x → [ ∞ ] x ∈ xs → P ∞ x)
-□ˢ⇔∈→ {P = P} ∞→ = record { to = λ p _ → □ˢ∞∈→ p; from = from _ }
+□ˢ⇔∈→ :
+  (∀ {i x} → Pˢ ∞ x → Pˢ i x) →
+  □ˢ ∞ Pˢ xs ⇔ (∀ x → [ ∞ ] x ∈ xs → Pˢ ∞ x)
+□ˢ⇔∈→ {Pˢ = Pˢ} ∞→ = record { to = λ p _ → □ˢ∞∈→ p; from = from _ }
   where
-  from : ∀ {i} xs → (∀ x → [ ∞ ] x ∈ xs → P ∞ x) → □ˢ i P xs
+  from : ∀ xs → (∀ x → [ ∞ ] x ∈ xs → Pˢ ∞ x) → □ˢ i Pˢ xs
   from []       f = []
   from (x ∷ xs) f =
     ∞→ (f x (here (E.refl _))) ∷ λ { .force →
@@ -847,59 +777,55 @@ open □ˢ′ public
 
 -- Sized variants of the previous lemma.
 
-□ˢ∈→ : ∀ {a p} {A : Type a} {P : Size → A → Type p} →
-       (∀ {i} {j : Size< i} {x} → P j x → P i x) →
-       ∀ {i x xs} → □ˢ i P xs → [ i ] x ∈ xs → P i x
+□ˢ∈→ :
+  (∀ {i} {j : Size< i} {x} → Pˢ j x → Pˢ i x) →
+  ∀ {i x xs} → □ˢ i Pˢ xs → [ i ] x ∈ xs → Pˢ i x
 □ˢ∈→ closed (p ∷ ps) (here eq)    = E.subst _ (E.sym eq) p
 □ˢ∈→ closed (p ∷ ps) (there x∈xs) = closed (□ˢ∈→ closed (force ps) x∈xs)
 
-∈→→□ˢ : ∀ {a p} {A : Type a} {P : Size → A → Type p} →
-        (∀ {i} {j : Size< i} {x} → P i x → P j x) →
-        ∀ {i} xs → (∀ x → [ i ] x ∈ xs → P i x) → □ˢ i P xs
+∈→→□ˢ :
+  (∀ {i} {j : Size< i} {x} → Pˢ i x → Pˢ j x) →
+  ∀ {i} xs → (∀ x → [ i ] x ∈ xs → Pˢ i x) → □ˢ i Pˢ xs
 ∈→→□ˢ closed []       f = []
 ∈→→□ˢ closed (x ∷ xs) f =
   f x (here (E.refl _)) ∷ λ { .force →
   ∈→→□ˢ closed (force xs) (λ x → closed ∘ f x ∘ there) }
 
--- □ˢ ∞ P is "contained in" □ ∞ (P ∞).
+-- □ˢ ∞ Pˢ is "contained in" □ ∞ (Pˢ ∞).
 
-□ˢ∞→□∞ : ∀ {a p} {A : Type a} {P : Size → A → Type p} {xs} →
-         □ˢ ∞ P xs → □ ∞ (P ∞) xs
-□ˢ∞→□∞ {P = P} {xs} =
-  □ˢ ∞ P xs                     ↝⟨ (λ p _ → □ˢ∞∈→ p) ⟩
-  (∀ x → [ ∞ ] x ∈ xs → P ∞ x)  ↝⟨ _⇔_.from □⇔∈→ ⟩□
-  □ ∞ (P ∞) xs                  □
+□ˢ∞→□∞ : □ˢ ∞ Pˢ xs → □ ∞ (Pˢ ∞) xs
+□ˢ∞→□∞ {Pˢ = Pˢ} {xs = xs} =
+  □ˢ ∞ Pˢ xs                     ↝⟨ (λ p _ → □ˢ∞∈→ p) ⟩
+  (∀ x → [ ∞ ] x ∈ xs → Pˢ ∞ x)  ↝⟨ _⇔_.from □⇔∈→ ⟩□
+  □ ∞ (Pˢ ∞) xs                  □
 
--- If P ∞ x implies P i x for any i and x, then □ˢ ∞ P is pointwise
--- logically equivalent to □ ∞ (P ∞).
+-- If Pˢ ∞ x implies Pˢ i x for any i and x, then □ˢ ∞ Pˢ is pointwise
+-- logically equivalent to □ ∞ (Pˢ ∞).
 
-□ˢ∞⇔□∞ : ∀ {a p} {A : Type a} {P : Size → A → Type p} {xs} →
-         (∀ {i x} → P ∞ x → P i x) →
-         □ˢ ∞ P xs ⇔ □ ∞ (P ∞) xs
-□ˢ∞⇔□∞ {P = P} {xs} ∞→ =
-  □ˢ ∞ P xs                     ↝⟨ □ˢ⇔∈→ ∞→ ⟩
-  (∀ x → [ ∞ ] x ∈ xs → P ∞ x)  ↝⟨ inverse □⇔∈→ ⟩□
-  □ ∞ (P ∞) xs                  □
+□ˢ∞⇔□∞ :
+  (∀ {i x} → Pˢ ∞ x → Pˢ i x) →
+  □ˢ ∞ Pˢ xs ⇔ □ ∞ (Pˢ ∞) xs
+□ˢ∞⇔□∞ {Pˢ = Pˢ} {xs = xs} ∞→ =
+  □ˢ ∞ Pˢ xs                     ↝⟨ □ˢ⇔∈→ ∞→ ⟩
+  (∀ x → [ ∞ ] x ∈ xs → Pˢ ∞ x)  ↝⟨ inverse □⇔∈→ ⟩□
+  □ ∞ (Pˢ ∞) xs                  □
 
 -- □ˢ i (const P) is pointwise logically equivalent to □ i P.
 
-□ˢ⇔□ : ∀ {a p i} {A : Type a} {P : A → Type p} {xs} →
-       □ˢ i (λ _ → P) xs ⇔ □ i P xs
-□ˢ⇔□ {P = P} {xs} = record { to = to; from = from }
+□ˢ⇔□ : □ˢ i (λ _ → P) xs ⇔ □ i P xs
+□ˢ⇔□ {P = P} = record { to = to; from = from }
   where
-  to : ∀ {i xs} → □ˢ i (λ _ → P) xs → □ i P xs
+  to : □ˢ i (λ _ → P) xs → □ i P xs
   to []       = []
   to (p ∷ ps) = p ∷ λ { .force → to (force ps) }
 
-  from : ∀ {i xs} → □ i P xs → □ˢ i (λ _ → P) xs
+  from : □ i P xs → □ˢ i (λ _ → P) xs
   from []       = []
   from (p ∷ ps) = p ∷ λ { .force → from (force ps) }
 
--- If P is universally true, then □ˢ i P is also universally true.
+-- If Pˢ is universally true, then □ˢ i Pˢ is also universally true.
 
-□ˢ-replicate : ∀ {a p i} {A : Type a} {P : Size → A → Type p} →
-               (∀ {i} x → P i x) →
-               (∀ xs → □ˢ i P xs)
+□ˢ-replicate : (∀ {i} x → Pˢ i x) → (∀ xs → □ˢ i Pˢ xs)
 □ˢ-replicate f []       = []
 □ˢ-replicate f (x ∷ xs) = f x ∷ λ { .force → □ˢ-replicate f (force xs) }
 
@@ -907,28 +833,22 @@ open □ˢ′ public
 
 infixl 4 _□ˢ-⊛_
 
-_□ˢ-⊛_ : ∀ {i a p q} {A : Type a}
-           {P : Size → A → Type p} {Q : Size → A → Type q} {xs} →
-         □ˢ i (λ j x → P j x → Q j x) xs → □ˢ i P xs → □ˢ i Q xs
+_□ˢ-⊛_ : □ˢ i (λ j x → Pˢ j x → Qˢ j x) xs → □ˢ i Pˢ xs → □ˢ i Qˢ xs
 []       □ˢ-⊛ _        = []
 (f ∷ fs) □ˢ-⊛ (p ∷ ps) = f p ∷ λ { .force → force fs □ˢ-⊛ force ps }
 
 -- A map function for □ˢ.
 
 □ˢ-map :
-  ∀ {a p q i}
-    {A : Type a} {P : Size → A → Type p} {Q : Size → A → Type q} →
-  (∀ {i x} → P i x → Q i x) →
-  (∀ {xs} → □ˢ i P xs → □ˢ i Q xs)
+  (∀ {i x} → Pˢ i x → Qˢ i x) →
+  (∀ {xs} → □ˢ i Pˢ xs → □ˢ i Qˢ xs)
 □ˢ-map f ps = □ˢ-replicate (λ _ → f) _ □ˢ-⊛ ps
 
 -- A variant of □ˢ-map.
 
-□ˢ-map′ : ∀ {a b c p q i} {A : Type a} {B : Type b} {C : Type c}
-            {P : Size → B → Type p} {Q : Size → C → Type q}
-            {f : A → B} {g : A → C} →
-          (∀ {i x} → P i (f x) → Q i (g x)) →
-          (∀ {xs} → □ˢ i P (map f xs) → □ˢ i Q (map g xs))
+□ˢ-map′ :
+  (∀ {i x} → Pˢ i (f x) → Qˢ i (g x)) →
+  (∀ {xs} → □ˢ i Pˢ (map f xs) → □ˢ i Qˢ (map g xs))
 □ˢ-map′ g {[]}    []       = []
 □ˢ-map′ g {_ ∷ _} (p ∷ ps) = g p ∷ λ { .force → □ˢ-map′ g (force ps) }
 
@@ -936,54 +856,46 @@ _□ˢ-⊛_ : ∀ {i a p q} {A : Type a}
 
 infixl 4 _□ˢ◇ˢ-⊛_
 
-_□ˢ◇ˢ-⊛_ : ∀ {a p q i} {A : Type a}
-             {P : Size → A → Type p} {Q : Size → A → Type q} {xs} →
-           □ˢ i (λ j x → P j x → Q j x) xs → ◇ˢ i P xs → ◇ˢ i Q xs
+_□ˢ◇ˢ-⊛_ : □ˢ i (λ j x → Pˢ j x → Qˢ j x) xs → ◇ˢ i Pˢ xs → ◇ˢ i Qˢ xs
 (f ∷ _)  □ˢ◇ˢ-⊛ (here p)  = here (f p)
 (_ ∷ fs) □ˢ◇ˢ-⊛ (there p) = there (force fs □ˢ◇ˢ-⊛ p)
 
 -- A combination of some of the combinators above.
 
 □ˢ◇ˢ-witness :
-  ∀ {a p q i}
-    {A : Type a} {P : Size → A → Type p} {Q : Size → A → Type q} {xs} →
-  (∀ {i} {j : Size< i} {x} → P j x → P i x) →
-  (∀ {i} {j : Size< i} {x} → Q j x → Q i x) →
-  □ˢ i P xs → ◇ˢ i Q xs → ∃ λ x → P i x × Q i x
-□ˢ◇ˢ-witness P-closed Q-closed p q =
-  ◇ˢ-witness (λ { {_} {_} → Σ-map P-closed Q-closed })
+  (∀ {i} {j : Size< i} {x} → Pˢ j x → Pˢ i x) →
+  (∀ {i} {j : Size< i} {x} → Qˢ j x → Qˢ i x) →
+  □ˢ i Pˢ xs → ◇ˢ i Qˢ xs → ∃ λ x → Pˢ i x × Qˢ i x
+□ˢ◇ˢ-witness Pˢ-closed Qˢ-closed p q =
+  ◇ˢ-witness (λ { {_} {_} → Σ-map Pˢ-closed Qˢ-closed })
              (□ˢ-map _,_ p □ˢ◇ˢ-⊛ q)
 
--- If □ˢ i P (cycle x xs) holds, then □ˢ i P (x ∷ xs) also holds.
+-- If □ˢ i Pˢ (cycle x xs) holds, then □ˢ i Pˢ (x ∷ xs) also holds.
 
-□ˢ-cycle→ :
-  ∀ {a p i} {A : Type a} {P : Size → A → Type p} {x : A} {xs} →
-  □ˢ i P (cycle x xs) → □ˢ i P (x ∷ xs)
-□ˢ-cycle→ {i = i} {P = P} {x} {xs} =
-  □ˢ i P (cycle x xs)              ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩
-  □ˢ i P ((x ∷ xs) ++ cycle x xs)  ↝⟨ to _ ⟩□
-  □ˢ i P (x ∷ xs)                  □
+□ˢ-cycle→ : □ˢ i Pˢ (cycle x xs) → □ˢ i Pˢ (x ∷ xs)
+□ˢ-cycle→ {i = i} {Pˢ = Pˢ} {x = x} {xs = xs} =
+  □ˢ i Pˢ (cycle x xs)              ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩
+  □ˢ i Pˢ ((x ∷ xs) ++ cycle x xs)  ↝⟨ to _ ⟩□
+  □ˢ i Pˢ (x ∷ xs)                  □
   where
-  to : ∀ {i} ys → □ˢ i P (ys ++ cycle x xs) → □ˢ i P ys
+  to : ∀ {i} ys → □ˢ i Pˢ (ys ++ cycle x xs) → □ˢ i Pˢ ys
   to []       _        = []
   to (y ∷ ys) (p ∷ ps) = p ∷ λ { .force → to (force ys) (force ps) }
 
--- If P ∞ x implies P i x for any i and x, then □ˢ ∞ P (cycle x xs) is
--- logically equivalent to □ˢ ∞ P (x ∷ xs).
+-- If Pˢ ∞ x implies Pˢ i x for any i and x, then □ˢ ∞ Pˢ (cycle x xs)
+-- is logically equivalent to □ˢ ∞ Pˢ (x ∷ xs).
 
 □ˢ-cycle⇔ :
-  ∀ {a p} {A : Type a} {P : Size → A → Type p} {x : A} {xs} →
-  (∀ {i x} → P ∞ x → P i x) →
-  □ˢ ∞ P (cycle x xs) ⇔ □ˢ ∞ P (x ∷ xs)
-□ˢ-cycle⇔ {P = P} {x} {xs} ∞→ = record
+  (∀ {i x} → Pˢ ∞ x → Pˢ i x) →
+  □ˢ ∞ Pˢ (cycle x xs) ⇔ □ˢ ∞ Pˢ (x ∷ xs)
+□ˢ-cycle⇔ {Pˢ = Pˢ} {x = x} {xs = xs} ∞→ = record
   { to   = □ˢ-cycle→
-  ; from = □ˢ ∞ P (x ∷ xs)                  ↝⟨ (λ hyp → from hyp hyp) ⟩
-           □ˢ ∞ P ((x ∷ xs) ++ cycle x xs)  ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩□
-           □ˢ ∞ P (cycle x xs)              □
+  ; from = □ˢ ∞ Pˢ (x ∷ xs)                  ↝⟨ (λ hyp → from hyp hyp) ⟩
+           □ˢ ∞ Pˢ ((x ∷ xs) ++ cycle x xs)  ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩□
+           □ˢ ∞ Pˢ (cycle x xs)              □
   }
   where
-  from : ∀ {i ys} →
-         □ˢ ∞ P (x ∷ xs) → □ˢ i P ys → □ˢ i P (ys ++ cycle x xs)
+  from : □ˢ ∞ Pˢ (x ∷ xs) → □ˢ i Pˢ ys → □ˢ i Pˢ (ys ++ cycle x xs)
   from ps       (q ∷ qs) = q ∷ λ { .force → from ps (force qs) }
   from (p ∷ ps) []       = ∞→ p ∷ λ { .force →
                            from (p ∷ ps) (force ps) }
