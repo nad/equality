@@ -4250,6 +4250,20 @@ inhabited→propositional→↝⊤ x prop = generalise-ext?-prop
   ¬ A × A          ↝⟨ uncurry _$_ ⟩□
   ⊥                □
 
+private
+
+  -- A lemma used in the implementations of ¬-cong-⇔, ¬-cong-⇔-≃ᴱ and
+  -- ¬-cong.
+
+  ¬-cong-⇔-⇔ :
+    ∀ {a b} {A : Type a} {B : Type b} →
+    @0 A ⇔ B → (¬ A) ⇔ (¬ B)
+  ¬-cong-⇔-⇔ A⇔B =
+    record
+      { to   = λ f x → ⊥-elim₀ (f (_⇔_.from A⇔B x))
+      ; from = λ f x → ⊥-elim₀ (f (_⇔_.to   A⇔B x))
+      }
+
 -- If two types are logically equivalent, then their negations are
 -- equivalent (assuming extensionality).
 
@@ -4257,23 +4271,42 @@ inhabited→propositional→↝⊤ x prop = generalise-ext?-prop
   ∀ {a b} {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) lzero →
   @0 A ⇔ B → (¬ A) ≃ (¬ B)
-¬-cong-⇔ {a} {b} ext A⇔B =
+¬-cong-⇔ {a = a} {b = b} ext A⇔B =
   _↠_.from
     (Eq.≃↠⇔ (¬-propositional (lower-extensionality b lzero ext))
             (¬-propositional (lower-extensionality a lzero ext)))
-    (record
-       { to   = λ f x → ⊥-elim₀ (f (_⇔_.from A⇔B x))
-       ; from = λ f x → ⊥-elim₀ (f (_⇔_.to   A⇔B x))
-       })
+    (¬-cong-⇔-⇔ A⇔B)
+
+-- If two types are logically equivalent, then their negations are
+-- equivalent with erased proofs (assuming erased extensionality).
+
+¬-cong-⇔-≃ᴱ :
+  ∀ {a b} {A : Type a} {B : Type b} →
+  @0 Extensionality (a ⊔ b) lzero →
+  @0 A ⇔ B → (¬ A) ≃ᴱ (¬ B)
+¬-cong-⇔-≃ᴱ {a = a} {b = b} ext A⇔B = EEq.⇔→≃ᴱ
+  (¬-propositional (lower-extensionality b lzero ext))
+  (¬-propositional (lower-extensionality a lzero ext))
+  (_⇔_.to   ¬A⇔¬B)
+  (_⇔_.from ¬A⇔¬B)
+  where
+  ¬A⇔¬B = ¬-cong-⇔-⇔ A⇔B
 
 -- Symmetric kinds of functions are preserved by ¬_ (assuming
 -- extensionality).
 
 ¬-cong :
   ∀ {k a b} {A : Type a} {B : Type b} →
-  Extensionality (a ⊔ b) lzero →
+  Extensionality? ⌊ k ⌋-sym (a ⊔ b) lzero →
   @0 A ↝[ ⌊ k ⌋-sym ] B → (¬ A) ↝[ ⌊ k ⌋-sym ] (¬ B)
-¬-cong ext A↝B = from-equivalence (¬-cong-⇔ ext (sym→⇔ A↝B))
+¬-cong {k = logical-equivalence} _ A⇔B =
+  ¬-cong-⇔-⇔ A⇔B
+¬-cong {k = bijection} ext A↔B =
+  from-isomorphism $ ¬-cong-⇔ ext (from-isomorphism A↔B)
+¬-cong {k = equivalence} ext A≃B =
+  ¬-cong-⇔ ext (from-isomorphism A≃B)
+¬-cong {k = equivalenceᴱ} E.[ ext ] A≃ᴱB =
+  ¬-cong-⇔-≃ᴱ ext (_≃ᴱ_.logical-equivalence A≃ᴱB)
 
 -- If B can be decided, given that A is inhabited, then A → B is
 -- logically equivalent to ¬ B → ¬ A.
