@@ -17,6 +17,8 @@ open import Prelude
 open import Bag-equivalence eq hiding (cons)
 open import Bijection eq as Bijection using (_↔_)
 open import Equality.Decision-procedures eq
+open import Equivalence eq as Eq using (_≃_)
+open import Equivalence-relation eq
 open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
@@ -31,14 +33,15 @@ open import Vec eq as Vec using (Vec)
 
 private
   variable
-    a ℓ p q : Level
-    A B     : Type a
-    f       : A → B
-    P       : A → Type p
-    Q       : A → Type q
-    x y     : A
-    xs ys   : List A
-    n       : ℕ
+    a ℓ p q r : Level
+    A B       : Type a
+    f         : A → B
+    P         : A → Type p
+    Q         : A → Type q
+    R         : A → A → Type r
+    x y       : A
+    xs ys     : List A
+    n         : ℕ
 
 -- All P xs means that P holds for every element of xs.
 
@@ -246,6 +249,51 @@ private
         (_↔_.to ∃-All↔List-∃ (_ , _↔_.from All-const-replicate xs))
     lemma {n = zero}  = refl _
     lemma {n = suc n} = cong (_ ∷_) lemma
+
+-- List commutes with Σ in a certain way.
+
+List-Σ : List (Σ A P) ≃ Σ (List A) (All P)
+List-Σ {A = A} {P = P} =
+  Eq.↔→≃ to (uncurry from) (uncurry to-from) from-to
+  where
+  to : List (Σ A P) → Σ (List A) (All P)
+  to []             = ([] , _)
+  to ((x , p) ∷ xs) = Σ-map (x ∷_) (cons p) (to xs)
+
+  from : (xs : List A) → All P xs → List (Σ A P)
+  from []       _  = []
+  from (x ∷ xs) ps = (x , head ps) ∷ from xs (tail ps)
+
+  to-from : (xs : List A) (ps : All P xs) → to (from xs ps) ≡ (xs , ps)
+  to-from [] ps =
+    [] , _   ≡⟨⟩
+    [] , ps  ∎
+  to-from (x ∷ xs) ps =
+    Σ-map (x ∷_) (cons (head ps)) (to (from xs (tail ps)))  ≡⟨ cong (Σ-map (x ∷_) (cons (head ps))) $ to-from xs (tail ps) ⟩
+    Σ-map (x ∷_) (cons (head ps)) (xs , tail ps)            ≡⟨⟩
+    (x ∷ xs , ps)                                           ∎
+
+  from-to : (xs : List (Σ A P)) → uncurry from (to xs) ≡ xs
+  from-to []             = refl _
+  from-to ((x , p) ∷ xs) =
+    from (x ∷ to xs .proj₁) (cons p (to xs .proj₂))  ≡⟨⟩
+    (x , p) ∷ uncurry from (to xs)                   ≡⟨ cong (_ ∷_) $ from-to xs ⟩∎
+    (x , p) ∷ xs                                     ∎
+
+-- A rearrangement lemma for Listᴾ and List-Σ.
+
+Listᴾ-List-Σ :
+  Listᴾ R (_≃_.to List-Σ xs .proj₁) (_≃_.to List-Σ ys .proj₁) ≃
+  Listᴾ (R on proj₁) xs ys
+Listᴾ-List-Σ {xs = []} {ys = []} =
+  ↑ _ ⊤  □
+Listᴾ-List-Σ {R = R} {xs = (x , _) ∷ xs} {ys = (y , _) ∷ ys} =
+  R x y × Listᴾ R (_≃_.to List-Σ xs .proj₁) (_≃_.to List-Σ ys .proj₁)  ↝⟨ (∃-cong λ _ → Listᴾ-List-Σ) ⟩□
+  R x y × Listᴾ (R on proj₁) xs ys                                     □
+Listᴾ-List-Σ {xs = []} {ys = _ ∷ _} =
+  ⊥  □
+Listᴾ-List-Σ {xs = _ ∷ _} {ys = []} =
+  ⊥  □
 
 -- Concatenation.
 

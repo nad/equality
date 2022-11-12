@@ -16,6 +16,8 @@ open import Prelude
 open import Bag-equivalence eq hiding (cons)
 open import Bijection eq as Bijection using (_↔_)
 import Equality.Groupoid eq as EG
+open import Equivalence eq using (_≃_)
+open import Equivalence-relation eq
 open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import Groupoid eq
@@ -27,13 +29,14 @@ open import Vec.Function eq as Vec using (Vec)
 
 private
   variable
-    a b ℓ p q : Level
-    A B       : Type a
-    P         : A → Type p
-    Q         : A → Type q
-    k x y     : A
-    n         : ℕ
-    xs ys     : List A
+    a b ℓ p q r : Level
+    A B         : Type a
+    P           : A → Type p
+    Q           : A → Type q
+    R           : A → A → Type r
+    k x y       : A
+    n           : ℕ
+    xs ys       : List A
 
 -- All P xs means that P holds for every element of xs.
 
@@ -201,6 +204,66 @@ tail = proj₂ ∘ _⇔_.to (All-∷ _)
 
 append : All P xs → All P ys → All P (xs ++ ys)
 append = curry (_⇔_.from (All-++ _))
+
+-- List commutes with Σ in a certain way.
+
+List-Σ :
+  {A : Type a} {P : A → Type p} →
+  List (Σ A P) ↝[ a ∣ a ⊔ p ] Σ (List A) (All P)
+List-Σ {a = a} {p = p} {A = A} {P = P} =
+  generalise-ext?
+    (record { to = to; from = uncurry from })
+    (λ ext →
+         uncurry (to-from ext)
+       , from-to ext)
+  where
+  to : List (Σ A P) → Σ (List A) (All P)
+  to []             = ([] , nil)
+  to ((x , p) ∷ xs) = Σ-map (x ∷_) (cons p) (to xs)
+
+  from : (xs : List A) → All P xs → List (Σ A P)
+  from []       _  = []
+  from (x ∷ xs) ps = (x , head ps) ∷ from xs (tail ps)
+
+  module _ (ext : Extensionality a (a ⊔ p)) where
+
+    to-from : (xs : List A) (ps : All P xs) → to (from xs ps) ≡ (xs , ps)
+    to-from [] ps =
+      [] , nil  ≡⟨ cong ([] ,_) $ _≃_.left-inverse-of (All-[] _ ext) _ ⟩∎
+      [] , ps   ∎
+    to-from (x ∷ xs) ps =
+      Σ-map (x ∷_) (cons (head ps)) (to (from xs (tail ps)))  ≡⟨ cong (Σ-map (x ∷_) (cons (head ps))) $ to-from xs (tail ps) ⟩
+      Σ-map (x ∷_) (cons (head ps)) (xs , tail ps)            ≡⟨⟩
+      (x ∷ xs , cons (head ps) (tail ps))                     ≡⟨ cong (x ∷ xs ,_) $ _≃_.left-inverse-of (All-∷ ext) _ ⟩∎
+      (x ∷ xs , ps)                                           ∎
+
+    from-to : (xs : List (Σ A P)) → uncurry from (to xs) ≡ xs
+    from-to []             = refl _
+    from-to ((x , p) ∷ xs) =
+      from (x ∷ to xs .proj₁) (cons p (to xs .proj₂))             ≡⟨⟩
+
+      (x , head (cons p (to xs .proj₂))) ∷
+      uncurry from (to xs .proj₁ , tail (cons p (to xs .proj₂)))  ≡⟨ cong (λ p → (x , p .proj₁) ∷ uncurry from (to xs .proj₁ , p .proj₂)) $
+                                                                     _≃_.right-inverse-of (All-∷ ext) _ ⟩
+
+      (x , p) ∷ uncurry from (to xs)                              ≡⟨ cong (_ ∷_) $ from-to xs ⟩∎
+
+      (x , p) ∷ xs                                                ∎
+
+-- A rearrangement lemma for Listᴾ and List-Σ.
+
+Listᴾ-List-Σ :
+  Listᴾ R (List-Σ _ xs .proj₁) (List-Σ _ ys .proj₁) ≃
+  Listᴾ (R on proj₁) xs ys
+Listᴾ-List-Σ {xs = []} {ys = []} =
+  ↑ _ ⊤  □
+Listᴾ-List-Σ {R = R} {xs = (x , _) ∷ xs} {ys = (y , _) ∷ ys} =
+  R x y × Listᴾ R (List-Σ _ xs .proj₁) (List-Σ _ ys .proj₁)  ↝⟨ (∃-cong λ _ → Listᴾ-List-Σ) ⟩□
+  R x y × Listᴾ (R on proj₁) xs ys                           □
+Listᴾ-List-Σ {xs = []} {ys = _ ∷ _} =
+  ⊥  □
+Listᴾ-List-Σ {xs = _ ∷ _} {ys = []} =
+  ⊥  □
 
 -- All preserves h-levels (assuming extensionality).
 
