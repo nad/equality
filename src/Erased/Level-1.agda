@@ -39,7 +39,7 @@ open import Modality.Basics eq-J
 open import Monad eq-J hiding (map; map-id; map-∘)
 open import Preimage eq-J using (_⁻¹_)
 open import Surjection eq-J as Surjection using (_↠_; Split-surjective)
-open import Univalence-axiom eq-J as U using (≡⇒→; _²/≡)
+open import Univalence-axiom eq-J as U using (Univalence; ≡⇒→; _²/≡)
 
 private
   variable
@@ -807,6 +807,18 @@ Erased-Is-embedding-[] =
 Erased-Split-surjective-[] :
   {@0 A : Type a} → Erased (Split-surjective [ A ∣_]→)
 Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
+
+-- In erased contexts the type ∃ λ (A : Type a) → Erased (H-level n A)
+-- has h-level 1 + n (assuming function extensionality and
+-- univalence).
+
+@0 H-level-1+-∃-H-level-Erased :
+  Extensionality a a →
+  Univalence a →
+  ∀ n → H-level (1 + n) (∃ λ (A : Type a) → Erased (H-level n A))
+H-level-1+-∃-H-level-Erased ext univ n =          $⟨ U.∃-H-level-H-level-1+ ext univ n ⟩
+  H-level (1 + n) (∃ λ A → H-level n A)           →⟨ H-level-cong _ (1 + n) (∃-cong λ _ → inverse $ Erased↔ .erased) ⟩□
+  H-level (1 + n) (∃ λ A → Erased (H-level n A))  □
 
 ------------------------------------------------------------------------
 -- A variant of []-cong-axiomatisation

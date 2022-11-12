@@ -279,11 +279,7 @@ weakly-effective
   R′ x = rec λ where
     .[]ʳ y → ∥ R x y ∥ᴱ , [ PTᴱ.truncation-is-proposition ]
 
-    .is-setʳ →                                               $⟨ (λ {_ _} → Is-set-∃-Is-proposition ext U.prop-ext) ⟩
-      Is-set (Proposition r)                                 ↝⟨ H-level-cong _ 2
-                                                                  (∃-cong λ _ → inverse $ Er.Erased↔ .Er.erased)
-                                                                  ⦂ (_ → _) ⟩□
-      Is-set (∃ λ (P : Type r) → Erased (Is-proposition P))  □
+    .is-setʳ → Er.H-level-1+-∃-H-level-Erased ext U.abstract-univ 1
 
     .[]-respects-relationʳ {x = y} {y = z} →
       R y z                                        ↝⟨ (λ r → record
