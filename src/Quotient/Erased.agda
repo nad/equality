@@ -39,6 +39,7 @@ open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq as PT using (∥_∥; ∣_∣)
 open import H-level.Truncation.Propositional.Erased eq as PTᴱ
   using (∥_∥ᴱ; ∣_∣; Surjectiveᴱ)
+import List equality-with-J as L
 open import Quotient eq as Q using (_/_)
 open import Sum equality-with-J
 open import Surjection equality-with-J using (_↠_)
@@ -649,3 +650,62 @@ Erased/ᴱ {A = A} {R = R} set R→≡ = Eq.↔→≃
     .is-setʳ               → set
     .[]ʳ                   → id
     .[]-respects-relationʳ → R→≡
+
+-- List commutes with quotients in a certain sense, given a certain
+-- assumption.
+
+List/ᴱ :
+  @0 (∀ {x} → R x x) →
+  List A /ᴱ Listᴾ R ≃ List (A /ᴱ R)
+List/ᴱ {A = A} {R = R} r = Eq.↔→≃ to from to-from from-to
+  where
+  @0 to-lemma :
+    ∀ xs ys →
+    Listᴾ R xs ys →
+    _≡_ {A = List (A /ᴱ R)} (L.map [_] xs) (L.map [_] ys)
+  to-lemma []       []       _        = []  ∎
+  to-lemma (x ∷ xs) (y ∷ ys) (r , rs) =
+    [ x ] ∷ L.map [_] xs  ≡⟨ cong₂ _∷_ ([]-respects-relation r) (to-lemma xs ys rs) ⟩∎
+    [ y ] ∷ L.map [_] ys  ∎
+
+  to : List A /ᴱ Listᴾ R → List (A /ᴱ R)
+  to = rec λ where
+    .[]ʳ xs                → L.map [_] xs
+    .[]-respects-relationʳ → to-lemma _ _
+    .is-setʳ               → L.H-level-List 0 /ᴱ-is-set
+
+  cons : A /ᴱ R → List A /ᴱ Listᴾ R → List A /ᴱ Listᴾ R
+  cons = /ᴱ-zip _∷_ r (Listᴾ-preserves-reflexivity r) _,_
+
+  from : List (A /ᴱ R) → List A /ᴱ Listᴾ R
+  from []       = [ [] ]
+  from (x ∷ xs) = cons x (from xs)
+
+  to-cons-[] : ∀ x xs → to (cons [ x ] xs) ≡ [ x ] ∷ to xs
+  to-cons-[] x = elim-prop λ where
+    .is-propositionʳ _ →
+      L.H-level-List 0 /ᴱ-is-set
+    .[]ʳ _ → refl _
+
+  to-from : (xs : List (A /ᴱ R)) → to (from xs) ≡ xs
+  to-from []       = refl _
+  to-from (x ∷ xs) =
+    flip (elim-prop {P = λ x → to (from (x ∷ xs)) ≡ x ∷ xs}) x λ where
+      .is-propositionʳ _ →
+        L.H-level-List 0 /ᴱ-is-set
+      .[]ʳ x →
+        to (cons [ x ] (from xs))  ≡⟨ to-cons-[] _ (from xs) ⟩
+        [ x ] ∷ to (from xs)       ≡⟨ cong (_ ∷_) $ to-from xs ⟩∎
+        [ x ] ∷ xs                 ∎
+
+  from-map-[] : ∀ xs → from (L.map [_] xs) ≡ [ xs ]
+  from-map-[] []       = refl _
+  from-map-[] (x ∷ xs) =
+    cons [ x ] (from (L.map [_] xs))  ≡⟨ cong (cons [ x ]) $ from-map-[] xs ⟩
+    cons [ x ] [ xs ]                 ≡⟨⟩
+    [ x ∷ xs ]                        ∎
+
+  from-to : (xs : List A /ᴱ Listᴾ R) → from (to xs) ≡ xs
+  from-to = elim-prop λ where
+    .is-propositionʳ _ → /ᴱ-is-set
+    .[]ʳ               → from-map-[]
