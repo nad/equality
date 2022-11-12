@@ -786,6 +786,14 @@ _ = refl _
         _ _
   }
 
+-- A zip function.
+
+∥∥-zip : (A → B → C) → ∥ A ∥ → ∥ B ∥ → ∥ C ∥
+∥∥-zip {A = A} {B = B} {C = C} f = curry
+  (∥ A ∥ × ∥ B ∥  ↔⟨ ∥∥×∥∥↔∥×∥ ⟩
+   ∥ A × B ∥      →⟨ ∥∥-map (uncurry f) ⟩□
+   ∥ C ∥          □)
+
 -- Variants of proj₁-closure.
 
 private
