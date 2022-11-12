@@ -213,3 +213,65 @@ _×ᴾ_ :
   ∀ {x y} → Is-proposition ((R₁ ×ᴾ R₂) x y)
 ×ᴾ-preserves-Is-proposition R₁-prop R₂-prop =
   ×-closure 1 R₁-prop R₂-prop
+
+-- Lifts a binary relation from A to List A.
+
+Listᴾ :
+  (A → B → Type r) →
+  (List A → List B → Type r)
+Listᴾ R []       []       = ↑ _ ⊤
+Listᴾ R (x ∷ xs) (y ∷ ys) = R x y × Listᴾ R xs ys
+Listᴾ R _        _        = ⊥
+
+-- Listᴾ preserves reflexivity.
+
+Listᴾ-preserves-reflexivity :
+  (∀ {x} → R x x) →
+  ∀ {xs} → Listᴾ R xs xs
+Listᴾ-preserves-reflexivity = λ where
+  r {xs = []}    → _
+  r {xs = _ ∷ _} → r , Listᴾ-preserves-reflexivity r
+
+-- Listᴾ preserves symmetry.
+
+Listᴾ-preserves-symmetry :
+  (∀ {x y} → R x y → R y x) →
+  ∀ {xs ys} → Listᴾ R xs ys → Listᴾ R ys xs
+Listᴾ-preserves-symmetry = λ where
+  s {xs = []}    {ys = []}    _        → _
+  s {xs = _ ∷ _} {ys = _ ∷ _} (p , ps) →
+    s p , Listᴾ-preserves-symmetry s ps
+
+-- Listᴾ preserves transitivity.
+
+Listᴾ-preserves-transitivity :
+  (∀ {x y z} → R x y → R y z → R x z) →
+  ∀ {xs ys zs} → Listᴾ R xs ys → Listᴾ R ys zs → Listᴾ R xs zs
+Listᴾ-preserves-transitivity = λ where
+  t {xs = []}    {ys = []}    {zs = []}    _        _        → _
+  t {xs = _ ∷ _} {ys = _ ∷ _} {zs = _ ∷ _} (p , ps) (q , qs) →
+    t p q , Listᴾ-preserves-transitivity t ps qs
+
+-- Listᴾ preserves Is-equivalence-relation.
+
+Listᴾ-preserves-Is-equivalence-relation :
+  Is-equivalence-relation R →
+  Is-equivalence-relation (Listᴾ R)
+Listᴾ-preserves-Is-equivalence-relation R-equiv = λ where
+    .reflexive  → Listᴾ-preserves-reflexivity  reflexive
+    .symmetric  → Listᴾ-preserves-symmetry     symmetric
+    .transitive → Listᴾ-preserves-transitivity transitive
+  where
+  open Is-equivalence-relation R-equiv
+
+-- Listᴾ preserves Is-proposition.
+
+Listᴾ-preserves-Is-proposition :
+  (∀ {x y} → Is-proposition (R x y)) →
+  ∀ {xs ys} → Is-proposition (Listᴾ R xs ys)
+Listᴾ-preserves-Is-proposition {R = R} R-prop = prop _ _
+  where
+  prop : ∀ xs ys → Is-proposition (Listᴾ R xs ys)
+  prop []       []       _        _        = refl _
+  prop (_ ∷ xs) (_ ∷ ys) (p , ps) (q , qs) =
+    cong₂ _,_ (R-prop p q) (prop xs ys ps qs)
