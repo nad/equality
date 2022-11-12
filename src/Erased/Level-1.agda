@@ -1191,6 +1191,97 @@ Extensionality→[]-cong-axiomatisation ext =
   open Extensionality→[]-cong-axiomatisation ext
 
 ------------------------------------------------------------------------
+-- The []-cong axioms can be instantiated in the presence of a limited
+-- form of function extensionality
+
+-- A limited form of function extensionality.
+
+Extensionality-for-≡-Erased : (a : Level) → Type (lsuc a)
+Extensionality-for-≡-Erased a =
+  {A : Type a} {x y : Erased A} →
+  Extensionality′ (x ≡ y) (λ _ → Erased A)
+
+-- Some lemmas used to implement
+-- Extensionality-for-≡-Erased→[]-cong-axiomatisation.
+
+module Extensionality-for-≡-Erased→[]-cong-axiomatisation
+  (ext : Extensionality-for-≡-Erased a)
+  where
+
+  -- Equality is stable for Erased A.
+  --
+  -- The proof is based on the proof of Lemma 1.25 in "Modalities in
+  -- Homotopy Type Theory" by Rijke, Shulman and Spitters, and the
+  -- corresponding Coq source code.
+
+  Stable-≡-Erased : {A : Type a} → Stable-≡ (Erased A)
+  Stable-≡-Erased x y eq =
+    x                               ≡⟨ flip ext⁻¹ eq (
+
+      (λ (_ : Erased (x ≡ y)) → x)     ≡⟨ ∘-[]-injective (
+
+        (λ (_ : x ≡ y) → x)               ≡⟨ apply-ext′ ext (λ (eq : x ≡ y) →
+
+          x                                  ≡⟨ eq ⟩∎
+          y                                  ∎) ⟩∎
+
+        (λ (_ : x ≡ y) → y)               ∎) ⟩∎
+
+      (λ (_ : Erased (x ≡ y)) → y)     ∎) ⟩∎
+
+    y                               ∎
+
+  -- A "computation rule" for Stable-≡-Erased.
+
+  Stable-≡-Erased-[refl] :
+    {A : Type a} {x : Erased A} →
+    Stable-≡-Erased x x [ refl x ] ≡ refl x
+  Stable-≡-Erased-[refl] {x = [ x ]} =
+    Stable-≡-Erased [ x ] [ x ] [ refl [ x ] ]                 ≡⟨⟩
+    ext⁻¹ (∘-[]-injective (apply-ext′ ext id)) [ refl [ x ] ]  ≡⟨ ext⁻¹-∘-[]-injective ⟩
+    ext⁻¹ (apply-ext′ ext id) (refl [ x ])                     ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (inverse Eq.⟨ _ , ext ⟩) _ ⟩∎
+    refl [ x ]                                                 ∎
+
+  open Stable-≡-Erased-axiomatisation′→[]-cong-axiomatisation
+    (Stable-≡-Erased , Stable-≡-Erased-[refl])
+    public
+
+-- Extensionality-for-≡-Erased a implies []-cong-axiomatisation a.
+--
+-- The idea for this result comes from "Modalities in Homotopy Type
+-- Theory" in which Rijke, Shulman and Spitters state that []-cong can
+-- be implemented for every modality, and that it is an equivalence
+-- for lex modalities (Theorem 3.1 (ix)).
+
+Extensionality-for-≡-Erased→[]-cong-axiomatisation :
+  Extensionality-for-≡-Erased a →
+  []-cong-axiomatisation a
+Extensionality-for-≡-Erased→[]-cong-axiomatisation ext =
+  instance-of-[]-cong-axiomatisation
+  where
+  open Extensionality-for-≡-Erased→[]-cong-axiomatisation ext
+
+-- One may wonder whether the other direction is provable: does
+-- []-cong-axiomatisation a imply Extensionality-for-≡-Erased a?
+--
+-- My guess is that this is not provable. If a given program is
+-- type-correct, then it should still be type-correct if every
+-- occurrence of @0 is removed (and the feature that makes parameter
+-- arguments erased in the types of constructors and projections is
+-- turned off). After every occurrence of @0 has been removed one can
+-- prove []-cong-axiomatisation a (see
+-- erased-instance-of-[]-cong-axiomatisation). Furthermore
+-- Extensionality-for-≡-Erased a turns into something that is
+-- essentially
+--
+--   {A : Type a} {x y : A} →
+--   Extensionality′ (x ≡ y) (λ _ → A).
+--
+-- This statement should not be provable in "plain" Agda (with the
+-- --safe option), and thus the implication under discussion should
+-- not be provable.
+
+------------------------------------------------------------------------
 -- Erased preserves some kinds of functions
 
 -- The following definitions are parametrised by two implementations
