@@ -46,11 +46,11 @@ open import Univalence-axiom equality-with-J
 
 private
   variable
-    a a₁ a₂ ℓ p r r₁ r₂ : Level
-    A A₁ A₂ B           : Type a
-    P                   : A → Type p
-    R                   : A → A → Type r
-    f k x y             : A
+    a a₁ a₂ ℓ p r r₁ r₂ r₃ : Level
+    A A₁ A₂ A₃ B           : Type a
+    P                      : A → Type p
+    R                      : A → A → Type r
+    f k x y                : A
 
 ------------------------------------------------------------------------
 -- A re-export
@@ -60,7 +60,7 @@ private
 open import Quotient.Erased.Basics eq public
 
 ------------------------------------------------------------------------
--- Preservation lemmas
+-- Unary preservation lemmas
 
 -- Two preservation lemmas for functions.
 
@@ -191,6 +191,52 @@ _/ᴱ-cong_ :
   A₁ /ᴱ R₁ ↔[ k ] A₂ /ᴱ R₂
 _/ᴱ-cong_ A₁↔A₂ R₁⇔R₂ =
   A₁↔A₂ /ᴱ-cong-∥∥ λ x y → PT.∥∥-cong-⇔ (R₁⇔R₂ x y)
+
+------------------------------------------------------------------------
+-- Binary preservation lemmas
+
+-- Two preservation lemmas for functions.
+
+/ᴱ-zip-∥∥ :
+  {@0 R₁ : A₁ → A₁ → Type r₁}
+  {@0 R₂ : A₂ → A₂ → Type r₂} →
+  {@0 R₃ : A₃ → A₃ → Type r₃} →
+  (f : A₁ → A₂ → A₃) →
+  @0 (∀ {x} → ∥ R₁ x x ∥) →
+  @0 (∀ {x} → ∥ R₂ x x ∥) →
+  @0 (∀ {u v x y} → ∥ R₁ u v ∥ → ∥ R₂ x y ∥ → ∥ R₃ (f u x) (f v y) ∥) →
+  A₁ /ᴱ R₁ → A₂ /ᴱ R₂ → A₃ /ᴱ R₃
+/ᴱ-zip-∥∥ {R₁ = R₁} {R₂ = R₂} {R₃ = R₃} f r₁ r₂ r₃ = rec λ where
+  .is-setʳ →
+    Π-closure ext 2 λ _ →
+    /ᴱ-is-set
+  .[]ʳ x →
+    f x
+      /ᴱ-map-∥∥
+    (λ y₁ y₂ →
+       ∥ R₂ y₁ y₂ ∥              →⟨ (λ hyp → r₃ r₁ hyp) ⟩□
+       ∥ R₃ (f x y₁) (f x y₂) ∥  □)
+  .[]-respects-relationʳ {x = x₁} {y = x₂} x₁R₁x₂ →
+    ⟨ext⟩ $ elim-prop λ @0 where
+      .is-propositionʳ _ →
+        /ᴱ-is-set
+      .[]ʳ y →
+                                  $⟨ x₁R₁x₂ ⟩
+        R₁ x₁ x₂                  →⟨ ∣_∣ ⟩
+        ∥ R₁ x₁ x₂ ∥              →⟨ (λ hyp → r₃ hyp r₂) ⟩
+        ∥ R₃ (f x₁ y) (f x₂ y) ∥  →⟨ PT.rec /ᴱ-is-set []-respects-relation ⟩□
+        [ f x₁ y ] ≡ [ f x₂ y ]   □
+
+/ᴱ-zip :
+  {@0 R₁ : A₁ → A₁ → Type r₁}
+  {@0 R₂ : A₂ → A₂ → Type r₂} →
+  {@0 R₃ : A₃ → A₃ → Type r₃} →
+  (f : A₁ → A₂ → A₃) →
+  @0 (∀ {x} → R₁ x x) →
+  @0 (∀ {x} → R₂ x x) →
+  @0 (∀ {u v x y} → R₁ u v → R₂ x y → R₃ (f u x) (f v y)) →
+  A₁ /ᴱ R₁ → A₂ /ᴱ R₂ → A₃ /ᴱ R₃
+/ᴱ-zip f r₁ r₂ r₃ = /ᴱ-zip-∥∥ f ∣ r₁ ∣ ∣ r₂ ∣ (PT.∥∥-zip r₃)
 
 ------------------------------------------------------------------------
 -- Some properties
