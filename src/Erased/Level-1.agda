@@ -2675,6 +2675,89 @@ lower-[]-cong-axiomatisation {a = a} a′ ax = λ where
 ------------------------------------------------------------------------
 -- An alternative to []-cong-axiomatisation
 
+-- An axiomatisation of "the inverse of []-cong".
+
+[]-cong⁻¹-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
+[]-cong⁻¹-axiomatisation ℓ =
+  {A : Type ℓ} {x y : A} →
+  Is-equivalence (λ (eq : [ x ] ≡ [ y ]) → [ cong erased eq ])
+
+-- The type []-cong⁻¹-axiomatisation ℓ is propositional (assuming
+-- function extensionality).
+
+[]-cong⁻¹-axiomatisation-propositional :
+  Extensionality (lsuc ℓ) ℓ →
+  Is-proposition ([]-cong⁻¹-axiomatisation ℓ)
+[]-cong⁻¹-axiomatisation-propositional {ℓ = ℓ} ext =
+  implicit-Π-closure ext 1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
+  Is-equivalence-propositional ext′
+  where
+  ext′ : Extensionality ℓ ℓ
+  ext′ = lower-extensionality _ lzero ext
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- []-cong⁻¹-axiomatisation ℓ (assuming extensionality).
+
+[]-cong-axiomatisation≃[]-cong⁻¹-axiomatisation :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ] []-cong⁻¹-axiomatisation ℓ
+[]-cong-axiomatisation≃[]-cong⁻¹-axiomatisation =
+  generalise-ext?-prop
+    (record
+       { to   = to
+       ; from = []-cong-axiomatisation′→[]-cong-axiomatisation ∘ from
+       })
+    []-cong-axiomatisation-propositional
+    []-cong⁻¹-axiomatisation-propositional
+  where
+  to : []-cong-axiomatisation ℓ → []-cong⁻¹-axiomatisation ℓ
+  to ax {x = x} {y = y} =                                         $⟨ _≃_.is-equivalence $ inverse Erased-≡≃[]≡[] ⟩
+    Is-equivalence ([]-cong⁻¹ {x = x} {y = y})                    →⟨ (Is-equivalence-cong _ λ _ → []-cong⁻¹≡[cong-erased]) ⟩□
+    Is-equivalence (λ (eq : [ x ] ≡ [ y ]) → [ cong erased eq ])  □
+    where
+    open []-cong₁ ax
+
+  module _ (ax : []-cong⁻¹-axiomatisation ℓ) where
+
+    Erased-≡≃[]≡[] :
+      {A : Type ℓ} {x y : A} →
+      Erased (x ≡ y) ≃ ([ x ] ≡ [ y ])
+    Erased-≡≃[]≡[] = inverse Eq.⟨ _ , ax ⟩
+
+    []-cong :
+      {A : Type ℓ} {x y : A} →
+      Erased (x ≡ y) → [ x ] ≡ [ y ]
+    []-cong = _≃_.to Erased-≡≃[]≡[]
+
+    []-cong⁻¹ :
+      {A : Type ℓ} {x y : A} →
+      [ x ] ≡ [ y ] → Erased (x ≡ y)
+    []-cong⁻¹ eq = [ cong erased eq ]
+
+    []-cong₀ :
+      {@0 A : Type ℓ} {@0 x y : A} →
+      Erased (x ≡ y) → [ x ] ≡ [ y ]
+    []-cong₀ {A = A} {x = x} {y = y} =
+      Erased (x ≡ y)          →⟨ map (cong [_]→) ⟩
+      Erased ([ x ] ≡ [ y ])  →⟨ []-cong ⟩
+      [ [ x ] ] ≡ [ [ y ] ]   →⟨ cong (map erased) ⟩□
+      [ x ] ≡ [ y ]           □
+
+    from : []-cong-axiomatisation′ ℓ
+    from .[]-cong-axiomatisation′.[]-cong =
+      []-cong
+    from .[]-cong-axiomatisation′.[]-cong-equivalence =
+      _≃_.is-equivalence Erased-≡≃[]≡[]
+    from .[]-cong-axiomatisation′.[]-cong-[refl] {x = x} =
+      _≃_.from-to Erased-≡≃[]≡[]
+        ([]-cong⁻¹ (refl [ x ])        ≡⟨⟩
+         [ cong erased (refl [ x ]) ]  ≡⟨ []-cong₀ [ cong-refl _ ] ⟩∎
+         [ refl x ]                    ∎)
+
+------------------------------------------------------------------------
+-- Another alternative to []-cong-axiomatisation
+
 -- An axiomatisation of substᴱ, restricted to a fixed universe, along
 -- with its computation rule.
 
@@ -2814,7 +2897,7 @@ Substᴱ-axiomatisation-propositional {ℓ = ℓ} ext =
     Substᴱ-axiomatisation-propositional
 
 ------------------------------------------------------------------------
--- Another alternative to []-cong-axiomatisation
+-- Yet another alternative to []-cong-axiomatisation
 
 -- An axiomatisation of elim¹ᴱ, restricted to a fixed universe, along
 -- with its computation rule.
