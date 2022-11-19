@@ -821,6 +821,46 @@ H-level-1+-∃-H-level-Erased ext univ n =          $⟨ U.∃-H-level-H-level-1
   H-level (1 + n) (∃ λ A → Erased (H-level n A))  □
 
 ------------------------------------------------------------------------
+-- An alternative to []-cong-axiomatisation
+
+-- If x and y have type Erased A, and x ≡ y, then
+-- Erased (erased x ≡ erased y).
+
+≡→Erased[erased≡erased] :
+  {x y : Erased A} →
+  x ≡ y → Erased (erased x ≡ erased y)
+≡→Erased[erased≡erased] eq = [ cong erased eq ]
+
+-- An alternative to []-cong-axiomatisation is to state that equality
+-- on Erased A is "defined" by the function above, in the sense that
+-- the function is an equivalence for all relevant arguments.
+--
+-- See also
+-- []-cong-axiomatisation≃≡→Erased[erased≡erased]-axiomatisation
+-- below.
+
+≡→Erased[erased≡erased]-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
+≡→Erased[erased≡erased]-axiomatisation ℓ =
+  {A : Type ℓ} {x y : Erased A} →
+  Is-equivalence
+    (≡→Erased[erased≡erased] ⦂ (x ≡ y → Erased (erased x ≡ erased y)))
+
+-- The type ≡→Erased[erased≡erased]-axiomatisation ℓ is propositional
+-- (assuming function extensionality).
+
+≡→Erased[erased≡erased]-axiomatisation-propositional :
+  Extensionality (lsuc ℓ) ℓ →
+  Is-proposition (≡→Erased[erased≡erased]-axiomatisation ℓ)
+≡→Erased[erased≡erased]-axiomatisation-propositional {ℓ = ℓ} ext =
+  implicit-Π-closure ext 1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
+  Is-equivalence-propositional ext′
+  where
+  ext′ : Extensionality ℓ ℓ
+  ext′ = lower-extensionality _ lzero ext
+
+------------------------------------------------------------------------
 -- A variant of []-cong-axiomatisation
 
 -- A variant of []-cong-axiomatisation where some erased arguments
@@ -2754,6 +2794,56 @@ lower-[]-cong-axiomatisation {a = a} a′ ax = λ where
         ([]-cong⁻¹ (refl [ x ])        ≡⟨⟩
          [ cong erased (refl [ x ]) ]  ≡⟨ []-cong₀ [ cong-refl _ ] ⟩∎
          [ refl x ]                    ∎)
+
+------------------------------------------------------------------------
+-- Some lemmas related to ≡→Erased[erased≡erased]-axiomatisation
+
+-- The type []-cong⁻¹-axiomatisation ℓ is equivalent to
+-- ≡→Erased[erased≡erased]-axiomatisation ℓ (assuming function
+-- extensionality).
+
+[]-cong⁻¹-axiomatisation≃≡→Erased[erased≡erased]-axiomatisation :
+  []-cong⁻¹-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+  ≡→Erased[erased≡erased]-axiomatisation ℓ
+[]-cong⁻¹-axiomatisation≃≡→Erased[erased≡erased]-axiomatisation
+  {ℓ = ℓ} =
+  generalise-ext?-prop
+    (record { to = to; from = from })
+    []-cong⁻¹-axiomatisation-propositional
+    ≡→Erased[erased≡erased]-axiomatisation-propositional
+  where
+  from :
+    ≡→Erased[erased≡erased]-axiomatisation ℓ →
+    []-cong⁻¹-axiomatisation ℓ
+  from ax {x = x} {y = y} =                                         $⟨ ax ⟩
+
+    Is-equivalence
+      (≡→Erased[erased≡erased] ⦂ ([ x ] ≡ [ y ] → Erased (x ≡ y)))  →⟨ id ⟩□
+
+    Is-equivalence (λ (eq : [ x ] ≡ [ y ]) → [ cong erased eq ])    □
+
+  to :
+    []-cong⁻¹-axiomatisation ℓ →
+    ≡→Erased[erased≡erased]-axiomatisation ℓ
+  to ax {x = x} {y = y} =                                     $⟨ _≃_.is-equivalence $ inverse Erased-≡≃[]≡[] ⟩
+    Is-equivalence ([]-cong⁻¹ {x = erased x} {y = erased y})  →⟨ (Is-equivalence-cong _ λ _ → []-cong⁻¹≡[cong-erased]) ⟩□
+    Is-equivalence (≡→Erased[erased≡erased] {x = x} {y = y})  □
+    where
+    open []-cong₁
+      (_⇔_.from ([]-cong-axiomatisation≃[]-cong⁻¹-axiomatisation _) ax)
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- ≡→Erased[erased≡erased]-axiomatisation ℓ (assuming function
+-- extensionality).
+
+[]-cong-axiomatisation≃≡→Erased[erased≡erased]-axiomatisation :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+  ≡→Erased[erased≡erased]-axiomatisation ℓ
+[]-cong-axiomatisation≃≡→Erased[erased≡erased]-axiomatisation
+  {ℓ = ℓ} ext =
+  []-cong-axiomatisation ℓ                  ↝⟨ []-cong-axiomatisation≃[]-cong⁻¹-axiomatisation ext ⟩
+  []-cong⁻¹-axiomatisation ℓ                ↝⟨ []-cong⁻¹-axiomatisation≃≡→Erased[erased≡erased]-axiomatisation ext ⟩□
+  ≡→Erased[erased≡erased]-axiomatisation ℓ  □
 
 ------------------------------------------------------------------------
 -- Another alternative to []-cong-axiomatisation
