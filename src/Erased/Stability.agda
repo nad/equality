@@ -3600,3 +3600,20 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
        })
     []-cong-axiomatisation-propositional
     []-cong-axiomatisation′-propositional
+
+------------------------------------------------------------------------
+-- Some lemmas related to []-cong-axiomatisation
+
+-- It is not the case that []-cong-axiomatisation ℓ does not hold.
+
+¬¬-[]-cong-axiomatisation : ¬¬ []-cong-axiomatisation ℓ
+¬¬-[]-cong-axiomatisation =
+  DN.wrap (Erased→¬¬ [ erased-instance-of-[]-cong-axiomatisation ])
+
+-- If something follows from []-cong-axiomatisation ℓ, then it is
+-- inconsistent to postulate the negation of this thing.
+
+consequences-of-[]-cong-axiomatisation-do-not-not-hold :
+  ([]-cong-axiomatisation ℓ → A) → ¬¬ A
+consequences-of-[]-cong-axiomatisation-do-not-not-hold f =
+  DN.map′ f ¬¬-[]-cong-axiomatisation
