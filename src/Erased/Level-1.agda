@@ -3116,3 +3116,154 @@ Substᴱ-axiomatisation≃Elimᴱ-axiomatisation =
   []-cong-axiomatisation ℓ  ↝⟨ []-cong-axiomatisation≃Substᴱ-axiomatisation ext ⟩
   Substᴱ-axiomatisation ℓ   ↝⟨ Substᴱ-axiomatisation≃Elimᴱ-axiomatisation ext ⟩□
   Elimᴱ-axiomatisation ℓ    □
+
+------------------------------------------------------------------------
+-- A variant of Erased without η-equality
+
+-- A definition of Erased without η-equality.
+
+data Erased-no-η (@0 A : Type a) : Type a where
+  [_]-no-η : @0 A → Erased-no-η A
+
+-- A variant of the projection erased.
+
+@0 erased-no-η : Erased-no-η A → A
+erased-no-η [ x ]-no-η = x
+
+-- Erased A is equivalent to Erased-no-η A.
+
+Erased≃Erased-no-η :
+  {@0 A : Type a} →
+  Erased A ≃ Erased-no-η A
+Erased≃Erased-no-η = Eq.↔→≃
+  (λ x → [ x .erased ]-no-η)
+  (λ x → [ erased-no-η x ] )
+  (λ { [ x ]-no-η → refl [ x ]-no-η })
+  refl
+
+-- A variant of ≡→Erased[erased≡erased].
+
+≡→Erased[erased≡erased]-no-η :
+  {x y : Erased-no-η A} →
+  x ≡ y → Erased-no-η (erased-no-η x ≡ erased-no-η y)
+≡→Erased[erased≡erased]-no-η eq =
+  [ cong erased-no-η eq ]-no-η
+
+-- A variant of ≡→Erased[erased≡erased]-axiomatisation that uses
+-- Erased-no-η instead of Erased.
+
+≡→Erased[erased≡erased]-no-η-axiomatisation :
+  (ℓ : Level) → Type (lsuc ℓ)
+≡→Erased[erased≡erased]-no-η-axiomatisation ℓ =
+  {A : Type ℓ} {x y : Erased-no-η A} →
+  Is-equivalence (≡→Erased[erased≡erased]-no-η {x = x} {y = y})
+
+-- The type ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ is
+-- propositional (assuming function extensionality).
+
+≡→Erased[erased≡erased]-no-η-axiomatisation-propositional :
+  Extensionality (lsuc ℓ) ℓ →
+  Is-proposition (≡→Erased[erased≡erased]-no-η-axiomatisation ℓ)
+≡→Erased[erased≡erased]-no-η-axiomatisation-propositional {ℓ = ℓ} ext =
+  implicit-Π-closure ext 1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
+  implicit-Π-closure ext′ 1 λ _ →
+  Is-equivalence-propositional ext′
+  where
+  ext′ : Extensionality ℓ ℓ
+  ext′ = lower-extensionality _ lzero ext
+
+-- The type ≡→Erased[erased≡erased]-axiomatisation ℓ is equivalent to
+-- ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ (assuming function
+-- extensionality).
+
+≃≡→Erased[erased≡erased]-no-η-axiomatisation :
+  ≡→Erased[erased≡erased]-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+  ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ
+≃≡→Erased[erased≡erased]-no-η-axiomatisation
+  {ℓ = ℓ} =
+  generalise-ext?-prop
+    (record
+       { to   = to
+       ; from = from
+       })
+    ≡→Erased[erased≡erased]-axiomatisation-propositional
+    ≡→Erased[erased≡erased]-no-η-axiomatisation-propositional
+  where
+  to :
+    ≡→Erased[erased≡erased]-axiomatisation ℓ →
+    ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ
+  to ax {x = x} {y = y} =
+    _≃_.is-equivalence $
+    Eq.with-other-function
+      ≡≃Erased-no-η[erased-no-η≡erased-no-η]
+      _
+      (λ x≡y →
+         [ cong erased (cong (λ eq → [ erased-no-η eq ]) x≡y) ]-no-η  ≡⟨ []-no-η-cong (cong-∘ _ _ _) ⟩∎
+         [ cong erased-no-η x≡y ]-no-η                                ∎)
+    where
+    ≡≃Erased-no-η[erased-no-η≡erased-no-η] :
+      {@0 A : Type ℓ} {x y : Erased-no-η A} →
+      (x ≡ y) ≃ Erased-no-η (erased-no-η x ≡ erased-no-η y)
+    ≡≃Erased-no-η[erased-no-η≡erased-no-η] {x = x} {y = y} =
+      x ≡ y                                        ↝⟨ inverse $ Eq.≃-≡ (inverse Erased≃Erased-no-η) ⟩
+      [ erased-no-η x ] ≡ [ erased-no-η y ]        ↝⟨ inverse $
+                                                      []-cong₁.Erased-≡≃[]≡[] $
+                                                      _⇔_.from ([]-cong-axiomatisation≃≡→Erased[erased≡erased]-axiomatisation _) ax ⟩
+      Erased (erased-no-η x ≡ erased-no-η y)       ↝⟨ Erased≃Erased-no-η ⟩□
+      Erased-no-η (erased-no-η x ≡ erased-no-η y)  □
+
+    []-no-η-cong :
+      {@0 A : Type ℓ} {@0 x y : A} →
+      @0 x ≡ y → [ x ]-no-η ≡ [ y ]-no-η
+    []-no-η-cong eq =
+      _≃_.from ≡≃Erased-no-η[erased-no-η≡erased-no-η] [ eq ]-no-η
+
+  from :
+    ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ →
+    ≡→Erased[erased≡erased]-axiomatisation ℓ
+  from ax {x = x} {y = y} =
+    _≃_.is-equivalence $
+    Eq.with-other-function
+      ≡≃Erased[erased≡erased]
+      _
+      (λ x≡y →
+         [ cong erased-no-η (cong (λ eq → [ eq .erased ]-no-η) x≡y) ]  ≡⟨ []-cong₀ (cong-∘ _ _ _) ⟩∎
+         [ cong erased x≡y ]                                           ∎)
+    where
+    ≡≃Erased[erased≡erased] :
+      {A : Type ℓ} {x y : Erased A} →
+      (x ≡ y) ≃ Erased (erased x ≡ erased y)
+    ≡≃Erased[erased≡erased] {x = x} {y = y} =
+      x ≡ y                                  ↝⟨ inverse $ Eq.≃-≡ Erased≃Erased-no-η ⟩
+      [ erased x ]-no-η ≡ [ erased y ]-no-η  ↝⟨ Eq.⟨ _ , ax ⟩ ⟩
+      Erased-no-η (erased x ≡ erased y)      ↝⟨ inverse Erased≃Erased-no-η ⟩□
+      Erased (erased x ≡ erased y)           □
+
+    []-cong :
+      {A : Type ℓ} {@0 x y : A} →
+      @0 x ≡ y → [ x ] ≡ [ y ]
+    []-cong eq = _≃_.from ≡≃Erased[erased≡erased] [ eq ]
+
+    []-cong₀ :
+      {@0 A : Type ℓ} {@0 x y : A} →
+      @0 x ≡ y → [ x ] ≡ [ y ]
+    []-cong₀ {x = x} {y = y} eq =
+                              $⟨ [ eq ] ⟩
+      Erased (x ≡ y)          →⟨ map (cong [_]→) ⟩
+      Erased ([ x ] ≡ [ y ])  →⟨ (λ hyp → []-cong (hyp .erased)) ⟩
+      [ [ x ] ] ≡ [ [ y ] ]   →⟨ cong (map erased) ⟩□
+      [ x ] ≡ [ y ]           □
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ (assuming function
+-- extensionality).
+
+[]-cong-axiomatisation≃≡→Erased[erased≡erased]-no-η-axiomatisation :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+  ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ
+[]-cong-axiomatisation≃≡→Erased[erased≡erased]-no-η-axiomatisation
+  {ℓ = ℓ} ext =
+  []-cong-axiomatisation ℓ                       ↝⟨ []-cong-axiomatisation≃≡→Erased[erased≡erased]-axiomatisation ext ⟩
+  ≡→Erased[erased≡erased]-axiomatisation ℓ       ↝⟨ ≃≡→Erased[erased≡erased]-no-η-axiomatisation ext ⟩□
+  ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ  □

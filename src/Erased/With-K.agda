@@ -183,29 +183,23 @@ private
   -- avoided, but Agda does not, at the time of writing, provide a
   -- simple way to turn off this kind of η-equality.)
 
-  data Erased-no-η (@0 A : Type a) : Type a where
-    [_] : @0 A → Erased-no-η A
-
-  @0 erased-no-η : Erased-no-η A → A
-  erased-no-η [ x ] = x
-
   -- Some lemmas.
 
   Π-Erased-no-η→Π0[] :
     {@0 A : Type a} {@0 P : Erased-no-η A → Type p} →
-    ((x : Erased-no-η A) → P x) → (@0 x : A) → P [ x ]
-  Π-Erased-no-η→Π0[] f x = f [ x ]
+    ((x : Erased-no-η A) → P x) → (@0 x : A) → P [ x ]-no-η
+  Π-Erased-no-η→Π0[] f x = f [ x ]-no-η
 
   Π0[]→Π-Erased-no-η :
     {@0 A : Type a} (@0 P : Erased-no-η A → Type p) →
-    ((@0 x : A) → P [ x ]) → (x : Erased-no-η A) → P x
-  Π0[]→Π-Erased-no-η _ f [ x ] = f x
+    ((@0 x : A) → P [ x ]-no-η) → (x : Erased-no-η A) → P x
+  Π0[]→Π-Erased-no-η _ f [ x ]-no-η = f x
 
   Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] :
     {@0 A : Type a} {@0 P : Erased-no-η A → Type p}
     (f : (x : Erased-no-η A) → P x) (x : Erased-no-η A) →
     Π0[]→Π-Erased-no-η P (Π-Erased-no-η→Π0[] f) x ≡ f x
-  Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] f [ x ] = refl
+  Π0[]→Π-Erased-no-η-Π-Erased-no-η→Π0[] f [ x ]-no-η = refl
 
   -- There is a bijection between (x : Erased-no-η A) → P x and
   -- (@0 x : A) → P [ x ] (assuming extensionality).
@@ -213,7 +207,7 @@ private
   Π-Erased-no-η↔Π0[] :
     {@0 A : Type a} {@0 P : Erased-no-η A → Type p} →
     Function-extensionality′ (Erased-no-η A) P →
-    ((x : Erased-no-η A) → P x) ↔ ((@0 x : A) → P [ x ])
+    ((x : Erased-no-η A) → P x) ↔ ((@0 x : A) → P [ x ]-no-η)
   Π-Erased-no-η↔Π0[] {P = P} ext = record
     { surjection = record
       { logical-equivalence = record
@@ -237,9 +231,9 @@ private
   Π-Erased-no-η≃Π0[] :
     {@0 A : Type a} {@0 P : Erased-no-η A → Type p} →
     Function-extensionality′ (Erased-no-η A) P →
-    ((x : Erased-no-η A) → P x) ≃ ((@0 x : A) → P [ x ])
+    ((x : Erased-no-η A) → P x) ≃ ((@0 x : A) → P [ x ]-no-η)
   Π-Erased-no-η≃Π0[] {A = A} {P = P} ext = record
-    { to             = λ f x → f [ x ]
+    { to             = λ f x → f [ x ]-no-η
     ; is-equivalence =
           Π0[]→Π-Erased-no-η _
         , (λ _ → refl)
