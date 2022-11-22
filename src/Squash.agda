@@ -10,7 +10,6 @@ module Squash {e⁺} (eq-J : ∀ {a p} → Equality-with-J a p e⁺) where
 
 open Derived-definitions-and-properties eq-J
 
-open import Erased.Basics as E using (Erased)
 open import Logical-equivalence using (_⇔_)
 import Modality.Empty-modal
 open import Prelude
@@ -211,28 +210,6 @@ empty-modal =
 private
   module EM {ℓ = ℓ} =
     Modality.Empty-modal.Empty-modal eq-J (modality {ℓ = ℓ}) empty-modal
-
--- The squash modality commutes with Erased.
-
-commutes-with-Erased : Modality.Commutes-with-Erased (modality {ℓ = ℓ})
-commutes-with-Erased =
-  _≃_.is-equivalence $
-  Eq.↔→≃
-    (λ x → ◯-Erased→Erased-◯ x)
-    Erased-Squash→Squash-Erased
-    (λ _ → refl _)
-    (λ _ → refl _)
-  where
-  open Modality modality
-
-  Erased-Squash→Squash′-Erased :
-    E.Erased (Squash A) → Squash′ (E.Erased A)
-  Erased-Squash→Squash′-Erased E.[ [ x ] ] = squash′ E.[ x ]
-
-  Erased-Squash→Squash-Erased :
-    E.Erased (Squash A) → Squash (E.Erased A)
-  Erased-Squash→Squash-Erased x =
-    squash (Erased-Squash→Squash′-Erased x)
 
 -- Squash commutes with Σ.
 

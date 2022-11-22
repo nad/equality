@@ -63,7 +63,7 @@ infixl 5 _>>=′_
 _>>=′_ :
   ∀ {a b} {@0 A : Type a} {@0 B : Type b} →
   ¬¬ A → (A → ¬¬ B) → ¬¬ B
-run (x >>=′ f) = join (map′ (λ x → run (f x)) x)
+run (x >>=′ f) = join (map′ (run ∘ f) x)
   where
   join : ∀ {a} {@0 A : Type a} → ¬¬ ¬ A → ¬ A
   join ¬¬¬a = λ a → run ¬¬¬a (λ ¬a → ¬a a)
@@ -298,17 +298,15 @@ Excluded-middle≃Double-negation-elimination ext =
 -- propositions.
 
 ¬¬-accessibility-modal-for-propositions :
-  ∀ {ℓ} {@0 A : Type ℓ} {@0 _<_ : A → A → Type ℓ}
+  ∀ {ℓ} {A : Type ℓ} {_<_ : A → A → Type ℓ}
   (ext : Extensionality ℓ ℓ) →
-  @0 Double-negation-elimination ℓ →
-  @0 Is-proposition A →
-  @0 (∀ {x y} → Is-proposition (x < y)) →
+  Double-negation-elimination ℓ →
+  Is-proposition A →
+  (∀ {x y} → Is-proposition (x < y)) →
   Modality.Accessibility-modal-for (¬¬-modality ext) _<_
 ¬¬-accessibility-modal-for-propositions {_<_ = _<_} ext dne prop prop′ =
-  Accessibility-modal-for-erasure-stable
-    E.[ (λ acc → Modal→Acc→Acc-[]◯-η (prop , dne prop) (dne prop′) acc)
-      , dne (A.Acc-propositional ext)
-      ]
+    (λ acc → Modal→Acc→Acc-[]◯-η (prop , dne prop) (dne prop′) acc)
+  , dne (A.Acc-propositional ext)
   where
   open Modality (¬¬-modality ext)
 

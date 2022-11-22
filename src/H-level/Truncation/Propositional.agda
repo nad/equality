@@ -388,24 +388,21 @@ countable-choice-bijection cc = record
 -- relations.
 
 Is-proposition→∥∥-accessibility-modal :
-  {@0 A : Type ℓ} {@0 _<_ : A → A → Type ℓ} →
-  @0 Is-proposition A →
-  @0 (∀ x y → Is-proposition (x < y)) →
+  {A : Type ℓ} {_<_ : A → A → Type ℓ} →
+  Is-proposition A →
+  (∀ x y → Is-proposition (x < y)) →
   Modality.Accessibility-modal-for ∥∥-modality _<_
 Is-proposition→∥∥-accessibility-modal {ℓ = ℓ} p₁ p₂ =
-  Accessibility-modal-for-erasure-stable
-    E.[ ( (λ acc →
-             Modal→Acc→Acc-[]◯-η
-               p₁
-               (rec′ λ @0 where
-                  .∣∣ʳ                        → id
-                  .truncation-is-propositionʳ → p₂ _ _)
-               acc)
-        , (rec′ λ @0 where
-             .∣∣ʳ                        → id
-             .truncation-is-propositionʳ → A.Acc-propositional ext)
-        )
-      ]
+    (λ acc →
+       Modal→Acc→Acc-[]◯-η
+         p₁
+         (rec′ λ where
+            .∣∣ʳ                        → id
+            .truncation-is-propositionʳ → p₂ _ _)
+         acc)
+  , (rec′ λ where
+       .∣∣ʳ                        → id
+       .truncation-is-propositionʳ → A.Acc-propositional ext)
   where
   open Modality (∥∥-modality {ℓ = ℓ})
 

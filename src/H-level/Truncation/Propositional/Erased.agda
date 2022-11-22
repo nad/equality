@@ -266,24 +266,21 @@ rec r = recᴾ λ where
 -- relations.
 
 Is-proposition→∥∥ᴱ-accessibility-modal :
-  {@0 A : Type ℓ} {@0 _<_ : A → A → Type ℓ} →
+  {A : Type ℓ} {_<_ : A → A → Type ℓ} →
   @0 Is-proposition A →
   @0 (∀ x y → Is-proposition (x < y)) →
   Modality.Accessibility-modal-for ∥∥ᴱ-modality _<_
 Is-proposition→∥∥ᴱ-accessibility-modal {ℓ = ℓ} p₁ p₂ =
-  Accessibility-modal-for-erasure-stable
-    [ ( (λ acc →
-           Modal→Acc→Acc-[]◯-η
-             [ p₁ ]
-             (rec λ where
-                .∣∣ʳ                        → id
-                .truncation-is-propositionʳ → p₂ _ _)
-             acc)
-      , (rec λ where
-           .∣∣ʳ                        → id
-           .truncation-is-propositionʳ → A.Acc-propositional ext)
-      )
-    ]
+    (λ acc →
+       Modal→Acc→Acc-[]◯-η
+         [ p₁ ]
+         (rec λ where
+            .∣∣ʳ                        → id
+            .truncation-is-propositionʳ → p₂ _ _)
+         acc)
+  , (rec λ where
+       .∣∣ʳ                        → id
+       .truncation-is-propositionʳ → A.Acc-propositional ext)
   where
   open Modality (∥∥ᴱ-modality {ℓ = ℓ})
 
@@ -297,18 +294,20 @@ Is-proposition→∥∥ᴱ-accessibility-modal {ℓ = ℓ} p₁ p₂ =
   ¬ ¬ x ≡ y
 ∥∥ᴱ-accessibility-modal→¬¬≡
   {ℓ = ℓ} {A = A} {x = x} {y = y} acc x≢y =
-                         $⟨ (A.acc λ _ x≡y → ⊥-elim $ x≢y x≡y) ⟩
-  Acc _<_ x              →⟨ Acc-[]◯-η acc ⟩
-  Acc _[ _<_ ]◯_ ∣ x ∣   →⟨ (λ acc →
-                               A.Acc-map
-                                 (λ _ → ∣ y , y
-                                        , truncation-is-proposition _ _
-                                        , truncation-is-proposition _ _
-                                        , refl _
-                                        ∣)
-                                 acc) ⟩
-  Acc (λ _ _ → ⊤) ∣ x ∣  →⟨ A.<→¬-Acc _ ⟩□
-  ⊥                      □
+  Er.Very-stable→Stable₀ Er.Very-stable-⊥
+    [                        $⟨ (A.acc λ _ x≡y → ⊥-elim $ x≢y x≡y) ⟩
+      Acc _<_ x              →⟨ Acc-[]◯-η acc ⟩
+      Acc _[ _<_ ]◯_ ∣ x ∣   →⟨ (λ acc →
+                                   A.Acc-map
+                                     (λ _ → ∣ y , y
+                                            , truncation-is-proposition _ _
+                                            , truncation-is-proposition _ _
+                                            , refl _
+                                            ∣)
+                                     acc) ⟩
+      Acc (λ _ _ → ⊤) ∣ x ∣  →⟨ A.<→¬-Acc _ ⟩□
+      ⊥                      □
+    ]
   where
   open Modality (∥∥ᴱ-modality {ℓ = ℓ})
 

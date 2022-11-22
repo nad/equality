@@ -62,12 +62,12 @@ module _≃₀_ {a b} {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ B) where
   -- The forward direction of the equivalence.
 
   to : A → B
-  to = let ⟨ to , _ ⟩ = A≃B in to
+  to = Dummy._≃_.to A≃B
 
   -- The function to is an equivalence.
 
   is-equivalence : Is-equivalence to
-  is-equivalence = let ⟨ _ , eq ⟩ = A≃B in eq
+  is-equivalence = Dummy._≃_.is-equivalence A≃B
 
   -- Equivalent types are isomorphic.
 

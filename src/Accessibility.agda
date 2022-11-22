@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- The accessibility predicate and well-founded induction
+-- The accessibility predicate
 ------------------------------------------------------------------------
 
 -- Partly based on "Constructing Recursion Operators in Intuitionistic
@@ -13,7 +13,6 @@ module Accessibility {e⁺} (eq : ∀ {a p} → Equality-with-J a p e⁺) where
 
 open Derived-definitions-and-properties eq
 
-open import Erased.Basics as Erased
 open import Prelude
 
 open import Extensionality eq
@@ -68,32 +67,6 @@ Well-founded-propositional :
 Well-founded-propositional {r = r} ext =
   Π-closure (lower-extensionality r lzero ext) 1 λ _ →
   Acc-propositional ext
-
-------------------------------------------------------------------------
--- Well-founded induction
-
--- Well-founded induction for accessible values.
---
--- Note that the accessibility argument is erased.
-
-well-founded-induction-Acc :
-  {@0 A : Type a} {@0 _<_ : A → A → Type r}
-  (@0 P : A → Type p) →
-  (∀ x → (∀ y → @0 y < x → P y) → P x) →
-  ∀ x → @0 Acc _<_ x → P x
-well-founded-induction-Acc P f x (acc g) =
-  f x (λ y y<x → well-founded-induction-Acc P f y (g y y<x))
-
--- Well-founded induction for well-founded relations.
-
-well-founded-induction :
-  {@0 A : Type a} {@0 _<_ : A → A → Type r} →
-  @0 Well-founded _<_ →
-  (@0 P : A → Type p) →
-  (∀ x → (∀ y → @0 y < x → P y) → P x) →
-  ∀ x → P x
-well-founded-induction wf P f x =
-  well-founded-induction-Acc P f x (wf x)
 
 ------------------------------------------------------------------------
 -- Specific examples of well-founded relations
@@ -159,11 +132,11 @@ Cycle _<_ = ∃ λ x → x [ _<_ ]⋆ x
 -- If _<₂_ is contained in _<₁_, then Acc _<₁_ x implies Acc _<₂_ x.
 
 Acc-map :
-  {@0 A : Type a} {@0 x : A}
+  {@0 A : Type a} {x : A}
   {@0 _<₁_ : A → A → Type r₁}
   {@0 _<₂_ : A → A → Type r₂} →
-  @0 (∀ {x y} → x <₂ y → x <₁ y) →
-  @0 Acc _<₁_ x → Acc _<₂_ x
+  (∀ {x y} → x <₂ y → x <₁ y) →
+  Acc _<₁_ x → Acc _<₂_ x
 Acc-map f (acc g) = acc λ y y<₂x → Acc-map f (g y (f y<₂x))
 
 -- If _<₂_ is contained in _<₁_, then Well-founded _<₁_ implies
@@ -173,39 +146,25 @@ Well-founded-map :
   {@0 A : Type a}
   {@0 _<₁_ : A → A → Type r₁}
   {@0 _<₂_ : A → A → Type r₂} →
-  @0 (∀ {x y} → x <₂ y → x <₁ y) →
-  @0 Well-founded _<₁_ → Well-founded _<₂_
+  (∀ {x y} → x <₂ y → x <₁ y) →
+  Well-founded _<₁_ → Well-founded _<₂_
 Well-founded-map f wf x = Acc-map f (wf x)
-
--- Acc _<_ x is erasure-stable.
-
-Acc-erasure-stable :
-  {@0 A : Type a} {@0 _<_ : A → A → Type r} {@0 x : A} →
-  Erased.Stable (Acc _<_ x)
-Acc-erasure-stable [ a ] = Acc-map id a
-
--- Well-founded _<_ is erasure-stable.
-
-Well-founded-erasure-stable :
-  {@0 A : Type a} {@0 _<_ : A → A → Type r} →
-  Erased.Stable (Well-founded _<_)
-Well-founded-erasure-stable [ wf ] = Well-founded-map id wf
 
 -- If f x is accessible with respect to _<_, then x is accessible with
 -- respect to _<_ on f.
 
 Acc-on :
-  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B}
+  {@0 A : Type a} {@0 B : Type b} {f : A → B}
   {@0 _<_ : B → B → Type r} {@0 x : A} →
-  @0 Acc _<_ (f x) → Acc (_<_ on f) x
+  Acc _<_ (f x) → Acc (_<_ on f) x
 Acc-on {f = f} (acc g) = acc λ y fy<fx → Acc-on (g (f y) fy<fx)
 
 -- If _<_ is well-founded, then _<_ on f is well-founded.
 
 Well-founded-on :
-  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B}
+  {@0 A : Type a} {@0 B : Type b} {f : A → B}
   {@0 _<_ : B → B → Type r} →
-  @0 Well-founded _<_ → Well-founded (_<_ on f)
+  Well-founded _<_ → Well-founded (_<_ on f)
 Well-founded-on {f = f} wf x = Acc-on (wf (f x))
 
 -- If x is accessible with respect to _<_, then x is also accessible
@@ -213,7 +172,7 @@ Well-founded-on {f = f} wf x = Acc-on (wf (f x))
 
 Acc-⋆ :
   {@0 A : Type a} {@0 _<_ : A → A → Type r} {@0 x : A} →
-  @0 Acc _<_ x → Acc _[ _<_ ]⋆_ x
+  Acc _<_ x → Acc _[ _<_ ]⋆_ x
 Acc-⋆ {_<_ = _<_} {x = x} (acc f) = acc helper
   where
   helper : ∀ y → y [ _<_ ]⋆ x → Acc _[ _<_ ]⋆_ y
@@ -226,7 +185,7 @@ Acc-⋆ {_<_ = _<_} {x = x} (acc f) = acc helper
 
 Well-founded-⋆ :
   {@0 A : Type a} {@0 _<_ : A → A → Type r} →
-  @0 Well-founded _<_ →
+  Well-founded _<_ →
   Well-founded _[ _<_ ]⋆_
 Well-founded-⋆ wf x = Acc-⋆ (wf x)
 
@@ -243,7 +202,7 @@ Acc-↑ {a = a} {r = r} {ℓ = ℓ} {_<_ = _<_} =
     (λ ext → to-from ext , from-to ext)
   where
   to : ∀ {@0 x} → Acc _<_ x → Acc (λ x y → ↑ ℓ (x < y)) x
-  to (acc f) = acc λ y y<x → to (f y (let lift y<x = y<x in y<x))
+  to (acc f) = acc λ y y<x → to (f y (lower y<x))
 
   from : ∀ {@0 x} → Acc (λ x y → ↑ ℓ (x < y)) x → Acc _<_ x
   from (acc f) = acc λ y y<x → from (f y (lift y<x))

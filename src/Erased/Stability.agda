@@ -11,22 +11,16 @@ module Erased.Stability
 
 open Derived-definitions-and-properties eq
 
-import Accessibility
-import Double-negation
-import Equivalence
 open import Logical-equivalence as LE using (_⇔_)
 open import Prelude as P
 
-private
-  open module A  = Accessibility eq using (Acc; Well-founded)
-  open module DN = Double-negation eq
-  open module Eq = Equivalence eq using (_≃_; Is-equivalence)
-
 open import Bijection eq as Bijection using (_↔_; Has-quasi-inverse)
+open import Double-negation eq as DN
 open import Embedding eq as Emb using (Embedding; Is-embedding)
 open import Embedding.Erased eq as EEmb using (Is-embeddingᴱ)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
+open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (Contractibleᴱ)
@@ -122,7 +116,7 @@ Very-stableᴱ-propositional ext =
 -- Very stable types are stable.
 
 Very-stable→Stable₀ : {@0 A : Type a} → Very-stable A → Stable A
-Very-stable→Stable₀ s = Eq._≃₀_.from Equivalence.⟨ _ , s ⟩
+Very-stable→Stable₀ s = Eq._≃₀_.from Eq.⟨ _ , s ⟩
 
 -- A variant of Very-stable→Stable₀.
 
@@ -350,7 +344,7 @@ Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 
 ¬¬-Very-stable : {@0 A : Type ℓ} → ¬¬ Very-stable A
 ¬¬-Very-stable {A = A} =  $⟨ Erased-Very-stable ⟩
-  Erased (Very-stable A)  →⟨ (λ x → Double-negation.wrap (Erased→¬¬ x)) ⟩□
+  Erased (Very-stable A)  →⟨ wrap ∘ Erased→¬¬ ⟩□
   ¬¬ Very-stable A        □
 
 -- If equality is stable for A and B, then A ≃ᴱ B implies A ≃ B.
@@ -845,50 +839,6 @@ Very-stable-¬ :
 Very-stable-¬ {A = A} ext =
   Very-stable-Π ext λ _ →
   Very-stable-⊥
-
--- Acc _<_ x is stable.
-
-Stable-Acc :
-  {@0 A : Type a} {@0 _<_ : A → A → Type r} {@0 x : A} →
-  Stable (Acc _<_ x)
-Stable-Acc [ A.acc f ] =
-  Accessibility.acc (λ y y<x → Stable-Acc [ f y y<x ])
-
--- Well-founded _<_ is stable.
-
-Stable-Well-founded :
-  {@0 A : Type a} {@0 _<_ : A → A → Type r} →
-  Stable (Well-founded _<_)
-Stable-Well-founded =
-  Stable-Π λ _ → Stable-Acc
-
--- If A is very stable with erased proofs, then W A P is very stable
--- with erased proofs (assuming extensionality).
-
-Very-stableᴱ-W :
-  {@0 A : Type a} {@0 P : A → Type p} →
-  @0 Extensionality p (a ⊔ p) →
-  Very-stableᴱ A →
-  Very-stableᴱ (W A P)
-Very-stableᴱ-W {A = A} {P = P} ext s =
-  _≃ᴱ_.is-equivalence $
-  EEq.↔→≃ᴱ [_]→ from []∘from from∘[]
-  where
-  A≃ᴱE-A : A ≃ᴱ Erased A
-  A≃ᴱE-A = EEq.⟨ _ , s ⟩₀
-
-  from : Erased (W A P) → W A P
-  from [ sup x f ] = sup
-    (_≃ᴱ_.from A≃ᴱE-A [ x ])
-    (λ y → from [ f (subst P (_≃ᴱ_.left-inverse-of A≃ᴱE-A x) y) ])
-
-  @0 from∘[] : ∀ x → from [ x ] ≡ x
-  from∘[] (sup x f) = curry (_↠_.to (W-≡,≡↠≡ ext))
-    (_≃ᴱ_.left-inverse-of A≃ᴱE-A x)
-    (λ y → from∘[] (f (subst P (_≃ᴱ_.left-inverse-of A≃ᴱE-A x) y)))
-
-  @0 []∘from : ∀ x → [ from x ] ≡ x
-  []∘from [ x ] = cong [_]→ (from∘[] x)
 
 -- ∃ λ (A : Set a) → Very-stable A is stable.
 --
@@ -1659,7 +1609,7 @@ module []-cong₂-⊔₁
     Stable B        □
 
   ----------------------------------------------------------------------
-  -- More lemmas
+  -- Another lemma
 
   -- All kinds of functions between erased types are stable.
 
@@ -1671,42 +1621,6 @@ module []-cong₂-⊔₁
     Very-stable (Erased (A ↝[ k ] B))  ↝⟨ Very-stable→Stable 0 ⟩
     Stable (Erased (A ↝[ k ] B))       ↝⟨ Stable-map-⇔ (Erased-↝↝↝ _) ⟩□
     Stable (Erased A ↝[ k ] Erased B)  □
-
-  -- If A is very stable, then W A P is very stable (assuming
-  -- extensionality).
-
-  Very-stable-W :
-    {A : Type ℓ₁} {P : A → Type ℓ₂} →
-    Extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) →
-    Very-stable A →
-    Very-stable (W A P)
-  Very-stable-W {A = A} {P = P} ext s =
-    _≃_.is-equivalence $
-    Eq.↔⇒≃ (record
-      { surjection = record
-        { logical-equivalence = record
-          { to   = [_]→
-          ; from = from
-          }
-        ; right-inverse-of = []∘from
-        }
-      ; left-inverse-of = from∘[]
-      })
-    where
-    module E = _≃_ Eq.⟨ _ , s ⟩
-
-    from : Erased (W A P) → W A P
-    from [ sup x f ] = sup
-      (E.from [ x ])
-      (λ y → from [ f (subst P (E.left-inverse-of x) y) ])
-
-    from∘[] : ∀ x → from [ x ] ≡ x
-    from∘[] (sup x f) = curry (_↠_.to (W-≡,≡↠≡ ext))
-      (E.left-inverse-of x)
-      (λ y → from∘[] (f (subst P (E.left-inverse-of x) y)))
-
-    []∘from : ∀ x → [ from x ] ≡ x
-    []∘from [ x ] = []-cong [ from∘[] x ]
 
 ------------------------------------------------------------------------
 -- Results that depend on an instantiation of the []-cong axioms (for
@@ -1901,23 +1815,6 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       n
       (≃ᴱ→Very-stableᴱ→Very-stableᴱ ∘ from-isomorphism)
       Very-stableᴱ-Σ
-
-  -- A generalisation of Very-stableᴱ-W.
-
-  Very-stableᴱ-Wⁿ :
-    {A : Type ℓ} {P : A → Type p} →
-    Extensionality p (ℓ ⊔ p) →
-    ∀ n →
-    For-iterated-equality n Very-stableᴱ A →
-    For-iterated-equality n Very-stableᴱ (W A P)
-  Very-stableᴱ-Wⁿ {A = A} {P = P} ext n =
-    For-iterated-equality-W
-      ext
-      n
-      (≃ᴱ→Very-stableᴱ→Very-stableᴱ ∘ from-isomorphism)
-      (Very-stableᴱ-Π ext)
-      Very-stableᴱ-Σ
-      (Very-stableᴱ-W ext)
 
   ----------------------------------------------------------------------
   -- Closure properties related to equality
@@ -2226,32 +2123,6 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   Erased-very-modal : Very-modal Erased-modality
   Erased-very-modal = Erased-Very-stable
 
-  -- The modality is accessibility-modal.
-
-  Erased-accessibility-modal :
-    Modality.Accessibility-modal Erased-modality
-  Erased-accessibility-modal {_<_ = _<_} =
-      (λ {x} →
-         Acc _<_ x                  →⟨ _⇔_.to Erased-Acc-⇔ ∘ [_]→ ⟩
-         Acc _[ _<_ ]Erased_ [ x ]  →⟨ (λ acc →
-                                          A.Acc-map
-                                            (map λ (y , z , ≡[y] , ≡[z] , y<z) →
-                                                   subst (uncurry _<_)
-                                                     (sym $ cong₂ _,_ (cong erased ≡[y]) (cong erased ≡[z]))
-                                                     y<z)
-                                            acc) ⟩□
-         Acc _[ _<_ ]◯_ [ x ]       □)
-    , Stable-Acc
-    where
-    open Modality Erased-modality using (_[_]◯_)
-
-  -- The modality is W-modal (assuming extensionality).
-
-  Erased-W-modal :
-    Extensionality ℓ ℓ →
-    W-modal Erased-modality
-  Erased-W-modal ext = Very-stable-W ext
-
   -- The modality is topological in erased contexts.
 
   @0 Erased-topological-in-erased-contexts :
@@ -2557,32 +2428,6 @@ module []-cong₂-⊔₂
       Very-stable (∃ λ (f : A → B) → Is-equivalenceᴱ f)  →⟨ Very-stable-map (from-equivalence EEq.≃ᴱ-as-Σ) ⟩□
       Very-stable (A ≃ᴱ B)                               □
 
-  -- Acc _<_ x is very stable (assuming extensionality).
-
-  Very-stable-Acc :
-    {A : Type ℓ₁} {_<_ : A → A → Type ℓ₂} {x : A} →
-    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
-    Very-stable (Acc _<_ x)
-  Very-stable-Acc {_<_ = _<_} ext =
-    []-cong₁.Stable→Left-inverse→Very-stable ax Stable-Acc lemma
-    where
-    lemma : (a : Acc _<_ x) → Stable-Acc [ a ] ≡ a
-    lemma (A.acc f) =
-      cong A.acc $
-      apply-ext (lower-extensionality ℓ₂ lzero ext) λ y →
-      apply-ext (lower-extensionality ℓ₁ lzero ext) λ y<x →
-      lemma (f y y<x)
-
-  -- Well-founded _<_ is very stable (assuming extensionality).
-
-  Very-stable-Well-founded :
-    {A : Type ℓ₁} {_<_ : A → A → Type ℓ₂} →
-    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
-    Very-stable (Well-founded _<_)
-  Very-stable-Well-founded {_<_ = _<_} ext =
-    Very-stable-Π (lower-extensionality ℓ₂ lzero ext) λ _ →
-    Very-stable-Acc ext
-
   -- All kinds of functions between erased types are very stable (in
   -- some cases assuming extensionality).
 
@@ -2820,23 +2665,6 @@ module []-cong₂-⊔₂
       n
       ([]-cong₂.Very-stable-cong ax₂ ax _ ∘ from-isomorphism)
 
-  -- A generalisation of Very-stable-W.
-
-  Very-stable-Wⁿ :
-    {A : Type ℓ₁} {P : A → Type ℓ₂} →
-    Extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) →
-    ∀ n →
-    For-iterated-equality n Very-stable A →
-    For-iterated-equality n Very-stable (W A P)
-  Very-stable-Wⁿ {A = A} {P = P} ext n =
-    For-iterated-equality-W
-      ext
-      n
-      ([]-cong₂.Very-stable-cong ax ax _ ∘ from-isomorphism)
-      (Very-stable-Π ext)
-      Very-stable-Σ
-      ([]-cong₂-⊔₁.Very-stable-W ax₁ ax₂ ax ext)
-
 ------------------------------------------------------------------------
 -- Results that depend on instances of the axiomatisation of []-cong
 -- for all universe levels
@@ -2911,16 +2739,6 @@ module Extensionality where
   Erased-modality ext =
     []-cong₁.Erased-modality
       (Extensionality→[]-cong-axiomatisation ext)
-
-  -- The modality is W-modal (assuming extensionality).
-
-  Erased-W-modal :
-    (ext : Extensionality ℓ ℓ) →
-    W-modal (Erased-modality {ℓ = ℓ} ext)
-  Erased-W-modal ext =
-    []-cong₁.Erased-W-modal
-      (Extensionality→[]-cong-axiomatisation ext)
-      ext
 
   ----------------------------------------------------------------------
   -- Some properties that rely on excluded middle

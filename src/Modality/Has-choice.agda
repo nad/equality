@@ -606,70 +606,70 @@ module Valid-domain-Π◯
   -- If the modality is accessibility-modal for a certain relation,
   -- then ◯ commutes with W in a certain way (assuming function
   -- extensionality).
+  --
+  -- See also ◯Wη≃W◯ in Modality.Erased-matches.
 
   ◯Wη≃W◯ :
-    @0 Accessibility-modal-for (_<W_ {A = A} {P = P ∘ η}) →
-    @0 Extensionality a a →
-    ◯ (W A (P ∘ η)) ↝[ a ∣ a ] W (◯ A) P
-  ◯Wη≃W◯ acc ext =
-    generalise-ext?
-      (record { to = ◯Wη→W◯ acc ext; from = W◯→◯Wη })
-      (λ ext′ → to-from ext′ , from-to ext′)
+    Accessibility-modal-for (_<W_ {A = A} {P = P ∘ η}) →
+    Extensionality a a →
+    ◯ (W A (P ∘ η)) ≃ W (◯ A) P
+  ◯Wη≃W◯ acc ext = Eq.↔→≃ (◯Wη→W◯ acc ext) W◯→◯Wη to-from from-to
     where
-    module _ (ext′ : Extensionality a a) where
-      ax = E.Extensionality→[]-cong-axiomatisation ext′
+    ax = E.Extensionality→[]-cong-axiomatisation ext
 
-      from-to : ∀ x → W◯→◯Wη (◯Wη→W◯ acc ext x) ≡ x
-      from-to =
-        ◯-elim
-          (λ _ → Separated-◯ _ _)
-          (λ x →
-             W◯→◯Wη (◯Wη→W◯ acc ext (η x))  ≡⟨ cong W◯→◯Wη $
-                                               ◯Wη→W◯-η acc ext ext′ ax ⟩
-             W◯→◯Wη (W-map η id x)          ≡⟨ W◯→◯Wη-W-map-η-id ext′ ⟩∎
-             η x                            ∎)
+    from-to : ∀ x → W◯→◯Wη (◯Wη→W◯ acc ext x) ≡ x
+    from-to =
+      ◯-elim
+        (λ _ → Separated-◯ _ _)
+        (λ x →
+           W◯→◯Wη (◯Wη→W◯ acc ext (η x))  ≡⟨ cong W◯→◯Wη $
+                                             ◯Wη→W◯-η acc ext ax ⟩
+           W◯→◯Wη (W-map η id x)          ≡⟨ W◯→◯Wη-W-map-η-id ext ⟩∎
+           η x                            ∎)
 
-      to-from : ∀ x → ◯Wη→W◯ acc ext (W◯→◯Wη x) ≡ x
-      to-from (sup x f) =
-        ◯-elim
-          {P = λ x →
-                 ∀ f →
-                 (∀ y → ◯Wη→W◯ acc ext (W◯→◯Wη (f y)) ≡ f y) →
-                 ◯Wη→W◯ acc ext (W◯→◯Wη (sup x f)) ≡
-                 sup x f}
-          (λ _ → Modal-Π ext′ λ _ →
-                 Modal-Π ext′ λ _ →
-                 Separated-W ext′ Separated-◯ _ _)
-          (λ x f hyp →
-             ◯Wη→W◯ acc ext (W◯→◯Wη (sup (η x) f))                    ≡⟨ cong (◯Wη→W◯ acc ext) $ W◯→◯Wη-sup-η ext′ f ⟩
+    to-from : ∀ x → ◯Wη→W◯ acc ext (W◯→◯Wη x) ≡ x
+    to-from (sup x f) =
+      ◯-elim
+        {P = λ x →
+               ∀ f →
+               (∀ y → ◯Wη→W◯ acc ext (W◯→◯Wη (f y)) ≡ f y) →
+               ◯Wη→W◯ acc ext (W◯→◯Wη (sup x f)) ≡
+               sup x f}
+        (λ _ → Modal-Π ext λ _ →
+               Modal-Π ext λ _ →
+               Separated-W ext Separated-◯ _ _)
+        (λ x f hyp →
+           ◯Wη→W◯ acc ext (W◯→◯Wη (sup (η x) f))                    ≡⟨ cong (◯Wη→W◯ acc ext) $ W◯→◯Wη-sup-η ext f ⟩
 
-             ◯Wη→W◯ acc ext (◯-map (sup x) (Π◯→◯Π (W◯→◯Wη ∘ f)))      ≡⟨ ◯-elim
-                                                                           {P = λ f′ →
-                                                                                  ◯Wη→W◯ acc ext (◯-map (sup x) f′) ≡
-                                                                                  sup (η x) (◯Wη→W◯ acc ext ∘ ◯Π→Π◯ f′)}
-                                                                           (λ _ → Separated-W ext′ Separated-◯ _ _)
-                                                                           (λ f′ →
-               ◯Wη→W◯ acc ext (◯-map (sup x) (η f′))                          ≡⟨ cong (◯Wη→W◯ acc ext)
-                                                                                 ◯-map-η ⟩
-               ◯Wη→W◯ acc ext (η (sup x f′))                                  ≡⟨ ◯Wη→W◯-η acc ext ext′ ax ⟩
-               W-map η id (sup x f′)                                          ≡⟨⟩
-               sup (η x) (W-map η id ∘ f′)                                    ≡⟨ (cong (sup _) $ sym $ apply-ext ext′ λ _ →
-                                                                                  ◯Wη→W◯-η acc ext ext′ ax) ⟩
-               sup (η x) (◯Wη→W◯ acc ext ∘ η ∘ f′)                            ≡⟨ cong (sup _ ∘ (◯Wη→W◯ acc ext ∘_)) $ sym $
-                                                                                 ◯Π→Π◯-η ext′ ⟩∎
-               sup (η x) (◯Wη→W◯ acc ext ∘ ◯Π→Π◯ (η f′))                      ∎)
-                                                                           _ ⟩
+           ◯Wη→W◯ acc ext (◯-map (sup x) (Π◯→◯Π (W◯→◯Wη ∘ f)))      ≡⟨ ◯-elim
+                                                                         {P = λ f′ →
+                                                                                ◯Wη→W◯ acc ext (◯-map (sup x) f′) ≡
+                                                                                sup (η x) (◯Wη→W◯ acc ext ∘ ◯Π→Π◯ f′)}
+                                                                         (λ _ → Separated-W ext Separated-◯ _ _)
+                                                                         (λ f′ →
+             ◯Wη→W◯ acc ext (◯-map (sup x) (η f′))                          ≡⟨ cong (◯Wη→W◯ acc ext)
+                                                                               ◯-map-η ⟩
+             ◯Wη→W◯ acc ext (η (sup x f′))                                  ≡⟨ ◯Wη→W◯-η acc ext ax ⟩
+             W-map η id (sup x f′)                                          ≡⟨⟩
+             sup (η x) (W-map η id ∘ f′)                                    ≡⟨ (cong (sup _) $ sym $ apply-ext ext λ _ →
+                                                                                ◯Wη→W◯-η acc ext ax) ⟩
+             sup (η x) (◯Wη→W◯ acc ext ∘ η ∘ f′)                            ≡⟨ cong (sup _ ∘ (◯Wη→W◯ acc ext ∘_)) $ sym $
+                                                                               ◯Π→Π◯-η ext ⟩∎
+             sup (η x) (◯Wη→W◯ acc ext ∘ ◯Π→Π◯ (η f′))                      ∎)
+                                                                         _ ⟩
 
-             sup (η x) (◯Wη→W◯ acc ext ∘ ◯Π→Π◯ (Π◯→◯Π (W◯→◯Wη ∘ f)))  ≡⟨ cong (sup _ ∘ (◯Wη→W◯ acc ext ∘_)) $
-                                                                         _≃_.left-inverse-of (Π◯≃◯Π ext′) _ ⟩
+           sup (η x) (◯Wη→W◯ acc ext ∘ ◯Π→Π◯ (Π◯→◯Π (W◯→◯Wη ∘ f)))  ≡⟨ cong (sup _ ∘ (◯Wη→W◯ acc ext ∘_)) $
+                                                                       _≃_.left-inverse-of (Π◯≃◯Π ext) _ ⟩
 
-             sup (η x) (◯Wη→W◯ acc ext ∘ W◯→◯Wη ∘ f)                  ≡⟨ cong (sup (η x)) $ apply-ext ext′
-                                                                         hyp ⟩∎
-             sup (η x) f                                              ∎)
-          x f (λ y → to-from (f y))
+           sup (η x) (◯Wη→W◯ acc ext ∘ W◯→◯Wη ∘ f)                  ≡⟨ cong (sup (η x)) $ apply-ext ext
+                                                                       hyp ⟩∎
+           sup (η x) f                                              ∎)
+        x f (λ y → to-from (f y))
 
--- Some results that hold if a given family of types is valid
+-- A result that holds if a given family of types is valid
 -- (pointwise).
+--
+-- See also Modality.Erased-matches.Has-choice.Valid-domain-Π.
 
 module Valid-domain-Π
   {A : Type a} {P : A → Type a}
@@ -677,24 +677,26 @@ module Valid-domain-Π
   where
 
   -- If the modality is accessibility-modal for a certain relation and
-  -- A is modal, then W A P is k-stable for symmetric kinds k
-  -- (assuming function extensionality).
+  -- A is modal, then W A P is modal (assuming function
+  -- extensionality).
 
-  Stable-W :
-    @0 Accessibility-modal-for (_<W_ {A = A} {P = P}) →
-    @0 Extensionality a a →
-    Extensionality? ⌊ k ⌋-sym a a →
+  Modal-W :
+    Accessibility-modal-for (_<W_ {A = A} {P = P}) →
+    Extensionality a a →
     Modal A →
-    Stable-[ ⌊ k ⌋-sym ] (W A P)
-  Stable-W acc ext ext′ m =
-    ◯ (W A P)                         ↝⟨ (◯-cong-↝-sym ext′ λ ext → W-cong₂ ext λ _ → ≡⇒↝ _ $ cong P $ sym
-                                          Modal→Stable-η) ⟩
-    ◯ (W A (P ∘ Modal→Stable m ∘ η))  ↝⟨ Valid-domain-Π◯.◯Wη≃W◯ _ (λ _ → v _) acc′ ext ext′ ⟩
-    W (◯ A) (P ∘ Modal→Stable m)      ↝⟨ (inverse $ W-cong ext′ (Modal→≃◯ m) λ _ → ≡⇒↝ _ $ cong P $ sym
-                                          Modal→Stable-η) ⟩□
-    W A P                             □
+    Modal (W A P)
+  Modal-W acc ext m =
+    Is-equivalence-η→Modal $
+    _≃_.is-equivalence $
+    Eq.with-other-function
+      (W A P                             ↝⟨ (W-cong ext (Modal→≃◯ m) λ _ → inverse $ ≡⇒↝ _ $ cong P Modal→Stable-η) ⟩
+       W (◯ A) (P ∘ Modal→Stable m)      ↝⟨ inverse $ Valid-domain-Π◯.◯Wη≃W◯ _ (λ _ → v _) acc′ ext ⟩
+       ◯ (W A (P ∘ Modal→Stable m ∘ η))  ↝⟨ (◯-cong-≃ $ W-cong₂ ext λ _ → ≡⇒↝ _ $ cong P Modal→Stable-η) ⟩□
+       ◯ (W A P)                         □)
+      η
+      lemma
     where
-    @0 acc′ :
+    acc′ :
       Accessibility-modal-for
         (_<W_ {A = A} {P = P ∘ Modal→Stable m ∘ η})
     acc′ =
@@ -703,65 +705,48 @@ module Valid-domain-Π
         (apply-ext ext λ _ → sym Modal→Stable-η)
         acc
 
-  -- If the modality is accessibility-modal for a certain relation and
-  -- A is modal, then W A P is modal (assuming function
-  -- extensionality).
+    P≃ : P (Modal→Stable m (η x)) ≃ P x
+    P≃ = ≡⇒↝ _ $ cong P Modal→Stable-η
 
-  Modal-W :
-    @0 Accessibility-modal-for (_<W_ {A = A} {P = P}) →
-    Extensionality a a →
-    Modal A →
-    Modal (W A P)
-  Modal-W acc ext m =
-    Is-equivalence-η→Modal $
-    _≃_.is-equivalence $
-    Eq.with-other-function
-      (inverse $ Stable-W acc ext ext m)
-      η
-      lemma
-    where
-    P≃ : P x ≃ P (Modal→Stable m (η x))
-    P≃ = ≡⇒↝ _ $ cong P $ sym Modal→Stable-η
-
-    P→ : P x → P (Modal→Stable m (η x))
+    P→ : P (Modal→Stable m (η x)) → P x
     P→ = _≃_.to P≃
 
-    P← : P (Modal→Stable m (η x)) → P x
+    P← : P x → P (Modal→Stable m (η x))
     P← = _≃_.from P≃
 
     open module V₁ {x} = Valid-domain₁ (v x)
     open Valid-domain-Π◯ (P ∘ Modal→Stable m) (λ _ → v _)
 
-    lemma : ∀ x → ◯-map (W-map id P→) (W◯→◯Wη (W-map η P← x)) ≡ η x
+    lemma : ∀ x → ◯-map (W-map id P←) (W◯→◯Wη (W-map η P→ x)) ≡ η x
     lemma (sup x f) =
-      ◯-map (W-map id P→) (W◯→◯Wη $ W-map η P← (sup x f))                ≡⟨⟩
+      ◯-map (W-map id P←) (W◯→◯Wη $ W-map η P→ (sup x f))                ≡⟨⟩
 
-      ◯-map (W-map id P→) (W◯→◯Wη $ sup (η x) (W-map η P← ∘ f ∘ P←))     ≡⟨ cong (◯-map _) $
-                                                                            W◯→◯Wη-sup-η ext (W-map η P← ∘ f ∘ P←) ⟩
-      ◯-map (W-map id P→)
-        (◯-map (sup x) (Π◯→◯Π (W◯→◯Wη ∘ W-map η P← ∘ f ∘ P←)))           ≡⟨ sym ◯-map-∘ ⟩
+      ◯-map (W-map id P←) (W◯→◯Wη $ sup (η x) (W-map η P→ ∘ f ∘ P→))     ≡⟨ cong (◯-map _) $
+                                                                            W◯→◯Wη-sup-η ext (W-map η P→ ∘ f ∘ P→) ⟩
+      ◯-map (W-map id P←)
+        (◯-map (sup x) (Π◯→◯Π (W◯→◯Wη ∘ W-map η P→ ∘ f ∘ P→)))           ≡⟨ sym ◯-map-∘ ⟩
 
-      ◯-map (sup x ∘ (_∘ P→) ∘ (W-map id P→ ∘_))
-        (Π◯→◯Π (W◯→◯Wη ∘ W-map η P← ∘ f ∘ P←))                           ≡⟨ ◯-map-∘ ⟩
+      ◯-map (sup x ∘ (_∘ P←) ∘ (W-map id P← ∘_))
+        (Π◯→◯Π (W◯→◯Wη ∘ W-map η P→ ∘ f ∘ P→))                           ≡⟨ ◯-map-∘ ⟩
 
-      ◯-map (sup x ∘ (_∘ P→))
-        (◯-map (W-map id P→ ∘_) (Π◯→◯Π (W◯→◯Wη ∘ W-map η P← ∘ f ∘ P←)))  ≡⟨ cong (◯-map _) $ sym $
+      ◯-map (sup x ∘ (_∘ P←))
+        (◯-map (W-map id P← ∘_) (Π◯→◯Π (W◯→◯Wη ∘ W-map η P→ ∘ f ∘ P→)))  ≡⟨ cong (◯-map _) $ sym $
                                                                             Π◯→◯Π-◯-map ext ⟩
-      ◯-map (sup x ∘ (_∘ P→))
-        (Π◯→◯Π (◯-map (W-map id P→) ∘ W◯→◯Wη ∘ W-map η P← ∘ f ∘ P←))     ≡⟨ (cong (◯-map (sup x ∘ (_∘ P→))) $ cong Π◯→◯Π $
+      ◯-map (sup x ∘ (_∘ P←))
+        (Π◯→◯Π (◯-map (W-map id P←) ∘ W◯→◯Wη ∘ W-map η P→ ∘ f ∘ P→))     ≡⟨ (cong (◯-map (sup x ∘ (_∘ P←))) $ cong Π◯→◯Π $
                                                                              apply-ext ext λ y →
-                                                                             lemma (f (P← y))) ⟩
+                                                                             lemma (f (P→ y))) ⟩
 
-      ◯-map (sup x ∘ (_∘ P→)) (Π◯→◯Π (η ∘ f ∘ P←))                       ≡⟨ cong (◯-map (sup x ∘ (_∘ P→))) $ cong Π◯→◯Π $ sym $
+      ◯-map (sup x ∘ (_∘ P←)) (Π◯→◯Π (η ∘ f ∘ P→))                       ≡⟨ cong (◯-map (sup x ∘ (_∘ P←))) $ cong Π◯→◯Π $ sym $
                                                                             ◯Π→Π◯-η ext ⟩
 
-      ◯-map (sup x ∘ (_∘ P→)) (Π◯→◯Π (◯Π→Π◯ (η (f ∘ P←))))               ≡⟨ cong (◯-map (sup x ∘ (_∘ P→))) $
+      ◯-map (sup x ∘ (_∘ P←)) (Π◯→◯Π (◯Π→Π◯ (η (f ∘ P→))))               ≡⟨ cong (◯-map (sup x ∘ (_∘ P←))) $
                                                                             _≃_.right-inverse-of (Π◯≃◯Π ext) _ ⟩
 
-      ◯-map (sup x ∘ (_∘ P→)) (η (f ∘ P←))                               ≡⟨ ◯-map-η ⟩
+      ◯-map (sup x ∘ (_∘ P←)) (η (f ∘ P→))                               ≡⟨ ◯-map-η ⟩
 
-      η (sup x (f ∘ P← ∘ P→))                                            ≡⟨ (cong (η ∘ sup x) $ cong (f ∘_) $ apply-ext ext λ _ →
-                                                                             _≃_.left-inverse-of P≃ _) ⟩∎
+      η (sup x (f ∘ P→ ∘ P←))                                            ≡⟨ (cong (η ∘ sup x) $ cong (f ∘_) $ apply-ext ext λ _ →
+                                                                             _≃_.right-inverse-of P≃ _) ⟩∎
       η (sup x f)                                                        ∎
 
 ------------------------------------------------------------------------
@@ -1761,8 +1746,8 @@ module Valid-domain (v : {A : Type a} → Valid-domain A) where
 
   Accessibility-modal-for→W-modal :
     Extensionality a a →
-    @0 ({A : Type a} {P : A → Type a} →
-        Accessibility-modal-for (_<W_ {A = A} {P = P})) →
+    ({A : Type a} {P : A → Type a} →
+     Accessibility-modal-for (_<W_ {A = A} {P = P})) →
     W-modal M
   Accessibility-modal-for→W-modal ext acc = Modal-W acc ext
 
@@ -1771,7 +1756,7 @@ module Valid-domain (v : {A : Type a} → Valid-domain A) where
 
   Accessibility-modal→W-modal :
     Extensionality a a →
-    @0 Accessibility-modal →
+    Accessibility-modal →
     W-modal M
   Accessibility-modal→W-modal ext acc =
     Accessibility-modal-for→W-modal ext acc

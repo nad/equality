@@ -34,6 +34,7 @@ import Equality.Propositional
 import Equivalence
 import Erased
 import Erased.Cubical
+import Erased.Erased-matches
 import Erased.With-K
 import Function-universe
 import H-level
@@ -145,7 +146,7 @@ W = Prelude.W
 
 -- Lemma 14 (Erased commutes with W-types up to logical equivalence).
 
-Lemma-14 = Erased.Erased-W⇔W
+Lemma-14 = Erased.Erased-matches.Erased-W⇔W
 
 -- Erased commutes with W-types, assuming extensionality for functions
 -- and []-cong.
@@ -157,7 +158,7 @@ Lemma-14 = Erased.Erased-W⇔W
 -- other ways). This lemma, and several others, are stated in that
 -- way.
 
-Lemma-14′ = Erased.Erased-W↔W
+Lemma-14′ = Erased.Erased-matches.[]-cong.Erased-W↔W
 
 ------------------------------------------------------------------------
 -- 3.4: The []-cong property
@@ -422,7 +423,7 @@ Lemma-81         = Erased.Very-stable-Stable-Σ
 Lemma-82         = Erased.Very-stable-Σ
 Lemma-83         = Erased.Stable-×
 Lemma-84         = Erased.Very-stable-×
-Lemma-85         = Erased.Very-stable-W
+Lemma-85         = Erased.Erased-matches.[]-cong.Very-stable-W
 Lemmas-86-and-87 = Erased.Stable-H-level′
 Lemmas-88-and-89 = Erased.Very-stable-H-level′
 Lemma-90         = Erased.Stable-≡-⊎

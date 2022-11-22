@@ -3,4 +3,5 @@ depend: standard-library
 include: src
 flags:
   --no-import-sorts
+  --erasure
   --warning=noUnsupportedIndexedMatch

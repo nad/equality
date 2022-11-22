@@ -137,7 +137,7 @@ import Embedding
 
 import Function-universe
 
--- The accessibility predicate and well-founded induction.
+-- The accessibility predicate.
 
 import Accessibility
 

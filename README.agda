@@ -15,9 +15,18 @@ module README where
 
 import README.Safe.Cubical-compatible
 
+-- "Safe" code that uses --cubical-compatible and --erased-matches.
+
+import README.Safe.Cubical-compatible.Erased-matches
+
 -- "Safe" code that uses --cubical-compatible and --prop.
 
 import README.Safe.Cubical-compatible.Prop
+
+-- "Safe" code that uses --cubical-compatible, --prop and
+-- --erased-matches.
+
+import README.Safe.Cubical-compatible.Prop.Erased-matches
 
 -- "Safe" code that uses --erased-cubical.
 

@@ -731,24 +731,21 @@ downwards-closed {m = m} {n = n} {A = A} m≤n =
 -- and relations with h-level n.
 
 Is-proposition→∥∥[1+]-accessibility-modal :
-  {@0 A : Type ℓ} {@0 _<_ : A → A → Type ℓ} →
-  @0 H-level (1 + n) A →
-  @0 (∀ x y → H-level (1 + n) (x < y)) →
+  {A : Type ℓ} {_<_ : A → A → Type ℓ} →
+  H-level (1 + n) A →
+  (∀ x y → H-level (1 + n) (x < y)) →
   Modality.Accessibility-modal-for ∥∥[1+ n ]-modality _<_
 Is-proposition→∥∥[1+]-accessibility-modal p₁ p₂ =
-  Accessibility-modal-for-erasure-stable
-    Er.[ ( (λ acc →
-              Modal→Acc→Acc-[]◯-η
-                p₁
-                (rec λ @0 where
-                   .∣∣ʳ      → id
-                   .h-levelʳ → p₂ _ _)
-                acc)
-         , (rec λ @0 where
-              .∣∣ʳ      → id
-              .h-levelʳ →
-                H-level.mono (Nat.m≤m+n 1 _) (A.Acc-propositional ext))
-         )
-       ]
+    (λ acc →
+       Modal→Acc→Acc-[]◯-η
+         p₁
+         (rec λ where
+            .∣∣ʳ      → id
+            .h-levelʳ → p₂ _ _)
+         acc)
+  , (rec λ where
+       .∣∣ʳ      → id
+       .h-levelʳ →
+         H-level.mono (Nat.m≤m+n 1 _) (A.Acc-propositional ext))
   where
   open Modality (∥∥[1+_]-modality _)
