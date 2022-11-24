@@ -60,11 +60,10 @@ mutual
 
   loop₁₂₋₁₋₂ᴾ : base′ P.≡ base′
   loop₁₂₋₁₋₂ᴾ =
-    base  P.≡⟨ loop₁ᴾ ⟩
-    base  P.≡⟨ loop₂ᴾ ⟩
-    base  P.≡⟨ P.sym loop₁ᴾ ⟩
-    base  P.≡⟨ P.sym loop₂ᴾ ⟩∎
-    base  ∎
+    P.htransˡ loop₁ᴾ
+      (P.htransˡ loop₂ᴾ
+         (P.htransˡ (P.hsym loop₁ᴾ)
+            (P.hsym loop₂ᴾ)))
 
 -- The constructors (and loop₁₂₋₁₋₂ᴾ) expressed using _≡_ instead of
 -- paths.

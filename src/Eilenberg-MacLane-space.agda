@@ -58,7 +58,7 @@ data K[_]1 (G : Group g) : Type g where
   base        : K[ G ]1
   loopᴾ        : Group.Carrier G → base P.≡ base
   loop-idᴾ     : loopᴾ (Group.id G) P.≡ P.refl
-  loop-∘ᴾ      : loopᴾ (Group._∘_ G x y) P.≡ P.trans (loopᴾ x) (loopᴾ y)
+  loop-∘ᴾ      : loopᴾ (Group._∘_ G x y) P.≡ P.htransˡ (loopᴾ x) (loopᴾ y)
   is-groupoidᴾ : PH.H-level 3 K[ G ]1
 
 -- Variants of the higher constructors.
