@@ -324,7 +324,7 @@ Dec→Stable : {@0 A : Type a} → Dec A → Stable A
 Dec→Stable (yes x) _ = x
 Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 
--- Every type is stable in the double negation monad.
+-- Every type is stable in the double-negation monad.
 
 ¬¬-Stable : {@0 A : Type a} → ¬¬ Stable A
 ¬¬-Stable = DN.map′ Dec→Stable excluded-middle
