@@ -329,6 +329,25 @@ Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 ¬¬-Stable : {@0 A : Type a} → ¬¬ Stable A
 ¬¬-Stable = DN.map′ Dec→Stable excluded-middle
 
+-- Every type is very stable in the double-negation monad.
+--
+-- One can prove that the type
+--
+--   []-cong-axiomatisation ℓ →
+--   {A : Type ℓ} →
+--   ¬¬ (Extensionality ℓ ℓ → Very-stable A)
+--
+-- is inhabited by using a lemma,
+-- Modality.Empty-modal.¬¬-Empty-modal→Very-modal→Modal, that is
+-- similar to one suggested by Felix Cherubini (and I did not state
+-- and prove the lemma below until after Felix made that suggestion to
+-- me).
+
+¬¬-Very-stable : {@0 A : Type ℓ} → ¬¬ Very-stable A
+¬¬-Very-stable {A = A} =  $⟨ Erased-Very-stable ⟩
+  Erased (Very-stable A)  →⟨ wrap ∘ Erased→¬¬ ⟩□
+  ¬¬ Very-stable A        □
+
 -- If equality is stable for A and B, then A ≃ᴱ B implies A ≃ B.
 
 Stable-≡→≃ᴱ→≃ : Stable-≡ A → Stable-≡ B → A ≃ᴱ B → A ≃ B
@@ -2235,21 +2254,6 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     let I , P , prop , p =
           erased-is-accessible-and-topological-in-erased-contexts′
     in (I , P , p) , prop
-
-  ----------------------------------------------------------------------
-  -- A property that is stated using the double-negation monad
-
-  -- For a given type it is not not the case that function
-  -- extensionality implies that the type is very stable.
-  --
-  -- This is a variant of a lemma due to Felix Cherubini.
-
-  ¬¬-Very-stable :
-    {A : Type ℓ} →
-    ¬¬ (Extensionality ℓ ℓ → Very-stable A)
-  ¬¬-Very-stable =
-    flip map′ (EM.¬¬-Empty-modal→Very-modal→Modal Erased-modality) $
-    ∀-cong _ λ _ → λ f → f Very-stable-⊥ Erased-very-modal
 
   ----------------------------------------------------------------------
   -- Some properties that rely on excluded middle
