@@ -165,6 +165,7 @@ abstract
 -- If a propositional type is inhabited, then it is contractible.
 
 propositional⇒inhabited⇒contractible :
+  {@0 A : Type a} →
   Is-proposition A → A → Contractible A
 propositional⇒inhabited⇒contractible p x = (x , p x)
 
