@@ -5,10 +5,13 @@
 -- Nils Anders Danielsson
 ------------------------------------------------------------------------
 
--- Note that the code does not follow the paper exactly. For instance,
--- some definitions use bijections (functions with quasi-inverses)
--- instead of equivalences. Some other differences are mentioned
--- below.
+-- Note that the code has changed after the paper draft (that is
+-- current at the time of writing) was written.
+
+-- Note also that the code does not follow the paper exactly. For
+-- instance, some definitions use bijections (functions with
+-- quasi-inverses) instead of equivalences. Some other differences are
+-- mentioned below.
 
 -- This file is not checked using --safe, because some parts use
 -- --cubical, and some parts use --with-K. However, all files
@@ -184,9 +187,9 @@ Families-equivalent =
 Lemma-17-traditional = Erased.With-K.[]-cong-equivalence
 Lemma-18-traditional = Erased.With-K.[]-cong-[refl]
 
--- Lemmas 17 and 18 in Cubical Agda, with paths.
+-- Lemma 18 in Cubical Agda, with paths. (Lemma 17 is no longer proved
+-- directly.)
 
-Lemma-17-cubical-paths = Erased.Cubical.[]-cong-Path-equivalence
 Lemma-18-cubical-paths = Erased.Cubical.[]-cong-Path-[refl]
 
 -- Lemmas 17 and 18 in Cubical Agda, with an arbitrary family of

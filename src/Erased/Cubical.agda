@@ -24,7 +24,7 @@ import Equivalence P.equality-with-J as PEq
 import Erased.Basics as EB
 import Erased.Level-1 P.equality-with-J as EP
 import Erased.Level-1 equality-with-J as E
-open import Function-universe equality-with-J
+open import Function-universe equality-with-J hiding (_∘_)
 
 private
   variable
@@ -43,22 +43,6 @@ private
   EB.Erased (x P.≡ y) → EB.[ x ] P.≡ EB.[ y ]
 []-cong-Path EB.[ eq ] = λ i → EB.[ eq i ]
 
--- []-cong-Path is an equivalence.
-
-[]-cong-Path-equivalence :
-  {@0 A : Type a} {@0 x y : A} →
-  PEq.Is-equivalence ([]-cong-Path {x = x} {y = y})
-[]-cong-Path-equivalence =
-  PEq._≃_.is-equivalence $ PEq.↔⇒≃ (record
-    { surjection = record
-      { logical-equivalence = record
-        { from = λ eq → EB.[ P.cong EB.erased eq ]
-        }
-      ; right-inverse-of = λ _ → P.refl
-      }
-    ; left-inverse-of = λ _ → P.refl
-    })
-
 -- A rearrangement lemma for []-cong-Path (which holds by definition).
 
 []-cong-Path-[refl] :
@@ -70,9 +54,8 @@ private
 
 instance-of-[]-cong-axiomatisation-for-Path : EP.[]-cong-axiomatisation a
 instance-of-[]-cong-axiomatisation-for-Path = λ where
-  .EP.[]-cong-axiomatisation.[]-cong             → []-cong-Path
-  .EP.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-Path-equivalence
-  .EP.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-Path-[refl]
+  .EP.[]-cong-axiomatisation.[]-cong        → []-cong-Path
+  .EP.[]-cong-axiomatisation.[]-cong-[refl] → []-cong-Path-[refl]
 
 -- Given an erased proof of equality of x and y one can show that
 -- EB.[ x ] is equal to EB.[ y ].
@@ -85,45 +68,29 @@ instance-of-[]-cong-axiomatisation-for-Path = λ where
   EB.[ x ] P.≡ EB.[ y ]  ↔⟨ inverse ≡↔≡ ⟩□
   EB.[ x ] ≡ EB.[ y ]    □
 
--- []-cong is an equivalence.
-
-[]-cong-equivalence :
-  {@0 A : Type a} {@0 x y : A} →
-  Is-equivalence ([]-cong {x = x} {y = y})
-[]-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (
-  EB.Erased (x ≡ y)      ↔⟨ _≃_.from ↔≃↔ $
-                            EP.[]-cong.Erased-cong-↔
-                              instance-of-[]-cong-axiomatisation-for-Path
-                              (_≃_.to ↔≃↔ ≡↔≡) ⟩
-  EB.Erased (x P.≡ y)    ↝⟨ _↔_.from ≃↔≃ PEq.⟨ _ , []-cong-Path-equivalence ⟩ ⟩
-  EB.[ x ] P.≡ EB.[ y ]  ↔⟨ inverse ≡↔≡ ⟩□
-  EB.[ x ] ≡ EB.[ y ]    □)
-
 -- A rearrangement lemma for []-cong.
 
 []-cong-[refl] :
   {@0 A : Type a} {@0 x : A} →
   []-cong EB.[ refl x ] ≡ refl EB.[ x ]
 []-cong-[refl] {x = x} =
-  sym $ _↔_.to (from≡↔≡to Eq.⟨ _ , []-cong-equivalence ⟩) (
-    EB.[ _↔_.from ≡↔≡ (P.cong EB.erased (_↔_.to ≡↔≡ (refl EB.[ x ]))) ]  ≡⟨ []-cong EB.[ sym cong≡cong ] ⟩
-    EB.[ cong EB.erased (_↔_.from ≡↔≡ (_↔_.to ≡↔≡ (refl EB.[ x ]))) ]    ≡⟨ []-cong EB.[ cong (cong EB.erased) (_↔_.left-inverse-of ≡↔≡ _) ] ⟩
-    EB.[ cong EB.erased (refl EB.[ x ]) ]                                ≡⟨ []-cong EB.[ cong-refl _ ] ⟩∎
-    EB.[ refl x ]                                                        ∎)
+  _↔_.from ≡↔≡ ([]-cong-Path EB.[ _↔_.to ≡↔≡ (refl x) ])  ≡⟨ cong (_↔_.from ≡↔≡ ∘ []-cong-Path) $ []-cong EB.[ to-≡↔≡-refl ] ⟩
+  _↔_.from ≡↔≡ ([]-cong-Path EB.[ P.refl {x = x} ])       ≡⟨ cong (_↔_.from ≡↔≡) $ _↔_.from ≡↔≡ []-cong-Path-[refl] ⟩
+  _↔_.from ≡↔≡ (P.refl {x = EB.[ x ]})                    ≡⟨ from-≡↔≡-refl ⟩∎
+  refl EB.[ x ]                                           ∎
 
 -- The []-cong axioms can be instantiated.
 
 instance-of-[]-cong-axiomatisation : E.[]-cong-axiomatisation a
 instance-of-[]-cong-axiomatisation = λ where
-  .E.[]-cong-axiomatisation.[]-cong             → []-cong
-  .E.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
-  .E.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
+  .E.[]-cong-axiomatisation.[]-cong        → []-cong
+  .E.[]-cong-axiomatisation.[]-cong-[refl] → []-cong-[refl]
 
 -- Some reexported definitions.
 
 open import Erased equality-with-J instance-of-[]-cong-axiomatisation
   public
-  hiding ([]-cong; []-cong-equivalence; []-cong-[refl];
+  hiding ([]-cong; []-cong-[refl];
           Π-Erased≃Π0[]; Π-Erased≃Π0)
 
 ------------------------------------------------------------------------

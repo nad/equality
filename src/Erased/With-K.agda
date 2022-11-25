@@ -38,22 +38,6 @@ private
           EB.Erased (x ≡ y) → EB.[ x ] ≡ EB.[ y ]
 []-cong EB.[ refl ] = refl
 
--- []-cong is an equivalence.
-
-[]-cong-equivalence :
-  {@0 A : Type a} {@0 x y : A} →
-  Is-equivalence ([]-cong {x = x} {y = y})
-[]-cong-equivalence {x = x} {y = y} = _≃_.is-equivalence (Eq.↔⇒≃ (record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = []-cong
-      ; from = λ eq → EB.[ cong EB.erased eq ]
-      }
-    ; right-inverse-of = λ { refl → refl }
-    }
-  ; left-inverse-of = λ { EB.[ refl ] → refl }
-  }))
-
 -- []-cong maps [ refl ] to refl (by definition).
 
 []-cong-[refl] :
@@ -65,15 +49,14 @@ private
 
 instance-of-[]-cong-axiomatisation : E.[]-cong-axiomatisation a
 instance-of-[]-cong-axiomatisation = λ where
-  .E.[]-cong-axiomatisation.[]-cong             → []-cong
-  .E.[]-cong-axiomatisation.[]-cong-equivalence → []-cong-equivalence
-  .E.[]-cong-axiomatisation.[]-cong-[refl]      → []-cong-[refl]
+  .E.[]-cong-axiomatisation.[]-cong        → []-cong
+  .E.[]-cong-axiomatisation.[]-cong-[refl] → []-cong-[refl]
 
 -- Some reexported definitions.
 
 open import Erased equality-with-J instance-of-[]-cong-axiomatisation
   public
-  hiding ([]-cong; []-cong-equivalence; []-cong-[refl]; Injective-[];
+  hiding ([]-cong; []-cong-[refl]; Injective-[];
           Π-Erased≃Π0[]; Π-Erased≃Π0)
 
 ------------------------------------------------------------------------
