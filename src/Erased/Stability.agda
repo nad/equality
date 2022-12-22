@@ -11,17 +11,22 @@ module Erased.Stability
 
 open Derived-definitions-and-properties eq
 
+import Accessibility
+import Double-negation
+import Equivalence
 open import Logical-equivalence as LE using (_⇔_)
 open import Prelude as P
 
-open import Accessibility eq as A using (Acc; Well-founded)
+private
+  open module A  = Accessibility eq using (Acc; Well-founded)
+  open module DN = Double-negation eq
+  open module Eq = Equivalence eq using (_≃_; Is-equivalence)
+
 open import Bijection eq as Bijection using (_↔_; Has-quasi-inverse)
-open import Double-negation eq as DN
 open import Embedding eq as Emb using (Embedding; Is-embedding)
 open import Embedding.Erased eq as EEmb using (Is-embeddingᴱ)
 open import Equality.Decidable-UIP eq
 open import Equality.Decision-procedures eq
-open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (Contractibleᴱ)
@@ -117,7 +122,7 @@ Very-stableᴱ-propositional ext =
 -- Very stable types are stable.
 
 Very-stable→Stable₀ : {@0 A : Type a} → Very-stable A → Stable A
-Very-stable→Stable₀ s = Eq._≃₀_.from Eq.⟨ _ , s ⟩
+Very-stable→Stable₀ s = Eq._≃₀_.from Equivalence.⟨ _ , s ⟩
 
 -- A variant of Very-stable→Stable₀.
 
@@ -345,7 +350,7 @@ Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 
 ¬¬-Very-stable : {@0 A : Type ℓ} → ¬¬ Very-stable A
 ¬¬-Very-stable {A = A} =  $⟨ Erased-Very-stable ⟩
-  Erased (Very-stable A)  →⟨ wrap ∘ Erased→¬¬ ⟩□
+  Erased (Very-stable A)  →⟨ (λ x → Double-negation.wrap (Erased→¬¬ x)) ⟩□
   ¬¬ Very-stable A        □
 
 -- If equality is stable for A and B, then A ≃ᴱ B implies A ≃ B.
@@ -846,7 +851,8 @@ Very-stable-¬ {A = A} ext =
 Stable-Acc :
   {@0 A : Type a} {@0 _<_ : A → A → Type r} {@0 x : A} →
   Stable (Acc _<_ x)
-Stable-Acc [ A.acc f ] = A.acc (λ y y<x → Stable-Acc [ f y y<x ])
+Stable-Acc [ A.acc f ] =
+  Accessibility.acc (λ y y<x → Stable-Acc [ f y y<x ])
 
 -- Well-founded _<_ is stable.
 

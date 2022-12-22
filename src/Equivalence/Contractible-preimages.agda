@@ -54,12 +54,12 @@ respects-extensional-equality f≡g f-eq = λ b →
 inverse :
   {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   Is-equivalence f → B → A
-inverse eq y = proj₁ (proj₁ (eq y))
+inverse eq y = proj₁₀ (proj₁₀ (eq y))
 
 right-inverse-of :
   {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   (eq : Is-equivalence f) → ∀ x → f (inverse eq x) ≡ x
-right-inverse-of eq x = proj₂ (proj₁ (eq x))
+right-inverse-of eq x = proj₂₀ (proj₁₀ (eq x))
 
 abstract
 
@@ -77,7 +77,7 @@ irrelevance :
   {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   (eq : Is-equivalence f) →
   ∀ y (p : f ⁻¹ y) → (inverse eq y , right-inverse-of eq y) ≡ p
-irrelevance eq y = proj₂ (eq y)
+irrelevance eq y = proj₂₀ (eq y)
 
 abstract
 

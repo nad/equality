@@ -63,7 +63,7 @@ infixl 5 _>>=′_
 _>>=′_ :
   ∀ {a b} {@0 A : Type a} {@0 B : Type b} →
   ¬¬ A → (A → ¬¬ B) → ¬¬ B
-run (x >>=′ f) = join (map′ (run ∘ f) x)
+run (x >>=′ f) = join (map′ (λ x → run (f x)) x)
   where
   join : ∀ {a} {@0 A : Type a} → ¬¬ ¬ A → ¬ A
   join ¬¬¬a = λ a → run ¬¬¬a (λ ¬a → ¬a a)

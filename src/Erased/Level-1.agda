@@ -16,10 +16,13 @@ module Erased.Level-1
 
 open Derived-definitions-and-properties eq-J
 
+import Accessibility
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding ([_,_])
 
-open import Accessibility eq-J as A using (Acc; Well-founded)
+private
+  open module A = Accessibility eq-J using (Acc; Well-founded)
+
 open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq-J as Emb using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq-J
@@ -345,8 +348,8 @@ Erased-¬↔¬ {A = A} ext =
   {@0 A : Type a} {@0 P : A → Type p} →
   ((x : Erased A) → P (erased x)) ≃ᴱ ((@0 x : A) → P x)
 Π-Erased≃ᴱΠ0 = EEq.↔→≃ᴱ
-  (_⇔_.to Π-Erased⇔Π0)
-  (_⇔_.from Π-Erased⇔Π0)
+  (let record { to   = to   } = Π-Erased⇔Π0 in to)
+  (let record { from = from } = Π-Erased⇔Π0 in from)
   refl
   refl
 
@@ -358,8 +361,8 @@ Erased-¬↔¬ {A = A} ext =
   ((x : Erased A) → P (erased x)) ≃ ((@0 x : A) → P x)
 Π-Erased≃Π0 {A = A} {P = P} =
   Eq.↔→≃ {B = (@0 x : A) → P x}
-    (_⇔_.to Π-Erased⇔Π0)
-    (_⇔_.from Π-Erased⇔Π0)
+    (let record { to   = to   } = Π-Erased⇔Π0 in to)
+    (let record { from = from } = Π-Erased⇔Π0 in from)
     (λ _ → refl {A = (@0 x : A) → P x} _)
     (λ _ → refl _)
 
@@ -405,7 +408,7 @@ Erased-Acc-⇔ {_<_ = _<_} = record
   to (A.acc f) = A.acc λ ([ y ]) ([ y<x ]) → to (f y y<x)
 
   from : ∀ {@0 x} → Acc _[ _<_ ]Erased_ [ x ] → Acc _<_ x
-  from (A.acc f) = A.acc λ y y<x → from (f [ y ] [ y<x ])
+  from (A.acc f) = Accessibility.acc λ y y<x → from (f [ y ] [ y<x ])
 
 -- Erased "commutes" with Well-founded (up to logical equivalence).
 --

@@ -243,7 +243,7 @@ Acc-↑ {a = a} {r = r} {ℓ = ℓ} {_<_ = _<_} =
     (λ ext → to-from ext , from-to ext)
   where
   to : ∀ {@0 x} → Acc _<_ x → Acc (λ x y → ↑ ℓ (x < y)) x
-  to (acc f) = acc λ y y<x → to (f y (lower y<x))
+  to (acc f) = acc λ y y<x → to (f y (let lift y<x = y<x in y<x))
 
   from : ∀ {@0 x} → Acc (λ x y → ↑ ℓ (x < y)) x → Acc _<_ x
   from (acc f) = acc λ y y<x → from (f y (lift y<x))

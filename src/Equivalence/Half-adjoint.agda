@@ -61,19 +61,19 @@ mutual
 inverse :
   {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   Is-equivalence f → B → A
-inverse = proj₁
+inverse = proj₁₀
 
 right-inverse-of :
   {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   (eq : Is-equivalence f) →
   ∀ x → f (inverse eq x) ≡ x
-right-inverse-of = proj₁ ∘ proj₂
+right-inverse-of = proj₁₀ ∘ proj₂₀
 
 left-inverse-of :
   {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   (eq : Is-equivalence f) →
   ∀ x → inverse eq (f x) ≡ x
-left-inverse-of = proj₁ ∘ proj₂ ∘ proj₂
+left-inverse-of = proj₁₀ ∘ proj₂₀ ∘ proj₂₀
 
 ------------------------------------------------------------------------
 -- Identity, inverse, composition
