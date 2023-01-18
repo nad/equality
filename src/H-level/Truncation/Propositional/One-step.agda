@@ -426,7 +426,7 @@ private
 -- ∥ A ∥¹ᴱ-out-^ n implies ∥ A ∥¹-out-^ n.
 
 ∥∥¹ᴱ-out-^→∥∥¹-out-^ : ∀ n → ∥ A ∥¹ᴱ-out-^ n → ∥ A ∥¹-out-^ n
-∥∥¹ᴱ-out-^→∥∥¹-out-^ zero            = id
+∥∥¹ᴱ-out-^→∥∥¹-out-^         zero    = id
 ∥∥¹ᴱ-out-^→∥∥¹-out-^ {A = A} (suc n) =
   ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ→∥∥¹ ⟩
   ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹   ↝⟨ ∥∥¹-map (∥∥¹ᴱ-out-^→∥∥¹-out-^ n) ⟩□
@@ -442,7 +442,7 @@ private
     (lemma n)
   where
   ∥∥¹ᴱ-out-^≃∥∥¹-out-^′ : ∀ n → ∥ A ∥¹ᴱ-out-^ n ≃ ∥ A ∥¹-out-^ n
-  ∥∥¹ᴱ-out-^≃∥∥¹-out-^′ zero            = F.id
+  ∥∥¹ᴱ-out-^≃∥∥¹-out-^′         zero    = F.id
   ∥∥¹ᴱ-out-^≃∥∥¹-out-^′ {A = A} (suc n) =
     ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ≃∥∥¹ ⟩
     ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹   ↝⟨ ∥∥¹-cong-≃ (∥∥¹ᴱ-out-^≃∥∥¹-out-^′ n) ⟩□
@@ -462,7 +462,7 @@ private
 -- ∥ A ∥¹ᴱ-in-^ n implies ∥ A ∥¹-in-^ n.
 
 ∥∥¹ᴱ-in-^→∥∥¹-in-^ : ∀ n → ∥ A ∥¹ᴱ-in-^ n → ∥ A ∥¹-in-^ n
-∥∥¹ᴱ-in-^→∥∥¹-in-^ zero            = id
+∥∥¹ᴱ-in-^→∥∥¹-in-^         zero    = id
 ∥∥¹ᴱ-in-^→∥∥¹-in-^ {A = A} (suc n) =
   ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-in-^ n  ↔⟨ inverse $ O.∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute n ⟩
   ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ→∥∥¹ ⟩
@@ -480,7 +480,7 @@ private
     (lemma n)
   where
   ∥∥¹ᴱ-in-^≃∥∥¹-in-^′ : ∀ n → ∥ A ∥¹ᴱ-in-^ n ≃ ∥ A ∥¹-in-^ n
-  ∥∥¹ᴱ-in-^≃∥∥¹-in-^′ zero            = F.id
+  ∥∥¹ᴱ-in-^≃∥∥¹-in-^′         zero    = F.id
   ∥∥¹ᴱ-in-^≃∥∥¹-in-^′ {A = A} (suc n) =
     ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-in-^ n  ↝⟨ inverse $ O.∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute n ⟩
     ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ≃∥∥¹ ⟩

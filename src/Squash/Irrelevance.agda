@@ -152,7 +152,7 @@ empty-modal =
   , ⊥-propositional
 
 private
-  module EM {ℓ = ℓ} =
+  module EM {ℓ} =
     Modality.Empty-modal.Empty-modal eq (modality {ℓ = ℓ}) empty-modal
 
 -- The squash modality is not left exact.

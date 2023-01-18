@@ -312,7 +312,7 @@ suc m * suc n = suc λ { .force → n .force + m .force * suc n }
 -- An unfolding lemma for multiplication.
 
 suc*∼+* : ∀ {m n i} → [ i ] suc m * n ∼ n + m .force * n
-suc*∼+* {m} {zero}  =
+suc*∼+* {m} {zero} =
   zero             ∼⟨ symmetric-∼ *-right-zero ⟩
   m .force * zero  ∎∼
 suc*∼+* {m} {suc n} = suc λ { .force → reflexive-∼ _ }

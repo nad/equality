@@ -485,7 +485,7 @@ All-cong {a = a} {p = p} {q = q} {k} {P = P} {Q} {xs} {ys}
 index∘index :
   ∀ {xs ys} {ps : All P ys} {x∈xs : x ∈ xs} (xs⊆ys : xs ⊆ ys) →
   index ps (index xs⊆ys x∈xs) ≡ index (map₂ xs⊆ys ps) x∈xs
-index∘index {xs = _ ∷ _} {x∈xs = inj₂ _}  (_ , ⊆ys) =
+index∘index {xs = _ ∷ _} {x∈xs = inj₂ _} (_ , ⊆ys) =
   index∘index ⊆ys
 
 index∘index {P = P} {xs = _ ∷ _} {ys} {ps} {inj₁ eq} (∈ys , _) = elim₁
@@ -502,7 +502,7 @@ index-map₁ :
   ∀ {P : A → Type p}
     xs {f : ∀ {x} → P x → Q x} {ps : All P xs} {q : x ∈ xs} →
   index (map₁ f ps) q ≡ f (index ps q)
-index-map₁ (_ ∷ xs) {q = inj₂ q}  = index-map₁ xs
+index-map₁ (_ ∷ xs) {q = inj₂ q} = index-map₁ xs
 
 index-map₁ {Q = Q} {P = P} (_ ∷ _) {f} {p , _} {q = inj₁ eq} = elim₁
   (λ eq → subst Q (sym eq) (f p) ≡
@@ -531,8 +531,8 @@ index-All-const :
   ∀ (xs : List A) {bs : All (const B) xs} {i} →
   Vec.index (_↔_.to All-const bs) i ≡
   index bs (proj₂ (_↔_.from (Fin-length xs) i))
-index-All-const (_ ∷ xs)    {i = fsuc i} = index-All-const xs
-index-All-const (_ ∷ _) {b , _} {fzero}  =
+index-All-const (_ ∷ xs)             {i = fsuc i} = index-All-const xs
+index-All-const (_ ∷ _) {bs = b , _} {i = fzero}  =
   b                                 ≡⟨ sym subst-sym-refl ⟩∎
   subst (const _) (sym (refl _)) b  ∎
 

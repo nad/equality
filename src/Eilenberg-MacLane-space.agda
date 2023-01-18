@@ -175,10 +175,10 @@ open Rec public
 
 rec : Rec G A → K[ G ]1 → A
 rec {G = G} {A = A} r = recᴾ λ where
-    .is-groupoidʳ            → _↔_.to (H-level↔H-level 3) R.is-groupoidʳ
-    .baseʳ                   → R.baseʳ
-    .loopʳ                   → _↔_.to ≡↔≡ ⊚ R.loopʳ
-    .loop-idʳ                →
+    .is-groupoidʳ → _↔_.to (H-level↔H-level 3) R.is-groupoidʳ
+    .baseʳ        → R.baseʳ
+    .loopʳ        → _↔_.to ≡↔≡ ⊚ R.loopʳ
+    .loop-idʳ     →
       _↔_.to ≡↔≡ (R.loopʳ id)    P.≡⟨ P.cong (_↔_.to ≡↔≡) $ _↔_.to ≡↔≡ R.loop-idʳ ⟩
       _↔_.to ≡↔≡ (refl R.baseʳ)  P.≡⟨ _↔_.to ≡↔≡ to-≡↔≡-refl ⟩∎
       P.refl                     ∎

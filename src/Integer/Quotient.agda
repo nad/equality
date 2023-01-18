@@ -602,8 +602,8 @@ i - j = i + - j
 -- A lemma used in the implementation of +≡+.
 
 ++-[1+]≡++-[1+] : + m + -[ P.suc n ] ≡ _↔_.from ℤ↔ℤ (Data.+ m +-[1+ n ])
-++-[1+]≡++-[1+] {m = zero}    {n = n}       = refl _
-++-[1+]≡++-[1+] {m = P.suc m} {n = zero}    =
+++-[1+]≡++-[1+] {m = zero}    {n = n}    = refl _
+++-[1+]≡++-[1+] {m = P.suc m} {n = zero} =
   [ (P.suc (m ⊕ 0) , 1) ]  ≡⟨ cong (Q.[_] ∘ (_, 1) ∘ P.suc) Nat.+-right-identity ⟩
   [ (P.suc m , 1) ]        ≡⟨ sym []≡[suc,suc] ⟩∎
   [ (m , 0) ]              ∎

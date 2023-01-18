@@ -1062,7 +1062,7 @@ module Modality (M : Modality a) where
     ∀ n →
     Modal A →
     For-iterated-equality n Modal A
-  Modal→Modalⁿ zero = id
+  Modal→Modalⁿ         zero    = id
   Modal→Modalⁿ {A = A} (suc n) =
     Modal A                                →⟨ Modal→Modalⁿ n ⟩
     For-iterated-equality n Modal A        →⟨ Modalⁿ→Modal¹⁺ⁿ n ⟩□

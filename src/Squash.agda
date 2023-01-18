@@ -208,7 +208,7 @@ empty-modal =
   ⊥-in-prop→⊥ ()
 
 private
-  module EM {ℓ = ℓ} =
+  module EM {ℓ} =
     Modality.Empty-modal.Empty-modal eq-J (modality {ℓ = ℓ}) empty-modal
 
 -- Squash commutes with Σ.
