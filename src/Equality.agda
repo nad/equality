@@ -202,7 +202,7 @@ J₀⇒Equivalence-relation⁺ :
   ∀ {ℓ reflexive} →
   Equality-with-J₀ ℓ ℓ reflexive →
   Equivalence-relation⁺ ℓ
-J₀⇒Equivalence-relation⁺ {ℓ} {r} eq = record
+J₀⇒Equivalence-relation⁺ {ℓ} {reflexive = r} eq = record
   { reflexive-relation = r ℓ
   ; sym                = sym
   ; sym-refl           = sym-refl
@@ -245,7 +245,7 @@ J₀⇒J :
   ∀ {reflexive} →
   (eq : ∀ {a p} → Equality-with-J₀ a p reflexive) →
   ∀ {a p} → Equality-with-J a p (λ _ → J₀⇒Equivalence-relation⁺ eq)
-J₀⇒J {r} eq {a} {b} = record
+J₀⇒J {reflexive = r} eq {a} {p = b} = record
   { equality-with-J₀ = eq
   ; cong             = cong
   ; cong-refl        = cong-refl

@@ -156,9 +156,9 @@ private
 
   elimᴾ′₂ : Elimᴾ′ P → (x : A / R) → P x
   elimᴾ′₂ {P = P} e = elimᴾ λ where
-      .[]ʳ                        → E.[]ʳ
-      .[]-respects-relationʳ      → E.[]-respects-relationʳ
-      .is-setʳ prop x {y} {z} p q →                                $⟨ E.is-setʳ prop p q ⟩
+      .[]ʳ                                → E.[]ʳ
+      .[]-respects-relationʳ              → E.[]-respects-relationʳ
+      .is-setʳ prop x {x = y} {y = z} p q →                        $⟨ E.is-setʳ prop p q ⟩
         P.[ (λ i →
                P.[ (λ j → P (/-is-setᴾ prop P.refl P.refl i j)) ]
                  y ≡ z) ]

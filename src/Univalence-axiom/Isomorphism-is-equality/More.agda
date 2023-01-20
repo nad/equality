@@ -696,7 +696,7 @@ Simple {c} σ = Extension-with-resp.extension record
     (σ : Simple-type c) →
     ∀ {I J} (I≅J : Isomorphic ass c I J) {f g} →
     Iso ass σ I≅J f g ≃ (_≃_.to (cast ass σ I≅J) f ≡ g)
-  Iso≃Iso″ ass (base A) I≅J {x} {y} =
+  Iso≃Iso″ ass (base A) I≅J {f = x} {g = y} =
 
     (_≃_.to (Type-cong A ass I≅J) x ≡ y)  □
 
@@ -854,7 +854,7 @@ module Dependent where
     ∀ {c} (σ : Ty c) {I J} (I≅J : Isomorphic ass c I J) {f g} →
     Iso ass σ I≅J f g ≃ (f ≡ _≃_.from (cast ass σ I≅J) g)
 
-  Iso≃Iso‴ ass set I≅J {A} {B} =
+  Iso≃Iso‴ ass set I≅J {f = A} {g = B} =
 
     ↑ _ (A ≃ B)  ↔⟨ ↑↔ ⟩
 
@@ -862,7 +862,7 @@ module Dependent where
 
     (A ≡ B)      □
 
-  Iso≃Iso‴ ass (base A) I≅J {x} {y} =
+  Iso≃Iso‴ ass (base A) I≅J {f = x} {g = y} =
 
     (x ≡ _≃_.from (Type-cong A ass I≅J) y)  □
 

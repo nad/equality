@@ -597,19 +597,19 @@ List↔Maybe[×List] = record
 -- H-levels greater than or equal to two are closed under List.
 
 H-level-List : ∀ n → H-level (2 + n) A → H-level (2 + n) (List A)
-H-level-List n _ {[]} {[]} =
+H-level-List n _ {([])} {([])} =
                              $⟨ ⊤-contractible ⟩
   Contractible ⊤             ↝⟨ H-level-cong _ 0 (inverse []≡[]↔⊤) ⟩
   Contractible ([] ≡ [])     ↝⟨ H-level.mono (zero≤ (1 + n)) ⟩□
   H-level (1 + n) ([] ≡ [])  □
 
-H-level-List n h {[]} {y ∷ ys} =
+H-level-List n h {([])} {y ∷ ys} =
                                  $⟨ ⊥-propositional ⟩
   Is-proposition ⊥₀              ↝⟨ H-level-cong _ 1 (inverse []≡∷↔⊥) ⟩
   Is-proposition ([] ≡ y ∷ ys)   ↝⟨ H-level.mono (suc≤suc (zero≤ n)) ⟩□
   H-level (1 + n) ([] ≡ y ∷ ys)  □
 
-H-level-List n h {x ∷ xs} {[]} =
+H-level-List n h {x ∷ xs} {([])} =
                                  $⟨ ⊥-propositional ⟩
   Is-proposition ⊥₀              ↝⟨ H-level-cong _ 1 (inverse ∷≡[]↔⊥) ⟩
   Is-proposition (x ∷ xs ≡ [])   ↝⟨ H-level.mono (suc≤suc (zero≤ n)) ⟩□

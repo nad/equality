@@ -117,8 +117,8 @@ Distinct⇔≢ = record { to = to _ _; from = from _ _ }
 -- Zero is a right additive unit.
 
 +-right-identity : ∀ {n} → n + 0 ≡ n
-+-right-identity {zero}  = refl 0
-+-right-identity {suc _} = cong suc +-right-identity
++-right-identity {(zero)} = refl 0
++-right-identity {suc _}  = cong suc +-right-identity
 
 -- The successor constructor can be moved from one side of _+_ to the
 -- other.
@@ -145,8 +145,8 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
 -- Addition is left cancellative.
 
 +-cancellativeˡ : ∀ {m n₁ n₂} → m + n₁ ≡ m + n₂ → n₁ ≡ n₂
-+-cancellativeˡ {zero}  = id
-+-cancellativeˡ {suc m} = +-cancellativeˡ ∘ cancel-suc
++-cancellativeˡ {(zero)} = id
++-cancellativeˡ {suc m}  = +-cancellativeˡ ∘ cancel-suc
 
 -- Addition is right cancellative.
 
@@ -169,9 +169,9 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
 -- Multiplication is commutative.
 
 *-comm : ∀ m {n} → m * n ≡ n * m
-*-comm zero    {n}     = sym (*-right-zero n)
-*-comm (suc m) {zero}  = *-right-zero m
-*-comm (suc m) {suc n} =
+*-comm zero    {n}      = sym (*-right-zero n)
+*-comm (suc m) {(zero)} = *-right-zero m
+*-comm (suc m) {suc n}  =
   suc (n + m * suc n)    ≡⟨ cong (suc ∘ (n +_)) (*-comm m) ⟩
   suc (n + suc n * m)    ≡⟨⟩
   suc (n + (m + n * m))  ≡⟨ cong suc (+-assoc n) ⟩
@@ -231,9 +231,9 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
 -- Multiplication is right cancellative for positive numbers.
 
 *-cancellativeʳ : ∀ {m₁ m₂ n} → m₁ * suc n ≡ m₂ * suc n → m₁ ≡ m₂
-*-cancellativeʳ {zero}   {zero}   = λ _ → zero  ∎
-*-cancellativeʳ {zero}   {suc _}  = ⊥-elim ∘ 0≢+
-*-cancellativeʳ {suc _}  {zero}   = ⊥-elim ∘ 0≢+ ∘ sym
+*-cancellativeʳ {(zero)} {(zero)} = λ _ → zero  ∎
+*-cancellativeʳ {(zero)} {suc _}  = ⊥-elim ∘ 0≢+
+*-cancellativeʳ {suc _}  {(zero)} = ⊥-elim ∘ 0≢+ ∘ sym
 *-cancellativeʳ {suc m₁} {suc m₂} =
   cong suc ∘
   *-cancellativeʳ ∘
@@ -451,9 +451,9 @@ m <= n = Bool→Bool (m Agda.Builtin.Nat.< suc n)
 -- than m.
 
 ≰→> : ∀ {m n} → ¬ m ≤ n → n < m
-≰→> {zero}  {n}     p = ⊥-elim (p (zero≤ n))
-≰→> {suc m} {zero}  p = suc≤suc (zero≤ m)
-≰→> {suc m} {suc n} p = suc≤suc (≰→> (p ∘ suc≤suc))
+≰→> {(zero)} {n}      p = ⊥-elim (p (zero≤ n))
+≰→> {suc m}  {(zero)} p = suc≤suc (zero≤ m)
+≰→> {suc m}  {suc n}  p = suc≤suc (≰→> (p ∘ suc≤suc))
 
 -- If m is not less than or equal to n, then n is less than or
 -- equal to m.
@@ -503,15 +503,15 @@ m <⊎≡⊎> n = case m ≤⊎> n of λ where
 -- number.
 
 +≮ : ∀ m {n} → ¬ m + n < n
-+≮ m {n}     (≤-refl′ q)           = ≢1+ n (n            ≡⟨ sym q ⟩
-                                            suc (m + n)  ≡⟨ cong suc (+-comm m) ⟩∎
-                                            suc (n + m)  ∎)
-+≮ m {zero}  (≤-step′ {k = k} p q) = 0≢+ (0      ≡⟨ sym q ⟩∎
-                                          suc k  ∎)
-+≮ m {suc n} (≤-step′ {k = k} p q) = +≮ m {n} (suc m + n  ≡⟨ suc+≡+suc m ⟩≤
-                                               m + suc n  <⟨ p ⟩
-                                               k          ≡⟨ cancel-suc q ⟩≤
-                                               n          ∎≤)
++≮ m {n}      (≤-refl′ q)           = ≢1+ n (n            ≡⟨ sym q ⟩
+                                             suc (m + n)  ≡⟨ cong suc (+-comm m) ⟩∎
+                                             suc (n + m)  ∎)
++≮ m {(zero)} (≤-step′ {k = k} p q) = 0≢+ (0      ≡⟨ sym q ⟩∎
+                                           suc k  ∎)
++≮ m {suc n}  (≤-step′ {k = k} p q) = +≮ m {n} (suc m + n  ≡⟨ suc+≡+suc m ⟩≤
+                                                m + suc n  <⟨ p ⟩
+                                                k          ≡⟨ cancel-suc q ⟩≤
+                                                n          ∎≤)
 
 -- No number is strictly less than zero.
 
@@ -545,8 +545,8 @@ m <⊎≡⊎> n = case m ≤⊎> n of λ where
 -- If n is less than or equal to pred n, then n is equal to zero.
 
 ≤pred→≡zero : ∀ {n} → n ≤ pred n → n ≡ zero
-≤pred→≡zero {zero}  _   = refl _
-≤pred→≡zero {suc n} n<n = ⊥-elim (+≮ 0 n<n)
+≤pred→≡zero {(zero)} _   = refl _
+≤pred→≡zero {suc n}  n<n = ⊥-elim (+≮ 0 n<n)
 
 -- The pred function is monotone.
 
@@ -582,9 +582,9 @@ _+-mono_ {m₁} {m₂} {n₁} {n₂} (≤-step′ {k = k} p eq) q =
 infixl 7 _*-mono_
 
 _*-mono_ : ∀ {m₁ m₂ n₁ n₂} → m₁ ≤ m₂ → n₁ ≤ n₂ → m₁ * n₁ ≤ m₂ * n₂
-_*-mono_ {zero}          _ _ = zero≤ _
-_*-mono_ {suc _} {zero}  p q = ⊥-elim (≮0 _ p)
-_*-mono_ {suc _} {suc _} p q = q +-mono suc≤suc⁻¹ p *-mono q
+_*-mono_ {(zero)}          _ _ = zero≤ _
+_*-mono_ {suc _}  {(zero)} p q = ⊥-elim (≮0 _ p)
+_*-mono_ {suc _}  {suc _}  p q = q +-mono suc≤suc⁻¹ p *-mono q
 
 -- The function suc m *_ is monotone with respect to _<_.
 
@@ -651,8 +651,8 @@ infixr 8 _^⁺-mono_
 
 _^⁺-mono_ : ∀ {m₁ m₂ n₁ n₂} →
             m₁ ≤ m₂ → suc n₁ ≤ n₂ → m₁ ^ suc n₁ ≤ m₂ ^ n₂
-_^⁺-mono_ {zero}  _ _ = zero≤ _
-_^⁺-mono_ {suc _} p q = p ⁺^-mono q
+_^⁺-mono_ {(zero)} _ _ = zero≤ _
+_^⁺-mono_ {suc _}  p q = p ⁺^-mono q
 
 -- A natural number raised to a positive power is greater than or
 -- equal to the number.
@@ -678,9 +678,9 @@ _^⁺-mono_ {suc _} p q = p ⁺^-mono q
 infix 9 _!-mono
 
 _!-mono : ∀ {m n} → m ≤ n → m ! ≤ n !
-_!-mono {zero}  {n}     _ = 1≤! n
-_!-mono {suc m} {zero}  p = ⊥-elim (≮0 _ p)
-_!-mono {suc m} {suc n} p =
+_!-mono {(zero)} {n}      _ = 1≤! n
+_!-mono {suc m}  {(zero)} p = ⊥-elim (≮0 _ p)
+_!-mono {suc m}  {suc n}  p =
   suc m * m !  ≤⟨ p *-mono suc≤suc⁻¹ p !-mono ⟩
   suc n * n !  ∎≤
 
@@ -810,20 +810,20 @@ suc m ≤→ suc n = m ≤→ n
 -- A form of associativity for _∸_.
 
 ∸-∸-assoc : ∀ {m} n {k} → (m ∸ n) ∸ k ≡ m ∸ (n + k)
-∸-∸-assoc         zero            = refl _
-∸-∸-assoc {zero}  (suc _) {zero}  = refl _
-∸-∸-assoc {zero}  (suc _) {suc _} = refl _
-∸-∸-assoc {suc _} (suc n)         = ∸-∸-assoc n
+∸-∸-assoc          zero             = refl _
+∸-∸-assoc {(zero)} (suc _) {(zero)} = refl _
+∸-∸-assoc {(zero)} (suc _) {suc _}  = refl _
+∸-∸-assoc {suc _}  (suc n)          = ∸-∸-assoc n
 
 -- A limited form of associativity for _+_ and _∸_.
 
 +-∸-assoc : ∀ {m n k} → k ≤ n → (m + n) ∸ k ≡ m + (n ∸ k)
-+-∸-assoc {m} {n} {zero} _ =
++-∸-assoc {m} {n} {(zero)} _ =
   m + n ∸ 0    ≡⟨⟩
   m + n        ≡⟨⟩
   m + (n ∸ 0)  ∎
-+-∸-assoc {m} {zero}  {suc k} <0      = ⊥-elim (≮0 _ <0)
-+-∸-assoc {m} {suc n} {suc k} 1+k≤1+n =
++-∸-assoc {m} {(zero)} {suc k} <0      = ⊥-elim (≮0 _ <0)
++-∸-assoc {m} {suc n}  {suc k} 1+k≤1+n =
   m + suc n ∸ suc k    ≡⟨ cong (_∸ suc k) (sym (suc+≡+suc m)) ⟩
   suc m + n ∸ suc k    ≡⟨⟩
   m + n ∸ k            ≡⟨ +-∸-assoc (suc≤suc⁻¹ 1+k≤1+n) ⟩
@@ -842,8 +842,8 @@ suc m ≤→ suc n = m ≤→ n
 +∸≡ {m} zero =
   m + 0  ≡⟨ +-right-identity ⟩∎
   m      ∎
-+∸≡ {zero}  (suc n) = +∸≡ n
-+∸≡ {suc m} (suc n) =
++∸≡ {(zero)} (suc n) = +∸≡ n
++∸≡ {suc m}  (suc n) =
   m + suc n ∸ n  ≡⟨ cong (_∸ n) (sym (suc+≡+suc m))  ⟩
   suc m + n ∸ n  ≡⟨ +∸≡ n ⟩∎
   suc m          ∎
@@ -894,9 +894,9 @@ suc m ≤→ suc n = m ≤→ n
 -- A kind of commutativity for _+ n and _∸ k.
 
 +-∸-comm : ∀ {m n k} → k ≤ m → (m + n) ∸ k ≡ (m ∸ k) + n
-+-∸-comm {m} {n} {k = zero}  = const (m + n  ∎)
-+-∸-comm {zero}  {k = suc k} = ⊥-elim ∘ ≮0 k
-+-∸-comm {suc _} {k = suc _} = +-∸-comm ∘ suc≤suc⁻¹
++-∸-comm {m} {n}  {k = zero}  = const (m + n  ∎)
++-∸-comm {(zero)} {k = suc k} = ⊥-elim ∘ ≮0 k
++-∸-comm {suc _}  {k = suc _} = +-∸-comm ∘ suc≤suc⁻¹
 
 -- If m is less than n, then m ∸ n is 0.
 
@@ -949,15 +949,15 @@ suc m ≤→ suc n = m ≤→ n
 infixl 6 _∸-mono_
 
 _∸-mono_ : ∀ {m₁ m₂ n₁ n₂} → m₁ ≤ m₂ → n₂ ≤ n₁ → m₁ ∸ n₁ ≤ m₂ ∸ n₂
-_∸-mono_              {n₁ = zero}   {zero}  p _ = p
-_∸-mono_              {n₁ = zero}   {suc _} _ q = ⊥-elim (≮0 _ q)
-_∸-mono_ {zero}       {n₁ = suc n₁}         _ _ = zero≤ _
-_∸-mono_ {suc _}  {zero}   {suc _}          p _ = ⊥-elim (≮0 _ p)
-_∸-mono_ {suc m₁} {suc m₂} {suc n₁} {zero}  p _ = m₁ ∸ n₁  ≤⟨ ∸≤ _ n₁ ⟩
-                                                  m₁       ≤⟨ pred≤ _ ⟩
-                                                  suc m₁   ≤⟨ p ⟩∎
-                                                  suc m₂   ∎≤
-_∸-mono_ {suc _}  {suc _}  {suc _}  {suc _} p q =
+_∸-mono_              {n₁ = zero}   {(zero)} p _ = p
+_∸-mono_              {n₁ = zero}   {suc _}  _ q = ⊥-elim (≮0 _ q)
+_∸-mono_ {(zero)}     {n₁ = suc n₁}          _ _ = zero≤ _
+_∸-mono_ {suc _}  {(zero)} {suc _}           p _ = ⊥-elim (≮0 _ p)
+_∸-mono_ {suc m₁} {suc m₂} {suc n₁} {(zero)} p _ = m₁ ∸ n₁  ≤⟨ ∸≤ _ n₁ ⟩
+                                                   m₁       ≤⟨ pred≤ _ ⟩
+                                                   suc m₁   ≤⟨ p ⟩∎
+                                                   suc m₂   ∎≤
+_∸-mono_ {suc _}  {suc _}  {suc _}  {suc _}  p q =
   suc≤suc⁻¹ p ∸-mono suc≤suc⁻¹ q
 
 -- The predecessor function can be expressed using _∸_.

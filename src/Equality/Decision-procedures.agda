@@ -267,5 +267,5 @@ module Fin where
   infix 4 _≟_
 
   _≟_ : ∀ {n} → Decidable-equality (Fin n)
-  _≟_ {zero}  = λ ()
-  _≟_ {suc n} = ⊎.Dec._≟_ (λ _ _ → yes (refl tt)) (_≟_ {n})
+  _≟_ {(zero)} = λ ()
+  _≟_ {suc n}  = ⊎.Dec._≟_ (λ _ _ → yes (refl tt)) (_≟_ {n})

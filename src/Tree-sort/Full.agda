@@ -118,9 +118,9 @@ Index _    = Extended
 -- Any.
 
 Any : ∀ {k l u} → (A → Type) → (⟦ k ⟧ l u → Type)
-Any {list}         = AnyL
-Any {ordered-list} = λ P → AnyL P ∘ to-list
-Any {search-tree}  = AnyT
+Any {(list)}         = AnyL
+Any {(ordered-list)} = λ P → AnyL P ∘ to-list
+Any {(search-tree)}  = AnyT
 
 -- Membership.
 

@@ -222,7 +222,7 @@ syntax type-signature A a = a ⦂ A
 -- instance search.
 
 it : ⦃ _ : A ⦄ → A
-it ⦃ x ⦄ = x
+it ⦃ (x) ⦄ = x
 
 -- Case expressions (to be used with pattern-matching lambdas).
 

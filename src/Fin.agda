@@ -158,19 +158,19 @@ isomorphic-same-size {m} {n} = record
 -- Fin n are equal.
 
 cancel-⌞⌟ : ∀ {n} {i j : Fin n} → ⌞ i ⌟ ≡ ⌞ j ⌟ → i ≡ j
-cancel-⌞⌟ {zero}  {}
-cancel-⌞⌟ {suc _} {fzero}  {fzero}  _   = refl _
-cancel-⌞⌟ {suc _} {fzero}  {fsuc _} 0≡+ = ⊥-elim (Nat.0≢+ 0≡+)
-cancel-⌞⌟ {suc _} {fsuc _} {fzero}  +≡0 = ⊥-elim (Nat.0≢+ (sym +≡0))
-cancel-⌞⌟ {suc _} {fsuc _} {fsuc _} +≡+ =
+cancel-⌞⌟ {(zero)} {}
+cancel-⌞⌟ {suc _}  {(fzero)} {(fzero)} _   = refl _
+cancel-⌞⌟ {suc _}  {(fzero)} {fsuc _}  0≡+ = ⊥-elim (Nat.0≢+ 0≡+)
+cancel-⌞⌟ {suc _}  {fsuc _}  {(fzero)} +≡0 = ⊥-elim (Nat.0≢+ (sym +≡0))
+cancel-⌞⌟ {suc _}  {fsuc _}  {fsuc _}  +≡+ =
   cong fsuc (cancel-⌞⌟ (Nat.cancel-suc +≡+))
 
 -- Tries to convert from natural numbers.
 
 from-ℕ′ : ∀ {m} (n : ℕ) → m ≤ n ⊎ ∃ λ (i : Fin m) → ⌞ i ⌟ ≡ n
-from-ℕ′ {zero}  _       = inj₁ (Nat.zero≤ _)
-from-ℕ′ {suc m} zero    = inj₂ (fzero , refl _)
-from-ℕ′ {suc m} (suc n) =
+from-ℕ′ {(zero)} _       = inj₁ (Nat.zero≤ _)
+from-ℕ′ {suc m}  zero    = inj₂ (fzero , refl _)
+from-ℕ′ {suc m}  (suc n) =
   ⊎-map Nat.suc≤suc (Σ-map fsuc (cong suc)) (from-ℕ′ {m} n)
 
 from-ℕ : ∀ {m} (n : ℕ) → m ≤ n ⊎ Fin m
@@ -231,14 +231,14 @@ largest≡Fin↔< {n} =
 -- Single-step weakening.
 
 weaken₁ : ∀ {n} → Fin n → Fin (suc n)
-weaken₁ {zero}  ()
-weaken₁ {suc _} fzero    = fzero
-weaken₁ {suc _} (fsuc i) = fsuc (weaken₁ i)
+weaken₁ {(zero)} ()
+weaken₁ {suc _}  fzero    = fzero
+weaken₁ {suc _}  (fsuc i) = fsuc (weaken₁ i)
 
 weaken₁-correct : ∀ {n} (i : Fin n) → ⌞ weaken₁ i ⌟ ≡ ⌞ i ⌟
-weaken₁-correct {zero}  ()
-weaken₁-correct {suc _} fzero    = refl _
-weaken₁-correct {suc _} (fsuc i) = cong suc (weaken₁-correct i)
+weaken₁-correct {(zero)} ()
+weaken₁-correct {suc _}  fzero    = refl _
+weaken₁-correct {suc _}  (fsuc i) = cong suc (weaken₁-correct i)
 
 -- Multiple-step weakening.
 
@@ -277,10 +277,10 @@ predᶠ-correct {n = suc _} (fsuc i) = weaken₁-correct i
 sucᶠ : ∀ {n} (i : Fin (suc n)) →
        i ≡ largest n ⊎
        i ≢ largest n × ∃ λ (j : Fin (suc n)) → ⌞ j ⌟ ≡ suc ⌞ i ⌟
-sucᶠ {zero}  fzero     = inj₁ (refl _)
-sucᶠ {zero}  (fsuc ())
-sucᶠ {suc _} fzero     = inj₂ (⊎.inj₁≢inj₂ , fsuc fzero , refl _)
-sucᶠ {suc _} (fsuc i)  =
+sucᶠ {(zero)} fzero     = inj₁ (refl _)
+sucᶠ {(zero)} (fsuc ())
+sucᶠ {suc _}  fzero     = inj₂ (⊎.inj₁≢inj₂ , fsuc fzero , refl _)
+sucᶠ {suc _}  (fsuc i)  =
   ⊎-map (cong fsuc)
         (Σ-map (_∘ ⊎.cancel-inj₂) (Σ-map fsuc (cong suc)))
         (sucᶠ i)
@@ -445,5 +445,5 @@ Fin↔Fin+≢ {suc (suc n)} (fsuc i) =
   ⊤ ⊎ (∃ λ (j : Fin (1 + n)) → Distinct j i)     ↔⟨ inverse $ ∃-Fin-suc _ ⟩□
   (∃ λ (j : Fin (2 + n)) → Distinct j (fsuc i))  □
 
-Fin↔Fin+≢ {zero}     ()
+Fin↔Fin+≢ {(zero)}   ()
 Fin↔Fin+≢ {suc zero} (fsuc ())

@@ -42,7 +42,7 @@ all-equality-types-isomorphic :
   ∃ λ (iso : {x y : A} → E._≡_ e₁ x y ↔ E._≡_ e₂ x y) →
     (∀ {x} → E._≡_ e₂ (_↔_.to   iso (E.refl e₁ x)) (E.refl e₂ x)) ×
     (∀ {x} → E._≡_ e₁ (_↔_.from iso (E.refl e₂ x)) (E.refl e₁ x))
-all-equality-types-isomorphic {c₁} {c₂} eq₁ eq₂ =
+all-equality-types-isomorphic {e₁ = c₁} {e₂ = c₂} eq₁ eq₂ =
     record
       { surjection = record
         { logical-equivalence = record

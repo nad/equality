@@ -32,7 +32,7 @@ const-is-injective :
   ∀ {a b} →
   {A : Type a} {B : Type b} →
   A → Injective {B = A → B} const
-const-is-injective x {y} {z} =
+const-is-injective x {x = y} {y = z} =
   const y ≡ const z  ↝⟨ cong (_$ x) ⟩□
   y ≡ z              □
 

@@ -646,7 +646,7 @@ abstract
 
     (_≃_.to eq x ≡ y)  □
 
-  is-isomorphism-isomorphic ass type {x = X} {Y} eq =
+  is-isomorphism-isomorphic ass type {x = X} {y = Y} eq =
 
     (X ≡ Y)      ↔⟨ ≡≃≃ univ ⟩
 
@@ -660,7 +660,7 @@ abstract
 
     (x ≡ y) □
 
-  is-isomorphism-isomorphic ass (a ⇾ b) {x = f} {g} eq =
+  is-isomorphism-isomorphic ass (a ⇾ b) {x = f} {y = g} eq =
 
     (resp b eq ∘ f ∘ resp⁻¹ a eq ≡ g)                  ↝⟨ ∘from≡↔≡∘to ext₁ (cast≃ ext₁ a eq) ⟩
 
@@ -1164,7 +1164,7 @@ private
     (∀ x → (x * 1#) ≡ x) →
     ∀ x → ∃ (λ y → (x * y) ≡ 1#) → Injective (_*_ x)
   *-injective _*_ 1# *-assoc *-comm *1 x (x⁻¹ , xx⁻¹≡1)
-             {y₁} {y₂} xy₁≡xy₂ =
+             {x = y₁} {y = y₂} xy₁≡xy₂ =
     y₁                ≡⟨ lemma y₁ ⟩
     (x⁻¹ * (x * y₁))  ≡⟨ cong (_*_ x⁻¹) xy₁≡xy₂ ⟩
     (x⁻¹ * (x * y₂))  ≡⟨ sym $ lemma y₂ ⟩∎

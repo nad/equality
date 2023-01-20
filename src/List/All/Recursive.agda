@@ -549,8 +549,8 @@ proj₁-Vec-Σ {n = suc n} = cong (_ ,_) proj₁-Vec-Σ
 map₂∘map₂′ :
   ∀ {xs ys zs} {xs⊆ys : xs ⊆ ys} {ys⊆zs : ys ⊆′ zs} {ps : All P zs} →
   map₂ xs⊆ys (map₂′ ys⊆zs ps) ≡ map₂ (map₁ ys⊆zs xs⊆ys) ps
-map₂∘map₂′ {xs = []}                             = refl _
-map₂∘map₂′ {xs = _ ∷ _} {xs⊆ys = q , _} {f} {ps} =
+map₂∘map₂′ {xs = []}                                     = refl _
+map₂∘map₂′ {xs = _ ∷ _} {xs⊆ys = q , _} {ys⊆zs = f} {ps} =
   cong₂ _,_ lemma map₂∘map₂′
   where
   lemma =

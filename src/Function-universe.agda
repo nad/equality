@@ -64,48 +64,48 @@ A ↝[ equivalenceᴱ        ] B = A ≃ᴱ B
 
 from-equivalence : ∀ {k a b} {A : Type a} {B : Type b} →
                    A ≃ B → A ↝[ k ] B
-from-equivalence {implication}         = _≃_.to
-from-equivalence {logical-equivalence} = _≃_.logical-equivalence
-from-equivalence {injection}           = _≃_.injection
-from-equivalence {embedding}           = Emb.≃→Embedding
-from-equivalence {surjection}          = _≃_.surjection
-from-equivalence {bijection}           = _≃_.bijection
-from-equivalence {equivalence}         = P.id
-from-equivalence {equivalenceᴱ}        = EEq.≃→≃ᴱ
+from-equivalence {(implication)}         = _≃_.to
+from-equivalence {(logical-equivalence)} = _≃_.logical-equivalence
+from-equivalence {(injection)}           = _≃_.injection
+from-equivalence {(embedding)}           = Emb.≃→Embedding
+from-equivalence {(surjection)}          = _≃_.surjection
+from-equivalence {(bijection)}           = _≃_.bijection
+from-equivalence {(equivalence)}         = P.id
+from-equivalence {(equivalenceᴱ)}        = EEq.≃→≃ᴱ
 
 -- Bijections can be converted to all kinds of functions.
 
 from-bijection : ∀ {k a b} {A : Type a} {B : Type b} →
                  A ↔ B → A ↝[ k ] B
-from-bijection {implication}         = _↔_.to
-from-bijection {logical-equivalence} = _↔_.logical-equivalence
-from-bijection {injection}           = _↔_.injection
-from-bijection {embedding}           = from-equivalence ⊚ Eq.↔⇒≃
-from-bijection {surjection}          = _↔_.surjection
-from-bijection {bijection}           = P.id
-from-bijection {equivalence}         = Eq.↔⇒≃
-from-bijection {equivalenceᴱ}        = EEq.≃→≃ᴱ ⊚ Eq.↔⇒≃
+from-bijection {(implication)}         = _↔_.to
+from-bijection {(logical-equivalence)} = _↔_.logical-equivalence
+from-bijection {(injection)}           = _↔_.injection
+from-bijection {(embedding)}           = from-equivalence ⊚ Eq.↔⇒≃
+from-bijection {(surjection)}          = _↔_.surjection
+from-bijection {(bijection)}           = P.id
+from-bijection {(equivalence)}         = Eq.↔⇒≃
+from-bijection {(equivalenceᴱ)}        = EEq.≃→≃ᴱ ⊚ Eq.↔⇒≃
 
 -- All kinds of functions can be converted to implications.
 
 to-implication : ∀ {k a b} {@0 A : Type a} {@0 B : Type b} →
                  A ↝[ k ] B → A → B
-to-implication {implication} f =
+to-implication {(implication)} f =
   f
-to-implication {logical-equivalence} f =
+to-implication {(logical-equivalence)} f =
   let record { to = to } = f in to
-to-implication {injection} f =
+to-implication {(injection)} f =
   let record { to = to } = f in to
-to-implication {embedding} f =
+to-implication {(embedding)} f =
   let record { to = to } = f in to
-to-implication {surjection} f =
+to-implication {(surjection)} f =
   let record
         { logical-equivalence = record
           { to = to
           }
         } = f
   in to
-to-implication {bijection} f =
+to-implication {(bijection)} f =
   let record
         { surjection = record
           { logical-equivalence = record
@@ -114,9 +114,9 @@ to-implication {bijection} f =
           }
         } = f
   in to
-to-implication {equivalence} f =
+to-implication {(equivalence)} f =
   let record { to = to } = f in to
-to-implication {equivalenceᴱ} f =
+to-implication {(equivalenceᴱ)} f =
   _≃ᴱ_.to f
 
 ------------------------------------------------------------------------
@@ -134,10 +134,10 @@ data Symmetric-kind : Type where
 
 inverse : ∀ {k a b} {A : Type a} {B : Type b} →
           A ↝[ ⌊ k ⌋-sym ] B → B ↝[ ⌊ k ⌋-sym ] A
-inverse {logical-equivalence} = L.inverse
-inverse {bijection}           = Bijection.inverse
-inverse {equivalence}         = Eq.inverse
-inverse {equivalenceᴱ}        = EEq.inverse
+inverse {(logical-equivalence)} = L.inverse
+inverse {(bijection)}           = Bijection.inverse
+inverse {(equivalence)}         = Eq.inverse
+inverse {(equivalenceᴱ)}        = EEq.inverse
 
 -- If there is a symmetric kind of function from A to B, then A and B
 -- are logically equivalent.
@@ -167,8 +167,8 @@ A ↔[ k ] B = A ↝[ ⌊ k ⌋-iso ] B
 
 from-isomorphism : ∀ {k₁ k₂ a b} {A : Type a} {B : Type b} →
                    A ↔[ k₁ ] B → A ↝[ k₂ ] B
-from-isomorphism {bijection}   = from-bijection
-from-isomorphism {equivalence} = from-equivalence
+from-isomorphism {(bijection)}   = from-bijection
+from-isomorphism {(equivalence)} = from-equivalence
 
 -- Lemma: to-implication after from-isomorphism is the same as
 -- to-implication.
@@ -210,26 +210,26 @@ infixr 9 _∘_
 
 _∘_ : ∀ {k a b c} {A : Type a} {B : Type b} {C : Type c} →
       B ↝[ k ] C → A ↝[ k ] B → A ↝[ k ] C
-_∘_ {implication}         = λ f g → f ⊚ g
-_∘_ {logical-equivalence} = L._∘_
-_∘_ {injection}           = Injection._∘_
-_∘_ {embedding}           = Emb._∘_
-_∘_ {surjection}          = Surjection._∘_
-_∘_ {bijection}           = Bijection._∘_
-_∘_ {equivalence}         = Eq._∘_
-_∘_ {equivalenceᴱ}        = EEq._∘_
+_∘_ {(implication)}         = λ f g → f ⊚ g
+_∘_ {(logical-equivalence)} = L._∘_
+_∘_ {(injection)}           = Injection._∘_
+_∘_ {(embedding)}           = Emb._∘_
+_∘_ {(surjection)}          = Surjection._∘_
+_∘_ {(bijection)}           = Bijection._∘_
+_∘_ {(equivalence)}         = Eq._∘_
+_∘_ {(equivalenceᴱ)}        = EEq._∘_
 
 -- Identity.
 
 id : ∀ {k a} {A : Type a} → A ↝[ k ] A
-id {implication}         = P.id
-id {logical-equivalence} = L.id
-id {injection}           = Injection.id
-id {embedding}           = Emb.id
-id {surjection}          = Surjection.id
-id {bijection}           = Bijection.id
-id {equivalence}         = Eq.id
-id {equivalenceᴱ}        = EEq.id
+id {(implication)}         = P.id
+id {(logical-equivalence)} = L.id
+id {(injection)}           = Injection.id
+id {(embedding)}           = Emb.id
+id {(surjection)}          = Surjection.id
+id {(bijection)}           = Bijection.id
+id {(equivalence)}         = Eq.id
+id {(equivalenceᴱ)}        = EEq.id
 
 -- "Equational" reasoning combinators.
 
@@ -1121,14 +1121,14 @@ infixr 1 _⊎-cong_
 _⊎-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
              {B₁ : Type b₁} {B₂ : Type b₂} →
            A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ ⊎ B₁ ↝[ k ] A₂ ⊎ B₂
-_⊎-cong_ {implication}         = ⊎-map
-_⊎-cong_ {logical-equivalence} = L._⊎-cong_
-_⊎-cong_ {injection}           = ⊎-cong-inj
-_⊎-cong_ {embedding}           = ⊎-cong-emb
-_⊎-cong_ {surjection}          = ⊎-cong-surj
-_⊎-cong_ {bijection}           = ⊎-cong-bij
-_⊎-cong_ {equivalence}         = ⊎-cong-≃
-_⊎-cong_ {equivalenceᴱ}        = ⊎-cong-≃ᴱ
+_⊎-cong_ {(implication)}         = ⊎-map
+_⊎-cong_ {(logical-equivalence)} = L._⊎-cong_
+_⊎-cong_ {(injection)}           = ⊎-cong-inj
+_⊎-cong_ {(embedding)}           = ⊎-cong-emb
+_⊎-cong_ {(surjection)}          = ⊎-cong-surj
+_⊎-cong_ {(bijection)}           = ⊎-cong-bij
+_⊎-cong_ {(equivalence)}         = ⊎-cong-≃
+_⊎-cong_ {(equivalenceᴱ)}        = ⊎-cong-≃ᴱ
 
 -- _⊎_ is commutative.
 
@@ -1392,16 +1392,16 @@ infixr 2 _×-cong_
 _×-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
              {B₁ : Type b₁} {B₂ : Type b₂} →
            A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ × B₁ ↝[ k ] A₂ × B₂
-_×-cong_ {implication}         = λ f g → Σ-map f g
-_×-cong_ {logical-equivalence} = L._×-cong_
-_×-cong_ {injection}           = ×-cong-inj
-_×-cong_ {embedding}           = λ A₁↣A₂ B₁↣B₂ →
-                                   Σ-preserves-embeddings
-                                     A₁↣A₂ (λ _ → B₁↣B₂)
-_×-cong_ {surjection}          = ×-cong-surj
-_×-cong_ {bijection}           = ×-cong-bij
-_×-cong_ {equivalence}         = ×-cong-≃
-_×-cong_ {equivalenceᴱ}        = ×-cong-≃ᴱ
+_×-cong_ {(implication)}         = λ f g → Σ-map f g
+_×-cong_ {(logical-equivalence)} = L._×-cong_
+_×-cong_ {(injection)}           = ×-cong-inj
+_×-cong_ {(embedding)}           = λ A₁↣A₂ B₁↣B₂ →
+                                     Σ-preserves-embeddings
+                                       A₁↣A₂ (λ _ → B₁↣B₂)
+_×-cong_ {(surjection)}          = ×-cong-surj
+_×-cong_ {(bijection)}           = ×-cong-bij
+_×-cong_ {(equivalence)}         = ×-cong-≃
+_×-cong_ {(equivalenceᴱ)}        = ×-cong-≃ᴱ
 
 -- The function to-implication is homomorphic with respect to
 -- _×-cong_/Σ-map.
@@ -1504,24 +1504,24 @@ open Bijection public using (Σ-assoc)
          (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
          (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
          Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
-Σ-cong {equivalence} {implication}         = λ A₁≃A₂ B₁→B₂ →
-                                               Σ-map (from-isomorphism A₁≃A₂) (B₁→B₂ _)
-Σ-cong {bijection}   {implication}         = λ A₁↔A₂ B₁→B₂ →
-                                               Σ-map (from-isomorphism A₁↔A₂) (B₁→B₂ _)
-Σ-cong {equivalence} {logical-equivalence} = Surjection.Σ-cong-⇔       ⊚ from-isomorphism
-Σ-cong {bijection}   {logical-equivalence} = Surjection.Σ-cong-⇔       ⊚ from-isomorphism
-Σ-cong {equivalence} {injection}           = Eq.∃-preserves-injections
-Σ-cong {bijection}   {injection}           = Eq.∃-preserves-injections ⊚ from-isomorphism
-Σ-cong {equivalence} {embedding}           = Σ-preserves-embeddings    ⊚ from-isomorphism
-Σ-cong {bijection}   {embedding}           = Σ-preserves-embeddings    ⊚ from-isomorphism
-Σ-cong {equivalence} {surjection}          = Surjection.Σ-cong         ⊚ from-isomorphism
-Σ-cong {bijection}   {surjection}          = Surjection.Σ-cong         ⊚ from-isomorphism
-Σ-cong {equivalence} {bijection}           = Eq.∃-preserves-bijections
-Σ-cong {bijection}   {bijection}           = Eq.∃-preserves-bijections ⊚ from-isomorphism
-Σ-cong {equivalence} {equivalence}         = Eq.Σ-preserves
-Σ-cong {bijection}   {equivalence}         = Eq.Σ-preserves            ⊚ from-isomorphism
-Σ-cong {equivalence} {equivalenceᴱ}
-       {B₂ = B₂}                           = λ f g →
+Σ-cong {(equivalence)} {(implication)}         = λ A₁≃A₂ B₁→B₂ →
+                                                   Σ-map (from-isomorphism A₁≃A₂) (B₁→B₂ _)
+Σ-cong {(bijection)}   {(implication)}         = λ A₁↔A₂ B₁→B₂ →
+                                                   Σ-map (from-isomorphism A₁↔A₂) (B₁→B₂ _)
+Σ-cong {(equivalence)} {(logical-equivalence)} = Surjection.Σ-cong-⇔       ⊚ from-isomorphism
+Σ-cong {(bijection)}   {(logical-equivalence)} = Surjection.Σ-cong-⇔       ⊚ from-isomorphism
+Σ-cong {(equivalence)} {(injection)}           = Eq.∃-preserves-injections
+Σ-cong {(bijection)}   {(injection)}           = Eq.∃-preserves-injections ⊚ from-isomorphism
+Σ-cong {(equivalence)} {(embedding)}           = Σ-preserves-embeddings    ⊚ from-isomorphism
+Σ-cong {(bijection)}   {(embedding)}           = Σ-preserves-embeddings    ⊚ from-isomorphism
+Σ-cong {(equivalence)} {(surjection)}          = Surjection.Σ-cong         ⊚ from-isomorphism
+Σ-cong {(bijection)}   {(surjection)}          = Surjection.Σ-cong         ⊚ from-isomorphism
+Σ-cong {(equivalence)} {(bijection)}           = Eq.∃-preserves-bijections
+Σ-cong {(bijection)}   {(bijection)}           = Eq.∃-preserves-bijections ⊚ from-isomorphism
+Σ-cong {(equivalence)} {(equivalence)}         = Eq.Σ-preserves
+Σ-cong {(bijection)}   {(equivalence)}         = Eq.Σ-preserves            ⊚ from-isomorphism
+Σ-cong {(equivalence)} {(equivalenceᴱ)}
+       {B₂ = B₂}                               = λ f g →
   EEq.[≃]→≃ᴱ
     {to   = λ (x , y) → _≃_.to f x , _≃ᴱ_.to (g x) y}
     {from = λ (x , y) →
@@ -1530,8 +1530,8 @@ open Bijection public using (Σ-assoc)
                    (subst B₂ (sym (_≃_.right-inverse-of f x)) y)}
     (EEq.[proofs]
        (Eq.Σ-preserves f (EEq.≃ᴱ→≃ ⊚ g)))
-Σ-cong {bijection}   {equivalenceᴱ}
-       {B₂ = B₂}                           = λ f g →
+Σ-cong {(bijection)}   {(equivalenceᴱ)}
+       {B₂ = B₂}                               = λ f g →
   EEq.[≃]→≃ᴱ
     {to   = λ (x , y) → _↔_.to f x , _≃ᴱ_.to (g x) y}
     {from = λ (x , y) →
@@ -1635,14 +1635,14 @@ private
 ∃-cong : ∀ {k a b₁ b₂}
            {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
          (∀ x → B₁ x ↝[ k ] B₂ x) → ∃ B₁ ↝[ k ] ∃ B₂
-∃-cong {implication}         = ∃-cong-impl
-∃-cong {logical-equivalence} = L.∃-cong
-∃-cong {injection}           = Σ-cong Bijection.id
-∃-cong {embedding}           = Σ-preserves-embeddings Emb.id
-∃-cong {surjection}          = ∃-cong-surj
-∃-cong {bijection}           = ∃-cong-bij
-∃-cong {equivalence}         = Eq.∃-cong
-∃-cong {equivalenceᴱ}        = ∃-cong-≃ᴱ
+∃-cong {(implication)}         = ∃-cong-impl
+∃-cong {(logical-equivalence)} = L.∃-cong
+∃-cong {(injection)}           = Σ-cong Bijection.id
+∃-cong {(embedding)}           = Σ-preserves-embeddings Emb.id
+∃-cong {(surjection)}          = ∃-cong-surj
+∃-cong {(bijection)}           = ∃-cong-bij
+∃-cong {(equivalence)}         = Eq.∃-cong
+∃-cong {(equivalenceᴱ)}        = ∃-cong-≃ᴱ
 
 private
 
@@ -2173,10 +2173,10 @@ private
          {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
          A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
          (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
-→-cong {logical-equivalence} _   = L.→-cong
-→-cong {bijection}           ext = →-cong-↔  ext
-→-cong {equivalence}         ext = →-cong-≃  ext
-→-cong {equivalenceᴱ}        ext = →-cong-≃ᴱ ext
+→-cong {(logical-equivalence)} _   = L.→-cong
+→-cong {(bijection)}           ext = →-cong-↔  ext
+→-cong {(equivalence)}         ext = →-cong-≃  ext
+→-cong {(equivalenceᴱ)}        ext = →-cong-≃ᴱ ext
 
 -- A variant of →-cong.
 
@@ -2317,14 +2317,14 @@ private
   {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
   (∀ x → B₁ x ↝[ k ] B₂ x) →
   ((x : A) → B₁ x) ↝[ k ] ((x : A) → B₂ x)
-∀-cong {implication}         = λ _ → ∀-cong-→
-∀-cong {logical-equivalence} = λ _ → L.∀-cong
-∀-cong {injection}           = ∀-cong-inj
-∀-cong {embedding}           = ∀-cong-emb
-∀-cong {surjection}          = λ ext → ∀-cong-↠ ext
-∀-cong {bijection}           = ∀-cong-bij
-∀-cong {equivalence}         = ∀-cong-eq
-∀-cong {equivalenceᴱ}        = ∀-cong-eqᴱ
+∀-cong {(implication)}         = λ _ → ∀-cong-→
+∀-cong {(logical-equivalence)} = λ _ → L.∀-cong
+∀-cong {(injection)}           = ∀-cong-inj
+∀-cong {(embedding)}           = ∀-cong-emb
+∀-cong {(surjection)}          = λ ext → ∀-cong-↠ ext
+∀-cong {(bijection)}           = ∀-cong-bij
+∀-cong {(equivalence)}         = ∀-cong-eq
+∀-cong {(equivalenceᴱ)}        = ∀-cong-eqᴱ
 
 -- The implicit variant of Π preserves all kinds of functions in its
 -- second argument (in some cases assuming extensionality).
@@ -4185,14 +4185,14 @@ private
 
 ↑-cong : ∀ {k a b c} {B : Type b} {C : Type c} →
            B ↝[ k ] C → ↑ a B ↝[ k ] ↑ a C
-↑-cong {implication}         = ↑-cong-→
-↑-cong {logical-equivalence} = L.↑-cong
-↑-cong {injection}           = ↑-cong-↣
-↑-cong {embedding}           = ↑-cong-Embedding
-↑-cong {surjection}          = ↑-cong-↠
-↑-cong {bijection}           = ↑-cong-↔
-↑-cong {equivalence}         = ↑-cong-≃
-↑-cong {equivalenceᴱ}        = ↑-cong-≃ᴱ
+↑-cong {(implication)}         = ↑-cong-→
+↑-cong {(logical-equivalence)} = L.↑-cong
+↑-cong {(injection)}           = ↑-cong-↣
+↑-cong {(embedding)}           = ↑-cong-Embedding
+↑-cong {(surjection)}          = ↑-cong-↠
+↑-cong {(bijection)}           = ↑-cong-↔
+↑-cong {(equivalence)}         = ↑-cong-≃
+↑-cong {(equivalenceᴱ)}        = ↑-cong-≃ᴱ
 
 ------------------------------------------------------------------------
 -- Lemmas related to unit types
@@ -5186,7 +5186,7 @@ suc≤suc↔ =
   record { to = ≤→<⊎≡; from = [ <→≤ , ≤-refl′ ] }
 
 ≤↔≡0⊎0<×≤ : ∀ {m n} → m ≤ n ↔ m ≡ 0 ⊎ 0 < m × m ≤ n
-≤↔≡0⊎0<×≤ {zero} {n} =
+≤↔≡0⊎0<×≤ {(zero)} {n} =
   0 ≤ n                  ↝⟨ zero≤↔ ⟩
   ⊤                      ↝⟨ inverse ⊎-right-identity ⟩
   ⊤ ⊎ ⊥₀                 ↝⟨ id ⊎-cong inverse ×-left-zero ⟩
@@ -5221,8 +5221,8 @@ suc≤suc↔ =
   { surjection = record
     { logical-equivalence = record
       { to   = Σ-map pred λ where
-                 {zero}  (0<0 , _) → ⊥-elim (≮0 _ 0<0)
-                 {suc _} (_   , p) → p
+                 {(zero)} (0<0 , _) → ⊥-elim (≮0 _ 0<0)
+                 {suc _}  (_   , p) → p
       ; from = Σ-map suc (λ p → suc≤suc (zero≤ _) , p)
       }
     ; right-inverse-of = refl

@@ -400,7 +400,7 @@ abstract
 
     (_↔_.to B↔C x ≡ y)  □
 
-  isomorphism-definitions-isomorphic ass prop B↔C {P} {Q} =
+  isomorphism-definitions-isomorphic ass prop B↔C {x = P} {y = Q} =
 
     ↑ _ (proj₁ P ⇔ proj₁ Q)  ↝⟨ B.↑↔ ⟩
 
@@ -418,7 +418,7 @@ abstract
 
     (x ≡ y) □
 
-  isomorphism-definitions-isomorphic ass (a ⇾ b) B↔C {f} {g} =
+  isomorphism-definitions-isomorphic ass (a ⇾ b) B↔C {x = f} {y = g} =
     let B≃C = Eq.↔⇒≃ B↔C in
 
     (∀ x y → Is-isomorphism a B↔C x y →

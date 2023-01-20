@@ -576,7 +576,7 @@ _+_ = binary-operator
      })
   where
   lemma : ∀ _ {_ _ _} → _
-  lemma a {b} {c} {d} =
+  lemma a {(b)} {(c)} {(d)} =
     (a ⊕ b) ⊕ (c ⊕ d)  ≡⟨ sym $ Nat.+-assoc a ⟩
     a ⊕ (b ⊕ (c ⊕ d))  ≡⟨ cong (a ⊕_) $ Nat.+-assoc b ⟩
     a ⊕ ((b ⊕ c) ⊕ d)  ≡⟨ cong ((a ⊕_) ∘ (_⊕ d)) $ Nat.+-comm b ⟩

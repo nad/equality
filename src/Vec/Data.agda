@@ -56,8 +56,8 @@ map f (x ∷ xs) = f x ∷ map f xs
 -- given element.
 
 replicate : ∀ {n a} {A : Type a} → A → Vec A n
-replicate {zero}  _ = []
-replicate {suc _} x = x ∷ replicate x
+replicate {(zero)} _ = []
+replicate {suc _}  x = x ∷ replicate x
 
 -- The head of the vector.
 

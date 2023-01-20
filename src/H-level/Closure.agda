@@ -652,7 +652,7 @@ abstract
     Contractible-propositional ext
   H-level-propositional ext (suc zero) =
     Is-proposition-propositional ext
-  H-level-propositional {A} ext (suc (suc n)) =
+  H-level-propositional ext (suc (suc n)) =
     implicit-Π-closure ext 1 λ x →
     implicit-Π-closure ext 1 λ y →
     H-level-propositional ext {A = x ≡ y} (suc n)
@@ -1052,7 +1052,8 @@ abstract
     Extensionality (a ⊔ b) (# 0) →
     Is-proposition A → Is-proposition B →
     Is-proposition (A Xor B)
-  Xor-closure-propositional {ℓa} {ℓb} {A} {B} ext pA pB = λ where
+  Xor-closure-propositional {a = ℓa} {b = ℓb} {A} {B}
+                            ext pA pB = λ where
     (inj₁ (a , ¬b)) (inj₂ (¬a  , b))   → ⊥-elim (¬a a)
     (inj₂ (¬a , b)) (inj₁ (a   , ¬b))  → ⊥-elim (¬b b)
     (inj₁ (a , ¬b)) (inj₁ (a′  , ¬b′)) →

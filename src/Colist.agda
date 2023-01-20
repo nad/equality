@@ -849,7 +849,7 @@ _□ˢ-⊛_ : □ˢ i (λ j x → Pˢ j x → Qˢ j x) xs → □ˢ i Pˢ xs →
 □ˢ-map′ :
   (∀ {i x} → Pˢ i (f x) → Qˢ i (g x)) →
   (∀ {xs} → □ˢ i Pˢ (map f xs) → □ˢ i Qˢ (map g xs))
-□ˢ-map′ g {[]}    []       = []
+□ˢ-map′ g {([])}  []       = []
 □ˢ-map′ g {_ ∷ _} (p ∷ ps) = g p ∷ λ { .force → □ˢ-map′ g (force ps) }
 
 -- Something resembling applicative functor application for □ˢ and ◇ˢ.

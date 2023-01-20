@@ -154,7 +154,7 @@ private
       trans x≡y y≡z            ≡⟨ cong₂ trans h₁ h₂ ⟩
       trans (refl _) ⟦ x≈y ⟧S  ≡⟨ trans-reflˡ _ ⟩∎
       ⟦ x≈y ⟧S                 ∎
-    append-correct {x≡y = x≡z} {z≡u} (Cons x≈y y≈z) z≈u h₁ h₂ =
+    append-correct {x≡y = x≡z} {y≡z = z≡u} (Cons x≈y y≈z) z≈u h₁ h₂ =
       trans x≡z z≡u                        ≡⟨ cong₂ trans h₁ (refl z≡u) ⟩
       trans (trans ⟦ x≈y ⟧S ⟦ y≈z ⟧S) z≡u  ≡⟨ trans-assoc _ _ _ ⟩
       trans ⟦ x≈y ⟧S (trans ⟦ y≈z ⟧S z≡u)  ≡⟨ cong (trans _) $ append-correct y≈z z≈u (refl _) h₂ ⟩∎
